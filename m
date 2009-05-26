@@ -1,44 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] OMAP clock/SDRC patches on v2.6.30-rc5
-Date: Tue, 26 May 2009 15:04:31 -0700
-Message-ID: <20090526220431.GF11865@atomide.com>
-References: <20090512235713.10349.49339.stgit@localhost.localdomain> <alpine.DEB.2.00.0905261025350.17019@utopia.booyaka.com> <20090526163703.GF26713@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0905261050560.17019@utopia.booyaka.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH 00/10] OMAP clock/powerdomain/SDRC patches for post-2.6.30
+Date: Tue, 26 May 2009 16:12:26 -0600
+Message-ID: <20090526220517.25381.75976.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52321 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883AbZEZWEo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2009 18:04:44 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0905261050560.17019@utopia.booyaka.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:33542 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758200AbZEZWWY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 26 May 2009 18:22:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [090526 09:53]:
-> On Tue, 26 May 2009, Russell King - ARM Linux wrote:
-> 
-> > On Tue, May 26, 2009 at 10:29:52AM -0600, Paul Walmsley wrote:
-> > > Hello Russell,
-> > > 
-> > > On Tue, 12 May 2009, Paul Walmsley wrote:
-> > > 
-> > > > This series contains OMAP clock and SDRAM controller patches against
-> > > > v2.6.30-rc5.  If you are happy with these, Tony will merge them into
-> > > > his for-next branch for you to pull.
-> > > > 
-> > > > This series includes the clk_init_one() to clk_preinit() rename that
-> > > > we've discussed recently.  Most of the patches prepare for CORE DPLL
-> > > > M2 rate changing support.
-> > > 
-> > > Any comments on these patches?
-> > 
-> > All look fine to me.
-> 
-> Great, thanks.
+Hello Russell,
 
-I've pulled these to the omap for-next branch to wait for the merge window.
+here is the next set of OMAP clock patches for review for the
+post-2.6.30 merge window.  They apply on top of the previous set
+("OMAP clock/SDRC patches on v2.6.30-rc5").  If you're happy with
+these patches, Tony will queue them up into his for-next branch.
 
-Tony
+This series completes basic support for OMAP3 CORE DVFS.  A few other
+minor bugs are fixed by the off-by-one patch and the GPIO debounce
+clock patch.
+
+
+regards,
+
+- Paul
+
+---
+
+Paul Walmsley (8):
+      OMAP3 clock: GPIO de-bounce clocks don't affect module idle state
+      OMAP3 SDRC: set FIXEDDELAY when disabling SDRC DLL
+      OMAP3 SRAM: convert SRAM code to use macros rather than magic numbers
+      OMAP3 SRAM: add more comments on the SRAM code
+      OMAP3 clock/SDRC: program SDRC_MR register during SDRC clock change
+      OMAP3 clock: add a short delay when lowering CORE clk rate
+      OMAP3 clock: initialize SDRC timings at kernel start
+      OMAP3 clock: remove wait for DPLL3 M2 clock to stabilize
+
+Roel Kluin (1):
+      OMAP2 clock/powerdomain: off by 1 error in loop timeout comparisons
+
+Tero Kristo (1):
+      OMAP3: Add support for DPLL3 divisor values higher than 2
+
+
+ arch/arm/mach-omap2/clock.c            |    2 
+ arch/arm/mach-omap2/clock34xx.c        |   42 ++++++++--
+ arch/arm/mach-omap2/clock34xx.h        |   12 +--
+ arch/arm/mach-omap2/io.c               |   38 +++++++++
+ arch/arm/mach-omap2/powerdomain.c      |    2 
+ arch/arm/mach-omap2/sram34xx.S         |  129 +++++++++++++++++++++-----------
+ arch/arm/plat-omap/include/mach/sram.h |    6 +
+ arch/arm/plat-omap/sram.c              |    8 +-
+ 8 files changed, 171 insertions(+), 68 deletions(-)
+
