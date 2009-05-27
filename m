@@ -1,51 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4]ARM: OMAP4: SMP: Patch series
-Date: Wed, 27 May 2009 10:15:48 -0700
-Message-ID: <20090527171548.GC6267@atomide.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02B4BE36E4@dbde02.ent.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Wed, 27 May 2009 20:58:53 +0200
+Message-ID: <200905272058.55404.jkrzyszt@tis.icnet.pl>
+References: <4A1BEBE3.8010306@tis.icnet.pl> <20090527095949.51ed4b83.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60669 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758919AbZE0RQC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 13:16:02 -0400
+Received: from d1.icnet.pl ([212.160.220.21]:33924 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757556AbZE0S7g (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 May 2009 14:59:36 -0400
+In-Reply-To: <20090527095949.51ed4b83.jhnikula@gmail.com>
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B4BE36E4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [090527 09:22]:
-> Russell,
-> I have rebased this series on top of your arm-smp patches and my earlier basic omap4 patches.
-> Series is based of kernel.org 2.6.30-rc6 ( commit:1406de8e11eb043681297adf86d6892ff8efc27a). This series have dependency on [1],[2],[3],[4] and latest mach-types
-> 
-> The series contains:
-> 	[PATCH 1/4] ARM: OMAP4: SMP: Add OMAP4430 SMP board files
-> 	[PATCH 2/4] ARM: OMAP4: SMP: Add mpu timer support for OMAP4430
-> 	[PATCH 3/4] ARM: OMAP4: SMP: Enable SMP support for OMAP4430
-> 	[PATCH 4/4] ARM: OMAP4: SMP: Update defconfig for OMAP4430
-> 
-> Regards,
-> Santosh
-> 
-> [1]:	Russell's arm-smp patch series + one of my patch
-> 	http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/arm:smp.diff
-> 
-> [2]:	Tony's : [PATCH 0/5] More header clean-up
-> 	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12231.html
-> 
-> [3]:	Mine [PATCH 0/4] OMAP: Cleanup series.
-> 	http://lists.arm.linux.org.uk/lurker/message/20090519.131647.c2c471ef.en.html
-> 	
-> [4]:	Mine [PATCH 0/4] ARM: OMPA4: Basic boot patch series based on linux-omap
-> 	http://lists.arm.linux.org.uk/lurker/message/20090520.125900.9209eb81.en.html
+Hi,
 
-Just to summarize, I have pretty much things ready for Russell to merge 
-for all the posted omap stuff. That includes sets 2 + 3 + 4 above, but
-not this series. That should remove any remaining merge dependencies
-for this series.
+Tired with hopeless looking for the correct mcbsp dai format, I took the 
+oposite direciton, trying to break what Mark Underwood had managed to get 
+working. Step by step, I got to exactly the same mcbsp register configuration 
+as used in the reference osk board, reverting all changes that Mark could 
+introduce, and the driver still worked as before. So it looks like playing 
+with mcbsp dai format is not the way to solve the problem.
 
-Tony
+Wednesday 27 May 2009 07:57:27 Peter Ujfalusi wrote:
+> This means that the McBSP module is not transmitting/receiving any data.
+> Which suggests that the clocking is not working in your setup. Check the
+> slave master mode for the codec.
+
+Now I think I understand better what you mean. However, I don't know any way 
+of configuring the codec except for switching its pin connections from msbcp 
+to modem chip and back. I can find nothing relevant in the original patch 
+that could help.
+
+> Also worth checking the PIN configuration for the McBSP1 module, just in
+> case it is correct.
+
+Wednesday 27 May 2009 08:59:49 Jarkko Nikula wrote:
+> Looks like McBSP is not getting bit-clock and frame-sync signals from
+> the codec. Do you have any way to measure is the codec sending those?
+>
+> Another possibility are the OMAP pins muxed for McBSP? I assume they
+> are if the bootloader is still the same but worth to find check was
+> previous kernel doing any runtime remuxing for those pins with
+> omap_cfg_reg calls.
+
+So I am going to restart with checking if the original patch still works with 
+the latest kernel version supporting omap-alsa.
+
+Thanks for your help so far. Any hints are still welcome.
+
+Cheers,
+Janusz
+
+
