@@ -1,46 +1,69 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: [PATCH 0/4]ARM: OMAP4: SMP: Patch series
-Date: Wed, 27 May 2009 21:52:38 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B4BE36E4@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 3/4] ARM: OMAP4: SMP: Enable SMP support for OMAP4430
+Date: Wed, 27 May 2009 21:56:17 +0530
+Message-ID: <1243441577-27012-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46018 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754729AbZE0QXE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 12:23:04 -0400
-Content-Language: en-US
+Received: from arroyo.ext.ti.com ([192.94.94.40]:32769 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761835AbZE0Q0k (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 May 2009 12:26:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: linux@arm.linux.org.uk
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Russell,
-I have rebased this series on top of your arm-smp patches and my earlier basic omap4 patches.
-Series is based of kernel.org 2.6.30-rc6 ( commit:1406de8e11eb043681297adf86d6892ff8efc27a). This series have dependency on [1],[2],[3],[4] and latest mach-types
+This patch enables SMP on OMAP4430 SDP platform.
 
-The series contains:
-	[PATCH 1/4] ARM: OMAP4: SMP: Add OMAP4430 SMP board files
-	[PATCH 2/4] ARM: OMAP4: SMP: Add mpu timer support for OMAP4430
-	[PATCH 3/4] ARM: OMAP4: SMP: Enable SMP support for OMAP4430
-	[PATCH 4/4] ARM: OMAP4: SMP: Update defconfig for OMAP4430
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ arch/arm/Kconfig             |    8 ++++----
+ arch/arm/mach-omap2/Makefile |    4 ++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-Regards,
-Santosh
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 93d63bf..5468a32 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -858,10 +858,10 @@ source "kernel/time/Kconfig"
+ 
+ config SMP
+ 	bool "Symmetric Multi-Processing (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && (REALVIEW_EB_ARM11MP || MACH_REALVIEW_PB11MP)
++	depends on EXPERIMENTAL && (REALVIEW_EB_ARM11MP || MACH_REALVIEW_PB11MP ||ARCH_OMAP4)
+ 	depends on GENERIC_CLOCKEVENTS
+ 	select USE_GENERIC_SMP_HELPERS
+-	select HAVE_ARM_SCU if ARCH_REALVIEW
++	select HAVE_ARM_SCU if (ARCH_REALVIEW || ARCH_OMAP4)
+ 	help
+ 	  This enables support for systems with more than one CPU. If you have
+ 	  a system with only one CPU, like most personal computers, say N. If
+@@ -929,9 +929,9 @@ config HOTPLUG_CPU
+ 
+ config LOCAL_TIMERS
+ 	bool "Use local timer interrupts"
+-	depends on SMP && (REALVIEW_EB_ARM11MP || MACH_REALVIEW_PB11MP || REALVIEW_EB_A9MP)
++	depends on SMP && (REALVIEW_EB_ARM11MP || MACH_REALVIEW_PB11MP || REALVIEW_EB_A9MP || ARCH_OMAP4)
+ 	default y
+-	select HAVE_ARM_TWD if ARCH_REALVIEW
++	select HAVE_ARM_TWD if (ARCH_REALVIEW || ARCH_OMAP4)
+ 	help
+ 	  Enable support for local timers on SMP platforms, rather then the
+ 	  legacy IPI broadcast method.  Local timers allows the system
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index a51d811..d9175d4 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -14,6 +14,10 @@ obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(prcm-common) $(clock-common)
+ 
+ obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
+ 
++# SMP support ONLY available for OMAP4
++obj-$(CONFIG_SMP)			+= omap-smp.o omap-headsmp.o
++obj-$(CONFIG_LOCAL_TIMERS)		+= timer-mpu.o
++
+ # Functions loaded to SRAM
+ obj-$(CONFIG_ARCH_OMAP2420)		+= sram242x.o
+ obj-$(CONFIG_ARCH_OMAP2430)		+= sram243x.o
+-- 
+1.5.4.7
 
-[1]:	Russell's arm-smp patch series + one of my patch
-	http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/arm:smp.diff
-
-[2]:	Tony's : [PATCH 0/5] More header clean-up
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12231.html
-
-[3]:	Mine [PATCH 0/4] OMAP: Cleanup series.
-	http://lists.arm.linux.org.uk/lurker/message/20090519.131647.c2c471ef.en.html
-	
-[4]:	Mine [PATCH 0/4] ARM: OMPA4: Basic boot patch series based on linux-omap
-	http://lists.arm.linux.org.uk/lurker/message/20090520.125900.9209eb81.en.html
-	
-
-Regards,
-Santosh
