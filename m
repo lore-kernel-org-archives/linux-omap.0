@@ -1,115 +1,46 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: Re-program also chipselect 1 when changing SDRAM timing
-Date: Wed, 27 May 2009 08:49:34 -0700
-Message-ID: <87bppewnox.fsf@deeprootsystems.com>
-References: <1243426419-32652-1-git-send-email-tero.kristo@nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [PATCH 0/4]ARM: OMAP4: SMP: Patch series
+Date: Wed, 27 May 2009 21:52:38 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B4BE36E4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f191.google.com ([209.85.216.191]:45729 "EHLO
-	mail-px0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753010AbZE0Ptl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 11:49:41 -0400
-Received: by pxi29 with SMTP id 29so471687pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 27 May 2009 08:49:42 -0700 (PDT)
-In-Reply-To: <1243426419-32652-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Wed\, 27 May 2009 15\:13\:39 +0300")
+Received: from devils.ext.ti.com ([198.47.26.153]:46018 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754729AbZE0QXE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 12:23:04 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+Russell,
+I have rebased this series on top of your arm-smp patches and my earlier basic omap4 patches.
+Series is based of kernel.org 2.6.30-rc6 ( commit:1406de8e11eb043681297adf86d6892ff8efc27a). This series have dependency on [1],[2],[3],[4] and latest mach-types
 
-> From: Tero Kristo <tero.kristo@nokia.com>
->
-> Previously only chipselect 0 was controlled, which would result in the
-> chipselect 1 running on too low rate during low core OPPs.
->
-> Applies on top of PM branch.
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+The series contains:
+	[PATCH 1/4] ARM: OMAP4: SMP: Add OMAP4430 SMP board files
+	[PATCH 2/4] ARM: OMAP4: SMP: Add mpu timer support for OMAP4430
+	[PATCH 3/4] ARM: OMAP4: SMP: Enable SMP support for OMAP4430
+	[PATCH 4/4] ARM: OMAP4: SMP: Update defconfig for OMAP4430
 
-Hi Tero,
+Regards,
+Santosh
 
-This does part of what Jean Pihet does in his recent patch[1] to add
-support for 2 CSs.  Your version assumes the same parameters for both
-SDRAM parts, and Jean has expanded that so board code can configure
-different paramaters for the different CSes.
+[1]:	Russell's arm-smp patch series + one of my patch
+	http://ftp.arm.linux.org.uk/pub/linux/arm/kernel/git-cur/arm:smp.diff
 
-I have yet to fully review Jean's patch, but will probably take his
-version so that two different SDRAM parts could be used.
+[2]:	Tony's : [PATCH 0/5] More header clean-up
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12231.html
 
-Kevin
+[3]:	Mine [PATCH 0/4] OMAP: Cleanup series.
+	http://lists.arm.linux.org.uk/lurker/message/20090519.131647.c2c471ef.en.html
+	
+[4]:	Mine [PATCH 0/4] ARM: OMPA4: Basic boot patch series based on linux-omap
+	http://lists.arm.linux.org.uk/lurker/message/20090520.125900.9209eb81.en.html
+	
 
-
-[1] See hist post from 26 May: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was: Re: Beagleboard rev C memory timings & suspend/resume)
-
-> ---
->  arch/arm/mach-omap2/sram34xx.S |   29 +++++++++++++++++++++++------
->  1 files changed, 23 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-> index f41f8d9..bcfe9eb 100644
-> --- a/arch/arm/mach-omap2/sram34xx.S
-> +++ b/arch/arm/mach-omap2/sram34xx.S
-> @@ -187,15 +187,24 @@ wait_dll_unlock:
->  	bne	wait_dll_unlock
->  	bx	lr
->  configure_sdrc:
-> -	ldr	r11, omap3_sdrc_rfr_ctrl
-> +	ldr	r11, omap3_sdrc_rfr_ctrl_0
->  	str	r0, [r11]
-> -	ldr	r11, omap3_sdrc_actim_ctrla
-> +	ldr	r11, omap3_sdrc_rfr_ctrl_1
-> +	str	r0, [r11]
-> +	ldr	r11, omap3_sdrc_actim_ctrla_0
-> +	str	r1, [r11]
-> +	ldr	r11, omap3_sdrc_actim_ctrla_1
->  	str	r1, [r11]
-> -	ldr	r11, omap3_sdrc_actim_ctrlb
-> +	ldr	r11, omap3_sdrc_actim_ctrlb_0
-> +	str	r2, [r11]
-> +	ldr	r11, omap3_sdrc_actim_ctrlb_1
->  	str	r2, [r11]
->  	ldr	r11, omap3_sdrc_mr_0
->  	str	r6, [r11]
->  	ldr	r6, [r11]		@ posted-write barrier for SDRC
-> +	ldr	r11, omap3_sdrc_mr_1
-> +	str	r6, [r11]
-> +	ldr	r6, [r11]		@ posted-write barrier for SDRC
->  	bx	lr
->  
->  omap3_sdrc_power:
-> @@ -206,14 +215,22 @@ omap3_cm_idlest1_core:
->  	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST)
->  omap3_cm_iclken1_core:
->  	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN1)
-> -omap3_sdrc_rfr_ctrl:
-> +omap3_sdrc_rfr_ctrl_0:
->  	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
-> -omap3_sdrc_actim_ctrla:
-> +omap3_sdrc_rfr_ctrl_1:
-> +	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_1)
-> +omap3_sdrc_actim_ctrla_0:
->  	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
-> -omap3_sdrc_actim_ctrlb:
-> +omap3_sdrc_actim_ctrla_1:
-> +	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_1)
-> +omap3_sdrc_actim_ctrlb_0:
->  	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
-> +omap3_sdrc_actim_ctrlb_1:
-> +	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_1)
->  omap3_sdrc_mr_0:
->  	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_0)
-> +omap3_sdrc_mr_1:
-> +	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_1)
->  omap3_sdrc_dlla_status:
->  	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
->  omap3_sdrc_dlla_ctrl:
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Santosh
