@@ -1,12 +1,12 @@
 From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 4/5] ARM: OMAP4: SMP: Update defconfig for OMAP4430
-Date: Wed, 27 May 2009 21:56:39 +0530
-Message-ID: <1243441599-27043-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: [PATCH 4/4] ARM: OMAP4: SMP: Update defconfig for OMAP4430
+Date: Wed, 27 May 2009 21:59:48 +0530
+Message-ID: <1243441788-27480-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48632 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760053AbZE0Q1G (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 27 May 2009 12:27:06 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:46424 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384AbZE0QaR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 12:30:17 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux@arm.linux.org.uk
