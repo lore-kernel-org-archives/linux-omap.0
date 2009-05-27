@@ -1,137 +1,108 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Subject: Re: Please help in adding ams-delta support to ASoC
-Date: Wed, 27 May 2009 15:07:23 +0200
-Message-ID: <4A1D3B0B.3060808@tis.icnet.pl>
-References: <4A1BEBE3.8010306@tis.icnet.pl>
-	<200905270857.28125.peter.ujfalusi@nokia.com>
+Date: Wed, 27 May 2009 16:33:22 +0200
+Message-ID: <4A1D4F32.5060002@tis.icnet.pl>
+References: <4A1BEBE3.8010306@tis.icnet.pl> <20090527095949.51ed4b83.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200905270857.28125.peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:48620 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754906AbZE0OdZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 27 May 2009 10:33:25 -0400
+In-Reply-To: <20090527095949.51ed4b83.jhnikula@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-Hi Peter,
+Hi Jarkko,
 
-On Wuesday 27 May 2009 07:57 Peter Ujfalusi wrote:
-> On Tuesday 26 May 2009 16:17:23 ext Janusz Krzysztofik wrote:
->> 4. the following McBSP register settings changes:
->>
+On Wed, 27 May 2009 08:59 Jarkko Nikula wrote:
+> On Tue, 26 May 2009 15:17:23 +0200
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
 >> -	.xcr2 = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
 >> -	    XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(0) | XFIG,
 >> +	.xcr2 = XPHASE | XWDLEN2(OMAP_MCBSP_WORD_16) | XFRLEN2(0),
 >>
+> XFIG is only difference (OMAP_MCBSP_WORD_8 = 0) -> transfer is aborted
+> in case of unexpected frame sync.
+
+I tried commenting out RFIG and XFIG bits settings in 
+sound/soc/omap/omap-mcbsp.c - did not help.
+
 >> -	.srgr1 = FWID(DEFAULT_BITPERSAMPLE - 1),
 >> +	.srgr1 = CLKGDV(0),
 >>
->> -	.srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1),
+> Width of frame sync signal set to 1 here -> DSP_B format because no
+> data delay set.
+
+That's what I have tried mostly.
+
+>> -	.srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE *
+>> 2 - 1),
 >> +       .srgr2 = GSYNC,
 >>
 >> -	.pcr0 = CLKXP | CLKRP,  /* mcbsp: slave */
+>>
+> No CLKXM, CLKRM and FSGM set -> codec is providing the frame sync and
+> bit-clock signals -> SND_SOC_DAIFMT_CBM_CFM.
+
+This is my primary choice as well.
+
+> CLKXP and CLKRP not set -> rising edge of bit clock drives the
+> transitions. This with DSP_B indicates inverted bit clock so
+> SND_SOC_DAIFMT_IB_NF.
+
+I have given it a try this morning - no go.
+
+> I wonder why the frame sync period (FWID) wasn't set in that original
+> patch but probably McBSP is able to work without :-)
+
+from linux-2.6.29/sound/soc/omap/omap-mcbsp.c:
+         switch (mcbsp_data->fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
+         case SND_SOC_DAIFMT_I2S:
+                 regs->srgr2     |= FPER(wlen * 2 - 1);
+                 regs->srgr1     |= FWID(wlen - 1);
+                 break;
+         case SND_SOC_DAIFMT_DSP_B:
+                 regs->srgr2     |= FPER(wlen * channels - 1);
+                 regs->srgr1     |= FWID(0);
+                 break;
+         }
+
+So it looks like in case of SND_SOC_DAIFMT_DSP_B, FWID is not set, only 
+FPER. However, in the original patch, FPER was not set either.
+
+>> ... aplay 
+>> and arecord wait forever, cat to/from /dev/dsp breaks with hardware 
+>> error messgae. DMA interrput counters stay at 0. However, codec 
 > 
-> Since I don't have the original osk/aic23 thing, this does not mean to much...
-> Just a bit confusing.
+> Looks like McBSP is not getting bit-clock and frame-sync signals from
+> the codec. Do you have any way to measure is the codec sending those?
 
-OK, once again then.
+Well, I am not sure, but I'll try if nothing helps.
 
-original omap-alsa mcbsp register settings for osk board, as found in 
-linux-2.6.16/arch/arm/mach-omap1/board-osk.c:
------
-#define DEFAULT_BITPERSAMPLE 16
+> Another possibility are the OMAP pins muxed for McBSP? I assume they
+> are if the bootloader is still the same
 
-static struct omap_mcbsp_reg_cfg mcbsp_regs = {
-         .spcr2 = FREE | FRST | GRST | XRST | XINTM(3),
-         .spcr1 = RINTM(3) | RRST,
-         .rcr2 = RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
-             RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(0),
-         .rcr1 = RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_16),
-         .xcr2 = XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
-             XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(0) | XFIG,
-         .xcr1 = XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_16),
-         .srgr1 = FWID(DEFAULT_BITPERSAMPLE - 1),
-         .srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1),
-         /*.pcr0 = FSXM | FSRM | CLKXM | CLKRM | CLKXP | CLKRP,*/ /* 
-mcbsp: master */
-         .pcr0 = CLKXP | CLKRP,  /* mcbsp: slave */
-};
------
-the same for ams-delta, as found in Mark Underwood patch:
------
-static struct omap_mcbsp_reg_cfg mcbsp_regs = {
-         .spcr2 = FREE | XRST | GRST | XINTM(3) | FRST,
-         .spcr1 =  RINTM(3) | RRST,
-         .rcr2 =  RPHASE | RWDLEN2(OMAP_MCBSP_WORD_16) | RFRLEN2(0),
-         .rcr1 = RWDLEN1(OMAP_MCBSP_WORD_16) | RFRLEN1(0),
-         .xcr2 = XPHASE | XWDLEN2(OMAP_MCBSP_WORD_16) | XFRLEN2(0),
-         .xcr1 =  XWDLEN1(OMAP_MCBSP_WORD_16) | XFRLEN1(0),
-         .srgr1 = CLKGDV(0),
-         .srgr2 = GSYNC,
-};
------
-currnet soc-audio mcbsp config for osk, as found in 
-linux-2.6.29/sound/soc/omap/osk5912.c:
------
-         err = snd_soc_dai_set_fmt(cpu_dai,
-                                   SND_SOC_DAIFMT_DSP_B |
-                                   SND_SOC_DAIFMT_NB_NF |
-                                   SND_SOC_DAIFMT_CBM_CFM);
------
-Using exactly the same does not work on my ams-delta.
+I boot both kernels, working 2.6.16 and not working 2.6.30-rc5, with the 
+same u-boot.bin.
 
- > The configuration suggest slave McBSP with NB_IF
-> polarity, dual phase format, 16 bit words, 16*2 long frames, the FS pulse is 
-> probably a pulse... Suggesting kind of DSP mode, but with not so correct 
-> configuration, which happens to be working.
+ > but worth to find check was
+> previous kernel doing any runtime remuxing for those pins with
+> omap_cfg_reg calls.
 
-So I will try the following then:
-         err = snd_soc_dai_set_fmt(cpu_dai,
-                                   SND_SOC_DAIFMT_DSP_B |
-                                   SND_SOC_DAIFMT_NB_IF |
-                                   SND_SOC_DAIFMT_CBM_CFM);
-and this:
-         err = snd_soc_dai_set_fmt(cpu_dai,
-                                   SND_SOC_DAIFMT_DSP_A |
-                                   SND_SOC_DAIFMT_NB_IF |
-                                   SND_SOC_DAIFMT_CBM_CFM);
-and give you a feedback.
+I was not able to find anything relevant.
 
->> ... aplay
->> and arecord wait forever, cat to/from /dev/dsp breaks with hardware
->> error messgae.
->> DMA interrput counters stay at 0.
-> 
-> This means that the McBSP module is not transmitting/receiving any data.
-> Which suggests that the clocking is not working in your setup. Check the slave 
-> master mode for the codec.
+> ... OMAP1510 doesn't support DMA chaining so there are few
+> cpu_is_omap1510() code snippets in sound/soc/omap/omap-pcm.c which I
+> think I have only simulated using OMAP2420.
 
-Do you mean trying with codec as slave and McBSP as master, like this?
-         err = snd_soc_dai_set_fmt(cpu_dai,
-                                   SND_SOC_DAIFMT_DSP_B |
-                                   SND_SOC_DAIFMT_NB_IF |
-                                   SND_SOC_DAIFMT_CBS_CFS);
-I'll give it a try as well.
-
-> Also worth checking the PIN configuration for the McBSP1 module, just in case 
-> it is correct.
-
-Do you mean mux setup? Reading OMAP5910 Data Manual I found only 2 
-relevant signals, MCBSP1.FSX and MCBSP1.DX, that could be swapped from 
-pin H15 to H18 and vice versa. However, there is no pin configuration 
-entry for neither, both in 2.6.16 and 2.6.29 arch/arm/mach-omap1/mux.c, 
-so I assume default setup should just work.
-
-I keep on digging.
+I hope DMA chaining is not an issue here. If I remove the DMA chaining 
+workaround from the original patch, I get signle DMA interrupts, so that 
+is better than none that I get with my patch.
 
 Thanks,
 Janusz
