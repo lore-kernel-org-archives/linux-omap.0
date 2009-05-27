@@ -1,47 +1,71 @@
-From: Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] I2C: OMAP3: Better noise suppression for fast/standard modes
-Date: Wed, 27 May 2009 17:54:46 +0300
-Message-ID: <1243436086-3623-2-git-send-email-aaro.koskinen@nokia.com>
-References: <>
- <1243436086-3623-1-git-send-email-aaro.koskinen@nokia.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1243436086-3623-1-git-send-email-aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Wed, 27 May 2009 18:19:21 +0300
+Message-ID: <20090527181921.083e3825.jhnikula@gmail.com>
+References: <4A1BEBE3.8010306@tis.icnet.pl>
+	<20090527095949.51ed4b83.jhnikula@gmail.com>
+	<4A1D4F32.5060002@tis.icnet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:47119 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757412AbZE0PTV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 11:19:21 -0400
+In-Reply-To: <4A1D4F32.5060002@tis.icnet.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-Use longer noise filter period for fast and standard mode. Based on an
-earlier patch by Eero Nurkkala.
+On Wed, 27 May 2009 16:33:22 +0200
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
----
- drivers/i2c/busses/i2c-omap.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+> >> -	.srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE
+> >> * 2 - 1),
+> >> +       .srgr2 = GSYNC,
+> >>
+> >> -	.pcr0 = CLKXP | CLKRP,  /* mcbsp: slave */
+> >>
+...
+> > I wonder why the frame sync period (FWID) wasn't set in that
+> > original patch but probably McBSP is able to work without :-)
+> 
+> from linux-2.6.29/sound/soc/omap/omap-mcbsp.c:
+>          switch (mcbsp_data->fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
+>          case SND_SOC_DAIFMT_I2S:
+>                  regs->srgr2     |= FPER(wlen * 2 - 1);
+>                  regs->srgr1     |= FWID(wlen - 1);
+>                  break;
+>          case SND_SOC_DAIFMT_DSP_B:
+>                  regs->srgr2     |= FPER(wlen * channels - 1);
+>                  regs->srgr1     |= FWID(0);
+>                  break;
+>          }
+> 
+> So it looks like in case of SND_SOC_DAIFMT_DSP_B, FWID is not set,
+> only FPER. However, in the original patch, FPER was not set either.
+> 
+Sorry, my short above. Obviously I was wondering missing FPER setting
+in original patch which defines the length of frame sync period. FWID
+defines the length of frame sync pulse (n.o. bit clock pulses - 1).
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 5d9880c..8c76cea 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -333,8 +333,18 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 
- 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
- 
--		/* HSI2C controller internal clk rate should be 19.2 Mhz */
--		internal_clk = 19200;
-+		/*
-+		 * HSI2C controller internal clk rate should be 19.2 Mhz for
-+		 * HS and for all modes on 2430. On 34xx we can use lower rate
-+		 * to get longer filter period for better noise suppression.
-+		 * The filter is iclk (fclk for HS) period.
-+		 */
-+		if (dev->speed > 400 || cpu_is_omap_2430())
-+			internal_clk = 19200;
-+		else if (dev->speed > 100)
-+			internal_clk = 9600;
-+		else
-+			internal_clk = 4000;
- 		fclk_rate = clk_get_rate(dev->fclk) / 1000;
- 
- 		/* Compute prescaler divisor */
+Frame sync pulse length is half of the period in I2S and 1-bit clock
+cycle in DSP_B. WM9713 has nice drawings about different formats. Look
+pages 29 and 30.
+
+http://www.wolfsonmicro.com/uploads/documents/en/WM9713.pdf
+
+> I hope DMA chaining is not an issue here. If I remove the DMA
+> chaining workaround from the original patch, I get signle DMA
+> interrupts, so that is better than none that I get with my patch.
+> 
+I think chaining is not issue if you are not getting any interrupt.
+Basically if DMA transfer is working but DMA restarting is not then
+there should be one completed buffer transfer and >= 2 interrupts from
+completed periods.
+
+
 -- 
-1.5.4.3
+Jarkko
