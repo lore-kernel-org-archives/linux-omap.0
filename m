@@ -1,231 +1,263 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP3: pandora: add support for mode devices
-Date: Wed, 27 May 2009 13:24:16 -0700
-Message-ID: <20090527202415.GD6267@atomide.com>
-References: <20090525174517.19679.18805.stgit@localhost> <1243453668-25208-1-git-send-email-notasas@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] OMAP1: PM: update and decouple from OMAP2/3 PM core
+Date: Wed, 27 May 2009 16:35:17 -0700
+Message-ID: <1243467318-9736-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53414 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754632AbZE0UY0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 16:24:26 -0400
-Content-Disposition: inline
-In-Reply-To: <1243453668-25208-1-git-send-email-notasas@gmail.com>
+Received: from rv-out-0506.google.com ([209.85.198.239]:61895 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755356AbZE0XfU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 19:35:20 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so1555765rvb.1
+        for <linux-omap@vger.kernel.org>; Wed, 27 May 2009 16:35:21 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>
 
-* Grazvydas Ignotas <notasas@gmail.com> [090527 12:48]:
-> Add support for keypad, GPIO keys and LEDs. Also enable hardware
-> debounce feature for GPIO keys.
-> 
-> Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-> ---
-> This patch was somehow left out, so Tony suggested posting it directly here.
+Update OMAP1-specific PM infrastructure.  This is a sync of what is in
+linux-omap for OMAP1.
 
-Thanks, I've added this patch to my queue.
+This mostly de-couples OMAP1 PM from OMAP2/3 PM and renames things
+accordingly, and removes omap2/3 specific code from OMAP1 specific
+headers.
 
-Tony
+Original OMAP1 decoupling patch for OMAP PM branch by Paul Walmsley.
+
+Cc: Paul Walmsley <paul@pwsan.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap1/pm.c     |   11 +++--
+ arch/arm/mach-omap1/pm.h     |   85 +++++-------------------------------------
+ arch/arm/mach-omap1/serial.c |    3 -
+ arch/arm/mach-omap1/sleep.S  |    2 +-
+ 4 files changed, 17 insertions(+), 84 deletions(-)
+
+diff --git a/arch/arm/mach-omap1/pm.c b/arch/arm/mach-omap1/pm.c
+index 9774c1f..5218943 100644
+--- a/arch/arm/mach-omap1/pm.c
++++ b/arch/arm/mach-omap1/pm.c
+@@ -53,11 +53,12 @@
+ #include <mach/clock.h>
+ #include <mach/sram.h>
+ #include <mach/tc.h>
+-#include <mach/pm.h>
+ #include <mach/mux.h>
+ #include <mach/dma.h>
+ #include <mach/dmtimer.h>
  
->  arch/arm/mach-omap2/board-omap3pandora.c |  149 ++++++++++++++++++++++++++++++
->  1 files changed, 149 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-> index 2ab2497..e32aa23 100644
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -25,6 +25,9 @@
->  #include <linux/spi/ads7846.h>
->  #include <linux/regulator/machine.h>
->  #include <linux/i2c/twl4030.h>
-> +#include <linux/leds.h>
-> +#include <linux/input.h>
-> +#include <linux/gpio_keys.h>
->  
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
-> @@ -36,12 +39,154 @@
->  #include <mach/hardware.h>
->  #include <mach/mcspi.h>
->  #include <mach/usb.h>
-> +#include <mach/keypad.h>
->  
->  #include "sdram-micron-mt46h32m32lf-6.h"
->  #include "mmc-twl4030.h"
->  
->  #define OMAP3_PANDORA_TS_GPIO		94
->  
-> +/* hardware debounce: (value + 1) * 31us */
-> +#define GPIO_DEBOUNCE_TIME		127
-> +
-> +static struct gpio_led pandora_gpio_leds[] = {
-> +	{
-> +		.name			= "pandora::sd1",
-> +		.default_trigger	= "mmc0",
-> +		.gpio			= 128,
-> +	}, {
-> +		.name			= "pandora::sd2",
-> +		.default_trigger	= "mmc1",
-> +		.gpio			= 129,
-> +	}, {
-> +		.name			= "pandora::bluetooth",
-> +		.gpio			= 158,
-> +	}, {
-> +		.name			= "pandora::wifi",
-> +		.gpio			= 159,
-> +	},
-> +};
-> +
-> +static struct gpio_led_platform_data pandora_gpio_led_data = {
-> +	.leds		= pandora_gpio_leds,
-> +	.num_leds	= ARRAY_SIZE(pandora_gpio_leds),
-> +};
-> +
-> +static struct platform_device pandora_leds_gpio = {
-> +	.name	= "leds-gpio",
-> +	.id	= -1,
-> +	.dev	= {
-> +		.platform_data	= &pandora_gpio_led_data,
-> +	},
-> +};
-> +
-> +#define GPIO_BUTTON(gpio_num, ev_type, ev_code, act_low, descr)	\
-> +{								\
-> +	.gpio		= gpio_num,				\
-> +	.type		= ev_type,				\
-> +	.code		= ev_code,				\
-> +	.active_low	= act_low,				\
-> +	.desc		= "btn " descr,				\
-> +}
-> +
-> +#define GPIO_BUTTON_LOW(gpio_num, event_code, description)	\
-> +	GPIO_BUTTON(gpio_num, EV_KEY, event_code, 1, description)
-> +
-> +static struct gpio_keys_button pandora_gpio_keys[] = {
-> +	GPIO_BUTTON_LOW(110,	KEY_UP,		"up"),
-> +	GPIO_BUTTON_LOW(103,	KEY_DOWN,	"down"),
-> +	GPIO_BUTTON_LOW(96,	KEY_LEFT,	"left"),
-> +	GPIO_BUTTON_LOW(98,	KEY_RIGHT,	"right"),
-> +	GPIO_BUTTON_LOW(111,	BTN_A,		"a"),
-> +	GPIO_BUTTON_LOW(106,	BTN_B,		"b"),
-> +	GPIO_BUTTON_LOW(109,	BTN_X,		"x"),
-> +	GPIO_BUTTON_LOW(101,	BTN_Y,		"y"),
-> +	GPIO_BUTTON_LOW(102,	BTN_TL,		"l"),
-> +	GPIO_BUTTON_LOW(97,	BTN_TL2,	"l2"),
-> +	GPIO_BUTTON_LOW(105,	BTN_TR,		"r"),
-> +	GPIO_BUTTON_LOW(107,	BTN_TR2,	"r2"),
-> +	GPIO_BUTTON_LOW(104,	KEY_LEFTCTRL,	"ctrl"),
-> +	GPIO_BUTTON_LOW(99,	KEY_MENU,	"menu"),
-> +	GPIO_BUTTON_LOW(176,	KEY_COFFEE,	"hold"),
-> +	GPIO_BUTTON(100, EV_KEY, KEY_LEFTALT, 0, "alt"),
-> +	GPIO_BUTTON(108, EV_SW, SW_LID, 1, "lid"),
-> +};
-> +
-> +static struct gpio_keys_platform_data pandora_gpio_key_info = {
-> +	.buttons	= pandora_gpio_keys,
-> +	.nbuttons	= ARRAY_SIZE(pandora_gpio_keys),
-> +};
-> +
-> +static struct platform_device pandora_keys_gpio = {
-> +	.name	= "gpio-keys",
-> +	.id	= -1,
-> +	.dev	= {
-> +		.platform_data	= &pandora_gpio_key_info,
-> +	},
-> +};
-> +
-> +static void __init pandora_keys_gpio_init(void)
-> +{
-> +	/* set debounce time for GPIO banks 4 and 6 */
-> +	omap_set_gpio_debounce_time(32 * 3, GPIO_DEBOUNCE_TIME);
-> +	omap_set_gpio_debounce_time(32 * 5, GPIO_DEBOUNCE_TIME);
-> +}
-> +
-> +static int pandora_keypad_map[] = {
-> +	/* col, row, code */
-> +	KEY(0, 0, KEY_9),
-> +	KEY(0, 1, KEY_0),
-> +	KEY(0, 2, KEY_BACKSPACE),
-> +	KEY(0, 3, KEY_O),
-> +	KEY(0, 4, KEY_P),
-> +	KEY(0, 5, KEY_K),
-> +	KEY(0, 6, KEY_L),
-> +	KEY(0, 7, KEY_ENTER),
-> +	KEY(1, 0, KEY_8),
-> +	KEY(1, 1, KEY_7),
-> +	KEY(1, 2, KEY_6),
-> +	KEY(1, 3, KEY_5),
-> +	KEY(1, 4, KEY_4),
-> +	KEY(1, 5, KEY_3),
-> +	KEY(1, 6, KEY_2),
-> +	KEY(1, 7, KEY_1),
-> +	KEY(2, 0, KEY_I),
-> +	KEY(2, 1, KEY_U),
-> +	KEY(2, 2, KEY_Y),
-> +	KEY(2, 3, KEY_T),
-> +	KEY(2, 4, KEY_R),
-> +	KEY(2, 5, KEY_E),
-> +	KEY(2, 6, KEY_W),
-> +	KEY(2, 7, KEY_Q),
-> +	KEY(3, 0, KEY_J),
-> +	KEY(3, 1, KEY_H),
-> +	KEY(3, 2, KEY_G),
-> +	KEY(3, 3, KEY_F),
-> +	KEY(3, 4, KEY_D),
-> +	KEY(3, 5, KEY_S),
-> +	KEY(3, 6, KEY_A),
-> +	KEY(3, 7, KEY_LEFTSHIFT),
-> +	KEY(4, 0, KEY_N),
-> +	KEY(4, 1, KEY_B),
-> +	KEY(4, 2, KEY_V),
-> +	KEY(4, 3, KEY_C),
-> +	KEY(4, 4, KEY_X),
-> +	KEY(4, 5, KEY_Z),
-> +	KEY(4, 6, KEY_DOT),
-> +	KEY(4, 7, KEY_COMMA),
-> +	KEY(5, 0, KEY_M),
-> +	KEY(5, 1, KEY_SPACE),
-> +	KEY(5, 2, KEY_FN),
-> +};
-> +
-> +static struct twl4030_keypad_data pandora_kp_data = {
-> +	.rows		= 8,
-> +	.cols		= 6,
-> +	.keymap		= pandora_keypad_map,
-> +	.keymapsize	= ARRAY_SIZE(pandora_keypad_map),
-> +	.rep		= 1,
-> +};
-> +
->  static struct twl4030_hsmmc_info omap3pandora_mmc[] = {
->  	{
->  		.mmc		= 1,
-> @@ -142,6 +287,7 @@ static struct twl4030_platform_data omap3pandora_twldata = {
->  	.usb		= &omap3pandora_usb_data,
->  	.vmmc1		= &pandora_vmmc1,
->  	.vmmc2		= &pandora_vmmc2,
-> +	.keypad		= &pandora_kp_data,
->  };
->  
->  static struct i2c_board_info __initdata omap3pandora_i2c_boardinfo[] = {
-> @@ -234,6 +380,8 @@ static struct omap_board_config_kernel omap3pandora_config[] __initdata = {
->  
->  static struct platform_device *omap3pandora_devices[] __initdata = {
->  	&omap3pandora_lcd_device,
-> +	&pandora_leds_gpio,
-> +	&pandora_keys_gpio,
->  };
->  
->  static void __init omap3pandora_init(void)
-> @@ -247,6 +395,7 @@ static void __init omap3pandora_init(void)
->  	spi_register_board_info(omap3pandora_spi_board_info,
->  			ARRAY_SIZE(omap3pandora_spi_board_info));
->  	omap3pandora_ads7846_init();
-> +	pandora_keys_gpio_init();
->  	usb_musb_init();
->  }
->  
-> -- 
-> 1.5.6.3
-> 
++#include "pm.h"
++
+ static unsigned int arm_sleep_save[ARM_SLEEP_SAVE_SIZE];
+ static unsigned short dsp_sleep_save[DSP_SLEEP_SAVE_SIZE];
+ static unsigned short ulpd_sleep_save[ULPD_SLEEP_SAVE_SIZE];
+@@ -101,7 +102,7 @@ static void (*omap_sram_suspend)(unsigned long r0, unsigned long r1) = NULL;
+  * going idle we continue to do idle even if we get
+  * a clock tick interrupt . .
+  */
+-void omap_pm_idle(void)
++void omap1_pm_idle(void)
+ {
+ 	extern __u32 arm_idlect1_mask;
+ 	__u32 use_idlect1 = arm_idlect1_mask;
+@@ -222,7 +223,7 @@ static void omap_pm_wakeup_setup(void)
+ #define EN_APICK	6	/* ARM_IDLECT2 */
+ #define DSP_EN		1	/* ARM_RSTCT1 */
+ 
+-void omap_pm_suspend(void)
++void omap1_pm_suspend(void)
+ {
+ 	unsigned long arg0 = 0, arg1 = 0;
+ 
+@@ -610,7 +611,7 @@ static int omap_pm_enter(suspend_state_t state)
+ 	{
+ 	case PM_SUSPEND_STANDBY:
+ 	case PM_SUSPEND_MEM:
+-		omap_pm_suspend();
++		omap1_pm_suspend();
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -683,7 +684,7 @@ static int __init omap_pm_init(void)
+ 		return -ENODEV;
+ 	}
+ 
+-	pm_idle = omap_pm_idle;
++	pm_idle = omap1_pm_idle;
+ 
+ 	if (cpu_is_omap730())
+ 		setup_irq(INT_730_WAKE_UP_REQ, &omap_wakeup_irq);
+diff --git a/arch/arm/mach-omap1/pm.h b/arch/arm/mach-omap1/pm.h
+index ce6ee79..9ed5e2c 100644
+--- a/arch/arm/mach-omap1/pm.h
++++ b/arch/arm/mach-omap1/pm.h
+@@ -1,7 +1,7 @@
+ /*
+- * arch/arm/plat-omap/include/mach/pm.h
++ * arch/arm/mach-omap1/pm.h
+  *
+- * Header file for OMAP Power Management Routines
++ * Header file for OMAP1 Power Management Routines
+  *
+  * Author: MontaVista Software, Inc.
+  *	   support@mvista.com
+@@ -31,8 +31,8 @@
+  * 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#ifndef __ASM_ARCH_OMAP_PM_H
+-#define __ASM_ARCH_OMAP_PM_H
++#ifndef __ARCH_ARM_MACH_OMAP1_PM_H
++#define __ARCH_ARM_MACH_OMAP1_PM_H
+ 
+ /*
+  * ----------------------------------------------------------------------------
+@@ -106,8 +106,7 @@
+ 
+ #if     !defined(CONFIG_ARCH_OMAP730) && \
+ 	!defined(CONFIG_ARCH_OMAP15XX) && \
+-	!defined(CONFIG_ARCH_OMAP16XX) && \
+-	!defined(CONFIG_ARCH_OMAP24XX)
++	!defined(CONFIG_ARCH_OMAP16XX)
+ #warning "Power management for this processor not implemented yet"
+ #endif
+ 
+@@ -115,29 +114,27 @@
+ 
+ #include <linux/clk.h>
+ 
++extern struct kset power_subsys;
++
+ extern void prevent_idle_sleep(void);
+ extern void allow_idle_sleep(void);
+ 
+-extern void omap_pm_idle(void);
+-extern void omap_pm_suspend(void);
++extern void omap1_pm_idle(void);
++extern void omap1_pm_suspend(void);
++
+ extern void omap730_cpu_suspend(unsigned short, unsigned short);
+ extern void omap1510_cpu_suspend(unsigned short, unsigned short);
+ extern void omap1610_cpu_suspend(unsigned short, unsigned short);
+-extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdrc_dlla_ctrl,
+-					void __iomem *sdrc_power);
+ extern void omap730_idle_loop_suspend(void);
+ extern void omap1510_idle_loop_suspend(void);
+ extern void omap1610_idle_loop_suspend(void);
+-extern void omap24xx_idle_loop_suspend(void);
+ 
+ extern unsigned int omap730_cpu_suspend_sz;
+ extern unsigned int omap1510_cpu_suspend_sz;
+ extern unsigned int omap1610_cpu_suspend_sz;
+-extern unsigned int omap24xx_cpu_suspend_sz;
+ extern unsigned int omap730_idle_loop_suspend_sz;
+ extern unsigned int omap1510_idle_loop_suspend_sz;
+ extern unsigned int omap1610_idle_loop_suspend_sz;
+-extern unsigned int omap24xx_idle_loop_suspend_sz;
+ 
+ #ifdef CONFIG_OMAP_SERIAL_WAKE
+ extern void omap_serial_wake_trigger(int enable);
+@@ -170,10 +167,6 @@ extern void omap_serial_wake_trigger(int enable);
+ #define MPUI1610_RESTORE(x) omap_writel((mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x]), (x))
+ #define MPUI1610_SHOW(x) mpui1610_sleep_save[MPUI1610_SLEEP_SAVE_##x]
+ 
+-#define OMAP24XX_SAVE(x) omap24xx_sleep_save[OMAP24XX_SLEEP_SAVE_##x] = x
+-#define OMAP24XX_RESTORE(x) x = omap24xx_sleep_save[OMAP24XX_SLEEP_SAVE_##x]
+-#define OMAP24XX_SHOW(x) omap24xx_sleep_save[OMAP24XX_SLEEP_SAVE_##x]
+-
+ /*
+  * List of global OMAP registers to preserve.
+  * More ones like CP and general purpose register values are preserved
+@@ -283,63 +276,5 @@ enum mpui1610_save_state {
+ #endif
+ };
+ 
+-enum omap24xx_save_state {
+-	OMAP24XX_SLEEP_SAVE_START = 0,
+-	OMAP24XX_SLEEP_SAVE_INTC_MIR0,
+-	OMAP24XX_SLEEP_SAVE_INTC_MIR1,
+-	OMAP24XX_SLEEP_SAVE_INTC_MIR2,
+-
+-	OMAP24XX_SLEEP_SAVE_CM_CLKSTCTRL_MPU,
+-	OMAP24XX_SLEEP_SAVE_CM_CLKSTCTRL_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_CLKSTCTRL_GFX,
+-	OMAP24XX_SLEEP_SAVE_CM_CLKSTCTRL_DSP,
+-	OMAP24XX_SLEEP_SAVE_CM_CLKSTCTRL_MDM,
+-
+-	OMAP24XX_SLEEP_SAVE_PM_PWSTCTRL_MPU,
+-	OMAP24XX_SLEEP_SAVE_PM_PWSTCTRL_CORE,
+-	OMAP24XX_SLEEP_SAVE_PM_PWSTCTRL_GFX,
+-	OMAP24XX_SLEEP_SAVE_PM_PWSTCTRL_DSP,
+-	OMAP24XX_SLEEP_SAVE_PM_PWSTCTRL_MDM,
+-
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST1_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST2_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST3_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST4_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST_GFX,
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST_WKUP,
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST_CKGEN,
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST_DSP,
+-	OMAP24XX_SLEEP_SAVE_CM_IDLEST_MDM,
+-
+-	OMAP24XX_SLEEP_SAVE_CM_AUTOIDLE1_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_AUTOIDLE2_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_AUTOIDLE3_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_AUTOIDLE4_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_AUTOIDLE_WKUP,
+-	OMAP24XX_SLEEP_SAVE_CM_AUTOIDLE_PLL,
+-	OMAP24XX_SLEEP_SAVE_CM_AUTOIDLE_DSP,
+-	OMAP24XX_SLEEP_SAVE_CM_AUTOIDLE_MDM,
+-
+-	OMAP24XX_SLEEP_SAVE_CM_FCLKEN1_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_FCLKEN2_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_ICLKEN1_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_ICLKEN2_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_ICLKEN3_CORE,
+-	OMAP24XX_SLEEP_SAVE_CM_ICLKEN4_CORE,
+-	OMAP24XX_SLEEP_SAVE_GPIO1_IRQENABLE1,
+-	OMAP24XX_SLEEP_SAVE_GPIO2_IRQENABLE1,
+-	OMAP24XX_SLEEP_SAVE_GPIO3_IRQENABLE1,
+-	OMAP24XX_SLEEP_SAVE_GPIO4_IRQENABLE1,
+-	OMAP24XX_SLEEP_SAVE_GPIO3_OE,
+-	OMAP24XX_SLEEP_SAVE_GPIO4_OE,
+-	OMAP24XX_SLEEP_SAVE_GPIO3_RISINGDETECT,
+-	OMAP24XX_SLEEP_SAVE_GPIO3_FALLINGDETECT,
+-	OMAP24XX_SLEEP_SAVE_CONTROL_PADCONF_SPI1_NCS2,
+-	OMAP24XX_SLEEP_SAVE_CONTROL_PADCONF_MCBSP1_DX,
+-	OMAP24XX_SLEEP_SAVE_CONTROL_PADCONF_SSI1_FLAG_TX,
+-	OMAP24XX_SLEEP_SAVE_CONTROL_PADCONF_SYS_NIRQW0,
+-	OMAP24XX_SLEEP_SAVE_SIZE
+-};
+-
+ #endif /* ASSEMBLER */
+ #endif /* __ASM_ARCH_OMAP_PM_H */
+diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
+index 842090b..f754cee 100644
+--- a/arch/arm/mach-omap1/serial.c
++++ b/arch/arm/mach-omap1/serial.c
+@@ -26,9 +26,6 @@
+ #include <mach/mux.h>
+ #include <mach/gpio.h>
+ #include <mach/fpga.h>
+-#ifdef CONFIG_PM
+-#include <mach/pm.h>
+-#endif
+ 
+ static struct clk * uart1_ck;
+ static struct clk * uart2_ck;
+diff --git a/arch/arm/mach-omap1/sleep.S b/arch/arm/mach-omap1/sleep.S
+index f3eac93..22e8568 100644
+--- a/arch/arm/mach-omap1/sleep.S
++++ b/arch/arm/mach-omap1/sleep.S
+@@ -35,7 +35,7 @@
+ #include <linux/linkage.h>
+ #include <asm/assembler.h>
+ #include <mach/io.h>
+-#include <mach/pm.h>
++#include "pm.h"
+ 
+ 		.text
+ 
+-- 
+1.6.2.2
+
