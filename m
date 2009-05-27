@@ -1,71 +1,55 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: Please help in adding ams-delta support to ASoC
-Date: Wed, 27 May 2009 18:19:21 +0300
-Message-ID: <20090527181921.083e3825.jhnikula@gmail.com>
-References: <4A1BEBE3.8010306@tis.icnet.pl>
-	<20090527095949.51ed4b83.jhnikula@gmail.com>
-	<4A1D4F32.5060002@tis.icnet.pl>
+From: twebb <taliaferro62@gmail.com>
+Subject: Re: how to configure android-2.6.27 kernel for an LCD display other
+	than Zoom2 display
+Date: Wed, 27 May 2009 11:28:33 -0400
+Message-ID: <dbdb2ea60905270828w1fc09075se7c829674ac7f38b@mail.gmail.com>
+References: <dbdb2ea60905151218v4b5b3299vbc7583ccedf0fc63@mail.gmail.com>
+	 <dbdb2ea60905190517l6fa9f495mc879417bab6f1800@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:47119 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757412AbZE0PTV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 11:19:21 -0400
-In-Reply-To: <4A1D4F32.5060002@tis.icnet.pl>
+Received: from wa-out-1112.google.com ([209.85.146.177]:28324 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756178AbZE0P2g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 27 May 2009 11:28:36 -0400
+Received: by wa-out-1112.google.com with SMTP id j5so993465wah.21
+        for <linux-omap@vger.kernel.org>; Wed, 27 May 2009 08:28:37 -0700 (PDT)
+In-Reply-To: <dbdb2ea60905190517l6fa9f495mc879417bab6f1800@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
+To: "omapandroid-discussion@omapzoom.org" <omapandroid-discussion@omapzoom.org>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>
 
-On Wed, 27 May 2009 16:33:22 +0200
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+On Tue, May 19, 2009 at 8:17 AM, twebb <taliaferro62@gmail.com> wrote:
+> On Fri, May 15, 2009 at 3:18 PM, twebb <taliaferro62@gmail.com> wrote=
+:
+>> I'm using the L25.6/android-2.6.27 kernel and am adapting it as
+>> necessary to OMAP3530-based hardware. =A0However, I don't see how to
+>> configure the kernel for an LCD display other than the NEC display
+>> defined for ZOOM2 (which is an SPI-based display?). =A0I'm using an =
+LG
+>> display via the dss_data[17:0] interface of the 35xx - and this is
+>> working with a slightly modified version of lcd_omap3evm.c on the
+>> linux-omap-2.6.27-omap1 kernel. =A0I'm not familiar with the new DSS
+>> that appears to be in android-2.6.27.
+>>
+>> The LG display is WSVGA, but I'd be happy getting WVGA or VGA workin=
+g
+>> on it for now. =A0How can I configure the kernel to support a
+>> non-SPI-based LCD panel? =A0How does this DSS differ with what appea=
+rs
+>> in android-2.6.29/drivers/video/omap2 ?
+>>
+>> Any help here would be appreciated.
+>>
+>> Thanks,
+>> twebb
+>>
 
-> >> -	.srgr2 = GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE
-> >> * 2 - 1),
-> >> +       .srgr2 = GSYNC,
-> >>
-> >> -	.pcr0 = CLKXP | CLKRP,  /* mcbsp: slave */
-> >>
-...
-> > I wonder why the frame sync period (FWID) wasn't set in that
-> > original patch but probably McBSP is able to work without :-)
-> 
-> from linux-2.6.29/sound/soc/omap/omap-mcbsp.c:
->          switch (mcbsp_data->fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
->          case SND_SOC_DAIFMT_I2S:
->                  regs->srgr2     |= FPER(wlen * 2 - 1);
->                  regs->srgr1     |= FWID(wlen - 1);
->                  break;
->          case SND_SOC_DAIFMT_DSP_B:
->                  regs->srgr2     |= FPER(wlen * channels - 1);
->                  regs->srgr1     |= FWID(0);
->                  break;
->          }
-> 
-> So it looks like in case of SND_SOC_DAIFMT_DSP_B, FWID is not set,
-> only FPER. However, in the original patch, FPER was not set either.
-> 
-Sorry, my short above. Obviously I was wondering missing FPER setting
-in original patch which defines the length of frame sync period. FWID
-defines the length of frame sync pulse (n.o. bit clock pulses - 1).
-
-Frame sync pulse length is half of the period in I2S and 1-bit clock
-cycle in DSP_B. WM9713 has nice drawings about different formats. Look
-pages 29 and 30.
-
-http://www.wolfsonmicro.com/uploads/documents/en/WM9713.pdf
-
-> I hope DMA chaining is not an issue here. If I remove the DMA
-> chaining workaround from the original patch, I get signle DMA
-> interrupts, so that is better than none that I get with my patch.
-> 
-I think chaining is not issue if you are not getting any interrupt.
-Basically if DMA transfer is working but DMA restarting is not then
-there should be one completed buffer transfer and >= 2 interrupts from
-completed periods.
-
-
--- 
-Jarkko
+Am I off base with these questions?  I'd appreciate any feedback.
+Thanks.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
