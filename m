@@ -1,64 +1,43 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/8] ARM: OMAP3: Add support for OMAP3 Zoom2 board, v2
-Date: Thu, 28 May 2009 14:13:06 -0700
-Message-ID: <20090528211306.GJ32453@atomide.com>
-References: <20090525174517.19679.18805.stgit@localhost> <20090525175335.19679.3398.stgit@localhost> <20090528160535.GE20736@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 7/8] ARM: OMAP3: Add omap3 EVM support, v2
+Date: Thu, 28 May 2009 14:14:47 -0700
+Message-ID: <20090528211446.GK32453@atomide.com>
+References: <20090525174517.19679.18805.stgit@localhost> <20090525175618.19679.45155.stgit@localhost> <20090528160632.GF20736@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="pZs/OQEoSSbxGlYw"
+Content-Type: multipart/mixed; boundary="YkJPYEFdoxh/AXLE"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57604 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754975AbZE1VNX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 17:13:23 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56288 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756317AbZE1VPA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 17:15:00 -0400
 Content-Disposition: inline
-In-Reply-To: <20090528160535.GE20736@n2100.arm.linux.org.uk>
+In-Reply-To: <20090528160632.GF20736@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Mikkel Christensen <mlc@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Syed Mohammed Khasim <khasim@ti.com>
 
 
---pZs/OQEoSSbxGlYw
+--YkJPYEFdoxh/AXLE
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090528 09:05]:
-> On Mon, May 25, 2009 at 10:53:35AM -0700, Tony Lindgren wrote:
-> > diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090528 09:07]:
+> On Mon, May 25, 2009 at 10:56:18AM -0700, Tony Lindgren wrote:
+> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
 > > new file mode 100644
-> > index 0000000..91f07c1
+> > index 0000000..6ce2f32
 > > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-> > @@ -0,0 +1,160 @@
+> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> > @@ -0,0 +1,329 @@
 > > +/*
-> > + * Copyright (C) 2009 Texas Instruments Inc.
-> > + * Mikkel Christensen <mlc@ti.com>
+> > + * linux/arch/arm/mach-omap2/board-omap3evm.c
 > > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/kernel.h>
-> > +#include <linux/init.h>
-> > +#include <linux/serial_8250.h>
-> > +#include <linux/smsc911x.h>
-> > +
-> > +#include <mach/gpio.h>
-> 
-> linux/gpio.h please.
-> 
-> > diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-> > new file mode 100644
-> > index 0000000..d4cd7ff
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-zoom2.c
-> > @@ -0,0 +1,110 @@
-> > +/*
-> > + * Copyright (C) 2009 Texas Instruments Inc.
-> > + * Mikkel Christensen <mlc@ti.com>
+> > + * Copyright (C) 2008 Texas Instruments
 > > + *
-> > + * Modified from mach-omap2/board-ldp.c
+> > + * Modified from mach-omap2/board-3430sdp.c
+> > + *
+> > + * Initial code: Syed Mohammed Khasim
 > > + *
 > > + * This program is free software; you can redistribute it and/or modify
 > > + * it under the terms of the GNU General Public License version 2 as
@@ -68,239 +47,85 @@ Content-Disposition: inline
 > > +#include <linux/kernel.h>
 > > +#include <linux/init.h>
 > > +#include <linux/platform_device.h>
+> > +#include <linux/delay.h>
+> > +#include <linux/err.h>
+> > +#include <linux/clk.h>
+> > +#include <linux/input.h>
+> > +#include <linux/leds.h>
+> > +
+> > +#include <linux/spi/spi.h>
+> > +#include <linux/spi/ads7846.h>
 > > +#include <linux/i2c/twl4030.h>
 > > +
+> > +#include <mach/hardware.h>
 > > +#include <asm/mach-types.h>
 > > +#include <asm/mach/arch.h>
+> > +#include <asm/mach/map.h>
 > > +
 > > +#include <mach/gpio.h>
 > 
-> Ditto.
+> linux/gpio.h please.
 
-Good eye. Here's this one updated.
+Updated.
 
 Tony
 
---pZs/OQEoSSbxGlYw
+--YkJPYEFdoxh/AXLE
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="zoom2-v2.patch"
+Content-Disposition: inline; filename="omap3evm-v2.patch"
 
->From 577145f45487b41b4d47eeaedb9d37e494f80715 Mon Sep 17 00:00:00 2001
-From: Vikram Pandita <vikram.pandita@ti.com>
-Date: Thu, 28 May 2009 14:04:04 -0700
-Subject: [PATCH] ARM: OMAP3: Add support for OMAP3 Zoom2 board
+>From 53c5ec31e775d40e428a577de561211e11b08d74 Mon Sep 17 00:00:00 2001
+From: Syed Mohammed Khasim <khasim@ti.com>
+Date: Thu, 28 May 2009 14:13:28 -0700
+Subject: [PATCH] ARM: OMAP3: Add omap3 EVM support
 
-This patch creates the minimal OMAP3 Zoom2 board support.
+Add omap3 EVM support
 
-Signed-off-by: Mikkel Christensen <mlc@ti.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Syed Mohammed Khasim <khasim@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
 diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 64ab386..f6cf903 100644
+index f6cf903..b5c9088 100644
 --- a/arch/arm/mach-omap2/Kconfig
 +++ b/arch/arm/mach-omap2/Kconfig
-@@ -67,3 +67,7 @@ config MACH_OMAP_3430SDP
- config MACH_NOKIA_RX51
- 	bool "Nokia RX-51 board"
+@@ -56,6 +56,10 @@ config MACH_OVERO
+ 	bool "Gumstix Overo board"
  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+
-+config MACH_OMAP_ZOOM2
-+	bool "OMAP3 Zoom2 board"
+ 
++config MACH_OMAP3EVM
++	bool "OMAP 3530 EVM board"
 +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index e4f6f61..4cdb318 100644
+index 4cdb318..10e7c29 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -53,7 +53,9 @@ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-peripherals.o \
+@@ -45,6 +45,8 @@ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
  					   mmc-twl4030.o
--
-+obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
-+					   mmc-twl4030.o \
-+					   board-zoom-debugboard.o
- # Platform specific device init code
- ifeq ($(CONFIG_USB_MUSB_SOC),y)
- obj-y					+= usb-musb.o
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   mmc-twl4030.o
++obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
++					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
 new file mode 100644
-index 0000000..bac5c43
+index 0000000..d3cc145
 --- /dev/null
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -0,0 +1,160 @@
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -0,0 +1,329 @@
 +/*
-+ * Copyright (C) 2009 Texas Instruments Inc.
-+ * Mikkel Christensen <mlc@ti.com>
++ * linux/arch/arm/mach-omap2/board-omap3evm.c
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/gpio.h>
-+#include <linux/serial_8250.h>
-+#include <linux/smsc911x.h>
-+
-+#include <mach/gpmc.h>
-+
-+#define ZOOM2_SMSC911X_CS	7
-+#define ZOOM2_SMSC911X_GPIO	158
-+#define ZOOM2_QUADUART_CS	3
-+#define ZOOM2_QUADUART_GPIO	102
-+#define QUART_CLK		1843200
-+#define DEBUG_BASE		0x08000000
-+#define ZOOM2_ETHR_START	DEBUG_BASE
-+
-+static struct resource zoom2_smsc911x_resources[] = {
-+	[0] = {
-+		.start	= ZOOM2_ETHR_START,
-+		.end	= ZOOM2_ETHR_START + SZ_4K,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
-+	},
-+};
-+
-+static struct smsc911x_platform_config zoom2_smsc911x_config = {
-+	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
-+	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
-+	.flags		= SMSC911X_USE_32BIT,
-+	.phy_interface	= PHY_INTERFACE_MODE_MII,
-+};
-+
-+static struct platform_device zoom2_smsc911x_device = {
-+	.name		= "smsc911x",
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(zoom2_smsc911x_resources),
-+	.resource	= zoom2_smsc911x_resources,
-+	.dev		= {
-+		.platform_data = &zoom2_smsc911x_config,
-+	},
-+};
-+
-+static inline void __init zoom2_init_smsc911x(void)
-+{
-+	int eth_cs;
-+	unsigned long cs_mem_base;
-+	int eth_gpio = 0;
-+
-+	eth_cs = ZOOM2_SMSC911X_CS;
-+
-+	if (gpmc_cs_request(eth_cs, SZ_16M, &cs_mem_base) < 0) {
-+		printk(KERN_ERR "Failed to request GPMC mem for smsc911x\n");
-+		return;
-+	}
-+
-+	zoom2_smsc911x_resources[0].start = cs_mem_base + 0x0;
-+	zoom2_smsc911x_resources[0].end   = cs_mem_base + 0xff;
-+
-+	eth_gpio = ZOOM2_SMSC911X_GPIO;
-+
-+	zoom2_smsc911x_resources[1].start = OMAP_GPIO_IRQ(eth_gpio);
-+
-+	if (gpio_request(eth_gpio, "smsc911x irq") < 0) {
-+		printk(KERN_ERR "Failed to request GPIO%d for smsc911x IRQ\n",
-+				eth_gpio);
-+		return;
-+	}
-+	gpio_direction_input(eth_gpio);
-+}
-+
-+static struct plat_serial8250_port serial_platform_data[] = {
-+	{
-+		.mapbase	= 0x10000000,
-+		.irq		= OMAP_GPIO_IRQ(102),
-+		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
-+		.iotype		= UPIO_MEM,
-+		.regshift	= 1,
-+		.uartclk	= QUART_CLK,
-+	}, {
-+		.flags		= 0
-+	}
-+};
-+
-+static struct platform_device zoom2_debugboard_serial_device = {
-+	.name			= "serial8250",
-+	.id			= PLAT8250_DEV_PLATFORM1,
-+	.dev			= {
-+		.platform_data	= serial_platform_data,
-+	},
-+};
-+
-+static inline void __init zoom2_init_quaduart(void)
-+{
-+	int quart_cs;
-+	unsigned long cs_mem_base;
-+	int quart_gpio = 0;
-+
-+	quart_cs = ZOOM2_QUADUART_CS;
-+
-+	if (gpmc_cs_request(quart_cs, SZ_1M, &cs_mem_base) < 0) {
-+		printk(KERN_ERR "Failed to request GPMC mem"
-+				"for Quad UART(TL16CP754C)\n");
-+		return;
-+	}
-+
-+	quart_gpio = ZOOM2_QUADUART_GPIO;
-+
-+	if (gpio_request(quart_gpio, "TL16CP754C GPIO") < 0) {
-+		printk(KERN_ERR "Failed to request GPIO%d for TL16CP754C\n",
-+								quart_gpio);
-+		return;
-+	}
-+	gpio_direction_input(quart_gpio);
-+}
-+
-+static inline int omap_zoom2_debugboard_detect(void)
-+{
-+	int debug_board_detect = 0;
-+
-+	debug_board_detect = ZOOM2_SMSC911X_GPIO;
-+
-+	if (gpio_request(debug_board_detect, "Zoom2 debug board detect") < 0) {
-+		printk(KERN_ERR "Failed to request GPIO%d for Zoom2 debug"
-+		"board detect\n", debug_board_detect);
-+		return 0;
-+	}
-+	gpio_direction_input(debug_board_detect);
-+
-+	if (!gpio_get_value(debug_board_detect)) {
-+		gpio_free(debug_board_detect);
-+		return 0;
-+	}
-+	return 1;
-+}
-+
-+static struct platform_device *zoom2_devices[] __initdata = {
-+	&zoom2_smsc911x_device,
-+	&zoom2_debugboard_serial_device,
-+};
-+
-+int __init omap_zoom2_debugboard_init(void)
-+{
-+	if (!omap_zoom2_debugboard_detect())
-+		return 0;
-+
-+	zoom2_init_smsc911x();
-+	zoom2_init_quaduart();
-+	return platform_add_devices(zoom2_devices, ARRAY_SIZE(zoom2_devices));
-+}
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-new file mode 100644
-index 0000000..bcc0f76
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -0,0 +1,110 @@
-+/*
-+ * Copyright (C) 2009 Texas Instruments Inc.
-+ * Mikkel Christensen <mlc@ti.com>
++ * Copyright (C) 2008 Texas Instruments
 + *
-+ * Modified from mach-omap2/board-ldp.c
++ * Modified from mach-omap2/board-3430sdp.c
++ *
++ * Initial code: Syed Mohammed Khasim
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -310,101 +135,317 @@ index 0000000..bcc0f76
 +#include <linux/kernel.h>
 +#include <linux/init.h>
 +#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/clk.h>
 +#include <linux/gpio.h>
++#include <linux/input.h>
++#include <linux/leds.h>
++
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
 +#include <linux/i2c/twl4030.h>
 +
++#include <mach/hardware.h>
 +#include <asm/mach-types.h>
 +#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
 +
-+#include <mach/common.h>
++#include <mach/board.h>
++#include <mach/mux.h>
 +#include <mach/usb.h>
++#include <mach/common.h>
++#include <mach/mcspi.h>
++#include <mach/keypad.h>
 +
++#include "sdram-micron-mt46h32m32lf-6.h"
 +#include "mmc-twl4030.h"
 +
-+static void __init omap_zoom2_init_irq(void)
++#define OMAP3_EVM_TS_GPIO	175
++
++#define OMAP3EVM_ETHR_START	0x2c000000
++#define OMAP3EVM_ETHR_SIZE	1024
++#define OMAP3EVM_ETHR_GPIO_IRQ	176
++#define OMAP3EVM_SMC911X_CS	5
++
++static struct resource omap3evm_smc911x_resources[] = {
++	[0] =	{
++		.start	= OMAP3EVM_ETHR_START,
++		.end	= (OMAP3EVM_ETHR_START + OMAP3EVM_ETHR_SIZE - 1),
++		.flags	= IORESOURCE_MEM,
++	},
++	[1] =	{
++		.start	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
++		.end	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device omap3evm_smc911x_device = {
++	.name		= "smc911x",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(omap3evm_smc911x_resources),
++	.resource	= &omap3evm_smc911x_resources[0],
++};
++
++static inline void __init omap3evm_init_smc911x(void)
 +{
-+	omap2_init_common_hw(NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
++	int eth_cs;
++	struct clk *l3ck;
++	unsigned int rate;
++
++	eth_cs = OMAP3EVM_SMC911X_CS;
++
++	l3ck = clk_get(NULL, "l3_ck");
++	if (IS_ERR(l3ck))
++		rate = 100000000;
++	else
++		rate = clk_get_rate(l3ck);
++
++	if (gpio_request(OMAP3EVM_ETHR_GPIO_IRQ, "SMC911x irq") < 0) {
++		printk(KERN_ERR "Failed to request GPIO%d for smc911x IRQ\n",
++			OMAP3EVM_ETHR_GPIO_IRQ);
++		return;
++	}
++
++	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
 +}
 +
-+static struct omap_uart_config zoom2_uart_config __initdata = {
++static struct omap_uart_config omap3_evm_uart_config __initdata = {
 +	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
 +};
 +
-+static struct omap_board_config_kernel zoom2_config[] __initdata = {
-+	{ OMAP_TAG_UART,	&zoom2_uart_config },
++static struct twl4030_hsmmc_info mmc[] = {
++	{
++		.mmc		= 1,
++		.wires		= 4,
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= 63,
++	},
++	{}	/* Terminator */
 +};
 +
-+static struct twl4030_gpio_platform_data zoom2_gpio_data = {
++static struct gpio_led gpio_leds[] = {
++	{
++		.name			= "omap3evm::ledb",
++		/* normally not visible (board underside) */
++		.default_trigger	= "default-on",
++		.gpio			= -EINVAL,	/* gets replaced */
++		.active_low		= true,
++	},
++};
++
++static struct gpio_led_platform_data gpio_led_info = {
++	.leds		= gpio_leds,
++	.num_leds	= ARRAY_SIZE(gpio_leds),
++};
++
++static struct platform_device leds_gpio = {
++	.name	= "leds-gpio",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &gpio_led_info,
++	},
++};
++
++
++static int omap3evm_twl_gpio_setup(struct device *dev,
++		unsigned gpio, unsigned ngpio)
++{
++	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++	omap_cfg_reg(L8_34XX_GPIO63);
++	mmc[0].gpio_cd = gpio + 0;
++	twl4030_mmc_init(mmc);
++
++	/*
++	 * Most GPIOs are for USB OTG.  Some are mostly sent to
++	 * the P2 connector; notably LEDA for the LCD backlight.
++	 */
++
++	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
++	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
++
++	platform_device_register(&leds_gpio);
++
++	return 0;
++}
++
++static struct twl4030_gpio_platform_data omap3evm_gpio_data = {
 +	.gpio_base	= OMAP_MAX_GPIO_LINES,
 +	.irq_base	= TWL4030_GPIO_IRQ_BASE,
 +	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.use_leds	= true,
++	.setup		= omap3evm_twl_gpio_setup,
 +};
 +
-+static struct twl4030_platform_data zoom2_twldata = {
++static struct twl4030_usb_data omap3evm_usb_data = {
++	.usb_mode	= T2_USB_MODE_ULPI,
++};
++
++static int omap3evm_keymap[] = {
++	KEY(0, 0, KEY_LEFT),
++	KEY(0, 1, KEY_RIGHT),
++	KEY(0, 2, KEY_A),
++	KEY(0, 3, KEY_B),
++	KEY(1, 0, KEY_DOWN),
++	KEY(1, 1, KEY_UP),
++	KEY(1, 2, KEY_E),
++	KEY(1, 3, KEY_F),
++	KEY(2, 0, KEY_ENTER),
++	KEY(2, 1, KEY_I),
++	KEY(2, 2, KEY_J),
++	KEY(2, 3, KEY_K),
++	KEY(3, 0, KEY_M),
++	KEY(3, 1, KEY_N),
++	KEY(3, 2, KEY_O),
++	KEY(3, 3, KEY_P)
++};
++
++static struct twl4030_keypad_data omap3evm_kp_data = {
++	.rows		= 4,
++	.cols		= 4,
++	.keymap		= omap3evm_keymap,
++	.keymapsize	= ARRAY_SIZE(omap3evm_keymap),
++	.rep		= 1,
++};
++
++static struct twl4030_madc_platform_data omap3evm_madc_data = {
++	.irq_line	= 1,
++};
++
++static struct twl4030_platform_data omap3evm_twldata = {
 +	.irq_base	= TWL4030_IRQ_BASE,
 +	.irq_end	= TWL4030_IRQ_END,
 +
 +	/* platform_data for children goes here */
-+	.gpio		= &zoom2_gpio_data,
++	.keypad		= &omap3evm_kp_data,
++	.madc		= &omap3evm_madc_data,
++	.usb		= &omap3evm_usb_data,
++	.gpio		= &omap3evm_gpio_data,
 +};
 +
-+static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
++static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
 +	{
 +		I2C_BOARD_INFO("twl4030", 0x48),
-+		.flags		= I2C_CLIENT_WAKE,
-+		.irq		= INT_34XX_SYS_NIRQ,
-+		.platform_data	= &zoom2_twldata,
++		.flags = I2C_CLIENT_WAKE,
++		.irq = INT_34XX_SYS_NIRQ,
++		.platform_data = &omap3evm_twldata,
 +	},
 +};
 +
-+static int __init omap_i2c_init(void)
++static int __init omap3_evm_i2c_init(void)
 +{
-+	omap_register_i2c_bus(1, 2600, zoom2_i2c_boardinfo,
-+			ARRAY_SIZE(zoom2_i2c_boardinfo));
++	omap_register_i2c_bus(1, 2600, omap3evm_i2c_boardinfo,
++			ARRAY_SIZE(omap3evm_i2c_boardinfo));
 +	omap_register_i2c_bus(2, 400, NULL, 0);
 +	omap_register_i2c_bus(3, 400, NULL, 0);
 +	return 0;
 +}
 +
-+static struct twl4030_hsmmc_info mmc[] __initdata = {
-+	{
-+		.mmc		= 1,
-+		.wires		= 4,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{}	/* Terminator */
++static struct platform_device omap3_evm_lcd_device = {
++	.name		= "omap3evm_lcd",
++	.id		= -1,
 +};
 +
-+extern int __init omap_zoom2_debugboard_init(void);
++static struct omap_lcd_config omap3_evm_lcd_config __initdata = {
++	.ctrl_name	= "internal",
++};
 +
-+static void __init omap_zoom2_init(void)
++static void ads7846_dev_init(void)
 +{
-+	omap_i2c_init();
-+	omap_board_config = zoom2_config;
-+	omap_board_config_size = ARRAY_SIZE(zoom2_config);
-+	omap_serial_init();
-+	omap_zoom2_debugboard_init();
-+	twl4030_mmc_init(mmc);
-+	usb_musb_init();
++	if (gpio_request(OMAP3_EVM_TS_GPIO, "ADS7846 pendown") < 0)
++		printk(KERN_ERR "can't get ads7846 pen down GPIO\n");
++
++	gpio_direction_input(OMAP3_EVM_TS_GPIO);
++
++	omap_set_gpio_debounce(OMAP3_EVM_TS_GPIO, 1);
++	omap_set_gpio_debounce_time(OMAP3_EVM_TS_GPIO, 0xa);
 +}
 +
-+static void __init omap_zoom2_map_io(void)
++static int ads7846_get_pendown_state(void)
++{
++	return !gpio_get_value(OMAP3_EVM_TS_GPIO);
++}
++
++struct ads7846_platform_data ads7846_config = {
++	.x_max			= 0x0fff,
++	.y_max			= 0x0fff,
++	.x_plate_ohms		= 180,
++	.pressure_max		= 255,
++	.debounce_max		= 10,
++	.debounce_tol		= 3,
++	.debounce_rep		= 1,
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++	.settle_delay_usecs	= 150,
++};
++
++static struct omap2_mcspi_device_config ads7846_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,	/* 0: slave, 1: master */
++};
++
++struct spi_board_info omap3evm_spi_board_info[] = {
++	[0] = {
++		.modalias		= "ads7846",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &ads7846_mcspi_config,
++		.irq			= OMAP_GPIO_IRQ(OMAP3_EVM_TS_GPIO),
++		.platform_data		= &ads7846_config,
++	},
++};
++
++static void __init omap3_evm_init_irq(void)
++{
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
++	omap_init_irq();
++	omap_gpio_init();
++	omap3evm_init_smc911x();
++}
++
++static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
++	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
++	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
++};
++
++static struct platform_device *omap3_evm_devices[] __initdata = {
++	&omap3_evm_lcd_device,
++	&omap3evm_smc911x_device,
++};
++
++static void __init omap3_evm_init(void)
++{
++	omap3_evm_i2c_init();
++
++	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
++	omap_board_config = omap3_evm_config;
++	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
++
++	spi_register_board_info(omap3evm_spi_board_info,
++				ARRAY_SIZE(omap3evm_spi_board_info));
++
++	omap_serial_init();
++	usb_musb_init();
++	ads7846_dev_init();
++}
++
++static void __init omap3_evm_map_io(void)
 +{
 +	omap2_set_globals_343x();
 +	omap2_map_common_io();
 +}
 +
-+MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
++MACHINE_START(OMAP3EVM, "OMAP3 EVM")
++	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
 +	.phys_io	= 0x48000000,
 +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
 +	.boot_params	= 0x80000100,
-+	.map_io		= omap_zoom2_map_io,
-+	.init_irq	= omap_zoom2_init_irq,
-+	.init_machine	= omap_zoom2_init,
++	.map_io		= omap3_evm_map_io,
++	.init_irq	= omap3_evm_init_irq,
++	.init_machine	= omap3_evm_init,
 +	.timer		= &omap_timer,
 +MACHINE_END
 
---pZs/OQEoSSbxGlYw--
+--YkJPYEFdoxh/AXLE--
