@@ -1,89 +1,175 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/8] ARM: OMAP3: Add support for OMAP3 Zoom2 board, v2
-Date: Thu, 28 May 2009 14:39:38 -0700
-Message-ID: <20090528213937.GA31087@atomide.com>
-References: <20090525174517.19679.18805.stgit@localhost> <20090525175335.19679.3398.stgit@localhost> <20090528160535.GE20736@n2100.arm.linux.org.uk> <20090528211306.GJ32453@atomide.com> <20090528211606.GD29066@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: Add voltage levels to prm_setup_vc (previously prm_setup_time)
+Date: Thu, 28 May 2009 16:17:55 -0700
+Message-ID: <87tz34keak.fsf@deeprootsystems.com>
+References: <1242949631-27191-1-git-send-email-mike@android.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63482 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809AbZE1Vjv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 17:39:51 -0400
-Content-Disposition: inline
-In-Reply-To: <20090528211606.GD29066@n2100.arm.linux.org.uk>
+Received: from qw-out-2122.google.com ([74.125.92.27]:25584 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751062AbZE1XR6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 19:17:58 -0400
+In-Reply-To: <1242949631-27191-1-git-send-email-mike@android.com> (Mike Chan's message of "Thu\, 21 May 2009 16\:47\:11 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Mikkel Christensen <mlc@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
+To: Mike Chan <mike@android.com>
+Cc: linux-omap@vger.kernel.orginux-omap@vger.kernel.org
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090528 14:19]:
-> On Thu, May 28, 2009 at 02:13:06PM -0700, Tony Lindgren wrote:
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090528 09:05]:
-> > > On Mon, May 25, 2009 at 10:53:35AM -0700, Tony Lindgren wrote:
-> > > > diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-> > > > new file mode 100644
-> > > > index 0000000..91f07c1
-> > > > --- /dev/null
-> > > > +++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-> > > > @@ -0,0 +1,160 @@
-> > > > +/*
-> > > > + * Copyright (C) 2009 Texas Instruments Inc.
-> > > > + * Mikkel Christensen <mlc@ti.com>
-> > > > + *
-> > > > + * This program is free software; you can redistribute it and/or modify
-> > > > + * it under the terms of the GNU General Public License version 2 as
-> > > > + * published by the Free Software Foundation.
-> > > > + */
-> > > > +
-> > > > +#include <linux/kernel.h>
-> > > > +#include <linux/init.h>
-> > > > +#include <linux/serial_8250.h>
-> > > > +#include <linux/smsc911x.h>
-> > > > +
-> > > > +#include <mach/gpio.h>
-> > > 
-> > > linux/gpio.h please.
-> > > 
-> > > > diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-> > > > new file mode 100644
-> > > > index 0000000..d4cd7ff
-> > > > --- /dev/null
-> > > > +++ b/arch/arm/mach-omap2/board-zoom2.c
-> > > > @@ -0,0 +1,110 @@
-> > > > +/*
-> > > > + * Copyright (C) 2009 Texas Instruments Inc.
-> > > > + * Mikkel Christensen <mlc@ti.com>
-> > > > + *
-> > > > + * Modified from mach-omap2/board-ldp.c
-> > > > + *
-> > > > + * This program is free software; you can redistribute it and/or modify
-> > > > + * it under the terms of the GNU General Public License version 2 as
-> > > > + * published by the Free Software Foundation.
-> > > > + */
-> > > > +
-> > > > +#include <linux/kernel.h>
-> > > > +#include <linux/init.h>
-> > > > +#include <linux/platform_device.h>
-> > > > +#include <linux/i2c/twl4030.h>
-> > > > +
-> > > > +#include <asm/mach-types.h>
-> > > > +#include <asm/mach/arch.h>
-> > > > +
-> > > > +#include <mach/gpio.h>
-> > > 
-> > > Ditto.
-> > 
-> > Good eye. Here's this one updated.
-> 
-> Nothing really to do with eyes, more to do with regexps in .muttrc
-> highlighting this stuff with a red background...  It currently is
-> setup as:
-> 
-> color body white red "(\\+#include <(asm|mach)/(gp)?io\.h>|return -1|default n)"
-> 
-> but will probably expand more over time.
+Mike Chan <mike@android.com> writes:
 
-Cool. Added that here too.
+> Expand configure_vc() to support configurable voltage levels.
+>
+> Signed-off-by: Mike Chan <mike@android.com>
 
-Tony
+Thanks, pushing to PM branch.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/pm.h     |   14 ++++++++-
+>  arch/arm/mach-omap2/pm34xx.c |   60 +++++++++++++++++++++--------------------
+>  2 files changed, 43 insertions(+), 31 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+> index 2547e1b..50a7a98 100644
+> --- a/arch/arm/mach-omap2/pm.h
+> +++ b/arch/arm/mach-omap2/pm.h
+> @@ -33,18 +33,28 @@ extern unsigned short wakeup_timer_seconds;
+>  extern struct omap_dm_timer *gptimer_wakeup;
+>  
+>  #ifdef CONFIG_ARCH_OMAP3
+> -struct prm_setup_times {
+> +struct prm_setup_vc {
+>  	u16 clksetup;
+>  	u16 voltsetup_time1;
+>  	u16 voltsetup_time2;
+>  	u16 voltoffset;
+>  	u16 voltsetup2;
+> +/* PRM_VC_CMD_VAL_0 specific bits */
+> +	u16 vdd0_on;
+> +	u16 vdd0_onlp;
+> +	u16 vdd0_ret;
+> +	u16 vdd0_off;
+> +/* PRM_VC_CMD_VAL_1 specific bits */
+> +	u16 vdd1_on;
+> +	u16 vdd1_onlp;
+> +	u16 vdd1_ret;
+> +	u16 vdd1_off;
+>  };
+>  
+>  extern void omap3_pm_off_mode_enable(int);
+>  extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+>  extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+> -extern void omap3_set_prm_setup_times(struct prm_setup_times *setup_times);
+> +extern void omap3_set_prm_setup_vc(struct prm_setup_vc *setup_vc);
+>  #else
+>  #define omap3_pm_off_mode_enable(int) do {} while (0);
+>  #define omap3_pm_get_suspend_state(pwrdm) do {} while (0);
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 80992c5..b925501 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -87,12 +87,20 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+>  static struct powerdomain *core_pwrdm, *per_pwrdm;
+>  static struct powerdomain *cam_pwrdm;
+>  
+> -static struct prm_setup_times prm_setup = {
+> +static struct prm_setup_vc prm_setup = {
+>  	.clksetup = 0xff,
+>  	.voltsetup_time1 = 0xfff,
+>  	.voltsetup_time2 = 0xfff,
+>  	.voltoffset = 0xff,
+>  	.voltsetup2 = 0xff,
+> +	.vdd0_on = 0x30,
+> +	.vdd0_onlp = 0x1e,
+> +	.vdd0_ret = 0x1e,
+> +	.vdd0_off = 0x30,
+> +	.vdd1_on = 0x2c,
+> +	.vdd1_onlp = 0x1e,
+> +	.vdd1_ret = 0x1e,
+> +	.vdd1_off = 0x2c,
+>  };
+>  
+>  static inline void omap3_per_save_context(void)
+> @@ -951,13 +959,21 @@ int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
+>  	return -EINVAL;
+>  }
+>  
+> -void omap3_set_prm_setup_times(struct prm_setup_times *setup_times)
+> +void omap3_set_prm_setup_vc(struct prm_setup_vc *setup_vc)
+>  {
+> -	prm_setup.clksetup = setup_times->clksetup;
+> -	prm_setup.voltsetup_time1 = setup_times->voltsetup_time1;
+> -	prm_setup.voltsetup_time2 = setup_times->voltsetup_time2;
+> -	prm_setup.voltoffset = setup_times->voltoffset;
+> -	prm_setup.voltsetup2 = setup_times->voltsetup2;
+> +	prm_setup.clksetup = setup_vc->clksetup;
+> +	prm_setup.voltsetup_time1 = setup_vc->voltsetup_time1;
+> +	prm_setup.voltsetup_time2 = setup_vc->voltsetup_time2;
+> +	prm_setup.voltoffset = setup_vc->voltoffset;
+> +	prm_setup.voltsetup2 = setup_vc->voltsetup2;
+> +	prm_setup.vdd0_on = setup_vc->vdd0_on;
+> +	prm_setup.vdd0_onlp = setup_vc->vdd0_onlp;
+> +	prm_setup.vdd0_ret = setup_vc->vdd0_ret;
+> +	prm_setup.vdd0_off = setup_vc->vdd0_off;
+> +	prm_setup.vdd1_on = setup_vc->vdd1_on;
+> +	prm_setup.vdd1_onlp = setup_vc->vdd1_onlp;
+> +	prm_setup.vdd1_ret = setup_vc->vdd1_ret;
+> +	prm_setup.vdd1_off = setup_vc->vdd1_off;
+>  }
+>  
+>  static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+> @@ -1092,18 +1108,6 @@ err2:
+>  	return ret;
+>  }
+>  
+> -/* PRM_VC_CMD_VAL_0 specific bits */
+> -#define OMAP3430_VC_CMD_VAL0_ON		0x30
+> -#define OMAP3430_VC_CMD_VAL0_ONLP	0x1E
+> -#define OMAP3430_VC_CMD_VAL0_RET	0x1E
+> -#define OMAP3430_VC_CMD_VAL0_OFF	0x30
+> -
+> -/* PRM_VC_CMD_VAL_1 specific bits */
+> -#define OMAP3430_VC_CMD_VAL1_ON		0x2C
+> -#define OMAP3430_VC_CMD_VAL1_ONLP	0x1E
+> -#define OMAP3430_VC_CMD_VAL1_RET	0x1E
+> -#define OMAP3430_VC_CMD_VAL1_OFF	0x2C
+> -
+>  static void __init configure_vc(void)
+>  {
+>  
+> @@ -1114,18 +1118,16 @@ static void __init configure_vc(void)
+>  			(R_VDD1_SR_CONTROL << OMAP3430_VOLRA0_SHIFT),
+>  			OMAP3430_GR_MOD, OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET);
+>  
+> -	prm_write_mod_reg((OMAP3430_VC_CMD_VAL0_ON <<
+> -		OMAP3430_VC_CMD_ON_SHIFT) |
+> -		(OMAP3430_VC_CMD_VAL0_ONLP << OMAP3430_VC_CMD_ONLP_SHIFT) |
+> -		(OMAP3430_VC_CMD_VAL0_RET << OMAP3430_VC_CMD_RET_SHIFT) |
+> -		(OMAP3430_VC_CMD_VAL0_OFF << OMAP3430_VC_CMD_OFF_SHIFT),
+> +	prm_write_mod_reg((prm_setup.vdd0_on << OMAP3430_VC_CMD_ON_SHIFT) |
+> +		(prm_setup.vdd0_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
+> +		(prm_setup.vdd0_ret << OMAP3430_VC_CMD_RET_SHIFT) |
+> +		(prm_setup.vdd0_off << OMAP3430_VC_CMD_OFF_SHIFT),
+>  		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
+>  
+> -	prm_write_mod_reg((OMAP3430_VC_CMD_VAL1_ON <<
+> -		OMAP3430_VC_CMD_ON_SHIFT) |
+> -		(OMAP3430_VC_CMD_VAL1_ONLP << OMAP3430_VC_CMD_ONLP_SHIFT) |
+> -		(OMAP3430_VC_CMD_VAL1_RET << OMAP3430_VC_CMD_RET_SHIFT) |
+> -		(OMAP3430_VC_CMD_VAL1_OFF << OMAP3430_VC_CMD_OFF_SHIFT),
+> +	prm_write_mod_reg((prm_setup.vdd1_on << OMAP3430_VC_CMD_ON_SHIFT) |
+> +		(prm_setup.vdd1_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
+> +		(prm_setup.vdd1_ret << OMAP3430_VC_CMD_RET_SHIFT) |
+> +		(prm_setup.vdd1_off << OMAP3430_VC_CMD_OFF_SHIFT),
+>  		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_1_OFFSET);
+>  
+>  	prm_write_mod_reg(OMAP3430_CMD1 | OMAP3430_RAV1,
+> -- 
+> 1.5.4.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
