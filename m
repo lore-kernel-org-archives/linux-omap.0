@@ -1,42 +1,72 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 2/8] ARM: OMAP3: Initialize regulators for Beagle and
-	Overo
-Date: Thu, 28 May 2009 17:20:27 +0100
-Message-ID: <20090528162027.GG20736@n2100.arm.linux.org.uk>
-References: <20090525174517.19679.18805.stgit@localhost> <20090525174938.19679.51804.stgit@localhost>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 02/13] OMAP2/3: PM: push core PM code from linux-omap
+Date: Thu, 28 May 2009 09:51:18 -0700
+Message-ID: <87y6shp3w9.fsf@deeprootsystems.com>
+References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
+	<1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
+	<1242861576-13008-3-git-send-email-khilman@deeprootsystems.com>
+	<20090528154823.GD20736@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59065 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753468AbZE1QUu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 12:20:50 -0400
-Content-Disposition: inline
-In-Reply-To: <20090525174938.19679.51804.stgit@localhost>
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:55431 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754736AbZE1QvS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 12:51:18 -0400
+Received: by pzk7 with SMTP id 7so4323591pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 28 May 2009 09:51:20 -0700 (PDT)
+In-Reply-To: <20090528154823.GD20736@n2100.arm.linux.org.uk> (Russell King's message of "Thu\, 28 May 2009 16\:48\:23 +0100")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Mon, May 25, 2009 at 10:49:38AM -0700, Tony Lindgren wrote:
-> @@ -130,6 +148,10 @@ static int beagle_twl_gpio_setup(struct device *dev,
->  	mmc[0].gpio_cd = gpio + 0;
->  	twl4030_mmc_init(mmc);
->  
-> +	/* link regulators to MMC adapters */
-> +	beagle_vmmc1_supply.dev = mmc[0].dev;
-> +	beagle_vsim_supply.dev = mmc[0].dev;
-> +
+Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
 
-I really hate it when I see this kind of initialization after registration.
-It feels totally wrong and fragile.
+> On Wed, May 20, 2009 at 04:19:25PM -0700, Kevin Hilman wrote:
+>> This patch is to sync the core linux-omap PM code with mainline.  This
+>> code has evolved and been used for a while the linux-omap tree, but
+>> the attempt here is to finally get this into mainline.
+>
+> Hmm..
+>
+>> +static int __init omap_pm_init(void)
+>>  {
+>> -	return 0;
+>> +	int error = -1;
+>> +
+>> +	if (cpu_is_omap24xx())
+>> +		error = omap2_pm_init();
+>> +	if (cpu_is_omap34xx())
+>> +		error = omap3_pm_init();
+>
+> Experience with PXA has shown that this tends to be the wrong way up
+> of doing things.  It seems to be much better to have the SoC specific
+> code call the SoC generic code instead.
 
-At one point, I had clkdev matching using struct device pointer as well,
-but it was realised that was far too limiting - you couldn't declare
-clock entries without first having all devices setup, and then you run
-into problems with ordering.
+OK.
 
-It looks like the regulator stuff is suffering this same problem - it
-wants to match by struct device pointer.  That's fine if all your
-struct device's are statically allocated, but as soon as you start
-having dynamic ones, it gets _much_ harder to cope with.
+> So, eg, omap2_pm_init() becomes:
+>
+> static int omap2_pm_init(void)
+> {
+> 	if (!cpu_is_omap24xx())
+> 		return -ENODEV;
+>
+> 	... omap24xx initialisation ...
+>
+> 	return omap_pm_init();
+> }
+> late_initcall(omap2_pm_init);
+>
+> (and, since this is always built-in, there's no point doing cleanup if
+> omap_pm_init() fails - you're not going to be able to re-run that
+> initialization again.)
+
+Sounds good, I'll make this change and upate the pm-upstream branch
+for Tony.
+
+This will leave the common omap_pm_init() and pm.c basically empty, so
+I'll just remove them.
+
+Kevin
