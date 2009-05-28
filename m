@@ -1,80 +1,64 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 02/13] OMAP2/3: PM: push core PM code from linux-omap
-Date: Thu, 28 May 2009 11:22:49 -0700
-Message-ID: <87skipm6iu.fsf@deeprootsystems.com>
-References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com>
-	<1242861576-13008-2-git-send-email-khilman@deeprootsystems.com>
-	<1242861576-13008-3-git-send-email-khilman@deeprootsystems.com>
-	<20090528154823.GD20736@n2100.arm.linux.org.uk>
-	<87y6shp3w9.fsf@deeprootsystems.com>
+From: Andrew de Quincey <adq_dvb@lidskialf.net>
+Subject: Re: [PATCH 05/10] ARM: OMAP1: Make 770 LCD work
+Date: Thu, 28 May 2009 19:44:42 +0100
+Message-ID: <20090528194442.39896ichvj5e3dzs@lidskialf.net>
+References: <20090519232905.12760.15490.stgit@localhost>
+	<20090519233732.12760.34595.stgit@localhost>
+	<20090525092911.GC28195@n2100.arm.linux.org.uk>
+	<20090525142128.17675cl0tvdr0y1k@lidskialf.net>
+	<20090525174055.127744136qxu9vk0@lidskialf.net>
+	<20090528182047.GF32453@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset=UTF-8;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f191.google.com ([209.85.216.191]:48506 "EHLO
-	mail-px0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755190AbZE1SWu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 14:22:50 -0400
-Received: by pxi29 with SMTP id 29so1135128pxi.33
-        for <linux-omap@vger.kernel.org>; Thu, 28 May 2009 11:22:52 -0700 (PDT)
-In-Reply-To: <87y6shp3w9.fsf@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 28 May 2009 09\:51\:18 -0700")
+Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:37427 "EHLO
+	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751039AbZE1Sol convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 14:44:41 -0400
+In-Reply-To: <20090528182047.GF32453@atomide.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.arm.linux.org.uk, Imre Deak <imre.deak@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Quoting Tony Lindgren <tony@atomide.com>:
 
-> Russell King - ARM Linux <linux@arm.linux.org.uk> writes:
+> * Andrew de Quincey <adq_dvb@lidskialf.net> [090525 09:41]:
+>> Quoting Andrew de Quincey <adq_dvb@lidskialf.net>:
+>>
+>>> Quoting Russell King - ARM Linux <linux@arm.linux.org.uk>:
+>>>
+>>>> On Tue, May 19, 2009 at 04:37:32PM -0700, Tony Lindgren wrote:
+>>>>> Make 770 LCD work by passing the clock from platform data.
+>>>>> Also remove the old unused functions.
+>>>>
+>>>> I don't like this - because its passing struct clk's through platform
+>>>> data.  That's not how things are supposed to work.
+>>>>
+>>>> The way PXA solves this problem is to have clock aliases - see
+>>>> clk_add_alias().
+>>>
+>>> Interesting idea - I now have a prototype patch implementing this,
+>>> which I'll send when I get home (otherwise it would be an "it
+>>> compiles" "test" :)
+>>>
+>>> There isn't a common definition of clk_add_alias() though - that
+>>> symbol is defined in arch/arm/mach-pxa/clock.c, so I had to copy it
+>>> into arch/arm/plat-omap/clock.c
+>>
+>> Attached is a patch implementing this method. I don't like the
+>> duplication of the clk_alias code, but I imagine that could be resolved
+>> if this method was chosen....
 >
->> On Wed, May 20, 2009 at 04:19:25PM -0700, Kevin Hilman wrote:
->>> This patch is to sync the core linux-omap PM code with mainline.  This
->>> code has evolved and been used for a while the linux-omap tree, but
->>> the attempt here is to finally get this into mainline.
->>
->> Hmm..
->>
->>> +static int __init omap_pm_init(void)
->>>  {
->>> -	return 0;
->>> +	int error = -1;
->>> +
->>> +	if (cpu_is_omap24xx())
->>> +		error = omap2_pm_init();
->>> +	if (cpu_is_omap34xx())
->>> +		error = omap3_pm_init();
->>
->> Experience with PXA has shown that this tends to be the wrong way up
->> of doing things.  It seems to be much better to have the SoC specific
->> code call the SoC generic code instead.
->
-> OK.
->
->> So, eg, omap2_pm_init() becomes:
->>
->> static int omap2_pm_init(void)
->> {
->> 	if (!cpu_is_omap24xx())
->> 		return -ENODEV;
->>
->> 	... omap24xx initialisation ...
->>
->> 	return omap_pm_init();
->> }
->> late_initcall(omap2_pm_init);
->>
->> (and, since this is always built-in, there's no point doing cleanup if
->> omap_pm_init() fails - you're not going to be able to re-run that
->> initialization again.)
->
-> Sounds good, I'll make this change and upate the pm-upstream branch
-> for Tony.
->
-> This will leave the common omap_pm_init() and pm.c basically empty, so
-> I'll just remove them.
+> Andrew, can you please reply with your Signed-off-by?
 
-OK, pushed an updated version of this patch into a new pm-upstream branch
-of my omap-pm tree[1]
+Sure - sorry I was holding off in case there were any comments on the  
+method...
 
-Kevin
+Signed-off-by: Andrew de Quincey <adq@lidskialf.net>
 
-[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
