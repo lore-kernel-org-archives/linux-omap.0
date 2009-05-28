@@ -1,42 +1,42 @@
-From: Trilok Soni <soni.trilok-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] MFD: Add U300 AB3100 core support v1
-Date: Thu, 28 May 2009 13:52:33 +0530
-Message-ID: <5d5443650905280122ha5b14a7gfd668d7ae9b09eaf@mail.gmail.com>
-References: <63386a3d0905140129s5fd0f32cxde1114489678f012@mail.gmail.com>
-	 <4A0BF776.9030301@compulab.co.il>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: "Dummy" regulator possible?
+Date: Thu, 28 May 2009 11:45:15 +0300
+Message-ID: <1243500315.32558.27.camel@tubuntu>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4A0BF776.9030301-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Rapoport <mike-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Cc: Linus Walleij <linus.ml.walleij-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:28992 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758559AbZE1IqU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 04:46:20 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4S8kBIS018752
+	for <linux-omap@vger.kernel.org>; Thu, 28 May 2009 11:46:15 +0300
+Received: from [172.21.42.218] (esdhcp042218.research.nokia.com [172.21.42.218])
+	by mgw-da02.ext.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4S8jE2C015090
+	for <linux-omap@vger.kernel.org>; Thu, 28 May 2009 11:45:14 +0300
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Mike,
+Hi,
 
-On Thu, May 14, 2009 at 4:20 PM, Mike Rapoport <mike-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> wrote:
-> Hi Linus,
-> A few comments.
->
-> Linus Walleij wrote:
->> This adds a core driver for the AB3100 mixed-signal circuit
->> found in the ST-Ericsson U300 series platforms. This driver
->> is a singleton proxy for all accesses to the AB3100
->> sub-drivers which will be merged on top of this one, RTC,
->> regulators, battery and system power control, vibrator,
->> LEDs, and an ALSA codec.
->
-> As general note on the driver, you export register access methods so they can be
-> called virtually anywhere.
+Let's say I have a device that requires power from a regulator, like
+OMAP3430 SDP Sharp LCD's "Vcc".
 
-This will apply to existing manilined driver twl4030-core driver too.
-Adding David here.
+Then I have two boards with the same device. One board gives power to
+the device from an always-on regulator, like SDP does with VBAT going to
+the LCD. The other board gives power to the device from a controllable
+regulator, say, VAUXy.
 
-read/write register APIs for twl4030-core driver is also exported
-everywhere without per chip structure fed into it.
+Is it possible to create a dummy regulator, so that the device driver
+could always ask for Vcc supply, and get it, even when it's connected to
+a always-on regulator?
 
----Trilok Soni
-http://triloksoni.wordpress.com
-http://www.linkedin.com/in/triloksoni
+Or what would be the correct approach to this?
+
+ Tomi
+
+
