@@ -1,57 +1,46 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 02/13] OMAP2/3: PM: push core PM code from linux-omap
-Date: Thu, 28 May 2009 16:48:23 +0100
-Message-ID: <20090528154823.GD20736@n2100.arm.linux.org.uk>
-References: <1242861576-13008-1-git-send-email-khilman@deeprootsystems.com> <1242861576-13008-2-git-send-email-khilman@deeprootsystems.com> <1242861576-13008-3-git-send-email-khilman@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2/3: Remove OMAP2_32KSYNCT_BASE
+Date: Thu, 28 May 2009 08:54:31 -0700
+Message-ID: <20090528155431.GC32453@atomide.com>
+References: <20090514231820.19331.65419.stgit@localhost> <20090514232306.19331.92192.stgit@localhost> <20090528152517.GB20736@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33979 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754945AbZE1Psd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 11:48:33 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60663 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754554AbZE1Pyl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 11:54:41 -0400
 Content-Disposition: inline
-In-Reply-To: <1242861576-13008-3-git-send-email-khilman@deeprootsystems.com>
+In-Reply-To: <20090528152517.GB20736@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-On Wed, May 20, 2009 at 04:19:25PM -0700, Kevin Hilman wrote:
-> This patch is to sync the core linux-omap PM code with mainline.  This
-> code has evolved and been used for a while the linux-omap tree, but
-> the attempt here is to finally get this into mainline.
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090528 08:25]:
+> On Thu, May 14, 2009 at 04:23:06PM -0700, Tony Lindgren wrote:
+> > Use processor specific defines instead.
+> > 
+> > As an extra bonus, this patch fixes the problem of CONFIG_DEBUG_SPINLOCK
+> > calling sched_clock before we have things initialized:
+> 
+> Hmm.  I don't think sched_clock peculiarities should be handed by the
+> clock source implementation.
+> 
+> This is really a generic kernel bug: lots of ARM architecture sched_clock
+> implementations can not be called before things like IO memory has been
+> setup - and that's something that mainline people have been made aware
+> of repeatedly, and they've fixed the problems when they've come up.
 
-Hmm..
+Yeah agreed.
+ 
+> Moreover, the issue of using clocksources for sched_clock is being
+> discussed on the main ARM lists, with the possibility of the generic
+> kernel-wide sched_clock implementation being based upon clock sources.
+> 
+> Whether that changes anything with this patch, I'm not entirely sure.
 
-> +static int __init omap_pm_init(void)
->  {
-> -	return 0;
-> +	int error = -1;
-> +
-> +	if (cpu_is_omap24xx())
-> +		error = omap2_pm_init();
-> +	if (cpu_is_omap34xx())
-> +		error = omap3_pm_init();
+The clocksource and sched_clock thing is a separate issue, this patch
+is still needed to remove the conflicting defines.
 
-Experience with PXA has shown that this tends to be the wrong way up
-of doing things.  It seems to be much better to have the SoC specific
-code call the SoC generic code instead.
-
-So, eg, omap2_pm_init() becomes:
-
-static int omap2_pm_init(void)
-{
-	if (!cpu_is_omap24xx())
-		return -ENODEV;
-
-	... omap24xx initialisation ...
-
-	return omap_pm_init();
-}
-late_initcall(omap2_pm_init);
-
-(and, since this is always built-in, there's no point doing cleanup if
-omap_pm_init() fails - you're not going to be able to re-run that
-initialization again.)
-
+Tony
