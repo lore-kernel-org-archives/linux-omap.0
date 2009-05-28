@@ -1,135 +1,42 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH] OMAP3: Re-program also chipselect 1 when changing SDRAM
- timing
-Date: Thu, 28 May 2009 09:52:13 +0200
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A20545378170@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1243426419-32652-1-git-send-email-tero.kristo@nokia.com>
- <87bppewnox.fsf@deeprootsystems.com>
+From: Trilok Soni <soni.trilok-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] MFD: Add U300 AB3100 core support v1
+Date: Thu, 28 May 2009 13:52:33 +0530
+Message-ID: <5d5443650905280122ha5b14a7gfd668d7ae9b09eaf@mail.gmail.com>
+References: <63386a3d0905140129s5fd0f32cxde1114489678f012@mail.gmail.com>
+	 <4A0BF776.9030301@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:17689 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755366AbZE1Hwm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 03:52:42 -0400
-In-Reply-To: <87bppewnox.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4A0BF776.9030301-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Rapoport <mike-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org>, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: Linus Walleij <linus.ml.walleij-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-0IS4wlFg1OjSUeElwK9/Pw@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
 
- 
+Hi Mike,
 
->-----Original Message-----
->From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: 27 May, 2009 18:50
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH] OMAP3: Re-program also chipselect 1 when 
->changing SDRAM timing
+On Thu, May 14, 2009 at 4:20 PM, Mike Rapoport <mike-UTxiZqZC01RS1MOuV/RT9w@public.gmane.org> wrote:
+> Hi Linus,
+> A few comments.
 >
->Tero Kristo <tero.kristo@nokia.com> writes:
+> Linus Walleij wrote:
+>> This adds a core driver for the AB3100 mixed-signal circuit
+>> found in the ST-Ericsson U300 series platforms. This driver
+>> is a singleton proxy for all accesses to the AB3100
+>> sub-drivers which will be merged on top of this one, RTC,
+>> regulators, battery and system power control, vibrator,
+>> LEDs, and an ALSA codec.
 >
->> From: Tero Kristo <tero.kristo@nokia.com>
->>
->> Previously only chipselect 0 was controlled, which would 
->result in the 
->> chipselect 1 running on too low rate during low core OPPs.
->>
->> Applies on top of PM branch.
->>
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->
->Hi Tero,
->
->This does part of what Jean Pihet does in his recent patch[1] 
->to add support for 2 CSs.  Your version assumes the same 
->parameters for both SDRAM parts, and Jean has expanded that so 
->board code can configure different paramaters for the different CSes.
->
->I have yet to fully review Jean's patch, but will probably 
->take his version so that two different SDRAM parts could be used.
+> As general note on the driver, you export register access methods so they can be
+> called virtually anywhere.
 
-Yeah, I did not notice that patch of course as I just checked if something like this is done on top of PM branch yet. I'll give Jean's patch a shot and see if it works for me.
+This will apply to existing manilined driver twl4030-core driver too.
+Adding David here.
 
->
->Kevin
->
->
->[1] See hist post from 26 May: [RFC][PATCH] OMAP3: add support 
->for 2 SDRAM chip selects (was: Re: Beagleboard rev C memory 
->timings & suspend/resume)
->
->> ---
->>  arch/arm/mach-omap2/sram34xx.S |   29 +++++++++++++++++++++++------
->>  1 files changed, 23 insertions(+), 6 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/sram34xx.S 
->> b/arch/arm/mach-omap2/sram34xx.S index f41f8d9..bcfe9eb 100644
->> --- a/arch/arm/mach-omap2/sram34xx.S
->> +++ b/arch/arm/mach-omap2/sram34xx.S
->> @@ -187,15 +187,24 @@ wait_dll_unlock:
->>  	bne	wait_dll_unlock
->>  	bx	lr
->>  configure_sdrc:
->> -	ldr	r11, omap3_sdrc_rfr_ctrl
->> +	ldr	r11, omap3_sdrc_rfr_ctrl_0
->>  	str	r0, [r11]
->> -	ldr	r11, omap3_sdrc_actim_ctrla
->> +	ldr	r11, omap3_sdrc_rfr_ctrl_1
->> +	str	r0, [r11]
->> +	ldr	r11, omap3_sdrc_actim_ctrla_0
->> +	str	r1, [r11]
->> +	ldr	r11, omap3_sdrc_actim_ctrla_1
->>  	str	r1, [r11]
->> -	ldr	r11, omap3_sdrc_actim_ctrlb
->> +	ldr	r11, omap3_sdrc_actim_ctrlb_0
->> +	str	r2, [r11]
->> +	ldr	r11, omap3_sdrc_actim_ctrlb_1
->>  	str	r2, [r11]
->>  	ldr	r11, omap3_sdrc_mr_0
->>  	str	r6, [r11]
->>  	ldr	r6, [r11]		@ posted-write barrier for SDRC
->> +	ldr	r11, omap3_sdrc_mr_1
->> +	str	r6, [r11]
->> +	ldr	r6, [r11]		@ posted-write barrier for SDRC
->>  	bx	lr
->>  
->>  omap3_sdrc_power:
->> @@ -206,14 +215,22 @@ omap3_cm_idlest1_core:
->>  	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST)
->>  omap3_cm_iclken1_core:
->>  	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN1)
->> -omap3_sdrc_rfr_ctrl:
->> +omap3_sdrc_rfr_ctrl_0:
->>  	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
->> -omap3_sdrc_actim_ctrla:
->> +omap3_sdrc_rfr_ctrl_1:
->> +	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_1)
->> +omap3_sdrc_actim_ctrla_0:
->>  	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
->> -omap3_sdrc_actim_ctrlb:
->> +omap3_sdrc_actim_ctrla_1:
->> +	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_1)
->> +omap3_sdrc_actim_ctrlb_0:
->>  	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
->> +omap3_sdrc_actim_ctrlb_1:
->> +	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_1)
->>  omap3_sdrc_mr_0:
->>  	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_0)
->> +omap3_sdrc_mr_1:
->> +	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_1)
->>  omap3_sdrc_dlla_status:
->>  	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
->>  omap3_sdrc_dlla_ctrl:
->> --
->> 1.5.4.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" 
->> in the body of a message to majordomo@vger.kernel.org More majordomo 
->> info at  http://vger.kernel.org/majordomo-info.html
->
+read/write register APIs for twl4030-core driver is also exported
+everywhere without per chip structure fed into it.
+
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
