@@ -1,72 +1,105 @@
-From: Andrew de Quincey <adq_dvb@lidskialf.net>
-Subject: Re: [PATCH 05/10] ARM: OMAP1: Make 770 LCD work
-Date: Fri, 29 May 2009 01:29:52 +0100
-Message-ID: <20090529012952.104144iws1glmow0@lidskialf.net>
-References: <20090519232905.12760.15490.stgit@localhost>
-	<20090519233732.12760.34595.stgit@localhost>
-	<20090525092911.GC28195@n2100.arm.linux.org.uk>
-	<20090525142128.17675cl0tvdr0y1k@lidskialf.net>
-	<20090525174055.127744136qxu9vk0@lidskialf.net>
-	<20090528182047.GF32453@atomide.com>
-	<20090528195046.GW20736@n2100.arm.linux.org.uk>
+From: "Venkatesh, Subbu" <subbu.wrs@ti.com>
+Subject: DSS2: SYNC Lost error on mirroring enabled
+Date: Thu, 28 May 2009 20:32:58 -0500
+Message-ID: <5F744A5A3C131242B81CE5874BD2CFFB34E35E96@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=UTF-8;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+	boundary="_002_5F744A5A3C131242B81CE5874BD2CFFB34E35E96dlee01entticom_"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:52608 "EHLO
-	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751897AbZE2A3w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 28 May 2009 20:29:52 -0400
-In-Reply-To: <20090528195046.GW20736@n2100.arm.linux.org.uk>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:42691 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751983AbZE2BdH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 28 May 2009 21:33:07 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, Imre Deak <imre.deak@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Shah, Hardik" <hardik.shah@ti.com>, "Castaneda Gonzalez, Axel" <x0055901@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "Mande, Nikhil" <nikhil@ti.com>
 
-Quoting Russell King - ARM Linux <linux@arm.linux.org.uk>:
+--_002_5F744A5A3C131242B81CE5874BD2CFFB34E35E96dlee01entticom_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-> On Thu, May 28, 2009 at 11:20:48AM -0700, Tony Lindgren wrote:
->> * Andrew de Quincey <adq_dvb@lidskialf.net> [090525 09:41]:
->> > Quoting Andrew de Quincey <adq_dvb@lidskialf.net>:
->> >
->> >> Quoting Russell King - ARM Linux <linux@arm.linux.org.uk>:
->> >>
->> >>> On Tue, May 19, 2009 at 04:37:32PM -0700, Tony Lindgren wrote:
->> >>>> Make 770 LCD work by passing the clock from platform data.
->> >>>> Also remove the old unused functions.
->> >>>
->> >>> I don't like this - because its passing struct clk's through platform
->> >>> data.  That's not how things are supposed to work.
->> >>>
->> >>> The way PXA solves this problem is to have clock aliases - see
->> >>> clk_add_alias().
->> >>
->> >> Interesting idea - I now have a prototype patch implementing this,
->> >> which I'll send when I get home (otherwise it would be an "it
->> >> compiles" "test" :)
->> >>
->> >> There isn't a common definition of clk_add_alias() though - that
->> >> symbol is defined in arch/arm/mach-pxa/clock.c, so I had to copy it
->> >> into arch/arm/plat-omap/clock.c
->> >
->> > Attached is a patch implementing this method. I don't like the
->> > duplication of the clk_alias code, but I imagine that could be resolved
->> > if this method was chosen....
->>
->> Andrew, can you please reply with your Signed-off-by?
->
-> Actually, I'm very tempted to suggest that clk_add_alias() should go
-> into arch/arm/common/clkdev.c if we're going to have more people use it.
+Hi,
+I am getting SYNC LOSTerror on OMAP development board ( LDP ), this happens=
+ when I  enable mirroring by a command
 
-Cool!
+#echo 1 > /sys/class/graphics/fb0/mirror
 
-Out of interest, what is the best practice way to pass platform  
-specific GPIOs around? There are a number of other n770 related  
-drivers I'm intending on cleaning up, several of which have GPIO  
-numbers hardcoded in them. Should these be passed in platform  
-structures, or is there something analogous to the clk_alias for GPIOs?
+In brief, recently I ported board related funtions to support both LCD and =
+TV displays on Omap LDP, mirroring works on TV but not LCD.  Attached log g=
+ives more details.
+Any inputs are appreciated.
 
+Regards,
+Subbu=
+
+--_002_5F744A5A3C131242B81CE5874BD2CFFB34E35E96dlee01entticom_
+Content-Type: text/x-log; name="dss2-dma-mirror-error.log"
+Content-Description: dss2-dma-mirror-error.log
+Content-Disposition: attachment; filename="dss2-dma-mirror-error.log";
+	size=3344; creation-date="Thu, 28 May 2009 20:31:14 GMT";
+	modification-date="Thu, 28 May 2009 20:31:14 GMT"
+Content-Transfer-Encoding: base64
+
+YXBkc3MgTUFOQUdFUjogb21hcF9kc3NfbWdyX2FwcGx5KGxjZCkKCjw3Pm9tYXBkc3MgT1ZFUkxB
+WTogY2hlY2tfb3ZlcmxheSAwOiAoMCwwIDQ4MHg2NDAgLT4gNDgweDY0MCkgZGlzcCAoNDgweDY0
+MCkKCjw3Pm9tYXBkc3MgRElTUEM6IGRpc3BjX3NldHVwX3BsYW5lIDAsIGNoIDAsIHBhIDgwNGNk
+MDAwLCBzdyA0ODAsIDAsMCwgNDgweDY0MCAtCgo+IDQ4MHg2NDAsIGlsYWNlIDAsIGNtb2RlIDQw
+LCByb3QgMCwgbWlyIDEKCjw3Pm9tYXBkc3MgRElTUEM6IGNhbGNfcm90KDApOiBzY3J3IDQ4MCwg
+NDgweDY0MAoKPDc+b21hcGRzcyBESVNQQzogb2Zmc2V0MCA5NTgsIG9mZnNldDEgOTU4LCByb3df
+aW5jIDE5MTcsIHBpeF9pbmMgLTMKCjw3Pm9tYXBkc3MgRElTUEM6IDAsMCA0ODB4NjQwIC0+IDQ4
+MHg2NDAKCjw3Pm9tYXBkc3MgRElTUEM6IGRpc3BjX2VuYWJsZV9wbGFuZSAwLCAxCgo8Nz5vbWFw
+ZHNzIERJU1BDOiBkaXNwY19lbmFibGVfcGxhbmUgMSwgMAoKPDc+b21hcGRzcyBESVNQQzogZGlz
+cGNfZW5hYmxlX3BsYW5lIDIsIDAKCjw3Pm9tYXBkc3MgRElTUEM6IEZJRk8gbWVyZ2UgZW5hYmxl
+ZAoKPDc+b21hcGRzcyBESVNQQzogZmlmbygwKSBzaXplIDMwNzIsIGxvdy9oaWdoIG9sZCAzMDA4
+LzMwNzEsIG5ldyAzMDA4LzMwNzEKCjw3Pm9tYXBkc3MgRElTUEM6IEdPIExDRAoKPDc+RElTUEMg
+SVJROiAweGUyOiBHRlhfRklGT19VTkRFUkZMT1cKCjwzPm9tYXBkc3MgRElTUEMgZXJyb3I6IEdG
+WF9GSUZPX1VOREVSRkxPVywgZGlzYWJsaW5nIEdGWAoKb21hcGRzcyBESVNQQyBlcnJvcjogR0ZY
+X0ZJRk9fVU5ERVJGTE9XLCBkaXNhYmxpbmcgR0ZYCgo8Nz5ESVNQQyBJUlE6IDB4NDBlMjogR0ZY
+X0ZJRk9fVU5ERVJGTE9XIFNZTkNfTE9TVAoKPDc+b21hcGRzcyBESVNQQzogZGlzcGNfZW5hYmxl
+X3BsYW5lIDAsIDAKCjw3Pm9tYXBkc3MgRElTUEM6IEdPIExDRAoKPDc+RElTUEMgSVJROiAweDQw
+NjI6IEdGWF9GSUZPX1VOREVSRkxPVyBTWU5DX0xPU1QKCjwzPm9tYXBkc3MgRElTUEMgZXJyb3I6
+IEdGWF9GSUZPX1VOREVSRkxPVywgZGlzYWJsaW5nIEdGWAoKb21hcGRzcyBESVNQQyBlcnJvcjog
+R0ZYX0ZJRk9fVU5ERVJGTE9XLCBkaXNhYmxpbmcgR0ZYCgo8Nz5vbWFwZHNzIERJU1BDOiBkaXNw
+Y19lbmFibGVfcGxhbmUgMCwgMAoKPDc+b21hcGRzcyBESVNQQzogR08gTENECgo8Mz5vbWFwZHNz
+IERJU1BDIGVycm9yOiBTWU5DX0xPU1QsIGRpc2FibGluZyBMQ0QKCm9tYXBkc3MgRElTUEMgZXJy
+b3I6IFNZTkNfTE9TVCwgZGlzYWJsaW5nIExDRAoKZmIwIEZpeGVkIEluZm86PDc+T01BUEZCOiBD
+bG9zaW5nIGZiIHdpdGggcGxhbmUgaW5kZXggMAoKIAoKICAgICBAIDB4MCwgbGVuPTB4MCwgbGlu
+ZT0weDAgKDApIGJ5dGVzLAoKICAgR2VvbWV0cnkgLSA0ODUwNTQgeCAwLCAxMDczODYyMjI0IGJw
+cAoKICAgQ29sb3IgLSBvZmZzZXQ6bGVuZ3RoOm1zYl9yaWdodAoKICAgR3I8Nz5vbWFwZHNzIENP
+UkU6IHNhdmUgY29udGV4dAoKZXlzY2FsZSAwCgogICBOb25zdGQgMQoKICAgUmVkIDE8Nz5vbWFw
+ZHNzIERJU1BDOiBkaXNwY19lbmFibGVfcGxhbmUgMSwgMAoKNzk5NDMxMTY6Njg4MzI6MTA3Mzg2
+Mjk0NAoKICAgR3I8Nz5vbWFwZHNzIENPUkU6IHNhdmUgY29udGV4dAoKPDc+b21hcGRzcyBESVNQ
+QzogZGlzcGNfZW5hYmxlX3BsYW5lIDIsIDAKCiAKCiAgIEJsdWUgMTA3Mzg5MzM3NjowOjEwNzM4
+NjM3MTI8Nz5vbWFwZHNzIENPUkU6IHNhdmUgY29udGV4dAoKIAoKICAgVHJhbnNwYXJlbnQgNjg4
+NTI6MTA3Mzc5ODY3PDc+b21hcGRzcyBDT1JFOiBzYXZlIGNvbnRleHQKCjY6MTA3Mzg2Mjk0NAoK
+dmlzdWFsOiAwCgogICAwIG1tIGhpZ2ggeCAtMTA5NDkzMDU1MyBtbSB3aWRlCgotLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKIyA8Nz5vbWFwZHNzIERJU1BDOiBvbm9mZiAwIHJm
+IDAgaWVvIDAgaXBjIDAgaWhzIDEgaXZzIDEgYWNiaSAwIGFjYiAwCgo8Nz5vbWFwZHNzIERJU1BD
+OiBkcGxsNF9tNCA9IDQzMjAwMDAwMAoKPDc+b21hcGRzcyBESVNQQzogZmNrID0gMTIzNDI4NTcw
+ICg3KQoKPDc+b21hcGRzcyBESVNQQzogbGNrID0gMTIzNDI4NTcwICgxKQoKPDc+b21hcGRzcyBE
+SVNQQzogcGNrID0gNDExNDI4NTYgKDMpCgo8Nz5vbWFwZHNzIERJU1BDOiB4cmVzIDQ4MCB5cmVz
+IDY0MAoKPDc+b21hcGRzcyBESVNQQzogcGNrIDQxMTQyCgo8Nz5vbWFwZHNzIERJU1BDOiBoc3cg
+MyBoZnAgMyBoYnAgMzkgdnN3IDEgdmZwIDIgdmJwIDcKCjw3Pm9tYXBkc3MgRElTUEM6IGhzeW5j
+IDc4MzY1SHosIHZzeW5jIDEyMEh6Cgo8Nz5ESVNQQyBJUlE6IDB4NDAyMDogU1lOQ19MT1NUCgo8
+Mz5vbWFwZHNzIERJU1BDIGVycm9yOiBTWU5DX0xPU1QsIGRpc2FibGluZyBMQ0QKCm9tYXBkc3Mg
+RElTUEMgZXJyb3I6IFNZTkNfTE9TVCwgZGlzYWJsaW5nIExDRAoKPDc+b21hcGRzcyBDT1JFOiBz
+YXZlIGNvbnRleHQKCjw3Pm9tYXBkc3MgRElTUEM6IGRpc3BjX2VuYWJsZV9wbGFuZSAxLCAwCgo8
+Nz5vbWFwZHNzIENPUkU6IHNhdmUgY29udGV4dAoKPDc+b21hcGRzcyBESVNQQzogZGlzcGNfZW5h
+YmxlX3BsYW5lIDIsIDAKCjw3Pm9tYXBkc3MgQ09SRTogc2F2ZSBjb250ZXh0Cgo8Nz5vbWFwZHNz
+IENPUkU6IHNhdmUgY29udGV4dAoKPDc+b21hcGRzcyBESVNQQzogb25vZmYgMCByZiAwIGllbyAw
+IGlwYyAwIGlocyAxIGl2cyAxIGFjYmkgMCBhY2IgMAoKPDc+b21hcGRzcyBESVNQQzogZGlzcGMg
+Y2xvY2sgaW5mbyBmb3VuZCBmcm9tIGNhY2hlLgoKPDc+b21hcGRzcyBESVNQQzogZHBsbDRfbTQg
+PSA0MzIwMDAwMDAKCjw3Pm9tYXBkc3MgRElTUEM6IGZjayA9IDEyMzQyODU3MCAoNykKCjw3Pm9t
+YXBkc3MgRElTUEM6IGxjayA9IDEyMzQyODU3MCAoMSkKCjw3Pm9tYXBkc3MgRElTUEM6IHBjayA9
+IDQxMTQyODU2ICgzKQoKPDc+b21hcGRzcyBESVNQQzogeHJlcyA0ODAgeXJlcyA2NDAKCjw3Pm9t
+YXBkc3MgRElTUEM6IHBjayA0MTE0MgoKPDc+b21hcGRzcyBESVNQQzogaHN3IDMgaGZwIDMgaGJw
+IDM5IHZzdyAxIHZmcCAyIHZicCA3Cgo8Nz5vbWFwZHNzIERJU1BDOiBoc3luYyA3ODM2NUh6LCB2
+c3luYyAxMjBIegoKIAoKLS0KClRoZXNlIGFyZSBteSBib290YXJncwoKIAoKYm9vdGFyZ3M9bWVt
+PTExMk0gY29uc29sZT10dHlTMiwxMTUyMDBuOCBub2luaXRyZCByb290PS9kZXYvbmZzIHJ3IG5m
+c3Jvb3Q9MTAuODcuMjMwLjc1Oi9kYXRhL0VWTV9maWxlc3lzdGVtcy94MDA1NTkwMS90YXJnZXQu
+c21jMjQsbm9sb2NrLHRjcCxyc2l6ZT0yMDQ4LHdzaXplPTIwNDggaXA9MTAuODcuMjI0LjE2MyBv
+bWFwZHNzLmRlYnVnPXkgb21hcGZiLmRlYnVnPXkgdnJhbT04TQo=
+
+--_002_5F744A5A3C131242B81CE5874BD2CFFB34E35E96dlee01entticom_--
