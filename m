@@ -1,105 +1,92 @@
-From: "Venkatesh, Subbu" <subbu.wrs@ti.com>
-Subject: DSS2: SYNC Lost error on mirroring enabled
-Date: Thu, 28 May 2009 20:32:58 -0500
-Message-ID: <5F744A5A3C131242B81CE5874BD2CFFB34E35E96@dlee01.ent.ti.com>
+From: jouni.hogander@nokia.com (=?utf-8?Q?H=C3=B6gander?= Jouni)
+Subject: Re: [PATCH 02/06] OMAP3: PM: Add PER wakeup dependency on WKUP domain
+Date: Fri, 29 May 2009 08:50:39 +0300
+Message-ID: <87tz34zccw.fsf@trdhcp146196.ntc.nokia.com>
+References: <1243514587-5323-1-git-send-email-rnayak@ti.com>
+	<1243514587-5323-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_5F744A5A3C131242B81CE5874BD2CFFB34E35E96dlee01entticom_"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42691 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751983AbZE2BdH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 28 May 2009 21:33:07 -0400
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:55055 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752076AbZE2FwK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 May 2009 01:52:10 -0400
+In-Reply-To: <1243514587-5323-2-git-send-email-rnayak@ti.com> (ext Rajendra Nayak's message of "Thu\, 28 May 2009 14\:43\:03 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Shah, Hardik" <hardik.shah@ti.com>, "Castaneda Gonzalez, Axel" <x0055901@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, "Mande, Nikhil" <nikhil@ti.com>
+To: ext Rajendra Nayak <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---_002_5F744A5A3C131242B81CE5874BD2CFFB34E35E96dlee01entticom_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+ext Rajendra Nayak <rnayak@ti.com> writes:
 
-Hi,
-I am getting SYNC LOSTerror on OMAP development board ( LDP ), this happens=
- when I  enable mirroring by a command
+> This patch adds a Wakeup dependency of PER domain on WKUP
+> domain as a Workaround for a OMAP3430 limitation which causes
+> PER domain GPIO's to drive random values while coming back
+> from OFF mode. This limitation applies to all silicon rev's
+> of OMAP3430.
 
-#echo 1 > /sys/class/graphics/fb0/mirror
+I think this errata is already taken care in gpio code. We are
+configuring gpio output pads into safe mode and using pull up/down acco=
+rding
+to gpio state.
 
-In brief, recently I ported board related funtions to support both LCD and =
-TV displays on Omap LDP, mirroring works on TV but not LCD.  Attached log g=
-ives more details.
-Any inputs are appreciated.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    9 +++++++++
+>  1 files changed, 9 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
+x.c
+> index 80992c5..231b33e 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -86,6 +86,7 @@ static int (*_omap_save_secure_sram)(u32 *addr);
+>  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+>  static struct powerdomain *core_pwrdm, *per_pwrdm;
+>  static struct powerdomain *cam_pwrdm;
+> +static struct powerdomain *wkup_pwrdm;
+> =20
+>  static struct prm_setup_times prm_setup =3D {
+>  	.clksetup =3D 0xff,
+> @@ -1042,6 +1043,7 @@ int __init omap3_pm_init(void)
+>  	per_pwrdm =3D pwrdm_lookup("per_pwrdm");
+>  	core_pwrdm =3D pwrdm_lookup("core_pwrdm");
+>  	cam_pwrdm =3D pwrdm_lookup("cam_pwrdm");
+> +	wkup_pwrdm =3D pwrdm_lookup("wkup_pwrdm");
+> =20
+>  	omap_push_sram_idle();
+> =20
+> @@ -1063,6 +1065,13 @@ int __init omap3_pm_init(void)
+>  	*/
+>  	pwrdm_add_wkdep(per_pwrdm, core_pwrdm);
+> =20
+> +	/*
+> +	 * This is a WA for an OMAP limitation (Listed in the omap errata d=
+oc
+> +	 * Section 2.23) which causes GPIO modules in PER domain to drive r=
+andom
+> +	 * values while coming back from OFF mode.
+> +	 */
+> +	pwrdm_add_wkdep(per_pwrdm, wkup_pwrdm);
+> +
+>  	if (omap_type() !=3D OMAP2_DEVICE_TYPE_GP) {
+>  		omap3_secure_ram_storage =3D
+>  			kmalloc(0x803F, GFP_KERNEL);
+> --=20
+> 1.5.4.7
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Regards,
-Subbu=
-
---_002_5F744A5A3C131242B81CE5874BD2CFFB34E35E96dlee01entticom_
-Content-Type: text/x-log; name="dss2-dma-mirror-error.log"
-Content-Description: dss2-dma-mirror-error.log
-Content-Disposition: attachment; filename="dss2-dma-mirror-error.log";
-	size=3344; creation-date="Thu, 28 May 2009 20:31:14 GMT";
-	modification-date="Thu, 28 May 2009 20:31:14 GMT"
-Content-Transfer-Encoding: base64
-
-YXBkc3MgTUFOQUdFUjogb21hcF9kc3NfbWdyX2FwcGx5KGxjZCkKCjw3Pm9tYXBkc3MgT1ZFUkxB
-WTogY2hlY2tfb3ZlcmxheSAwOiAoMCwwIDQ4MHg2NDAgLT4gNDgweDY0MCkgZGlzcCAoNDgweDY0
-MCkKCjw3Pm9tYXBkc3MgRElTUEM6IGRpc3BjX3NldHVwX3BsYW5lIDAsIGNoIDAsIHBhIDgwNGNk
-MDAwLCBzdyA0ODAsIDAsMCwgNDgweDY0MCAtCgo+IDQ4MHg2NDAsIGlsYWNlIDAsIGNtb2RlIDQw
-LCByb3QgMCwgbWlyIDEKCjw3Pm9tYXBkc3MgRElTUEM6IGNhbGNfcm90KDApOiBzY3J3IDQ4MCwg
-NDgweDY0MAoKPDc+b21hcGRzcyBESVNQQzogb2Zmc2V0MCA5NTgsIG9mZnNldDEgOTU4LCByb3df
-aW5jIDE5MTcsIHBpeF9pbmMgLTMKCjw3Pm9tYXBkc3MgRElTUEM6IDAsMCA0ODB4NjQwIC0+IDQ4
-MHg2NDAKCjw3Pm9tYXBkc3MgRElTUEM6IGRpc3BjX2VuYWJsZV9wbGFuZSAwLCAxCgo8Nz5vbWFw
-ZHNzIERJU1BDOiBkaXNwY19lbmFibGVfcGxhbmUgMSwgMAoKPDc+b21hcGRzcyBESVNQQzogZGlz
-cGNfZW5hYmxlX3BsYW5lIDIsIDAKCjw3Pm9tYXBkc3MgRElTUEM6IEZJRk8gbWVyZ2UgZW5hYmxl
-ZAoKPDc+b21hcGRzcyBESVNQQzogZmlmbygwKSBzaXplIDMwNzIsIGxvdy9oaWdoIG9sZCAzMDA4
-LzMwNzEsIG5ldyAzMDA4LzMwNzEKCjw3Pm9tYXBkc3MgRElTUEM6IEdPIExDRAoKPDc+RElTUEMg
-SVJROiAweGUyOiBHRlhfRklGT19VTkRFUkZMT1cKCjwzPm9tYXBkc3MgRElTUEMgZXJyb3I6IEdG
-WF9GSUZPX1VOREVSRkxPVywgZGlzYWJsaW5nIEdGWAoKb21hcGRzcyBESVNQQyBlcnJvcjogR0ZY
-X0ZJRk9fVU5ERVJGTE9XLCBkaXNhYmxpbmcgR0ZYCgo8Nz5ESVNQQyBJUlE6IDB4NDBlMjogR0ZY
-X0ZJRk9fVU5ERVJGTE9XIFNZTkNfTE9TVAoKPDc+b21hcGRzcyBESVNQQzogZGlzcGNfZW5hYmxl
-X3BsYW5lIDAsIDAKCjw3Pm9tYXBkc3MgRElTUEM6IEdPIExDRAoKPDc+RElTUEMgSVJROiAweDQw
-NjI6IEdGWF9GSUZPX1VOREVSRkxPVyBTWU5DX0xPU1QKCjwzPm9tYXBkc3MgRElTUEMgZXJyb3I6
-IEdGWF9GSUZPX1VOREVSRkxPVywgZGlzYWJsaW5nIEdGWAoKb21hcGRzcyBESVNQQyBlcnJvcjog
-R0ZYX0ZJRk9fVU5ERVJGTE9XLCBkaXNhYmxpbmcgR0ZYCgo8Nz5vbWFwZHNzIERJU1BDOiBkaXNw
-Y19lbmFibGVfcGxhbmUgMCwgMAoKPDc+b21hcGRzcyBESVNQQzogR08gTENECgo8Mz5vbWFwZHNz
-IERJU1BDIGVycm9yOiBTWU5DX0xPU1QsIGRpc2FibGluZyBMQ0QKCm9tYXBkc3MgRElTUEMgZXJy
-b3I6IFNZTkNfTE9TVCwgZGlzYWJsaW5nIExDRAoKZmIwIEZpeGVkIEluZm86PDc+T01BUEZCOiBD
-bG9zaW5nIGZiIHdpdGggcGxhbmUgaW5kZXggMAoKIAoKICAgICBAIDB4MCwgbGVuPTB4MCwgbGlu
-ZT0weDAgKDApIGJ5dGVzLAoKICAgR2VvbWV0cnkgLSA0ODUwNTQgeCAwLCAxMDczODYyMjI0IGJw
-cAoKICAgQ29sb3IgLSBvZmZzZXQ6bGVuZ3RoOm1zYl9yaWdodAoKICAgR3I8Nz5vbWFwZHNzIENP
-UkU6IHNhdmUgY29udGV4dAoKZXlzY2FsZSAwCgogICBOb25zdGQgMQoKICAgUmVkIDE8Nz5vbWFw
-ZHNzIERJU1BDOiBkaXNwY19lbmFibGVfcGxhbmUgMSwgMAoKNzk5NDMxMTY6Njg4MzI6MTA3Mzg2
-Mjk0NAoKICAgR3I8Nz5vbWFwZHNzIENPUkU6IHNhdmUgY29udGV4dAoKPDc+b21hcGRzcyBESVNQ
-QzogZGlzcGNfZW5hYmxlX3BsYW5lIDIsIDAKCiAKCiAgIEJsdWUgMTA3Mzg5MzM3NjowOjEwNzM4
-NjM3MTI8Nz5vbWFwZHNzIENPUkU6IHNhdmUgY29udGV4dAoKIAoKICAgVHJhbnNwYXJlbnQgNjg4
-NTI6MTA3Mzc5ODY3PDc+b21hcGRzcyBDT1JFOiBzYXZlIGNvbnRleHQKCjY6MTA3Mzg2Mjk0NAoK
-dmlzdWFsOiAwCgogICAwIG1tIGhpZ2ggeCAtMTA5NDkzMDU1MyBtbSB3aWRlCgotLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKIyA8Nz5vbWFwZHNzIERJU1BDOiBvbm9mZiAwIHJm
-IDAgaWVvIDAgaXBjIDAgaWhzIDEgaXZzIDEgYWNiaSAwIGFjYiAwCgo8Nz5vbWFwZHNzIERJU1BD
-OiBkcGxsNF9tNCA9IDQzMjAwMDAwMAoKPDc+b21hcGRzcyBESVNQQzogZmNrID0gMTIzNDI4NTcw
-ICg3KQoKPDc+b21hcGRzcyBESVNQQzogbGNrID0gMTIzNDI4NTcwICgxKQoKPDc+b21hcGRzcyBE
-SVNQQzogcGNrID0gNDExNDI4NTYgKDMpCgo8Nz5vbWFwZHNzIERJU1BDOiB4cmVzIDQ4MCB5cmVz
-IDY0MAoKPDc+b21hcGRzcyBESVNQQzogcGNrIDQxMTQyCgo8Nz5vbWFwZHNzIERJU1BDOiBoc3cg
-MyBoZnAgMyBoYnAgMzkgdnN3IDEgdmZwIDIgdmJwIDcKCjw3Pm9tYXBkc3MgRElTUEM6IGhzeW5j
-IDc4MzY1SHosIHZzeW5jIDEyMEh6Cgo8Nz5ESVNQQyBJUlE6IDB4NDAyMDogU1lOQ19MT1NUCgo8
-Mz5vbWFwZHNzIERJU1BDIGVycm9yOiBTWU5DX0xPU1QsIGRpc2FibGluZyBMQ0QKCm9tYXBkc3Mg
-RElTUEMgZXJyb3I6IFNZTkNfTE9TVCwgZGlzYWJsaW5nIExDRAoKPDc+b21hcGRzcyBDT1JFOiBz
-YXZlIGNvbnRleHQKCjw3Pm9tYXBkc3MgRElTUEM6IGRpc3BjX2VuYWJsZV9wbGFuZSAxLCAwCgo8
-Nz5vbWFwZHNzIENPUkU6IHNhdmUgY29udGV4dAoKPDc+b21hcGRzcyBESVNQQzogZGlzcGNfZW5h
-YmxlX3BsYW5lIDIsIDAKCjw3Pm9tYXBkc3MgQ09SRTogc2F2ZSBjb250ZXh0Cgo8Nz5vbWFwZHNz
-IENPUkU6IHNhdmUgY29udGV4dAoKPDc+b21hcGRzcyBESVNQQzogb25vZmYgMCByZiAwIGllbyAw
-IGlwYyAwIGlocyAxIGl2cyAxIGFjYmkgMCBhY2IgMAoKPDc+b21hcGRzcyBESVNQQzogZGlzcGMg
-Y2xvY2sgaW5mbyBmb3VuZCBmcm9tIGNhY2hlLgoKPDc+b21hcGRzcyBESVNQQzogZHBsbDRfbTQg
-PSA0MzIwMDAwMDAKCjw3Pm9tYXBkc3MgRElTUEM6IGZjayA9IDEyMzQyODU3MCAoNykKCjw3Pm9t
-YXBkc3MgRElTUEM6IGxjayA9IDEyMzQyODU3MCAoMSkKCjw3Pm9tYXBkc3MgRElTUEM6IHBjayA9
-IDQxMTQyODU2ICgzKQoKPDc+b21hcGRzcyBESVNQQzogeHJlcyA0ODAgeXJlcyA2NDAKCjw3Pm9t
-YXBkc3MgRElTUEM6IHBjayA0MTE0MgoKPDc+b21hcGRzcyBESVNQQzogaHN3IDMgaGZwIDMgaGJw
-IDM5IHZzdyAxIHZmcCAyIHZicCA3Cgo8Nz5vbWFwZHNzIERJU1BDOiBoc3luYyA3ODM2NUh6LCB2
-c3luYyAxMjBIegoKIAoKLS0KClRoZXNlIGFyZSBteSBib290YXJncwoKIAoKYm9vdGFyZ3M9bWVt
-PTExMk0gY29uc29sZT10dHlTMiwxMTUyMDBuOCBub2luaXRyZCByb290PS9kZXYvbmZzIHJ3IG5m
-c3Jvb3Q9MTAuODcuMjMwLjc1Oi9kYXRhL0VWTV9maWxlc3lzdGVtcy94MDA1NTkwMS90YXJnZXQu
-c21jMjQsbm9sb2NrLHRjcCxyc2l6ZT0yMDQ4LHdzaXplPTIwNDggaXA9MTAuODcuMjI0LjE2MyBv
-bWFwZHNzLmRlYnVnPXkgb21hcGZiLmRlYnVnPXkgdnJhbT04TQo=
-
---_002_5F744A5A3C131242B81CE5874BD2CFFB34E35E96dlee01entticom_--
+--=20
+Jouni H=C3=B6gander
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
