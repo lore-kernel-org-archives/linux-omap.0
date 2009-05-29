@@ -1,387 +1,335 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH][RFC] OMAP4: I2C Support for OMAP_4430SDP
-Date: Fri, 29 May 2009 08:24:17 -0700
-Message-ID: <878wkghqzi.fsf@deeprootsystems.com>
-References: <55272.192.168.10.89.1243607905.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Git pull request for omap patches for merge window after
+	2.6.30, v2
+Date: Fri, 29 May 2009 08:57:12 -0700
+Message-ID: <20090529155711.GC31087@atomide.com>
+References: <20090527234056.GJ6267@atomide.com> <20090528132901.GC19297@n2100.arm.linux.org.uk> <20090528151031.GA32453@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55272.192.168.10.89.1243607905.squirrel-pJFUjGLopx31T2qfsofKZtBPR1lH4CV8@public.gmane.org> (Syed Rafiuddin's message of "Fri\, 29 May 2009 20\:08\:25 +0530 \(IST\)")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Syed Rafiuddin <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="UFHRwCdBEJvubb2X"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62112 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754821AbZE2P5a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 29 May 2009 11:57:30 -0400
+Content-Disposition: inline
+In-Reply-To: <20090528151031.GA32453@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-"Syed Rafiuddin" <rafiuddin.syed-l0cyMroinI0@public.gmane.org> writes:
 
-> This patch Updates I2C register offset addresses and adds support for OMAP4430
-> development platform.
->
-> Signed-off-by: Syed Rafiuddin <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
+--UFHRwCdBEJvubb2X
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-First fix checkpatch problems:
+* Tony Lindgren <tony@atomide.com> [090528 08:11]:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090528 06:29]:
+> > On Wed, May 27, 2009 at 04:40:57PM -0700, Tony Lindgren wrote:
+> > > Assuming you have had a chance to look at all the patches posted,
+> > > please pull them from the request below. Will refresh the patches
+> > > as needed if you have more comments.
+> > 
+> > To be honest, I don't know where I am with any of the OMAP stuff; there's
+> > soo many emails flying about recently that I've really not been able to
+> > keep enough state in my head to be able to know what's what (especially
+> > with this new device tree thread which has exploded to 100+ emails in
+> > about 12 hours.)
+> > 
+> > If you ask me which patches I'd looked at over the last couple of weeks,
+> > or even just last Monday, I really couldn't tell you.
+> > 
+> > I'll try to work out what I've already looked at and what's remaining
+> > sometime later today.
+> 
+> OK, thanks. To me it looks like you've looked through everything except
+> this:
+> 
+> PATCH 0/8] omap3 board updates for merge window after 2.6.30
+> http://article.gmane.org/gmane.linux.ports.arm.omap/20188
+> 
+> > It might have been better had I merged the stuff piecemeal into an omap
+> > branch, that way I'd know that everything in there was stuff I'd looked
+> > at - and you'd know what was outstanding (because it wouldn't have been
+> > merged.)
+> 
+> Hey, just trying to help here to load things on your truck.
+> If you prefer to make multiple stops with your truck to pick up omap
+> stuff, that works too :)
+>  
+> > > I've merged all the omap patches, except Santosh' omap4 SMP
+> > > set, and Paul's second clock updates. This should remove any
+> > > dependencies for Santosh' SMP series.
+> > 
+> > There's a little more work to do on the SMP stuff before I'd be happy,
+> > and the best way to merge that will be directly into my tree - it will
+> > depend on the SMP branch there anyway.
+> 
+> Yeah that's what I figured. The patches I piled up should be a nice base
+> for working on the SMP patches.
 
-WARNING: suspect code indent for conditional statements (24, 24)
-#199: FILE: drivers/i2c/busses/i2c-omap.c:330:
-+			if (!cpu_is_omap44xx())
- 			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+Thanks everybody for quick comments and updates on the patches. Here's
+an updated pull request with the following changes as discussed in various
+threads on this mailing list:
 
-WARNING: line over 80 characters
-#278: FILE: drivers/i2c/busses/i2c-omap.c:768:
-+								"XDR IRQ while no "
+- Re-merged Kevin's updated PM code that now uses the late_initcall()
 
-WARNING: line over 80 characters
-#279: FILE: drivers/i2c/busses/i2c-omap.c:769:
-+								"data to send\n");
+- Separated out the clk_add_alias() from the 770 clkdev patch.
+  Now the clk_add_alias() patch can get merged separately after it's
+  been reviewed.
 
-total: 0 errors, 3 warnings, 265 lines checked
+- Updated the two board-*.c files to #include <linux/gpio.h>
 
-Second, please also report test results on OMAP3 since you are changing
-common code.
+Regards,
 
-More comments below...
+Tony
 
-> ---
->  arch/arm/mach-omap2/board-4430sdp.c |    9 +++-
->  arch/arm/plat-omap/i2c.c            |   21 +++++++--
->  drivers/i2c/busses/i2c-omap.c       |   78 +++++++++++++++++++++++++-----------
->  3 files changed, 80 insertions(+), 28 deletions(-)
->
-> Index: omap4_dev/arch/arm/mach-omap2/board-4430sdp.c
-> ===================================================================
-> --- omap4_dev.orig/arch/arm/mach-omap2/board-4430sdp.c
-> +++ omap4_dev/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -66,10 +66,17 @@ static void __init omap_4430sdp_init_irq
->  	gic_init_irq();
->  	omap_gpio_init();
->  }
-> -
-> +static int __init omap4_i2c_init(void)
-> +{
-> +	omap_register_i2c_bus(1, 2600, NULL, 0);
-> +	omap_register_i2c_bus(2, 400, NULL, 0);
-> +	omap_register_i2c_bus(3, 400, NULL, 0);
-> +	return 0;
-> +}
->
->  static void __init omap_4430sdp_init(void)
->  {
-> +	omap4_i2c_init();
->  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
->  	omap_board_config = sdp4430_config;
->  	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
-> Index: omap4_dev/arch/arm/plat-omap/i2c.c
-> ===================================================================
-> --- omap4_dev.orig/arch/arm/plat-omap/i2c.c
-> +++ omap4_dev/arch/arm/plat-omap/i2c.c
-> @@ -53,9 +53,15 @@ static struct resource i2c_resources[][2
->  #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
->  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
->  #endif
-> +#if	defined(CONFIG_ARCH_OMAP4)
-> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_44XX_I2C2_IRQ) },
-> +#endif
->  #if	defined(CONFIG_ARCH_OMAP34XX)
->  	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
->  #endif
-> +#if	defined(CONFIG_ARCH_OMAP4)
-> +	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_44XX_I2C3_IRQ) },
-> +#endif
->  };
->
->  #define I2C_DEV_BUILDER(bus_id, res, data)		\
-> @@ -72,10 +78,11 @@ static struct resource i2c_resources[][2
->  static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
->  static struct platform_device omap_i2c_devices[] = {
->  	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
-> -#if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-> +#if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
-> +defined(CONFIG_ARCH_OMAP4)
->  	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
->  #endif
-> -#if	defined(CONFIG_ARCH_OMAP34XX)
-> +#if	defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP4)
->  	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
->  #endif
->  };
-> @@ -88,7 +95,7 @@ static const int omap24xx_pins[][2] = {
->  #else
->  static const int omap24xx_pins[][2] = {};
->  #endif
-> -#if defined(CONFIG_ARCH_OMAP34XX)
-> +#if defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP4)
->  static const int omap34xx_pins[][2] = {
->  	{ K21_34XX_I2C1_SCL, J21_34XX_I2C1_SDA},
->  	{ AF15_34XX_I2C2_SCL, AE15_34XX_I2C2_SDA},
-> @@ -110,7 +117,7 @@ static void __init omap_i2c_mux_pins(int
->  	} else if (cpu_is_omap24xx()) {
->  		scl = omap24xx_pins[bus][0];
->  		sda = omap24xx_pins[bus][1];
-> -	} else if (cpu_is_omap34xx()) {
-> +	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
->  		scl = omap34xx_pins[bus][0];
->  		sda = omap34xx_pins[bus][1];
->  	} else {
-> @@ -129,7 +136,7 @@ static int __init omap_i2c_nr_ports(void
->  		ports = 1;
->  	else if (cpu_is_omap24xx())
->  		ports = 2;
-> -	else if (cpu_is_omap34xx())
-> +	else if (cpu_is_omap34xx() || cpu_is_omap44xx())
->  		ports = 3;
->
->  	return ports;
-> @@ -151,6 +158,10 @@ static int __init omap_i2c_add_bus(int b
->  			base = OMAP2_I2C_BASE1;
->  			irq = INT_24XX_I2C1_IRQ;
->  		}
-> +		if (cpu_is_omap44xx()) {
-> +			base = OMAP2_I2C_BASE1;
-> +			irq = INT_44XX_I2C1_IRQ;
-> +		}
->  		res[0].start = base;
->  		res[0].end = base + OMAP_I2C_SIZE;
->  		res[1].start = irq;
-> Index: omap4_dev/drivers/i2c/busses/i2c-omap.c
-> ===================================================================
-> --- omap4_dev.orig/drivers/i2c/busses/i2c-omap.c
-> +++ omap4_dev/drivers/i2c/busses/i2c-omap.c
-> @@ -27,7 +27,6 @@
->   * along with this program; if not, write to the Free Software
->   * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
->   */
-> -
 
-Please separate out the multiple whitespace cleanups here into a
-separate patch.
+--UFHRwCdBEJvubb2X
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename="pull.txt"
 
->  #include <linux/module.h>
->  #include <linux/delay.h>
->  #include <linux/i2c.h>
-> @@ -48,12 +47,36 @@
->  /* timeout waiting for the controller to respond */
->  #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
->
-> +#define OMAP_I2C_WE_REG			0x0c
-> +#ifdef CONFIG_ARCH_OMAP4
-> +#define OMAP_I2C_REVNB_LO               0x00
-> +#define OMAP_I2C_REVNB_HI               0x04
-> +#define OMAP_I2C_IV_REG                 0x34
-> +#define OMAP_I2C_IRQSTATUS_RAW          0x24
-> +#define OMAP_I2C_STAT_REG               0x28
-> +#define OMAP_I2C_IRQENABLE_SET          0x2C
-> +#define OMAP_I2C_IRQENABLE_CLR          0x30
-> +#define OMAP_I2C_SYSS_REG               0x90
-> +#define OMAP_I2C_BUF_REG                0x94
-> +#define OMAP_I2C_CNT_REG                0x98
-> +#define OMAP_I2C_DATA_REG               0x9C
-> +#define OMAP_I2C_SYSC_REG               0x10
-> +#define OMAP_I2C_CON_REG                0xA4
-> +#define OMAP_I2C_OA_REG                 0xA8
-> +#define OMAP_I2C_SA_REG                 0xAC
-> +#define OMAP_I2C_PSC_REG                0xB0
-> +#define OMAP_I2C_SCLL_REG               0xB4
-> +#define OMAP_I2C_SCLH_REG               0xB8
-> +#define OMAP_I2C_SYSTEST_REG            0xBC
-> +#define OMAP_I2C_BUFSTAT_REG            0xC0
-> +#define OMAP_I2C_IE_REG                 OMAP_I2C_IRQENABLE_SET
-> +#define OMAP_I2C_REV_REG		OMAP_I2C_REVNB_HI
-> +#else
+The following changes since commit 59a3759d0fe8d969888c741bb33f4946e4d3750d:
+  Linus Torvalds (1):
+        Linux 2.6.30-rc7
 
-A few things are broken here:
+are available in the git repository at:
 
-- This will not compile for multi-omap.  You use #ifdef her and cpu_is_* below.
-- use tabs instead of spaces as the rest of the code does.
-- style is to use lower-case for hex values (e.g. 0xbc instead of 0xBC)
+  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git for-next
 
-Rather than use an #ifdef here, you should define the omap4 specific
-registers after the current list with an OMAP4 prefix.
+Adrian Hunter (1):
+      ARM: OMAP3: RX51: Connect VAUX3 to MMC2
 
->  #define OMAP_I2C_REV_REG		0x00
->  #define OMAP_I2C_IE_REG			0x04
->  #define OMAP_I2C_STAT_REG		0x08
->  #define OMAP_I2C_IV_REG			0x0c
->  /* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
-> -#define OMAP_I2C_WE_REG			0x0c
->  #define OMAP_I2C_SYSS_REG		0x10
->  #define OMAP_I2C_BUF_REG		0x14
->  #define OMAP_I2C_CNT_REG		0x18
-> @@ -67,7 +90,8 @@
->  #define OMAP_I2C_SCLH_REG		0x38
->  #define OMAP_I2C_SYSTEST_REG		0x3c
->  #define OMAP_I2C_BUFSTAT_REG		0x40
-> -
-> +#define OMAP_I2C_IRQENABLE_CLR          OMAP_I2C_IE_REG
+Andrew de Quincey (1):
+      ARM: OMAP1: Make 770 LCD work
 
-Why are you defining a new regname for !omap4?  You're only
-using this reg in omap4 conditional code below.
+Artem Bityutskiy (1):
+      OMAP3 clock: lessen amount of noisy messages
 
-> +#endif
+David Brownell (2):
+      ARM: OMAP3: mmc-twl4030 uses regulator framework
+      ARM: OMAP3: Initialize regulators for Beagle and Overo
 
->  /* I2C Interrupt Enable Register (OMAP_I2C_IE): */
->  #define OMAP_I2C_IE_XDR		(1 << 14)	/* TX Buffer drain int enable */
->  #define OMAP_I2C_IE_RDR		(1 << 13)	/* RX Buffer drain int enable */
-> @@ -242,7 +266,10 @@ static void omap_i2c_idle(struct omap_i2
->  	WARN_ON(dev->idle);
->
->  	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
-> -	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
-> +	if (cpu_is_omap44xx())
-> +		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
-> +	else
-> +		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
->  	if (dev->rev < OMAP_I2C_REV_2) {
->  		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
->  	} else {
-> @@ -282,10 +309,8 @@ static int omap_i2c_init(struct omap_i2c
->
->  		/* SYSC register is cleared by the reset; rewrite it */
->  		if (dev->rev == OMAP_I2C_REV_ON_2430) {
-> -
->  			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
->  					   SYSC_AUTOIDLE_MASK);
-> -
->  		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
->  			u32 v;
->
-> @@ -302,6 +327,7 @@ static int omap_i2c_init(struct omap_i2c
->  			 * WFI instruction.
->  			 * REVISIT: Some wkup sources might not be needed.
->  			 */
-> +			if (!cpu_is_omap44xx())
->  			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
->  							OMAP_I2C_WE_ALL);
->
-> @@ -331,11 +357,14 @@ static int omap_i2c_init(struct omap_i2c
->  			psc = fclk_rate / 12000000;
->  	}
->
-> -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> +	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
->
->  		/* HSI2C controller internal clk rate should be 19.2 Mhz */
->  		internal_clk = 19200;
-> -		fclk_rate = clk_get_rate(dev->fclk) / 1000;
-> +		if (cpu_is_omap44xx())
-> +			fclk_rate = 96000;
+Eero Nurkkala (1):
+      ARM: OMAP: McBSP: Fix legacy interrupts to clear their status
 
-Comment this with a 'FIXME' for when the clock framework is in place.
+Grazvydas Ignotas (2):
+      ARM: OMAP3: pandora: setup regulator framework for MMC
+      ARM: OMAP3: pandora: add support for mode devices
 
-> +		else
-> +			fclk_rate = clk_get_rate(dev->fclk) / 1000;
->
->  		/* Compute prescaler divisor */
->  		psc = fclk_rate / internal_clk;
-> @@ -650,14 +679,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  			dev_warn(dev->dev, "Too much work in one IRQ\n");
->  			break;
->  		}
-> -
->  		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
-> -
+Imre Deak (2):
+      ARM: OMAP2: 2430SDP: Add FB support to board file
+      ARM: OMAP3: ZOOM MDK: Add FB support to board file
 
-Again, whitespace changes should be separated out.
+Jarkko Nikula (1):
+      ARM: OMAP: Update contact address of I2C registration helper
 
->  		err = 0;
->  		if (stat & OMAP_I2C_STAT_NACK) {
->  			err |= OMAP_I2C_STAT_NACK;
->  			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
-> -					   OMAP_I2C_CON_STP);
-> +					OMAP_I2C_CON_STP);
+Jouni Hogander (2):
+      OMAP: Add new function to check wether there is irq pending
+      OMAP: UART: Add sysfs interface for adjusting UART sleep timeout
 
-Ditto, although this change should just be dropped.
+Juha Yrjola (1):
+      ARM: OMAP2/3: Add generic onenand support when connected to GPMC
 
->  		}
->  		if (stat & OMAP_I2C_STAT_AL) {
->  			dev_err(dev->dev, "Arbitration lost\n");
-> @@ -683,7 +710,8 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  					dev->buf_len--;
->  					/* Data reg from 2430 is 8 bit wide */
->  					if (!cpu_is_omap2430() &&
-> -							!cpu_is_omap34xx()) {
-> +						!cpu_is_omap34xx()
-> +							&& !cpu_is_omap44xx()) {
+Kevin Hilman (11):
+      Revert "ARM: OMAP: Mask interrupts when disabling interrupts, v2"
+      OMAP2/3: PM: push core PM code from linux-omap
+      OMAP3: PM: Force IVA2 into idle during bootup
+      OMAP3: PM: Add wake-up bit defintiions for CONTROL_PADCONF_X
+      OMAP3: PM: UART: disable clocks when idle and off-mode support
+      OMAP3: PM: Add D2D clocks and auto-idle setup to PRCM init
+      OMAP3: PM: D2D clockdomain supports SW supervised transitions
+      OMAP3: PM: Ensure PRCM interrupts are cleared at boot
+      OMAP3: PM: Clear pending PRCM reset flags on init
+      OMAP3: PM: prevent module wakeups from waking IVA2
+      OMAP1: PM: update and decouple from OMAP2/3 PM core
 
-Again, pay attention to whitespace and alignment.
+Mans Rullgard (1):
+      ARM: OMAP: Increase VMALLOC_END to allow 256MB RAM
 
->  						if (dev->buf_len) {
->  							*dev->buf++ = w >> 8;
->  							dev->buf_len--;
-> @@ -710,9 +738,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  			if (dev->fifo_size) {
->  				if (stat & OMAP_I2C_STAT_XRDY)
->  					num_bytes = dev->fifo_size;
-> -				else
-> +				else {
->  					num_bytes = omap_i2c_read_reg(dev,
->  							OMAP_I2C_BUFSTAT_REG);
-> +				}
->  			}
->  			while (num_bytes) {
->  				num_bytes--;
-> @@ -722,7 +751,8 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  					dev->buf_len--;
->  					/* Data reg from  2430 is 8 bit wide */
->  					if (!cpu_is_omap2430() &&
-> -							!cpu_is_omap34xx()) {
-> +						!cpu_is_omap34xx() &&
-> +							!cpu_is_omap44xx()) {
->  						if (dev->buf_len) {
->  							w |= *dev->buf++ << 8;
->  							dev->buf_len--;
-> @@ -733,10 +763,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  						dev_err(dev->dev,
->  							"XRDY IRQ while no "
->  							"data to send\n");
-> -					if (stat & OMAP_I2C_STAT_XDR)
-> -						dev_err(dev->dev,
-> -							"XDR IRQ while no "
-> -							"data to send\n");
-> +						if (stat & OMAP_I2C_STAT_XDR)
-> +							dev_err(dev->dev,
-> +								"XDR IRQ while no "
-> +								"data to send\n");
+Paul Walmsley (11):
+      OMAP3 SRAM: mark OCM RAM as Non-cacheable Normal memory
+      OMAP3 SRAM: add ARM barriers to omap3_sram_configure_core_dpll
+      OMAP3 clock: add interconnect barriers to CORE DPLL M2 change
+      OMAP3 SRAM: clear the SDRC PWRENA bit during SDRC frequency change
+      OMAP3 SDRC: initialize SDRC_POWER at boot
+      OMAP3 SRAM: renumber registers to make space for argument passing
+      OMAP3 clock: only unlock SDRC DLL if SDRC clk < 83MHz
+      OMAP3 clock: use pr_debug() rather than pr_info() in some clock change code
+      OMAP2xxx clock: rename clk_init_one() to clk_preinit()
+      ARM: OMAP3: SDRC: add timing data for Micron MT46H32M32LF-6, v2
+      ARM: OMAP3: SDRC: add timing data for Qimonda HYB18M512160AF-6
 
-Again, a whitespace only change.
+Peter 'p2' De Schrijver (1):
+      OMAP3: PM: Ensure MUSB block can idle when driver not loaded
 
->  					break;
->  				}
->  				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
-> @@ -754,7 +784,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  			dev->cmd_err |= OMAP_I2C_STAT_XUDF;
->  		}
->  	}
-> -
+Santosh Shilimkar (11):
+      ARM: OMAP: Remove unwanted type casts and fix the compiler warning.
+      ARM: OMAP: Remove useless omap_sram_error function.
+      ARM: OMAP: Remove unnecessary omap2_globals.
+      ARM: OMAP: Remove unwanted type casts and fix the compiler warning.
+      ARM: OMAP: Remove useless omap_sram_error function.
+      ARM: OMAP: Remove unnecessary omap2_globals.
+      ARM: OMAP2/3: sDMA: Correct omap_request_dma_chain(), v2
+      ARM: OMAP4: Add minimal support for omap4
+      ARM: OMAP4: Clock stubs since CLKDEV not in yet.
+      ARM: OMAP4: Add support for 4430 SDP
+      ARM: OMAP4: Add defconfig for 4430 SDP
 
-again
+Syed Mohammed Khasim (2):
+      ARM: OMAP3: Add omap3 EVM support
+      ARM: OMAP3: Add omap3 EVM defconfig
 
->  	return count ? IRQ_HANDLED : IRQ_NONE;
->  }
->
-> @@ -822,7 +851,7 @@ omap_i2c_probe(struct platform_device *p
->
->  	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
->
-> -	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
-> +	if (cpu_is_omap2430() || cpu_is_omap34xx() ||  cpu_is_omap44xx()) {
->  		u16 s;
->
->  		/* Set up the fifo size - Get total size */
-> @@ -834,8 +863,13 @@ omap_i2c_probe(struct platform_device *p
->  		 * size. This is to ensure that we can handle the status on int
->  		 * call back latencies.
->  		 */
-> -		dev->fifo_size = (dev->fifo_size / 2);
-> -		dev->b_hw = 1; /* Enable hardware fixes */
-> +		if (cpu_is_omap44xx()) {
-> +			dev->fifo_size = 0;
-> +			dev->b_hw = 0; /* Enable hardware fixes */
-> +		} else {
-> +			dev->fifo_size = (dev->fifo_size / 2);
-> +			dev->b_hw = 1; /* Enable hardware fixes */
-> +		}
+Tomi Valkeinen (1):
+      ARM: OMAP2/3: DMA: implement trans copy and const fill
 
-The omap4 code added here clearly does not match the comment above.  Please
-update comments or add omap4-specific comments as to what you are doing here.
+Tony Lindgren (22):
+      ARM: OMAP2/3: Remove OMAP2_32KSYNCT_BASE
+      ARM: OMAP2/3: Remove OMAP_PRM_REGADDR and OMAP2_PRM_BASE
+      ARM: OMAP2/3: Move define of OMAP2_VA_IC_BASE to be local to entry-macro.S
+      ARM: OMAP2/3: Remove OMAP2_PRCM_BASE
+      ARM: OMAP2/3: Remove OMAP_CM_REGADDR
+      ARM: OMAP2/3: Reorganize Makefile to add omap4 support
+      ARM: OMAP1: Misc clean-up
+      ARM: OMAP2/3: Remove OMAP2_32KSYNCT_BASE
+      ARM: OMAP2/3: Remove OMAP_PRM_REGADDR and OMAP2_PRM_BASE
+      ARM: OMAP2/3: Move define of OMAP2_VA_IC_BASE to be local to entry-macro.S
+      ARM: OMAP2/3: Remove OMAP2_PRCM_BASE
+      ARM: OMAP2/3: Remove OMAP_CM_REGADDR
+      ARM: OMAP2/3: Reorganize Makefile to add omap4 support
+      Merge branch 'omap-clock-upstream' of git://git.pwsan.com/linux-2.6 into for-next
+      ARM: OMAP2/3: Add generic smc91x support when connected to GPMC
+      ARM: OMAP: Add some entries to MAINTAINERS
+      ARM: OMAP2/3: Remove L4_WK_OMAP_BASE, L4_PER_OMAP_BASE, L4_EMU_BASE, L3_OMAP_BASE
+      ARM: OMAP3: Initialize more devices for LDP
+      Merge branch 'omap-upstream' into for-next
+      Merge branch 'omap3-upstream' into for-next
+      Merge branch 'omap3-boards' into for-next
+      Merge branch 'omap4' into for-next
 
-Kevin
+Vikram Pandita (3):
+      ARM: OMAP2/3: Serial: Remove arch_initcall dependency
+      ARM: OMAP3: Add support for OMAP3 Zoom2 board
+      ARM: OMAP3: Defconfig for Zoom2 board
+
+ MAINTAINERS                                        |   77 +-
+ arch/arm/Makefile                                  |    1 +
+ arch/arm/configs/omap3_evm_defconfig               | 1528 ++++++++++++++++++++
+ arch/arm/configs/omap_4430sdp_defconfig            |  806 +++++++++++
+ arch/arm/configs/omap_zoom2_defconfig              | 1211 ++++++++++++++++
+ arch/arm/configs/rx51_defconfig                    |    2 +-
+ arch/arm/mach-omap1/Kconfig                        |    1 -
+ arch/arm/mach-omap1/Makefile                       |    4 +
+ arch/arm/mach-omap1/board-nokia770.c               |   13 +
+ arch/arm/mach-omap1/clock.c                        |    2 +-
+ arch/arm/mach-omap1/pm.c                           |   11 +-
+ .../{plat-omap/include/mach => mach-omap1}/pm.h    |   85 +-
+ arch/arm/mach-omap1/serial.c                       |    3 -
+ arch/arm/mach-omap1/sleep.S                        |    2 +-
+ arch/arm/mach-omap2/Kconfig                        |   14 +-
+ arch/arm/mach-omap2/Makefile                       |   29 +-
+ arch/arm/mach-omap2/board-2430sdp.c                |  114 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |   87 +-
+ arch/arm/mach-omap2/board-4430sdp.c                |   94 ++
+ arch/arm/mach-omap2/board-ldp.c                    |  219 +++-
+ arch/arm/mach-omap2/board-omap3beagle.c            |  108 ++-
+ arch/arm/mach-omap2/board-omap3evm.c               |  329 +++++
+ arch/arm/mach-omap2/board-omap3pandora.c           |  197 +++-
+ arch/arm/mach-omap2/board-overo.c                  |   79 +-
+ arch/arm/mach-omap2/board-rx51-peripherals.c       |  232 ++--
+ arch/arm/mach-omap2/board-zoom-debugboard.c        |  160 ++
+ arch/arm/mach-omap2/board-zoom2.c                  |  110 ++
+ arch/arm/mach-omap2/clock.c                        |   18 +-
+ arch/arm/mach-omap2/clock24xx.c                    |   23 +-
+ arch/arm/mach-omap2/clock24xx.h                    |   11 +
+ arch/arm/mach-omap2/clock34xx.c                    |   23 +-
+ arch/arm/mach-omap2/clock34xx.h                    |   35 +-
+ arch/arm/mach-omap2/clockdomains.h                 |    2 +-
+ arch/arm/mach-omap2/cm-regbits-34xx.h              |   14 +
+ arch/arm/mach-omap2/cm.h                           |    6 +-
+ arch/arm/mach-omap2/gpmc-onenand.c                 |  330 +++++
+ arch/arm/mach-omap2/gpmc-smc91x.c                  |  189 +++
+ arch/arm/mach-omap2/gpmc.c                         |    6 +
+ arch/arm/mach-omap2/id.c                           |    8 +-
+ arch/arm/mach-omap2/io.c                           |   52 +-
+ arch/arm/mach-omap2/irq.c                          |   18 +-
+ arch/arm/mach-omap2/mmc-twl4030.c                  |  280 ++---
+ arch/arm/mach-omap2/mmc-twl4030.h                  |    3 +-
+ arch/arm/mach-omap2/pm-debug.c                     |  152 ++
+ arch/arm/mach-omap2/pm.c                           |  114 +--
+ arch/arm/mach-omap2/pm.h                           |   38 +
+ arch/arm/mach-omap2/pm24xx.c                       |  544 +++++++
+ arch/arm/mach-omap2/pm34xx.c                       |  705 +++++++++
+ arch/arm/mach-omap2/prcm-common.h                  |    2 +
+ arch/arm/mach-omap2/prm.h                          |  207 ++-
+ arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h  |   55 +
+ .../mach-omap2/sdram-qimonda-hyb18m512160af-6.h    |   54 +
+ arch/arm/mach-omap2/sdrc.c                         |   24 +-
+ arch/arm/mach-omap2/sdrc2xxx.c                     |    5 +-
+ arch/arm/mach-omap2/serial.c                       |  464 ++++++-
+ arch/arm/mach-omap2/sleep24xx.S                    |    1 -
+ arch/arm/mach-omap2/sleep34xx.S                    |  436 ++++++
+ arch/arm/mach-omap2/sram242x.S                     |   10 +-
+ arch/arm/mach-omap2/sram243x.S                     |   10 +-
+ arch/arm/mach-omap2/sram34xx.S                     |  129 +-
+ arch/arm/mach-omap2/timer-gp.c                     |    9 +-
+ arch/arm/mach-omap2/usb-musb.c                     |   21 +-
+ arch/arm/plat-omap/Kconfig                         |   13 +-
+ arch/arm/plat-omap/clock.c                         |   37 +-
+ arch/arm/plat-omap/common.c                        |  114 ++-
+ arch/arm/plat-omap/devices.c                       |    2 +
+ arch/arm/plat-omap/dma.c                           |  102 +-
+ arch/arm/plat-omap/dmtimer.c                       |   73 +-
+ arch/arm/plat-omap/gpio.c                          |  134 ++-
+ arch/arm/plat-omap/i2c.c                           |    2 +-
+ arch/arm/plat-omap/include/mach/clock.h            |   10 +-
+ arch/arm/plat-omap/include/mach/common.h           |    3 +-
+ arch/arm/plat-omap/include/mach/control.h          |   20 +-
+ arch/arm/plat-omap/include/mach/cpu.h              |   21 +-
+ arch/arm/plat-omap/include/mach/debug-macro.S      |    2 +-
+ arch/arm/plat-omap/include/mach/dma.h              |    4 +-
+ arch/arm/plat-omap/include/mach/entry-macro.S      |   55 +-
+ arch/arm/plat-omap/include/mach/gpmc-smc91x.h      |   42 +
+ arch/arm/plat-omap/include/mach/hardware.h         |    1 +
+ arch/arm/plat-omap/include/mach/hwa742.h           |    4 -
+ arch/arm/plat-omap/include/mach/io.h               |   37 +
+ arch/arm/plat-omap/include/mach/irqs.h             |   90 ++
+ arch/arm/plat-omap/include/mach/keypad.h           |    4 +
+ arch/arm/plat-omap/include/mach/memory.h           |    3 +-
+ arch/arm/plat-omap/include/mach/omap24xx.h         |   18 -
+ arch/arm/plat-omap/include/mach/omap34xx.h         |   13 -
+ arch/arm/plat-omap/include/mach/omap44xx.h         |   46 +
+ arch/arm/plat-omap/include/mach/onenand.h          |   22 +-
+ arch/arm/plat-omap/include/mach/serial.h           |   25 +-
+ arch/arm/plat-omap/include/mach/sram.h             |    6 +-
+ arch/arm/plat-omap/include/mach/usb.h              |    6 -
+ arch/arm/plat-omap/include/mach/vmalloc.h          |    2 +-
+ arch/arm/plat-omap/io.c                            |   29 +-
+ arch/arm/plat-omap/mcbsp.c                         |   34 +-
+ arch/arm/plat-omap/mux.c                           |    3 +
+ arch/arm/plat-omap/sram.c                          |   66 +-
+ drivers/mmc/host/omap_hsmmc.c                      |    6 +-
+ drivers/mtd/onenand/omap2.c                        |    1 -
+ drivers/video/omap/hwa742.c                        |   26 +-
+ 99 files changed, 9480 insertions(+), 1112 deletions(-)
+ create mode 100644 arch/arm/configs/omap3_evm_defconfig
+ create mode 100644 arch/arm/configs/omap_4430sdp_defconfig
+ create mode 100644 arch/arm/configs/omap_zoom2_defconfig
+ rename arch/arm/{plat-omap/include/mach => mach-omap1}/pm.h (76%)
+ create mode 100644 arch/arm/mach-omap2/board-4430sdp.c
+ create mode 100644 arch/arm/mach-omap2/board-omap3evm.c
+ create mode 100644 arch/arm/mach-omap2/board-zoom-debugboard.c
+ create mode 100644 arch/arm/mach-omap2/board-zoom2.c
+ create mode 100644 arch/arm/mach-omap2/gpmc-onenand.c
+ create mode 100644 arch/arm/mach-omap2/gpmc-smc91x.c
+ create mode 100644 arch/arm/mach-omap2/pm-debug.c
+ create mode 100644 arch/arm/mach-omap2/pm.h
+ create mode 100644 arch/arm/mach-omap2/pm24xx.c
+ create mode 100644 arch/arm/mach-omap2/pm34xx.c
+ create mode 100644 arch/arm/mach-omap2/sdram-micron-mt46h32m32lf-6.h
+ create mode 100644 arch/arm/mach-omap2/sdram-qimonda-hyb18m512160af-6.h
+ create mode 100644 arch/arm/mach-omap2/sleep34xx.S
+ create mode 100644 arch/arm/plat-omap/include/mach/gpmc-smc91x.h
+ create mode 100644 arch/arm/plat-omap/include/mach/omap44xx.h
+
+--UFHRwCdBEJvubb2X--
