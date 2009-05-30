@@ -1,151 +1,95 @@
 From: Andrew de Quincey <adq_dvb@lidskialf.net>
-Subject: prepatch: Fix brf6510 cleanup code
-Date: Sat, 30 May 2009 18:07:21 +0100
-Message-ID: <20090530180721.75203sfsqbpppfi8@lidskialf.net>
+Subject: prepatch: work around broken brf6150 PM code
+Date: Sat, 30 May 2009 18:25:13 +0100
+Message-ID: <20090530182513.214244z6d3s8cb9c@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
-	boundary="=_3qwd29f3zydc"
+	boundary="=_43b4sx9a1b0g"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:56521 "EHLO
+Received: from 82-71-49-12.dsl.in-addr.zen.co.uk ([82.71.49.12]:38402 "EHLO
 	mail.lidskialf.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223AbZE3RHV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 May 2009 13:07:21 -0400
-Received: from lidskialf.net (beyond.lidskialf.net [172.16.1.1])
-	by mail.lidskialf.net (Postfix) with ESMTP id 9B2074944D5BD
-	for <linux-omap@vger.kernel.org>; Sat, 30 May 2009 18:07:21 +0100 (BST)
+	with ESMTP id S1760317AbZE3RZM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 30 May 2009 13:25:12 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: ville.tervo@nokia.com
 
 This message is in MIME format.
 
---=_3qwd29f3zydc
+--=_43b4sx9a1b0g
 Content-Type: text/plain;
 	charset=UTF-8;
 	DelSp="Yes";
 	format="flowed"
 Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
-
-Hi, another cleanup patch from me; this one fixes the brf6150 cleanup  
-code so the module can be unloaded cleanly and also doesn't cause an  
-oops on reset.
-
-
---=_3qwd29f3zydc
-Content-Type: text/x-patch;
-	charset=UTF-8;
-	name="brf6150-cleanup-fix.patch"
-Content-Disposition: attachment;
-	filename="brf6150-cleanup-fix.patch"
 Content-Transfer-Encoding: quoted-printable
 
-commit bf0e4cba53819df5590a88d551b35a2e79f4de75
-Author: Andrew de Quincey <adq@lidskialf.net>
-Date:   Sat May 30 18:01:58 2009 +0100
+Hi, this patch took a while to track down. The brf6150.c from the =20
+original Nokia n770 kernel source (kernel-source-2.6.16-2.6.16-osso29) =20
+works. However, the brf6150.c that was added to the linux-omap tree on =20
+the 8th feb 2006 (commit 9f43ca7f2eca4de6f145bc1d165df4a415546258) =20
+does not (for this n770 anyway :).
 
-    Fix brf6150 init/shutdown cleanup
+In the linux-omap commit, there is a lot of new neat power management =20
+code that uses two GPIOs: one for the host to signal the brf6150 when =20
+to wake up and one for the brf6150 to signal the host to wake up.
+
+The problem is that on the hardware I'm using these GPIOs do not =20
+change, so the host never "wakes up", and consequently never schedules =20
+packets to be transferred to the brf6150. I've tested the platform =20
+GPIO library is working properly and appears to be.
+
+The n770 code is configured to use the following brf6510 GPIOS: =20
+reset:4, hostwake:61, btwake:194.
+
+The attached patch forces this schedule, but isn't really a good patch =20
+as the (non-functional) PM stuff is still in there.
+
+Can anyone shed any light on this situation? Note that I am using the =20
+brf6150fw.bin firmware binary from the =20
+SU-18_2006SE_1.2006.26-8_PR_F5_MR0_ARM OS release.
+
+The bluetooth firmware from SU-18_2006SE_2.2006.39-14_PR_F5_MR0_ARM is =20
+corrupt (has loads of zero bytes at the start, which the code reveals =20
+is invalid).
+
+The bluetooth firmware from SU-18_2006SE_3.2006.49-2_PR_F5_MR0_ARM is =20
+ALSO corrupt; this time its been truncated to 8192 bytes so the loader =20
+runs off the end.
+
+If this can't be resolved, and since I don't have any docs on the =20
+brf6150 or newer firmware images, I'd be tempted to simply kill the PM =20
+code since its not actually doing anything useful. I'd prefer to get =20
+it to work though....
+
+--=_43b4sx9a1b0g
+Content-Type: text/x-patch;
+	charset=UTF-8;
+	name="brf6150-fix-tx.patch"
+Content-Disposition: attachment;
+	filename="brf6150-fix-tx.patch"
+Content-Transfer-Encoding: 7bit
+
+commit 3dd6f369919225473c77db006a60af0d1ca66ce4
+Author: Andrew de Quincey <adq@lidskialf.net>
+Date:   Sat May 30 18:04:24 2009 +0100
+
+    schedule tx when packet submitted due to non-working power management GPIOs
 
 diff --git a/drivers/bluetooth/brf6150.c b/drivers/bluetooth/brf6150.c
-index f29caf5..4f0112a 100644
+index 4f0112a..50caa74 100644
 --- a/drivers/bluetooth/brf6150.c
 +++ b/drivers/bluetooth/brf6150.c
-@@ -312,7 +312,7 @@ static int brf6150_send_negotiation(struct brf6150_info =
-*info)
- =09skb =3D brf6150_read_fw_cmd(info, GFP_KERNEL);
-=20
- =09if (!skb) {
--=09=09printk(KERN_WARNING "Cannot read negoatiation message");
-+=09=09printk(KERN_WARNING "Cannot read negotiation message");
- =09=09return -1;
- =09}
-=20
-@@ -873,6 +873,7 @@ static int brf6150_register_hdev(struct brf6150_info *in=
-fo)
- =09hdev->owner =3D THIS_MODULE;
-=20
- =09if (hci_register_dev(hdev) < 0) {
-+=09=09hci_free_dev(hdev);
- =09=09printk(KERN_WARNING "brf6150: Can't register HCI device %s.\n", hdev-=
->name);
- =09=09return -ENODEV;
- =09}
-@@ -885,10 +886,9 @@ static int __init brf6150_init(void)
- =09struct brf6150_info *info;
- =09int irq, err;
-=20
--=09info =3D kmalloc(sizeof(struct brf6150_info), GFP_KERNEL);
-+=09info =3D kzalloc(sizeof(struct brf6150_info), GFP_KERNEL);
- =09if (!info)
- =09=09return -ENOMEM;
--=09memset(info, 0, sizeof(struct brf6150_info));
-=20
- =09brf6150_device.dev.driver_data =3D info;
- =09init_completion(&info->init_completion);
-@@ -906,8 +906,11 @@ static int __init brf6150_init(void)
- =09exit_info =3D NULL;
-=20
- =09info->btinfo =3D omap_get_config(OMAP_TAG_NOKIA_BT, struct omap_bluetoot=
-h_config);
--=09if (info->btinfo =3D=3D NULL)
-+=09if (info->btinfo =3D=3D NULL) {
-+=09=09tasklet_kill(&info->tx_task);
-+=09=09kfree(info);
- =09=09return -1;
-+=09}
-=20
- =09NBT_DBG("RESET gpio: %d\n", info->btinfo->reset_gpio);
- =09NBT_DBG("BTWU gpio: %d\n", info->btinfo->bt_wakeup_gpio);
-@@ -920,6 +923,7 @@ static int __init brf6150_init(void)
- =09{
- =09=09printk(KERN_WARNING "Cannot get GPIO line %d",=20
- =09=09       info->btinfo->reset_gpio);
-+=09=09tasklet_kill(&info->tx_task);
- =09=09kfree(info);
- =09=09return err;
- =09}
-@@ -930,6 +934,7 @@ static int __init brf6150_init(void)
- =09=09printk(KERN_WARNING "Cannot get GPIO line 0x%d",
- =09=09       info->btinfo->bt_wakeup_gpio);
- =09=09gpio_free(info->btinfo->reset_gpio);
-+=09=09tasklet_kill(&info->tx_task);
- =09=09kfree(info);
- =09=09return err;
- =09}
-@@ -941,6 +946,7 @@ static int __init brf6150_init(void)
- =09=09       info->btinfo->host_wakeup_gpio);
- =09=09gpio_free(info->btinfo->reset_gpio);
- =09=09gpio_free(info->btinfo->bt_wakeup_gpio);
-+=09=09tasklet_kill(&info->tx_task);
- =09=09kfree(info);
- =09=09return err;
- =09}
-@@ -1027,6 +1033,7 @@ cleanup:
- =09gpio_free(info->btinfo->reset_gpio);
- =09gpio_free(info->btinfo->bt_wakeup_gpio);
- =09gpio_free(info->btinfo->host_wakeup_gpio);
-+=09tasklet_kill(&info->tx_task);
- =09kfree(info);
-=20
- =09return err;
-@@ -1035,12 +1042,16 @@ cleanup:
- static void __exit brf6150_exit(void)
- {
- =09brf6150_hci_close(exit_info->hdev);
-+=09hci_unregister_dev(exit_info->hdev);
- =09hci_free_dev(exit_info->hdev);
- =09gpio_free(exit_info->btinfo->reset_gpio);
- =09gpio_free(exit_info->btinfo->bt_wakeup_gpio);
- =09gpio_free(exit_info->btinfo->host_wakeup_gpio);
- =09free_irq(exit_info->irq, (void *)exit_info);
- =09free_irq(gpio_to_irq(exit_info->btinfo->host_wakeup_gpio), (void *)exit_=
-info);
-+=09tasklet_kill(&exit_info->tx_task);
-+=09platform_device_unregister(&brf6150_device);
-+=09platform_driver_unregister(&brf6150_driver);
- =09kfree(exit_info);
+@@ -187,6 +187,7 @@ static void brf6150_disable_pm_tx(struct brf6150_info *info)
+ 	}
+ 	if (gpio_get_value(info->btinfo->host_wakeup_gpio))
+ 		tasklet_schedule(&info->tx_task);
++	tasklet_schedule(&info->tx_task);
  }
-=20
---=_3qwd29f3zydc--
+ 
+ static void brf6150_pm_timer(unsigned long data)
+
+--=_43b4sx9a1b0g--
 
