@@ -1,54 +1,62 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: [PATCH 05/10] ARM: OMAP1: Make 770 LCD work
-Date: Mon, 01 Jun 2009 16:57:35 +0300
-Message-ID: <87oct8t5tc.fsf@litku.valot.fi>
-References: <20090519232905.12760.15490.stgit@localhost>
-	<20090519233732.12760.34595.stgit@localhost>
-	<20090525092911.GC28195@n2100.arm.linux.org.uk>
-	<20090525142128.17675cl0tvdr0y1k@lidskialf.net>
-	<20090525174055.127744136qxu9vk0@lidskialf.net>
-	<20090528182047.GF32453@atomide.com>
-	<20090528195046.GW20736@n2100.arm.linux.org.uk>
-	<20090529012952.104144iws1glmow0@lidskialf.net>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: LDP support
+Date: Mon, 1 Jun 2009 10:18:45 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162038DEAB999@dlee02.ent.ti.com>
+References: <20090428220712.GF29277@n2100.arm.linux.org.uk>
+ <20090428224237.GT22457@atomide.com>
+ <20090531212449.GD25140@n2100.arm.linux.org.uk>
+ <13B9B4C6EF24D648824FF11BE8967162038DEAB716@dlee02.ent.ti.com>
+ <20090601074526.GB10590@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:50227 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330AbZFAN5j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2009 09:57:39 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so2809935fgg.17
-        for <linux-omap@vger.kernel.org>; Mon, 01 Jun 2009 06:57:38 -0700 (PDT)
-In-Reply-To: <20090529012952.104144iws1glmow0@lidskialf.net> (Andrew de Quincey's message of "Fri\, 29 May 2009 01\:29\:52 +0100")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60478 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752267AbZFAPTB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2009 11:19:01 -0400
+In-Reply-To: <20090601074526.GB10590@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew de Quincey <adq_dvb@lidskialf.net>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, Imre Deak <imre.deak@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Andrew de Quincey <adq_dvb@lidskialf.net> writes:
 
-> Out of interest, what is the best practice way to pass platform
-> specific GPIOs around? There are a number of other n770 related
-> drivers I'm intending on cleaning up, several of which have GPIO
-> numbers hardcoded in them. Should these be passed in platform
-> structures, or is there something analogous to the clk_alias for
-> GPIOs?
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Russell King - ARM Linux
+> Sent: Monday, June 01, 2009 2:45 AM
 
-I was told that platform structures are the preferred way. For wl12xx (a
-wi-fi driver) I created a set_power function pointer which will control
-the power gpio line:
+> On Sun, May 31, 2009 at 07:24:19PM -0500, Woodruff, Richard wrote:
+> > > 6. do ___NOT___ (underscored in triplicate and 500ft high letters) enable
+> > >    ARM errata 460075 - it solidly prevents the kernel booting on LDP.
+> > >    (it's taken many hours to debug that.)
+> >
+> > This is an r2p0 errata only.  It's not in earlier versions or in later cores.
+>
+> Yes.
+>
+> > Today there are only r1pX OMAP3s today.  In the future there will be r3px
+> > also.
+>
+> That's something that TI may know, but it's almost impossible for developers
+> to know because:
+>
+> (a) the OMAP3430 TRMs aren't available.
 
-27 struct wl12xx_platform_data {
-28         void (*set_power)(bool enable);
-29 };
+Yes it is publicly available in a few forms. Using google I was just able to find a few references.
 
-http://git.kernel.org/?p=linux/kernel/git/linville/wireless-testing.git;a=blob;f=include/linux/spi/wl12xx.h;h=11430cab2aad71242946ebfc7c0ce778d8bf26a1;hb=HEAD
+For public 3430 look here:
+http://focus.ti.com/pdfs/wtbu/SWPU114Q_PrelimFinal_EPDF_03_05_2009.pdf
 
-And the irq is configured in the board file and provided to wl12xx with
-struct spi_device.irq. So wl12xx doesn't use gpio code at all, it's all
-done in the board file. 
+The 35xx one is out there also (mostly the same) and easier to find.
 
-Please comment if this isn't the correct way to do this.
+The public TRM above has the ARM revision/patch version documented in section 3.1.2. The ARM core is r1p3 in OMAP3430-ES3.1 and r1p7 for OMAP3430-ES3.1.1.
 
--- 
-Kalle Valo
+Last time I looked in an ID register it seemed ok but I had inside information and may have missed something.
+
+Your use of a run time check seemed good.
+
+Thanks,
+Richard W.
+
