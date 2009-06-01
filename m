@@ -1,38 +1,40 @@
 From: "Wang Sawsd-A24013" <cqwang@motorola.com>
 Subject: [PATCH] OMAP2/3 Avoid GPIO pending irq status been set after irq_disable
-Date: Tue, 2 Jun 2009 07:24:39 +0800
-Message-ID: <B00E06E2766C2744B022DE9BAF3C59D532D196@zmy16exm69.ds.mot.com>
+Date: Tue, 2 Jun 2009 07:49:45 +0800
+Message-ID: <B00E06E2766C2744B022DE9BAF3C59D532D19D@zmy16exm69.ds.mot.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail119.messagelabs.com ([216.82.241.195]:42727 "EHLO
-	mail119.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752122AbZFAXZR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2009 19:25:17 -0400
-Received: from il27exr04.cig.mot.com (il27exr04.mot.com [10.17.196.73])
-	by motgate4.mot.com (8.14.3/8.14.3) with ESMTP id n51NPIFg003230
-	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 16:25:18 -0700 (MST)
-Received: from il27vts03 (il27vts03.cig.mot.com [10.17.196.87])
-	by il27exr04.cig.mot.com (8.13.1/Vontu) with SMTP id n51NPIq5008367
-	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 18:25:18 -0500 (CDT)
+Received: from mail55.messagelabs.com ([216.82.241.163]:33060 "EHLO
+	mail55.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751594AbZFAXuY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2009 19:50:24 -0400
+Received: from il27exr03.cig.mot.com (il27exr03.mot.com [10.17.196.72])
+	by motgate5.mot.com (8.14.3/8.14.3) with ESMTP id n51NoPpU020869
+	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 16:50:25 -0700 (MST)
+Received: from il27vts01 (il27vts01.cig.mot.com [10.17.196.85])
+	by il27exr03.cig.mot.com (8.13.1/Vontu) with SMTP id n51NoOa0025989
+	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 18:50:24 -0500 (CDT)
 Received: from zmy16exm69.ds.mot.com (zmy16exm69.ap.mot.com [10.179.4.36])
-	by il27exr04.cig.mot.com (8.13.1/8.13.0) with ESMTP id n51NPHoA008347
-	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 18:25:17 -0500 (CDT)
+	by il27exr03.cig.mot.com (8.13.1/8.13.0) with ESMTP id n51NoNSM025983
+	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 18:50:24 -0500 (CDT)
 Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
+Resend because of the content format issues in last mail---sorry for
+inconvenience.
+
 This patch adds irq_enable and irq_disable for OMAP GPIO IRQ chip, and
-also only enable WAKEUPEN
-When GPIO edge detection is enabled, also clear the gpio event
-triggering configurations to avoid
-Pending interrupt status which is generated regardless of the IRQEN and
-WKUPEN bit, the pending
-IRQ status may prevent GPIO module acknowledge IDLE request and prevent
-PER and thus RETENTION.
+also only enable WAKEUPEN When GPIO edge detection is enabled, 
+also clear the gpio event triggering configurations to avoid Pending
+interrupt status which is generated regardless of the IRQEN and WKUPEN
+bit,
+the pending IRQ status may prevent GPIO module acknowledge IDLE request
+and prevent PER and thus CORE RETENTION.
 
 This is only applied for OMAP2/3 GPIO IRQs.
 
@@ -125,3 +127,8 @@ IRQ_TYPE_NONE);
  	.unmask		= gpio_unmask_irq,
 -- 
 1.5.4.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org More majordomo info
+at  http://vger.kernel.org/majordomo-info.html
