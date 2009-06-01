@@ -1,39 +1,81 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: LDP support
-Date: Mon, 1 Jun 2009 17:16:57 +0100
-Message-ID: <20090601161657.GE16580@n2100.arm.linux.org.uk>
-References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com> <20090531212449.GD25140@n2100.arm.linux.org.uk> <20090601160032.GA4825@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 00/10] OMAP clock/powerdomain/SDRC patches for
+	post-2.6.30
+Date: Mon, 1 Jun 2009 09:56:24 -0700
+Message-ID: <20090601165623.GB4825@atomide.com>
+References: <20090526220517.25381.75976.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49002 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632AbZFAQRM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2009 12:17:12 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758580AbZFAQ4n@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20090601160032.GA4825@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20090526220517.25381.75976.stgit@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-On Mon, Jun 01, 2009 at 09:00:33AM -0700, Tony Lindgren wrote:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090531 14:25]:
-> > Okay, now that I've merged your tree, we've moved a few steps forward but
-> > a couple of steps backward with LDP support:
-> > 
-> > 1. LDP LCD platform device added
-> > 2. GPIO keyboard platform data added
-> > 3. TWL4030 keyboard platform data added
-> > 4. TSC2046 touchscreen platform data added
-> > 5. MMC has regressed - no sign of the driver initializing, not even an
-> >    error message from it, so I can't boot to check what the status of
-> >    these are.
+* Paul Walmsley <paul@pwsan.com> [090526 15:27]:
+> Hello Russell,
 > 
-> Do you have CONFIG_REGULATOR set in your .config? That seems to be missing
-> from arch/arm/configs/omap_ldp_defconfig.
+> here is the next set of OMAP clock patches for review for the
+> post-2.6.30 merge window.  They apply on top of the previous set
+> ("OMAP clock/SDRC patches on v2.6.30-rc5").  If you're happy with
+> these patches, Tony will queue them up into his for-next branch.
 
-Yes, that fixes it.
+Looks like Russell now has all the omap for-next merged to his
+devel branch. Only this series is missing and the omap4 SMP patches.
 
-I think it would be a good thing that a KERN_ERR message is displayed
-to cover this case, since it currently fails completely silently.
+Paul, can you please reply with the output from git request-pull 
+for Russell to pull these in too?
+
+AFAIK, there should not be any need to rebase this series, it
+should merge clean from v2.6.30-rc7 to Russell's devel branch.
+
+Regards,
+
+Tony
+
+
+ 
+> This series completes basic support for OMAP3 CORE DVFS.  A few other
+> minor bugs are fixed by the off-by-one patch and the GPIO debounce
+> clock patch.
+> 
+> 
+> regards,
+> 
+> - Paul
+> 
+> ---
+> 
+> Paul Walmsley (8):
+>       OMAP3 clock: GPIO de-bounce clocks don't affect module idle state
+>       OMAP3 SDRC: set FIXEDDELAY when disabling SDRC DLL
+>       OMAP3 SRAM: convert SRAM code to use macros rather than magic numbers
+>       OMAP3 SRAM: add more comments on the SRAM code
+>       OMAP3 clock/SDRC: program SDRC_MR register during SDRC clock change
+>       OMAP3 clock: add a short delay when lowering CORE clk rate
+>       OMAP3 clock: initialize SDRC timings at kernel start
+>       OMAP3 clock: remove wait for DPLL3 M2 clock to stabilize
+> 
+> Roel Kluin (1):
+>       OMAP2 clock/powerdomain: off by 1 error in loop timeout comparisons
+> 
+> Tero Kristo (1):
+>       OMAP3: Add support for DPLL3 divisor values higher than 2
+> 
+> 
+>  arch/arm/mach-omap2/clock.c            |    2 
+>  arch/arm/mach-omap2/clock34xx.c        |   42 ++++++++--
+>  arch/arm/mach-omap2/clock34xx.h        |   12 +--
+>  arch/arm/mach-omap2/io.c               |   38 +++++++++
+>  arch/arm/mach-omap2/powerdomain.c      |    2 
+>  arch/arm/mach-omap2/sram34xx.S         |  129 +++++++++++++++++++++-----------
+>  arch/arm/plat-omap/include/mach/sram.h |    6 +
+>  arch/arm/plat-omap/sram.c              |    8 +-
+>  8 files changed, 171 insertions(+), 68 deletions(-)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
