@@ -1,45 +1,101 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [APPLIED] [PATCH] ARM:OMAP: Enable MADC on Overo
-Date: Tue, 2 Jun 2009 10:42:23 -0700
-Message-ID: <20090602174223.GF27332@atomide.com>
-References: <5e088bd90905300643r5e2f6ef7wc789937995d243bd@mail.gmail.com> <notify-1243964412@atomide.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [PATCH 1/2] I2C: OMAP2/3: Fix scll/sclh calculations
+Date: Tue, 2 Jun 2009 10:51:16 -0700
+Message-ID: <20090602175115.GG27332@atomide.com>
+References: <1243436086-3623-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60424 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755233AbZFBRmX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 13:42:23 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MBY0H-0007ET-BJ
-	for linux-omap@vger.kernel.org; Tue, 02 Jun 2009 17:42:25 +0000
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <notify-1243964412@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1243436086-3623-1-git-send-email-aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [090602 10:40]:
-> This patch has been applied to the linux-omap
-> by youw fwiendly patch wobot.
+* Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> [090527 07:55]:
+> Fix scll/sclh calculations for HS and fast modes. Currently the driver
+> uses equal (roughly) low/high times which will result in too short
+> low time.
+> 
+> OMAP3430 TRM gives the following equations:
+> 
+> 	F/S: tLow  = (scll + 7) * internal_clk
+> 	     tHigh = (sclh + 5) * internal_clk
+> 	HS:  tLow  = (scll + 7) * fclk
+> 	     tHigh = (sclh + 5) * fclk
+> 
+> Furthermore, the I2C specification sets the following minimum values
+> for HS tLow/tHigh for capacitive bus loads 100 pF (maximum speed 3400)
+> and 400 pF (maximum speed 1700):
+> 
+> 	speed	tLow		tHigh
+> 	3400	160 ns		60 ns
+> 	1700	320 ns		120 ns
+> 
+> and for F/S:
+> 
+> 	speed	tLow		tHigh
+> 	400	1300 ns		600 ns
+> 	100	4700 ns		4000 ns
+> 
+> By using duty cycles 33/66 (HS, F) and 50/50 (S) we stay above these
+> minimum values.
+> 
+> Signed-off-by: Aaro Koskinen <aaro.koskinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-Oops, this one is missing the description and Signed-off-by,
-please repost.
+Ben can you please queue this?
 
-Tony
- 
-> Initial commit ID (Likely to change): e0d36db80568c16474d6f6f6cd142ac505506b51
+Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+> ---
+>  drivers/i2c/busses/i2c-omap.c |   25 ++++++++++++++++++-------
+>  1 files changed, 18 insertions(+), 7 deletions(-)
 > 
-> PatchWorks
-> http://patchwork.kernel.org/patch/27051/
-> 
-> Git (Likely to change, and takes a while to get mirrored)
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=e0d36db80568c16474d6f6f6cd142ac505506b51
-> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 9919c08..5d9880c 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -343,17 +343,28 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  
+>  		/* If configured for High Speed */
+>  		if (dev->speed > 400) {
+> +			unsigned long scl;
+> +
+>  			/* For first phase of HS mode */
+> -			fsscll = internal_clk / (400 * 2) - 6;
+> -			fssclh = internal_clk / (400 * 2) - 6;
+> +			scl = internal_clk / 400;
+> +			fsscll = scl - (scl / 3) - 7;
+> +			fssclh = (scl / 3) - 5;
+>  
+>  			/* For second phase of HS mode */
+> -			hsscll = fclk_rate / (dev->speed * 2) - 6;
+> -			hssclh = fclk_rate / (dev->speed * 2) - 6;
+> +			scl = fclk_rate / dev->speed;
+> +			hsscll = scl - (scl / 3) - 7;
+> +			hssclh = (scl / 3) - 5;
+> +		} else if (dev->speed > 100) {
+> +			unsigned long scl;
+> +
+> +			/* Fast mode */
+> +			scl = internal_clk / dev->speed;
+> +			fsscll = scl - (scl / 3) - 7;
+> +			fssclh = (scl / 3) - 5;
+>  		} else {
+> -			/* To handle F/S modes */
+> -			fsscll = internal_clk / (dev->speed * 2) - 6;
+> -			fssclh = internal_clk / (dev->speed * 2) - 6;
+> +			/* Standard mode */
+> +			fsscll = internal_clk / (dev->speed * 2) - 7;
+> +			fssclh = internal_clk / (dev->speed * 2) - 5;
+>  		}
+>  		scll = (hsscll << OMAP_I2C_SCLL_HSSCLL) | fsscll;
+>  		sclh = (hssclh << OMAP_I2C_SCLH_HSSCLH) | fssclh;
+> -- 
+> 1.5.4.3
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
