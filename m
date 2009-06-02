@@ -1,81 +1,99 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
 Subject: Re: Please help in adding ams-delta support to ASoC
-Date: Tue, 2 Jun 2009 09:08:28 +0300
-Message-ID: <200906020908.28624.peter.ujfalusi@nokia.com>
-References: <4A1BEBE3.8010306@tis.icnet.pl> <4A23CC97.1020209@tis.icnet.pl> <20090601210413.7678bf42.jhnikula@gmail.com>
+Date: Tue, 2 Jun 2009 09:22:52 +0300
+Message-ID: <20090602092252.10a57fda.jhnikula@gmail.com>
+References: <4A1BEBE3.8010306@tis.icnet.pl>
+	<20090527095949.51ed4b83.jhnikula@gmail.com>
+	<200905272058.55404.jkrzyszt@tis.icnet.pl>
+	<4A23CC97.1020209@tis.icnet.pl>
+	<20090601210413.7678bf42.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28975 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756258AbZFBGJQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 02:09:16 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <20090601210413.7678bf42.jhnikula@gmail.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-On Monday 01 June 2009 21:04:13 ext Jarkko Nikula wrote:
-> On Mon, 01 Jun 2009 14:41:59 +0200
->
-> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
-> > The original patch ported to linux-omap-2.6.27, the last omap relea=
-se
-> > with omap-alsa support, gives me a working sound driver on ams-delt=
-a.
->
-> Ok, good to know.
->
-> > To make the original driver work stable, I had to patch the omap-al=
-sa
-> > framework to restore the original way that lack of dma chaining
-> > problem had been solved in the original patch (see below), so maybe
-> > there is a similiar issue in the currect ASoC McBSP framework?
->
-> Is the older implementation working at commit
-> d8376cc482b241701f7606c81ad578b90853e175 in linux-omap, i.e. last
-> commit before their removal?
->
-> What I see at quick look from the older implementation that it is doi=
-ng
-> somewhat similar way the DMA transfer and workaround for 1510 than
-> current ASoC except that now the DMA parameters are not reprogrammed
-> between the restarted transfers. I don't know if 1510 requires it?
+On Mon, 1 Jun 2009 21:04:13 +0300
+Jarkko Nikula <jhnikula@gmail.com> wrote:
 
-Good question, but at least on DMA round should have been completed any=
-ways if=20
-this is the case...
+> What I see at quick look from the older implementation that it is
+> doing somewhat similar way the DMA transfer and workaround for 1510
+> than current ASoC except that now the DMA parameters are not
+> reprogrammed between the restarted transfers. I don't know if 1510
+> requires it?
+> 
+Hmm, I forgot one major difference. Older implementation was
+transferring the buffer by transferring periods by own DMA transfers
+while ASoC implementation is transferring the whole buffer by single
+transfer but letting DMA to generate interrupts at period boundaries
+but this should be supported by the 1510 as well.
 
->
-> > My asoc based patch is also very generic and contains no more that
-> > the same two ams_delta_latch2_write() hardware related operations,
-> > called from inside snd_soc_dai_link.ops.startup() and
-> > snd_soc_dai_link.ops.shutdown() callback functions:
->
-> One thing worth to try would be try to use exactly same McBSP registe=
-rs
-> for omap_mcbsp_config in omap_mcbsp_dai_hw_params than used before fo=
-r
-> ams delta.
+I just tried non-chained transfer, i.e. restarting DMA after buffer is
+transferred in omap-pcm.c by using N810 and 2420 and it worked as I was
+recalling. This was simulating 1510 by adding (1
+|| cpu_is_omap1510) or (0 && !cpu_is_omap1510()) where 1510 was tested.
 
-Good idea, I was about to suggest to print the McBSP config in the work=
-ing old=20
-alsa implementation, than print the non working from the ASoC version a=
-nd see=20
-the difference, but copying the working one to ASoC (hardwire for now) =
-should=20
-get it working.
+But there is no DMA stop workaround before restarting like the original
+ams delta patch has. Could you try to add following line in omap-pcm.c
+does it help? However this doesn't explain why you are not getting any
+interrupts.
 
->
-> Sorry, have to cut my answer now here. I'll get back tomorrow.
+@@ -68,6 +68,7 @@ static void omap_pcm_dma_irq(int ch, u16 stat, void
+*data) if (prtd->period_index >= 0) {
+ 			if (++prtd->period_index == runtime->periods) {
+ 				prtd->period_index = 0;
++				omap_stop_dma(prtd->dma_ch);
+ 				omap_start_dma(prtd->dma_ch);
+ 			}
+ 		}
 
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 1. If the new OMAP McBSP ASoC framework provides all the
+> > functionality of the depreciated OMAP Alsa under a different API,
+> > the only reason of my driver not working I can imagine is that I
+> > have put these two lines of hardware related code in wrong places.
+> > If this is the case, could someone please point me into the right
+> > direction?
+> > 
+I don't think there is anything in a wrong place. It would help a lot
+if we would know for sure is the MCLK from OMAP to codec and McBSP FS
+and bit clocks from the codec really working since that is the first
+requirement for working transfer. Luckily we know that the HW is
+working :-)
+
+> > 3. Otherwise, there must be a significant difference in (alsa)
+> > MsBSP handling code that I am not able to identify and resolve
+> > myself. I can only say that I have seen much more mcbsp_...() stuff
+> > in the old omap-alsa framework than in the current one. The
+> > differece can be significant for OMAP15XX, or OMAP5910, or even
+> > ams-delta only.
+> > 
+At least one difference is that omap-mcbsp.c is constructing McBSP
+register bits itself while older implementation was passing raw
+register configuration from the board files. Probably you could try to
+hack omap_mcbsp_dai_hw_params and pass the same register settings there
+to see are there some missing bit in omap-mcbsp.c.
+
+> > I am personally interested in this, as I have bought two E3's
+> > recently in hope I can make use of them as IP phones. But for now, I
+> > have no idea what else I could try. I have noticed that Andrew de
+> > Quincey is going to fix sound on Nokia 770, maybe he finds something
+> > related.
+> > 
+It's positive that Nokia 770 will be easier thanks to OSK5912. They
+both have the same CPU variant (1710 == 5912) and AIC23 codec!
+
+
+-- 
+Jarkko
