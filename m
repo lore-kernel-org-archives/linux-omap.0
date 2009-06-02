@@ -1,105 +1,108 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: DSS2: How to test TV and LCD output simulatenously
-Date: Tue, 02 Jun 2009 15:04:23 -0600
-Message-ID: <4A2593D7.7060205@mlbassoc.com>
-References: <5F744A5A3C131242B81CE5874BD2CFFB34E35EAC@dlee01.ent.ti.com>,<4A251260.7070800@mlbassoc.com> <5F744A5A3C131242B81CE5874BD2CFFB34E35EAF@dlee01.ent.ti.com>,<4A25478F.2040500@mlbassoc.com> <5F744A5A3C131242B81CE5874BD2CFFB34E35EB5@dlee01.ent.ti.com> <4A254CC1.3060000@mlbassoc.com>,<4A257739.8050706@mlbassoc.com> <5F744A5A3C131242B81CE5874BD2CFFB34E35EB6@dlee01.ent.ti.com>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: [RFC][PATCH] Add support for hook switch on ams-delta
+Date: Tue, 2 Jun 2009 23:04:33 +0100
+Message-ID: <20090602220433.GD31770@earth.li>
+References: <200905262057.21890.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:2513 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbZFBVEW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 17:04:22 -0400
-In-Reply-To: <5F744A5A3C131242B81CE5874BD2CFFB34E35EB6@dlee01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-input-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <200905262057.21890.jkrzyszt@tis.icnet.pl>
+Sender: linux-input-owner@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Venkatesh, Subbu" <subbu.wrs@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shah, Hardik" <hardik.shah@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
 
-Venkatesh, Subbu wrote:
-> Hi Gary,
-> I just got to know Tomi's tree underwent lots of changes after mailing this patch, since Tomi has no target to commit, so I will update my tree and resend the patch, let me know.
+On Tue, May 26, 2009 at 08:57:20PM +0200, Janusz Krzysztofik wrote:
+> This trivial patch adds gpio-keys compatible platform device definition to 
+> ams-delta board, that supports hook switch found on this videophone. It is 
+> derived from similiar definitions found in other boards code. The patch is 
+> based on linux-2.6.30-rc5. Any comments are welcome.
 
-Yes, that would be appreciated.  I had a look at the commits in
-Tomi's tree since May 14 (latest date which your patch _might_ be OK)
-and they are significant.
+I'm obviously too late as I've seen the "Applied" mail, but some
+comments:
 
-Looking forward to your updated patch.
+* I don't think SW_HEADPHONE_INSERT is appropriate. input guys, is it
+  not reasonable to have SW_PHONE_HOOK or similar? I can't find anything
+  else in tree I know to be a VOIP phone that has the concept of a hook
+  switch except perhaps the TuxScreen and it doesn't have anything set
+  up that I could find. I think you're correct that EV_SW is
+  appropriate; it may remain in the off-hook state for some time and
+  AFAICT the gpio-key driver would produce a repeating key press if you
+  used EV_KEY.
 
-Thanks
+* We assume the bootloader does the appropriate GPIO pin setup for us,
+  so I don't think your omap_cfg_reg is required but it doesn't hurt in
+  the unlikely event we ever replace the Amstrad PBL.
 
-> ________________________________________
-> From: Gary Thomas [gary@mlbassoc.com]
-> Sent: Tuesday, June 02, 2009 2:02 PM
-> To: Venkatesh, Subbu
-> Cc: linux-omap@vger.kernel.org; Shah, Hardik; tomi.valkeinen@nokia.com
-> Subject: Re: DSS2: How to test TV and LCD output simulatenously
-> 
-> Gary Thomas wrote:
->> Venkatesh, Subbu wrote:
->>> Hello Gary,
->>> I have already emailed the patch, here is the link..
->>>  http://patchwork.kernel.org/patch/24196/
->> Thanks, I'll give it a try.
-> 
-> I applied this patch to Tomi's tree (cloned today), but no joy:
->   http://www.bat.org/~tomba/git/linux-omap-dss.git commit 72f7d3309a25dd9f39c292aa15e41a719a734867
-> 
->   CC      arch/arm/mach-omap2/board-ldp.o
-> /local/linux-omap-dss/arch/arm/mach-omap2/board-ldp.c:317: warning: 'struct omap_display' declared inside parameter list
-> /local/linux-omap-dss/arch/arm/mach-omap2/board-ldp.c:317: warning: its scope is only this definition or declaration, which is probably not what you want
-> /local/linux-omap-dss/arch/arm/mach-omap2/board-ldp.c:332: warning: 'struct omap_display' declared inside parameter list
-> /local/linux-omap-dss/arch/arm/mach-omap2/board-ldp.c:342: error: variable 'omap_ldp_display_data_tv' has initializer but incomplete type
-> 
-> How do I get a working tree with this patch applied?
-> 
->>> ________________________________________
->>> From: Gary Thomas [gary@mlbassoc.com]
->>> Sent: Tuesday, June 02, 2009 10:38 AM
->>> To: Venkatesh, Subbu
->>> Cc: linux-omap@vger.kernel.org; Shah, Hardik; tomi.valkeinen@nokia.com
->>> Subject: Re: DSS2: How to test TV and LCD output simulatenously
->>>
->>> Venkatesh, Subbu wrote:
->>>> Hi Gary,
->>>> LDP is a development board, I have to work on LDP panel driver  and BSP code to support new DSS2, It is ported on linux-omap tree.
->>>> I am still working on testing the features. For camera I might move into V4l2, but I cannot confirm this, I am still working on testing the Framebuffer features.
->>> How much of this can you share?  I'd like to try this on my LDP (Zoom1)
->>> and then get it ported to my own hardware (very similar to Zoom1)
->>>
->>> Thanks
->>>
->>>> ________________________________________
->>>> From: Gary Thomas [gary@mlbassoc.com]
->>>> Sent: Tuesday, June 02, 2009 6:52 AM
->>>> To: Venkatesh, Subbu
->>>> Cc: linux-omap@vger.kernel.org; Shah, Hardik; tomi.valkeinen@nokia.com
->>>> Subject: Re: DSS2: How to test TV and LCD output simulatenously
->>>>
->>>> Venkatesh, Subbu wrote:
->>>>> Hi,
->>>>> I have DSS2 ported on LDP board, I could manage to get output display on TV and LCD interface individually, also tested some of the features like Rotation and Mirroring, they worked with out any problem.
->>>> What does "DSS2 ported on LDP board" mean?  What source tree/branch did you use?
->>>>
->>>>> Now I am trying to get output both on TV and LCD simultaneously,
->>>>>
->>>>> I was not successful with my approach that I tried, like
->>>>>
->>>>> 1. Boot the kernel with the default LCD display
->>>>> 2. Then I enabled ntsc timings for TV, as PAL do not work on it.
->>>>>     #echo ntsc > /sys/devices/platform/omapdss/display1/timings
->>>>> 3. Enabled TV
->>>>>   # echo 1 > /sys/devices/platform/omapdss/display1/enable
->>>>> and did the common fb test....
->>>>> But it did not seem to work.
->>>>> Its nice if someone has different working approach or can suggest me where I am going wrong in the above steps.
->>>> Is this stuff documented somewhere?  Like the difference
->>>> between DSS1 and DSS2?  How the various layers and overlays
->>>> are supposed to work?  What about the camera interface?
+* The commented out code to include the GPIO status in sysfs shouldn't
+  be included. Does the input layer not provide a way to obtain the
+  state of the switch?
+
+> diff -Npru a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
+> --- a/arch/arm/mach-omap1/board-ams-delta.c	2009-05-17 17:58:18.000000000 +0200
+> +++ b/arch/arm/mach-omap1/board-ams-delta.c	2009-05-17 16:22:59.000000000 +0200
+> @@ -15,6 +15,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/init.h>
+>  #include <linux/input.h>
+> +#include <linux/gpio_keys.h>
+>  #include <linux/platform_device.h>
+>  
+>  #include <mach/hardware.h>
+> @@ -213,10 +214,35 @@ static struct platform_device ams_delta_
+>  	.id	= -1
+>  };
+>  
+> +static struct gpio_keys_button ams_delta_gpio_keys_buttons[] = {
+> +	[0] = {
+> +		.desc		= "hook_switch",
+> +		.type		= EV_SW,		/* or EV_KEY ? */
+> +		.code		= SW_HEADPHONE_INSERT,	/* or a new one ? */
+> +		.active_low	= 1,
+> +		.gpio		= AMS_DELTA_GPIO_PIN_HOOK_SWITCH,
+> +		.debounce_interval = 10,
+> +	},
+> +};
+> +
+> +static struct gpio_keys_platform_data ams_delta_gpio_keys = {
+> +	.buttons		= ams_delta_gpio_keys_buttons,
+> +	.nbuttons		= ARRAY_SIZE(ams_delta_gpio_keys_buttons),
+> +};
+> +
+> +static struct platform_device ams_delta_gpio_keys_device = {
+> +	.name			= "gpio-keys",
+> +	.id			= -1,
+> +	.dev			= {
+> +		.platform_data	= &ams_delta_gpio_keys,
+> +	},
+> +};
+> +
+>  static struct platform_device *ams_delta_devices[] __initdata = {
+>  	&ams_delta_kp_device,
+>  	&ams_delta_lcd_device,
+>  	&ams_delta_led_device,
+> +	&ams_delta_gpio_keys_device,
+>  };
+>  
+>  static void __init ams_delta_init(void)
+> @@ -233,6 +259,13 @@ static void __init ams_delta_init_irq(vo
+>  
+>  	omap_usb_init(&ams_delta_usb_config);
+>  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+> +
+> +	omap_cfg_reg(P20_1610_GPIO4); /* is this required? */
+> +
+> +	/* The hook switch state could be exposed over sysfs with gpio_export().
+> +	 * This should be done after the gpio-keys driver calls gpio_request(),
+> +	 * but I don't know how to do this from outside of the driver. */
+> +	/* gpio_export(AMS_DELTA_GPIO_PIN_HOOK_SWITCH, 0); */
+>  }
+>  
+>  static void __init ams_delta_map_io(void)
+
+
+J.
 
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Revd. Jonathan McDowell, ULC | I don't sleep, I dream.
