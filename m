@@ -1,108 +1,67 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: [RFC][PATCH] Add support for hook switch on ams-delta
-Date: Tue, 2 Jun 2009 23:04:33 +0100
-Message-ID: <20090602220433.GD31770@earth.li>
-References: <200905262057.21890.jkrzyszt@tis.icnet.pl>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was:
+ Re: Beagleboard rev C memory timings & suspend/resume)
+Date: Tue, 2 Jun 2009 17:40:13 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com>
+References: <200904291553.49378.jpihet@mvista.com> <200905112110.34589.jpihet@mvista.com> <alpine.DEB.2.00.0905111416350.17514@utopia.booyaka.com> <200905261527.16648.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200905262057.21890.jkrzyszt@tis.icnet.pl>
-Sender: linux-input-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:41627 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751343AbZFBXkM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 19:40:12 -0400
+In-Reply-To: <200905261527.16648.jpihet@mvista.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jpihet@mvista.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, May 26, 2009 at 08:57:20PM +0200, Janusz Krzysztofik wrote:
-> This trivial patch adds gpio-keys compatible platform device definition to 
-> ams-delta board, that supports hook switch found on this videophone. It is 
-> derived from similiar definitions found in other boards code. The patch is 
-> based on linux-2.6.30-rc5. Any comments are welcome.
+Hi Jean,
 
-I'm obviously too late as I've seen the "Applied" mail, but some
-comments:
+a minor request: it is easier to comment on these patches if they are 
+included inline in the E-mail message, rather than attached.  That way 
+code comments can be inlined in the reply.
 
-* I don't think SW_HEADPHONE_INSERT is appropriate. input guys, is it
-  not reasonable to have SW_PHONE_HOOK or similar? I can't find anything
-  else in tree I know to be a VOIP phone that has the concept of a hook
-  switch except perhaps the TuxScreen and it doesn't have anything set
-  up that I could find. I think you're correct that EV_SW is
-  appropriate; it may remain in the off-hook state for some time and
-  AFAICT the gpio-key driver would produce a repeating key press if you
-  used EV_KEY.
+On Tue, 26 May 2009, Jean Pihet wrote:
 
-* We assume the bootloader does the appropriate GPIO pin setup for us,
-  so I don't think your omap_cfg_reg is required but it doesn't hurt in
-  the unlikely event we ever replace the Amstrad PBL.
+> Here is a patch for the SDRC 2nd CS support. It applies on top of the current 
+> pm branch.
 
-* The commented out code to include the GPIO status in sysfs shouldn't
-  be included. Does the input layer not provide a way to obtain the
-  state of the switch?
+Thanks for doing this work.
 
-> diff -Npru a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-> --- a/arch/arm/mach-omap1/board-ams-delta.c	2009-05-17 17:58:18.000000000 +0200
-> +++ b/arch/arm/mach-omap1/board-ams-delta.c	2009-05-17 16:22:59.000000000 +0200
-> @@ -15,6 +15,7 @@
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/input.h>
-> +#include <linux/gpio_keys.h>
->  #include <linux/platform_device.h>
->  
->  #include <mach/hardware.h>
-> @@ -213,10 +214,35 @@ static struct platform_device ams_delta_
->  	.id	= -1
->  };
->  
-> +static struct gpio_keys_button ams_delta_gpio_keys_buttons[] = {
-> +	[0] = {
-> +		.desc		= "hook_switch",
-> +		.type		= EV_SW,		/* or EV_KEY ? */
-> +		.code		= SW_HEADPHONE_INSERT,	/* or a new one ? */
-> +		.active_low	= 1,
-> +		.gpio		= AMS_DELTA_GPIO_PIN_HOOK_SWITCH,
-> +		.debounce_interval = 10,
-> +	},
-> +};
-> +
-> +static struct gpio_keys_platform_data ams_delta_gpio_keys = {
-> +	.buttons		= ams_delta_gpio_keys_buttons,
-> +	.nbuttons		= ARRAY_SIZE(ams_delta_gpio_keys_buttons),
-> +};
-> +
-> +static struct platform_device ams_delta_gpio_keys_device = {
-> +	.name			= "gpio-keys",
-> +	.id			= -1,
-> +	.dev			= {
-> +		.platform_data	= &ams_delta_gpio_keys,
-> +	},
-> +};
-> +
->  static struct platform_device *ams_delta_devices[] __initdata = {
->  	&ams_delta_kp_device,
->  	&ams_delta_lcd_device,
->  	&ams_delta_led_device,
-> +	&ams_delta_gpio_keys_device,
->  };
->  
->  static void __init ams_delta_init(void)
-> @@ -233,6 +259,13 @@ static void __init ams_delta_init_irq(vo
->  
->  	omap_usb_init(&ams_delta_usb_config);
->  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
-> +
-> +	omap_cfg_reg(P20_1610_GPIO4); /* is this required? */
-> +
-> +	/* The hook switch state could be exposed over sysfs with gpio_export().
-> +	 * This should be done after the gpio-keys driver calls gpio_request(),
-> +	 * but I don't know how to do this from outside of the driver. */
-> +	/* gpio_export(AMS_DELTA_GPIO_PIN_HOOK_SWITCH, 0); */
->  }
->  
->  static void __init ams_delta_map_io(void)
+> I have some questions:
+> - Is it OK to copy the micron sdram params file to a new file with the 2 CSes 
+> params? One could use a unique file with #ifdef SDRC_SUPPORT_2_CSES.
+
+Is it possible for the SDRAM parameter files to remain unchanged, and to 
+simply pass two struct omap_sdrc_params * to omap2_init_common_hw() and 
+then to omap2_sdrc_init()?  Boards with only CS0 in use should pass NULL 
+for the second omap_sdrc_params *.
+
+So something like this (I realize the PM branch has additional parameters 
+here also):
+
+void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+                                 struct omap_sdrc_params *sdrc_cs1)
+
+Then:
+
+void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+                            struct omap_sdrc_params *sdrc_cs1)
+
+I would prefer that approach.
+
+It would also be good to avoid changing the SDRC CS1 parameters in the 
+SRAM code if the board does not use CS1.  Maybe pass in a flag that 
+indicates whether CS1 is in use, and if not, avoid programming those 
+registers?  The (admittedly minor) overhead of loading the CS1 registers 
+off the stack would be nice to avoid also.
+
+> - Does the RX51 board have 2 sdram parts? If so I need to update the board 
+> file as well.
+
+Probably best if someone from Nokia handles this.
 
 
-J.
-
--- 
-Revd. Jonathan McDowell, ULC | I don't sleep, I dream.
+- Paul
