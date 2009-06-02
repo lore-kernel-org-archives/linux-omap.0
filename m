@@ -1,35 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] mmc-twl4030: use correct controller in twl_mmc23_set_power
-Date: Tue, 2 Jun 2009 14:40:03 -0400
-Message-ID: <notify-1243968003@atomide.com>
-References: <1241187729-11212-1-git-send-email-notasas@gmail.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: DSS2: How to test TV and LCD output simulatenously
+Date: Tue, 02 Jun 2009 13:02:17 -0600
+Message-ID: <4A257739.8050706@mlbassoc.com>
+References: <5F744A5A3C131242B81CE5874BD2CFFB34E35EAC@dlee01.ent.ti.com>,<4A251260.7070800@mlbassoc.com> <5F744A5A3C131242B81CE5874BD2CFFB34E35EAF@dlee01.ent.ti.com>,<4A25478F.2040500@mlbassoc.com> <5F744A5A3C131242B81CE5874BD2CFFB34E35EB5@dlee01.ent.ti.com> <4A254CC1.3060000@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60343 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751110AbZFBSkD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 14:40:03 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MBYu4-0001go-O0
-	for linux-omap@vger.kernel.org; Tue, 02 Jun 2009 18:40:04 +0000
-In-Reply-To: <1241187729-11212-1-git-send-email-notasas@gmail.com>
-Content-Disposition: inline
+Received: from hermes.mlbassoc.com ([76.76.67.137]:1074 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780AbZFBTCQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 15:02:16 -0400
+In-Reply-To: <4A254CC1.3060000@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Venkatesh, Subbu" <subbu.wrs@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shah, Hardik" <hardik.shah@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+Gary Thomas wrote:
+> Venkatesh, Subbu wrote:
+>> Hello Gary,
+>> I have already emailed the patch, here is the link..
+>>  http://patchwork.kernel.org/patch/24196/
+> 
+> Thanks, I'll give it a try.
 
-Initial commit ID (Likely to change): 8ecfa515facb0eb34102ddd6d7bfe0bfee898ea0
+I applied this patch to Tomi's tree (cloned today), but no joy:
+  http://www.bat.org/~tomba/git/linux-omap-dss.git commit 72f7d3309a25dd9f39c292aa15e41a719a734867
 
-PatchWorks
-http://patchwork.kernel.org/patch/21453/
+  CC      arch/arm/mach-omap2/board-ldp.o
+/local/linux-omap-dss/arch/arm/mach-omap2/board-ldp.c:317: warning: 'struct omap_display' declared inside parameter list
+/local/linux-omap-dss/arch/arm/mach-omap2/board-ldp.c:317: warning: its scope is only this definition or declaration, which is probably not what you want
+/local/linux-omap-dss/arch/arm/mach-omap2/board-ldp.c:332: warning: 'struct omap_display' declared inside parameter list
+/local/linux-omap-dss/arch/arm/mach-omap2/board-ldp.c:342: error: variable 'omap_ldp_display_data_tv' has initializer but incomplete type
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=8ecfa515facb0eb34102ddd6d7bfe0bfee898ea0
+How do I get a working tree with this patch applied?
+
+> 
+>> ________________________________________
+>> From: Gary Thomas [gary@mlbassoc.com]
+>> Sent: Tuesday, June 02, 2009 10:38 AM
+>> To: Venkatesh, Subbu
+>> Cc: linux-omap@vger.kernel.org; Shah, Hardik; tomi.valkeinen@nokia.com
+>> Subject: Re: DSS2: How to test TV and LCD output simulatenously
+>>
+>> Venkatesh, Subbu wrote:
+>>> Hi Gary,
+>>> LDP is a development board, I have to work on LDP panel driver  and BSP code to support new DSS2, It is ported on linux-omap tree.
+>>> I am still working on testing the features. For camera I might move into V4l2, but I cannot confirm this, I am still working on testing the Framebuffer features.
+>> How much of this can you share?  I'd like to try this on my LDP (Zoom1)
+>> and then get it ported to my own hardware (very similar to Zoom1)
+>>
+>> Thanks
+>>
+>>> ________________________________________
+>>> From: Gary Thomas [gary@mlbassoc.com]
+>>> Sent: Tuesday, June 02, 2009 6:52 AM
+>>> To: Venkatesh, Subbu
+>>> Cc: linux-omap@vger.kernel.org; Shah, Hardik; tomi.valkeinen@nokia.com
+>>> Subject: Re: DSS2: How to test TV and LCD output simulatenously
+>>>
+>>> Venkatesh, Subbu wrote:
+>>>> Hi,
+>>>> I have DSS2 ported on LDP board, I could manage to get output display on TV and LCD interface individually, also tested some of the features like Rotation and Mirroring, they worked with out any problem.
+>>> What does "DSS2 ported on LDP board" mean?  What source tree/branch did you use?
+>>>
+>>>> Now I am trying to get output both on TV and LCD simultaneously,
+>>>>
+>>>> I was not successful with my approach that I tried, like
+>>>>
+>>>> 1. Boot the kernel with the default LCD display
+>>>> 2. Then I enabled ntsc timings for TV, as PAL do not work on it.
+>>>>     #echo ntsc > /sys/devices/platform/omapdss/display1/timings
+>>>> 3. Enabled TV
+>>>>   # echo 1 > /sys/devices/platform/omapdss/display1/enable
+>>>> and did the common fb test....
+>>>> But it did not seem to work.
+>>>> Its nice if someone has different working approach or can suggest me where I am going wrong in the above steps.
+>>> Is this stuff documented somewhere?  Like the difference
+>>> between DSS1 and DSS2?  How the various layers and overlays
+>>> are supposed to work?  What about the camera interface?
+> 
 
 
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
