@@ -1,134 +1,43 @@
-From: "Wang Sawsd-A24013" <cqwang@motorola.com>
-Subject: [PATCH] OMAP2/3 Avoid GPIO pending irq status been set after irq_disable
-Date: Tue, 2 Jun 2009 07:49:45 +0800
-Message-ID: <B00E06E2766C2744B022DE9BAF3C59D532D19D@zmy16exm69.ds.mot.com>
+From: Hugo Vincent <hugo.vincent@gmail.com>
+Subject: [PATCH] OMAP3 Overo: add EXPORT_SYMBOLs for Overo ASoC audio to be
+	built as a module.
+Date: Tue, 2 Jun 2009 13:02:09 +1200
+Message-ID: <5a7b8b7b0906011802y4abc5ba6m8813d6884825e805@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail55.messagelabs.com ([216.82.241.163]:33060 "EHLO
-	mail55.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751594AbZFAXuY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2009 19:50:24 -0400
-Received: from il27exr03.cig.mot.com (il27exr03.mot.com [10.17.196.72])
-	by motgate5.mot.com (8.14.3/8.14.3) with ESMTP id n51NoPpU020869
-	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 16:50:25 -0700 (MST)
-Received: from il27vts01 (il27vts01.cig.mot.com [10.17.196.85])
-	by il27exr03.cig.mot.com (8.13.1/Vontu) with SMTP id n51NoOa0025989
-	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 18:50:24 -0500 (CDT)
-Received: from zmy16exm69.ds.mot.com (zmy16exm69.ap.mot.com [10.179.4.36])
-	by il27exr03.cig.mot.com (8.13.1/8.13.0) with ESMTP id n51NoNSM025983
-	for <linux-omap@vger.kernel.org>; Mon, 1 Jun 2009 18:50:24 -0500 (CDT)
-Content-class: urn:content-classes:message
+Received: from mail-gx0-f166.google.com ([209.85.217.166]:55409 "EHLO
+	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754340AbZFBBCJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 1 Jun 2009 21:02:09 -0400
+Received: by gxk10 with SMTP id 10so13656369gxk.13
+        for <linux-omap@vger.kernel.org>; Mon, 01 Jun 2009 18:02:10 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Resend because of the content format issues in last mail---sorry for
-inconvenience.
+I'm pretty new to kernel development, so I don't know any potential
+problems with doing this, but without this, audio/ASoC support must be
+built into the kernel (modpost fails when trying to build as modules),
+whereas with this patch, it can be built and used as a module.
 
-This patch adds irq_enable and irq_disable for OMAP GPIO IRQ chip, and
-also only enable WAKEUPEN When GPIO edge detection is enabled, 
-also clear the gpio event triggering configurations to avoid Pending
-interrupt status which is generated regardless of the IRQEN and WKUPEN
-bit,
-the pending IRQ status may prevent GPIO module acknowledge IDLE request
-and prevent PER and thus CORE RETENTION.
+Comments?
 
-This is only applied for OMAP2/3 GPIO IRQs.
-
-Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
----
- arch/arm/plat-omap/gpio.c |   44
-++++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 42 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index bd04b40..19e0461 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -581,7 +581,7 @@ void omap_set_gpio_debounce_time(int gpio, int
-enc_time)
- EXPORT_SYMBOL(omap_set_gpio_debounce_time);
- 
- #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
--static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int
-gpio,
-+static void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
- 						int trigger)
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 5f3aad9..aa3d123 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -46,6 +46,7 @@ u32 omap_ctrl_readl(u16 offset)
  {
- 	void __iomem *base = bank->base;
-@@ -597,7 +597,12 @@ static inline void set_24xx_gpio_triggering(struct
-gpio_bank *bank, int gpio,
- 		trigger & IRQ_TYPE_EDGE_FALLING);
- 
- 	if (likely(!(bank->non_wakeup_gpios & gpio_bit))) {
--		if (trigger != 0)
-+		/*
-+		 * GPIO wakeup request can only be generated on edge
-+		 * transitions, see OMAP34xx_ES3.1_TRM_V_Q G25.5.3.1
-+		 * wake-up request note for detail
-+		 */
-+		if ((trigger & IRQ_TYPE_EDGE_BOTH) != 0)
- 			__raw_writel(1 << gpio, bank->base
- 					+ OMAP24XX_GPIO_SETWKUENA);
- 		else
-@@ -1133,6 +1138,39 @@ static void gpio_ack_irq(unsigned int irq)
- 	_clear_gpio_irqstatus(bank, gpio);
+ 	return __raw_readl(OMAP_CTRL_REGADDR(offset));
  }
- 
-+static void gpio_enable_irq(unsigned int irq)
-+{
-+	unsigned int gpio = irq - IH_GPIO_BASE;
-+	struct gpio_bank *bank = get_irq_chip_data(irq);
-+	int trigger = irq_desc[irq].status & IRQ_TYPE_SENSE_MASK;
-+
-+#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-+	set_24xx_gpio_triggering(bank, get_gpio_index(gpio), trigger);
-+#endif
-+	_set_gpio_irqenable(bank, gpio, 1);
-+}
-+
-+static void gpio_disable_irq(unsigned int irq)
-+{
-+	unsigned int gpio = irq - IH_GPIO_BASE;
-+	struct gpio_bank *bank = get_irq_chip_data(irq);
-+
-+	_set_gpio_irqenable(bank, gpio, 0);
-+#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-+	/*
-+	 * Clear the event detect setting and IRQ status to prevent
-+	 * IRQ staus been set or pending there While IRQ is disabled,
-+	 * otherwise GPIO module will not acknowledge the IDLE request
-+	 * from PER power domain, this may prevent System wide retention
-+	 * See OMAP34xx_ES3.1_TRM_V_Q G25.5.3.1 GPIO interrupt and
-wakeup
-+	 * enable note for detail
-+	 */
-+	set_24xx_gpio_triggering(bank, get_gpio_index(gpio),
-IRQ_TYPE_NONE);
-+	_clear_gpio_irqstatus(bank, gpio);
-+#endif
-+
-+}
-+
- static void gpio_mask_irq(unsigned int irq)
- {
- 	unsigned int gpio = irq - IH_GPIO_BASE;
-@@ -1160,6 +1198,8 @@ static void gpio_unmask_irq(unsigned int irq)
- static struct irq_chip gpio_irq_chip = {
- 	.name		= "GPIO",
- 	.shutdown	= gpio_irq_shutdown,
-+	.enable		= gpio_enable_irq,
-+	.disable	= gpio_disable_irq,
- 	.ack		= gpio_ack_irq,
- 	.mask		= gpio_mask_irq,
- 	.unmask		= gpio_unmask_irq,
--- 
-1.5.4.3
++EXPORT_SYMBOL(omap_ctrl_readl);
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org More majordomo info
-at  http://vger.kernel.org/majordomo-info.html
+ void omap_ctrl_writeb(u8 val, u16 offset)
+ {
+@@ -61,4 +62,5 @@ void omap_ctrl_writel(u32 val, u16 offset)
+ {
+ 	__raw_writel(val, OMAP_CTRL_REGADDR(offset));
+ }
++EXPORT_SYMBOL(omap_ctrl_writel);
