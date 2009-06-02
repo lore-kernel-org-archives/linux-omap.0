@@ -1,34 +1,34 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: Please help in adding ams-delta support to ASoC
-Date: Tue, 2 Jun 2009 10:37:28 +0100
-Message-ID: <20090602093728.GB19390@rakim.wolfsonmicro.main>
-References: <4A1BEBE3.8010306@tis.icnet.pl>
-	<20090527104711.GA1970@sirena.org.uk>
-	<200906020925.58675.jkrzyszt@tis.icnet.pl>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: *SPAM* Re: Please help in adding ams-delta support to ASoC
+Date: Tue, 02 Jun 2009 12:50:50 +0200
+Message-ID: <4A25040A.4050506@tis.icnet.pl>
+References: <4A1BEBE3.8010306@tis.icnet.pl>	<20090527095949.51ed4b83.jhnikula@gmail.com>	<200905272058.55404.jkrzyszt@tis.icnet.pl>	<4A23CC97.1020209@tis.icnet.pl> <20090601210413.7678bf42.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <200906020925.58675.jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from d1.icnet.pl ([212.160.220.21]:45823 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752016AbZFBKux (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 2 Jun 2009 06:50:53 -0400
+In-Reply-To: <20090601210413.7678bf42.jhnikula@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-On Tue, Jun 02, 2009 at 09:24:39AM +0200, Janusz Krzysztofik wrote:
+Hi Jarkko,
 
-> I have choosen to register the codec device with 
-> platform_device_register_simple("cx20442-codec", ...) invoked form asoc 
-> machine driver, is this ok?
+Jarkko Nikula wrote:
+> Is the older implementation working at commit
+> d8376cc482b241701f7606c81ad578b90853e175 in linux-omap, i.e. last
+> commit before their removal?
 
-Normally the platform device would be registered by the machine file
-under arch/arm but either works.
+I have managed to check with that revision this morning and yes, the 
+driver is working.
+
+I'll try you other suggestions as soon as I get back home.
+
+Cheers,
+Janusz
+
