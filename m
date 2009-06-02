@@ -1,28 +1,44 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: DSS2: How to test TV and LCD output simulatenously
-Date: Tue, 02 Jun 2009 13:02:17 -0600
-Message-ID: <4A257739.8050706@mlbassoc.com>
-References: <5F744A5A3C131242B81CE5874BD2CFFB34E35EAC@dlee01.ent.ti.com>,<4A251260.7070800@mlbassoc.com> <5F744A5A3C131242B81CE5874BD2CFFB34E35EAF@dlee01.ent.ti.com>,<4A25478F.2040500@mlbassoc.com> <5F744A5A3C131242B81CE5874BD2CFFB34E35EB5@dlee01.ent.ti.com> <4A254CC1.3060000@mlbassoc.com>
+From: "Venkatesh, Subbu" <subbu.wrs@ti.com>
+Subject: RE: DSS2: How to test TV and LCD output simulatenously
+Date: Tue, 2 Jun 2009 14:27:12 -0500
+Message-ID: <5F744A5A3C131242B81CE5874BD2CFFB34E35EB6@dlee01.ent.ti.com>
+References: <5F744A5A3C131242B81CE5874BD2CFFB34E35EAC@dlee01.ent.ti.com>,<4A251260.7070800@mlbassoc.com>
+ <5F744A5A3C131242B81CE5874BD2CFFB34E35EAF@dlee01.ent.ti.com>,<4A25478F.2040500@mlbassoc.com>
+ <5F744A5A3C131242B81CE5874BD2CFFB34E35EB5@dlee01.ent.ti.com>
+ <4A254CC1.3060000@mlbassoc.com>,<4A257739.8050706@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:1074 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780AbZFBTCQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 15:02:16 -0400
-In-Reply-To: <4A254CC1.3060000@mlbassoc.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39199 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346AbZFBT3A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 15:29:00 -0400
+In-Reply-To: <4A257739.8050706@mlbassoc.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Venkatesh, Subbu" <subbu.wrs@ti.com>
+To: Gary Thomas <gary@mlbassoc.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shah, Hardik" <hardik.shah@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+
+Hi Gary,
+I just got to know Tomi's tree underwent lots of changes after mailing this patch, since Tomi has no target to commit, so I will update my tree and resend the patch, let me know.
+
+Regards,
+Subbu
+________________________________________
+From: Gary Thomas [gary@mlbassoc.com]
+Sent: Tuesday, June 02, 2009 2:02 PM
+To: Venkatesh, Subbu
+Cc: linux-omap@vger.kernel.org; Shah, Hardik; tomi.valkeinen@nokia.com
+Subject: Re: DSS2: How to test TV and LCD output simulatenously
 
 Gary Thomas wrote:
 > Venkatesh, Subbu wrote:
 >> Hello Gary,
 >> I have already emailed the patch, here is the link..
 >>  http://patchwork.kernel.org/patch/24196/
-> 
+>
 > Thanks, I'll give it a try.
 
 I applied this patch to Tomi's tree (cloned today), but no joy:
@@ -36,7 +52,7 @@ I applied this patch to Tomi's tree (cloned today), but no joy:
 
 How do I get a working tree with this patch applied?
 
-> 
+>
 >> ________________________________________
 >> From: Gary Thomas [gary@mlbassoc.com]
 >> Sent: Tuesday, June 02, 2009 10:38 AM
@@ -80,11 +96,12 @@ How do I get a working tree with this patch applied?
 >>> Is this stuff documented somewhere?  Like the difference
 >>> between DSS1 and DSS2?  How the various layers and overlays
 >>> are supposed to work?  What about the camera interface?
-> 
+>
 
 
--- 
+--
 ------------------------------------------------------------
 Gary Thomas                 |  Consulting for the
 MLB Associates              |    Embedded world
 ------------------------------------------------------------
+
