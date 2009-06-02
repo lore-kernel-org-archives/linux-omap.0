@@ -1,77 +1,177 @@
-From: halli manjunatha <hallimanju@gmail.com>
-Subject: Re: DSS2: How to test TV and LCD output simulatenously
-Date: Tue, 2 Jun 2009 09:52:00 +0530
-Message-ID: <ca6476860906012122q4f90c34ay2c98a76cd3921aa1@mail.gmail.com>
-References: <5F744A5A3C131242B81CE5874BD2CFFB34E35EAC@dlee01.ent.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Tue, 2 Jun 2009 08:47:19 +0300
+Message-ID: <200906020847.19108.peter.ujfalusi@nokia.com>
+References: <4A1BEBE3.8010306@tis.icnet.pl>
+	<200905270857.28125.peter.ujfalusi@nokia.com>
+	<4A1D3B0B.3060808@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:53705 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108AbZFBEV7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 2 Jun 2009 00:21:59 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so4553280ywb.1
-        for <linux-omap@vger.kernel.org>; Mon, 01 Jun 2009 21:22:00 -0700 (PDT)
-In-Reply-To: <5F744A5A3C131242B81CE5874BD2CFFB34E35EAC@dlee01.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <4A1D3B0B.3060808@tis.icnet.pl>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
-To: "Venkatesh, Subbu" <subbu.wrs@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shah, Hardik" <hardik.shah@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
 
-Hi subbu,
-first boot the board including      omapfb.vram="1:2M"    in boootargs
-and follow the below steps it will enable both just try it it should work
-
-
-***********************************************************************************
-echo "0" > /sys/devices/platform/omapdss/overlay0/enabled
-echo "0" > /sys/devices/platform/omapdss/overlay1/enabled
-
-echo "" > /sys/class/graphics/fb1/overlays
-echo "0,1" > /sys/class/graphics/fb0/overlays
-
-echo "720,564" > /sys/devices/platform/omapdss/overlay1/output_size
-echo "tv" > /sys/devices/platform/omapdss/overlay1/manager
-
-echo "1" > /sys/devices/platform/omapdss/overlay0/enabled
-echo "1" > /sys/devices/platform/omapdss/overlay1/enabled
-
-
-echo "1" > /sys/devices/platform/omapdss/display2/enabled
-
-
-
-**********************************************************************************
-
-
-On Tue, Jun 2, 2009 at 7:54 AM, Venkatesh, Subbu <subbu.wrs@ti.com> wrote:
-> Hi,
-> I have DSS2 ported on LDP board, I could manage to get output display on TV and LCD interface individually, also tested some of the features like Rotation and Mirroring, they worked with out any problem.
-> Now I am trying to get output both on TV and LCD simultaneously,
+On Wednesday 27 May 2009 16:07:23 ext Janusz Krzysztofik wrote:
+> Hi Peter,
 >
-> I was not successful with my approach that I tried, like
+> On Wuesday 27 May 2009 07:57 Peter Ujfalusi wrote:
+> > On Tuesday 26 May 2009 16:17:23 ext Janusz Krzysztofik wrote:
+> >> 4. the following McBSP register settings changes:
+> >>
+> >> -	.xcr2 =3D XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
+> >> -	    XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(0) | XFIG,
+> >> +	.xcr2 =3D XPHASE | XWDLEN2(OMAP_MCBSP_WORD_16) | XFRLEN2(0),
+> >>
+> >> -	.srgr1 =3D FWID(DEFAULT_BITPERSAMPLE - 1),
+> >> +	.srgr1 =3D CLKGDV(0),
+> >>
+> >> -	.srgr2 =3D GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 - 1),
+> >> +       .srgr2 =3D GSYNC,
+> >>
+> >> -	.pcr0 =3D CLKXP | CLKRP,  /* mcbsp: slave */
+> >
+> > Since I don't have the original osk/aic23 thing, this does not mean to
+> > much... Just a bit confusing.
 >
-> 1. Boot the kernel with the default LCD display
-> 2. Then I enabled ntsc timings for TV, as PAL do not work on it.
->    #echo ntsc > /sys/devices/platform/omapdss/display1/timings
-> 3. Enabled TV
->  # echo 1 > /sys/devices/platform/omapdss/display1/enable
-> and did the common fb test....
-> But it did not seem to work.
-> Its nice if someone has different working approach or can suggest me where I am going wrong in the above steps.
+> OK, once again then.
 >
-> Regards,
-> Subbu
+> original omap-alsa mcbsp register settings for osk board, as found in
+> linux-2.6.16/arch/arm/mach-omap1/board-osk.c:
+> -----
+> #define DEFAULT_BITPERSAMPLE 16
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> static struct omap_mcbsp_reg_cfg mcbsp_regs =3D {
+>          .spcr2 =3D FREE | FRST | GRST | XRST | XINTM(3),
+>          .spcr1 =3D RINTM(3) | RRST,
+>          .rcr2 =3D RPHASE | RFRLEN2(OMAP_MCBSP_WORD_8) |
+>              RWDLEN2(OMAP_MCBSP_WORD_16) | RDATDLY(0),
+>          .rcr1 =3D RFRLEN1(OMAP_MCBSP_WORD_8) | RWDLEN1(OMAP_MCBSP_WORD_1=
+6),
+>          .xcr2 =3D XPHASE | XFRLEN2(OMAP_MCBSP_WORD_8) |
+>              XWDLEN2(OMAP_MCBSP_WORD_16) | XDATDLY(0) | XFIG,
+>          .xcr1 =3D XFRLEN1(OMAP_MCBSP_WORD_8) | XWDLEN1(OMAP_MCBSP_WORD_1=
+6),
+>          .srgr1 =3D FWID(DEFAULT_BITPERSAMPLE - 1),
+>          .srgr2 =3D GSYNC | CLKSP | FSGM | FPER(DEFAULT_BITPERSAMPLE * 2 -
+> 1), /*.pcr0 =3D FSXM | FSRM | CLKXM | CLKRM | CLKXP | CLKRP,*/ /* mcbsp:
+> master */
+>          .pcr0 =3D CLKXP | CLKRP,  /* mcbsp: slave */
+> };
+> -----
+> the same for ams-delta, as found in Mark Underwood patch:
+> -----
+> static struct omap_mcbsp_reg_cfg mcbsp_regs =3D {
+>          .spcr2 =3D FREE | XRST | GRST | XINTM(3) | FRST,
+>          .spcr1 =3D  RINTM(3) | RRST,
+>          .rcr2 =3D  RPHASE | RWDLEN2(OMAP_MCBSP_WORD_16) | RFRLEN2(0),
+>          .rcr1 =3D RWDLEN1(OMAP_MCBSP_WORD_16) | RFRLEN1(0),
+>          .xcr2 =3D XPHASE | XWDLEN2(OMAP_MCBSP_WORD_16) | XFRLEN2(0),
+>          .xcr1 =3D  XWDLEN1(OMAP_MCBSP_WORD_16) | XFRLEN1(0),
+>          .srgr1 =3D CLKGDV(0),
+>          .srgr2 =3D GSYNC,
+> };
+
+I wonder has this been working at all???
+FPER is not configured in srgr2 (actually it is 0, which means that the fra=
+me =
+
+period is 1...)
+FWID is not configured in srgr1 (it is 0, which means the FS is a pulse, =
+
+length is 1)
+Since CLKXP, CLKRP is 0, it suggests inverted bitclock.
+FSXP, FSRP is 0, so it must have normal FS polarity in DSP mode, or inverte=
+d =
+
+polarity in I2S mode???
+Data delay is 0 for rx and tx.
+
+In all, I think this is a missconfigured DSP_B mode with inverted bitclock.
+Can you try this:
+          err =3D snd_soc_dai_set_fmt(cpu_dai,
+                                    SND_SOC_DAIFMT_DSP_B |
+                                    SND_SOC_DAIFMT_IB_NF |
+                                    SND_SOC_DAIFMT_CBM_CFM);
 
 
 
--- 
-Regards
-Manjunatha H
+> -----
+> currnet soc-audio mcbsp config for osk, as found in
+> linux-2.6.29/sound/soc/omap/osk5912.c:
+> -----
+>          err =3D snd_soc_dai_set_fmt(cpu_dai,
+>                                    SND_SOC_DAIFMT_DSP_B |
+>                                    SND_SOC_DAIFMT_NB_NF |
+>                                    SND_SOC_DAIFMT_CBM_CFM);
+> -----
+> Using exactly the same does not work on my ams-delta.
+>
+>  > The configuration suggest slave McBSP with NB_IF
+> >
+> > polarity, dual phase format, 16 bit words, 16*2 long frames, the FS pul=
+se
+> > is probably a pulse... Suggesting kind of DSP mode, but with not so
+> > correct configuration, which happens to be working.
+>
+> So I will try the following then:
+>          err =3D snd_soc_dai_set_fmt(cpu_dai,
+>                                    SND_SOC_DAIFMT_DSP_B |
+>                                    SND_SOC_DAIFMT_NB_IF |
+>                                    SND_SOC_DAIFMT_CBM_CFM);
+> and this:
+>          err =3D snd_soc_dai_set_fmt(cpu_dai,
+>                                    SND_SOC_DAIFMT_DSP_A |
+>                                    SND_SOC_DAIFMT_NB_IF |
+>                                    SND_SOC_DAIFMT_CBM_CFM);
+> and give you a feedback.
+>
+> >> ... aplay
+> >> and arecord wait forever, cat to/from /dev/dsp breaks with hardware
+> >> error messgae.
+> >> DMA interrput counters stay at 0.
+> >
+> > This means that the McBSP module is not transmitting/receiving any data.
+> > Which suggests that the clocking is not working in your setup. Check the
+> > slave master mode for the codec.
+>
+> Do you mean trying with codec as slave and McBSP as master, like this?
+>          err =3D snd_soc_dai_set_fmt(cpu_dai,
+>                                    SND_SOC_DAIFMT_DSP_B |
+>                                    SND_SOC_DAIFMT_NB_IF |
+>                                    SND_SOC_DAIFMT_CBS_CFS);
+> I'll give it a try as well.
+>
+> > Also worth checking the PIN configuration for the McBSP1 module, just in
+> > case it is correct.
+>
+> Do you mean mux setup? Reading OMAP5910 Data Manual I found only 2
+> relevant signals, MCBSP1.FSX and MCBSP1.DX, that could be swapped from
+> pin H15 to H18 and vice versa. However, there is no pin configuration
+> entry for neither, both in 2.6.16 and 2.6.29 arch/arm/mach-omap1/mux.c,
+> so I assume default setup should just work.
+>
+> I keep on digging.
+>
+> Thanks,
+> Janusz
+> _______________________________________________
+> Alsa-devel mailing list
+> Alsa-devel@alsa-project.org
+> http://mailman.alsa-project.org/mailman/listinfo/alsa-devel
+
+-- =
+
+P=E9ter
