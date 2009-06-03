@@ -1,78 +1,57 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: Re: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was: Re: Beagleboard rev C memory timings & suspend/resume)
-Date: Wed, 3 Jun 2009 09:03:25 +0200
-Message-ID: <200906030903.25638.jpihet@mvista.com>
-References: <200904291553.49378.jpihet@mvista.com> <200905261527.16648.jpihet@mvista.com> <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Wed, 3 Jun 2009 09:24:12 +0200
+Message-ID: <200906030924.14230.jkrzyszt@tis.icnet.pl>
+References: <4A1BEBE3.8010306@tis.icnet.pl> <4A252A8E.9060602@tis.icnet.pl>
+	<20090602203214.9edb786d.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:8933 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752333AbZFCHEA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 03:04:00 -0400
-In-Reply-To: <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090602203214.9edb786d.jhnikula@gmail.com>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hi Paul,
+Hi,
 
-OK I will rework the code and send a patch when done.
+Tuesday 02 June 2009 19:32:14 Jarkko Nikula wrote:
+> > It is not clear for me if MCLK
+> > is really used by the codec, or it is possible that it gets its
+> > master clock from an other, modem related source, and if this does
+> > really matter.
+>
+> Hmm. Are there any possibility that ams_delta_latch2_write requires
+> working MCLK for latch change?
 
-Regards,
-Jean
+Looks like it doesn't. See below.
 
-On Wednesday 03 June 2009 01:40:13 Paul Walmsley wrote:
-> Hi Jean,
->
-> a minor request: it is easier to comment on these patches if they are
-> included inline in the E-mail message, rather than attached.  That way
-> code comments can be inlined in the reply.
->
-> On Tue, 26 May 2009, Jean Pihet wrote:
-> > Here is a patch for the SDRC 2nd CS support. It applies on top of the
-> > current pm branch.
->
-> Thanks for doing this work.
->
-> > I have some questions:
-> > - Is it OK to copy the micron sdram params file to a new file with the 2
-> > CSes params? One could use a unique file with #ifdef SDRC_SUPPORT_2_CSES.
->
-> Is it possible for the SDRAM parameter files to remain unchanged, and to
-> simply pass two struct omap_sdrc_params * to omap2_init_common_hw() and
-> then to omap2_sdrc_init()?  Boards with only CS0 in use should pass NULL
-> for the second omap_sdrc_params *.
->
-> So something like this (I realize the PM branch has additional parameters
-> here also):
->
-> void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->                                  struct omap_sdrc_params *sdrc_cs1)
->
-> Then:
->
-> void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
->                             struct omap_sdrc_params *sdrc_cs1)
->
-> I would prefer that approach.
->
-> It would also be good to avoid changing the SDRC CS1 parameters in the
-> SRAM code if the board does not use CS1.  Maybe pass in a flag that
-> indicates whether CS1 is in use, and if not, avoid programming those
-> registers?  The (admittedly minor) overhead of loading the CS1 registers
-> off the stack would be nice to avoid also.
->
-> > - Does the RX51 board have 2 sdram parts? If so I need to update the
-> > board file as well.
->
-> Probably best if someone from Nokia handles this.
->
->
-> - Paul
+> Probably you could use also older implementation to find out is the
+> MCLK required for codec by commenting out vc_mclk control.
 
+Thanks! The origial driver with commented out clk_enable(vc_clk) and 
+clk_disable(vc_clk) still works for me, so MCLK is not required! If I only 
+knew what to do with this finding...
 
+> Just hack the same "static struct omap_mcbsp_reg_cfg mcbsp_regs =
+> { ..." in omap-mcbsp.c and pass that structure instead of
+> &mcbsp_data->regs to omap_mcbsp_config in omap_mcbsp_dai_hw_params.
+
+Done. Did not help. Again, I really don't know how to make use of this finding 
+except for looking in a different place.
+
+I tried to disassemble one of my deltas to get to those pins, but did not yet 
+find a way to do it without breaking its case. I'll ask at E3-hacking list.
+
+Thanks,
+Janusz
