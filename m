@@ -1,153 +1,162 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][PATCH] Add support for hook switch on ams-delta
-Date: Wed, 3 Jun 2009 11:03:20 +0200
-Message-ID: <200906031103.21758.jkrzyszt@tis.icnet.pl>
-References: <200905262057.21890.jkrzyszt@tis.icnet.pl> <20090602220433.GD31770@earth.li>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH] OMAP3 Overo: add EXPORT_SYMBOLs for Overo ASoC audio to
+ be built as a module.
+Date: Wed, 3 Jun 2009 16:20:12 +0300
+Message-ID: <20090603162012.877be077.jhnikula@gmail.com>
+References: <5a7b8b7b0906011802y4abc5ba6m8813d6884825e805@mail.gmail.com>
+	<20090602173543.GE27332@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:42542 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755516AbZFCJDr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 05:03:47 -0400
-In-Reply-To: <20090602220433.GD31770@earth.li>
-Content-Disposition: inline
+Received: from fg-out-1718.google.com ([72.14.220.159]:22959 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753406AbZFCNT7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 09:19:59 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so1146986fga.17
+        for <linux-omap@vger.kernel.org>; Wed, 03 Jun 2009 06:19:59 -0700 (PDT)
+In-Reply-To: <20090602173543.GE27332@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan McDowell <noodles@earth.li>
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Hugo Vincent <hugo.vincent@gmail.com>, linux-omap@vger.kernel.org
 
-Hi Jonathan,
+On Tue, 2 Jun 2009 10:35:43 -0700
+Tony Lindgren <tony@atomide.com> wrote:
 
-Wednesday 03 June 2009 00:04:33 Jonathan McDowell napisa=C5=82(a):
-> I'm obviously too late as I've seen the "Applied" mail,
+> * Hugo Vincent <hugo.vincent@gmail.com> [090601 18:03]:
+> > I'm pretty new to kernel development, so I don't know any potential
+> > problems with doing this, but without this, audio/ASoC support must be
+> > built into the kernel (modpost fails when trying to build as modules),
+> > whereas with this patch, it can be built and used as a module.
+> > 
+> > Comments?
+> 
+> To me it looks like we should rather fix sound/soc/omap/omap-mcbsp.c
+> to use the clock framework rather than access omap_ctrl_read/write
+> directly.
+> 
+Yeah, I have something like below in my mind.
 
-No problem, I'm glad to hear from you.
+I don't know is this idea working but at least I know there is need to define
+McBSP FCLK parent clocks for 24xx similar way as they are defined for
+34xx and to figure out something for the FIXMEs. McBSP module is
+enabling the clocks at request time but fclk must be off in order to change
+its parent.
 
-> but some=20
-> comments:
->
-> * I don't think SW_HEADPHONE_INSERT is appropriate. input guys, is it=
-=20
->   not reasonable to have SW_PHONE_HOOK or similar?
+-- 
+Jarkko
 
-I do share you point of view. However, I didn't want to start a discuss=
-ion if=20
-there is a need for another symbol or not before the patch got any=20
-acceptance.
-
-> * We assume the bootloader does the appropriate GPIO pin setup for us=
-,
->   so I don't think your omap_cfg_reg is required but it doesn't hurt =
-in
->   the unlikely event we ever replace the Amstrad PBL.
-
-OK, let it stay there. Do you see a need for replaceing it with a new=20
-ams_delta_hook_switch_init() function call that just calls omap_cfg_reg=
-()?
-
-> * The commented out code to include the GPIO status in sysfs shouldn'=
-t
->   be included.
-
-Yes, I put it there to get a feedback.
-
->   Does the input layer not provide a way to obtain the=20
->   state of the switch?
-
-Yes, it does, with EVIOCGSW ioctl()[1]. I personally don't like this wa=
-y of=20
-getting the switch status and would rather see it available over sysfs.=
-=20
-However, input guys may have their own preferences and gpio-keys driver=
-=20
-belongs to them.
-
-Thanks,
-Janusz
-
-[1] http://www.spinics.net/lists/linux-input/msg03482.html
-
-P.S. I include my Signed-off-by, as Tony have requested, to avoid the c=
-ode=20
-without one floating around.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-
-> > diff -Npru a/arch/arm/mach-omap1/board-ams-delta.c
-> > b/arch/arm/mach-omap1/board-ams-delta.c ---
-> > a/arch/arm/mach-omap1/board-ams-delta.c	2009-05-17 17:58:18.0000000=
-00
-> > +0200 +++ b/arch/arm/mach-omap1/board-ams-delta.c	2009-05-17
-> > 16:22:59.000000000 +0200 @@ -15,6 +15,7 @@
-> >  #include <linux/kernel.h>
-> >  #include <linux/init.h>
-> >  #include <linux/input.h>
-> > +#include <linux/gpio_keys.h>
-> >  #include <linux/platform_device.h>
-> >
-> >  #include <mach/hardware.h>
-> > @@ -213,10 +214,35 @@ static struct platform_device ams_delta_
-> >  	.id	=3D -1
-> >  };
-> >
-> > +static struct gpio_keys_button ams_delta_gpio_keys_buttons[] =3D {
-> > +	[0] =3D {
-> > +		.desc		=3D "hook_switch",
-> > +		.type		=3D EV_SW,		/* or EV_KEY ? */
-> > +		.code		=3D SW_HEADPHONE_INSERT,	/* or a new one ? */
-> > +		.active_low	=3D 1,
-> > +		.gpio		=3D AMS_DELTA_GPIO_PIN_HOOK_SWITCH,
-> > +		.debounce_interval =3D 10,
-> > +	},
-> > +};
-> > +
-> > +static struct gpio_keys_platform_data ams_delta_gpio_keys =3D {
-> > +	.buttons		=3D ams_delta_gpio_keys_buttons,
-> > +	.nbuttons		=3D ARRAY_SIZE(ams_delta_gpio_keys_buttons),
-> > +};
-> > +
-> > +static struct platform_device ams_delta_gpio_keys_device =3D {
-> > +	.name			=3D "gpio-keys",
-> > +	.id			=3D -1,
-> > +	.dev			=3D {
-> > +		.platform_data	=3D &ams_delta_gpio_keys,
-> > +	},
-> > +};
-> > +
-> >  static struct platform_device *ams_delta_devices[] __initdata =3D =
-{
-> >  	&ams_delta_kp_device,
-> >  	&ams_delta_lcd_device,
-> >  	&ams_delta_led_device,
-> > +	&ams_delta_gpio_keys_device,
-> >  };
-> >
-> >  static void __init ams_delta_init(void)
-> > @@ -233,6 +259,13 @@ static void __init ams_delta_init_irq(vo
-> >
-> >  	omap_usb_init(&ams_delta_usb_config);
-> >  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devi=
-ces));
-> > +
-> > +	omap_cfg_reg(P20_1610_GPIO4); /* is this required? */
-> > +
-> > +	/* The hook switch state could be exposed over sysfs with
-> > gpio_export(). +	 * This should be done after the gpio-keys driver =
-calls
-> > gpio_request(), +	 * but I don't know how to do this from outside o=
-f the
-> > driver. */ +	/* gpio_export(AMS_DELTA_GPIO_PIN_HOOK_SWITCH, 0); */
-> >  }
-> >
-> >  static void __init ams_delta_map_io(void)
->
-> J.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index bb154ea..3ebbe3f 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -389,6 +389,7 @@ int omap_mcbsp_request(unsigned int id);
+ void omap_mcbsp_free(unsigned int id);
+ void omap_mcbsp_start(unsigned int id);
+ void omap_mcbsp_stop(unsigned int id);
++int omap_mcbsp_set_fclk_src(unsigned int id, const char *clk_name);
+ void omap_mcbsp_xmit_word(unsigned int id, u32 word);
+ u32 omap_mcbsp_recv_word(unsigned int id);
+ 
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index efa0e01..f36c6a6 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -398,6 +398,30 @@ void omap_mcbsp_stop(unsigned int id)
+ }
+ EXPORT_SYMBOL(omap_mcbsp_stop);
+ 
++int omap_mcbsp_set_fclk_src(unsigned int id, const char *clk_name)
++{
++	struct omap_mcbsp *mcbsp;
++	struct clk *fclk_src;
++	int err;
++
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++
++	mcbsp = id_to_mcbsp_ptr(id);
++	fclk_src = clk_get(mcbsp->dev, clk_name);
++	if (IS_ERR(fclk_src))
++		return PTR_ERR(fclk_src);
++	clk_disable(mcbsp->fclk); /* FIXME, Hack! */
++	err = clk_set_parent(mcbsp->fclk, fclk_src);
++	clk_enable(mcbsp->fclk); /* FIXME, Hack! */
++	clk_put(fclk_src);
++
++	return err;
++}
++EXPORT_SYMBOL(omap_mcbsp_set_fclk_src);
++
+ /* polled mcbsp i/o operations */
+ int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
+ {
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 9126142..d03a3c0 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -397,8 +397,7 @@ static int omap_mcbsp_dai_set_clkdiv(struct snd_soc_dai *cpu_dai,
+ static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
+ 				       int clk_id)
+ {
+-	int sel_bit;
+-	u16 reg, reg_devconf1 = OMAP243X_CONTROL_DEVCONF1;
++	const char *clks_src;
+ 
+ 	if (cpu_class_is_omap1()) {
+ 		/* OMAP1's can use only external source clock */
+@@ -408,43 +407,16 @@ static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
+ 			return 0;
+ 	}
+ 
+-	if (cpu_is_omap2420() && mcbsp_data->bus_id > 1)
+-		return -EINVAL;
+-
+-	if (cpu_is_omap343x())
+-		reg_devconf1 = OMAP343X_CONTROL_DEVCONF1;
+-
+-	switch (mcbsp_data->bus_id) {
+-	case 0:
+-		reg = OMAP2_CONTROL_DEVCONF0;
+-		sel_bit = 2;
+-		break;
+-	case 1:
+-		reg = OMAP2_CONTROL_DEVCONF0;
+-		sel_bit = 6;
+-		break;
+-	case 2:
+-		reg = reg_devconf1;
+-		sel_bit = 0;
+-		break;
+-	case 3:
+-		reg = reg_devconf1;
+-		sel_bit = 2;
+-		break;
+-	case 4:
+-		reg = reg_devconf1;
+-		sel_bit = 4;
+-		break;
+-	default:
+-		return -EINVAL;
++	if (clk_id == OMAP_MCBSP_SYSCLK_CLKS_FCLK) {
++		if (cpu_is_omap24xx())
++			clks_src = "func_96m_ck";
++		if (cpu_is_omap343x())
++			clks_src = "core_96m_fck";
++	} else {
++		clks_src = "mcbsp_clks";
+ 	}
+ 
+-	if (clk_id == OMAP_MCBSP_SYSCLK_CLKS_FCLK)
+-		omap_ctrl_writel(omap_ctrl_readl(reg) & ~(1 << sel_bit), reg);
+-	else
+-		omap_ctrl_writel(omap_ctrl_readl(reg) | (1 << sel_bit), reg);
+-
+-	return 0;
++	return omap_mcbsp_set_fclk_src(mcbsp_data->bus_id, clks_src);
+ }
+ 
+ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
