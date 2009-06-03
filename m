@@ -1,95 +1,78 @@
-From: "Singh, Vimal"
-	<IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com>
-Subject: RE: [PATCH] [MTD] [NAND] Add prefetch and dma support for omap2/3
-	NAND driver
-Date: Wed, 3 Jun 2009 12:15:52 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E739404321C6096@dbde02.ent.ti.com>
-References: <54851.192.168.10.89.1243946276.squirrel@dbdmail.itg.ti.com>,<20090602203629.GM27332@atomide.com>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: Re: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was: Re: Beagleboard rev C memory timings & suspend/resume)
+Date: Wed, 3 Jun 2009 09:03:25 +0200
+Message-ID: <200906030903.25638.jpihet@mvista.com>
+References: <200904291553.49378.jpihet@mvista.com> <200905261527.16648.jpihet@mvista.com> <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35143 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752074AbZFCGqL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 02:46:11 -0400
-In-Reply-To: <20090602203629.GM27332@atomide.com>
-Content-Language: en-US
+Received: from gateway-1237.mvista.com ([63.81.120.158]:8933 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752333AbZFCHEA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 03:04:00 -0400
+In-Reply-To: <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "dedekind@infradead.org" <dedekind@infradead.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>
 
+Hi Paul,
 
-On Wed, Jun 3, 2009 at 2:06 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * vimal singh <vimalsingh@ti.com> [090602 05:40]:
->> This patch adds prefetch support to access nand flash in both mpu and dma mode.
->> This patch also adds 8-bit nand support (omap_read/write_buf8).
->> Prefetch can be used for both 8- and 16-bit devices.
->
-> This should be reviewed on the linux-omap@vger.kernel.org list for sure.
-> One other comment below.
->
->> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
->> ---
->> I prepared this patch on top of "OMAP2 / OMAP3 NAND driver" patch:
->> http://lists.infradead.org/pipermail/linux-mtd/2009-May/025562.html
->>
->> ---
->>  arch/arm/mach-omap2/gpmc.c             |  102 ++++++++++
->>  arch/arm/plat-omap/include/mach/gpmc.h |    4
->>  drivers/mtd/nand/Kconfig               |   17 +
->>  drivers/mtd/nand/omap2.c               |  308 ++++++++++++++++++++++++++++++++-
->>  4 files changed, 422 insertions(+), 9 deletions(-)
->>
->> Index: mtd-2.6/arch/arm/mach-omap2/gpmc.c
->> ===================================================================
->> --- mtd-2.6.orig/arch/arm/mach-omap2/gpmc.c
->> +++ mtd-2.6/arch/arm/mach-omap2/gpmc.c
->> @@ -54,6 +54,12 @@
->>  #define GPMC_CHUNK_SHIFT     24              /* 16 MB */
->>  #define GPMC_SECTION_SHIFT   28              /* 128 MB */
->>
->> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
->> +#define CS_NUM_SHIFT         24
->> +#define ENABLE_PREFETCH              7
->> +#define DMA_MPU_MODE         2
->> +#endif
->> +
->>  static struct resource       gpmc_mem_root;
->>  static struct resource       gpmc_cs_mem[GPMC_CS_NUM];
->>  static DEFINE_SPINLOCK(gpmc_mem_lock);
->> @@ -383,6 +389,99 @@ void gpmc_cs_free(int cs)
->>  }
->>  EXPORT_SYMBOL(gpmc_cs_free);
->>
->> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
->> +/**
->> + * gpmc_prefetch_init - configures default configuration for prefetch engine
->> + */
->> +static void gpmc_prefetch_init(void)
->> +{
->> +     /* Setting the default threshold to 64 */
->> +     gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x0);
->> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0x40  << 8);
->> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG2, 0x0);
->> +}
->
-> Why would you want to have NAND specific init code int gpmc.c?
->
-> The purpose if gpmc.c is to provide access to configuring the
-> General Purpose Memory Controller (GPMC). You should just provide
-> functions in gpmc.c for the platform init code to use, and then
-> the drivers can stay platform independent.
-
-In my understanding, this 'prefetch' engine is part of GPMC itself, it is a
-kind of feature provided by GPMC which can be utilized by NAND driver.
-So, to me, it makes sens to get initialized prefetch by GPMC itself so that 
-NAND driver can use it.
-
-Another reason was that all read / write to GPMC register are done by 
-functions 'gpmc_read_reg' / 'gpmc_write_reg', which have been made
-'static' in nature.
+OK I will rework the code and send a patch when done.
 
 Regards,
-vimal
+Jean
+
+On Wednesday 03 June 2009 01:40:13 Paul Walmsley wrote:
+> Hi Jean,
+>
+> a minor request: it is easier to comment on these patches if they are
+> included inline in the E-mail message, rather than attached.  That way
+> code comments can be inlined in the reply.
+>
+> On Tue, 26 May 2009, Jean Pihet wrote:
+> > Here is a patch for the SDRC 2nd CS support. It applies on top of the
+> > current pm branch.
+>
+> Thanks for doing this work.
+>
+> > I have some questions:
+> > - Is it OK to copy the micron sdram params file to a new file with the 2
+> > CSes params? One could use a unique file with #ifdef SDRC_SUPPORT_2_CSES.
+>
+> Is it possible for the SDRAM parameter files to remain unchanged, and to
+> simply pass two struct omap_sdrc_params * to omap2_init_common_hw() and
+> then to omap2_sdrc_init()?  Boards with only CS0 in use should pass NULL
+> for the second omap_sdrc_params *.
+>
+> So something like this (I realize the PM branch has additional parameters
+> here also):
+>
+> void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+>                                  struct omap_sdrc_params *sdrc_cs1)
+>
+> Then:
+>
+> void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+>                             struct omap_sdrc_params *sdrc_cs1)
+>
+> I would prefer that approach.
+>
+> It would also be good to avoid changing the SDRC CS1 parameters in the
+> SRAM code if the board does not use CS1.  Maybe pass in a flag that
+> indicates whether CS1 is in use, and if not, avoid programming those
+> registers?  The (admittedly minor) overhead of loading the CS1 registers
+> off the stack would be nice to avoid also.
+>
+> > - Does the RX51 board have 2 sdram parts? If so I need to update the
+> > board file as well.
+>
+> Probably best if someone from Nokia handles this.
+>
+>
+> - Paul
+
+
