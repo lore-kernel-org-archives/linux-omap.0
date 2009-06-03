@@ -1,79 +1,95 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: *SPAM* Re: Please help in adding ams-delta support to ASoC
-Date: Wed, 3 Jun 2009 08:28:06 +0300
-Message-ID: <200906030828.06933.peter.ujfalusi@nokia.com>
-References: <4A1BEBE3.8010306@tis.icnet.pl> <20090601210413.7678bf42.jhnikula@gmail.com> <4A25040A.4050506@tis.icnet.pl>
+From: "Singh, Vimal"
+	<IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com>
+Subject: RE: [PATCH] [MTD] [NAND] Add prefetch and dma support for omap2/3
+	NAND driver
+Date: Wed, 3 Jun 2009 12:15:52 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404321C6096@dbde02.ent.ti.com>
+References: <54851.192.168.10.89.1243946276.squirrel@dbdmail.itg.ti.com>,<20090602203629.GM27332@atomide.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:25932 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753587AbZFCF3l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 01:29:41 -0400
-In-Reply-To: <4A25040A.4050506@tis.icnet.pl>
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:35143 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752074AbZFCGqL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 02:46:11 -0400
+In-Reply-To: <20090602203629.GM27332@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "dedekind@infradead.org" <dedekind@infradead.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Janusz,
 
-On Tuesday 02 June 2009 13:50:50 ext Janusz Krzysztofik wrote:
-> Hi Jarkko,
+On Wed, Jun 3, 2009 at 2:06 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * vimal singh <vimalsingh@ti.com> [090602 05:40]:
+>> This patch adds prefetch support to access nand flash in both mpu and dma mode.
+>> This patch also adds 8-bit nand support (omap_read/write_buf8).
+>> Prefetch can be used for both 8- and 16-bit devices.
 >
-> Jarkko Nikula wrote:
-> > Is the older implementation working at commit
-> > d8376cc482b241701f7606c81ad578b90853e175 in linux-omap, i.e. last
-> > commit before their removal?
+> This should be reviewed on the linux-omap@vger.kernel.org list for sure.
+> One other comment below.
 >
-> I have managed to check with that revision this morning and yes, the
-> driver is working.
+>> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+>> ---
+>> I prepared this patch on top of "OMAP2 / OMAP3 NAND driver" patch:
+>> http://lists.infradead.org/pipermail/linux-mtd/2009-May/025562.html
+>>
+>> ---
+>>  arch/arm/mach-omap2/gpmc.c             |  102 ++++++++++
+>>  arch/arm/plat-omap/include/mach/gpmc.h |    4
+>>  drivers/mtd/nand/Kconfig               |   17 +
+>>  drivers/mtd/nand/omap2.c               |  308 ++++++++++++++++++++++++++++++++-
+>>  4 files changed, 422 insertions(+), 9 deletions(-)
+>>
+>> Index: mtd-2.6/arch/arm/mach-omap2/gpmc.c
+>> ===================================================================
+>> --- mtd-2.6.orig/arch/arm/mach-omap2/gpmc.c
+>> +++ mtd-2.6/arch/arm/mach-omap2/gpmc.c
+>> @@ -54,6 +54,12 @@
+>>  #define GPMC_CHUNK_SHIFT     24              /* 16 MB */
+>>  #define GPMC_SECTION_SHIFT   28              /* 128 MB */
+>>
+>> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+>> +#define CS_NUM_SHIFT         24
+>> +#define ENABLE_PREFETCH              7
+>> +#define DMA_MPU_MODE         2
+>> +#endif
+>> +
+>>  static struct resource       gpmc_mem_root;
+>>  static struct resource       gpmc_cs_mem[GPMC_CS_NUM];
+>>  static DEFINE_SPINLOCK(gpmc_mem_lock);
+>> @@ -383,6 +389,99 @@ void gpmc_cs_free(int cs)
+>>  }
+>>  EXPORT_SYMBOL(gpmc_cs_free);
+>>
+>> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+>> +/**
+>> + * gpmc_prefetch_init - configures default configuration for prefetch engine
+>> + */
+>> +static void gpmc_prefetch_init(void)
+>> +{
+>> +     /* Setting the default threshold to 64 */
+>> +     gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x0);
+>> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0x40  << 8);
+>> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG2, 0x0);
+>> +}
 >
-> I'll try you other suggestions as soon as I get back home.
+> Why would you want to have NAND specific init code int gpmc.c?
+>
+> The purpose if gpmc.c is to provide access to configuring the
+> General Purpose Memory Controller (GPMC). You should just provide
+> functions in gpmc.c for the platform init code to use, and then
+> the drivers can stay platform independent.
 
-Looking at the code at commit: d8376cc482b241701f7606c81ad578b90853e175=
- on l-o=20
-the comment about the need for the call the omap_stop_dma puzzled me.
-Can you try something like this:
+In my understanding, this 'prefetch' engine is part of GPMC itself, it is a
+kind of feature provided by GPMC which can be utilized by NAND driver.
+So, to me, it makes sens to get initialized prefetch by GPMC itself so that 
+NAND driver can use it.
 
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index 6454e15..2df1792 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -67,6 +67,7 @@ static void omap_pcm_dma_irq(int ch, u16 stat, void *=
-data)
-                spin_lock_irqsave(&prtd->lock, flags);
-                if (prtd->period_index >=3D 0) {
-                        if (++prtd->period_index =3D=3D runtime->period=
-s) {
-+                               omap_stop_dma(prtd->dma_ch);
-                                prtd->period_index =3D 0;
-                                omap_start_dma(prtd->dma_ch);
-                        }
-@@ -191,6 +192,7 @@ static int omap_pcm_trigger(struct snd_pcm_substrea=
-m=20
-*substream, int cmd)
-        case SNDRV_PCM_TRIGGER_START:
-        case SNDRV_PCM_TRIGGER_RESUME:
-        case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-+               omap_stop_dma(prtd->dma_ch);
-                prtd->period_index =3D 0;
-                omap_start_dma(prtd->dma_ch);
-                break;
+Another reason was that all read / write to GPMC register are done by 
+functions 'gpmc_read_reg' / 'gpmc_write_reg', which have been made
+'static' in nature.
 
-This is on top of sound-2.6:topic/asoc, but l-o should not be that diff=
-erent.
-Call the omap_stop_dma before actually starting the dma, and call stop =
-also=20
-before restarting it.
-
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+vimal
