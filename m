@@ -1,169 +1,98 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3 Overo: add EXPORT_SYMBOLs for Overo ASoC audio
-	to be built as a module.
-Date: Wed, 3 Jun 2009 09:31:06 -0700
-Message-ID: <20090603163105.GB5026@atomide.com>
-References: <5a7b8b7b0906011802y4abc5ba6m8813d6884825e805@mail.gmail.com> <20090602173543.GE27332@atomide.com> <20090603162012.877be077.jhnikula@gmail.com>
+Subject: Re: [PATCH] [MTD] [NAND] Add prefetch and dma support for omap2/3
+	NAND driver
+Date: Wed, 3 Jun 2009 09:33:45 -0700
+Message-ID: <20090603163344.GC5026@atomide.com>
+References: <20090602203629.GM27332@atomide.com> <19F8576C6E063C45BE387C64729E739404321C6096@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58300 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751237AbZFCQbH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 12:31:07 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62966 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756204AbZFCQd6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 12:33:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20090603162012.877be077.jhnikula@gmail.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404321C6096@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Hugo Vincent <hugo.vincent@gmail.com>, linux-omap@vger.kernel.org
+To: "Singh, Vimal" <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "dedekind@infradead.org" <dedekind@infradead.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Jarkko Nikula <jhnikula@gmail.com> [090603 06:20]:
-> On Tue, 2 Jun 2009 10:35:43 -0700
-> Tony Lindgren <tony@atomide.com> wrote:
+* Singh, Vimal <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com> [090602 23:46]:
 > 
-> > * Hugo Vincent <hugo.vincent@gmail.com> [090601 18:03]:
-> > > I'm pretty new to kernel development, so I don't know any potential
-> > > problems with doing this, but without this, audio/ASoC support must be
-> > > built into the kernel (modpost fails when trying to build as modules),
-> > > whereas with this patch, it can be built and used as a module.
-> > > 
-> > > Comments?
-> > 
-> > To me it looks like we should rather fix sound/soc/omap/omap-mcbsp.c
-> > to use the clock framework rather than access omap_ctrl_read/write
-> > directly.
-> > 
-> Yeah, I have something like below in my mind.
+> On Wed, Jun 3, 2009 at 2:06 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > * vimal singh <vimalsingh@ti.com> [090602 05:40]:
+> >> This patch adds prefetch support to access nand flash in both mpu and dma mode.
+> >> This patch also adds 8-bit nand support (omap_read/write_buf8).
+> >> Prefetch can be used for both 8- and 16-bit devices.
+> >
+> > This should be reviewed on the linux-omap@vger.kernel.org list for sure.
+> > One other comment below.
+> >
+> >> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> >> ---
+> >> I prepared this patch on top of "OMAP2 / OMAP3 NAND driver" patch:
+> >> http://lists.infradead.org/pipermail/linux-mtd/2009-May/025562.html
+> >>
+> >> ---
+> >>  arch/arm/mach-omap2/gpmc.c             |  102 ++++++++++
+> >>  arch/arm/plat-omap/include/mach/gpmc.h |    4
+> >>  drivers/mtd/nand/Kconfig               |   17 +
+> >>  drivers/mtd/nand/omap2.c               |  308 ++++++++++++++++++++++++++++++++-
+> >>  4 files changed, 422 insertions(+), 9 deletions(-)
+> >>
+> >> Index: mtd-2.6/arch/arm/mach-omap2/gpmc.c
+> >> ===================================================================
+> >> --- mtd-2.6.orig/arch/arm/mach-omap2/gpmc.c
+> >> +++ mtd-2.6/arch/arm/mach-omap2/gpmc.c
+> >> @@ -54,6 +54,12 @@
+> >>  #define GPMC_CHUNK_SHIFT     24              /* 16 MB */
+> >>  #define GPMC_SECTION_SHIFT   28              /* 128 MB */
+> >>
+> >> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+> >> +#define CS_NUM_SHIFT         24
+> >> +#define ENABLE_PREFETCH              7
+> >> +#define DMA_MPU_MODE         2
+> >> +#endif
+> >> +
+> >>  static struct resource       gpmc_mem_root;
+> >>  static struct resource       gpmc_cs_mem[GPMC_CS_NUM];
+> >>  static DEFINE_SPINLOCK(gpmc_mem_lock);
+> >> @@ -383,6 +389,99 @@ void gpmc_cs_free(int cs)
+> >>  }
+> >>  EXPORT_SYMBOL(gpmc_cs_free);
+> >>
+> >> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+> >> +/**
+> >> + * gpmc_prefetch_init - configures default configuration for prefetch engine
+> >> + */
+> >> +static void gpmc_prefetch_init(void)
+> >> +{
+> >> +     /* Setting the default threshold to 64 */
+> >> +     gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x0);
+> >> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0x40  << 8);
+> >> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG2, 0x0);
+> >> +}
+> >
+> > Why would you want to have NAND specific init code int gpmc.c?
+> >
+> > The purpose if gpmc.c is to provide access to configuring the
+> > General Purpose Memory Controller (GPMC). You should just provide
+> > functions in gpmc.c for the platform init code to use, and then
+> > the drivers can stay platform independent.
 > 
-> I don't know is this idea working but at least I know there is need to define
-> McBSP FCLK parent clocks for 24xx similar way as they are defined for
-> 34xx and to figure out something for the FIXMEs. McBSP module is
-> enabling the clocks at request time but fclk must be off in order to change
-> its parent.
+> In my understanding, this 'prefetch' engine is part of GPMC itself, it is a
+> kind of feature provided by GPMC which can be utilized by NAND driver.
+> So, to me, it makes sens to get initialized prefetch by GPMC itself so that 
+> NAND driver can use it.
 
-Sounds like you might be able to fix this easily with clk_add_alias()
-like what's queued up for 770 framebuffer:
+But it should not have a dependency to NAND. 
+ 
+> Another reason was that all read / write to GPMC register are done by 
+> functions 'gpmc_read_reg' / 'gpmc_write_reg', which have been made
+> 'static' in nature.
 
-http://patchwork.kernel.org/patch/26796/
-
-This patch to make clk_add_alias() common is not merged yet though.
+That's why you need to provide a generic function in gpmc.c to enable
+prefetch that the platform code for any driver can use.
 
 Tony
- 
-> -- 
-> Jarkko
-> 
-> diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-> index bb154ea..3ebbe3f 100644
-> --- a/arch/arm/plat-omap/include/mach/mcbsp.h
-> +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-> @@ -389,6 +389,7 @@ int omap_mcbsp_request(unsigned int id);
->  void omap_mcbsp_free(unsigned int id);
->  void omap_mcbsp_start(unsigned int id);
->  void omap_mcbsp_stop(unsigned int id);
-> +int omap_mcbsp_set_fclk_src(unsigned int id, const char *clk_name);
->  void omap_mcbsp_xmit_word(unsigned int id, u32 word);
->  u32 omap_mcbsp_recv_word(unsigned int id);
->  
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index efa0e01..f36c6a6 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -398,6 +398,30 @@ void omap_mcbsp_stop(unsigned int id)
->  }
->  EXPORT_SYMBOL(omap_mcbsp_stop);
->  
-> +int omap_mcbsp_set_fclk_src(unsigned int id, const char *clk_name)
-> +{
-> +	struct omap_mcbsp *mcbsp;
-> +	struct clk *fclk_src;
-> +	int err;
-> +
-> +	if (!omap_mcbsp_check_valid_id(id)) {
-> +		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-> +		return -ENODEV;
-> +	}
-> +
-> +	mcbsp = id_to_mcbsp_ptr(id);
-> +	fclk_src = clk_get(mcbsp->dev, clk_name);
-> +	if (IS_ERR(fclk_src))
-> +		return PTR_ERR(fclk_src);
-> +	clk_disable(mcbsp->fclk); /* FIXME, Hack! */
-> +	err = clk_set_parent(mcbsp->fclk, fclk_src);
-> +	clk_enable(mcbsp->fclk); /* FIXME, Hack! */
-> +	clk_put(fclk_src);
-> +
-> +	return err;
-> +}
-> +EXPORT_SYMBOL(omap_mcbsp_set_fclk_src);
-> +
->  /* polled mcbsp i/o operations */
->  int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
->  {
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index 9126142..d03a3c0 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -397,8 +397,7 @@ static int omap_mcbsp_dai_set_clkdiv(struct snd_soc_dai *cpu_dai,
->  static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
->  				       int clk_id)
->  {
-> -	int sel_bit;
-> -	u16 reg, reg_devconf1 = OMAP243X_CONTROL_DEVCONF1;
-> +	const char *clks_src;
->  
->  	if (cpu_class_is_omap1()) {
->  		/* OMAP1's can use only external source clock */
-> @@ -408,43 +407,16 @@ static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
->  			return 0;
->  	}
->  
-> -	if (cpu_is_omap2420() && mcbsp_data->bus_id > 1)
-> -		return -EINVAL;
-> -
-> -	if (cpu_is_omap343x())
-> -		reg_devconf1 = OMAP343X_CONTROL_DEVCONF1;
-> -
-> -	switch (mcbsp_data->bus_id) {
-> -	case 0:
-> -		reg = OMAP2_CONTROL_DEVCONF0;
-> -		sel_bit = 2;
-> -		break;
-> -	case 1:
-> -		reg = OMAP2_CONTROL_DEVCONF0;
-> -		sel_bit = 6;
-> -		break;
-> -	case 2:
-> -		reg = reg_devconf1;
-> -		sel_bit = 0;
-> -		break;
-> -	case 3:
-> -		reg = reg_devconf1;
-> -		sel_bit = 2;
-> -		break;
-> -	case 4:
-> -		reg = reg_devconf1;
-> -		sel_bit = 4;
-> -		break;
-> -	default:
-> -		return -EINVAL;
-> +	if (clk_id == OMAP_MCBSP_SYSCLK_CLKS_FCLK) {
-> +		if (cpu_is_omap24xx())
-> +			clks_src = "func_96m_ck";
-> +		if (cpu_is_omap343x())
-> +			clks_src = "core_96m_fck";
-> +	} else {
-> +		clks_src = "mcbsp_clks";
->  	}
->  
-> -	if (clk_id == OMAP_MCBSP_SYSCLK_CLKS_FCLK)
-> -		omap_ctrl_writel(omap_ctrl_readl(reg) & ~(1 << sel_bit), reg);
-> -	else
-> -		omap_ctrl_writel(omap_ctrl_readl(reg) | (1 << sel_bit), reg);
-> -
-> -	return 0;
-> +	return omap_mcbsp_set_fclk_src(mcbsp_data->bus_id, clks_src);
->  }
->  
->  static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
