@@ -1,162 +1,54 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH] OMAP3 Overo: add EXPORT_SYMBOLs for Overo ASoC audio to
- be built as a module.
-Date: Wed, 3 Jun 2009 16:20:12 +0300
-Message-ID: <20090603162012.877be077.jhnikula@gmail.com>
-References: <5a7b8b7b0906011802y4abc5ba6m8813d6884825e805@mail.gmail.com>
-	<20090602173543.GE27332@atomide.com>
+From: "Venkatesh, Subbu" <subbu.wrs@ti.com>
+Subject: DSS2: Compilation Error on Git tree
+  http://www.bat.org/~tomba/git/linux-omap-dss.git
+Date: Wed, 3 Jun 2009 09:07:15 -0500
+Message-ID: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBA@dlee01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:22959 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753406AbZFCNT7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 09:19:59 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so1146986fga.17
-        for <linux-omap@vger.kernel.org>; Wed, 03 Jun 2009 06:19:59 -0700 (PDT)
-In-Reply-To: <20090602173543.GE27332@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42208 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754100AbZFCOHY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 10:07:24 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Hugo Vincent <hugo.vincent@gmail.com>, linux-omap@vger.kernel.org
+To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mande, Nikhil" <nikhil@ti.com>, "Castaneda Gonzalez, Axel" <x0055901@ti.com>, "Miesen, Sharon" <s-miesen@ti.com>
 
-On Tue, 2 Jun 2009 10:35:43 -0700
-Tony Lindgren <tony@atomide.com> wrote:
+Hi Tomi,
+I did git pull to update my tree, later compiling code for LDP, I am getting compilation error as show below. I see that I am missing declaration of  
+ struct omap_dss_display_config in display.h file, could you please comment on it...
 
-> * Hugo Vincent <hugo.vincent@gmail.com> [090601 18:03]:
-> > I'm pretty new to kernel development, so I don't know any potential
-> > problems with doing this, but without this, audio/ASoC support must be
-> > built into the kernel (modpost fails when trying to build as modules),
-> > whereas with this patch, it can be built and used as a module.
-> > 
-> > Comments?
-> 
-> To me it looks like we should rather fix sound/soc/omap/omap-mcbsp.c
-> to use the clock framework rather than access omap_ctrl_read/write
-> directly.
-> 
-Yeah, I have something like below in my mind.
+arch/arm/mach-omap2/board-ldp.c:368: warning: 'struct omap_display' declared inside parameter list
+arch/arm/mach-omap2/board-ldp.c:368: warning: its scope is only this definition or declaration, which is probably not what you want
+arch/arm/mach-omap2/board-ldp.c:383: warning: 'struct omap_display' declared inside parameter list
+arch/arm/mach-omap2/board-ldp.c:393: error: variable 'omap_ldp_display_data_tv' has initializer but incomplete type
+arch/arm/mach-omap2/board-ldp.c:394: error: unknown field 'type' specified in initializer
+arch/arm/mach-omap2/board-ldp.c:394: warning: excess elements in struct initializer
+arch/arm/mach-omap2/board-ldp.c:394: warning: (near initialization for 'omap_ldp_display_data_tv')
+arch/arm/mach-omap2/board-ldp.c:395: error: unknown field 'name' specified in initializer
+arch/arm/mach-omap2/board-ldp.c:395: warning: excess elements in struct initializer
+arch/arm/mach-omap2/board-ldp.c:395: warning: (near initialization for 'omap_ldp_display_data_tv')
+arch/arm/mach-omap2/board-ldp.c:396: error: unknown field 'u' specified in initializer
+arch/arm/mach-omap2/board-ldp.c:396: warning: excess elements in struct initializer
+arch/arm/mach-omap2/board-ldp.c:396: warning: (near initialization for 'omap_ldp_display_data_tv')
+arch/arm/mach-omap2/board-ldp.c:397: error: unknown field 'panel_enable' specified in initializer
+arch/arm/mach-omap2/board-ldp.c:397: warning: excess elements in struct initializer
+arch/arm/mach-omap2/board-ldp.c:397: warning: (near initialization for 'omap_ldp_display_data_tv')
+arch/arm/mach-omap2/board-ldp.c:398: error: unknown field 'panel_disable' specified in initializer
+arch/arm/mach-omap2/board-ldp.c:398: warning: excess elements in struct initializer
+arch/arm/mach-omap2/board-ldp.c:398: warning: (near initialization for 'omap_ldp_display_data_tv')
+arch/arm/mach-omap2/board-ldp.c:401: warning: 'struct omap_display' declared inside parameter list
+arch/arm/mach-omap2/board-ldp.c:425: warning: 'struct omap_display' declared inside parameter list
+arch/arm/mach-omap2/board-ldp.c:435: error: variable 'omap_ldp_display_data_lcd' has initializer but incomplete type
+arch/arm/mach-omap2/board-ldp.c:436: error: unknown field 'type' specified in initializer
+arch/arm/mach-omap2/board-ldp.c:436: warning: excess elements in struct initializer
+arch/arm/mach-omap2/board-ldp.c:436: warning: (near initialization for 'omap_ldp_display_data_lcd')
+arch/arm/mach-omap2/board-ldp.c:437: error: unknown field 'name' specified in initializer
+arch/arm/mach-omap2/board-ldp.c:437: warning: excess elements in struct initializer
+arch/arm/mach-omap2/board-ldp.c:437: warning: (near initialization for 'omap_ldp_display_data_lcd')
 
-I don't know is this idea working but at least I know there is need to define
-McBSP FCLK parent clocks for 24xx similar way as they are defined for
-34xx and to figure out something for the FIXMEs. McBSP module is
-enabling the clocks at request time but fclk must be off in order to change
-its parent.
-
--- 
-Jarkko
-
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index bb154ea..3ebbe3f 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -389,6 +389,7 @@ int omap_mcbsp_request(unsigned int id);
- void omap_mcbsp_free(unsigned int id);
- void omap_mcbsp_start(unsigned int id);
- void omap_mcbsp_stop(unsigned int id);
-+int omap_mcbsp_set_fclk_src(unsigned int id, const char *clk_name);
- void omap_mcbsp_xmit_word(unsigned int id, u32 word);
- u32 omap_mcbsp_recv_word(unsigned int id);
- 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index efa0e01..f36c6a6 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -398,6 +398,30 @@ void omap_mcbsp_stop(unsigned int id)
- }
- EXPORT_SYMBOL(omap_mcbsp_stop);
- 
-+int omap_mcbsp_set_fclk_src(unsigned int id, const char *clk_name)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	struct clk *fclk_src;
-+	int err;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+
-+	mcbsp = id_to_mcbsp_ptr(id);
-+	fclk_src = clk_get(mcbsp->dev, clk_name);
-+	if (IS_ERR(fclk_src))
-+		return PTR_ERR(fclk_src);
-+	clk_disable(mcbsp->fclk); /* FIXME, Hack! */
-+	err = clk_set_parent(mcbsp->fclk, fclk_src);
-+	clk_enable(mcbsp->fclk); /* FIXME, Hack! */
-+	clk_put(fclk_src);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_set_fclk_src);
-+
- /* polled mcbsp i/o operations */
- int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
- {
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 9126142..d03a3c0 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -397,8 +397,7 @@ static int omap_mcbsp_dai_set_clkdiv(struct snd_soc_dai *cpu_dai,
- static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
- 				       int clk_id)
- {
--	int sel_bit;
--	u16 reg, reg_devconf1 = OMAP243X_CONTROL_DEVCONF1;
-+	const char *clks_src;
- 
- 	if (cpu_class_is_omap1()) {
- 		/* OMAP1's can use only external source clock */
-@@ -408,43 +407,16 @@ static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
- 			return 0;
- 	}
- 
--	if (cpu_is_omap2420() && mcbsp_data->bus_id > 1)
--		return -EINVAL;
--
--	if (cpu_is_omap343x())
--		reg_devconf1 = OMAP343X_CONTROL_DEVCONF1;
--
--	switch (mcbsp_data->bus_id) {
--	case 0:
--		reg = OMAP2_CONTROL_DEVCONF0;
--		sel_bit = 2;
--		break;
--	case 1:
--		reg = OMAP2_CONTROL_DEVCONF0;
--		sel_bit = 6;
--		break;
--	case 2:
--		reg = reg_devconf1;
--		sel_bit = 0;
--		break;
--	case 3:
--		reg = reg_devconf1;
--		sel_bit = 2;
--		break;
--	case 4:
--		reg = reg_devconf1;
--		sel_bit = 4;
--		break;
--	default:
--		return -EINVAL;
-+	if (clk_id == OMAP_MCBSP_SYSCLK_CLKS_FCLK) {
-+		if (cpu_is_omap24xx())
-+			clks_src = "func_96m_ck";
-+		if (cpu_is_omap343x())
-+			clks_src = "core_96m_fck";
-+	} else {
-+		clks_src = "mcbsp_clks";
- 	}
- 
--	if (clk_id == OMAP_MCBSP_SYSCLK_CLKS_FCLK)
--		omap_ctrl_writel(omap_ctrl_readl(reg) & ~(1 << sel_bit), reg);
--	else
--		omap_ctrl_writel(omap_ctrl_readl(reg) | (1 << sel_bit), reg);
--
--	return 0;
-+	return omap_mcbsp_set_fclk_src(mcbsp_data->bus_id, clks_src);
- }
- 
- static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
+Regards,
+Subbu
