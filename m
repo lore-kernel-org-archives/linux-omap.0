@@ -1,54 +1,43 @@
-From: "Venkatesh, Subbu" <subbu.wrs@ti.com>
-Subject: DSS2: Compilation Error on Git tree
-  http://www.bat.org/~tomba/git/linux-omap-dss.git
-Date: Wed, 3 Jun 2009 09:07:15 -0500
-Message-ID: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBA@dlee01.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Omar Ramirez Luna <omar.ramirez@ti.com>
+Subject: [PATCH] DSPBRIDGE: Revert removing all resources on proc detach
+Date: Wed,  3 Jun 2009 10:37:34 -0500
+Message-ID: <1244043454-31662-1-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42208 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:35404 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754100AbZFCOHY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 10:07:24 -0400
-Content-Language: en-US
+	id S1753293AbZFCPdX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 3 Jun 2009 11:33:23 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mande, Nikhil" <nikhil@ti.com>, "Castaneda Gonzalez, Axel" <x0055901@ti.com>, "Miesen, Sharon" <s-miesen@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Ameya Palande <ameya.palande@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Nishant Menon <nm@ti.com>, Fernando Guzman <x0095840@ti.com>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-Hi Tomi,
-I did git pull to update my tree, later compiling code for LDP, I am getting compilation error as show below. I see that I am missing declaration of  
- struct omap_dss_display_config in display.h file, could you please comment on it...
+This patch changes removing all resources for the process
+context on processor detach, it only frees the dmm resources
+and let resource cleanup take care of the rest.
 
-arch/arm/mach-omap2/board-ldp.c:368: warning: 'struct omap_display' declared inside parameter list
-arch/arm/mach-omap2/board-ldp.c:368: warning: its scope is only this definition or declaration, which is probably not what you want
-arch/arm/mach-omap2/board-ldp.c:383: warning: 'struct omap_display' declared inside parameter list
-arch/arm/mach-omap2/board-ldp.c:393: error: variable 'omap_ldp_display_data_tv' has initializer but incomplete type
-arch/arm/mach-omap2/board-ldp.c:394: error: unknown field 'type' specified in initializer
-arch/arm/mach-omap2/board-ldp.c:394: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-ldp.c:394: warning: (near initialization for 'omap_ldp_display_data_tv')
-arch/arm/mach-omap2/board-ldp.c:395: error: unknown field 'name' specified in initializer
-arch/arm/mach-omap2/board-ldp.c:395: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-ldp.c:395: warning: (near initialization for 'omap_ldp_display_data_tv')
-arch/arm/mach-omap2/board-ldp.c:396: error: unknown field 'u' specified in initializer
-arch/arm/mach-omap2/board-ldp.c:396: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-ldp.c:396: warning: (near initialization for 'omap_ldp_display_data_tv')
-arch/arm/mach-omap2/board-ldp.c:397: error: unknown field 'panel_enable' specified in initializer
-arch/arm/mach-omap2/board-ldp.c:397: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-ldp.c:397: warning: (near initialization for 'omap_ldp_display_data_tv')
-arch/arm/mach-omap2/board-ldp.c:398: error: unknown field 'panel_disable' specified in initializer
-arch/arm/mach-omap2/board-ldp.c:398: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-ldp.c:398: warning: (near initialization for 'omap_ldp_display_data_tv')
-arch/arm/mach-omap2/board-ldp.c:401: warning: 'struct omap_display' declared inside parameter list
-arch/arm/mach-omap2/board-ldp.c:425: warning: 'struct omap_display' declared inside parameter list
-arch/arm/mach-omap2/board-ldp.c:435: error: variable 'omap_ldp_display_data_lcd' has initializer but incomplete type
-arch/arm/mach-omap2/board-ldp.c:436: error: unknown field 'type' specified in initializer
-arch/arm/mach-omap2/board-ldp.c:436: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-ldp.c:436: warning: (near initialization for 'omap_ldp_display_data_lcd')
-arch/arm/mach-omap2/board-ldp.c:437: error: unknown field 'name' specified in initializer
-arch/arm/mach-omap2/board-ldp.c:437: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-ldp.c:437: warning: (near initialization for 'omap_ldp_display_data_lcd')
+This regression was introduced with the following patch:
+    DSPBRIDGE: base image reload support after DSP error
 
-Regards,
-Subbu
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+Acked-by: Hari Kanigeri <h-kanigeri2@ti.com>
+---
+ drivers/dsp/bridge/rmgr/proc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index d4d20ae..43f2d29 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -659,7 +659,7 @@ DSP_STATUS PROC_Detach(DSP_HPROCESSOR hProcessor)
+ 				(struct DRV_OBJECT *)hDRVObject, &pPctxt,
+ 					 NULL, 0);
+ 			if (pPctxt != NULL) {
+-				DRV_RemoveAllResources(pPctxt);
++				DRV_ProcFreeDMMRes(pPctxt);
+ 				pPctxt->hProcessor = NULL;
+ 			}
+ 		}
+-- 
+1.6.2.4
+
