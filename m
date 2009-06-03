@@ -1,76 +1,162 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: *SPAM* Re: Please help in adding ams-delta support to ASoC
-Date: Wed, 3 Jun 2009 10:28:45 +0200
-Message-ID: <200906031028.46717.jkrzyszt@tis.icnet.pl>
-References: <4A1BEBE3.8010306@tis.icnet.pl> <4A25040A.4050506@tis.icnet.pl> <200906030828.06933.peter.ujfalusi@nokia.com>
+From: Amit Kucheria <amit.kucheria@verdurent.com>
+Subject: Re: [PATCH] [PATCH] twl4030: Add some error checking to twl4030
+	init
+Date: Wed, 3 Jun 2009 11:49:58 +0300
+Message-ID: <20090603084958.GO16000@everest>
+References: <200904231416.37219.david-b@pacbell.net> <1241611418-19730-1-git-send-email-amit.kucheria@verdurent.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:57745 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753237AbZFCI3P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 04:29:15 -0400
-In-Reply-To: <200906030828.06933.peter.ujfalusi@nokia.com>
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:33412 "EHLO
+	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753173AbZFCIuS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 04:50:18 -0400
+Received: by bwz22 with SMTP id 22so8526082bwz.37
+        for <linux-omap@vger.kernel.org>; Wed, 03 Jun 2009 01:50:19 -0700 (PDT)
 Content-Disposition: inline
+In-Reply-To: <1241611418-19730-1-git-send-email-amit.kucheria@verdurent.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Wednesday 03 June 2009 07:28:06 Peter Ujfalusi napisa=B3(a):
-> Looking at the code at commit: d8376cc482b241701f7606c81ad578b90853e1=
-75 on
-> l-o the comment about the need for the call the omap_stop_dma puzzled=
- me.
+Bump..
 
-Peter,
+This patch was acked by David Brownell earlier in the thread.
 
-It was omap_stop_alsa_sound_dma(), not just omap_stop_dma(), the was ne=
-eded.
-In my opinion, the reason for that was not because it was calling=20
-omap_stop_dma(), but because it was clearing the audio_stream.started f=
-lag.=20
-That way, subsequent audio_start_dma_chain() would not jump over=20
-omap_start_dma(). From my experience with the original driver, it worke=
-d much=20
-better when calling omap_start_dma() unconditionally from=20
-audio_start_dma_chain() instead of doing this with that=20
-omap_stop_alsa_sound_dma() trick.
+Regards,
+Amit
 
-> Can you try something like this:
->
-> diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-> index 6454e15..2df1792 100644
-> --- a/sound/soc/omap/omap-pcm.c
-> +++ b/sound/soc/omap/omap-pcm.c
-> @@ -67,6 +67,7 @@ static void omap_pcm_dma_irq(int ch, u16 stat, void
-> *data) spin_lock_irqsave(&prtd->lock, flags);
->                 if (prtd->period_index >=3D 0) {
->                         if (++prtd->period_index =3D=3D runtime->peri=
-ods) {
-> +                               omap_stop_dma(prtd->dma_ch);
->                                 prtd->period_index =3D 0;
->                                 omap_start_dma(prtd->dma_ch);
->                         }
-> @@ -191,6 +192,7 @@ static int omap_pcm_trigger(struct snd_pcm_substr=
-eam
-> *substream, int cmd)
->         case SNDRV_PCM_TRIGGER_START:
->         case SNDRV_PCM_TRIGGER_RESUME:
->         case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-> +               omap_stop_dma(prtd->dma_ch);
->                 prtd->period_index =3D 0;
->                 omap_start_dma(prtd->dma_ch);
->                 break;
+On Wed, May 06, 2009 at 03:03:38PM +0300, Amit Kucheria wrote:
+> Check for return values of i2c read/write operations and size of scripts being
+> uploaded to TWL4030
+> 
+> (Removed the unrelated string changes based on David Brownell's comment)
+> 
+> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+> ---
+>  drivers/mfd/twl4030-power.c |   52 +++++++++++++++++++++++++++++++-----------
+>  1 files changed, 38 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index 9dc493b..8f5d149 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -257,36 +257,40 @@ static int __init config_warmreset_sequence(u8 address)
+>  	return err;
+>  }
+>  
+> -void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+> +static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+>  {
+>  	int rconfig_addr;
+> +	int err;
+>  	u8 type;
+>  
+>  	if (rconfig->resource > NUM_OF_RESOURCES) {
+>  		printk(KERN_ERR
+>  			"TWL4030 Resource %d does not exist\n",
+>  			rconfig->resource);
+> -		return;
+> +		return -EINVAL;
+>  	}
+>  
+>  	rconfig_addr = res_config_addrs[rconfig->resource];
+>  
+>  	/* Set resource group */
+> -
+>  	if (rconfig->devgroup >= 0)
+> -		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> +		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  					rconfig->devgroup << 5,
+>  					rconfig_addr + DEVGROUP_OFFSET);
+> +	if (err < 0) {
+> +		printk(KERN_ERR
+> +		       "TWL4030 failed to program devgroup");
+> +		return err;
+> +	}
+>  
+>  	/* Set resource types */
+> -
+> -	if (twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER,
+> -					&type,
+> -					rconfig_addr + TYPE_OFFSET) < 0) {
+> +	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
+> +				  rconfig_addr + TYPE_OFFSET);
+> +	if (err < 0) {
+>  		printk(KERN_ERR
+> -			"TWL4030 Resource %d type could not read\n",
+> -			rconfig->resource);
+> -		return;
+> +		       "TWL4030 Resource %d type could not be read\n",
+> +		       rconfig->resource);
+> +		return err;
+>  	}
+>  
+>  	if (rconfig->type >= 0) {
+> @@ -299,8 +303,15 @@ void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+>  		type |= rconfig->type2 << 3;
+>  	}
+>  
+> -	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> +	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+>  				type, rconfig_addr + TYPE_OFFSET);
+> +	if (err < 0) {
+> +		printk(KERN_ERR
+> +		       "TWL4030 failed to program resource type");
+> +		return err;
+> +	}
+> +
+> +	return 0;
+>  
+>  }
+>  
+> @@ -309,6 +320,12 @@ static int __init load_triton_script(struct twl4030_script *tscript)
+>  	u8 address = triton_next_free_address;
+>  	int err;
+>  
+> +	/* Make sure the script isn't going beyond last valid address */
+> +	if ((address + tscript->size) > (END_OF_SCRIPT-1)) {
+> +		printk(KERN_ERR "TWL4030 script too big error\n");
+> +		return -EINVAL;
+> +	}
+> +
+>  	err = twl4030_write_script(address, tscript->script, tscript->size);
+>  	if (err)
+>  		return err;
+> @@ -346,15 +363,22 @@ void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
+>  
+>  	for (i = 0; i < triton2_scripts->size; i++) {
+>  		err = load_triton_script(triton2_scripts->scripts[i]);
+> -		if (err)
+> +		if (err < 0) {
+> +			printk(KERN_ERR "TWL4030 failed to load scripts");
+>  			break;
+> +		}
+>  	}
+>  
+>  	resconfig = triton2_scripts->resource_config;
+>  	if (resconfig) {
+>  		while (resconfig->resource) {
+> -			twl4030_configure_resource(resconfig);
+> +			err = twl4030_configure_resource(resconfig);
+>  			resconfig++;
+> +			if (err < 0) {
+> +				printk(KERN_ERR
+> +				       "TWL4030 failed to configure resource");
+> +				break;
+> +			}
+>  		}
+>  	}
+>  
+> -- 
+> 1.6.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Never hurts. Unfortunatelly, it did not help, no single DMA interrupt a=
-gain.
-
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+-------------------------------------------------------------------------
+Amit Kucheria,				 Kernel Developer, Verdurent
+-------------------------------------------------------------------------
