@@ -1,162 +1,153 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: [PATCH] [PATCH] twl4030: Add some error checking to twl4030
-	init
-Date: Wed, 3 Jun 2009 11:49:58 +0300
-Message-ID: <20090603084958.GO16000@everest>
-References: <200904231416.37219.david-b@pacbell.net> <1241611418-19730-1-git-send-email-amit.kucheria@verdurent.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC][PATCH] Add support for hook switch on ams-delta
+Date: Wed, 3 Jun 2009 11:03:20 +0200
+Message-ID: <200906031103.21758.jkrzyszt@tis.icnet.pl>
+References: <200905262057.21890.jkrzyszt@tis.icnet.pl> <20090602220433.GD31770@earth.li>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:33412 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753173AbZFCIuS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 04:50:18 -0400
-Received: by bwz22 with SMTP id 22so8526082bwz.37
-        for <linux-omap@vger.kernel.org>; Wed, 03 Jun 2009 01:50:19 -0700 (PDT)
+Received: from d1.icnet.pl ([212.160.220.21]:42542 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755516AbZFCJDr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 05:03:47 -0400
+In-Reply-To: <20090602220433.GD31770@earth.li>
 Content-Disposition: inline
-In-Reply-To: <1241611418-19730-1-git-send-email-amit.kucheria@verdurent.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jonathan McDowell <noodles@earth.li>
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 
-Bump..
+Hi Jonathan,
 
-This patch was acked by David Brownell earlier in the thread.
+Wednesday 03 June 2009 00:04:33 Jonathan McDowell napisa=C5=82(a):
+> I'm obviously too late as I've seen the "Applied" mail,
 
-Regards,
-Amit
+No problem, I'm glad to hear from you.
 
-On Wed, May 06, 2009 at 03:03:38PM +0300, Amit Kucheria wrote:
-> Check for return values of i2c read/write operations and size of scripts being
-> uploaded to TWL4030
-> 
-> (Removed the unrelated string changes based on David Brownell's comment)
-> 
-> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> ---
->  drivers/mfd/twl4030-power.c |   52 +++++++++++++++++++++++++++++++-----------
->  1 files changed, 38 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-> index 9dc493b..8f5d149 100644
-> --- a/drivers/mfd/twl4030-power.c
-> +++ b/drivers/mfd/twl4030-power.c
-> @@ -257,36 +257,40 @@ static int __init config_warmreset_sequence(u8 address)
->  	return err;
->  }
->  
-> -void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
-> +static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
->  {
->  	int rconfig_addr;
-> +	int err;
->  	u8 type;
->  
->  	if (rconfig->resource > NUM_OF_RESOURCES) {
->  		printk(KERN_ERR
->  			"TWL4030 Resource %d does not exist\n",
->  			rconfig->resource);
-> -		return;
-> +		return -EINVAL;
->  	}
->  
->  	rconfig_addr = res_config_addrs[rconfig->resource];
->  
->  	/* Set resource group */
-> -
->  	if (rconfig->devgroup >= 0)
-> -		twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->  					rconfig->devgroup << 5,
->  					rconfig_addr + DEVGROUP_OFFSET);
-> +	if (err < 0) {
-> +		printk(KERN_ERR
-> +		       "TWL4030 failed to program devgroup");
-> +		return err;
-> +	}
->  
->  	/* Set resource types */
-> -
-> -	if (twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER,
-> -					&type,
-> -					rconfig_addr + TYPE_OFFSET) < 0) {
-> +	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &type,
-> +				  rconfig_addr + TYPE_OFFSET);
-> +	if (err < 0) {
->  		printk(KERN_ERR
-> -			"TWL4030 Resource %d type could not read\n",
-> -			rconfig->resource);
-> -		return;
-> +		       "TWL4030 Resource %d type could not be read\n",
-> +		       rconfig->resource);
-> +		return err;
->  	}
->  
->  	if (rconfig->type >= 0) {
-> @@ -299,8 +303,15 @@ void twl4030_configure_resource(struct twl4030_resconfig *rconfig)
->  		type |= rconfig->type2 << 3;
->  	}
->  
-> -	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-> +	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->  				type, rconfig_addr + TYPE_OFFSET);
-> +	if (err < 0) {
-> +		printk(KERN_ERR
-> +		       "TWL4030 failed to program resource type");
-> +		return err;
-> +	}
-> +
-> +	return 0;
->  
->  }
->  
-> @@ -309,6 +320,12 @@ static int __init load_triton_script(struct twl4030_script *tscript)
->  	u8 address = triton_next_free_address;
->  	int err;
->  
-> +	/* Make sure the script isn't going beyond last valid address */
-> +	if ((address + tscript->size) > (END_OF_SCRIPT-1)) {
-> +		printk(KERN_ERR "TWL4030 script too big error\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	err = twl4030_write_script(address, tscript->script, tscript->size);
->  	if (err)
->  		return err;
-> @@ -346,15 +363,22 @@ void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
->  
->  	for (i = 0; i < triton2_scripts->size; i++) {
->  		err = load_triton_script(triton2_scripts->scripts[i]);
-> -		if (err)
-> +		if (err < 0) {
-> +			printk(KERN_ERR "TWL4030 failed to load scripts");
->  			break;
-> +		}
->  	}
->  
->  	resconfig = triton2_scripts->resource_config;
->  	if (resconfig) {
->  		while (resconfig->resource) {
-> -			twl4030_configure_resource(resconfig);
-> +			err = twl4030_configure_resource(resconfig);
->  			resconfig++;
-> +			if (err < 0) {
-> +				printk(KERN_ERR
-> +				       "TWL4030 failed to configure resource");
-> +				break;
-> +			}
->  		}
->  	}
->  
-> -- 
-> 1.6.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> but some=20
+> comments:
+>
+> * I don't think SW_HEADPHONE_INSERT is appropriate. input guys, is it=
+=20
+>   not reasonable to have SW_PHONE_HOOK or similar?
 
--- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
+I do share you point of view. However, I didn't want to start a discuss=
+ion if=20
+there is a need for another symbol or not before the patch got any=20
+acceptance.
+
+> * We assume the bootloader does the appropriate GPIO pin setup for us=
+,
+>   so I don't think your omap_cfg_reg is required but it doesn't hurt =
+in
+>   the unlikely event we ever replace the Amstrad PBL.
+
+OK, let it stay there. Do you see a need for replaceing it with a new=20
+ams_delta_hook_switch_init() function call that just calls omap_cfg_reg=
+()?
+
+> * The commented out code to include the GPIO status in sysfs shouldn'=
+t
+>   be included.
+
+Yes, I put it there to get a feedback.
+
+>   Does the input layer not provide a way to obtain the=20
+>   state of the switch?
+
+Yes, it does, with EVIOCGSW ioctl()[1]. I personally don't like this wa=
+y of=20
+getting the switch status and would rather see it available over sysfs.=
+=20
+However, input guys may have their own preferences and gpio-keys driver=
+=20
+belongs to them.
+
+Thanks,
+Janusz
+
+[1] http://www.spinics.net/lists/linux-input/msg03482.html
+
+P.S. I include my Signed-off-by, as Tony have requested, to avoid the c=
+ode=20
+without one floating around.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+
+> > diff -Npru a/arch/arm/mach-omap1/board-ams-delta.c
+> > b/arch/arm/mach-omap1/board-ams-delta.c ---
+> > a/arch/arm/mach-omap1/board-ams-delta.c	2009-05-17 17:58:18.0000000=
+00
+> > +0200 +++ b/arch/arm/mach-omap1/board-ams-delta.c	2009-05-17
+> > 16:22:59.000000000 +0200 @@ -15,6 +15,7 @@
+> >  #include <linux/kernel.h>
+> >  #include <linux/init.h>
+> >  #include <linux/input.h>
+> > +#include <linux/gpio_keys.h>
+> >  #include <linux/platform_device.h>
+> >
+> >  #include <mach/hardware.h>
+> > @@ -213,10 +214,35 @@ static struct platform_device ams_delta_
+> >  	.id	=3D -1
+> >  };
+> >
+> > +static struct gpio_keys_button ams_delta_gpio_keys_buttons[] =3D {
+> > +	[0] =3D {
+> > +		.desc		=3D "hook_switch",
+> > +		.type		=3D EV_SW,		/* or EV_KEY ? */
+> > +		.code		=3D SW_HEADPHONE_INSERT,	/* or a new one ? */
+> > +		.active_low	=3D 1,
+> > +		.gpio		=3D AMS_DELTA_GPIO_PIN_HOOK_SWITCH,
+> > +		.debounce_interval =3D 10,
+> > +	},
+> > +};
+> > +
+> > +static struct gpio_keys_platform_data ams_delta_gpio_keys =3D {
+> > +	.buttons		=3D ams_delta_gpio_keys_buttons,
+> > +	.nbuttons		=3D ARRAY_SIZE(ams_delta_gpio_keys_buttons),
+> > +};
+> > +
+> > +static struct platform_device ams_delta_gpio_keys_device =3D {
+> > +	.name			=3D "gpio-keys",
+> > +	.id			=3D -1,
+> > +	.dev			=3D {
+> > +		.platform_data	=3D &ams_delta_gpio_keys,
+> > +	},
+> > +};
+> > +
+> >  static struct platform_device *ams_delta_devices[] __initdata =3D =
+{
+> >  	&ams_delta_kp_device,
+> >  	&ams_delta_lcd_device,
+> >  	&ams_delta_led_device,
+> > +	&ams_delta_gpio_keys_device,
+> >  };
+> >
+> >  static void __init ams_delta_init(void)
+> > @@ -233,6 +259,13 @@ static void __init ams_delta_init_irq(vo
+> >
+> >  	omap_usb_init(&ams_delta_usb_config);
+> >  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devi=
+ces));
+> > +
+> > +	omap_cfg_reg(P20_1610_GPIO4); /* is this required? */
+> > +
+> > +	/* The hook switch state could be exposed over sysfs with
+> > gpio_export(). +	 * This should be done after the gpio-keys driver =
+calls
+> > gpio_request(), +	 * but I don't know how to do this from outside o=
+f the
+> > driver. */ +	/* gpio_export(AMS_DELTA_GPIO_PIN_HOOK_SWITCH, 0); */
+> >  }
+> >
+> >  static void __init ams_delta_map_io(void)
+>
+> J.
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
