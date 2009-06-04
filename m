@@ -1,53 +1,74 @@
-From: "Wang Sawsd-A24013" <cqwang@motorola.com>
-Subject: RE: [PATCH] OMAP2/3 Avoid GPIO pending irq status been set after irq_disable
-Date: Fri, 5 Jun 2009 05:58:18 +0800
-Message-ID: <B00E06E2766C2744B022DE9BAF3C59D5372B9F@zmy16exm69.ds.mot.com>
-References: <87fxeffzno.fsf@deeprootsystems.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC][PATCH] Add support for hook switch on ams-delta
+Date: Fri, 5 Jun 2009 00:07:11 +0200
+Message-ID: <200906050007.12019.jkrzyszt@tis.icnet.pl>
+References: <200905262057.21890.jkrzyszt@tis.icnet.pl> <200906031103.21758.jkrzyszt@tis.icnet.pl> <20090604181833.GG31770@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail153.messagelabs.com ([216.82.253.51]:26521 "EHLO
-	mail153.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509AbZFDV7A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 17:59:00 -0400
-Received: from il06exr03.mot.com (il06exr03.mot.com [129.188.137.133])
-	by motgate8.mot.com (8.14.3/8.14.3) with ESMTP id n54Lx0l3017720
-	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 14:59:00 -0700 (MST)
-Received: from il06vts02.mot.com (il06vts02.mot.com [129.188.137.142])
-	by il06exr03.mot.com (8.13.1/Vontu) with SMTP id n54Lx0Pv016885
-	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 16:59:00 -0500 (CDT)
-Received: from zmy16exm69.ds.mot.com (zmy16exm69.ap.mot.com [10.179.4.36])
-	by il06exr03.mot.com (8.13.1/8.13.0) with ESMTP id n54Lwxwp016875
-	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 16:59:00 -0500 (CDT)
-Content-class: urn:content-classes:message
-In-Reply-To: <87fxeffzno.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20090604181833.GG31770@earth.li>
+Content-Disposition: inline
+Sender: linux-input-owner@vger.kernel.org
+To: Jonathan McDowell <noodles@earth.li>
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com, Mike Chan <mikechan@google.com>
 
- 
-> What do you think about disabling the level/edge detection when
-> disable_irq_wake() is called instead?  This seems more logical
-> and expected.
-Kevin, if we look at the current code, enable_irq_wake and
-disable_irq_wake
-Does not even touch any GPIO WAKEEN register, it seems it is intended
-To just log the gpio bit and enable its WAKEUP and IOPAD wakeup
-when suspend happens. And also, enable_irq_wake/disable_irq_wake
-Are designed to be able used when both IRQ is enabled AND disabled,
-In another words, enable_irq_wake may be called after irq_disable,
-Disable_irq_wake may be called after irq_enable, if we change
-Level/edge detect then it may cause either IRQ never happen
-After irq_enable, or IRQ staus bit also set after irq_disable. Since
-The root reason is the level/edge detect can cause IRQ status, it
-Is related with IRQ, not wakeup.
+Hi,
 
-What do you think?
-> 
-> Kevin
-> 
-> P.S., are you wanting to use your touchscreen as a wakeup source?
-> 
+Thursday 04 June 2009 20:18:33 Jonathan McDowell napisa=C5=82(a):
+> On Wed, Jun 03, 2009 at 11:03:20AM +0200, Janusz Krzysztofik wrote:
+> > Wednesday 03 June 2009 00:04:33 Jonathan McDowell napisa=C5=82(a):
+> >
+> > > * We assume the bootloader does the appropriate GPIO pin setup fo=
+r us,
+> > >   so I don't think your omap_cfg_reg is required but it doesn't h=
+urt in
+> > >   the unlikely event we ever replace the Amstrad PBL.
+> >
+> > OK, let it stay there. Do you see a need for replaceing it with a n=
+ew
+> > ams_delta_hook_switch_init() function call that just calls
+> > omap_cfg_reg()?
+>
+> I don't see a need for this; it's always present and not a lot of cod=
+e
+> to have in the init function as it stands.
+
+=46ine, I'll only add a comment explainig the purpose of the call then.
+
+> > >   Does the input layer not provide a way to obtain the
+> > >   state of the switch?
+> >
+> > Yes, it does, with EVIOCGSW ioctl()[1]. I personally don't like thi=
+s way
+> > of getting the switch status and would rather see it available over
+> > sysfs. However, input guys may have their own preferences and gpio-=
+keys
+> > driver belongs to them.
+>
+> I think that's a discussion to have with the input guys rather than
+> putting a hack in the platform file then.
+
+Sure. I have a patch for gpio-keys.c ready to submit, let's see how far=
+ we can=20
+get with the idea of exporting a gpio-keys driven switch state over gpi=
+olib=20
+sysfs.
+
+> So really the only issue with the patch that remains is if it justifi=
+es
+> adding a new SW_PHONE_HOOK switch type?
+
+I've just submitted a patch that adds new symbol definition to=20
+include/linux/input.h. Do I have to wait for acknowledgement before I=20
+resubmit my modified patch that depends on that, or can I submit it now=
+?
+
+Thanks,
+Janusz
+--
+To unsubscribe from this list: send the line "unsubscribe linux-input" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
