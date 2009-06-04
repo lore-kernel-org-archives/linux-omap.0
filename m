@@ -1,134 +1,50 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: DSP MMU Fault
-Date: Thu, 4 Jun 2009 17:36:01 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2F5D8AAA@dlee03.ent.ti.com>
-References: <44449.139.179.13.76.1244116436.squirrel@newmail.bilkent.edu.tr>
-    <8F7AF80515AF0D4D93307E594F3CB40E2F13B302@dlee03.ent.ti.com>
- <50125.78.164.152.255.1244153688.squirrel@newmail.bilkent.edu.tr>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [RFC] [PATCH] input: export gpio-keys driven switch status over gpiolib sysfs
+Date: Fri, 5 Jun 2009 00:39:39 +0200
+Message-ID: <200906050039.40050.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50487 "EHLO bear.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:56406 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751468AbZFDWgJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 18:36:09 -0400
-In-Reply-To: <50125.78.164.152.255.1244153688.squirrel@newmail.bilkent.edu.tr>
-Content-Language: en-US
+	id S1751637AbZFDWkF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Jun 2009 18:40:05 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Can Bal <canbal@ee.bilkent.edu.tr>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: dmitry.torokhov@gmail.com
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hi Can,
+This patch adds support for exporting status of GPIO switches, configured as
+gpio-keys buttons that generate events of type EV_SW, over standard gpiolib
+sysfs interface. That way, switch state can be easily accessed from userspace
+via a modern sysfs API in addition to traditional ioclt API, without the need
+for adding a new, usualy controversial entry to sysfs interface.
 
-The address that DSP accesses should be mapped to physical address by ARM.
-I am not sure what you are trying to do, but you can look at the below examples on how the Mapping works.
-
-Reference: 1
-=====
-MPU side sample:
-http://gitorious.org/ti-dspbridge/userspace/blobs/master/source/samples/mpu/src/dmmcopy/dmmcopy.c
-
-DSP sample:
-http://gitorious.org/ti-dspbridge/userspace/trees/master/source/samples/dsp
-
-Reference: 2
-=====
-Felipe has good example on his tree. May be this is bit simpler.
-http://github.com/felipec/dsp-dummy/tree/master
-
-
-
-
-Thank you,
-Best regards,
-Hari
-
-> -----Original Message-----
-> From: Can Bal [mailto:canbal@ee.bilkent.edu.tr]
-> Sent: Thursday, June 04, 2009 5:15 PM
-> To: Kanigeri, Hari
-> Cc: Can Bal; linux-omap@vger.kernel.org
-> Subject: RE: DSP MMU Fault
-> 
-> Hi Hari,
-> 
-> How can I map the address? At what part do I specify these mappings;
-> bridge installation, at DSP side program (with the tci file etc.)? By the
-> way just before that in the program I do a malloc(32) to another short
-> pointer but |it doesn't return any errors?
-> 
-> Please forgive me if this is a trivial question but I'm just learning the
-> DSP programming. Thanks a lot.
-> 
-> Best regards,
-> Can
-> 
-> 
-> > Hi Can,
-> >
-> >> Do you have any ideas why this might be happening and how to fix it?
-> >> Thanks a lot.
-> >
-> > Most probably you might not have mapped the address 0x230674a0.
-> >
-> >
-> > Thank you,
-> > Best regards,
-> > Hari
-> >
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Can Bal
-> >> Sent: Thursday, June 04, 2009 6:54 AM
-> >> To: linux-omap@vger.kernel.org
-> >> Subject: DSP MMU Fault
-> >>
-> >> Hi everyone,
-> >>
-> >> I'm implementing a code on DSP but at the time I do a memory allocation
-> >> at
-> >> the DSP side as:
-> >>
-> >> short *a;
-> >> a = malloc(192); // (short*)malloc(192) does not work either
-> >>
-> >> But at this line I get the following error and DSP fails afterwards.
-> >> Then
-> >> I need to reboot until I can run the application again.
-> >>
-> >> <6>***** DSPMMU FAULT ***** IRQStatus 0x2
-> >> ***** DSPMMU FAULT ***** IRQStatus 0x2
-> >> <6>***** DSPMMU FAULT ***** faultAddr 0x230674a0
-> >> ***** DSPMMU FAULT ***** faultAddr 0x230674a0
-> >> <6>WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> >> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> >> <6>WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
-> >> WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
-> >> <6>WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
-> >> WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
-> >> <6>WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
-> >> WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
-> >> <6>WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
-> >> WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
-> >>
-> >> Do you have any ideas why this might be happening and how to fix it?
-> >> Thanks a lot.
-> >>
-> >> Can
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
-
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+diff -up linux-2.6.30-rc5/drivers/input/keyboard/gpio_keys.c.orig linux-2.6.30-rc5/drivers/input/keyboard/gpio_keys.c
+--- linux-2.6.30-rc5/drivers/input/keyboard/gpio_keys.c.orig	2009-03-24 00:12:14.000000000 +0100
++++ linux-2.6.30-rc5/drivers/input/keyboard/gpio_keys.c	2009-06-04 21:31:19.000000000 +0200
+@@ -157,6 +157,19 @@ static int __devinit gpio_keys_probe(str
+ 			wakeup = 1;
+ 
+ 		input_set_capability(input, type, button->code);
++
++		/* For GPIO buttons generating events of type EV_SW
++		 * (ie switches), export their status
++		 * over gpiolib sysfs interface if configured */
++#ifdef CONFIG_GPIO_SYSFS
++		if (type == EV_SW) {
++			error = gpio_export(button->gpio, false);
++			if (error)
++				pr_warning("gpio-keys: "
++					"failed to export GPIO %d, error %d\n",
++					button->gpio, error);
++		}
++#endif
+ 	}
+ 
+ 	error = input_register_device(input);
