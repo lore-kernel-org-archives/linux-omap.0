@@ -1,42 +1,52 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: MUSB ISSUE on OMAP3530 with USB-2-Ethernet converter
-Date: Thu, 4 Jun 2009 13:17:55 +0300
-Message-ID: <20090604101755.GA23310@nokia.com>
-References: <9c4da51b0905290224i24ad0385jfaf04d0982f12bbc@mail.gmail.com> <20090529094055.GE5229@nokia.com> <9c4da51b0905290716k787b43c7l82f06c5ba857efc7@mail.gmail.com> <814dfab70906040312v65a83b2dke58d50dbe6fd5ef9@mail.gmail.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH] OMAP3: PM: 2 new entries in SDRC table for Qimonda
+ HYB18M512160AF-6
+Date: Thu, 4 Jun 2009 17:26:46 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030587250F@dbde02.ent.ti.com>
+References: <alpine.DEB.2.00.0906021834050.31531@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <814dfab70906040312v65a83b2dke58d50dbe6fd5ef9-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Remith Ravi <remithmailinglist-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "umeshdelhi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <umeshdelhi-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60136 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752177AbZFDL4y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 07:56:54 -0400
+In-Reply-To: <alpine.DEB.2.00.0906021834050.31531@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jun 04, 2009 at 12:12:04PM +0200, ext Remith Ravi wrote:
-> Hi,
-> 
-> Anybody had a chance to attend this issue? Any hint to solve the problem?
-> 
-> The ASIX AX88772A USB2.0 Fast Ethernet Network Adapter Linux driver
-> available in Asix website supports only upto Linux 2.6.26.
-> I integrated that driver into the git kernel and tested it on the
-> OMAP35xx dev board (EHCI port). The driver detects the presence of
-> USB-2-Ethernet
-> converter and it is possible to assign ip address to the new Ethernet
-> interface. But the ping test fails  (ping statistics ---
-> 40 packets transmitted, 0 packets received, 100% packet loss) and
-> therefore I cant continue testing it on the latest git kernel.
-> 
-> Any help towards solving this issue will be highly appreciated.
+Ok.. thanks. I just saw this missing in the PM branch and
+hence posted this. 
 
-sorry, we can't support you with such an old kernel. You have to
-fallback to the company who provided you the kernel.
-
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>-----Original Message-----
+>From: Paul Walmsley [mailto:paul@pwsan.com] 
+>Sent: Wednesday, June 03, 2009 6:06 AM
+>To: Nayak, Rajendra
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH] OMAP3: PM: 2 new entries in SDRC table 
+>for Qimonda HYB18M512160AF-6
+>
+>Hello Rajendra,
+>
+>On Mon, 1 Jun 2009, Rajendra Nayak wrote:
+>
+>> This patch adds 2 more entries for new SDRC clock rates
+>> (166000000 and 83000000) in the sdrc params table for
+>> Qimonda HYB18M512160AF-6 sdram part.
+>> Without this CORE dvfs is broken on the 3430SDP as
+>> omap2_sdrc_get_params() call in the dvfs sequence
+>> always return 'rate not found'
+>> 
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>
+>Commit ID c82881eac1c6999abd768c548ad196c1973d3a55 on l-o master has 
+>resolved this.
+>
+>
+>- Paul
+>
+>
