@@ -1,46 +1,32 @@
-From: =?ISO-8859-1?Q?Kevyn=2DAlexandre_Par=E9?=
-	<kevyn.alexandre.pare@gmail.com>
-Subject: Question OMAP3 and PM
-Date: Wed, 3 Jun 2009 20:35:10 -0400
-Message-ID: <dc1d0f40906031735j32bf558cj379f3c5be632a6a1@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: DSS2: Compilation Error on Git tree
+ http://www.bat.org/~tomba/git/linux-omap-dss.git
+Date: Thu, 04 Jun 2009 09:59:13 +0300
+Message-ID: <1244098753.4004.1.camel@tubuntu>
+References: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBA@dlee01.ent.ti.com>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f214.google.com ([209.85.217.214]:34402 "EHLO
-	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753875AbZFDAfI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 20:35:08 -0400
-Received: by gxk10 with SMTP id 10so668905gxk.13
-        for <linux-omap@vger.kernel.org>; Wed, 03 Jun 2009 17:35:10 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.233]:60371 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756508AbZFDG7U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 02:59:20 -0400
+In-Reply-To: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBA@dlee01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: "ext Venkatesh, Subbu" <subbu.wrs@ti.com>
+Cc: "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mande, Nikhil" <nikhil@ti.com>, "Castaneda Gonzalez, Axel" <x0055901@ti.com>, "Miesen, Sharon" <s-miesen@ti.com>
 
-I'm interested in the PM branch latest and greatest that is working
-for the beagleboard and the omap3evm.
+On Wed, 2009-06-03 at 16:07 +0200, ext Venkatesh, Subbu wrote:
+> Hi Tomi,
+> I did git pull to update my tree, later compiling code for LDP, I am getting compilation error as show below. I see that I am missing declaration of  
+>  struct omap_dss_display_config in display.h file, could you please comment on it...
 
-I clone these git for master branch (2.6.30-rc7) and compile and try
-without success.
+You need to port your LDP changes to newer DSS2 device model. Check how
+it's done with OMAP SDP or Beagleboard.
 
-http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
+ Tomi
 
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
 
-Beagleboard image was freezing after displaying uncompressed with
-success for both branch.
-
-Mistral image was displaying more stuff but no success. I will email
-the output later if asking.
-
-First, I'm interested to know which tag/branch should I use?
-kernel.org is at 2.6.29.4 for stable? since rc is dev tag I imagine
-that the one I'm looking for is v2.6.29-omap1. Do that branch have the
-OFF mode, smartrelfex and suspend and resume working? I want to
-measure the power consumption of those 2 board.
-
-Thx for helping me out.
-
-Best Regards
-
-kap
