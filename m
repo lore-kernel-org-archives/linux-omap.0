@@ -1,7 +1,7 @@
 From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH 18/20] omapfb: Fix coding style / remove dead line
-Date: Thu,  4 Jun 2009 20:52:43 +0300
-Message-ID: <63e0213f6444a9d3c99c659dbef14207e8756b37.1244131952.git.imre.deak@nokia.com>
+Subject: [PATCH 20/20] omapfb: HWA742: fix pointer to be const
+Date: Thu,  4 Jun 2009 20:52:45 +0300
+Message-ID: <453d7f9a2fc8ca4bdbd3b4205ec9f9fcb2eafb30.1244131952.git.imre.deak@nokia.com>
 References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
  <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
  <e7f92ea9f0a823f7be401e34243754141b7f72c1.1244131952.git.imre.deak@nokia.com>
@@ -20,74 +20,43 @@ References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
  <36ddd74a50b8c225b2c571035c67dbff4686b881.1244131952.git.imre.deak@nokia.com>
  <024fee28b6c89decf0d50747127db8fc61ac789e.1244131952.git.imre.deak@nokia.com>
  <20541a2436ab1399a93c28197244bb05e8657859.1244131952.git.imre.deak@nokia.com>
+ <63e0213f6444a9d3c99c659dbef14207e8756b37.1244131952.git.imre.deak@nokia.com>
+ <06b710348c4bdd4929e4d270ef29155214ca2a4a.1244131952.git.imre.deak@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:42256 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921AbZFDR4O (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 13:56:14 -0400
-In-Reply-To: <20541a2436ab1399a93c28197244bb05e8657859.1244131952.git.imre.deak@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:38764 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368AbZFDR4y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 13:56:54 -0400
+In-Reply-To: <06b710348c4bdd4929e4d270ef29155214ca2a4a.1244131952.git.imre.deak@nokia.com>
 In-Reply-To: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 References: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Antonino Daplas <adaplas@gmail.com>
-Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, arun c <arunedarath@mistralsolutions.com>, linux-arm-kernel@lists.arm.linux.org.uk, Imre Deak <imre.deak@nokia.com>
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Imre Deak <imre.deak@nokia.com>, linux-arm-kernel@lists.arm.linux.org.uk
 
-From: arun c <arunedarath@mistralsolutions.com>
+Fixes the following:
+warning: assignment discards qualifiers from pointer target type
 
-- use __iomem type attribute where appropriate
-- expand (a ? : b) to (a ? a : b)
-As suggested by Russell King <linux@arm.linux.org.uk>
-
-- remove a dead line from omapfb_main.c
-
-Signed-off-by: Arun C <arunedarath@mistralsolutions.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
 CC: linux-arm-kernel@lists.arm.linux.org.uk
 Signed-off-by: Imre Deak <imre.deak@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/omapfb.h |    4 ++--
- drivers/video/omap/omapfb_main.c         |    5 ++---
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/video/omap/hwa742.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/omapfb.h b/arch/arm/plat-omap/include/mach/omapfb.h
-index 7b74d12..b226bdf 100644
---- a/arch/arm/plat-omap/include/mach/omapfb.h
-+++ b/arch/arm/plat-omap/include/mach/omapfb.h
-@@ -276,8 +276,8 @@ typedef int (*omapfb_notifier_callback_t)(struct notifier_block *,
- 					  void *fbi);
+diff --git a/drivers/video/omap/hwa742.c b/drivers/video/omap/hwa742.c
+index 8aa6e47..7bbd4c7 100644
+--- a/drivers/video/omap/hwa742.c
++++ b/drivers/video/omap/hwa742.c
+@@ -131,7 +131,7 @@ struct {
  
- struct omapfb_mem_region {
--	dma_addr_t	paddr;
--	void		*vaddr;
-+	u32		paddr;
-+	void __iomem	*vaddr;
- 	unsigned long	size;
- 	u8		type;		/* OMAPFB_PLANE_MEM_* */
- 	unsigned	alloc:1;	/* allocated by the driver */
-diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-index 098177b..0df4523 100644
---- a/drivers/video/omap/omapfb_main.c
-+++ b/drivers/video/omap/omapfb_main.c
-@@ -562,7 +562,6 @@ static int set_fb_var(struct fb_info *fbi,
- 		var->xoffset = var->xres_virtual - var->xres;
- 	if (var->yres + var->yoffset > var->yres_virtual)
- 		var->yoffset = var->yres_virtual - var->yres;
--	line_size = var->xres * bpp / 8;
+ 	struct omapfb_device	*fbdev;
+ 	struct lcd_ctrl_extif	*extif;
+-	struct lcd_ctrl		*int_ctrl;
++	const struct lcd_ctrl	*int_ctrl;
  
- 	if (plane->color_mode == OMAPFB_COLOR_RGB444) {
- 		var->red.offset	  = 8; var->red.length	 = 4;
-@@ -1719,8 +1718,8 @@ static int omapfb_do_probe(struct platform_device *pdev,
- 
- 	pr_info("omapfb: configured for panel %s\n", fbdev->panel->name);
- 
--	def_vxres = def_vxres ? : fbdev->panel->x_res;
--	def_vyres = def_vyres ? : fbdev->panel->y_res;
-+	def_vxres = def_vxres ? def_vxres : fbdev->panel->x_res;
-+	def_vyres = def_vyres ? def_vyres : fbdev->panel->y_res;
- 
- 	init_state++;
- 
+ 	void			(*power_up)(struct device *dev);
+ 	void			(*power_down)(struct device *dev);
 -- 
 1.6.3.1
 
