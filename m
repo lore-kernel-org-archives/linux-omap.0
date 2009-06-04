@@ -1,70 +1,96 @@
 From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH 08/20] omapfb: Add support for the OMAP3 EVM LCD
-Date: Thu,  4 Jun 2009 20:52:33 +0300
-Message-ID: <9139035cc12b22600135677cd5d3096c1dcd286d.1244131952.git.imre.deak@nokia.com>
+Subject: [PATCH 02/20] omapfb: Add support for MIPI-DCS compatible LCDs
+Date: Thu,  4 Jun 2009 20:52:27 +0300
+Message-ID: <e7f92ea9f0a823f7be401e34243754141b7f72c1.1244131952.git.imre.deak@nokia.com>
 References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
  <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
- <e7f92ea9f0a823f7be401e34243754141b7f72c1.1244131952.git.imre.deak@nokia.com>
- <e9040774f324311979aebd3fa5fa71d20890d433.1244131952.git.imre.deak@nokia.com>
- <833ed44e61e3d4093eb27b55b97252967e042d41.1244131952.git.imre.deak@nokia.com>
- <5ba715a9dbc88b8c3a8225bc1cfdabd3faffe00f.1244131952.git.imre.deak@nokia.com>
- <646692ce09a12e1a8a2d4072097b4d440b7de5d5.1244131952.git.imre.deak@nokia.com>
- <b0e578438bb53d9fbf333e5bd10d4d33f869b373.1244131952.git.imre.deak@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38574 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119AbZFDRzq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 13:55:46 -0400
-In-Reply-To: <b0e578438bb53d9fbf333e5bd10d4d33f869b373.1244131952.git.imre.deak@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:21342 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985AbZFDRzn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 13:55:43 -0400
+In-Reply-To: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 In-Reply-To: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 References: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Antonino Daplas <adaplas@gmail.com>
-Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Steve Sakoman <steve@sakoman.com>, Imre Deak <imre.deak@nokia.com>
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Imre Deak <imre.deak@nokia.com>, Imre Deak <imre.deak@solidboot.com>, Juha Yrjola <juha.yrjola@solidboot.com>
 
-From: Steve Sakoman <steve@sakoman.com>
-
-Add LCD support for OMAP3 EVM
-
-Backlight support by Arun C <arunedarath@mistralsolutions.com>
-
-Signed-off-by: Steve Sakoman <steve@sakoman.com>
-Acked-by: Syed Mohammed Khasim <khasim@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Fixed-by: Jarkko Nikula <jarkko.nikula@gmail.com>
-Fixed-by: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
+Fixed-by: Mike Wege <ext-mike.wege@nokia.com>
+Fixed-by: Arnaud Patard <arnaud.patard@rtp-net.org>
+Fixed-by: Timo Savola <tsavola@movial.fi>
+Fixed-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Fixed-by: Trilok Soni <soni.trilok@gmail.com>
+Signed-off-by: Imre Deak <imre.deak@solidboot.com>
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
 ---
- drivers/video/omap/Makefile       |    1 +
- drivers/video/omap/lcd_omap3evm.c |  191 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 192 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap/lcd_omap3evm.c
+ arch/arm/plat-omap/include/mach/lcd_mipid.h |    5 +
+ drivers/video/omap/Kconfig                  |    8 +
+ drivers/video/omap/Makefile                 |    1 +
+ drivers/video/omap/lcd_mipid.c              |  631 +++++++++++++++++++++++++++
+ 4 files changed, 645 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap/lcd_mipid.c
 
+diff --git a/arch/arm/plat-omap/include/mach/lcd_mipid.h b/arch/arm/plat-omap/include/mach/lcd_mipid.h
+index f8fbc48..8e52c65 100644
+--- a/arch/arm/plat-omap/include/mach/lcd_mipid.h
++++ b/arch/arm/plat-omap/include/mach/lcd_mipid.h
+@@ -16,7 +16,12 @@ enum mipid_test_result {
+ struct mipid_platform_data {
+ 	int	nreset_gpio;
+ 	int	data_lines;
++
+ 	void	(*shutdown)(struct mipid_platform_data *pdata);
++	void	(*set_bklight_level)(struct mipid_platform_data *pdata,
++				     int level);
++	int	(*get_bklight_level)(struct mipid_platform_data *pdata);
++	int	(*get_bklight_max)(struct mipid_platform_data *pdata);
+ };
+ 
+ #endif
+diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
+index 4440885..574453f 100644
+--- a/drivers/video/omap/Kconfig
++++ b/drivers/video/omap/Kconfig
+@@ -7,6 +7,14 @@ config FB_OMAP
+ 	help
+           Frame buffer driver for OMAP based boards.
+ 
++config FB_OMAP_LCD_MIPID
++	bool "MIPI DBI-C/DCS compatible LCD support"
++	depends on FB_OMAP && SPI_MASTER
++	help
++	  Say Y here if you want to have support for LCDs compatible with
++	  the Mobile Industry Processor Interface DBI-C/DCS
++	  specification. (Supported LCDs: Philips LPH8923, Sharp LS041Y3)
++
+ config FB_OMAP_BOOTLOADER_INIT
+ 	bool "Check bootloader initialization"
+ 	depends on FB_OMAP
 diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index 96d2d43..4345157 100644
+index d053498..d86d54a 100644
 --- a/drivers/video/omap/Makefile
 +++ b/drivers/video/omap/Makefile
-@@ -30,6 +30,7 @@ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
- objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
- objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
- objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
-+objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
- objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+@@ -25,6 +25,7 @@ objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1510.o
+ objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk.o
+ 
+ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
++objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
  
  omapfb-objs := $(objs-yy)
-diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
+ 
+diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
 new file mode 100644
-index 0000000..1c3d814
+index 0000000..3165d3d
 --- /dev/null
-+++ b/drivers/video/omap/lcd_omap3evm.c
-@@ -0,0 +1,191 @@
++++ b/drivers/video/omap/lcd_mipid.c
+@@ -0,0 +1,631 @@
 +/*
-+ * LCD panel support for the TI OMAP3 EVM board
++ * LCD driver for MIPI DBI-C / DCS compatible LCDs
 + *
-+ * Author: Steve Sakoman <steve@sakoman.com>
-+ *
-+ * Derived from drivers/video/omap/lcd-apollon.c
++ * Copyright (C) 2006 Nokia Corporation
++ * Author: Imre Deak <imre.deak@nokia.com>
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License as published by the
@@ -80,176 +106,617 @@ index 0000000..1c3d814
 + * with this program; if not, write to the Free Software Foundation, Inc.,
 + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
++#include <linux/device.h>
++#include <linux/delay.h>
++#include <linux/workqueue.h>
++#include <linux/spi/spi.h>
 +
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/gpio.h>
-+#include <linux/i2c/twl4030.h>
-+
-+#include <mach/mux.h>
 +#include <mach/omapfb.h>
-+#include <asm/mach-types.h>
++#include <mach/lcd_mipid.h>
 +
-+#define LCD_PANEL_ENABLE_GPIO       153
-+#define LCD_PANEL_LR                2
-+#define LCD_PANEL_UD                3
-+#define LCD_PANEL_INI               152
-+#define LCD_PANEL_QVGA              154
-+#define LCD_PANEL_RESB              155
++#define MIPID_MODULE_NAME		"lcd_mipid"
 +
-+#define LCD_XRES	 	480
-+#define LCD_YRES 		640
-+#define LCD_PIXCLOCK		26000 /* in kHz  */
++#define MIPID_CMD_READ_DISP_ID		0x04
++#define MIPID_CMD_READ_RED		0x06
++#define MIPID_CMD_READ_GREEN		0x07
++#define MIPID_CMD_READ_BLUE		0x08
++#define MIPID_CMD_READ_DISP_STATUS	0x09
++#define MIPID_CMD_RDDSDR		0x0F
++#define MIPID_CMD_SLEEP_IN		0x10
++#define MIPID_CMD_SLEEP_OUT		0x11
++#define MIPID_CMD_DISP_OFF		0x28
++#define MIPID_CMD_DISP_ON		0x29
 +
-+#define ENABLE_VDAC_DEDICATED	0x03
-+#define ENABLE_VDAC_DEV_GRP	0x20
-+#define ENABLE_VPLL2_DEDICATED	0x05
-+#define ENABLE_VPLL2_DEV_GRP	0xE0
++#define MIPID_VER_LPH8923		3
++#define MIPID_VER_LS041Y3		4
 +
-+#define TWL_LED_LEDEN		0x00
-+#define TWL_PWMA_PWMAON		0x00
-+#define TWL_PWMA_PWMAOFF	0x01
++#define MIPID_ESD_CHECK_PERIOD		msecs_to_jiffies(5000)
 +
-+static unsigned int bklight_level;
++#define to_mipid_device(p)		container_of(p, struct mipid_device, \
++						panel)
++struct mipid_device {
++	int		enabled;
++	int		model;
++	int		revision;
++	u8		display_id[3];
++	unsigned int	saved_bklight_level;
++	unsigned long	hw_guard_end;		/* next value of jiffies
++						   when we can issue the
++						   next sleep in/out command */
++	unsigned long	hw_guard_wait;		/* max guard time in jiffies */
 +
-+static int omap3evm_panel_init(struct lcd_panel *panel,
-+				struct omapfb_device *fbdev)
++	struct omapfb_device	*fbdev;
++	struct spi_device	*spi;
++	struct mutex		mutex;
++	struct lcd_panel	panel;
++
++	struct workqueue_struct	*esd_wq;
++	struct delayed_work	esd_work;
++	void			(*esd_check)(struct mipid_device *m);
++};
++
++static void mipid_transfer(struct mipid_device *md, int cmd, const u8 *wbuf,
++			   int wlen, u8 *rbuf, int rlen)
 +{
-+	gpio_request(LCD_PANEL_LR, "LCD lr");
-+	gpio_request(LCD_PANEL_UD, "LCD ud");
-+	gpio_request(LCD_PANEL_INI, "LCD ini");
-+	gpio_request(LCD_PANEL_RESB, "LCD resb");
-+	gpio_request(LCD_PANEL_QVGA, "LCD qvga");
++	struct spi_message	m;
++	struct spi_transfer	*x, xfer[4];
++	u16			w;
++	int			r;
 +
-+	gpio_direction_output(LCD_PANEL_RESB, 1);
-+	gpio_direction_output(LCD_PANEL_INI, 1);
-+	gpio_direction_output(LCD_PANEL_QVGA, 0);
-+	gpio_direction_output(LCD_PANEL_LR, 1);
-+	gpio_direction_output(LCD_PANEL_UD, 1);
++	BUG_ON(md->spi == NULL);
 +
-+	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
-+	bklight_level = 100;
++	spi_message_init(&m);
 +
-+	return 0;
-+}
++	memset(xfer, 0, sizeof(xfer));
++	x = &xfer[0];
 +
-+static void omap3evm_panel_cleanup(struct lcd_panel *panel)
-+{
-+}
++	cmd &=  0xff;
++	x->tx_buf		= &cmd;
++	x->bits_per_word	= 9;
++	x->len			= 2;
++	spi_message_add_tail(x, &m);
 +
-+static int omap3evm_panel_enable(struct lcd_panel *panel)
-+{
-+	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 0);
-+	return 0;
-+}
-+
-+static void omap3evm_panel_disable(struct lcd_panel *panel)
-+{
-+	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 1);
-+}
-+
-+static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
-+						unsigned int level)
-+{
-+	u8 c;
-+	if ((level >= 0) && (level <= 100)) {
-+		c = (125 * (100 - level)) / 100 + 2;
-+		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
-+		bklight_level = level;
++	if (wlen) {
++		x++;
++		x->tx_buf		= wbuf;
++		x->len			= wlen;
++		x->bits_per_word	= 9;
++		spi_message_add_tail(x, &m);
 +	}
++
++	if (rlen) {
++		x++;
++		x->rx_buf	= &w;
++		x->len		= 1;
++		spi_message_add_tail(x, &m);
++
++		if (rlen > 1) {
++			/* Arrange for the extra clock before the first
++			 * data bit.
++			 */
++			x->bits_per_word = 9;
++			x->len		 = 2;
++
++			x++;
++			x->rx_buf	 = &rbuf[1];
++			x->len		 = rlen - 1;
++			spi_message_add_tail(x, &m);
++		}
++	}
++
++	r = spi_sync(md->spi, &m);
++	if (r < 0)
++		dev_dbg(&md->spi->dev, "spi_sync %d\n", r);
++
++	if (rlen)
++		rbuf[0] = w & 0xff;
++}
++
++static inline void mipid_cmd(struct mipid_device *md, int cmd)
++{
++	mipid_transfer(md, cmd, NULL, 0, NULL, 0);
++}
++
++static inline void mipid_write(struct mipid_device *md,
++			       int reg, const u8 *buf, int len)
++{
++	mipid_transfer(md, reg, buf, len, NULL, 0);
++}
++
++static inline void mipid_read(struct mipid_device *md,
++			      int reg, u8 *buf, int len)
++{
++	mipid_transfer(md, reg, NULL, 0, buf, len);
++}
++
++static void set_data_lines(struct mipid_device *md, int data_lines)
++{
++	u16 par;
++
++	switch (data_lines) {
++	case 16:
++		par = 0x150;
++		break;
++	case 18:
++		par = 0x160;
++		break;
++	case 24:
++		par = 0x170;
++		break;
++	}
++	mipid_write(md, 0x3a, (u8 *)&par, 2);
++}
++
++static void send_init_string(struct mipid_device *md)
++{
++	u16 initpar[] = { 0x0102, 0x0100, 0x0100 };
++
++	mipid_write(md, 0xc2, (u8 *)initpar, sizeof(initpar));
++	set_data_lines(md, md->panel.data_lines);
++}
++
++static void hw_guard_start(struct mipid_device *md, int guard_msec)
++{
++	md->hw_guard_wait = msecs_to_jiffies(guard_msec);
++	md->hw_guard_end = jiffies + md->hw_guard_wait;
++}
++
++static void hw_guard_wait(struct mipid_device *md)
++{
++	unsigned long wait = md->hw_guard_end - jiffies;
++
++	if ((long)wait > 0 && wait <= md->hw_guard_wait) {
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		schedule_timeout(wait);
++	}
++}
++
++static void set_sleep_mode(struct mipid_device *md, int on)
++{
++	int cmd, sleep_time = 50;
++
++	if (on)
++		cmd = MIPID_CMD_SLEEP_IN;
++	else
++		cmd = MIPID_CMD_SLEEP_OUT;
++	hw_guard_wait(md);
++	mipid_cmd(md, cmd);
++	hw_guard_start(md, 120);
++	/*
++	 * When we enable the panel, it seems we _have_ to sleep
++	 * 120 ms before sending the init string. When disabling the
++	 * panel we'll sleep for the duration of 2 frames, so that the
++	 * controller can still provide the PCLK,HS,VS signals.
++	 */
++	if (!on)
++		sleep_time = 120;
++	msleep(sleep_time);
++}
++
++static void set_display_state(struct mipid_device *md, int enabled)
++{
++	int cmd = enabled ? MIPID_CMD_DISP_ON : MIPID_CMD_DISP_OFF;
++
++	mipid_cmd(md, cmd);
++}
++
++static int mipid_set_bklight_level(struct lcd_panel *panel, unsigned int level)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++	struct mipid_platform_data *pd = md->spi->dev.platform_data;
++
++	if (pd->get_bklight_max == NULL || pd->set_bklight_level == NULL)
++		return -ENODEV;
++	if (level > pd->get_bklight_max(pd))
++		return -EINVAL;
++	if (!md->enabled) {
++		md->saved_bklight_level = level;
++		return 0;
++	}
++	pd->set_bklight_level(pd, level);
++
 +	return 0;
 +}
 +
-+static unsigned int omap3evm_bklight_getlevel(struct lcd_panel *panel)
++static unsigned int mipid_get_bklight_level(struct lcd_panel *panel)
 +{
-+	return bklight_level;
++	struct mipid_device *md = to_mipid_device(panel);
++	struct mipid_platform_data *pd = md->spi->dev.platform_data;
++
++	if (pd->get_bklight_level == NULL)
++		return -ENODEV;
++	return pd->get_bklight_level(pd);
 +}
 +
-+static unsigned int omap3evm_bklight_getmaxlevel(struct lcd_panel *panel)
++static unsigned int mipid_get_bklight_max(struct lcd_panel *panel)
 +{
-+	return 100;
++	struct mipid_device *md = to_mipid_device(panel);
++	struct mipid_platform_data *pd = md->spi->dev.platform_data;
++
++	if (pd->get_bklight_max == NULL)
++		return -ENODEV;
++
++	return pd->get_bklight_max(pd);
 +}
 +
-+struct lcd_panel omap3evm_panel = {
-+	.name		= "omap3evm",
-+	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-+			  OMAP_LCDC_INV_HSYNC,
++static unsigned long mipid_get_caps(struct lcd_panel *panel)
++{
++	return OMAPFB_CAPS_SET_BACKLIGHT;
++}
++
++static u16 read_first_pixel(struct mipid_device *md)
++{
++	u16 pixel;
++	u8 red, green, blue;
++
++	mutex_lock(&md->mutex);
++	mipid_read(md, MIPID_CMD_READ_RED, &red, 1);
++	mipid_read(md, MIPID_CMD_READ_GREEN, &green, 1);
++	mipid_read(md, MIPID_CMD_READ_BLUE, &blue, 1);
++	mutex_unlock(&md->mutex);
++
++	switch (md->panel.data_lines) {
++	case 16:
++		pixel = ((red >> 1) << 11) | (green << 5) | (blue >> 1);
++		break;
++	case 24:
++		/* 24 bit -> 16 bit */
++		pixel = ((red >> 3) << 11) | ((green >> 2) << 5) |
++			(blue >> 3);
++		break;
++	default:
++		pixel = 0;
++		BUG();
++	}
++
++	return pixel;
++}
++
++static int mipid_run_test(struct lcd_panel *panel, int test_num)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++	static const u16 test_values[4] = {
++		0x0000, 0xffff, 0xaaaa, 0x5555,
++	};
++	int i;
++
++	if (test_num != MIPID_TEST_RGB_LINES)
++		return MIPID_TEST_INVALID;
++
++	for (i = 0; i < ARRAY_SIZE(test_values); i++) {
++		int delay;
++		unsigned long tmo;
++
++		omapfb_write_first_pixel(md->fbdev, test_values[i]);
++		tmo = jiffies + msecs_to_jiffies(100);
++		delay = 25;
++		while (1) {
++			u16 pixel;
++
++			msleep(delay);
++			pixel = read_first_pixel(md);
++			if (pixel == test_values[i])
++				break;
++			if (time_after(jiffies, tmo)) {
++				dev_err(&md->spi->dev,
++					"MIPI LCD RGB I/F test failed: "
++					"expecting %04x, got %04x\n",
++					test_values[i], pixel);
++				return MIPID_TEST_FAILED;
++			}
++			delay = 10;
++		}
++	}
++
++	return 0;
++}
++
++static void ls041y3_esd_recover(struct mipid_device *md)
++{
++	dev_err(&md->spi->dev, "performing LCD ESD recovery\n");
++	set_sleep_mode(md, 1);
++	set_sleep_mode(md, 0);
++}
++
++static void ls041y3_esd_check_mode1(struct mipid_device *md)
++{
++	u8 state1, state2;
++
++	mipid_read(md, MIPID_CMD_RDDSDR, &state1, 1);
++	set_sleep_mode(md, 0);
++	mipid_read(md, MIPID_CMD_RDDSDR, &state2, 1);
++	dev_dbg(&md->spi->dev, "ESD mode 1 state1 %02x state2 %02x\n",
++		state1, state2);
++	/* Each sleep out command will trigger a self diagnostic and flip
++	* Bit6 if the test passes.
++	*/
++	if (!((state1 ^ state2) & (1 << 6)))
++		ls041y3_esd_recover(md);
++}
++
++static void ls041y3_esd_check_mode2(struct mipid_device *md)
++{
++	int i;
++	u8 rbuf[2];
++	static const struct {
++		int	cmd;
++		int	wlen;
++		u16	wbuf[3];
++	} *rd, rd_ctrl[7] = {
++		{ 0xb0, 4, { 0x0101, 0x01fe, } },
++		{ 0xb1, 4, { 0x01de, 0x0121, } },
++		{ 0xc2, 4, { 0x0100, 0x0100, } },
++		{ 0xbd, 2, { 0x0100, } },
++		{ 0xc2, 4, { 0x01fc, 0x0103, } },
++		{ 0xb4, 0, },
++		{ 0x00, 0, },
++	};
++
++	rd = rd_ctrl;
++	for (i = 0; i < 3; i++, rd++)
++		mipid_write(md, rd->cmd, (u8 *)rd->wbuf, rd->wlen);
++
++	udelay(10);
++	mipid_read(md, rd->cmd, rbuf, 2);
++	rd++;
++
++	for (i = 0; i < 3; i++, rd++) {
++		udelay(10);
++		mipid_write(md, rd->cmd, (u8 *)rd->wbuf, rd->wlen);
++	}
++
++	dev_dbg(&md->spi->dev, "ESD mode 2 state %02x\n", rbuf[1]);
++	if (rbuf[1] == 0x00)
++		ls041y3_esd_recover(md);
++}
++
++static void ls041y3_esd_check(struct mipid_device *md)
++{
++	ls041y3_esd_check_mode1(md);
++	if (md->revision >= 0x88)
++		ls041y3_esd_check_mode2(md);
++}
++
++static void mipid_esd_start_check(struct mipid_device *md)
++{
++	if (md->esd_check != NULL)
++		queue_delayed_work(md->esd_wq, &md->esd_work,
++				   MIPID_ESD_CHECK_PERIOD);
++}
++
++static void mipid_esd_stop_check(struct mipid_device *md)
++{
++	if (md->esd_check != NULL)
++		cancel_rearming_delayed_workqueue(md->esd_wq, &md->esd_work);
++}
++
++static void mipid_esd_work(struct work_struct *work)
++{
++	struct mipid_device *md = container_of(work, struct mipid_device,
++					       esd_work.work);
++
++	mutex_lock(&md->mutex);
++	md->esd_check(md);
++	mutex_unlock(&md->mutex);
++	mipid_esd_start_check(md);
++}
++
++static int mipid_enable(struct lcd_panel *panel)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++
++	mutex_lock(&md->mutex);
++
++	if (md->enabled) {
++		mutex_unlock(&md->mutex);
++		return 0;
++	}
++	set_sleep_mode(md, 0);
++	md->enabled = 1;
++	send_init_string(md);
++	set_display_state(md, 1);
++	mipid_set_bklight_level(panel, md->saved_bklight_level);
++	mipid_esd_start_check(md);
++
++	mutex_unlock(&md->mutex);
++	return 0;
++}
++
++static void mipid_disable(struct lcd_panel *panel)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++
++	/*
++	 * A final ESD work might be called before returning,
++	 * so do this without holding the lock.
++	 */
++	mipid_esd_stop_check(md);
++	mutex_lock(&md->mutex);
++
++	if (!md->enabled) {
++		mutex_unlock(&md->mutex);
++		return;
++	}
++	md->saved_bklight_level = mipid_get_bklight_level(panel);
++	mipid_set_bklight_level(panel, 0);
++	set_display_state(md, 0);
++	set_sleep_mode(md, 1);
++	md->enabled = 0;
++
++	mutex_unlock(&md->mutex);
++}
++
++static int panel_enabled(struct mipid_device *md)
++{
++	u32 disp_status;
++	int enabled;
++
++	mipid_read(md, MIPID_CMD_READ_DISP_STATUS, (u8 *)&disp_status, 4);
++	disp_status = __be32_to_cpu(disp_status);
++	enabled = (disp_status & (1 << 17)) && (disp_status & (1 << 10));
++	dev_dbg(&md->spi->dev,
++		"LCD panel %senabled by bootloader (status 0x%04x)\n",
++		enabled ? "" : "not ", disp_status);
++	return enabled;
++}
++
++static int mipid_init(struct lcd_panel *panel,
++			    struct omapfb_device *fbdev)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++
++	md->fbdev = fbdev;
++	md->esd_wq = create_singlethread_workqueue("mipid_esd");
++	if (md->esd_wq == NULL) {
++		dev_err(&md->spi->dev, "can't create ESD workqueue\n");
++		return -ENOMEM;
++	}
++	INIT_DELAYED_WORK(&md->esd_work, mipid_esd_work);
++	mutex_init(&md->mutex);
++
++	md->enabled = panel_enabled(md);
++
++	if (md->enabled)
++		mipid_esd_start_check(md);
++	else
++		md->saved_bklight_level = mipid_get_bklight_level(panel);
++
++	return 0;
++}
++
++static void mipid_cleanup(struct lcd_panel *panel)
++{
++	struct mipid_device *md = to_mipid_device(panel);
++
++	if (md->enabled)
++		mipid_esd_stop_check(md);
++	destroy_workqueue(md->esd_wq);
++}
++
++static struct lcd_panel mipid_panel = {
++	.config		= OMAP_LCDC_PANEL_TFT,
 +
 +	.bpp		= 16,
-+	.data_lines	= 18,
-+	.x_res		= LCD_XRES,
-+	.y_res		= LCD_YRES,
-+	.hsw		= 3,		/* hsync_len (4) - 1 */
-+	.hfp		= 3,		/* right_margin (4) - 1 */
-+	.hbp		= 39,		/* left_margin (40) - 1 */
-+	.vsw		= 1,		/* vsync_len (2) - 1 */
-+	.vfp		= 2,		/* lower_margin */
-+	.vbp		= 7,		/* upper_margin (8) - 1 */
++	.x_res		= 800,
++	.y_res		= 480,
++	.pixel_clock	= 21940,
++	.hsw		= 50,
++	.hfp		= 20,
++	.hbp		= 15,
++	.vsw		= 2,
++	.vfp		= 1,
++	.vbp		= 3,
 +
-+	.pixel_clock	= LCD_PIXCLOCK,
-+
-+	.init		= omap3evm_panel_init,
-+	.cleanup	= omap3evm_panel_cleanup,
-+	.enable		= omap3evm_panel_enable,
-+	.disable	= omap3evm_panel_disable,
-+	.get_caps	= omap3evm_panel_get_caps,
-+	.set_bklight_level      = omap3evm_bklight_setlevel,
-+	.get_bklight_level      = omap3evm_bklight_getlevel,
-+	.get_bklight_max        = omap3evm_bklight_getmaxlevel,
++	.init			= mipid_init,
++	.cleanup		= mipid_cleanup,
++	.enable			= mipid_enable,
++	.disable		= mipid_disable,
++	.get_caps		= mipid_get_caps,
++	.set_bklight_level	= mipid_set_bklight_level,
++	.get_bklight_level	= mipid_get_bklight_level,
++	.get_bklight_max	= mipid_get_bklight_max,
++	.run_test		= mipid_run_test,
 +};
 +
-+static int omap3evm_panel_probe(struct platform_device *pdev)
++static int mipid_detect(struct mipid_device *md)
 +{
-+	omapfb_register_panel(&omap3evm_panel);
++	struct mipid_platform_data *pdata;
++
++	pdata = md->spi->dev.platform_data;
++	if (pdata == NULL) {
++		dev_err(&md->spi->dev, "missing platform data\n");
++		return -ENOENT;
++	}
++
++	mipid_read(md, MIPID_CMD_READ_DISP_ID, md->display_id, 3);
++	dev_dbg(&md->spi->dev, "MIPI display ID: %02x%02x%02x\n",
++		md->display_id[0], md->display_id[1], md->display_id[2]);
++
++	switch (md->display_id[0]) {
++	case 0x45:
++		md->model = MIPID_VER_LPH8923;
++		md->panel.name = "lph8923";
++		break;
++	case 0x83:
++		md->model = MIPID_VER_LS041Y3;
++		md->panel.name = "ls041y3";
++		md->esd_check = ls041y3_esd_check;
++		break;
++	default:
++		md->panel.name = "unknown";
++		dev_err(&md->spi->dev, "invalid display ID\n");
++		return -ENODEV;
++	}
++
++	md->revision = md->display_id[1];
++	md->panel.data_lines = pdata->data_lines;
++	pr_info("omapfb: %s rev %02x LCD detected, %d data lines\n",
++			md->panel.name, md->revision, md->panel.data_lines);
++
 +	return 0;
 +}
 +
-+static int omap3evm_panel_remove(struct platform_device *pdev)
++static int mipid_spi_probe(struct spi_device *spi)
 +{
++	struct mipid_device *md;
++	int r;
++
++	md = kzalloc(sizeof(*md), GFP_KERNEL);
++	if (md == NULL) {
++		dev_err(&spi->dev, "out of memory\n");
++		return -ENOMEM;
++	}
++
++	spi->mode = SPI_MODE_0;
++	md->spi = spi;
++	dev_set_drvdata(&spi->dev, md);
++	md->panel = mipid_panel;
++
++	r = mipid_detect(md);
++	if (r < 0)
++		return r;
++
++	omapfb_register_panel(&md->panel);
++
 +	return 0;
 +}
 +
-+static int omap3evm_panel_suspend(struct platform_device *pdev,
-+				   pm_message_t mesg)
++static int mipid_spi_remove(struct spi_device *spi)
 +{
++	struct mipid_device *md = dev_get_drvdata(&spi->dev);
++
++	mipid_disable(&md->panel);
++	kfree(md);
++
 +	return 0;
 +}
 +
-+static int omap3evm_panel_resume(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+struct platform_driver omap3evm_panel_driver = {
-+	.probe		= omap3evm_panel_probe,
-+	.remove		= omap3evm_panel_remove,
-+	.suspend	= omap3evm_panel_suspend,
-+	.resume		= omap3evm_panel_resume,
-+	.driver		= {
-+		.name	= "omap3evm_lcd",
++static struct spi_driver mipid_spi_driver = {
++	.driver = {
++		.name	= MIPID_MODULE_NAME,
++		.bus	= &spi_bus_type,
 +		.owner	= THIS_MODULE,
 +	},
++	.probe	= mipid_spi_probe,
++	.remove	= __devexit_p(mipid_spi_remove),
 +};
 +
-+static int __init omap3evm_panel_drv_init(void)
++static int mipid_drv_init(void)
 +{
-+	return platform_driver_register(&omap3evm_panel_driver);
-+}
++	spi_register_driver(&mipid_spi_driver);
 +
-+static void __exit omap3evm_panel_drv_exit(void)
++	return 0;
++}
++module_init(mipid_drv_init);
++
++static void mipid_drv_cleanup(void)
 +{
-+	platform_driver_unregister(&omap3evm_panel_driver);
++	spi_unregister_driver(&mipid_spi_driver);
 +}
++module_exit(mipid_drv_cleanup);
 +
-+module_init(omap3evm_panel_drv_init);
-+module_exit(omap3evm_panel_drv_exit);
++MODULE_DESCRIPTION("MIPI display driver");
++MODULE_LICENSE("GPL");
 -- 
 1.6.3.1
 
