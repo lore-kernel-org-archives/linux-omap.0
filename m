@@ -1,65 +1,47 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH 15/20] omapfb: dispc: Enable wake up capability
-Date: Thu,  4 Jun 2009 20:52:40 +0300
-Message-ID: <36ddd74a50b8c225b2c571035c67dbff4686b881.1244131952.git.imre.deak@nokia.com>
-References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
- <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
- <e7f92ea9f0a823f7be401e34243754141b7f72c1.1244131952.git.imre.deak@nokia.com>
- <e9040774f324311979aebd3fa5fa71d20890d433.1244131952.git.imre.deak@nokia.com>
- <833ed44e61e3d4093eb27b55b97252967e042d41.1244131952.git.imre.deak@nokia.com>
- <5ba715a9dbc88b8c3a8225bc1cfdabd3faffe00f.1244131952.git.imre.deak@nokia.com>
- <646692ce09a12e1a8a2d4072097b4d440b7de5d5.1244131952.git.imre.deak@nokia.com>
- <b0e578438bb53d9fbf333e5bd10d4d33f869b373.1244131952.git.imre.deak@nokia.com>
- <9139035cc12b22600135677cd5d3096c1dcd286d.1244131952.git.imre.deak@nokia.com>
- <08ba068bda363adf4cb8a1f5afe11245c828d017.1244131952.git.imre.deak@nokia.com>
- <057471246e776de4c452b4ba2ebf2a4579f3171c.1244131952.git.imre.deak@nokia.com>
- <310d4aa52bfd6dd15664286643ca8a9703787dce.1244131952.git.imre.deak@nokia.com>
- <5dfa68a13340c793f25f12815e5055f9c2eda1a5.1244131952.git.imre.deak@nokia.com>
- <d5cd6aebac66e8e03a244a63bf60e21237ff32a0.1244131952.git.imre.deak@nokia.com>
- <d83034cc97924164ca9949fee84bfb480ad5c806.1244131952.git.imre.deak@nokia.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Please help on testing new sound driver for OMAP1510 based machine
+Date: Thu, 4 Jun 2009 20:07:43 +0200
+Message-ID: <200906042007.45302.jkrzyszt@tis.icnet.pl>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38818 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708AbZFDR5N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 13:57:13 -0400
-In-Reply-To: <d83034cc97924164ca9949fee84bfb480ad5c806.1244131952.git.imre.deak@nokia.com>
-In-Reply-To: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
-References: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
+Received: from d1.icnet.pl ([212.160.220.21]:49874 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750858AbZFDSIT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 4 Jun 2009 14:08:19 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Antonino Daplas <adaplas@gmail.com>
-Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>, Imre Deak <imre.deak@nokia.com>
+To: linux-omap@vger.kernel.org
 
-From: Jouni Hogander <jouni.hogander@nokia.com>
+Hi,
 
-Without wakeup enable omap doesn't wake up on dispc interrupts. This
-causes problems in a case where mpu is in sleep state and dispc
-interrupt fires.
+As some of you may have already noticed, I am trying to create a sound driver 
+for ams-delta board, based on ASoC OMAP framework. AFAIK, this would be the 
+first ASoC implementation for OMAP1510/5910 based board. Unfortunatelly, I am 
+not able to get DMA interrupts working.
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-Signed-off-by: Imre Deak <imre.deak@nokia.com>
----
- drivers/video/omap/dispc.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+It would be much easier to find the reason of the problem if there were 
+already working ASoC OMAP implementations for other OMAP1510/5910 based 
+boards. As there is none yet, I would be willing to spend my time on creating 
+one for a board with a former, omap-alsa based working sound driver, if I 
+could only find someone who has such device on hand, knows how to boot a 
+custom kernel and would like spend some time on testing my patches.
 
-diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-index cc3c817..9adf54e 100644
---- a/drivers/video/omap/dispc.c
-+++ b/drivers/video/omap/dispc.c
-@@ -1395,10 +1395,10 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
- 		enable_digit_clocks(0);
- 	}
- 
--	/* Enable smart idle and autoidle */
-+	/* Enable smart standby/idle, autoidle and wakeup */
- 	l = dispc_read_reg(DISPC_SYSCONFIG);
- 	l &= ~((3 << 12) | (3 << 3));
--	l |= (2 << 12) | (2 << 3) | (1 << 0);
-+	l |= (2 << 12) | (2 << 3) | (1 << 2) | (1 << 0);
- 	dispc_write_reg(DISPC_SYSCONFIG, l);
- 	omap_writel(1 << 0, DSS_BASE + DSS_SYSCONFIG);
- 
--- 
-1.6.3.1
+AFAICS, there were following OMAP1510/5910 based machines supoorted by 
+omap-alsa:
+- OMAP-1510 Innovator (AIC23 codec),
+- Palm Tungsten E,
+- Palm Tungsten T (AIC23 codec),
+- Palm Zire71 (AIC23 codec),
+- Siemens SX1.
+It would be better to start with a machine that has AIC23 codec on board, as 
+this codec is already supported by current ASoC framework.
 
+If you know of someone who has access to one of those devices and would like 
+to help, please ask him to drop me a message.
+
+Cheers,
+Janusz
