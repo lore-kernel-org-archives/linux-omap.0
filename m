@@ -1,41 +1,40 @@
-From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Subject: Re: [Linux-fbdev-devel] [PATCH 00/20] omapfb: Add support for new
- LCDs / misc fixes
-Date: Thu, 4 Jun 2009 23:00:01 +0200
-Message-ID: <20090604230001.27e12af8.krzysztof.h1@poczta.fm>
-References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: DSS porting problems
+Date: Thu, 04 Jun 2009 15:22:00 -0600
+Message-ID: <4A283AF8.5010301@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp239.poczta.interia.pl ([217.74.64.239]:38072 "EHLO
-	smtp239.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751329AbZFDUws (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 16:52:48 -0400
-In-Reply-To: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:4723 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573AbZFDVWC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 17:22:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Imre Deak <imre.deak@nokia.com>
-Cc: Antonino Daplas <adaplas@gmail.com>, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Thu,  4 Jun 2009 20:52:25 +0300
-Imre Deak <imre.deak@nokia.com> wrote:
+I'm porting my platform (3530, very similar to LDP) to your tree.
+  http://www.bat.org/~tomba/git/linux-omap-dss.git
+Since you have complete support for the 3430SDP, I started with
+that board file.  I've added my own display (larger Hitachi
+screen that is 800x600).  I've run into a few problems:
 
-> Hi,
-> 
-> I'd like to ask for the merging of this patchset into Linus' tree.
-> It adds support for new LCDs on OMAP based boards (01-12) and fixes
-> generic parts of the omapfb driver (13-20). The changes have been
-> staged in the Linux OMAP tree for quite a long time, so they should
-> be safe to be merged.
-> 
+* All output to the main frame buffer (/dev/fb0) seems to go to
+the very last line of the display.
 
-I will review your patches over next weekend.
+* The documentation (Documentation/arm/OMAP/DSS) does not seem
+to match what's in sysfs.  In particular, there are no "horizontal"
+or "vertical" fields in the displayN tree.  This makes the examples
+of how to clone, etc, not work.
 
-Best regards,
-Krzysztof
+Any ideas what I should look at?
 
-----------------------------------------------------------------------
-Dodaj ogloszenie motoryzacyjne za 0 zl! Tylko na mobile.interia.pl
-Sprawdz >>> http://link.interia.pl/f21b7
+Thanks
 
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
