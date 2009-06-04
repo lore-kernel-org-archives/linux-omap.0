@@ -1,52 +1,50 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: 2 new entries in SDRC table for Qimonda
- HYB18M512160AF-6
-Date: Thu, 4 Jun 2009 17:26:46 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030587250F@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.0906021834050.31531@utopia.booyaka.com>
+From: "Can Bal" <canbal@ee.bilkent.edu.tr>
+Subject: DSP MMU Fault
+Date: Thu, 4 Jun 2009 14:53:56 +0300 (EEST)
+Message-ID: <44449.139.179.13.76.1244116436.squirrel@newmail.bilkent.edu.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60136 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752177AbZFDL4y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 07:56:54 -0400
-In-Reply-To: <alpine.DEB.2.00.0906021834050.31531@utopia.booyaka.com>
-Content-Language: en-US
+Received: from ispinoz.bcc.bilkent.edu.tr ([139.179.10.240]:45973 "EHLO
+	ispinoz.bcc.bilkent.edu.tr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753342AbZFDMAm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 08:00:42 -0400
+Received: from newmail.bilkent.edu.tr (unknown [192.168.10.203])
+	by ispinoz.bcc.bilkent.edu.tr (Postfix) with ESMTP id 73B286927
+	for <linux-omap@vger.kernel.org>; Thu,  4 Jun 2009 14:53:52 +0300 (EEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Ok.. thanks. I just saw this missing in the PM branch and
-hence posted this. 
+Hi everyone,
 
->-----Original Message-----
->From: Paul Walmsley [mailto:paul@pwsan.com] 
->Sent: Wednesday, June 03, 2009 6:06 AM
->To: Nayak, Rajendra
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH] OMAP3: PM: 2 new entries in SDRC table 
->for Qimonda HYB18M512160AF-6
->
->Hello Rajendra,
->
->On Mon, 1 Jun 2009, Rajendra Nayak wrote:
->
->> This patch adds 2 more entries for new SDRC clock rates
->> (166000000 and 83000000) in the sdrc params table for
->> Qimonda HYB18M512160AF-6 sdram part.
->> Without this CORE dvfs is broken on the 3430SDP as
->> omap2_sdrc_get_params() call in the dvfs sequence
->> always return 'rate not found'
->> 
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->
->Commit ID c82881eac1c6999abd768c548ad196c1973d3a55 on l-o master has 
->resolved this.
->
->
->- Paul
->
->
+I'm implementing a code on DSP but at the time I do a memory allocation at
+the DSP side as:
+
+short *a;
+a = malloc(192); // (short*)malloc(192) does not work either
+
+But at this line I get the following error and DSP fails afterwards. Then
+I need to reboot until I can run the application again.
+
+<6>***** DSPMMU FAULT ***** IRQStatus 0x2
+***** DSPMMU FAULT ***** IRQStatus 0x2
+<6>***** DSPMMU FAULT ***** faultAddr 0x230674a0
+***** DSPMMU FAULT ***** faultAddr 0x230674a0
+<6>WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
+WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
+<6>WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
+WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
+<6>WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
+WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
+<6>WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
+WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
+<6>WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
+WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
+
+Do you have any ideas why this might be happening and how to fix it?
+Thanks a lot.
+
+Can
+
