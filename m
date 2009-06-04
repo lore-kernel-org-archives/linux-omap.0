@@ -1,40 +1,53 @@
-From: Jagadeesh Bhaskar Pakaravoor <jagadeeshbp-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH][RFC] OMAP4: I2C Support for OMAP_4430SDP
-Date: Thu, 4 Jun 2009 16:41:36 -0500
-Message-ID: <561678670906041441y4c592e61h71fd3cf6869bcf46@mail.gmail.com>
-References: <55272.192.168.10.89.1243607905.squirrel@dbdmail.itg.ti.com>
-	 <878wkghqzi.fsf@deeprootsystems.com>
-	 <782515bb0905291052h1d70be5em7cfdeeda903c39fc@mail.gmail.com>
+From: "Wang Sawsd-A24013" <cqwang@motorola.com>
+Subject: RE: [PATCH] OMAP2/3 Avoid GPIO pending irq status been set after irq_disable
+Date: Fri, 5 Jun 2009 05:58:18 +0800
+Message-ID: <B00E06E2766C2744B022DE9BAF3C59D5372B9F@zmy16exm69.ds.mot.com>
+References: <87fxeffzno.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <782515bb0905291052h1d70be5em7cfdeeda903c39fc-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nishanth Menon <menon.nishanth-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Syed Rafiuddin <rafiuddin.syed-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail153.messagelabs.com ([216.82.253.51]:26521 "EHLO
+	mail153.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751509AbZFDV7A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 17:59:00 -0400
+Received: from il06exr03.mot.com (il06exr03.mot.com [129.188.137.133])
+	by motgate8.mot.com (8.14.3/8.14.3) with ESMTP id n54Lx0l3017720
+	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 14:59:00 -0700 (MST)
+Received: from il06vts02.mot.com (il06vts02.mot.com [129.188.137.142])
+	by il06exr03.mot.com (8.13.1/Vontu) with SMTP id n54Lx0Pv016885
+	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 16:59:00 -0500 (CDT)
+Received: from zmy16exm69.ds.mot.com (zmy16exm69.ap.mot.com [10.179.4.36])
+	by il06exr03.mot.com (8.13.1/8.13.0) with ESMTP id n54Lwxwp016875
+	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 16:59:00 -0500 (CDT)
+Content-class: urn:content-classes:message
+In-Reply-To: <87fxeffzno.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, Mike Chan <mikechan@google.com>
 
-> why is this 2600? omap3 could do 3.3Mhz.
->
-There is a silicon issue reported on TWL5030 which says that it can
-not operate at the stipulated highest frequency of 3.3MHz.
+ 
+> What do you think about disabling the level/edge detection when
+> disable_irq_wake() is called instead?  This seems more logical
+> and expected.
+Kevin, if we look at the current code, enable_irq_wake and
+disable_irq_wake
+Does not even touch any GPIO WAKEEN register, it seems it is intended
+To just log the gpio bit and enable its WAKEUP and IOPAD wakeup
+when suspend happens. And also, enable_irq_wake/disable_irq_wake
+Are designed to be able used when both IRQ is enabled AND disabled,
+In another words, enable_irq_wake may be called after irq_disable,
+Disable_irq_wake may be called after irq_enable, if we change
+Level/edge detect then it may cause either IRQ never happen
+After irq_enable, or IRQ staus bit also set after irq_disable. Since
+The root reason is the level/edge detect can cause IRQ status, it
+Is related with IRQ, not wakeup.
 
-The information I got is this:
-"I2C data hold time in HS mode is higher than specification when
-reading I2C registers. This leads to a data setup issue which
-introduces a frequency limitation in HS mode (can not reach 3.4MHz as
-specified in I2C standard). The limitation is for the Control I2C, and
-for SmartReflex I2C when using other products than OMAP34xx with SR.
-HS mode is working OK for SR I2C when using OMAP34xx."
-
---=20
-With regards,
-
-Jagadeesh Bhaskar P
---------------------
-Bugs are by far the largest and most successful class of entity, with
-nearly a million known species. In this respect they outnumber all the
-other known creatures about four to one.
-=97Professor Snopes' Encyclopedia of Animal Life
--------
+What do you think?
+> 
+> Kevin
+> 
+> P.S., are you wanting to use your touchscreen as a wakeup source?
+> 
