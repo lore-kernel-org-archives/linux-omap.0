@@ -1,7 +1,7 @@
 From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH 20/20] omapfb: HWA742: fix pointer to be const
-Date: Thu,  4 Jun 2009 20:52:45 +0300
-Message-ID: <453d7f9a2fc8ca4bdbd3b4205ec9f9fcb2eafb30.1244131952.git.imre.deak@nokia.com>
+Subject: [PATCH 19/20] omapfb: Add FB manual update option to Kconfig
+Date: Thu,  4 Jun 2009 20:52:44 +0300
+Message-ID: <06b710348c4bdd4929e4d270ef29155214ca2a4a.1244131952.git.imre.deak@nokia.com>
 References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
  <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
  <e7f92ea9f0a823f7be401e34243754141b7f72c1.1244131952.git.imre.deak@nokia.com>
@@ -21,42 +21,92 @@ References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
  <024fee28b6c89decf0d50747127db8fc61ac789e.1244131952.git.imre.deak@nokia.com>
  <20541a2436ab1399a93c28197244bb05e8657859.1244131952.git.imre.deak@nokia.com>
  <63e0213f6444a9d3c99c659dbef14207e8756b37.1244131952.git.imre.deak@nokia.com>
- <06b710348c4bdd4929e4d270ef29155214ca2a4a.1244131952.git.imre.deak@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38764 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:38817 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751368AbZFDR4y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 13:56:54 -0400
-In-Reply-To: <06b710348c4bdd4929e4d270ef29155214ca2a4a.1244131952.git.imre.deak@nokia.com>
+	with ESMTP id S1751768AbZFDR5N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 13:57:13 -0400
+In-Reply-To: <63e0213f6444a9d3c99c659dbef14207e8756b37.1244131952.git.imre.deak@nokia.com>
 In-Reply-To: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 References: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Antonino Daplas <adaplas@gmail.com>
-Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Imre Deak <imre.deak@nokia.com>, linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Imre Deak <imre.deak@nokia.com>
 
-Fixes the following:
-warning: assignment discards qualifiers from pointer target type
+Also move the controller specific options up in the menu, to a more
+logical spot.
 
-CC: linux-arm-kernel@lists.arm.linux.org.uk
 Signed-off-by: Imre Deak <imre.deak@nokia.com>
 ---
- drivers/video/omap/hwa742.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/video/omap/Kconfig |   49 ++++++++++++++++++++++++++-----------------
+ 1 files changed, 30 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/video/omap/hwa742.c b/drivers/video/omap/hwa742.c
-index 8aa6e47..7bbd4c7 100644
---- a/drivers/video/omap/hwa742.c
-+++ b/drivers/video/omap/hwa742.c
-@@ -131,7 +131,7 @@ struct {
+diff --git a/drivers/video/omap/Kconfig b/drivers/video/omap/Kconfig
+index 2bffc07..551e3e9 100644
+--- a/drivers/video/omap/Kconfig
++++ b/drivers/video/omap/Kconfig
+@@ -32,6 +32,36 @@ config FB_OMAP_092M9R
  
- 	struct omapfb_device	*fbdev;
- 	struct lcd_ctrl_extif	*extif;
--	struct lcd_ctrl		*int_ctrl;
-+	const struct lcd_ctrl	*int_ctrl;
+ endchoice
  
- 	void			(*power_up)(struct device *dev);
- 	void			(*power_down)(struct device *dev);
++config FB_OMAP_LCDC_EXTERNAL
++	bool "External LCD controller support"
++	depends on FB_OMAP
++	help
++	  Say Y here, if you want to have support for boards with an
++	  external LCD controller connected to the SoSSI/RFBI interface.
++
++config FB_OMAP_LCDC_HWA742
++	bool "Epson HWA742 LCD controller support"
++	depends on FB_OMAP && FB_OMAP_LCDC_EXTERNAL
++	help
++	  Say Y here if you want to have support for the external
++	  Epson HWA742 LCD controller.
++
++config FB_OMAP_LCDC_BLIZZARD
++	bool "Epson Blizzard LCD controller support"
++	depends on FB_OMAP && FB_OMAP_LCDC_EXTERNAL
++	help
++	  Say Y here if you want to have support for the external
++	  Epson Blizzard LCD controller.
++
++config FB_OMAP_MANUAL_UPDATE
++	bool "Default to manual update mode"
++	depends on FB_OMAP && FB_OMAP_LCDC_EXTERNAL
++	help
++	  Say Y here, if your user-space applications are capable of
++	  notifying the frame buffer driver when a change has occured in
++	  the frame buffer content and thus a reload of the image data to
++	  the external frame buffer is required. If unsure, say N.
++
+ config FB_OMAP_LCD_MIPID
+ 	bool "MIPI DBI-C/DCS compatible LCD support"
+ 	depends on FB_OMAP && SPI_MASTER
+@@ -69,23 +99,4 @@ config FB_OMAP_DMA_TUNE
+           answer yes. Answer no if you have a dedicated video
+           memory, or don't use any of the accelerated features.
+ 
+-config FB_OMAP_LCDC_EXTERNAL
+-	bool "External LCD controller support"
+-	depends on FB_OMAP
+-	help
+-	  Say Y here, if you want to have support for boards with an
+-	  external LCD controller connected to the SoSSI/RFBI interface.
+ 
+-config FB_OMAP_LCDC_HWA742
+-	bool "Epson HWA742 LCD controller support"
+-	depends on FB_OMAP && FB_OMAP_LCDC_EXTERNAL
+-	help
+-	  Say Y here if you want to have support for the external
+-	  Epson HWA742 LCD controller.
+-
+-config FB_OMAP_LCDC_BLIZZARD
+-	bool "Epson Blizzard LCD controller support"
+-	depends on FB_OMAP && FB_OMAP_LCDC_EXTERNAL
+-	help
+-	  Say Y here if you want to have support for the external
+-	  Epson Blizzard LCD controller.
 -- 
 1.6.3.1
 
