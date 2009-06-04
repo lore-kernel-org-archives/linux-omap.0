@@ -1,74 +1,98 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][PATCH] Add support for hook switch on ams-delta
-Date: Fri, 5 Jun 2009 00:07:11 +0200
-Message-ID: <200906050007.12019.jkrzyszt@tis.icnet.pl>
-References: <200905262057.21890.jkrzyszt@tis.icnet.pl> <200906031103.21758.jkrzyszt@tis.icnet.pl> <20090604181833.GG31770@earth.li>
+From: "Can Bal" <canbal@ee.bilkent.edu.tr>
+Subject: RE: DSP MMU Fault
+Date: Fri, 5 Jun 2009 01:14:48 +0300 (EEST)
+Message-ID: <50125.78.164.152.255.1244153688.squirrel@newmail.bilkent.edu.tr>
+References: <44449.139.179.13.76.1244116436.squirrel@newmail.bilkent.edu.tr>
+    <8F7AF80515AF0D4D93307E594F3CB40E2F13B302@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20090604181833.GG31770@earth.li>
-Content-Disposition: inline
-Sender: linux-input-owner@vger.kernel.org
-To: Jonathan McDowell <noodles@earth.li>
-Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ispinoz.bcc.bilkent.edu.tr ([139.179.10.240]:43789 "EHLO
+	ispinoz.bcc.bilkent.edu.tr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751823AbZFDWOk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 18:14:40 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E2F13B302@dlee03.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: Can Bal <canbal@ee.bilkent.edu.tr>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Hari,
 
-Thursday 04 June 2009 20:18:33 Jonathan McDowell napisa=C5=82(a):
-> On Wed, Jun 03, 2009 at 11:03:20AM +0200, Janusz Krzysztofik wrote:
-> > Wednesday 03 June 2009 00:04:33 Jonathan McDowell napisa=C5=82(a):
-> >
-> > > * We assume the bootloader does the appropriate GPIO pin setup fo=
-r us,
-> > >   so I don't think your omap_cfg_reg is required but it doesn't h=
-urt in
-> > >   the unlikely event we ever replace the Amstrad PBL.
-> >
-> > OK, let it stay there. Do you see a need for replaceing it with a n=
-ew
-> > ams_delta_hook_switch_init() function call that just calls
-> > omap_cfg_reg()?
+How can I map the address? At what part do I specify these mappings;
+bridge installation, at DSP side program (with the tci file etc.)? By the
+way just before that in the program I do a malloc(32) to another short
+pointer but |it doesn't return any errors?
+
+Please forgive me if this is a trivial question but I'm just learning the
+DSP programming. Thanks a lot.
+
+Best regards,
+Can
+
+
+> Hi Can,
 >
-> I don't see a need for this; it's always present and not a lot of cod=
-e
-> to have in the init function as it stands.
-
-=46ine, I'll only add a comment explainig the purpose of the call then.
-
-> > >   Does the input layer not provide a way to obtain the
-> > >   state of the switch?
-> >
-> > Yes, it does, with EVIOCGSW ioctl()[1]. I personally don't like thi=
-s way
-> > of getting the switch status and would rather see it available over
-> > sysfs. However, input guys may have their own preferences and gpio-=
-keys
-> > driver belongs to them.
+>> Do you have any ideas why this might be happening and how to fix it?
+>> Thanks a lot.
 >
-> I think that's a discussion to have with the input guys rather than
-> putting a hack in the platform file then.
+> Most probably you might not have mapped the address 0x230674a0.
+>
+>
+> Thank you,
+> Best regards,
+> Hari
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Can Bal
+>> Sent: Thursday, June 04, 2009 6:54 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: DSP MMU Fault
+>>
+>> Hi everyone,
+>>
+>> I'm implementing a code on DSP but at the time I do a memory allocation
+>> at
+>> the DSP side as:
+>>
+>> short *a;
+>> a = malloc(192); // (short*)malloc(192) does not work either
+>>
+>> But at this line I get the following error and DSP fails afterwards.
+>> Then
+>> I need to reboot until I can run the application again.
+>>
+>> <6>***** DSPMMU FAULT ***** IRQStatus 0x2
+>> ***** DSPMMU FAULT ***** IRQStatus 0x2
+>> <6>***** DSPMMU FAULT ***** faultAddr 0x230674a0
+>> ***** DSPMMU FAULT ***** faultAddr 0x230674a0
+>> <6>WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
+>> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
+>> <6>WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
+>> WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
+>> <6>WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
+>> WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
+>> <6>WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
+>> WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
+>> <6>WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
+>> WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
+>>
+>> Do you have any ideas why this might be happening and how to fix it?
+>> Thanks a lot.
+>>
+>> Can
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Sure. I have a patch for gpio-keys.c ready to submit, let's see how far=
- we can=20
-get with the idea of exporting a gpio-keys driven switch state over gpi=
-olib=20
-sysfs.
 
-> So really the only issue with the patch that remains is if it justifi=
-es
-> adding a new SW_PHONE_HOOK switch type?
-
-I've just submitted a patch that adds new symbol definition to=20
-include/linux/input.h. Do I have to wait for acknowledgement before I=20
-resubmit my modified patch that depends on that, or can I submit it now=
-?
-
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
