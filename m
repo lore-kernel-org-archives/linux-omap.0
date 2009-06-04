@@ -1,101 +1,144 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP2/3 Avoid GPIO pending irq status been set after irq_disable
-Date: Thu, 04 Jun 2009 16:01:46 -0700
-Message-ID: <87d49jeh7p.fsf@deeprootsystems.com>
-References: <B00E06E2766C2744B022DE9BAF3C59D5372B9F@zmy16exm69.ds.mot.com>
+Subject: Re: [PATCH 05/06] OMAP3: PM: Implement locking for any scratchpad access
+Date: Thu, 04 Jun 2009 16:24:11 -0700
+Message-ID: <87zlcnd1lw.fsf@deeprootsystems.com>
+References: <1243514587-5323-1-git-send-email-rnayak@ti.com>
+	<1243514587-5323-2-git-send-email-rnayak@ti.com>
+	<1243514587-5323-3-git-send-email-rnayak@ti.com>
+	<1243514587-5323-4-git-send-email-rnayak@ti.com>
+	<1243514587-5323-5-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:65050 "EHLO
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:58213 "EHLO
 	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751331AbZFDXBq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 19:01:46 -0400
-Received: by pzk1 with SMTP id 1so462945pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 04 Jun 2009 16:01:48 -0700 (PDT)
-In-Reply-To: <B00E06E2766C2744B022DE9BAF3C59D5372B9F@zmy16exm69.ds.mot.com> (Wang Sawsd-A's message of "Fri\, 5 Jun 2009 05\:58\:18 +0800")
+	with ESMTP id S1751986AbZFDXYM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 19:24:12 -0400
+Received: by pzk1 with SMTP id 1so471343pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 04 Jun 2009 16:24:14 -0700 (PDT)
+In-Reply-To: <1243514587-5323-5-git-send-email-rnayak@ti.com> (Rajendra Nayak's message of "Thu\, 28 May 2009 18\:13\:06 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wang Sawsd-A24013 <cqwang@motorola.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com, Mike Chan <mikechan@google.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-"Wang Sawsd-A24013" <cqwang@motorola.com> writes:
+Rajendra Nayak <rnayak@ti.com> writes:
 
->  
->> What do you think about disabling the level/edge detection when
->> disable_irq_wake() is called instead?  This seems more logical
->> and expected.
+> This patch implements locking using the semaphore in scratchpad
+> memory preventing any concurrent access to scratchpad from OMAP
+> and Baseband/Modem processor.
 >
-> Kevin, if we look at the current code, enable_irq_wake and
-> disable_irq_wake Does not even touch any GPIO WAKEEN register, it
-> seems it is intended To just log the gpio bit and enable its WAKEUP
-> and IOPAD wakeup when suspend happens.
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-Correct.
+Any reason this function has to be written in asm?  It's written along
+with a bunch of other asm functions that are copied to and executed
+from SRAM, but that doesn't appear to be the case here.
 
-> And also, enable_irq_wake/disable_irq_wake
-> Are designed to be able used when both IRQ is enabled AND disabled,
-> In another words, enable_irq_wake may be called after irq_disable,
-> Disable_irq_wake may be called after irq_enable, if we change
-> Level/edge detect then it may cause either IRQ never happen
-
-Good point.
-
-> After irq_enable, or IRQ staus bit also set after irq_disable. Since
-> The root reason is the level/edge detect can cause IRQ status, it
-> Is related with IRQ, not wakeup.
-
-Correct again.
-
-> What do you think?
-
-I'm thinking I'm not thinking very clearly on the subject today.  It's
-too hot in Seattle today.  ;)
-
-I'm also thinking that this isn't just going to be a problem with
-suspend/resume but also for hitting retention in idle.  Any
-level-triggered GPIO IRQ that is masked, yet still has level/edge
-detect configured can prevent retention during idle since it will
-cause IRQ status as you've pointed out.
-
-Can you think of any reason not to disable the level/edge detect in
-the ->mask() hook and to re-enable it in the ->unmask hook?  Something
-like the patch below?
-
-Could you try this patch with your TS GPIO configured as level-triggered?
+Looks like a simple C function would be clearer here.
 
 Kevin
 
-commit f8eb69a2edd684c9e0b72bc3c84c6af9718bd4a4
-Author: Kevin Hilman <khilman@deeprootsystems.com>
-Date:   Thu Jun 4 15:57:10 2009 -0700
-
-    OMAP: GPIO: clear/restore level/edge detect settings on mask/unmask
-    
-    <needs detailed description>
-
-    Signed-off-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
-
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 3b2054b..83ac494 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -1135,6 +1135,7 @@ static void gpio_mask_irq(unsigned int irq)
- 	struct gpio_bank *bank = get_irq_chip_data(irq);
- 
- 	_set_gpio_irqenable(bank, gpio, 0);
-+	_set_gpio_triggering(bank, get_gpio_index(gpio), IRQ_TYPE_NONE);
- }
- 
- static void gpio_unmask_irq(unsigned int irq)
-@@ -1142,6 +1143,11 @@ static void gpio_unmask_irq(unsigned int irq)
- 	unsigned int gpio = irq - IH_GPIO_BASE;
- 	struct gpio_bank *bank = get_irq_chip_data(irq);
- 	unsigned int irq_mask = 1 << get_gpio_index(gpio);
-+	struct irq_desc *desc = irq_to_desc(irq);
-+	u32 trigger = desc->status & IRQ_TYPE_SENSE_MASK;
-+
-+	if (trigger)
-+		_set_gpio_triggering(bank, get_gpio_index(gpio), trigger);
- 
- 	/* For level-triggered GPIOs, the clearing must be done after
- 	 * the HW source is cleared, thus after the handler has run */
+> ---
+>  arch/arm/mach-omap2/resource34xx.c |    6 +++++-
+>  arch/arm/mach-omap2/resource34xx.h |    2 ++
+>  arch/arm/mach-omap2/sleep34xx.S    |   32 ++++++++++++++++++++++++++++++++
+>  3 files changed, 39 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+> index 82405b6..408d3ab 100644
+> --- a/arch/arm/mach-omap2/resource34xx.c
+> +++ b/arch/arm/mach-omap2/resource34xx.c
+> @@ -236,6 +236,7 @@ static int program_opp_freq(int res, int target_level, int current_level)
+>  	int ret = 0, l3_div;
+>  	int *curr_opp;
+>  
+> +	lock_scratchpad_sem();
+>  	if (res == VDD1_OPP) {
+>  		curr_opp = &curr_vdd1_opp;
+>  		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
+> @@ -253,11 +254,14 @@ static int program_opp_freq(int res, int target_level, int current_level)
+>  		ret = clk_set_rate(dpll3_clk,
+>  				l3_opps[target_level].rate * l3_div);
+>  	}
+> -	if (ret)
+> +	if (ret) {
+> +		unlock_scratchpad_sem();
+>  		return current_level;
+> +	}
+>  #ifdef CONFIG_PM
+>  	omap3_save_scratchpad_contents();
+>  #endif
+> +	unlock_scratchpad_sem();
+>  
+>  	*curr_opp = target_level;
+>  	return target_level;
+> diff --git a/arch/arm/mach-omap2/resource34xx.h b/arch/arm/mach-omap2/resource34xx.h
+> index a160665..5b5618a 100644
+> --- a/arch/arm/mach-omap2/resource34xx.h
+> +++ b/arch/arm/mach-omap2/resource34xx.h
+> @@ -29,6 +29,8 @@
+>  #include <mach/omap34xx.h>
+>  
+>  extern int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8 c_vsel);
+> +extern void lock_scratchpad_sem();
+> +extern void unlock_scratchpad_sem();
+>  
+>  /*
+>   * mpu_latency/core_latency are used to control the cpuidle C state.
+> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> index 38aa3fd..aedcf94 100644
+> --- a/arch/arm/mach-omap2/sleep34xx.S
+> +++ b/arch/arm/mach-omap2/sleep34xx.S
+> @@ -39,6 +39,7 @@
+>  #define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
+>  				OMAP3430_PM_PREPWSTST)
+>  #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
+> +#define SDRC_SCRATCHPAD_SEM_V	0xd800291C
+>  
+>  /*
+>   * This is the physical address of the register as specified
+> @@ -62,6 +63,37 @@
+>  #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+>  #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+>  
+> +        .text
+> +/* Function to aquire the semaphore in scratchpad */
+> +ENTRY(lock_scratchpad_sem)
+> +	stmfd	sp!, {lr}	@ save registers on stack
+> +wait_sem:
+> +	mov	r0,#1
+> +	ldr	r1, sdrc_scratchpad_sem
+> +wait_loop:
+> +	ldr	r2, [r1]	@ load the lock value
+> +	cmp	r2, r0		@ is the lock free ?
+> +	beq	wait_loop	@ not free...
+> +	swp	r2, r0, [r1]	@ semaphore free so lock it and proceed
+> +	cmp	r2, r0		@ did we succeed ?
+> +	beq	wait_sem	@ no - try again
+> +	ldmfd	sp!, {pc}	@ restore regs and return
+> +sdrc_scratchpad_sem:
+> +        .word SDRC_SCRATCHPAD_SEM_V
+> +ENTRY(lock_scratchpad_sem_sz)
+> +        .word   . - lock_scratchpad_sem
+> +
+> +        .text
+> +/* Function to release the scratchpad semaphore */
+> +ENTRY(unlock_scratchpad_sem)
+> +	stmfd	sp!, {lr}	@ save registers on stack
+> +	ldr	r3, sdrc_scratchpad_sem
+> +	mov	r2,#0
+> +	str	r2,[r3]
+> +	ldmfd	sp!, {pc}	@ restore regs and return
+> +ENTRY(unlock_scratchpad_sem_sz)
+> +        .word   . - unlock_scratchpad_sem
+> +
+>  	.text
+>  /* Function call to get the restore pointer for resume from OFF */
+>  ENTRY(get_restore_pointer)
+> -- 
+> 1.5.4.7
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
