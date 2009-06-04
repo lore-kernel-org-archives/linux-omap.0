@@ -1,52 +1,46 @@
-From: Hugo Vincent <hugo.vincent@gmail.com>
-Subject: OMAP: sporadic hard lock-up when GPIO interrupts occur too fast (with
-	preempt-RT and PREEMPT_HARDIRQ)
-Date: Thu, 4 Jun 2009 11:51:57 +1200
-Message-ID: <5a7b8b7b0906031651l709eb6b7qd6691bf543ccca33@mail.gmail.com>
+From: =?ISO-8859-1?Q?Kevyn=2DAlexandre_Par=E9?=
+	<kevyn.alexandre.pare@gmail.com>
+Subject: Question OMAP3 and PM
+Date: Wed, 3 Jun 2009 20:35:10 -0400
+Message-ID: <dc1d0f40906031735j32bf558cj379f3c5be632a6a1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rt-users-owner@vger.kernel.org>
-Sender: linux-rt-users-owner@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>, rt-users <linux-rt-users@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-gx0-f214.google.com ([209.85.217.214]:34402 "EHLO
+	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753875AbZFDAfI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 3 Jun 2009 20:35:08 -0400
+Received: by gxk10 with SMTP id 10so668905gxk.13
+        for <linux-omap@vger.kernel.org>; Wed, 03 Jun 2009 17:35:10 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
 
-Hi everyone,
+I'm interested in the PM branch latest and greatest that is working
+for the beagleboard and the omap3evm.
 
-I'm trying to debug a problem with GPIO interrupts on my OMAP3503
-(Gumstix Overo) platform with kernel 2.6.29.4-rt16-omap1.
+I clone these git for master branch (2.6.30-rc7) and compile and try
+without success.
 
-While this is a sporadic lock-up, I haven't been able to reproduce it
-when PREEMPT_HARDIRQ is disabled.
+http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=summary
 
-I think it might have something to do with this patch (which is applied BTW):
-   http://patchwork.kernel.org/patch/16046/
-And see this thread:
-   http://markmail.org/message/aaqpk5jztrrypsxz
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=summary
 
-Sometimes, I see a spurious IRQ message like this:
-   Spurious irq 95: 0xffffffdf, please flush posted write for irq 31
-that the above patch is supposed to fix, just before the system locks
-up. Is it possible that the interrupt handler is getting preempted
-between acknowledging the interrupt and the 'flush posted write', and
-meanwhile another interrupt from the same bank occurs?
+Beagleboard image was freezing after displaying uncompressed with
+success for both branch.
 
-To check this hypothesis, I built the kernel with
-   CONFIG_PREEMPT_DESKTOP=y
-   # CONFIG_PREEMPT_RT is not set
-   CONFIG_PREEMPT=y
-   CONFIG_PREEMPT_SOFTIRQS=y
-   CONFIG_PREEMPT_HARDIRQS=y
+Mistral image was displaying more stuff but no success. I will email
+the output later if asking.
 
-which gives a /proc/irq/<irq>/<handler>/threaded flag. When I tried
-disabling threading on irqs 246-249 (which are the virtual irqs for
-the problematic GPIO interrupts), the problem still occured. I'm not
-sure how to disable threading or preemption on the intermediate ISR
-(gpio_irq_handler() at arch/arm/plat-omap/gpio.c:959) which determines
-which GPIO in the bank caused the interrupt and spawns the virtual
-interrupts.
+First, I'm interested to know which tag/branch should I use?
+kernel.org is at 2.6.29.4 for stable? since rc is dev tag I imagine
+that the one I'm looking for is v2.6.29-omap1. Do that branch have the
+OFF mode, smartrelfex and suspend and resume working? I want to
+measure the power consumption of those 2 board.
 
-Any ideas for debugging or narrowing down on the cause?
+Thx for helping me out.
 
-Many thanks,
-Hugo
+Best Regards
+
+kap
