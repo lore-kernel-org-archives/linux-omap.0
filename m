@@ -1,63 +1,70 @@
 From: Imre Deak <imre.deak@nokia.com>
-Subject: [PATCH 04/20] omapfb: Add support for the Amstrad Delta LCD
-Date: Thu,  4 Jun 2009 20:52:29 +0300
-Message-ID: <833ed44e61e3d4093eb27b55b97252967e042d41.1244131952.git.imre.deak@nokia.com>
+Subject: [PATCH 05/20] omapfb: Add support for the 2430SDP LCD
+Date: Thu,  4 Jun 2009 20:52:30 +0300
+Message-ID: <5ba715a9dbc88b8c3a8225bc1cfdabd3faffe00f.1244131952.git.imre.deak@nokia.com>
 References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
  <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
  <e7f92ea9f0a823f7be401e34243754141b7f72c1.1244131952.git.imre.deak@nokia.com>
  <e9040774f324311979aebd3fa5fa71d20890d433.1244131952.git.imre.deak@nokia.com>
+ <833ed44e61e3d4093eb27b55b97252967e042d41.1244131952.git.imre.deak@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:42166 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751220AbZFDRzq (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:21349 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751263AbZFDRzq (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 13:55:46 -0400
-In-Reply-To: <e9040774f324311979aebd3fa5fa71d20890d433.1244131952.git.imre.deak@nokia.com>
+In-Reply-To: <833ed44e61e3d4093eb27b55b97252967e042d41.1244131952.git.imre.deak@nokia.com>
 In-Reply-To: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 References: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Antonino Daplas <adaplas@gmail.com>
-Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Jonathan McDowell <noodles@earth.li>, Imre Deak <imre.deak@nokia.com>
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Hunyue Yau <hyau@mvista.com>, Kevin Hilman <khilman@mvista.com>, Imre Deak <imre.deak@nokia.com>
 
-From: Jonathan McDowell <noodles@earth.li>
+From: Hunyue Yau <hyau@mvista.com>
 
-This is an updated version of the LCD driver for the Amstrad Delta to
-take into account the recent changes to the omapfb infrastructure. The
-Delta features a 480x320 12 bit DSTN panel.
+Add glue to control the 2430SDP LCD as a frame buffer device
+using the existing dispc.c driver under omapfb.
 
-Signed-off-by: Jonathan McDowell <noodles@earth.li>
+Signed-off-by: Hunyue Yau <hyau@mvista.com>
+Signed-off-by: Kevin Hilman <khilman@mvista.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
+Fixed-by: Kevin Hilman <khilman@mvista.com>
+Fixed-by: Sergio Aguirre <saaguirre@ti.com>
+Fixed-by: Francisco Alecrim <francisco.alecrim@indt.org.br>
+Fixed-by: Tony Lindgren <tony@atomide.com>
+Fixed-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Imre Deak <imre.deak@nokia.com>
 ---
- drivers/video/omap/Makefile        |    1 +
- drivers/video/omap/lcd_ams_delta.c |  137 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 138 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap/lcd_ams_delta.c
+ drivers/video/omap/Makefile      |    1 +
+ drivers/video/omap/lcd_2430sdp.c |  196 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 197 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap/lcd_2430sdp.c
 
 diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-index d86d54a..2bf94ad 100644
+index 2bf94ad..7a37b03 100644
 --- a/drivers/video/omap/Makefile
 +++ b/drivers/video/omap/Makefile
-@@ -15,6 +15,7 @@ objs-$(CONFIG_ARCH_OMAP2)$(CONFIG_FB_OMAP_LCDC_EXTERNAL) += rfbi.o
- objs-y$(CONFIG_FB_OMAP_LCDC_HWA742) += hwa742.o
- objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) += blizzard.o
+@@ -26,6 +26,7 @@ objs-$(CONFIG_ARCH_OMAP15XX)$(CONFIG_MACH_OMAP_INNOVATOR) += lcd_inn1510.o
+ objs-y$(CONFIG_MACH_OMAP_OSK) += lcd_osk.o
  
-+objs-y$(CONFIG_MACH_AMS_DELTA) += lcd_ams_delta.o
- objs-y$(CONFIG_MACH_OMAP_H4) += lcd_h4.o
- objs-y$(CONFIG_MACH_OMAP_H3) += lcd_h3.o
- objs-y$(CONFIG_MACH_OMAP_PALMTE) += lcd_palmte.o
-diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
+ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
++objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+ objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
+ 
+ omapfb-objs := $(objs-yy)
+diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
 new file mode 100644
-index 0000000..1f74399
+index 0000000..5bcbb8d
 --- /dev/null
-+++ b/drivers/video/omap/lcd_ams_delta.c
-@@ -0,0 +1,137 @@
++++ b/drivers/video/omap/lcd_2430sdp.c
+@@ -0,0 +1,196 @@
 +/*
-+ * Based on drivers/video/omap/lcd_inn1510.c
++ * LCD panel support for the TI 2430SDP board
 + *
-+ * LCD panel support for the Amstrad E3 (Delta) videophone.
++ * Copyright (C) 2007 MontaVista
++ * Author: Hunyue Yau <hyau@mvista.com>
 + *
-+ * Copyright (C) 2006 Jonathan McDowell <noodles@earth.li>
++ * Derived from drivers/video/omap/lcd-apollon.c
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License as published by the
@@ -76,119 +83,177 @@ index 0000000..1f74399
 +
 +#include <linux/module.h>
 +#include <linux/platform_device.h>
-+#include <linux/io.h>
 +#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/i2c/twl4030.h>
 +
-+#include <mach/board-ams-delta.h>
-+#include <mach/hardware.h>
++#include <mach/mux.h>
 +#include <mach/omapfb.h>
++#include <asm/mach-types.h>
 +
-+#define AMS_DELTA_DEFAULT_CONTRAST	112
++#define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
++#define SDP2430_LCD_PANEL_ENABLE_GPIO		154
++#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	24
++#define SDP3430_LCD_PANEL_ENABLE_GPIO		28
 +
-+static int ams_delta_panel_init(struct lcd_panel *panel,
-+		struct omapfb_device *fbdev)
++static unsigned backlight_gpio;
++static unsigned enable_gpio;
++
++#define LCD_PANEL_BACKLIGHT_GPIO	91
++#define LCD_PANEL_ENABLE_GPIO		154
++#define LCD_PIXCLOCK_MAX		5400 /* freq 5.4 MHz */
++#define PM_RECEIVER             TWL4030_MODULE_PM_RECEIVER
++#define ENABLE_VAUX2_DEDICATED  0x09
++#define ENABLE_VAUX2_DEV_GRP    0x20
++
++
++#define t2_out(c, r, v) twl4030_i2c_write_u8(c, r, v)
++
++
++static int sdp2430_panel_init(struct lcd_panel *panel,
++				struct omapfb_device *fbdev)
++{
++	if (machine_is_omap_3430sdp()) {
++		enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
++		backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
++	} else {
++		enable_gpio    = SDP2430_LCD_PANEL_ENABLE_GPIO;
++		backlight_gpio = SDP2430_LCD_PANEL_BACKLIGHT_GPIO;
++	}
++
++	gpio_request(enable_gpio, "LCD enable");	/* LCD panel */
++	gpio_request(backlight_gpio, "LCD bl");		/* LCD backlight */
++	gpio_direction_output(enable_gpio, 0);
++	gpio_direction_output(backlight_gpio, 0);
++
++	return 0;
++}
++
++static void sdp2430_panel_cleanup(struct lcd_panel *panel)
++{
++}
++
++static int sdp2430_panel_enable(struct lcd_panel *panel)
++{
++	u8 ded_val, ded_reg;
++	u8 grp_val, grp_reg;
++
++	if (machine_is_omap_3430sdp()) {
++		ded_reg = TWL4030_VAUX3_DEDICATED;
++		ded_val = ENABLE_VAUX3_DEDICATED;
++		grp_reg = TWL4030_VAUX3_DEV_GRP;
++		grp_val = ENABLE_VAUX3_DEV_GRP;
++
++		if (omap_rev() > OMAP3430_REV_ES1_0) {
++			t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
++					TWL4030_VPLL2_DEDICATED);
++			t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
++					TWL4030_VPLL2_DEV_GRP);
++		}
++	} else {
++		ded_reg = TWL4030_VAUX2_DEDICATED;
++		ded_val = ENABLE_VAUX2_DEDICATED;
++		grp_reg = TWL4030_VAUX2_DEV_GRP;
++		grp_val = ENABLE_VAUX2_DEV_GRP;
++	}
++
++	gpio_set_value(enable_gpio, 1);
++	gpio_set_value(backlight_gpio, 1);
++
++	if (0 != t2_out(PM_RECEIVER, ded_val, ded_reg))
++		return -EIO;
++	if (0 != t2_out(PM_RECEIVER, grp_val, grp_reg))
++		return -EIO;
++
++	return 0;
++}
++
++static void sdp2430_panel_disable(struct lcd_panel *panel)
++{
++	gpio_set_value(enable_gpio, 0);
++	gpio_set_value(backlight_gpio, 0);
++	if (omap_rev() > OMAP3430_REV_ES1_0) {
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
++		t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
++		mdelay(4);
++	}
++}
++
++static unsigned long sdp2430_panel_get_caps(struct lcd_panel *panel)
 +{
 +	return 0;
 +}
 +
-+static void ams_delta_panel_cleanup(struct lcd_panel *panel)
-+{
-+}
++struct lcd_panel sdp2430_panel = {
++	.name		= "sdp2430",
++	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
++			  OMAP_LCDC_INV_HSYNC,
 +
-+static int ams_delta_panel_enable(struct lcd_panel *panel)
-+{
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_NDISP,
-+			AMS_DELTA_LATCH2_LCD_NDISP);
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN,
-+			AMS_DELTA_LATCH2_LCD_VBLEN);
-+
-+	omap_writeb(1, OMAP_PWL_CLK_ENABLE);
-+	omap_writeb(AMS_DELTA_DEFAULT_CONTRAST, OMAP_PWL_ENABLE);
-+
-+	return 0;
-+}
-+
-+static void ams_delta_panel_disable(struct lcd_panel *panel)
-+{
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN, 0);
-+	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_NDISP, 0);
-+}
-+
-+static unsigned long ams_delta_panel_get_caps(struct lcd_panel *panel)
-+{
-+	return 0;
-+}
-+
-+static struct lcd_panel ams_delta_panel = {
-+	.name		= "ams-delta",
-+	.config		= 0,
-+
-+	.bpp		= 12,
++	.bpp		= 16,
 +	.data_lines	= 16,
-+	.x_res		= 480,
++	.x_res		= 240,
 +	.y_res		= 320,
-+	.pixel_clock	= 4687,
-+	.hsw		= 3,
-+	.hfp		= 1,
-+	.hbp		= 1,
-+	.vsw		= 1,
-+	.vfp		= 0,
-+	.vbp		= 0,
-+	.pcd		= 0,
-+	.acb		= 37,
++	.hsw		= 3,		/* hsync_len (4) - 1 */
++	.hfp		= 3,		/* right_margin (4) - 1 */
++	.hbp		= 39,		/* left_margin (40) - 1 */
++	.vsw		= 1,		/* vsync_len (2) - 1 */
++	.vfp		= 2,		/* lower_margin */
++	.vbp		= 7,		/* upper_margin (8) - 1 */
 +
-+	.init		= ams_delta_panel_init,
-+	.cleanup	= ams_delta_panel_cleanup,
-+	.enable		= ams_delta_panel_enable,
-+	.disable	= ams_delta_panel_disable,
-+	.get_caps	= ams_delta_panel_get_caps,
++	.pixel_clock	= LCD_PIXCLOCK_MAX,
++
++	.init		= sdp2430_panel_init,
++	.cleanup	= sdp2430_panel_cleanup,
++	.enable	= sdp2430_panel_enable,
++	.disable	= sdp2430_panel_disable,
++	.get_caps	= sdp2430_panel_get_caps,
 +};
 +
-+static int ams_delta_panel_probe(struct platform_device *pdev)
++static int sdp2430_panel_probe(struct platform_device *pdev)
 +{
-+	omapfb_register_panel(&ams_delta_panel);
++	omapfb_register_panel(&sdp2430_panel);
 +	return 0;
 +}
 +
-+static int ams_delta_panel_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static int ams_delta_panel_suspend(struct platform_device *pdev,
-+		pm_message_t mesg)
++static int sdp2430_panel_remove(struct platform_device *pdev)
 +{
 +	return 0;
 +}
 +
-+static int ams_delta_panel_resume(struct platform_device *pdev)
++static int sdp2430_panel_suspend(struct platform_device *pdev,
++					pm_message_t mesg)
 +{
 +	return 0;
 +}
 +
-+struct platform_driver ams_delta_panel_driver = {
-+	.probe		= ams_delta_panel_probe,
-+	.remove		= ams_delta_panel_remove,
-+	.suspend	= ams_delta_panel_suspend,
-+	.resume		= ams_delta_panel_resume,
++static int sdp2430_panel_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++struct platform_driver sdp2430_panel_driver = {
++	.probe		= sdp2430_panel_probe,
++	.remove		= sdp2430_panel_remove,
++	.suspend		= sdp2430_panel_suspend,
++	.resume		= sdp2430_panel_resume,
 +	.driver		= {
-+		.name	= "lcd_ams_delta",
++		.name	= "sdp2430_lcd",
 +		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+static int ams_delta_panel_drv_init(void)
++static int __init sdp2430_panel_drv_init(void)
 +{
-+	return platform_driver_register(&ams_delta_panel_driver);
++	return platform_driver_register(&sdp2430_panel_driver);
 +}
 +
-+static void ams_delta_panel_drv_cleanup(void)
++static void __exit sdp2430_panel_drv_exit(void)
 +{
-+	platform_driver_unregister(&ams_delta_panel_driver);
++	platform_driver_unregister(&sdp2430_panel_driver);
 +}
 +
-+module_init(ams_delta_panel_drv_init);
-+module_exit(ams_delta_panel_drv_cleanup);
++module_init(sdp2430_panel_drv_init);
++module_exit(sdp2430_panel_drv_exit);
 -- 
 1.6.3.1
 
