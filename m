@@ -1,74 +1,56 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: DSP MMU Fault
-Date: Thu, 4 Jun 2009 09:48:36 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2F13B302@dlee03.ent.ti.com>
-References: <44449.139.179.13.76.1244116436.squirrel@newmail.bilkent.edu.tr>
+From: Imre Deak <imre.deak@nokia.com>
+Subject: Re: LDP support
+Date: Thu, 4 Jun 2009 17:58:25 +0300
+Message-ID: <20090604145825.GD22146@localhost>
+References: <20090428220712.GF29277@n2100.arm.linux.org.uk> <20090428224237.GT22457@atomide.com> <20090531212449.GD25140@n2100.arm.linux.org.uk> <20090601160032.GA4825@atomide.com> <20090603213955.GA24318@localhost> <20090603223333.GD17411@n2100.arm.linux.org.uk> <20090603234125.GI5026@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57683 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753904AbZFDOtW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 10:49:22 -0400
-In-Reply-To: <44449.139.179.13.76.1244116436.squirrel@newmail.bilkent.edu.tr>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:58669 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750893AbZFDO6l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 10:58:41 -0400
+Content-Disposition: inline
+In-Reply-To: <20090603234125.GI5026@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Can Bal <canbal@ee.bilkent.edu.tr>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>
 
-Hi Can,
+On Thu, Jun 04, 2009 at 01:41:26AM +0200, ext Tony Lindgren wrote:
+> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090603 15:34]:
+> > On Thu, Jun 04, 2009 at 12:39:55AM +0300, Imre Deak wrote:
+> > > I updated the omapfb-upstream branch on git://koowaldah.org/people/imre/linux-2.6-fb,
+> > > if these are ok with you I'll post them on the fb list.
+> > 
+> > Just be aware that Linus released -rc8 on Tuesday, and said that will
+> > be the final rc before the merge window opens.  So I reckon there's less
+> > than a week to the merge window opening.
+> 
+> Imre, few comments after browsing through your patches:
+> 
+> "omapfb: Add support for MIPI-DCS compatible LCDs" seems to depend on
+> drivers/cbus which is not yet merged. Please leave out those parts so
+> it compiles. Then we can add the missing functions once drivers/cbus
+> is merged in the future.
+> 
+> "omapfb: dispc: Add OMAP3 support" should no longer be needed, this
+> got already fixed with clkdev patch 005187eecaa400b4b43d9f640fbde9fcc50f37c1
+> in mainline.
+> 
+> "omapfb: Fix coding style / remove dead line" has a typo in Russell's
+> name.
 
-> Do you have any ideas why this might be happening and how to fix it?
-> Thanks a lot.
+Thanks, I fixed these and updated the tree. From lcd_mipid I removed the
+cbus thing and added platform hooks instead, so the backlight code should
+be now in the board file. This needs to be added for n770, I'll follow-up
+with a patch for that later.
 
-Most probably you might not have mapped the address 0x230674a0.
+There are two additional patches, one enabling the LCD in the N770 Kconfig
+and a variable type fix for HWA742. Do you want to put these to omap-fixes
+or I can just submit them?
 
+How about the rest of the Kconfig changes?
 
-Thank you,
-Best regards,
-Hari
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Can Bal
-> Sent: Thursday, June 04, 2009 6:54 AM
-> To: linux-omap@vger.kernel.org
-> Subject: DSP MMU Fault
-> 
-> Hi everyone,
-> 
-> I'm implementing a code on DSP but at the time I do a memory allocation at
-> the DSP side as:
-> 
-> short *a;
-> a = malloc(192); // (short*)malloc(192) does not work either
-> 
-> But at this line I get the following error and DSP fails afterwards. Then
-> I need to reboot until I can run the application again.
-> 
-> <6>***** DSPMMU FAULT ***** IRQStatus 0x2
-> ***** DSPMMU FAULT ***** IRQStatus 0x2
-> <6>***** DSPMMU FAULT ***** faultAddr 0x230674a0
-> ***** DSPMMU FAULT ***** faultAddr 0x230674a0
-> <6>WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> <6>WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
-> WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
-> <6>WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
-> WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
-> <6>WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
-> WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
-> <6>WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
-> WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
-> 
-> Do you have any ideas why this might be happening and how to fix it?
-> Thanks a lot.
-> 
-> Can
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--Imre
 
