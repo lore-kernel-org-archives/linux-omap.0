@@ -1,39 +1,52 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE: Use GT_trace for CLk_Disable message
-Date: Fri, 5 Jun 2009 11:22:18 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53040F3FCAB4@dlee03.ent.ti.com>
-References: <1244121953-24866-1-git-send-email-ameya.palande@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM error: Powerdomain (core_pwddm) didn't enter target state 1
+Date: Fri, 05 Jun 2009 10:49:41 -0700
+Message-ID: <87tz2ua7uy.fsf@deeprootsystems.com>
+References: <42B46BA8-AF35-42B5-9616-EADA31EF0553@mac.com>
+	<87fxeebrsc.fsf@deeprootsystems.com>
+	<277E4F10-4228-40C5-85C8-5B365B861DFF@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57089 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751809AbZFEQW0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 12:22:26 -0400
-In-Reply-To: <1244121953-24866-1-git-send-email-ameya.palande@nokia.com>
-Content-Language: en-US
+Received: from mail-px0-f202.google.com ([209.85.216.202]:60076 "EHLO
+	mail-px0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756160AbZFERto (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 13:49:44 -0400
+Received: by pxi40 with SMTP id 40so146066pxi.33
+        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 10:49:46 -0700 (PDT)
+In-Reply-To: <277E4F10-4228-40C5-85C8-5B365B861DFF@mac.com> (Elvis Dowson's message of "Fri\, 05 Jun 2009 21\:34\:29 +0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
 
->From: Ameya Palande [mailto:ameya.palande@nokia.com]
+Elvis Dowson <elvis.dowson@mac.com> writes:
+
+> Hi Kevin,
 >
->From: Ameya Palande <ameya.palande@nokia.com>
+> On Jun 5, 2009, at 7:53 PM, Kevin Hilman wrote:
 >
->To reduce the unnecessary debug messages polluting the console,
->pr_err is replaced by GT_trace which provides finer control for
->the visibility of debug messages.
+>>>
+>>
+>> It's pretty difficult for me to know what you are actually running by
+>> the description above.  You've taken a bunch of stuff, put them
+>> together in some unspecified way, and are using an unspecified config.
 >
->Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
->---
-> drivers/dsp/bridge/services/clk.c |    4 ++--
-> 1 files changed, 2 insertions(+), 2 deletions(-)
->
+> Sorry about that, I'm working on an android port to the gumstix overo
+> earth platform. I'm trying to incorporate patches from the
+> android-2.6.29 kernel, tomi's latest dss2 patches and your pm patches,
+> to the linux-omap-2.6 master branch.
 
-Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+For initial PM debugging, I highly recommend something closer to what
+others are developing and testing against.  Using the PM branch
+patches on top of linux-omap master is not yet tested and validated,
+so I can't give you any support there.
 
-Will be pushing soon to dev.omapzoom
+For example, you might start from the Android OMAP kernel which
+is 2.6.29 based and includes the PM branch already.
 
-- omar
+  http://android.git.kernel.org/?p=kernel/omap.git
 
+Then you'd just have to add your dss2 and Overo stuff there.
+
+Kevin
