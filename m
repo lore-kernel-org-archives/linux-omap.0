@@ -1,37 +1,48 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 00/06] OMAP3430 Errata, defect fixes and optimizations
-Date: Thu, 04 Jun 2009 16:37:50 -0700
-Message-ID: <87hbyvd0z5.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB03057E76B6@dbde02.ent.ti.com>
-	<87oct3d1ai.fsf@deeprootsystems.com>
+From: "Venkatesh, Subbu" <subbu.wrs@ti.com>
+Subject: RE: DSS2: Compilation Error on Git tree
+ http://www.bat.org/~tomba/git/linux-omap-dss.git
+Date: Thu, 4 Jun 2009 19:00:51 -0500
+Message-ID: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBD@dlee01.ent.ti.com>
+References: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBA@dlee01.ent.ti.com>,<1244098753.4004.1.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.171]:44608 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257AbZFDXhv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 19:37:51 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so521621wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 04 Jun 2009 16:37:52 -0700 (PDT)
-In-Reply-To: <87oct3d1ai.fsf@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 04 Jun 2009 16\:31\:01 -0700")
+Received: from bear.ext.ti.com ([192.94.94.41]:54247 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751637AbZFEAEK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 20:04:10 -0400
+In-Reply-To: <1244098753.4004.1.camel@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mande, Nikhil" <nikhil@ti.com>, "Castaneda Gonzalez, Axel" <x0055901@ti.com>, "Miesen, Sharon" <s-miesen@ti.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Hi Tomi,
+I ported LDP changes to new Device model, basic features are tested,  let me know if I need to resend it.
 
-> "Nayak, Rajendra" <rnayak@ti.com> writes:
->
->> This series contains a set of patches which implement new 3430 errata, and some optimizations
->> and fixes in the SR driver and DVFS path.
->>
->> These apply on the latest 'pm' branch and are validated on a 3430SDP platform.
->
-> Thanks, applying all but the scratchpad locking patch to PM branch.
-> See comment/question on that patch.
+While testing mirroring, I added new IOCTL for mirroring, so that user application can perform operations, do you want me send that patch too?
 
-Oh, and also not applying the PER/WKUP wkdep patch since we already
-have a workaround in the GPIO code.
 
-Kevin
+Regards,
+Subbu
+________________________________________
+From: Tomi Valkeinen [tomi.valkeinen@nokia.com]
+Sent: Thursday, June 04, 2009 1:59 AM
+To: Venkatesh, Subbu
+Cc: Shah, Hardik; linux-omap@vger.kernel.org; Mande, Nikhil; Castaneda Gonzalez, Axel; Miesen, Sharon
+Subject: Re: DSS2: Compilation Error on Git tree http://www.bat.org/~tomba/git/linux-omap-dss.git
+
+On Wed, 2009-06-03 at 16:07 +0200, ext Venkatesh, Subbu wrote:
+> Hi Tomi,
+> I did git pull to update my tree, later compiling code for LDP, I am getting compilation error as show below. I see that I am missing declaration of
+>  struct omap_dss_display_config in display.h file, could you please comment on it...
+
+You need to port your LDP changes to newer DSS2 device model. Check how
+it's done with OMAP SDP or Beagleboard.
+
+ Tomi
+
+
+
