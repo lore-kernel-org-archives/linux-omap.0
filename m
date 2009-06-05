@@ -1,49 +1,136 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS porting problems
-Date: Fri, 05 Jun 2009 14:51:25 +0300
-Message-ID: <1244202685.6502.39.camel@tubuntu>
-References: <4A283AF8.5010301@mlbassoc.com>
-	 <1244190255.3940.14.camel@tubuntu>  <4A2903E8.7090406@mlbassoc.com>
-Reply-To: tomi.valkeinen@nokia.com
+From: "Singh, Vimal"
+	<IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com>
+Subject: RE: [PATCH] [MTD] [NAND] Add prefetch and dma support for omap2/3
+	NAND      driver
+Date: Fri, 5 Jun 2009 17:30:43 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404321C60A1@dbde02.ent.ti.com>
+References: <54851.192.168.10.89.1243946277.squirrel@dbdmail.itg.ti.com>
+ <47286.192.168.10.89.1244108023.squirrel@dbdmail.itg.ti.com>,<20090604152823.GB7428@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:53678 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752224AbZFELv3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 07:51:29 -0400
-In-Reply-To: <4A2903E8.7090406@mlbassoc.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52570 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750876AbZFEMBK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 08:01:10 -0400
+In-Reply-To: <20090604152823.GB7428@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "dedekind@infradead.org" <dedekind@infradead.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
 
-On Fri, 2009-06-05 at 13:39 +0200, ext Gary Thomas wrote:
-> Tomi Valkeinen wrote:
-> > On Thu, 2009-06-04 at 23:22 +0200, ext Gary Thomas wrote:
-> >> I'm porting my platform (3530, very similar to LDP) to your tree.
-> >>   http://www.bat.org/~tomba/git/linux-omap-dss.git
-> >> Since you have complete support for the 3430SDP, I started with
-> >> that board file.  I've added my own display (larger Hitachi
-> >> screen that is 800x600).  I've run into a few problems:
-> >>
-> >> * All output to the main frame buffer (/dev/fb0) seems to go to
-> >> the very last line of the display.
-> > 
-> > Difficult to say anything about this. The problem could be in the board
-> > file configuration, or in the panel driver. 
-> > 
-> 
-> So the question remains - how do I debug this?  I have a straight
-> forward LCD panel, much like what's on LDP or Beagle (the two I
-> know about), just a different model with larger size.  I cloned
-> the panel description from the sharp_ls and changed the dimensions.
 
-You need to change the panel timings and polarizations etc. also, in the
-panel driver. Changing just x and y res does not work.
+On Thu, Jun 4, 2009 at 8:58 PM, Tony Lindgren<tony@atomide.com> wrote:
+> * vimal singh <vimalsingh@ti.com> [090604 02:34]:
+>> On Wed, Jun 3, 2009 at 10:03 PM, Tony Lindgren <tony@atomide.com> wrote:
+>> > * Singh, Vimal
+>> <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com> [090602
+>> 23:46]:
+>> >>
+>> >> On Wed, Jun 3, 2009 at 2:06 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> >> > * vimal singh <vimalsingh@ti.com> [090602 05:40]:
+>> >> >> This patch adds prefetch support to access nand flash in both mpu and dma
+>> mode.
+>> >> >> This patch also adds 8-bit nand support (omap_read/write_buf8).
+>> >> >> Prefetch can be used for both 8- and 16-bit devices.
+>> >> >
+>> >> > This should be reviewed on the linux-omap@vger.kernel.org list for sure.
+>> >> > One other comment below.
+>> >> >
+>> >> >> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+>> >> >> ---
+>> >> >> I prepared this patch on top of "OMAP2 / OMAP3 NAND driver" patch:
+>> >> >> http://lists.infradead.org/pipermail/linux-mtd/2009-May/025562.html
+>> >> >>
+>> >> >> ---
+>> >> >>  arch/arm/mach-omap2/gpmc.c             |  102 ++++++++++
+>> >> >>  arch/arm/plat-omap/include/mach/gpmc.h |    4
+>> >> >>  drivers/mtd/nand/Kconfig               |   17 +
+>> >> >>  drivers/mtd/nand/omap2.c               |  308
+>> ++++++++++++++++++++++++++++++++-
+>> >> >>  4 files changed, 422 insertions(+), 9 deletions(-)
+>> >> >>
+>> >> >> Index: mtd-2.6/arch/arm/mach-omap2/gpmc.c
+>> >> >> ===================================================================
+>> >> >> --- mtd-2.6.orig/arch/arm/mach-omap2/gpmc.c
+>> >> >> +++ mtd-2.6/arch/arm/mach-omap2/gpmc.c
+>> >> >> @@ -54,6 +54,12 @@
+>> >> >>  #define GPMC_CHUNK_SHIFT     24              /* 16 MB */
+>> >> >>  #define GPMC_SECTION_SHIFT   28              /* 128 MB */
+>> >> >>
+>> >> >> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+>> >> >> +#define CS_NUM_SHIFT         24
+>> >> >> +#define ENABLE_PREFETCH              7
+>> >> >> +#define DMA_MPU_MODE         2
+>> >> >> +#endif
+>> >> >> +
+>> >> >>  static struct resource       gpmc_mem_root;
+>> >> >>  static struct resource       gpmc_cs_mem[GPMC_CS_NUM];
+>> >> >>  static DEFINE_SPINLOCK(gpmc_mem_lock);
+>> >> >> @@ -383,6 +389,99 @@ void gpmc_cs_free(int cs)
+>> >> >>  }
+>> >> >>  EXPORT_SYMBOL(gpmc_cs_free);
+>> >> >>
+>> >> >> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+>> >> >> +/**
+>> >> >> + * gpmc_prefetch_init - configures default configuration for prefetch
+>> engine
+>> >> >> + */
+>> >> >> +static void gpmc_prefetch_init(void)
+>> >> >> +{
+>> >> >> +     /* Setting the default threshold to 64 */
+>> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x0);
+>> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0x40  << 8);
+>> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG2, 0x0);
+>> >> >> +}
+>> >> >
+>> >> > Why would you want to have NAND specific init code int gpmc.c?
+>> >> >
+>> >> > The purpose if gpmc.c is to provide access to configuring the
+>> >> > General Purpose Memory Controller (GPMC). You should just provide
+>> >> > functions in gpmc.c for the platform init code to use, and then
+>> >> > the drivers can stay platform independent.
+>> >>
+>> >> In my understanding, this 'prefetch' engine is part of GPMC itself, it is a
+>> >> kind of feature provided by GPMC which can be utilized by NAND driver.
+>> >> So, to me, it makes sens to get initialized prefetch by GPMC itself so that
+>> >> NAND driver can use it.
+>> >
+>> > But it should not have a dependency to NAND.
+>>
+>> This engine, in GPMC, is dedicated for NAND devices only.
+>>
+>> >
+>> >> Another reason was that all read / write to GPMC register are done by
+>> >> functions 'gpmc_read_reg' / 'gpmc_write_reg', which have been made
+>> >> 'static' in nature.
+>> >
+>> > That's why you need to provide a generic function in gpmc.c to enable
+>> > prefetch that the platform code for any driver can use.
+>>
+>> Exactly, and whenever a platform code uses gpmc init call, gpmc initializes
+>> this engine too. Since prefetch engine is the part of GPMC, IMHOP, it should
+>> get initialized as part of GPMC initialization.
+>
+> No, the driver needing it should initialize it. There should not be any
+> ifdefs needed in the gpmc.c for that.
 
- Tomi
+Are you suggesting to move gpmc prefetch specific code to 'drivers/mtd/nand/omap2.c'?
+This can be done but then, we will be accessing gpmc registers outside gpmc.c. Is that ok?
 
+>
+>> And then there are prefetch start, stop and status functions calls have been
+>> provided to be used by NAND driver.
+>
+> These should really be done in the platform init code for the NAND driver.
+> The NAND driver really should be generic, not omap specific.
+
+Are you talking about different omap versions or omap itself, I am bit confused. This NAND driver is 
+omap specific only.
+
+-Vimal
+
+> Tony
