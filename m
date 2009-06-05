@@ -1,548 +1,660 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/8] OMAP2/3 clock: ensure each clock has a unique name
-Date: Fri, 05 Jun 2009 04:19:40 -0600
-Message-ID: <20090605101939.32500.95716.stgit@localhost.localdomain>
+Subject: [PATCH 1/8] OMAP2/3 board-*.c files: read bootloader configuration
+	earlier
+Date: Fri, 05 Jun 2009 04:19:38 -0600
+Message-ID: <20090605101920.32500.28842.stgit@localhost.localdomain>
 References: <20090605101635.32500.63083.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47669 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:47667 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015AbZFEKUd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 06:20:33 -0400
+	with ESMTP id S1751165AbZFEKUc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 06:20:32 -0400
 In-Reply-To: <20090605101635.32500.63083.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-After the clkdev conversion, struct clk .name fields are free to be
-unique and to reflect the underlying hardware naming convention.  This
-is important since it is useful for some core code that is unrelated
-to the platform_device subsystem, such as the clock debugfs code and
-the omap_hwmod code, to be able to address clocks by a single unique
-identifier, since platform drivers are only weakly bound to clocks.
-So, update all of the non-unique clock names in OMAP2/3 to be unique
-names.  In the future it might be ideal to ensure that the names match
-the hardware information exactly, for ease of debugging and reference.
+Most board-*.c files read configuration data from the bootloader in
+their .init_machine() function.  This needs to happen earlier, at some
+point before omap2_init_common_hw() is called.  This is because a
+future patch will use the bootloader serial console port information
+to enable the UART clocks earlier, immediately after omap2_clk_init().
+This is in turn necessary since otherwise clock tree usecounts on
+clocks like dpll4_m2x2_ck will be bogus, which can cause the
+currently-active console UART clock to be disabled during boot.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock24xx.h |   52 +++++++++++++++++-----------------
- arch/arm/mach-omap2/clock34xx.h |   60 ++++++++++++++++++++-------------------
- 2 files changed, 56 insertions(+), 56 deletions(-)
+ arch/arm/mach-omap2/board-2430sdp.c      |   19 +++++++++----------
+ arch/arm/mach-omap2/board-3430sdp.c      |   20 ++++++++++----------
+ arch/arm/mach-omap2/board-apollon.c      |   20 ++++++++++----------
+ arch/arm/mach-omap2/board-generic.c      |   14 +++++++-------
+ arch/arm/mach-omap2/board-h4.c           |   20 ++++++++++----------
+ arch/arm/mach-omap2/board-ldp.c          |   20 ++++++++++----------
+ arch/arm/mach-omap2/board-omap2evm.c     |   20 ++++++++++----------
+ arch/arm/mach-omap2/board-omap3beagle.c  |   24 ++++++++++++------------
+ arch/arm/mach-omap2/board-omap3evm.c     |   14 +++++++-------
+ arch/arm/mach-omap2/board-omap3pandora.c |   18 +++++++++---------
+ arch/arm/mach-omap2/board-overo.c        |   18 +++++++++---------
+ arch/arm/mach-omap2/board-rx51.c         |    4 ++--
+ arch/arm/mach-omap2/board-zoom2.c        |   18 +++++++++---------
+ arch/arm/mach-omap2/io.c                 |    2 ++
+ arch/arm/mach-omap2/serial.c             |    6 +++++-
+ arch/arm/plat-omap/include/mach/serial.h |    6 ++++++
+ 16 files changed, 127 insertions(+), 116 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 88c5acb..c0cc2ac 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -1810,7 +1810,7 @@ static struct clk gpt12_fck = {
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 899e6e3..c563768 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -323,14 +323,6 @@ out:
+ 	clk_put(gpmc_fck);
+ }
+ 
+-static void __init omap_2430sdp_init_irq(void)
+-{
+-	omap2_init_common_hw(NULL);
+-	omap_init_irq();
+-	omap_gpio_init();
+-	sdp2430_init_smc91x();
+-}
+-
+ static struct omap_uart_config sdp2430_uart_config __initdata = {
+ 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+@@ -347,6 +339,15 @@ static struct omap_board_config_kernel sdp2430_config[] __initdata = {
+ 	{OMAP_TAG_SERIAL_CONSOLE, &sdp2430_serial_console_config},
  };
  
- static struct clk mcbsp1_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp1_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &l4_ck,
-@@ -1821,7 +1821,7 @@ static struct clk mcbsp1_ick = {
++static void __init omap_2430sdp_init_irq(void)
++{
++	omap_board_config = sdp2430_config;
++	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
++	omap2_init_common_hw(NULL);
++	omap_init_irq();
++	omap_gpio_init();
++	sdp2430_init_smc91x();
++}
+ 
+ static struct twl4030_gpio_platform_data sdp2430_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+@@ -406,8 +407,6 @@ static void __init omap_2430sdp_init(void)
+ 	omap2430_i2c_init();
+ 
+ 	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
+-	omap_board_config = sdp2430_config;
+-	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
+ 	omap_serial_init();
+ 
+ 	msecure_init();
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 38550e2..26fa398 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -296,14 +296,6 @@ static inline void __init sdp3430_init_smc91x(void)
+ 	gpio_direction_input(eth_gpio);
+ }
+ 
+-static void __init omap_3430sdp_init_irq(void)
+-{
+-	omap2_init_common_hw(hyb18m512160af6_sdrc_params);
+-	omap_init_irq();
+-	omap_gpio_init();
+-	sdp3430_init_smc91x();
+-}
+-
+ static struct omap_uart_config sdp3430_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+@@ -317,6 +309,16 @@ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
  };
  
- static struct clk mcbsp1_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &func_96m_ck,
-@@ -1832,7 +1832,7 @@ static struct clk mcbsp1_fck = {
++static void __init omap_3430sdp_init_irq(void)
++{
++	omap_board_config = sdp3430_config;
++	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
++	omap2_init_common_hw(hyb18m512160af6_sdrc_params);
++	omap_init_irq();
++	omap_gpio_init();
++	sdp3430_init_smc91x();
++}
++
+ static int sdp3430_batt_table[] = {
+ /* 0 C*/
+ 30800, 29500, 28300, 27100,
+@@ -668,8 +670,6 @@ static void __init omap_3430sdp_init(void)
+ {
+ 	omap3430_i2c_init();
+ 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
+-	omap_board_config = sdp3430_config;
+-	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
+ 	if (omap_rev() > OMAP3430_REV_ES1_0)
+ 		ts_gpio = SDP3430_TS_GPIO_IRQ_SDPV2;
+ 	else
+diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
+index 936cb49..3658587 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -330,14 +330,6 @@ out:
+ 	clk_put(gpmc_fck);
+ }
+ 
+-static void __init omap_apollon_init_irq(void)
+-{
+-	omap2_init_common_hw(NULL);
+-	omap_init_irq();
+-	omap_gpio_init();
+-	apollon_init_smc91x();
+-}
+-
+ static struct tsc210x_config tsc_platform_data = {
+ 	.use_internal		= 1,
+ 	.monitor		= TSC_TEMP,
+@@ -376,6 +368,16 @@ static struct omap_board_config_kernel apollon_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&apollon_lcd_config },
  };
  
- static struct clk mcbsp2_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp2_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &l4_ck,
-@@ -1843,7 +1843,7 @@ static struct clk mcbsp2_ick = {
++static void __init omap_apollon_init_irq(void)
++{
++	omap_board_config = apollon_config;
++	omap_board_config_size = ARRAY_SIZE(apollon_config);
++	omap2_init_common_hw(NULL);
++	omap_init_irq();
++	omap_gpio_init();
++	apollon_init_smc91x();
++}
++
+ static void __init apollon_led_init(void)
+ {
+ 	/* LED0 - AA10 */
+@@ -506,8 +508,6 @@ static void __init omap_apollon_init(void)
+ 	 * if not needed.
+ 	 */
+ 	platform_add_devices(apollon_devices, ARRAY_SIZE(apollon_devices));
+-	omap_board_config = apollon_config;
+-	omap_board_config_size = ARRAY_SIZE(apollon_config);
+ 	omap_serial_init();
+ 	omap_register_i2c_bus(1, 100, NULL, 0);
+ 	omap_register_i2c_bus(2, 100, NULL, 0);
+diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
+index 0e353b3..7bb7722 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -31,12 +31,6 @@
+ #include <mach/board.h>
+ #include <mach/common.h>
+ 
+-static void __init omap_generic_init_irq(void)
+-{
+-	omap2_init_common_hw(NULL);
+-	omap_init_irq();
+-}
+-
+ static struct omap_uart_config generic_uart_config __initdata = {
+ 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+@@ -45,10 +39,16 @@ static struct omap_board_config_kernel generic_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&generic_uart_config },
  };
  
- static struct clk mcbsp2_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &func_96m_ck,
-@@ -1854,7 +1854,7 @@ static struct clk mcbsp2_fck = {
+-static void __init omap_generic_init(void)
++static void __init omap_generic_init_irq(void)
+ {
+ 	omap_board_config = generic_config;
+ 	omap_board_config_size = ARRAY_SIZE(generic_config);
++	omap2_init_common_hw(NULL);
++	omap_init_irq();
++}
++
++static void __init omap_generic_init(void)
++{
+ 	omap_serial_init();
+ 	omap_register_i2c_bus(1, 100, NULL, 0);
+ 	omap_register_i2c_bus(2, 100, NULL, 0);
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 6145139..66b527e 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -358,14 +358,6 @@ static void __init h4_init_flash(void)
+ 	h4_flash_resource.end	= base + SZ_64M - 1;
+ }
+ 
+-static void __init omap_h4_init_irq(void)
+-{
+-	omap2_init_common_hw(NULL);
+-	omap_init_irq();
+-	omap_gpio_init();
+-	h4_init_flash();
+-}
+-
+ static struct omap_uart_config h4_uart_config __initdata = {
+ #ifdef	CONFIG_MACH_OMAP2_H4_USB1
+ 	.enabled_uarts = ((1 << 0) | (1 << 1)),
+@@ -443,6 +435,16 @@ static struct omap_board_config_kernel h4_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&h4_lcd_config },
  };
  
- static struct clk mcbsp3_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp3_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &l4_ck,
-@@ -1865,7 +1865,7 @@ static struct clk mcbsp3_ick = {
++static void __init omap_h4_init_irq(void)
++{
++	omap_board_config = h4_config;
++	omap_board_config_size = ARRAY_SIZE(h4_config);
++	omap2_init_common_hw(NULL);
++	omap_init_irq();
++	omap_gpio_init();
++	h4_init_flash();
++}
++
+ #ifdef	CONFIG_MACH_OMAP_H4_TUSB
+ 
+ #include <linux/usb/musb.h>
+@@ -756,8 +758,6 @@ static void __init omap_h4_init(void)
+ 	omap_cfg_reg(W19_24XX_SYS_NIRQ);
+ 
+ 	platform_add_devices(h4_devices, ARRAY_SIZE(h4_devices));
+-	omap_board_config = h4_config;
+-	omap_board_config_size = ARRAY_SIZE(h4_config);
+ 	omap_serial_init();
+ 	omap_usb_init(&h4_usb_config);
+ 	omap_register_i2c_bus(1, 100, h4_i2c_board_info,
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index b79f989..8da85c1 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -353,14 +353,6 @@ static inline void __init ldp_init_smsc911x(void)
+ }
+ 
+ 
+-static void __init omap_ldp_init_irq(void)
+-{
+-	omap2_init_common_hw(NULL);
+-	omap_init_irq();
+-	omap_gpio_init();
+-	ldp_init_smsc911x();
+-}
+-
+ static struct omap_uart_config ldp_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+@@ -374,6 +366,16 @@ static struct omap_board_config_kernel ldp_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&ldp_lcd_config },
  };
  
- static struct clk mcbsp3_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp3_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &func_96m_ck,
-@@ -1876,7 +1876,7 @@ static struct clk mcbsp3_fck = {
++static void __init omap_ldp_init_irq(void)
++{
++	omap_board_config = ldp_config;
++	omap_board_config_size = ARRAY_SIZE(ldp_config);
++	omap2_init_common_hw(NULL);
++	omap_init_irq();
++	omap_gpio_init();
++	ldp_init_smsc911x();
++}
++
+ static int ldp_batt_table[] = {
+ /* 0 C*/
+ 30800, 29500, 28300, 27100,
+@@ -559,8 +561,6 @@ static void __init omap_ldp_init(void)
+ {
+ 	omap_i2c_init();
+ 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
+-	omap_board_config = ldp_config;
+-	omap_board_config_size = ARRAY_SIZE(ldp_config);
+ 	ts_gpio = 54;
+ 	ldp_spi_board_info[0].irq = gpio_to_irq(ts_gpio);
+ 	spi_register_board_info(ldp_spi_board_info,
+diff --git a/arch/arm/mach-omap2/board-omap2evm.c b/arch/arm/mach-omap2/board-omap2evm.c
+index 86477cc..3b80315 100644
+--- a/arch/arm/mach-omap2/board-omap2evm.c
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -278,14 +278,6 @@ static struct twl4030_keypad_data omap2evm_kp_data = {
+ 	.rep		= 1,
  };
  
- static struct clk mcbsp4_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp4_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 4,
- 	.parent		= &l4_ck,
-@@ -1887,7 +1887,7 @@ static struct clk mcbsp4_ick = {
+-static void __init omap2_evm_init_irq(void)
+-{
+-	omap2_init_common_hw(NULL);
+-	omap_init_irq();
+-	omap_gpio_init();
+-	omap2evm_init_smc911x();
+-}
+-
+ static struct omap_uart_config omap2_evm_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+@@ -295,6 +287,16 @@ static struct omap_board_config_kernel omap2_evm_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&omap2_evm_lcd_config },
  };
  
- static struct clk mcbsp4_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp4_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 4,
- 	.parent		= &func_96m_ck,
-@@ -1898,7 +1898,7 @@ static struct clk mcbsp4_fck = {
++static void __init omap2_evm_init_irq(void)
++{
++	omap_board_config = omap2_evm_config;
++	omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
++	omap2_init_common_hw(NULL);
++	omap_init_irq();
++	omap_gpio_init();
++	omap2evm_init_smc911x();
++}
++
+ static struct twl4030_gpio_platform_data omap2evm_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+@@ -357,8 +359,6 @@ static void __init omap2_evm_init(void)
+ 	omap2_evm_i2c_init();
+ 
+ 	platform_add_devices(omap2_evm_devices, ARRAY_SIZE(omap2_evm_devices));
+-	omap_board_config = omap2_evm_config;
+-	omap_board_config_size = ARRAY_SIZE(omap2_evm_config);
+ 	spi_register_board_info(omap2evm_spi_board_info,
+ 				ARRAY_SIZE(omap2evm_spi_board_info));
+ 	omap_serial_init();
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index 19bc2a1..f40ed10 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -306,16 +306,6 @@ static int __init omap3_beagle_i2c_init(void)
+ 	return 0;
+ }
+ 
+-static void __init omap3_beagle_init_irq(void)
+-{
+-	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
+-	omap_init_irq();
+-#ifdef CONFIG_OMAP_32K_TIMER
+-	omap2_gp_clockevent_set_gptimer(12);
+-#endif
+-	omap_gpio_init();
+-}
+-
+ static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+ 	.ctrl_name	= "internal",
+ };
+@@ -378,6 +368,18 @@ static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
  };
  
- static struct clk mcbsp5_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp5_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 5,
- 	.parent		= &l4_ck,
-@@ -1909,7 +1909,7 @@ static struct clk mcbsp5_ick = {
++static void __init omap3_beagle_init_irq(void)
++{
++	omap_board_config = omap3_beagle_config;
++	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
++	omap_init_irq();
++#ifdef CONFIG_OMAP_32K_TIMER
++	omap2_gp_clockevent_set_gptimer(12);
++#endif
++	omap_gpio_init();
++}
++
+ static struct platform_device *omap3_beagle_devices[] __initdata = {
+ 	&omap3_beagle_lcd_device,
+ 	&leds_gpio,
+@@ -427,8 +429,6 @@ static void __init omap3_beagle_init(void)
+ 	omap3_beagle_i2c_init();
+ 	platform_add_devices(omap3_beagle_devices,
+ 			ARRAY_SIZE(omap3_beagle_devices));
+-	omap_board_config = omap3_beagle_config;
+-	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
+ 	omap_serial_init();
+ 
+ 	omap_cfg_reg(J25_34XX_GPIO170);
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 6eb3c52..b7f5e1d 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -279,19 +279,21 @@ struct spi_board_info omap3evm_spi_board_info[] = {
+ 	},
  };
  
- static struct clk mcbsp5_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp5_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 5,
- 	.parent		= &func_96m_ck,
-@@ -1920,7 +1920,7 @@ static struct clk mcbsp5_fck = {
++static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
++	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
++	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
++};
++
+ static void __init omap3_evm_init_irq(void)
+ {
++	omap_board_config = omap3_evm_config;
++	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+ 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	omap3evm_init_smc911x();
+ }
+ 
+-static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
+-	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
+-	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
+-};
+-
+ static struct platform_device *omap3_evm_devices[] __initdata = {
+ 	&omap3_evm_lcd_device,
+ 	&omap3evm_smc911x_device,
+@@ -302,8 +304,6 @@ static void __init omap3_evm_init(void)
+ 	omap3_evm_i2c_init();
+ 
+ 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
+-	omap_board_config = omap3_evm_config;
+-	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
+ 
+ 	spi_register_board_info(omap3evm_spi_board_info,
+ 				ARRAY_SIZE(omap3evm_spi_board_info));
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index c525b16..e8fa926 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -263,13 +263,6 @@ static int __init omap3pandora_i2c_init(void)
+ 	return 0;
+ }
+ 
+-static void __init omap3pandora_init_irq(void)
+-{
+-	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
+-	omap_init_irq();
+-	omap_gpio_init();
+-}
+-
+ static void __init omap3pandora_ads7846_init(void)
+ {
+ 	int gpio = OMAP3_PANDORA_TS_GPIO;
+@@ -333,6 +326,15 @@ static struct omap_board_config_kernel omap3pandora_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&omap3pandora_lcd_config },
  };
  
- static struct clk mcspi1_ick = {
--	.name		= "mcspi_ick",
-+	.name		= "mcspi1_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &l4_ck,
-@@ -1931,7 +1931,7 @@ static struct clk mcspi1_ick = {
++static void __init omap3pandora_init_irq(void)
++{
++	omap_board_config = omap3pandora_config;
++	omap_board_config_size = ARRAY_SIZE(omap3pandora_config);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
+ static struct platform_device *omap3pandora_devices[] __initdata = {
+ 	&omap3pandora_lcd_device,
+ };
+@@ -342,8 +344,6 @@ static void __init omap3pandora_init(void)
+ 	omap3pandora_i2c_init();
+ 	platform_add_devices(omap3pandora_devices,
+ 			ARRAY_SIZE(omap3pandora_devices));
+-	omap_board_config = omap3pandora_config;
+-	omap_board_config_size = ARRAY_SIZE(omap3pandora_config);
+ 	omap_serial_init();
+ 	spi_register_board_info(omap3pandora_spi_board_info,
+ 			ARRAY_SIZE(omap3pandora_spi_board_info));
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 3a9c519..0462e99 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -363,13 +363,6 @@ static int __init overo_i2c_init(void)
+ 	return 0;
+ }
+ 
+-static void __init overo_init_irq(void)
+-{
+-	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
+-	omap_init_irq();
+-	omap_gpio_init();
+-}
+-
+ static struct platform_device overo_lcd_device = {
+ 	.name		= "overo_lcd",
+ 	.id		= -1,
+@@ -384,6 +377,15 @@ static struct omap_board_config_kernel overo_config[] __initdata = {
+ 	{ OMAP_TAG_LCD,		&overo_lcd_config },
  };
  
- static struct clk mcspi1_fck = {
--	.name		= "mcspi_fck",
-+	.name		= "mcspi1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &func_48m_ck,
-@@ -1942,7 +1942,7 @@ static struct clk mcspi1_fck = {
++static void __init overo_init_irq(void)
++{
++	omap_board_config = overo_config;
++	omap_board_config_size = ARRAY_SIZE(overo_config);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
+ static struct platform_device *overo_devices[] __initdata = {
+ 	&overo_lcd_device,
+ };
+@@ -392,8 +394,6 @@ static void __init overo_init(void)
+ {
+ 	overo_i2c_init();
+ 	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
+-	omap_board_config = overo_config;
+-	omap_board_config_size = ARRAY_SIZE(overo_config);
+ 	omap_serial_init();
+ 	usb_musb_init();
+ 	usb_ehci_init();
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 5ee62f8..4714576 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -62,6 +62,8 @@ static struct omap_board_config_kernel rx51_config[] = {
+ 
+ static void __init rx51_init_irq(void)
+ {
++	omap_board_config = rx51_config;
++	omap_board_config_size = ARRAY_SIZE(rx51_config);
+ 	omap2_init_common_hw(rx51_get_sdram_timings());
+ 	omap_init_irq();
+ 	omap_gpio_init();
+@@ -72,8 +74,6 @@ extern void __init rx51_video_init(void);
+ 
+ static void __init rx51_init(void)
+ {
+-	omap_board_config = rx51_config;
+-	omap_board_config_size = ARRAY_SIZE(rx51_config);
+ 	omap_serial_init();
+ 	usb_musb_init();
+ 	rx51_peripherals_init();
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 8535c3a..bce4c60 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -23,13 +23,6 @@
+ 
+ #include "mmc-twl4030.h"
+ 
+-static void __init omap_zoom2_init_irq(void)
+-{
+-	omap2_init_common_hw(NULL);
+-	omap_init_irq();
+-	omap_gpio_init();
+-}
+-
+ static struct omap_uart_config zoom2_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+@@ -38,6 +31,15 @@ static struct omap_board_config_kernel zoom2_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&zoom2_uart_config },
  };
  
- static struct clk mcspi2_ick = {
--	.name		= "mcspi_ick",
-+	.name		= "mcspi2_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &l4_ck,
-@@ -1953,7 +1953,7 @@ static struct clk mcspi2_ick = {
++static void __init omap_zoom2_init_irq(void)
++{
++	omap_board_config = zoom2_config;
++	omap_board_config_size = ARRAY_SIZE(zoom2_config);
++	omap2_init_common_hw(NULL);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
+ static struct twl4030_gpio_platform_data zoom2_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+@@ -85,8 +87,6 @@ extern int __init omap_zoom2_debugboard_init(void);
+ static void __init omap_zoom2_init(void)
+ {
+ 	omap_i2c_init();
+-	omap_board_config = zoom2_config;
+-	omap_board_config_size = ARRAY_SIZE(zoom2_config);
+ 	omap_serial_init();
+ 	omap_zoom2_debugboard_init();
+ 	twl4030_mmc_init(mmc);
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 916fcd3..deb309a 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -29,6 +29,7 @@
+ #include <mach/sram.h>
+ #include <mach/sdrc.h>
+ #include <mach/gpmc.h>
++#include <mach/serial.h>
+ 
+ #include "clock.h"
+ 
+@@ -201,6 +202,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sp)
+ 	pwrdm_init(powerdomains_omap);
+ 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+ 	omap2_clk_init();
++	omap_serial_early_init();
+ 	omap2_sdrc_init(sp);
+ 	gpmc_init();
+ }
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 3c2d325..352b88d 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -106,7 +106,7 @@ static struct platform_device serial_device = {
+ 	},
  };
  
- static struct clk mcspi2_fck = {
--	.name		= "mcspi_fck",
-+	.name		= "mcspi2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &func_48m_ck,
-@@ -1964,7 +1964,7 @@ static struct clk mcspi2_fck = {
- };
+-void __init omap_serial_init(void)
++void __init omap_serial_early_init(void)
+ {
+ 	int i;
+ 	const struct omap_uart_config *info;
+@@ -150,6 +150,10 @@ void __init omap_serial_init(void)
  
- static struct clk mcspi3_ick = {
--	.name		= "mcspi_ick",
-+	.name		= "mcspi3_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &l4_ck,
-@@ -1975,7 +1975,7 @@ static struct clk mcspi3_ick = {
- };
+ 		omap_serial_reset(p);
+ 	}
++}
  
- static struct clk mcspi3_fck = {
--	.name		= "mcspi_fck",
-+	.name		= "mcspi3_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &func_48m_ck,
-@@ -2303,7 +2303,7 @@ static struct clk hdq_fck = {
- };
++void __init omap_serial_init(void)
++{
+ 	platform_device_register(&serial_device);
+ }
++
+diff --git a/arch/arm/plat-omap/include/mach/serial.h b/arch/arm/plat-omap/include/mach/serial.h
+index 8a676a0..b34fa47 100644
+--- a/arch/arm/plat-omap/include/mach/serial.h
++++ b/arch/arm/plat-omap/include/mach/serial.h
+@@ -10,6 +10,8 @@
+ #ifndef __ASM_ARCH_SERIAL_H
+ #define __ASM_ARCH_SERIAL_H
  
- static struct clk i2c2_ick = {
--	.name		= "i2c_ick",
-+	.name		= "i2c2_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &l4_ck,
-@@ -2314,7 +2314,7 @@ static struct clk i2c2_ick = {
- };
++#include <linux/init.h>
++
+ #if defined(CONFIG_ARCH_OMAP1)
+ /* OMAP1 serial ports */
+ #define OMAP_UART1_BASE		0xfffb0000
+@@ -40,4 +42,8 @@
+ 			__ret;						\
+ 			})
  
- static struct clk i2c2_fck = {
--	.name		= "i2c_fck",
-+	.name		= "i2c2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &func_12m_ck,
-@@ -2325,7 +2325,7 @@ static struct clk i2c2_fck = {
- };
- 
- static struct clk i2chs2_fck = {
--	.name		= "i2c_fck",
-+	.name		= "i2chs2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &func_96m_ck,
-@@ -2336,7 +2336,7 @@ static struct clk i2chs2_fck = {
- };
- 
- static struct clk i2c1_ick = {
--	.name		= "i2c_ick",
-+	.name		= "i2c1_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &l4_ck,
-@@ -2347,7 +2347,7 @@ static struct clk i2c1_ick = {
- };
- 
- static struct clk i2c1_fck = {
--	.name		= "i2c_fck",
-+	.name		= "i2c1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &func_12m_ck,
-@@ -2358,7 +2358,7 @@ static struct clk i2c1_fck = {
- };
- 
- static struct clk i2chs1_fck = {
--	.name		= "i2c_fck",
-+	.name		= "i2chs1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &func_96m_ck,
-@@ -2547,7 +2547,7 @@ static struct clk mmchs1_fck = {
- };
- 
- static struct clk mmchs2_ick = {
--	.name		= "mmchs_ick",
-+	.name		= "mmchs2_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &l4_ck,
-@@ -2558,7 +2558,7 @@ static struct clk mmchs2_ick = {
- };
- 
- static struct clk mmchs2_fck = {
--	.name		= "mmchs_fck",
-+	.name		= "mmchs2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &func_96m_ck,
-@@ -2598,7 +2598,7 @@ static struct clk mdm_intc_ick = {
- };
- 
- static struct clk mmchsdb1_fck = {
--	.name		= "mmchsdb_fck",
-+	.name		= "mmchsdb1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &func_32k_ck,
- 	.clkdm_name	= "core_l4_clkdm",
-@@ -2608,7 +2608,7 @@ static struct clk mmchsdb1_fck = {
- };
- 
- static struct clk mmchsdb2_fck = {
--	.name		= "mmchsdb_fck",
-+	.name		= "mmchsdb2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &func_32k_ck,
-diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
-index 017a30e..1380563 100644
---- a/arch/arm/mach-omap2/clock34xx.h
-+++ b/arch/arm/mach-omap2/clock34xx.h
-@@ -1300,7 +1300,7 @@ static struct clk core_96m_fck = {
- };
- 
- static struct clk mmchs3_fck = {
--	.name		= "mmchs_fck",
-+	.name		= "mmchs3_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &core_96m_fck,
-@@ -1311,7 +1311,7 @@ static struct clk mmchs3_fck = {
- };
- 
- static struct clk mmchs2_fck = {
--	.name		= "mmchs_fck",
-+	.name		= "mmchs2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &core_96m_fck,
-@@ -1332,7 +1332,7 @@ static struct clk mspro_fck = {
- };
- 
- static struct clk mmchs1_fck = {
--	.name		= "mmchs_fck",
-+	.name		= "mmchs1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &core_96m_fck,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_FCLKEN1),
-@@ -1342,7 +1342,7 @@ static struct clk mmchs1_fck = {
- };
- 
- static struct clk i2c3_fck = {
--	.name		= "i2c_fck",
-+	.name		= "i2c3_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &core_96m_fck,
-@@ -1353,7 +1353,7 @@ static struct clk i2c3_fck = {
- };
- 
- static struct clk i2c2_fck = {
--	.name		= "i2c_fck",
-+	.name		= "i2c2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &core_96m_fck,
-@@ -1364,7 +1364,7 @@ static struct clk i2c2_fck = {
- };
- 
- static struct clk i2c1_fck = {
--	.name		= "i2c_fck",
-+	.name		= "i2c1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &core_96m_fck,
-@@ -1395,7 +1395,7 @@ static const struct clksel mcbsp_15_clksel[] = {
- };
- 
- static struct clk mcbsp5_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp5_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 5,
- 	.init		= &omap2_init_clksel_parent,
-@@ -1409,7 +1409,7 @@ static struct clk mcbsp5_fck = {
- };
- 
- static struct clk mcbsp1_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.init		= &omap2_init_clksel_parent,
-@@ -1433,7 +1433,7 @@ static struct clk core_48m_fck = {
- };
- 
- static struct clk mcspi4_fck = {
--	.name		= "mcspi_fck",
-+	.name		= "mcspi4_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 4,
- 	.parent		= &core_48m_fck,
-@@ -1443,7 +1443,7 @@ static struct clk mcspi4_fck = {
- };
- 
- static struct clk mcspi3_fck = {
--	.name		= "mcspi_fck",
-+	.name		= "mcspi3_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &core_48m_fck,
-@@ -1453,7 +1453,7 @@ static struct clk mcspi3_fck = {
- };
- 
- static struct clk mcspi2_fck = {
--	.name		= "mcspi_fck",
-+	.name		= "mcspi2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &core_48m_fck,
-@@ -1463,7 +1463,7 @@ static struct clk mcspi2_fck = {
- };
- 
- static struct clk mcspi1_fck = {
--	.name		= "mcspi_fck",
-+	.name		= "mcspi1_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &core_48m_fck,
-@@ -1643,7 +1643,7 @@ static struct clk usbtll_ick = {
- };
- 
- static struct clk mmchs3_ick = {
--	.name		= "mmchs_ick",
-+	.name		= "mmchs3_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &core_l4_ick,
-@@ -1695,7 +1695,7 @@ static struct clk des2_ick = {
- };
- 
- static struct clk mmchs2_ick = {
--	.name		= "mmchs_ick",
-+	.name		= "mmchs2_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &core_l4_ick,
-@@ -1706,7 +1706,7 @@ static struct clk mmchs2_ick = {
- };
- 
- static struct clk mmchs1_ick = {
--	.name		= "mmchs_ick",
-+	.name		= "mmchs1_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.parent		= &core_l4_ick,
- 	.enable_reg	= OMAP_CM_REGADDR(CORE_MOD, CM_ICLKEN1),
-@@ -1736,7 +1736,7 @@ static struct clk hdq_ick = {
- };
- 
- static struct clk mcspi4_ick = {
--	.name		= "mcspi_ick",
-+	.name		= "mcspi4_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 4,
- 	.parent		= &core_l4_ick,
-@@ -1747,7 +1747,7 @@ static struct clk mcspi4_ick = {
- };
- 
- static struct clk mcspi3_ick = {
--	.name		= "mcspi_ick",
-+	.name		= "mcspi3_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &core_l4_ick,
-@@ -1758,7 +1758,7 @@ static struct clk mcspi3_ick = {
- };
- 
- static struct clk mcspi2_ick = {
--	.name		= "mcspi_ick",
-+	.name		= "mcspi2_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &core_l4_ick,
-@@ -1769,7 +1769,7 @@ static struct clk mcspi2_ick = {
- };
- 
- static struct clk mcspi1_ick = {
--	.name		= "mcspi_ick",
-+	.name		= "mcspi1_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &core_l4_ick,
-@@ -1780,7 +1780,7 @@ static struct clk mcspi1_ick = {
- };
- 
- static struct clk i2c3_ick = {
--	.name		= "i2c_ick",
-+	.name		= "i2c3_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &core_l4_ick,
-@@ -1791,7 +1791,7 @@ static struct clk i2c3_ick = {
- };
- 
- static struct clk i2c2_ick = {
--	.name		= "i2c_ick",
-+	.name		= "i2c2_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &core_l4_ick,
-@@ -1802,7 +1802,7 @@ static struct clk i2c2_ick = {
- };
- 
- static struct clk i2c1_ick = {
--	.name		= "i2c_ick",
-+	.name		= "i2c1_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &core_l4_ick,
-@@ -1853,7 +1853,7 @@ static struct clk gpt10_ick = {
- };
- 
- static struct clk mcbsp5_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp5_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 5,
- 	.parent		= &core_l4_ick,
-@@ -1864,7 +1864,7 @@ static struct clk mcbsp5_ick = {
- };
- 
- static struct clk mcbsp1_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp1_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 1,
- 	.parent		= &core_l4_ick,
-@@ -2644,7 +2644,7 @@ static struct clk gpt2_ick = {
- };
- 
- static struct clk mcbsp2_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp2_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.parent		= &per_l4_ick,
-@@ -2655,7 +2655,7 @@ static struct clk mcbsp2_ick = {
- };
- 
- static struct clk mcbsp3_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp3_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.parent		= &per_l4_ick,
-@@ -2666,7 +2666,7 @@ static struct clk mcbsp3_ick = {
- };
- 
- static struct clk mcbsp4_ick = {
--	.name		= "mcbsp_ick",
-+	.name		= "mcbsp4_ick",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 4,
- 	.parent		= &per_l4_ick,
-@@ -2683,7 +2683,7 @@ static const struct clksel mcbsp_234_clksel[] = {
- };
- 
- static struct clk mcbsp2_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp2_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 2,
- 	.init		= &omap2_init_clksel_parent,
-@@ -2697,7 +2697,7 @@ static struct clk mcbsp2_fck = {
- };
- 
- static struct clk mcbsp3_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp3_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 3,
- 	.init		= &omap2_init_clksel_parent,
-@@ -2711,7 +2711,7 @@ static struct clk mcbsp3_fck = {
- };
- 
- static struct clk mcbsp4_fck = {
--	.name		= "mcbsp_fck",
-+	.name		= "mcbsp4_fck",
- 	.ops		= &clkops_omap2_dflt_wait,
- 	.id		= 4,
- 	.init		= &omap2_init_clksel_parent,
++#ifndef __ASSEMBLER__
++void __init omap_serial_early_init(void);
++#endif
++
+ #endif
 
 
