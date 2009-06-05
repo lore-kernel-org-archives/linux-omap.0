@@ -1,48 +1,32 @@
 From: "Venkatesh, Subbu" <subbu.wrs@ti.com>
-Subject: RE: DSS2: Compilation Error on Git tree
- http://www.bat.org/~tomba/git/linux-omap-dss.git
-Date: Thu, 4 Jun 2009 19:00:51 -0500
-Message-ID: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBD@dlee01.ent.ti.com>
-References: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBA@dlee01.ent.ti.com>,<1244098753.4004.1.camel@tubuntu>
+Subject: Early gpio_request on LDP for LCD fails
+Date: Thu, 4 Jun 2009 19:10:54 -0500
+Message-ID: <5F744A5A3C131242B81CE5874BD2CFFB34E35EBE@dlee01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54247 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:54492 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751637AbZFEAEK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 20:04:10 -0400
-In-Reply-To: <1244098753.4004.1.camel@tubuntu>
+	id S1751308AbZFEALK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 20:11:10 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n550B8Fl032316
+	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 19:11:13 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n550B7rx025387
+	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 19:11:07 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n550B7Sn017109
+	for <linux-omap@vger.kernel.org>; Thu, 4 Jun 2009 19:11:07 -0500 (CDT)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "Shah, Hardik" <hardik.shah@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Mande, Nikhil" <nikhil@ti.com>, "Castaneda Gonzalez, Axel" <x0055901@ti.com>, "Miesen, Sharon" <s-miesen@ti.com>
+To: "Venkatesh, Subbu" <subbu.wrs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tomi,
-I ported LDP changes to new Device model, basic features are tested,  let me know if I need to resend it.
-
-While testing mirroring, I added new IOCTL for mirroring, so that user application can perform operations, do you want me send that patch too?
-
+Hi,
+I am getting failed messages when I try gpio_request for LCD in the early board_init (GPIO number is (9+OMAP_GPIO_LINES_MAX)).
+Could any one suggest me how to resolve it, or any inputs are appreicated.
 
 Regards,
 Subbu
-________________________________________
-From: Tomi Valkeinen [tomi.valkeinen@nokia.com]
-Sent: Thursday, June 04, 2009 1:59 AM
-To: Venkatesh, Subbu
-Cc: Shah, Hardik; linux-omap@vger.kernel.org; Mande, Nikhil; Castaneda Gonzalez, Axel; Miesen, Sharon
-Subject: Re: DSS2: Compilation Error on Git tree http://www.bat.org/~tomba/git/linux-omap-dss.git
-
-On Wed, 2009-06-03 at 16:07 +0200, ext Venkatesh, Subbu wrote:
-> Hi Tomi,
-> I did git pull to update my tree, later compiling code for LDP, I am getting compilation error as show below. I see that I am missing declaration of
->  struct omap_dss_display_config in display.h file, could you please comment on it...
-
-You need to port your LDP changes to newer DSS2 device model. Check how
-it's done with OMAP SDP or Beagleboard.
-
- Tomi
-
-
-
