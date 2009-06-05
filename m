@@ -1,62 +1,47 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 00/07] pm: remove late/early platform driver pm callbacks
-Date: Fri, 5 Jun 2009 21:10:58 +0200
-Message-ID: <200906052110.59209.rjw@sisk.pl>
-References: <20090605075436.14756.80501.sendpatchset@rx1.opensource.se>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was:
+ Re: Beagleboard rev C memory timings & suspend/resume)
+Date: Fri, 5 Jun 2009 13:14:49 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906051308370.31531@utopia.booyaka.com>
+References: <200904291553.49378.jpihet@mvista.com> <200905261527.16648.jpihet@mvista.com> <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com> <200906051735.57772.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-634465754-1244229147=:31531"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:54257 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750876AbZFETK7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 5 Jun 2009 15:10:59 -0400
-In-Reply-To: <20090605075436.14756.80501.sendpatchset@rx1.opensource.se>
-Content-Disposition: inline
+Received: from utopia.booyaka.com ([72.9.107.138]:35765 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751752AbZFETOr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 15:14:47 -0400
+In-Reply-To: <200906051735.57772.jpihet@mvista.com>
+Content-ID: <alpine.DEB.2.00.0906051312490.31531@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: linux-pm@lists.linux-foundation.org, pavel@ucw.cz, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, gregkh@suse.de, stern@rowland.harvard.edu, ben-linux@fluff.org, felipe.balbi@nokia.com, linux-omap@vger.kernel.org
+To: Jean Pihet <jpihet@mvista.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, notasas@gmail.com
 
-On Friday 05 June 2009, Magnus Damm wrote:
-> pm: remove late/early platform driver pm callbacks
-> 
-> [PATCH 01/07] arm: rework omap suspend_late()/resume_early()
-> [PATCH 02/07] dma: rework dw_dmac suspend_late()/resume_early()
-> [PATCH 03/07] dma: rework txx9dmac suspend_late()/resume_early()
-> [PATCH 04/07] i2c: rework i2c-pxa suspend_late()/resume_early()
-> [PATCH 05/07] i2c: rework i2c-s3c2410 suspend_late()/resume()
-> [PATCH 06/07] usb: rework musb suspend()/resume_early()
-> [PATCH 07/07] pm: remove platform device suspend_late()/resume_early()
-> 
-> These patches simply remove ->suspend_late() and ->resume_early()
-> from struct platform_driver. Drivers are converted to dev_pm_ops
-> with CONFIG_SUSPEND in mind. Untested.
-> 
-> All patches except [02/07] are known to compile.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I think the last patch will need to be rebased on top of linux-next, but rather
-trivially.
+--155748971-634465754-1244229147=:31531
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.0906051312491.31531@utopia.booyaka.com>
 
-I like the series, but I think it needs some more exposure.
+Hi Jean,
 
-Care to repost with a CC to the LKML and usb-devel?
+On Fri, 5 Jun 2009, Jean Pihet wrote:
 
-Best,
-Rafael
+> Some notes:
+> - all calls to omap2_init_common_hw have been adapted in the board files.=
+ it=20
+> looks like 2430SDP and Pandora board files are broken since they use only=
+ one=20
+> param. Can that be checked on those boards?
+
+Yep, builds with those two boards are broken on the PM branch, and it=20
+looks like your patch fixes both. =20
+
+Gra=B8yvdas, looks like Pandora might use 2 SDRAM chipselects also?
 
 
-> Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> ---
-> 
->  arch/arm/plat-omap/debug-leds.c  |   11 +++++++----
->  arch/arm/plat-omap/gpio.c        |   14 ++++++++++----
->  drivers/base/platform.c          |   36 ------------------------------------
->  drivers/dma/dw_dmac.c            |   15 ++++++++++-----
->  drivers/dma/txx9dmac.c           |   15 ++++++++++-----
->  drivers/i2c/busses/i2c-pxa.c     |   25 +++++++++++++++++--------
->  drivers/i2c/busses/i2c-s3c2410.c |   28 +++++++++++++++++-----------
->  drivers/usb/musb/musb_core.c     |   18 ++++++++++++------
->  include/linux/platform_device.h  |    2 --
->  9 files changed, 83 insertions(+), 81 deletions(-)
+- Paul
+--155748971-634465754-1244229147=:31531--
