@@ -1,69 +1,59 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP2/3 Avoid GPIO pending irq status been set after irq_disable
-Date: Fri, 05 Jun 2009 14:34:48 -0700
-Message-ID: <87ljo68ivb.fsf@deeprootsystems.com>
-References: <B00E06E2766C2744B022DE9BAF3C59D5372EFA@zmy16exm69.ds.mot.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 05/06] OMAP3: PM: Implement locking for any scratchpad
+ access
+Date: Fri, 5 Jun 2009 16:54:29 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162038E092D2D@dlee02.ent.ti.com>
+References: <1243514587-5323-1-git-send-email-rnayak@ti.com>
+ <1243514587-5323-2-git-send-email-rnayak@ti.com>
+ <1243514587-5323-3-git-send-email-rnayak@ti.com>
+ <1243514587-5323-4-git-send-email-rnayak@ti.com>
+ <1243514587-5323-5-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.0906051445230.31531@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:10160 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbZFEVet (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 17:34:49 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so795468wfd.4
-        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 14:34:51 -0700 (PDT)
-In-Reply-To: <B00E06E2766C2744B022DE9BAF3C59D5372EFA@zmy16exm69.ds.mot.com> (Wang Sawsd-A's message of "Sat\, 6 Jun 2009 03\:06\:40 +0800")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54984 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751814AbZFEVyj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 17:54:39 -0400
+In-Reply-To: <alpine.DEB.2.00.0906051445230.31531@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wang Sawsd-A24013 <cqwang@motorola.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com, Mike Chan <mikechan@google.com>
+To: Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Wang Sawsd-A24013" <cqwang@motorola.com> writes:
 
->> Could you try this patch with your TS GPIO configured as 
->> level-triggered?
->> 
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Friday, June 05, 2009 4:26 PM
+
+> On Thu, 28 May 2009, Rajendra Nayak wrote:
 >
-> I tried the below patch, it can solve the issue also.
+> > This patch implements locking using the semaphore in scratchpad
+> > memory preventing any concurrent access to scratchpad from OMAP
+> > and Baseband/Modem processor.
 >
+> This patch might be okay for the target use case.  But there might still
+> be a race window with this patch, where the modem could steal the MPU's
+> lock or vice versa.
+>
+> That swp tries to guarantee atomicity through exclusive memory accesses,
+> but the AXI2OCP bridge section of the TRM claims that the bridge
+> translates "exclusive accesses to non-exclusive read/write in the bridge"
+> (section 3.2.3.2).  That seems to suggest that the memory accesses will be
+> non-atomic and that therefore a race window exists.
 
-Thanks for testing.
+This is an incorrect interpretation.  A race does not exist because of this point.
 
-This whole time, you're probably wondering... "why doesn't Kevin just
-add the disable and enable hooks and be done with it."  I don't think
-I've explained myself there yet so let me try to explain so I don't
-come across as refusing your original idea for no good reason other
-than being stubborn.
+The AXI2OCP does translate external excusive operations this way (STREX/LWREX).  This is not the same for SWP.  SWP generates a global bus lock.
 
-We basically have the option of doing it in my proposed patch, which
-adds additional overhead to the mask/unmask hooks or we can just add
-disable/enable hooks as you did in your original patch.
+Exclusive operations do have a reservation in the L2 block.  So they are good until they go to external memory.  On OMAP these work as you expect with respect to the ARM, but won't work between ARM and DSP or other master.
 
-The reason I prefer not to add disable/enable hooks is to take
-advantage of the lazy disable feature.  With lazy disable, by waiting
-to actually disable, it allows us to handle potentially lost
-interrupts and this is especially important for wakeup interrupts.  An
-interesting example this is interrupts that are lazy disabled during
-suspend/resume.
+SWP on the other hand still works.  SWP is a relative pig compared to STREX/LWREX as it locks the whole L3, compared to a small key address, but, it's a lot lighter than a mailbox.
 
-For example, if a wakeup interrupt happens between the drivers
-disable_irq(), what you want is for this interrupt to cancel suspend.
-If you you implement a ->disable hook, and thus mask interrupts in HW
-immediately, you will loose this interrupt.  With lazy disable, the
-drivers ISR will not be called, but genirq will see this interrupt and
-set IRQ_PENDING.  Late in the suspend path, IRQs that are IRQ_WAKEUP
-and IRQ_PENDING will cancel suspend (see
-kernel/irq/pm.c:check_wakeup_irqs())
 
-Another possible scenario is an interrupt that happens between HW
-resume and the drivers enable_irq() hook.  With lazy disable, this
-interrupt will be IRQ_PENDING when enable_irq() gets called and be
-triggered/handled immedately.
+Regards,
+Richard W.
 
-Hope that helps explain my stubborness, ;)
-
-Of course this doesn't mean it's an absolute decision.  As always, I'm
-certainly open to being pursuaded that there are other better reasons
-for doing it differently.
-
-Kevin
