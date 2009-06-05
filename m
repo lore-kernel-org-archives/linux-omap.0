@@ -1,79 +1,42 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Script for applying a set of patches from a folder
-Date: Sat, 6 Jun 2009 00:52:55 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030591A59C@dbde02.ent.ti.com>
-References: <A3273B39-7050-4382-BFE7-A1416B45DA55@mac.com>
+From: Rowland Hook <rjhook70@gmail.com>
+Subject: From Martins D.Legacy
+Date: Fri, 5 Jun 2009 13:41:39 -0700
+Message-ID: <73e2b0650906051341i5847ac0cvce49200da7f182ce__17238.162426702$1244234528$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51777 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478AbZFETXG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 15:23:06 -0400
-In-Reply-To: <A3273B39-7050-4382-BFE7-A1416B45DA55@mac.com>
-Content-Language: en-US
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:65198 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752815AbZFEUlw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 16:41:52 -0400
+Received: by mail-ew0-f210.google.com with SMTP id 6so2499526ewy.37
+        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 13:41:54 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>, Linux OMAP Users <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Elvis Dowson
-> Sent: Friday, June 05, 2009 9:51 PM
-> To: Linux OMAP Users
-> Subject: Re: Script for applying a set of patches from a folder
-> 
-> Hi Kevin,
-> 		  I'm using OpenEmbedded, so I have to extract the patches first,  
-> then apply them and tweak the generated patches manually by hand.  
-> Sometimes, I will end up with some patches that require me to create a  
-> temporary workarea, apply all the patches that lead up to a particular  
-> change, and then manually apply the offending patch, and then extract  
-> a diff from that modification, and then re-insert it back to the  
-> OpenEmbedded work area.
-> 
-> So I just needed this solution, to quickly fast forward to the point  
-> that I want to apply the patch. I'll try it out.
-> 
+My name is Martines Legacy
 
-How about quilt?
+I am an American soldier serving in the military with the army's 3rd
+infantry division.with a need for assistance, I have summed up courage
+to contact you. I found your contact in address on  journal. I got a
+huge fund of Forty Million United States Dollars, (US$40,000,000)
+.This money is among the various currencies which was discovered in
+barrels at a farm-house near one of  Saddam Hussein old palaces in
+Tikrit-Iraq during a rescue operation. I and Sgt James.Howie where the
+first to discover this fund. We concluded and took part of this money
+which is ($40,000.000.00) and shared between us before informing
+anybody about it. This was quite an illegal even last week a roadside
+bomb killed my brother in-law. Find the story on
+web-address below:  http://news.bbc.co.uk/2/hi/middle_east/2988455.stm?
+If  you will do this with good faith and you assure me that my
+percentage will be safe in your care until I complete my service
+here,then I shall agree with You. This is no stolen money, and there
+is no danger involved. We will share upon this ratio: I will take 50%
+and you will take 30%. and 20% shall be given to charity organisation
+which you shall takecare of this offer after a sucessfull transaction,
+We will discuss this in details.
 
-<http://savannah.nongnu.org/projects/quilt>
-
-- Anand
-
-> Best regards,
-> 
-> Elvis
-> 
-> 
-> 
-> On Jun 5, 2009, at 6:38 PM, Kevin Hilman wrote:
-> 
-> >>
-> >
-> > Not sure exactly what you're trying to do here, but since the PM
-> > branch probably makes up most of those patches, why do you need to
-> > apply them?  Can't you just checkout the pm branch and add the other
-> > patches on top?  e.g.
-> >
-> > Create a test branch for your work in progress which is 
-> rooted at the
-> > pm branch:
-> >
-> > $ git checkout -b wip/test pm
-> >
-> > Apply your other patches (dss2, etc.)
-> >
-> > $ git am <patches>
-> >
-> > Kevin
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Thanks
+Sgt.Martines Legacy
+Email: proger34@yahoo.com
