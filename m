@@ -1,442 +1,930 @@
-From: subbu31mani@gmail.com
-Subject: [[[Resend][Patch]]] New OMAP LDP supporting DSS2 device model
-Date: Fri,  5 Jun 2009 11:04:59 -0400
-Message-ID: <1244214299-14228-1-git-send-email-subbu31mani@gmail.com>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: Re: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was: Re: Beagleboard rev C memory timings & suspend/resume)
+Date: Fri, 5 Jun 2009 17:35:57 +0200
+Message-ID: <200906051735.57772.jpihet@mvista.com>
+References: <200904291553.49378.jpihet@mvista.com> <200905261527.16648.jpihet@mvista.com> <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:64574 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754210AbZFEPFB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 11:05:01 -0400
-Received: by qw-out-2122.google.com with SMTP id 5so1069713qwd.37
-        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 08:05:03 -0700 (PDT)
+Received: from gateway-1237.mvista.com ([63.81.120.158]:46777 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751263AbZFEPgb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 11:36:31 -0400
+In-Reply-To: <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@nokia.com, hardik.shah@ti.com, x0055901@ti.com, nikhil@ti.com, Subramani Venkatesh <subramani.venkatesh@windriver.com>
+To: Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-From: Subramani Venkatesh <subramani.venkatesh@windriver.com>
+Hi Paul, Kevin,
 
-This patch adds code in board-ldp to support omapdss platform device
-Currently it supports two displays on LDP
-LCD and TV.
-TV Output is not working due to i2c issues
-TV output is tested with other branch, works on NTSC, but PAL has sync
-issues.
+Here is the new patch that includes all the remarks and suggestion. The 
+description is here below.
 
-Signed-off-by: Subramani Venkatesh <subramani.venkatesh@windriver.com>
+Some notes:
+- all calls to omap2_init_common_hw have been adapted in the board files. it 
+looks like 2430SDP and Pandora board files are broken since they use only one 
+param. Can that be checked on those boards?
+- it is assumed that RX51 only uses 1 CS. Is that correct?
+
+Can you review it and possibly merge?
+
+Thanks & regards,
+Jean
+
+--
+>From 097a640997b74638e0e7200ecd5834205204c956 Mon Sep 17 00:00:00 2001
+From: Jean Pihet <jpihet@mvista.com>
+Date: Fri, 5 Jun 2009 17:19:00 +0200
+Subject: [PATCH] [PATCH] OMAP3: add support for 2 SDRAM chip selects
+
+Some boards (Beagle Cx, Overo) have 2 SDRAM parts
+connected to the SDRC.
+
+This patch adds the following:
+- ensure that the CKE signals mux settings are correct
+- add a new argument of type omap_sdrc_params struct*
+to omap2_init_common_hw and omap2_sdrc_init for the 2nd CS params
+- adapted the OMAP boards files to the new prototype of
+omap2_init_common_hw. Only Beagle and Overo are using the 2 CS'es
+- adapt the sram sleep code to configure the SDRC for the 2nd CS
+
+Note: If the 2nd param to omap2_init_common_hw is NULL, then the
+parameters are not programmed into the SDRC CS1 registers
+
+Tested on 3430 SDP and Beagleboard rev C2 and B5, with
+suspend/resume and frequency changes (cpufreq).
+
+Thanks to Paul Walmsley and Kevin Hilman for the suggestions
+and code reviews.
+
+Signed-off-by: Jean Pihet <jpihet@mvista.com>
 ---
- arch/arm/mach-omap2/board-ldp.c            |  194 ++++++++++++++++++++++++++++
- drivers/video/omap2/displays/Kconfig       |    5 +
- drivers/video/omap2/displays/Makefile      |    1 +
- drivers/video/omap2/displays/panel-zoom1.c |  133 +++++++++++++++++++
- 4 files changed, 333 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-zoom1.c
+ arch/arm/mach-omap2/board-2430sdp.c      |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c      |    6 +-
+ arch/arm/mach-omap2/board-apollon.c      |    2 +-
+ arch/arm/mach-omap2/board-generic.c      |    2 +-
+ arch/arm/mach-omap2/board-h4.c           |    2 +-
+ arch/arm/mach-omap2/board-ldp.c          |    2 +-
+ arch/arm/mach-omap2/board-n800.c         |    2 +-
+ arch/arm/mach-omap2/board-omap2evm.c     |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c  |   11 ++-
+ arch/arm/mach-omap2/board-omap3evm.c     |    6 +-
+ arch/arm/mach-omap2/board-omap3pandora.c |    3 +-
+ arch/arm/mach-omap2/board-overo.c        |    8 ++-
+ arch/arm/mach-omap2/board-rx51.c         |    6 +-
+ arch/arm/mach-omap2/clock34xx.c          |   37 ++++++--
+ arch/arm/mach-omap2/io.c                 |    5 +-
+ arch/arm/mach-omap2/mux.c                |    6 ++
+ arch/arm/mach-omap2/sdrc.c               |   63 +++++++++-----
+ arch/arm/mach-omap2/sram34xx.S           |  137 
++++++++++++++++++++++++-------
+ arch/arm/plat-omap/include/mach/io.h     |    3 +-
+ arch/arm/plat-omap/include/mach/mux.h    |    4 +
+ arch/arm/plat-omap/include/mach/sdrc.h   |    8 +-
+ arch/arm/plat-omap/include/mach/sram.h   |   23 +++--
+ arch/arm/plat-omap/sram.c                |   34 +++++---
+ 23 files changed, 266 insertions(+), 108 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index b79f989..6dffeb6 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -41,8 +41,29 @@
- #include <asm/io.h>
- #include <asm/delay.h>
- #include <mach/control.h>
-+#include <mach/display.h>
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c 
+b/arch/arm/mach-omap2/board-2430sdp.c
+index aa5df72..4cb7bc5 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -322,7 +322,7 @@ out:
  
- #include "mmc-twl4030.h"
-+#ifdef CONFIG_OMAP2_DSS
-+
-+#define LCD_PANEL_BACKLIGHT_GPIO	(15 + OMAP_MAX_GPIO_LINES)
-+#define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
-+#define LCD_PANEL_RESET_GPIO		55
-+#define LCD_PANEL_QVGA_GPIO		56
-+
-+#define PM_RECEIVER			TWL4030_MODULE_PM_RECEIVER
-+#define ENABLE_VAUX2_DEDICATED		0x09
-+#define ENABLE_VAUX2_DEV_GRP		0x20
-+#define ENABLE_VAUX3_DEDICATED		0x03
-+#define ENABLE_VAUX3_DEV_GRP		0x20
-+
-+#define ENABLE_VPLL2_DEDICATED		0x05
-+#define ENABLE_VPLL2_DEV_GRP		0xE0
-+#define TWL4030_VPLL2_DEV_GRP		0x33
-+#define TWL4030_VPLL2_DEDICATED		0x36
-+
-+#define t2_out(c, r, v)			twl4030_i2c_write_u8(c, r, v)
-+#endif
+ static void __init omap_2430sdp_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL);
++	omap2_init_common_hw(NULL, NULL, NULL, NULL, NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	sdp2430_init_smc91x();
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c 
+b/arch/arm/mach-omap2/board-3430sdp.c
+index 195b749..24e2728 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -302,8 +302,10 @@ static inline void __init sdp3430_init_smc91x(void)
  
- #define LDP_SMSC911X_CS		1
- #define LDP_SMSC911X_GPIO	152
-@@ -312,14 +333,165 @@ static struct spi_board_info ldp_spi_board_info[] __initdata = {
- 	},
- };
+ static void __init omap_3430sdp_init_irq(void)
+ {
+-	omap2_init_common_hw(hyb18m512160af6_sdrc_params, omap3_mpu_rate_table,
+-			     omap3_dsp_rate_table, omap3_l3_rate_table);
++	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL,
++			     omap3_mpu_rate_table,
++			     omap3_dsp_rate_table,
++			     omap3_l3_rate_table);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	sdp3430_init_smc91x();
+diff --git a/arch/arm/mach-omap2/board-apollon.c 
+b/arch/arm/mach-omap2/board-apollon.c
+index 2e24812..2dd1350 100644
+--- a/arch/arm/mach-omap2/board-apollon.c
++++ b/arch/arm/mach-omap2/board-apollon.c
+@@ -323,7 +323,7 @@ out:
  
-+#ifdef CONFIG_OMAP2_DSS
-+
-+static void omap_ldp_panel_init(void)
-+{
-+	int r;
-+	gpio_request(LCD_PANEL_RESET_GPIO, "lcd reset");
-+	gpio_request(LCD_PANEL_QVGA_GPIO, "lcd qvga");
-+
-+	r = gpio_request(LCD_PANEL_ENABLE_GPIO, "lcd panel");
-+	if (r < 0) {
-+		printk(KERN_ERR "can't get LCD PANEL ENABLE GPIO\n");
-+	}
-+	r = gpio_request(LCD_PANEL_BACKLIGHT_GPIO, "lcd backlight");
-+	if (r < 0) {
-+		printk(KERN_ERR "can't get LCD BACKLIGHT GPIO\n");
-+	}
-+
-+	gpio_direction_output(LCD_PANEL_QVGA_GPIO, 0);
-+	gpio_direction_output(LCD_PANEL_RESET_GPIO, 0);
-+	r = gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
-+	r = gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
-+
-+#ifdef CONFIG_FB_OMAP_LCD_VGA
-+	gpio_set_value(LCD_PANEL_QVGA_GPIO, 0);
-+#else
-+	gpio_set_value(LCD_PANEL_QVGA_GPIO, 1);
-+#endif
-+
-+	gpio_set_value(LCD_PANEL_RESET_GPIO, 1);
-+
-+err1:
-+	gpio_free(LCD_PANEL_ENABLE_GPIO);
-+err0:
-+	return;
-+
-+}
-+
-+void omap_ldp_panel_cleanup(void)
-+{
-+	gpio_free(LCD_PANEL_RESET_GPIO);
-+	gpio_free(LCD_PANEL_QVGA_GPIO);
-+	gpio_free(LCD_PANEL_ENABLE_GPIO);
-+	gpio_free(LCD_PANEL_BACKLIGHT_GPIO);
-+}
-+
-+static int omap_ldp_panel_enable_tv(struct omap_dss_device *dssdev)
-+{
-+#define ENABLE_VDAC_DEDICATED           0x03
-+#define ENABLE_VDAC_DEV_GRP             0x20
-+
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			ENABLE_VDAC_DEDICATED,
-+			TWL4030_VDAC_DEDICATED);
-+
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+			ENABLE_VDAC_DEV_GRP, TWL4030_VDAC_DEV_GRP);
-+
-+	return 0;
-+}
-+
-+static void omap_ldp_panel_disable_tv(struct omap_dss_device *dssdev)
-+{
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
-+			TWL4030_VDAC_DEDICATED);
-+
-+	twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, 0x00,
-+			TWL4030_VDAC_DEV_GRP);
-+
-+}
-+
-+static struct omap_dss_device omap_ldp_tv_device = {
-+	.type = OMAP_DISPLAY_TYPE_VENC,
-+	.name = "tv",
-+	.driver_name = "venc",
-+	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
-+	.platform_enable = omap_ldp_panel_enable_tv,
-+	.platform_disable = omap_ldp_panel_disable_tv,
-+};
-+
-+static int omap_ldp_panel_enable_lcd(struct omap_dss_device *dssdev)
-+{
-+	if (0 != t2_out(PM_RECEIVER, ENABLE_VPLL2_DEDICATED,
-+				TWL4030_VPLL2_DEDICATED))
-+		return -EIO;
-+
-+	if (0 != t2_out(PM_RECEIVER, ENABLE_VPLL2_DEV_GRP,
-+				TWL4030_VPLL2_DEV_GRP))
-+		return -EIO;
-+
-+	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 1);
-+	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 1);
-+
-+	if (0 != t2_out(PM_RECEIVER, ENABLE_VAUX3_DEDICATED,
-+				TWL4030_VAUX3_DEDICATED))
-+		return -EIO;
-+
-+	if (0 != t2_out(PM_RECEIVER, ENABLE_VAUX3_DEV_GRP,
-+				TWL4030_VAUX3_DEV_GRP))
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+static void omap_ldp_panel_disable_lcd(struct omap_dss_device *dssdev)
-+{
-+	gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
-+	gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
-+
-+	t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
-+	t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
-+	mdelay(4);
-+}
-+
-+static struct omap_dss_device omap_ldp_lcd_device = {
-+	.type = OMAP_DISPLAY_TYPE_DPI,
-+	.name = "lcd",
-+	.driver_name = "panel-zoom1",
-+	.phy.dpi.data_lines = 18,
-+	.platform_enable = omap_ldp_panel_enable_lcd,
-+	.platform_disable = omap_ldp_panel_disable_lcd,
-+};
-+
-+static struct omap_dss_device *omap_ldp_dss_devices[] = {
-+	&omap_ldp_lcd_device,
-+	&omap_ldp_tv_device,
-+};
-+static struct omap_dss_board_info omap_ldp_dss_data = {
-+	.num_devices = ARRAY_SIZE(omap_ldp_dss_devices),
-+	.devices = omap_ldp_dss_devices,
-+	.default_device = &omap_ldp_lcd_device,
-+};
-+
-+static struct platform_device omap_ldp_dss_device = {
-+	.name = "omapdss",
-+	.id = -1,
-+	.dev = {
-+		.platform_data = &omap_ldp_dss_data,
-+	},
-+};
-+
-+static struct regulator_consumer_supply omap_ldp_vdda_dac_supply = {
-+	.supply         = "vdda_dac",
-+	.dev            = &omap_ldp_dss_device.dev,
-+};
-+
-+#else
- static struct platform_device ldp_lcd_device = {
- 	.name		= "ldp_lcd",
- 	.id		= -1,
- };
-+#endif
+ static void __init omap_apollon_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL, NULL, NULL, NULL);
++	omap2_init_common_hw(NULL, NULL, NULL, NULL, NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	apollon_init_smc91x();
+diff --git a/arch/arm/mach-omap2/board-generic.c 
+b/arch/arm/mach-omap2/board-generic.c
+index be763a9..763329b 100644
+--- a/arch/arm/mach-omap2/board-generic.c
++++ b/arch/arm/mach-omap2/board-generic.c
+@@ -33,7 +33,7 @@
  
- static struct platform_device *ldp_devices[] __initdata = {
- 	&ldp_smsc911x_device,
-+#ifdef CONFIG_OMAP2_DSS
-+	&omap_ldp_dss_device,
-+#else
- 	&ldp_lcd_device,
-+#endif
- 	&ldp_gpio_keys_device,
- };
- 
-@@ -512,6 +684,22 @@ static struct regulator_init_data ldp_vmmc1 = {
- 	.num_consumer_supplies	= 1,
- 	.consumer_supplies	= &ldp_vmmc1_supply,
- };
-+#ifdef CONFIG_OMAP2_DSS
-+/* VDAC for DSS driving S-Video */
-+static struct regulator_init_data omap_ldp_vdac = {
-+	.constraints = {
-+		.min_uV                 = 1800000,
-+		.max_uV                 = 1800000,
-+		.apply_uV               = true,
-+		.valid_modes_mask       = REGULATOR_MODE_NORMAL
-+						| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask         = REGULATOR_CHANGE_MODE
-+						| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &omap_ldp_vdda_dac_supply,
-+};
-+#endif
- 
- static struct twl4030_platform_data ldp_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
-@@ -525,6 +713,9 @@ static struct twl4030_platform_data ldp_twldata = {
- 	.vmmc1		= &ldp_vmmc1,
- 	.gpio		= &ldp_gpio_data,
- 	.keypad		= &ldp_kp_twl4030_data,
-+#ifdef CONFIG_OMAP2_DSS
-+	.vdac		= &omap_ldp_vdac,
-+#endif
- };
- 
- static struct i2c_board_info __initdata ldp_i2c_boardinfo[] = {
-@@ -572,6 +763,9 @@ static void __init omap_ldp_init(void)
- 	twl4030_mmc_init(mmc);
- 	/* link regulators to MMC adapters */
- 	ldp_vmmc1_supply.dev = mmc[0].dev;
-+#ifdef CONFIG_OMAP2_DSS
-+	omap_ldp_panel_init();
-+#endif
+ static void __init omap_generic_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL, NULL, NULL, NULL);
++	omap2_init_common_hw(NULL, NULL, NULL, NULL, NULL);
+ 	omap_init_irq();
  }
  
- static void __init omap_ldp_map_io(void)
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 3feecee..93ee7e5 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -36,4 +36,9 @@ config PANEL_ACX565AKM
-         help
-           LCD Panel used in RX51
+diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
+index 8f54939..17c3599 100644
+--- a/arch/arm/mach-omap2/board-h4.c
++++ b/arch/arm/mach-omap2/board-h4.c
+@@ -348,7 +348,7 @@ static void __init h4_init_flash(void)
  
-+config PANEL_ZOOM1
-+        tristate "TI LDP(Zoom1) Panel"
-+        help
-+          LCD Panel used in the TI Zoom1
-+
- endmenu
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index 9bafcb6..c7f45eb 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -6,3 +6,4 @@ obj-$(CONFIG_CTRL_BLIZZARD) += ctrl-blizzard.o
- obj-$(CONFIG_PANEL_N800) += panel-n800.o
+ static void __init omap_h4_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL, NULL, NULL, NULL);
++	omap2_init_common_hw(NULL, NULL, NULL, NULL, NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	h4_init_flash();
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 9f41dc9..b012806 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -344,7 +344,7 @@ static inline void __init ldp_init_smc911x(void)
  
- obj-$(CONFIG_PANEL_ACX565AKM) += panel-acx565akm.o
-+obj-$(CONFIG_PANEL_ZOOM1) += panel-zoom1.o
-diff --git a/drivers/video/omap2/displays/panel-zoom1.c b/drivers/video/omap2/displays/panel-zoom1.c
-new file mode 100644
-index 0000000..41da8f8
---- /dev/null
-+++ b/drivers/video/omap2/displays/panel-zoom1.c
-@@ -0,0 +1,133 @@
-+/*
-+ * LCD panel support for the TI LDP board
+ static void __init omap_ldp_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL, NULL, NULL, NULL);
++	omap2_init_common_hw(NULL, NULL, NULL, NULL, NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	ldp_init_smc911x();
+diff --git a/arch/arm/mach-omap2/board-n800.c 
+b/arch/arm/mach-omap2/board-n800.c
+index ac7cf3f..ad53f4a 100644
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -127,7 +127,7 @@ static struct lm8323_platform_data lm8323_pdata = {
+ 
+ void __init nokia_n800_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL, NULL, NULL, NULL);
++	omap2_init_common_hw(NULL, NULL, NULL, NULL, NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 
+diff --git a/arch/arm/mach-omap2/board-omap2evm.c 
+b/arch/arm/mach-omap2/board-omap2evm.c
+index 4fac1be..56a26d4 100644
+--- a/arch/arm/mach-omap2/board-omap2evm.c
++++ b/arch/arm/mach-omap2/board-omap2evm.c
+@@ -276,7 +276,7 @@ static struct twl4030_keypad_data omap2evm_kp_data = {
+ 
+ static void __init omap2_evm_init_irq(void)
+ {
+-	omap2_init_common_hw(NULL, NULL, NULL, NULL);
++	omap2_init_common_hw(NULL, NULL, NULL, NULL, NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	omap2evm_init_smc911x();
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c 
+b/arch/arm/mach-omap2/board-omap3beagle.c
+index 7294dbf..872beb6 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -312,8 +312,11 @@ static int __init omap3_beagle_i2c_init(void)
+ 
+ static void __init omap3_beagle_init_irq(void)
+ {
+-	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, omap3_mpu_rate_table,
+-			     omap3_dsp_rate_table, omap3_l3_rate_table);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
++			     mt46h32m32lf6_sdrc_params,
++			     omap3_mpu_rate_table,
++			     omap3_dsp_rate_table,
++			     omap3_l3_rate_table);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ }
+@@ -441,6 +444,10 @@ static void __init omap3_beagle_init(void)
+ 	usb_musb_init();
+ 	usb_ehci_init();
+ 	omap3beagle_flash_init();
++
++	/* Ensure SDRC pins are mux'd for self-refresh */
++	omap_cfg_reg(H16_34XX_SDRC_CKE0);
++	omap_cfg_reg(H17_34XX_SDRC_CKE1);
+ }
+ 
+ static void __init omap3_beagle_map_io(void)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c 
+b/arch/arm/mach-omap2/board-omap3evm.c
+index f017f0d..3b9c96a 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -276,8 +276,10 @@ struct spi_board_info omap3evm_spi_board_info[] = {
+ 
+ static void __init omap3_evm_init_irq(void)
+ {
+-	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, omap3_mpu_rate_table,
+-	                     omap3_dsp_rate_table, omap3_l3_rate_table);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
++			     omap3_mpu_rate_table,
++			     omap3_dsp_rate_table,
++			     omap3_l3_rate_table);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ 	omap3evm_init_smc911x();
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c 
+b/arch/arm/mach-omap2/board-omap3pandora.c
+index c67f62f..05ab99e 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -220,7 +220,8 @@ static int __init omap3pandora_i2c_init(void)
+ 
+ static void __init omap3pandora_init_irq(void)
+ {
+-	omap2_init_common_hw(mt46h32m32lf6_sdrc_params);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
++			     NULL, NULL, NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ }
+diff --git a/arch/arm/mach-omap2/board-overo.c 
+b/arch/arm/mach-omap2/board-overo.c
+index 9eae608..2c6d2c5 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -355,7 +355,9 @@ static int __init overo_i2c_init(void)
+ 
+ static void __init overo_init_irq(void)
+ {
+-	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL, NULL, NULL);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
++			     mt46h32m32lf6_sdrc_params,
++			     NULL, NULL, NULL);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ }
+@@ -391,6 +393,10 @@ static void __init overo_init(void)
+ 	overo_init_smsc911x();
+ 	overo_ads7846_init();
+ 
++	/* Ensure SDRC pins are mux'd for self-refresh */
++	omap_cfg_reg(H16_34XX_SDRC_CKE0);
++	omap_cfg_reg(H17_34XX_SDRC_CKE1);
++
+ 	if ((gpio_request(OVERO_GPIO_W2W_NRESET,
+ 			  "OVERO_GPIO_W2W_NRESET") == 0) &&
+ 	    (gpio_direction_output(OVERO_GPIO_W2W_NRESET, 1) == 0)) {
+diff --git a/arch/arm/mach-omap2/board-rx51.c 
+b/arch/arm/mach-omap2/board-rx51.c
+index 09035b0..d48459f 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -64,8 +64,10 @@ static struct omap_board_config_kernel rx51_config[] = {
+ 
+ static void __init rx51_init_irq(void)
+ {
+-	omap2_init_common_hw(rx51_get_sdram_timings(), omap3_mpu_rate_table,
+-			     omap3_dsp_rate_table, omap3_l3_rate_table);
++	omap2_init_common_hw(rx51_get_sdram_timings(), NULL,
++			     omap3_mpu_rate_table,
++			     omap3_dsp_rate_table,
++			     omap3_l3_rate_table);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ }
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 3cee6b4..f262787 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -478,7 +478,9 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, 
+unsigned long rate)
+ 	u32 unlock_dll = 0;
+ 	u32 c;
+ 	unsigned long validrate, sdrcrate, mpurate;
+-	struct omap_sdrc_params *sp;
++	struct omap_sdrc_params *sdrc_cs0;
++	struct omap_sdrc_params *sdrc_cs1;
++	int ret;
+ 
+ 	if (!clk || !rate)
+ 		return -EINVAL;
+@@ -496,8 +498,8 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, 
+unsigned long rate)
+ 	else
+ 		sdrcrate >>= ((clk->rate / rate) >> 1);
+ 
+-	sp = omap2_sdrc_get_params(sdrcrate);
+-	if (!sp)
++	ret = omap2_sdrc_get_params(sdrcrate, &sdrc_cs0, &sdrc_cs1);
++	if (ret)
+ 		return -EINVAL;
+ 
+ 	if (sdrcrate < MIN_SDRC_DLL_LOCK_FREQ) {
+@@ -518,12 +520,29 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, 
+unsigned long rate)
+ 
+ 	pr_debug("clock: changing CORE DPLL rate from %lu to %lu\n", clk->rate,
+ 		 validrate);
+-	pr_debug("clock: SDRC timing params used: %08x %08x %08x\n",
+-		 sp->rfr_ctrl, sp->actim_ctrla, sp->actim_ctrlb);
+-
+-	omap3_configure_core_dpll(sp->rfr_ctrl, sp->actim_ctrla,
+-				  sp->actim_ctrlb, new_div, unlock_dll, c,
+-				  sp->mr, rate > clk->rate);
++	pr_debug("clock: SDRC CS0 timing params used:"
++		 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
++		 sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
++		 sdrc_cs0->actim_ctrlb, sdrc_cs0->mr);
++	if (sdrc_cs1)
++		pr_debug("clock: SDRC CS1 timing params used: "
++		 " RFR %08x CTRLA %08x CTRLB %08x MR %08x\n",
++		 sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
++		 sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
++
++	if (sdrc_cs1)
++		omap3_configure_core_dpll(
++				  new_div, unlock_dll, c, rate > clk->rate,
++				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
++				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
++				  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
++				  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
++	else
++		omap3_configure_core_dpll(
++				  new_div, unlock_dll, c, rate > clk->rate,
++				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
++				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
++				  0, 0, 0, 0);
+ 
+ 	return 0;
+ }
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 6fb6c29..aa000b4 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -231,7 +231,8 @@ static int __init _omap2_init_reprogram_sdrc(void)
+ 	return v;
+ }
+ 
+-void __init omap2_init_common_hw(struct omap_sdrc_params *sp,
++void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
++				 struct omap_sdrc_params *sdrc_cs1,
+ 				 struct omap_opp *mpu_opps,
+ 				 struct omap_opp *dsp_opps,
+ 				 struct omap_opp *l3_opps)
+@@ -244,7 +245,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params 
+*sp,
+ 	omapdev_init(omapdevs);
+ 	omap2_clk_init();
+ 	omap_pm_if_init();
+-	omap2_sdrc_init(sp);
++	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+ 
+ 	_omap2_init_reprogram_sdrc();
+ 
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 026c4fc..43d6b92 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -486,6 +486,12 @@ MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++
++/* OMAP3 SDRC CKE signals to SDR/DDR ram chips */
++MUX_CFG_34XX("H16_34XX_SDRC_CKE0", 0x262,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("H17_34XX_SDRC_CKE1", 0x264,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
+ };
+ 
+ #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+index c832d83..b42f5ae 100644
+--- a/arch/arm/mach-omap2/sdrc.c
++++ b/arch/arm/mach-omap2/sdrc.c
+@@ -32,7 +32,7 @@
+ #include <mach/sdrc.h>
+ #include "sdrc.h"
+ 
+-static struct omap_sdrc_params *sdrc_init_params;
++static struct omap_sdrc_params *sdrc_init_params_cs0, *sdrc_init_params_cs1;
+ 
+ void __iomem *omap2_sdrc_base;
+ void __iomem *omap2_sms_base;
+@@ -71,33 +71,49 @@ void omap2_sms_restore_context(void)
+ /**
+  * omap2_sdrc_get_params - return SDRC register values for a given clock rate
+  * @r: SDRC clock rate (in Hz)
++ * @sdrc_cs0: chip select 0 ram timings **
++ * @sdrc_cs1: chip select 1 ram timings **
+  *
+  * Return pre-calculated values for the SDRC_ACTIM_CTRLA,
+- * SDRC_ACTIM_CTRLB, SDRC_RFR_CTRL, and SDRC_MR registers, for a given
+- * SDRC clock rate 'r'.  These parameters control various timing
+- * delays in the SDRAM controller that are expressed in terms of the
+- * number of SDRC clock cycles to wait; hence the clock rate
+- * dependency. Note that sdrc_init_params must be sorted rate
+- * descending.  Also assumes that both chip-selects use the same
+- * timing parameters.  Returns a struct omap_sdrc_params * upon
+- * success, or NULL upon failure.
++ *  SDRC_ACTIM_CTRLB, SDRC_RFR_CTRL and SDRC_MR registers in sdrc_cs[01]
++ *  structs,for a given SDRC clock rate 'r'.
++ * These parameters control various timing delays in the SDRAM controller
++ *  that are expressed in terms of the number of SDRC clock cycles to
++ *  wait; hence the clock rate dependency.
 + *
-+ * Copyright (C) 2007 WindRiver
-+ * Author: Stanley Miao <stanley.miao@windriver.com>
++ * Supports 2 different timing parameters for both chip selects.
 + *
-+ * This program is copied from the original file
-+ * drivers/video/omap/lcd-ldp.c and modified by
-+ * Subramani.Venkatesh@windriver.com
-+ * to support DSS2
++ * Note 1: the sdrc_init_params_cs[01] must be sorted rate descending.
++ * Note 2: If sdrc_init_params_cs_1 is not NULL it must be of same size
++ *  as sdrc_init_params_cs_0.
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/delay.h>
-+#include <linux/i2c/twl4030.h>
-+
-+#include <mach/gpio.h>
-+#include <mach/mux.h>
-+#include <asm/mach-types.h>
-+
-+#include <mach/display.h>
-+
-+#ifdef CONFIG_FB_OMAP_LCD_VGA
-+#define LCD_XRES		480
-+#define LCD_YRES		640
-+#define LCD_PIXCLOCK_MAX	21625
-+#else
-+#define LCD_XRES		240
-+#define LCD_YRES		320
-+#define LCD_PIXCLOCK_MAX	185186
-+#endif
-+
-+static int ldp_panel_enable(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+	/* wait couple of vsyncs until enabling the LCD */
-+
-+	msleep(50);
-+	if (dssdev->platform_enable)
-+		r = dssdev->platform_enable(dssdev);
-+
-+	return r;
-+}
-+
-+static void ldp_panel_disable(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->platform_enable)
-+		dssdev->platform_disable(dssdev);
-+
-+	/* wait at least 5 vsyncs after disabling the LCD */
-+	msleep(100);
-+
-+}
-+
-+static struct omap_video_timings omap_zoom1_panel_timings = {
-+	/*480*640 Resolution*/
-+	.x_res		= LCD_XRES,
-+	.y_res		= LCD_YRES,
-+	.pixel_clock	= LCD_PIXCLOCK_MAX,
-+	.hsw		= 3,		/* hsync_len (4) - 1 */
-+	.hfp		= 3,		/* right_margin (4) - 1 */
-+	.hbp		= 39,		/* left_margin (40) - 1 */
-+	.vsw		= 1,		/* vsync_len (2) - 1 */
-+	.vfp		= 2,		/* lower_margin */
-+	.vbp		= 7,		/* upper_margin (8) - 1 */
-+};
-+
-+static int ldp_panel_probe(struct omap_dss_device *dssdev)
-+{
-+	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+				OMAP_DSS_LCD_IHS;
-+	dssdev->panel.timings = omap_zoom1_panel_timings;
++ * Fills in the struct omap_sdrc_params * for each chip select.
++ * Returns 0 upon success or -1 upon failure.
+  */
+-struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r)
++int omap2_sdrc_get_params(unsigned long r,
++			  struct omap_sdrc_params **sdrc_cs0,
++			  struct omap_sdrc_params **sdrc_cs1)
+ {
+-	struct omap_sdrc_params *sp;
++	struct omap_sdrc_params *sp0, *sp1;
+ 
+-	if (!sdrc_init_params)
+-		return NULL;
++	if (!sdrc_init_params_cs0)
++		return -1;
+ 
+-	sp = sdrc_init_params;
++	sp0 = sdrc_init_params_cs0;
++	sp1 = sdrc_init_params_cs1;
+ 
+-	while (sp->rate && sp->rate != r)
+-		sp++;
++	while (sp0->rate && sp0->rate != r) {
++		sp0++;
++		if (sdrc_init_params_cs1)
++			sp1++;
++	}
+ 
+-	if (!sp->rate)
+-		return NULL;
++	if (!sp0->rate)
++		return -1;
+ 
+-	return sp;
++	*sdrc_cs0 = sp0;
++	*sdrc_cs1 = sp1;
 +	return 0;
-+}
+ }
+ 
+ 
+@@ -109,13 +125,15 @@ void __init omap2_set_globals_sdrc(struct omap_globals 
+*omap2_globals)
+ 
+ /**
+  * omap2_sdrc_init - initialize SMS, SDRC devices on boot
+- * @sp: pointer to a null-terminated list of struct omap_sdrc_params
++ * @sdrc_cs[01]: pointers to a null-terminated list of struct 
+omap_sdrc_params
++ *  Support for 2 chip selects timings
+  *
+  * Turn on smart idle modes for SDRAM scheduler and controller.
+  * Program a known-good configuration for the SDRC to deal with buggy
+  * bootloaders.
+  */
+-void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
++void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
++			    struct omap_sdrc_params *sdrc_cs1)
+ {
+ 	u32 l;
+ 
+@@ -129,7 +147,8 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
+ 	l |= (0x2 << 3);
+ 	sdrc_write_reg(l, SDRC_SYSCONFIG);
+ 
+-	sdrc_init_params = sp;
++	sdrc_init_params_cs0 = sdrc_cs0;
++	sdrc_init_params_cs1 = sdrc_cs1;
+ 
+ 	/* XXX Enable SRFRONIDLEREQ here also? */
+ 	l = (1 << SDRC_POWER_EXTCLKDIS_SHIFT) |
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index f41f8d9..3aef744 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -36,7 +36,7 @@
+ 
+ 	.text
+ 
+-/* r4 parameters */
++/* r1 parameters */
+ #define SDRC_NO_UNLOCK_DLL		0x0
+ #define SDRC_UNLOCK_DLL			0x1
+ 
+@@ -71,40 +71,71 @@
+ 
+ /*
+  * omap3_sram_configure_core_dpll - change DPLL3 M2 divider
+- * r0 = new SDRC_RFR_CTRL register contents
+- * r1 = new SDRC_ACTIM_CTRLA register contents
+- * r2 = new SDRC_ACTIM_CTRLB register contents
+- * r3 = new M2 divider setting (only 1 and 2 supported right now)
+- * r4 = unlock SDRC DLL? (1 = yes, 0 = no).  Only unlock DLL for
++ *
++ * Params passed in registers:
++ *  r0 = new M2 divider setting (only 1 and 2 supported right now)
++ *  r1 = unlock SDRC DLL? (1 = yes, 0 = no).  Only unlock DLL for
+  *      SDRC rates < 83MHz
+- * r5 = number of MPU cycles to wait for SDRC to stabilize after
++ *  r2 = number of MPU cycles to wait for SDRC to stabilize after
+  *      reprogramming the SDRC when switching to a slower MPU speed
+- * r6 = new SDRC_MR_0 register value
+- * r7 = increasing SDRC rate? (1 = yes, 0 = no)
++ *  r3 = increasing SDRC rate? (1 = yes, 0 = no)
++ *
++ * Params passed via the stack. The needed params will be copied in SRAM
++ *  before use by the code in SRAM (SDRAM is not accessible during SDRC
++ *  reconfiguration):
++ *  new SDRC_RFR_CTRL_0 register contents
++ *  new SDRC_ACTIM_CTRL_A_0 register contents
++ *  new SDRC_ACTIM_CTRL_B_0 register contents
++ *  new SDRC_MR_0 register value
++ *  new SDRC_RFR_CTRL_1 register contents
++ *  new SDRC_ACTIM_CTRL_A_1 register contents
++ *  new SDRC_ACTIM_CTRL_B_1 register contents
++ *  new SDRC_MR_1 register value
+  *
++ * If the param SDRC_RFR_CTRL_1 is 0, the parameters
++ *  are not programmed into the SDRC CS1 registers
+  */
+ ENTRY(omap3_sram_configure_core_dpll)
+ 	stmfd	sp!, {r1-r12, lr}	@ store regs to stack
+-	ldr	r4, [sp, #52]		@ pull extra args off the stack
+-	ldr	r5, [sp, #56]		@ load extra args from the stack
+-	ldr	r6, [sp, #60]		@ load extra args from the stack
+-	ldr	r7, [sp, #64]		@ load extra args from the stack
 +
-+static void ldp_panel_remove(struct omap_dss_device *dssdev)
++					@ pull the extra args off the stack
++					@  and store them in SRAM
++	ldr	r4, [sp, #52]
++	str     r4, omap_sdrc_rfr_ctrl_0_val
++	ldr	r4, [sp, #56]
++	str     r4, omap_sdrc_actim_ctrl_a_0_val
++	ldr	r4, [sp, #60]
++	str     r4, omap_sdrc_actim_ctrl_b_0_val
++	ldr	r4, [sp, #64]
++	str     r4, omap_sdrc_mr_0_val
++	ldr	r4, [sp, #68]
++	str     r4, omap_sdrc_rfr_ctrl_1_val
++	cmp	r4, #0			@ if SDRC_RFR_CTRL_1 is 0,
++	beq	skip_cs1_params		@  do not use cs1 params
++	ldr	r4, [sp, #72]
++	str     r4, omap_sdrc_actim_ctrl_a_1_val
++	ldr	r4, [sp, #76]
++	str     r4, omap_sdrc_actim_ctrl_b_1_val
++	ldr	r4, [sp, #80]
++	str     r4, omap_sdrc_mr_1_val
++skip_cs1_params:
+ 	dsb				@ flush buffered writes to interconnect
+-	cmp	r7, #1			@ if increasing SDRC clk rate,
++
++	cmp	r3, #1			@ if increasing SDRC clk rate,
+ 	bleq	configure_sdrc		@ program the SDRC regs early (for RFR)
+-	cmp	r4, #SDRC_UNLOCK_DLL	@ set the intended DLL state
++	cmp	r1, #SDRC_UNLOCK_DLL	@ set the intended DLL state
+ 	bleq	unlock_dll
+ 	blne	lock_dll
+ 	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
+ 	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
+ 	bl	enable_sdrc		@ take SDRC out of idle
+-	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
++	cmp	r1, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+ 	bleq	wait_dll_unlock
+ 	blne	wait_dll_lock
+-	cmp	r7, #1			@ if increasing SDRC clk rate,
++	cmp	r3, #1			@ if increasing SDRC clk rate,
+ 	beq	return_to_sdram		@ return to SDRAM code, otherwise,
+ 	bl	configure_sdrc		@ reprogram SDRC regs now
+-	mov	r12, r5
++	mov	r12, r2
+ 	bl	wait_clk_stable		@ wait for SDRC to stabilize
+ return_to_sdram:
+ 	isb				@ prevent speculative exec past here
+@@ -149,7 +180,7 @@ configure_core_dpll:
+ 	ldr	r12, [r11]
+ 	ldr	r10, core_m2_mask_val	@ modify m2 for core dpll
+ 	and	r12, r12, r10
+-	orr	r12, r12, r3, lsl #CORE_DPLL_CLKOUT_DIV_SHIFT
++	orr	r12, r12, r0, lsl #CORE_DPLL_CLKOUT_DIV_SHIFT
+ 	str	r12, [r11]
+ 	ldr	r12, [r11]		@ posted-write barrier for CM
+ 	bx	lr
+@@ -187,15 +218,34 @@ wait_dll_unlock:
+ 	bne	wait_dll_unlock
+ 	bx	lr
+ configure_sdrc:
+-	ldr	r11, omap3_sdrc_rfr_ctrl
+-	str	r0, [r11]
+-	ldr	r11, omap3_sdrc_actim_ctrla
+-	str	r1, [r11]
+-	ldr	r11, omap3_sdrc_actim_ctrlb
+-	str	r2, [r11]
++	ldr	r12, omap_sdrc_rfr_ctrl_0_val	@ fetch value from SRAM
++	ldr	r11, omap3_sdrc_rfr_ctrl_0	@ fetch addr from SRAM
++	str	r12, [r11]			@ store
++	ldr	r12, omap_sdrc_actim_ctrl_a_0_val
++	ldr	r11, omap3_sdrc_actim_ctrl_a_0
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_actim_ctrl_b_0_val
++	ldr	r11, omap3_sdrc_actim_ctrl_b_0
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_mr_0_val
+ 	ldr	r11, omap3_sdrc_mr_0
+-	str	r6, [r11]
+-	ldr	r6, [r11]		@ posted-write barrier for SDRC
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_rfr_ctrl_1_val
++	cmp	r12, #0			@ if SDRC_RFR_CTRL_1 is 0,
++	beq	skip_cs1_prog		@  do not program cs1 params
++	ldr	r11, omap3_sdrc_rfr_ctrl_1
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_actim_ctrl_a_1_val
++	ldr	r11, omap3_sdrc_actim_ctrl_a_1
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_actim_ctrl_b_1_val
++	ldr	r11, omap3_sdrc_actim_ctrl_b_1
++	str	r12, [r11]
++	ldr	r12, omap_sdrc_mr_1_val
++	ldr	r11, omap3_sdrc_mr_1
++	str	r12, [r11]
++skip_cs1_prog:
++	ldr	r12, [r11]		@ posted-write barrier for SDRC
+ 	bx	lr
+ 
+ omap3_sdrc_power:
+@@ -206,14 +256,40 @@ omap3_cm_idlest1_core:
+ 	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST)
+ omap3_cm_iclken1_core:
+ 	.word OMAP34XX_CM_REGADDR(CORE_MOD, CM_ICLKEN1)
+-omap3_sdrc_rfr_ctrl:
++
++omap3_sdrc_rfr_ctrl_0:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
+-omap3_sdrc_actim_ctrla:
++omap3_sdrc_rfr_ctrl_1:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_1)
++omap3_sdrc_actim_ctrl_a_0:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
+-omap3_sdrc_actim_ctrlb:
++omap3_sdrc_actim_ctrl_a_1:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_1)
++omap3_sdrc_actim_ctrl_b_0:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
++omap3_sdrc_actim_ctrl_b_1:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_1)
+ omap3_sdrc_mr_0:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_0)
++omap3_sdrc_mr_1:
++	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_1)
++omap_sdrc_rfr_ctrl_0_val:
++	.word 0xDEADBEEF
++omap_sdrc_rfr_ctrl_1_val:
++	.word 0xDEADBEEF
++omap_sdrc_actim_ctrl_a_0_val:
++	.word 0xDEADBEEF
++omap_sdrc_actim_ctrl_a_1_val:
++	.word 0xDEADBEEF
++omap_sdrc_actim_ctrl_b_0_val:
++	.word 0xDEADBEEF
++omap_sdrc_actim_ctrl_b_1_val:
++	.word 0xDEADBEEF
++omap_sdrc_mr_0_val:
++	.word 0xDEADBEEF
++omap_sdrc_mr_1_val:
++	.word 0xDEADBEEF
++
+ omap3_sdrc_dlla_status:
+ 	.word OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+ omap3_sdrc_dlla_ctrl:
+@@ -223,3 +299,4 @@ core_m2_mask_val:
+ 
+ ENTRY(omap3_sram_configure_core_dpll_sz)
+ 	.word	. - omap3_sram_configure_core_dpll
++
+diff --git a/arch/arm/plat-omap/include/mach/io.h 
+b/arch/arm/plat-omap/include/mach/io.h
+index 54c159b..d4c78b4 100644
+--- a/arch/arm/plat-omap/include/mach/io.h
++++ b/arch/arm/plat-omap/include/mach/io.h
+@@ -192,7 +192,8 @@ extern void omap1_map_common_io(void);
+ extern void omap1_init_common_hw(void);
+ 
+ extern void omap2_map_common_io(void);
+-extern void omap2_init_common_hw(struct omap_sdrc_params *sp,
++extern void omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
++				 struct omap_sdrc_params *sdrc_cs1,
+ 				 struct omap_opp *mpu_opps,
+ 				 struct omap_opp *dsp_opps,
+ 				 struct omap_opp *l3_opps);
+diff --git a/arch/arm/plat-omap/include/mach/mux.h 
+b/arch/arm/plat-omap/include/mach/mux.h
+index f7e298a..7368aba 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -803,6 +803,10 @@ enum omap34xx_index {
+ 	AE5_34XX_GPIO143,
+ 	H19_34XX_GPIO164_OUT,
+ 	J25_34XX_GPIO170,
++
++	/* OMAP3 SDRC CKE signals to SDR/DDR ram chips */
++	H16_34XX_SDRC_CKE0,
++	H17_34XX_SDRC_CKE1,
+ };
+ 
+ struct omap_mux_cfg {
+diff --git a/arch/arm/plat-omap/include/mach/sdrc.h 
+b/arch/arm/plat-omap/include/mach/sdrc.h
+index a678bc8..7e22143 100644
+--- a/arch/arm/plat-omap/include/mach/sdrc.h
++++ b/arch/arm/plat-omap/include/mach/sdrc.h
+@@ -114,9 +114,11 @@ struct omap_sdrc_params {
+ 
+ void omap2_sms_save_context(void);
+ void omap2_sms_restore_context(void);
+-void __init omap2_sdrc_init(struct omap_sdrc_params *);
+-struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r);
+-
++void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
++			    struct omap_sdrc_params *sdrc_cs1);
++int omap2_sdrc_get_params(unsigned long r,
++			  struct omap_sdrc_params **sdrc_cs0,
++			  struct omap_sdrc_params **sdrc_cs1);
+ #ifdef CONFIG_ARCH_OMAP2
+ 
+ struct memory_timings {
+diff --git a/arch/arm/plat-omap/include/mach/sram.h 
+b/arch/arm/plat-omap/include/mach/sram.h
+index ad0a600..98906ea 100644
+--- a/arch/arm/plat-omap/include/mach/sram.h
++++ b/arch/arm/plat-omap/include/mach/sram.h
+@@ -21,11 +21,13 @@ extern void omap2_sram_reprogram_sdrc(u32 perf_level, u32 
+dll_val,
+ 				      u32 mem_type);
+ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
+ 
+-extern u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl,
+-				     u32 sdrc_actim_ctrla,
+-				     u32 sdrc_actim_ctrlb, u32 m2,
+-				     u32 unlock_dll, u32 f, u32 sdrc_mr,
+-				     u32 inc);
++extern u32 omap3_configure_core_dpll(
++			u32 m2, u32 unlock_dll, u32 f, u32 inc,
++			u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
++			u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
++			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
++			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
++
+ extern void omap3_sram_restore_context(void);
+ 
+ /* Do not use these */
+@@ -61,11 +63,12 @@ extern void omap243x_sram_reprogram_sdrc(u32 perf_level, 
+u32 dll_val,
+ extern unsigned long omap243x_sram_reprogram_sdrc_sz;
+ 
+ 
+-extern u32 omap3_sram_configure_core_dpll(u32 sdrc_rfr_ctrl,
+-					  u32 sdrc_actim_ctrla,
+-					  u32 sdrc_actim_ctrlb, u32 m2,
+-					  u32 unlock_dll, u32 f, u32 sdrc_mr,
+-					  u32 inc);
++extern u32 omap3_sram_configure_core_dpll(
++			u32 m2, u32 unlock_dll, u32 f, u32 inc,
++			u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
++			u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
++			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
++			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
+ extern unsigned long omap3_sram_configure_core_dpll_sz;
+ 
+ #ifdef CONFIG_PM
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index a2e60e7..517f45b 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -368,23 +368,29 @@ static inline int omap243x_sram_init(void)
+ 
+ #ifdef CONFIG_ARCH_OMAP3
+ 
+-static u32 (*_omap3_sram_configure_core_dpll)(u32 sdrc_rfr_ctrl,
+-					      u32 sdrc_actim_ctrla,
+-					      u32 sdrc_actim_ctrlb,
+-					      u32 m2, u32 unlock_dll,
+-					      u32 f, u32 sdrc_mr, u32 inc);
+-u32 omap3_configure_core_dpll(u32 sdrc_rfr_ctrl, u32 sdrc_actim_ctrla,
+-			      u32 sdrc_actim_ctrlb, u32 m2, u32 unlock_dll,
+-			      u32 f, u32 sdrc_mr, u32 inc)
+- {
++static u32 (*_omap3_sram_configure_core_dpll)(
++				u32 m2, u32 unlock_dll, u32 f, u32 inc,
++				u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
++				u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
++				u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
++				u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
++
++u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
++			      u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
++			      u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
++			      u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
++			      u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1)
 +{
-+
+ 	if (!_omap3_sram_configure_core_dpll)
+ 		omap_sram_error();
+ 
+-	return _omap3_sram_configure_core_dpll(sdrc_rfr_ctrl,
+-					       sdrc_actim_ctrla,
+-					       sdrc_actim_ctrlb, m2,
+-					       unlock_dll, f, sdrc_mr, inc);
+- }
++	return _omap3_sram_configure_core_dpll(
++				m2, unlock_dll, f, inc,
++				sdrc_rfr_ctrl_0, sdrc_actim_ctrl_a_0,
++				sdrc_actim_ctrl_b_0, sdrc_mr_0,
++				sdrc_rfr_ctrl_1, sdrc_actim_ctrl_a_1,
++				sdrc_actim_ctrl_b_1, sdrc_mr_1);
 +}
-+
-+static int ldp_panel_suspend(struct omap_dss_device *dssdev)
-+{
-+	ldp_panel_disable(dssdev);
-+	return 0;
-+}
-+
-+static int ldp_panel_resume(struct omap_dss_device *dssdev)
-+{
-+	ldp_panel_enable(dssdev);
-+	return 0;
-+}
-+
-+struct omap_dss_driver ldp_panel_driver = {
-+	.probe		= ldp_panel_probe,
-+	.remove		= ldp_panel_remove,
-+
-+	.enable		= ldp_panel_enable,
-+	.disable	= ldp_panel_disable,
-+	.suspend	= ldp_panel_suspend,
-+	.resume		= ldp_panel_resume,
-+	.driver		= {
-+		.name	= "panel-zoom1",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int __init ldp_panel_drv_init(void)
-+{
-+	return omap_dss_register_driver(&ldp_panel_driver);
-+}
-+
-+static void __exit ldp_panel_drv_exit(void)
-+{
-+	omap_dss_unregister_driver(&ldp_panel_driver);
-+}
-+
-+module_init(ldp_panel_drv_init);
-+module_exit(ldp_panel_drv_exit);
+ 
+ #ifdef CONFIG_PM
+ void omap3_sram_restore_context(void)
 -- 
-1.5.6.3
+1.6.2.5.168.g3823
+
+
+
+On Wednesday 03 June 2009 01:40:13 Paul Walmsley wrote:
+> Hi Jean,
+>
+> a minor request: it is easier to comment on these patches if they are
+> included inline in the E-mail message, rather than attached.  That way
+> code comments can be inlined in the reply.
+>
+> On Tue, 26 May 2009, Jean Pihet wrote:
+> > Here is a patch for the SDRC 2nd CS support. It applies on top of the
+> > current pm branch.
+>
+> Thanks for doing this work.
+>
+> > I have some questions:
+> > - Is it OK to copy the micron sdram params file to a new file with the 2
+> > CSes params? One could use a unique file with #ifdef SDRC_SUPPORT_2_CSES.
+>
+> Is it possible for the SDRAM parameter files to remain unchanged, and to
+> simply pass two struct omap_sdrc_params * to omap2_init_common_hw() and
+> then to omap2_sdrc_init()?  Boards with only CS0 in use should pass NULL
+> for the second omap_sdrc_params *.
+>
+> So something like this (I realize the PM branch has additional parameters
+> here also):
+>
+> void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
+>                                  struct omap_sdrc_params *sdrc_cs1)
+>
+> Then:
+>
+> void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
+>                             struct omap_sdrc_params *sdrc_cs1)
+>
+> I would prefer that approach.
+>
+> It would also be good to avoid changing the SDRC CS1 parameters in the
+> SRAM code if the board does not use CS1.  Maybe pass in a flag that
+> indicates whether CS1 is in use, and if not, avoid programming those
+> registers?  The (admittedly minor) overhead of loading the CS1 registers
+> off the stack would be nice to avoid also.
+>
+> > - Does the RX51 board have 2 sdram parts? If so I need to update the
+> > board file as well.
+>
+> Probably best if someone from Nokia handles this.
+>
+>
+> - Paul
+
 
