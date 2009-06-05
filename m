@@ -1,61 +1,75 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 05/06] OMAP3: PM: Implement locking for any scratchpad
- access
-Date: Fri, 5 Jun 2009 16:21:57 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906051600170.2499@utopia.booyaka.com>
-References: <1243514587-5323-1-git-send-email-rnayak@ti.com> <1243514587-5323-2-git-send-email-rnayak@ti.com> <1243514587-5323-3-git-send-email-rnayak@ti.com> <1243514587-5323-4-git-send-email-rnayak@ti.com> <1243514587-5323-5-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.0906051445230.31531@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E092D2D@dlee02.ent.ti.com>
+Subject: Re: [PATCH] OMAP3: PM: Fix the pwrdm_enable/disable_hdwr_sar funcs
+Date: Fri, 5 Jun 2009 16:44:37 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906051642370.6425@utopia.booyaka.com>
+References: <1244206853-4426-1-git-send-email-rnayak@ti.com> <87hbyu72n8.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:47023 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:44587 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754123AbZFEW2g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 18:28:36 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038E092D2D@dlee02.ent.ti.com>
+	with ESMTP id S1751343AbZFEWog (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 18:44:36 -0400
+In-Reply-To: <87hbyu72n8.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>, linux-omap@vger.kernel.org
 
-On Fri, 5 Jun 2009, Woodruff, Richard wrote:
+On Fri, 5 Jun 2009, Kevin Hilman wrote:
 
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> > Sent: Friday, June 05, 2009 4:26 PM
+> Rajendra Nayak <rnayak@ti.com> writes:
 > 
-> > On Thu, 28 May 2009, Rajendra Nayak wrote:
+> > The pwrdm_enable_hdwr_sar/pwrdm_disable_hdwr_sar do not
+> > actually set/reset the SAVEANDRESTORE bit in the PWSTCTRL
+> > register but modify some other bit instead.
+> > This happens due to the OMAP3430ES2_SAVEANDRESTORE_SHIFT
+> > being defined as (1 << 4) instead of just 4.
 > >
-> > > This patch implements locking using the semaphore in scratchpad
-> > > memory preventing any concurrent access to scratchpad from OMAP
-> > > and Baseband/Modem processor.
-> >
-> > This patch might be okay for the target use case.  But there might still
-> > be a race window with this patch, where the modem could steal the MPU's
-> > lock or vice versa.
-> >
-> > That swp tries to guarantee atomicity through exclusive memory accesses,
-> > but the AXI2OCP bridge section of the TRM claims that the bridge
-> > translates "exclusive accesses to non-exclusive read/write in the bridge"
-> > (section 3.2.3.2).  That seems to suggest that the memory accesses will be
-> > non-atomic and that therefore a race window exists.
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > 
-> This is an incorrect interpretation.  A race does not exist because of this point.
+> Thanks, pushing to PM branch.
 > 
-> The AXI2OCP does translate external excusive operations this way 
-> (STREX/LWREX).  This is not the same for SWP.  SWP generates a global 
-> bus lock.
-> 
-> Exclusive operations do have a reservation in the L2 block.  So they are 
-> good until they go to external memory.  On OMAP these work as you expect 
-> with respect to the ARM, but won't work between ARM and DSP or other 
-> master.
-> 
-> SWP on the other hand still works.  SWP is a relative pig compared to 
-> STREX/LWREX as it locks the whole L3, compared to a small key address, 
-> but, it's a lot lighter than a mailbox.
+> I'll wait to hear from Kalle if we can revert his previous patch
+> for this.
 
-OK, thanks for the explanation, Richard.  Sounds like it's okay then,
+I think Kalle covered this one already:
 
+http://patchwork.kernel.org/patch/15586/
 
 - Paul
+
+> 
+> Kevin
+> 
+> > ---
+> >  arch/arm/mach-omap2/prm-regbits-34xx.h |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> > index 06fee29..d4ea370 100644
+> > --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
+> > +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
+> > @@ -411,7 +411,7 @@
+> >  /* PM_PREPWSTST_CAM specific bits */
+> >  
+> >  /* PM_PWSTCTRL_USBHOST specific bits */
+> > -#define OMAP3430ES2_SAVEANDRESTORE_SHIFT		(1 << 4)
+> > +#define OMAP3430ES2_SAVEANDRESTORE_SHIFT		4
+> >  
+> >  /* RM_RSTST_PER specific bits */
+> >  
+> > -- 
+> > 1.5.4.7
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
