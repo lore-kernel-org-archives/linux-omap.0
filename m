@@ -1,79 +1,39 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: PM error: Powerdomain (core_pwddm) didn't enter target state 1
-Date: Fri, 05 Jun 2009 08:53:55 -0700
-Message-ID: <87fxeebrsc.fsf@deeprootsystems.com>
-References: <42B46BA8-AF35-42B5-9616-EADA31EF0553@mac.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH] DSPBRIDGE: Use GT_trace for CLk_Disable message
+Date: Fri, 5 Jun 2009 11:22:18 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A53040F3FCAB4@dlee03.ent.ti.com>
+References: <1244121953-24866-1-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:65272 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbZFEPx5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 11:53:57 -0400
-Received: by pzk1 with SMTP id 1so934379pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 08:53:58 -0700 (PDT)
-In-Reply-To: <42B46BA8-AF35-42B5-9616-EADA31EF0553@mac.com> (Elvis Dowson's message of "Fri\, 05 Jun 2009 11\:32\:42 +0400")
+Received: from comal.ext.ti.com ([198.47.26.152]:57089 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751809AbZFEQW0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 12:22:26 -0400
+In-Reply-To: <1244121953-24866-1-git-send-email-ameya.palande@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Elvis Dowson <elvis.dowson@mac.com> writes:
-
-> Hi Kevin,
-> 		  I managed to successfully incorporate all your PM
-> patches to the  linux-omap-2.6 master branch, for the gumstix overo
-> earth (TI OMAP  3503). I am currently using it with Tomi's DSS2 (not
-> the full set, but  the dss2.patch that comes with the overo
-> openembedded repository.
-
-It's pretty difficult for me to know what you are actually running by
-the description above.  You've taken a bunch of stuff, put them
-together in some unspecified way, and are using an unspecified config.
-
-> When the device goes to suspend mode, and I immediately touch the
-> touch screen, to wake it up, two things happen:
+>From: Ameya Palande [mailto:ameya.palande@nokia.com]
 >
-> a. it wakes up and immediately goes back to suspend.
-> b. if I touch it once more, a bit longer this time, it wakes up.
+>From: Ameya Palande <ameya.palande@nokia.com>
 >
-> However, in the console, I see the following error message:
+>To reduce the unnecessary debug messages polluting the console,
+>pr_err is replaced by GT_trace which provides finer control for
+>the visibility of debug messages.
 >
-> request_suspend_state: wakeup (3->0) at 14677886951 (2000-01-01
-> 00:01:16.457611018 UTC)
-> request_suspend_state: sleep (0->3) at 76534332261 (2000-01-01
-> 00:02:18.314025810 UTC)
-> PM: Syncing filesystems ... done.
-> Freezing user space processes ... (elapsed 0.00 seconds) done.
-> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-> Suspending console(s) (use no_console_suspend to debug)
-> PM: suspend devices took 0.226 seconds
-> Powerdomain (mpu_pwrdm) didn't enter target state 1
-> Powerdomain (neon_pwrdm) didn't enter target state 1
-> Powerdomain (core_pwrdm) didn't enter target state 1
-> Powerdomain (cam_pwrdm) didn't enter target state 1
-> Powerdomain (per_pwrdm) didn't enter target state 1
-> Powerdomain (usbhost_pwrdm) didn't enter target state 1
-> Could not enter target state in pm_suspend
-
-Hmm, none of the powerdomains left active, so that suggests that none
-of the clocks are being auto-disabled.  I'll take guess you don't have
-CONFIG_OMAP_RESET_CLOCKS=y in your config.
-
-> wakeup wake lock: mmc_delayed_work
-
-Hmm, wake lock.  You've definitely applied android patches.
-
-Kevin
-
-> mmc1: mmc_rescan - card ocr from io_op=0x00000000, err = -110
-> PM: resume devices took 0.531 seconds
-> Restarting tasks ... <7>hub 1-0:1.0: state 7 ports 1 chg 0000 evt 0000
-> done.
-> suspend: exit suspend, ret = 0 (2000-01-01 00:02:24.561462403 UTC)
-> PM: Syncing filesystems ... done.
-> Freezing user space processes ... (elapsed 0.00 seconds) done.
-> Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+>Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+>---
+> drivers/dsp/bridge/services/clk.c |    4 ++--
+> 1 files changed, 2 insertions(+), 2 deletions(-)
 >
->
-> What do these error messages indicate ?
+
+Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+
+Will be pushing soon to dev.omapzoom
+
+- omar
+
