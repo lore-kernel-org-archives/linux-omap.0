@@ -1,44 +1,48 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS porting problems
-Date: Fri, 05 Jun 2009 11:24:15 +0300
-Message-ID: <1244190255.3940.14.camel@tubuntu>
-References: <4A283AF8.5010301@mlbassoc.com>
-Reply-To: tomi.valkeinen@nokia.com
+From: Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH 02/07] dma: rework dw_dmac suspend_late()/resume_early()
+Date: Fri, 5 Jun 2009 17:34:10 +0900
+Message-ID: <aec7e5c30906050134u1bcfc326p15691d90b6902d68@mail.gmail.com>
+References: <20090605075436.14756.80501.sendpatchset@rx1.opensource.se>
+	 <20090605075455.14756.13684.sendpatchset@rx1.opensource.se>
+	 <20090605101816.6bbe496e@hskinnemoen-d830>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19657 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758409AbZFEIYc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 04:24:32 -0400
-In-Reply-To: <4A283AF8.5010301@mlbassoc.com>
+Received: from yw-out-2324.google.com ([74.125.46.31]:26674 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751395AbZFEIeJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 04:34:09 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so807905ywb.1
+        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 01:34:11 -0700 (PDT)
+In-Reply-To: <20090605101816.6bbe496e@hskinnemoen-d830>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Cc: linux-pm@lists.linux-foundation.org, pavel@ucw.cz, anemo@mba.ocn.ne.jp, gregkh@suse.de, rjw@sisk.pl, stern@rowland.harvard.edu, ben-linux@fluff.org, felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
-On Thu, 2009-06-04 at 23:22 +0200, ext Gary Thomas wrote:
-> I'm porting my platform (3530, very similar to LDP) to your tree.
->   http://www.bat.org/~tomba/git/linux-omap-dss.git
-> Since you have complete support for the 3430SDP, I started with
-> that board file.  I've added my own display (larger Hitachi
-> screen that is 800x600).  I've run into a few problems:
-> 
-> * All output to the main frame buffer (/dev/fb0) seems to go to
-> the very last line of the display.
+On Fri, Jun 5, 2009 at 5:18 PM, Haavard
+Skinnemoen<haavard.skinnemoen@atmel.com> wrote:
+> Magnus Damm wrote:
+>> +static struct dev_pm_ops dw_dev_pm_ops =3D {
+>> + =A0 =A0 .suspend_noirq =3D dw_suspend_noirq,
+>> + =A0 =A0 .resume_noirq =3D dw_resume_noirq,
+>> +};
+>
+> Can this be const?
 
-Difficult to say anything about this. The problem could be in the board
-file configuration, or in the panel driver. 
+Hm, adding const generates a warning for me. At on SuperH with
+gcc-4.3.3 (Sourcery G++ Lite 4.3-143):
 
-> 
-> * The documentation (Documentation/arm/OMAP/DSS) does not seem
-> to match what's in sysfs.  In particular, there are no "horizontal"
-> or "vertical" fields in the displayN tree.  This makes the examples
-> of how to clone, etc, not work.
+[modified dev_pm_ops to const in sh_keysc.c]
 
-Thanks, I pushed a fix for the documentation.
+  CC      drivers/input/keyboard/sh_keysc.o
+drivers/input/keyboard/sh_keysc.c:299: warning: initialization
+discards qualifiers from pointer target type
 
- Tomi
-
-
+/ magnus
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
