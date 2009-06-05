@@ -1,47 +1,79 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was:
- Re: Beagleboard rev C memory timings & suspend/resume)
-Date: Fri, 5 Jun 2009 13:14:49 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906051308370.31531@utopia.booyaka.com>
-References: <200904291553.49378.jpihet@mvista.com> <200905261527.16648.jpihet@mvista.com> <alpine.DEB.2.00.0906021724490.31531@utopia.booyaka.com> <200906051735.57772.jpihet@mvista.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: Script for applying a set of patches from a folder
+Date: Sat, 6 Jun 2009 00:52:55 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030591A59C@dbde02.ent.ti.com>
+References: <A3273B39-7050-4382-BFE7-A1416B45DA55@mac.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-634465754-1244229147=:31531"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35765 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751752AbZFETOr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 15:14:47 -0400
-In-Reply-To: <200906051735.57772.jpihet@mvista.com>
-Content-ID: <alpine.DEB.2.00.0906051312490.31531@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:51777 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751478AbZFETXG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 15:23:06 -0400
+In-Reply-To: <A3273B39-7050-4382-BFE7-A1416B45DA55@mac.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jpihet@mvista.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap <linux-omap@vger.kernel.org>, notasas@gmail.com
+To: Elvis Dowson <elvis.dowson@mac.com>, Linux OMAP Users <linux-omap@vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Elvis Dowson
+> Sent: Friday, June 05, 2009 9:51 PM
+> To: Linux OMAP Users
+> Subject: Re: Script for applying a set of patches from a folder
+> 
+> Hi Kevin,
+> 		  I'm using OpenEmbedded, so I have to extract the patches first,  
+> then apply them and tweak the generated patches manually by hand.  
+> Sometimes, I will end up with some patches that require me to create a  
+> temporary workarea, apply all the patches that lead up to a particular  
+> change, and then manually apply the offending patch, and then extract  
+> a diff from that modification, and then re-insert it back to the  
+> OpenEmbedded work area.
+> 
+> So I just needed this solution, to quickly fast forward to the point  
+> that I want to apply the patch. I'll try it out.
+> 
 
---155748971-634465754-1244229147=:31531
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <alpine.DEB.2.00.0906051312491.31531@utopia.booyaka.com>
+How about quilt?
 
-Hi Jean,
+<http://savannah.nongnu.org/projects/quilt>
 
-On Fri, 5 Jun 2009, Jean Pihet wrote:
+- Anand
 
-> Some notes:
-> - all calls to omap2_init_common_hw have been adapted in the board files.=
- it=20
-> looks like 2430SDP and Pandora board files are broken since they use only=
- one=20
-> param. Can that be checked on those boards?
-
-Yep, builds with those two boards are broken on the PM branch, and it=20
-looks like your patch fixes both. =20
-
-Gra=B8yvdas, looks like Pandora might use 2 SDRAM chipselects also?
-
-
-- Paul
---155748971-634465754-1244229147=:31531--
+> Best regards,
+> 
+> Elvis
+> 
+> 
+> 
+> On Jun 5, 2009, at 6:38 PM, Kevin Hilman wrote:
+> 
+> >>
+> >
+> > Not sure exactly what you're trying to do here, but since the PM
+> > branch probably makes up most of those patches, why do you need to
+> > apply them?  Can't you just checkout the pm branch and add the other
+> > patches on top?  e.g.
+> >
+> > Create a test branch for your work in progress which is 
+> rooted at the
+> > pm branch:
+> >
+> > $ git checkout -b wip/test pm
+> >
+> > Apply your other patches (dss2, etc.)
+> >
+> > $ git am <patches>
+> >
+> > Kevin
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
