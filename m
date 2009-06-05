@@ -1,50 +1,237 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Status of clock patches after mainline reset? Case: Beagle C2
- and EHCI
-Date: Fri, 5 Jun 2009 04:35:57 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906050435000.31531@utopia.booyaka.com>
-References: <20090522092016.5e4a7da7.jhnikula@gmail.com> <alpine.DEB.2.00.0905230051270.26015@utopia.booyaka.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 04/20] omapfb: Add support for the Amstrad Delta LCD
+Date: Fri, 5 Jun 2009 12:38:22 +0200
+Message-ID: <200906051238.23755.jkrzyszt@tis.icnet.pl>
+References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com> <e9040774f324311979aebd3fa5fa71d20890d433.1244131952.git.imre.deak@nokia.com> <833ed44e61e3d4093eb27b55b97252967e042d41.1244131952.git.imre.deak@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44144 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753182AbZFEKf4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 06:35:56 -0400
-In-Reply-To: <alpine.DEB.2.00.0905230051270.26015@utopia.booyaka.com>
+Received: from d1.icnet.pl ([212.160.220.21]:39659 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750863AbZFEKja convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 06:39:30 -0400
+In-Reply-To: <833ed44e61e3d4093eb27b55b97252967e042d41.1244131952.git.imre.deak@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: Imre Deak <imre.deak@nokia.com>
+Cc: Antonino Daplas <adaplas@gmail.com>, linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, Jonathan McDowell <noodles@earth.li>
 
-Hi Jarkko,
+Thursday 04 June 2009 19:52:29 Imre Deak napisa=C5=82(a):
+> From: Jonathan McDowell <noodles@earth.li>
+>
+> This is an updated version of the LCD driver for the Amstrad Delta to
+> take into account the recent changes to the omapfb infrastructure. Th=
+e
+> Delta features a 480x320 12 bit DSTN panel.
 
-On Sat, 23 May 2009, Paul Walmsley wrote:
+Hi,
 
-> On Fri, 22 May 2009, Jarkko Nikula wrote:
-> 
-> > EHCI port is not working on my Beagle C2 with linux-omap but is working
-> > with this one:
-> > 
-> > http://www.angstrom-distribution.org/demo/beagleboard/uImage-2.6.28-r17-beagleboard.bin
-> > 
-> > Looks like the error below was fixed by the
-> > 205f37af718984ec67444bccc888cd575531bce1 but got reseted with Tony's
-> > eba05254cb561dc27d5664503f91f7c21954e648.
-> > 
-> > ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Drive
-> > Clock usbhost_48m_fck didn't enable in 100000 tries
-> > ehci-omap ehci-omap.0: OMAP-EHCI Host Controller
-> >
-> > Is this re-fixed with your last week set, in PM branch etc?
-> 
-> Unfortunately, no.  Looking at the patches, this seems to have been one 
-> of the upstream clock merge casualties.
-> 
-> I will try to get a fix series out soon for 2.6.30-rcX for this.
+I'd really love to see the lcd_ams_delta support included in the mainli=
+ne=20
+kernel, but I am not sure if it is ready for submission, as I still hav=
+e=20
+issues with it. It does work perfectly unless power management is turne=
+d on.
+With CONFIG_PM=3Dy, the omapfb device, after initially starting correct=
+ly,=20
+breaks with the following error messages:
 
-A quick update on this; it seems unlikely that this will make it into 
-2.6.30 but it is next on my to-do list, so we'll shoot for 2.6.31 fixes.
+omapfb omapfb: resetting (status 0xffffff96,reset count 1)
+=2E..
+omapfb omapfb: resetting (status 0xffffff96,reset count 100)
+omapfb omapfb: too many reset attempts, giving up.
+
+Tested with linux-2.6.30-rc5 and linux-omap revision=20
+90e758af52ba803cba233fabee81176d99589f09. Error messages do not appear =
+when=20
+CONFIG_PM=3Dn or lcd_ams_delta.o is removed from omapfb-objs.
+
+Please let me know what else I can do to help in resolving this issue.
+
+Cheers,
+Janusz
+
+> Signed-off-by: Jonathan McDowell <noodles@earth.li>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Imre Deak <imre.deak@nokia.com>
+> ---
+>  drivers/video/omap/Makefile        |    1 +
+>  drivers/video/omap/lcd_ams_delta.c |  137
+> ++++++++++++++++++++++++++++++++++++ 2 files changed, 138 insertions(=
++), 0
+> deletions(-)
+>  create mode 100644 drivers/video/omap/lcd_ams_delta.c
+>
+> diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefil=
+e
+> index d86d54a..2bf94ad 100644
+> --- a/drivers/video/omap/Makefile
+> +++ b/drivers/video/omap/Makefile
+> @@ -15,6 +15,7 @@ objs-$(CONFIG_ARCH_OMAP2)$(CONFIG_FB_OMAP_LCDC_EXTE=
+RNAL)
+> +=3D rfbi.o objs-y$(CONFIG_FB_OMAP_LCDC_HWA742) +=3D hwa742.o
+>  objs-y$(CONFIG_FB_OMAP_LCDC_BLIZZARD) +=3D blizzard.o
+>
+> +objs-y$(CONFIG_MACH_AMS_DELTA) +=3D lcd_ams_delta.o
+>  objs-y$(CONFIG_MACH_OMAP_H4) +=3D lcd_h4.o
+>  objs-y$(CONFIG_MACH_OMAP_H3) +=3D lcd_h3.o
+>  objs-y$(CONFIG_MACH_OMAP_PALMTE) +=3D lcd_palmte.o
+> diff --git a/drivers/video/omap/lcd_ams_delta.c
+> b/drivers/video/omap/lcd_ams_delta.c new file mode 100644
+> index 0000000..1f74399
+> --- /dev/null
+> +++ b/drivers/video/omap/lcd_ams_delta.c
+> @@ -0,0 +1,137 @@
+> +/*
+> + * Based on drivers/video/omap/lcd_inn1510.c
+> + *
+> + * LCD panel support for the Amstrad E3 (Delta) videophone.
+> + *
+> + * Copyright (C) 2006 Jonathan McDowell <noodles@earth.li>
+> + *
+> + * This program is free software; you can redistribute it and/or mod=
+ify it
+> + * under the terms of the GNU General Public License as published by=
+ the
+> + * Free Software Foundation; either version 2 of the License, or (at=
+ your
+> + * option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful, b=
+ut
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License=
+ along
+> + * with this program; if not, write to the Free Software Foundation,=
+ Inc.,
+> + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/io.h>
+> +#include <linux/delay.h>
+> +
+> +#include <mach/board-ams-delta.h>
+> +#include <mach/hardware.h>
+> +#include <mach/omapfb.h>
+> +
+> +#define AMS_DELTA_DEFAULT_CONTRAST	112
+> +
+> +static int ams_delta_panel_init(struct lcd_panel *panel,
+> +		struct omapfb_device *fbdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static void ams_delta_panel_cleanup(struct lcd_panel *panel)
+> +{
+> +}
+> +
+> +static int ams_delta_panel_enable(struct lcd_panel *panel)
+> +{
+> +	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_NDISP,
+> +			AMS_DELTA_LATCH2_LCD_NDISP);
+> +	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN,
+> +			AMS_DELTA_LATCH2_LCD_VBLEN);
+> +
+> +	omap_writeb(1, OMAP_PWL_CLK_ENABLE);
+> +	omap_writeb(AMS_DELTA_DEFAULT_CONTRAST, OMAP_PWL_ENABLE);
+> +
+> +	return 0;
+> +}
+> +
+> +static void ams_delta_panel_disable(struct lcd_panel *panel)
+> +{
+> +	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_VBLEN, 0);
+> +	ams_delta_latch2_write(AMS_DELTA_LATCH2_LCD_NDISP, 0);
+> +}
+> +
+> +static unsigned long ams_delta_panel_get_caps(struct lcd_panel *pane=
+l)
+> +{
+> +	return 0;
+> +}
+> +
+> +static struct lcd_panel ams_delta_panel =3D {
+> +	.name		=3D "ams-delta",
+> +	.config		=3D 0,
+> +
+> +	.bpp		=3D 12,
+> +	.data_lines	=3D 16,
+> +	.x_res		=3D 480,
+> +	.y_res		=3D 320,
+> +	.pixel_clock	=3D 4687,
+> +	.hsw		=3D 3,
+> +	.hfp		=3D 1,
+> +	.hbp		=3D 1,
+> +	.vsw		=3D 1,
+> +	.vfp		=3D 0,
+> +	.vbp		=3D 0,
+> +	.pcd		=3D 0,
+> +	.acb		=3D 37,
+> +
+> +	.init		=3D ams_delta_panel_init,
+> +	.cleanup	=3D ams_delta_panel_cleanup,
+> +	.enable		=3D ams_delta_panel_enable,
+> +	.disable	=3D ams_delta_panel_disable,
+> +	.get_caps	=3D ams_delta_panel_get_caps,
+> +};
+> +
+> +static int ams_delta_panel_probe(struct platform_device *pdev)
+> +{
+> +	omapfb_register_panel(&ams_delta_panel);
+> +	return 0;
+> +}
+> +
+> +static int ams_delta_panel_remove(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int ams_delta_panel_suspend(struct platform_device *pdev,
+> +		pm_message_t mesg)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int ams_delta_panel_resume(struct platform_device *pdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +struct platform_driver ams_delta_panel_driver =3D {
+> +	.probe		=3D ams_delta_panel_probe,
+> +	.remove		=3D ams_delta_panel_remove,
+> +	.suspend	=3D ams_delta_panel_suspend,
+> +	.resume		=3D ams_delta_panel_resume,
+> +	.driver		=3D {
+> +		.name	=3D "lcd_ams_delta",
+> +		.owner	=3D THIS_MODULE,
+> +	},
+> +};
+> +
+> +static int ams_delta_panel_drv_init(void)
+> +{
+> +	return platform_driver_register(&ams_delta_panel_driver);
+> +}
+> +
+> +static void ams_delta_panel_drv_cleanup(void)
+> +{
+> +	platform_driver_unregister(&ams_delta_panel_driver);
+> +}
+> +
+> +module_init(ams_delta_panel_drv_init);
+> +module_exit(ams_delta_panel_drv_cleanup);
 
 
-- Paul
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
