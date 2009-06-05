@@ -1,42 +1,155 @@
-From: Rowland Hook <rjhook70@gmail.com>
-Subject: From Martins D.Legacy
-Date: Fri, 5 Jun 2009 13:41:39 -0700
-Message-ID: <73e2b0650906051341i5847ac0cvce49200da7f182ce__17238.162426702$1244234528$gmane$org@mail.gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 05/06] OMAP3: PM: Implement locking for any scratchpad
+ access
+Date: Fri, 5 Jun 2009 15:26:10 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906051445230.31531@utopia.booyaka.com>
+References: <1243514587-5323-1-git-send-email-rnayak@ti.com> <1243514587-5323-2-git-send-email-rnayak@ti.com> <1243514587-5323-3-git-send-email-rnayak@ti.com> <1243514587-5323-4-git-send-email-rnayak@ti.com> <1243514587-5323-5-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:65198 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815AbZFEUlw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 16:41:52 -0400
-Received: by mail-ew0-f210.google.com with SMTP id 6so2499526ewy.37
-        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 13:41:54 -0700 (PDT)
+Received: from utopia.booyaka.com ([72.9.107.138]:60425 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053AbZFEV0J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 17:26:09 -0400
+In-Reply-To: <1243514587-5323-5-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-My name is Martines Legacy
+Hi Rajendra,
 
-I am an American soldier serving in the military with the army's 3rd
-infantry division.with a need for assistance, I have summed up courage
-to contact you. I found your contact in address on  journal. I got a
-huge fund of Forty Million United States Dollars, (US$40,000,000)
-.This money is among the various currencies which was discovered in
-barrels at a farm-house near one of  Saddam Hussein old palaces in
-Tikrit-Iraq during a rescue operation. I and Sgt James.Howie where the
-first to discover this fund. We concluded and took part of this money
-which is ($40,000.000.00) and shared between us before informing
-anybody about it. This was quite an illegal even last week a roadside
-bomb killed my brother in-law. Find the story on
-web-address below:  http://news.bbc.co.uk/2/hi/middle_east/2988455.stm?
-If  you will do this with good faith and you assure me that my
-percentage will be safe in your care until I complete my service
-here,then I shall agree with You. This is no stolen money, and there
-is no danger involved. We will share upon this ratio: I will take 50%
-and you will take 30%. and 20% shall be given to charity organisation
-which you shall takecare of this offer after a sucessfull transaction,
-We will discuss this in details.
+On Thu, 28 May 2009, Rajendra Nayak wrote:
 
-Thanks
-Sgt.Martines Legacy
-Email: proger34@yahoo.com
+> This patch implements locking using the semaphore in scratchpad
+> memory preventing any concurrent access to scratchpad from OMAP
+> and Baseband/Modem processor.
+
+This patch might be okay for the target use case.  But there might still 
+be a race window with this patch, where the modem could steal the MPU's 
+lock or vice versa.
+
+That swp tries to guarantee atomicity through exclusive memory accesses, 
+but the AXI2OCP bridge section of the TRM claims that the bridge 
+translates "exclusive accesses to non-exclusive read/write in the bridge" 
+(section 3.2.3.2).  That seems to suggest that the memory accesses will be 
+non-atomic and that therefore a race window exists.
+
+The easiest way to close it up tight might be to use the ICR, and have the 
+modem request permission to write to the scratchpad RAM from the MPU, or 
+vice versa.  I realize that "easiest" is definitely relative in this 
+case...
+
+
+- Paul
+
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/resource34xx.c |    6 +++++-
+>  arch/arm/mach-omap2/resource34xx.h |    2 ++
+>  arch/arm/mach-omap2/sleep34xx.S    |   32 ++++++++++++++++++++++++++++++++
+>  3 files changed, 39 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+> index 82405b6..408d3ab 100644
+> --- a/arch/arm/mach-omap2/resource34xx.c
+> +++ b/arch/arm/mach-omap2/resource34xx.c
+> @@ -236,6 +236,7 @@ static int program_opp_freq(int res, int target_level, int current_level)
+>  	int ret = 0, l3_div;
+>  	int *curr_opp;
+>  
+> +	lock_scratchpad_sem();
+>  	if (res == VDD1_OPP) {
+>  		curr_opp = &curr_vdd1_opp;
+>  		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
+> @@ -253,11 +254,14 @@ static int program_opp_freq(int res, int target_level, int current_level)
+>  		ret = clk_set_rate(dpll3_clk,
+>  				l3_opps[target_level].rate * l3_div);
+>  	}
+> -	if (ret)
+> +	if (ret) {
+> +		unlock_scratchpad_sem();
+>  		return current_level;
+> +	}
+>  #ifdef CONFIG_PM
+>  	omap3_save_scratchpad_contents();
+>  #endif
+> +	unlock_scratchpad_sem();
+>  
+>  	*curr_opp = target_level;
+>  	return target_level;
+> diff --git a/arch/arm/mach-omap2/resource34xx.h b/arch/arm/mach-omap2/resource34xx.h
+> index a160665..5b5618a 100644
+> --- a/arch/arm/mach-omap2/resource34xx.h
+> +++ b/arch/arm/mach-omap2/resource34xx.h
+> @@ -29,6 +29,8 @@
+>  #include <mach/omap34xx.h>
+>  
+>  extern int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8 c_vsel);
+> +extern void lock_scratchpad_sem();
+> +extern void unlock_scratchpad_sem();
+>  
+>  /*
+>   * mpu_latency/core_latency are used to control the cpuidle C state.
+> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> index 38aa3fd..aedcf94 100644
+> --- a/arch/arm/mach-omap2/sleep34xx.S
+> +++ b/arch/arm/mach-omap2/sleep34xx.S
+> @@ -39,6 +39,7 @@
+>  #define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
+>  				OMAP3430_PM_PREPWSTST)
+>  #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
+> +#define SDRC_SCRATCHPAD_SEM_V	0xd800291C
+>  
+>  /*
+>   * This is the physical address of the register as specified
+> @@ -62,6 +63,37 @@
+>  #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+>  #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+>  
+> +        .text
+> +/* Function to aquire the semaphore in scratchpad */
+> +ENTRY(lock_scratchpad_sem)
+> +	stmfd	sp!, {lr}	@ save registers on stack
+> +wait_sem:
+> +	mov	r0,#1
+> +	ldr	r1, sdrc_scratchpad_sem
+> +wait_loop:
+> +	ldr	r2, [r1]	@ load the lock value
+> +	cmp	r2, r0		@ is the lock free ?
+> +	beq	wait_loop	@ not free...
+> +	swp	r2, r0, [r1]	@ semaphore free so lock it and proceed
+> +	cmp	r2, r0		@ did we succeed ?
+> +	beq	wait_sem	@ no - try again
+> +	ldmfd	sp!, {pc}	@ restore regs and return
+> +sdrc_scratchpad_sem:
+> +        .word SDRC_SCRATCHPAD_SEM_V
+> +ENTRY(lock_scratchpad_sem_sz)
+> +        .word   . - lock_scratchpad_sem
+> +
+> +        .text
+> +/* Function to release the scratchpad semaphore */
+> +ENTRY(unlock_scratchpad_sem)
+> +	stmfd	sp!, {lr}	@ save registers on stack
+> +	ldr	r3, sdrc_scratchpad_sem
+> +	mov	r2,#0
+> +	str	r2,[r3]
+> +	ldmfd	sp!, {pc}	@ restore regs and return
+> +ENTRY(unlock_scratchpad_sem_sz)
+> +        .word   . - unlock_scratchpad_sem
+> +
+>  	.text
+>  /* Function call to get the restore pointer for resume from OFF */
+>  ENTRY(get_restore_pointer)
+> -- 
+> 1.5.4.7
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
