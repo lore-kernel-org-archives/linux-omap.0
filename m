@@ -1,155 +1,69 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 05/06] OMAP3: PM: Implement locking for any scratchpad
- access
-Date: Fri, 5 Jun 2009 15:26:10 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906051445230.31531@utopia.booyaka.com>
-References: <1243514587-5323-1-git-send-email-rnayak@ti.com> <1243514587-5323-2-git-send-email-rnayak@ti.com> <1243514587-5323-3-git-send-email-rnayak@ti.com> <1243514587-5323-4-git-send-email-rnayak@ti.com> <1243514587-5323-5-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP2/3 Avoid GPIO pending irq status been set after irq_disable
+Date: Fri, 05 Jun 2009 14:34:48 -0700
+Message-ID: <87ljo68ivb.fsf@deeprootsystems.com>
+References: <B00E06E2766C2744B022DE9BAF3C59D5372EFA@zmy16exm69.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60425 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053AbZFEV0J (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 17:26:09 -0400
-In-Reply-To: <1243514587-5323-5-git-send-email-rnayak@ti.com>
+Received: from wf-out-1314.google.com ([209.85.200.170]:10160 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbZFEVet (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 17:34:49 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so795468wfd.4
+        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 14:34:51 -0700 (PDT)
+In-Reply-To: <B00E06E2766C2744B022DE9BAF3C59D5372EFA@zmy16exm69.ds.mot.com> (Wang Sawsd-A's message of "Sat\, 6 Jun 2009 03\:06\:40 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Wang Sawsd-A24013 <cqwang@motorola.com>
+Cc: linux-omap@vger.kernel.org, nm@ti.com, Mike Chan <mikechan@google.com>
 
-Hi Rajendra,
+"Wang Sawsd-A24013" <cqwang@motorola.com> writes:
 
-On Thu, 28 May 2009, Rajendra Nayak wrote:
+>> Could you try this patch with your TS GPIO configured as 
+>> level-triggered?
+>> 
+>
+> I tried the below patch, it can solve the issue also.
+>
 
-> This patch implements locking using the semaphore in scratchpad
-> memory preventing any concurrent access to scratchpad from OMAP
-> and Baseband/Modem processor.
+Thanks for testing.
 
-This patch might be okay for the target use case.  But there might still 
-be a race window with this patch, where the modem could steal the MPU's 
-lock or vice versa.
+This whole time, you're probably wondering... "why doesn't Kevin just
+add the disable and enable hooks and be done with it."  I don't think
+I've explained myself there yet so let me try to explain so I don't
+come across as refusing your original idea for no good reason other
+than being stubborn.
 
-That swp tries to guarantee atomicity through exclusive memory accesses, 
-but the AXI2OCP bridge section of the TRM claims that the bridge 
-translates "exclusive accesses to non-exclusive read/write in the bridge" 
-(section 3.2.3.2).  That seems to suggest that the memory accesses will be 
-non-atomic and that therefore a race window exists.
+We basically have the option of doing it in my proposed patch, which
+adds additional overhead to the mask/unmask hooks or we can just add
+disable/enable hooks as you did in your original patch.
 
-The easiest way to close it up tight might be to use the ICR, and have the 
-modem request permission to write to the scratchpad RAM from the MPU, or 
-vice versa.  I realize that "easiest" is definitely relative in this 
-case...
+The reason I prefer not to add disable/enable hooks is to take
+advantage of the lazy disable feature.  With lazy disable, by waiting
+to actually disable, it allows us to handle potentially lost
+interrupts and this is especially important for wakeup interrupts.  An
+interesting example this is interrupts that are lazy disabled during
+suspend/resume.
 
+For example, if a wakeup interrupt happens between the drivers
+disable_irq(), what you want is for this interrupt to cancel suspend.
+If you you implement a ->disable hook, and thus mask interrupts in HW
+immediately, you will loose this interrupt.  With lazy disable, the
+drivers ISR will not be called, but genirq will see this interrupt and
+set IRQ_PENDING.  Late in the suspend path, IRQs that are IRQ_WAKEUP
+and IRQ_PENDING will cancel suspend (see
+kernel/irq/pm.c:check_wakeup_irqs())
 
-- Paul
+Another possible scenario is an interrupt that happens between HW
+resume and the drivers enable_irq() hook.  With lazy disable, this
+interrupt will be IRQ_PENDING when enable_irq() gets called and be
+triggered/handled immedately.
 
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/resource34xx.c |    6 +++++-
->  arch/arm/mach-omap2/resource34xx.h |    2 ++
->  arch/arm/mach-omap2/sleep34xx.S    |   32 ++++++++++++++++++++++++++++++++
->  3 files changed, 39 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-> index 82405b6..408d3ab 100644
-> --- a/arch/arm/mach-omap2/resource34xx.c
-> +++ b/arch/arm/mach-omap2/resource34xx.c
-> @@ -236,6 +236,7 @@ static int program_opp_freq(int res, int target_level, int current_level)
->  	int ret = 0, l3_div;
->  	int *curr_opp;
->  
-> +	lock_scratchpad_sem();
->  	if (res == VDD1_OPP) {
->  		curr_opp = &curr_vdd1_opp;
->  		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
-> @@ -253,11 +254,14 @@ static int program_opp_freq(int res, int target_level, int current_level)
->  		ret = clk_set_rate(dpll3_clk,
->  				l3_opps[target_level].rate * l3_div);
->  	}
-> -	if (ret)
-> +	if (ret) {
-> +		unlock_scratchpad_sem();
->  		return current_level;
-> +	}
->  #ifdef CONFIG_PM
->  	omap3_save_scratchpad_contents();
->  #endif
-> +	unlock_scratchpad_sem();
->  
->  	*curr_opp = target_level;
->  	return target_level;
-> diff --git a/arch/arm/mach-omap2/resource34xx.h b/arch/arm/mach-omap2/resource34xx.h
-> index a160665..5b5618a 100644
-> --- a/arch/arm/mach-omap2/resource34xx.h
-> +++ b/arch/arm/mach-omap2/resource34xx.h
-> @@ -29,6 +29,8 @@
->  #include <mach/omap34xx.h>
->  
->  extern int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8 c_vsel);
-> +extern void lock_scratchpad_sem();
-> +extern void unlock_scratchpad_sem();
->  
->  /*
->   * mpu_latency/core_latency are used to control the cpuidle C state.
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> index 38aa3fd..aedcf94 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -39,6 +39,7 @@
->  #define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
->  				OMAP3430_PM_PREPWSTST)
->  #define CM_IDLEST1_CORE_V	OMAP34XX_CM_REGADDR(CORE_MOD, CM_IDLEST1)
-> +#define SDRC_SCRATCHPAD_SEM_V	0xd800291C
->  
->  /*
->   * This is the physical address of the register as specified
-> @@ -62,6 +63,37 @@
->  #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
->  #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
->  
-> +        .text
-> +/* Function to aquire the semaphore in scratchpad */
-> +ENTRY(lock_scratchpad_sem)
-> +	stmfd	sp!, {lr}	@ save registers on stack
-> +wait_sem:
-> +	mov	r0,#1
-> +	ldr	r1, sdrc_scratchpad_sem
-> +wait_loop:
-> +	ldr	r2, [r1]	@ load the lock value
-> +	cmp	r2, r0		@ is the lock free ?
-> +	beq	wait_loop	@ not free...
-> +	swp	r2, r0, [r1]	@ semaphore free so lock it and proceed
-> +	cmp	r2, r0		@ did we succeed ?
-> +	beq	wait_sem	@ no - try again
-> +	ldmfd	sp!, {pc}	@ restore regs and return
-> +sdrc_scratchpad_sem:
-> +        .word SDRC_SCRATCHPAD_SEM_V
-> +ENTRY(lock_scratchpad_sem_sz)
-> +        .word   . - lock_scratchpad_sem
-> +
-> +        .text
-> +/* Function to release the scratchpad semaphore */
-> +ENTRY(unlock_scratchpad_sem)
-> +	stmfd	sp!, {lr}	@ save registers on stack
-> +	ldr	r3, sdrc_scratchpad_sem
-> +	mov	r2,#0
-> +	str	r2,[r3]
-> +	ldmfd	sp!, {pc}	@ restore regs and return
-> +ENTRY(unlock_scratchpad_sem_sz)
-> +        .word   . - unlock_scratchpad_sem
-> +
->  	.text
->  /* Function call to get the restore pointer for resume from OFF */
->  ENTRY(get_restore_pointer)
-> -- 
-> 1.5.4.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Hope that helps explain my stubborness, ;)
 
+Of course this doesn't mean it's an absolute decision.  As always, I'm
+certainly open to being pursuaded that there are other better reasons
+for doing it differently.
 
-- Paul
+Kevin
