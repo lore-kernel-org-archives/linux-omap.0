@@ -1,75 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3: PM: Fix the pwrdm_enable/disable_hdwr_sar funcs
-Date: Fri, 5 Jun 2009 16:44:37 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906051642370.6425@utopia.booyaka.com>
-References: <1244206853-4426-1-git-send-email-rnayak@ti.com> <87hbyu72n8.fsf@deeprootsystems.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] Please help in adding ams-delta support to ASoC
+Date: Fri, 5 Jun 2009 23:45:34 +0100
+Message-ID: <20090605224532.GA12995@sirena.org.uk>
+References: <4A1BEBE3.8010306@tis.icnet.pl> <200906030924.14230.jkrzyszt@tis.icnet.pl> <20090605165531.7d0c4522.jhnikula@gmail.com> <200906060028.01600.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:44587 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751343AbZFEWog (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 18:44:36 -0400
-In-Reply-To: <87hbyu72n8.fsf@deeprootsystems.com>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:58988 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468AbZFEWpj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 18:45:39 -0400
+Content-Disposition: inline
+In-Reply-To: <200906060028.01600.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Rajendra Nayak <rnayak@ti.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>, linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-On Fri, 5 Jun 2009, Kevin Hilman wrote:
+On Sat, Jun 06, 2009 at 12:28:00AM +0200, Janusz Krzysztofik wrote:
 
-> Rajendra Nayak <rnayak@ti.com> writes:
-> 
-> > The pwrdm_enable_hdwr_sar/pwrdm_disable_hdwr_sar do not
-> > actually set/reset the SAVEANDRESTORE bit in the PWSTCTRL
-> > register but modify some other bit instead.
-> > This happens due to the OMAP3430ES2_SAVEANDRESTORE_SHIFT
-> > being defined as (1 << 4) instead of just 4.
-> >
-> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> 
-> Thanks, pushing to PM branch.
-> 
-> I'll wait to hear from Kalle if we can revert his previous patch
-> for this.
+> On the codec frame sync output, I can see ~10kHz symmetric square wave (filled 
+> by 50%), the same on modem frame sync input, mcbsp1 status unknown. This 
+> shape suggests I2S protocol, not DSP_B as we deduced from the original driver 
+> code.
 
-I think Kalle covered this one already:
+Not that this seems like an unreasonable conclusion but it's worth
+pointing out that the DSP modes only require the leading edge of the
+frame clock and that the falling edge can occur at any point before the
+next rising edge is due.
 
-http://patchwork.kernel.org/patch/15586/
+> Anyway, we still have at least two potential reasons for my driver not 
+> working: wrong mcbsp clocks setup or broken mcbsp dma handling. My last idea 
+> was to create a generic test driver that would not use any external clocks, 
+> ie configured with OMAP_MCBSP_SYSCLK_CLK and SND_SOC_DAIFMT_CBS_CFS, right? 
+> That way, it should just work without any hardware support except for mcbsp 
+> and maybe we could then definitelly verify if current mcbsp and dma code 
+> works on omap1510 or not. Trying to select a template driver to base the test 
+> driver on, I felt into these troubles with more and more questions coming on 
+> mind. If you think my idea is worth of trying, could you please look at this 
+> and give me some hints?
 
-- Paul
-
-> 
-> Kevin
-> 
-> > ---
-> >  arch/arm/mach-omap2/prm-regbits-34xx.h |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> > index 06fee29..d4ea370 100644
-> > --- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-> > +++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-> > @@ -411,7 +411,7 @@
-> >  /* PM_PREPWSTST_CAM specific bits */
-> >  
-> >  /* PM_PWSTCTRL_USBHOST specific bits */
-> > -#define OMAP3430ES2_SAVEANDRESTORE_SHIFT		(1 << 4)
-> > +#define OMAP3430ES2_SAVEANDRESTORE_SHIFT		4
-> >  
-> >  /* RM_RSTST_PER specific bits */
-> >  
-> > -- 
-> > 1.5.4.7
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
+That approach is one I use all the time in driver development - isolate
+the device as much as possible and confirm that it can at least
+interoperate with itself.
