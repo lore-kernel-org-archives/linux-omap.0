@@ -1,61 +1,45 @@
-From: Ramesh Gupta Guntha <grgupta77@gmail.com>
-Subject: Re: DSP MMU Fault
-Date: Fri, 5 Jun 2009 09:18:22 +0530
-Message-ID: <3a2dabf50906042048r24b69ee2v814fa29c83450bff@mail.gmail.com>
-References: <44449.139.179.13.76.1244116436.squirrel@newmail.bilkent.edu.tr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Magnus Damm <magnus.damm@gmail.com>
+Subject: [PATCH 00/07] pm: remove late/early platform driver pm callbacks
+Date: Fri, 05 Jun 2009 16:54:36 +0900
+Message-ID: <20090605075436.14756.80501.sendpatchset@rx1.opensource.se>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f214.google.com ([209.85.217.214]:64984 "EHLO
-	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752161AbZFEDsV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 4 Jun 2009 23:48:21 -0400
-Received: by gxk10 with SMTP id 10so2285188gxk.13
-        for <linux-omap@vger.kernel.org>; Thu, 04 Jun 2009 20:48:22 -0700 (PDT)
-In-Reply-To: <44449.139.179.13.76.1244116436.squirrel@newmail.bilkent.edu.tr>
+Received: from rv-out-0506.google.com ([209.85.198.239]:33932 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753399AbZFEH5y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 5 Jun 2009 03:57:54 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so604462rvb.1
+        for <linux-omap@vger.kernel.org>; Fri, 05 Jun 2009 00:57:56 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Can Bal <canbal@ee.bilkent.edu.tr>
-Cc: linux-omap@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org
+Cc: pavel@ucw.cz, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, gregkh@suse.de, rjw@sisk.pl, stern@rowland.harvard.edu, ben-linux@fluff.org, felipe.balbi@nokia.com, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>
 
-Hi Can,
+pm: remove late/early platform driver pm callbacks
 
+[PATCH 01/07] arm: rework omap suspend_late()/resume_early()
+[PATCH 02/07] dma: rework dw_dmac suspend_late()/resume_early()
+[PATCH 03/07] dma: rework txx9dmac suspend_late()/resume_early()
+[PATCH 04/07] i2c: rework i2c-pxa suspend_late()/resume_early()
+[PATCH 05/07] i2c: rework i2c-s3c2410 suspend_late()/resume()
+[PATCH 06/07] usb: rework musb suspend()/resume_early()
+[PATCH 07/07] pm: remove platform device suspend_late()/resume_early()
 
-On 6/4/09, Can Bal <canbal@ee.bilkent.edu.tr> wrote:
-> Hi everyone,
->
-> I'm implementing a code on DSP but at the time I do a memory allocation at
-> the DSP side as:
->
-> short *a;
-> a = malloc(192); // (short*)malloc(192) does not work either
->
-> But at this line I get the following error and DSP fails afterwards. Then
-> I need to reboot until I can run the application again.
->
-> <6>***** DSPMMU FAULT ***** IRQStatus 0x2
-> ***** DSPMMU FAULT ***** IRQStatus 0x2
-> <6>***** DSPMMU FAULT ***** faultAddr 0x230674a0
-> ***** DSPMMU FAULT ***** faultAddr 0x230674a0
-> <6>WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> WMD_DEH_Notify: ********** DEVICE EXCEPTION **********
-> <6>WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
-> WMD_DEH_Notify: DSP_MMUFAULT,errInfo = 0x0
-> <6>WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
-> WMD_DEH_Notify: DSP_MMUFAULT, High Address = 0x2306
-> <6>WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
-> WMD_DEH_Notify: DSP_MMUFAULT, Low Address = 0x74a0
-> <6>WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
-> WMD_DEH_Notify: DSP_MMUFAULT, fault address = 0x230674a0
->
-> Do you have any ideas why this might be happening and how to fix it?
-> Thanks a lot.
->
+These patches simply remove ->suspend_late() and ->resume_early()
+from struct platform_driver. Drivers are converted to dev_pm_ops
+with CONFIG_SUSPEND in mind. Untested.
 
-This means that the DSP is trying to access a virtual memory for which
-no physical memory present, Can you please check why the memory
-allocation failing on the DSP?
+All patches except [02/07] are known to compile.
 
-regards
-Ramesh
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
+
+ arch/arm/plat-omap/debug-leds.c  |   11 +++++++----
+ arch/arm/plat-omap/gpio.c        |   14 ++++++++++----
+ drivers/base/platform.c          |   36 ------------------------------------
+ drivers/dma/dw_dmac.c            |   15 ++++++++++-----
+ drivers/dma/txx9dmac.c           |   15 ++++++++++-----
+ drivers/i2c/busses/i2c-pxa.c     |   25 +++++++++++++++++--------
+ drivers/i2c/busses/i2c-s3c2410.c |   28 +++++++++++++++++-----------
+ drivers/usb/musb/musb_core.c     |   18 ++++++++++++------
+ include/linux/platform_device.h  |    2 --
+ 9 files changed, 83 insertions(+), 81 deletions(-)
