@@ -1,42 +1,92 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] Please help in adding ams-delta support to ASoC
-Date: Sun, 7 Jun 2009 10:40:53 +0100
-Message-ID: <20090607094053.GA18824@opensource.wolfsonmicro.com>
-References: <4A1BEBE3.8010306@tis.icnet.pl> <200906060028.01600.jkrzyszt@tis.icnet.pl> <20090605224532.GA12995@sirena.org.uk> <200906061942.14276.jkrzyszt@tis.icnet.pl>
+From: Hugo Vincent <hugo.vincent@gmail.com>
+Subject: Re: OMAP: sporadic hard lock-up when GPIO edge-triggered interrupts
+	occur too fast
+Date: Mon, 8 Jun 2009 09:22:29 +1200
+Message-ID: <5a7b8b7b0906071422l777fec53oa7d7f448e1784ebb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:34487 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752814AbZFGJkv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Jun 2009 05:40:51 -0400
-Content-Disposition: inline
-In-Reply-To: <200906061942.14276.jkrzyszt@tis.icnet.pl>
+Received: from yw-out-2324.google.com ([74.125.46.29]:18971 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753874AbZFGVW1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Jun 2009 17:22:27 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so1785841ywb.1
+        for <linux-omap@vger.kernel.org>; Sun, 07 Jun 2009 14:22:29 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Sat, Jun 06, 2009 at 07:42:12PM +0200, Janusz Krzysztofik wrote:
+Hi OMAP people,
 
-> Is it possible that the codec speeks I2S, with 8-bit word, 1 word per frame, 2 
-> channels at 8kHz each? Or 1 channel at 16 kHz? From what I can read in modem 
-> documentation, this should rather be one 8-bit channel at 8kHz. Anyway, can 
-> the transmission format I have seen ont the oscilloscope be matched against 
-> any format that mcbsp can be set with current code?
+I've done some more debugging on this problem, and determined that
+while it occurs less often, it still happens when PREMPT_RT is
+completely disabled (using l-o 2.6.29-omap1 with the default set of
+extra patches applied by the OE linux-omap_2.6.29 recipe, without
+having applied the -rt patchset). I am therefore reposting this to the
+l-o list as it seems like it could be a serious and general problem,
+and I'm really out of ideas for fixing it...
 
-The former is more likely.  Since I2S is a stereo protocol I'd not be
-surprised to see a mono device choosing to transmit its data in both
-left and right channels for maximum interoperability with devices that
-do stereo.
+Are there any known cases (however rare), whereby a race condition or
+deadlock can occur with the current GPIO interrupt code? I've seen
+many comments on the mailing list implying the code is quite fragile
+or sensitive as it is, and wonder if this is because of hardware bugs
+or limitations? The way the hardware works (multiple GPIO interrupts
+combined into one bank interrupt to the MPU, where the bank can
+contain both level and edge triggers) seems pretty stupid, especially
+for the use-case where both edge and level triggers are used on one
+bank. Does anyone by any chance have any patches that for example, fix
+this problem even at the expense of performance or latency?
 
-> I'm still far from understanding mcbsp, but I wonder what happens if the bit 
-> clock stops ater 18th bit while maybe mcbsp expects more. Perhaps this is the 
-> cause of dma interrupts not being generated?
+Many thanks,
+Hugo
 
-That's certainly the sort of behaviour I'd expect to see from a
-programmable port like the McBSP - many of them also need to know
-exactly how many bit clocks there will be in order to implement I2S due
-to not paying attention to one of the edges of frame sync.  In general
-things will cope if the bit clock stops providing there have been as
-many edges as they're expecting to get a full sample clocked in.
+On Thu, Jun 4, 2009 at 11:51 AM, Hugo Vincent<hugo.vincent@gmail.com> w=
+rote:
+> Hi everyone,
+>
+> I'm trying to debug a problem with GPIO interrupts on my OMAP3503
+> (Gumstix Overo) platform with kernel 2.6.29.4-rt16-omap1.
+>
+> While this is a sporadic lock-up, I haven't been able to reproduce it
+> when PREEMPT_HARDIRQ is disabled.
+>
+> I think it might have something to do with this patch (which is appli=
+ed BTW):
+> =A0 http://patchwork.kernel.org/patch/16046/
+> And see this thread:
+> =A0 http://markmail.org/message/aaqpk5jztrrypsxz
+>
+> Sometimes, I see a spurious IRQ message like this:
+> =A0 Spurious irq 95: 0xffffffdf, please flush posted write for irq 31
+> that the above patch is supposed to fix, just before the system locks
+> up. Is it possible that the interrupt handler is getting preempted
+> between acknowledging the interrupt and the 'flush posted write', and
+> meanwhile another interrupt from the same bank occurs?
+>
+> To check this hypothesis, I built the kernel with
+> =A0 CONFIG_PREEMPT_DESKTOP=3Dy
+> =A0 # CONFIG_PREEMPT_RT is not set
+> =A0 CONFIG_PREEMPT=3Dy
+> =A0 CONFIG_PREEMPT_SOFTIRQS=3Dy
+> =A0 CONFIG_PREEMPT_HARDIRQS=3Dy
+>
+> which gives a /proc/irq/<irq>/<handler>/threaded flag. When I tried
+> disabling threading on irqs 246-249 (which are the virtual irqs for
+> the problematic GPIO interrupts), the problem still occured. I'm not
+> sure how to disable threading or preemption on the intermediate ISR
+> (gpio_irq_handler() at arch/arm/plat-omap/gpio.c:959) which determine=
+s
+> which GPIO in the bank caused the interrupt and spawns the virtual
+> interrupts.
+>
+> Any ideas for debugging or narrowing down on the cause?
+>
+> Many thanks,
+> Hugo
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
