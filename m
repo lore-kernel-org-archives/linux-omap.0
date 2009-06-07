@@ -1,92 +1,37 @@
-From: Hugo Vincent <hugo.vincent@gmail.com>
-Subject: Re: OMAP: sporadic hard lock-up when GPIO edge-triggered interrupts
-	occur too fast
-Date: Mon, 8 Jun 2009 09:22:29 +1200
-Message-ID: <5a7b8b7b0906071422l777fec53oa7d7f448e1784ebb@mail.gmail.com>
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Subject: Re: [Linux-fbdev-devel] [PATCH 01/20] omapfb: Add support for the
+ Apollon LCD
+Date: Mon, 8 Jun 2009 00:41:33 +0200
+Message-ID: <20090608004133.afcb1f55.krzysztof.h1@poczta.fm>
+References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
+	<fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:18971 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753874AbZFGVW1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Jun 2009 17:22:27 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1785841ywb.1
-        for <linux-omap@vger.kernel.org>; Sun, 07 Jun 2009 14:22:29 -0700 (PDT)
+Received: from smtp239.poczta.interia.pl ([217.74.64.239]:30078 "EHLO
+	smtp239.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211AbZFGWeN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 7 Jun 2009 18:34:13 -0400
+In-Reply-To: <fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Imre Deak <imre.deak@nokia.com>
+Cc: Antonino Daplas <adaplas@gmail.com>, linux-fbdev-devel@lists.sourceforge.net, Tony Lindgren <tony@atomide.com>, Kyungmin Park <kyungmin.park@samsung.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, linux-omap@vger.kernel.org
 
-Hi OMAP people,
+On Thu,  4 Jun 2009 20:52:26 +0300
+Imre Deak <imre.deak@nokia.com> wrote:
 
-I've done some more debugging on this problem, and determined that
-while it occurs less often, it still happens when PREMPT_RT is
-completely disabled (using l-o 2.6.29-omap1 with the default set of
-extra patches applied by the OE linux-omap_2.6.29 recipe, without
-having applied the -rt patchset). I am therefore reposting this to the
-l-o list as it seems like it could be a serious and general problem,
-and I'm really out of ideas for fixing it...
+> From: Kyungmin Park <kyungmin.park@samsung.com>
+> 
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Signed-off-by: Imre Deak <imre.deak@nokia.com>
+> ---
 
-Are there any known cases (however rare), whereby a race condition or
-deadlock can occur with the current GPIO interrupt code? I've seen
-many comments on the mailing list implying the code is quite fragile
-or sensitive as it is, and wonder if this is because of hardware bugs
-or limitations? The way the hardware works (multiple GPIO interrupts
-combined into one bank interrupt to the MPU, where the bank can
-contain both level and edge triggers) seems pretty stupid, especially
-for the use-case where both edge and level triggers are used on one
-bank. Does anyone by any chance have any patches that for example, fix
-this problem even at the expense of performance or latency?
+Acked-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Many thanks,
-Hugo
 
-On Thu, Jun 4, 2009 at 11:51 AM, Hugo Vincent<hugo.vincent@gmail.com> w=
-rote:
-> Hi everyone,
->
-> I'm trying to debug a problem with GPIO interrupts on my OMAP3503
-> (Gumstix Overo) platform with kernel 2.6.29.4-rt16-omap1.
->
-> While this is a sporadic lock-up, I haven't been able to reproduce it
-> when PREEMPT_HARDIRQ is disabled.
->
-> I think it might have something to do with this patch (which is appli=
-ed BTW):
-> =A0 http://patchwork.kernel.org/patch/16046/
-> And see this thread:
-> =A0 http://markmail.org/message/aaqpk5jztrrypsxz
->
-> Sometimes, I see a spurious IRQ message like this:
-> =A0 Spurious irq 95: 0xffffffdf, please flush posted write for irq 31
-> that the above patch is supposed to fix, just before the system locks
-> up. Is it possible that the interrupt handler is getting preempted
-> between acknowledging the interrupt and the 'flush posted write', and
-> meanwhile another interrupt from the same bank occurs?
->
-> To check this hypothesis, I built the kernel with
-> =A0 CONFIG_PREEMPT_DESKTOP=3Dy
-> =A0 # CONFIG_PREEMPT_RT is not set
-> =A0 CONFIG_PREEMPT=3Dy
-> =A0 CONFIG_PREEMPT_SOFTIRQS=3Dy
-> =A0 CONFIG_PREEMPT_HARDIRQS=3Dy
->
-> which gives a /proc/irq/<irq>/<handler>/threaded flag. When I tried
-> disabling threading on irqs 246-249 (which are the virtual irqs for
-> the problematic GPIO interrupts), the problem still occured. I'm not
-> sure how to disable threading or preemption on the intermediate ISR
-> (gpio_irq_handler() at arch/arm/plat-omap/gpio.c:959) which determine=
-s
-> which GPIO in the bank caused the interrupt and spawns the virtual
-> interrupts.
->
-> Any ideas for debugging or narrowing down on the cause?
->
-> Many thanks,
-> Hugo
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------------
+Masz juz dosc wysokich rachunkow? Wygraj nowa mozliwosc komunikacji!
+Sprawdz >>> http://link.interia.pl/f21d2
+
