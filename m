@@ -1,81 +1,30 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH] RX51: Add support for SDRAM chip select 1
-Date: Mon, 8 Jun 2009 15:39:45 +0200
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A2054552C17F@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <> <1244462603-12793-1-git-send-email-tero.kristo@nokia.com>
- <200906081505.49935.jpihet@mvista.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 0/4]ARM: OMAP4: SMP: Patch series
+Date: Mon, 8 Jun 2009 15:50:44 +0100
+Message-ID: <20090608145044.GA32140@n2100.arm.linux.org.uk>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02B4BE36E4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:63108 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753560AbZFHNlA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2009 09:41:00 -0400
-In-Reply-To: <200906081505.49935.jpihet@mvista.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:37151 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754530AbZFHOuy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2009 10:50:54 -0400
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B4BE36E4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: jpihet@mvista.com
-Cc: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
- 
+On Wed, May 27, 2009 at 09:52:38PM +0530, Shilimkar, Santosh wrote:
+> I have rebased this series on top of your arm-smp patches and my earlier
+> basic omap4 patches.
 
->-----Original Message-----
->From: ext Jean Pihet [mailto:jpihet@mvista.com] 
->Sent: 08 June, 2009 16:06
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH] RX51: Add support for SDRAM chip select 1
->
->Hi Tero,
->
->You should also ensure that the CKE signals mux settings are 
->correct cf. an example for Overo at 
->http://patchwork.kernel.org/patch/28598/.
+Can you please rebase your patches on commit c7f7ff1 in my tree (it's
+in my devel branch) and I'll merge them in.
 
-Our bootloader configures the pads, I just double checked that it also changes CKE pads to proper config.
+(Please don't base patches on the top of the devel branch - you may notice
+it's a merge of 'devel-unstable' which is... unstable stuff.)
 
-The patch looks good otherwise? I tested this on RX51 HW and it works ok.
-
--Tero
-
-
->
->Note: the config option CONFIG_OMAP_MUX must be set for the 
->omap_cfg* functions to have any effect.
->
->Regards,
->Jean
->
->On Monday 08 June 2009 14:03:23 Tero Kristo wrote:
->> From: Tero Kristo <tero.kristo@nokia.com>
->>
->> Applies on top of PM branch.
->>
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->> ---
->>  arch/arm/mach-omap2/board-rx51.c |    6 +++++-
->>  1 files changed, 5 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-rx51.c
->> b/arch/arm/mach-omap2/board-rx51.c index 3e4b7f8..7ab8a74 100644
->> --- a/arch/arm/mach-omap2/board-rx51.c
->> +++ b/arch/arm/mach-omap2/board-rx51.c
->> @@ -61,7 +61,11 @@ static struct omap_bluetooth_config 
->rx51_bt_config 
->> = {
->>
->>  static void __init rx51_init_irq(void)  {
->> -	omap2_init_common_hw(rx51_get_sdram_timings(), NULL,
->> +	struct omap_sdrc_params *sdrc_params;
->> +
->> +	sdrc_params = rx51_get_sdram_timings();
->> +
->> +	omap2_init_common_hw(sdrc_params, sdrc_params,
->>  			     omap3_mpu_rate_table,
->>  			     omap3_dsp_rate_table,
->>  			     omap3_l3_rate_table);
->
->
->
+Thanks.
