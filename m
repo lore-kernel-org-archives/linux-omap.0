@@ -1,43 +1,50 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH] DSPBRIDGE: Compiler wanrning fix for unlocked_ioctl
-Date: Mon, 8 Jun 2009 06:54:10 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0115B7A127@dlee02.ent.ti.com>
-References: <1244121977-24927-1-git-send-email-ameya.palande@nokia.com>
-	<27F9C60D11D683428E133F85D2BB4A53040F3FCD75@dlee03.ent.ti.com>
- <20090608.143425.193688889.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH] RX51: Add support for SDRAM chip select 1
+Date: Mon,  8 Jun 2009 15:03:23 +0300
+Message-ID: <1244462603-12793-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54435 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753981AbZFHLyS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2009 07:54:18 -0400
-In-Reply-To: <20090608.143425.193688889.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:27363 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751941AbZFHMdW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 8 Jun 2009 08:33:22 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n58CWJ2B026964
+	for <linux-omap@vger.kernel.org>; Mon, 8 Jun 2009 07:33:25 -0500
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-sa01.ext.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n58CXFGx008783
+	for <linux-omap@vger.kernel.org>; Mon, 8 Jun 2009 15:33:15 +0300
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Cc: "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>
+To: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Hiroshi DOYU
-> Sent: Monday, June 08, 2009 6:34 AM
-> To: Ramirez Luna, Omar
-> Cc: ameya.palande@nokia.com; linux-omap@vger.kernel.org;
-> felipe.contreras@gmail.com
-> Subject: Re: [PATCH] DSPBRIDGE: Compiler wanrning fix for unlocked_ioctl
-> 	http://marc.info/?l=linux-omap&m=124201773423892&w=2
-> 
-> for the second one about 128 byte alignment. let me know your
-> thought/plan on it.
+From: Tero Kristo <tero.kristo@nokia.com>
 
-How about enabling this[1] under a configurable option? Though this is a strong check, currently components such as ti-openmax IL does a padded allocation to ignore overwrite of buffer region which might be at risk.
+Applies on top of PM branch.
 
-The check is desirable, but should have an option to disable it, if so desired.
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-Regards,
-Nishanth Menon
-Ref:
-[1] http://marc.info/?l=linux-omap&m=124201773423892&w=2
+diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+index 3e4b7f8..7ab8a74 100644
+--- a/arch/arm/mach-omap2/board-rx51.c
++++ b/arch/arm/mach-omap2/board-rx51.c
+@@ -61,7 +61,11 @@ static struct omap_bluetooth_config rx51_bt_config = {
+ 
+ static void __init rx51_init_irq(void)
+ {
+-	omap2_init_common_hw(rx51_get_sdram_timings(), NULL,
++	struct omap_sdrc_params *sdrc_params;
++
++	sdrc_params = rx51_get_sdram_timings();
++
++	omap2_init_common_hw(sdrc_params, sdrc_params,
+ 			     omap3_mpu_rate_table,
+ 			     omap3_dsp_rate_table,
+ 			     omap3_l3_rate_table);
+-- 
+1.5.4.3
+
