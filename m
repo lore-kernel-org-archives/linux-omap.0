@@ -1,84 +1,67 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: Please help in adding ams-delta support to ASoC
-Date: Tue, 9 Jun 2009 10:12:41 +0300
-Message-ID: <200906091012.41800.peter.ujfalusi@nokia.com>
-References: <4A1BEBE3.8010306@tis.icnet.pl>
-	<20090605224532.GA12995@sirena.org.uk>
-	<200906061942.14276.jkrzyszt@tis.icnet.pl>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [RFC][PATCH] OMAP3: add support for 2 SDRAM chip selects (was:
+ Re: Beagleboard rev C memory timings & suspend/resume)
+Date: Tue, 9 Jun 2009 01:26:22 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906090124310.32281@utopia.booyaka.com>
+References: <200904291553.49378.jpihet@mvista.com> <200906051735.57772.jpihet@mvista.com> <alpine.DEB.2.00.0906051207270.31531@utopia.booyaka.com> <200906081059.46134.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200906061942.14276.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:44261 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635AbZFIH0V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 03:26:21 -0400
+In-Reply-To: <200906081059.46134.jpihet@mvista.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jean Pihet <jpihet@mvista.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, tero.kristo@nokia.com, linux-omap <linux-omap@vger.kernel.org>
 
-SGVsbG8gSmFudXN6LAoKT24gU2F0dXJkYXkgMDYgSnVuZSAyMDA5IDIwOjQyOjEyIGV4dCBKYW51
-c3ogS3J6eXN6dG9maWsgd3JvdGU6Cj4gSSdtIG5vdCBzdXJlIGhvdyB0aGF0IGNvdWxkIGhhcHBl
-biwgYnV0IEkgd2FzIHdyb25nIHdpdGggc29tZSBvZiB0aG9zZQo+IGZpZ3VyZXMuIEFmdGVyIGxv
-b2tpbmcgYXQgdGhlIHNjb3BlIHNldmVyYWwgbW9yZSB0aW1lcyBJIGNhbiBvbmx5IGNvbmZpcm0K
-PiB0aGF0IG1hc3RlciBjbG9jayByZWFsbHkgcnVucyBhdCAyTUh6ICgwLDXCtXMgcGVyaW9kKS4g
-RnJhbWUgc3luYyBpcyByYXRoZXIKPiBjbG9zZXIgdG8gOGtIeiAofjEyNcK1cyBwZXJpb2QpIHRo
-YW4gcHJldmlvdXNseSBlc3RpbWF0ZWQgMTBrSHosIHdpdGggdGhlCj4gc2FtZSBzeW1tZXRyaWMg
-KDUwJSBmaWxsKSBzaGFwZSBhcyBiZWZvcmUuIEJ1dCBiaXQgY2xvY2sgaXMgdmVyeSBkaWZmZXJl
-bnQKPiBmcm9tIHdoYXQgSSBoYXZlIHNlZW4gYmVmb3JlLiBJdCBydW5zIGF0IDJNSHogaW4gOcK1
-cyBsb25nIHBhY2tldHMgKDE4Cj4gcGVyaW9kcyksIHRob3NlIGFyZSByZXBlYXRlZCBldmVyeSBo
-YWxmIHBlcmlvZCBvZiBmcmFtZSBzeW5jICh+NjLCtXMgLwo+IDE2a0h6KSwgaWUgZXZlcnkgZnJh
-bWUgc3luYyBlZGdlLCBib3RoIHJpc2luZyBhbmQgZmFsbGluZy4gVGhlcmUgaXMgYWxzbyBhCj4g
-c2lnbmFsIHByZXNlbnQgb24gY29kZWMgZGF0YSBvdXRwdXQ6IDTCtXMgbG9uZyBwYWNrZXRzICg4
-IGJpdHMgZWFjaD8pIGV2ZXJ5Cj4gfjYywrVzICgxNiBrSHopLgoKSSdtIGtpbmQgb2YgYmFkIGF0
-IHZpc3VhbGl6aW5nIHRoaW5ncywgaXMgaXQgcG9zc2libGUgdG8gcHV0IHNvbWV3aGVyZSB0aGUg
-CnNjcmVlbnNob290IG9mIHRoZSBzY29wZSBzaG93aW5nIGF0IGxlYXN0IG9uZSBzYW1wbGU/Cgo+
-Cj4gSXMgaXQgcG9zc2libGUgdGhhdCB0aGUgY29kZWMgc3BlZWtzIEkyUywgd2l0aCA4LWJpdCB3
-b3JkLCAxIHdvcmQgcGVyCj4gZnJhbWUsIDIgY2hhbm5lbHMgYXQgOGtIeiBlYWNoPyBPciAxIGNo
-YW5uZWwgYXQgMTYga0h6PyBGcm9tIHdoYXQgSSBjYW4KPiByZWFkIGluIG1vZGVtIGRvY3VtZW50
-YXRpb24sIHRoaXMgc2hvdWxkIHJhdGhlciBiZSBvbmUgOC1iaXQgY2hhbm5lbCBhdAo+IDhrSHou
-IEFueXdheSwgY2FuIHRoZSB0cmFuc21pc3Npb24gZm9ybWF0IEkgaGF2ZSBzZWVuIG9udCB0aGUg
-b3NjaWxsb3Njb3BlCj4gYmUgbWF0Y2hlZCBhZ2FpbnN0IGFueSBmb3JtYXQgdGhhdCBtY2JzcCBj
-YW4gYmUgc2V0IHdpdGggY3VycmVudCBjb2RlPwoKSSBoYXZlIGJlZW4gbG9va2luZyBmb3IgY2x1
-ZXMgYXJvdW5kIHRoZSBuZXQsIGFuZCBpdCBzZWFtcyB0aGF0IHRoZSBjb2RlYyBpbiAKcXVlc3Rp
-b24gaGFzIHN0ZXJlbyAxNiBiaXQgZm9ybWF0LgoKPgo+IEknbSBzdGlsbCBmYXIgZnJvbSB1bmRl
-cnN0YW5kaW5nIG1jYnNwLCBidXQgSSB3b25kZXIgd2hhdCBoYXBwZW5zIGlmIHRoZQo+IGJpdCBj
-bG9jayBzdG9wcyBhdGVyIDE4dGggYml0IHdoaWxlIG1heWJlIG1jYnNwIGV4cGVjdHMgbW9yZS4g
-UGVyaGFwcyB0aGlzCj4gaXMgdGhlIGNhdXNlIG9mIGRtYSBpbnRlcnJ1cHRzIG5vdCBiZWluZyBn
-ZW5lcmF0ZWQ/Cj4KCldpdGhvdXQgYWN0dWFsIE9NQVAxNTEwIEhXIGl0IGlzIHJlYWxseSBoYXJk
-IHRvIHRlbGwgd2hhdCBjYW4gYmUgdGhlIHByb2JsZW0uCldoYXQgSSB3b3VsZCBkbywgaWYgSSBo
-YWQgYSBIVzoKMSkgU2VlIGlmIHRoZSBETUEgYWN0dWFsbHkgd2FzIHJ1bm5pbmcgYW5kIGl0IGlz
-ICdqdXN0JyBhYm91dCB0aGUgbWlzc2luZyAKaW50ZXJydXB0OgotLS0gYS9zb3VuZC9zb2Mvb21h
-cC9vbWFwLXBjbS5jCisrKyBiL3NvdW5kL3NvYy9vbWFwL29tYXAtcGNtLmMKQEAgLTE5MywxMSAr
-MTkzLDE1IEBAIHN0YXRpYyBpbnQgb21hcF9wY21fdHJpZ2dlcihzdHJ1Y3Qgc25kX3BjbV9zdWJz
-dHJlYW0gCipzdWJzdHJlYW0sIGludCBjbWQpCiAgICAgICAgY2FzZSBTTkRSVl9QQ01fVFJJR0dF
-Ul9QQVVTRV9SRUxFQVNFOgogICAgICAgICAgICAgICAgcHJ0ZC0+cGVyaW9kX2luZGV4ID0gMDsK
-ICAgICAgICAgICAgICAgIG9tYXBfc3RhcnRfZG1hKHBydGQtPmRtYV9jaCk7CisgICAgICAgICAg
-ICAgICBwcmludGsoIm9tYXBfcGNtX3RyaWdnZXIgU1RBUlQ6IERNQSBwb2ludGVyIGF0IDB4JTA4
-eFxuIiwKKyAgICAgICAgICAgICAgICAgICAgICAgKHVuc2lnbmVkKW9tYXBfZ2V0X2RtYV9zcmNf
-cG9zKHBydGQtPmRtYV9jaCkpOwogICAgICAgICAgICAgICAgYnJlYWs7CgogICAgICAgIGNhc2Ug
-U05EUlZfUENNX1RSSUdHRVJfU1RPUDoKICAgICAgICBjYXNlIFNORFJWX1BDTV9UUklHR0VSX1NV
-U1BFTkQ6CiAgICAgICAgY2FzZSBTTkRSVl9QQ01fVFJJR0dFUl9QQVVTRV9QVVNIOgorICAgICAg
-ICAgICAgICAgcHJpbnRrKCJvbWFwX3BjbV90cmlnZ2VyIFNUT1A6IERNQSBwb2ludGVyIGF0IDB4
-JTA4eFxuIiwKKyAgICAgICAgICAgICAgICAgICAgICAgKHVuc2lnbmVkKW9tYXBfZ2V0X2RtYV9z
-cmNfcG9zKHBydGQtPmRtYV9jaCkpOwogICAgICAgICAgICAgICAgcHJ0ZC0+cGVyaW9kX2luZGV4
-ID0gLTE7CiAgICAgICAgICAgICAgICBvbWFwX3N0b3BfZG1hKHBydGQtPmRtYV9jaCk7CiAgICAg
-ICAgICAgICAgICBicmVhazsKCgpUaGFuIHN0YXJ0IGEgcGxheWJhY2ssIGFuZCBzdG9wIGl0IHdp
-dGggQ1RSTCtDLCBzZWUgaWYgdGhlIHR3byBwb2ludGVycyBhcmUgCmRpZmZlcmVudC4uLgoKMikg
-SSB3b3VsZCBJIHRoaW5rIHRyeSB0byBwb3J0IHRoZSAyLjYuMjggcHVyZSBBTFNBIHZlcnNpb24g
-dG8gdGhlIGhlYWQgb2YgbC0Kbywgd2l0aCBtaW5pbWFsIChvbmx5IHRoZSBuZWVkZWQpIGNoYW5n
-ZXMgYW5kIHNlZSBpZiBpdCBpcyBzdGlsbCB3b3JraW5nLgpJIGtub3csIHRoaXMgaXMgYSBsb25n
-IHNob3QsIGJ1dCBhdCBsZWFzdCB3ZSBjYW4gYmUgc3VyZSwgdGhhdCB0aGUgcHJvYmxlbSBpcyAK
-aW4gdGhlIEFTb0MgTWNCU1AvRE1BIGludGVncmF0aW9uIG9yIGl0IGlzIHNvbWV0aGluZyBlbHNl
-LgoKTWVhbndoaWxlIEknbGwgdHJ5IHRvIGxvY2F0ZSBvbmUgT01BUDE1MTAgYmFzZWQgYm9hcmQg
-dG8gdHJ5IHRvIGhlbHAgd2l0aCB0aGlzIAppc3N1ZS4KCi0tIApQw6l0ZXIKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxp
-c3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVj
-dC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
+Hi Jean,
+
+On Mon, 8 Jun 2009, Jean Pihet wrote:
+
+> Here is the updated patch that fixes the Overo build as well.
+> Can you check it?
+
+> diff --git a/arch/arm/mach-omap2/board-overo.c 
+> b/arch/arm/mach-omap2/board-overo.c
+> index 9eae608..50902d4 100644
+> --- a/arch/arm/mach-omap2/board-overo.c
+> +++ b/arch/arm/mach-omap2/board-overo.c
+> @@ -45,6 +45,7 @@
+>  #include <mach/gpmc.h>
+>  #include <mach/hardware.h>
+>  #include <mach/nand.h>
+> +#include <mach/mux.h>
+>  #include <mach/usb.h>
+>  
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+> @@ -355,7 +356,9 @@ static int __init overo_i2c_init(void)
+>  
+>  static void __init overo_init_irq(void)
+>  {
+> -	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL, NULL, NULL);
+> +	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+> +			     mt46h32m32lf6_sdrc_params,
+> +			     NULL, NULL, NULL);
+>  	omap_init_irq();
+>  	omap_gpio_init();
+>  }
+> @@ -391,6 +394,10 @@ static void __init overo_init(void)
+>  	overo_init_smsc911x();
+>  	overo_ads7846_init();
+>  
+> +	/* Ensure SDRC pins are mux'd for self-refresh */
+> +	omap_cfg_reg(H16_34XX_SDRC_CKE0);
+> +	omap_cfg_reg(H17_34XX_SDRC_CKE1);
+> +
+>  	if ((gpio_request(OVERO_GPIO_W2W_NRESET,
+>  			  "OVERO_GPIO_W2W_NRESET") == 0) &&
+>  	    (gpio_direction_output(OVERO_GPIO_W2W_NRESET, 1) == 0)) {
+
+These changes look fine to me based on a quick look.  Haven't tried 
+building it.
+
+
+- Paul
