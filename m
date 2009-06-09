@@ -1,91 +1,97 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCHv3] DSPBRIDGE: Buffer size warning fixes
-Date: Tue, 9 Jun 2009 16:14:05 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602932D24BC@dlee06.ent.ti.com>
-References: <1244205782-22610-1-git-send-email-ameya.palande@nokia.com>
- <1244206994-25290-1-git-send-email-ameya.palande@nokia.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [RFC][PATCH] DSPBRIDGE: Video Playback Cache Optimization
+Date: Wed, 10 Jun 2009 01:51:17 +0300
+Message-ID: <94a0d4530906091551g2d689300vf966564a82e24ba2@mail.gmail.com>
+References: <27F9C60D11D683428E133F85D2BB4A53040F6B7BFE@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53804 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457AbZFIVOS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 17:14:18 -0400
-In-Reply-To: <1244206994-25290-1-git-send-email-ameya.palande@nokia.com>
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.159]:61559 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506AbZFIWvR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 18:51:17 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so113565fgg.17
+        for <linux-omap@vger.kernel.org>; Tue, 09 Jun 2009 15:51:17 -0700 (PDT)
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53040F6B7BFE@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Doyu Hiroshi <hiroshi.doyu@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Bagadia, Sripal" <bagadia@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Wed, Jun 10, 2009 at 12:39 AM, Ramirez Luna, Omar<omar.ramirez@ti.co=
+m> wrote:
+> Hi,
+>
+>
+>
+> Could you please comment on this patch.
+>
+>
+>
+> From: Sripal Bagadia <bagadia@ti.com>
+>
+> Date: Tue, 9 Jun 2009 16:05:09 -0500
+>
+> Subject: [PATCH] DSPBRIDGE: Video Playback Cache Optimization
+>
+>
+>
+> Avoid get_user_pages cache flush overheads for uncached & reserved
+>
+> buffers (e.g. display & camera buffers).
+>
+>
+>
+> Signed-off-by: Sripal Bagadia <bagadia@ti.com>
+>
+> ---
+>
+> =C2=A0drivers/dsp/bridge/wmd/tiomap3430.c |=C2=A0=C2=A0=C2=A0 4 +++-
+>
+> =C2=A01 files changed, 3 insertions(+), 1 deletions(-)
+>
+>
+>
+> diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c
+> b/drivers/dsp/bridge/wmd/tiomap3430.c
+>
+> index 7a9603d..a2f32e8 100644
+>
+> --- a/drivers/dsp/bridge/wmd/tiomap3430.c
+>
+> +++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+>
+> @@ -1461,7 +1461,9 @@ static DSP_STATUS WMD_BRD_MemMap(struct
+> WMD_DEV_CONTEXT *hDevContext,
+>
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 go=
+to func_cont;
+>
+> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 }
+>
+>
+>
+> -=C2=A0=C2=A0=C2=A0=C2=A0 if (vma->vm_flags & VM_IO) {
+>
+> +=C2=A0=C2=A0=C2=A0=C2=A0 if ((vma->vm_flags & VM_IO) | ((vma->vm_fla=
+gs & VM_RESERVED) &&
+>
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0 (~pgprot_val(vma->vm_page_prot) & L_PTE_CAC=
+HEABLE) &&
+>
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0 (~pgprot_val(vma->vm_page_prot) & L_PTE_BUF=
+=46ERABLE))) {
 
-Hi,
+L_PTE_BUFFERABLE is obsolete, isn't it? L_PTE_MT_BUFFERABLE should be
+used instead.
 
------Original Message-----
-From: Ameya Palande [mailto:ameya.palande@nokia.com] 
-Sent: Friday, June 05, 2009 8:03 AM
-To: linux-omap@vger.kernel.org
-Cc: Guzman Lugo, Fernando; Kanigeri, Hari
-Subject: [PATCHv3] DSPBRIDGE: Buffer size warning fixes
-
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- drivers/dsp/bridge/pmgr/cod.c        |    3 ++-
- drivers/dsp/bridge/rmgr/drv.c        |    5 +++--
- drivers/dsp/bridge/services/regsup.c |    6 ++++--
- 3 files changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/dsp/bridge/pmgr/cod.c b/drivers/dsp/bridge/pmgr/cod.c
-index 6363f1e..2da46bd 100644
---- a/drivers/dsp/bridge/pmgr/cod.c
-+++ b/drivers/dsp/bridge/pmgr/cod.c
-@@ -628,7 +628,8 @@ DSP_STATUS COD_OpenBase(struct COD_MANAGER *hMgr, IN char *pszCoffPath,
- 	} else {
- 		/* hang onto the library for subsequent sym table usage */
- 		hMgr->baseLib = lib;
--               strncpy(hMgr->szZLFile, pszCoffPath, COD_MAXPATHLENGTH);
-+		strncpy(hMgr->szZLFile, pszCoffPath, COD_MAXPATHLENGTH - 1);
-+		hMgr->szZLFile[COD_MAXPATHLENGTH - 1] = '\0';
- 	}
- 
- 	return status;
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index a1ba19e..66e4a4d 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -1508,8 +1508,9 @@ DSP_STATUS DRV_RequestResources(u32 dwContext, u32 *pDevNodeString)
- 		pszdevNode = MEM_Calloc(sizeof(struct DRV_EXT), MEM_NONPAGED);
- 		if (pszdevNode) {
- 			LST_InitElem(&pszdevNode->link);
--                       strncpy((char *) pszdevNode->szString,
--				 (char *)dwContext, MAXREGPATHLENGTH);
-+			strncpy(pszdevNode->szString,
-+				 (char *)dwContext, MAXREGPATHLENGTH - 1);
-+			pszdevNode->szString[MAXREGPATHLENGTH - 1] = '\0';
- 			/* Update the Driver Object List */
- 			*pDevNodeString = (u32)pszdevNode->szString;
- 			LST_PutTail(pDRVObject->devNodeString,
-diff --git a/drivers/dsp/bridge/services/regsup.c b/drivers/dsp/bridge/services/regsup.c
-index 5251b68..bec8e92 100644
---- a/drivers/dsp/bridge/services/regsup.c
-+++ b/drivers/dsp/bridge/services/regsup.c
-@@ -238,8 +238,10 @@ DSP_STATUS regsupSetValue(char *valName, void *pBuf, u32 dataSize)
- 		/*  No match, need to make a new entry  */
- 		/*  First check to see if we can make any more entries.  */
- 		if (pRegKey->numValueEntries < BRIDGE_MAX_NUM_REG_ENTRIES) {
--                       strncpy(pRegKey->values[pRegKey->numValueEntries].name,
--                               valName, BRIDGE_MAX_NAME_SIZE);
-+			char *tmp_name =
-+				pRegKey->values[pRegKey->numValueEntries].name;
-+			strncpy(tmp_name, valName, BRIDGE_MAX_NAME_SIZE - 1);
-+			tmp_name[BRIDGE_MAX_NAME_SIZE - 1] = '\0';
- 			pRegKey->values[pRegKey->numValueEntries].pData =
- 					MEM_Alloc(dataSize, MEM_NONPAGED);
- 			if (pRegKey->values[pRegKey->numValueEntries].pData !=
--- 
-1.6.2.4
-
-Acked-by: Guzman Lugo Fernando <x0095840@ti.com>
-
-
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
