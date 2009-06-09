@@ -1,84 +1,150 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: MUSB Host problems
-Date: Tue, 09 Jun 2009 12:28:26 -0600
-Message-ID: <4A2EA9CA.7070900@mlbassoc.com>
-References: <4A2E9FD5.9090807@mlbassoc.com> <FCCFB4CDC6E5564B9182F639FC35608702F52BB6F3@dbde02.ent.ti.com>
+From: "Hald, Ulrik Bech" <ubh@ti.com>
+Subject: RE: [PATCH 2/3] OMAP3:WDT:Enable support for IVA and SECURE
+Date: Tue, 9 Jun 2009 21:28:06 +0200
+Message-ID: <00695C9C8F8B4448856F48142B4AA201BD76FE9E@dnce02.ent.ti.com>
+References: <1244495293-17244-1-git-send-email-ubh@ti.com>
+	<1244495293-17244-2-git-send-email-ubh@ti.com>
+	<1244495293-17244-3-git-send-email-ubh@ti.com>
+ <87prddzcp5.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:5628 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688AbZFIS2Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 14:28:24 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F52BB6F3@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41437 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752231AbZFIT2N convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 15:28:13 -0400
+In-Reply-To: <87prddzcp5.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Pandita, Vikram wrote:
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Tuesday, June 09, 2009 9:47 AM
+> To: Hald, Ulrik Bech
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 2/3] OMAP3:WDT:Enable support for IVA and SECURE
 > 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gary
->> Thomas
->> Sent: Tuesday, June 09, 2009 12:46 PM
->> To: linux-omap@vger.kernel.org
->> Subject: MUSB Host problems
->>
->> I'm trying to get MUSB Host working on my 3530 platform (very
+> Ulrik Bech Hald <ubh@ti.com> writes:
 > 
-> Based on your description, its not MUSB but the USBHOST EHCI block that you want to get working.
-
-Sorry, mistaken terminology.  Yes, I'm trying to get the host ECHI working.
-
->> similar to the Beagle).  When I startup, I get this message:
->>  Clock usbhost_48m_fck didn't enable in 100000 tries
+> > This patch enables the IVA and SECURE WDTs in the omap_wdt
+> > driver for omap34xx family. SECURE will be available as /dev/watchdog1
+> > HS/EMU devices and IVA will be available as /dev/watchdog3.
+> > MPU will be available as /dev/watchdog2
+> > For omap versions earlier than 34xx only MPU watchdog is present and
+> > will be available as /dev/watchdog for backwards compatibility.
+> >
+> > Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
+> > ---
+> >  drivers/watchdog/omap_wdt.c |   42 +++++++++++++++++++++++++++++++++++-
+> ------
+> >  1 files changed, 35 insertions(+), 7 deletions(-)
+> >  mode change 100644 => 100755 drivers/watchdog/omap_wdt.c
+> >
+> > diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
 > 
-> This is bad
-
-Why?  What does it mean?  How do I fix it?
-
->> What does this mean?  How do I fix it?
->>
->> Currently, the USB subsystem finds the various hubs (ports 0-2).
->> The OTG port (0) works great.  When I plug in a device to USB-1,
+> [...]
 > 
-> Is this a full speed device? 
+> >  static int omap_wdt_open(struct inode *inode, struct file *file)
+> >  {
+> > -	struct omap_wdt_dev *wdev = platform_get_drvdata(omap_wdt_dev);
+> > -	void __iomem *base = wdev->base;
+> > +	struct omap_wdt_dev *wdev;
+> > +	void __iomem *base;
+> > +
+> > +	/* by default MPU wdt is present across omap family */
+> > +	wdev = platform_get_drvdata(omap_wdt_dev[1]);
+> > +
+> > +	/* if multiple wdts, find match between device node and wdt device
+> */
+> > +	if (cpu_is_omap34xx()) {
+> > +		int i;
+> > +		for (i = 0; i < NUM_WDTS; i++) {
+> > +			if (omap_wdt_dev[i]) {
+> > +				wdev = platform_get_drvdata(omap_wdt_dev[i]);
+> > +				if (iminor(inode)
+> > +					== wdev->omap_wdt_miscdev.minor)
+> > +					break;
+> > +			}
+> > +		}
+> > +	}
+> > +
+> > +	base = wdev->base;
 > 
->> it sees it, but immediately gives up :-(
->>    ehci-omap ehci-omap.0: GetStatus port 1 status 001803 POWER sig=j CSC CONNECT
->>    hub 1-0:1.0: port 1: status 0501 change 0001
->>    hub 1-0:1.0: state 7 ports 3 chg 0002 evt 0000
->>    hub 1-0:1.0: port 1, status 0501, change 0000, 480 Mb/s
->>    ehci-omap ehci-omap.0: port 1 full speed --> companion
+> Hmm, this does not look right to me.  Any use of cpu_is_* in driver
+> code usually indicates that something is not quite right.  This same
+> watchdog IP is used in some DaVinci family processors and needs to be
+> reused there.
 > 
-> Looks like your device is getting recognized as a full speed.
-> So EHCI cannot handle it.
+> I didn't do the miscdev research, but can't you get the pdev from the
+> miscdev.parent, and from there get the right wdev pointer from the
+> pdev.drvdata.
+> 
+> Otherwise, drop the cpu_is_* and just do inode checking all the time.
+> The way you've done it looks error prone to me.
 
-Odd, this is a high speed device (USB 2.0).  I also tried a 2.0 hub, same result.
-What could confuse it like this?
+I can't really see a to way pair the driver and device other than doing inode/minor number checking , so I'll just go for the inode checking without any dependency on cpu_is_xxx().
 
 > 
-> You need to have OHCI driver built in which is not present in linux-omap code base.
+> >  	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
+> >  		return -EBUSY;
+> > @@ -263,6 +283,7 @@ static int __devinit omap_wdt_probe(struct
+> platform_device *pdev)
+> >  	struct resource *res, *mem;
+> >  	struct omap_wdt_dev *wdev;
+> >  	int ret;
+> > +	static char wdt_name[32];
+> >
+> >  	/* reserve static register mappings */
+> >  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > @@ -271,7 +292,7 @@ static int __devinit omap_wdt_probe(struct
+> platform_device *pdev)
+> >  		goto err_get_resource;
+> >  	}
+> >
+> > -	if (omap_wdt_dev) {
+> > +	if (omap_wdt_dev[pdev->id-1]) {
+> >  		ret = -EBUSY;
+> >  		goto err_busy;
+> >  	}
+> > @@ -318,8 +339,14 @@ static int __devinit omap_wdt_probe(struct
+> platform_device *pdev)
+> >
+> >  	wdev->omap_wdt_miscdev.parent = &pdev->dev;
+> >  	wdev->omap_wdt_miscdev.minor = WATCHDOG_MINOR;
+> > -	wdev->omap_wdt_miscdev.name = "watchdog";
+> >  	wdev->omap_wdt_miscdev.fops = &omap_wdt_fops;
+> > +	wdev->omap_wdt_miscdev.name = "watchdog";
+> > +	if (cpu_is_omap34xx()) {
+> > +		snprintf(wdt_name, sizeof(wdt_name), "watchdog%d", pdev->id);
+> > +		wdev->omap_wdt_miscdev.name = wdt_name;
+> > +		if (pdev->id != 2)
+> > +			wdev->omap_wdt_miscdev.minor = MISC_DYNAMIC_MINOR;
+> > +	}
+> 
+> Again, red flag: cpu_is_*
+> 
+> It might be more consistent to use pdev->dev->name which is already of
+> the form "watchdog.%d".
 
-Do, how does one use an arbitrary device on the EHCI port?  Must I use a 2.0 hub?
+Not sure I follow. I don't see a "name" field in struct device, only init_name.
+	
+Do you mean just using:
+snprintf(wdt_name, sizeof(wdt_name), "watchdog%d", pdev->id);
+wdev->omap_wdt_miscdev.name = wdt_name;
 
->>    ehci-omap ehci-omap.0: GetStatus port 1 status 003801 POWER OWNER sig=j CONNECT
->>    hub 1-0:1.0: port 1 not reset yet, waiting 50ms
->>    ehci-omap ehci-omap.0: GetStatus port 1 status 003002 POWER OWNER sig=se0 CSC
->>    hub 1-0:1.0: unable to enumerate USB device on port 1
->>    hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0002
->>    hub 1-0:1.0: hub_suspend
->> Then it's dead.  Any ideas?
+...for all the WDT devices, despite how many are present?
 
-Note: this is unproven hardware, I'm mostly looking for ideas on
-how to troubleshoot the problems.
+> 
+> Any reason not to use MISC_DYNAMIC_MINOR for all of them?
 
-Thanks
+No particular reason other than I thought that retaining the use of WATCHDOG_MINOR for the MPU WDT case would be appropriate. But it does make the code cleaner to use only MISC_DYNAMIC_MINOR. I'll change it.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Thanks for reviewing!
+
+> 
+> Kevin
+
