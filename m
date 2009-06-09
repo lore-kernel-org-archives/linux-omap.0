@@ -1,183 +1,31 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [MTD] [NAND] Add prefetch and dma support for omap2/3
-	NAND      driver
-Date: Tue, 9 Jun 2009 03:19:21 -0700
-Message-ID: <20090609101920.GA2617@atomide.com>
-References: <54851.192.168.10.89.1243946277.squirrel@dbdmail.itg.ti.com> <19F8576C6E063C45BE387C64729E739404321C60A7@dbde02.ent.ti.com>
+Subject: Re: [patch] Convert cbus driver code to use platform APIs
+	consistently
+Date: Tue, 9 Jun 2009 03:20:09 -0700
+Message-ID: <20090609102008.GB2617@atomide.com>
+References: <20090522193359.17514ptwyl8kdbls@lidskialf.net> <20090522231826.12833dwwkvi7rv0g@lidskialf.net> <20090523023901.33341jpwcx6nd70g@lidskialf.net> <20090523014717.GB9283@atomide.com> <20090523121108.14776dli2aeyapkw@lidskialf.net> <20090523123040.16971ty5wndy6mow@lidskialf.net> <20090523132812.14461t6dlahg2ew0@lidskialf.net> <20090523142542.10985fjvcwu3k9s0@lidskialf.net> <20090601231839.GD22956@atomide.com> <20090608205554.8257711w03d8isi2@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65013 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49204 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760158AbZFIKTd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 06:19:33 -0400
+	with ESMTP id S1760777AbZFIKUJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 06:20:09 -0400
 Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404321C60A7@dbde02.ent.ti.com>
+In-Reply-To: <20090608205554.8257711w03d8isi2@lidskialf.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Singh, Vimal" <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com>
-Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "dedekind@infradead.org" <dedekind@infradead.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Andrew de Quincey <adq_dvb@lidskialf.net>
+Cc: linux-omap@vger.kernel.org, ladis@linux-mips.org
 
-* Singh, Vimal <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com> [090608 09:01]:
-> 
-> On Mon, Jun 8, 2009 at 5:08 PM, Tony Lindgren<tony@atomide.com> wrote:
-> > * Singh, Vimal <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com> [090605 05:00]:
-> >>
-> >>
-> >> On Thu, Jun 4, 2009 at 8:58 PM, Tony Lindgren<tony@atomide.com> wrote:
-> >> > * vimal singh <vimalsingh@ti.com> [090604 02:34]:
-> >> >> On Wed, Jun 3, 2009 at 10:03 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >> >> > * Singh, Vimal
-> >> >> <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com> [090602
-> >> >> 23:46]:
-> >> >> >>
-> >> >> >> On Wed, Jun 3, 2009 at 2:06 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >> >> >> > * vimal singh <vimalsingh@ti.com> [090602 05:40]:
-> >> >> >> >> This patch adds prefetch support to access nand flash in both mpu and dma
-> >> >> mode.
-> >> >> >> >> This patch also adds 8-bit nand support (omap_read/write_buf8).
-> >> >> >> >> Prefetch can be used for both 8- and 16-bit devices.
-> >> >> >> >
-> >> >> >> > This should be reviewed on the linux-omap@vger.kernel.org list for sure.
-> >> >> >> > One other comment below.
-> >> >> >> >
-> >> >> >> >> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> >> >> >> >> ---
-> >> >> >> >> I prepared this patch on top of "OMAP2 / OMAP3 NAND driver" patch:
-> >> >> >> >> http://lists.infradead.org/pipermail/linux-mtd/2009-May/025562.html
-> >> >> >> >>
-> >> >> >> >> ---
-> >> >> >> >>  arch/arm/mach-omap2/gpmc.c             |  102 ++++++++++
-> >> >> >> >>  arch/arm/plat-omap/include/mach/gpmc.h |    4
-> >> >> >> >>  drivers/mtd/nand/Kconfig               |   17 +
-> >> >> >> >>  drivers/mtd/nand/omap2.c               |  308
-> >> >> ++++++++++++++++++++++++++++++++-
-> >> >> >> >>  4 files changed, 422 insertions(+), 9 deletions(-)
-> >> >> >> >>
-> >> >> >> >> Index: mtd-2.6/arch/arm/mach-omap2/gpmc.c
-> >> >> >> >> ===================================================================
-> >> >> >> >> --- mtd-2.6.orig/arch/arm/mach-omap2/gpmc.c
-> >> >> >> >> +++ mtd-2.6/arch/arm/mach-omap2/gpmc.c
-> >> >> >> >> @@ -54,6 +54,12 @@
-> >> >> >> >>  #define GPMC_CHUNK_SHIFT     24              /* 16 MB */
-> >> >> >> >>  #define GPMC_SECTION_SHIFT   28              /* 128 MB */
-> >> >> >> >>
-> >> >> >> >> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
-> >> >> >> >> +#define CS_NUM_SHIFT         24
-> >> >> >> >> +#define ENABLE_PREFETCH              7
-> >> >> >> >> +#define DMA_MPU_MODE         2
-> >> >> >> >> +#endif
-> >> >> >> >> +
-> >> >> >> >>  static struct resource       gpmc_mem_root;
-> >> >> >> >>  static struct resource       gpmc_cs_mem[GPMC_CS_NUM];
-> >> >> >> >>  static DEFINE_SPINLOCK(gpmc_mem_lock);
-> >> >> >> >> @@ -383,6 +389,99 @@ void gpmc_cs_free(int cs)
-> >> >> >> >>  }
-> >> >> >> >>  EXPORT_SYMBOL(gpmc_cs_free);
-> >> >> >> >>
-> >> >> >> >> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
-> >> >> >> >> +/**
-> >> >> >> >> + * gpmc_prefetch_init - configures default configuration for prefetch
-> >> >> engine
-> >> >> >> >> + */
-> >> >> >> >> +static void gpmc_prefetch_init(void)
-> >> >> >> >> +{
-> >> >> >> >> +     /* Setting the default threshold to 64 */
-> >> >> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x0);
-> >> >> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0x40  << 8);
-> >> >> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG2, 0x0);
-> >> >> >> >> +}
-> >> >> >> >
-> >> >> >> > Why would you want to have NAND specific init code int gpmc.c?
-> >> >> >> >
-> >> >> >> > The purpose if gpmc.c is to provide access to configuring the
-> >> >> >> > General Purpose Memory Controller (GPMC). You should just provide
-> >> >> >> > functions in gpmc.c for the platform init code to use, and then
-> >> >> >> > the drivers can stay platform independent.
-> >> >> >>
-> >> >> >> In my understanding, this 'prefetch' engine is part of GPMC itself, it is a
-> >> >> >> kind of feature provided by GPMC which can be utilized by NAND driver.
-> >> >> >> So, to me, it makes sens to get initialized prefetch by GPMC itself so that
-> >> >> >> NAND driver can use it.
-> >> >> >
-> >> >> > But it should not have a dependency to NAND.
-> >> >>
-> >> >> This engine, in GPMC, is dedicated for NAND devices only.
-> >> >>
-> >> >> >
-> >> >> >> Another reason was that all read / write to GPMC register are done by
-> >> >> >> functions 'gpmc_read_reg' / 'gpmc_write_reg', which have been made
-> >> >> >> 'static' in nature.
-> >> >> >
-> >> >> > That's why you need to provide a generic function in gpmc.c to enable
-> >> >> > prefetch that the platform code for any driver can use.
-> >> >>
-> >> >> Exactly, and whenever a platform code uses gpmc init call, gpmc initializes
-> >> >> this engine too. Since prefetch engine is the part of GPMC, IMHOP, it should
-> >> >> get initialized as part of GPMC initialization.
-> >> >
-> >> > No, the driver needing it should initialize it. There should not be any
-> >> > ifdefs needed in the gpmc.c for that.
-> >>
-> >> Are you suggesting to move gpmc prefetch specific code to 'drivers/mtd/nand/omap2.c'?
-> >> This can be done but then, we will be accessing gpmc registers outside gpmc.c. Is that ok?
-> >
-> > Well I'm thinking that you just basically need something like this in
-> > gpmc.c:
-> >
-> > int gpmc_prefetch_request(int cs);
-> > int gpmc_prefetch_enable(int cs);
-> > int gpmc_prefetch_reset(int cs);
-> > ...
-> >
-> > And gpmc_prefetch_request would then return an error if already taken.
-> > No need then to tinker with the GPMC prefetch registers in the NAND
-> > driver.
-> 
-> This seems exactly what in this patch has been done, other than renaming the functions and suggestion that gpmc prefetch init call should happen from NAND driver and should return success or failure based on whether it has already been initialized or not. Am I correct?
+* Andrew de Quincey <adq_dvb@lidskialf.net> [090608 12:56]:
+> Recent changes in the drivers/base/platform.c exposed an inconsistency  
+> in the cbus drivers; they weren't matching platform_divers with  
+> platform_devices, which causes all sorts of structure casting issues  
+> within the base platform code since it assumes this.
+>
+> Signed-off-by: Andrew de Quincey <adq@lidskialf.net>
 
-Yes, let's take another look once those have been updated.
- 
-> But since, the prefetch and write-posting engine is a single-context engine that can be allocated to only one chip-select at a time for a read prefetch or a write-posting process, I feel it is still OK if we initialize gpmc prefetch engine only once in gpmc.c only and then whenever there is a request for gmpc prefetch start/enable we should check if engine is already being used by some other chip-select by verifying GPMC_PREFETCH_CONFIG1.ENABLEENGINE (bit '7').
-> 
-> This was not done because there is only NAND device, as of now, in all the boards we are using.
-> 
-> Let me know what you think about this.
-
-There's absolutely no reason to add any NAND specific code to gpmc.c.
+The patch seems to be missing from the mail?
 
 Tony
-
-> 
-> >
-> >> >
-> >> >> And then there are prefetch start, stop and status functions calls have been
-> >> >> provided to be used by NAND driver.
-> >> >
-> >> > These should really be done in the platform init code for the NAND driver.
-> >> > The NAND driver really should be generic, not omap specific.
-> >>
-> >> Are you talking about different omap versions or omap itself, I am bit confused. This NAND driver is
-> >> omap specific only.
-> >
-> > I guess I'm talking in generic terms. What's under drivers/* should in the long
-> > run be device independent code, and the platform specific code should be under
-> > arch/arm/*omap*.
-> 
-> Yes, this is exactly what I was trying to do. GPMC prefetch is platform specific feature and hence code related to this was kept in gmpc.c (i.e. arch/arm/*omap*/.).
-> 
-> ---
-> Regards,
-> Vimal 
-> >
-> > Regards,
-> >
-> > Tony
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
-> 
