@@ -1,269 +1,183 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCHv2] DSPBRIDGE: Various compile warning fixes
-Date: Tue,  9 Jun 2009 12:57:59 +0300
-Message-ID: <1244541479-31935-1-git-send-email-ameya.palande@nokia.com>
-References: <1244476030-15195-1-git-send-email-ameya.palande@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] [MTD] [NAND] Add prefetch and dma support for omap2/3
+	NAND      driver
+Date: Tue, 9 Jun 2009 03:19:21 -0700
+Message-ID: <20090609101920.GA2617@atomide.com>
+References: <54851.192.168.10.89.1243946277.squirrel@dbdmail.itg.ti.com> <19F8576C6E063C45BE387C64729E739404321C60A7@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58334 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757356AbZFIJ5p (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 05:57:45 -0400
-In-Reply-To: <1244476030-15195-1-git-send-email-ameya.palande@nokia.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65013 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760158AbZFIKTd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 06:19:33 -0400
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404321C60A7@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: omar.ramirez@ti.com, mika.kukkonen@nokia.com
+To: "Singh, Vimal" <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com>
+Cc: "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "dedekind@infradead.org" <dedekind@infradead.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Mika Kukkonen <mika.kukkonen@nokia.com>
+* Singh, Vimal <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com> [090608 09:01]:
+> 
+> On Mon, Jun 8, 2009 at 5:08 PM, Tony Lindgren<tony@atomide.com> wrote:
+> > * Singh, Vimal <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com> [090605 05:00]:
+> >>
+> >>
+> >> On Thu, Jun 4, 2009 at 8:58 PM, Tony Lindgren<tony@atomide.com> wrote:
+> >> > * vimal singh <vimalsingh@ti.com> [090604 02:34]:
+> >> >> On Wed, Jun 3, 2009 at 10:03 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >> >> > * Singh, Vimal
+> >> >> <IMCEAEX-_O=TI_OU=BD_CN=RECIPIENTS_CN=X0094262@dlee86.itg.ti.com> [090602
+> >> >> 23:46]:
+> >> >> >>
+> >> >> >> On Wed, Jun 3, 2009 at 2:06 AM, Tony Lindgren <tony@atomide.com> wrote:
+> >> >> >> > * vimal singh <vimalsingh@ti.com> [090602 05:40]:
+> >> >> >> >> This patch adds prefetch support to access nand flash in both mpu and dma
+> >> >> mode.
+> >> >> >> >> This patch also adds 8-bit nand support (omap_read/write_buf8).
+> >> >> >> >> Prefetch can be used for both 8- and 16-bit devices.
+> >> >> >> >
+> >> >> >> > This should be reviewed on the linux-omap@vger.kernel.org list for sure.
+> >> >> >> > One other comment below.
+> >> >> >> >
+> >> >> >> >> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> >> >> >> >> ---
+> >> >> >> >> I prepared this patch on top of "OMAP2 / OMAP3 NAND driver" patch:
+> >> >> >> >> http://lists.infradead.org/pipermail/linux-mtd/2009-May/025562.html
+> >> >> >> >>
+> >> >> >> >> ---
+> >> >> >> >>  arch/arm/mach-omap2/gpmc.c             |  102 ++++++++++
+> >> >> >> >>  arch/arm/plat-omap/include/mach/gpmc.h |    4
+> >> >> >> >>  drivers/mtd/nand/Kconfig               |   17 +
+> >> >> >> >>  drivers/mtd/nand/omap2.c               |  308
+> >> >> ++++++++++++++++++++++++++++++++-
+> >> >> >> >>  4 files changed, 422 insertions(+), 9 deletions(-)
+> >> >> >> >>
+> >> >> >> >> Index: mtd-2.6/arch/arm/mach-omap2/gpmc.c
+> >> >> >> >> ===================================================================
+> >> >> >> >> --- mtd-2.6.orig/arch/arm/mach-omap2/gpmc.c
+> >> >> >> >> +++ mtd-2.6/arch/arm/mach-omap2/gpmc.c
+> >> >> >> >> @@ -54,6 +54,12 @@
+> >> >> >> >>  #define GPMC_CHUNK_SHIFT     24              /* 16 MB */
+> >> >> >> >>  #define GPMC_SECTION_SHIFT   28              /* 128 MB */
+> >> >> >> >>
+> >> >> >> >> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+> >> >> >> >> +#define CS_NUM_SHIFT         24
+> >> >> >> >> +#define ENABLE_PREFETCH              7
+> >> >> >> >> +#define DMA_MPU_MODE         2
+> >> >> >> >> +#endif
+> >> >> >> >> +
+> >> >> >> >>  static struct resource       gpmc_mem_root;
+> >> >> >> >>  static struct resource       gpmc_cs_mem[GPMC_CS_NUM];
+> >> >> >> >>  static DEFINE_SPINLOCK(gpmc_mem_lock);
+> >> >> >> >> @@ -383,6 +389,99 @@ void gpmc_cs_free(int cs)
+> >> >> >> >>  }
+> >> >> >> >>  EXPORT_SYMBOL(gpmc_cs_free);
+> >> >> >> >>
+> >> >> >> >> +#ifdef CONFIG_MTD_NAND_OMAP_PREFETCH
+> >> >> >> >> +/**
+> >> >> >> >> + * gpmc_prefetch_init - configures default configuration for prefetch
+> >> >> engine
+> >> >> >> >> + */
+> >> >> >> >> +static void gpmc_prefetch_init(void)
+> >> >> >> >> +{
+> >> >> >> >> +     /* Setting the default threshold to 64 */
+> >> >> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONTROL, 0x0);
+> >> >> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG1, 0x40  << 8);
+> >> >> >> >> +     gpmc_write_reg(GPMC_PREFETCH_CONFIG2, 0x0);
+> >> >> >> >> +}
+> >> >> >> >
+> >> >> >> > Why would you want to have NAND specific init code int gpmc.c?
+> >> >> >> >
+> >> >> >> > The purpose if gpmc.c is to provide access to configuring the
+> >> >> >> > General Purpose Memory Controller (GPMC). You should just provide
+> >> >> >> > functions in gpmc.c for the platform init code to use, and then
+> >> >> >> > the drivers can stay platform independent.
+> >> >> >>
+> >> >> >> In my understanding, this 'prefetch' engine is part of GPMC itself, it is a
+> >> >> >> kind of feature provided by GPMC which can be utilized by NAND driver.
+> >> >> >> So, to me, it makes sens to get initialized prefetch by GPMC itself so that
+> >> >> >> NAND driver can use it.
+> >> >> >
+> >> >> > But it should not have a dependency to NAND.
+> >> >>
+> >> >> This engine, in GPMC, is dedicated for NAND devices only.
+> >> >>
+> >> >> >
+> >> >> >> Another reason was that all read / write to GPMC register are done by
+> >> >> >> functions 'gpmc_read_reg' / 'gpmc_write_reg', which have been made
+> >> >> >> 'static' in nature.
+> >> >> >
+> >> >> > That's why you need to provide a generic function in gpmc.c to enable
+> >> >> > prefetch that the platform code for any driver can use.
+> >> >>
+> >> >> Exactly, and whenever a platform code uses gpmc init call, gpmc initializes
+> >> >> this engine too. Since prefetch engine is the part of GPMC, IMHOP, it should
+> >> >> get initialized as part of GPMC initialization.
+> >> >
+> >> > No, the driver needing it should initialize it. There should not be any
+> >> > ifdefs needed in the gpmc.c for that.
+> >>
+> >> Are you suggesting to move gpmc prefetch specific code to 'drivers/mtd/nand/omap2.c'?
+> >> This can be done but then, we will be accessing gpmc registers outside gpmc.c. Is that ok?
+> >
+> > Well I'm thinking that you just basically need something like this in
+> > gpmc.c:
+> >
+> > int gpmc_prefetch_request(int cs);
+> > int gpmc_prefetch_enable(int cs);
+> > int gpmc_prefetch_reset(int cs);
+> > ...
+> >
+> > And gpmc_prefetch_request would then return an error if already taken.
+> > No need then to tinker with the GPMC prefetch registers in the NAND
+> > driver.
+> 
+> This seems exactly what in this patch has been done, other than renaming the functions and suggestion that gpmc prefetch init call should happen from NAND driver and should return success or failure based on whether it has already been initialized or not. Am I correct?
 
-This patch contains indentation fixes and cleans up various warnings
-uncovered with extra warning flags:
-  - empty if() bodies
-  - incorrect use of unsigned variables
-  - bad comparison of pointer value
-  - pointless check of unsigned value being smaller than zero
-  - keyword 'extern' has to be first one in variable declaration
+Yes, let's take another look once those have been updated.
+ 
+> But since, the prefetch and write-posting engine is a single-context engine that can be allocated to only one chip-select at a time for a read prefetch or a write-posting process, I feel it is still OK if we initialize gpmc prefetch engine only once in gpmc.c only and then whenever there is a request for gmpc prefetch start/enable we should check if engine is already being used by some other chip-select by verifying GPMC_PREFETCH_CONFIG1.ENABLEENGINE (bit '7').
+> 
+> This was not done because there is only NAND device, as of now, in all the boards we are using.
+> 
+> Let me know what you think about this.
 
-Signed-off-by: Mika Kukkonen <mika.kukkonen@nokia.com>
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- arch/arm/plat-omap/include/dspbridge/dbc.h |    6 +-
- arch/arm/plat-omap/include/dspbridge/dbg.h |    4 +-
- arch/arm/plat-omap/include/dspbridge/gt.h  |   16 ++++---
- arch/arm/plat-omap/include/dspbridge/mem.h |    2 +-
- drivers/dsp/bridge/services/kfile.c        |    4 +-
- drivers/dsp/bridge/wmd/io_sm.c             |   72 ++++++++++++++--------------
- drivers/dsp/bridge/wmd/ue_deh.c            |    2 +-
- 7 files changed, 54 insertions(+), 52 deletions(-)
+There's absolutely no reason to add any NAND specific code to gpmc.c.
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbc.h b/arch/arm/plat-omap/include/dspbridge/dbc.h
-index 0e6a67d..ec55c1d 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbc.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbc.h
-@@ -57,9 +57,9 @@
- 
- #else
- 
--#define DBC_Assert(exp)
--#define DBC_Require(exp)
--#define DBC_Ensure(exp)
-+#define DBC_Assert(exp) {}
-+#define DBC_Require(exp) {}
-+#define DBC_Ensure(exp) {}
- 
- #endif				/* DEBUG */
- 
-diff --git a/arch/arm/plat-omap/include/dspbridge/dbg.h b/arch/arm/plat-omap/include/dspbridge/dbg.h
-index 7f44ff9..442955c 100644
---- a/arch/arm/plat-omap/include/dspbridge/dbg.h
-+++ b/arch/arm/plat-omap/include/dspbridge/dbg.h
-@@ -101,9 +101,9 @@
- 	extern DSP_STATUS DBG_Trace(IN u8 bLevel, IN char *pstrFormat, ...);
- #else
- 
--#define DBG_Exit(void)
-+#define DBG_Exit(void) do {} while (0)
- #define DBG_Init(void) true
--#define DBG_Trace(bLevel, pstrFormat, args...)
-+#define DBG_Trace(bLevel, pstrFormat, args...) do {} while (0)
- 
- #endif	     /* (defined(DEBUG) || defined(DDSP_DEBUG_PRODUCT)) && GT_TRACE */
- 
-diff --git a/arch/arm/plat-omap/include/dspbridge/gt.h b/arch/arm/plat-omap/include/dspbridge/gt.h
-index 456c866..72ef42d 100644
---- a/arch/arm/plat-omap/include/dspbridge/gt.h
-+++ b/arch/arm/plat-omap/include/dspbridge/gt.h
-@@ -261,13 +261,15 @@ extern struct GT_Config _GT_params;
- 
- #define GT_query(mask, class)     false
- 
--#define GT_0trace(mask, class, format)
--#define GT_1trace(mask, class, format, arg1)
--#define GT_2trace(mask, class, format, arg1, arg2)
--#define GT_3trace(mask, class, format, arg1, arg2, arg3)
--#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4)
--#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5)
--#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6)
-+#define GT_0trace(mask, class, format) do {} while (0)
-+#define GT_1trace(mask, class, format, arg1) do {} while (0)
-+#define GT_2trace(mask, class, format, arg1, arg2) do {} while (0)
-+#define GT_3trace(mask, class, format, arg1, arg2, arg3) do {} while (0)
-+#define GT_4trace(mask, class, format, arg1, arg2, arg3, arg4) do {} while (0)
-+#define GT_5trace(mask, class, format, arg1, arg2, arg3, arg4, arg5) \
-+	do {} while (0)
-+#define GT_6trace(mask, class, format, arg1, arg2, arg3, arg4, arg5, arg6) \
-+	do {} while (0)
- 
- #else				/* GT_TRACE == 1 */
- 
-diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
-index 535ac3a..cc79047 100644
---- a/arch/arm/plat-omap/include/dspbridge/mem.h
-+++ b/arch/arm/plat-omap/include/dspbridge/mem.h
-@@ -317,7 +317,7 @@
-  *  Ensures:
-  *      - pBaseAddr no longer points to a valid linear address.
-  */
--#define MEM_UnmapLinearAddress(pBaseAddr)
-+#define MEM_UnmapLinearAddress(pBaseAddr) {}
- 
- /*
-  *  ======== MEM_ExtPhysPoolInit ========
-diff --git a/drivers/dsp/bridge/services/kfile.c b/drivers/dsp/bridge/services/kfile.c
-index ba1d26f..d29bc22 100644
---- a/drivers/dsp/bridge/services/kfile.c
-+++ b/drivers/dsp/bridge/services/kfile.c
-@@ -262,7 +262,7 @@ KFILE_Read(void __user*pBuffer, s32 cSize, s32 cCount,
- s32 KFILE_Seek(struct KFILE_FileObj *hFile, s32 lOffset, s32 cOrigin)
- {
- 	s32 cRetVal = 0;	/* 0 for success */
--	u32 dwCurPos = 0;
-+	loff_t dwCurPos = 0;
- 
- 	struct file *fileDesc = NULL;
- 
-@@ -315,7 +315,7 @@ s32 KFILE_Seek(struct KFILE_FileObj *hFile, s32 lOffset, s32 cOrigin)
-  */
- s32 KFILE_Tell(struct KFILE_FileObj *hFile)
- {
--	u32 dwCurPos = 0;
-+	loff_t dwCurPos = 0;
- 	s32 lRetVal = E_KFILE_ERROR;
- 
- 	GT_1trace(KFILE_debugMask, GT_ENTER, "KFILE_Tell: hFile 0x%x\n", hFile);
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 6f7e338..39c34f7 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -204,7 +204,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 	struct CFG_HOSTRES hostRes;
- 	struct CFG_DEVNODE *hDevNode;
- 	struct CHNL_MGR *hChnlMgr;
--       static int ref_count;
-+	static int ref_count;
- 	u32 devType;
- 	/* Check DBC requirements:  */
- 	DBC_Require(phIOMgr != NULL);
-@@ -215,31 +215,30 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 	DBC_Require(status != DSP_EHANDLE);
- 	DBC_Require(hChnlMgr != NULL);
- 	DBC_Require(hChnlMgr->hIOMgr == NULL);
--	 /*  Message manager will be created when a file is loaded, since
--	 *  size of message buffer in shared memory is configurable in
--	 *  the base image.  */
-+	/*
-+	 * Message manager will be created when a file is loaded, since
-+	 * size of message buffer in shared memory is configurable in
-+	 * the base image.
-+	 */
- 	DEV_GetWMDContext(hDevObject, &hWmdContext);
- 	DBC_Assert(hWmdContext);
- 	DEV_GetDevType(hDevObject, &devType);
--	/*  DSP shared memory area will get set properly when
--	 *  a program is loaded. They are unknown until a COFF file is
--	 *  loaded. I chose the value -1 because it was less likely to be
--	 *  a valid address than 0.  */
-+	/*
-+	 * DSP shared memory area will get set properly when
-+	 * a program is loaded. They are unknown until a COFF file is
-+	 * loaded. I chose the value -1 because it was less likely to be
-+	 * a valid address than 0.
-+	 */
- 	pSharedMem = (struct SHM *) -1;
- 	if (DSP_FAILED(status))
- 		goto func_cont;
- 
--    /*
--     *  Create a Single Threaded Work Queue
--     */
--
--       if (ref_count == 0)
--               bridge_workqueue = create_workqueue("bridge_work-queue");
--
--       if (bridge_workqueue <= 0)
--               DBG_Trace(DBG_LEVEL1, "Workque Create"
--                       " failed 0x%d \n", bridge_workqueue);
-+	/* Create a Single Threaded Work Queue */
-+	if (ref_count == 0)
-+		bridge_workqueue = create_workqueue("bridge_work-queue");
- 
-+	if (!bridge_workqueue)
-+		DBG_Trace(DBG_LEVEL1, "Workqueue creation failed!\n");
- 
- 	/* Allocate IO manager object: */
- 	MEM_AllocObject(pIOMgr, struct IO_MGR, IO_MGRSIGNATURE);
-@@ -247,12 +246,13 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		status = DSP_EMEMORY;
- 		goto func_cont;
- 	}
--       /*Intializing Work Element*/
--       if (ref_count == 0) {
--               INIT_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
--               ref_count = 1;
--       } else
--               PREPARE_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
-+
-+	/* Intializing Work Element */
-+	if (ref_count == 0) {
-+		INIT_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
-+		ref_count = 1;
-+	} else
-+		PREPARE_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
- 
- 	/* Initialize CHNL_MGR object:    */
- #ifndef DSP_TRACEBUF_DISABLED
-@@ -283,18 +283,18 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
- 		IO_DisableInterrupt(hWmdContext);
- 		if (devType == DSP_UNIT) {
- 			/* Plug the channel ISR:. */
--                       if ((request_irq(INT_MAIL_MPU_IRQ, IO_ISR, 0,
--                               "DspBridge\tmailbox", (void *)pIOMgr)) == 0)
--                               status = DSP_SOK;
--                       else
--                               status = DSP_EFAIL;
-+			if ((request_irq(INT_MAIL_MPU_IRQ, IO_ISR, 0,
-+				"DspBridge\tmailbox", (void *)pIOMgr)) == 0)
-+				status = DSP_SOK;
-+			else
-+				status = DSP_EFAIL;
- 		}
--       if (DSP_SUCCEEDED(status))
--               DBG_Trace(DBG_LEVEL1, "ISR_IRQ Object 0x%x \n",
--                               pIOMgr);
--       else
--               status = CHNL_E_ISR;
--       } else
-+		if (DSP_SUCCEEDED(status))
-+			DBG_Trace(DBG_LEVEL1, "ISR_IRQ Object 0x%x \n",
-+					pIOMgr);
-+		else
-+			status = CHNL_E_ISR;
-+	} else
- 		status = CHNL_E_ISR;
- func_cont:
- 	if (DSP_FAILED(status)) {
-@@ -1157,7 +1157,7 @@ static void InputChnl(struct IO_MGR *pIOMgr, struct CHNL_OBJECT *pChnl,
- 			    pChnlMgr->uWordSize;
- 	chnlId = IO_GetValue(pIOMgr->hWmdContext, struct SHM, sm, inputId);
- 	dwArg = IO_GetLong(pIOMgr->hWmdContext, struct SHM, sm, arg);
--	if (!(chnlId >= 0) || !(chnlId < CHNL_MAXCHANNELS)) {
-+	if (chnlId >= CHNL_MAXCHANNELS) {
- 		/* Shouldn't be here: would indicate corrupted SHM. */
- 		DBC_Assert(chnlId);
- 		goto func_end;
-diff --git a/drivers/dsp/bridge/wmd/ue_deh.c b/drivers/dsp/bridge/wmd/ue_deh.c
-index dcb44dd..fed8bd4 100644
---- a/drivers/dsp/bridge/wmd/ue_deh.c
-+++ b/drivers/dsp/bridge/wmd/ue_deh.c
-@@ -205,7 +205,7 @@ void WMD_DEH_Notify(struct DEH_MGR *hDehMgr, u32 ulEventMask,
- 	DSP_STATUS status1 = DSP_EFAIL;
- 	u32 memPhysical = 0;
- 	u32 HW_MMU_MAX_TLB_COUNT = 31;
--	u32 extern faultAddr;
-+	extern u32 faultAddr;
- 	struct CFG_HOSTRES resources;
- 	HW_STATUS hwStatus;
- 
--- 
-1.6.2.4
+Tony
 
+> 
+> >
+> >> >
+> >> >> And then there are prefetch start, stop and status functions calls have been
+> >> >> provided to be used by NAND driver.
+> >> >
+> >> > These should really be done in the platform init code for the NAND driver.
+> >> > The NAND driver really should be generic, not omap specific.
+> >>
+> >> Are you talking about different omap versions or omap itself, I am bit confused. This NAND driver is
+> >> omap specific only.
+> >
+> > I guess I'm talking in generic terms. What's under drivers/* should in the long
+> > run be device independent code, and the platform specific code should be under
+> > arch/arm/*omap*.
+> 
+> Yes, this is exactly what I was trying to do. GPMC prefetch is platform specific feature and hence code related to this was kept in gmpc.c (i.e. arch/arm/*omap*/.).
+> 
+> ---
+> Regards,
+> Vimal 
+> >
+> > Regards,
+> >
+> > Tony
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> 
+> 
