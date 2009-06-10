@@ -1,97 +1,77 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: MUSB Host problems
-Date: Wed, 10 Jun 2009 07:15:25 -0600
-Message-ID: <4A2FB1ED.5090006@mlbassoc.com>
-References: <4A2E9FD5.9090807@mlbassoc.com> <FCCFB4CDC6E5564B9182F639FC35608702F52BB6F3@dbde02.ent.ti.com> <4A2EA9CA.7070900@mlbassoc.com> <FCCFB4CDC6E5564B9182F639FC35608702F52BB72D@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Important changes, bunch of legacy code removed from linux-omap
+	tree
+Date: Wed, 10 Jun 2009 06:56:17 -0700
+Message-ID: <20090610135616.GH2617@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:4311 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754160AbZFJNP0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jun 2009 09:15:26 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F52BB72D@dbde02.ent.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51175 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751943AbZFJN4S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jun 2009 09:56:18 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MEOHs-000NQp-96
+	for linux-omap@vger.kernel.org; Wed, 10 Jun 2009 13:56:20 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Pandita, Vikram wrote:
-> 
->> -----Original Message-----
->> From: Gary Thomas [mailto:gary@mlbassoc.com]
->> Sent: Tuesday, June 09, 2009 1:28 PM
->> To: Pandita, Vikram
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: MUSB Host problems
->>
->> Pandita, Vikram wrote:
->>>> -----Original Message-----
->>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gary
->>>> Thomas
->>>> Sent: Tuesday, June 09, 2009 12:46 PM
->>>> To: linux-omap@vger.kernel.org
->>>> Subject: MUSB Host problems
->>>>
->>>> I'm trying to get MUSB Host working on my 3530 platform (very
->>> Based on your description, its not MUSB but the USBHOST EHCI block that you want to get working.
->> Sorry, mistaken terminology.  Yes, I'm trying to get the host ECHI working.
->>
->>>> similar to the Beagle).  When I startup, I get this message:
->>>>  Clock usbhost_48m_fck didn't enable in 100000 tries
->>> This is bad
->> Why?  What does it mean?  How do I fix it?
-> 
-> The ehci driver on linux-omap works for Beagleboard and sdp.
-> so this may not be a fatal problem
-> 
->>>> What does this mean?  How do I fix it?
->>>>
->>>> Currently, the USB subsystem finds the various hubs (ports 0-2).
->>>> The OTG port (0) works great.  When I plug in a device to USB-1,
->>> Is this a full speed device?
->>>
->>>> it sees it, but immediately gives up :-(
->>>>    ehci-omap ehci-omap.0: GetStatus port 1 status 001803 POWER sig=j CSC CONNECT
->>>>    hub 1-0:1.0: port 1: status 0501 change 0001
->>>>    hub 1-0:1.0: state 7 ports 3 chg 0002 evt 0000
->>>>    hub 1-0:1.0: port 1, status 0501, change 0000, 480 Mb/s
->>>>    ehci-omap ehci-omap.0: port 1 full speed --> companion
->>> Looks like your device is getting recognized as a full speed.
->>> So EHCI cannot handle it.
->> Odd, this is a high speed device (USB 2.0).  I also tried a 2.0 hub, same result.
->> What could confuse it like this?
-> 
-> Is it PHY mode or TLL mode?
-> If its PHY: then the transceiver used definitely matters.
-> SDP has ISP1504 and
-> Beagle board has SMSC phy
-> 
-> The 60Mhz clock is fed from omap into the Transceiver (Input clocking mode).
-> Only few phy's in market support this.
->  
->>> You need to have OHCI driver built in which is not present in linux-omap code base.
->> Do, how does one use an arbitrary device on the EHCI port?  Must I use a 2.0 hub?
->>
->>>>    ehci-omap ehci-omap.0: GetStatus port 1 status 003801 POWER OWNER sig=j CONNECT
->>>>    hub 1-0:1.0: port 1 not reset yet, waiting 50ms
->>>>    ehci-omap ehci-omap.0: GetStatus port 1 status 003002 POWER OWNER sig=se0 CSC
->>>>    hub 1-0:1.0: unable to enumerate USB device on port 1
->>>>    hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0002
->>>>    hub 1-0:1.0: hub_suspend
->>>> Then it's dead.  Any ideas?
->> Note: this is unproven hardware, I'm mostly looking for ideas on
->> how to troubleshoot the problems.
-> 
-> Have one side working: 
-> Say have EHCI working on SDP/Beagle and then connect your device to it.
+Hi all,
 
-As I said, unproven hardware.  It turns out the PHY was [hardware
-strapping] set in the wrong mode.  Fixing this and all seems to work.
+I've pushed a big pile of patches that take us to sync with what's about to get
+merged to the mainline kernel. So we'll be using the mainline omap code that is
+already queued up to go in this merge window for 2.6.31. It's basically a
+backport of omap code that will be in 2.6.31 to 2.6.30.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+This means that tons of legacy code got removed. That needs to be worked to
+get it to mainline, so some people may want to carry those patches along in
+their tree for a while. Apologies for doing it so late in the game with 2.6.30
+out already, but after diffing and thinking about it for a few days, that just
+seemed like the sanest way to go forward.
+
+This will also make it way easier for us to merge in various topic branches
+such as Kevin's PM branch and Tomi's DSS branch as all the topic branches are
+(or at least should be) done against the mainline tree.
+
+Also all the board-*.c files got reset to their mainline versions. So all 
+board-*.c maintainers, please send patches against the mainline kernel to add
+back any of the lost functionality! Help is really needed now to get the
+remaining board-*.c patches done and queued up for mainline.
+
+I've left in the base N8x0 stuff so we can clean that up for mainline as
+discussed earlier. For the SDP boards, we should put together a generic
+sdp-flash.c board init file and get that to mainline too.
+
+If you want to see what legacy code has been removed, just do:
+
+$ git log --grep="REMOVE OMAP LEGACY CODE"
+
+Some of this code has been merged back from Imre's fb-upstream branch, and
+Hiroshi's iommu branch. Looks like Paul's omap-clock-upstream branch needs
+to be refreshed in order to merge it. We should also start merging in
+Kevin's PM branch and Tomi's DSS2 branch as soon as they are available.
+
+For the other legacy code, at least the following changes need to be done:
+
+- The gpio-switch.c should be replaced with a combination of gpio-keys.c
+  and gpiolib, where gpio-keys handles input events, and gpiolib can handle
+  toggling of the GPIO pins from userspace.
+
+- Omap specific ATAGs should not be used as they are not going to get
+  into mainline as discussed earlier. Instead, standard cmdline options
+  should be used. If ATAGs are needed, they should be ARM generic.
+  Also the open firmware device tree might offer a solution to replace
+  the omap specific ATAGs.
+
+I'll branch out omap-2.6.30 by 2.6.31-rc1, so let's try to sort out the
+remaining issues by then.
+
+Cheers,
+
+Tony
+
+
