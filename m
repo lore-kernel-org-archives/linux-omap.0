@@ -1,66 +1,114 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [RFC][PATCH] DSPBRIDGE: Video Playback Cache Optimization
-Date: Tue, 9 Jun 2009 18:18:29 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53040F6B7C82@dlee03.ent.ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: MUSB Host problems
+Date: Wed, 10 Jun 2009 07:55:17 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F52BB72D@dbde02.ent.ti.com>
+References: <4A2E9FD5.9090807@mlbassoc.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702F52BB6F3@dbde02.ent.ti.com>
+ <4A2EA9CA.7070900@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60681 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496AbZFIXSk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 19:18:40 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44143 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750885AbZFJCZW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 22:25:22 -0400
+In-Reply-To: <4A2EA9CA.7070900@mlbassoc.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, Doyu Hiroshi <hiroshi.doyu@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, Ameya Palande <ameya.palande@nokia.com>, Menon, Nis
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
 
-[sending as plain text to l-o]
 
-Could you please comment on this patch.
+>-----Original Message-----
+>From: Gary Thomas [mailto:gary@mlbassoc.com]
+>Sent: Tuesday, June 09, 2009 1:28 PM
+>To: Pandita, Vikram
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: MUSB Host problems
+>
+>Pandita, Vikram wrote:
+>>
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gary
+>>> Thomas
+>>> Sent: Tuesday, June 09, 2009 12:46 PM
+>>> To: linux-omap@vger.kernel.org
+>>> Subject: MUSB Host problems
+>>>
+>>> I'm trying to get MUSB Host working on my 3530 platform (very
+>>
+>> Based on your description, its not MUSB but the USBHOST EHCI block that you want to get working.
+>
+>Sorry, mistaken terminology.  Yes, I'm trying to get the host ECHI working.
+>
+>>> similar to the Beagle).  When I startup, I get this message:
+>>>  Clock usbhost_48m_fck didn't enable in 100000 tries
+>>
+>> This is bad
+>
+>Why?  What does it mean?  How do I fix it?
 
-=46rom: Sripal Bagadia <bagadia@ti.com>
-Date: Tue, 9 Jun 2009 16:05:09 -0500
-Subject: [PATCH] DSPBRIDGE: Video Playback Cache Optimization
+The ehci driver on linux-omap works for Beagleboard and sdp.
+so this may not be a fatal problem
 
-Avoid get_user_pages cache flush overheads for uncached & reserved
-buffers (e.g. display & camera buffers).
+>
+>>> What does this mean?  How do I fix it?
+>>>
+>>> Currently, the USB subsystem finds the various hubs (ports 0-2).
+>>> The OTG port (0) works great.  When I plug in a device to USB-1,
+>>
+>> Is this a full speed device?
+>>
+>>> it sees it, but immediately gives up :-(
+>>>    ehci-omap ehci-omap.0: GetStatus port 1 status 001803 POWER sig=j CSC CONNECT
+>>>    hub 1-0:1.0: port 1: status 0501 change 0001
+>>>    hub 1-0:1.0: state 7 ports 3 chg 0002 evt 0000
+>>>    hub 1-0:1.0: port 1, status 0501, change 0000, 480 Mb/s
+>>>    ehci-omap ehci-omap.0: port 1 full speed --> companion
+>>
+>> Looks like your device is getting recognized as a full speed.
+>> So EHCI cannot handle it.
+>
+>Odd, this is a high speed device (USB 2.0).  I also tried a 2.0 hub, same result.
+>What could confuse it like this?
 
-Signed-off-by: Sripal Bagadia <bagadia@ti.com>
----
-=A0drivers/dsp/bridge/wmd/tiomap3430.c |=A0=A0=A0 4 +++-
-=A01 files changed, 3 insertions(+), 1 deletions(-)
+Is it PHY mode or TLL mode?
+If its PHY: then the transceiver used definitely matters.
+SDP has ISP1504 and
+Beagle board has SMSC phy
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/w=
-md/tiomap3430.c
-index 7a9603d..a2f32e8 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430.c
-@@ -1461,7 +1461,9 @@ static DSP_STATUS WMD_BRD_MemMap(struct WMD_DEV_C=
-ONTEXT *hDevContext,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 goto func_cont;
-=A0=A0=A0=A0=A0 }
-=A0
--=A0=A0=A0=A0 if (vma->vm_flags & VM_IO) {
-+=A0=A0=A0=A0 if ((vma->vm_flags & VM_IO) | ((vma->vm_flags & VM_RESERV=
-ED) &&=20
-+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 (~pgprot_val(vma->vm_=
-page_prot) & L_PTE_CACHEABLE) &&
-+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 (~pgprot_val(vma->vm_=
-page_prot) & L_PTE_BUFFERABLE))) {
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 numUsrPgs =3D=A0 ulNumBytes / PG_SIZE=
-_4K;
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 mpuAddr =3D ulMpuAddr;
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 DBG_Trace(DBG_LEVEL4, "WMD_BRD_MemMap=
-:numOfActualTabEntries=3D%d,"
---=20
-1.6.2.4
+The 60Mhz clock is fed from omap into the Transceiver (Input clocking mode).
+Only few phy's in market support this.
+ 
+>
+>>
+>> You need to have OHCI driver built in which is not present in linux-omap code base.
+>
+>Do, how does one use an arbitrary device on the EHCI port?  Must I use a 2.0 hub?
+>
+>>>    ehci-omap ehci-omap.0: GetStatus port 1 status 003801 POWER OWNER sig=j CONNECT
+>>>    hub 1-0:1.0: port 1 not reset yet, waiting 50ms
+>>>    ehci-omap ehci-omap.0: GetStatus port 1 status 003002 POWER OWNER sig=se0 CSC
+>>>    hub 1-0:1.0: unable to enumerate USB device on port 1
+>>>    hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0002
+>>>    hub 1-0:1.0: hub_suspend
+>>> Then it's dead.  Any ideas?
+>
+>Note: this is unproven hardware, I'm mostly looking for ideas on
+>how to troubleshoot the problems.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Have one side working: 
+Say have EHCI working on SDP/Beagle and then connect your device to it.
+
+>
+>Thanks
+>
+>--
+>------------------------------------------------------------
+>Gary Thomas                 |  Consulting for the
+>MLB Associates              |    Embedded world
+>------------------------------------------------------------
+
