@@ -1,77 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Important changes, bunch of legacy code removed from linux-omap
-	tree
-Date: Wed, 10 Jun 2009 06:56:17 -0700
-Message-ID: <20090610135616.GH2617@atomide.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [alsa-devel] Please help in adding ams-delta support to ASoC
+Date: Wed, 10 Jun 2009 16:20:22 +0200
+Message-ID: <4A2FC126.80806@tis.icnet.pl>
+References: <4A1BEBE3.8010306@tis.icnet.pl> <20090605224532.GA12995@sirena.org.uk> <200906061942.14276.jkrzyszt@tis.icnet.pl> <200906091012.41800.peter.ujfalusi@nokia.com> <4A2E7D16.1010504@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51175 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751943AbZFJN4S (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jun 2009 09:56:18 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MEOHs-000NQp-96
-	for linux-omap@vger.kernel.org; Wed, 10 Jun 2009 13:56:20 +0000
-Content-Disposition: inline
+Received: from d1.icnet.pl ([212.160.220.21]:51443 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758608AbZFJOU1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 10 Jun 2009 10:20:27 -0400
+In-Reply-To: <4A2E7D16.1010504@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-Hi all,
+Janusz Krzysztofik wrote:
+> Peter Ujfalusi wrote:
+>> I'm kind of bad at visualizing things, is it possible to put somewhere 
+>> the screenshoot of the scope showing at least one sample?
+> 
+> Good idea. I'll take some screenshots for future reference and let you 
+> know when available.
 
-I've pushed a big pile of patches that take us to sync with what's about to get
-merged to the mainline kernel. So we'll be using the mainline omap code that is
-already queued up to go in this merge window for 2.6.31. It's basically a
-backport of omap code that will be in 2.6.31 to 2.6.30.
+Hi,
 
-This means that tons of legacy code got removed. That needs to be worked to
-get it to mainline, so some people may want to carry those patches along in
-their tree for a while. Apologies for doing it so late in the game with 2.6.30
-out already, but after diffing and thinking about it for a few days, that just
-seemed like the sanest way to go forward.
-
-This will also make it way easier for us to merge in various topic branches
-such as Kevin's PM branch and Tomi's DSS branch as all the topic branches are
-(or at least should be) done against the mainline tree.
-
-Also all the board-*.c files got reset to their mainline versions. So all 
-board-*.c maintainers, please send patches against the mainline kernel to add
-back any of the lost functionality! Help is really needed now to get the
-remaining board-*.c patches done and queued up for mainline.
-
-I've left in the base N8x0 stuff so we can clean that up for mainline as
-discussed earlier. For the SDP boards, we should put together a generic
-sdp-flash.c board init file and get that to mainline too.
-
-If you want to see what legacy code has been removed, just do:
-
-$ git log --grep="REMOVE OMAP LEGACY CODE"
-
-Some of this code has been merged back from Imre's fb-upstream branch, and
-Hiroshi's iommu branch. Looks like Paul's omap-clock-upstream branch needs
-to be refreshed in order to merge it. We should also start merging in
-Kevin's PM branch and Tomi's DSS2 branch as soon as they are available.
-
-For the other legacy code, at least the following changes need to be done:
-
-- The gpio-switch.c should be replaced with a combination of gpio-keys.c
-  and gpiolib, where gpio-keys handles input events, and gpiolib can handle
-  toggling of the GPIO pins from userspace.
-
-- Omap specific ATAGs should not be used as they are not going to get
-  into mainline as discussed earlier. Instead, standard cmdline options
-  should be used. If ATAGs are needed, they should be ARM generic.
-  Also the open firmware device tree might offer a solution to replace
-  the omap specific ATAGs.
-
-I'll branch out omap-2.6.30 by 2.6.31-rc1, so let's try to sort out the
-remaining issues by then.
+Some screenshots are available at http://www.icnet.pl/download/cx20442/
 
 Cheers,
-
-Tony
-
+Janusz
 
