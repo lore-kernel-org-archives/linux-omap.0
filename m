@@ -1,114 +1,43 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: MUSB Host problems
-Date: Wed, 10 Jun 2009 07:55:17 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F52BB72D@dbde02.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: MUSB Host problems
+Date: Wed, 10 Jun 2009 08:12:48 +0300
+Message-ID: <20090610081248.417f5d98.jhnikula@gmail.com>
 References: <4A2E9FD5.9090807@mlbassoc.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F52BB6F3@dbde02.ent.ti.com>
- <4A2EA9CA.7070900@mlbassoc.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702F52BB6F3@dbde02.ent.ti.com>
+	<4A2EA9CA.7070900@mlbassoc.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702F52BB72D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44143 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750885AbZFJCZW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 9 Jun 2009 22:25:22 -0400
-In-Reply-To: <4A2EA9CA.7070900@mlbassoc.com>
-Content-Language: en-US
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:51861 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755097AbZFJFMY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 10 Jun 2009 01:12:24 -0400
+Received: by ewy6 with SMTP id 6so623904ewy.37
+        for <linux-omap@vger.kernel.org>; Tue, 09 Jun 2009 22:12:25 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F52BB72D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Gary Thomas <gary@mlbassoc.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Wed, 10 Jun 2009 07:55:17 +0530
+"Pandita, Vikram" <vikram.pandita@ti.com> wrote:
 
+> >>> similar to the Beagle).  When I startup, I get this message:
+> >>>  Clock usbhost_48m_fck didn't enable in 100000 tries
+> >>
+> >> This is bad
+> >
+> >Why?  What does it mean?  How do I fix it?
+> 
+> The ehci driver on linux-omap works for Beagleboard and sdp.
+> so this may not be a fatal problem
+> 
+Actually it's currently broken but issue is known:
 
->-----Original Message-----
->From: Gary Thomas [mailto:gary@mlbassoc.com]
->Sent: Tuesday, June 09, 2009 1:28 PM
->To: Pandita, Vikram
->Cc: linux-omap@vger.kernel.org
->Subject: Re: MUSB Host problems
->
->Pandita, Vikram wrote:
->>
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gary
->>> Thomas
->>> Sent: Tuesday, June 09, 2009 12:46 PM
->>> To: linux-omap@vger.kernel.org
->>> Subject: MUSB Host problems
->>>
->>> I'm trying to get MUSB Host working on my 3530 platform (very
->>
->> Based on your description, its not MUSB but the USBHOST EHCI block that you want to get working.
->
->Sorry, mistaken terminology.  Yes, I'm trying to get the host ECHI working.
->
->>> similar to the Beagle).  When I startup, I get this message:
->>>  Clock usbhost_48m_fck didn't enable in 100000 tries
->>
->> This is bad
->
->Why?  What does it mean?  How do I fix it?
+http://marc.info/?l=linux-omap&m=124419824625121&w=2
 
-The ehci driver on linux-omap works for Beagleboard and sdp.
-so this may not be a fatal problem
-
->
->>> What does this mean?  How do I fix it?
->>>
->>> Currently, the USB subsystem finds the various hubs (ports 0-2).
->>> The OTG port (0) works great.  When I plug in a device to USB-1,
->>
->> Is this a full speed device?
->>
->>> it sees it, but immediately gives up :-(
->>>    ehci-omap ehci-omap.0: GetStatus port 1 status 001803 POWER sig=j CSC CONNECT
->>>    hub 1-0:1.0: port 1: status 0501 change 0001
->>>    hub 1-0:1.0: state 7 ports 3 chg 0002 evt 0000
->>>    hub 1-0:1.0: port 1, status 0501, change 0000, 480 Mb/s
->>>    ehci-omap ehci-omap.0: port 1 full speed --> companion
->>
->> Looks like your device is getting recognized as a full speed.
->> So EHCI cannot handle it.
->
->Odd, this is a high speed device (USB 2.0).  I also tried a 2.0 hub, same result.
->What could confuse it like this?
-
-Is it PHY mode or TLL mode?
-If its PHY: then the transceiver used definitely matters.
-SDP has ISP1504 and
-Beagle board has SMSC phy
-
-The 60Mhz clock is fed from omap into the Transceiver (Input clocking mode).
-Only few phy's in market support this.
- 
->
->>
->> You need to have OHCI driver built in which is not present in linux-omap code base.
->
->Do, how does one use an arbitrary device on the EHCI port?  Must I use a 2.0 hub?
->
->>>    ehci-omap ehci-omap.0: GetStatus port 1 status 003801 POWER OWNER sig=j CONNECT
->>>    hub 1-0:1.0: port 1 not reset yet, waiting 50ms
->>>    ehci-omap ehci-omap.0: GetStatus port 1 status 003002 POWER OWNER sig=se0 CSC
->>>    hub 1-0:1.0: unable to enumerate USB device on port 1
->>>    hub 1-0:1.0: state 7 ports 3 chg 0000 evt 0002
->>>    hub 1-0:1.0: hub_suspend
->>> Then it's dead.  Any ideas?
->
->Note: this is unproven hardware, I'm mostly looking for ideas on
->how to troubleshoot the problems.
-
-Have one side working: 
-Say have EHCI working on SDP/Beagle and then connect your device to it.
-
->
->Thanks
->
->--
->------------------------------------------------------------
->Gary Thomas                 |  Consulting for the
->MLB Associates              |    Embedded world
->------------------------------------------------------------
-
+-- 
+Jarkko
