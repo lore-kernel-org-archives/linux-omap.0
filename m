@@ -1,38 +1,44 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: OMAP3xxx hsmmc : MMC3 doesn't work, always times out?
-Date: Thu, 11 Jun 2009 23:09:47 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03059BB9AD@dbde02.ent.ti.com>
-References: <8CD1B7D1-9B84-45C1-BC91-B44839743500@gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Patch: Init/shutdown correctness fixes for drivers/cbus/tahvo*
+Date: Thu, 11 Jun 2009 23:36:57 +0300
+Message-ID: <20090611203657.GB31172@nokia.com>
+References: <20090526002046.52484z9m6ufsxjb4@lidskialf.net> <20090611093725.GB15374@nokia.com> <20090611182646.68427jqmiduhec8w@lidskialf.net>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41528 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752417AbZFKRjy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2009 13:39:54 -0400
-In-Reply-To: <8CD1B7D1-9B84-45C1-BC91-B44839743500@gmail.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:36257 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315AbZFKUkG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2009 16:40:06 -0400
+Content-Disposition: inline
+In-Reply-To: <20090611182646.68427jqmiduhec8w@lidskialf.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hugo Vincent <hugo.vincent@gmail.com>, Grazvydas Ignotas <notasas@gmail.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "General mailing list for gumstix users." <gumstix-users@lists.sourceforge.net>
+To: ext Andrew de Quincey <adq_dvb@lidskialf.net>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-<snip>
+Hi,
+
+On Thu, Jun 11, 2009 at 07:26:46PM +0200, ext Andrew de Quincey wrote:
+> Hi - the current phase I'm in of this development is to simply get the  
+> thing working reliably again; that includes cleanup etc as appropriate.
 > 
-> You are quite possibly correct, but the level translator I'm using is  
-> "invisible" - it doesn't require the transceiver control signals  
-> offered only on MMC2. So as far as I know, there is no hardware reason  
-> the OMAP MMC3 controller couldn't talk correctly at the electrical  
-> level with the card. This is evidenced by the CMD signal being  
-> correctly level translated (and this is via the same type of level  
-> translator as the data signals are according to the TXS02612  
-> datasheet), and toggling correctly(-looking) at the card socket (i.e.  
-> between 0 and 3.3V and it's edges synced to the clock signal). The  
-> DAT0-DAT3 signals never do anything though.
+> Once that is complete, i want to go back and refactor all the drivers  
+> s that they do exactly what you suggest above, as well as using the  
+> latest kernel APIs, modularisation where appropriate etc, with a view  
+> to being suitable for mainline (even if they are not actually  
+> submitted to mainline).
+> 
+> I don't want to do both at once because I feel that is too big a step  
+> for this older slightly unmaintained code. Is it acceptable to you to  
+> commit this patch in the interim?
 
-The MMC3 DAT0-DAT3 lines are muxed with MMC2 DAT4-DAT7. Any chance the
-padconfs are being overwritten even though you programmed them
-correctly in the bootloader?
+That's fine then, but at least fix this line:
 
-- Anand
++	struct tahvo_usb *tu = (struct tahvo_usb*) pdev->dev.driver_data;
+
+then you have my ack
+
+-- 
+balbi
