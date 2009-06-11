@@ -1,108 +1,55 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/2] McSPI Slave and DMA,FIFO support
-Date: Thu, 11 Jun 2009 07:47:40 -0700
-Message-ID: <87k53isu7n.fsf@deeprootsystems.com>
-References: <54322.10.24.255.18.1242799009.squirrel@dbdmail.itg.ti.com>
-	<20090602180600.GI27332@atomide.com>
-	<00fe01c9e5c4$3fc92f70$LocalHost@wipultra793>
-	<002701c9eaa1$13f13960$LocalHost@wipultra793>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: [RFC] OMAP4:mailbox changes
+Date: Thu, 11 Jun 2009 10:15:35 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2F802663@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f187.google.com ([209.85.216.187]:62694 "EHLO
-	mail-px0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463AbZFKOrl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2009 10:47:41 -0400
-Received: by pxi17 with SMTP id 17so41748pxi.33
-        for <linux-omap@vger.kernel.org>; Thu, 11 Jun 2009 07:47:43 -0700 (PDT)
-In-Reply-To: <002701c9eaa1$13f13960$LocalHost@wipultra793> (Hemanth V.'s message of "Thu\, 11 Jun 2009 19\:59\:46 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:60088 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755422AbZFKPPo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2009 11:15:44 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Gupta, Ramesh" <grgupta@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, Guzma
+Cc: "Anna, Suman" <s-anna@ti.com>, "Shah, Bhavin" <bshah@ti.com>
 
-"Hemanth V" <hemanthv@ti.com> writes:
+This is to propose the following changes in the current Mailbox driver.
 
-> ----- Original Message ----- 
-> From: "Hemanth V" <hemanthv@ti.com>
-> To: "Tony Lindgren" <tony@atomide.com>
-> Cc: <linux-omap@vger.kernel.org>
-> Sent: Friday, June 05, 2009 3:28 PM
-> Subject: Re: [PATCH 1/2] McSPI Slave and DMA,FIFO support
->
->
->> ----- Original Message ----- 
->> From: "Tony Lindgren" <tony@atomide.com>
->> To: "Hemanth V" <hemanthv@ti.com>
->> Cc: <linux-omap@vger.kernel.org>
->> Sent: Tuesday, June 02, 2009 11:36 PM
->> Subject: Re: [PATCH 1/2] McSPI Slave and DMA,FIFO support
->>
->>
->>> Hi,
->>>
->>> Sorry for the delay in replying, few comments below.
->>>
->>> * Hemanth V <hemanthv@ti.com> [090519 22:57]:
->>>> This patch adds support for McSPI slave and FIFO. DMA and FIFO
->>>> could be enabled together for better throughput. Platform config
->>>> parameters have been added to enable these features on any particular
->>>> McSPI controller.
->>>>
->>>> FIFO can be enabled by defining fifo_depth parameter. fifo_depth needs
->>>> to be a multiple of buffer size that is used for read/write.
->>>>
->>>> These features are useful when you have high throughput devices
->>>> like WLAN or Modem connected over SPI.
->>>>
->>>> Signed-off-by: Hemanth V <hemanthv@ti.com>
->>>>  arch/arm/mach-omap2/devices.c           |    5
->>>>  arch/arm/plat-omap/include/mach/mcspi.h |   16 +
->>>>  drivers/spi/omap2_mcspi.c               |  343
->>>> ++++++++++++++++++++++++++++----
->>>>  3 files changed, 325 insertions(+), 39 deletions(-)
->>>
->>> As this is mostly drivers/spi/omap2_mcspi.c, this patch should get
->>> merged via:
->>>
->>> $ grep -A7 "SPI SUBSYSTEM" MAINTAINERS
->>> SPI SUBSYSTEM
->>> P:      David Brownell
->>> M:      dbrownell@users.sourceforge.net
->>> L:      spi-devel-general@lists.sourceforge.net
->>> S:      Maintained
->>> F:      Documentation/spi/
->>> F:      drivers/spi/
->>> F:      include/linux/spi/
->>>
->>> Please keep linux-omap list Cc'd too so everybody can follow
->>> the progress.
->>
->> Tony, is this list active. The archives seem to be flooded with spam
->> mails
->>
->> http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general
->>
->>>
->
-> Kevin, Can u suggest what is to be done in this situation. spi-devel
-> list doesnot seem
-> to be active and Tony is not willing to merge this patch. Should I
-> send this to LKML
+	- Design changes to support dynamic registration of mailbox Clients.
 
-First, you haven't addressed any of the comments made on the list
-about your series.
+	- Support for OMAP4 mailbox module.
 
-Tony isn't merging this patch because most of it should go via the SPI
-subsystem.
+Design changes:
+==============
 
-A Santosh suggested, you need to break this up into parts that are
-OMAP specific (arch/arm/*) and parts that go via the SPI subsystem
-(drivers/spi/*.)  If doing this breaks your series, then fix it
-because if it breaks compile this way, then upstream maintainers will
-surely hit the same errors and complain.
+The current Mailbox driver has the support for only one set of mailboxes (DSP) and this is statically configured. OMAP4 has multiple mailbox modules. The existing design limits adding the support to add Clients to these new Mailboxes.
 
-David Brownell is the SPI maintainer.  I suggest you send to him,
-CC'ing linux-omap.
+Proposal:
+Define a new API in Mailbox driver to dynamically register Client to mailboxes.
+omap_mbox_set(char *name, int rx_id, int tx_id)
+	name - name of the mailbox client
+	rx_id - The Mailbox ID that is used for receiving events
+	tx_id - The Mailbox that is used for sending events.
 
-Kevin
+Check if the tx_id and rx_id are currently used. If used, send back ERROR.
+	
+
+OMAP4 changes:
+=============
+Following changes in OMAP4 mailbox module need to be taken care of.
+
+- The register offsets for OMAP4 mailbox module is different from OMAP3 mailbox module
+
+- New Mailbox registers added in OMAP4.
+
+Proposal:
+Add OMAP4 support for mailbox register changes with a CONFIG_ARCH_OMAP4 flag in the existing mailbox driver. 
+
+
+Thank you
+Best regards,
+Hari
+
