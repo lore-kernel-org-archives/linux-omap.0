@@ -1,125 +1,116 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [PATCH 1/2] McSPI Slave and DMA,FIFO support
-Date: Thu, 11 Jun 2009 21:14:55 +0530
-Message-ID: <000e01c9eaab$93825830$LocalHost@wipultra793>
-References: <54322.10.24.255.18.1242799009.squirrel@dbdmail.itg.ti.com><20090602180600.GI27332@atomide.com><00fe01c9e5c4$3fc92f70$LocalHost@wipultra793><002701c9eaa1$13f13960$LocalHost@wipultra793> <87k53isu7n.fsf@deeprootsystems.com>
+From: "Bagadia, Sripal" <bagadia@ti.com>
+Subject: RE: [RFC][PATCH] DSPBRIDGE: Video Playback Cache Optimization
+Date: Thu, 11 Jun 2009 11:24:19 -0500
+Message-ID: <2C1563023E232C49B9F505633D57C2DA12A209F463@dlee04.ent.ti.com>
+References: <20090611.101615.116356068.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57461 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755281AbZFKPpN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 11 Jun 2009 11:45:13 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:36663 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754476AbZFKQ0k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2009 12:26:40 -0400
+In-Reply-To: <20090611.101615.116356068.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, David Brownell <david-b@pacbell.net>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: "felipe.contreras@gmail.com" <felipe.contreras@gmail.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+> Would it be possible to tell the case/path, where L_PTE_CACHEABLE/L_P=
+TE_BUFFERABLE is set with VM_IO/VM_RESERVED ?
+
+Currently, display driver maps the video buffers to userspace with VM_R=
+ESERVED flag and pgprot_writecombine(). We are considering changing pgp=
+rot_writecombine() to pgprot_noncached() to eliminate the need of all c=
+ache maintenance overheads for video buffers.
+
+Regarding Felipe's comment:
+> L_PTE_BUFFERABLE is obsolete, isn't it? L_PTE_MT_BUFFERABLE should be=
+ used instead.=20
+
+I was working on 2.6.27.10, and agree that this needs to be updated for=
+ newer kernels.=20
 
 
------ Original Message ----- 
-From: "Kevin Hilman" <khilman@deeprootsystems.com>
-To: "Hemanth V" <hemanthv@ti.com>
-Cc: <linux-omap@vger.kernel.org>; "Tony Lindgren" <tony@atomide.com>; "David 
-Brownell" <david-b@pacbell.net>
-Sent: Thursday, June 11, 2009 8:17 PM
-Subject: Re: [PATCH 1/2] McSPI Slave and DMA,FIFO support
+Regards,
+Sripal
 
+-----Original Message-----
+=46rom: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]=20
+Sent: Thursday, June 11, 2009 2:16 AM
+To: Ramirez Luna, Omar
+Cc: felipe.contreras@gmail.com; ameya.palande@nokia.com; Menon, Nishant=
+h; Bagadia, Sripal; Kanigeri, Hari; linux-omap@vger.kernel.org
+Subject: Re: [RFC][PATCH] DSPBRIDGE: Video Playback Cache Optimization
 
-> "Hemanth V" <hemanthv@ti.com> writes:
->
->> ----- Original Message ----- 
->> From: "Hemanth V" <hemanthv@ti.com>
->> To: "Tony Lindgren" <tony@atomide.com>
->> Cc: <linux-omap@vger.kernel.org>
->> Sent: Friday, June 05, 2009 3:28 PM
->> Subject: Re: [PATCH 1/2] McSPI Slave and DMA,FIFO support
->>
->>
->>> ----- Original Message ----- 
->>> From: "Tony Lindgren" <tony@atomide.com>
->>> To: "Hemanth V" <hemanthv@ti.com>
->>> Cc: <linux-omap@vger.kernel.org>
->>> Sent: Tuesday, June 02, 2009 11:36 PM
->>> Subject: Re: [PATCH 1/2] McSPI Slave and DMA,FIFO support
->>>
->>>
->>>> Hi,
->>>>
->>>> Sorry for the delay in replying, few comments below.
->>>>
->>>> * Hemanth V <hemanthv@ti.com> [090519 22:57]:
->>>>> This patch adds support for McSPI slave and FIFO. DMA and FIFO
->>>>> could be enabled together for better throughput. Platform config
->>>>> parameters have been added to enable these features on any particular
->>>>> McSPI controller.
->>>>>
->>>>> FIFO can be enabled by defining fifo_depth parameter. fifo_depth needs
->>>>> to be a multiple of buffer size that is used for read/write.
->>>>>
->>>>> These features are useful when you have high throughput devices
->>>>> like WLAN or Modem connected over SPI.
->>>>>
->>>>> Signed-off-by: Hemanth V <hemanthv@ti.com>
->>>>>  arch/arm/mach-omap2/devices.c           |    5
->>>>>  arch/arm/plat-omap/include/mach/mcspi.h |   16 +
->>>>>  drivers/spi/omap2_mcspi.c               |  343
->>>>> ++++++++++++++++++++++++++++----
->>>>>  3 files changed, 325 insertions(+), 39 deletions(-)
->>>>
->>>> As this is mostly drivers/spi/omap2_mcspi.c, this patch should get
->>>> merged via:
->>>>
->>>> $ grep -A7 "SPI SUBSYSTEM" MAINTAINERS
->>>> SPI SUBSYSTEM
->>>> P:      David Brownell
->>>> M:      dbrownell@users.sourceforge.net
->>>> L:      spi-devel-general@lists.sourceforge.net
->>>> S:      Maintained
->>>> F:      Documentation/spi/
->>>> F:      drivers/spi/
->>>> F:      include/linux/spi/
->>>>
->>>> Please keep linux-omap list Cc'd too so everybody can follow
->>>> the progress.
->>>
->>> Tony, is this list active. The archives seem to be flooded with spam
->>> mails
->>>
->>> http://sourceforge.net/mailarchive/forum.php?forum_name=spi-devel-general
->>>
->>>>
->>
->> Kevin, Can u suggest what is to be done in this situation. spi-devel
->> list doesnot seem
->> to be active and Tony is not willing to merge this patch. Should I
->> send this to LKML
->
-> First, you haven't addressed any of the comments made on the list
-> about your series.
->
-> Tony isn't merging this patch because most of it should go via the SPI
-> subsystem.
->
-> A Santosh suggested, you need to break this up into parts that are
-> OMAP specific (arch/arm/*) and parts that go via the SPI subsystem
-> (drivers/spi/*.)  If doing this breaks your series, then fix it
+=46rom: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC][PATCH] DSPBRIDGE: Video Playback Cache Optimization
+Date: Wed, 10 Jun 2009 10:25:39 +0300 (EEST)
 
-But then that would cause a problem, we will not be able to
-use arch/arm/plat-omap/include/mach/mcspi.h and will need to redefine those
-variables in omap2_mcspi.c which obviously is not the preferred way.
+> From: "ext Ramirez Luna, Omar" <omar.ramirez@ti.com>
+> Subject: RE: [RFC][PATCH] DSPBRIDGE: Video Playback Cache Optimizatio=
+n
+> Date: Wed, 10 Jun 2009 01:18:29 +0200
+>=20
+> > Hi,
+> >=20
+> > [sending as plain text to l-o]
+> >=20
+> > Could you please comment on this patch.
+> >=20
+> > From: Sripal Bagadia <bagadia@ti.com>
+> > Date: Tue, 9 Jun 2009 16:05:09 -0500
+> > Subject: [PATCH] DSPBRIDGE: Video Playback Cache Optimization
+> >=20
+> > Avoid get_user_pages cache flush overheads for uncached & reserved=20
+> > buffers (e.g. display & camera buffers).
+>=20
+> Would it be possible to tell the case/path, where no=20
+> L_PTE_CACHEABLE/L_PTE_BUFFERABLE is set with VM_IO/VM_RESERVED ?
 
+To be correct,
+  "where L_PTE_CACHEABLE/L_PTE_BUFFERABLE is set with VM_IO/VM_RESERVED=
+"
 
-> because if it breaks compile this way, then upstream maintainers will
-> surely hit the same errors and complain.
->
-> David Brownell is the SPI maintainer.  I suggest you send to him,
-> CC'ing linux-omap.
->
-> Kevin
->
-> 
+> >=20
+> > Signed-off-by: Sripal Bagadia <bagadia@ti.com>
+> > ---
+> > =A0drivers/dsp/bridge/wmd/tiomap3430.c |=A0=A0=A0 4 +++-
+> > =A01 files changed, 3 insertions(+), 1 deletions(-)
+> >=20
+> > diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c=20
+> > b/drivers/dsp/bridge/wmd/tiomap3430.c
+> > index 7a9603d..a2f32e8 100644
+> > --- a/drivers/dsp/bridge/wmd/tiomap3430.c
+> > +++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+> > @@ -1461,7 +1461,9 @@ static DSP_STATUS WMD_BRD_MemMap(struct=20
+> > WMD_DEV_CONTEXT *hDevContext,
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 goto func_cont;
+> > =A0=A0=A0=A0=A0 }
+> > =A0
+> > -=A0=A0=A0=A0 if (vma->vm_flags & VM_IO) {
+> > +=A0=A0=A0=A0 if ((vma->vm_flags & VM_IO) | ((vma->vm_flags & VM_RE=
+SERVED)=20
+> > +&&
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 (~pgprot_val(vma-=
+>vm_page_prot) & L_PTE_CACHEABLE)=20
+> > +&&
+> > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 (~pgprot_val(vma-=
+>vm_page_prot) &=20
+> > +L_PTE_BUFFERABLE))) {
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 numUsrPgs =3D=A0 ulNumBytes / PG_=
+SIZE_4K;
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 mpuAddr =3D ulMpuAddr;
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 DBG_Trace(DBG_LEVEL4, "WMD_BRD_Me=
+mMap:numOfActualTabEntries=3D%d,"
+> > --
+> > 1.6.2.4
+> >=20
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
