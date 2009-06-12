@@ -1,66 +1,56 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH] input: export gpio-keys driven switch status over gpiolib sysfs
-Date: Fri, 12 Jun 2009 13:19:09 +0200
-Message-ID: <200906121319.11005.jkrzyszt@tis.icnet.pl>
-References: <200906050039.40050.jkrzyszt@tis.icnet.pl> <20090611061855.GA8035@dtor-d630.eng.vmware.com>
+From: "stanley.miao" <stanley.miao@windriver.com>
+Subject: Re: Which directory should OMAP-L137/L138's code in ?
+Date: Fri, 12 Jun 2009 20:09:44 +0800
+Message-ID: <4A324588.3010406@windriver.com>
+References: <4A32264F.6050609@windriver.com> <20090612103200.GB7060@atomide.com> <0680EC522D0CC943BC586913CF3768C00378B66E47@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:59212 "EHLO d1.icnet.pl"
+Received: from mail.windriver.com ([147.11.1.11]:47216 "EHLO mail.wrs.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755862AbZFLLTr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 07:19:47 -0400
-In-Reply-To: <20090611061855.GA8035@dtor-d630.eng.vmware.com>
-Content-Disposition: inline
+	id S1757514AbZFLMFi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Jun 2009 08:05:38 -0400
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C00378B66E47@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Dmitry,
+Thanks a lot.
 
-Thursday 11 June 2009 08:18:56 Dmitry Torokhov napisa=C5=82(a):
-> Hi Janusz,
+Stanley.
+
+Syed Mohammed, Khasim wrote:
+> Hi,
 >
-> On Fri, Jun 05, 2009 at 12:39:39AM +0200, Janusz Krzysztofik wrote:
-> > This patch adds support for exporting status of GPIO switches, conf=
-igured
-> > as gpio-keys buttons that generate events of type EV_SW, over stand=
-ard
-> > gpiolib sysfs interface. That way, switch state can be easily acces=
-sed
-> > from userspace via a modern sysfs API in addition to traditional io=
-clt
-> > API, without the need for adding a new, usualy controversial entry =
-to
-> > sysfs interface.
+>   
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
+>> Lindgren
+>> Sent: Friday, June 12, 2009 4:02 PM
+>> To: stanley.miao; Kevin Hilman
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: Which directory should OMAP-L137/L138's code in ?
+>>
+>> * stanley.miao <stanley.miao@windriver.com> [090612 02:53]:
+>>     
+>>> I am developing on the board OMAP-L137/L138, which is similar with
+>>> Davinci series board.  Should I put its platform file in the directory
+>>> arch/arm/mach-davinci ? or create a new direcory arch/arch/mach-L1xx for
+>>> it ?
+>>>
+>>> Any suggestions ?
+>>>       
+>> If it uses DaVinci core code to me it sounds like it should be under
+>> mach-davinci. Kevin?
+>>
+>>     
 >
-> But this would make your application only work with devices using
-> gpio-keys driver and nothing else. I don't think it's a good idea.
+> The TI code for OMAP L 13x is part of mach-davinci. And the platform specific patches to be submitted to Davinci mailing list for upstream submissions.
+>
+> Regards,
+> Khasim
+>
+>   
 
-No, my patch wouldn't make that, neither to mine nor any other applicat=
-ion.=20
-It's an application developer, not my patch, who can make the applicati=
-on=20
-limited, and I think he should be free to do this at his will. My patch=
- would=20
-only provide him with extra functionality, exposed by one of device dri=
-vers,=20
-designed for a specific group of devices, for his free use.
-
-I think that providing extra functionality for free use, without breaki=
-ng=20
-anything, neither in kernel nor user space, not adding any overhead, mo=
-reover,=20
-using an already existing kernel API designed for that specific purpose=
-, is a=20
-good idea.
-
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
