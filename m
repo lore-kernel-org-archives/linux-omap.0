@@ -1,44 +1,72 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Patch: Init/shutdown correctness fixes for drivers/cbus/tahvo*
-Date: Thu, 11 Jun 2009 23:36:57 +0300
-Message-ID: <20090611203657.GB31172@nokia.com>
-References: <20090526002046.52484z9m6ufsxjb4@lidskialf.net> <20090611093725.GB15374@nokia.com> <20090611182646.68427jqmiduhec8w@lidskialf.net>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+Date: Thu, 11 Jun 2009 19:49:44 -0500
+Message-ID: <1244767784-22820-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:36257 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751315AbZFKUkG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2009 16:40:06 -0400
-Content-Disposition: inline
-In-Reply-To: <20090611182646.68427jqmiduhec8w@lidskialf.net>
+Received: from devils.ext.ti.com ([198.47.26.153]:38238 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753437AbZFLAvY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 11 Jun 2009 20:51:24 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5C0pMLp004022
+	for <linux-omap@vger.kernel.org>; Thu, 11 Jun 2009 19:51:27 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Andrew de Quincey <adq_dvb@lidskialf.net>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-Hi,
+Boards with serial irq High/Low/Rising/Falling IRQ requirement
+do not work today
 
-On Thu, Jun 11, 2009 at 07:26:46PM +0200, ext Andrew de Quincey wrote:
-> Hi - the current phase I'm in of this development is to simply get the  
-> thing working reliably again; that includes cleanup etc as appropriate.
-> 
-> Once that is complete, i want to go back and refactor all the drivers  
-> s that they do exactly what you suggest above, as well as using the  
-> latest kernel APIs, modularisation where appropriate etc, with a view  
-> to being suitable for mainline (even if they are not actually  
-> submitted to mainline).
-> 
-> I don't want to do both at once because I feel that is too big a step  
-> for this older slightly unmaintained code. Is it acceptable to you to  
-> commit this patch in the interim?
+8250 serial driver does not have provision to pass on IRQ flags
+from platform_device
 
-That's fine then, but at least fix this line:
+This is requred for OMAP Zoom2 board for which Serial IRQ trigger
+is IRQF_TRIGGER_HIGH
 
-+	struct tahvo_usb *tu = (struct tahvo_usb*) pdev->dev.driver_data;
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ drivers/serial/8250.c       |   10 ++++++++++
+ include/linux/serial_core.h |    4 ++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-then you have my ack
-
+diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
+index bab115e..8235ef5 100644
+--- a/drivers/serial/8250.c
++++ b/drivers/serial/8250.c
+@@ -1641,6 +1641,16 @@ static int serial_link_irq_chain(struct uart_8250_port *up)
+ 	struct irq_info *i;
+ 	int ret, irq_flags = up->port.flags & UPF_SHARE_IRQ ? IRQF_SHARED : 0;
+ 
++	/* Get IRQ Trigger Flag */
++	if (up->port.flags & UPF_IRQ_TRIG_RISING)
++		irq_flags |= IRQF_TRIGGER_RISING;
++	else if (up->port.flags & UPF_IRQ_TRIG_FALLING)
++		irq_flags |= IRQF_TRIGGER_FALLING;
++	else if (up->port.flags & UPF_IRQ_TRIG_HIGH)
++		irq_flags |= IRQF_TRIGGER_HIGH;
++	else if (up->port.flags & UPF_IRQ_TRIG_LOW)
++		irq_flags |= IRQF_TRIGGER_LOW;
++
+ 	mutex_lock(&hash_mutex);
+ 
+ 	h = &irq_lists[up->port.irq % NR_IRQ_HASH];
+diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+index 57a97e5..07591d5 100644
+--- a/include/linux/serial_core.h
++++ b/include/linux/serial_core.h
+@@ -296,7 +296,11 @@ struct uart_port {
+ #define UPF_SPD_WARP		((__force upf_t) (0x1010))
+ #define UPF_SKIP_TEST		((__force upf_t) (1 << 6))
+ #define UPF_AUTO_IRQ		((__force upf_t) (1 << 7))
++#define UPF_IRQ_TRIG_RISING	((__force upf_t) (1 << 8))
++#define UPF_IRQ_TRIG_FALLING	((__force upf_t) (1 << 9))
++#define UPF_IRQ_TRIG_HIGH	((__force upf_t) (1 << 10))
+ #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
++#define UPF_IRQ_TRIG_LOW	((__force upf_t) (1 << 12))
+ #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
+ #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
+ #define UPF_NO_TXEN_TEST	((__force upf_t) (1 << 15))
 -- 
-balbi
+1.6.0.3.613.g9f8f13
+
