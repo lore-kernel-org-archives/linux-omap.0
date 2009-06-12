@@ -1,77 +1,73 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH] OMAP: McSPI: Fix RX DMA transfer path
-Date: Fri, 12 Jun 2009 15:31:50 +0300
-Message-ID: <1244809910-4014-1-git-send-email-aaro.koskinen@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Which directory should OMAP-L137/L138's code in ?
+Date: Fri, 12 Jun 2009 07:23:41 -0700
+Message-ID: <87ljnxledu.fsf@deeprootsystems.com>
+References: <4A32264F.6050609@windriver.com>
+	<20090612103200.GB7060@atomide.com>
+	<0680EC522D0CC943BC586913CF3768C00378B66E47@dbde02.ent.ti.com>
+	<4A324588.3010406@windriver.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:24738 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753743AbZFLMcB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 08:32:01 -0400
-In-Reply-To: <>
-References: <>
+Received: from mail-pz0-f187.google.com ([209.85.222.187]:60793 "EHLO
+	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764695AbZFLOXm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 10:23:42 -0400
+Received: by pzk17 with SMTP id 17so619721pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 12 Jun 2009 07:23:44 -0700 (PDT)
+In-Reply-To: <4A324588.3010406@windriver.com> (stanley miao's message of "Fri\, 12 Jun 2009 20\:09\:44 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dbrownell@users.sourceforge.net, spi-devel-general@lists.sourceforge.net
-Cc: linux-omap@vger.kernel.org, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: "stanley.miao" <stanley.miao@windriver.com>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+And yesterday, I commited the core arch support for the da830/omap-L137
+SoC to DaVinci git.
 
-When data is read through DMA, the last element must be read separately
-through the RX register. It cannot be transferred by the DMA. For further
-details see e.g. OMAP3430 TRM.
+    http://git.kernel.org/?p=linux/kernel/git/khilman/linux-davinci.git
 
-Without the fix the driver causes extra clocks to be clocked to the
-bus after DMA RX operations. This can cause interesting behaviour with
-some devices.
+This part is OMAP in name and marketing spin only.  This is very much
+in the davinci family of SoCs, so I expect more confusion on this in
+the future.
 
-Reported-by: Juuso Oikarinen <juuso.oikarinen@nokia.com>
-Signed-off-by: Juuso Oikarinen <juuso.oikarinen@nokia.com>
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-[aaro.koskinen@nokia.com: Simplified the patch while keeping the idea.]
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- drivers/spi/omap2_mcspi.c |   21 ++++++++++++++++++++-
- 1 files changed, 20 insertions(+), 1 deletions(-)
+Kevin
 
-diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index d6d0c5d..0f640b0 100644
---- a/drivers/spi/omap2_mcspi.c
-+++ b/drivers/spi/omap2_mcspi.c
-@@ -269,7 +269,7 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 
- 	if (rx != NULL) {
- 		omap_set_dma_transfer_params(mcspi_dma->dma_rx_channel,
--				data_type, element_count, 1,
-+				data_type, element_count - 1, 1,
- 				OMAP_DMA_SYNC_ELEMENT,
- 				mcspi_dma->dma_rx_sync_dev, 1);
- 
-@@ -300,6 +300,25 @@ omap2_mcspi_txrx_dma(struct spi_device *spi, struct spi_transfer *xfer)
- 	if (rx != NULL) {
- 		wait_for_completion(&mcspi_dma->dma_rx_completion);
- 		dma_unmap_single(NULL, xfer->rx_dma, count, DMA_FROM_DEVICE);
-+		omap2_mcspi_set_enable(spi, 0);
-+		if (likely(mcspi_read_cs_reg(spi, OMAP2_MCSPI_CHSTAT0) &
-+			OMAP2_MCSPI_CHSTAT_RXS)) {
-+			u32 w;
-+
-+			w = mcspi_read_cs_reg(spi, OMAP2_MCSPI_RX0);
-+			if (word_len <= 8)
-+				((u8 *)xfer->rx_buf)[element_count - 1] = w;
-+			else if (word_len <= 16)
-+				((u16 *)xfer->rx_buf)[element_count - 1] = w;
-+			else /* word_len <= 32 */
-+				((u32 *)xfer->rx_buf)[element_count - 1] = w;
-+		} else {
-+			dev_err(&spi->dev, "DMA RX last word empty");
-+			count -= (word_len <= 8)  ? 1 :
-+				 (word_len <= 16) ? 2 :
-+			       /* word_len <= 32 */ 4;
-+		}
-+		omap2_mcspi_set_enable(spi, 1);
- 	}
- 	return count;
- }
--- 
-1.5.4.3
 
+"stanley.miao" <stanley.miao@windriver.com> writes:
+
+> Thanks a lot.
+>
+> Stanley.
+>
+> Syed Mohammed, Khasim wrote:
+>> Hi,
+>>
+>>   
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
+>>> Lindgren
+>>> Sent: Friday, June 12, 2009 4:02 PM
+>>> To: stanley.miao; Kevin Hilman
+>>> Cc: linux-omap@vger.kernel.org
+>>> Subject: Re: Which directory should OMAP-L137/L138's code in ?
+>>>
+>>> * stanley.miao <stanley.miao@windriver.com> [090612 02:53]:
+>>>     
+>>>> I am developing on the board OMAP-L137/L138, which is similar with
+>>>> Davinci series board.  Should I put its platform file in the directory
+>>>> arch/arm/mach-davinci ? or create a new direcory arch/arch/mach-L1xx for
+>>>> it ?
+>>>>
+>>>> Any suggestions ?
+>>>>       
+>>> If it uses DaVinci core code to me it sounds like it should be under
+>>> mach-davinci. Kevin?
+>>>
+>>>     
+>>
+>> The TI code for OMAP L 13x is part of mach-davinci. And the platform specific patches to be submitted to Davinci mailing list for upstream submissions.
+>>
+>> Regards,
+>> Khasim
+>>
+>>   
