@@ -1,73 +1,82 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Which directory should OMAP-L137/L138's code in ?
-Date: Fri, 12 Jun 2009 07:23:41 -0700
-Message-ID: <87ljnxledu.fsf@deeprootsystems.com>
-References: <4A32264F.6050609@windriver.com>
-	<20090612103200.GB7060@atomide.com>
-	<0680EC522D0CC943BC586913CF3768C00378B66E47@dbde02.ent.ti.com>
-	<4A324588.3010406@windriver.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+Date: Fri, 12 Jun 2009 09:45:50 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0115CBC2F2@dlee02.ent.ti.com>
+References: <1244767784-22820-1-git-send-email-vikram.pandita@ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C0115CBC08A@dlee02.ent.ti.com>
+ <20090612063743.GA655@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f187.google.com ([209.85.222.187]:60793 "EHLO
-	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764695AbZFLOXm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 10:23:42 -0400
-Received: by pzk17 with SMTP id 17so619721pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 12 Jun 2009 07:23:44 -0700 (PDT)
-In-Reply-To: <4A324588.3010406@windriver.com> (stanley miao's message of "Fri\, 12 Jun 2009 20\:09\:44 +0800")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36724 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751879AbZFLOp7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 10:45:59 -0400
+In-Reply-To: <20090612063743.GA655@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "stanley.miao" <stanley.miao@windriver.com>
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-And yesterday, I commited the core arch support for the da830/omap-L137
-SoC to DaVinci git.
+> -----Original Message-----
+> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+> Sent: Friday, June 12, 2009 1:38 AM
+> To: Menon, Nishanth
+> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+> 
+> On Fri, Jun 12, 2009 at 03:46:37AM +0200, ext Menon, Nishanth wrote:
+> >
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+> > > Sent: Thursday, June 11, 2009 7:50 PM
+> > > To: linux-omap@vger.kernel.org
+> > > Cc: Pandita, Vikram
+> > > Subject: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+> > >
+> > >
+> > > +	/* Get IRQ Trigger Flag */
+> > > +	if (up->port.flags & UPF_IRQ_TRIG_RISING)
+> > > +		irq_flags |= IRQF_TRIGGER_RISING;
+> > > +	else if (up->port.flags & UPF_IRQ_TRIG_FALLING)
+> > > +		irq_flags |= IRQF_TRIGGER_FALLING;
+> > > +	else if (up->port.flags & UPF_IRQ_TRIG_HIGH)
+> > > +		irq_flags |= IRQF_TRIGGER_HIGH;
+> > > +	else if (up->port.flags & UPF_IRQ_TRIG_LOW)
+> > > +		irq_flags |= IRQF_TRIGGER_LOW;
+> > > +
+> > Blame it on my dislike for nested if elseif, but...
+> > irq_flags |=
+> > 	(up->port.flags & UPF_IRQ_TRIG_RISING)? IRQF_TRIGGER_RISING :
+> > 	(up->port.flags & UPF_IRQ_TRIG_FALLING)? IRQF_TRIGGER_FALLING :
+> > 	(up->port.flags & IRQF_TRIGGER_HIGH)? IRQF_TRIGGER_HIGH :
+> > 	(up->port.flags & UPF_IRQ_TRIG_LOW)? IRQF_TRIGGER_LOW : 0;
+> >
+> > Makes sense?
+> 
+> switch (up->port.flags & UPF_IRQ_FLAGS_MASK) {
+> case UPF_IRQ_TRIG_RISING:
+> 	irq_flags |= IRQF_TRIGGER_RISING;
+> 	break;
+> case UPF_IRQ_TRIG_FALLING:
+> 	irq_flags |= IRQF_TRIGGER_FALLING;
+> 	break;
+> case UPF_IRQ_TRIG_HIGH:
+> 	irq_flags |= IRQF_TRIGGER_HIGH;
+> 	break;
+> case UPF_IRQ_TRIG_LOW:
+> 	irq_flags |= IRQF_TRIGGER_LOW;
+> 	break;
+> default:
+> 	printk(KERN_ERR "Unsupported flag\n");
+> 	return -EINVAL;
+> }
+> 
+Better :) infact, if the port.flags = UPF_IRQ_TRIG_LOW | UPF_IRQ_TRIG_HIGH it might be better to return -EINVAL, which Felipe's change does :).
 
-    http://git.kernel.org/?p=linux/kernel/git/khilman/linux-davinci.git
+Regards,
+Nishanth Menon
 
-This part is OMAP in name and marketing spin only.  This is very much
-in the davinci family of SoCs, so I expect more confusion on this in
-the future.
-
-Kevin
-
-
-"stanley.miao" <stanley.miao@windriver.com> writes:
-
-> Thanks a lot.
->
-> Stanley.
->
-> Syed Mohammed, Khasim wrote:
->> Hi,
->>
->>   
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
->>> Lindgren
->>> Sent: Friday, June 12, 2009 4:02 PM
->>> To: stanley.miao; Kevin Hilman
->>> Cc: linux-omap@vger.kernel.org
->>> Subject: Re: Which directory should OMAP-L137/L138's code in ?
->>>
->>> * stanley.miao <stanley.miao@windriver.com> [090612 02:53]:
->>>     
->>>> I am developing on the board OMAP-L137/L138, which is similar with
->>>> Davinci series board.  Should I put its platform file in the directory
->>>> arch/arm/mach-davinci ? or create a new direcory arch/arch/mach-L1xx for
->>>> it ?
->>>>
->>>> Any suggestions ?
->>>>       
->>> If it uses DaVinci core code to me it sounds like it should be under
->>> mach-davinci. Kevin?
->>>
->>>     
->>
->> The TI code for OMAP L 13x is part of mach-davinci. And the platform specific patches to be submitted to Davinci mailing list for upstream submissions.
->>
->> Regards,
->> Khasim
->>
->>   
