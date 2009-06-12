@@ -1,294 +1,153 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 1/2] OMAP3:Zoom2: Add TWL4030 support
-Date: Fri, 12 Jun 2009 17:50:11 -0500
-Message-ID: <1244847011-28812-1-git-send-email-vikram.pandita@ti.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+Date: Sat, 13 Jun 2009 02:13:52 +0300
+Message-ID: <94a0d4530906121613t2f8742efwd60bd99431b9358a@mail.gmail.com>
+References: <1244767784-22820-1-git-send-email-vikram.pandita@ti.com>
+	 <7A436F7769CA33409C6B44B358BFFF0C0115CBC08A@dlee02.ent.ti.com>
+	 <20090612063743.GA655@nokia.com>
+	 <7A436F7769CA33409C6B44B358BFFF0C0115CBC2F2@dlee02.ent.ti.com>
+	 <FCCFB4CDC6E5564B9182F639FC35608702F53464BE@dbde02.ent.ti.com>
+	 <20090612190139.GC28101@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:45883 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934910AbZFLWvs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Jun 2009 18:51:48 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5CMpjS0018408
-	for <linux-omap@vger.kernel.org>; Fri, 12 Jun 2009 17:51:50 -0500
+Received: from fg-out-1718.google.com ([72.14.220.156]:24681 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754252AbZFLXNx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 19:13:53 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so763396fgg.17
+        for <linux-omap@vger.kernel.org>; Fri, 12 Jun 2009 16:13:54 -0700 (PDT)
+In-Reply-To: <20090612190139.GC28101@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+To: felipe.balbi@nokia.com
+Cc: "ext Pandita, Vikram" <vikram.pandita@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Add TWL4030 CORE and TWL4030 drivers to Zoom2 board file
-TWL drivers enabled are:
-	bci
-	madc
-	usb
-	keypad
-	mmc
+On Fri, Jun 12, 2009 at 10:01 PM, Felipe Balbi<felipe.balbi@nokia.com> =
+wrote:
+> On Fri, Jun 12, 2009 at 04:50:09PM +0200, ext Pandita, Vikram wrote:
+>>
+>>
+>> >-----Original Message-----
+>> >From: Menon, Nishanth
+>> >Sent: Friday, June 12, 2009 9:46 AM
+>> >To: felipe.balbi@nokia.com
+>> >Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+>> >Subject: RE: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+>> >
+>> >> -----Original Message-----
+>> >> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+>> >> Sent: Friday, June 12, 2009 1:38 AM
+>> >> To: Menon, Nishanth
+>> >> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+>> >> Subject: Re: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+>> >>
+>> >> On Fri, Jun 12, 2009 at 03:46:37AM +0200, ext Menon, Nishanth wro=
+te:
+>> >> >
+>> >> > > -----Original Message-----
+>> >> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> >> > > owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+>> >> > > Sent: Thursday, June 11, 2009 7:50 PM
+>> >> > > To: linux-omap@vger.kernel.org
+>> >> > > Cc: Pandita, Vikram
+>> >> > > Subject: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+>> >> > >
+>> >> > >
+>> >> > > + =C2=A0 =C2=A0 =C2=A0/* Get IRQ Trigger Flag */
+>> >> > > + =C2=A0 =C2=A0 =C2=A0if (up->port.flags & UPF_IRQ_TRIG_RISIN=
+G)
+>> >> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0irq_flags |=
+=3D IRQF_TRIGGER_RISING;
+>> >> > > + =C2=A0 =C2=A0 =C2=A0else if (up->port.flags & UPF_IRQ_TRIG_=
+=46ALLING)
+>> >> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0irq_flags |=
+=3D IRQF_TRIGGER_FALLING;
+>> >> > > + =C2=A0 =C2=A0 =C2=A0else if (up->port.flags & UPF_IRQ_TRIG_=
+HIGH)
+>> >> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0irq_flags |=
+=3D IRQF_TRIGGER_HIGH;
+>> >> > > + =C2=A0 =C2=A0 =C2=A0else if (up->port.flags & UPF_IRQ_TRIG_=
+LOW)
+>> >> > > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0irq_flags |=
+=3D IRQF_TRIGGER_LOW;
+>> >> > > +
+>> >> > Blame it on my dislike for nested if elseif, but...
+>> >> > irq_flags |=3D
+>> >> > =C2=A0(up->port.flags & UPF_IRQ_TRIG_RISING)? IRQF_TRIGGER_RISI=
+NG :
+>> >> > =C2=A0(up->port.flags & UPF_IRQ_TRIG_FALLING)? IRQF_TRIGGER_FAL=
+LING :
+>> >> > =C2=A0(up->port.flags & IRQF_TRIGGER_HIGH)? IRQF_TRIGGER_HIGH :
+>> >> > =C2=A0(up->port.flags & UPF_IRQ_TRIG_LOW)? IRQF_TRIGGER_LOW : 0=
+;
+>> >> >
+>> >> > Makes sense?
+>> >>
+>> >> switch (up->port.flags & UPF_IRQ_FLAGS_MASK) {
+>> >> case UPF_IRQ_TRIG_RISING:
+>> >> =C2=A0 =C2=A0irq_flags |=3D IRQF_TRIGGER_RISING;
+>> >> =C2=A0 =C2=A0break;
+>> >> case UPF_IRQ_TRIG_FALLING:
+>> >> =C2=A0 =C2=A0irq_flags |=3D IRQF_TRIGGER_FALLING;
+>> >> =C2=A0 =C2=A0break;
+>> >> case UPF_IRQ_TRIG_HIGH:
+>> >> =C2=A0 =C2=A0irq_flags |=3D IRQF_TRIGGER_HIGH;
+>> >> =C2=A0 =C2=A0break;
+>> >> case UPF_IRQ_TRIG_LOW:
+>> >> =C2=A0 =C2=A0irq_flags |=3D IRQF_TRIGGER_LOW;
+>> >> =C2=A0 =C2=A0break;
+>> >> default:
+>> >> =C2=A0 =C2=A0printk(KERN_ERR "Unsupported flag\n");
+>> >> =C2=A0 =C2=A0return -EINVAL;
+>> >> }
+>> >>
+>> >Better :) infact, if the port.flags =3D UPF_IRQ_TRIG_LOW | UPF_IRQ_=
+TRIG_HIGH it might be better to
+>> >return -EINVAL, which Felipe's change does :).
+>>
+>> Needs more investigation as to how current boards using 8250 driver =
+do not pass any flag (maybe just SHARED flag) and they still work. Mayb=
+e some default taken by request_irq()
+>>
+>> In short NO_ need to return failure as no flag is a valid use case.
+>
+> remove the default part:
+>
+> switch (up->port.flags & UPF_IRQ_FLAGS_MASK) {
+> case UPF_IRQ_TRIG_RISING:
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0irq_flags |=3D IRQF_TRIGGER_RISING;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
- arch/arm/mach-omap2/board-zoom2.c |  208 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 197 insertions(+), 11 deletions(-)
+How about?
+ irq_flags |=3D IRQF_TRIGGER_RISING; break;
 
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index bcc0f76..8049ffe 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -12,8 +12,10 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-+#include <linux/input.h>
- #include <linux/gpio.h>
- #include <linux/i2c/twl4030.h>
-+#include <linux/regulator/machine.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-@@ -23,6 +25,74 @@
- 
- #include "mmc-twl4030.h"
- 
-+#ifndef CONFIG_TWL4030_CORE
-+#error "no power companion board defined!"
-+#endif
-+
-+
-+/* Zoom2 has Qwerty keyboard*/
-+static int zoom2_twl4030_keymap[] = {
-+	KEY(0, 0, KEY_E),
-+	KEY(1, 0, KEY_R),
-+	KEY(2, 0, KEY_T),
-+	KEY(3, 0, KEY_HOME),
-+	KEY(6, 0, KEY_I),
-+	KEY(7, 0, KEY_LEFTSHIFT),
-+	KEY(0, 1, KEY_D),
-+	KEY(1, 1, KEY_F),
-+	KEY(2, 1, KEY_G),
-+	KEY(3, 1, KEY_SEND),
-+	KEY(6, 1, KEY_K),
-+	KEY(7, 1, KEY_ENTER),
-+	KEY(0, 2, KEY_X),
-+	KEY(1, 2, KEY_C),
-+	KEY(2, 2, KEY_V),
-+	KEY(3, 2, KEY_END),
-+	KEY(6, 2, KEY_DOT),
-+	KEY(7, 2, KEY_CAPSLOCK),
-+	KEY(0, 3, KEY_Z),
-+	KEY(1, 3, KEY_KPPLUS),
-+	KEY(2, 3, KEY_B),
-+	KEY(3, 3, KEY_F1),
-+	KEY(6, 3, KEY_O),
-+	KEY(7, 3, KEY_SPACE),
-+	KEY(0, 4, KEY_W),
-+	KEY(1, 4, KEY_Y),
-+	KEY(2, 4, KEY_U),
-+	KEY(3, 4, KEY_F2),
-+	KEY(4, 4, KEY_VOLUMEUP),
-+	KEY(6, 4, KEY_L),
-+	KEY(7, 4, KEY_LEFT),
-+	KEY(0, 5, KEY_S),
-+	KEY(1, 5, KEY_H),
-+	KEY(2, 5, KEY_J),
-+	KEY(3, 5, KEY_F3),
-+	KEY(5, 5, KEY_VOLUMEDOWN),
-+	KEY(6, 5, KEY_M),
-+	KEY(4, 5, KEY_ENTER),
-+	KEY(7, 5, KEY_RIGHT),
-+	KEY(0, 6, KEY_Q),
-+	KEY(1, 6, KEY_A),
-+	KEY(2, 6, KEY_N),
-+	KEY(3, 6, KEY_BACKSPACE),
-+	KEY(6, 6, KEY_P),
-+	KEY(7, 6, KEY_UP),
-+	KEY(6, 7, KEY_SELECT),
-+	KEY(7, 7, KEY_DOWN),
-+	KEY(0, 7, KEY_PROG1),	/*MACRO 1 <User defined> */
-+	KEY(1, 7, KEY_PROG2),	/*MACRO 2 <User defined> */
-+	KEY(2, 7, KEY_PROG3),	/*MACRO 3 <User defined> */
-+	KEY(3, 7, KEY_PROG4),	/*MACRO 4 <User defined> */
-+	0
-+};
-+
-+static struct twl4030_keypad_data zoom2_kp_twl4030_data = {
-+	.rows		= 8,
-+	.cols		= 8,
-+	.keymap		= zoom2_twl4030_keymap,
-+	.keymapsize	= ARRAY_SIZE(zoom2_twl4030_keymap),
-+	.rep		= 1,
-+};
- static void __init omap_zoom2_init_irq(void)
- {
- 	omap2_init_common_hw(NULL);
-@@ -38,10 +108,129 @@ static struct omap_board_config_kernel zoom2_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&zoom2_uart_config },
- };
- 
-+
-+
-+static struct regulator_consumer_supply zoom2_vmmc1_supply = {
-+	.supply		= "vmmc",
-+};
-+
-+static struct regulator_consumer_supply zoom2_vsim_supply = {
-+	.supply		= "vmmc_aux",
-+};
-+
-+static struct regulator_consumer_supply zoom2_vmmc2_supply = {
-+	.supply		= "vmmc",
-+};
-+
-+/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
-+static struct regulator_init_data zoom2_vmmc1 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 3150000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &zoom2_vmmc1_supply,
-+};
-+
-+/* VMMC2 for MMC2 card */
-+static struct regulator_init_data zoom2_vmmc2 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 1850000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &zoom2_vmmc2_supply,
-+};
-+
-+/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
-+static struct regulator_init_data zoom2_vsim = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 3000000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &zoom2_vsim_supply,
-+};
-+
-+static struct twl4030_hsmmc_info mmc[] __initdata = {
-+	{
-+		.mmc		= 1,
-+		.wires		= 4,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{
-+		.mmc		= 2,
-+		.wires		= 4,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{}      /* Terminator */
-+};
-+
-+static int zoom2_twl_gpio_setup(struct device *dev,
-+		unsigned gpio, unsigned ngpio)
-+{
-+	/* gpio + 0 is "mmc0_cd" (input/IRQ),
-+	 * gpio + 1 is "mmc1_cd" (input/IRQ)
-+	 */
-+	mmc[0].gpio_cd = gpio + 0;
-+	mmc[1].gpio_cd = gpio + 1;
-+	twl4030_mmc_init(mmc);
-+
-+	/* link regulators to MMC adapters ... we "know" the
-+	 * regulators will be set up only *after* we return.
-+	*/
-+	zoom2_vmmc1_supply.dev = mmc[0].dev;
-+	zoom2_vsim_supply.dev = mmc[0].dev;
-+	zoom2_vmmc2_supply.dev = mmc[1].dev;
-+
-+	return 0;
-+}
-+
-+
-+static int zoom2_batt_table[] = {
-+/* 0 C*/
-+30800, 29500, 28300, 27100,
-+26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
-+17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
-+11600, 11200, 10800, 10400, 10000, 9630,   9280,   8950,   8620,   8310,
-+8020,   7730,   7460,   7200,   6950,   6710,   6470,   6250,   6040,   5830,
-+5640,   5450,   5260,   5090,   4920,   4760,   4600,   4450,   4310,   4170,
-+4040,   3910,   3790,   3670,   3550
-+};
-+
-+static struct twl4030_bci_platform_data zoom2_bci_data = {
-+	.battery_tmp_tbl	= zoom2_batt_table,
-+	.tblsize		= ARRAY_SIZE(zoom2_batt_table),
-+};
-+
-+static struct twl4030_usb_data zoom2_usb_data = {
-+	.usb_mode	= T2_USB_MODE_ULPI,
-+};
-+
- static struct twl4030_gpio_platform_data zoom2_gpio_data = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
-+	.setup		= zoom2_twl_gpio_setup,
-+};
-+
-+static struct twl4030_madc_platform_data zoom2_madc_data = {
-+	.irq_line	= 1,
- };
- 
- static struct twl4030_platform_data zoom2_twldata = {
-@@ -49,7 +238,15 @@ static struct twl4030_platform_data zoom2_twldata = {
- 	.irq_end	= TWL4030_IRQ_END,
- 
- 	/* platform_data for children goes here */
-+	.bci		= &zoom2_bci_data,
-+	.madc		= &zoom2_madc_data,
-+	.usb		= &zoom2_usb_data,
- 	.gpio		= &zoom2_gpio_data,
-+	.keypad		= &zoom2_kp_twl4030_data,
-+	.vmmc1          = &zoom2_vmmc1,
-+	.vmmc2          = &zoom2_vmmc2,
-+	.vsim           = &zoom2_vsim,
-+
- };
- 
- static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
-@@ -70,16 +267,6 @@ static int __init omap_i2c_init(void)
- 	return 0;
- }
- 
--static struct twl4030_hsmmc_info mmc[] __initdata = {
--	{
--		.mmc		= 1,
--		.wires		= 4,
--		.gpio_cd	= -EINVAL,
--		.gpio_wp	= -EINVAL,
--	},
--	{}	/* Terminator */
--};
--
- extern int __init omap_zoom2_debugboard_init(void);
- 
- static void __init omap_zoom2_init(void)
-@@ -89,7 +276,6 @@ static void __init omap_zoom2_init(void)
- 	omap_board_config_size = ARRAY_SIZE(zoom2_config);
- 	omap_serial_init();
- 	omap_zoom2_debugboard_init();
--	twl4030_mmc_init(mmc);
- 	usb_musb_init();
- }
- 
--- 
-1.6.0.3.613.g9f8f13
+As far as I can tell Linux code-style tries to use as less lines of
+code as possible while retaining sane readability.
 
+> case UPF_IRQ_TRIG_FALLING:
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0irq_flags |=3D IRQF_TRIGGER_FALLING;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
+> case UPF_IRQ_TRIG_HIGH:
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0irq_flags |=3D IRQF_TRIGGER_HIGH;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
+> case UPF_IRQ_TRIG_LOW:
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0irq_flags |=3D IRQF_TRIGGER_LOW;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
+> default:
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
+
+There's no need for the final break, is it?
+
+> }
+
+Cheers.
+
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
