@@ -1,81 +1,63 @@
-From: Marc Zyngier <maz@misterjones.org>
-Subject: Re: [PATCH] serial: 8250: add IRQ trigger support
-Date: Fri, 12 Jun 2009 21:31:27 +0200
-Message-ID: <20090612213127.0f03e0c5@taxman.wild-wind.fr.eu.org>
-References: <1244827971-14981-1-git-send-email-vikram.pandita@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Ulrik Bech Hald <ubh@ti.com>
+Subject: [PATCH 1/1] OMAP3:Re-introduce omap_type()
+Date: Fri, 12 Jun 2009 15:58:31 -0500
+Message-ID: <1244840311-11809-1-git-send-email-ubh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from inca-roads.misterjones.org ([213.251.177.50]:48803 "EHLO
-	inca-roads.misterjones.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754438AbZFLTb0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Jun 2009 15:31:26 -0400
-In-Reply-To: <1244827971-14981-1-git-send-email-vikram.pandita@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:41107 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751854AbZFLUx6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 12 Jun 2009 16:53:58 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5CKrtUf018059
+	for <linux-omap@vger.kernel.org>; Fri, 12 Jun 2009 15:54:00 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Vikram Pandita <vikram.pandita@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Ulrik Bech Hald <ubh@ti.com>
 
-On Fri, 12 Jun 2009 12:32:51 -0500
-Vikram Pandita <vikram.pandita@ti.com> wrote:
+The functionality of omap_type() is needed for eg. watchdog
+device registration to distinguish different device types.
 
-> There is currently no provision for passing IRQ trigger flags for
-> serial IRQs with triggering requirements (such as GPIO IRQs.)
-> 
-> This patch adds UPF_IRQ_TRIG_* flags which map on to IRQF_TRIGGER_*
-> flags.
-> 
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
+---
+ arch/arm/mach-omap2/id.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 arch/arm/mach-omap2/id.c
 
-Note that this patch doesn't allow  the interrupt to trigger on both
-edges (not that I have ever seen a 8250 with this behavior, but this
-is a valid configuration from an interrupt point of view).
-
-Aside from this remark:
-Acked-by: Marc Zyngier <maz@misterjones.org>
-
-> ---
->  drivers/serial/8250.c       |   10 ++++++++++
->  include/linux/serial_core.h |    4 ++++
->  2 files changed, 14 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
-> index bab115e..8235ef5 100644
-> --- a/drivers/serial/8250.c
-> +++ b/drivers/serial/8250.c
-> @@ -1641,6 +1641,16 @@ static int serial_link_irq_chain(struct
-> uart_8250_port *up) struct irq_info *i;
->  	int ret, irq_flags = up->port.flags & UPF_SHARE_IRQ ?
-> IRQF_SHARED : 0; 
-> +	/* Get IRQ Trigger Flag */
-> +	if (up->port.flags & UPF_IRQ_TRIG_RISING)
-> +		irq_flags |= IRQF_TRIGGER_RISING;
-> +	else if (up->port.flags & UPF_IRQ_TRIG_FALLING)
-> +		irq_flags |= IRQF_TRIGGER_FALLING;
-> +	else if (up->port.flags & UPF_IRQ_TRIG_HIGH)
-> +		irq_flags |= IRQF_TRIGGER_HIGH;
-> +	else if (up->port.flags & UPF_IRQ_TRIG_LOW)
-> +		irq_flags |= IRQF_TRIGGER_LOW;
-> +
->  	mutex_lock(&hash_mutex);
->  
->  	h = &irq_lists[up->port.irq % NR_IRQ_HASH];
-> diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-> index 57a97e5..07591d5 100644
-> --- a/include/linux/serial_core.h
-> +++ b/include/linux/serial_core.h
-> @@ -296,7 +296,11 @@ struct uart_port {
->  #define UPF_SPD_WARP		((__force upf_t) (0x1010))
->  #define UPF_SKIP_TEST		((__force upf_t) (1 << 6))
->  #define UPF_AUTO_IRQ		((__force upf_t) (1 << 7))
-> +#define UPF_IRQ_TRIG_RISING	((__force upf_t) (1 << 8))
-> +#define UPF_IRQ_TRIG_FALLING	((__force upf_t) (1 << 9))
-> +#define UPF_IRQ_TRIG_HIGH	((__force upf_t) (1 << 10))
->  #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
-> +#define UPF_IRQ_TRIG_LOW	((__force upf_t) (1 << 12))
->  #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
->  #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
->  #define UPF_NO_TXEN_TEST	((__force upf_t) (1 << 15))
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+old mode 100644
+new mode 100755
+index 458990e..9fa61b4
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -48,6 +48,27 @@ int omap_chip_is(struct omap_chip_id oci)
+ }
+ EXPORT_SYMBOL(omap_chip_is);
+ 
++int omap_type(void)
++{
++	u32 val = 0;
++
++	if (cpu_is_omap24xx()) {
++		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
++	} else if (cpu_is_omap34xx()) {
++		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
++	} else {
++		pr_err("Cannot detect omap type!\n");
++		goto out;
++	}
++
++	val &= OMAP2_DEVICETYPE_MASK;
++	val >>= 8;
++
++out:
++	return val;
++}
++EXPORT_SYMBOL(omap_type);
++
+ /*----------------------------------------------------------------------------*/
+ 
+ #define OMAP_TAP_IDCODE		0x0204
+-- 
+1.5.4.3
 
