@@ -1,63 +1,113 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH] serial: 8250: add IRQ trigger support
-Date: Fri, 12 Jun 2009 12:32:51 -0500
-Message-ID: <1244827971-14981-1-git-send-email-vikram.pandita@ti.com>
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-serial@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Vikram Pandita <vikram.pandita@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+Date: Fri, 12 Jun 2009 22:01:39 +0300
+Message-ID: <20090612190139.GC28101@nokia.com>
+References: <1244767784-22820-1-git-send-email-vikram.pandita@ti.com> <7A436F7769CA33409C6B44B358BFFF0C0115CBC08A@dlee02.ent.ti.com> <20090612063743.GA655@nokia.com> <7A436F7769CA33409C6B44B358BFFF0C0115CBC2F2@dlee02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC35608702F53464BE@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:24251 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934084AbZFLTE4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 15:04:56 -0400
+Content-Disposition: inline
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F53464BE@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-There is currently no provision for passing IRQ trigger flags for
-serial IRQs with triggering requirements (such as GPIO IRQs.)
+On Fri, Jun 12, 2009 at 04:50:09PM +0200, ext Pandita, Vikram wrote:
+> 
+> 
+> >-----Original Message-----
+> >From: Menon, Nishanth
+> >Sent: Friday, June 12, 2009 9:46 AM
+> >To: felipe.balbi@nokia.com
+> >Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+> >Subject: RE: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+> >
+> >> -----Original Message-----
+> >> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
+> >> Sent: Friday, June 12, 2009 1:38 AM
+> >> To: Menon, Nishanth
+> >> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+> >> Subject: Re: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+> >>
+> >> On Fri, Jun 12, 2009 at 03:46:37AM +0200, ext Menon, Nishanth wrote:
+> >> >
+> >> > > -----Original Message-----
+> >> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >> > > owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+> >> > > Sent: Thursday, June 11, 2009 7:50 PM
+> >> > > To: linux-omap@vger.kernel.org
+> >> > > Cc: Pandita, Vikram
+> >> > > Subject: [PATCH 1/2] Serial: Define IRQ flags for 8250 driver
+> >> > >
+> >> > >
+> >> > > +	/* Get IRQ Trigger Flag */
+> >> > > +	if (up->port.flags & UPF_IRQ_TRIG_RISING)
+> >> > > +		irq_flags |= IRQF_TRIGGER_RISING;
+> >> > > +	else if (up->port.flags & UPF_IRQ_TRIG_FALLING)
+> >> > > +		irq_flags |= IRQF_TRIGGER_FALLING;
+> >> > > +	else if (up->port.flags & UPF_IRQ_TRIG_HIGH)
+> >> > > +		irq_flags |= IRQF_TRIGGER_HIGH;
+> >> > > +	else if (up->port.flags & UPF_IRQ_TRIG_LOW)
+> >> > > +		irq_flags |= IRQF_TRIGGER_LOW;
+> >> > > +
+> >> > Blame it on my dislike for nested if elseif, but...
+> >> > irq_flags |=
+> >> > 	(up->port.flags & UPF_IRQ_TRIG_RISING)? IRQF_TRIGGER_RISING :
+> >> > 	(up->port.flags & UPF_IRQ_TRIG_FALLING)? IRQF_TRIGGER_FALLING :
+> >> > 	(up->port.flags & IRQF_TRIGGER_HIGH)? IRQF_TRIGGER_HIGH :
+> >> > 	(up->port.flags & UPF_IRQ_TRIG_LOW)? IRQF_TRIGGER_LOW : 0;
+> >> >
+> >> > Makes sense?
+> >>
+> >> switch (up->port.flags & UPF_IRQ_FLAGS_MASK) {
+> >> case UPF_IRQ_TRIG_RISING:
+> >> 	irq_flags |= IRQF_TRIGGER_RISING;
+> >> 	break;
+> >> case UPF_IRQ_TRIG_FALLING:
+> >> 	irq_flags |= IRQF_TRIGGER_FALLING;
+> >> 	break;
+> >> case UPF_IRQ_TRIG_HIGH:
+> >> 	irq_flags |= IRQF_TRIGGER_HIGH;
+> >> 	break;
+> >> case UPF_IRQ_TRIG_LOW:
+> >> 	irq_flags |= IRQF_TRIGGER_LOW;
+> >> 	break;
+> >> default:
+> >> 	printk(KERN_ERR "Unsupported flag\n");
+> >> 	return -EINVAL;
+> >> }
+> >>
+> >Better :) infact, if the port.flags = UPF_IRQ_TRIG_LOW | UPF_IRQ_TRIG_HIGH it might be better to
+> >return -EINVAL, which Felipe's change does :).
+> 
+> Needs more investigation as to how current boards using 8250 driver do not pass any flag (maybe just SHARED flag) and they still work. Maybe some default taken by request_irq()
+> 
+> In short NO_ need to return failure as no flag is a valid use case.
 
-This patch adds UPF_IRQ_TRIG_* flags which map on to IRQF_TRIGGER_*
-flags.
+remove the default part:
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- drivers/serial/8250.c       |   10 ++++++++++
- include/linux/serial_core.h |    4 ++++
- 2 files changed, 14 insertions(+), 0 deletions(-)
+switch (up->port.flags & UPF_IRQ_FLAGS_MASK) {
+case UPF_IRQ_TRIG_RISING:
+	irq_flags |= IRQF_TRIGGER_RISING;
+	break;
+case UPF_IRQ_TRIG_FALLING:
+	irq_flags |= IRQF_TRIGGER_FALLING;
+	break;
+case UPF_IRQ_TRIG_HIGH:
+	irq_flags |= IRQF_TRIGGER_HIGH;
+	break;
+case UPF_IRQ_TRIG_LOW:
+	irq_flags |= IRQF_TRIGGER_LOW;
+	break;
+default:
+	break;
+}
 
-diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
-index bab115e..8235ef5 100644
---- a/drivers/serial/8250.c
-+++ b/drivers/serial/8250.c
-@@ -1641,6 +1641,16 @@ static int serial_link_irq_chain(struct uart_8250_port *up)
- 	struct irq_info *i;
- 	int ret, irq_flags = up->port.flags & UPF_SHARE_IRQ ? IRQF_SHARED : 0;
- 
-+	/* Get IRQ Trigger Flag */
-+	if (up->port.flags & UPF_IRQ_TRIG_RISING)
-+		irq_flags |= IRQF_TRIGGER_RISING;
-+	else if (up->port.flags & UPF_IRQ_TRIG_FALLING)
-+		irq_flags |= IRQF_TRIGGER_FALLING;
-+	else if (up->port.flags & UPF_IRQ_TRIG_HIGH)
-+		irq_flags |= IRQF_TRIGGER_HIGH;
-+	else if (up->port.flags & UPF_IRQ_TRIG_LOW)
-+		irq_flags |= IRQF_TRIGGER_LOW;
-+
- 	mutex_lock(&hash_mutex);
- 
- 	h = &irq_lists[up->port.irq % NR_IRQ_HASH];
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index 57a97e5..07591d5 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -296,7 +296,11 @@ struct uart_port {
- #define UPF_SPD_WARP		((__force upf_t) (0x1010))
- #define UPF_SKIP_TEST		((__force upf_t) (1 << 6))
- #define UPF_AUTO_IRQ		((__force upf_t) (1 << 7))
-+#define UPF_IRQ_TRIG_RISING	((__force upf_t) (1 << 8))
-+#define UPF_IRQ_TRIG_FALLING	((__force upf_t) (1 << 9))
-+#define UPF_IRQ_TRIG_HIGH	((__force upf_t) (1 << 10))
- #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
-+#define UPF_IRQ_TRIG_LOW	((__force upf_t) (1 << 12))
- #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
- #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
- #define UPF_NO_TXEN_TEST	((__force upf_t) (1 << 15))
 -- 
-1.6.0.3.613.g9f8f13
-
+balbi
