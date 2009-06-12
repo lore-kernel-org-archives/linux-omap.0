@@ -1,257 +1,223 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: OMAP3xxx hsmmc : MMC3 doesn't work, always times out?
-Date: Fri, 12 Jun 2009 10:40:53 -0500
-Message-ID: <004201c9eb74$2b7fcfa0$544ff780@am.dhcp.ti.com>
-References: <5a7b8b7b0906101913h2dbcbbc6l8f27873b8f81a3e0@mail.gmail.com> <FCCFB4CDC6E5564B9182F639FC35608702F5345DB6@dbde02.ent.ti.com> <5a7b8b7b0906102035s448e33cfpe4b321d36288e514@mail.gmail.com> <1244700526.9815.31.camel@blitz> <5910F919-941B-4964-99F5-C5772B1965C9@gmail.com> <6ed0b2680906110229u7ce2481sddb0168829bf7d38@mail.gmail.com> <8CD1B7D1-9B84-45C1-BC91-B44839743500@gmail.com> <4A3202FF.9080201@nokia.com>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC] OMAP4:mailbox changes
+Date: Fri, 12 Jun 2009 10:58:34 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E2F8C0A44@dlee03.ent.ti.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E2F802663@dlee03.ent.ti.com>
+ <20090612.062106.241913394.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40436 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41335 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759801AbZFLPlL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 12 Jun 2009 11:41:11 -0400
-In-Reply-To: <4A3202FF.9080201@nokia.com>
+	id S1753457AbZFLP6o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 11:58:44 -0400
+In-Reply-To: <20090612.062106.241913394.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Adrian Hunter' <adrian.hunter@nokia.com>, 'Hugo Vincent' <hugo.vincent@gmail.com>
-Cc: 'Grazvydas Ignotas' <notasas@gmail.com>, "'Pandita, Vikram'" <vikram.pandita@ti.com>, 'linux-omap' <linux-omap@vger.kernel.org>, "'General mailing list for gumstix users.'" <gumstix-users@lists.sourceforge.net>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ramesh" <grgupta@ti.com>, "C.A, Subramaniam" <subramaniam.ca@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Anna, Suman" <s-anna@ti.com>, "Shah, Bhavin" <bshah@ti.com>
 
+Hi Doyu-san,
 
+Thanks for providing your comments.
 
------Original Message-----
-From: linux-omap-owner@vger.kernel.org
-[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Adrian Hunter
-Sent: Friday, June 12, 2009 2:26 AM
-To: Hugo Vincent
-Cc: Grazvydas Ignotas; Pandita, Vikram; linux-omap; General mailing list for
-gumstix users.
-Subject: Re: OMAP3xxx hsmmc : MMC3 doesn't work, always times out?
+Please see my below comments.
 
-Hugo Vincent wrote:
-> On 11/06/2009, at 9:29 PM, Grazvydas Ignotas wrote:
+> I agree that it's necessary to build up mbox instances with those IDs
+> dynamically.
 > 
->> On Thu, Jun 11, 2009 at 10:43 AM, Hugo
->> Vincent<hugo.vincent@gmail.com> wrote:
->>> On 11/06/2009, at 6:08 PM, Peter Barada wrote:
->>>
->>>> On Thu, 2009-06-11 at 15:35 +1200, Hugo Vincent wrote:
->>>>> On Thu, Jun 11, 2009 at 2:39 PM, Pandita, Vikram<vikram.pandita@ti.com
->>>>> wrote:
->>>>>> Hugo
->>>>>>
->>>>>>> -----Original Message-----
->>>>>>> From: linux-omap-owner@vger.kernel.org
->>>>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hugo
->>>>>>> Vincent
->>>>>>> Sent: Wednesday, June 10, 2009 9:14 PM
->>>>>>> To: linux-omap; General mailing list for gumstix users.
->>>>>>> Subject: OMAP3xxx hsmmc : MMC3 doesn't work, always times out?
->>>>>>>
->>>>>>> Hi everyone,
->>>>>>>
->>>>>>> I'm trying to get the MMC3 slot working on my OMAP3503 Gumstix
->>>>>>> Overo
->>>>>>> based board working.
->>>>>> Please check if your MMC3 Mux setting are as follows:
->>>>>> Note the input configuration for CLK and CMD. This is needed.
->>>>>>
->>>>>> /* MMC3 */
->>>>>> MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x1d0,
->>>>>>            OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLUP)
->>>>>> MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x5d8,
->>>>>>            OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>>>> MUX_CFG_34XX("AE11_3430_MMC3_DAT0", 0x5e4,
->>>>>>            OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>>>> MUX_CFG_34XX("AH9_3430_MMC3_DAT1", 0x5e6,
->>>>>>            OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>>>> MUX_CFG_34XX("AF13_3430_MMC3_DAT2", 0x5e8,
->>>>>>            OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>>>> MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
->>>>>>            OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>>>>
->>>>>>
->>>>>> Also we will be soon (tomorrow) posting MUX patch for MMC1,2,3.
->>>>> Thanks for that Vikram. Unfortunately, these are the exact mux &
->>>>> pullup settings I was already using. (In my case, they were set by
->>>>> u-boot, but to be sure, I've copied and pasted the above exactly
->>>>> into
->>>>> mach-omap2/mux.c - same result). Any other ideas?
->>>> Are you using a 1.8V capable SD/MMC card?  MMC3 only works at 1.8V
->>>> on
->>>> the 3430 - MMC1 can work at 3V due to PBIAS register settings.  If
->>>> you're not, then the MMC can talk to the card, but the card can't
->>>> understand what its seeing due to the volatages of CLK/CMD being too
->>>> low...
->>> I am using a 3V SD card. But I'm also using TI TXS02612 for level
->>> translation (and to multiplex between two slots - but for now I
->>> only need to
->>> get one slot working and thus the select pin is wired high). I'm
->>> pretty
->>> confident that the level translation is working correctly as (a)
->>> the clk and
->>> cmd signals come out to the correct pins on the socket at the
->>> correct levels
->>> and (b) remultiplexing the datX signals as GPIOs and driving them is
->>> correctly reflected (and at the correct 3V levels) on the correct
->>> pins on
->>> the card socket. Similarly in the card->OMAP direction of signaling
->>> (they
->>> are of course bidirectional level translators).
->>>
->>> Do I need to somehow tell the mmc host or core driver that I have
->>> external
->>> level translation and therefore not to worry that the host only
->>> supports
->>> 1.8V cards?
->> The TRM says MMC3 "is used without external transceiver" [only?].
->> Doesn't the transceiver need additional control signals (dir_cmd and
->> dir_dat[2:0]), that are only provided by MMC2?
+> We may want to add one more argument "struct omap_mbox" in
+> omap_mbox_set() as below:
 > 
-> You are quite possibly correct, but the level translator I'm using is
-> "invisible" - it doesn't require the transceiver control signals
-> offered only on MMC2. So as far as I know, there is no hardware reason
-> the OMAP MMC3 controller couldn't talk correctly at the electrical
-> level with the card. This is evidenced by the CMD signal being
-> correctly level translated (and this is via the same type of level
-> translator as the data signals are according to the TXS02612
-> datasheet), and toggling correctly(-looking) at the card socket (i.e.
-> between 0 and 3.3V and it's edges synced to the clock signal). The
-> DAT0-DAT3 signals never do anything though.
+> arch/arm/mach-omap2/mailbox.c:
 > 
-> Hugo
+> static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+> {
+>         int err;
+> 	struct omap_mbox *m;
 > 
->>> Thanks for your help!
->>>
->>> Hugo
->>>
->>>>>>> Compiling 2.6.29-omap1 with
->>>>>>>  CONFIG_MMC=y
->>>>>>>  CONFIG_MMC_DEBUG=y
->>>>>>>  CONFIG_MMC_BLOCK=y
->>>>>>>  CONFIG_MMC_BLOCK_BOUNCE=y
->>>>>>> and MMC polling enabled (mmc->caps |= MMC_CAP_NEEDS_POLL; in
->>>>>>> omap_hsmmc.c)
->>>>>>>
->>>>>>> then doing: $ echo 8 > /proc/sys/kernel/printk
->>>>>>> gives the following:
->>>>>>>
->>>>>>> clock 0Hz busmode 1 powermode 1 cs 0 Vdd 20 width 0 timing 0
->>>>>>> mmc2: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 20 width 0
->>>>>>> timing 0
->>>>>>> mmc2: clock 400000Hz busmode 1 powermode 2 cs 1 Vdd 20 width 0
->>>>>>> timing 0
->>>>>>> mmc2: starting CMD0 arg 00000000 flags 000000c0
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD0, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 1
->>>>>>> mmc2: req done (CMD0): 0: 00000000 00000000 00000000 00000000
->>>>>>> mmc2: clock 400000Hz busmode 1 powermode 2 cs 0 Vdd 20 width 0
->>>>>>> timing 0
->>>>>>> mmc2: starting CMD8 arg 000001aa flags 000002f5
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD8, argument 0x000001aa
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req done (CMD8): -110: 00000000 00000000 00000000 00000000
->>>>>>> mmc2: starting CMD5 arg 00000000 flags 000002e1
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD5, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req failed (CMD5): -110, retrying...
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD5, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req failed (CMD5): -110, retrying...
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD5, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req failed (CMD5): -110, retrying...
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD5, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req done (CMD5): -110: 00000000 00000000 00000000 00000000
->>>>>>> mmc2: starting CMD55 arg 00000000 flags 000000f5
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD55, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req done (CMD55): -110: 00000000 00000000 00000000 00000000
->>>>>>> mmc2: starting CMD55 arg 00000000 flags 000000f5
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD55, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req done (CMD55): -110: 00000000 00000000 00000000 00000000
->>>>>>> mmc2: starting CMD55 arg 00000000 flags 000000f5
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD55, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req done (CMD55): -110: 00000000 00000000 00000000 00000000
->>>>>>> mmc2: starting CMD55 arg 00000000 flags 000000f5
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD55, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req done (CMD55): -110: 00000000 00000000 00000000 00000000
->>>>>>> mmc2: starting CMD1 arg 00000000 flags 000000e1
->>>>>>> mmci-omap-hs mmci-omap-hs.2: mmc2: CMD1, argument 0x00000000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: IRQ Status is 18000
->>>>>>> mmci-omap-hs mmci-omap-hs.2: MMC IRQ 0x18000 : ERRI CTO
->>>>>>> mmc2: req done (CMD1): -110: 00000000 00000000 00000000 00000000
->>>>>>> mmc2: clock 0Hz busmode 1 powermode 0 cs 0 Vdd 0 width 0 timing 0
->>>>>>>
->>>>>>> It seems every request returns -110 which is -ETIMEDOUT.
->>>>>>>
->>>>>>> I've checked the hardware, and it appears to be correct (level
->>>>>>> translators etc seem to be doing their job).
->>>>>>>
->>>>>>> During polling, the CMD and CLK signals show activity, but the
->>>>>>> data
->>>>>>> lines never change; this is presumably why every request is
->>>>>>> timing
->>>>>>> out.
->>>>>>>
->>>>>>> I've also tried it with 2.6.30-omap1 in git, which changes some
->>>>>>> MMC3-specific stuff (notably DMA), but has the exact same
->>>>>>> behaviour.
->>>>>>>
->>>>>>> I've also checked pin multiplexing settings and confirmed that
->>>>>>> the
->>>>>>> correct values are set for the MMC3 data pins. The card I'm
->>>>>>> using is a
->>>>>>> microSD card that works when attached to MMC1 (the Gumstix Overo
->>>>>>> built-in microSD slot). The slot is powered by 3.3V that is
->>>>>>> always on,
->>>>>>> there is no provision for power switching with this particular
->>>>>>> board.
->>>>>>>
->>>>>>> Any ideas?
->>>>>>>
->>>>>>> Many thanks,
->>>>>>> Hugo Vincent
+> 	.....
+> 	m = kmalloc(sizeof(*m), GFP_KERNEL);
+> 	if (!m)
+> 	   return -ENOMEM;
+> 
+> 	err = omap_mbox_set(m, "iva2", TOMPU, TOIVA);
 
-We have fixed a few bugs in omap_hsmmc.c that we have not had time
-to send to mainline, but will hopefully in the coming weeks.
-
-I have attached some patches which probably do not apply cleanly,
-and may not help with your problem anyway.
-
-Hugo,
-
-Your CLK and CMD line mux does not look correct to me.
-
-Try the below settings.
-
-MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
-                OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x1d0,
-                OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLUP)
-
-CMD1 can never go through if your MUX is wrong.
-
-Let me know if this helps.
-
-Regards,
-Madhu
+-- I think we should avoid using "iva2" in the driver itself, if we do this we are binding iva2 to specific mailboxes and the mailbox driver will not be generic to add new clients to it. In future OMAP processors, numbers of mailboxes are going to increase so as the number of mailbox clients. So, it will be good if we de-couple iva2 completely from mailbox driver.
+The idea behind omap_mbox_set function is to provide the mailbox clients the configurability option to choose the mailboxes.
 
 
+> What do you mean by "register offsets" here?
+> 
+> Is this just a starting address('offset')? Or 'gap' between each
+> mailbox registers?
+> 
+> If it's the latter, there are some code in kernel wihch accomodate the
+> different register offsets nicely. I guess that maybe someone can
+> point out some good exmaples for that...
+> 
+> It may be easier if you can publish the list of omap4 mailbox
+> registers with their address.
+>
 
+- IRQENABLE_u is now split into IRQENABLE_SET_u and IRQENABLE_CLR_u.
+- There is a new register IRQSTATUS_RAW_u, which is used for debugging purpose.
 
+Here is the layout of the new registers. Old registers had IRQSTATUS at 0x100, IRQENABLE at 0x104 and repeat for the next user. 
+IRQSTATUS_RAW_u : 0x100 + (0x10 * u) 
+IRQSTATUS_CLR_u  : 0x104 + (0x10 * u) 
+IRQENABLE_SET_u  : 0x108 + (0x10 * u) 
+IRQENABLE_CLR_u  : 0x10C + (0x10 * u) 
+
+Register			   Offset			Absolute address
+=================================================================
+MAILBOX_REVISION 	    	0x0000 0000	 		0x4A0F 4000
+MAILBOX_SYSCONFIG 	0x0000 0010 		0x4A0F 4010
+MAILBOX_MESSAGE_m		0x0000 0040 + (0x4*m)	0x4A0F 4040 + (0x4 * m)
+MAILBOX_FIFOSTATUS_m	0x0000 0080 + (0x4*m)	0x4A0F 4080 + (0x4 * m)
+MAILBOX_MSGSTATUS_m 	0x0000 00C0 + (0x4*m)	0x4A0F 40C0 + (0x4 * m)
+MAILBOX_IRQSTATUS_RAW_u 0x0000 0100 + (0x10*u)	0x4A0F 4100 + (0x10 * u)
+MAILBOX_IRQSTATUS_CLR_u 0x0000 0104 + (0x10*u)	0x4A0F 4104 + (0x10 * u)
+MAILBOX_IRQENABLE_SET_u 0x0000 0108 + (0x10*u) 	0x4A0F 4108 + (0x10 * u)
+MAILBOX_IRQENABLE_CLR_u 0x0000 010C + (0x10*u)	0x4A0F 410C + (0x10 * 
+
+(1) m = 0 to 7
+(2) u = 0 to 2
+
+u = 0 to 2
+m = 0 to 7
+
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Thursday, June 11, 2009 10:21 PM
+> To: Kanigeri, Hari
+> Cc: linux-omap@vger.kernel.org; Gupta, Ramesh; C.A, Subramaniam; Guzman
+> Lugo, Fernando; Anna, Suman; Shah, Bhavin
+> Subject: Re: [RFC] OMAP4:mailbox changes
+> 
+> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> Subject: [RFC] OMAP4:mailbox changes
+> Date: Thu, 11 Jun 2009 17:15:35 +0200
+> 
+> > This is to propose the following changes in the current Mailbox driver.
+> >
+> > 	- Design changes to support dynamic registration of mailbox Clients.
+> >
+> > 	- Support for OMAP4 mailbox module.
+> >
+> > Design changes:
+> > ==============
+> >
+> > The current Mailbox driver has the support for only one set of
+> > mailboxes (DSP) and this is statically configured. OMAP4 has
+> > multiple mailbox modules. The existing design limits adding the
+> > support to add Clients to these new Mailboxes.
+> >
+> > Proposal:
+> > Define a new API in Mailbox driver to dynamically register Client to
+> mailboxes.
+> > omap_mbox_set(char *name, int rx_id, int tx_id)
+> > 	name - name of the mailbox client
+> > 	rx_id - The Mailbox ID that is used for receiving events
+> > 	tx_id - The Mailbox that is used for sending events.
+> >
+> > Check if the tx_id and rx_id are currently used. If used, send back
+> > ERROR.
+> 
+> I agree that it's necessary to build up mbox instances with those IDs
+> dynamically.
+> 
+> We may want to add one more argument "struct omap_mbox" in
+> omap_mbox_set() as below:
+> 
+> arch/arm/mach-omap2/mailbox.c:
+> 
+> static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+> {
+>         int err;
+> 	struct omap_mbox *m;
+> 
+> 	.....
+> 	m = kmalloc(sizeof(*m), GFP_KERNEL);
+> 	if (!m)
+> 	   return -ENOMEM;
+> 
+> 	err = omap_mbox_set(m, "iva2", TOMPU, TOIVA);
+> 	if (err)
+> 		goto err_set;
+> 	err = omap_mbox_register(&pdev->dev, m);
+> 	if (err)
+> 		goto err_out;
+> 
+> 
+> Or alternatively, we may want other function name than
+> "omap_mbox_set()", like "omap_mbox_alloc()",
+> 
+> static struct omap_mbox *omap_mbox_set(char *name, int rx_id, int tx_id)
+> {
+> 	struct omap_mbox *m;
+> 
+> 	.....
+> 	m = kmalloc(sizeof(*m), GFP_KERNEL);
+> 	if (!m)
+> 	   return -ENOMEM;
+> 	.....
+> 
+> 	return m;
+> }
+> 
+> 
+> static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+> {
+>         int err;
+> 	struct omap_mbox *m;
+> 
+> 	.....
+> 	m = omap_mbox_alloc("iva2", TOMPU, TOIVA);
+> 	if (IS_ERR(m))
+> 		goto err_set;
+> 	err = omap_mbox_register(&pdev->dev, m);
+> 	if (err)
+> 		goto err_out;
+> 
+> 
+> >
+> >
+> > OMAP4 changes:
+> > =============
+> > Following changes in OMAP4 mailbox module need to be taken care of.
+> >
+> > - The register offsets for OMAP4 mailbox module is different from OMAP3
+> mailbox module
+> >
+> > - New Mailbox registers added in OMAP4.
+> >
+> > Proposal:
+> > Add OMAP4 support for mailbox register changes with a
+> > CONFIG_ARCH_OMAP4 flag in the existing mailbox driver.
+> 
+> What do you mean by "register offsets" here?
+> 
+> Is this just a starting address('offset')? Or 'gap' between each
+> mailbox registers?
+> 
+> If it's the latter, there are some code in kernel wihch accomodate the
+> different register offsets nicely. I guess that maybe someone can
+> point out some good exmaples for that...
+> 
+> It may be easier if you can publish the list of omap4 mailbox
+> registers with their address.
+> 
+> >
+> >
+> > Thank you
+> > Best regards,
+> > Hari
+> >
 
