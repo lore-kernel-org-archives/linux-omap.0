@@ -1,90 +1,126 @@
 From: Hugo Vincent <hugo.vincent@gmail.com>
-Subject: Re: OMAP3xxx hsmmc : MMC3 doesn't work, always times out?
-Date: Sat, 13 Jun 2009 14:45:59 +1200
-Message-ID: <5a7b8b7b0906121945g6edfba8xd2228f31fa517749@mail.gmail.com>
-References: <5a7b8b7b0906101913h2dbcbbc6l8f27873b8f81a3e0@mail.gmail.com>
-	 <FCCFB4CDC6E5564B9182F639FC35608702F5345DB6@dbde02.ent.ti.com>
-	 <5a7b8b7b0906102035s448e33cfpe4b321d36288e514@mail.gmail.com>
-	 <1244700526.9815.31.camel@blitz>
-	 <5910F919-941B-4964-99F5-C5772B1965C9@gmail.com>
-	 <6ed0b2680906110229u7ce2481sddb0168829bf7d38@mail.gmail.com>
-	 <8CD1B7D1-9B84-45C1-BC91-B44839743500@gmail.com>
-	 <4A3202FF.9080201@nokia.com>
-	 <004201c9eb74$2b7fcfa0$544ff780@am.dhcp.ti.com>
+Subject: Re: [PATCH 1/1] OMAP3:WDT:Enable clk in probe, trigger timer reload
+Date: Sat, 13 Jun 2009 15:57:33 +1200
+Message-ID: <5a7b8b7b0906122057k48f2d16au63adba5278cee04c@mail.gmail.com>
+References: <1244822737-20446-1-git-send-email-ubh@ti.com>
+	 <87my8dig6e.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f214.google.com ([209.85.217.214]:53106 "EHLO
-	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751679AbZFMCp5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 22:45:57 -0400
-Received: by gxk10 with SMTP id 10so4368810gxk.13
-        for <linux-omap@vger.kernel.org>; Fri, 12 Jun 2009 19:45:59 -0700 (PDT)
-In-Reply-To: <004201c9eb74$2b7fcfa0$544ff780@am.dhcp.ti.com>
+Received: from yw-out-2324.google.com ([74.125.46.28]:48117 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581AbZFMD5c convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 12 Jun 2009 23:57:32 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so1773085ywb.1
+        for <linux-omap@vger.kernel.org>; Fri, 12 Jun 2009 20:57:34 -0700 (PDT)
+In-Reply-To: <87my8dig6e.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Adrian Hunter <adrian.hunter@nokia.com>, Grazvydas Ignotas <notasas@gmail.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "General mailing list for gumstix users." <gumstix-users@lists.sourceforge.net>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Ulrik Bech Hald <ubh@ti.com>, linux-omap@vger.kernel.org
 
-On Sat, Jun 13, 2009 at 3:40 AM, Madhusudhan<madhu.cr@ti.com> wrote:
-<snip>
-> Hugo,
+On Sat, Jun 13, 2009 at 4:13 AM, Kevin
+Hilman<khilman@deeprootsystems.com> wrote:
+> Ulrik Bech Hald <ubh@ti.com> writes:
 >
-> Your CLK and CMD line mux does not look correct to me.
+>> This patch contains two bugfixes:
+>>
+>> 1)In omap_wdt_probe() the watchdog is reset and disabled. This
+>> requires register access and the clks needs to be enabled temporaril=
+y
+>>
+>> 2)In omap_wdt_open() the timer register needs to be reloaded
+>> to trigger a new timer value (the default of 60s)
+>>
+>> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
 >
-> Try the below settings.
+> Can you change the subject slightly to something like:
 >
-> MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPU=
-T_PULLUP)
-> MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x1d0,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPU=
-T_PULLUP)
+> =A0watchdog: OMAP fixes: enable clock in probe, trigger timer reload
 >
-> CMD1 can never go through if your MUX is wrong.
+> Also add which OMAP platforms you have tested on since this affects
+> OMAP2, OMAP3 and presuably OMAP4.
+
+Tested on OMAP3 (OMAP3503, Gumstix Overo).
+
+> After that, you can add
 >
-> Let me know if this helps.
+> Reviewed-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
 >
-> Regards,
-> Madhu
-
-Thanks Madhu. Your updated settings seem wrong to me (at least for the
-way my particular board is wired). Perhaps there is a difference
-between the 3430 and 3503 in this respect (I don't have the 3430
-datasheet so can't check). Note I'm using MMC3_CLK and CMD that are
-muxed on balls AF10 and AE10. It's a shame Gumstix chose not to
-publish the Overo modules' schematics - having them would have made
-this problem much easier to debug!
-
-After some experimentation, the following mux settings are working
-with my hardware:
-
-+/* MMC3 */
-+MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AE10_3430_MMC3_CMD", 0x5da,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AE11_3430_MMC3_DAT0", 0x5e4,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AH9_3430_MMC3_DAT1", 0x5e6,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF13_3430_MMC3_DAT2", 0x5e8,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AE13_3430_MMC3_DAT3", 0x5e2,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-
-=46or the archive, it looks like the ehci driver (which has some hackis=
-h
-out-of-tree patches specific to the Overo) was messing up my padconf
-settings even though they were correct in u-boot. The other
-possibility, is that u-boot wasn't defining the CLK signal with input
-enable; this gives the following mux debug message:
-MUX: setup AF10_3430_MMC3_CLK (0xd80025d8): 0x001a -> 0x011a
-
-Thanks everyone for your help!
-
-Hugo
+> And sent to watchdog maintiner, and CC linux-omap, here's excerpt fro=
+m
+> MAINTAINERS:
+>
+> WATCHDOG DEVICE DRIVERS
+> P: =A0 =A0 =A0Wim Van Sebroeck
+> M: =A0 =A0 =A0wim@iguana.be
+> T: =A0 =A0 =A0git git://git.kernel.org/pub/scm/linux/kernel/git/wim/l=
+inux-2.6-watchdog.git
+> S: =A0 =A0 =A0Maintained
+> F: =A0 =A0 =A0Documentation/watchdog/
+> F: =A0 =A0 =A0drivers/watchdog/
+> F: =A0 =A0 =A0include/linux/watchdog.h
+>
+>> ---
+>> =A0drivers/watchdog/omap_wdt.c | =A0 =A07 +++++++
+>> =A01 files changed, 7 insertions(+), 0 deletions(-)
+>> =A0mode change 100644 =3D> 100755 drivers/watchdog/omap_wdt.c
+>>
+>> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt=
+=2Ec
+>> old mode 100644
+>> new mode 100755
+>> index f271385..3ed571a
+>> --- a/drivers/watchdog/omap_wdt.c
+>> +++ b/drivers/watchdog/omap_wdt.c
+>> @@ -159,6 +159,7 @@ static int omap_wdt_open(struct inode *inode, st=
+ruct file *file)
+>> =A0 =A0 =A0 file->private_data =3D (void *) wdev;
+>>
+>> =A0 =A0 =A0 omap_wdt_set_timeout(wdev);
+>> + =A0 =A0 omap_wdt_ping(wdev); /* trigger loading of new timeout val=
+ue */
+>> =A0 =A0 =A0 omap_wdt_enable(wdev);
+>>
+>> =A0 =A0 =A0 return nonseekable_open(inode, file);
+>> @@ -313,6 +314,9 @@ static int __devinit omap_wdt_probe(struct platf=
+orm_device *pdev)
+>>
+>> =A0 =A0 =A0 platform_set_drvdata(pdev, wdev);
+>>
+>> + =A0 =A0 clk_enable(wdev->ick);
+>> + =A0 =A0 clk_enable(wdev->fck);
+>> +
+>> =A0 =A0 =A0 omap_wdt_disable(wdev);
+>> =A0 =A0 =A0 omap_wdt_adjust_timeout(timer_margin);
+>>
+>> @@ -332,6 +336,9 @@ static int __devinit omap_wdt_probe(struct platf=
+orm_device *pdev)
+>> =A0 =A0 =A0 /* autogate OCP interface clock */
+>> =A0 =A0 =A0 __raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG=
+);
+>>
+>> + =A0 =A0 clk_disable(wdev->ick);
+>> + =A0 =A0 clk_disable(wdev->fck);
+>> +
+>> =A0 =A0 =A0 omap_wdt_dev =3D pdev;
+>>
+>> =A0 =A0 =A0 return 0;
+>> --
+>> 1.5.4.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
