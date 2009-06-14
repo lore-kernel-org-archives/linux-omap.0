@@ -1,8 +1,8 @@
 From: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Subject: Re: [Linux-fbdev-devel] [PATCH 08/20] omapfb: Add support for the
- OMAP3 EVM LCD
-Date: Sun, 14 Jun 2009 23:33:18 +0200
-Message-ID: <20090614233318.e397a907.krzysztof.h1@poczta.fm>
+Subject: Re: [Linux-fbdev-devel] [PATCH 09/20] omapfb: Add support for the
+ OMAP3 Beagle DVI output
+Date: Sun, 14 Jun 2009 23:34:31 +0200
+Message-ID: <20090614233431.2b14ea02.krzysztof.h1@poczta.fm>
 References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
 	<fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
 	<e7f92ea9f0a823f7be401e34243754141b7f72c1.1244131952.git.imre.deak@nokia.com>
@@ -12,65 +12,134 @@ References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
 	<646692ce09a12e1a8a2d4072097b4d440b7de5d5.1244131952.git.imre.deak@nokia.com>
 	<b0e578438bb53d9fbf333e5bd10d4d33f869b373.1244131952.git.imre.deak@nokia.com>
 	<9139035cc12b22600135677cd5d3096c1dcd286d.1244131952.git.imre.deak@nokia.com>
+	<08ba068bda363adf4cb8a1f5afe11245c828d017.1244131952.git.imre.deak@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp239.poczta.interia.pl ([217.74.64.239]:8554 "EHLO
+Received: from smtp239.poczta.interia.pl ([217.74.64.239]:14977 "EHLO
 	smtp239.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755682AbZFNVZf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Jun 2009 17:25:35 -0400
-In-Reply-To: <9139035cc12b22600135677cd5d3096c1dcd286d.1244131952.git.imre.deak@nokia.com>
+	with ESMTP id S1755615AbZFNV0t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 14 Jun 2009 17:26:49 -0400
+In-Reply-To: <08ba068bda363adf4cb8a1f5afe11245c828d017.1244131952.git.imre.deak@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Imre Deak <imre.deak@nokia.com>
-Cc: Antonino Daplas <adaplas@gmail.com>, linux-fbdev-devel@lists.sourceforge.net, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, linux-omap@vger.kernel.org, Steve Sakoman <steve@sakoman.com>
+Cc: Antonino Daplas <adaplas@gmail.com>, Koen Kooi <koen@openembedded.org>, linux-fbdev-devel@lists.sourceforge.net, Tony Lindgren <tony@atomide.com>, Tomi Valkeinen <Tomi.Valkeinen@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-On Thu,  4 Jun 2009 20:52:33 +0300
+On Thu,  4 Jun 2009 20:52:34 +0300
 Imre Deak <imre.deak@nokia.com> wrote:
 
-> From: Steve Sakoman <steve@sakoman.com>
+> From: Koen Kooi <koen@openembedded.org>
 > 
-> Add LCD support for OMAP3 EVM
+> The default resolution is 1024x768@24bit
 > 
-> Backlight support by Arun C <arunedarath@mistralsolutions.com>
+> This version addresses the comments from Felipe Balbi adn Arun Edarath
 > 
-> Signed-off-by: Steve Sakoman <steve@sakoman.com>
-> Acked-by: Syed Mohammed Khasim <khasim@ti.com>
+> Signed-off-by: Koen Kooi <koen@openembedded.org>
 > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> Fixed-by: Felipe Contreras <felipe.contreras@gmail.com>
+> Fixed-by: Steve Sakoman <steve@sakoman.com>
 > Fixed-by: Jarkko Nikula <jarkko.nikula@gmail.com>
 > Fixed-by: David Brownell <dbrownell@users.sourceforge.net>
+> CC: linux-arm-kernel@lists.arm.linux.org.uk
 > Signed-off-by: Imre Deak <imre.deak@nokia.com>
 > ---
->  drivers/video/omap/Makefile       |    1 +
->  drivers/video/omap/lcd_omap3evm.c |  191 +++++++++++++++++++++++++++++++++++++
->  2 files changed, 192 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/video/omap/lcd_omap3evm.c
+>  arch/arm/configs/omap3_beagle_defconfig |   47 +++++++++++-
+>  drivers/video/omap/Makefile             |    1 +
+>  drivers/video/omap/lcd_omap3beagle.c    |  133 +++++++++++++++++++++++++++++++
+>  3 files changed, 180 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/video/omap/lcd_omap3beagle.c
 > 
+> diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
+> index 4c6fb7e..c4726f0 100644
+> --- a/arch/arm/configs/omap3_beagle_defconfig
+> +++ b/arch/arm/configs/omap3_beagle_defconfig
+> @@ -769,7 +769,33 @@ CONFIG_DAB=y
+>  #
+>  # CONFIG_VGASTATE is not set
+>  # CONFIG_VIDEO_OUTPUT_CONTROL is not set
+> -# CONFIG_FB is not set
+> +CONFIG_FB=y
+> +# CONFIG_FIRMWARE_EDID is not set
+> +# CONFIG_FB_DDC is not set
+> +CONFIG_FB_CFB_FILLRECT=y
+> +CONFIG_FB_CFB_COPYAREA=y
+> +CONFIG_FB_CFB_IMAGEBLIT=y
+> +# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+> +# CONFIG_FB_SYS_FILLRECT is not set
+> +# CONFIG_FB_SYS_COPYAREA is not set
+> +# CONFIG_FB_SYS_IMAGEBLIT is not set
+> +# CONFIG_FB_FOREIGN_ENDIAN is not set
+> +# CONFIG_FB_SYS_FOPS is not set
+> +# CONFIG_FB_SVGALIB is not set
+> +# CONFIG_FB_MACMODES is not set
+> +# CONFIG_FB_BACKLIGHT is not set
+> +# CONFIG_FB_MODE_HELPERS is not set
+> +# CONFIG_FB_TILEBLITTING is not set
+> +
+> +#
+> +# Frame buffer hardware drivers
+> +#
+> +# CONFIG_FB_S1D13XXX is not set
+> +# CONFIG_FB_VIRTUAL is not set
+> +CONFIG_FB_OMAP=y
+> +# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
+> +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
+> +CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
+>  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+>  
+>  #
+> @@ -782,6 +808,25 @@ CONFIG_DAB=y
+>  #
+>  # CONFIG_VGA_CONSOLE is not set
+>  CONFIG_DUMMY_CONSOLE=y
+> +CONFIG_FRAMEBUFFER_CONSOLE=y
+> +# CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY is not set
+> +CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+> +CONFIG_FONTS=y
+> +CONFIG_FONT_8x8=y
+> +CONFIG_FONT_8x16=y
+> +# CONFIG_FONT_6x11 is not set
+> +# CONFIG_FONT_7x14 is not set
+> +# CONFIG_FONT_PEARL_8x8 is not set
+> +# CONFIG_FONT_ACORN_8x8 is not set
+> +# CONFIG_FONT_MINI_4x6 is not set
+> +# CONFIG_FONT_SUN8x16 is not set
+> +# CONFIG_FONT_SUN12x22 is not set
+> +# CONFIG_FONT_10x18 is not set
+> +# CONFIG_LOGO is not set
+> +
+> +#
+> +# Sound
+> +#
+>  # CONFIG_SOUND is not set
+>  # CONFIG_HID_SUPPORT is not set
+>  CONFIG_USB_SUPPORT=y
 > diff --git a/drivers/video/omap/Makefile b/drivers/video/omap/Makefile
-> index 96d2d43..4345157 100644
+> index 4345157..9ff1815 100644
 > --- a/drivers/video/omap/Makefile
 > +++ b/drivers/video/omap/Makefile
-> @@ -30,6 +30,7 @@ objs-y$(CONFIG_MACH_OMAP_APOLLON) += lcd_apollon.o
->  objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
+> @@ -31,6 +31,7 @@ objs-y$(CONFIG_MACH_OMAP_2430SDP) += lcd_2430sdp.o
 >  objs-y$(CONFIG_MACH_OMAP_3430SDP) += lcd_2430sdp.o
 >  objs-y$(CONFIG_MACH_OMAP2EVM) += lcd_omap2evm.o
-> +objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+>  objs-y$(CONFIG_MACH_OMAP3EVM) += lcd_omap3evm.o
+> +objs-y$(CONFIG_MACH_OMAP3_BEAGLE) += lcd_omap3beagle.o
 >  objs-y$(CONFIG_FB_OMAP_LCD_MIPID) += lcd_mipid.o
 >  
 >  omapfb-objs := $(objs-yy)
-> diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
+> diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
 > new file mode 100644
-> index 0000000..1c3d814
+> index 0000000..40454dc
 > --- /dev/null
-> +++ b/drivers/video/omap/lcd_omap3evm.c
-> @@ -0,0 +1,191 @@
+> +++ b/drivers/video/omap/lcd_omap3beagle.c
+> @@ -0,0 +1,133 @@
 > +/*
-> + * LCD panel support for the TI OMAP3 EVM board
+> + * LCD panel support for the TI OMAP3 Beagle board
 > + *
-> + * Author: Steve Sakoman <steve@sakoman.com>
+> + * Author: Koen Kooi <koen@openembedded.org>
 > + *
-> + * Derived from drivers/video/omap/lcd-apollon.c
+> + * Derived from drivers/video/omap/lcd-omap3evm.c
 > + *
 > + * This program is free software; you can redistribute it and/or modify it
 > + * under the terms of the GNU General Public License as published by the
@@ -96,106 +165,51 @@ Imre Deak <imre.deak@nokia.com> wrote:
 > +#include <mach/omapfb.h>
 > +#include <asm/mach-types.h>
 > +
-> +#define LCD_PANEL_ENABLE_GPIO       153
-> +#define LCD_PANEL_LR                2
-> +#define LCD_PANEL_UD                3
-> +#define LCD_PANEL_INI               152
-> +#define LCD_PANEL_QVGA              154
-> +#define LCD_PANEL_RESB              155
+> +#define LCD_PANEL_ENABLE_GPIO       170
 > +
-> +#define LCD_XRES	 	480
-> +#define LCD_YRES 		640
-> +#define LCD_PIXCLOCK		26000 /* in kHz  */
+> +#define LCD_XRES		1024
+> +#define LCD_YRES		768
+> +#define LCD_PIXCLOCK		64000 /* in kHz */
 > +
 
-You can drop defines used only once. There are no such defines for other panels.
+Used once and well documented by the assignment.
 
-> +#define ENABLE_VDAC_DEDICATED	0x03
-> +#define ENABLE_VDAC_DEV_GRP	0x20
-> +#define ENABLE_VPLL2_DEDICATED	0x05
-> +#define ENABLE_VPLL2_DEV_GRP	0xE0
-> +
-> +#define TWL_LED_LEDEN		0x00
-> +#define TWL_PWMA_PWMAON		0x00
-> +#define TWL_PWMA_PWMAOFF	0x01
-> +
-> +static unsigned int bklight_level;
-> +
-> +static int omap3evm_panel_init(struct lcd_panel *panel,
+> +static int omap3beagle_panel_init(struct lcd_panel *panel,
 > +				struct omapfb_device *fbdev)
 > +{
-> +	gpio_request(LCD_PANEL_LR, "LCD lr");
-> +	gpio_request(LCD_PANEL_UD, "LCD ud");
-> +	gpio_request(LCD_PANEL_INI, "LCD ini");
-> +	gpio_request(LCD_PANEL_RESB, "LCD resb");
-> +	gpio_request(LCD_PANEL_QVGA, "LCD qvga");
-> +
-> +	gpio_direction_output(LCD_PANEL_RESB, 1);
-> +	gpio_direction_output(LCD_PANEL_INI, 1);
-> +	gpio_direction_output(LCD_PANEL_QVGA, 0);
-> +	gpio_direction_output(LCD_PANEL_LR, 1);
-> +	gpio_direction_output(LCD_PANEL_UD, 1);
-> +
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_LED, 0x11, TWL_LED_LEDEN);
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x01, TWL_PWMA_PWMAON);
-> +	twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, 0x02, TWL_PWMA_PWMAOFF);
-> +	bklight_level = 100;
-> +
+> +	gpio_request(LCD_PANEL_ENABLE_GPIO, "LCD enable");
 > +	return 0;
 > +}
 > +
-> +static void omap3evm_panel_cleanup(struct lcd_panel *panel)
+> +static void omap3beagle_panel_cleanup(struct lcd_panel *panel)
 > +{
 
-Should the requested gpios be freed?
+Should the requested gpio be freed?
 
 > +}
 > +
-> +static int omap3evm_panel_enable(struct lcd_panel *panel)
-> +{
-> +	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 0);
-> +	return 0;
-> +}
-> +
-> +static void omap3evm_panel_disable(struct lcd_panel *panel)
+> +static int omap3beagle_panel_enable(struct lcd_panel *panel)
 > +{
 > +	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 1);
+> +	return 0;
 > +}
 > +
-> +static unsigned long omap3evm_panel_get_caps(struct lcd_panel *panel)
+> +static void omap3beagle_panel_disable(struct lcd_panel *panel)
+> +{
+> +	gpio_set_value(LCD_PANEL_ENABLE_GPIO, 0);
+> +}
+> +
+> +static unsigned long omap3beagle_panel_get_caps(struct lcd_panel *panel)
 > +{
 > +	return 0;
 > +}
 > +
-> +static int omap3evm_bklight_setlevel(struct lcd_panel *panel,
-> +						unsigned int level)
-> +{
-> +	u8 c;
-> +	if ((level >= 0) && (level <= 100)) {
-> +		c = (125 * (100 - level)) / 100 + 2;
-> +		twl4030_i2c_write_u8(TWL4030_MODULE_PWMA, c, TWL_PWMA_PWMAOFF);
-> +		bklight_level = level;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static unsigned int omap3evm_bklight_getlevel(struct lcd_panel *panel)
-> +{
-> +	return bklight_level;
-> +}
-> +
-> +static unsigned int omap3evm_bklight_getmaxlevel(struct lcd_panel *panel)
-> +{
-> +	return 100;
-> +}
-> +
-> +struct lcd_panel omap3evm_panel = {
-> +	.name		= "omap3evm",
-> +	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-> +			  OMAP_LCDC_INV_HSYNC,
+> +struct lcd_panel omap3beagle_panel = {
+> +	.name		= "omap3beagle",
+> +	.config		= OMAP_LCDC_PANEL_TFT,
 > +
 > +	.bpp		= 16,
-> +	.data_lines	= 18,
+> +	.data_lines	= 24,
 > +	.x_res		= LCD_XRES,
 > +	.y_res		= LCD_YRES,
 > +	.hsw		= 3,		/* hsync_len (4) - 1 */
@@ -207,61 +221,58 @@ Should the requested gpios be freed?
 > +
 > +	.pixel_clock	= LCD_PIXCLOCK,
 > +
-> +	.init		= omap3evm_panel_init,
-> +	.cleanup	= omap3evm_panel_cleanup,
-> +	.enable		= omap3evm_panel_enable,
-> +	.disable	= omap3evm_panel_disable,
-> +	.get_caps	= omap3evm_panel_get_caps,
-> +	.set_bklight_level      = omap3evm_bklight_setlevel,
-> +	.get_bklight_level      = omap3evm_bklight_getlevel,
-> +	.get_bklight_max        = omap3evm_bklight_getmaxlevel,
+> +	.init		= omap3beagle_panel_init,
+> +	.cleanup	= omap3beagle_panel_cleanup,
+> +	.enable		= omap3beagle_panel_enable,
+> +	.disable	= omap3beagle_panel_disable,
+> +	.get_caps	= omap3beagle_panel_get_caps,
 > +};
 > +
-> +static int omap3evm_panel_probe(struct platform_device *pdev)
+> +static int omap3beagle_panel_probe(struct platform_device *pdev)
 > +{
-> +	omapfb_register_panel(&omap3evm_panel);
+> +	omapfb_register_panel(&omap3beagle_panel);
 > +	return 0;
 > +}
 > +
-> +static int omap3evm_panel_remove(struct platform_device *pdev)
+> +static int omap3beagle_panel_remove(struct platform_device *pdev)
 > +{
 > +	return 0;
 > +}
 > +
-> +static int omap3evm_panel_suspend(struct platform_device *pdev,
+> +static int omap3beagle_panel_suspend(struct platform_device *pdev,
 > +				   pm_message_t mesg)
 > +{
 > +	return 0;
 > +}
 > +
-> +static int omap3evm_panel_resume(struct platform_device *pdev)
+> +static int omap3beagle_panel_resume(struct platform_device *pdev)
 > +{
 > +	return 0;
 > +}
 > +
-> +struct platform_driver omap3evm_panel_driver = {
-> +	.probe		= omap3evm_panel_probe,
-> +	.remove		= omap3evm_panel_remove,
-> +	.suspend	= omap3evm_panel_suspend,
-> +	.resume		= omap3evm_panel_resume,
+> +struct platform_driver omap3beagle_panel_driver = {
+> +	.probe		= omap3beagle_panel_probe,
+> +	.remove		= omap3beagle_panel_remove,
+> +	.suspend	= omap3beagle_panel_suspend,
+> +	.resume		= omap3beagle_panel_resume,
 > +	.driver		= {
-> +		.name	= "omap3evm_lcd",
+> +		.name	= "omap3beagle_lcd",
 > +		.owner	= THIS_MODULE,
 > +	},
 > +};
 > +
-> +static int __init omap3evm_panel_drv_init(void)
+> +static int __init omap3beagle_panel_drv_init(void)
 > +{
-> +	return platform_driver_register(&omap3evm_panel_driver);
+> +	return platform_driver_register(&omap3beagle_panel_driver);
 > +}
 > +
-> +static void __exit omap3evm_panel_drv_exit(void)
+> +static void __exit omap3beagle_panel_drv_exit(void)
 > +{
-> +	platform_driver_unregister(&omap3evm_panel_driver);
+> +	platform_driver_unregister(&omap3beagle_panel_driver);
 > +}
 > +
-> +module_init(omap3evm_panel_drv_init);
-> +module_exit(omap3evm_panel_drv_exit);
+> +module_init(omap3beagle_panel_drv_init);
+> +module_exit(omap3beagle_panel_drv_exit);
 > -- 
 > 1.6.3.1
 > 
@@ -280,6 +291,6 @@ Should the requested gpios be freed?
 
 
 ----------------------------------------------------------------------
-Wejdz i kliknij na Swoj znak zodiaku!
-http://link.interia.pl/f21b8
+Sprawdz wiadomosci z Twojego regionu!
+Kliknij >>> http://link.interia.pl/f21ba
 
