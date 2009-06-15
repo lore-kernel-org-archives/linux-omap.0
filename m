@@ -1,94 +1,195 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/2] adding back some features
-Date: Mon, 15 Jun 2009 09:05:32 -0700
-Message-ID: <87k53da3eb.fsf@deeprootsystems.com>
-References: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com>
-	<20090615080001.GC4474@atomide.com>
-	<87ski1a6n1.fsf@deeprootsystems.com>
+From: "Hald, Ulrik Bech" <ubh@ti.com>
+Subject: RE: [PATCH 2/3] OMAP3:WDT:Enable support for IVA and SECURE
+Date: Mon, 15 Jun 2009 18:19:11 +0200
+Message-ID: <00695C9C8F8B4448856F48142B4AA201BD868426@dnce02.ent.ti.com>
+References: <1244495293-17244-1-git-send-email-ubh@ti.com>
+	<1244495293-17244-2-git-send-email-ubh@ti.com>
+	<1244495293-17244-3-git-send-email-ubh@ti.com>
+	<87prddzcp5.fsf@deeprootsystems.com>
+	<00695C9C8F8B4448856F48142B4AA201BD76FE9E@dnce02.ent.ti.com>
+ <87ljo1w1u7.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:44715 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757007AbZFOQFd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 12:05:33 -0400
-Received: by pxi27 with SMTP id 27so314523pxi.33
-        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2009 09:05:36 -0700 (PDT)
-In-Reply-To: <87ski1a6n1.fsf@deeprootsystems.com> (Kevin Hilman's message of "Mon\, 15 Jun 2009 07\:55\:30 -0700")
+Received: from devils.ext.ti.com ([198.47.26.153]:49236 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948AbZFOQTU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 12:19:20 -0400
+In-Reply-To: <87ljo1w1u7.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Tuesday, June 09, 2009 4:10 PM
+> To: Hald, Ulrik Bech
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 2/3] OMAP3:WDT:Enable support for IVA and SECURE
+> 
+> "Hald, Ulrik Bech" <ubh@ti.com> writes:
+> 
+> >> -----Original Message-----
+> >> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> >> Sent: Tuesday, June 09, 2009 9:47 AM
+> >> To: Hald, Ulrik Bech
+> >> Cc: linux-omap@vger.kernel.org
+> >> Subject: Re: [PATCH 2/3] OMAP3:WDT:Enable support for IVA and SECURE
+> >>
+> >> Ulrik Bech Hald <ubh@ti.com> writes:
+> >>
+> >> > This patch enables the IVA and SECURE WDTs in the omap_wdt
+> >> > driver for omap34xx family. SECURE will be available as
+> /dev/watchdog1
+> >> > HS/EMU devices and IVA will be available as /dev/watchdog3.
+> >> > MPU will be available as /dev/watchdog2
+> >> > For omap versions earlier than 34xx only MPU watchdog is present and
+> >> > will be available as /dev/watchdog for backwards compatibility.
+> >> >
+> >> > Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
+> >> > ---
+> >> >  drivers/watchdog/omap_wdt.c |   42
+> +++++++++++++++++++++++++++++++++++-
+> >> ------
+> >> >  1 files changed, 35 insertions(+), 7 deletions(-)
+> >> >  mode change 100644 => 100755 drivers/watchdog/omap_wdt.c
+> >> >
+> >> > diff --git a/drivers/watchdog/omap_wdt.c
+> b/drivers/watchdog/omap_wdt.c
+> >>
+> >> [...]
+> >>
+> >> >  static int omap_wdt_open(struct inode *inode, struct file *file)
+> >> >  {
+> >> > -	struct omap_wdt_dev *wdev =
+> platform_get_drvdata(omap_wdt_dev);
+> >> > -	void __iomem *base = wdev->base;
+> >> > +	struct omap_wdt_dev *wdev;
+> >> > +	void __iomem *base;
+> >> > +
+> >> > +	/* by default MPU wdt is present across omap family */
+> >> > +	wdev = platform_get_drvdata(omap_wdt_dev[1]);
+> >> > +
+> >> > +	/* if multiple wdts, find match between device node and wdt
+> device
+> >> */
+> >> > +	if (cpu_is_omap34xx()) {
+> >> > +		int i;
+> >> > +		for (i = 0; i < NUM_WDTS; i++) {
+> >> > +			if (omap_wdt_dev[i]) {
+> >> > +				wdev =
+> platform_get_drvdata(omap_wdt_dev[i]);
+> >> > +				if (iminor(inode)
+> >> > +					== wdev->omap_wdt_miscdev.minor)
+> >> > +					break;
+> >> > +			}
+> >> > +		}
+> >> > +	}
+> >> > +
+> >> > +	base = wdev->base;
+> >>
+> >> Hmm, this does not look right to me.  Any use of cpu_is_* in driver
+> >> code usually indicates that something is not quite right.  This same
+> >> watchdog IP is used in some DaVinci family processors and needs to be
+> >> reused there.
+> >>
+> >> I didn't do the miscdev research, but can't you get the pdev from the
+> >> miscdev.parent, and from there get the right wdev pointer from the
+> >> pdev.drvdata.
+> >>
+> >> Otherwise, drop the cpu_is_* and just do inode checking all the time.
+> >> The way you've done it looks error prone to me.
+> >
+> > I can't really see a to way pair the driver and device other than
+> > doing inode/minor number checking , so I'll just go for the inode
+> > checking without any dependency on cpu_is_xxx().
+> 
+> OK.
+> 
+> >>
+> >> >  	if (test_and_set_bit(1, (unsigned long *)&(wdev-
+> >omap_wdt_users)))
+> >> >  		return -EBUSY;
+> >> > @@ -263,6 +283,7 @@ static int __devinit omap_wdt_probe(struct
+> >> platform_device *pdev)
+> >> >  	struct resource *res, *mem;
+> >> >  	struct omap_wdt_dev *wdev;
+> >> >  	int ret;
+> >> > +	static char wdt_name[32];
+> >> >
+> >> >  	/* reserve static register mappings */
+> >> >  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> >> > @@ -271,7 +292,7 @@ static int __devinit omap_wdt_probe(struct
+> >> platform_device *pdev)
+> >> >  		goto err_get_resource;
+> >> >  	}
+> >> >
+> >> > -	if (omap_wdt_dev) {
+> >> > +	if (omap_wdt_dev[pdev->id-1]) {
+> >> >  		ret = -EBUSY;
+> >> >  		goto err_busy;
+> >> >  	}
+> >> > @@ -318,8 +339,14 @@ static int __devinit omap_wdt_probe(struct
+> >> platform_device *pdev)
+> >> >
+> >> >  	wdev->omap_wdt_miscdev.parent = &pdev->dev;
+> >> >  	wdev->omap_wdt_miscdev.minor = WATCHDOG_MINOR;
+> >> > -	wdev->omap_wdt_miscdev.name = "watchdog";
+> >> >  	wdev->omap_wdt_miscdev.fops = &omap_wdt_fops;
+> >> > +	wdev->omap_wdt_miscdev.name = "watchdog";
+> >> > +	if (cpu_is_omap34xx()) {
+> >> > +		snprintf(wdt_name, sizeof(wdt_name), "watchdog%d", pdev-
+> >id);
+> >> > +		wdev->omap_wdt_miscdev.name = wdt_name;
+> >> > +		if (pdev->id != 2)
+> >> > +			wdev->omap_wdt_miscdev.minor = MISC_DYNAMIC_MINOR;
+> >> > +	}
+> >>
+> >> Again, red flag: cpu_is_*
+> >>
+> >> It might be more consistent to use pdev->dev->name which is already of
+> >> the form "watchdog.%d".
+> >
+> > Not sure I follow. I don't see a "name" field in struct device, only
+> init_name.
+> 
+> Sorry, I meant dev->bus_id.  Look at dev_set_name() which creates
+> a bus_id of the form ("%s.%d", pdev->name, pdev->id)
 
-> Tony Lindgren <tony@atomide.com> writes:
->
->> Hi,
->>
->> * Kevin Hilman <khilman@deeprootsystems.com> [090612 15:13]:
->>> Here's a couple patches to add-back some feature dropped in the
->>> mainline sync.  These are needed for the PM branch among other things.
->>> 
->>> Applies to linux-omap master.
->>> 
->>> Kevin Hilman (1):
->>>   OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
->>
->> Is there any reason to get this one into mainline early?
->
-> Well, the PM branch has a dependency, but also the recenetly submitted
-> qwatchdog driver has a dependency.
->
->> If not, I suggest you keep this in your pm branch for next merge
->> window that I can keep merging to l-o master as needed.
->>
->> However, if omap_type() is by other queues earlier, then I can
->> add it into my upstream queue. If this blocks several queues
->> from being rebased against mainline kernel, that alone might
->> already be a good enough reason to get it in early.
->
-> I think it should go via your upstream queue.  I imagine some of the
-> other upcoming driver submissions from TI will have a dependency as
-> well since there is still some missing EMU/HS support ind drivers.
+As far as I can see, dev->bus_id has been removed from the device struct as per 1fa5ae857bb14f6046205171d98506d8112dd74e. 
+Furthermore, the pdev->name is "omap_wdt", which should be presented as "watchdog" in wdev->omap_wdt_miscdev.name anyway, so I think I'll just go with the sprintf() approach below, keeping your wdt_name comments in mind.
 
-Also, I'm carrying this SRAM patch below for HS/EMU that could go into
-Paul's SRAM/SDRC queue if this omap_type() gets merged sooner rather
-than later.
+/Ulrik
 
-Kevin
+> 
+> > Do you mean just using:
+> > snprintf(wdt_name, sizeof(wdt_name), "watchdog%d", pdev->id);
+> > wdev->omap_wdt_miscdev.name = wdt_name;
+> 
+> Using pdev->id is ok, but that's what dev_set_name() does.
+> 
+> Note that if you decide to go this route, note that wdt_name doesn't
+> need to be static.  The driver core will copy the name field the
+> misc_device.  If it wasn't copying, you'd have all of the miscdev.name
+> fields ending up being the same thing since they are all assigned the
+> same pointer.
+> 
+> Kevin
+> 
+> > ...for all the WDT devices, despite how many are present?
+> >
+> >>
+> >> Any reason not to use MISC_DYNAMIC_MINOR for all of them?
+> >
+> > No particular reason other than I thought that retaining the use of
+> WATCHDOG_MINOR for the MPU WDT case would be appropriate. But it does make
+> the code cleaner to use only MISC_DYNAMIC_MINOR. I'll change it.
+> >
+> > Thanks for reviewing!
+> >
+> >>
+> >> Kevin
 
-commit 106588e30f070d9a8d5906d409e0b9aad89edc9e
-Author: Tero Kristo <tero.kristo@nokia.com>
-Date:   Thu Oct 9 17:47:02 2008 +0300
-
-    OMAP3: SRAM size fix for HS/EMU devices
-    
-    Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-    Signed-off-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
-
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-old mode 100644
-new mode 100755
-index 65006df..f40bd2d
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -131,9 +131,15 @@ void __init omap_detect_sram(void)
- 	if (cpu_class_is_omap2()) {
- 		if (is_sram_locked()) {
- 			if (cpu_is_omap34xx()) {
--				omap_sram_base = OMAP3_SRAM_PUB_VA;
--				omap_sram_start = OMAP3_SRAM_PUB_PA;
--				omap_sram_size = 0x8000; /* 32K */
-+				if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
-+					omap_sram_base = OMAP3_SRAM_PUB_VA;
-+					omap_sram_start = OMAP3_SRAM_PUB_PA;
-+					omap_sram_size = 0x8000; /* 32K */
-+				} else {
-+					omap_sram_base = OMAP3_SRAM_PUB_VA;
-+					omap_sram_start = OMAP3_SRAM_PUB_PA;
-+					omap_sram_size = 0x7000; /* 28K */
-+				}
- 			} else {
- 				omap_sram_base = OMAP2_SRAM_PUB_VA;
- 				omap_sram_start = OMAP2_SRAM_PUB_PA;
