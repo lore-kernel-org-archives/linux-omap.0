@@ -1,49 +1,35 @@
-From: Ville Tervo <ville.tervo@nokia.com>
-Subject: Re: [patch] Fix brf6510 cleanup code
-Date: Mon, 15 Jun 2009 11:38:47 +0300
-Message-ID: <4A360897.1050701@nokia.com>
-References: <20090530180721.75203sfsqbpppfi8@lidskialf.net> <20090608210333.11295srly8te8xog@lidskialf.net> <20090615080242.GD4474@atomide.com>
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: tcm825x.c: migrating to sub-device framework?
+Date: Mon, 15 Jun 2009 11:45:28 +0300
+Message-ID: <4A360A28.8080008@maxwell.research.nokia.com>
+References: <hvaibhav@ti.com> <200906141214.38355.hverkuil@xs4all.nl> <200906141444.54105.hverkuil@xs4all.nl> <200906141632.21098.hverkuil@xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:21000 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478AbZFOIi6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 04:38:58 -0400
-In-Reply-To: <20090615080242.GD4474@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <200906141632.21098.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: hvaibhav@ti.com, linux-media@vger.kernel.org, linux-omap@vger.kernel.org, davinci-linux-open-source@linux.davincidsp.com, Brijesh Jadav <brijesh.j@ti.com>, Hardik Shah <hardik.shah@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Andrew de Quincey <adq_dvb@lidskialf.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Andrew,
-
-ext Tony Lindgren wrote:
-> * Andrew de Quincey <adq_dvb@lidskialf.net> [090608 13:04]:
->> The brf6150 driver is missing several necessary cleanup steps to allow  
->> module unloading. Add them.
-
-Yes. This driver was used as compiled in driver and seems to be missing 
-cleanups.
-
-As you may have noticed this brf6150 driver has been replaced by hci_h4p 
-drier in later tablets and the easiest way to maintain support for Nokia 
-770 bluetooth would be to make sure that also brf6150 works with the 
-current driver. AFAIK it should work with quite little modifications. 
-The settings negotiation is a little bit different.
-
+Hans Verkuil wrote:
+> On Sunday 14 June 2009 14:44:53 Hans Verkuil wrote:
+>> On Sunday 14 June 2009 12:14:38 Hans Verkuil wrote:
+>>> On Wednesday 06 May 2009 20:31:33 hvaibhav@ti.com wrote:
+>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>>
+>>>> This patch converts TVP514x driver to sub-device framework
+>>>> from V4L2-int framework.
 > 
-> I've removed the brf6150 from linux-omap as this should get merged into
-> the mainline kernel via bt list.
-> 
-> Ville & Andrew, can you guys please coordinate on the bt list to get
-> the driver merged in? I believe there were some changes needed for
-> passing the hw address as a module option and for loading the firmware
-> or something..
+> Now that tvp514x is converted to using v4l2_subdev (pending a few small final
+> tweaks) there is only one driver left that uses the v4l2-int-device.h API:
+> tcm825x.c.
 
-Is 2.6.30 booting in Nokia 770/N800/N810? If so then I guess this should 
-be quite easy task.
+There's also the OMAP 2 camera driver (master), 
+drivers/media/video/omap24xxcam.c. The tcm825x is the slave driver that 
+is used in conjunction with omap24xxcam on N800 and N810.
 
 -- 
-Ville
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
