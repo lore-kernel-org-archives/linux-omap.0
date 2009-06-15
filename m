@@ -1,46 +1,60 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/1] IOMMU: function flush_iotlb_page is not flushing correct entry
-Date: Mon, 15 Jun 2009 12:38:26 +0300
-Message-ID: <1245058706-22504-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [patch] Fix brf6510 cleanup code
+Date: Mon, 15 Jun 2009 02:53:53 -0700
+Message-ID: <20090615095353.GM4474@atomide.com>
+References: <20090530180721.75203sfsqbpppfi8@lidskialf.net> <20090608210333.11295srly8te8xog@lidskialf.net> <20090615080242.GD4474@atomide.com> <4A360897.1050701@nokia.com> <20090615085855.GH4474@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31089 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbZFOJig (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 05:38:36 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57715 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918AbZFOJxx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 05:53:53 -0400
+Content-Disposition: inline
+In-Reply-To: <20090615085855.GH4474@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Fernando Guzman Lugo <x0095840@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Ville Tervo <ville.tervo@nokia.com>
+Cc: Andrew de Quincey <adq_dvb@lidskialf.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Fernando Guzman Lugo <x0095840@ti.com>
+* Tony Lindgren <tony@atomide.com> [090615 02:00]:
+> * Ville Tervo <ville.tervo@nokia.com> [090615 01:39]:
+> > Hi Andrew,
+> >
+> > ext Tony Lindgren wrote:
+> >> * Andrew de Quincey <adq_dvb@lidskialf.net> [090608 13:04]:
+> >>> The brf6150 driver is missing several necessary cleanup steps to 
+> >>> allow  module unloading. Add them.
+> >
+> > Yes. This driver was used as compiled in driver and seems to be missing  
+> > cleanups.
+> >
+> > As you may have noticed this brf6150 driver has been replaced by hci_h4p  
+> > drier in later tablets and the easiest way to maintain support for Nokia  
+> > 770 bluetooth would be to make sure that also brf6150 works with the  
+> > current driver. AFAIK it should work with quite little modifications.  
+> > The settings negotiation is a little bit different.
+> >
+> >>
+> >> I've removed the brf6150 from linux-omap as this should get merged into
+> >> the mainline kernel via bt list.
+> >>
+> >> Ville & Andrew, can you guys please coordinate on the bt list to get
+> >> the driver merged in? I believe there were some changes needed for
+> >> passing the hw address as a module option and for loading the firmware
+> >> or something..
+> >
+> > Is 2.6.30 booting in Nokia 770/N800/N810? If so then I guess this should  
+> > be quite easy task.
+> 
+> No.. The board files are missing, drivers/cbus is missing, and the code
+> depends on omap specific ATAGs. Hopefully we can get the minimal support
+> into 2.6.31 though.
 
-From: Fernando Guzman Lugo <x0095840@ti.com>
-
-The function flush_iotlb_page is not loading the CAM register with
-the correct entry to be flushed, so it is flushing other entry
-
-Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/iommu.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
- mode change 100644 => 100755 arch/arm/plat-omap/iommu.c
-
-diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-old mode 100644
-new mode 100755
-index 4cf449f..4a03013
---- a/arch/arm/plat-omap/iommu.c
-+++ b/arch/arm/plat-omap/iommu.c
-@@ -298,7 +298,7 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
- 		if ((start <= da) && (da < start + bytes)) {
- 			dev_dbg(obj->dev, "%s: %08x<=%08x(%x)\n",
- 				__func__, start, da, bytes);
--
-+			iotlb_load_cr(obj, &cr);
- 			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
- 		}
- 	}
--- 
-1.6.0.4
-
+Correction, hopefully we'll get the minimal support into 2.6.32, not 31.
+ 
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
