@@ -1,189 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
-Date: Mon, 15 Jun 2009 01:12:43 -0700
-Message-ID: <20090615081242.GE4474@atomide.com>
-References: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH] OMAP: McSPI: Fix RX DMA transfer path
+Date: Mon, 15 Jun 2009 11:37:53 +0300
+Message-ID: <4A360861.9040403@nokia.com>
+References: <> <1244809910-4014-1-git-send-email-aaro.koskinen@nokia.com> <005a01c9ed7a$2a5227b0$LocalHost@wipultra793>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62391 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964AbZFOIMm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 04:12:42 -0400
-Content-Disposition: inline
-In-Reply-To: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:18457 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767AbZFOIiq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 04:38:46 -0400
+In-Reply-To: <005a01c9ed7a$2a5227b0$LocalHost@wipultra793>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org, Chikkature Rajashekar <madhu.cr@ti.com>
+To: ext Hemanth V <hemanthv@ti.com>
+Cc: "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
 
-* Vikram Pandita <vikram.pandita@ti.com> [090612 15:43]:
-> For OMAP3 add MMC1 MMC2 and MMC3 pin mux
+Hello,
+
+ext Hemanth V wrote:
+> From: "Aaro Koskinen" <aaro.koskinen@nokia.com>
+>> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+>>
+>> When data is read through DMA, the last element must be read separately
+>> through the RX register. It cannot be transferred by the DMA. For further
+>> details see e.g. OMAP3430 TRM.
 > 
-> Signed-off-by: Chikkature Rajashekar <madhu.cr@ti.com>
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> ---
->  arch/arm/mach-omap2/devices.c         |   33 ++++++++++++++++++++++
->  arch/arm/mach-omap2/mux.c             |   49 +++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/mux.h |   28 +++++++++++++++++++
->  3 files changed, 110 insertions(+), 0 deletions(-)
+> Could you provide the section number and the version of TRM you are
+> referring to.
+
+Table 19-16 and section 19.6.2.5.1 in the public TRM.
+
+>> Without the fix the driver causes extra clocks to be clocked to the
+>> bus after DMA RX operations. This can cause interesting behaviour with
+>> some devices.
 > 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 894cc35..f86cb1f 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -513,6 +513,39 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
->  			omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
->  		}
->  	}
-> +
-> +	if (cpu_is_omap3430()) {
-> +		if (controller_nr == 0) {
-> +			omap_cfg_reg(N28_3430_MMC1_CLK);
-> +			omap_cfg_reg(M27_3430_MMC1_CMD);
-> +			omap_cfg_reg(N27_3430_MMC1_DAT0);
-> +			omap_cfg_reg(N26_3430_MMC1_DAT1);
-> +			omap_cfg_reg(N25_3430_MMC1_DAT2);
-> +			omap_cfg_reg(P28_3430_MMC1_DAT3);
-> +			omap_cfg_reg(P27_3430_MMC1_DAT4);
-> +			omap_cfg_reg(P26_3430_MMC1_DAT5);
-> +			omap_cfg_reg(R27_3430_MMC1_DAT6);
-> +			omap_cfg_reg(R25_3430_MMC1_DAT7);
-> +		}
-> +		if (controller_nr == 1) {
-> +			/* MMC2 */
-> +			omap_cfg_reg(AE2_3430_MMC2_CLK);
-> +			omap_cfg_reg(AG5_3430_MMC2_CMD);
-> +			omap_cfg_reg(AH5_3430_MMC2_DAT0);
-> +			omap_cfg_reg(AH4_3430_MMC2_DAT1);
-> +			omap_cfg_reg(AG4_3430_MMC2_DAT2);
-> +			omap_cfg_reg(AF4_3430_MMC2_DAT3);
-> +		}
-> +		if (controller_nr == 2) {
-> +			/* MMC3 */
-> +			omap_cfg_reg(AF10_3430_MMC3_CLK);
-> +			omap_cfg_reg(AC3_3430_MMC3_CMD);
-> +			omap_cfg_reg(AE11_3430_MMC3_DAT0);
-> +			omap_cfg_reg(AH9_3430_MMC3_DAT1);
-> +			omap_cfg_reg(AF13_3430_MMC3_DAT2);
-> +			omap_cfg_reg(AF13_3430_MMC3_DAT3);
-> +		}
-> +	}
->  }
+> Could you provide more details on the errors seen i.e is the transfer 
+> aborted
 
-Great, just one issue: All data pins may not be connected, so you
-need to look at wires in struct omap_mmc_slot_data to see how many
-data pins to mux.
+There is an extra word, which a device can interpret as a command. Also 
+if the word size != command size the device can hang. Unless the device 
+hangs, you may not even notice anything.
 
-Regards,
-
-Tony
-
-  
->  void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index 026c4fc..d49b9a7 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -486,6 +486,55 @@ MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-> +/* MMC1 */
-> +MUX_CFG_34XX("N28_3430_MMC1_CLK", 0x144,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("M27_3430_MMC1_CMD", 0x146,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("N27_3430_MMC1_DAT0", 0x148,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("N26_3430_MMC1_DAT1", 0x14a,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("N25_3430_MMC1_DAT2", 0x14c,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("P28_3430_MMC1_DAT3", 0x14e,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("P27_3430_MMC1_DAT4", 0x150,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("P26_3430_MMC1_DAT5", 0x152,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("R27_3430_MMC1_DAT6", 0x154,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("R25_3430_MMC1_DAT7", 0x156,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +
-> +/* MMC2 */
-> +MUX_CFG_34XX("AE2_3430_MMC2_CLK", 0x158,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AG5_3430_MMC2_CMD", 0x15A,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AH5_3430_MMC2_DAT0", 0x15c,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AH4_3430_MMC2_DAT1", 0x15e,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AG4_3430_MMC2_DAT2", 0x160,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AF4_3430_MMC2_DAT3", 0x162,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +
-> +/* MMC3 */
-> +MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x1d0,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AE11_3430_MMC3_DAT0", 0x5e4,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AH9_3430_MMC3_DAT1", 0x5e6,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AF13_3430_MMC3_DAT2", 0x5e8,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->  };
->  
->  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-> index 85a6217..d24fdf9 100644
-> --- a/arch/arm/plat-omap/include/mach/mux.h
-> +++ b/arch/arm/plat-omap/include/mach/mux.h
-> @@ -853,6 +853,34 @@ enum omap34xx_index {
->  	AE5_34XX_GPIO143,
->  	H19_34XX_GPIO164_OUT,
->  	J25_34XX_GPIO170,
-> +
-> +	/* MMC1 */
-> +	N28_3430_MMC1_CLK,
-> +	M27_3430_MMC1_CMD,
-> +	N27_3430_MMC1_DAT0,
-> +	N26_3430_MMC1_DAT1,
-> +	N25_3430_MMC1_DAT2,
-> +	P28_3430_MMC1_DAT3,
-> +	P27_3430_MMC1_DAT4,
-> +	P26_3430_MMC1_DAT5,
-> +	R27_3430_MMC1_DAT6,
-> +	R25_3430_MMC1_DAT7,
-> +
-> +	/* MMC2 */
-> +	AE2_3430_MMC2_CLK,
-> +	AG5_3430_MMC2_CMD,
-> +	AH5_3430_MMC2_DAT0,
-> +	AH4_3430_MMC2_DAT1,
-> +	AG4_3430_MMC2_DAT2,
-> +	AF4_3430_MMC2_DAT3,
-> +
-> +	/* MMC3 */
-> +	AF10_3430_MMC3_CLK,
-> +	AC3_3430_MMC3_CMD,
-> +	AE11_3430_MMC3_DAT0,
-> +	AH9_3430_MMC3_DAT1,
-> +	AF13_3430_MMC3_DAT2,
-> +	AF13_3430_MMC3_DAT3,
->  };
->  
->  struct omap_mux_cfg {
-> -- 
-> 1.6.0.3.613.g9f8f13
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A.
