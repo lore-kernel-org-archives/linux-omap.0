@@ -1,61 +1,139 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] adding back some features
-Date: Mon, 15 Jun 2009 01:00:02 -0700
-Message-ID: <20090615080001.GC4474@atomide.com>
-References: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com>
+Subject: Re: [patch] Fix brf6510 cleanup code
+Date: Mon, 15 Jun 2009 01:02:43 -0700
+Message-ID: <20090615080242.GD4474@atomide.com>
+References: <20090530180721.75203sfsqbpppfi8@lidskialf.net> <20090608210333.11295srly8te8xog@lidskialf.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52498 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751384AbZFOIAC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 04:00:02 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63625 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756581AbZFOICn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 04:02:43 -0400
 Content-Disposition: inline
-In-Reply-To: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com>
+In-Reply-To: <20090608210333.11295srly8te8xog@lidskialf.net>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@ti.deeprootsystems.com>
+To: Andrew de Quincey <adq_dvb@lidskialf.net>, "Tervo Ville (NMP/Helsinki)" <Ville.Tervo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+* Andrew de Quincey <adq_dvb@lidskialf.net> [090608 13:04]:
+> The brf6150 driver is missing several necessary cleanup steps to allow  
+> module unloading. Add them.
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090612 15:13]:
-> Here's a couple patches to add-back some feature dropped in the
-> mainline sync.  These are needed for the PM branch among other things.
-> 
-> Applies to linux-omap master.
-> 
-> Kevin
-> 
-> Kalle Jokiniemi (1): OMAP3: DMA: Enable idlemodes for DMA OCP
+I've removed the brf6150 from linux-omap as this should get merged into
+the mainline kernel via bt list.
 
-This we could justify getting into mainline as a fix, as otherwise
-some PM features won't work. Will add into omap-fixes.
- 
-> Kevin Hilman (1):
->   OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
+Ville & Andrew, can you guys please coordinate on the bt list to get
+the driver merged in? I believe there were some changes needed for
+passing the hw address as a module option and for loading the firmware
+or something..
 
-Is there any reason to get this one into mainline early?
-
-If not, I suggest you keep this in your pm branch for next merge
-window that I can keep merging to l-o master as needed.
-
-However, if omap_type() is by other queues earlier, then I can
-add it into my upstream queue. If this blocks several queues
-from being rebased against mainline kernel, that alone might
-already be a good enough reason to get it in early.
-
-Regards,
+Thanks,
 
 Tony
 
- 
->  arch/arm/mach-omap2/id.c              |   22 ++++++++++++++++++++++
->  arch/arm/plat-omap/dma.c              |   13 +++++++++++++
->  arch/arm/plat-omap/include/mach/dma.h |   15 +++++++++++++++
->  3 files changed, 50 insertions(+), 0 deletions(-)
+> Signed-off-by: Andrew de Quincey <adq@lidskialf.net>
+>
+
+> commit bf0e4cba53819df5590a88d551b35a2e79f4de75
+> Author: Andrew de Quincey <adq@lidskialf.net>
+> Date:   Sat May 30 18:01:58 2009 +0100
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>     Fix brf6150 init/shutdown cleanup
+> 
+> diff --git a/drivers/bluetooth/brf6150.c b/drivers/bluetooth/brf6150.c
+> index f29caf5..4f0112a 100644
+> --- a/drivers/bluetooth/brf6150.c
+> +++ b/drivers/bluetooth/brf6150.c
+> @@ -312,7 +312,7 @@ static int brf6150_send_negotiation(struct brf6150_info *info)
+>  	skb = brf6150_read_fw_cmd(info, GFP_KERNEL);
+>  
+>  	if (!skb) {
+> -		printk(KERN_WARNING "Cannot read negoatiation message");
+> +		printk(KERN_WARNING "Cannot read negotiation message");
+>  		return -1;
+>  	}
+>  
+> @@ -873,6 +873,7 @@ static int brf6150_register_hdev(struct brf6150_info *info)
+>  	hdev->owner = THIS_MODULE;
+>  
+>  	if (hci_register_dev(hdev) < 0) {
+> +		hci_free_dev(hdev);
+>  		printk(KERN_WARNING "brf6150: Can't register HCI device %s.\n", hdev->name);
+>  		return -ENODEV;
+>  	}
+> @@ -885,10 +886,9 @@ static int __init brf6150_init(void)
+>  	struct brf6150_info *info;
+>  	int irq, err;
+>  
+> -	info = kmalloc(sizeof(struct brf6150_info), GFP_KERNEL);
+> +	info = kzalloc(sizeof(struct brf6150_info), GFP_KERNEL);
+>  	if (!info)
+>  		return -ENOMEM;
+> -	memset(info, 0, sizeof(struct brf6150_info));
+>  
+>  	brf6150_device.dev.driver_data = info;
+>  	init_completion(&info->init_completion);
+> @@ -906,8 +906,11 @@ static int __init brf6150_init(void)
+>  	exit_info = NULL;
+>  
+>  	info->btinfo = omap_get_config(OMAP_TAG_NOKIA_BT, struct omap_bluetooth_config);
+> -	if (info->btinfo == NULL)
+> +	if (info->btinfo == NULL) {
+> +		tasklet_kill(&info->tx_task);
+> +		kfree(info);
+>  		return -1;
+> +	}
+>  
+>  	NBT_DBG("RESET gpio: %d\n", info->btinfo->reset_gpio);
+>  	NBT_DBG("BTWU gpio: %d\n", info->btinfo->bt_wakeup_gpio);
+> @@ -920,6 +923,7 @@ static int __init brf6150_init(void)
+>  	{
+>  		printk(KERN_WARNING "Cannot get GPIO line %d", 
+>  		       info->btinfo->reset_gpio);
+> +		tasklet_kill(&info->tx_task);
+>  		kfree(info);
+>  		return err;
+>  	}
+> @@ -930,6 +934,7 @@ static int __init brf6150_init(void)
+>  		printk(KERN_WARNING "Cannot get GPIO line 0x%d",
+>  		       info->btinfo->bt_wakeup_gpio);
+>  		gpio_free(info->btinfo->reset_gpio);
+> +		tasklet_kill(&info->tx_task);
+>  		kfree(info);
+>  		return err;
+>  	}
+> @@ -941,6 +946,7 @@ static int __init brf6150_init(void)
+>  		       info->btinfo->host_wakeup_gpio);
+>  		gpio_free(info->btinfo->reset_gpio);
+>  		gpio_free(info->btinfo->bt_wakeup_gpio);
+> +		tasklet_kill(&info->tx_task);
+>  		kfree(info);
+>  		return err;
+>  	}
+> @@ -1027,6 +1033,7 @@ cleanup:
+>  	gpio_free(info->btinfo->reset_gpio);
+>  	gpio_free(info->btinfo->bt_wakeup_gpio);
+>  	gpio_free(info->btinfo->host_wakeup_gpio);
+> +	tasklet_kill(&info->tx_task);
+>  	kfree(info);
+>  
+>  	return err;
+> @@ -1035,12 +1042,16 @@ cleanup:
+>  static void __exit brf6150_exit(void)
+>  {
+>  	brf6150_hci_close(exit_info->hdev);
+> +	hci_unregister_dev(exit_info->hdev);
+>  	hci_free_dev(exit_info->hdev);
+>  	gpio_free(exit_info->btinfo->reset_gpio);
+>  	gpio_free(exit_info->btinfo->bt_wakeup_gpio);
+>  	gpio_free(exit_info->btinfo->host_wakeup_gpio);
+>  	free_irq(exit_info->irq, (void *)exit_info);
+>  	free_irq(gpio_to_irq(exit_info->btinfo->host_wakeup_gpio), (void *)exit_info);
+> +	tasklet_kill(&exit_info->tx_task);
+> +	platform_device_unregister(&brf6150_device);
+> +	platform_driver_unregister(&brf6150_driver);
+>  	kfree(exit_info);
+>  }
+>  
