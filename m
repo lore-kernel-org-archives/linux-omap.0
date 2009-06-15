@@ -1,52 +1,42 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/3] OMAP3:WDT:Enable support for IVA and SECURE
-Date: Mon, 15 Jun 2009 09:26:17 -0700
-Message-ID: <8763exa2fq.fsf@deeprootsystems.com>
-References: <1244495293-17244-1-git-send-email-ubh@ti.com>
-	<1244495293-17244-2-git-send-email-ubh@ti.com>
-	<1244495293-17244-3-git-send-email-ubh@ti.com>
-	<87prddzcp5.fsf@deeprootsystems.com>
-	<00695C9C8F8B4448856F48142B4AA201BD76FE9E@dnce02.ent.ti.com>
-	<87ljo1w1u7.fsf@deeprootsystems.com>
-	<00695C9C8F8B4448856F48142B4AA201BD868426@dnce02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] OMAP3: drop SmartReflex base addresses mistakenly added by EHCI patch
+Date: Mon, 15 Jun 2009 10:12:12 -0700
+Message-ID: <1245085932-9996-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:53509 "EHLO
+Received: from mail-px0-f189.google.com ([209.85.216.189]:44145 "EHLO
 	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760976AbZFOQ0R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 12:26:17 -0400
-Received: by pxi27 with SMTP id 27so325908pxi.33
-        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2009 09:26:19 -0700 (PDT)
-In-Reply-To: <00695C9C8F8B4448856F48142B4AA201BD868426@dnce02.ent.ti.com> (Ulrik Bech Hald's message of "Mon\, 15 Jun 2009 18\:19\:11 +0200")
+	with ESMTP id S1758617AbZFORMN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 13:12:13 -0400
+Received: by pxi27 with SMTP id 27so351355pxi.33
+        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2009 10:12:15 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hald, Ulrik Bech" <ubh@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-"Hald, Ulrik Bech" <ubh@ti.com> writes:
+From: Kevin Hilman <khilman@ti.deeprootsystems.com>
 
-[...]
+Drop them for now.  They will be re-added with the SmartReflex
+patches coming from the PM branch, and will use the
+L4_34XX_BASE + <offset> approach.
 
->> >>
->> >> Again, red flag: cpu_is_*
->> >>
->> >> It might be more consistent to use pdev->dev->name which is already of
->> >> the form "watchdog.%d".
->> >
->> > Not sure I follow. I don't see a "name" field in struct device, only
->> init_name.
->> 
->> Sorry, I meant dev->bus_id.  Look at dev_set_name() which creates
->> a bus_id of the form ("%s.%d", pdev->name, pdev->id)
->
-> As far as I can see, dev->bus_id has been removed from the device
-> struct as per 1fa5ae857bb14f6046205171d98506d8112dd74e.
-> Furthermore, the pdev->name is "omap_wdt", which should be presented
-> as "watchdog" in wdev->omap_wdt_miscdev.name anyway, so I think I'll
-> just go with the sprintf() approach below, keeping your wdt_name
-> comments in mind.
+Signed-off-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
+---
+ arch/arm/plat-omap/include/mach/omap34xx.h |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-OK
+diff --git a/arch/arm/plat-omap/include/mach/omap34xx.h b/arch/arm/plat-omap/include/mach/omap34xx.h
+index 4655707..6a58f3d 100644
+--- a/arch/arm/plat-omap/include/mach/omap34xx.h
++++ b/arch/arm/plat-omap/include/mach/omap34xx.h
+@@ -78,8 +78,6 @@
+ #define OMAP34XX_UHH_CONFIG_BASE	(L4_34XX_BASE + 0x64000)
+ #define OMAP34XX_OHCI_BASE	(L4_34XX_BASE + 0x64400)
+ #define OMAP34XX_EHCI_BASE	(L4_34XX_BASE + 0x64800)
+-#define OMAP34XX_SR1_BASE	0x480C9000
+-#define OMAP34XX_SR2_BASE	0x480CB000
+ 
+ #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
+ 
+-- 
+1.6.2.2
 
-Kevin
