@@ -1,52 +1,77 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: Please help in adding ams-delta support to ASoC
-Date: Mon, 15 Jun 2009 15:22:34 +0200
-Message-ID: <4A364B1A.5040905@tis.icnet.pl>
-References: <4A1BEBE3.8010306@tis.icnet.pl>	<200906030924.14230.jkrzyszt@tis.icnet.pl>	<20090605165531.7d0c4522.jhnikula@gmail.com>	<200906060028.01600.jkrzyszt@tis.icnet.pl> <20090608094028.415e6ec3.jhnikula@gmail.com> <4A2E7921.7090200@tis.icnet.pl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 0/2] adding back some features
+Date: Mon, 15 Jun 2009 07:55:30 -0700
+Message-ID: <87ski1a6n1.fsf@deeprootsystems.com>
+References: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com>
+	<20090615080001.GC4474@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:57612 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758675AbZFONWf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 15 Jun 2009 09:22:35 -0400
-In-Reply-To: <4A2E7921.7090200@tis.icnet.pl>
+Received: from mail-pz0-f187.google.com ([209.85.222.187]:57405 "EHLO
+	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701AbZFOOzb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 10:55:31 -0400
+Received: by pzk17 with SMTP id 17so1996236pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2009 07:55:34 -0700 (PDT)
+In-Reply-To: <20090615080001.GC4474@atomide.com> (Tony Lindgren's message of "Mon\, 15 Jun 2009 01\:00\:02 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Janusz Krzysztofik napisa=B3(a):
-> Important or not, I have to fine down my provious reports on what wor=
-ks=20
-> and what does not:
->=20
-> - original patch applied with other ams-delta related patches
->   on linux-omap-2.6.16, as it was designed for:
->   - playback: works, with both aplay and >/dev/dsp,
->   - capture: works with </dev/dsp, gives null output with arecord
->=20
-> - original patch ported to the last l-o commit supporting omap-alsa:
->   - playback: works as before,
->   - capture: both </dev/dsp and arecord give null output,
->     but DMA interrupts still work.
+Tony Lindgren <tony@atomide.com> writes:
 
-Not that I would see it as a real progress, but to clarify things: I=20
-have managed to solve this particular problem with capture by patching=20
-sound/arm/omap/omap-alsa.c (call omap_get_dma_dst_pos() instead of=20
-omap_get_dma_src_pos() from audio_get_dma_pos() in case of (stream_id =3D=
-=3D=20
-SNDRV_PCM_STREAM_CAPTURE)). The original code stopped working after=20
-changes introduced to omap_get_dma_src_pos() with this patch:=20
-http://marc.info/?l=3Dlinux-omap&m=3D121280267705523.
+> Hi,
+>
+> * Kevin Hilman <khilman@deeprootsystems.com> [090612 15:13]:
+>> Here's a couple patches to add-back some feature dropped in the
+>> mainline sync.  These are needed for the PM branch among other things.
+>> 
+>> Applies to linux-omap master.
+>> 
+>> Kevin
+>> 
+>> Kalle Jokiniemi (1): OMAP3: DMA: Enable idlemodes for DMA OCP
+>
+> This we could justify getting into mainline as a fix, as otherwise
+> some PM features won't work. Will add into omap-fixes.
 
-Unfortunatelly ;), sound/soc/omap/omap-pcm.c does it correctly without=20
-patching.
+Thanks.
 
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Kevin Hilman (1):
+>>   OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
+>
+> Is there any reason to get this one into mainline early?
+
+Well, the PM branch has a dependency, but also the recenetly submitted
+qwatchdog driver has a dependency.
+
+> If not, I suggest you keep this in your pm branch for next merge
+> window that I can keep merging to l-o master as needed.
+>
+> However, if omap_type() is by other queues earlier, then I can
+> add it into my upstream queue. If this blocks several queues
+> from being rebased against mainline kernel, that alone might
+> already be a good enough reason to get it in early.
+
+I think it should go via your upstream queue.  I imagine some of the
+other upcoming driver submissions from TI will have a dependency as
+well since there is still some missing EMU/HS support ind drivers.
+
+Kevin
+
+>
+> Regards,
+>
+> Tony
+>
+>  
+>>  arch/arm/mach-omap2/id.c              |   22 ++++++++++++++++++++++
+>>  arch/arm/plat-omap/dma.c              |   13 +++++++++++++
+>>  arch/arm/plat-omap/include/mach/dma.h |   15 +++++++++++++++
+>>  3 files changed, 50 insertions(+), 0 deletions(-)
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
