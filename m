@@ -1,92 +1,52 @@
-From: "Hald, Ulrik Bech" <ubh@ti.com>
-Subject: RE: [PATCH 1/1] OMAP3:Re-introduce omap_type()
-Date: Mon, 15 Jun 2009 15:04:38 +0200
-Message-ID: <00695C9C8F8B4448856F48142B4AA201BD868097@dnce02.ent.ti.com>
-References: <1244840311-11809-1-git-send-email-ubh@ti.com>
- <874oulayou.fsf@deeprootsystems.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Mon, 15 Jun 2009 15:22:34 +0200
+Message-ID: <4A364B1A.5040905@tis.icnet.pl>
+References: <4A1BEBE3.8010306@tis.icnet.pl>	<200906030924.14230.jkrzyszt@tis.icnet.pl>	<20090605165531.7d0c4522.jhnikula@gmail.com>	<200906060028.01600.jkrzyszt@tis.icnet.pl> <20090608094028.415e6ec3.jhnikula@gmail.com> <4A2E7921.7090200@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-2;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52933 "EHLO comal.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:57612 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752219AbZFONEr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 09:04:47 -0400
-In-Reply-To: <874oulayou.fsf@deeprootsystems.com>
-Content-Language: en-US
+	id S1758675AbZFONWf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 15 Jun 2009 09:22:35 -0400
+In-Reply-To: <4A2E7921.7090200@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Friday, June 12, 2009 5:13 PM
-> To: Hald, Ulrik Bech
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/1] OMAP3:Re-introduce omap_type()
-> 
-> Ulrik Bech Hald <ubh@ti.com> writes:
-> 
-> > The functionality of omap_type() is needed for eg. watchdog
-> > device registration to distinguish different device types.
-> >
-> > Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
-> 
-> Collision. :) I have an add-back of this in my fixes queue which I
-> just posted as well.
-> 
-Ok, well, as long as we get it back in there :)
+Janusz Krzysztofik napisa=B3(a):
+> Important or not, I have to fine down my provious reports on what wor=
+ks=20
+> and what does not:
+>=20
+> - original patch applied with other ams-delta related patches
+>   on linux-omap-2.6.16, as it was designed for:
+>   - playback: works, with both aplay and >/dev/dsp,
+>   - capture: works with </dev/dsp, gives null output with arecord
+>=20
+> - original patch ported to the last l-o commit supporting omap-alsa:
+>   - playback: works as before,
+>   - capture: both </dev/dsp and arecord give null output,
+>     but DMA interrupts still work.
 
-/Ulrik
+Not that I would see it as a real progress, but to clarify things: I=20
+have managed to solve this particular problem with capture by patching=20
+sound/arm/omap/omap-alsa.c (call omap_get_dma_dst_pos() instead of=20
+omap_get_dma_src_pos() from audio_get_dma_pos() in case of (stream_id =3D=
+=3D=20
+SNDRV_PCM_STREAM_CAPTURE)). The original code stopped working after=20
+changes introduced to omap_get_dma_src_pos() with this patch:=20
+http://marc.info/?l=3Dlinux-omap&m=3D121280267705523.
 
-> Kevin
-> 
-> > ---
-> >  arch/arm/mach-omap2/id.c |   21 +++++++++++++++++++++
-> >  1 files changed, 21 insertions(+), 0 deletions(-)
-> >  mode change 100644 => 100755 arch/arm/mach-omap2/id.c
-> >
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > old mode 100644
-> > new mode 100755
-> > index 458990e..9fa61b4
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -48,6 +48,27 @@ int omap_chip_is(struct omap_chip_id oci)
-> >  }
-> >  EXPORT_SYMBOL(omap_chip_is);
-> >
-> > +int omap_type(void)
-> > +{
-> > +	u32 val = 0;
-> > +
-> > +	if (cpu_is_omap24xx()) {
-> > +		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
-> > +	} else if (cpu_is_omap34xx()) {
-> > +		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
-> > +	} else {
-> > +		pr_err("Cannot detect omap type!\n");
-> > +		goto out;
-> > +	}
-> > +
-> > +	val &= OMAP2_DEVICETYPE_MASK;
-> > +	val >>= 8;
-> > +
-> > +out:
-> > +	return val;
-> > +}
-> > +EXPORT_SYMBOL(omap_type);
-> > +
-> >  /*---------------------------------------------------------------------
-> -------*/
-> >
-> >  #define OMAP_TAP_IDCODE		0x0204
-> > --
-> > 1.5.4.3
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Unfortunatelly ;), sound/soc/omap/omap-pcm.c does it correctly without=20
+patching.
 
+Janusz
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
