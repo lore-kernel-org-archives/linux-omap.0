@@ -1,48 +1,52 @@
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: RE: Did I miss any other patches or RFCs that need to be reviewed?
-Date: Mon, 15 Jun 2009 11:24:53 -0500
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF92E4@dlee06.ent.ti.com>
-References: <200906141636.39198.hverkuil@xs4all.nl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 2/3] OMAP3:WDT:Enable support for IVA and SECURE
+Date: Mon, 15 Jun 2009 09:26:17 -0700
+Message-ID: <8763exa2fq.fsf@deeprootsystems.com>
+References: <1244495293-17244-1-git-send-email-ubh@ti.com>
+	<1244495293-17244-2-git-send-email-ubh@ti.com>
+	<1244495293-17244-3-git-send-email-ubh@ti.com>
+	<87prddzcp5.fsf@deeprootsystems.com>
+	<00695C9C8F8B4448856F48142B4AA201BD76FE9E@dnce02.ent.ti.com>
+	<87ljo1w1u7.fsf@deeprootsystems.com>
+	<00695C9C8F8B4448856F48142B4AA201BD868426@dnce02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <200906141636.39198.hverkuil@xs4all.nl>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f189.google.com ([209.85.216.189]:53509 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760976AbZFOQ0R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 12:26:17 -0400
+Received: by pxi27 with SMTP id 27so325908pxi.33
+        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2009 09:26:19 -0700 (PDT)
+In-Reply-To: <00695C9C8F8B4448856F48142B4AA201BD868426@dnce02.ent.ti.com> (Ulrik Bech Hald's message of "Mon\, 15 Jun 2009 18\:19\:11 +0200")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Hald, Ulrik Bech" <ubh@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-SGFucywNCg0KVGhhbmtzIGZvciB5b3VyIHJldmlldy4gSSB3aWxsIGdldCBiYWNrIHRvIHlvdSBp
-ZiBJIG5lZWQgbW9yZQ0KaW5mb3JtYXRpb24gb24geW91ciBjb21tZW50cy4NCg0KWW91IGhhdmUg
-cmV2aWV3ZWQgdGhlIGZvbGxvd2luZyBwYXRjaGVzIGluIHRoaXMgc2VyaWVzLi4uDQoxLDcsOCwx
-MA0KDQpGb2xsb3dpbmcgYXJlIHBhcnQgb2YgdGhpcyBzZXJpZXMgd2hpY2ggcmVxdWlyZXMgcmV2
-aWV3IGFzIHdlbGwuDQoNCltQQVRDSCAyLzEwIC0gdjJdIGNjZGMgaHcgZGV2aWNlIGhlYWRlciBm
-aWxlIGZvciB2cGZlIGNhcHR1cmUNCltQQVRDSCAzLzEwIC0gdjJdIGRtMzU1IGNjZGMgbW9kdWxl
-IGZvciB2cGZlIGNhcHR1cmUgZHJpdmVyDQpbUEFUQ0ggNC8xMCAtIHYyXSBkbTY0NHggY2NkYyBt
-b2R1bGUgZm9yIHZwZmUgY2FwdHVyZSBkcml2ZXINCltQQVRDSCA1LzEwIC0gdjJdIGNjZGMgdHlw
-ZXMgdXNlZCBhY3Jvc3MgY2NkYyBtb2R1bGVzIGZvciB2cGZlIGNhcHR1cmUgZHJpdmVyDQoNCihu
-b3QgbXVjaCB0byByZXZpZXcgaW4gdGhlIGJlbG93IHBhdGNoICkNCg0KUEFUQ0ggNi8xMCAtIHYy
-XSBNYWtlZmlsZSBhbmQgY29uZmlnIGZpbGVzIGZvciB2cGZlIGNhcHR1cmUgZHJpdmVyIA0KDQpy
-ZWdhcmRzLA0KDQpNdXJhbGkgS2FyaWNoZXJpDQpTb2Z0d2FyZSBEZXNpZ24gRW5naW5lZXINClRl
-eGFzIEluc3RydW1lbnRzIEluYy4NCkdlcm1hbnRvd24sIE1EIDIwODc0DQplbWFpbDogbS1rYXJp
-Y2hlcmkyQHRpLmNvbQ0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBkYXZp
-bmNpLWxpbnV4LW9wZW4tc291cmNlLWJvdW5jZXMrbS0NCj5rYXJpY2hlcmkyPXRpLmNvbUBsaW51
-eC5kYXZpbmNpZHNwLmNvbSBbbWFpbHRvOmRhdmluY2ktbGludXgtb3Blbi1zb3VyY2UtDQo+Ym91
-bmNlcyttLWthcmljaGVyaTI9dGkuY29tQGxpbnV4LmRhdmluY2lkc3AuY29tXSBPbiBCZWhhbGYg
-T2YgSGFucyBWZXJrdWlsDQo+U2VudDogU3VuZGF5LCBKdW5lIDE0LCAyMDA5IDEwOjM3IEFNDQo+
-VG86IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZw0KPkNjOiBkYXZpbmNpLWxpbnV4LW9wZW4t
-c291cmNlQGxpbnV4LmRhdmluY2lkc3AuY29tOyBsaW51eC0NCj5vbWFwQHZnZXIua2VybmVsLm9y
-Zw0KPlN1YmplY3Q6IERpZCBJIG1pc3MgYW55IG90aGVyIHBhdGNoZXMgb3IgUkZDcyB0aGF0IG5l
-ZWQgdG8gYmUgcmV2aWV3ZWQ/DQo+DQo+SGkgYWxsLA0KPg0KPkkgdGhpbmsgSSd2ZSBmaW5hbGx5
-IGZpbmlzaGVkIHJldmlld2luZyBhbGwgdGhlIHBlbmRpbmcgcGF0Y2hlcy4NCj4NCj5BcmUgdGhl
-cmUgYW55IHRoYXQgSSd2ZSBtaXNzZWQ/IE9yIGFyZSB0aGVyZSBvdGhlciBwb3N0aW5ncyB0aGF0
-IG5lZWQgbXkNCj5hdHRlbnRpb24/DQo+DQo+UGxlYXNlIGxldCBtZSBrbm93LCBvdGhlcndpc2Ug
-SSBhc3N1bWUgdGhhdCBJJ20gKGZpbmFsbHkhKSB1cCB0byBkYXRlLg0KPg0KPlJlZ2FyZHMsDQo+
-DQo+CUhhbnMNCj4NCj4tLQ0KPkhhbnMgVmVya3VpbCAtIHZpZGVvNGxpbnV4IGRldmVsb3BlciAt
-IHNwb25zb3JlZCBieSBUQU5EQkVSRyBUZWxlY29tDQo+DQo+X19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18NCj5EYXZpbmNpLWxpbnV4LW9wZW4tc291cmNlIG1h
-aWxpbmcgbGlzdA0KPkRhdmluY2ktbGludXgtb3Blbi1zb3VyY2VAbGludXguZGF2aW5jaWRzcC5j
-b20NCj5odHRwOi8vbGludXguZGF2aW5jaWRzcC5jb20vbWFpbG1hbi9saXN0aW5mby9kYXZpbmNp
-LWxpbnV4LW9wZW4tc291cmNlDQo=
+"Hald, Ulrik Bech" <ubh@ti.com> writes:
+
+[...]
+
+>> >>
+>> >> Again, red flag: cpu_is_*
+>> >>
+>> >> It might be more consistent to use pdev->dev->name which is already of
+>> >> the form "watchdog.%d".
+>> >
+>> > Not sure I follow. I don't see a "name" field in struct device, only
+>> init_name.
+>> 
+>> Sorry, I meant dev->bus_id.  Look at dev_set_name() which creates
+>> a bus_id of the form ("%s.%d", pdev->name, pdev->id)
+>
+> As far as I can see, dev->bus_id has been removed from the device
+> struct as per 1fa5ae857bb14f6046205171d98506d8112dd74e.
+> Furthermore, the pdev->name is "omap_wdt", which should be presented
+> as "watchdog" in wdev->omap_wdt_miscdev.name anyway, so I think I'll
+> just go with the sprintf() approach below, keeping your wdt_name
+> comments in mind.
+
+OK
+
+Kevin
