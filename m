@@ -1,55 +1,37 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [TRIVIAL PATCH] Fix compilation of
- arch/arm/mach-omap1/mailbox.c
-Date: Mon, 15 Jun 2009 12:15:31 +0300 (EEST)
-Message-ID: <20090615.121531.123974522.Hiroshi.DOYU@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [TRIVIAL PATCH] Fix compilation of arch/arm/mach-omap1/mailbox.c
+Date: Mon, 15 Jun 2009 05:22:34 -0400
+Message-ID: <notify-1245057756@atomide.com>
 References: <20090612235059.GJ6704@earth.li>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:23205 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750786AbZFOJQA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 05:16:00 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63729 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750900AbZFOJWe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 05:22:34 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MG8Oj-000Oiq-5f
+	for linux-omap@vger.kernel.org; Mon, 15 Jun 2009 09:22:37 +0000
 In-Reply-To: <20090612235059.GJ6704@earth.li>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, noodles@earth.li
+To: linux-omap@vger.kernel.org
 
-From: ext Jonathan McDowell <noodles@earth.li>
-Subject: [TRIVIAL PATCH] Fix compilation of arch/arm/mach-omap1/mailbox.c
-Date: Sat, 13 Jun 2009 01:50:59 +0200
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-> This fixes the positioning of " in MODULE_AUTHOR, which is currently
-> causing a build failure on latest git with CONFIG_OMAP_MBOX_FWK=m; the
-> original breakage appears to date from the end of last year in
-> a5abbbe52b7e89a7633319c5417bd4331f7ac8ed
-> 
+Branch in linux-omap: omap-fixes
 
-Acked-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Initial commit ID (Likely to change): 0a68518bc651bffde12e2a2a12588b07b9345d4d
 
-> Signed-Off-By: Jonathan McDowell <noodles@earth.li>
-> 
-> -----
-> diff --git a/arch/arm/mach-omap1/mailbox.c b/arch/arm/mach-omap1/mailbox.c
-> index 0af4d6c..6810b4a 100644
-> --- a/arch/arm/mach-omap1/mailbox.c
-> +++ b/arch/arm/mach-omap1/mailbox.c
-> @@ -203,5 +203,5 @@ module_exit(omap1_mbox_exit);
->  
->  MODULE_LICENSE("GPL v2");
->  MODULE_DESCRIPTION("omap mailbox: omap1 architecture specific functions");
-> -MODULE_AUTHOR("Hiroshi DOYU" <Hiroshi.DOYU@nokia.com>);
-> +MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>");
->  MODULE_ALIAS("platform:omap1-mailbox");
-> -----
-> 
-> J.
-> 
-> -- 
-> ] http://www.earth.li/~noodles/ []     "Making the impossible very     [
-> ]  PGP/GPG Key @ the.earth.li   []     difficult" -- The OpenGALEN     [
-> ] via keyserver, web or email.  []              website.               [
-> ] RSA: 4096/2DA8B985            []                                     [
+PatchWorks
+http://patchwork.kernel.org/patch/30004/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=0a68518bc651bffde12e2a2a12588b07b9345d4d
+
+
