@@ -1,76 +1,152 @@
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: RE: Did I miss any other patches or RFCs that need to be reviewed?
-Date: Mon, 15 Jun 2009 13:44:15 -0500
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF93D9@dlee06.ent.ti.com>
-References: <200906141636.39198.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE40139DF92E4@dlee06.ent.ti.com>
- <200906151956.18572.hverkuil@xs4all.nl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: Program SDRC to send self refresh on timeout of AUTO_CNT
+Date: Mon, 15 Jun 2009 12:14:44 -0700
+Message-ID: <87k53d8g2j.fsf@deeprootsystems.com>
+References: <1244566841-5393-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <200906151956.18572.hverkuil@xs4all.nl>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.24]:28425 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752330AbZFOTVu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 15 Jun 2009 15:21:50 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so2425404qwd.37
+        for <linux-omap@vger.kernel.org>; Mon, 15 Jun 2009 12:21:52 -0700 (PDT)
+In-Reply-To: <1244566841-5393-1-git-send-email-rnayak@ti.com> (Rajendra Nayak's message of "Tue\,  9 Jun 2009 22\:30\:41 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-SGFucywNCg0KVGhhdCBpcyBncmVhdCENCg0KT25jZSBJIGNoYW5nZSB0aGUgY29kZSBiYXNlZCBv
-biB0aGUgY29tbWVudHMsIGRvIHlvdSB0aGluayB0aGVyZSBpcyBhIGNoYW5jZSB0byBnZXQgdGhl
-IGRyaXZlciB0byBiZSBtZXJnZWQgdG8gMi42LjMxIChJZiBzbywgaG93IHNvb24gc2hvdWxkIEkg
-YmUgcmVhZHkgd2l0aCB0aGUgbmV4dCB2ZXJzaW9uLCB2MyBvZiB0aGUgcGF0Y2gpIG9yIGRvIHdl
-IG5lZWQgdG8gd2FpdCB1bnRpbCAyLjYuMzI/DQoNClJlZ2FyZHMsDQpNdXJhbGkgS2FyaWNoZXJp
-DQpTb2Z0d2FyZSBEZXNpZ24gRW5naW5lZXINClRleGFzIEluc3RydW1lbnRzIEluYy4NCkdlcm1h
-bnRvd24sIE1EIDIwODc0DQpQaG9uZSA6IDMwMS01MTUtMzczNg0KZW1haWw6IG0ta2FyaWNoZXJp
-MkB0aS5jb20NCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogSGFucyBWZXJr
-dWlsIFttYWlsdG86aHZlcmt1aWxAeHM0YWxsLm5sXQ0KPlNlbnQ6IE1vbmRheSwgSnVuZSAxNSwg
-MjAwOSAxOjU2IFBNDQo+VG86IEthcmljaGVyaSwgTXVyYWxpZGhhcmFuDQo+Q2M6IGxpbnV4LW1l
-ZGlhQHZnZXIua2VybmVsLm9yZzsgZGF2aW5jaS1saW51eC1vcGVuLQ0KPnNvdXJjZUBsaW51eC5k
-YXZpbmNpZHNwLmNvbTsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj5TdWJqZWN0OiBSZTog
-RGlkIEkgbWlzcyBhbnkgb3RoZXIgcGF0Y2hlcyBvciBSRkNzIHRoYXQgbmVlZCB0byBiZSByZXZp
-ZXdlZD8NCj4NCj5PbiBNb25kYXkgMTUgSnVuZSAyMDA5IDE4OjI0OjUzIEthcmljaGVyaSwgTXVy
-YWxpZGhhcmFuIHdyb3RlOg0KPj4gSGFucywNCj4+DQo+PiBUaGFua3MgZm9yIHlvdXIgcmV2aWV3
-LiBJIHdpbGwgZ2V0IGJhY2sgdG8geW91IGlmIEkgbmVlZCBtb3JlDQo+PiBpbmZvcm1hdGlvbiBv
-biB5b3VyIGNvbW1lbnRzLg0KPj4NCj4+IFlvdSBoYXZlIHJldmlld2VkIHRoZSBmb2xsb3dpbmcg
-cGF0Y2hlcyBpbiB0aGlzIHNlcmllcy4uLg0KPj4gMSw3LDgsMTANCj4NCj5UaG9zZSB3ZXJlIHRo
-ZSBvbmx5IG9uZXMgSSBoYWQgYW55IGNvbW1lbnRzIG9uLiBTbyBJJ20gaGFwcHkgd2l0aCB0aGUN
-Cj5vdGhlcnMuDQo+DQo+UmVnYXJkcywNCj4NCj4JSGFucw0KPg0KPj4NCj4+IEZvbGxvd2luZyBh
-cmUgcGFydCBvZiB0aGlzIHNlcmllcyB3aGljaCByZXF1aXJlcyByZXZpZXcgYXMgd2VsbC4NCj4+
-DQo+PiBbUEFUQ0ggMi8xMCAtIHYyXSBjY2RjIGh3IGRldmljZSBoZWFkZXIgZmlsZSBmb3IgdnBm
-ZSBjYXB0dXJlDQo+PiBbUEFUQ0ggMy8xMCAtIHYyXSBkbTM1NSBjY2RjIG1vZHVsZSBmb3IgdnBm
-ZSBjYXB0dXJlIGRyaXZlcg0KPj4gW1BBVENIIDQvMTAgLSB2Ml0gZG02NDR4IGNjZGMgbW9kdWxl
-IGZvciB2cGZlIGNhcHR1cmUgZHJpdmVyDQo+PiBbUEFUQ0ggNS8xMCAtIHYyXSBjY2RjIHR5cGVz
-IHVzZWQgYWNyb3NzIGNjZGMgbW9kdWxlcyBmb3IgdnBmZSBjYXB0dXJlDQo+ZHJpdmVyDQo+Pg0K
-Pj4gKG5vdCBtdWNoIHRvIHJldmlldyBpbiB0aGUgYmVsb3cgcGF0Y2ggKQ0KPj4NCj4+IFBBVENI
-IDYvMTAgLSB2Ml0gTWFrZWZpbGUgYW5kIGNvbmZpZyBmaWxlcyBmb3IgdnBmZSBjYXB0dXJlIGRy
-aXZlcg0KPj4NCj4+IHJlZ2FyZHMsDQo+Pg0KPj4gTXVyYWxpIEthcmljaGVyaQ0KPj4gU29mdHdh
-cmUgRGVzaWduIEVuZ2luZWVyDQo+PiBUZXhhcyBJbnN0cnVtZW50cyBJbmMuDQo+PiBHZXJtYW50
-b3duLCBNRCAyMDg3NA0KPj4gZW1haWw6IG0ta2FyaWNoZXJpMkB0aS5jb20NCj4+DQo+PiA+LS0t
-LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+ID5Gcm9tOiBkYXZpbmNpLWxpbnV4LW9wZW4tc291
-cmNlLWJvdW5jZXMrbS0NCj4+ID5rYXJpY2hlcmkyPXRpLmNvbUBsaW51eC5kYXZpbmNpZHNwLmNv
-bSBbbWFpbHRvOmRhdmluY2ktbGludXgtb3Blbi0NCj5zb3VyY2UtDQo+PiA+Ym91bmNlcyttLWth
-cmljaGVyaTI9dGkuY29tQGxpbnV4LmRhdmluY2lkc3AuY29tXSBPbiBCZWhhbGYgT2YgSGFucw0K
-PlZlcmt1aWwNCj4+ID5TZW50OiBTdW5kYXksIEp1bmUgMTQsIDIwMDkgMTA6MzcgQU0NCj4+ID5U
-bzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQo+PiA+Q2M6IGRhdmluY2ktbGludXgtb3Bl
-bi1zb3VyY2VAbGludXguZGF2aW5jaWRzcC5jb207IGxpbnV4LQ0KPj4gPm9tYXBAdmdlci5rZXJu
-ZWwub3JnDQo+PiA+U3ViamVjdDogRGlkIEkgbWlzcyBhbnkgb3RoZXIgcGF0Y2hlcyBvciBSRkNz
-IHRoYXQgbmVlZCB0byBiZSByZXZpZXdlZD8NCj4+ID4NCj4+ID5IaSBhbGwsDQo+PiA+DQo+PiA+
-SSB0aGluayBJJ3ZlIGZpbmFsbHkgZmluaXNoZWQgcmV2aWV3aW5nIGFsbCB0aGUgcGVuZGluZyBw
-YXRjaGVzLg0KPj4gPg0KPj4gPkFyZSB0aGVyZSBhbnkgdGhhdCBJJ3ZlIG1pc3NlZD8gT3IgYXJl
-IHRoZXJlIG90aGVyIHBvc3RpbmdzIHRoYXQgbmVlZCBteQ0KPj4gPmF0dGVudGlvbj8NCj4+ID4N
-Cj4+ID5QbGVhc2UgbGV0IG1lIGtub3csIG90aGVyd2lzZSBJIGFzc3VtZSB0aGF0IEknbSAoZmlu
-YWxseSEpIHVwIHRvIGRhdGUuDQo+PiA+DQo+PiA+UmVnYXJkcywNCj4+ID4NCj4+ID4JSGFucw0K
-Pj4gPg0KPj4gPi0tDQo+PiA+SGFucyBWZXJrdWlsIC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0g
-c3BvbnNvcmVkIGJ5IFRBTkRCRVJHIFRlbGVjb20NCj4+ID4NCj4+ID5fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPj4gPkRhdmluY2ktbGludXgtb3Blbi1z
-b3VyY2UgbWFpbGluZyBsaXN0DQo+PiA+RGF2aW5jaS1saW51eC1vcGVuLXNvdXJjZUBsaW51eC5k
-YXZpbmNpZHNwLmNvbQ0KPj4gPmh0dHA6Ly9saW51eC5kYXZpbmNpZHNwLmNvbS9tYWlsbWFuL2xp
-c3RpbmZvL2RhdmluY2ktbGludXgtb3Blbi1zb3VyY2UNCj4+DQo+77+977+977+9ey5u77+9K++/
-ve+/ve+/ve+/ve+/ve+/ve+/vSsl77+977+977+977+977+93bYX77+977+9d++/ve+/vXsubu+/
-vSvvv73vv73vv73vv71777+977+9Z++/ve+/ve+/ve+/ve+/vV5u77+9cu+/ve+/ve+/vXrvv70a
-77+977+9aO+/ve+/ve+/ve+/vSbvv73vv73vv71677+977+9eu+/vd6X77+9DQo+K++/ve+/vSt6
-Zu+/ve+/ve+/vWjvv73vv73vv71+77+977+977+977+9ae+/ve+/ve+/ve+/ve+/ve+/ve+/ve+/
-vXpf77+9D++/vWo6K3bvv73vv73vv70p36Pvv71tDQo+Pg0KPj4NCj4+DQo+DQo+DQo+DQo+LS0N
-Cj5IYW5zIFZlcmt1aWwgLSB2aWRlbzRsaW51eCBkZXZlbG9wZXIgLSBzcG9uc29yZWQgYnkgVEFO
-REJFUkcgVGVsZWNvbQ0KDQo=
+Rajendra Nayak <rnayak@ti.com> writes:
+
+> Due to an OMAP3 errata (1.142), on HS/EMU devices SDRC should be
+> programed to issue automatic self refresh on timeout
+> of AUTO_CNT = 1 prior to any transition to OFF mode.
+> This is needed only on sil rev's ES3.0 and above.
+>
+> This patch enables the above needed WA in the SDRC power register
+> value stored in scratchpad, so that ROM code restores this value
+> in SDRC POWER on the wakeup path.
+> The original SDRC POWER register value is stored and restored back
+> in omap_sram_idle() function.
+>
+> This fixes some random crashes observed while stressing suspend
+> on HS/EMU devices.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+
+Thanks, pushing to PM branch.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/control.c          |   16 +++++++++++++++-
+>  arch/arm/mach-omap2/pm34xx.c           |   24 +++++++-----------------
+>  arch/arm/plat-omap/include/mach/sdrc.h |    6 ++++++
+>  3 files changed, 28 insertions(+), 18 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index 60de860..c9407c0 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -265,7 +265,21 @@ void omap3_save_scratchpad_contents(void)
+>  			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
+>  	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
+>  	sdrc_block_contents.dll_b_ctrl = 0x0;
+> -	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
+> +	/*
+> +	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
+> +	 * be programed to issue automatic self refresh on timeout
+> +	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
+> +	 */
+> +	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
+> +			&& (omap_rev() >= OMAP3430_REV_ES3_0))
+> +		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
+> +				~(SDRC_POWER_AUTOCOUNT_MASK|
+> +				SDRC_POWER_CLKCTRL_MASK)) |
+> +				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
+> +				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
+> +	else
+> +		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
+> +
+>  	sdrc_block_contents.cs_0 = 0x0;
+>  	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
+>  	sdrc_block_contents.mr_0 = (sdrc_read_reg(SDRC_MR_0) & 0xFFFF);
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index b925501..a9ef670 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -57,12 +57,6 @@
+>  
+>  static int regset_save_on_suspend;
+>  
+> -#define SDRC_POWER_AUTOCOUNT_SHIFT 8
+> -#define SDRC_POWER_AUTOCOUNT_MASK (0xffff << SDRC_POWER_AUTOCOUNT_SHIFT)
+> -#define SDRC_POWER_CLKCTRL_SHIFT 4
+> -#define SDRC_POWER_CLKCTRL_MASK (0x3 << SDRC_POWER_CLKCTRL_SHIFT)
+> -#define SDRC_SELF_REFRESH_ON_AUTOCOUNT (0x2 << SDRC_POWER_CLKCTRL_SHIFT)
+> -
+>  /* Scratchpad offsets */
+>  #define OMAP343X_TABLE_ADDRESS_OFFSET	   0x31
+>  #define OMAP343X_TABLE_VALUE_OFFSET	   0x30
+> @@ -405,19 +399,15 @@ void omap_sram_idle(void)
+>  	}
+>  
+>  	/*
+> -	 * Force SDRAM controller to self-refresh mode after timeout on
+> -	 * autocount. This is needed on ES3.0 to avoid SDRAM controller
+> -	 * hang-ups.
+> -	 */
+> +	* On EMU/HS devices ROM code restores a SRDC value
+> +	* from scratchpad which has automatic self refresh on timeout
+> +	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
+> +	* Hence store/restore the SDRC_POWER register here.
+> +	*/
+>  	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+> -	    core_next_state == PWRDM_POWER_OFF) {
+> +	    core_next_state == PWRDM_POWER_OFF)
+>  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
+> -		sdrc_write_reg((sdrc_pwr &
+> -			~(SDRC_POWER_AUTOCOUNT_MASK|SDRC_POWER_CLKCTRL_MASK)) |
+> -			(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
+> -			SDRC_SELF_REFRESH_ON_AUTOCOUNT, SDRC_POWER);
+> -	}
+>  
+>  	if (regset_save_on_suspend)
+>  		pm_dbg_regset_save(1);
+> @@ -430,7 +420,7 @@ void omap_sram_idle(void)
+>  	_omap_sram_idle(omap3_arm_context, save_state);
+>  	cpu_init();
+>  
+> -	/* Restore normal SDRAM settings */
+> +	/* Restore normal SDRC POWER settings */
+>  	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+>  	    core_next_state == PWRDM_POWER_OFF)
+> diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
+> index a678bc8..4af5c6a 100644
+> --- a/arch/arm/plat-omap/include/mach/sdrc.h
+> +++ b/arch/arm/plat-omap/include/mach/sdrc.h
+> @@ -44,6 +44,12 @@
+>  #define SDRC_RFR_CTRL_1		0x0D4
+>  #define SDRC_MANUAL_1		0x0D8
+>  
+> +#define SDRC_POWER_AUTOCOUNT_SHIFT	8
+> +#define SDRC_POWER_AUTOCOUNT_MASK	(0xffff << SDRC_POWER_AUTOCOUNT_SHIFT)
+> +#define SDRC_POWER_CLKCTRL_SHIFT	4
+> +#define SDRC_POWER_CLKCTRL_MASK		(0x3 << SDRC_POWER_CLKCTRL_SHIFT)
+> +#define SDRC_SELF_REFRESH_ON_AUTOCOUNT	(0x2 << SDRC_POWER_CLKCTRL_SHIFT)
+> +
+>  /*
+>   * These values represent the number of memory clock cycles between
+>   * autorefresh initiation.  They assume 1 refresh per 64 ms (JEDEC), 8192
+> -- 
+> 1.5.4.7
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
