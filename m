@@ -1,19 +1,20 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/2] watchdog:OMAP3:Register IVA and SECURE WDT, make clks accessible
-Date: Tue, 16 Jun 2009 08:02:31 -0700
-Message-ID: <87y6rs43y0.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 2/2] watchdog:OMAP3:Enable support for IVA2 and SECURE
+Date: Tue, 16 Jun 2009 08:27:27 -0700
+Message-ID: <87fxe042sg.fsf@deeprootsystems.com>
 References: <1245100312-2312-1-git-send-email-ubh@ti.com>
 	<1245100312-2312-2-git-send-email-ubh@ti.com>
+	<1245100312-2312-3-git-send-email-ubh@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f187.google.com ([209.85.222.187]:61838 "EHLO
-	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758740AbZFPPCd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 11:02:33 -0400
-Received: by pzk17 with SMTP id 17so2747564pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 08:02:35 -0700 (PDT)
-In-Reply-To: <1245100312-2312-2-git-send-email-ubh@ti.com> (Ulrik Bech Hald's message of "Mon\, 15 Jun 2009 16\:11\:51 -0500")
+Received: from mail-qy0-f201.google.com ([209.85.221.201]:58679 "EHLO
+	mail-qy0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753295AbZFPP1a (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 11:27:30 -0400
+Received: by qyk39 with SMTP id 39so262205qyk.33
+        for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 08:27:32 -0700 (PDT)
+In-Reply-To: <1245100312-2312-3-git-send-email-ubh@ti.com> (Ulrik Bech Hald's message of "Mon\, 15 Jun 2009 16\:11\:52 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ulrik Bech Hald <ubh@ti.com>
@@ -21,196 +22,142 @@ Cc: linux-omap@vger.kernel.org
 
 Ulrik Bech Hald <ubh@ti.com> writes:
 
-> Enabling registration of IVA and SECURE WDT devices. Making
-> ick and fck for IVA and SECURE WDTs accessible.
+> This patch enables the IVA2 and SECURE WDTs in the omap_wdt
+> driver for omap34xx family. SECURE will be available as
+> /dev/watchdog_secure on HS/EMU devices and IVA2 will be available
+> as /dev/watchdog_iva2. MPU will still be available as /dev/watchdog
 >
 > Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
 > ---
 > This patch has a dependency on:
-> PATCH 1/2] OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
+> [PATCH 1/1] watchdog: OMAP fixes: enable clock in probe, trigger timer reload
 >
->  arch/arm/mach-omap2/clock34xx.c |   12 +++---
->  arch/arm/plat-omap/devices.c    |   81 +++++++++++++++++++++++++++++++--------
->  2 files changed, 71 insertions(+), 22 deletions(-)
->  mode change 100644 => 100755 arch/arm/plat-omap/devices.c
+>  drivers/watchdog/omap_wdt.c |   51 ++++++++++++++++++++++++++++++++++++------
+>  1 files changed, 43 insertions(+), 8 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index 9e43fe5..933ae9e 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -215,11 +215,11 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_343X),
->  	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_343X),
->  	CLK(NULL,	"gpio1_dbck",	&gpio1_dbck,	CK_343X),
-> -	CLK("omap_wdt",	"fck",		&wdt2_fck,	CK_343X),
-> +	CLK("omap_wdt.2", "fck",	&wdt2_fck,	CK_343X),
->  	CLK(NULL,	"wkup_l4_ick",	&wkup_l4_ick,	CK_343X),
->  	CLK(NULL,	"usim_ick",	&usim_ick,	CK_3430ES2),
-> -	CLK("omap_wdt",	"ick",		&wdt2_ick,	CK_343X),
-> -	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_343X),
-> +	CLK("omap_wdt.2", "ick",	&wdt2_ick,	CK_343X),
-> +	CLK("omap_wdt.1", "ick",	&wdt1_ick,	CK_343X),
->  	CLK(NULL,	"gpio1_ick",	&gpio1_ick,	CK_343X),
->  	CLK(NULL,	"omap_32ksync_ick", &omap_32ksync_ick, CK_343X),
->  	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_343X),
-> @@ -241,14 +241,14 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"gpio4_dbck",	&gpio4_dbck,	CK_343X),
->  	CLK(NULL,	"gpio3_dbck",	&gpio3_dbck,	CK_343X),
->  	CLK(NULL,	"gpio2_dbck",	&gpio2_dbck,	CK_343X),
-> -	CLK(NULL,	"wdt3_fck",	&wdt3_fck,	CK_343X),
-> +	CLK("omap_wdt.3", "fck",	&wdt3_fck,	CK_343X),
->  	CLK(NULL,	"per_l4_ick",	&per_l4_ick,	CK_343X),
->  	CLK(NULL,	"gpio6_ick",	&gpio6_ick,	CK_343X),
->  	CLK(NULL,	"gpio5_ick",	&gpio5_ick,	CK_343X),
->  	CLK(NULL,	"gpio4_ick",	&gpio4_ick,	CK_343X),
->  	CLK(NULL,	"gpio3_ick",	&gpio3_ick,	CK_343X),
->  	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_343X),
-> -	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_343X),
-> +	CLK("omap_wdt.3", "ick",	&wdt3_ick,	CK_343X),
->  	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_343X),
->  	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_343X),
->  	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_343X),
-> @@ -275,7 +275,7 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_343X),
->  	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_343X),
->  	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_343X),
-> -	CLK(NULL,	"wdt1_fck",	&wdt1_fck,	CK_343X),
-> +	CLK("omap_wdt.1", "fck",	&wdt1_fck,	CK_343X),
->  };
+> diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+> index f271385..85a92de 100644
+> --- a/drivers/watchdog/omap_wdt.c
+> +++ b/drivers/watchdog/omap_wdt.c
+> @@ -47,7 +47,15 @@
 >  
->  /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
-> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> old mode 100644
-> new mode 100755
-> index a64b692..de5182c
-> --- a/arch/arm/plat-omap/devices.c
-> +++ b/arch/arm/plat-omap/devices.c
-> @@ -288,42 +288,91 @@ static inline void omap_init_uwire(void) {}
+>  #include "omap_wdt.h"
 >  
->  #if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
->  
-> -static struct resource wdt_resources[] = {
-> +#define	OMAP34XX_WDT1_BASE	0x4830c000
-> +#define	OMAP34XX_WDT2_BASE	0x48314000
-> +#define	OMAP34XX_WDT3_BASE	0x49030000
-> +#define	OMAP2430_WDT_BASE	0x49016000
-> +#define	OMAP2420_WDT_BASE	0x48022000
-> +#define	OMAP16XX_WDT_BASE	0xfffeb000
+> -static struct platform_device *omap_wdt_dev;
+> +#define NUM_WDTS	3
 > +
-> +static struct resource wdt1_resources[] = {
->  	{
-> -		.flags		= IORESOURCE_MEM,
-> +		.flags = IORESOURCE_MEM,
->  	},
->  };
->  
-> -static struct platform_device omap_wdt_device = {
-> -	.name	   = "omap_wdt",
-> -	.id	     = -1,
-> -	.num_resources	= ARRAY_SIZE(wdt_resources),
-> -	.resource	= wdt_resources,
-> +static struct resource wdt2_resources[] = {
-> +	{
-> +		.flags = IORESOURCE_MEM,
-> +	},
+> +enum {
+> +	SECURE_WDT = 1,
+> +	MPU_WDT,
+> +	IVA2_WDT,
 > +};
 > +
-> +static struct resource wdt3_resources[] = {
-> +	{
-> +		.flags = IORESOURCE_MEM,
-> +	},
-> +};
-> +
-> +/* SECURE WDT */
-> +static struct platform_device omap_wdt1_device = {
-> +	.name = "omap_wdt",
-> +	.id = 1,
-> +	.num_resources = ARRAY_SIZE(wdt1_resources),
-> +	.resource = wdt1_resources,
-> +};
-> +
-> +/* MPU WDT */
-> +static struct platform_device omap_wdt2_device = {
-> +	.name = "omap_wdt",
-> +	.id = 2,
-> +	.num_resources = ARRAY_SIZE(wdt2_resources),
-> +	.resource = wdt2_resources,
-> +};
-> +
-> +/* IVA WDT */
-> +static struct platform_device omap_wdt3_device = {
-> +	.name = "omap_wdt",
-> +	.id = 3,
-> +	.num_resources = ARRAY_SIZE(wdt3_resources),
-> +	.resource = wdt3_resources,
->  };
+> +static struct platform_device *omap_wdt_dev[NUM_WDTS];
 
-Rather than use the /* SECURE WDT */ comments, why not
-just name the platform_device instead of using numbers.
+If you're going to have shared numbers here, they should be shared and
+also used by the SoC init code.  IOW, the id's you're using in the
+devices.c file affects the numbering here.
 
-For example, use:
+Also, why not use zero-based numbering here and in devices.c, then
+you can avoide the 'pdev->id - 1' below.
 
-  struct platform_device mpu_wdt_device;
-  struct platform_device secure_wdt_device;
-  struct platform_device iva_wdt_device;
-
-and same for the struct resources:
-
-  struct resource mpu_wdt_resource;
-  ...
-
-That way the numbering issues below will not be so confusing.
-
-Kevin
-
->  static void omap_init_wdt(void)
+>  static unsigned timer_margin;
+>  module_param(timer_margin, uint, 0);
+> @@ -139,8 +147,23 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
+>   */
+>  static int omap_wdt_open(struct inode *inode, struct file *file)
 >  {
->  	if (cpu_is_omap16xx())
-> -		wdt_resources[0].start = 0xfffeb000;
-> +		wdt2_resources[0].start = OMAP16XX_WDT_BASE;
->  	else if (cpu_is_omap2420())
-> -		wdt_resources[0].start = 0x48022000; /* WDT2 */
-> +		wdt2_resources[0].start = OMAP2420_WDT_BASE;
->  	else if (cpu_is_omap2430())
-> -		wdt_resources[0].start = 0x49016000; /* WDT2 */
-> -	else if (cpu_is_omap343x())
-> -		wdt_resources[0].start = 0x48314000; /* WDT2 */
-> -	else if (cpu_is_omap44xx())
-> -		wdt_resources[0].start = 0x4a314000;
-> +		wdt2_resources[0].start = OMAP2430_WDT_BASE;
-> +	else if (cpu_is_omap343x()) {
-> +		wdt1_resources[0].start = OMAP34XX_WDT1_BASE;
-> +		wdt1_resources[0].end = wdt1_resources[0].start + 0x4f;
-> +		wdt2_resources[0].start = OMAP34XX_WDT2_BASE;
-> +		wdt3_resources[0].start = OMAP34XX_WDT3_BASE;
-> +		wdt3_resources[0].end = wdt3_resources[0].start + 0x4f;
-> +	}
->  	else
->  		return;
->
-> -	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
-> +	wdt2_resources[0].end = wdt2_resources[0].start + 0x4f;
->  
-> -	(void) platform_device_register(&omap_wdt_device);
-> +	/* MPU WDT present across omap family */
-> +	(void) platform_device_register(&omap_wdt2_device);
+> -	struct omap_wdt_dev *wdev = platform_get_drvdata(omap_wdt_dev);
+> -	void __iomem *base = wdev->base;
+> +	struct omap_wdt_dev *wdev;
+> +	void __iomem *base;
 > +
-> +	if (cpu_is_omap34xx()) {
-> +		(void) platform_device_register(&omap_wdt3_device);
-> +		if (omap_type() == OMAP2_DEVICE_TYPE_SEC
-> +			|| omap_type() == OMAP2_DEVICE_TYPE_EMU)
-> +			(void) platform_device_register(&omap_wdt1_device);
+> +	/* by default MPU wdt is present across omap family */
+> +	wdev = platform_get_drvdata(omap_wdt_dev[1]);
+
+Drop this and just use the inode match.
+
+> +	/* Find match between device node and wdt device */
+> +	int i;
+> +	for (i = 0; i < NUM_WDTS; i++) {
+> +		if (omap_wdt_dev[i]) {
+> +			wdev = platform_get_drvdata(omap_wdt_dev[i]);
+> +			if (iminor(inode) == wdev->omap_wdt_miscdev.minor)
+> +				break;
+> +		}
 > +	}
+
+You should check for a valid match here.
+
+> +	base = wdev->base;
+>  
+>  	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
+>  		return -EBUSY;
+> @@ -271,7 +294,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>  		goto err_get_resource;
+>  	}
+>  
+> -	if (omap_wdt_dev) {
+> +	if (omap_wdt_dev[pdev->id-1]) {
+
+With zero-based numbering, you can drop the -1.
+
+>  		ret = -EBUSY;
+>  		goto err_busy;
+>  	}
+> @@ -317,10 +340,21 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>  	omap_wdt_adjust_timeout(timer_margin);
+>  
+>  	wdev->omap_wdt_miscdev.parent = &pdev->dev;
+> -	wdev->omap_wdt_miscdev.minor = WATCHDOG_MINOR;
+> -	wdev->omap_wdt_miscdev.name = "watchdog";
+> +	wdev->omap_wdt_miscdev.minor = MISC_DYNAMIC_MINOR;
+>  	wdev->omap_wdt_miscdev.fops = &omap_wdt_fops;
+>  
+> +	switch (pdev->id) {
+> +	case SECURE_WDT:
+> +		wdev->omap_wdt_miscdev.name = "watchdog_secure";
+> +		break;
+> +	case IVA2_WDT:
+> +		wdev->omap_wdt_miscdev.name = "watchdog_iva2";
+> +		break;
+> +	case MPU_WDT:
+> +	default:
+> +		wdev->omap_wdt_miscdev.name = "watchdog";
+> +	}
+> +
+
+The more think about this, the more I don't like this pdev->id
+switching in the driver.  The only thing it is needed for
+is to set the name of the node.
+
+Instead, why not set the name in devices.c and pass it in
+using platform_data.
+
+Then you can drop the enum and the pdev->id switching.
+
+>  	ret = misc_register(&(wdev->omap_wdt_miscdev));
+>  	if (ret)
+>  		goto err_misc;
+> @@ -332,7 +366,8 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+>  	/* autogate OCP interface clock */
+>  	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+>  
+> -	omap_wdt_dev = pdev;
+> +	/* keep track of the wdt platform devices in local device array */
+> +	omap_wdt_dev[pdev->id - 1] = pdev;
+>  
+>  	return 0;
+>  
+> @@ -384,7 +419,7 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
+>  	iounmap(wdev->base);
+>  
+>  	kfree(wdev);
+> -	omap_wdt_dev = NULL;
+> +	omap_wdt_dev[pdev->id-1] = NULL;
+>  
+>  	return 0;
 >  }
-> +
->  #else
->  static inline void omap_init_wdt(void) {}
->  #endif
->  
-> +
->  /*-------------------------------------------------------------------------*/
->  
->  #if defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)
 > -- 
 > 1.5.4.3
 >
