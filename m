@@ -1,136 +1,80 @@
-From: Ulrik Bech Hald <ubh@ti.com>
-Subject: [PATCH v3 2/2] watchdog:OMAP3:Enable support for IVA2 and SECURE
-Date: Tue, 16 Jun 2009 09:24:51 -0500
-Message-ID: <1245162291-2704-3-git-send-email-ubh@ti.com>
-References: <1245162291-2704-1-git-send-email-ubh@ti.com>
- <1245162291-2704-2-git-send-email-ubh@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF, reduces OFF latency by 20ms
+Date: Tue, 16 Jun 2009 07:21:24 -0700
+Message-ID: <87k53c5kez.fsf@deeprootsystems.com>
+References: <1245153154-1876-1-git-send-email-rnayak@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35974 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977AbZFPOUG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 10:20:06 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5GEK47P031075
-	for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 09:20:09 -0500
-In-Reply-To: <1245162291-2704-2-git-send-email-ubh@ti.com>
+Received: from wf-out-1314.google.com ([209.85.200.168]:18333 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751611AbZFPOVY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 10:21:24 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1827171wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 07:21:27 -0700 (PDT)
+In-Reply-To: <1245153154-1876-1-git-send-email-rnayak@ti.com> (Rajendra Nayak's message of "Tue\, 16 Jun 2009 17\:22\:31 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Ulrik Bech Hald <ubh@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, dderrick@ti.com, r-woodruff2@ti.com
 
-This patch enables the IVA2 and SECURE WDTs in the omap_wdt
-driver for omap34xx family. SECURE will be available as
-/dev/watchdog_secure on HS/EMU devices and IVA2 will be available
-as /dev/watchdog_iva2. MPU will still be available as /dev/watchdog
+Rajendra Nayak <rnayak@ti.com> writes:
 
-Tested on Zoom1 OMAP3 platform
-Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
----
-This patch has a dependency on:
-runtime: [PATCH 1/1] watchdog: OMAP fixes: enable clock in probe, trigger timer reload
+> If autoidle for DPLL4 is enabled in the stored scratchpad
+> value of CM_AUTOIDLE_PLL then there is an added delay by
+> the boot ROM when coming out of OFF mode.
+> The patch disables this bitfield in the stored scratchpad value.
+>
+> This should significantly reduce CORE OFF latency and also
+> bring down the threshold for CORE OFF, making OFF affordable
+> even with smaller sleep times.
+> This patch however does not optimize the C state threshold for
+> CORE OFF states based on the new latency.
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
- drivers/watchdog/omap_wdt.c |   51 ++++++++++++++++++++++++++++++++++++------
- 1 files changed, 43 insertions(+), 8 deletions(-)
+Please forgive the DPLL ignorance here, but I think a little more
+verbose description is needed here, especially for those of use who
+don't understand all the voodoo involved with DPLLs and ROM code
+interaction.
 
-diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
-index f271385..85a92de 100644
---- a/drivers/watchdog/omap_wdt.c
-+++ b/drivers/watchdog/omap_wdt.c
-@@ -47,7 +47,15 @@
- 
- #include "omap_wdt.h"
- 
--static struct platform_device *omap_wdt_dev;
-+#define NUM_WDTS	3
-+
-+enum {
-+	SECURE_WDT = 1,
-+	MPU_WDT,
-+	IVA2_WDT,
-+};
-+
-+static struct platform_device *omap_wdt_dev[NUM_WDTS];
- 
- static unsigned timer_margin;
- module_param(timer_margin, uint, 0);
-@@ -139,8 +147,23 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
-  */
- static int omap_wdt_open(struct inode *inode, struct file *file)
- {
--	struct omap_wdt_dev *wdev = platform_get_drvdata(omap_wdt_dev);
--	void __iomem *base = wdev->base;
-+	struct omap_wdt_dev *wdev;
-+	void __iomem *base;
-+
-+	/* by default MPU wdt is present across omap family */
-+	wdev = platform_get_drvdata(omap_wdt_dev[1]);
-+
-+	/* Find match between device node and wdt device */
-+	int i;
-+	for (i = 0; i < NUM_WDTS; i++) {
-+		if (omap_wdt_dev[i]) {
-+			wdev = platform_get_drvdata(omap_wdt_dev[i]);
-+			if (iminor(inode) == wdev->omap_wdt_miscdev.minor)
-+				break;
-+		}
-+	}
-+
-+	base = wdev->base;
- 
- 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
- 		return -EBUSY;
-@@ -271,7 +294,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
- 		goto err_get_resource;
- 	}
- 
--	if (omap_wdt_dev) {
-+	if (omap_wdt_dev[pdev->id-1]) {
- 		ret = -EBUSY;
- 		goto err_busy;
- 	}
-@@ -317,10 +340,21 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
- 	omap_wdt_adjust_timeout(timer_margin);
- 
- 	wdev->omap_wdt_miscdev.parent = &pdev->dev;
--	wdev->omap_wdt_miscdev.minor = WATCHDOG_MINOR;
--	wdev->omap_wdt_miscdev.name = "watchdog";
-+	wdev->omap_wdt_miscdev.minor = MISC_DYNAMIC_MINOR;
- 	wdev->omap_wdt_miscdev.fops = &omap_wdt_fops;
- 
-+	switch (pdev->id) {
-+	case SECURE_WDT:
-+		wdev->omap_wdt_miscdev.name = "watchdog_secure";
-+		break;
-+	case IVA2_WDT:
-+		wdev->omap_wdt_miscdev.name = "watchdog_iva2";
-+		break;
-+	case MPU_WDT:
-+	default:
-+		wdev->omap_wdt_miscdev.name = "watchdog";
-+	}
-+
- 	ret = misc_register(&(wdev->omap_wdt_miscdev));
- 	if (ret)
- 		goto err_misc;
-@@ -332,7 +366,8 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
- 	/* autogate OCP interface clock */
- 	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
- 
--	omap_wdt_dev = pdev;
-+	/* keep track of the wdt platform devices in local device array */
-+	omap_wdt_dev[pdev->id - 1] = pdev;
- 
- 	return 0;
- 
-@@ -384,7 +419,7 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
- 	iounmap(wdev->base);
- 
- 	kfree(wdev);
--	omap_wdt_dev = NULL;
-+	omap_wdt_dev[pdev->id-1] = NULL;
- 
- 	return 0;
- }
--- 
-1.5.4.3
+>From this description, it's not clear what the resulting state of
+DPLL4 will be and thus what the impact might be on power consumption.
 
+IOW, Does this leave the DPLL in a locked, or is ROM code is doing a
+software-programmed transition to low-power stop?  or is there some
+other automatic disable when PER goes to OFF?
+
+Can you clarify and update the description.  Thanks.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/control.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index c9407c0..a7159a9 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -238,6 +238,13 @@ void omap3_save_scratchpad_contents(void)
+>  			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+>  	prcm_block_contents.cm_autoidle_pll =
+>  			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_AUTOIDLE_PLL);
+> +	/*
+> +	 * ROM restore takes 20mS longer if PER idle is enabled before OFF.
+> +	 * Clear feature before sleep. The origional idle state is
+> +	 * restored by software as part of wake procedure.
+> +	 */
+> +	prcm_block_contents.cm_autoidle_pll &= ~OMAP3430_AUTO_PERIPH_DPLL_MASK;
+> +
+>  	prcm_block_contents.cm_clksel1_pll =
+>  			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
+>  	prcm_block_contents.cm_clksel2_pll =
+> -- 
+> 1.5.4.7
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
