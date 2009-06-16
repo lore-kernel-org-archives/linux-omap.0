@@ -1,54 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 02/04] OMAP3: PM: Prevent AUTO_RET and AUTO_OFF being enabled simultaneously
-Date: Tue, 16 Jun 2009 07:28:18 -0700
-Message-ID: <877hzc5k3h.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB03059BC5AB@dbde02.ent.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Tue, 16 Jun 2009 16:43:53 +0200
+Message-ID: <4A37AFA9.4080403@tis.icnet.pl>
+References: <4A1BEBE3.8010306@tis.icnet.pl>	<200906030924.14230.jkrzyszt@tis.icnet.pl>	<20090605165531.7d0c4522.jhnikula@gmail.com>	<200906060028.01600.jkrzyszt@tis.icnet.pl>	<20090608094028.415e6ec3.jhnikula@gmail.com>	<4A2E7921.7090200@tis.icnet.pl>	<4A364B1A.5040905@tis.icnet.pl> <20090615181633.4570426f.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f187.google.com ([209.85.222.187]:43433 "EHLO
-	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754287AbZFPO2S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 10:28:18 -0400
-Received: by pzk17 with SMTP id 17so2728167pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 07:28:21 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03059BC5AB@dbde02.ent.ti.com> (Rajendra Nayak's message of "Tue\, 16 Jun 2009 18\:46\:47 +0530")
+Received: from d1.icnet.pl ([212.160.220.21]:40661 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752385AbZFPOnz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Jun 2009 10:43:55 -0400
+In-Reply-To: <20090615181633.4570426f.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
-
->From: H=F6gander Jouni [mailto:jouni.hogander@nokia.com]=20
+Jarkko Nikula wrote:
+> On Mon, 15 Jun 2009 15:22:34 +0200
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+> 
+>>> - original patch ported to the last l-o commit supporting omap-alsa:
+>>>   - playback: works as before,
+>>>   - capture: both </dev/dsp and arecord give null output,
+>>>     but DMA interrupts still work.
+>> Not that I would see it as a real progress, but to clarify things: I 
+>> have managed to solve this particular problem with capture by
+>> patching sound/arm/omap/omap-alsa.c (call omap_get_dma_dst_pos()
+>> instead of omap_get_dma_src_pos() from audio_get_dma_pos() in case of
+>> (stream_id == SNDRV_PCM_STREAM_CAPTURE)). The original code stopped
+>> working after changes introduced to omap_get_dma_src_pos() with this
+>> patch: http://marc.info/?l=linux-omap&m=121280267705523.
 >>
->>ext Rajendra Nayak <rnayak@ti.com> writes:
->>
->>> There is a design requirement in OMAP3 that Auto_RET and AUTO_OFF
->>> should not be set together. The PRCM FSM  has been coded assuming
->>> that SW will set either auto_ret or auto_off bit depending on
->>> whether the core has been programmed to go into open switched
->>> logic retention state or OFF state. They are mutually exclusive.
->>
->>So we don't have to do this if closed switch retention is used? (This
->>is what is currently used in linux-omap:pm)
->
-> Currently in the pm branch AUTO_RET is enabled at init and kept
-> enabled. While attempting a OFF state AUTO_OFF is enabled also
-> leaving AUTO_RET and AUTO_OFF both enabled.
+> Nice step forward. From quick look of the patch I see that patch is
+> changing how the source and destination positions are read for omap1.
+> 
+> While I don't have idea can this explain the ceased DMA in 1510 but
+> will the playback in original code work again if you change line
+> "offset = dma_read (CPC(lch));" to "offset = dma_read(CSSA_L(lch));" in
+> omap_get_dma_src_pos? Or read both CSSA_L and CSSA_U at once like code
+> before?
 
-A little more clarification needed, in particular whether or how
-this affects closed-switch retention.
+Yes, it will, and even better than before, without undesirable scraps 
+repeated at the end. But that does not help in getting the new driver 
+handle mcbsp/dma correctly :(.
 
-The description above states that this problem affects OSWR and OFF.
-linux-omap PM only uses CSWR, so based on the description of the PRCM
-=46SM above, for CSWR, we should never be setting AUTO_RET when using
-CSWR.
+I can confirm that the old driver can set up mcbsp in a way that keeps 
+it shifting the contents of its input register, loaded with a pattern 
+using omap_mcbsp_pollwrite() as Peter suggested, even if I break dma by 
+commenting out all omap_start_dma() invocations. I have verified this by 
+detecting averaged voltage level changes on the codec input pin with a 
+simple multimeter (I still have not get access to a scope back).
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Using the new driver, I am not able to detect similiar voltage changes, 
+whatever I do to get the mcbsp sending data to the codec over its serial 
+output. I have modified omap-mcbsp code with a hacked in probe hook that 
+initializes mcbsp at boot time exactly as the old driver does it - no 
+results.
+
+After all, it is more and more likely that the problem is not dma, but 
+mcbsp just not shifting any data for some mysterious reason.
+
+Thanks,
+Janusz
