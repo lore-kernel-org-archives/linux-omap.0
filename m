@@ -1,48 +1,36 @@
-From: Thierry Reding <thierry.reding@avionic-design.de>
+From: =?ISO-8859-15?Q?Richard_R=F6jfors?=
+	<richard.rojfors.ext@mocean-labs.com>
 Subject: Re: [RESEND][PATCH] input: Added TSC2003
-Date: Tue, 16 Jun 2009 08:20:44 +0200
-Message-ID: <20090616062044.GA20209@avionic-design.de>
-References: <4A366439.70005@mocean-labs.com> <5d5443650906151110u3f7d9d1cm1990e767d29a45b6@mail.gmail.com> <4A36A1C2.2060805@mocean-labs.com>
+Date: Tue, 16 Jun 2009 09:40:00 +0200
+Message-ID: <4A374C50.1000508@mocean-labs.com>
+References: <4A366439.70005@mocean-labs.com> <5d5443650906151110u3f7d9d1cm1990e767d29a45b6@mail.gmail.com> <4A36A1C2.2060805@mocean-labs.com> <20090616062044.GA20209@avionic-design.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4A36A1C2.2060805@mocean-labs.com>
+In-Reply-To: <20090616062044.GA20209@avionic-design.de>
 Sender: linux-input-owner@vger.kernel.org
-To: Richard =?utf-8?Q?R=C3=B6jfors?= <richard.rojfors.ext@mocean-labs.com>
+To: Thierry Reding <thierry.reding@avionic-design.de>
 Cc: Trilok Soni <soni.trilok@gmail.com>, linux-input@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-* Richard R=C3=B6jfors wrote:
-> On 09-06-15 20.10, Trilok Soni wrote:
-> > Hi,
-> >=20
-> > On Mon, Jun 15, 2009 at 8:39 PM, Richard
-> > R=C3=B6jfors<richard.rojfors.ext@mocean-labs.com> wrote:
-> >> Supplied is a driver for the TSC2003. There is actually a driver f=
-or TSC2007 which can be used in some cases.
-> >> The platform struct is reused from the TSC2007.
-> >> There is a big difference in the implementation between the driver=
-s, this one does not use HR timers.
-> >> The TSC2007 driver performs synchronous I2C in the timer callback =
-(SW IRQ context) which is bad when
-> >> the I2C driver is interrupt driven.
-> >>
-> >=20
-> > Meaning? I think I2C transaction can sleep.
->=20
-> Yes that's what it means, and that's bad in a HR timer callback.
+On 09-06-16 08.20, Thierry Reding wrote:
+>>>>
+>>> Meaning? I think I2C transaction can sleep.
+>> Yes that's what it means, and that's bad in a HR timer callback.
+> 
+> Note that my patch to the tsc2007 to support the tsc2003 exactly fixes this
+> problem. It moves the actual I2C transfers into a workqueue, so no sleeping
+> functions are called from the hrtimer callback.
 
-Note that my patch to the tsc2007 to support the tsc2003 exactly fixes =
-this
-problem. It moves the actual I2C transfers into a workqueue, so no slee=
-ping
-functions are called from the hrtimer callback.
+Ah good! The IRQ is disabled no sync too.
+We actually don't have the possibility to implement a pen down state callback,
+so I need to modify the code slightly to work even without one. (but not be
+as accurate when the callback is not available)
 
-Thierry
---
-To unsubscribe from this list: send the line "unsubscribe linux-input" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Your patch where it schedules work rather than calling the I2C function directly
+isn't in mainline.
+I saw a patch where you added the work scheduling, and a later patch where you
+fixed some spinlock stuff, have you resent the patch for the work scheduling?
+
+--Richard
