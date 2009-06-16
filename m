@@ -1,62 +1,170 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF,
- reduces OFF latency by 20ms
-Date: Tue, 16 Jun 2009 18:47:30 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03059BC5AD@dbde02.ent.ti.com>
-References: <87fxe0basc.fsf@trdhcp146196.ntc.nokia.com>
+From: "Hald, Ulrik Bech" <ubh@ti.com>
+Subject: RE: [PATCH 1/1] OMAP3:WDT:Enable clk in probe, trigger timer reload
+Date: Tue, 16 Jun 2009 16:13:36 +0200
+Message-ID: <00695C9C8F8B4448856F48142B4AA201BD8D7E32@dnce02.ent.ti.com>
+References: <1244822737-20446-1-git-send-email-ubh@ti.com>
+	 <87my8dig6e.fsf@deeprootsystems.com>
+ <5a7b8b7b0906122057k48f2d16au63adba5278cee04c@mail.gmail.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301D810C2A2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48047 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753018AbZFPNRj (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 16 Jun 2009 09:17:39 -0400
-In-Reply-To: <87fxe0basc.fsf@trdhcp146196.ntc.nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:35635 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754674AbZFPONm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 10:13:42 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301D810C2A2@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: "Premi, Sanjeev" <premi@ti.com>, Hugo Vincent <hugo.vincent@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-DQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBIw7ZnYW5kZXIgSm91bmkgW21h
-aWx0bzpqb3VuaS5ob2dhbmRlckBub2tpYS5jb21dIA0KPlNlbnQ6IFR1ZXNkYXksIEp1bmUgMTYs
-IDIwMDkgNjoyMyBQTQ0KPlRvOiBOYXlhaywgUmFqZW5kcmENCj5DYzogbGludXgtb21hcEB2Z2Vy
-Lmtlcm5lbC5vcmc7IERlcnJpY2ssIERhdmlkOyBXb29kcnVmZiwgUmljaGFyZA0KPlN1YmplY3Q6
-IFJlOiBbUEFUQ0ggMDEvMDRdIE9NQVAzOiBQTTogRGlzYWJsZSBQRVIgRFBMTCBpZGxlIA0KPmJl
-Zm9yZSBPRkYsIHJlZHVjZXMgT0ZGIGxhdGVuY3kgYnkgMjBtcw0KPg0KPmV4dCBSYWplbmRyYSBO
-YXlhayA8cm5heWFrQHRpLmNvbT4gd3JpdGVzOg0KPg0KPj4gSWYgYXV0b2lkbGUgZm9yIERQTEw0
-IGlzIGVuYWJsZWQgaW4gdGhlIHN0b3JlZCBzY3JhdGNocGFkDQo+PiB2YWx1ZSBvZiBDTV9BVVRP
-SURMRV9QTEwgdGhlbiB0aGVyZSBpcyBhbiBhZGRlZCBkZWxheSBieQ0KPj4gdGhlIGJvb3QgUk9N
-IHdoZW4gY29taW5nIG91dCBvZiBPRkYgbW9kZS4NCj4+IFRoZSBwYXRjaCBkaXNhYmxlcyB0aGlz
-IGJpdGZpZWxkIGluIHRoZSBzdG9yZWQgc2NyYXRjaHBhZCB2YWx1ZS4NCj4+DQo+PiBUaGlzIHNo
-b3VsZCBzaWduaWZpY2FudGx5IHJlZHVjZSBDT1JFIE9GRiBsYXRlbmN5IGFuZCBhbHNvDQo+PiBi
-cmluZyBkb3duIHRoZSB0aHJlc2hvbGQgZm9yIENPUkUgT0ZGLCBtYWtpbmcgT0ZGIGFmZm9yZGFi
-bGUNCj4+IGV2ZW4gd2l0aCBzbWFsbGVyIHNsZWVwIHRpbWVzLg0KPj4gVGhpcyBwYXRjaCBob3dl
-dmVyIGRvZXMgbm90IG9wdGltaXplIHRoZSBDIHN0YXRlIHRocmVzaG9sZCBmb3INCj4+IENPUkUg
-T0ZGIHN0YXRlcyBiYXNlZCBvbiB0aGUgbmV3IGxhdGVuY3kuDQo+DQo+RG8geW91IGhhdmUgYW55
-IG51bWJlcnMgdG8gZ2l2ZSBvbiB3aGF0IGlzIHRoZSBpbXBhY3QgdG8gY29uc3VtcHRpb24/DQoN
-Ck5vdCB5ZXQsIEkgd2lsbCBwb3N0IHNvbWUgYWZ0ZXIgc29tZSBwcm9maWxpbmcuDQoNCj4NCj4+
-DQo+PiBTaWduZWQtb2ZmLWJ5OiBSYWplbmRyYSBOYXlhayA8cm5heWFrQHRpLmNvbT4NCj4+IC0t
-LQ0KPj4gIGFyY2gvYXJtL21hY2gtb21hcDIvY29udHJvbC5jIHwgICAgNyArKysrKysrDQo+PiAg
-MSBmaWxlcyBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pDQo+Pg0KPj4g
-ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21hcDIvY29udHJvbC5jIA0KPmIvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9jb250cm9sLmMNCj4+IGluZGV4IGM5NDA3YzAuLmE3MTU5YTkgMTAwNjQ0DQo+
-PiAtLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL2NvbnRyb2wuYw0KPj4gKysrIGIvYXJjaC9hcm0v
-bWFjaC1vbWFwMi9jb250cm9sLmMNCj4+IEBAIC0yMzgsNiArMjM4LDEzIEBAIHZvaWQgb21hcDNf
-c2F2ZV9zY3JhdGNocGFkX2NvbnRlbnRzKHZvaWQpDQo+PiAgCQkJY21fcmVhZF9tb2RfcmVnKFBM
-TF9NT0QsIENNX0NMS0VOKTsNCj4+ICAJcHJjbV9ibG9ja19jb250ZW50cy5jbV9hdXRvaWRsZV9w
-bGwgPQ0KPj4gIAkJCWNtX3JlYWRfbW9kX3JlZyhQTExfTU9ELCANCj5PTUFQMzQzMF9DTV9BVVRP
-SURMRV9QTEwpOw0KPj4gKwkvKg0KPj4gKwkgKiBST00gcmVzdG9yZSB0YWtlcyAyMG1TIGxvbmdl
-ciBpZiBQRVIgaWRsZSBpcyBlbmFibGVkIA0KPmJlZm9yZSBPRkYuDQo+PiArCSAqIENsZWFyIGZl
-YXR1cmUgYmVmb3JlIHNsZWVwLiBUaGUgb3JpZ2lvbmFsIGlkbGUgc3RhdGUgaXMNCj4+ICsJICog
-cmVzdG9yZWQgYnkgc29mdHdhcmUgYXMgcGFydCBvZiB3YWtlIHByb2NlZHVyZS4NCj4+ICsJICov
-DQo+PiArCXByY21fYmxvY2tfY29udGVudHMuY21fYXV0b2lkbGVfcGxsICY9IA0KPn5PTUFQMzQz
-MF9BVVRPX1BFUklQSF9EUExMX01BU0s7DQo+PiArDQo+PiAgCXByY21fYmxvY2tfY29udGVudHMu
-Y21fY2xrc2VsMV9wbGwgPQ0KPj4gIAkJCWNtX3JlYWRfbW9kX3JlZyhQTExfTU9ELCANCj5PTUFQ
-MzQzMF9DTV9DTEtTRUwxX1BMTCk7DQo+PiAgCXByY21fYmxvY2tfY29udGVudHMuY21fY2xrc2Vs
-Ml9wbGwgPQ0KPj4gLS0gDQo+PiAxLjUuNC43DQo+Pg0KPj4gLS0NCj4+IFRvIHVuc3Vic2NyaWJl
-IGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSANCj5saW51eC1vbWFw
-IiBpbg0KPj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5v
-cmcNCj4+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFq
-b3Jkb21vLWluZm8uaHRtbA0KPg0KPi0tIA0KPkpvdW5pIEjDtmdhbmRlcg0KPg0KPg==
+> -----Original Message-----
+> From: Premi, Sanjeev
+> Sent: Tuesday, June 16, 2009 8:01 AM
+> To: Hugo Vincent; Kevin Hilman
+> Cc: Hald, Ulrik Bech; linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 1/1] OMAP3:WDT:Enable clk in probe, trigger timer
+> reload
+>=20
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hugo Vincent
+> > Sent: Saturday, June 13, 2009 9:28 AM
+> > To: Kevin Hilman
+> > Cc: Hald, Ulrik Bech; linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH 1/1] OMAP3:WDT:Enable clk in probe,
+> > trigger timer reload
+> >
+> > On Sat, Jun 13, 2009 at 4:13 AM, Kevin
+> > Hilman<khilman@deeprootsystems.com> wrote:
+> > > Ulrik Bech Hald <ubh@ti.com> writes:
+> > >
+> > >> This patch contains two bugfixes:
+> > >>
+> > >> 1)In omap_wdt_probe() the watchdog is reset and disabled. This
+> > >> requires register access and the clks needs to be enabled
+> > temporarily
+> > >>
+> > >> 2)In omap_wdt_open() the timer register needs to be reloaded
+> > >> to trigger a new timer value (the default of 60s)
+> > >>
+> > >> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
+> > >
+> > > Can you change the subject slightly to something like:
+> > >
+> > > =A0watchdog: OMAP fixes: enable clock in probe, trigger timer rel=
+oad
+> > >
+> > > Also add which OMAP platforms you have tested on since this affec=
+ts
+> > > OMAP2, OMAP3 and presuably OMAP4.
+> >
+> > Tested on OMAP3 (OMAP3503, Gumstix Overo).
+> >
+> > > After that, you can add
+> > >
+> > > Reviewed-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
+> > >
+> > > And sent to watchdog maintiner, and CC linux-omap, here's
+> > excerpt from
+> > > MAINTAINERS:
+> > >
+> > > WATCHDOG DEVICE DRIVERS
+> > > P: =A0 =A0 =A0Wim Van Sebroeck
+> > > M: =A0 =A0 =A0wim@iguana.be
+> > > T: =A0 =A0 =A0git
+> > git://git.kernel.org/pub/scm/linux/kernel/git/wim/linux-2.6-wa
+> tchdog.git
+> > > S: =A0 =A0 =A0Maintained
+> > > F: =A0 =A0 =A0Documentation/watchdog/
+> > > F: =A0 =A0 =A0drivers/watchdog/
+> > > F: =A0 =A0 =A0include/linux/watchdog.h
+> > >
+> > >> ---
+> > >> =A0drivers/watchdog/omap_wdt.c | =A0 =A07 +++++++
+> > >> =A01 files changed, 7 insertions(+), 0 deletions(-)
+> > >> =A0mode change 100644 =3D> 100755 drivers/watchdog/omap_wdt.c
+> > >>
+> > >> diff --git a/drivers/watchdog/omap_wdt.c
+> > b/drivers/watchdog/omap_wdt.c
+>=20
+> > >> old mode 100644
+> > >> new mode 100755
+>=20
+> This change is also unnecessary.
+> Can be avoided in the follow-up submission.
+>=20
+> ~sanjeev
+Thanks for pointing it out Sanjeev. I am submitting a version 3 with th=
+e correction now.
+
+/Ulrik
+
+>=20
+> > >> index f271385..3ed571a
+> > >> --- a/drivers/watchdog/omap_wdt.c
+> > >> +++ b/drivers/watchdog/omap_wdt.c
+> > >> @@ -159,6 +159,7 @@ static int omap_wdt_open(struct inode
+> > *inode, struct file *file)
+> > >> =A0 =A0 =A0 file->private_data =3D (void *) wdev;
+> > >>
+> > >> =A0 =A0 =A0 omap_wdt_set_timeout(wdev);
+> > >> + =A0 =A0 omap_wdt_ping(wdev); /* trigger loading of new
+> > timeout value */
+> > >> =A0 =A0 =A0 omap_wdt_enable(wdev);
+> > >>
+> > >> =A0 =A0 =A0 return nonseekable_open(inode, file);
+> > >> @@ -313,6 +314,9 @@ static int __devinit
+> > omap_wdt_probe(struct platform_device *pdev)
+> > >>
+> > >> =A0 =A0 =A0 platform_set_drvdata(pdev, wdev);
+> > >>
+> > >> + =A0 =A0 clk_enable(wdev->ick);
+> > >> + =A0 =A0 clk_enable(wdev->fck);
+> > >> +
+> > >> =A0 =A0 =A0 omap_wdt_disable(wdev);
+> > >> =A0 =A0 =A0 omap_wdt_adjust_timeout(timer_margin);
+> > >>
+> > >> @@ -332,6 +336,9 @@ static int __devinit
+> > omap_wdt_probe(struct platform_device *pdev)
+> > >> =A0 =A0 =A0 /* autogate OCP interface clock */
+> > >> =A0 =A0 =A0 __raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CO=
+NFIG);
+> > >>
+> > >> + =A0 =A0 clk_disable(wdev->ick);
+> > >> + =A0 =A0 clk_disable(wdev->fck);
+> > >> +
+> > >> =A0 =A0 =A0 omap_wdt_dev =3D pdev;
+> > >>
+> > >> =A0 =A0 =A0 return 0;
+> > >> --
+> > >> 1.5.4.3
+> > >>
+> > >> --
+> > >> To unsubscribe from this list: send the line "unsubscribe
+> > linux-omap" in
+> > >> the body of a message to majordomo@vger.kernel.org
+> > >> More majordomo info at =A0http://vger.kernel.org/majordomo-info.=
+html
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe
+> > linux-omap" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at =A0http://vger.kernel.org/majordomo-info.h=
+tml
+> > >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe
+> > linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
