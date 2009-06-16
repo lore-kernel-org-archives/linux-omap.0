@@ -1,111 +1,92 @@
-From: "Derrick, David" <dderrick@ti.com>
-Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF,
- reduces OFF latency by 20ms
-Date: Tue, 16 Jun 2009 11:09:57 -0500
-Message-ID: <92CDD168D1E81F4F9D3839DC45903FC6536982D4@dlee03.ent.ti.com>
-References: <1245153154-1876-1-git-send-email-rnayak@ti.com>
- <87k53c5kez.fsf@deeprootsystems.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH] OMAP3: MMC: Add mux for pins
+Date: Tue, 16 Jun 2009 22:20:15 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F53D14A4@dbde02.ent.ti.com>
+References: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com>
+	<20090615081242.GE4474@atomide.com>
+	<5C07676A-0A93-48DE-B4C0-5A6709BE34A8@gmail.com>
+	<20090615110431.GO4474@atomide.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702F53D146A@dbde02.ent.ti.com>
+ <87y6rs2nu0.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48378 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46874 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753732AbZFPQKD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 12:10:03 -0400
-In-Reply-To: <87k53c5kez.fsf@deeprootsystems.com>
+	id S1760167AbZFPQuZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 12:50:25 -0400
+In-Reply-To: <87y6rs2nu0.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, Hugo Vincent <hugo.vincent@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-Kevin,
 
-There is a feature to auto idle DPLLs.
-The DPLLs will go into a bypass mode when not needed.
-
-The boot ROM restores some PRCM registers from scratchpad memory when waking up from the OFF power mode.
-The procedure in the boot ROM is to restore the DPLL4 settings and then poll until the DPLL4 has locked. There is a timeout on the poll of 20ms.
-
-If you store into scratchpad the register such that the autoidle is enabled, then as soon as the boot ROM locks DPLL4 it will immediately go into bypass. Therefore the poll on the DPLL4 locking will time out (20ms).
-
-If you store into scratchpad the register such that the autoidle is not enabled, then the boot ROM will lock DPLL4 and poll until the DPLL4 is locked - which happens in the usec range.
-
-You need to ensure that you re-enable the autoidle of DPLL4 after you get back to user code - which is already done in our base port so you shouldn't have to worry with it unless you have removed this code.
-
-This change allows the wake up latency from OFF mode to be reduced by 20msec.
-
-Note that we have seen some instability with this change so use with caution.
-
-Regards,
-David
-
------Original Message-----
-From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
-Sent: Tuesday, June 16, 2009 9:21 AM
-To: Nayak, Rajendra
-Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
-Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF, reduces OFF latency by 20ms
-
-Rajendra Nayak <rnayak@ti.com> writes:
-
-> If autoidle for DPLL4 is enabled in the stored scratchpad
-> value of CM_AUTOIDLE_PLL then there is an added delay by
-> the boot ROM when coming out of OFF mode.
-> The patch disables this bitfield in the stored scratchpad value.
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
 >
-> This should significantly reduce CORE OFF latency and also
-> bring down the threshold for CORE OFF, making OFF affordable
-> even with smaller sleep times.
-> This patch however does not optimize the C state threshold for
-> CORE OFF states based on the new latency.
+>"Pandita, Vikram" <vikram.pandita@ti.com> writes:
 >
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-
-Please forgive the DPLL ignorance here, but I think a little more
-verbose description is needed here, especially for those of use who
-don't understand all the voodoo involved with DPLLs and ROM code
-interaction.
-
->From this description, it's not clear what the resulting state of
-DPLL4 will be and thus what the impact might be on power consumption.
-
-IOW, Does this leave the DPLL in a locked, or is ROM code is doing a
-software-programmed transition to low-power stop?  or is there some
-other automatic disable when PER goes to OFF?
-
-Can you clarify and update the description.  Thanks.
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/control.c |    7 +++++++
->  1 files changed, 7 insertions(+), 0 deletions(-)
+>>>-----Original Message-----
+>>>From: Tony Lindgren [mailto:tony@atomide.com]
+>>>Sent: Monday, June 15, 2009 6:05 AM
+>>>To: Hugo Vincent
+>>>Cc: Pandita, Vikram; linux-omap@vger.kernel.org; Chikkature Rajashekar, Madhusudhan
+>>>Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
+>>>
+>>>* Hugo Vincent <hugo.vincent@gmail.com> [090615 03:44]:
+>>>>
+>>>> On 15/06/2009, at 8:12 PM, Tony Lindgren wrote:
+>>>>
+>>>>> * Vikram Pandita <vikram.pandita@ti.com> [090612 15:43]:
+>>>>>> For OMAP3 add MMC1 MMC2 and MMC3 pin mux
+>>>>>>
+>>>>>> Signed-off-by: Chikkature Rajashekar <madhu.cr@ti.com>
+>>>>>> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+>>>>>> ---
+>>>>>> arch/arm/mach-omap2/devices.c         |   33 ++++++++++++++++++++++
+>>>>>> arch/arm/mach-omap2/mux.c             |   49 +++++++++++++++++++++++
+>>>>>> ++++++++++
+>>>>>> arch/arm/plat-omap/include/mach/mux.h |   28 +++++++++++++++++++
+>>>>>
+>>>>> Great, just one issue: All data pins may not be connected, so you
+>>>>> need to look at wires in struct omap_mmc_slot_data to see how many
+>>>>> data pins to mux.
+>>>>
+>>>> There is another issue: different mux-outs are possible for different
+>>>> board layouts; for example, I'm using AE10_3430_MMC3_CMD instead of
+>>>> AC3_3430_MMC3_CMD. I'm not sure what the best way of handling this is,
+>>>> but at a minimum, perhaps make mux setting optional, e.g. add no_mux to
+>>>> struct omap_mmc_slot_data.
+>>>
+>>>Hmm, yeah that's right. I guess only the common pins should be muxed
+>>>in  devices.c, and any optional pins should be muxed in the board-*.c
+>>>files.
+>>
+>> Please check this patch set:
+>> [PATCH 1/2] OMAP3: MMC: Pass pin muxing control flag
+>>
+>> I used the nomux flag to do this distinction.
+>>
 >
-> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> index c9407c0..a7159a9 100644
-> --- a/arch/arm/mach-omap2/control.c
-> +++ b/arch/arm/mach-omap2/control.c
-> @@ -238,6 +238,13 @@ void omap3_save_scratchpad_contents(void)
->  			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
->  	prcm_block_contents.cm_autoidle_pll =
->  			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_AUTOIDLE_PLL);
-> +	/*
-> +	 * ROM restore takes 20mS longer if PER idle is enabled before OFF.
-> +	 * Clear feature before sleep. The origional idle state is
-> +	 * restored by software as part of wake procedure.
-> +	 */
-> +	prcm_block_contents.cm_autoidle_pll &= ~OMAP3430_AUTO_PERIPH_DPLL_MASK;
-> +
->  	prcm_block_contents.cm_clksel1_pll =
->  			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
->  	prcm_block_contents.cm_clksel2_pll =
-> -- 
-> 1.5.4.7
+>This still doesn't address the problem that when you do mux, you mux
+>all OMAP3 platforms the same way, and that is not correct.
+
+The patch tries to address this exact concern.
+
+Using nomux flag, the board file decides if the default mux for each MMC(n) controller is good for it or not.
+
+In case default is good, then MMC(n).nomux=0
+In case default mux for any one MMC controller is not good, then for that MMC(n).nomux=1
+
+And the board file specifies the mux for that MMC(n) only. 
+
+I do not see any advantage to control mux at ball level for each mmc controller instance.
+
+
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Only some of it is common, the others are platform specific.
+>
+>Kevin
 
