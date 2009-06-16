@@ -1,36 +1,54 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: [PATCH 00/04] OMAP3: PM: Optimizations and fixes in sleep/voltage
- scaling
-Date: Tue, 16 Jun 2009 17:21:58 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03059BC545@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF, reduces OFF latency by 20ms
+Date: Tue, 16 Jun 2009 17:22:31 +0530
+Message-ID: <1245153154-1876-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55702 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751679AbZFPLwF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 07:52:05 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5GBq0Dn008938
-	for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 06:52:06 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n5GBpxFU016696
-	for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 17:22:00 +0530 (IST)
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:60098 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754451AbZFPLwm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Jun 2009 07:52:42 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5GBqcIj019674
+	for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 06:52:44 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: dderrick@ti.com, r-woodruff2@ti.com, Rajendra Nayak <rnayak@ti.com>
 
-Hi,
+If autoidle for DPLL4 is enabled in the stored scratchpad
+value of CM_AUTOIDLE_PLL then there is an added delay by
+the boot ROM when coming out of OFF mode.
+The patch disables this bitfield in the stored scratchpad value.
 
-This patchset contains a few optimizations and fixes in OFF and Auto voltage scaling path.
-Also the 3430sdp specific sleep/wake sequence and device group associations are
-fixed in the board file for 3430sdp.
+This should significantly reduce CORE OFF latency and also
+bring down the threshold for CORE OFF, making OFF affordable
+even with smaller sleep times.
+This patch however does not optimize the C state threshold for
+CORE OFF states based on the new latency.
 
-Thanks to David Derrick and Richard Woodruff @ TI for identifying and recomending most
-of these fixes.
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/control.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-regards,
-Rajendra
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index c9407c0..a7159a9 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -238,6 +238,13 @@ void omap3_save_scratchpad_contents(void)
+ 			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+ 	prcm_block_contents.cm_autoidle_pll =
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_AUTOIDLE_PLL);
++	/*
++	 * ROM restore takes 20mS longer if PER idle is enabled before OFF.
++	 * Clear feature before sleep. The origional idle state is
++	 * restored by software as part of wake procedure.
++	 */
++	prcm_block_contents.cm_autoidle_pll &= ~OMAP3430_AUTO_PERIPH_DPLL_MASK;
++
+ 	prcm_block_contents.cm_clksel1_pll =
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
+ 	prcm_block_contents.cm_clksel2_pll =
+-- 
+1.5.4.7
+
