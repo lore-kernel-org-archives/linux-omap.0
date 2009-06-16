@@ -1,196 +1,220 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] OMAP3: MMC: Add mux for pins
-Date: Tue, 16 Jun 2009 20:26:24 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F53D146A@dbde02.ent.ti.com>
-References: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com>
- <20090615081242.GE4474@atomide.com>
- <5C07676A-0A93-48DE-B4C0-5A6709BE34A8@gmail.com>
- <20090615110431.GO4474@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/2] watchdog:OMAP3:Register IVA and SECURE WDT, make clks accessible
+Date: Tue, 16 Jun 2009 08:02:31 -0700
+Message-ID: <87y6rs43y0.fsf@deeprootsystems.com>
+References: <1245100312-2312-1-git-send-email-ubh@ti.com>
+	<1245100312-2312-2-git-send-email-ubh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55298 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750830AbZFPO4d convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 10:56:33 -0400
-In-Reply-To: <20090615110431.GO4474@atomide.com>
-Content-Language: en-US
+Received: from mail-pz0-f187.google.com ([209.85.222.187]:61838 "EHLO
+	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758740AbZFPPCd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 11:02:33 -0400
+Received: by pzk17 with SMTP id 17so2747564pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 08:02:35 -0700 (PDT)
+In-Reply-To: <1245100312-2312-2-git-send-email-ubh@ti.com> (Ulrik Bech Hald's message of "Mon\, 15 Jun 2009 16\:11\:51 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Hugo Vincent <hugo.vincent@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: Ulrik Bech Hald <ubh@ti.com>
+Cc: linux-omap@vger.kernel.org
 
+Ulrik Bech Hald <ubh@ti.com> writes:
 
-
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Monday, June 15, 2009 6:05 AM
->To: Hugo Vincent
->Cc: Pandita, Vikram; linux-omap@vger.kernel.org; Chikkature Rajashekar, Madhusudhan
->Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
+> Enabling registration of IVA and SECURE WDT devices. Making
+> ick and fck for IVA and SECURE WDTs accessible.
 >
->* Hugo Vincent <hugo.vincent@gmail.com> [090615 03:44]:
->>
->> On 15/06/2009, at 8:12 PM, Tony Lindgren wrote:
->>
->>> * Vikram Pandita <vikram.pandita@ti.com> [090612 15:43]:
->>>> For OMAP3 add MMC1 MMC2 and MMC3 pin mux
->>>>
->>>> Signed-off-by: Chikkature Rajashekar <madhu.cr@ti.com>
->>>> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->>>> ---
->>>> arch/arm/mach-omap2/devices.c         |   33 ++++++++++++++++++++++
->>>> arch/arm/mach-omap2/mux.c             |   49 +++++++++++++++++++++++
->>>> ++++++++++
->>>> arch/arm/plat-omap/include/mach/mux.h |   28 +++++++++++++++++++
->>>
->>> Great, just one issue: All data pins may not be connected, so you
->>> need to look at wires in struct omap_mmc_slot_data to see how many
->>> data pins to mux.
->>
->> There is another issue: different mux-outs are possible for different
->> board layouts; for example, I'm using AE10_3430_MMC3_CMD instead of
->> AC3_3430_MMC3_CMD. I'm not sure what the best way of handling this is,
->> but at a minimum, perhaps make mux setting optional, e.g. add no_mux to
->> struct omap_mmc_slot_data.
+> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
+> ---
+> This patch has a dependency on:
+> PATCH 1/2] OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
 >
->Hmm, yeah that's right. I guess only the common pins should be muxed
->in  devices.c, and any optional pins should be muxed in the board-*.c
->files.
-
-Please check this patch set:
-[PATCH 1/2] OMAP3: MMC: Pass pin muxing control flag
-
-I used the nomux flag to do this distinction.
-
-Please comment.
-
+>  arch/arm/mach-omap2/clock34xx.c |   12 +++---
+>  arch/arm/plat-omap/devices.c    |   81 +++++++++++++++++++++++++++++++--------
+>  2 files changed, 71 insertions(+), 22 deletions(-)
+>  mode change 100644 => 100755 arch/arm/plat-omap/devices.c
 >
->Tony
->
->>
->> Hugo
->>
->>>
->>> Regards,
->>>
->>> Tony
->>>
->>>
->>>> void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
->>>> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
->>>> index 026c4fc..d49b9a7 100644
->>>> --- a/arch/arm/mach-omap2/mux.c
->>>> +++ b/arch/arm/mach-omap2/mux.c
->>>> @@ -486,6 +486,55 @@ MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
->>>> 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->>>> MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
->>>> 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
->>>> +/* MMC1 */
->>>> +MUX_CFG_34XX("N28_3430_MMC1_CLK", 0x144,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("M27_3430_MMC1_CMD", 0x146,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("N27_3430_MMC1_DAT0", 0x148,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("N26_3430_MMC1_DAT1", 0x14a,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("N25_3430_MMC1_DAT2", 0x14c,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("P28_3430_MMC1_DAT3", 0x14e,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("P27_3430_MMC1_DAT4", 0x150,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("P26_3430_MMC1_DAT5", 0x152,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("R27_3430_MMC1_DAT6", 0x154,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("R25_3430_MMC1_DAT7", 0x156,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +
->>>> +/* MMC2 */
->>>> +MUX_CFG_34XX("AE2_3430_MMC2_CLK", 0x158,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AG5_3430_MMC2_CMD", 0x15A,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AH5_3430_MMC2_DAT0", 0x15c,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AH4_3430_MMC2_DAT1", 0x15e,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AG4_3430_MMC2_DAT2", 0x160,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AF4_3430_MMC2_DAT3", 0x162,
->>>> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +
->>>> +/* MMC3 */
->>>> +MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
->>>> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x1d0,
->>>> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AE11_3430_MMC3_DAT0", 0x5e4,
->>>> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AH9_3430_MMC3_DAT1", 0x5e6,
->>>> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AF13_3430_MMC3_DAT2", 0x5e8,
->>>> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> +MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
->>>> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->>>> };
->>>>
->>>> #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
->>>> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-
->>>> omap/include/mach/mux.h
->>>> index 85a6217..d24fdf9 100644
->>>> --- a/arch/arm/plat-omap/include/mach/mux.h
->>>> +++ b/arch/arm/plat-omap/include/mach/mux.h
->>>> @@ -853,6 +853,34 @@ enum omap34xx_index {
->>>> 	AE5_34XX_GPIO143,
->>>> 	H19_34XX_GPIO164_OUT,
->>>> 	J25_34XX_GPIO170,
->>>> +
->>>> +	/* MMC1 */
->>>> +	N28_3430_MMC1_CLK,
->>>> +	M27_3430_MMC1_CMD,
->>>> +	N27_3430_MMC1_DAT0,
->>>> +	N26_3430_MMC1_DAT1,
->>>> +	N25_3430_MMC1_DAT2,
->>>> +	P28_3430_MMC1_DAT3,
->>>> +	P27_3430_MMC1_DAT4,
->>>> +	P26_3430_MMC1_DAT5,
->>>> +	R27_3430_MMC1_DAT6,
->>>> +	R25_3430_MMC1_DAT7,
->>>> +
->>>> +	/* MMC2 */
->>>> +	AE2_3430_MMC2_CLK,
->>>> +	AG5_3430_MMC2_CMD,
->>>> +	AH5_3430_MMC2_DAT0,
->>>> +	AH4_3430_MMC2_DAT1,
->>>> +	AG4_3430_MMC2_DAT2,
->>>> +	AF4_3430_MMC2_DAT3,
->>>> +
->>>> +	/* MMC3 */
->>>> +	AF10_3430_MMC3_CLK,
->>>> +	AC3_3430_MMC3_CMD,
->>>> +	AE11_3430_MMC3_DAT0,
->>>> +	AH9_3430_MMC3_DAT1,
->>>> +	AF13_3430_MMC3_DAT2,
->>>> +	AF13_3430_MMC3_DAT3,
->>>> };
->>>>
->>>> struct omap_mux_cfg {
->>>> --
->>>> 1.6.0.3.613.g9f8f13
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-
->>>> omap" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap"
->>> in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index 9e43fe5..933ae9e 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -215,11 +215,11 @@ static struct omap_clk omap34xx_clks[] = {
+>  	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_343X),
+>  	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_343X),
+>  	CLK(NULL,	"gpio1_dbck",	&gpio1_dbck,	CK_343X),
+> -	CLK("omap_wdt",	"fck",		&wdt2_fck,	CK_343X),
+> +	CLK("omap_wdt.2", "fck",	&wdt2_fck,	CK_343X),
+>  	CLK(NULL,	"wkup_l4_ick",	&wkup_l4_ick,	CK_343X),
+>  	CLK(NULL,	"usim_ick",	&usim_ick,	CK_3430ES2),
+> -	CLK("omap_wdt",	"ick",		&wdt2_ick,	CK_343X),
+> -	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_343X),
+> +	CLK("omap_wdt.2", "ick",	&wdt2_ick,	CK_343X),
+> +	CLK("omap_wdt.1", "ick",	&wdt1_ick,	CK_343X),
+>  	CLK(NULL,	"gpio1_ick",	&gpio1_ick,	CK_343X),
+>  	CLK(NULL,	"omap_32ksync_ick", &omap_32ksync_ick, CK_343X),
+>  	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_343X),
+> @@ -241,14 +241,14 @@ static struct omap_clk omap34xx_clks[] = {
+>  	CLK(NULL,	"gpio4_dbck",	&gpio4_dbck,	CK_343X),
+>  	CLK(NULL,	"gpio3_dbck",	&gpio3_dbck,	CK_343X),
+>  	CLK(NULL,	"gpio2_dbck",	&gpio2_dbck,	CK_343X),
+> -	CLK(NULL,	"wdt3_fck",	&wdt3_fck,	CK_343X),
+> +	CLK("omap_wdt.3", "fck",	&wdt3_fck,	CK_343X),
+>  	CLK(NULL,	"per_l4_ick",	&per_l4_ick,	CK_343X),
+>  	CLK(NULL,	"gpio6_ick",	&gpio6_ick,	CK_343X),
+>  	CLK(NULL,	"gpio5_ick",	&gpio5_ick,	CK_343X),
+>  	CLK(NULL,	"gpio4_ick",	&gpio4_ick,	CK_343X),
+>  	CLK(NULL,	"gpio3_ick",	&gpio3_ick,	CK_343X),
+>  	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_343X),
+> -	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_343X),
+> +	CLK("omap_wdt.3", "ick",	&wdt3_ick,	CK_343X),
+>  	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_343X),
+>  	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_343X),
+>  	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_343X),
+> @@ -275,7 +275,7 @@ static struct omap_clk omap34xx_clks[] = {
+>  	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_343X),
+>  	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_343X),
+>  	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_343X),
+> -	CLK(NULL,	"wdt1_fck",	&wdt1_fck,	CK_343X),
+> +	CLK("omap_wdt.1", "fck",	&wdt1_fck,	CK_343X),
+>  };
+>  
+>  /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
+> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+> old mode 100644
+> new mode 100755
+> index a64b692..de5182c
+> --- a/arch/arm/plat-omap/devices.c
+> +++ b/arch/arm/plat-omap/devices.c
+> @@ -288,42 +288,91 @@ static inline void omap_init_uwire(void) {}
+>  
+>  #if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
+>  
+> -static struct resource wdt_resources[] = {
+> +#define	OMAP34XX_WDT1_BASE	0x4830c000
+> +#define	OMAP34XX_WDT2_BASE	0x48314000
+> +#define	OMAP34XX_WDT3_BASE	0x49030000
+> +#define	OMAP2430_WDT_BASE	0x49016000
+> +#define	OMAP2420_WDT_BASE	0x48022000
+> +#define	OMAP16XX_WDT_BASE	0xfffeb000
+> +
+> +static struct resource wdt1_resources[] = {
+>  	{
+> -		.flags		= IORESOURCE_MEM,
+> +		.flags = IORESOURCE_MEM,
+>  	},
+>  };
+>  
+> -static struct platform_device omap_wdt_device = {
+> -	.name	   = "omap_wdt",
+> -	.id	     = -1,
+> -	.num_resources	= ARRAY_SIZE(wdt_resources),
+> -	.resource	= wdt_resources,
+> +static struct resource wdt2_resources[] = {
+> +	{
+> +		.flags = IORESOURCE_MEM,
+> +	},
+> +};
+> +
+> +static struct resource wdt3_resources[] = {
+> +	{
+> +		.flags = IORESOURCE_MEM,
+> +	},
+> +};
+> +
+> +/* SECURE WDT */
+> +static struct platform_device omap_wdt1_device = {
+> +	.name = "omap_wdt",
+> +	.id = 1,
+> +	.num_resources = ARRAY_SIZE(wdt1_resources),
+> +	.resource = wdt1_resources,
+> +};
+> +
+> +/* MPU WDT */
+> +static struct platform_device omap_wdt2_device = {
+> +	.name = "omap_wdt",
+> +	.id = 2,
+> +	.num_resources = ARRAY_SIZE(wdt2_resources),
+> +	.resource = wdt2_resources,
+> +};
+> +
+> +/* IVA WDT */
+> +static struct platform_device omap_wdt3_device = {
+> +	.name = "omap_wdt",
+> +	.id = 3,
+> +	.num_resources = ARRAY_SIZE(wdt3_resources),
+> +	.resource = wdt3_resources,
+>  };
 
+Rather than use the /* SECURE WDT */ comments, why not
+just name the platform_device instead of using numbers.
+
+For example, use:
+
+  struct platform_device mpu_wdt_device;
+  struct platform_device secure_wdt_device;
+  struct platform_device iva_wdt_device;
+
+and same for the struct resources:
+
+  struct resource mpu_wdt_resource;
+  ...
+
+That way the numbering issues below will not be so confusing.
+
+Kevin
+
+>  static void omap_init_wdt(void)
+>  {
+>  	if (cpu_is_omap16xx())
+> -		wdt_resources[0].start = 0xfffeb000;
+> +		wdt2_resources[0].start = OMAP16XX_WDT_BASE;
+>  	else if (cpu_is_omap2420())
+> -		wdt_resources[0].start = 0x48022000; /* WDT2 */
+> +		wdt2_resources[0].start = OMAP2420_WDT_BASE;
+>  	else if (cpu_is_omap2430())
+> -		wdt_resources[0].start = 0x49016000; /* WDT2 */
+> -	else if (cpu_is_omap343x())
+> -		wdt_resources[0].start = 0x48314000; /* WDT2 */
+> -	else if (cpu_is_omap44xx())
+> -		wdt_resources[0].start = 0x4a314000;
+> +		wdt2_resources[0].start = OMAP2430_WDT_BASE;
+> +	else if (cpu_is_omap343x()) {
+> +		wdt1_resources[0].start = OMAP34XX_WDT1_BASE;
+> +		wdt1_resources[0].end = wdt1_resources[0].start + 0x4f;
+> +		wdt2_resources[0].start = OMAP34XX_WDT2_BASE;
+> +		wdt3_resources[0].start = OMAP34XX_WDT3_BASE;
+> +		wdt3_resources[0].end = wdt3_resources[0].start + 0x4f;
+> +	}
+>  	else
+>  		return;
+>
+> -	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
+> +	wdt2_resources[0].end = wdt2_resources[0].start + 0x4f;
+>  
+> -	(void) platform_device_register(&omap_wdt_device);
+> +	/* MPU WDT present across omap family */
+> +	(void) platform_device_register(&omap_wdt2_device);
+> +
+> +	if (cpu_is_omap34xx()) {
+> +		(void) platform_device_register(&omap_wdt3_device);
+> +		if (omap_type() == OMAP2_DEVICE_TYPE_SEC
+> +			|| omap_type() == OMAP2_DEVICE_TYPE_EMU)
+> +			(void) platform_device_register(&omap_wdt1_device);
+> +	}
+>  }
+> +
+>  #else
+>  static inline void omap_init_wdt(void) {}
+>  #endif
+>  
+> +
+>  /*-------------------------------------------------------------------------*/
+>  
+>  #if defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)
+> -- 
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
