@@ -1,154 +1,76 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 1/1] OMAP3:WDT:Enable clk in probe, trigger timer reload
-Date: Tue, 16 Jun 2009 18:31:13 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D810C2A2@dbde02.ent.ti.com>
-References: <1244822737-20446-1-git-send-email-ubh@ti.com>
-	 <87my8dig6e.fsf@deeprootsystems.com>
- <5a7b8b7b0906122057k48f2d16au63adba5278cee04c@mail.gmail.com>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 02/04] OMAP3: PM: Prevent AUTO_RET and AUTO_OFF being
+ enabled simultaneously
+Date: Tue, 16 Jun 2009 18:46:47 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03059BC5AB@dbde02.ent.ti.com>
+References: <87ws7cfj3e.fsf@trdhcp146196.ntc.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59291 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:60108 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908AbZFPNAx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 09:00:53 -0400
-In-Reply-To: <5a7b8b7b0906122057k48f2d16au63adba5278cee04c@mail.gmail.com>
+	with ESMTP id S1754850AbZFPNQz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 09:16:55 -0400
+In-Reply-To: <87ws7cfj3e.fsf@trdhcp146196.ntc.nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hugo Vincent <hugo.vincent@gmail.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Hald, Ulrik Bech" <ubh@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: =?utf-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org=20
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Hugo Vincent
-> Sent: Saturday, June 13, 2009 9:28 AM
-> To: Kevin Hilman
-> Cc: Hald, Ulrik Bech; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/1] OMAP3:WDT:Enable clk in probe,=20
-> trigger timer reload
->=20
-> On Sat, Jun 13, 2009 at 4:13 AM, Kevin
-> Hilman<khilman@deeprootsystems.com> wrote:
-> > Ulrik Bech Hald <ubh@ti.com> writes:
-> >
-> >> This patch contains two bugfixes:
-> >>
-> >> 1)In omap_wdt_probe() the watchdog is reset and disabled. This
-> >> requires register access and the clks needs to be enabled=20
-> temporarily
-> >>
-> >> 2)In omap_wdt_open() the timer register needs to be reloaded
-> >> to trigger a new timer value (the default of 60s)
-> >>
-> >> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
-> >
-> > Can you change the subject slightly to something like:
-> >
-> > =A0watchdog: OMAP fixes: enable clock in probe, trigger timer reloa=
-d
-> >
-> > Also add which OMAP platforms you have tested on since this affects
-> > OMAP2, OMAP3 and presuably OMAP4.
->=20
-> Tested on OMAP3 (OMAP3503, Gumstix Overo).
->=20
-> > After that, you can add
-> >
-> > Reviewed-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
-> >
-> > And sent to watchdog maintiner, and CC linux-omap, here's=20
-> excerpt from
-> > MAINTAINERS:
-> >
-> > WATCHDOG DEVICE DRIVERS
-> > P: =A0 =A0 =A0Wim Van Sebroeck
-> > M: =A0 =A0 =A0wim@iguana.be
-> > T: =A0 =A0 =A0git=20
-> git://git.kernel.org/pub/scm/linux/kernel/git/wim/linux-2.6-wa
-tchdog.git
-> > S: =A0 =A0 =A0Maintained
-> > F: =A0 =A0 =A0Documentation/watchdog/
-> > F: =A0 =A0 =A0drivers/watchdog/
-> > F: =A0 =A0 =A0include/linux/watchdog.h
-> >
-> >> ---
-> >> =A0drivers/watchdog/omap_wdt.c | =A0 =A07 +++++++
-> >> =A01 files changed, 7 insertions(+), 0 deletions(-)
-> >> =A0mode change 100644 =3D> 100755 drivers/watchdog/omap_wdt.c
-> >>
-> >> diff --git a/drivers/watchdog/omap_wdt.c=20
-> b/drivers/watchdog/omap_wdt.c
-
-> >> old mode 100644
-> >> new mode 100755
-
-This change is also unnecessary.
-Can be avoided in the follow-up submission.
-
-~sanjeev
-
-> >> index f271385..3ed571a
-> >> --- a/drivers/watchdog/omap_wdt.c
-> >> +++ b/drivers/watchdog/omap_wdt.c
-> >> @@ -159,6 +159,7 @@ static int omap_wdt_open(struct inode=20
-> *inode, struct file *file)
-> >> =A0 =A0 =A0 file->private_data =3D (void *) wdev;
-> >>
-> >> =A0 =A0 =A0 omap_wdt_set_timeout(wdev);
-> >> + =A0 =A0 omap_wdt_ping(wdev); /* trigger loading of new=20
-> timeout value */
-> >> =A0 =A0 =A0 omap_wdt_enable(wdev);
-> >>
-> >> =A0 =A0 =A0 return nonseekable_open(inode, file);
-> >> @@ -313,6 +314,9 @@ static int __devinit=20
-> omap_wdt_probe(struct platform_device *pdev)
-> >>
-> >> =A0 =A0 =A0 platform_set_drvdata(pdev, wdev);
-> >>
-> >> + =A0 =A0 clk_enable(wdev->ick);
-> >> + =A0 =A0 clk_enable(wdev->fck);
-> >> +
-> >> =A0 =A0 =A0 omap_wdt_disable(wdev);
-> >> =A0 =A0 =A0 omap_wdt_adjust_timeout(timer_margin);
-> >>
-> >> @@ -332,6 +336,9 @@ static int __devinit=20
-> omap_wdt_probe(struct platform_device *pdev)
-> >> =A0 =A0 =A0 /* autogate OCP interface clock */
-> >> =A0 =A0 =A0 __raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONF=
-IG);
-> >>
-> >> + =A0 =A0 clk_disable(wdev->ick);
-> >> + =A0 =A0 clk_disable(wdev->fck);
-> >> +
-> >> =A0 =A0 =A0 omap_wdt_dev =3D pdev;
-> >>
-> >> =A0 =A0 =A0 return 0;
-> >> --
-> >> 1.5.4.3
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe=20
-> linux-omap" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe=20
-> linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe=20
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IA0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBIw7ZnYW5kZXIgSm91bmkg
+W21haWx0bzpqb3VuaS5ob2dhbmRlckBub2tpYS5jb21dIA0KPlNlbnQ6IFR1ZXNkYXksIEp1bmUg
+MTYsIDIwMDkgNjoxMCBQTQ0KPlRvOiBOYXlhaywgUmFqZW5kcmENCj5DYzogbGludXgtb21hcEB2
+Z2VyLmtlcm5lbC5vcmc7IERlcnJpY2ssIERhdmlkOyBXb29kcnVmZiwgUmljaGFyZA0KPlN1Ympl
+Y3Q6IFJlOiBbUEFUQ0ggMDIvMDRdIE9NQVAzOiBQTTogUHJldmVudCBBVVRPX1JFVCBhbmQgDQo+
+QVVUT19PRkYgYmVpbmcgZW5hYmxlZCBzaW11bHRhbmVvdXNseQ0KPg0KPmV4dCBSYWplbmRyYSBO
+YXlhayA8cm5heWFrQHRpLmNvbT4gd3JpdGVzOg0KPg0KPj4gVGhlcmUgaXMgYSBkZXNpZ24gcmVx
+dWlyZW1lbnQgaW4gT01BUDMgdGhhdCBBdXRvX1JFVCBhbmQgQVVUT19PRkYNCj4+IHNob3VsZCBu
+b3QgYmUgc2V0IHRvZ2V0aGVyLiBUaGUgUFJDTSBGU00gIGhhcyBiZWVuIGNvZGVkIGFzc3VtaW5n
+DQo+PiB0aGF0IFNXIHdpbGwgc2V0IGVpdGhlciBhdXRvX3JldCBvciBhdXRvX29mZiBiaXQgZGVw
+ZW5kaW5nIG9uDQo+PiB3aGV0aGVyIHRoZSBjb3JlIGhhcyBiZWVuIHByb2dyYW1tZWQgdG8gZ28g
+aW50byBvcGVuIHN3aXRjaGVkDQo+PiBsb2dpYyByZXRlbnRpb24gc3RhdGUgb3IgT0ZGIHN0YXRl
+LiBUaGV5IGFyZSBtdXR1YWxseSBleGNsdXNpdmUuDQo+DQo+U28gd2UgZG9uJ3QgaGF2ZSB0byBk
+byB0aGlzIGlmIGNsb3NlZCBzd2l0Y2ggcmV0ZW50aW9uIGlzIHVzZWQ/IChUaGlzDQo+aXMgd2hh
+dCBpcyBjdXJyZW50bHkgdXNlZCBpbiBsaW51eC1vbWFwOnBtKQ0KDQpDdXJyZW50bHkgaW4gdGhl
+IHBtIGJyYW5jaCBBVVRPX1JFVCBpcyBlbmFibGVkIGF0IGluaXQgYW5kIGtlcHQNCmVuYWJsZWQu
+IFdoaWxlIGF0dGVtcHRpbmcgYSBPRkYgc3RhdGUgQVVUT19PRkYgaXMgZW5hYmxlZCBhbHNvDQps
+ZWF2aW5nIEFVVE9fUkVUIGFuZCBBVVRPX09GRiBib3RoIGVuYWJsZWQuDQoNCj4NCj4+IEEgc2lt
+aWxhciBpc3N1ZSB3aWxsIGV4aXN0IGlmIFNXIHNldHMgIGF1dG9fcmV0PSBhdXRvX29mZj0xIGFu
+ZA0KPj4gYXV0b19zbGVlcCA9IDEgaW4gdGhlIFBSTSB2b2x0YWdlIENUUkwgcmVnaXN0ZXINCj4+
+DQo+PiBTaWduZWQtb2ZmLWJ5OiBSYWplbmRyYSBOYXlhayA8cm5heWFrQHRpLmNvbT4NCj4+IC0t
+LQ0KPj4gIGFyY2gvYXJtL21hY2gtb21hcDIvcG0zNHh4LmMgfCAgIDEyICsrKysrKysrLS0tLQ0K
+Pj4gIDEgZmlsZXMgY2hhbmdlZCwgOCBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQ0KPj4N
+Cj4+IGRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtMzR4eC5jIA0KPmIvYXJjaC9h
+cm0vbWFjaC1vbWFwMi9wbTM0eHguYw0KPj4gaW5kZXggYTllZjY3MC4uZDQyMjViNCAxMDA2NDQN
+Cj4+IC0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvcG0zNHh4LmMNCj4+ICsrKyBiL2FyY2gvYXJt
+L21hY2gtb21hcDIvcG0zNHh4LmMNCj4+IEBAIC0zOTIsNiArMzkyLDEwIEBAIHZvaWQgb21hcF9z
+cmFtX2lkbGUodm9pZCkNCj4+ICAJCQkJCSAgICAgT01BUDNfUFJNX1ZPTFRDVFJMX09GRlNFVCk7
+DQo+PiAgCQkJb21hcDNfY29yZV9zYXZlX2NvbnRleHQoKTsNCj4+ICAJCQlvbWFwM19wcmNtX3Nh
+dmVfY29udGV4dCgpOw0KPj4gKwkJfSBlbHNlIGlmIChjb3JlX25leHRfc3RhdGUgPT0gUFdSRE1f
+UE9XRVJfUkVUKSB7DQo+PiArCQkJcHJtX3NldF9tb2RfcmVnX2JpdHMoT01BUDM0MzBfQVVUT19S
+RVQsDQo+PiArCQkJCQkJT01BUDM0MzBfR1JfTU9ELA0KPj4gKwkJCQkJCQ0KPk9NQVAzX1BSTV9W
+T0xUQ1RSTF9PRkZTRVQpOw0KPj4gIAkJfQ0KPj4gIAkJLyogRW5hYmxlIElPLVBBRCBhbmQgSU8t
+Q0hBSU4gd2FrZXVwcyAqLw0KPj4gIAkJcHJtX3NldF9tb2RfcmVnX2JpdHMoT01BUDM0MzBfRU5f
+SU8sIFdLVVBfTU9ELCBQTV9XS0VOKTsNCj4+IEBAIC00NDYsNiArNDUwLDEwIEBAIHZvaWQgb21h
+cF9zcmFtX2lkbGUodm9pZCkNCj4+ICAJCQlwcm1fY2xlYXJfbW9kX3JlZ19iaXRzKE9NQVAzNDMw
+X0FVVE9fT0ZGLA0KPj4gIAkJCQkJICAgICAgIE9NQVAzNDMwX0dSX01PRCwNCj4+ICAJCQkJCSAg
+ICAgICANCj5PTUFQM19QUk1fVk9MVENUUkxfT0ZGU0VUKTsNCj4+ICsJCWVsc2UgaWYgKGNvcmVf
+bmV4dF9zdGF0ZSA9PSBQV1JETV9QT1dFUl9SRVQpDQo+PiArCQkJcHJtX2NsZWFyX21vZF9yZWdf
+Yml0cyhPTUFQMzQzMF9BVVRPX1JFVCwNCj4+ICsJCQkJCQlPTUFQMzQzMF9HUl9NT0QsDQo+PiAr
+CQkJCQkJDQo+T01BUDNfUFJNX1ZPTFRDVFJMX09GRlNFVCk7DQo+PiAgCQkvKiBFbmFibGUgc21h
+cnRyZWZsZXggYWZ0ZXIgV0ZJICovDQo+PiAgCQllbmFibGVfc21hcnRyZWZsZXgoU1IxKTsNCj4+
+ICAJCWVuYWJsZV9zbWFydHJlZmxleChTUjIpOw0KPj4gQEAgLTExMjgsMTAgKzExMzYsNiBAQCBz
+dGF0aWMgdm9pZCBfX2luaXQgY29uZmlndXJlX3ZjKHZvaWQpDQo+PiAgCQkJCU9NQVAzNDMwX0dS
+X01PRCwNCj4+ICAJCQkJT01BUDNfUFJNX1ZDX0kyQ19DRkdfT0ZGU0VUKTsNCj4+ICANCj4+IC0J
+LyogU2V0dXAgdmFsdWUgZm9yIHZvbHRjdHJsICovDQo+PiAtCXBybV93cml0ZV9tb2RfcmVnKE9N
+QVAzNDMwX0FVVE9fUkVULA0KPj4gLQkJCSAgT01BUDM0MzBfR1JfTU9ELCBPTUFQM19QUk1fVk9M
+VENUUkxfT0ZGU0VUKTsNCj4+IC0NCj4+ICAJLyogV3JpdGUgc2V0dXAgdGltZXMgKi8NCj4+ICAJ
+cHJtX3dyaXRlX21vZF9yZWcocHJtX3NldHVwLmNsa3NldHVwLCBPTUFQMzQzMF9HUl9NT0QsDQo+
+PiAgCQkJT01BUDNfUFJNX0NMS1NFVFVQX09GRlNFVCk7DQo+PiAtLSANCj4+IDEuNS40LjcNCj4+
+DQo+PiAtLQ0KPj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUg
+InVuc3Vic2NyaWJlIA0KPmxpbnV4LW9tYXAiIGluDQo+PiB0aGUgYm9keSBvZiBhIG1lc3NhZ2Ug
+dG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAg
+aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo+DQo+LS0gDQo+Sm91
+bmkgSMO2Z2FuZGVyDQo+DQo+
