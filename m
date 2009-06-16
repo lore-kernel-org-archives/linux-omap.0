@@ -1,44 +1,56 @@
-From: Imre Deak <imre.deak@nokia.com>
-Subject: Re: [PATCH 11/20] omapfb: Add support for the ZOOM MDK LCD
-Date: Tue, 16 Jun 2009 14:10:44 +0300
-Message-ID: <20090616111044.GF32105@localhost>
-References: <e9040774f324311979aebd3fa5fa71d20890d433.1244131952.git.imre.deak@nokia.com> <833ed44e61e3d4093eb27b55b97252967e042d41.1244131952.git.imre.deak@nokia.com> <5ba715a9dbc88b8c3a8225bc1cfdabd3faffe00f.1244131952.git.imre.deak@nokia.com> <646692ce09a12e1a8a2d4072097b4d440b7de5d5.1244131952.git.imre.deak@nokia.com> <b0e578438bb53d9fbf333e5bd10d4d33f869b373.1244131952.git.imre.deak@nokia.com> <9139035cc12b22600135677cd5d3096c1dcd286d.1244131952.git.imre.deak@nokia.com> <08ba068bda363adf4cb8a1f5afe11245c828d017.1244131952.git.imre.deak@nokia.com> <057471246e776de4c452b4ba2ebf2a4579f3171c.1244131952.git.imre.deak@nokia.com> <310d4aa52bfd6dd15664286643ca8a9703787dce.1244131952.git.imre.deak@nokia.com> <20090614234716.fa6f8f4b.krzysztof.h1@poczta.fm>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] Remove duplicate definitions
+Date: Tue, 16 Jun 2009 16:44:52 +0530
+Message-ID: <1245150892-5837-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:23474 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005AbZFPLMO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 16 Jun 2009 07:12:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20090614234716.fa6f8f4b.krzysztof.h1@poczta.fm>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56598 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752843AbZFPLO5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 16 Jun 2009 07:14:57 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5GBErgF030738
+	for <linux-omap@vger.kernel.org>; Tue, 16 Jun 2009 06:14:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Antonino Daplas <adaplas@gmail.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "Stanley.Miao" <stanley.miao@windriver.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On Sun, Jun 14, 2009 at 11:47:16PM +0200, ext Krzysztof Helt wrote:
-> On Thu,  4 Jun 2009 20:52:36 +0300
-> Imre Deak <imre.deak@nokia.com> wrote:
-> [...]
-> > diff --git a/drivers/video/omap/lcd_ldp.c b/drivers/video/omap/lcd_ldp.c
-> > new file mode 100644
-> > index 0000000..8925230
-> > --- /dev/null
-> > +++ b/drivers/video/omap/lcd_ldp.c
-> > [...]
-> > +static void ldp_panel_disable(struct lcd_panel *panel)
-> > +{
-> > +     gpio_direction_output(LCD_PANEL_ENABLE_GPIO, 0);
-> > +     gpio_direction_output(LCD_PANEL_BACKLIGHT_GPIO, 0);
-> > +
-> > +     t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEDICATED);
-> > +     t2_out(PM_RECEIVER, 0x0, TWL4030_VPLL2_DEV_GRP);
-> > +     mdelay(4);
-> 
-> Use the msleep() instead of the mdelay().
+Fixes the duplicate definitions of KEY and PERSISTENT_KEY
+leading to these compile-time warnings:
 
-Ok, will fix it and the similar places in the other panel drivers.
+In file included from arch/arm/mach-omap2/board-omap3evm.c:39:
+arch/arm/plat-omap/include/mach/keypad.h:38:1: warning: "KEY" redefined
+In file included from arch/arm/mach-omap2/board-omap3evm.c:27:
+include/linux/i2c/twl4030.h:341:1: warning: this is the location of the previous definition
+In file included from arch/arm/mach-omap2/board-omap3evm.c:39:
+arch/arm/plat-omap/include/mach/keypad.h:39:1: warning: "PERSISTENT_KEY" redefined
+In file included from arch/arm/mach-omap2/board-omap3evm.c:27:
+include/linux/i2c/twl4030.h:342:1: warning: this is the location of the previous definition
 
---Imre
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ include/linux/i2c/twl4030.h |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
+
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 87accda..21e65bf 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -333,14 +333,6 @@ struct twl4030_madc_platform_data {
+ 	int		irq_line;
+ };
+ 
+-/* Boards have uniqe mappings of {col, row} --> keycode.
+- * Column and row are 4 bits, but range only from 0..7;
+- * a PERSISTENT_KEY is "always on" and never reported.
+- */
+-#define KEY_PERSISTENT		0x00800000
+-#define KEY(col, row, keycode)	(((col) << 28) | ((row) << 24) | (keycode))
+-#define PERSISTENT_KEY(c, r)	KEY(c, r, KEY_PERSISTENT)
+-
+ struct twl4030_keypad_data {
+ 	unsigned rows;
+ 	unsigned cols;
+-- 
+1.6.2.2
 
