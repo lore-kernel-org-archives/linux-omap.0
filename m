@@ -1,93 +1,97 @@
 From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: OMAP3 PM: off-mode during idle, problem with UART1 console
-Date: Wed, 17 Jun 2009 11:41:33 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305A53FBA@dbde02.ent.ti.com>
-References: <87iqiv28ld.fsf@deeprootsystems.com>
+Subject: RE: [PATCH 02/04] OMAP3: PM: Prevent AUTO_RET and AUTO_OFF being
+ enabled simultaneously
+Date: Wed, 17 Jun 2009 11:57:40 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305A53FD3@dbde02.ent.ti.com>
+References: <877hzc5k3h.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59373 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751255AbZFQGLl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 02:11:41 -0400
-In-Reply-To: <87iqiv28ld.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:55583 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751976AbZFQG1w convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 02:27:52 -0400
+In-Reply-To: <877hzc5k3h.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: =?iso-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-Kevin,
-
-What Silicon Rev does your SDP have? I currently am using an ES3.1 based SDP
-and I havent seen any of these issues you have reported with off-while-idle.
-
-Infact I have kept the board running overnight a couple times in the last week 
-with off-while-idle and voltage scaling to 0v enabled, mainly to test the recent
-patch set (disabling Auto idle for PER in scratchpad memory) for stability.
-
-I will see if I can get hold of an ES3 and ES2.1 based SDP's and see if I reproduce
-the issue. Besides I use nfs and I am not sure if that's got something to do with it.
-Will try a ramdisk also.
-
-Does it take you a while to reproduce this, or is it seen after the very first UART
-inactivity?
-
-regards,
-Rajendra
+=20
 
 >-----Original Message-----
->From: linux-omap-owner@vger.kernel.org 
->[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
->Sent: Wednesday, June 17, 2009 2:35 AM
->To: Nayak, Rajendra; Woodruff, Richard
->Cc: linux-omap@vger.kernel.org
->Subject: OMAP3 PM: off-mode during idle, problem with UART1 console
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]=20
+>Sent: Tuesday, June 16, 2009 7:58 PM
+>To: Nayak, Rajendra
+>Cc: H=F6gander Jouni; linux-omap@vger.kernel.org; Derrick,=20
+>David; Woodruff, Richard
+>Subject: Re: [PATCH 02/04] OMAP3: PM: Prevent AUTO_RET and=20
+>AUTO_OFF being enabled simultaneously
 >
->Rajendra, Richard,
+>"Nayak, Rajendra" <rnayak@ti.com> writes:
 >
->Hoping you can shed some light, or give me some direction on where to
->debug this further...
+>>From: H=F6gander Jouni [mailto:jouni.hogander@nokia.com]=20
+>>>
+>>>ext Rajendra Nayak <rnayak@ti.com> writes:
+>>>
+>>>> There is a design requirement in OMAP3 that Auto_RET and AUTO_OFF
+>>>> should not be set together. The PRCM FSM  has been coded assuming
+>>>> that SW will set either auto_ret or auto_off bit depending on
+>>>> whether the core has been programmed to go into open switched
+>>>> logic retention state or OFF state. They are mutually exclusive.
+>>>
+>>>So we don't have to do this if closed switch retention is used? (Thi=
+s
+>>>is what is currently used in linux-omap:pm)
+>>
+>> Currently in the pm branch AUTO_RET is enabled at init and kept
+>> enabled. While attempting a OFF state AUTO_OFF is enabled also
+>> leaving AUTO_RET and AUTO_OFF both enabled.
 >
->With the latest PM branch, I've notice that off-while idle isn't
->working on the SDP, but the same kernel works fine on the RX51.
->RET-while-idle works fine on both.  This is with CPUidle disabled, so
->just using the default idle where MPU and CORE are changed together.
+>A little more clarification needed, in particular whether or how
+>this affects closed-switch retention.
+
+Sorry, that was a wrong description. AUTO_RET could be used to scale th=
+e voltage
+down even in case of CSWR and not just OSWR.
+
+The idea of this patch was to enable auto voltage scaling only for the =
+last 3 C states.
+
+ *	C5 . MPU CSWR + Core CSWR - AUTO RET enabled
+ *	C6 . MPU OFF + Core CSWR - AUTO RET enabled
+ *	C7 . MPU OFF + Core OFF - AUTO OFF enabled.
+
+=46or the rest of the Lower C states the decision of not enabling AUTO =
+RET/OFF was to keep
+the latency for such states down.
+
+Especially with SR enabled having AUTO RET/OFF enabled for say  a MPU R=
+ET/CORE inactive
+state would mean a 2 level voltage change. First to scale from SR autoc=
+ompensated level to the
+actual OPP voltage level (That's done when you disable SR) and then fro=
+m the there to the
+AUTO RET level.
+So say you hit MPU RET/CORE inactive state at OPP3 (1.2v) which has a S=
+R autocompensated voltage
+to 1.08v, then you would scale from 1.08->1.2->0.975.
+That might be too much of additional latency to incure in case of a MPU=
+ RET/CORE inactive
+state.=20
+
 >
->More specifically, it seems to be the UART1 (CORE) console that never
->comes back from off-while-idle, but the UART3 (PER) console on RX51
->works.
->
->On SDP, if I
->
-># echo 1 > /sys/power/enable_off_mode
-># echo 1 > /sys/power/voltage_off_while_idle
-># echo 1 > /sys/power/sleep_while_idle
->
->After the UART inactivty timeout of 5 seconds, I start to see the
->sys_off_mode LED toggling between red and green with system timer
->wakeups.
->
->If I then push a key on the UART1 console, the LED goes green, stays
->for the 5 second UART inactivity and then goes back to toggling
->red/green again.  However, I never get my console back and never see
->the characters on my console.
->
->If I keep typing, I keep the system from going back off (based on
->sys_off_mode LED) and as soon as I stop typing long enough for the
->inactivity timer to expiere (5 seconds) it goes back into off.
->
->Any ideas what's going on here?
->
->On RX51, the same thing works using UART3.
+>The description above states that this problem affects OSWR and OFF.
+>linux-omap PM only uses CSWR, so based on the description of the PRCM
+>FSM above, for CSWR, we should never be setting AUTO_RET when using
+>CSWR.
 >
 >Kevin
 >
 >--
->To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
