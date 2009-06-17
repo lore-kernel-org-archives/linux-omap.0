@@ -1,131 +1,64 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: OMAP3 PM: off-mode during idle, problem with UART1 console
-Date: Wed, 17 Jun 2009 08:07:44 -0700
-Message-ID: <878wjqzynz.fsf@deeprootsystems.com>
-References: <87iqiv28ld.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0305A53FBA@dbde02.ent.ti.com>
-	<13B9B4C6EF24D648824FF11BE8967162038E2AC031@dlee02.ent.ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading issue
+Date: Wed, 17 Jun 2009 20:49:19 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F53D1877@dbde02.ent.ti.com>
+References: <1244767797-22860-1-git-send-email-vikram.pandita@ti.com>
+ <notify-1245247047@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f187.google.com ([209.85.222.187]:48691 "EHLO
-	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138AbZFQPHt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 11:07:49 -0400
-Received: by pzk17 with SMTP id 17so452785pzk.33
-        for <linux-omap@vger.kernel.org>; Wed, 17 Jun 2009 08:07:52 -0700 (PDT)
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038E2AC031@dlee02.ent.ti.com> (Richard Woodruff's message of "Wed\, 17 Jun 2009 09\:38\:42 -0500")
+Received: from devils.ext.ti.com ([198.47.26.153]:56105 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854AbZFQPT0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 11:19:26 -0400
+In-Reply-To: <notify-1245247047@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Woodruff, Richard" <r-woodruff2@ti.com> writes:
+Tony
 
-> Can you ping the system via network during on time?
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
+>Lindgren
+>Sent: Wednesday, June 17, 2009 8:57 AM
+>To: linux-omap@vger.kernel.org
+>Subject: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading issue
+>
+>This patch has been applied to the linux-omap
+>by youw fwiendly patch wobot.
+>
+>Branch in linux-omap: omap-fixes
+>
+>Initial commit ID (Likely to change): f84eca35d44fd64cdde542f12d08eb04ca534954
+>
+>PatchWorks
+>http://patchwork.kernel.org/patch/29668/
 
-Yes.
+This patch breaks the zoom2 build.
+...	
+	arch/arm/mach-omap2/board-zoom-debugboard.c:87: error: 'UPF_IRQ_TRIG_HIGH' undeclared here (not 	in a function)
+	make[1]: *** [arch/arm/mach-omap2/board-zoom-debugboard.o] Error 1
+	make: *** [arch/arm/mach-omap2] Error 2
+...
 
->         - generate some activity on uart to be awake then try.
+There is a dependency on 8250 patch:
+http://lists.arm.linux.org.uk/lurker/attach/1@20090612.173251.776f9eda.attach
 
-Yes, ping works before, after and during off-while-idle.
 
-> Why not fire up a second tty/shell on UART3 or just try with uart 3
-> on SDP.  Bootargs change is easy enough.  - this can say if you have
-> uart specific issue or maybe core vs per
+how do you want to address this issue?
 
-Indeed, using UART3 on SDP works as expected, only UART 1 has the problem.
-
-> Did you hook up your emulator and connect during awake time of uart timer?  It should really tell a lot.
-
-Will give that a try.
-
-Thanks,
-
-Kevin
 
 >
->> -----Original Message-----
->> From: Nayak, Rajendra
->> Sent: Wednesday, June 17, 2009 1:12 AM
->> To: Kevin Hilman; Woodruff, Richard
->> Cc: linux-omap@vger.kernel.org
->> Subject: RE: OMAP3 PM: off-mode during idle, problem with UART1 console
->>
->> Kevin,
->>
->> What Silicon Rev does your SDP have? I currently am using an ES3.1 based SDP
->> and I havent seen any of these issues you have reported with off-while-idle.
->>
->> Infact I have kept the board running overnight a couple times in the last week
->> with off-while-idle and voltage scaling to 0v enabled, mainly to test the
->> recent
->> patch set (disabling Auto idle for PER in scratchpad memory) for stability.
->>
->> I will see if I can get hold of an ES3 and ES2.1 based SDP's and see if I
->> reproduce
->> the issue. Besides I use nfs and I am not sure if that's got something to do
->> with it.
->> Will try a ramdisk also.
->>
->> Does it take you a while to reproduce this, or is it seen after the very first
->> UART
->> inactivity?
->>
->> regards,
->> Rajendra
->>
->> >-----Original Message-----
->> >From: linux-omap-owner@vger.kernel.org
->> >[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
->> >Sent: Wednesday, June 17, 2009 2:35 AM
->> >To: Nayak, Rajendra; Woodruff, Richard
->> >Cc: linux-omap@vger.kernel.org
->> >Subject: OMAP3 PM: off-mode during idle, problem with UART1 console
->> >
->> >Rajendra, Richard,
->> >
->> >Hoping you can shed some light, or give me some direction on where to
->> >debug this further...
->> >
->> >With the latest PM branch, I've notice that off-while idle isn't
->> >working on the SDP, but the same kernel works fine on the RX51.
->> >RET-while-idle works fine on both.  This is with CPUidle disabled, so
->> >just using the default idle where MPU and CORE are changed together.
->> >
->> >More specifically, it seems to be the UART1 (CORE) console that never
->> >comes back from off-while-idle, but the UART3 (PER) console on RX51
->> >works.
->> >
->> >On SDP, if I
->> >
->> ># echo 1 > /sys/power/enable_off_mode
->> ># echo 1 > /sys/power/voltage_off_while_idle
->> ># echo 1 > /sys/power/sleep_while_idle
->> >
->> >After the UART inactivty timeout of 5 seconds, I start to see the
->> >sys_off_mode LED toggling between red and green with system timer
->> >wakeups.
->> >
->> >If I then push a key on the UART1 console, the LED goes green, stays
->> >for the 5 second UART inactivity and then goes back to toggling
->> >red/green again.  However, I never get my console back and never see
->> >the characters on my console.
->> >
->> >If I keep typing, I keep the system from going back off (based on
->> >sys_off_mode LED) and as soon as I stop typing long enough for the
->> >inactivity timer to expiere (5 seconds) it goes back into off.
->> >
->> >Any ideas what's going on here?
->> >
->> >On RX51, the same thing works using UART3.
->> >
->> >Kevin
->> >
->> >--
->> >To unsubscribe from this list: send the line "unsubscribe
->> >linux-omap" in
->> >the body of a message to majordomo@vger.kernel.org
->> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->> >
+>Git (Likely to change, and takes a while to get mirrored)
+>http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
+>2.6.git;a=commit;h=f84eca35d44fd64cdde542f12d08eb04ca534954
+>
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
