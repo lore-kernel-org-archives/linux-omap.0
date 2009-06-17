@@ -1,100 +1,125 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF,
-	reduces OFF latency by 20ms
-Date: Wed, 17 Jun 2009 15:20:54 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305A54100@dbde02.ent.ti.com>
-References: <1245224794.6847.141.camel@ubuntu>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/2] adding back some features
+Date: Wed, 17 Jun 2009 02:58:03 -0700
+Message-ID: <20090617095802.GI6605@atomide.com>
+References: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com> <20090615080001.GC4474@atomide.com> <87ski1a6n1.fsf@deeprootsystems.com> <87k53da3eb.fsf@deeprootsystems.com> <20090617083119.GF6605@atomide.com> <alpine.DEB.2.00.0906170233400.3382@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43296 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753048AbZFQJvE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 05:51:04 -0400
-In-Reply-To: <1245224794.6847.141.camel@ubuntu>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50493 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754517AbZFQJ6F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 05:58:05 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0906170233400.3382@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: tero.kristo@nokia.com, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
+* Paul Walmsley <paul@pwsan.com> [090617 01:35]:
+> code comment below:
+> 
+> On Wed, 17 Jun 2009, Tony Lindgren wrote:
+> 
+> > * Kevin Hilman <khilman@deeprootsystems.com> [090615 09:05]:
+> > > Kevin Hilman <khilman@deeprootsystems.com> writes:
+> > > 
+> > > > Tony Lindgren <tony@atomide.com> writes:
+> > > >
+> > > >> Hi,
+> > > >>
+> > > >> * Kevin Hilman <khilman@deeprootsystems.com> [090612 15:13]:
+> > > >>> Here's a couple patches to add-back some feature dropped in the
+> > > >>> mainline sync.  These are needed for the PM branch among other things.
+> > > >>> 
+> > > >>> Applies to linux-omap master.
+> > > >>> 
+> > > >>> Kevin Hilman (1):
+> > > >>>   OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
+> > > >>
+> > > >> Is there any reason to get this one into mainline early?
+> > > >
+> > > > Well, the PM branch has a dependency, but also the recenetly submitted
+> > > > qwatchdog driver has a dependency.
+> > > >
+> > > >> If not, I suggest you keep this in your pm branch for next merge
+> > > >> window that I can keep merging to l-o master as needed.
+> > > >>
+> > > >> However, if omap_type() is by other queues earlier, then I can
+> > > >> add it into my upstream queue. If this blocks several queues
+> > > >> from being rebased against mainline kernel, that alone might
+> > > >> already be a good enough reason to get it in early.
+> > > >
+> > > > I think it should go via your upstream queue.  I imagine some of the
+> > > > other upcoming driver submissions from TI will have a dependency as
+> > > > well since there is still some missing EMU/HS support ind drivers.
+> > > 
+> > > Also, I'm carrying this SRAM patch below for HS/EMU that could go into
+> > > Paul's SRAM/SDRC queue if this omap_type() gets merged sooner rather
+> > > than later.
+> > 
+> > Hmm, the HS omap sram.c patch below for sure justifies fixing it as
+> > incorrect SRAM size can cause nasty bugs.
+> > 
+> > Will add both omap_type and the sram.c patch below to omap-fixes.
+> > 
+> > Regards,
+> > 
+> > Tony
+> >  
+> > > Kevin
+> > > 
+> > > commit 106588e30f070d9a8d5906d409e0b9aad89edc9e
+> > > Author: Tero Kristo <tero.kristo@nokia.com>
+> > > Date:   Thu Oct 9 17:47:02 2008 +0300
+> > > 
+> > >     OMAP3: SRAM size fix for HS/EMU devices
+> > >     
+> > >     Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> > >     Signed-off-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
+> > > 
+> > > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> > > old mode 100644
+> > > new mode 100755
+> > > index 65006df..f40bd2d
+> > > --- a/arch/arm/plat-omap/sram.c
+> > > +++ b/arch/arm/plat-omap/sram.c
+> > > @@ -131,9 +131,15 @@ void __init omap_detect_sram(void)
+> > >  	if (cpu_class_is_omap2()) {
+> > >  		if (is_sram_locked()) {
+> > >  			if (cpu_is_omap34xx()) {
+> > > -				omap_sram_base = OMAP3_SRAM_PUB_VA;
+> > > -				omap_sram_start = OMAP3_SRAM_PUB_PA;
+> > > -				omap_sram_size = 0x8000; /* 32K */
+> > > +				if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
+> > > +					omap_sram_base = OMAP3_SRAM_PUB_VA;
+> > > +					omap_sram_start = OMAP3_SRAM_PUB_PA;
+> > > +					omap_sram_size = 0x8000; /* 32K */
+> > > +				} else {
+> 
+> This would be better if it specifically tested for HS and EMU devices.  
+> There are at least two other omap_type() possibilities here, "TEST" and 
+> "BAD"
 
->-----Original Message-----
->From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
->Sent: Wednesday, June 17, 2009 1:17 PM
->To: Nayak, Rajendra
->Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
->Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->before OFF, reduces OFF latency by 20ms
->
->Hi Rajendra,
->
->On Tue, 2009-06-16 at 14:52 +0300, Rajendra Nayak wrote:
->> If autoidle for DPLL4 is enabled in the stored scratchpad
->> value of CM_AUTOIDLE_PLL then there is an added delay by
->> the boot ROM when coming out of OFF mode.
->> The patch disables this bitfield in the stored scratchpad value.
->> 
->> This should significantly reduce CORE OFF latency and also
->> bring down the threshold for CORE OFF, making OFF affordable
->> even with smaller sleep times.
->
->I did some measurements on RX-51 with this patch, and it seems it does
->not reduce latency, it increases it by few hundred us.
->
->Servicing an empty timer interrupt from off mode (measured from VDD1
->ramp up to start of VDD1 ramp down):
->
->with dpll4 patch : ~14100us
->without patch    : ~13600us
->
->I attached pictures of both situations.
->
->My kernel had only C7 state enabled.
->
->Have you measured the latency effects on SDP or some other board?
+Tero, can you please repost? I will hold on sending out the omap-fixes
+for that, and refresh omap-fixes with the updated patch.
 
-I haven't done the latency measurements on SDP yet, but David had done it
-sometime back, using a different codebase though.
+Tony
 
-Can you explain more on how you are measuring the latency here, I am a bit
-confused. This is supposed to bring down the OFF wakeup latency, the sleep latency
-remains the same.
-
->
->- Kalle
->
->
->> This patch however does not optimize the C state threshold for
->> CORE OFF states based on the new latency.
->> 
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> ---
->>  arch/arm/mach-omap2/control.c |    7 +++++++
->>  1 files changed, 7 insertions(+), 0 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/control.c 
->b/arch/arm/mach-omap2/control.c
->> index c9407c0..a7159a9 100644
->> --- a/arch/arm/mach-omap2/control.c
->> +++ b/arch/arm/mach-omap2/control.c
->> @@ -238,6 +238,13 @@ void omap3_save_scratchpad_contents(void)
->>  			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
->>  	prcm_block_contents.cm_autoidle_pll =
->>  			cm_read_mod_reg(PLL_MOD, 
->OMAP3430_CM_AUTOIDLE_PLL);
->> +	/*
->> +	 * ROM restore takes 20mS longer if PER idle is enabled 
->before OFF.
->> +	 * Clear feature before sleep. The origional idle state is
->> +	 * restored by software as part of wake procedure.
->> +	 */
->> +	prcm_block_contents.cm_autoidle_pll &= 
->~OMAP3430_AUTO_PERIPH_DPLL_MASK;
->> +
->>  	prcm_block_contents.cm_clksel1_pll =
->>  			cm_read_mod_reg(PLL_MOD, 
->OMAP3430_CM_CLKSEL1_PLL);
->>  	prcm_block_contents.cm_clksel2_pll =
->
+ 
+> > > +					omap_sram_base = OMAP3_SRAM_PUB_VA;
+> > > +					omap_sram_start = OMAP3_SRAM_PUB_PA;
+> > > +					omap_sram_size = 0x7000; /* 28K */
+> > > +				}
+> > >  			} else {
+> > >  				omap_sram_base = OMAP2_SRAM_PUB_VA;
+> > >  				omap_sram_start = OMAP2_SRAM_PUB_PA;
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> 
+> - Paul
