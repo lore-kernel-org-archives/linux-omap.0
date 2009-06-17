@@ -1,46 +1,38 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/2] adding back some features
-Date: Wed, 17 Jun 2009 07:04:01 -0700
-Message-ID: <877hzb0xf2.fsf@deeprootsystems.com>
-References: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com>
-	<20090615080001.GC4474@atomide.com>
-	<87ski1a6n1.fsf@deeprootsystems.com>
-	<87k53da3eb.fsf@deeprootsystems.com>
-	<20090617083119.GF6605@atomide.com>
-	<alpine.DEB.2.00.0906170233400.3382@utopia.booyaka.com>
-	<20090617095802.GI6605@atomide.com>
-	<1F18D6510CF0474A8C9500565A7E41A205456C9E23@NOK-EUMSG-02.mgdnok.nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] TWL4030: Reset header file to mainline
+Date: Wed, 17 Jun 2009 07:06:48 -0700
+Message-ID: <20090617140648.GT6605@atomide.com>
+References: <1245238182-11697-1-git-send-email-amit.kucheria@verdurent.com> <4A38F387.1050502@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:47310 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759944AbZFQOEC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 10:04:02 -0400
-Received: by pxi27 with SMTP id 27so414557pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 17 Jun 2009 07:04:04 -0700 (PDT)
-In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A205456C9E23@NOK-EUMSG-02.mgdnok.nokia.com> (Tero Kristo's message of "Wed\, 17 Jun 2009 15\:56\:27 +0200")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49820 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754060AbZFQOGs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 10:06:48 -0400
+Content-Disposition: inline
+In-Reply-To: <4A38F387.1050502@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: tony@atomide.com, paul@pwsan.com, linux-omap@vger.kernel.org
+To: "Eugeny S. Mints" <eugeny.mints@gmail.com>
+Cc: Amit Kucheria <amit.kucheria@verdurent.com>, linux-omap@vger.kernel.org
 
-<Tero.Kristo@nokia.com> writes:
-
->>> 
->>> This would be better if it specifically tested for HS and EMU
->>> devices.  There are at least two other omap_type() possibilities
->>> here, "TEST" and "BAD"
+* Eugeny S. Mints <eugeny.mints@gmail.com> [090617 06:46]:
+> Amit Kucheria wrote:
+>> Reset twl4030.h to what is upstream. Patches to restore twl4030_power
+>> functionality will follow directly to lkml.
 >>
->>Tero, can you please repost? I will hold on sending out the 
->>omap-fixes for that, and refresh omap-fixes with the updated patch.
->
-> I'll try to look at this tomorrow if I happen to have time, I am
-> currently quite busy fixing some bugs in our code base. However, if
-> you need it right now and if someone wants to re-write this to check
-> against TEST and BAD, I am of course okay with that (rather simple
-> fix actually.) :)
+>>   
+> development against upstream is great. But what will be left for
+> this mail list if we send all patches directly to lkml?
 
-I'll fix this up and resubmit.
+Anything touching arch/arm/*omap*.
 
-Kevin
+Also, while waiting things to get to mainline, we can merge in various
+topic branches, such as PM, DSS2. So basically linux-omap master branch
+will shortly be just a queue of things going to the mainline tree while
+waiting for the next merge window.
+
+Regards,
+
+Tony
