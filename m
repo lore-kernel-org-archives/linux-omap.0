@@ -1,37 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 0/2] adding back some features
-Date: Wed, 17 Jun 2009 04:39:22 -0400
-Message-ID: <notify-1245227964@atomide.com>
-References: <87k53da3eb.fsf@deeprootsystems.com>
+Subject: Re: [PATCH] Remove duplicate definitions
+Date: Wed, 17 Jun 2009 01:52:15 -0700
+Message-ID: <20090617085214.GG6605@atomide.com>
+References: <1245150892-5837-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57708 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757427AbZFQIjW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 04:39:22 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MGqg0-000AEU-KO
-	for linux-omap@vger.kernel.org; Wed, 17 Jun 2009 08:39:25 +0000
-In-Reply-To: <87k53da3eb.fsf@deeprootsystems.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59375 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982AbZFQIwN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 04:52:13 -0400
 Content-Disposition: inline
+In-Reply-To: <1245150892-5837-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Sanjeev Premi <premi@ti.com> [090616 04:15]:
+> Fixes the duplicate definitions of KEY and PERSISTENT_KEY
+> leading to these compile-time warnings:
+> 
+> In file included from arch/arm/mach-omap2/board-omap3evm.c:39:
+> arch/arm/plat-omap/include/mach/keypad.h:38:1: warning: "KEY" redefined
+> In file included from arch/arm/mach-omap2/board-omap3evm.c:27:
+> include/linux/i2c/twl4030.h:341:1: warning: this is the location of the previous definition
+> In file included from arch/arm/mach-omap2/board-omap3evm.c:39:
+> arch/arm/plat-omap/include/mach/keypad.h:39:1: warning: "PERSISTENT_KEY" redefined
+> In file included from arch/arm/mach-omap2/board-omap3evm.c:27:
+> include/linux/i2c/twl4030.h:342:1: warning: this is the location of the previous definition
 
-Branch in linux-omap: omap-fixes
+Hmm, I think we should rather remove these from keypad.h. Will queue
+a patch into omap-fixes for that.
 
-Initial commit ID (Likely to change): 97b83891f45c229ef5898b86dfe969e23d3b32b8
-
-PatchWorks
-http://patchwork.kernel.org/patch/30370/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=97b83891f45c229ef5898b86dfe969e23d3b32b8
-
-
+Tony
+ 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  include/linux/i2c/twl4030.h |    8 --------
+>  1 files changed, 0 insertions(+), 8 deletions(-)
+> 
+> diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+> index 87accda..21e65bf 100644
+> --- a/include/linux/i2c/twl4030.h
+> +++ b/include/linux/i2c/twl4030.h
+> @@ -333,14 +333,6 @@ struct twl4030_madc_platform_data {
+>  	int		irq_line;
+>  };
+>  
+> -/* Boards have uniqe mappings of {col, row} --> keycode.
+> - * Column and row are 4 bits, but range only from 0..7;
+> - * a PERSISTENT_KEY is "always on" and never reported.
+> - */
+> -#define KEY_PERSISTENT		0x00800000
+> -#define KEY(col, row, keycode)	(((col) << 28) | ((row) << 24) | (keycode))
+> -#define PERSISTENT_KEY(c, r)	KEY(c, r, KEY_PERSISTENT)
+> -
+>  struct twl4030_keypad_data {
+>  	unsigned rows;
+>  	unsigned cols;
+> -- 
+> 1.6.2.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
