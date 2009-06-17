@@ -1,71 +1,116 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Linux OMAP 2.6.30 kernel not booting
-Date: Wed, 17 Jun 2009 20:35:15 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F53D1869@dbde02.ent.ti.com>
-References: <213F5EBECAA75243A2F795E0D16AFF6AD8893BF9@dlee07.ent.ti.com>
- <418C1D1D75DA034D9CD5F5219FA619C057EB748C@dlee07.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F53D14BB@dbde02.ent.ti.com>
- <418C1D1D75DA034D9CD5F5219FA619C057EB776E@dlee07.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F53D14E0@dbde02.ent.ti.com>
- <20090617063545.GB6605@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: OMAP3 PM: off-mode during idle, problem with UART1 console
+Date: Wed, 17 Jun 2009 08:06:42 -0700
+Message-ID: <87bpomzypp.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305A53FBA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49408 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751339AbZFQPFW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 11:05:22 -0400
-In-Reply-To: <20090617063545.GB6605@atomide.com>
-Content-Language: en-US
+Received: from mail-pz0-f187.google.com ([209.85.222.187]:51534 "EHLO
+	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315AbZFQPGm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 11:06:42 -0400
+Received: by pzk17 with SMTP id 17so452193pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 17 Jun 2009 08:06:45 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305A53FBA@dbde02.ent.ti.com> (Rajendra Nayak's message of "Wed\, 17 Jun 2009 11\:41\:33 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Gunasekera, Nipuna" <gunasekera@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+"Nayak, Rajendra" <rnayak@ti.com> writes:
+
+> What Silicon Rev does your SDP have? I currently am using an ES3.1 based SDP
+> and I havent seen any of these issues you have reported with off-while-idle.
+
+I have and ES3.0 SDP. 
+
+> Infact I have kept the board running overnight a couple times in the last week 
+> with off-while-idle and voltage scaling to 0v enabled, mainly to test the recent
+> patch set (disabling Auto idle for PER in scratchpad memory) for stability.
+
+Ah, great.  That is really good to know.  Are you using omap_3430sdp_pm_defconfig?
+
+I see the same problems with and without your patches.
+
+> I will see if I can get hold of an ES3 and ES2.1 based SDP's and see if I reproduce
+> the issue. Besides I use nfs and I am not sure if that's got something to do with it.
+> Will try a ramdisk also.
+
+I'm using a ramdisk.
+
+> Does it take you a while to reproduce this, or is it seen after the very first UART
+> inactivity?
+
+It happens on the first try.
+
+Could you try my uImage which has my initramfs rootfs built-in on your
+ES3.1 SDP?
+
+   http://userweb.kernel.org/~khilman/tmp/rajendra/uImage.pm-vanilla
+
+Immediately after booting, I do
+
+# echo 1 > /sys/power/enable_off_mode                                           
+# echo 1 > /sys/power/voltage_off_while_idle                                    
+# echo 1 > /sys/power/sleep_while_idle                                          
+
+and after UART inactivity, I start to see sys_off_mode LED blinking.
+
+Kevin
 
 
-
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->
->* Pandita, Vikram <vikram.pandita@ti.com> [090616 15:56]:
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org 
+>>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>>Sent: Wednesday, June 17, 2009 2:35 AM
+>>To: Nayak, Rajendra; Woodruff, Richard
+>>Cc: linux-omap@vger.kernel.org
+>>Subject: OMAP3 PM: off-mode during idle, problem with UART1 console
 >>
->> >-----Original Message-----
->> >From: Gunasekera, Nipuna
->> >
->> >Thanks Vikram.  I'm able to move further in the booting process using arm-2008q3-72.  However, I'm
->> >still getting a kernel panic and I'm not sure why.  If you or some others have experienced this
->> >please let me know.
+>>Rajendra, Richard,
 >>
->> There are some pending patches that are still under review and not merged that are needed for the
->zoom2 to work of Linux-omap master.
+>>Hoping you can shed some light, or give me some direction on where to
+>>debug this further...
 >>
->> Linux-Omap pending patches in patchworks:
->> MMC mux fix:
->> http://patchwork.kernel.org/patch/30445/
->> http://patchwork.kernel.org/patch/30446/
->> Zoom2 T2 enabling:
->> http://patchwork.kernel.org/patch/30001/
->> http://patchwork.kernel.org/patch/30002/
->> File system loading issue:
->> http://patchwork.kernel.org/patch/29668/
+>>With the latest PM branch, I've notice that off-while idle isn't
+>>working on the SDP, but the same kernel works fine on the RX51.
+>>RET-while-idle works fine on both.  This is with CPUidle disabled, so
+>>just using the default idle where MPU and CORE are changed together.
+>>
+>>More specifically, it seems to be the UART1 (CORE) console that never
+>>comes back from off-while-idle, but the UART3 (PER) console on RX51
+>>works.
+>>
+>>On SDP, if I
+>>
+>># echo 1 > /sys/power/enable_off_mode
+>># echo 1 > /sys/power/voltage_off_while_idle
+>># echo 1 > /sys/power/sleep_while_idle
+>>
+>>After the UART inactivty timeout of 5 seconds, I start to see the
+>>sys_off_mode LED toggling between red and green with system timer
+>>wakeups.
+>>
+>>If I then push a key on the UART1 console, the LED goes green, stays
+>>for the 5 second UART inactivity and then goes back to toggling
+>>red/green again.  However, I never get my console back and never see
+>>the characters on my console.
+>>
+>>If I keep typing, I keep the system from going back off (based on
+>>sys_off_mode LED) and as soon as I stop typing long enough for the
+>>inactivity timer to expiere (5 seconds) it goes back into off.
+>>
+>>Any ideas what's going on here?
+>>
+>>On RX51, the same thing works using UART3.
+>>
+>>Kevin
+>>
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe 
+>>linux-omap" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
 >>
->> Serial driver pending patch:
->> http://lists.arm.linux.org.uk/lurker/attach/1@20090612.173251.776f9eda.attach
->>
->>
->> I hope all these dependencies will make it soon to their respective trees.
->
->Also, please check that your .config has CONFIG_REGULATOR enabled and the
->associated twl4030 regulator.
-
-That is done as part of patches already submitted and waiting for your merge.
-
-Zoom2 T2 enabling:
-http://patchwork.kernel.org/patch/30001/
-http://patchwork.kernel.org/patch/30002/
-
->
->Tony
-
