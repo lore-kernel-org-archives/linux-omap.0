@@ -1,54 +1,37 @@
-From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Subject: [PATCH] SDRC: Remove SDRC_POWER register configuration from SDRC init.
-Date: Wed, 17 Jun 2009 16:35:21 +0300
-Message-ID: <1245245721-7052-1-git-send-email-Artem.Bityutskiy@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] OMAP3: drop SmartReflex base addresses mistakenly added by
+Date: Wed, 17 Jun 2009 09:40:11 -0400
+Message-ID: <notify-1245246012@atomide.com>
+References: <1245085932-9996-1-git-send-email-khilman@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:60556 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933524AbZFQNff (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 09:35:35 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61728 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752826AbZFQNkL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 09:40:11 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MGvN7-0008nF-F5
+	for linux-omap@vger.kernel.org; Wed, 17 Jun 2009 13:40:13 +0000
+In-Reply-To: <1245085932-9996-1-git-send-email-khilman@deeprootsystems.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Samu Onkalo <samu.p.onkalo@nokia.com>
+To: linux-omap@vger.kernel.org
 
-From: Samu Onkalo <samu.p.onkalo@nokia.com>
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Bootloader must configure proper settings for SDRC before starting
-kernel from SDRAM. Furthermore, removed lines violated omap3430 and
-omap2420 SDRC errata (see errata 1.150)
+Branch in linux-omap: master
 
-Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
----
- arch/arm/mach-omap2/sdrc.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+Initial commit ID (Likely to change): b380e36df8b03a2c89dfefda8f862aa871b1047a
 
-diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-index 2045441..0874687 100644
---- a/arch/arm/mach-omap2/sdrc.c
-+++ b/arch/arm/mach-omap2/sdrc.c
-@@ -86,8 +86,8 @@ void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
-  * @sp: pointer to a null-terminated list of struct omap_sdrc_params
-  *
-  * Turn on smart idle modes for SDRAM scheduler and controller.
-- * Program a known-good configuration for the SDRC to deal with buggy
-- * bootloaders.
-+ * Bootloaders should make proper configuration for SDRC since kernel
-+ * is running from SDRAM.
-  */
- void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
- {
-@@ -104,10 +104,4 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
- 	sdrc_write_reg(l, SDRC_SYSCONFIG);
- 
- 	sdrc_init_params = sp;
--
--	/* XXX Enable SRFRONIDLEREQ here also? */
--	l = (1 << SDRC_POWER_EXTCLKDIS_SHIFT) |
--		(1 << SDRC_POWER_PWDENA_SHIFT) |
--		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
--	sdrc_write_reg(l, SDRC_POWER);
- }
--- 
-1.6.0.6
+PatchWorks
+http://patchwork.kernel.org/patch/30380/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=b380e36df8b03a2c89dfefda8f862aa871b1047a
+
 
