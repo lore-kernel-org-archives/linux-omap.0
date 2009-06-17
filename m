@@ -1,57 +1,63 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: OMAP34XXCAM: Micron mt9d111 sensor support?
-Date: Wed, 17 Jun 2009 17:30:56 -0500
-Message-ID: <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com>
-References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
+Date: Wed, 17 Jun 2009 17:48:40 -0500
+Message-ID: <4A3972C8.2090502@ti.com>
+References: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com>	<20090615081242.GE4474@atomide.com>	<5C07676A-0A93-48DE-B4C0-5A6709BE34A8@gmail.com>	<20090615110431.GO4474@atomide.com>	<FCCFB4CDC6E5564B9182F639FC35608702F53D146A@dbde02.ent.ti.com>	<87y6rs2nu0.fsf@deeprootsystems.com>	<FCCFB4CDC6E5564B9182F639FC35608702F53D14A4@dbde02.ent.ti.com>	<20090617081206.GD6605@atomide.com>	<FCCFB4CDC6E5564B9182F639FC35608702F53D18B1@dbde02.ent.ti.com>	<87my86yau1.fsf@deeprootsystems.com>	<FCCFB4CDC6E5564B9182F639FC35608702F53D18C6@dbde02.ent.ti.com> <878wjqy1yj.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com>
-Content-Language: en-US
-Sender: linux-media-owner@vger.kernel.org
-To: Zach LeRoy <zleroy@rii.ricoh.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:58732 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754547AbZFQWs6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 18:48:58 -0400
+In-Reply-To: <878wjqy1yj.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, Tony Lindgren <tony@atomide.com>, Hugo Vincent <hugo.vincent@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
 
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Zach LeRoy
-> Sent: Wednesday, June 17, 2009 5:06 PM
-> To: linux-omap; linux-media@vger.kernel.org
-> Subject: OMAP34XXCAM: Micron mt9d111 sensor support?
+Kevin Hilman wrote:
+> "Pandita, Vikram" <vikram.pandita@ti.com> writes:
 > 
-> I am working on adding support for a micron 2 MP sensor: mt9d111 on a
-> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would like to
-> use the omap34xxcam driver to interface with this sensor.  I am wondering
-> if there are currently any distributions which already include support for
-> this sensor through the omap34xxcam driver, or if anyone else is
-> interested in this topic.
-
-Hi Zach,
-
-I'm working along with Sakari Ailus and others in this omap34xxcam driver you're talking about, and we are in the process to provide a newer patchset to work on the latest l-o tree.
-
-Sakari is sharing the camera core here:
-
-http://gitorious.org/omap3camera
-
-And I have also this repository which contains a snapshot of Sakari's tree + support from some sensors I have available for the 3430SDP and LDP (the name could confuse with the above, but I'll change the name/location soon):
-
-http://gitorious.org/omap3-linux-camera-driver
-
-Testing the driver with as much sensors as we can is very interesting (at least for me), because that help us spot possible bugs that aren't seen with our current HW. So, I'll be looking forward if you add this sensor driver to the supported list :)
-
-Regards,
-Sergio
+>>> -----Original Message-----
+>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>
+>>>>> If some pins are always needed, and don't have alternative pinouts, then
+>>>>> the common pins could be muxed in devices.c.
+>>>> This is the algo we can use for MMC pin muxing in that case:
+>>>>
+>>>> MMC1: No pin has mux clash
+>>>> 	Mux all 10 pins in devices.c
+>>> Is this common across 34xx and 35xx?
+>> Yes this is common.
+>> Both are same OMAP3 marketed differently.
 > 
-> Cheers,
-> 
-> Zach LeRoy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Yes, but they are in different packages, so I was curious if the pin
+> muxing is identical across the different packages.
+
+The ball/pad numbers may change due to the package, but the registers
+used to configure the pin muxing and the pin muxing options will not 
+change. So from a software standpoint it is the same.
+
+The OMAP3530 is available in 3 packages, namely CBB, CBC and CUS 
+according to the data manual [1]. The OMAP3430 is only available in the 
+CBB package.
+
+What this means is that the name "N28_3430_MMC1_CLK", which associates 
+ball N28 with signal MMC1_CLK, is appliable to the OMAP3430 and OMAP3530 
+CBB package, but not applicable to the OMAP3530 CBC and CUS packages
+as this ball number does not exist on these packages. This is simply a 
+difference in naming of the balls between the packages but does not 
+impact the pin muxing options.
+
+Cheers
+Jon
+
+[1] OMAP3530 Data Manual
+http://www.ti.com/lit/gpn/omap3530
+
+
+
 
