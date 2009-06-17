@@ -1,211 +1,165 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3 1/2] watchdog:OMAP3:Register IVA and SECURE WDT,
-	make clks accessible
-Date: Wed, 17 Jun 2009 06:48:23 -0700
-Message-ID: <20090617134823.GS6605@atomide.com>
-References: <1245162291-2704-1-git-send-email-ubh@ti.com> <1245162291-2704-2-git-send-email-ubh@ti.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH 0/2] adding back some features
+Date: Wed, 17 Jun 2009 15:56:27 +0200
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A205456C9E23@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com>
+ <20090615080001.GC4474@atomide.com> <87ski1a6n1.fsf@deeprootsystems.com>
+ <87k53da3eb.fsf@deeprootsystems.com> <20090617083119.GF6605@atomide.com>
+ <alpine.DEB.2.00.0906170233400.3382@utopia.booyaka.com>
+ <20090617095802.GI6605@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56366 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757469AbZFQNsY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 09:48:24 -0400
-Content-Disposition: inline
-In-Reply-To: <1245162291-2704-2-git-send-email-ubh@ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:25995 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764347AbZFQN4t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 09:56:49 -0400
+In-Reply-To: <20090617095802.GI6605@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ulrik Bech Hald <ubh@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com, paul@pwsan.com
+Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
 
-Hi,
+ 
 
-* Ulrik Bech Hald <ubh@ti.com> [090616 07:20]:
-> Enabling registration of IVA and SECURE WDT devices. Making
-> ick and fck for IVA and SECURE WDTs accessible.
+>-----Original Message-----
+>From: ext Tony Lindgren [mailto:tony@atomide.com] 
+>Sent: 17 June, 2009 12:58
+>To: Paul Walmsley
+>Cc: Kristo Tero (Nokia-D/Tampere); Kevin Hilman; 
+>linux-omap@vger.kernel.org
+>Subject: Re: [PATCH 0/2] adding back some features
+>
+>* Paul Walmsley <paul@pwsan.com> [090617 01:35]:
+>> code comment below:
+>> 
+>> On Wed, 17 Jun 2009, Tony Lindgren wrote:
+>> 
+>> > * Kevin Hilman <khilman@deeprootsystems.com> [090615 09:05]:
+>> > > Kevin Hilman <khilman@deeprootsystems.com> writes:
+>> > > 
+>> > > > Tony Lindgren <tony@atomide.com> writes:
+>> > > >
+>> > > >> Hi,
+>> > > >>
+>> > > >> * Kevin Hilman <khilman@deeprootsystems.com> [090612 15:13]:
+>> > > >>> Here's a couple patches to add-back some feature dropped in 
+>> > > >>> the mainline sync.  These are needed for the PM 
+>branch among other things.
+>> > > >>> 
+>> > > >>> Applies to linux-omap master.
+>> > > >>> 
+>> > > >>> Kevin Hilman (1):
+>> > > >>>   OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
+>> > > >>
+>> > > >> Is there any reason to get this one into mainline early?
+>> > > >
+>> > > > Well, the PM branch has a dependency, but also the recenetly 
+>> > > > submitted qwatchdog driver has a dependency.
+>> > > >
+>> > > >> If not, I suggest you keep this in your pm branch for next 
+>> > > >> merge window that I can keep merging to l-o master as needed.
+>> > > >>
+>> > > >> However, if omap_type() is by other queues earlier, 
+>then I can 
+>> > > >> add it into my upstream queue. If this blocks several queues 
+>> > > >> from being rebased against mainline kernel, that alone might 
+>> > > >> already be a good enough reason to get it in early.
+>> > > >
+>> > > > I think it should go via your upstream queue.  I 
+>imagine some of 
+>> > > > the other upcoming driver submissions from TI will have a 
+>> > > > dependency as well since there is still some missing 
+>EMU/HS support ind drivers.
+>> > > 
+>> > > Also, I'm carrying this SRAM patch below for HS/EMU that 
+>could go 
+>> > > into Paul's SRAM/SDRC queue if this omap_type() gets 
+>merged sooner 
+>> > > rather than later.
+>> > 
+>> > Hmm, the HS omap sram.c patch below for sure justifies 
+>fixing it as 
+>> > incorrect SRAM size can cause nasty bugs.
+>> > 
+>> > Will add both omap_type and the sram.c patch below to omap-fixes.
+>> > 
+>> > Regards,
+>> > 
+>> > Tony
+>> >  
+>> > > Kevin
+>> > > 
+>> > > commit 106588e30f070d9a8d5906d409e0b9aad89edc9e
+>> > > Author: Tero Kristo <tero.kristo@nokia.com>
+>> > > Date:   Thu Oct 9 17:47:02 2008 +0300
+>> > > 
+>> > >     OMAP3: SRAM size fix for HS/EMU devices
+>> > >     
+>> > >     Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>> > >     Signed-off-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
+>> > > 
+>> > > diff --git a/arch/arm/plat-omap/sram.c 
+>b/arch/arm/plat-omap/sram.c 
+>> > > old mode 100644 new mode 100755 index 65006df..f40bd2d
+>> > > --- a/arch/arm/plat-omap/sram.c
+>> > > +++ b/arch/arm/plat-omap/sram.c
+>> > > @@ -131,9 +131,15 @@ void __init omap_detect_sram(void)
+>> > >  	if (cpu_class_is_omap2()) {
+>> > >  		if (is_sram_locked()) {
+>> > >  			if (cpu_is_omap34xx()) {
+>> > > -				omap_sram_base = 
+>OMAP3_SRAM_PUB_VA;
+>> > > -				omap_sram_start = 
+>OMAP3_SRAM_PUB_PA;
+>> > > -				omap_sram_size = 
+>0x8000; /* 32K */
+>> > > +				if (omap_type() == 
+>OMAP2_DEVICE_TYPE_GP) {
+>> > > +					omap_sram_base 
+>= OMAP3_SRAM_PUB_VA;
+>> > > +					omap_sram_start 
+>= OMAP3_SRAM_PUB_PA;
+>> > > +					omap_sram_size 
+>= 0x8000; /* 32K */
+>> > > +				} else {
+>> 
+>> This would be better if it specifically tested for HS and 
+>EMU devices.  
+>> There are at least two other omap_type() possibilities here, "TEST" 
+>> and "BAD"
+>
+>Tero, can you please repost? I will hold on sending out the 
+>omap-fixes for that, and refresh omap-fixes with the updated patch.
+
+I'll try to look at this tomorrow if I happen to have time, I am currently quite busy fixing some bugs in our code base. However, if you need it right now and if someone wants to re-write this to check against TEST and BAD, I am of course okay with that (rather simple fix actually.) :)
+
+-Tero
+
+>
+>Tony
+>
 > 
-> Tested on Zoom1 OMAP3 platform
-> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
-> ---
-> This patch has a dependency on:
-> compilation: PATCH 1/2] OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
-> 
->  arch/arm/mach-omap2/clock34xx.c |   12 +++---
->  arch/arm/plat-omap/devices.c    |   81 +++++++++++++++++++++++++++++++--------
->  2 files changed, 71 insertions(+), 22 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index 9e43fe5..933ae9e 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -215,11 +215,11 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_343X),
->  	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_343X),
->  	CLK(NULL,	"gpio1_dbck",	&gpio1_dbck,	CK_343X),
-> -	CLK("omap_wdt",	"fck",		&wdt2_fck,	CK_343X),
-> +	CLK("omap_wdt.2", "fck",	&wdt2_fck,	CK_343X),
->  	CLK(NULL,	"wkup_l4_ick",	&wkup_l4_ick,	CK_343X),
->  	CLK(NULL,	"usim_ick",	&usim_ick,	CK_3430ES2),
-> -	CLK("omap_wdt",	"ick",		&wdt2_ick,	CK_343X),
-> -	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_343X),
-> +	CLK("omap_wdt.2", "ick",	&wdt2_ick,	CK_343X),
-> +	CLK("omap_wdt.1", "ick",	&wdt1_ick,	CK_343X),
->  	CLK(NULL,	"gpio1_ick",	&gpio1_ick,	CK_343X),
->  	CLK(NULL,	"omap_32ksync_ick", &omap_32ksync_ick, CK_343X),
->  	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_343X),
-> @@ -241,14 +241,14 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"gpio4_dbck",	&gpio4_dbck,	CK_343X),
->  	CLK(NULL,	"gpio3_dbck",	&gpio3_dbck,	CK_343X),
->  	CLK(NULL,	"gpio2_dbck",	&gpio2_dbck,	CK_343X),
-> -	CLK(NULL,	"wdt3_fck",	&wdt3_fck,	CK_343X),
-> +	CLK("omap_wdt.3", "fck",	&wdt3_fck,	CK_343X),
->  	CLK(NULL,	"per_l4_ick",	&per_l4_ick,	CK_343X),
->  	CLK(NULL,	"gpio6_ick",	&gpio6_ick,	CK_343X),
->  	CLK(NULL,	"gpio5_ick",	&gpio5_ick,	CK_343X),
->  	CLK(NULL,	"gpio4_ick",	&gpio4_ick,	CK_343X),
->  	CLK(NULL,	"gpio3_ick",	&gpio3_ick,	CK_343X),
->  	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_343X),
-> -	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_343X),
-> +	CLK("omap_wdt.3", "ick",	&wdt3_ick,	CK_343X),
->  	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_343X),
->  	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_343X),
->  	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_343X),
-> @@ -275,7 +275,7 @@ static struct omap_clk omap34xx_clks[] = {
->  	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_343X),
->  	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_343X),
->  	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_343X),
-> -	CLK(NULL,	"wdt1_fck",	&wdt1_fck,	CK_343X),
-> +	CLK("omap_wdt.1", "fck",	&wdt1_fck,	CK_343X),
->  };
->  
->  /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
-
-To me it looks like you need to make the omap_wdt clock alias rename
-change also for mach-omap1/clock.c.
-
-Regards,
-
-Tony
-
-
-> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> old mode 100644
-> new mode 100755
-> index a64b692..de5182c
-> --- a/arch/arm/plat-omap/devices.c
-> +++ b/arch/arm/plat-omap/devices.c
-> @@ -288,42 +288,91 @@ static inline void omap_init_uwire(void) {}
->  
->  #if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
->  
-> -static struct resource wdt_resources[] = {
-> +#define	OMAP34XX_WDT1_BASE	0x4830c000
-> +#define	OMAP34XX_WDT2_BASE	0x48314000
-> +#define	OMAP34XX_WDT3_BASE	0x49030000
-> +#define	OMAP2430_WDT_BASE	0x49016000
-> +#define	OMAP2420_WDT_BASE	0x48022000
-> +#define	OMAP16XX_WDT_BASE	0xfffeb000
-> +
-> +static struct resource wdt1_resources[] = {
->  	{
-> -		.flags		= IORESOURCE_MEM,
-> +		.flags = IORESOURCE_MEM,
->  	},
->  };
->  
-> -static struct platform_device omap_wdt_device = {
-> -	.name	   = "omap_wdt",
-> -	.id	     = -1,
-> -	.num_resources	= ARRAY_SIZE(wdt_resources),
-> -	.resource	= wdt_resources,
-> +static struct resource wdt2_resources[] = {
-> +	{
-> +		.flags = IORESOURCE_MEM,
-> +	},
-> +};
-> +
-> +static struct resource wdt3_resources[] = {
-> +	{
-> +		.flags = IORESOURCE_MEM,
-> +	},
-> +};
-> +
-> +/* SECURE WDT */
-> +static struct platform_device omap_wdt1_device = {
-> +	.name = "omap_wdt",
-> +	.id = 1,
-> +	.num_resources = ARRAY_SIZE(wdt1_resources),
-> +	.resource = wdt1_resources,
-> +};
-> +
-> +/* MPU WDT */
-> +static struct platform_device omap_wdt2_device = {
-> +	.name = "omap_wdt",
-> +	.id = 2,
-> +	.num_resources = ARRAY_SIZE(wdt2_resources),
-> +	.resource = wdt2_resources,
-> +};
-> +
-> +/* IVA WDT */
-> +static struct platform_device omap_wdt3_device = {
-> +	.name = "omap_wdt",
-> +	.id = 3,
-> +	.num_resources = ARRAY_SIZE(wdt3_resources),
-> +	.resource = wdt3_resources,
->  };
->  
->  static void omap_init_wdt(void)
->  {
->  	if (cpu_is_omap16xx())
-> -		wdt_resources[0].start = 0xfffeb000;
-> +		wdt2_resources[0].start = OMAP16XX_WDT_BASE;
->  	else if (cpu_is_omap2420())
-> -		wdt_resources[0].start = 0x48022000; /* WDT2 */
-> +		wdt2_resources[0].start = OMAP2420_WDT_BASE;
->  	else if (cpu_is_omap2430())
-> -		wdt_resources[0].start = 0x49016000; /* WDT2 */
-> -	else if (cpu_is_omap343x())
-> -		wdt_resources[0].start = 0x48314000; /* WDT2 */
-> -	else if (cpu_is_omap44xx())
-> -		wdt_resources[0].start = 0x4a314000;
-> +		wdt2_resources[0].start = OMAP2430_WDT_BASE;
-> +	else if (cpu_is_omap343x()) {
-> +		wdt1_resources[0].start = OMAP34XX_WDT1_BASE;
-> +		wdt1_resources[0].end = wdt1_resources[0].start + 0x4f;
-> +		wdt2_resources[0].start = OMAP34XX_WDT2_BASE;
-> +		wdt3_resources[0].start = OMAP34XX_WDT3_BASE;
-> +		wdt3_resources[0].end = wdt3_resources[0].start + 0x4f;
-> +	}
->  	else
->  		return;
->  
-> -	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
-> +	wdt2_resources[0].end = wdt2_resources[0].start + 0x4f;
->  
-> -	(void) platform_device_register(&omap_wdt_device);
-> +	/* MPU WDT present across omap family */
-> +	(void) platform_device_register(&omap_wdt2_device);
-> +
-> +	if (cpu_is_omap34xx()) {
-> +		(void) platform_device_register(&omap_wdt3_device);
-> +		if (omap_type() == OMAP2_DEVICE_TYPE_SEC
-> +			|| omap_type() == OMAP2_DEVICE_TYPE_EMU)
-> +			(void) platform_device_register(&omap_wdt1_device);
-> +	}
->  }
-> +
->  #else
->  static inline void omap_init_wdt(void) {}
->  #endif
->  
-> +
->  /*-------------------------------------------------------------------------*/
->  
->  #if defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)
-> -- 
-> 1.5.4.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> > > +					omap_sram_base 
+>= OMAP3_SRAM_PUB_VA;
+>> > > +					omap_sram_start 
+>= OMAP3_SRAM_PUB_PA;
+>> > > +					omap_sram_size 
+>= 0x7000; /* 28K */
+>> > > +				}
+>> > >  			} else {
+>> > >  				omap_sram_base = 
+>OMAP2_SRAM_PUB_VA;
+>> > >  				omap_sram_start = 
+>OMAP2_SRAM_PUB_PA;
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe 
+>> > linux-omap" in the body of a message to majordomo@vger.kernel.org 
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> > 
+>> 
+>> 
+>> - Paul
+>
