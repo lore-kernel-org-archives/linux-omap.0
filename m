@@ -1,54 +1,46 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading issue
-Date: Wed, 17 Jun 2009 08:52:27 -0700
-Message-ID: <874ouezwlg.fsf@deeprootsystems.com>
-References: <1244767797-22860-1-git-send-email-vikram.pandita@ti.com>
-	<notify-1245247047@atomide.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F53D1877@dbde02.ent.ti.com>
+Date: Wed, 17 Jun 2009 08:54:39 -0700
+Message-ID: <87vdmuyhxc.fsf@deeprootsystems.com>
+References: <notify-1245247047@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:56948 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324AbZFQPw2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 11:52:28 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so222122wfd.4
-        for <linux-omap@vger.kernel.org>; Wed, 17 Jun 2009 08:52:30 -0700 (PDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F53D1877@dbde02.ent.ti.com> (Vikram Pandita's message of "Wed\, 17 Jun 2009 20\:49\:19 +0530")
+Received: from mail-px0-f189.google.com ([209.85.216.189]:52961 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752667AbZFQPyk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 11:54:40 -0400
+Received: by pxi27 with SMTP id 27so476651pxi.33
+        for <linux-omap@vger.kernel.org>; Wed, 17 Jun 2009 08:54:42 -0700 (PDT)
+In-Reply-To: <notify-1245247047@atomide.com> (Tony Lindgren's message of "Wed\, 17 Jun 2009 09\:57\:26 -0400")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, vikram.pandita@ti.com
+Cc: linux-omap@vger.kernel.org
 
-"Pandita, Vikram" <vikram.pandita@ti.com> writes:
+Tony Lindgren <tony@atomide.com> writes:
 
->>This patch has been applied to the linux-omap
->>by youw fwiendly patch wobot.
->>
->>Branch in linux-omap: omap-fixes
->>
->>Initial commit ID (Likely to change): f84eca35d44fd64cdde542f12d08eb04ca534954
->>
->>PatchWorks
->>http://patchwork.kernel.org/patch/29668/
+> This patch has been applied to the linux-omap
+> by youw fwiendly patch wobot.
 >
-> This patch breaks the zoom2 build.
-> ...	
-> 	arch/arm/mach-omap2/board-zoom-debugboard.c:87: error: 'UPF_IRQ_TRIG_HIGH' undeclared here (not 	in a function)
-> 	make[1]: *** [arch/arm/mach-omap2/board-zoom-debugboard.o] Error 1
-> 	make: *** [arch/arm/mach-omap2] Error 2
-> ...
+> Branch in linux-omap: omap-fixes
 >
-> There is a dependency on 8250 patch:
-> http://lists.arm.linux.org.uk/lurker/attach/1@20090612.173251.776f9eda.attach
+> Initial commit ID (Likely to change): f84eca35d44fd64cdde542f12d08eb04ca534954
 >
+> PatchWorks
+> http://patchwork.kernel.org/patch/29668/
 >
-> how do you want to address this issue?
->
+> Git (Likely to change, and takes a while to get mirrored)
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=f84eca35d44fd64cdde542f12d08eb04ca534954
 
-Tony,
+Sorry, I didn't get to this beforethe merge, but $SUBJECT for this
+patch is wrong and not terribly helpful.  It refers to the symptom, bu
+tnot the root cause.
 
-IMO, We should probably stage the 8250 UPF_* change in l-o as well
-while we wait for the linux-serial lag.
+It should be something like: 
+
+OMAP3: Zoom2: pass IRQ triggering flags for serial driver
 
 Kevin
+
+
