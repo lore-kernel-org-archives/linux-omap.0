@@ -1,30 +1,37 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF,
- reduces OFF latency by 20ms
-Date: Wed, 17 Jun 2009 02:33:11 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906170230300.3382@utopia.booyaka.com>
-References: <1245153154-1876-1-git-send-email-rnayak@ti.com> <87k53c5kez.fsf@deeprootsystems.com> <92CDD168D1E81F4F9D3839DC45903FC6536982D4@dlee03.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH 1/2] OMAP2/3: SoC IDs: add omap_type() for determining
+Date: Wed, 17 Jun 2009 04:33:40 -0400
+Message-ID: <notify-1245227622@atomide.com>
+References: <1244844693-24126-2-git-send-email-khilman@ti.deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37735 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755391AbZFQIdJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 04:33:09 -0400
-In-Reply-To: <92CDD168D1E81F4F9D3839DC45903FC6536982D4@dlee03.ent.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59599 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754675AbZFQIdk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 04:33:40 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MGqaV-00040z-7h
+	for linux-omap@vger.kernel.org; Wed, 17 Jun 2009 08:33:43 +0000
+In-Reply-To: <1244844693-24126-2-git-send-email-khilman@ti.deeprootsystems.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Derrick, David" <dderrick@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hello David,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-On Tue, 16 Jun 2009, Derrick, David wrote:
+Branch in linux-omap: omap-fixes
 
-> Note that we have seen some instability with this change so use with caution.
+Initial commit ID (Likely to change): 3c195a1bd36ab83b248b9174412ee81a35a41e87
 
-Could you please expand on this?  Presumably we should not merge this if 
-it will cause instability, no?
+PatchWorks
+http://patchwork.kernel.org/patch/29974/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=3c195a1bd36ab83b248b9174412ee81a35a41e87
 
 
-- Paul
