@@ -1,122 +1,92 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH -pm 1/2] SDRC: check for stuck DLL state machine and
- kick
-Date: Wed, 17 Jun 2009 02:04:20 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906170139170.3382@utopia.booyaka.com>
-References: <1245105775-28844-1-git-send-email-khilman@deeprootsystems.com> <1245105775-28844-2-git-send-email-khilman@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
+Date: Wed, 17 Jun 2009 01:12:06 -0700
+Message-ID: <20090617081206.GD6605@atomide.com>
+References: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com> <20090615081242.GE4474@atomide.com> <5C07676A-0A93-48DE-B4C0-5A6709BE34A8@gmail.com> <20090615110431.GO4474@atomide.com> <FCCFB4CDC6E5564B9182F639FC35608702F53D146A@dbde02.ent.ti.com> <87y6rs2nu0.fsf@deeprootsystems.com> <FCCFB4CDC6E5564B9182F639FC35608702F53D14A4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:59512 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756683AbZFQIES (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 04:04:18 -0400
-In-Reply-To: <1245105775-28844-2-git-send-email-khilman@deeprootsystems.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54093 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755986AbZFQIMJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 04:12:09 -0400
+Content-Disposition: inline
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F53D14A4@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Richard Woodruff <r-woodruff2@ti.com>, Mike Chan <mikechan@google.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Hugo Vincent <hugo.vincent@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
 
-Hi,
-
-a few questions for Mike and Richard:
-
-On Mon, 15 Jun 2009, Kevin Hilman wrote:
-
-> From: Richard Woodruff <r-woodruff2@ti.com>
+* Pandita, Vikram <vikram.pandita@ti.com> [090616 09:50]:
 > 
-> I'm thinking DLL state is an exceptional condition which happens based
-> on some wrong early programming when initially setting DLL up.  Some
-> kind of race between idle features and lock happens early on.  This
-> patch recognizes the issue and moves state machine into locked state.
+> >From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> >
+> >"Pandita, Vikram" <vikram.pandita@ti.com> writes:
+> >
+> >>>-----Original Message-----
+> >>>From: Tony Lindgren [mailto:tony@atomide.com]
+> >>>Sent: Monday, June 15, 2009 6:05 AM
+> >>>To: Hugo Vincent
+> >>>Cc: Pandita, Vikram; linux-omap@vger.kernel.org; Chikkature Rajashekar, Madhusudhan
+> >>>Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
+> >>>
+> >>>* Hugo Vincent <hugo.vincent@gmail.com> [090615 03:44]:
+> >>>>
+> >>>> On 15/06/2009, at 8:12 PM, Tony Lindgren wrote:
+> >>>>
+> >>>>> * Vikram Pandita <vikram.pandita@ti.com> [090612 15:43]:
+> >>>>>> For OMAP3 add MMC1 MMC2 and MMC3 pin mux
+> >>>>>>
+> >>>>>> Signed-off-by: Chikkature Rajashekar <madhu.cr@ti.com>
+> >>>>>> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> >>>>>> ---
+> >>>>>> arch/arm/mach-omap2/devices.c         |   33 ++++++++++++++++++++++
+> >>>>>> arch/arm/mach-omap2/mux.c             |   49 +++++++++++++++++++++++
+> >>>>>> ++++++++++
+> >>>>>> arch/arm/plat-omap/include/mach/mux.h |   28 +++++++++++++++++++
+> >>>>>
+> >>>>> Great, just one issue: All data pins may not be connected, so you
+> >>>>> need to look at wires in struct omap_mmc_slot_data to see how many
+> >>>>> data pins to mux.
+> >>>>
+> >>>> There is another issue: different mux-outs are possible for different
+> >>>> board layouts; for example, I'm using AE10_3430_MMC3_CMD instead of
+> >>>> AC3_3430_MMC3_CMD. I'm not sure what the best way of handling this is,
+> >>>> but at a minimum, perhaps make mux setting optional, e.g. add no_mux to
+> >>>> struct omap_mmc_slot_data.
+> >>>
+> >>>Hmm, yeah that's right. I guess only the common pins should be muxed
+> >>>in  devices.c, and any optional pins should be muxed in the board-*.c
+> >>>files.
+> >>
+> >> Please check this patch set:
+> >> [PATCH 1/2] OMAP3: MMC: Pass pin muxing control flag
+> >>
+> >> I used the nomux flag to do this distinction.
+> >>
+> >
+> >This still doesn't address the problem that when you do mux, you mux
+> >all OMAP3 platforms the same way, and that is not correct.
 > 
-> Its my guess the kick case won't be executed that often.  As long as
-> DLL is not on you can mess with idle state.  When its on to mess with
-> DDR control you need to be in self-refresh and not making
-> accesses... like in dvfs code.
+> The patch tries to address this exact concern.
 > 
-> Tested-by: Mike Chan <mikechan@google.com>
-
-The last time I torture-tested CORE DVFS, which admittedly was some time 
-ago, the boards tested were stable across the entire overnight run, doing 
-nothing but CORE DVFS switching.  This was on a Beagle and a 3430SDP.
-
-So, what is different about your setup?  The usual suite of questions:  
-
-- What chip revisions/boards does this affect?
-
-- Is this specific to certain bootloaders?  
-
-- Has anyone else out there seen this problem?
-
-Rather than working around an occasional DLL failure to lock, is it 
-possible to reset the DLL earlier in the boot process, as Richard's commit 
-message suggests?  That would be preferable to this approach.  A 
-back-of-the-envelope assessment suggests that this patch could cause 
-unpredictable, additional 1.5 millisecond latency spikes whenever the 
-workaround triggers (since OCM RAM is marked uncacheable).
-
-
-- Paul
-
-
-> ---
->  arch/arm/mach-omap2/sleep34xx.S |   22 ++++++++++++++++++++--
->  1 files changed, 20 insertions(+), 2 deletions(-)
+> Using nomux flag, the board file decides if the default mux for each MMC(n) controller is good for it or not.
 > 
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> index aedcf94..c469bbe 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -595,20 +595,38 @@ wait_sdrc_ok:
->          ldr     r5, [r4]
->          bic     r5, r5, #0x40
->          str     r5, [r4]
-> -wait_dll_lock:
-> -        /* Is dll in lock mode? */
-> +is_dll_in_lock_mode:
->          ldr     r4, sdrc_dlla_ctrl
->          ldr     r5, [r4]
->          tst     r5, #0x4
->          bxne    lr
->          /* wait till dll locks */
-> +wait_dll_lock_timed:
->          ldr     r4, sdrc_dlla_status
-> +        mov     r6, #0x2000
-> +wait_dll_lock:
-> +        subs    r6, r6, #0x1
-> +        beq     kick_dll
->          ldr     r5, [r4]
->          and     r5, r5, #0x4
->          cmp     r5, #0x4
->          bne     wait_dll_lock
->          bx      lr
->  
-> +        /* Kick DLL state machine if lock not started */
-> +kick_dll:
-> +	ldr     r4, sdrc_dlla_ctrl	/* get dlla addr */
-> +	ldr     r5, [r4]		/* grab value */
-> +	mov	r6, r5			/* save value */
-> +	orr	r6, r6, #0x10		/* dllidle on */
-> +	str	r6, [r4]
-> +	dsb
-> +	bic	r6, #0x10		/* dllidle off */
-> +	str	r6, [r4]
-> +	dsb
-> +	str	r6, [r4]		/* restore old value */
-> +	b wait_dll_lock_timed
-> +
->  cm_idlest1_core:
->  	.word	CM_IDLEST1_CORE_V
->  sdrc_dlla_status:
-> -- 
-> 1.6.3.2
+> In case default is good, then MMC(n).nomux=0
+> In case default mux for any one MMC controller is not good, then for that MMC(n).nomux=1
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> And the board file specifies the mux for that MMC(n) only. 
 > 
+> I do not see any advantage to control mux at ball level for each mmc controller instance.
 
+To me it seems cleanest just to do the muxing in board-*.c files and not even
+attempt to do it in a generic way. As we also support doing the muxing in
+the bootloader only, adding a flag for nomux can easily create hard to
+track bugs.
 
-- Paul
+If some pins are always needed, and don't have alternative pinouts, then
+the common pins could be muxed in devices.c.
+
+Regards,
+
+Tony
