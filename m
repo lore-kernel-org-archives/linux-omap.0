@@ -1,95 +1,62 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] OMAP3: MMC: Add mux for pins
-Date: Thu, 18 Jun 2009 04:55:55 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F53D18E7@dbde02.ent.ti.com>
-References: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com>
-	<20090615081242.GE4474@atomide.com>
-	<5C07676A-0A93-48DE-B4C0-5A6709BE34A8@gmail.com>
-	<20090615110431.GO4474@atomide.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F53D146A@dbde02.ent.ti.com>
-	<87y6rs2nu0.fsf@deeprootsystems.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F53D14A4@dbde02.ent.ti.com>
-	<20090617081206.GD6605@atomide.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F53D18B1@dbde02.ent.ti.com>
-	<87my86yau1.fsf@deeprootsystems.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F53D18C6@dbde02.ent.ti.com>
-	<878wjqy1yj.fsf@deeprootsystems.com> <4A3972C8.2090502@ti.com>
- <87zlc6v56x.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: new 2.6.30-based PM branch
+Date: Wed, 17 Jun 2009 16:39:26 -0700
+Message-ID: <87ocsmv39t.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60625 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754412AbZFQX0I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 19:26:08 -0400
-In-Reply-To: <87zlc6v56x.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-pz0-f192.google.com ([209.85.222.192]:46059 "EHLO
+	mail-pz0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755599AbZFQXj1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 19:39:27 -0400
+Received: by pzk30 with SMTP id 30so154706pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 17 Jun 2009 16:39:29 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Hunter, Jon" <jon-hunter@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hugo Vincent <hugo.vincent@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: linux-omap@vger.kernel.org
 
+Hello,
 
+Now that 2.6.30 is out, the PM branch has been rebased onto current
+linux-omap master which is 2.6.30 based.  The previous, 2.6.29-based
+PM branch will continue to exist and be renamed to pm-2.6.29.  I will
+continue to accept bugfixes against pm-2.6.29, but all new work should
+be done on the new pm branch.
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->Sent: Wednesday, June 17, 2009 5:58 PM
->To: Hunter, Jon
->Cc: Pandita, Vikram; Tony Lindgren; Hugo Vincent; linux-omap@vger.kernel.org; Chikkature Rajashekar,
->Madhusudhan
->Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
->
->Jon Hunter <jon-hunter@ti.com> writes:
->
->> Kevin Hilman wrote:
->>> "Pandita, Vikram" <vikram.pandita@ti.com> writes:
->>>
->>>>> -----Original Message-----
->>>>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>>>>
->>>>>>> If some pins are always needed, and don't have alternative pinouts, then
->>>>>>> the common pins could be muxed in devices.c.
->>>>>> This is the algo we can use for MMC pin muxing in that case:
->>>>>>
->>>>>> MMC1: No pin has mux clash
->>>>>> 	Mux all 10 pins in devices.c
->>>>> Is this common across 34xx and 35xx?
->>>> Yes this is common.
->>>> Both are same OMAP3 marketed differently.
->>>
->>> Yes, but they are in different packages, so I was curious if the pin
->>> muxing is identical across the different packages.
->>
->> The ball/pad numbers may change due to the package, but the registers
->> used to configure the pin muxing and the pin muxing options will not
->> change. So from a software standpoint it is the same.
->>
->> The OMAP3530 is available in 3 packages, namely CBB, CBC and CUS
->> according to the data manual [1]. The OMAP3430 is only available in
->> the CBB package.
->>
->> What this means is that the name "N28_3430_MMC1_CLK", which associates
->> ball N28 with signal MMC1_CLK, is appliable to the OMAP3430 and
->> OMAP3530 CBB package, but not applicable to the OMAP3530 CBC and CUS
->> packages
->> as this ball number does not exist on these packages. This is simply a
->> difference in naming of the balls between the packages but does not
->> impact the pin muxing options.
+Both branches are available in my linux-omap-pm tree[1], but only the
+2.6.30-based one (named 'pm') will be sync'd daily to Tony's
+linux-omap repo.
 
-So looks like I should keep the MMC mux under cpu_is_omap3430()
-And not include 3530 as CBC and CUS may not be valid cases for this mux.
+This new PM branch has had basic testing on the following OMAP3
+platforms
 
->
->OK, good.  Thanks for the clarification.
->
->Tony and I were thinking a few weeks back that we should drop the ball
->names from these mux options anyways as they don't really add any
->value, and seem to add more confusion.  Sounds like it's the right
->thing to do in this context.
->
->Kevin
->
->
->
+- 3430SDP (initramfs, NFS)
+- OMAP3 EVM (initramfs, NFS)
+- Beagle (MMC rootfs)
+- RX51 (OneNAND rootfs)
+- Zoom2 (initramfs, ** problems w/NFS, see below)
 
+And is able to do full-chip retention and off in idle and suspend on
+all of these platforms.
+
+Rather than try to manage multiple defconfigs for these boards, there
+is a now a new all-in-one defconfig that will work on all these
+boards.  Well, almost.  
+
+omap3_pm_defconfig will work out of the box on SDP and EVM, and will
+boot on Beagle, Zoom2 and RX51 simply by changing
+    
+     System Type-->TI OMAP implementations-->Low-level debug console UART
+    
+from UART1 to UART3 (the LL_DEBUG support is still a little dumb and
+needs some fixing, but that's for another day.)
+
+Known problems:
+
+- Zoom2 network doesn't work, not yet debugged
+- ES3.0-based SDPs have problems with UART1 coming back from off-while-idle 
+  UART 3 works fine.
+
+Kevin
+
+[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
