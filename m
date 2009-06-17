@@ -1,92 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
-Date: Wed, 17 Jun 2009 01:12:06 -0700
-Message-ID: <20090617081206.GD6605@atomide.com>
-References: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com> <20090615081242.GE4474@atomide.com> <5C07676A-0A93-48DE-B4C0-5A6709BE34A8@gmail.com> <20090615110431.GO4474@atomide.com> <FCCFB4CDC6E5564B9182F639FC35608702F53D146A@dbde02.ent.ti.com> <87y6rs2nu0.fsf@deeprootsystems.com> <FCCFB4CDC6E5564B9182F639FC35608702F53D14A4@dbde02.ent.ti.com>
+Subject: Re: [PATCH 0/2] adding back some features
+Date: Wed, 17 Jun 2009 01:31:19 -0700
+Message-ID: <20090617083119.GF6605@atomide.com>
+References: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com> <20090615080001.GC4474@atomide.com> <87ski1a6n1.fsf@deeprootsystems.com> <87k53da3eb.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54093 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51817 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755986AbZFQIMJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 04:12:09 -0400
+	with ESMTP id S1754258AbZFQIbT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 04:31:19 -0400
 Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F53D14A4@dbde02.ent.ti.com>
+In-Reply-To: <87k53da3eb.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Hugo Vincent <hugo.vincent@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
 
-* Pandita, Vikram <vikram.pandita@ti.com> [090616 09:50]:
+* Kevin Hilman <khilman@deeprootsystems.com> [090615 09:05]:
+> Kevin Hilman <khilman@deeprootsystems.com> writes:
 > 
-> >From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> > Tony Lindgren <tony@atomide.com> writes:
 > >
-> >"Pandita, Vikram" <vikram.pandita@ti.com> writes:
+> >> Hi,
+> >>
+> >> * Kevin Hilman <khilman@deeprootsystems.com> [090612 15:13]:
+> >>> Here's a couple patches to add-back some feature dropped in the
+> >>> mainline sync.  These are needed for the PM branch among other things.
+> >>> 
+> >>> Applies to linux-omap master.
+> >>> 
+> >>> Kevin Hilman (1):
+> >>>   OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
+> >>
+> >> Is there any reason to get this one into mainline early?
 > >
-> >>>-----Original Message-----
-> >>>From: Tony Lindgren [mailto:tony@atomide.com]
-> >>>Sent: Monday, June 15, 2009 6:05 AM
-> >>>To: Hugo Vincent
-> >>>Cc: Pandita, Vikram; linux-omap@vger.kernel.org; Chikkature Rajashekar, Madhusudhan
-> >>>Subject: Re: [PATCH] OMAP3: MMC: Add mux for pins
-> >>>
-> >>>* Hugo Vincent <hugo.vincent@gmail.com> [090615 03:44]:
-> >>>>
-> >>>> On 15/06/2009, at 8:12 PM, Tony Lindgren wrote:
-> >>>>
-> >>>>> * Vikram Pandita <vikram.pandita@ti.com> [090612 15:43]:
-> >>>>>> For OMAP3 add MMC1 MMC2 and MMC3 pin mux
-> >>>>>>
-> >>>>>> Signed-off-by: Chikkature Rajashekar <madhu.cr@ti.com>
-> >>>>>> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> >>>>>> ---
-> >>>>>> arch/arm/mach-omap2/devices.c         |   33 ++++++++++++++++++++++
-> >>>>>> arch/arm/mach-omap2/mux.c             |   49 +++++++++++++++++++++++
-> >>>>>> ++++++++++
-> >>>>>> arch/arm/plat-omap/include/mach/mux.h |   28 +++++++++++++++++++
-> >>>>>
-> >>>>> Great, just one issue: All data pins may not be connected, so you
-> >>>>> need to look at wires in struct omap_mmc_slot_data to see how many
-> >>>>> data pins to mux.
-> >>>>
-> >>>> There is another issue: different mux-outs are possible for different
-> >>>> board layouts; for example, I'm using AE10_3430_MMC3_CMD instead of
-> >>>> AC3_3430_MMC3_CMD. I'm not sure what the best way of handling this is,
-> >>>> but at a minimum, perhaps make mux setting optional, e.g. add no_mux to
-> >>>> struct omap_mmc_slot_data.
-> >>>
-> >>>Hmm, yeah that's right. I guess only the common pins should be muxed
-> >>>in  devices.c, and any optional pins should be muxed in the board-*.c
-> >>>files.
-> >>
-> >> Please check this patch set:
-> >> [PATCH 1/2] OMAP3: MMC: Pass pin muxing control flag
-> >>
-> >> I used the nomux flag to do this distinction.
-> >>
+> > Well, the PM branch has a dependency, but also the recenetly submitted
+> > qwatchdog driver has a dependency.
 > >
-> >This still doesn't address the problem that when you do mux, you mux
-> >all OMAP3 platforms the same way, and that is not correct.
+> >> If not, I suggest you keep this in your pm branch for next merge
+> >> window that I can keep merging to l-o master as needed.
+> >>
+> >> However, if omap_type() is by other queues earlier, then I can
+> >> add it into my upstream queue. If this blocks several queues
+> >> from being rebased against mainline kernel, that alone might
+> >> already be a good enough reason to get it in early.
+> >
+> > I think it should go via your upstream queue.  I imagine some of the
+> > other upcoming driver submissions from TI will have a dependency as
+> > well since there is still some missing EMU/HS support ind drivers.
 > 
-> The patch tries to address this exact concern.
-> 
-> Using nomux flag, the board file decides if the default mux for each MMC(n) controller is good for it or not.
-> 
-> In case default is good, then MMC(n).nomux=0
-> In case default mux for any one MMC controller is not good, then for that MMC(n).nomux=1
-> 
-> And the board file specifies the mux for that MMC(n) only. 
-> 
-> I do not see any advantage to control mux at ball level for each mmc controller instance.
+> Also, I'm carrying this SRAM patch below for HS/EMU that could go into
+> Paul's SRAM/SDRC queue if this omap_type() gets merged sooner rather
+> than later.
 
-To me it seems cleanest just to do the muxing in board-*.c files and not even
-attempt to do it in a generic way. As we also support doing the muxing in
-the bootloader only, adding a flag for nomux can easily create hard to
-track bugs.
+Hmm, the HS omap sram.c patch below for sure justifies fixing it as
+incorrect SRAM size can cause nasty bugs.
 
-If some pins are always needed, and don't have alternative pinouts, then
-the common pins could be muxed in devices.c.
+Will add both omap_type and the sram.c patch below to omap-fixes.
 
 Regards,
 
 Tony
+ 
+> Kevin
+> 
+> commit 106588e30f070d9a8d5906d409e0b9aad89edc9e
+> Author: Tero Kristo <tero.kristo@nokia.com>
+> Date:   Thu Oct 9 17:47:02 2008 +0300
+> 
+>     OMAP3: SRAM size fix for HS/EMU devices
+>     
+>     Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>     Signed-off-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
+> 
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> old mode 100644
+> new mode 100755
+> index 65006df..f40bd2d
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -131,9 +131,15 @@ void __init omap_detect_sram(void)
+>  	if (cpu_class_is_omap2()) {
+>  		if (is_sram_locked()) {
+>  			if (cpu_is_omap34xx()) {
+> -				omap_sram_base = OMAP3_SRAM_PUB_VA;
+> -				omap_sram_start = OMAP3_SRAM_PUB_PA;
+> -				omap_sram_size = 0x8000; /* 32K */
+> +				if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
+> +					omap_sram_base = OMAP3_SRAM_PUB_VA;
+> +					omap_sram_start = OMAP3_SRAM_PUB_PA;
+> +					omap_sram_size = 0x8000; /* 32K */
+> +				} else {
+> +					omap_sram_base = OMAP3_SRAM_PUB_VA;
+> +					omap_sram_start = OMAP3_SRAM_PUB_PA;
+> +					omap_sram_size = 0x7000; /* 28K */
+> +				}
+>  			} else {
+>  				omap_sram_base = OMAP2_SRAM_PUB_VA;
+>  				omap_sram_start = OMAP2_SRAM_PUB_PA;
