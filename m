@@ -1,74 +1,118 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] OMAP3: MMC: Add mux for pins
-Date: Thu, 18 Jun 2009 00:08:01 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F53D18C6@dbde02.ent.ti.com>
-References: <1244846488-28313-1-git-send-email-vikram.pandita@ti.com>
-	<20090615081242.GE4474@atomide.com>
-	<5C07676A-0A93-48DE-B4C0-5A6709BE34A8@gmail.com>
-	<20090615110431.GO4474@atomide.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F53D146A@dbde02.ent.ti.com>
-	<87y6rs2nu0.fsf@deeprootsystems.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F53D14A4@dbde02.ent.ti.com>
-	<20090617081206.GD6605@atomide.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F53D18B1@dbde02.ent.ti.com>
- <87my86yau1.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Ulrik Bech Hald <ubh@ti.com>
+Subject: [PATCH v4 2/2] watchdog:OMAP3:Enable support for IVA2 and SECURE
+Date: Wed, 17 Jun 2009 14:11:22 -0500
+Message-ID: <1245265882-784-3-git-send-email-ubh@ti.com>
+References: <1245265882-784-1-git-send-email-ubh@ti.com>
+ <1245265882-784-2-git-send-email-ubh@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46959 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:33934 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760122AbZFQSiO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 14:38:14 -0400
-In-Reply-To: <87my86yau1.fsf@deeprootsystems.com>
-Content-Language: en-US
+	id S1755986AbZFQTGd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 17 Jun 2009 15:06:33 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HJ6VgX025615
+	for <linux-omap@vger.kernel.org>; Wed, 17 Jun 2009 14:06:36 -0500
+In-Reply-To: <1245265882-784-2-git-send-email-ubh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, Hugo Vincent <hugo.vincent@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Ulrik Bech Hald <ubh@ti.com>
 
+This patch adds support for IVA2 and SECURE WDTs in the omap_wdt
+driver for omap34xx family. SECURE will be available as
+/dev/watchdog_secure on HS/EMU devices and IVA2 will be available
+as /dev/watchdog_iva2. MPU will still be available as /dev/watchdog
 
+Tested on Zoom1 OMAP3 platform
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->
->>>If some pins are always needed, and don't have alternative pinouts, then
->>>the common pins could be muxed in devices.c.
->>
->> This is the algo we can use for MMC pin muxing in that case:
->>
->> MMC1: No pin has mux clash
->> 	Mux all 10 pins in devices.c
->
->Is this common across 34xx and 35xx?
+Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
+---
+runtime: [PATCH 1/1] watchdog: OMAP fixes: enable clock in probe, trigger timer reload 
 
-Yes this is common.
-Both are same OMAP3 marketed differently.
+ drivers/watchdog/omap_wdt.c |   34 ++++++++++++++++++++++++++--------
+ 1 files changed, 26 insertions(+), 8 deletions(-)
 
->
->> MMC2: MUX CLK,CMD,D0-D3 in devices.c: D4-D7 have mux clash
->> 	In case board needs 8 bit support,
->> 	then in devices.c print KERN_WARNING "Configure MMC2:D4-D7 mux in board file"
->
->I don't think you need a KERN_WARNING, what if the board code does this
->later?  Probably a comment in the code would suffice.
-
-Given this split of common MMC mux in devices.c
-and non-common MMC mux in board file, 
-for someone starting new, a warning message helps a lot...
-
-The idea is to warn only MMC2-8bit and MMC3 user to setup the mux.
-
-If already done in uboot/board file, purpose is solved... 
-
->
->> MMC3: All pins have mux clash: No mux done in devices.c
->> 	In case board specifies MMC3 usage,
->> 	then in devices.c print KERN_WARNING "Configure MMC3 mux in board file"
->>
->> Let me know if this is final and I can submit a patch.
->
->Kevin
->
->
+diff --git a/drivers/watchdog/omap_wdt.c b/drivers/watchdog/omap_wdt.c
+index f271385..ab9bd88
+--- a/drivers/watchdog/omap_wdt.c
++++ b/drivers/watchdog/omap_wdt.c
+@@ -47,7 +47,9 @@
+ 
+ #include "omap_wdt.h"
+ 
+-static struct platform_device *omap_wdt_dev;
++#define NUM_WDTS	3
++
++static struct platform_device *omap_wdt_dev[NUM_WDTS];
+ 
+ static unsigned timer_margin;
+ module_param(timer_margin, uint, 0);
+@@ -139,8 +141,23 @@ static void omap_wdt_set_timeout(struct omap_wdt_dev *wdev)
+  */
+ static int omap_wdt_open(struct inode *inode, struct file *file)
+ {
+-	struct omap_wdt_dev *wdev = platform_get_drvdata(omap_wdt_dev);
+-	void __iomem *base = wdev->base;
++	struct omap_wdt_dev *wdev = NULL;
++	void __iomem *base;
++
++	/* Find match between device node and wdt device */
++	int i;
++	for (i = 0; i < NUM_WDTS; i++) {
++		if (omap_wdt_dev[i]) {
++			wdev = platform_get_drvdata(omap_wdt_dev[i]);
++			if (iminor(inode) == wdev->omap_wdt_miscdev.minor)
++				break;
++		}
++	}
++
++	if (!wdev)
++		return -ENODEV;
++
++	base = wdev->base;
+ 
+ 	if (test_and_set_bit(1, (unsigned long *)&(wdev->omap_wdt_users)))
+ 		return -EBUSY;
+@@ -271,7 +288,7 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+ 		goto err_get_resource;
+ 	}
+ 
+-	if (omap_wdt_dev) {
++	if (omap_wdt_dev[pdev->id-1]) {
+ 		ret = -EBUSY;
+ 		goto err_busy;
+ 	}
+@@ -317,9 +334,9 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+ 	omap_wdt_adjust_timeout(timer_margin);
+ 
+ 	wdev->omap_wdt_miscdev.parent = &pdev->dev;
+-	wdev->omap_wdt_miscdev.minor = WATCHDOG_MINOR;
+-	wdev->omap_wdt_miscdev.name = "watchdog";
++	wdev->omap_wdt_miscdev.minor = MISC_DYNAMIC_MINOR;
+ 	wdev->omap_wdt_miscdev.fops = &omap_wdt_fops;
++	wdev->omap_wdt_miscdev.name = (char *) pdev->dev.platform_data;
+ 
+ 	ret = misc_register(&(wdev->omap_wdt_miscdev));
+ 	if (ret)
+@@ -332,7 +349,8 @@ static int __devinit omap_wdt_probe(struct platform_device *pdev)
+ 	/* autogate OCP interface clock */
+ 	__raw_writel(0x01, wdev->base + OMAP_WATCHDOG_SYS_CONFIG);
+ 
+-	omap_wdt_dev = pdev;
++	/* keep track of the wdt platform devices in local device array */
++	omap_wdt_dev[pdev->id - 1] = pdev;
+ 
+ 	return 0;
+ 
+@@ -384,7 +402,7 @@ static int __devexit omap_wdt_remove(struct platform_device *pdev)
+ 	iounmap(wdev->base);
+ 
+ 	kfree(wdev);
+-	omap_wdt_dev = NULL;
++	omap_wdt_dev[pdev->id-1] = NULL;
+ 
+ 	return 0;
+ }
+-- 
+1.5.4.3
 
