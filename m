@@ -1,375 +1,305 @@
 From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: [PATCH 3/7] DSPBRIDGE: Handle properly user space pointers
-Date: Wed, 17 Jun 2009 12:36:08 -0500
-Message-ID: <1245260172-23008-4-git-send-email-omar.ramirez@ti.com>
+Subject: [PATCH 1/7] DSPBRIDGE: Removing UTIL module
+Date: Wed, 17 Jun 2009 12:36:06 -0500
+Message-ID: <1245260172-23008-2-git-send-email-omar.ramirez@ti.com>
 References: <1245260172-23008-1-git-send-email-omar.ramirez@ti.com>
- <1245260172-23008-2-git-send-email-omar.ramirez@ti.com>
- <1245260172-23008-3-git-send-email-omar.ramirez@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36930 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:36927 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758890AbZFQRbh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 13:31:37 -0400
-In-Reply-To: <1245260172-23008-3-git-send-email-omar.ramirez@ti.com>
+	with ESMTP id S1758759AbZFQRbg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 13:31:36 -0400
+In-Reply-To: <1245260172-23008-1-git-send-email-omar.ramirez@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Hari Kanigeri <h-kanigeri2@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
 
-From: Hari Kanigeri <h-kanigeri2@ti.com>
+This module was deprecated, removing its source files.
 
-This patch fixes bridge crash in UUID_UuidToString function. This
-error was due to user pointers not handled properly.
-
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/pmgr/wcd.c |  147 ++++++++++++++++++++++++++++++-----------
- 1 files changed, 109 insertions(+), 38 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/util.h |  122 ---------------------------
+ drivers/dsp/bridge/pmgr/cmm.c               |    2 +-
+ drivers/dsp/bridge/pmgr/dev.c               |    1 -
+ drivers/dsp/bridge/pmgr/wcd.c               |    1 -
+ drivers/dsp/bridge/services/clk.c           |    2 -
+ drivers/dsp/bridge/services/services.c      |   15 +---
+ drivers/dsp/bridge/wmd/tiomap3430.c         |    1 -
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c     |    1 -
+ drivers/dsp/bridge/wmd/tiomap_io.c          |    1 -
+ 9 files changed, 5 insertions(+), 141 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/util.h
 
+diff --git a/arch/arm/plat-omap/include/dspbridge/util.h b/arch/arm/plat-omap/include/dspbridge/util.h
+deleted file mode 100644
+index e6815ca..0000000
+--- a/arch/arm/plat-omap/include/dspbridge/util.h
++++ /dev/null
+@@ -1,122 +0,0 @@
+-/*
+- * util.h
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-
+-/*
+- *  ======== util.h ========
+- *  Purpose:
+- *      Provide general purpose utility functions.
+- *
+- *  Public Functions:
+- *      UTIL_CDTestDll
+- *      UTIL_CmdLineToArgs
+- *      UTIL_Exit
+- *      UTIL_GetSysInfo
+- *      UTIL_Init
+- */
+-
+-#ifndef _UTIL_H
+-#define _UTIL_H
+-
+-#include <linux/delay.h>
+-#include <linux/sched.h>
+-
+-#include <dspbridge/utildefs.h>
+-
+-/*
+- *  ======== UTIL_CDTestDll ========
+- *  Purpose:
+- *      Provides test entry point in class driver context.
+- *  Parameters:
+- *      cArgc:  test module command line input count.
+- *      ppArgv: test module command line args.
+- *  Returns:
+- *      0 if successful, a negative value otherwise.
+- *  Requires:
+- *      UTIL initialized.
+- *  Ensures:
+- */
+-	extern u32 UTIL_CDTestDll(IN s32 cArgc, IN char **ppArgv);
+-
+-/*
+- *  ======== UTIL_CmdLineToArgs ========
+- *  Purpose:
+- *      This function re-creates C-style cmd line argc & argv from WinMain()
+- *      cmd line args.
+- *  Parameters:
+- *      s8 *pszProgName   - The name of the program currently being executed.
+- *      s8 *argv[]        - The argument vector.
+- *      s8 *pCmdLine      - The pointer to the command line.
+- *      bool fHasProgName   - Indicats whether a program name is supplied.
+- *  Returns:
+- *      Returns the number of arguments found.
+- *  Requires:
+- *      UTIL initialized.
+- *  Ensures:
+- */
+-	extern s32 UTIL_CmdLineToArgs(IN char *pszProgName,
+-				      IN char *argv[UTIL_MAXARGVS],
+-				      IN char *pCmdLine, IN bool fHasProgName);
+-
+-/*
+- *  ======== UTIL_Exit ========
+- *  Purpose:
+- *      Discontinue usage of module; free resources when reference count
+- *      reaches 0.
+- *  Parameters:
+- *  Returns:
+- *  Requires:
+- *      UTIL initialized.
+- *  Ensures:
+- *      Resources used by module are freed when cRef reaches zero.
+- */
+-	extern inline void UTIL_Exit(void)
+-	{
+-	}
+-/*
+- *  ======== UTIL_GetSysInfo ========
+- *  Purpose:
+- *      This function return platform specific system information.
+- *
+- *  Parameters:
+- *      pSysInfo  - address to store the system information.
+- *  Returns:
+- *      DSP_SOK
+- *      S_FAIL
+- *  Requires:
+- *      UTIL initialized.
+- *      pSysInfo != NULL
+- *  Ensures:
+- */
+-	extern DSP_STATUS UTIL_GetSysInfo(OUT struct UTIL_SYSINFO *pSysInfo);
+-
+-/*
+- *  ======== UTIL_Init ========
+- *  Purpose:
+- *      Initializes private state of UTIL module.
+- *  Parameters:
+- *  Returns:
+- *      TRUE if success, else FALSE.
+- *  Requires:
+- *  Ensures:
+- *      UTIL initialized.
+- */
+-	extern inline bool UTIL_Init(void)
+-	{
+-		return true;
+-	}
+-
+-#endif				/* _UTIL_H */
+diff --git a/drivers/dsp/bridge/pmgr/cmm.c b/drivers/dsp/bridge/pmgr/cmm.c
+index 99a2432..9b19be2 100644
+--- a/drivers/dsp/bridge/pmgr/cmm.c
++++ b/drivers/dsp/bridge/pmgr/cmm.c
+@@ -107,7 +107,7 @@
+ #include <dspbridge/list.h>
+ #include <dspbridge/mem.h>
+ #include <dspbridge/sync.h>
+-#include <dspbridge/util.h>
++#include <dspbridge/utildefs.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/dev.h>
+diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
+index 1c2f7d5..5e4e30b 100644
+--- a/drivers/dsp/bridge/pmgr/dev.c
++++ b/drivers/dsp/bridge/pmgr/dev.c
+@@ -130,7 +130,6 @@
+ #include <dspbridge/ldr.h>
+ #include <dspbridge/list.h>
+ #include <dspbridge/mem.h>
+-#include <dspbridge/util.h>
+ 
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/cod.h>
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index cd84e4e..995a833 100644
+index 859043d..cd84e4e 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -519,15 +519,38 @@ u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args)
- u32 MGRWRAP_RegisterObject(union Trapped_Args *args)
- {
- 	u32 retVal;
-+	struct DSP_UUID pUuid;
-+	u32 pathSize = 0;
-+	char *pszPathName = NULL;
-+	DSP_STATUS status = DSP_SOK;
-+
-+	cp_fm_usr(&pUuid, args->ARGS_MGR_REGISTEROBJECT.pUuid, status, 1);
-+	if (DSP_FAILED(status))
-+		goto func_end;
-+	pathSize = strlen_user((char *)
-+				args->ARGS_MGR_REGISTEROBJECT.pszPathName);
-+	pszPathName = MEM_Alloc(pathSize, MEM_NONPAGED);
-+	if (!pszPathName)
-+		goto func_end;
-+	retVal = strncpy_from_user(pszPathName,
-+			(char *)args->ARGS_MGR_REGISTEROBJECT.pszPathName,
-+			pathSize);
-+	if (!retVal) {
-+		status = DSP_EPOINTER;
-+		goto func_end;
-+	}
-+	pszPathName[pathSize] = '\0';
+@@ -108,7 +108,6 @@
+ #include <dspbridge/mem.h>
+ #include <dspbridge/ntfy.h>
+ #include <dspbridge/services.h>
+-#include <dspbridge/util.h>
  
- 	GT_1trace(WCD_debugMask, GT_ENTER,
- 		 "MGRWRAP_RegisterObject: entered pg2hMsg "
- 		 "0x%x\n", args->ARGS_MGR_REGISTEROBJECT.pUuid);
--	retVal = DCD_RegisterObject(WRAP_MAP2CALLER
--		    (args->ARGS_MGR_REGISTEROBJECT.pUuid),
--		    args->ARGS_MGR_REGISTEROBJECT.objType,
--		    WRAP_MAP2CALLER(args->ARGS_MGR_REGISTEROBJECT.pszPathName));
--	return retVal;
-+	status = DCD_RegisterObject(&pUuid,
-+				args->ARGS_MGR_REGISTEROBJECT.objType,
-+				(char *)pszPathName);
-+func_end:
-+	if (pszPathName)
-+		MEM_Free(pszPathName);
-+	return status;
- }
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/chnl.h>
+diff --git a/drivers/dsp/bridge/services/clk.c b/drivers/dsp/bridge/services/clk.c
+index f0e46a3..ff2ceea 100644
+--- a/drivers/dsp/bridge/services/clk.c
++++ b/drivers/dsp/bridge/services/clk.c
+@@ -50,8 +50,6 @@
  
- /*
-@@ -535,16 +558,21 @@ u32 MGRWRAP_RegisterObject(union Trapped_Args *args)
-  */
- u32 MGRWRAP_UnregisterObject(union Trapped_Args *args)
- {
--	u32 retVal;
-+	DSP_STATUS status = DSP_SOK;
-+	struct DSP_UUID pUuid;
-+
-+	cp_fm_usr(&pUuid, args->ARGS_MGR_REGISTEROBJECT.pUuid, status, 1);
-+	if (DSP_FAILED(status))
-+		goto func_end;
- 
- 	GT_1trace(WCD_debugMask, GT_ENTER,
- 		 "MGRWRAP_UnregisterObject: entered pg2hMsg"
- 		 " 0x%x\n", args->ARGS_MGR_UNREGISTEROBJECT.pUuid);
--	retVal = DCD_UnregisterObject(WRAP_MAP2CALLER
--			(args->ARGS_MGR_UNREGISTEROBJECT.pUuid),
-+	status = DCD_UnregisterObject(&pUuid,
- 			args->ARGS_MGR_UNREGISTEROBJECT.objType);
-+func_end:
-+	return status;
- 
--	return retVal;
- }
- 
- /*
-@@ -628,11 +656,15 @@ u32 PROCWRAP_Attach(union Trapped_Args *args)
- 		cp_fm_usr(&attrIn, args->ARGS_PROC_ATTACH.pAttrIn, status, 1);
- 		if (DSP_SUCCEEDED(status))
- 			pAttrIn = &attrIn;
-+		else
-+			goto func_end;
-+
- 
- 	}
- 	status = PROC_Attach(args->ARGS_PROC_ATTACH.uProcessor, pAttrIn,
- 			    &processor);
- 	cp_to_usr(args->ARGS_PROC_ATTACH.phProcessor, &processor, status, 1);
-+func_end:
- 	return status;
- }
- 
-@@ -653,16 +685,20 @@ u32 PROCWRAP_Ctrl(union Trapped_Args *args)
- 		 args->ARGS_PROC_CTRL.dwCmd,
- 		 args->ARGS_PROC_CTRL.pArgs);
- 	if (pSize) {
--		if (get_user(cbDataSize, pSize))
-+		if (get_user(cbDataSize, pSize)) {
- 			status = DSP_EFAIL;
+ /*  ----------------------------------- This */
+ #include <dspbridge/clk.h>
+-#include <dspbridge/util.h>
 -
-+			goto func_end;
-+		}
- 		cbDataSize += sizeof(u32);
- 		if (DSP_SUCCEEDED(status)) {
- 			pArgs = MEM_Alloc(cbDataSize, MEM_NONPAGED);
--			if (pArgs == NULL)
-+			if (pArgs == NULL) {
- 				status = DSP_EMEMORY;
-+				goto func_end;
-+			}
-+		} else
-+			goto func_end;
  
--		}
- 		cp_fm_usr(pArgs, args->ARGS_PROC_CTRL.pArgs, status,
- 			 cbDataSize);
- 	}
-@@ -675,7 +711,7 @@ u32 PROCWRAP_Ctrl(union Trapped_Args *args)
- 	/* cp_to_usr(args->ARGS_PROC_CTRL.pArgs, pArgs, status, 1);*/
- 	if (pArgs)
- 		MEM_Free(pArgs);
+ /*  ----------------------------------- Defines, Data Structures, Typedefs */
+ 
+diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
+index 346007e..f3f700e 100644
+--- a/drivers/dsp/bridge/services/services.c
++++ b/drivers/dsp/bridge/services/services.c
+@@ -54,7 +54,6 @@
+ #include <dspbridge/reg.h>
+ #include <dspbridge/sync.h>
+ #include <dspbridge/clk.h>
+-#include <dspbridge/util.h>
+ 
+ /*  ----------------------------------- This */
+ #include <dspbridge/services.h>
+@@ -83,7 +82,6 @@ void SERVICES_Exit(void)
+ 	if (cRefs == 0) {
+ 		/* Uninitialize all SERVICES modules here */
+ 		NTFY_Exit();
+-		UTIL_Exit();
+ 		SYNC_Exit();
+ 		CLK_Exit();
+ 		REG_Exit();
+@@ -109,8 +107,8 @@ void SERVICES_Exit(void)
+ bool SERVICES_Init(void)
+ {
+ 	bool fInit = true;
+-       bool fCFG, fCSL, fDBG, fDPC, fKFILE, fLST, fMEM;
+-       bool fREG, fSYNC, fCLK, fUTIL, fNTFY;
++	bool fCFG, fCSL, fDBG, fDPC, fKFILE, fLST, fMEM;
++	bool fREG, fSYNC, fCLK, fNTFY;
+ 
+ 	DBC_Require(cRefs >= 0);
+ 
+@@ -131,22 +129,17 @@ bool SERVICES_Init(void)
+ 		fDPC = DPC_Init();
+ 		fKFILE = KFILE_Init();
+ 		fLST = LST_Init();
+-		/* fREG = REG_Init(); */
+ 		fSYNC = SYNC_Init();
+ 		fCLK  = CLK_Init();
+-		fUTIL = UTIL_Init();
+ 		fNTFY = NTFY_Init();
+ 
+-               fInit = fCFG && fCSL && fDBG && fDPC && fKFILE &&
+-                       fLST && fMEM && fREG && fSYNC && fCLK && fUTIL;
++		fInit = fCFG && fCSL && fDBG && fDPC && fKFILE &&
++			fLST && fMEM && fREG && fSYNC && fCLK;
+ 
+ 		if (!fInit) {
+ 			if (fNTFY)
+ 				NTFY_Exit();
+ 
+-			if (fUTIL)
+-				UTIL_Exit();
 -
-+func_end:
- 	return status;
- }
+ 			if (fSYNC)
+ 				SYNC_Exit();
  
-@@ -767,7 +803,11 @@ u32 PROCWRAP_InvalidateMemory(union Trapped_Args *args)
-  */
- u32 PROCWRAP_EnumResources(union Trapped_Args *args)
- {
--	u32 retVal;
-+	DSP_STATUS status = DSP_SOK;
-+	struct DSP_RESOURCEINFO pResourceInfo;
-+
-+	if (DSP_FAILED(status))
-+		goto func_end;
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 7a9603d..4919314 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -47,7 +47,6 @@
  
- 	GT_4trace(WCD_debugMask, GT_ENTER,
- 		 "PROCWRAP_EnumResources: entered args:\n"
-@@ -777,13 +817,17 @@ u32 PROCWRAP_EnumResources(union Trapped_Args *args)
- 		 args->ARGS_PROC_ENUMRESOURCES.uResourceType,
- 		 args->ARGS_PROC_ENUMRESOURCES.pResourceInfo,
- 		 args->ARGS_PROC_ENUMRESOURCES.uResourceInfoSize);
--	retVal = PROC_GetResourceInfo(args->ARGS_PROC_ENUMRESOURCES.hProcessor,
-+	status = PROC_GetResourceInfo(args->ARGS_PROC_ENUMRESOURCES.hProcessor,
- 			args->ARGS_PROC_ENUMRESOURCES.uResourceType,
--			WRAP_MAP2CALLER(args->ARGS_PROC_ENUMRESOURCES.
--			pResourceInfo), args->ARGS_PROC_ENUMRESOURCES.
--			uResourceInfoSize);
-+			&pResourceInfo,
-+			args->ARGS_PROC_ENUMRESOURCES.uResourceInfoSize);
-+	if (DSP_FAILED(status))
-+		goto func_end;
-+	cp_to_usr(args->ARGS_PROC_ENUMRESOURCES.pResourceInfo, &pResourceInfo,
-+						status, 1);
-+func_end:
-+	return status;
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/mem.h>
+-#include <dspbridge/util.h>
+ #include <dspbridge/reg.h>
+ #include <dspbridge/dbreg.h>
+ #include <dspbridge/cfg.h>
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+index 914474f..e5bfb26 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+@@ -42,7 +42,6 @@
  
--	return retVal;
- }
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/mem.h>
+-#include <dspbridge/util.h>
  
- /*
-@@ -848,11 +892,14 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- 		status = DSP_EMEMORY;
+ /*  ----------------------------------- Platform Manager */
+ #include <dspbridge/brddefs.h>
+diff --git a/drivers/dsp/bridge/wmd/tiomap_io.c b/drivers/dsp/bridge/wmd/tiomap_io.c
+index 6121e8f..5ef0f9a 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_io.c
++++ b/drivers/dsp/bridge/wmd/tiomap_io.c
+@@ -43,7 +43,6 @@
  
- 	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, argc);
-+	if (DSP_FAILED(status))
-+		goto func_cont;
-+
- 	for (i = 0; DSP_SUCCEEDED(status) && (i < argc); i++) {
- 		if (argv[i] != NULL) {
--                        /* User space pointer to argument */
--                       temp = (char *) argv[i];
--                       len = strlen_user((char *)temp);
-+			/* User space pointer to argument */
-+			temp = (char *) argv[i];
-+			len = strlen_user((char *)temp);
- 			/* Kernel space pointer to argument */
- 			argv[i] = MEM_Alloc(len, MEM_NONPAGED);
- 			if (argv[i] == NULL) {
-@@ -860,6 +907,9 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- 				break;
- 			}
- 			cp_fm_usr(argv[i], temp, status, len);
-+			if (DSP_FAILED(status))
-+				goto func_cont;
-+
- 		}
- 	}
- 	/* TODO: validate this */
-@@ -868,17 +918,21 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- 		len = 0;
- 		do {
- 			len++;
--                       get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
--               } while (temp);
-+			get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
-+		} while (temp);
- 		envp = MEM_Alloc(len * sizeof(u8 *), MEM_NONPAGED);
--		if (envp == NULL)
-+		if (envp == NULL) {
- 			status = DSP_EMEMORY;
-+			goto func_cont;
-+		}
+ /*  ----------------------------------- OS Adaptation Layer */
+ #include <dspbridge/mem.h>
+-#include <dspbridge/util.h>
+ #include <dspbridge/cfg.h>
  
- 		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, len);
-+		if (DSP_FAILED(status))
-+			goto func_cont;
- 		for (i = 0; DSP_SUCCEEDED(status) && (envp[i] != NULL); i++) {
--                        /* User space pointer to argument */
--                       temp = (char *)envp[i];
--                       len = strlen_user((char *)temp);
-+			/* User space pointer to argument */
-+			temp = (char *)envp[i];
-+			len = strlen_user((char *)temp);
- 			/* Kernel space pointer to argument */
- 			envp[i] = MEM_Alloc(len, MEM_NONPAGED);
- 			if (envp[i] == NULL) {
-@@ -886,6 +940,8 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- 				break;
- 			}
- 			cp_fm_usr(envp[i], temp, status, len);
-+			if (DSP_FAILED(status))
-+				goto func_cont;
- 		}
- 	}
- 	GT_5trace(WCD_debugMask, GT_ENTER,
-@@ -899,6 +955,7 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- 				  args->ARGS_PROC_LOAD.iArgc,
- 				  (CONST char **)argv, (CONST char **)envp);
- 	}
-+func_cont:
- 	if (envp != NULL) {
- 		i = 0;
- 		while (envp[i] != NULL)
-@@ -1039,7 +1096,7 @@ u32 NODEWRAP_Allocate(union Trapped_Args *args)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_UUID nodeId;
--	u32 cbDataSize;
-+	u32 cbDataSize = 0;
- 	u32 __user *pSize = (u32 __user *)args->ARGS_NODE_ALLOCATE.pArgs;
- 	u8 *pArgs = NULL;
- 	struct DSP_NODEATTRIN attrIn, *pAttrIn = NULL;
-@@ -1063,11 +1120,15 @@ u32 NODEWRAP_Allocate(union Trapped_Args *args)
- 			 cbDataSize);
- 	}
- 	cp_fm_usr(&nodeId, args->ARGS_NODE_ALLOCATE.pNodeID, status, 1);
-+	if (DSP_FAILED(status))
-+		goto func_cont;
- 	/* Optional argument */
- 	if (args->ARGS_NODE_ALLOCATE.pAttrIn) {
- 		cp_fm_usr(&attrIn, args->ARGS_NODE_ALLOCATE.pAttrIn, status, 1);
- 		if (DSP_SUCCEEDED(status))
- 			pAttrIn = &attrIn;
-+		else
-+			status = DSP_EMEMORY;
- 
- 	}
- 	if (DSP_SUCCEEDED(status)) {
-@@ -1076,6 +1137,7 @@ u32 NODEWRAP_Allocate(union Trapped_Args *args)
- 				      pAttrIn, &hNode);
- 	}
- 	cp_to_usr(args->ARGS_NODE_ALLOCATE.phNode, &hNode, status, 1);
-+func_cont:
- 	if (pArgs)
- 		MEM_Free(pArgs);
- 
-@@ -1105,7 +1167,7 @@ u32 NODEWRAP_AllocMsgBuf(union Trapped_Args *args)
- 					 args->ARGS_NODE_ALLOCMSGBUF.uSize,
- 					 pAttr, &pBuffer);
- 	}
--	cp_to_usr(args->ARGS_NODE_ALLOCMSGBUF.pBuffer, &pBuffer, status, 1)
-+	cp_to_usr(args->ARGS_NODE_ALLOCMSGBUF.pBuffer, &pBuffer, status, 1);
- 	return status;
- }
- 
-@@ -1146,12 +1208,16 @@ u32 NODEWRAP_Connect(union Trapped_Args *args)
- 		cbDataSize += sizeof(u32);
- 		if (DSP_SUCCEEDED(status)) {
- 			pArgs = MEM_Alloc(cbDataSize, MEM_NONPAGED);
--			if (pArgs == NULL)
-+			if (pArgs == NULL) {
- 				status = DSP_EMEMORY;
-+				goto func_cont;
-+			}
- 
- 		}
- 		cp_fm_usr(pArgs, args->ARGS_NODE_CONNECT.pConnParam, status,
- 			 cbDataSize);
-+		if (DSP_FAILED(status))
-+			goto func_cont;
- 	}
- 	if (args->ARGS_NODE_CONNECT.pAttrs) {	/* Optional argument */
- 		cp_fm_usr(&attrs, args->ARGS_NODE_CONNECT.pAttrs, status, 1);
-@@ -1166,6 +1232,7 @@ u32 NODEWRAP_Connect(union Trapped_Args *args)
- 				     args->ARGS_NODE_CONNECT.uOtherStream,
- 				     pAttrs, (struct DSP_CBDATA *)pArgs);
- 	}
-+func_cont:
- 	if (pArgs)
- 		MEM_Free(pArgs);
- 
-@@ -1358,6 +1425,8 @@ u32 NODEWRAP_GetUUIDProps(union Trapped_Args *args)
- 
- 
- 	cp_fm_usr(&nodeId, args->ARGS_NODE_GETUUIDPROPS.pNodeID, status, 1);
-+	if (DSP_FAILED(status))
-+		goto func_cont;
- 	pnodeProps = MEM_Alloc(sizeof(struct DSP_NDBPROPS), MEM_NONPAGED);
- 	if (pnodeProps != NULL) {
- 		status = NODE_GetUUIDProps(args->
-@@ -1365,8 +1434,9 @@ u32 NODEWRAP_GetUUIDProps(union Trapped_Args *args)
- 					  &nodeId, pnodeProps);
- 		cp_to_usr(args->ARGS_NODE_GETUUIDPROPS.pNodeProps, pnodeProps,
- 			 status, 1);
--	}	else
-+	} else
- 		status = DSP_EMEMORY;
-+func_cont:
- 	if (pnodeProps)
- 		MEM_Free(pnodeProps);
- 	return status;
-@@ -1487,16 +1557,17 @@ u32 STRMWRAP_Idle(union Trapped_Args *args)
-  */
- u32 STRMWRAP_Issue(union Trapped_Args *args)
- {
--	u32 retVal;
--
--	retVal = STRM_Issue(args->ARGS_STRM_ISSUE.hStream,
-+	DSP_STATUS status = DSP_SOK;
-+	/* No need of doing cp_fm_usr for the user buffer (pBuffer)
-+	as this is done in Bridge internal function WMD_CHNL_AddIOReq
-+	in chnl_sm.c */
-+	status = STRM_Issue(args->ARGS_STRM_ISSUE.hStream,
- 			args->ARGS_STRM_ISSUE.pBuffer,
- 			args->ARGS_STRM_ISSUE.dwBytes,
- 			args->ARGS_STRM_ISSUE.dwBufSize,
- 			args->ARGS_STRM_ISSUE.dwArg);
- 
--	/* This is a user space pointer */
--	return retVal;
-+	return status;
- }
- 
- /*
+ /*  ----------------------------------- specific to this file */
 -- 
 1.6.2.4
 
