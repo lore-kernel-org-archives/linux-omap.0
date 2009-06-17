@@ -1,46 +1,80 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading issue
-Date: Wed, 17 Jun 2009 08:54:39 -0700
-Message-ID: <87vdmuyhxc.fsf@deeprootsystems.com>
-References: <notify-1245247047@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] SDRC: Remove SDRC_POWER register configuration from SDRC
+ init.
+Date: Wed, 17 Jun 2009 10:25:04 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906171021120.3382@utopia.booyaka.com>
+References: <1245245721-7052-1-git-send-email-Artem.Bityutskiy@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:52961 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752667AbZFQPyk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 11:54:40 -0400
-Received: by pxi27 with SMTP id 27so476651pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 17 Jun 2009 08:54:42 -0700 (PDT)
-In-Reply-To: <notify-1245247047@atomide.com> (Tony Lindgren's message of "Wed\, 17 Jun 2009 09\:57\:26 -0400")
+Received: from utopia.booyaka.com ([72.9.107.138]:42700 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754136AbZFQQZD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 12:25:03 -0400
+In-Reply-To: <1245245721-7052-1-git-send-email-Artem.Bityutskiy@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, vikram.pandita@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Samu Onkalo <samu.p.onkalo@nokia.com>, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
 
-Tony Lindgren <tony@atomide.com> writes:
+Hello Samu, Artem,
 
-> This patch has been applied to the linux-omap
-> by youw fwiendly patch wobot.
->
-> Branch in linux-omap: omap-fixes
->
-> Initial commit ID (Likely to change): f84eca35d44fd64cdde542f12d08eb04ca534954
->
-> PatchWorks
-> http://patchwork.kernel.org/patch/29668/
->
-> Git (Likely to change, and takes a while to get mirrored)
-> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=f84eca35d44fd64cdde542f12d08eb04ca534954
+On Wed, 17 Jun 2009, Artem Bityutskiy wrote:
 
-Sorry, I didn't get to this beforethe merge, but $SUBJECT for this
-patch is wrong and not terribly helpful.  It refers to the symptom, bu
-tnot the root cause.
+> From: Samu Onkalo <samu.p.onkalo@nokia.com>
+> 
+> Bootloader must configure proper settings for SDRC before starting
+> kernel from SDRAM. Furthermore, removed lines violated omap3430 and
+> omap2420 SDRC errata (see errata 1.150)
 
-It should be something like: 
-
-OMAP3: Zoom2: pass IRQ triggering flags for serial driver
-
-Kevin
+The 2420 and 3430 errata data here seems to be old; neither one contains 
+1.150.  While I wait for a new version to arrive, can you provide some 
+more context on this errata?  Does it imply any restrictions on 
+programming SDRC_POWER from SRAM, e.g., the CORE DVFS code?
 
 
+- Paul
+
+> 
+> Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
+> ---
+>  arch/arm/mach-omap2/sdrc.c |   10 ++--------
+>  1 files changed, 2 insertions(+), 8 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+> index 2045441..0874687 100644
+> --- a/arch/arm/mach-omap2/sdrc.c
+> +++ b/arch/arm/mach-omap2/sdrc.c
+> @@ -86,8 +86,8 @@ void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
+>   * @sp: pointer to a null-terminated list of struct omap_sdrc_params
+>   *
+>   * Turn on smart idle modes for SDRAM scheduler and controller.
+> - * Program a known-good configuration for the SDRC to deal with buggy
+> - * bootloaders.
+> + * Bootloaders should make proper configuration for SDRC since kernel
+> + * is running from SDRAM.
+>   */
+>  void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
+>  {
+> @@ -104,10 +104,4 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
+>  	sdrc_write_reg(l, SDRC_SYSCONFIG);
+>  
+>  	sdrc_init_params = sp;
+> -
+> -	/* XXX Enable SRFRONIDLEREQ here also? */
+> -	l = (1 << SDRC_POWER_EXTCLKDIS_SHIFT) |
+> -		(1 << SDRC_POWER_PWDENA_SHIFT) |
+> -		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
+> -	sdrc_write_reg(l, SDRC_POWER);
+>  }
+> -- 
+> 1.6.0.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
