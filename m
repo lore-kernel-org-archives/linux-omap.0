@@ -1,125 +1,58 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] adding back some features
-Date: Wed, 17 Jun 2009 02:58:03 -0700
-Message-ID: <20090617095802.GI6605@atomide.com>
-References: <1244844693-24126-1-git-send-email-khilman@ti.deeprootsystems.com> <20090615080001.GC4474@atomide.com> <87ski1a6n1.fsf@deeprootsystems.com> <87k53da3eb.fsf@deeprootsystems.com> <20090617083119.GF6605@atomide.com> <alpine.DEB.2.00.0906170233400.3382@utopia.booyaka.com>
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH] i2c-omap: Fix build breaking typo cpu_is_omap_2430
+Date: Wed, 17 Jun 2009 03:20:21 -0700
+Message-ID: <20090617102020.GJ6605@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50493 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517AbZFQJ6F (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 17 Jun 2009 05:58:05 -0400
+Content-Type: multipart/mixed; boundary="vtzGhvizbBRQ85DL"
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0906170233400.3382@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: i2c <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: tero.kristo@nokia.com, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [090617 01:35]:
-> code comment below:
-> 
-> On Wed, 17 Jun 2009, Tony Lindgren wrote:
-> 
-> > * Kevin Hilman <khilman@deeprootsystems.com> [090615 09:05]:
-> > > Kevin Hilman <khilman@deeprootsystems.com> writes:
-> > > 
-> > > > Tony Lindgren <tony@atomide.com> writes:
-> > > >
-> > > >> Hi,
-> > > >>
-> > > >> * Kevin Hilman <khilman@deeprootsystems.com> [090612 15:13]:
-> > > >>> Here's a couple patches to add-back some feature dropped in the
-> > > >>> mainline sync.  These are needed for the PM branch among other things.
-> > > >>> 
-> > > >>> Applies to linux-omap master.
-> > > >>> 
-> > > >>> Kevin Hilman (1):
-> > > >>>   OMAP2/3: SoC IDs: add omap_type() for determining GP/EMU/HS
-> > > >>
-> > > >> Is there any reason to get this one into mainline early?
-> > > >
-> > > > Well, the PM branch has a dependency, but also the recenetly submitted
-> > > > qwatchdog driver has a dependency.
-> > > >
-> > > >> If not, I suggest you keep this in your pm branch for next merge
-> > > >> window that I can keep merging to l-o master as needed.
-> > > >>
-> > > >> However, if omap_type() is by other queues earlier, then I can
-> > > >> add it into my upstream queue. If this blocks several queues
-> > > >> from being rebased against mainline kernel, that alone might
-> > > >> already be a good enough reason to get it in early.
-> > > >
-> > > > I think it should go via your upstream queue.  I imagine some of the
-> > > > other upcoming driver submissions from TI will have a dependency as
-> > > > well since there is still some missing EMU/HS support ind drivers.
-> > > 
-> > > Also, I'm carrying this SRAM patch below for HS/EMU that could go into
-> > > Paul's SRAM/SDRC queue if this omap_type() gets merged sooner rather
-> > > than later.
-> > 
-> > Hmm, the HS omap sram.c patch below for sure justifies fixing it as
-> > incorrect SRAM size can cause nasty bugs.
-> > 
-> > Will add both omap_type and the sram.c patch below to omap-fixes.
-> > 
-> > Regards,
-> > 
-> > Tony
-> >  
-> > > Kevin
-> > > 
-> > > commit 106588e30f070d9a8d5906d409e0b9aad89edc9e
-> > > Author: Tero Kristo <tero.kristo@nokia.com>
-> > > Date:   Thu Oct 9 17:47:02 2008 +0300
-> > > 
-> > >     OMAP3: SRAM size fix for HS/EMU devices
-> > >     
-> > >     Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> > >     Signed-off-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
-> > > 
-> > > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> > > old mode 100644
-> > > new mode 100755
-> > > index 65006df..f40bd2d
-> > > --- a/arch/arm/plat-omap/sram.c
-> > > +++ b/arch/arm/plat-omap/sram.c
-> > > @@ -131,9 +131,15 @@ void __init omap_detect_sram(void)
-> > >  	if (cpu_class_is_omap2()) {
-> > >  		if (is_sram_locked()) {
-> > >  			if (cpu_is_omap34xx()) {
-> > > -				omap_sram_base = OMAP3_SRAM_PUB_VA;
-> > > -				omap_sram_start = OMAP3_SRAM_PUB_PA;
-> > > -				omap_sram_size = 0x8000; /* 32K */
-> > > +				if (omap_type() == OMAP2_DEVICE_TYPE_GP) {
-> > > +					omap_sram_base = OMAP3_SRAM_PUB_VA;
-> > > +					omap_sram_start = OMAP3_SRAM_PUB_PA;
-> > > +					omap_sram_size = 0x8000; /* 32K */
-> > > +				} else {
-> 
-> This would be better if it specifically tested for HS and EMU devices.  
-> There are at least two other omap_type() possibilities here, "TEST" and 
-> "BAD"
 
-Tero, can you please repost? I will hold on sending out the omap-fixes
-for that, and refresh omap-fixes with the updated patch.
+--vtzGhvizbBRQ85DL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hi Ben,
+
+Can you please queue this fix?
+
+Thanks,
 
 Tony
 
- 
-> > > +					omap_sram_base = OMAP3_SRAM_PUB_VA;
-> > > +					omap_sram_start = OMAP3_SRAM_PUB_PA;
-> > > +					omap_sram_size = 0x7000; /* 28K */
-> > > +				}
-> > >  			} else {
-> > >  				omap_sram_base = OMAP2_SRAM_PUB_VA;
-> > >  				omap_sram_start = OMAP2_SRAM_PUB_PA;
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> 
-> - Paul
+--vtzGhvizbBRQ85DL
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="i2c-omap-fix.patch"
+
+>From ffe2b2cdf6283770b70a197e3748c6b40a1006be Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Date: Wed, 17 Jun 2009 13:14:23 +0300
+Subject: [PATCH] i2c-omap: Fix build breaking typo in cpu_is_omap_2430
+
+Commit 84bf2c86 introduced a typo, it should be cpu_is_omap2430
+instead. The typo was probably caused by a mismerge.
+
+Without this patch all omaps fail to build with:
+error: implicit declaration of function 'cpu_is_omap_2430'
+
+Signed-off-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index b606db8..ad8d201 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -339,7 +339,7 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+ 		 * to get longer filter period for better noise suppression.
+ 		 * The filter is iclk (fclk for HS) period.
+ 		 */
+-		if (dev->speed > 400 || cpu_is_omap_2430())
++		if (dev->speed > 400 || cpu_is_omap2430())
+ 			internal_clk = 19200;
+ 		else if (dev->speed > 100)
+ 			internal_clk = 9600;
+
+--vtzGhvizbBRQ85DL--
