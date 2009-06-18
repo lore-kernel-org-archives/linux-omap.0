@@ -1,72 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/2] OMAP3: SRAM size fix for HS/EMU devices
-Date: Thu, 18 Jun 2009 07:12:42 -0700
-Message-ID: <8763etvdet.fsf@deeprootsystems.com>
-References: <1245283206-6568-1-git-send-email-khilman@deeprootsystems.com>
-	<1245283206-6568-2-git-send-email-khilman@deeprootsystems.com>
-	<20090618051624.GA8482@atomide.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: L-O master branch broken ?
+Date: Thu, 18 Jun 2009 20:17:10 +0530
+Message-ID: <006701c9f023$aa55a170$LocalHost@wipultra793>
+References: <00eb01c9eff8$13dba760$LocalHost@wipultra793> <20090618075257.GF8482@atomide.com> <011e01c9f000$fc86f8e0$LocalHost@wipultra793> <20090618102237.GI8482@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f185.google.com ([209.85.222.185]:50292 "EHLO
-	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751452AbZFROMn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 10:12:43 -0400
-Received: by pzk15 with SMTP id 15so893529pzk.4
-        for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2009 07:12:45 -0700 (PDT)
-In-Reply-To: <20090618051624.GA8482@atomide.com> (Tony Lindgren's message of "Thu\, 18 Jun 2009 08\:16\:27 +0300")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40325 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754739AbZFROrV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Jun 2009 10:47:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-Tony Lindgren <tony@atomide.com> writes:
 
-> * Kevin Hilman <khilman@deeprootsystems.com> [090618 03:00]:
->> From: Tero Kristo <tero.kristo@nokia.com>
->> 
->> SRAM size fix for HS/EMU devices
->> 
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> Signed-off-by: Tony Lindgren <tony@atomide.com>
->> ---
->>  arch/arm/plat-omap/sram.c |    6 +++++-
->>  1 files changed, 5 insertions(+), 1 deletions(-)
->>  mode change 100644 => 100755 arch/arm/plat-omap/sram.c
+----- Original Message ----- 
+From: "Tony Lindgren" <tony@atomide.com>
+To: "Hemanth V" <hemanthv@ti.com>
+Cc: "Kevin Hilman" <khilman@deeprootsystems.com>; 
+<linux-omap@vger.kernel.org>
+Sent: Thursday, June 18, 2009 3:52 PM
+Subject: Re: L-O master branch broken ?
+
+
+>* Hemanth V <hemanthv@ti.com> [090618 13:39]:
+>> ----- Original Message ----- From: "Tony Lindgren" <tony@atomide.com>
+>>
+>>
+>>>> I get the below error while compiling 3430SDP. I see below commit  as 
+>>>> the
+>>>> latest one.
+>>
+>>>
+>>> Thanks, pushing a fix right now with the missing brace missing from
+>>> Kevin's
+>>> sram.c patch. Also moved around the defines so sram.c build for omap1.
+>>>
+>>
+>> Booting still seems to have problems. Its hung after start kernel
+>>
+>>
+>> Bytes transferred = 2480664 (25da18 hex)
+>> ## Booting image at 80000000 ...
+>>   Image Name:   Linux-2.6.30-omap1-06022-g6f4712
+>>   Image Type:   ARM Linux Kernel Image (uncompressed)
+>>   Data Size:    2480600 Bytes =  2.4 MB
+>>   Load Address: 80008000
+>>   Entry Point:  80008000
+>>   Verifying Checksum ... OK
+>> OK
+>>
+>> Starting kernel ...
+>>
 >
-> This one also has some mode change going on, please check your repos.
-> Will fix before applying.
->
+> Can you see what happens with DEBUG_LL enabled?
 
-Sorry, I shot this one out too quickly... it didn't compile either.  Sorry.
+Doesn't seem to show any additional messages even with
+DEBUG_LL enabled 
 
-Kevin
-
->  
->> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
->> old mode 100644
->> new mode 100755
->> index 65006df..80bf3b1
->> --- a/arch/arm/plat-omap/sram.c
->> +++ b/arch/arm/plat-omap/sram.c
->> @@ -133,7 +133,11 @@ void __init omap_detect_sram(void)
->>  			if (cpu_is_omap34xx()) {
->>  				omap_sram_base = OMAP3_SRAM_PUB_VA;
->>  				omap_sram_start = OMAP3_SRAM_PUB_PA;
->> -				omap_sram_size = 0x8000; /* 32K */
->> +				if ((omap_type() == OMAP2_DEVICE_TYPE_EMU) ||
->> +				    (omap_type() == OMAP2_DEVICE_TYPE_SEC)) {
->> +					omap_sram_size = 0x7000; /* 28K */
->> +				else
->> +					omap_sram_size = 0x8000; /* 32K */
->>  			} else {
->>  				omap_sram_base = OMAP2_SRAM_PUB_VA;
->>  				omap_sram_start = OMAP2_SRAM_PUB_PA;
->> -- 
->> 1.6.3.2
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
