@@ -1,61 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] IOMMU: function flush_iotlb_page is not flushing
-	correct entry
-Date: Thu, 18 Jun 2009 08:05:56 +0300
-Message-ID: <20090618050554.GD8079@atomide.com>
-References: <1245058706-22504-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 2/2] OMAP3: SRAM size fix for HS/EMU devices
+Date: Thu, 18 Jun 2009 08:16:27 +0300
+Message-ID: <20090618051624.GA8482@atomide.com>
+References: <1245283206-6568-1-git-send-email-khilman@deeprootsystems.com> <1245283206-6568-2-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62842 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751726AbZFRHGB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 03:06:01 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57472 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751597AbZFRHQb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 03:16:31 -0400
 Content-Disposition: inline
-In-Reply-To: <1245058706-22504-1-git-send-email-Hiroshi.DOYU@nokia.com>
+In-Reply-To: <1245283206-6568-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap@vger.kernel.org, Fernando Guzman Lugo <x0095840@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090615 12:39]:
-> From: Fernando Guzman Lugo <x0095840@ti.com>
+* Kevin Hilman <khilman@deeprootsystems.com> [090618 03:00]:
+> From: Tero Kristo <tero.kristo@nokia.com>
 > 
-> From: Fernando Guzman Lugo <x0095840@ti.com>
+> SRAM size fix for HS/EMU devices
 > 
-> The function flush_iotlb_page is not loading the CAM register with
-> the correct entry to be flushed, so it is flushing other entry
-> 
-> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
-> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 > ---
->  arch/arm/plat-omap/iommu.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->  mode change 100644 => 100755 arch/arm/plat-omap/iommu.c
-> 
-> diff --git a/arch/arm/plat-omap/iommu.c b/arch/arm/plat-omap/iommu.c
-> old mode 100644
-> new mode 100755
+>  arch/arm/plat-omap/sram.c |    6 +++++-
+>  1 files changed, 5 insertions(+), 1 deletions(-)
+>  mode change 100644 => 100755 arch/arm/plat-omap/sram.c
 
-This made some bad mode changes as noted by Paul, will fix in l-o master
-and in omap-fixes. But please check your repos too!
+This one also has some mode change going on, please check your repos.
+Will fix before applying.
 
 Tony
-
-> index 4cf449f..4a03013
-> --- a/arch/arm/plat-omap/iommu.c
-> +++ b/arch/arm/plat-omap/iommu.c
-> @@ -298,7 +298,7 @@ void flush_iotlb_page(struct iommu *obj, u32 da)
->  		if ((start <= da) && (da < start + bytes)) {
->  			dev_dbg(obj->dev, "%s: %08x<=%08x(%x)\n",
->  				__func__, start, da, bytes);
-> -
-> +			iotlb_load_cr(obj, &cr);
->  			iommu_write_reg(obj, 1, MMU_FLUSH_ENTRY);
->  		}
->  	}
+ 
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> old mode 100644
+> new mode 100755
+> index 65006df..80bf3b1
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -133,7 +133,11 @@ void __init omap_detect_sram(void)
+>  			if (cpu_is_omap34xx()) {
+>  				omap_sram_base = OMAP3_SRAM_PUB_VA;
+>  				omap_sram_start = OMAP3_SRAM_PUB_PA;
+> -				omap_sram_size = 0x8000; /* 32K */
+> +				if ((omap_type() == OMAP2_DEVICE_TYPE_EMU) ||
+> +				    (omap_type() == OMAP2_DEVICE_TYPE_SEC)) {
+> +					omap_sram_size = 0x7000; /* 28K */
+> +				else
+> +					omap_sram_size = 0x8000; /* 32K */
+>  			} else {
+>  				omap_sram_base = OMAP2_SRAM_PUB_VA;
+>  				omap_sram_start = OMAP2_SRAM_PUB_PA;
 > -- 
-> 1.6.0.4
+> 1.6.3.2
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
