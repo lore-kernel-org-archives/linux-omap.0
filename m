@@ -1,107 +1,63 @@
-From: <samu.p.onkalo@nokia.com>
-Subject: RE: [PATCH] SDRC: Remove SDRC_POWER register configuration from
- SDRC init.
-Date: Thu, 18 Jun 2009 08:03:45 +0200
-Message-ID: <62697B07E9803846BC582181BD6FB6B80D704A359D@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1245245721-7052-1-git-send-email-Artem.Bityutskiy@nokia.com>
- <alpine.DEB.2.00.0906171021120.3382@utopia.booyaka.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Thu, 18 Jun 2009 09:07:12 +0300
+Message-ID: <20090618090712.8f8ecd53.jhnikula@gmail.com>
+References: <4A1BEBE3.8010306@tis.icnet.pl>
+	<200906030924.14230.jkrzyszt@tis.icnet.pl>
+	<20090605165531.7d0c4522.jhnikula@gmail.com>
+	<200906060028.01600.jkrzyszt@tis.icnet.pl>
+	<20090608094028.415e6ec3.jhnikula@gmail.com>
+	<4A2E7921.7090200@tis.icnet.pl>
+	<4A364B1A.5040905@tis.icnet.pl>
+	<20090615181633.4570426f.jhnikula@gmail.com>
+	<4A37AFA9.4080403@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:27057 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759699AbZFRGEx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 02:04:53 -0400
-In-Reply-To: <alpine.DEB.2.00.0906171021120.3382@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:49979 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753971AbZFRGGh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 02:06:37 -0400
+In-Reply-To: <4A37AFA9.4080403@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: dderrick@ti.com, r-woodruff2@ti.com, rnayak@ti.com, Artem.Bityutskiy@nokia.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
+
+On Tue, 16 Jun 2009 16:43:53 +0200
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+
+> >>> - original patch ported to the last l-o commit supporting
+> >>> omap-alsa:
+> >>>   - playback: works as before,
+> >>>   - capture: both </dev/dsp and arecord give null output,
+> >>>     but DMA interrupts still work.
+> I can confirm that the old driver can set up mcbsp in a way that
+> keeps it shifting the contents of its input register, loaded with a
+> pattern using omap_mcbsp_pollwrite() as Peter suggested, even if I
+> break dma by commenting out all omap_start_dma() invocations. I have
+> verified this by detecting averaged voltage level changes on the
+> codec input pin with a simple multimeter (I still have not get access
+> to a scope back).
+> 
+Heh, clever and adequate enough test at the moment until we'll get bit
+running over the interface :-)
+
+> Using the new driver, I am not able to detect similiar voltage
+> changes, whatever I do to get the mcbsp sending data to the codec
+> over its serial output. I have modified omap-mcbsp code with a hacked
+> in probe hook that initializes mcbsp at boot time exactly as the old
+> driver does it - no results.
+> 
+Hmm, recall, did you try hacking the ASoC driver at the same commit
+d8376cc482b241701f7606c81ad578b90853e175 where older driver still
+exists and works? There has been ASoC OMAP fixes and changes since
+then but nothing which can explain why it doesn't work now for 1510.
+
+There we would know that clock framework, register access etc. works for
+McBSP on 1510.
 
 
-Hi, 
-
-Perhaps someone from TI could comment that. I'm not sure if I can share
-errata information for public discussion.
-
-Br,
-Samu
-
->-----Original Message-----
->From: ext Paul Walmsley [mailto:paul@pwsan.com] 
->Sent: 17 June, 2009 19:25
->To: Onkalo Samu.P (Nokia-D/Tampere); Bityutskiy Artem 
->(Nokia-D/Helsinki)
->Cc: linux-omap@vger.kernel.org; Tony Lindgren
->Subject: Re: [PATCH] SDRC: Remove SDRC_POWER register 
->configuration from SDRC init.
->
->Hello Samu, Artem,
->
->On Wed, 17 Jun 2009, Artem Bityutskiy wrote:
->
->> From: Samu Onkalo <samu.p.onkalo@nokia.com>
->> 
->> Bootloader must configure proper settings for SDRC before starting 
->> kernel from SDRAM. Furthermore, removed lines violated omap3430 and 
->> omap2420 SDRC errata (see errata 1.150)
->
->The 2420 and 3430 errata data here seems to be old; neither 
->one contains 1.150.  While I wait for a new version to arrive, 
->can you provide some more context on this errata?  Does it 
->imply any restrictions on programming SDRC_POWER from SRAM, 
->e.g., the CORE DVFS code?
->
->
->- Paul
->
->> 
->> Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
->> ---
->>  arch/arm/mach-omap2/sdrc.c |   10 ++--------
->>  1 files changed, 2 insertions(+), 8 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c 
->> index 2045441..0874687 100644
->> --- a/arch/arm/mach-omap2/sdrc.c
->> +++ b/arch/arm/mach-omap2/sdrc.c
->> @@ -86,8 +86,8 @@ void __init omap2_set_globals_sdrc(struct 
->omap_globals *omap2_globals)
->>   * @sp: pointer to a null-terminated list of struct omap_sdrc_params
->>   *
->>   * Turn on smart idle modes for SDRAM scheduler and controller.
->> - * Program a known-good configuration for the SDRC to deal 
->with buggy
->> - * bootloaders.
->> + * Bootloaders should make proper configuration for SDRC 
->since kernel
->> + * is running from SDRAM.
->>   */
->>  void __init omap2_sdrc_init(struct omap_sdrc_params *sp)  { @@ 
->> -104,10 +104,4 @@ void __init omap2_sdrc_init(struct 
->omap_sdrc_params *sp)
->>  	sdrc_write_reg(l, SDRC_SYSCONFIG);
->>  
->>  	sdrc_init_params = sp;
->> -
->> -	/* XXX Enable SRFRONIDLEREQ here also? */
->> -	l = (1 << SDRC_POWER_EXTCLKDIS_SHIFT) |
->> -		(1 << SDRC_POWER_PWDENA_SHIFT) |
->> -		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
->> -	sdrc_write_reg(l, SDRC_POWER);
->>  }
->> --
->> 1.6.0.6
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" 
->> in the body of a message to majordomo@vger.kernel.org More majordomo 
->> info at  http://vger.kernel.org/majordomo-info.html
->> 
->
->
->- Paul
->
+-- 
+Jarkko
