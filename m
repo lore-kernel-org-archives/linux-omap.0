@@ -1,49 +1,49 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Progress in adding ams-delta support to ASoC?
-Date: Thu, 18 Jun 2009 10:58:24 +0300
-Message-ID: <20090618075820.GG8482@atomide.com>
-References: <4A1BEBE3.8010306@tis.icnet.pl> <4A37AFA9.4080403@tis.icnet.pl> <4A38F9D6.5000803@tis.icnet.pl> <200906181202.11414.peter.ujfalusi@nokia.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: L-O master branch broken ?
+Date: Thu, 18 Jun 2009 16:08:55 +0530
+Message-ID: <011e01c9f000$fc86f8e0$LocalHost@wipultra793>
+References: <00eb01c9eff8$13dba760$LocalHost@wipultra793> <20090618075257.GF8482@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61793 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338AbZFRJ6c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 05:58:32 -0400
-Content-Disposition: inline
-In-Reply-To: <200906181202.11414.peter.ujfalusi@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55955 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752358AbZFRKjK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Jun 2009 06:39:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@nokia.com> [090618 12:03]:
-> On Wednesday 17 June 2009 17:12:38 ext Janusz Krzysztofik wrote:
-> > Janusz Krzysztofik wrote:
-> > > After all, it is more and more likely that the problem is not dma, but
-> > > mcbsp just not shifting any data for some mysterious reason.
-> >
-> > I finally did what I should have already done before: learned about
-> > dynamic debugging, turned it on and probably got the answer from
-> > omap_msbsp_dump_reg(): all mcbsp1 register read operations returned
-> > 0xffff. So it looks like I simply get no acccess to mcbsp1 at all. Now I
-> > wonder if I can close this thread with a conclusion that mcbsp1 on
-> > opam15xx is simply not yet supported by the mainline kernel that I have
-> > based my work on.
-> 
-> Hmmm, this is quite unexpected.
-> Can you access to mcbsp2 or 3 registers, or only the mcbsp1 registers are not 
-> accessible?
-> One thing that I have noticed is that the McBSP1 (and 3) is under the DSP 
-> Public Peripherals, while McBSP2 is under MPU Public Peripherals (in 
-> OMAP1510).
-> I have to check it further what this actually means...
+----- Original Message ----- 
+From: "Tony Lindgren" <tony@atomide.com>
 
-Hmmm, do you have the DSP code compiled (and loaded)?
 
-On omap1, DSP needs to be powered and idled before some mcbsp clocks can
-be used. Or at least needs to be powered up.
+>> I get the below error while compiling 3430SDP. I see below commit  as the
+>> latest one.
 
-Regards,
+>
+> Thanks, pushing a fix right now with the missing brace missing from 
+> Kevin's
+> sram.c patch. Also moved around the defines so sram.c build for omap1.
+>
 
-Tony
+Booting still seems to have problems. Its hung after start kernel
+
+
+Bytes transferred = 2480664 (25da18 hex)
+## Booting image at 80000000 ...
+   Image Name:   Linux-2.6.30-omap1-06022-g6f4712
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    2480600 Bytes =  2.4 MB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+OK
+
+Starting kernel ... 
+
