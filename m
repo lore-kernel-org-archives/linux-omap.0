@@ -1,66 +1,41 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: L-O master branch broken ?
-Date: Thu, 18 Jun 2009 20:17:10 +0530
-Message-ID: <006701c9f023$aa55a170$LocalHost@wipultra793>
-References: <00eb01c9eff8$13dba760$LocalHost@wipultra793> <20090618075257.GF8482@atomide.com> <011e01c9f000$fc86f8e0$LocalHost@wipultra793> <20090618102237.GI8482@atomide.com>
+From: Wim Van Sebroeck <wim@iguana.be>
+Subject: Re: [PATCH 1/1] watchdog: OMAP fixes: enable clock in probe,
+	trigger timer reload
+Date: Thu, 18 Jun 2009 16:59:09 +0200
+Message-ID: <20090618145909.GM32136@infomag.iguana.be>
+References: <1244841512-12013-1-git-send-email-ubh@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40325 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754739AbZFROrV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 18 Jun 2009 10:47:21 -0400
+Received: from mailrelay012.isp.belgacom.be ([195.238.6.179]:37616 "EHLO
+	mailrelay012.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753577AbZFRO7I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Jun 2009 10:59:08 -0400
+Content-Disposition: inline
+In-Reply-To: <1244841512-12013-1-git-send-email-ubh@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Ulrik Bech Hald <ubh@ti.com>
+Cc: wim@iguana.be, linux-omap@vger.kernel.org
 
+Hi Ulrik,
 
------ Original Message ----- 
-From: "Tony Lindgren" <tony@atomide.com>
-To: "Hemanth V" <hemanthv@ti.com>
-Cc: "Kevin Hilman" <khilman@deeprootsystems.com>; 
-<linux-omap@vger.kernel.org>
-Sent: Thursday, June 18, 2009 3:52 PM
-Subject: Re: L-O master branch broken ?
+> This patch contains two bugfixes:
+> 
+> 1)In omap_wdt_probe() the watchdog is reset and disabled. This
+> requires register access and the clks needs to be enabled temporarily
+> 
+> 2)In omap_wdt_open() the timer register needs to be reloaded
+> to trigger a new timer value (the default of 60s)
+> 
+> Tested on OMAP34xx platform (Zoom1)
+> 
+> Reviewed-by: Kevin Hilman <khilman@ti.deeprootsystems.com>
+> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
 
+These fixes have been added to the linux-2.6-watchdog-next tree.
 
->* Hemanth V <hemanthv@ti.com> [090618 13:39]:
->> ----- Original Message ----- From: "Tony Lindgren" <tony@atomide.com>
->>
->>
->>>> I get the below error while compiling 3430SDP. I see below commit  as 
->>>> the
->>>> latest one.
->>
->>>
->>> Thanks, pushing a fix right now with the missing brace missing from
->>> Kevin's
->>> sram.c patch. Also moved around the defines so sram.c build for omap1.
->>>
->>
->> Booting still seems to have problems. Its hung after start kernel
->>
->>
->> Bytes transferred = 2480664 (25da18 hex)
->> ## Booting image at 80000000 ...
->>   Image Name:   Linux-2.6.30-omap1-06022-g6f4712
->>   Image Type:   ARM Linux Kernel Image (uncompressed)
->>   Data Size:    2480600 Bytes =  2.4 MB
->>   Load Address: 80008000
->>   Entry Point:  80008000
->>   Verifying Checksum ... OK
->> OK
->>
->> Starting kernel ...
->>
->
-> Can you see what happens with DEBUG_LL enabled?
-
-Doesn't seem to show any additional messages even with
-DEBUG_LL enabled 
+Kind regards,
+Wim.
 
