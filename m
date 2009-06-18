@@ -1,64 +1,49 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: L-O master branch broken ?
-Date: Thu, 18 Jun 2009 10:52:59 +0300
-Message-ID: <20090618075257.GF8482@atomide.com>
-References: <00eb01c9eff8$13dba760$LocalHost@wipultra793>
+Subject: Re: Progress in adding ams-delta support to ASoC?
+Date: Thu, 18 Jun 2009 10:58:24 +0300
+Message-ID: <20090618075820.GG8482@atomide.com>
+References: <4A1BEBE3.8010306@tis.icnet.pl> <4A37AFA9.4080403@tis.icnet.pl> <4A38F9D6.5000803@tis.icnet.pl> <200906181202.11414.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49890 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754410AbZFRJxD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 05:53:03 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61793 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752338AbZFRJ6c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 05:58:32 -0400
 Content-Disposition: inline
-In-Reply-To: <00eb01c9eff8$13dba760$LocalHost@wipultra793>
+In-Reply-To: <200906181202.11414.peter.ujfalusi@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-* Hemanth V <hemanthv@ti.com> [090618 12:35]:
-> I get the below error while compiling 3430SDP. I see below commit  as the 
-> latest one.
+* Peter Ujfalusi <peter.ujfalusi@nokia.com> [090618 12:03]:
+> On Wednesday 17 June 2009 17:12:38 ext Janusz Krzysztofik wrote:
+> > Janusz Krzysztofik wrote:
+> > > After all, it is more and more likely that the problem is not dma, but
+> > > mcbsp just not shifting any data for some mysterious reason.
+> >
+> > I finally did what I should have already done before: learned about
+> > dynamic debugging, turned it on and probably got the answer from
+> > omap_msbsp_dump_reg(): all mcbsp1 register read operations returned
+> > 0xffff. So it looks like I simply get no acccess to mcbsp1 at all. Now I
+> > wonder if I can close this thread with a conclusion that mcbsp1 on
+> > opam15xx is simply not yet supported by the mainline kernel that I have
+> > based my work on.
+> 
+> Hmmm, this is quite unexpected.
+> Can you access to mcbsp2 or 3 registers, or only the mcbsp1 registers are not 
+> accessible?
+> One thing that I have noticed is that the McBSP1 (and 3) is under the DSP 
+> Public Peripherals, while McBSP2 is under MPU Public Peripherals (in 
+> OMAP1510).
+> I have to check it further what this actually means...
 
-Thanks, pushing a fix right now with the missing brace missing from Kevin's
-sram.c patch. Also moved around the defines so sram.c build for omap1.
+Hmmm, do you have the DSP code compiled (and loaded)?
+
+On omap1, DSP needs to be powered and idled before some mcbsp clocks can
+be used. Or at least needs to be powered up.
 
 Regards,
 
 Tony
-
-
-> Hemanth
->
-> commit 3dc15d62d3f8e85d74dcbabc234585cb8dbc2194
-> Author: Tony Lindgren <tony@atomide.com>
-> Date:   Thu Jun 18 08:59:09 2009 +0300
->
->    Fix iommu.c file permissions
->
->    Commit c8c8bfc4c3664317441b0037040c9bdea210fba1 changed the
->    permissions, so undo that. Also checked the other files with:
->
->    $ find arch/arm/*omap* -type f -perm 755
->
->    Signed-off-by: Tony Lindgren <tony@atomide.com>
->
->
-> arch/arm/plat-omap/sram.c: In function 'omap_detect_sram':
-> arch/arm/plat-omap/sram.c:139: error: expected expression before 'else'
-> arch/arm/plat-omap/sram.c:190: warning: ISO C90 forbids mixed 
-> declarations and code
-> arch/arm/plat-omap/sram.c:347: error: invalid storage class for function  
-> 'omap242x_sram_init'
-> arch/arm/plat-omap/sram.c:368: error: invalid storage class for function  
-> 'omap243x_sram_init'
-> arch/arm/plat-omap/sram.c:433: error: expected declaration or statement 
-> at end of input
-> make[1]: *** [arch/arm/plat-omap/sram.o] Error 1
-> make: *** [arch/arm/plat-omap] Error 2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
