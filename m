@@ -1,38 +1,31 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading	issue
-Date: Thu, 18 Jun 2009 19:02:10 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F53D1C45@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading issue
+Date: Thu, 18 Jun 2009 07:11:51 -0700
+Message-ID: <87ab45vdg8.fsf@deeprootsystems.com>
 References: <notify-1245247047@atomide.com>
- <87vdmuyhxc.fsf@deeprootsystems.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F53D1897@dbde02.ent.ti.com>
- <20090618052710.GB8482@atomide.com>
+	<87vdmuyhxc.fsf@deeprootsystems.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702F53D1897@dbde02.ent.ti.com>
+	<20090618052710.GB8482@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53520 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751396AbZFRNcW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 09:32:22 -0400
-In-Reply-To: <20090618052710.GB8482@atomide.com>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.168]:1429 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752442AbZFROLv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 10:11:51 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so553193wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2009 07:11:53 -0700 (PDT)
+In-Reply-To: <20090618052710.GB8482@atomide.com> (Tony Lindgren's message of "Thu\, 18 Jun 2009 08\:27\:12 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Tony Lindgren <tony@atomide.com> writes:
 
-
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Thursday, June 18, 2009 12:27 AM
->To: Pandita, Vikram
->Cc: Kevin Hilman; linux-omap@vger.kernel.org
->Subject: Re: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading issue
->
->* Pandita, Vikram <vikram.pandita@ti.com> [090617 19:26]:
->>
->>
+> * Pandita, Vikram <vikram.pandita@ti.com> [090617 19:26]:
+>> 
+>> 
 >> >-----Original Message-----
 >> >From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
 >> >Sent: Wednesday, June 17, 2009 10:55 AM
@@ -63,19 +56,21 @@ Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <li
 >> >It should be something like:
 >> >
 >> >OMAP3: Zoom2: pass IRQ triggering flags for serial driver
->>
->> Yes that should have been the subject and
+>> 
+>> Yes that should have been the subject and 
 >> is put that way for the 8250 driver:
 >> http://lists.arm.linux.org.uk/lurker/attach/1@20090612.173251.776f9eda.attach
->>
+>> 
 >> It's learning for next time.
 >
->Will revert. I guess we now need two 8250 patches upstream? One for the
->omap register define, and one for the interrupt flags?
+> Will revert. I guess we now need two 8250 patches upstream? One for the
+> omap register define, and one for the interrupt flags?
 
-Would be very helpful if you could host these 8250 patches on l-o till we get someone to respond to these. This is a critical dependency.
+Yes, both of these are pending on LKML, and still no word from Alan.
 
+To get it upstream, I defined wake-up register locally in
+mach-omap2/serial.c until the patch gets merged, but for the interrupt
+flags there isn't an easy solution.
 
->
->Tony
+Kevin
 
