@@ -1,107 +1,181 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] SDRC: Remove SDRC_POWER register configuration from SDRC
- init.
-Date: Thu, 18 Jun 2009 15:29:15 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906181509350.4087@utopia.booyaka.com>
-References: <1245245721-7052-1-git-send-email-Artem.Bityutskiy@nokia.com> <alpine.DEB.2.00.0906171021120.3382@utopia.booyaka.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH v2] OMAP3: MMC: Add mux for pins
+Date: Thu, 18 Jun 2009 16:47:27 -0500
+Message-ID: <1245361647-25367-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:39890 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753458AbZFRV3N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 17:29:13 -0400
-In-Reply-To: <alpine.DEB.2.00.0906171021120.3382@utopia.booyaka.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:40321 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751550AbZFRVv3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 18 Jun 2009 17:51:29 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5ILpRJj013477
+	for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2009 16:51:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samu Onkalo <samu.p.onkalo@nokia.com>, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Cc: r-woodruff2@ti.com, linux-omap@vger.kernel.org, mike@android.com, khilman@deeprootsystems.com, Tony Lindgren <tony@atomide.com>
+To: linux-omap@vger.kernel.org
+Cc: Vikram Pandita <vikram.pandita@ti.com>, Chikkature Rajashekar <madhu.cr@ti.com>
 
-Hi, 
+For OMAP3 add MMC1 MMC2 pin mux
 
-On Wed, 17 Jun 2009, Paul Walmsley wrote:
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Signed-off-by: Chikkature Rajashekar <madhu.cr@ti.com>
+---
+ arch/arm/mach-omap2/devices.c         |   41 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mux.c             |   49 +++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/mux.h |   28 +++++++++++++++++++
+ 3 files changed, 118 insertions(+), 0 deletions(-)
 
-> On Wed, 17 Jun 2009, Artem Bityutskiy wrote:
-> 
-> > From: Samu Onkalo <samu.p.onkalo@nokia.com>
-> > 
-> > Bootloader must configure proper settings for SDRC before starting
-> > kernel from SDRAM. Furthermore, removed lines violated omap3430 and
-> > omap2420 SDRC errata (see errata 1.150)
-> 
-> The 2420 and 3430 errata data here seems to be old; neither one contains 
-> 1.150.  While I wait for a new version to arrive, can you provide some 
-> more context on this errata?  Does it imply any restrictions on 
-> programming SDRC_POWER from SRAM, e.g., the CORE DVFS code?
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 894cc35..f9886d5 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -513,6 +513,47 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
+ 			omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
+ 		}
+ 	}
++
++	if (cpu_is_omap3430()) {
++		if (controller_nr == 0) {
++			omap_cfg_reg(N28_3430_MMC1_CLK);
++			omap_cfg_reg(M27_3430_MMC1_CMD);
++			omap_cfg_reg(N27_3430_MMC1_DAT0);
++			if (mmc_controller->slots[0].wires == 4 ||
++				mmc_controller->slots[0].wires == 8) {
++				omap_cfg_reg(N26_3430_MMC1_DAT1);
++				omap_cfg_reg(N25_3430_MMC1_DAT2);
++				omap_cfg_reg(P28_3430_MMC1_DAT3);
++			}
++			if (mmc_controller->slots[0].wires == 8) {
++				omap_cfg_reg(P27_3430_MMC1_DAT4);
++				omap_cfg_reg(P26_3430_MMC1_DAT5);
++				omap_cfg_reg(R27_3430_MMC1_DAT6);
++				omap_cfg_reg(R25_3430_MMC1_DAT7);
++			}
++		}
++
++		if (controller_nr == 1) {
++			/* MMC2 */
++			omap_cfg_reg(AE2_3430_MMC2_CLK);
++			omap_cfg_reg(AG5_3430_MMC2_CMD);
++			omap_cfg_reg(AH5_3430_MMC2_DAT0);
++			if (mmc_controller->slots[0].wires == 4) {
++				omap_cfg_reg(AH4_3430_MMC2_DAT1);
++				omap_cfg_reg(AG4_3430_MMC2_DAT2);
++				omap_cfg_reg(AF4_3430_MMC2_DAT3);
++			}
++			if (mmc_controller->slots[0].wires == 8)
++				printk(KERN_WARNING
++					"\n MMC2: DAT4, DAT5, DAT6, DAT7: "
++					"Setup the mux in board file");
++		}
++		if (controller_nr == 2) {
++			/* MMC3 */
++			printk(KERN_WARNING
++				"\n MMC3: Setup the mux in board file");
++		}
++	}
+ }
+ 
+ void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 026c4fc..d49b9a7 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -486,6 +486,55 @@ MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++/* MMC1 */
++MUX_CFG_34XX("N28_3430_MMC1_CLK", 0x144,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("M27_3430_MMC1_CMD", 0x146,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("N27_3430_MMC1_DAT0", 0x148,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("N26_3430_MMC1_DAT1", 0x14a,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("N25_3430_MMC1_DAT2", 0x14c,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("P28_3430_MMC1_DAT3", 0x14e,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("P27_3430_MMC1_DAT4", 0x150,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("P26_3430_MMC1_DAT5", 0x152,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("R27_3430_MMC1_DAT6", 0x154,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("R25_3430_MMC1_DAT7", 0x156,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++
++/* MMC2 */
++MUX_CFG_34XX("AE2_3430_MMC2_CLK", 0x158,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AG5_3430_MMC2_CMD", 0x15A,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AH5_3430_MMC2_DAT0", 0x15c,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AH4_3430_MMC2_DAT1", 0x15e,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AG4_3430_MMC2_DAT2", 0x160,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AF4_3430_MMC2_DAT3", 0x162,
++		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
++
++/* MMC3 */
++MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
++		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x1d0,
++		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AE11_3430_MMC3_DAT0", 0x5e4,
++		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AH9_3430_MMC3_DAT1", 0x5e6,
++		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AF13_3430_MMC3_DAT2", 0x5e8,
++		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
++MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
++		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
+ };
+ 
+ #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+index 85a6217..d24fdf9 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -853,6 +853,34 @@ enum omap34xx_index {
+ 	AE5_34XX_GPIO143,
+ 	H19_34XX_GPIO164_OUT,
+ 	J25_34XX_GPIO170,
++
++	/* MMC1 */
++	N28_3430_MMC1_CLK,
++	M27_3430_MMC1_CMD,
++	N27_3430_MMC1_DAT0,
++	N26_3430_MMC1_DAT1,
++	N25_3430_MMC1_DAT2,
++	P28_3430_MMC1_DAT3,
++	P27_3430_MMC1_DAT4,
++	P26_3430_MMC1_DAT5,
++	R27_3430_MMC1_DAT6,
++	R25_3430_MMC1_DAT7,
++
++	/* MMC2 */
++	AE2_3430_MMC2_CLK,
++	AG5_3430_MMC2_CMD,
++	AH5_3430_MMC2_DAT0,
++	AH4_3430_MMC2_DAT1,
++	AG4_3430_MMC2_DAT2,
++	AF4_3430_MMC2_DAT3,
++
++	/* MMC3 */
++	AF10_3430_MMC3_CLK,
++	AC3_3430_MMC3_CMD,
++	AE11_3430_MMC3_DAT0,
++	AH9_3430_MMC3_DAT1,
++	AF13_3430_MMC3_DAT2,
++	AF13_3430_MMC3_DAT3,
+ };
+ 
+ struct omap_mux_cfg {
+-- 
+1.6.0.3.613.g9f8f13
 
-Okay, so erratum 1.150 basically is that when SDRC_POWER.PWDENA is set, 
-the SDRC can power down the SDRAM before writes complete, and so PWDENA 
-should never be used.  That's easy enough to deal with by removing the 
-PWDENA bit set from the SDRC_POWER register write.  So I'll pass on this 
-patch.
-
-The patch description does raise another issue, which is that SDRC_POWER 
-should probably be written from SRAM, per TRM section 11.2.4.4.9.2.  We 
-could do this as part of omap3_sram_configure_core_dpll, which is is 
-called at boot for boards that define their SDRAM memory parameters.  
-Another option would be to add another SRAM function to do this.  I'm 
-leaning towards the former.  Any other opinions on this?
-
-
-- Paul
-
-> 
-> 
-> - Paul
-> 
-> > 
-> > Signed-off-by: Samu Onkalo <samu.p.onkalo@nokia.com>
-> > ---
-> >  arch/arm/mach-omap2/sdrc.c |   10 ++--------
-> >  1 files changed, 2 insertions(+), 8 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-> > index 2045441..0874687 100644
-> > --- a/arch/arm/mach-omap2/sdrc.c
-> > +++ b/arch/arm/mach-omap2/sdrc.c
-> > @@ -86,8 +86,8 @@ void __init omap2_set_globals_sdrc(struct omap_globals *omap2_globals)
-> >   * @sp: pointer to a null-terminated list of struct omap_sdrc_params
-> >   *
-> >   * Turn on smart idle modes for SDRAM scheduler and controller.
-> > - * Program a known-good configuration for the SDRC to deal with buggy
-> > - * bootloaders.
-> > + * Bootloaders should make proper configuration for SDRC since kernel
-> > + * is running from SDRAM.
-> >   */
-> >  void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
-> >  {
-> > @@ -104,10 +104,4 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
-> >  	sdrc_write_reg(l, SDRC_SYSCONFIG);
-> >  
-> >  	sdrc_init_params = sp;
-> > -
-> > -	/* XXX Enable SRFRONIDLEREQ here also? */
-> > -	l = (1 << SDRC_POWER_EXTCLKDIS_SHIFT) |
-> > -		(1 << SDRC_POWER_PWDENA_SHIFT) |
-> > -		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
-> > -	sdrc_write_reg(l, SDRC_POWER);
-> >  }
-> > -- 
-> > 1.6.0.6
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> 
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
