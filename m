@@ -1,45 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] OMAP clock/powerdomain/SDRC patches for
-	post-2.6.30
-Date: Thu, 18 Jun 2009 08:48:47 +0300
-Message-ID: <20090618054845.GC8482@atomide.com>
-References: <20090526220517.25381.75976.stgit@localhost.localdomain> <alpine.DEB.2.00.0906090110580.32281@utopia.booyaka.com>
+Subject: [APPLIED] [PATCH 2/2] OMAP3: SRAM size fix for HS/EMU devices
+Date: Thu, 18 Jun 2009 03:52:27 -0400
+Message-ID: <notify-1245304345@atomide.com>
+References: <1245283206-6568-2-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60263 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753120AbZFRHtJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 03:49:09 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65403 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754103AbZFRHw1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 03:52:27 -0400
+Received: from 85-156-189-93.elisa-mobile.fi ([85.156.189.93] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MHCQ8-0008hO-Cp
+	for linux-omap@vger.kernel.org; Thu, 18 Jun 2009 07:52:29 +0000
+In-Reply-To: <1245283206-6568-2-git-send-email-khilman@deeprootsystems.com>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0906090110580.32281@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, Russell King <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Paul Walmsley <paul@pwsan.com> [090609 10:14]:
-> Hello Russell,
-> 
-> On Tue, 26 May 2009, Paul Walmsley wrote:
-> 
-> > here is the next set of OMAP clock patches for review for the
-> > post-2.6.30 merge window.  They apply on top of the previous set
-> > ("OMAP clock/SDRC patches on v2.6.30-rc5").  If you're happy with
-> > these patches, Tony will queue them up into his for-next branch.
-> > 
-> > This series completes basic support for OMAP3 CORE DVFS.  A few other
-> > minor bugs are fixed by the off-by-one patch and the GPIO debounce
-> > clock patch.
-> 
-> Any comments on these patches?
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Paul, can you please post a git pull request for Russell on these?
-I think these should still go in if possible.
+Branch in linux-omap: omap-fixes
 
-Russell, if you think it's too late, I'll pile them up into omap
-for-next branch.
+Initial commit ID (Likely to change): 50e246332d7a86d544bed701c714bed79cd03504
 
-Regards,
+PatchWorks
+http://patchwork.kernel.org/patch/31020/
 
-Tony
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=50e246332d7a86d544bed701c714bed79cd03504
+
+
