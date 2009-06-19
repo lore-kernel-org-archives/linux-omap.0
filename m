@@ -1,83 +1,146 @@
-From: Arun K S <arunks@mistralsolutions.com>
-Subject: Re: Please help in adding ams-delta support to ASoC
-Date: Thu, 18 Jun 2009 20:50:06 -0700
-Message-ID: <df7d0fbb0906182050x1f58da96u9bac334a363bbed0@mail.gmail.com>
-References: <4A1BEBE3.8010306@tis.icnet.pl>
-	 <20090605165531.7d0c4522.jhnikula@gmail.com>
-	 <200906060028.01600.jkrzyszt@tis.icnet.pl>
-	 <20090608094028.415e6ec3.jhnikula@gmail.com>
-	 <4A2E7921.7090200@tis.icnet.pl> <4A364B1A.5040905@tis.icnet.pl>
-	 <20090615181633.4570426f.jhnikula@gmail.com>
-	 <4A37AFA9.4080403@tis.icnet.pl>
-	 <20090618090712.8f8ecd53.jhnikula@gmail.com>
-	 <4A3A27C8.60005@tis.icnet.pl>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: OMAP3 PM: off-mode during idle, problem with UART1 console
+Date: Fri, 19 Jun 2009 15:12:44 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305A54975@dbde02.ent.ti.com>
+References: <87bpomzypp.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f195.google.com ([209.85.221.195]:47237 "EHLO
-	mail-qy0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbZFSDuI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 23:50:08 -0400
-In-Reply-To: <4A3A27C8.60005@tis.icnet.pl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35128 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751969AbZFSJmw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2009 05:42:52 -0400
+In-Reply-To: <87bpomzypp.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jun 18, 2009 at 4:40 AM, Janusz
-Krzysztofik<jkrzyszt@tis.icnet.pl> wrote:
-> Jarkko Nikula wrote:
->>
->> Hmm, recall, did you try hacking the ASoC driver at the same commit
->> d8376cc482b241701f7606c81ad578b90853e175 where older driver still
->> exists and works? There has been ASoC OMAP fixes and changes since
->> then but nothing which can explain why it doesn't work now for 1510.
->>
->> There we would know that clock framework, register access etc. works=
- for
->> McBSP on 1510.
->
-> Yes, after realizing that possible lack of OMAP1510 McBSP1/3 / DSP su=
-pport
-> in the mainline tree could be the reason of my problem, I got back to=
- omap
-> tree. First I retried the new driver on commit
-> 90e758af52ba803cba233fabee81176d99589f09 and confirmed the prevoiusly=
- seen
-> hangup. I found that it was omap_mcbsp_request() never returning back=
- from.
 
-I faced the same issue while writing ASoC driver for tlv320aic23b codec=
-=2E
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: Wednesday, June 17, 2009 8:37 PM
+>To: Nayak, Rajendra
+>Cc: Woodruff, Richard; linux-omap@vger.kernel.org
+>Subject: Re: OMAP3 PM: off-mode during idle, problem with UART1 console
+>
+>"Nayak, Rajendra" <rnayak@ti.com> writes:
+>
+>> What Silicon Rev does your SDP have? I currently am using an 
+>ES3.1 based SDP
+>> and I havent seen any of these issues you have reported with 
+>off-while-idle.
+>
+>I have and ES3.0 SDP. 
+>
+>> Infact I have kept the board running overnight a couple 
+>times in the last week 
+>> with off-while-idle and voltage scaling to 0v enabled, 
+>mainly to test the recent
+>> patch set (disabling Auto idle for PER in scratchpad memory) 
+>for stability.
+>
+>Ah, great.  That is really good to know.  Are you using 
+>omap_3430sdp_pm_defconfig?
+>
+>I see the same problems with and without your patches.
+>
+>> I will see if I can get hold of an ES3 and ES2.1 based SDP's 
+>and see if I reproduce
+>> the issue. Besides I use nfs and I am not sure if that's got 
+>something to do with it.
+>> Will try a ramdisk also.
+>
+>I'm using a ramdisk.
+>
+>> Does it take you a while to reproduce this, or is it seen 
+>after the very first UART
+>> inactivity?
+>
+>It happens on the first try.
+>
+>Could you try my uImage which has my initramfs rootfs built-in on your
+>ES3.1 SDP?
+>
+>   http://userweb.kernel.org/~khilman/tmp/rajendra/uImage.pm-vanilla
+>
+>Immediately after booting, I do
+>
+># echo 1 > /sys/power/enable_off_mode                          
+>                 
+># echo 1 > /sys/power/voltage_off_while_idle                   
+>                 
+># echo 1 > /sys/power/sleep_while_idle                         
+>                 
+>
+>and after UART inactivity, I start to see sys_off_mode LED blinking.
 
-You can have a look at this thread:
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg03852.html
+Kevin,
 
-It may help.
+This image works just fine on both my ES3.1 GP as well as ES3.0 EMU SDP.
+After the sys_off LED blinks, a key press stops the blinking and also gets
+be the debug console back.
+
+regards,
+Rajendra
 
 >
-> Then I retired the same on the commit
-> d8376cc482b241701f7606c81ad578b90853e175 and got similiar hangup. Nex=
-t, I
-> moved mcbsp initialization to a boot time hook and finally heard a so=
-und and
-> got my first DMA interrupt!
 >
-> So it seams I have finally managed to take all necessary steps back, =
-and now
-> I can go forward, I hope :).
+>>>-----Original Message-----
+>>>From: linux-omap-owner@vger.kernel.org 
+>>>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>>>Sent: Wednesday, June 17, 2009 2:35 AM
+>>>To: Nayak, Rajendra; Woodruff, Richard
+>>>Cc: linux-omap@vger.kernel.org
+>>>Subject: OMAP3 PM: off-mode during idle, problem with UART1 console
+>>>
+>>>Rajendra, Richard,
+>>>
+>>>Hoping you can shed some light, or give me some direction on where to
+>>>debug this further...
+>>>
+>>>With the latest PM branch, I've notice that off-while idle isn't
+>>>working on the SDP, but the same kernel works fine on the RX51.
+>>>RET-while-idle works fine on both.  This is with CPUidle disabled, so
+>>>just using the default idle where MPU and CORE are changed together.
+>>>
+>>>More specifically, it seems to be the UART1 (CORE) console that never
+>>>comes back from off-while-idle, but the UART3 (PER) console on RX51
+>>>works.
+>>>
+>>>On SDP, if I
+>>>
+>>># echo 1 > /sys/power/enable_off_mode
+>>># echo 1 > /sys/power/voltage_off_while_idle
+>>># echo 1 > /sys/power/sleep_while_idle
+>>>
+>>>After the UART inactivty timeout of 5 seconds, I start to see the
+>>>sys_off_mode LED toggling between red and green with system timer
+>>>wakeups.
+>>>
+>>>If I then push a key on the UART1 console, the LED goes green, stays
+>>>for the 5 second UART inactivity and then goes back to toggling
+>>>red/green again.  However, I never get my console back and never see
+>>>the characters on my console.
+>>>
+>>>If I keep typing, I keep the system from going back off (based on
+>>>sys_off_mode LED) and as soon as I stop typing long enough for the
+>>>inactivity timer to expiere (5 seconds) it goes back into off.
+>>>
+>>>Any ideas what's going on here?
+>>>
+>>>On RX51, the same thing works using UART3.
+>>>
+>>>Kevin
+>>>
+>>>--
+>>>To unsubscribe from this list: send the line "unsubscribe 
+>>>linux-omap" in
+>>>the body of a message to majordomo@vger.kernel.org
+>>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>>
 >
-> Thanks,
-> Janusz
-> --
-> To unsubscribe from this list: send the line "unsubscribe alsa-devel"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
