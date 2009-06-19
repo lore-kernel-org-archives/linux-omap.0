@@ -1,146 +1,54 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: OMAP3 PM: off-mode during idle, problem with UART1 console
-Date: Fri, 19 Jun 2009 15:12:44 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305A54975@dbde02.ent.ti.com>
-References: <87bpomzypp.fsf@deeprootsystems.com>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Subject: Re: [PATCH] usb: disable OTG AUTOIDLE only with omap3430
+Date: Fri, 19 Jun 2009 03:35:50 -0700
+Message-ID: <200906190335.50621.david-b@pacbell.net>
+References: <1242658456-5723-1-git-send-email-ext-niilo.1.minkkinen@nokia.com> <13B9B4C6EF24D648824FF11BE8967162038BED5CF1@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35128 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751969AbZFSJmw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2009 05:42:52 -0400
-In-Reply-To: <87bpomzypp.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038BED5CF1-EovWT4A8QTWIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Woodruff, Richard" <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Cc: Niilo Minkkinen <ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Monday 18 May 2009, Woodruff, Richard wrote:
+> 
+> > From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
+> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Niilo Minkkinen
+> > Sent: Monday, May 18, 2009 9:54 AM
+> 
+> > Omap3 MUSB AUTOIDLE functionality configured through OTG_SYSCONFIG
+> > register prevents the device from going into retention.
+> > This is a workaround (by Richard Woodruff/TI), as his comment :
+> > > A new MUSB bug which is a match to data below was identified very
+> > > recently (on hardware and in simulation).
+> > > This bug is in 3430 and not 3630.
+> > > As a priority test (and as new default) you should have engineers
+> > > disable autoidle for MUSB block.
+> > > This is the workaround which will show up in next errata.
+> >
+> > Signed-off-by: Niilo Minkkinen <ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+> 
+> Signed-off-by: Richard Woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+> 
+> Yes this is needed for 34xx. Side note is this cost around 1mW of power
+> during active mode of MUSB. When device is not active cost is not
+> significant.  System impact depends on duty cycle of MUSB in usecase.  
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: Wednesday, June 17, 2009 8:37 PM
->To: Nayak, Rajendra
->Cc: Woodruff, Richard; linux-omap@vger.kernel.org
->Subject: Re: OMAP3 PM: off-mode during idle, problem with UART1 console
->
->"Nayak, Rajendra" <rnayak@ti.com> writes:
->
->> What Silicon Rev does your SDP have? I currently am using an 
->ES3.1 based SDP
->> and I havent seen any of these issues you have reported with 
->off-while-idle.
->
->I have and ES3.0 SDP. 
->
->> Infact I have kept the board running overnight a couple 
->times in the last week 
->> with off-while-idle and voltage scaling to 0v enabled, 
->mainly to test the recent
->> patch set (disabling Auto idle for PER in scratchpad memory) 
->for stability.
->
->Ah, great.  That is really good to know.  Are you using 
->omap_3430sdp_pm_defconfig?
->
->I see the same problems with and without your patches.
->
->> I will see if I can get hold of an ES3 and ES2.1 based SDP's 
->and see if I reproduce
->> the issue. Besides I use nfs and I am not sure if that's got 
->something to do with it.
->> Will try a ramdisk also.
->
->I'm using a ramdisk.
->
->> Does it take you a while to reproduce this, or is it seen 
->after the very first UART
->> inactivity?
->
->It happens on the first try.
->
->Could you try my uImage which has my initramfs rootfs built-in on your
->ES3.1 SDP?
->
->   http://userweb.kernel.org/~khilman/tmp/rajendra/uImage.pm-vanilla
->
->Immediately after booting, I do
->
-># echo 1 > /sys/power/enable_off_mode                          
->                 
-># echo 1 > /sys/power/voltage_off_while_idle                   
->                 
-># echo 1 > /sys/power/sleep_while_idle                         
->                 
->
->and after UART inactivity, I start to see sys_off_mode LED blinking.
+There's also some initialization goofiness in that code ... it's supposed
+to set initialize the transceiver with several distinct writes, of which
+setting AUTOIDLE (to auto-gate the L3 clock) is ISTR the last step.
 
-Kevin,
+The goofiness shows up with OTG initialization, which is documented as
+needing a slightly different sequence ... my notes have it as being
+an extra write to set ENABLEFORCE.
 
-This image works just fine on both my ES3.1 GP as well as ES3.0 EMU SDP.
-After the sys_off LED blinks, a key press stops the blinking and also gets
-be the debug console back.
-
-regards,
-Rajendra
-
->
->
->>>-----Original Message-----
->>>From: linux-omap-owner@vger.kernel.org 
->>>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
->>>Sent: Wednesday, June 17, 2009 2:35 AM
->>>To: Nayak, Rajendra; Woodruff, Richard
->>>Cc: linux-omap@vger.kernel.org
->>>Subject: OMAP3 PM: off-mode during idle, problem with UART1 console
->>>
->>>Rajendra, Richard,
->>>
->>>Hoping you can shed some light, or give me some direction on where to
->>>debug this further...
->>>
->>>With the latest PM branch, I've notice that off-while idle isn't
->>>working on the SDP, but the same kernel works fine on the RX51.
->>>RET-while-idle works fine on both.  This is with CPUidle disabled, so
->>>just using the default idle where MPU and CORE are changed together.
->>>
->>>More specifically, it seems to be the UART1 (CORE) console that never
->>>comes back from off-while-idle, but the UART3 (PER) console on RX51
->>>works.
->>>
->>>On SDP, if I
->>>
->>># echo 1 > /sys/power/enable_off_mode
->>># echo 1 > /sys/power/voltage_off_while_idle
->>># echo 1 > /sys/power/sleep_while_idle
->>>
->>>After the UART inactivty timeout of 5 seconds, I start to see the
->>>sys_off_mode LED toggling between red and green with system timer
->>>wakeups.
->>>
->>>If I then push a key on the UART1 console, the LED goes green, stays
->>>for the 5 second UART inactivity and then goes back to toggling
->>>red/green again.  However, I never get my console back and never see
->>>the characters on my console.
->>>
->>>If I keep typing, I keep the system from going back off (based on
->>>sys_off_mode LED) and as soon as I stop typing long enough for the
->>>inactivity timer to expiere (5 seconds) it goes back into off.
->>>
->>>Any ideas what's going on here?
->>>
->>>On RX51, the same thing works using UART3.
->>>
->>>Kevin
->>>
->>>--
->>>To unsubscribe from this list: send the line "unsubscribe 
->>>linux-omap" in
->>>the body of a message to majordomo@vger.kernel.org
->>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->
->
+- Dave
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
