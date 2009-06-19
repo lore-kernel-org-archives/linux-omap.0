@@ -1,116 +1,240 @@
-From: Arun K S <arunks@mistralsolutions.com>
-Subject: Re: Please help in adding ams-delta support to ASoC
-Date: Fri, 19 Jun 2009 11:55:33 -0700
-Message-ID: <df7d0fbb0906191155u75e3c8bdlee26dce267889287@mail.gmail.com>
-References: <4A1BEBE3.8010306@tis.icnet.pl>
-	 <20090608094028.415e6ec3.jhnikula@gmail.com>
-	 <4A2E7921.7090200@tis.icnet.pl> <4A364B1A.5040905@tis.icnet.pl>
-	 <20090615181633.4570426f.jhnikula@gmail.com>
-	 <4A37AFA9.4080403@tis.icnet.pl>
-	 <20090618090712.8f8ecd53.jhnikula@gmail.com>
-	 <4A3A27C8.60005@tis.icnet.pl>
-	 <df7d0fbb0906182050x1f58da96u9bac334a363bbed0@mail.gmail.com>
-	 <4A3B7485.5060601@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: [PATCH][RFC] OMAP3: PM: Prevent hang in prcm_interrupt_handler
+Date: Fri, 19 Jun 2009 18:08:41 -0500
+Message-ID: <1245452921-24142-1-git-send-email-jon-hunter@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:35186 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751681AbZFSTAi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2009 15:00:38 -0400
-In-Reply-To: <4A3B7485.5060601@tis.icnet.pl>
+Received: from bear.ext.ti.com ([192.94.94.41]:40730 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753961AbZFSXIi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 19 Jun 2009 19:08:38 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5JN8ZHW012253
+	for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2009 18:08:40 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Jon Hunter <jon-hunter@ti.com>
 
-On Fri, Jun 19, 2009 at 4:20 AM, Janusz
-Krzysztofik<jkrzyszt@tis.icnet.pl> wrote:
-> Tony Lindgren wrote:
->>
->> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [090618 14:52]:
->>>
->>> Tony Lindgren wrote:
->>>>
->>>> On omap1, DSP needs to be powered and idled before some mcbsp cloc=
-ks can
->>>> be used. Or at least needs to be powered up.
->>>
->>> AFAICS there is no DSP code in mainline at all, so the answer is no=
-, DSP
->>> =A0was likely not powered up at all. For several weeks I was trying=
- to do
->>> =A0what was impossible :/. But fortunatelly, I have learned a lot ;=
-).
->>
->> We at least used to have code to power and idle the DSP even without=
- the
->> dspgateway compiled in.. Sorry I don't remember the details. But mos=
-t
->> likely you need to have the dspgateway patch enabled.
->
-> Tony,
-> Thanks for clarifying things.
->
-> Arun K S wrote:
->>
->> On Thu, Jun 18, 2009 at 4:40 AM, Janusz
->> Krzysztofik<jkrzyszt@tis.icnet.pl> wrote:
->>>
->>> ... I retried the new driver on commit
->>> 90e758af52ba803cba233fabee81176d99589f09 and confirmed the prevoius=
-ly
->>> seen
->>> hangup. I found that it was omap_mcbsp_request() never returning ba=
-ck
->>> from.
->>
->> I faced the same issue while writing ASoC driver for tlv320aic23b co=
-dec.
->>
->> You can have a look at this thread:
->> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg03852.html
->>
->> It may help.
->
-> Arun,
-> Thanks, it's good to hear not only me having this problem ;). So what=
- is the
-> current status of your osk driver? What tree do you use, what extra p=
-atches
-> do you apply to make it actually working?
+From: Jon Hunter <jon-hunter@ti.com>
 
-Currently osk driver works fine on 2.6.31. Initially i used to add the
-omap_mcbsp_request()
-at the boot time, other wise it hangs up. Audio in current mainline
-tree works fine for osk5912
-with out any such hacks. I believe there are some patches from Russel
-for the DSP memory mapping during
-2.6.29 kernel.
+There are two scenarios where a race condition could result in a hang in the
+prcm_interrupt handler. These are:
 
->
-> ---------------------------
->
-> After all, could someone please give me an advise, what tree, even wi=
-th
-> buggy omap1510 mcbsp/dsp support, should I base my work on for best r=
-esults?
-> Omap? Sound? Mainline? I mean not only easy getting the driver workin=
-g, but
-> also giving it the best possible path into the mainline.
+1). Waiting for PRM_IRQSTATUS_MPU register to clear.
+Bit 0 of the PRM_IRQSTATUS_MPU register indicates that a wake-up event is
+pending for the MPU. This bit can only be cleared if the all the wake-up events
+latched in the various PM_WKST_x registers have been cleared. If a wake-up event
+occurred during the processing of the prcm interrupt handler, after the
+corresponding PM_WKST_x register was checked but before the PRM_IRQSTATUS_MPU
+was cleared, then the CPU would be stuck forever waiting for bit 0 in
+PRM_IRQSTATUS_MPU to be cleared.
 
-You have to use current omap tree with the patches from current sound
-tree(ASoC omap platform drivers changes) for
-testing the driver.
-Somebody correct me if i am wrong.
+2). Waiting for the PM_WKST_x register to clear.
+Some power domains have more than one wake-up source. The PM_WKST_x registers
+indicate the source of a wake-up event and need to be cleared after a wake-up
+event occurs. When the PM_WKST_x registers are read and before they are cleared,
+it is possible that another wake-up event could occur causing another bit to be
+set in one of the PM_WKST_x registers. If this did occur after reading a
+PM_WKST_x register then the CPU would miss this event and get stuck forever in
+a loop waiting for that PM_WKST_x register to clear.
 
->
-> Thanks,
-> Janusz
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch address the above race conditions that would result in a hang.
+
+Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |  169 +++++++++++++++++++++++-------------------
+ 1 files changed, 94 insertions(+), 75 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 7a4a525..0545262 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -200,91 +200,110 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ 	u32 wkst, irqstatus_mpu;
+ 	u32 fclk, iclk;
+ 
+-	/* WKUP */
+-	wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
+-	if (wkst) {
+-		iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
+-		fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
+-		cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_ICLKEN);
+-		cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_FCLKEN);
+-		prm_write_mod_reg(wkst, WKUP_MOD, PM_WKST);
+-		while (prm_read_mod_reg(WKUP_MOD, PM_WKST))
+-			cpu_relax();
+-		cm_write_mod_reg(iclk, WKUP_MOD, CM_ICLKEN);
+-		cm_write_mod_reg(fclk, WKUP_MOD, CM_FCLKEN);
+-	}
+-
+-	/* CORE */
+-	wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
+-	if (wkst) {
+-		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
+-		fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
+-		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN1);
+-		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_FCLKEN1);
+-		prm_write_mod_reg(wkst, CORE_MOD, PM_WKST1);
+-		while (prm_read_mod_reg(CORE_MOD, PM_WKST1))
+-			cpu_relax();
+-		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN1);
+-		cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
+-	}
+-	wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
+-	if (wkst) {
+-		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
+-		fclk = cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
+-		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
+-		cm_set_mod_reg_bits(wkst, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
+-		prm_write_mod_reg(wkst, CORE_MOD, OMAP3430ES2_PM_WKST3);
+-		while (prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3))
+-			cpu_relax();
+-		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
+-		cm_write_mod_reg(fclk, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
+-	}
++	do {
++		/* WKUP */
++		wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
++		if (wkst) {
++			iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
++			fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
++			while (wkst) {
++				cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_ICLKEN);
++				cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_FCLKEN);
++				prm_write_mod_reg(wkst, WKUP_MOD, PM_WKST);
++				wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
++			}
++			cm_write_mod_reg(iclk, WKUP_MOD, CM_ICLKEN);
++			cm_write_mod_reg(fclk, WKUP_MOD, CM_FCLKEN);
++		}
+ 
+-	/* PER */
+-	wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
+-	if (wkst) {
+-		iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
+-		fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
+-		cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD, CM_ICLKEN);
+-		cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD, CM_FCLKEN);
+-		prm_write_mod_reg(wkst, OMAP3430_PER_MOD, PM_WKST);
+-		while (prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST))
+-			cpu_relax();
+-		cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
+-		cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
+-	}
++		/* CORE */
++		wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
++		if (wkst) {
++			iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
++			fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
++			while (wkst) {
++				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN1);
++				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_FCLKEN1);
++				prm_write_mod_reg(wkst, CORE_MOD, PM_WKST1);
++				wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
++			}
++			cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN1);
++			cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
++		}
++		wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
++		if (wkst) {
++			iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
++			fclk = cm_read_mod_reg(CORE_MOD,
++						OMAP3430ES2_CM_FCLKEN3);
++			while (wkst) {
++				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
++				cm_set_mod_reg_bits(wkst, CORE_MOD,
++							OMAP3430ES2_CM_FCLKEN3);
++				prm_write_mod_reg(wkst, CORE_MOD,
++							OMAP3430ES2_PM_WKST3);
++				wkst = prm_read_mod_reg(CORE_MOD,
++							OMAP3430ES2_PM_WKST3);
++			}
++			cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
++			cm_write_mod_reg(fclk, CORE_MOD,
++						OMAP3430ES2_CM_FCLKEN3);
++		}
+ 
+-	if (omap_rev() > OMAP3430_REV_ES1_0) {
+-		/* USBHOST */
+-		wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKST);
++		/* PER */
++		wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
+ 		if (wkst) {
+-			iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++			iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
++			fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
++			while (wkst) {
++				cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD,
++							CM_ICLKEN);
++				cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD,
++							CM_FCLKEN);
++				prm_write_mod_reg(wkst, OMAP3430_PER_MOD,
++							PM_WKST);
++				wkst = prm_read_mod_reg(OMAP3430_PER_MOD,
++							PM_WKST);
++			}
++			cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
++			cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
++		}
++
++		if (omap_rev() > OMAP3430_REV_ES1_0) {
++			/* USBHOST */
++			wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++							PM_WKST);
++			if (wkst) {
++				iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+ 					       CM_ICLKEN);
+-			fclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
++				fclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+ 					       CM_FCLKEN);
+-			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
+-					    CM_ICLKEN);
+-			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
+-					    CM_FCLKEN);
+-			prm_write_mod_reg(wkst, OMAP3430ES2_USBHOST_MOD,
+-					  PM_WKST);
+-			while (prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+-						PM_WKST))
+-				cpu_relax();
+-			cm_write_mod_reg(iclk, OMAP3430ES2_USBHOST_MOD,
++				while (wkst) {
++					cm_set_mod_reg_bits(wkst,
++							OMAP3430ES2_USBHOST_MOD,
++							CM_ICLKEN);
++					cm_set_mod_reg_bits(wkst,
++							OMAP3430ES2_USBHOST_MOD,
++							CM_FCLKEN);
++					prm_write_mod_reg(wkst,
++							OMAP3430ES2_USBHOST_MOD,
++							PM_WKST);
++					wkst = prm_read_mod_reg(
++							OMAP3430ES2_USBHOST_MOD,
++							PM_WKST);
++				}
++				cm_write_mod_reg(iclk, OMAP3430ES2_USBHOST_MOD,
+ 					 CM_ICLKEN);
+-			cm_write_mod_reg(fclk, OMAP3430ES2_USBHOST_MOD,
++				cm_write_mod_reg(fclk, OMAP3430ES2_USBHOST_MOD,
+ 					 CM_FCLKEN);
++			}
+ 		}
+-	}
+ 
+-	irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
+-					 OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+-	prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
+-			  OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
++		irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
++					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
++		prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
++					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+ 
+-	while (prm_read_mod_reg(OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET))
+-		cpu_relax();
++	} while (prm_read_mod_reg(OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET));
+ 
+ 	return IRQ_HANDLED;
+ }
+-- 
+1.6.0.4
+
