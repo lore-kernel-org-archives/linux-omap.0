@@ -1,71 +1,81 @@
-From: "Wang Sawsd-A24013" <cqwang@motorola.com>
-Subject: RE: [Question] omap3 clock framework for clock set_rate
-Date: Fri, 19 Jun 2009 09:38:31 +0800
-Message-ID: <B00E06E2766C2744B022DE9BAF3C59D542D43E@zmy16exm69.ds.mot.com>
-References: <alpine.DEB.2.00.0906181816250.4087@utopia.booyaka.com>
+From: Arun K S <arunks@mistralsolutions.com>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Thu, 18 Jun 2009 20:50:06 -0700
+Message-ID: <df7d0fbb0906182050x1f58da96u9bac334a363bbed0@mail.gmail.com>
+References: <4A1BEBE3.8010306@tis.icnet.pl>
+	 <20090605165531.7d0c4522.jhnikula@gmail.com>
+	 <200906060028.01600.jkrzyszt@tis.icnet.pl>
+	 <20090608094028.415e6ec3.jhnikula@gmail.com>
+	 <4A2E7921.7090200@tis.icnet.pl> <4A364B1A.5040905@tis.icnet.pl>
+	 <20090615181633.4570426f.jhnikula@gmail.com>
+	 <4A37AFA9.4080403@tis.icnet.pl>
+	 <20090618090712.8f8ecd53.jhnikula@gmail.com>
+	 <4A3A27C8.60005@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail55.messagelabs.com ([216.82.241.163]:57329 "EHLO
-	mail55.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbZFSBjC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 21:39:02 -0400
-Received: from il06exr04.mot.com (il06exr04.mot.com [129.188.137.134])
-	by motgate8.mot.com (8.14.3/8.14.3) with ESMTP id n5J1d4nY004554
-	for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2009 18:39:04 -0700 (MST)
-Received: from il06vts04.mot.com (il06vts04.mot.com [129.188.137.144])
-	by il06exr04.mot.com (8.13.1/Vontu) with SMTP id n5J1d3EK010132
-	for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2009 20:39:03 -0500 (CDT)
-Received: from zmy16exm69.ds.mot.com (zmy16exm69.ap.mot.com [10.179.4.36])
-	by il06exr04.mot.com (8.13.1/8.13.0) with ESMTP id n5J1d2mF010126
-	for <linux-omap@vger.kernel.org>; Thu, 18 Jun 2009 20:39:03 -0500 (CDT)
-Content-class: urn:content-classes:message
-In-Reply-To: <alpine.DEB.2.00.0906181816250.4087@utopia.booyaka.com>
+Received: from mail-qy0-f195.google.com ([209.85.221.195]:47237 "EHLO
+	mail-qy0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbZFSDuI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 18 Jun 2009 23:50:08 -0400
+In-Reply-To: <4A3A27C8.60005@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-=20
+On Thu, Jun 18, 2009 at 4:40 AM, Janusz
+Krzysztofik<jkrzyszt@tis.icnet.pl> wrote:
+> Jarkko Nikula wrote:
+>>
+>> Hmm, recall, did you try hacking the ASoC driver at the same commit
+>> d8376cc482b241701f7606c81ad578b90853e175 where older driver still
+>> exists and works? There has been ASoC OMAP fixes and changes since
+>> then but nothing which can explain why it doesn't work now for 1510.
+>>
+>> There we would know that clock framework, register access etc. works=
+ for
+>> McBSP on 1510.
+>
+> Yes, after realizing that possible lack of OMAP1510 McBSP1/3 / DSP su=
+pport
+> in the mainline tree could be the reason of my problem, I got back to=
+ omap
+> tree. First I retried the new driver on commit
+> 90e758af52ba803cba233fabee81176d99589f09 and confirmed the prevoiusly=
+ seen
+> hangup. I found that it was omap_mcbsp_request() never returning back=
+ from.
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]=20
-> Sent: 2009=C4=EA6=D4=C219=C8=D5 8:18
-> To: Wang Sawsd-A24013
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [Question] omap3 clock framework for clock set_rate
->=20
-> Hello Chunqiu,
->=20
-> On Fri, 19 Jun 2009, Wang Sawsd-A24013 wrote:
->=20
-> > In linux-omap clock framework, most clocks have no
-> > set_rate in their definition in clock34xx.h, but defined
-> > DEFAULT_RATE in clksel_rate structures, this
-> > Will only allow some pre-set rates for some clocks and
-> > Can not get a more flexible rates if driver wants to
-> > Change the clock rate usng clk_set_rate.
-> >=20
-> > What is the benefit of this implementation?
-> >=20
-> > We want to understand this before we made the change
-> > In case we missed some imprtant background of
-> > This implementation.
->=20
-> Any driver that wishes to change its clock rate should add=20
-> .set_rate and=20
-> .round_rate function pointers to its corresponding clocks.  There's=20
-> no good reason why those function pointers aren't there; they=20
-> probably=20
-> should have been added with the original clock tree.
->=20
-> Hope this helps,
+I faced the same issue while writing ASoC driver for tlv320aic23b codec=
+=2E
 
-Thanks, this helps a lot. :-)
->=20
-> - Paul
->=20
+You can have a look at this thread:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg03852.html
+
+It may help.
+
+>
+> Then I retired the same on the commit
+> d8376cc482b241701f7606c81ad578b90853e175 and got similiar hangup. Nex=
+t, I
+> moved mcbsp initialization to a boot time hook and finally heard a so=
+und and
+> got my first DMA interrupt!
+>
+> So it seams I have finally managed to take all necessary steps back, =
+and now
+> I can go forward, I hope :).
+>
+> Thanks,
+> Janusz
+> --
+> To unsubscribe from this list: send the line "unsubscribe alsa-devel"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
