@@ -1,73 +1,86 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: omap_3430sdp_defconfig for multiple boards?
-Date: Fri, 19 Jun 2009 11:45:53 -0500
-Message-ID: <A24693684029E5489D1D202277BE8944411FC4FC@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE8944411FC47D@dlee02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F53D2097@dbde02.ent.ti.com>
+From: Niilo Minkkinen <niilo.minkkinen-X3B1VOXEql0@public.gmane.org>
+Subject: Re: [PATCH] usb: disable OTG AUTOIDLE only with omap3430
+Date: Fri, 19 Jun 2009 19:45:14 +0300
+Message-ID: <fb705f540906190945v722fbe99g6c96375891053420@mail.gmail.com>
+References: <1242658456-5723-1-git-send-email-ext-niilo.1.minkkinen@nokia.com>
+	 <13B9B4C6EF24D648824FF11BE8967162038BED5CF1@dlee02.ent.ti.com>
+	 <200906190335.50621.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38555 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752799AbZFSQo0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2009 12:44:26 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5JGiNGg032610
-	for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2009 11:44:28 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5JGiNU4029474
-	for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2009 11:44:23 -0500 (CDT)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n5JGiNEj028211
-	for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2009 11:44:23 -0500 (CDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F53D2097@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <200906190335.50621.david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Cc: "Woodruff, Richard" <r-woodruff2-l0cyMroinI0@public.gmane.org>, Niilo Minkkinen <ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>
 
-From: Pandita, Vikram
-> >-----Original Message-----
-> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre
-> >Rodriguez, Sergio Alberto
-> >Sent: Friday, June 19, 2009 11:10 AM
-> >To: linux-omap@vger.kernel.org
-> >Subject: omap_3430sdp_defconfig for multiple boards?
-> >
-> >Hi,
-> >
-> >Is it intentional that the current omap_3430sdp_defconfig builds an image
-> compatible with all this
-> >boards?
-> 
-> This is wrong. Should have only MACH SDP defined.
+Things considering tranceiver suspend/wakeup are welcom, cause it
+seems to be mysteric, how to operate with. Sometimes clock aren't
+shutoff in suspend. Sometimes, wakeup is not succesfull.
 
-(Looping Khasim)
+On 6/19/09, David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org> wrote:
+> On Monday 18 May 2009, Woodruff, Richard wrote:
+>>
+>> > From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
+>> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Niilo Minkkinen
+>> > Sent: Monday, May 18, 2009 9:54 AM
+>>
+>> > Omap3 MUSB AUTOIDLE functionality configured through OTG_SYSCONFIG
+>> > register prevents the device from going into retention.
+>> > This is a workaround (by Richard Woodruff/TI), as his comment :
+>> > > A new MUSB bug which is a match to data below was identified ver=
+y
+>> > > recently (on hardware and in simulation).
+>> > > This bug is in 3430 and not 3630.
+>> > > As a priority test (and as new default) you should have engineer=
+s
+>> > > disable autoidle for MUSB block.
+>> > > This is the workaround which will show up in next errata.
+>> >
+>> > Signed-off-by: Niilo Minkkinen <ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+>>
+>> Signed-off-by: Richard Woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+>>
+>> Yes this is needed for 34xx. Side note is this cost around 1mW of po=
+wer
+>> during active mode of MUSB. When device is not active cost is not
+>> significant.  System impact depends on duty cycle of MUSB in usecase=
+=2E
+>
+> There's also some initialization goofiness in that code ... it's supp=
+osed
+> to set initialize the transceiver with several distinct writes, of wh=
+ich
+> setting AUTOIDLE (to auto-gate the L3 clock) is ISTR the last step.
+>
+> The goofiness shows up with OTG initialization, which is documented a=
+s
+> needing a slightly different sequence ... my notes have it as being
+> an extra write to set ENABLEFORCE.
+>
+> - Dave
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-OK.
 
-I saw that the commit for including support for the 3430SDP has the defconfig with this options already enabled.
+--=20
+---------------------------------
+Niilo Minkkinen
+Kalhontie 69C
+40950 MUURAME
++358407324526
+niilo.minkkinen-X3B1VOXEql0@public.gmane.org
 
-Regards,
-Sergio
-> 
-> >
-> >> #
-> >> # OMAP Board Type
-> >> #
-> >> CONFIG_MACH_OMAP3_BEAGLE=y
-> >> CONFIG_MACH_OMAP_LDP=y
-> >> CONFIG_MACH_OVERO=y
-> >> CONFIG_MACH_OMAP3_PANDORA=y
-> >> CONFIG_MACH_OMAP_3430SDP=y
-> >
-> >Regards,
-> >Sergio
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Arvokkainta ihmiselle on vapaus tehd=E4 omia p=E4=E4t=F6ksi=E4, jotka o=
+vat
+joskus v=E4=E4ri=E4kin - Gottfried Leibniz (1646=961716) -
+----------------------------------
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
