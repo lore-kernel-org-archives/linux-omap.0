@@ -1,240 +1,66 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: [PATCH][RFC] OMAP3: PM: Prevent hang in prcm_interrupt_handler
-Date: Fri, 19 Jun 2009 18:08:41 -0500
-Message-ID: <1245452921-24142-1-git-send-email-jon-hunter@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 00/10] OMAP clock/powerdomain/SDRC patches for
+ post-2.6.30
+Date: Fri, 19 Jun 2009 19:21:05 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906191920180.4087@utopia.booyaka.com>
+References: <20090526220517.25381.75976.stgit@localhost.localdomain> <alpine.DEB.2.00.0906090110580.32281@utopia.booyaka.com> <20090618054845.GC8482@atomide.com> <20090619162342.GP24573@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40730 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753961AbZFSXIi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 19 Jun 2009 19:08:38 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5JN8ZHW012253
-	for <linux-omap@vger.kernel.org>; Fri, 19 Jun 2009 18:08:40 -0500
+Received: from utopia.booyaka.com ([72.9.107.138]:37877 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760339AbZFTBVD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2009 21:21:03 -0400
+In-Reply-To: <20090619162342.GP24573@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jon Hunter <jon-hunter@ti.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Jon Hunter <jon-hunter@ti.com>
+Hello, 
 
-There are two scenarios where a race condition could result in a hang in the
-prcm_interrupt handler. These are:
+On Fri, 19 Jun 2009, Russell King - ARM Linux wrote:
 
-1). Waiting for PRM_IRQSTATUS_MPU register to clear.
-Bit 0 of the PRM_IRQSTATUS_MPU register indicates that a wake-up event is
-pending for the MPU. This bit can only be cleared if the all the wake-up events
-latched in the various PM_WKST_x registers have been cleared. If a wake-up event
-occurred during the processing of the prcm interrupt handler, after the
-corresponding PM_WKST_x register was checked but before the PRM_IRQSTATUS_MPU
-was cleared, then the CPU would be stuck forever waiting for bit 0 in
-PRM_IRQSTATUS_MPU to be cleared.
+> On Thu, Jun 18, 2009 at 08:48:47AM +0300, Tony Lindgren wrote:
+> > Paul, can you please post a git pull request for Russell on these?
+> > I think these should still go in if possible.
+> > 
+> > Russell, if you think it's too late, I'll pile them up into omap
+> > for-next branch.
+> 
+> Let's merge them.
 
-2). Waiting for the PM_WKST_x register to clear.
-Some power domains have more than one wake-up source. The PM_WKST_x registers
-indicate the source of a wake-up event and need to be cleared after a wake-up
-event occurs. When the PM_WKST_x registers are read and before they are cleared,
-it is possible that another wake-up event could occur causing another bit to be
-set in one of the PM_WKST_x registers. If this did occur after reading a
-PM_WKST_x register then the CPU would miss this event and get stuck forever in
-a loop waiting for that PM_WKST_x register to clear.
+The following changes since commit cd07ecc828486e5887113c7dc4d9f9022145811b:
+  Tony Lindgren (1):
+        Merge branch 'omap4' into for-next
 
-This patch address the above race conditions that would result in a hang.
+are available in the git repository at:
 
-Signed-off-by: Jon Hunter <jon-hunter@ti.com>
----
- arch/arm/mach-omap2/pm34xx.c |  169 +++++++++++++++++++++++-------------------
- 1 files changed, 94 insertions(+), 75 deletions(-)
+  git://git.pwsan.com/linux-2.6 omap-clock-for-next
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7a4a525..0545262 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -200,91 +200,110 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- 	u32 wkst, irqstatus_mpu;
- 	u32 fclk, iclk;
- 
--	/* WKUP */
--	wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
--	if (wkst) {
--		iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
--		fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
--		cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_ICLKEN);
--		cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_FCLKEN);
--		prm_write_mod_reg(wkst, WKUP_MOD, PM_WKST);
--		while (prm_read_mod_reg(WKUP_MOD, PM_WKST))
--			cpu_relax();
--		cm_write_mod_reg(iclk, WKUP_MOD, CM_ICLKEN);
--		cm_write_mod_reg(fclk, WKUP_MOD, CM_FCLKEN);
--	}
--
--	/* CORE */
--	wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
--	if (wkst) {
--		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
--		fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
--		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN1);
--		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_FCLKEN1);
--		prm_write_mod_reg(wkst, CORE_MOD, PM_WKST1);
--		while (prm_read_mod_reg(CORE_MOD, PM_WKST1))
--			cpu_relax();
--		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN1);
--		cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
--	}
--	wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
--	if (wkst) {
--		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
--		fclk = cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
--		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
--		cm_set_mod_reg_bits(wkst, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
--		prm_write_mod_reg(wkst, CORE_MOD, OMAP3430ES2_PM_WKST3);
--		while (prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3))
--			cpu_relax();
--		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
--		cm_write_mod_reg(fclk, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
--	}
-+	do {
-+		/* WKUP */
-+		wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
-+		if (wkst) {
-+			iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
-+			fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
-+			while (wkst) {
-+				cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_ICLKEN);
-+				cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_FCLKEN);
-+				prm_write_mod_reg(wkst, WKUP_MOD, PM_WKST);
-+				wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
-+			}
-+			cm_write_mod_reg(iclk, WKUP_MOD, CM_ICLKEN);
-+			cm_write_mod_reg(fclk, WKUP_MOD, CM_FCLKEN);
-+		}
- 
--	/* PER */
--	wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
--	if (wkst) {
--		iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
--		fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
--		cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD, CM_ICLKEN);
--		cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD, CM_FCLKEN);
--		prm_write_mod_reg(wkst, OMAP3430_PER_MOD, PM_WKST);
--		while (prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST))
--			cpu_relax();
--		cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
--		cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
--	}
-+		/* CORE */
-+		wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
-+		if (wkst) {
-+			iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
-+			fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
-+			while (wkst) {
-+				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN1);
-+				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_FCLKEN1);
-+				prm_write_mod_reg(wkst, CORE_MOD, PM_WKST1);
-+				wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
-+			}
-+			cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN1);
-+			cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
-+		}
-+		wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
-+		if (wkst) {
-+			iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
-+			fclk = cm_read_mod_reg(CORE_MOD,
-+						OMAP3430ES2_CM_FCLKEN3);
-+			while (wkst) {
-+				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
-+				cm_set_mod_reg_bits(wkst, CORE_MOD,
-+							OMAP3430ES2_CM_FCLKEN3);
-+				prm_write_mod_reg(wkst, CORE_MOD,
-+							OMAP3430ES2_PM_WKST3);
-+				wkst = prm_read_mod_reg(CORE_MOD,
-+							OMAP3430ES2_PM_WKST3);
-+			}
-+			cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
-+			cm_write_mod_reg(fclk, CORE_MOD,
-+						OMAP3430ES2_CM_FCLKEN3);
-+		}
- 
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
--		/* USBHOST */
--		wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKST);
-+		/* PER */
-+		wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
- 		if (wkst) {
--			iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-+			iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
-+			fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
-+			while (wkst) {
-+				cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD,
-+							CM_ICLKEN);
-+				cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD,
-+							CM_FCLKEN);
-+				prm_write_mod_reg(wkst, OMAP3430_PER_MOD,
-+							PM_WKST);
-+				wkst = prm_read_mod_reg(OMAP3430_PER_MOD,
-+							PM_WKST);
-+			}
-+			cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
-+			cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
-+		}
-+
-+		if (omap_rev() > OMAP3430_REV_ES1_0) {
-+			/* USBHOST */
-+			wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-+							PM_WKST);
-+			if (wkst) {
-+				iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
- 					       CM_ICLKEN);
--			fclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
-+				fclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
- 					       CM_FCLKEN);
--			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
--					    CM_ICLKEN);
--			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
--					    CM_FCLKEN);
--			prm_write_mod_reg(wkst, OMAP3430ES2_USBHOST_MOD,
--					  PM_WKST);
--			while (prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
--						PM_WKST))
--				cpu_relax();
--			cm_write_mod_reg(iclk, OMAP3430ES2_USBHOST_MOD,
-+				while (wkst) {
-+					cm_set_mod_reg_bits(wkst,
-+							OMAP3430ES2_USBHOST_MOD,
-+							CM_ICLKEN);
-+					cm_set_mod_reg_bits(wkst,
-+							OMAP3430ES2_USBHOST_MOD,
-+							CM_FCLKEN);
-+					prm_write_mod_reg(wkst,
-+							OMAP3430ES2_USBHOST_MOD,
-+							PM_WKST);
-+					wkst = prm_read_mod_reg(
-+							OMAP3430ES2_USBHOST_MOD,
-+							PM_WKST);
-+				}
-+				cm_write_mod_reg(iclk, OMAP3430ES2_USBHOST_MOD,
- 					 CM_ICLKEN);
--			cm_write_mod_reg(fclk, OMAP3430ES2_USBHOST_MOD,
-+				cm_write_mod_reg(fclk, OMAP3430ES2_USBHOST_MOD,
- 					 CM_FCLKEN);
-+			}
- 		}
--	}
- 
--	irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
--					 OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--	prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
--			  OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+		irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
-+					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+		prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
-+					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
- 
--	while (prm_read_mod_reg(OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET))
--		cpu_relax();
-+	} while (prm_read_mod_reg(OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET));
- 
- 	return IRQ_HANDLED;
- }
--- 
-1.6.0.4
+Paul Walmsley (7):
+      OMAP3 clock: remove wait for DPLL3 M2 clock to stabilize
+      OMAP3 clock: initialize SDRC timings at kernel start
+      OMAP3 clock: add a short delay when lowering CORE clk rate
+      OMAP3 clock/SDRC: program SDRC_MR register during SDRC clock change
+      OMAP3 SRAM: add more comments on the SRAM code
+      OMAP3 SRAM: convert SRAM code to use macros rather than magic numbers
+      OMAP3 SDRC: set FIXEDDELAY when disabling SDRC DLL
 
+Roel Kluin (1):
+      OMAP2 clock/powerdomain: off by 1 error in loop timeout comparisons
+
+Tero Kristo (1):
+      OMAP3: Add support for DPLL3 divisor values higher than 2
+
+ arch/arm/mach-omap2/clock.c            |    2 +-
+ arch/arm/mach-omap2/clock34xx.c        |   42 ++++++++---
+ arch/arm/mach-omap2/io.c               |   36 +++++++++
+ arch/arm/mach-omap2/powerdomain.c      |    2 +-
+ arch/arm/mach-omap2/sram34xx.S         |  129 +++++++++++++++++++++-----------
+ arch/arm/plat-omap/include/mach/sram.h |    6 +-
+ arch/arm/plat-omap/sram.c              |    8 +-
+ 7 files changed, 163 insertions(+), 62 deletions(-)
+
+
+- Paul
