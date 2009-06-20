@@ -1,45 +1,33 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH -pm 1/2] SDRC: check for stuck DLL state machine and kick
-Date: Fri, 19 Jun 2009 20:42:56 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162038E317258@dlee02.ent.ti.com>
-References: <1245105775-28844-1-git-send-email-khilman@deeprootsystems.com>
- <1245105775-28844-2-git-send-email-khilman@deeprootsystems.com>
- <alpine.DEB.2.00.0906170139170.3382@utopia.booyaka.com>
- <13B9B4C6EF24D648824FF11BE8967162038E2AC611@dlee02.ent.ti.com>
- <alpine.DEB.2.00.0906181505460.4087@utopia.booyaka.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [ARM][OMAP] TWL4030 IRQ
+Date: Sat, 20 Jun 2009 20:54:54 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B51887CE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39582 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205AbZFTBnF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2009 21:43:05 -0400
-In-Reply-To: <alpine.DEB.2.00.0906181505460.4087@utopia.booyaka.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:58719 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751769AbZFTPZH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 20 Jun 2009 11:25:07 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Chan <mikechan@google.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>
 
+Just to brief you all, I came across a dead lock scenario on the arm-smp kernel. After discussing with Russell on mailing list, the actual bug seems be located in twl4030 IRQ implementation.
 
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Thursday, June 18, 2009 4:07 PM
+Initially I was suspecting the arm-generic area and hence didn't include linux-omap list in the mail thread
 
-Hi Paul,
+For more information on this issue, please read this email thread.
+http://marc.info/?l=linux-arm-kernel&m=124550947525299&w=2
 
-> On Wed, 17 Jun 2009, Woodruff, Richard wrote:
->
-> > I've only seen the condition along side of very aggressive SDRC_POWER
-> > settings.
->
-> Could you send over the SDRC_POWER settings that cause this problem?
+I will create a patch for "twl4030" and also would be correcting upcoming "twl6030" accordingly.
 
-This is one pulled for a custom board:
+If anyone on this mailing list has any other opinion, please react to the email thread. 
 
-# ./readmem 0x6d000070
-0x000200AD
+Thanks !!
 
 Regards,
-Richard W.
-
+Santosh
