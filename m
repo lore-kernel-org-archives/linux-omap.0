@@ -1,66 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/10] OMAP clock/powerdomain/SDRC patches for
- post-2.6.30
-Date: Fri, 19 Jun 2009 19:21:05 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906191920180.4087@utopia.booyaka.com>
-References: <20090526220517.25381.75976.stgit@localhost.localdomain> <alpine.DEB.2.00.0906090110580.32281@utopia.booyaka.com> <20090618054845.GC8482@atomide.com> <20090619162342.GP24573@n2100.arm.linux.org.uk>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH -pm 1/2] SDRC: check for stuck DLL state machine and kick
+Date: Fri, 19 Jun 2009 20:42:56 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162038E317258@dlee02.ent.ti.com>
+References: <1245105775-28844-1-git-send-email-khilman@deeprootsystems.com>
+ <1245105775-28844-2-git-send-email-khilman@deeprootsystems.com>
+ <alpine.DEB.2.00.0906170139170.3382@utopia.booyaka.com>
+ <13B9B4C6EF24D648824FF11BE8967162038E2AC611@dlee02.ent.ti.com>
+ <alpine.DEB.2.00.0906181505460.4087@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:37877 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760339AbZFTBVD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2009 21:21:03 -0400
-In-Reply-To: <20090619162342.GP24573@n2100.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:39582 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbZFTBnF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 19 Jun 2009 21:43:05 -0400
+In-Reply-To: <alpine.DEB.2.00.0906181505460.4087@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
-
-Hello, 
-
-On Fri, 19 Jun 2009, Russell King - ARM Linux wrote:
-
-> On Thu, Jun 18, 2009 at 08:48:47AM +0300, Tony Lindgren wrote:
-> > Paul, can you please post a git pull request for Russell on these?
-> > I think these should still go in if possible.
-> > 
-> > Russell, if you think it's too late, I'll pile them up into omap
-> > for-next branch.
-> 
-> Let's merge them.
-
-The following changes since commit cd07ecc828486e5887113c7dc4d9f9022145811b:
-  Tony Lindgren (1):
-        Merge branch 'omap4' into for-next
-
-are available in the git repository at:
-
-  git://git.pwsan.com/linux-2.6 omap-clock-for-next
-
-Paul Walmsley (7):
-      OMAP3 clock: remove wait for DPLL3 M2 clock to stabilize
-      OMAP3 clock: initialize SDRC timings at kernel start
-      OMAP3 clock: add a short delay when lowering CORE clk rate
-      OMAP3 clock/SDRC: program SDRC_MR register during SDRC clock change
-      OMAP3 SRAM: add more comments on the SRAM code
-      OMAP3 SRAM: convert SRAM code to use macros rather than magic numbers
-      OMAP3 SDRC: set FIXEDDELAY when disabling SDRC DLL
-
-Roel Kluin (1):
-      OMAP2 clock/powerdomain: off by 1 error in loop timeout comparisons
-
-Tero Kristo (1):
-      OMAP3: Add support for DPLL3 divisor values higher than 2
-
- arch/arm/mach-omap2/clock.c            |    2 +-
- arch/arm/mach-omap2/clock34xx.c        |   42 ++++++++---
- arch/arm/mach-omap2/io.c               |   36 +++++++++
- arch/arm/mach-omap2/powerdomain.c      |    2 +-
- arch/arm/mach-omap2/sram34xx.S         |  129 +++++++++++++++++++++-----------
- arch/arm/plat-omap/include/mach/sram.h |    6 +-
- arch/arm/plat-omap/sram.c              |    8 +-
- 7 files changed, 163 insertions(+), 62 deletions(-)
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Mike Chan <mikechan@google.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-- Paul
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Thursday, June 18, 2009 4:07 PM
+
+Hi Paul,
+
+> On Wed, 17 Jun 2009, Woodruff, Richard wrote:
+>
+> > I've only seen the condition along side of very aggressive SDRC_POWER
+> > settings.
+>
+> Could you send over the SDRC_POWER settings that cause this problem?
+
+This is one pulled for a custom board:
+
+# ./readmem 0x6d000070
+0x000200AD
+
+Regards,
+Richard W.
+
