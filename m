@@ -1,93 +1,79 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] serial: 8250: add IRQ trigger support
-Date: Mon, 22 Jun 2009 15:40:37 +0300
-Message-ID: <20090622124037.GD7352@atomide.com>
-References: <1244827971-14981-1-git-send-email-vikram.pandita@ti.com> <20090612213127.0f03e0c5@taxman.wild-wind.fr.eu.org>
+Subject: Re: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading
+	issue
+Date: Mon, 22 Jun 2009 15:43:39 +0300
+Message-ID: <20090622124338.GE7352@atomide.com>
+References: <notify-1245247047@atomide.com> <87vdmuyhxc.fsf@deeprootsystems.com> <FCCFB4CDC6E5564B9182F639FC35608702F53D1897@dbde02.ent.ti.com> <20090618052710.GB8482@atomide.com> <87ab45vdg8.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51181 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790AbZFVMnl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 08:43:41 -0400
 Content-Disposition: inline
-In-Reply-To: <20090612213127.0f03e0c5@taxman.wild-wind.fr.eu.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: Marc Zyngier <maz@misterjones.org>
-Cc: Vikram Pandita <vikram.pandita@ti.com>, linux-serial@vger.kernel.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+In-Reply-To: <87ab45vdg8.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Marc Zyngier <maz@misterjones.org> [090612 22:31]:
-> On Fri, 12 Jun 2009 12:32:51 -0500
-> Vikram Pandita <vikram.pandita@ti.com> wrote:
+* Kevin Hilman <khilman@deeprootsystems.com> [090618 17:12]:
+> Tony Lindgren <tony@atomide.com> writes:
 > 
-> > There is currently no provision for passing IRQ trigger flags for
-> > serial IRQs with triggering requirements (such as GPIO IRQs.)
-> > 
-> > This patch adds UPF_IRQ_TRIG_* flags which map on to IRQF_TRIGGER_*
-> > flags.
-> > 
-> > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> > * Pandita, Vikram <vikram.pandita@ti.com> [090617 19:26]:
+> >> 
+> >> 
+> >> >-----Original Message-----
+> >> >From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> >> >Sent: Wednesday, June 17, 2009 10:55 AM
+> >> >To: Tony Lindgren; Pandita, Vikram
+> >> >Cc: linux-omap@vger.kernel.org
+> >> >Subject: Re: [APPLIED] [PATCH 2/2] OMAP: Zoom2: Fix file system loading issue
+> >> >
+> >> >Tony Lindgren <tony@atomide.com> writes:
+> >> >
+> >> >> This patch has been applied to the linux-omap
+> >> >> by youw fwiendly patch wobot.
+> >> >>
+> >> >> Branch in linux-omap: omap-fixes
+> >> >>
+> >> >> Initial commit ID (Likely to change): f84eca35d44fd64cdde542f12d08eb04ca534954
+> >> >>
+> >> >> PatchWorks
+> >> >> http://patchwork.kernel.org/patch/29668/
+> >> >>
+> >> >> Git (Likely to change, and takes a while to get mirrored)
+> >> >> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-
+> >> >2.6.git;a=commit;h=f84eca35d44fd64cdde542f12d08eb04ca534954
+> >> >
+> >> >Sorry, I didn't get to this beforethe merge, but $SUBJECT for this
+> >> >patch is wrong and not terribly helpful.  It refers to the symptom, bu
+> >> >tnot the root cause.
+> >> >
+> >> >It should be something like:
+> >> >
+> >> >OMAP3: Zoom2: pass IRQ triggering flags for serial driver
+> >> 
+> >> Yes that should have been the subject and 
+> >> is put that way for the 8250 driver:
+> >> http://lists.arm.linux.org.uk/lurker/attach/1@20090612.173251.776f9eda.attach
+> >> 
+> >> It's learning for next time.
+> >
+> > Will revert. I guess we now need two 8250 patches upstream? One for the
+> > omap register define, and one for the interrupt flags?
 > 
-> Note that this patch doesn't allow  the interrupt to trigger on both
-> edges (not that I have ever seen a 8250 with this behavior, but this
-> is a valid configuration from an interrupt point of view).
+> Yes, both of these are pending on LKML, and still no word from Alan.
+> 
+> To get it upstream, I defined wake-up register locally in
+> mach-omap2/serial.c until the patch gets merged, but for the interrupt
+> flags there isn't an easy solution.
 
-To me it sounds like the it would be better to have unsigned
-long irqflags in struct uart_port instead of trying to squeeze
-the irqflags the flags field. We're already not covering all the
-irqflags currently like Marc pointed out.
+OK, so it's the irqflags that we still need. I took a look and commented that
+we should rather have irqflags field in struct uart_port instead.. So let's
+just wait and see until we have some ack from Alan.
 
 Regards,
 
 Tony
-
- 
-> Aside from this remark:
-> Acked-by: Marc Zyngier <maz@misterjones.org>
-> 
-> > ---
-> >  drivers/serial/8250.c       |   10 ++++++++++
-> >  include/linux/serial_core.h |    4 ++++
-> >  2 files changed, 14 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/serial/8250.c b/drivers/serial/8250.c
-> > index bab115e..8235ef5 100644
-> > --- a/drivers/serial/8250.c
-> > +++ b/drivers/serial/8250.c
-> > @@ -1641,6 +1641,16 @@ static int serial_link_irq_chain(struct
-> > uart_8250_port *up) struct irq_info *i;
-> >  	int ret, irq_flags = up->port.flags & UPF_SHARE_IRQ ?
-> > IRQF_SHARED : 0; 
-> > +	/* Get IRQ Trigger Flag */
-> > +	if (up->port.flags & UPF_IRQ_TRIG_RISING)
-> > +		irq_flags |= IRQF_TRIGGER_RISING;
-> > +	else if (up->port.flags & UPF_IRQ_TRIG_FALLING)
-> > +		irq_flags |= IRQF_TRIGGER_FALLING;
-> > +	else if (up->port.flags & UPF_IRQ_TRIG_HIGH)
-> > +		irq_flags |= IRQF_TRIGGER_HIGH;
-> > +	else if (up->port.flags & UPF_IRQ_TRIG_LOW)
-> > +		irq_flags |= IRQF_TRIGGER_LOW;
-> > +
-> >  	mutex_lock(&hash_mutex);
-> >  
-> >  	h = &irq_lists[up->port.irq % NR_IRQ_HASH];
-> > diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-> > index 57a97e5..07591d5 100644
-> > --- a/include/linux/serial_core.h
-> > +++ b/include/linux/serial_core.h
-> > @@ -296,7 +296,11 @@ struct uart_port {
-> >  #define UPF_SPD_WARP		((__force upf_t) (0x1010))
-> >  #define UPF_SKIP_TEST		((__force upf_t) (1 << 6))
-> >  #define UPF_AUTO_IRQ		((__force upf_t) (1 << 7))
-> > +#define UPF_IRQ_TRIG_RISING	((__force upf_t) (1 << 8))
-> > +#define UPF_IRQ_TRIG_FALLING	((__force upf_t) (1 << 9))
-> > +#define UPF_IRQ_TRIG_HIGH	((__force upf_t) (1 << 10))
-> >  #define UPF_HARDPPS_CD		((__force upf_t) (1 << 11))
-> > +#define UPF_IRQ_TRIG_LOW	((__force upf_t) (1 << 12))
-> >  #define UPF_LOW_LATENCY		((__force upf_t) (1 << 13))
-> >  #define UPF_BUGGY_UART		((__force upf_t) (1 << 14))
-> >  #define UPF_NO_TXEN_TEST	((__force upf_t) (1 << 15))
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
