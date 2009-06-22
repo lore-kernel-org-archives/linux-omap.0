@@ -1,49 +1,54 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/12] OMAP3: SRAM size fix for HS/EMU devices
-Date: Mon, 22 Jun 2009 14:46:23 +0300
-Message-ID: <20090622114623.28477.53574.stgit@localhost>
-References: <20090622113422.28477.27052.stgit@localhost>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Please help in adding ams-delta support to ASoC
+Date: Mon, 22 Jun 2009 14:47:57 +0300
+Message-ID: <20090622144757.f78373ae.jhnikula@gmail.com>
+References: <4A1BEBE3.8010306@tis.icnet.pl>
+	<200906030924.14230.jkrzyszt@tis.icnet.pl>
+	<20090605165531.7d0c4522.jhnikula@gmail.com>
+	<200906060028.01600.jkrzyszt@tis.icnet.pl>
+	<20090608094028.415e6ec3.jhnikula@gmail.com>
+	<4A2E7921.7090200@tis.icnet.pl>
+	<4A364B1A.5040905@tis.icnet.pl>
+	<20090615181633.4570426f.jhnikula@gmail.com>
+	<4A37AFA9.4080403@tis.icnet.pl>
+	<20090618090712.8f8ecd53.jhnikula@gmail.com>
+	<4A3A27C8.60005@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61149 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755075AbZFVLqX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 07:46:23 -0400
-In-Reply-To: <20090622113422.28477.27052.stgit@localhost>
+Received: from ey-out-2122.google.com ([74.125.78.24]:24889 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750818AbZFVLrR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 07:47:17 -0400
+In-Reply-To: <4A3A27C8.60005@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Tero Kristo <tero.kristo@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
 
-From: Tero Kristo <tero.kristo@nokia.com>
+On Thu, 18 Jun 2009 13:40:56 +0200
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
 
-SRAM size fix for HS/EMU devices
+> Then I retired the same on the commit 
+> d8376cc482b241701f7606c81ad578b90853e175 and got similiar hangup.
+> Next, I moved mcbsp initialization to a boot time hook and finally
+> heard a sound and got my first DMA interrupt!
+> 
+Great! :-)
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/sram.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+I wonder what special boot time omap_mcbsp_request call has in respect
+to McBSP access. DSP issue pointed by Tony might be one answer and I'm
+also thinking can it be also some clock gating problem to the McBSP like
+some parent clock gets idled after booting?
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index a5b9bcd..1c18de9 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -133,7 +133,12 @@ void __init omap_detect_sram(void)
- 			if (cpu_is_omap34xx()) {
- 				omap_sram_base = OMAP3_SRAM_PUB_VA;
- 				omap_sram_start = OMAP3_SRAM_PUB_PA;
--				omap_sram_size = 0x8000; /* 32K */
-+				if ((omap_type() == OMAP2_DEVICE_TYPE_EMU) ||
-+				    (omap_type() == OMAP2_DEVICE_TYPE_SEC)) {
-+					omap_sram_size = 0x7000; /* 28K */
-+				} else {
-+					omap_sram_size = 0x8000; /* 32K */
-+				}
- 			} else {
- 				omap_sram_base = OMAP2_SRAM_PUB_VA;
- 				omap_sram_start = OMAP2_SRAM_PUB_PA;
+Can you move this boot time initialization moment around with
+xxx_initcall variants to see what is the point where block is not
+anymore accessable? Basically around the DSP power up and idle code
+(were there such code for older audio drivers?) and where unused clocks
+are disabled (functions clk_disable_unused and
+omap1_clk_disable_unused).
 
+
+-- 
+Jarkko
