@@ -1,127 +1,347 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/3] OMAP2 clock: 2430 I2CHS uses non-standard CM_IDLEST
-	register
-Date: Mon, 22 Jun 2009 01:56:13 -0600
-Message-ID: <20090622075612.13566.50065.stgit@localhost.localdomain>
+Subject: [PATCH 1/3] OMAP2/3 clock: split, rename omap2_wait_clock_ready()
+Date: Mon, 22 Jun 2009 01:56:12 -0600
+Message-ID: <20090622075603.13566.80917.stgit@localhost.localdomain>
 References: <20090622075500.13566.96430.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33527 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:33526 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752435AbZFVH4w (ORCPT
+	with ESMTP id S1752420AbZFVH4w (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 03:56:52 -0400
 In-Reply-To: <20090622075500.13566.96430.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-OMAP2430 I2CHS CM_IDLEST bits are in CM_IDLEST1_CORE, but the CM_*CLKEN bits
-are in CM_{I,F}CLKEN2_CORE [1].  Fix by implementing a custom clkops
-.find_idlest function to return the correct slave IDLEST register.
+Some OMAP2/3 hardware modules have CM_IDLEST attributes that are not
+handled by the current omap2_wait_clock_ready() code.  In preparation
+for patches that fix the unusual devices, rename the function
+omap2_wait_clock_ready() to omap2_wait_module_ready() and split it
+into three parts:
 
-...
+1. A clkops-specific companion clock return function (by default,
+   omap2_clk_dflt_find_companion())
 
-1. OMAP2430 Multimedia Device Package-on-Package (POP) Silicon Revision 2.1
-   (Rev. V) Technical Reference Manual, tables 4-99 and 4-105.
+2. A clkops-specific CM_IDLEST register address and bit shift return
+   function (by default, omap2_clk_dflt_find_idlest())
+
+3. Code to wait for the CM to indicate that the module is ready
+   (omap2_cm_wait_idlest())
+
+Clocks can now specify their own custom find_companion() and find_idlest()
+functions; used in subsequent patches.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/clock24xx.c |   37 +++++++++++++++++++++++++++++++++++--
- arch/arm/mach-omap2/clock24xx.h |    4 ++--
- 2 files changed, 37 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/clock.c             |  126 ++++++++++++-------------------
+ arch/arm/mach-omap2/clock.h             |    6 +
+ arch/arm/mach-omap2/prcm.c              |   43 +++++++++++
+ arch/arm/plat-omap/include/mach/clock.h |    2 
+ arch/arm/plat-omap/include/mach/prcm.h  |    1 
+ 5 files changed, 101 insertions(+), 77 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index 44de027..bc5d3ac 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -30,6 +30,7 @@
- 
+diff --git a/arch/arm/mach-omap2/clock.c b/arch/arm/mach-omap2/clock.c
+index b0665f1..9d83daa 100644
+--- a/arch/arm/mach-omap2/clock.c
++++ b/arch/arm/mach-omap2/clock.c
+@@ -27,6 +27,7 @@
  #include <mach/clock.h>
- #include <mach/sram.h>
+ #include <mach/clockdomain.h>
+ #include <mach/cpu.h>
 +#include <mach/prcm.h>
  #include <asm/div64.h>
- #include <asm/clkdev.h>
  
-@@ -43,6 +44,18 @@
- static const struct clkops clkops_oscck;
- static const struct clkops clkops_fixed;
+ #include <mach/sdrc.h>
+@@ -38,8 +39,6 @@
+ #include "cm-regbits-24xx.h"
+ #include "cm-regbits-34xx.h"
  
-+static void omap2430_clk_i2chs_find_idlest(struct clk *clk,
-+					   void __iomem **idlest_reg,
-+					   u8 *idlest_bit);
-+
-+/* 2430 I2CHS has non-standard IDLEST register */
-+static const struct clkops clkops_omap2430_i2chs_wait = {
-+	.enable		= omap2_dflt_clk_enable,
-+	.disable	= omap2_dflt_clk_disable,
-+	.find_idlest	= omap2430_clk_i2chs_find_idlest,
-+	.find_companion = omap2_clk_dflt_find_companion,
-+};
-+
- #include "clock24xx.h"
+-#define MAX_CLOCK_ENABLE_WAIT		100000
+-
+ /* DPLL rate rounding: minimum DPLL multiplier, divider values */
+ #define DPLL_MIN_MULTIPLIER		1
+ #define DPLL_MIN_DIVIDER		1
+@@ -273,84 +272,68 @@ unsigned long omap2_fixed_divisor_recalc(struct clk *clk)
+ 	return clk->parent->rate / clk->fixed_div;
+ }
  
- struct omap_clk {
-@@ -240,6 +253,26 @@ static void __iomem *prcm_clksrc_ctrl;
-  *-------------------------------------------------------------------------*/
- 
- /**
-+ * omap2430_clk_i2chs_find_idlest - return CM_IDLEST info for 2430 I2CHS
-+ * @clk: struct clk * being enabled
-+ * @idlest_reg: void __iomem ** to store CM_IDLEST reg address into
-+ * @idlest_bit: pointer to a u8 to store the CM_IDLEST bit shift into
+-/**
+- * omap2_wait_clock_ready - wait for clock to enable
+- * @reg: physical address of clock IDLEST register
+- * @mask: value to mask against to determine if the clock is active
+- * @name: name of the clock (for printk)
++/*
++ * XXX document
 + *
-+ * OMAP2430 I2CHS CM_IDLEST bits are in CM_IDLEST1_CORE, but the
-+ * CM_*CLKEN bits are in CM_{I,F}CLKEN2_CORE.  This custom function
-+ * passes back the correct CM_IDLEST register address for I2CHS
-+ * modules.  No return value.
-+ */
-+static void omap2430_clk_i2chs_find_idlest(struct clk *clk,
-+					   void __iomem **idlest_reg,
-+					   u8 *idlest_bit)
-+{
-+	*idlest_reg = OMAP_CM_REGADDR(CORE_MOD, CM_IDLEST);
-+	*idlest_bit = clk->enable_bit;
-+}
-+
-+
-+/**
-  * omap2xxx_clk_get_core_rate - return the CORE_CLK rate
-  * @clk: pointer to the combined dpll_ck + core_ck (currently "dpll_ck")
++ * Note: We don't need special code here for INVERT_ENABLE for the
++ * time being since INVERT_ENABLE only applies to clocks enabled by
++ * CM_CLKEN_PLL
   *
-@@ -325,8 +358,8 @@ static int omap2_clk_fixed_enable(struct clk *clk)
- 	else if (clk == &apll54_ck)
- 		cval = OMAP24XX_ST_54M_APLL;
- 
--	omap2_wait_clock_ready(OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST), cval,
--			    clk->name);
-+	omap2_cm_wait_idlest(OMAP_CM_REGADDR(PLL_MOD, CM_IDLEST), cval,
-+			     clk->name);
+- * Returns 1 if the clock enabled in time, or 0 if it failed to enable
+- * in roughly MAX_CLOCK_ENABLE_WAIT microseconds.
++ * Convert CM_ICLKEN* <-> CM_FCLKEN*.  This conversion assumes it's
++ * just a matter of XORing the bits.
+  */
+-int omap2_wait_clock_ready(void __iomem *reg, u32 mask, const char *name)
++void omap2_clk_dflt_find_companion(struct clk *clk, void __iomem **other_reg,
++				   u8 *other_bit)
+ {
+-	int i = 0;
+-	int ena = 0;
++	u32 r;
  
  	/*
- 	 * REVISIT: Should we return an error code if omap2_wait_clock_ready()
-diff --git a/arch/arm/mach-omap2/clock24xx.h b/arch/arm/mach-omap2/clock24xx.h
-index 458f00c..d19cf7a 100644
---- a/arch/arm/mach-omap2/clock24xx.h
-+++ b/arch/arm/mach-omap2/clock24xx.h
-@@ -2337,7 +2337,7 @@ static struct clk i2c2_fck = {
+-	 * 24xx uses 0 to indicate not ready, and 1 to indicate ready.
+-	 * 34xx reverses this, just to keep us on our toes
++	 * Convert CM_ICLKEN* <-> CM_FCLKEN*.  This conversion assumes
++	 * it's just a matter of XORing the bits.
+ 	 */
+-	if (cpu_mask & (RATE_IN_242X | RATE_IN_243X))
+-		ena = mask;
+-	else if (cpu_mask & RATE_IN_343X)
+-		ena = 0;
+-
+-	/* Wait for lock */
+-	while (((__raw_readl(reg) & mask) != ena) &&
+-	       (i++ < MAX_CLOCK_ENABLE_WAIT)) {
+-		udelay(1);
+-	}
+-
+-	if (i <= MAX_CLOCK_ENABLE_WAIT)
+-		pr_debug("Clock %s stable after %d loops\n", name, i);
+-	else
+-		printk(KERN_ERR "Clock %s didn't enable in %d tries\n",
+-		       name, MAX_CLOCK_ENABLE_WAIT);
++	r = ((u32)clk->enable_reg ^ (CM_FCLKEN ^ CM_ICLKEN));
  
- static struct clk i2chs2_fck = {
- 	.name		= "i2c_fck",
--	.ops		= &clkops_omap2_dflt_wait,
-+	.ops		= &clkops_omap2430_i2chs_wait,
- 	.id		= 2,
- 	.parent		= &func_96m_ck,
- 	.clkdm_name	= "core_l4_clkdm",
-@@ -2370,7 +2370,7 @@ static struct clk i2c1_fck = {
++	*other_reg = (void __iomem *)r;
++	*other_bit = clk->enable_bit;
++}
  
- static struct clk i2chs1_fck = {
- 	.name		= "i2c_fck",
--	.ops		= &clkops_omap2_dflt_wait,
-+	.ops		= &clkops_omap2430_i2chs_wait,
- 	.id		= 1,
- 	.parent		= &func_96m_ck,
- 	.clkdm_name	= "core_l4_clkdm",
+-	return (i < MAX_CLOCK_ENABLE_WAIT) ? 1 : 0;
+-};
+-
++/* XXX document */
++/* CM_IDLEST* */
++void omap2_clk_dflt_find_idlest(struct clk *clk, void __iomem **idlest_reg,
++				u8 *idlest_bit)
++{
++	*idlest_reg = (void __iomem *)(((u32)clk->enable_reg & ~0xf0) | 0x20);
++	*idlest_bit = clk->enable_bit;
++}
+ 
+ /*
+- * Note: We don't need special code here for INVERT_ENABLE
+- * for the time being since INVERT_ENABLE only applies to clocks enabled by
+- * CM_CLKEN_PLL
++ * XXX document
++ *
++ * XXX belongs elsewhere
+  */
+-static void omap2_clk_wait_ready(struct clk *clk)
++static void omap2_module_wait_ready(struct clk *clk)
+ {
+-	void __iomem *reg, *other_reg, *st_reg;
+-	u32 bit;
+-
+-	/*
+-	 * REVISIT: This code is pretty ugly.  It would be nice to generalize
+-	 * it and pull it into struct clk itself somehow.
+-	 */
+-	reg = clk->enable_reg;
++	void __iomem *companion_reg, *idlest_reg;
++	u8 other_bit, idlest_bit;
+ 
+-	/*
+-	 * Convert CM_ICLKEN* <-> CM_FCLKEN*.  This conversion assumes
+-	 * it's just a matter of XORing the bits.
+-	 */
+-	other_reg = (void __iomem *)((u32)reg ^ (CM_FCLKEN ^ CM_ICLKEN));
++	/* Not all modules have multiple clocks that their IDLEST depends on */
++	if (clk->ops->find_companion) {
++		clk->ops->find_companion(clk, &companion_reg, &other_bit);
++		if (!(__raw_readl(companion_reg) & (1 << other_bit)))
++			return;
++	}
+ 
+-	/* Check if both functional and interface clocks
+-	 * are running. */
+-	bit = 1 << clk->enable_bit;
+-	if (!(__raw_readl(other_reg) & bit))
+-		return;
+-	st_reg = (void __iomem *)(((u32)other_reg & ~0xf0) | 0x20); /* CM_IDLEST* */
++	clk->ops->find_idlest(clk, &idlest_reg, &idlest_bit);
+ 
+-	omap2_wait_clock_ready(st_reg, bit, clk->name);
++	omap2_cm_wait_idlest(idlest_reg, (1 << idlest_bit), clk->name);
+ }
+ 
+-static int omap2_dflt_clk_enable(struct clk *clk)
++int omap2_dflt_clk_enable(struct clk *clk)
+ {
+ 	u32 v;
+ 
+ 	if (unlikely(clk->enable_reg == NULL)) {
+-		printk(KERN_ERR "clock.c: Enable for %s without enable code\n",
++		pr_err("clock.c: Enable for %s without enable code\n",
+ 		       clk->name);
+ 		return 0; /* REVISIT: -EINVAL */
+ 	}
+@@ -363,26 +346,13 @@ static int omap2_dflt_clk_enable(struct clk *clk)
+ 	__raw_writel(v, clk->enable_reg);
+ 	v = __raw_readl(clk->enable_reg); /* OCP barrier */
+ 
+-	return 0;
+-}
++	if (clk->ops->find_idlest)
++		omap2_module_wait_ready(clk);
+ 
+-static int omap2_dflt_clk_enable_wait(struct clk *clk)
+-{
+-	int ret;
+-
+-	if (!clk->enable_reg) {
+-		printk(KERN_ERR "clock.c: Enable for %s without enable code\n",
+-		       clk->name);
+-		return 0; /* REVISIT: -EINVAL */
+-	}
+-
+-	ret = omap2_dflt_clk_enable(clk);
+-	if (ret == 0)
+-		omap2_clk_wait_ready(clk);
+-	return ret;
++	return 0;
+ }
+ 
+-static void omap2_dflt_clk_disable(struct clk *clk)
++void omap2_dflt_clk_disable(struct clk *clk)
+ {
+ 	u32 v;
+ 
+@@ -406,8 +376,10 @@ static void omap2_dflt_clk_disable(struct clk *clk)
+ }
+ 
+ const struct clkops clkops_omap2_dflt_wait = {
+-	.enable		= omap2_dflt_clk_enable_wait,
++	.enable		= omap2_dflt_clk_enable,
+ 	.disable	= omap2_dflt_clk_disable,
++	.find_companion	= omap2_clk_dflt_find_companion,
++	.find_idlest	= omap2_clk_dflt_find_idlest,
+ };
+ 
+ const struct clkops clkops_omap2_dflt = {
+diff --git a/arch/arm/mach-omap2/clock.h b/arch/arm/mach-omap2/clock.h
+index 2679ddf..9ae7540 100644
+--- a/arch/arm/mach-omap2/clock.h
++++ b/arch/arm/mach-omap2/clock.h
+@@ -65,6 +65,12 @@ int omap2_clksel_set_rate(struct clk *clk, unsigned long rate);
+ u32 omap2_get_dpll_rate(struct clk *clk);
+ int omap2_wait_clock_ready(void __iomem *reg, u32 cval, const char *name);
+ void omap2_clk_prepare_for_reboot(void);
++int omap2_dflt_clk_enable(struct clk *clk);
++void omap2_dflt_clk_disable(struct clk *clk);
++void omap2_clk_dflt_find_companion(struct clk *clk, void __iomem **other_reg,
++				   u8 *other_bit);
++void omap2_clk_dflt_find_idlest(struct clk *clk, void __iomem **idlest_reg,
++				u8 *idlest_bit);
+ 
+ extern const struct clkops clkops_omap2_dflt_wait;
+ extern const struct clkops clkops_omap2_dflt;
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index f945156..ced555a 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -17,6 +17,7 @@
+ #include <linux/init.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/delay.h>
+ 
+ #include <mach/common.h>
+ #include <mach/prcm.h>
+@@ -28,6 +29,8 @@
+ static void __iomem *prm_base;
+ static void __iomem *cm_base;
+ 
++#define MAX_MODULE_ENABLE_WAIT		100000
++
+ u32 omap_prcm_get_reset_sources(void)
+ {
+ 	/* XXX This presumably needs modification for 34XX */
+@@ -120,6 +123,46 @@ u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx)
+ }
+ EXPORT_SYMBOL(cm_rmw_mod_reg_bits);
+ 
++/**
++ * omap2_cm_wait_idlest - wait for IDLEST bit to indicate module readiness
++ * @reg: physical address of module IDLEST register
++ * @mask: value to mask against to determine if the module is active
++ * @name: name of the clock (for printk)
++ *
++ * Returns 1 if the module indicated readiness in time, or 0 if it
++ * failed to enable in roughly MAX_MODULE_ENABLE_WAIT microseconds.
++ */
++int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, const char *name)
++{
++	int i = 0;
++	int ena = 0;
++
++	/*
++	 * 24xx uses 0 to indicate not ready, and 1 to indicate ready.
++	 * 34xx reverses this, just to keep us on our toes
++	 */
++	if (cpu_is_omap24xx())
++		ena = mask;
++	else if (cpu_is_omap34xx())
++		ena = 0;
++	else
++		BUG();
++
++	/* Wait for lock */
++	while (((__raw_readl(reg) & mask) != ena) &&
++	       (i++ < MAX_MODULE_ENABLE_WAIT))
++		udelay(1);
++
++	if (i < MAX_MODULE_ENABLE_WAIT)
++		pr_debug("cm: Module associated with clock %s ready after %d "
++			 "loops\n", name, i);
++	else
++		pr_err("cm: Module associated with clock %s didn't enable in "
++		       "%d tries\n", name, MAX_MODULE_ENABLE_WAIT);
++
++	return (i < MAX_MODULE_ENABLE_WAIT) ? 1 : 0;
++};
++
+ void __init omap2_set_globals_prcm(struct omap_globals *omap2_globals)
+ {
+ 	prm_base = omap2_globals->prm;
+diff --git a/arch/arm/plat-omap/include/mach/clock.h b/arch/arm/plat-omap/include/mach/clock.h
+index f9f65e1..4b8b0d6 100644
+--- a/arch/arm/plat-omap/include/mach/clock.h
++++ b/arch/arm/plat-omap/include/mach/clock.h
+@@ -20,6 +20,8 @@ struct clockdomain;
+ struct clkops {
+ 	int			(*enable)(struct clk *);
+ 	void			(*disable)(struct clk *);
++	void			(*find_idlest)(struct clk *, void __iomem **, u8 *);
++	void			(*find_companion)(struct clk *, void __iomem **, u8 *);
+ };
+ 
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
+diff --git a/arch/arm/plat-omap/include/mach/prcm.h b/arch/arm/plat-omap/include/mach/prcm.h
+index 24ac3c7..cda2a70 100644
+--- a/arch/arm/plat-omap/include/mach/prcm.h
++++ b/arch/arm/plat-omap/include/mach/prcm.h
+@@ -25,6 +25,7 @@
+ 
+ u32 omap_prcm_get_reset_sources(void);
+ void omap_prcm_arch_reset(char mode);
++int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, const char *name);
+ 
+ #endif
+ 
 
 
