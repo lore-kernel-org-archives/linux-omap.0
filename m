@@ -1,18 +1,19 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v4 0/2] watchdog:OMAP3:Add support for IVA2, SECURE WDTs
-Date: Mon, 22 Jun 2009 15:35:20 -0700
-Message-ID: <877hz328yf.fsf@deeprootsystems.com>
+Subject: Re: [PATCH v4 1/2] watchdog:OMAP3:Register IVA and SECURE WDT, make clks accessible
+Date: Mon, 22 Jun 2009 15:36:29 -0700
+Message-ID: <8763en28wi.fsf@deeprootsystems.com>
 References: <1245265882-784-1-git-send-email-ubh@ti.com>
+	<1245265882-784-2-git-send-email-ubh@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f182.google.com ([209.85.222.182]:42722 "EHLO
-	mail-pz0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750931AbZFVWfT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 18:35:19 -0400
-Received: by pzk12 with SMTP id 12so139865pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 22 Jun 2009 15:35:22 -0700 (PDT)
-In-Reply-To: <1245265882-784-1-git-send-email-ubh@ti.com> (Ulrik Bech Hald's message of "Wed\, 17 Jun 2009 14\:11\:20 -0500")
+Received: from wf-out-1314.google.com ([209.85.200.172]:61402 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136AbZFVWg3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 18:36:29 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1562622wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 22 Jun 2009 15:36:31 -0700 (PDT)
+In-Reply-To: <1245265882-784-2-git-send-email-ubh@ti.com> (Ulrik Bech Hald's message of "Wed\, 17 Jun 2009 14\:11\:21 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ulrik Bech Hald <ubh@ti.com>
@@ -20,32 +21,227 @@ Cc: linux-omap@vger.kernel.org
 
 Ulrik Bech Hald <ubh@ti.com> writes:
 
-> This patch series enables support for IVA2 and SECURE
-> WDTs, available on omap34xx.
-> The WDTs will be accessible (when present on device) through:
-> MPU:	/dev/watchdog
-> SECURE:	/dev/watchdog_secure
-> IVA2:	/dev/watchdog_iva2
+> Enabling registration of IVA and SECURE WDT devices. Making
+> ick and fck for IVA and SECURE WDTs accessible.
 >
 > Tested on Zoom1 OMAP3 platform
-
-You're also changing common code that affects OMAP2.  Ideally you
-should boot test on omap2, but minimum requirement is at least a
-compile test.
-
-KEvin
-
-> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
-> --- 
-> This patch set has a dependency on:
-> runtime: [PATCH 1/1] watchdog: OMAP fixes: enable clock in probe, trigger timer reload
 >
+> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
+
+One more change still needed... You should start the platform_device
+numbering at zero, not one.
+
+Kevin
+
+> ---
 >  arch/arm/mach-omap1/clock.c     |    6 +-
->  arch/arm/mach-omap2/clock24xx.c |    4 -
->  arch/arm/mach-omap2/clock34xx.c |   12 ++---
->  arch/arm/plat-omap/devices.c    |   91 ++++++++++++++++++++++++++++++++--------
->  drivers/watchdog/omap_wdt.c     |   34 +++++++++++---
->  5 files changed, 112 insertions(+), 35 deletions(-)
+>  arch/arm/mach-omap2/clock24xx.c |    4 +-
+>  arch/arm/mach-omap2/clock34xx.c |   12 +++---
+>  arch/arm/plat-omap/devices.c    |   91 ++++++++++++++++++++++++++++++++-------
+>  4 files changed, 86 insertions(+), 27 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+> index 436eed2..c0b5849 100644
+> --- a/arch/arm/mach-omap1/clock.c
+> +++ b/arch/arm/mach-omap1/clock.c
+> @@ -85,9 +85,9 @@ static struct omap_clk omap_clks[] = {
+>  	CLK(NULL,	"arm_gpio_ck",	&arm_gpio_ck,	CK_1510 | CK_310),
+>  	CLK(NULL,	"armxor_ck",	&armxor_ck.clk,	CK_16XX | CK_1510 | CK_310),
+>  	CLK(NULL,	"armtim_ck",	&armtim_ck.clk,	CK_16XX | CK_1510 | CK_310),
+> -	CLK("omap_wdt",	"fck",		&armwdt_ck.clk,	CK_16XX | CK_1510 | CK_310),
+> -	CLK("omap_wdt",	"ick",		&armper_ck.clk,	CK_16XX),
+> -	CLK("omap_wdt", "ick",		&dummy_ck,	CK_1510 | CK_310),
+> +	CLK("omap_wdt.2", "fck",	&armwdt_ck.clk,	CK_16XX | CK_1510 | CK_310),
+> +	CLK("omap_wdt.2", "ick",	&armper_ck.clk,	CK_16XX),
+> +	CLK("omap_wdt.2", "ick",	&dummy_ck,	CK_1510 | CK_310),
+>  	CLK(NULL,	"arminth_ck",	&arminth_ck1510, CK_1510 | CK_310),
+>  	CLK(NULL,	"arminth_ck",	&arminth_ck16xx, CK_16XX),
+>  	/* CK_GEN2 clocks */
+> diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
+> index 44de027..4fe3def
+> --- a/arch/arm/mach-omap2/clock24xx.c
+> +++ b/arch/arm/mach-omap2/clock24xx.c
+> @@ -165,8 +165,8 @@ static struct omap_clk omap24xx_clks[] = {
+>  	CLK(NULL,	"uart3_fck",	&uart3_fck,	CK_243X | CK_242X),
+>  	CLK(NULL,	"gpios_ick",	&gpios_ick,	CK_243X | CK_242X),
+>  	CLK(NULL,	"gpios_fck",	&gpios_fck,	CK_243X | CK_242X),
+> -	CLK("omap_wdt",	"ick",		&mpu_wdt_ick,	CK_243X | CK_242X),
+> -	CLK("omap_wdt",	"fck",		&mpu_wdt_fck,	CK_243X | CK_242X),
+> +	CLK("omap_wdt.2", "ick",	&mpu_wdt_ick,	CK_243X | CK_242X),
+> +	CLK("omap_wdt.2", "fck",	&mpu_wdt_fck,	CK_243X | CK_242X),
+>  	CLK(NULL,	"sync_32k_ick",	&sync_32k_ick,	CK_243X | CK_242X),
+>  	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_243X | CK_242X),
+>  	CLK(NULL,	"omapctrl_ick",	&omapctrl_ick,	CK_243X | CK_242X),
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index 045da92..a4613e5 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -215,11 +215,11 @@ static struct omap_clk omap34xx_clks[] = {
+>  	CLK(NULL,	"gpt1_fck",	&gpt1_fck,	CK_343X),
+>  	CLK(NULL,	"wkup_32k_fck",	&wkup_32k_fck,	CK_343X),
+>  	CLK(NULL,	"gpio1_dbck",	&gpio1_dbck,	CK_343X),
+> -	CLK("omap_wdt",	"fck",		&wdt2_fck,	CK_343X),
+> +	CLK("omap_wdt.2", "fck",	&wdt2_fck,	CK_343X),
+>  	CLK(NULL,	"wkup_l4_ick",	&wkup_l4_ick,	CK_343X),
+>  	CLK(NULL,	"usim_ick",	&usim_ick,	CK_3430ES2),
+> -	CLK("omap_wdt",	"ick",		&wdt2_ick,	CK_343X),
+> -	CLK(NULL,	"wdt1_ick",	&wdt1_ick,	CK_343X),
+> +	CLK("omap_wdt.2", "ick",	&wdt2_ick,	CK_343X),
+> +	CLK("omap_wdt.1", "ick",	&wdt1_ick,	CK_343X),
+>  	CLK(NULL,	"gpio1_ick",	&gpio1_ick,	CK_343X),
+>  	CLK(NULL,	"omap_32ksync_ick", &omap_32ksync_ick, CK_343X),
+>  	CLK(NULL,	"gpt12_ick",	&gpt12_ick,	CK_343X),
+> @@ -241,14 +241,14 @@ static struct omap_clk omap34xx_clks[] = {
+>  	CLK(NULL,	"gpio4_dbck",	&gpio4_dbck,	CK_343X),
+>  	CLK(NULL,	"gpio3_dbck",	&gpio3_dbck,	CK_343X),
+>  	CLK(NULL,	"gpio2_dbck",	&gpio2_dbck,	CK_343X),
+> -	CLK(NULL,	"wdt3_fck",	&wdt3_fck,	CK_343X),
+> +	CLK("omap_wdt.3", "fck",	&wdt3_fck,	CK_343X),
+>  	CLK(NULL,	"per_l4_ick",	&per_l4_ick,	CK_343X),
+>  	CLK(NULL,	"gpio6_ick",	&gpio6_ick,	CK_343X),
+>  	CLK(NULL,	"gpio5_ick",	&gpio5_ick,	CK_343X),
+>  	CLK(NULL,	"gpio4_ick",	&gpio4_ick,	CK_343X),
+>  	CLK(NULL,	"gpio3_ick",	&gpio3_ick,	CK_343X),
+>  	CLK(NULL,	"gpio2_ick",	&gpio2_ick,	CK_343X),
+> -	CLK(NULL,	"wdt3_ick",	&wdt3_ick,	CK_343X),
+> +	CLK("omap_wdt.3", "ick",	&wdt3_ick,	CK_343X),
+>  	CLK(NULL,	"uart3_ick",	&uart3_ick,	CK_343X),
+>  	CLK(NULL,	"gpt9_ick",	&gpt9_ick,	CK_343X),
+>  	CLK(NULL,	"gpt8_ick",	&gpt8_ick,	CK_343X),
+> @@ -275,7 +275,7 @@ static struct omap_clk omap34xx_clks[] = {
+>  	CLK(NULL,	"sr_l4_ick",	&sr_l4_ick,	CK_343X),
+>  	CLK(NULL,	"secure_32k_fck", &secure_32k_fck, CK_343X),
+>  	CLK(NULL,	"gpt12_fck",	&gpt12_fck,	CK_343X),
+> -	CLK(NULL,	"wdt1_fck",	&wdt1_fck,	CK_343X),
+> +	CLK("omap_wdt.1", "fck",	&wdt1_fck,	CK_343X),
+>  };
+>  
+>  /* CM_AUTOIDLE_PLL*.AUTO_* bit values */
+> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+> index a64b692..5614f97
+> --- a/arch/arm/plat-omap/devices.c
+> +++ b/arch/arm/plat-omap/devices.c
+> @@ -288,42 +288,101 @@ static inline void omap_init_uwire(void) {}
+>  
+>  #if	defined(CONFIG_OMAP_WATCHDOG) || defined(CONFIG_OMAP_WATCHDOG_MODULE)
+>  
+> -static struct resource wdt_resources[] = {
+> +#define	OMAP44XX_WDT2_BASE	0x4a314000
+> +#define	OMAP34XX_WDT1_BASE	0x4830c000
+> +#define	OMAP34XX_WDT2_BASE	0x48314000
+> +#define	OMAP34XX_WDT3_BASE	0x49030000
+> +#define	OMAP2430_WDT_BASE	0x49016000
+> +#define	OMAP2420_WDT_BASE	0x48022000
+> +#define	OMAP16XX_WDT_BASE	0xfffeb000
+> +
+> +static struct resource secure_wdt_resources[] = {
+>  	{
+> -		.flags		= IORESOURCE_MEM,
+> +		.flags = IORESOURCE_MEM,
+>  	},
+>  };
+>  
+> -static struct platform_device omap_wdt_device = {
+> -	.name	   = "omap_wdt",
+> -	.id	     = -1,
+> -	.num_resources	= ARRAY_SIZE(wdt_resources),
+> -	.resource	= wdt_resources,
+> +static struct resource mpu_wdt_resources[] = {
+> +	{
+> +		.flags = IORESOURCE_MEM,
+> +	},
+> +};
+> +
+> +static struct resource iva2_wdt_resources[] = {
+> +	{
+> +		.flags = IORESOURCE_MEM,
+> +	},
+> +};
+> +
+> +static struct platform_device omap_secure_wdt_device = {
+> +	.name = "omap_wdt",
+> +	.id = 1,
+> +	.num_resources = ARRAY_SIZE(secure_wdt_resources),
+> +	.resource = secure_wdt_resources,
+> +	.dev = {
+> +		.platform_data = "watchdog_secure",
+> +	},
+> +};
+> +
+> +static struct platform_device omap_mpu_wdt_device = {
+> +	.name = "omap_wdt",
+> +	.id = 2,
+> +	.num_resources = ARRAY_SIZE(mpu_wdt_resources),
+> +	.resource = mpu_wdt_resources,
+> +	.dev = {
+> +		.platform_data = "watchdog",
+> +	},
+> +};
+> +
+> +static struct platform_device omap_iva2_wdt_device = {
+> +	.name = "omap_wdt",
+> +	.id = 3,
+> +	.num_resources = ARRAY_SIZE(iva2_wdt_resources),
+> +	.resource = iva2_wdt_resources,
+> +	.dev = {
+> +		.platform_data = "watchdog_iva2",
+> +	},
+>  };
+>  
+>  static void omap_init_wdt(void)
+>  {
+>  	if (cpu_is_omap16xx())
+> -		wdt_resources[0].start = 0xfffeb000;
+> +		mpu_wdt_resources[0].start = OMAP16XX_WDT_BASE;
+>  	else if (cpu_is_omap2420())
+> -		wdt_resources[0].start = 0x48022000; /* WDT2 */
+> +		mpu_wdt_resources[0].start = OMAP2420_WDT_BASE;
+>  	else if (cpu_is_omap2430())
+> -		wdt_resources[0].start = 0x49016000; /* WDT2 */
+> -	else if (cpu_is_omap343x())
+> -		wdt_resources[0].start = 0x48314000; /* WDT2 */
+> -	else if (cpu_is_omap44xx())
+> -		wdt_resources[0].start = 0x4a314000;
+> +		mpu_wdt_resources[0].start = OMAP2430_WDT_BASE;
+> +	else if (cpu_is_omap343x()) {
+> +		secure_wdt_resources[0].start = OMAP34XX_WDT1_BASE;
+> +		secure_wdt_resources[0].end = secure_wdt_resources[0].start \
+> +			+ 0x4f;
+> +		mpu_wdt_resources[0].start = OMAP34XX_WDT2_BASE;
+> +		iva2_wdt_resources[0].start = OMAP34XX_WDT3_BASE;
+> +		iva2_wdt_resources[0].end = iva2_wdt_resources[0].start + 0x4f;
+> +	} else if (cpu_is_omap44xx())
+> +		mpu_wdt_resources[0].start = OMAP44XX_WDT2_BASE;
+>  	else
+>  		return;
+>  
+> -	wdt_resources[0].end = wdt_resources[0].start + 0x4f;
+> +	mpu_wdt_resources[0].end = mpu_wdt_resources[0].start + 0x4f;
+> +
+> +	/* MPU WDT present across omap family */
+> +	(void) platform_device_register(&omap_mpu_wdt_device);
+>  
+> -	(void) platform_device_register(&omap_wdt_device);
+> +	if (cpu_is_omap34xx()) {
+> +		(void) platform_device_register(&omap_iva2_wdt_device);
+> +		if (omap_type() == OMAP2_DEVICE_TYPE_SEC
+> +			|| omap_type() == OMAP2_DEVICE_TYPE_EMU)
+> +			(void) \
+> +			platform_device_register(&omap_secure_wdt_device);
+> +	}
+>  }
+> +
+>  #else
+>  static inline void omap_init_wdt(void) {}
+>  #endif
+>  
+> +
+>  /*-------------------------------------------------------------------------*/
+>  
+>  #if defined(CONFIG_HW_RANDOM_OMAP) || defined(CONFIG_HW_RANDOM_OMAP_MODULE)
+> -- 
+> 1.5.4.3
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
