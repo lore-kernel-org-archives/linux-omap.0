@@ -1,143 +1,80 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon errata
- 1.153
-Date: Mon, 22 Jun 2009 11:49:56 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F2028A41187E@dlee06.ent.ti.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: OMAP34XXCAM: Micron mt9d111 sensor support?
+Date: Mon, 22 Jun 2009 12:06:03 -0600
+Message-ID: <4A3FC80B.9000302@mlbassoc.com>
+References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com> <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57476 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750931AbZFVQuB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 12:50:01 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5MGnxvD016581
-	for <linux-omap@vger.kernel.org>; Mon, 22 Jun 2009 11:50:04 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5MGnxTL014995
-	for <linux-omap@vger.kernel.org>; Mon, 22 Jun 2009 11:49:59 -0500 (CDT)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n5MGnxew023962
-	for <linux-omap@vger.kernel.org>; Mon, 22 Jun 2009 11:49:59 -0500 (CDT)
-Content-Language: en-US
+Received: from hermes.mlbassoc.com ([76.76.67.137]:3044 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753650AbZFVSGD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 14:06:03 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: Zach LeRoy <zleroy@rii.ricoh.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-This patch includes the workarround for I2C Errata 1.153: When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG
+Aguirre Rodriguez, Sergio Alberto wrote:
+>   
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Zach LeRoy
+>> Sent: Wednesday, June 17, 2009 5:06 PM
+>> To: linux-omap; linux-media@vger.kernel.org
+>> Subject: OMAP34XXCAM: Micron mt9d111 sensor support?
+>>
+>> I am working on adding support for a micron 2 MP sensor: mt9d111 on a
+>> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would like to
+>> use the omap34xxcam driver to interface with this sensor.  I am wondering
+>> if there are currently any distributions which already include support for
+>> this sensor through the omap34xxcam driver, or if anyone else is
+>> interested in this topic.
+>>     
+>
+> Hi Zach,
+>
+> I'm working along with Sakari Ailus and others in this omap34xxcam driver you're talking about, and we are in the process to provide a newer patchset to work on the latest l-o tree.
+>
+> Sakari is sharing the camera core here:
+>
+> http://gitorious.org/omap3camera
+>
+> And I have also this repository which contains a snapshot of Sakari's tree + support from some sensors I have available for the 3430SDP and LDP (the name could confuse with the above, but I'll change the name/location soon):
+>
+> http://gitorious.org/omap3-linux-camera-driver
+>
+> Testing the driver with as much sensors as we can is very interesting (at least for me), because that help us spot possible bugs that aren't seen with our current HW. So, I'll be looking forward if you add this sensor driver to the supported list :)
+>   
 
-Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-Signed-off by: Nishant Kamat <nskamat@ti.com>
-Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
----
- drivers/i2c/busses/i2c-omap.c |   54 +++++++++++++++++++++++++++++++++++++---
- 1 files changed, 50 insertions(+), 4 deletions(-)
+I'd like to move forward using this on OMAP/3530 with TVP5150 (S-video in)
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index ece0125..e84836b 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -632,6 +632,37 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
- #define omap_i2c_rev1_isr		NULL
- #endif
- 
-+/* I2C Errata 1.153:
-+ * When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
-+ * Otherwise some data bytes can be lost while transferring them from the
-+ * memory to the I2C interface.
-+ */
-+
-+static int omap_i2c_wait_for_xudf(struct omap_i2c_dev *dev)
-+{
-+	u16 xudf;
-+	int counter = 500;
-+
-+	/* We are in interrupt context. Wait for XUDF for max 7 msec */
-+	xudf = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+	while (!(xudf & OMAP_I2C_STAT_XUDF) && counter--) {
-+		if (xudf & (OMAP_I2C_STAT_ROVR | OMAP_I2C_STAT_NACK |
-+			    OMAP_I2C_STAT_AL))
-+			return -EINVAL;
-+		udelay(10);
-+		xudf = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-+	}
-+
-+	if (!counter) {
-+		/* Clear Tx FIFO */
-+		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
-+				OMAP_I2C_BUF_TXFIF_CLR);
-+		return -ETIMEDOUT;
-+	}
-+
-+	return 0;
-+}
-+
- static irqreturn_t
- omap_i2c_isr(int this_irq, void *dev_id)
- {
-@@ -639,6 +670,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	u16 bits;
- 	u16 stat, w;
- 	int err, count = 0;
-+	int error;
- 
- 	if (dev->idle)
- 		return IRQ_NONE;
-@@ -647,7 +679,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
- 		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
- 		if (count++ == 100) {
--			dev_warn(dev->dev, "Too much work in one IRQ\n");
-+			dev_dbg(dev->dev, "Too much work in one IRQ\n");
- 			break;
- 		}
- 
-@@ -715,11 +747,22 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 							OMAP_I2C_BUFSTAT_REG);
- 			}
- 			while (num_bytes) {
--				num_bytes--;
- 				w = 0;
- 				if (dev->buf_len) {
-+					if (cpu_is_omap34xx()) {
-+						/* OMAP3430 Errata 1.153 */
-+						error = omap_i2c_wait_for_xudf(dev);
-+						if (error) {
-+							omap_i2c_ack_stat(dev, stat &
-+								(OMAP_I2C_STAT_XRDY |
-+								 OMAP_I2C_STAT_XDR));
-+							dev_err(dev->dev, "Transmit error\n");
-+							omap_i2c_complete_cmd(dev, OMAP_I2C_STAT_XUDF);
-+
-+							return IRQ_HANDLED;
-+						}
-+					}
- 					w = *dev->buf++;
--					dev->buf_len--;
- 					/* Data reg from  2430 is 8 bit wide */
- 					if (!cpu_is_omap2430() &&
- 							!cpu_is_omap34xx()) {
-@@ -728,6 +771,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 							dev->buf_len--;
- 						}
- 					}
-+					omap_i2c_write_reg(dev,
-+						OMAP_I2C_DATA_REG, w);
-+					num_bytes--;
-+					dev->buf_len--;
- 				} else {
- 					if (stat & OMAP_I2C_STAT_XRDY)
- 						dev_err(dev->dev,
-@@ -739,7 +786,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 							"data to send\n");
- 					break;
- 				}
--				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
- 			}
- 			omap_i2c_ack_stat(dev,
- 				stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+Sadly, the tree above (omap3-linux-camera-driver) won't build for the
+Zoom/LDP:
+  CC      arch/arm/mach-omap2/board-ldp-camera.o
+/local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:59:
+error: implicit declaration of function 'PAGE_ALIGN'
+/local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:59:
+error: initializer element is not constant
+/local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:59:
+error: (near initialization for 'ov3640_hwc.capture_mem')
+/local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:
+In function 'ov3640_sensor_set_prv_data':
+/local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:89:
+error: 'hwc' undeclared (first use in this function)
+/local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:89:
+error: (Each undeclared identifier is reported only once
+/local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:89:
+error: for each function it appears in.)
+
+Looking at the code, it seems that some pieces are missing - merge
+problem maybe?
+
 -- 
-1.5.6.3
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
 
