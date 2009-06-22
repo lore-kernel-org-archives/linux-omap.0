@@ -1,195 +1,303 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/2] OMAP3: MMC: Add mux for pins
-Date: Mon, 22 Jun 2009 16:06:33 +0300
-Message-ID: <20090622130633.GH7352@atomide.com>
-References: <1245109070-31154-1-git-send-email-vikram.pandita@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] Missing implementation of omap3evm_flash_init()
+Date: Mon, 22 Jun 2009 18:46:24 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D82205FC@dbde02.ent.ti.com>
+References: <1245331742-2536-1-git-send-email-premi@ti.com>
+ <20090622090651.GA7352@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56921 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbZFVNGd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 09:06:33 -0400
-Content-Disposition: inline
-In-Reply-To: <1245109070-31154-1-git-send-email-vikram.pandita@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:42590 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751240AbZFVNQb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 09:16:31 -0400
+In-Reply-To: <20090622090651.GA7352@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org, Chikkature Rajashekar <madhu.cr@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Vikram Pandita <vikram.pandita@ti.com> [090616 02:39]:
-> For OMAP3 add MMC1 MMC2 and MMC3 pin mux
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Monday, June 22, 2009 2:37 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] Missing implementation of omap3evm_flash_init()
 > 
-> Signed-off-by: Chikkature Rajashekar <madhu.cr@ti.com>
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> ---
->  arch/arm/mach-omap2/devices.c         |   33 ++++++++++++++++++++++
->  arch/arm/mach-omap2/mux.c             |   49 +++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/mux.h |   28 +++++++++++++++++++
->  3 files changed, 110 insertions(+), 0 deletions(-)
+> Hi,
 > 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 894cc35..7b87543 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -513,6 +513,39 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
->  			omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
->  		}
->  	}
-> +
-> +	if (cpu_is_omap3430()) {
-> +		if (controller_nr == 0 && (!mmc_controller->slots[0].nomux)) {
-> +			omap_cfg_reg(N28_3430_MMC1_CLK);
-> +			omap_cfg_reg(M27_3430_MMC1_CMD);
-> +			omap_cfg_reg(N27_3430_MMC1_DAT0);
-> +			omap_cfg_reg(N26_3430_MMC1_DAT1);
-> +			omap_cfg_reg(N25_3430_MMC1_DAT2);
-> +			omap_cfg_reg(P28_3430_MMC1_DAT3);
-> +			omap_cfg_reg(P27_3430_MMC1_DAT4);
-> +			omap_cfg_reg(P26_3430_MMC1_DAT5);
-> +			omap_cfg_reg(R27_3430_MMC1_DAT6);
-> +			omap_cfg_reg(R25_3430_MMC1_DAT7);
-> +		}
-> +		if (controller_nr == 1 && (!mmc_controller->slots[0].nomux)) {
-> +			/* MMC2 */
-> +			omap_cfg_reg(AE2_3430_MMC2_CLK);
-> +			omap_cfg_reg(AG5_3430_MMC2_CMD);
-> +			omap_cfg_reg(AH5_3430_MMC2_DAT0);
-> +			omap_cfg_reg(AH4_3430_MMC2_DAT1);
-> +			omap_cfg_reg(AG4_3430_MMC2_DAT2);
-> +			omap_cfg_reg(AF4_3430_MMC2_DAT3);
-> +		}
-> +		if (controller_nr == 2 && (!mmc_controller->slots[0].nomux)) {
-> +			/* MMC3 */
-> +			omap_cfg_reg(AF10_3430_MMC3_CLK);
-> +			omap_cfg_reg(AC3_3430_MMC3_CMD);
-> +			omap_cfg_reg(AE11_3430_MMC3_DAT0);
-> +			omap_cfg_reg(AH9_3430_MMC3_DAT1);
-> +			omap_cfg_reg(AF13_3430_MMC3_DAT2);
-> +			omap_cfg_reg(AF13_3430_MMC3_DAT3);
-> +		}
-> +	}
->  }
-
-Just for reference, I'll summarize what we've discussed in the other related
-thread:
-
-- Since we support muxing by both the bootloader and kernel,
-  adding nomux flag is dangerous
-
-- We can only mux the pins that don't have alternative outputs
-
-Regards,
-
-Tony
-
-
-
->  
->  void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index 026c4fc..d49b9a7 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -486,6 +486,55 @@ MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
->  MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
->  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-> +/* MMC1 */
-> +MUX_CFG_34XX("N28_3430_MMC1_CLK", 0x144,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("M27_3430_MMC1_CMD", 0x146,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("N27_3430_MMC1_DAT0", 0x148,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("N26_3430_MMC1_DAT1", 0x14a,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("N25_3430_MMC1_DAT2", 0x14c,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("P28_3430_MMC1_DAT3", 0x14e,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("P27_3430_MMC1_DAT4", 0x150,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("P26_3430_MMC1_DAT5", 0x152,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("R27_3430_MMC1_DAT6", 0x154,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("R25_3430_MMC1_DAT7", 0x156,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +
-> +/* MMC2 */
-> +MUX_CFG_34XX("AE2_3430_MMC2_CLK", 0x158,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AG5_3430_MMC2_CMD", 0x15A,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AH5_3430_MMC2_DAT0", 0x15c,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AH4_3430_MMC2_DAT1", 0x15e,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AG4_3430_MMC2_DAT2", 0x160,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AF4_3430_MMC2_DAT3", 0x162,
-> +		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-> +
-> +/* MMC3 */
-> +MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x1d0,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AE11_3430_MMC3_DAT0", 0x5e4,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AH9_3430_MMC3_DAT1", 0x5e6,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AF13_3430_MMC3_DAT2", 0x5e8,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
->  };
->  
->  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-> index 85a6217..d24fdf9 100644
-> --- a/arch/arm/plat-omap/include/mach/mux.h
-> +++ b/arch/arm/plat-omap/include/mach/mux.h
-> @@ -853,6 +853,34 @@ enum omap34xx_index {
->  	AE5_34XX_GPIO143,
->  	H19_34XX_GPIO164_OUT,
->  	J25_34XX_GPIO170,
-> +
-> +	/* MMC1 */
-> +	N28_3430_MMC1_CLK,
-> +	M27_3430_MMC1_CMD,
-> +	N27_3430_MMC1_DAT0,
-> +	N26_3430_MMC1_DAT1,
-> +	N25_3430_MMC1_DAT2,
-> +	P28_3430_MMC1_DAT3,
-> +	P27_3430_MMC1_DAT4,
-> +	P26_3430_MMC1_DAT5,
-> +	R27_3430_MMC1_DAT6,
-> +	R25_3430_MMC1_DAT7,
-> +
-> +	/* MMC2 */
-> +	AE2_3430_MMC2_CLK,
-> +	AG5_3430_MMC2_CMD,
-> +	AH5_3430_MMC2_DAT0,
-> +	AH4_3430_MMC2_DAT1,
-> +	AG4_3430_MMC2_DAT2,
-> +	AF4_3430_MMC2_DAT3,
-> +
-> +	/* MMC3 */
-> +	AF10_3430_MMC3_CLK,
-> +	AC3_3430_MMC3_CMD,
-> +	AE11_3430_MMC3_DAT0,
-> +	AH9_3430_MMC3_DAT1,
-> +	AF13_3430_MMC3_DAT2,
-> +	AF13_3430_MMC3_DAT3,
->  };
->  
->  struct omap_mux_cfg {
-> -- 
-> 1.6.0.3.613.g9f8f13
+> * Sanjeev Premi <premi@ti.com> [090618 16:29]:
+> > The function omap3evm_flash_init() earlier implemented
+> > in board-omap3evm-flash.c did not find its way into the
+> > board-omap3evm.c during the latest migration.
+> > 
+> > This patch brings in the earlier implementation with
+> > appropriate changes as necessary on current head.
+> > 
+> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-omap3evm.c |  176 
+> +++++++++++++++++++++++++++++++++-
+> >  1 files changed, 175 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c 
+> b/arch/arm/mach-omap2/board-omap3evm.c
+> > index 1b7a797..5084b67 100644
+> > --- a/arch/arm/mach-omap2/board-omap3evm.c
+> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> > @@ -26,23 +26,197 @@
+> >  #include <linux/spi/ads7846.h>
+> >  #include <linux/i2c/twl4030.h>
+> >  
+> > +#include <linux/mtd/mtd.h>
+> > +#include <linux/mtd/partitions.h>
+> > +#include <linux/mtd/nand.h>
+> > +
+> >  #include <mach/hardware.h>
+> >  #include <asm/mach-types.h>
+> >  #include <asm/mach/arch.h>
+> >  #include <asm/mach/map.h>
+> > +#include <asm/mach/flash.h>
+> >  
+> > +#include <mach/common.h>
+> >  #include <mach/board.h>
+> >  #include <mach/mux.h>
+> > +#include <mach/gpmc.h>
+> > +#include <mach/nand.h>
+> > +#include <mach/onenand.h>
+> >  #include <mach/usb.h>
+> > -#include <mach/common.h>
+> >  #include <mach/mcspi.h>
+> >  #include <mach/keypad.h>
+> >  
+> >  #include "sdram-micron-mt46h32m32lf-6.h"
+> >  #include "mmc-twl4030.h"
+> >  
+> > +#define GPMC_CS0_BASE           0x60
+> > +#define GPMC_CS_SIZE            0x30
+> > +
+> >  #define OMAP3_EVM_TS_GPIO	175
+> >  
+> > +/*
+> > + * MTD - NAND, OneNAND
+> > + */
+> > +#define NAND_BLOCK_SIZE		SZ_128K
+> > +
+> > +static struct mtd_partition omap3evm_nand_partitions[] = {
+> > +	/* All the partition sizes are listed in terms of NAND 
+> block size */
+> > +	{
+> > +		.name		= "xloader-nand",
+> > +		.offset		= 0,
+> > +		.size		= 4 * NAND_BLOCK_SIZE,
+> > +		.mask_flags	= MTD_WRITEABLE
+> > +	},
+> > +	{
+> > +		.name		= "uboot-nand",
+> > +		.offset		= MTDPART_OFS_APPEND,
+> > +		.size		= 14 * NAND_BLOCK_SIZE,
+> > +		.mask_flags	= MTD_WRITEABLE
+> > +	},
+> > +	{
+> > +		.name		= "params-nand",
+> > +
+> > +		.offset		= MTDPART_OFS_APPEND,
+> > +		.size		= 2 * NAND_BLOCK_SIZE
+> > +	},
+> > +	{
+> > +		.name		= "linux-nand",
+> > +		.offset		= MTDPART_OFS_APPEND,
+> > +		.size		= 40 * NAND_BLOCK_SIZE,
+> > +	},
+> > +	{
+> > +		.name		= "jffs2-nand",
+> > +		.size		= MTDPART_SIZ_FULL,
+> > +		.offset		= MTDPART_OFS_APPEND,
+> > +	},
+> > +};
+> > +
+> > +static struct omap_nand_platform_data omap3evm_nand_data = {
+> > +	.parts		= omap3evm_nand_partitions,
+> > +	.nr_parts	= ARRAY_SIZE(omap3evm_nand_partitions),
+> > +	.nand_setup	= NULL,
+> > +	.dma_channel	= -1,		/* disable DMA in OMAP 
+> NAND driver */
+> > +	.nand_setup	= NULL,
+> > +	.dev_ready	= NULL,
+> > +};
+> > +
+> > +static struct resource omap3evm_nand_resource = {
+> > +	.flags		= IORESOURCE_MEM,
+> > +};
+> > +
+> > +static struct platform_device omap3evm_nand_device = {
+> > +	.name		= "omap2-nand",
+> > +	.id		= 0,
+> > +	.dev		= {
+> > +		.platform_data	= &omap3evm_nand_data,
+> > +	},
+> > +	.num_resources	= 1,
+> > +	.resource	= &omap3evm_nand_resource,
+> > +};
+> > +
+> > +#define ONENAND_MAP		0x20000000
+> > +#define ONENAND_BLOCK_SIZE	(64*2048)
+> > +
+> > +static struct mtd_partition omap3evm_onenand_partitions[] = {
+> > +	{
+> > +		.name           = "xloader-onenand",
+> > +		.offset         = 0,
+> > +		.size           = 4 * ONENAND_BLOCK_SIZE,
+> > +		.mask_flags     = MTD_WRITEABLE
+> > +	},
+> > +	{
+> > +		.name           = "uboot-onenand",
+> > +		.offset         = MTDPART_OFS_APPEND,
+> > +		.size           = 15 * ONENAND_BLOCK_SIZE,
+> > +		.mask_flags     = MTD_WRITEABLE
+> > +	},
+> > +	{
+> > +		.name           = "params-onenand",
+> > +		.offset         = MTDPART_OFS_APPEND,
+> > +		.size           = 1 * ONENAND_BLOCK_SIZE,
+> > +	},
+> > +	{
+> > +		.name           = "linux-onenand",
+> > +		.offset         = MTDPART_OFS_APPEND,
+> > +		.size           = 40 * ONENAND_BLOCK_SIZE,
+> > +	},
+> > +	{
+> > +		.name           = "jffs2-onenand",
+> > +		.offset         = MTDPART_OFS_APPEND,
+> > +		.size           = MTDPART_SIZ_FULL,
+> > +	},
+> > +};
+> > +
+> > +static struct omap_onenand_platform_data omap3evm_onenand_data = {
+> > +	.parts		= omap3evm_onenand_partitions,
+> > +	.nr_parts	= ARRAY_SIZE(omap3evm_onenand_partitions),
+> > +	.onenand_setup	= NULL,
+> > +	.dma_channel	= -1,	/* disable DMA in OMAP OneNAND driver */
+> > +};
+> > +
+> > +static struct platform_device omap3evm_onenand_device = {
+> > +	.name		= "omap2-onenand",
+> > +	.id		= -1,
+> > +	.dev = {
+> > +		.platform_data = &omap3evm_onenand_data,
+> > +	},
+> > +};
+> > +
+> > +void __init omap3evm_flash_init(void)
+> > +{
+> > +	u8		cs = 0;
+> > +	u8		onenandcs = GPMC_CS_NUM + 1, nandcs = 
+> GPMC_CS_NUM + 1;
+> > +	u32		gpmc_base_add = OMAP34XX_GPMC_VIRT;
+> > +
+> > +	while (cs < GPMC_CS_NUM) {
+> > +		u32 ret = 0;
+> > +		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> > +
+> > +		/*
+> > +		* xloader/Uboot would have programmed the NAND/oneNAND
+> > +		* base address for us This is a ugly hack. The proper
+> > +		* way of doing this is to pass the setup of u-boot up
+> > +		* to kernel using kernel params - something on the
+> > +		* lines of machineID. Check if NAND/oneNAND is 
+> configured
+> > +		*/
+> > +		if ((ret & 0xC00) == 0x800) {
+> > +			/* Found it!! */
+> > +			if (nandcs > GPMC_CS_NUM)
+> > +				nandcs = cs;
+> > +		} else {
+> > +			ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
+> > +			if ((ret & 0x3F) == (ONENAND_MAP >> 24))
+> > +				onenandcs = cs;
+> > +		}
+> > +		cs++;
+> > +	}
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> We already have code that initializes the GPMC for onenand in kernel.
+> And I posted a patch to enable onenand for the SDP boards 
+> last week [1].
+
+Did not see it; before creating the patch; lookig at this now...
+
+> And this is yet another copy of the same code that was duplicated for
+> multiple boards. So how about making the following changes: 
+> 
+> - Pass the onenand chip select for GPMC in platform data. I 
+> doubt that the
+>   chip select is changing?
+> 
+> - If you still need to probe for onenand, please create a 
+> generic function
+>   in gpmc-onenand.c to probe for onenand
+> 
+
+Some EVMs have OneNAND and others have NAND. How/ Where do you suggest
+this check sould go?
+
+~sanjeev
+
+> Regards,
+> 
+> Tony
+> 
+> 
+> [1] http://patchwork.kernel.org/patch/30311/
+> 
+> 
+> 
+> > +	if ((nandcs > GPMC_CS_NUM) && (onenandcs > GPMC_CS_NUM)) {
+> > +		printk(KERN_INFO "NAND/OneNAND: Unable to find 
+> configuration "
+> > +				" in GPMC\n ");
+> > +		return;
+> > +	}
+> > +
+> > +	if (nandcs < GPMC_CS_NUM) {
+> > +		omap3evm_nand_data.cs	= nandcs;
+> > +		omap3evm_nand_data.gpmc_cs_baseaddr = (void 
+> *)(gpmc_base_add +
+> > +					GPMC_CS0_BASE + 
+> nandcs*GPMC_CS_SIZE);
+> > +		omap3evm_nand_data.gpmc_baseaddr   = (void *) 
+> (gpmc_base_add);
+> > +
+> > +		if 
+> (platform_device_register(&omap3evm_nand_device) < 0) {
+> > +			printk(KERN_ERR "Unable to register 
+> NAND device\n");
+> > +		}
+> > +	}
+> > +
+> > +	if (onenandcs < GPMC_CS_NUM) {
+> > +		omap3evm_onenand_data.cs = onenandcs;
+> > +		if 
+> (platform_device_register(&omap3evm_onenand_device) < 0)
+> > +			printk(KERN_ERR "Unable to register 
+> OneNAND device\n");
+> > +	}
+> > +}
+> > +
+> > +/*
+> > + * Ethernet
+> > + */
+> >  #define OMAP3EVM_ETHR_START	0x2c000000
+> >  #define OMAP3EVM_ETHR_SIZE	1024
+> >  #define OMAP3EVM_ETHR_GPIO_IRQ	176
+> > -- 
+> > 1.6.2.2
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
