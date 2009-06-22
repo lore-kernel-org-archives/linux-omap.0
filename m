@@ -1,69 +1,217 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v2] OMAP2: Zoom2: Pass irqflags to 8250 driver
-Date: Mon, 22 Jun 2009 18:25:26 -0500
-Message-ID: <1245713126-18312-1-git-send-email-vikram.pandita@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH][RFC] OMAP3: PM: Prevent hang in prcm_interrupt_handler
+Date: Mon, 22 Jun 2009 16:44:11 -0700
+Message-ID: <87prcv25ro.fsf@deeprootsystems.com>
+References: <1245452921-24142-1-git-send-email-jon-hunter@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52092 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751205AbZFVX3M (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 22 Jun 2009 19:29:12 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5MNT96T000628
-	for <linux-omap@vger.kernel.org>; Mon, 22 Jun 2009 18:29:14 -0500
+Received: from wf-out-1314.google.com ([209.85.200.174]:14384 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751314AbZFVXoL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 19:44:11 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1572290wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 22 Jun 2009 16:44:14 -0700 (PDT)
+In-Reply-To: <1245452921-24142-1-git-send-email-jon-hunter@ti.com> (Jon Hunter's message of "Fri\, 19 Jun 2009 18\:08\:41 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+To: Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Pass irqflags to 8250 driver from zoom2 board file
-Zoom2 has IRQF_TRIGGER_RISING requirement for the 8250 GPIO irq
+Jon Hunter <jon-hunter@ti.com> writes:
 
-This patch is dependent on 8250 driver changes getting accepted upstream:
-Refer: http://patchwork.kernel.org/patch/31884/
+> From: Jon Hunter <jon-hunter@ti.com>
+>
+> There are two scenarios where a race condition could result in a hang in the
+> prcm_interrupt handler. These are:
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
+IIRC, the RX51 tree has a workaround for some hangs seen in this
+interrupt handler as well, so this has definitely been seen.  The fix
+there though was just to no loop, I think your fix is more thorough 
+and fixes the root cause.  Thanks.
 
-Warning: 
-could cause compilation break if 8250 patch is not integrated first
+No comments on the funtional changes, but a couple
+cosmetic/documentation changes.
 
- arch/arm/mach-omap2/board-zoom-debugboard.c |    2 ++
- arch/arm/mach-omap2/serial.c                |    2 +-
- 2 files changed, 3 insertions(+), 1 deletions(-)
+1) Would it be possible to summarize the requirements in the function
+itself as part of this patch.
 
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index bac5c43..f546063 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -12,6 +12,7 @@
- #include <linux/gpio.h>
- #include <linux/serial_8250.h>
- #include <linux/smsc911x.h>
-+#include <linux/interrupt.h>
- 
- #include <mach/gpmc.h>
- 
-@@ -84,6 +85,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.mapbase	= 0x10000000,
- 		.irq		= OMAP_GPIO_IRQ(102),
- 		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
-+		.irqflags	= IRQF_SHARED | IRQF_TRIGGER_RISING,
- 		.iotype		= UPIO_MEM,
- 		.regshift	= 1,
- 		.uartclk	= QUART_CLK,
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index b094c15..45d4884 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -429,7 +429,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
- 		omap_ctrl_writew(v, uart->padconf);
+2) With the extra indentation, this function is getting too indented.
+Looking closer, an abstraction of the 'enable clocks, poll PM_WKST,
+disable clocks loop' could be done an called with the various modules
+and offsets.  I've attached a hack/patch below to show what I mean.
+You could just fold this into your patch.
+
+Kevin
+
+> 1). Waiting for PRM_IRQSTATUS_MPU register to clear.
+> Bit 0 of the PRM_IRQSTATUS_MPU register indicates that a wake-up event is
+> pending for the MPU. This bit can only be cleared if the all the wake-up events
+> latched in the various PM_WKST_x registers have been cleared. If a wake-up event
+> occurred during the processing of the prcm interrupt handler, after the
+> corresponding PM_WKST_x register was checked but before the PRM_IRQSTATUS_MPU
+> was cleared, then the CPU would be stuck forever waiting for bit 0 in
+> PRM_IRQSTATUS_MPU to be cleared.
+>
+> 2). Waiting for the PM_WKST_x register to clear.
+> Some power domains have more than one wake-up source. The PM_WKST_x registers
+> indicate the source of a wake-up event and need to be cleared after a wake-up
+> event occurs. When the PM_WKST_x registers are read and before they are cleared,
+> it is possible that another wake-up event could occur causing another bit to be
+> set in one of the PM_WKST_x registers. If this did occur after reading a
+> PM_WKST_x register then the CPU would miss this event and get stuck forever in
+> a loop waiting for that PM_WKST_x register to clear.
+>
+> This patch address the above race conditions that would result in a hang.
+>
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
+
+commit 6b95e05225d5f4fa9aaf8400f5b6dd056fd8ce91
+Author: Kevin Hilman <khilman@deeprootsystems.com>
+Date:   Mon Jun 22 16:17:57 2009 -0700
+
+    temp: merge into PRCM interrupt fix
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 0545262..708816c 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -194,109 +194,40 @@ static void omap3_save_secure_ram_context(u32 target_mpu_state)
  	}
+ }
  
--	p->flags |= UPF_SHARE_IRQ;
-+	p->irqflags |= IRQF_SHARED;
- 	ret = request_irq(p->irq, omap_uart_interrupt, IRQF_SHARED,
- 			  "serial idle", (void *)uart);
- 	WARN_ON(ret);
--- 
-1.6.0.3.613.g9f8f13
-
++static void prcm_clear_mod_irqs(s16 module, u16 wkst_off,
++				u16 iclk_off, u16 fclk_off) {
++	u32 wkst, fclk, iclk;
++
++	wkst = prm_read_mod_reg(module, wkst_off);
++	if (wkst) {
++		iclk = cm_read_mod_reg(module, iclk_off);
++		fclk = cm_read_mod_reg(module, fclk_off);
++		while (wkst) {
++			cm_set_mod_reg_bits(wkst, module, iclk_off);
++			cm_set_mod_reg_bits(wkst, module, fclk_off);
++			prm_write_mod_reg(wkst, module, wkst_off);
++			wkst = prm_read_mod_reg(module, wkst_off);
++		}
++		cm_write_mod_reg(iclk, module, iclk_off);
++		cm_write_mod_reg(fclk, module, fclk_off);
++	}
++}
++
+ /* PRCM Interrupt Handler for wakeups */
+ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ {
+-	u32 wkst, irqstatus_mpu;
+-	u32 fclk, iclk;
++	u32 irqstatus_mpu;
+ 
+ 	do {
+-		/* WKUP */
+-		wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
+-		if (wkst) {
+-			iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
+-			fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
+-			while (wkst) {
+-				cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_ICLKEN);
+-				cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_FCLKEN);
+-				prm_write_mod_reg(wkst, WKUP_MOD, PM_WKST);
+-				wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
+-			}
+-			cm_write_mod_reg(iclk, WKUP_MOD, CM_ICLKEN);
+-			cm_write_mod_reg(fclk, WKUP_MOD, CM_FCLKEN);
+-		}
+-
+-		/* CORE */
+-		wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
+-		if (wkst) {
+-			iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
+-			fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
+-			while (wkst) {
+-				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN1);
+-				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_FCLKEN1);
+-				prm_write_mod_reg(wkst, CORE_MOD, PM_WKST1);
+-				wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
+-			}
+-			cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN1);
+-			cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
+-		}
+-		wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
+-		if (wkst) {
+-			iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
+-			fclk = cm_read_mod_reg(CORE_MOD,
+-						OMAP3430ES2_CM_FCLKEN3);
+-			while (wkst) {
+-				cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
+-				cm_set_mod_reg_bits(wkst, CORE_MOD,
+-							OMAP3430ES2_CM_FCLKEN3);
+-				prm_write_mod_reg(wkst, CORE_MOD,
+-							OMAP3430ES2_PM_WKST3);
+-				wkst = prm_read_mod_reg(CORE_MOD,
+-							OMAP3430ES2_PM_WKST3);
+-			}
+-			cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
+-			cm_write_mod_reg(fclk, CORE_MOD,
+-						OMAP3430ES2_CM_FCLKEN3);
+-		}
+-
+-		/* PER */
+-		wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
+-		if (wkst) {
+-			iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
+-			fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
+-			while (wkst) {
+-				cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD,
+-							CM_ICLKEN);
+-				cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD,
+-							CM_FCLKEN);
+-				prm_write_mod_reg(wkst, OMAP3430_PER_MOD,
+-							PM_WKST);
+-				wkst = prm_read_mod_reg(OMAP3430_PER_MOD,
+-							PM_WKST);
+-			}
+-			cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
+-			cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
+-		}
+-
+-		if (omap_rev() > OMAP3430_REV_ES1_0) {
+-			/* USBHOST */
+-			wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+-							PM_WKST);
+-			if (wkst) {
+-				iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+-					       CM_ICLKEN);
+-				fclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+-					       CM_FCLKEN);
+-				while (wkst) {
+-					cm_set_mod_reg_bits(wkst,
+-							OMAP3430ES2_USBHOST_MOD,
+-							CM_ICLKEN);
+-					cm_set_mod_reg_bits(wkst,
+-							OMAP3430ES2_USBHOST_MOD,
+-							CM_FCLKEN);
+-					prm_write_mod_reg(wkst,
+-							OMAP3430ES2_USBHOST_MOD,
+-							PM_WKST);
+-					wkst = prm_read_mod_reg(
+-							OMAP3430ES2_USBHOST_MOD,
+-							PM_WKST);
+-				}
+-				cm_write_mod_reg(iclk, OMAP3430ES2_USBHOST_MOD,
+-					 CM_ICLKEN);
+-				cm_write_mod_reg(fclk, OMAP3430ES2_USBHOST_MOD,
+-					 CM_FCLKEN);
+-			}
+-		}
++		prcm_clear_mod_irqs(WKUP_MOD, PM_WKST, CM_ICLKEN, CM_FCLKEN);
++		prcm_clear_mod_irqs(CORE_MOD, PM_WKST1, CM_ICLKEN1, CM_ICLKEN1);
++		prcm_clear_mod_irqs(CORE_MOD, OMAP3430ES2_PM_WKST3,
++				    CM_ICLKEN3, OMAP3430ES2_CM_FCLKEN3);
++		prcm_clear_mod_irqs(OMAP3430_PER_MOD, PM_WKST,
++				    CM_ICLKEN, CM_FCLKEN);
++		if (omap_rev() > OMAP3430_REV_ES1_0)
++			prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, PM_WKST,
++					    CM_ICLKEN, CM_FCLKEN);
+ 
+ 		irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
+ 					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
