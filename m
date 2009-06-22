@@ -1,42 +1,58 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/12] OMAP1: remove duplicated #include
-Date: Mon, 22 Jun 2009 14:41:00 +0300
-Message-ID: <20090622114100.28477.75299.stgit@localhost>
+Subject: [PATCH 04/12] OMAP2/3: mmc-twl4030: use correct controller in
+	twl_mmc23_set_power
+Date: Mon, 22 Jun 2009 14:42:17 +0300
+Message-ID: <20090622114217.28477.43701.stgit@localhost>
 References: <20090622113422.28477.27052.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56639 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755552AbZFVLk7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 07:40:59 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64577 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753577AbZFVLmY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 07:42:24 -0400
 In-Reply-To: <20090622113422.28477.27052.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Grazvydas Ignotas <notasas@gmail.com>
 
-From: Huang Weiyi <weiyi.huang@gmail.com>
+From: Grazvydas Ignotas <notasas@gmail.com>
 
-Remove duplicated #include in arch/arm/mach-omap1/board-nokia770.c.
+twl_mmc23_set_power() has MMC2 twl_mmc_controller hardcoded in it, which
+breaks MMC3. Find the right controller to use instead.
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
+Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-nokia770.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/mmc-twl4030.c |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index d9ebba0..ed2a48a 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -36,7 +36,6 @@
- #include <mach/hwa742.h>
- #include <mach/lcd_mipid.h>
- #include <mach/mmc.h>
--#include <mach/usb.h>
- #include <mach/clock.h>
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 9756a87..1541fd4 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -263,8 +263,19 @@ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
+ static int twl_mmc23_set_power(struct device *dev, int slot, int power_on, int vdd)
+ {
+ 	int ret = 0;
+-	struct twl_mmc_controller *c = &hsmmc[1];
++	struct twl_mmc_controller *c = NULL;
+ 	struct omap_mmc_platform_data *mmc = dev->platform_data;
++	int i;
++
++	for (i = 1; i < ARRAY_SIZE(hsmmc); i++) {
++		if (mmc == hsmmc[i].mmc) {
++			c = &hsmmc[i];
++			break;
++		}
++	}
++
++	if (c == NULL)
++		return -ENODEV;
  
- #define ADS7846_PENDOWN_GPIO	15
+ 	/* If we don't see a Vcc regulator, assume it's a fixed
+ 	 * voltage always-on regulator.
 
