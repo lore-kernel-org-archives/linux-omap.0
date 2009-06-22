@@ -1,67 +1,113 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2 1/2] OMAP3:Zoom2: Add TWL4030 support
-Date: Mon, 22 Jun 2009 15:51:36 +0300
-Message-ID: <20090622125136.GF7352@atomide.com>
-References: <1245363264-6162-1-git-send-email-vikram.pandita@ti.com>
+Subject: Re: [PATCH] ARM: MACH-OMAP2: Cleanup Kconfig entries
+Date: Mon, 22 Jun 2009 15:52:34 +0300
+Message-ID: <20090622125233.GG7352@atomide.com>
+References: <A24693684029E5489D1D202277BE8944411FC323@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54092 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347AbZFVMvg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 08:51:36 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61761 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133AbZFVMwd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 22 Jun 2009 08:52:33 -0400
 Content-Disposition: inline
-In-Reply-To: <1245363264-6162-1-git-send-email-vikram.pandita@ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944411FC323@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Vikram Pandita <vikram.pandita@ti.com> [090619 01:18]:
-> Add TWL4030 CORE and TWL4030 drivers to Zoom2 board file
-> TWL drivers enabled are:
-> 	bci
-> 	madc
-> 	usb
-> 	keypad
-> 	mmc
+* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [090619 17:53]:
+> From 9258708325e0a04de7d7503b65cabc25860a9e7d Mon Sep 17 00:00:00 2001
+> From: Sergio Aguirre <saaguirre@ti.com>
+> Date: Fri, 19 Jun 2009 09:50:52 -0500
+> Subject: [PATCH] ARM: MACH-OMAP2: Cleanup Kconfig entries
 > 
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> ---
->  arch/arm/mach-omap2/board-zoom2.c |  209 +++++++++++++++++++++++++++++++++++--
->  1 files changed, 198 insertions(+), 11 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-> index bcc0f76..443859c 100644
-> --- a/arch/arm/mach-omap2/board-zoom2.c
-> +++ b/arch/arm/mach-omap2/board-zoom2.c
-> @@ -12,17 +12,88 @@
->  #include <linux/kernel.h>
->  #include <linux/init.h>
->  #include <linux/platform_device.h>
-> +#include <linux/input.h>
->  #include <linux/gpio.h>
->  #include <linux/i2c/twl4030.h>
-> +#include <linux/regulator/machine.h>
->  
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
->  
->  #include <mach/common.h>
->  #include <mach/usb.h>
-> +#include <mach/keypad.h>
->  
->  #include "mmc-twl4030.h"
->  
-> +#ifndef CONFIG_TWL4030_CORE
-> +#error "no power companion board defined!"
-> +#endif
+> This patch removes some duplicate entries, and intents to cleanup
+> the order.
 
-This does not look right. You should still be able to boot the board even without
-twl compiled in. Or compile twl as a module. Currently we do have a bug where
-mmc-twl4030.c forces mmc core to be compiled in because of the regulator fwk, but
-that should be fixed by moving the regulator fwk calls to drivers/mmc/host/omap_hsmmc.c.
-
-Regards,
+This does not seem to apply to the mainline kernel or linux-omap,
+can you please check?
 
 Tony
+ 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  arch/arm/mach-omap2/Kconfig |   38 ++++++++++++++------------------------
+>  1 files changed, 14 insertions(+), 24 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index bfb36e2..caf5144 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -109,22 +109,30 @@ config MACH_OMAP_2430SDP
+>  	bool "OMAP 2430 SDP board"
+>  	depends on ARCH_OMAP2 && ARCH_OMAP2430
+>  
+> -config MACH_OMAP_LDP
+> -	bool "OMAP3 LDP board"
+> +config MACH_OMAP_3430SDP
+> +	bool "OMAP 3430 SDP board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> +config MACH_OMAP_4430SDP
+> +	bool "OMAP 4430 SDP board"
+> +	depends on ARCH_OMAP4
+> +
+>  config MACH_OMAP2EVM 
+>  	bool "OMAP 2530 EVM board"
+>  	depends on ARCH_OMAP2 && ARCH_OMAP24XX
+>  
+> -config MACH_OMAP_3430SDP
+> -	bool "OMAP 3430 SDP board"
+> -	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> -
+>  config MACH_OMAP3EVM
+>  	bool "OMAP 3530 EVM board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> +config MACH_OMAP_LDP
+> +	bool "OMAP3 LDP board"
+> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> +
+> +config MACH_OMAP_ZOOM2
+> +	bool "OMAP3 Zoom2 board"
+> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> +
+>  config MACH_OMAP3_BEAGLE
+>  	bool "OMAP3 BEAGLE board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> @@ -133,26 +141,8 @@ config MACH_OVERO
+>  	bool "Gumstix Overo board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> -config MACH_OMAP3EVM
+> -	bool "OMAP 3530 EVM board"
+> -	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> -
+>  config MACH_OMAP3_PANDORA
+>  	bool "OMAP3 Pandora"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> -config MACH_OMAP_3430SDP
+> -	bool "OMAP 3430 SDP board"
+> -	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> -config MACH_OMAP_ZOOM2
+> -	bool "OMAP3 Zoom2 board"
+> -	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> -
+> -config MACH_OMAP_ZOOM2
+> -	bool "OMAP3 Zoom2 board"
+> -	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> -
+> -config MACH_OMAP_4430SDP
+> -	bool "OMAP 4430 SDP board"
+> -	depends on ARCH_OMAP4
+> -- 
+> 1.6.3.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
