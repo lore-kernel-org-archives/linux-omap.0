@@ -1,59 +1,128 @@
-From: "Hald, Ulrik Bech" <ubh@ti.com>
-Subject: RE: [PATCH 1/1] i2c:OMAP3:Errata workaround for spurious RDR event
-Date: Tue, 23 Jun 2009 15:12:36 +0200
-Message-ID: <00695C9C8F8B4448856F48142B4AA201BDA38902@dnce02.ent.ti.com>
-References: <1245702292-4383-1-git-send-email-ubh@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C0115F50E6B@dlee02.ent.ti.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: OMAP34XXCAM: Micron mt9d111 sensor support?
+Date: Tue, 23 Jun 2009 08:16:13 -0500
+Message-ID: <A24693684029E5489D1D202277BE89444130773E@dlee02.ent.ti.com>
+References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com>
+ <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com>
+ <4A3FC80B.9000302@mlbassoc.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39743 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:39845 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759026AbZFWNMm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 09:12:42 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5NDCeCp010340
-	for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 08:12:45 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n5NDCdfp019806
-	for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 08:12:39 -0500 (CDT)
-Received: from dnce72.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n5NDCc5d001195
-	for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 08:12:39 -0500 (CDT)
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C0115F50E6B@dlee02.ent.ti.com>
+	id S1758116AbZFWNOa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 09:14:30 -0400
+In-Reply-To: <4A3FC80B.9000302@mlbassoc.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: Zach LeRoy <zleroy@rii.ricoh.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
 > -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Monday, June 22, 2009 11:21 PM
-> To: Hald, Ulrik Bech; linux-omap@vger.kernel.org
-> Cc: Hald, Ulrik Bech
-> Subject: RE: [PATCH 1/1] i2c:OMAP3:Errata workaround for spurious RDR
-> event
+> From: Gary Thomas [mailto:gary@mlbassoc.com]
+> Sent: Monday, June 22, 2009 1:06 PM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: Zach LeRoy; linux-omap; linux-media@vger.kernel.org; Sakari Ailus
+> Subject: Re: OMAP34XXCAM: Micron mt9d111 sensor support?
 > 
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Ulrik Bech Hald
-> > Sent: Monday, June 22, 2009 11:25 PM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Hald, Ulrik Bech
-> > Subject: [PATCH 1/1] i2c:OMAP3:Errata workaround for spurious RDR event
+> Aguirre Rodriguez, Sergio Alberto wrote:
 > >
-> > Under certain rare conditions, I2C_STAT[13].RDR bit may be set,
-> > and the corresponding interrupt fire, even when there is no
-> > data in the receive FIFO, or the I2C data transfer is still
-> > ongoing. These spurious RDR events must be ignored by the
-> > software.
-> Is this workaround valid for omap2430 also?
+> >> -----Original Message-----
+> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> >> owner@vger.kernel.org] On Behalf Of Zach LeRoy
+> >> Sent: Wednesday, June 17, 2009 5:06 PM
+> >> To: linux-omap; linux-media@vger.kernel.org
+> >> Subject: OMAP34XXCAM: Micron mt9d111 sensor support?
+> >>
+> >> I am working on adding support for a micron 2 MP sensor: mt9d111 on a
+> >> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would like
+> to
+> >> use the omap34xxcam driver to interface with this sensor.  I am
+> wondering
+> >> if there are currently any distributions which already include support
+> for
+> >> this sensor through the omap34xxcam driver, or if anyone else is
+> >> interested in this topic.
+> >>
+> >
+> > Hi Zach,
+> >
+> > I'm working along with Sakari Ailus and others in this omap34xxcam
+> driver you're talking about, and we are in the process to provide a newer
+> patchset to work on the latest l-o tree.
+> >
+> > Sakari is sharing the camera core here:
+> >
+> > http://gitorious.org/omap3camera
+> >
+> > And I have also this repository which contains a snapshot of Sakari's
+> tree + support from some sensors I have available for the 3430SDP and LDP
+> (the name could confuse with the above, but I'll change the name/location
+> soon):
+> >
+> > http://gitorious.org/omap3-linux-camera-driver
+> >
+> > Testing the driver with as much sensors as we can is very interesting
+> (at least for me), because that help us spot possible bugs that aren't
+> seen with our current HW. So, I'll be looking forward if you add this
+> sensor driver to the supported list :)
+> >
 > 
-Yes, this workaround should also be valid for OMAP2430 errata 1.67 (equivalent errata).
+> I'd like to move forward using this on OMAP/3530 with TVP5150 (S-video in)
+> 
+> Sadly, the tree above (omap3-linux-camera-driver) won't build for the
+> Zoom/LDP:
+>   CC      arch/arm/mach-omap2/board-ldp-camera.o
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:59:
+> error: implicit declaration of function 'PAGE_ALIGN'
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:59:
+> error: initializer element is not constant
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:59:
+> error: (near initialization for 'ov3640_hwc.capture_mem')
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:
+> In function 'ov3640_sensor_set_prv_data':
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:89:
+> error: 'hwc' undeclared (first use in this function)
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:89:
+> error: (Each undeclared identifier is reported only once
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:89:
+> error: for each function it appears in.)
+> 
+> Looking at the code, it seems that some pieces are missing - merge
+> problem maybe?
 
-> Regards,
-> Nishanth Menon
+Hi Gary,
 
-BR Ulrik
+I'm currently on the process to rebase and verify all this code on 3430SDP, Zoom1 and soon Zoom2.
+
+Here you can find my progress:
+
+  http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=summary
+
+Check devel branch, which contains all latest Sakari's tree patches (http://gitorious.org/omap3camera) rebased on top of latest Kevin's l-o PM tree, plus the patches, which are still in works, to make the above mentioned platforms to work.
+
+I'm first trying to make 3430SDP work, don't have a Zoom1/Zoom2 handy right now...
+
+My gitorious tree will eventually disappear, as I can work better with this new one.
+
+I'll consolidate some patches when this sensor code is ready, and will CC you if interested.
+
+Regards,
+Sergio
+
+> 
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
+> 
+
