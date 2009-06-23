@@ -1,100 +1,75 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH v2 1/1] i2c:OMAP3:Errata workaround for spurious RDR
- event
-Date: Tue, 23 Jun 2009 12:05:28 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906231146550.6545@utopia.booyaka.com>
-References: <1245702865-4459-1-git-send-email-ubh@ti.com> <alpine.DEB.2.00.0906221915540.9637@utopia.booyaka.com> <EAF47CD23C76F840A9E7FCE10091EFAB02B5259C55@dbde02.ent.ti.com> <alpine.DEB.2.00.0906222113200.9637@utopia.booyaka.com>
- <00695C9C8F8B4448856F48142B4AA201BDA38C4A@dnce02.ent.ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
+   errata 1.153
+Date: Tue, 23 Jun 2009 14:06:34 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0116011AC7@dlee02.ent.ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F2028A41187E@dlee06.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C0115F50E6C@dlee02.ent.ti.com>
+ <h1qm0f$r7c$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35108 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753052AbZFWSF0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 14:05:26 -0400
-In-Reply-To: <00695C9C8F8B4448856F48142B4AA201BDA38C4A@dnce02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33662 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752534AbZFWTGn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 15:06:43 -0400
+In-Reply-To: <h1qm0f$r7c$1@ger.gmane.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hald, Ulrik Bech" <ubh@ti.com>
-Cc: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "i.mazanov@gmail.com" <i.mazanov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Ulrik,
-
-On Tue, 23 Jun 2009, Hald, Ulrik Bech wrote:
-
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Monday, June 22, 2009 10:20 PM
-> > To: Pakaravoor, Jagadeesh
-> > Cc: Hald, Ulrik Bech; linux-omap@vger.kernel.org
-> > Subject: RE: [PATCH v2 1/1] i2c:OMAP3:Errata workaround for spurious RDR
-> > event
-> > 
-> > Hello Jagadeesh,
-> > 
-> > On Tue, 23 Jun 2009, Pakaravoor, Jagadeesh wrote:
-> > 
-> > > > > +			u8 stat2 = 0;
-> > > > > +			stat2 = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-> > > > > +			if (stat2 & OMAP_I2C_STAT_BB)
-> > > > > +				return IRQ_HANDLED;
-> > > >
-> > > > Why use stat2? Why not just test stat again?
-> > >
-> > > Stat is read at the beginning of the ISR, what if BB bit gets
-> > > cleared/set a while later, not along with RDR, as a corner case?
-> > 
-> > If that is possible, then the comment in this patch needs to be changed:
-> > 
-> > > +                     /* 3430 I2C Errata 1.15
-> > > +                      * RDR could be set when the bus is busy, then
-> > > +                      * ignore the interrupt, and clear the bit.
-> > > +                      */
-> > 
-> > This implies that the state of the BB bit is important when the RDR bit is
-> > set.  The closest sample we have for that is the contents of the 'stat'
-> > variable.
-> > 
-> If I understand it correctly, you're concerned that the wording of the 
-> comment lets one think, that the state of the bus is critical at the 
-> moment the RDR interrupt is set? I guess you're right about that, since 
-> the wording could be a little misleading.
-
-My concern is that the comment and the code seem to conflict.
-
-> The point of the errata workaround is only to prevent handling of the 
-> RDR interrupt, if the bus is busy at the time when the RDR is to be 
-> handled. It doesn't matter if BB has been set/cleared before that.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Igor Mazanov
+> Sent: Tuesday, June 23, 2009 4:43 PM
+> To: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
+> errata 1.153
 > 
-> So maybe, the wording of the comment should be:
+> /*
+>   * Is there a bug in the OMAP5910 I2C controller? It
+>   * generates a bunch of fake XRDY interrupts under high load.
+>   * As result, there is a very high chance to have a situation
+>   * when dev->buf_len = 0 already, but I2C_CNT != 0. So, there
+>   * is no ARDY irq then, no complete_cmd, controller timed out
+>   * issues...
+>   *
+>   * Workaround:
+>   *
+>   * When we get XRDY interrupt without transmit underflow flag
+>   * (XUDF bit in the I2C_STAT register), delay for 100 microsecs
+>   * and ignore it.
+>   *
+>   * We write data into I2C_DATA register in case of transmit
+>   * underflow condition ONLY.
+>   */
+> if (stat & OMAP_I2C_STAT_XRDY) {
+> 	if (!(stat & OMAP_I2C_STAT_XUDF)) {
+> 		udelay(100);
+> 		continue;
+> 	} else {
+> 		w = 0;
+> 		if (dev->buf_len) {
+> 			w = *dev->buf++;
+> 			dev->buf_len--;
+> 			if (dev->buf_len) {
+> 				w |= *dev->buf++ << 8;
+> 				dev->buf_len--;
+> 			}
+> 			omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+> 		} else {
+> 			dev_err(dev->dev, "XRDY IRQ while no "
+> 						"data to send\n");
+> 			break;
+> 		}
+> 		continue;
+> 	}
+> }
 > 
-> /* 3430 I2C Errata 1.15, 2430 I2C Errata 1.67:
->  * RDR should not be handled when bus is busy */
-> 
-> ?
-
-Yes, that is better.
-
-> > > If we keep it this way, re-reading the register; what could be the
-> > > potential problem?
-> > 
-> > It doesn't match the definition of the erratum as expressed in the
-> > comment.  Is it possible for the RDR bit to be erroneously set when BB =
-> > 0?
-> 
-> Yes, the nature of the errata is that the RDR interrupt could be 
-> spurious. Although, if the bus is not busy and the RDR is set 
-> erroneously (there are no bytes in the FIFO to be drained), then the 
-> normal isr code would just leave and do nothing, which is what we also 
-> need in the errata work around.
-
-Okay.  So it looks like there is a unfixable race here.  Is it possible 
-for BB to be 0 during the stat2 read, then for BB to go to 1 immediately 
-afterwards?  Then the rest of the RDR handler would be entered.  If this 
-is possible, what will the ISR do -- will it hang?
-
-If this assessment of the problem is accurate, the stat2 read shrinks 
-the race window, and then indeed seems useful.
+Could you submit a patch please?
 
 
-- Paul
+Regards,
+Nishanth Menon
