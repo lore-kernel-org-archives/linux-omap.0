@@ -1,46 +1,40 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH v2 1/1] i2c:OMAP3:Errata workaround for spurious RDR
- event
-Date: Tue, 23 Jun 2009 15:29:00 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906231524590.6545@utopia.booyaka.com>
-References: <1245702865-4459-1-git-send-email-ubh@ti.com> <alpine.DEB.2.00.0906221915540.9637@utopia.booyaka.com> <EAF47CD23C76F840A9E7FCE10091EFAB02B5259C55@dbde02.ent.ti.com> <alpine.DEB.2.00.0906222113200.9637@utopia.booyaka.com>
- <00695C9C8F8B4448856F48142B4AA201BDA38C4A@dnce02.ent.ti.com>
+Subject: Re: [PATCH 00/10] OMAP clock/powerdomain/SDRC patches for
+ post-2.6.30
+Date: Tue, 23 Jun 2009 16:04:43 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906231603470.6545@utopia.booyaka.com>
+References: <20090526220517.25381.75976.stgit@localhost.localdomain> <20090618054845.GC8482@atomide.com> <20090619162342.GP24573@n2100.arm.linux.org.uk> <200906191836.07462.jpihet@mvista.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42808 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:51207 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbZFWV26 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 17:28:58 -0400
-In-Reply-To: <00695C9C8F8B4448856F48142B4AA201BDA38C4A@dnce02.ent.ti.com>
+	with ESMTP id S1751370AbZFWWEl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 18:04:41 -0400
+In-Reply-To: <200906191836.07462.jpihet@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hald, Ulrik Bech" <ubh@ti.com>
-Cc: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jean Pihet <jpihet@mvista.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hello Ulrik,
+Hello Jean,
 
-one other thing to check,
+On Fri, 19 Jun 2009, Jean Pihet wrote:
 
-On Tue, 23 Jun 2009, Hald, Ulrik Bech wrote:
+> On Friday 19 June 2009 18:23:42 Russell King - ARM Linux wrote:
+> > On Thu, Jun 18, 2009 at 08:48:47AM +0300, Tony Lindgren wrote:
+> > > Paul, can you please post a git pull request for Russell on these?
+> > > I think these should still go in if possible.
+> > >
+> > > Russell, if you think it's too late, I'll pile them up into omap
+> > > for-next branch.
+> >
+> > Let's merge them.
+> Also, can you look at '[PATCH 0/2] Allows the SDRAM self refresh to work with 
+> 2 chip selects' which apply on top of Paul's SDRC patches?
 
-> > -----Original Message-----
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
->
-> > Is it possible for the RDR bit to be erroneously set when BB =
-> > 0?
-> 
-> Yes, the nature of the errata is that the RDR interrupt could be 
-> spurious. Although, if the bus is not busy and the RDR is set 
-> erroneously (there are no bytes in the FIFO to be drained), then the 
-> normal isr code would just leave and do nothing, which is what we also 
-> need in the errata work around.
+I'll merge these patches into the next SDRC series for Russell and Tony.
 
-Is the BB bit indirectly controlled by the driver, or by the I2C IP block?
-
-If the former, then perhaps there is no need to read the BB bit at all. 
-The ISR can just ignore the RDR interrupts until the rest of the driver 
-code indicates that the RDRs are worth paying attention to.
-
+thanks,
 
 - Paul
