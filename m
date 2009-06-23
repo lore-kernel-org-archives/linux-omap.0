@@ -1,114 +1,77 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH v2 1/1] i2c:OMAP3:Errata workaround for spurious RDR
- event
-Date: Tue, 23 Jun 2009 15:26:46 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0116011C19@dlee02.ent.ti.com>
-References: <1245702865-4459-1-git-send-email-ubh@ti.com>
- <alpine.DEB.2.00.0906221915540.9637@utopia.booyaka.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B5259C55@dbde02.ent.ti.com>
- <alpine.DEB.2.00.0906222113200.9637@utopia.booyaka.com>
- <00695C9C8F8B4448856F48142B4AA201BDA38C4A@dnce02.ent.ti.com>
- <alpine.DEB.2.00.0906231146550.6545@utopia.booyaka.com>
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Subject: Re: [PULL REQUEST] omapfb: Add support for new
+	LCDs / misc fixes
+Date: Tue, 23 Jun 2009 23:02:25 +0200
+Message-ID: <20090623230225.b7f59dc7.krzysztof.h1@poczta.fm>
+References: <1244137965-8937-1-git-send-email-imre.deak@nokia.com>
+	<fab39c1a822c428466db6a19531be646d483664e.1244131952.git.imre.deak@nokia.com>
+	<20090611120206.GD21836@localhost>
+	<20090616185825.0343c9b2.krzysztof.h1@poczta.fm>
+	<20090617102520.GC2926@localhost>
+	<20090622191724.GA14760@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59532 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751517AbZFWU0x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 16:26:53 -0400
-In-Reply-To: <alpine.DEB.2.00.0906231146550.6545@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============6515565604686987837=="
+Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
+In-Reply-To: <20090622191724.GA14760@localhost>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
+List-Post: <mailto:linux-fbdev-devel@lists.sourceforge.net>
+List-Help: <mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
+	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: linux-fbdev-devel-bounces@lists.sourceforge.net
+To: Imre Deak <imre.deak@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, Antonino Daplas <adaplas@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Hald, Ulrik Bech" <ubh@ti.com>
-Cc: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Paul, Ulrik,
+--===============6515565604686987837==
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-Just adding my view to this discussion:
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Tuesday, June 23, 2009 9:05 PM
-> To: Hald, Ulrik Bech
-> Cc: Pakaravoor, Jagadeesh; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH v2 1/1] i2c:OMAP3:Errata workaround for spurious RDR
-> event
-> > >
-> > > > > > +			u8 stat2 = 0;
-> > > > > > +			stat2 = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-> > > > > > +			if (stat2 & OMAP_I2C_STAT_BB)
-> > > > > > +				return IRQ_HANDLED;
-> > > > >
-> > > > > Why use stat2? Why not just test stat again?
-> > > >
-> > > > Stat is read at the beginning of the ISR, what if BB bit gets
-> > > > cleared/set a while later, not along with RDR, as a corner case?
-> > >
-> > > If that is possible, then the comment in this patch needs to be
-> changed:
-> > >
-> > > > +                     /* 3430 I2C Errata 1.15
-> > > > +                      * RDR could be set when the bus is busy, then
-> > > > +                      * ignore the interrupt, and clear the bit.
-> > > > +                      */
-> > >
-> > > This implies that the state of the BB bit is important when the RDR
-> bit is
-> > > set.  The closest sample we have for that is the contents of the
-> 'stat'
-> > > variable.
-> > >
-> > If I understand it correctly, you're concerned that the wording of the
-> > comment lets one think, that the state of the bus is critical at the
-> > moment the RDR interrupt is set? I guess you're right about that, since
-> > the wording could be a little misleading.
+On Mon, 22 Jun 2009 22:17:24 +0300
+Imre Deak <imre.deak@nokia.com> wrote:
+
+> Krzysztof,
 > 
-> My concern is that the comment and the code seem to conflict.
+-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+> > 
+> > Yes, I've updated the patchset based on our discussion. I've also
+> > added your acked-by line.
 > 
-> > The point of the errata workaround is only to prevent handling of the
-> > RDR interrupt, if the bus is busy at the time when the RDR is to be
-> > handled. It doesn't matter if BB has been set/cleared before that.
-> >
-> > So maybe, the wording of the comment should be:
-> >
-> > /* 3430 I2C Errata 1.15, 2430 I2C Errata 1.67:
-> >  * RDR should not be handled when bus is busy */
-> >
-> > ?
-> 
-> Yes, that is better.
-> 
-> > > > If we keep it this way, re-reading the register; what could be the
-> > > > potential problem?
-> > >
-> > > It doesn't match the definition of the erratum as expressed in the
-> > > comment.  Is it possible for the RDR bit to be erroneously set when BB
-> =
-> > > 0?
-> >
-> > Yes, the nature of the errata is that the RDR interrupt could be
-> > spurious. Although, if the bus is not busy and the RDR is set
-> > erroneously (there are no bytes in the FIFO to be drained), then the
-> > normal isr code would just leave and do nothing, which is what we also
-> > need in the errata work around.
-> 
-> Okay.  So it looks like there is a unfixable race here.  Is it possible
-> for BB to be 0 during the stat2 read, then for BB to go to 1 immediately
-> afterwards?  Then the rest of the RDR handler would be entered.  If this
-> is possible, what will the ISR do -- will it hang?
-> 
-> If this assessment of the problem is accurate, the stat2 read shrinks
-> the race window, and then indeed seems useful.
-> 
+> I can't see this merged yet to Linus' tree. When are you planning
+> to submit it?
 > 
 
-a)       why would bus be busy? - answer bus is busy before a transaction starts - each transaction is an atomic operation. If someone goofs around with signal while a master is sending/receiving data, there is AL(Arbitration Lost).. not Bus busy.
-
-b)       Look at the flow in TRM figure 18-13 I2C Master Reciever Mode, interrupt mode -> where does BB get checked by the h/w? Not in the middle of the transaction..
-
-Apologies if I am wrong, so am not entirely following the discussion here..
+I am not pushing it. Please send the whole set to Andrew Morton.
 
 Regards,
-Nishanth Menon
+Krzysztof Helt
+
+----------------------------------------------------------------------
+Dobra czy zla wiadomosc? Zawsze warto oszczedzac. Teraz 5,5%. 
+Sprawd¼ > http://link.interia.pl/f221b
+
+
+
+
+--===============6515565604686987837==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+------------------------------------------------------------------------------
+
+--===============6515565604686987837==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+Linux-fbdev-devel mailing list
+Linux-fbdev-devel@lists.sourceforge.net
+https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel
+
+--===============6515565604686987837==--
