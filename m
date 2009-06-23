@@ -1,40 +1,61 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 00/10] OMAP clock/powerdomain/SDRC patches for
- post-2.6.30
-Date: Tue, 23 Jun 2009 16:04:43 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906231603470.6545@utopia.booyaka.com>
-References: <20090526220517.25381.75976.stgit@localhost.localdomain> <20090618054845.GC8482@atomide.com> <20090619162342.GP24573@n2100.arm.linux.org.uk> <200906191836.07462.jpihet@mvista.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: Can a phone hook switch follow alsa jack model?
+Date: Tue, 23 Jun 2009 23:22:56 +0100
+Message-ID: <20090623222255.GA5617@sirena.org.uk>
+References: <4A40D896.8010208@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51207 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370AbZFWWEl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 18:04:41 -0400
-In-Reply-To: <200906191836.07462.jpihet@mvista.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <4A40D896.8010208@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jpihet@mvista.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Russell King - ARM Linux <linux@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-Hello Jean,
+On Tue, Jun 23, 2009 at 03:28:54PM +0200, Janusz Krzysztofik wrote:
 
-On Fri, 19 Jun 2009, Jean Pihet wrote:
+> After my initial attempt to add support for the switch using gpio-keys 
+> driver, I am no longer sure if it is a good idea to follow the keyboard 
+> model, that the driver has been designed after, for driving a switch 
+> that has nothing to do with keyboards and may required a different approach.
 
-> On Friday 19 June 2009 18:23:42 Russell King - ARM Linux wrote:
-> > On Thu, Jun 18, 2009 at 08:48:47AM +0300, Tony Lindgren wrote:
-> > > Paul, can you please post a git pull request for Russell on these?
-> > > I think these should still go in if possible.
-> > >
-> > > Russell, if you think it's too late, I'll pile them up into omap
-> > > for-next branch.
-> >
-> > Let's merge them.
-> Also, can you look at '[PATCH 0/2] Allows the SDRAM self refresh to work with 
-> 2 chip selects' which apply on top of Paul's SDRC patches?
+That approach was quite common in the past.
 
-I'll merge these patches into the next SDRC series for Russell and Tony.
+> However, I am not sure if the switch in question matches the alsa jack 
+> model closely enough. I see the switch usage not as simple as turning 
+> handset microphone/speaker on or off. It can be used for other purposes 
+> as well, like accepting a phone call or actually dialing a number that 
+> has been just typed in. Furthermore, it can be used to turn off a 
+> speakerphone function, while, in turn, the related handset 
+> microphone/speaker pair can be turned off not only with this switch, but 
+> with a handsfree button as well, for example.
 
-thanks,
+That can all be accomodated within the ASoC jack framework (I'm assuming
+you'll be doing an ASoC rather than generic ALSA driver).  You get the
+input device just the same as you get with gpio-keys so you can do stuff
+in user space, the main difference is that you can also arrange for some
+of the power management within ASoC to be hooked up with the jack
+automatically as well.
 
-- Paul
+With what you're describing above I'd tie the mic and speaker in the
+headset to DAPM automatically.
+
+> All that extra functionality looks like belonging to userspace rather 
+> then kernel, not like other alsa jack implementations that seem to do 
+> all the job of switching media paths inside the kernel. That is why I am 
+> not sure if the jack model is suitable for the purpose.
+
+The switching in kernel for ASoC should generally be confined to marking
+outputs as powered or unpowered - things like marking a headphone jack
+as disabled when there's nothing plugged in to it that can be done
+unconditionally.  Everything else should get punted to user space.
