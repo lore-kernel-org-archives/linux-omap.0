@@ -1,141 +1,100 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: OMAP34XXCAM: Micron mt9d111 sensor support?
-Date: Tue, 23 Jun 2009 07:40:16 -0600
-Message-ID: <4A40DB40.9000909@mlbassoc.com>
-References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com> <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com> <4A3FC80B.9000302@mlbassoc.com> <A24693684029E5489D1D202277BE89444130773E@dlee02.ent.ti.com> <4A40D736.9050701@mlbassoc.com> <A24693684029E5489D1D202277BE89444130777E@dlee02.ent.ti.com> <A24693684029E5489D1D202277BE894441307788@dlee02.ent.ti.com>
+From: Igor Mazanov <i.mazanov@gmail.com>
+Subject: Re: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
+  errata 1.153
+Date: Tue, 23 Jun 2009 17:43:01 +0400
+Message-ID: <h1qm0f$r7c$1@ger.gmane.org>
+References: <CD8CC2B65FEE304DA95744A5472698F2028A41187E@dlee06.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0C0115F50E6C@dlee02.ent.ti.com>
+Reply-To: i.mazanov@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:3074 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753661AbZFWNkO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 09:40:14 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE894441307788@dlee02.ent.ti.com>
+Received: from main.gmane.org ([80.91.229.2]:46592 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755788AbZFWNkr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Jun 2009 09:40:47 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1MJ6Ex-00037L-RN
+	for linux-omap@vger.kernel.org; Tue, 23 Jun 2009 13:40:47 +0000
+Received: from ppp91-122-64-9.pppoe.avangarddsl.ru ([91.122.64.9])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 13:40:47 +0000
+Received: from i.mazanov by ppp91-122-64-9.pppoe.avangarddsl.ru with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 13:40:47 +0000
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C0115F50E6C@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: Zach LeRoy <zleroy@rii.ricoh.com>, linux-omap <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-omap@vger.kernel.org
 
-Aguirre Rodriguez, Sergio Alberto wrote:
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
->> From: Gary Thomas [mailto:gary@mlbassoc.com]
->>> Aguirre Rodriguez, Sergio Alberto wrote:
->>>> From: Gary Thomas [mailto:gary@mlbassoc.com]
->>>>> Aguirre Rodriguez, Sergio Alberto wrote:
->>>>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->>>>>> owner@vger.kernel.org] On Behalf Of Zach LeRoy
->>>>>>> I am working on adding support for a micron 2 MP sensor: mt9d111 on
->> a
->>>>>>> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would
->>> like
->>>>> to
->>>>>>> use the omap34xxcam driver to interface with this sensor.  I am
->>>>> wondering
->>>>>>> if there are currently any distributions which already include
->>> support
->>>>> for
->>>>>>> this sensor through the omap34xxcam driver, or if anyone else is
->>>>>>> interested in this topic.
->>>>>>>
->>>>>> Hi Zach,
->>>>>>
->>>>>> I'm working along with Sakari Ailus and others in this omap34xxcam
->>>>> driver you're talking about, and we are in the process to provide a
->>> newer
->>>>> patchset to work on the latest l-o tree.
->>>>>> Sakari is sharing the camera core here:
->>>>>>
->>>>>> http://gitorious.org/omap3camera
->>>>>>
->>>>>> And I have also this repository which contains a snapshot of
->> Sakari's
->>>>> tree + support from some sensors I have available for the 3430SDP and
->>> LDP
->>>>> (the name could confuse with the above, but I'll change the
->>> name/location
->>>>> soon):
->>>>>> http://gitorious.org/omap3-linux-camera-driver
->>>>>>
->>>>>> Testing the driver with as much sensors as we can is very
->> interesting
->>>>> (at least for me), because that help us spot possible bugs that
->> aren't
->>>>> seen with our current HW. So, I'll be looking forward if you add this
->>>>> sensor driver to the supported list :)
->>>>> I'd like to move forward using this on OMAP/3530 with TVP5150 (S-
->> video
->>> in)
->>>>> Sadly, the tree above (omap3-linux-camera-driver) won't build for the
->>>>> Zoom/LDP:
->>>>>   CC      arch/arm/mach-omap2/board-ldp-camera.o
->>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
->>>>> camera.c:59:
->>>>> error: implicit declaration of function 'PAGE_ALIGN'
->>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
->>>>> camera.c:59:
->>>>> error: initializer element is not constant
->>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
->>>>> camera.c:59:
->>>>> error: (near initialization for 'ov3640_hwc.capture_mem')
->>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
->>> camera.c:
->>>>> In function 'ov3640_sensor_set_prv_data':
->>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
->>>>> camera.c:89:
->>>>> error: 'hwc' undeclared (first use in this function)
->>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
->>>>> camera.c:89:
->>>>> error: (Each undeclared identifier is reported only once
->>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
->>>>> camera.c:89:
->>>>> error: for each function it appears in.)
->>>>>
->>>>> Looking at the code, it seems that some pieces are missing - merge
->>>>> problem maybe?
->>>> Hi Gary,
->>>>
->>>> I'm currently on the process to rebase and verify all this code on
->>> 3430SDP, Zoom1 and soon Zoom2.
->>>> Here you can find my progress:
->>>>
->>>>   http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=summary
->>>>
->>>> Check devel branch, which contains all latest Sakari's tree patches
->>> (http://gitorious.org/omap3camera) rebased on top of latest Kevin's l-o
->> PM
->>> tree, plus the patches, which are still in works, to make the above
->>> mentioned platforms to work.
->>>> I'm first trying to make 3430SDP work, don't have a Zoom1/Zoom2 handy
->>> right now...
->>>> My gitorious tree will eventually disappear, as I can work better with
->>> this new one.
->>>> I'll consolidate some patches when this sensor code is ready, and will
->>> CC you if interested.
->>> Thanks.  I've already checked out this tree and at least
->>> it builds for the Zoom (I have one here).  Is this in a
->>> state where I can test it for you?  What do you use to
->>> capture video from the sensor?
->> I normally use a small test binary I wrote which saves the captured frames
->> to memory, so later I can see them with either IrfanView (when capturing
->> RAW images) or PYUV for seeing the YUV422 images.
+Hello,
+
+Menon, Nishanth wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Sonasath, Moiz
+>> Sent: Monday, June 22, 2009 7:50 PM
+>> To: linux-omap@vger.kernel.org
+>> Cc: Pandita, Vikram
+>> Subject: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
+>> errata 1.153
 >>
->> You should be able to use any standard V4l2 capturing application anyways.
->>
+>> This patch includes the workarround for I2C Errata 1.153: When an XRDY/XDR
+>> is hit, wait for XUDF before writing data to DATA_REG
 > 
-> Btw, any contribution would be completely welcome. Either on Testing or on development. :)
-> 
-> Thanks for your interest in helping.
+> Is this workaround valid for omap2430 also?
 
-I've built for the Zoom, now I just need to figure out how
-to capture the data.  I'll let you know if I have any questions
-or problems.
+Some kind of such workaround needs to be applied and for OMAP1 ISR too. 
+I had
+the same problem on our OMAP5910 based custom made board. While writing 
+a large contiguous amount of data constantly occurs a situation when 
+dev->buf_len = 0, but I2C_CNT register != 0, and, as result, I2C 
+controller doesn't generate ARDY IRQ, no complete_cmd occurs in ISR, and 
+we get "controller timed out" issues then...
 
-Thanks
+So, here is a part of modified OMAP1 ISR. It works for me at least.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+/*
+  * Is there a bug in the OMAP5910 I2C controller? It
+  * generates a bunch of fake XRDY interrupts under high load.
+  * As result, there is a very high chance to have a situation
+  * when dev->buf_len = 0 already, but I2C_CNT != 0. So, there
+  * is no ARDY irq then, no complete_cmd, controller timed out
+  * issues...
+  *
+  * Workaround:
+  *
+  * When we get XRDY interrupt without transmit underflow flag
+  * (XUDF bit in the I2C_STAT register), delay for 100 microsecs
+  * and ignore it.
+  *
+  * We write data into I2C_DATA register in case of transmit
+  * underflow condition ONLY.
+  */
+if (stat & OMAP_I2C_STAT_XRDY) {
+	if (!(stat & OMAP_I2C_STAT_XUDF)) {
+		udelay(100);
+		continue;
+	} else {
+		w = 0;
+		if (dev->buf_len) {
+			w = *dev->buf++;
+			dev->buf_len--;
+			if (dev->buf_len) {
+				w |= *dev->buf++ << 8;
+				dev->buf_len--;
+			}
+			omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+		} else {
+			dev_err(dev->dev, "XRDY IRQ while no "
+						"data to send\n");
+			break;
+		}
+		continue;
+	}
+}	
+
+Regards,
+Igor.
+
