@@ -1,30 +1,73 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: [RESEND][PATCH 0/2] McSPI Slave and DMA ,FIFO support
-Date: Tue, 23 Jun 2009 19:23:51 +0530 (IST)
-Message-ID: <42120.10.24.255.18.1245765231.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/3] Omap header cleanup for merge window after 2.6.31
+Date: Tue, 23 Jun 2009 17:52:45 +0300
+Message-ID: <20090623145054.5476.64968.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41016 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752294AbZFWNxy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 23 Jun 2009 09:53:54 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54899 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105AbZFWOws (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 10:52:48 -0400
+Received: from muru.com ([72.249.23.125] helo=[127.0.0.1])
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MJ7Mf-0001SB-3C
+	for linux-omap@vger.kernel.org; Tue, 23 Jun 2009 14:52:51 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net, dbrownell@users.sourceforge.net
+To: linux-omap@vger.kernel.org
 
-This series of 2 patches adds support for McSPI slave
-and DMA,FIFO. It incorporates review comments from
-Kevin Hilman and Tony Lindgren
+Hi all,
+
+Here are some patches to remove ifdefs from io.h. More clean-up coming,
+at least the omap1 specific registers should be moved away from hardware.h.
+
+Regards,
+
+Tony
+
+---
+
+Tony Lindgren (3):
+      OMAP: Remove ifdefs for io.h
+      OMAP: Rename OMAP_MPUIO_BASE to OMAP1_MPUIO_BASE
+      OMAP: Remove OMAP_IO_ADDRESS, use OMAP1_IO_ADDRESS and OMAP2_IO_ADDRESS instead
 
 
-PATCH[1/2]: Changes to arch specific files
-PATCH[2/2]: omap2_mcspi.c file changes
+ arch/arm/mach-omap1/devices.c                 |    2 -
+ arch/arm/mach-omap1/io.c                      |    6 +-
+ arch/arm/mach-omap1/pm.h                      |    4 +
+ arch/arm/mach-omap1/serial.c                  |    6 +-
+ arch/arm/mach-omap1/sram.S                    |   12 ++-
+ arch/arm/mach-omap1/time.c                    |    4 +
+ arch/arm/mach-omap2/board-4430sdp.c           |    4 +
+ arch/arm/mach-omap2/cm.h                      |    6 +-
+ arch/arm/mach-omap2/omap-smp.c                |    2 -
+ arch/arm/mach-omap2/pm-debug.c                |    2 -
+ arch/arm/mach-omap2/prm.h                     |    6 +-
+ arch/arm/mach-omap2/sdrc.h                    |    6 +-
+ arch/arm/mach-omap2/serial.c                  |    6 +-
+ arch/arm/mach-omap2/sram242x.S                |    4 +
+ arch/arm/mach-omap2/sram243x.S                |    4 +
+ arch/arm/mach-omap2/timer-gp.c                |    2 -
+ arch/arm/plat-omap/dma.c                      |    8 +-
+ arch/arm/plat-omap/dmtimer.c                  |    5 +
+ arch/arm/plat-omap/gpio.c                     |   88 +++++++++++------------
+ arch/arm/plat-omap/include/mach/control.h     |   12 ++-
+ arch/arm/plat-omap/include/mach/entry-macro.S |    8 +-
+ arch/arm/plat-omap/include/mach/gpio.h        |    2 -
+ arch/arm/plat-omap/include/mach/io.h          |   97 ++++++++++++-------------
+ arch/arm/plat-omap/include/mach/mtd-xip.h     |    2 -
+ arch/arm/plat-omap/include/mach/omap44xx.h    |    8 +-
+ arch/arm/plat-omap/include/mach/sdrc.h        |    6 +-
+ arch/arm/plat-omap/io.c                       |   62 +++++++++++++++-
+ arch/arm/plat-omap/sram.c                     |   20 +++--
+ drivers/input/keyboard/omap-keypad.c          |   22 +++---
+ drivers/mtd/nand/ams-delta.c                  |    8 +-
+ drivers/video/omap/dispc.c                    |    6 +-
+ 31 files changed, 245 insertions(+), 185 deletions(-)
 
- arch/arm/mach-omap2/devices.c           |    5
- arch/arm/plat-omap/include/mach/mcspi.h |   16 +
- drivers/spi/omap2_mcspi.c               |  353
-++++++++++++++++++++++++++++++++++++++++------
-
-
+-- 
+Signature
