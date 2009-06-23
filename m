@@ -1,51 +1,53 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: [PATCH] OMAP3: PM: Remove duplicate code
-Date: Tue, 23 Jun 2009 11:21:51 +0300
-Message-ID: <1245745311-20319-1-git-send-email-ext-roger.quadros@nokia.com>
+From: ext-eero.nurkkala@nokia.com
+Subject: [PATCH] OMAP: PM: Correct the use of cpufreq
+Date: Tue, 23 Jun 2009 12:53:29 +0300
+Message-ID: <12457508091766-git-send-email-ext-eero.nurkkala@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:34713 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751198AbZFWIWc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 04:22:32 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:43092 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752283AbZFWJyB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 05:54:01 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n5N9rbqq014780
+	for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 04:54:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+
+Wrong info was used to feed the cpufreq. It is possible
+now to get below the user defined limit defined at
+"/cpufreq/scaling_min_freq". With this patch, the
+user defined limits are being obeyed instead of
+always using the absolute max and min values supported
+by the device.
+
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   18 ------------------
- 1 files changed, 0 insertions(+), 18 deletions(-)
+ arch/arm/plat-omap/cpu-omap.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7a4a525..d45295d 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -913,24 +913,6 @@ static void __init prcm_setup_regs(void)
- 	/* Clear any pending PRCM interrupts */
- 	prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index 843e8af..1868c0d 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -78,10 +78,10 @@ static int omap_target(struct cpufreq_policy *policy,
  
--	/* Don't attach IVA interrupts */
--	prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
--	prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
--	prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
--	prm_write_mod_reg(0, OMAP3430_PER_MOD, OMAP3430_PM_IVAGRPSEL);
--		
--	/* Clear any pending 'reset' flags */
--	prm_write_mod_reg(0xffffffff, MPU_MOD, RM_RSTST);
--	prm_write_mod_reg(0xffffffff, CORE_MOD, RM_RSTST);
--	prm_write_mod_reg(0xffffffff, OMAP3430_PER_MOD, RM_RSTST);
--	prm_write_mod_reg(0xffffffff, OMAP3430_EMU_MOD, RM_RSTST);
--	prm_write_mod_reg(0xffffffff, OMAP3430_NEON_MOD, RM_RSTST);
--	prm_write_mod_reg(0xffffffff, OMAP3430_DSS_MOD, RM_RSTST);
--	prm_write_mod_reg(0xffffffff, OMAP3430ES2_USBHOST_MOD, RM_RSTST);
--
--	/* Clear any pending PRCM interrupts */
--	prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
--
- 	omap3_iva_idle();
- 	omap3_d2d_idle();
- }
+ 	/* Ensure desired rate is within allowed range.  Some govenors
+ 	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+-	if (target_freq < policy->cpuinfo.min_freq)
+-		target_freq = policy->cpuinfo.min_freq;
+-	if (target_freq > policy->cpuinfo.max_freq)
+-		target_freq = policy->cpuinfo.max_freq;
++	if (target_freq < policy->min)
++		target_freq = policy->min;
++	if (target_freq > policy->max)
++		target_freq = policy->max;
+ 
+ 	freqs.old = omap_getspeed(0);
+ 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
 -- 
-1.6.0.4
+1.5.6.3
 
