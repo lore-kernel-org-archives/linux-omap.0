@@ -1,75 +1,61 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
-   errata 1.153
-Date: Tue, 23 Jun 2009 14:06:34 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C0116011AC7@dlee02.ent.ti.com>
-References: <CD8CC2B65FEE304DA95744A5472698F2028A41187E@dlee06.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C0115F50E6C@dlee02.ent.ti.com>
- <h1qm0f$r7c$1@ger.gmane.org>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH -pm 1/2] SDRC: check for stuck DLL state machine and
+ kick
+Date: Tue, 23 Jun 2009 14:05:27 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906231342350.6545@utopia.booyaka.com>
+References: <1245105775-28844-1-git-send-email-khilman@deeprootsystems.com> <1245105775-28844-2-git-send-email-khilman@deeprootsystems.com> <alpine.DEB.2.00.0906170139170.3382@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E2AC611@dlee02.ent.ti.com>
+ <alpine.DEB.2.00.0906181505460.4087@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E317258@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33662 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752534AbZFWTGn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 15:06:43 -0400
-In-Reply-To: <h1qm0f$r7c$1@ger.gmane.org>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:42705 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752069AbZFWUFZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 16:05:25 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038E317258@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "i.mazanov@gmail.com" <i.mazanov@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Mike Chan <mikechan@google.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Igor Mazanov
-> Sent: Tuesday, June 23, 2009 4:43 PM
-> To: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
-> errata 1.153
+Hello Richard, 
+
+On Fri, 19 Jun 2009, Woodruff, Richard wrote:
+
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Thursday, June 18, 2009 4:07 PM
 > 
-> /*
->   * Is there a bug in the OMAP5910 I2C controller? It
->   * generates a bunch of fake XRDY interrupts under high load.
->   * As result, there is a very high chance to have a situation
->   * when dev->buf_len = 0 already, but I2C_CNT != 0. So, there
->   * is no ARDY irq then, no complete_cmd, controller timed out
->   * issues...
->   *
->   * Workaround:
->   *
->   * When we get XRDY interrupt without transmit underflow flag
->   * (XUDF bit in the I2C_STAT register), delay for 100 microsecs
->   * and ignore it.
->   *
->   * We write data into I2C_DATA register in case of transmit
->   * underflow condition ONLY.
->   */
-> if (stat & OMAP_I2C_STAT_XRDY) {
-> 	if (!(stat & OMAP_I2C_STAT_XUDF)) {
-> 		udelay(100);
-> 		continue;
-> 	} else {
-> 		w = 0;
-> 		if (dev->buf_len) {
-> 			w = *dev->buf++;
-> 			dev->buf_len--;
-> 			if (dev->buf_len) {
-> 				w |= *dev->buf++ << 8;
-> 				dev->buf_len--;
-> 			}
-> 			omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
-> 		} else {
-> 			dev_err(dev->dev, "XRDY IRQ while no "
-> 						"data to send\n");
-> 			break;
-> 		}
-> 		continue;
-> 	}
-> }
+> > On Wed, 17 Jun 2009, Woodruff, Richard wrote:
+> >
+> > > I've only seen the condition along side of very aggressive SDRC_POWER
+> > > settings.
+> >
+> > Could you send over the SDRC_POWER settings that cause this problem?
 > 
-Could you submit a patch please?
+> This is one pulled for a custom board:
+> 
+> # ./readmem 0x6d000070
+> 0x000200AD
+
+Thanks.
+
+According to the 34xx TRM Table 11-178 this sets the following: (asterisks 
+mark differences from the current linux-omap code base.)
+
+  WAKEUPPROC = 0
+* AUTOCOUNT = 0x200 
+* SRFRONRESET = 1
+  SRFRONIDLEREQ = 0
+* CLKCTRL = 2
+  EXTCLKDIS = 1
+  PWDENA = 1
+  PAGEPOLICY = 1
+
+Looks like the significant difference is the use of CLKCTRL = 0x2 (+ 
+AUTOCOUNT).  Maybe there is some SDRC bug related to CLKCTRL = 0x2 that 
+causes this problem?  Perhaps the problem is partially related to PWDENA = 
+1 and erratum 1.150?  Anyway, will do a test run here with this SDRC_POWER 
+register value and see if the problem reproduces.
 
 
-Regards,
-Nishanth Menon
+- Paul
