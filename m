@@ -1,61 +1,48 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: Can a phone hook switch follow alsa jack model?
-Date: Tue, 23 Jun 2009 23:22:56 +0100
-Message-ID: <20090623222255.GA5617@sirena.org.uk>
-References: <4A40D896.8010208@tis.icnet.pl>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: musb otg changes break booting on omaps
+Date: Tue, 23 Jun 2009 15:50:08 -0700
+Message-ID: <200906231550.08495.david-b@pacbell.net>
+References: <20090623125700.GM7352@atomide.com> <19F8576C6E063C45BE387C64729E739404327A1514@dbde02.ent.ti.com> <20090623161040.GC23234@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from n22a.bullet.mail.mud.yahoo.com ([68.142.207.188]:27436 "HELO
+	n22a.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754449AbZFWWz3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 23 Jun 2009 18:55:29 -0400
+In-Reply-To: <20090623161040.GC23234@nokia.com>
 Content-Disposition: inline
-In-Reply-To: <4A40D896.8010208@tis.icnet.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: felipe.balbi@nokia.com, Tony Lindgren <tony@atomide.com>
+Cc: "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-usb@atomide.com" <linux-usb@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Jun 23, 2009 at 03:28:54PM +0200, Janusz Krzysztofik wrote:
+On Tuesday 23 June 2009, Felipe Balbi wrote:
+> 
+> > > Looks like commit 84e250ffa76dddc1bad84e04248a27f442c25986
+> > > "musb: proper hookup to transceiver drivers" breaks booting on omaps
+> > > if no transceiver is configured. Got any patches for that?
+> > 
+> > Tony,
+> > 
+> > Is this on OMAP35x EVM? If so then the below patch should help.
+> > 
+> > http://marc.info/?l=linux-omap&m=123907915211910&w=2
 
-> After my initial attempt to add support for the switch using gpio-keys 
-> driver, I am no longer sure if it is a good idea to follow the keyboard 
-> model, that the driver has been designed after, for driving a switch 
-> that has nothing to do with keyboards and may required a different approach.
+The problem with that patch is that the transceiver config is
+board-specific.  So the omap2430.c change is wrong.
 
-That approach was quite common in the past.
+Just register the NOP transceiver in the EVM setup code.
 
-> However, I am not sure if the switch in question matches the alsa jack 
-> model closely enough. I see the switch usage not as simple as turning 
-> handset microphone/speaker on or off. It can be used for other purposes 
-> as well, like accepting a phone call or actually dialing a number that 
-> has been just typed in. Furthermore, it can be used to turn off a 
-> speakerphone function, while, in turn, the related handset 
-> microphone/speaker pair can be turned off not only with this switch, but 
-> with a handsfree button as well, for example.
 
-That can all be accomodated within the ASoC jack framework (I'm assuming
-you'll be doing an ASoC rather than generic ALSA driver).  You get the
-input device just the same as you get with gpio-keys so you can do stuff
-in user space, the main difference is that you can also arrange for some
-of the power management within ASoC to be hooked up with the jack
-automatically as well.
+> and omap3x30-based hardware will most likely use twl4030-usb and in some
+> cases (like evm) use the no-op trasceiver.
 
-With what you're describing above I'd tie the mic and speaker in the
-headset to DAPM automatically.
+I think I've got an SX51 patch somewhwere, I'll dig it up.
 
-> All that extra functionality looks like belonging to userspace rather 
-> then kernel, not like other alsa jack implementations that seem to do 
-> all the job of switching media paths inside the kernel. That is why I am 
-> not sure if the jack model is suitable for the purpose.
+- Dave
 
-The switching in kernel for ASoC should generally be confined to marking
-outputs as powered or unpowered - things like marking a headphone jack
-as disabled when there's nothing plugged in to it that can be done
-unconditionally.  Everything else should get punted to user space.
+
