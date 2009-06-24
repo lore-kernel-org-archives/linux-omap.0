@@ -1,87 +1,121 @@
-From: Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 06/07] usb: rework musb suspend()/resume_early()
-Date: Wed, 24 Jun 2009 18:24:00 +0900
-Message-ID: <20090624092400.14276.94490.sendpatchset@rx1.opensource.se>
+From: Magnus Damm <magnus.damm@gmail.com>
+Subject: [PATCH 01/07] arm: rework omap
+	suspend_late()/resume_early()
+Date: Wed, 24 Jun 2009 18:23:15 +0900
+Message-ID: <20090624092315.14276.84763.sendpatchset@rx1.opensource.se>
 References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090624092306.14276.127.sendpatchset-/W6D1AVitZKvog7CDwlRTrNAH6kLmebB@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-l3A5Bk7waGM@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, hskinnemoen-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, anemo-7JcRY8pycbNHfZP73Gtkiw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: linux-kernel@vger.kernel.org
+Cc: gregkh@suse.de, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, ben-linux@fluff.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, akpm@linux-foundation.org, felipe.balbi@nokia.com
 List-Id: linux-omap@vger.kernel.org
 
-From: Magnus Damm <damm-AlSX/UN32fvPDbFq/vQRIQ@public.gmane.org>
+From: Magnus Damm <damm@igel.co.jp>
 
 This patch reworks platform driver power management code
-for musb from legacy callbacks to dev_pm_ops.
+for omap drivers using late/early legacy callbacks.
 
 The callbacks are converted for CONFIG_SUSPEND like this:
-  suspend() -> suspend()
+  suspend_late() -> suspend_noirq()
   resume_early() -> resume_noirq()
 
-Signed-off-by: Magnus Damm <damm-AlSX/UN32fvPDbFq/vQRIQ@public.gmane.org>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
 ---
 
- Untested but compiles fine.
+ Untested but compiles just fine.
 
- drivers/i2c/busses/i2c-pxa.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ arch/arm/plat-omap/debug-leds.c |   11 +++++++----
+ arch/arm/plat-omap/gpio.c       |   14 ++++++++++----
+ 2 files changed, 17 insertions(+), 8 deletions(-)
 
---- 0001/drivers/usb/musb/musb_core.c
-+++ work/drivers/usb/musb/musb_core.c	2009-06-01 15:27:12.000000000 +0900
-@@ -2168,8 +2168,9 @@ static int __devexit musb_remove(struct 
- 
- #ifdef	CONFIG_PM
- 
--static int musb_suspend(struct platform_device *pdev, pm_message_t message)
-+static int musb_suspend(struct device *dev)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	unsigned long	flags;
- 	struct musb	*musb = dev_to_musb(&pdev->dev);
- 
-@@ -2196,8 +2197,9 @@ static int musb_suspend(struct platform_
+--- 0001/arch/arm/plat-omap/debug-leds.c
++++ work/arch/arm/plat-omap/debug-leds.c	2009-06-01 15:50:21.000000000 +0900
+@@ -281,24 +281,27 @@ static int /* __init */ fpga_probe(struc
  	return 0;
  }
  
--static int musb_resume_early(struct platform_device *pdev)
-+static int musb_resume_noirq(struct device *dev)
+-static int fpga_suspend_late(struct platform_device *pdev, pm_message_t mesg)
++static int fpga_suspend_noirq(struct device *dev)
  {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct musb	*musb = dev_to_musb(&pdev->dev);
- 
- 	if (!musb->clock)
-@@ -2215,9 +2217,14 @@ static int musb_resume_early(struct plat
+ 	__raw_writew(~0, &fpga->leds);
  	return 0;
  }
  
-+static struct dev_pm_ops musb_dev_pm_ops = {
-+	.suspend	= musb_suspend,
-+	.resume_noirq	= musb_resume_noirq,
+-static int fpga_resume_early(struct platform_device *pdev)
++static int fpga_resume_noirq(struct device *dev)
+ {
+ 	__raw_writew(~hw_led_state, &fpga->leds);
+ 	return 0;
+ }
+ 
++static struct dev_pm_ops fpga_dev_pm_ops = {
++	.suspend_noirq = fpga_suspend_noirq,
++	.resume_noirq = fpga_resume_noirq,
 +};
-+
-+#define MUSB_DEV_PM_OPS (&musb_dev_pm_ops)
- #else
--#define	musb_suspend	NULL
--#define	musb_resume_early	NULL
-+#define	MUSB_DEV_PM_OPS	NULL
- #endif
  
- static struct platform_driver musb_driver = {
-@@ -2225,11 +2232,10 @@ static struct platform_driver musb_drive
- 		.name		= (char *)musb_driver_name,
- 		.bus		= &platform_bus_type,
- 		.owner		= THIS_MODULE,
-+		.pm		= MUSB_DEV_PM_OPS,
- 	},
- 	.remove		= __devexit_p(musb_remove),
- 	.shutdown	= musb_shutdown,
--	.suspend	= musb_suspend,
--	.resume_early	= musb_resume_early,
+ static struct platform_driver led_driver = {
+ 	.driver.name	= "omap_dbg_led",
++	.driver.pm	= &fpga_dev_pm_ops,
+ 	.probe		= fpga_probe,
+-	.suspend_late	= fpga_suspend_late,
+-	.resume_early	= fpga_resume_early,
  };
  
- /*-------------------------------------------------------------------------*/
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ static int __init fpga_init(void)
+--- 0001/arch/arm/plat-omap/gpio.c
++++ work/arch/arm/plat-omap/gpio.c	2009-06-01 16:30:56.000000000 +0900
+@@ -1264,8 +1264,9 @@ static struct irq_chip mpuio_irq_chip = 
+ 
+ #include <linux/platform_device.h>
+ 
+-static int omap_mpuio_suspend_late(struct platform_device *pdev, pm_message_t mesg)
++static int omap_mpuio_suspend_noirq(struct device *dev)
+ {
++	struct platform_device *pdev = to_platform_device(dev);
+ 	struct gpio_bank	*bank = platform_get_drvdata(pdev);
+ 	void __iomem		*mask_reg = bank->base + OMAP_MPUIO_GPIO_MASKIT;
+ 	unsigned long		flags;
+@@ -1278,8 +1279,9 @@ static int omap_mpuio_suspend_late(struc
+ 	return 0;
+ }
+ 
+-static int omap_mpuio_resume_early(struct platform_device *pdev)
++static int omap_mpuio_resume_noirq(struct device *dev)
+ {
++	struct platform_device *pdev = to_platform_device(dev);
+ 	struct gpio_bank	*bank = platform_get_drvdata(pdev);
+ 	void __iomem		*mask_reg = bank->base + OMAP_MPUIO_GPIO_MASKIT;
+ 	unsigned long		flags;
+@@ -1291,14 +1293,18 @@ static int omap_mpuio_resume_early(struc
+ 	return 0;
+ }
+ 
++static struct dev_pm_ops omap_mpuio_dev_pm_ops = {
++	.suspend_noirq = omap_mpuio_suspend_noirq,
++	.resume_noirq = omap_mpuio_resume_noirq,
++};
++
+ /* use platform_driver for this, now that there's no longer any
+  * point to sys_device (other than not disturbing old code).
+  */
+ static struct platform_driver omap_mpuio_driver = {
+-	.suspend_late	= omap_mpuio_suspend_late,
+-	.resume_early	= omap_mpuio_resume_early,
+ 	.driver		= {
+ 		.name	= "mpuio",
++		.pm	= &omap_mpuio_dev_pm_ops,
+ 	},
+ };
+ 
