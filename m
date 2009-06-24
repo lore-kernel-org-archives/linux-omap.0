@@ -1,62 +1,119 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 00/07] pm: remove late/early platform driver pm
-	callbacks V2
-Date: Wed, 24 Jun 2009 20:56:02 +0200
-Message-ID: <20090624185602.GA7683@elf.ucw.cz>
-References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se> <200906242048.40956.rjw@sisk.pl>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH v3] OMAP2/3/4: PM: reset USB OTG module on boot
+Date: Thu, 25 Jun 2009 00:42:02 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F546235B@dbde02.ent.ti.com>
+References: <1245868054-20375-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52285 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625AbZFXS4H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 14:56:07 -0400
-Content-Disposition: inline
-In-Reply-To: <200906242048.40956.rjw@sisk.pl>
+Received: from bear.ext.ti.com ([192.94.94.41]:54237 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757544AbZFXTMK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 15:12:10 -0400
+In-Reply-To: <1245868054-20375-1-git-send-email-khilman@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Magnus Damm <magnus.damm@gmail.com>, gregkh@suse.de, linux-kernel@vger.kernel.org, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, akpm@linux-foundation.org, stern@rowland.harvard.edu, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, felipe.balbi@nokia.com
+To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed 2009-06-24 20:48:39, Rafael J. Wysocki wrote:
-> On Wednesday 24 June 2009, Magnus Damm wrote:
-> > pm: remove late/early platform driver pm callbacks V2
-> > 
-> > [PATCH 01/07] arm: rework omap suspend_late()/resume_early()
-> > [PATCH 02/07] dma: rework dw_dmac suspend_late()/resume_early()
-> > [PATCH 03/07] dma: rework txx9dmac suspend_late()/resume_early()
-> > [PATCH 04/07] i2c: rework i2c-pxa suspend_late()/resume_early()
-> > [PATCH 05/07] i2c: rework i2c-s3c2410 suspend_late()/resume() V2
-> > [PATCH 06/07] usb: rework musb suspend()/resume_early()
-> > [PATCH 07/07] pm: remove platform device suspend_late()/resume_early() V2
-> > 
-> > These patches simply remove ->suspend_late() and ->resume_early()
-> > from struct platform_driver. Drivers are converted to dev_pm_ops
-> > with CONFIG_SUSPEND in mind. Untested.
-> > 
-> > All patches except [02/07] are known to compile.
-> > 
-> > Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> 
-> If no one objects, I'd like to take this series into the suspend-2.6 tree as
-> 2.6.32 material.  Greg?
-> 
-> Pavel, is your ACK for the entire series?
+Kevin
 
-Well, I don't really understand stuff like dw_dmac.c, but it looks
-basically okay to me. I guess ACK might be okay.
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+>Hilman
+>Sent: Wednesday, June 24, 2009 1:28 PM
+>To: linux-omap@vger.kernel.org
+>Subject: [PATCH v3] OMAP2/3/4: PM: reset USB OTG module on boot
+>
 
-> >  arch/arm/plat-omap/debug-leds.c  |   11 +++++++----
-> >  arch/arm/plat-omap/gpio.c        |   14 ++++++++++----
-> >  drivers/base/platform.c          |   36 ------------------------------------
-> >  drivers/dma/dw_dmac.c            |   15 ++++++++++-----
-> >  drivers/dma/txx9dmac.c           |   15 ++++++++++-----
-> >  drivers/i2c/busses/i2c-pxa.c     |   25 +++++++++++++++++--------
-> >  drivers/i2c/busses/i2c-s3c2410.c |   25 ++++++++++++++++---------
-> >  drivers/usb/musb/musb_core.c     |   18 ++++++++++++------
-> >  include/linux/platform_device.h  |    2 --
-> >  9 files changed, 82 insertions(+), 79 deletions(-)
+Have some more comments that I should have given before the re-spin v3 !!
 
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+>Rather than simply setting force-idle mode on boot, do a reset of the
+>OTG module.  This really ensures that any bootloader/bootstrap code
+>that leaves it active will not prevent future retention.  After reset,
+>OTG module will be in force-idle, force-standby mode.
+>
+>In addition, ensure that the iclk is enabled before attempting a write
+>to the module SYSCONFIG register.
+>
+>Problem reported by Mike Chan <mikechan@google.com>
+>
+>Tested-by: Mike Chan <mikechan@google.com>
+>Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>---
+>Updates from v2
+>- reset for OMAP2 as well (needs update for OMAP4, see FIXME)
+>
+> arch/arm/mach-omap2/usb-musb.c |   37 +++++++++++++++++++++++++++++++++----
+> 1 files changed, 33 insertions(+), 4 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+>index d85296d..1ea2ac7 100644
+>--- a/arch/arm/mach-omap2/usb-musb.c
+>+++ b/arch/arm/mach-omap2/usb-musb.c
+>@@ -26,18 +26,47 @@
+>
+> #include <linux/usb/musb.h>
+>
+>+#include <asm/sizes.h>
+>+
+> #include <mach/hardware.h>
+> #include <mach/irqs.h>
+> #include <mach/mux.h>
+> #include <mach/usb.h>
+>
+>-#define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
+>+#define OTG_SYSCONFIG	   0x404
+>+#define OTG_SYSC_SOFTRESET BIT(1)
+>
+> static void __init usb_musb_pm_init(void)
+> {
+>-	/* Ensure force-idle mode for OTG controller */
+>-	if (cpu_is_omap34xx())
+>-		omap_writel(0, OTG_SYSCONFIG);
+>+	struct clk *iclk;
+>+	u32 phys_base;
+>+	void __iomem *otg_base;
+>+
+>+	if (cpu_is_omap243x())
+>+		phys_base = OMAP2_OTG_BASE;
+>+	else if (cpu_is_omap34xx())
+>+		phys_base = OMAP34XX_HSUSB_OTG_BASE;
+>+	else
+>+		/* FIXME: add OMAP4 support */
+>+		return;
+>+
+>+	otg_base = ioremap(phys_base, SZ_4K);
+>+	if (WARN_ON(!otg_base))
+>+		return;
+>+
+>+	iclk = clk_get(NULL, "hsotgusb_ick");
+>+	if (WARN_ON(!iclk))
+
+Need to iounmap(otg_base); and clk_put() in case of error
+Goto error;
+>+		return;
+>+
+>+	clk_enable(iclk);
+>+
+>+	/* Reset OTG controller.  After reset, it will be in
+>+	 * force-idle, force-standby mode. */
+>+	__raw_writel(OTG_SYSC_SOFTRESET, otg_base + OTG_SYSCONFIG);
+>+
+>+	clk_disable(iclk);
+
+error:
+>+	clk_put(iclk);
+>+	iounmap(otg_base);
+> }
+>
+> #ifdef CONFIG_USB_MUSB_SOC
+>--
+>1.6.3.2
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
