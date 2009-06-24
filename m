@@ -1,88 +1,66 @@
-From: Magnus Damm <magnus.damm@gmail.com>
-Subject: [PATCH 05/07] i2c: rework i2c-s3c2410 suspend_late()/resume() V2
-Date: Wed, 24 Jun 2009 18:23:50 +0900
-Message-ID: <20090624092350.14276.82072.sendpatchset@rx1.opensource.se>
-References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757612AbZFXJfr@vger.kernel.org>
-In-Reply-To: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: gregkh@suse.de, ben-linux@fluff.org, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, rjw@sisk.pl, stern@rowland.harvard.edu, pavel@ucw.cz, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, akpm@linux-foundation.org, felipe.balbi@nokia.com
+From: Ryan <ryanphilips19@googlemail.com>
+Subject: git tree
+Date: Wed, 24 Jun 2009 15:04:11 +0530
+Message-ID: <376636be0906240234n2b9f9e77g12c8a6494bbd245e@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yx0-f194.google.com ([209.85.210.194]:33227 "EHLO
+	mail-yx0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757673AbZFXJln convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 05:41:43 -0400
+Received: by yxe32 with SMTP id 32so649469yxe.33
+        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 02:41:46 -0700 (PDT)
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-From: Magnus Damm <damm@igel.co.jp>
+Hi,
+=A0 Looking at the linux-omap tree using the gitweb interface. Apart
+from the "master" branch and tags.
+=A0 why do we have lots of branches? How and when do they intertact wit=
+h
+each other.
 
-This is V2 of the i2c-s3c2410 dev_pm_ops patch.
 
-The callbacks are converted for CONFIG_SUSPEND like this:
-  suspend_late() -> suspend_noirq()
-  resume() -> resume()
+17 hours ago omap1-upstream shortlog | log | tree
+17 hours ago omap2-upstream shortlog | log | tree
+17 hours ago omap3-boards shortlog | log | tree
+17 hours ago omap3-upstream shortlog | log | tree
+17 hours ago omap4 shortlog | log | tree
+17 hours ago pm shortlog | log | tree
+19 hours ago omap-headers shortlog | log | tree
+19 hours ago omap-upstream shortlog | log | tree
+19 hours ago omap-fixes shortlog | log | tree
+47 hours ago master shortlog | log | tree
+2 weeks ago omap-decimate shortlog | log | tree
+2 weeks ago omapfb-upstream shortlog | log | tree
+2 weeks ago omap-pool shortlog | log | tree
+3 weeks ago for-next-2.6.30 shortlog | log | tree
+4 weeks ago for-next shortlog | log | tree
+4 weeks ago iommu shortlog | log | tree
+2 months ago omap-2.6.29 shortlog | log | tree
+3 months ago clks-testing shortlog | log | tree
+3 months ago delete shortlog | log | tree
+4 months ago omap-2.6.28 shortlog | log | tree
+4 months ago tidspbridge shortlog | log | tree
+5 months ago dspgateway shortlog | log | tree
+5 months ago linus shortlog | log | tree
+6 months ago musb shortlog | log | tree
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
 
- Changes since V1:
- - resolved conflicts to fit upstream changes
+Can anyone explain what exactly goes into each of them?
+Some are straight forward like pm, usb, tidspbridge, gateway. not sure
+about for-next-2.6.30, omap-fixes.
 
- drivers/i2c/busses/i2c-s3c2410.c |   25 ++++++++++++++++---------
- 1 file changed, 16 insertions(+), 9 deletions(-)
+Trying to understand things/mode of development in here.
 
---- 0001/drivers/i2c/busses/i2c-s3c2410.c
-+++ work/drivers/i2c/busses/i2c-s3c2410.c	2009-06-22 17:18:22.000000000 +0900
-@@ -951,17 +951,20 @@ static int s3c24xx_i2c_remove(struct pla
- }
- 
- #ifdef CONFIG_PM
--static int s3c24xx_i2c_suspend_late(struct platform_device *dev,
--				    pm_message_t msg)
-+static int s3c24xx_i2c_suspend_noirq(struct device *dev)
- {
--	struct s3c24xx_i2c *i2c = platform_get_drvdata(dev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct s3c24xx_i2c *i2c = platform_get_drvdata(pdev);
-+
- 	i2c->suspended = 1;
-+
- 	return 0;
- }
- 
--static int s3c24xx_i2c_resume(struct platform_device *dev)
-+static int s3c24xx_i2c_resume(struct device *dev)
- {
--	struct s3c24xx_i2c *i2c = platform_get_drvdata(dev);
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct s3c24xx_i2c *i2c = platform_get_drvdata(pdev);
- 
- 	i2c->suspended = 0;
- 	s3c24xx_i2c_init(i2c);
-@@ -969,9 +972,14 @@ static int s3c24xx_i2c_resume(struct pla
- 	return 0;
- }
- 
-+static struct dev_pm_ops s3c24xx_i2c_dev_pm_ops = {
-+	.suspend_noirq = s3c24xx_i2c_suspend_noirq,
-+	.resume = s3c24xx_i2c_resume,
-+};
-+
-+#define S3C24XX_DEV_PM_OPS (&s3c24xx_i2c_dev_pm_ops)
- #else
--#define s3c24xx_i2c_suspend_late NULL
--#define s3c24xx_i2c_resume NULL
-+#define S3C24XX_DEV_PM_OPS NULL
- #endif
- 
- /* device driver for platform bus bits */
-@@ -990,12 +998,11 @@ MODULE_DEVICE_TABLE(platform, s3c24xx_dr
- static struct platform_driver s3c24xx_i2c_driver = {
- 	.probe		= s3c24xx_i2c_probe,
- 	.remove		= s3c24xx_i2c_remove,
--	.suspend_late	= s3c24xx_i2c_suspend_late,
--	.resume		= s3c24xx_i2c_resume,
- 	.id_table	= s3c24xx_driver_ids,
- 	.driver		= {
- 		.owner	= THIS_MODULE,
- 		.name	= "s3c-i2c",
-+		.pm	= S3C24XX_DEV_PM_OPS,
- 	},
- };
- 
+
+Thank you,
+Ryan
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
