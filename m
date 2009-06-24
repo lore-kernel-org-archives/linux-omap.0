@@ -1,29 +1,78 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [ARM][OMAP] TWL4030 IRQ
-Date: Wed, 24 Jun 2009 08:31:22 +0100
-Message-ID: <20090624073122.GA2431@n2100.arm.linux.org.uk>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E7E5@dbde02.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: [ARM][OMAP] TWL4030 IRQ
+Date: Wed, 24 Jun 2009 13:16:52 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E9C6@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46441 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751973AbZFXHb2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 03:31:28 -0400
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E7E5@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57779 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752992AbZFXHrF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 03:47:05 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jun 24, 2009 at 10:37:45AM +0530, Shilimkar, Santosh wrote:
-> Russell, 
-> 
-> After digging a bit, the proposed twl_irq change would need some major
-> 
-> 1. All the T2(TWL)drivers ( rtc, madc, bci, gpio, keypad, usb, mmc)needs
-> 2.Above also helps to have useful entries like /proc/interrupts/rtc etc.
-> 3. Register/unregister irq handlers to T2 from all the drivers
+(resending wrapped message)
 
-Please resend, wrapping your message sensibly.  Then I'll reply.  Thanks.
+Russell, 
+> -----Original Message-----
+> From: Shilimkar, Santosh 
+> Sent: Saturday, June 20, 2009 8:55 PM
+> To: 'Tony Lindgren'; 'linux-omap@vger.kernel.org'
+> Cc: 'Russell King - ARM Linux'
+> Subject: [ARM][OMAP] TWL4030 IRQ
+> 
+> Just to brief you all, I came across a dead lock scenario on 
+> the arm-smp kernel. After discussing with Russell on mailing 
+> list, the actual bug seems be located in twl4030 IRQ implementation.
+> 
+> Initially I was suspecting the arm-generic area and hence 
+> didn't include linux-omap list in the mail thread
+> 
+> For more information on this issue, please read this email thread.
+> http://marc.info/?l=linux-arm-kernel&m=124550947525299&w=2
+> 
+> I will create a patch for "twl4030" and also would be 
+> correcting upcoming "twl6030" accordingly.
+> 
+> If anyone on this mailing list has any other opinion, please 
+> react to the email thread. 
+
+
+After digging a bit, the proposed twl_irq change would need some major 
+changes.
+
+1. All the T2(TWL)drivers ( rtc, madc, bci, gpio, keypad, usb, mmc)needs
+modification.Currently twl_irq fw implements kind of "twl4030_irq_chip" 
+which allows all the T2 drivers to get virtual interrupt numbers and can
+make use of standard "request_irq" linux api.
+2.Above also helps to have useful entries 
+like /proc/interrupts/rtc etc.
+With proposed change this also won't be available.
+3. Register/unregister irq handlers to T2 from all the drivers
+
+On the reported lock-up issue, I tried alternative to call mask/unmask 
+functions with disabling local cpu interrupts.
+This worked for me but not sure whether it is entirely correct.
+
+Something like this:
+ static void handle_twl4030_pih(unsigned int irq, irq_desc_t *desc)
+ {
++	unsigned long flags;
++
+ 	/* Acknowledge, clear *AND* mask the interrupt... */
++	local_irq_save(flags);
+ 	desc->chip->ack(irq);
++	local_irq_restore(flags);
+ 	complete(&irq_event);
+ }
+
+Do you think above approach is fine to get around the spin-lock lockup
+issue ? 
+ 
+Regards,
+Santosh
