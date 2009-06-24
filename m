@@ -1,18 +1,18 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: [PATCH v2] OMAP3: PM: reset USB OTG module on boot
-Date: Wed, 24 Jun 2009 10:38:16 -0700
-Message-ID: <87bpod352v.fsf@deeprootsystems.com>
+Date: Wed, 24 Jun 2009 11:00:41 -0700
+Message-ID: <87tz251ph2.fsf@deeprootsystems.com>
 References: <1245857533-2419-1-git-send-email-khilman@deeprootsystems.com>
 	<FCCFB4CDC6E5564B9182F639FC35608702F546233D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f189.google.com ([209.85.222.189]:42546 "EHLO
+Received: from mail-pz0-f189.google.com ([209.85.222.189]:40283 "EHLO
 	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754363AbZFXRiQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 13:38:16 -0400
-Received: by pzk27 with SMTP id 27so788382pzk.33
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 10:38:19 -0700 (PDT)
+	with ESMTP id S1761392AbZFXSAl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 14:00:41 -0400
+Received: by pzk27 with SMTP id 27so799077pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 11:00:43 -0700 (PDT)
 In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F546233D@dbde02.ent.ti.com> (Vikram Pandita's message of "Wed\, 24 Jun 2009 22\:32\:33 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,6 +21,12 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 "Pandita, Vikram" <vikram.pandita@ti.com> writes:
 
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+>>Hilman
+>>Sent: Wednesday, June 24, 2009 10:32 AM
+>>To: linux-omap@vger.kernel.org
+>>Subject: [PATCH v2] OMAP3: PM: reset USB OTG module on boot
 >>
 >>Rather than simply setting force-idle mode on boot, do a reset of the
 >>OTG module.  This really ensures that any bootloader/bootstrap code
@@ -34,19 +40,8 @@ Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 >
 > ROM code or u-boot could leave the module sysconfig in a non-idle state.
 >
-> I recommend just like CONFIG_OMAP_RESET_CLOCKS for clocks, same
-> could be done generically for all SYSCONFIG registers in some prcm
-> code and not driver specific.
-
-Completely agree.
-
-This feature will come as soon as we have omap_hwmod/omapdev in place.
-With that, we will have an easy way to model the SYSCONFIG regs of
-each modules, and iterate through them.
-
-Kevin
-
-
+> I recommend just like CONFIG_OMAP_RESET_CLOCKS for clocks, same could be done generically for all SYSCONFIG registers in some prcm code and not driver specific.
+>
 >>
 >>Problem reported by Mike Chan <mikechan@google.com>
 >>
@@ -82,6 +77,9 @@ Kevin
 >
 > This is already defined in drivers/usb/musb/omap2430.h
 > Could we reuse? 
+
+See comment above in the 'Updates from v1' section.
+
 >
 > #if     defined(CONFIG_ARCH_OMAP2430)
 > #define OMAP_HSOTG_BASE         (OMAP243X_HS_BASE)
@@ -107,7 +105,17 @@ Kevin
 >
 > Why is this sys-config reset done only for omap34xx()
 > This should be valid for any old 24xx() as well as new 44xx() omaps
->
+
+You're correct.  Good catch.
+
+The force-idle "fix" that this is replacing was only being done on
+34xx due to the smart-idle errata.  However, this reset should be
+done even without any errata.
+
+Thanks for review,  will respin.
+
+Kevin
+
 >>+
 >>+	otg_base = ioremap(OMAP34XX_HSUSB_OTG_BASE, SZ_4K);
 >>+	if (WARN_ON(!otg_base))
