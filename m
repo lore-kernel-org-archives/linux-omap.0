@@ -1,102 +1,98 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] Missing implementation of omap3evm_flash_init()
-Date: Wed, 24 Jun 2009 17:15:32 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D829BDEC@dbde02.ent.ti.com>
-References: <1245331742-2536-1-git-send-email-premi@ti.com>
- <20090622090651.GA7352@atomide.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301D82205FC@dbde02.ent.ti.com>
- <20090622133347.GI7352@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: reset USB OTG module on boot
+Date: Wed, 24 Jun 2009 06:21:28 -0700
+Message-ID: <87zlbx4vjb.fsf@deeprootsystems.com>
+References: <1245803237-30891-1-git-send-email-khilman@deeprootsystems.com>
+	<1245826423.6022.5.camel@niilo-u810>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46935 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760669AbZFXLpl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 07:45:41 -0400
-In-Reply-To: <20090622133347.GI7352@atomide.com>
-Content-Language: en-US
+Received: from mail-px0-f190.google.com ([209.85.216.190]:42685 "EHLO
+	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751963AbZFXNV2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 09:21:28 -0400
+Received: by pxi28 with SMTP id 28so365099pxi.33
+        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 06:21:31 -0700 (PDT)
+In-Reply-To: <1245826423.6022.5.camel@niilo-u810> (Niilo Minkkinen's message of "Wed\, 24 Jun 2009 09\:53\:43 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
+To: Niilo Minkkinen <ext-niilo.1.minkkinen@nokia.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Monday, June 22, 2009 7:04 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] Missing implementation of omap3evm_flash_init()
-> 
-> * Premi, Sanjeev <premi@ti.com> [090622 16:16]:
-> > > -----Original Message-----
-> > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > > Sent: Monday, June 22, 2009 2:37 PM
-> > > To: Premi, Sanjeev
-> > > Cc: linux-omap@vger.kernel.org
-> > > Subject: Re: [PATCH] Missing implementation of 
-> omap3evm_flash_init()
-> > > 
+Niilo Minkkinen <ext-niilo.1.minkkinen@nokia.com> writes:
 
-<snip>--<snip>
+> On Wed, 2009-06-24 at 02:27 +0200, ext Kevin Hilman wrote:
+>> Rather than simply setting force-idle mode on boot, do a reset of the
+>> OTG module.  This really ensures that any bootloader/bootstrap code
+>> that leaves it active will not prevent future retention.  After reset,
+>> OTG module will be in force-idle, force-standby mode.
+>> 
+>> In addition, ensure that the iclk is enabled before attempting a write
+>> to the module SYSCONFIG register.
+>> 
+>> Problem reported by Mike Chan <mikechan@google.com>
+>> 
+>> Tested-by: Mike Chan <mikechan@google.com>
+>> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>> ---
+>> If no comments/issues, this will be applied to PM branch and
+>> backported to pm-2.6.29.
+>> 
+>>  arch/arm/mach-omap2/usb-musb.c |   21 ++++++++++++++++++---
+>>  1 files changed, 18 insertions(+), 3 deletions(-)
+>> 
+>> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+>> index d85296d..85731b8 100644
+>> --- a/arch/arm/mach-omap2/usb-musb.c
+>> +++ b/arch/arm/mach-omap2/usb-musb.c
+>> @@ -32,12 +32,27 @@
+>>  #include <mach/usb.h>
+>>  
+>>  #define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
+>> +#define OTG_SYSC_SOFTRESET BIT(1)
+>>  
+>>  static void __init usb_musb_pm_init(void)
+>>  {
+>> -	/* Ensure force-idle mode for OTG controller */
+>> -	if (cpu_is_omap34xx())
+>> -		omap_writel(0, OTG_SYSCONFIG);
+>> +	struct clk *iclk;
+>> +
+>> +	if (!cpu_is_omap34xx())
+>> +		return;
+>> +
+>> +	iclk = clk_get(NULL, "hsotgusb_ick");
+>> +	if (WARN_ON(!iclk))
+>> +		return;
+>> +
+>> +	clk_enable(iclk);
+>> +
+>> +	/* Reset OTG controller.  After reset, it will be in
+>> +	 * force-idle, force-standby mode. */
+>> +	omap_writel(OTG_SYSC_SOFTRESET, OTG_SYSCONFIG);
+>
+> Do you think, this is safe to do w/o waiting reset to be finished
+> like :  ?
+>
+> +       omap_writel( SOFTRST, OTG_SYSCONFIG );  /* acquire RESET */
+> +       start = jiffies;
+> +       timeout = start + msecs_to_jiffies(10); /* max 10 ms */
+> +       while (!time_after(jiffies, timeout)) /* wait until RESET OK */
+> +               if ( omap_readl(OTG_SYSSTATUS) & RESETDONE )
+> +                       break;
 
-Tony,
+I thought about waiting for reset, but I decided that it wasn't
+necessary to wait since I wasn't going to write any other values
+after.  Why hold up the boot process when nothing else will be
+writing?
 
-I had a few follow-up queries below:
+Kevin
 
-> > > 
-> > > We already have code that initializes the GPMC for 
-> onenand in kernel.
-> > > And I posted a patch to enable onenand for the SDP boards 
-> > > last week [1].
-> > 
-> > Did not see it; before creating the patch; lookig at this now...
-> 
-> OK, thanks.
->  
-> > > And this is yet another copy of the same code that was 
-> duplicated for
-> > > multiple boards. So how about making the following changes: 
-> > > 
-> > > - Pass the onenand chip select for GPMC in platform data. I 
-> > > doubt that the
-> > >   chip select is changing?
-> > > 
-> > > - If you still need to probe for onenand, please create a 
-> > > generic function
-> > >   in gpmc-onenand.c to probe for onenand
-
-I always see "onenand_base" being passed as argument. Where is it
-initialized?
-
-I did implement this function to probe for nand/onenand - based on
-the code that existed in board-omap3evm-flash.c; but ran into
-some problems with the setting base address.
-
-Looking at the gpmc-onenand.c do you believe we would need a
-gpmc-nand.c on same lines? Or an implementation within the
-board-omap3evm.c is okay for now?
-
-Best regards,
-Sanjeev
-
-> > > 
-> > 
-> > Some EVMs have OneNAND and others have NAND. How/ Where do 
-> you suggest
-> > this check sould go?
-> 
-> If it's based on just checking the GPMC registers, you could 
-> put it into
-> gpmc.c.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
-> 
-
-
-<snip>--<snip>--<snip till end>
- 
+> SOFTRST & RESETDONE already defined in omap2430.h
+>
+>> +
+>> +	clk_disable(iclk);
+>> +	clk_put(iclk);
+>>  }
+>>  
+>>  #ifdef CONFIG_USB_MUSB_SOC
