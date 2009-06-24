@@ -1,133 +1,88 @@
 From: Magnus Damm <magnus.damm@gmail.com>
-Subject: [PATCH 07/07] pm: remove platform device suspend_late()/resume_early() V2
-Date: Wed, 24 Jun 2009 18:24:09 +0900
-Message-ID: <20090624092409.14276.96577.sendpatchset@rx1.opensource.se>
+Subject: [PATCH 05/07] i2c: rework i2c-s3c2410 suspend_late()/resume() V2
+Date: Wed, 24 Jun 2009 18:23:50 +0900
+Message-ID: <20090624092350.14276.82072.sendpatchset@rx1.opensource.se>
 References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f190.google.com ([209.85.216.190]:47156 "EHLO
-	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756758AbZFXJfj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 05:35:39 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757612AbZFXJfr@vger.kernel.org>
 In-Reply-To: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: gregkh@suse.de, ben-linux@fluff.org, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, rjw@sisk.pl, stern@rowland.harvard.edu, pavel@ucw.cz, linux-pm@lists.linux-foundation.org, akpm@linux-foundation.org, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, felipe.balbi@nokia.com
+Cc: gregkh@suse.de, ben-linux@fluff.org, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, rjw@sisk.pl, stern@rowland.harvard.edu, pavel@ucw.cz, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, akpm@linux-foundation.org, felipe.balbi@nokia.com
+List-Id: linux-omap@vger.kernel.org
 
 From: Magnus Damm <damm@igel.co.jp>
 
-This is V2 of the platform driver power management late/early
-callback removal patch. The callbacks ->suspend_late() and
-->resume_early() are removed since all in-tree users now have
-been migrated to dev_pm_ops.
+This is V2 of the i2c-s3c2410 dev_pm_ops patch.
+
+The callbacks are converted for CONFIG_SUSPEND like this:
+  suspend_late() -> suspend_noirq()
+  resume() -> resume()
 
 Signed-off-by: Magnus Damm <damm@igel.co.jp>
 ---
 
- Untested but compiles fine.
-
  Changes since V1:
- - none, just rediff to fit upstream changes
+ - resolved conflicts to fit upstream changes
 
- drivers/base/platform.c         |   36 ------------------------------------
- include/linux/platform_device.h |    2 --
- 2 files changed, 38 deletions(-)
+ drivers/i2c/busses/i2c-s3c2410.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
---- 0001/drivers/base/platform.c
-+++ work/drivers/base/platform.c	2009-06-24 17:27:33.000000000 +0900
-@@ -628,30 +628,6 @@ static int platform_legacy_suspend(struc
- 	return ret;
+--- 0001/drivers/i2c/busses/i2c-s3c2410.c
++++ work/drivers/i2c/busses/i2c-s3c2410.c	2009-06-22 17:18:22.000000000 +0900
+@@ -951,17 +951,20 @@ static int s3c24xx_i2c_remove(struct pla
  }
  
--static int platform_legacy_suspend_late(struct device *dev, pm_message_t mesg)
--{
--	struct platform_driver *pdrv = to_platform_driver(dev->driver);
--	struct platform_device *pdev = to_platform_device(dev);
--	int ret = 0;
--
--	if (dev->driver && pdrv->suspend_late)
--		ret = pdrv->suspend_late(pdev, mesg);
--
--	return ret;
--}
--
--static int platform_legacy_resume_early(struct device *dev)
--{
--	struct platform_driver *pdrv = to_platform_driver(dev->driver);
--	struct platform_device *pdev = to_platform_device(dev);
--	int ret = 0;
--
--	if (dev->driver && pdrv->resume_early)
--		ret = pdrv->resume_early(pdev);
--
--	return ret;
--}
--
- static int platform_legacy_resume(struct device *dev)
+ #ifdef CONFIG_PM
+-static int s3c24xx_i2c_suspend_late(struct platform_device *dev,
+-				    pm_message_t msg)
++static int s3c24xx_i2c_suspend_noirq(struct device *dev)
  {
- 	struct platform_driver *pdrv = to_platform_driver(dev->driver);
-@@ -714,8 +690,6 @@ static int platform_pm_suspend_noirq(str
- 	if (drv->pm) {
- 		if (drv->pm->suspend_noirq)
- 			ret = drv->pm->suspend_noirq(dev);
--	} else {
--		ret = platform_legacy_suspend_late(dev, PMSG_SUSPEND);
- 	}
+-	struct s3c24xx_i2c *i2c = platform_get_drvdata(dev);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct s3c24xx_i2c *i2c = platform_get_drvdata(pdev);
++
+ 	i2c->suspended = 1;
++
+ 	return 0;
+ }
  
- 	return ret;
-@@ -750,8 +724,6 @@ static int platform_pm_resume_noirq(stru
- 	if (drv->pm) {
- 		if (drv->pm->resume_noirq)
- 			ret = drv->pm->resume_noirq(dev);
--	} else {
--		ret = platform_legacy_resume_early(dev);
- 	}
+-static int s3c24xx_i2c_resume(struct platform_device *dev)
++static int s3c24xx_i2c_resume(struct device *dev)
+ {
+-	struct s3c24xx_i2c *i2c = platform_get_drvdata(dev);
++	struct platform_device *pdev = to_platform_device(dev);
++	struct s3c24xx_i2c *i2c = platform_get_drvdata(pdev);
  
- 	return ret;
-@@ -797,8 +769,6 @@ static int platform_pm_freeze_noirq(stru
- 	if (drv->pm) {
- 		if (drv->pm->freeze_noirq)
- 			ret = drv->pm->freeze_noirq(dev);
--	} else {
--		ret = platform_legacy_suspend_late(dev, PMSG_FREEZE);
- 	}
+ 	i2c->suspended = 0;
+ 	s3c24xx_i2c_init(i2c);
+@@ -969,9 +972,14 @@ static int s3c24xx_i2c_resume(struct pla
+ 	return 0;
+ }
  
- 	return ret;
-@@ -833,8 +803,6 @@ static int platform_pm_thaw_noirq(struct
- 	if (drv->pm) {
- 		if (drv->pm->thaw_noirq)
- 			ret = drv->pm->thaw_noirq(dev);
--	} else {
--		ret = platform_legacy_resume_early(dev);
- 	}
++static struct dev_pm_ops s3c24xx_i2c_dev_pm_ops = {
++	.suspend_noirq = s3c24xx_i2c_suspend_noirq,
++	.resume = s3c24xx_i2c_resume,
++};
++
++#define S3C24XX_DEV_PM_OPS (&s3c24xx_i2c_dev_pm_ops)
+ #else
+-#define s3c24xx_i2c_suspend_late NULL
+-#define s3c24xx_i2c_resume NULL
++#define S3C24XX_DEV_PM_OPS NULL
+ #endif
  
- 	return ret;
-@@ -869,8 +837,6 @@ static int platform_pm_poweroff_noirq(st
- 	if (drv->pm) {
- 		if (drv->pm->poweroff_noirq)
- 			ret = drv->pm->poweroff_noirq(dev);
--	} else {
--		ret = platform_legacy_suspend_late(dev, PMSG_HIBERNATE);
- 	}
+ /* device driver for platform bus bits */
+@@ -990,12 +998,11 @@ MODULE_DEVICE_TABLE(platform, s3c24xx_dr
+ static struct platform_driver s3c24xx_i2c_driver = {
+ 	.probe		= s3c24xx_i2c_probe,
+ 	.remove		= s3c24xx_i2c_remove,
+-	.suspend_late	= s3c24xx_i2c_suspend_late,
+-	.resume		= s3c24xx_i2c_resume,
+ 	.id_table	= s3c24xx_driver_ids,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "s3c-i2c",
++		.pm	= S3C24XX_DEV_PM_OPS,
+ 	},
+ };
  
- 	return ret;
-@@ -905,8 +871,6 @@ static int platform_pm_restore_noirq(str
- 	if (drv->pm) {
- 		if (drv->pm->restore_noirq)
- 			ret = drv->pm->restore_noirq(dev);
--	} else {
--		ret = platform_legacy_resume_early(dev);
- 	}
- 
- 	return ret;
---- 0001/include/linux/platform_device.h
-+++ work/include/linux/platform_device.h	2009-06-24 17:27:33.000000000 +0900
-@@ -57,8 +57,6 @@ struct platform_driver {
- 	int (*remove)(struct platform_device *);
- 	void (*shutdown)(struct platform_device *);
- 	int (*suspend)(struct platform_device *, pm_message_t state);
--	int (*suspend_late)(struct platform_device *, pm_message_t state);
--	int (*resume_early)(struct platform_device *);
- 	int (*resume)(struct platform_device *);
- 	struct device_driver driver;
- 	struct platform_device_id *id_table;
