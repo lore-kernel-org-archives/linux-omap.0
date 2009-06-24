@@ -1,226 +1,156 @@
-From: "Wang Sawsd-A24013" <cqwang@motorola.com>
-Subject: [PATCH 2/2] OMAP3: Implement separate function to send bypass command through VC
-Date: Wed, 24 Jun 2009 08:15:06 +0800
-Message-ID: <B00E06E2766C2744B022DE9BAF3C59D542E080@zmy16exm69.ds.mot.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/2] Support OMAP3 VC adaptation with different Power IC
+Date: Tue, 23 Jun 2009 17:19:06 -0700
+Message-ID: <87bpoe5vr9.fsf@deeprootsystems.com>
+References: <B00E06E2766C2744B022DE9BAF3C59D542E07F@zmy16exm69.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail153.messagelabs.com ([216.82.253.51]:48999 "EHLO
-	mail153.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830AbZFXAP3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 20:15:29 -0400
-Received: from il06exr04.mot.com (il06exr04.mot.com [129.188.137.134])
-	by motgate8.mot.com (8.14.3/8.14.3) with ESMTP id n5O0FViC011665
-	for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 17:15:31 -0700 (MST)
-Received: from il06vts02.mot.com (il06vts02.mot.com [129.188.137.142])
-	by il06exr04.mot.com (8.13.1/Vontu) with SMTP id n5O0FU3F005106
-	for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 19:15:30 -0500 (CDT)
-Received: from zmy16exm69.ds.mot.com (zmy16exm69.ap.mot.com [10.179.4.36])
-	by il06exr04.mot.com (8.13.1/8.13.0) with ESMTP id n5O0FSEE005093
-	for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 19:15:30 -0500 (CDT)
-Content-class: urn:content-classes:message
+Received: from wf-out-1314.google.com ([209.85.200.175]:31709 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485AbZFXATG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 20:19:06 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so125992wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 17:19:09 -0700 (PDT)
+In-Reply-To: <B00E06E2766C2744B022DE9BAF3C59D542E07F@zmy16exm69.ds.mot.com> (Wang Sawsd-A's message of "Wed\, 24 Jun 2009 08\:15\:04 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Wang Sawsd-A24013 <cqwang@motorola.com>
+Cc: linux-omap@vger.kernel.org
 
->From 803cbdcd8df3d6f931089979c2dbad8942512cb4 Mon Sep 17 00:00:00 2001
-From: Chunqiu Wang <cqwang@motorola.com>
-Date: Wed, 24 Jun 2009 07:57:17 +0800
-Subject: [PATCH] OMAP3: Implement separate function to send bypass
-command through VC
+"Wang Sawsd-A24013" <cqwang@motorola.com> writes:
 
-Some system may need use OMAP VC to configure their Power IC,
-so make the common code to send bypass command using SR VC
+> From c1aba8ba7af3ddd16346d95795bda71e65baa4d0 Mon Sep 17 00:00:00 2001
+> From: Chunqiu Wang <cqwang@motorola.com>
+> Date: Wed, 24 Jun 2009 06:48:52 +0800
+> Subject: [PATCH] Support OMAP3 VC adaptation with different Power IC
+>
+> Current OMAP SmartReflex driver only supports TI Triton
+> Power IC, add a callback to make it possible to use
+> different PowerIC and use different settings to
+> configure OMAP3 Voltage Controller for DVFS
+>
+> Board file can setup a new function to have different settings
+> on SR to configure their Power IC for voltage scaling
+>
+> Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
 
-Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
----
- arch/arm/mach-omap2/pm.h          |    1 +
- arch/arm/mach-omap2/pm34xx.c      |   36 ++++++++++++++++++++++
- arch/arm/mach-omap2/smartreflex.c |   59
-+++---------------------------------
- 3 files changed, 42 insertions(+), 54 deletions(-)
+Your patch seems wrapped again:
 
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index ddc9453..fa118cd 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -44,6 +44,7 @@ extern int set_pwrdm_state(struct powerdomain *pwrdm,
-u32 state);
- extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
- extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int
-state);
- extern void omap3_set_prm_setup_vc(struct prm_setup_vc *setup_vc);
-+extern int omap3_vc_bypass_cmd(u8 slave_addr, u8 reg_addr, u8 cmd);
- 
- #ifdef CONFIG_CPU_IDLE
- int omap3_idle_init(void);
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7a4a525..85b0944 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -26,6 +26,7 @@
- #include <linux/err.h>
- #include <linux/gpio.h>
- #include <linux/clk.h>
-+#include <linux/delay.h>
- 
- #include <mach/sram.h>
- #include <mach/prcm.h>
-@@ -1135,6 +1136,41 @@ err2:
- 	return ret;
- }
- 
-+/* Program Power IC via OMAP3 voltage controller bypass interface */
-+int omap3_vc_bypass_cmd(u8 slave_addr, u8 reg_addr, u8 cmd)
-+{
-+	u32 vc_bypass_value;
-+	u32 loop_cnt = 0, retries_cnt = 0;
-+
-+	vc_bypass_value = (cmd << OMAP3430_DATA_SHIFT) |
-+			(reg_addr << OMAP3430_REGADDR_SHIFT) |
-+			(slave_addr << OMAP3430_SLAVEADDR_SHIFT);
-+
-+	prm_write_mod_reg(vc_bypass_value, OMAP3430_GR_MOD,
-+			OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
-+
-+	vc_bypass_value = prm_set_mod_reg_bits(OMAP3430_VALID,
-OMAP3430_GR_MOD,
-+					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
-+
-+	while ((vc_bypass_value & OMAP3430_VALID) != 0x0) {
-+		loop_cnt++;
-+		if (retries_cnt > 10) {
-+			printk(KERN_ERR"Loop count exceeded in check SR
-I2C"
-+
-"write\n");
-+			return 1;
-+		}
-+		if (loop_cnt > 50) {
-+			retries_cnt++;
-+			loop_cnt = 0;
-+			udelay(10);
-+		}
-+		vc_bypass_value = prm_read_mod_reg(OMAP3430_GR_MOD,
-+					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
-+	}
-+
-+	return 0;
-+}
-+
- static void __init configure_vc(void)
- {
- 
-diff --git a/arch/arm/mach-omap2/smartreflex.c
-b/arch/arm/mach-omap2/smartreflex.c
-index bacf602..2158b5c 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -35,6 +35,7 @@
- #include "prm.h"
- #include "smartreflex.h"
- #include "prm-regbits-34xx.h"
-+#include "pm.h"
- 
- struct omap_sr {
- 	int		srid;
-@@ -449,8 +450,6 @@ static int sr_reset_voltage(int srid)
- {
- 	u32 target_opp_no, vsel = 0;
- 	u32 reg_addr = 0;
--	u32 loop_cnt = 0, retries_cnt = 0;
--	u32 vc_bypass_value;
- 	u32 t2_smps_steps = 0;
- 	u32 t2_smps_delay = 0;
- 	u32 prm_vp1_voltage, prm_vp2_voltage;
-@@ -479,31 +478,8 @@ static int sr_reset_voltage(int srid)
- 		t2_smps_steps = abs(vsel - prm_vp2_voltage);
- 	}
- 
--	vc_bypass_value = (vsel << OMAP3430_DATA_SHIFT) |
--			(reg_addr << OMAP3430_REGADDR_SHIFT) |
--			(R_SRI2C_SLAVE_ADDR <<
-OMAP3430_SLAVEADDR_SHIFT);
--
--	prm_write_mod_reg(vc_bypass_value, OMAP3430_GR_MOD,
--			OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
--
--	vc_bypass_value = prm_set_mod_reg_bits(OMAP3430_VALID,
-OMAP3430_GR_MOD,
--					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
--
--	while ((vc_bypass_value & OMAP3430_VALID) != 0x0) {
--		loop_cnt++;
--		if (retries_cnt > 10) {
--			pr_info("Loop count exceeded in check SR I2C"
--
-"write\n");
--			return 1;
--		}
--		if (loop_cnt > 50) {
--			retries_cnt++;
--			loop_cnt = 0;
--			udelay(10);
--		}
--		vc_bypass_value = prm_read_mod_reg(OMAP3430_GR_MOD,
--					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
--	}
-+	if (omap3_vc_bypass_cmd(R_SRI2C_SLAVE_ADDR, reg_addr, vsel))
-+		return 1;
- 
- 	/*
- 	 *  T2 SMPS slew rate (min) 4mV/uS, step size 12.5mV,
-@@ -780,9 +756,7 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32
-current_opp,
- {
- 	int sr_status = 0;
- 	u32 vdd, target_opp_no, current_opp_no;
--	u32 vc_bypass_value;
- 	u32 reg_addr = 0;
--	u32 loop_cnt = 0, retries_cnt = 0;
- 	u32 t2_smps_steps = 0;
- 	u32 t2_smps_delay = 0;
- 
-@@ -815,31 +789,8 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32
-current_opp,
- 		reg_addr = R_VDD2_SR_CONTROL;
- 	}
- 
--	vc_bypass_value = (target_vsel << OMAP3430_DATA_SHIFT) |
--			(reg_addr << OMAP3430_REGADDR_SHIFT) |
--			(R_SRI2C_SLAVE_ADDR <<
-OMAP3430_SLAVEADDR_SHIFT);
--
--	prm_write_mod_reg(vc_bypass_value, OMAP3430_GR_MOD,
--			OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
--
--	vc_bypass_value = prm_set_mod_reg_bits(OMAP3430_VALID,
-OMAP3430_GR_MOD,
--					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
--
--	while ((vc_bypass_value & OMAP3430_VALID) != 0x0) {
--		loop_cnt++;
--		if (retries_cnt > 10) {
--			pr_info("Loop count exceeded in check SR I2C"
--
-"write\n");
--			return 1;
--		}
--		if (loop_cnt > 50) {
--			retries_cnt++;
--			loop_cnt = 0;
--			udelay(10);
--		}
--		vc_bypass_value = prm_read_mod_reg(OMAP3430_GR_MOD,
--					OMAP3_PRM_VC_BYPASS_VAL_OFFSET);
--	}
-+	if (omap3_vc_bypass_cmd(R_SRI2C_SLAVE_ADDR, reg_addr,
-target_vsel))
-+		return 1;
- 
- 	/*
- 	 *  T2 SMPS slew rate (min) 4mV/uS, step size 12.5mV,
--- 
-1.5.4.3
+checkpatch reports:
+
+ERROR: patch seems to be corrupt (line wrapped?)
+#38: FILE: arch/arm/mach-omap2/smartreflex.c:57:
+u32 value)
+
+ERROR: trailing whitespace
+#95: FILE: arch/arm/mach-omap2/smartreflex.h:252:
++^I^I^I^I^I^Iu8 t_vsel, u8 c_vsel); $
+
+total: 2 errors, 0 warnings, 71 lines checked
+
+
+> ---
+>  arch/arm/mach-omap2/smartreflex.c |   13 +++++++++++++
+>  arch/arm/mach-omap2/smartreflex.h |    4 ++++
+>  arch/arm/plat-omap/Kconfig        |    2 +-
+>  3 files changed, 18 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/smartreflex.c
+> b/arch/arm/mach-omap2/smartreflex.c
+> index 9d462e3..bacf602 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -52,6 +52,8 @@ struct omap_sr {
+>  
+>  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
+>  
+> +static omap3_voltagescale_vcbypass_t omap3_volscale_vcbypass_fun;
+> +
+>  static inline void sr_write_reg(struct omap_sr *sr, unsigned offset,
+> u32 value)
+>  {
+>  	__raw_writel(value, SR_REGADDR(offset));
+> @@ -767,6 +769,11 @@ void disable_smartreflex(int srid)
+>  	}
+>  }
+>  
+> +void omap3_voltagescale_vcbypass_setup(omap3_voltagescale_vcbypass_t
+> fun)
+> +{
+> +	omap3_volscale_vcbypass_fun = fun;
+> +}
+> +
+>  /* Voltage Scaling using SR VCBYPASS */
+>  int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
+>  					u8 target_vsel, u8 current_vsel)
+> @@ -779,6 +786,10 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32
+> current_opp,
+>  	u32 t2_smps_steps = 0;
+>  	u32 t2_smps_delay = 0;
+>  
+> +	if (omap3_volscale_vcbypass_fun)
+> +		return omap3_volscale_vcbypass_fun(target_opp,
+> current_opp,
+> +						target_vsel,
+> current_vsel);
+> +
+>  	vdd = get_vdd(target_opp);
+>  	target_opp_no = get_opp_no(target_opp);
+>  	current_opp_no = get_opp_no(current_opp);
+> @@ -940,6 +951,7 @@ static int __init omap3_sr_init(void)
+>  		return -ENODEV;
+>          }
+>  
+> +#ifdef CONFIG_TWL4030_CORE
+>  	/* Enable SR on T2 */
+>  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
+>  					R_DCDC_GLOBAL_CFG);
+> @@ -947,6 +959,7 @@ static int __init omap3_sr_init(void)
+>  	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
+>  	ret |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
+>  					R_DCDC_GLOBAL_CFG);
+> +#endif
+>  
+>  	if (cpu_is_omap34xx()) {
+>  		sr1.clk = clk_get(NULL, "sr1_fck");
+> diff --git a/arch/arm/mach-omap2/smartreflex.h
+> b/arch/arm/mach-omap2/smartreflex.h
+> index 2a0e823..c4aca9d 100644
+> --- a/arch/arm/mach-omap2/smartreflex.h
+> +++ b/arch/arm/mach-omap2/smartreflex.h
+> @@ -248,9 +248,13 @@ void disable_smartreflex(int srid);
+>  int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8
+> c_vsel);
+>  void sr_start_vddautocomap(int srid, u32 target_opp_no);
+>  int sr_stop_vddautocomap(int srid);
+> +typedef int (*omap3_voltagescale_vcbypass_t)(u32 t_opp, u32 c_opp,
+> +						u8 t_vsel, u8 c_vsel); 
+> +void omap3_voltagescale_vcbypass_setup(omap3_voltagescale_vcbypass_t
+> fun);
+>  #else
+>  static inline void enable_smartreflex(int srid) {}
+>  static inline void disable_smartreflex(int srid) {}
+> +#define omap3_voltagescale_vcbypass_setup(fun) do {} while (0);
+>  #endif
+>  
+>  #endif
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index c8ba1e2..8d2c607 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -68,7 +68,7 @@ config OMAP_DEBUG_CLOCKDOMAIN
+>  
+>  config OMAP_SMARTREFLEX
+>  	bool "SmartReflex support"
+> -	depends on ARCH_OMAP34XX && TWL4030_CORE && PM
+> +	depends on ARCH_OMAP34XX && PM
+>  	help
+>  	  Say Y if you want to enable SmartReflex.
+>  
+> -- 
+> 1.5.4.3
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
