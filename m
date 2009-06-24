@@ -1,45 +1,91 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [PATCH 06/07] usb: rework musb suspend()/resume_early()
-Date: Wed, 24 Jun 2009 13:34:58 -0700
-Message-ID: <20090624203458.GB28516@suse.de>
-References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se> <20090624092400.14276.94490.sendpatchset@rx1.opensource.se>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH v4] OMAP2/3/4: PM: reset USB OTG module on boot
+Date: Wed, 24 Jun 2009 14:08:45 -0700
+Message-ID: <1245877725-28896-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:51213 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754472AbZFXU4r (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 24 Jun 2009 16:56:47 -0400
-Content-Disposition: inline
-In-Reply-To: <20090624092400.14276.94490.sendpatchset@rx1.opensource.se>
+Received: from wf-out-1314.google.com ([209.85.200.173]:52097 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750731AbZFXVIp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 17:08:45 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so358012wfd.4
+        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 14:08:48 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: linux-kernel@vger.kernel.org, pavel@ucw.cz, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, akpm@linux-foundation.org, rjw@sisk.pl, stern@rowland.harvard.edu, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, felipe.balbi@nokia.com
+To: linux-omap@vger.kernel.org
 
-On Wed, Jun 24, 2009 at 06:24:00PM +0900, Magnus Damm wrote:
-> From: Magnus Damm <damm@igel.co.jp>
-> 
-> This patch reworks platform driver power management code
-> for musb from legacy callbacks to dev_pm_ops.
-> 
-> The callbacks are converted for CONFIG_SUSPEND like this:
->   suspend() -> suspend()
->   resume_early() -> resume_noirq()
-> 
-> Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> ---
-> 
->  Untested but compiles fine.
-> 
->  drivers/i2c/busses/i2c-pxa.c |   25 +++++++++++++++++--------
->  1 file changed, 17 insertions(+), 8 deletions(-)
-> 
-> --- 0001/drivers/usb/musb/musb_core.c
+Rather than simply setting force-idle mode on boot, do a reset of the
+OTG module.  This really ensures that any bootloader/bootstrap code
+that leaves it active will not prevent future retention.  After reset,
+OTG module will be in force-idle, force-standby mode.
 
-I think you need to look at the tools you used to create this series,
-the diffstat doesn't seem to match up here :)
+In addition, ensure that the iclk is enabled before attempting a write
+to the module SYSCONFIG register.
 
-thanks,
+Problem reported by Mike Chan <mikechan@google.com>
 
-greg k-h
+Tested-by: Mike Chan <mikechan@google.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/usb-musb.c |   38 ++++++++++++++++++++++++++++++++++----
+ 1 files changed, 34 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index d85296d..3abbe5a 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -26,18 +26,48 @@
+ 
+ #include <linux/usb/musb.h>
+ 
++#include <asm/sizes.h>
++
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <mach/mux.h>
+ #include <mach/usb.h>
+ 
+-#define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
++#define OTG_SYSCONFIG	   0x404
++#define OTG_SYSC_SOFTRESET BIT(1)
+ 
+ static void __init usb_musb_pm_init(void)
+ {
+-	/* Ensure force-idle mode for OTG controller */
+-	if (cpu_is_omap34xx())
+-		omap_writel(0, OTG_SYSCONFIG);
++	struct clk *iclk;
++	u32 phys_base;
++	void __iomem *otg_base;
++
++	if (cpu_is_omap243x())
++		phys_base = OMAP2_OTG_BASE;
++	else if (cpu_is_omap34xx())
++		phys_base = OMAP34XX_HSUSB_OTG_BASE;
++	else
++		/* FIXME: add OMAP4 support */
++		return;
++
++	otg_base = ioremap(phys_base, SZ_4K);
++	if (WARN_ON(!otg_base))
++		return;
++
++	iclk = clk_get(NULL, "hsotgusb_ick");
++	if (WARN_ON(!iclk))
++		goto out;
++
++	clk_enable(iclk);
++
++	/* Reset OTG controller.  After reset, it will be in
++	 * force-idle, force-standby mode. */
++	__raw_writel(OTG_SYSC_SOFTRESET, otg_base + OTG_SYSCONFIG);
++
++	clk_disable(iclk);
++	clk_put(iclk);
++out:
++	iounmap(otg_base);
+ }
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+-- 
+1.6.3.2
+
