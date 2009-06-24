@@ -1,89 +1,145 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2] OMAP3: PM: reset USB OTG module on boot
-Date: Wed, 24 Jun 2009 08:32:13 -0700
-Message-ID: <1245857533-2419-1-git-send-email-khilman@deeprootsystems.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 07/07] pm: remove platform device
+	suspend_late()/resume_early() V2
+Date: Wed, 24 Jun 2009 18:02:27 +0200
+Message-ID: <20090624160227.GB6977@elf.ucw.cz>
+References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se> <20090624092409.14276.96577.sendpatchset@rx1.opensource.se>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f190.google.com ([209.85.216.190]:58892 "EHLO
-	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760576AbZFXPcP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 11:32:15 -0400
-Received: by pxi28 with SMTP id 28so438820pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 08:32:16 -0700 (PDT)
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:45065 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751301AbZFXQCf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 12:02:35 -0400
+Content-Disposition: inline
+In-Reply-To: <20090624092409.14276.96577.sendpatchset@rx1.opensource.se>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: linux-kernel@vger.kernel.org, gregkh@suse.de, ben-linux@fluff.org, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, rjw@sisk.pl, stern@rowland.harvard.edu, linux-pm@lists.linux-foundation.org, akpm@linux-foundation.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
-Rather than simply setting force-idle mode on boot, do a reset of the
-OTG module.  This really ensures that any bootloader/bootstrap code
-that leaves it active will not prevent future retention.  After reset,
-OTG module will be in force-idle, force-standby mode.
+On Wed 2009-06-24 18:24:09, Magnus Damm wrote:
+> From: Magnus Damm <damm@igel.co.jp>
+> 
+> This is V2 of the platform driver power management late/early
+> callback removal patch. The callbacks ->suspend_late() and
+> ->resume_early() are removed since all in-tree users now have
+> been migrated to dev_pm_ops.
+> 
+> Signed-off-by: Magnus Damm <damm@igel.co.jp>
 
-In addition, ensure that the iclk is enabled before attempting a write
-to the module SYSCONFIG register.
+Looks ok to me. ACK.
 
-Problem reported by Mike Chan <mikechan@google.com>
+> ---
+> 
+>  Untested but compiles fine.
+> 
+>  Changes since V1:
+>  - none, just rediff to fit upstream changes
+> 
+>  drivers/base/platform.c         |   36 ------------------------------------
+>  include/linux/platform_device.h |    2 --
+>  2 files changed, 38 deletions(-)
+> 
+> --- 0001/drivers/base/platform.c
+> +++ work/drivers/base/platform.c	2009-06-24 17:27:33.000000000 +0900
+> @@ -628,30 +628,6 @@ static int platform_legacy_suspend(struc
+>  	return ret;
+>  }
+>  
+> -static int platform_legacy_suspend_late(struct device *dev, pm_message_t mesg)
+> -{
+> -	struct platform_driver *pdrv = to_platform_driver(dev->driver);
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	int ret = 0;
+> -
+> -	if (dev->driver && pdrv->suspend_late)
+> -		ret = pdrv->suspend_late(pdev, mesg);
+> -
+> -	return ret;
+> -}
+> -
+> -static int platform_legacy_resume_early(struct device *dev)
+> -{
+> -	struct platform_driver *pdrv = to_platform_driver(dev->driver);
+> -	struct platform_device *pdev = to_platform_device(dev);
+> -	int ret = 0;
+> -
+> -	if (dev->driver && pdrv->resume_early)
+> -		ret = pdrv->resume_early(pdev);
+> -
+> -	return ret;
+> -}
+> -
+>  static int platform_legacy_resume(struct device *dev)
+>  {
+>  	struct platform_driver *pdrv = to_platform_driver(dev->driver);
+> @@ -714,8 +690,6 @@ static int platform_pm_suspend_noirq(str
+>  	if (drv->pm) {
+>  		if (drv->pm->suspend_noirq)
+>  			ret = drv->pm->suspend_noirq(dev);
+> -	} else {
+> -		ret = platform_legacy_suspend_late(dev, PMSG_SUSPEND);
+>  	}
+>  
+>  	return ret;
+> @@ -750,8 +724,6 @@ static int platform_pm_resume_noirq(stru
+>  	if (drv->pm) {
+>  		if (drv->pm->resume_noirq)
+>  			ret = drv->pm->resume_noirq(dev);
+> -	} else {
+> -		ret = platform_legacy_resume_early(dev);
+>  	}
+>  
+>  	return ret;
+> @@ -797,8 +769,6 @@ static int platform_pm_freeze_noirq(stru
+>  	if (drv->pm) {
+>  		if (drv->pm->freeze_noirq)
+>  			ret = drv->pm->freeze_noirq(dev);
+> -	} else {
+> -		ret = platform_legacy_suspend_late(dev, PMSG_FREEZE);
+>  	}
+>  
+>  	return ret;
+> @@ -833,8 +803,6 @@ static int platform_pm_thaw_noirq(struct
+>  	if (drv->pm) {
+>  		if (drv->pm->thaw_noirq)
+>  			ret = drv->pm->thaw_noirq(dev);
+> -	} else {
+> -		ret = platform_legacy_resume_early(dev);
+>  	}
+>  
+>  	return ret;
+> @@ -869,8 +837,6 @@ static int platform_pm_poweroff_noirq(st
+>  	if (drv->pm) {
+>  		if (drv->pm->poweroff_noirq)
+>  			ret = drv->pm->poweroff_noirq(dev);
+> -	} else {
+> -		ret = platform_legacy_suspend_late(dev, PMSG_HIBERNATE);
+>  	}
+>  
+>  	return ret;
+> @@ -905,8 +871,6 @@ static int platform_pm_restore_noirq(str
+>  	if (drv->pm) {
+>  		if (drv->pm->restore_noirq)
+>  			ret = drv->pm->restore_noirq(dev);
+> -	} else {
+> -		ret = platform_legacy_resume_early(dev);
+>  	}
+>  
+>  	return ret;
+> --- 0001/include/linux/platform_device.h
+> +++ work/include/linux/platform_device.h	2009-06-24 17:27:33.000000000 +0900
+> @@ -57,8 +57,6 @@ struct platform_driver {
+>  	int (*remove)(struct platform_device *);
+>  	void (*shutdown)(struct platform_device *);
+>  	int (*suspend)(struct platform_device *, pm_message_t state);
+> -	int (*suspend_late)(struct platform_device *, pm_message_t state);
+> -	int (*resume_early)(struct platform_device *);
+>  	int (*resume)(struct platform_device *);
+>  	struct device_driver driver;
+>  	struct platform_device_id *id_table;
 
-Tested-by: Mike Chan <mikechan@google.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Updates from v1
-- use ioremap()+__raw_write instead of deprecated omap_write()
-- Re: defines in omap2430.h, this header is not exported outside
-  drivers/usb, so define it locally yere
-
- arch/arm/mach-omap2/usb-musb.c |   31 +++++++++++++++++++++++++++----
- 1 files changed, 27 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index d85296d..31adbe6 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -26,18 +26,41 @@
- 
- #include <linux/usb/musb.h>
- 
-+#include <asm/sizes.h>
-+
- #include <mach/hardware.h>
- #include <mach/irqs.h>
- #include <mach/mux.h>
- #include <mach/usb.h>
- 
--#define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
-+#define OTG_SYSCONFIG	   0x404
-+#define OTG_SYSC_SOFTRESET BIT(1)
- 
- static void __init usb_musb_pm_init(void)
- {
--	/* Ensure force-idle mode for OTG controller */
--	if (cpu_is_omap34xx())
--		omap_writel(0, OTG_SYSCONFIG);
-+	struct clk *iclk;
-+	void __iomem *otg_base;
-+
-+	if (!cpu_is_omap34xx())
-+		return;
-+
-+	otg_base = ioremap(OMAP34XX_HSUSB_OTG_BASE, SZ_4K);
-+	if (WARN_ON(!otg_base))
-+		return;
-+
-+	iclk = clk_get(NULL, "hsotgusb_ick");
-+	if (WARN_ON(!iclk))
-+		return;
-+
-+	clk_enable(iclk);
-+
-+	/* Reset OTG controller.  After reset, it will be in
-+	 * force-idle, force-standby mode. */
-+	__raw_writel(OTG_SYSC_SOFTRESET, otg_base + OTG_SYSCONFIG);
-+
-+	clk_disable(iclk);
-+	clk_put(iclk);
-+	iounmap(otg_base);
- }
- 
- #ifdef CONFIG_USB_MUSB_SOC
 -- 
-1.6.3.2
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
