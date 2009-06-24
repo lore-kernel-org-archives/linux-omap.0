@@ -1,66 +1,44 @@
-From: Ryan <ryanphilips19@googlemail.com>
-Subject: git tree
-Date: Wed, 24 Jun 2009 15:04:11 +0530
-Message-ID: <376636be0906240234n2b9f9e77g12c8a6494bbd245e@mail.gmail.com>
+From: arno@natisbad.org (Arnaud Ebalard)
+Subject: Re: [PATCH] Remove duplicate Kconfig LEDS_LP5521 entry introduced by 67a32ec7
+Date: Wed, 24 Jun 2009 12:42:49 +0200
+Message-ID: <87ab3xj4k6.fsf@small.ssi.corp>
+References: <871vpaj9d1.fsf@small.ssi.corp> <20090624085914.GA16639@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f194.google.com ([209.85.210.194]:33227 "EHLO
-	mail-yx0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757673AbZFXJln convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 05:41:43 -0400
-Received: by yxe32 with SMTP id 32so649469yxe.33
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 02:41:46 -0700 (PDT)
+Received: from copper.chdir.org ([88.191.97.87]:45263 "EHLO copper.chdir.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750818AbZFXKmW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Jun 2009 06:42:22 -0400
+In-Reply-To: <20090624085914.GA16639@nokia.com> (Felipe Balbi's message of
+	"Wed, 24 Jun 2009 11:59:14 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: felipe.balbi@nokia.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hi,
-=A0 Looking at the linux-omap tree using the gitweb interface. Apart
-from the "master" branch and tags.
-=A0 why do we have lots of branches? How and when do they intertact wit=
-h
-each other.
+Hi Felipe,
 
+Felipe Balbi <felipe.balbi@nokia.com> writes:
 
-17 hours ago omap1-upstream shortlog | log | tree
-17 hours ago omap2-upstream shortlog | log | tree
-17 hours ago omap3-boards shortlog | log | tree
-17 hours ago omap3-upstream shortlog | log | tree
-17 hours ago omap4 shortlog | log | tree
-17 hours ago pm shortlog | log | tree
-19 hours ago omap-headers shortlog | log | tree
-19 hours ago omap-upstream shortlog | log | tree
-19 hours ago omap-fixes shortlog | log | tree
-47 hours ago master shortlog | log | tree
-2 weeks ago omap-decimate shortlog | log | tree
-2 weeks ago omapfb-upstream shortlog | log | tree
-2 weeks ago omap-pool shortlog | log | tree
-3 weeks ago for-next-2.6.30 shortlog | log | tree
-4 weeks ago for-next shortlog | log | tree
-4 weeks ago iommu shortlog | log | tree
-2 months ago omap-2.6.29 shortlog | log | tree
-3 months ago clks-testing shortlog | log | tree
-3 months ago delete shortlog | log | tree
-4 months ago omap-2.6.28 shortlog | log | tree
-4 months ago tidspbridge shortlog | log | tree
-5 months ago dspgateway shortlog | log | tree
-5 months ago linus shortlog | log | tree
-6 months ago musb shortlog | log | tree
+> On Wed, Jun 24, 2009 at 10:59:06AM +0200, ext Arnaud Ebalard wrote:
+>> Hi,
+>> 
+>> While playing with kernel configuration for my N810, I noticed a
+>> duplicate config entry for LEDS_LP5521.
+>> 
+>> AFAICT, it was added by commit 67a32ec7 (leds: introduce lp5521 led
+>> driver) but the entry was already there from 43350bf4 (leds: lp5521:
+>> move to drivers/leds).
+>> 
+>> Following patch is against current linux-omap tree.
+>
+> probably automerge issues.
 
+I have no clue on how it happened. After noticing the duplication, I
+just did a git annotate to get some info and then took a look at
+associated patches.
 
-Can anyone explain what exactly goes into each of them?
-Some are straight forward like pm, usb, tidspbridge, gateway. not sure
-about for-next-2.6.30, omap-fixes.
+Cheers,
 
-Trying to understand things/mode of development in here.
-
-
-Thank you,
-Ryan
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+a+
