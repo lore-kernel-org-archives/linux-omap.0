@@ -1,80 +1,114 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: Can a phone hook switch follow alsa jack model?
-Date: Wed, 24 Jun 2009 15:28:11 +0200
-Message-ID: <4A4229EB.2090606@tis.icnet.pl>
-References: <4A40D896.8010208@tis.icnet.pl>
-	<20090623222255.GA5617@sirena.org.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Missing implementation of omap3evm_flash_init()
+Date: Wed, 24 Jun 2009 16:36:48 +0300
+Message-ID: <20090624133648.GP7352@atomide.com>
+References: <1245331742-2536-1-git-send-email-premi@ti.com> <20090622090651.GA7352@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D82205FC@dbde02.ent.ti.com> <20090622133347.GI7352@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D829BDEC@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090623222255.GA5617@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59937 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406AbZFXNgv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 09:36:51 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301D829BDEC@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Mark,
-
-Mark Brown wrote:
-> On Tue, Jun 23, 2009 at 03:28:54PM +0200, Janusz Krzysztofik wrote:
->> However, I am not sure if the switch in question matches the alsa jack 
->> model closely enough. I see the switch usage not as simple as turning 
->> handset microphone/speaker on or off. It can be used for other purposes 
->> as well, like accepting a phone call or actually dialing a number that 
->> has been just typed in. Furthermore, it can be used to turn off a 
->> speakerphone function, while, in turn, the related handset 
->> microphone/speaker pair can be turned off not only with this switch, but 
->> with a handsfree button as well, for example.
+* Premi, Sanjeev <premi@ti.com> [090624 14:45]:
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com] 
+> > Sent: Monday, June 22, 2009 7:04 PM
+> > To: Premi, Sanjeev
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] Missing implementation of omap3evm_flash_init()
+> > 
+> > * Premi, Sanjeev <premi@ti.com> [090622 16:16]:
+> > > > -----Original Message-----
+> > > > From: Tony Lindgren [mailto:tony@atomide.com] 
+> > > > Sent: Monday, June 22, 2009 2:37 PM
+> > > > To: Premi, Sanjeev
+> > > > Cc: linux-omap@vger.kernel.org
+> > > > Subject: Re: [PATCH] Missing implementation of 
+> > omap3evm_flash_init()
+> > > > 
 > 
-> That can all be accomodated within the ASoC jack framework (I'm assuming
-> you'll be doing an ASoC rather than generic ALSA driver).
-
-Right, thanks for pointing out the difference.
-
->  You get the
-> input device just the same as you get with gpio-keys so you can do stuff
-> in user space,
-
-Yes, that was quite simple :). For now, I used SND_JACK_HEADSET report 
-type. Don't you think that a new type like SND_JACK_PHONE_HOOK or 
-SND_JACK_PHONE_HANDSET should be defined for the purpose? Even if 
-HEADSET may not be very different from HANDSET, corresponding 
-SW_HEADPHONE_INSERT and SW_MICROPHONE_INSERT event names seem have very 
-little to do with picking up a phone.
-
-> the main difference is that you can also arrange for some
-> of the power management within ASoC to be hooked up with the jack
-> automatically as well.
+> <snip>--<snip>
 > 
-> With what you're describing above I'd tie the mic and speaker in the
-> headset to DAPM automatically.
-
-OK, I'll try to follow your advice when I'm ready with a method of 
-switching my microphones/speakers.
-
->> All that extra functionality looks like belonging to userspace rather 
->> then kernel, not like other alsa jack implementations that seem to do 
->> all the job of switching media paths inside the kernel. That is why I am 
->> not sure if the jack model is suitable for the purpose.
+> Tony,
 > 
-> The switching in kernel for ASoC should generally be confined to marking
-> outputs as powered or unpowered - things like marking a headphone jack
-> as disabled when there's nothing plugged in to it that can be done
-> unconditionally.  Everything else should get punted to user space.
+> I had a few follow-up queries below:
+> 
+> > > > 
+> > > > We already have code that initializes the GPMC for 
+> > onenand in kernel.
+> > > > And I posted a patch to enable onenand for the SDP boards 
+> > > > last week [1].
+> > > 
+> > > Did not see it; before creating the patch; lookig at this now...
+> > 
+> > OK, thanks.
+> >  
+> > > > And this is yet another copy of the same code that was 
+> > duplicated for
+> > > > multiple boards. So how about making the following changes: 
+> > > > 
+> > > > - Pass the onenand chip select for GPMC in platform data. I 
+> > > > doubt that the
+> > > >   chip select is changing?
+> > > > 
+> > > > - If you still need to probe for onenand, please create a 
+> > > > generic function
+> > > >   in gpmc-onenand.c to probe for onenand
+> 
+> I always see "onenand_base" being passed as argument. Where is it
+> initialized?
 
-So, if I want to follow the ASoC jack model, my in-kernel hook switch 
-handler should only power on/off the handset, not touching the 
-speakerphone at all. The latter should be controlled from userspace. 
-Please correct me if I am missing something.
+That is allocated with  gpmc_cs_request() based on the cs in the 
+struct omap_onenand_platform_data.
+ 
+> I did implement this function to probe for nand/onenand - based on
+> the code that existed in board-omap3evm-flash.c; but ran into
+> some problems with the setting base address.
 
-Thanks,
-Janusz
+I guess the probe is only looking at the GPMC configuration registers
+though?
+ 
+> Looking at the gpmc-onenand.c do you believe we would need a
+> gpmc-nand.c on same lines? Or an implementation within the
+> board-omap3evm.c is okay for now?
+
+Well if you can figure out how to do a common gpmc-nand.c, I'm sure
+it would make things easier to bring up new boards (and omaps).
+
+Regards,
+
+Tony
+
+
+> 
+> Best regards,
+> Sanjeev
+> 
+> > > > 
+> > > 
+> > > Some EVMs have OneNAND and others have NAND. How/ Where do 
+> > you suggest
+> > > this check sould go?
+> > 
+> > If it's based on just checking the GPMC registers, you could 
+> > put it into
+> > gpmc.c.
+> > 
+> > Regards,
+> > 
+> > Tony
+> > 
+> > 
+> > 
+> 
+> 
+> <snip>--<snip>--<snip till end>
+>  
