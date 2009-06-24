@@ -1,156 +1,72 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/2] Support OMAP3 VC adaptation with different Power IC
-Date: Tue, 23 Jun 2009 17:19:06 -0700
-Message-ID: <87bpoe5vr9.fsf@deeprootsystems.com>
-References: <B00E06E2766C2744B022DE9BAF3C59D542E07F@zmy16exm69.ds.mot.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] OMAP3: PM: reset USB OTG module on boot
+Date: Tue, 23 Jun 2009 17:27:17 -0700
+Message-ID: <1245803237-30891-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:31709 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751485AbZFXATG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 20:19:06 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so125992wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 17:19:09 -0700 (PDT)
-In-Reply-To: <B00E06E2766C2744B022DE9BAF3C59D542E07F@zmy16exm69.ds.mot.com> (Wang Sawsd-A's message of "Wed\, 24 Jun 2009 08\:15\:04 +0800")
+Received: from mail-pz0-f189.google.com ([209.85.222.189]:45656 "EHLO
+	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024AbZFXA1R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 20:27:17 -0400
+Received: by pzk27 with SMTP id 27so300517pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 17:27:19 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wang Sawsd-A24013 <cqwang@motorola.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-"Wang Sawsd-A24013" <cqwang@motorola.com> writes:
+Rather than simply setting force-idle mode on boot, do a reset of the
+OTG module.  This really ensures that any bootloader/bootstrap code
+that leaves it active will not prevent future retention.  After reset,
+OTG module will be in force-idle, force-standby mode.
 
-> From c1aba8ba7af3ddd16346d95795bda71e65baa4d0 Mon Sep 17 00:00:00 2001
-> From: Chunqiu Wang <cqwang@motorola.com>
-> Date: Wed, 24 Jun 2009 06:48:52 +0800
-> Subject: [PATCH] Support OMAP3 VC adaptation with different Power IC
->
-> Current OMAP SmartReflex driver only supports TI Triton
-> Power IC, add a callback to make it possible to use
-> different PowerIC and use different settings to
-> configure OMAP3 Voltage Controller for DVFS
->
-> Board file can setup a new function to have different settings
-> on SR to configure their Power IC for voltage scaling
->
-> Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
+In addition, ensure that the iclk is enabled before attempting a write
+to the module SYSCONFIG register.
 
-Your patch seems wrapped again:
+Problem reported by Mike Chan <mikechan@google.com>
 
-checkpatch reports:
+Tested-by: Mike Chan <mikechan@google.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+If no comments/issues, this will be applied to PM branch and
+backported to pm-2.6.29.
 
-ERROR: patch seems to be corrupt (line wrapped?)
-#38: FILE: arch/arm/mach-omap2/smartreflex.c:57:
-u32 value)
+ arch/arm/mach-omap2/usb-musb.c |   21 ++++++++++++++++++---
+ 1 files changed, 18 insertions(+), 3 deletions(-)
 
-ERROR: trailing whitespace
-#95: FILE: arch/arm/mach-omap2/smartreflex.h:252:
-+^I^I^I^I^I^Iu8 t_vsel, u8 c_vsel); $
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index d85296d..85731b8 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -32,12 +32,27 @@
+ #include <mach/usb.h>
+ 
+ #define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
++#define OTG_SYSC_SOFTRESET BIT(1)
+ 
+ static void __init usb_musb_pm_init(void)
+ {
+-	/* Ensure force-idle mode for OTG controller */
+-	if (cpu_is_omap34xx())
+-		omap_writel(0, OTG_SYSCONFIG);
++	struct clk *iclk;
++
++	if (!cpu_is_omap34xx())
++		return;
++
++	iclk = clk_get(NULL, "hsotgusb_ick");
++	if (WARN_ON(!iclk))
++		return;
++
++	clk_enable(iclk);
++
++	/* Reset OTG controller.  After reset, it will be in
++	 * force-idle, force-standby mode. */
++	omap_writel(OTG_SYSC_SOFTRESET, OTG_SYSCONFIG);
++
++	clk_disable(iclk);
++	clk_put(iclk);
+ }
+ 
+ #ifdef CONFIG_USB_MUSB_SOC
+-- 
+1.6.3.2
 
-total: 2 errors, 0 warnings, 71 lines checked
-
-
-> ---
->  arch/arm/mach-omap2/smartreflex.c |   13 +++++++++++++
->  arch/arm/mach-omap2/smartreflex.h |    4 ++++
->  arch/arm/plat-omap/Kconfig        |    2 +-
->  3 files changed, 18 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c
-> b/arch/arm/mach-omap2/smartreflex.c
-> index 9d462e3..bacf602 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -52,6 +52,8 @@ struct omap_sr {
->  
->  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
->  
-> +static omap3_voltagescale_vcbypass_t omap3_volscale_vcbypass_fun;
-> +
->  static inline void sr_write_reg(struct omap_sr *sr, unsigned offset,
-> u32 value)
->  {
->  	__raw_writel(value, SR_REGADDR(offset));
-> @@ -767,6 +769,11 @@ void disable_smartreflex(int srid)
->  	}
->  }
->  
-> +void omap3_voltagescale_vcbypass_setup(omap3_voltagescale_vcbypass_t
-> fun)
-> +{
-> +	omap3_volscale_vcbypass_fun = fun;
-> +}
-> +
->  /* Voltage Scaling using SR VCBYPASS */
->  int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
->  					u8 target_vsel, u8 current_vsel)
-> @@ -779,6 +786,10 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32
-> current_opp,
->  	u32 t2_smps_steps = 0;
->  	u32 t2_smps_delay = 0;
->  
-> +	if (omap3_volscale_vcbypass_fun)
-> +		return omap3_volscale_vcbypass_fun(target_opp,
-> current_opp,
-> +						target_vsel,
-> current_vsel);
-> +
->  	vdd = get_vdd(target_opp);
->  	target_opp_no = get_opp_no(target_opp);
->  	current_opp_no = get_opp_no(current_opp);
-> @@ -940,6 +951,7 @@ static int __init omap3_sr_init(void)
->  		return -ENODEV;
->          }
->  
-> +#ifdef CONFIG_TWL4030_CORE
->  	/* Enable SR on T2 */
->  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
->  					R_DCDC_GLOBAL_CFG);
-> @@ -947,6 +959,7 @@ static int __init omap3_sr_init(void)
->  	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
->  	ret |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
->  					R_DCDC_GLOBAL_CFG);
-> +#endif
->  
->  	if (cpu_is_omap34xx()) {
->  		sr1.clk = clk_get(NULL, "sr1_fck");
-> diff --git a/arch/arm/mach-omap2/smartreflex.h
-> b/arch/arm/mach-omap2/smartreflex.h
-> index 2a0e823..c4aca9d 100644
-> --- a/arch/arm/mach-omap2/smartreflex.h
-> +++ b/arch/arm/mach-omap2/smartreflex.h
-> @@ -248,9 +248,13 @@ void disable_smartreflex(int srid);
->  int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8
-> c_vsel);
->  void sr_start_vddautocomap(int srid, u32 target_opp_no);
->  int sr_stop_vddautocomap(int srid);
-> +typedef int (*omap3_voltagescale_vcbypass_t)(u32 t_opp, u32 c_opp,
-> +						u8 t_vsel, u8 c_vsel); 
-> +void omap3_voltagescale_vcbypass_setup(omap3_voltagescale_vcbypass_t
-> fun);
->  #else
->  static inline void enable_smartreflex(int srid) {}
->  static inline void disable_smartreflex(int srid) {}
-> +#define omap3_voltagescale_vcbypass_setup(fun) do {} while (0);
->  #endif
->  
->  #endif
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index c8ba1e2..8d2c607 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -68,7 +68,7 @@ config OMAP_DEBUG_CLOCKDOMAIN
->  
->  config OMAP_SMARTREFLEX
->  	bool "SmartReflex support"
-> -	depends on ARCH_OMAP34XX && TWL4030_CORE && PM
-> +	depends on ARCH_OMAP34XX && PM
->  	help
->  	  Say Y if you want to enable SmartReflex.
->  
-> -- 
-> 1.5.4.3
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
