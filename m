@@ -1,32 +1,37 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [ARM][OMAP] TWL4030 IRQ
-Date: Wed, 24 Jun 2009 08:57:56 +0100
-Message-ID: <20090624075756.GA13052@n2100.arm.linux.org.uk>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E9C6@dbde02.ent.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] Remove duplicate Kconfig LEDS_LP5521 entry introduced
+ by 67a32ec7
+Date: Wed, 24 Jun 2009 11:59:14 +0300
+Message-ID: <20090624085914.GA16639@nokia.com>
+References: <871vpaj9d1.fsf@small.ssi.corp>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:54255 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751566AbZFXH6E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 03:58:04 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:56918 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752106AbZFXJBB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 05:01:01 -0400
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E9C6@dbde02.ent.ti.com>
+In-Reply-To: <871vpaj9d1.fsf@small.ssi.corp>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Arnaud Ebalard <arno@natisbad.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
 
-On Wed, Jun 24, 2009 at 01:16:52PM +0530, Shilimkar, Santosh wrote:
-> After digging a bit, the proposed twl_irq change would need some major 
-> changes.
+On Wed, Jun 24, 2009 at 10:59:06AM +0200, ext Arnaud Ebalard wrote:
+> Hi,
 > 
-> 1. All the T2(TWL)drivers ( rtc, madc, bci, gpio, keypad, usb, mmc)needs
-> modification.Currently twl_irq fw implements kind of "twl4030_irq_chip" 
-> which allows all the T2 drivers to get virtual interrupt numbers and can
-> make use of standard "request_irq" linux api.
+> While playing with kernel configuration for my N810, I noticed a
+> duplicate config entry for LEDS_LP5521.
+> 
+> AFAICT, it was added by commit 67a32ec7 (leds: introduce lp5521 led
+> driver) but the entry was already there from 43350bf4 (leds: lp5521:
+> move to drivers/leds).
+> 
+> Following patch is against current linux-omap tree.
 
-You can still use virtual interrupt numbers.  All you're changing is
-_how_ you're handling the interrupts internally.
+probably automerge issues.
 
-I'll see about creating a patch tomorrow.
+-- 
+balbi
