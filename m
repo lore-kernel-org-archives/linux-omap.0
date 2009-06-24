@@ -1,72 +1,69 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP3: PM: reset USB OTG module on boot
-Date: Tue, 23 Jun 2009 17:27:17 -0700
-Message-ID: <1245803237-30891-1-git-send-email-khilman@deeprootsystems.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [ARM][OMAP] TWL4030 IRQ
+Date: Wed, 24 Jun 2009 10:37:45 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E7E5@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f189.google.com ([209.85.222.189]:45656 "EHLO
-	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024AbZFXA1R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 23 Jun 2009 20:27:17 -0400
-Received: by pzk27 with SMTP id 27so300517pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 23 Jun 2009 17:27:19 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51510 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751768AbZFXFIO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 01:08:14 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>
 
-Rather than simply setting force-idle mode on boot, do a reset of the
-OTG module.  This really ensures that any bootloader/bootstrap code
-that leaves it active will not prevent future retention.  After reset,
-OTG module will be in force-idle, force-standby mode.
+Russell, 
 
-In addition, ensure that the iclk is enabled before attempting a write
-to the module SYSCONFIG register.
+After digging a bit, the proposed twl_irq change would need some major changes.
 
-Problem reported by Mike Chan <mikechan@google.com>
+1. All the T2(TWL)drivers ( rtc, madc, bci, gpio, keypad, usb, mmc)needs modification. Currently twl_irq fw implements kind of "twl4030_irq_chip" which allows all the T2 drivers to get virtual interrupt numbers and can make use of standard "request_irq" linux api.
+2.Above also helps to have useful entries like /proc/interrupts/rtc etc. With proposed change this also won't be available.
+3. Register/unregister irq handlers to T2 from all the drivers
 
-Tested-by: Mike Chan <mikechan@google.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-If no comments/issues, this will be applied to PM branch and
-backported to pm-2.6.29.
 
- arch/arm/mach-omap2/usb-musb.c |   21 ++++++++++++++++++---
- 1 files changed, 18 insertions(+), 3 deletions(-)
+On the reported lock-up issue, I tried alternative to call mask/unmask functions with disabling local cpu interrupts. This worked for me but not sure whether it is entirely correct.
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index d85296d..85731b8 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -32,12 +32,27 @@
- #include <mach/usb.h>
- 
- #define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
-+#define OTG_SYSC_SOFTRESET BIT(1)
- 
- static void __init usb_musb_pm_init(void)
+Something like this:
+ static void handle_twl4030_pih(unsigned int irq, irq_desc_t *desc)
  {
--	/* Ensure force-idle mode for OTG controller */
--	if (cpu_is_omap34xx())
--		omap_writel(0, OTG_SYSCONFIG);
-+	struct clk *iclk;
++	unsigned long flags;
 +
-+	if (!cpu_is_omap34xx())
-+		return;
-+
-+	iclk = clk_get(NULL, "hsotgusb_ick");
-+	if (WARN_ON(!iclk))
-+		return;
-+
-+	clk_enable(iclk);
-+
-+	/* Reset OTG controller.  After reset, it will be in
-+	 * force-idle, force-standby mode. */
-+	omap_writel(OTG_SYSC_SOFTRESET, OTG_SYSCONFIG);
-+
-+	clk_disable(iclk);
-+	clk_put(iclk);
+ 	/* Acknowledge, clear *AND* mask the interrupt... */
++	local_irq_save(flags);
+ 	desc->chip->ack(irq);
++	local_irq_restore(flags);
+ 	complete(&irq_event);
  }
- 
- #ifdef CONFIG_USB_MUSB_SOC
--- 
-1.6.3.2
 
+Do you think above approach is fine to get around the spin-lock lockup issue ? 
+ 
+> -----Original Message-----
+> From: Shilimkar, Santosh 
+> Sent: Saturday, June 20, 2009 8:55 PM
+> To: 'Tony Lindgren'; 'linux-omap@vger.kernel.org'
+> Cc: 'Russell King - ARM Linux'
+> Subject: [ARM][OMAP] TWL4030 IRQ
+> 
+> Just to brief you all, I came across a dead lock scenario on 
+> the arm-smp kernel. After discussing with Russell on mailing 
+> list, the actual bug seems be located in twl4030 IRQ implementation.
+> 
+> Initially I was suspecting the arm-generic area and hence 
+> didn't include linux-omap list in the mail thread
+> 
+> For more information on this issue, please read this email thread.
+> http://marc.info/?l=linux-arm-kernel&m=124550947525299&w=2
+> 
+> I will create a patch for "twl4030" and also would be 
+> correcting upcoming "twl6030" accordingly.
+> 
+> If anyone on this mailing list has any other opinion, please 
+> react to the email thread. 
+
+
+Regards,
+Santosh 
