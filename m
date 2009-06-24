@@ -1,81 +1,60 @@
-From: Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 03/07] dma: rework txx9dmac suspend_late()/resume_early()
-Date: Wed, 24 Jun 2009 18:23:33 +0900
-Message-ID: <20090624092333.14276.13222.sendpatchset@rx1.opensource.se>
-References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090624092306.14276.127.sendpatchset-/W6D1AVitZKvog7CDwlRTrNAH6kLmebB@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: gregkh-l3A5Bk7waGM@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, hskinnemoen-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, anemo-7JcRY8pycbNHfZP73Gtkiw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: arno@natisbad.org (Arnaud Ebalard)
+Subject: [PATCH] Remove duplicate Kconfig LEDS_LP5521 entry introduced by 67a32ec7
+Date: Wed, 24 Jun 2009 10:59:06 +0200
+Message-ID: <871vpaj9d1.fsf@small.ssi.corp>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from copper.chdir.org ([88.191.97.87]:41229 "EHLO copper.chdir.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757926AbZFXJd0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 24 Jun 2009 05:33:26 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-From: Magnus Damm <damm-AlSX/UN32fvPDbFq/vQRIQ@public.gmane.org>
+Hi,
 
-This patch reworks platform driver power management code
-for txx9dmac from legacy late/early callbacks to dev_pm_ops.
+While playing with kernel configuration for my N810, I noticed a
+duplicate config entry for LEDS_LP5521.
 
-The callbacks are converted for CONFIG_SUSPEND like this:
-  suspend_late() -> suspend_noirq()
-  resume_early() -> resume_noirq()
+AFAICT, it was added by commit 67a32ec7 (leds: introduce lp5521 led
+driver) but the entry was already there from 43350bf4 (leds: lp5521:
+move to drivers/leds).
 
-Signed-off-by: Magnus Damm <damm-AlSX/UN32fvPDbFq/vQRIQ@public.gmane.org>
+Following patch is against current linux-omap tree.
+
+Cheers,
+
+a+
+
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
 ---
+ drivers/leds/Kconfig |   10 ----------
+ 1 files changed, 0 insertions(+), 10 deletions(-)
 
- Untested but compiles fine.
+diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+index 788f48c..0493c17 100644
+--- a/drivers/leds/Kconfig
++++ b/drivers/leds/Kconfig
+@@ -170,16 +170,6 @@ config LEDS_LP5521
+ 	  This driver can be built as a module by choosing 'M'. The module
+ 	  will be called leds-lp5521.
+ 
+-config LEDS_LP5521
+-	tristate "LED Support for the LP5521 LEDs"
+-	depends on LEDS_CLASS && I2C
+-	help
+-	  If you say 'Y' here you get support for the National Semiconductor
+-	  LP5521 LED driver used in n8x0 boards.
+-
+-	  This driver can be built as a module by choosing 'M'. The module
+-	  will be called leds-lp5521.
+-
+ config LEDS_CLEVO_MAIL
+ 	tristate "Mail LED on Clevo notebook"
+ 	depends on LEDS_CLASS && X86 && SERIO_I8042 && DMI
+-- 
+1.6.3.1
 
- drivers/dma/txx9dmac.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
-
---- 0001/drivers/dma/txx9dmac.c
-+++ work/drivers/dma/txx9dmac.c	2009-06-01 16:34:23.000000000 +0900
-@@ -1287,17 +1287,18 @@ static void txx9dmac_shutdown(struct pla
- 	txx9dmac_off(ddev);
- }
- 
--static int txx9dmac_suspend_late(struct platform_device *pdev,
--				 pm_message_t mesg)
-+static int txx9dmac_suspend_noirq(struct device *dev)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct txx9dmac_dev *ddev = platform_get_drvdata(pdev);
- 
- 	txx9dmac_off(ddev);
- 	return 0;
- }
- 
--static int txx9dmac_resume_early(struct platform_device *pdev)
-+static int txx9dmac_resume_noirq(struct device *dev)
- {
-+	struct platform_device *pdev = to_platform_device(dev);
- 	struct txx9dmac_dev *ddev = platform_get_drvdata(pdev);
- 	struct txx9dmac_platform_data *pdata = pdev->dev.platform_data;
- 	u32 mcr;
-@@ -1310,6 +1311,11 @@ static int txx9dmac_resume_early(struct 
- 
- }
- 
-+static struct dev_pm_ops txx9dmac_dev_pm_ops = {
-+	.suspend_noirq = txx9dmac_suspend_noirq,
-+	.resume_noirq = txx9dmac_resume_noirq,
-+};
-+
- static struct platform_driver txx9dmac_chan_driver = {
- 	.remove		= __exit_p(txx9dmac_chan_remove),
- 	.driver = {
-@@ -1320,10 +1326,9 @@ static struct platform_driver txx9dmac_c
- static struct platform_driver txx9dmac_driver = {
- 	.remove		= __exit_p(txx9dmac_remove),
- 	.shutdown	= txx9dmac_shutdown,
--	.suspend_late	= txx9dmac_suspend_late,
--	.resume_early	= txx9dmac_resume_early,
- 	.driver = {
- 		.name	= "txx9dmac",
-+		.pm	= &txx9dmac_dev_pm_ops,
- 	},
- };
- 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
