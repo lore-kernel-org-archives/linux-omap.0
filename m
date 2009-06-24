@@ -1,261 +1,132 @@
-From: "Wang Sawsd-A24013" <cqwang@motorola.com>
-Subject: RE: [PATCH 1/2] Support OMAP3 VC adaptation with different Power IC
-Date: Thu, 25 Jun 2009 00:10:51 +0800
-Message-ID: <B00E06E2766C2744B022DE9BAF3C59D546577C@zmy16exm69.ds.mot.com>
-References: <87bpoe5vr9.fsf@deeprootsystems.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH v2] OMAP3: PM: reset USB OTG module on boot
+Date: Wed, 24 Jun 2009 22:32:33 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F546233D@dbde02.ent.ti.com>
+References: <1245857533-2419-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----_=_NextPart_001_01C9F4E6.594F6682"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail119.messagelabs.com ([216.82.241.195]:51927 "EHLO
-	mail119.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752420AbZFXQLU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 12:11:20 -0400
-Received: from il27exr03.cig.mot.com (il27exr03.mot.com [10.17.196.72])
-	by motgate4.mot.com (8.14.3/8.14.3) with ESMTP id n5OGBHvQ026211
-	for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 09:11:17 -0700 (MST)
-Received: from il27vts02.mot.com (il27vts02.cig.mot.com [10.17.196.86])
-	by il27exr03.cig.mot.com (8.13.1/Vontu) with SMTP id n5OGBHhY028335
-	for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 11:11:17 -0500 (CDT)
-Received: from zmy16exm69.ds.mot.com (zmy16exm69.ap.mot.com [10.179.4.36])
-	by il27exr03.cig.mot.com (8.13.1/8.13.0) with ESMTP id n5OGBFMU028273
-	for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 11:11:16 -0500 (CDT)
-Content-class: urn:content-classes:message
-In-Reply-To: <87bpoe5vr9.fsf@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60323 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756075AbZFXRCl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 13:02:41 -0400
+In-Reply-To: <1245857533-2419-1-git-send-email-khilman@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is a multi-part message in MIME format.
 
-------_=_NextPart_001_01C9F4E6.594F6682
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]=20
-> Sent: 2009=C4=EA6=D4=C224=C8=D5 8:19
-> To: Wang Sawsd-A24013
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/2] Support OMAP3 VC adaptation with=20
-> different Power IC
->=20
-> "Wang Sawsd-A24013" <cqwang@motorola.com> writes:
->=20
-> > From c1aba8ba7af3ddd16346d95795bda71e65baa4d0 Mon Sep 17=20
-> 00:00:00 2001
-> > From: Chunqiu Wang <cqwang@motorola.com>
-> > Date: Wed, 24 Jun 2009 06:48:52 +0800
-> > Subject: [PATCH] Support OMAP3 VC adaptation with different Power IC
-> >
-> > Current OMAP SmartReflex driver only supports TI Triton
-> > Power IC, add a callback to make it possible to use
-> > different PowerIC and use different settings to
-> > configure OMAP3 Voltage Controller for DVFS
-> >
-> > Board file can setup a new function to have different settings
-> > on SR to configure their Power IC for voltage scaling
-> >
-> > Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
->=20
-> Your patch seems wrapped again:
->=20
-> checkpatch reports:
->=20
-> ERROR: patch seems to be corrupt (line wrapped?)
-> #38: FILE: arch/arm/mach-omap2/smartreflex.c:57:
-> u32 value)
->=20
-> ERROR: trailing whitespace
-> #95: FILE: arch/arm/mach-omap2/smartreflex.h:252:
-> +^I^I^I^I^I^Iu8 t_vsel, u8 c_vsel); $
->=20
-> total: 2 errors, 0 warnings, 71 lines checked
->=20
-Sorry about that, this time I attached these two patch files.
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+>Hilman
+>Sent: Wednesday, June 24, 2009 10:32 AM
+>To: linux-omap@vger.kernel.org
+>Subject: [PATCH v2] OMAP3: PM: reset USB OTG module on boot
+>
+>Rather than simply setting force-idle mode on boot, do a reset of the
+>OTG module.  This really ensures that any bootloader/bootstrap code
+>that leaves it active will not prevent future retention.  After reset,
+>OTG module will be in force-idle, force-standby mode.
+>
+>In addition, ensure that the iclk is enabled before attempting a write
+>to the module SYSCONFIG register.
 
-Thanks,
-Chunqiu
+This patch solves MUSB issue, but is not generic for all IP blocks on omap.
 
-------_=_NextPart_001_01C9F4E6.594F6682
-Content-Type: application/octet-stream;
-	name="0001-Support-OMAP3-VC-adaptation-with-different-Power-IC.patch"
-Content-Transfer-Encoding: base64
-Content-Description: 0001-Support-OMAP3-VC-adaptation-with-different-Power-IC.patch
-Content-Disposition: attachment;
-	filename="0001-Support-OMAP3-VC-adaptation-with-different-Power-IC.patch"
+ROM code or u-boot could leave the module sysconfig in a non-idle state.
 
-RnJvbSBjMWFiYThiYTdhZjNkZGQxNjM0NmQ5NTc5NWJkYTcxZTY1YmFhNGQwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBDaHVucWl1IFdhbmcgPGNxd2FuZ0Btb3Rvcm9sYS5jb20+CkRh
-dGU6IFdlZCwgMjQgSnVuIDIwMDkgMDY6NDg6NTIgKzA4MDAKU3ViamVjdDogW1BBVENIXSBTdXBw
-b3J0IE9NQVAzIFZDIGFkYXB0YXRpb24gd2l0aCBkaWZmZXJlbnQgUG93ZXIgSUMKCkN1cnJlbnQg
-T01BUCBTbWFydFJlZmxleCBkcml2ZXIgb25seSBzdXBwb3J0cyBUSSBUcml0b24KUG93ZXIgSUMs
-IGFkZCBhIGNhbGxiYWNrIHRvIG1ha2UgaXQgcG9zc2libGUgdG8gdXNlCmRpZmZlcmVudCBQb3dl
-cklDIGFuZCB1c2UgZGlmZmVyZW50IHNldHRpbmdzIHRvCmNvbmZpZ3VyZSBPTUFQMyBWb2x0YWdl
-IENvbnRyb2xsZXIgZm9yIERWRlMKCkJvYXJkIGZpbGUgY2FuIHNldHVwIGEgbmV3IGZ1bmN0aW9u
-IHRvIGhhdmUgZGlmZmVyZW50IHNldHRpbmdzCm9uIFNSIHRvIGNvbmZpZ3VyZSB0aGVpciBQb3dl
-ciBJQyBmb3Igdm9sdGFnZSBzY2FsaW5nCgpTaWduZWQtb2ZmLWJ5OiBDaHVucWl1IFdhbmcgPGNx
-d2FuZ0Btb3Rvcm9sYS5jb20+Ci0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5j
-IHwgICAxMyArKysrKysrKysrKysrCiBhcmNoL2FybS9tYWNoLW9tYXAyL3NtYXJ0cmVmbGV4Lmgg
-fCAgICA0ICsrKysKIGFyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnICAgICAgICB8ICAgIDIgKy0K
-IDMgZmlsZXMgY2hhbmdlZCwgMTggaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRpZmYg
-LS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL3NtYXJ0cmVmbGV4LmMgYi9hcmNoL2FybS9tYWNo
-LW9tYXAyL3NtYXJ0cmVmbGV4LmMKaW5kZXggOWQ0NjJlMy4uYmFjZjYwMiAxMDA2NDQKLS0tIGEv
-YXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21h
-cDIvc21hcnRyZWZsZXguYwpAQCAtNTIsNiArNTIsOCBAQCBzdHJ1Y3Qgb21hcF9zciB7CiAKICNk
-ZWZpbmUgU1JfUkVHQUREUihvZmZzKQkoc3ItPnNyYmFzZV9hZGRyICsgb2Zmc2V0KQogCitzdGF0
-aWMgb21hcDNfdm9sdGFnZXNjYWxlX3ZjYnlwYXNzX3Qgb21hcDNfdm9sc2NhbGVfdmNieXBhc3Nf
-ZnVuOworCiBzdGF0aWMgaW5saW5lIHZvaWQgc3Jfd3JpdGVfcmVnKHN0cnVjdCBvbWFwX3NyICpz
-ciwgdW5zaWduZWQgb2Zmc2V0LCB1MzIgdmFsdWUpCiB7CiAJX19yYXdfd3JpdGVsKHZhbHVlLCBT
-Ul9SRUdBRERSKG9mZnNldCkpOwpAQCAtNzY3LDYgKzc2OSwxMSBAQCB2b2lkIGRpc2FibGVfc21h
-cnRyZWZsZXgoaW50IHNyaWQpCiAJfQogfQogCit2b2lkIG9tYXAzX3ZvbHRhZ2VzY2FsZV92Y2J5
-cGFzc19zZXR1cChvbWFwM192b2x0YWdlc2NhbGVfdmNieXBhc3NfdCBmdW4pCit7CisJb21hcDNf
-dm9sc2NhbGVfdmNieXBhc3NfZnVuID0gZnVuOworfQorCiAvKiBWb2x0YWdlIFNjYWxpbmcgdXNp
-bmcgU1IgVkNCWVBBU1MgKi8KIGludCBzcl92b2x0YWdlc2NhbGVfdmNieXBhc3ModTMyIHRhcmdl
-dF9vcHAsIHUzMiBjdXJyZW50X29wcCwKIAkJCQkJdTggdGFyZ2V0X3ZzZWwsIHU4IGN1cnJlbnRf
-dnNlbCkKQEAgLTc3OSw2ICs3ODYsMTAgQEAgaW50IHNyX3ZvbHRhZ2VzY2FsZV92Y2J5cGFzcyh1
-MzIgdGFyZ2V0X29wcCwgdTMyIGN1cnJlbnRfb3BwLAogCXUzMiB0Ml9zbXBzX3N0ZXBzID0gMDsK
-IAl1MzIgdDJfc21wc19kZWxheSA9IDA7CiAKKwlpZiAob21hcDNfdm9sc2NhbGVfdmNieXBhc3Nf
-ZnVuKQorCQlyZXR1cm4gb21hcDNfdm9sc2NhbGVfdmNieXBhc3NfZnVuKHRhcmdldF9vcHAsIGN1
-cnJlbnRfb3BwLAorCQkJCQkJdGFyZ2V0X3ZzZWwsIGN1cnJlbnRfdnNlbCk7CisKIAl2ZGQgPSBn
-ZXRfdmRkKHRhcmdldF9vcHApOwogCXRhcmdldF9vcHBfbm8gPSBnZXRfb3BwX25vKHRhcmdldF9v
-cHApOwogCWN1cnJlbnRfb3BwX25vID0gZ2V0X29wcF9ubyhjdXJyZW50X29wcCk7CkBAIC05NDAs
-NiArOTUxLDcgQEAgc3RhdGljIGludCBfX2luaXQgb21hcDNfc3JfaW5pdCh2b2lkKQogCQlyZXR1
-cm4gLUVOT0RFVjsKICAgICAgICAgfQogCisjaWZkZWYgQ09ORklHX1RXTDQwMzBfQ09SRQogCS8q
-IEVuYWJsZSBTUiBvbiBUMiAqLwogCXJldCA9IHR3bDQwMzBfaTJjX3JlYWRfdTgoVFdMNDAzMF9N
-T0RVTEVfUE1fUkVDRUlWRVIsICZSZFJlZywKIAkJCQkJUl9EQ0RDX0dMT0JBTF9DRkcpOwpAQCAt
-OTQ3LDYgKzk1OSw3IEBAIHN0YXRpYyBpbnQgX19pbml0IG9tYXAzX3NyX2luaXQodm9pZCkKIAlS
-ZFJlZyB8PSBEQ0RDX0dMT0JBTF9DRkdfRU5BQkxFX1NSRkxYOwogCXJldCB8PSB0d2w0MDMwX2ky
-Y193cml0ZV91OChUV0w0MDMwX01PRFVMRV9QTV9SRUNFSVZFUiwgUmRSZWcsCiAJCQkJCVJfRENE
-Q19HTE9CQUxfQ0ZHKTsKKyNlbmRpZgogCiAJaWYgKGNwdV9pc19vbWFwMzR4eCgpKSB7CiAJCXNy
-MS5jbGsgPSBjbGtfZ2V0KE5VTEwsICJzcjFfZmNrIik7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9t
-YWNoLW9tYXAyL3NtYXJ0cmVmbGV4LmggYi9hcmNoL2FybS9tYWNoLW9tYXAyL3NtYXJ0cmVmbGV4
-LmgKaW5kZXggMmEwZTgyMy4uYzRhY2E5ZCAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFw
-Mi9zbWFydHJlZmxleC5oCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvc21hcnRyZWZsZXguaApA
-QCAtMjQ4LDkgKzI0OCwxMyBAQCB2b2lkIGRpc2FibGVfc21hcnRyZWZsZXgoaW50IHNyaWQpOwog
-aW50IHNyX3ZvbHRhZ2VzY2FsZV92Y2J5cGFzcyh1MzIgdF9vcHAsIHUzMiBjX29wcCwgdTggdF92
-c2VsLCB1OCBjX3ZzZWwpOwogdm9pZCBzcl9zdGFydF92ZGRhdXRvY29tYXAoaW50IHNyaWQsIHUz
-MiB0YXJnZXRfb3BwX25vKTsKIGludCBzcl9zdG9wX3ZkZGF1dG9jb21hcChpbnQgc3JpZCk7Cit0
-eXBlZGVmIGludCAoKm9tYXAzX3ZvbHRhZ2VzY2FsZV92Y2J5cGFzc190KSh1MzIgdF9vcHAsIHUz
-MiBjX29wcCwKKwkJCQkJCXU4IHRfdnNlbCwgdTggY192c2VsKTsKK3ZvaWQgb21hcDNfdm9sdGFn
-ZXNjYWxlX3ZjYnlwYXNzX3NldHVwKG9tYXAzX3ZvbHRhZ2VzY2FsZV92Y2J5cGFzc190IGZ1bik7
-CiAjZWxzZQogc3RhdGljIGlubGluZSB2b2lkIGVuYWJsZV9zbWFydHJlZmxleChpbnQgc3JpZCkg
-e30KIHN0YXRpYyBpbmxpbmUgdm9pZCBkaXNhYmxlX3NtYXJ0cmVmbGV4KGludCBzcmlkKSB7fQor
-I2RlZmluZSBvbWFwM192b2x0YWdlc2NhbGVfdmNieXBhc3Nfc2V0dXAoZnVuKSBkbyB7fSB3aGls
-ZSAoMCk7CiAjZW5kaWYKIAogI2VuZGlmCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAv
-S2NvbmZpZyBiL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnCmluZGV4IGM4YmExZTIuLjhkMmM2
-MDcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnCisrKyBiL2FyY2gvYXJt
-L3BsYXQtb21hcC9LY29uZmlnCkBAIC02OCw3ICs2OCw3IEBAIGNvbmZpZyBPTUFQX0RFQlVHX0NM
-T0NLRE9NQUlOCiAKIGNvbmZpZyBPTUFQX1NNQVJUUkVGTEVYCiAJYm9vbCAiU21hcnRSZWZsZXgg
-c3VwcG9ydCIKLQlkZXBlbmRzIG9uIEFSQ0hfT01BUDM0WFggJiYgVFdMNDAzMF9DT1JFICYmIFBN
-CisJZGVwZW5kcyBvbiBBUkNIX09NQVAzNFhYICYmIFBNCiAJaGVscAogCSAgU2F5IFkgaWYgeW91
-IHdhbnQgdG8gZW5hYmxlIFNtYXJ0UmVmbGV4LgogCi0tIAoxLjUuNC4zCgo=
+I recommend just like CONFIG_OMAP_RESET_CLOCKS for clocks, same could be done generically for all SYSCONFIG registers in some prcm code and not driver specific.
 
-------_=_NextPart_001_01C9F4E6.594F6682
-Content-Type: application/octet-stream;
-	name="0002-OMAP3-Implement-separate-function-to-send-bypass-co.patch"
-Content-Transfer-Encoding: base64
-Content-Description: 0002-OMAP3-Implement-separate-function-to-send-bypass-co.patch
-Content-Disposition: attachment;
-	filename="0002-OMAP3-Implement-separate-function-to-send-bypass-co.patch"
+>
+>Problem reported by Mike Chan <mikechan@google.com>
+>
+>Tested-by: Mike Chan <mikechan@google.com>
+>Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>---
+>Updates from v1
+>- use ioremap()+__raw_write instead of deprecated omap_write()
+>- Re: defines in omap2430.h, this header is not exported outside
+>  drivers/usb, so define it locally yere
+>
+> arch/arm/mach-omap2/usb-musb.c |   31 +++++++++++++++++++++++++++----
+> 1 files changed, 27 insertions(+), 4 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+>index d85296d..31adbe6 100644
+>--- a/arch/arm/mach-omap2/usb-musb.c
+>+++ b/arch/arm/mach-omap2/usb-musb.c
+>@@ -26,18 +26,41 @@
+>
+> #include <linux/usb/musb.h>
+>
+>+#include <asm/sizes.h>
+>+
+> #include <mach/hardware.h>
+> #include <mach/irqs.h>
+> #include <mach/mux.h>
+> #include <mach/usb.h>
+>
+>-#define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
+>+#define OTG_SYSCONFIG	   0x404
+>+#define OTG_SYSC_SOFTRESET BIT(1)
 
-RnJvbSA4MDNjYmRjZDhkZjNkNmY5MzEwODk5NzljMmRiYWQ4OTQyNTEyY2I0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBDaHVucWl1IFdhbmcgPGNxd2FuZ0Btb3Rvcm9sYS5jb20+CkRh
-dGU6IFdlZCwgMjQgSnVuIDIwMDkgMDc6NTc6MTcgKzA4MDAKU3ViamVjdDogW1BBVENIXSBPTUFQ
-MzogSW1wbGVtZW50IHNlcGFyYXRlIGZ1bmN0aW9uIHRvIHNlbmQgYnlwYXNzIGNvbW1hbmQgdGhy
-b3VnaCBWQwoKU29tZSBzeXN0ZW0gbWF5IG5lZWQgdXNlIE9NQVAgVkMgdG8gY29uZmlndXJlIHRo
-ZWlyIFBvd2VyIElDLApzbyBtYWtlIHRoZSBjb21tb24gY29kZSB0byBzZW5kIGJ5cGFzcyBjb21t
-YW5kIHVzaW5nIFNSIFZDCgpTaWduZWQtb2ZmLWJ5OiBDaHVucWl1IFdhbmcgPGNxd2FuZ0Btb3Rv
-cm9sYS5jb20+Ci0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9wbS5oICAgICAgICAgIHwgICAgMSAr
-CiBhcmNoL2FybS9tYWNoLW9tYXAyL3BtMzR4eC5jICAgICAgfCAgIDM2ICsrKysrKysrKysrKysr
-KysrKysrKysKIGFyY2gvYXJtL21hY2gtb21hcDIvc21hcnRyZWZsZXguYyB8ICAgNTkgKysrLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAzIGZpbGVzIGNoYW5nZWQsIDQyIGluc2Vy
-dGlvbnMoKyksIDU0IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJtL21hY2gtb21h
-cDIvcG0uaCBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG0uaAppbmRleCBkZGM5NDUzLi5mYTExOGNk
-IDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtLmgKKysrIGIvYXJjaC9hcm0vbWFj
-aC1vbWFwMi9wbS5oCkBAIC00NCw2ICs0NCw3IEBAIGV4dGVybiBpbnQgc2V0X3B3cmRtX3N0YXRl
-KHN0cnVjdCBwb3dlcmRvbWFpbiAqcHdyZG0sIHUzMiBzdGF0ZSk7CiBleHRlcm4gaW50IG9tYXAz
-X3BtX2dldF9zdXNwZW5kX3N0YXRlKHN0cnVjdCBwb3dlcmRvbWFpbiAqcHdyZG0pOwogZXh0ZXJu
-IGludCBvbWFwM19wbV9zZXRfc3VzcGVuZF9zdGF0ZShzdHJ1Y3QgcG93ZXJkb21haW4gKnB3cmRt
-LCBpbnQgc3RhdGUpOwogZXh0ZXJuIHZvaWQgb21hcDNfc2V0X3BybV9zZXR1cF92YyhzdHJ1Y3Qg
-cHJtX3NldHVwX3ZjICpzZXR1cF92Yyk7CitleHRlcm4gaW50IG9tYXAzX3ZjX2J5cGFzc19jbWQo
-dTggc2xhdmVfYWRkciwgdTggcmVnX2FkZHIsIHU4IGNtZCk7CiAKICNpZmRlZiBDT05GSUdfQ1BV
-X0lETEUKIGludCBvbWFwM19pZGxlX2luaXQodm9pZCk7CmRpZmYgLS1naXQgYS9hcmNoL2FybS9t
-YWNoLW9tYXAyL3BtMzR4eC5jIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTM0eHguYwppbmRleCA3
-YTRhNTI1Li44NWIwOTQ0IDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9tYXAyL3BtMzR4eC5j
-CisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvcG0zNHh4LmMKQEAgLTI2LDYgKzI2LDcgQEAKICNp
-bmNsdWRlIDxsaW51eC9lcnIuaD4KICNpbmNsdWRlIDxsaW51eC9ncGlvLmg+CiAjaW5jbHVkZSA8
-bGludXgvY2xrLmg+CisjaW5jbHVkZSA8bGludXgvZGVsYXkuaD4KIAogI2luY2x1ZGUgPG1hY2gv
-c3JhbS5oPgogI2luY2x1ZGUgPG1hY2gvcHJjbS5oPgpAQCAtMTEzNSw2ICsxMTM2LDQxIEBAIGVy
-cjI6CiAJcmV0dXJuIHJldDsKIH0KIAorLyogUHJvZ3JhbSBQb3dlciBJQyB2aWEgT01BUDMgdm9s
-dGFnZSBjb250cm9sbGVyIGJ5cGFzcyBpbnRlcmZhY2UgKi8KK2ludCBvbWFwM192Y19ieXBhc3Nf
-Y21kKHU4IHNsYXZlX2FkZHIsIHU4IHJlZ19hZGRyLCB1OCBjbWQpCit7CisJdTMyIHZjX2J5cGFz
-c192YWx1ZTsKKwl1MzIgbG9vcF9jbnQgPSAwLCByZXRyaWVzX2NudCA9IDA7CisKKwl2Y19ieXBh
-c3NfdmFsdWUgPSAoY21kIDw8IE9NQVAzNDMwX0RBVEFfU0hJRlQpIHwKKwkJCShyZWdfYWRkciA8
-PCBPTUFQMzQzMF9SRUdBRERSX1NISUZUKSB8CisJCQkoc2xhdmVfYWRkciA8PCBPTUFQMzQzMF9T
-TEFWRUFERFJfU0hJRlQpOworCisJcHJtX3dyaXRlX21vZF9yZWcodmNfYnlwYXNzX3ZhbHVlLCBP
-TUFQMzQzMF9HUl9NT0QsCisJCQlPTUFQM19QUk1fVkNfQllQQVNTX1ZBTF9PRkZTRVQpOworCisJ
-dmNfYnlwYXNzX3ZhbHVlID0gcHJtX3NldF9tb2RfcmVnX2JpdHMoT01BUDM0MzBfVkFMSUQsIE9N
-QVAzNDMwX0dSX01PRCwKKwkJCQkJT01BUDNfUFJNX1ZDX0JZUEFTU19WQUxfT0ZGU0VUKTsKKwor
-CXdoaWxlICgodmNfYnlwYXNzX3ZhbHVlICYgT01BUDM0MzBfVkFMSUQpICE9IDB4MCkgeworCQls
-b29wX2NudCsrOworCQlpZiAocmV0cmllc19jbnQgPiAxMCkgeworCQkJcHJpbnRrKEtFUk5fRVJS
-Ikxvb3AgY291bnQgZXhjZWVkZWQgaW4gY2hlY2sgU1IgSTJDIgorCQkJCQkJCQkid3JpdGVcbiIp
-OworCQkJcmV0dXJuIDE7CisJCX0KKwkJaWYgKGxvb3BfY250ID4gNTApIHsKKwkJCXJldHJpZXNf
-Y250Kys7CisJCQlsb29wX2NudCA9IDA7CisJCQl1ZGVsYXkoMTApOworCQl9CisJCXZjX2J5cGFz
-c192YWx1ZSA9IHBybV9yZWFkX21vZF9yZWcoT01BUDM0MzBfR1JfTU9ELAorCQkJCQlPTUFQM19Q
-Uk1fVkNfQllQQVNTX1ZBTF9PRkZTRVQpOworCX0KKworCXJldHVybiAwOworfQorCiBzdGF0aWMg
-dm9pZCBfX2luaXQgY29uZmlndXJlX3ZjKHZvaWQpCiB7CiAKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
-L21hY2gtb21hcDIvc21hcnRyZWZsZXguYyBiL2FyY2gvYXJtL21hY2gtb21hcDIvc21hcnRyZWZs
-ZXguYwppbmRleCBiYWNmNjAyLi4yMTU4YjVjIDEwMDY0NAotLS0gYS9hcmNoL2FybS9tYWNoLW9t
-YXAyL3NtYXJ0cmVmbGV4LmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9zbWFydHJlZmxleC5j
-CkBAIC0zNSw2ICszNSw3IEBACiAjaW5jbHVkZSAicHJtLmgiCiAjaW5jbHVkZSAic21hcnRyZWZs
-ZXguaCIKICNpbmNsdWRlICJwcm0tcmVnYml0cy0zNHh4LmgiCisjaW5jbHVkZSAicG0uaCIKIAog
-c3RydWN0IG9tYXBfc3IgewogCWludAkJc3JpZDsKQEAgLTQ0OSw4ICs0NTAsNiBAQCBzdGF0aWMg
-aW50IHNyX3Jlc2V0X3ZvbHRhZ2UoaW50IHNyaWQpCiB7CiAJdTMyIHRhcmdldF9vcHBfbm8sIHZz
-ZWwgPSAwOwogCXUzMiByZWdfYWRkciA9IDA7Ci0JdTMyIGxvb3BfY250ID0gMCwgcmV0cmllc19j
-bnQgPSAwOwotCXUzMiB2Y19ieXBhc3NfdmFsdWU7CiAJdTMyIHQyX3NtcHNfc3RlcHMgPSAwOwog
-CXUzMiB0Ml9zbXBzX2RlbGF5ID0gMDsKIAl1MzIgcHJtX3ZwMV92b2x0YWdlLCBwcm1fdnAyX3Zv
-bHRhZ2U7CkBAIC00NzksMzEgKzQ3OCw4IEBAIHN0YXRpYyBpbnQgc3JfcmVzZXRfdm9sdGFnZShp
-bnQgc3JpZCkKIAkJdDJfc21wc19zdGVwcyA9IGFicyh2c2VsIC0gcHJtX3ZwMl92b2x0YWdlKTsK
-IAl9CiAKLQl2Y19ieXBhc3NfdmFsdWUgPSAodnNlbCA8PCBPTUFQMzQzMF9EQVRBX1NISUZUKSB8
-Ci0JCQkocmVnX2FkZHIgPDwgT01BUDM0MzBfUkVHQUREUl9TSElGVCkgfAotCQkJKFJfU1JJMkNf
-U0xBVkVfQUREUiA8PCBPTUFQMzQzMF9TTEFWRUFERFJfU0hJRlQpOwotCi0JcHJtX3dyaXRlX21v
-ZF9yZWcodmNfYnlwYXNzX3ZhbHVlLCBPTUFQMzQzMF9HUl9NT0QsCi0JCQlPTUFQM19QUk1fVkNf
-QllQQVNTX1ZBTF9PRkZTRVQpOwotCi0JdmNfYnlwYXNzX3ZhbHVlID0gcHJtX3NldF9tb2RfcmVn
-X2JpdHMoT01BUDM0MzBfVkFMSUQsIE9NQVAzNDMwX0dSX01PRCwKLQkJCQkJT01BUDNfUFJNX1ZD
-X0JZUEFTU19WQUxfT0ZGU0VUKTsKLQotCXdoaWxlICgodmNfYnlwYXNzX3ZhbHVlICYgT01BUDM0
-MzBfVkFMSUQpICE9IDB4MCkgewotCQlsb29wX2NudCsrOwotCQlpZiAocmV0cmllc19jbnQgPiAx
-MCkgewotCQkJcHJfaW5mbygiTG9vcCBjb3VudCBleGNlZWRlZCBpbiBjaGVjayBTUiBJMkMiCi0J
-CQkJCQkJCSJ3cml0ZVxuIik7Ci0JCQlyZXR1cm4gMTsKLQkJfQotCQlpZiAobG9vcF9jbnQgPiA1
-MCkgewotCQkJcmV0cmllc19jbnQrKzsKLQkJCWxvb3BfY250ID0gMDsKLQkJCXVkZWxheSgxMCk7
-Ci0JCX0KLQkJdmNfYnlwYXNzX3ZhbHVlID0gcHJtX3JlYWRfbW9kX3JlZyhPTUFQMzQzMF9HUl9N
-T0QsCi0JCQkJCU9NQVAzX1BSTV9WQ19CWVBBU1NfVkFMX09GRlNFVCk7Ci0JfQorCWlmIChvbWFw
-M192Y19ieXBhc3NfY21kKFJfU1JJMkNfU0xBVkVfQUREUiwgcmVnX2FkZHIsIHZzZWwpKQorCQly
-ZXR1cm4gMTsKIAogCS8qCiAJICogIFQyIFNNUFMgc2xldyByYXRlIChtaW4pIDRtVi91Uywgc3Rl
-cCBzaXplIDEyLjVtViwKQEAgLTc4MCw5ICs3NTYsNyBAQCBpbnQgc3Jfdm9sdGFnZXNjYWxlX3Zj
-YnlwYXNzKHUzMiB0YXJnZXRfb3BwLCB1MzIgY3VycmVudF9vcHAsCiB7CiAJaW50IHNyX3N0YXR1
-cyA9IDA7CiAJdTMyIHZkZCwgdGFyZ2V0X29wcF9ubywgY3VycmVudF9vcHBfbm87Ci0JdTMyIHZj
-X2J5cGFzc192YWx1ZTsKIAl1MzIgcmVnX2FkZHIgPSAwOwotCXUzMiBsb29wX2NudCA9IDAsIHJl
-dHJpZXNfY250ID0gMDsKIAl1MzIgdDJfc21wc19zdGVwcyA9IDA7CiAJdTMyIHQyX3NtcHNfZGVs
-YXkgPSAwOwogCkBAIC04MTUsMzEgKzc4OSw4IEBAIGludCBzcl92b2x0YWdlc2NhbGVfdmNieXBh
-c3ModTMyIHRhcmdldF9vcHAsIHUzMiBjdXJyZW50X29wcCwKIAkJcmVnX2FkZHIgPSBSX1ZERDJf
-U1JfQ09OVFJPTDsKIAl9CiAKLQl2Y19ieXBhc3NfdmFsdWUgPSAodGFyZ2V0X3ZzZWwgPDwgT01B
-UDM0MzBfREFUQV9TSElGVCkgfAotCQkJKHJlZ19hZGRyIDw8IE9NQVAzNDMwX1JFR0FERFJfU0hJ
-RlQpIHwKLQkJCShSX1NSSTJDX1NMQVZFX0FERFIgPDwgT01BUDM0MzBfU0xBVkVBRERSX1NISUZU
-KTsKLQotCXBybV93cml0ZV9tb2RfcmVnKHZjX2J5cGFzc192YWx1ZSwgT01BUDM0MzBfR1JfTU9E
-LAotCQkJT01BUDNfUFJNX1ZDX0JZUEFTU19WQUxfT0ZGU0VUKTsKLQotCXZjX2J5cGFzc192YWx1
-ZSA9IHBybV9zZXRfbW9kX3JlZ19iaXRzKE9NQVAzNDMwX1ZBTElELCBPTUFQMzQzMF9HUl9NT0Qs
-Ci0JCQkJCU9NQVAzX1BSTV9WQ19CWVBBU1NfVkFMX09GRlNFVCk7Ci0KLQl3aGlsZSAoKHZjX2J5
-cGFzc192YWx1ZSAmIE9NQVAzNDMwX1ZBTElEKSAhPSAweDApIHsKLQkJbG9vcF9jbnQrKzsKLQkJ
-aWYgKHJldHJpZXNfY250ID4gMTApIHsKLQkJCXByX2luZm8oIkxvb3AgY291bnQgZXhjZWVkZWQg
-aW4gY2hlY2sgU1IgSTJDIgotCQkJCQkJCQkid3JpdGVcbiIpOwotCQkJcmV0dXJuIDE7Ci0JCX0K
-LQkJaWYgKGxvb3BfY250ID4gNTApIHsKLQkJCXJldHJpZXNfY250Kys7Ci0JCQlsb29wX2NudCA9
-IDA7Ci0JCQl1ZGVsYXkoMTApOwotCQl9Ci0JCXZjX2J5cGFzc192YWx1ZSA9IHBybV9yZWFkX21v
-ZF9yZWcoT01BUDM0MzBfR1JfTU9ELAotCQkJCQlPTUFQM19QUk1fVkNfQllQQVNTX1ZBTF9PRkZT
-RVQpOwotCX0KKwlpZiAob21hcDNfdmNfYnlwYXNzX2NtZChSX1NSSTJDX1NMQVZFX0FERFIsIHJl
-Z19hZGRyLCB0YXJnZXRfdnNlbCkpCisJCXJldHVybiAxOwogCiAJLyoKIAkgKiAgVDIgU01QUyBz
-bGV3IHJhdGUgKG1pbikgNG1WL3VTLCBzdGVwIHNpemUgMTIuNW1WLAotLSAKMS41LjQuMwoK
+This is already defined in drivers/usb/musb/omap2430.h
+Could we reuse? 
 
-------_=_NextPart_001_01C9F4E6.594F6682--
+#if     defined(CONFIG_ARCH_OMAP2430)
+#define OMAP_HSOTG_BASE         (OMAP243X_HS_BASE)
+#elif   defined(CONFIG_ARCH_OMAP3430)
+#define OMAP_HSOTG_BASE         (OMAP34XX_HSUSB_OTG_BASE)
+#endif
+#define OMAP_HSOTG(offset)      (OMAP_HSOTG_BASE + 0x400 + (offset))
+#define OTG_REVISION            OMAP_HSOTG(0x0)
+#define OTG_SYSCONFIG           OMAP_HSOTG(0x4)
+
+
+>
+> static void __init usb_musb_pm_init(void)
+> {
+>-	/* Ensure force-idle mode for OTG controller */
+>-	if (cpu_is_omap34xx())
+>-		omap_writel(0, OTG_SYSCONFIG);
+>+	struct clk *iclk;
+>+	void __iomem *otg_base;
+>+
+>+	if (!cpu_is_omap34xx())
+>+		return;
+
+Why is this sys-config reset done only for omap34xx()
+This should be valid for any old 24xx() as well as new 44xx() omaps
+
+>+
+>+	otg_base = ioremap(OMAP34XX_HSUSB_OTG_BASE, SZ_4K);
+>+	if (WARN_ON(!otg_base))
+>+		return;
+>+
+>+	iclk = clk_get(NULL, "hsotgusb_ick");
+>+	if (WARN_ON(!iclk))
+>+		return;
+>+
+>+	clk_enable(iclk);
+>+
+>+	/* Reset OTG controller.  After reset, it will be in
+>+	 * force-idle, force-standby mode. */
+>+	__raw_writel(OTG_SYSC_SOFTRESET, otg_base + OTG_SYSCONFIG);
+>+
+>+	clk_disable(iclk);
+>+	clk_put(iclk);
+>+	iounmap(otg_base);
+> }
+>
+> #ifdef CONFIG_USB_MUSB_SOC
+>--
+>1.6.3.2
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
