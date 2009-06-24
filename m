@@ -1,98 +1,80 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: reset USB OTG module on boot
-Date: Wed, 24 Jun 2009 06:21:28 -0700
-Message-ID: <87zlbx4vjb.fsf@deeprootsystems.com>
-References: <1245803237-30891-1-git-send-email-khilman@deeprootsystems.com>
-	<1245826423.6022.5.camel@niilo-u810>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: Can a phone hook switch follow alsa jack model?
+Date: Wed, 24 Jun 2009 15:28:11 +0200
+Message-ID: <4A4229EB.2090606@tis.icnet.pl>
+References: <4A40D896.8010208@tis.icnet.pl>
+	<20090623222255.GA5617@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f190.google.com ([209.85.216.190]:42685 "EHLO
-	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963AbZFXNV2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 09:21:28 -0400
-Received: by pxi28 with SMTP id 28so365099pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 06:21:31 -0700 (PDT)
-In-Reply-To: <1245826423.6022.5.camel@niilo-u810> (Niilo Minkkinen's message of "Wed\, 24 Jun 2009 09\:53\:43 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090623222255.GA5617@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Niilo Minkkinen <ext-niilo.1.minkkinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Niilo Minkkinen <ext-niilo.1.minkkinen@nokia.com> writes:
+Hi Mark,
 
-> On Wed, 2009-06-24 at 02:27 +0200, ext Kevin Hilman wrote:
->> Rather than simply setting force-idle mode on boot, do a reset of the
->> OTG module.  This really ensures that any bootloader/bootstrap code
->> that leaves it active will not prevent future retention.  After reset,
->> OTG module will be in force-idle, force-standby mode.
->> 
->> In addition, ensure that the iclk is enabled before attempting a write
->> to the module SYSCONFIG register.
->> 
->> Problem reported by Mike Chan <mikechan@google.com>
->> 
->> Tested-by: Mike Chan <mikechan@google.com>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->> If no comments/issues, this will be applied to PM branch and
->> backported to pm-2.6.29.
->> 
->>  arch/arm/mach-omap2/usb-musb.c |   21 ++++++++++++++++++---
->>  1 files changed, 18 insertions(+), 3 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
->> index d85296d..85731b8 100644
->> --- a/arch/arm/mach-omap2/usb-musb.c
->> +++ b/arch/arm/mach-omap2/usb-musb.c
->> @@ -32,12 +32,27 @@
->>  #include <mach/usb.h>
->>  
->>  #define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
->> +#define OTG_SYSC_SOFTRESET BIT(1)
->>  
->>  static void __init usb_musb_pm_init(void)
->>  {
->> -	/* Ensure force-idle mode for OTG controller */
->> -	if (cpu_is_omap34xx())
->> -		omap_writel(0, OTG_SYSCONFIG);
->> +	struct clk *iclk;
->> +
->> +	if (!cpu_is_omap34xx())
->> +		return;
->> +
->> +	iclk = clk_get(NULL, "hsotgusb_ick");
->> +	if (WARN_ON(!iclk))
->> +		return;
->> +
->> +	clk_enable(iclk);
->> +
->> +	/* Reset OTG controller.  After reset, it will be in
->> +	 * force-idle, force-standby mode. */
->> +	omap_writel(OTG_SYSC_SOFTRESET, OTG_SYSCONFIG);
->
-> Do you think, this is safe to do w/o waiting reset to be finished
-> like :  ?
->
-> +       omap_writel( SOFTRST, OTG_SYSCONFIG );  /* acquire RESET */
-> +       start = jiffies;
-> +       timeout = start + msecs_to_jiffies(10); /* max 10 ms */
-> +       while (!time_after(jiffies, timeout)) /* wait until RESET OK */
-> +               if ( omap_readl(OTG_SYSSTATUS) & RESETDONE )
-> +                       break;
+Mark Brown wrote:
+> On Tue, Jun 23, 2009 at 03:28:54PM +0200, Janusz Krzysztofik wrote:
+>> However, I am not sure if the switch in question matches the alsa jack 
+>> model closely enough. I see the switch usage not as simple as turning 
+>> handset microphone/speaker on or off. It can be used for other purposes 
+>> as well, like accepting a phone call or actually dialing a number that 
+>> has been just typed in. Furthermore, it can be used to turn off a 
+>> speakerphone function, while, in turn, the related handset 
+>> microphone/speaker pair can be turned off not only with this switch, but 
+>> with a handsfree button as well, for example.
+> 
+> That can all be accomodated within the ASoC jack framework (I'm assuming
+> you'll be doing an ASoC rather than generic ALSA driver).
 
-I thought about waiting for reset, but I decided that it wasn't
-necessary to wait since I wasn't going to write any other values
-after.  Why hold up the boot process when nothing else will be
-writing?
+Right, thanks for pointing out the difference.
 
-Kevin
+>  You get the
+> input device just the same as you get with gpio-keys so you can do stuff
+> in user space,
 
-> SOFTRST & RESETDONE already defined in omap2430.h
->
->> +
->> +	clk_disable(iclk);
->> +	clk_put(iclk);
->>  }
->>  
->>  #ifdef CONFIG_USB_MUSB_SOC
+Yes, that was quite simple :). For now, I used SND_JACK_HEADSET report 
+type. Don't you think that a new type like SND_JACK_PHONE_HOOK or 
+SND_JACK_PHONE_HANDSET should be defined for the purpose? Even if 
+HEADSET may not be very different from HANDSET, corresponding 
+SW_HEADPHONE_INSERT and SW_MICROPHONE_INSERT event names seem have very 
+little to do with picking up a phone.
+
+> the main difference is that you can also arrange for some
+> of the power management within ASoC to be hooked up with the jack
+> automatically as well.
+> 
+> With what you're describing above I'd tie the mic and speaker in the
+> headset to DAPM automatically.
+
+OK, I'll try to follow your advice when I'm ready with a method of 
+switching my microphones/speakers.
+
+>> All that extra functionality looks like belonging to userspace rather 
+>> then kernel, not like other alsa jack implementations that seem to do 
+>> all the job of switching media paths inside the kernel. That is why I am 
+>> not sure if the jack model is suitable for the purpose.
+> 
+> The switching in kernel for ASoC should generally be confined to marking
+> outputs as powered or unpowered - things like marking a headphone jack
+> as disabled when there's nothing plugged in to it that can be done
+> unconditionally.  Everything else should get punted to user space.
+
+So, if I want to follow the ASoC jack model, my in-kernel hook switch 
+handler should only power on/off the handset, not touching the 
+speakerphone at all. The latter should be controlled from userspace. 
+Please correct me if I am missing something.
+
+Thanks,
+Janusz
