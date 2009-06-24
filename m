@@ -1,86 +1,81 @@
-From: Magnus Damm <magnus.damm@gmail.com>
-Subject: [PATCH 02/07] dma: rework dw_dmac
-	suspend_late()/resume_early()
-Date: Wed, 24 Jun 2009 18:23:24 +0900
-Message-ID: <20090624092324.14276.5263.sendpatchset@rx1.opensource.se>
+From: Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 03/07] dma: rework txx9dmac suspend_late()/resume_early()
+Date: Wed, 24 Jun 2009 18:23:33 +0900
+Message-ID: <20090624092333.14276.13222.sendpatchset@rx1.opensource.se>
 References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-bounces@lists.linux-foundation.org>
-In-Reply-To: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
-List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
-List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
-List-Post: <mailto:linux-pm@lists.linux-foundation.org>
-List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
-List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
-	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
-Sender: linux-pm-bounces@lists.linux-foundation.org
-Errors-To: linux-pm-bounces@lists.linux-foundation.org
-To: linux-kernel@vger.kernel.org
-Cc: gregkh@suse.de, ben-linux@fluff.org, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org, akpm@linux-foundation.org, felipe.balbi@nokia.com
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090624092306.14276.127.sendpatchset-/W6D1AVitZKvog7CDwlRTrNAH6kLmebB@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: gregkh-l3A5Bk7waGM@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, hskinnemoen-AIFe0yeh4nAAvxtiuMwx3w@public.gmane.org, anemo-7JcRY8pycbNHfZP73Gtkiw@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rjw-KKrjLPT3xs0@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, Magnus Damm <magnus.damm-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Magnus Damm <damm@igel.co.jp>
+From: Magnus Damm <damm-AlSX/UN32fvPDbFq/vQRIQ@public.gmane.org>
 
 This patch reworks platform driver power management code
-for dw_dmac from legacy late/early callbacks to dev_pm_ops.
+for txx9dmac from legacy late/early callbacks to dev_pm_ops.
 
 The callbacks are converted for CONFIG_SUSPEND like this:
   suspend_late() -> suspend_noirq()
   resume_early() -> resume_noirq()
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Signed-off-by: Magnus Damm <damm-AlSX/UN32fvPDbFq/vQRIQ@public.gmane.org>
 ---
 
- Untested and not test compiled due to lack of cross compiler.
+ Untested but compiles fine.
 
- drivers/dma/dw_dmac.c |   15 ++++++++++-----
+ drivers/dma/txx9dmac.c |   15 ++++++++++-----
  1 file changed, 10 insertions(+), 5 deletions(-)
 
---- 0001/drivers/dma/dw_dmac.c
-+++ work/drivers/dma/dw_dmac.c	2009-06-01 16:31:34.000000000 +0900
-@@ -1399,8 +1399,9 @@ static void dw_shutdown(struct platform_
- 	clk_disable(dw->clk);
+--- 0001/drivers/dma/txx9dmac.c
++++ work/drivers/dma/txx9dmac.c	2009-06-01 16:34:23.000000000 +0900
+@@ -1287,17 +1287,18 @@ static void txx9dmac_shutdown(struct pla
+ 	txx9dmac_off(ddev);
  }
  
--static int dw_suspend_late(struct platform_device *pdev, pm_message_t mesg)
-+static int dw_suspend_noirq(struct device *dev)
+-static int txx9dmac_suspend_late(struct platform_device *pdev,
+-				 pm_message_t mesg)
++static int txx9dmac_suspend_noirq(struct device *dev)
  {
 +	struct platform_device *pdev = to_platform_device(dev);
- 	struct dw_dma	*dw = platform_get_drvdata(pdev);
+ 	struct txx9dmac_dev *ddev = platform_get_drvdata(pdev);
  
- 	dw_dma_off(platform_get_drvdata(pdev));
-@@ -1408,23 +1409,27 @@ static int dw_suspend_late(struct platfo
+ 	txx9dmac_off(ddev);
  	return 0;
  }
  
--static int dw_resume_early(struct platform_device *pdev)
-+static int dw_resume_noirq(struct device *dev)
+-static int txx9dmac_resume_early(struct platform_device *pdev)
++static int txx9dmac_resume_noirq(struct device *dev)
  {
 +	struct platform_device *pdev = to_platform_device(dev);
- 	struct dw_dma	*dw = platform_get_drvdata(pdev);
+ 	struct txx9dmac_dev *ddev = platform_get_drvdata(pdev);
+ 	struct txx9dmac_platform_data *pdata = pdev->dev.platform_data;
+ 	u32 mcr;
+@@ -1310,6 +1311,11 @@ static int txx9dmac_resume_early(struct 
  
- 	clk_enable(dw->clk);
- 	dma_writel(dw, CFG, DW_CFG_DMA_EN);
- 	return 0;
--
  }
  
-+static struct dev_pm_ops dw_dev_pm_ops = {
-+	.suspend_noirq = dw_suspend_noirq,
-+	.resume_noirq = dw_resume_noirq,
++static struct dev_pm_ops txx9dmac_dev_pm_ops = {
++	.suspend_noirq = txx9dmac_suspend_noirq,
++	.resume_noirq = txx9dmac_resume_noirq,
 +};
 +
- static struct platform_driver dw_driver = {
- 	.remove		= __exit_p(dw_remove),
- 	.shutdown	= dw_shutdown,
--	.suspend_late	= dw_suspend_late,
--	.resume_early	= dw_resume_early,
+ static struct platform_driver txx9dmac_chan_driver = {
+ 	.remove		= __exit_p(txx9dmac_chan_remove),
  	.driver = {
- 		.name	= "dw_dmac",
-+		.pm	= &dw_dev_pm_ops,
+@@ -1320,10 +1326,9 @@ static struct platform_driver txx9dmac_c
+ static struct platform_driver txx9dmac_driver = {
+ 	.remove		= __exit_p(txx9dmac_remove),
+ 	.shutdown	= txx9dmac_shutdown,
+-	.suspend_late	= txx9dmac_suspend_late,
+-	.resume_early	= txx9dmac_resume_early,
+ 	.driver = {
+ 		.name	= "txx9dmac",
++		.pm	= &txx9dmac_dev_pm_ops,
  	},
  };
  
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
