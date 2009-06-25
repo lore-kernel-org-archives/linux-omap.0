@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 07/11] OMAP3: PM: Do not build suspend code if SUSPEND is not enabled
-Date: Thu, 25 Jun 2009 09:42:00 -0700
-Message-ID: <1245948124-24111-8-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 08/11] OMAP3: PM: reset USB OTG module on boot
+Date: Thu, 25 Jun 2009 09:42:01 -0700
+Message-ID: <1245948124-24111-9-git-send-email-khilman@deeprootsystems.com>
 References: <1245948124-24111-1-git-send-email-khilman@deeprootsystems.com>
  <1245948124-24111-2-git-send-email-khilman@deeprootsystems.com>
  <1245948124-24111-3-git-send-email-khilman@deeprootsystems.com>
@@ -9,65 +9,74 @@ References: <1245948124-24111-1-git-send-email-khilman@deeprootsystems.com>
  <1245948124-24111-5-git-send-email-khilman@deeprootsystems.com>
  <1245948124-24111-6-git-send-email-khilman@deeprootsystems.com>
  <1245948124-24111-7-git-send-email-khilman@deeprootsystems.com>
+ <1245948124-24111-8-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:49009 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755010AbZFYQnS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jun 2009 12:43:18 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so574305wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 25 Jun 2009 09:43:21 -0700 (PDT)
-In-Reply-To: <1245948124-24111-7-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pz0-f189.google.com ([209.85.222.189]:35146 "EHLO
+	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758886AbZFYQn0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jun 2009 12:43:26 -0400
+Received: by mail-pz0-f189.google.com with SMTP id 27so1461235pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 25 Jun 2009 09:43:29 -0700 (PDT)
+In-Reply-To: <1245948124-24111-8-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Jouni Hogander <jouni.hogander@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+Rather than simply setting force-idle mode on boot, do a reset of the
+OTG module.  This really ensures that any bootloader/bootstrap code
+that leaves it active will not prevent future retention.  After reset,
+OTG module will be in force-idle, force-standby mode.
+
+Problem reported by Mike Chan <mikechan@google.com>
+
+Tested-by: Mike Chan <mikechan@google.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/usb-musb.c |   22 ++++++++++++++++++----
+ 1 files changed, 18 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c813a08..528f725 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -39,7 +39,9 @@
- struct power_state {
- 	struct powerdomain *pwrdm;
- 	u32 next_state;
-+#ifdef CONFIG_SUSPEND
- 	u32 saved_state;
-+#endif
- 	struct list_head node;
- };
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index d85296d..3efa19c 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -26,18 +26,32 @@
  
-@@ -293,6 +295,7 @@ out:
- 	local_irq_enable();
+ #include <linux/usb/musb.h>
+ 
++#include <asm/sizes.h>
++
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <mach/mux.h>
+ #include <mach/usb.h>
+ 
+-#define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
++#define OTG_SYSCONFIG	   0x404
++#define OTG_SYSC_SOFTRESET BIT(1)
+ 
+ static void __init usb_musb_pm_init(void)
+ {
+-	/* Ensure force-idle mode for OTG controller */
+-	if (cpu_is_omap34xx())
+-		omap_writel(0, OTG_SYSCONFIG);
++	void __iomem *otg_base;
++
++	if (!cpu_is_omap34xx())
++		return;
++
++	otg_base = ioremap(OMAP34XX_HSUSB_OTG_BASE, SZ_4K);
++	if (WARN_ON(!otg_base))
++		return;
++
++	/* Reset OTG controller.  After reset, it will be in
++	 * force-idle, force-standby mode. */
++	__raw_writel(OTG_SYSC_SOFTRESET, otg_base + OTG_SYSCONFIG);
++
++	iounmap(otg_base);
  }
  
-+#ifdef CONFIG_SUSPEND
- static int omap3_pm_prepare(void)
- {
- 	disable_hlt();
-@@ -366,6 +369,7 @@ static struct platform_suspend_ops omap_pm_ops = {
- 	.finish		= omap3_pm_finish,
- 	.valid		= suspend_valid_only_mem,
- };
-+#endif /* CONFIG_SUSPEND */
- 
- 
- /**
-@@ -710,7 +714,9 @@ static int __init omap3_pm_init(void)
- 	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
- 					 omap34xx_cpu_suspend_sz);
- 
-+#ifdef CONFIG_SUSPEND
- 	suspend_set_ops(&omap_pm_ops);
-+#endif /* CONFIG_SUSPEND */
- 
- 	pm_idle = omap3_pm_idle;
- 
+ #ifdef CONFIG_USB_MUSB_SOC
 -- 
 1.6.3.2
 
