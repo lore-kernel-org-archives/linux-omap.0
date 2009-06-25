@@ -1,40 +1,34 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 2/2] OMAP3: omap3evm: undo ehci change to board-omap3evm.c
-Date: Thu, 25 Jun 2009 14:50:16 -0700
-Message-ID: <1245966616-26804-3-git-send-email-khilman@deeprootsystems.com>
-References: <1245966616-26804-1-git-send-email-khilman@deeprootsystems.com>
- <1245966616-26804-2-git-send-email-khilman@deeprootsystems.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: v4l2_int_device vs v4l2_subdev?
+Date: Thu, 25 Jun 2009 16:43:03 -0600
+Message-ID: <4A43FD77.1020709@mlbassoc.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f189.google.com ([209.85.222.189]:34852 "EHLO
-	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818AbZFYVuV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jun 2009 17:50:21 -0400
-Received: by mail-pz0-f189.google.com with SMTP id 27so1605018pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 25 Jun 2009 14:50:24 -0700 (PDT)
-In-Reply-To: <1245966616-26804-2-git-send-email-khilman@deeprootsystems.com>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:3203 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166AbZFYWnC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jun 2009 18:43:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org
 
-Call to omap3evm_flash_init() mistakenly added by EHCI patch.
+Still trying to wrap my head around the OMAP/34xx camera support.
+I need to use the TVP5150 sensor/controller, but the existing
+driver uses v4l_subdev.  The "working" examples I've found
+(from Sergio's tree) use sensors like ov3640 with uses v4l2_int_device
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Are these two totally separate beasts?
+If I have an infrastructure (I assume) based on v4l2_int_device,
+how do I use a v4l2_subdev device driver?  or need I move one to
+the other?
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 1b7a797..595beac 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -309,7 +309,6 @@ static void __init omap3_evm_init(void)
- 	omap_serial_init();
- 	usb_musb_init();
- 	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, true, true, 57, 61);
--	omap3evm_flash_init();
- 	ads7846_dev_init();
- }
- 
+... dizzy from traveling down too many twisty little passages :-(
+
 -- 
-1.6.3.2
-
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
