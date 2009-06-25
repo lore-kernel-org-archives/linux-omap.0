@@ -1,53 +1,56 @@
-From: "Hald, Ulrik Bech" <ubh@ti.com>
-Subject: RE: [PATCH v2 1/1] i2c:OMAP3:Errata workaround for spurious RDR
- event
-Date: Thu, 25 Jun 2009 20:45:56 +0200
-Message-ID: <00695C9C8F8B4448856F48142B4AA201BDB1387E@dnce02.ent.ti.com>
-References: <1245702865-4459-1-git-send-email-ubh@ti.com>
- <alpine.DEB.2.00.0906221915540.9637@utopia.booyaka.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B5259C55@dbde02.ent.ti.com>
- <alpine.DEB.2.00.0906222113200.9637@utopia.booyaka.com>
- <00695C9C8F8B4448856F48142B4AA201BDA38C4A@dnce02.ent.ti.com>
- <alpine.DEB.2.00.0906231146550.6545@utopia.booyaka.com>
- <alpine.DEB.2.00.0906231513280.6545@utopia.booyaka.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH][RFC] OMAP3: PM: Prevent hang in prcm_interrupt_handler
+Date: Thu, 25 Jun 2009 13:56:31 -0500
+Message-ID: <4A43C85F.50703@ti.com>
+References: <1245452921-24142-1-git-send-email-jon-hunter@ti.com> <87prcv25ro.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44430 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbZFYSqC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jun 2009 14:46:02 -0400
-In-Reply-To: <alpine.DEB.2.00.0906231513280.6545@utopia.booyaka.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:53653 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754600AbZFYS4h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Jun 2009 14:56:37 -0400
+In-Reply-To: <87prcv25ro.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-Hi Paul,
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Tuesday, June 23, 2009 4:18 PM
-> To: Hald, Ulrik Bech
-> Cc: Pakaravoor, Jagadeesh; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH v2 1/1] i2c:OMAP3:Errata workaround for spurious RDR
-> event
+Kevin Hilman wrote:
+> Jon Hunter <jon-hunter@ti.com> writes:
 > 
-> On Tue, 23 Jun 2009, Paul Walmsley wrote:
+>> From: Jon Hunter <jon-hunter@ti.com>
+>>
+>> There are two scenarios where a race condition could result in a hang in the
+>> prcm_interrupt handler. These are:
 > 
-> > Okay.  So it looks like there is a unfixable race here.  Is it possible
-> > for BB to be 0 during the stat2 read, then for BB to go to 1 immediately
-> > afterwards?  Then the rest of the RDR handler would be entered.  If this
-> > is possible, what will the ISR do -- will it hang?
+> IIRC, the RX51 tree has a workaround for some hangs seen in this
+> interrupt handler as well, so this has definitely been seen.  The fix
+> there though was just to no loop, I think your fix is more thorough 
+> and fixes the root cause.  Thanks.
 > 
-> By the way, it would also be helpful if you could check what the "certain
-> rare conditions" are that erratum 1.15 refers to that cause this
-> problem...
+> No comments on the funtional changes, but a couple
+> cosmetic/documentation changes.
 > 
-Yeah, I would like to know that too, but unfortunately the errata specification (which is all I have to lean on) doesn't say.
-> 
-> - Paul
+> 1) Would it be possible to summarize the requirements in the function
+> itself as part of this patch.
 
-Ulrik
+Absolutely. I will add some comments.
+
+> 2) With the extra indentation, this function is getting too indented.
+> Looking closer, an abstraction of the 'enable clocks, poll PM_WKST,
+> disable clocks loop' could be done an called with the various modules
+> and offsets.  I've attached a hack/patch below to show what I mean.
+> You could just fold this into your patch.
+
+Yes that makes a lot of sense. I did not like the fact it was becoming 
+difficult to read with the extra indentation. I will re-work this and 
+get you something in the next couple days.
+
+Thanks for the feedback.
+
+Cheers
+Jon
+
