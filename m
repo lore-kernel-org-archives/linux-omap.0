@@ -1,145 +1,137 @@
-From: Mike Chan <mike@android.com>
-Subject: Re: [PATCH 1/2] Support OMAP3 VC adaptation with different Power
- IC
-Date: Wed, 24 Jun 2009 18:25:28 -0700
-Message-ID: <4A42D208.4060403@android.com>
-References: <B00E06E2766C2744B022DE9BAF3C59D542E07F@zmy16exm69.ds.mot.com>
+From: "Syed Rafiuddin" <rafiuddin.syed@ti.com>
+Subject: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support for OMAP_4430
+Date: Thu, 25 Jun 2009 11:54:49 +0530 (IST)
+Message-ID: <51412.192.168.10.89.1245911089.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:9919 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbZFYBZ3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 24 Jun 2009 21:25:29 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so398305wfd.4
-        for <linux-omap@vger.kernel.org>; Wed, 24 Jun 2009 18:25:32 -0700 (PDT)
-In-Reply-To: <B00E06E2766C2744B022DE9BAF3C59D542E07F@zmy16exm69.ds.mot.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44689 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750934AbZFYGYw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 25 Jun 2009 02:24:52 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5P6OosM026941
+	for <linux-omap@vger.kernel.org>; Thu, 25 Jun 2009 01:24:55 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5P6OlTK014185
+	for <linux-omap@vger.kernel.org>; Thu, 25 Jun 2009 01:24:48 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wang Sawsd-A24013 <cqwang@motorola.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Wang Sawsd-A24013 wrote:
-> From c1aba8ba7af3ddd16346d95795bda71e65baa4d0 Mon Sep 17 00:00:00 2001
-> From: Chunqiu Wang <cqwang@motorola.com>
-> Date: Wed, 24 Jun 2009 06:48:52 +0800
-> Subject: [PATCH] Support OMAP3 VC adaptation with different Power IC
->
-> Current OMAP SmartReflex driver only supports TI Triton
-> Power IC, add a callback to make it possible to use
-> different PowerIC and use different settings to
-> configure OMAP3 Voltage Controller for DVFS
->
-> Board file can setup a new function to have different settings
-> on SR to configure their Power IC for voltage scaling
->
-> Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
-> ---
->  arch/arm/mach-omap2/smartreflex.c |   13 +++++++++++++
->  arch/arm/mach-omap2/smartreflex.h |    4 ++++
->  arch/arm/plat-omap/Kconfig        |    2 +-
->  3 files changed, 18 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/smartreflex.c
-> b/arch/arm/mach-omap2/smartreflex.c
-> index 9d462e3..bacf602 100644
-> --- a/arch/arm/mach-omap2/smartreflex.c
-> +++ b/arch/arm/mach-omap2/smartreflex.c
-> @@ -52,6 +52,8 @@ struct omap_sr {
->  
->  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
->  
-> +static omap3_voltagescale_vcbypass_t omap3_volscale_vcbypass_fun;
->   
-Perhaps use
-static int (*omap3_volscale_vcbypass_fun) (u32, u32, u8, u8);
+This patch adds McSPI support for OMAP4430 SDP platform. All the base addresses
+are changed between OMAP1/2/3 and OMAP4.The fields of the resource structures
+are filled at runtime to have McSPI support on OMAP4.
 
-This gets rid of the compiler warning on incompatible pointer types when 
-you register a function via omap3_voltagescale_vcbypass_setup().
+Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+---
+ arch/arm/mach-omap2/devices.c |   25 +++++++++++++++++++++----
+ drivers/spi/omap2_mcspi.c     |   10 ++++++----
+ 2 files changed, 27 insertions(+), 8 deletions(-)
 
--- Mike
-> +
->  static inline void sr_write_reg(struct omap_sr *sr, unsigned offset,
-> u32 value)
->  {
->  	__raw_writel(value, SR_REGADDR(offset));
-> @@ -767,6 +769,11 @@ void disable_smartreflex(int srid)
->  	}
->  }
->  
-> +void omap3_voltagescale_vcbypass_setup(omap3_voltagescale_vcbypass_t
-> fun)
-> +{
-> +	omap3_volscale_vcbypass_fun = fun;
-> +}
-> +
->  /* Voltage Scaling using SR VCBYPASS */
->  int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
->  					u8 target_vsel, u8 current_vsel)
-> @@ -779,6 +786,10 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32
-> current_opp,
->  	u32 t2_smps_steps = 0;
->  	u32 t2_smps_delay = 0;
->  
-> +	if (omap3_volscale_vcbypass_fun)
-> +		return omap3_volscale_vcbypass_fun(target_opp,
-> current_opp,
-> +						target_vsel,
-> current_vsel);
-> +
->  	vdd = get_vdd(target_opp);
->  	target_opp_no = get_opp_no(target_opp);
->  	current_opp_no = get_opp_no(current_opp);
-> @@ -940,6 +951,7 @@ static int __init omap3_sr_init(void)
->  		return -ENODEV;
->          }
->  
-> +#ifdef CONFIG_TWL4030_CORE
->  	/* Enable SR on T2 */
->  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
->  					R_DCDC_GLOBAL_CFG);
-> @@ -947,6 +959,7 @@ static int __init omap3_sr_init(void)
->  	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
->  	ret |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
->  					R_DCDC_GLOBAL_CFG);
-> +#endif
->  
->  	if (cpu_is_omap34xx()) {
->  		sr1.clk = clk_get(NULL, "sr1_fck");
-> diff --git a/arch/arm/mach-omap2/smartreflex.h
-> b/arch/arm/mach-omap2/smartreflex.h
-> index 2a0e823..c4aca9d 100644
-> --- a/arch/arm/mach-omap2/smartreflex.h
-> +++ b/arch/arm/mach-omap2/smartreflex.h
-> @@ -248,9 +248,13 @@ void disable_smartreflex(int srid);
->  int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8
-> c_vsel);
->  void sr_start_vddautocomap(int srid, u32 target_opp_no);
->  int sr_stop_vddautocomap(int srid);
-> +typedef int (*omap3_voltagescale_vcbypass_t)(u32 t_opp, u32 c_opp,
-> +						u8 t_vsel, u8 c_vsel); 
-> +void omap3_voltagescale_vcbypass_setup(omap3_voltagescale_vcbypass_t
-> fun);
->  #else
->  static inline void enable_smartreflex(int srid) {}
->  static inline void disable_smartreflex(int srid) {}
-> +#define omap3_voltagescale_vcbypass_setup(fun) do {} while (0);
->  #endif
->  
->  #endif
-> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> index c8ba1e2..8d2c607 100644
-> --- a/arch/arm/plat-omap/Kconfig
-> +++ b/arch/arm/plat-omap/Kconfig
-> @@ -68,7 +68,7 @@ config OMAP_DEBUG_CLOCKDOMAIN
->  
->  config OMAP_SMARTREFLEX
->  	bool "SmartReflex support"
-> -	depends on ARCH_OMAP34XX && TWL4030_CORE && PM
-> +	depends on ARCH_OMAP34XX && PM
->  	help
->  	  Say Y if you want to enable SmartReflex.
->  
->   
+Index: omap4_dev/arch/arm/mach-omap2/devices.c
+===================================================================
+--- omap4_dev.orig/arch/arm/mach-omap2/devices.c	2009-06-24 19:22:04.000000000
++0530
++++ omap4_dev/arch/arm/mach-omap2/devices.c	2009-06-25 10:05:39.000000000 +0530
+@@ -257,6 +257,11 @@
+ #define OMAP2_MCSPI3_BASE		0x480b8000
+ #define OMAP2_MCSPI4_BASE		0x480ba000
+
++#define OMAP4_MCSPI1_BASE		0x48098100
++#define OMAP4_MCSPI2_BASE		0x4809a100
++#define OMAP4_MCSPI3_BASE		0x480b8100
++#define OMAP4_MCSPI4_BASE		0x480ba100
++
+ static struct omap2_mcspi_platform_config omap2_mcspi1_config = {
+ 	.num_cs		= 4,
+ };
+@@ -301,7 +306,8 @@
+ 	},
+ };
+
+-#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
++	defined(CONFIG_ARCH_OMAP4)
+ static struct omap2_mcspi_platform_config omap2_mcspi3_config = {
+ 	.num_cs		= 2,
+ };
+@@ -325,7 +331,7 @@
+ };
+ #endif
+
+-#ifdef CONFIG_ARCH_OMAP3
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static struct omap2_mcspi_platform_config omap2_mcspi4_config = {
+ 	.num_cs		= 1,
+ };
+@@ -351,12 +357,23 @@
+
+ static void omap_init_mcspi(void)
+ {
++	if (cpu_is_omap44xx()) {
++		omap2_mcspi1_resources[0].start = OMAP4_MCSPI1_BASE;
++		omap2_mcspi1_resources[0].end 	= OMAP4_MCSPI1_BASE + 0xff;
++		omap2_mcspi2_resources[0].start = OMAP4_MCSPI2_BASE;
++		omap2_mcspi2_resources[0].end 	= OMAP4_MCSPI2_BASE + 0xff;
++		omap2_mcspi3_resources[0].start = OMAP4_MCSPI3_BASE;
++		omap2_mcspi3_resources[0].end 	= OMAP4_MCSPI3_BASE + 0xff;
++		omap2_mcspi4_resources[0].start = OMAP4_MCSPI4_BASE;
++		omap2_mcspi4_resources[0].end 	= OMAP4_MCSPI4_BASE + 0xff;
++	}
+ 	platform_device_register(&omap2_mcspi1);
+ 	platform_device_register(&omap2_mcspi2);
+-#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
++	defined(CONFIG_ARCH_OMAP4)
+ 	platform_device_register(&omap2_mcspi3);
+ #endif
+-#ifdef CONFIG_ARCH_OMAP3
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ 	platform_device_register(&omap2_mcspi4);
+ #endif
+ }
+Index: omap4_dev/drivers/spi/omap2_mcspi.c
+===================================================================
+--- omap4_dev.orig/drivers/spi/omap2_mcspi.c	2009-06-24 19:22:23.000000000 +0530
++++ omap4_dev/drivers/spi/omap2_mcspi.c	2009-06-24 19:22:46.000000000 +0530
+@@ -918,7 +918,8 @@
+ 	OMAP24XX_DMA_SPI2_TX1,
+ };
+
+-#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX) || \
++	 defined(CONFIG_ARCH_OMAP4)
+ static u8 __initdata spi3_rxdma_id[] = {
+ 	OMAP24XX_DMA_SPI3_RX0,
+ 	OMAP24XX_DMA_SPI3_RX1,
+@@ -930,7 +931,7 @@
+ };
+ #endif
+
+-#ifdef CONFIG_ARCH_OMAP3
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ static u8 __initdata spi4_rxdma_id[] = {
+ 	OMAP34XX_DMA_SPI4_RX0,
+ };
+@@ -960,14 +961,15 @@
+ 		txdma_id = spi2_txdma_id;
+ 		num_chipselect = 2;
+ 		break;
+-#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
++#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
++	defined(CONFIG_ARCH_OMAP4)
+ 	case 3:
+ 		rxdma_id = spi3_rxdma_id;
+ 		txdma_id = spi3_txdma_id;
+ 		num_chipselect = 2;
+ 		break;
+ #endif
+-#ifdef CONFIG_ARCH_OMAP3
++#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+ 	case 4:
+ 		rxdma_id = spi4_rxdma_id;
+ 		txdma_id = spi4_txdma_id;
+
 
