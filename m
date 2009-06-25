@@ -1,146 +1,65 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support for OMAP_4430
-Date: Thu, 25 Jun 2009 09:45:12 -0700
-Message-ID: <873a9os1nr.fsf@deeprootsystems.com>
-References: <51412.192.168.10.89.1245911089.squirrel@dbdmail.itg.ti.com>
+Subject: Re: [PATCH] OMAP: PM: Correct the use of cpufreq
+Date: Thu, 25 Jun 2009 09:48:24 -0700
+Message-ID: <87ws70qmxz.fsf@deeprootsystems.com>
+References: <12457508091766-git-send-email-ext-eero.nurkkala@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f189.google.com ([209.85.222.189]:49907 "EHLO
-	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753511AbZFYQpQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jun 2009 12:45:16 -0400
-Received: by pzk27 with SMTP id 27so1462671pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 25 Jun 2009 09:45:19 -0700 (PDT)
-In-Reply-To: <51412.192.168.10.89.1245911089.squirrel@dbdmail.itg.ti.com> (Syed Rafiuddin's message of "Thu\, 25 Jun 2009 11\:54\:49 +0530 \(IST\)")
+Received: from wf-out-1314.google.com ([209.85.200.171]:24787 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752810AbZFYQs0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 25 Jun 2009 12:48:26 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so575437wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 25 Jun 2009 09:48:29 -0700 (PDT)
+In-Reply-To: <12457508091766-git-send-email-ext-eero.nurkkala@nokia.com> (ext-eero nurkkala's message of "Tue\, 23 Jun 2009 12\:53\:29 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Syed Rafiuddin <rafiuddin.syed@ti.com>
+To: ext-eero.nurkkala@nokia.com
 Cc: linux-omap@vger.kernel.org
 
-"Syed Rafiuddin" <rafiuddin.syed@ti.com> writes:
+ext-eero.nurkkala@nokia.com writes:
 
-> This patch adds McSPI support for OMAP4430 SDP platform. All the base addresses
-> are changed between OMAP1/2/3 and OMAP4.The fields of the resource structures
-> are filled at runtime to have McSPI support on OMAP4.
+> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 >
-> Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+> Wrong info was used to feed the cpufreq. It is possible
+> now to get below the user defined limit defined at
+> "/cpufreq/scaling_min_freq". With this patch, the
+> user defined limits are being obeyed instead of
+> always using the absolute max and min values supported
+> by the device.
+>
+> Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-This driver needs some help for multi-omap, but that problem existed
-before this patch, so
+Thanks, pushing to current PM branch, and backporting to pm-2.6.29.
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-
+Kevin
 
 > ---
->  arch/arm/mach-omap2/devices.c |   25 +++++++++++++++++++++----
->  drivers/spi/omap2_mcspi.c     |   10 ++++++----
->  2 files changed, 27 insertions(+), 8 deletions(-)
+>  arch/arm/plat-omap/cpu-omap.c |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
 >
-> Index: omap4_dev/arch/arm/mach-omap2/devices.c
-> ===================================================================
-> --- omap4_dev.orig/arch/arm/mach-omap2/devices.c	2009-06-24 19:22:04.000000000
-> +0530
-> +++ omap4_dev/arch/arm/mach-omap2/devices.c	2009-06-25 10:05:39.000000000 +0530
-> @@ -257,6 +257,11 @@
->  #define OMAP2_MCSPI3_BASE		0x480b8000
->  #define OMAP2_MCSPI4_BASE		0x480ba000
->
-> +#define OMAP4_MCSPI1_BASE		0x48098100
-> +#define OMAP4_MCSPI2_BASE		0x4809a100
-> +#define OMAP4_MCSPI3_BASE		0x480b8100
-> +#define OMAP4_MCSPI4_BASE		0x480ba100
-> +
->  static struct omap2_mcspi_platform_config omap2_mcspi1_config = {
->  	.num_cs		= 4,
->  };
-> @@ -301,7 +306,8 @@
->  	},
->  };
->
-> -#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-> +#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
-> +	defined(CONFIG_ARCH_OMAP4)
->  static struct omap2_mcspi_platform_config omap2_mcspi3_config = {
->  	.num_cs		= 2,
->  };
-> @@ -325,7 +331,7 @@
->  };
->  #endif
->
-> -#ifdef CONFIG_ARCH_OMAP3
-> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->  static struct omap2_mcspi_platform_config omap2_mcspi4_config = {
->  	.num_cs		= 1,
->  };
-> @@ -351,12 +357,23 @@
->
->  static void omap_init_mcspi(void)
->  {
-> +	if (cpu_is_omap44xx()) {
-> +		omap2_mcspi1_resources[0].start = OMAP4_MCSPI1_BASE;
-> +		omap2_mcspi1_resources[0].end 	= OMAP4_MCSPI1_BASE + 0xff;
-> +		omap2_mcspi2_resources[0].start = OMAP4_MCSPI2_BASE;
-> +		omap2_mcspi2_resources[0].end 	= OMAP4_MCSPI2_BASE + 0xff;
-> +		omap2_mcspi3_resources[0].start = OMAP4_MCSPI3_BASE;
-> +		omap2_mcspi3_resources[0].end 	= OMAP4_MCSPI3_BASE + 0xff;
-> +		omap2_mcspi4_resources[0].start = OMAP4_MCSPI4_BASE;
-> +		omap2_mcspi4_resources[0].end 	= OMAP4_MCSPI4_BASE + 0xff;
-> +	}
->  	platform_device_register(&omap2_mcspi1);
->  	platform_device_register(&omap2_mcspi2);
-> -#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-> +#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
-> +	defined(CONFIG_ARCH_OMAP4)
->  	platform_device_register(&omap2_mcspi3);
->  #endif
-> -#ifdef CONFIG_ARCH_OMAP3
-> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->  	platform_device_register(&omap2_mcspi4);
->  #endif
->  }
-> Index: omap4_dev/drivers/spi/omap2_mcspi.c
-> ===================================================================
-> --- omap4_dev.orig/drivers/spi/omap2_mcspi.c	2009-06-24 19:22:23.000000000 +0530
-> +++ omap4_dev/drivers/spi/omap2_mcspi.c	2009-06-24 19:22:46.000000000 +0530
-> @@ -918,7 +918,8 @@
->  	OMAP24XX_DMA_SPI2_TX1,
->  };
->
-> -#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX)
-> +#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX) || \
-> +	 defined(CONFIG_ARCH_OMAP4)
->  static u8 __initdata spi3_rxdma_id[] = {
->  	OMAP24XX_DMA_SPI3_RX0,
->  	OMAP24XX_DMA_SPI3_RX1,
-> @@ -930,7 +931,7 @@
->  };
->  #endif
->
-> -#ifdef CONFIG_ARCH_OMAP3
-> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->  static u8 __initdata spi4_rxdma_id[] = {
->  	OMAP34XX_DMA_SPI4_RX0,
->  };
-> @@ -960,14 +961,15 @@
->  		txdma_id = spi2_txdma_id;
->  		num_chipselect = 2;
->  		break;
-> -#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
-> +#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \
-> +	defined(CONFIG_ARCH_OMAP4)
->  	case 3:
->  		rxdma_id = spi3_rxdma_id;
->  		txdma_id = spi3_txdma_id;
->  		num_chipselect = 2;
->  		break;
->  #endif
-> -#ifdef CONFIG_ARCH_OMAP3
-> +#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->  	case 4:
->  		rxdma_id = spi4_rxdma_id;
->  		txdma_id = spi4_txdma_id;
->
+> diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+> index 843e8af..1868c0d 100644
+> --- a/arch/arm/plat-omap/cpu-omap.c
+> +++ b/arch/arm/plat-omap/cpu-omap.c
+> @@ -78,10 +78,10 @@ static int omap_target(struct cpufreq_policy *policy,
+>  
+>  	/* Ensure desired rate is within allowed range.  Some govenors
+>  	 * (ondemand) will just pass target_freq=0 to get the minimum. */
+> -	if (target_freq < policy->cpuinfo.min_freq)
+> -		target_freq = policy->cpuinfo.min_freq;
+> -	if (target_freq > policy->cpuinfo.max_freq)
+> -		target_freq = policy->cpuinfo.max_freq;
+> +	if (target_freq < policy->min)
+> +		target_freq = policy->min;
+> +	if (target_freq > policy->max)
+> +		target_freq = policy->max;
+>  
+>  	freqs.old = omap_getspeed(0);
+>  	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+> -- 
+> 1.5.6.3
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
