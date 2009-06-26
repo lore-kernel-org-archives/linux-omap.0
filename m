@@ -1,195 +1,49 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to support off-mode
-Date: Fri, 26 Jun 2009 07:19:01 -0700
-Message-ID: <87bpobjcx6.fsf@deeprootsystems.com>
-References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-2-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-3-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-4-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-5-git-send-email-khilman@deeprootsystems.com>
-	<4A44AD44.4070107@nokia.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: v4l2_int_device vs v4l2_subdev?
+Date: Fri, 26 Jun 2009 09:43:52 -0500
+Message-ID: <A24693684029E5489D1D202277BE8944405D0043@dlee02.ent.ti.com>
+References: <4A43FD77.1020709@mlbassoc.com>
+ <5e9665e10906252227i4f667915rc1b52d6148c1a0e9@mail.gmail.com>,<200906260830.20193.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f190.google.com ([209.85.216.190]:42415 "EHLO
-	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754742AbZFZOTA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 10:19:00 -0400
-Received: by pxi28 with SMTP id 28so1705696pxi.33
-        for <linux-omap@vger.kernel.org>; Fri, 26 Jun 2009 07:19:04 -0700 (PDT)
-In-Reply-To: <4A44AD44.4070107@nokia.com> (Aaro Koskinen's message of "Fri\, 26 Jun 2009 14\:13\:08 +0300")
+Received: from bear.ext.ti.com ([192.94.94.41]:53524 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754222AbZFZOsS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 10:48:18 -0400
+In-Reply-To: <200906260830.20193.hverkuil@xs4all.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>, "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Cc: Gary Thomas <gary@mlbassoc.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+> > But in user space there is nothing changed having access to
+> > device and control them.
+> > As you know, subdev and int-device is all about how to bind
+> > interface(or host?) and device and make them communicated each other.
+> > But using subdev device driver with int-device supporting interface
+> > (or host) device driver? it won't make any communication.
+> > So if you are running out of time with your project, you'd better use
+> > old driver of TVP. Like TVP driver in kernel 2.6.28 I suppose. But if
+> > you have enough time and wanna be challenging, try to convert
+> > in-device based omap3 camera interface driver to subdev supporting
+> > one.
+> 
+> Someone's got to do this. v4l2_subdev is the future and it has many
+> advantages over the older interfaces. The ability to be able to use the
+> same i2c driver in anything from USB webcams to PCI capture cards to
+> omap/davinci embedded platforms is very powerful.
 
-> Kevin Hilman wrote:
->> From: Rajendra Nayak <rnayak@ti.com>
->>
->> Because of OMAP off-mode, powerdomain can go off when I2C is idle.
->> Save enough state, and do a re-init for each transfer.
->>
->> Additional save/restore state added by Jagadeesh Bhaskar Pakaravoor
->> (SYSC_REG) and Aaro Koskinen (wakeup sources.)
->>
->> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> Cc: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
->> Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->
-> This patch introduces a compiler warning:
->
->   CC      drivers/i2c/busses/i2c-omap.o
-> drivers/i2c/busses/i2c-omap.c: In function 'omap_i2c_init':
-> drivers/i2c/busses/i2c-omap.c:303: warning: unused variable 'v'
->
-> So the declaration of "v" should be also removed here:
->
+Hi,
 
-Thanks, updated patch in my queue an below for reference.
+We have already this framework migration planned, but we haven't been
+able to do it, because we are still solving stability issues on the driver.
 
-Kevin
+I beg for your patience, and i hope i can get my hands on this pretty soon.
 
->From 6880534c0a42beea0e500a566f910875342c313b Mon Sep 17 00:00:00 2001
-From: Rajendra Nayak <rnayak@ti.com>
-Date: Fri, 26 Sep 2008 17:48:07 +0530
-Subject: [PATCH] I2C: OMAP3: PM: (re)init for every transfer to support off-mode
+I'll be updating my tree when i have something.
 
-Because of OMAP off-mode, powerdomain can go off when I2C is idle.
-Save enough state, and do a re-init for each transfer.
-
-Additional save/restore state added by Jagadeesh Bhaskar Pakaravoor
-(SYSC_REG) and Aaro Koskinen (wakeup sources.)
-
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Cc: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- drivers/i2c/busses/i2c-omap.c |   62 +++++++++++++++++++++++++---------------
- 1 files changed, 39 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index ece0125..6b28e8a 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -178,6 +178,12 @@ struct omap_i2c_dev {
- 	unsigned		b_hw:1;		/* bad h/w fixes */
- 	unsigned		idle:1;
- 	u16			iestate;	/* Saved interrupt register */
-+	u16			pscstate;
-+	u16			scllstate;
-+	u16			sclhstate;
-+	u16			bufstate;
-+	u16			syscstate;
-+	u16			westate;
- };
- 
- static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
-@@ -230,9 +236,16 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
- 
- 	clk_enable(dev->iclk);
- 	clk_enable(dev->fclk);
-+	if (cpu_is_omap34xx()) {
-+		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
-+		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
-+	}
- 	dev->idle = 0;
--	if (dev->iestate)
--		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
- }
- 
- static void omap_i2c_idle(struct omap_i2c_dev *dev)
-@@ -258,7 +271,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
- 
- static int omap_i2c_init(struct omap_i2c_dev *dev)
- {
--	u16 psc = 0, scll = 0, sclh = 0;
-+	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
- 	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
- 	unsigned long fclk_rate = 12000000;
- 	unsigned long timeout;
-@@ -287,24 +300,22 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 					   SYSC_AUTOIDLE_MASK);
- 
- 		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
--			u32 v;
--
--			v = SYSC_AUTOIDLE_MASK;
--			v |= SYSC_ENAWAKEUP_MASK;
--			v |= (SYSC_IDLEMODE_SMART <<
-+			dev->syscstate = SYSC_AUTOIDLE_MASK;
-+			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
-+			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
- 			      __ffs(SYSC_SIDLEMODE_MASK));
--			v |= (SYSC_CLOCKACTIVITY_FCLK <<
-+			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK <<
- 			      __ffs(SYSC_CLOCKACTIVITY_MASK));
- 
--			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
-+			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
-+							dev->syscstate);
- 			/*
- 			 * Enabling all wakup sources to stop I2C freezing on
- 			 * WFI instruction.
- 			 * REVISIT: Some wkup sources might not be needed.
- 			 */
--			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
--							OMAP_I2C_WE_ALL);
--
-+			dev->westate = OMAP_I2C_WE_ALL;
-+			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
- 		}
- 	}
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
-@@ -373,23 +384,28 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- 	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
- 	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
- 
--	if (dev->fifo_size)
--		/* Note: setup required fifo size - 1 */
--		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
--					(dev->fifo_size - 1) << 8 | /* RTRSH */
--					OMAP_I2C_BUF_RXFIF_CLR |
--					(dev->fifo_size - 1) | /* XTRSH */
--					OMAP_I2C_BUF_TXFIF_CLR);
-+	if (dev->fifo_size) {
-+		/* Note: setup required fifo size - 1. RTRSH and XTRSH */
-+		buf = (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_CLR |
-+			(dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
-+		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
-+	}
- 
- 	/* Take the I2C module out of reset: */
- 	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
- 
- 	/* Enable interrupts */
--	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
--			(OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
-+	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
- 			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
- 			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
--				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0));
-+				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
-+	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
-+	if (cpu_is_omap34xx()) {
-+		dev->pscstate = psc;
-+		dev->scllstate = scll;
-+		dev->sclhstate = sclh;
-+		dev->bufstate = buf;
-+	}
- 	return 0;
- }
- 
--- 
-1.6.3.2
-
+Regards,
+Sergio
