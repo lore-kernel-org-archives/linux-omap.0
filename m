@@ -1,78 +1,97 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support for OMAP_4430
-Date: Fri, 26 Jun 2009 11:22:49 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B530F79F@dbde02.ent.ti.com>
-References: <51412.192.168.10.89.1245911089.squirrel@dbdmail.itg.ti.com>
- <873a9os1nr.fsf@deeprootsystems.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B530F711@dbde02.ent.ti.com>
- <20090626055038.GV7352@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: [PATCH] OMAP: update OMAP3 Beagle defconfig
+Date: Thu, 25 Jun 2009 23:58:26 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906252357240.2676@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47066 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751359AbZFZFwz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 01:52:55 -0400
-In-Reply-To: <20090626055038.GV7352@atomide.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:36862 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034AbZFZF6Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 01:58:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: jkridner@beagleboard.org
 
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Friday, June 26, 2009 11:21 AM
-> To: Shilimkar, Santosh
-> Cc: Kevin Hilman; Syed, Rafiuddin; linux-omap@vger.kernel.org
-> Subject: Re: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support for OMAP_4430
-> 
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090626 08:00]:
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org 
-> > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
-> Kevin Hilman
-> > > Sent: Thursday, June 25, 2009 10:15 PM
-> > > To: Syed, Rafiuddin
-> > > Cc: linux-omap@vger.kernel.org
-> > > Subject: Re: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support 
-> for OMAP_4430
-> > > 
-> > > "Syed Rafiuddin" <rafiuddin.syed@ti.com> writes:
-> > > 
-> > > > This patch adds McSPI support for OMAP4430 SDP platform. 
-> > > All the base addresses
-> > > > are changed between OMAP1/2/3 and OMAP4.The fields of the 
-> > > resource structures
-> > > > are filled at runtime to have McSPI support on OMAP4.
-> > > >
-> > > > Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> > > 
-> > > This driver needs some help for multi-omap, but that 
-> problem existed
-> > > before this patch, so
-> > > 
-> > > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> > > 
-> > > 
-> > > > ---
-> > > >  arch/arm/mach-omap2/devices.c |   25 +++++++++++++++++++++----
-> > > >  drivers/spi/omap2_mcspi.c     |   10 ++++++----
-> > > >  2 files changed, 27 insertions(+), 8 deletions(-)
-> > Not sure but looks like the patch needs split since 
-> different upstream paths
-> > 1. arch/arm/mach-omap2/devices.c -- linux-arm
-> > 2. drivers/spi/omap2_mcspi.c --- Don't know the list but 
-> should be some driver list.
-> > 
-> > Is that correct ?
-> 
-> I think this is OK to send as a single patch via the SPI list.
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-Cool !!
+Update the OMAP3 Beagle defconfig to add EHCI, MMC, TWL4030 GPIO support.
+Beagle can again use MMC rootfs after this patch.  Tested on BeagleBoard 
+rev C2.
 
-Thanks Kevin, Tony for ACK.
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Jason Kridner <jkridner@beagleboard.org>
+---
+ arch/arm/configs/omap3_beagle_defconfig |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
+index c4726f0..0c6eee7 100644
+--- a/arch/arm/configs/omap3_beagle_defconfig
++++ b/arch/arm/configs/omap3_beagle_defconfig
+@@ -236,6 +236,7 @@ CONFIG_ARM_THUMB=y
+ # CONFIG_CPU_BPREDICT_DISABLE is not set
+ CONFIG_HAS_TLS_REG=y
+ # CONFIG_OUTER_CACHE is not set
++CONFIG_COMMON_CLKDEV=y
+ 
+ #
+ # Bus support
+@@ -713,6 +714,7 @@ CONFIG_GPIOLIB=y
+ # CONFIG_GPIO_MAX732X is not set
+ # CONFIG_GPIO_PCA953X is not set
+ # CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
+ 
+ #
+ # PCI GPIO expanders:
+@@ -741,6 +743,7 @@ CONFIG_SSB_POSSIBLE=y
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_EGPIO is not set
+ # CONFIG_HTC_PASIC3 is not set
++CONFIG_TWL4030_CORE=y
+ # CONFIG_UCB1400_CORE is not set
+ # CONFIG_MFD_TMIO is not set
+ # CONFIG_MFD_T7L66XB is not set
+@@ -832,7 +835,7 @@ CONFIG_FONT_8x16=y
+ CONFIG_USB_SUPPORT=y
+ CONFIG_USB_ARCH_HAS_HCD=y
+ CONFIG_USB_ARCH_HAS_OHCI=y
+-# CONFIG_USB_ARCH_HAS_EHCI is not set
++CONFIG_USB_ARCH_HAS_EHCI=y
+ CONFIG_USB=y
+ # CONFIG_USB_DEBUG is not set
+ # CONFIG_USB_ANNOUNCE_NEW_DEVICES is not set
+@@ -851,6 +854,8 @@ CONFIG_USB_MON=y
+ #
+ # USB Host Controller Drivers
+ #
++CONFIG_USB_EHCI_HCD=y
++CONFIG_USB_EHCI_ROOT_HUB_TT=y
+ # CONFIG_USB_C67X00_HCD is not set
+ # CONFIG_USB_ISP116X_HCD is not set
+ # CONFIG_USB_ISP1760_HCD is not set
+@@ -968,6 +973,7 @@ CONFIG_MMC_BLOCK_BOUNCE=y
+ #
+ # CONFIG_MMC_SDHCI is not set
+ # CONFIG_MMC_OMAP is not set
++CONFIG_MMC_OMAP_HS=y
+ # CONFIG_MEMSTICK is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_NEW_LEDS is not set
+@@ -1026,10 +1032,11 @@ CONFIG_RTC_INTF_DEV=y
+ #
+ # Voltage and Current regulators
+ #
+-# CONFIG_REGULATOR is not set
++CONFIG_REGULATOR=y
+ # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
+ # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
+ # CONFIG_REGULATOR_BQ24022 is not set
++CONFIG_REGULATOR_TWL4030=y
+ # CONFIG_UIO is not set
+ 
+ #
+-- 
+1.6.3.3.334.g916e1
 
