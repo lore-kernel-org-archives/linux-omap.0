@@ -1,97 +1,72 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP: update OMAP3 Beagle defconfig
-Date: Thu, 25 Jun 2009 23:58:26 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906252357240.2676@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: RFC: Reclaim address space on omaps, Tony on vacation in July
+Date: Fri, 26 Jun 2009 09:25:40 +0300
+Message-ID: <20090626062539.GX7352@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36862 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbZFZF6Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 01:58:24 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55681 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750907AbZFZGZr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 02:25:47 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: jkridner@beagleboard.org
+Cc: linux-arm-kernel@lists.arm.linux.org.uk
+
+Hi all,
+
+Last week I posted some more omap io.h clean-up patches to the linux-omap
+list [1], and started looking at what it would take to reclaim lost address
+space on top of the io.h clean-up patches.
+
+Looks like we should be able to reclaim about 454MB of the 640MB
+of the lost IO address space by doing the following:
+
+1. Start converting drivers using omap_read/write to use ioremap +
+   __raw_read/write
+
+2. Remove OMAP2_IO_ADDRESS macro, and replace it with with finer grained
+   OMAP_L3_ADDRESS, OMAP_L4_ADDRESS, OMAP_SDRC_ADDRESS and so on macros
+
+3. Remap the the IO addresses in smaller sections in io.h so the virtual
+   address for the blocks stays the same, and is counted down from the
+   ARM reserved DMA address.
+
+After these steps, omap io.h would look like this:
+
+#define ARM_RESERVED_FUTURE_DMA	0xff000000 /* Documentation/arm/memory.txt */
+#define OMAP23_L4_PHYS		0x48000000
+#define OMAP24_L3_PHYS		0x68000000
+#define OMAP4_L3_PHYS		0x44000000
+#define OMAP4_L4_PHYS		0x4a000000
+
+/* These virtual addresses are the same for all omaps */
+#define OMAP_L3_SIZE		SZ_1M
+#define OMAP_L3_VIRT		(ARM_RESERVED_FUTURE_DMA - OMAP_L3_SIZE)
+#define OMAP_L4_SIZE		(SZ_16M + SZ_1M)
+#define OMAP_L4_VIRT		(OMAP_L3_VIRT - OMAP_L4_SIZE)
+#define OMAP_SDRC_SIZE		SZ_1M
+#define OMAP_SDRC_BASE		(OMAP_L4_VIRT - OMAP_SDRC_SIZE)
+...
 
 
-Update the OMAP3 Beagle defconfig to add EHCI, MMC, TWL4030 GPIO support.
-Beagle can again use MMC rootfs after this patch.  Tested on BeagleBoard 
-rev C2.
+#define OMAP_L3_ADDRESS(pa)	(((pa) & ~0xff000000) + OMAP_L3_VIRT)
+#define OMAP_L4_ADDRESS(pa)	(((pa) & ~0xff000000) + OMAP_L4_VIRT)
+#define OMAP_SDRC_ADDRESS(pa)	(((pa) & ~0xff000000) + OMAP_SDRC_VIRT)
+...
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Jason Kridner <jkridner@beagleboard.org>
----
- arch/arm/configs/omap3_beagle_defconfig |   11 +++++++++--
- 1 files changed, 9 insertions(+), 2 deletions(-)
+Anybody got better ideas? In general, while thinking about this, we
+should all start working on step 1 above where possible no matter what.
 
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index c4726f0..0c6eee7 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -236,6 +236,7 @@ CONFIG_ARM_THUMB=y
- # CONFIG_CPU_BPREDICT_DISABLE is not set
- CONFIG_HAS_TLS_REG=y
- # CONFIG_OUTER_CACHE is not set
-+CONFIG_COMMON_CLKDEV=y
- 
- #
- # Bus support
-@@ -713,6 +714,7 @@ CONFIG_GPIOLIB=y
- # CONFIG_GPIO_MAX732X is not set
- # CONFIG_GPIO_PCA953X is not set
- # CONFIG_GPIO_PCF857X is not set
-+CONFIG_GPIO_TWL4030=y
- 
- #
- # PCI GPIO expanders:
-@@ -741,6 +743,7 @@ CONFIG_SSB_POSSIBLE=y
- # CONFIG_MFD_SM501 is not set
- # CONFIG_HTC_EGPIO is not set
- # CONFIG_HTC_PASIC3 is not set
-+CONFIG_TWL4030_CORE=y
- # CONFIG_UCB1400_CORE is not set
- # CONFIG_MFD_TMIO is not set
- # CONFIG_MFD_T7L66XB is not set
-@@ -832,7 +835,7 @@ CONFIG_FONT_8x16=y
- CONFIG_USB_SUPPORT=y
- CONFIG_USB_ARCH_HAS_HCD=y
- CONFIG_USB_ARCH_HAS_OHCI=y
--# CONFIG_USB_ARCH_HAS_EHCI is not set
-+CONFIG_USB_ARCH_HAS_EHCI=y
- CONFIG_USB=y
- # CONFIG_USB_DEBUG is not set
- # CONFIG_USB_ANNOUNCE_NEW_DEVICES is not set
-@@ -851,6 +854,8 @@ CONFIG_USB_MON=y
- #
- # USB Host Controller Drivers
- #
-+CONFIG_USB_EHCI_HCD=y
-+CONFIG_USB_EHCI_ROOT_HUB_TT=y
- # CONFIG_USB_C67X00_HCD is not set
- # CONFIG_USB_ISP116X_HCD is not set
- # CONFIG_USB_ISP1760_HCD is not set
-@@ -968,6 +973,7 @@ CONFIG_MMC_BLOCK_BOUNCE=y
- #
- # CONFIG_MMC_SDHCI is not set
- # CONFIG_MMC_OMAP is not set
-+CONFIG_MMC_OMAP_HS=y
- # CONFIG_MEMSTICK is not set
- # CONFIG_ACCESSIBILITY is not set
- # CONFIG_NEW_LEDS is not set
-@@ -1026,10 +1032,11 @@ CONFIG_RTC_INTF_DEV=y
- #
- # Voltage and Current regulators
- #
--# CONFIG_REGULATOR is not set
-+CONFIG_REGULATOR=y
- # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
- # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
- # CONFIG_REGULATOR_BQ24022 is not set
-+CONFIG_REGULATOR_TWL4030=y
- # CONFIG_UIO is not set
- 
- #
--- 
-1.6.3.3.334.g916e1
+Also, I will be mostly offline in July. Meanwhile, please try to make all
+the patches against the mainline kernel where possible to avoid cross
+dependencies. Some code of course depends on some topic branches like pm
+or dss2. Or the stuff in omap-headers branch for the omap headers.
 
+Cheers,
+
+Tony
+
+[1] http://www.mail-archive.com/linux-omap@vger.kernel.org/msg13874.html
