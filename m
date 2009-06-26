@@ -1,56 +1,88 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH -pm 1/2] SDRC: check for stuck DLL state machine and
- kick
-Date: Fri, 26 Jun 2009 02:45:24 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0906260052230.2676@utopia.booyaka.com>
-References: <1245105775-28844-1-git-send-email-khilman@deeprootsystems.com> <1245105775-28844-2-git-send-email-khilman@deeprootsystems.com> <alpine.DEB.2.00.0906170139170.3382@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E2AC611@dlee02.ent.ti.com>
- <alpine.DEB.2.00.0906181505460.4087@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E317258@dlee02.ent.ti.com> <alpine.DEB.2.00.0906231342350.6545@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E3DA683@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Reclaim address space on omaps, Tony on vacation in July
+Date: Fri, 26 Jun 2009 11:46:33 +0300
+Message-ID: <20090626084633.GD7352@atomide.com>
+References: <20090626062539.GX7352@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02B53AB55D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:42094 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756966AbZFZIpW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 04:45:22 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038E3DA683@dlee02.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59524 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757599AbZFZIqo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 04:46:44 -0400
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B53AB55D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Mike Chan <mikechan@google.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 
-Hi,
-
-On Tue, 23 Jun 2009, Woodruff, Richard wrote:
-
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Tuesday, June 23, 2009 3:05 PM
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [090626 10:45]:
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> > Sent: Friday, June 26, 2009 11:56 AM
+> > To: linux-omap@vger.kernel.org
+> > Cc: linux-arm-kernel@lists.arm.linux.org.uk
+> > Subject: RFC: Reclaim address space on omaps, Tony on vacation in July
+> > 
+> > Hi all,
+> > 
+> > Last week I posted some more omap io.h clean-up patches to 
+> > the linux-omap
+> > list [1], and started looking at what it would take to 
+> > reclaim lost address
+> > space on top of the io.h clean-up patches.
+> > 
+> > Looks like we should be able to reclaim about 454MB of the 640MB
+> > of the lost IO address space by doing the following:
+> > 
+> > 1. Start converting drivers using omap_read/write to use ioremap +
+> >    __raw_read/write
+> > 
+> > 2. Remove OMAP2_IO_ADDRESS macro, and replace it with with 
+> > finer grained
+> >    OMAP_L3_ADDRESS, OMAP_L4_ADDRESS, OMAP_SDRC_ADDRESS and so 
+> > on macros
 > 
-> > Looks like the significant difference is the use of CLKCTRL = 0x2 (+
-> > AUTOCOUNT).  Maybe there is some SDRC bug related to CLKCTRL = 0x2 that
-> > causes this problem?  Perhaps the problem is partially related to PWDENA =
-> > 1 and erratum 1.150?  Anyway, will do a test run here with this SDRC_POWER
-> > register value and see if the problem reproduces.
+> > 3. Remap the the IO addresses in smaller sections in io.h so 
+> > the virtual
+> >    address for the blocks stays the same, and is counted down from the
+> >    ARM reserved DMA address.
+> > 
+> > After these steps, omap io.h would look like this:
+> > 
+> > #define ARM_RESERVED_FUTURE_DMA	0xff000000 /* 
+> > Documentation/arm/memory.txt */
+> > #define OMAP23_L4_PHYS		0x48000000
+> > #define OMAP24_L3_PHYS		0x68000000
+> > #define OMAP4_L3_PHYS		0x44000000
+> > #define OMAP4_L4_PHYS		0x4a000000
+> > 
+> > /* These virtual addresses are the same for all omaps */
+> > #define OMAP_L3_SIZE		SZ_1M
+> > #define OMAP_L3_VIRT		(ARM_RESERVED_FUTURE_DMA - OMAP_L3_SIZE)
+> > #define OMAP_L4_SIZE		(SZ_16M + SZ_1M)
+> > #define OMAP_L4_VIRT		(OMAP_L3_VIRT - OMAP_L4_SIZE)
+> > #define OMAP_SDRC_SIZE		SZ_1M
+> > #define OMAP_SDRC_BASE		(OMAP_L4_VIRT - OMAP_SDRC_SIZE)
+> > ...
+> > 
+> > 
+> > #define OMAP_L3_ADDRESS(pa)	(((pa) & ~0xff000000) + OMAP_L3_VIRT)
+> > #define OMAP_L4_ADDRESS(pa)	(((pa) & ~0xff000000) + OMAP_L4_VIRT)
+> > #define OMAP_SDRC_ADDRESS(pa)	(((pa) & ~0xff000000) + OMAP_SDRC_VIRT)
+> We surely need this going forward since there is also demand to fit higher 
+> RAMS(256MB,512MB,1GB)in the system. 
 > 
-> It is my guess not for PWDENA as it was reported on a system with that 
-> not set.  Yes that should not enabled per errata.  Anyway it only does 
-> something in OFF type scenarios where you don't use self-refresh. 
-> "Typical" use cases don't seem to be using this.
+> Just to confirm, any further patches on this topic should be on top of this:
+> Tony Lindgren (3):
+>       OMAP: Remove ifdefs for io.h
+>       OMAP: Rename OMAP_MPUIO_BASE to OMAP1_MPUIO_BASE
+>       OMAP: Remove OMAP_IO_ADDRESS, use OMAP1_IO_ADDRESS and OMAP2_IO_ADDRESS instead
 > 
-> There are a few unlock events which are best for any focused test. Most 
-> are supposed to auto-relock but ... I've heard of some validation tests 
-> in a few areas maybe they will yield something.
+> Is that correct Tony ?
 
-A quick note: in stress testing here, was able to confirm that SDRC_POWER 
-= 0x000200AD causes problems under memory load and intensive CORE DVFS.  
-SDRC_POWER = 0x0002009D seems to work fine.  The difference is CLKCTRL = 1 
-(works) vs. CLKCTRL = 2 (fails).  According to the TRM, CLKCTRL = 2 
-enables self-refresh when AUTOCOUNT reaches 0.  There is probably some 
-race between AUTOCOUNT and the CORE DVFS SRAM code, or it is tickling some 
-SDRC bug.  Will look into this further later.
+Yes it makes it easier as the patches above remove all the ifdefs for io.h.
 
-By the way, there appears to be a TRM bug in the "Dynamic Power Saving 
-Configurations" table in the SDRC chapter.  The "External SDRC CLK" column 
-should have "after AUTOCOUNT expiration" for CLKCTRL = 1 rows.
-
-
-- Paul
+Tony
