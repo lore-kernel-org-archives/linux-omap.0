@@ -1,102 +1,150 @@
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: v4l2_int_device vs v4l2_subdev?
-Date: Fri, 26 Jun 2009 08:30:19 +0200
-Message-ID: <200906260830.20193.hverkuil@xs4all.nl>
-References: <4A43FD77.1020709@mlbassoc.com> <5e9665e10906252227i4f667915rc1b52d6148c1a0e9@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] [RFC] OMAP4: sDMA: Update the request lines and new
+ registers.
+Date: Fri, 26 Jun 2009 12:09:31 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B53AB4F3@dbde02.ent.ti.com>
+References: <1242132073-16563-1-git-send-email-santosh.shilimkar@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <5e9665e10906252227i4f667915rc1b52d6148c1a0e9@mail.gmail.com>
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: Gary Thomas <gary@mlbassoc.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:57611 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750720AbZFZGjh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 02:39:37 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5Q6dXtV025467
+	for <linux-omap@vger.kernel.org>; Fri, 26 Jun 2009 01:39:39 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n5Q6dXm3019584
+	for <linux-omap@vger.kernel.org>; Fri, 26 Jun 2009 12:09:33 +0530 (IST)
+In-Reply-To: <1242132073-16563-1-git-send-email-santosh.shilimkar@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Friday 26 June 2009 07:27:15 Dongsoo, Nathaniel Kim wrote:
-> Hello,
->=20
-> On Fri, Jun 26, 2009 at 7:43 AM, Gary Thomas<gary@mlbassoc.com> wrote=
-:
-> > Still trying to wrap my head around the OMAP/34xx camera support.
-> > I need to use the TVP5150 sensor/controller, but the existing
-> > driver uses v4l_subdev. =A0The "working" examples I've found
-> > (from Sergio's tree) use sensors like ov3640 with uses v4l2_int_dev=
-ice
-> >
-> > Are these two totally separate beasts?
-> > If I have an infrastructure (I assume) based on v4l2_int_device,
-> > how do I use a v4l2_subdev device driver? =A0or need I move one to
-> > the other?
-> >
->=20
-> I've been through the same case (now I'm trying to use subdev
-> framework and writing a new device driver based on that)
-> As far as I understand, every v4l2 drivers are moving on subdev
-> framework.
+> -----Original Message-----
+> From: Shilimkar, Santosh 
+> Sent: Tuesday, May 12, 2009 6:11 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Shilimkar, Santosh
+> Subject: [PATCH] [RFC] OMAP4: sDMA: Update the request lines 
+> and new registers.
+> 
+> This patch updates the platform dma.h with new dma request lines
+> for OMAP4 peripherals. Also additional hardware register of OMAP4
+> sDMA module are included.
+> 
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/plat-omap/include/mach/dma.h |   65 
+> ++++++++++++++++++++++++++++++++-
+>  1 files changed, 64 insertions(+), 1 deletions(-)
+>  mode change 100644 => 100755 arch/arm/plat-omap/include/mach/dma.h
+> 
+> diff --git a/arch/arm/plat-omap/include/mach/dma.h 
+> b/arch/arm/plat-omap/include/mach/dma.h
+> old mode 100644
+> new mode 100755
+> index 8e05b6a..3dc1b14
+> --- a/arch/arm/plat-omap/include/mach/dma.h
+> +++ b/arch/arm/plat-omap/include/mach/dma.h
+> @@ -122,6 +122,10 @@
+>  #define OMAP_DMA4_CCFN(n)		(0x60 * (n) + 0xc0)
+>  #define OMAP_DMA4_COLOR(n)		(0x60 * (n) + 0xc4)
+>  
+> +#define OMAP_DMA4_CDP_REG(n)           (0x60 * (n) + 0xd0)
+> +#define OMAP_DMA4_CNDP_REG(n)          (0x60 * (n) + 0xd4)
+> +#define OMAP_DMA4_CCDN_REG(n)          (0x60 * (n) + 0xd8)
+> +
+>  /* Dummy defines to keep multi-omap compiles happy */
+>  #define OMAP1_DMA_REVISION		0
+>  #define OMAP1_DMA_IRQSTATUS_L0		0
+> @@ -209,7 +213,7 @@
+>  #define OMAP_DMA_MMC2_RX		55
+>  #define OMAP_DMA_CRYPTO_DES_OUT		56
+>  
+> -/* DMA channels for 24xx */
+> +/* DMA channels for 24xx  34xx and 44xx*/
+>  #define OMAP24XX_DMA_NO_DEVICE		0
+>  #define OMAP24XX_DMA_XTI_DMA		1	/* S_DMA_0 */
+>  #define OMAP24XX_DMA_EXT_DMAREQ0	2	/* S_DMA_1 */
+> @@ -310,6 +314,65 @@
+>  #define OMAP34XX_DMA_USIM_TX		79	/* S_DMA_78 */
+>  #define OMAP34XX_DMA_USIM_RX		80	/* S_DMA_79 */
+>  
+> +
+> +#define OMAP44XX_DMA_DSS_LINE_TRIG      6       /* S_DMA_5 */
+> +#define OMAP44XX_DMA_MCASP1_AXEVT       8       /* S_DMA_7 */
+> +#define OMAP44XX_DMA_ISS_DMA_REQ0       9       /* S_DMA_8 */
+> +#define OMAP44XX_DMA_ISS_DMA_REQ1      10      /* S_DMA_9 */
+> +#define OMAP44XX_DMA_MCASP1_AREVT      11      /* S_DMA_10 */
+> +#define OMAP44XX_DMA_ISS_DMA_REQ2      12      /* S_DMA_11 */
+> +#define OMAP44XX_DMA_ISS_DMA_REQ3      13      /* S_DMA_12 */
+> +#define OMAP44XX_DMA_DSS_RFBI_DMA_REQ  14      /* S_DMA_13 */
+> +#define OMAP44XX_DMA_MCBSP2_TX         17      /* S_DMA_16 */
+> +#define OMAP44XX_DMA_MCBSP2_RX         18      /* S_DMA_17 */
+> +#define OMAP44XX_DMA_MCBSP3_TX         19      /* S_DMA_18 */
+> +#define OMAP44XX_DMA_MCBSP3_RX         20      /* S_DMA_19 */
+> +#define OMAP44XX_DMA_MCBSP4_TX         31      /* S_DMA_30 */
+> +#define OMAP44XX_DMA_MCBSP4_RX         32      /* S_DMA_31 */
+> +#define OMAP44XX_DMA_MCBSP1_TX         33      /* S_DMA_32 */
+> +#define OMAP44XX_DMA_MCBSP1_RX         34      /* S_DMA_33 */
+> +#define OMAP44XX_DMA_UART4_DMA_TX      55      /* S_DMA_54 */
+> +#define OMAP44XX_DMA_UART4_DMA_RX      56      /* S_DMA_55 */
+> +#define OMAP44XX_DMA_MMC4_DMA_TX       57      /* S_DMA_56 */
+> +#define OMAP44XX_DMA_MMC5_DMA_TX       59      /* S_DMA_58 */
+> +#define OMAP44XX_DMA_MMC5_DMA_RX       60      /* S_DMA_59 */
+> +#define OMAP44XX_DMA_MCPDM_UP          65      /* S_DMA_64 */
+> +#define OMAP44XX_DMA_MCPDM_DL          66      /* S_DMA_65 */
+> +#define OMAP44XX_DMA_DMIC_DMA_REQ      67      /* S_DMA_66 */
+> +#define OMAP44XX_DSS_HDMI_DMA_REQ      76      /* S_DMA_75 */
+> +
+> +
+> +#define OMAP44XX_DMM_DSS_DSI2_DMA0     81      /* S_DMA_80 */
+> +#define OMAP44XX_DMM_DSS_DSI2_DMA1     82      /* S_DMA_81 */
+> +#define OMAP44XX_DMM_DSS_DSI2_DMA2     83      /* S_DMA_82 */
+> +#define OMAP44XX_DMM_DSS_DSI2_DMA3     84      /* S_DMA_83 */
+> +#define OMAP44XX_DMM_SLIMBUS1_DMA_TX0  85      /* S_DMA_84 */
+> +#define OMAP44XX_DMM_SLIMBUS1_DMA_TX1  86      /* S_DMA_85 */
+> +#define OMAP44XX_DMM_SLIMBUS1_DMA_TX2  87      /* S_DMA_86 */
+> +#define OMAP44XX_DMM_SLIMBUS1_DMA_TX3  88      /* S_DMA_87 */
+> +#define OMAP44XX_DMM_SLIMBUS1_DMA_RX0  89      /* S_DMA_88 */
+> +#define OMAP44XX_DMM_SLIMBUS1_DMA_RX1  90      /* S_DMA_89 */
+> +#define OMAP44XX_DMM_SLIMBUS1_DMA_RX2  91      /* S_DMA_90 */
+> +#define OMAP44XX_DMM_SLIMBUS1_DMA_RX3  92      /* S_DMA_91 */
+> +#define OMAP44XX_DMM_SLIMBUS2_DMA_TX0  93      /* S_DMA_92 */
+> +#define OMAP44XX_DMM_SLIMBUS2_DMA_TX1  94      /* S_DMA_93 */
+> +#define OMAP44XX_DMM_SLIMBUS2_DMA_TX2  95      /* S_DMA_94 */
+> +#define OMAP44XX_DMM_SLIMBUS2_DMA_TX3  96      /* S_DMA_95 */
+> +#define OMAP44XX_DMM_SLIMBUS2_DMA_RX0  97      /* S_DMA_96 */
+> +#define OMAP44XX_DMM_SLIMBUS2_DMA_RX1  98      /* S_DMA_97 */
+> +#define OMAP44XX_DMM_SLIMBUS2_DMA_RX2  99      /* S_DMA_98 */
+> +#define OMAP44XX_DMM_SLIMBUS2_DMA_RX3  100     /* S_DMA_99 */
+> +#define OMAP44XX_DMM_ABE_DMAREQ0       101     /* S_DMA_100*/
+> +#define OMAP44XX_DMM_ABE_DMAREQ1       102     /* S_DMA_101*/
+> +#define OMAP44XX_DMM_ABE_DMAREQ2       103     /* S_DMA_102*/
+> +#define OMAP44XX_DMM_ABE_DMAREQ3       104     /* S_DMA_103*/
+> +#define OMAP44XX_DMM_ABE_DMAREQ4       105     /* S_DMA_104*/
+> +#define OMAP44XX_DMM_ABE_DMAREQ5       106     /* S_DMA_105*/
+> +#define OMAP44XX_DMM_ABE_DMAREQ6       107     /* S_DMA_106*/
+> +#define OMAP44XX_DMM_ABE_DMAREQ7       108     /* S_DMA_107*/
+> +#define OMAP44XX_DMM_I2C4_DMA_TX       124     /* S_DMA_123*/
+> +#define OMAP44XX_DMM_I2C4_DMA_RX       125     /* S_DMA_124*/
+> +
+>  
+> /*------------------------------------------------------------
+> ----------------*/
+>  
+>  /* Hardware registers for LCD DMA */
+> -- 
+Tony,
+Can you also check this patch and 
+UART4 patch: http://www.spinics.net/lists/linux-omap/msg14161.html 
 
-That's right. There were three different incompatible interfaces betwee=
-n
-the host and an i2c device. This made it impossible to reuse e.g. a sen=
-sor
-driver based on v4l2-int-device for omap in a USB webcam based around
-the old i2c-ioctl interface. The v4l2_subdev interface was created that
-will replace all these other interfaces. We will not accept new
-non-v4l2-subdev drivers in the kernel, and we are working hard to conve=
-rt
-the last remaining non-v4l2-subdev drivers as soon as possible.
+If you ack these two then we can rebase these on kernel.org and
+submit it for merge on linux-arm
 
-> But in user space there is nothing changed having access to=20
-> device and control them.
-> As you know, subdev and int-device is all about how to bind
-> interface(or host?) and device and make them communicated each other.
-> But using subdev device driver with int-device supporting interface
-> (or host) device driver? it won't make any communication.
-> So if you are running out of time with your project, you'd better use
-> old driver of TVP. Like TVP driver in kernel 2.6.28 I suppose. But if
-> you have enough time and wanna be challenging, try to convert
-> in-device based omap3 camera interface driver to subdev supporting
-> one.
-
-Someone's got to do this. v4l2_subdev is the future and it has many
-advantages over the older interfaces. The ability to be able to use the
-same i2c driver in anything from USB webcams to PCI capture cards to
-omap/davinci embedded platforms is very powerful.
-
-Regards,
-
-	Hans
-
-> Cheers,
->=20
-> Nate
->=20
->=20
-> > ... dizzy from traveling down too many twisty little passages :-(
-> >
-> > --
-> > ------------------------------------------------------------
-> > Gary Thomas =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0Consulting for the
-> > MLB Associates =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0Embedded world
-> > ------------------------------------------------------------
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-> >
->=20
->=20
->=20
-
-
-
---=20
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" =
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regrads
+Santosh
