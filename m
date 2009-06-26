@@ -1,72 +1,53 @@
 From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH -pm 1/2] SDRC: check for stuck DLL state machine and kick
-Date: Fri, 26 Jun 2009 11:07:55 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162038E4C7BDC@dlee02.ent.ti.com>
-References: <1245105775-28844-1-git-send-email-khilman@deeprootsystems.com>
- <1245105775-28844-2-git-send-email-khilman@deeprootsystems.com>
- <alpine.DEB.2.00.0906170139170.3382@utopia.booyaka.com>
- <13B9B4C6EF24D648824FF11BE8967162038E2AC611@dlee02.ent.ti.com>
- <alpine.DEB.2.00.0906181505460.4087@utopia.booyaka.com>
- <13B9B4C6EF24D648824FF11BE8967162038E317258@dlee02.ent.ti.com>
- <alpine.DEB.2.00.0906231342350.6545@utopia.booyaka.com>
- <13B9B4C6EF24D648824FF11BE8967162038E3DA683@dlee02.ent.ti.com>
- <alpine.DEB.2.00.0906260052230.2676@utopia.booyaka.com>
+Subject: RE: Reclaim address space on omaps, Tony on vacation in July
+Date: Fri, 26 Jun 2009 13:14:03 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162038E4C7D46@dlee02.ent.ti.com>
+References: <20090626062539.GX7352@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B53AB55D@dbde02.ent.ti.com>
+ <20090626084633.GD7352@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57925 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751269AbZFZQIE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 12:08:04 -0400
-In-Reply-To: <alpine.DEB.2.00.0906260052230.2676@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56491 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752175AbZFZSOW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 14:14:22 -0400
+In-Reply-To: <20090626084633.GD7352@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Mike Chan <mikechan@google.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 
-Hi Paul,
 
-> On Tue, 23 Jun 2009, Woodruff, Richard wrote:
->
-> > > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > > Sent: Tuesday, June 23, 2009 3:05 PM
-> >
-> > > Looks like the significant difference is the use of CLKCTRL = 0x2 (+
-> > > AUTOCOUNT).  Maybe there is some SDRC bug related to CLKCTRL = 0x2 that
-> > > causes this problem?  Perhaps the problem is partially related to PWDENA =
-> > > 1 and erratum 1.150?  Anyway, will do a test run here with this SDRC_POWER
-> > > register value and see if the problem reproduces.
-> >
-> > It is my guess not for PWDENA as it was reported on a system with that
-> > not set.  Yes that should not enabled per errata.  Anyway it only does
-> > something in OFF type scenarios where you don't use self-refresh.
-> > "Typical" use cases don't seem to be using this.
-> >
-> > There are a few unlock events which are best for any focused test. Most
-> > are supposed to auto-relock but ... I've heard of some validation tests
-> > in a few areas maybe they will yield something.
->
-> A quick note: in stress testing here, was able to confirm that SDRC_POWER
-> = 0x000200AD causes problems under memory load and intensive CORE DVFS.
-> SDRC_POWER = 0x0002009D seems to work fine.  The difference is CLKCTRL = 1
-> (works) vs. CLKCTRL = 2 (fails).  According to the TRM, CLKCTRL = 2
-> enables self-refresh when AUTOCOUNT reaches 0.  There is probably some
-> race between AUTOCOUNT and the CORE DVFS SRAM code, or it is tickling some
-> SDRC bug.  Will look into this further later.
->
-> By the way, there appears to be a TRM bug in the "Dynamic Power Saving
-> Configurations" table in the SDRC chapter.  The "External SDRC CLK" column
-> should have "after AUTOCOUNT expiration" for CLKCTRL = 1 rows.
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
 
-That is an interesting result.
+> > > Last week I posted some more omap io.h clean-up patches to
+> > > the linux-omap
+> > > list [1], and started looking at what it would take to
+> > > reclaim lost address
+> > > space on top of the io.h clean-up patches.
+> > >
+> > > Looks like we should be able to reclaim about 454MB of the 640MB
+> > > of the lost IO address space by doing the following:
 
-My suspicion also has been with some kind of self-refresh race and DLL lock/unlock conditions.  DVFS would stress the DLL lock/unlock path.
+Using section entries to cover ranges provides superior performance.  1 TLB will cover a whole series of accesses when doing things like servicing an interrupt.  Using fewer TLBs to cover system accesses leaves more in tact for application usage.  I've not see recent data but long back TLB optimization provided sizeable performance boost for many applications.
 
-In your test did you have a crash or just find the DLL did not relock.  The signature I'm looking for is not locking.  A crash in this particular test might point more to some other issue in sequence.
+Additionally debug is simplified by having the simple static map around.
 
-On another thread it was noted you had optimized out a needed delay after M2 divider change for DVFS.  Fixing this might change behavior of this test.  Stress testing in older code bases along with simulation result showed the delay was necessary.
+Russell recently pointed out and David showed an example of how ioremap() can take an arch specific function which can return virtual address from already defined static ranges.  I do think this is a nice clean up and optimization (to stop some double mapping which now happens with ioremap).
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg03813.html
+
+So, I think yes moving to ioremap in all drivers is good, but it would use underlying static maps where they exist.
+
+It might be not _all_ ranges need to be fully static mapped, but the common device ones should be.
+
+On this thread there has been a mounting request for more physical memory.  Starting to make a 2x2gig split option and perhaps understanding more how to use extended addressing like xscale is doing would be good road map stuff.
+
+If io.h is getting messy maybe it should be broken in to a couple files... Anyway, driver cleanup using common ioremap would be the big winner.
 
 Regards,
 Richard W.
