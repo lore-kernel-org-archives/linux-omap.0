@@ -1,57 +1,51 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to support
- off-mode
-Date: Fri, 26 Jun 2009 14:13:08 +0300
-Message-ID: <4A44AD44.4070107@nokia.com>
-References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com> <1245965646-20070-2-git-send-email-khilman@deeprootsystems.com> <1245965646-20070-3-git-send-email-khilman@deeprootsystems.com> <1245965646-20070-4-git-send-email-khilman@deeprootsystems.com> <1245965646-20070-5-git-send-email-khilman@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH] OMAP3: PM: Move the clk stabilization delay to the right place
+Date: Fri, 26 Jun 2009 16:59:15 +0530
+Message-ID: <1246015755-9267-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:42215 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065AbZFZLNL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 07:13:11 -0400
-In-Reply-To: <1245965646-20070-5-git-send-email-khilman@deeprootsystems.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43634 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751587AbZFZL3U (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 26 Jun 2009 07:29:20 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5QBTHup020083
+	for <linux-omap@vger.kernel.org>; Fri, 26 Jun 2009 06:29:23 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Rajendra Nayak <rnayak@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Rajendra Nayak <rnayak@ti.com>
 
-Hello,
+The clock stabilization delay post a M2 divider change is needed
+even before a SDRC interface clock re-enable and not only before
+jumping back to SDRAM.
 
-Kevin Hilman wrote:
- > From: Rajendra Nayak <rnayak@ti.com>
- >
- > Because of OMAP off-mode, powerdomain can go off when I2C is idle.
- > Save enough state, and do a re-init for each transfer.
- >
- > Additional save/restore state added by Jagadeesh Bhaskar Pakaravoor
- > (SYSC_REG) and Aaro Koskinen (wakeup sources.)
- >
- > Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
- > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
- > Cc: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
- > Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
- > Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+---
+ arch/arm/mach-omap2/sram34xx.S |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-This patch introduces a compiler warning:
+diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+index f41f8d9..481f912 100644
+--- a/arch/arm/mach-omap2/sram34xx.S
++++ b/arch/arm/mach-omap2/sram34xx.S
+@@ -97,6 +97,8 @@ ENTRY(omap3_sram_configure_core_dpll)
+ 	blne	lock_dll
+ 	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
+ 	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
++	mov	r12, r5
++	bl	wait_clk_stable		@ wait for SDRC to stabilize
+ 	bl	enable_sdrc		@ take SDRC out of idle
+ 	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+ 	bleq	wait_dll_unlock
+@@ -104,8 +106,6 @@ ENTRY(omap3_sram_configure_core_dpll)
+ 	cmp	r7, #1			@ if increasing SDRC clk rate,
+ 	beq	return_to_sdram		@ return to SDRAM code, otherwise,
+ 	bl	configure_sdrc		@ reprogram SDRC regs now
+-	mov	r12, r5
+-	bl	wait_clk_stable		@ wait for SDRC to stabilize
+ return_to_sdram:
+ 	isb				@ prevent speculative exec past here
+ 	mov 	r0, #0 			@ return value
+-- 
+1.5.4.7
 
-   CC      drivers/i2c/busses/i2c-omap.o
-drivers/i2c/busses/i2c-omap.c: In function 'omap_i2c_init':
-drivers/i2c/busses/i2c-omap.c:303: warning: unused variable 'v'
-
-So the declaration of "v" should be also removed here:
-
- > @@ -289,21 +302,22 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
- >  		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
- >  			u32 v;
- >
- > -			v = SYSC_AUTOIDLE_MASK;
- > -			v |= SYSC_ENAWAKEUP_MASK;
- > -			v |= (SYSC_IDLEMODE_SMART <<
- > +			dev->syscstate = SYSC_AUTOIDLE_MASK;
- > +			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
- > +			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
-
-A.
