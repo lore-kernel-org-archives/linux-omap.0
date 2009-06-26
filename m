@@ -1,47 +1,78 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH] OMAP2/3: DMA errata correction
-Date: Fri, 26 Jun 2009 00:47:32 -0500
-Message-ID: <1245995252-16453-1-git-send-email-vikram.pandita@ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support for OMAP_4430
+Date: Fri, 26 Jun 2009 11:22:49 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B530F79F@dbde02.ent.ti.com>
+References: <51412.192.168.10.89.1245911089.squirrel@dbdmail.itg.ti.com>
+ <873a9os1nr.fsf@deeprootsystems.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B530F711@dbde02.ent.ti.com>
+ <20090626055038.GV7352@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47012 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:47066 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbZFZFvl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 01:51:41 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5Q5pd1p006967
-	for <linux-omap@vger.kernel.org>; Fri, 26 Jun 2009 00:51:44 -0500
+	with ESMTP id S1751359AbZFZFwz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 01:52:55 -0400
+In-Reply-To: <20090626055038.GV7352@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This errata is valid for:
-OMAP2420 Errata 1.85 Impacts all 2420 ES rev
-OMAP2430 Errata 1.10 Impacts only ES1.0
-Description: DMA may hang when several channels are used in parallel
 
-OMAP3430: Not impacted, so remove the errata fix for omap3
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Friday, June 26, 2009 11:21 AM
+> To: Shilimkar, Santosh
+> Cc: Kevin Hilman; Syed, Rafiuddin; linux-omap@vger.kernel.org
+> Subject: Re: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support for OMAP_4430
+> 
+> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090626 08:00]:
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org 
+> > > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
+> Kevin Hilman
+> > > Sent: Thursday, June 25, 2009 10:15 PM
+> > > To: Syed, Rafiuddin
+> > > Cc: linux-omap@vger.kernel.org
+> > > Subject: Re: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support 
+> for OMAP_4430
+> > > 
+> > > "Syed Rafiuddin" <rafiuddin.syed@ti.com> writes:
+> > > 
+> > > > This patch adds McSPI support for OMAP4430 SDP platform. 
+> > > All the base addresses
+> > > > are changed between OMAP1/2/3 and OMAP4.The fields of the 
+> > > resource structures
+> > > > are filled at runtime to have McSPI support on OMAP4.
+> > > >
+> > > > Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+> > > 
+> > > This driver needs some help for multi-omap, but that 
+> problem existed
+> > > before this patch, so
+> > > 
+> > > Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> > > 
+> > > 
+> > > > ---
+> > > >  arch/arm/mach-omap2/devices.c |   25 +++++++++++++++++++++----
+> > > >  drivers/spi/omap2_mcspi.c     |   10 ++++++----
+> > > >  2 files changed, 27 insertions(+), 8 deletions(-)
+> > Not sure but looks like the patch needs split since 
+> different upstream paths
+> > 1. arch/arm/mach-omap2/devices.c -- linux-arm
+> > 2. drivers/spi/omap2_mcspi.c --- Don't know the list but 
+> should be some driver list.
+> > 
+> > Is that correct ?
+> 
+> I think this is OK to send as a single patch via the SPI list.
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+Cool !!
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
- arch/arm/plat-omap/dma.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 7677a4a..feebaf3 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -946,7 +946,9 @@ void omap_start_dma(int lch)
- 
- 			cur_lch = next_lch;
- 		} while (next_lch != -1);
--	} else if (cpu_class_is_omap2()) {
-+	} else if (cpu_is_omap24xx() ||
-+		(cpu_is_omap243x() &&  omap_type() <= OMAP2430_REV_ES1_0)) {
-+
- 		/* Errata: Need to write lch even if not using chaining */
- 		dma_write(lch, CLNK_CTRL(lch));
- 	}
--- 
-1.6.3.3.334.g916e1
+Thanks Kevin, Tony for ACK.
 
