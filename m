@@ -1,37 +1,113 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 2/2] OMAP3: omap3evm: undo ehci change to board-omap3evm.c
-Date: Fri, 26 Jun 2009 05:13:52 -0400
-Message-ID: <notify-1246007632@atomide.com>
-References: <1245966616-26804-3-git-send-email-khilman@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60006 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756764AbZFZJNw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 05:13:52 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MK7VL-000I8g-Hr
-	for linux-omap@vger.kernel.org; Fri, 26 Jun 2009 09:13:55 +0000
-In-Reply-To: <1245966616-26804-3-git-send-email-khilman@deeprootsystems.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+From: Linus Walleij <linus.walleij@stericsson.com>
+Subject: [PATCH 0/1] ARM TCM (Tightly-Coupled Memory) support v1
+Date: Fri, 26 Jun 2009 12:43:37 +0200
+Message-ID: <1246013017-20275-1-git-send-email-linus.walleij@stericsson.com>
+Content-Type: multipart/mixed; boundary="===============1762909644=="
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, linus-embedded@vger.kernel.org, Linus Walleij <linus.walleij@stericsson.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+--===============1762909644==
 
-Branch in linux-omap: master
+ARM TCM (Tightly-Coupled Memory) support v1
 
-Initial commit ID (Likely to change): 947478830b2046913ef6cbe64243a4c6530ff835
+For details about TCM and this specific interface for
+Linux, see the patch, which includes a document in
+Documentation/arm/tcm.txt
 
-PatchWorks
-http://patchwork.kernel.org/patch/32468/
+I expect a few iterations on this, so it's not like this
+is a merge candidate. Wait for v5 or so...
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=947478830b2046913ef6cbe64243a4c6530ff835
+However it works. Result of test run using the example
+program in tcm.txt on U335:
+
+CPU: found DTCM 8k @ 00010000, enabled
+CPU: moved DTCM 8k to ffff4000, enabled
+CPU DTCM: copied data from ffff4000 - ffff4008
+CPU: found ITCM 8k @ 00000000, enabled
+CPU: moved ITCM 8k to ffff2000, enabled
+CPU ITCM: copied code from ffff2000 - ffff201c
+Setting up TCM memory pool
+CPU DTCM: Added 00001ff8 bytes @ ffff4008 to the TCM memory pool
+CPU ITCM: Added 00001fe4 bytes @ ffff201c to the TCM memory pool
+Hello TCM executed from ITCM RAM
+TCM variable from testrun: 200 @ ffff4000
+TCM variable: 0xdeadbeef @ ffff4000
+TCM assigned variable: 0x2badbabe @ ffff4004
+TCM constant: 0xcafebabe @ ffff2018
+TCM Allocated 20 bytes of TCM @ ffff201c
+TCM tcmem[0] = deadbeef
+TCM tcmem[1] = 2badbabe
+TCM tcmem[2] = cafebabe
+TCM tcmem[3] = deadbeef
+TCM tcmem[4] = 2badbabe
 
 
+Other implementations:
+
+I've noticed that OMAP1 has TCM, it is however only ever
+used from the assembly code found in mach-omap1/sleep.S.
+Using this on the OMAP too it's possible to write C and
+assembly alike for the TCM. C is nice. I expect it'd be
+easy to switch over to using this.
+
+
+System RAM:
+
+SystemRAM is a generic on-chip memory (also called
+retention RAM, backup RAM or just plain on-die/chip RAM)
+which is used in som SoC designs for much the same
+purposes as TCM memories. TCM is not used much in newer
+designs in favor of System RAM.
+
+SystemRAM is different in that it is not Harvard-style
+so like in common RAM instructions and data can be mixed.
+It is also often below L1 or even L2 caches, so it
+behaves just like normal memory. Following the style of
+the TCM memory implementation it is easy to add a
+similar mechanism för System RAM with some interface
+in asm/sysram.h or so, but it is distincly different due
+to the Harvard nature of TCM and the fact that TCMs can
+be arbitrarily moved about in the physical memory
+map.
+
+TI:s DaVinci seems to have something called "sysRAM"
+instead in mach-davinci/sram.c perhaps this can be
+treated exactly as an ITCM, what do I know, however in
+difference from ITCM I believe that is outside the CPU
+and thus code running from that RAM can "see" the MMU
+remappings. davinci creates a special memory pool for
+the sysram on that platform and currently that seems to
+be the only way to use it.
+
+I stronly believe that the DaVinci solution should be
+made generic and moved out of mach-davinci, and modeled
+to be able to compile code into as with TCM, but I have
+no suitable machine to test that on so that will be on
+my TODO.
+
+Yours,
+Linus Walleij
+
+
+--===============1762909644==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+--===============1762909644==--
