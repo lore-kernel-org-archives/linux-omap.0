@@ -1,41 +1,56 @@
-From: Ben Dooks <ben-linux@fluff.org>
-Subject: Re: RFC: Reclaim address space on omaps, Tony on vacation in July
-Date: Fri, 26 Jun 2009 09:37:22 +0100
-Message-ID: <20090626083722.GP8354@trinity.fluff.org>
-References: <20090626062539.GX7352@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH -pm 1/2] SDRC: check for stuck DLL state machine and
+ kick
+Date: Fri, 26 Jun 2009 02:45:24 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906260052230.2676@utopia.booyaka.com>
+References: <1245105775-28844-1-git-send-email-khilman@deeprootsystems.com> <1245105775-28844-2-git-send-email-khilman@deeprootsystems.com> <alpine.DEB.2.00.0906170139170.3382@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E2AC611@dlee02.ent.ti.com>
+ <alpine.DEB.2.00.0906181505460.4087@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E317258@dlee02.ent.ti.com> <alpine.DEB.2.00.0906231342350.6545@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162038E3DA683@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from trinity.fluff.org ([89.16.178.74]:54425 "EHLO trinity.fluff.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752766AbZFZIh0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 26 Jun 2009 04:37:26 -0400
-Content-Disposition: inline
-In-Reply-To: <20090626062539.GX7352@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:42094 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756966AbZFZIpW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 04:45:22 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162038E3DA683@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Mike Chan <mikechan@google.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Jun 26, 2009 at 09:25:40AM +0300, Tony Lindgren wrote:
-> Hi all,
+Hi,
+
+On Tue, 23 Jun 2009, Woodruff, Richard wrote:
+
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Tuesday, June 23, 2009 3:05 PM
 > 
-> Last week I posted some more omap io.h clean-up patches to the linux-omap
-> list [1], and started looking at what it would take to reclaim lost address
-> space on top of the io.h clean-up patches.
+> > Looks like the significant difference is the use of CLKCTRL = 0x2 (+
+> > AUTOCOUNT).  Maybe there is some SDRC bug related to CLKCTRL = 0x2 that
+> > causes this problem?  Perhaps the problem is partially related to PWDENA =
+> > 1 and erratum 1.150?  Anyway, will do a test run here with this SDRC_POWER
+> > register value and see if the problem reproduces.
 > 
-> Looks like we should be able to reclaim about 454MB of the 640MB
-> of the lost IO address space by doing the following:
+> It is my guess not for PWDENA as it was reported on a system with that 
+> not set.  Yes that should not enabled per errata.  Anyway it only does 
+> something in OFF type scenarios where you don't use self-refresh. 
+> "Typical" use cases don't seem to be using this.
 > 
-> 1. Start converting drivers using omap_read/write to use ioremap +
->    __raw_read/write
+> There are a few unlock events which are best for any focused test. Most 
+> are supposed to auto-relock but ... I've heard of some validation tests 
+> in a few areas maybe they will yield something.
 
-ioremap implies readl/writel, the __raw stuff is for items that have been
-mapped by iodesc (iirc).
+A quick note: in stress testing here, was able to confirm that SDRC_POWER 
+= 0x000200AD causes problems under memory load and intensive CORE DVFS.  
+SDRC_POWER = 0x0002009D seems to work fine.  The difference is CLKCTRL = 1 
+(works) vs. CLKCTRL = 2 (fails).  According to the TRM, CLKCTRL = 2 
+enables self-refresh when AUTOCOUNT reaches 0.  There is probably some 
+race between AUTOCOUNT and the CORE DVFS SRAM code, or it is tickling some 
+SDRC bug.  Will look into this further later.
 
--- 
-Ben
+By the way, there appears to be a TRM bug in the "Dynamic Power Saving 
+Configurations" table in the SDRC chapter.  The "External SDRC CLK" column 
+should have "after AUTOCOUNT expiration" for CLKCTRL = 1 rows.
 
-Q:      What's a light-year?
-A:      One-third less calories than a regular year.
 
+- Paul
