@@ -1,49 +1,147 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: v4l2_int_device vs v4l2_subdev?
-Date: Fri, 26 Jun 2009 09:43:52 -0500
-Message-ID: <A24693684029E5489D1D202277BE8944405D0043@dlee02.ent.ti.com>
-References: <4A43FD77.1020709@mlbassoc.com>
- <5e9665e10906252227i4f667915rc1b52d6148c1a0e9@mail.gmail.com>,<200906260830.20193.hverkuil@xs4all.nl>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/2] Support OMAP3 VC adaptation with different Power IC
+Date: Fri, 26 Jun 2009 07:57:13 -0700
+Message-ID: <8763ejhwl2.fsf@deeprootsystems.com>
+References: <1950ceae0906251655r2ef9514o2bb2bd92b83be0f2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53524 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754222AbZFZOsS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 10:48:18 -0400
-In-Reply-To: <200906260830.20193.hverkuil@xs4all.nl>
-Content-Language: en-US
+Received: from mail-pz0-f202.google.com ([209.85.222.202]:40300 "EHLO
+	mail-pz0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850AbZFZO5R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 10:57:17 -0400
+Received: by pzk40 with SMTP id 40so299397pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 26 Jun 2009 07:57:20 -0700 (PDT)
+In-Reply-To: <1950ceae0906251655r2ef9514o2bb2bd92b83be0f2@mail.gmail.com> (sawsd wang's message of "Fri\, 26 Jun 2009 07\:55\:50 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hans Verkuil <hverkuil@xs4all.nl>, "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: Gary Thomas <gary@mlbassoc.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: sawsd wang <sawsdwang@gmail.com>
+Cc: linux-omap@vger.kernel.org, Chunqiu Wang <cqwang@motorola.com>
 
-> > But in user space there is nothing changed having access to
-> > device and control them.
-> > As you know, subdev and int-device is all about how to bind
-> > interface(or host?) and device and make them communicated each other.
-> > But using subdev device driver with int-device supporting interface
-> > (or host) device driver? it won't make any communication.
-> > So if you are running out of time with your project, you'd better use
-> > old driver of TVP. Like TVP driver in kernel 2.6.28 I suppose. But if
-> > you have enough time and wanna be challenging, try to convert
-> > in-device based omap3 camera interface driver to subdev supporting
-> > one.
-> 
-> Someone's got to do this. v4l2_subdev is the future and it has many
-> advantages over the older interfaces. The ability to be able to use the
-> same i2c driver in anything from USB webcams to PCI capture cards to
-> omap/davinci embedded platforms is very powerful.
+sawsd wang <sawsdwang@gmail.com> writes:
 
-Hi,
+> From c1aba8ba7af3ddd16346d95795bda71e65baa4d0 Mon Sep 17 00:00:00 2001
+> From: Chunqiu Wang <cqwang@motorola.com>
+> Date: Wed, 24 Jun 2009 06:48:52 +0800
+> Subject: [PATCH] Support OMAP3 VC adaptation with different Power IC
+>
+> Current OMAP SmartReflex driver only supports TI Triton
+> Power IC, add a callback to make it possible to use
+> different PowerIC and use different settings to
+> configure OMAP3 Voltage Controller for DVFS
+>
+> Board file can setup a new function to have different settings
+> on SR to configure their Power IC for voltage scaling
+>
+> Signed-off-by: Chunqiu Wang <cqwang@motorola.com>
 
-We have already this framework migration planned, but we haven't been
-able to do it, because we are still solving stability issues on the driver.
+Patch is still line-wrapped in at least one place, and patch 2/2 is
+wrapped in several.
 
-I beg for your patience, and i hope i can get my hands on this pretty soon.
+Based on format and the headers, it doesn't look to me like you're
+using git-send-email.  Really, git-send-email will make your life much
+simpler.
 
-I'll be updating my tree when i have something.
+Feel free to send me some test patches off-list so we can figure
+out your mailer problems.
 
-Regards,
-Sergio
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/smartreflex.c |   13 +++++++++++++
+>  arch/arm/mach-omap2/smartreflex.h |    4 ++++
+>  arch/arm/plat-omap/Kconfig        |    2 +-
+>  3 files changed, 18 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/smartreflex.c
+> b/arch/arm/mach-omap2/smartreflex.c
+> index 9d462e3..bacf602 100644
+> --- a/arch/arm/mach-omap2/smartreflex.c
+> +++ b/arch/arm/mach-omap2/smartreflex.c
+> @@ -52,6 +52,8 @@ struct omap_sr {
+>
+>  #define SR_REGADDR(offs)	(sr->srbase_addr + offset)
+>
+> +static omap3_voltagescale_vcbypass_t omap3_volscale_vcbypass_fun;
+> +
+>  static inline void sr_write_reg(struct omap_sr *sr, unsigned offset, u32 value)
+>  {
+>  	__raw_writel(value, SR_REGADDR(offset));
+> @@ -767,6 +769,11 @@ void disable_smartreflex(int srid)
+>  	}
+>  }
+>
+> +void omap3_voltagescale_vcbypass_setup(omap3_voltagescale_vcbypass_t fun)
+> +{
+> +	omap3_volscale_vcbypass_fun = fun;
+> +}
+> +
+>  /* Voltage Scaling using SR VCBYPASS */
+>  int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
+>  					u8 target_vsel, u8 current_vsel)
+> @@ -779,6 +786,10 @@ int sr_voltagescale_vcbypass(u32 target_opp, u32
+> current_opp,
+>  	u32 t2_smps_steps = 0;
+>  	u32 t2_smps_delay = 0;
+>
+> +	if (omap3_volscale_vcbypass_fun)
+> +		return omap3_volscale_vcbypass_fun(target_opp, current_opp,
+> +						target_vsel, current_vsel);
+> +
+>  	vdd = get_vdd(target_opp);
+>  	target_opp_no = get_opp_no(target_opp);
+>  	current_opp_no = get_opp_no(current_opp);
+> @@ -940,6 +951,7 @@ static int __init omap3_sr_init(void)
+>  		return -ENODEV;
+>          }
+>
+> +#ifdef CONFIG_TWL4030_CORE
+>  	/* Enable SR on T2 */
+>  	ret = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &RdReg,
+>  					R_DCDC_GLOBAL_CFG);
+> @@ -947,6 +959,7 @@ static int __init omap3_sr_init(void)
+>  	RdReg |= DCDC_GLOBAL_CFG_ENABLE_SRFLX;
+>  	ret |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER, RdReg,
+>  					R_DCDC_GLOBAL_CFG);
+> +#endif
+>
+>  	if (cpu_is_omap34xx()) {
+>  		sr1.clk = clk_get(NULL, "sr1_fck");
+> diff --git a/arch/arm/mach-omap2/smartreflex.h
+> b/arch/arm/mach-omap2/smartreflex.h
+> index 2a0e823..c4aca9d 100644
+> --- a/arch/arm/mach-omap2/smartreflex.h
+> +++ b/arch/arm/mach-omap2/smartreflex.h
+> @@ -248,9 +248,13 @@ void disable_smartreflex(int srid);
+>  int sr_voltagescale_vcbypass(u32 t_opp, u32 c_opp, u8 t_vsel, u8 c_vsel);
+>  void sr_start_vddautocomap(int srid, u32 target_opp_no);
+>  int sr_stop_vddautocomap(int srid);
+> +typedef int (*omap3_voltagescale_vcbypass_t)(u32 t_opp, u32 c_opp,
+> +						u8 t_vsel, u8 c_vsel);
+> +void omap3_voltagescale_vcbypass_setup(omap3_voltagescale_vcbypass_t fun);
+>  #else
+>  static inline void enable_smartreflex(int srid) {}
+>  static inline void disable_smartreflex(int srid) {}
+> +#define omap3_voltagescale_vcbypass_setup(fun) do {} while (0);
+>  #endif
+>
+>  #endif
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index c8ba1e2..8d2c607 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -68,7 +68,7 @@ config OMAP_DEBUG_CLOCKDOMAIN
+>
+>  config OMAP_SMARTREFLEX
+>  	bool "SmartReflex support"
+> -	depends on ARCH_OMAP34XX && TWL4030_CORE && PM
+> +	depends on ARCH_OMAP34XX && PM
+>  	help
+>  	  Say Y if you want to enable SmartReflex.
+>
+> -- 
+> 1.5.4.3
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
