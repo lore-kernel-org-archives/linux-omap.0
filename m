@@ -1,58 +1,83 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support for OMAP_4430
-Date: Fri, 26 Jun 2009 10:29:47 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B530F711@dbde02.ent.ti.com>
-References: <51412.192.168.10.89.1245911089.squirrel@dbdmail.itg.ti.com>
- <873a9os1nr.fsf@deeprootsystems.com>
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Subject: Re: v4l2_int_device vs v4l2_subdev?
+Date: Fri, 26 Jun 2009 14:27:15 +0900
+Message-ID: <5e9665e10906252227i4f667915rc1b52d6148c1a0e9@mail.gmail.com>
+References: <4A43FD77.1020709@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45054 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbZFZE7y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 00:59:54 -0400
-In-Reply-To: <873a9os1nr.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-px0-f190.google.com ([209.85.216.190]:56236 "EHLO
+	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034AbZFZF1M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 26 Jun 2009 01:27:12 -0400
+In-Reply-To: <4A43FD77.1020709@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Thursday, June 25, 2009 10:15 PM
-> To: Syed, Rafiuddin
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [RESUBMIT][PATCH][RFC] OMAP4: McSPI Support for OMAP_4430
-> 
-> "Syed Rafiuddin" <rafiuddin.syed@ti.com> writes:
-> 
-> > This patch adds McSPI support for OMAP4430 SDP platform. 
-> All the base addresses
-> > are changed between OMAP1/2/3 and OMAP4.The fields of the 
-> resource structures
-> > are filled at runtime to have McSPI support on OMAP4.
-> >
-> > Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> 
-> This driver needs some help for multi-omap, but that problem existed
-> before this patch, so
-> 
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> 
-> 
-> > ---
-> >  arch/arm/mach-omap2/devices.c |   25 +++++++++++++++++++++----
-> >  drivers/spi/omap2_mcspi.c     |   10 ++++++----
-> >  2 files changed, 27 insertions(+), 8 deletions(-)
-Not sure but looks like the patch needs split since different upstream paths
-1. arch/arm/mach-omap2/devices.c -- linux-arm
-2. drivers/spi/omap2_mcspi.c --- Don't know the list but should be some driver list.
+Hello,
 
-Is that correct ?
+On Fri, Jun 26, 2009 at 7:43 AM, Gary Thomas<gary@mlbassoc.com> wrote:
+> Still trying to wrap my head around the OMAP/34xx camera support.
+> I need to use the TVP5150 sensor/controller, but the existing
+> driver uses v4l_subdev. =A0The "working" examples I've found
+> (from Sergio's tree) use sensors like ov3640 with uses v4l2_int_devic=
+e
+>
+> Are these two totally separate beasts?
+> If I have an infrastructure (I assume) based on v4l2_int_device,
+> how do I use a v4l2_subdev device driver? =A0or need I move one to
+> the other?
+>
 
-Regards,
-Santosh
- 
+I've been through the same case (now I'm trying to use subdev
+framework and writing a new device driver based on that)
+As far as I understand, every v4l2 drivers are moving on subdev
+framework. But in user space there is nothing changed having access to
+device and control them.
+As you know, subdev and int-device is all about how to bind
+interface(or host?) and device and make them communicated each other.
+But using subdev device driver with int-device supporting interface
+(or host) device driver? it won't make any communication.
+So if you are running out of time with your project, you'd better use
+old driver of TVP. Like TVP driver in kernel 2.6.28 I suppose. But if
+you have enough time and wanna be challenging, try to convert
+in-device based omap3 camera interface driver to subdev supporting
+one.
+Cheers,
+
+Nate
+
+
+> ... dizzy from traveling down too many twisty little passages :-(
+>
+> --
+> ------------------------------------------------------------
+> Gary Thomas =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0Consulting for the
+> MLB Associates =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0Embedded world
+> ------------------------------------------------------------
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+--=20
+=3D
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
