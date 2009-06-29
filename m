@@ -1,54 +1,28 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 04/04] OMAP3: PM: Update sleep/wakeup sequence and device grp associations
-Date: Mon, 29 Jun 2009 15:29:41 -0700
-Message-ID: <871vp27jxm.fsf@deeprootsystems.com>
-References: <1245153154-1876-1-git-send-email-rnayak@ti.com>
-	<1245153154-1876-2-git-send-email-rnayak@ti.com>
-	<1245153154-1876-3-git-send-email-rnayak@ti.com>
-	<1245153154-1876-4-git-send-email-rnayak@ti.com>
+Subject: Re: [PATCH] OMAP3: PM: Move the clk stabilization delay to the right place
+Date: Mon, 29 Jun 2009 16:16:36 -0700
+Message-ID: <87ws6u636z.fsf@deeprootsystems.com>
+References: <1246015755-9267-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:47717 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751716AbZF2W3t (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 18:29:49 -0400
-Received: by pzk26 with SMTP id 26so471021pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 15:29:53 -0700 (PDT)
-In-Reply-To: <1245153154-1876-4-git-send-email-rnayak@ti.com> (Rajendra Nayak's message of "Tue\, 16 Jun 2009 17\:22\:34 +0530")
+Received: from mail-px0-f190.google.com ([209.85.216.190]:50797 "EHLO
+	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753039AbZF2XRT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 19:17:19 -0400
+Received: by pxi28 with SMTP id 28so3684496pxi.33
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 16:17:22 -0700 (PDT)
+In-Reply-To: <1246015755-9267-1-git-send-email-rnayak@ti.com> (Rajendra Nayak's message of "Fri\, 26 Jun 2009 16\:59\:15 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org, dderrick@ti.com, r-woodruff2@ti.com
+Cc: linux-omap@vger.kernel.org
 
 Rajendra Nayak <rnayak@ti.com> writes:
 
-> This patch enables CONFIG_TWL4030_POWER in omap_3430sdp_pm_defconfig
-> and updates the sleep and wake sequence for 3430sdp.
-> Sleep sequence:
-> -1-Turn off HFCLKOUT
-> -2-Turn off Vdd1
-> -3-Turn off Vdd2
-> -4-Turn off VPLL1
->
-> Wakeup p3 sequence
-> -1-Turn on HFCLKOUT
->
-> Wakeup P12 sequence
-> -1-Turn on HFCLKOUT
-> -2-Turn on Vdd1
-> -3-Turn on Vdd2
-> -4-Turn on VPLL1
->
-> Also HFCLKOUT is associated to device group P3. This makes
-> sure sys clk from PMIC to OMAP is cut during RET as well as OFF.
->
-> VDD1 and VDD2 are associated to device group P1 so that they
-> are cut only during OFF.
->
-> CLKEN by default is assigned to all device groups and is left
-> unchanged. This makes sure the oscillator is not shutdown
-> in RET states.
+> The clock stabilization delay post a M2 divider change is needed
+> even before a SDRC interface clock re-enable and not only before
+> jumping back to SDRAM.
 >
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
@@ -57,149 +31,31 @@ Thanks, pushing to PM branch (and pm-2.6.29)
 Kevin
 
 > ---
->  arch/arm/configs/omap_3430sdp_pm_defconfig |    2 +-
->  arch/arm/mach-omap2/board-3430sdp.c        |   79 +++++++++++++++-------------
->  2 files changed, 44 insertions(+), 37 deletions(-)
+>  arch/arm/mach-omap2/sram34xx.S |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 >
-> diff --git a/arch/arm/configs/omap_3430sdp_pm_defconfig b/arch/arm/configs/omap_3430sdp_pm_defconfig
-> index aefdb5b..8ec604c 100644
-> --- a/arch/arm/configs/omap_3430sdp_pm_defconfig
-> +++ b/arch/arm/configs/omap_3430sdp_pm_defconfig
-> @@ -777,7 +777,7 @@ CONFIG_SSB_POSSIBLE=y
->  # CONFIG_HTC_PASIC3 is not set
->  # CONFIG_TPS65010 is not set
->  CONFIG_TWL4030_CORE=y
-> -# CONFIG_TWL4030_POWER is not set
-> +CONFIG_TWL4030_POWER=y
->  # CONFIG_MFD_TMIO is not set
->  # CONFIG_MFD_T7L66XB is not set
->  # CONFIG_MFD_TC6387XB is not set
-> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-> index 1f0aeb2..4587815 100644
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -47,8 +47,6 @@
->  #include "pm.h"
->  #include "omap3-opp.h"
->  
-> -#define CONFIG_DISABLE_HFCLK 1
-> -
->  #define SDP3430_ETHR_START		DEBUG_BASE
->  #define SDP3430_ETHR_GPIO_IRQ_SDPV1	29
->  #define SDP3430_ETHR_GPIO_IRQ_SDPV2	6
-> @@ -412,18 +410,14 @@ static struct twl4030_madc_platform_data sdp3430_madc_data = {
->  
->  
->  static struct twl4030_ins __initdata sleep_on_seq[] = {
-> -/*
-> - * Turn off VDD1 and VDD2.
-> - */
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-> +	/* Turn off HFCLKOUT */
-> +	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 2},
-> +	/* Turn OFF VDD1 */
-> +	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 2},
-> +	/* Turn OFF VDD2 */
->  	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-> -#ifdef CONFIG_DISABLE_HFCLK
-> -/*
-> - * And also turn off the OMAP3 PLLs and the sysclk output.
-> - */
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_OFF), 3},
-> -#endif
-> +	/* Turn OFF VPLL1 */
-> +	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 2},
->  };
->  
->  static struct twl4030_script sleep_on_script __initdata = {
-> @@ -432,30 +426,31 @@ static struct twl4030_script sleep_on_script __initdata = {
->  	.flags	= TRITON_SLEEP_SCRIPT,
->  };
->  
-> -static struct twl4030_ins wakeup_seq[] __initdata = {
-> -#ifndef CONFIG_DISABLE_HFCLK
-> -/*
-> - * Wakeup VDD1 and VDD2.
-> - */
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 4},
-> +static struct twl4030_ins wakeup_p12_seq[] __initdata = {
-> +	/* Turn on HFCLKOUT */
-> +	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
-> +	/* Turn ON VDD1 */
-> +	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 2},
-> +	/* Turn ON VDD2 */
->  	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 2},
-> -#else
-> -/*
-> - * Reenable the OMAP3 PLLs.
-> - * Wakeup VDD1 and VDD2.
-> - * Reenable sysclk output.
-> - */
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
-> -#endif /* #ifndef CONFIG_DISABLE_HFCLK */
-> +	/* Turn ON VPLL1 */
-> +	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 2},
->  };
->  
-> -static struct twl4030_script wakeup_script __initdata = {
-> -	.script	= wakeup_seq,
-> -	.size	= ARRAY_SIZE(wakeup_seq),
-> -	.flags	= TRITON_WAKEUP12_SCRIPT | TRITON_WAKEUP3_SCRIPT,
-> +static struct twl4030_script wakeup_p12_script __initdata = {
-> +	.script	= wakeup_p12_seq,
-> +	.size	= ARRAY_SIZE(wakeup_p12_seq),
-> +	.flags	= TRITON_WAKEUP12_SCRIPT,
-> +};
-> +
-> +static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-> +	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 2},
-> +};
-> +
-> +static struct twl4030_script wakeup_p3_script __initdata = {
-> +	.script = wakeup_p3_seq,
-> +	.size   = ARRAY_SIZE(wakeup_p3_seq),
-> +	.flags  = TRITON_WAKEUP3_SCRIPT,
->  };
->  
->  static struct twl4030_ins wrst_seq[] __initdata = {
-> @@ -476,19 +471,31 @@ static struct twl4030_ins wrst_seq[] __initdata = {
->  };
->  static struct twl4030_script wrst_script __initdata = {
->  	.script = wrst_seq,
-> -	.size   = ARRAY_SIZE(wakeup_seq),
-> +	.size   = ARRAY_SIZE(wrst_seq),
->  	.flags  = TRITON_WRST_SCRIPT,
->  };
->  
->  static struct twl4030_script *twl4030_scripts[] __initdata = {
->  	&sleep_on_script,
-> -	&wakeup_script,
-> +	&wakeup_p12_script,
-> +	&wakeup_p3_script,
->  	&wrst_script,
->  };
->  
-> +static struct twl4030_resconfig twl4030_rconfig[] = {
-> +	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3, .type = -1,
-> +		.type2 = -1 },
-> +	{ .resource = RES_VDD1, .devgroup = DEV_GRP_P1, .type = -1,
-> +		.type2 = -1 },
-> +	{ .resource = RES_VDD2, .devgroup = DEV_GRP_P1, .type = -1,
-> +		.type2 = -1 },
-> +	{ 0, 0},
-> +};
-> +
->  static struct twl4030_power_data sdp3430_t2scripts_data __initdata = {
->  	.scripts	= twl4030_scripts,
->  	.size		= ARRAY_SIZE(twl4030_scripts),
-> +	.resource_config = twl4030_rconfig,
->  };
->  
->  /*
+> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+> index f41f8d9..481f912 100644
+> --- a/arch/arm/mach-omap2/sram34xx.S
+> +++ b/arch/arm/mach-omap2/sram34xx.S
+> @@ -97,6 +97,8 @@ ENTRY(omap3_sram_configure_core_dpll)
+>  	blne	lock_dll
+>  	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
+>  	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
+> +	mov	r12, r5
+> +	bl	wait_clk_stable		@ wait for SDRC to stabilize
+>  	bl	enable_sdrc		@ take SDRC out of idle
+>  	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+>  	bleq	wait_dll_unlock
+> @@ -104,8 +106,6 @@ ENTRY(omap3_sram_configure_core_dpll)
+>  	cmp	r7, #1			@ if increasing SDRC clk rate,
+>  	beq	return_to_sdram		@ return to SDRAM code, otherwise,
+>  	bl	configure_sdrc		@ reprogram SDRC regs now
+> -	mov	r12, r5
+> -	bl	wait_clk_stable		@ wait for SDRC to stabilize
+>  return_to_sdram:
+>  	isb				@ prevent speculative exec past here
+>  	mov 	r0, #0 			@ return value
 > -- 
 > 1.5.4.7
 >
