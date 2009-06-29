@@ -1,52 +1,87 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: get_irq_regs() from soft IRQ
-Date: Mon, 29 Jun 2009 16:19:31 +0100
-Message-ID: <20090629151931.GA9042@n2100.arm.linux.org.uk>
-References: <200906291631.19562.jpihet@mvista.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [ARM][OMAP] TWL4030 IRQ
+Date: Mon, 29 Jun 2009 21:04:53 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B53AC23F@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E9C6@dbde02.ent.ti.com>
+ <20090624075756.GA13052@n2100.arm.linux.org.uk>
+ <20090629093004.GA2111@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-Content-Disposition: inline
-In-Reply-To: <200906291631.19562.jpihet@mvista.com>
-List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
-List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
-List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: Jean Pihet <jpihet@mvista.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, oprofile-list@lists.sourceforge.net
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:60028 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753041AbZF2PfR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 11:35:17 -0400
+In-Reply-To: <20090629093004.GA2111@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Jun 29, 2009 at 04:31:18PM +0200, Jean Pihet wrote:
-> I am trying to get the latest IRQ registers from a timer or a work queue
-> but I am running into problems:
-> - get_irq_regs() returns NULL in some cases,
+> And here it is - I've only build-tested it so far.
+> 
+>  drivers/mfd/twl4030-irq.c |   55 
+> ++++++++++++++++++--------------------------
+>  1 files changed, 23 insertions(+), 32 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+> index bae61b2..4bb1ea7 100644
+> --- a/drivers/mfd/twl4030-irq.c
+> +++ b/drivers/mfd/twl4030-irq.c
+> @@ -180,15 +180,9 @@ static struct completion irq_event;
+>  static int twl4030_irq_thread(void *data)
+>  {
+>  	long irq = (long)data;
+> -	struct irq_desc *desc = irq_to_desc(irq);
+>  	static unsigned i2c_errors;
+>  	static const unsigned max_i2c_errors = 100;
+>  
+> -	if (!desc) {
+> -		pr_err("twl4030: Invalid IRQ: %ld\n", irq);
+> -		return -EINVAL;
+> -	}
+> -
+>  	current->flags |= PF_NOFREEZE;
+>  
+>  	while (!kthread_should_stop()) {
+> @@ -240,38 +234,25 @@ static int twl4030_irq_thread(void *data)
+>  		}
+>  		local_irq_enable();
+>  
+> -		desc->chip->unmask(irq);
+> +		enable_irq(irq);
+>  	}
+>  
+>  	return 0;
+>  }
+Russell,
+Just a question here.
 
-It will always return NULL outside of IRQ context - and only returns valid
-pointers when used inside IRQ context.
+In the enable_irq(irq) and disable_irq(irq) call tree, internally there are calls to 
+the interrupt controller chip.
 
-It's one of these things that nests itself - when you have several IRQs
-being processed on one CPU, there are several register contexts saved,
-and get_irq_regs() returns the most recent one.
+In disable_irq() path:
+	desc->chip->disable(irq);
+And in emable_irq() path:
+	desc->chip->enable(irq);
 
-> The use case is that the performance unit (PMNC) of the Cortex A8 has some 
-> serious bug, in short the performance counters overflow IRQ is to be avoided.
+But the in gic gic_chip, enable/disable fn are not populated.
 
-I don't follow.  None of the PMNC support code in the mainline kernel
-uses get_irq_regs() outside of IRQ context.
+static struct irq_chip gic_chip = {
+	.name		= "GIC",
+	.ack		= gic_ack_irq,
+	.mask		= gic_mask_irq,
+	.unmask		= gic_unmask_irq,
+#ifdef CONFIG_SMP
+	.set_affinity	= gic_set_cpu,
+#endif
+}
+Do we need these(disable/enable) hooks in gic_chip as well ?
 
-> Some questions:
-> - is there a way to get the last 'real' IRQ registers from a timer or work 
-> queue handler?
+Regards,
+Santosh
+ 
 
-No.  Outside of IRQ events, the saved IRQ context does not exist.
-
--------------------------------------------------------------------
-List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+  
