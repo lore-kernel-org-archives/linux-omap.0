@@ -1,140 +1,81 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [ARM][OMAP] TWL4030 IRQ
-Date: Mon, 29 Jun 2009 10:30:04 +0100
-Message-ID: <20090629093004.GA2111@n2100.arm.linux.org.uk>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E9C6@dbde02.ent.ti.com> <20090624075756.GA13052@n2100.arm.linux.org.uk>
+From: "Kamat, Nishant" <nskamat@ti.com>
+Subject: RE: [PATCH] OMAP2/3: DMA errata correction
+Date: Mon, 29 Jun 2009 06:21:01 -0500
+Message-ID: <DFEF307E035C8647B119E6A60DB62D4A0199C96043@dlee02.ent.ti.com>
+References: <1245995252-16453-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33477 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752772AbZF2JaO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 05:30:14 -0400
-Content-Disposition: inline
-In-Reply-To: <20090624075756.GA13052@n2100.arm.linux.org.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:60185 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751621AbZF2LVN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 07:21:13 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5TBLBNC020265
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 06:21:16 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5TBLADF026460
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 06:21:10 -0500 (CDT)
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n5TBLArb018671
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 06:21:10 -0500 (CDT)
+In-Reply-To: <1245995252-16453-1-git-send-email-vikram.pandita@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Jun 24, 2009 at 08:57:56AM +0100, Russell King - ARM Linux wrote:
-> On Wed, Jun 24, 2009 at 01:16:52PM +0530, Shilimkar, Santosh wrote:
-> > After digging a bit, the proposed twl_irq change would need some major 
-> > changes.
-> > 
-> > 1. All the T2(TWL)drivers ( rtc, madc, bci, gpio, keypad, usb, mmc)needs
-> > modification.Currently twl_irq fw implements kind of "twl4030_irq_chip" 
-> > which allows all the T2 drivers to get virtual interrupt numbers and can
-> > make use of standard "request_irq" linux api.
+Vikram,
+ 
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+> Sent: Friday, June 26, 2009 11:18 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Pandita, Vikram
+> Subject: [PATCH] OMAP2/3: DMA errata correction
 > 
-> You can still use virtual interrupt numbers.  All you're changing is
-> _how_ you're handling the interrupts internally.
+> This errata is valid for:
+> OMAP2420 Errata 1.85 Impacts all 2420 ES rev
+> OMAP2430 Errata 1.10 Impacts only ES1.0
+> Description: DMA may hang when several channels are used in parallel
 > 
-> I'll see about creating a patch tomorrow.
+> OMAP3430: Not impacted, so remove the errata fix for omap3
+> 
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> ---
+>  arch/arm/plat-omap/dma.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 7677a4a..feebaf3 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -946,7 +946,9 @@ void omap_start_dma(int lch)
+>  
+>  			cur_lch = next_lch;
+>  		} while (next_lch != -1);
+> -	} else if (cpu_class_is_omap2()) {
+> +	} else if (cpu_is_omap24xx() ||
 
-And here it is - I've only build-tested it so far.
 
- drivers/mfd/twl4030-irq.c |   55 ++++++++++++++++++--------------------------
- 1 files changed, 23 insertions(+), 32 deletions(-)
+This should be  cpu_is_omap242x() || ...
 
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index bae61b2..4bb1ea7 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -180,15 +180,9 @@ static struct completion irq_event;
- static int twl4030_irq_thread(void *data)
- {
- 	long irq = (long)data;
--	struct irq_desc *desc = irq_to_desc(irq);
- 	static unsigned i2c_errors;
- 	static const unsigned max_i2c_errors = 100;
- 
--	if (!desc) {
--		pr_err("twl4030: Invalid IRQ: %ld\n", irq);
--		return -EINVAL;
--	}
--
- 	current->flags |= PF_NOFREEZE;
- 
- 	while (!kthread_should_stop()) {
-@@ -240,38 +234,25 @@ static int twl4030_irq_thread(void *data)
- 		}
- 		local_irq_enable();
- 
--		desc->chip->unmask(irq);
-+		enable_irq(irq);
- 	}
- 
- 	return 0;
- }
- 
- /*
-- * handle_twl4030_pih() is the desc->handle method for the twl4030 interrupt.
-- * This is a chained interrupt, so there is no desc->action method for it.
-+ * handle_twl4030_pih() is the handler for the main twl4030 interrupt.
-  * Now we need to query the interrupt controller in the twl4030 to determine
-  * which module is generating the interrupt request.  However, we can't do i2c
-  * transactions in interrupt context, so we must defer that work to a kernel
-  * thread.  All we do here is acknowledge and mask the interrupt and wakeup
-  * the kernel thread.
-  */
--static void handle_twl4030_pih(unsigned int irq, struct irq_desc *desc)
--{
--	/* Acknowledge, clear *AND* mask the interrupt... */
--	desc->chip->ack(irq);
--	complete(&irq_event);
--}
--
--static struct task_struct *start_twl4030_irq_thread(long irq)
-+static irqreturn_t handle_twl4030_pih(int irq, void *devid)
- {
--	struct task_struct *thread;
--
--	init_completion(&irq_event);
--	thread = kthread_run(twl4030_irq_thread, (void *)irq, "twl4030-irq");
--	if (!thread)
--		pr_err("twl4030: could not create irq %ld thread!\n", irq);
--
--	return thread;
-+	disable_irq_nosync(irq);
-+	complete(devid);
-+	return IRQ_HANDLED;
- }
- 
- /*----------------------------------------------------------------------*/
-@@ -734,18 +715,28 @@ int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- 	}
- 
- 	/* install an irq handler to demultiplex the TWL4030 interrupt */
--	task = start_twl4030_irq_thread(irq_num);
--	if (!task) {
--		pr_err("twl4030: irq thread FAIL\n");
--		status = -ESRCH;
--		goto fail;
-+	init_completion(&irq_event);
-+
-+	status = request_irq(irq_num, handle_twl4030_pih, IRQF_DISABLED,
-+				"TWL4030-PIH", &irq_event);
-+	if (status < 0) {
-+		pr_err("twl4030: could not claim irq%d: %d\n", irq_num, status);
-+		goto fail_rqirq;
- 	}
- 
--	set_irq_data(irq_num, task);
--	set_irq_chained_handler(irq_num, handle_twl4030_pih);
-+	task = kthread_run(twl4030_irq_thread, (void *)irq_num, "twl4030-irq");
-+	if (IS_ERR(task)) {
-+		pr_err("twl4030: could not create irq %d thread!\n", irq_num);
-+		status = PTR_ERR(task);
-+		goto fail_kthread;
-+	}
- 
- 	return status;
- 
-+fail_kthread:
-+	free_irq(irq_num, &irq_event);
-+fail_rqirq:
-+	/* clean up twl4030_sih_setup */
- fail:
- 	for (i = irq_base; i < irq_end; i++)
- 		set_irq_chip_and_handler(i, NULL, NULL);
+
+Regards,
+Nishant
+
+
+
+
+> +		(cpu_is_omap243x() &&  omap_type() <= 
+> OMAP2430_REV_ES1_0)) {
+> +
+>  		/* Errata: Need to write lch even if not using 
+> chaining */
+>  		dma_write(lch, CLNK_CTRL(lch));
+>  	}
+> -- 
+> 1.6.3.3.334.g916e1
