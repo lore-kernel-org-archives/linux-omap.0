@@ -1,51 +1,47 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] Can a phone hook switch follow alsa jack model?
-Date: Mon, 29 Jun 2009 15:32:15 +0100
-Message-ID: <20090629143215.GA23835@rakim.wolfsonmicro.main>
-References: <4A40D896.8010208@tis.icnet.pl>
- <20090623222255.GA5617@sirena.org.uk>
- <4A4229EB.2090606@tis.icnet.pl>
- <20090625110508.GF17812@sirena.org.uk>
- <4A437226.4090202@tis.icnet.pl>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: [PATCH 0/2] OMAP3: PM: Make PRM setup times and CPUidle
+ latencies/threshold board specific
+Date: Mon, 29 Jun 2009 20:04:34 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305B77D98@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:41422 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753170AbZF2OcQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 29 Jun 2009 10:32:16 -0400
-Content-Disposition: inline
-In-Reply-To: <4A437226.4090202@tis.icnet.pl>
+Received: from devils.ext.ti.com ([198.47.26.153]:43705 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755319AbZF2Oej convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 10:34:39 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5TEYavj004336
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 09:34:41 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n5TEYZVp022859
+	for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 20:04:35 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jonathan McDowell <noodles@earth.li>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jun 25, 2009 at 02:48:38PM +0200, Janusz Krzysztofik wrote:
+Hi,
 
-> During my previous, gpio-keys based attempt, I submitted a patch
-> that added new SW_HANDSET_PICK_UP event definition to
-> include/linux/input.h. Even if not accepted because of no
+The setup times to be programmed in the PRM module on OMAP (for clksetup, voltsetup etc)
+are board specific. They depend heavily on the PMIC used and even on different boards
+with the same PMIC, they vary based on the sleep/wake sequence used, system clock speed et al.
 
-Something like hook switch would be a more common name - the switch is
-closed when the phone is on hook.
+The CPUidle latencies and hence thresholds (derived from latencies and Power consumption numbers)
+and very much dependent on these setup values and hence also need to be board specific.
 
-> comments, especially on the name I have choosen. However, there were
-> another name proposed by ams-delta board maintainer, Jonathan
-> McDowell - SW_PHONE_HOOK. Even if my wording may better match those
-> already existing ..._INSERT names, I am not sure which one should I
-> use.
+This patchset makes it possible for the PRM setup times and the CPUidle latencies/threshold numbers to be
+configured from board files, and some default values are used if nothing gets passed from board files.
 
-The _INSERT isn't at all appropriate since there's nothing being
-inserted here - the _INSERT names refer to the fact that something is
-being plugged in to a jack.
+Only the 3430SDP board file is currently been modifed to pass these values and the rest of the 3430
+based board's still pass NULL and hence use the default values defined.
 
-> Please also note that SND_JACK_HEADSET, that I temporarily use for
-> now, is an alias for SND_JACK_HEADPHONE | SND_JACK_MICROPHONE. Those
-> two can be seen as matching what a handset actually is. On headset
-> jack insert/remove, two distinct reports/events are generated, one
+Also the values currenlty passed for the 3430SDP are not optimal. I will send out a sperate patchset
+which would popluate the optimal setup times/proper latencies/optimal thresholds for the 3430SDP.
 
-OTOH a phone going on hook tends to mean something rather different in
-UI terms to having something plugged into a jack - it's part of the
-normal flow of making a phone call.
+This patchset is generated on top of the latest pm(2.6.30) branch and validated on the SDP
+using the omap3_pm_defconfig.
+
+regards,
+Rajendra
