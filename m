@@ -1,64 +1,55 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: musb Rx DMA (Mentor) failure when one DMA receive is started
- before the previous completes (??)
-Date: Mon, 29 Jun 2009 07:51:06 +0300
-Message-ID: <20090629045106.GA25871@nokia.com>
-References: <5a7b8b7b0906281950u2d135060x1e29fea44c1a7bd8@mail.gmail.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH] [RFC] ASoC: OMAP: fix OMAP1510 broken PCM pointer
+ callback
+Date: Mon, 29 Jun 2009 09:04:03 +0300
+Message-ID: <20090629090403.5bfd35c8.jhnikula@gmail.com>
+References: <200906280021.05931.jkrzyszt@tis.icnet.pl>
+	<20090628223732.53954402.jhnikula@gmail.com>
+	<200906290008.59640.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5a7b8b7b0906281950u2d135060x1e29fea44c1a7bd8-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Hugo Vincent <hugo.vincent-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-omap <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:38256 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019AbZF2GDV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 02:03:21 -0400
+In-Reply-To: <200906290008.59640.jkrzyszt@tis.icnet.pl>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-kernel@vger.kernel.org, broonie@opensource.wolfsonmicro.com
 
-On Mon, Jun 29, 2009 at 04:50:38AM +0200, ext Hugo Vincent wrote:
-> Hi all,
-> 
-> I'm still seeing a problem with musb receive DMA crashing when large
-> transfers happen in rapid succession.
-> 
-> I've narrowed it down to this test case: Pinging the OMAP over USB
-> ethernet gadget, with large (64K) ping packets. At the start, the
-> system is otherwise idle. If the interval is set higher than the ping
-> time (i.e. 0.05 = 50ms in the first example), then it doesn't crash.
-> If I reduce the interval of these packets to 20 ms (second example
-> below), then start loading the system (increasing the ping time
-> through 20 ms), I see the crash (log below). Alternately, decreasing
-> the ping interval to 10 ms causes the crash after one packet.
-> 
-> desktop ~$ sudo ping -i 0.05 -s 65507 192.168.2.2
-> PING 192.168.2.2 (192.168.2.2) 65507(65535) bytes of data.
-> 65515 bytes from 192.168.2.2: icmp_seq=1 ttl=64 time=19.4 ms
-> 65515 bytes from 192.168.2.2: icmp_seq=2 ttl=64 time=19.4 ms
-> 65515 bytes from 192.168.2.2: icmp_seq=3 ttl=64 time=19.4 ms
-> ...
-> --> Does NOT crash
-> 
-> desktop ~$ sudo ping -i 0.02 -s 65507 192.168.2.2
-> PING 192.168.2.2 (192.168.2.2) 65507(65535) bytes of data.
-> 65515 bytes from 192.168.2.2: icmp_seq=1 ttl=64 time=19.5 ms
-> 65515 bytes from 192.168.2.2: icmp_seq=2 ttl=64 time=19.3 ms
-> 65515 bytes from 192.168.2.2: icmp_seq=3 ttl=64 time=19.3 ms
-> ...
-> --> Does crash, as soon as the system is loaded a bit such that the
-> ping time would increase beyond 20 ms.
+On Mon, 29 Jun 2009 00:08:59 +0200
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
 
-I haven't managed to make it crash, but musb rtl 1.4 has a hw problem
-where it can't handle simultaneous dma transfers. You have to use one
-channel at a time.
+> AFAIK, both CSSA_L and CDSA_L DMA registers are static. Loaded by CPU
+> with 16 LSB of initial source and destination port addresses
+> respectively, they are never updated by the DMA engine itself. That's
+> why they can't be used for transfer progress indication unless
+> updated by CPU.
+> 
+> The old omap-alsa driver was just updating them, intentionally or
+> not, by reprogramming and restarting DMA every PCM period. That's why
+> calculating PCM pointers from CSSA_L/CDSA_L worked.
+> 
+Thanks for finding out this. Good to know that OMAP low-level DMA code
+now in this respect is as good as HW allows it.
 
-One way to work around this issue, is to allocate channel on a
-per-request basis. I have some patches for that but they're not clean
-enough to be sent out and they probably break blackfin that has some
-other issues with mentor dma.
+> ASoC OMAP driver transfers whole PCM buffer with single DMA transfer,
+> so it doesn't need to update DMA source/destination port address
+> after initial playback/capture setup, even if restarting DMA, and
+> actually never does this. Calculating PCM pointers from CSSA_L/CDSA_L
+> registers without updating them every period would then be wrong.
+> 
+> For capture, reading CPC, that follows destination port address
+> progress, just works fine (for both old and new driver). For
+> playback, similar hardware functionality seems to be missing, so it
+> has to be emulated in software if required.
+> 
+Kind an odd HW behaviour but that can happen. Probably it would be good
+to explain this also in function omap_get_dma_src_pos.
 
--- 
-balbi
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Mark, I think this is fair to queue a fix for 2.6.31.
+
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
