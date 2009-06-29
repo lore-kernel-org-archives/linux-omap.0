@@ -1,250 +1,153 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH] [RFC] ASoC: OMAP: fix OMAP1510 broken PCM pointer callback
-Date: Mon, 29 Jun 2009 15:51:07 +0200
-Message-ID: <200906291551.08437.jkrzyszt@tis.icnet.pl>
-References: <200906280021.05931.jkrzyszt@tis.icnet.pl> <200906290008.59640.jkrzyszt@tis.icnet.pl> <200906290937.58786.peter.ujfalusi@nokia.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH 3/4] OMAP3 McSPI: Adds context save/restore
+Date: Mon, 29 Jun 2009 17:25:05 +0300
+Message-ID: <4A48CEC1.10203@nokia.com>
+References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com> <1245965646-20070-2-git-send-email-khilman@deeprootsystems.com> <1245965646-20070-3-git-send-email-khilman@deeprootsystems.com> <1245965646-20070-4-git-send-email-khilman@deeprootsystems.com> <4A44B8D7.8020508@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+ boundary="------------080106070806090604030504"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:49559 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752283AbZF2Nvs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 09:51:48 -0400
-In-Reply-To: <200906290937.58786.peter.ujfalusi@nokia.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.233]:30840 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751369AbZF2OZU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 10:25:20 -0400
+In-Reply-To: <4A44B8D7.8020508@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hemanth V <hemanthv@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>
 
-On Monday 29 June 2009 08:37:58 Peter Ujfalusi wrote:
-> On Monday 29 June 2009 01:08:59 ext Janusz Krzysztofik wrote:
-> > For capture, reading CPC, that follows destination port address pro=
-gress,
-> > just works fine (for both old and new driver). For playback, simila=
-r
-> > hardware functionality seems to be missing, so it has to be emulate=
-d in
-> > software if required.
->
-> Hmmm, I had taken a look at the 2.4.21 kernel sources, which I have l=
-aying
-> around in my disk from an old project which used OMAP1510. The OSS au=
-dio
-> code does use the CPC register for determining the DMA progress both =
-for
-> playback and recording. I know that the audio was working OK on that =
-board,
-> since we had doom running there.
+This is a multi-part message in MIME format.
+--------------080106070806090604030504
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I am not able to find any information on how DMA can be configured for =
-CPC to=20
-reflect either source or destination port address progress. Official=20
-documentation, even if not very clear for me, seems to suggest that it =
-always=20
-follows destination port address, even if constatnt (ie=20
-DMA_CCR:DST_AMODE(15:14) =3D=3D 0).
+Hello,
 
-> The difference that I can see is that the OSS code also configured th=
-e
-> CCR:SYNC(4:0) bits as well.
-> Looking at the DMA_CPC register description in the OMAP1510 TRM: it l=
-ist
-> two cases on how it behaves and both require the DMA_CCR:SYNC !=3D 0.=
-=2E.
+Koskinen Aaro (Nokia-D/Helsinki) wrote:
+> I'm afraid this patch needs more work. The optimized restoration of
+> chconf can cause occasionally errors with off mode if multiple chip
+> selects are in use. In practice it is needed to restore all CHxCONF
+> registers, not just the one by a specific chip select.
+> 
+> ext Kevin Hilman wrote:
+>> From: Hemanth V <hemanthv@ti.com>
+>>
+>> This patch adds context save/restore feature to McSPI driver.
+>> This includes fixes by Aaro Koskinen
+>>
+>> Signed-off-by: Hemanth V <hemanthv@ti.com>
+>> Reviewed-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+>> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>> ---
+>>  drivers/spi/omap2_mcspi.c |  134 +++++++++++++++++++++++++++++++++-----------
+>>  1 files changed, 100 insertions(+), 34 deletions(-)
 
-Not exactly. According to my copy of=20
-http://focus.ti.com/lit/ug/spru674/spru674.pdf, the secnod case is:
+Here's a patch on top of PM branch that restores all the registers. This 
+is basically the same what Jouni originally suggested 
+(http://marc.info/?l=linux-omap&m=123366825525879&w=2).
 
-	If the channel transfer is synchronized on frames
-	(DMA_CCR SYNC =E2=89=A0 0 and DMA_CCR FS =3D 1) or not
-	synchronized (DMA_CCR SYNC =3D 0), the register is
-	updated with 16 LSB of the address each time the
-	destination port issues the last request for a frame.
+A.
 
-Anyway, that seems to be irrelevant in our case.
+--------------080106070806090604030504
+Content-Type: text/x-diff;
+ name="0001-PM-OMAP-SPI-Restore-all-CHxCONF-registers.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0001-PM-OMAP-SPI-Restore-all-CHxCONF-registers.patch"
 
-> The current DMA code for OMAP1510 just plain ignores the DMA_CCR:SYNC=
- for
-> some reason.
+>From 92ee5d91385e96a358d44b0e59ae3484d4191786 Mon Sep 17 00:00:00 2001
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Date: Mon, 29 Jun 2009 14:20:49 +0300
+Subject: [PATCH] PM: OMAP: SPI: Restore all CHxCONF registers
 
-Not exactly. Even if not touched inside any of omap_set_dma_transfer_pa=
-rams(),=20
-omap_set_dma_src_params() nor omap_set_dma_dest_params(), these bits ar=
-e=20
-already set by arch/arm/plat-omap/dma.c:omap_request_dma(int dev_id, ..=
-=2E):
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ drivers/spi/omap2_mcspi.c |   21 ++++++++++++++-------
+ 1 files changed, 14 insertions(+), 7 deletions(-)
 
- 765         } else if (cpu_is_omap7xx() || cpu_is_omap15xx()) {
- 766                 dma_write(dev_id, CCR(free_ch));
-=20
-> Can you try the following patch:
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index a75c546..264bd21 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -43,6 +43,7 @@
+ 
+ /* OMAP2 has 3 SPI controllers, while OMAP3 has 4 */
+ #define OMAP2_MCSPI_MAX_CTRL 		4
++#define OMAP2_MCSPI_MAX_CS 		4
+ 
+ #define OMAP2_MCSPI_REVISION		0x00
+ #define OMAP2_MCSPI_SYSCONFIG		0x10
+@@ -134,8 +135,6 @@ struct omap2_mcspi_cs {
+ 	void __iomem		*base;
+ 	unsigned long		phys;
+ 	int			word_len;
+-	/* Context save and restore shadow register */
+-	u32			chconf0;
+ };
+ 
+ /* used for context save and restore, structure members to be updated whenever
+@@ -145,6 +144,8 @@ struct omap2_mcspi_regs {
+ 	u32 sysconfig;
+ 	u32 modulctrl;
+ 	u32 wakeupenable;
++	/* Context save and restore shadow register for each chipselect */
++	u32 chconf0[OMAP2_MCSPI_MAX_CS];
+ };
+ 
+ static struct omap2_mcspi_regs omap2_mcspi_ctx[OMAP2_MCSPI_MAX_CTRL];
+@@ -190,16 +191,16 @@ static inline u32 mcspi_read_cs_reg(const struct spi_device *spi, int idx)
+ 
+ static inline u32 mcspi_cached_chconf0(const struct spi_device *spi)
+ {
+-	struct omap2_mcspi_cs *cs = spi->controller_state;
++	int cs = spi->chip_select;
+ 
+-	return cs->chconf0;
++	return omap2_mcspi_ctx[spi->master->bus_num - 1].chconf0[cs];
+ }
+ 
+ static inline void mcspi_write_chconf0(const struct spi_device *spi, u32 val)
+ {
+-	struct omap2_mcspi_cs *cs = spi->controller_state;
++	int cs = spi->chip_select;
+ 
+-	cs->chconf0 = val;
++	omap2_mcspi_ctx[spi->master->bus_num - 1].chconf0[cs] = val;
+ 	mcspi_write_cs_reg(spi, OMAP2_MCSPI_CHCONF0, val);
+ }
+ 
+@@ -255,6 +256,8 @@ static void omap2_mcspi_set_master_mode(struct spi_master *master)
+ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+ {
+ 	struct spi_master *spi_cntrl;
++	int cs;
++
+ 	spi_cntrl = mcspi->master;
+ 
+ 	/* McSPI: context restore */
+@@ -266,6 +269,11 @@ static void omap2_mcspi_restore_ctx(struct omap2_mcspi *mcspi)
+ 
+ 	mcspi_write_reg(spi_cntrl, OMAP2_MCSPI_WAKEUPENABLE,
+ 			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].wakeupenable);
++
++	for (cs = 0; cs < spi_cntrl->num_chipselect; cs++)
++		mcspi_write_reg(spi_cntrl,
++			cs * 0x14 + OMAP2_MCSPI_CHCONF0,
++			omap2_mcspi_ctx[spi_cntrl->bus_num - 1].chconf0[cs]);
+ }
+ static void omap2_mcspi_disable_clocks(struct omap2_mcspi *mcspi)
+ {
+@@ -704,7 +712,6 @@ static int omap2_mcspi_setup(struct spi_device *spi)
+ 			return -ENOMEM;
+ 		cs->base = mcspi->base + spi->chip_select * 0x14;
+ 		cs->phys = mcspi->phys + spi->chip_select * 0x14;
+-		cs->chconf0 = 0;
+ 		spi->controller_state = cs;
+ 	}
+ 
+-- 
+1.5.4.3
 
-Sure. I remember we already talk about this before. That time, I had on=
-ly=20
-verified that the change you proposed did not help in solving a differe=
-nt=20
-problem I used to have before. Then I found the above explanation, but =
-never=20
-got an idea to let you know.
 
-> iff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 7fc8c04..38874e4 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -266,6 +266,8 @@ void omap_set_dma_transfer_params(int lch, int
-> data_type, int elem_count,
->                 ccr &=3D ~(1 << 5);
->                 if (sync_mode =3D=3D OMAP_DMA_SYNC_FRAME)
->                         ccr |=3D 1 << 5;
-> +               if (dma_trigger)
-> +                       ccr |=3D dma_trigger & 0x1f;
->                 dma_write(ccr, CCR(lch));
->
->                 ccr =3D dma_read(CCR2(lch));
-
-BTW, here the code tries to read (and than write) an address (CCR2) tha=
-t is=20
-not supported on OMAP1510. I have not noticed any side effects, neither=
-=20
-negative nor positive, but can provide a patch if OMAP guys ever find=20
-patching this as desired.
-
-> Than can you print out in case of playback both the destination and s=
-ource
-> addresses supplied to the DMA, than in the pointer callback also prin=
-t out
-> the value returned by the omap_get_dma_src_pos function to see if thi=
-s
-> actually helps?
-
-Here you are. Same figures wheather with or without your patch. I also =
-printed=20
-a value that CCR is written with, so you can verify those SYNC(4:0) bit=
-s are=20
-set correctly.
-
-root@amsdelta:~# aplay -f S16_LE -t raw -d 1 </dev/urandom
-Playing raw data 'stdin' : Signed 16 bit Little Endian, Rate 8000 Hz, M=
-ono
-[  116.780000] omap_pcm_prepare(): dma_params.src_start =3D 0x11d80000
-[  116.780000] omap_pcm_prepare(): dma_params.dst_start =3D 0xe1011806
-[  116.790000] omap_set_dma_src_params(): dma_write(0x11d8, CSSA_U(0x0)
-[  116.800000] omap_set_dma_src_params(): dma_write(0x0000, CSSA_L(0x0)
-[  116.810000] omap_set_dma_dest_params(): dma_write(0x1008, CCR(0x0))
-[  116.820000] omap_set_dma_dest_params(): dma_write(0xe101, CDSA_U(0x0=
-)
-[  116.830000] omap_set_dma_dest_params(): dma_write(0x1806, CDSA_L(0x0=
-)
-[  116.900000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  116.900000] omap_pcm_pointer(): offset =3D 0x0c03
-[  116.920000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  116.920000] omap_pcm_pointer(): offset =3D 0x0c03
-[  116.950000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  116.950000] omap_pcm_pointer(): offset =3D 0x0c03
-[  116.980000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  116.980000] omap_pcm_pointer(): offset =3D 0x0c03
-[  116.990000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  116.990000] omap_pcm_pointer(): offset =3D 0x0c03
-[  117.010000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  117.010000] omap_pcm_pointer(): offset =3D 0x0c03
-[  117.140000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  117.140000] omap_pcm_pointer(): offset =3D 0x0c03
-underrun!!! (at least 1799126512.681 ms long)
-[  117.150000] omap_pcm_prepare(): dma_params.src_start =3D 0x11d80000
-[  117.170000] omap_pcm_prepare(): dma_params.dst_start =3D 0xe1011806
-[  117.170000] omap_set_dma_src_params(): dma_write(0x11d8, CSSA_U(0x0)
-[  117.180000] omap_set_dma_src_params(): dma_write(0x0000, CSSA_L(0x0)
-[  117.190000] omap_set_dma_dest_params(): dma_write(0x1008, CCR(0x0))
-[  117.200000] omap_set_dma_dest_params(): dma_write(0xe101, CDSA_U(0x0=
-)
-[  117.210000] omap_set_dma_dest_params(): dma_write(0x1806, CDSA_L(0x0=
-)
-[  117.340000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  117.340000] omap_pcm_pointer(): offset =3D 0x0c03
-root@amsdelta:~#
-
-And here, the same with capture, just for reference:
-
-root@amsdelta:~# arecord -f S16_LE -t raw -d 1 >/dev/null
-Recording raw data 'stdin' : Signed 16 bit Little Endian, Rate 8000 Hz,=
- Mono
-[  316.530000] omap_pcm_prepare(): dma_params.src_start =3D 0xe1011802
-[  316.540000] omap_pcm_prepare(): dma_params.dst_start =3D 0x11da0000
-[  316.550000] omap_set_dma_src_params(): dma_write(0xe101, CSSA_U(0x0)
-[  316.550000] omap_set_dma_src_params(): dma_write(0x1802, CSSA_L(0x0)
-[  316.560000] omap_set_dma_dest_params(): dma_write(0x4009, CCR(0x0))
-[  316.570000] omap_set_dma_dest_params(): dma_write(0x11da, CDSA_U(0x0=
-)
-[  316.580000] omap_set_dma_dest_params(): dma_write(0x0000, CDSA_L(0x0=
-)
-[  316.590000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x01c2
-[  316.590000] omap_pcm_pointer(): offset =3D 0x00e1
-[  316.610000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x00dc
-[  316.610000] omap_pcm_pointer(): offset =3D 0x006e
-[  316.620000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x01b8
-[  316.620000] omap_pcm_pointer(): offset =3D 0x00dc
-[  316.630000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x0294
-[  316.630000] omap_pcm_pointer(): offset =3D 0x014a
-[  316.650000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x037e
-[  316.650000] omap_pcm_pointer(): offset =3D 0x01bf
-=2E..
-
-Now, playback with my workaround applied, slightly modified for always=20
-reporting dma_read(CPC(0x0)) result, even if not used for offset calcul=
-ation:
-
-root@amsdelta:~# aplay -f S16_LE -t raw -d 1 </dev/urandom
-Playing raw data 'stdin' : Signed 16 bit Little Endian, Rate 8000 Hz, M=
-ono
-[  182.990000] omap_pcm_prepare(): dma_params.src_start =3D 0x11d80000
-[  183.000000] omap_pcm_prepare(): dma_params.dst_start =3D 0xe1011806
-[  183.010000] omap_set_dma_src_params(): dma_write(0x11d8, CSSA_U(0x0)
-[  183.020000] omap_set_dma_src_params(): dma_write(0x0000, CSSA_L(0x0)
-[  183.030000] omap_set_dma_dest_params(): dma_write(0x1008, CCR(0x0))
-[  183.040000] omap_set_dma_dest_params(): dma_write(0xe101, CDSA_U(0x0=
-)
-[  183.050000] omap_set_dma_dest_params(): dma_write(0x1806, CDSA_L(0x0=
-)
-[  183.120000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.120000] omap_pcm_pointer(): offset =3D 0x0000
-[  183.230000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.230000] omap_pcm_pointer(): offset =3D 0x03e8
-[  183.260000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.260000] omap_pcm_pointer(): offset =3D 0x03e8
-[  183.360000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.360000] omap_pcm_pointer(): offset =3D 0x07d0
-[  183.380000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.380000] omap_pcm_pointer(): offset =3D 0x07d0
-[  183.480000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.480000] omap_pcm_pointer(): offset =3D 0x0bb8
-[  183.510000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.510000] omap_pcm_pointer(): offset =3D 0x0bb8
-[  183.610000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.610000] omap_pcm_pointer(): offset =3D 0x0000
-[  183.730000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.730000] omap_pcm_pointer(): offset =3D 0x03e8
-[  183.860000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.860000] omap_pcm_pointer(): offset =3D 0x07d0
-[  183.980000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  183.980000] omap_pcm_pointer(): offset =3D 0x0bb8
-[  184.110000] omap_get_dma_src_pos(): dma_read(CPC(0x0)) =3D=3D 0x1806
-[  184.110000] omap_pcm_pointer(): offset =3D 0x0000
-root@amsdelta:~#
-
-Peter,
-I have really no idea how the old 2.4 code could do the job with just r=
-eading=20
-CPC for both capture and playback, but if you think that with my ams-de=
-lta=20
-machine on hand I can still help you in finding that out, please let me=
- know.
-
-Cheers,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--------------080106070806090604030504--
