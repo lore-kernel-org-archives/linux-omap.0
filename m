@@ -1,68 +1,73 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: Re: get_irq_regs() from soft IRQ
-Date: Mon, 29 Jun 2009 18:58:41 +0200
-Message-ID: <200906291858.41151.jpihet@mvista.com>
-References: <200906291631.19562.jpihet@mvista.com>
-	<200906291936.57703.siarhei.siamashka@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to support off-mode
+Date: Mon, 29 Jun 2009 10:04:44 -0700
+Message-ID: <87y6rb7yz7.fsf@deeprootsystems.com>
+References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com>
+	<1245965646-20070-2-git-send-email-khilman@deeprootsystems.com>
+	<1245965646-20070-3-git-send-email-khilman@deeprootsystems.com>
+	<1245965646-20070-4-git-send-email-khilman@deeprootsystems.com>
+	<1245965646-20070-5-git-send-email-khilman@deeprootsystems.com>
+	<4A44AD44.4070107@nokia.com> <87bpobjcx6.fsf@deeprootsystems.com>
+	<F12CE1A68F023D498A2691C7B5393115035F09BD@ZMY16EXM66.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <oprofile-list-bounces@lists.sourceforge.net>
-In-Reply-To: <200906291936.57703.siarhei.siamashka@nokia.com>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
-	<mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
-List-Post: <mailto:oprofile-list@lists.sourceforge.net>
-List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
-	<mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: oprofile-list-bounces@lists.sourceforge.net
-To: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:63280 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754731AbZF2REo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 13:04:44 -0400
+Received: by pzk26 with SMTP id 26so346074pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 10:04:47 -0700 (PDT)
+In-Reply-To: <F12CE1A68F023D498A2691C7B5393115035F09BD@ZMY16EXM66.ds.mot.com> (HU TAO-TGHK's message of "Mon\, 29 Jun 2009 16\:51\:51 +0800")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: HU TAO-TGHK48 <taohu@motorola.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
-Hi Siarhei Siamashka,
-On Monday 29 June 2009 18:36:57 Siarhei Siamashka wrote:
-> On Monday 29 June 2009 17:31:18 ext Jean Pihet wrote:
-> > Hi,
-> >
-> > I am trying to get the latest IRQ registers from a timer or a work queue
-> > but I am running into problems:
-> > - get_irq_regs() returns NULL in some cases, so it is unsuable and even
-> > causes crash when trying to get the registers values from the returned
-> > ptr - I never get user space registers, only kernel
-> >
-> > The use case is that the performance unit (PMNC) of the Cortex A8 has
-> > some serious bug, in short the performance counters overflow IRQ is to be
-> > avoided. The solution I am implementing is to read and reset the counters
-> > from a work queue that is triggered by a timer.
+"HU TAO-TGHK48" <taohu@motorola.com> writes:
+
+> I think we also need extra patch for fixing stability issue.
 >
-> Regarding this oprofile related part. I wonder how you can get oprofile
-> working properly (providing non-bogus results) without performance
-> counters overflow IRQ generation?
+> Sometimes after back from retention/off mode, OMAP3430 I2C controller
+> stops working even all register settings are restored.
 >
-> Are you trying to implement (in a clean way) something similar to
-> http://marc.info/?l=oprofile-list&m=123688347009580&w=2
+> OMAP3430 TRM says: "During active mode (I2Ci.I2C_CON[15] I2C_EN bit is
+> set to 1), make no changes to the I2Ci.I2C_SCLL and I2Ci.I2C_SCLH
+> registers. 
+> Changes may result in unpredictable behavior."
 >
-> Or is it going to be a different workaround?
-I am trying to get a different approach, starting from the errata description. 
-The idea is to avoid the counters from overflowing, which could cause a PMNC 
-unit reset or lock-up (or both).
+> diff --git a/drivers/i2c/busses/i2c-omap.c
+> b/drivers/i2c/busses/i2c-omap.c index 5ce055c..b084209 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -238,12 +238,14 @@ static void omap_i2c_unidle(struct omap_i2c_dev
+> *dev)
+>  		clk_enable(dev->iclk);
+>  	clk_enable(dev->fclk);
+>  	if (cpu_is_omap34xx()) {
+> +		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+>  		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG,
+> dev->pscstate);
+>  		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG,
+> dev->scllstate);
+>  		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG,
+> dev->sclhstate);
+>  		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
+> dev->bufstate);
+>  		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+> dev->syscstate);
+>  		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> OMAP_I2C_CON_EN);
+>  	}
+>  	dev->idle = 0;
+>  	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
 
-Here are the implementation details:
-- use a timer to read and reset the counters, then fire a work queue
-- in the work queue the counters values are converted to oprofile samples
-- the proper locking is used to avoid some races between the various tasks
+Shouldn't you do a read-modify-write of I2C_CON_REG here?  Otherwise,
+you're loosing any of the other settings in I2C_CON_REG.
 
-I am nearly done with it but I am now running into problems with PM 
-(suspend/resume) and get_irq_regs().
+Not being an expert in the I2C hardware, I'm not sure if it matters,
+but this doesn't seem quite right due to possible side effects.
 
-What do you think?
-How far are you on your side? Did you stress test the solution? Is the PMNC 
-recovery always successful?
+Kevin
 
-Regards,
-Jean
-
-------------------------------------------------------------------------------
