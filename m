@@ -1,67 +1,80 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to support off-mode
-Date: Mon, 29 Jun 2009 14:15:05 -0700
-Message-ID: <87ocs67ndy.fsf@deeprootsystems.com>
-References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-2-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-3-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-4-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-5-git-send-email-khilman@deeprootsystems.com>
-	<4A44AD44.4070107@nokia.com> <87bpobjcx6.fsf@deeprootsystems.com>
-	<F12CE1A68F023D498A2691C7B5393115035F09BD@ZMY16EXM66.ds.mot.com>
-	<87y6rb7yz7.fsf@deeprootsystems.com>
-	<7B4574D56E4ADF438756313E9A172A874D31A30B@dlee01.ent.ti.com>
+Subject: Re: [PATCH 02/04] OMAP3: PM: Prevent AUTO_RET and AUTO_OFF being enabled simultaneously
+Date: Mon, 29 Jun 2009 14:45:47 -0700
+Message-ID: <87fxdi7lys.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305A53FD3@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:58096 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856AbZF2VPF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 17:15:05 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so1041165wfd.4
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 14:15:08 -0700 (PDT)
-In-Reply-To: <7B4574D56E4ADF438756313E9A172A874D31A30B@dlee01.ent.ti.com> (Jon Hunter's message of "Mon\, 29 Jun 2009 14\:28\:47 -0500")
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:52343 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752542AbZF2Vpr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 17:45:47 -0400
+Received: by pzk26 with SMTP id 26so454320pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 14:45:50 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305A53FD3@dbde02.ent.ti.com> (Rajendra Nayak's message of "Wed\, 17 Jun 2009 11\:57\:40 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>
-Cc: HU TAO-TGHK48 <taohu@motorola.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-"Hunter, Jon" <jon-hunter@ti.com> writes:
+"Nayak, Rajendra" <rnayak@ti.com> writes:
 
-> Hi Kevin,
->
->> Shouldn't you do a read-modify-write of I2C_CON_REG here?  Otherwise,
->> you're loosing any of the other settings in I2C_CON_REG.
+>>"Nayak, Rajendra" <rnayak@ti.com> writes:
 >>
->> Not being an expert in the I2C hardware, I'm not sure if it matters,
->> but this doesn't seem quite right due to possible side effects.
+>>>From: H=F6gander Jouni [mailto:jouni.hogander@nokia.com]=20
+>>>>
+>>>>ext Rajendra Nayak <rnayak@ti.com> writes:
+>>>>
+>>>>> There is a design requirement in OMAP3 that Auto_RET and AUTO_OFF
+>>>>> should not be set together. The PRCM FSM  has been coded assuming
+>>>>> that SW will set either auto_ret or auto_off bit depending on
+>>>>> whether the core has been programmed to go into open switched
+>>>>> logic retention state or OFF state. They are mutually exclusive.
+>>>>
+>>>>So we don't have to do this if closed switch retention is used? (Th=
+is
+>>>>is what is currently used in linux-omap:pm)
+>>>
+>>> Currently in the pm branch AUTO_RET is enabled at init and kept
+>>> enabled. While attempting a OFF state AUTO_OFF is enabled also
+>>> leaving AUTO_RET and AUTO_OFF both enabled.
+>>
+>>A little more clarification needed, in particular whether or how
+>>this affects closed-switch retention.
 >
-> This is a good question and this exact same issue came up on the
-> omapzoom tree. For the omapzoom tree we ended up not implementing a
-> read-modify-write here. The reason being that omap_i2c_unidle is
-> called at the beginning of every transfer and we are re-configuring
-> the I2C_CON register for every transfer. So when consulting with the
-> TI linux team they said that it is ok to simply write 0 and clear
-> the register here so we start over fresh for each transfer.
+> Sorry, that was a wrong description. AUTO_RET could be used to scale =
+the voltage
+> down even in case of CSWR and not just OSWR.
 >
-> I was trying to think if there would be any harm in doing a
-> read-modify-write here. Probably not. You would not want the STT bit
-> (generate a start command) to get set, however, this bit should not
-> be set in the first place when entering this function.
+> The idea of this patch was to enable auto voltage scaling only for th=
+e last 3 C states.
 >
-> This change has been implemented in the omapzoom tree and so for you
->reference please see:
->http://git.omapzoom.org/?p=repo/omapkernel.git;a=commit;h=ec70a0af52df54638a4fa33fc0dc3d24b1f893f1
+>  *	C5 . MPU CSWR + Core CSWR - AUTO RET enabled
+>  *	C6 . MPU OFF + Core CSWR - AUTO RET enabled
+>  *	C7 . MPU OFF + Core OFF - AUTO OFF enabled.
+>
+> For the rest of the Lower C states the decision of not enabling AUTO
+> RET/OFF was to keep the latency for such states down.
+>
+> Especially with SR enabled having AUTO RET/OFF enabled for say a MPU
+> RET/CORE inactive state would mean a 2 level voltage change. First
+> to scale from SR autocompensated level to the actual OPP voltage
+> level (That's done when you disable SR) and then from the there to
+> the AUTO RET level.  So say you hit MPU RET/CORE inactive state at
+> OPP3 (1.2v) which has a SR autocompensated voltage to 1.08v, then
+> you would scale from 1.08->1.2->0.975.  That might be too much of
+> additional latency to incure in case of a MPU RET/CORE inactive
+> state.
+>
 
-Jon, thanks for the clarification.  I will fold this change into
-the upstream-bound I2C changes.
-
-Also thanks for the pointer to the original patch with author/signoff
-credits.
-
-Tao, in the future please be sure to cite original authors and/or
-sources when submitting patches to the list.
-
-Thanks,
+OK, I've updated the patch description on this one and will push to PM
+branch (and pm-2.6.29)
 
 Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
