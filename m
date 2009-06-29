@@ -1,80 +1,84 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 02/04] OMAP3: PM: Prevent AUTO_RET and AUTO_OFF being enabled simultaneously
-Date: Mon, 29 Jun 2009 14:45:47 -0700
-Message-ID: <87fxdi7lys.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0305A53FD3@dbde02.ent.ti.com>
+Subject: Re: [PATCH 03/04] OMAP3: PM: Fix I2C voltage levels send to T2 for different Power modes
+Date: Mon, 29 Jun 2009 14:48:32 -0700
+Message-ID: <87ab3q7lu7.fsf@deeprootsystems.com>
+References: <1245153154-1876-1-git-send-email-rnayak@ti.com>
+	<1245153154-1876-2-git-send-email-rnayak@ti.com>
+	<1245153154-1876-3-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:52343 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752542AbZF2Vpr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 17:45:47 -0400
-Received: by pzk26 with SMTP id 26so454320pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 14:45:50 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305A53FD3@dbde02.ent.ti.com> (Rajendra Nayak's message of "Wed\, 17 Jun 2009 11\:57\:40 +0530")
+Received: from wa-out-1112.google.com ([209.85.146.176]:45620 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752746AbZF2Vsb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 17:48:31 -0400
+Received: by wa-out-1112.google.com with SMTP id j5so867235wah.21
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 14:48:34 -0700 (PDT)
+In-Reply-To: <1245153154-1876-3-git-send-email-rnayak@ti.com> (Rajendra Nayak's message of "Tue\, 16 Jun 2009 17\:22\:33 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: =?iso-8859-1?Q?H=F6gander?= Jouni <jouni.hogander@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org, dderrick@ti.com, r-woodruff2@ti.com
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+Rajendra Nayak <rnayak@ti.com> writes:
 
->>"Nayak, Rajendra" <rnayak@ti.com> writes:
->>
->>>From: H=F6gander Jouni [mailto:jouni.hogander@nokia.com]=20
->>>>
->>>>ext Rajendra Nayak <rnayak@ti.com> writes:
->>>>
->>>>> There is a design requirement in OMAP3 that Auto_RET and AUTO_OFF
->>>>> should not be set together. The PRCM FSM  has been coded assuming
->>>>> that SW will set either auto_ret or auto_off bit depending on
->>>>> whether the core has been programmed to go into open switched
->>>>> logic retention state or OFF state. They are mutually exclusive.
->>>>
->>>>So we don't have to do this if closed switch retention is used? (Th=
-is
->>>>is what is currently used in linux-omap:pm)
->>>
->>> Currently in the pm branch AUTO_RET is enabled at init and kept
->>> enabled. While attempting a OFF state AUTO_OFF is enabled also
->>> leaving AUTO_RET and AUTO_OFF both enabled.
->>
->>A little more clarification needed, in particular whether or how
->>this affects closed-switch retention.
+> The ONLP and ONOFF values programed for both VDD1
+> and VDD2 were not optimal.
 >
-> Sorry, that was a wrong description. AUTO_RET could be used to scale =
-the voltage
-> down even in case of CSWR and not just OSWR.
+> New values used are
+> VDD1
+> ON - 1.2v
+> ONLP - 1.0v
+> ONRET - .975v
+> ONOFF - .6v
 >
-> The idea of this patch was to enable auto voltage scaling only for th=
-e last 3 C states.
+> VDD2
+> ON - 1.15v
+> ONLP - 1.0v
+> ONRET - .975v
+> ONOFF - .6v
 >
->  *	C5 . MPU CSWR + Core CSWR - AUTO RET enabled
->  *	C6 . MPU OFF + Core CSWR - AUTO RET enabled
->  *	C7 . MPU OFF + Core OFF - AUTO OFF enabled.
->
-> For the rest of the Lower C states the decision of not enabling AUTO
-> RET/OFF was to keep the latency for such states down.
->
-> Especially with SR enabled having AUTO RET/OFF enabled for say a MPU
-> RET/CORE inactive state would mean a 2 level voltage change. First
-> to scale from SR autocompensated level to the actual OPP voltage
-> level (That's done when you disable SR) and then from the there to
-> the AUTO RET level.  So say you hit MPU RET/CORE inactive state at
-> OPP3 (1.2v) which has a SR autocompensated voltage to 1.08v, then
-> you would scale from 1.08->1.2->0.975.  That might be too much of
-> additional latency to incure in case of a MPU RET/CORE inactive
-> state.
->
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-OK, I've updated the patch description on this one and will push to PM
-branch (and pm-2.6.29)
+Thanks, pushing to PM branch (and pm-2.6.29)
 
 Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |   16 ++++++++--------
+>  1 files changed, 8 insertions(+), 8 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index d4225b4..c2d8b09 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -87,14 +87,14 @@ static struct prm_setup_vc prm_setup = {
+>  	.voltsetup_time2 = 0xfff,
+>  	.voltoffset = 0xff,
+>  	.voltsetup2 = 0xff,
+> -	.vdd0_on = 0x30,
+> -	.vdd0_onlp = 0x1e,
+> -	.vdd0_ret = 0x1e,
+> -	.vdd0_off = 0x30,
+> -	.vdd1_on = 0x2c,
+> -	.vdd1_onlp = 0x1e,
+> -	.vdd1_ret = 0x1e,
+> -	.vdd1_off = 0x2c,
+> +	.vdd0_on = 0x30,	/* 1.2v */
+> +	.vdd0_onlp = 0x20,	/* 1.0v */
+> +	.vdd0_ret = 0x1e,	/* 0.975v */
+> +	.vdd0_off = 0x00,	/* 0.6v */
+> +	.vdd1_on = 0x2c,	/* 1.15v */
+> +	.vdd1_onlp = 0x20,	/* 1.0v */
+> +	.vdd1_ret = 0x1e,	/* .975v */
+> +	.vdd1_off = 0x00,	/* 0.6v */
+>  };
+>  
+>  static inline void omap3_per_save_context(void)
+> -- 
+> 1.5.4.7
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
