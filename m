@@ -1,73 +1,51 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: Can a phone hook switch follow alsa jack model?
-Date: Mon, 29 Jun 2009 18:35:58 +0200
-Message-ID: <200906291835.59534.jkrzyszt@tis.icnet.pl>
-References: <4A40D896.8010208@tis.icnet.pl> <4A437226.4090202@tis.icnet.pl>
-	<20090629143215.GA23835@rakim.wolfsonmicro.main>
+From: Siarhei Siamashka <siarhei.siamashka@nokia.com>
+Subject: Re: get_irq_regs() from soft IRQ
+Date: Mon, 29 Jun 2009 19:36:57 +0300
+Message-ID: <200906291936.57703.siarhei.siamashka@nokia.com>
+References: <200906291631.19562.jpihet@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090629143215.GA23835@rakim.wolfsonmicro.main>
+Return-path: <oprofile-list-bounces@lists.sourceforge.net>
+In-Reply-To: <200906291631.19562.jpihet@mvista.com>
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-input@vger.kernel.org, alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
+List-Post: <mailto:oprofile-list@lists.sourceforge.net>
+List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: oprofile-list-bounces@lists.sourceforge.net
+To: ext Jean Pihet <jpihet@mvista.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>
 List-Id: linux-omap@vger.kernel.org
 
-On Monday 29 June 2009 16:32:15 Mark Brown wrote:
-> On Thu, Jun 25, 2009 at 02:48:38PM +0200, Janusz Krzysztofik wrote:
-> > During my previous, gpio-keys based attempt, I submitted a patch
-> > that added new SW_HANDSET_PICK_UP event definition to
-> > include/linux/input.h. Even if not accepted because of no
+On Monday 29 June 2009 17:31:18 ext Jean Pihet wrote:
+> Hi,
 >
-> Something like hook switch would be a more common name - the switch is
-> closed when the phone is on hook.
-
-I guess so.
-
-> > comments, especially on the name I have choosen. However, there were
-> > another name proposed by ams-delta board maintainer, Jonathan
-> > McDowell - SW_PHONE_HOOK. Even if my wording may better match those
-> > already existing ..._INSERT names, I am not sure which one should I
-> > use.
+> I am trying to get the latest IRQ registers from a timer or a work queue
+> but I am running into problems:
+> - get_irq_regs() returns NULL in some cases, so it is unsuable and even
+> causes crash when trying to get the registers values from the returned ptr
+> - I never get user space registers, only kernel
 >
-> The _INSERT isn't at all appropriate since there's nothing being
-> inserted here - the _INSERT names refer to the fact that something is
-> being plugged in to a jack.
+> The use case is that the performance unit (PMNC) of the Cortex A8 has some
+> serious bug, in short the performance counters overflow IRQ is to be
+> avoided. The solution I am implementing is to read and reset the counters
+> from a work queue that is triggered by a timer.
 
-Sure, that's why I tried to replace _INSERT with _PICK_UP, that probably can 
-closely refer to what can happen to a handset, while still following the 
-general trend of ending switch related event names with action names.
+Regarding this oprofile related part. I wonder how you can get oprofile
+working properly (providing non-bogus results) without performance
+counters overflow IRQ generation? 
 
-> > Please also note that SND_JACK_HEADSET, that I temporarily use for
-> > now, is an alias for SND_JACK_HEADPHONE | SND_JACK_MICROPHONE. Those
-> > two can be seen as matching what a handset actually is. On headset
-> > jack insert/remove, two distinct reports/events are generated, one
->
-> OTOH a phone going on hook tends to mean something rather different in
-> UI terms to having something plugged into a jack - it's part of the
-> normal flow of making a phone call.
+Are you trying to implement (in a clean way) something similar to
+http://marc.info/?l=oprofile-list&m=123688347009580&w=2
 
-That's how I argued once in my message to Jonathan:
-> I have choosen a different name to distinguish the switch actual function
-> from what we know from telephony world as a switch that connects a phone to
-> a line in response to a handset pick up.
+Or is it going to be a different workaround?
 
-Mark,
-Thanks for sharing your thoughts. I am not going to waste your time on this 
-linguistic debate any more. For now, I keep on using SND_JACK_HEADSET unless 
-somebody happens to hit upon a better idea. If there are no other votes, I 
-will try to work out a consistent set of symbols using one or another of 
-already considered names that would best match current naming schema.
+-- 
+Best regards,
+Siarhei Siamashka
 
-Cheers,
-Janusz
+------------------------------------------------------------------------------
