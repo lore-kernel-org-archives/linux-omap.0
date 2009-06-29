@@ -1,111 +1,126 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: Re: get_irq_regs() from soft IRQ
-Date: Mon, 29 Jun 2009 20:49:59 +0200
-Message-ID: <200906292049.59789.jpihet@mvista.com>
-References: <200906291631.19562.jpihet@mvista.com> <20090629173757.GC9042@n2100.arm.linux.org.uk> <200906292139.00046.siarhei.siamashka@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF, reduces OFF latency by 20ms
+Date: Mon, 29 Jun 2009 11:58:21 -0700
+Message-ID: <8763ee98aa.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305A54205@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:40795 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbZF2SuP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 14:50:15 -0400
-In-Reply-To: <200906292139.00046.siarhei.siamashka@nokia.com>
-Content-Disposition: inline
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:34690 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753039AbZF2S6j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 14:58:39 -0400
+Received: by pzk26 with SMTP id 26so392908pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 11:58:43 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305A54205@dbde02.ent.ti.com> (Rajendra Nayak's message of "Wed\, 17 Jun 2009 18\:31\:52 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Siarhei Siamashka <siarhei.siamashka@nokia.com>
-Cc: ext Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-On Monday 29 June 2009 20:38:59 Siarhei Siamashka wrote:
-> On Monday 29 June 2009 20:37:57 ext Russell King - ARM Linux wrote:
-> > On Mon, Jun 29, 2009 at 07:36:57PM +0300, Siarhei Siamashka wrote:
-> > > On Monday 29 June 2009 17:31:18 ext Jean Pihet wrote:
-> > > > I am trying to get the latest IRQ registers from a timer or a work
-> > > > queue but I am running into problems:
-> > > > - get_irq_regs() returns NULL in some cases, so it is unsuable and
-> > > > even causes crash when trying to get the registers values from the
-> > > > returned ptr - I never get user space registers, only kernel
-> > > >
-> > > > The use case is that the performance unit (PMNC) of the Cortex A8 has
-> > > > some serious bug, in short the performance counters overflow IRQ is
-> > > > to be avoided. The solution I am implementing is to read and reset
-> > > > the counters from a work queue that is triggered by a timer.
-> > >
-> > > Regarding this oprofile related part. I wonder how you can get oprofile
-> > > working properly (providing non-bogus results) without performance
-> > > counters overflow IRQ generation?
-> >
-> > I don't think you can - triggering capture on overflow is precisely how
-> > oprofile works.
-> >
-> > The erratum talks about polling for overflow.  By doing this, you are in
-> > a well defined part of the kernel, which is obviously going to be shown
-> > as a hot path for every counter, thus making oprofile useless for kernel
-> > work.
-> >
-> > Deferring the interrupt to a workqueue doesn't resolve the problem
-> > either. The problem has nothing to do with what happens after the
-> > interrupt occurs - it's about interrupts themselves being lost.
-> >
-> > I think just accepting that this erratum breaks oprofile is the only
-> > realistic solution. ;(
->
-> I also thought about the same initially. But the problem still looks like
-> it can be workarounded, admittedly in quite a dirty way.
->
-> We just need to use not a periodic timer, but kind of a watchdog (this can
-> be implemented with OMAP GPTIMER).
->
-> As long as PMU interrupts are coming fast, watchdog is frequently reset and
-> never shows up anywhere. Everything is working nice.
->
-> Now if PMU gets broken, watchdog gets triggered eventually and recovers PMU
-> state. As PMU could get broken something like 10 times per second in the
-> worst case in my experiments, having ~10 ms for a watchdog trigger period
-> seemed to be a  reasonable empirical value.  So in this conditions, PMU
-> will be in a nonworking state approximately less than 10% of the time in
-> the worst practical case. Not very nice, but not completely ugly either.
-The accuracy is not very good.
+"Nayak, Rajendra" <rnayak@ti.com> writes:
 
-> Another problematic condition is when PMU is fine, but is not generating
-> events naturally (for example we have configured it for cache misses, but
-> are burning cpu in a loop which is not accessing memory at all). In this
-> case a watchdog will be triggered periodically for no reason, generating
-> the "noise" in profiling statistics. This noise needs to be filtered out,
-> and seems like it is possible to do it. The trick is to reset watchdog
-> counter to a lower value than it is typically reset in PMU IRQ handler.
-> This way, whenever PMU interrupt is generated, we check if watchdog counter
-> is below the normal threshold. If it is lower, then we know that watchdog
-> interrupt was triggered recently and this sample can be ignored. The
-> difference between normal watchdog counter reset value and the value which
-> gets set on watchdog interrupts should provide sufficient time to get out
-> of the watchdog interrupt handler and its related code, so that it does not
-> show up in statistics that much.
+>  
 >
-> A working proof of concept patch was submitted there:
-> http://groups.google.com/group/beagleboard/msg/dd361f3b43fdeff0
-> Sorry for not posting it to one of the kernel mailing lists, but I thought
-> that beagleboard mailing list was a good place to find users who may
-> want to try it and evaluate if it has any practical value. Maybe it was not
-> a very wise decision.
+>>-----Original Message-----
+>>From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+>>Sent: Wednesday, June 17, 2009 6:18 PM
+>>To: Nayak, Rajendra
+>>Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
+>>Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+>>before OFF, reduces OFF latency by 20ms
+>>
+>>On Wed, 2009-06-17 at 15:38 +0300, Nayak, Rajendra wrote:
+>>> 
+>>> >-----Original Message-----
+>>> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+>>> >Sent: Wednesday, June 17, 2009 3:56 PM
+>>> >To: Nayak, Rajendra
+>>> >Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
+>>> >Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+>>> >before OFF, reduces OFF latency by 20ms
+>>> >
+>>> >On Wed, 2009-06-17 at 12:50 +0300, Nayak, Rajendra wrote:
+>>> >> >-----Original Message-----
+>>> >> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+>>> >> >Sent: Wednesday, June 17, 2009 1:17 PM
+>>> >> >To: Nayak, Rajendra
+>>> >> >Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
+>>> >> >Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+>>> >> >before OFF, reduces OFF latency by 20ms
+>>> >> >
+>>> >> >Hi Rajendra,
+>>> >> >
+>>> >> >On Tue, 2009-06-16 at 14:52 +0300, Rajendra Nayak wrote:
+>>> >> >> If autoidle for DPLL4 is enabled in the stored scratchpad
+>>> >> >> value of CM_AUTOIDLE_PLL then there is an added delay by
+>>> >> >> the boot ROM when coming out of OFF mode.
+>>> >> >> The patch disables this bitfield in the stored 
+>>scratchpad value.
+>>> >> >> 
+>>> >> >> This should significantly reduce CORE OFF latency and also
+>>> >> >> bring down the threshold for CORE OFF, making OFF affordable
+>>> >> >> even with smaller sleep times.
+>>> >> >
+>>> >> >I did some measurements on RX-51 with this patch, and it 
+>>> >seems it does
+>>> >> >not reduce latency, it increases it by few hundred us.
+>>> >> >
+>>> >> >Servicing an empty timer interrupt from off mode 
+>>(measured from VDD1
+>>> >> >ramp up to start of VDD1 ramp down):
+>>> >> >
+>>> >> >with dpll4 patch : ~14100us
+>>> >> >without patch    : ~13600us
+>>> >> >
+>>> >> >I attached pictures of both situations.
+>>> >> >
+>>> >> >My kernel had only C7 state enabled.
+>>> >> >
+>>> >> >Have you measured the latency effects on SDP or some other board?
+>>> >> 
+>>> >> I haven't done the latency measurements on SDP yet, but 
+>>> >David had done it
+>>> >> sometime back, using a different codebase though.
+>>> >
+>>> >OK, I also used our internal code base. Though the PM 
+>>functionality is
+>>> >pretty much the same as in l-o:pm branch.
+>>> >
+>>> >> 
+>>> >> Can you explain more on how you are measuring the latency 
+>>> >here, I am a bit
+>>> >> confused. This is supposed to bring down the OFF wakeup 
+>>> >latency, the sleep latency
+>>> >> remains the same.
+>>> >
+>>> >I'm doing a timer interrupt periodically. Servicing that timer 
+>>> >interrupt
+>>> >takes the same amount of time every time. What varies (with 
+>>the patch)
+>>> >is the transition times from off to active and back to off.
+>>> >
+>>> >In the pictures the top graph shows current and bottom 
+>>graph shows the
+>>> >VDD1 and VDD2 voltages. I zoomed from the pictures the interval from
+>>> >when VDD1 goes up, to the point when it starts to go down again.
+>>> >
+>>> >So I measured: wakeup latency + interrupt service + sleep latency.
+>>> 
+>>> Is the boot ROM different on the OMAP devices on nokia h/w or is it
+>>> the same as that on the SDP?
+>>
+>>I have heard that our ROM version would be somehow older version, but I
+>>really don't have any facts on that matter.
 >
-> Unfortunately I'm not a kernel hacker and cleaning up the patch may take
-> too much time and efforts, taking into account my current knowledge. I
-> would be happy if somebody else with more hands-on kernel experience could
-> make a clean and usable Cortex-A8 PMU workaround. I don't care about
-> getting some part of credit for it or not, the end result is more important
-> :)
-I am ok to help
+> Oh.. it turns out that when the scratchpad save routine is called, the autoidle
+> for PER is not even set. Its only set some place later.
+> So the 20ms or so advantage was always there on l-o pm branch even without this
+> patch :)
+>
 
-> One of the obvious problems with the patch (other than race conditions) is
-> that it is using OMAP-specific GPTIMER. Is there something more portable in
-> the kernel to provide similar functionality? Or are there any Cortex-A8 r1
-> cores other than OMAP3 in the wild?
-You can use a 'struct timer_list' and the setup_timer, mod_timer, 
-del_timer_sync. Another API is the hight resolution timers (HRT) but I do not 
-think we need such a high precision timer here.
+So for the benefit of the archives... 
 
-Jean
+I'm dropping this patch since the equivalent is alrady in PM branch.
+
+Kevin
