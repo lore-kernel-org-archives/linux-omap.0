@@ -1,126 +1,45 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF, reduces OFF latency by 20ms
-Date: Mon, 29 Jun 2009 11:58:21 -0700
-Message-ID: <8763ee98aa.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0305A54205@dbde02.ent.ti.com>
+From: "Hunter, Jon" <jon-hunter@ti.com>
+Subject: RE: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to
+ support off-mode
+Date: Mon, 29 Jun 2009 14:28:47 -0500
+Message-ID: <7B4574D56E4ADF438756313E9A172A874D31A30B@dlee01.ent.ti.com>
+References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com>
+	<1245965646-20070-2-git-send-email-khilman@deeprootsystems.com>
+	<1245965646-20070-3-git-send-email-khilman@deeprootsystems.com>
+	<1245965646-20070-4-git-send-email-khilman@deeprootsystems.com>
+	<1245965646-20070-5-git-send-email-khilman@deeprootsystems.com>
+	<4A44AD44.4070107@nokia.com> <87bpobjcx6.fsf@deeprootsystems.com>
+	<F12CE1A68F023D498A2691C7B5393115035F09BD@ZMY16EXM66.ds.mot.com>,<87y6rb7yz7.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:34690 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753039AbZF2S6j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 14:58:39 -0400
-Received: by pzk26 with SMTP id 26so392908pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 11:58:43 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305A54205@dbde02.ent.ti.com> (Rajendra Nayak's message of "Wed\, 17 Jun 2009 18\:31\:52 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60176 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753645AbZF2T24 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 15:28:56 -0400
+In-Reply-To: <87y6rb7yz7.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, HU TAO-TGHK48 <taohu@motorola.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
 
->  
+Hi Kevin,
+
+> Shouldn't you do a read-modify-write of I2C_CON_REG here?  Otherwise,
+> you're loosing any of the other settings in I2C_CON_REG.
 >
->>-----Original Message-----
->>From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
->>Sent: Wednesday, June 17, 2009 6:18 PM
->>To: Nayak, Rajendra
->>Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
->>Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->>before OFF, reduces OFF latency by 20ms
->>
->>On Wed, 2009-06-17 at 15:38 +0300, Nayak, Rajendra wrote:
->>> 
->>> >-----Original Message-----
->>> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
->>> >Sent: Wednesday, June 17, 2009 3:56 PM
->>> >To: Nayak, Rajendra
->>> >Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
->>> >Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->>> >before OFF, reduces OFF latency by 20ms
->>> >
->>> >On Wed, 2009-06-17 at 12:50 +0300, Nayak, Rajendra wrote:
->>> >> >-----Original Message-----
->>> >> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
->>> >> >Sent: Wednesday, June 17, 2009 1:17 PM
->>> >> >To: Nayak, Rajendra
->>> >> >Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
->>> >> >Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->>> >> >before OFF, reduces OFF latency by 20ms
->>> >> >
->>> >> >Hi Rajendra,
->>> >> >
->>> >> >On Tue, 2009-06-16 at 14:52 +0300, Rajendra Nayak wrote:
->>> >> >> If autoidle for DPLL4 is enabled in the stored scratchpad
->>> >> >> value of CM_AUTOIDLE_PLL then there is an added delay by
->>> >> >> the boot ROM when coming out of OFF mode.
->>> >> >> The patch disables this bitfield in the stored 
->>scratchpad value.
->>> >> >> 
->>> >> >> This should significantly reduce CORE OFF latency and also
->>> >> >> bring down the threshold for CORE OFF, making OFF affordable
->>> >> >> even with smaller sleep times.
->>> >> >
->>> >> >I did some measurements on RX-51 with this patch, and it 
->>> >seems it does
->>> >> >not reduce latency, it increases it by few hundred us.
->>> >> >
->>> >> >Servicing an empty timer interrupt from off mode 
->>(measured from VDD1
->>> >> >ramp up to start of VDD1 ramp down):
->>> >> >
->>> >> >with dpll4 patch : ~14100us
->>> >> >without patch    : ~13600us
->>> >> >
->>> >> >I attached pictures of both situations.
->>> >> >
->>> >> >My kernel had only C7 state enabled.
->>> >> >
->>> >> >Have you measured the latency effects on SDP or some other board?
->>> >> 
->>> >> I haven't done the latency measurements on SDP yet, but 
->>> >David had done it
->>> >> sometime back, using a different codebase though.
->>> >
->>> >OK, I also used our internal code base. Though the PM 
->>functionality is
->>> >pretty much the same as in l-o:pm branch.
->>> >
->>> >> 
->>> >> Can you explain more on how you are measuring the latency 
->>> >here, I am a bit
->>> >> confused. This is supposed to bring down the OFF wakeup 
->>> >latency, the sleep latency
->>> >> remains the same.
->>> >
->>> >I'm doing a timer interrupt periodically. Servicing that timer 
->>> >interrupt
->>> >takes the same amount of time every time. What varies (with 
->>the patch)
->>> >is the transition times from off to active and back to off.
->>> >
->>> >In the pictures the top graph shows current and bottom 
->>graph shows the
->>> >VDD1 and VDD2 voltages. I zoomed from the pictures the interval from
->>> >when VDD1 goes up, to the point when it starts to go down again.
->>> >
->>> >So I measured: wakeup latency + interrupt service + sleep latency.
->>> 
->>> Is the boot ROM different on the OMAP devices on nokia h/w or is it
->>> the same as that on the SDP?
->>
->>I have heard that our ROM version would be somehow older version, but I
->>really don't have any facts on that matter.
->
-> Oh.. it turns out that when the scratchpad save routine is called, the autoidle
-> for PER is not even set. Its only set some place later.
-> So the 20ms or so advantage was always there on l-o pm branch even without this
-> patch :)
->
+> Not being an expert in the I2C hardware, I'm not sure if it matters,
+> but this doesn't seem quite right due to possible side effects.
 
-So for the benefit of the archives... 
+This is a good question and this exact same issue came up on the omapzoom tree. For the omapzoom tree we ended up not implementing a read-modify-write here. The reason being that omap_i2c_unidle is called at the beginning of every transfer and we are re-configuring the I2C_CON register for every transfer. So when consulting with the TI linux team they said that it is ok to simply write 0 and clear the register here so we start over fresh for each transfer.  
 
-I'm dropping this patch since the equivalent is alrady in PM branch.
+I was trying to think if there would be any harm in doing a read-modify-write here. Probably not. You would not want the STT bit (generate a start command) to get set, however, this bit should not be set in the first place when entering this function. 
 
-Kevin
+This change has been implemented in the omapzoom tree and so for you reference please see:
+http://git.omapzoom.org/?p=repo/omapkernel.git;a=commit;h=ec70a0af52df54638a4fa33fc0dc3d24b1f893f1
+
+Cheers
+Jon
