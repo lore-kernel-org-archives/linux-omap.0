@@ -1,45 +1,117 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to
- support off-mode
-Date: Mon, 29 Jun 2009 14:28:47 -0500
-Message-ID: <7B4574D56E4ADF438756313E9A172A874D31A30B@dlee01.ent.ti.com>
-References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-2-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-3-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-4-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-5-git-send-email-khilman@deeprootsystems.com>
-	<4A44AD44.4070107@nokia.com> <87bpobjcx6.fsf@deeprootsystems.com>
-	<F12CE1A68F023D498A2691C7B5393115035F09BD@ZMY16EXM66.ds.mot.com>,<87y6rb7yz7.fsf@deeprootsystems.com>
+From: Siarhei Siamashka <siarhei.siamashka@nokia.com>
+Subject: Re: get_irq_regs() from soft IRQ
+Date: Mon, 29 Jun 2009 22:45:11 +0300
+Message-ID: <200906292245.11840.siarhei.siamashka@nokia.com>
+References: <200906291631.19562.jpihet@mvista.com>
+	<200906292139.00046.siarhei.siamashka@nokia.com>
+	<200906292049.59789.jpihet@mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60176 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753645AbZF2T24 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 15:28:56 -0400
-In-Reply-To: <87y6rb7yz7.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <oprofile-list-bounces@lists.sourceforge.net>
+In-Reply-To: <200906292049.59789.jpihet@mvista.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=oprofile-list>
+List-Post: <mailto:oprofile-list@lists.sourceforge.net>
+List-Help: <mailto:oprofile-list-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/oprofile-list>,
+	<mailto:oprofile-list-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: oprofile-list-bounces@lists.sourceforge.net
+To: ext Jean Pihet <jpihet@mvista.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, HU TAO-TGHK48 <taohu@motorola.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
 
-
-Hi Kevin,
-
-> Shouldn't you do a read-modify-write of I2C_CON_REG here?  Otherwise,
-> you're loosing any of the other settings in I2C_CON_REG.
+On Monday 29 June 2009 21:49:59 ext Jean Pihet wrote:
+[...]
+> > We just need to use not a periodic timer, but kind of a watchdog (this
+> > can be implemented with OMAP GPTIMER).
+> >
+> > As long as PMU interrupts are coming fast, watchdog is frequently reset
+> > and never shows up anywhere. Everything is working nice.
+> >
+> > Now if PMU gets broken, watchdog gets triggered eventually and recovers
+> > PMU state. As PMU could get broken something like 10 times per second in
+> > the worst case in my experiments, having ~10 ms for a watchdog trigger
+> > period seemed to be a  reasonable empirical value.  So in this
+> > conditions, PMU will be in a nonworking state approximately less than 10%
+> > of the time in the worst practical case. Not very nice, but not
+> > completely ugly either.
 >
-> Not being an expert in the I2C hardware, I'm not sure if it matters,
-> but this doesn't seem quite right due to possible side effects.
+> The accuracy is not very good.
 
-This is a good question and this exact same issue came up on the omapzoom tree. For the omapzoom tree we ended up not implementing a read-modify-write here. The reason being that omap_i2c_unidle is called at the beginning of every transfer and we are re-configuring the I2C_CON register for every transfer. So when consulting with the TI linux team they said that it is ok to simply write 0 and clear the register here so we start over fresh for each transfer.  
+Yes, but it is the worst case. In "normal" case when PMU not broken or very
+rarely broken, the statistics would be quite good. One of the reasons of
+dropping working on this patch was also the fact that in some cases Cortex-A8
+PMU even works reliable enough :) Adding some suspicious weird extra logic may
+be not very desired by the people, who are quite satisfied even with the
+current oprofile state on Cortex-A8 chips (numbercrunching applications with
+relatively low number of syscalls and hence rarely touching any coprocessor
+registers, are mostly unaffected).
 
-I was trying to think if there would be any harm in doing a read-modify-write here. Probably not. You would not want the STT bit (generate a start command) to get set, however, this bit should not be set in the first place when entering this function. 
+Some adaptive watchdog trigger period may be better (try to predict when the
+next PMU interrupt is going to normally happen and tune watchdog timeout at
+runtime), but also may be more complex and may theoretically still misbehave
+in some cases.
 
-This change has been implemented in the omapzoom tree and so for you reference please see:
-http://git.omapzoom.org/?p=repo/omapkernel.git;a=commit;h=ec70a0af52df54638a4fa33fc0dc3d24b1f893f1
+> > Another problematic condition is when PMU is fine, but is not generating
+> > events naturally (for example we have configured it for cache misses, but
+> > are burning cpu in a loop which is not accessing memory at all). In this
+> > case a watchdog will be triggered periodically for no reason, generating
+> > the "noise" in profiling statistics. This noise needs to be filtered out,
+> > and seems like it is possible to do it. The trick is to reset watchdog
+> > counter to a lower value than it is typically reset in PMU IRQ handler.
+> > This way, whenever PMU interrupt is generated, we check if watchdog
+> > counter is below the normal threshold. If it is lower, then we know that
+> > watchdog interrupt was triggered recently and this sample can be ignored.
+> > The difference between normal watchdog counter reset value and the value
+> > which gets set on watchdog interrupts should provide sufficient time to
+> > get out of the watchdog interrupt handler and its related code, so that
+> > it does not show up in statistics that much.
 
-Cheers
-Jon
+And forgot to mention here, very low frequency events (with frequency lower
+than the frequency of watchdog) may be quite problematic and still distort the
+statistics because they will be filtered out. Tuning all the magic values may
+turn out to be a hell.
+
+But at the very least, all the watchdog interrupts (both false alarms and real
+cases of PMU breakage) can be counted and taken into account. This statistics
+could be somehow reported to the user, so that (s)he would make a decision
+if the final profiling statistics can be trusted and for how much time the PMU
+was actually broken.
+
+> > A working proof of concept patch was submitted there:
+> > http://groups.google.com/group/beagleboard/msg/dd361f3b43fdeff0
+> > Sorry for not posting it to one of the kernel mailing lists, but I
+> > thought that beagleboard mailing list was a good place to find users who
+> > may want to try it and evaluate if it has any practical value. Maybe it
+> > was not a very wise decision.
+> >
+> > Unfortunately I'm not a kernel hacker and cleaning up the patch may take
+> > too much time and efforts, taking into account my current knowledge. I
+> > would be happy if somebody else with more hands-on kernel experience
+> > could make a clean and usable Cortex-A8 PMU workaround. I don't care
+> > about getting some part of credit for it or not, the end result is more
+> > important
+> >
+> > :)
+>
+> I am ok to help
+>
+> > One of the obvious problems with the patch (other than race conditions)
+> > is that it is using OMAP-specific GPTIMER. Is there something more
+> > portable in the kernel to provide similar functionality? Or are there any
+> > Cortex-A8 r1 cores other than OMAP3 in the wild?
+>
+> You can use a 'struct timer_list' and the setup_timer, mod_timer,
+> del_timer_sync. Another API is the hight resolution timers (HRT) but I do
+> not think we need such a high precision timer here.
+
+Thanks
+
+-- 
+Best regards,
+Siarhei Siamashka
+
+------------------------------------------------------------------------------
