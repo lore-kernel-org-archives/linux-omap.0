@@ -1,64 +1,79 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: get_irq_regs() from soft IRQ
-Date: Mon, 29 Jun 2009 18:46:33 +0100
-Message-ID: <20090629174633.GD9042@n2100.arm.linux.org.uk>
-References: <200906291631.19562.jpihet@mvista.com> <200906291936.57703.siarhei.siamashka@nokia.com> <200906291858.41151.jpihet@mvista.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [ARM][OMAP] TWL4030 IRQ
+Date: Mon, 29 Jun 2009 10:51:09 -0700
+Message-ID: <87prcn7wtu.fsf@deeprootsystems.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02B530E9C6@dbde02.ent.ti.com>
+	<20090624075756.GA13052@n2100.arm.linux.org.uk>
+	<20090629093004.GA2111@n2100.arm.linux.org.uk>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02B53AC23F@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:32940 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754653AbZF2RrN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 13:47:13 -0400
-Content-Disposition: inline
-In-Reply-To: <200906291858.41151.jpihet@mvista.com>
+Received: from mail-px0-f190.google.com ([209.85.216.190]:54103 "EHLO
+	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721AbZF2RvK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 13:51:10 -0400
+Received: by pxi28 with SMTP id 28so3565599pxi.33
+        for <linux-omap@vger.kernel.org>; Mon, 29 Jun 2009 10:51:12 -0700 (PDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B53AC23F@dbde02.ent.ti.com> (Santosh Shilimkar's message of "Mon\, 29 Jun 2009 21\:04\:53 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jean Pihet <jpihet@mvista.com>
-Cc: Siarhei Siamashka <siarhei.siamashka@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Jun 29, 2009 at 06:58:41PM +0200, Jean Pihet wrote:
-> I am trying to get a different approach, starting from the errata
-> description.  The idea is to avoid the counters from overflowing,
-> which could cause a PMNC unit reset or lock-up (or both).
+"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
 
-But this can't work.
+>> And here it is - I've only build-tested it so far.
+>> 
+>>  drivers/mfd/twl4030-irq.c |   55 
+>> ++++++++++++++++++--------------------------
+>>  1 files changed, 23 insertions(+), 32 deletions(-)
+>> 
+>> diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+>> index bae61b2..4bb1ea7 100644
+>> --- a/drivers/mfd/twl4030-irq.c
+>> +++ b/drivers/mfd/twl4030-irq.c
+>> @@ -180,15 +180,9 @@ static struct completion irq_event;
+>>  static int twl4030_irq_thread(void *data)
+>>  {
+>>  	long irq = (long)data;
+>> -	struct irq_desc *desc = irq_to_desc(irq);
+>>  	static unsigned i2c_errors;
+>>  	static const unsigned max_i2c_errors = 100;
+>>  
+>> -	if (!desc) {
+>> -		pr_err("twl4030: Invalid IRQ: %ld\n", irq);
+>> -		return -EINVAL;
+>> -	}
+>> -
+>>  	current->flags |= PF_NOFREEZE;
+>>  
+>>  	while (!kthread_should_stop()) {
+>> @@ -240,38 +234,25 @@ static int twl4030_irq_thread(void *data)
+>>  		}
+>>  		local_irq_enable();
+>>  
+>> -		desc->chip->unmask(irq);
+>> +		enable_irq(irq);
+>>  	}
+>>  
+>>  	return 0;
+>>  }
+> Russell,
+> Just a question here.
+>
+> In the enable_irq(irq) and disable_irq(irq) call tree, internally there are calls to 
+> the interrupt controller chip.
+>
+> In disable_irq() path:
+> 	desc->chip->disable(irq);
+> And in emable_irq() path:
+> 	desc->chip->enable(irq);
 
-Oprofile essentially works as follows:
+> But the in gic gic_chip, enable/disable fn are not populated.
 
-  You set the number (N) of events you wish to occur between each sample.
-  When N events have occured, you record the stacktrace and reset the
-  counter so it fires after another N events.
+And if you look at the OMAP's MPU irq_chip implementation, these are 
+not populated either.  We rely on the default lazy enable via unmask
+and the lazy disable.
 
-Now, you could start the counters at zero every time, and then poll them
-via a timer.  When the counter value is larger than N, you could log a
-stacktrace and zero the counter.
-
-However, this suffers one very serious problem - if you're wanting to
-measure something at an interval which occurs faster than your timer,
-you're going to get misleading results.
-
-You could set the timer to fire at a high rate, but then that's going
-to upset things like cache miss, cache hit, etc measurements.
-
-> Here are the implementation details:
-> - use a timer to read and reset the counters, then fire a work queue
-> - in the work queue the counters values are converted to oprofile samples
-> - the proper locking is used to avoid some races between the various tasks
-
-This sounds over complicated.  I see no reason for a workqueue to be
-involved anywhere near the oprofile sample code.
-
-> I am nearly done with it but I am now running into problems with PM 
-> (suspend/resume) and get_irq_regs().
-
-You really really really can't use get_irq_regs() outside of IRQ context.
-The stored registers just do not exist anymore - they've been overwritten
-by whatever exception or system call you're currently in.
-
-You can't create a copy of them - copies will be overwritten on the very
-next (nested) interrupt.  You don't know which interrupt is the first
-interrupt to occur.
-
-I really think that the only option here is to just accept that oprofile
-is crucified by this errata.
+Kevin
