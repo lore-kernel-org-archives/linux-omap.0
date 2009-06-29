@@ -1,128 +1,77 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH]OMAP4: McSPI Support for OMAP_4430
-Date: Mon, 29 Jun 2009 23:28:31 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F54DB172@dbde02.ent.ti.com>
-References: <38905.192.168.10.89.1246280107.squirrel@dbdmail.itg.ti.com>
+From: Siarhei Siamashka <siarhei.siamashka@nokia.com>
+Subject: Re: get_irq_regs() from soft IRQ
+Date: Mon, 29 Jun 2009 20:54:23 +0300
+Message-ID: <200906292054.23783.siarhei.siamashka@nokia.com>
+References: <200906291631.19562.jpihet@mvista.com> <200906291936.57703.siarhei.siamashka@nokia.com> <200906291858.41151.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42631 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751192AbZF2R6p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 13:58:45 -0400
-In-Reply-To: <38905.192.168.10.89.1246280107.squirrel@dbdmail.itg.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:22093 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754323AbZF2R7K (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 13:59:10 -0400
+In-Reply-To: <200906291858.41151.jpihet@mvista.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, "spi-devel-general@lists.sourceforge.net" <spi-devel-general@lists.sourceforge.net>, "dbrownell@users.sourceforge.net" <dbrownell@users.sou>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Jean Pihet <jpihet@mvista.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "oprofile-list@lists.sourceforge.net" <oprofile-list@lists.sourceforge.net>
 
-Rafiuddin
-
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Syed,
->Rafiuddin
->Sent: Monday, June 29, 2009 7:55 AM
->To: spi-devel-general@lists.sourceforge.net; dbrownell@users.sourceforge.net
->Cc: linux-omap@vger.kernel.org
->Subject: [PATCH]OMAP4: McSPI Support for OMAP_4430
-
-Your mailer is having formatting issues like:
-TABS getting converted to spaces, etc.
-
-Please use git send-email instead and for setting this up you can refer to this wiki page https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=How+to+submit+patches
-
-
+On Monday 29 June 2009 19:58:41 ext Jean Pihet wrote:
+> Hi Siarhei Siamashka,
 >
->This patch adds McSPI support for OMAP4430 SDP platform. All the base addresses
->are changed between OMAP1/2/3 and OMAP4.The fields of the resource structures
->are filled at runtime to have McSPI support on OMAP4.
+> On Monday 29 June 2009 18:36:57 Siarhei Siamashka wrote:
+> > On Monday 29 June 2009 17:31:18 ext Jean Pihet wrote:
+> > > Hi,
+> > >
+> > > I am trying to get the latest IRQ registers from a timer or a work
+> > > queue but I am running into problems:
+> > > - get_irq_regs() returns NULL in some cases, so it is unsuable and even
+> > > causes crash when trying to get the registers values from the returned
+> > > ptr - I never get user space registers, only kernel
+> > >
+> > > The use case is that the performance unit (PMNC) of the Cortex A8 has
+> > > some serious bug, in short the performance counters overflow IRQ is to
+> > > be avoided. The solution I am implementing is to read and reset the
+> > > counters from a work queue that is triggered by a timer.
+> >
+> > Regarding this oprofile related part. I wonder how you can get oprofile
+> > working properly (providing non-bogus results) without performance
+> > counters overflow IRQ generation?
+> >
+> > Are you trying to implement (in a clean way) something similar to
+> > http://marc.info/?l=oprofile-list&m=123688347009580&w=2
+> >
+> > Or is it going to be a different workaround?
 >
->Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
->Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
->Acked-by: Tony Lindgren <tony@atomide.com>
->Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->---
-> arch/arm/mach-omap2/devices.c |   25 +++++++++++++++++++++----
-> drivers/spi/omap2_mcspi.c     |   10 ++++++----
-> 2 files changed, 27 insertions(+), 8 deletions(-)
+> I am trying to get a different approach, starting from the errata
+> description. The idea is to avoid the counters from overflowing, which
+> could cause a PMNC unit reset or lock-up (or both).
 >
->Index: omap4_dev/arch/arm/mach-omap2/devices.c
->=================================================================== ---
->omap4_dev.orig/arch/arm/mach-omap2/devices.c        2009-06-24
->19:22:04.000000000
->+0530
-Here is a bad formatting example.
+> Here are the implementation details:
+> - use a timer to read and reset the counters, then fire a work queue
+> - in the work queue the counters values are converted to oprofile samples
+> - the proper locking is used to avoid some races between the various tasks
+>
+> I am nearly done with it but I am now running into problems with PM
+> (suspend/resume) and get_irq_regs().
+>
+> What do you think?
 
->+++ omap4_dev/arch/arm/mach-omap2/devices.c        2009-06-25
->10:05:39.000000000 +0530
-> static void omap_init_mcspi(void)
-> {
->+        if (cpu_is_omap44xx()) {
->+                omap2_mcspi1_resources[0].start = OMAP4_MCSPI1_BASE; +
->       omap2_mcspi1_resources[0].end         = OMAP4_MCSPI1_BASE + 0xff; +
->          omap2_mcspi2_resources[0].start = OMAP4_MCSPI2_BASE; +
->omap2_mcspi2_resources[0].end         = OMAP4_MCSPI2_BASE + 0xff; +
->   omap2_mcspi3_resources[0].start = OMAP4_MCSPI3_BASE; +
->omap2_mcspi3_resources[0].end         = OMAP4_MCSPI3_BASE + 0xff; +
->   omap2_mcspi4_resources[0].start = OMAP4_MCSPI4_BASE; +
->omap2_mcspi4_resources[0].end         = OMAP4_MCSPI4_BASE + 0xff; +        }
->         platform_device_register(&omap2_mcspi1);
->         platform_device_register(&omap2_mcspi2);
->-#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
->+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \ +
->defined(CONFIG_ARCH_OMAP4)
->         platform_device_register(&omap2_mcspi3);
-> #endif
->-#ifdef CONFIG_ARCH_OMAP3
->+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->         platform_device_register(&omap2_mcspi4);
-> #endif
-> }
->Index: omap4_dev/drivers/spi/omap2_mcspi.c
->=================================================================== ---
->omap4_dev.orig/drivers/spi/omap2_mcspi.c        2009-06-24
->19:22:23.000000000 +0530
->+++ omap4_dev/drivers/spi/omap2_mcspi.c        2009-06-24 19:22:46.000000000
->+0530 @@ -918,7 +918,8 @@
->         OMAP24XX_DMA_SPI2_TX1,
-> };
->
->-#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX) +#if
+Russel was the first to reply :)
 
-This is some formatting issue which will not come if you use git send-email
+But we also discussed this "hybrid model" some time ago, and there is a clear
+counterexample where it fails:
+http://www.nabble.com/Re%3A--PATCH-0-1--OMAP-gptimer-based-event-monitor-driver-for-oprofile-p21374285.html
 
->defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP34XX) || \ +
->defined(CONFIG_ARCH_OMAP4)
-> static u8 __initdata spi3_rxdma_id[] = {
->         OMAP24XX_DMA_SPI3_RX0,
->         OMAP24XX_DMA_SPI3_RX1,
->@@ -930,7 +931,7 @@
-> };
-> #endif
->
->-#ifdef CONFIG_ARCH_OMAP3
->+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
-> static u8 __initdata spi4_rxdma_id[] = {
->         OMAP34XX_DMA_SPI4_RX0,
-> };
->@@ -960,14 +961,15 @@
->                 txdma_id = spi2_txdma_id;
->                 num_chipselect = 2;
->                 break;
->-#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3)
->+#if defined(CONFIG_ARCH_OMAP2430) || defined(CONFIG_ARCH_OMAP3) || \ +
->defined(CONFIG_ARCH_OMAP4)
->         case 3:
->                 rxdma_id = spi3_rxdma_id;
->                 txdma_id = spi3_txdma_id;
->                 num_chipselect = 2;
->                 break;
-> #endif
->-#ifdef CONFIG_ARCH_OMAP3
->+#if defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
->         case 4:
->                 rxdma_id = spi4_rxdma_id;
->                 txdma_id = spi4_txdma_id;
->
+> How far are you on your side? Did you stress test the solution? Is the PMNC
+> recovery always successful?
+
+I ended up just using a timer with high frequency of samples generation. it
+works without hassle and is sufficient for the majority of cases.
+
+-- 
+Best regards,
+Siarhei Siamashka
