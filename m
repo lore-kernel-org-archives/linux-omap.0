@@ -1,40 +1,51 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: get_irq_regs() from soft IRQ
-Date: Mon, 29 Jun 2009 16:31:18 +0200
-Message-ID: <200906291631.19562.jpihet@mvista.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] Can a phone hook switch follow alsa jack model?
+Date: Mon, 29 Jun 2009 15:32:15 +0100
+Message-ID: <20090629143215.GA23835@rakim.wolfsonmicro.main>
+References: <4A40D896.8010208@tis.icnet.pl>
+ <20090623222255.GA5617@sirena.org.uk>
+ <4A4229EB.2090606@tis.icnet.pl>
+ <20090625110508.GF17812@sirena.org.uk>
+ <4A437226.4090202@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:37434 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754242AbZF2Oba (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 29 Jun 2009 10:31:30 -0400
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:41422 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753170AbZF2OcQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 29 Jun 2009 10:32:16 -0400
 Content-Disposition: inline
+In-Reply-To: <4A437226.4090202@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, oprofile-list@lists.sourceforge.net
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Jonathan McDowell <noodles@earth.li>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-input@vger.kernel.org
 
-Hi,
+On Thu, Jun 25, 2009 at 02:48:38PM +0200, Janusz Krzysztofik wrote:
 
-I am trying to get the latest IRQ registers from a timer or a work queue but I 
-am running into problems:
-- get_irq_regs() returns NULL in some cases, so it is unsuable and even causes 
-crash when trying to get the registers values from the returned ptr
-- I never get user space registers, only kernel
+> During my previous, gpio-keys based attempt, I submitted a patch
+> that added new SW_HANDSET_PICK_UP event definition to
+> include/linux/input.h. Even if not accepted because of no
 
-The use case is that the performance unit (PMNC) of the Cortex A8 has some 
-serious bug, in short the performance counters overflow IRQ is to be avoided.
-The solution I am implementing is to read and reset the counters from a work 
-queue that is triggered by a timer.
+Something like hook switch would be a more common name - the switch is
+closed when the phone is on hook.
 
-Some questions:
-- is there a way to get the last 'real' IRQ registers from a timer or work 
-queue handler?
-- is there some other way to do it?
+> comments, especially on the name I have choosen. However, there were
+> another name proposed by ams-delta board maintainer, Jonathan
+> McDowell - SW_PHONE_HOOK. Even if my wording may better match those
+> already existing ..._INSERT names, I am not sure which one should I
+> use.
 
-Any thoughts?
+The _INSERT isn't at all appropriate since there's nothing being
+inserted here - the _INSERT names refer to the fact that something is
+being plugged in to a jack.
 
-Thanks & regards,
-Jean
+> Please also note that SND_JACK_HEADSET, that I temporarily use for
+> now, is an alias for SND_JACK_HEADPHONE | SND_JACK_MICROPHONE. Those
+> two can be seen as matching what a handset actually is. On headset
+> jack insert/remove, two distinct reports/events are generated, one
+
+OTOH a phone going on hook tends to mean something rather different in
+UI terms to having something plugged into a jack - it's part of the
+normal flow of making a phone call.
