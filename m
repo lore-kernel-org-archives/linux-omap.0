@@ -1,43 +1,49 @@
-From: "Hunter, Jon" <jon-hunter@ti.com>
-Subject: RE: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to
- support off-mode
-Date: Tue, 30 Jun 2009 11:49:04 -0500
-Message-ID: <7B4574D56E4ADF438756313E9A172A874D31A321@dlee01.ent.ti.com>
-References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-2-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-3-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-4-git-send-email-khilman@deeprootsystems.com>
-	<1245965646-20070-5-git-send-email-khilman@deeprootsystems.com>
-	<4A44AD44.4070107@nokia.com> <87bpobjcx6.fsf@deeprootsystems.com>
-	<F12CE1A68F023D498A2691C7B5393115035F09BD@ZMY16EXM66.ds.mot.com>
-	<87y6rb7yz7.fsf@deeprootsystems.com>
-	<7B4574D56E4ADF438756313E9A172A874D31A30B@dlee01.ent.ti.com>,<87ocs67ndy.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF, reduces OFF latency by 20ms
+Date: Tue, 30 Jun 2009 15:24:28 -0700
+Message-ID: <87bpo55pib.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305B77F0D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35519 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751514AbZF3Qx4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jun 2009 12:53:56 -0400
-In-Reply-To: <87ocs67ndy.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.174]:23888 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753254AbZF3WY2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jun 2009 18:24:28 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so171604wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 30 Jun 2009 15:24:31 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305B77F0D@dbde02.ent.ti.com> (Rajendra Nayak's message of "Tue\, 30 Jun 2009 11\:28\:18 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: HU TAO-TGHK48 <taohu@motorola.com>, Aaro Koskinen <aaro.koskinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>
+To: "Nayak, Rajendra" <rnayak@ti.com>
+Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-Hi Kevin,
+"Nayak, Rajendra" <rnayak@ti.com> writes:
 
-> Jon, thanks for the clarification.  I will fold this change into
-> the upstream-bound I2C changes.
+[...]
 
-Thanks.
+>>>
+>>> Oh.. it turns out that when the scratchpad save routine is called,
+>>> the autoidle for PER is not even set. Its only set some place
+>>> later.  So the 20ms or so advantage was always there on l-o pm
+>>> branch even without this patch :)
+>>>
+>>
+>>So for the benefit of the archives... 
+>>
+>>I'm dropping this patch since the equivalent is alrady in PM branch.
+>
+> Today the sequence is such that the PER dpll autoidle is set only
+> after the first scratchpad save (so this patch has no
+> affect). Sometime in future, if with some change in function
+> sequencing we end up enabling the PER dpll autoidle early on, we
+> might have an additional 20ms or so OFF latency without anyone
+> really noticing.  Would'nt it be good to just have this patch to
+> take care of any sequencing changes later?
 
-> Tao, in the future please be sure to cite original authors and/or
-> sources when submitting patches to the list.
+Yes, I think you're right.  This change could indeed prevent some
+future problmes down the road.  I'll merge it.
 
-Actually, I should point out that Hu Tao and I worked on this together originally for the omapzoom.org tree. So I should have added Hu Tao's name to this when submitting originally to omapzoom.org. So we should give credit to Hu Tao on this. Sorry about that.
+Thanks,
 
-Cheers,
-Jon
+Kevin
