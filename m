@@ -1,150 +1,156 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH] [RFC] ASoC: OMAP: fix OMAP1510 broken PCM
-	pointer callback
-Date: Tue, 30 Jun 2009 08:20:08 +0300
-Message-ID: <200906300820.09414.peter.ujfalusi@nokia.com>
-References: <200906280021.05931.jkrzyszt@tis.icnet.pl>
-	<200906290937.58786.peter.ujfalusi@nokia.com>
-	<200906291551.08437.jkrzyszt@tis.icnet.pl>
+From: "Nayak, Rajendra" <rnayak@ti.com>
+Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF,
+ reduces OFF latency by 20ms
+Date: Tue, 30 Jun 2009 11:28:18 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305B77F0D@dbde02.ent.ti.com>
+References: <8763ee98aa.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200906291551.08437.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44685 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750788AbZF3F6a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jun 2009 01:58:30 -0400
+In-Reply-To: <8763ee98aa.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-T24gTW9uZGF5IDI5IEp1bmUgMjAwOSAxNjo1MTowNyBleHQgSmFudXN6IEtyenlzenRvZmlrIHdy
-b3RlOgo+IEkgYW0gbm90IGFibGUgdG8gZmluZCBhbnkgaW5mb3JtYXRpb24gb24gaG93IERNQSBj
-YW4gYmUgY29uZmlndXJlZCBmb3IgQ1BDCj4gdG8gcmVmbGVjdCBlaXRoZXIgc291cmNlIG9yIGRl
-c3RpbmF0aW9uIHBvcnQgYWRkcmVzcyBwcm9ncmVzcy4gT2ZmaWNpYWwKPiBkb2N1bWVudGF0aW9u
-LCBldmVuIGlmIG5vdCB2ZXJ5IGNsZWFyIGZvciBtZSwgc2VlbXMgdG8gc3VnZ2VzdCB0aGF0IGl0
-Cj4gYWx3YXlzIGZvbGxvd3MgZGVzdGluYXRpb24gcG9ydCBhZGRyZXNzLCBldmVuIGlmIGNvbnN0
-YXRudCAoaWUKPiBETUFfQ0NSOkRTVF9BTU9ERSgxNToxNCkgPT0gMCkuCgpZZWFoLCB0aGUgQ1BD
-IHJlZ2lzdGVyIG9ubHkgbWVudGlvbmVkIGluIHRoZSByZWdpc3RlciBkZXNjcmlwdGlvbi4gSSB0
-aGluayB0aGUgCmRlc2NyaXB0aW9uIHN1Z2dlc3RzIHRoYXQgaXQgc2hvdWxkIGhhdmUgdGhlIExT
-QiBvZiB0aGUgc291cmNlIChpbiBjb250cmFzdCAKd2hhdCBpdCBhY3R1YWxseSBjb250YWlucyks
-IHNpbmNlIGl0IHN0YXRlcyB0aGF0IHRoZSBjb250ZW50IHdpbGwgYmUgdXBkYXRlZCAKd2hlbiB0
-aGUgZGVzdGluYXRpb24gcG9ydCBpc3N1ZWQgYSByZXF1ZXN0IGZvciBhbiBlbGVtZW50L2ZyYW1l
-LiBUbyBteSAKa25vd2xlZGdlIG9ubHkgLSBzdGF0aWMgLSBwb3J0cyBjYW4gaXNzdWUgRE1BIHJl
-cXVlc3RzLgoKPgo+ID4gVGhlIGRpZmZlcmVuY2UgdGhhdCBJIGNhbiBzZWUgaXMgdGhhdCB0aGUg
-T1NTIGNvZGUgYWxzbyBjb25maWd1cmVkIHRoZQo+ID4gQ0NSOlNZTkMoNDowKSBiaXRzIGFzIHdl
-bGwuCj4gPiBMb29raW5nIGF0IHRoZSBETUFfQ1BDIHJlZ2lzdGVyIGRlc2NyaXB0aW9uIGluIHRo
-ZSBPTUFQMTUxMCBUUk06IGl0IGxpc3QKPiA+IHR3byBjYXNlcyBvbiBob3cgaXQgYmVoYXZlcyBh
-bmQgYm90aCByZXF1aXJlIHRoZSBETUFfQ0NSOlNZTkMgIT0gMC4uLgo+Cj4gTm90IGV4YWN0bHku
-IEFjY29yZGluZyB0byBteSBjb3B5IG9mCj4gaHR0cDovL2ZvY3VzLnRpLmNvbS9saXQvdWcvc3By
-dTY3NC9zcHJ1Njc0LnBkZiwgdGhlIHNlY25vZCBjYXNlIGlzOgo+Cj4gCUlmIHRoZSBjaGFubmVs
-IHRyYW5zZmVyIGlzIHN5bmNocm9uaXplZCBvbiBmcmFtZXMKPiAJKERNQV9DQ1IgU1lOQyDiiaAg
-MCBhbmQgRE1BX0NDUiBGUyA9IDEpIG9yIG5vdAo+IAlzeW5jaHJvbml6ZWQgKERNQV9DQ1IgU1lO
-QyA9IDApLCB0aGUgcmVnaXN0ZXIgaXMKPiAJdXBkYXRlZCB3aXRoIDE2IExTQiBvZiB0aGUgYWRk
-cmVzcyBlYWNoIHRpbWUgdGhlCj4gCWRlc3RpbmF0aW9uIHBvcnQgaXNzdWVzIHRoZSBsYXN0IHJl
-cXVlc3QgZm9yIGEgZnJhbWUuCj4KPiBBbnl3YXksIHRoYXQgc2VlbXMgdG8gYmUgaXJyZWxldmFu
-dCBpbiBvdXIgY2FzZS4KClllcywgdGhhdCdzIHRydWUsIGJ1dCB3ZSBhcmUgdXNpbmcgZWxlbWVu
-dCBtb2RlLgoKPiBOb3QgZXhhY3RseS4gRXZlbiBpZiBub3QgdG91Y2hlZCBpbnNpZGUgYW55IG9m
-Cj4gb21hcF9zZXRfZG1hX3RyYW5zZmVyX3BhcmFtcygpLCBvbWFwX3NldF9kbWFfc3JjX3BhcmFt
-cygpIG5vcgo+IG9tYXBfc2V0X2RtYV9kZXN0X3BhcmFtcygpLCB0aGVzZSBiaXRzIGFyZSBhbHJl
-YWR5IHNldCBieQo+IGFyY2gvYXJtL3BsYXQtb21hcC9kbWEuYzpvbWFwX3JlcXVlc3RfZG1hKGlu
-dCBkZXZfaWQsIC4uLik6Cj4KPiAgNzY1ICAgICAgICAgfSBlbHNlIGlmIChjcHVfaXNfb21hcDd4
-eCgpIHx8IGNwdV9pc19vbWFwMTV4eCgpKSB7Cj4gIDc2NiAgICAgICAgICAgICAgICAgZG1hX3dy
-aXRlKGRldl9pZCwgQ0NSKGZyZWVfY2gpKTsKCkNvcnJlY3QsIEkgaGF2ZSBtaXNzZWQgdGhpcyBv
-bmUuCgo+IEhlcmUgeW91IGFyZS4gU2FtZSBmaWd1cmVzIHdoZWF0aGVyIHdpdGggb3Igd2l0aG91
-dCB5b3VyIHBhdGNoLiBJIGFsc28KPiBwcmludGVkIGEgdmFsdWUgdGhhdCBDQ1IgaXMgd3JpdHRl
-biB3aXRoLCBzbyB5b3UgY2FuIHZlcmlmeSB0aG9zZSBTWU5DKDQ6MCkKPiBiaXRzIGFyZSBzZXQg
-Y29ycmVjdGx5Lgo+Cj4gcm9vdEBhbXNkZWx0YTp+IyBhcGxheSAtZiBTMTZfTEUgLXQgcmF3IC1k
-IDEgPC9kZXYvdXJhbmRvbQo+IFBsYXlpbmcgcmF3IGRhdGEgJ3N0ZGluJyA6IFNpZ25lZCAxNiBi
-aXQgTGl0dGxlIEVuZGlhbiwgUmF0ZSA4MDAwIEh6LCBNb25vCj4gWyAgMTE2Ljc4MDAwMF0gb21h
-cF9wY21fcHJlcGFyZSgpOiBkbWFfcGFyYW1zLnNyY19zdGFydCA9IDB4MTFkODAwMDAKPiBbICAx
-MTYuNzgwMDAwXSBvbWFwX3BjbV9wcmVwYXJlKCk6IGRtYV9wYXJhbXMuZHN0X3N0YXJ0ID0gMHhl
-MTAxMTgwNgo+IFsgIDExNi43OTAwMDBdIG9tYXBfc2V0X2RtYV9zcmNfcGFyYW1zKCk6IGRtYV93
-cml0ZSgweDExZDgsIENTU0FfVSgweDApCj4gWyAgMTE2LjgwMDAwMF0gb21hcF9zZXRfZG1hX3Ny
-Y19wYXJhbXMoKTogZG1hX3dyaXRlKDB4MDAwMCwgQ1NTQV9MKDB4MCkKPiBbICAxMTYuODEwMDAw
-XSBvbWFwX3NldF9kbWFfZGVzdF9wYXJhbXMoKTogZG1hX3dyaXRlKDB4MTAwOCwgQ0NSKDB4MCkp
-Cj4gWyAgMTE2LjgyMDAwMF0gb21hcF9zZXRfZG1hX2Rlc3RfcGFyYW1zKCk6IGRtYV93cml0ZSgw
-eGUxMDEsIENEU0FfVSgweDApCj4gWyAgMTE2LjgzMDAwMF0gb21hcF9zZXRfZG1hX2Rlc3RfcGFy
-YW1zKCk6IGRtYV93cml0ZSgweDE4MDYsIENEU0FfTCgweDApCj4gWyAgMTE2LjkwMDAwMF0gb21h
-cF9nZXRfZG1hX3NyY19wb3MoKTogZG1hX3JlYWQoQ1BDKDB4MCkpID09IDB4MTgwNgo+IFsgIDEx
-Ni45MDAwMDBdIG9tYXBfcGNtX3BvaW50ZXIoKTogb2Zmc2V0ID0gMHgwYzAzCj4gWyAgMTE2Ljky
-MDAwMF0gb21hcF9nZXRfZG1hX3NyY19wb3MoKTogZG1hX3JlYWQoQ1BDKDB4MCkpID09IDB4MTgw
-Ngo+IFsgIDExNi45MjAwMDBdIG9tYXBfcGNtX3BvaW50ZXIoKTogb2Zmc2V0ID0gMHgwYzAzCj4g
-WyAgMTE2Ljk1MDAwMF0gb21hcF9nZXRfZG1hX3NyY19wb3MoKTogZG1hX3JlYWQoQ1BDKDB4MCkp
-ID09IDB4MTgwNgo+IFsgIDExNi45NTAwMDBdIG9tYXBfcGNtX3BvaW50ZXIoKTogb2Zmc2V0ID0g
-MHgwYzAzCj4gWyAgMTE2Ljk4MDAwMF0gb21hcF9nZXRfZG1hX3NyY19wb3MoKTogZG1hX3JlYWQo
-Q1BDKDB4MCkpID09IDB4MTgwNgo+IFsgIDExNi45ODAwMDBdIG9tYXBfcGNtX3BvaW50ZXIoKTog
-b2Zmc2V0ID0gMHgwYzAzCj4gWyAgMTE2Ljk5MDAwMF0gb21hcF9nZXRfZG1hX3NyY19wb3MoKTog
-ZG1hX3JlYWQoQ1BDKDB4MCkpID09IDB4MTgwNgo+IFsgIDExNi45OTAwMDBdIG9tYXBfcGNtX3Bv
-aW50ZXIoKTogb2Zmc2V0ID0gMHgwYzAzCj4gWyAgMTE3LjAxMDAwMF0gb21hcF9nZXRfZG1hX3Ny
-Y19wb3MoKTogZG1hX3JlYWQoQ1BDKDB4MCkpID09IDB4MTgwNgo+IFsgIDExNy4wMTAwMDBdIG9t
-YXBfcGNtX3BvaW50ZXIoKTogb2Zmc2V0ID0gMHgwYzAzCj4gWyAgMTE3LjE0MDAwMF0gb21hcF9n
-ZXRfZG1hX3NyY19wb3MoKTogZG1hX3JlYWQoQ1BDKDB4MCkpID09IDB4MTgwNgo+IFsgIDExNy4x
-NDAwMDBdIG9tYXBfcGNtX3BvaW50ZXIoKTogb2Zmc2V0ID0gMHgwYzAzCj4gdW5kZXJydW4hISEg
-KGF0IGxlYXN0IDE3OTkxMjY1MTIuNjgxIG1zIGxvbmcpCj4gWyAgMTE3LjE1MDAwMF0gb21hcF9w
-Y21fcHJlcGFyZSgpOiBkbWFfcGFyYW1zLnNyY19zdGFydCA9IDB4MTFkODAwMDAKPiBbICAxMTcu
-MTcwMDAwXSBvbWFwX3BjbV9wcmVwYXJlKCk6IGRtYV9wYXJhbXMuZHN0X3N0YXJ0ID0gMHhlMTAx
-MTgwNgo+IFsgIDExNy4xNzAwMDBdIG9tYXBfc2V0X2RtYV9zcmNfcGFyYW1zKCk6IGRtYV93cml0
-ZSgweDExZDgsIENTU0FfVSgweDApCj4gWyAgMTE3LjE4MDAwMF0gb21hcF9zZXRfZG1hX3NyY19w
-YXJhbXMoKTogZG1hX3dyaXRlKDB4MDAwMCwgQ1NTQV9MKDB4MCkKPiBbICAxMTcuMTkwMDAwXSBv
-bWFwX3NldF9kbWFfZGVzdF9wYXJhbXMoKTogZG1hX3dyaXRlKDB4MTAwOCwgQ0NSKDB4MCkpCj4g
-WyAgMTE3LjIwMDAwMF0gb21hcF9zZXRfZG1hX2Rlc3RfcGFyYW1zKCk6IGRtYV93cml0ZSgweGUx
-MDEsIENEU0FfVSgweDApCj4gWyAgMTE3LjIxMDAwMF0gb21hcF9zZXRfZG1hX2Rlc3RfcGFyYW1z
-KCk6IGRtYV93cml0ZSgweDE4MDYsIENEU0FfTCgweDApCj4gWyAgMTE3LjM0MDAwMF0gb21hcF9n
-ZXRfZG1hX3NyY19wb3MoKTogZG1hX3JlYWQoQ1BDKDB4MCkpID09IDB4MTgwNgo+IFsgIDExNy4z
-NDAwMDBdIG9tYXBfcGNtX3BvaW50ZXIoKTogb2Zmc2V0ID0gMHgwYzAzCj4gcm9vdEBhbXNkZWx0
-YTp+Iwo+Cj4gQW5kIGhlcmUsIHRoZSBzYW1lIHdpdGggY2FwdHVyZSwganVzdCBmb3IgcmVmZXJl
-bmNlOgo+Cj4gcm9vdEBhbXNkZWx0YTp+IyBhcmVjb3JkIC1mIFMxNl9MRSAtdCByYXcgLWQgMSA+
-L2Rldi9udWxsCj4gUmVjb3JkaW5nIHJhdyBkYXRhICdzdGRpbicgOiBTaWduZWQgMTYgYml0IExp
-dHRsZSBFbmRpYW4sIFJhdGUgODAwMCBIeiwKPiBNb25vIFsgIDMxNi41MzAwMDBdIG9tYXBfcGNt
-X3ByZXBhcmUoKTogZG1hX3BhcmFtcy5zcmNfc3RhcnQgPSAweGUxMDExODAyIFsKPiAgMzE2LjU0
-MDAwMF0gb21hcF9wY21fcHJlcGFyZSgpOiBkbWFfcGFyYW1zLmRzdF9zdGFydCA9IDB4MTFkYTAw
-MDAgWyAKPiAzMTYuNTUwMDAwXSBvbWFwX3NldF9kbWFfc3JjX3BhcmFtcygpOiBkbWFfd3JpdGUo
-MHhlMTAxLCBDU1NBX1UoMHgwKSBbIAo+IDMxNi41NTAwMDBdIG9tYXBfc2V0X2RtYV9zcmNfcGFy
-YW1zKCk6IGRtYV93cml0ZSgweDE4MDIsIENTU0FfTCgweDApIFsgCj4gMzE2LjU2MDAwMF0gb21h
-cF9zZXRfZG1hX2Rlc3RfcGFyYW1zKCk6IGRtYV93cml0ZSgweDQwMDksIENDUigweDApKSBbIAo+
-IDMxNi41NzAwMDBdIG9tYXBfc2V0X2RtYV9kZXN0X3BhcmFtcygpOiBkbWFfd3JpdGUoMHgxMWRh
-LCBDRFNBX1UoMHgwKSBbIAo+IDMxNi41ODAwMDBdIG9tYXBfc2V0X2RtYV9kZXN0X3BhcmFtcygp
-OiBkbWFfd3JpdGUoMHgwMDAwLCBDRFNBX0woMHgwKSBbIAo+IDMxNi41OTAwMDBdIG9tYXBfZ2V0
-X2RtYV9zcmNfcG9zKCk6IGRtYV9yZWFkKENQQygweDApKSA9PSAweDAxYzIgWyAKPiAzMTYuNTkw
-MDAwXSBvbWFwX3BjbV9wb2ludGVyKCk6IG9mZnNldCA9IDB4MDBlMQo+IFsgIDMxNi42MTAwMDBd
-IG9tYXBfZ2V0X2RtYV9zcmNfcG9zKCk6IGRtYV9yZWFkKENQQygweDApKSA9PSAweDAwZGMKPiBb
-ICAzMTYuNjEwMDAwXSBvbWFwX3BjbV9wb2ludGVyKCk6IG9mZnNldCA9IDB4MDA2ZQo+IFsgIDMx
-Ni42MjAwMDBdIG9tYXBfZ2V0X2RtYV9zcmNfcG9zKCk6IGRtYV9yZWFkKENQQygweDApKSA9PSAw
-eDAxYjgKPiBbICAzMTYuNjIwMDAwXSBvbWFwX3BjbV9wb2ludGVyKCk6IG9mZnNldCA9IDB4MDBk
-Ywo+IFsgIDMxNi42MzAwMDBdIG9tYXBfZ2V0X2RtYV9zcmNfcG9zKCk6IGRtYV9yZWFkKENQQygw
-eDApKSA9PSAweDAyOTQKPiBbICAzMTYuNjMwMDAwXSBvbWFwX3BjbV9wb2ludGVyKCk6IG9mZnNl
-dCA9IDB4MDE0YQo+IFsgIDMxNi42NTAwMDBdIG9tYXBfZ2V0X2RtYV9zcmNfcG9zKCk6IGRtYV9y
-ZWFkKENQQygweDApKSA9PSAweDAzN2UKPiBbICAzMTYuNjUwMDAwXSBvbWFwX3BjbV9wb2ludGVy
-KCk6IG9mZnNldCA9IDB4MDFiZgo+IC4uLgoKSSBmaW5kIHRoaXMgd2hvbGUgdGhpbiBhbXVzaW5n
-Li4uIEl0IHNlYW1zIHRoYXQgdGhlIFRSTSBpcyBub3QgcXVpdGUgd3JpdHRlbiAKZm9yIHRoZSBz
-YW1lIGNoaXAuIEluIGNvbnRyYXN0IHdoYXQgaXQgc3RhdGVzIGZvciB0aGUgQ1BDLCBpdCBsb29r
-cyBpbiBhIHdheSwgCnRoYXQgdGhlIENQQyBpcyB1cGRhdGVkIHdpdGggdGhlIExTQiBvZiB0aGUg
-ZGVzdGluYXRpb24gYXQgdGhlIGxhc3QgcmVxdWVzdCAKaXNzdWVkIGJ5IHRoZSBzb3VyY2UgcG9y
-dCAod2VsbCB5b3Ugb25seSBuZWVkIHRvIG5lZ2F0ZSB0aGUgd2hvbGUgZGVzY3JpcHRpb24gCnRv
-IGdldCB0byB0aGlzIGNvbmNsdXNpb24pLgoKPiBQZXRlciwKPiBJIGhhdmUgcmVhbGx5IG5vIGlk
-ZWEgaG93IHRoZSBvbGQgMi40IGNvZGUgY291bGQgZG8gdGhlIGpvYiB3aXRoIGp1c3QKPiByZWFk
-aW5nIENQQyBmb3IgYm90aCBjYXB0dXJlIGFuZCBwbGF5YmFjaywgYnV0IGlmIHlvdSB0aGluayB0
-aGF0IHdpdGggbXkKPiBhbXMtZGVsdGEgbWFjaGluZSBvbiBoYW5kIEkgY2FuIHN0aWxsIGhlbHAg
-eW91IGluIGZpbmRpbmcgdGhhdCBvdXQsIHBsZWFzZQo+IGxldCBtZSBrbm93LgoKTWUgZWl0aGVy
-IG5vdy4gVGhlIE9TUyBkcml2ZXIgdXNlcyB0aGlzIGNhbGwgdG8gZ2V0IHRoZSBvZmZzZXQgZm9y
-IGNhcHR1cmUgYW5kIApwbGF5YmFjazoKZG1hX2FkZHJfdCBvbWFwX2dldF9kbWFfcG9zKGRtYV9y
-ZWdzX3QgKiByZWdzKQp7CglyZXR1cm4gKGRtYV9hZGRyX3QpIChyZWdzLT5jcGMgfCAocmVncy0+
-Y3NzYV91IDw8IDE2KSk7Cn0KCk5vdyB0aGlzIGlzIGJvZ3VzIGZvciBlaXRoZXIgaW4gY2FzZSBv
-ZiBwbGF5YmFjayBvciBjYXB0dXJlLCBidXQgaXQgc2hvdWxkIGJlIApub3QgcmlnaHQgZm9yIGJv
-dGguLi4KCkl0IHdvdWxkIGJlIG5pY2UgdG8gdW5kZXJzdGFuZCBob3cgdGhpcyBpcyB3b3JraW5n
-LCBidXQgZm9yIG5vdyBJIHRoaW5rIHlvdXIgCndvcmthcm91bmQgaXMgZ29vZCBmb3IgaGFuZGxp
-bmcgdGhlIHNpdHVhdGlvbi4KCk1hcms6IEkgYWdyZWUgd2l0aCBKYXJra28sIHRoaXMgY2FuIGJl
-IHF1ZXVlZCBmb3IgMi42LjMxLgoKVGhhbmtzIEphbnVzeiBmb3IgdGhlIGRlYnVnZ2luZyBhbmQg
-ZmlndXJpbmcgdGhpcyBvdXQhCgpBY2tlZC1ieTogUGV0ZXIgVWpmYWx1c2kgPHBldGVyLnVqZmFs
-dXNpQG5va2lhLmNvbT4KCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCkFsc2EtZGV2ZWwgbWFpbGluZyBsaXN0CkFsc2EtZGV2ZWxAYWxzYS1wcm9qZWN0Lm9y
-ZwpodHRwOi8vbWFpbG1hbi5hbHNhLXByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vYWxzYS1k
-ZXZlbAo=
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: Tuesday, June 30, 2009 12:28 AM
+>To: Nayak, Rajendra
+>Cc: Kalle Jokiniemi; linux-omap@vger.kernel.org; Derrick, 
+>David; Woodruff, Richard
+>Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+>before OFF, reduces OFF latency by 20ms
+>
+>"Nayak, Rajendra" <rnayak@ti.com> writes:
+>
+>>  
+>>
+>>>-----Original Message-----
+>>>From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+>>>Sent: Wednesday, June 17, 2009 6:18 PM
+>>>To: Nayak, Rajendra
+>>>Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
+>>>Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+>>>before OFF, reduces OFF latency by 20ms
+>>>
+>>>On Wed, 2009-06-17 at 15:38 +0300, Nayak, Rajendra wrote:
+>>>> 
+>>>> >-----Original Message-----
+>>>> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+>>>> >Sent: Wednesday, June 17, 2009 3:56 PM
+>>>> >To: Nayak, Rajendra
+>>>> >Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
+>>>> >Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+>>>> >before OFF, reduces OFF latency by 20ms
+>>>> >
+>>>> >On Wed, 2009-06-17 at 12:50 +0300, Nayak, Rajendra wrote:
+>>>> >> >-----Original Message-----
+>>>> >> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+>>>> >> >Sent: Wednesday, June 17, 2009 1:17 PM
+>>>> >> >To: Nayak, Rajendra
+>>>> >> >Cc: linux-omap@vger.kernel.org; Derrick, David; 
+>Woodruff, Richard
+>>>> >> >Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+>>>> >> >before OFF, reduces OFF latency by 20ms
+>>>> >> >
+>>>> >> >Hi Rajendra,
+>>>> >> >
+>>>> >> >On Tue, 2009-06-16 at 14:52 +0300, Rajendra Nayak wrote:
+>>>> >> >> If autoidle for DPLL4 is enabled in the stored scratchpad
+>>>> >> >> value of CM_AUTOIDLE_PLL then there is an added delay by
+>>>> >> >> the boot ROM when coming out of OFF mode.
+>>>> >> >> The patch disables this bitfield in the stored 
+>>>scratchpad value.
+>>>> >> >> 
+>>>> >> >> This should significantly reduce CORE OFF latency and also
+>>>> >> >> bring down the threshold for CORE OFF, making OFF affordable
+>>>> >> >> even with smaller sleep times.
+>>>> >> >
+>>>> >> >I did some measurements on RX-51 with this patch, and it 
+>>>> >seems it does
+>>>> >> >not reduce latency, it increases it by few hundred us.
+>>>> >> >
+>>>> >> >Servicing an empty timer interrupt from off mode 
+>>>(measured from VDD1
+>>>> >> >ramp up to start of VDD1 ramp down):
+>>>> >> >
+>>>> >> >with dpll4 patch : ~14100us
+>>>> >> >without patch    : ~13600us
+>>>> >> >
+>>>> >> >I attached pictures of both situations.
+>>>> >> >
+>>>> >> >My kernel had only C7 state enabled.
+>>>> >> >
+>>>> >> >Have you measured the latency effects on SDP or some 
+>other board?
+>>>> >> 
+>>>> >> I haven't done the latency measurements on SDP yet, but 
+>>>> >David had done it
+>>>> >> sometime back, using a different codebase though.
+>>>> >
+>>>> >OK, I also used our internal code base. Though the PM 
+>>>functionality is
+>>>> >pretty much the same as in l-o:pm branch.
+>>>> >
+>>>> >> 
+>>>> >> Can you explain more on how you are measuring the latency 
+>>>> >here, I am a bit
+>>>> >> confused. This is supposed to bring down the OFF wakeup 
+>>>> >latency, the sleep latency
+>>>> >> remains the same.
+>>>> >
+>>>> >I'm doing a timer interrupt periodically. Servicing that timer 
+>>>> >interrupt
+>>>> >takes the same amount of time every time. What varies (with 
+>>>the patch)
+>>>> >is the transition times from off to active and back to off.
+>>>> >
+>>>> >In the pictures the top graph shows current and bottom 
+>>>graph shows the
+>>>> >VDD1 and VDD2 voltages. I zoomed from the pictures the 
+>interval from
+>>>> >when VDD1 goes up, to the point when it starts to go down again.
+>>>> >
+>>>> >So I measured: wakeup latency + interrupt service + sleep latency.
+>>>> 
+>>>> Is the boot ROM different on the OMAP devices on nokia h/w or is it
+>>>> the same as that on the SDP?
+>>>
+>>>I have heard that our ROM version would be somehow older 
+>version, but I
+>>>really don't have any facts on that matter.
+>>
+>> Oh.. it turns out that when the scratchpad save routine is 
+>called, the autoidle
+>> for PER is not even set. Its only set some place later.
+>> So the 20ms or so advantage was always there on l-o pm 
+>branch even without this
+>> patch :)
+>>
+>
+>So for the benefit of the archives... 
+>
+>I'm dropping this patch since the equivalent is alrady in PM branch.
+
+Kevin,
+
+Today the sequence is such that the PER dpll autoidle is set only after the first
+scratchpad save (so this patch has no affect). Sometime in future, if with some change
+in function sequencing we end up enabling the PER dpll autoidle early on, we might have 
+an additional 20ms or so OFF latency without anyone really noticing.
+Would'nt it be good to just have this patch to take care of any sequencing changes later?
+
+regards,
+Rajendra
+
+>
+>Kevin
+>
+>
