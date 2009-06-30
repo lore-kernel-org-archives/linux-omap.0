@@ -1,49 +1,155 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF, reduces OFF latency by 20ms
-Date: Tue, 30 Jun 2009 15:24:28 -0700
-Message-ID: <87bpo55pib.fsf@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF,
+ reduces OFF latency by 20ms
+Date: Tue, 30 Jun 2009 16:32:25 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0906301630270.6974@utopia.booyaka.com>
 References: <5A47E75E594F054BAF48C5E4FC4B92AB0305B77F0D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:23888 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753254AbZF3WY2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jun 2009 18:24:28 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so171604wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 30 Jun 2009 15:24:31 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305B77F0D@dbde02.ent.ti.com> (Rajendra Nayak's message of "Tue\, 30 Jun 2009 11\:28\:18 +0530")
+Received: from utopia.booyaka.com ([72.9.107.138]:56163 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754034AbZF3WcX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 30 Jun 2009 18:32:23 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305B77F0D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Nayak, Rajendra" <rnayak@ti.com>
-Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
 
-"Nayak, Rajendra" <rnayak@ti.com> writes:
+On Tue, 30 Jun 2009, Nayak, Rajendra wrote:
 
-[...]
+> >-----Original Message-----
+> >From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> >Sent: Tuesday, June 30, 2009 12:28 AM
+> >To: Nayak, Rajendra
+> >Cc: Kalle Jokiniemi; linux-omap@vger.kernel.org; Derrick, 
+> >David; Woodruff, Richard
+> >Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+> >before OFF, reduces OFF latency by 20ms
+> >
+> >"Nayak, Rajendra" <rnayak@ti.com> writes:
+> >
+> >>  
+> >>
+> >>>-----Original Message-----
+> >>>From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+> >>>Sent: Wednesday, June 17, 2009 6:18 PM
+> >>>To: Nayak, Rajendra
+> >>>Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
+> >>>Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+> >>>before OFF, reduces OFF latency by 20ms
+> >>>
+> >>>On Wed, 2009-06-17 at 15:38 +0300, Nayak, Rajendra wrote:
+> >>>> 
+> >>>> >-----Original Message-----
+> >>>> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+> >>>> >Sent: Wednesday, June 17, 2009 3:56 PM
+> >>>> >To: Nayak, Rajendra
+> >>>> >Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
+> >>>> >Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+> >>>> >before OFF, reduces OFF latency by 20ms
+> >>>> >
+> >>>> >On Wed, 2009-06-17 at 12:50 +0300, Nayak, Rajendra wrote:
+> >>>> >> >-----Original Message-----
+> >>>> >> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
+> >>>> >> >Sent: Wednesday, June 17, 2009 1:17 PM
+> >>>> >> >To: Nayak, Rajendra
+> >>>> >> >Cc: linux-omap@vger.kernel.org; Derrick, David; 
+> >Woodruff, Richard
+> >>>> >> >Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
+> >>>> >> >before OFF, reduces OFF latency by 20ms
+> >>>> >> >
+> >>>> >> >Hi Rajendra,
+> >>>> >> >
+> >>>> >> >On Tue, 2009-06-16 at 14:52 +0300, Rajendra Nayak wrote:
+> >>>> >> >> If autoidle for DPLL4 is enabled in the stored scratchpad
+> >>>> >> >> value of CM_AUTOIDLE_PLL then there is an added delay by
+> >>>> >> >> the boot ROM when coming out of OFF mode.
+> >>>> >> >> The patch disables this bitfield in the stored 
+> >>>scratchpad value.
+> >>>> >> >> 
+> >>>> >> >> This should significantly reduce CORE OFF latency and also
+> >>>> >> >> bring down the threshold for CORE OFF, making OFF affordable
+> >>>> >> >> even with smaller sleep times.
+> >>>> >> >
+> >>>> >> >I did some measurements on RX-51 with this patch, and it 
+> >>>> >seems it does
+> >>>> >> >not reduce latency, it increases it by few hundred us.
+> >>>> >> >
+> >>>> >> >Servicing an empty timer interrupt from off mode 
+> >>>(measured from VDD1
+> >>>> >> >ramp up to start of VDD1 ramp down):
+> >>>> >> >
+> >>>> >> >with dpll4 patch : ~14100us
+> >>>> >> >without patch    : ~13600us
+> >>>> >> >
+> >>>> >> >I attached pictures of both situations.
+> >>>> >> >
+> >>>> >> >My kernel had only C7 state enabled.
+> >>>> >> >
+> >>>> >> >Have you measured the latency effects on SDP or some 
+> >other board?
+> >>>> >> 
+> >>>> >> I haven't done the latency measurements on SDP yet, but 
+> >>>> >David had done it
+> >>>> >> sometime back, using a different codebase though.
+> >>>> >
+> >>>> >OK, I also used our internal code base. Though the PM 
+> >>>functionality is
+> >>>> >pretty much the same as in l-o:pm branch.
+> >>>> >
+> >>>> >> 
+> >>>> >> Can you explain more on how you are measuring the latency 
+> >>>> >here, I am a bit
+> >>>> >> confused. This is supposed to bring down the OFF wakeup 
+> >>>> >latency, the sleep latency
+> >>>> >> remains the same.
+> >>>> >
+> >>>> >I'm doing a timer interrupt periodically. Servicing that timer 
+> >>>> >interrupt
+> >>>> >takes the same amount of time every time. What varies (with 
+> >>>the patch)
+> >>>> >is the transition times from off to active and back to off.
+> >>>> >
+> >>>> >In the pictures the top graph shows current and bottom 
+> >>>graph shows the
+> >>>> >VDD1 and VDD2 voltages. I zoomed from the pictures the 
+> >interval from
+> >>>> >when VDD1 goes up, to the point when it starts to go down again.
+> >>>> >
+> >>>> >So I measured: wakeup latency + interrupt service + sleep latency.
+> >>>> 
+> >>>> Is the boot ROM different on the OMAP devices on nokia h/w or is it
+> >>>> the same as that on the SDP?
+> >>>
+> >>>I have heard that our ROM version would be somehow older 
+> >version, but I
+> >>>really don't have any facts on that matter.
+> >>
+> >> Oh.. it turns out that when the scratchpad save routine is 
+> >called, the autoidle
+> >> for PER is not even set. Its only set some place later.
+> >> So the 20ms or so advantage was always there on l-o pm 
+> >branch even without this
+> >> patch :)
+> >>
+> >
+> >So for the benefit of the archives... 
+> >
+> >I'm dropping this patch since the equivalent is alrady in PM branch.
+> 
+> Kevin,
+> 
+> Today the sequence is such that the PER dpll autoidle is set only after the first
+> scratchpad save (so this patch has no affect). Sometime in future, if with some change
+> in function sequencing we end up enabling the PER dpll autoidle early on, we might have 
+> an additional 20ms or so OFF latency without anyone really noticing.
+> Would'nt it be good to just have this patch to take care of any sequencing changes later?
 
->>>
->>> Oh.. it turns out that when the scratchpad save routine is called,
->>> the autoidle for PER is not even set. Its only set some place
->>> later.  So the 20ms or so advantage was always there on l-o pm
->>> branch even without this patch :)
->>>
->>
->>So for the benefit of the archives... 
->>
->>I'm dropping this patch since the equivalent is alrady in PM branch.
->
-> Today the sequence is such that the PER dpll autoidle is set only
-> after the first scratchpad save (so this patch has no
-> affect). Sometime in future, if with some change in function
-> sequencing we end up enabling the PER dpll autoidle early on, we
-> might have an additional 20ms or so OFF latency without anyone
-> really noticing.  Would'nt it be good to just have this patch to
-> take care of any sequencing changes later?
+I don't think we should merge this until David can tell us more about the 
+instability that is caused by this patch.
 
-Yes, I think you're right.  This change could indeed prevent some
-future problmes down the road.  I'll merge it.
 
-Thanks,
 
-Kevin
+- Paul
