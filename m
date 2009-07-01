@@ -1,65 +1,80 @@
-From: "HU TAO-TGHK48" <taohu@motorola.com>
-Subject: RE: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to support off-mode
-Date: Wed, 1 Jul 2009 17:43:11 +0800
-Message-ID: <F12CE1A68F023D498A2691C7B53931150365550F@ZMY16EXM66.ds.mot.com>
-References: <1245965646-20070-1-git-send-email-khilman@deeprootsystems.com><1245965646-20070-2-git-send-email-khilman@deeprootsystems.com><1245965646-20070-3-git-send-email-khilman@deeprootsystems.com><1245965646-20070-4-git-send-email-khilman@deeprootsystems.com><1245965646-20070-5-git-send-email-khilman@deeprootsystems.com><4A44AD44.4070107@nokia.com> <87bpobjcx6.fsf@deeprootsystems.com><F12CE1A68F023D498A2691C7B5393115035F09BD@ZMY16EXM66.ds.mot.com><87y6rb7yz7.fsf@deeprootsystems.com><7B4574D56E4ADF438756313E9A172A874D31A30B@dlee01.ent.ti.com>,<87ocs67ndy.fsf@deeprootsystems.com> <7B4574D56E4ADF438756313E9A172A874D31A321@dlee01.ent.ti.com>
+From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+Subject: [PATCH] ARM: OMAP3: allow setting cam_mclk rate
+Date: Wed, 1 Jul 2009 14:27:28 +0300
+Message-ID: <200907011427.29318.tuukka.o.toivonen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail119.messagelabs.com ([216.82.241.195]:60261 "EHLO
-	mail119.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754282AbZGAJne convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jul 2009 05:43:34 -0400
-Received: from il27exr03.cig.mot.com (il27exr03.mot.com [10.17.196.72])
-	by motgate5.mot.com (8.14.3/8.14.3) with ESMTP id n619hZQw018244
-	for <linux-omap@vger.kernel.org>; Wed, 1 Jul 2009 02:43:36 -0700 (MST)
-Received: from az10vts04.mot.com (il27vts04.cig.mot.com [10.17.196.88])
-	by il27exr03.cig.mot.com (8.13.1/Vontu) with SMTP id n619hZUf014802
-	for <linux-omap@vger.kernel.org>; Wed, 1 Jul 2009 04:43:35 -0500 (CDT)
-Received: from ZMY16EXM66.ds.mot.com (zmy16exm66.ap.mot.com [10.179.4.26])
-	by il27exr03.cig.mot.com (8.13.1/8.13.0) with ESMTP id n619hY6F014781
-	for <linux-omap@vger.kernel.org>; Wed, 1 Jul 2009 04:43:35 -0500 (CDT)
-Content-class: urn:content-classes:message
-In-Reply-To: <7B4574D56E4ADF438756313E9A172A874D31A321@dlee01.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:46630 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755675AbZGAL1o (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jul 2009 07:27:44 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hunter, Jon" <jon-hunter@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, linux-omap@vger.kernel.org, "Nayak, Rajendra" <rnayak@ti.com>, "Hogander Jouni (Nokia-D/Tampere)" <jouni.hogander@nokia.com>, "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>, Chen Xiaolong-A21785 <A21785@motorola.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: sailus@maxwell.research.nokia.com, camera@ok.research.nokia.com, "Cohen David.A (Nokia-D/Helsinki)" <david.cohen@nokia.com>, "Hurskainen Mikko (Nokia-D/Helsinki)" <mikko.hurskainen@nokia.com>, "core-review@ok.research.nokia.com" <core-review@ok.research.nokia.com>, linux-omap@vger.kernel.org
 
-Hi, Jon
+This patch allows drivers to modify cam_mclk rate which is
+used for generating external cam_xclka and cam_xclkb for cameras.
 
-It is fine.
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+---
+ arch/arm/mach-omap2/clock34xx.c |   18 ++++++++++++++++++
+ arch/arm/mach-omap2/clock34xx.h |    2 ++
+ 2 files changed, 20 insertions(+), 0 deletions(-)
 
-In fact, the credit should be given to Xiaolong Chen
-(A21785@motorola.com).
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index 045da92..667a608 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -898,6 +898,24 @@ static unsigned long omap3_clkoutx2_recalc(struct clk *clk)
+ 	return rate;
+ }
+ 
++/* Clock control for OMAP3 camera */
++
++static int omap3_cam_mclk_set_rate(struct clk *clk, unsigned long rate)
++{
++	const unsigned int dpll4_rate = 864000000; /* Hz */
++	int clksel;
++
++	if (rate <= 0)
++		return -EINVAL;
++
++	clksel = (dpll4_rate + (rate>>1)) / rate;
++	clksel = clamp(clksel, 1, 16);
++	cm_write_mod_reg(clksel, OMAP3430_CAM_MOD, CM_CLKSEL);
++	clk->rate = dpll4_rate / clksel;
++
++	return 0;
++}
++
+ /* Common clock code */
+ 
+ /*
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index e433aec..bd09709 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -37,6 +37,7 @@ static u32 omap3_dpll_autoidle_read(struct clk *clk);
+ static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned long rate);
+ static int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate);
+ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate);
++static int omap3_cam_mclk_set_rate(struct clk *clk, unsigned long rate);
+ 
+ /* Maximum DPLL multiplier, divider values for OMAP3 */
+ #define OMAP3_MAX_DPLL_MULT		2048
+@@ -2342,6 +2343,7 @@ static struct clk uart3_fck = {
+ 	.enable_bit	= OMAP3430_EN_UART3_SHIFT,
+ 	.clkdm_name	= "per_clkdm",
+ 	.recalc		= &followparent_recalc,
++	.set_rate	= &omap3_cam_mclk_set_rate,
+ };
+ 
+ static struct clk gpt2_fck = {
+-- 
+1.5.4.3
 
-
-
------Original Message-----
-From: Hunter, Jon [mailto:jon-hunter@ti.com] 
-Sent: Wednesday, July 01, 2009 12:49 AM
-To: Kevin Hilman
-Cc: HU TAO-TGHK48; Aaro Koskinen; linux-omap@vger.kernel.org; Nayak,
-Rajendra; Hogander Jouni (Nokia-D/Tampere); Pakaravoor, Jagadeesh
-Subject: RE: [PATCH 4/4] I2C: OMAP3: PM: (re)init for every transfer to
-support off-mode
-
-Hi Kevin,
-
-> Jon, thanks for the clarification.  I will fold this change into the 
-> upstream-bound I2C changes.
-
-Thanks.
-
-> Tao, in the future please be sure to cite original authors and/or 
-> sources when submitting patches to the list.
-
-Actually, I should point out that Hu Tao and I worked on this together
-originally for the omapzoom.org tree. So I should have added Hu Tao's
-name to this when submitting originally to omapzoom.org. So we should
-give credit to Hu Tao on this. Sorry about that.
-
-Cheers,
-Jon
