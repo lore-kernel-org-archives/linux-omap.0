@@ -1,67 +1,88 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] OMAP: HSMMC: Do not enable buffer ready interrupt if
- using DMA
-Date: Wed, 1 Jul 2009 11:59:28 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305B783F3@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB03057422B4@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH v2] usb: musb: Warn and check for OTG transceiver
+ misconfiguration
+Date: Wed, 1 Jul 2009 00:31:58 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0907010030030.6974@utopia.booyaka.com>
+References: <1246266408-1467-1-git-send-email-ext-roger.quadros@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57224 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990AbZGAG3p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jul 2009 02:29:45 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03057422B4@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:42035 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171AbZGAGb4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jul 2009 02:31:56 -0400
+In-Reply-To: <1246266408-1467-1-git-send-email-ext-roger.quadros@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>
-Cc: "pierre@ossman.eu" <pierre@ossman.eu>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: tony@atomide.com, felipe.balbi@nokia.com, linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, May 22, 2009, Gadiyar, Anand wrote:
-> On Wed, May 06, 2009, Gadiyar, Anand wrote:
-> > On Tue, May 5, 2009, Jarkko Lavinen wrote: 
-> > > On Tue, Apr 21, 2009 at 09:39:22AM +0200, ext Gadiyar, Anand wrote:
-> > > > From: Anand Gadiyar <gadiyar@ti.com>
-> > > > 
-> > > > OMAP: HSMMC: Do not enable buffer ready interrupt if using DMA
-> > > > 
-> > > > This considerably reduces the number of interrupts during a transfer
-> > > > and ought to result in some power saving.
-> > > 
-> > > I tried the patch with reading from the raw mmc block device to
-> > > /dev/null with dd (with bs 32k and 1M).  I cannot see any
-> > > difference in interrupt count from /proc/interrupts or in read
-> > > speed. At least the patch works. Cpu was 34340es3.
-> > > 
-> > > I also trid without the patch just disabling the Buffer
-> > > Read/write Ready bits from INT_EN_MASK which is then written to
-> > > both MMCHS_IE and MMCHS_ISE.  Still no change in read speed nor
-> > > mmc irq count.
-> > > 
-> > > Cheers
-> > > Jarkko Lavinen
-> > 
-> > I discovered this while doing MMC writes. I did not check if there
-> > was any difference during a read. I notice you have only tested with
-> > MMC reads.
-> > 
-> > Here's what I get with and without the patch.
-> > 
-> > - Anand
+On Mon, 29 Jun 2009, Roger Quadros wrote:
+
+> Warn if OTG is selected in Kconfig but not initialized by platform code.
+> Add checks to prevent NULL pointer exception in case the
+> OTG transceiver has not been initialized. i.e. musb->xceiv == NULL
 > 
+> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+
+Tested-by: Paul Walmsley <paul@pwsan.com>
+
+... on BeagleBoard Rev C2.  Without this patch, linux-omap at commit 
+7c5cb7862d32cb344be7831d466535d5255e35ac (the current HEAD) crashes during
+boot.
+
+- Paul
+
+> ---
+>  drivers/usb/musb/musb_core.c |    7 ++++++-
+>  drivers/usb/musb/omap2430.c  |    3 ++-
+>  2 files changed, 8 insertions(+), 2 deletions(-)
 > 
-> Any comments on this? Is it safe to merge?
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 554a414..d0cfc22 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1861,7 +1861,8 @@ static void musb_free(struct musb *musb)
+>  	}
+>  
+>  #ifdef CONFIG_USB_MUSB_OTG
+> -	put_device(musb->xceiv->dev);
+> +	if (musb->xceiv)
+> +		put_device(musb->xceiv->dev);
+>  #endif
+>  
+>  #ifdef CONFIG_USB_MUSB_HDRC_HCD
+> @@ -1958,6 +1959,10 @@ bad_config:
+>  	musb->isr = generic_interrupt;
+>  	status = musb_platform_init(musb);
+>  
+> +#ifdef CONFIG_USB_MUSB_OTG
+> +	if (!musb->xceiv)
+> +		WARN(1, "MUSB: OTG transceiver not set up correctly\n");
+> +#endif
+>  	if (status < 0)
+>  		goto fail;
+>  	if (!musb->isr) {
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 3487520..8987d60 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -271,7 +271,8 @@ int musb_platform_suspend(struct musb *musb)
+>  	l |= ENABLEWAKEUP;	/* enable wakeup */
+>  	omap_writel(l, OTG_SYSCONFIG);
+>  
+> -	otg_set_suspend(musb->xceiv, 1);
+> +	if (musb->xceiv)
+> +		otg_set_suspend(musb->xceiv, 1);
+>  
+>  	if (musb->set_clock)
+>  		musb->set_clock(musb->clock, 0);
+> -- 
+> 1.6.0.4
 > 
-> Thanks,
-> Anand
-
-<snip>
-
-
-Ping?
-
-Patchwork link is:
-http://patchwork.kernel.org/patch/19133/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
