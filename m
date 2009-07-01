@@ -1,191 +1,67 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF,
- reduces OFF latency by 20ms
-Date: Wed, 1 Jul 2009 11:09:32 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305B7837E@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.0906301630270.6974@utopia.booyaka.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP: HSMMC: Do not enable buffer ready interrupt if
+ using DMA
+Date: Wed, 1 Jul 2009 11:59:28 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305B783F3@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB03057422B4@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42166 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751003AbZGAFjo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jul 2009 01:39:44 -0400
-In-Reply-To: <alpine.DEB.2.00.0906301630270.6974@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:57224 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751990AbZGAG3p convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jul 2009 02:29:45 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03057422B4@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Derrick, David" <dderrick@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>, Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Cc: "pierre@ossman.eu" <pierre@ossman.eu>, Tony Lindgren <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+On Fri, May 22, 2009, Gadiyar, Anand wrote:
+> On Wed, May 06, 2009, Gadiyar, Anand wrote:
+> > On Tue, May 5, 2009, Jarkko Lavinen wrote: 
+> > > On Tue, Apr 21, 2009 at 09:39:22AM +0200, ext Gadiyar, Anand wrote:
+> > > > From: Anand Gadiyar <gadiyar@ti.com>
+> > > > 
+> > > > OMAP: HSMMC: Do not enable buffer ready interrupt if using DMA
+> > > > 
+> > > > This considerably reduces the number of interrupts during a transfer
+> > > > and ought to result in some power saving.
+> > > 
+> > > I tried the patch with reading from the raw mmc block device to
+> > > /dev/null with dd (with bs 32k and 1M).  I cannot see any
+> > > difference in interrupt count from /proc/interrupts or in read
+> > > speed. At least the patch works. Cpu was 34340es3.
+> > > 
+> > > I also trid without the patch just disabling the Buffer
+> > > Read/write Ready bits from INT_EN_MASK which is then written to
+> > > both MMCHS_IE and MMCHS_ISE.  Still no change in read speed nor
+> > > mmc irq count.
+> > > 
+> > > Cheers
+> > > Jarkko Lavinen
+> > 
+> > I discovered this while doing MMC writes. I did not check if there
+> > was any difference during a read. I notice you have only tested with
+> > MMC reads.
+> > 
+> > Here's what I get with and without the patch.
+> > 
+> > - Anand
+> 
+> 
+> Any comments on this? Is it safe to merge?
+> 
+> Thanks,
+> Anand
+
+<snip>
 
 
+Ping?
 
->-----Original Message-----
->From: Paul Walmsley [mailto:paul@pwsan.com] 
->Sent: Wednesday, July 01, 2009 4:02 AM
->To: Nayak, Rajendra
->Cc: Kevin Hilman; Kalle Jokiniemi; linux-omap@vger.kernel.org; 
->Derrick, David; Woodruff, Richard
->Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->before OFF, reduces OFF latency by 20ms
->
->On Tue, 30 Jun 2009, Nayak, Rajendra wrote:
->
->> >-----Original Message-----
->> >From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> >Sent: Tuesday, June 30, 2009 12:28 AM
->> >To: Nayak, Rajendra
->> >Cc: Kalle Jokiniemi; linux-omap@vger.kernel.org; Derrick, 
->> >David; Woodruff, Richard
->> >Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->> >before OFF, reduces OFF latency by 20ms
->> >
->> >"Nayak, Rajendra" <rnayak@ti.com> writes:
->> >
->> >>  
->> >>
->> >>>-----Original Message-----
->> >>>From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
->> >>>Sent: Wednesday, June 17, 2009 6:18 PM
->> >>>To: Nayak, Rajendra
->> >>>Cc: linux-omap@vger.kernel.org; Derrick, David; Woodruff, Richard
->> >>>Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->> >>>before OFF, reduces OFF latency by 20ms
->> >>>
->> >>>On Wed, 2009-06-17 at 15:38 +0300, Nayak, Rajendra wrote:
->> >>>> 
->> >>>> >-----Original Message-----
->> >>>> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
->> >>>> >Sent: Wednesday, June 17, 2009 3:56 PM
->> >>>> >To: Nayak, Rajendra
->> >>>> >Cc: linux-omap@vger.kernel.org; Derrick, David; 
->Woodruff, Richard
->> >>>> >Subject: RE: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->> >>>> >before OFF, reduces OFF latency by 20ms
->> >>>> >
->> >>>> >On Wed, 2009-06-17 at 12:50 +0300, Nayak, Rajendra wrote:
->> >>>> >> >-----Original Message-----
->> >>>> >> >From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com] 
->> >>>> >> >Sent: Wednesday, June 17, 2009 1:17 PM
->> >>>> >> >To: Nayak, Rajendra
->> >>>> >> >Cc: linux-omap@vger.kernel.org; Derrick, David; 
->> >Woodruff, Richard
->> >>>> >> >Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle 
->> >>>> >> >before OFF, reduces OFF latency by 20ms
->> >>>> >> >
->> >>>> >> >Hi Rajendra,
->> >>>> >> >
->> >>>> >> >On Tue, 2009-06-16 at 14:52 +0300, Rajendra Nayak wrote:
->> >>>> >> >> If autoidle for DPLL4 is enabled in the stored scratchpad
->> >>>> >> >> value of CM_AUTOIDLE_PLL then there is an added delay by
->> >>>> >> >> the boot ROM when coming out of OFF mode.
->> >>>> >> >> The patch disables this bitfield in the stored 
->> >>>scratchpad value.
->> >>>> >> >> 
->> >>>> >> >> This should significantly reduce CORE OFF latency and also
->> >>>> >> >> bring down the threshold for CORE OFF, making OFF 
->affordable
->> >>>> >> >> even with smaller sleep times.
->> >>>> >> >
->> >>>> >> >I did some measurements on RX-51 with this patch, and it 
->> >>>> >seems it does
->> >>>> >> >not reduce latency, it increases it by few hundred us.
->> >>>> >> >
->> >>>> >> >Servicing an empty timer interrupt from off mode 
->> >>>(measured from VDD1
->> >>>> >> >ramp up to start of VDD1 ramp down):
->> >>>> >> >
->> >>>> >> >with dpll4 patch : ~14100us
->> >>>> >> >without patch    : ~13600us
->> >>>> >> >
->> >>>> >> >I attached pictures of both situations.
->> >>>> >> >
->> >>>> >> >My kernel had only C7 state enabled.
->> >>>> >> >
->> >>>> >> >Have you measured the latency effects on SDP or some 
->> >other board?
->> >>>> >> 
->> >>>> >> I haven't done the latency measurements on SDP yet, but 
->> >>>> >David had done it
->> >>>> >> sometime back, using a different codebase though.
->> >>>> >
->> >>>> >OK, I also used our internal code base. Though the PM 
->> >>>functionality is
->> >>>> >pretty much the same as in l-o:pm branch.
->> >>>> >
->> >>>> >> 
->> >>>> >> Can you explain more on how you are measuring the latency 
->> >>>> >here, I am a bit
->> >>>> >> confused. This is supposed to bring down the OFF wakeup 
->> >>>> >latency, the sleep latency
->> >>>> >> remains the same.
->> >>>> >
->> >>>> >I'm doing a timer interrupt periodically. Servicing that timer 
->> >>>> >interrupt
->> >>>> >takes the same amount of time every time. What varies (with 
->> >>>the patch)
->> >>>> >is the transition times from off to active and back to off.
->> >>>> >
->> >>>> >In the pictures the top graph shows current and bottom 
->> >>>graph shows the
->> >>>> >VDD1 and VDD2 voltages. I zoomed from the pictures the 
->> >interval from
->> >>>> >when VDD1 goes up, to the point when it starts to go 
->down again.
->> >>>> >
->> >>>> >So I measured: wakeup latency + interrupt service + 
->sleep latency.
->> >>>> 
->> >>>> Is the boot ROM different on the OMAP devices on nokia 
->h/w or is it
->> >>>> the same as that on the SDP?
->> >>>
->> >>>I have heard that our ROM version would be somehow older 
->> >version, but I
->> >>>really don't have any facts on that matter.
->> >>
->> >> Oh.. it turns out that when the scratchpad save routine is 
->> >called, the autoidle
->> >> for PER is not even set. Its only set some place later.
->> >> So the 20ms or so advantage was always there on l-o pm 
->> >branch even without this
->> >> patch :)
->> >>
->> >
->> >So for the benefit of the archives... 
->> >
->> >I'm dropping this patch since the equivalent is alrady in PM branch.
->> 
->> Kevin,
->> 
->> Today the sequence is such that the PER dpll autoidle is set 
->only after the first
->> scratchpad save (so this patch has no affect). Sometime in 
->future, if with some change
->> in function sequencing we end up enabling the PER dpll 
->autoidle early on, we might have 
->> an additional 20ms or so OFF latency without anyone really noticing.
->> Would'nt it be good to just have this patch to take care of 
->any sequencing changes later?
->
->I don't think we should merge this until David can tell us 
->more about the 
->instability that is caused by this patch.
+Patchwork link is:
+http://patchwork.kernel.org/patch/19133/
 
-Paul,
-
-Even without this patch we have always had PER DPLL autoidle
-disabled in scratchpad in l-o base.
-This patch does not have any affect today as I said and if there
-were instabilities to be seen we should have already seen them.
-
-regards,
-Rajendra
-
->
->
->
->- Paul
->
->
