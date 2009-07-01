@@ -1,44 +1,39 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/04] OMAP3: PM: Disable PER DPLL idle before OFF, reduces OFF latency by 20ms
-Date: Wed, 01 Jul 2009 07:36:29 -0700
-Message-ID: <87k52sv5aq.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0305B7837E@dbde02.ent.ti.com>
-	<87zlbov64k.fsf@deeprootsystems.com>
-	<13B9B4C6EF24D648824FF11BE8967162039632B16F@dlee02.ent.ti.com>
+From: Alberto Perez <aperez@disca.upv.es>
+Subject: Re: [ANNOUNCE] TI dspbridge Omapzoom tree
+Date: Wed, 1 Jul 2009 14:35:22 +0000 (UTC)
+Message-ID: <loom.20090701T143023-376@post.gmane.org>
+References: <27F9C60D11D683428E133F85D2BB4A53040F3FC45F@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f185.google.com ([209.85.222.185]:64674 "EHLO
-	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003AbZGAOg2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 1 Jul 2009 10:36:28 -0400
-Received: by pzk15 with SMTP id 15so758118pzk.4
-        for <linux-omap@vger.kernel.org>; Wed, 01 Jul 2009 07:36:31 -0700 (PDT)
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039632B16F@dlee02.ent.ti.com> (Richard Woodruff's message of "Wed\, 1 Jul 2009 09\:28\:19 -0500")
+Received: from main.gmane.org ([80.91.229.2]:54628 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751754AbZGAOkB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 1 Jul 2009 10:40:01 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1MM0yg-0000qt-Ms
+	for linux-omap@vger.kernel.org; Wed, 01 Jul 2009 14:40:02 +0000
+Received: from goriz.disca.upv.es ([158.42.53.53])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 01 Jul 2009 14:40:02 +0000
+Received: from aperez by goriz.disca.upv.es with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 01 Jul 2009 14:40:02 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Nayak, Rajendra" <rnayak@ti.com>, "Derrick, David" <dderrick@ti.com>, Paul Walmsley <paul@pwsan.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-"Woodruff, Richard" <r-woodruff2@ti.com> writes:
+May be I'm missing something but no dspbridge code can be found in 
+branch bridge-pm-2.6.29.
 
->> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->> Sent: Wednesday, July 01, 2009 9:19 AM
->
->> David, did you see stability problems when using this patch on top of
->> linux-omap PM branch?  Or did you see problems on some internal tree?
->
-> Issue was on one internal tree.  Tests need to be re-applied to current trees.
->
+Any idea?
 
-OK, then presumably the same problems already exist in linux-omap
-since we've had this feature for awhile.
+Bests,
 
-I'm going to apply this patch to the PM branch.
+Alberto.
 
-A more detailed report of the test and the instability against the current
-tree would be very helpful.
 
-Kevin
 
 
