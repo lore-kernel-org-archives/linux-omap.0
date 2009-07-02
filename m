@@ -1,53 +1,105 @@
-From: Rebecca Schultz Zavin <rebecca@android.com>
-Subject: Re: About DSS2 in Kevin's l-o PM tree
-Date: Wed, 1 Jul 2009 21:23:12 -0700
-Message-ID: <aed62de90907012123p6653f98fg40e867e83d3ec6aa@mail.gmail.com>
-References: <A24693684029E5489D1D202277BE8944413953B7@dlee02.ent.ti.com>
+From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Subject: Re: [PATCH] ARM: OMAP3: allow setting cam_mclk rate
+Date: Thu, 02 Jul 2009 10:44:28 +0300
+Message-ID: <4A4C655C.90200@nokia.com>
+References: <200907011427.29318.tuukka.o.toivonen@nokia.com>
+Reply-To: Artem.Bityutskiy@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:33203 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750702AbZGBEXN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jul 2009 00:23:13 -0400
-Received: from spaceape10.eur.corp.google.com (spaceape10.eur.corp.google.com [172.28.16.144])
-	by smtp-out.google.com with ESMTP id n624NFdT009665
-	for <linux-omap@vger.kernel.org>; Wed, 1 Jul 2009 21:23:16 -0700
-Received: from vwj17 (vwj17.prod.google.com [10.241.19.81])
-	by spaceape10.eur.corp.google.com with ESMTP id n624NC85013101
-	for <linux-omap@vger.kernel.org>; Wed, 1 Jul 2009 21:23:13 -0700
-Received: by vwj17 with SMTP id 17so731693vwj.17
-        for <linux-omap@vger.kernel.org>; Wed, 01 Jul 2009 21:23:12 -0700 (PDT)
-In-Reply-To: <A24693684029E5489D1D202277BE8944413953B7@dlee02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:31763 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312AbZGBHoj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jul 2009 03:44:39 -0400
+In-Reply-To: <200907011427.29318.tuukka.o.toivonen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: =?UTF-8?B?SMO2Z2FuZGVyIEpvdW5p?= <jouni.hogander@nokia.com>
+Cc: "Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "core-review@ok.research.nokia.com" <core-review@ok.research.nokia.com>, "Hurskainen Mikko (Nokia-D/Helsinki)" <mikko.hurskainen@nokia.com>, "camera@ok.research.nokia.com" <camera@ok.research.nokia.com>
 
-We're using it.  Still working out corner cases.
+Hi Jouni,
 
-http://android.git.kernel.org/?p=3Dkernel/omap.git;a=3Dshortlog;h=3Dref=
-s/heads/android-omap-2.6.29
+could you please take a quick look at this patch? There is some
+pressure to have this applied ASAP, but I'm afraid I do not have
+enough competence in this area to review it. Could you take a
+brief look and validate it?
 
-Rebecca
+Toivonen Tuukka.O (Nokia-D/Oulu) wrote:
+> This patch allows drivers to modify cam_mclk rate which is
+> used for generating external cam_xclka and cam_xclkb for cameras.
+>=20
+> Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx.c |   18 ++++++++++++++++++
+>  arch/arm/mach-omap2/clock34xx.h |    2 ++
+>  2 files changed, 20 insertions(+), 0 deletions(-)
+>=20
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/cl=
+ock34xx.c
+> index 045da92..667a608 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -898,6 +898,24 @@ static unsigned long omap3_clkoutx2_recalc(struc=
+t clk *clk)
+>  	return rate;
+>  }
+> =20
+> +/* Clock control for OMAP3 camera */
+> +
+> +static int omap3_cam_mclk_set_rate(struct clk *clk, unsigned long ra=
+te)
+> +{
+> +	const unsigned int dpll4_rate =3D 864000000; /* Hz */
+> +	int clksel;
+> +
+> +	if (rate <=3D 0)
+> +		return -EINVAL;
+> +
+> +	clksel =3D (dpll4_rate + (rate>>1)) / rate;
+> +	clksel =3D clamp(clksel, 1, 16);
+> +	cm_write_mod_reg(clksel, OMAP3430_CAM_MOD, CM_CLKSEL);
+> +	clk->rate =3D dpll4_rate / clksel;
+> +
+> +	return 0;
+> +}
+> +
+>  /* Common clock code */
+> =20
+>  /*
+> diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/cl=
+ock34xx.h
+> index e433aec..bd09709 100644
+> --- a/arch/arm/mach-omap2/clock34xx.h
+> +++ b/arch/arm/mach-omap2/clock34xx.h
+> @@ -37,6 +37,7 @@ static u32 omap3_dpll_autoidle_read(struct clk *clk=
+);
+>  static int omap3_noncore_dpll_set_rate(struct clk *clk, unsigned lon=
+g rate);
+>  static int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)=
+;
+>  static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned lon=
+g rate);
+> +static int omap3_cam_mclk_set_rate(struct clk *clk, unsigned long ra=
+te);
+> =20
+>  /* Maximum DPLL multiplier, divider values for OMAP3 */
+>  #define OMAP3_MAX_DPLL_MULT		2048
+> @@ -2342,6 +2343,7 @@ static struct clk uart3_fck =3D {
+>  	.enable_bit	=3D OMAP3430_EN_UART3_SHIFT,
+>  	.clkdm_name	=3D "per_clkdm",
+>  	.recalc		=3D &followparent_recalc,
+> +	.set_rate	=3D &omap3_cam_mclk_set_rate,
+>  };
+> =20
+>  static struct clk gpt2_fck =3D {
 
-On Thu, Jun 25, 2009 at 6:08 AM, Aguirre Rodriguez, Sergio
-Alberto<saaguirre@ti.com> wrote:
-> Hi,
->
-> Has anybody here tried DSS2 driver on top of Kevin's l-o PM tree?
->
-> I was curious to try it for my camera capture tests...
->
-> Regards,
-> Sergio
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
