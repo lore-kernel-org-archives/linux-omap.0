@@ -1,15 +1,14 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 3/4] DSPBRIDGE: PROCWRAP_Load function cleanup in a complete mess
-Date: Thu,  2 Jul 2009 17:21:07 +0300
-Message-ID: <1246544468-14546-3-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 2/4] DSPBRIDGE: Heuristic fixes of strlen/malloc out by one and termination errors
+Date: Thu,  2 Jul 2009 17:21:06 +0300
+Message-ID: <1246544468-14546-2-git-send-email-ameya.palande@nokia.com>
 References: <1246544468-14546-1-git-send-email-ameya.palande@nokia.com>
- <1246544468-14546-2-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:42697 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:42690 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754180AbZGBOV5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jul 2009 10:21:57 -0400
-In-Reply-To: <1246544468-14546-2-git-send-email-ameya.palande@nokia.com>
+	with ESMTP id S1753728AbZGBOV4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jul 2009 10:21:56 -0400
+In-Reply-To: <1246544468-14546-1-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -17,173 +16,87 @@ Cc: x0095840@ti.com, h-kanigeri2@ti.com, ext-phil.2.carmody@nokia.com
 
 From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-If you followed some failure paths, it was entirely possible that
-you'd attempt to MEM_Free a user-space pointer, because it wouldn't
-have been replaced with a kernel-space copy yet. Now replace all
-untouched pointers with NULL, so the cleanup does nothing for those
-ones.
+I say 'heuristic', as I can't prove they're wrong, they just look
+wrong, and for that reason should be given extra close scrutiny.
+These are basically just the old malloc-one-more-than-strlen and
+strncpy-doesn't-write-a-terminal-nil gotchas.
 
 Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- drivers/dsp/bridge/pmgr/wcd.c |   95 +++++++++++++++++++++++-----------------
- 1 files changed, 55 insertions(+), 40 deletions(-)
+ drivers/dsp/bridge/pmgr/wcd.c  |    7 ++++---
+ drivers/dsp/bridge/rmgr/nldr.c |    3 ++-
+ drivers/dsp/bridge/rmgr/node.c |    5 +++--
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 00b2770..2fd9f8c 100644
+index 7732492..00b2770 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -880,83 +880,99 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- {
- 	s32 i, len;
- 	DSP_STATUS status = DSP_SOK;
--       char *temp;
--	s32 argc = args->ARGS_PROC_LOAD.iArgc;
-+	char *temp;
-+	s32 count = args->ARGS_PROC_LOAD.iArgc;
- 	u8 **argv, **envp = NULL;
- 
-+	DBC_Require(count > 0);
-+	DBC_Require(count <= MAX_LOADARGS);
- 
--	DBC_Require(argc > 0);
--	DBC_Require(argc <= MAX_LOADARGS);
--
--	argv = MEM_Alloc(argc * sizeof(u8 *), MEM_NONPAGED);
--	if (argv == NULL)
-+	argv = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
-+	if (!argv) {
- 		status = DSP_EMEMORY;
-+		goto func_cont;
-+	}
- 
--	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, argc);
--	if (DSP_FAILED(status))
-+	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, count);
-+	if (DSP_FAILED(status)) {
-+		MEM_Free(argv);
-+		argv = NULL;
- 		goto func_cont;
-+	}
- 
--	for (i = 0; DSP_SUCCEEDED(status) && (i < argc); i++) {
-+	for (i = 0; DSP_SUCCEEDED(status) && (i < count); i++) {
- 		if (argv[i] != NULL) {
-                         /* User space pointer to argument */
--                       temp = (char *) argv[i];
--                       len = strlen_user((char *)temp);
-+			temp = (char *) argv[i];
-+			len = strlen_user((char *)temp);
+@@ -902,7 +902,7 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+                        temp = (char *) argv[i];
+                        len = strlen_user((char *)temp);
  			/* Kernel space pointer to argument */
- 			argv[i] = MEM_Alloc(len + 1, MEM_NONPAGED);
--			if (argv[i] == NULL) {
-+			if (argv[i] != NULL) {
-+				cp_fm_usr(argv[i], temp, status, len);
-+			} else {
+-			argv[i] = MEM_Alloc(len, MEM_NONPAGED);
++			argv[i] = MEM_Alloc(len + 1, MEM_NONPAGED);
+ 			if (argv[i] == NULL) {
  				status = DSP_EMEMORY;
--				break;
- 			}
--			cp_fm_usr(argv[i], temp, status, len);
--			if (DSP_FAILED(status))
-+
-+			if (DSP_FAILED(status)) {
-+				while (i < count)
-+					argv[i++] = NULL;
+ 				break;
+@@ -910,7 +910,7 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+ 			cp_fm_usr(argv[i], temp, status, len);
+ 			if (DSP_FAILED(status))
  				goto func_cont;
-+			}
- 			argv[i][len] = '\0';
+-
++			argv[i][len] = '\0';
  		}
  	}
  	/* TODO: validate this */
- 	if (args->ARGS_PROC_LOAD.aEnvp != NULL) {
- 		/* number of elements in the envp array including NULL */
--		len = 0;
-+		count = 0;
- 		do {
--			len++;
--                       get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
--               } while (temp);
--		envp = MEM_Alloc(len * sizeof(u8 *), MEM_NONPAGED);
-+			count++;
-+			get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
-+		} while (temp);
-+		envp = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
- 		if (envp == NULL) {
- 			status = DSP_EMEMORY;
- 			goto func_cont;
- 		}
- 
--		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, len);
--		if (DSP_FAILED(status))
-+		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, count);
-+		if (DSP_FAILED(status)) {
-+			MEM_Free(envp);
-+			envp = NULL;
- 			goto func_cont;
-+		}
- 		for (i = 0; DSP_SUCCEEDED(status) && (envp[i] != NULL); i++) {
-                         /* User space pointer to argument */
--                       temp = (char *)envp[i];
--                       len = strlen_user((char *)temp);
-+			temp = (char *)envp[i];
-+			len = strlen_user((char *)temp);
+@@ -935,7 +935,7 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+                        temp = (char *)envp[i];
+                        len = strlen_user((char *)temp);
  			/* Kernel space pointer to argument */
- 			envp[i] = MEM_Alloc(len + 1, MEM_NONPAGED);
--			if (envp[i] == NULL) {
-+			if (envp[i] != NULL) {
-+				cp_fm_usr(envp[i], temp, status, len);
-+			} else {
+-			envp[i] = MEM_Alloc(len, MEM_NONPAGED);
++			envp[i] = MEM_Alloc(len + 1, MEM_NONPAGED);
+ 			if (envp[i] == NULL) {
  				status = DSP_EMEMORY;
--				break;
- 			}
--			cp_fm_usr(envp[i], temp, status, len);
--			if (DSP_FAILED(status))
-+
-+			if (DSP_FAILED(status)) {
-+				while (i < count)
-+					envp[i++] = NULL;
+ 				break;
+@@ -943,6 +943,7 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+ 			cp_fm_usr(envp[i], temp, status, len);
+ 			if (DSP_FAILED(status))
  				goto func_cont;
-+			}
- 			envp[i][len] = '\0';
++			envp[i][len] = '\0';
  		}
  	}
  	GT_5trace(WCD_debugMask, GT_ENTER,
--		 "PROCWRAP_Load, hProcessor: 0x%x\n\tiArgc:"
--		 "0x%x\n\taArgv: 0x%x\n\taArgv[0]: %s\n\taEnvp: 0x%0x\n",
--		 args->ARGS_PROC_LOAD.hProcessor,
--		 args->ARGS_PROC_LOAD.iArgc, args->ARGS_PROC_LOAD.aArgv,
--		 argv[0], args->ARGS_PROC_LOAD.aEnvp);
-+		"PROCWRAP_Load, hProcessor: 0x%x\n\tiArgc:"
-+		"0x%x\n\taArgv: 0x%x\n\taArgv[0]: %s\n\taEnvp: 0x%0x\n",
-+		args->ARGS_PROC_LOAD.hProcessor,
-+		args->ARGS_PROC_LOAD.iArgc, args->ARGS_PROC_LOAD.aArgv,
-+		argv[0], args->ARGS_PROC_LOAD.aEnvp);
- 	if (DSP_SUCCEEDED(status)) {
- 		status = PROC_Load(args->ARGS_PROC_LOAD.hProcessor,
--				  args->ARGS_PROC_LOAD.iArgc,
--				  (CONST char **)argv, (CONST char **)envp);
-+				args->ARGS_PROC_LOAD.iArgc,
-+				(CONST char **)argv, (CONST char **)envp);
+diff --git a/drivers/dsp/bridge/rmgr/nldr.c b/drivers/dsp/bridge/rmgr/nldr.c
+index 79f7505..a6a0528 100644
+--- a/drivers/dsp/bridge/rmgr/nldr.c
++++ b/drivers/dsp/bridge/rmgr/nldr.c
+@@ -1128,7 +1128,8 @@ static DSP_STATUS AddOvlyNode(struct DSP_UUID *pUuid,
+ 			if (pBuf == NULL) {
+ 				status = DSP_EMEMORY;
+ 			} else {
+-                               strncpy(pBuf, pNodeName, uLen);
++				strncpy(pBuf, pNodeName, uLen);
++				pBuf[uLen] = '\0';
+ 				hNldr->ovlyTable[hNldr->nNode].pNodeName = pBuf;
+ 				hNldr->nNode++;
+ 			}
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index 53a42bf..9f7e4d4 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -3272,8 +3272,9 @@ static DSP_STATUS GetNodeProps(struct DCD_MANAGER *hDcdMgr,
+ 			if (hNode->pstrDevName == NULL) {
+ 				status = DSP_EMEMORY;
+ 			} else {
+-                               strncpy(hNode->pstrDevName,
+-					   pndbProps->acName, uLen);
++				strncpy(hNode->pstrDevName,
++					pndbProps->acName, uLen);
++				hNode->pstrDevName[uLen] = '\0';
+ 			}
+ 		}
  	}
-+
- func_cont:
- 	if (envp != NULL) {
- 		i = 0;
-@@ -966,11 +982,10 @@ func_cont:
- 		MEM_Free(envp);
- 	}
- 	if (argv != NULL) {
--		for (i = 0; i < argc; i++) {
--			if (argv[i] != NULL)
--				MEM_Free(argv[i]);
-+		count = args->ARGS_PROC_LOAD.iArgc;
-+		for (i = 0; (i < count) && argv[i]; i++)
-+				MEM_Free(argv[i++]);
- 
--		}
- 		MEM_Free(argv);
- 	}
- 	return status;
 -- 
 1.6.2.4
 
