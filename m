@@ -1,19 +1,19 @@
 From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: [PATCH] OMAP: GPIO: Fix incorrect gpio_get logic for output GPIOs
-Date: Thu,  2 Jul 2009 14:59:09 +0300
-Message-ID: <1246535949-12749-1-git-send-email-ext-roger.quadros@nokia.com>
+Subject: [PATCH v2] OMAP: GPIO: Fix incorrect gpio_get logic for output GPIOs
+Date: Thu,  2 Jul 2009 15:09:40 +0300
+Message-ID: <1246536580-13126-1-git-send-email-ext-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:61877 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:64360 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751878AbZGBMAs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jul 2009 08:00:48 -0400
+	with ESMTP id S1752920AbZGBMKo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 2 Jul 2009 08:10:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
+To: tony@atomide.com, linux-omap@vger.kernel.org
 Cc: juha.yrjola@nokia.com
 
 gpio_get() should return DATAIN register value when the GPIO
-is configured as input wheras it should return DATAOUT register
+is configured as input whereas it should return DATAOUT register
 value when the GPIO is configured as output.
 Now /sys/kernel/debug/gpio shows proper values for output GPIOs
 
