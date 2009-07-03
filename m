@@ -1,34 +1,180 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] ehci: fix ehci pin mux init
-Date: Fri, 3 Jul 2009 13:47:15 +0300
-Message-ID: <20090703104715.GA4323@nokia.com>
-References: <1246617561-8644-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Peter =?iso-8859-1?q?H=FCwe?= <PeterHuewe@gmx.de>
+Subject: [PATCH] media/omap: adding __init/__exit macros to lcd_drivers
+Date: Fri, 3 Jul 2009 14:39:40 +0200
+Message-ID: <200907031439.40456.PeterHuewe@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:64525 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045AbZGCKrt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 3 Jul 2009 06:47:49 -0400
+Received: from mail.gmx.net ([213.165.64.20]:34659 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751425AbZGCMjk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 3 Jul 2009 08:39:40 -0400
 Content-Disposition: inline
-In-Reply-To: <1246617561-8644-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: imre.deak@nokia.com, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 
-On Fri, Jul 03, 2009 at 12:39:21PM +0200, ext Ajay Kumar Gupta wrote:
-> EHCI pin mux init fucntion is still using old #ifdef
-> which are not defined anymore.This causes pin mux init to
-> always set TLL settings and thus EHCI PHY mode doesn't work.
-> 
-> Fixing this issue by using phy_mode parameter to initialize
-> mux settings.
-> 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+From: Peter Huewe <peterhuewe@gmx.de>
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+Trivial patch which adds the __init and __exit macros to the module_init /
+module_exit functions to several files in drivers/video/omap/
 
--- 
-balbi
+linux version 2.6.31-rc1 - linus git tree
+
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+---
+diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
+index 2486237..417ae5e 100644
+--- a/drivers/video/omap/lcd_h3.c
++++ b/drivers/video/omap/lcd_h3.c
+@@ -124,12 +124,12 @@ struct platform_driver h3_panel_driver = {
+ 	},
+ };
+ 
+-static int h3_panel_drv_init(void)
++static int __init h3_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&h3_panel_driver);
+ }
+ 
+-static void h3_panel_drv_cleanup(void)
++static void __exit h3_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&h3_panel_driver);
+ }
+diff --git a/drivers/video/omap/lcd_h4.c b/drivers/video/omap/lcd_h4.c
+index 6ff5643..0c398bd 100644
+--- a/drivers/video/omap/lcd_h4.c
++++ b/drivers/video/omap/lcd_h4.c
+@@ -102,12 +102,12 @@ static struct platform_driver h4_panel_driver = {
+ 	},
+ };
+ 
+-static int h4_panel_drv_init(void)
++static int __init h4_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&h4_panel_driver);
+ }
+ 
+-static void h4_panel_drv_cleanup(void)
++static void __exit h4_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&h4_panel_driver);
+ }
+diff --git a/drivers/video/omap/lcd_inn1510.c b/drivers/video/omap/lcd_inn1510.c
+index 6953ed4..cdbd8bb 100644
+--- a/drivers/video/omap/lcd_inn1510.c
++++ b/drivers/video/omap/lcd_inn1510.c
+@@ -109,12 +109,12 @@ struct platform_driver innovator1510_panel_driver = {
+ 	},
+ };
+ 
+-static int innovator1510_panel_drv_init(void)
++static int __init innovator1510_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&innovator1510_panel_driver);
+ }
+ 
+-static void innovator1510_panel_drv_cleanup(void)
++static void __exit innovator1510_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&innovator1510_panel_driver);
+ }
+diff --git a/drivers/video/omap/lcd_inn1610.c b/drivers/video/omap/lcd_inn1610.c
+index 4c4f7ee..268f7f8 100644
+--- a/drivers/video/omap/lcd_inn1610.c
++++ b/drivers/video/omap/lcd_inn1610.c
+@@ -133,12 +133,12 @@ struct platform_driver innovator1610_panel_driver = {
+ 	},
+ };
+ 
+-static int innovator1610_panel_drv_init(void)
++static int __init innovator1610_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&innovator1610_panel_driver);
+ }
+ 
+-static void innovator1610_panel_drv_cleanup(void)
++static void __exit innovator1610_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&innovator1610_panel_driver);
+ }
+diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
+index 379c96d..b3fa88b 100644
+--- a/drivers/video/omap/lcd_osk.c
++++ b/drivers/video/omap/lcd_osk.c
+@@ -127,12 +127,12 @@ struct platform_driver osk_panel_driver = {
+ 	},
+ };
+ 
+-static int osk_panel_drv_init(void)
++static int __init osk_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&osk_panel_driver);
+ }
+ 
+-static void osk_panel_drv_cleanup(void)
++static void __exit osk_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&osk_panel_driver);
+ }
+diff --git a/drivers/video/omap/lcd_palmte.c b/drivers/video/omap/lcd_palmte.c
+index 2183173..4bf3c79 100644
+--- a/drivers/video/omap/lcd_palmte.c
++++ b/drivers/video/omap/lcd_palmte.c
+@@ -108,12 +108,12 @@ struct platform_driver palmte_panel_driver = {
+ 	},
+ };
+ 
+-static int palmte_panel_drv_init(void)
++static int __init palmte_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&palmte_panel_driver);
+ }
+ 
+-static void palmte_panel_drv_cleanup(void)
++static void __exit palmte_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&palmte_panel_driver);
+ }
+diff --git a/drivers/video/omap/lcd_palmtt.c b/drivers/video/omap/lcd_palmtt.c
+index 57b0f6c..48ea1f9 100644
+--- a/drivers/video/omap/lcd_palmtt.c
++++ b/drivers/video/omap/lcd_palmtt.c
+@@ -113,12 +113,12 @@ struct platform_driver palmtt_panel_driver = {
+ 	},
+ };
+ 
+-static int palmtt_panel_drv_init(void)
++static int __init palmtt_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&palmtt_panel_driver);
+ }
+ 
+-static void palmtt_panel_drv_cleanup(void)
++static void __exit palmtt_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&palmtt_panel_driver);
+ }
+diff --git a/drivers/video/omap/lcd_palmz71.c b/drivers/video/omap/lcd_palmz71.c
+index d33d78b..0697d29 100644
+--- a/drivers/video/omap/lcd_palmz71.c
++++ b/drivers/video/omap/lcd_palmz71.c
+@@ -109,12 +109,12 @@ struct platform_driver palmz71_panel_driver = {
+ 	},
+ };
+ 
+-static int palmz71_panel_drv_init(void)
++static int __init palmz71_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&palmz71_panel_driver);
+ }
+ 
+-static void palmz71_panel_drv_cleanup(void)
++static void __exit palmz71_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&palmz71_panel_driver);
+ }
