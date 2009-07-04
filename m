@@ -1,58 +1,62 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: mainline: misc.o uses VFP instructions error
-Date: Sat, 4 Jul 2009 19:19:27 +0300
-Message-ID: <da94abde0907040919o7ebc00a5v5a4f935b4f01c682@mail.gmail.com>
-References: <87zlbkqy7s.fsf@litku.valot.fi>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 00/07] pm: remove late/early platform driver pm callbacks V2
+Date: Sun, 5 Jul 2009 01:45:13 +0200
+Message-ID: <200907050145.15122.rjw@sisk.pl>
+References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f207.google.com ([209.85.218.207]:54360 "EHLO
-	mail-bw0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813AbZGDQTY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 4 Jul 2009 12:19:24 -0400
-Received: by bwz3 with SMTP id 3so944467bwz.37
-        for <linux-omap@vger.kernel.org>; Sat, 04 Jul 2009 09:19:27 -0700 (PDT)
-In-Reply-To: <87zlbkqy7s.fsf@litku.valot.fi>
+Received: from ogre.sisk.pl ([217.79.144.158]:48292 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754093AbZGDXof (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sat, 4 Jul 2009 19:44:35 -0400
+In-Reply-To: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: linux-kernel@vger.kernel.org, gregkh@suse.de, pavel@ucw.cz, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, akpm@linux-foundation.org, stern@rowland.harvard.edu, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, felipe.balbi@nokia.com
 
-On Sat, Jul 4, 2009 at 6:12 PM, Kalle Valo<kalle.valo@iki.fi> wrote:
-> I'm trying to compile omap_generic_2420_defconfig in mainline and I g=
-et
-> this error:
->
-> =A0Kernel: arch/arm/boot/Image is ready
-> =A0LD =A0 =A0 =A0arch/arm/boot/compressed/vmlinux
-> arm-linux-ld: ERROR: arch/arm/boot/compressed/misc.o uses VFP
-> =A0instructions, whereas arch/arm/boot/compressed/vmlinux does not
-> arm-linux-ld: failed to merge target specific data of file
-> =A0arch/arm/boot/compressed/misc.o
+On Wednesday 24 June 2009, Magnus Damm wrote:
+> pm: remove late/early platform driver pm callbacks V2
+> 
+> [PATCH 01/07] arm: rework omap suspend_late()/resume_early()
+> [PATCH 02/07] dma: rework dw_dmac suspend_late()/resume_early()
+> [PATCH 03/07] dma: rework txx9dmac suspend_late()/resume_early()
+> [PATCH 04/07] i2c: rework i2c-pxa suspend_late()/resume_early()
+> [PATCH 05/07] i2c: rework i2c-s3c2410 suspend_late()/resume() V2
+> [PATCH 06/07] usb: rework musb suspend()/resume_early()
+> [PATCH 07/07] pm: remove platform device suspend_late()/resume_early() V2
+> 
+> These patches simply remove ->suspend_late() and ->resume_early()
+> from struct platform_driver. Drivers are converted to dev_pm_ops
+> with CONFIG_SUSPEND in mind. Untested.
+> 
+> All patches except [02/07] are known to compile.
+> 
+> Signed-off-by: Magnus Damm <damm@igel.co.jp>
+> ---
+> 
+>  Changes since V1:
+>  - resolved conflicts in [05/07], rediffed [07/07]
+>  - include lkml, linux-usb and akpm
+> 
+>  arch/arm/plat-omap/debug-leds.c  |   11 +++++++----
+>  arch/arm/plat-omap/gpio.c        |   14 ++++++++++----
+>  drivers/base/platform.c          |   36 ------------------------------------
+>  drivers/dma/dw_dmac.c            |   15 ++++++++++-----
+>  drivers/dma/txx9dmac.c           |   15 ++++++++++-----
+>  drivers/i2c/busses/i2c-pxa.c     |   25 +++++++++++++++++--------
+>  drivers/i2c/busses/i2c-s3c2410.c |   25 ++++++++++++++++---------
+>  drivers/usb/musb/musb_core.c     |   18 ++++++++++++------
+>  include/linux/platform_device.h  |    2 --
+>  9 files changed, 82 insertions(+), 79 deletions(-)
 
-I tried omap3_beagle_defconfig and it compiled without errors. I found
-discussion about the error here:
+The series is now in the linux-next branch of the suspend-2.6 tree.  I'll move
+it into the for-linus branch, which is not rebased, if the patches are not
+reported to cause any problems in the next few days.
 
-http://www.spinics.net/lists/arm-kernel/msg59073.html
-
-And reverting this commit fixed the issue with omap_generic_2420_defcon=
-fig:
-
-commit 80cec14a83ad0ad109d822b3f3482a379bc481ba
-Author: Russell King <rmk@dyn-67.arm.linux.org.uk>
-Date:   Tue Sep 9 13:56:45 2008 +0100
-
-    [ARM] Add -march=3Dall to assembly file build in arch/arm/boot/comp=
-ressed
-
-    This allows assembly files to be crafted to cover all ARM CPU types
-    rather than erroring out on instructions only in later CPUs.  We
-    are careful in these files to only execute CPU specific code when
-    the CPU ID says we can.
-
-    Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best,
+Rafael
