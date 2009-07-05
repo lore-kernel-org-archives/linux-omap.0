@@ -1,62 +1,87 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 00/07] pm: remove late/early platform driver pm callbacks V2
-Date: Sun, 5 Jul 2009 01:45:13 +0200
-Message-ID: <200907050145.15122.rjw@sisk.pl>
-References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH v2] OMAP1: AMS_DELTA: add modem support
+Date: Sun, 5 Jul 2009 16:01:48 +0200
+Message-ID: <200907051601.49194.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:48292 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754093AbZGDXof (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 4 Jul 2009 19:44:35 -0400
-In-Reply-To: <20090624092306.14276.127.sendpatchset@rx1.opensource.se>
+Return-path: <linux-serial-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-serial-owner@vger.kernel.org
+To: Jonathan McDowell <noodles@earth.li>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: linux-kernel@vger.kernel.org, gregkh@suse.de, pavel@ucw.cz, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, akpm@linux-foundation.org, stern@rowland.harvard.edu, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, felipe.balbi@nokia.com
 
-On Wednesday 24 June 2009, Magnus Damm wrote:
-> pm: remove late/early platform driver pm callbacks V2
-> 
-> [PATCH 01/07] arm: rework omap suspend_late()/resume_early()
-> [PATCH 02/07] dma: rework dw_dmac suspend_late()/resume_early()
-> [PATCH 03/07] dma: rework txx9dmac suspend_late()/resume_early()
-> [PATCH 04/07] i2c: rework i2c-pxa suspend_late()/resume_early()
-> [PATCH 05/07] i2c: rework i2c-s3c2410 suspend_late()/resume() V2
-> [PATCH 06/07] usb: rework musb suspend()/resume_early()
-> [PATCH 07/07] pm: remove platform device suspend_late()/resume_early() V2
-> 
-> These patches simply remove ->suspend_late() and ->resume_early()
-> from struct platform_driver. Drivers are converted to dev_pm_ops
-> with CONFIG_SUSPEND in mind. Untested.
-> 
-> All patches except [02/07] are known to compile.
-> 
-> Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> ---
-> 
->  Changes since V1:
->  - resolved conflicts in [05/07], rediffed [07/07]
->  - include lkml, linux-usb and akpm
-> 
->  arch/arm/plat-omap/debug-leds.c  |   11 +++++++----
->  arch/arm/plat-omap/gpio.c        |   14 ++++++++++----
->  drivers/base/platform.c          |   36 ------------------------------------
->  drivers/dma/dw_dmac.c            |   15 ++++++++++-----
->  drivers/dma/txx9dmac.c           |   15 ++++++++++-----
->  drivers/i2c/busses/i2c-pxa.c     |   25 +++++++++++++++++--------
->  drivers/i2c/busses/i2c-s3c2410.c |   25 ++++++++++++++++---------
->  drivers/usb/musb/musb_core.c     |   18 ++++++++++++------
->  include/linux/platform_device.h  |    2 --
->  9 files changed, 82 insertions(+), 79 deletions(-)
+This patch adds support for modem device found on Amstrad E3 (Delta) board.
 
-The series is now in the linux-next branch of the suspend-2.6 tree.  I'll move
-it into the for-linus branch, which is not rebased, if the patches are not
-reported to cause any problems in the next few days.
+Created against linux-2.6.31-rc1.
 
-Best,
-Rafael
+Based on earlier patch by Jonathan McDowell, available at 
+http://the.earth.li/pub/e3/2.6.19/ams-delta-modem.patch.
+Modified after Ladislav Michl's arch/arm/mach-omap1/board-voiceblue.c.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+Registering the modem platform device from a separate arch_initcall (and not
+from init_machine() callback) preserves serial console port at ttyS0.
+
+OMAP mux pin set up just for case if Amstrad bootloader is ever replaced.
+
+--- linux-2.6.31-rc1/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-07-04 16:39:37.000000000 +0200
++++ linux-2.6.31-rc1/arch/arm/mach-omap1/board-ams-delta.c	2009-07-05 13:41:08.000000000 +0200
+@@ -15,8 +15,11 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/input.h>
++#include <linux/irq.h>
+ #include <linux/platform_device.h>
++#include <linux/serial_8250.h>
+ 
++#include <asm/serial.h>
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -235,6 +238,41 @@ static void __init ams_delta_init(void)
+ 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+ }
+ 
++static struct plat_serial8250_port ams_delta_modem_ports[] = {
++	{
++		.membase	= (void *) AMS_DELTA_MODEM_VIRT,
++		.mapbase	= AMS_DELTA_MODEM_PHYS,
++		.irq		= -EINVAL, /* changed later */
++		.flags		= UPF_BOOT_AUTOCONF,
++		.iotype		= UPIO_MEM,
++		.regshift	= 1,
++		.uartclk	= BASE_BAUD * 16,
++	},
++	{ },
++};
++
++static struct platform_device ams_delta_modem_device = {
++	.name	= "serial8250",
++	.id	= PLAT8250_DEV_PLATFORM1,
++	.dev		= {
++		.platform_data = ams_delta_modem_ports,
++	},
++};
++
++static int __init ams_delta_modem_init(void)
++{
++	omap_cfg_reg(M14_1510_GPIO2);
++	ams_delta_modem_ports[0].irq = gpio_to_irq(2);
++	set_irq_type(gpio_to_irq(2), IRQ_TYPE_EDGE_RISING);
++
++	ams_delta_latch2_write(
++		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
++		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
++
++	return platform_device_register(&ams_delta_modem_device);
++}
++arch_initcall(ams_delta_modem_init);
++
+ static void __init ams_delta_map_io(void)
+ {
+ 	omap1_map_common_io();
+
