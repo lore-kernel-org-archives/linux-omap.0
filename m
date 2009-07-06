@@ -1,54 +1,50 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] OMAP3: EHCI: Allow EHCI to work as a module again
-Date: Mon, 6 Jul 2009 10:13:16 +0300
-Message-ID: <20090706071316.GI8461@nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0305C10FA4@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 1/2] ehci: Adding mux pin for EHCI phy reset
+Date: Mon,  6 Jul 2009 13:27:57 +0530
+Message-ID: <1246867077-13448-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:64085 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517AbZGFHOE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jul 2009 03:14:04 -0400
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305C10FA4@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43460 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753158AbZGFH6I (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 6 Jul 2009 03:58:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "me@felipebalbi.com" <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On Mon, Jul 06, 2009 at 09:05:09AM +0200, ext Gadiyar, Anand wrote:
-> From: Anand Gadiyar <gadiyar@ti.com>
-> 
-> OMAP3: EHCI: Allow EHCI to work as a module again
-> 
-> commit fc3c45ca seems to have broken EHCI as a module. Fix this.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+GPIO135 is used as EHCI (port2) phy reset pin on
+Multi Media Daughter card connected to OMAP3EVM.
 
-hmm... that was a bad mistake :-s
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ arch/arm/mach-omap2/mux.c             |    2 ++
+ arch/arm/plat-omap/include/mach/mux.h |    1 +
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-
-> ---
-> diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
-> index 0fe26f2..56fc7f4 100644
-> --- a/arch/arm/mach-omap2/usb-ehci.c
-> +++ b/arch/arm/mach-omap2/usb-ehci.c
-> @@ -27,7 +27,7 @@
->  #include <mach/irqs.h>
->  #include <mach/usb.h>
->  
-> -#if defined(CONFIG_USB_EHCI_HCD) || #define(CONFIG_USB_EHCI_HCD_MODULE)
-> +#if defined(CONFIG_USB_EHCI_HCD) || defined(CONFIG_USB_EHCI_HCD_MODULE)
->  
->  static struct resource ehci_resources[] = {
->  	{
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 026c4fc..80547cf 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -472,6 +472,8 @@ MUX_CFG_34XX("G25_34XX_GPIO86_OUT", 0x0fc,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AG4_34XX_GPIO134_OUT", 0x160,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("AF4_34XX_GPIO135_OUT", 0x162,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AE4_34XX_GPIO136_OUT", 0x164,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+index 85a6217..498fa0c 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -846,6 +846,7 @@ enum omap34xx_index {
+ 	L8_34XX_GPIO63,
+ 	G25_34XX_GPIO86_OUT,
+ 	AG4_34XX_GPIO134_OUT,
++	AF4_34XX_GPIO135_OUT,
+ 	AE4_34XX_GPIO136_OUT,
+ 	AF6_34XX_GPIO140_UP,
+ 	AE6_34XX_GPIO141,
 -- 
-balbi
+1.6.2.4
+
