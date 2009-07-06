@@ -1,28 +1,60 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: User/kernel memory split
-Date: Mon, 6 Jul 2009 18:16:34 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D84C01FB@dbde02.ent.ti.com>
-References: <017301c9fe1f$91b92100$LocalHost@wipultra793>
- <B85A65D85D7EB246BE421B3FB0FBB59301D84C009A@dbde02.ent.ti.com>
- <01c701c9fe24$2339d440$LocalHost@wipultra793>
- <B85A65D85D7EB246BE421B3FB0FBB59301D84C015D@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B55BCD8D@dbde02.ent.ti.com>
+From: "Sonasath, Moiz" <m-sonasath@ti.com>
+Subject: [PATCH] [RFC] Potential bug in defining 'irq field' of 'ifmap
+ structure'
+Date: Mon, 6 Jul 2009 17:23:36 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F202952C3124@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37309 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:40839 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752271AbZGFMqv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jul 2009 08:46:51 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B55BCD8D@dbde02.ent.ti.com>
+	id S1752194AbZGFWXk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jul 2009 18:23:40 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "V, Hemanth" <hemanthv@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, linux-omap@vge
+To: "David S. Miller" <davem@davemloft.net>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-So are driver owners going to transition to ioremap/iounmap soon?
 
+From: Moiz Sonasath <m-sonasath@ti.com>
 
->These points were discussed in below thread.
->http://lists.arm.linux.org.uk/lurker/message/20090626.181403.55450a9c.en.html
+There seems to be a bug in the ioctl implementation in /kernel/net/core/dev.c 
+ 
+dev_ifsioc_locked()
+	case SIOCGIFMAP:
+			ifr->ifr_map.irq = dev->irq;   // ?? type mismatch
+
+Here
+ifr->ifr_map.irq) is of type unsigned char
+dev-irq is of type unsigned int
+
+So ifconfig reports a wrong irq number when the dev->irq number is > 255.
+
+I am confused to see the same typedefs in file: net/if.h 
+Not sure how to make changes for the user side net/if.h file?
+
+Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+	
+---
+ include/linux/if.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/include/linux/if.h b/include/linux/if.h
+index 2d89c96..1ac6559 100644
+--- a/include/linux/if.h
++++ b/include/linux/if.h
+@@ -126,7 +126,7 @@ struct ifmap
+ 	unsigned long mem_start;
+ 	unsigned long mem_end;
+ 	unsigned short base_addr;
+-	unsigned char irq;
++	unsigned int irq;
+ 	unsigned char dma;
+ 	unsigned char port;
+ 	/* 3 bytes spare */
+-- 
+1.5.6.3
+
