@@ -1,45 +1,39 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [RESEND][PATCH 0/2] McSPI Slave and DMA ,FIFO support
-Date: Mon, 6 Jul 2009 12:17:20 +0530
-Message-ID: <007b01c9fe05$9e5baeb0$LocalHost@wipultra793>
-References: <42120.10.24.255.18.1245765231.squirrel@dbdmail.itg.ti.com> <200907021705.18048.david-b@pacbell.net>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH] OMAP3: EHCI: Allow EHCI to work as a module again
+Date: Mon, 6 Jul 2009 12:35:09 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305C10FA4@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46365 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51710 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752208AbZGFGrf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 6 Jul 2009 02:47:35 -0400
+	id S1752327AbZGFHFS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 6 Jul 2009 03:05:18 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>
-Cc: linux-omap@vger.kernel.org, spi-devel-general@lists.sourceforge.net
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, Tony Lindgren <tony@atomide.com>
 
------ Original Message ----- 
-From: "David Brownell" <david-b@pacbell.net>
+From: Anand Gadiyar <gadiyar@ti.com>
 
+OMAP3: EHCI: Allow EHCI to work as a module again
 
-> On Tuesday 23 June 2009, Hemanth V wrote:
->> This series of 2 patches adds support for McSPI slave
->> and DMA,FIFO. It incorporates review comments from
->> Kevin Hilman and Tony Lindgren
->> 
->> 
->> PATCH[1/2]: Changes to arch specific files
->> PATCH[2/2]: omap2_mcspi.c file changes
-> 
-> Needs some changes yet:
-> 
->  - Split out slave support as a separate patch.
->    That's not really supported by the interface yet.
+commit fc3c45ca seems to have broken EHCI as a module. Fix this.
 
-Do you see any major changes required to support
-slave mode in the SPI core driver. We are able to
-use the existing interface for slave mode also, but
-some APIs/ Structures could be made generic.
-
-
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
+index 0fe26f2..56fc7f4 100644
+--- a/arch/arm/mach-omap2/usb-ehci.c
++++ b/arch/arm/mach-omap2/usb-ehci.c
+@@ -27,7 +27,7 @@
+ #include <mach/irqs.h>
+ #include <mach/usb.h>
+ 
+-#if defined(CONFIG_USB_EHCI_HCD) || #define(CONFIG_USB_EHCI_HCD_MODULE)
++#if defined(CONFIG_USB_EHCI_HCD) || defined(CONFIG_USB_EHCI_HCD_MODULE)
+ 
+ static struct resource ehci_resources[] = {
+ 	{
