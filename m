@@ -1,63 +1,122 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [PATCH] OMAP3: RX51: Define TWL4030 USB transceiver in board
- file
-Date: Tue, 07 Jul 2009 09:37:50 +0300
-Message-ID: <4A52ED3E.1020704@nokia.com>
-References: <1246868531-5023-1-git-send-email-ext-roger.quadros@nokia.com> <20090706095140.GR8461@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: rafiuddin.syed@ti.com
+Subject: [PATCH 2/4] ARM: OMAP4: McBSP Support om OMAP4430
+Date: Tue,  7 Jul 2009 14:17:08 +0530
+Message-ID: <1246956430-24863-2-git-send-email-rafiuddin.syed@ti.com>
+References: <1246956430-24863-1-git-send-email-rafiuddin.syed@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:44582 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753475AbZGGGjV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 02:39:21 -0400
-In-Reply-To: <20090706095140.GR8461@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:47631 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753800AbZGGIr2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Jul 2009 04:47:28 -0400
+In-Reply-To: <1246956430-24863-1-git-send-email-rafiuddin.syed@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: felipe.balbi@nokia.com
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>
 
-Felipe Balbi wrote:
-> On Mon, Jul 06, 2009 at 10:22:11AM +0200, Quadros Roger (EXT-Teleca/Helsinki) wrote:
-> 
-> please put some description here. Other than that:
+From: Syed Rafiuddin <rafiuddin.syed@ti.com>
 
-ok. will send updated patch with description. thanks for your comment.
+This patch adds McBSP support on OMAP4430 development platform. This patch
+includes corresponding base address changes for OMAP4.
 
-> 
->> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> 
->> ---
->>  arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
->>  1 files changed, 5 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
->> index 9a0bf67..56d931a 100644
->> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
->> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
->> @@ -278,6 +278,10 @@ static struct twl4030_gpio_platform_data rx51_gpio_data = {
->>  	.setup			= rx51_twlgpio_setup,
->>  };
->>  
->> +static struct twl4030_usb_data rx51_usb_data = {
->> +	.usb_mode		= T2_USB_MODE_ULPI,
->> +};
->> +
->>  static struct twl4030_platform_data rx51_twldata = {
->>  	.irq_base		= TWL4030_IRQ_BASE,
->>  	.irq_end		= TWL4030_IRQ_END,
->> @@ -286,6 +290,7 @@ static struct twl4030_platform_data rx51_twldata = {
->>  	.gpio			= &rx51_gpio_data,
->>  	.keypad			= &rx51_kp_data,
->>  	.madc			= &rx51_madc_data,
->> +	.usb			= &rx51_usb_data,
->>  
->>  	.vaux1			= &rx51_vaux1,
->>  	.vaux2			= &rx51_vaux2,
->> -- 
->> 1.6.0.4
-> 
+Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+---
+ arch/arm/mach-omap2/mcbsp.c             |   41 +++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/mcbsp.h |    8 +++++-
+ 2 files changed, 48 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index a5c0f04..d49dfb5 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -169,6 +169,42 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ #define OMAP34XX_MCBSP_PDATA_SZ		0
+ #endif
+ 
++static struct omap_mcbsp_platform_data omap44xx_mcbsp_pdata[] = {
++	{
++		.phys_base      = OMAP44XX_MCBSP1_BASE,
++		.dma_rx_sync    = OMAP44XX_DMA_MCBSP1_RX,
++		.dma_tx_sync    = OMAP44XX_DMA_MCBSP1_TX,
++		.rx_irq         = INT_24XX_MCBSP1_IRQ_RX,
++		.tx_irq         = INT_24XX_MCBSP1_IRQ_TX,
++		.ops            = &omap2_mcbsp_ops,
++	},
++	{
++		.phys_base      = OMAP44XX_MCBSP2_BASE,
++		.dma_rx_sync    = OMAP44XX_DMA_MCBSP2_RX,
++		.dma_tx_sync    = OMAP44XX_DMA_MCBSP2_TX,
++		.rx_irq         = INT_24XX_MCBSP2_IRQ_RX,
++		.tx_irq         = INT_24XX_MCBSP2_IRQ_TX,
++		.ops            = &omap2_mcbsp_ops,
++	},
++	{
++		.phys_base      = OMAP44XX_MCBSP3_BASE,
++		.dma_rx_sync    = OMAP44XX_DMA_MCBSP3_RX,
++		.dma_tx_sync    = OMAP44XX_DMA_MCBSP3_TX,
++		.rx_irq         = INT_24XX_MCBSP3_IRQ_RX,
++		.tx_irq         = INT_24XX_MCBSP3_IRQ_TX,
++		.ops            = &omap2_mcbsp_ops,
++	},
++	{
++		.phys_base      = OMAP44XX_MCBSP4_BASE,
++		.dma_rx_sync    = OMAP44XX_DMA_MCBSP4_RX,
++		.dma_tx_sync    = OMAP44XX_DMA_MCBSP4_TX,
++		.rx_irq         = INT_24XX_MCBSP4_IRQ_RX,
++		.tx_irq         = INT_24XX_MCBSP4_IRQ_TX,
++		.ops            = &omap2_mcbsp_ops,
++	},
++};
++#define OMAP44XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap44xx_mcbsp_pdata)
++
+ static int __init omap2_mcbsp_init(void)
+ {
+ 	if (cpu_is_omap2420())
+@@ -177,6 +213,8 @@ static int __init omap2_mcbsp_init(void)
+ 		omap_mcbsp_count = OMAP2430_MCBSP_PDATA_SZ;
+ 	if (cpu_is_omap34xx())
+ 		omap_mcbsp_count = OMAP34XX_MCBSP_PDATA_SZ;
++	if (cpu_is_omap44xx())
++		omap_mcbsp_count = OMAP44XX_MCBSP_PDATA_SZ;
+ 
+ 	mcbsp_ptr = kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
+ 								GFP_KERNEL);
+@@ -192,6 +230,9 @@ static int __init omap2_mcbsp_init(void)
+ 	if (cpu_is_omap34xx())
+ 		omap_mcbsp_register_board_cfg(omap34xx_mcbsp_pdata,
+ 						OMAP34XX_MCBSP_PDATA_SZ);
++	if (cpu_is_omap44xx())
++		omap_mcbsp_register_board_cfg(omap44xx_mcbsp_pdata,
++						OMAP44XX_MCBSP_PDATA_SZ);
+ 
+ 	return omap_mcbsp_init();
+ }
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index bb154ea..313c31c 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -53,6 +53,11 @@
+ #define OMAP34XX_MCBSP4_BASE	0x49026000
+ #define OMAP34XX_MCBSP5_BASE	0x48096000
+ 
++#define OMAP44XX_MCBSP1_BASE	0x49022000
++#define OMAP44XX_MCBSP2_BASE	0x49024000
++#define OMAP44XX_MCBSP3_BASE	0x49026000
++#define OMAP44XX_MCBSP4_BASE	0x48096000
++
+ #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP730)
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
+@@ -98,7 +103,8 @@
+ #define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
+ #define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
+ 
+-#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
++#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
++	defined(CONFIG_ARCH_OMAP4)
+ 
+ #define OMAP_MCBSP_REG_DRR2	0x00
+ #define OMAP_MCBSP_REG_DRR1	0x04
+-- 
+1.5.4.7
 
