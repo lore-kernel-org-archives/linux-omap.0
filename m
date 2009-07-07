@@ -1,122 +1,135 @@
 From: rafiuddin.syed@ti.com
-Subject: [PATCH 2/4] ARM: OMAP4: McBSP Support om OMAP4430
-Date: Tue,  7 Jul 2009 14:17:08 +0530
-Message-ID: <1246956430-24863-2-git-send-email-rafiuddin.syed@ti.com>
-References: <1246956430-24863-1-git-send-email-rafiuddin.syed@ti.com>
+Subject: [PATCH 1/4] ARM: OMAP4: sDMA: Update the request lines
+Date: Tue,  7 Jul 2009 14:17:07 +0530
+Message-ID: <1246956430-24863-1-git-send-email-rafiuddin.syed@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47631 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47629 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753800AbZGGIr2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 7 Jul 2009 04:47:28 -0400
-In-Reply-To: <1246956430-24863-1-git-send-email-rafiuddin.syed@ti.com>
+	id S1752725AbZGGIrZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 7 Jul 2009 04:47:25 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: Syed Rafiuddin <rafiuddin.syed@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-This patch adds McBSP support on OMAP4430 development platform. This patch
-includes corresponding base address changes for OMAP4.
+This patch updates the platform dma.h with new dma request lines
+for OMAP4 peripherals. Also additional hardware register of OMAP4
+sDMA module are included.
 
-Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |   41 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/mcbsp.h |    8 +++++-
- 2 files changed, 48 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/include/mach/dma.h |   88 +++++++++++++++++++++++++++++++++
+ 1 files changed, 88 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index a5c0f04..d49dfb5 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -169,6 +169,42 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- #define OMAP34XX_MCBSP_PDATA_SZ		0
- #endif
+diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
+index 8c1eae8..01ea54a 100644
+--- a/arch/arm/plat-omap/include/mach/dma.h
++++ b/arch/arm/plat-omap/include/mach/dma.h
+@@ -122,6 +122,11 @@
+ #define OMAP_DMA4_CCFN(n)		(0x60 * (n) + 0xc0)
+ #define OMAP_DMA4_COLOR(n)		(0x60 * (n) + 0xc4)
  
-+static struct omap_mcbsp_platform_data omap44xx_mcbsp_pdata[] = {
-+	{
-+		.phys_base      = OMAP44XX_MCBSP1_BASE,
-+		.dma_rx_sync    = OMAP44XX_DMA_MCBSP1_RX,
-+		.dma_tx_sync    = OMAP44XX_DMA_MCBSP1_TX,
-+		.rx_irq         = INT_24XX_MCBSP1_IRQ_RX,
-+		.tx_irq         = INT_24XX_MCBSP1_IRQ_TX,
-+		.ops            = &omap2_mcbsp_ops,
-+	},
-+	{
-+		.phys_base      = OMAP44XX_MCBSP2_BASE,
-+		.dma_rx_sync    = OMAP44XX_DMA_MCBSP2_RX,
-+		.dma_tx_sync    = OMAP44XX_DMA_MCBSP2_TX,
-+		.rx_irq         = INT_24XX_MCBSP2_IRQ_RX,
-+		.tx_irq         = INT_24XX_MCBSP2_IRQ_TX,
-+		.ops            = &omap2_mcbsp_ops,
-+	},
-+	{
-+		.phys_base      = OMAP44XX_MCBSP3_BASE,
-+		.dma_rx_sync    = OMAP44XX_DMA_MCBSP3_RX,
-+		.dma_tx_sync    = OMAP44XX_DMA_MCBSP3_TX,
-+		.rx_irq         = INT_24XX_MCBSP3_IRQ_RX,
-+		.tx_irq         = INT_24XX_MCBSP3_IRQ_TX,
-+		.ops            = &omap2_mcbsp_ops,
-+	},
-+	{
-+		.phys_base      = OMAP44XX_MCBSP4_BASE,
-+		.dma_rx_sync    = OMAP44XX_DMA_MCBSP4_RX,
-+		.dma_tx_sync    = OMAP44XX_DMA_MCBSP4_TX,
-+		.rx_irq         = INT_24XX_MCBSP4_IRQ_RX,
-+		.tx_irq         = INT_24XX_MCBSP4_IRQ_TX,
-+		.ops            = &omap2_mcbsp_ops,
-+	},
-+};
-+#define OMAP44XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap44xx_mcbsp_pdata)
++/* Additional registers available on OMAP4 */
++#define OMAP_DMA4_CDP(n)		(0x60 * (n) + 0xd0)
++#define OMAP_DMA4_CNDP(n)		(0x60 * (n) + 0xd4)
++#define OMAP_DMA4_CCDN(n)		(0x60 * (n) + 0xd8)
 +
- static int __init omap2_mcbsp_init(void)
- {
- 	if (cpu_is_omap2420())
-@@ -177,6 +213,8 @@ static int __init omap2_mcbsp_init(void)
- 		omap_mcbsp_count = OMAP2430_MCBSP_PDATA_SZ;
- 	if (cpu_is_omap34xx())
- 		omap_mcbsp_count = OMAP34XX_MCBSP_PDATA_SZ;
-+	if (cpu_is_omap44xx())
-+		omap_mcbsp_count = OMAP44XX_MCBSP_PDATA_SZ;
+ /* Dummy defines to keep multi-omap compiles happy */
+ #define OMAP1_DMA_REVISION		0
+ #define OMAP1_DMA_IRQSTATUS_L0		0
+@@ -311,6 +316,89 @@
+ #define OMAP34XX_DMA_USIM_TX		79	/* S_DMA_78 */
+ #define OMAP34XX_DMA_USIM_RX		80	/* S_DMA_79 */
  
- 	mcbsp_ptr = kzalloc(omap_mcbsp_count * sizeof(struct omap_mcbsp *),
- 								GFP_KERNEL);
-@@ -192,6 +230,9 @@ static int __init omap2_mcbsp_init(void)
- 	if (cpu_is_omap34xx())
- 		omap_mcbsp_register_board_cfg(omap34xx_mcbsp_pdata,
- 						OMAP34XX_MCBSP_PDATA_SZ);
-+	if (cpu_is_omap44xx())
-+		omap_mcbsp_register_board_cfg(omap44xx_mcbsp_pdata,
-+						OMAP44XX_MCBSP_PDATA_SZ);
- 
- 	return omap_mcbsp_init();
- }
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index bb154ea..313c31c 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -53,6 +53,11 @@
- #define OMAP34XX_MCBSP4_BASE	0x49026000
- #define OMAP34XX_MCBSP5_BASE	0x48096000
- 
-+#define OMAP44XX_MCBSP1_BASE	0x49022000
-+#define OMAP44XX_MCBSP2_BASE	0x49024000
-+#define OMAP44XX_MCBSP3_BASE	0x49026000
-+#define OMAP44XX_MCBSP4_BASE	0x48096000
++/* DMA request lines for 44xx */
++#define OMAP44XX_DMA_DSS_DISPC_REQ	6	/* S_DMA_5 */
++#define OMAP44XX_DMA_SYS_REQ2		7	/* S_DMA_6 */
++#define OMAP44XX_DMA_ISS_REQ1		9	/* S_DMA_8 */
++#define OMAP44XX_DMA_ISS_REQ2		10	/* S_DMA_9 */
++#define OMAP44XX_DMA_ISS_EQ3		12	/* S_DMA_11 */
++#define OMAP44XX_DMA_ISS_REQ4		13	/* S_DMA_12 */
++#define OMAP44XX_DMA_DSS_RFBI_REQ	14	/* S_DMA_13 */
++#define OMAP44XX_DMA_SPI3_TX0		15	/* S_DMA_14 */
++#define OMAP44XX_DMA_SPI3_RX0		16	/* S_DMA_15 */
++#define OMAP44XX_DMA_MCBSP2_TX		17	/* S_DMA_16 */
++#define OMAP44XX_DMA_MCBSP2_RX		18	/* S_DMA_17 */
++#define OMAP44XX_DMA_MCBSP3_TX		19	/* S_DMA_18 */
++#define OMAP44XX_DMA_MCBSP3_RX		20	/* S_DMA_19 */
++#define OMAP44XX_DMA_SPI3_TX1		23	/* S_DMA_22 */
++#define OMAP44XX_DMA_SPI3_RX1		24	/* S_DMA_23 */
++#define OMAP44XX_DMA_I2C3_TX		25	/* S_DMA_24 */
++#define OMAP44XX_DMA_I2C3_RX		26	/* S_DMA_25 */
++#define OMAP44XX_DMA_I2C1_TX		27	/* S_DMA_26 */
++#define OMAP44XX_DMA_I2C1_RX		28	/* S_DMA_27 */
++#define OMAP44XX_DMA_I2C2_TX		29	/* S_DMA_28 */
++#define OMAP44XX_DMA_I2C2_RX		30	/* S_DMA_29 */
++#define OMAP44XX_DMA_MCBSP4_TX		31	/* S_DMA_30 */
++#define OMAP44XX_DMA_MCBSP4_RX		32	/* S_DMA_31 */
++#define OMAP44XX_DMA_MCBSP1_TX		33	/* S_DMA_32 */
++#define OMAP44XX_DMA_MCBSP1_RX		34	/* S_DMA_33 */
++#define OMAP44XX_DMA_SPI1_TX0		35	/* S_DMA_34 */
++#define OMAP44XX_DMA_SPI1_RX0		36	/* S_DMA_35 */
++#define OMAP44XX_DMA_SPI1_TX1		37	/* S_DMA_36 */
++#define OMAP44XX_DMA_SPI1_RX1		38	/* S_DMA_37 */
++#define OMAP44XX_DMA_SPI1_TX2		39	/* S_DMA_38 */
++#define OMAP44XX_DMA_SPI1_RX2		40	/* S_DMA_39 */
++#define OMAP44XX_DMA_SPI1_TX3		41	/* S_DMA_40 */
++#define OMAP44XX_DMA_SPI1_RX3		42	/* S_DMA_41 */
++#define OMAP44XX_DMA_SPI2_TX0		43	/* S_DMA_42 */
++#define OMAP44XX_DMA_SPI2_RX0		44	/* S_DMA_43 */
++#define OMAP44XX_DMA_SPI2_TX1		45	/* S_DMA_44 */
++#define OMAP44XX_DMA_SPI2_RX1		46	/* S_DMA_45 */
++#define OMAP44XX_DMA_MMC2_TX		47	/* S_DMA_46 */
++#define OMAP44XX_DMA_MMC2_RX		48	/* S_DMA_47 */
++#define OMAP44XX_DMA_UART1_TX		49	/* S_DMA_48 */
++#define OMAP44XX_DMA_UART1_RX		50	/* S_DMA_49 */
++#define OMAP44XX_DMA_UART2_TX		51	/* S_DMA_50 */
++#define OMAP44XX_DMA_UART2_RX		52	/* S_DMA_51 */
++#define OMAP44XX_DMA_UART3_TX		53	/* S_DMA_52 */
++#define OMAP44XX_DMA_UART3_RX		54	/* S_DMA_53 */
++#define OMAP44XX_DMA_UART4_TX		55	/* S_DMA_54 */
++#define OMAP44XX_DMA_UART4_RX		56	/* S_DMA_55 */
++#define OMAP44XX_DMA_MMC4_TX		57	/* S_DMA_56 */
++#define OMAP44XX_DMA_MMC4_RX		58	/* S_DMA_57 */
++#define OMAP44XX_DMA_MMC5_TX		59	/* S_DMA_58 */
++#define OMAP44XX_DMA_MMC5_RX		60	/* S_DMA_59 */
++#define OMAP44XX_DMA_MMC1_TX		61	/* S_DMA_60 */
++#define OMAP44XX_DMA_MMC1_RX		62	/* S_DMA_61 */
++#define OMAP44XX_DMA_SYS_REQ3		64	/* S_DMA_63 */
++#define OMAP44XX_DMA_MCPDM_UP		65	/* S_DMA_64 */
++#define OMAP44XX_DMA_MCPDM_DL		66	/* S_DMA_65 */
++#define OMAP44XX_DMA_SPI4_TX0		70	/* S_DMA_69 */
++#define OMAP44XX_DMA_SPI4_RX0		71	/* S_DMA_70 */
++#define OMAP44XX_DMA_DSS_DSI1_REQ0	72	/* S_DMA_71 */
++#define OMAP44XX_DMA_DSS_DSI1_REQ1	73	/* S_DMA_72 */
++#define OMAP44XX_DMA_DSS_DSI1_REQ2	74	/* S_DMA_73 */
++#define OMAP44XX_DMA_DSS_DSI1_REQ3	75	/* S_DMA_74 */
++#define OMAP44XX_DMA_DSS_HDMI_REQ	76	/* S_DMA_75 */
++#define OMAP44XX_DMA_MMC3_TX		77	/* S_DMA_76 */
++#define OMAP44XX_DMA_MMC3_RX		78	/* S_DMA_77 */
++#define OMAP44XX_DMA_USIM_TX		79	/* S_DMA_78 */
++#define OMAP44XX_DMA_USIM_RX		80	/* S_DMA_79 */
++#define OMAP44XX_DMA_DSS_DSI2_REQ0	81	/* S_DMA_80 */
++#define OMAP44XX_DMA_DSS_DSI2_REQ1	82	/* S_DMA_81 */
++#define OMAP44XX_DMA_DSS_DSI2_REQ2	83	/* S_DMA_82 */
++#define OMAP44XX_DMA_DSS_DSI2_REQ3	84	/* S_DMA_83 */
++#define OMAP44XX_DMA_ABE_REQ0		101	/* S_DMA_100 */
++#define OMAP44XX_DMA_ABE_REQ1		102	/* S_DMA_101 */
++#define OMAP44XX_DMA_ABE_REQ2		103	/* S_DMA_102 */
++#define OMAP44XX_DMA_ABE_REQ3		104	/* S_DMA_103 */
++#define OMAP44XX_DMA_ABE_REQ4		105	/* S_DMA_104 */
++#define OMAP44XX_DMA_ABE_REQ5		106	/* S_DMA_105 */
++#define OMAP44XX_DMA_ABE_REQ6		107	/* S_DMA_106 */
++#define OMAP44XX_DMA_ABE_REQ7		108	/* S_DMA_107 */
++#define OMAP44XX_DMA_I2C4_TX		124	/* S_DMA_123 */
++#define OMAP44XX_DMA_I2C4_RX		125	/* S_DMA_124 */
 +
- #if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) || defined(CONFIG_ARCH_OMAP730)
+ /*----------------------------------------------------------------------------*/
  
- #define OMAP_MCBSP_REG_DRR2	0x00
-@@ -98,7 +103,8 @@
- #define AUDIO_DMA_TX		OMAP_DMA_MCBSP1_TX
- #define AUDIO_DMA_RX		OMAP_DMA_MCBSP1_RX
- 
--#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-+#elif defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
-+	defined(CONFIG_ARCH_OMAP4)
- 
- #define OMAP_MCBSP_REG_DRR2	0x00
- #define OMAP_MCBSP_REG_DRR1	0x04
+ /* Hardware registers for LCD DMA */
 -- 
 1.5.4.7
 
