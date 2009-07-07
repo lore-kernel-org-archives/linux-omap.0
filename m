@@ -1,38 +1,48 @@
-From: Kalpesh Rathod <kalpeshrathod@gmail.com>
-Subject: MMC host controller driver query
-Date: Tue, 7 Jul 2009 14:22:14 +0530
-Message-ID: <cee4bbc90907070152y7c2c40c1wb927864c4591daa3@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: [PATCH v2] OMAP3: RX51: Define TWL4030 USB transceiver in board file
+Date: Tue,  7 Jul 2009 14:15:22 +0300
+Message-ID: <1246965322-14449-1-git-send-email-ext-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f193.google.com ([209.85.221.193]:36858 "EHLO
-	mail-qy0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159AbZGGIwM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 04:52:12 -0400
-Received: by qyk31 with SMTP id 31so4570837qyk.33
-        for <linux-omap@vger.kernel.org>; Tue, 07 Jul 2009 01:52:15 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.105.134]:54820 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752906AbZGGLQN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 07:16:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: felipe.balbi@nokia.com, linux-omap@vger.kernel.org
 
-Hi,
+Add OTG transceiver to RX51 platform data to prevent kernel NULL pointer
+dereference during MUSB initialisation.
 
-I am trying to make my SDIO wifi card work on beagleboard.
-When the driver tries to read or write SDIO function register , it is
-generally 1 or 4 byte read/write. And buffer used is mostly on stack.
-So, the kernel crashes while doing dma_map_sg on that buffer. Using
-kmalloc ed buffer in SDIO read/write avoids this problem.
+Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-I am using 2.6.28-omap1. Will upgrading to recent kernel allow the
-buffer on stack to be used in SDIO read/write functions.?
-sdio_readl/sdio_writel uses its own DMA ble buffer. But for some
-reasons I want to avoid it.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 9a0bf67..56d931a 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -278,6 +278,10 @@ static struct twl4030_gpio_platform_data rx51_gpio_data = {
+ 	.setup			= rx51_twlgpio_setup,
+ };
+ 
++static struct twl4030_usb_data rx51_usb_data = {
++	.usb_mode		= T2_USB_MODE_ULPI,
++};
++
+ static struct twl4030_platform_data rx51_twldata = {
+ 	.irq_base		= TWL4030_IRQ_BASE,
+ 	.irq_end		= TWL4030_IRQ_END,
+@@ -286,6 +290,7 @@ static struct twl4030_platform_data rx51_twldata = {
+ 	.gpio			= &rx51_gpio_data,
+ 	.keypad			= &rx51_kp_data,
+ 	.madc			= &rx51_madc_data,
++	.usb			= &rx51_usb_data,
+ 
+ 	.vaux1			= &rx51_vaux1,
+ 	.vaux2			= &rx51_vaux2,
+-- 
+1.6.0.4
 
-I noticed some commits related to scatter-gather emulation.
-Is it related to the problem?
-
-thanks in advance.
-
-Regards,
-Kalpesh
