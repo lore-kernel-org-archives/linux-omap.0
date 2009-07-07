@@ -1,56 +1,56 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] [RFC] Potential bug in defining 'irq field' of 'ifmap
- structure'
-Date: Wed, 8 Jul 2009 02:27:51 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F55E9549@dbde02.ent.ti.com>
-References: <CD8CC2B65FEE304DA95744A5472698F202952C3124@dlee06.ent.ti.com>
- <20090706.172501.136390568.davem@davemloft.net>
+From: ye janboe <janboe.ye@gmail.com>
+Subject: [PATCH] Clear the SDRC_POWER.PWRENA bit before putting the SDRAM into
+	self-refresh before suspend
+Date: Tue, 7 Jul 2009 16:44:20 -0500
+Message-ID: <af3ea28a0907071444m7c9ef14i8eaf15b45b14db9d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55651 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752547AbZGGU6G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 16:58:06 -0400
-In-Reply-To: <20090706.172501.136390568.davem@davemloft.net>
-Content-Language: en-US
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:63737 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756276AbZGGVoY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 17:44:24 -0400
+Received: by gxk26 with SMTP id 26so2407843gxk.13
+        for <linux-omap@vger.kernel.org>; Tue, 07 Jul 2009 14:44:23 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Miller <davem@davemloft.net>, "Sonasath, Moiz" <m-sonasath@ti.com>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: paul@pwsan.com
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-David
+Hi, Paul
 
->-----Original Message-----
->From: David Miller [mailto:davem@davemloft.net]
->> dev_ifsioc_locked()
->> 	case SIOCGIFMAP:
->> 			ifr->ifr_map.irq = dev->irq;   // ?? type mismatch
->>
->> Here
->> ifr->ifr_map.irq) is of type unsigned char
->> dev-irq is of type unsigned int
->>
->> So ifconfig reports a wrong irq number when the dev->irq number is > 255.
->
->This is a known and unavoidable limitation of this interface.
->It's only real use is to control ISA style IRQs which are < 255.
+I saw you clear clear the SDRC PWRENA bit during SDRC frequency change
+but not during suspend.
 
-On Zoom2 TI OMAP3 based board, the IRQ we are requesting is value=381 and hence the problem reported.
-We do understand that this would break all user level code.
+Please review if it is necessary to clear PWRENA bit during suspend.
 
->
->> I am confused to see the same typedefs in file: net/if.h
->> Not sure how to make changes for the user side net/if.h file?
+Thanks
 
-Any idea why net/if.h user level file does not have same definitions as linux/if.h?
-In other words, what is the origin of net/if.h file?
+Janboe Ye
 
->>
->> Signed-off-by: Moiz Sonasath <m-sonasath@ti.com>
->> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->
->You can't make these kinds of changes, every userland binary out there
->using this structure would break.
+rom 287db2e188391be0ac95128131724e0e035e945a Mon Sep 17 00:00:00 2001
+From: janboe <janboe.ye@gmail.com>
+Date: Tue, 7 Jul 2009 16:30:26 -0500
+Subject: [PATCH] Clear the SDRC_POWER.PWRENA bit before putting the
+SDRAM into self-refresh and then suspend
 
+Signed-off-by: janboe <janboe.ye@gmail.com>
+---
+ arch/arm/mach-omap2/sleep34xx.S |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+index e5e2553..2bc0c3b 100644
+--- a/arch/arm/mach-omap2/sleep34xx.S
++++ b/arch/arm/mach-omap2/sleep34xx.S
+@@ -70,6 +70,7 @@ loop:
+        ldr     r4, sdrc_power          @ read the SDRC_POWER register
+        ldr     r5, [r4]                @ read the contents of SDRC_POWER
+        orr     r5, r5, #0x40           @ enable self refresh on idle req
++       bic     r5, r5, #0x4            @ clear PWDENA
+        str     r5, [r4]                @ write back to SDRC_POWER register
+
+        cmp     r1, #0x0
+-- 
+1.6.3.1
