@@ -1,21 +1,42 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
+From: "Sonasath, Moiz" <m-sonasath@ti.com>
+Subject: RE: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
  errata 1.153
-Date: Wed, 8 Jul 2009 10:50:42 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0907081043200.18889@utopia.booyaka.com>
-References: <CD8CC2B65FEE304DA95744A5472698F2028A41187E@dlee06.ent.ti.com> <alpine.DEB.2.00.0906221922020.9637@utopia.booyaka.com>
+Date: Wed, 8 Jul 2009 13:21:56 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F202957C70A0@dlee06.ent.ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F2028A41187E@dlee06.ent.ti.com>
+ <alpine.DEB.2.00.0906221922020.9637@utopia.booyaka.com>
+ <alpine.DEB.2.00.0907081043200.18889@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50975 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbZGHQuo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2009 12:50:44 -0400
-In-Reply-To: <alpine.DEB.2.00.0906221922020.9637@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46034 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753989AbZGHSWH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2009 14:22:07 -0400
+In-Reply-To: <alpine.DEB.2.00.0907081043200.18889@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sonasath, Moiz" <m-sonasath@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, j-pakaravoor@ti.com, nskamat@ti.com, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Pakaravoor, Jagadeesh" <j-pakaravoor@ti.com>, "Kamat, Nishant" <nskamat@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+
+Hello Paul!
+
+I am working on this issue and will get back soon.
+
+Regards
+Moiz Sonasath
+Linux Baseport Team, Dallas
+214-567-5514
+
+
+-----Original Message-----
+From: Paul Walmsley [mailto:paul@pwsan.com] 
+Sent: Wednesday, July 08, 2009 11:51 AM
+To: Sonasath, Moiz
+Cc: linux-omap@vger.kernel.org; Pakaravoor, Jagadeesh; Kamat, Nishant; Pandita, Vikram
+Subject: Re: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon errata 1.153
 
 Hello Moiz, Nishant, Jagadeesh,
 
@@ -174,3 +195,4 @@ On Mon, 22 Jun 2009, Paul Walmsley wrote:
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
+
