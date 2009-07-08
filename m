@@ -1,34 +1,92 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] [RFC] Potential bug in defining 'irq field' of 'ifmap
- structure'
-Date: Tue, 07 Jul 2009 18:32:55 -0700 (PDT)
-Message-ID: <20090707.183255.193727664.davem@davemloft.net>
-References: <CD8CC2B65FEE304DA95744A5472698F202952C3124@dlee06.ent.ti.com>
-	<20090706.172501.136390568.davem@davemloft.net>
-	<FCCFB4CDC6E5564B9182F639FC35608702F55E9549@dbde02.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 1/4] ARM: OMAP4: sDMA: Update the request lines
+Date: Wed, 8 Jul 2009 09:23:03 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B55BD76E@dbde02.ent.ti.com>
+References: <1246956430-24863-1-git-send-email-rafiuddin.syed@ti.com>
+ <alpine.DEB.2.00.0907071318510.5595@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:43756
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755668AbZGHBcw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 21:32:52 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F55E9549@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45721 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755852AbZGHDxk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 23:53:40 -0400
+In-Reply-To: <alpine.DEB.2.00.0907071318510.5595@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: vikram.pandita@ti.com
-Cc: m-sonasath@ti.com, netdev@vger.kernel.org, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Date: Wed, 8 Jul 2009 02:27:51 +0530
+Paul,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Wednesday, July 08, 2009 12:53 AM
+> To: Syed, Rafiuddin
+> Cc: linux-arm-kernel@lists.arm.linux.org.uk; 
+> linux-omap@vger.kernel.org; Cousson, Benoit; Shilimkar, 
+> Santosh; Tony Lindgren
+> Subject: Re: [PATCH 1/4] ARM: OMAP4: sDMA: Update the request lines
+> 
+> Hello Syed,
+> 
+> This should use the auto-generated data from Benoit.  This will avoid 
+> mistakes like:
+> 
+> On Tue, 7 Jul 2009, rafiuddin.syed@ti.com wrote:
+> 
+> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > 
+> > This patch updates the platform dma.h with new dma request lines
+> > for OMAP4 peripherals. Also additional hardware register of OMAP4
+> > sDMA module are included.
+> > 
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > ---
+> >  arch/arm/plat-omap/include/mach/dma.h |   88 
+> +++++++++++++++++++++++++++++++++
+> >  1 files changed, 88 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/plat-omap/include/mach/dma.h 
+> b/arch/arm/plat-omap/include/mach/dma.h
+> > index 8c1eae8..01ea54a 100644
+> > --- a/arch/arm/plat-omap/include/mach/dma.h
+> > +++ b/arch/arm/plat-omap/include/mach/dma.h
+> > @@ -122,6 +122,11 @@
+> >  #define OMAP_DMA4_CCFN(n)		(0x60 * (n) + 0xc0)
+> >  #define OMAP_DMA4_COLOR(n)		(0x60 * (n) + 0xc4)
+> >  
+> > +/* Additional registers available on OMAP4 */
+> > +#define OMAP_DMA4_CDP(n)		(0x60 * (n) + 0xd0)
+> > +#define OMAP_DMA4_CNDP(n)		(0x60 * (n) + 0xd4)
+> > +#define OMAP_DMA4_CCDN(n)		(0x60 * (n) + 0xd8)
+> > +
+> >  /* Dummy defines to keep multi-omap compiles happy */
+> >  #define OMAP1_DMA_REVISION		0
+> >  #define OMAP1_DMA_IRQSTATUS_L0		0
+> > @@ -311,6 +316,89 @@
+> >  #define OMAP34XX_DMA_USIM_TX		79	/* S_DMA_78 */
+> >  #define OMAP34XX_DMA_USIM_RX		80	/* S_DMA_79 */
+> >  
+> > +/* DMA request lines for 44xx */
+> > +#define OMAP44XX_DMA_DSS_DISPC_REQ	6	/* S_DMA_5 */
+> > +#define OMAP44XX_DMA_SYS_REQ2		7	/* S_DMA_6 */
+> > +#define OMAP44XX_DMA_ISS_REQ1		9	/* S_DMA_8 */
+> > +#define OMAP44XX_DMA_ISS_REQ2		10	/* S_DMA_9 */
+> > +#define OMAP44XX_DMA_ISS_EQ3		12	/* S_DMA_11 */
+> 
+> ^^^^^^^^^^
+> 
+> ... this one.
+> 
+> Suggest you resend a version that uses that data.
 
-> On Zoom2 TI OMAP3 based board, the IRQ we are requesting is
-> value=381 and hence the problem reported.
+I am sorry but what's mistake you noticed in the patch ? 
 
-The IRQ reported by this user call is only reliable for
-ISA devices.
 
-Or, ARM platforms could opt to use a virtual IRQ scheme like
-PowerPC and Sparc use, which keeps all device IRQs under
-256.
+Regards,
+Santosh
+  
