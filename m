@@ -1,171 +1,176 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: [PATCH 3/3] MFD: TWL4030: OMAP: Board-specifc DPS scripts for RX51 board
-Date: Wed,  8 Jul 2009 13:49:39 +0300
-Message-ID: <1247050179-31187-1-git-send-email-amit.kucheria@verdurent.com>
-References: <1247050046-31104-1-git-send-email-./0000-cover-letter.patch>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] [RFC][OMAP3:I2C]Workaround for OMAP3430 I2C silicon
+ errata 1.153
+Date: Wed, 8 Jul 2009 10:50:42 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0907081043200.18889@utopia.booyaka.com>
+References: <CD8CC2B65FEE304DA95744A5472698F2028A41187E@dlee06.ent.ti.com> <alpine.DEB.2.00.0906221922020.9637@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f225.google.com ([209.85.218.225]:64691 "EHLO
-	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755202AbZGHKtn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2009 06:49:43 -0400
-In-Reply-To: <1247050046-31104-1-git-send-email-./0000-cover-letter.patch>
+Received: from utopia.booyaka.com ([72.9.107.138]:50975 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797AbZGHQuo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2009 12:50:44 -0400
+In-Reply-To: <alpine.DEB.2.00.0906221922020.9637@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sameo@linux.intel.com
-Cc: dbrownell@users.sourceforge.net, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Sonasath, Moiz" <m-sonasath@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, j-pakaravoor@ti.com, nskamat@ti.com, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-Add support for Dynamic Power Switching (DPS) for the RX51 board.
+Hello Moiz, Nishant, Jagadeesh,
 
-Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |  122 +++++++++++++++++++++++++-
- 1 files changed, 120 insertions(+), 2 deletions(-)
+Any plans to respond to these comments?  
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 9a0bf67..f7ebec8 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -1,5 +1,5 @@
- /*
-- * linux/arch/arm/mach-omap2/board-rx51-flash.c
-+ * linux/arch/arm/mach-omap2/board-rx51-peripherals.c
-  *
-  * Copyright (C) 2008-2009 Nokia
-  *
-@@ -278,7 +278,124 @@ static struct twl4030_gpio_platform_data rx51_gpio_data = {
- 	.setup			= rx51_twlgpio_setup,
- };
- 
--static struct twl4030_platform_data rx51_twldata = {
-+static struct twl4030_ins sleep_on_seq[] __initdata = {
-+/*
-+ * Turn off VDD1 and VDD2.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-+/*
-+ * And also turn off the OMAP3 PLLs and the sysclk output.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_OFF), 3},
-+};
-+
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script = sleep_on_seq,
-+	.size   = ARRAY_SIZE(sleep_on_seq),
-+	.flags  = TRITON_SLEEP_SCRIPT,
-+};
-+
-+static struct twl4030_ins wakeup_seq[] __initdata = {
-+/*
-+ * Reenable the OMAP3 PLLs.
-+ * Wakeup VDD1 and VDD2.
-+ * Reenable sysclk output.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
-+};
-+
-+static struct twl4030_script wakeup_script __initdata = {
-+	.script	= wakeup_seq,
-+	.size	= ARRAY_SIZE(wakeup_seq),
-+	.flags	= TRITON_WAKEUP12_SCRIPT,
-+};
-+
-+static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-+/*
-+ * Wakeup VDD1 (dummy to be able to insert a delay)
-+ * Enable CLKEN
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_ACTIVE), 3},
-+};
-+
-+static struct twl4030_script wakeup_p3_script __initdata = {
-+	.script	= wakeup_p3_seq,
-+	.size	= ARRAY_SIZE(wakeup_p3_seq),
-+	.flags	= TRITON_WAKEUP3_SCRIPT,
-+};
-+
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+/*
-+ * Reset twl4030.
-+ * Reset VDD1 regulator.
-+ * Reset VDD2 regulator.
-+ * Reset VPLL1 regulator.
-+ * Enable sysclk output.
-+ * Reenable twl4030.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
-+		0x13},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 2, RES_STATE_WRST), 0x13},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
-+	{MSG_SINGULAR(DEV_GRP_P1, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size   = ARRAY_SIZE(wrst_seq),
-+	.flags  = TRITON_WRST_SCRIPT,
-+};
-+
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	/* wakeup12 script should be loaded before sleep script, otherwise a
-+	   board might hit retention before loading of wakeup script is
-+	   completed. This can cause boot failures depending on timing issues.
-+	*/
-+	&wakeup_script,
-+	&sleep_on_script,
-+	&wakeup_p3_script,
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
-+	{ .resource = RES_VINTANA1, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VINTANA2, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VINTDIG, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VMMC1, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VMMC2, .devgroup = DEV_GRP_NULL, .type = -1,
-+	  .type2 = 3},
-+	{ .resource = RES_VAUX1, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX2, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX3, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX4, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VPLL2, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VDAC, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VSIM, .devgroup = DEV_GRP_NULL, .type = -1,
-+	  .type2 = 3},
-+	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P3, .type = -1,
-+		.type2 = 1 },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data rx51_t2scripts_data __initdata = {
-+	.scripts        = twl4030_scripts,
-+	.size   = ARRAY_SIZE(twl4030_scripts),
-+	.resource_config = twl4030_rconfig,
-+};
-+
-+
-+
-+static struct twl4030_platform_data rx51_twldata __initdata = {
- 	.irq_base		= TWL4030_IRQ_BASE,
- 	.irq_end		= TWL4030_IRQ_END,
- 
-@@ -286,6 +403,7 @@ static struct twl4030_platform_data rx51_twldata = {
- 	.gpio			= &rx51_gpio_data,
- 	.keypad			= &rx51_kp_data,
- 	.madc			= &rx51_madc_data,
-+	.power			= &rx51_t2scripts_data,
- 
- 	.vaux1			= &rx51_vaux1,
- 	.vaux2			= &rx51_vaux2,
--- 
-1.6.3.3
+- Paul
 
+On Mon, 22 Jun 2009, Paul Walmsley wrote:
+
+> Moiz, Nishant, Jagadeesh,
+> 
+> Looks like this patch has some serious problems.
+> 
+> On Mon, 22 Jun 2009, Sonasath, Moiz wrote:
+> 
+> > This patch includes the workarround for I2C Errata 1.153: When an 
+> > XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG
+> > 
+> > Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+> > Signed-off by: Nishant Kamat <nskamat@ti.com>
+> > Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
+> > ---
+> >  drivers/i2c/busses/i2c-omap.c |   54 +++++++++++++++++++++++++++++++++++++---
+> >  1 files changed, 50 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> > index ece0125..e84836b 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -632,6 +632,37 @@ omap_i2c_rev1_isr(int this_irq, void *dev_id)
+> >  #define omap_i2c_rev1_isr		NULL
+> >  #endif
+> >  
+> > +/* I2C Errata 1.153:
+> > + * When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
+> > + * Otherwise some data bytes can be lost while transferring them from the
+> > + * memory to the I2C interface.
+> > + */
+> > +
+> > +static int omap_i2c_wait_for_xudf(struct omap_i2c_dev *dev)
+> > +{
+> > +	u16 xudf;
+> > +	int counter = 500;
+> 
+> Shouldn't the timeout threshold depend on the I2C bus speed and transmit 
+> FIFO threshold?
+> 
+> > +
+> > +	/* We are in interrupt context. Wait for XUDF for max 7 msec */
+> 
+> There's no way an interrupt service routine should loop for up to 7 
+> milliseconds.  Why does it need to wait this long?  Shouldn't this patch 
+> zero the transmit FIFO threshold to minimize the amount of time between 
+> XRDY/XDR and XUDF?
+> 
+> > +	xudf = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+> > +	while (!(xudf & OMAP_I2C_STAT_XUDF) && counter--) {
+> 
+> Why is a separate I2C_STAT loop used here?  Shouldn't this patch just use 
+> the existing I2C_STAT loop in the ISR and use a state variable to indicate 
+> the current state of the ISR?
+> 
+> > +		if (xudf & (OMAP_I2C_STAT_ROVR | OMAP_I2C_STAT_NACK |
+> > +			    OMAP_I2C_STAT_AL))
+> > +			return -EINVAL;
+> > +		udelay(10);
+> 
+> udelay() in an ISR is a big red flag.  Why is this needed?
+> 
+> > +		xudf = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+> > +	}
+> > +
+> > +	if (!counter) {
+> > +		/* Clear Tx FIFO */
+> > +		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
+> > +				OMAP_I2C_BUF_TXFIF_CLR);
+> > +		return -ETIMEDOUT;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> >  static irqreturn_t
+> >  omap_i2c_isr(int this_irq, void *dev_id)
+> >  {
+> > @@ -639,6 +670,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  	u16 bits;
+> >  	u16 stat, w;
+> >  	int err, count = 0;
+> > +	int error;
+> >  
+> >  	if (dev->idle)
+> >  		return IRQ_NONE;
+> > @@ -647,7 +679,7 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  	while ((stat = (omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG))) & bits) {
+> >  		dev_dbg(dev->dev, "IRQ (ISR = 0x%04x)\n", stat);
+> >  		if (count++ == 100) {
+> > -			dev_warn(dev->dev, "Too much work in one IRQ\n");
+> > +			dev_dbg(dev->dev, "Too much work in one IRQ\n");
+> >  			break;
+> >  		}
+> >  
+> > @@ -715,11 +747,22 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  							OMAP_I2C_BUFSTAT_REG);
+> >  			}
+> >  			while (num_bytes) {
+> > -				num_bytes--;
+> >  				w = 0;
+> >  				if (dev->buf_len) {
+> > +					if (cpu_is_omap34xx()) {
+> > +						/* OMAP3430 Errata 1.153 */
+> 
+> What about this I2C IP block on previous chip versions?  Is this problem 
+> also present on 2430, which also has FIFO transmit capability?
+> 
+> > +						error = omap_i2c_wait_for_xudf(dev);
+> > +						if (error) {
+> > +							omap_i2c_ack_stat(dev, stat &
+> > +								(OMAP_I2C_STAT_XRDY |
+> > +								 OMAP_I2C_STAT_XDR));
+> > +							dev_err(dev->dev, "Transmit error\n");
+> > +							omap_i2c_complete_cmd(dev, OMAP_I2C_STAT_XUDF);
+> > +
+> > +							return IRQ_HANDLED;
+> > +						}
+> > +					}
+> >  					w = *dev->buf++;
+> > -					dev->buf_len--;
+> >  					/* Data reg from  2430 is 8 bit wide */
+> >  					if (!cpu_is_omap2430() &&
+> >  							!cpu_is_omap34xx()) {
+> > @@ -728,6 +771,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  							dev->buf_len--;
+> >  						}
+> >  					}
+> > +					omap_i2c_write_reg(dev,
+> > +						OMAP_I2C_DATA_REG, w);
+> > +					num_bytes--;
+> > +					dev->buf_len--;
+> >  				} else {
+> >  					if (stat & OMAP_I2C_STAT_XRDY)
+> >  						dev_err(dev->dev,
+> > @@ -739,7 +786,6 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  							"data to send\n");
+> >  					break;
+> >  				}
+> > -				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+> >  			}
+> >  			omap_i2c_ack_stat(dev,
+> >  				stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+> 
+> 
+> - Paul
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
