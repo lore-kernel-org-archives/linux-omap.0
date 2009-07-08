@@ -1,37 +1,44 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 0/2] hwmod fixes for MMC module reset on init
-Date: Tue,  7 Jul 2009 17:17:35 -0700
-Message-ID: <1247012257-19407-1-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 2/2] OMAP2/3/4: omap_hwmod: fix reset bug
+Date: Tue,  7 Jul 2009 17:17:37 -0700
+Message-ID: <1247012257-19407-3-git-send-email-khilman@deeprootsystems.com>
+References: <1247012257-19407-1-git-send-email-khilman@deeprootsystems.com>
+ <1247012257-19407-2-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-px0-f181.google.com ([209.85.216.181]:39434 "EHLO
 	mail-px0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757900AbZGHARk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 20:17:40 -0400
-Received: by pxi11 with SMTP id 11so19465pxi.33
-        for <linux-omap@vger.kernel.org>; Tue, 07 Jul 2009 17:17:39 -0700 (PDT)
+	with ESMTP id S1757943AbZGHARp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 7 Jul 2009 20:17:45 -0400
+Received: by mail-px0-f181.google.com with SMTP id 11so19465pxi.33
+        for <linux-omap@vger.kernel.org>; Tue, 07 Jul 2009 17:17:44 -0700 (PDT)
+In-Reply-To: <1247012257-19407-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: paul@pwsan.com
 Cc: linux-omap@vger.kernel.org
 
-I've started to integrate the new hwmod/omapdev into the PM branch for
-the next release.
+The _reset() hook should early when _soft_reset() fails, not it if
+succeeds.  Currently, it aborts when _soft_reset() succeeds, resulting
+in not waiting for RESETDONE.
 
-With the new MMC hwmod added, hwmod should do a full reset and idle of
-the MMC modules on init, so I decided to remove the patch from the PM
-branch which does the same.
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/omap_hwmod.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-To my surprise, the MMC blocks were preventing retention without the
-original patch.  In debugging hwmod, I found a couple problems.   One
-with the MMC sys[cs]_off values themselves, and another in that
-the reset code was not waiting for RESETDONE.
-
-Kevin Hilman (2):
-  OMAP2/3: HS-MMC: correct hwmod offsets for SYSCONFIG/SYSSTATUS
-  OMAP2/3/4: omap_hwmod: fix reset bug
-
- arch/arm/mach-omap2/omap_hwmod.c      |    2 +-
- arch/arm/mach-omap2/omap_hwmod_2430.h |    4 ++--
- arch/arm/mach-omap2/omap_hwmod_34xx.h |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+index b103797..76b6845 100644
+--- a/arch/arm/mach-omap2/omap_hwmod.c
++++ b/arch/arm/mach-omap2/omap_hwmod.c
+@@ -746,7 +746,7 @@ static int _reset(struct omap_hwmod *oh)
+ 
+ 	v = oh->_sysc_cache;
+ 	r = _set_softreset(oh, &v);
+-	if (!r)
++	if (r)
+ 		return r;
+ 	_write_sysconfig(v, oh);
+ 
+-- 
+1.6.3.3
 
