@@ -1,130 +1,61 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP3: PM: move context-loss counting into OMAP PM
-Date: Wed,  8 Jul 2009 11:34:25 -0700
-Message-ID: <1247078065-348-1-git-send-email-khilman@deeprootsystems.com>
+From: Jaswinder Singh Rajput <jaswinder@kernel.org>
+Subject: Re: [PATCH 0/44] includecheck: fix multiple includes
+Date: Thu, 09 Jul 2009 09:58:31 +0530
+Message-ID: <1247113711.2453.27.camel@ht.satnam>
+References: <1247063308.4382.12.camel@ht.satnam>
+	 <1247076059.4382.127.camel@ht.satnam>
+	 <20090708211321.GA15928@flint.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f193.google.com ([209.85.216.193]:60477 "EHLO
-	mail-px0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753841AbZGHSe3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 8 Jul 2009 14:34:29 -0400
-Received: by pxi31 with SMTP id 31so55310pxi.33
-        for <linux-omap@vger.kernel.org>; Wed, 08 Jul 2009 11:34:28 -0700 (PDT)
+Received: from hera.kernel.org ([140.211.167.34]:47003 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751146AbZGIEa2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 9 Jul 2009 00:30:28 -0400
+In-Reply-To: <20090708211321.GA15928@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: Russell King <rmk+lkml@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, davinci <davinci-linux-open-source@linux.davincidsp.com>, Hugo Villeneuve <hugo.villeneuve@lyrtec>
 
-From: Rajendra Nayak <rnayak@ti.com>
+On Wed, 2009-07-08 at 22:13 +0100, Russell King wrote:
+> On Wed, Jul 08, 2009 at 11:30:59PM +0530, Jaswinder Singh Rajput wrote:
+> > I am still waiting ACK/NAK for :
+> > 
+> >       includecheck fix: arm, misc.c
+> >       includecheck fix: arm, atomic.h
+> >       includecheck fix: arm, board-dm355-evm.c
+> >       includecheck fix: arm, board-dm355-leopard.c
+> >       includecheck fix: arm, board-dm644x-evm.c
+> >       includecheck fix: arm, board-dm646x-evm.c
+> >       includecheck fix: arm, board-sffsdr.c
+> >       includecheck fix: arm, mach-mx3/devices.c
+> >       includecheck fix: arm, mach-omap1/mcbsp.c
+> >       includecheck fix: arm, mach-omap2/mcbsp.c
+> >       includecheck fix: arm, plat-s3c64xx/pm.c
+> >       includecheck fix: arm, plat-stmp3xxx/pinmux.c
+> 
+> You're still waiting because apparantly you never sent this set anywhere
+> near any ARM people before.
+> 
+> For the first two, I'll ack them:
+> 
+> Acked-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> 
+> The remainder look sane to me, but you'll have to seek acks from the
+> individual platform maintainer(s).
+> 
 
-Drop get_last_off_on_transaction_id() and move functionality
-into OMAP PM layer.
+OK, adding some more ARM people and ARM lists to get remaining ACK/NAK.
 
-For SRF, use omapdev** to get powerdomain state counte
-for NOOP, use an increasing counter to ensure context is always restord.
+Patches are already posted to LKML and also available at :
 
-**NOTE: in future PM branch, this omapdev functinality will be replaced
-        by omap_hwmod.  Thus, context loss counting will only exist
-        for modules with omap_hwmod implementations.
+http://git.kernel.org/?p=linux/kernel/git/jaswinder/headers-check-2.6.git;a=summary
 
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
-Applies to current PM branch and pm-2.6.29
+In case if you are not able to find these patches let me know.
 
- arch/arm/mach-omap2/pm.c          |   16 ----------------
- arch/arm/plat-omap/omap-pm-noop.c |    7 ++++++-
- arch/arm/plat-omap/omap-pm-srf.c  |   11 +++++++++++
- 3 files changed, 17 insertions(+), 17 deletions(-)
+Thanks,
+--
+JSR
 
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index 1192e01..fec7d00 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -31,7 +31,6 @@
- #include <asm/atomic.h>
- 
- #include <mach/powerdomain.h>
--#include <mach/omapdev.h>
- #include <mach/resource.h>
- #include <mach/omap34xx.h>
- 
-@@ -221,21 +220,6 @@ void omap2_allow_sleep(void)
- 	BUG_ON(i < 0);
- }
- 
--unsigned get_last_off_on_transaction_id(struct device *dev)
--{
--	struct platform_device *pdev = to_platform_device(dev);
--	struct omapdev *odev = omapdev_find_pdev(pdev);
--	struct powerdomain *pwrdm;
--
--	if (odev) {
--		pwrdm = omapdev_get_pwrdm(odev);
--		if (pwrdm)
--			return pwrdm->state_counter[0];
--	}
--
--	return 0;
--}
--
- static int __init omap_pm_init(void)
- {
- 	int error = -1;
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index 4ba261a..07b208b 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -277,6 +277,8 @@ unsigned long omap_pm_cpu_get_freq(void)
- 
- int omap_pm_get_dev_context_loss_count(struct device *dev)
- {
-+	static u32 counter = 0;
-+
- 	if (!dev) {
- 		WARN_ON(1);
- 		return -EINVAL;
-@@ -290,7 +292,10 @@ int omap_pm_get_dev_context_loss_count(struct device *dev)
- 	 * off counter.
- 	 */
- 
--	return 0;
-+	/* For the noop case, we cannot know the off counter, so
-+	 * return an increasing counter which will ensure that
-+	 * context is always restored. */
-+	return counter++;
- }
- 
- /*
-diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
-index 226662d..cac08e4 100644
---- a/arch/arm/plat-omap/omap-pm-srf.c
-+++ b/arch/arm/plat-omap/omap-pm-srf.c
-@@ -276,6 +276,10 @@ EXPORT_SYMBOL(omap_pm_cpu_get_freq);
- 
- int omap_pm_get_dev_context_loss_count(struct device *dev)
- {
-+	struct platform_device *pdev;
-+	struct omapdev *odev;
-+	struct powerdomain *pwrdm;
-+
- 	if (!dev) {
- 		WARN_ON(1);
- 		return -EINVAL;
-@@ -288,7 +292,14 @@ int omap_pm_get_dev_context_loss_count(struct device *dev)
- 	 * Map the device to the powerdomain.  Return the powerdomain
- 	 * off counter.
- 	 */
-+	pdev = to_platform_device(dev);
-+	odev = omapdev_find_pdev(pdev);
- 
-+	if (odev) {
-+		pwrdm = omapdev_get_pwrdm(odev);
-+		if (pwrdm)
-+			return pwrdm->state_counter[0];
-+	}
- 	return 0;
- }
- 
--- 
-1.6.3.3
 
