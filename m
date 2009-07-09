@@ -1,21 +1,21 @@
-From: Ben Dooks <ben@simtec.co.uk>
+From: Philip Balister <philip@opensdr.com>
 Subject: Re: [PATCH 0/44] includecheck: fix multiple includes
-Date: Thu, 09 Jul 2009 19:48:35 +0100
-Message-ID: <4A563B83.4010803@simtec.co.uk>
+Date: Thu, 09 Jul 2009 16:08:49 -0400
+Message-ID: <4A564E51.4050105@opensdr.com>
 References: <1247063308.4382.12.camel@ht.satnam>	 <1247076059.4382.127.camel@ht.satnam>	 <20090708211321.GA15928@flint.arm.linux.org.uk> <1247113711.2453.27.camel@ht.satnam>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from aeryn.fluff.org.uk ([87.194.8.8]:49802 "EHLO
-	kira.home.fluff.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752324AbZGISvC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jul 2009 14:51:02 -0400
+Received: from mail.geekisp.com ([216.168.135.169]:23118 "EHLO
+	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754297AbZGIUPd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jul 2009 16:15:33 -0400
 In-Reply-To: <1247113711.2453.27.camel@ht.satnam>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Jaswinder Singh Rajput <jaswinder@kernel.org>
-Cc: Russell King <rmk+lkml@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, davinci <davinci-linux-open-source@linux.davincidsp.com>, Hugo Villeneuve <hugo.villeneuve@lyrtech.com>, philip@opensdr.com, Sascha Hauer <s.hauer@pengutronix.de>, Eduardo Valentin <eduardo.valentin@indt.org.br>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, dmitry pervushin <dpervushin@embeddedalley.com>, Vladislav Buzov <vbuzov@embeddedalley.com>, David Woodhouse <dwmw2@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, arm <linux-arm@lists.arm.linux.org.uk>, LKML <linux-kernel@vger.kernel.org>
+Cc: Russell King <rmk+lkml@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>, davinci <davinci-linux-open-source@linux.davincidsp.com>, Hugo Villeneuve <hugo.villeneuve@lyrtech.com>, Sascha Hauer <s.hauer@pengutronix.de>, Eduardo Valentin <eduardo.valentin@indt.org.br>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Ben Dooks <ben-linux@fluff.org>, Ben Dooks <ben@simtec.co.uk>, dmitry pervushin <dpervushin@embeddedalley.com>, Vladislav Buzov <vbuzov@embeddedalley.com>, David Woodhouse <dwmw2@infradead.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, arm <linux-arm@lists.arm.linux.org.uk>, LKML <linux-kernel@vger.kernel.org>
 
 Jaswinder Singh Rajput wrote:
 > On Wed, 2009-07-08 at 22:13 +0100, Russell King wrote:
@@ -45,10 +45,23 @@ Jaswinder Singh Rajput wrote:
 >> individual platform maintainer(s).
 >>
 
-Ack for plat-s3c64xx/pm.c:
-Acked-by: Ben Dooks <ben-linux@fluff.org>
+Ack for board-sffsdr.c:
+Acked-by: Philip Balister <philip@opensdr.com>
 
--- 
-Ben Dooks, Software Engineer, Simtec Electronics
 
-http://www.simtec.co.uk/
+
+> 
+> OK, adding some more ARM people and ARM lists to get remaining ACK/NAK.
+> 
+> Patches are already posted to LKML and also available at :
+> 
+> http://git.kernel.org/?p=linux/kernel/git/jaswinder/headers-check-2.6.git;a=summary
+> 
+> In case if you are not able to find these patches let me know.
+> 
+> Thanks,
+> --
+> JSR
+> 
+> 
+
