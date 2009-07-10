@@ -1,82 +1,45 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 31/32] omap_hsmmc: set a large data timeout for commands with busy signal
-Date: Fri, 10 Jul 2009 15:43:45 +0300
-Message-ID: <20090710124345.1262.35414.sendpatchset@ahunter-tower>
-References: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19704 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756065AbZGJMlo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2009 08:41:44 -0400
-In-Reply-To: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
-Sender: linux-omap-owner@vger.kernel.org
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH 2:2][MTD][NAND]omap : Adding DMA mode support in nand
+	prefetch/post-write
+Date: Fri, 10 Jul 2009 15:44:26 +0300
+Message-ID: <4A5737AA.7050208@gmail.com>
+References: <63362.192.168.10.89.1247226916.squirrel@dbdmail.itg.ti.com>	
+	<1247227344.20721.363.camel@localhost.localdomain>
+	<1247229621.29541.4.camel@macbook.infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
+In-Reply-To: <1247229621.29541.4.camel@macbook.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-mtd>
+List-Post: <mailto:linux-mtd@lists.infradead.org>
+List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
+	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
+Sender: linux-mtd-bounces@lists.infradead.org
+Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
+To: David Woodhouse <dwmw2@infradead.org>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, david-b@pacbell.net, Tony Lindgren <tony@atomide.com>, linux-mtd@lists.infradead.org, vimal singh <vimalsingh@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: Pierre Ossman <pierre@ossman.eu>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 
->From 54996066acb35e82f89715c6c59b28bc81e12239 Mon Sep 17 00:00:00 2001
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Fri, 26 Jun 2009 11:29:20 +0300
-Subject: [PATCH] omap_hsmmc: set a large data timeout for commands with busy signal
-
-Commands like SWITCH (CMD6) send a response and then signal busy
-while the operation is completed.  These commands are expected
-to always succeed (otherwise the response would have indicated an
-error).
-
-Set an arbitrarily large data timeout value (100ms) for these commands
-to ensure that premature timeouts do not occur.
-
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
----
- drivers/mmc/host/omap_hsmmc.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 427bd49..ae8d33b 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -982,7 +982,8 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
- }
- 
- static void set_data_timeout(struct omap_hsmmc_host *host,
--			     struct mmc_request *req)
-+			     unsigned int timeout_ns,
-+			     unsigned int timeout_clks)
- {
- 	unsigned int timeout, cycle_ns;
- 	uint32_t reg, clkd, dto = 0;
-@@ -993,8 +994,8 @@ static void set_data_timeout(struct omap_hsmmc_host *host,
- 		clkd = 1;
- 
- 	cycle_ns = 1000000000 / (clk_get_rate(host->fclk) / clkd);
--	timeout = req->data->timeout_ns / cycle_ns;
--	timeout += req->data->timeout_clks;
-+	timeout = timeout_ns / cycle_ns;
-+	timeout += timeout_clks;
- 	if (timeout) {
- 		while ((timeout & 0x80000000) == 0) {
- 			dto += 1;
-@@ -1028,12 +1029,18 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
- 
- 	if (req->data == NULL) {
- 		OMAP_HSMMC_WRITE(host->base, BLK, 0);
-+		/*
-+		 * Set an arbitrary 100ms data timeout for commands with
-+		 * busy signal.
-+		 */
-+		if (req->cmd->flags & MMC_RSP_BUSY)
-+			set_data_timeout(host, 100000000U, 0);
- 		return 0;
- 	}
- 
- 	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
- 					| (req->data->blocks << 16));
--	set_data_timeout(host, req);
-+	set_data_timeout(host, req->data->timeout_ns, req->data->timeout_clks);
- 
- 	if (host->use_dma) {
- 		ret = omap_hsmmc_start_dma_transfer(host, req);
--- 
-1.5.6.3
-
+RGF2aWQgV29vZGhvdXNlIHdyb3RlOgo+IE9uIEZyaSwgMjAwOS0wNy0xMCBhdCAxNTowMiArMDMw
+MCwgQXJ0ZW0gQml0eXV0c2tpeSB3cm90ZToKPj4gT24gRnJpLCAyMDA5LTA3LTEwIGF0IDE3OjI1
+ICswNTMwLCB2aW1hbCBzaW5naCB3cm90ZToKPj4+ICsJLyogVGhlIGZpZm8gZGVwdGggaXMgNjQg
+Ynl0ZXMuIFdlIGhhdmUgYSBzeW5jIGF0IGVhY2ggZnJhbWUgYW5kIGZyYW1lCj4+PiArCSAqIGxl
+bmd0aCBpcyA2NCBieXRlcy4KPj4+ICsJICovCj4+PiArCWludCBidWZfbGVuID0gbGVuLzY0Owo+
+PiBUbyBvcHRpbWl6ZSBwZXJmb3JtYW5jZSBpdCBpcyBiZXR0ZXIgbm90IHRvIHJlbHkgb24gZ2Nj
+IGFuZCB1c2UgPDwKPiAKPiBJZiB5b3UgZXZlciBzZWUgZ2NjIHNjcmV3aW5nIHVwIGRpdmlzaW9u
+IG9mIGFuICdpbnQnIGJ5IGEgY29uc3RhbnQgNjQsCj4gZmlsZSBhIEdDQyBidWcuCgpJIGRpZCBz
+ZWUgZ2NjIGdlbmVyYXRlZCBkaXZpc2lvbiBpbnN0cnVjdGlvbiBpbnN0ZWFkIG9mIHNoaWZ0Cmlu
+c3RydWN0aW9uIG9uIHg4NiB3aGVuIHRoZSBrZXJuZWwgaXMgY29tcGlsZXMgd2l0aCBzaXplIG9w
+dGltaXphdGlvbi4KSSB0aGluayB0aGlzIGlzIGJlY2F1c2UgaXQgZGl2aXNpb24gaW5zdHJ1Y3Rp
+b24gaXMgc2hvcnRlci4KClRoZSBleGFjdCBwbGFjZSBJIHdlIHNhdyB3YXMgdGhlIFVCSUZTIGJp
+bmFyeSBzZWFyY2ggZnVuY3Rpb24sIGFuZApkaXZpc2lvbiBieSAyIHdhcyBub3QgY29tcGlsZWQg
+aW50byBhIHNoaWZ0IGluc3RydWN0aW9uLgoKU28gd2hhdCBJIHN1Z2dlc3RlZCBpcyB0byB1c2Ug
+c2hpZnQgZXhwbGljaXRseSBpZiB0aGlzIGlzIHdhbnRlZC4KCi0tIApCZXN0IFJlZ2FyZHMsCkFy
+dGVtIEJpdHl1dHNraXkgKNCQ0YDRgtGR0Lwg0JHQuNGC0Y7RhtC60LjQuSkKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51eCBNVEQgZGlz
+Y3Vzc2lvbiBtYWlsaW5nIGxpc3QKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9saW51eC1tdGQvCg==
