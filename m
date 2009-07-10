@@ -1,134 +1,69 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 8/32] mmc: check status after MMC SWITCH command
-Date: Fri, 10 Jul 2009 15:41:02 +0300
-Message-ID: <20090710124102.1262.79213.sendpatchset@ahunter-tower>
+Subject: [PATCH 16/32] omap_hsmmc: fix scatter-gather list sanity checking
+Date: Fri, 10 Jul 2009 15:41:59 +0300
+Message-ID: <20090710124159.1262.22531.sendpatchset@ahunter-tower>
 References: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:36846 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754773AbZGJMiD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2009 08:38:03 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:34951 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755155AbZGJMig (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2009 08:38:36 -0400
 In-Reply-To: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Pierre Ossman <pierre@ossman.eu>
 Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
->From cda3074c6233408ec29365c5e63b80567bff8c5c Mon Sep 17 00:00:00 2001
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Wed, 3 Jun 2009 12:22:29 +0300
-Subject: [PATCH] mmc: check status after MMC SWITCH command
+>From 85020821e459904d381684dde45a2a500e02cadb Mon Sep 17 00:00:00 2001
+From: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+Date: Fri, 24 Apr 2009 14:20:43 +0300
+Subject: [PATCH] omap_hsmmc: fix scatter-gather list sanity checking
 
-According to the standard, the SWITCH command should
-be followed by a SEND_STATUS command to check for
-errors.
+Do not use host->dma_len when it is uninitialzed.
+Finish the request with an error if the mmc_omap_prepare_data()
+fails.
 
+Signed-off-by: Jarkko Lavinen <jarkko.lavinen@nokia.com>
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- drivers/mmc/core/mmc.c     |   24 ++++++++++++++++++------
- drivers/mmc/core/mmc_ops.c |   23 +++++++++++++++++++++++
- include/linux/mmc/mmc.h    |    1 +
- 3 files changed, 42 insertions(+), 6 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
-index 8e2e3d2..f87cc0b 100644
---- a/drivers/mmc/core/mmc.c
-+++ b/drivers/mmc/core/mmc.c
-@@ -416,12 +416,17 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
- 		(host->caps & MMC_CAP_MMC_HIGHSPEED)) {
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 			EXT_CSD_HS_TIMING, 1);
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 41500ac..15f1a9a 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -871,7 +871,7 @@ mmc_omap_start_dma_transfer(struct mmc_omap_host *host, struct mmc_request *req)
+ 	struct mmc_data *data = req->data;
  
--		mmc_card_set_highspeed(card);
--
--		mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to highspeed failed\n",
-+			       mmc_hostname(card->host));
-+			err = 0;
-+		} else {
-+			mmc_card_set_highspeed(card);
-+			mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		}
- 	}
+ 	/* Sanity check: all the SG entries must be aligned by block size. */
+-	for (i = 0; i < host->dma_len; i++) {
++	for (i = 0; i < data->sg_len; i++) {
+ 		struct scatterlist *sgl;
  
- 	/*
-@@ -456,10 +461,17 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 				 EXT_CSD_BUS_WIDTH, ext_csd_bit);
- 
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
- 
--		mmc_set_bus_width(card->host, bus_width);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to bus width %d "
-+			       "failed\n", mmc_hostname(card->host),
-+			       1 << bus_width);
-+			err = 0;
-+		} else {
-+			mmc_set_bus_width(card->host, bus_width);
-+		}
- 	}
- 
- 	if (!oldcard)
-diff --git a/drivers/mmc/core/mmc_ops.c b/drivers/mmc/core/mmc_ops.c
-index 355c604..d2cb5c6 100644
---- a/drivers/mmc/core/mmc_ops.c
-+++ b/drivers/mmc/core/mmc_ops.c
-@@ -390,6 +390,7 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value)
+ 		sgl = data->sg + i;
+@@ -1014,10 +1014,20 @@ static int omap_mmc_disable(struct mmc_host *mmc, int lazy)
+ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
  {
- 	int err;
- 	struct mmc_command cmd;
-+	u32 status;
+ 	struct mmc_omap_host *host = mmc_priv(mmc);
++	int err;
  
- 	BUG_ON(!card);
- 	BUG_ON(!card->host);
-@@ -407,6 +408,28 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value)
- 	if (err)
- 		return err;
- 
-+	/* Must check status to be sure of no errors */
-+	do {
-+		err = mmc_send_status(card, &status);
-+		if (err)
-+			return err;
-+		if (card->host->caps & MMC_CAP_WAIT_WHILE_BUSY)
-+			break;
-+		if (mmc_host_is_spi(card->host))
-+			break;
-+	} while (R1_CURRENT_STATE(status) == 7);
-+
-+	if (mmc_host_is_spi(card->host)) {
-+		if (status & R1_SPI_ILLEGAL_COMMAND)
-+			return -EBADMSG;
-+	} else {
-+		if (status & 0xFDFFA000)
-+			printk(KERN_WARNING "%s: unexpected status %#x after "
-+			       "switch", mmc_hostname(card->host), status);
-+		if (status & R1_SWITCH_ERROR)
-+			return -EBADMSG;
+ 	WARN_ON(host->mrq != NULL);
+ 	host->mrq = req;
+-	mmc_omap_prepare_data(host, req);
++	err = mmc_omap_prepare_data(host, req);
++	if (err) {
++		req->cmd->error = err;
++		if (req->data)
++			req->data->error = err;
++		host->mrq = NULL;
++		mmc_request_done(mmc, req);
++		return;
 +	}
 +
- 	return 0;
+ 	mmc_omap_start_command(host, req->cmd, req->data);
  }
  
-diff --git a/include/linux/mmc/mmc.h b/include/linux/mmc/mmc.h
-index b2b4095..c02c8db 100644
---- a/include/linux/mmc/mmc.h
-+++ b/include/linux/mmc/mmc.h
-@@ -128,6 +128,7 @@
- #define R1_STATUS(x)            (x & 0xFFFFE000)
- #define R1_CURRENT_STATE(x)	((x & 0x00001E00) >> 9)	/* sx, b (4 bits) */
- #define R1_READY_FOR_DATA	(1 << 8)	/* sx, a */
-+#define R1_SWITCH_ERROR		(1 << 7)	/* sx, c */
- #define R1_APP_CMD		(1 << 5)	/* sr, c */
- 
- /*
 -- 
 1.5.6.3
 
