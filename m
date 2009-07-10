@@ -1,226 +1,111 @@
-From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCHv2 3/4] DSPBRIDGE: PROCWRAP_Load function cleanup in a
- complete mess
-Date: Thu, 9 Jul 2009 18:58:35 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602A30E1412@dlee06.ent.ti.com>
-References: <1246978928-7139-1-git-send-email-ameya.palande@nokia.com>
- <1246978928-7139-2-git-send-email-ameya.palande@nokia.com>
- <1246978928-7139-3-git-send-email-ameya.palande@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH] OMAP3: PM: Fix freeze when scaling CORE dpll to <
+ 83Mhz
+Date: Thu, 9 Jul 2009 18:17:24 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0907091814440.8616@utopia.booyaka.com>
+References: <1247134702-12704-1-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.0907091440480.8616@utopia.booyaka.com> <DF4DCBD3DB270B419320B577AC0C3C8602E2EB04@zmy16exm62.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52058 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750732AbZGIX6o convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jul 2009 19:58:44 -0400
-In-Reply-To: <1246978928-7139-3-git-send-email-ameya.palande@nokia.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:52726 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751083AbZGJARZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 9 Jul 2009 20:17:25 -0400
+In-Reply-To: <DF4DCBD3DB270B419320B577AC0C3C8602E2EB04@zmy16exm62.ds.mot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "ext-phil.2.carmody@nokia.com" <ext-phil.2.carmody@nokia.com>
+To: Wang Limei-E12499 <E12499@motorola.com>
+Cc: Rajendra Nayak <rnayak@ti.com>, khilman@deeprootsystems.com, linux-omap@vger.kernel.org, "Woodruff, Richard" <r-woodruff2@ti.com>, "Ghongdemath, Girish" <girishsg@ti.com>
+
+Hello Limei,
+
+On Fri, 10 Jul 2009, Wang Limei-E12499 wrote:
+
+> Thank you very much for copying me!   
+
+You're welcome.
+
+> During the investigation, Richard and Girish from TI helped, the mail
+> is attached.
+
+We should probably add them in the patch description too.
+
+> Rajendra, 
+> 
+> Yesterday night, I sent mail to paul and kevin, I also submmited below
+> patch along with detailed issue report and analysis. 
+> 
+> -#define FIXEDDELAY_MASK   (0xff << FIXEDDELAY_SHIFT)
+> +#define FIXEDDELAY_MASK   0x00FFFFFF
+
+I prefer Rajendra's patch -- it fixes a bug accidentally 
+introduced in commit 102bfe0bcb4e5985322b5f30b1321f2be1ad1c20.
 
 
-Hi,
+- Paul
 
-Could you please review this patch? I am getting corrupted patch when I try to apply.
-
-Please see comments below.
-
-Regards,
-Fernando.
-
+> 
+> 
+> Thanks,
+> limei
+> 
 > -----Original Message-----
-> From: Ameya Palande [mailto:ameya.palande@nokia.com]
-> Sent: Tuesday, July 07, 2009 10:02 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Guzman Lugo, Fernando; Kanigeri, Hari; ext-phil.2.carmody@nokia.com
-> Subject: [PATCHv2 3/4] DSPBRIDGE: PROCWRAP_Load function cleanup in a
-> complete mess
+> From: Paul Walmsley [mailto:paul@pwsan.com] 
+> Sent: Thursday, July 09, 2009 3:44 PM
+> To: Rajendra Nayak
+> Cc: Wang Limei-E12499; khilman@deeprootsystems.com;
+> linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] OMAP3: PM: Fix freeze when scaling CORE dpll to <
+> 83Mhz
 > 
-> If you followed some failure paths, it was entirely possible that
-> you'd attempt to MEM_Free a user-space pointer, because it wouldn't
-> have been replaced with a kernel-space copy yet.
+> Hi Rajendra,
 > 
-> Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-> ---
->  drivers/dsp/bridge/pmgr/wcd.c |  110 +++++++++++++++++++++++-------------
-> ----
->  1 files changed, 63 insertions(+), 47 deletions(-)
+> On Thu, 9 Jul 2009, Rajendra Nayak wrote:
 > 
-> diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-> index 563a1d8..811b2fc 100644
-> --- a/drivers/dsp/bridge/pmgr/wcd.c
-> +++ b/drivers/dsp/bridge/pmgr/wcd.c
-> @@ -884,99 +884,115 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
->  {
->  	s32 i, len;
->  	DSP_STATUS status = DSP_SOK;
-> -       char *temp;
-> -	s32 argc = args->ARGS_PROC_LOAD.iArgc;
-> +	char *temp;
-> +	s32 count = args->ARGS_PROC_LOAD.iArgc;
->  	u8 **argv, **envp = NULL;
+> > This patch fixes a bug in the CORE dpll scaling sequence which was 
+> > errouneously clearing some bits in the SDRC DLLA CTRL register and 
+> > hence causing a freeze.
+> > The issue was observed only on platforms which scale CORE dpll to < 
+> > 83Mhz and hence program the DLL in fixed delay mode.
+> > 
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > 
-> -
->  	DBC_Require(argc > 0);
->  	DBC_Require(argc <= MAX_LOADARGS);
-
-These two line will cause a compilation error since you removed argc and replace it by count. Please change argc in these two lines too.	
-	
+> Thanks, looks good, I'll queue this up for a fixes series to rmk.
 > 
-> -	argv = MEM_Alloc(argc * sizeof(u8 *), MEM_NONPAGED);
-> -	if (argv == NULL)
-> +	argv = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
-> +	if (!argv) {
->  		status = DSP_EMEMORY;
-> +		goto func_cont;
-> +	}
+> One question: I got an E-mail on this earlier today from Limei Wang
+> about this same issue.  Looks like we should credit Limei also in this
+> patch with finding the bug.  Is this acceptable to you?
 > 
-> -	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, argc);
-> -	if (DSP_FAILED(status))
-> +	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, count);
-> +	if (DSP_FAILED(status)) {
-> +		MEM_Free(argv);
-> +		argv = NULL;
->  		goto func_cont;
-> +	}
+> - Paul
 > 
-> -	for (i = 0; DSP_SUCCEEDED(status) && (i < argc); i++) {
-> -		if (argv[i] != NULL) {
-> -                        /* User space pointer to argument */
-> -                       temp = (char *) argv[i];
-> +	for (i = 0; DSP_SUCCEEDED(status) && (i < count); i++) {
-> +		if (argv[i]) {
-> +			/* User space pointer to argument */
-> +			temp = (char *) argv[i];
->  			/* len is increased by 1 to accommodate NULL */
->  			len = strlen_user((char *)temp) + 1;
->  			/* Kernel space pointer to argument */
->  			argv[i] = MEM_Alloc(len, MEM_NONPAGED);
-> -			if (argv[i] == NULL) {
-> +			if (argv[i]) {
-> +				cp_fm_usr(argv[i], temp, status, len);
-> +				if (DSP_FAILED(status)) {
-> +					MEM_Free(argv[i]);
-> +					argv[i] = NULL;
-> +					goto func_cont;
-> +				}
-> +			} else {
->  				status = DSP_EMEMORY;
-> -				break;
-> -			}
-> -			cp_fm_usr(argv[i], temp, status, len);
-> -			if (DSP_FAILED(status))
->  				goto func_cont;
-> +			}
->  		}
->  	}
->  	/* TODO: validate this */
-> -	if (args->ARGS_PROC_LOAD.aEnvp != NULL) {
-> +	if (args->ARGS_PROC_LOAD.aEnvp) {
->  		/* number of elements in the envp array including NULL */
-> -		len = 0;
-> +		count = 0;
->  		do {
-> -			len++;
-> -                       get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
-> -               } while (temp);
-> -		envp = MEM_Alloc(len * sizeof(u8 *), MEM_NONPAGED);
-> -		if (envp == NULL) {
-> +			get_user(temp, args->ARGS_PROC_LOAD.aEnvp + count);
-> +			count++;
-> +		} while (temp);
-> +		envp = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
-> +		if (!envp) {
->  			status = DSP_EMEMORY;
->  			goto func_cont;
->  		}
+> > ---
+> >  arch/arm/mach-omap2/sram34xx.S |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/sram34xx.S 
+> > b/arch/arm/mach-omap2/sram34xx.S index 481f912..9be09a7 100644
+> > --- a/arch/arm/mach-omap2/sram34xx.S
+> > +++ b/arch/arm/mach-omap2/sram34xx.S
+> > @@ -113,7 +113,7 @@ return_to_sdram:
+> >  unlock_dll:
+> >  	ldr	r11, omap3_sdrc_dlla_ctrl
+> >  	ldr	r12, [r11]
+> > -	and	r12, r12, #FIXEDDELAY_MASK
+> > +	bic	r12, r12, #FIXEDDELAY_MASK
+> >  	orr	r12, r12, #FIXEDDELAY_DEFAULT
+> >  	orr	r12, r12, #DLLIDLE_MASK
+> >  	str	r12, [r11]		@ (no OCP barrier needed)
+> > --
+> > 1.5.4.7
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> > 
 > 
-> -		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, len);
-> -		if (DSP_FAILED(status))
-> +		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, count);
-> +		if (DSP_FAILED(status)) {
-> +			MEM_Free(envp);
-> +			envp = NULL;
->  			goto func_cont;
-> -		for (i = 0; DSP_SUCCEEDED(status) && (envp[i] != NULL); i++) {
-> -                        /* User space pointer to argument */
-> -                       temp = (char *)envp[i];
-> +		}
-> +		for (i = 0; DSP_SUCCEEDED(status) && envp[i]; i++) {
-> +			/* User space pointer to argument */
-> +			temp = (char *)envp[i];
->  			/* len is increased by 1 to accommodate NULL */
->  			len = strlen_user((char *)temp) + 1;
->  			/* Kernel space pointer to argument */
->  			envp[i] = MEM_Alloc(len, MEM_NONPAGED);
-> -			if (envp[i] == NULL) {
-> +			if (envp[i]) {
-> +				cp_fm_usr(envp[i], temp, status, len);
-> +				if (DSP_FAILED(status)) {
-> +					MEM_Free(envp[i]);
-> +					envp[i] = NULL;
-> +					goto func_cont;
-> +				}
-> +			} else {
->  				status = DSP_EMEMORY;
-> -				break;
-> -			}
-> -			cp_fm_usr(envp[i], temp, status, len);
-> -			if (DSP_FAILED(status))
->  				goto func_cont;
-> +			}
->  		}
->  	}
->  	GT_5trace(WCD_debugMask, GT_ENTER,
-> -		 "PROCWRAP_Load, hProcessor: 0x%x\n\tiArgc:"
-> -		 "0x%x\n\taArgv: 0x%x\n\taArgv[0]: %s\n\taEnvp: 0x%0x\n",
-> -		 args->ARGS_PROC_LOAD.hProcessor,
-> -		 args->ARGS_PROC_LOAD.iArgc, args->ARGS_PROC_LOAD.aArgv,
-> -		 argv[0], args->ARGS_PROC_LOAD.aEnvp);
-> +		"PROCWRAP_Load, hProcessor: 0x%x\n\tiArgc:"
-> +		"0x%x\n\taArgv: 0x%x\n\taArgv[0]: %s\n\taEnvp: 0x%0x\n",
-> +		args->ARGS_PROC_LOAD.hProcessor,
-> +		args->ARGS_PROC_LOAD.iArgc, args->ARGS_PROC_LOAD.aArgv,
-> +		argv[0], args->ARGS_PROC_LOAD.aEnvp);
->  	if (DSP_SUCCEEDED(status)) {
->  		status = PROC_Load(args->ARGS_PROC_LOAD.hProcessor,
-> -				  args->ARGS_PROC_LOAD.iArgc,
-> -				  (CONST char **)argv, (CONST char **)envp);
-> +				args->ARGS_PROC_LOAD.iArgc,
-> +				(CONST char **)argv, (CONST char **)envp);
->  	}
->  func_cont:
-> -	if (envp != NULL) {
-> +	if (envp) {
->  		i = 0;
-> -		while (envp[i] != NULL)
-> +		while (envp[i])
->  			MEM_Free(envp[i++]);
 > 
->  		MEM_Free(envp);
->  	}
-> -	if (argv != NULL) {
-> -		for (i = 0; i < argc; i++) {
-> -			if (argv[i] != NULL)
-> -				MEM_Free(argv[i]);
-> 
-> -		}
-> +	if (argv) {
-> +		count = args->ARGS_PROC_LOAD.iArgc;
-> +		for (i = 0; (i < count) && argv[i]; i++)
-> +			MEM_Free(argv[i]);
-> +
->  		MEM_Free(argv);
->  	}
-> +
->  	return status;
->  }
-> 
-> --
-> 1.6.2.4
 > 
 
+
+- Paul
