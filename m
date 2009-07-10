@@ -1,88 +1,81 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 30/32] omap_hsmmc: ensure all clock enables and disables are paired
-Date: Fri, 10 Jul 2009 15:43:37 +0300
-Message-ID: <20090710124337.1262.42744.sendpatchset@ahunter-tower>
+Subject: [PATCH 26/32] omap_hsmmc: prevent races with irq handler
+Date: Fri, 10 Jul 2009 15:43:09 +0300
+Message-ID: <20090710124309.1262.22465.sendpatchset@ahunter-tower>
 References: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37324 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:37316 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755764AbZGJMkM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2009 08:40:12 -0400
+	with ESMTP id S1755747AbZGJMkK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2009 08:40:10 -0400
 In-Reply-To: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Pierre Ossman <pierre@ossman.eu>
 Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
->From 92159741642af71828cb664f716b098152b7a1c1 Mon Sep 17 00:00:00 2001
+>From 242fae6293adec671b14354f215217354f5076a0 Mon Sep 17 00:00:00 2001
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Sun, 31 May 2009 19:27:36 +0300
-Subject: [PATCH] omap_hsmmc: ensure all clock enables and disables are paired
+Date: Sat, 16 May 2009 10:32:34 +0300
+Subject: [PATCH] omap_hsmmc: prevent races with irq handler
+
+If an unexpected interrupt occurs while preparing the
+next request, an oops can occur.
+
+For example, a new request is setting up DMA for data
+transfer so host->data is not NULL.  An unexpected
+transfer complete (TC) interrupt comes along and
+the interrupt handler sets host->data to NULL.  Oops!
+
+Prevent that by disabling interrupts while setting up
+a new request.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |   26 ++++++++++++++------------
- 1 files changed, 14 insertions(+), 12 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 2570bfe..427bd49 100644
+index 28563d6..38e1410 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -727,22 +727,24 @@ static int omap_hsmmc_switch_opcond(struct omap_hsmmc_host *host, int vdd)
- 	/* Disable the clocks */
- 	clk_disable(host->fclk);
- 	clk_disable(host->iclk);
--	clk_disable(host->dbclk);
-+	if (host->dbclk_enabled)
-+		clk_disable(host->dbclk);
+@@ -452,6 +452,13 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
+ 	if (host->use_dma)
+ 		cmdreg |= DMA_EN;
  
- 	/* Turn the power off */
- 	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
--	if (ret != 0)
--		goto err;
- 
- 	/* Turn the power ON with given VDD 1.8 or 3.0v */
--	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1, vdd);
-+	if (!ret)
-+		ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1,
-+					       vdd);
-+	clk_enable(host->iclk);
-+	if (host->dbclk_enabled)
-+		clk_enable(host->dbclk);
-+	clk_enable(host->fclk);
++	/*
++	 * In an interrupt context (i.e. STOP command), the interrupt is already
++	 * enabled, otherwise it is not (i.e. new request).
++	 */
++	if (!in_interrupt())
++		enable_irq(host->irq);
 +
- 	if (ret != 0)
- 		goto err;
+ 	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
+ 	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
+ }
+@@ -1011,6 +1018,13 @@ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
+ 	struct mmc_omap_host *host = mmc_priv(mmc);
+ 	int err;
  
--	clk_enable(host->fclk);
--	clk_enable(host->iclk);
--	clk_enable(host->dbclk);
--
- 	OMAP_HSMMC_WRITE(host->base, HCTL,
- 		OMAP_HSMMC_READ(host->base, HCTL) & SDVSCLR);
- 	reg_val = OMAP_HSMMC_READ(host->base, HCTL);
-@@ -1888,7 +1890,8 @@ static int omap_hsmmc_suspend(struct platform_device *pdev, pm_message_t state)
- 				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
- 			mmc_host_disable(host->mmc);
- 			clk_disable(host->iclk);
--			clk_disable(host->dbclk);
-+			if (host->dbclk_enabled)
-+				clk_disable(host->dbclk);
- 		} else {
- 			host->suspended = 0;
- 			if (host->pdata->resume) {
-@@ -1919,9 +1922,8 @@ static int omap_hsmmc_resume(struct platform_device *pdev)
- 		if (ret)
- 			goto clk_en_err;
- 
--		if (clk_enable(host->dbclk) != 0)
--			dev_dbg(mmc_dev(host->mmc),
--					"Enabling debounce clk failed\n");
-+		if (host->dbclk_enabled)
-+			clk_enable(host->dbclk);
- 
- 		if (mmc_host_enable(host->mmc) != 0) {
- 			clk_disable(host->iclk);
++	/*
++	 * Prevent races with the interrupt handler because of unexpected
++	 * interrupts, but not if we are already in interrupt context i.e.
++	 * retries.
++	 */
++	if (!in_interrupt())
++		disable_irq(host->irq);
+ 	WARN_ON(host->mrq != NULL);
+ 	host->mrq = req;
+ 	err = mmc_omap_prepare_data(host, req);
+@@ -1019,6 +1033,8 @@ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
+ 		if (req->data)
+ 			req->data->error = err;
+ 		host->mrq = NULL;
++		if (!in_interrupt())
++			enable_irq(host->irq);
+ 		mmc_request_done(mmc, req);
+ 		return;
+ 	}
 -- 
 1.5.6.3
 
