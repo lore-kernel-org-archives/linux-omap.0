@@ -1,43 +1,59 @@
-From: "vimal singh" <vimalsingh@ti.com>
-Subject: [PATCH 0/2] [MTD] [NAND] Add prefetch and dma support for omap2/3  
-              NAND      driver
-Date: Fri, 10 Jul 2009 17:06:50 +0530 (IST)
-Message-ID: <52588.192.168.10.89.1247225810.squirrel@dbdmail.itg.ti.com>
-References: <54851.192.168.10.89.1243946277.squirrel@dbdmail.itg.ti.com>   
-    <47286.192.168.10.89.1244108024.squirrel@dbdmail.itg.ti.com>
+From: "Mittal, Mukund" <mmittal@ti.com>
+Subject: [PATCH v2] OMAP: timer-gp: Fix for null pointer dereferencing issue
+Date: Fri, 10 Jul 2009 17:09:14 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B565D419@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34771 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751394AbZGJLhL (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 10 Jul 2009 07:37:11 -0400
-In-Reply-To: <47286.192.168.10.89.1244108024.squirrel@dbdmail.itg.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:52751 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751592AbZGJLjx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2009 07:39:53 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-mtd@lists.infradead.org
-Cc: Tony Lindgren <tony@atomide.com>, dwmw2@infradead.org, dedekind@infradead.org, david-b@pacbell.net, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi,
+From: Mukund Mittal <mmittal@ti.com>
 
-I have splited gpmc prefetch support for NAND into two patches:
-[PATCH 1:2] : Adding support for nand prefetch-read and post-write, in MPU mode.
-[PATCH 2:2] : Adding DMA mode support in nand prefetch/post-write
+OMAP: timer-gp: Fix for null pointer dereferencing issue
 
-These patches implements Tony's comments. (For comments and discussion see:
-http://lists.infradead.org/pipermail/linux-mtd/2009-June/025993.html)
+Calling WARN() to warn for null pointer dereferencing for gpt pointer. 
 
-Other than that, gpmc_prefetch_(inti/request) call has been removed, as nothing
-great was done in that and we really do not need that.
+Signed-off-by: Mukund Mittal <mmittal@ti.com>
+---
+ arch/arm/mach-omap2/timer-gp.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-Function 'gpmc_prefetch_enable' does check for 'if prefetch is already being
-used by some other driver?'. And if it is busy, normal cpu copy method for
-read/write request will be used.
-
-Thanks and regards,
-vimal
-
-
-
-
+Index: linux-omap-2.6/arch/arm/mach-omap2/timer-gp.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/timer-gp.c
++++ linux-omap-2.6/arch/arm/mach-omap2/timer-gp.c
+@@ -205,14 +205,9 @@ static void __init omap2_gp_clocksource_
+ {
+ 	static struct omap_dm_timer *gpt;
+ 	u32 tick_rate, tick_period;
+-	static char err1[] __initdata = KERN_ERR
+-		"%s: failed to request dm-timer\n";
+-	static char err2[] __initdata = KERN_ERR
+-		"%s: can't register clocksource!\n";
+ 
+ 	gpt = omap_dm_timer_request();
+-	if (!gpt)
+-		printk(err1, clocksource_gpt.name);
++	WARN(!gpt, "%s: failed to request dm-timer\n", clocksource_gpt.name);
+ 	gpt_clocksource = gpt;
+ 
+ 	omap_dm_timer_set_source(gpt, OMAP_TIMER_SRC_SYS_CLK);
+@@ -224,7 +219,8 @@ static void __init omap2_gp_clocksource_
+ 	clocksource_gpt.mult =
+ 		clocksource_khz2mult(tick_rate/1000, clocksource_gpt.shift);
+ 	if (clocksource_register(&clocksource_gpt))
+-		printk(err2, clocksource_gpt.name);
++		printk(KERN_ERR "%s: can't register clocksource!\n",
++			clocksource_gpt.name);
+ }
+ #endif
+ 
