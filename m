@@ -1,132 +1,200 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH 2/32] mmc: allow host claim / release nesting
-Date: Fri, 10 Jul 2009 15:40:19 +0300
-Message-ID: <20090710124019.1262.83078.sendpatchset@ahunter-tower>
+Subject: [PATCH 3/32] mmc: add MMC_CAP_NONREMOVABLE host capability
+Date: Fri, 10 Jul 2009 15:40:27 +0300
+Message-ID: <20090710124027.1262.91547.sendpatchset@ahunter-tower>
 References: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754798AbZGJMhK@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:19358 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753498AbZGJMg7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 10 Jul 2009 08:36:59 -0400
 In-Reply-To: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre Ossman <pierre@ossman.eu>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Pierre Ossman <pierre@ossman.eu>
+Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>
 
->From 2d65438fce412a63f09f90fb9af1049c775cbd70 Mon Sep 17 00:00:00 2001
+>From 52fa498f893db9a7dc203cee36ad8889241ab0b0 Mon Sep 17 00:00:00 2001
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Mon, 27 Apr 2009 13:38:42 +0300
-Subject: [PATCH] mmc: allow host claim / release nesting
+Date: Mon, 11 May 2009 10:03:41 +0300
+Subject: [PATCH] mmc: add MMC_CAP_NONREMOVABLE host capability
 
-This change allows the MMC host to be claimed in
-situations where the host may or may not have
-already been claimed.  Also 'mmc_try_claim_host()'
-is now exported.
+eMMC's are not removable, so unsafe resume is OK always.
+
+To permit this a new host capability MMC_CAP_NONREMOVABLE
+has been added and suspend / resume updated accordingly.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- drivers/mmc/core/core.c  |   34 +++++++++++++++++++++++++---------
- include/linux/mmc/core.h |    1 +
- include/linux/mmc/host.h |    2 ++
- 3 files changed, 28 insertions(+), 9 deletions(-)
+ drivers/mmc/core/mmc.c   |   41 ++++++++++++++++++++++++++++++++++-------
+ drivers/mmc/core/sd.c    |   41 ++++++++++++++++++++++++++++++++++-------
+ include/linux/mmc/host.h |    1 +
+ 3 files changed, 69 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
-index 41fd127..b262dc6 100644
---- a/drivers/mmc/core/core.c
-+++ b/drivers/mmc/core/core.c
-@@ -458,16 +458,18 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t *abort)
- 	while (1) {
- 		set_current_state(TASK_UNINTERRUPTIBLE);
- 		stop = abort ? atomic_read(abort) : 0;
--		if (stop || !host->claimed)
-+		if (stop || !host->claimed || host->claimer == current)
- 			break;
- 		spin_unlock_irqrestore(&host->lock, flags);
- 		schedule();
- 		spin_lock_irqsave(&host->lock, flags);
+diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
+index 06084db..3e35075 100644
+--- a/drivers/mmc/core/mmc.c
++++ b/drivers/mmc/core/mmc.c
+@@ -507,8 +507,6 @@ static void mmc_detect(struct mmc_host *host)
  	}
- 	set_current_state(TASK_RUNNING);
--	if (!stop)
-+	if (!stop) {
- 		host->claimed = 1;
--	else
-+		host->claimer = current;
-+		host->claim_cnt += 1;
-+	} else
- 		wake_up(&host->wq);
- 	spin_unlock_irqrestore(&host->lock, flags);
- 	remove_wait_queue(&host->wq, &wait);
-@@ -478,29 +480,43 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t *abort)
- 
- EXPORT_SYMBOL(__mmc_claim_host);
- 
--static int mmc_try_claim_host(struct mmc_host *host)
-+/**
-+ *	mmc_try_claim_host - try exclusively to claim a host
-+ *	@host: mmc host to claim
-+ *
-+ *	Returns %1 if the host is claimed, %0 otherwise.
-+ */
-+int mmc_try_claim_host(struct mmc_host *host)
- {
- 	int claimed_host = 0;
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&host->lock, flags);
--	if (!host->claimed) {
-+	if (!host->claimed || host->claimer == current) {
- 		host->claimed = 1;
-+		host->claimer = current;
-+		host->claim_cnt += 1;
- 		claimed_host = 1;
- 	}
- 	spin_unlock_irqrestore(&host->lock, flags);
- 	return claimed_host;
  }
-+EXPORT_SYMBOL(mmc_try_claim_host);
  
- static void mmc_do_release_host(struct mmc_host *host)
- {
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&host->lock, flags);
--	host->claimed = 0;
--	spin_unlock_irqrestore(&host->lock, flags);
+-#ifdef CONFIG_MMC_UNSAFE_RESUME
 -
--	wake_up(&host->wq);
-+	if (--host->claim_cnt) {
-+		/* Release for nested claim */
-+		spin_unlock_irqrestore(&host->lock, flags);
-+	} else {
-+		host->claimed = 0;
-+		host->claimer = NULL;
-+		spin_unlock_irqrestore(&host->lock, flags);
-+		wake_up(&host->wq);
-+	}
+ /*
+  * Suspend callback from host.
+  */
+@@ -551,20 +549,49 @@ static void mmc_resume(struct mmc_host *host)
+ 
  }
  
- void mmc_host_deeper_disable(struct work_struct *work)
-diff --git a/include/linux/mmc/core.h b/include/linux/mmc/core.h
-index 7ac8b50..e4898e9 100644
---- a/include/linux/mmc/core.h
-+++ b/include/linux/mmc/core.h
-@@ -139,6 +139,7 @@ extern unsigned int mmc_align_data_size(struct mmc_card *, unsigned int);
+-#else
++#ifdef CONFIG_MMC_UNSAFE_RESUME
  
- extern int __mmc_claim_host(struct mmc_host *host, atomic_t *abort);
- extern void mmc_release_host(struct mmc_host *host);
-+extern int mmc_try_claim_host(struct mmc_host *host);
+-#define mmc_suspend NULL
+-#define mmc_resume NULL
++static const struct mmc_bus_ops mmc_ops = {
++	.remove = mmc_remove,
++	.detect = mmc_detect,
++	.suspend = mmc_suspend,
++	.resume = mmc_resume,
++};
  
- /**
-  *	mmc_claim_host - exclusively claim a host
+-#endif
++static void mmc_attach_bus_ops(struct mmc_host *host)
++{
++	mmc_attach_bus(host, &mmc_ops);
++}
++
++#else
+ 
+ static const struct mmc_bus_ops mmc_ops = {
+ 	.remove = mmc_remove,
+ 	.detect = mmc_detect,
++	.suspend = NULL,
++	.resume = NULL,
++};
++
++static const struct mmc_bus_ops mmc_ops_unsafe = {
++	.remove = mmc_remove,
++	.detect = mmc_detect,
+ 	.suspend = mmc_suspend,
+ 	.resume = mmc_resume,
+ };
+ 
++static void mmc_attach_bus_ops(struct mmc_host *host)
++{
++	const struct mmc_bus_ops *bus_ops;
++
++	if (host->caps & MMC_CAP_NONREMOVABLE)
++		bus_ops = &mmc_ops_unsafe;
++	else
++		bus_ops = &mmc_ops;
++	mmc_attach_bus(host, bus_ops);
++}
++
++#endif
++
+ /*
+  * Starting point for MMC card init.
+  */
+@@ -575,7 +602,7 @@ int mmc_attach_mmc(struct mmc_host *host, u32 ocr)
+ 	BUG_ON(!host);
+ 	WARN_ON(!host->claimed);
+ 
+-	mmc_attach_bus(host, &mmc_ops);
++	mmc_attach_bus_ops(host);
+ 
+ 	/*
+ 	 * We need to get OCR a different way for SPI.
+diff --git a/drivers/mmc/core/sd.c b/drivers/mmc/core/sd.c
+index cd81c39..80cccd2 100644
+--- a/drivers/mmc/core/sd.c
++++ b/drivers/mmc/core/sd.c
+@@ -561,8 +561,6 @@ static void mmc_sd_detect(struct mmc_host *host)
+ 	}
+ }
+ 
+-#ifdef CONFIG_MMC_UNSAFE_RESUME
+-
+ /*
+  * Suspend callback from host.
+  */
+@@ -605,20 +603,49 @@ static void mmc_sd_resume(struct mmc_host *host)
+ 
+ }
+ 
+-#else
++#ifdef CONFIG_MMC_UNSAFE_RESUME
+ 
+-#define mmc_sd_suspend NULL
+-#define mmc_sd_resume NULL
++static const struct mmc_bus_ops mmc_sd_ops = {
++	.remove = mmc_sd_remove,
++	.detect = mmc_sd_detect,
++	.suspend = mmc_sd_suspend,
++	.resume = mmc_sd_resume,
++};
+ 
+-#endif
++static void mmc_sd_attach_bus_ops(struct mmc_host *host)
++{
++	mmc_attach_bus(host, &mmc_sd_ops);
++}
++
++#else
+ 
+ static const struct mmc_bus_ops mmc_sd_ops = {
+ 	.remove = mmc_sd_remove,
+ 	.detect = mmc_sd_detect,
++	.suspend = NULL,
++	.resume = NULL,
++};
++
++static const struct mmc_bus_ops mmc_sd_ops_unsafe = {
++	.remove = mmc_sd_remove,
++	.detect = mmc_sd_detect,
+ 	.suspend = mmc_sd_suspend,
+ 	.resume = mmc_sd_resume,
+ };
+ 
++static void mmc_sd_attach_bus_ops(struct mmc_host *host)
++{
++	const struct mmc_bus_ops *bus_ops;
++
++	if (host->caps & MMC_CAP_NONREMOVABLE)
++		bus_ops = &mmc_sd_ops_unsafe;
++	else
++		bus_ops = &mmc_sd_ops;
++	mmc_attach_bus(host, bus_ops);
++}
++
++#endif
++
+ /*
+  * Starting point for SD card init.
+  */
+@@ -629,7 +656,7 @@ int mmc_attach_sd(struct mmc_host *host, u32 ocr)
+ 	BUG_ON(!host);
+ 	WARN_ON(!host->claimed);
+ 
+-	mmc_attach_bus(host, &mmc_sd_ops);
++	mmc_sd_attach_bus_ops(host);
+ 
+ 	/*
+ 	 * We need to get OCR a different way for SPI.
 diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
-index 583c068..9cc5be9 100644
+index 9cc5be9..6847fce 100644
 --- a/include/linux/mmc/host.h
 +++ b/include/linux/mmc/host.h
-@@ -182,6 +182,8 @@ struct mmc_host {
- 	struct mmc_card		*card;		/* device attached to this host */
+@@ -148,6 +148,7 @@ struct mmc_host {
+ #define MMC_CAP_NEEDS_POLL	(1 << 5)	/* Needs polling for card-detection */
+ #define MMC_CAP_8_BIT_DATA	(1 << 6)	/* Can the host do 8 bit transfers */
+ #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
++#define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
  
- 	wait_queue_head_t	wq;
-+	struct task_struct	*claimer;	/* task that has host claimed */
-+	int			claim_cnt;	/* "claim" nesting count */
- 
- 	struct delayed_work	detect;
- 
+ 	/* host specific block data */
+ 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
 -- 
 1.5.6.3
+
