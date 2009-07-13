@@ -1,199 +1,85 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCHv3 3/4] DSPBRIDGE: PROCWRAP_Load function cleanup in a complete mess
-Date: Mon, 13 Jul 2009 15:35:16 +0300
-Message-ID: <1247488516-14746-1-git-send-email-ameya.palande@nokia.com>
-References: <496565EC904933469F292DDA3F1663E602A30E1412@dlee06.ent.ti.com>
+Subject: [PATCHv2 1/4] DSPBRIDGE: Fix macros that break when inside an if/else
+Date: Mon, 13 Jul 2009 15:38:46 +0300
+Message-ID: <1247488726-14960-1-git-send-email-ameya.palande@nokia.com>
+References: <496565EC904933469F292DDA3F1663E602A30E140D@dlee06.ent.ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45908 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755548AbZGMMfn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2009 08:35:43 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602A30E1412@dlee06.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:17022 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755574AbZGMMiq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2009 08:38:46 -0400
+In-Reply-To: <496565EC904933469F292DDA3F1663E602A30E140D@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: x0095840@ti.com
 Cc: linux-omap@vger.kernel.org, h-kanigeri2@ti.com, ext-phil.2.carmody@nokia.com
 
-If you followed some failure paths, it was entirely possible that
-you'd attempt to MEM_Free a user-space pointer, because it wouldn't
-have been replaced with a kernel-space copy yet. Now ensure there's
-a NULL pointer to stop the cleanup at the position of the first error.
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
+
+cp_{to,fm}_usr break if between an if and an else (with no {}).
+
+http://www.faqs.org/faqs/C-faq/abridged/
+10.4: What's the best way to write a multi-statement macro?
+A:    #define Func() do {stmt1; stmt2; ... } while(0) /* (no trailing ;) */
 
 Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- drivers/dsp/bridge/pmgr/wcd.c |  114 +++++++++++++++++++++++-----------------
- 1 files changed, 65 insertions(+), 49 deletions(-)
+ drivers/dsp/bridge/pmgr/wcd.c |   42 ++++++++++++++++++++++------------------
+ 1 files changed, 23 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 314ee49..d9de5af 100644
+index 86812c6..da0467c 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -884,99 +884,115 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- {
- 	s32 i, len;
- 	DSP_STATUS status = DSP_SOK;
--       char *temp;
--	s32 argc = args->ARGS_PROC_LOAD.iArgc;
-+	char *temp;
-+	s32 count = args->ARGS_PROC_LOAD.iArgc;
- 	u8 **argv, **envp = NULL;
+@@ -147,25 +147,29 @@
  
-+	DBC_Require(count > 0);
-+	DBC_Require(count <= MAX_LOADARGS);
+ /* Following two macros should ideally have do{}while(0) */
  
--	DBC_Require(argc > 0);
--	DBC_Require(argc <= MAX_LOADARGS);
+-#define cp_fm_usr(dest, src, status, elements)    \
+-    if (DSP_SUCCEEDED(status)) {\
+-	    if (unlikely(src == NULL) ||				\
+-		unlikely(copy_from_user(dest, src, elements * sizeof(*(dest))))) { \
+-		GT_1trace(WCD_debugMask, GT_7CLASS, \
+-		"copy_from_user failed, src=0x%x\n", src);  \
+-		status = DSP_EPOINTER ; \
+-	} \
+-    }
 -
--	argv = MEM_Alloc(argc * sizeof(u8 *), MEM_NONPAGED);
--	if (argv == NULL)
-+	argv = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
-+	if (!argv) {
- 		status = DSP_EMEMORY;
-+		goto func_cont;
-+	}
- 
--	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, argc);
--	if (DSP_FAILED(status))
-+	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, count);
-+	if (DSP_FAILED(status)) {
-+		MEM_Free(argv);
-+		argv = NULL;
- 		goto func_cont;
-+	}
- 
--	for (i = 0; DSP_SUCCEEDED(status) && (i < argc); i++) {
--		if (argv[i] != NULL) {
--                        /* User space pointer to argument */
--                       temp = (char *) argv[i];
-+	for (i = 0; DSP_SUCCEEDED(status) && (i < count); i++) {
-+		if (argv[i]) {
-+			/* User space pointer to argument */
-+			temp = (char *) argv[i];
- 			/* len is increased by 1 to accommodate NULL */
- 			len = strlen_user((char *)temp) + 1;
- 			/* Kernel space pointer to argument */
- 			argv[i] = MEM_Alloc(len, MEM_NONPAGED);
--			if (argv[i] == NULL) {
-+			if (argv[i]) {
-+				cp_fm_usr(argv[i], temp, status, len);
-+				if (DSP_FAILED(status)) {
-+					MEM_Free(argv[i]);
-+					argv[i] = NULL;
-+					goto func_cont;
-+				}
-+			} else {
- 				status = DSP_EMEMORY;
--				break;
--			}
--			cp_fm_usr(argv[i], temp, status, len);
--			if (DSP_FAILED(status))
- 				goto func_cont;
-+			}
- 		}
- 	}
- 	/* TODO: validate this */
--	if (args->ARGS_PROC_LOAD.aEnvp != NULL) {
-+	if (args->ARGS_PROC_LOAD.aEnvp) {
- 		/* number of elements in the envp array including NULL */
--		len = 0;
-+		count = 0;
- 		do {
--			len++;
--                       get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
--               } while (temp);
--		envp = MEM_Alloc(len * sizeof(u8 *), MEM_NONPAGED);
--		if (envp == NULL) {
-+			get_user(temp, args->ARGS_PROC_LOAD.aEnvp + count);
-+			count++;
-+		} while (temp);
-+		envp = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
-+		if (!envp) {
- 			status = DSP_EMEMORY;
- 			goto func_cont;
- 		}
- 
--		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, len);
--		if (DSP_FAILED(status))
-+		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, count);
-+		if (DSP_FAILED(status)) {
-+			MEM_Free(envp);
-+			envp = NULL;
- 			goto func_cont;
--		for (i = 0; DSP_SUCCEEDED(status) && (envp[i] != NULL); i++) {
--                        /* User space pointer to argument */
--                       temp = (char *)envp[i];
-+		}
-+		for (i = 0; DSP_SUCCEEDED(status) && envp[i]; i++) {
-+			/* User space pointer to argument */
-+			temp = (char *)envp[i];
- 			/* len is increased by 1 to accommodate NULL */
- 			len = strlen_user((char *)temp) + 1;
- 			/* Kernel space pointer to argument */
- 			envp[i] = MEM_Alloc(len, MEM_NONPAGED);
--			if (envp[i] == NULL) {
-+			if (envp[i]) {
-+				cp_fm_usr(envp[i], temp, status, len);
-+				if (DSP_FAILED(status)) {
-+					MEM_Free(envp[i]);
-+					envp[i] = NULL;
-+					goto func_cont;
-+				}
-+			} else {
- 				status = DSP_EMEMORY;
--				break;
--			}
--			cp_fm_usr(envp[i], temp, status, len);
--			if (DSP_FAILED(status))
- 				goto func_cont;
-+			}
- 		}
- 	}
- 	GT_5trace(WCD_debugMask, GT_ENTER,
--		 "PROCWRAP_Load, hProcessor: 0x%x\n\tiArgc:"
--		 "0x%x\n\taArgv: 0x%x\n\taArgv[0]: %s\n\taEnvp: 0x%0x\n",
--		 args->ARGS_PROC_LOAD.hProcessor,
--		 args->ARGS_PROC_LOAD.iArgc, args->ARGS_PROC_LOAD.aArgv,
--		 argv[0], args->ARGS_PROC_LOAD.aEnvp);
-+		"PROCWRAP_Load, hProcessor: 0x%x\n\tiArgc:"
-+		"0x%x\n\taArgv: 0x%x\n\taArgv[0]: %s\n\taEnvp: 0x%0x\n",
-+		args->ARGS_PROC_LOAD.hProcessor,
-+		args->ARGS_PROC_LOAD.iArgc, args->ARGS_PROC_LOAD.aArgv,
-+		argv[0], args->ARGS_PROC_LOAD.aEnvp);
- 	if (DSP_SUCCEEDED(status)) {
- 		status = PROC_Load(args->ARGS_PROC_LOAD.hProcessor,
--				  args->ARGS_PROC_LOAD.iArgc,
--				  (CONST char **)argv, (CONST char **)envp);
-+				args->ARGS_PROC_LOAD.iArgc,
-+				(CONST char **)argv, (CONST char **)envp);
- 	}
- func_cont:
--	if (envp != NULL) {
-+	if (envp) {
- 		i = 0;
--		while (envp[i] != NULL)
-+		while (envp[i])
- 			MEM_Free(envp[i++]);
- 
- 		MEM_Free(envp);
- 	}
--	if (argv != NULL) {
--		for (i = 0; i < argc; i++) {
--			if (argv[i] != NULL)
--				MEM_Free(argv[i]);
- 
--		}
-+	if (argv) {
-+		count = args->ARGS_PROC_LOAD.iArgc;
-+		for (i = 0; (i < count) && argv[i]; i++)
-+			MEM_Free(argv[i]);
+-#define cp_to_usr(dest, src, status, elements)    \
+-    if (DSP_SUCCEEDED(status)) {\
+-	    if (unlikely(dest == NULL) ||				\
+-		unlikely(copy_to_user(dest, src, elements * sizeof(*(src))))) { \
+-		GT_1trace(WCD_debugMask, GT_7CLASS, \
+-		"copy_to_user failed, dest=0x%x\n", dest); \
+-		status = DSP_EPOINTER ;\
+-	} \
+-    }
++#define cp_fm_usr(dest, src, status, elements)	\
++do {						\
++  if (DSP_SUCCEEDED(status)) {			\
++    if (unlikely((src) == NULL) ||		\
++      unlikely(copy_from_user(dest, src, (elements) * sizeof(*(dest))))) { \
++        GT_1trace(WCD_debugMask, GT_7CLASS,	\
++	  "copy_from_user failed, src=0x%x\n", src);	\
++      (status) = DSP_EPOINTER ;			\
++    }						\
++  }						\
++} while (0)
 +
- 		MEM_Free(argv);
- 	}
-+
- 	return status;
- }
++#define cp_to_usr(dest, src, status, elements)	\
++do {						\
++  if (DSP_SUCCEEDED(status)) {			\
++    if (unlikely((dest) == NULL) ||		\
++      unlikely(copy_to_user(dest, src, (elements) * sizeof(*(src))))) { \
++        GT_1trace(WCD_debugMask, GT_7CLASS,	\
++          "copy_to_user failed, dest=0x%x\n", dest);	\
++        (status) = DSP_EPOINTER ;		\
++    }						\
++  }						\
++} while (0)
  
+ /* Device IOCtl function pointer */
+ struct WCD_Cmd {
 -- 
 1.6.2.4
 
