@@ -1,41 +1,35 @@
-From: MITSUBISHI COMPANY UK <info@mitsubihi.co.uk>
-Subject: Your E-mail Attach To 2009 Anniversary Bonanza
-Date: Sat, 11 Jul 2009 12:49:27 -0700
-Message-ID: <20090711124927.6ccdiapb40sookkg__41118.5382669375$1247363486$gmane$org@webmail.pdx.edu>
-Reply-To: infomitscombonanza@googlemail.com
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: N8x0 to mainline patches
+Date: Mon, 13 Jul 2009 08:51:10 +0300
+Message-ID: <87zlb95dwx.fsf@litku.valot.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hati.oit.pdx.edu ([131.252.120.59]:41401 "EHLO hati.oit.pdx.edu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751930AbZGLBuI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 11 Jul 2009 21:50:08 -0400
-Content-Disposition: inline
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:63731 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934AbZGMFvP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2009 01:51:15 -0400
+Received: by fxm18 with SMTP id 18so1972989fxm.37
+        for <linux-omap@vger.kernel.org>; Sun, 12 Jul 2009 22:51:13 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Max Filippov <jcmvbkbc@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
+Hello,
 
+I started working on adding N8x0 support to mainline, currently serial
+console works and I can mount initfs and rootfs on N800. The patches are
+available here:
 
-MITSUBISHI COMPANY UK.
-28 TANFIELD ROAD,LONDON, UK.
+http://www.valot.fi/kalle/n8x0/patches/n8x0-add/
 
-You have just been awarded,the sum of  =A3870.000.00 in the  MITSUBISHI=
- COMPANY
-Award 2009, Anniversary Bonanza. held in July.
+To get all this coordinated, I created a wiki page for this:
 
-Names:............. Address:..............
-Country:................ Age:..........
-Phone Number............ Occupation.......Sex
+http://elinux.org/N800
 
-Regards.Felke Courtney.
-Online Co-ordinator.
+If there's something wrong or missing, please update it or send me an
+email so that I can update it.
 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Kalle Valo
