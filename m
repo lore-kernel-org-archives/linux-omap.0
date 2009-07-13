@@ -1,57 +1,41 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Re: N8x0 to mainline patches
-Date: Mon, 13 Jul 2009 14:52:43 -0500
-Message-ID: <20090713195243.GA10114@swansys>
-References: <87zlb95dwx.fsf@litku.valot.fi>
+From: Peter Huewe <PeterHuewe@gmx.de>
+Subject: Re: [PATCH] media/omap: adding __init/__exit macros to lcd_drivers
+Date: Mon, 13 Jul 2009 22:56:16 +0200
+Message-ID: <200907132256.17036.PeterHuewe@gmx.de>
+References: <200907031439.40456.PeterHuewe@gmx.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="1yeeQ81UyVL57Vl7"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f185.google.com ([209.85.216.185]:34475 "EHLO
-	mail-px0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756638AbZGMTwv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2009 15:52:51 -0400
-Received: by pxi15 with SMTP id 15so701921pxi.33
-        for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2009 12:52:51 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:42164 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757178AbZGMU4U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 13 Jul 2009 16:56:20 -0400
+In-Reply-To: <200907031439.40456.PeterHuewe@gmx.de>
 Content-Disposition: inline
-In-Reply-To: <87zlb95dwx.fsf@litku.valot.fi>
-Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jiri Kosina <trivial@kernel.org>
+Cc: imre.deak@nokia.com, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
+Am Freitag 03 Juli 2009 14:39:40 schrieb Peter H=FCwe:
+> From: Peter Huewe <peterhuewe@gmx.de>
+>
+> Trivial patch which adds the __init and __exit macros to the module_i=
+nit /
+> module_exit functions to several files in drivers/video/omap/
+>
+> linux version 2.6.31-rc1 - linus git tree
+>
+> Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
 
---1yeeQ81UyVL57Vl7
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi Jini,
+any updates on this patch yet ? :)
 
-Kalle Valo wrote at 2009-07-13 00:51 -0500:
-> I started working on adding N8x0 support to mainline, currently serial
-> console works and I can mount initfs and rootfs on N800. The patches are
-> available here:
->=20
-> http://www.valot.fi/kalle/n8x0/patches/n8x0-add/
-
-Thanks for your work.
-
-> To get all this coordinated, I created a wiki page for this:
->=20
-> http://elinux.org/N800
-
-I have added a links section and will probably be doing more there.
-
---1yeeQ81UyVL57Vl7
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkpbkIsACgkQ682C+dBP+oQGqACbBq9fK1E1vbqN8zX+oeljb6Jw
-fj4AnRNIKLR4m4nZyeD9HkMeHzBOaCDE
-=fblC
------END PGP SIGNATURE-----
-
---1yeeQ81UyVL57Vl7--
+Thanks,
+Peter
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
