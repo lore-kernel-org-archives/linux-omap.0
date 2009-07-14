@@ -1,38 +1,29 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH] media/omap: adding __init/__exit macros to lcd_drivers
-Date: Tue, 14 Jul 2009 17:39:26 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.0907141738580.813@wotan.suse.de>
-References: <200907031439.40456.PeterHuewe@gmx.de>
+From: Zach LeRoy <zleroy@rii.ricoh.com>
+Subject: Problems configuring OMAP35x ISP driver
+Date: Tue, 14 Jul 2009 09:49:18 -0700 (PDT)
+Message-ID: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com>
+References: <17937063.23811247589353235.JavaMail.root@mailx.crc.ricoh.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="168427776-209977646-1247585966=:813"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35831 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752499AbZGNPj2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Jul 2009 11:39:28 -0400
-In-Reply-To: <200907031439.40456.PeterHuewe@gmx.de>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <17937063.23811247589353235.JavaMail.root@mailx.crc.ricoh.com>
+Sender: linux-media-owner@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio" <saaguirre@ti.com>
+Cc: linux-media <linux-media@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: =?ISO-8859-15?Q?Peter_H=FCwe?= <PeterHuewe@gmx.de>
-Cc: imre.deak@nokia.com, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hello Sergio,
 
---168427776-209977646-1247585966=:813
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+I spoke with you earlier about using the ISP and omap34xxcam drivers with a micron mt9d111 SOC sensor.  I have since been able to take pictures, but the sensor data is not making it through the ISP data-path correctly.  I know the problem is in the ISP data-path because I am configuring the sensor the exact same way as I have been on my working PXA system.  I am expecting 4:2:2 packed YUV data, but all of the U and V data is no more than 2 bits where it should be 8.  I know the ISP has a lot of capabilities, but all I want to use it for is grabbing 8-bit data from my sensor and putting it in a buffer untouched using the CCDC interface (and of course clocking and timing).  What are the key steps to take to get this type of configuration?  
 
-On Fri, 3 Jul 2009, Peter Hüwe wrote:
+Other Questions:
 
-> From: Peter Huewe <peterhuewe@gmx.de>
-> 
-> Trivial patch which adds the __init and __exit macros to the module_init /
-> module_exit functions to several files in drivers/video/omap/
+Is there any processing done on YUV data in the ISP driver by default that I am missing?
+Has any one else experienced similar problems while adding new sensor support?
 
-Applied to trivial queue, thanks.
+Any help here would be greatly appreciated.
 
--- 
-Jiri Kosina
-SUSE Labs
---168427776-209977646-1247585966=:813--
+Thank you,
+
+Zach LeRoy
