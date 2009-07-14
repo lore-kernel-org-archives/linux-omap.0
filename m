@@ -1,440 +1,52 @@
-From: balajitk@ti.com
-Subject: [PATCH 3/4] ARM: OMAP: Rename twl4030_ in rtc-twl.c to make it generic rtc
-Date: Tue, 14 Jul 2009 19:16:01 +0530
-Message-ID: <1247579161-28872-1-git-send-email-balajitk@ti.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: [PATCH 0/4] TWL patch series
+Date: Tue, 14 Jul 2009 19:16:40 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E7394043295A40B@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36689 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49293 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753609AbZGNNqM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 14 Jul 2009 09:46:12 -0400
+	id S1753562AbZGNNqv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 09:46:51 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@deeprootsystems.com, david-b@pacbell.net, Balaji T K <balajitk@ti.com>, Nayak Rajendra <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-From: Balaji T K <balajitk@ti.com>
+The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+for OMAP3. The common modules like RTC, Regulator creates opportunity
+to re-use the most of the code from twl4030.
 
- This patch renames all twl4030_ functions to twl_ so that RTC driver can be
- shared between Triton and Phoenix.  Register addresses which have changed will
- be selected with COMPILATION FLAG
+Summary of Major difference between Triton and Phoenix chips are:
+            -GPIO, Keypad is not present in Phoenix
+            -I2C Chips addresses of modules like RTC, BCI, ADC, USB, PMC Master/Slave 
+             have changed.  Base address of these module register is also changed.
+            -PIH and SIH, module interrupt status registers will be replaced by PIH 
+             (INT_STS_A, INT_STS_B and INT_STS_C) and module interrupt status registers
+            -MADC to GPADC in Phoenix, 17 channels supported
+             GPADC in Phoenix supports Realtime, Asynchronous SW request.
+            -RTC register offsets have changed. Addition/removal of LDO/SMPS Voltage 
+             Regulators
 
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Signed-off-by: Nayak Rajendra <rnayak@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- drivers/mfd/twl-core.c |    2 +-
- drivers/rtc/rtc-twl.c  |  124 ++++++++++++++++++++++++------------------------
- 2 files changed, 63 insertions(+), 63 deletions(-)
+These patches are generated against mainline 2.6.31-rc1 and validated on OMAP 
+3430 SDP for RTC driver and regulator drivers.
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 7cd1b01..95d92db 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -528,7 +528,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 		 * Eventually, Linux might become more aware of such
- 		 * HW security concerns, and "least privilege".
- 		 */
--		child = add_child(RTC_SUB_CHIP_ID, "twl4030_rtc",
-+		child = add_child(RTC_SUB_CHIP_ID, "twl_rtc",
- 				NULL, 0,
- 				true, pdata->irq_base + RTC_INTR_OFFSET, 0);
- 		if (IS_ERR(child))
-diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
-index 6119712..630acb7 100644
---- a/drivers/rtc/rtc-twl.c
-+++ b/drivers/rtc/rtc-twl.c
-@@ -88,13 +88,13 @@
- /*
-  * Supports 1 byte read from TWL4030 RTC register.
-  */
--static int twl4030_rtc_read_u8(u8 *data, u8 reg)
-+static int twl_rtc_read_u8(u8 *data, u8 reg)
- {
- 	int ret;
- 
--	ret = twl_i2c_read_u8(TWL4030_MODULE_RTC, data, reg);
-+	ret = twl_i2c_read_u8(TWL_MODULE_RTC, data, reg);
- 	if (ret < 0)
--		pr_err("twl4030_rtc: Could not read TWL4030"
-+		pr_err("twl_rtc: Could not read TWL4030"
- 		       "register %X - error %d\n", reg, ret);
- 	return ret;
- }
-@@ -102,13 +102,13 @@ static int twl4030_rtc_read_u8(u8 *data, u8 reg)
- /*
-  * Supports 1 byte write to TWL4030 RTC registers.
-  */
--static int twl4030_rtc_write_u8(u8 data, u8 reg)
-+static int twl_rtc_write_u8(u8 data, u8 reg)
- {
- 	int ret;
- 
--	ret = twl_i2c_write_u8(TWL4030_MODULE_RTC, data, reg);
-+	ret = twl_i2c_write_u8(TWL_MODULE_RTC, data, reg);
- 	if (ret < 0)
--		pr_err("twl4030_rtc: Could not write TWL4030"
-+		pr_err("twl_rtc: Could not write TWL4030"
- 		       "register %X - error %d\n", reg, ret);
- 	return ret;
- }
-@@ -129,7 +129,7 @@ static int set_rtc_irq_bit(unsigned char bit)
- 
- 	val = rtc_irq_bits | bit;
- 	val &= ~BIT_RTC_INTERRUPTS_REG_EVERY_M;
--	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
-+	ret = twl_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
- 	if (ret == 0)
- 		rtc_irq_bits = val;
- 
-@@ -145,14 +145,14 @@ static int mask_rtc_irq_bit(unsigned char bit)
- 	int ret;
- 
- 	val = rtc_irq_bits & ~bit;
--	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
-+	ret = twl_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
- 	if (ret == 0)
- 		rtc_irq_bits = val;
- 
- 	return ret;
- }
- 
--static int twl4030_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
-+static int twl_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
- {
- 	int ret;
- 
-@@ -164,7 +164,7 @@ static int twl4030_rtc_alarm_irq_enable(struct device *dev, unsigned enabled)
- 	return ret;
- }
- 
--static int twl4030_rtc_update_irq_enable(struct device *dev, unsigned enabled)
-+static int twl_rtc_update_irq_enable(struct device *dev, unsigned enabled)
- {
- 	int ret;
- 
-@@ -185,23 +185,23 @@ static int twl4030_rtc_update_irq_enable(struct device *dev, unsigned enabled)
-  *  - Months are 1..12 vs Linux 0-11
-  *  - Years are 0..99 vs Linux 1900..N (we assume 21st century)
-  */
--static int twl4030_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+static int twl_rtc_read_time(struct device *dev, struct rtc_time *tm)
- {
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
- 	int ret;
- 	u8 save_control;
- 
--	ret = twl4030_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		return ret;
- 
- 	save_control |= BIT_RTC_CTRL_REG_GET_TIME_M;
- 
--	ret = twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		return ret;
- 
--	ret = twl_i2c_read(TWL4030_MODULE_RTC, rtc_data,
-+	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
- 			       REG_SECONDS_REG, ALL_TIME_REGS);
- 
- 	if (ret < 0) {
-@@ -219,7 +219,7 @@ static int twl4030_rtc_read_time(struct device *dev, struct rtc_time *tm)
- 	return ret;
- }
- 
--static int twl4030_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+static int twl_rtc_set_time(struct device *dev, struct rtc_time *tm)
- {
- 	unsigned char save_control;
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
-@@ -233,17 +233,17 @@ static int twl4030_rtc_set_time(struct device *dev, struct rtc_time *tm)
- 	rtc_data[6] = bin2bcd(tm->tm_year - 100);
- 
- 	/* Stop RTC while updating the TC registers */
--	ret = twl4030_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_read_u8(&save_control, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		goto out;
- 
- 	save_control &= ~BIT_RTC_CTRL_REG_STOP_RTC_M;
--	twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+	twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		goto out;
- 
- 	/* update all the time registers in one shot */
--	ret = twl_i2c_write(TWL4030_MODULE_RTC, rtc_data,
-+	ret = twl_i2c_write(TWL_MODULE_RTC, rtc_data,
- 			REG_SECONDS_REG, ALL_TIME_REGS);
- 	if (ret < 0) {
- 		dev_err(dev, "rtc_set_time error %d\n", ret);
-@@ -252,7 +252,7 @@ static int twl4030_rtc_set_time(struct device *dev, struct rtc_time *tm)
- 
- 	/* Start back RTC */
- 	save_control |= BIT_RTC_CTRL_REG_STOP_RTC_M;
--	ret = twl4030_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_write_u8(save_control, REG_RTC_CTRL_REG);
- 
- out:
- 	return ret;
-@@ -261,12 +261,12 @@ out:
- /*
-  * Gets current TWL4030 RTC alarm time.
-  */
--static int twl4030_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+static int twl_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
- {
- 	unsigned char rtc_data[ALL_TIME_REGS + 1];
- 	int ret;
- 
--	ret = twl_i2c_read(TWL4030_MODULE_RTC, rtc_data,
-+	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
- 			       REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
- 	if (ret < 0) {
- 		dev_err(dev, "rtc_read_alarm error %d\n", ret);
-@@ -288,12 +288,12 @@ static int twl4030_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
- 	return ret;
- }
- 
--static int twl4030_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
-+static int twl_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
- {
- 	unsigned char alarm_data[ALL_TIME_REGS + 1];
- 	int ret;
- 
--	ret = twl4030_rtc_alarm_irq_enable(dev, 0);
-+	ret = twl_rtc_alarm_irq_enable(dev, 0);
- 	if (ret)
- 		goto out;
- 
-@@ -305,7 +305,7 @@ static int twl4030_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
- 	alarm_data[6] = bin2bcd(alm->time.tm_year - 100);
- 
- 	/* update all the alarm registers in one shot */
--	ret = twl_i2c_write(TWL4030_MODULE_RTC, alarm_data,
-+	ret = twl_i2c_write(TWL_MODULE_RTC, alarm_data,
- 			REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
- 	if (ret) {
- 		dev_err(dev, "rtc_set_alarm error %d\n", ret);
-@@ -313,12 +313,12 @@ static int twl4030_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
- 	}
- 
- 	if (alm->enabled)
--		ret = twl4030_rtc_alarm_irq_enable(dev, 1);
-+		ret = twl_rtc_alarm_irq_enable(dev, 1);
- out:
- 	return ret;
- }
- 
--static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
-+static irqreturn_t twl_rtc_interrupt(int irq, void *rtc)
- {
- 	unsigned long events = 0;
- 	int ret = IRQ_NONE;
-@@ -333,7 +333,7 @@ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
- 	local_irq_enable();
- #endif
- 
--	res = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
-+	res = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
- 	if (res)
- 		goto out;
- 	/*
-@@ -347,14 +347,14 @@ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
- 	else
- 		events |= RTC_IRQF | RTC_UF;
- 
--	res = twl4030_rtc_write_u8(rd_reg | BIT_RTC_STATUS_REG_ALARM_M,
-+	res = twl_rtc_write_u8(rd_reg | BIT_RTC_STATUS_REG_ALARM_M,
- 				   REG_RTC_STATUS_REG);
- 	if (res)
- 		goto out;
- 
- 	/* Clear on Read enabled. RTC_IT bit of TWL4030_INT_PWR_ISR1
- 	 * needs 2 reads to clear the interrupt. One read is done in
--	 * do_twl4030_pwrirq(). Doing the second read, to clear
-+	 * do_twl_pwrirq(). Doing the second read, to clear
- 	 * the bit.
- 	 *
- 	 * FIXME the reason PWR_ISR1 needs an extra read is that
-@@ -363,7 +363,7 @@ static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
- 	 * risk wrongly clearing status for some other IRQ (losing
- 	 * the interrupt).  Be smarter about handling RTC_UF ...
- 	 */
--	res = twl_i2c_read_u8(TWL4030_MODULE_INT,
-+	res = twl_i2c_read_u8(TWL_MODULE_INT,
- 			&rd_reg, TWL4030_INT_PWR_ISR1);
- 	if (res)
- 		goto out;
-@@ -376,18 +376,18 @@ out:
- 	return ret;
- }
- 
--static struct rtc_class_ops twl4030_rtc_ops = {
--	.read_time	= twl4030_rtc_read_time,
--	.set_time	= twl4030_rtc_set_time,
--	.read_alarm	= twl4030_rtc_read_alarm,
--	.set_alarm	= twl4030_rtc_set_alarm,
--	.alarm_irq_enable = twl4030_rtc_alarm_irq_enable,
--	.update_irq_enable = twl4030_rtc_update_irq_enable,
-+static struct rtc_class_ops twl_rtc_ops = {
-+	.read_time	= twl_rtc_read_time,
-+	.set_time	= twl_rtc_set_time,
-+	.read_alarm	= twl_rtc_read_alarm,
-+	.set_alarm	= twl_rtc_set_alarm,
-+	.alarm_irq_enable = twl_rtc_alarm_irq_enable,
-+	.update_irq_enable = twl_rtc_update_irq_enable,
- };
- 
- /*----------------------------------------------------------------------*/
- 
--static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
-+static int __devinit twl_rtc_probe(struct platform_device *pdev)
- {
- 	struct rtc_device *rtc;
- 	int ret = 0;
-@@ -398,7 +398,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 
- 	rtc = rtc_device_register(pdev->name,
--				  &pdev->dev, &twl4030_rtc_ops, THIS_MODULE);
-+				  &pdev->dev, &twl_rtc_ops, THIS_MODULE);
- 	if (IS_ERR(rtc)) {
- 		ret = PTR_ERR(rtc);
- 		dev_err(&pdev->dev, "can't register RTC device, err %ld\n",
-@@ -409,7 +409,7 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 
- 	platform_set_drvdata(pdev, rtc);
- 
--	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
-+	ret = twl_rtc_read_u8(&rd_reg, REG_RTC_STATUS_REG);
- 	if (ret < 0)
- 		goto out1;
- 
-@@ -420,11 +420,11 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 		dev_warn(&pdev->dev, "Pending Alarm interrupt detected.\n");
- 
- 	/* Clear RTC Power up reset and pending alarm interrupts */
--	ret = twl4030_rtc_write_u8(rd_reg, REG_RTC_STATUS_REG);
-+	ret = twl_rtc_write_u8(rd_reg, REG_RTC_STATUS_REG);
- 	if (ret < 0)
- 		goto out1;
- 
--	ret = request_irq(irq, twl4030_rtc_interrupt,
-+	ret = request_irq(irq, twl_rtc_interrupt,
- 				IRQF_TRIGGER_RISING,
- 				dev_name(&rtc->dev), rtc);
- 	if (ret < 0) {
-@@ -433,20 +433,20 @@ static int __devinit twl4030_rtc_probe(struct platform_device *pdev)
- 	}
- 
- 	/* Check RTC module status, Enable if it is off */
--	ret = twl4030_rtc_read_u8(&rd_reg, REG_RTC_CTRL_REG);
-+	ret = twl_rtc_read_u8(&rd_reg, REG_RTC_CTRL_REG);
- 	if (ret < 0)
- 		goto out2;
- 
- 	if (!(rd_reg & BIT_RTC_CTRL_REG_STOP_RTC_M)) {
- 		dev_info(&pdev->dev, "Enabling TWL4030-RTC.\n");
- 		rd_reg = BIT_RTC_CTRL_REG_STOP_RTC_M;
--		ret = twl4030_rtc_write_u8(rd_reg, REG_RTC_CTRL_REG);
-+		ret = twl_rtc_write_u8(rd_reg, REG_RTC_CTRL_REG);
- 		if (ret < 0)
- 			goto out2;
- 	}
- 
- 	/* init cached IRQ enable bits */
--	ret = twl4030_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
-+	ret = twl_rtc_read_u8(&rtc_irq_bits, REG_RTC_INTERRUPTS_REG);
- 	if (ret < 0)
- 		goto out2;
- 
-@@ -464,7 +464,7 @@ out0:
-  * Disable all TWL4030 RTC module interrupts.
-  * Sets status flag to free.
-  */
--static int __devexit twl4030_rtc_remove(struct platform_device *pdev)
-+static int __devexit twl_rtc_remove(struct platform_device *pdev)
- {
- 	/* leave rtc running, but disable irqs */
- 	struct rtc_device *rtc = platform_get_drvdata(pdev);
-@@ -480,7 +480,7 @@ static int __devexit twl4030_rtc_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--static void twl4030_rtc_shutdown(struct platform_device *pdev)
-+static void twl_rtc_shutdown(struct platform_device *pdev)
- {
- 	/* mask timer interrupts, but leave alarm interrupts on to enable
- 	   power-on when alarm is triggered */
-@@ -491,7 +491,7 @@ static void twl4030_rtc_shutdown(struct platform_device *pdev)
- 
- static unsigned char irqstat;
- 
--static int twl4030_rtc_suspend(struct platform_device *pdev, pm_message_t state)
-+static int twl_rtc_suspend(struct platform_device *pdev, pm_message_t state)
- {
- 	irqstat = rtc_irq_bits;
- 
-@@ -499,42 +499,42 @@ static int twl4030_rtc_suspend(struct platform_device *pdev, pm_message_t state)
- 	return 0;
- }
- 
--static int twl4030_rtc_resume(struct platform_device *pdev)
-+static int twl_rtc_resume(struct platform_device *pdev)
- {
- 	set_rtc_irq_bit(irqstat);
- 	return 0;
- }
- 
- #else
--#define twl4030_rtc_suspend NULL
--#define twl4030_rtc_resume  NULL
-+#define twl_rtc_suspend NULL
-+#define twl_rtc_resume  NULL
- #endif
- 
--MODULE_ALIAS("platform:twl4030_rtc");
-+MODULE_ALIAS("platform:twl_rtc");
- 
- static struct platform_driver twl4030rtc_driver = {
--	.probe		= twl4030_rtc_probe,
--	.remove		= __devexit_p(twl4030_rtc_remove),
--	.shutdown	= twl4030_rtc_shutdown,
--	.suspend	= twl4030_rtc_suspend,
--	.resume		= twl4030_rtc_resume,
-+	.probe		= twl_rtc_probe,
-+	.remove		= __devexit_p(twl_rtc_remove),
-+	.shutdown	= twl_rtc_shutdown,
-+	.suspend	= twl_rtc_suspend,
-+	.resume		= twl_rtc_resume,
- 	.driver		= {
- 		.owner	= THIS_MODULE,
--		.name	= "twl4030_rtc",
-+		.name	= "twl_rtc",
- 	},
- };
- 
--static int __init twl4030_rtc_init(void)
-+static int __init twl_rtc_init(void)
- {
- 	return platform_driver_register(&twl4030rtc_driver);
- }
--module_init(twl4030_rtc_init);
-+module_init(twl_rtc_init);
- 
--static void __exit twl4030_rtc_exit(void)
-+static void __exit twl_rtc_exit(void)
- {
- 	platform_driver_unregister(&twl4030rtc_driver);
- }
--module_exit(twl4030_rtc_exit);
-+module_exit(twl_rtc_exit);
- 
- MODULE_AUTHOR("Texas Instruments, MontaVista Software");
- MODULE_LICENSE("GPL");
--- 
-1.5.4.7
+            [PATCH 1/4] ARM: OMAP: Rename twl4030* driver files to enable re-use
+            [PATCH 2/4] ARM: OMAP: Rename all twl4030_i2c*.
+            [PATCH 3/4] ARM: OMAP: Rename twl4030_ in rtc-twl.c to make it generic twl rtc
+            [PATCH 4/4] Rename twl4030_ to twl_ in twl-regulator.c to make it generic twl reg
 
+Below files needs updates/investigation for the possible re-use:
+drivers/gpio/twl4030-gpio.c
+drivers/usb/otg/twl4030-usb.c
+drivers/input/misc/twl4030-pwrbutton.c
+arch/arm/mach-omap2/board-rx51-peripherals.c
+arch/arm/mach-omap2/board-omap3evm.c
+
+Please provide your feedback on this patch series.
+
+Thanks !!
+Balaji T K
