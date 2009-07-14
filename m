@@ -1,58 +1,46 @@
 From: Eino-Ville Talvala <talvala@stanford.edu>
-Subject: Re: Problems configuring OMAP35x ISP driver
-Date: Tue, 14 Jul 2009 10:24:13 -0700
-Message-ID: <4A5CBF3D.80002@stanford.edu>
-References: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com>
+Subject: bitsperlong.h missing in asm-arm?
+Date: Tue, 14 Jul 2009 11:38:31 -0700
+Message-ID: <4A5CD0A7.5030608@stanford.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp3.Stanford.EDU ([171.67.219.83]:58073 "EHLO
-	smtp3.stanford.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752103AbZGNRcw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 13:32:52 -0400
-In-Reply-To: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com>
+Received: from smtp1.Stanford.EDU ([171.67.219.81]:41655 "EHLO
+	smtp1.stanford.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755590AbZGNSie (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 14:38:34 -0400
+Received: from smtp1.stanford.edu (localhost.localdomain [127.0.0.1])
+	by localhost (Postfix) with SMTP id 7132E178AFF
+	for <linux-omap@vger.kernel.org>; Tue, 14 Jul 2009 11:38:34 -0700 (PDT)
+Received: from [172.27.76.160] (blur.Stanford.EDU [172.27.76.160])
+	by smtp1.stanford.edu (Postfix) with ESMTP id 51AEA178836
+	for <linux-omap@vger.kernel.org>; Tue, 14 Jul 2009 11:38:32 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Zach LeRoy <zleroy@rii.ricoh.com>
-Cc: "Aguirre Rodriguez, Sergio" <saaguirre@ti.com>, linux-media <linux-media@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Zach,
+Hi,
 
-We've gotten a Aptina MT9P031 driver working with the latest ISP 
-patchset, both with YUV and RAW data.
-I don't know what the problem might be with YUYV data - we get useful 
-YUYV data without any changes to the ISP defaults.
-However, to request RAW data, that simply uses the CCDC and bypasses all 
-the processing in the ISP, request the pixelformat of 
-V4L2_PIX_FMT_SGRBG10.  This will give you two bytes per pixel, at least 
-in our case (although we have a 12-bit sensor cut down to 10 bits), so 
-be prepared to throw out every other byte.
+I'm not at all familiar with the way the asm-* include directories are 
+handled, but with the current linux-omap tree, I'm getting a user-space 
+compilation error with the CodeSourcery 2009q1 release:
 
-Hope this helps,
+In file included from 
+/CodeSourcery/arm-gcc-2009q1/bin/../arm-none-linux-gnueabi/libc/usr/include/asm/types.h:
+linux-omap-2.6/include/asm-generic/int-ll64.h:11:29: error: 
+asm/bitsperlong.h: No such file or directory
 
-Eino-Ville (Eddy) Talvala
+It doesn't look like just a CodeSourcery issue, since the missing 
+reference is actually in asm-generic/int-ll64.h.
+
+Am I doing something incorrect, or is something missing in 
+include/asm-arm  ?
+
+Thanks,
+
+Eddy Talvala
 Computer Graphics Lab
 Stanford University
 
-On 7/14/2009 9:49 AM, Zach LeRoy wrote:
-> Hello Sergio,
->
-> I spoke with you earlier about using the ISP and omap34xxcam drivers with a micron mt9d111 SOC sensor.  I have since been able to take pictures, but the sensor data is not making it through the ISP data-path correctly.  I know the problem is in the ISP data-path because I am configuring the sensor the exact same way as I have been on my working PXA system.  I am expecting 4:2:2 packed YUV data, but all of the U and V data is no more than 2 bits where it should be 8.  I know the ISP has a lot of capabilities, but all I want to use it for is grabbing 8-bit data from my sensor and putting it in a buffer untouched using the CCDC interface (and of course clocking and timing).  What are the key steps to take to get this type of configuration?
->
-> Other Questions:
->
-> Is there any processing done on YUV data in the ISP driver by default that I am missing?
-> Has any one else experienced similar problems while adding new sensor support?
->
-> Any help here would be greatly appreciated.
->
-> Thank you,
->
-> Zach LeRoy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->    
 
