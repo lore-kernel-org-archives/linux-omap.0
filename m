@@ -1,39 +1,71 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: N8x0 to mainline patches
-Date: Tue, 14 Jul 2009 08:10:22 +0300
-Message-ID: <87my776e9t.fsf@litku.valot.fi>
-References: <200907130950.09887.luke@dashjr.org>
+From: venkat <venkat.raju@embinux.com>
+Subject: Updating the gitignore to ignore include/asm-arm/mach-types.h
+Date: Tue, 14 Jul 2009 11:46:20 +0530
+Message-ID: <4A5C22B4.5000806@embinux.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------060400030103070903060101"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f228.google.com ([209.85.218.228]:46154 "EHLO
-	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753423AbZGNFK0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 01:10:26 -0400
-Received: by bwz28 with SMTP id 28so558546bwz.37
-        for <linux-omap@vger.kernel.org>; Mon, 13 Jul 2009 22:10:24 -0700 (PDT)
-In-Reply-To: <200907130950.09887.luke@dashjr.org> (Luke-Jr's message of "Mon\, 13 Jul 2009 09\:49\:55 -0500")
+Received: from 59.160.172.216.static.vsnl.net.in ([59.160.172.216]:52174 "EHLO
+	collab.embinux.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1753449AbZGNGXI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 02:23:08 -0400
+Received: from ws124.idc.embinux.org (localhost [127.0.0.1])
+	by collab.embinux.com (Postfix) with ESMTP id ABE61A988A3
+	for <linux-omap@vger.kernel.org>; Tue, 14 Jul 2009 11:43:23 +0530 (IST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Luke-Jr <luke@dashjr.org>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-"Luke-Jr" <luke@dashjr.org> writes:
+This is a multi-part message in MIME format.
+--------------060400030103070903060101
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I noticed that the patch adding board-n8x0.c seems to be much smaller
-> than the older one used in Linux-OMAP. In particular, it lacks the
-> keymaps and such. Are those somewhere else now?
+Hi  All,
 
-It's just not implemented yet. If you look at the plan, you see lots of
-things we need to implement:
+ Found that "include/asm-arm/mach-types.h" was generating after 
+compilation which needs to be ignored by git.  Attached patch simply add 
+this file to gitignore.
 
-http://www.elinux.org/N800#The_Plan
 
-> Was the Linux-OMAP keyboard bug taken into consideration for the new
-> keyboard config struct?
+Regards,
+Venkat.
 
-I'm not familiar with the issue. But if it makes sense, sure, we want to
-include the fix.
+--------------060400030103070903060101
+Content-Type: text/x-patch;
+ name="Updating-the-gitignore-to-ignore-include-asm-arm-mac.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="Updating-the-gitignore-to-ignore-include-asm-arm-mac.patch"
 
+>From c1ac3148d1352716216dc020a584a0085bd3667b Mon Sep 17 00:00:00 2001
+From: Venkat Raju <venkat.raju@embinux.com>
+Date: Tue, 14 Jul 2009 10:10:30 +0530
+Subject: [PATCH] Updating the gitignore to ignore include/asm-arm/mach-types.h
+
+This file was genarating after compilation and was showing as
+untracked file.
+
+Signed-off-by: Venkat Raju <venkat.raju@embinux.com>
+---
+ .gitignore |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/.gitignore b/.gitignore
+index 51bd99d..d4928fc 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -43,6 +43,7 @@ Module.symvers
+ #
+ include/asm
+ include/asm-*/asm-offsets.h
++include/asm-arm/mach-types.h
+ include/config
+ include/linux/autoconf.h
+ include/linux/compile.h
 -- 
-Kalle Valo
+1.5.3.3
+
+
+--------------060400030103070903060101--
