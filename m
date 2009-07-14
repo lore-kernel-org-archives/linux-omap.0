@@ -1,153 +1,68 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: move context-loss counting into OMAP PM
-Date: Tue, 14 Jul 2009 14:46:42 -0700
-Message-ID: <878wir9bul.fsf@deeprootsystems.com>
-References: <1247078065-348-1-git-send-email-khilman@deeprootsystems.com>
-	<005701ca04b8$27f39990$544ff780@am.dhcp.ti.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH 2/3] [OMAP:I2C]In case of a NACK|ARDY|AL return from the
+ ISR
+Date: Tue, 14 Jul 2009 17:21:57 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C011E5ED9E0@dlee02.ent.ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFA@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:29357 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752361AbZGNVqp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 17:46:45 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so1093634wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 14 Jul 2009 14:46:44 -0700 (PDT)
-In-Reply-To: <005701ca04b8$27f39990$544ff780@am.dhcp.ti.com> (Madhusudhan's message of "Tue\, 14 Jul 2009 14\:20\:32 -0500")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37505 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755791AbZGNWWG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 18:22:06 -0400
+In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202957C7AFA@dlee06.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: linux-omap@vger.kernel.org, 'Rajendra Nayak' <rnayak@ti.com>, 'Peter 'p2' De Schrijver' <peter.de-schrijver@nokia.com>
+To: "Sonasath, Moiz" <m-sonasath@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-"Madhusudhan" <madhu.cr@ti.com> writes:
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Sonasath, Moiz
+> Sent: Tuesday, July 14, 2009 4:20 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Kamat, Nishant; Paul Walmsley
+> Subject: [PATCH 2/3] [OMAP:I2C]In case of a NACK|ARDY|AL return from the
+> ISR
+> 
+> 
+> In case of a NACK or ARDY or AL interrupt, complete the request.
+> There is no need to service the RRDY/RDR or XRDY/XDR interrupts.
+> 
+> Refer TRM SWPU114: Figure 18-31.I2C Master Transmitter Mode, Interrupt
+> Method,
+> in F/S and HS Modes
+> 
+> http://focus.ti.com/pdfs/wtbu/SWPU114T_PrelimFinalEPDF_06_25_2009.pdf
+> 
+> Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
+> Signed-off-by: Vikram Pandita<vikram.pandita@ti.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index d280acf..05b5e4c 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -685,8 +685,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
+>  			err |= OMAP_I2C_STAT_AL;
+>  		}
+>  		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
+> -					OMAP_I2C_STAT_AL))
+> +					OMAP_I2C_STAT_AL)) {
+>  			omap_i2c_complete_cmd(dev, err);
+> +			return IRQ_HANDLED;
+> +		}
+What is the status of IRQ_STAT register? Who will clear that if we return immediately from ISR? Isr will be reinvoked and we'd handle the same anyways..
 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Kevin Hilman
->> Sent: Wednesday, July 08, 2009 1:34 PM
->> To: linux-omap@vger.kernel.org
->> Cc: Rajendra Nayak; Peter 'p2' De Schrijver
->> Subject: [PATCH] OMAP3: PM: move context-loss counting into OMAP PM
->> 
->> From: Rajendra Nayak <rnayak@ti.com>
->> 
->> Drop get_last_off_on_transaction_id() and move functionality
->> into OMAP PM layer.
->> 
->> For SRF, use omapdev** to get powerdomain state counte
->> for NOOP, use an increasing counter to ensure context is always restord.
->> 
->> **NOTE: in future PM branch, this omapdev functinality will be replaced
->>         by omap_hwmod.  Thus, context loss counting will only exist
->>         for modules with omap_hwmod implementations.
->> 
->> Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->> Applies to current PM branch and pm-2.6.29
->> 
->>  arch/arm/mach-omap2/pm.c          |   16 ----------------
->>  arch/arm/plat-omap/omap-pm-noop.c |    7 ++++++-
->>  arch/arm/plat-omap/omap-pm-srf.c  |   11 +++++++++++
->>  3 files changed, 17 insertions(+), 17 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
->> index 1192e01..fec7d00 100644
->> --- a/arch/arm/mach-omap2/pm.c
->> +++ b/arch/arm/mach-omap2/pm.c
->> @@ -31,7 +31,6 @@
->>  #include <asm/atomic.h>
->> 
->>  #include <mach/powerdomain.h>
->> -#include <mach/omapdev.h>
->>  #include <mach/resource.h>
->>  #include <mach/omap34xx.h>
->> 
->> @@ -221,21 +220,6 @@ void omap2_allow_sleep(void)
->>  	BUG_ON(i < 0);
->>  }
->> 
->> -unsigned get_last_off_on_transaction_id(struct device *dev)
->> -{
->> -	struct platform_device *pdev = to_platform_device(dev);
->> -	struct omapdev *odev = omapdev_find_pdev(pdev);
->> -	struct powerdomain *pwrdm;
->> -
->> -	if (odev) {
->> -		pwrdm = omapdev_get_pwrdm(odev);
->> -		if (pwrdm)
->> -			return pwrdm->state_counter[0];
->> -	}
->> -
->> -	return 0;
->> -}
->> -
->>  static int __init omap_pm_init(void)
->>  {
->>  	int error = -1;
->> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-
->> pm-noop.c
->> index 4ba261a..07b208b 100644
->> --- a/arch/arm/plat-omap/omap-pm-noop.c
->> +++ b/arch/arm/plat-omap/omap-pm-noop.c
->> @@ -277,6 +277,8 @@ unsigned long omap_pm_cpu_get_freq(void)
->> 
->>  int omap_pm_get_dev_context_loss_count(struct device *dev)
->>  {
->> +	static u32 counter = 0;
->> +
->>  	if (!dev) {
->>  		WARN_ON(1);
->>  		return -EINVAL;
->> @@ -290,7 +292,10 @@ int omap_pm_get_dev_context_loss_count(struct device
->> *dev)
->>  	 * off counter.
->>  	 */
->> 
->> -	return 0;
->> +	/* For the noop case, we cannot know the off counter, so
->> +	 * return an increasing counter which will ensure that
->> +	 * context is always restored. */
->> +	return counter++;
->>  }
->> 
->>  /*
->> diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-
->> pm-srf.c
->> index 226662d..cac08e4 100644
->> --- a/arch/arm/plat-omap/omap-pm-srf.c
->> +++ b/arch/arm/plat-omap/omap-pm-srf.c
->> @@ -276,6 +276,10 @@ EXPORT_SYMBOL(omap_pm_cpu_get_freq);
->> 
->>  int omap_pm_get_dev_context_loss_count(struct device *dev)
->>  {
->> +	struct platform_device *pdev;
->> +	struct omapdev *odev;
->> +	struct powerdomain *pwrdm;
->> +
->>  	if (!dev) {
->>  		WARN_ON(1);
->>  		return -EINVAL;
->> @@ -288,7 +292,14 @@ int omap_pm_get_dev_context_loss_count(struct device
->> *dev)
->>  	 * Map the device to the powerdomain.  Return the powerdomain
->>  	 * off counter.
->>  	 */
->> +	pdev = to_platform_device(dev);
->> +	odev = omapdev_find_pdev(pdev);
->> 
->> +	if (odev) {
->> +		pwrdm = omapdev_get_pwrdm(odev);
->> +		if (pwrdm)
->> +			return pwrdm->state_counter[0];
-> The state_counter is unsigned and the return type of this fn does not match.
+I think this conflicts with [1]
 
-Good catch.
+Regards,
+Nishanth Menon
 
-> How is the overflow handled for state_counter? Once the OFF mode count
-> increases to 65535 there could be a overflow here.
-
-And overflow doesn't matter.  Drivers should simply be checking for
-current state != previous state.
-
-Kevin
+Ref:
+[1] http://patchwork.kernel.org/patch/32332/
