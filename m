@@ -1,98 +1,496 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/4] DSPBRIDGE: Fix macros that break when inside an
- if/else
-Date: Tue, 14 Jul 2009 23:22:45 +0300 (EEST)
-Message-ID: <20090714.232245.246532819.Hiroshi.DOYU@nokia.com>
-References: <1247570430.13580.16.camel@pcarmody-desktop>
-	<20090714.153035.258117413.Hiroshi.DOYU@nokia.com>
-	<1247577445.13580.47.camel@pcarmody-desktop>
+From: John Sarman <johnsarman@gmail.com>
+Subject: Re: Problems configuring OMAP35x ISP driver
+Date: Tue, 14 Jul 2009 16:51:04 -0400
+Message-ID: <bb2708720907141351o585bc140r2bf2e3abbe71a526@mail.gmail.com>
+References: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com>
+	 <4A5CBF3D.80002@stanford.edu>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Tue_Jul_14_23_22_45_2009_641)--"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:32895 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753896AbZGNUX0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 16:23:26 -0400
-In-Reply-To: <1247577445.13580.47.camel@pcarmody-desktop>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <4A5CBF3D.80002@stanford.edu>
+Sender: linux-media-owner@vger.kernel.org
+To: Eino-Ville Talvala <talvala@stanford.edu>
+Cc: Zach LeRoy <zleroy@rii.ricoh.com>, "Aguirre Rodriguez, Sergio" <saaguirre@ti.com>, linux-media <linux-media@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext-phil.2.carmody@nokia.com
-Cc: nm@ti.com, x0095840@ti.com, ameya.palande@nokia.com, linux-omap@vger.kernel.org, h-kanigeri2@ti.com
 
-----Next_Part(Tue_Jul_14_23_22_45_2009_641)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Eddy and anyone who may be able to help,
+=A0 I am currently working on an Omnivision OV5620 and have used the
+ov3640 driver as a starting point.=A0 I have the June 18( latest ? )
+code from the gitorious git repo.=A0 I have thouroughly tested my i2c
+driver setup using a 500 Mhz oscilloscope and have configured the
+sensor to 640 x 480.=A0 The only mode this supports is RAW
+V4L2_PIX_FMT_SGRBG10 and I have that as the only available format.=A0 S=
+o
+far so good.=A0 Sensor powers, configures etc, etc.=A0 However when I r=
+un
+the sensor I get ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+To test this I used the example code provided with v4l2 documentation.
+ I have attached a complete log with all my added printk's set up as a
+poor mans stacktrace.
 
-From: "Carmody Phil.2 (EXT-Ixonos/Helsinki)" <ext-phil.2.carmody@nokia.com>
-Subject: Re: [PATCH 1/4] DSPBRIDGE: Fix macros that break when inside an if/else
-Date: Tue, 14 Jul 2009 15:17:25 +0200
+Stuck trying to determine where to go from here, I feel like I am so
+close to getting an image.
 
-[...]
-> > I am not sure if these copy_from_user() wrapping are practically
-> > useful or not. It may be enough just to use kernel API as is. But if
-> > there are some reason to requires strict parameter checkings or
-> > debugging feature support for these family here, introducing inline
-> > functions for them, instead of macro, may be another option?
-> 
-> I did mention that possibility to Ameya. In the 21st century, I think we
-> should be able to trust the compiler to generate identical code from
-> inline functions as functional macros. (Are we allowed to use 'restrict'
-> pointers?)
+Thanks,
+John Sarman
 
-I tried to create the attached patch.
+v4l2_open
+omap34xx: Opening device
+isp_get
+ISPCTRL: isp_get: old 0
+isp_enable_clocks
+isp_restore_ctx
+isp_restore_context
+isp_restore_context
+iommu_restore_ctx
+ISPHIST:  Restoring context
+isp_restore_context
+ISPH3A:  Restoring context
+isp_restore_context
+isp_restore_context
+ISPRESZ: Restoring context
+isp_restore_context
+ISPCTRL: isp_get: new 1
+omap34xxcam_slave_power_set
+OV5620: ioctl_s_power
+isp_set_xclk
+isp_reg_and_or
+ISPCTRL: isp_set_xclk(): cam_xclka set to 24000000 Hz
+BOARD_OVERO_CAMERA: Switching Power to 1
+OV5620: POWER ON
+isp_configure_interface
+isp_buf_init
+OV5620: Sensor Detected, calling configure
+ov5620:configure
+omap34xxcam_slave_power_set
+OV5620: ioctl_s_power
+BOARD_OVERO_CAMERA: Switching Power to 2
+OV5620: POWER STANDBY
+isp_set_xclk
+isp_reg_and_or
+ISPCTRL: isp_set_xclk(): cam_xclka set to 0 Hz
+OV5620: ioctl_g_fmt_cap
+omap34xxcam_s_pix_parm
+omap34xxcam_try_pix_parm
+omap34xxcam_try_pix_parm fps =3D 1
+OV5620: ioctl_enum_fmt_cap
+OV5620: ioctl_enum_fmt_cap index 0 type 1
+video4linux video0: trying fmt 30314142 (0)
+OV5620: ioctl_enum_framesizes
+isp_try_fmt_cap
+isp_try_pipeline
+video4linux video0: this w 640	h 480	fmt 30314142	-> w 640	h 480	 fmt
+30314142	wanted w 640	h 480	 fmt 30314142
+video4linux video0: renegotiate: w 640	h 480	w 1073741823	h 1073741823
+OV5620: ioctl_enum_frameintervals
+video4linux video0: fps 60
+the demoninator is 0
+video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 1/60
+OV5620: ioctl_enum_frameintervals
+video4linux video0: fps 30
+video4linux video0: closer fps: fps 29	 fps 59
+video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 1/30
+OV5620: ioctl_enum_frameintervals
+video4linux video0: fps 7
+video4linux video0: closer fps: fps 6	 fps 29
+video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 2/15
+OV5620: ioctl_enum_frameintervals
+OV5620: ioctl_enum_framesizes
+isp_try_fmt_cap
+isp_try_pipeline
+video4linux video0: this w 1280	h 960	fmt 30314142	-> w 1280	h 960=09
+fmt 30314142	wanted w 640	h 480	 fmt 30314142
+video4linux video0: size diff bigger: w 1280	h 960	w 640	h 480
+OV5620: ioctl_enum_framesizes
+OV5620: ioctl_enum_fmt_cap
+OV5620: ioctl_enum_fmt_cap index 1 type 1
+video4linux video0: w 640, h 480, fmt 30314142 -> w 640, h 480
+video4linux video0: Wanted w 640, h 480, fmt 30314142
+omap34xxcam_s_pix_parm 1 0
+isp_s_fmt_cap
+isp_s_pipeline
+isp_release_resources
+isp_try_pipeline
+isp_reg_or
+isp_reg_or
+isp_reg_and_or
+isp_reg_and_or
+isp_reg_and
+isp_print_status
+ISPCTRL: ###ISP_CTRL=3D0x29c140
+ISPCTRL: ###ISP_TCTRL_CTRL=3D0x0
+ISPCTRL: ###ISP_SYSCONFIG=3D0x2000
+ISPCTRL: ###ISP_SYSSTATUS=3D0x1
+ISPCTRL: ###ISP_IRQ0ENABLE=3D0x0
+ISPCTRL: ###ISP_IRQ0STATUS=3D0x80000000
+isp_reg_and
+isp_reg_and
+isp_reg_and
+omap34xxcam_s_pix_parm 2 0
+OV5620: ioctl_g_fmt_cap
+OV5620: ioctl_s_fmt_cap
+OV5620: ioctl_try_fmt_cap
+OV5620: ioctl_try_fmt_cap WIDTH =3D 640
+OV5620: ioctl_try_fmt_cap HEIGHT =3D 480
+omap34xxcam_s_pix_parm 3 0
+OV5620: ioctl_s_parm
+OV5620 desired_fps =3D 7
+omap34xxcam_s_pix_parm 4 0
+omap34xx: Opened device
+video_do_ioctl
+omap34xxcam_vidioc_querycap
+video_do_ioctl
+omap34xxcam_cropcap
+OV5620: ioctl_g_fmt_cap
+video_do_ioctl
+omap34xxcam_vidioc_s_crop
+isp_s_crop
+video_do_ioctl
+omap34xxcam_vidioc_s_fmt_vid_cap
+omap34xxcam_s_pix_parm
+omap34xxcam_try_pix_parm
+omap34xxcam_try_pix_parm fps =3D 1
+OV5620: ioctl_enum_fmt_cap
+OV5620: ioctl_enum_fmt_cap index 0 type 1
+video4linux video0: trying fmt 30314142 (0)
+OV5620: ioctl_enum_framesizes
+isp_try_fmt_cap
+isp_try_pipeline
+video4linux video0: this w 640	h 480	fmt 30314142	-> w 640	h 480	 fmt
+56595559	wanted w 640	h 480	 fmt 56595559
+video4linux video0: renegotiate: w 640	h 480	w 1073741823	h 1073741823
+OV5620: ioctl_enum_frameintervals
+video4linux video0: fps 60
+the demoninator is 0
+video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 1/60
+OV5620: ioctl_enum_frameintervals
+video4linux video0: fps 30
+video4linux video0: closer fps: fps 29	 fps 59
+video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 1/30
+OV5620: ioctl_enum_frameintervals
+video4linux video0: fps 7
+video4linux video0: closer fps: fps 6	 fps 29
+video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 2/15
+OV5620: ioctl_enum_frameintervals
+OV5620: ioctl_enum_framesizes
+isp_try_fmt_cap
+isp_try_pipeline
+video4linux video0: this w 1280	h 960	fmt 30314142	-> w 640	h 480	 fmt
+56595559	wanted w 640	h 480	 fmt 56595559
+OV5620: ioctl_enum_frameintervals
+video4linux video0: fps 60
+video4linux video0: falling through
+OV5620: ioctl_enum_frameintervals
+OV5620: ioctl_enum_framesizes
+OV5620: ioctl_enum_fmt_cap
+OV5620: ioctl_enum_fmt_cap index 1 type 1
+video4linux video0: w 640, h 480, fmt 30314142 -> w 640, h 480
+video4linux video0: Wanted w 640, h 480, fmt 30314142
+omap34xxcam_s_pix_parm 1 0
+isp_s_fmt_cap
+isp_s_pipeline
+isp_release_resources
+isp_reg_and
+isp_try_pipeline
+isp_reg_or
+isp_reg_or
+isp_reg_and_or
+isp_reg_and
+isp_print_status
+ISPCTRL: ###ISP_CTRL=3D0x29c140
+ISPCTRL: ###ISP_TCTRL_CTRL=3D0x0
+ISPCTRL: ###ISP_SYSCONFIG=3D0x2000
+ISPCTRL: ###ISP_SYSSTATUS=3D0x1
+ISPCTRL: ###ISP_IRQ0ENABLE=3D0x0
+ISPCTRL: ###ISP_IRQ0STATUS=3D0x80000000
+isp_reg_and
+isp_reg_or
+isp_reg_and_or
+isp_reg_or
+isp_reg_and
+isp_reg_and
+isp_reg_or
+isp_reg_or
+isp_reg_or
+isp_reg_and
+ISPRESZ: ispresizer_config_datapath()+
+isp_reg_or
+ISPRESZ: ispresizer_config_ycpos()+
+isp_reg_and_or
+ISPRESZ: ispresizer_config_ycpos()-
+ISPRESZ: ispresizer_config_filter_coef()+
+ISPRESZ: ispresizer_config_filter_coef()-
+ISPRESZ: ispresizer_enable_cbilin()+
+isp_reg_and_or
+ISPRESZ: ispresizer_enable_cbilin()-
+ISPRESZ: ispresizer_config_luma_enhance()+
+ISPRESZ: ispresizer_config_luma_enhance()-
+ISPRESZ: ispresizer_config_datapath()-
+ISPRESZ: ispresizer_config_inlineoffset()+
+ISPRESZ: ispresizer_config_inlineoffset()-
+ISPRESZ: ispresizer_set_inaddr()+
+ISPRESZ: ispresizer_set_inaddr()-
+ISPRESZ: ispresizer_config_outlineoffset()+
+ISPRESZ: ispresizer_config_outlineoffset()-
+ISPRESZ: ispresizer_config_ycpos()+
+isp_reg_and_or
+ISPRESZ: ispresizer_config_ycpos()-
+ISPRESZ: ispresizer_config_size()-
+omap34xxcam_s_pix_parm 2 0
+OV5620: ioctl_g_fmt_cap
+OV5620: ioctl_s_fmt_cap
+OV5620: ioctl_try_fmt_cap
+OV5620: ioctl_try_fmt_cap WIDTH =3D 640
+OV5620: ioctl_try_fmt_cap HEIGHT =3D 480
+omap34xxcam_s_pix_parm 3 0
+OV5620: ioctl_s_parm
+OV5620 desired_fps =3D 7
+omap34xxcam_s_pix_parm 4 0
+video_do_ioctl
+omap34xxcam_vidioc_reqbufs
+omap34xxcam_vbq_setup
+SETTING UP with SIZEIMAGE =3D 614400
+isp_vbq_setup
+isp_tmp_buf_alloc
+isp_tmp_buf_free
+ISPRESZ: ispresizer_set_inaddr()+
+ISPRESZ: ispresizer_set_inaddr()-
+video_do_ioctl
+omap34xxcam_vidioc_querybuf
+omap34xxcam_mmap
+video_do_ioctl
+omap34xxcam_vidioc_querybuf
+omap34xxcam_mmap
+video_do_ioctl
+omap34xxcam_vidioc_querybuf
+omap34xxcam_mmap
+video_do_ioctl
+omap34xxcam_vidioc_querybuf
+omap34xxcam_mmap
+video_do_ioctl
+omap34xxcam_vidioc_qbuf
+omap34xxcam_vbq_prepare
+isp_vbq_prepare
+isp_ispmmu_vmap
+video_do_ioctl
+omap34xxcam_vidioc_qbuf
+omap34xxcam_vbq_prepare
+isp_vbq_prepare
+isp_ispmmu_vmap
+video_do_ioctl
+omap34xxcam_vidioc_qbuf
+omap34xxcam_vbq_prepare
+isp_vbq_prepare
+isp_ispmmu_vmap
+video_do_ioctl
+omap34xxcam_vidioc_qbuf
+omap34xxcam_vbq_prepare
+isp_vbq_prepare
+isp_ispmmu_vmap
+video_do_ioctl
+omap34xxcam_vidioc_streamon
+omap34xxcam_slave_power_set
+OV5620: ioctl_s_power
+isp_set_xclk
+isp_reg_and_or
+ISPCTRL: isp_set_xclk(): cam_xclka set to 24000000 Hz
+BOARD_OVERO_CAMERA: Switching Power to 1
+OV5620: POWER ON
+OV5620: Sensor Detected, calling configure
+ov5620:configure
+isp_start
+omap34xxcam_vbq_queue
+isp_buf_queue
+isp_vbq_sync
+isp_enable_int
+isp_set_buf
+ISPRESZ: ispresizer_set_outaddr()+
+ISPRESZ: ispresizer_set_outaddr()-
+isp_reg_and_or
+ISPCTRL: <1>isp_buf_queue: queue 0 vb 0, mmu 000a4000
+omap34xxcam_vbq_queue
+isp_buf_queue
+isp_vbq_sync
+ISPCTRL: <1>isp_buf_queue: queue 1 vb 1, mmu 0013a000
+omap34xxcam_vbq_queue
+isp_buf_queue
+isp_vbq_sync
+ISPCTRL: <1>isp_buf_queue: queue 2 vb 2, mmu 001d0000
+omap34xxcam_vbq_queue
+isp_buf_queue
+isp_vbq_sync
+ISPCTRL: <1>isp_buf_queue: queue 3 vb 3, mmu 00266000
+omap34xxcam_poll
+omap34xxcam_poll
+ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+-------!These were repeated several times!----------------------------
+ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+omap34xxcam_poll
+ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+omap34xxcam_vbq_release
+omap34xxcam_vbq_release
+omap34xxcam_vbq_release
+omap34xxcam_vbq_release
+omap34xxcam_release
+isp_stop
+isp_disable_int
+isp_stop_modules
+isp_disable_modules
+ISPH3A:     H3A disabled
+ISPHIST:    histogram disabled
+isp_reg_and_or
+ISPRESZ: +ispresizer_enable()+
+ISPRESZ: +ispresizer_enable()-
+isp_reg_and
+isp_reg_and_or
+omap3isp omap3isp: __isp_disable_modules: can't stop ccdc
+isp_icsi_enable
+isp_reg_and_or
+isp_buf_init
+isp_vbq_sync
+omap34xxcam_vbq_complete
+isp_vbq_sync
+omap34xxcam_vbq_complete
+isp_vbq_sync
+omap34xxcam_vbq_complete
+isp_vbq_sync
+omap34xxcam_vbq_complete
+isp_save_ctx
+isp_save_context
+isp_save_context
+iommu_save_ctx
+ISPHIST:  Saving context
+isp_save_context
+ISPH3A:  Saving context
+isp_save_context
+isp_save_context
+ISPRESZ: Saving context
+isp_save_context
+isp_reset
+isp_restore_ctx
+isp_restore_context
+isp_restore_context
+iommu_restore_ctx
+ISPHIST:  Restoring context
+isp_restore_context
+ISPH3A:  Restoring context
+isp_restore_context
+isp_restore_context
+ISPRESZ: Restoring context
+isp_restore_context
+omap34xxcam_vbq_release
+isp_vbq_release
+isp_vunmap
+omap34xxcam_vbq_release
+isp_vbq_release
+isp_vunmap
+omap34xxcam_vbq_release
+isp_vbq_release
+isp_vunmap
+omap34xxcam_vbq_release
+isp_vbq_release
+isp_vunmap
+omap34xxcam_slave_power_set
+OV5620: ioctl_s_power
+BOARD_OVERO_CAMERA: Switching Power to 2
+OV5620: POWER STANDBY
+isp_set_xclk
+isp_reg_and_or
+ISPCTRL: isp_set_xclk(): cam_xclka set to 0 Hz
+omap34xxcam_slave_power_set
+OV5620: ioctl_s_power
+OV5620: POWER OFF
+BOARD_OVERO_CAMERA: Switching Power to 0
+OV5620: POWER OFF
+isp_set_xclk
+isp_reg_and_or
+ISPCTRL: isp_set_xclk(): cam_xclka set to 0 Hz
+isp_put
+ISPCTRL: isp_put: old 1
+isp_save_ctx
+isp_save_context
+isp_save_context
+iommu_save_ctx
+ISPHIST:  Saving context
+isp_save_context
+ISPH3A:  Saving context
+isp_save_context
+isp_save_context
+ISPRESZ: Saving context
+isp_save_context
+isp_tmp_buf_free
+isp_release_resources
+isp_reg_and
+isp_reg_and
+isp_reg_and
+isp_disable_clocks
+ISPCTRL: isp_put: new 0
 
-----Next_Part(Tue_Jul_14_23_22_45_2009_641)--
-Content-Type: Application/Octet-Stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="0001-DSPBRIDGE-fix-macros-that-break-when-inside-an-if-e.patch"
 
-RnJvbSBhNGE5MzgwZjI1ZThkOTQ0N2MwMmI4MTQ0MGI1OWQ4NzYyOGVlYzE2IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
-CkRhdGU6IFR1ZSwgMTQgSnVsIDIwMDkgMjI6Mjc6NDQgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
-MV0gRFNQQlJJREdFOiBmaXggbWFjcm9zIHRoYXQgYnJlYWsgd2hlbiBpbnNpZGUgYW4gaWYvZWxz
-ZQoKQmFzZWQgb24gdGhlIGZvbGxvd2luZyBkaXNjdXNzaW9uOgogICAgICBodHRwOi8vbWFyYy5p
-bmZvLz9sPWxpbnV4LW9tYXAmbT0xMjQ2OTc4OTM3MjQ4ODEmdz0yCgpTaWduZWQtb2ZmLWJ5OiBI
-aXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+Ci0tLQogZHJpdmVycy9kc3AvYnJp
-ZGdlL3BtZ3Ivd2NkLmMgfCAgIDYwICsrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0t
-LS0tLS0KIDEgZmlsZXMgY2hhbmdlZCwgMzkgaW5zZXJ0aW9ucygrKSwgMjEgZGVsZXRpb25zKC0p
-CgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9kc3AvYnJpZGdlL3BtZ3Ivd2NkLmMgYi9kcml2ZXJzL2Rz
-cC9icmlkZ2UvcG1nci93Y2QuYwppbmRleCA4NjgxMmM2Li40MzA5NjBiIDEwMDY0NAotLS0gYS9k
-cml2ZXJzL2RzcC9icmlkZ2UvcG1nci93Y2QuYworKysgYi9kcml2ZXJzL2RzcC9icmlkZ2UvcG1n
-ci93Y2QuYwpAQCAtMTQ1LDI3ICsxNDUsNDUgQEAKICNkZWZpbmUgTUFYX1NUUkVBTVMgICAgIDE2
-CiAjZGVmaW5lIE1BWF9CVUZTCTY0CiAKLS8qIEZvbGxvd2luZyB0d28gbWFjcm9zIHNob3VsZCBp
-ZGVhbGx5IGhhdmUgZG97fXdoaWxlKDApICovCi0KLSNkZWZpbmUgY3BfZm1fdXNyKGRlc3QsIHNy
-Yywgc3RhdHVzLCBlbGVtZW50cykgICAgXAotICAgIGlmIChEU1BfU1VDQ0VFREVEKHN0YXR1cykp
-IHtcCi0JICAgIGlmICh1bmxpa2VseShzcmMgPT0gTlVMTCkgfHwJCQkJXAotCQl1bmxpa2VseShj
-b3B5X2Zyb21fdXNlcihkZXN0LCBzcmMsIGVsZW1lbnRzICogc2l6ZW9mKCooZGVzdCkpKSkpIHsg
-XAotCQlHVF8xdHJhY2UoV0NEX2RlYnVnTWFzaywgR1RfN0NMQVNTLCBcCi0JCSJjb3B5X2Zyb21f
-dXNlciBmYWlsZWQsIHNyYz0weCV4XG4iLCBzcmMpOyAgXAotCQlzdGF0dXMgPSBEU1BfRVBPSU5U
-RVIgOyBcCi0JfSBcCi0gICAgfQotCi0jZGVmaW5lIGNwX3RvX3VzcihkZXN0LCBzcmMsIHN0YXR1
-cywgZWxlbWVudHMpICAgIFwKLSAgICBpZiAoRFNQX1NVQ0NFRURFRChzdGF0dXMpKSB7XAotCSAg
-ICBpZiAodW5saWtlbHkoZGVzdCA9PSBOVUxMKSB8fAkJCQlcCi0JCXVubGlrZWx5KGNvcHlfdG9f
-dXNlcihkZXN0LCBzcmMsIGVsZW1lbnRzICogc2l6ZW9mKCooc3JjKSkpKSkgeyBcCi0JCUdUXzF0
-cmFjZShXQ0RfZGVidWdNYXNrLCBHVF83Q0xBU1MsIFwKLQkJImNvcHlfdG9fdXNlciBmYWlsZWQs
-IGRlc3Q9MHgleFxuIiwgZGVzdCk7IFwKLQkJc3RhdHVzID0gRFNQX0VQT0lOVEVSIDtcCi0JfSBc
-Ci0gICAgfQorc3RhdGljIGlubGluZSB2b2lkIF9fY3BfZm1fdXNyKHZvaWQgKnRvLCBjb25zdCB2
-b2lkIF9fdXNlciAqZnJvbSwKKwkJCSAgICAgICBEU1BfU1RBVFVTICplcnIsIHVuc2lnbmVkIGxv
-bmcgYnl0ZXMpCit7CisJaWYgKERTUF9GQUlMRUQoKmVycikpCisJCXJldHVybjsKKworCWlmICh1
-bmxpa2VseSghZnJvbSkpIHsKKwkJKmVyciA9IERTUF9FUE9JTlRFUjsKKwkJcmV0dXJuOworCX0K
-KworCWlmICh1bmxpa2VseShjb3B5X2Zyb21fdXNlcih0bywgZnJvbSwgYnl0ZXMpKSkgeworCQlH
-VF8ydHJhY2UoV0NEX2RlYnVnTWFzaywgR1RfN0NMQVNTLAorCQkJICAiJXMgZmFpbGVkLCBmcm9t
-PTB4JTA4eFxuIiwgX19mdW5jX18sIGZyb20pOworCQkqZXJyID0gRFNQX0VQT0lOVEVSOworCX0K
-K30KKyNkZWZpbmUgY3BfZm1fdXNyKHRvLCBmcm9tLCBlcnIsIG4pCQkJCVwKKwlfX2NwX2ZtX3Vz
-cih0bywgZnJvbSwgJihlcnIpLCAobikgKiBzaXplb2YoKih0bykpKQorCitzdGF0aWMgaW5saW5l
-IHZvaWQgX19jcF90b191c3Iodm9pZCBfX3VzZXIgKnRvLCBjb25zdCB2b2lkICpmcm9tLAorCQkJ
-ICAgICAgIERTUF9TVEFUVVMgKmVyciwgdW5zaWduZWQgbG9uZyBieXRlcykKK3sKKwlpZiAoRFNQ
-X0ZBSUxFRCgqZXJyKSkKKwkJcmV0dXJuOworCisJaWYgKHVubGlrZWx5KCF0bykpIHsKKwkJKmVy
-ciA9IERTUF9FUE9JTlRFUjsKKwkJcmV0dXJuOworCX0KKworCWlmICh1bmxpa2VseShjb3B5X3Rv
-X3VzZXIodG8sIGZyb20sIGJ5dGVzKSkpIHsKKwkJR1RfMnRyYWNlKFdDRF9kZWJ1Z01hc2ssIEdU
-XzdDTEFTUywKKwkJCSAgIiVzIGZhaWxlZCwgdG89MHglMDh4XG4iLCBfX2Z1bmNfXywgdG8pOwor
-CQkqZXJyID0gRFNQX0VQT0lOVEVSOworCX0KK30KKyNkZWZpbmUgY3BfdG9fdXNyKHRvLCBmcm9t
-LCBlcnIsIG4pCQkJCVwKKwlfX2NwX3RvX3Vzcih0bywgZnJvbSwgJihlcnIpLCAobikgKiBzaXpl
-b2YoKihmcm9tKSkpCiAKIC8qIERldmljZSBJT0N0bCBmdW5jdGlvbiBwb2ludGVyICovCiBzdHJ1
-Y3QgV0NEX0NtZCB7Ci0tIAoxLjYuMC40Cgo=
-
-----Next_Part(Tue_Jul_14_23_22_45_2009_641)----
+On Tue, Jul 14, 2009 at 1:24 PM, Eino-Ville Talvala
+<talvala@stanford.edu> wrote:
+>
+> Zach,
+>
+> We've gotten a Aptina MT9P031 driver working with the latest ISP patc=
+hset, both with YUV and RAW data.
+> I don't know what the problem might be with YUYV data - we get useful=
+ YUYV data without any changes to the ISP defaults.
+> However, to request RAW data, that simply uses the CCDC and bypasses =
+all the processing in the ISP, request the pixelformat of V4L2_PIX_FMT_=
+SGRBG10. =A0This will give you two bytes per pixel, at least in our cas=
+e (although we have a 12-bit sensor cut down to 10 bits), so be prepare=
+d to throw out every other byte.
+>
+> Hope this helps,
+>
+> Eino-Ville (Eddy) Talvala
+> Computer Graphics Lab
+> Stanford University
+>
+> On 7/14/2009 9:49 AM, Zach LeRoy wrote:
+>>
+>> Hello Sergio,
+>>
+>> I spoke with you earlier about using the ISP and omap34xxcam drivers=
+ with a micron mt9d111 SOC sensor. =A0I have since been able to take pi=
+ctures, but the sensor data is not making it through the ISP data-path =
+correctly. =A0I know the problem is in the ISP data-path because I am c=
+onfiguring the sensor the exact same way as I have been on my working P=
+XA system. =A0I am expecting 4:2:2 packed YUV data, but all of the U an=
+d V data is no more than 2 bits where it should be 8. =A0I know the ISP=
+ has a lot of capabilities, but all I want to use it for is grabbing 8-=
+bit data from my sensor and putting it in a buffer untouched using the =
+CCDC interface (and of course clocking and timing). =A0What are the key=
+ steps to take to get this type of configuration?
+>>
+>> Other Questions:
+>>
+>> Is there any processing done on YUV data in the ISP driver by defaul=
+t that I am missing?
+>> Has any one else experienced similar problems while adding new senso=
+r support?
+>>
+>> Any help here would be greatly appreciated.
+>>
+>> Thank you,
+>>
+>> Zach LeRoy
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" =
+in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
