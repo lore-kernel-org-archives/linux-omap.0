@@ -1,35 +1,69 @@
 From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: [PATCH 0/3] [OMAP:I2C] Small bug fixes and errata 1.153
-Date: Tue, 14 Jul 2009 16:15:53 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F202957C7AF6@dlee06.ent.ti.com>
+Subject: [PATCH 1/3] [OMAP:I2C]Bug in reading the RXSTAT/TXSTAT values from
+ the I2C_BUFFSTAT register
+Date: Tue, 14 Jul 2009 16:18:29 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F202957C7AF8@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39751 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365AbZGNVQM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 17:16:12 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:36815 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756262AbZGNVSs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 17:18:48 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>
 
 
-This patch includes the following:
-- Bug in reading the RXSTAT/TXSTAT values from I2C_BUFFSTAT
-- In case of a NACK|ARDY|AL interrupts return from the ISR
-- OMAP3430 silicon errata 1.153
+Fix bug in reading the I2C_BUFFSTAT register for getting byte count on RX/TX interrupt.
 
-Signed-off-by: Moiz Sonasath<m-sonasath@ti.com> 
-Signed-off-by: Vikram pandita<vikram.pandita@ti.com>
+On Interrupt: I2C_STAT[RDR],
+	read 'RXSTAT' from I2C_BUFFSTAT[8-13]
+On Interrupt: I2C_STAT[XDR]
+	read 'TXSTAT' from I2C_BUFFSTAT[0-5]
 
-Moiz Sonasath (3):
-  [OMAP:I2C]Bug in reading the RXSTAT/TXSTAT values from the
-    I2C_BUFFSTAT register
-  [OMAP:I2C]In case of a NACK|ARDY|AL return from the ISR
-  [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
+Signed-off-by: Jagadeesh Pakaravoor<j-pakaravoor@ti.com>
+Signed-off-by: Vikram andita<vikram.pandita@ti.com>
+---
+ drivers/i2c/busses/i2c-omap.c |   14 ++++++++------
+ 1 files changed, 8 insertions(+), 6 deletions(-)
 
- drivers/i2c/busses/i2c-omap.c |   42 +++++++++++++++++++++++++++++++++-------
- 1 files changed, 34 insertions(+), 8 deletions(-)
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index ad8d201..d280acf 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -692,9 +692,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 			if (dev->fifo_size) {
+ 				if (stat & OMAP_I2C_STAT_RRDY)
+ 					num_bytes = dev->fifo_size;
+-				else
+-					num_bytes = omap_i2c_read_reg(dev,
+-							OMAP_I2C_BUFSTAT_REG);
++				else    /* read RXSTAT on RDR interrupt */
++					num_bytes = (omap_i2c_read_reg(dev,
++							OMAP_I2C_BUFSTAT_REG)
++							>> 8) & 0x3F;
+ 			}
+ 			while (num_bytes) {
+ 				num_bytes--;
+@@ -731,9 +732,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 			if (dev->fifo_size) {
+ 				if (stat & OMAP_I2C_STAT_XRDY)
+ 					num_bytes = dev->fifo_size;
+-				else
+-					num_bytes = omap_i2c_read_reg(dev,
+-							OMAP_I2C_BUFSTAT_REG);
++				else    /* read TXSTAT on XDR interrupt */
++					num_bytes = (omap_i2c_read_reg(dev,
++							OMAP_I2C_BUFSTAT_REG))
++							& 0x3F;
+ 			}
+ 			while (num_bytes) {
+ 				num_bytes--;
+-- 
+1.5.6.3
 
