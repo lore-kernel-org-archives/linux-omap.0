@@ -1,80 +1,47 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 1/4] DSPBRIDGE: Fix macros that break when inside an
-	if/else
-Date: Tue, 14 Jul 2009 06:05:28 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C011E5ED158@dlee02.ent.ti.com>
-References: <1246978928-7139-1-git-send-email-ameya.palande@nokia.com>
-	 <496565EC904933469F292DDA3F1663E602A30E140D@dlee06.ent.ti.com>
- <1247569366.13580.9.camel@pcarmody-desktop>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: [PATCH] OMAP: OHCI: hc_driver's stop method should call ohci_stop
+Date: Tue, 14 Jul 2009 16:41:00 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305D662CF@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41701 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751084AbZGNLFj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 07:05:39 -0400
-In-Reply-To: <1247569366.13580.9.camel@pcarmody-desktop>
+Received: from devils.ext.ti.com ([198.47.26.153]:33762 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934AbZGNLLL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 14 Jul 2009 07:11:11 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext-phil.2.carmody@nokia.com" <ext-phil.2.carmody@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Cc: "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Phil,
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Phil Carmody
-> Sent: Tuesday, July 14, 2009 6:03 AM
-> 
-> On Fri, 2009-07-10 at 01:51 +0200, ext Guzman Lugo, Fernando wrote:
-> > Thanks for the patch, it only has indentation problems, this is the
-> checkpatch output:
-> >
-> > WARNING: suspect code indent for conditional statements (8, 12)
-> > #34: FILE: drivers/dsp/bridge/pmgr/wcd.c:152:
-> > +       if (DSP_SUCCEEDED(status)) {                    \
-> > +           if (unlikely((src) == NULL) ||              \
-> >
-> > WARNING: line over 80 characters
-> > #36: FILE: drivers/dsp/bridge/pmgr/wcd.c:154:
-> > +               unlikely(copy_from_user(dest, src, (elements) *
-> sizeof(*(dest))))) { \
-> >
-> > WARNING: suspect code indent for conditional statements (8, 12)
-> > #46: FILE: drivers/dsp/bridge/pmgr/wcd.c:164:
-> > +       if (DSP_SUCCEEDED(status)) {                    \
-> > +           if (unlikely((dest) == NULL) ||
-> \
-> >
-> > WARNING: line over 80 characters
-> > #48: FILE: drivers/dsp/bridge/pmgr/wcd.c:166:
-> > +               unlikely(copy_to_user(dest, src, (elements) *
-> sizeof(*(src))))) { \
-> >
-> > total: 0 errors, 4 warnings, 48 lines checked
-> >
-> > Could you please fix that warning please?
-> 
-> I suspect the only way to fix those warnings would either introduce
-> other warnings, or \
-Gentle query: Have we already tried this or is it just a suspicion?
+From: Anand Gadiyar <gadiyar@ti.com>
 
+OMAP: OHCI: hc_driver's stop method should call ohci_stop
 
-> 							would \
-> 							lead \
-> 							to \
-> 							utterly \
-> 							unread- \
-> 							able \
-> 							code.
-> 
-> If you check how and why the original TI-originated version of the code
-> does not follow the linux coding standards, the difficulties we would
-> have making a warning-free patch of it should be apparent.
+Without this, the ohci-omap driver will not cleanup the debugfs
+nodes when the driver is unloaded. So the next insmod will fail,
+if CONFIG_DEBUG_FS and CONFIG_USB_DEBUG are both selected.
 
-Past is past. The idea was not to introduce anymore warning code.
+Reported-by: vikram pandita <vikram.pandita@ti.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+Not tested. I don't have any hardware that uses this driver.
 
-Regards,
-Nishanth Menon
+ drivers/usb/host/ohci-omap.c |    1 +
+ 1 files changed, 1 insertion(+)
 
+Index: linux-2.6/drivers/usb/host/ohci-omap.c
+===================================================================
+--- linux-2.6.orig/drivers/usb/host/ohci-omap.c
++++ linux-2.6/drivers/usb/host/ohci-omap.c
+@@ -282,6 +282,7 @@ static int ohci_omap_init(struct usb_hcd
+ static void ohci_omap_stop(struct usb_hcd *hcd)
+ {
+ 	dev_dbg(hcd->self.controller, "stopping USB Controller\n");
++	ohci_stop(hcd);
+ 	omap_ohci_clock_power(0);
+ }
+ 
