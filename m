@@ -1,75 +1,100 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 05/13] DSPBRIDGE: enable smart/autoidle for mailbox sysconfig
-Date: Wed, 15 Jul 2009 17:01:11 -0500
-Message-ID: <4A5E51A7.6040907@ti.com>
-References: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com> <1247669795-23895-2-git-send-email-ameya.palande@nokia.com> <1247669795-23895-3-git-send-email-ameya.palande@nokia.com> <1247669795-23895-4-git-send-email-ameya.palande@nokia.com> <1247669795-23895-5-git-send-email-ameya.palande@nokia.com> <1247669795-23895-6-git-send-email-ameya.palande@nokia.com> <496565EC904933469F292DDA3F1663E602A32025B9@dlee06.ent.ti.com>
+From: "Sonasath, Moiz" <m-sonasath@ti.com>
+Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Wed, 15 Jul 2009 17:23:15 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F202957C7DB5@dlee06.ent.ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFE@dlee06.ent.ti.com>
+ <4A5D136D.8030701@ti.com>
+ <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com>
+ <4A5E4D7A.6010706@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52269 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60475 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751883AbZGOWBT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Jul 2009 18:01:19 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602A32025B9@dlee06.ent.ti.com>
+	id S1755599AbZGOWXU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 18:23:20 -0400
+In-Reply-To: <4A5E4D7A.6010706@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Cc: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-Guzman Lugo, Fernando had written, on 07/15/2009 04:59 PM, the following:
->> diff --git a/drivers/dsp/bridge/hw/hw_mbox.c
->> b/drivers/dsp/bridge/hw/hw_mbox.c
->> index ee79032..5a87597 100644
->> --- a/drivers/dsp/bridge/hw/hw_mbox.c
->> +++ b/drivers/dsp/bridge/hw/hw_mbox.c
->> @@ -33,7 +33,9 @@
->>  /* width in bits of MBOX Id */
->>  #define HW_MBOX_ID_WIDTH	   2
->>
->> -struct MAILBOX_CONTEXT mboxsetting = {0x4, 0x1, 0x1};
->> +static struct MAILBOX_CONTEXT mboxsetting = {
->> +	.sysconfig = 2 << 3 | 1, /* SMART/AUTO-IDLE */
->> +};
->>
->>  /* Saves the mailbox context */
->>  HW_STATUS HW_MBOX_saveSettings(void __iomem *baseAddress)
->> diff --git a/drivers/dsp/bridge/hw/hw_mbox.h
->> b/drivers/dsp/bridge/hw/hw_mbox.h
->> index ad1a89c..8a5f6bd 100644
->> --- a/drivers/dsp/bridge/hw/hw_mbox.h
->> +++ b/drivers/dsp/bridge/hw/hw_mbox.h
->> @@ -320,4 +320,9 @@ extern HW_STATUS HW_MBOX_saveSettings(void __iomem
->> *baseAddres);
->>  */
->>  extern HW_STATUS HW_MBOX_restoreSettings(void __iomem *baseAddres);
->>
->> +static inline void HW_MBOX_initSettings(void __iomem *baseAddres)
->> +{
->> +	HW_MBOX_restoreSettings(baseAddres);
->> +}
->> +
->>  #endif  /* __MBOX_H */
->> diff --git a/drivers/dsp/bridge/wmd/io_sm.c
->> b/drivers/dsp/bridge/wmd/io_sm.c
->> index 39c34f7..d8ae1f1 100644
->> --- a/drivers/dsp/bridge/wmd/io_sm.c
->> +++ b/drivers/dsp/bridge/wmd/io_sm.c
->> @@ -282,6 +282,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
->>  		pIOMgr->fSharedIRQ = pMgrAttrs->fShared;
->>  		IO_DisableInterrupt(hWmdContext);
->>  		if (devType == DSP_UNIT) {
->> +			HW_MBOX_initSettings(hostRes.dwMboxBase);
-> 
-> What do think about doing a call to __raw_writel to avoid a new function wrapper as Omar suggested? Something like that:
-> 				
-> 			/* Enabling mailbox SMART/AUTO-IDLE */
-> 			__raw_writel(2 << 3 | 1, hostRes.dwMboxBase + 10);
-> 
-> 
-I think this is cleaner than piggybacking on the context save/restore 
-structure. We should use macros though for 2<<3 | 1 etc.. just my 2Cents 
-for readability.
+Hello Nishant,
 
+Comments inlined,
+
+Regards
+Moiz Sonasath
+
+
+-----Original Message-----
+From: Menon, Nishanth 
+Sent: Wednesday, July 15, 2009 4:43 PM
+To: Sonasath, Moiz
+Cc: linux-omap@vger.kernel.org; Kamat, Nishant; Paul Walmsley
+Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+
+Sonasath, Moiz had written, on 07/15/2009 10:40 AM, the following:
+>> When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
+>> Otherwise some data bytes can be lost while transferring them from the
+>> memory to the I2C interface.
+>>
+>> Do a Busy-wait for XUDF, before writing data to DATA_REG. While waiting
+>> if there is NACK | AL, set the appropriate error flags, ack the pending
+>> +							}
+>> +							cpu_relax();
+>> +							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+>> +						}
+> this is an infinite while loop + it tries to handle error cases - 
+> essentially do another isr routine inside itself.
+> [Moiz]
+> Yes, it is a busy wait loop. But AFAIK while we come to this part of
+ > the code the only thing that can go wrong in the transfer is either
+ > the device would go off suddenly (creating a NACK) or there is an
+ > arbitration lost(AL). This loop takes care of these two error conditions.
+ > Apart from these, if the hardware is functional, the XUDF bit should
+ > be set as soon as the FIFO gets empty.
+> 
+> Correct me if I am missing something.
+That is exactly what I was complaining about -> why not use the existing 
+logic above in the code to take care of it as I indicated below? do you 
+see a problem with the logic I send? it is lesser code and should IMHO 
+take care of the same issue without the additional 3rd nested while loop
+> 
+> How about:
+> Apply [1] and the following?
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index ad8d201..e3f21af 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -728,6 +728,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
+>                  }
+>                  if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
+>                          u8 num_bytes = 1;
+> +                       if (cpu_is_omap34xx() &&
+> +                               !(stat & OMAP_I2C_STAT_XUDF)){
+> +                               cpu_relax();
+> +                               continue;
+> +                       }
+> +
+
+[Moiz]
+
+In this alternate implementation if a NACK|AL is produced while waiting on the XUDF, it returns from the ISR (as per my patch [2/3]) without ACKING the XRDY/XDR interrupts which would make it return to the ISR again and again which looks like a problem. To accommodate this implementation, we will have to ACK XRDY/XDR before returning from the ISR.
+		
+
+>                          if (dev->fifo_size) {
+>                                  if (stat & OMAP_I2C_STAT_XRDY)
+>                                          num_bytes = dev->fifo_size;
+> 
+> 
+> Regards,
+> Nishanth Menon
+> Ref:
+> [1] http://patchwork.kernel.org/patch/32332/
+
+-- 
 Regards,
 Nishanth Menon
