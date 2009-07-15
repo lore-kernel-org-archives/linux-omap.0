@@ -1,52 +1,75 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 2/3] [OMAP:I2C]In case of a NACK|ARDY|AL return from the
- ISR
-Date: Wed, 15 Jul 2009 16:37:04 -0500
-Message-ID: <4A5E4C00.6090407@ti.com>
-References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFA@dlee06.ent.ti.com> <7A436F7769CA33409C6B44B358BFFF0C011E5ED9E0@dlee02.ent.ti.com> <CD8CC2B65FEE304DA95744A5472698F202957C7C2D@dlee06.ent.ti.com>
+Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Wed, 15 Jul 2009 16:43:22 -0500
+Message-ID: <4A5E4D7A.6010706@ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFE@dlee06.ent.ti.com> <4A5D136D.8030701@ti.com> <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="us-ascii"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38869 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752391AbZGOVhL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 17:37:11 -0400
-In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202957C7C2D@dlee06.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:37261 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753360AbZGOVna (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Jul 2009 17:43:30 -0400
+In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Sonasath, Moiz" <m-sonasath@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>
 
-Sonasath, Moiz had written, on 07/15/2009 10:25 AM, the following:
->> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->> index d280acf..05b5e4c 100644
->> --- a/drivers/i2c/busses/i2c-omap.c
->> +++ b/drivers/i2c/busses/i2c-omap.c
->> @@ -685,8 +685,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
->>  			err |= OMAP_I2C_STAT_AL;
->>  		}
->>  		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
->> -					OMAP_I2C_STAT_AL))
->> +					OMAP_I2C_STAT_AL)) {
->>  			omap_i2c_complete_cmd(dev, err);
->> +			return IRQ_HANDLED;
->> +		}
-> What is the status of IRQ_STAT register? Who will clear that if we return immediately from ISR? Isr will be reinvoked and we'd handle the same anyways..
+Sonasath, Moiz had written, on 07/15/2009 10:40 AM, the following:
+>> When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
+>> Otherwise some data bytes can be lost while transferring them from the
+>> memory to the I2C interface.
+>>
+>> Do a Busy-wait for XUDF, before writing data to DATA_REG. While waiting
+>> if there is NACK | AL, set the appropriate error flags, ack the pending
+>> +							}
+>> +							cpu_relax();
+>> +							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+>> +						}
+> this is an infinite while loop + it tries to handle error cases - 
+> essentially do another isr routine inside itself.
+> [Moiz]
+> Yes, it is a busy wait loop. But AFAIK while we come to this part of
+ > the code the only thing that can go wrong in the transfer is either
+ > the device would go off suddenly (creating a NACK) or there is an
+ > arbitration lost(AL). This loop takes care of these two error conditions.
+ > Apart from these, if the hardware is functional, the XUDF bit should
+ > be set as soon as the FIFO gets empty.
 > 
-> [Moiz]
-> Correct me if I am wrong, but you are referring to the OMAP_I2C_STAT_REG (which has the interrupt status information). 
- >This is actually ACKED just before going into the NACK|AL|ARDY error 
-cases. I suppose a few days back you also sent out a
- >atch to change this to ACK all interrupts other than RRDY/RDR and 
-XRDY/XDR as we have to ACK these only after we service them.
->
-> I think this conflicts with [1]
-> [Moiz]
-> Actually, it does not conflict with [1], as [1] changes the later part of the code allowing this patch to be applied cleanly.
+> Correct me if I am missing something.
+That is exactly what I was complaining about -> why not use the existing 
+logic above in the code to take care of it as I indicated below? do you 
+see a problem with the logic I send? it is lesser code and should IMHO 
+take care of the same issue without the additional 3rd nested while loop
+> 
+> How about:
+> Apply [1] and the following?
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index ad8d201..e3f21af 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -728,6 +728,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
+>                  }
+>                  if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
+>                          u8 num_bytes = 1;
+> +                       if (cpu_is_omap34xx() &&
+> +                               !(stat & OMAP_I2C_STAT_XUDF)){
+> +                               cpu_relax();
+> +                               continue;
+> +                       }
+> +
+>                          if (dev->fifo_size) {
+>                                  if (stat & OMAP_I2C_STAT_XRDY)
+>                                          num_bytes = dev->fifo_size;
+> 
+> 
+> Regards,
+> Nishanth Menon
+> Ref:
+> [1] http://patchwork.kernel.org/patch/32332/
 
-Got it. Thanks for clarifying. my bad.
-Acked-by: Nishanth Menon <nm@ti.com>
 -- 
 Regards,
 Nishanth Menon
