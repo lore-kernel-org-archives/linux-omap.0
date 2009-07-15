@@ -1,134 +1,117 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
-Date: Wed, 15 Jul 2009 10:40:39 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com>
-References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFE@dlee06.ent.ti.com>
- <4A5D136D.8030701@ti.com>
+From: arno@natisbad.org (Arnaud Ebalard)
+Subject: Re: N8x0 to mainline patches
+Date: Wed, 15 Jul 2009 18:19:17 +0200
+Message-ID: <873a8xor5m.fsf@small.ssi.corp>
+References: <200907130950.09887.luke@dashjr.org>
+	<87my776e9t.fsf@litku.valot.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33004 "EHLO arroyo.ext.ti.com"
+Received: from main.gmane.org ([80.91.229.2]:35594 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754869AbZGOPku convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 11:40:50 -0400
-In-Reply-To: <4A5D136D.8030701@ti.com>
-Content-Language: en-US
+	id S932142AbZGOQZG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 15 Jul 2009 12:25:06 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1MR7Hz-0007as-6K
+	for linux-omap@vger.kernel.org; Wed, 15 Jul 2009 16:25:03 +0000
+Received: from cct.net8.nerim.net ([213.41.184.223])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 15 Jul 2009 16:25:03 +0000
+Received: from arno by cct.net8.nerim.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-omap@vger.kernel.org>; Wed, 15 Jul 2009 16:25:03 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: Kalle Valo <kalle.valo@iki.fi>
 
-Hello Nishant,
+Hi,
 
-Comments inlined:
+Kalle Valo <kalle.valo@iki.fi> writes:
 
-Regards
-Moiz Sonasath
-Linux Baseport Team, Dallas
-214-567-5514
+> "Luke-Jr" <luke@dashjr.org> writes:
+>
+>> I noticed that the patch adding board-n8x0.c seems to be much smaller
+>> than the older one used in Linux-OMAP. In particular, it lacks the
+>> keymaps and such. Are those somewhere else now? 
+>
+> It's just not implemented yet. If you look at the plan, you see lots
+> of things we need to implement:
+>
+> http://www.elinux.org/N800#The_Plan
+
+Just noticed the thread and the link today. I will try and merge some
+notes I have on the topic (http://natisbad.org/N810/) tomorrow.
 
 
------Original Message-----
-From: Menon, Nishanth 
-Sent: Tuesday, July 14, 2009 6:23 PM
-To: Sonasath, Moiz
-Cc: linux-omap@vger.kernel.org; Kamat, Nishant; Paul Walmsley
-Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+>> Was the Linux-OMAP keyboard bug taken into consideration for the new
+>> keyboard config struct?
+>
+> I'm not familiar with the issue. But if it makes sense, sure, we want
+> to include the fix.
 
-Sonasath, Moiz wrote:
-> When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
-> Otherwise some data bytes can be lost while transferring them from the
-> memory to the I2C interface.
-> 
-> Do a Busy-wait for XUDF, before writing data to DATA_REG. While waiting
-> if there is NACK | AL, set the appropriate error flags, ack the pending
-> interrupts and return from the ISR.
-> 
-> Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
-> Signed-off-by: Vikram Pandita<vikram.pandita@ti.com>
-> ---
->  drivers/i2c/busses/i2c-omap.c |   24 +++++++++++++++++++++++-
->  1 files changed, 23 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 05b5e4c..8deaf87 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -672,9 +672,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  			break;
->  		}
->  
-> +		err = 0;
-> +complete:
-cant we rename this label?
-[Moiz]
-This path actually completes the IRQ service routine and therefore the name. 
+I use the patch on a 2.6.30-rc8-omap1 based l-o commit on my N810 and it
+fixes the reported issue (missing keys).
 
->  		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
->  
-> -		err = 0;
->  		if (stat & OMAP_I2C_STAT_NACK) {
->  			err |= OMAP_I2C_STAT_NACK;
->  			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
-> @@ -764,6 +765,27 @@ omap_i2c_isr(int this_irq, void *dev_id)
->  							"data to send\n");
->  					break;
->  				}
-> +
-> +				/*
-> +				 * OMAP3430 Errata 1.153: When an XRDY/XDR
-> +				 * is hit, wait for XUDF before writing data
-> +				 * to DATA_REG. Otherwise some data bytes can
-> +				 * be lost while transferring them from the
-> +				 * memory to the I2C interface.
-> +				 */
-> +
-> +				if (cpu_is_omap34xx()) {
-> +						while (!(stat & OMAP_I2C_STAT_XUDF)) {
-> +							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
-> +								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-generic comment - code nesting is getting overwhelming - we may like to 
-refactor the isr function at a later date I think..
-> +								err |= OMAP_I2C_STAT_XUDF;
-why set the err if we wantedly force this to happen?
-[Moiz]
-The idea here is to let the upper application to know that something went wrong while waiting for the XUDF bit to be set. This is just for debugging purpose.
-> +								goto complete;
+BTW, I also use the following patch to be able to use the fn key with
+xorg. One would argue this would be better to handle the issue at
+another level but it is worth discussing considering what I read on
+various ML:
 
-> +							}
-> +							cpu_relax();
-> +							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
-> +						}
-this is an infinite while loop + it tries to handle error cases - 
-essentially do another isr routine inside itself.
-[Moiz]
-Yes, it is a busy wait loop. But AFAIK while we come to this part of the code the only thing that can go wrong in the transfer is either the device would go off suddenly (creating a NACK) or there is an arbitration lost(AL). This loop takes care of these two error conditions. Apart from these, if the hardware is functional, the XUDF bit should be set as soon as the FIFO gets empty. 
+http://lists.freedesktop.org/archives/hal/2009-January/012860.html
+http://lists.freedesktop.org/archives/hal/2009-January/012868.html
+http://lists.freedesktop.org/archives/hal/2009-January/012794.html
+http://www.gossamer-threads.com/lists/maemo/developers/35105,
 
-Correct me if I am missing something.
+When the rx44 keymap support is added back in your quilt set, can we
+discuss it. IIRC, the same kind of value (i.e. > 255) is also in the
+rx-51. Any specific reason? 
 
-How about:
-Apply [1] and the following?
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index ad8d201..e3f21af 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -728,6 +728,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
-                 }
-                 if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
-                         u8 num_bytes = 1;
-+                       if (cpu_is_omap34xx() &&
-+                               !(stat & OMAP_I2C_STAT_XUDF)){
-+                               cpu_relax();
-+                               continue;
-+                       }
+Cheers,
+
+a+
+
+Index: linux-omap-2.6/arch/arm/mach-omap2/board-n800.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-n800.c	2009-06-20 12:07:11.000000000 +0200
++++ linux-omap-2.6/arch/arm/mach-omap2/board-n800.c	2009-06-27 20:29:00.000000000 +0200
+@@ -85,7 +85,11 @@
+ 	[0x22] = KEY_SEMICOLON,
+ 	[0x23] = KEY_MINUS,
+ 	[0x24] = KEY_EQUAL,
++#ifdef CONFIG_REMAP_N810_FN_KEY
++	[0x2b] = KEY_LEFTALT,
++#else
+ 	[0x2b] = KEY_FN,
++#endif
+ 	[0x2c] = KEY_M,
+ 	[0x2f] = KEY_F8,
+ 
+Index: linux-omap-2.6/drivers/input/keyboard/Kconfig
+===================================================================
+--- linux-omap-2.6.orig/drivers/input/keyboard/Kconfig	2009-06-20 12:07:11.000000000 +0200
++++ linux-omap-2.6/drivers/input/keyboard/Kconfig	2009-06-20 12:07:35.000000000 +0200
+@@ -294,6 +294,20 @@
+ 	  If you say yes here you get support for the National Semiconductor
+ 	  LM8323 keypad controller.
+ 
++config REMAP_N810_FN_KEY
++       boolean "Nokia N810 keyboard Fn key remapping"
++       depends on MACH_NOKIA_N810 && KEYBOARD_LM8323
++       help
++          If you build your kernel for your Nokia N810 (which would
++	  possibly explain you selected LM8323 keypad chip above),
++	  you might want to select this option in order to have the
++	  Fn key (KEY_FN) advertise itself as left alt key
++          (KEY_LEFTALT).
 +
-                         if (dev->fifo_size) {
-                                 if (stat & OMAP_I2C_STAT_XRDY)
-                                         num_bytes = dev->fifo_size;
++	  This is because KEY_FN value is higher than 255, and Xorg
++	  basically drops those values. Selecting the option allows
++	  you to use the key under X
++
+ config KEYBOARD_PXA27x
+ 	tristate "PXA27x/PXA3xx keypad support"
+ 	depends on PXA27x || PXA3xx
 
 
-Regards,
-Nishanth Menon
-Ref:
-[1] http://patchwork.kernel.org/patch/32332/
