@@ -1,201 +1,109 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 02/13] DSPBRIDGE: PROCWRAP_Load function cleanup in a complete mess
-Date: Wed, 15 Jul 2009 17:56:25 +0300
-Message-ID: <1247669795-23895-3-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 06/13] DSPBRIDGE: avoid to dump unnecessary registers without debug
+Date: Wed, 15 Jul 2009 17:56:29 +0300
+Message-ID: <1247669795-23895-7-git-send-email-ameya.palande@nokia.com>
 References: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com>
  <1247669795-23895-2-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-3-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-4-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-5-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-6-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35436 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:35439 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755208AbZGOO4m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 10:56:42 -0400
-In-Reply-To: <1247669795-23895-2-git-send-email-ameya.palande@nokia.com>
+	with ESMTP id S1755209AbZGOO4n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 10:56:43 -0400
+In-Reply-To: <1247669795-23895-6-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: omar.ramirez@ti.com, x0095840@ti.com, nm@ti.com, hiroshi.doyu@nokia.com
 
-If you followed some failure paths, it was entirely possible that
-you'd attempt to MEM_Free a user-space pointer, because it wouldn't
-have been replaced with a kernel-space copy yet. Now ensure there's
-a NULL pointer to stop the cleanup at the position of the first error.
+Make "GetHWRegs()" available only with CONFIG_BRIDGE_DEBUG.
 
-Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+[Hiroshi DOYU: split the original to logical ones]
+
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
-Acked-by: Fernando Guzman Lugo <x0095840@ti.com>
+Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
 ---
- drivers/dsp/bridge/pmgr/wcd.c |  114 +++++++++++++++++++++++-----------------
- 1 files changed, 65 insertions(+), 49 deletions(-)
+ drivers/dsp/bridge/wmd/tiomap3430.c |   57 +++++++++++++++++++----------------
+ 1 files changed, 31 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index b8adb41..8111b60 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -880,99 +880,115 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
- {
- 	s32 i, len;
- 	DSP_STATUS status = DSP_SOK;
--       char *temp;
--	s32 argc = args->ARGS_PROC_LOAD.iArgc;
-+	char *temp;
-+	s32 count = args->ARGS_PROC_LOAD.iArgc;
- 	u8 **argv, **envp = NULL;
- 
-+	DBC_Require(count > 0);
-+	DBC_Require(count <= MAX_LOADARGS);
- 
--	DBC_Require(argc > 0);
--	DBC_Require(argc <= MAX_LOADARGS);
--
--	argv = MEM_Alloc(argc * sizeof(u8 *), MEM_NONPAGED);
--	if (argv == NULL)
-+	argv = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
-+	if (!argv) {
- 		status = DSP_EMEMORY;
-+		goto func_cont;
-+	}
- 
--	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, argc);
--	if (DSP_FAILED(status))
-+	cp_fm_usr(argv, args->ARGS_PROC_LOAD.aArgv, status, count);
-+	if (DSP_FAILED(status)) {
-+		MEM_Free(argv);
-+		argv = NULL;
- 		goto func_cont;
-+	}
- 
--	for (i = 0; DSP_SUCCEEDED(status) && (i < argc); i++) {
--		if (argv[i] != NULL) {
--                        /* User space pointer to argument */
--                       temp = (char *) argv[i];
-+	for (i = 0; DSP_SUCCEEDED(status) && (i < count); i++) {
-+		if (argv[i]) {
-+			/* User space pointer to argument */
-+			temp = (char *) argv[i];
- 			/* len is increased by 1 to accommodate NULL */
- 			len = strlen_user((char *)temp) + 1;
- 			/* Kernel space pointer to argument */
- 			argv[i] = MEM_Alloc(len, MEM_NONPAGED);
--			if (argv[i] == NULL) {
-+			if (argv[i]) {
-+				cp_fm_usr(argv[i], temp, status, len);
-+				if (DSP_FAILED(status)) {
-+					MEM_Free(argv[i]);
-+					argv[i] = NULL;
-+					goto func_cont;
-+				}
-+			} else {
- 				status = DSP_EMEMORY;
--				break;
--			}
--			cp_fm_usr(argv[i], temp, status, len);
--			if (DSP_FAILED(status))
- 				goto func_cont;
-+			}
- 		}
- 	}
- 	/* TODO: validate this */
--	if (args->ARGS_PROC_LOAD.aEnvp != NULL) {
-+	if (args->ARGS_PROC_LOAD.aEnvp) {
- 		/* number of elements in the envp array including NULL */
--		len = 0;
-+		count = 0;
- 		do {
--			len++;
--                       get_user(temp, args->ARGS_PROC_LOAD.aEnvp);
--               } while (temp);
--		envp = MEM_Alloc(len * sizeof(u8 *), MEM_NONPAGED);
--		if (envp == NULL) {
-+			get_user(temp, args->ARGS_PROC_LOAD.aEnvp + count);
-+			count++;
-+		} while (temp);
-+		envp = MEM_Alloc(count * sizeof(u8 *), MEM_NONPAGED);
-+		if (!envp) {
- 			status = DSP_EMEMORY;
- 			goto func_cont;
- 		}
- 
--		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, len);
--		if (DSP_FAILED(status))
-+		cp_fm_usr(envp, args->ARGS_PROC_LOAD.aEnvp, status, count);
-+		if (DSP_FAILED(status)) {
-+			MEM_Free(envp);
-+			envp = NULL;
- 			goto func_cont;
--		for (i = 0; DSP_SUCCEEDED(status) && (envp[i] != NULL); i++) {
--                        /* User space pointer to argument */
--                       temp = (char *)envp[i];
-+		}
-+		for (i = 0; DSP_SUCCEEDED(status) && envp[i]; i++) {
-+			/* User space pointer to argument */
-+			temp = (char *)envp[i];
- 			/* len is increased by 1 to accommodate NULL */
- 			len = strlen_user((char *)temp) + 1;
- 			/* Kernel space pointer to argument */
- 			envp[i] = MEM_Alloc(len, MEM_NONPAGED);
--			if (envp[i] == NULL) {
-+			if (envp[i]) {
-+				cp_fm_usr(envp[i], temp, status, len);
-+				if (DSP_FAILED(status)) {
-+					MEM_Free(envp[i]);
-+					envp[i] = NULL;
-+					goto func_cont;
-+				}
-+			} else {
- 				status = DSP_EMEMORY;
--				break;
--			}
--			cp_fm_usr(envp[i], temp, status, len);
--			if (DSP_FAILED(status))
- 				goto func_cont;
-+			}
- 		}
- 	}
- 	GT_5trace(WCD_debugMask, GT_ENTER,
--		 "PROCWRAP_Load, hProcessor: 0x%x\n\tiArgc:"
--		 "0x%x\n\taArgv: 0x%x\n\taArgv[0]: %s\n\taEnvp: 0x%0x\n",
--		 args->ARGS_PROC_LOAD.hProcessor,
--		 args->ARGS_PROC_LOAD.iArgc, args->ARGS_PROC_LOAD.aArgv,
--		 argv[0], args->ARGS_PROC_LOAD.aEnvp);
-+		"PROCWRAP_Load, hProcessor: 0x%x\n\tiArgc:"
-+		"0x%x\n\taArgv: 0x%x\n\taArgv[0]: %s\n\taEnvp: 0x%0x\n",
-+		args->ARGS_PROC_LOAD.hProcessor,
-+		args->ARGS_PROC_LOAD.iArgc, args->ARGS_PROC_LOAD.aArgv,
-+		argv[0], args->ARGS_PROC_LOAD.aEnvp);
- 	if (DSP_SUCCEEDED(status)) {
- 		status = PROC_Load(args->ARGS_PROC_LOAD.hProcessor,
--				  args->ARGS_PROC_LOAD.iArgc,
--				  (CONST char **)argv, (CONST char **)envp);
-+				args->ARGS_PROC_LOAD.iArgc,
-+				(CONST char **)argv, (CONST char **)envp);
- 	}
- func_cont:
--	if (envp != NULL) {
-+	if (envp) {
- 		i = 0;
--		while (envp[i] != NULL)
-+		while (envp[i])
- 			MEM_Free(envp[i++]);
- 
- 		MEM_Free(envp);
- 	}
--	if (argv != NULL) {
--		for (i = 0; i < argc; i++) {
--			if (argv[i] != NULL)
--				MEM_Free(argv[i]);
- 
--		}
-+	if (argv) {
-+		count = args->ARGS_PROC_LOAD.iArgc;
-+		for (i = 0; (i < count) && argv[i]; i++)
-+			MEM_Free(argv[i]);
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 204ddd5..fd4c11c 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -141,7 +141,37 @@ static DSP_STATUS PteSet(struct PgTableAttrs *pt, u32 pa, u32 va,
+ static DSP_STATUS MemMapVmalloc(struct WMD_DEV_CONTEXT *hDevContext,
+ 			u32 ulMpuAddr, u32 ulVirtAddr,
+ 			u32 ulNumBytes, struct HW_MMUMapAttrs_t *hwAttrs);
+-static void GetHWRegs(void __iomem *prcm_base, void __iomem *cm_base);
 +
- 		MEM_Free(argv);
- 	}
-+
++#ifdef CONFIG_BRIDGE_DEBUG
++static void GetHWRegs(void __iomem *prm_base, void __iomem *cm_base)
++{
++	u32 temp;
++	temp = __raw_readl((cm_base) + 0x00);
++	DBG_Trace(DBG_LEVEL6, "CM_FCLKEN_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((cm_base) + 0x10);
++	DBG_Trace(DBG_LEVEL6, "CM_ICLKEN1_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((cm_base) + 0x20);
++	DBG_Trace(DBG_LEVEL6, "CM_IDLEST_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((cm_base) + 0x48);
++	DBG_Trace(DBG_LEVEL6, "CM_CLKSTCTRL_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((cm_base) + 0x4c);
++	DBG_Trace(DBG_LEVEL6, "CM_CLKSTST_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((prm_base) + 0x50);
++	DBG_Trace(DBG_LEVEL6, "RM_RSTCTRL_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((prm_base) + 0x58);
++	DBG_Trace(DBG_LEVEL6, "RM_RSTST_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((prm_base) + 0xE0);
++	DBG_Trace(DBG_LEVEL6, "PM_PWSTCTRL_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((prm_base) + 0xE4);
++	DBG_Trace(DBG_LEVEL6, "PM_PWSTST_IVA2 = 0x%x \n", temp);
++	temp = __raw_readl((cm_base) + 0xA10);
++	DBG_Trace(DBG_LEVEL6, "CM_ICLKEN1_CORE = 0x%x \n", temp);
++}
++#else
++static inline void GetHWRegs(void __iomem *prm_base, void __iomem *cm_base)
++{
++}
++#endif
+ 
+ /*  ----------------------------------- Globals */
+ 
+@@ -2021,31 +2051,6 @@ static DSP_STATUS MemMapVmalloc(struct WMD_DEV_CONTEXT *pDevContext,
  	return status;
  }
  
+-static void GetHWRegs(void __iomem *prm_base, void __iomem *cm_base)
+-{
+-	u32 temp;
+-	temp = __raw_readl((cm_base) + 0x00);
+-	DBG_Trace(DBG_LEVEL6, "CM_FCLKEN_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((cm_base) + 0x10);
+-	DBG_Trace(DBG_LEVEL6, "CM_ICLKEN1_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((cm_base) + 0x20);
+-	DBG_Trace(DBG_LEVEL6, "CM_IDLEST_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((cm_base) + 0x48);
+-	DBG_Trace(DBG_LEVEL6, "CM_CLKSTCTRL_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((cm_base) + 0x4c);
+-	DBG_Trace(DBG_LEVEL6, "CM_CLKSTST_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((prm_base) + 0x50);
+-	DBG_Trace(DBG_LEVEL6, "RM_RSTCTRL_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((prm_base) + 0x58);
+-	DBG_Trace(DBG_LEVEL6, "RM_RSTST_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((prm_base) + 0xE0);
+-	DBG_Trace(DBG_LEVEL6, "PM_PWSTCTRL_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((prm_base) + 0xE4);
+-	DBG_Trace(DBG_LEVEL6, "PM_PWSTST_IVA2 = 0x%x \n", temp);
+-	temp = __raw_readl((cm_base) + 0xA10);
+-	DBG_Trace(DBG_LEVEL6, "CM_ICLKEN1_CORE = 0x%x \n", temp);
+-}
+-
+ /*
+  *  ======== configureDspMmu ========
+  *      Make DSP MMU page table entries.
 -- 
 1.6.2.4
 
