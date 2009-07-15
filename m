@@ -1,31 +1,81 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Incorporating latest pm patches into v2.6.31-rc1
-Date: Wed, 15 Jul 2009 06:30:29 -0700
-Message-ID: <874ote9iq2.fsf@deeprootsystems.com>
-References: <F97CEF05-B881-4149-8D3A-EEE894DC3AED@mac.com>
+Subject: Re: PM: off mode
+Date: Wed, 15 Jul 2009 06:31:58 -0700
+Message-ID: <87zlb68435.fsf@deeprootsystems.com>
+References: <4A5C7391.5050604@nokia.com> <87r5wj9p7q.fsf@deeprootsystems.com>
+	<4A5D9DAE.8020601@nokia.com> <4A5DD362.7090707@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f197.google.com ([209.85.222.197]:54414 "EHLO
+Received: from mail-pz0-f197.google.com ([209.85.222.197]:32871 "EHLO
 	mail-pz0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753266AbZGONad (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 09:30:33 -0400
-Received: by pzk35 with SMTP id 35so2013881pzk.33
-        for <linux-omap@vger.kernel.org>; Wed, 15 Jul 2009 06:30:32 -0700 (PDT)
-In-Reply-To: <F97CEF05-B881-4149-8D3A-EEE894DC3AED@mac.com> (Elvis Dowson's message of "Wed\, 15 Jul 2009 11\:06\:26 +0400")
+	with ESMTP id S1754625AbZGONcB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 09:32:01 -0400
+Received: by pzk35 with SMTP id 35so2014514pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 15 Jul 2009 06:32:01 -0700 (PDT)
+In-Reply-To: <4A5DD362.7090707@nokia.com> (Roger Quadros's message of "Wed\, 15 Jul 2009 16\:02\:26 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Elvis Dowson <elvis.dowson@mac.com> writes:
+Roger Quadros <ext-roger.quadros@nokia.com> writes:
 
-> I am trying to incorporate your pm patches into v2.6.31-rc1. I just want to
-> make sure that I'm doing this correctly, so that I don't miss out some of your
-> earlier patches.
+> ext Roger Quadros wrote:
+>> ext Kevin Hilman wrote:
+>>> Roger Quadros <ext-roger.quadros@nokia.com> writes:
+>>>
+>>>> Hi Kevin,
+>>>>
+>>>>  Off mode does not seem to work on RX51 on latest PM branch. I get a
+>>>> reboot if I set enable_off_mode and sleep_while_idle and I wait for
+>>>> timeout.
+>>>>
+>>>>  Does it work on other platforms?
+>>>>
+>>>
+>>> Yes, I tested on SDP, omap3evm, Beagle, Overo and RX51.
+>>>
+>>> On RX51, I'm using omap3_pm_defconfig with the debug UART changed to
+>>> UART3 and things work fine here.
+>>>
+>>> I using rootfs from latest fiasco image, and it drops me into an early
+>>> shell because /sbin/preinit fails in various ways. Note that I'm using
+>>> an S2.0 GP board.  Note also that I modified /sbin/preinit to launch
+>>> another getty on ttyS2 so I get a shell since newer kernels ignore the
+>>> ATAGs passed by nolo.
+>>>
+>>> Below is a console log of my boot so you can see what is going on.
+>>> Because /sbin/preinit enables off-mode and sleep_while_idle, I just
+>>> let it boot and it seems to work.
+>>>
+>>> Kevin
+>>>
+>>
+>> I am having S2.1 board and it does not work on that. It gets locked
+>> up and restarts after idle timeout.
+>> But I checked that it works on S2.0 board.
+>>
+>> Any clue what could be the problem?
+>>
+>> -roger
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> Kevin,
+>
+> I have some new observations.
+>
+> It works only if we load the kernel via USB. Instead, if we flash the
+> kernel, it will not work even with S2.0 board. It boots to shell but
+> after sleep timeout (5 seconds) console gets locked up and it reboots
+> after a while.
 
-Elvis, why can't you use current, tested, pushed PM branch which is
-2.6.30-based?  I will be updating it shortly to use 2.6.31-rc once tested.
-Until then,  I don't plan to answer questions on 2.6.31.
+Roger,
+
+Does this happen even with the working defconfig you sent the other day?
 
 Kevin
