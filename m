@@ -1,22 +1,23 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 04/13] DSPBRIDGE: fix macros that break when inside an
- if/else
-Date: Wed, 15 Jul 2009 16:51:17 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602A32025B1@dlee06.ent.ti.com>
+Subject: RE: [PATCH 05/13] DSPBRIDGE: enable smart/autoidle for mailbox
+ sysconfig
+Date: Wed, 15 Jul 2009 16:59:22 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602A32025B9@dlee06.ent.ti.com>
 References: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com>
  <1247669795-23895-2-git-send-email-ameya.palande@nokia.com>
  <1247669795-23895-3-git-send-email-ameya.palande@nokia.com>
  <1247669795-23895-4-git-send-email-ameya.palande@nokia.com>
  <1247669795-23895-5-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-6-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37750 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:38181 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754241AbZGOVv1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 17:51:27 -0400
-In-Reply-To: <1247669795-23895-5-git-send-email-ameya.palande@nokia.com>
+	id S1751043AbZGOV7c convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 17:59:32 -0400
+In-Reply-To: <1247669795-23895-6-git-send-email-ameya.palande@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -24,7 +25,7 @@ To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux
 Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>
 
 
-The patch looks good for me.
+Hi,
 
 > -----Original Message-----
 > From: Ameya Palande [mailto:ameya.palande@nokia.com]
@@ -32,95 +33,77 @@ The patch looks good for me.
 > To: linux-omap@vger.kernel.org
 > Cc: Ramirez Luna, Omar; Guzman Lugo, Fernando; Menon, Nishanth;
 > hiroshi.doyu@nokia.com
-> Subject: [PATCH 04/13] DSPBRIDGE: fix macros that break when inside an
-> if/else
+> Subject: [PATCH 05/13] DSPBRIDGE: enable smart/autoidle for mailbox
+> sysconfig
 > 
 > From: Doyu Hiroshi (Nokia-D/Helsinki) <hiroshi.doyu@nokia.com>
 > 
-> Based on the following discussion:
->       http://marc.info/?l=linux-omap&m=124697893724881&w=2
-> 
+> Reported-by: Tero Kristo <tero.kristo@nokia.com>
 > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 > ---
->  drivers/dsp/bridge/pmgr/wcd.c |   60 ++++++++++++++++++++++++++----------
-> ----
->  1 files changed, 39 insertions(+), 21 deletions(-)
+>  drivers/dsp/bridge/hw/hw_mbox.c |    4 +++-
+>  drivers/dsp/bridge/hw/hw_mbox.h |    5 +++++
+>  drivers/dsp/bridge/wmd/io_sm.c  |    1 +
+>  3 files changed, 9 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-> index 441130c..8708c78 100644
-> --- a/drivers/dsp/bridge/pmgr/wcd.c
-> +++ b/drivers/dsp/bridge/pmgr/wcd.c
-> @@ -145,27 +145,45 @@
->  #define MAX_STREAMS     16
->  #define MAX_BUFS	64
+> diff --git a/drivers/dsp/bridge/hw/hw_mbox.c
+> b/drivers/dsp/bridge/hw/hw_mbox.c
+> index ee79032..5a87597 100644
+> --- a/drivers/dsp/bridge/hw/hw_mbox.c
+> +++ b/drivers/dsp/bridge/hw/hw_mbox.c
+> @@ -33,7 +33,9 @@
+>  /* width in bits of MBOX Id */
+>  #define HW_MBOX_ID_WIDTH	   2
 > 
-> -/* Following two macros should ideally have do{}while(0) */
-> -
-> -#define cp_fm_usr(dest, src, status, elements)    \
-> -    if (DSP_SUCCEEDED(status)) {\
-> -	    if (unlikely(src == NULL) ||				\
-> -		unlikely(copy_from_user(dest, src, elements *
-> sizeof(*(dest))))) { \
-> -		GT_1trace(WCD_debugMask, GT_7CLASS, \
-> -		"copy_from_user failed, src=0x%x\n", src);  \
-> -		status = DSP_EPOINTER ; \
-> -	} \
-> -    }
-> -
-> -#define cp_to_usr(dest, src, status, elements)    \
-> -    if (DSP_SUCCEEDED(status)) {\
-> -	    if (unlikely(dest == NULL) ||				\
-> -		unlikely(copy_to_user(dest, src, elements * sizeof(*(src)))))
-> { \
-> -		GT_1trace(WCD_debugMask, GT_7CLASS, \
-> -		"copy_to_user failed, dest=0x%x\n", dest); \
-> -		status = DSP_EPOINTER ;\
-> -	} \
-> -    }
-> +static inline void __cp_fm_usr(void *to, const void __user *from,
-> +			       DSP_STATUS *err, unsigned long bytes)
+> -struct MAILBOX_CONTEXT mboxsetting = {0x4, 0x1, 0x1};
+> +static struct MAILBOX_CONTEXT mboxsetting = {
+> +	.sysconfig = 2 << 3 | 1, /* SMART/AUTO-IDLE */
+> +};
+> 
+>  /* Saves the mailbox context */
+>  HW_STATUS HW_MBOX_saveSettings(void __iomem *baseAddress)
+> diff --git a/drivers/dsp/bridge/hw/hw_mbox.h
+> b/drivers/dsp/bridge/hw/hw_mbox.h
+> index ad1a89c..8a5f6bd 100644
+> --- a/drivers/dsp/bridge/hw/hw_mbox.h
+> +++ b/drivers/dsp/bridge/hw/hw_mbox.h
+> @@ -320,4 +320,9 @@ extern HW_STATUS HW_MBOX_saveSettings(void __iomem
+> *baseAddres);
+>  */
+>  extern HW_STATUS HW_MBOX_restoreSettings(void __iomem *baseAddres);
+> 
+> +static inline void HW_MBOX_initSettings(void __iomem *baseAddres)
 > +{
-> +	if (DSP_FAILED(*err))
-> +		return;
-> +
-> +	if (unlikely(!from)) {
-> +		*err = DSP_EPOINTER;
-> +		return;
-> +	}
-> +
-> +	if (unlikely(copy_from_user(to, from, bytes))) {
-> +		GT_2trace(WCD_debugMask, GT_7CLASS,
-> +			  "%s failed, from=0x%08x\n", __func__, from);
-> +		*err = DSP_EPOINTER;
-> +	}
+> +	HW_MBOX_restoreSettings(baseAddres);
 > +}
-> +#define cp_fm_usr(to, from, err, n)				\
-> +	__cp_fm_usr(to, from, &(err), (n) * sizeof(*(to)))
 > +
-> +static inline void __cp_to_usr(void __user *to, const void *from,
-> +			       DSP_STATUS *err, unsigned long bytes)
-> +{
-> +	if (DSP_FAILED(*err))
-> +		return;
-> +
-> +	if (unlikely(!to)) {
-> +		*err = DSP_EPOINTER;
-> +		return;
-> +	}
-> +
-> +	if (unlikely(copy_to_user(to, from, bytes))) {
-> +		GT_2trace(WCD_debugMask, GT_7CLASS,
-> +			  "%s failed, to=0x%08x\n", __func__, to);
-> +		*err = DSP_EPOINTER;
-> +	}
-> +}
-> +#define cp_to_usr(to, from, err, n)				\
-> +	__cp_to_usr(to, from, &(err), (n) * sizeof(*(from)))
-> 
->  /* Device IOCtl function pointer */
->  struct WCD_Cmd {
+>  #endif  /* __MBOX_H */
+> diff --git a/drivers/dsp/bridge/wmd/io_sm.c
+> b/drivers/dsp/bridge/wmd/io_sm.c
+> index 39c34f7..d8ae1f1 100644
+> --- a/drivers/dsp/bridge/wmd/io_sm.c
+> +++ b/drivers/dsp/bridge/wmd/io_sm.c
+> @@ -282,6 +282,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+>  		pIOMgr->fSharedIRQ = pMgrAttrs->fShared;
+>  		IO_DisableInterrupt(hWmdContext);
+>  		if (devType == DSP_UNIT) {
+> +			HW_MBOX_initSettings(hostRes.dwMboxBase);
+
+What do think about doing a call to __raw_writel to avoid a new function wrapper as Omar suggested? Something like that:
+				
+			/* Enabling mailbox SMART/AUTO-IDLE */
+			__raw_writel(2 << 3 | 1, hostRes.dwMboxBase + 10);
+
+
+>  			/* Plug the channel ISR:. */
+>  			if ((request_irq(INT_MAIL_MPU_IRQ, IO_ISR, 0,
+>  				"DspBridge\tmailbox", (void *)pIOMgr)) == 0)
 > --
 > 1.6.2.4
 > 
-Acked-by Fernando Guzman Lugo <x0095840@ti.com>
+
+Regards,
+Fernando
+Guzman
+Lugo.
 
