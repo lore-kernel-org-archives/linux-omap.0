@@ -1,85 +1,65 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: PM: off mode
-Date: Wed, 15 Jul 2009 16:53:53 +0300
-Message-ID: <4A5DDF71.3030609@nokia.com>
-References: <4A5C7391.5050604@nokia.com> <87r5wj9p7q.fsf@deeprootsystems.com>	<4A5D9DAE.8020601@nokia.com> <4A5DD362.7090707@nokia.com> <87zlb68435.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:56017 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753266AbZGONyj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 09:54:39 -0400
-In-Reply-To: <87zlb68435.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: <gregkh-l3A5Bk7waGM@public.gmane.org>
+Subject: patch usb-omap-ohci-hc_driver-s-stop-method-should-call-ohci_stop.patch added to gregkh-2.6 tree
+Date: Wed, 15 Jul 2009 07:00:16 -0700
+Message-ID: <12476664161827@kroah.org>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0305D662CF@dbde02.ent.ti.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305D662CF-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: gadiyar-l0cyMroinI0@public.gmane.org, dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, gregkh-l3A5Bk7waGM@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vikram.pandita-l0cyMroinI0@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ext Kevin Hilman wrote:
-> Roger Quadros <ext-roger.quadros@nokia.com> writes:
-> 
->> ext Roger Quadros wrote:
->>> ext Kevin Hilman wrote:
->>>> Roger Quadros <ext-roger.quadros@nokia.com> writes:
->>>>
->>>>> Hi Kevin,
->>>>>
->>>>>  Off mode does not seem to work on RX51 on latest PM branch. I get a
->>>>> reboot if I set enable_off_mode and sleep_while_idle and I wait for
->>>>> timeout.
->>>>>
->>>>>  Does it work on other platforms?
->>>>>
->>>> Yes, I tested on SDP, omap3evm, Beagle, Overo and RX51.
->>>>
->>>> On RX51, I'm using omap3_pm_defconfig with the debug UART changed to
->>>> UART3 and things work fine here.
->>>>
->>>> I using rootfs from latest fiasco image, and it drops me into an early
->>>> shell because /sbin/preinit fails in various ways. Note that I'm using
->>>> an S2.0 GP board.  Note also that I modified /sbin/preinit to launch
->>>> another getty on ttyS2 so I get a shell since newer kernels ignore the
->>>> ATAGs passed by nolo.
->>>>
->>>> Below is a console log of my boot so you can see what is going on.
->>>> Because /sbin/preinit enables off-mode and sleep_while_idle, I just
->>>> let it boot and it seems to work.
->>>>
->>>> Kevin
->>>>
->>> I am having S2.1 board and it does not work on that. It gets locked
->>> up and restarts after idle timeout.
->>> But I checked that it works on S2.0 board.
->>>
->>> Any clue what could be the problem?
->>>
->>> -roger
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->> Kevin,
->>
->> I have some new observations.
->>
->> It works only if we load the kernel via USB. Instead, if we flash the
->> kernel, it will not work even with S2.0 board. It boots to shell but
->> after sleep timeout (5 seconds) console gets locked up and it reboots
->> after a while.
-> 
-> Roger,
-> 
-> Does this happen even with the working defconfig you sent the other day?
-> 
-> Kevin
 
-The config that i sent does not work with S2.0 hardware in either case.
-It works with S2.1 hardware only in one case i.e. kernel load via USB. It does 
-not work if kernel is flashed.
-Also when my config is used on S2.1, core always remains in ON mode and never 
-hits RET/OFF mode.
+This is a note to let you know that I've just added the patch titled
 
--roger
+    Subject: USB: OMAP: OHCI: hc_driver's stop method should call ohci_stop
+
+to my gregkh-2.6 tree.  Its filename is
+
+    usb-omap-ohci-hc_driver-s-stop-method-should-call-ohci_stop.patch
+
+This tree can be found at 
+    http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+
+
+>From gadiyar-l0cyMroinI0@public.gmane.org  Wed Jul 15 06:34:11 2009
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Date: Tue, 14 Jul 2009 16:41:00 +0530
+Subject: USB: OMAP: OHCI: hc_driver's stop method should call ohci_stop
+To: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org" <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305D662CF-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+
+
+From: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+
+OMAP: OHCI: hc_driver's stop method should call ohci_stop
+
+Without this, the ohci-omap driver will not cleanup the debugfs
+nodes when the driver is unloaded. So the next insmod will fail,
+if CONFIG_DEBUG_FS and CONFIG_USB_DEBUG are both selected.
+
+Reported-by: vikram pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Cc: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>
+
+---
+ drivers/usb/host/ohci-omap.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/usb/host/ohci-omap.c
++++ b/drivers/usb/host/ohci-omap.c
+@@ -282,6 +282,7 @@ static int ohci_omap_init(struct usb_hcd
+ static void ohci_omap_stop(struct usb_hcd *hcd)
+ {
+ 	dev_dbg(hcd->self.controller, "stopping USB Controller\n");
++	ohci_stop(hcd);
+ 	omap_ohci_clock_power(0);
+ }
+ 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
