@@ -1,21 +1,42 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
-Date: Wed, 15 Jul 2009 17:27:17 -0500
-Message-ID: <4A5E57C5.6000600@ti.com>
-References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFE@dlee06.ent.ti.com> <4A5D136D.8030701@ti.com> <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com> <4A5E4D7A.6010706@ti.com> <CD8CC2B65FEE304DA95744A5472698F202957C7DB5@dlee06.ent.ti.com>
+From: "Sonasath, Moiz" <m-sonasath@ti.com>
+Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Wed, 15 Jul 2009 17:29:26 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F202957C7DB9@dlee06.ent.ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFE@dlee06.ent.ti.com>
+ <4A5D136D.8030701@ti.com>
+ <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com>
+ <4A5E4D7A.6010706@ti.com>
+ <CD8CC2B65FEE304DA95744A5472698F202957C7DB5@dlee06.ent.ti.com>
+ <4A5E57C5.6000600@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60654 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:53785 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755428AbZGOW1Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 15 Jul 2009 18:27:24 -0400
-In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202957C7DB5@dlee06.ent.ti.com>
+	id S1750839AbZGOW3a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 18:29:30 -0400
+In-Reply-To: <4A5E57C5.6000600@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sonasath, Moiz" <m-sonasath@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+
+Hello Nishant!
+
+I am also not sure, if the count=100; value will be enough time for the XUDF to be set. If not then it will keep running into timeout errors.
+
+Regards
+Moiz Sonasath
+
+
+-----Original Message-----
+From: Menon, Nishanth 
+Sent: Wednesday, July 15, 2009 5:27 PM
+To: Sonasath, Moiz
+Cc: linux-omap@vger.kernel.org; Kamat, Nishant; Paul Walmsley; Pandita, Vikram
+Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
 
 Sonasath, Moiz had written, on 07/15/2009 05:23 PM, the following:
 > Hello Nishant,
