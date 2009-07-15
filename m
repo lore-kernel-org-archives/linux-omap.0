@@ -1,56 +1,93 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
-Date: Wed, 15 Jul 2009 17:37:46 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F202957C7DBD@dlee06.ent.ti.com>
-References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFE@dlee06.ent.ti.com>
- <4A5D136D.8030701@ti.com>
- <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com>
- <4A5E4D7A.6010706@ti.com>
- <CD8CC2B65FEE304DA95744A5472698F202957C7DB5@dlee06.ent.ti.com>
- <4A5E57C5.6000600@ti.com>
- <CD8CC2B65FEE304DA95744A5472698F202957C7DB9@dlee06.ent.ti.com>
- <4A5E58CA.3030206@ti.com>
+From: "Guzman Lugo, Fernando" <x0095840@ti.com>
+Subject: RE: [PATCH 11/13] DSPBRIDGE: Set VDD1 OPP1 unconditionally while
+ moving to off mode
+Date: Wed, 15 Jul 2009 17:53:24 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602A32025DC@dlee06.ent.ti.com>
+References: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-2-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-3-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-4-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-5-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-6-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-7-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-8-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-9-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-10-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-11-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-12-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42111 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755963AbZGOWht convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 18:37:49 -0400
-In-Reply-To: <4A5E58CA.3030206@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33586 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752859AbZGOWxc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 18:53:32 -0400
+In-Reply-To: <1247669795-23895-12-git-send-email-ameya.palande@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
-
-Nishant,
-
-AFAIK, the time between XRDY/XDR and setting of XUDF bit is not deterministic, it depends on the I2C bus speed but I am not sure if we can translate the speed into a fixed count number which we can use as a timeout limit. In that case we need to make a balanced assumption of the count value so that we don't fall in the timeout case under normal operation.
-
-May be someone can give a pointer here.
-
-Regards
-Moiz Sonasath
+To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>
 
 
------Original Message-----
-From: Menon, Nishanth 
-Sent: Wednesday, July 15, 2009 5:32 PM
-To: Sonasath, Moiz
-Cc: linux-omap@vger.kernel.org; Kamat, Nishant; Paul Walmsley; Pandita, Vikram
-Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Hi,
 
-Sonasath, Moiz had written, on 07/15/2009 05:29 PM, the following:
+> -----Original Message-----
+> From: Ameya Palande [mailto:ameya.palande@nokia.com]
+> Sent: Wednesday, July 15, 2009 9:57 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Ramirez Luna, Omar; Guzman Lugo, Fernando; Menon, Nishanth;
+> hiroshi.doyu@nokia.com
+> Subject: [PATCH 11/13] DSPBRIDGE: Set VDD1 OPP1 unconditionally while
+> moving to off mode
 > 
-> I am also not sure, if the count=100; value will be enough time for the XUDF
- > to be set. If not then it will keep running into timeout errors.
+> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+> ---
+>  drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   18 ++++++++++--------
+>  1 files changed, 10 insertions(+), 8 deletions(-)
 > 
-Do you mean we need a delay for checking again? that should be easy to 
-incorporate - what kind of delay are we speaking of here? do you have a 
-count requirement for handling this? it is essentially the time b/w XRDY 
-to XUNDF.. this should be deterministic rt?
+> diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> index 7cc29b7..7c7d9c4 100644
+> --- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> +++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+> @@ -167,17 +167,19 @@ DSP_STATUS handle_hibernation_fromDSP(struct
+> WMD_DEV_CONTEXT *pDevContext)
+>  			if (DSP_FAILED(status))
+>  				return status;
+>  			IO_SHMsetting(hIOMgr, SHM_GETOPP, &opplevel);
+> -			/* Set the OPP to low level before moving to OFF mode */
+>  			if (opplevel != VDD1_OPP1) {
+>  				DBG_Trace(DBG_LEVEL5,
+> -					"Tiomap_pwr.c - DSP requested"
+> -					" OPP = %d, MPU requesting low"
+> -					" OPP %d instead\n", opplevel,
+> -					VDD1_OPP1);
+> -				if (pdata->dsp_set_min_opp)
+> -					(*pdata->dsp_set_min_opp)(VDD1_OPP1);
+> -				status = DSP_SOK;
+> +					" DSP requested OPP = %d, MPU"
+> +					" requesting low OPP %d instead\n",
+> +					opplevel, VDD1_OPP1);
+>  			}
+> +			/*
+> +			 * Set the OPP to low level before moving to OFF
+> +			 * mode
+> +			 */
+> +			if (pdata->dsp_set_min_opp)
+> +				(*pdata->dsp_set_min_opp)(VDD1_OPP1);
+> +			status = DSP_SOK;
+
+I think that the "if statement" is only avoiding setting the OPP1 if the DSP is already in OPP1. Were you seeing an issue without this change?
+
+>  #endif /* CONFIG_BRIDGE_DVFS */
+>  		} else {
+>  			DBG_Trace(DBG_LEVEL7,
+> --
+> 1.6.2.4
+> 
 
 Regards,
-Nishanth Menon
+Fernando.
+
