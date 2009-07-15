@@ -1,26 +1,82 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 00/13] DSPBRIDGE: Patchset with various fixes
-Date: Wed, 15 Jul 2009 17:56:23 +0300
-Message-ID: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 01/13] DSPBRIDGE: Heuristic fixes of strlen/malloc out by one
+Date: Wed, 15 Jul 2009 17:56:24 +0300
+Message-ID: <1247669795-23895-2-git-send-email-ameya.palande@nokia.com>
+References: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35430 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755191AbZGOO4g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 10:56:36 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:17999 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755202AbZGOO4h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 15 Jul 2009 10:56:37 -0400
+In-Reply-To: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: omar.ramirez@ti.com, x0095840@ti.com, nm@ti.com, hiroshi.doyu@nokia.com
 
-Most of them have already got an ack, but can you please verify them again?
-Following patches need an ack:
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-[PATCH 04/13] DSPBRIDGE: fix macros that break when inside an if/else
-[PATCH 05/13] DSPBRIDGE: enable smart/autoidle for mailbox sysconfig
-[PATCH 11/13] DSPBRIDGE: Set VDD1 OPP1 unconditionally while moving to off mode
-[PATCH 12/13] DSPBRIDGE: fix resuming problem with dsp hibernation
+I say 'heuristic', as I can't prove they're wrong, they just look
+wrong, and for that reason should be given extra close scrutiny.
+These are basically just the old malloc-one-more-than-strlen.
 
-Thanks!
+Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Acked-by: Fernando Guzman Lugo <x0095840@ti.com>
+---
+ drivers/dsp/bridge/pmgr/wcd.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-Cheers,
-Ameya.
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index 86812c6..b8adb41 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -528,8 +528,9 @@ u32 MGRWRAP_RegisterObject(union Trapped_Args *args)
+ 	cp_fm_usr(&pUuid, args->ARGS_MGR_REGISTEROBJECT.pUuid, status, 1);
+ 	if (DSP_FAILED(status))
+ 		goto func_end;
++	/* pathSize is increased by 1 to accommodate NULL */
+ 	pathSize = strlen_user((char *)
+-				args->ARGS_MGR_REGISTEROBJECT.pszPathName);
++			args->ARGS_MGR_REGISTEROBJECT.pszPathName) + 1;
+ 	pszPathName = MEM_Alloc(pathSize, MEM_NONPAGED);
+ 	if (!pszPathName)
+ 		goto func_end;
+@@ -540,7 +541,6 @@ u32 MGRWRAP_RegisterObject(union Trapped_Args *args)
+ 		status = DSP_EPOINTER;
+ 		goto func_end;
+ 	}
+-	pszPathName[pathSize] = '\0';
+ 
+ 	GT_1trace(WCD_debugMask, GT_ENTER,
+ 		 "MGRWRAP_RegisterObject: entered pg2hMsg "
+@@ -900,7 +900,8 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+ 		if (argv[i] != NULL) {
+                         /* User space pointer to argument */
+                        temp = (char *) argv[i];
+-                       len = strlen_user((char *)temp);
++			/* len is increased by 1 to accommodate NULL */
++			len = strlen_user((char *)temp) + 1;
+ 			/* Kernel space pointer to argument */
+ 			argv[i] = MEM_Alloc(len, MEM_NONPAGED);
+ 			if (argv[i] == NULL) {
+@@ -910,7 +911,6 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+ 			cp_fm_usr(argv[i], temp, status, len);
+ 			if (DSP_FAILED(status))
+ 				goto func_cont;
+-
+ 		}
+ 	}
+ 	/* TODO: validate this */
+@@ -933,7 +933,8 @@ u32 PROCWRAP_Load(union Trapped_Args *args)
+ 		for (i = 0; DSP_SUCCEEDED(status) && (envp[i] != NULL); i++) {
+                         /* User space pointer to argument */
+                        temp = (char *)envp[i];
+-                       len = strlen_user((char *)temp);
++			/* len is increased by 1 to accommodate NULL */
++			len = strlen_user((char *)temp) + 1;
+ 			/* Kernel space pointer to argument */
+ 			envp[i] = MEM_Alloc(len, MEM_NONPAGED);
+ 			if (envp[i] == NULL) {
+-- 
+1.6.2.4
+
