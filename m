@@ -1,44 +1,58 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: Re: [PATCH 00/13] DSPBRIDGE: Patchset with various fixes
-Date: Thu, 16 Jul 2009 09:53:12 +0300
-Message-ID: <4A5ECE58.4010408@nokia.com>
-References: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com> <4A5E2BAA.3030007@ti.com>
+Subject: Re: [PATCH 12/13] DSPBRIDGE: fix resuming problem with dsp hibernation
+Date: Thu, 16 Jul 2009 10:12:03 +0300
+Message-ID: <4A5ED2C3.8070105@nokia.com>
+References: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com> <1247669795-23895-2-git-send-email-ameya.palande@nokia.com> <1247669795-23895-3-git-send-email-ameya.palande@nokia.com> <1247669795-23895-4-git-send-email-ameya.palande@nokia.com> <1247669795-23895-5-git-send-email-ameya.palande@nokia.com> <1247669795-23895-6-git-send-email-ameya.palande@nokia.com> <1247669795-23895-7-git-send-email-ameya.palande@nokia.com> <1247669795-23895-8-git-send-email-ameya.palande@nokia.com> <1247669795-23895-9-git-send-email-ameya.palande@nokia.com> <1247669795-23895-10-git-send-email-ameya.palande@nokia.com> <1247669795-23895-11-git-send-email-ameya.palande@nokia.com> <1247669795-23895-12-git-send-email-ameya.palande@nokia.com> <1247669795-23895-13-git-send-email-ameya.palande@nokia.com> <496
+ 565EC904933469F292DDA3F1663E602A32025E9@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:24635 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:25988 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047AbZGPGyI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jul 2009 02:54:08 -0400
-In-Reply-To: <4A5E2BAA.3030007@ti.com>
+	with ESMTP id S1751136AbZGPHMF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jul 2009 03:12:05 -0400
+In-Reply-To: <496565EC904933469F292DDA3F1663E602A32025E9@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Nishanth Menon <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+To: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Menon, Nishanth" <nm@ti.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
 
-Hi Nishant,
+Hi Fernando,
 
-ext Nishanth Menon wrote:
-> Ameya Palande had written, on 07/15/2009 09:56 AM, the following:
->> Most of them have already got an ack, but can you please verify them again?
->> Following patches need an ack:
+ext Guzman Lugo, Fernando wrote:
+> 
+> Hi,
+> 
+>> -----Original Message-----
+>> From: Ameya Palande [mailto:ameya.palande@nokia.com]
+>> Sent: Wednesday, July 15, 2009 9:57 AM
+>> To: linux-omap@vger.kernel.org
+>> Cc: Ramirez Luna, Omar; Guzman Lugo, Fernando; Menon, Nishanth;
+>> hiroshi.doyu@nokia.com
+>> Subject: [PATCH 12/13] DSPBRIDGE: fix resuming problem with dsp
+>> hibernation
 >>
->> [PATCH 04/13] DSPBRIDGE: fix macros that break when inside an if/else
->> [PATCH 05/13] DSPBRIDGE: enable smart/autoidle for mailbox sysconfig
->> [PATCH 11/13] DSPBRIDGE: Set VDD1 OPP1 unconditionally while moving to off mode
->> [PATCH 12/13] DSPBRIDGE: fix resuming problem with dsp hibernation
-> Is there a 13/13? [1] shows 12/13 max..
+>> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+>>
+>> The constraints(opp >= 2) should be set whenever returning from DSP
+>> hibernation.
+>>
+>> This fixes the problem at the following steps:
+>> 1) wait DSP hibernate
+>> 2) echo mem > /sys/power/state
+>> 3) type key to wakeup
+>>
 > 
-> Regards,
-> Nishanth Menon
-> 
-> Ref:
-> [1] http://marc.info/?l=linux-omap&r=1&b=200907&w=2
+> The patch looks good, you are removing the check for OPP1 because it is suppose
+> that if the DSP is in Hibernation we have a DSP constrain in OPP1,
+> so I think the "if" is always true. However I don't see the issue the mention
+> could you please tell me what was the problem you were seeing?
 
-Sorry for the confusion!
-13th Patch is: 0013-DSPBRIDGE-add-debug-prints-for-SR-DVFS-problem.patch
-It is only helpful for debugging hence not included in final patchset.
+While waking up DSP if VDD1 OPP is greater that 1 then without this patch,
+constraint won't be set. This results in a case where PM layer later decides to
+switch to OPP1 while DSP is active, which results in a crash. To avoid this we
+are setting VDD1 to OPP2 unconditionally while waking up from hibernation :)
 
 Cheers,
 Ameya.
