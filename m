@@ -1,55 +1,152 @@
-From: Janboe Ye <yuan-bo.ye@motorola.com>
-Subject: [PATCH] fix omap3 sram virtual addres overlap vmalloc space after
- increasing vmalloc size
-Date: Thu, 16 Jul 2009 17:47:57 -0500
-Message-ID: <1247784477.25106.35.camel@debian-nb>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH] DSPBRIDGE: Maintain VDD1 at OPP3 while DSP is active
+Date: Fri, 17 Jul 2009 02:35:52 +0300
+Message-ID: <1247787352-22732-1-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail55.messagelabs.com ([216.82.241.163]:39127 "EHLO
-	mail55.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933480AbZGPWs1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jul 2009 18:48:27 -0400
-Received: from il27exr04.cig.mot.com (il27exr04.mot.com [10.17.196.73])
-	by motgate4.mot.com (8.14.3/8.14.3) with ESMTP id n6GMmL80026551
-	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2009 15:48:21 -0700 (MST)
-Received: from az10vts04.mot.com (il27vts04.cig.mot.com [10.17.196.88])
-	by il27exr04.cig.mot.com (8.13.1/Vontu) with SMTP id n6GMmL3l018450
-	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2009 17:48:21 -0500 (CDT)
-Received: from zmy16exm62.ds.mot.com (zmy16exm62.ap.mot.com [10.179.4.33])
-	by il27exr04.cig.mot.com (8.13.1/8.13.0) with ESMTP id n6GMmJqc018442
-	for <linux-omap@vger.kernel.org>; Thu, 16 Jul 2009 17:48:20 -0500 (CDT)
+Received: from smtp.nokia.com ([192.100.122.230]:63179 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933604AbZGPXf4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jul 2009 19:35:56 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: mans@mansr.com, khilman@deeprootsystems.com, paul@pwsan.com, tony@atomide.com, hong-mei.li@motorola.com
+Cc: omar.ramirez@ti.com, x0095840@ti.com, hiroshi.doyu@nokia.com, nm@ti.com
 
-resend for mini coding style fixing
+With Smartreflex ON, OPP2 is not sufficient for reliable DSP operation and
+we can see following problems:
 
-commit e85c205ac1427f2405021a36f083280ff0d0a35e increase vmalloc size.
-vmalloc space will overlap with OMAP3 sram virtual address.
+1. DSP mailbox timeout
+2. DSP MMU Faults
+3. DSP SYSERRORS
 
-Signed-off-by: Li Hong Mei <hong-mei.li@motorola.com>
-Signed-off-by: Janboe Ye <yuan-bo.ye@motorola.com>
+To avoid these issues, this patch maintains OPP3 for DSP active operation by
+introducing a new new module parameter "min_active_opp". This can be used
+for tuning OPP active value depending on the hardware configuration.
+
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/plat-omap/sram.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/dsp/bridge/rmgr/drv_interface.c |    6 ++++++
+ drivers/dsp/bridge/wmd/tiomap3430.c     |   15 ++++++++-------
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   12 +++++++-----
+ drivers/dsp/bridge/wmd/tiomap_sm.c      |    9 +++++++--
+ 4 files changed, 28 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index a2e60e7..755ccaa 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -41,9 +41,9 @@
- #define OMAP2_SRAM_VA          0xe3000000
- #define OMAP2_SRAM_PUB_VA      (OMAP2_SRAM_VA + 0x800)
- #define OMAP3_SRAM_PA           0x40200000
--#define OMAP3_SRAM_VA           0xd7000000
-+#define OMAP3_SRAM_VA           0xe3000000
- #define OMAP3_SRAM_PUB_PA       0x40208000
--#define OMAP3_SRAM_PUB_VA       0xd7008000
-+#define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
-
- #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
- #define SRAM_BOOTLOADER_SZ     0x00
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 12b140c..24f6336 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -134,6 +134,9 @@ static u32 phys_mempool_base;
+ static u32 phys_mempool_size;
+ static int tc_wordswapon;	/* Default value is always false */
+ 
++/* Minimum ACTIVE VDD1 OPP level for reliable DSP operation */
++unsigned short min_active_opp = 3;
++
+ #ifdef CONFIG_PM
+ struct omap34xx_bridge_suspend_data {
+ 	int suspended;
+@@ -185,6 +188,9 @@ MODULE_PARM_DESC(phys_mempool_size,
+ module_param(tc_wordswapon, int, 0);
+ MODULE_PARM_DESC(tc_wordswapon, "TC Word Swap Option. default = 0");
+ 
++module_param(min_active_opp, ushort, S_IRUSR | S_IWUSR);
++MODULE_PARM_DESC(min_active_opp, "Minimum ACTIVE VDD1 OPP Level, default = 3");
++
+ MODULE_AUTHOR("Texas Instruments");
+ MODULE_LICENSE("GPL");
+ 
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index 54c53b6..f1d5b15 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -99,6 +99,8 @@
+ 
+ #define MMU_GFLUSH 0x60
+ 
++extern unsigned short min_active_opp;
++
+ /* Forward Declarations: */
+ static DSP_STATUS WMD_BRD_Monitor(struct WMD_DEV_CONTEXT *pDevContext);
+ static DSP_STATUS WMD_BRD_Read(struct WMD_DEV_CONTEXT *pDevContext,
+@@ -295,13 +297,12 @@ static inline void flush_all(struct WMD_DEV_CONTEXT *pDevContext)
+ #ifdef CONFIG_BRIDGE_DVFS
+ 		struct dspbridge_platform_data *pdata =
+ 			omap_dspbridge_dev->dev.platform_data;
+-		u32 opplevel = 0;
+-		if (pdata->dsp_get_opp)
+-			opplevel = (*pdata->dsp_get_opp)();
+-		if (opplevel == VDD1_OPP1) {
+-			if (pdata->dsp_set_min_opp)
+-				(*pdata->dsp_set_min_opp)(VDD1_OPP2);
+-		}
++		/*
++		 * When Smartreflex is ON, DSP requires at least OPP level 3
++		 * to operate reliably. So boost lower OPP levels to OPP3.
++		 */
++		if (pdata->dsp_set_min_opp)
++			(*pdata->dsp_set_min_opp)(min_active_opp);
+ #endif
+ 		tlb_flush_all(pDevContext->dwDSPMmuBase);
+ 	}
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+index bec696b..4d841db 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+@@ -72,6 +72,7 @@
+ #endif
+ extern struct MAILBOX_CONTEXT mboxsetting;
+ extern unsigned short enable_off_mode;
++extern unsigned short min_active_opp;
+ /*
+  *  ======== handle_constraints_set ========
+  *  	Sets new DSP constraint
+@@ -97,12 +98,13 @@ DSP_STATUS handle_constraints_set(struct WMD_DEV_CONTEXT *pDevContext,
+ 	/* Set the new opp value */
+ 	if (pdata->dsp_set_min_opp) {
+ 		/*
+-		 * Accessing IVA-Memories at OPP1 has been removed from
+-		 * operating specification so elevate OPP to 2.
++		 * When Smartreflex is ON, DSP requires at least OPP level 3
++		 * to operate reliably. So boost lower OPP levels to OPP3.
+ 		 */
+-		if (pConstraintVal == VDD1_OPP1) {
+-			pr_debug("DSPBRIDGE: VDD1 OPP1 elevated to OPP2\n");
+-			(*pdata->dsp_set_min_opp)(VDD1_OPP2);
++		if (pConstraintVal < min_active_opp) {
++			pr_debug("DSPBRIDGE: VDD1 OPP%x elevated to OPP%x\n",
++					pConstraintVal, min_active_opp);
++			(*pdata->dsp_set_min_opp)(min_active_opp);
+ 		} else
+ 			(*pdata->dsp_set_min_opp)(pConstraintVal);
+ 	}
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index 69f6fb3..36c645c 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -28,6 +28,8 @@
+ 
+ #define MAILBOX_FIFOSTATUS(m) (0x80 + 4 * (m))
+ 
++extern unsigned short min_active_opp;
++
+ static inline unsigned int fifo_full(void __iomem *mbox_base, int mbox_id)
+ {
+ 	return __raw_readl(mbox_base + MAILBOX_FIFOSTATUS(mbox_id)) & 0x1;
+@@ -113,9 +115,12 @@ DSP_STATUS CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT *pDevContext,
+ #ifdef CONFIG_BRIDGE_DVFS
+ 		struct dspbridge_platform_data *pdata =
+ 			omap_dspbridge_dev->dev.platform_data;
+-
++		/*
++		 * When Smartreflex is ON, DSP requires at least OPP level 3
++		 * to operate reliably. So boost lower OPP levels to OPP3.
++		 */
+ 		if (pdata->dsp_set_min_opp)
+-			(*pdata->dsp_set_min_opp)(VDD1_OPP2);
++			(*pdata->dsp_set_min_opp)(min_active_opp);
+ #endif
+ 		/* Restart the peripheral clocks */
+ 		DSP_PeripheralClocks_Enable(pDevContext, NULL);
+-- 
+1.6.2.4
 
