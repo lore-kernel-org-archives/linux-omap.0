@@ -1,110 +1,114 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 12/13] DSPBRIDGE: fix resuming problem with dsp
- hibernation
-Date: Thu, 16 Jul 2009 10:16:03 +0300 (EEST)
-Message-ID: <20090716.101603.226793710.Hiroshi.DOYU@nokia.com>
-References: <1247669795-23895-12-git-send-email-ameya.palande@nokia.com>
-	<1247669795-23895-13-git-send-email-ameya.palande@nokia.com>
-	<496565EC904933469F292DDA3F1663E602A32025E9@dlee06.ent.ti.com>
+Subject: Re: [PATCH 10/13] DSPBRIDGE: HACK: insert delay for DPLL
+ stabilization
+Date: Thu, 16 Jul 2009 11:53:03 +0300 (EEST)
+Message-ID: <20090716.115303.71102875.Hiroshi.DOYU@nokia.com>
+References: <1247669795-23895-9-git-send-email-ameya.palande@nokia.com>
+	<1247669795-23895-10-git-send-email-ameya.palande@nokia.com>
+	<1247669795-23895-11-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:23035 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:31087 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750987AbZGPHQl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jul 2009 03:16:41 -0400
-In-Reply-To: <496565EC904933469F292DDA3F1663E602A32025E9@dlee06.ent.ti.com>
+	with ESMTP id S1754092AbZGPIxn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 16 Jul 2009 04:53:43 -0400
+In-Reply-To: <1247669795-23895-11-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: x0095840@ti.com
-Cc: ameya.palande@nokia.com, linux-omap@vger.kernel.org, omar.ramirez@ti.com, nm@ti.com
+To: omar.ramirez@ti.com, x0095840@ti.com
+Cc: linux-omap@vger.kernel.org, nm@ti.com, ameya.palande@nokia.com
 
-From: "ext Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 12/13] DSPBRIDGE: fix resuming problem with dsp hibernation
-Date: Thu, 16 Jul 2009 01:10:58 +0200
+Hi,
 
-> 
-> 
-> Hi,
-> 
-> > -----Original Message-----
-> > From: Ameya Palande [mailto:ameya.palande@nokia.com]
-> > Sent: Wednesday, July 15, 2009 9:57 AM
-> > To: linux-omap@vger.kernel.org
-> > Cc: Ramirez Luna, Omar; Guzman Lugo, Fernando; Menon, Nishanth;
-> > hiroshi.doyu@nokia.com
-> > Subject: [PATCH 12/13] DSPBRIDGE: fix resuming problem with dsp
-> > hibernation
-> > 
-> > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > 
-> > The constraints(opp >= 2) should be set whenever returning from DSP
-> > hibernation.
-> > 
-> > This fixes the problem at the following steps:
-> > 1) wait DSP hibernate
-> > 2) echo mem > /sys/power/state
-> > 3) type key to wakeup
-> > 
-> 
-> The patch looks good, you are removing the check for OPP1 because it
-> is suppose that if the DSP is in Hibernation we have a DSP constrain
-> in OPP1, so I think the "if" is always true. However I don't see the
-> issue the mention could you please tell me what was the problem you
-> were seeing?
+From: "Palande Ameya (Nokia-D/Helsinki)" <ameya.palande@nokia.com>
+Subject: [PATCH 10/13] DSPBRIDGE: HACK: insert delay for DPLL stabilization
+Date: Wed, 15 Jul 2009 16:56:33 +0200
 
-We haven't found the exact steps to reproduce this, but logically this
-is necessary since it has to set *min* OPP2(constraints) in spite of
-whatever the current OPP value is.
+> *HACK*: status register should be checked for this purpose.
+> 
+> [Hiroshi DOYU: split the original to logical ones]
+> 
+> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+> Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+> ---
+>  drivers/dsp/bridge/wmd/tiomap_sm.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+> index 7d389e3..02e2675 100644
+> --- a/drivers/dsp/bridge/wmd/tiomap_sm.c
+> +++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+> @@ -141,6 +141,13 @@ DSP_STATUS CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT *pDevContext,
+>  		temp = (temp & 0xFFFFFF08) | 0x37;
+>  		*(REG_UWORD32 *)(resources.dwCmBase + 0x4) = temp;
+>  
+> +		/*
+> +		 * This delay is needed to avoid mailbox timed out
+> +		 * issue experienced while SmartReflex is ON.
+> +		 * TODO: Instead of 1 ms calculate proper value.
+> +		 */
+> +		mdelay(1);
+> +
 
+I have tried the following patch and it seems that CM_IDLEST_PLL_IVA2
+has never got locked.
+
+Is any special sequence required?
+
+>From af2ab46ad5bdcae57e7bf9ac735e3862ec2f45e6 Mon Sep 17 00:00:00 2001
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Thu, 16 Jul 2009 11:48:19 +0300
+Subject: [PATCH 1/1] DSPBRIDGE: poll IDLEST_PLL register for DPLL locking
+
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ drivers/dsp/bridge/wmd/tiomap_sm.c |   21 +++++++++++++++------
+ 1 files changed, 15 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+index ca9202d..aaea896 100644
+--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
++++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+@@ -137,12 +137,21 @@ DSP_STATUS CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT *pDevContext,
+ 		temp = (temp & 0xFFFFFF08) | 0x37;
+ 		*(REG_UWORD32 *)(resources.dwCmBase + 0x4) = temp;
+ 
+-		/*
+-		 * This delay is needed to avoid mailbox timed out
+-		 * issue experienced while SmartReflex is ON.
+-		 * TODO: Instead of 1 ms calculate proper value.
+-		 */
+-		mdelay(1);
++		/* Poll CM_IDLEST_PLL_IVA2 */
++		timeout = jiffies + msecs_to_jiffies(1000);
++		while (1) {
++			u32 l;
++
++			l = __raw_readl(resources.dwCmBase + 0x24);
++			if (l & 1)
++				break;
++
++			if (time_after(jiffies, timeout)) {
++				pr_err("%s(): dpll2 lock timeout\n", __func__);
++				return WMD_E_TIMEOUT;
++			}
++		}
++		pr_info("%s(): dpll2 locked\n", __func__);
+ 
+ 		/* Restore mailbox settings */
+ 		HW_MBOX_restoreSettings(resources.dwMboxBase);
+-- 
+1.6.0.4
+
+
+
+>  		/* Restore mailbox settings */
+>  		HW_MBOX_restoreSettings(resources.dwMboxBase);
+>  
+> -- 
+> 1.6.2.4
 > 
-> 
-> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > ---
-> >  drivers/dsp/bridge/wmd/tiomap_sm.c |   16 +++++-----------
-> >  1 files changed, 5 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c
-> > b/drivers/dsp/bridge/wmd/tiomap_sm.c
-> > index 02e2675..69f6fb3 100644
-> > --- a/drivers/dsp/bridge/wmd/tiomap_sm.c
-> > +++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
-> > @@ -98,11 +98,6 @@ DSP_STATUS CHNLSM_DisableInterrupt(struct
-> > WMD_DEV_CONTEXT *pDevContext)
-> >  DSP_STATUS CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT *pDevContext,
-> >  				u16 wMbVal)
-> >  {
-> > -#ifdef CONFIG_BRIDGE_DVFS
-> > -	struct dspbridge_platform_data *pdata =
-> > -		omap_dspbridge_dev->dev.platform_data;
-> > -	u32 opplevel = 0;
-> > -#endif
-> >  	struct CFG_HOSTRES resources;
-> >  	DSP_STATUS status = DSP_SOK;
-> >  	unsigned long timeout;
-> > @@ -116,12 +111,11 @@ DSP_STATUS CHNLSM_InterruptDSP2(struct
-> > WMD_DEV_CONTEXT *pDevContext,
-> >  	if (pDevContext->dwBrdState == BRD_DSP_HIBERNATION ||
-> >  	    pDevContext->dwBrdState == BRD_HIBERNATION) {
-> >  #ifdef CONFIG_BRIDGE_DVFS
-> > -		if (pdata->dsp_get_opp)
-> > -			opplevel = (*pdata->dsp_get_opp)();
-> > -		if (opplevel == VDD1_OPP1) {
-> > -			if (pdata->dsp_set_min_opp)
-> > -				(*pdata->dsp_set_min_opp)(VDD1_OPP2);
-> > -		}
-> > +		struct dspbridge_platform_data *pdata =
-> > +			omap_dspbridge_dev->dev.platform_data;
-> > +
-> > +		if (pdata->dsp_set_min_opp)
-> > +			(*pdata->dsp_set_min_opp)(VDD1_OPP2);
-> >  #endif
-> >  		/* Restart the peripheral clocks */
-> >  		DSP_PeripheralClocks_Enable(pDevContext, NULL);
-> > --
-> > 1.6.2.4
-> > 
-> 
-> Regards,
-> Fernando.
