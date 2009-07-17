@@ -1,59 +1,45 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] fix omap3 sram virtual addres overlap vmalloc space
- after increasing vmalloc size
-Date: Fri, 17 Jul 2009 16:04:20 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0907171603190.18924@utopia.booyaka.com>
-References: <1247784477.25106.35.camel@debian-nb>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH] OMAP3: USBHOST: Fix prcm interrupt handler
+Date: Fri, 17 Jul 2009 17:24:08 -0500
+Message-ID: <1247869448-26114-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36268 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757905AbZGQWEV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 17 Jul 2009 18:04:21 -0400
-In-Reply-To: <1247784477.25106.35.camel@debian-nb>
+Received: from bear.ext.ti.com ([192.94.94.41]:53445 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757810AbZGQW0e (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 17 Jul 2009 18:26:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janboe Ye <yuan-bo.ye@motorola.com>
-Cc: linux-omap@vger.kernel.org, mans@mansr.com, khilman@deeprootsystems.com, tony@atomide.com, hong-mei.li@motorola.com
+To: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-On Thu, 16 Jul 2009, Janboe Ye wrote:
+For clearing the PM_WKST of USBHOST domain, two fclocks need
+to be enabled: HOST1 and HOST2
 
-> resend for mini coding style fixing
-> 
-> commit e85c205ac1427f2405021a36f083280ff0d0a35e increase vmalloc size.
-> vmalloc space will overlap with OMAP3 sram virtual address.
+Current code just enables HOST1 fclock and thus not clearing the
+Wake status of usbhost domain correctly
 
-Makes sense to me.  I'm not sure how we missed this in the original patch.
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-Reviewed-by: Paul Walmsley <paul@pwsan.com>
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index e80d59f..4cbeff1 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -264,8 +264,10 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ 					       CM_FCLKEN);
+ 			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
+ 					    CM_ICLKEN);
+-			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
+-					    CM_FCLKEN);
++			cm_set_mod_reg_bits((1<<OMAP3430ES2_EN_USBHOST2_SHIFT)|
++					(1<<OMAP3430ES2_EN_USBHOST1_SHIFT),
++					OMAP3430ES2_USBHOST_MOD,
++					CM_FCLKEN);
+ 			prm_write_mod_reg(wkst, OMAP3430ES2_USBHOST_MOD,
+ 					  PM_WKST);
+ 			while (prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+-- 
+1.6.3.3.334.g916e1
 
-- Paul
-
-> 
-> Signed-off-by: Li Hong Mei <hong-mei.li@motorola.com>
-> Signed-off-by: Janboe Ye <yuan-bo.ye@motorola.com>
-> ---
->  arch/arm/plat-omap/sram.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> index a2e60e7..755ccaa 100644
-> --- a/arch/arm/plat-omap/sram.c
-> +++ b/arch/arm/plat-omap/sram.c
-> @@ -41,9 +41,9 @@
->  #define OMAP2_SRAM_VA          0xe3000000
->  #define OMAP2_SRAM_PUB_VA      (OMAP2_SRAM_VA + 0x800)
->  #define OMAP3_SRAM_PA           0x40200000
-> -#define OMAP3_SRAM_VA           0xd7000000
-> +#define OMAP3_SRAM_VA           0xe3000000
->  #define OMAP3_SRAM_PUB_PA       0x40208000
-> -#define OMAP3_SRAM_PUB_VA       0xd7008000
-> +#define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
-> 
->  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
->  #define SRAM_BOOTLOADER_SZ     0x00
-> 
-
-
-- Paul
