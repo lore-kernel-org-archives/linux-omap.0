@@ -1,30 +1,81 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH v2] OMAP3: PM: USBHOST: clear wakeup events on both hosts
-Date: Sun, 19 Jul 2009 08:39:49 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039681E5E2@dlee02.ent.ti.com>
-References: <1247877189-5754-1-git-send-email-vikram.pandita@ti.com>
- <13B9B4C6EF24D648824FF11BE8967162039681E5E1@dlee02.ent.ti.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Problems configuring OMAP35x ISP driver
+Date: Sun, 19 Jul 2009 09:07:50 -0600
+Message-ID: <4A6336C6.8030807@mlbassoc.com>
+References: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com> <4A5CBF3D.80002@stanford.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37897 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754280AbZGSNj5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Jul 2009 09:39:57 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039681E5E1@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from hermes.mlbassoc.com ([76.76.67.137]:4389 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374AbZGSPH5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Jul 2009 11:07:57 -0400
+In-Reply-To: <4A5CBF3D.80002@stanford.edu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Eino-Ville Talvala <talvala@stanford.edu>
+Cc: Zach LeRoy <zleroy@rii.ricoh.com>, "Aguirre Rodriguez, Sergio" <saaguirre@ti.com>, linux-media <linux-media@vger.kernel.org>, linux-omap <linux-omap@vger.kernel.org>
 
-> So point is... for USB having this WKST status bit set and NOT having the F-
-> Clk enabled points to an issue in the OFF mode transition code in the USB
-> driver.
+Eino-Ville Talvala wrote:
+> Zach,
+> 
+> We've gotten a Aptina MT9P031 driver working with the latest ISP
+> patchset, both with YUV and RAW data.
+> I don't know what the problem might be with YUYV data - we get useful
+> YUYV data without any changes to the ISP defaults.
+> However, to request RAW data, that simply uses the CCDC and bypasses all
+> the processing in the ISP, request the pixelformat of
+> V4L2_PIX_FMT_SGRBG10.  This will give you two bytes per pixel, at least
+> in our case (although we have a 12-bit sensor cut down to 10 bits), so
+> be prepared to throw out every other byte.
+> 
+> Hope this helps,
+> 
+> Eino-Ville (Eddy) Talvala
+> Computer Graphics Lab
+> Stanford University
+> 
 
-Or if this is on 1st boot, then issue can be init code needing to clean up whatever damage the boot loader may have done. Prcm_init should really have done this as you don't always have a controlling USB driver.
+I've been working on this same issue, using a Micron MT9T001 sensor, without
+much success.  Could you share your tree and/or patches (against what?)??
+This would be most helpful.
 
-Regards,
-Richard W.
+Thanks
 
+> On 7/14/2009 9:49 AM, Zach LeRoy wrote:
+>> Hello Sergio,
+>>
+>> I spoke with you earlier about using the ISP and omap34xxcam drivers
+>> with a micron mt9d111 SOC sensor.  I have since been able to take
+>> pictures, but the sensor data is not making it through the ISP
+>> data-path correctly.  I know the problem is in the ISP data-path
+>> because I am configuring the sensor the exact same way as I have been
+>> on my working PXA system.  I am expecting 4:2:2 packed YUV data, but
+>> all of the U and V data is no more than 2 bits where it should be 8. 
+>> I know the ISP has a lot of capabilities, but all I want to use it for
+>> is grabbing 8-bit data from my sensor and putting it in a buffer
+>> untouched using the CCDC interface (and of course clocking and
+>> timing).  What are the key steps to take to get this type of
+>> configuration?
+>>
+>> Other Questions:
+>>
+>> Is there any processing done on YUV data in the ISP driver by default
+>> that I am missing?
+>> Has any one else experienced similar problems while adding new sensor
+>> support?
+>>
+>> Any help here would be greatly appreciated.
+>>
+>> Thank you,
+>>
+>> Zach LeRoy
+
+
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
