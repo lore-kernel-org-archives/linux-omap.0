@@ -1,22 +1,18 @@
 From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 1/10] arch/arm/plat-omap: Drop unnecessary NULL test
-Date: Sun, 19 Jul 2009 17:25:28 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0907191725060.16542@ask.diku.dk>
+Subject: [PATCH 9/10] drivers/mmc: Move a dereference below a NULL test
+Date: Sun, 19 Jul 2009 17:30:26 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0907191729580.16542@ask.diku.dk>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:47103 "EHLO mgw1.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754366AbZGSP0Q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Jul 2009 11:26:16 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754820AbZGSPab@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: jarkko.lavinen@nokia.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
 From: Julia Lawall <julia@diku.dk>
 
-The function map_iovm_area is static and is only called from one place, at
-which the "new" argument cannot be NULL.
+If the NULL test is necessary, then the dereference should be moved below
+the NULL test.
 
 The semantic patch that makes this change is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
@@ -33,26 +29,35 @@ statement S;
 + T i;
   ... when != E=E1
       when != i
-  if (E == NULL||...) S
+  BUG_ON (E == NULL||
+-     i
++     E->fld
+       == NULL || ...);
 + i = E->fld;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
 
 ---
- arch/arm/plat-omap/iovmm.c          |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/mmc/host/omap.c             |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 2fce2c1..04e2286 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -447,7 +447,7 @@ static int map_iovm_area(struct iommu *obj, struct iovm_struct *new,
- 	struct scatterlist *sg;
- 	u32 da = new->da_start;
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index e7a331d..89281ab 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -255,11 +255,12 @@ static void mmc_omap_slot_release_work(struct work_struct *work)
  
--	if (!obj || !new || !sgt)
-+	if (!obj || !sgt)
- 		return -EINVAL;
+ static void mmc_omap_release_slot(struct mmc_omap_slot *slot, int clk_enabled)
+ {
+-	struct mmc_omap_host *host = slot->host;
++	struct mmc_omap_host *host;
+ 	unsigned long flags;
+ 	int i;
  
- 	BUG_ON(!sgtable_ok(sgt));
+-	BUG_ON(slot == NULL || host->mmc == NULL);
++	BUG_ON(slot == NULL || slot->host->mmc == NULL);
++	host = slot->host;
+ 
+ 	if (clk_enabled)
+ 		/* Keeps clock running for at least 8 cycles on valid freq */
