@@ -1,139 +1,60 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
-Date: Mon, 20 Jul 2009 11:54:19 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F202958D2D74@dlee06.ent.ti.com>
-References: <CD8CC2B65FEE304DA95744A5472698F202957C7AFE@dlee06.ent.ti.com>
- <4A5D136D.8030701@ti.com>
- <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP: Rename twl4030* driver files to enable
+ re-use
+Date: Mon, 20 Jul 2009 21:52:54 +0300
+Message-ID: <20090720185253.GA7984@gandalf>
+References: <1248096671-13828-1-git-send-email-balajitk@ti.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58136 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850AbZGTQy3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 12:54:29 -0400
-In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202957C7C3A@dlee06.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753361AbZGTSxN@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1248096671-13828-1-git-send-email-balajitk@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: balajitk@ti.com
+Cc: linux-kernel@vger.kernel.org, tony@atomide.com, khilman@deeprootsystems.com, david-b@pacbell.net, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, sameo@openedhand.com, wim@iguana.be, timo.t.kokkonen@nokia.com, ben-linux@fluff.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Sonasath, Moiz" <m-sonasath@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Kamat, Nishant" <nskamat@ti.com>, Paul Walmsley <paul@pwsan.com>
 
+Hi,
 
-> Sonasath, Moiz wrote:
-> > When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
-> > Otherwise some data bytes can be lost while transferring them from the
-> > memory to the I2C interface.
-> >
-> > Do a Busy-wait for XUDF, before writing data to DATA_REG. While waiting
-> > if there is NACK | AL, set the appropriate error flags, ack the pending
-> > interrupts and return from the ISR.
-> >
-> > Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
-> > Signed-off-by: Vikram Pandita<vikram.pandita@ti.com>
-> > ---
-> >  drivers/i2c/busses/i2c-omap.c |   24 +++++++++++++++++++++++-
-> >  1 files changed, 23 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-
-> omap.c
-> > index 05b5e4c..8deaf87 100644
-> > --- a/drivers/i2c/busses/i2c-omap.c
-> > +++ b/drivers/i2c/busses/i2c-omap.c
-> > @@ -672,9 +672,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
-> >  			break;
-> >  		}
-> >
-> > +		err = 0;
-> > +complete:
-> cant we rename this label?
-> [Moiz]
-> This path actually completes the IRQ service routine and therefore the
-> name.
+On Mon, Jul 20, 2009 at 07:01:11PM +0530, balajitk@ti.com wrote:
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > 
-> >  		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
-> >
-> > -		err = 0;
-> >  		if (stat & OMAP_I2C_STAT_NACK) {
-> >  			err |= OMAP_I2C_STAT_NACK;
-> >  			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
-> > @@ -764,6 +765,27 @@ omap_i2c_isr(int this_irq, void *dev_id)
-> >  							"data to send\n");
-> >  					break;
-> >  				}
-> > +
-> > +				/*
-> > +				 * OMAP3430 Errata 1.153: When an XRDY/XDR
-> > +				 * is hit, wait for XUDF before writing data
-> > +				 * to DATA_REG. Otherwise some data bytes can
-> > +				 * be lost while transferring them from the
-> > +				 * memory to the I2C interface.
-> > +				 */
-> > +
-> > +				if (cpu_is_omap34xx()) {
-> > +						while (!(stat & OMAP_I2C_STAT_XUDF)) {
-> > +							if (stat & (OMAP_I2C_STAT_NACK |
-> OMAP_I2C_STAT_AL)) {
-> > +								omap_i2c_ack_stat(dev,
-> stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
-> generic comment - code nesting is getting overwhelming - we may like to
-> refactor the isr function at a later date I think..
-> > +								err |= OMAP_I2C_STAT_XUDF;
-> why set the err if we wantedly force this to happen?
-> [Moiz]
-> The idea here is to let the upper application to know that something went
-> wrong while waiting for the XUDF bit to be set. This is just for debugging
-> purpose.
-> > +								goto complete;
+> The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+> for OMAP3. The common modules like RTC, Regulator creates opportunity
+> to re-use the most of the code from twl4030.
 > 
-> > +							}
-> > +							cpu_relax();
-> > +							stat = omap_i2c_read_reg(dev,
-> OMAP_I2C_STAT_REG);
-> > +						}
-> this is an infinite while loop + it tries to handle error cases -
-> essentially do another isr routine inside itself.
-> [Moiz]
-> Yes, it is a busy wait loop. But AFAIK while we come to this part of the
-> code the only thing that can go wrong in the transfer is either the device
-> would go off suddenly (creating a NACK) or there is an arbitration
-> lost(AL). This loop takes care of these two error conditions. Apart from
-> these, if the hardware is functional, the XUDF bit should be set as soon
-> as the FIFO gets empty.
+> This patch renames few common drivers twl4030* files to twl* to enable
+> the code re-use.
 > 
-> Correct me if I am missing something.
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Signed-off-by: Balaji T K <balajitk@ti.com>
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-2430sdp.c                |    2 +-
+>  arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
+>  arch/arm/mach-omap2/board-ldp.c                    |    2 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c            |    2 +-
+>  arch/arm/mach-omap2/board-omap3pandora.c           |    2 +-
+>  arch/arm/mach-omap2/board-overo.c                  |    2 +-
+>  drivers/gpio/twl4030-gpio.c                        |    2 +-
+>  drivers/mfd/Makefile                               |    2 +-
+>  drivers/mfd/{twl4030-core.c => twl-core.c}         |    8 +++-----
+>  drivers/mfd/twl4030-irq.c                          |    2 +-
+>  drivers/regulator/Makefile                         |    2 +-
+>  .../{twl4030-regulator.c => twl-regulator.c}       |    6 +++---
+>  drivers/rtc/Makefile                               |    2 +-
+>  drivers/rtc/{rtc-twl4030.c => rtc-twl.c}           |    2 +-
+>  drivers/usb/otg/twl4030-usb.c                      |    2 +-
+>  include/linux/i2c/{twl4030.h => twl.h}             |    5 ++++-
+>  sound/soc/codecs/twl4030.c                         |    2 +-
 
-As of now I am posting my patch without a timeout, later as per the need I will optimize it with a timeout approach.
+this is kinda useless, we can consider twl6030 as being sw compatible
+(almost) with twl4030. And twl4030 driver already support plenty of
+other devices, just look at drivers/mfd/twl4030-core.c lines 807 - 814.
+We have twl4003, twl5030, tps65950, tps65930 and tps65920.
 
-> 
-> How about:
-> Apply [1] and the following?
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index ad8d201..e3f21af 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -728,6 +728,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
->                  }
->                  if (stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR)) {
->                          u8 num_bytes = 1;
-> +                       if (cpu_is_omap34xx() &&
-> +                               !(stat & OMAP_I2C_STAT_XUDF)){
-> +                               cpu_relax();
-> +                               continue;
-> +                       }
-> +
->                          if (dev->fifo_size) {
->                                  if (stat & OMAP_I2C_STAT_XRDY)
->                                          num_bytes = dev->fifo_size;
-> 
-> 
-> Regards,
-> Nishanth Menon
-> Ref:
-> [1] http://patchwork.kernel.org/patch/32332/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So IMO, renaming the files is unnecessary.
 
+-- 
+balbi
