@@ -1,166 +1,185 @@
-From: Omar Ramirez Luna <omar.ramirez@ti.com>
-Subject: DSPBRIDGE: create DMM table using vmalloc instead of kmalloc
-Date: Sun, 19 Jul 2009 17:20:25 -0500
-Message-ID: <1248042025-11227-1-git-send-email-omar.ramirez@ti.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 08/13] DSPBRIDGE: Prevent memory access during
+ hibernation
+Date: Sun, 19 Jul 2009 22:52:14 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5304190ECD76@dlee03.ent.ti.com>
+References: <1247669795-23895-1-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-2-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-3-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-4-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-5-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-6-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-7-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-8-git-send-email-ameya.palande@nokia.com>
+ <1247669795-23895-9-git-send-email-ameya.palande@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39430 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751537AbZGSWNh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 19 Jul 2009 18:13:37 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:58103 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007AbZGTDwZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 19 Jul 2009 23:52:25 -0400
+In-Reply-To: <1247669795-23895-9-git-send-email-ameya.palande@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>, Hiroshi Doyu <Hiroshi.DOYU@nokia.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, Omar Ramirez Luna <omar.ramirez@ti.com>
+To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Guzman Lugo, Fernando" <x0095840@ti.com>, "Menon, Nishanth" <nm@ti.com>, "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>
 
-Replace the physical contiguos allocation for DMM tables as the
-required space might not available after some time, use virtual memory
-allocation instead.
+>From: Ameya Palande [mailto:ameya.palande@nokia.com]
+>Subject: [PATCH 08/13] DSPBRIDGE: Prevent memory access during hibernation
+>
+>If DSP is in hibernated then WakeDSP() returns without waking it up, which
+>results in flush_all function access IVA MMU while IVA is hibernated.
+>
+>[Hiroshi DOYU: split the original to logical ones]
+>
+>Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+>Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
+>---
+> drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   65 +++++++++++--------------------
+> drivers/dsp/bridge/wmd/tiomap_sm.c      |   32 +++++++--------
+> 2 files changed, 38 insertions(+), 59 deletions(-)
+>
+>diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+>index a725548..7cc29b7 100644
+>--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+>+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+>@@ -295,59 +295,40 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+>  */
+> DSP_STATUS WakeDSP(struct WMD_DEV_CONTEXT *pDevContext, IN void *pArgs)
+> {
+>-	DSP_STATUS status = DSP_SOK;
+> #ifdef CONFIG_PM
+>-	struct CFG_HOSTRES resources;
+>+	DSP_STATUS status = DSP_SOK;
+>+#ifdef CONFIG_BRIDGE_DEBUG
+> 	enum HW_PwrState_t pwrState;
+>-	u32 temp;
+>+	struct CFG_HOSTRES resources;
+>
+> 	status = CFG_GetHostResources(
+> 		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
+> 	if (DSP_FAILED(status))
+> 		return status;
+>-	/* check the BRD/WMD state, if it is not 'SLEEP' then return failure */
+>+#endif /* CONFIG_BRIDGE_DEBUG */
+>+
+>+	/* Check the BRD/WMD state, if it is not 'SLEEP' then return failure */
+> 	if (pDevContext->dwBrdState == BRD_RUNNING ||
+>-		pDevContext->dwBrdState == BRD_STOPPED ||
+>-		pDevContext->dwBrdState == BRD_DSP_HIBERNATION) {
+>+	    pDevContext->dwBrdState == BRD_STOPPED) {
+> 		/* The Device is in 'RET' or 'OFF' state and WMD state is not
+> 		 * 'SLEEP', this means state inconsistency, so return  */
+>-		status = DSP_SOK;
+>-		return status;
+>-	}
+>-	/* Enable the DSP peripheral clocks and load monitor timer
+>-	 * before waking the DSP */
+>-	DBG_Trace(DBG_LEVEL6, "WakeDSP: enable DSP Peripheral Clks = 0x%x \n",
+>-		 pDevContext->uDspPerClks);
+>-	status = DSP_PeripheralClocks_Enable(pDevContext, NULL);
+>-
+>-	/* Enabling Dppll in lock mode */
+>-		temp = (u32) *((REG_UWORD32 *)
+>-			((u32) (resources.dwCmBase) + 0x34));
+>-		temp = (temp & 0xFFFFFFFE) | 0x1;
+>-		*((REG_UWORD32 *) ((u32) (resources.dwCmBase) + 0x34)) =
+>-						(u32) temp;
+>-		temp = (u32) *((REG_UWORD32 *)
+>-			((u32) (resources.dwCmBase) + 0x4));
+>-		temp = (temp & 0xFFFFFC8) | 0x37;
+>-
+>-		*((REG_UWORD32 *) ((u32) (resources.dwCmBase) + 0x4)) =
+>-						(u32) temp;
+>-
+>-	udelay(10);
+>-	if (DSP_SUCCEEDED(status)) {
+>-		/* Send a message to DSP to wake up */
+>-		CHNLSM_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
+>-		HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
+>-				    &pwrState);
+>-		DBG_Trace(DBG_LEVEL7,
+>-			 "\nWakeDSP: Power State After sending Interrupt "
+>-			 "to DSP %x\n", pwrState);
+>-		/* set the device state to RUNNIG */
+>-		pDevContext->dwBrdState = BRD_RUNNING;
+>-	} else {
+>-		DBG_Trace(DBG_LEVEL6, "WakeDSP: FAILED\n");
+>+		return DSP_SOK;
+> 	}
+>-#endif
+>+
+>+	/* Send a wakeup message to DSP */
+>+	CHNLSM_InterruptDSP2(pDevContext, MBX_PM_DSPWAKEUP);
+>+
+>+#ifdef CONFIG_BRIDGE_DEBUG
+>+	HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
+>+			&pwrState);
+>+	DBG_Trace(DBG_LEVEL7,
+>+			"\nWakeDSP: Power State After sending Interrupt "
+>+			"to DSP %x\n", pwrState);
+>+#endif /* CONFIG_BRIDGE_DEBUG */
+>+
+>+	/* Set the device state to RUNNIG */
+>+	pDevContext->dwBrdState = BRD_RUNNING;
+>+#endif /* CONFIG_PM */
+> 	return status;
+> }
 
-Signed-off-by: Omar Ramirez Luna <omar.ramirez@ti.com>
----
- arch/arm/plat-omap/include/dspbridge/mem.h |   17 +++++++++
- drivers/dsp/bridge/pmgr/dmm.c              |    6 ++--
- drivers/dsp/bridge/services/mem.c          |   55 +++++++++++++++++++++-------
- 3 files changed, 62 insertions(+), 16 deletions(-)
+Reworked compiler error ifndef CONFIG_PM: "undeclared status"
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
-index 535ac3a..38c760b 100644
---- a/arch/arm/plat-omap/include/dspbridge/mem.h
-+++ b/arch/arm/plat-omap/include/dspbridge/mem.h
-@@ -203,6 +203,23 @@
- 	extern void MEM_Free(IN void *pMemBuf);
- 
- /*
-+ *  ======== MEM_VFree ========
-+ *  Purpose:
-+ *      Free the given block of system memory in virtual space.
-+ *  Parameters:
-+ *      pMemBuf:    Pointer to memory allocated by MEM_Calloc/Alloc()
-+ *		    using vmalloc.
-+ *  Returns:
-+ *  Requires:
-+ *      MEM initialized.
-+ *      pMemBuf is a valid memory address returned by MEM_Calloc/Alloc()
-+ *	using vmalloc.
-+ *  Ensures:
-+ *      pMemBuf is no longer a valid pointer to memory.
-+ */
-+	extern void MEM_VFree(IN void *pMemBuf);
-+
-+/*
-  *  ======== MEM_FreePhysMem ========
-  *  Purpose:
-  *      Free the given block of physically contiguous memory.
-diff --git a/drivers/dsp/bridge/pmgr/dmm.c b/drivers/dsp/bridge/pmgr/dmm.c
-index 0f82935..f878855 100644
---- a/drivers/dsp/bridge/pmgr/dmm.c
-+++ b/drivers/dsp/bridge/pmgr/dmm.c
-@@ -143,10 +143,10 @@ DSP_STATUS DMM_CreateTables(struct DMM_OBJECT *hDmmMgr, u32 addr, u32 size)
- 	if (DSP_SUCCEEDED(status)) {
- 		SYNC_EnterCS(pDmmObj->hDmmLock);
- 		dynMemMapBeg = addr;
--		TableSize = (size/PG_SIZE_4K) + 1;
-+		TableSize = PG_ALIGN_HIGH(size, PG_SIZE_4K)/PG_SIZE_4K;
- 		/*  Create the free list */
- 		pVirtualMappingTable = (struct MapPage *) MEM_Calloc
--		(TableSize*sizeof(struct MapPage), MEM_NONPAGED);
-+			(TableSize * sizeof(struct MapPage), MEM_LARGEVIRTMEM);
- 		if (pVirtualMappingTable == NULL)
- 			status = DSP_EMEMORY;
- 		else {
-@@ -255,7 +255,7 @@ DSP_STATUS DMM_DeleteTables(struct DMM_OBJECT *hDmmMgr)
- 		SYNC_EnterCS(pDmmObj->hDmmLock);
- 
- 		if (pVirtualMappingTable != NULL)
--			MEM_Free(pVirtualMappingTable);
-+			MEM_VFree(pVirtualMappingTable);
- 
- 		SYNC_LeaveCS(pDmmObj->hDmmLock);
- 	} else
-diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
-index 47ec09b..22f382b 100644
---- a/drivers/dsp/bridge/services/mem.c
-+++ b/drivers/dsp/bridge/services/mem.c
-@@ -303,13 +303,9 @@ void *MEM_Alloc(u32 cBytes, enum MEM_POOLATTRS type)
- 			break;
- 		case MEM_LARGEVIRTMEM:
- #ifndef MEM_CHECK
--			/* FIXME - Replace with 'vmalloc' after BP fix */
--			pMem = __vmalloc(cBytes,
--				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
-+			pMem = vmalloc(cBytes);
- #else
--			/* FIXME - Replace with 'vmalloc' after BP fix */
--			pMem = __vmalloc((cBytes + sizeof(struct memInfo)),
--				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
-+			pMem = vmalloc(cBytes + sizeof(struct memInfo));
- 			if (pMem) {
- 				pMem->size = cBytes;
- 				pMem->caller = __builtin_return_address(0);
-@@ -416,16 +412,11 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
- 			break;
- 		case MEM_LARGEVIRTMEM:
- #ifndef MEM_CHECK
--			/* FIXME - Replace with 'vmalloc' after BP fix */
--			pMem = __vmalloc(cBytes,
--				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
-+			pMem = vmalloc(cBytes);
- 			if (pMem)
- 				memset(pMem, 0, cBytes);
--
- #else
--			/* FIXME - Replace with 'vmalloc' after BP fix */
--			pMem = __vmalloc(cBytes + sizeof(struct memInfo),
--				(in_atomic()) ? GFP_ATOMIC : GFP_KERNEL, PAGE_KERNEL);
-+			pMem = vmalloc(cBytes + sizeof(struct memInfo));
- 			if (pMem) {
- 				memset((void *)((u32)pMem +
- 					sizeof(struct memInfo)), 0, cBytes);
-@@ -509,6 +500,44 @@ void MEM_FlushCache(void *pMemBuf, u32 cBytes, s32 FlushType)
- 
- }
- 
-+/*
-+ *  ======== MEM_VFree ========
-+ *  Purpose:
-+ *      Free the given block of system memory in virtual space.
-+ */
-+void MEM_VFree(IN void *pMemBuf)
-+{
-+#ifdef MEM_CHECK
-+	struct memInfo *pMem = (void *)((u32)pMemBuf - sizeof(struct memInfo));
-+#endif
-+
-+	DBC_Require(pMemBuf != NULL);
-+
-+	GT_1trace(MEM_debugMask, GT_ENTER, "MEM_VFree: pMemBufs 0x%x\n",
-+		  pMemBuf);
-+
-+	if (pMemBuf) {
-+#ifndef MEM_CHECK
-+		vfree(pMemBuf);
-+#else
-+		if (pMem) {
-+			if (pMem->dwSignature == memInfoSign) {
-+				spin_lock(&mMan.lock);
-+				MLST_RemoveElem(&mMan.lst,
-+						(struct LST_ELEM *) pMem);
-+				spin_unlock(&mMan.lock);
-+				pMem->dwSignature = 0;
-+				vfree(pMem);
-+			} else {
-+				GT_1trace(MEM_debugMask, GT_7CLASS,
-+					"Invalid allocation or "
-+					"Buffer underflow at %x\n",
-+					(u32) pMem + sizeof(struct memInfo));
-+			}
-+		}
-+#endif
-+	}
-+}
- 
- /*
-  *  ======== MEM_Free ========
--- 
-1.6.2.4
+>
+>diff --git a/drivers/dsp/bridge/wmd/tiomap_sm.c b/drivers/dsp/bridge/wmd/tiomap_sm.c
+>index a6d5d62..b5d3d6d 100644
+>--- a/drivers/dsp/bridge/wmd/tiomap_sm.c
+>+++ b/drivers/dsp/bridge/wmd/tiomap_sm.c
+>@@ -126,24 +126,22 @@ DSP_STATUS CHNLSM_InterruptDSP2(struct WMD_DEV_CONTEXT *pDevContext,
+>
+> 	if (pDevContext->dwBrdState == BRD_DSP_HIBERNATION ||
+> 	    pDevContext->dwBrdState == BRD_HIBERNATION) {
+>+		/* Restart the peripheral clocks */
+>+		DSP_PeripheralClocks_Enable(pDevContext, NULL);
+>+
+> 		/* Restore mailbox settings */
+>-		/* Restart the peripheral clocks that were disabled only
+>-		 * in DSP initiated Hibernation case.*/
+>-		if (pDevContext->dwBrdState == BRD_DSP_HIBERNATION) {
+>-			DSP_PeripheralClocks_Enable(pDevContext, NULL);
+>-			/* Enabling Dpll in lock mode*/
+>-			temp = (u32) *((REG_UWORD32 *)
+>-				       ((u32) (resources.dwCmBase) + 0x34));
+>-			temp = (temp & 0xFFFFFFFE) | 0x1;
+>-			*((REG_UWORD32 *) ((u32) (resources.dwCmBase) + 0x34)) =
+>-				(u32) temp;
+>-			temp = (u32) *((REG_UWORD32 *)
+>-				       ((u32) (resources.dwCmBase) + 0x4));
+>-			temp = (temp & 0xFFFFFC8) | 0x37;
+>-
+>-			*((REG_UWORD32 *) ((u32) (resources.dwCmBase) + 0x4)) =
+>-				(u32) temp;
+>-		}
+>+		/* Enabling Dpll in lock mode*/
+>+		temp = (u32) *((REG_UWORD32 *)
+>+				((u32) (resources.dwCmBase) + 0x34));
+>+		temp = (temp & 0xFFFFFFFE) | 0x1;
+>+		*((REG_UWORD32 *) ((u32) (resources.dwCmBase) + 0x34)) =
+>+			(u32) temp;
+>+		temp = (u32) *((REG_UWORD32 *)
+>+				((u32) (resources.dwCmBase) + 0x4));
+>+		temp = (temp & 0xFFFFFC8) | 0x37;
+>+
+>+		*((REG_UWORD32 *) ((u32) (resources.dwCmBase) + 0x4)) =
+>+			(u32) temp;
+> 		HW_MBOX_restoreSettings(resources.dwMboxBase);
+>
+> 		/*  Access MMU SYS CONFIG register to generate a short wakeup */
+>--
+>1.6.2.4
+>
 
+Pushed to d.o-z
+
+- omar
