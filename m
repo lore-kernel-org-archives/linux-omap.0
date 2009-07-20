@@ -1,173 +1,127 @@
-From: balajitk@ti.com
-Subject: [RFC][PATCH 4/4] OMAP4: PMIC: Update TWL mfd driver to create twl6030 regulators
-Date: Mon, 20 Jul 2009 19:07:53 +0530
-Message-ID: <1248097073-14838-1-git-send-email-balajitk@ti.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753919AbZGTNiZ@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: tony@atomide.com, khilman@deeprootsystems.com, david-b@pacbell.net, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, sameo@openedhand.com, wim@iguana.be, timo.t.kokkonen@nokia.com, ben-linux@fluff.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, Rajendra Nayak <rnayak@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM: off mode
+Date: Mon, 20 Jul 2009 07:10:03 -0700
+Message-ID: <871vobtphg.fsf@deeprootsystems.com>
+References: <4A5C7391.5050604@nokia.com> <87r5wj9p7q.fsf@deeprootsystems.com>
+	<4A5D9DAE.8020601@nokia.com> <4A5DD362.7090707@nokia.com>
+	<87zlb68435.fsf@deeprootsystems.com> <4A5DDF71.3030609@nokia.com>
+	<4A5F0AEC.7030205@nokia.com> <4A645135.6090907@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f180.google.com ([209.85.222.180]:46352 "EHLO
+	mail-pz0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbZGTOKG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 10:10:06 -0400
+Received: by pzk10 with SMTP id 10so45944pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 20 Jul 2009 07:10:06 -0700 (PDT)
+In-Reply-To: <4A645135.6090907@nokia.com> (Roger Quadros's message of "Mon\, 20 Jul 2009 14\:12\:53 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Rajendra Nayak <rnayak@ti.com>
+Roger Quadros <ext-roger.quadros@nokia.com> writes:
 
-This patch adds initial support for creating twl6030 PMIC
-specific voltage regulators in the twl mfd driver.
+> Roger Quadros wrote:
+>> ext Roger Quadros wrote:
+>>> ext Kevin Hilman wrote:
+>>>> Roger Quadros <ext-roger.quadros@nokia.com> writes:
+>>>>
+>>>>> ext Roger Quadros wrote:
+>>>>>> ext Kevin Hilman wrote:
+>>>>>>> Roger Quadros <ext-roger.quadros@nokia.com> writes:
+>>>>>>>
+>>>>>>>> Hi Kevin,
+>>>>>>>>
+>>>>>>>>  Off mode does not seem to work on RX51 on latest PM branch. I get a
+>>>>>>>> reboot if I set enable_off_mode and sleep_while_idle and I wait for
+>>>>>>>> timeout.
+>>>>>>>>
+>>>>>>>>  Does it work on other platforms?
+>>>>>>>>
+>>>>>>> Yes, I tested on SDP, omap3evm, Beagle, Overo and RX51.
+>>>>>>>
+>>>>>>> On RX51, I'm using omap3_pm_defconfig with the debug UART changed to
+>>>>>>> UART3 and things work fine here.
+>>>>>>>
+>>>>>>> I using rootfs from latest fiasco image, and it drops me into
+>>>>>>> an early
+>>>>>>> shell because /sbin/preinit fails in various ways. Note that
+>>>>>>> I'm using
+>>>>>>> an S2.0 GP board.  Note also that I modified /sbin/preinit to launch
+>>>>>>> another getty on ttyS2 so I get a shell since newer kernels
+>>>>>>> ignore the
+>>>>>>> ATAGs passed by nolo.
+>>>>>>>
+>>>>>>> Below is a console log of my boot so you can see what is going on.
+>>>>>>> Because /sbin/preinit enables off-mode and sleep_while_idle, I just
+>>>>>>> let it boot and it seems to work.
+>>>>>>>
+>>>>>>> Kevin
+>>>>>>>
+>>>>>> I am having S2.1 board and it does not work on that. It gets locked
+>>>>>> up and restarts after idle timeout.
+>>>>>> But I checked that it works on S2.0 board.
+>>>>>>
+>>>>>> Any clue what could be the problem?
+>>>>>>
+>>>>>> -roger
+>>>>>> -- 
+>>>>>> To unsubscribe from this list: send the line "unsubscribe
+>>>>>> linux-omap" in
+>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>
+>>>>> Kevin,
+>>>>>
+>>>>> I have some new observations.
+>>>>>
+>>>>> It works only if we load the kernel via USB. Instead, if we flash the
+>>>>> kernel, it will not work even with S2.0 board. It boots to shell but
+>>>>> after sleep timeout (5 seconds) console gets locked up and it reboots
+>>>>> after a while.
+>>>>
+>>>> Roger,
+>>>>
+>>>> Does this happen even with the working defconfig you sent the other day?
+>>>>
+>>>> Kevin
+>>>
+>>> The config that i sent does not work with S2.0 hardware in either case.
+>>> It works with S2.1 hardware only in one case i.e. kernel load via
+>>> USB. It does not work if kernel is flashed.
+>>> Also when my config is used on S2.1, core always remains in ON mode
+>>> and never hits RET/OFF mode.
+>>>
+>>> -roger
+>>
+>> Kevin,
+>>
+>> I just found out that it has nothing to do with kernel load via USB
+>> or not. I was using an initrd while USB load which used to change
+>> vdd1 OPP, that's why it was working.
+>>
+>> So the final conclusion is, after boot to shell, if we change VDD1
+>> OPP, then off mode works fine on my S2.0 HS board.
+>>     e.g.
+>>         echo 1 > /sys/power/vdd1_opp
+>>         echo 1 > /sys/power/sleep_while_idle
+>>         echo 1 > /sys/power/enable_off_mode
+>>
+>> It works on S2.1 board too except that garbage characters are
+>> printed on console after idle timeout.
+>>
+>> Does this give any more clue to the problem?
+>>
+>> -roger
+>>
+>
+> Hi Kevin,
+>
+> What compiler version do you use?
+>
 
-Board specific regulator configurations will have to be passed from
-respective board files.
+I currely use CSL 2008q3, but am switching to 2009q1-161
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- drivers/mfd/twl-core.c  |   64 +++++++++++++++++++++++++++++++++++++++++-----
- include/linux/i2c/twl.h |   18 +++++++++---
- 2 files changed, 70 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index cf4fec4..2ad01dd 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -76,11 +76,18 @@
- #define twl_has_gpio()	false
- #endif
- 
--#if defined(CONFIG_REGULATOR_TWL4030) \
--	|| defined(CONFIG_REGULATOR_TWL4030_MODULE)
--#define twl_has_regulator()	true
-+#if defined(CONFIG_REGULATOR_TWL) \
-+	|| defined(CONFIG_REGULATOR_TWL_MODULE)
-+#ifdef CONFIG_TWL4030_CORE
-+#define twl_has_4030regulator()	true
-+#define twl_has_6030regulator() false
-+#elif CONFIG_TWL6030_CORE
-+#define twl_has_6030regulator() true
-+#define twl_has_4030regulator()	false
-+#endif
- #else
--#define twl_has_regulator()	false
-+#define twl_has_4030regulator()	false
-+#define twl_has_6030regulator()	false
- #endif
- 
- #if defined(CONFIG_TWL4030_MADC) || defined(CONFIG_TWL4030_MADC_MODULE)
-@@ -630,7 +637,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_regulator()) {
-+	if (twl_has_4030regulator()) {
- 		/*
- 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
- 		if (IS_ERR(child))
-@@ -653,7 +660,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_regulator() && usb_transceiver) {
-+	if (twl_has_4030regulator() && usb_transceiver) {
- 		static struct regulator_consumer_supply usb1v5 = {
- 			.supply =	"usb1v5",
- 		};
-@@ -695,7 +702,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 	}
- 
- 	/* maybe add LDOs that are omitted on cost-reduced parts */
--	if (twl_has_regulator() && !(features & TPS_SUBSET)) {
-+	if (twl_has_4030regulator() && !(features & TPS_SUBSET)) {
- 		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
-@@ -721,6 +728,49 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
-+	/* twl6030 regulators */
-+	if (twl_has_6030regulator()) {
-+		child = add_regulator(TWL6030_REG_VMMC, pdata->vmmc);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VPP, pdata->vpp);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VUSIM, pdata->vusim);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VANA, pdata->vana);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VCXIO, pdata->vcxio);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VDAC, pdata->vdac);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VUSB, pdata->vusb);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX1_6030, pdata->vaux1);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX2_6030, pdata->vaux2);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX3_6030, pdata->vaux3);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index b128831..16dc692 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -360,6 +360,7 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- #define TWL4030_INT_PWR_EDR2		0x6
- #define TWL4030_INT_PWR_SIH_CTRL	0x7
- 
-+
- /*----------------------------------------------------------------------*/
- 
- /* Power bus message definitions */
-@@ -478,18 +479,25 @@ struct twl_platform_data {
- 	struct twl_keypad_data		*keypad;
- 	struct twl_usb_data			*usb;
- 
--	/* LDO regulators */
-+	/* LDO regulators common to TWL4030/TWL6030 */
- 	struct regulator_init_data		*vdac;
-+	struct regulator_init_data		*vaux1;
-+	struct regulator_init_data		*vaux2;
-+	struct regulator_init_data		*vaux3;
-+	/* TWL4030 LDO regulators */
- 	struct regulator_init_data		*vpll1;
- 	struct regulator_init_data		*vpll2;
- 	struct regulator_init_data		*vmmc1;
- 	struct regulator_init_data		*vmmc2;
- 	struct regulator_init_data		*vsim;
--	struct regulator_init_data		*vaux1;
--	struct regulator_init_data		*vaux2;
--	struct regulator_init_data		*vaux3;
- 	struct regulator_init_data		*vaux4;
--
-+	/* TWL6030 LDO regulators */
-+	struct regulator_init_data              *vmmc;
-+	struct regulator_init_data              *vpp;
-+	struct regulator_init_data              *vusim;
-+	struct regulator_init_data              *vana;
-+	struct regulator_init_data              *vcxio;
-+	struct regulator_init_data              *vusb;
- 	/* REVISIT more to come ... _nothing_ should be hard-wired */
- };
- 
--- 
-1.5.4.7
+Kevin
