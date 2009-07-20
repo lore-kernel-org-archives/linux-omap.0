@@ -1,32 +1,45 @@
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: [PATCH 9/10] drivers/mmc: Move a dereference below a NULL test
-Date: Mon, 20 Jul 2009 13:47:36 +0100
-Message-ID: <20090720134736.605f86d1@lxorguk.ukuu.org.uk>
-References: <Pine.LNX.4.64.0907191729580.16542@ask.diku.dk>
-	<4A642458.6080008@nokia.com>
-	<c656a4d20907200533t1cbe1476l62d8a51fdb796c70@mail.gmail.com>
-	<4A64665B.9000504@nokia.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: RE: [RFC][PATCH 0/4] TWL6030 patch series
+Date: Mon, 20 Jul 2009 18:30:14 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404329D66F3@dbde02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E739404329D66BE@dbde02.ent.ti.com>
+ <20090720121157.GA13867@nokia.com> <20090720121526.GB5215@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:37235 "EHLO
-	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752235AbZGTMqh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 08:46:37 -0400
-In-Reply-To: <4A64665B.9000504@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:57450 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752876AbZGTNAb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 09:00:31 -0400
+In-Reply-To: <20090720121526.GB5215@sirena.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: arun c <arun.edarath@gmail.com>, Julia Lawall <julia@diku.dk>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <felipe.balbi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-> It is not a "NULL check" it is an assertion, which can be compiled out.
-> On some platforms BUG is implemented as a null dereference anyway
-> e.g. on ARM  it is *(int *)0 = 0;
-
-It's a bogus check because the 
-
-struct mmc_omap_host *host = slot->host;
-
-has already been executed before you check for slot == NULL
-
+> -----Original Message-----
+> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com] 
+> Sent: Monday, July 20, 2009 5:45 PM
+> To: Felipe Balbi
+> Cc: Krishnamoorthy, Balaji T; linux-omap@vger.kernel.org; 
+> tony@atomide.com; khilman@deeprootsystems.com; 
+> david-b@pacbell.net; Shilimkar, Santosh; Nayak, Rajendra
+> Subject: Re: [RFC][PATCH 0/4] TWL6030 patch series
+> 
+> On Mon, Jul 20, 2009 at 03:11:57PM +0300, Felipe Balbi wrote:
+> 
+> > send these to lkml and Cc linux-omap. Also add to Cc:
+> 
+> > Samuel Ortiz <sameo@openedhand.com>
+> > Wim Van Sebroeck <wim@iguana.be>
+> > Timo Kokkonen <timo.t.kokkonen@nokia.com>
+> > Ben Dooks <ben-linux@fluff.org>
+> > linux-i2c@vger.kernel.org
+> > linux-kernel@vger.kernel.org
+> 
+> Plus me and Liam Girdwood <lrg@slimlogic.co.uk> for the 
+> regulator stuff.
+Ok will resend both the patch series with above mentioned email-id's in CC.
+>  
