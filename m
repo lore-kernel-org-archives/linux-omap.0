@@ -1,93 +1,87 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [RFC][PATCH 1/1] DSPBRIDGE: workaround for SR with inappropriate OPP
-Date: Mon, 20 Jul 2009 10:55:52 +0300
-Message-ID: <1248076552-14520-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH 9/10] drivers/mmc: Move a dereference below a NULL test
+Date: Mon, 20 Jul 2009 11:01:28 +0300
+Message-ID: <4A642458.6080008@nokia.com>
+References: <Pine.LNX.4.64.0907191729580.16542@ask.diku.dk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38824 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752685AbZGTH4Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 03:56:16 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:21101 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879AbZGTIBE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 04:01:04 -0400
+In-Reply-To: <Pine.LNX.4.64.0907191729580.16542@ask.diku.dk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: nm@ti.com
-Cc: ameya.palande@nokia.com, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Julia Lawall <julia@diku.dk>
+Cc: "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Julia Lawall wrote:
+> From: Julia Lawall <julia@diku.dk>
+> 
+> If the NULL test is necessary, then the dereference should be moved below
+> the NULL test.
+> 
+> The semantic patch that makes this change is as follows:
+> (http://www.emn.fr/x-info/coccinelle/)
+> 
+> // <smpl>
+> @@
+> type T;
+> expression E,E1;
+> identifier i,fld;
+> statement S;
+> @@
+> 
+> - T i = E->fld;
+> + T i;
+>   ... when != E=E1
+>       when != i
+>   BUG_ON (E == NULL||
+> -     i
+> +     E->fld
+>        == NULL || ...);
+> + i = E->fld;
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+> 
+> ---
+>  drivers/mmc/host/omap.c             |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+> index e7a331d..89281ab 100644
+> --- a/drivers/mmc/host/omap.c
+> +++ b/drivers/mmc/host/omap.c
+> @@ -255,11 +255,12 @@ static void mmc_omap_slot_release_work(struct work_struct *work)
+>  
+>  static void mmc_omap_release_slot(struct mmc_omap_slot *slot, int clk_enabled)
+>  {
+> -	struct mmc_omap_host *host = slot->host;
+> +	struct mmc_omap_host *host;
+>  	unsigned long flags;
+>  	int i;
+>  
+> -	BUG_ON(slot == NULL || host->mmc == NULL);
+> +	BUG_ON(slot == NULL || slot->host->mmc == NULL);
+> +	host = slot->host;
+>  
+>  	if (clk_enabled)
+>  		/* Keeps clock running for at least 8 cycles on valid freq */
+> --
 
-It seems that we have had some cases where SR may not work with some
-OPP level. This patch will introduce a workaround to turn off SR with
-specific OPP, in this case it's OPP2. With this patch, we can use all
-OPP but can disable SR on problematic OPP2 case. It seems that this
-will get the advantage of SR/DVFS at most, working around the
-problematic combination(SR + OPP2).
+If slot is NULL it will oops anyway, so the following is better IMHO:
+ 
+static void mmc_omap_release_slot(struct mmc_omap_slot *slot, int clk_enabled)
+{
+	struct mmc_omap_host *host = slot->host;
+	unsigned long flags;
+	int i;
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/mach-omap2/dspbridge.c   |   24 +++++++++++++++++++++++-
- arch/arm/mach-omap2/smartreflex.c |    2 ++
- 2 files changed, 25 insertions(+), 1 deletions(-)
+> -	BUG_ON(slot == NULL || host->mmc == NULL);
+> +	BUG_ON(host->mmc == NULL);
 
-diff --git a/arch/arm/mach-omap2/dspbridge.c b/arch/arm/mach-omap2/dspbridge.c
-index 43283c9..3657de7 100644
---- a/arch/arm/mach-omap2/dspbridge.c
-+++ b/arch/arm/mach-omap2/dspbridge.c
-@@ -14,13 +14,35 @@
- #include <linux/platform_device.h>
- 
- #include <mach/omap-pm.h>
-+#include <mach/resource.h>
- 
- #include <dspbridge/host_os.h>
- 
-+#include "smartreflex.h"
-+
- static struct platform_device *dspbridge_pdev;
- 
-+#ifdef CONFIG_OMAP_SMARTREFLEX
-+/* workaround for SR with inappropriate OPP */
-+static void __omap_pm_dsp_set_min_opp(u8 opp_id)
-+{
-+	switch (opp_id) {
-+	case 2:
-+		disable_smartreflex(SR1);
-+		omap_pm_dsp_set_min_opp(opp_id);
-+		break;
-+	default:
-+		omap_pm_dsp_set_min_opp(opp_id);
-+		enable_smartreflex(SR1);
-+		break;
-+	}
-+}
-+#else
-+#define __omap_pm_dsp_set_min_opp omap_pm_dsp_set_min_opp
-+#endif
-+
- static struct dspbridge_platform_data dspbridge_pdata __initdata = {
--	.dsp_set_min_opp = omap_pm_dsp_set_min_opp,
-+	.dsp_set_min_opp = __omap_pm_dsp_set_min_opp,
- 	.dsp_get_opp	 = omap_pm_dsp_get_opp,
- 	.cpu_set_freq	 = omap_pm_cpu_set_freq,
- 	.cpu_get_freq	 = omap_pm_cpu_get_freq,
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index f35e2e6..4057aef 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -636,6 +636,7 @@ void enable_smartreflex(int srid)
- 		}
- 	}
- }
-+EXPORT_SYMBOL(enable_smartreflex);
- 
- void disable_smartreflex(int srid)
- {
-@@ -674,6 +675,7 @@ void disable_smartreflex(int srid)
- 		}
- 	}
- }
-+EXPORT_SYMBOL(disable_smartreflex);
- 
- /* Voltage Scaling using SR VCBYPASS */
- int sr_voltagescale_vcbypass(u32 target_opp, u32 current_opp,
--- 
-1.6.0.4
-
+	if (clk_enabled)
+		/* Keeps clock running for at least 8 cycles on valid freq */
