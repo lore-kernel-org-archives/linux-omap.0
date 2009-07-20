@@ -1,87 +1,108 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH 9/10] drivers/mmc: Move a dereference below a NULL test
-Date: Mon, 20 Jul 2009 11:01:28 +0300
-Message-ID: <4A642458.6080008@nokia.com>
-References: <Pine.LNX.4.64.0907191729580.16542@ask.diku.dk>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC][PATCH 1/1] DSPBRIDGE: workaround for SR with
+ inappropriate OPP
+Date: Mon, 20 Jul 2009 11:07:01 +0300 (EEST)
+Message-ID: <20090720.110701.200388432.Hiroshi.DOYU@nokia.com>
+References: <1248076552-14520-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Mon_Jul_20_11_07_01_2009_621)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:21101 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879AbZGTIBE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 04:01:04 -0400
-In-Reply-To: <Pine.LNX.4.64.0907191729580.16542@ask.diku.dk>
+Received: from smtp.nokia.com ([192.100.122.233]:57356 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752486AbZGTIHK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 04:07:10 -0400
+In-Reply-To: <1248076552-14520-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Julia Lawall <julia@diku.dk>
-Cc: "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+To: nm@ti.com
+Cc: ameya.palande@nokia.com, linux-omap@vger.kernel.org
 
-Julia Lawall wrote:
-> From: Julia Lawall <julia@diku.dk>
-> 
-> If the NULL test is necessary, then the dereference should be moved below
-> the NULL test.
-> 
-> The semantic patch that makes this change is as follows:
-> (http://www.emn.fr/x-info/coccinelle/)
-> 
-> // <smpl>
-> @@
-> type T;
-> expression E,E1;
-> identifier i,fld;
-> statement S;
-> @@
-> 
-> - T i = E->fld;
-> + T i;
->   ... when != E=E1
->       when != i
->   BUG_ON (E == NULL||
-> -     i
-> +     E->fld
->        == NULL || ...);
-> + i = E->fld;
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <julia@diku.dk>
-> 
-> ---
->  drivers/mmc/host/omap.c             |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-> index e7a331d..89281ab 100644
-> --- a/drivers/mmc/host/omap.c
-> +++ b/drivers/mmc/host/omap.c
-> @@ -255,11 +255,12 @@ static void mmc_omap_slot_release_work(struct work_struct *work)
->  
->  static void mmc_omap_release_slot(struct mmc_omap_slot *slot, int clk_enabled)
->  {
-> -	struct mmc_omap_host *host = slot->host;
-> +	struct mmc_omap_host *host;
->  	unsigned long flags;
->  	int i;
->  
-> -	BUG_ON(slot == NULL || host->mmc == NULL);
-> +	BUG_ON(slot == NULL || slot->host->mmc == NULL);
-> +	host = slot->host;
->  
->  	if (clk_enabled)
->  		/* Keeps clock running for at least 8 cycles on valid freq */
-> --
+----Next_Part(Mon_Jul_20_11_07_01_2009_621)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-If slot is NULL it will oops anyway, so the following is better IMHO:
- 
-static void mmc_omap_release_slot(struct mmc_omap_slot *slot, int clk_enabled)
-{
-	struct mmc_omap_host *host = slot->host;
-	unsigned long flags;
-	int i;
+From: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+Subject: [RFC][PATCH 1/1] DSPBRIDGE: workaround for SR with inappropriate OPP
+Date: Mon, 20 Jul 2009 09:55:52 +0200
 
-> -	BUG_ON(slot == NULL || host->mmc == NULL);
-> +	BUG_ON(host->mmc == NULL);
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> 
+> It seems that we have had some cases where SR may not work with some
+> OPP level. This patch will introduce a workaround to turn off SR with
+> specific OPP, in this case it's OPP2. With this patch, we can use all
+> OPP but can disable SR on problematic OPP2 case. It seems that this
+> will get the advantage of SR/DVFS at most, working around the
+> problematic combination(SR + OPP2).
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-	if (clk_enabled)
-		/* Keeps clock running for at least 8 cycles on valid freq */
+It may be better to split the previous patch like attached ones.
+
+----Next_Part(Mon_Jul_20_11_07_01_2009_621)--
+Content-Type: Application/Octet-Stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0001-omap-pm-expose-enable-disable_smartreflex.patch"
+
+RnJvbSBkZWRkMWQzZTdkZGQ5ZTQ1OGZkZjEwMDJhYzFlNWY5ZDZhZTg2ZjAyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
+CkRhdGU6IE1vbiwgMjAgSnVsIDIwMDkgMTE6MDQ6MzggKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
+Ml0gb21hcCBwbTogZXhwb3NlIGVuYWJsZS9kaXNhYmxlX3NtYXJ0cmVmbGV4KCkKClNpZ25lZC1v
+ZmYtYnk6IEhpcm9zaGkgRE9ZVSA8SGlyb3NoaS5ET1lVQG5va2lhLmNvbT4KLS0tCiBhcmNoL2Fy
+bS9tYWNoLW9tYXAyL3NtYXJ0cmVmbGV4LmMgfCAgICAyICsrCiAxIGZpbGVzIGNoYW5nZWQsIDIg
+aW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNo
+LW9tYXAyL3NtYXJ0cmVmbGV4LmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL3NtYXJ0cmVmbGV4LmMK
+aW5kZXggZjM1ZTJlNi4uNDA1N2FlZiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9z
+bWFydHJlZmxleC5jCisrKyBiL2FyY2gvYXJtL21hY2gtb21hcDIvc21hcnRyZWZsZXguYwpAQCAt
+NjM2LDYgKzYzNiw3IEBAIHZvaWQgZW5hYmxlX3NtYXJ0cmVmbGV4KGludCBzcmlkKQogCQl9CiAJ
+fQogfQorRVhQT1JUX1NZTUJPTChlbmFibGVfc21hcnRyZWZsZXgpOwogCiB2b2lkIGRpc2FibGVf
+c21hcnRyZWZsZXgoaW50IHNyaWQpCiB7CkBAIC02NzQsNiArNjc1LDcgQEAgdm9pZCBkaXNhYmxl
+X3NtYXJ0cmVmbGV4KGludCBzcmlkKQogCQl9CiAJfQogfQorRVhQT1JUX1NZTUJPTChkaXNhYmxl
+X3NtYXJ0cmVmbGV4KTsKIAogLyogVm9sdGFnZSBTY2FsaW5nIHVzaW5nIFNSIFZDQllQQVNTICov
+CiBpbnQgc3Jfdm9sdGFnZXNjYWxlX3ZjYnlwYXNzKHUzMiB0YXJnZXRfb3BwLCB1MzIgY3VycmVu
+dF9vcHAsCi0tIAoxLjYuMC40Cgo=
+
+----Next_Part(Mon_Jul_20_11_07_01_2009_621)--
+Content-Type: Application/Octet-Stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0002-DSPBRIDGE-workaround-for-SR-with-inappropriate-OPP.patch"
+
+RnJvbSBhNmQzMGE0MDBmNzAzNjhmZTM1NzcxMzIwOTBhNGUwMDhiNzI3MjNiIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
+CkRhdGU6IEZyaSwgMTcgSnVsIDIwMDkgMDM6MjQ6MjYgKzAzMDAKU3ViamVjdDogW1BBVENIIDIv
+Ml0gRFNQQlJJREdFOiB3b3JrYXJvdW5kIGZvciBTUiB3aXRoIGluYXBwcm9wcmlhdGUgT1BQCgpJ
+dCBzZWVtcyB0aGF0IHdlIGhhdmUgaGFkIHNvbWUgY2FzZXMgd2hlcmUgU1IgbWF5IG5vdCB3b3Jr
+IHdpdGggc29tZQpPUFAgbGV2ZWwuIFRoaXMgcGF0Y2ggd2lsbCBpbnRyb2R1Y2UgYSB3b3JrYXJv
+dW5kIHRvIHR1cm4gb2ZmIFNSIHdpdGgKc3BlY2lmaWMgT1BQLCBpbiB0aGlzIGNhc2UgaXQncyBP
+UFAyLiBXaXRoIHRoaXMgcGF0Y2gsIHdlIGNhbiB1c2UgYWxsCk9QUCBidXQgY2FuIGRpc2FibGUg
+U1Igb24gcHJvYmxlbWF0aWMgT1BQMiBjYXNlLiBJdCBzZWVtcyB0aGF0IHRoaXMKd2lsbCBnZXQg
+dGhlIGFkdmFudGFnZSBvZiBTUi9EVkZTIGF0IG1vc3QsIHdvcmtpbmcgYXJvdW5kIHRoZQpwcm9i
+bGVtYXRpYyBjb21iaW5hdGlvbihTUiArIE9QUDIpLgoKU2lnbmVkLW9mZi1ieTogSGlyb3NoaSBE
+T1lVIDxIaXJvc2hpLkRPWVVAbm9raWEuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvZHNw
+YnJpZGdlLmMgfCAgIDI0ICsrKysrKysrKysrKysrKysrKysrKysrLQogMSBmaWxlcyBjaGFuZ2Vk
+LCAyMyBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
+L21hY2gtb21hcDIvZHNwYnJpZGdlLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2RzcGJyaWRnZS5j
+CmluZGV4IDQzMjgzYzkuLjM2NTdkZTcgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIv
+ZHNwYnJpZGdlLmMKKysrIGIvYXJjaC9hcm0vbWFjaC1vbWFwMi9kc3BicmlkZ2UuYwpAQCAtMTQs
+MTMgKzE0LDM1IEBACiAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+CiAKICNpbmNs
+dWRlIDxtYWNoL29tYXAtcG0uaD4KKyNpbmNsdWRlIDxtYWNoL3Jlc291cmNlLmg+CiAKICNpbmNs
+dWRlIDxkc3BicmlkZ2UvaG9zdF9vcy5oPgogCisjaW5jbHVkZSAic21hcnRyZWZsZXguaCIKKwog
+c3RhdGljIHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKmRzcGJyaWRnZV9wZGV2OwogCisjaWZkZWYg
+Q09ORklHX09NQVBfU01BUlRSRUZMRVgKKy8qIHdvcmthcm91bmQgZm9yIFNSIHdpdGggaW5hcHBy
+b3ByaWF0ZSBPUFAgKi8KK3N0YXRpYyB2b2lkIF9fb21hcF9wbV9kc3Bfc2V0X21pbl9vcHAodTgg
+b3BwX2lkKQoreworCXN3aXRjaCAob3BwX2lkKSB7CisJY2FzZSAyOgorCQlkaXNhYmxlX3NtYXJ0
+cmVmbGV4KFNSMSk7CisJCW9tYXBfcG1fZHNwX3NldF9taW5fb3BwKG9wcF9pZCk7CisJCWJyZWFr
+OworCWRlZmF1bHQ6CisJCW9tYXBfcG1fZHNwX3NldF9taW5fb3BwKG9wcF9pZCk7CisJCWVuYWJs
+ZV9zbWFydHJlZmxleChTUjEpOworCQlicmVhazsKKwl9Cit9CisjZWxzZQorI2RlZmluZSBfX29t
+YXBfcG1fZHNwX3NldF9taW5fb3BwIG9tYXBfcG1fZHNwX3NldF9taW5fb3BwCisjZW5kaWYKKwog
+c3RhdGljIHN0cnVjdCBkc3BicmlkZ2VfcGxhdGZvcm1fZGF0YSBkc3BicmlkZ2VfcGRhdGEgX19p
+bml0ZGF0YSA9IHsKLQkuZHNwX3NldF9taW5fb3BwID0gb21hcF9wbV9kc3Bfc2V0X21pbl9vcHAs
+CisJLmRzcF9zZXRfbWluX29wcCA9IF9fb21hcF9wbV9kc3Bfc2V0X21pbl9vcHAsCiAJLmRzcF9n
+ZXRfb3BwCSA9IG9tYXBfcG1fZHNwX2dldF9vcHAsCiAJLmNwdV9zZXRfZnJlcQkgPSBvbWFwX3Bt
+X2NwdV9zZXRfZnJlcSwKIAkuY3B1X2dldF9mcmVxCSA9IG9tYXBfcG1fY3B1X2dldF9mcmVxLAot
+LSAKMS42LjAuNAoK
+
+----Next_Part(Mon_Jul_20_11_07_01_2009_621)----
