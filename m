@@ -1,178 +1,56 @@
-From: balajitk@ti.com
-Subject: [RFC][PATCH 4/4] OMAP4: PMIC: Update TWL mfd driver to create twl6030 regulators
-Date: Mon, 20 Jul 2009 17:33:41 +0530
-Message-ID: <1248091421-4690-1-git-send-email-balajitk@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [RFC][PATCH 0/4] TWL6030 patch series
+Date: Mon, 20 Jul 2009 15:11:57 +0300
+Message-ID: <20090720121157.GA13867@nokia.com>
+References: <19F8576C6E063C45BE387C64729E739404329D66BE@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41018 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753143AbZGTMDv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 20 Jul 2009 08:03:51 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:45175 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753003AbZGTMLw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 08:11:52 -0400
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404329D66BE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, khilman@deeprootsystems.com, david-b@pacbell.net, Rajendra Nayak <rnayak@ti.com>
+To: "ext Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+Hi,
 
-This patch adds initial support for creating twl6030 PMIC
-specific voltage regulators in the twl mfd driver.
+On Mon, Jul 20, 2009 at 01:59:41PM +0200, ext Krishnamoorthy, Balaji T wrote:
+> The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+> for OMAP3. This patch series adds support for TWL6030 irq framework, and 
+> driver support for RTC and regulator.
+> 
+> 	drivers/mfd/twl6030-irq.c  files is newly added as INTERRUPT status 
+> 		registers, ack and clear mechanism has changed from twl4030,5030.
+> 	drivers/rtc/rtc-twl.c will support twl4030,twl5030, and also twl6030 rtc
+> 	drivers/regulator/twl-regulator.c will support twl regulators.
+> 	include/linux/i2c/twl.h  will have TWL4030 and TWL6030 offsets selected 
+> 		at compile time by CONFIG_TWL4030_CORE / CONFIG_TWL6030_CORE
+> 
+> These patches are generated against mainline 2.6.31-rc1 and dependancy on my
+> 1st series[1].
+> Patch list:
+> 	[RFC][PATCH 1/4] OMAP4: PMIC: Add support for twl6030 irq framework
+> 	[RFC][PATCH 2/4] OMAP4: PMIC: Add support for twl6030 RTC
+> 	[RFC][PATCH 3/4] OMAP4: PMIC: Add support for twl6030 regulators
+> 	[RFC][PATCH 4/4] OMAP4: PMIC: Update TWL mfd driver to create twl6030 regulators
+> 
+> Needed board-* changes and defconfig chages will be done later.Please let me 
+> know your feedback/suggestion on this patch series.
 
-Board specific regulator configurations will have to be passed from
-respective board files.
+send these to lkml and Cc linux-omap. Also add to Cc:
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- drivers/mfd/twl-core.c  |   64 +++++++++++++++++++++++++++++++++++++++++-----
- include/linux/i2c/twl.h |   18 +++++++++---
- 2 files changed, 70 insertions(+), 12 deletions(-)
+Samuel Ortiz <sameo@openedhand.com>
+Wim Van Sebroeck <wim@iguana.be>
+Timo Kokkonen <timo.t.kokkonen@nokia.com>
+Ben Dooks <ben-linux@fluff.org>
+linux-i2c@vger.kernel.org
+linux-kernel@vger.kernel.org
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index cf4fec4..2ad01dd 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -76,11 +76,18 @@
- #define twl_has_gpio()	false
- #endif
- 
--#if defined(CONFIG_REGULATOR_TWL4030) \
--	|| defined(CONFIG_REGULATOR_TWL4030_MODULE)
--#define twl_has_regulator()	true
-+#if defined(CONFIG_REGULATOR_TWL) \
-+	|| defined(CONFIG_REGULATOR_TWL_MODULE)
-+#ifdef CONFIG_TWL4030_CORE
-+#define twl_has_4030regulator()	true
-+#define twl_has_6030regulator() false
-+#elif CONFIG_TWL6030_CORE
-+#define twl_has_6030regulator() true
-+#define twl_has_4030regulator()	false
-+#endif
- #else
--#define twl_has_regulator()	false
-+#define twl_has_4030regulator()	false
-+#define twl_has_6030regulator()	false
- #endif
- 
- #if defined(CONFIG_TWL4030_MADC) || defined(CONFIG_TWL4030_MADC_MODULE)
-@@ -630,7 +637,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_regulator()) {
-+	if (twl_has_4030regulator()) {
- 		/*
- 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
- 		if (IS_ERR(child))
-@@ -653,7 +660,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_regulator() && usb_transceiver) {
-+	if (twl_has_4030regulator() && usb_transceiver) {
- 		static struct regulator_consumer_supply usb1v5 = {
- 			.supply =	"usb1v5",
- 		};
-@@ -695,7 +702,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 	}
- 
- 	/* maybe add LDOs that are omitted on cost-reduced parts */
--	if (twl_has_regulator() && !(features & TPS_SUBSET)) {
-+	if (twl_has_4030regulator() && !(features & TPS_SUBSET)) {
- 		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
-@@ -721,6 +728,49 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
-+	/* twl6030 regulators */
-+	if (twl_has_6030regulator()) {
-+		child = add_regulator(TWL6030_REG_VMMC, pdata->vmmc);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VPP, pdata->vpp);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VUSIM, pdata->vusim);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VANA, pdata->vana);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VCXIO, pdata->vcxio);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VDAC, pdata->vdac);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VUSB, pdata->vusb);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX1_6030, pdata->vaux1);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX2_6030, pdata->vaux2);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX3_6030, pdata->vaux3);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index b128831..16dc692 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -360,6 +360,7 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- #define TWL4030_INT_PWR_EDR2		0x6
- #define TWL4030_INT_PWR_SIH_CTRL	0x7
- 
-+
- /*----------------------------------------------------------------------*/
- 
- /* Power bus message definitions */
-@@ -478,18 +479,25 @@ struct twl_platform_data {
- 	struct twl_keypad_data		*keypad;
- 	struct twl_usb_data			*usb;
- 
--	/* LDO regulators */
-+	/* LDO regulators common to TWL4030/TWL6030 */
- 	struct regulator_init_data		*vdac;
-+	struct regulator_init_data		*vaux1;
-+	struct regulator_init_data		*vaux2;
-+	struct regulator_init_data		*vaux3;
-+	/* TWL4030 LDO regulators */
- 	struct regulator_init_data		*vpll1;
- 	struct regulator_init_data		*vpll2;
- 	struct regulator_init_data		*vmmc1;
- 	struct regulator_init_data		*vmmc2;
- 	struct regulator_init_data		*vsim;
--	struct regulator_init_data		*vaux1;
--	struct regulator_init_data		*vaux2;
--	struct regulator_init_data		*vaux3;
- 	struct regulator_init_data		*vaux4;
--
-+	/* TWL6030 LDO regulators */
-+	struct regulator_init_data              *vmmc;
-+	struct regulator_init_data              *vpp;
-+	struct regulator_init_data              *vusim;
-+	struct regulator_init_data              *vana;
-+	struct regulator_init_data              *vcxio;
-+	struct regulator_init_data              *vusb;
- 	/* REVISIT more to come ... _nothing_ should be hard-wired */
- };
- 
 -- 
-1.5.4.7
-
+balbi
