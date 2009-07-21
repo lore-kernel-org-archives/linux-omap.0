@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 07/14] OMAP4: UART: cleanup special case IRQ handling
-Date: Tue, 21 Jul 2009 15:08:33 -0700
-Message-ID: <1248214120-18886-8-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 08/14] OMAP3: Fixed crash bug with serial + suspend
+Date: Tue, 21 Jul 2009 15:08:34 -0700
+Message-ID: <1248214120-18886-9-git-send-email-khilman@deeprootsystems.com>
 References: <1248214120-18886-1-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-2-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-3-git-send-email-khilman@deeprootsystems.com>
@@ -9,52 +9,129 @@ References: <1248214120-18886-1-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-5-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-6-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-7-git-send-email-khilman@deeprootsystems.com>
+ <1248214120-18886-8-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pz0-f204.google.com ([209.85.222.204]:42991 "EHLO
 	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756343AbZGUWI7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 18:08:59 -0400
+	with ESMTP id S1756346AbZGUWJC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 18:09:02 -0400
 Received: by mail-pz0-f204.google.com with SMTP id 42so701151pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 15:09:00 -0700 (PDT)
-In-Reply-To: <1248214120-18886-7-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 15:09:02 -0700 (PDT)
+In-Reply-To: <1248214120-18886-8-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Tero Kristo <tero.kristo@nokia.com>
 
-Streamline the OMAP4 special IRQ assignments by putting inside
-normal init loop instead of having a separate loop.
+From: Tero Kristo <tero.kristo@nokia.com>
 
+It was possible for an unhandled interrupt to occur if there was incoming
+serial traffic during wakeup from suspend. This was caused by the code
+in arch-arm/mach-omap2/serial.c keeping interrupt enabled all the time,
+but not acking its interrupts. Applies on top of PM branch.
+
+Use the PM begin/end hooks to ensure that the "serial idle" interrupts
+are disabled during the suspend path.  Also, since begin/end hooks are
+now used, use the suspend_state that is passed in the begin hook instead
+of the enter hook as per the platform_suspend_ops docs.
+
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/serial.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c             |   23 +++++++++++++++++++++--
+ arch/arm/mach-omap2/serial.c             |   14 ++++++++++++++
+ arch/arm/plat-omap/include/mach/serial.h |    1 +
+ 3 files changed, 36 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 528f725..b07efb2 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -296,6 +296,8 @@ out:
+ }
+ 
+ #ifdef CONFIG_SUSPEND
++static suspend_state_t suspend_state;
++
+ static int omap3_pm_prepare(void)
+ {
+ 	disable_hlt();
+@@ -342,11 +344,11 @@ restore:
+ 	return ret;
+ }
+ 
+-static int omap3_pm_enter(suspend_state_t state)
++static int omap3_pm_enter(suspend_state_t unused)
+ {
+ 	int ret = 0;
+ 
+-	switch (state) {
++	switch (suspend_state) {
+ 	case PM_SUSPEND_STANDBY:
+ 	case PM_SUSPEND_MEM:
+ 		ret = omap3_pm_suspend();
+@@ -363,7 +365,24 @@ static void omap3_pm_finish(void)
+ 	enable_hlt();
+ }
+ 
++/* Hooks to enable / disable UART interrupts during suspend */
++static int omap3_pm_begin(suspend_state_t state)
++{
++	suspend_state = state;
++	omap_uart_enable_irqs(0);
++	return 0;
++}
++
++static void omap3_pm_end(void)
++{
++	suspend_state = PM_SUSPEND_ON;
++	omap_uart_enable_irqs(1);
++	return;
++}
++
+ static struct platform_suspend_ops omap_pm_ops = {
++	.begin		= omap3_pm_begin,
++	.end		= omap3_pm_end,
+ 	.prepare	= omap3_pm_prepare,
+ 	.enter		= omap3_pm_enter,
+ 	.finish		= omap3_pm_finish,
 diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index b094c15..c82ec95 100644
+index c82ec95..5352d05 100644
 --- a/arch/arm/mach-omap2/serial.c
 +++ b/arch/arm/mach-omap2/serial.c
-@@ -496,10 +496,6 @@ void __init omap_serial_init(void)
+@@ -435,6 +435,20 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 	WARN_ON(ret);
+ }
  
- 	if (info == NULL)
- 		return;
--	if (cpu_is_omap44xx()) {
--		for (i = 0; i < OMAP_MAX_NR_PORTS; i++)
--			serial_platform_data[i].irq += 32;
--	}
- 
- 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
- 		struct plat_serial8250_port *p = serial_platform_data + i;
-@@ -533,6 +529,9 @@ void __init omap_serial_init(void)
- 		uart->p = p;
- 		list_add(&uart->node, &uart_list);
- 
-+		if (cpu_is_omap44xx())
-+			p->irq += 32;
++void omap_uart_enable_irqs(int enable)
++{
++	int ret;
++	struct omap_uart_state *uart;
 +
- 		omap_uart_enable_clocks(uart);
- 		omap_uart_reset(uart);
- 		omap_uart_idle_init(uart);
++	list_for_each_entry(uart, &uart_list, node) {
++		if (enable)
++			ret = request_irq(uart->p->irq, omap_uart_interrupt,
++				IRQF_SHARED, "serial idle", (void *)uart);
++		else
++			free_irq(uart->p->irq, (void *)uart);
++	}
++}
++
+ static ssize_t sleep_timeout_show(struct kobject *kobj,
+ 				  struct kobj_attribute *attr,
+ 				  char *buf)
+diff --git a/arch/arm/plat-omap/include/mach/serial.h b/arch/arm/plat-omap/include/mach/serial.h
+index 13abd02..def0529 100644
+--- a/arch/arm/plat-omap/include/mach/serial.h
++++ b/arch/arm/plat-omap/include/mach/serial.h
+@@ -59,6 +59,7 @@ extern void omap_uart_check_wakeup(void);
+ extern void omap_uart_prepare_suspend(void);
+ extern void omap_uart_prepare_idle(int num);
+ extern void omap_uart_resume_idle(int num);
++extern void omap_uart_enable_irqs(int enable);
+ #endif
+ 
+ #endif
 -- 
 1.6.3.3
 
