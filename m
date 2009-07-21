@@ -1,23 +1,32 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 00/14] OMAP PM fixes for .31-rc series
-Date: Tue, 21 Jul 2009 23:37:30 +0100
-Message-ID: <20090721223730.GF7547@n2100.arm.linux.org.uk>
-References: <1248214120-18886-1-git-send-email-khilman@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 0/4] OMAP SPI: updates from OMAP PM branch
+Date: Tue, 21 Jul 2009 16:03:28 -0700
+Message-ID: <1248217412-24078-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57078 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756130AbZGUWhi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 18:37:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1248214120-18886-1-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pz0-f204.google.com ([209.85.222.204]:50590 "EHLO
+	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755105AbZGUXDf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 19:03:35 -0400
+Received: by pzk42 with SMTP id 42so718528pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 16:03:34 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: spi-devel-general@lists.sourceforge.net
+Cc: dbrownell@users.sourceforge.net, linux-omap@vger.kernel.org
 
-On Tue, Jul 21, 2009 at 03:08:26PM -0700, Kevin Hilman wrote:
-> Also available here as a v2.6.31-rc3 based branch from:
+This is a series of PM updates to the SPI driver from the OMAP PM
+branch.
 
-Looks fine.
+Hemanth V (1):
+  OMAP3 McSPI: Adds context save/restore for off-mode support
+
+Jouni Hogander (2):
+  OMAP: McSPI: enable wake-ups and smart-idle
+  OMAP: McSPI: Convert bit shifted values into BIT format
+
+Tero Kristo (1):
+  OMAP3: SPI: Restore also CHxCONF register when restoring context
+
+ drivers/spi/omap2_mcspi.c |  195 ++++++++++++++++++++++++++++++++------------
+ 1 files changed, 142 insertions(+), 53 deletions(-)
+
