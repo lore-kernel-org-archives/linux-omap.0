@@ -1,51 +1,74 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: [PATCH 2/3] [OMAP:I2C]In case of a NACK|ARDY|AL return from the ISR
-Date: Tue, 21 Jul 2009 10:14:40 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F202958D2F88@dlee06.ent.ti.com>
+From: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Tue, 21 Jul 2009 10:15:12 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49693 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755131AbZGUPOr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 11:14:47 -0400
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-In case of a NACK or ARDY or AL interrupt, complete the request.
-There is no need to service the RRDY/RDR or XRDY/XDR interrupts.
+When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
+Otherwise some data bytes can be lost while transferring them from the
+memory to the I2C interface.
 
-Refer TRM SWPU114: Figure 18-31.I2C Master Transmitter Mode, Interrupt Method,
-in F/S and HS Modes
+Do a Busy-wait for XUDF, before writing data to DATA_REG. While waiting
+if there is NACK | AL, set the appropriate error flags, ack the pending
+interrupts and return from the ISR.
 
-http://focus.ti.com/pdfs/wtbu/SWPU114T_PrelimFinalEPDF_06_25_2009.pdf
-
-Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
-Signed-off-by: Vikram pandita<vikram.pandita@ti.com>
+Signed-off-by: Moiz Sonasath<m-sonasath-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Vikram pandita<vikram.pandita-l0cyMroinI0@public.gmane.org>
 ---
- drivers/i2c/busses/i2c-omap.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/i2c/busses/i2c-omap.c |   24 +++++++++++++++++++++++-
+ 1 files changed, 23 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index d280acf..05b5e4c 100644
+index 05b5e4c..8deaf87 100644
 --- a/drivers/i2c/busses/i2c-omap.c
 +++ b/drivers/i2c/busses/i2c-omap.c
-@@ -685,8 +685,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
- 			err |= OMAP_I2C_STAT_AL;
+@@ -672,9 +672,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 			break;
  		}
- 		if (stat & (OMAP_I2C_STAT_ARDY | OMAP_I2C_STAT_NACK |
--					OMAP_I2C_STAT_AL))
-+					OMAP_I2C_STAT_AL)) {
- 			omap_i2c_complete_cmd(dev, err);
-+			return IRQ_HANDLED;
-+		}
- 		if (stat & (OMAP_I2C_STAT_RRDY | OMAP_I2C_STAT_RDR)) {
- 			u8 num_bytes = 1;
- 			if (dev->fifo_size) {
+ 
++		err = 0;
++complete:
+ 		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
+ 
+-		err = 0;
+ 		if (stat & OMAP_I2C_STAT_NACK) {
+ 			err |= OMAP_I2C_STAT_NACK;
+ 			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+@@ -764,6 +765,27 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 							"data to send\n");
+ 					break;
+ 				}
++
++				/*
++				 * OMAP3430 Errata 1.153: When an XRDY/XDR
++				 * is hit, wait for XUDF before writing data
++				 * to DATA_REG. Otherwise some data bytes can
++				 * be lost while transferring them from the
++				 * memory to the I2C interface.
++				 */
++
++				if (cpu_is_omap34xx()) {
++						while (!(stat & OMAP_I2C_STAT_XUDF)) {
++							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
++								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
++								err |= OMAP_I2C_STAT_XUDF;
++								goto complete;
++							}
++							cpu_relax();
++							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
++						}
++				}
++
+ 				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+ 			}
+ 			omap_i2c_ack_stat(dev,
 -- 
 1.5.6.3
-
