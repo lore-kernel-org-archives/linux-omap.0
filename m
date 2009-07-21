@@ -1,58 +1,84 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: PM branch update: rebase to .31-rc, added omap_hwmod/omap_device
-Date: Mon, 20 Jul 2009 17:19:42 -0700
-Message-ID: <87fxcqq44h.fsf@deeprootsystems.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 1/4] ARM: OMAP: Rename twl4030* driver files to enable
+ re-use
+Date: Tue, 21 Jul 2009 10:01:06 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B59502D7@dbde02.ent.ti.com>
+References: <1248096671-13828-1-git-send-email-balajitk@ti.com>
+ <20090720185253.GA7984@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f204.google.com ([209.85.222.204]:37118 "EHLO
-	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752937AbZGUATp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 20 Jul 2009 20:19:45 -0400
-Received: by pzk42 with SMTP id 42so183244pzk.33
-        for <linux-omap@vger.kernel.org>; Mon, 20 Jul 2009 17:19:45 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090720185253.GA7984@gandalf>
+Content-Language: en-US
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org" <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org" <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org" <sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org>, "wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org" <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, "timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org" <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-The PM branch hosted in my linux-omap-pm repo[1] has been updated.
+> -----Original Message-----
+> From: Felipe Balbi [mailto:me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org] 
+> Sent: Tuesday, July 21, 2009 12:23 AM
+> To: Krishnamoorthy, Balaji T
+> Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org; 
+> khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org; david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org; 
+> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
+> sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org; wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org; 
+> timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; 
+> lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org; broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org; 
+> Shilimkar, Santosh; Nayak, Rajendra
+> Subject: Re: [PATCH 1/4] ARM: OMAP: Rename twl4030* driver 
+> files to enable re-use
+> 
+> Hi,
+> 
+> On Mon, Jul 20, 2009 at 07:01:11PM +0530, balajitk-l0cyMroinI0@public.gmane.org wrote:
+> > From: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+> > 
+> > The upcoming TWL6030 is companion chip for OMAP4 like the 
+> current TWL4030
+> > for OMAP3. The common modules like RTC, Regulator creates 
+> opportunity
+> > to re-use the most of the code from twl4030.
+> > 
+> > This patch renames few common drivers twl4030* files to 
+> twl* to enable
+> > the code re-use.
+> > 
+> > Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+> > ---
+> >  arch/arm/mach-omap2/board-2430sdp.c                |    2 +-
+> >  arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
+> >  arch/arm/mach-omap2/board-ldp.c                    |    2 +-
+> >  arch/arm/mach-omap2/board-omap3beagle.c            |    2 +-
+> >  arch/arm/mach-omap2/board-omap3pandora.c           |    2 +-
+> >  arch/arm/mach-omap2/board-overo.c                  |    2 +-
+> >  drivers/gpio/twl4030-gpio.c                        |    2 +-
+> >  drivers/mfd/Makefile                               |    2 +-
+> >  drivers/mfd/{twl4030-core.c => twl-core.c}         |    8 +++-----
+> >  drivers/mfd/twl4030-irq.c                          |    2 +-
+> >  drivers/regulator/Makefile                         |    2 +-
+> >  .../{twl4030-regulator.c => twl-regulator.c}       |    6 +++---
+> >  drivers/rtc/Makefile                               |    2 +-
+> >  drivers/rtc/{rtc-twl4030.c => rtc-twl.c}           |    2 +-
+> >  drivers/usb/otg/twl4030-usb.c                      |    2 +-
+> >  include/linux/i2c/{twl4030.h => twl.h}             |    5 ++++-
+> >  sound/soc/codecs/twl4030.c                         |    2 +-
+> 
+> this is kinda useless, we can consider twl6030 as being sw compatible
+> (almost) with twl4030. And twl4030 driver already support plenty of
+> other devices, just look at drivers/mfd/twl4030-core.c lines 
+> 807 - 814.
+> We have twl4003, twl5030, tps65950, tps65930 and tps65920.
+> 
+> So IMO, renaming the files is unnecessary.
+Well tps* are just catalog names of the twl4* family. So you can keep adding whatever names there as long it's a same IC.
 
-Significant changes:
+Perhaps you look in hurry to comment about this. Please look at the intention of these patches. TWL6030 has PM IC similar to TWL4030 with bit different interrupt management. Audio IC is a separate one as compared to combined in case of TWL4030.
 
-- rebased to omap/master (currently v2.6.31-rc1)
-- Using new omap_hwmod and omap_device infrastructure from Paul Walmsley
-- more reorg into groups of commits for easier submission upstream
-
-Tested on the following platforms using omap3_pm_defconfig with
-busybox-based initramfs, and tested full-chip RET and OFF in idle and
-suspend:
-
-- 3430SDP
-- OMAP3EVM
-- Beagle
-- Overo
-- RX51
-- Zoom2 (use 'pm-staging/zoom2' branch as well, which is Vikram's
-         zoom2 branch rebased on top of PM branch with DEBUG_LL
-         support and misc. fixes)
-
-Known problems:
-
-- no DVFS because of next item...
-
-- SRF driver broken, needs update for new hwmod/omap_device layer
-  (default config used PM NOOP)
-
-- network drivers and off-mode
-  - various hangs when using off-while-idle and NFS-mounted rootfs
-  - network drivers likely need some context save/restore support
-
-- SDRAM on 2 CSes (Beagle, Overo, RX51)
-  - need to boot with mem=128M so only a single CS is used
-  - 2 CS support patches from Jean Pihet solve this problem,
-    but not yet merged.
-
-- 3430SDP ES3.0
-  - UART1 doesn't come back from off-while-idle (ok on es3.1 SDP)
-
-[1] http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git
+If it allows code re-use by renaming files, it should be good. Isn't it ? --
+To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
