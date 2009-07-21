@@ -1,78 +1,71 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: [RFC][PATCH 1/4] OMAP4: PMIC: Add support for twl6030 irq
- framework
-Date: Tue, 21 Jul 2009 08:30:21 +0300
-Message-ID: <20090721053021.GB13013@gandalf>
-References: <1248096992-14610-1-git-send-email-balajitk@ti.com>
- <20090720190706.GE7984@gandalf>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B595037E@dbde02.ent.ti.com>
-Reply-To: me@felipebalbi.com
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 1/4] ARM: OMAP: Rename twl4030* driver files to enable
+ re-use
+Date: Tue, 21 Jul 2009 11:03:53 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B59503D1@dbde02.ent.ti.com>
+References: <1248096671-13828-1-git-send-email-balajitk@ti.com>
+ <20090720185253.GA7984@gandalf>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B59502D7@dbde02.ent.ti.com>
+ <20090721052447.GA13013@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:40049 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923AbZGUFa3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 01:30:29 -0400
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B595037E@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44956 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752213AbZGUFe0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 01:34:26 -0400
+In-Reply-To: <20090721052447.GA13013@gandalf>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "sameo@openedhand.com" <sameo@openedhand.com>, "wim@iguana.be" <wim@iguana.be>, "timo.t.kokkonen@nokia.com" <timo.t.kokkonen@nokia.com>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "sameo@openedhand.com" <sameo@openedhand.com>, "wim@iguana.be" <wim@iguana.be>, "timo.t.kokkonen@nokia.com" <timo.t.kokkonen@nokia.com>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-hi,
-
-please send text mails and break your lines at 80 characters!
-
-On Tue, Jul 21, 2009 at 10:45:04AM +0530, Shilimkar, Santosh wrote:
-> Here is summary of Major difference between Triton(TWL4030) and
-> Phoenix(TWL6030_ chips are:
->     -GPIO, Keypad is not present in Phoenix
->     -I2C Chips addresses of modules like RTC, BCI, ADC, USB, PMC Master/Slave 
->      have changed.  Base address of these module register is also changed.
->     -PIH and SIH, module interrupt status registers will be replaced by PIH 
->      (INT_STS_A, INT_STS_B and INT_STS_C) and module interrupt status registers
->     -MADC to GPADC in Phoenix, 17 channels supported
->      GPADC in Phoenix supports Realtime, Asynchronous SW request.
->     -RTC register offsets have changed. Addition/removal of LDO/SMPS Voltage 
->      Regulators
-
-all of this can be addressed without ifdeferry around the code. Just add
-proper abstraction via platform_data, and that 'features' you see in
-twl4030-core.c
-
-> 2. Usage of compile time macros like "CONFIG_TWL4030" and CONFIG_TWL6030"
-> should be avoided and you think it would break multi-omap.
+> -----Original Message-----
+> From: Felipe Balbi [mailto:me@felipebalbi.com] 
+> Sent: Tuesday, July 21, 2009 10:55 AM
+> To: Shilimkar, Santosh
+> Cc: me@felipebalbi.com; Krishnamoorthy, Balaji T; 
+> linux-kernel@vger.kernel.org; tony@atomide.com; 
+> khilman@deeprootsystems.com; david-b@pacbell.net; 
+> linux-omap@vger.kernel.org; linux-i2c@vger.kernel.org; 
+> sameo@openedhand.com; wim@iguana.be; 
+> timo.t.kokkonen@nokia.com; ben-linux@fluff.org; 
+> lrg@slimlogic.co.uk; broonie@opensource.wolfsonmicro.com; 
+> Nayak, Rajendra
+> Subject: Re: [PATCH 1/4] ARM: OMAP: Rename twl4030* driver 
+> files to enable re-use
 > 
-> If we just go by definition " Multi-OMAP" is for different OMAP IC's. TWL4030
-> and TWL6030 are external companion IC's to OMAP.
+> hi,
+> 
+> On Tue, Jul 21, 2009 at 10:01:06AM +0530, Shilimkar, Santosh wrote:
+> > > So IMO, renaming the files is unnecessary.
+> > Well tps* are just catalog names of the twl4* family. So 
+> you can keep adding whatever names there as long it's a same IC.
+> > 
+> > Perhaps you look in hurry to comment about this. Please 
+> look at the intention of these patches. TWL6030 has PM IC 
+> similar to TWL4030 with bit different interrupt management. 
+> Audio IC is a separate one as compared to combined in case of TWL4030.
+> > 
+> > If it allows code re-use by renaming files, it should be 
+> good. Isn't it ? 
+> 
+> What I'm trying to say is you can re-use the code even 
+> without renaming
+> those files, just add twl6030-irq and use some sort of 
+> runtime check to
+> use one or other irq mechanism.
 
-what will happen if you build on kernel image for booting omap3 and
-omap4 ???
+We initially tried this but code is becoming ugly and not at all
+readable. In fact this was a short cut and would have saved 
+us some time :)
 
-> Any ways, these compile time switches can be avoided if we make runtime
-> provision for these TWL IC's like. 
-> "is_twl4030(), is_twl6030" etc like "cpu_is_24xx(),cpu_is_44xx()" etc.
+By renaming, we thought it can become a generic for further versions
+of TWL IC's and adding support to those would be cleaner.
 
-or you just use the 'features' in the twl4030-core.c and based on that
-pass a flag to the children notifying it's triton/gaia/reno/phoenix.
+Let's get feedback from more people on the list
 
-> Obviously this asks to make the driver register map (which is different in
-> case of TWL6030 w.r.t TWL4030) to be held in some arrays and select the
-> appropriate one run-time.  But it's doable if it helps.
-
-I'd say that's better than ifdeferry.
-
-> The patch series was made under _assumption_ that either TWL4030 or TWL6030 
-> would be used. I am not sure whether there will boards where both will
-> co-exist.
-
-not in the same board, but think of building one kernel image for both
-omap3 and omap4. Nobody will do that in real life for real products, but
-it's really useful when it goes about testing code on several boards.
-You don't have to spend time building several different kernel images,
-you build only one that boots on all.
-
--- 
-balbi
+Regards,
+Santosh
