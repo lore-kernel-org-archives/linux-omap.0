@@ -1,85 +1,31 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] fix omap3 sram virtual addres overlap vmalloc space
- after increasing vmalloc size
-Date: Tue, 21 Jul 2009 10:10:20 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0907211009240.19170@utopia.booyaka.com>
-References: <1247784477.25106.35.camel@debian-nb>  <alpine.DEB.2.00.0907171603190.18924@utopia.booyaka.com> <1248192120.3931.7.camel@debian-nb>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: Fix OFF mode on HS/EMU Devices
+Date: Tue, 21 Jul 2009 09:20:19 -0700
+Message-ID: <874ot6ovng.fsf@deeprootsystems.com>
+References: <1248190107-21703-1-git-send-email-ext-roger.quadros@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57772 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755074AbZGUQKV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 12:10:21 -0400
-In-Reply-To: <1248192120.3931.7.camel@debian-nb>
+Received: from wf-out-1314.google.com ([209.85.200.175]:34854 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753257AbZGUQUX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 12:20:23 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so955745wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 09:20:22 -0700 (PDT)
+In-Reply-To: <1248190107-21703-1-git-send-email-ext-roger.quadros@nokia.com> (Roger Quadros's message of "Tue\, 21 Jul 2009 18\:28\:27 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janboe Ye <yuan-bo.ye@motorola.com>
-Cc: linux-omap@vger.kernel.org, mans@mansr.com, khilman@deeprootsystems.com, tony@atomide.com, Hong Mei Li <hong-mei.li@motorola.com>
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, 21 Jul 2009, Janboe Ye wrote:
+Roger Quadros <ext-roger.quadros@nokia.com> writes:
 
-> Thanks, Paul
-> 
-> Tony
-> 
-> Is there some issue about this patch?
+> Defer calling omap3_save_scratchpad_contents() to after
+> omap3_secure_ram_storage has been initialized. This fixes
+> lockup & reboot while entering CORE OFF mode on HS/EMU devices.
+>
+> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
 
-Tony's on vacation right now, so you shouldn't expect a response from him 
-until he returns.
+Thanks, pushed to PM branch, and pm-2.6.29.
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14015.html
-
-
-- Paul
-
-> 
-> Thanks
-> 
-> Janboe Ye
-> 
-> On Fri, 2009-07-17 at 16:04 -0600, Paul Walmsley wrote:
-> > On Thu, 16 Jul 2009, Janboe Ye wrote:
-> > 
-> > > resend for mini coding style fixing
-> > > 
-> > > commit e85c205ac1427f2405021a36f083280ff0d0a35e increase vmalloc size.
-> > > vmalloc space will overlap with OMAP3 sram virtual address.
-> > 
-> > Makes sense to me.  I'm not sure how we missed this in the original patch.
-> > 
-> > Reviewed-by: Paul Walmsley <paul@pwsan.com>
-> > 
-> > - Paul
-> > 
-> > > 
-> > > Signed-off-by: Li Hong Mei <hong-mei.li@motorola.com>
-> > > Signed-off-by: Janboe Ye <yuan-bo.ye@motorola.com>
-> > > ---
-> > >  arch/arm/plat-omap/sram.c |    4 ++--
-> > >  1 files changed, 2 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> > > index a2e60e7..755ccaa 100644
-> > > --- a/arch/arm/plat-omap/sram.c
-> > > +++ b/arch/arm/plat-omap/sram.c
-> > > @@ -41,9 +41,9 @@
-> > >  #define OMAP2_SRAM_VA          0xe3000000
-> > >  #define OMAP2_SRAM_PUB_VA      (OMAP2_SRAM_VA + 0x800)
-> > >  #define OMAP3_SRAM_PA           0x40200000
-> > > -#define OMAP3_SRAM_VA           0xd7000000
-> > > +#define OMAP3_SRAM_VA           0xe3000000
-> > >  #define OMAP3_SRAM_PUB_PA       0x40208000
-> > > -#define OMAP3_SRAM_PUB_VA       0xd7008000
-> > > +#define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
-> > > 
-> > >  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-> > >  #define SRAM_BOOTLOADER_SZ     0x00
-> > > 
-> > 
-> > 
-> > - Paul
-> 
-
-
-- Paul
+Kevin
