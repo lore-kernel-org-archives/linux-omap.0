@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 11/14] OMAP: PM: CPUfreq: obey min/max settings of policy
-Date: Tue, 21 Jul 2009 15:08:37 -0700
-Message-ID: <1248214120-18886-12-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 13/14] OMAP: GPIO: clear/restore level/edge detect settings on mask/unmask
+Date: Tue, 21 Jul 2009 15:08:39 -0700
+Message-ID: <1248214120-18886-14-git-send-email-khilman@deeprootsystems.com>
 References: <1248214120-18886-1-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-2-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-3-git-send-email-khilman@deeprootsystems.com>
@@ -13,52 +13,58 @@ References: <1248214120-18886-1-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-9-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-10-git-send-email-khilman@deeprootsystems.com>
  <1248214120-18886-11-git-send-email-khilman@deeprootsystems.com>
+ <1248214120-18886-12-git-send-email-khilman@deeprootsystems.com>
+ <1248214120-18886-13-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-pz0-f204.google.com ([209.85.222.204]:42991 "EHLO
 	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756359AbZGUWJJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 18:09:09 -0400
+	with ESMTP id S1756358AbZGUWJO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 18:09:14 -0400
 Received: by mail-pz0-f204.google.com with SMTP id 42so701151pzk.33
-        for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 15:09:10 -0700 (PDT)
-In-Reply-To: <1248214120-18886-11-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 15:09:14 -0700 (PDT)
+In-Reply-To: <1248214120-18886-13-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+If IRQ triggering is enabled, it can trigger a pending interrupt
+even for masked interrupts.  Any pending GPIO interrupts can
+prevent the powerdomain from hitting retention.
 
-Use the min/max settings from CPUfreq policy rather than
-processor defined min/max settings.
+Problem found, reported and additional review and testing by Chunquiu
+Wang.
 
-Without this patch, it's possible to scale frequency outside
-the current policy range.
-
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Tested-by: Chunquiu Wang <cqwang@motorola.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/plat-omap/cpu-omap.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/gpio.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index 843e8af..1868c0d 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -78,10 +78,10 @@ static int omap_target(struct cpufreq_policy *policy,
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 26b387c..77bad14 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -1189,6 +1189,7 @@ static void gpio_mask_irq(unsigned int irq)
+ 	struct gpio_bank *bank = get_irq_chip_data(irq);
  
- 	/* Ensure desired rate is within allowed range.  Some govenors
- 	 * (ondemand) will just pass target_freq=0 to get the minimum. */
--	if (target_freq < policy->cpuinfo.min_freq)
--		target_freq = policy->cpuinfo.min_freq;
--	if (target_freq > policy->cpuinfo.max_freq)
--		target_freq = policy->cpuinfo.max_freq;
-+	if (target_freq < policy->min)
-+		target_freq = policy->min;
-+	if (target_freq > policy->max)
-+		target_freq = policy->max;
+ 	_set_gpio_irqenable(bank, gpio, 0);
++	_set_gpio_triggering(bank, get_gpio_index(gpio), IRQ_TYPE_NONE);
+ }
  
- 	freqs.old = omap_getspeed(0);
- 	freqs.new = clk_round_rate(mpu_clk, target_freq * 1000) / 1000;
+ static void gpio_unmask_irq(unsigned int irq)
+@@ -1196,6 +1197,11 @@ static void gpio_unmask_irq(unsigned int irq)
+ 	unsigned int gpio = irq - IH_GPIO_BASE;
+ 	struct gpio_bank *bank = get_irq_chip_data(irq);
+ 	unsigned int irq_mask = 1 << get_gpio_index(gpio);
++	struct irq_desc *desc = irq_to_desc(irq);
++	u32 trigger = desc->status & IRQ_TYPE_SENSE_MASK;
++
++	if (trigger)
++		_set_gpio_triggering(bank, get_gpio_index(gpio), trigger);
+ 
+ 	/* For level-triggered GPIOs, the clearing must be done after
+ 	 * the HW source is cleared, thus after the handler has run */
 -- 
 1.6.3.3
 
