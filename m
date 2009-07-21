@@ -1,134 +1,81 @@
-From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Subject: Re: [RESUBMIT][PATCH][RFC] OMAP4: I2C Support for OMAP4430
-Date: Tue, 21 Jul 2009 16:46:01 +0100
-Message-ID: <20090721154601.GC7547@n2100.arm.linux.org.uk>
-References: <53314.192.168.10.89.1248189586.squirrel@dbdmail.itg.ti.com>
+From: Janboe Ye <yuan-bo.ye@motorola.com>
+Subject: Re: [PATCH] fix omap3 sram virtual addres overlap vmalloc space
+ after increasing vmalloc size
+Date: Tue, 21 Jul 2009 11:02:00 -0500
+Message-ID: <1248192120.3931.7.camel@debian-nb>
+References: <1247784477.25106.35.camel@debian-nb>
+	 <alpine.DEB.2.00.0907171603190.18924@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <53314.192.168.10.89.1248189586.squirrel-pJFUjGLopx31T2qfsofKZtBPR1lH4CV8@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Syed Rafiuddin <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
-Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail119.messagelabs.com ([216.82.241.195]:39907 "EHLO
+	mail119.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753459AbZGUQCi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 21 Jul 2009 12:02:38 -0400
+Received: from il27exr04.cig.mot.com (il27exr04.mot.com [10.17.196.73])
+	by motgate4.mot.com (8.14.3/8.14.3) with ESMTP id n6LG2Wre000170
+	for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 09:02:32 -0700 (MST)
+Received: from il27vts02.mot.com (il27vts02.cig.mot.com [10.17.196.86])
+	by il27exr04.cig.mot.com (8.13.1/Vontu) with SMTP id n6LG2RvA015960
+	for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 11:02:32 -0500 (CDT)
+Received: from zmy16exm62.ds.mot.com (zmy16exm62.ap.mot.com [10.179.4.33])
+	by il27exr04.cig.mot.com (8.13.1/8.13.0) with ESMTP id n6LG2P3k015938
+	for <linux-omap@vger.kernel.org>; Tue, 21 Jul 2009 11:02:26 -0500 (CDT)
+In-Reply-To: <alpine.DEB.2.00.0907171603190.18924@utopia.booyaka.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, mans@mansr.com, khilman@deeprootsystems.com, tony@atomide.com, Hong Mei Li <hong-mei.li@motorola.com>
 
-On Tue, Jul 21, 2009 at 08:49:46PM +0530, Syed Rafiuddin wrote:
-> This patch adds OMAP4 support to the I2C driver. All I2C register addresses
-> are different between OMAP1/2/3 and OMAP4. In order to not have #ifdef's at
-> various places in code, as well as to support multi-OMAP build, Array's are
-> created to hold the register addresses.
+Thanks, Paul
 
-Hmm, some comments follow.
+Tony
 
-> @@ -156,6 +162,12 @@
->  #define SYSC_IDLEMODE_SMART		0x2
->  #define SYSC_CLOCKACTIVITY_FCLK		0x2
+Is there some issue about this patch?
+
+Thanks
+
+Janboe Ye
+
+On Fri, 2009-07-17 at 16:04 -0600, Paul Walmsley wrote:
+> On Thu, 16 Jul 2009, Janboe Ye wrote:
 > 
-> +#define maxvalue(x, y)	(x > y ? x : y)
-
-We have a max() and max_t() functions in the kernel which are both
-typesafe.  Please don't reintroduce the above buggy construct.
-
-> +
-> +struct reg_type {
-> +	u32 reg;
-> +	u32 offset;
-> +};
-
-I'm not sure what use 'reg' is here - since it's always identical to
-the index into the array.  Just make this an array.
-
+> > resend for mini coding style fixing
+> > 
+> > commit e85c205ac1427f2405021a36f083280ff0d0a35e increase vmalloc size.
+> > vmalloc space will overlap with OMAP3 sram virtual address.
 > 
->  struct omap_i2c_dev {
->  	struct device		*dev;
-> @@ -165,6 +177,7 @@ struct omap_i2c_dev {
->  	struct clk		*fclk;		/* Functional clock */
->  	struct completion	cmd_complete;
->  	struct resource		*ioarea;
-> +	struct reg_type		*regs;
-
-This could be const...
-
->  	u32			speed;		/* Speed of bus in Khz */
->  	u16			cmd_err;
->  	u8			*buf;
-> @@ -180,15 +193,61 @@ struct omap_i2c_dev {
->  	u16			iestate;	/* Saved interrupt register */
->  };
+> Makes sense to me.  I'm not sure how we missed this in the original patch.
 > 
-> +static struct  __initdata reg_type reg_map[] = {
-> +	{OMAP_I2C_REV_REG, 0x00},
-> +	{OMAP_I2C_IE_REG, 0x04},
-> +	{OMAP_I2C_STAT_REG, 0x08},
-> +	{OMAP_I2C_IV_REG, 0x0c},
-> +	{OMAP_I2C_WE_REG, 0x0c},
-> +	{OMAP_I2C_SYSS_REG, 0x10},
-> +	{OMAP_I2C_BUF_REG, 0x14},
-> +	{OMAP_I2C_CNT_REG, 0x18},
-> +	{OMAP_I2C_DATA_REG, 0x1c},
-> +	{OMAP_I2C_SYSC_REG, 0x20},
-> +	{OMAP_I2C_CON_REG, 0x24},
-> +	{OMAP_I2C_OA_REG, 0x28},
-> +	{OMAP_I2C_SA_REG, 0x2c},
-> +	{OMAP_I2C_PSC_REG, 0x30},
-> +	{OMAP_I2C_SCLL_REG, 0x34},
-> +	{OMAP_I2C_SCLH_REG, 0x38},
-> +	{OMAP_I2C_SYSTEST_REG, 0x3C},
-> +	{OMAP_I2C_BUFSTAT_REG, 0x40},
-> +};
-> +
-> +static struct  __initdata reg_type omap4_reg_map[] = {
-> +	{OMAP_I2C_REV_REG, 0x04},
-> +	{OMAP_I2C_IE_REG, 0x2c},
-> +	{OMAP_I2C_STAT_REG, 0x28},
-> +	{OMAP_I2C_IV_REG, 0x34},
-> +	{OMAP_I2C_WE_REG, 0x34},
-> +	{OMAP_I2C_SYSS_REG, 0x90},
-> +	{OMAP_I2C_BUF_REG, 0x94},
-> +	{OMAP_I2C_CNT_REG, 0x98},
-> +	{OMAP_I2C_DATA_REG, 0x9c},
-> +	{OMAP_I2C_SYSC_REG, 0x20},
-> +	{OMAP_I2C_CON_REG, 0xa4},
-> +	{OMAP_I2C_OA_REG, 0xa8},
-> +	{OMAP_I2C_SA_REG, 0xac},
-> +	{OMAP_I2C_PSC_REG, 0xb0},
-> +	{OMAP_I2C_SCLL_REG, 0xb4},
-> +	{OMAP_I2C_SCLH_REG, 0xb8},
-> +	{OMAP_I2C_SYSTEST_REG, 0xbC},
-> +	{OMAP_I2C_BUFSTAT_REG, 0xc0},
-> +	{OMAP_I2C_REVNB_LO, 0x00},
-> +	{OMAP_I2C_IRQSTATUS_RAW, 0x24},
-> +	{OMAP_I2C_IRQENABLE_SET, 0x2c},
-> +	{OMAP_I2C_IRQENABLE_CLR, 0x30},
-> +};
-
-These arrays could be of a well defined size (enough to hold all enum
-values).  They're not going to be huge, and I suspect that the cost of
-this code:
-
-> +	if (dev->regs == NULL) {
-> +		dev->regs = kmalloc(maxvalue(sizeof(omap4_reg_map),
-> +				sizeof(reg_map)), GFP_KERNEL);
-> +		if (dev->regs == NULL) {
-> +			r = -ENOMEM;
-> +			goto err_free_mem;
-> +		}
-> +	}
-> +
-> +	if (cpu_is_omap44xx())
-> +		memcpy(dev->regs, omap4_reg_map, sizeof(omap4_reg_map));
-> +	else
-> +		memcpy(dev->regs, reg_map, sizeof(reg_map));
-> +
-
-is higher than just having the above be const arrays of 'u8' or maybe
-'u16'.
-
-Note that you can explicitly initialize array entries as follows:
-
-static u8 omap4_reg_map[OMAP_I2C_MAX_REG] = {
-	[OMAP_I2C_REV_REG] = 0x04,
-	[OMAP_I2C_IE_REG]  = 0x2c,
-...
-};
+> Reviewed-by: Paul Walmsley <paul@pwsan.com>
+> 
+> - Paul
+> 
+> > 
+> > Signed-off-by: Li Hong Mei <hong-mei.li@motorola.com>
+> > Signed-off-by: Janboe Ye <yuan-bo.ye@motorola.com>
+> > ---
+> >  arch/arm/plat-omap/sram.c |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> > index a2e60e7..755ccaa 100644
+> > --- a/arch/arm/plat-omap/sram.c
+> > +++ b/arch/arm/plat-omap/sram.c
+> > @@ -41,9 +41,9 @@
+> >  #define OMAP2_SRAM_VA          0xe3000000
+> >  #define OMAP2_SRAM_PUB_VA      (OMAP2_SRAM_VA + 0x800)
+> >  #define OMAP3_SRAM_PA           0x40200000
+> > -#define OMAP3_SRAM_VA           0xd7000000
+> > +#define OMAP3_SRAM_VA           0xe3000000
+> >  #define OMAP3_SRAM_PUB_PA       0x40208000
+> > -#define OMAP3_SRAM_PUB_VA       0xd7008000
+> > +#define OMAP3_SRAM_PUB_VA       (OMAP3_SRAM_VA + 0x8000)
+> > 
+> >  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+> >  #define SRAM_BOOTLOADER_SZ     0x00
+> > 
+> 
+> 
+> - Paul
