@@ -1,155 +1,72 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH 3/3] ASoC: add support for Amstrad E3
- (Delta) machine
-Date: Wed, 22 Jul 2009 16:53:12 +0200
-Message-ID: <4A6727D8.5080808@tis.icnet.pl>
-References: <200907220523.01107.jkrzyszt@tis.icnet.pl>
-	<20090722110328.GB7622@sirena.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/4] ARM: OMAP: Rename twl4030* driver files to enable re-use
+Date: Wed, 22 Jul 2009 07:54:01 -0700
+Message-ID: <87prbslqeu.fsf@deeprootsystems.com>
+References: <1248096671-13828-1-git-send-email-balajitk@ti.com>
+	<20090720185253.GA7984@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090722110328.GB7622@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f176.google.com ([209.85.216.176]:42455 "EHLO
+	mail-px0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751013AbZGVOyE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 10:54:04 -0400
+In-Reply-To: <20090720185253.GA7984@gandalf> (Felipe Balbi's message of "Mon\, 20 Jul 2009 21\:52\:54 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: me@felipebalbi.com
+Cc: balajitk@ti.com, linux-kernel@vger.kernel.org, tony@atomide.com, david-b@pacbell.net, linux-omap@vger.kernel.org, linux-i2c@vger.kernel.org, sameo@openedhand.com, wim@iguana.be, timo.t.kokkonen@nokia.com, ben-linux@fluff.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>
 
-Hi Mark,
+Felipe Balbi <me@felipebalbi.com> writes:
 
-Mark Brown wrote:
-> On Wed, Jul 22, 2009 at 05:22:59AM +0200, Janusz Krzysztofik wrote:
-> 
->> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> Hi,
+>
+> On Mon, Jul 20, 2009 at 07:01:11PM +0530, balajitk@ti.com wrote:
+>> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+>> 
+>> The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+>> for OMAP3. The common modules like RTC, Regulator creates opportunity
+>> to re-use the most of the code from twl4030.
+>> 
+>> This patch renames few common drivers twl4030* files to twl* to enable
+>> the code re-use.
+>> 
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> Signed-off-by: Balaji T K <balajitk@ti.com>
+>> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
 >> ---
->> CPU DAI parameters best matching the codec DAI has been selected out
->> empirically for best user experience.
-> 
-> Again, all the documentation you've got here could quite happily go in
-> the commit message and there's a bunch of checkpatch issues.
+>>  arch/arm/mach-omap2/board-2430sdp.c                |    2 +-
+>>  arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
+>>  arch/arm/mach-omap2/board-ldp.c                    |    2 +-
+>>  arch/arm/mach-omap2/board-omap3beagle.c            |    2 +-
+>>  arch/arm/mach-omap2/board-omap3pandora.c           |    2 +-
+>>  arch/arm/mach-omap2/board-overo.c                  |    2 +-
+>>  drivers/gpio/twl4030-gpio.c                        |    2 +-
+>>  drivers/mfd/Makefile                               |    2 +-
+>>  drivers/mfd/{twl4030-core.c => twl-core.c}         |    8 +++-----
+>>  drivers/mfd/twl4030-irq.c                          |    2 +-
+>>  drivers/regulator/Makefile                         |    2 +-
+>>  .../{twl4030-regulator.c => twl-regulator.c}       |    6 +++---
+>>  drivers/rtc/Makefile                               |    2 +-
+>>  drivers/rtc/{rtc-twl4030.c => rtc-twl.c}           |    2 +-
+>>  drivers/usb/otg/twl4030-usb.c                      |    2 +-
+>>  include/linux/i2c/{twl4030.h => twl.h}             |    5 ++++-
+>>  sound/soc/codecs/twl4030.c                         |    2 +-
+>
+> this is kinda useless, we can consider twl6030 as being sw compatible
+> (almost) with twl4030. And twl4030 driver already support plenty of
+> other devices, just look at drivers/mfd/twl4030-core.c lines 807 - 814.
+> We have twl4003, twl5030, tps65950, tps65930 and tps65920.
+>
+> So IMO, renaming the files is unnecessary.
 
-OK, I promiss to remember about this for the future.
+I support the renaming.
 
->> +#include <sound/soc-dapm.h>
->> +#include <sound/jack.h>
-> 
-> ASoC will pull that one in for you, not that it really matters.
+I think the renaming part of a cleanup and a generalization so that
+this code can be reused for other parts in the same family, and still
+be readable and maintainable.
 
-Maybe it should, but without <sound/jack.h> I get:
-sound/soc/omap/ams-delta.c:184: error: 'SND_JACK_MICROPHONE' undeclared 
-here (not in a function)
-sound/soc/omap/ams-delta.c:188: error: 'SND_JACK_HEADPHONE' undeclared 
-here (not in a function)
-sound/soc/omap/ams-delta.c: In function 'cx81801_close':
-sound/soc/omap/ams-delta.c:336: error: 'SND_JACK_HEADSET' undeclared 
-(first use in this function)
-...
+Yes, we *could* keep the current names, but that's a shortcut that
+will lead to code that is more difficult to follow and thus maintain.
 
->> +static const struct snd_kcontrol_new ams_delta_audio_controls[] = {
->> +	SOC_ENUM_EXT("Audio Function", ams_delta_audio_enum[0],
->> +			ams_delta_get_audio_mode, ams_delta_set_audio_mode),
->> +};
-> 
-> Is it possible to control all the functions of the audio mode
-> independantly or are only certain combinations possible?
-
-Certain combinations only. For example, no way of turning on the 
-mouthpiece without turning on the earphone as well, turning on AGC 
-automatically selects the speakerphone and turns off the handset.
-
->> +static struct snd_soc_jack_gpio ams_delta_hook_switch_gpios[];
->> +static struct snd_soc_jack_pin ams_delta_hook_switch_pins[] = {
->> +	{
->> +		.pin = "Mouthpiece",
->> +		.mask = SND_JACK_MICROPHONE,
->> +	},
->> +	{
->> +		.pin = "Earphone",
->> +		.mask = SND_JACK_HEADPHONE,
->> +	},
->> +	{
->> +		.pin = "Speaker",
->> +		.mask = SND_JACK_HEADPHONE,
->> +		.invert = 1,
->> +	},
->> +	{
->> +		.pin = "Microphone",
->> +		.mask = SND_JACK_MICROPHONE,
->> +		.invert = 1,
->> +	},
->> +};
-> 
-> I guess microphone and speaker are for speakerphone mode while
-> mouthpiece and earpiece are a headset?  Might be nice to come up with
-
-Exactly.
-
-> names that make the paring a bit clearer, or possibly just put a comment
-> in there.
-
-With my limited English skills, I can only replace Earphone with 
-Earpiece and add a comment. Please someone suggest better namings if not 
-enough.
-
->> +/* To actually apply any modem controlled configuration changes to the codec,
->> + * we must connect codec DAI pins to the modem for a moment.  Be carefull
->> + * not to interfere with digital mute function that shares the same hardware. */
->> +static struct timer_list cx81801_timer;
->> +static bool cx81801_cmd_pending = 0;
->> +static bool ams_delta_muted;
->> +
->> +static void cx81801_timeout(unsigned long data)
->> +{
->> +	/* REVISIT - locking? */
-> 
-> Yeah, locking is probably a good idea :)
-
-I'll have to learn about locking first. Could somebody point me to an 
-example code?
-
->> +	/* Add board specific DAPM controls */
->> +	if (!snd_soc_dapm_new_controls(codec, ams_delta_dapm_widgets,
->> +				ARRAY_SIZE(ams_delta_dapm_widgets))) {
->> +		if (!snd_soc_dapm_add_routes(codec, ams_delta_audio_map,
->> +					ARRAY_SIZE(ams_delta_audio_map))) {
-> 
-> The error handling here is a bit odd...
-
-Do you mean those negations? Would be better if replaced with "== 0"?
-I am not sure if this is acceptable, but I just tried to avoid giving up 
-with a partialy working driver in case of errors on optional parts.
-
->> +	/* Add hook switch */
->> +	if (!snd_soc_jack_new(&ams_delta_audio_card, "hook_switch",
->> +				SND_JACK_HEADSET, &ams_delta_hook_switch)) {
->> +		if (!snd_soc_jack_add_gpios(&ams_delta_hook_switch,
->> +					ARRAY_SIZE(ams_delta_hook_switch_gpios),
->> +					ams_delta_hook_switch_gpios)) {
->> +#ifdef CONFIG_GPIO_SYSFS
->> +			/* Expose hook switch over sysfs if configured */
->> +			gpio_export(ams_delta_hook_switch_gpios[0].gpio, false);
->> +#endif
-> 
-> The gpio_export() should be in the ASoC GPIO code rather than here, I'd
-> expect - care to cook up a patch?
-
-When I tried to push a similiar code into the gpio-keys dirver, Dmitry 
-said I was wrong because my application would be limited to gpio based 
-devices only. However, it looks like there are no jacks other than gpio 
-based in ASoC, so maybe that objection does not apply here. Or maybe the 
-ASoC framework could just provide its own sysfs file with actual jack 
-state, whether gpio based or not?
-
-BTW, I decided to reuse already existing jack/input event types instead 
-of inventing new. Anyway, should I CC: linux-input?
-
-Thanks,
-Janusz
+Kevin
