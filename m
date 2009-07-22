@@ -1,53 +1,65 @@
-From: Wim Van Sebroeck <wim@iguana.be>
-Subject: Re: [PATCH 0/2] watchdog:OMAP3:Add support for IVA2, SECURE WDTs
-Date: Wed, 22 Jul 2009 19:47:26 +0200
-Message-ID: <20090722174726.GI2155@infomag.iguana.be>
-References: <1247162663-27541-1-git-send-email-ubh@ti.com>
+From: Trilok Soni <soni.trilok@gmail.com>
+Subject: Re: [PATCH] TWL4030:TWL5030:TPS659x0: add keypad support
+Date: Thu, 23 Jul 2009 00:13:06 +0530
+Message-ID: <5d5443650907221143n3511129en333eca78ba886716@mail.gmail.com>
+References: <1247876000-4457-1-git-send-email-vikram.pandita@ti.com>
+	 <5d5443650907200006h29b75a94kfab151a900f00fd@mail.gmail.com>
+	 <20090722142506.GC4790@everest>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailrelay003.isp.belgacom.be ([195.238.6.53]:22267 "EHLO
-	mailrelay003.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752801AbZGVRr2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 22 Jul 2009 13:47:28 -0400
-Content-Disposition: inline
-In-Reply-To: <1247162663-27541-1-git-send-email-ubh@ti.com>
+Received: from qw-out-2122.google.com ([74.125.92.26]:17887 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753331AbZGVSnH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 14:43:07 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so217417qwh.37
+        for <linux-omap@vger.kernel.org>; Wed, 22 Jul 2009 11:43:06 -0700 (PDT)
+In-Reply-To: <20090722142506.GC4790@everest>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ulrik Bech Hald <ubh@ti.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-omap@vger.kernel.org
+To: Trilok Soni <soni.trilok@gmail.com>, Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
 
-Hi Ulrik,
+Hi Amit,
 
-> This patch series enables support for IVA2 and SECURE
-> WDTs, available on omap34xx.
-> The WDTs will be accessible (when present on device) through:
-> MPU:	/dev/watchdog
-> SECURE:	/dev/watchdog_secure
-> IVA2:	/dev/watchdog_iva2
-> 
-> Tested on Zoom1 OMAP3 platform, compile-tested for OMAP2
-> Signed-off-by: Ulrik Bech Hald <ubh@ti.com>
-> Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
-> --- 
->  arch/arm/mach-omap1/clock.c     |    6 +-
->  arch/arm/mach-omap2/clock24xx.c |    4 -
->  arch/arm/mach-omap2/clock34xx.c |   12 ++---
->  arch/arm/plat-omap/devices.c    |   91 ++++++++++++++++++++++++++++++++--------
->  drivers/watchdog/omap_wdt.c     |   34 +++++++++++---
->  5 files changed, 112 insertions(+), 35 deletions(-)
+On Wed, Jul 22, 2009 at 7:55 PM, Amit
+Kucheria<amit.kucheria@verdurent.com> wrote:
+> On 09 Jul 20, Trilok Soni wrote:
+>> Hi Vikram,
+>>
+>> > +
+>> > +#include <linux/kernel.h>
+>> > +#include <linux/module.h>
+>> > +#include <linux/init.h>
+>> > +#include <linux/interrupt.h>
+>> > +#include <linux/input.h>
+>> > +#include <linux/platform_device.h>
+>> > +#include <linux/i2c/twl4030.h>
+>> > +#include <mach/keypad.h>
+>>
+>> One empty line between above two headers.
+>>
+>> I hope you are aware of earlier comments posted for this driver when
+>> it was submitted few months back and had long discussion on threaded
+>> irq stuff.
+>>
+>
+> Trilok,
+>
+> Could you please post a link to that discussion. Google isn't pointing
+> me to any relevant discussions besides
+> http://lkml.org/lkml/2008/10/1/334
+>
+> I'll do a further cleanup and resubmit.
 
-Thanks for sending in this patch, but I will put the patch aside for some time.
-The reason for this is that:
-1) we need to have the new watchdog core infrastructure going in for 2.6.32.
-This new core means that we won't reproduce the same code over and over again.
-(Both Alan and myself are working on it).
-2) We need a thorough discussion first on how we will support multiple watchdog
-devices and what the best interface is. I'm not convinced dat the /dev/watchdog*
-solution is the right way to go. I think a sysfs interface is suited more. This
-sysfs interface would be "version 2" of the new core.
+If you follow latest discussion as below, you will get the pointers.
 
-Sorry for the inconvenience, we will get back on this.
-Wim.
+http://marc.info/?l=linux-i2c&m=124828117611346&w=2
 
+It is also CCed to linux-input as well.
+
+
+-- 
+---Trilok Soni
+http://triloksoni.wordpress.com
+http://www.linkedin.com/in/triloksoni
