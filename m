@@ -1,121 +1,58 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH/RFT 3/3] OMAP3: PM: PRCM interrupt: only handle selected PRCM interrupts
-Date: Wed, 22 Jul 2009 11:48:22 -0700
-Message-ID: <1248288502-3496-4-git-send-email-khilman@deeprootsystems.com>
-References: <1248288502-3496-1-git-send-email-khilman@deeprootsystems.com>
- <1248288502-3496-2-git-send-email-khilman@deeprootsystems.com>
- <1248288502-3496-3-git-send-email-khilman@deeprootsystems.com>
+From: Wim Van Sebroeck <wim@iguana.be>
+Subject: Re: Handling multiple watchdogs
+Date: Wed, 22 Jul 2009 20:52:32 +0200
+Message-ID: <20090722185232.GK2155@infomag.iguana.be>
+References: <4A672B97.1070704@emlix.com> <20090722171920.505ffc4b@lxorguk.ukuu.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.229]:22850 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577AbZGVSsd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 14:48:33 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so1312772rvb.5
-        for <linux-omap@vger.kernel.org>; Wed, 22 Jul 2009 11:48:33 -0700 (PDT)
-In-Reply-To: <1248288502-3496-3-git-send-email-khilman@deeprootsystems.com>
+Received: from mailrelay003.isp.belgacom.be ([195.238.6.53]:3748 "EHLO
+	mailrelay003.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750938AbZGVSwd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Jul 2009 14:52:33 -0400
+Content-Disposition: inline
+In-Reply-To: <20090722171920.505ffc4b@lxorguk.ukuu.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+To: Simon Braunschmidt <sb@emlix.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-From: Paul Walmsley <paul@pwsan.com>
+Hi Simon,
 
-Clearing wakeup sources is now only done when the PRM indicates a
-wakeup source interrupt.  Since we don't handle any other types of
-PRCM interrupts right now, warn if we get any other type of PRCM
-interrupt.  Either code needs to be added to the PRCM interrupt
-handler to react to these, or these other interrupts should be masked
-off at init.
----
- arch/arm/mach-omap2/pm34xx.c |   46 +++++++++++++++++++++++++++++++++--------
- 1 files changed, 37 insertions(+), 9 deletions(-)
+> > I have two watchdogs on my board that I both want to handle. What would 
+> > be the proper approach in this case?
+> 
+> Fixing the watchdog core to create a class of watchdog drivers and
+> treating the existing /dev/watchdog as a back compatibility hack. It's
+> been talked about for a very long time but not done, although I believe
+> Wim had some test code at one point ?
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 25372b7..348a683 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -204,7 +204,7 @@ static void omap3_save_secure_ram_context(u32 target_mpu_state)
-  * that any peripheral wake-up events occurring while attempting to
-  * clear the PM_WKST_x are detected and cleared.
-  */
--static void prcm_clear_mod_irqs(s16 module, u8 regs)
-+static int prcm_clear_mod_irqs(s16 module, u8 regs)
- {
- 	u32 wkst, fclk, iclk;
- 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
-@@ -212,6 +212,7 @@ static void prcm_clear_mod_irqs(s16 module, u8 regs)
- 	u16 iclk_off = (regs == 3) ? CM_ICLKEN3 : CM_ICLKEN1;
- 	u16 grpsel_off = (regs == 3) ?
- 		OMAP3430ES2_PM_MPUGRPSEL3 : OMAP3430_PM_MPUGRPSEL;
-+	int c = 0;
- 
- 	wkst = prm_read_mod_reg(module, wkst_off);
- 	wkst &= prm_read_mod_reg(module, grpsel_off);
-@@ -223,10 +224,28 @@ static void prcm_clear_mod_irqs(s16 module, u8 regs)
- 			cm_set_mod_reg_bits(wkst, module, fclk_off);
- 			prm_write_mod_reg(wkst, module, wkst_off);
- 			wkst = prm_read_mod_reg(module, wkst_off);
-+			c++;
- 		}
- 		cm_write_mod_reg(iclk, module, iclk_off);
- 		cm_write_mod_reg(fclk, module, fclk_off);
- 	}
-+
-+	return c;
-+}
-+
-+static int _prcm_int_handle_wakeup(void)
-+{
-+	int c;
-+
-+	c = prcm_clear_mod_irqs(WKUP_MOD, 1);
-+	c += prcm_clear_mod_irqs(CORE_MOD, 1);
-+	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
-+	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+		c += prcm_clear_mod_irqs(CORE_MOD, 3);
-+		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
-+	}
-+
-+	return c;
- }
- 
- /*
-@@ -249,18 +268,27 @@ static void prcm_clear_mod_irqs(s16 module, u8 regs)
- static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
- {
- 	u32 irqstatus_mpu;
-+	int c = 0;
- 
- 	do {
--		prcm_clear_mod_irqs(WKUP_MOD, 1);
--		prcm_clear_mod_irqs(CORE_MOD, 1);
--		prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
--		if (omap_rev() > OMAP3430_REV_ES1_0) {
--			prcm_clear_mod_irqs(CORE_MOD, 3);
--			prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
--		}
--
- 		irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
- 					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-+
-+		if (irqstatus_mpu & (OMAP3430_WKUP_ST | OMAP3430_IO_ST)) {
-+			c = _prcm_int_handle_wakeup();
-+
-+			/*
-+			 * Is the MPU PRCM interrupt handler racing with the
-+			 * IVA2 PRCM interrupt handler ?
-+			 */
-+			WARN(c == 0, "prcm: WARNING: PRCM indicated MPU wakeup "
-+			     "but no wakeup sources are marked\n");
-+		} else {
-+			/* XXX we need to expand our PRCM interrupt handler */
-+			WARN(1, "prcm: WARNING: PRCM interrupt received, but "
-+			     "no code to handle it (%08x)\n", irqstatus_mpu);
-+		}
-+
- 		prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
- 					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
- 
--- 
-1.6.3.3
+The support of multiple watchdog's is not there at this moment. But we will indeed
+need it. The embedded platforms (like omap) start to have devices with different
+watchdogs that all need to be supported.
+
+To overcome this issue we will indeed need to:
+1) make sure that we have the new watchdog core infrastructure going in for 2.6.32.
+This new core integrates the common code that we use over and over again. I once
+wrote code for it and then Alan had different ideas and thoughts and wrote his updated
+code. I reviewed that and I am changing some small bits so that we will have the new
+watchdog core version 1. Expect the code to appear in the linux-2.6-watchdog-next tree
+in the coming weeks (I first did some pre-cleanup stuff).
+2) Then we will need a dicussion on how we will support multiple watchdog's with this
+new framework. My feeling is that the /dev/watchdog* solution is not the right way to go.
+I think a sysfs interface will be better. This sysfs interface would then be added to the
+core version (and makes "core version 2").
+I once wrote the first basis of this sysfs interface (based on rusty's input I believe).
+I need to check if I still have it after the hard-disk crash I had almost a year ago.
+
+I hope this gives you an idea about how we are proceeding with the watchdog devices driver core
+and what we are trying to do (and OK i'm slower than other maintainers but I'm doing this all
+in my own time and for free and thus my priority's are different...). 
+
+Kind regards,
+Wim.
+
+(Note: for completeness; I know that the following drivers have a "non-standard"
+watchdog part: drivers/watchdog/cpwd.c drivers/hwmon/fschmd.c).
 
