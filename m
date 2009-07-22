@@ -1,15 +1,15 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC] [PATCH 1/3] ASoC: Add support for
-	Conexant	CX20442-11 voice modem codec
-Date: Wed, 22 Jul 2009 11:10:28 +0100
-Message-ID: <20090722101027.GA7622@sirena.org.uk>
-References: <200907220522.29221.jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] [PATCH 3/3] ASoC: add support for Amstrad	E3
+	(Delta) machine
+Date: Wed, 22 Jul 2009 12:03:28 +0100
+Message-ID: <20090722110328.GB7622@sirena.org.uk>
+References: <200907220523.01107.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <200907220522.29221.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <200907220523.01107.jkrzyszt@tis.icnet.pl>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -20,37 +20,125 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
 To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-On Wed, Jul 22, 2009 at 05:22:28AM +0200, Janusz Krzysztofik wrote:
-> This patch adds support for Conexant CX20442-11 voice modem codec, suitable
-> for use by the ASoC board driver for Amstrad E3 (Delta) videophone. Related
-> sound card driver will follow.
-
-> Created and tested against linux-2.6.31-rc3.
-> Applies and works with linux-omap-2.6 commit
-> 7c5cb7862d32cb344be7831d466535d5255e35ac as well.
+On Wed, Jul 22, 2009 at 05:22:59AM +0200, Janusz Krzysztofik wrote:
 
 > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+> CPU DAI parameters best matching the codec DAI has been selected out
+> empirically for best user experience.
 
-This patch is basically fine from an ASoC point of view so I've applied
-it.
+Again, all the documentation you've got here could quite happily go in
+the commit message and there's a bunch of checkpatch issues.
 
-You'll want to run checkpatch over it and send a followup fixing the
-issues it identifies.  Looking at this I suspect that it may be possible
-to refactor things so that more of the line discipline interaction is
-pushed down into the CODEC driver but that can also be done as a
-followup.
+> +#include <sound/soc-dapm.h>
+> +#include <sound/jack.h>
 
-Since this (and all the other descriptive text that follows it):
+ASoC will pull that one in for you, not that it really matters.
 
-> This codec is an optional part of the Conexant SmartV three chip modem design.
-> As such, documentation for its proprietary digital audio interface is not
-> available. However, on Amstrad Delta board, thanks to Mark Underwood who
+> +	/* Setup pins after corresponding bits if changed */
+> +	if ((bool)snd_soc_dapm_get_pin_status(codec, "Speaker") !=
+> +			(bool)(function & (1 << AMS_DELTA_SPEAKER))) {
 
-...is useful documentation I've pulled it into the commit message.  It
-would also be nice to add some documentation somewhere explaining how
-the hw_write() function is expected to be set up since it's a little
-surprising (if the line discipline stuff were pushed down into the code
-that'd become a lot more obvious).
+Don't like these casts...  why are they needed?
+
+> +static const struct snd_kcontrol_new ams_delta_audio_controls[] = {
+> +	SOC_ENUM_EXT("Audio Function", ams_delta_audio_enum[0],
+> +			ams_delta_get_audio_mode, ams_delta_set_audio_mode),
+> +};
+
+Is it possible to control all the functions of the audio mode
+independantly or are only certain combinations possible?
+
+> +static struct snd_soc_jack_gpio ams_delta_hook_switch_gpios[];
+> +static struct snd_soc_jack_pin ams_delta_hook_switch_pins[] = {
+> +	{
+> +		.pin = "Mouthpiece",
+> +		.mask = SND_JACK_MICROPHONE,
+> +	},
+> +	{
+> +		.pin = "Earphone",
+> +		.mask = SND_JACK_HEADPHONE,
+> +	},
+> +	{
+> +		.pin = "Speaker",
+> +		.mask = SND_JACK_HEADPHONE,
+> +		.invert = 1,
+> +	},
+> +	{
+> +		.pin = "Microphone",
+> +		.mask = SND_JACK_MICROPHONE,
+> +		.invert = 1,
+> +	},
+> +};
+
+I guess microphone and speaker are for speakerphone mode while
+mouthpiece and earpiece are a headset?  Might be nice to come up with
+names that make the paring a bit clearer, or possibly just put a comment
+in there.
+
+> +/* To actually apply any modem controlled configuration changes to the codec,
+> + * we must connect codec DAI pins to the modem for a moment.  Be carefull
+> + * not to interfere with digital mute function that shares the same hardware. */
+> +static struct timer_list cx81801_timer;
+> +static bool cx81801_cmd_pending = 0;
+> +static bool ams_delta_muted;
+> +
+> +static void cx81801_timeout(unsigned long data)
+> +{
+> +	/* REVISIT - locking? */
+
+Yeah, locking is probably a good idea :)
+
+> +		/* Set DAPM pins after hook switch present state */
+> +#if 0
+> +		/* Fails for switch state matching initial gpio->state = 0 */
+> +		snd_soc_jack_report(&ams_delta_ams_delta_hook_switch, 
+> +			gpio_get_value(ams_delta_hook_switch_gpios[0].gpio) ?
+> +					0 : SND_JACK_HEADSET, SND_JACK_HEADSET);
+
+Hrm.  We should just fix that so that adding a pin forces a sync rather
+than just doing a report.  The GPIO jack wrapper ought to just do
+everything you need without any code in the machine driver.
+
+> +
+> +	/* REVISIT - Don't know how to do that */
+> +	/*
+> +	 * Remove controls that we expose when over the modem control available:
+> +	 * - virtual audio mode switch,
+> +	 * - hook switch to DAPM pins links
+> +	 */
+
+You can't do that.  Rather than adding and removing the controls
+dynamically I'd suggest hiding the controls from applications while
+they're inactive - this will also avoid any renumbering which might
+confuse them.  However, that API isn't in mainline yet.
+
+Takashi, there is a patch adding a snd_ctl_activate_id() call in your
+unstable tree which hasn't made it into mainline and should help here -
+would there be any problem merging it?  I've got another use case for it
+in ASoC that I'm hoping to find time to look at soon.
+
+> +	/* Add board specific DAPM controls */
+> +	if (!snd_soc_dapm_new_controls(codec, ams_delta_dapm_widgets,
+> +				ARRAY_SIZE(ams_delta_dapm_widgets))) {
+> +		if (!snd_soc_dapm_add_routes(codec, ams_delta_audio_map,
+> +					ARRAY_SIZE(ams_delta_audio_map))) {
+
+The error handling here is a bit odd...
+
+> +	/* Add hook switch */
+> +	if (!snd_soc_jack_new(&ams_delta_audio_card, "hook_switch",
+> +				SND_JACK_HEADSET, &ams_delta_hook_switch)) {
+> +		if (!snd_soc_jack_add_gpios(&ams_delta_hook_switch,
+> +					ARRAY_SIZE(ams_delta_hook_switch_gpios),
+> +					ams_delta_hook_switch_gpios)) {
+> +#ifdef CONFIG_GPIO_SYSFS
+> +			/* Expose hook switch over sysfs if configured */
+> +			gpio_export(ams_delta_hook_switch_gpios[0].gpio, false);
+> +#endif
+
+The gpio_export() should be in the ASoC GPIO code rather than here, I'd
+expect - care to cook up a patch?
