@@ -1,137 +1,83 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/2] DSPBRIDGE: cleanup for PROC_FlushMemory/PROC_InvalidateMemory
-Date: Wed, 22 Jul 2009 11:22:49 +0300
-Message-ID: <1248250970-417-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: "Dasgupta, Romit" <romit@ti.com>
+Subject: [PATCH] mfd: twl: Fix possible NULL pointer violation
+Date: Wed, 22 Jul 2009 14:00:38 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D88D7CE4@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301D88D7CA2@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:57263 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638AbZGVIXh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 04:23:37 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:52767 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754619AbZGVIau convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 04:30:50 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301D88D7CA2@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: nm@ti.com, ameya.palande@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, h-kanigeri2@ti.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>
 
-Both functions are almost same structure except its flag passed to
-MEM_FlushCache().
+Missed some formatting earlier.
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Fixes a possible NULL pointer violation. Tested on 3430 SDP.
+Signed-off-by: Romit Dasgupta <romit@ti.com>
 ---
- drivers/dsp/bridge/rmgr/proc.c |   82 ++++++++++++++++++---------------------
- 1 files changed, 38 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index f6045bb..3a2879f 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -735,39 +735,51 @@ DSP_STATUS PROC_EnumNodes(DSP_HPROCESSOR hProcessor, OUT DSP_HNODE *aNodeTab,
- 	return status;
- }
- 
--/*
-- *  ======== PROC_FlushMemory ========
-- *  Purpose:
-- *     Flush cache
-- */
--DSP_STATUS PROC_FlushMemory(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
--			   u32 ulSize, u32 ulFlags)
-+
-+static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
-+				   u32 ulSize, u32 ulFlags,
-+				   enum DSP_FLUSHTYPE FlushMemType)
- {
- 	/* Keep STATUS here for future additions to this function */
- 	DSP_STATUS status = DSP_SOK;
--	enum DSP_FLUSHTYPE FlushMemType = PROC_WRITEBACK_INVALIDATE_MEM;
- 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
-+
- 	DBC_Require(cRefs > 0);
-+	GT_5trace(PROC_DebugMask, GT_ENTER,
-+		  "Entered %s, args:\n\t"
-+		  "hProcessor: 0x%x pMpuAddr: 0x%x ulSize 0x%x, ulFlags 0x%x\n",
-+		  __func__, hProcessor, pMpuAddr, ulSize, ulFlags);
- 
--	GT_4trace(PROC_DebugMask, GT_ENTER,
--		 "Entered PROC_FlushMemory, args:\n\t"
--		 "hProcessor: 0x%x pMpuAddr: 0x%x ulSize 0x%x, ulFlags 0x%x\n",
--		 hProcessor, pMpuAddr, ulSize, ulFlags);
--	if (MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
--		/* Critical section */
--		(void)SYNC_EnterCS(hProcLock);
--		MEM_FlushCache(pMpuAddr, ulSize, FlushMemType);
--		(void)SYNC_LeaveCS(hProcLock);
--	} else {
-+	if (!MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
-+		GT_1trace(PROC_DebugMask, GT_7CLASS,
-+			  "%s: InValid Processor Handle\n", __func__);
- 		status = DSP_EHANDLE;
--		GT_0trace(PROC_DebugMask, GT_7CLASS, "PROC_FlushMemory: "
--			 "InValid Processor Handle \n");
-+		goto err_out;
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 07e40dc..e050a5e 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -352,11 +352,9 @@ void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
  	}
--	GT_1trace(PROC_DebugMask, GT_ENTER, "Leaving PROC_FlushMemory [0x%x]",
--		 status);
-+
-+	(void)SYNC_EnterCS(hProcLock);
-+	MEM_FlushCache(pMpuAddr, ulSize, FlushMemType);
-+	(void)SYNC_LeaveCS(hProcLock);
-+
-+err_out:
-+	GT_2trace(PROC_DebugMask, GT_ENTER,
-+		  "Leaving %s [0x%x]", __func__, status);
-+
- 	return status;
- }
  
-+/*
-+ *  ======== PROC_FlushMemory ========
-+ *  Purpose:
-+ *     Flush cache
-+ */
-+DSP_STATUS PROC_FlushMemory(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
-+			    u32 ulSize, u32 ulFlags)
-+{
-+	enum DSP_FLUSHTYPE mtype = PROC_WRITEBACK_INVALIDATE_MEM;
-+
-+	return proc_memory_sync(hProcessor, pMpuAddr, ulSize, ulFlags, mtype);
-+}
+ 	resconfig = triton2_scripts->resource_config;
+-	if (resconfig) {
+-		while (resconfig->resource) {
+-			twl4030_configure_resource(resconfig);
+-			resconfig++;
+-		}
++	while (resconfig && resconfig->resource) {
++		twl4030_configure_resource(resconfig);
++		resconfig++;
+ 	}
  
- /*
-  *  ======== PROC_InvalidateMemory ========
-@@ -775,29 +787,11 @@ DSP_STATUS PROC_FlushMemory(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
-  *     Invalidates the memory specified
-  */
- DSP_STATUS PROC_InvalidateMemory(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
--				u32 ulSize)
-+				 u32 ulSize)
- {
--	/* Keep STATUS here for future additions to this function */
--	DSP_STATUS status = DSP_SOK;
--	enum DSP_FLUSHTYPE FlushMemType = PROC_INVALIDATE_MEM;
--	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
--	DBC_Require(cRefs > 0);
--	GT_3trace(PROC_DebugMask, GT_ENTER,
--		 "Entered PROC_InvalidateMemory, args:\n\t"
--		 "hProcessor: 0x%x pMpuAddr: 0x%x ulSize 0x%x\n", hProcessor,
--		 pMpuAddr, ulSize);
--	if (MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
--		(void)SYNC_EnterCS(hProcLock);
--		MEM_FlushCache(pMpuAddr, ulSize, FlushMemType);
--		(void)SYNC_LeaveCS(hProcLock);
--	} else {
--		status = DSP_EHANDLE;
--		GT_0trace(PROC_DebugMask, GT_7CLASS, "PROC_InvalidateMemory: "
--			 "InValid Processor Handle \n");
--	}
--	GT_1trace(PROC_DebugMask, GT_ENTER,
--		 "Leaving PROC_InvalidateMemory [0x%x]", status);
--	return status;
-+	enum DSP_FLUSHTYPE mtype = PROC_INVALIDATE_MEM;
-+
-+	return proc_memory_sync(hProcessor, pMpuAddr, ulSize, 0, mtype);
- }
- 
- /*
--- 
-1.6.0.4
+ 	if (twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, R_PROTECT_KEY))
+
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>owner@vger.kernel.org] On Behalf Of Dasgupta, Romit
+>Sent: Wednesday, July 22, 2009 1:45 PM
+>To: Kevin Hilman
+>Cc: linux-omap@vger.kernel.org Mailing List; sameo@linux.intel.com
+>Subject: [PATCH] mfd: twl: Fix possible NULL pointer violation
+>
+>Fixes a possible NULL pointer violation. Tested on SDP 3430.
+>
+>Signed-off-by: Romit Dasgupta <romit@ti.com>
+>---
+>
+>diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+>index 07e40dc..fd5504c 100644
+>--- a/drivers/mfd/twl4030-power.c
+>+++ b/drivers/mfd/twl4030-power.c
+>@@ -352,11 +352,9 @@ void __init twl4030_power_init(struct
+>twl4030_power_data *triton2_scripts)
+> 	}
+>
+> 	resconfig = triton2_scripts->resource_config;
+>-	if (resconfig) {
+>-		while (resconfig->resource) {
+>+	while (resconfig && resconfig->resource) {
+> 			twl4030_configure_resource(resconfig);
+> 			resconfig++;
+>-		}
+> 	}
+>
+> 	if (twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0,
+>R_PROTECT_KEY))
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
