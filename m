@@ -1,214 +1,345 @@
 From: "Syed Rafiuddin" <rafiuddin.syed@ti.com>
-Subject: [PATCH][RFC] OMAP4: Keypad Support for OMAP4430
-Date: Wed, 22 Jul 2009 19:20:23 +0530 (IST)
-Message-ID: <54980.192.168.10.89.1248270623.squirrel@dbdmail.itg.ti.com>
+Subject: [RESUBMIT][PATCH-v2][RFC] OMAP4: I2C Support for OMAP4430
+Date: Wed, 22 Jul 2009 19:20:19 +0530 (IST)
+Message-ID: <54914.192.168.10.89.1248270619.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-input-owner@vger.kernel.org>
-Sender: linux-input-owner@vger.kernel.org
-To: linux-input@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44417 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753559AbZGVNut (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 22 Jul 2009 09:50:49 -0400
+References: 
+In-Reply-To: 
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ben-linux@fluff.org
+Cc: linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-This patch adds OMAP4 support to the Keypad driver. This patch adds
-OMAP4 register addresses and configures registers for OMAP4.
+This patch adds OMAP4 support to the I2C driver. All I2C register addresses  are different between
+OMAP1/2/3 and OMAP4. In order to not have #ifdef's at  various places in code, as well as to
+support multi-OMAP build, Array's are  created to hold the register addresses.
 
 Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
 ---
- drivers/input/keyboard/omap-keypad.c |  109 ++++++++++++++++++++++++++++++-----
- 1 files changed, 95 insertions(+), 14 deletions(-)
+Arrays 'reg_map' & 'omap4_reg_map' are made 'const'.
 
-Index: kernel-omap4/drivers/input/keyboard/omap-keypad.c
+ arch/arm/plat-omap/i2c.c      |   22 +++++-
+ drivers/i2c/busses/i2c-omap.c |  142 ++++++++++++++++++++++++++++++++----------
+ 2 files changed, 128 insertions(+), 36 deletions(-)
+
+Index: kernel-omap4-base/arch/arm/plat-omap/i2c.c
 ===================================================================
---- kernel-omap4.orig/drivers/input/keyboard/omap-keypad.c
-+++ kernel-omap4/drivers/input/keyboard/omap-keypad.c
-@@ -44,6 +44,36 @@
-
- #undef NEW_BOARD_LEARNING_MODE
-
-+#define OMAP4_KBDOCP_BASE		0x4A31C000
-+#define OMAP4_KBD_REVISION		0x00
-+#define OMAP4_KBD_SYSCONFIG		0x10
-+#define OMAP4_KBD_SYSSTATUS		0x14
-+#define OMAP4_KBD_IRQSTATUS		0x18
-+#define OMAP4_KBD_IRQENABLE		0x1C
-+#define OMAP4_KBD_WAKEUPENABLE		0x20
-+#define OMAP4_KBD_PENDING		0x24
-+#define OMAP4_KBD_CTRL			0x28
-+#define OMAP4_KBD_DEBOUNCINGTIME	0x2C
-+#define OMAP4_KBD_LONGKEYTIME		0x30
-+#define OMAP4_KBD_TIMEOUT		0x34
-+#define OMAP4_KBD_STATEMACHINE		0x38
-+#define OMAP4_KBD_ROWINPUTS		0x3C
-+#define OMAP4_KBD_COLUMNOUTPUTS		0x40
-+#define OMAP4_KBD_FULLCODE31_0		0x44
-+#define OMAP4_KBD_FULLCODE63_32		0x48
-+
-+#define OMAP4_KBD_SYSCONFIG_SOFTRST	(1 << 1)
-+#define OMAP4_KBD_SYSCONFIG_ENAWKUP	(1 << 2)
-+#define OMAP4_KBD_IRQENABLE_EVENTEN	(1 << 0)
-+#define OMAP4_KBD_IRQENABLE_LONGKEY	(1 << 1)
-+#define OMAP4_KBD_IRQENABLE_TIMEOUTEN	(1 << 2)
-+#define OMAP4_KBD_CTRL_NOSOFTMODE	(1 << 1)
-+#define OMAP4_KBD_CTRLPTVVALUE		(1 << 2)
-+#define OMAP4_KBD_CTRLPTV		(1 << 1)
-+#define OMAP4_KBD_IRQDISABLE		0x00
-+
-+#define OMAP4_KBD_IRQSTATUSDISABLE	0xffff
-+
- static void omap_kp_tasklet(unsigned long);
- static void omap_kp_timer(unsigned long);
-
-@@ -114,6 +144,13 @@ static irqreturn_t omap_kp_interrupt(int
- 			else
- 				disable_irq(gpio_irq);
- 		}
-+	} else if (cpu_is_omap44xx()) {
-+		/* disable keyboard interrupt and schedule for handling */
-+		omap_writel(OMAP4_KBD_IRQDISABLE, OMAP4_KBDOCP_BASE +
-+				OMAP4_KBD_IRQENABLE);
-+
-+		omap_writel(omap_readl(OMAP4_KBDOCP_BASE + OMAP4_KBD_IRQSTATUS),
-+				OMAP4_KBDOCP_BASE + OMAP4_KBD_IRQSTATUS);
- 	} else
- 		/* disable keyboard interrupt and schedule for handling */
- 		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-@@ -131,7 +168,7 @@ static void omap_kp_timer(unsigned long
- static void omap_kp_scan_keypad(struct omap_kp *omap_kp, unsigned char *state)
- {
- 	int col = 0;
--
-+	u32 *p = (u32 *) state;
- 	/* read the keypad status */
- 	if (cpu_is_omap24xx()) {
- 		/* read the keypad status */
-@@ -141,6 +178,10 @@ static void omap_kp_scan_keypad(struct o
- 		}
- 		set_col_gpio_val(omap_kp, 0);
-
-+	} else if (cpu_is_omap44xx()) {
-+		*p = omap_readl(OMAP4_KBDOCP_BASE + OMAP4_KBD_FULLCODE31_0);
-+		*(p + 1) = omap_readl(OMAP4_KBDOCP_BASE +
-+					OMAP4_KBD_FULLCODE63_32);
- 	} else {
- 		/* disable keyboard interrupt and schedule for handling */
- 		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-@@ -198,7 +239,12 @@ static void omap_kp_tasklet(unsigned lon
- 			       row, (new_state[col] & (1 << row)) ?
- 			       "pressed" : "released");
- #else
--			key = omap_kp_find_key(col, row);
-+			/* Keymappings have changed in omap4.*/
-+			if (cpu_is_omap44xx())
-+				key = omap_kp_find_key(row, col);
-+			else
-+				key = omap_kp_find_key(col, row);
-+
- 			if (key < 0) {
- 				printk(KERN_WARNING
- 				      "omap-keypad: Spurious key event %d-%d\n",
-@@ -213,8 +259,14 @@ static void omap_kp_tasklet(unsigned lon
- 				continue;
-
- 			kp_cur_group = key & GROUP_MASK;
--			input_report_key(omap_kp_data->input, key & ~GROUP_MASK,
--					 new_state[col] & (1 << row));
-+			if (cpu_is_omap44xx())
-+				input_report_key(omap_kp_data->input,
-+					key & ~GROUP_MASK, new_state[row]
-+						 & (1 << col));
-+			else
-+				input_report_key(omap_kp_data->input,
-+					 key & ~GROUP_MASK, new_state[col]
-+						 & (1 << row));
+--- kernel-omap4-base.orig/arch/arm/plat-omap/i2c.c
++++ kernel-omap4-base/arch/arm/plat-omap/i2c.c
+@@ -53,9 +53,16 @@ static struct resource i2c_resources[][2
+ #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+ 	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_24XX_I2C2_IRQ) },
  #endif
- 		}
- 	}
-@@ -233,10 +285,18 @@ static void omap_kp_tasklet(unsigned lon
- 			int i;
- 			for (i = 0; i < omap_kp_data->rows; i++)
- 				enable_irq(gpio_to_irq(row_gpios[i]));
--		} else {
--			omap_writew(0, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
--			kp_cur_group = -1;
--		}
++#if     defined(CONFIG_ARCH_OMAP4)
++	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE2, INT_44XX_I2C2_IRQ) },
++#endif
 +
-+		} else if (cpu_is_omap44xx()) {
-+				omap_writew(OMAP4_KBD_IRQENABLE_EVENTEN |
-+					OMAP4_KBD_IRQENABLE_LONGKEY,
-+					OMAP4_KBDOCP_BASE +
-+					OMAP4_KBD_IRQENABLE);
-+				kp_cur_group = -1;
-+			} else {
-+				omap_writew(0, OMAP_MPUIO_BASE +
-+						OMAP_MPUIO_KBD_MASKIT);
-+				kp_cur_group = -1;
-+			}
- 	}
+ #if	defined(CONFIG_ARCH_OMAP34XX)
+ 	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_34XX_I2C3_IRQ) },
+ #endif
++#if     defined(CONFIG_ARCH_OMAP4)
++	{ I2C_RESOURCE_BUILDER(OMAP2_I2C_BASE3, INT_44XX_I2C3_IRQ) },
++#endif
+ };
+
+ #define I2C_DEV_BUILDER(bus_id, res, data)		\
+@@ -72,10 +79,11 @@ static struct resource i2c_resources[][2
+ static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
+ static struct platform_device omap_i2c_devices[] = {
+ 	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
+-#if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
++#if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
++	defined(CONFIG_ARCH_OMAP4)
+ 	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
+ #endif
+-#if	defined(CONFIG_ARCH_OMAP34XX)
++#if	defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP4)
+ 	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
+ #endif
+ };
+@@ -88,7 +96,7 @@ static const int omap24xx_pins[][2] = {
+ #else
+ static const int omap24xx_pins[][2] = {};
+ #endif
+-#if defined(CONFIG_ARCH_OMAP34XX)
++#if defined(CONFIG_ARCH_OMAP34XX) || defined(CONFIG_ARCH_OMAP4)
+ static const int omap34xx_pins[][2] = {
+ 	{ K21_34XX_I2C1_SCL, J21_34XX_I2C1_SDA},
+ 	{ AF15_34XX_I2C2_SCL, AE15_34XX_I2C2_SDA},
+@@ -110,7 +118,7 @@ static void __init omap_i2c_mux_pins(int
+ 	} else if (cpu_is_omap24xx()) {
+ 		scl = omap24xx_pins[bus][0];
+ 		sda = omap24xx_pins[bus][1];
+-	} else if (cpu_is_omap34xx()) {
++	} else if (cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		scl = omap34xx_pins[bus][0];
+ 		sda = omap34xx_pins[bus][1];
+ 	} else {
+@@ -129,7 +137,7 @@ static int __init omap_i2c_nr_ports(void
+ 		ports = 1;
+ 	else if (cpu_is_omap24xx())
+ 		ports = 2;
+-	else if (cpu_is_omap34xx())
++	else if (cpu_is_omap34xx() || cpu_is_omap44xx())
+ 		ports = 3;
+
+ 	return ports;
+@@ -151,6 +159,10 @@ static int __init omap_i2c_add_bus(int b
+ 			base = OMAP2_I2C_BASE1;
+ 			irq = INT_24XX_I2C1_IRQ;
+ 		}
++		if (cpu_is_omap44xx()) {
++			base = OMAP2_I2C_BASE1;
++			irq = INT_44XX_I2C1_IRQ;
++		}
+ 		res[0].start = base;
+ 		res[0].end = base + OMAP_I2C_SIZE;
+ 		res[1].start = irq;
+Index: kernel-omap4-base/drivers/i2c/busses/i2c-omap.c
+===================================================================
+--- kernel-omap4-base.orig/drivers/i2c/busses/i2c-omap.c
++++ kernel-omap4-base/drivers/i2c/busses/i2c-omap.c
+@@ -45,28 +45,35 @@
+ #define OMAP_I2C_REV_ON_2430		0x36
+ #define OMAP_I2C_REV_ON_3430		0x3C
+
++#define OMAP_I2C_REV_ON_4430		0x40
+ /* timeout waiting for the controller to respond */
+ #define OMAP_I2C_TIMEOUT (msecs_to_jiffies(1000))
+
+-#define OMAP_I2C_REV_REG		0x00
+-#define OMAP_I2C_IE_REG			0x04
+-#define OMAP_I2C_STAT_REG		0x08
+-#define OMAP_I2C_IV_REG			0x0c
+-/* For OMAP3 I2C_IV has changed to I2C_WE (wakeup enable) */
+-#define OMAP_I2C_WE_REG			0x0c
+-#define OMAP_I2C_SYSS_REG		0x10
+-#define OMAP_I2C_BUF_REG		0x14
+-#define OMAP_I2C_CNT_REG		0x18
+-#define OMAP_I2C_DATA_REG		0x1c
+-#define OMAP_I2C_SYSC_REG		0x20
+-#define OMAP_I2C_CON_REG		0x24
+-#define OMAP_I2C_OA_REG			0x28
+-#define OMAP_I2C_SA_REG			0x2c
+-#define OMAP_I2C_PSC_REG		0x30
+-#define OMAP_I2C_SCLL_REG		0x34
+-#define OMAP_I2C_SCLH_REG		0x38
+-#define OMAP_I2C_SYSTEST_REG		0x3c
+-#define OMAP_I2C_BUFSTAT_REG		0x40
++enum {
++	OMAP_I2C_REV_REG = 0,
++	OMAP_I2C_IE_REG,
++	OMAP_I2C_STAT_REG,
++	OMAP_I2C_IV_REG,
++	OMAP_I2C_WE_REG,
++	OMAP_I2C_SYSS_REG,
++	OMAP_I2C_BUF_REG,
++	OMAP_I2C_CNT_REG,
++	OMAP_I2C_DATA_REG,
++	OMAP_I2C_SYSC_REG,
++	OMAP_I2C_CON_REG,
++	OMAP_I2C_OA_REG,
++	OMAP_I2C_SA_REG,
++	OMAP_I2C_PSC_REG,
++	OMAP_I2C_SCLL_REG,
++	OMAP_I2C_SCLH_REG,
++	OMAP_I2C_SYSTEST_REG,
++	OMAP_I2C_BUFSTAT_REG,
++	OMAP_I2C_REVNB_LO,
++	OMAP_I2C_REVNB_HI,
++	OMAP_I2C_IRQSTATUS_RAW,
++	OMAP_I2C_IRQENABLE_SET,
++	OMAP_I2C_IRQENABLE_CLR,
++};
+
+ /* I2C Interrupt Enable Register (OMAP_I2C_IE): */
+ #define OMAP_I2C_IE_XDR		(1 << 14)	/* TX Buffer drain int enable */
+@@ -168,6 +175,7 @@ struct omap_i2c_dev {
+ 	u32			speed;		/* Speed of bus in Khz */
+ 	u16			cmd_err;
+ 	u8			*buf;
++	u8			*regs;
+ 	size_t			buf_len;
+ 	struct i2c_adapter	adapter;
+ 	u8			fifo_size;	/* use as flag and value
+@@ -180,15 +188,62 @@ struct omap_i2c_dev {
+ 	u16			iestate;	/* Saved interrupt register */
+ };
+
++const static u8 reg_map[] = {
++	[OMAP_I2C_REV_REG] = 0x00,
++	[OMAP_I2C_IE_REG] = 0x04,
++	[OMAP_I2C_STAT_REG] = 0x08,
++	[OMAP_I2C_IV_REG] = 0x0c,
++	[OMAP_I2C_WE_REG] = 0x0c,
++	[OMAP_I2C_SYSS_REG] = 0x10,
++	[OMAP_I2C_BUF_REG] = 0x14,
++	[OMAP_I2C_CNT_REG] = 0x18,
++	[OMAP_I2C_DATA_REG] = 0x1c,
++	[OMAP_I2C_SYSC_REG] = 0x20,
++	[OMAP_I2C_CON_REG] = 0x24,
++	[OMAP_I2C_OA_REG] = 0x28,
++	[OMAP_I2C_SA_REG] = 0x2c,
++	[OMAP_I2C_PSC_REG] = 0x30,
++	[OMAP_I2C_SCLL_REG] = 0x34,
++	[OMAP_I2C_SCLH_REG] = 0x38,
++	[OMAP_I2C_SYSTEST_REG] = 0x3C,
++	[OMAP_I2C_BUFSTAT_REG] = 0x40,
++};
++
++const static u8 omap4_reg_map[] = {
++	[OMAP_I2C_REV_REG] = 0x04,
++	[OMAP_I2C_IE_REG] = 0x2c,
++	[OMAP_I2C_STAT_REG] = 0x28,
++	[OMAP_I2C_IV_REG] = 0x34,
++	[OMAP_I2C_WE_REG] = 0x34,
++	[OMAP_I2C_SYSS_REG] = 0x90,
++	[OMAP_I2C_BUF_REG] = 0x94,
++	[OMAP_I2C_CNT_REG] = 0x98,
++	[OMAP_I2C_DATA_REG] = 0x9c,
++	[OMAP_I2C_SYSC_REG] = 0x20,
++	[OMAP_I2C_CON_REG] = 0xa4,
++	[OMAP_I2C_OA_REG] = 0xa8,
++	[OMAP_I2C_SA_REG] = 0xac,
++	[OMAP_I2C_PSC_REG] = 0xb0,
++	[OMAP_I2C_SCLL_REG] = 0xb4,
++	[OMAP_I2C_SCLH_REG] = 0xb8,
++	[OMAP_I2C_SYSTEST_REG] = 0xbC,
++	[OMAP_I2C_BUFSTAT_REG] = 0xc0,
++	[OMAP_I2C_REVNB_LO] = 0x00,
++	[OMAP_I2C_REVNB_HI] = 0x04,
++	[OMAP_I2C_IRQSTATUS_RAW] = 0x24,
++	[OMAP_I2C_IRQENABLE_SET] = 0x2c,
++	[OMAP_I2C_IRQENABLE_CLR] = 0x30,
++};
++
+ static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+ 				      int reg, u16 val)
+ {
+-	__raw_writew(val, i2c_dev->base + reg);
++	__raw_writew(val, i2c_dev->base + i2c_dev->regs[reg]);
  }
 
-@@ -316,7 +376,7 @@ static int __devinit omap_kp_probe(struc
- 	omap_kp->input = input_dev;
+ static inline u16 omap_i2c_read_reg(struct omap_i2c_dev *i2c_dev, int reg)
+ {
+-	return __raw_readw(i2c_dev->base + reg);
++	return __raw_readw(i2c_dev->base + i2c_dev->regs[reg]);
+ }
 
- 	/* Disable the interrupt for the MPUIO keyboard */
--	if (!cpu_is_omap24xx())
-+	if (!cpu_is_omap24xx() && !cpu_is_omap44xx())
- 		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
+ static int __init omap_i2c_get_clocks(struct omap_i2c_dev *dev)
+@@ -242,7 +297,11 @@ static void omap_i2c_idle(struct omap_i2
+ 	WARN_ON(dev->idle);
 
- 	keymap = pdata->keymap;
-@@ -390,19 +450,35 @@ static int __devinit omap_kp_probe(struc
- 		goto err3;
- 	}
-
--	if (pdata->dbounce)
--		omap_writew(0xff, OMAP_MPUIO_BASE + OMAP_MPUIO_GPIO_DEBOUNCING);
--
-+	if (pdata->dbounce) {
-+		if (cpu_is_omap44xx())
-+			omap_writew(0xff, OMAP_MPUIO_BASE +
-+					OMAP4_KBD_DEBOUNCINGTIME);
-+		else
-+			omap_writew(0xff, OMAP_MPUIO_BASE +
-+					OMAP_MPUIO_GPIO_DEBOUNCING);
-+	}
- 	/* scan current status and enable interrupt */
- 	omap_kp_scan_keypad(omap_kp, keypad_state);
+ 	dev->iestate = omap_i2c_read_reg(dev, OMAP_I2C_IE_REG);
+-	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
++	if (dev->rev >= OMAP_I2C_REV_ON_4430)
++		omap_i2c_write_reg(dev, OMAP_I2C_IRQENABLE_CLR, 1);
++	else
++		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, 0);
 +
-+	/* Configuring OMAP4 keypad registers */
-+	if (cpu_is_omap44xx()) {
-+		omap_writew(OMAP4_KBD_SYSCONFIG_SOFTRST |
-+			 OMAP4_KBD_SYSCONFIG_ENAWKUP, OMAP4_KBDOCP_BASE
-+					+ OMAP4_KBD_SYSCONFIG);
-+		omap_writew((OMAP4_KBD_CTRLPTVVALUE << OMAP4_KBD_CTRLPTV) |
-+					OMAP4_KBD_CTRL_NOSOFTMODE,
-+					OMAP4_KBDOCP_BASE + OMAP4_KBD_CTRL);
-+	}
- 	if (!cpu_is_omap24xx()) {
- 		omap_kp->irq = platform_get_irq(pdev, 0);
- 		if (omap_kp->irq >= 0) {
--			if (request_irq(omap_kp->irq, omap_kp_interrupt, 0,
-+			if (request_irq(152, omap_kp_interrupt, 0,
- 					"omap-keypad", omap_kp) < 0)
- 				goto err4;
- 		}
--		omap_writew(0, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-+		if (!cpu_is_omap44xx())
-+			omap_writew(0, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
+ 	if (dev->rev < OMAP_I2C_REV_2) {
+ 		iv = omap_i2c_read_reg(dev, OMAP_I2C_IV_REG); /* Read clears */
  	} else {
- 		for (irq_idx = 0; irq_idx < omap_kp->rows; irq_idx++) {
- 			if (request_irq(gpio_to_irq(row_gpios[irq_idx]),
-@@ -412,6 +488,11 @@ static int __devinit omap_kp_probe(struc
- 				goto err5;
- 		}
+@@ -302,6 +361,7 @@ static int omap_i2c_init(struct omap_i2c
+ 			 * WFI instruction.
+ 			 * REVISIT: Some wkup sources might not be needed.
+ 			 */
++		if (dev->rev < OMAP_I2C_REV_ON_4430)
+ 			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+ 							OMAP_I2C_WE_ALL);
+
+@@ -331,7 +391,7 @@ static int omap_i2c_init(struct omap_i2c
+ 			psc = fclk_rate / 12000000;
  	}
-+	if (cpu_is_omap44xx()) {
-+		omap_writew(OMAP4_KBD_IRQENABLE_EVENTEN |
-+			OMAP4_KBD_IRQENABLE_LONGKEY, OMAP4_KBDOCP_BASE +
-+				OMAP4_KBD_IRQENABLE);
-+	}
- 	return 0;
- err5:
- 	for (i = irq_idx - 1; i >=0; i--)
+
+-	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
++	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+
+ 		/*
+ 		 * HSI2C controller internal clk rate should be 19.2 Mhz for
+@@ -345,7 +405,11 @@ static int omap_i2c_init(struct omap_i2c
+ 			internal_clk = 9600;
+ 		else
+ 			internal_clk = 4000;
+-		fclk_rate = clk_get_rate(dev->fclk) / 1000;
++		/* FIXME: Remove this once clock framework is available*/
++		if (dev->rev >= OMAP_I2C_REV_ON_4430)
++			fclk_rate = 96000;
++		else
++			fclk_rate = clk_get_rate(dev->fclk) / 1000;
+
+ 		/* Compute prescaler divisor */
+ 		psc = fclk_rate / internal_clk;
+@@ -702,9 +766,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				if (dev->buf_len) {
+ 					*dev->buf++ = w;
+ 					dev->buf_len--;
+-					/* Data reg from 2430 is 8 bit wide */
++					/* Data reg in 2430, omap3 and
++					 * omap4 is 8 bit wide
++					 */
+ 					if (!cpu_is_omap2430() &&
+-							!cpu_is_omap34xx()) {
++							!cpu_is_omap34xx() &&
++							!cpu_is_omap44xx()) {
+ 						if (dev->buf_len) {
+ 							*dev->buf++ = w >> 8;
+ 							dev->buf_len--;
+@@ -741,9 +808,12 @@ omap_i2c_isr(int this_irq, void *dev_id)
+ 				if (dev->buf_len) {
+ 					w = *dev->buf++;
+ 					dev->buf_len--;
+-					/* Data reg from  2430 is 8 bit wide */
++					/* Data reg in 2430, omap3 and
++					 * omap4 is 8 bit wide
++					 */
+ 					if (!cpu_is_omap2430() &&
+-							!cpu_is_omap34xx()) {
++							!cpu_is_omap34xx() &&
++							!cpu_is_omap44xx()) {
+ 						if (dev->buf_len) {
+ 							w |= *dev->buf++ << 8;
+ 							dev->buf_len--;
+@@ -839,11 +909,16 @@ omap_i2c_probe(struct platform_device *p
+ 	if ((r = omap_i2c_get_clocks(dev)) != 0)
+ 		goto err_iounmap;
+
++	if (cpu_is_omap44xx())
++		dev->regs = (u8 *) omap4_reg_map;
++	else
++		dev->regs = (u8 *) reg_map;
++
+ 	omap_i2c_unidle(dev);
+
+ 	dev->rev = omap_i2c_read_reg(dev, OMAP_I2C_REV_REG) & 0xff;
+
+-	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
++	if (cpu_is_omap2430() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+ 		u16 s;
+
+ 		/* Set up the fifo size - Get total size */
+@@ -855,8 +930,13 @@ omap_i2c_probe(struct platform_device *p
+ 		 * size. This is to ensure that we can handle the status on int
+ 		 * call back latencies.
+ 		 */
+-		dev->fifo_size = (dev->fifo_size / 2);
+-		dev->b_hw = 1; /* Enable hardware fixes */
++		if (dev->rev >= OMAP_I2C_REV_ON_4430) {
++			dev->fifo_size = 0;
++			dev->b_hw = 0; /* Enable hardware fixes */
++		} else {
++			dev->fifo_size = (dev->fifo_size / 2);
++			dev->b_hw = 1; /* Enable hardware fixes */
++		}
+ 	}
+
+ 	/* reset ASAP, clearing any IRQs */
 
 
