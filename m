@@ -1,126 +1,155 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH][RFC] DSPBRIDGE: SleepDSP switch to VDD1 OPP1 while hibernation
-Date: Wed, 22 Jul 2009 17:26:07 +0300
-Message-ID: <1248272767-29223-1-git-send-email-ameya.palande@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:34416 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755319AbZGVO1B (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 10:27:01 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] [PATCH 3/3] ASoC: add support for Amstrad E3
+ (Delta) machine
+Date: Wed, 22 Jul 2009 16:53:12 +0200
+Message-ID: <4A6727D8.5080808@tis.icnet.pl>
+References: <200907220523.01107.jkrzyszt@tis.icnet.pl>
+	<20090722110328.GB7622@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090722110328.GB7622@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.de>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com
 
-This patch adds code to switch to VDD1 OPP1 when DSP is hibernated.
-Also some code cleanup.
+Hi Mark,
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   51 +++++++++++++++++++++----------
- 1 files changed, 35 insertions(+), 16 deletions(-)
+Mark Brown wrote:
+> On Wed, Jul 22, 2009 at 05:22:59AM +0200, Janusz Krzysztofik wrote:
+> 
+>> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+>> ---
+>> CPU DAI parameters best matching the codec DAI has been selected out
+>> empirically for best user experience.
+> 
+> Again, all the documentation you've got here could quite happily go in
+> the commit message and there's a bunch of checkpatch issues.
 
-diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-index b81df8c..20d3e23 100644
---- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
-@@ -207,17 +207,19 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- 	enum HW_PwrState_t pwrState;
- 	enum HW_PwrState_t targetPwrState;
- 
--	status = CFG_GetHostResources(
--		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
--	if (DSP_FAILED(status))
--		return status;
- 	DBG_Trace(DBG_LEVEL7, "SleepDSP- Enter function \n");
- 
--		/* next, check if sleep code is valid... */
-+	/* Check if sleep code is valid */
- 	if ((dwCmd != PWR_DEEPSLEEP) && (dwCmd != PWR_EMERGENCYDEEPSLEEP)) {
- 		DBG_Trace(DBG_LEVEL7, "SleepDSP- Illegal sleep command\n");
- 		return DSP_EINVALIDARG;
- 	}
-+
-+	status = CFG_GetHostResources(
-+		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
-+	if (DSP_FAILED(status))
-+		return status;
-+
- 	switch (pDevContext->dwBrdState) {
- 	case BRD_RUNNING:
- 		status = HW_MBOX_saveSettings(resources.dwMboxBase);
-@@ -245,7 +247,6 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- 		break;
- 	case BRD_HIBERNATION:
- 	case BRD_DSP_HIBERNATION:
--		status = HW_MBOX_saveSettings(resources.dwMboxBase);
- 		/* Already in Hibernation, so just return */
- 		DBG_Trace(DBG_LEVEL7, "SleepDSP- DSP already in "
- 			 "hibernation\n");
-@@ -259,17 +260,22 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- 			 "SleepDSP- Bridge in Illegal state\n");
- 			return DSP_EFAIL;
- 	}
-+
- 	/* Get the PRCM DSP power domain status */
- 	HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
--			    &pwrState);
--	/* Wait for DSP to move into Standby state,  how much time
--	 * should we wait?*/
-+			&pwrState);
-+
-+	/*
-+	 * Wait for DSP to move into Standby state,  how much time
-+	 * should we wait?
-+	 */
- 	while ((pwrState != targetPwrState) && --usCount) {
- 		udelay(500);
- 		HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
- 				    &pwrState);
- 	}
--	if (usCount == 0) {
-+
-+	if (!usCount) {
- 		DBG_Trace(DBG_LEVEL7, "SleepDSP: Timed out Waiting for DSP"
- 			 " STANDBY %x \n", pwrState);
- 		DEV_GetDehMgr(pDevContext->hDevObject, &hDehMgr);
-@@ -278,17 +284,30 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
- 	} else {
- 		DBG_Trace(DBG_LEVEL7, "SleepDSP: DSP STANDBY Pwr state %x \n",
- 			 pwrState);
-+
- 		/* Update the Bridger Driver state */
--		if (enable_off_mode)
--			pDevContext->dwBrdState = BRD_HIBERNATION;
--		else
--			pDevContext->dwBrdState = BRD_RETENTION;
-+		pDevContext->dwBrdState = enable_off_mode ? BRD_HIBERNATION
-+							: BRD_RETENTION;
-+
- 		/* Turn off DSP Peripheral clocks  */
- 		status = DSP_PeripheralClocks_Disable(pDevContext, NULL);
--		if (DSP_FAILED(status))
-+		if (DSP_FAILED(status)) {
- 			DBG_Trace(DBG_LEVEL7, "SleepDSP- FAILED\n");
-+			return status;
-+		}
-+#ifdef CONFIG_BRIDGE_DVFS
-+		else if (targetPwrState == HW_PWR_STATE_OFF) {
-+			struct dspbridge_platform_data *pdata =
-+				omap_dspbridge_dev->dev.platform_data;
-+			/*
-+			 * Set the OPP to low level before moving to OFF mode
-+			 */
-+			if (pdata->dsp_set_min_opp)
-+				(*pdata->dsp_set_min_opp)(VDD1_OPP1);
-+		}
-+#endif /* CONFIG_BRIDGE_DVFS */
- 	}
--#endif
-+#endif /* CONFIG_PM */
- 	return status;
- }
- 
--- 
-1.6.2.4
+OK, I promiss to remember about this for the future.
 
+>> +#include <sound/soc-dapm.h>
+>> +#include <sound/jack.h>
+> 
+> ASoC will pull that one in for you, not that it really matters.
+
+Maybe it should, but without <sound/jack.h> I get:
+sound/soc/omap/ams-delta.c:184: error: 'SND_JACK_MICROPHONE' undeclared 
+here (not in a function)
+sound/soc/omap/ams-delta.c:188: error: 'SND_JACK_HEADPHONE' undeclared 
+here (not in a function)
+sound/soc/omap/ams-delta.c: In function 'cx81801_close':
+sound/soc/omap/ams-delta.c:336: error: 'SND_JACK_HEADSET' undeclared 
+(first use in this function)
+...
+
+>> +static const struct snd_kcontrol_new ams_delta_audio_controls[] = {
+>> +	SOC_ENUM_EXT("Audio Function", ams_delta_audio_enum[0],
+>> +			ams_delta_get_audio_mode, ams_delta_set_audio_mode),
+>> +};
+> 
+> Is it possible to control all the functions of the audio mode
+> independantly or are only certain combinations possible?
+
+Certain combinations only. For example, no way of turning on the 
+mouthpiece without turning on the earphone as well, turning on AGC 
+automatically selects the speakerphone and turns off the handset.
+
+>> +static struct snd_soc_jack_gpio ams_delta_hook_switch_gpios[];
+>> +static struct snd_soc_jack_pin ams_delta_hook_switch_pins[] = {
+>> +	{
+>> +		.pin = "Mouthpiece",
+>> +		.mask = SND_JACK_MICROPHONE,
+>> +	},
+>> +	{
+>> +		.pin = "Earphone",
+>> +		.mask = SND_JACK_HEADPHONE,
+>> +	},
+>> +	{
+>> +		.pin = "Speaker",
+>> +		.mask = SND_JACK_HEADPHONE,
+>> +		.invert = 1,
+>> +	},
+>> +	{
+>> +		.pin = "Microphone",
+>> +		.mask = SND_JACK_MICROPHONE,
+>> +		.invert = 1,
+>> +	},
+>> +};
+> 
+> I guess microphone and speaker are for speakerphone mode while
+> mouthpiece and earpiece are a headset?  Might be nice to come up with
+
+Exactly.
+
+> names that make the paring a bit clearer, or possibly just put a comment
+> in there.
+
+With my limited English skills, I can only replace Earphone with 
+Earpiece and add a comment. Please someone suggest better namings if not 
+enough.
+
+>> +/* To actually apply any modem controlled configuration changes to the codec,
+>> + * we must connect codec DAI pins to the modem for a moment.  Be carefull
+>> + * not to interfere with digital mute function that shares the same hardware. */
+>> +static struct timer_list cx81801_timer;
+>> +static bool cx81801_cmd_pending = 0;
+>> +static bool ams_delta_muted;
+>> +
+>> +static void cx81801_timeout(unsigned long data)
+>> +{
+>> +	/* REVISIT - locking? */
+> 
+> Yeah, locking is probably a good idea :)
+
+I'll have to learn about locking first. Could somebody point me to an 
+example code?
+
+>> +	/* Add board specific DAPM controls */
+>> +	if (!snd_soc_dapm_new_controls(codec, ams_delta_dapm_widgets,
+>> +				ARRAY_SIZE(ams_delta_dapm_widgets))) {
+>> +		if (!snd_soc_dapm_add_routes(codec, ams_delta_audio_map,
+>> +					ARRAY_SIZE(ams_delta_audio_map))) {
+> 
+> The error handling here is a bit odd...
+
+Do you mean those negations? Would be better if replaced with "== 0"?
+I am not sure if this is acceptable, but I just tried to avoid giving up 
+with a partialy working driver in case of errors on optional parts.
+
+>> +	/* Add hook switch */
+>> +	if (!snd_soc_jack_new(&ams_delta_audio_card, "hook_switch",
+>> +				SND_JACK_HEADSET, &ams_delta_hook_switch)) {
+>> +		if (!snd_soc_jack_add_gpios(&ams_delta_hook_switch,
+>> +					ARRAY_SIZE(ams_delta_hook_switch_gpios),
+>> +					ams_delta_hook_switch_gpios)) {
+>> +#ifdef CONFIG_GPIO_SYSFS
+>> +			/* Expose hook switch over sysfs if configured */
+>> +			gpio_export(ams_delta_hook_switch_gpios[0].gpio, false);
+>> +#endif
+> 
+> The gpio_export() should be in the ASoC GPIO code rather than here, I'd
+> expect - care to cook up a patch?
+
+When I tried to push a similiar code into the gpio-keys dirver, Dmitry 
+said I was wrong because my application would be limited to gpio based 
+devices only. However, it looks like there are no jacks other than gpio 
+based in ASoC, so maybe that objection does not apply here. Or maybe the 
+ASoC framework could just provide its own sysfs file with actual jack 
+state, whether gpio based or not?
+
+BTW, I decided to reuse already existing jack/input event types instead 
+of inventing new. Anyway, should I CC: linux-input?
+
+Thanks,
+Janusz
