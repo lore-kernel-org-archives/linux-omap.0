@@ -1,83 +1,56 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: [PATCH] mfd: twl: Fix possible NULL pointer violation
-Date: Wed, 22 Jul 2009 14:00:38 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D88D7CE4@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301D88D7CA2@dbde02.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC] [PATCH 1/3] ASoC: Add support for
+	Conexant	CX20442-11 voice modem codec
+Date: Wed, 22 Jul 2009 11:10:28 +0100
+Message-ID: <20090722101027.GA7622@sirena.org.uk>
+References: <200907220522.29221.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52767 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754619AbZGVIau convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 04:30:50 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301D88D7CA2@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <200907220522.29221.jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>
 
-Missed some formatting earlier.
+On Wed, Jul 22, 2009 at 05:22:28AM +0200, Janusz Krzysztofik wrote:
+> This patch adds support for Conexant CX20442-11 voice modem codec, suitable
+> for use by the ASoC board driver for Amstrad E3 (Delta) videophone. Related
+> sound card driver will follow.
 
-Fixes a possible NULL pointer violation. Tested on 3430 SDP.
-Signed-off-by: Romit Dasgupta <romit@ti.com>
----
+> Created and tested against linux-2.6.31-rc3.
+> Applies and works with linux-omap-2.6 commit
+> 7c5cb7862d32cb344be7831d466535d5255e35ac as well.
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 07e40dc..e050a5e 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -352,11 +352,9 @@ void __init twl4030_power_init(struct twl4030_power_data *triton2_scripts)
- 	}
- 
- 	resconfig = triton2_scripts->resource_config;
--	if (resconfig) {
--		while (resconfig->resource) {
--			twl4030_configure_resource(resconfig);
--			resconfig++;
--		}
-+	while (resconfig && resconfig->resource) {
-+		twl4030_configure_resource(resconfig);
-+		resconfig++;
- 	}
- 
- 	if (twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0, R_PROTECT_KEY))
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Dasgupta, Romit
->Sent: Wednesday, July 22, 2009 1:45 PM
->To: Kevin Hilman
->Cc: linux-omap@vger.kernel.org Mailing List; sameo@linux.intel.com
->Subject: [PATCH] mfd: twl: Fix possible NULL pointer violation
->
->Fixes a possible NULL pointer violation. Tested on SDP 3430.
->
->Signed-off-by: Romit Dasgupta <romit@ti.com>
->---
->
->diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
->index 07e40dc..fd5504c 100644
->--- a/drivers/mfd/twl4030-power.c
->+++ b/drivers/mfd/twl4030-power.c
->@@ -352,11 +352,9 @@ void __init twl4030_power_init(struct
->twl4030_power_data *triton2_scripts)
-> 	}
->
-> 	resconfig = triton2_scripts->resource_config;
->-	if (resconfig) {
->-		while (resconfig->resource) {
->+	while (resconfig && resconfig->resource) {
-> 			twl4030_configure_resource(resconfig);
-> 			resconfig++;
->-		}
-> 	}
->
-> 	if (twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, 0,
->R_PROTECT_KEY))
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch is basically fine from an ASoC point of view so I've applied
+it.
 
+You'll want to run checkpatch over it and send a followup fixing the
+issues it identifies.  Looking at this I suspect that it may be possible
+to refactor things so that more of the line discipline interaction is
+pushed down into the CODEC driver but that can also be done as a
+followup.
+
+Since this (and all the other descriptive text that follows it):
+
+> This codec is an optional part of the Conexant SmartV three chip modem design.
+> As such, documentation for its proprietary digital audio interface is not
+> available. However, on Amstrad Delta board, thanks to Mark Underwood who
+
+...is useful documentation I've pulled it into the commit message.  It
+would also be nice to add some documentation somewhere explaining how
+the hw_write() function is expected to be set up since it's a little
+surprising (if the line discipline stuff were pushed down into the code
+that'd become a lot more obvious).
