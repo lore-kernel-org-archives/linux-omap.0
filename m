@@ -1,74 +1,70 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/2] DSPBRIDGE: cleanup for
- PROC_FlushMemory/PROC_InvalidateMemory
-Date: Wed, 22 Jul 2009 17:01:37 +0300 (EEST)
-Message-ID: <20090722.170137.112602411.Hiroshi.DOYU@nokia.com>
-References: <1248250970-417-1-git-send-email-Hiroshi.DOYU@nokia.com>
-	<94a0d4530907220652y4330fb5du81d40957d4e271c0@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] [PATCH 1/3] ASoC: Add support for Conexant
+ CX20442-11 voice modem codec
+Date: Wed, 22 Jul 2009 16:01:43 +0200
+Message-ID: <4A671BC7.20300@tis.icnet.pl>
+References: <200907220522.29221.jkrzyszt@tis.icnet.pl>
+	<20090722101027.GA7622@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:44066 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755770AbZGVOBo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 10:01:44 -0400
-In-Reply-To: <94a0d4530907220652y4330fb5du81d40957d4e271c0@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090722101027.GA7622@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: felipe.contreras@gmail.com
-Cc: linux-omap@vger.kernel.org, nm@ti.com, ameya.palande@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, h-kanigeri2@ti.com
 
-=46rom: ext Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 1/2] DSPBRIDGE: cleanup for PROC_FlushMemory/PROC_I=
-nvalidateMemory
-Date: Wed, 22 Jul 2009 15:52:47 +0200
+Hi Mark,
 
-> On Wed, Jul 22, 2009 at 11:22 AM, Hiroshi DOYU<Hiroshi.DOYU@nokia.com=
-> wrote:
-> > Both functions are almost same structure except its flag passed to
-> > MEM_FlushCache().
-> >
-> > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > ---
-> > =A0drivers/dsp/bridge/rmgr/proc.c | =A0 82 ++++++++++++++++++------=
----------------
-> > =A01 files changed, 38 insertions(+), 44 deletions(-)
->=20
-> > + =A0 =A0 =A0 enum DSP_FLUSHTYPE mtype =3D PROC_WRITEBACK_INVALIDAT=
-E_MEM;
-> > +
-> > + =A0 =A0 =A0 return proc_memory_sync(hProcessor, pMpuAddr, ulSize,=
- ulFlags, mtype);
-> > +}
->=20
-> What's wrong with sending the type directly?
-> return proc_memory_sync(hProcessor, pMpuAddr, ulSize, ulFlags,
-> PROC_WRITEBACK_INVALIDATE_MEM);
+Mark Brown wrote:
+> On Wed, Jul 22, 2009 at 05:22:28AM +0200, Janusz Krzysztofik wrote:
+>> This patch adds support for Conexant CX20442-11 voice modem codec, suitable
+>> for use by the ASoC board driver for Amstrad E3 (Delta) videophone. Related
+>> sound card driver will follow.
+>> ...
+> This patch is basically fine from an ASoC point of view so I've applied
+> it.
 
-Just I took the readability rather than a wrapping line because of 80 c=
-olumns.
+Thanks!
 
->=20
-> > + =A0 =A0 =A0 enum DSP_FLUSHTYPE mtype =3D PROC_INVALIDATE_MEM;
-> > +
-> > + =A0 =A0 =A0 return proc_memory_sync(hProcessor, pMpuAddr, ulSize,=
- 0, mtype);
-> > =A0}
->=20
-> ditto
->=20
-> And while we are at it, why only PROC_WRITEBACK_INVALIDATE_MEM and
-> PROC_INVALIDATE_MEM? How shall user-space issue a call for
-> PROC_WRITEBACK_MEM?
+> You'll want to run checkpatch over it and send a followup fixing the
 
-Comparing the performance benefit with that may not be a bad idea.
+Sorry for not doing this before submitting. Will send the followup soon.
 
->=20
-> --=20
-> Felipe Contreras
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> issues it identifies.  Looking at this I suspect that it may be possible
+> to refactor things so that more of the line discipline interaction is
+> pushed down into the CODEC driver but that can also be done as a
+> followup.
+
+I have put the line discipline code into the machine driver for two reasons:
+1. For me, the actual code is much more machine than codec specific.
+2. It was much easier to update the codec structure instance with 
+machine's provided hw_write() rather than fiddle with adding a new 
+member to the structure definition for passing a machine callback to the 
+line discipline functions.
+
+If you think we can find any use cases for drivers supporting 
+codec/modem combination other than CX20442 on Amstrad Delta, I can agree 
+with you on moving the line discipline code out of the machine driver, 
+but instead of pushing it down to the codec I would rather se it as a 
+separate module.  Anyway, I think that some kind of support on the ASoC 
+top level for this case could be helpfull.
+
+> would also be nice to add some documentation somewhere explaining how
+> the hw_write() function is expected to be set up since it's a little
+> surprising (if the line discipline stuff were pushed down into the code
+> that'd become a lot more obvious).
+
+I'll add a few words to the followup.
+
+Thanks,
+Janusz
