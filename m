@@ -1,52 +1,126 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: [PATCH] TWL4030:TWL5030:TPS659x0: add keypad support
-Date: Wed, 22 Jul 2009 17:25:06 +0300
-Message-ID: <20090722142506.GC4790@everest>
-References: <1247876000-4457-1-git-send-email-vikram.pandita@ti.com>
- <5d5443650907200006h29b75a94kfab151a900f00fd@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH][RFC] DSPBRIDGE: SleepDSP switch to VDD1 OPP1 while hibernation
+Date: Wed, 22 Jul 2009 17:26:07 +0300
+Message-ID: <1248272767-29223-1-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:59294 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753899AbZGVOZK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 10:25:10 -0400
-Received: by fxm18 with SMTP id 18so218507fxm.37
-        for <linux-omap@vger.kernel.org>; Wed, 22 Jul 2009 07:25:09 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <5d5443650907200006h29b75a94kfab151a900f00fd@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.233]:34416 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755319AbZGVO1B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 22 Jul 2009 10:27:01 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Trilok Soni <soni.trilok@gmail.com>
-Cc: Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com
 
-On 09 Jul 20, Trilok Soni wrote:
-> Hi Vikram,
-> 
-> > +
-> > +#include <linux/kernel.h>
-> > +#include <linux/module.h>
-> > +#include <linux/init.h>
-> > +#include <linux/interrupt.h>
-> > +#include <linux/input.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/i2c/twl4030.h>
-> > +#include <mach/keypad.h>
-> 
-> One empty line between above two headers.
-> 
-> I hope you are aware of earlier comments posted for this driver when
-> it was submitted few months back and had long discussion on threaded
-> irq stuff.
->
+This patch adds code to switch to VDD1 OPP1 when DSP is hibernated.
+Also some code cleanup.
 
-Trilok,
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+---
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   51 +++++++++++++++++++++----------
+ 1 files changed, 35 insertions(+), 16 deletions(-)
 
-Could you please post a link to that discussion. Google isn't pointing
-me to any relevant discussions besides
-http://lkml.org/lkml/2008/10/1/334
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+index b81df8c..20d3e23 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+@@ -207,17 +207,19 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+ 	enum HW_PwrState_t pwrState;
+ 	enum HW_PwrState_t targetPwrState;
+ 
+-	status = CFG_GetHostResources(
+-		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
+-	if (DSP_FAILED(status))
+-		return status;
+ 	DBG_Trace(DBG_LEVEL7, "SleepDSP- Enter function \n");
+ 
+-		/* next, check if sleep code is valid... */
++	/* Check if sleep code is valid */
+ 	if ((dwCmd != PWR_DEEPSLEEP) && (dwCmd != PWR_EMERGENCYDEEPSLEEP)) {
+ 		DBG_Trace(DBG_LEVEL7, "SleepDSP- Illegal sleep command\n");
+ 		return DSP_EINVALIDARG;
+ 	}
++
++	status = CFG_GetHostResources(
++		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
++	if (DSP_FAILED(status))
++		return status;
++
+ 	switch (pDevContext->dwBrdState) {
+ 	case BRD_RUNNING:
+ 		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+@@ -245,7 +247,6 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+ 		break;
+ 	case BRD_HIBERNATION:
+ 	case BRD_DSP_HIBERNATION:
+-		status = HW_MBOX_saveSettings(resources.dwMboxBase);
+ 		/* Already in Hibernation, so just return */
+ 		DBG_Trace(DBG_LEVEL7, "SleepDSP- DSP already in "
+ 			 "hibernation\n");
+@@ -259,17 +260,22 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+ 			 "SleepDSP- Bridge in Illegal state\n");
+ 			return DSP_EFAIL;
+ 	}
++
+ 	/* Get the PRCM DSP power domain status */
+ 	HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
+-			    &pwrState);
+-	/* Wait for DSP to move into Standby state,  how much time
+-	 * should we wait?*/
++			&pwrState);
++
++	/*
++	 * Wait for DSP to move into Standby state,  how much time
++	 * should we wait?
++	 */
+ 	while ((pwrState != targetPwrState) && --usCount) {
+ 		udelay(500);
+ 		HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
+ 				    &pwrState);
+ 	}
+-	if (usCount == 0) {
++
++	if (!usCount) {
+ 		DBG_Trace(DBG_LEVEL7, "SleepDSP: Timed out Waiting for DSP"
+ 			 " STANDBY %x \n", pwrState);
+ 		DEV_GetDehMgr(pDevContext->hDevObject, &hDehMgr);
+@@ -278,17 +284,30 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+ 	} else {
+ 		DBG_Trace(DBG_LEVEL7, "SleepDSP: DSP STANDBY Pwr state %x \n",
+ 			 pwrState);
++
+ 		/* Update the Bridger Driver state */
+-		if (enable_off_mode)
+-			pDevContext->dwBrdState = BRD_HIBERNATION;
+-		else
+-			pDevContext->dwBrdState = BRD_RETENTION;
++		pDevContext->dwBrdState = enable_off_mode ? BRD_HIBERNATION
++							: BRD_RETENTION;
++
+ 		/* Turn off DSP Peripheral clocks  */
+ 		status = DSP_PeripheralClocks_Disable(pDevContext, NULL);
+-		if (DSP_FAILED(status))
++		if (DSP_FAILED(status)) {
+ 			DBG_Trace(DBG_LEVEL7, "SleepDSP- FAILED\n");
++			return status;
++		}
++#ifdef CONFIG_BRIDGE_DVFS
++		else if (targetPwrState == HW_PWR_STATE_OFF) {
++			struct dspbridge_platform_data *pdata =
++				omap_dspbridge_dev->dev.platform_data;
++			/*
++			 * Set the OPP to low level before moving to OFF mode
++			 */
++			if (pdata->dsp_set_min_opp)
++				(*pdata->dsp_set_min_opp)(VDD1_OPP1);
++		}
++#endif /* CONFIG_BRIDGE_DVFS */
+ 	}
+-#endif
++#endif /* CONFIG_PM */
+ 	return status;
+ }
+ 
+-- 
+1.6.2.4
 
-I'll do a further cleanup and resubmit.
-
-Regards,
-Amit
