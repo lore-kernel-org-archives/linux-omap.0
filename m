@@ -1,36 +1,46 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [RFC] [PATCH 3/3] ASoC: add support for Amstrad
- E3 (Delta) machine
-Date: Thu, 23 Jul 2009 09:57:38 +0100
-Message-ID: <20090723085738.GC5744@rakim.wolfsonmicro.main>
-References: <200907220523.01107.jkrzyszt@tis.icnet.pl>
- <4A6727D8.5080808@tis.icnet.pl>
- <20090722150709.GB4987@rakim.wolfsonmicro.main>
- <200907222118.06396.jkrzyszt@tis.icnet.pl>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: Boot Hang - mmotm 090716 - serial 8250 irq flags support
+Date: Thu, 23 Jul 2009 20:06:01 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F57AD326@dbde02.ent.ti.com>
+References: <1248291948.4490.67.camel@useless.americas.hpqcorp.net>
+	<20090723113353.7da8f6f9@lxorguk.ukuu.org.uk>
+	<1248353462.5674.80.camel@useless.americas.hpqcorp.net>
+ <20090723145754.3f001c4e@lxorguk.ukuu.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-serial-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200907222118.06396.jkrzyszt@tis.icnet.pl>
-Sender: linux-serial-owner@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>, Takashi Iwai <tiwai@suse.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:48985 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751658AbZGWOg1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 23 Jul 2009 10:36:27 -0400
+In-Reply-To: <20090723145754.3f001c4e@lxorguk.ukuu.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>, Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Alan Cox <alan@linux.intel.com>, linux-kernel <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bjorn.helgaas@hp.com>, Eric Whitney <eric.whitney@hp.com>, Rich Freiss <richard.freiss@hp.com>, Linux OMAP Users <linux-omap@vger.kernel.org>
 
-On Wed, Jul 22, 2009 at 09:18:05PM +0200, Janusz Krzysztofik wrote:
+Alan
 
-> After all, I am not sure what your preferences finally are. If you still think 
-> that exporting gpio based jack state from ASoC framework over gpiolib sysfs 
-> doesn't hurt and can be usefull, I'll remove the code from my driver and 
-> provide a patch against sound/soc/soc-jack.c. But if you would rather prefere 
-> exposing jack state in a more general, not gpio limited way instead, or 
-> depend on input layer provided EVIOCGSW ioctl, as Dmitry suggested 
-> (unfortunatelly, unlike generic ldattach, there is no utility ready for 
-> use!), I'd rather keep this gpio_export() in my driver, let's say for 
-> diagnostic purposes, at least until that different option is ready for use in 
-> a convenient way.
+>-----Original Message-----
+>From: Alan Cox [mailto:alan@lxorguk.ukuu.org.uk]
+>Sent: Thursday, July 23, 2009 8:58 AM
+>To: Lee Schermerhorn
+>Cc: Andrew Morton; Pandita, Vikram; Alan Cox; linux-kernel; Bjorn Helgaas; Eric Whitney; Rich Freiss
+>
+>> </system1>hpiLO-> Virtual Serial Port active: IO=0x02F8 INT=3
+>>
+>> Perhaps Bjorn or Rich could comment on the hardware setup...
+>
+>Ok thats a generic ISA port
+>
+>The rest fits the patch I sent you so hopefully that fixes it and if so
+>I'll make sure the corrected one ends up in -next.
 
-Jack state is already exposed via the input layer by the ALSA jack core.
-Reporting of GPIO state via gpio_export() would be additional to that
-and would be purely for debug purposes, it would not be recommended for
-use by userspace applications.
+Are you referring to serial-add-irqflags-support patch.
+Do let me know in case any respin of this patch is needed.
+
+>
+>Alan
+
