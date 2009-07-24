@@ -1,56 +1,92 @@
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 20/32] omap_hsmmc: put MMC regulator to sleep
-Date: Fri, 24 Jul 2009 15:51:44 -0700
-Message-ID: <20090724155144.4c621e6d.akpm@linux-foundation.org>
+Subject: Re: [PATCH 26/32] omap_hsmmc: prevent races with irq handler
+Date: Fri, 24 Jul 2009 15:53:51 -0700
+Message-ID: <20090724155351.a99e30fd.akpm@linux-foundation.org>
 References: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
-	<20090710124227.1262.7056.sendpatchset@ahunter-tower>
+	<20090710124309.1262.22465.sendpatchset@ahunter-tower>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755015AbZGXWvz@vger.kernel.org>
-In-Reply-To: <20090710124227.1262.7056.sendpatchset@ahunter-tower>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: pierre@ossman.eu, jarkko.lavinen@nokia.com, ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35814 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754999AbZGXWyA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 24 Jul 2009 18:54:00 -0400
+In-Reply-To: <20090710124309.1262.22465.sendpatchset@ahunter-tower>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+Cc: pierre@ossman.eu, jarkko.lavinen@nokia.com, ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
-On Fri, 10 Jul 2009 15:42:27 +0300
+On Fri, 10 Jul 2009 15:43:09 +0300
 Adrian Hunter <adrian.hunter@nokia.com> wrote:
 
-> +static int omap_mmc_regsleep_to_enabled(struct mmc_omap_host *host)
-> +{
-> +	unsigned long timeout;
-> +
-> +	dev_dbg(mmc_dev(host->mmc), "REGSLEEP -> ENABLED\n");
-> +
-> +	clk_enable(host->fclk);
-> +	clk_enable(host->iclk);
-> +
-> +	if (clk_enable(host->dbclk))
-> +		dev_dbg(mmc_dev(host->mmc),
-> +			"Enabling debounce clk failed\n");
-> +
-> +	omap_mmc_restore_ctx(host);
-> +
+> >From 242fae6293adec671b14354f215217354f5076a0 Mon Sep 17 00:00:00 2001
+> From: Adrian Hunter <adrian.hunter@nokia.com>
+> Date: Sat, 16 May 2009 10:32:34 +0300
+> Subject: [PATCH] omap_hsmmc: prevent races with irq handler
+> 
+> If an unexpected interrupt occurs while preparing the
+> next request, an oops can occur.
+> 
+> For example, a new request is setting up DMA for data
+> transfer so host->data is not NULL.  An unexpected
+> transfer complete (TC) interrupt comes along and
+> the interrupt handler sets host->data to NULL.  Oops!
+> 
+> Prevent that by disabling interrupts while setting up
+> a new request.
+> 
+> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   16 ++++++++++++++++
+>  1 files changed, 16 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+> index 28563d6..38e1410 100644
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -452,6 +452,13 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
+>  	if (host->use_dma)
+>  		cmdreg |= DMA_EN;
+>  
 > +	/*
-> +	 * We turned off interrupts and bus power.  Interrupts
-> +	 * are turned on by 'mmc_omap_start_command()' so we
-> +	 * just need to turn on the bus power here.
+> +	 * In an interrupt context (i.e. STOP command), the interrupt is already
+> +	 * enabled, otherwise it is not (i.e. new request).
 > +	 */
-> +	OMAP_HSMMC_WRITE(host->base, HCTL,
-> +			 OMAP_HSMMC_READ(host->base, HCTL) | SDBP);
+> +	if (!in_interrupt())
+> +		enable_irq(host->irq);
 > +
-> +	timeout = jiffies + msecs_to_jiffies(MMC_TIMEOUT_MS);
-> +	while ((OMAP_HSMMC_READ(host->base, HCTL) & SDBP) != SDBP &&
-> +	       time_before(jiffies, timeout))
-> +		;
-> +
-> +	if (mmc_slot(host).set_sleep)
-> +		mmc_slot(host).set_sleep(host->dev, host->slot_id,
-> +					 0, host->vdd, 0);
-> +
-> +	host->dpm_state = ENABLED;
-> +
-> +	return 0;
-> +}
+>  	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
+>  	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
+>  }
+> @@ -1011,6 +1018,13 @@ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
+>  	struct mmc_omap_host *host = mmc_priv(mmc);
+>  	int err;
+>  
+> +	/*
+> +	 * Prevent races with the interrupt handler because of unexpected
+> +	 * interrupts, but not if we are already in interrupt context i.e.
+> +	 * retries.
+> +	 */
+> +	if (!in_interrupt())
+> +		disable_irq(host->irq);
+>  	WARN_ON(host->mrq != NULL);
+>  	host->mrq = req;
+>  	err = mmc_omap_prepare_data(host, req);
+> @@ -1019,6 +1033,8 @@ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
+>  		if (req->data)
+>  			req->data->error = err;
+>  		host->mrq = NULL;
+> +		if (!in_interrupt())
+> +			enable_irq(host->irq);
+>  		mmc_request_done(mmc, req);
+>  		return;
+>  	}
 
-We take no action if the wait for SDBP timed out?
+That seems pretty crude.  Disabling an interrupt line can be expensive,
+and will shut off any other innocent devices which share the line.
+
+The usual and superior way of fixing races such as this is
+spin_lock_irq[save]().
+
