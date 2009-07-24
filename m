@@ -1,114 +1,166 @@
 From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: [RFC][PATCH 3/3]ARM:OMAP4 iommu:provide build support for omap4
- iommu
-Date: Fri, 24 Jul 2009 12:22:56 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD46@dlee03.ent.ti.com>
+Subject: RE: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config
+ option
+Date: Fri, 24 Jul 2009 12:28:47 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD56@dlee03.ent.ti.com>
+References: <1248431051-26340-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_8F7AF80515AF0D4D93307E594F3CB40E3A8CAD46dlee03entticom_"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56717 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752356AbZGXRXK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jul 2009 13:23:10 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59538 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751921AbZGXR2z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2009 13:28:55 -0400
+In-Reply-To: <1248431051-26340-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ramesh" <grgupta@ti.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "Pasam, Vijay" <vpasam@ti.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
---_002_8F7AF80515AF0D4D93307E594F3CB40E3A8CAD46dlee03entticom_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Hi Doyu-san,
 
-This patch provides build support to build OMAP4
-IOMMU module. This also adds the changes to Kconfig
-file to make iommu option visible in menuconfig.
+> 
+> "CONFIG_DSP_TRACEBUF" is introduced as a kernel config option to save
+> some amount of unused memory and "#ifndef DSP_TRACEBUF_DISABLED" was
+> not easy to understand.
+>
 
-Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
----
- arch/arm/mach-omap2/Makefile |    2 +-
- arch/arm/plat-omap/Kconfig   |    8 ++++++--
- 2 files changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 735bae5..59e0865 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -41,7 +41,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+=3D clock34xx.o
-=20
- iommu-y					+=3D iommu2.o
- iommu-$(CONFIG_ARCH_OMAP3)		+=3D omap3-iommu.o
--
-+iommu-$(CONFIG_ARCH_OMAP4)              +=3D omap4-iommu.o
- obj-$(CONFIG_OMAP_IOMMU)		+=3D $(iommu-y)
-=20
- # Specific board support
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index efe85d0..00d7a1e 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -118,8 +118,12 @@ config OMAP_MBOX_FWK
- 	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
-=20
- config OMAP_IOMMU
--	tristate
--
-+	tristate "iommu"
-+        depends on ARCH_OMAP
-+	default y
-+	help
-+	  Select this option if you want to use IOMMU support for the
-+	  Camera in OMAP3, and for Ducati processor in OMAP4.
- choice
-         prompt "System timer"
- 	default OMAP_MPU_TIMER
---=20
-1.5.4.3
-
+I think we just use the Bridge DEBUG flag that is used in Bridge instead of introducing a new flag. 
 
 Thank you,
 Best regards,
 Hari
 
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Friday, July 24, 2009 5:24 AM
+> To: linux-omap@vger.kernel.org
+> Cc: ameya.palande@nokia.com; Kanigeri, Hari; Guzman Lugo, Fernando;
+> Ramirez Luna, Omar; Hiroshi DOYU
+> Subject: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config
+> option
+> 
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> 
+> "CONFIG_DSP_TRACEBUF" is introduced as a kernel config option to save
+> some amount of unused memory and "#ifndef DSP_TRACEBUF_DISABLED" was
+> not easy to understand.
+> 
+> Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> ---
+>  drivers/dsp/bridge/Kconfig     |    7 +++++++
+>  drivers/dsp/bridge/wmd/io_sm.c |   21 +++++++++------------
+>  2 files changed, 16 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/dsp/bridge/Kconfig b/drivers/dsp/bridge/Kconfig
+> index 2fed82c..a43b19d 100644
+> --- a/drivers/dsp/bridge/Kconfig
+> +++ b/drivers/dsp/bridge/Kconfig
+> @@ -34,3 +34,10 @@ config BRIDGE_DEBUG
+>  	depends on MPU_BRIDGE
+>  	help
+>  	  Say Y to enable Bridge debugging capabilities
+> +
+> +config DSP_TRACEBUF
+> +	bool "DSP Debug Trace Support"
+> +	depends on BRIDGE_DEBUG
+> +	help
+> +	  Say Y to enable DSP debugging capabilities. baseimage needs
+> +	  to be built with debug option.
+> diff --git a/drivers/dsp/bridge/wmd/io_sm.c
+> b/drivers/dsp/bridge/wmd/io_sm.c
+> index d8ae1f1..cd58cce 100644
+> --- a/drivers/dsp/bridge/wmd/io_sm.c
+> +++ b/drivers/dsp/bridge/wmd/io_sm.c
+> @@ -138,7 +138,7 @@ struct IO_MGR {
+>  	u32 dQuePowerMbxVal[MAX_PM_REQS];
+>  	u32 iQuePowerHead;
+>  	u32 iQuePowerTail;
+> -#ifndef DSP_TRACEBUF_DISABLED
+> +#ifdef CONFIG_DSP_TRACEBUF
+>  	u32 ulTraceBufferBegin; 	/* Trace message start address */
+>  	u32 ulTraceBufferEnd; 	/* Trace message end address */
+>  	u32 ulTraceBufferCurrent; 	/* Trace message current address */
+> @@ -169,9 +169,9 @@ static u32 ReadData(struct WMD_DEV_CONTEXT
+> *hDevContext, void *pDest,
+>  static u32 WriteData(struct WMD_DEV_CONTEXT *hDevContext, void *pDest,
+>  			void *pSrc, u32 uSize);
+>  static struct workqueue_struct *bridge_workqueue;
+> -#ifndef DSP_TRACEBUF_DISABLED
+> +
+>  void PrintDSPDebugTrace(struct IO_MGR *hIOMgr);
+> -#endif
+> +
+> 
+>  /* Bus Addr (cached kernel)*/
+>  static DSP_STATUS registerSHMSegs(struct IO_MGR *hIOMgr,
+> @@ -255,7 +255,7 @@ DSP_STATUS WMD_IO_Create(OUT struct IO_MGR **phIOMgr,
+>  		PREPARE_WORK(&pIOMgr->io_workq, (void *)IO_DispatchPM);
+> 
+>  	/* Initialize CHNL_MGR object:    */
+> -#ifndef DSP_TRACEBUF_DISABLED
+> +#ifdef CONFIG_DSP_TRACEBUF
+>  	pIOMgr->pMsg = NULL;
+>  #endif
+>  	pIOMgr->hChnlMgr = hChnlMgr;
+> @@ -330,7 +330,7 @@ DSP_STATUS WMD_IO_Destroy(struct IO_MGR *hIOMgr)
+>                 /* Linux function to uninstall ISR */
+>                 free_irq(INT_MAIL_MPU_IRQ, (void *)hIOMgr);
+>                 (void)DPC_Destroy(hIOMgr->hDPC);
+> -#ifndef DSP_TRACEBUF_DISABLED
+> +#ifdef CONFIG_DSP_TRACEBUF
+>  		if (hIOMgr->pMsg)
+>  			MEM_Free(hIOMgr->pMsg);
+>  #endif
+> @@ -448,7 +448,7 @@ func_cont1:
+>  		}
+>  	}
+>  	if (DSP_SUCCEEDED(status)) {
+> -#ifndef DSP_TRACEBUF_DISABLED
+> +#ifdef CONFIG_DSP_TRACEBUF
+>  		status = COD_GetSymValue(hCodMan, DSP_TRACESEC_END,
+> &ulShm0End);
+>  		DBG_Trace(DBG_LEVEL7, "_BRIDGE_TRACE_END value = %x \n",
+>  			 ulShm0End);
+> @@ -775,7 +775,7 @@ func_cont:
+>  			 "0x%x\n", hMsgMgr->uMaxMsgs);
+>  		memset((void *) hIOMgr->pSharedMem, 0, sizeof(struct SHM));
+>  	}
+> -#ifndef DSP_TRACEBUF_DISABLED
+> +#ifdef CONFIG_DSP_TRACEBUF
+>  	if (DSP_SUCCEEDED(status)) {
+>  		/* Get the start address of trace buffer */
+>  		if (DSP_SUCCEEDED(status)) {
+> @@ -989,15 +989,12 @@ void IO_DPC(IN OUT void *pRefData)
+>  		IO_DispatchMsg(pIOMgr, pMsgMgr);
+>  	}
+>  #endif
+> -#ifndef DSP_TRACEBUF_DISABLED
+> +#ifdef CONFIG_DSP_TRACEBUF
+>  	if (pIOMgr->wIntrVal & MBX_DBG_CLASS) {
+>  		/* notify DSP Trace message */
+>  		if (pIOMgr->wIntrVal & MBX_DBG_SYSPRINTF)
+>  			PrintDSPDebugTrace(pIOMgr);
+>  	}
+> -#endif
+> -
+> -#ifndef DSP_TRACEBUF_DISABLED
+>  	PrintDSPDebugTrace(pIOMgr);
+>  #endif
+>  }
+> @@ -1767,7 +1764,7 @@ DSP_STATUS WMD_IO_GetProcLoad(IN struct IO_MGR
+> *hIOMgr,
+>  	return DSP_SOK;
+>  }
+> 
+> -#ifndef DSP_TRACEBUF_DISABLED
+> +#ifdef CONFIG_DSP_TRACEBUF
+>  void PrintDSPDebugTrace(struct IO_MGR *hIOMgr)
+>  {
+>  	u32 ulNewMessageLength = 0, ulGPPCurPointer;
+> --
+> 1.6.0.4
+> 
 
---_002_8F7AF80515AF0D4D93307E594F3CB40E3A8CAD46dlee03entticom_
-Content-Type: application/octet-stream;
-	name="0003-ARM-OMAP4-iommu-provide-build-support-for-omap4-iom.patch"
-Content-Description: 0003-ARM-OMAP4-iommu-provide-build-support-for-omap4-iom.patch
-Content-Disposition: attachment;
-	filename="0003-ARM-OMAP4-iommu-provide-build-support-for-omap4-iom.patch";
-	size=1542; creation-date="Fri, 24 Jul 2009 11:58:59 GMT";
-	modification-date="Fri, 24 Jul 2009 11:58:59 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSA2Y2NlYjA0NmFkNGMxOGNlYzg5OTRlZTA2MDYwMWFkOTllNzMxYzc5IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBIYXJpIEthbmlnZXJpIDxoLWthbmlnZXJpMkB0aS5jb20+CkRh
-dGU6IFdlZCwgMTUgSnVsIDIwMDkgMTA6NTY6MzUgLTA1MDAKU3ViamVjdDogW1BBVENIXUFSTTpP
-TUFQNCBpb21tdTpwcm92aWRlIGJ1aWxkIHN1cHBvcnQgZm9yIG9tYXA0IGlvbW11CgpUaGlzIHBh
-dGNoIHByb3ZpZGVzIGJ1aWxkIHN1cHBvcnQgdG8gYnVpbGQgT01BUDQKSU9NTVUgbW9kdWxlLiBU
-aGlzIGFsc28gYWRkcyB0aGUgY2hhbmdlcyB0byBLY29uZmlnCmZpbGUgdG8gbWFrZSBpb21tdSBv
-cHRpb24gdmlzaWJsZSBpbiBtZW51Y29uZmlnLgoKU2lnbmVkLW9mZi1ieTogSGFyaSBLYW5pZ2Vy
-aSA8aC1rYW5pZ2VyaTJAdGkuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvTWFrZWZpbGUg
-fCAgICAyICstCiBhcmNoL2FybS9wbGF0LW9tYXAvS2NvbmZpZyAgIHwgICAgOCArKysrKystLQog
-MiBmaWxlcyBjaGFuZ2VkLCA3IGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgpkaWZmIC0t
-Z2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9NYWtlZmlsZSBiL2FyY2gvYXJtL21hY2gtb21hcDIv
-TWFrZWZpbGUKaW5kZXggNzM1YmFlNS4uNTllMDg2NSAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFj
-aC1vbWFwMi9NYWtlZmlsZQorKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL01ha2VmaWxlCkBAIC00
-MSw3ICs0MSw3IEBAIG9iai0kKENPTkZJR19BUkNIX09NQVAzKQkJKz0gY2xvY2szNHh4Lm8KIAog
-aW9tbXUteQkJCQkJKz0gaW9tbXUyLm8KIGlvbW11LSQoQ09ORklHX0FSQ0hfT01BUDMpCQkrPSBv
-bWFwMy1pb21tdS5vCi0KK2lvbW11LSQoQ09ORklHX0FSQ0hfT01BUDQpICAgICAgICAgICAgICAr
-PSBvbWFwNC1pb21tdS5vCiBvYmotJChDT05GSUdfT01BUF9JT01NVSkJCSs9ICQoaW9tbXUteSkK
-IAogIyBTcGVjaWZpYyBib2FyZCBzdXBwb3J0CmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9t
-YXAvS2NvbmZpZyBiL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnCmluZGV4IGVmZTg1ZDAuLjAw
-ZDdhMWUgMTAwNjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnCisrKyBiL2FyY2gv
-YXJtL3BsYXQtb21hcC9LY29uZmlnCkBAIC0xMTgsOCArMTE4LDEyIEBAIGNvbmZpZyBPTUFQX01C
-T1hfRldLCiAJICBEU1AsIElWQTEuMCBhbmQgSVZBMiBpbiBPTUFQMS8yLzMuCiAKIGNvbmZpZyBP
-TUFQX0lPTU1VCi0JdHJpc3RhdGUKLQorCXRyaXN0YXRlICJpb21tdSIKKyAgICAgICAgZGVwZW5k
-cyBvbiBBUkNIX09NQVAKKwlkZWZhdWx0IHkKKwloZWxwCisJICBTZWxlY3QgdGhpcyBvcHRpb24g
-aWYgeW91IHdhbnQgdG8gdXNlIElPTU1VIHN1cHBvcnQgZm9yIHRoZQorCSAgQ2FtZXJhIGluIE9N
-QVAzLCBhbmQgZm9yIER1Y2F0aSBwcm9jZXNzb3IgaW4gT01BUDQuCiBjaG9pY2UKICAgICAgICAg
-cHJvbXB0ICJTeXN0ZW0gdGltZXIiCiAJZGVmYXVsdCBPTUFQX01QVV9USU1FUgotLSAKMS41LjQu
-MwoK
-
---_002_8F7AF80515AF0D4D93307E594F3CB40E3A8CAD46dlee03entticom_--
