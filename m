@@ -1,39 +1,30 @@
-From: "Syed Rafiuddin" <rafiuddin.syed@ti.com>
-Subject: Re: [PATCH]OMAP4: McSPI Support for OMAP4430
-Date: Fri, 24 Jul 2009 16:34:13 +0530 (IST)
-Message-ID: <54767.192.168.10.89.1248433453.squirrel@dbdmail.itg.ti.com>
-References: <58614.192.168.10.89.1248270867.squirrel@dbdmail.itg.ti.com>
+From: "Syed Rafiuddin" <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
+Subject: Re: [RESUBMIT][PATCH-v2][RFC] OMAP4: I2C Support for OMAP4430
+Date: Fri, 24 Jul 2009 16:40:02 +0530 (IST)
+Message-ID: <58468.192.168.10.89.1248433802.squirrel@dbdmail.itg.ti.com>
+References: <54914.192.168.10.89.1248270620.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34843 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575AbZGXLEr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2009 07:04:47 -0400
-In-Reply-To: <58614.192.168.10.89.1248270867.squirrel@dbdmail.itg.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <54914.192.168.10.89.1248270620.squirrel-pJFUjGLopx31T2qfsofKZtBPR1lH4CV8@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: david-b@pacbell.net
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-David,
+Hi Ben,
 
-> This patch adds McSPI support for OMAP4430 SDP platform. All the base addresses
-> are changed between OMAP1/2/3 and OMAP4.The fields of the resource structures
-> are filled at runtime to have McSPI support on OMAP4.
+> This patch adds OMAP4 support to the I2C driver. All I2C register addresses  are different between
+> OMAP1/2/3 and OMAP4. In order to not have #ifdef's at  various places in code, as well as to
+> support multi-OMAP build, Array's are  created to hold the register addresses.
 >
-> Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> Acked-by: Tony Lindgren <tony@atomide.com>
-> Acked-by: David Brownell <david-b@pacbell.net>
-> Acked-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Syed Rafiuddin <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
 > ---
 
-Haven't seen any comment on my patch, but didn't see it in git either.
-Is there anything that I need to resolve? Else can this patch get merged.
+No comment received on this patch,
+Is there anything that I need to resolve?
+Else can this patch get merged.
 
 Regards,
 Syed Rafiuddin
-
-
