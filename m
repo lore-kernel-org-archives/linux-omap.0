@@ -1,48 +1,52 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RFC][PATCH 0/4] TWL6030 patch series
-Date: Fri, 24 Jul 2009 09:46:27 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B59F2A0F@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E739404329D66BE@dbde02.ent.ti.com>
- <20090720121157.GA13867@nokia.com> <20090720121526.GB5215@sirena.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH 2/2] DSPBRIDGE: Set VDD1 OPP1 while MPU initiated OFF mode
+Date: Fri, 24 Jul 2009 10:01:21 +0300
+Message-ID: <1248418882-28164-2-git-send-email-ameya.palande@nokia.com>
+References: <1248272767-29223-1-git-send-email-ameya.palande@nokia.com>
+ <1248418882-28164-1-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42386 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750773AbZGXEQt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2009 00:16:49 -0400
-In-Reply-To: <20090720121526.GB5215@sirena.org.uk>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:51720 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751821AbZGXHBp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2009 03:01:45 -0400
+In-Reply-To: <1248418882-28164-1-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <felipe.balbi@nokia.com>
-Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "Nayak, Rajendra" <rnayak@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
-> Sent: Monday, July 20, 2009 5:45 PM
-> To: Felipe Balbi
-> Cc: Krishnamoorthy, Balaji T; linux-omap@vger.kernel.org;
-> tony@atomide.com; khilman@deeprootsystems.com; david-b@pacbell.net;
-> Shilimkar, Santosh; Nayak, Rajendra
-> Subject: Re: [RFC][PATCH 0/4] TWL6030 patch series
-> 
-> On Mon, Jul 20, 2009 at 03:11:57PM +0300, Felipe Balbi wrote:
-> 
-> > send these to lkml and Cc linux-omap. Also add to Cc:
-> 
-> > Samuel Ortiz <sameo@openedhand.com>
-> > Wim Van Sebroeck <wim@iguana.be>
-> > Timo Kokkonen <timo.t.kokkonen@nokia.com>
-> > Ben Dooks <ben-linux@fluff.org>
-> > linux-i2c@vger.kernel.org
-> > linux-kernel@vger.kernel.org
-> 
-> Plus me and Liam Girdwood <lrg@slimlogic.co.uk> for the regulator stuff.
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+---
+ drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   15 ++++++++++++++-
+ 1 files changed, 14 insertions(+), 1 deletions(-)
 
-Mark, Liam,
-Can you please your comments of regulator patches.
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+index 7aa58d1..dfac5b6 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
+@@ -292,8 +292,21 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
+ 
+ 		/* Turn off DSP Peripheral clocks  */
+ 		status = DSP_PeripheralClocks_Disable(pDevContext, NULL);
+-		if (DSP_FAILED(status))
++		if (DSP_FAILED(status)) {
+ 			DBG_Trace(DBG_LEVEL7, "SleepDSP- FAILED\n");
++			return status;
++		}
++#ifdef CONFIG_BRIDGE_DVFS
++		else if (targetPwrState == HW_PWR_STATE_OFF) {
++			struct dspbridge_platform_data *pdata =
++				omap_dspbridge_dev->dev.platform_data;
++			/*
++			 * Set the OPP to low level before moving to OFF mode
++			 */
++			if (pdata->dsp_set_min_opp)
++				(*pdata->dsp_set_min_opp)(VDD1_OPP1);
++		}
++#endif /* CONFIG_BRIDGE_DVFS */
+ 	}
+ #endif /* CONFIG_PM */
+ 	return status;
+-- 
+1.6.2.4
 
-Regards,
-Santosh
