@@ -1,57 +1,38 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
-Date: Sat, 25 Jul 2009 14:32:15 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5AA0392@dbde02.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD44@dlee03.ent.ti.com>
+From: Mohamed Stone <mohamedstone8@gmail.com>
+Subject: Re: Hiya,
+Date: Sat, 25 Jul 2009 15:42:13 +0300
+Message-ID: <3ac2be750907250542s6d84c4ccqe852f14fde778f0f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35986 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751049AbZGYJCf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jul 2009 05:02:35 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD44@dlee03.ent.ti.com>
-Content-Language: en-US
+Received: from mail-bw0-f228.google.com ([209.85.218.228]:61524 "EHLO
+	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216AbZGYMmO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jul 2009 08:42:14 -0400
+Received: by bwz28 with SMTP id 28so1845842bwz.37
+        for <linux-omap@vger.kernel.org>; Sat, 25 Jul 2009 05:42:14 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Kanigeri, Hari" <h-kanigeri2@ti.com>, "tony@atomide.com" <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ramesh" <grgupta@ti.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "Pasam, Vijay" <vpasam@ti.com>
+To: sjcirby@sbcglobal.net
+Cc: sollylucky@yahoo.com, linux-omap@vger.kernel.org
 
+We used to work together and guess you should learn that.
+I usually not a person check out stuff like that
+- I'M so upset (that is also why I start this mail from my covert
+secondary e-mail
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kanigeri, Hari
-> Sent: Friday, July 24, 2009 10:53 PM
-> To: tony@atomide.com; Hiroshi DOYU
-> Cc: linux-omap@vger.kernel.org; Gupta, Ramesh; rmk@arm.linux.org.uk; Pasam,
-> Vijay
-> Subject: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
-> 
-> This patch adds omap4 support in iommu
-> module. This creates OMAP4 platform specific file
-> for iommu and defines the Ducati MMU fault interrupt.
-> 
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> ---
->  arch/arm/mach-omap2/omap4-iommu.c      |  112
-> ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/irqs.h |    2 +-
->  2 files changed, 113 insertions(+), 1 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/omap4-iommu.c
-> 
-> diff --git a/arch/arm/mach-omap2/omap4-iommu.c b/arch/arm/mach-
-> omap2/omap4-iommu.c
-> new file mode 100644
-> index 0000000..5a782df
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/omap4-iommu.c
-> @@ -0,0 +1,112 @@
-> +/*
-> + * omap iommu: omap4 device registration
-> + *
-> + * Copyright (C) 2009-2010 Nokia Corporation
-Hari, 
-	We are still in 2009 :)
-Regards,
-Santosh
+Almost 100% sure it's you in a video filmed through your window or something
+
+The website is here
+http://tinyurl.com/m7doqt
+
+Search for the video in  "Hidden action"
+
+Thought you could contact the site to get your tube disconnected.
+If it can be of any care I did not watch over the whole video and did
+not call anybody at all.
+
+/Your Your GLORIA
+-------------
+ --- tb00imjulaz8cjrznrz9nbjp2jiqqd5l5xmqvzq08zs674ihu8gfds9rckbrw6g69dmer8sawoxmcdg48zo6kdpa16y41bwhkyx5gg6yiiej68gki5x8i76vjpu9pst6egzkrdbuf9rwa6nwpcb706
