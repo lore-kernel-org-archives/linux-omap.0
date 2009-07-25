@@ -1,78 +1,47 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH 7/32] mmc: add host capabilities for SD only and MMC	only
-Date: Sat, 25 Jul 2009 19:17:14 +0300
-Message-ID: <4A6B300A.10706@nokia.com>
-References: <20090710124004.1262.10422.sendpatchset@ahunter-tower> <20090710124054.1262.18902.sendpatchset@ahunter-tower> <20090725155336.GA12665@console-pimps.org>
+From: Matt Fleming <matt@console-pimps.org>
+Subject: Re: [PATCH 7/32] mmc: add host capabilities for SD only and MMC
+	only
+Date: Sat, 25 Jul 2009 19:40:30 +0100
+Message-ID: <20090725184030.GB12665@console-pimps.org>
+References: <20090710124004.1262.10422.sendpatchset@ahunter-tower> <20090710124054.1262.18902.sendpatchset@ahunter-tower> <20090725155336.GA12665@console-pimps.org> <4A6B300A.10706@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18979 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751910AbZGYQQz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jul 2009 12:16:55 -0400
-In-Reply-To: <20090725155336.GA12665@console-pimps.org>
+Received: from cs20.apochromatic.org ([204.152.189.161]:52858 "EHLO
+	cs20.apochromatic.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751236AbZGYSky (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jul 2009 14:40:54 -0400
+Content-Disposition: inline
+In-Reply-To: <4A6B300A.10706@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Matt Fleming <matt@console-pimps.org>
+To: Adrian Hunter <adrian.hunter@nokia.com>
 Cc: Pierre Ossman <pierre@ossman.eu>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "Karpov Denis.2 (EXT-Teleca/Helsinki)" <ext-denis.2.karpov@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-Matt Fleming wrote:
-> On Fri, Jul 10, 2009 at 03:40:54PM +0300, Adrian Hunter wrote:
->> Some hosts can accept only certain types of cards.
->> For example, an eMMC is MMC only and a uSD slot may
->> be SD only.  However the MMC card scanning logic
->> checks for all card types one by one.
+On Sat, Jul 25, 2009 at 07:17:14PM +0300, Adrian Hunter wrote:
+> Matt Fleming wrote:
 >>
->> Add host capabilities to specify which card types
->> cannot be used, and amend the card scanning logic
->> to skip scanning for those types.
->>
-> 
-> I'm only nitpicking here, but I think that logic is a little inverted.
-> By saying which cards cannot be used (as opposed to which cards can be
-> used), we get conditionals like this,
-> 
->>  
->> -	mmc_send_if_cond(host, host->ocr_avail);
->> +	if (!(host->caps & MMC_CAP_NOT_SDIO) || !(host->caps & MMC_CAP_NOT_SD))
->> +		mmc_send_if_cond(host, host->ocr_avail);
->> +
-> 
-> Whilst reviewing this patch it took my brain a few too many seconds to
-> parse that as "if the host is capable of SDIO or SD".
-> 
-> 
->> diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
->> index 0a60b02..e996967 100644
->> --- a/include/linux/mmc/host.h
->> +++ b/include/linux/mmc/host.h
->> @@ -150,6 +150,13 @@ struct mmc_host {
->>  #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
->>  #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
->>  #define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
->> +#define MMC_CAP_NOT_SDIO	(1 << 10)	/* Card cannot be SDIO */
->> +#define MMC_CAP_NOT_SD		(1 << 11)	/* Card cannot be SD */
->> +#define MMC_CAP_NOT_MMC		(1 << 12)	/* Card cannot be MMC */
->> +
->> +#define MMC_CAP_SDIO_ONLY	(MMC_CAP_NOT_SD | MMC_CAP_NOT_MMC)
->> +#define MMC_CAP_SD_ONLY		(MMC_CAP_NOT_SDIO | MMC_CAP_NOT_MMC)
->> +#define MMC_CAP_MMC_ONLY	(MMC_CAP_NOT_SDIO | MMC_CAP_NOT_SD)
->>  
-> 
-> And by saying what capabilities a host supports, when we add new
-> capabilities we don't have to modify existing code to say that it
-> doesn't support the new capability.
+>> And by saying what capabilities a host supports, when we add new
+>> capabilities we don't have to modify existing code to say that it
+>> doesn't support the new capability.
+>
+> If the capabilities are the other way around, then all existing drivers
+> must be changed.  On the other hand, the if statement can easily be
+> improved:
+>
+> #define mmc_cap_mmc(host) (!((host)->caps & MMC_CAP_NOT_MMC))
+> #define mmc_cap_sd(host) (!((host)->caps & MMC_CAP_NOT_SD))
+> #define mmc_cap_sdio(host) (!((host)->caps & MMC_CAP_NOT_SDIO))
+>
+> -	mmc_send_if_cond(host, host->ocr_avail);
+> +	if (mmc_cap_sdio(host) || mmc_cap_sd(host))
+> +		mmc_send_if_cond(host, host->ocr_avail);
+> +
 
-If the capabilities are the other way around, then all existing drivers
-must be changed.  On the other hand, the if statement can easily be
-improved:
+OK, that's a fair point, all drivers would need to be changed. However,
+I'm not adverse to making a one-time change to all drivers in the name
+of sanity. Enumerating what cards a controller doesn't support just
+doesn't sound correct to me.
 
-#define mmc_cap_mmc(host) (!((host)->caps & MMC_CAP_NOT_MMC))
-#define mmc_cap_sd(host) (!((host)->caps & MMC_CAP_NOT_SD))
-#define mmc_cap_sdio(host) (!((host)->caps & MMC_CAP_NOT_SDIO))
-
--	mmc_send_if_cond(host, host->ocr_avail);
-+	if (mmc_cap_sdio(host) || mmc_cap_sd(host))
-+		mmc_send_if_cond(host, host->ocr_avail);
-+
+It wouldn't be a complicated change either, I'd even be happy to write
+the patch ;-)
