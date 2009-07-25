@@ -1,73 +1,56 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 3/8] OMAP2/3 SDRC: don't set SDRC_POWER.PWDENA on boot
-Date: Fri, 24 Jul 2009 20:11:27 -0600
-Message-ID: <20090725021126.29059.37523.stgit@localhost.localdomain>
+Subject: [PATCH 5/8] OMAP3 SDRC: Move the clk stabilization delay to the right
+	place
+Date: Fri, 24 Jul 2009 20:11:29 -0600
+Message-ID: <20090725021127.29059.29503.stgit@localhost.localdomain>
 References: <20090725021102.29059.94214.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50650 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:50656 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755029AbZGYCND (ORCPT
+	with ESMTP id S1755190AbZGYCND (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2009 22:13:03 -0400
 In-Reply-To: <20090725021102.29059.94214.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: "Samu P. Onkalo" <samu.p.onkalo@nokia.com>
+Cc: Rajendra Nayak <rnayak@ti.com>
 
-Stop setting SDRC_POWER.PWDENA on boot.  There is a nasty erratum
-(34xx erratum 1.150) that can cause memory corruption if PWDENA is
-enabled.
+From: Rajendra Nayak <rnayak@ti.com>
 
-Based originally on a patch from Samu P. Onkalo <samu.p.onkalo@nokia.com>.
+The clock stabilization delay post a M2 divider change is needed
+even before a SDRC interface clock re-enable and not only before
+jumping back to SDRAM.
 
-Tested on BeagleBoard rev C2.
-
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Samu P. Onkalo <samu.p.onkalo@nokia.com>
 ---
- arch/arm/mach-omap2/sdrc.c     |    5 ++++-
- arch/arm/mach-omap2/sram34xx.S |    2 --
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/sram34xx.S |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-index 2e9e38d..9e3bd4f 100644
---- a/arch/arm/mach-omap2/sdrc.c
-+++ b/arch/arm/mach-omap2/sdrc.c
-@@ -125,8 +125,11 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sdrc_cs0,
- 	sdrc_init_params_cs1 = sdrc_cs1;
- 
- 	/* XXX Enable SRFRONIDLEREQ here also? */
-+	/*
-+	 * PWDENA should not be set due to 34xx erratum 1.150 - PWDENA
-+	 * can cause random memory corruption
-+	 */
- 	l = (1 << SDRC_POWER_EXTCLKDIS_SHIFT) |
--		(1 << SDRC_POWER_PWDENA_SHIFT) |
- 		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
- 	sdrc_write_reg(l, SDRC_POWER);
- }
 diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 3aef744..9c2d046 100644
+index e6b1125..82aa4a3 100644
 --- a/arch/arm/mach-omap2/sram34xx.S
 +++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -58,7 +58,6 @@
- 
- /* SDRC_POWER bit settings */
- #define SRFRONIDLEREQ_MASK		0x40
--#define PWDENA_MASK			0x4
- 
- /* CM_IDLEST1_CORE bit settings */
- #define ST_SDRC_MASK			0x2
-@@ -160,7 +159,6 @@ sdram_in_selfrefresh:
- 	ldr	r12, [r11]		@ read the contents of SDRC_POWER
- 	mov	r9, r12			@ keep a copy of SDRC_POWER bits
- 	orr 	r12, r12, #SRFRONIDLEREQ_MASK	@ enable self refresh on idle
--	bic 	r12, r12, #PWDENA_MASK	@ clear PWDENA
- 	str 	r12, [r11]		@ write back to SDRC_POWER register
- 	ldr	r12, [r11]		@ posted-write barrier for SDRC
- idle_sdrc:
+@@ -127,6 +127,8 @@ skip_cs1_params:
+ 	blne	lock_dll
+ 	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
+ 	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
++	mov	r12, r2
++	bl	wait_clk_stable		@ wait for SDRC to stabilize
+ 	bl	enable_sdrc		@ take SDRC out of idle
+ 	cmp	r1, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+ 	bleq	wait_dll_unlock
+@@ -134,8 +136,6 @@ skip_cs1_params:
+ 	cmp	r3, #1			@ if increasing SDRC clk rate,
+ 	beq	return_to_sdram		@ return to SDRAM code, otherwise,
+ 	bl	configure_sdrc		@ reprogram SDRC regs now
+-	mov	r12, r2
+-	bl	wait_clk_stable		@ wait for SDRC to stabilize
+ return_to_sdram:
+ 	isb				@ prevent speculative exec past here
+ 	mov 	r0, #0 			@ return value
 
 
