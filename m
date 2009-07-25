@@ -1,92 +1,74 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 26/32] omap_hsmmc: prevent races with irq handler
-Date: Fri, 24 Jul 2009 15:53:51 -0700
-Message-ID: <20090724155351.a99e30fd.akpm@linux-foundation.org>
-References: <20090710124004.1262.10422.sendpatchset@ahunter-tower>
-	<20090710124309.1262.22465.sendpatchset@ahunter-tower>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config
+ option
+Date: Fri, 24 Jul 2009 19:43:41 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E3A941DDF@dlee03.ent.ti.com>
+References: <1248431051-26340-1-git-send-email-Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E3A8CAD56@dlee03.ent.ti.com>
+ <20090724.210005.226780464.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35814 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754999AbZGXWyA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 24 Jul 2009 18:54:00 -0400
-In-Reply-To: <20090710124309.1262.22465.sendpatchset@ahunter-tower>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46798 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754397AbZGYAnw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 24 Jul 2009 20:43:52 -0400
+In-Reply-To: <20090724.210005.226780464.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: pierre@ossman.eu, jarkko.lavinen@nokia.com, ext-denis.2.karpov@nokia.com, adrian.hunter@nokia.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>
 
-On Fri, 10 Jul 2009 15:43:09 +0300
-Adrian Hunter <adrian.hunter@nokia.com> wrote:
+Hiroshi,
 
-> >From 242fae6293adec671b14354f215217354f5076a0 Mon Sep 17 00:00:00 2001
-> From: Adrian Hunter <adrian.hunter@nokia.com>
-> Date: Sat, 16 May 2009 10:32:34 +0300
-> Subject: [PATCH] omap_hsmmc: prevent races with irq handler
-> 
-> If an unexpected interrupt occurs while preparing the
-> next request, an oops can occur.
-> 
-> For example, a new request is setting up DMA for data
-> transfer so host->data is not NULL.  An unexpected
-> transfer complete (TC) interrupt comes along and
-> the interrupt handler sets host->data to NULL.  Oops!
-> 
-> Prevent that by disabling interrupts while setting up
-> a new request.
-> 
-> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |   16 ++++++++++++++++
->  1 files changed, 16 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 28563d6..38e1410 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -452,6 +452,13 @@ mmc_omap_start_command(struct mmc_omap_host *host, struct mmc_command *cmd,
->  	if (host->use_dma)
->  		cmdreg |= DMA_EN;
->  
-> +	/*
-> +	 * In an interrupt context (i.e. STOP command), the interrupt is already
-> +	 * enabled, otherwise it is not (i.e. new request).
-> +	 */
-> +	if (!in_interrupt())
-> +		enable_irq(host->irq);
-> +
->  	OMAP_HSMMC_WRITE(host->base, ARG, cmd->arg);
->  	OMAP_HSMMC_WRITE(host->base, CMD, cmdreg);
->  }
-> @@ -1011,6 +1018,13 @@ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
->  	struct mmc_omap_host *host = mmc_priv(mmc);
->  	int err;
->  
-> +	/*
-> +	 * Prevent races with the interrupt handler because of unexpected
-> +	 * interrupts, but not if we are already in interrupt context i.e.
-> +	 * retries.
-> +	 */
-> +	if (!in_interrupt())
-> +		disable_irq(host->irq);
->  	WARN_ON(host->mrq != NULL);
->  	host->mrq = req;
->  	err = mmc_omap_prepare_data(host, req);
-> @@ -1019,6 +1033,8 @@ static void omap_mmc_request(struct mmc_host *mmc, struct mmc_request *req)
->  		if (req->data)
->  			req->data->error = err;
->  		host->mrq = NULL;
-> +		if (!in_interrupt())
-> +			enable_irq(host->irq);
->  		mmc_request_done(mmc, req);
->  		return;
->  	}
+> The problem here is that now all TRACEBUF code is always compiled in
+> in spite of setting "DEBUG". It doesn't print anything, but just
+> wastes some memory
 
-That seems pretty crude.  Disabling an interrupt line can be expensive,
-and will shut off any other innocent devices which share the line.
+That's not true. DSP_TRACEBUF is used to print the traces from DSP. This is used by Socket node developers to print their traces from DSP to console.
+If you enable DT=1 GT trace, then you get all the prints from DSP, which is extremely useful for DSP Developers.
 
-The usual and superior way of fixing races such as this is
-spin_lock_irq[save]().
+Thank you,
+Best regards,
+Hari
+
+
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Friday, July 24, 2009 1:00 PM
+> To: Kanigeri, Hari
+> Cc: linux-omap@vger.kernel.org; ameya.palande@nokia.com; Guzman Lugo,
+> Fernando; Ramirez Luna, Omar
+> Subject: Re: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config
+> option
+> 
+> Hi Hari,
+> 
+> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> Subject: RE: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config
+> option
+> Date: Fri, 24 Jul 2009 19:28:47 +0200
+> 
+> > Hi Doyu-san,
+> >
+> > >
+> > > "CONFIG_DSP_TRACEBUF" is introduced as a kernel config option to save
+> > > some amount of unused memory and "#ifndef DSP_TRACEBUF_DISABLED" was
+> > > not easy to understand.
+> > >
+> >
+> > I think we just use the Bridge DEBUG flag that is used in Bridge instead
+> of introducing a new flag.
+> 
+> It might be better if "CONFIG_DSP_TRACEBUF" had the dependecy on
+> "DEBUG/CONFIG_BRIDGE_DEBUG", but it's not unfortunately.
+> 
+> The problem here is that now all TRACEBUF code is always compiled in
+> in spite of setting "DEBUG". It doesn't print anything, but just
+> wastes some memory.
+> 
+> I'll remove a new Kconfig entry and just add the dependency of
+> "CONFIG_DSP_TRACEBUF" on "CONFIG_BRIDGE_DEBUG".
 
