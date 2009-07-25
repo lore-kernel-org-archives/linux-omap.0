@@ -1,38 +1,66 @@
-From: Mohamed Stone <mohamedstone8@gmail.com>
-Subject: Re: Hiya,
-Date: Sat, 25 Jul 2009 15:42:13 +0300
-Message-ID: <3ac2be750907250542s6d84c4ccqe852f14fde778f0f@mail.gmail.com>
+From: Matt Fleming <matt@console-pimps.org>
+Subject: Re: [PATCH 7/32] mmc: add host capabilities for SD only and MMC
+	only
+Date: Sat, 25 Jul 2009 16:53:36 +0100
+Message-ID: <20090725155336.GA12665@console-pimps.org>
+References: <20090710124004.1262.10422.sendpatchset@ahunter-tower> <20090710124054.1262.18902.sendpatchset@ahunter-tower>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f228.google.com ([209.85.218.228]:61524 "EHLO
-	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216AbZGYMmO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jul 2009 08:42:14 -0400
-Received: by bwz28 with SMTP id 28so1845842bwz.37
-        for <linux-omap@vger.kernel.org>; Sat, 25 Jul 2009 05:42:14 -0700 (PDT)
+Received: from cs20.apochromatic.org ([204.152.189.161]:52973 "EHLO
+	cs20.apochromatic.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751952AbZGYPyA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 25 Jul 2009 11:54:00 -0400
+Content-Disposition: inline
+In-Reply-To: <20090710124054.1262.18902.sendpatchset@ahunter-tower>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sjcirby@sbcglobal.net
-Cc: sollylucky@yahoo.com, linux-omap@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Pierre Ossman <pierre@ossman.eu>, Jarkko Lavinen <jarkko.lavinen@nokia.com>, Denis Karpov <ext-denis.2.karpov@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, lkml <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-We used to work together and guess you should learn that.
-I usually not a person check out stuff like that
-- I'M so upset (that is also why I start this mail from my covert
-secondary e-mail
+On Fri, Jul 10, 2009 at 03:40:54PM +0300, Adrian Hunter wrote:
+> 
+> Some hosts can accept only certain types of cards.
+> For example, an eMMC is MMC only and a uSD slot may
+> be SD only.  However the MMC card scanning logic
+> checks for all card types one by one.
+> 
+> Add host capabilities to specify which card types
+> cannot be used, and amend the card scanning logic
+> to skip scanning for those types.
+> 
 
-Almost 100% sure it's you in a video filmed through your window or something
+I'm only nitpicking here, but I think that logic is a little inverted.
+By saying which cards cannot be used (as opposed to which cards can be
+used), we get conditionals like this,
 
-The website is here
-http://tinyurl.com/m7doqt
+>  
+> -	mmc_send_if_cond(host, host->ocr_avail);
+> +	if (!(host->caps & MMC_CAP_NOT_SDIO) || !(host->caps & MMC_CAP_NOT_SD))
+> +		mmc_send_if_cond(host, host->ocr_avail);
+> +
 
-Search for the video in  "Hidden action"
+Whilst reviewing this patch it took my brain a few too many seconds to
+parse that as "if the host is capable of SDIO or SD".
 
-Thought you could contact the site to get your tube disconnected.
-If it can be of any care I did not watch over the whole video and did
-not call anybody at all.
 
-/Your Your GLORIA
--------------
- --- tb00imjulaz8cjrznrz9nbjp2jiqqd5l5xmqvzq08zs674ihu8gfds9rckbrw6g69dmer8sawoxmcdg48zo6kdpa16y41bwhkyx5gg6yiiej68gki5x8i76vjpu9pst6egzkrdbuf9rwa6nwpcb706
+> diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
+> index 0a60b02..e996967 100644
+> --- a/include/linux/mmc/host.h
+> +++ b/include/linux/mmc/host.h
+> @@ -150,6 +150,13 @@ struct mmc_host {
+>  #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
+>  #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
+>  #define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
+> +#define MMC_CAP_NOT_SDIO	(1 << 10)	/* Card cannot be SDIO */
+> +#define MMC_CAP_NOT_SD		(1 << 11)	/* Card cannot be SD */
+> +#define MMC_CAP_NOT_MMC		(1 << 12)	/* Card cannot be MMC */
+> +
+> +#define MMC_CAP_SDIO_ONLY	(MMC_CAP_NOT_SD | MMC_CAP_NOT_MMC)
+> +#define MMC_CAP_SD_ONLY		(MMC_CAP_NOT_SDIO | MMC_CAP_NOT_MMC)
+> +#define MMC_CAP_MMC_ONLY	(MMC_CAP_NOT_SDIO | MMC_CAP_NOT_SD)
+>  
+
+And by saying what capabilities a host supports, when we add new
+capabilities we don't have to modify existing code to say that it
+doesn't support the new capability.
