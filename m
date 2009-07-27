@@ -1,86 +1,53 @@
-From: Ranjith Lohithakshan <ranjithl@ti.com>
-Subject: [PATCH 2/2] OMAP3: PM: Update SRF driver to use omap_device layer
-Date: Mon, 27 Jul 2009 16:58:42 +0530
-Message-ID: <1248694122-7230-1-git-send-email-ranjithl@ti.com>
+From: matthias schwarz <matthias.schw@googlemail.com>
+Subject: Camera Interface VS/HS Issue
+Date: Mon, 27 Jul 2009 14:46:34 +0200
+Message-ID: <a187869d0907270546m2be3542cla72366acfc62fb64@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47025 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752281AbZG0L2t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Jul 2009 07:28:49 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n6RBSh5p007214
-	for <linux-omap@vger.kernel.org>; Mon, 27 Jul 2009 06:28:49 -0500
+Received: from mail-bw0-f221.google.com ([209.85.218.221]:56615 "EHLO
+	mail-bw0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753374AbZG0Mvu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 08:51:50 -0400
+Received: by bwz21 with SMTP id 21so198376bwz.37
+        for <linux-omap@vger.kernel.org>; Mon, 27 Jul 2009 05:51:50 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: ranjithl@ti.com
 
-This patch will fix the build issues currently seen when SRF driver is selected
-for DVFS (cpufreq) support. SRF code is updated to use the new omap_device layer.
+Hi there,
 
-Patch tested on OMAP3 EVM.
+i just recently ran into a problem when trying to let the ISP
+(OMAP3530) generate HS/VS signals in SYNC mode.
+I am building a module to do so.
 
-Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
----
- arch/arm/plat-omap/omap-pm-srf.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+It basically enables the three clocks (cam_ick, cam_mclk and csi2_96m_fck),
+then sets
 
-diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
-index cac08e4..4350650 100644
---- a/arch/arm/plat-omap/omap-pm-srf.c
-+++ b/arch/arm/plat-omap/omap-pm-srf.c
-@@ -26,7 +26,7 @@
- #include <mach/omap-pm.h>
- #include <mach/powerdomain.h>
- #include <mach/resource.h>
--#include <mach/omapdev.h>
-+#include <mach/omap_device.h>
- 
- struct omap_opp *dsp_opps;
- struct omap_opp *mpu_opps;
-@@ -96,7 +96,7 @@ void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigned long r)
- 
- void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
- {
--	struct omapdev *odev;
-+	struct omap_device *odev;
- 	struct powerdomain *pwrdm_dev;
- 	struct platform_device *pdev;
- 	char *lat_res_name;
-@@ -121,9 +121,9 @@ void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
- 		return;
- 	}
- 
--	odev = omapdev_find_pdev(pdev);
-+	odev = omap_device_find_pdev(pdev);
- 	if (odev) {
--		pwrdm_dev = omapdev_get_pwrdm(odev);
-+		pwrdm_dev = omap_device_get_pwrdm(odev);
- 	} else {
- 		printk(KERN_ERR "OMAP-PM: Error: Could not find omapdev "
- 						"for %s\n", pdev->name);
-@@ -277,7 +277,7 @@ EXPORT_SYMBOL(omap_pm_cpu_get_freq);
- int omap_pm_get_dev_context_loss_count(struct device *dev)
- {
- 	struct platform_device *pdev;
--	struct omapdev *odev;
-+	struct omap_device *odev;
- 	struct powerdomain *pwrdm;
- 
- 	if (!dev) {
-@@ -293,10 +293,10 @@ int omap_pm_get_dev_context_loss_count(struct device *dev)
- 	 * off counter.
- 	 */
- 	pdev = to_platform_device(dev);
--	odev = omapdev_find_pdev(pdev);
-+	odev = omap_device_find_pdev(pdev);
- 
- 	if (odev) {
--		pwrdm = omapdev_get_pwrdm(odev);
-+		pwrdm = omap_device_get_pwrdm(odev);
- 		if (pwrdm)
- 			return pwrdm->state_counter[0];
- 	}
--- 
-1.6.2.4
+ISPCCDC_PIX_LINES_PPLN
+ISPCCDC_PIX_LINES_HLPRF
+ISPCCDC_HD_VD_WID_VDW
+ISPCCDC_HD_VD_WID_HDW
+ISPCCDC_SYN_MODE_VDHDEN
+ISPCCDC_SYN_MODE_VDHDOUT
+ISPCCDC_CFG_VDLC
+ISPTCTRL_CTRL_DIVA
+ISPTCTRL_CTRL_DIVB
+ISPCCDC_PCR
 
+via some calls to ioremap and ioread32/iowrite32.
+My question now is the following:
+when i hook an oscilloscope to the corresponding pins (CAM_VS, CAM_HS,
+CAM_XCLKA) i can see that only the CAM_XCLKA is working correctly,
+also at the configured frequency.
+Both, CAM_VS and CAM_HS remain at low voltage all the time, even when
+i switch their polarities (ISPCCDC_SYN_MODE_VDPOL,
+ISPCCDC_SYN_MODE_HDPOL) that behavior does not change and signals
+always remain at low voltage.
+
+Could someone help me out, or give me a hint what i might be missing
+to generate those output signals correctly?
+
+Thank you very much,
+Matthias
