@@ -1,233 +1,133 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
-Date: Mon, 27 Jul 2009 09:47:31 +0300 (EEST)
-Message-ID: <20090727.094731.260080790.Hiroshi.DOYU@nokia.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD44@dlee03.ent.ti.com>
-	<20090724.212140.104061104.Hiroshi.DOYU@nokia.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E3A941FEA@dlee03.ent.ti.com>
+Subject: Re: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config
+ option
+Date: Mon, 27 Jul 2009 10:27:14 +0300 (EEST)
+Message-ID: <20090727.102714.246532207.Hiroshi.DOYU@nokia.com>
+References: <20090724.210005.226780464.Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E3A941DDF@dlee03.ent.ti.com>
+	<20090725.082359.115933413.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Mon_Jul_27_10_27_15_2009_463)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:38946 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:42444 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752997AbZG0GsA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 02:48:00 -0400
-In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E3A941FEA@dlee03.ent.ti.com>
+	with ESMTP id S1753840AbZG0H1d (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 03:27:33 -0400
+In-Reply-To: <20090725.082359.115933413.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: h-kanigeri2@ti.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org, grgupta@ti.com, rmk@arm.linux.org.uk, vpasam@ti.com
+Cc: linux-omap@vger.kernel.org, ameya.palande@nokia.com, x0095840@ti.com, omar.ramirez@ti.com
 
-From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
-Date: Mon, 27 Jul 2009 02:18:21 +0200
+----Next_Part(Mon_Jul_27_10_27_15_2009_463)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-> Hi Hiroshi,
-> 
-> > > +static const struct iommu_platform_data omap4_iommu_pdata[] __initconst
-> > = {
-> > > +	{
-> > > +		.name = "ducati",
-> > > +		.nr_tlb_entries = 32,
-> > > +		.clk_name = "ducati_ick",
-> > > +	},
-> > > +#if defined(CONFIG_MPU_TESLA_IOMMU)
-> > > +	{
-> > > +		.name = "tesla",
-> > > +		.nr_tlb_entries = 32,
-> > > +		.clk_name = "tesla_ick",
-> > > +	},
-> > > +#endif
-> > > +};
-> > 
-> > If iommu is used as a character device driver, is the above config still
-> > necessary?
-> 
-> -- My apologies, I am not sure what you mean by this. Can you please elaborate a bit more.
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config option
+Date: Sat, 25 Jul 2009 08:23:59 +0300 (EEST)
 
-Well...I'm trying to explain;),
+> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> Subject: RE: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config option
+> Date: Sat, 25 Jul 2009 02:43:41 +0200
+> 
+> > Hiroshi,
+> > 
+> > > The problem here is that now all TRACEBUF code is always compiled in
+> > > in spite of setting "DEBUG". It doesn't print anything, but just
+> > > wastes some memory
+> > 
+> > That's not true. DSP_TRACEBUF is used to print the traces from DSP. This is used by Socket node developers to print their traces from DSP to console.
+> > If you enable DT=1 GT trace, then you get all the prints from DSP, which is extremely useful for DSP Developers.
+> 
+> I understand that DSP_TRACEBUF is useful. But now DSP_TRACEBUF is
+> always complied in and it cannot print anything without defining
+> GT_TRACE, IOW, without defining CONFIG_DSP_DEBUG. This is the matter of
+> dependency of those DEFINEs, DSP_TRACEBUF and DEBUG. Kconfig can describe
+> those dependency. I am proposing to set the dependency of DSP_TRACEBUF
+> on CONFIG_DSP_DEBUG, to save some memory instead of keeping unused
+> code(ex: PrintDSPDebugTrace()) in this driver.
 
-This "omap iommu" driver is used in OMAP4 IPC and its interface is a
-character device node. IOW, the client of this device will be an
-userland process and kernel won't know if it uses or not, but kernel
-just provides "/dev/iommu?" for userland. So I don't think that we
-have to care about the dependency of the existance of clients, at
-least, for a moment.
+And here's the revised version of patch attached.
 
-> 
-> Thank you,
-> Best regards,
-> Hari
-> 
-> > -----Original Message-----
-> > From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> > Sent: Friday, July 24, 2009 1:22 PM
-> > To: Kanigeri, Hari
-> > Cc: tony@atomide.com; linux-omap@vger.kernel.org; Gupta, Ramesh;
-> > rmk@arm.linux.org.uk; Pasam, Vijay
-> > Subject: Re: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
-> > 
-> > From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> > Subject: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
-> > Date: Fri, 24 Jul 2009 19:22:32 +0200
-> > 
-> > > This patch adds omap4 support in iommu
-> > > module. This creates OMAP4 platform specific file
-> > > for iommu and defines the Ducati MMU fault interrupt.
-> > >
-> > > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> > > ---
-> > >  arch/arm/mach-omap2/omap4-iommu.c      |  112
-> > ++++++++++++++++++++++++++++++++
-> > >  arch/arm/plat-omap/include/mach/irqs.h |    2 +-
-> > >  2 files changed, 113 insertions(+), 1 deletions(-)
-> > >  create mode 100644 arch/arm/mach-omap2/omap4-iommu.c
-> > >
-> > > diff --git a/arch/arm/mach-omap2/omap4-iommu.c b/arch/arm/mach-
-> > omap2/omap4-iommu.c
-> > > new file mode 100644
-> > > index 0000000..5a782df
-> > > --- /dev/null
-> > > +++ b/arch/arm/mach-omap2/omap4-iommu.c
-> > > @@ -0,0 +1,112 @@
-> > > +/*
-> > > + * omap iommu: omap4 device registration
-> > > + *
-> > > + * Copyright (C) 2009-2010 Nokia Corporation
-> > > + *
-> > > + * Written by Hari Kanigeri <h-kanigeri2@ti.com>
-> > > + *
-> > > + * Added support for OMAP4. This is based on original file
-> > > + * omap3-iommu.c
-> > > + *
-> > > + * This program is free software; you can redistribute it and/or modify
-> > > + * it under the terms of the GNU General Public License version 2 as
-> > > + * published by the Free Software Foundation.
-> > > + */
-> > > +
-> > > +#include <linux/platform_device.h>
-> > > +
-> > > +#include <mach/iommu.h>
-> > > +#include <mach/irqs.h>
-> > > +
-> > > +#define OMAP4_MMU1_BASE	0x55082000
-> > > +#define OMAP4_MMU2_BASE	0x4A066000
-> > > +
-> > > +#define OMAP4_MMU1_IRQ	INT_44XX_DUCATI_MMU_IRQ
-> > > +#define OMAP4_MMU2_IRQ	INT_44XX_DSP_MMU
-> > > +
-> > > +
-> > > +
-> > > +static unsigned long iommu_base[] __initdata = {
-> > > +	OMAP4_MMU1_BASE,
-> > > +	OMAP4_MMU2_BASE,
-> > > +};
-> > > +
-> > > +static int iommu_irq[] __initdata = {
-> > > +	OMAP4_MMU1_IRQ,
-> > > +	OMAP4_MMU2_IRQ,
-> > > +};
-> > > +
-> > > +static const struct iommu_platform_data omap4_iommu_pdata[] __initconst
-> > = {
-> > > +	{
-> > > +		.name = "ducati",
-> > > +		.nr_tlb_entries = 32,
-> > > +		.clk_name = "ducati_ick",
-> > > +	},
-> > > +#if defined(CONFIG_MPU_TESLA_IOMMU)
-> > > +	{
-> > > +		.name = "tesla",
-> > > +		.nr_tlb_entries = 32,
-> > > +		.clk_name = "tesla_ick",
-> > > +	},
-> > > +#endif
-> > > +};
-> > 
-> > If iommu is used as a character device driver, is the above config still
-> > necessary?
-> > 
-> > > +#define NR_IOMMU_DEVICES ARRAY_SIZE(omap4_iommu_pdata)
-> > > +
-> > > +static struct platform_device *omap4_iommu_pdev[NR_IOMMU_DEVICES];
-> > > +
-> > > +static int __init omap4_iommu_init(void)
-> > > +{
-> > > +	int i, err;
-> > > +
-> > > +	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
-> > > +		struct platform_device *pdev;
-> > > +		struct resource res[2];
-> > > +
-> > > +		pdev = platform_device_alloc("omap-iommu", i);
-> > > +		if (!pdev) {
-> > > +			err = -ENOMEM;
-> > > +			goto err_out;
-> > > +		}
-> > > +
-> > > +		memset(res, 0,  sizeof(res));
-> > > +		res[0].start = iommu_base[i];
-> > > +		res[0].end = iommu_base[i] + MMU_REG_SIZE - 1;
-> > > +		res[0].flags = IORESOURCE_MEM;
-> > > +		res[1].start = res[1].end = iommu_irq[i];
-> > > +		res[1].flags = IORESOURCE_IRQ;
-> > > +
-> > > +		err = platform_device_add_resources(pdev, res,
-> > > +						    ARRAY_SIZE(res));
-> > > +		if (err)
-> > > +			goto err_out;
-> > > +		err = platform_device_add_data(pdev, &omap4_iommu_pdata[i],
-> > > +					       sizeof(omap4_iommu_pdata[0]));
-> > > +		if (err)
-> > > +			goto err_out;
-> > > +		err = platform_device_add(pdev);
-> > > +		if (err)
-> > > +			goto err_out;
-> > > +		omap4_iommu_pdev[i] = pdev;
-> > > +	}
-> > > +	return 0;
-> > > +
-> > > +err_out:
-> > > +	while (i--)
-> > > +		platform_device_put(omap4_iommu_pdev[i]);
-> > > +	return err;
-> > > +}
-> > > +module_init(omap4_iommu_init);
-> > > +
-> > > +static void __exit omap4_iommu_exit(void)
-> > > +{
-> > > +	int i;
-> > > +
-> > > +	for (i = 0; i < NR_IOMMU_DEVICES; i++)
-> > > +		platform_device_unregister(omap4_iommu_pdev[i]);
-> > > +}
-> > > +module_exit(omap4_iommu_exit);
-> > > +
-> > > +MODULE_AUTHOR("Hiroshi DOYU, Hari Kanigeri");
-> > > +MODULE_DESCRIPTION("omap iommu: omap4 device registration");
-> > > +MODULE_LICENSE("GPL v2");
-> > > +
-> > > diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-
-> > omap/include/mach/irqs.h
-> > > index fb7cb77..34b6d09 100644
-> > > --- a/arch/arm/plat-omap/include/mach/irqs.h
-> > > +++ b/arch/arm/plat-omap/include/mach/irqs.h
-> > > @@ -511,7 +511,7 @@
-> > >  #define INT_44XX_TLL_IRQ	(78 + IRQ_GIC_START)
-> > >  #define INT_44XX_PARTHASH_IRQ	(79 + IRQ_GIC_START)
-> > >  #define INT_44XX_MMC3_IRQ	(94 + IRQ_GIC_START)
-> > > -
-> > > +#define INT_44XX_DUCATI_MMU_IRQ	(100 + IRQ_GIC_START)
-> > >
-> > >  /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
-> > >   * 16 MPUIO lines */
-> > > --
-> > > 1.5.4.3
-> > >
-> > >
-> > > Thank you,
-> > > Best regards,
-> > > Hari
-> > >
-> 
+----Next_Part(Mon_Jul_27_10_27_15_2009_463)--
+Content-Type: Application/Octet-Stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0001-DSPBRIDGE-Set-dependency-of-DSP_TRACEBUF-on-DSP_DEB.patch"
+
+RnJvbSBhYjAzZmU5OWRhMzcxNDBkZDljNzhmYjBmY2FjNmZjNWMyYWU4YTkwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
+CkRhdGU6IFRodSwgMjMgSnVsIDIwMDkgMTM6Mjk6MzUgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
+MV0gRFNQQlJJREdFOiBTZXQgZGVwZW5kZW5jeSBvZiBEU1BfVFJBQ0VCVUYgb24gRFNQX0RFQlVH
+IGluIEtjb25maWcKCkZyb206IEhpcm9zaGkgRE9ZVSA8SGlyb3NoaS5ET1lVQG5va2lhLmNvbT4K
+CkRTUF9UUkFDRUJVRiByZXF1aXJlcyBEU1BfREVCVUcgdG8gbWFrZSB0aGlzIGZlYXR1cmUgZnVu
+Y3Rpb25hbC4gVGhpcwpwYXRjaCB3aWxsIHNhdmUgc29tZSBtZW1vcnkgd2l0aG91dCBEU1BfREVC
+VUcuCgpEU1BfVFJBQ0VCVUZfRElTQUJMRUQgaXMgcmVuYW1lZCB3aXRoIENPTkZJR19EU1BfVFJB
+Q0VCVUYgc2luY2UKIiNpZm5kZWYgRFNQX1RSQUNFQlVGX0RJU0FCTEVEIiB3YXMgbm90IGVhc3kg
+dG8gdW5kZXJzdGFuZC4KClNpZ25lZC1vZmYtYnk6IEhpcm9zaGkgRE9ZVSA8SGlyb3NoaS5ET1lV
+QG5va2lhLmNvbT4KLS0tCiBkcml2ZXJzL2RzcC9icmlkZ2UvS2NvbmZpZyAgICAgfCAgICA0ICsr
+KysKIGRyaXZlcnMvZHNwL2JyaWRnZS93bWQvaW9fc20uYyB8ICAgMjEgKysrKysrKysrLS0tLS0t
+LS0tLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDEzIGluc2VydGlvbnMoKyksIDEyIGRlbGV0aW9ucygt
+KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZHNwL2JyaWRnZS9LY29uZmlnIGIvZHJpdmVycy9kc3Av
+YnJpZGdlL0tjb25maWcKaW5kZXggMmZlZDgyYy4uZDczYjA5NyAxMDA2NDQKLS0tIGEvZHJpdmVy
+cy9kc3AvYnJpZGdlL0tjb25maWcKKysrIGIvZHJpdmVycy9kc3AvYnJpZGdlL0tjb25maWcKQEAg
+LTMyLDUgKzMyLDkgQEAgY29uZmlnIEJSSURHRV9NRU1QT09MX1NJWkUKIGNvbmZpZyBCUklER0Vf
+REVCVUcKIAlib29sICJEU1AgQnJpZGdlIERlYnVnIFN1cHBvcnQiCiAJZGVwZW5kcyBvbiBNUFVf
+QlJJREdFCisJc2VsZWN0IERTUF9UUkFDRUJVRgogCWhlbHAKIAkgIFNheSBZIHRvIGVuYWJsZSBC
+cmlkZ2UgZGVidWdnaW5nIGNhcGFiaWxpdGllcworCitjb25maWcgRFNQX1RSQUNFQlVGCisgICAg
+ICAgIGJvb2wKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZHNwL2JyaWRnZS93bWQvaW9fc20uYyBiL2Ry
+aXZlcnMvZHNwL2JyaWRnZS93bWQvaW9fc20uYwppbmRleCBkOGFlMWYxLi5jZDU4Y2NlIDEwMDY0
+NAotLS0gYS9kcml2ZXJzL2RzcC9icmlkZ2Uvd21kL2lvX3NtLmMKKysrIGIvZHJpdmVycy9kc3Av
+YnJpZGdlL3dtZC9pb19zbS5jCkBAIC0xMzgsNyArMTM4LDcgQEAgc3RydWN0IElPX01HUiB7CiAJ
+dTMyIGRRdWVQb3dlck1ieFZhbFtNQVhfUE1fUkVRU107CiAJdTMyIGlRdWVQb3dlckhlYWQ7CiAJ
+dTMyIGlRdWVQb3dlclRhaWw7Ci0jaWZuZGVmIERTUF9UUkFDRUJVRl9ESVNBQkxFRAorI2lmZGVm
+IENPTkZJR19EU1BfVFJBQ0VCVUYKIAl1MzIgdWxUcmFjZUJ1ZmZlckJlZ2luOyAJLyogVHJhY2Ug
+bWVzc2FnZSBzdGFydCBhZGRyZXNzICovCiAJdTMyIHVsVHJhY2VCdWZmZXJFbmQ7IAkvKiBUcmFj
+ZSBtZXNzYWdlIGVuZCBhZGRyZXNzICovCiAJdTMyIHVsVHJhY2VCdWZmZXJDdXJyZW50OyAJLyog
+VHJhY2UgbWVzc2FnZSBjdXJyZW50IGFkZHJlc3MgKi8KQEAgLTE2OSw5ICsxNjksOSBAQCBzdGF0
+aWMgdTMyIFJlYWREYXRhKHN0cnVjdCBXTURfREVWX0NPTlRFWFQgKmhEZXZDb250ZXh0LCB2b2lk
+ICpwRGVzdCwKIHN0YXRpYyB1MzIgV3JpdGVEYXRhKHN0cnVjdCBXTURfREVWX0NPTlRFWFQgKmhE
+ZXZDb250ZXh0LCB2b2lkICpwRGVzdCwKIAkJCXZvaWQgKnBTcmMsIHUzMiB1U2l6ZSk7CiBzdGF0
+aWMgc3RydWN0IHdvcmtxdWV1ZV9zdHJ1Y3QgKmJyaWRnZV93b3JrcXVldWU7Ci0jaWZuZGVmIERT
+UF9UUkFDRUJVRl9ESVNBQkxFRAorCiB2b2lkIFByaW50RFNQRGVidWdUcmFjZShzdHJ1Y3QgSU9f
+TUdSICpoSU9NZ3IpOwotI2VuZGlmCisKIAogLyogQnVzIEFkZHIgKGNhY2hlZCBrZXJuZWwpKi8K
+IHN0YXRpYyBEU1BfU1RBVFVTIHJlZ2lzdGVyU0hNU2VncyhzdHJ1Y3QgSU9fTUdSICpoSU9NZ3Is
+CkBAIC0yNTUsNyArMjU1LDcgQEAgRFNQX1NUQVRVUyBXTURfSU9fQ3JlYXRlKE9VVCBzdHJ1Y3Qg
+SU9fTUdSICoqcGhJT01nciwKIAkJUFJFUEFSRV9XT1JLKCZwSU9NZ3ItPmlvX3dvcmtxLCAodm9p
+ZCAqKUlPX0Rpc3BhdGNoUE0pOwogCiAJLyogSW5pdGlhbGl6ZSBDSE5MX01HUiBvYmplY3Q6ICAg
+ICovCi0jaWZuZGVmIERTUF9UUkFDRUJVRl9ESVNBQkxFRAorI2lmZGVmIENPTkZJR19EU1BfVFJB
+Q0VCVUYKIAlwSU9NZ3ItPnBNc2cgPSBOVUxMOwogI2VuZGlmCiAJcElPTWdyLT5oQ2hubE1nciA9
+IGhDaG5sTWdyOwpAQCAtMzMwLDcgKzMzMCw3IEBAIERTUF9TVEFUVVMgV01EX0lPX0Rlc3Ryb3ko
+c3RydWN0IElPX01HUiAqaElPTWdyKQogICAgICAgICAgICAgICAgLyogTGludXggZnVuY3Rpb24g
+dG8gdW5pbnN0YWxsIElTUiAqLwogICAgICAgICAgICAgICAgZnJlZV9pcnEoSU5UX01BSUxfTVBV
+X0lSUSwgKHZvaWQgKiloSU9NZ3IpOwogICAgICAgICAgICAgICAgKHZvaWQpRFBDX0Rlc3Ryb3ko
+aElPTWdyLT5oRFBDKTsKLSNpZm5kZWYgRFNQX1RSQUNFQlVGX0RJU0FCTEVECisjaWZkZWYgQ09O
+RklHX0RTUF9UUkFDRUJVRgogCQlpZiAoaElPTWdyLT5wTXNnKQogCQkJTUVNX0ZyZWUoaElPTWdy
+LT5wTXNnKTsKICNlbmRpZgpAQCAtNDQ4LDcgKzQ0OCw3IEBAIGZ1bmNfY29udDE6CiAJCX0KIAl9
+CiAJaWYgKERTUF9TVUNDRUVERUQoc3RhdHVzKSkgewotI2lmbmRlZiBEU1BfVFJBQ0VCVUZfRElT
+QUJMRUQKKyNpZmRlZiBDT05GSUdfRFNQX1RSQUNFQlVGCiAJCXN0YXR1cyA9IENPRF9HZXRTeW1W
+YWx1ZShoQ29kTWFuLCBEU1BfVFJBQ0VTRUNfRU5ELCAmdWxTaG0wRW5kKTsKIAkJREJHX1RyYWNl
+KERCR19MRVZFTDcsICJfQlJJREdFX1RSQUNFX0VORCB2YWx1ZSA9ICV4IFxuIiwKIAkJCSB1bFNo
+bTBFbmQpOwpAQCAtNzc1LDcgKzc3NSw3IEBAIGZ1bmNfY29udDoKIAkJCSAiMHgleFxuIiwgaE1z
+Z01nci0+dU1heE1zZ3MpOwogCQltZW1zZXQoKHZvaWQgKikgaElPTWdyLT5wU2hhcmVkTWVtLCAw
+LCBzaXplb2Yoc3RydWN0IFNITSkpOwogCX0KLSNpZm5kZWYgRFNQX1RSQUNFQlVGX0RJU0FCTEVE
+CisjaWZkZWYgQ09ORklHX0RTUF9UUkFDRUJVRgogCWlmIChEU1BfU1VDQ0VFREVEKHN0YXR1cykp
+IHsKIAkJLyogR2V0IHRoZSBzdGFydCBhZGRyZXNzIG9mIHRyYWNlIGJ1ZmZlciAqLwogCQlpZiAo
+RFNQX1NVQ0NFRURFRChzdGF0dXMpKSB7CkBAIC05ODksMTUgKzk4OSwxMiBAQCB2b2lkIElPX0RQ
+QyhJTiBPVVQgdm9pZCAqcFJlZkRhdGEpCiAJCUlPX0Rpc3BhdGNoTXNnKHBJT01nciwgcE1zZ01n
+cik7CiAJfQogI2VuZGlmCi0jaWZuZGVmIERTUF9UUkFDRUJVRl9ESVNBQkxFRAorI2lmZGVmIENP
+TkZJR19EU1BfVFJBQ0VCVUYKIAlpZiAocElPTWdyLT53SW50clZhbCAmIE1CWF9EQkdfQ0xBU1Mp
+IHsKIAkJLyogbm90aWZ5IERTUCBUcmFjZSBtZXNzYWdlICovCiAJCWlmIChwSU9NZ3ItPndJbnRy
+VmFsICYgTUJYX0RCR19TWVNQUklOVEYpCiAJCQlQcmludERTUERlYnVnVHJhY2UocElPTWdyKTsK
+IAl9Ci0jZW5kaWYKLQotI2lmbmRlZiBEU1BfVFJBQ0VCVUZfRElTQUJMRUQKIAlQcmludERTUERl
+YnVnVHJhY2UocElPTWdyKTsKICNlbmRpZgogfQpAQCAtMTc2Nyw3ICsxNzY0LDcgQEAgRFNQX1NU
+QVRVUyBXTURfSU9fR2V0UHJvY0xvYWQoSU4gc3RydWN0IElPX01HUiAqaElPTWdyLAogCXJldHVy
+biBEU1BfU09LOwogfQogCi0jaWZuZGVmIERTUF9UUkFDRUJVRl9ESVNBQkxFRAorI2lmZGVmIENP
+TkZJR19EU1BfVFJBQ0VCVUYKIHZvaWQgUHJpbnREU1BEZWJ1Z1RyYWNlKHN0cnVjdCBJT19NR1Ig
+KmhJT01ncikKIHsKIAl1MzIgdWxOZXdNZXNzYWdlTGVuZ3RoID0gMCwgdWxHUFBDdXJQb2ludGVy
+OwotLSAKMS42LjAuNAoK
+
+----Next_Part(Mon_Jul_27_10_27_15_2009_463)----
