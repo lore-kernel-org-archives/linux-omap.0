@@ -1,91 +1,88 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: OMAP camera with BT-656 sensor
-Date: Mon, 27 Jul 2009 15:14:52 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444A16F0AC@dlee02.ent.ti.com>
-References: <a187869d0907270546m2be3542cla72366acfc62fb64@mail.gmail.com>
-	 <a187869d0907270725n7fce759bs6bcaeed70bd7f872@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16EC65@dlee02.ent.ti.com>
-	 <a187869d0907270859l313b86d3nea833c7a019d35be@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16ECD1@dlee02.ent.ti.com>
-	 <a187869d0907270911j74ee55b9nc872687eb32aecce@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16ED18@dlee02.ent.ti.com>
-	 <a187869d0907271036meb56ce9r32c5f5e823465e87@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16EE88@dlee02.ent.ti.com>
-	 <a187869d0907271145i177dcf52jb75aee758300878@mail.gmail.com>
- <a187869d0907271146q66112fc8l85aa37c8b1512d68@mail.gmail.com>
- <4A6DFBBE.6020805@mlbassoc.com>
- <A24693684029E5489D1D202277BE89444A16F057@dlee02.ent.ti.com>
- <4A6E070B.8090203@mlbassoc.com>
+From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Subject: Re: [PATCH] musb: fix CONFIGDATA register read issue
+Date: Mon, 27 Jul 2009 14:32:15 -0700
+Message-ID: <200907271432.15406.david-b@pacbell.net>
+References: <1246858408-24953-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50538 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754522AbZG0ULR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 16:11:17 -0400
-In-Reply-To: <4A6E070B.8090203@mlbassoc.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1246858408-24953-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> Sent: Monday, July 27, 2009 2:59 PM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: OMAP camera with BT-656 sensor
+On Sunday 05 July 2009, Ajay Kumar Gupta wrote:
+> INDEX register has to be set to '0' before reading
+> CONFIGDATA register which is only present in TI musb
+> platforms.
 > 
-> Aguirre Rodriguez, Sergio Alberto wrote:
-> >
-> >> -----Original Message-----
-> >> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> >> Sent: Monday, July 27, 2009 2:11 PM
-> >> To: Aguirre Rodriguez, Sergio Alberto
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: OMAP camera with BT-656 sensor
->    ... snip
+> Currently the default register access mode is set to
+> FLAT_MODE thus INDEX register is not getting set
+> properly with musb_ep_select() which is just a nop
+> operation in FLAT_MODE.This invalid register read is
+> causing module reinset failure.
 > 
-> >> Bottom line, I'm confused as to how I should go about getting
-> >> my driver/system working.  Do I use your work, or just stick
-> >> with the PSP base (why?)??
-> >
-> > What I do feel is that the PSP base will fulfill better your immediate
-> needs, but in the future, as I'm getting aware of Vaibhav changes, I'll be
-> interested in making them part of my tree aswell, so Vaibhav could avoid
-> rebasing the BT646 support internally everytime...
+> Fixing the issue by moving INDEX register write part to
+> musb_read_configdata() function itself.
 > 
-> Is there a GIT tree for this?
+> Signed-off-by: Vikram Pandita <vikram.pandita at ti.com>
+> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
 
-AFAIK, this is the latest tree Vaibhav is exposing:
+Acked-by: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 
-http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git
+This is the right fix, thanks.  With these two important
+operations *next to each other* it'll be harder to repeat
+the goof that cause this breakage.
 
-He maintains a camera and a DSS2 branch exactly to make both work on his 3530EVM.
 
+> ---
+> Based on a previous patch from Anand at,
+> http://marc.info/?l=linux-omap&m=122051303604377&w=2
 > 
-> A [hopefully] minor complication is that I'm using Tomi's DSS2
-> tree for the base of my port.  How can I move/merge the PSP
-> based support into it?  Can I just pick up the whole drivers/media
-> subtree and put in in place of what I have?
-
-I recommend looking at the git tree above... I think that job is already done...
-
+> Another version of this fix by Vikram is at,
+> http://linux.omap.com/pipermail/linux-omap-open-source/2007-November/012084.html
 > 
-> Thanks for your help - this myriad of trees and very disparate
-> support levels is really confusing to those of us on the outside...
-
-I know, and the lack of proper documentation is one of the first issues for me to look at...
-
-You're welcome.
+>  drivers/usb/musb/musb_core.c |    1 -
+>  drivers/usb/musb/musb_regs.h |    1 +
+>  2 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 554a414..3ec68a1 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1326,7 +1326,6 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
+>  	int		i;
+>  
+>  	/* log core options (read using indexed model) */
+> -	musb_ep_select(mbase, 0);
+>  	reg = musb_read_configdata(mbase);
+>  
+>  	strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");
+> diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
+> index de3b2f1..fbfd3fd 100644
+> --- a/drivers/usb/musb/musb_regs.h
+> +++ b/drivers/usb/musb/musb_regs.h
+> @@ -323,6 +323,7 @@ static inline void  musb_write_rxfifoadd(void __iomem *mbase, u16 c_off)
+>  
+>  static inline u8 musb_read_configdata(void __iomem *mbase)
+>  {
+> +	musb_writeb(mbase, MUSB_INDEX, 0);
+>  	return musb_readb(mbase, 0x10 + MUSB_CONFIGDATA);
+>  }
+>  
+> -- 
+> 1.6.2.4
+> 
+> 
 
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
