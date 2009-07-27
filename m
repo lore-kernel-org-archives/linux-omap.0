@@ -1,112 +1,135 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [RFC][PATCH 3/3]ARM:OMAP4 iommu:provide build support for omap4
- iommu
-Date: Sun, 26 Jul 2009 19:19:28 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E3A941FEB@dlee03.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD46@dlee03.ent.ti.com>
- <20090724.211715.71123038.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH] ARM: OMAP: TWL4030 IRQ
+Date: Mon, 27 Jul 2009 11:30:48 +0530
+Message-ID: <1248674448-17495-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49994 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37972 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753465AbZG0ATn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Jul 2009 20:19:43 -0400
-In-Reply-To: <20090724.211715.71123038.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+	id S1750736AbZG0GBY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 27 Jul 2009 02:01:24 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ramesh" <grgupta@ti.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "Pasam, Vijay" <vpasam@ti.com>
+To: sameo@linux.intel.com
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Russell King <rmk+kernel@arm.linux.org.uk>
 
-Hi Hiroshi,
+From: Russell King <rmk+kernel@arm.linux.org.uk>
 
-> >  config OMAP_IOMMU
-> > -	tristate
-> > -
-> > +	tristate "iommu"
-> > +        depends on ARCH_OMAP
-> 
-> Is the above dependecy necessary?
->
+(Rebased on 2.6.31-rc4)
 
--- Probably not. I will remove this.
+The TWL4030 IRQ handler has a bug which leads to spinlock lock-up. It is
+calling the 'unmask' function in a process context. :The mask/unmask/ack
+functions are only designed to be called from the IRQ handler code,
+or the proper API interfaces found in linux/interrupt.h.
 
-Thank you,
-Best regards,
-Hari
+Also there is no need to have IRQ chaining mechanism. The right way to
+handle this is to claim the parent interrupt as a standard interrupt
+and arrange for handle_twl4030_pih to take care of the rest of the devices.
 
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> Sent: Friday, July 24, 2009 1:17 PM
-> To: Kanigeri, Hari
-> Cc: tony@atomide.com; linux-omap@vger.kernel.org; Gupta, Ramesh;
-> rmk@arm.linux.org.uk; Pasam, Vijay
-> Subject: Re: [RFC][PATCH 3/3]ARM:OMAP4 iommu:provide build support for
-> omap4 iommu
-> 
-> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> Subject: [RFC][PATCH 3/3]ARM:OMAP4 iommu:provide build support for omap4
-> iommu
-> Date: Fri, 24 Jul 2009 19:22:56 +0200
-> 
-> > This patch provides build support to build OMAP4
-> > IOMMU module. This also adds the changes to Kconfig
-> > file to make iommu option visible in menuconfig.
-> >
-> > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/Makefile |    2 +-
-> >  arch/arm/plat-omap/Kconfig   |    8 ++++++--
-> >  2 files changed, 7 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> > index 735bae5..59e0865 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -41,7 +41,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
-> >
-> >  iommu-y					+= iommu2.o
-> >  iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
-> > -
-> > +iommu-$(CONFIG_ARCH_OMAP4)              += omap4-iommu.o
-> >  obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
-> >
-> >  # Specific board support
-> > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> > index efe85d0..00d7a1e 100644
-> > --- a/arch/arm/plat-omap/Kconfig
-> > +++ b/arch/arm/plat-omap/Kconfig
-> > @@ -118,8 +118,12 @@ config OMAP_MBOX_FWK
-> >  	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
-> >
-> >  config OMAP_IOMMU
-> > -	tristate
-> > -
-> > +	tristate "iommu"
-> > +        depends on ARCH_OMAP
-> 
-> Is the above dependecy necessary?
-> 
-> > +	default y
-> > +	help
-> > +	  Select this option if you want to use IOMMU support for the
-> > +	  Camera in OMAP3, and for Ducati processor in OMAP4.
-> 
-> So here, it goes visible because iommu will be an independent character
-> device, right?
-> 
-> 
-> >  choice
-> >          prompt "System timer"
-> >  	default OMAP_MPU_TIMER
-> > --
-> > 1.5.4.3
-> >
-> >
-> > Thank you,
-> > Best regards,
-> > Hari
-> >
+Mail thread on this issue can be found at:
+http://marc.info/?l=linux-arm-kernel&m=124629940123396&w=2
+
+Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+---
+ drivers/mfd/twl4030-irq.c |   55 +++++++++++++++++++-------------------------
+ 1 files changed, 24 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index bae61b2..7d43083 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -180,14 +180,9 @@ static struct completion irq_event;
+ static int twl4030_irq_thread(void *data)
+ {
+ 	long irq = (long)data;
+-	struct irq_desc *desc = irq_to_desc(irq);
+ 	static unsigned i2c_errors;
+ 	static const unsigned max_i2c_errors = 100;
+ 
+-	if (!desc) {
+-		pr_err("twl4030: Invalid IRQ: %ld\n", irq);
+-		return -EINVAL;
+-	}
+ 
+ 	current->flags |= PF_NOFREEZE;
+ 
+@@ -240,7 +235,7 @@ static int twl4030_irq_thread(void *data)
+ 		}
+ 		local_irq_enable();
+ 
+-		desc->chip->unmask(irq);
++		enable_irq(irq);
+ 	}
+ 
+ 	return 0;
+@@ -255,25 +250,13 @@ static int twl4030_irq_thread(void *data)
+  * thread.  All we do here is acknowledge and mask the interrupt and wakeup
+  * the kernel thread.
+  */
+-static void handle_twl4030_pih(unsigned int irq, struct irq_desc *desc)
++static irqreturn_t handle_twl4030_pih(int irq, void *devid)
+ {
+ 	/* Acknowledge, clear *AND* mask the interrupt... */
+-	desc->chip->ack(irq);
+-	complete(&irq_event);
+-}
+-
+-static struct task_struct *start_twl4030_irq_thread(long irq)
+-{
+-	struct task_struct *thread;
+-
+-	init_completion(&irq_event);
+-	thread = kthread_run(twl4030_irq_thread, (void *)irq, "twl4030-irq");
+-	if (!thread)
+-		pr_err("twl4030: could not create irq %ld thread!\n", irq);
+-
+-	return thread;
++	disable_irq_nosync(irq);
++	complete(devid);
++	return IRQ_HANDLED;
+ }
+-
+ /*----------------------------------------------------------------------*/
+ 
+ /*
+@@ -734,18 +717,28 @@ int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
+ 	}
+ 
+ 	/* install an irq handler to demultiplex the TWL4030 interrupt */
+-	task = start_twl4030_irq_thread(irq_num);
+-	if (!task) {
+-		pr_err("twl4030: irq thread FAIL\n");
+-		status = -ESRCH;
+-		goto fail;
+-	}
+ 
+-	set_irq_data(irq_num, task);
+-	set_irq_chained_handler(irq_num, handle_twl4030_pih);
+ 
+-	return status;
++	init_completion(&irq_event);
+ 
++	status = request_irq(irq_num, handle_twl4030_pih, IRQF_DISABLED,
++				"TWL4030-PIH", &irq_event);
++	if (status < 0) {
++		pr_err("twl4030: could not claim irq%d: %d\n", irq_num, status);
++		goto fail_rqirq;
++	}
++
++	task = kthread_run(twl4030_irq_thread, (void *)irq_num, "twl4030-irq");
++	if (IS_ERR(task)) {
++		pr_err("twl4030: could not create irq %d thread!\n", irq_num);
++		status = PTR_ERR(task);
++		goto fail_kthread;
++	}
++	return status;
++fail_kthread:
++	free_irq(irq_num, &irq_event);
++fail_rqirq:
++	/* clean up twl4030_sih_setup */
+ fail:
+ 	for (i = irq_base; i < irq_end; i++)
+ 		set_irq_chip_and_handler(i, NULL, NULL);
+-- 
+1.5.4.7
 
