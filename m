@@ -1,133 +1,105 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config
- option
-Date: Mon, 27 Jul 2009 10:27:14 +0300 (EEST)
-Message-ID: <20090727.102714.246532207.Hiroshi.DOYU@nokia.com>
-References: <20090724.210005.226780464.Hiroshi.DOYU@nokia.com>
-	<8F7AF80515AF0D4D93307E594F3CB40E3A941DDF@dlee03.ent.ti.com>
-	<20090725.082359.115933413.Hiroshi.DOYU@nokia.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH 32/32] ARM: OMAP: RX51: set MMC capabilities and	power-saving
+ flag
+Date: Mon, 27 Jul 2009 10:58:56 +0300
+Message-ID: <4A6D5E40.7030608@nokia.com>
+References: <20090710124004.1262.10422.sendpatchset@ahunter-tower> <20090710124353.1262.22788.sendpatchset@ahunter-tower> <20090725235329.GE12665@console-pimps.org>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Mon_Jul_27_10_27_15_2009_463)--"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:42444 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753840AbZG0H1d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 03:27:33 -0400
-In-Reply-To: <20090725.082359.115933413.Hiroshi.DOYU@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754293AbZG0H6m@vger.kernel.org>
+In-Reply-To: <20090725235329.GE12665@console-pimps.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Matt Fleming <matt@console-pimps.org>
+Cc: Pierre Ossman <pierre@ossman.eu>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "Karpov Denis.2 (EXT-Teleca/Helsinki)" <ext-denis.2.karpov@nokia.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: h-kanigeri2@ti.com
-Cc: linux-omap@vger.kernel.org, ameya.palande@nokia.com, x0095840@ti.com, omar.ramirez@ti.com
 
-----Next_Part(Mon_Jul_27_10_27_15_2009_463)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config option
-Date: Sat, 25 Jul 2009 08:23:59 +0300 (EEST)
-
-> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> Subject: RE: [PATCH 1/1] DSPBRIDGE: expose DSP_TRACEBUF as kernel config option
-> Date: Sat, 25 Jul 2009 02:43:41 +0200
+Matt Fleming wrote:
+> On Fri, Jul 10, 2009 at 03:43:53PM +0300, Adrian Hunter wrote:
+>> >From 3865867159f25cf706480236f6d4f0e4adde5dac Mon Sep 17 00:00:00 2001
+>> From: Adrian Hunter <adrian.hunter@nokia.com>
+>> Date: Fri, 10 Jul 2009 10:32:44 +0300
+>> Subject: [PATCH] ARM: OMAP: RX51: set MMC capabilities and power-saving flag
+>>
+>> Specify MMC capabilities and set the power-saving flag
+>> for RX51.
+>>
 > 
-> > Hiroshi,
-> > 
-> > > The problem here is that now all TRACEBUF code is always compiled in
-> > > in spite of setting "DEBUG". It doesn't print anything, but just
-> > > wastes some memory
-> > 
-> > That's not true. DSP_TRACEBUF is used to print the traces from DSP. This is used by Socket node developers to print their traces from DSP to console.
-> > If you enable DT=1 GT trace, then you get all the prints from DSP, which is extremely useful for DSP Developers.
+> After the changes to [PATCH 7/32], this becomes,
+
+I think this will leave every other board that uses omap_hsmmc
+without any card caps.
+
+What about adding something like this:
+
+
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 8900bae..f2548f1 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -1720,6 +1720,11 @@ static int __init omap_hsmmc_probe(struct platform_device *pdev)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+ 
+ 	mmc->caps |= mmc_slot(host).caps;
++	/* If no card caps specified then assume them all */
++	if (!((mmc->caps & MMC_CAP_SD) ||
++	      (mmc->caps & MMC_CAP_MMC) ||
++	      (mmc->caps & MMC_CAP_SDIO)))
++		mmc->caps |= MMC_CAP_SD & MMC_CAP_MMC & MMC_CAP_SDIO;
+ 
+ 	omap_hsmmc_conf_bus_power(host);
+ 
+
+
+
+
+
+
+> ---
 > 
-> I understand that DSP_TRACEBUF is useful. But now DSP_TRACEBUF is
-> always complied in and it cannot print anything without defining
-> GT_TRACE, IOW, without defining CONFIG_DSP_DEBUG. This is the matter of
-> dependency of those DEFINEs, DSP_TRACEBUF and DEBUG. Kconfig can describe
-> those dependency. I am proposing to set the dependency of DSP_TRACEBUF
-> on CONFIG_DSP_DEBUG, to save some memory instead of keeping unused
-> code(ex: PrintDSPDebugTrace()) in this driver.
-
-And here's the revised version of patch attached.
-
-----Next_Part(Mon_Jul_27_10_27_15_2009_463)--
-Content-Type: Application/Octet-Stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="0001-DSPBRIDGE-Set-dependency-of-DSP_TRACEBUF-on-DSP_DEB.patch"
-
-RnJvbSBhYjAzZmU5OWRhMzcxNDBkZDljNzhmYjBmY2FjNmZjNWMyYWU4YTkwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
-CkRhdGU6IFRodSwgMjMgSnVsIDIwMDkgMTM6Mjk6MzUgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
-MV0gRFNQQlJJREdFOiBTZXQgZGVwZW5kZW5jeSBvZiBEU1BfVFJBQ0VCVUYgb24gRFNQX0RFQlVH
-IGluIEtjb25maWcKCkZyb206IEhpcm9zaGkgRE9ZVSA8SGlyb3NoaS5ET1lVQG5va2lhLmNvbT4K
-CkRTUF9UUkFDRUJVRiByZXF1aXJlcyBEU1BfREVCVUcgdG8gbWFrZSB0aGlzIGZlYXR1cmUgZnVu
-Y3Rpb25hbC4gVGhpcwpwYXRjaCB3aWxsIHNhdmUgc29tZSBtZW1vcnkgd2l0aG91dCBEU1BfREVC
-VUcuCgpEU1BfVFJBQ0VCVUZfRElTQUJMRUQgaXMgcmVuYW1lZCB3aXRoIENPTkZJR19EU1BfVFJB
-Q0VCVUYgc2luY2UKIiNpZm5kZWYgRFNQX1RSQUNFQlVGX0RJU0FCTEVEIiB3YXMgbm90IGVhc3kg
-dG8gdW5kZXJzdGFuZC4KClNpZ25lZC1vZmYtYnk6IEhpcm9zaGkgRE9ZVSA8SGlyb3NoaS5ET1lV
-QG5va2lhLmNvbT4KLS0tCiBkcml2ZXJzL2RzcC9icmlkZ2UvS2NvbmZpZyAgICAgfCAgICA0ICsr
-KysKIGRyaXZlcnMvZHNwL2JyaWRnZS93bWQvaW9fc20uYyB8ICAgMjEgKysrKysrKysrLS0tLS0t
-LS0tLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDEzIGluc2VydGlvbnMoKyksIDEyIGRlbGV0aW9ucygt
-KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZHNwL2JyaWRnZS9LY29uZmlnIGIvZHJpdmVycy9kc3Av
-YnJpZGdlL0tjb25maWcKaW5kZXggMmZlZDgyYy4uZDczYjA5NyAxMDA2NDQKLS0tIGEvZHJpdmVy
-cy9kc3AvYnJpZGdlL0tjb25maWcKKysrIGIvZHJpdmVycy9kc3AvYnJpZGdlL0tjb25maWcKQEAg
-LTMyLDUgKzMyLDkgQEAgY29uZmlnIEJSSURHRV9NRU1QT09MX1NJWkUKIGNvbmZpZyBCUklER0Vf
-REVCVUcKIAlib29sICJEU1AgQnJpZGdlIERlYnVnIFN1cHBvcnQiCiAJZGVwZW5kcyBvbiBNUFVf
-QlJJREdFCisJc2VsZWN0IERTUF9UUkFDRUJVRgogCWhlbHAKIAkgIFNheSBZIHRvIGVuYWJsZSBC
-cmlkZ2UgZGVidWdnaW5nIGNhcGFiaWxpdGllcworCitjb25maWcgRFNQX1RSQUNFQlVGCisgICAg
-ICAgIGJvb2wKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZHNwL2JyaWRnZS93bWQvaW9fc20uYyBiL2Ry
-aXZlcnMvZHNwL2JyaWRnZS93bWQvaW9fc20uYwppbmRleCBkOGFlMWYxLi5jZDU4Y2NlIDEwMDY0
-NAotLS0gYS9kcml2ZXJzL2RzcC9icmlkZ2Uvd21kL2lvX3NtLmMKKysrIGIvZHJpdmVycy9kc3Av
-YnJpZGdlL3dtZC9pb19zbS5jCkBAIC0xMzgsNyArMTM4LDcgQEAgc3RydWN0IElPX01HUiB7CiAJ
-dTMyIGRRdWVQb3dlck1ieFZhbFtNQVhfUE1fUkVRU107CiAJdTMyIGlRdWVQb3dlckhlYWQ7CiAJ
-dTMyIGlRdWVQb3dlclRhaWw7Ci0jaWZuZGVmIERTUF9UUkFDRUJVRl9ESVNBQkxFRAorI2lmZGVm
-IENPTkZJR19EU1BfVFJBQ0VCVUYKIAl1MzIgdWxUcmFjZUJ1ZmZlckJlZ2luOyAJLyogVHJhY2Ug
-bWVzc2FnZSBzdGFydCBhZGRyZXNzICovCiAJdTMyIHVsVHJhY2VCdWZmZXJFbmQ7IAkvKiBUcmFj
-ZSBtZXNzYWdlIGVuZCBhZGRyZXNzICovCiAJdTMyIHVsVHJhY2VCdWZmZXJDdXJyZW50OyAJLyog
-VHJhY2UgbWVzc2FnZSBjdXJyZW50IGFkZHJlc3MgKi8KQEAgLTE2OSw5ICsxNjksOSBAQCBzdGF0
-aWMgdTMyIFJlYWREYXRhKHN0cnVjdCBXTURfREVWX0NPTlRFWFQgKmhEZXZDb250ZXh0LCB2b2lk
-ICpwRGVzdCwKIHN0YXRpYyB1MzIgV3JpdGVEYXRhKHN0cnVjdCBXTURfREVWX0NPTlRFWFQgKmhE
-ZXZDb250ZXh0LCB2b2lkICpwRGVzdCwKIAkJCXZvaWQgKnBTcmMsIHUzMiB1U2l6ZSk7CiBzdGF0
-aWMgc3RydWN0IHdvcmtxdWV1ZV9zdHJ1Y3QgKmJyaWRnZV93b3JrcXVldWU7Ci0jaWZuZGVmIERT
-UF9UUkFDRUJVRl9ESVNBQkxFRAorCiB2b2lkIFByaW50RFNQRGVidWdUcmFjZShzdHJ1Y3QgSU9f
-TUdSICpoSU9NZ3IpOwotI2VuZGlmCisKIAogLyogQnVzIEFkZHIgKGNhY2hlZCBrZXJuZWwpKi8K
-IHN0YXRpYyBEU1BfU1RBVFVTIHJlZ2lzdGVyU0hNU2VncyhzdHJ1Y3QgSU9fTUdSICpoSU9NZ3Is
-CkBAIC0yNTUsNyArMjU1LDcgQEAgRFNQX1NUQVRVUyBXTURfSU9fQ3JlYXRlKE9VVCBzdHJ1Y3Qg
-SU9fTUdSICoqcGhJT01nciwKIAkJUFJFUEFSRV9XT1JLKCZwSU9NZ3ItPmlvX3dvcmtxLCAodm9p
-ZCAqKUlPX0Rpc3BhdGNoUE0pOwogCiAJLyogSW5pdGlhbGl6ZSBDSE5MX01HUiBvYmplY3Q6ICAg
-ICovCi0jaWZuZGVmIERTUF9UUkFDRUJVRl9ESVNBQkxFRAorI2lmZGVmIENPTkZJR19EU1BfVFJB
-Q0VCVUYKIAlwSU9NZ3ItPnBNc2cgPSBOVUxMOwogI2VuZGlmCiAJcElPTWdyLT5oQ2hubE1nciA9
-IGhDaG5sTWdyOwpAQCAtMzMwLDcgKzMzMCw3IEBAIERTUF9TVEFUVVMgV01EX0lPX0Rlc3Ryb3ko
-c3RydWN0IElPX01HUiAqaElPTWdyKQogICAgICAgICAgICAgICAgLyogTGludXggZnVuY3Rpb24g
-dG8gdW5pbnN0YWxsIElTUiAqLwogICAgICAgICAgICAgICAgZnJlZV9pcnEoSU5UX01BSUxfTVBV
-X0lSUSwgKHZvaWQgKiloSU9NZ3IpOwogICAgICAgICAgICAgICAgKHZvaWQpRFBDX0Rlc3Ryb3ko
-aElPTWdyLT5oRFBDKTsKLSNpZm5kZWYgRFNQX1RSQUNFQlVGX0RJU0FCTEVECisjaWZkZWYgQ09O
-RklHX0RTUF9UUkFDRUJVRgogCQlpZiAoaElPTWdyLT5wTXNnKQogCQkJTUVNX0ZyZWUoaElPTWdy
-LT5wTXNnKTsKICNlbmRpZgpAQCAtNDQ4LDcgKzQ0OCw3IEBAIGZ1bmNfY29udDE6CiAJCX0KIAl9
-CiAJaWYgKERTUF9TVUNDRUVERUQoc3RhdHVzKSkgewotI2lmbmRlZiBEU1BfVFJBQ0VCVUZfRElT
-QUJMRUQKKyNpZmRlZiBDT05GSUdfRFNQX1RSQUNFQlVGCiAJCXN0YXR1cyA9IENPRF9HZXRTeW1W
-YWx1ZShoQ29kTWFuLCBEU1BfVFJBQ0VTRUNfRU5ELCAmdWxTaG0wRW5kKTsKIAkJREJHX1RyYWNl
-KERCR19MRVZFTDcsICJfQlJJREdFX1RSQUNFX0VORCB2YWx1ZSA9ICV4IFxuIiwKIAkJCSB1bFNo
-bTBFbmQpOwpAQCAtNzc1LDcgKzc3NSw3IEBAIGZ1bmNfY29udDoKIAkJCSAiMHgleFxuIiwgaE1z
-Z01nci0+dU1heE1zZ3MpOwogCQltZW1zZXQoKHZvaWQgKikgaElPTWdyLT5wU2hhcmVkTWVtLCAw
-LCBzaXplb2Yoc3RydWN0IFNITSkpOwogCX0KLSNpZm5kZWYgRFNQX1RSQUNFQlVGX0RJU0FCTEVE
-CisjaWZkZWYgQ09ORklHX0RTUF9UUkFDRUJVRgogCWlmIChEU1BfU1VDQ0VFREVEKHN0YXR1cykp
-IHsKIAkJLyogR2V0IHRoZSBzdGFydCBhZGRyZXNzIG9mIHRyYWNlIGJ1ZmZlciAqLwogCQlpZiAo
-RFNQX1NVQ0NFRURFRChzdGF0dXMpKSB7CkBAIC05ODksMTUgKzk4OSwxMiBAQCB2b2lkIElPX0RQ
-QyhJTiBPVVQgdm9pZCAqcFJlZkRhdGEpCiAJCUlPX0Rpc3BhdGNoTXNnKHBJT01nciwgcE1zZ01n
-cik7CiAJfQogI2VuZGlmCi0jaWZuZGVmIERTUF9UUkFDRUJVRl9ESVNBQkxFRAorI2lmZGVmIENP
-TkZJR19EU1BfVFJBQ0VCVUYKIAlpZiAocElPTWdyLT53SW50clZhbCAmIE1CWF9EQkdfQ0xBU1Mp
-IHsKIAkJLyogbm90aWZ5IERTUCBUcmFjZSBtZXNzYWdlICovCiAJCWlmIChwSU9NZ3ItPndJbnRy
-VmFsICYgTUJYX0RCR19TWVNQUklOVEYpCiAJCQlQcmludERTUERlYnVnVHJhY2UocElPTWdyKTsK
-IAl9Ci0jZW5kaWYKLQotI2lmbmRlZiBEU1BfVFJBQ0VCVUZfRElTQUJMRUQKIAlQcmludERTUERl
-YnVnVHJhY2UocElPTWdyKTsKICNlbmRpZgogfQpAQCAtMTc2Nyw3ICsxNzY0LDcgQEAgRFNQX1NU
-QVRVUyBXTURfSU9fR2V0UHJvY0xvYWQoSU4gc3RydWN0IElPX01HUiAqaElPTWdyLAogCXJldHVy
-biBEU1BfU09LOwogfQogCi0jaWZuZGVmIERTUF9UUkFDRUJVRl9ESVNBQkxFRAorI2lmZGVmIENP
-TkZJR19EU1BfVFJBQ0VCVUYKIHZvaWQgUHJpbnREU1BEZWJ1Z1RyYWNlKHN0cnVjdCBJT19NR1Ig
-KmhJT01ncikKIHsKIAl1MzIgdWxOZXdNZXNzYWdlTGVuZ3RoID0gMCwgdWxHUFBDdXJQb2ludGVy
-OwotLSAKMS42LjAuNAoK
-
-----Next_Part(Mon_Jul_27_10_27_15_2009_463)----
+> ARM: OMAP: RX51: set MMC capabilities and power-saving flag
+> 
+> Specify MMC capabilities and set the power-saving flag for RX51.
+> 
+> Signed-off-by: Matt Fleming <matt@console-pimps.org>
+> Cc: Adrian Hunter <adrian.hunter@nokia.com>
+> Cc: Ian Molton <ian@mnementh.co.uk>
+> Cc: "Roberto A. Foglietta" <roberto.foglietta@gmail.com>
+> Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>
+> Cc: Denis Karpov <ext-denis.2.karpov@nokia.com>
+> Cc: Pierre Ossman <pierre@ossman.eu>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index 9a0bf67..d2ce938 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/regulator/machine.h>
+>  #include <linux/gpio.h>
+> +#include <linux/mmc/host.h>
+>  
+>  #include <mach/mcspi.h>
+>  #include <mach/mux.h>
+> @@ -102,6 +103,8 @@ static struct twl4030_hsmmc_info mmc[] = {
+>  		.cover_only	= true,
+>  		.gpio_cd	= 160,
+>  		.gpio_wp	= -EINVAL,
+> +		.power_saving	= true,
+> +		.caps		= MMC_CAP_SD,
+>  	},
+>  	{
+>  		.name		= "internal",
+> @@ -109,6 +112,8 @@ static struct twl4030_hsmmc_info mmc[] = {
+>  		.wires		= 8,
+>  		.gpio_cd	= -EINVAL,
+>  		.gpio_wp	= -EINVAL,
+> +		.power_saving	= true,
+> +		.caps		= MMC_CAP_MMC | MMC_CAP_NONREMOVABLE,
+>  	},
+>  	{}	/* Terminator */
+>  };
