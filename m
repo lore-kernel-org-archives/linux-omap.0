@@ -1,135 +1,233 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] ARM: OMAP: TWL4030 IRQ
-Date: Mon, 27 Jul 2009 11:30:48 +0530
-Message-ID: <1248674448-17495-1-git-send-email-santosh.shilimkar@ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+Date: Mon, 27 Jul 2009 09:47:31 +0300 (EEST)
+Message-ID: <20090727.094731.260080790.Hiroshi.DOYU@nokia.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD44@dlee03.ent.ti.com>
+	<20090724.212140.104061104.Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E3A941FEA@dlee03.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37972 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736AbZG0GBY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 27 Jul 2009 02:01:24 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:38946 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752997AbZG0GsA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 02:48:00 -0400
+In-Reply-To: <8F7AF80515AF0D4D93307E594F3CB40E3A941FEA@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: sameo@linux.intel.com
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Russell King <rmk+kernel@arm.linux.org.uk>
+To: h-kanigeri2@ti.com
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, grgupta@ti.com, rmk@arm.linux.org.uk, vpasam@ti.com
 
-From: Russell King <rmk+kernel@arm.linux.org.uk>
+From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+Date: Mon, 27 Jul 2009 02:18:21 +0200
 
-(Rebased on 2.6.31-rc4)
+> Hi Hiroshi,
+> 
+> > > +static const struct iommu_platform_data omap4_iommu_pdata[] __initconst
+> > = {
+> > > +	{
+> > > +		.name = "ducati",
+> > > +		.nr_tlb_entries = 32,
+> > > +		.clk_name = "ducati_ick",
+> > > +	},
+> > > +#if defined(CONFIG_MPU_TESLA_IOMMU)
+> > > +	{
+> > > +		.name = "tesla",
+> > > +		.nr_tlb_entries = 32,
+> > > +		.clk_name = "tesla_ick",
+> > > +	},
+> > > +#endif
+> > > +};
+> > 
+> > If iommu is used as a character device driver, is the above config still
+> > necessary?
+> 
+> -- My apologies, I am not sure what you mean by this. Can you please elaborate a bit more.
 
-The TWL4030 IRQ handler has a bug which leads to spinlock lock-up. It is
-calling the 'unmask' function in a process context. :The mask/unmask/ack
-functions are only designed to be called from the IRQ handler code,
-or the proper API interfaces found in linux/interrupt.h.
+Well...I'm trying to explain;),
 
-Also there is no need to have IRQ chaining mechanism. The right way to
-handle this is to claim the parent interrupt as a standard interrupt
-and arrange for handle_twl4030_pih to take care of the rest of the devices.
+This "omap iommu" driver is used in OMAP4 IPC and its interface is a
+character device node. IOW, the client of this device will be an
+userland process and kernel won't know if it uses or not, but kernel
+just provides "/dev/iommu?" for userland. So I don't think that we
+have to care about the dependency of the existance of clients, at
+least, for a moment.
 
-Mail thread on this issue can be found at:
-http://marc.info/?l=linux-arm-kernel&m=124629940123396&w=2
-
-Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
----
- drivers/mfd/twl4030-irq.c |   55 +++++++++++++++++++-------------------------
- 1 files changed, 24 insertions(+), 31 deletions(-)
-
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index bae61b2..7d43083 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -180,14 +180,9 @@ static struct completion irq_event;
- static int twl4030_irq_thread(void *data)
- {
- 	long irq = (long)data;
--	struct irq_desc *desc = irq_to_desc(irq);
- 	static unsigned i2c_errors;
- 	static const unsigned max_i2c_errors = 100;
- 
--	if (!desc) {
--		pr_err("twl4030: Invalid IRQ: %ld\n", irq);
--		return -EINVAL;
--	}
- 
- 	current->flags |= PF_NOFREEZE;
- 
-@@ -240,7 +235,7 @@ static int twl4030_irq_thread(void *data)
- 		}
- 		local_irq_enable();
- 
--		desc->chip->unmask(irq);
-+		enable_irq(irq);
- 	}
- 
- 	return 0;
-@@ -255,25 +250,13 @@ static int twl4030_irq_thread(void *data)
-  * thread.  All we do here is acknowledge and mask the interrupt and wakeup
-  * the kernel thread.
-  */
--static void handle_twl4030_pih(unsigned int irq, struct irq_desc *desc)
-+static irqreturn_t handle_twl4030_pih(int irq, void *devid)
- {
- 	/* Acknowledge, clear *AND* mask the interrupt... */
--	desc->chip->ack(irq);
--	complete(&irq_event);
--}
--
--static struct task_struct *start_twl4030_irq_thread(long irq)
--{
--	struct task_struct *thread;
--
--	init_completion(&irq_event);
--	thread = kthread_run(twl4030_irq_thread, (void *)irq, "twl4030-irq");
--	if (!thread)
--		pr_err("twl4030: could not create irq %ld thread!\n", irq);
--
--	return thread;
-+	disable_irq_nosync(irq);
-+	complete(devid);
-+	return IRQ_HANDLED;
- }
--
- /*----------------------------------------------------------------------*/
- 
- /*
-@@ -734,18 +717,28 @@ int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- 	}
- 
- 	/* install an irq handler to demultiplex the TWL4030 interrupt */
--	task = start_twl4030_irq_thread(irq_num);
--	if (!task) {
--		pr_err("twl4030: irq thread FAIL\n");
--		status = -ESRCH;
--		goto fail;
--	}
- 
--	set_irq_data(irq_num, task);
--	set_irq_chained_handler(irq_num, handle_twl4030_pih);
- 
--	return status;
-+	init_completion(&irq_event);
- 
-+	status = request_irq(irq_num, handle_twl4030_pih, IRQF_DISABLED,
-+				"TWL4030-PIH", &irq_event);
-+	if (status < 0) {
-+		pr_err("twl4030: could not claim irq%d: %d\n", irq_num, status);
-+		goto fail_rqirq;
-+	}
-+
-+	task = kthread_run(twl4030_irq_thread, (void *)irq_num, "twl4030-irq");
-+	if (IS_ERR(task)) {
-+		pr_err("twl4030: could not create irq %d thread!\n", irq_num);
-+		status = PTR_ERR(task);
-+		goto fail_kthread;
-+	}
-+	return status;
-+fail_kthread:
-+	free_irq(irq_num, &irq_event);
-+fail_rqirq:
-+	/* clean up twl4030_sih_setup */
- fail:
- 	for (i = irq_base; i < irq_end; i++)
- 		set_irq_chip_and_handler(i, NULL, NULL);
--- 
-1.5.4.7
-
+> 
+> Thank you,
+> Best regards,
+> Hari
+> 
+> > -----Original Message-----
+> > From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> > Sent: Friday, July 24, 2009 1:22 PM
+> > To: Kanigeri, Hari
+> > Cc: tony@atomide.com; linux-omap@vger.kernel.org; Gupta, Ramesh;
+> > rmk@arm.linux.org.uk; Pasam, Vijay
+> > Subject: Re: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+> > 
+> > From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> > Subject: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+> > Date: Fri, 24 Jul 2009 19:22:32 +0200
+> > 
+> > > This patch adds omap4 support in iommu
+> > > module. This creates OMAP4 platform specific file
+> > > for iommu and defines the Ducati MMU fault interrupt.
+> > >
+> > > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/omap4-iommu.c      |  112
+> > ++++++++++++++++++++++++++++++++
+> > >  arch/arm/plat-omap/include/mach/irqs.h |    2 +-
+> > >  2 files changed, 113 insertions(+), 1 deletions(-)
+> > >  create mode 100644 arch/arm/mach-omap2/omap4-iommu.c
+> > >
+> > > diff --git a/arch/arm/mach-omap2/omap4-iommu.c b/arch/arm/mach-
+> > omap2/omap4-iommu.c
+> > > new file mode 100644
+> > > index 0000000..5a782df
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/omap4-iommu.c
+> > > @@ -0,0 +1,112 @@
+> > > +/*
+> > > + * omap iommu: omap4 device registration
+> > > + *
+> > > + * Copyright (C) 2009-2010 Nokia Corporation
+> > > + *
+> > > + * Written by Hari Kanigeri <h-kanigeri2@ti.com>
+> > > + *
+> > > + * Added support for OMAP4. This is based on original file
+> > > + * omap3-iommu.c
+> > > + *
+> > > + * This program is free software; you can redistribute it and/or modify
+> > > + * it under the terms of the GNU General Public License version 2 as
+> > > + * published by the Free Software Foundation.
+> > > + */
+> > > +
+> > > +#include <linux/platform_device.h>
+> > > +
+> > > +#include <mach/iommu.h>
+> > > +#include <mach/irqs.h>
+> > > +
+> > > +#define OMAP4_MMU1_BASE	0x55082000
+> > > +#define OMAP4_MMU2_BASE	0x4A066000
+> > > +
+> > > +#define OMAP4_MMU1_IRQ	INT_44XX_DUCATI_MMU_IRQ
+> > > +#define OMAP4_MMU2_IRQ	INT_44XX_DSP_MMU
+> > > +
+> > > +
+> > > +
+> > > +static unsigned long iommu_base[] __initdata = {
+> > > +	OMAP4_MMU1_BASE,
+> > > +	OMAP4_MMU2_BASE,
+> > > +};
+> > > +
+> > > +static int iommu_irq[] __initdata = {
+> > > +	OMAP4_MMU1_IRQ,
+> > > +	OMAP4_MMU2_IRQ,
+> > > +};
+> > > +
+> > > +static const struct iommu_platform_data omap4_iommu_pdata[] __initconst
+> > = {
+> > > +	{
+> > > +		.name = "ducati",
+> > > +		.nr_tlb_entries = 32,
+> > > +		.clk_name = "ducati_ick",
+> > > +	},
+> > > +#if defined(CONFIG_MPU_TESLA_IOMMU)
+> > > +	{
+> > > +		.name = "tesla",
+> > > +		.nr_tlb_entries = 32,
+> > > +		.clk_name = "tesla_ick",
+> > > +	},
+> > > +#endif
+> > > +};
+> > 
+> > If iommu is used as a character device driver, is the above config still
+> > necessary?
+> > 
+> > > +#define NR_IOMMU_DEVICES ARRAY_SIZE(omap4_iommu_pdata)
+> > > +
+> > > +static struct platform_device *omap4_iommu_pdev[NR_IOMMU_DEVICES];
+> > > +
+> > > +static int __init omap4_iommu_init(void)
+> > > +{
+> > > +	int i, err;
+> > > +
+> > > +	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
+> > > +		struct platform_device *pdev;
+> > > +		struct resource res[2];
+> > > +
+> > > +		pdev = platform_device_alloc("omap-iommu", i);
+> > > +		if (!pdev) {
+> > > +			err = -ENOMEM;
+> > > +			goto err_out;
+> > > +		}
+> > > +
+> > > +		memset(res, 0,  sizeof(res));
+> > > +		res[0].start = iommu_base[i];
+> > > +		res[0].end = iommu_base[i] + MMU_REG_SIZE - 1;
+> > > +		res[0].flags = IORESOURCE_MEM;
+> > > +		res[1].start = res[1].end = iommu_irq[i];
+> > > +		res[1].flags = IORESOURCE_IRQ;
+> > > +
+> > > +		err = platform_device_add_resources(pdev, res,
+> > > +						    ARRAY_SIZE(res));
+> > > +		if (err)
+> > > +			goto err_out;
+> > > +		err = platform_device_add_data(pdev, &omap4_iommu_pdata[i],
+> > > +					       sizeof(omap4_iommu_pdata[0]));
+> > > +		if (err)
+> > > +			goto err_out;
+> > > +		err = platform_device_add(pdev);
+> > > +		if (err)
+> > > +			goto err_out;
+> > > +		omap4_iommu_pdev[i] = pdev;
+> > > +	}
+> > > +	return 0;
+> > > +
+> > > +err_out:
+> > > +	while (i--)
+> > > +		platform_device_put(omap4_iommu_pdev[i]);
+> > > +	return err;
+> > > +}
+> > > +module_init(omap4_iommu_init);
+> > > +
+> > > +static void __exit omap4_iommu_exit(void)
+> > > +{
+> > > +	int i;
+> > > +
+> > > +	for (i = 0; i < NR_IOMMU_DEVICES; i++)
+> > > +		platform_device_unregister(omap4_iommu_pdev[i]);
+> > > +}
+> > > +module_exit(omap4_iommu_exit);
+> > > +
+> > > +MODULE_AUTHOR("Hiroshi DOYU, Hari Kanigeri");
+> > > +MODULE_DESCRIPTION("omap iommu: omap4 device registration");
+> > > +MODULE_LICENSE("GPL v2");
+> > > +
+> > > diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-
+> > omap/include/mach/irqs.h
+> > > index fb7cb77..34b6d09 100644
+> > > --- a/arch/arm/plat-omap/include/mach/irqs.h
+> > > +++ b/arch/arm/plat-omap/include/mach/irqs.h
+> > > @@ -511,7 +511,7 @@
+> > >  #define INT_44XX_TLL_IRQ	(78 + IRQ_GIC_START)
+> > >  #define INT_44XX_PARTHASH_IRQ	(79 + IRQ_GIC_START)
+> > >  #define INT_44XX_MMC3_IRQ	(94 + IRQ_GIC_START)
+> > > -
+> > > +#define INT_44XX_DUCATI_MMU_IRQ	(100 + IRQ_GIC_START)
+> > >
+> > >  /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
+> > >   * 16 MPUIO lines */
+> > > --
+> > > 1.5.4.3
+> > >
+> > >
+> > > Thank you,
+> > > Best regards,
+> > > Hari
+> > >
+> 
