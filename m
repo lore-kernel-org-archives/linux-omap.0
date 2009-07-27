@@ -1,51 +1,55 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: OMAP camera with BT-656 sensor
-Date: Mon, 27 Jul 2009 13:10:54 -0600
-Message-ID: <4A6DFBBE.6020805@mlbassoc.com>
-References: <a187869d0907270546m2be3542cla72366acfc62fb64@mail.gmail.com>	 <a187869d0907270725n7fce759bs6bcaeed70bd7f872@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16EC65@dlee02.ent.ti.com>	 <a187869d0907270859l313b86d3nea833c7a019d35be@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16ECD1@dlee02.ent.ti.com>	 <a187869d0907270911j74ee55b9nc872687eb32aecce@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16ED18@dlee02.ent.ti.com>	 <a187869d0907271036meb56ce9r32c5f5e823465e87@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16EE88@dlee02.ent.ti.com>	 <a187869d0907271145i177dcf52jb75aee758300878@mail.gmail.com> <a187869d0907271146q66112fc8l85aa37c8b1512d68@mail.gmail.com>
+From: Matt Fleming <matt@console-pimps.org>
+Subject: Re: [PATCH 32/32] ARM: OMAP: RX51: set MMC capabilities and
+	power-saving flag
+Date: Mon, 27 Jul 2009 20:32:53 +0100
+Message-ID: <20090727193253.GJ12665@console-pimps.org>
+References: <20090710124004.1262.10422.sendpatchset@ahunter-tower> <20090710124353.1262.22788.sendpatchset@ahunter-tower> <20090725235329.GE12665@console-pimps.org> <4A6D5E40.7030608@nokia.com> <20090727082721.GG12665@console-pimps.org> <4A6D6C2E.6060306@nokia.com> <20090727091511.GH12665@console-pimps.org> <20090727102111.GI12665@console-pimps.org> <4A6D8957.7040706@nokia.com> <20090727111448.89e79b55.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:1935 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbZG0TLA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 15:11:00 -0400
-In-Reply-To: <a187869d0907271146q66112fc8l85aa37c8b1512d68@mail.gmail.com>
+Received: from cs20.apochromatic.org ([204.152.189.161]:51584 "EHLO
+	cs20.apochromatic.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753124AbZG0TdR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 15:33:17 -0400
+Content-Disposition: inline
+In-Reply-To: <20090727111448.89e79b55.akpm@linux-foundation.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: saaguirre@ti.com
-Cc: linux-omap@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Adrian Hunter <adrian.hunter@nokia.com>, lkml <linux-kernel@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>
 
-Sergio,
+On Mon, Jul 27, 2009 at 11:14:48AM -0700, Andrew Morton wrote:
+> On Mon, 27 Jul 2009 14:02:47 +0300 Adrian Hunter <adrian.hunter@nokia.com> wrote:
+> 
+> > Matt Fleming wrote:
+> > > On Mon, Jul 27, 2009 at 10:15:11AM +0100, Matt Fleming wrote:
+> > >> On Mon, Jul 27, 2009 at 11:58:22AM +0300, Adrian Hunter wrote:
+> > >>> Yes much nicer.  Will you add it to your patch?
+> > >> Sure, I'll reply with an updated patch to 07/32 of this series.
+> > >>
+> > >> Thanks Adrian.
+> > > 
+> > > OK, slight problem. If I change omap_hsmmc.c in 07/32 you'll need to
+> > > respin all your patches from [PATCH 08/32] onwards. Is that OK with you?
+> > 
+> > I'd like to know what Andrew wants to do, as these patches are in mm tree.
+> > 
+> > In the past I have seen him ask for changes to be patched on top, rather than
+> > make a new patch.
+> > 
+> > Otherwise I am happy to redo the patch set.
+> 
+> Respinning the patchset produces the nicest result, but if it's just a
+> matter of one modest fixup patch to be applied after the 32-patch
+> series then I don't think it'll kill anyone.
 
-I'm trying to use your tree with a BT-656 style sensor(*).  I've
-managed to get this [more or less] working when I use the official
-TI PSP tree + OMAP3 patches, but I'm not getting very far with
-your code.  I just updated my copy from your tree, but I don't
-see any real changes since June 18 when I first started looking
-at this.
+My only worry is that if we have a fixup patch at the end of the series
+then we break bisection because the omap_hsmmc driver will not work from
+07/32 until the fixup patch. I think the only two options are,
 
-I've made a number of changes, inspired by the PSP code to get
-the BT-656 handling enabled in the CCDC.  I do see that the PSP
-codebase seems older than yours? but is more complete in other
-respects.  Can you enlighten me as to the heritage of these
-different trees?
+      a) move patch 07/32 to the end of the series (I can do the fix on
+      top then, no problems).
 
-The problem I have at the moment is that sensor data is getting
-into the CCDC module, but since the previewer/resizer modules
-are not used, nothing is ever delivered to my user code.
+      b) respin the all patches from 07/32 onwards.
 
-Bottom line, I'm confused as to how I should go about getting
-my driver/system working.  Do I use your work, or just stick
-with the PSP base (why?)??
-
-Thanks
-
-(*) I cloned: git://dev.omapzoom.org/pub/scm/saaguirre/linux-omap-camera.git
-
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Adrian, how feasible is option a)?
