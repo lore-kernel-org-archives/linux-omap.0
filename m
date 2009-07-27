@@ -1,18 +1,19 @@
 From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
-Date: Sun, 26 Jul 2009 19:18:21 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E3A941FEA@dlee03.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD44@dlee03.ent.ti.com>
- <20090724.212140.104061104.Hiroshi.DOYU@nokia.com>
+Subject: RE: [RFC][PATCH 3/3]ARM:OMAP4 iommu:provide build support for omap4
+ iommu
+Date: Sun, 26 Jul 2009 19:19:28 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E3A941FEB@dlee03.ent.ti.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD46@dlee03.ent.ti.com>
+ <20090724.211715.71123038.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49916 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49994 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751896AbZG0ASi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Jul 2009 20:18:38 -0400
-In-Reply-To: <20090724.212140.104061104.Hiroshi.DOYU@nokia.com>
+	id S1753465AbZG0ATn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 26 Jul 2009 20:19:43 -0400
+In-Reply-To: <20090724.211715.71123038.Hiroshi.DOYU@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -21,26 +22,16 @@ Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-o
 
 Hi Hiroshi,
 
-> > +static const struct iommu_platform_data omap4_iommu_pdata[] __initconst
-> = {
-> > +	{
-> > +		.name = "ducati",
-> > +		.nr_tlb_entries = 32,
-> > +		.clk_name = "ducati_ick",
-> > +	},
-> > +#if defined(CONFIG_MPU_TESLA_IOMMU)
-> > +	{
-> > +		.name = "tesla",
-> > +		.nr_tlb_entries = 32,
-> > +		.clk_name = "tesla_ick",
-> > +	},
-> > +#endif
-> > +};
+> >  config OMAP_IOMMU
+> > -	tristate
+> > -
+> > +	tristate "iommu"
+> > +        depends on ARCH_OMAP
 > 
-> If iommu is used as a character device driver, is the above config still
-> necessary?
+> Is the above dependecy necessary?
+>
 
--- My apologies, I am not sure what you mean by this. Can you please elaborate a bit more.
+-- Probably not. I will remove this.
 
 Thank you,
 Best regards,
@@ -48,166 +39,68 @@ Hari
 
 > -----Original Message-----
 > From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
-> Sent: Friday, July 24, 2009 1:22 PM
+> Sent: Friday, July 24, 2009 1:17 PM
 > To: Kanigeri, Hari
 > Cc: tony@atomide.com; linux-omap@vger.kernel.org; Gupta, Ramesh;
 > rmk@arm.linux.org.uk; Pasam, Vijay
-> Subject: Re: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+> Subject: Re: [RFC][PATCH 3/3]ARM:OMAP4 iommu:provide build support for
+> omap4 iommu
 > 
 > From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
-> Subject: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
-> Date: Fri, 24 Jul 2009 19:22:32 +0200
+> Subject: [RFC][PATCH 3/3]ARM:OMAP4 iommu:provide build support for omap4
+> iommu
+> Date: Fri, 24 Jul 2009 19:22:56 +0200
 > 
-> > This patch adds omap4 support in iommu
-> > module. This creates OMAP4 platform specific file
-> > for iommu and defines the Ducati MMU fault interrupt.
+> > This patch provides build support to build OMAP4
+> > IOMMU module. This also adds the changes to Kconfig
+> > file to make iommu option visible in menuconfig.
 > >
 > > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
 > > ---
-> >  arch/arm/mach-omap2/omap4-iommu.c      |  112
-> ++++++++++++++++++++++++++++++++
-> >  arch/arm/plat-omap/include/mach/irqs.h |    2 +-
-> >  2 files changed, 113 insertions(+), 1 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/omap4-iommu.c
+> >  arch/arm/mach-omap2/Makefile |    2 +-
+> >  arch/arm/plat-omap/Kconfig   |    8 ++++++--
+> >  2 files changed, 7 insertions(+), 3 deletions(-)
 > >
-> > diff --git a/arch/arm/mach-omap2/omap4-iommu.c b/arch/arm/mach-
-> omap2/omap4-iommu.c
-> > new file mode 100644
-> > index 0000000..5a782df
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/omap4-iommu.c
-> > @@ -0,0 +1,112 @@
-> > +/*
-> > + * omap iommu: omap4 device registration
-> > + *
-> > + * Copyright (C) 2009-2010 Nokia Corporation
-> > + *
-> > + * Written by Hari Kanigeri <h-kanigeri2@ti.com>
-> > + *
-> > + * Added support for OMAP4. This is based on original file
-> > + * omap3-iommu.c
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/platform_device.h>
-> > +
-> > +#include <mach/iommu.h>
-> > +#include <mach/irqs.h>
-> > +
-> > +#define OMAP4_MMU1_BASE	0x55082000
-> > +#define OMAP4_MMU2_BASE	0x4A066000
-> > +
-> > +#define OMAP4_MMU1_IRQ	INT_44XX_DUCATI_MMU_IRQ
-> > +#define OMAP4_MMU2_IRQ	INT_44XX_DSP_MMU
-> > +
-> > +
-> > +
-> > +static unsigned long iommu_base[] __initdata = {
-> > +	OMAP4_MMU1_BASE,
-> > +	OMAP4_MMU2_BASE,
-> > +};
-> > +
-> > +static int iommu_irq[] __initdata = {
-> > +	OMAP4_MMU1_IRQ,
-> > +	OMAP4_MMU2_IRQ,
-> > +};
-> > +
-> > +static const struct iommu_platform_data omap4_iommu_pdata[] __initconst
-> = {
-> > +	{
-> > +		.name = "ducati",
-> > +		.nr_tlb_entries = 32,
-> > +		.clk_name = "ducati_ick",
-> > +	},
-> > +#if defined(CONFIG_MPU_TESLA_IOMMU)
-> > +	{
-> > +		.name = "tesla",
-> > +		.nr_tlb_entries = 32,
-> > +		.clk_name = "tesla_ick",
-> > +	},
-> > +#endif
-> > +};
-> 
-> If iommu is used as a character device driver, is the above config still
-> necessary?
-> 
-> > +#define NR_IOMMU_DEVICES ARRAY_SIZE(omap4_iommu_pdata)
-> > +
-> > +static struct platform_device *omap4_iommu_pdev[NR_IOMMU_DEVICES];
-> > +
-> > +static int __init omap4_iommu_init(void)
-> > +{
-> > +	int i, err;
-> > +
-> > +	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
-> > +		struct platform_device *pdev;
-> > +		struct resource res[2];
-> > +
-> > +		pdev = platform_device_alloc("omap-iommu", i);
-> > +		if (!pdev) {
-> > +			err = -ENOMEM;
-> > +			goto err_out;
-> > +		}
-> > +
-> > +		memset(res, 0,  sizeof(res));
-> > +		res[0].start = iommu_base[i];
-> > +		res[0].end = iommu_base[i] + MMU_REG_SIZE - 1;
-> > +		res[0].flags = IORESOURCE_MEM;
-> > +		res[1].start = res[1].end = iommu_irq[i];
-> > +		res[1].flags = IORESOURCE_IRQ;
-> > +
-> > +		err = platform_device_add_resources(pdev, res,
-> > +						    ARRAY_SIZE(res));
-> > +		if (err)
-> > +			goto err_out;
-> > +		err = platform_device_add_data(pdev, &omap4_iommu_pdata[i],
-> > +					       sizeof(omap4_iommu_pdata[0]));
-> > +		if (err)
-> > +			goto err_out;
-> > +		err = platform_device_add(pdev);
-> > +		if (err)
-> > +			goto err_out;
-> > +		omap4_iommu_pdev[i] = pdev;
-> > +	}
-> > +	return 0;
-> > +
-> > +err_out:
-> > +	while (i--)
-> > +		platform_device_put(omap4_iommu_pdev[i]);
-> > +	return err;
-> > +}
-> > +module_init(omap4_iommu_init);
-> > +
-> > +static void __exit omap4_iommu_exit(void)
-> > +{
-> > +	int i;
-> > +
-> > +	for (i = 0; i < NR_IOMMU_DEVICES; i++)
-> > +		platform_device_unregister(omap4_iommu_pdev[i]);
-> > +}
-> > +module_exit(omap4_iommu_exit);
-> > +
-> > +MODULE_AUTHOR("Hiroshi DOYU, Hari Kanigeri");
-> > +MODULE_DESCRIPTION("omap iommu: omap4 device registration");
-> > +MODULE_LICENSE("GPL v2");
-> > +
-> > diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-
-> omap/include/mach/irqs.h
-> > index fb7cb77..34b6d09 100644
-> > --- a/arch/arm/plat-omap/include/mach/irqs.h
-> > +++ b/arch/arm/plat-omap/include/mach/irqs.h
-> > @@ -511,7 +511,7 @@
-> >  #define INT_44XX_TLL_IRQ	(78 + IRQ_GIC_START)
-> >  #define INT_44XX_PARTHASH_IRQ	(79 + IRQ_GIC_START)
-> >  #define INT_44XX_MMC3_IRQ	(94 + IRQ_GIC_START)
+> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> > index 735bae5..59e0865 100644
+> > --- a/arch/arm/mach-omap2/Makefile
+> > +++ b/arch/arm/mach-omap2/Makefile
+> > @@ -41,7 +41,7 @@ obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
+> >
+> >  iommu-y					+= iommu2.o
+> >  iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
 > > -
-> > +#define INT_44XX_DUCATI_MMU_IRQ	(100 + IRQ_GIC_START)
+> > +iommu-$(CONFIG_ARCH_OMAP4)              += omap4-iommu.o
+> >  obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
 > >
-> >  /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
-> >   * 16 MPUIO lines */
+> >  # Specific board support
+> > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> > index efe85d0..00d7a1e 100644
+> > --- a/arch/arm/plat-omap/Kconfig
+> > +++ b/arch/arm/plat-omap/Kconfig
+> > @@ -118,8 +118,12 @@ config OMAP_MBOX_FWK
+> >  	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
+> >
+> >  config OMAP_IOMMU
+> > -	tristate
+> > -
+> > +	tristate "iommu"
+> > +        depends on ARCH_OMAP
+> 
+> Is the above dependecy necessary?
+> 
+> > +	default y
+> > +	help
+> > +	  Select this option if you want to use IOMMU support for the
+> > +	  Camera in OMAP3, and for Ducati processor in OMAP4.
+> 
+> So here, it goes visible because iommu will be an independent character
+> device, right?
+> 
+> 
+> >  choice
+> >          prompt "System timer"
+> >  	default OMAP_MPU_TIMER
 > > --
 > > 1.5.4.3
 > >
