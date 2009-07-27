@@ -1,88 +1,44 @@
-From: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
-Subject: Re: [PATCH] musb: fix CONFIGDATA register read issue
-Date: Mon, 27 Jul 2009 14:32:15 -0700
-Message-ID: <200907271432.15406.david-b@pacbell.net>
-References: <1246858408-24953-1-git-send-email-ajay.gupta@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1246858408-24953-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+From: talvala@stanford.edu
+Subject: [PATCH] OMAP3: EVM: Remove TWL4030 USB Transceiver Driver from defconfig
+Date: Mon, 27 Jul 2009 16:10:59 -0700
+Message-ID: <1248736259-3392-1-git-send-email-talvala@stanford.edu>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp5.Stanford.EDU ([171.67.219.85]:53774 "EHLO
+	smtp5.stanford.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754829AbZG0XK0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 27 Jul 2009 19:10:26 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Eino-Ville Talvala <talvala@stanford.edu>
 
-On Sunday 05 July 2009, Ajay Kumar Gupta wrote:
-> INDEX register has to be set to '0' before reading
-> CONFIGDATA register which is only present in TI musb
-> platforms.
-> 
-> Currently the default register access mode is set to
-> FLAT_MODE thus INDEX register is not getting set
-> properly with musb_ep_select() which is just a nop
-> operation in FLAT_MODE.This invalid register read is
-> causing module reinset failure.
-> 
-> Fixing the issue by moving INDEX register write part to
-> musb_read_configdata() function itself.
-> 
-> Signed-off-by: Vikram Pandita <vikram.pandita at ti.com>
-> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Eino-Ville Talvala <talvala@stanford.edu>
 
-Acked-by: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Intended to be applied on top of Ajay Gupta's MUSB cleanup patch:
+'musb: cleanup the nop registration for OMAP3EVM' from 7/3/2009.
 
-This is the right fix, thanks.  With these two important
-operations *next to each other* it'll be harder to repeat
-the goof that cause this breakage.
+The OMAP3 EVM defconfig compiles in the TWL4030 USB transceiver driver, 
+which conflicts with registering the NOP transceiver.  Remove the 
+unneeded TWL4030 driver from defconfig.
 
+Signed-off-by: Eino-Ville Talvala <talvala@stanford.edu>
+---
+ arch/arm/configs/omap3_evm_defconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> ---
-> Based on a previous patch from Anand at,
-> http://marc.info/?l=linux-omap&m=122051303604377&w=2
-> 
-> Another version of this fix by Vikram is at,
-> http://linux.omap.com/pipermail/linux-omap-open-source/2007-November/012084.html
-> 
->  drivers/usb/musb/musb_core.c |    1 -
->  drivers/usb/musb/musb_regs.h |    1 +
->  2 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 554a414..3ec68a1 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -1326,7 +1326,6 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
->  	int		i;
->  
->  	/* log core options (read using indexed model) */
-> -	musb_ep_select(mbase, 0);
->  	reg = musb_read_configdata(mbase);
->  
->  	strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-16" : "UTMI-8");
-> diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_regs.h
-> index de3b2f1..fbfd3fd 100644
-> --- a/drivers/usb/musb/musb_regs.h
-> +++ b/drivers/usb/musb/musb_regs.h
-> @@ -323,6 +323,7 @@ static inline void  musb_write_rxfifoadd(void __iomem *mbase, u16 c_off)
->  
->  static inline u8 musb_read_configdata(void __iomem *mbase)
->  {
-> +	musb_writeb(mbase, MUSB_INDEX, 0);
->  	return musb_readb(mbase, 0x10 + MUSB_CONFIGDATA);
->  }
->  
-> -- 
-> 1.6.2.4
-> 
-> 
+diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
+index 28be17f..0ea8bd7 100644
+--- a/arch/arm/configs/omap3_evm_defconfig
++++ b/arch/arm/configs/omap3_evm_defconfig
+@@ -1107,7 +1107,7 @@ CONFIG_USB_ZERO=m
+ CONFIG_USB_OTG_UTILS=y
+ # CONFIG_USB_GPIO_VBUS is not set
+ # CONFIG_ISP1301_OMAP is not set
+-CONFIG_TWL4030_USB=y
++CONFIG_TWL4030_USB=n
+ # CONFIG_NOP_USB_XCEIV is not set
+ CONFIG_MMC=y
+ # CONFIG_MMC_DEBUG is not set
+-- 
+1.5.4.3
 
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
