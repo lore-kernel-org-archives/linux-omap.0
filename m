@@ -1,110 +1,70 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: OMAP camera with BT-656 sensor
-Date: Tue, 28 Jul 2009 06:44:56 -0600
-Message-ID: <4A6EF2C8.502@mlbassoc.com>
-References: <a187869d0907270546m2be3542cla72366acfc62fb64@mail.gmail.com>	 <a187869d0907270725n7fce759bs6bcaeed70bd7f872@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16EC65@dlee02.ent.ti.com>	 <a187869d0907270859l313b86d3nea833c7a019d35be@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16ECD1@dlee02.ent.ti.com>	 <a187869d0907270911j74ee55b9nc872687eb32aecce@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16ED18@dlee02.ent.ti.com>	 <a187869d0907271036meb56ce9r32c5f5e823465e87@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16EE88@dlee02.ent.ti.com>	 <a187869d0907271145i177dcf52jb75aee758300878@mail.gmail.com> <a187869d0907271146q66112fc8l85aa37c8b1512d68@mail.gmail.com> <4A6DFBBE.6020805@mlbassoc.com> <A24693684029E5489D1D202277BE89444A16F057@dlee02.ent.ti.com> <4A6E070B.
- 8090203@mlbassoc.com> <A24693684029E5489D1D202277BE89444A16F0AC@dlee02.ent.ti.com> <19F8576C6E063C45BE387C64729E73940432A6DC5D@dbde02.ent.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [alsa-devel] [RFC] [PATCH 1/3] ASoC: Add support for Conexant CX20442-11 voice modem codec
+Date: Tue, 28 Jul 2009 16:59:33 +0200
+Message-ID: <200907281659.36000.jkrzyszt@tis.icnet.pl>
+References: <200907220522.29221.jkrzyszt@tis.icnet.pl> <20090722101027.GA7622@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:1542 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbZG1Mo6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 08:44:58 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940432A6DC5D@dbde02.ent.ti.com>
+Received: from d1.icnet.pl ([212.160.220.21]:48326 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753206AbZG1PAz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 28 Jul 2009 11:00:55 -0400
+In-Reply-To: <20090722101027.GA7622@sirena.org.uk>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Hiremath, Vaibhav wrote:
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
->> Alberto
->> Sent: Tuesday, July 28, 2009 1:45 AM
->> To: Gary Thomas
->> Cc: linux-omap@vger.kernel.org
->> Subject: RE: OMAP camera with BT-656 sensor
->>
->>
->>
->>> -----Original Message-----
->>> From: Gary Thomas [mailto:gary@mlbassoc.com]
->>> Sent: Monday, July 27, 2009 2:59 PM
->>> To: Aguirre Rodriguez, Sergio Alberto
->>> Cc: linux-omap@vger.kernel.org
->>> Subject: Re: OMAP camera with BT-656 sensor
->>>
->>> Aguirre Rodriguez, Sergio Alberto wrote:
->>>>> -----Original Message-----
->>>>> From: Gary Thomas [mailto:gary@mlbassoc.com]
->>>>> Sent: Monday, July 27, 2009 2:11 PM
->>>>> To: Aguirre Rodriguez, Sergio Alberto
->>>>> Cc: linux-omap@vger.kernel.org
->>>>> Subject: OMAP camera with BT-656 sensor
->>>    ... snip
->>>
->>>>> Bottom line, I'm confused as to how I should go about getting
->>>>> my driver/system working.  Do I use your work, or just stick
->>>>> with the PSP base (why?)??
->>>> What I do feel is that the PSP base will fulfill better your
->> immediate
->>> needs, but in the future, as I'm getting aware of Vaibhav changes,
->> I'll be
->>> interested in making them part of my tree aswell, so Vaibhav could
->> avoid
->>> rebasing the BT646 support internally everytime...
->>>
->>> Is there a GIT tree for this?
->> AFAIK, this is the latest tree Vaibhav is exposing:
->>
->> http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git
->>
->> He maintains a camera and a DSS2 branch exactly to make both work on
->> his 3530EVM.
->>
-> [Hiremath, Vaibhav] Thanks Sergio for taking this up. Just to add on top of Sergio's comments, the current status of above tree is, DSS2 is already merged to latest kernel (Even on PM branch) baseline.
-> 
-> http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/ti_display
-> 
-> http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/pm
-> 
-> 
-> The next PSP release will contain 2.6.31(PM) + DSS2 + Camera + Resizer modules together in one release. I have started with Camera modules merging on top of 2.6.31 + DSS2; hopefully I should be able to complete this by next week (provided that I don't get any interrupts)
-> 
-> You should be looking to Arago tree for all the developments which I do under Arago.
-> 
-> Please let me know if you have any issues/doubts OR if you are looking for some quick solutions.
+Wednesday 22 July 2009 12:10:28 Mark Brown wrote:
+> On Wed, Jul 22, 2009 at 05:22:28AM +0200, Janusz Krzysztofik wrote:
+> > This patch adds support for Conexant CX20442-11 voice modem codec,
+> > suitable for use by the ASoC board driver for Amstrad E3 (Delta)
+> > videophone. Related sound card driver will follow.
+> >
+> You'll want to run checkpatch over it and send a followup fixing the
+> issues it identifies.  Looking at this I suspect that it may be possible
+> to refactor things so that more of the line discipline interaction is
+> pushed down into the CODEC driver but that can also be done as a
+> followup.
+>
+> would also be nice to add some documentation somewhere explaining how
+> the hw_write() function is expected to be set up since it's a little
+> surprising (if the line discipline stuff were pushed down into the code
+> that'd become a lot more obvious).
 
-I'd like to use the latest tree with DSS2 (ti_display seems to be it), but
-the OMAP3 camera support is not present.
-  * How hard would it be to merge the ti_omap3camera and ti_display branches?
-  * Would this be a reasonable way forward?
+Mark,
+I am ready with a followup that corrects those minor issues, as well as with a 
+new, corrected version of the machine driver. However, before I submit them, 
+I'd like to discuss again your idea of pushing down the line discipline code 
+into the codec driver.
 
-It would be nice if I could wait for your next release, but alas, my
-project is already weeks late and every hour counts...
+As you may have noticed, my codec driver was ready for adopting it to one or 
+more additional buses of different types, in a way similiar to those 
+implemented in other codec drivers. There was a room for a hypothetical 
+cx20442_xxx_probe() function, invoked by a hypothetical xxx bus driver after 
+the bus comes up or a device is detected on it. That function could then set 
+up its own codec->control_data and codec->hw_write pointers for talking to 
+the codec via a hypothetical xxx bus adapter using its write method. In 
+particular, that could be a line discipline provided acceess to the codec 
+assosociated modem.
 
->>> A [hopefully] minor complication is that I'm using Tomi's DSS2
->>> tree for the base of my port.  How can I move/merge the PSP
->>> based support into it?  Can I just pick up the whole drivers/media
->>> subtree and put in in place of what I have?
->> I recommend looking at the git tree above... I think that job is
->> already done...
->>
->>> Thanks for your help - this myriad of trees and very disparate
->>> support levels is really confusing to those of us on the
->> outside...
->>
->> I know, and the lack of proper documentation is one of the first
->> issues for me to look at...
->>
->> You're welcome.
+Following that model, the line discipline code didn't seam to belong to a 
+codec driver for me. If it could be recognized as a new bus dirver, it should 
+be pushed down probably into a separate module. However, if it was rather 
+some kind of a bus adapter driver, it seamed to belong to the machine code.
 
+As I had got no positive feedback to my RFC on inventing a new bus (votes were 
+rather neutral, and I agreed with them[1]), I decided to put the line 
+discipline code into the machine driver.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+If you see things somehow different, please let me know, I can try to follow 
+your ideas and rearrange the code.
+
+Cheers,
+Janusz
+
+[1] http://www.spinics.net/lists/linux-serial/msg01856.html
