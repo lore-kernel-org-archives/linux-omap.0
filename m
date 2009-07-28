@@ -1,131 +1,101 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: OMAP camera with BT-656 sensor
-Date: Tue, 28 Jul 2009 09:44:30 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940432A6DC5D@dbde02.ent.ti.com>
-References: <a187869d0907270546m2be3542cla72366acfc62fb64@mail.gmail.com>
-	 <a187869d0907270725n7fce759bs6bcaeed70bd7f872@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16EC65@dlee02.ent.ti.com>
-	 <a187869d0907270859l313b86d3nea833c7a019d35be@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16ECD1@dlee02.ent.ti.com>
-	 <a187869d0907270911j74ee55b9nc872687eb32aecce@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16ED18@dlee02.ent.ti.com>
-	 <a187869d0907271036meb56ce9r32c5f5e823465e87@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16EE88@dlee02.ent.ti.com>
-	 <a187869d0907271145i177dcf52jb75aee758300878@mail.gmail.com>
- <a187869d0907271146q66112fc8l85aa37c8b1512d68@mail.gmail.com>
- <4A6DFBBE.6020805@mlbassoc.com>
- <A24693684029E5489D1D202277BE89444A16F057@dlee02.ent.ti.com>
- <4A6E070B.8090203@mlbassoc.com>
- <A24693684029E5489D1D202277BE89444A16F0AC@dlee02.ent.ti.com>
+From: vimal singh <vimal.newwork-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] musb: fix CONFIGDATA register read issue
+Date: Tue, 28 Jul 2009 11:36:58 +0530
+Message-ID: <ce9ab5790907272306g40bb2447m32e976573a33e992@mail.gmail.com>
+References: <1246858408-24953-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59577 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750744AbZG1EOj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 00:14:39 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE89444A16F0AC@dlee02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1246858408-24953-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Mon, Jul 6, 2009 at 11:03 AM, Ajay Kumar Gupta<ajay.gupta-l0cyMroinI0@public.gmane.org> wr=
+ote:
+> INDEX register has to be set to '0' before reading
+> CONFIGDATA register which is only present in TI musb
+> platforms.
+>
+> Currently the default register access mode is set to
+> FLAT_MODE thus INDEX register is not getting set
+> properly with musb_ep_select() which is just a nop
+> operation in FLAT_MODE.This invalid register read is
+> causing module reinset failure.
+>
+> Fixing the issue by moving INDEX register write part to
+> musb_read_configdata() function itself.
+>
+> Signed-off-by: Vikram Pandita <vikram.pandita at ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
-> Alberto
-> Sent: Tuesday, July 28, 2009 1:45 AM
-> To: Gary Thomas
-> Cc: linux-omap@vger.kernel.org
-> Subject: RE: OMAP camera with BT-656 sensor
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: Gary Thomas [mailto:gary@mlbassoc.com]
-> > Sent: Monday, July 27, 2009 2:59 PM
-> > To: Aguirre Rodriguez, Sergio Alberto
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: OMAP camera with BT-656 sensor
-> >
-> > Aguirre Rodriguez, Sergio Alberto wrote:
-> > >
-> > >> -----Original Message-----
-> > >> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> > >> Sent: Monday, July 27, 2009 2:11 PM
-> > >> To: Aguirre Rodriguez, Sergio Alberto
-> > >> Cc: linux-omap@vger.kernel.org
-> > >> Subject: OMAP camera with BT-656 sensor
-> >    ... snip
-> >
-> > >> Bottom line, I'm confused as to how I should go about getting
-> > >> my driver/system working.  Do I use your work, or just stick
-> > >> with the PSP base (why?)??
-> > >
-> > > What I do feel is that the PSP base will fulfill better your
-> immediate
-> > needs, but in the future, as I'm getting aware of Vaibhav changes,
-> I'll be
-> > interested in making them part of my tree aswell, so Vaibhav could
-> avoid
-> > rebasing the BT646 support internally everytime...
-> >
-> > Is there a GIT tree for this?
-> 
-> AFAIK, this is the latest tree Vaibhav is exposing:
-> 
-> http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git
-> 
-> He maintains a camera and a DSS2 branch exactly to make both work on
-> his 3530EVM.
-> 
-[Hiremath, Vaibhav] Thanks Sergio for taking this up. Just to add on top of Sergio's comments, the current status of above tree is, DSS2 is already merged to latest kernel (Even on PM branch) baseline.
+Please correct the e-mail address above.
 
-http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/ti_display
-
-http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/pm
-
-
-The next PSP release will contain 2.6.31(PM) + DSS2 + Camera + Resizer modules together in one release. I have started with Camera modules merging on top of 2.6.31 + DSS2; hopefully I should be able to complete this by next week (provided that I don't get any interrupts)
-
-You should be looking to Arago tree for all the developments which I do under Arago.
-
-Please let me know if you have any issues/doubts OR if you are looking for some quick solutions.
-
-Thanks,
-Vaibhav
-
-> >
-> > A [hopefully] minor complication is that I'm using Tomi's DSS2
-> > tree for the base of my port.  How can I move/merge the PSP
-> > based support into it?  Can I just pick up the whole drivers/media
-> > subtree and put in in place of what I have?
-> 
-> I recommend looking at the git tree above... I think that job is
-> already done...
-> 
-> >
-> > Thanks for your help - this myriad of trees and very disparate
-> > support levels is really confusing to those of us on the
-> outside...
-> 
-> I know, and the lack of proper documentation is one of the first
-> issues for me to look at...
-> 
-> You're welcome.
-> >
-> > --
-> > ------------------------------------------------------------
-> > Gary Thomas                 |  Consulting for the
-> > MLB Associates              |    Embedded world
-> > ------------------------------------------------------------
-> 
+> Signed-off-by: Anand Gadiyar <gadiyar-l0cyMroinI0@public.gmane.org>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> ---
+> Based on a previous patch from Anand at,
+> http://marc.info/?l=3Dlinux-omap&m=3D122051303604377&w=3D2
+>
+> Another version of this fix by Vikram is at,
+> http://linux.omap.com/pipermail/linux-omap-open-source/2007-November/=
+012084.html
+>
+> =A0drivers/usb/musb/musb_core.c | =A0 =A01 -
+> =A0drivers/usb/musb/musb_regs.h | =A0 =A01 +
+> =A02 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_cor=
+e.c
+> index 554a414..3ec68a1 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -1326,7 +1326,6 @@ static int __init musb_core_init(u16 musb_type,=
+ struct musb *musb)
+> =A0 =A0 =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 i;
+>
+> =A0 =A0 =A0 =A0/* log core options (read using indexed model) */
+> - =A0 =A0 =A0 musb_ep_select(mbase, 0);
+> =A0 =A0 =A0 =A0reg =3D musb_read_configdata(mbase);
+>
+> =A0 =A0 =A0 =A0strcpy(aInfo, (reg & MUSB_CONFIGDATA_UTMIDW) ? "UTMI-1=
+6" : "UTMI-8");
+> diff --git a/drivers/usb/musb/musb_regs.h b/drivers/usb/musb/musb_reg=
+s.h
+> index de3b2f1..fbfd3fd 100644
+> --- a/drivers/usb/musb/musb_regs.h
+> +++ b/drivers/usb/musb/musb_regs.h
+> @@ -323,6 +323,7 @@ static inline void =A0musb_write_rxfifoadd(void _=
+_iomem *mbase, u16 c_off)
+>
+> =A0static inline u8 musb_read_configdata(void __iomem *mbase)
+> =A0{
+> + =A0 =A0 =A0 musb_writeb(mbase, MUSB_INDEX, 0);
+> =A0 =A0 =A0 =A0return musb_readb(mbase, 0x10 + MUSB_CONFIGDATA);
+> =A0}
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.6.2.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
+
+
+--=20
+---
+Regards,
+\/ | |\/| /-\ |_
+
+____      __o
+------   -\<,
+-----  ( )/ ( )
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
