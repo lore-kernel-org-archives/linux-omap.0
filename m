@@ -1,77 +1,62 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH V2 31/32] omap_hsmmc: set a large data timeout for commands with busy signal
-Date: Tue, 28 Jul 2009 13:42:23 +0300
-Message-ID: <20090728104223.2371.92338.sendpatchset@ahunter-laptop>
+Subject: [PATCH V2 32/32] ARM: OMAP: RX51: set MMC capabilities and power-saving flag
+Date: Tue, 28 Jul 2009 13:42:30 +0300
+Message-ID: <20090728104230.2371.51318.sendpatchset@ahunter-laptop>
 References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753796AbZG1Kmq@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:32836 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753560AbZG1Km6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 06:42:58 -0400
 In-Reply-To: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Pierre Ossman <pierre@ossman.eu>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Matt Fleming <matt@console-pimps.org>, lkml <linux-kernel@vger.kernel.org>
-List-Id: linux-omap@vger.kernel.org
 
->From d9cb1021a2d64c89bbc5763dbbcece68bcc0147c Mon Sep 17 00:00:00 2001
+>From 3f9b4e7c30012bbad4f5cf678f2e02e943000b67 Mon Sep 17 00:00:00 2001
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Fri, 26 Jun 2009 11:29:20 +0300
-Subject: [PATCH] omap_hsmmc: set a large data timeout for commands with busy signal
+Date: Fri, 10 Jul 2009 10:32:44 +0300
+Subject: [PATCH] ARM: OMAP: RX51: set MMC capabilities and power-saving flag
 
-Commands like SWITCH (CMD6) send a response and then signal busy
-while the operation is completed.  These commands are expected
-to always succeed (otherwise the response would have indicated an
-error).
-
-Set an arbitrarily large data timeout value (100ms) for these commands
-to ensure that premature timeouts do not occur.
+Specify MMC capabilities and set the power-saving flag
+for RX51.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index abe1fa1..f5f207d 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -990,7 +990,8 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
- }
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index 9a0bf67..d2ce938 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -19,6 +19,7 @@
+ #include <linux/delay.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/gpio.h>
++#include <linux/mmc/host.h>
  
- static void set_data_timeout(struct omap_hsmmc_host *host,
--			     struct mmc_request *req)
-+			     unsigned int timeout_ns,
-+			     unsigned int timeout_clks)
- {
- 	unsigned int timeout, cycle_ns;
- 	uint32_t reg, clkd, dto = 0;
-@@ -1001,8 +1002,8 @@ static void set_data_timeout(struct omap_hsmmc_host *host,
- 		clkd = 1;
- 
- 	cycle_ns = 1000000000 / (clk_get_rate(host->fclk) / clkd);
--	timeout = req->data->timeout_ns / cycle_ns;
--	timeout += req->data->timeout_clks;
-+	timeout = timeout_ns / cycle_ns;
-+	timeout += timeout_clks;
- 	if (timeout) {
- 		while ((timeout & 0x80000000) == 0) {
- 			dto += 1;
-@@ -1036,12 +1037,18 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
- 
- 	if (req->data == NULL) {
- 		OMAP_HSMMC_WRITE(host->base, BLK, 0);
-+		/*
-+		 * Set an arbitrary 100ms data timeout for commands with
-+		 * busy signal.
-+		 */
-+		if (req->cmd->flags & MMC_RSP_BUSY)
-+			set_data_timeout(host, 100000000U, 0);
- 		return 0;
- 	}
- 
- 	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
- 					| (req->data->blocks << 16));
--	set_data_timeout(host, req);
-+	set_data_timeout(host, req->data->timeout_ns, req->data->timeout_clks);
- 
- 	if (host->use_dma) {
- 		ret = omap_hsmmc_start_dma_transfer(host, req);
+ #include <mach/mcspi.h>
+ #include <mach/mux.h>
+@@ -102,6 +103,8 @@ static struct twl4030_hsmmc_info mmc[] = {
+ 		.cover_only	= true,
+ 		.gpio_cd	= 160,
+ 		.gpio_wp	= -EINVAL,
++		.power_saving	= true,
++		.caps		= MMC_CAP_SD,
+ 	},
+ 	{
+ 		.name		= "internal",
+@@ -109,6 +112,8 @@ static struct twl4030_hsmmc_info mmc[] = {
+ 		.wires		= 8,
+ 		.gpio_cd	= -EINVAL,
+ 		.gpio_wp	= -EINVAL,
++		.power_saving	= true,
++		.caps		= MMC_CAP_MMC | MMC_CAP_NONREMOVABLE,
+ 	},
+ 	{}	/* Terminator */
+ };
 -- 
 1.5.6.3
+
