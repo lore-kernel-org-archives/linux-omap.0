@@ -1,129 +1,77 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH V2 8/32] mmc: check status after MMC SWITCH command
-Date: Tue, 28 Jul 2009 13:39:34 +0300
-Message-ID: <20090728103934.2371.96819.sendpatchset@ahunter-laptop>
+Subject: [PATCH V2 31/32] omap_hsmmc: set a large data timeout for commands with busy signal
+Date: Tue, 28 Jul 2009 13:42:23 +0300
+Message-ID: <20090728104223.2371.92338.sendpatchset@ahunter-laptop>
 References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753116AbZG1Kjz@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753796AbZG1Kmq@vger.kernel.org>
 In-Reply-To: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Pierre Ossman <pierre@ossman.eu>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Matt Fleming <matt@console-pimps.org>, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
->From 98c0aabb4c04bcdf7d166c0fb7e2c859e33f8c70 Mon Sep 17 00:00:00 2001
+>From d9cb1021a2d64c89bbc5763dbbcece68bcc0147c Mon Sep 17 00:00:00 2001
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Wed, 3 Jun 2009 12:22:29 +0300
-Subject: [PATCH] mmc: check status after MMC SWITCH command
+Date: Fri, 26 Jun 2009 11:29:20 +0300
+Subject: [PATCH] omap_hsmmc: set a large data timeout for commands with busy signal
 
-According to the standard, the SWITCH command should
-be followed by a SEND_STATUS command to check for
-errors.
+Commands like SWITCH (CMD6) send a response and then signal busy
+while the operation is completed.  These commands are expected
+to always succeed (otherwise the response would have indicated an
+error).
+
+Set an arbitrarily large data timeout value (100ms) for these commands
+to ensure that premature timeouts do not occur.
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- drivers/mmc/core/mmc.c     |   24 ++++++++++++++++++------
- drivers/mmc/core/mmc_ops.c |   23 +++++++++++++++++++++++
- include/linux/mmc/mmc.h    |    1 +
- 3 files changed, 42 insertions(+), 6 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/mmc/core/mmc.c b/drivers/mmc/core/mmc.c
-index 8e2e3d2..f87cc0b 100644
---- a/drivers/mmc/core/mmc.c
-+++ b/drivers/mmc/core/mmc.c
-@@ -416,12 +416,17 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
- 		(host->caps & MMC_CAP_MMC_HIGHSPEED)) {
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 			EXT_CSD_HS_TIMING, 1);
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
- 
--		mmc_card_set_highspeed(card);
--
--		mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to highspeed failed\n",
-+			       mmc_hostname(card->host));
-+			err = 0;
-+		} else {
-+			mmc_card_set_highspeed(card);
-+			mmc_set_timing(card->host, MMC_TIMING_MMC_HS);
-+		}
- 	}
- 
- 	/*
-@@ -456,10 +461,17 @@ static int mmc_init_card(struct mmc_host *host, u32 ocr,
- 		err = mmc_switch(card, EXT_CSD_CMD_SET_NORMAL,
- 				 EXT_CSD_BUS_WIDTH, ext_csd_bit);
- 
--		if (err)
-+		if (err && err != -EBADMSG)
- 			goto free_card;
- 
--		mmc_set_bus_width(card->host, bus_width);
-+		if (err) {
-+			printk(KERN_WARNING "%s: switch to bus width %d "
-+			       "failed\n", mmc_hostname(card->host),
-+			       1 << bus_width);
-+			err = 0;
-+		} else {
-+			mmc_set_bus_width(card->host, bus_width);
-+		}
- 	}
- 
- 	if (!oldcard)
-diff --git a/drivers/mmc/core/mmc_ops.c b/drivers/mmc/core/mmc_ops.c
-index 355c604..d2cb5c6 100644
---- a/drivers/mmc/core/mmc_ops.c
-+++ b/drivers/mmc/core/mmc_ops.c
-@@ -390,6 +390,7 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value)
- {
- 	int err;
- 	struct mmc_command cmd;
-+	u32 status;
- 
- 	BUG_ON(!card);
- 	BUG_ON(!card->host);
-@@ -407,6 +408,28 @@ int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value)
- 	if (err)
- 		return err;
- 
-+	/* Must check status to be sure of no errors */
-+	do {
-+		err = mmc_send_status(card, &status);
-+		if (err)
-+			return err;
-+		if (card->host->caps & MMC_CAP_WAIT_WHILE_BUSY)
-+			break;
-+		if (mmc_host_is_spi(card->host))
-+			break;
-+	} while (R1_CURRENT_STATE(status) == 7);
-+
-+	if (mmc_host_is_spi(card->host)) {
-+		if (status & R1_SPI_ILLEGAL_COMMAND)
-+			return -EBADMSG;
-+	} else {
-+		if (status & 0xFDFFA000)
-+			printk(KERN_WARNING "%s: unexpected status %#x after "
-+			       "switch", mmc_hostname(card->host), status);
-+		if (status & R1_SWITCH_ERROR)
-+			return -EBADMSG;
-+	}
-+
- 	return 0;
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index abe1fa1..f5f207d 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -990,7 +990,8 @@ static int omap_hsmmc_start_dma_transfer(struct omap_hsmmc_host *host,
  }
  
-diff --git a/include/linux/mmc/mmc.h b/include/linux/mmc/mmc.h
-index b2b4095..c02c8db 100644
---- a/include/linux/mmc/mmc.h
-+++ b/include/linux/mmc/mmc.h
-@@ -128,6 +128,7 @@
- #define R1_STATUS(x)            (x & 0xFFFFE000)
- #define R1_CURRENT_STATE(x)	((x & 0x00001E00) >> 9)	/* sx, b (4 bits) */
- #define R1_READY_FOR_DATA	(1 << 8)	/* sx, a */
-+#define R1_SWITCH_ERROR		(1 << 7)	/* sx, c */
- #define R1_APP_CMD		(1 << 5)	/* sr, c */
+ static void set_data_timeout(struct omap_hsmmc_host *host,
+-			     struct mmc_request *req)
++			     unsigned int timeout_ns,
++			     unsigned int timeout_clks)
+ {
+ 	unsigned int timeout, cycle_ns;
+ 	uint32_t reg, clkd, dto = 0;
+@@ -1001,8 +1002,8 @@ static void set_data_timeout(struct omap_hsmmc_host *host,
+ 		clkd = 1;
  
- /*
+ 	cycle_ns = 1000000000 / (clk_get_rate(host->fclk) / clkd);
+-	timeout = req->data->timeout_ns / cycle_ns;
+-	timeout += req->data->timeout_clks;
++	timeout = timeout_ns / cycle_ns;
++	timeout += timeout_clks;
+ 	if (timeout) {
+ 		while ((timeout & 0x80000000) == 0) {
+ 			dto += 1;
+@@ -1036,12 +1037,18 @@ omap_hsmmc_prepare_data(struct omap_hsmmc_host *host, struct mmc_request *req)
+ 
+ 	if (req->data == NULL) {
+ 		OMAP_HSMMC_WRITE(host->base, BLK, 0);
++		/*
++		 * Set an arbitrary 100ms data timeout for commands with
++		 * busy signal.
++		 */
++		if (req->cmd->flags & MMC_RSP_BUSY)
++			set_data_timeout(host, 100000000U, 0);
+ 		return 0;
+ 	}
+ 
+ 	OMAP_HSMMC_WRITE(host->base, BLK, (req->data->blksz)
+ 					| (req->data->blocks << 16));
+-	set_data_timeout(host, req);
++	set_data_timeout(host, req->data->timeout_ns, req->data->timeout_clks);
+ 
+ 	if (host->use_dma) {
+ 		ret = omap_hsmmc_start_dma_transfer(host, req);
 -- 
 1.5.6.3
