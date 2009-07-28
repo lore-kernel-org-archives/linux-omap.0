@@ -1,45 +1,69 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC] [PATCH 1/3] ASoC: Add support for Conexant
- CX20442-11 voice modem codec
-Date: Tue, 28 Jul 2009 17:39:02 +0100
-Message-ID: <20090728163902.GA26657@rakim.wolfsonmicro.main>
-References: <200907220522.29221.jkrzyszt@tis.icnet.pl>
-	<200907281807.31070.jkrzyszt@tis.icnet.pl>
-	<20090728161131.GA22349@rakim.wolfsonmicro.main>
-	<200907281836.03049.jkrzyszt@tis.icnet.pl>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3: PM: Move the clk stabilization delay to the right
+ place
+Date: Tue, 28 Jul 2009 11:18:31 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0907281117120.13295@utopia.booyaka.com>
+References: <1246015755-9267-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <200907281836.03049.jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:50211 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753489AbZG1RSc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 13:18:32 -0400
+In-Reply-To: <1246015755-9267-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Tue, Jul 28, 2009 at 06:36:01PM +0200, Janusz Krzysztofik wrote:
-> Tuesday 28 July 2009 18:11:32 Mark Brown wrote:
+On Fri, 26 Jun 2009, Rajendra Nayak wrote:
 
-> > Like I say, I'd suggest always keeping the controls registered and just
-> > masking and unmasking from user space - the control indexes get used so
-> > removing them will just confuse things.
+> The clock stabilization delay post a M2 divider change is needed
+> even before a SDRC interface clock re-enable and not only before
+> jumping back to SDRAM.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 
-> However, in order for the machine driver to unmask/mask a machine specific 
-> control, the codec driver must drop the machine driver a message about the 
-> line discipline being activeted/deactivated, right? The only such existing 
-> feedback I can see the codec is able to use is via snd_soc_init_card() that 
-> calls snd_soc_dai_link.init() in turn. Am I missing something?
+For the archives: this patch has been accepted and sent upstream for 
+2.6.31-rc fixes.
 
-Well, the machine driver can look up controls by name (this is going to
-be required in order to find the controls anyway...).  Besides, given
-that the machine driver is already entirely CODEC-specific there'd no
-problem with it calling into CODEC-specific APIs to do things.
+- Paul
+
+> ---
+>  arch/arm/mach-omap2/sram34xx.S |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
+> index f41f8d9..481f912 100644
+> --- a/arch/arm/mach-omap2/sram34xx.S
+> +++ b/arch/arm/mach-omap2/sram34xx.S
+> @@ -97,6 +97,8 @@ ENTRY(omap3_sram_configure_core_dpll)
+>  	blne	lock_dll
+>  	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
+>  	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
+> +	mov	r12, r5
+> +	bl	wait_clk_stable		@ wait for SDRC to stabilize
+>  	bl	enable_sdrc		@ take SDRC out of idle
+>  	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
+>  	bleq	wait_dll_unlock
+> @@ -104,8 +106,6 @@ ENTRY(omap3_sram_configure_core_dpll)
+>  	cmp	r7, #1			@ if increasing SDRC clk rate,
+>  	beq	return_to_sdram		@ return to SDRAM code, otherwise,
+>  	bl	configure_sdrc		@ reprogram SDRC regs now
+> -	mov	r12, r5
+> -	bl	wait_clk_stable		@ wait for SDRC to stabilize
+>  return_to_sdram:
+>  	isb				@ prevent speculative exec past here
+>  	mov 	r0, #0 			@ return value
+> -- 
+> 1.5.4.7
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
