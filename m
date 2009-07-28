@@ -1,363 +1,110 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH V2 1/32] mmc: add 'enable' and 'disable' methods to mmc host
-Date: Tue, 28 Jul 2009 13:38:43 +0300
-Message-ID: <20090728103843.2371.13562.sendpatchset@ahunter-laptop>
-References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: OMAP camera with BT-656 sensor
+Date: Tue, 28 Jul 2009 06:44:56 -0600
+Message-ID: <4A6EF2C8.502@mlbassoc.com>
+References: <a187869d0907270546m2be3542cla72366acfc62fb64@mail.gmail.com>	 <a187869d0907270725n7fce759bs6bcaeed70bd7f872@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16EC65@dlee02.ent.ti.com>	 <a187869d0907270859l313b86d3nea833c7a019d35be@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16ECD1@dlee02.ent.ti.com>	 <a187869d0907270911j74ee55b9nc872687eb32aecce@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16ED18@dlee02.ent.ti.com>	 <a187869d0907271036meb56ce9r32c5f5e823465e87@mail.gmail.com>	 <A24693684029E5489D1D202277BE89444A16EE88@dlee02.ent.ti.com>	 <a187869d0907271145i177dcf52jb75aee758300878@mail.gmail.com> <a187869d0907271146q66112fc8l85aa37c8b1512d68@mail.gmail.com> <4A6DFBBE.6020805@mlbassoc.com> <A24693684029E5489D1D202277BE89444A16F057@dlee02.ent.ti.com> <4A6E070B.
+ 8090203@mlbassoc.com> <A24693684029E5489D1D202277BE89444A16F0AC@dlee02.ent.ti.com> <19F8576C6E063C45BE387C64729E73940432A6DC5D@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31738 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbZG1Kif (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 06:38:35 -0400
-In-Reply-To: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:1542 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581AbZG1Mo6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 08:44:58 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940432A6DC5D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Pierre Ossman <pierre@ossman.eu>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Matt Fleming <matt@console-pimps.org>, lkml <linux-kernel@vger.kernel.org>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 4610f1ede273078f99214c6284202998aa537a1d Mon Sep 17 00:00:00 2001
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Wed, 22 Apr 2009 12:50:45 +0300
-Subject: [PATCH] mmc: add 'enable' and 'disable' methods to mmc host
+Hiremath, Vaibhav wrote:
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
+>> Alberto
+>> Sent: Tuesday, July 28, 2009 1:45 AM
+>> To: Gary Thomas
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: RE: OMAP camera with BT-656 sensor
+>>
+>>
+>>
+>>> -----Original Message-----
+>>> From: Gary Thomas [mailto:gary@mlbassoc.com]
+>>> Sent: Monday, July 27, 2009 2:59 PM
+>>> To: Aguirre Rodriguez, Sergio Alberto
+>>> Cc: linux-omap@vger.kernel.org
+>>> Subject: Re: OMAP camera with BT-656 sensor
+>>>
+>>> Aguirre Rodriguez, Sergio Alberto wrote:
+>>>>> -----Original Message-----
+>>>>> From: Gary Thomas [mailto:gary@mlbassoc.com]
+>>>>> Sent: Monday, July 27, 2009 2:11 PM
+>>>>> To: Aguirre Rodriguez, Sergio Alberto
+>>>>> Cc: linux-omap@vger.kernel.org
+>>>>> Subject: OMAP camera with BT-656 sensor
+>>>    ... snip
+>>>
+>>>>> Bottom line, I'm confused as to how I should go about getting
+>>>>> my driver/system working.  Do I use your work, or just stick
+>>>>> with the PSP base (why?)??
+>>>> What I do feel is that the PSP base will fulfill better your
+>> immediate
+>>> needs, but in the future, as I'm getting aware of Vaibhav changes,
+>> I'll be
+>>> interested in making them part of my tree aswell, so Vaibhav could
+>> avoid
+>>> rebasing the BT646 support internally everytime...
+>>>
+>>> Is there a GIT tree for this?
+>> AFAIK, this is the latest tree Vaibhav is exposing:
+>>
+>> http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git
+>>
+>> He maintains a camera and a DSS2 branch exactly to make both work on
+>> his 3530EVM.
+>>
+> [Hiremath, Vaibhav] Thanks Sergio for taking this up. Just to add on top of Sergio's comments, the current status of above tree is, DSS2 is already merged to latest kernel (Even on PM branch) baseline.
+> 
+> http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/ti_display
+> 
+> http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=shortlog;h=refs/heads/pm
+> 
+> 
+> The next PSP release will contain 2.6.31(PM) + DSS2 + Camera + Resizer modules together in one release. I have started with Camera modules merging on top of 2.6.31 + DSS2; hopefully I should be able to complete this by next week (provided that I don't get any interrupts)
+> 
+> You should be looking to Arago tree for all the developments which I do under Arago.
+> 
+> Please let me know if you have any issues/doubts OR if you are looking for some quick solutions.
 
-MMC hosts that support power saving can use the 'enable' and
-'disable' methods to exit and enter power saving states.
-An explanation of their use is provided in the comments
-added to include/linux/mmc/host.h.
+I'd like to use the latest tree with DSS2 (ti_display seems to be it), but
+the OMAP3 camera support is not present.
+  * How hard would it be to merge the ti_omap3camera and ti_display branches?
+  * Would this be a reasonable way forward?
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
----
- drivers/mmc/core/core.c  |  177 ++++++++++++++++++++++++++++++++++++++++++++--
- drivers/mmc/core/host.c  |    1 +
- drivers/mmc/core/host.h  |    2 +
- include/linux/mmc/host.h |   47 ++++++++++++
- 4 files changed, 221 insertions(+), 6 deletions(-)
+It would be nice if I could wait for your next release, but alas, my
+project is already weeks late and every hour counts...
 
-diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
-index d84c880..9bc8d27 100644
---- a/drivers/mmc/core/core.c
-+++ b/drivers/mmc/core/core.c
-@@ -344,6 +344,101 @@ unsigned int mmc_align_data_size(struct mmc_card *card, unsigned int sz)
- EXPORT_SYMBOL(mmc_align_data_size);
- 
- /**
-+ *	mmc_host_enable - enable a host.
-+ *	@host: mmc host to enable
-+ *
-+ *	Hosts that support power saving can use the 'enable' and 'disable'
-+ *	methods to exit and enter power saving states. For more information
-+ *	see comments for struct mmc_host_ops.
-+ */
-+int mmc_host_enable(struct mmc_host *host)
-+{
-+	if (!(host->caps & MMC_CAP_DISABLE))
-+		return 0;
-+
-+	if (host->en_dis_recurs)
-+		return 0;
-+
-+	if (host->nesting_cnt++)
-+		return 0;
-+
-+	cancel_delayed_work_sync(&host->disable);
-+
-+	if (host->enabled)
-+		return 0;
-+
-+	if (host->ops->enable) {
-+		int err;
-+
-+		host->en_dis_recurs = 1;
-+		err = host->ops->enable(host);
-+		host->en_dis_recurs = 0;
-+
-+		if (err) {
-+			pr_debug("%s: enable error %d\n",
-+				 mmc_hostname(host), err);
-+			return err;
-+		}
-+	}
-+	host->enabled = 1;
-+	return 0;
-+}
-+EXPORT_SYMBOL(mmc_host_enable);
-+
-+static int mmc_host_do_disable(struct mmc_host *host, int lazy)
-+{
-+	if (host->ops->disable) {
-+		int err;
-+
-+		host->en_dis_recurs = 1;
-+		err = host->ops->disable(host, lazy);
-+		host->en_dis_recurs = 0;
-+
-+		if (err < 0) {
-+			pr_debug("%s: disable error %d\n",
-+				 mmc_hostname(host), err);
-+			return err;
-+		}
-+		if (err > 0) {
-+			unsigned long delay = msecs_to_jiffies(err);
-+
-+			mmc_schedule_delayed_work(&host->disable, delay);
-+		}
-+	}
-+	host->enabled = 0;
-+	return 0;
-+}
-+
-+/**
-+ *	mmc_host_disable - disable a host.
-+ *	@host: mmc host to disable
-+ *
-+ *	Hosts that support power saving can use the 'enable' and 'disable'
-+ *	methods to exit and enter power saving states. For more information
-+ *	see comments for struct mmc_host_ops.
-+ */
-+int mmc_host_disable(struct mmc_host *host)
-+{
-+	int err;
-+
-+	if (!(host->caps & MMC_CAP_DISABLE))
-+		return 0;
-+
-+	if (host->en_dis_recurs)
-+		return 0;
-+
-+	if (--host->nesting_cnt)
-+		return 0;
-+
-+	if (!host->enabled)
-+		return 0;
-+
-+	err = mmc_host_do_disable(host, 0);
-+	return err;
-+}
-+EXPORT_SYMBOL(mmc_host_disable);
-+
-+/**
-  *	__mmc_claim_host - exclusively claim a host
-  *	@host: mmc host to claim
-  *	@abort: whether or not the operation should be aborted
-@@ -379,11 +474,81 @@ int __mmc_claim_host(struct mmc_host *host, atomic_t *abort)
- 		wake_up(&host->wq);
- 	spin_unlock_irqrestore(&host->lock, flags);
- 	remove_wait_queue(&host->wq, &wait);
-+	if (!stop)
-+		mmc_host_enable(host);
- 	return stop;
- }
- 
- EXPORT_SYMBOL(__mmc_claim_host);
- 
-+static int mmc_try_claim_host(struct mmc_host *host)
-+{
-+	int claimed_host = 0;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&host->lock, flags);
-+	if (!host->claimed) {
-+		host->claimed = 1;
-+		claimed_host = 1;
-+	}
-+	spin_unlock_irqrestore(&host->lock, flags);
-+	return claimed_host;
-+}
-+
-+static void mmc_do_release_host(struct mmc_host *host)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&host->lock, flags);
-+	host->claimed = 0;
-+	spin_unlock_irqrestore(&host->lock, flags);
-+
-+	wake_up(&host->wq);
-+}
-+
-+void mmc_host_deeper_disable(struct work_struct *work)
-+{
-+	struct mmc_host *host =
-+		container_of(work, struct mmc_host, disable.work);
-+
-+	/* If the host is claimed then we do not want to disable it anymore */
-+	if (!mmc_try_claim_host(host))
-+		return;
-+	mmc_host_do_disable(host, 1);
-+	mmc_do_release_host(host);
-+}
-+
-+/**
-+ *	mmc_host_lazy_disable - lazily disable a host.
-+ *	@host: mmc host to disable
-+ *
-+ *	Hosts that support power saving can use the 'enable' and 'disable'
-+ *	methods to exit and enter power saving states. For more information
-+ *	see comments for struct mmc_host_ops.
-+ */
-+int mmc_host_lazy_disable(struct mmc_host *host)
-+{
-+	if (!(host->caps & MMC_CAP_DISABLE))
-+		return 0;
-+
-+	if (host->en_dis_recurs)
-+		return 0;
-+
-+	if (--host->nesting_cnt)
-+		return 0;
-+
-+	if (!host->enabled)
-+		return 0;
-+
-+	if (host->disable_delay) {
-+		mmc_schedule_delayed_work(&host->disable,
-+				msecs_to_jiffies(host->disable_delay));
-+		return 0;
-+	} else
-+		return mmc_host_do_disable(host, 1);
-+}
-+EXPORT_SYMBOL(mmc_host_lazy_disable);
-+
- /**
-  *	mmc_release_host - release a host
-  *	@host: mmc host to release
-@@ -393,15 +558,11 @@ EXPORT_SYMBOL(__mmc_claim_host);
-  */
- void mmc_release_host(struct mmc_host *host)
- {
--	unsigned long flags;
--
- 	WARN_ON(!host->claimed);
- 
--	spin_lock_irqsave(&host->lock, flags);
--	host->claimed = 0;
--	spin_unlock_irqrestore(&host->lock, flags);
-+	mmc_host_lazy_disable(host);
- 
--	wake_up(&host->wq);
-+	mmc_do_release_host(host);
- }
- 
- EXPORT_SYMBOL(mmc_release_host);
-@@ -947,6 +1108,8 @@ void mmc_stop_host(struct mmc_host *host)
- 	spin_unlock_irqrestore(&host->lock, flags);
- #endif
- 
-+	if (host->caps & MMC_CAP_DISABLE)
-+		cancel_delayed_work(&host->disable);
- 	cancel_delayed_work(&host->detect);
- 	mmc_flush_scheduled_work();
- 
-@@ -975,6 +1138,8 @@ void mmc_stop_host(struct mmc_host *host)
-  */
- int mmc_suspend_host(struct mmc_host *host, pm_message_t state)
- {
-+	if (host->caps & MMC_CAP_DISABLE)
-+		cancel_delayed_work(&host->disable);
- 	cancel_delayed_work(&host->detect);
- 	mmc_flush_scheduled_work();
- 
-diff --git a/drivers/mmc/core/host.c b/drivers/mmc/core/host.c
-index 5e945e6..a268d12 100644
---- a/drivers/mmc/core/host.c
-+++ b/drivers/mmc/core/host.c
-@@ -83,6 +83,7 @@ struct mmc_host *mmc_alloc_host(int extra, struct device *dev)
- 	spin_lock_init(&host->lock);
- 	init_waitqueue_head(&host->wq);
- 	INIT_DELAYED_WORK(&host->detect, mmc_rescan);
-+	INIT_DELAYED_WORK_DEFERRABLE(&host->disable, mmc_host_deeper_disable);
- 
- 	/*
- 	 * By default, hosts do not support SGIO or large requests.
-diff --git a/drivers/mmc/core/host.h b/drivers/mmc/core/host.h
-index c2dc3d2..8c87e11 100644
---- a/drivers/mmc/core/host.h
-+++ b/drivers/mmc/core/host.h
-@@ -14,5 +14,7 @@
- int mmc_register_host_class(void);
- void mmc_unregister_host_class(void);
- 
-+void mmc_host_deeper_disable(struct work_struct *work);
-+
- #endif
- 
-diff --git a/include/linux/mmc/host.h b/include/linux/mmc/host.h
-index 3e7615e..338a9b3 100644
---- a/include/linux/mmc/host.h
-+++ b/include/linux/mmc/host.h
-@@ -51,6 +51,35 @@ struct mmc_ios {
- };
- 
- struct mmc_host_ops {
-+	/*
-+	 * Hosts that support power saving can use the 'enable' and 'disable'
-+	 * methods to exit and enter power saving states. 'enable' is called
-+	 * when the host is claimed and 'disable' is called (or scheduled with
-+	 * a delay) when the host is released. The 'disable' is scheduled if
-+	 * the disable delay set by 'mmc_set_disable_delay()' is non-zero,
-+	 * otherwise 'disable' is called immediately. 'disable' may be
-+	 * scheduled repeatedly, to permit ever greater power saving at the
-+	 * expense of ever greater latency to re-enable. Rescheduling is
-+	 * determined by the return value of the 'disable' method. A positive
-+	 * value gives the delay in milliseconds.
-+	 *
-+	 * In the case where a host function (like set_ios) may be called
-+	 * with or without the host claimed, enabling and disabling can be
-+	 * done directly and will nest correctly. Call 'mmc_host_enable()' and
-+	 * 'mmc_host_lazy_disable()' for this purpose, but note that these
-+	 * functions must be paired.
-+	 *
-+	 * Alternatively, 'mmc_host_enable()' may be paired with
-+	 * 'mmc_host_disable()' which calls 'disable' immediately.  In this
-+	 * case the 'disable' method will be called with 'lazy' set to 0.
-+	 * This is mainly useful for error paths.
-+	 *
-+	 * Because lazy disable may be called from a work queue, the 'disable'
-+	 * method must claim the host when 'lazy' != 0, which will work
-+	 * correctly because recursion is detected and handled.
-+	 */
-+	int (*enable)(struct mmc_host *host);
-+	int (*disable)(struct mmc_host *host, int lazy);
- 	void	(*request)(struct mmc_host *host, struct mmc_request *req);
- 	/*
- 	 * Avoid calling these three functions too often or in a "fast path",
-@@ -118,6 +147,7 @@ struct mmc_host {
- #define MMC_CAP_SPI		(1 << 4)	/* Talks only SPI protocols */
- #define MMC_CAP_NEEDS_POLL	(1 << 5)	/* Needs polling for card-detection */
- #define MMC_CAP_8_BIT_DATA	(1 << 6)	/* Can the host do 8 bit transfers */
-+#define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
- 
- 	/* host specific block data */
- 	unsigned int		max_seg_size;	/* see blk_queue_max_segment_size */
-@@ -142,6 +172,13 @@ struct mmc_host {
- 	unsigned int		removed:1;	/* host is being removed */
- #endif
- 
-+	/* Only used with MMC_CAP_DISABLE */
-+	int			enabled;	/* host is enabled */
-+	int			nesting_cnt;	/* "enable" nesting count */
-+	int			en_dis_recurs;	/* detect recursion */
-+	unsigned int		disable_delay;	/* disable delay in msecs */
-+	struct delayed_work	disable;	/* disabling work */
-+
- 	struct mmc_card		*card;		/* device attached to this host */
- 
- 	wait_queue_head_t	wq;
-@@ -197,5 +234,15 @@ struct regulator;
- int mmc_regulator_get_ocrmask(struct regulator *supply);
- int mmc_regulator_set_ocr(struct regulator *supply, unsigned short vdd_bit);
- 
-+int mmc_host_enable(struct mmc_host *host);
-+int mmc_host_disable(struct mmc_host *host);
-+int mmc_host_lazy_disable(struct mmc_host *host);
-+
-+static inline void mmc_set_disable_delay(struct mmc_host *host,
-+					 unsigned int disable_delay)
-+{
-+	host->disable_delay = disable_delay;
-+}
-+
- #endif
- 
+>>> A [hopefully] minor complication is that I'm using Tomi's DSS2
+>>> tree for the base of my port.  How can I move/merge the PSP
+>>> based support into it?  Can I just pick up the whole drivers/media
+>>> subtree and put in in place of what I have?
+>> I recommend looking at the git tree above... I think that job is
+>> already done...
+>>
+>>> Thanks for your help - this myriad of trees and very disparate
+>>> support levels is really confusing to those of us on the
+>> outside...
+>>
+>> I know, and the lack of proper documentation is one of the first
+>> issues for me to look at...
+>>
+>> You're welcome.
+
+
 -- 
-1.5.6.3
-
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
