@@ -1,88 +1,123 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH V2 17/32] omap_hsmmc: make use of new MMC_CAP_NONREMOVABLE host capability
-Date: Tue, 28 Jul 2009 13:40:40 +0300
-Message-ID: <20090728104040.2371.85074.sendpatchset@ahunter-laptop>
+Subject: [PATCH V2 15/32] omap_hsmmc: ensure workqueues are empty before suspend
+Date: Tue, 28 Jul 2009 13:40:26 +0300
+Message-ID: <20090728104026.2371.19335.sendpatchset@ahunter-laptop>
 References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32251 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752209AbZG1KkW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 06:40:22 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753317AbZG1Klh@vger.kernel.org>
 In-Reply-To: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Andrew Morton <akpm@linux-foundation.org>
 Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Pierre Ossman <pierre@ossman.eu>, Denis Karpov <ext-denis.2.karpov@nokia.com>, Matt Fleming <matt@console-pimps.org>, lkml <linux-kernel@vger.kernel.org>
+List-Id: linux-omap@vger.kernel.org
 
->From a5af29d59b76a8c09c3d02e46ab25754c1bb2ec6 Mon Sep 17 00:00:00 2001
+>From 00dc421d613a159f9b3b9991e62e1c4f3866377f Mon Sep 17 00:00:00 2001
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Mon, 11 May 2009 10:06:38 +0300
-Subject: [PATCH] omap_hsmmc: make use of new MMC_CAP_NONREMOVABLE host capability
-
-Let the board specify that a card is nonremovable e.g. eMMC
+Date: Fri, 24 Apr 2009 13:13:20 +0300
+Subject: [PATCH] omap_hsmmc: ensure workqueues are empty before suspend
 
 Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 ---
- arch/arm/mach-omap2/mmc-twl4030.c     |    3 +++
- arch/arm/mach-omap2/mmc-twl4030.h     |    1 +
- arch/arm/plat-omap/include/mach/mmc.h |    3 +++
- drivers/mmc/host/omap_hsmmc.c         |    3 +++
- 4 files changed, 10 insertions(+), 0 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |   50 +++++++++++++++++++++++++++-------------
+ 1 files changed, 34 insertions(+), 16 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-index 5be3111..67c22c6 100644
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -409,6 +409,9 @@ void __init twl4030_mmc_init(struct twl4030_hsmmc_info *controllers)
- 		} else
- 			mmc->slots[0].gpio_wp = -EINVAL;
- 
-+		if (c->nonremovable)
-+			mmc->slots[0].nonremovable = 1;
-+
- 		/* NOTE:  MMC slots should have a Vcc regulator set up.
- 		 * This may be from a TWL4030-family chip, another
- 		 * controllable regulator, or a fixed supply.
-diff --git a/arch/arm/mach-omap2/mmc-twl4030.h b/arch/arm/mach-omap2/mmc-twl4030.h
-index 3807c45..75b0c64 100644
---- a/arch/arm/mach-omap2/mmc-twl4030.h
-+++ b/arch/arm/mach-omap2/mmc-twl4030.h
-@@ -12,6 +12,7 @@ struct twl4030_hsmmc_info {
- 	bool	transceiver;	/* MMC-2 option */
- 	bool	ext_clock;	/* use external pin for input clock */
- 	bool	cover_only;	/* No card detect - just cover switch */
-+	bool	nonremovable;	/* Nonremovable e.g. eMMC */
- 	int	gpio_cd;	/* or -EINVAL */
- 	int	gpio_wp;	/* or -EINVAL */
- 	char	*name;		/* or NULL for default */
-diff --git a/arch/arm/plat-omap/include/mach/mmc.h b/arch/arm/plat-omap/include/mach/mmc.h
-index 2f7cf31..bab486c 100644
---- a/arch/arm/plat-omap/include/mach/mmc.h
-+++ b/arch/arm/plat-omap/include/mach/mmc.h
-@@ -83,6 +83,9 @@ struct omap_mmc_platform_data {
- 		/* use the internal clock */
- 		unsigned internal_clock:1;
- 
-+		/* nonremovable e.g. eMMC */
-+		unsigned nonremovable:1;
-+
- 		int switch_pin;			/* gpio (card detect) */
- 		int gpio_wp;			/* gpio (write protect) */
- 
 diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 6222940..e618bc0 100644
+index 2b242c2..a9f7b74 100644
 --- a/drivers/mmc/host/omap_hsmmc.c
 +++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -1383,6 +1383,9 @@ static int __init omap_mmc_probe(struct platform_device *pdev)
- 	else if (pdata->slots[host->slot_id].wires >= 4)
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
- 
-+	if (pdata->slots[host->slot_id].nonremovable)
-+		mmc->caps |= MMC_CAP_NONREMOVABLE;
+@@ -149,7 +149,6 @@ struct mmc_omap_host {
+ 	u32			bytesleft;
+ 	int			suspended;
+ 	int			irq;
+-	int			carddetect;
+ 	int			use_dma, dma_ch;
+ 	int			dma_line_tx, dma_line_rx;
+ 	int			slot_id;
+@@ -754,14 +753,19 @@ static void mmc_omap_detect(struct work_struct *work)
+ 	struct mmc_omap_host *host = container_of(work, struct mmc_omap_host,
+ 						mmc_carddetect_work);
+ 	struct omap_mmc_slot_data *slot = &mmc_slot(host);
++	int carddetect;
 +
- 	mmc->caps |= MMC_CAP_SDIO | MMC_CAP_SD | MMC_CAP_MMC;
++	if (host->suspended)
++		return;
++
++	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
  
- 	omap_hsmmc_init(host);
+ 	if (mmc_slot(host).card_detect)
+-		host->carddetect = slot->card_detect(slot->card_detect_irq);
++		carddetect = slot->card_detect(slot->card_detect_irq);
+ 	else
+-		host->carddetect = -ENOSYS;
++		carddetect = -ENOSYS;
+ 
+-	sysfs_notify(&host->mmc->class_dev.kobj, NULL, "cover_switch");
+-	if (host->carddetect) {
++	if (carddetect) {
+ 		mmc_detect_change(host->mmc, (HZ * 200) / 1000);
+ 	} else {
+ 		mmc_host_enable(host->mmc);
+@@ -778,6 +782,8 @@ static irqreturn_t omap_mmc_cd_handler(int irq, void *dev_id)
+ {
+ 	struct mmc_omap_host *host = (struct mmc_omap_host *)dev_id;
+ 
++	if (host->suspended)
++		return IRQ_HANDLED;
+ 	schedule_work(&host->mmc_carddetect_work);
+ 
+ 	return IRQ_HANDLED;
+@@ -1519,30 +1525,42 @@ static int omap_mmc_suspend(struct platform_device *pdev, pm_message_t state)
+ 		return 0;
+ 
+ 	if (host) {
++		host->suspended = 1;
++		if (host->pdata->suspend) {
++			ret = host->pdata->suspend(&pdev->dev,
++							host->slot_id);
++			if (ret) {
++				dev_dbg(mmc_dev(host->mmc),
++					"Unable to handle MMC board"
++					" level suspend\n");
++				host->suspended = 0;
++				return ret;
++			}
++		}
++		cancel_work_sync(&host->mmc_carddetect_work);
+ 		mmc_host_enable(host->mmc);
+ 		ret = mmc_suspend_host(host->mmc, state);
+ 		if (ret == 0) {
+-			host->suspended = 1;
+-
+ 			OMAP_HSMMC_WRITE(host->base, ISE, 0);
+ 			OMAP_HSMMC_WRITE(host->base, IE, 0);
+ 
+-			if (host->pdata->suspend) {
+-				ret = host->pdata->suspend(&pdev->dev,
+-								host->slot_id);
+-				if (ret)
+-					dev_dbg(mmc_dev(host->mmc),
+-						"Unable to handle MMC board"
+-						" level suspend\n");
+-			}
+ 
+ 			OMAP_HSMMC_WRITE(host->base, HCTL,
+ 					 OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+ 			mmc_host_disable(host->mmc);
+ 			clk_disable(host->iclk);
+ 			clk_disable(host->dbclk);
+-		} else
++		} else {
++			host->suspended = 0;
++			if (host->pdata->resume) {
++				ret = host->pdata->resume(&pdev->dev,
++							  host->slot_id);
++				if (ret)
++					dev_dbg(mmc_dev(host->mmc),
++						"Unmask interrupt failed\n");
++			}
+ 			mmc_host_disable(host->mmc);
++		}
+ 
+ 	}
+ 	return ret;
 -- 
 1.5.6.3
-
