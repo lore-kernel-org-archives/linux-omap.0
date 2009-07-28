@@ -1,41 +1,271 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC] [PATCH 1/3] ASoC: Add support for Conexant
- CX20442-11 voice modem codec
-Date: Tue, 28 Jul 2009 16:07:27 +0100
-Message-ID: <20090728150727.GA10870@rakim.wolfsonmicro.main>
-References: <200907220522.29221.jkrzyszt@tis.icnet.pl>
-	<20090722101027.GA7622@sirena.org.uk>
-	<200907281659.36000.jkrzyszt@tis.icnet.pl>
+From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Subject: RE: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+Date: Tue, 28 Jul 2009 10:42:21 -0500
+Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E3A9D17C1@dlee03.ent.ti.com>
+References: <8F7AF80515AF0D4D93307E594F3CB40E3A8CAD44@dlee03.ent.ti.com>
+	<20090724.212140.104061104.Hiroshi.DOYU@nokia.com>
+	<8F7AF80515AF0D4D93307E594F3CB40E3A941FEA@dlee03.ent.ti.com>
+ <20090727.094731.260080790.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <200907281659.36000.jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:52883 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754521AbZG1Pml convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 11:42:41 -0400
+In-Reply-To: <20090727.094731.260080790.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gupta, Ramesh" <grgupta@ti.com>, "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "Pasam, Vijay" <vpasam@ti.com>
 
-On Tue, Jul 28, 2009 at 04:59:33PM +0200, Janusz Krzysztofik wrote:
+Hi Hiroshi,
 
-> Following that model, the line discipline code didn't seam to belong to a 
-> codec driver for me. If it could be recognized as a new bus dirver, it should 
-> be pushed down probably into a separate module. However, if it was rather 
-> some kind of a bus adapter driver, it seamed to belong to the machine code.
+> 
+> This "omap iommu" driver is used in OMAP4 IPC and its interface is a
+> character device node. IOW, the client of this device will be an
+> userland process and kernel won't know if it uses or not, but kernel
+> just provides "/dev/iommu?" for userland. So I don't think that we
+> have to care about the dependency of the existance of clients, at
+> least, for a moment.
+> 
+> >
+The first patch set that I sent is to provide support in IOMMU for OMAP4 just like how it is done in OMAP3 today. The define "CONFIG_MPU_TESLA_IOMMU" is used for now because in the first phase we are planning to use DSP-Bridge to communicate with Tesla (until we move the new user-land IPC to replace DSP-Bridge for OMAP4).
+IMHO, let's go ahead with these changes and any changes to support IOMMU from user-land we can address them in next set of patches.
 
-The way it looks with the current code the line discipline itself is
-going to apply equally well to any serial port that's used - I'm not
-clear what's system-specific about it.  The bit that connects the line
-discipline to the line is a different matter but the bit that interacts
-with the TTY layer after registration is working through a pluggable
-abstraction layer and shouldn't, I'd expect, be specific to the
-particular serial port.
+Thank you,
+Best regards,
+Hari
+
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> Sent: Monday, July 27, 2009 1:48 AM
+> To: Kanigeri, Hari
+> Cc: tony@atomide.com; linux-omap@vger.kernel.org; Gupta, Ramesh;
+> rmk@arm.linux.org.uk; Pasam, Vijay
+> Subject: Re: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+> 
+> From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> Subject: RE: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+> Date: Mon, 27 Jul 2009 02:18:21 +0200
+> 
+> > Hi Hiroshi,
+> >
+> > > > +static const struct iommu_platform_data omap4_iommu_pdata[]
+> __initconst
+> > > = {
+> > > > +	{
+> > > > +		.name = "ducati",
+> > > > +		.nr_tlb_entries = 32,
+> > > > +		.clk_name = "ducati_ick",
+> > > > +	},
+> > > > +#if defined(CONFIG_MPU_TESLA_IOMMU)
+> > > > +	{
+> > > > +		.name = "tesla",
+> > > > +		.nr_tlb_entries = 32,
+> > > > +		.clk_name = "tesla_ick",
+> > > > +	},
+> > > > +#endif
+> > > > +};
+> > >
+> > > If iommu is used as a character device driver, is the above config
+> still
+> > > necessary?
+> >
+> > -- My apologies, I am not sure what you mean by this. Can you please
+> elaborate a bit more.
+> 
+> Well...I'm trying to explain;),
+> 
+> This "omap iommu" driver is used in OMAP4 IPC and its interface is a
+> character device node. IOW, the client of this device will be an
+> userland process and kernel won't know if it uses or not, but kernel
+> just provides "/dev/iommu?" for userland. So I don't think that we
+> have to care about the dependency of the existance of clients, at
+> least, for a moment.
+> 
+> >
+> > Thank you,
+> > Best regards,
+> > Hari
+> >
+> > > -----Original Message-----
+> > > From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+> > > Sent: Friday, July 24, 2009 1:22 PM
+> > > To: Kanigeri, Hari
+> > > Cc: tony@atomide.com; linux-omap@vger.kernel.org; Gupta, Ramesh;
+> > > rmk@arm.linux.org.uk; Pasam, Vijay
+> > > Subject: Re: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in
+> iommu
+> > >
+> > > From: "ext Kanigeri, Hari" <h-kanigeri2@ti.com>
+> > > Subject: [RFC][PATCH 2/3] ARM:OMAP4 iommu:add omap4 support in iommu
+> > > Date: Fri, 24 Jul 2009 19:22:32 +0200
+> > >
+> > > > This patch adds omap4 support in iommu
+> > > > module. This creates OMAP4 platform specific file
+> > > > for iommu and defines the Ducati MMU fault interrupt.
+> > > >
+> > > > Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
+> > > > ---
+> > > >  arch/arm/mach-omap2/omap4-iommu.c      |  112
+> > > ++++++++++++++++++++++++++++++++
+> > > >  arch/arm/plat-omap/include/mach/irqs.h |    2 +-
+> > > >  2 files changed, 113 insertions(+), 1 deletions(-)
+> > > >  create mode 100644 arch/arm/mach-omap2/omap4-iommu.c
+> > > >
+> > > > diff --git a/arch/arm/mach-omap2/omap4-iommu.c b/arch/arm/mach-
+> > > omap2/omap4-iommu.c
+> > > > new file mode 100644
+> > > > index 0000000..5a782df
+> > > > --- /dev/null
+> > > > +++ b/arch/arm/mach-omap2/omap4-iommu.c
+> > > > @@ -0,0 +1,112 @@
+> > > > +/*
+> > > > + * omap iommu: omap4 device registration
+> > > > + *
+> > > > + * Copyright (C) 2009-2010 Nokia Corporation
+> > > > + *
+> > > > + * Written by Hari Kanigeri <h-kanigeri2@ti.com>
+> > > > + *
+> > > > + * Added support for OMAP4. This is based on original file
+> > > > + * omap3-iommu.c
+> > > > + *
+> > > > + * This program is free software; you can redistribute it and/or
+> modify
+> > > > + * it under the terms of the GNU General Public License version 2
+> as
+> > > > + * published by the Free Software Foundation.
+> > > > + */
+> > > > +
+> > > > +#include <linux/platform_device.h>
+> > > > +
+> > > > +#include <mach/iommu.h>
+> > > > +#include <mach/irqs.h>
+> > > > +
+> > > > +#define OMAP4_MMU1_BASE	0x55082000
+> > > > +#define OMAP4_MMU2_BASE	0x4A066000
+> > > > +
+> > > > +#define OMAP4_MMU1_IRQ	INT_44XX_DUCATI_MMU_IRQ
+> > > > +#define OMAP4_MMU2_IRQ	INT_44XX_DSP_MMU
+> > > > +
+> > > > +
+> > > > +
+> > > > +static unsigned long iommu_base[] __initdata = {
+> > > > +	OMAP4_MMU1_BASE,
+> > > > +	OMAP4_MMU2_BASE,
+> > > > +};
+> > > > +
+> > > > +static int iommu_irq[] __initdata = {
+> > > > +	OMAP4_MMU1_IRQ,
+> > > > +	OMAP4_MMU2_IRQ,
+> > > > +};
+> > > > +
+> > > > +static const struct iommu_platform_data omap4_iommu_pdata[]
+> __initconst
+> > > = {
+> > > > +	{
+> > > > +		.name = "ducati",
+> > > > +		.nr_tlb_entries = 32,
+> > > > +		.clk_name = "ducati_ick",
+> > > > +	},
+> > > > +#if defined(CONFIG_MPU_TESLA_IOMMU)
+> > > > +	{
+> > > > +		.name = "tesla",
+> > > > +		.nr_tlb_entries = 32,
+> > > > +		.clk_name = "tesla_ick",
+> > > > +	},
+> > > > +#endif
+> > > > +};
+> > >
+> > > If iommu is used as a character device driver, is the above config
+> still
+> > > necessary?
+> > >
+> > > > +#define NR_IOMMU_DEVICES ARRAY_SIZE(omap4_iommu_pdata)
+> > > > +
+> > > > +static struct platform_device *omap4_iommu_pdev[NR_IOMMU_DEVICES];
+> > > > +
+> > > > +static int __init omap4_iommu_init(void)
+> > > > +{
+> > > > +	int i, err;
+> > > > +
+> > > > +	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
+> > > > +		struct platform_device *pdev;
+> > > > +		struct resource res[2];
+> > > > +
+> > > > +		pdev = platform_device_alloc("omap-iommu", i);
+> > > > +		if (!pdev) {
+> > > > +			err = -ENOMEM;
+> > > > +			goto err_out;
+> > > > +		}
+> > > > +
+> > > > +		memset(res, 0,  sizeof(res));
+> > > > +		res[0].start = iommu_base[i];
+> > > > +		res[0].end = iommu_base[i] + MMU_REG_SIZE - 1;
+> > > > +		res[0].flags = IORESOURCE_MEM;
+> > > > +		res[1].start = res[1].end = iommu_irq[i];
+> > > > +		res[1].flags = IORESOURCE_IRQ;
+> > > > +
+> > > > +		err = platform_device_add_resources(pdev, res,
+> > > > +						    ARRAY_SIZE(res));
+> > > > +		if (err)
+> > > > +			goto err_out;
+> > > > +		err = platform_device_add_data(pdev,
+> &omap4_iommu_pdata[i],
+> > > > +					       sizeof(omap4_iommu_pdata[0]));
+> > > > +		if (err)
+> > > > +			goto err_out;
+> > > > +		err = platform_device_add(pdev);
+> > > > +		if (err)
+> > > > +			goto err_out;
+> > > > +		omap4_iommu_pdev[i] = pdev;
+> > > > +	}
+> > > > +	return 0;
+> > > > +
+> > > > +err_out:
+> > > > +	while (i--)
+> > > > +		platform_device_put(omap4_iommu_pdev[i]);
+> > > > +	return err;
+> > > > +}
+> > > > +module_init(omap4_iommu_init);
+> > > > +
+> > > > +static void __exit omap4_iommu_exit(void)
+> > > > +{
+> > > > +	int i;
+> > > > +
+> > > > +	for (i = 0; i < NR_IOMMU_DEVICES; i++)
+> > > > +		platform_device_unregister(omap4_iommu_pdev[i]);
+> > > > +}
+> > > > +module_exit(omap4_iommu_exit);
+> > > > +
+> > > > +MODULE_AUTHOR("Hiroshi DOYU, Hari Kanigeri");
+> > > > +MODULE_DESCRIPTION("omap iommu: omap4 device registration");
+> > > > +MODULE_LICENSE("GPL v2");
+> > > > +
+> > > > diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-
+> > > omap/include/mach/irqs.h
+> > > > index fb7cb77..34b6d09 100644
+> > > > --- a/arch/arm/plat-omap/include/mach/irqs.h
+> > > > +++ b/arch/arm/plat-omap/include/mach/irqs.h
+> > > > @@ -511,7 +511,7 @@
+> > > >  #define INT_44XX_TLL_IRQ	(78 + IRQ_GIC_START)
+> > > >  #define INT_44XX_PARTHASH_IRQ	(79 + IRQ_GIC_START)
+> > > >  #define INT_44XX_MMC3_IRQ	(94 + IRQ_GIC_START)
+> > > > -
+> > > > +#define INT_44XX_DUCATI_MMU_IRQ	(100 + IRQ_GIC_START)
+> > > >
+> > > >  /* Max. 128 level 2 IRQs (OMAP1610), 192 GPIOs (OMAP730/850) and
+> > > >   * 16 MPUIO lines */
+> > > > --
+> > > > 1.5.4.3
+> > > >
+> > > >
+> > > > Thank you,
+> > > > Best regards,
+> > > > Hari
+> > > >
+> >
+
