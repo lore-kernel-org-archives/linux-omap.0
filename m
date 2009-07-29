@@ -1,160 +1,160 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: OMAP camera with BT-656 sensor
-Date: Wed, 29 Jul 2009 10:24:08 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940432A6DFB4@dbde02.ent.ti.com>
-References: <a187869d0907270546m2be3542cla72366acfc62fb64@mail.gmail.com>
-	 <a187869d0907270725n7fce759bs6bcaeed70bd7f872@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16EC65@dlee02.ent.ti.com>
-	 <a187869d0907270859l313b86d3nea833c7a019d35be@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16ECD1@dlee02.ent.ti.com>
-	 <a187869d0907270911j74ee55b9nc872687eb32aecce@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16ED18@dlee02.ent.ti.com>
-	 <a187869d0907271036meb56ce9r32c5f5e823465e87@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444A16EE88@dlee02.ent.ti.com>
-	 <a187869d0907271145i177dcf52jb75aee758300878@mail.gmail.com>
- <a187869d0907271146q66112fc8l85aa37c8b1512d68@mail.gmail.com>
- <4A6DFBBE.6020805@mlbassoc.com>
- <A24693684029E5489D1D202277BE89444A16F057@dlee02.ent.ti.com>
- <4A6E070B.8090203@mlbassoc.com>
- <A24693684029E5489D1D202277BE89444A16F0AC@dlee02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940432A6DC5D@dbde02.ent.ti.com>
- <4A6EF2C8.502@mlbassoc.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH] musb: cleanup the nop registration for OMAP3EVM
+Date: Wed, 29 Jul 2009 11:58:57 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940432A6E035@dbde02.ent.ti.com>
+References: <1246611626-28137-1-git-send-email-ajay.gupta@ti.com>
+ <200907030830.02241.david-b@pacbell.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51822 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51523 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751174AbZG2EyV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jul 2009 00:54:21 -0400
-In-Reply-To: <4A6EF2C8.502@mlbassoc.com>
+	id S1752514AbZG2G3P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jul 2009 02:29:15 -0400
+In-Reply-To: <200907030830.02241.david-b@pacbell.net>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "gregkh@suse.de" <gregkh@suse.de>, David Brownell <david-b@pacbell.net>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "talvala@stanford.edu" <talvala@stanford.edu>
 
-Hi Thomas,
+> On Friday 03 July 2009, Ajay Kumar Gupta wrote:
+> > OMAP3EVM uses ISP1504 phy which doesn't require any
+> > programming and thus has to use NOP otg transceiver.
+> >
+> > Cleanups being done:
+> > 	- Remove unwanted code in usb-musb.c file
+> > 	- Register nop in OMAP3EVM board file using
+> > 	  usb_nop_xceiv_register().
+> > 	- Select NOP_USB_XCEIV for OMAP3EVM boards.
+> >
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> 
+> Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+> 
+> ... another for-2.6.31 bugfix.
 
-> -----Original Message-----
-> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> Sent: Tuesday, July 28, 2009 6:15 PM
-> To: Hiremath, Vaibhav
-> Cc: Aguirre Rodriguez, Sergio Alberto; linux-omap@vger.kernel.org
-> Subject: Re: OMAP camera with BT-656 sensor
-> 
-> Hiremath, Vaibhav wrote:
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
-> >> Alberto
-> >> Sent: Tuesday, July 28, 2009 1:45 AM
-> >> To: Gary Thomas
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: RE: OMAP camera with BT-656 sensor
-> >>
-> >>
-> >>
-> >>> -----Original Message-----
-> >>> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> >>> Sent: Monday, July 27, 2009 2:59 PM
-> >>> To: Aguirre Rodriguez, Sergio Alberto
-> >>> Cc: linux-omap@vger.kernel.org
-> >>> Subject: Re: OMAP camera with BT-656 sensor
-> >>>
-> >>> Aguirre Rodriguez, Sergio Alberto wrote:
-> >>>>> -----Original Message-----
-> >>>>> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> >>>>> Sent: Monday, July 27, 2009 2:11 PM
-> >>>>> To: Aguirre Rodriguez, Sergio Alberto
-> >>>>> Cc: linux-omap@vger.kernel.org
-> >>>>> Subject: OMAP camera with BT-656 sensor
-> >>>    ... snip
-> >>>
-> >>>>> Bottom line, I'm confused as to how I should go about getting
-> >>>>> my driver/system working.  Do I use your work, or just stick
-> >>>>> with the PSP base (why?)??
-> >>>> What I do feel is that the PSP base will fulfill better your
-> >> immediate
-> >>> needs, but in the future, as I'm getting aware of Vaibhav
-> changes,
-> >> I'll be
-> >>> interested in making them part of my tree aswell, so Vaibhav
-> could
-> >> avoid
-> >>> rebasing the BT646 support internally everytime...
-> >>>
-> >>> Is there a GIT tree for this?
-> >> AFAIK, this is the latest tree Vaibhav is exposing:
-> >>
-> >> http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git
-> >>
-> >> He maintains a camera and a DSS2 branch exactly to make both work
-> on
-> >> his 3530EVM.
-> >>
-> > [Hiremath, Vaibhav] Thanks Sergio for taking this up. Just to add
-> on top of Sergio's comments, the current status of above tree is,
-> DSS2 is already merged to latest kernel (Even on PM branch)
-> baseline.
-> >
-> > http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-
-> video.git;a=shortlog;h=refs/heads/ti_display
-> >
-> > http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-
-> video.git;a=shortlog;h=refs/heads/pm
-> >
-> >
-> > The next PSP release will contain 2.6.31(PM) + DSS2 + Camera +
-> Resizer modules together in one release. I have started with Camera
-> modules merging on top of 2.6.31 + DSS2; hopefully I should be able
-> to complete this by next week (provided that I don't get any
-> interrupts)
-> >
-> > You should be looking to Arago tree for all the developments which
-> I do under Arago.
-> >
-> > Please let me know if you have any issues/doubts OR if you are
-> looking for some quick solutions.
-> 
-> I'd like to use the latest tree with DSS2 (ti_display seems to be
-> it), but
-> the OMAP3 camera support is not present.
-[Hiremath, Vaibhav] Yes you are correct.
->   * How hard would it be to merge the ti_omap3camera and ti_display
-> branches?
+Greg,
 
-[Hiremath, Vaibhav] Should not be that hard but I would suggest to go with latest Camera changes.
+	Here is the refreshed version of this patch.
 
->   * Would this be a reasonable way forward?
+Thanks,
+Ajay
+================ cut here =================================================
+OMAP3EVM uses ISP1504 phy which doesn't require any programming and
+thus has to use NOP otg transceiver.
 
- [Hiremath, Vaibhav] It would be really difficult to maintain the old code base, which in my opinion waste of efforts.
+Cleanups being done:
+	- Remove unwanted code in usb-musb.c file
+	- Register NOP in OMAP3EVM board file using
+	  usb_nop_xceiv_register().
+	- Select NOP_USB_XCEIV for OMAP3EVM boards.
+	- Don't enable TWL4030_USB in omap3_evm_defconfig
 
-> 
-> It would be nice if I could wait for your next release, but alas, my
-> project is already weeks late and every hour counts...
-> 
-> >>> A [hopefully] minor complication is that I'm using Tomi's DSS2
-> >>> tree for the base of my port.  How can I move/merge the PSP
-> >>> based support into it?  Can I just pick up the whole
-> drivers/media
-> >>> subtree and put in in place of what I have?
-> >> I recommend looking at the git tree above... I think that job is
-> >> already done...
-> >>
-> >>> Thanks for your help - this myriad of trees and very disparate
-> >>> support levels is really confusing to those of us on the
-> >> outside...
-> >>
-> >> I know, and the lack of proper documentation is one of the first
-> >> issues for me to look at...
-> >>
-> >> You're welcome.
-> 
-> 
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Eino-Ville Talvala <talvala@stanford.edu>
+---
+Resubmitting with below changes.
+	- Refreshed against linus tree
+	- Combining recent patch from Eino-Ville Talvala on
+	  "Removing TWL4030_USB from omap3_evm_defconfig"
+	- Register nop under #ifdef to avoid compilation warning when
+	  USB itself it not selected in OMAP3EVM build.
+
+ arch/arm/configs/omap3_evm_defconfig |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c |    5 +++++
+ arch/arm/mach-omap2/usb-musb.c       |   21 ---------------------
+ drivers/usb/musb/Kconfig             |    1 +
+ 4 files changed, 7 insertions(+), 22 deletions(-)
+
+diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
+index 28be17f..d5ff477 100644
+--- a/arch/arm/configs/omap3_evm_defconfig
++++ b/arch/arm/configs/omap3_evm_defconfig
+@@ -1107,7 +1107,7 @@ CONFIG_USB_ZERO=m
+ CONFIG_USB_OTG_UTILS=y
+ # CONFIG_USB_GPIO_VBUS is not set
+ # CONFIG_ISP1301_OMAP is not set
+-CONFIG_TWL4030_USB=y
++# CONFIG_TWL4030_USB is not set
+ # CONFIG_NOP_USB_XCEIV is not set
+ CONFIG_MMC=y
+ # CONFIG_MMC_DEBUG is not set
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index d3cc145..cf3dd77 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -25,6 +25,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/usb/otg.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -307,6 +308,10 @@ static void __init omap3_evm_init(void)
+ 				ARRAY_SIZE(omap3evm_spi_board_info));
+ 
+ 	omap_serial_init();
++#ifdef CONFIG_NOP_USB_XCEIV
++	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
++	usb_nop_xceiv_register();
++#endif
+ 	usb_musb_init();
+ 	ads7846_dev_init();
+ }
+diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+index d85296d..739e59e 100644
+--- a/arch/arm/mach-omap2/usb-musb.c
++++ b/arch/arm/mach-omap2/usb-musb.c
+@@ -155,20 +155,6 @@ static struct platform_device musb_device = {
+ 	.resource	= musb_resources,
+ };
+ 
+-#ifdef CONFIG_NOP_USB_XCEIV
+-static u64 nop_xceiv_dmamask = DMA_BIT_MASK(32);
+-
+-static struct platform_device nop_xceiv_device = {
+-	.name		= "nop_usb_xceiv",
+-	.id		= -1,
+-	.dev = {
+-		.dma_mask		= &nop_xceiv_dmamask,
+-		.coherent_dma_mask	= DMA_BIT_MASK(32),
+-		.platform_data		= NULL,
+-	},
+-};
+-#endif
+-
+ void __init usb_musb_init(void)
+ {
+ 	if (cpu_is_omap243x())
+@@ -183,13 +169,6 @@ void __init usb_musb_init(void)
+ 	 */
+ 	musb_plat.clock = "ick";
+ 
+-#ifdef CONFIG_NOP_USB_XCEIV
+-	if (platform_device_register(&nop_xceiv_device) < 0) {
+-		printk(KERN_ERR "Unable to register NOP-XCEIV device\n");
+-		return;
+-	}
+-#endif
+-
+ 	if (platform_device_register(&musb_device) < 0) {
+ 		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
+ 		return;
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index 70073b1..803adcb 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -12,6 +12,7 @@ config USB_MUSB_HDRC
+ 	depends on !SUPERH
+ 	select NOP_USB_XCEIV if ARCH_DAVINCI
+ 	select TWL4030_USB if MACH_OMAP_3430SDP
++	select NOP_USB_XCEIV if MACH_OMAP3EVM
+ 	select USB_OTG_UTILS
+ 	tristate 'Inventra Highspeed Dual Role Controller (TI, ADI, ...)'
+ 	help
+-- 
+1.6.2.4
 
