@@ -1,100 +1,187 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [PATCH] ARM: Overo: Fix smsc911x platform device resource value
-Date: Wed, 29 Jul 2009 16:44:06 -0500
-Message-ID: <A24693684029E5489D1D202277BE894449BD64D0@dlee02.ent.ti.com>
+From: Ben Dooks <ben-linux@fluff.org>
+Subject: Re: [PATCH] I2C: OMAP3: PM: (re)init for every transfer to support
+	off-mode
+Date: Thu, 30 Jul 2009 00:43:08 +0100
+Message-ID: <20090729234308.GA8850@fluff.org.uk>
+References: <1248217743-24330-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_A24693684029E5489D1D202277BE894449BD64D0dlee02entticom_"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52343 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753178AbZG2Vq5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 29 Jul 2009 17:46:57 -0400
-Content-Language: en-US
+Received: from aeryn.fluff.org.uk ([87.194.8.8]:39327 "EHLO
+	kira.home.fluff.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754966AbZG2Xna (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jul 2009 19:43:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1248217743-24330-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Steve Sakoman <steve@sakoman.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: ben-linux@fluff.org, linux-i2c@vger.kernel.org, linux-omap@vger.kernel.org
 
---_002_A24693684029E5489D1D202277BE894449BD64D0dlee02entticom_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jul 21, 2009 at 04:09:03PM -0700, Kevin Hilman wrote:
+> From: Rajendra Nayak <rnayak@ti.com>
+> 
+> Because of OMAP off-mode, powerdomain can go off when I2C is idle.
+> Save enough state, and do a re-init for each transfer.
+> 
+> Additional save/restore state added by Jagadeesh Bhaskar Pakaravoor
+> (SYSC_REG) and Aaro Koskinen (wakeup sources.)
+> 
+> Also, The OMAP3430 TRM states:
+> 
+> "During active mode (I2Ci.I2C_CON[15] I2C_EN bit is set to 1), make no
+> changes to the I2Ci.I2C_SCLL and I2Ci.I2C_SCLH registers.  Changes may
+> result in unpredictable behavior."
+> 
+> Hence, the I2C_EN bit should be clearer when modifying these
+> registers. Please note that clearing the entire I2C_CON register to
+> disable the I2C module is safe, because the I2C_CON register is
+> re-configured for each transfer.
 
->From 7a35b843689937256399ece6ef807d43b6e9296a Mon Sep 17 00:00:00 2001
-From: Sergio Aguirre <saaguirre@ti.com>
-Date: Wed, 29 Jul 2009 16:30:46 -0500
-Subject: [PATCH] ARM: Overo: Fix smsc911x platform device resource value
+should this be applied as a bugfix, or kept for next merge window?
+ 
+> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> Cc: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+> Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+> Cc: Jon Hunter <jon-hunter@ti.com>
+> Cc: Hu Tao <taohu@motorola.com>
+> Cc: Xiaolong Chen <A21785@motorola.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+> This patch has been tested extensively as part of the OMAP 'PM branch'
+> 
+>  drivers/i2c/busses/i2c-omap.c |   64 ++++++++++++++++++++++++++--------------
+>  1 files changed, 41 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index ad8d201..bb8ae50 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -178,6 +178,12 @@ struct omap_i2c_dev {
+>  	unsigned		b_hw:1;		/* bad h/w fixes */
+>  	unsigned		idle:1;
+>  	u16			iestate;	/* Saved interrupt register */
+> +	u16			pscstate;
+> +	u16			scllstate;
+> +	u16			sclhstate;
+> +	u16			bufstate;
+> +	u16			syscstate;
+> +	u16			westate;
+>  };
+>  
+>  static inline void omap_i2c_write_reg(struct omap_i2c_dev *i2c_dev,
+> @@ -230,9 +236,18 @@ static void omap_i2c_unidle(struct omap_i2c_dev *dev)
+>  
+>  	clk_enable(dev->iclk);
+>  	clk_enable(dev->fclk);
+> +	if (cpu_is_omap34xx()) {
+> +		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_PSC_REG, dev->pscstate);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, dev->scllstate);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, dev->sclhstate);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, dev->bufstate);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, dev->syscstate);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+> +		omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+> +	}
+>  	dev->idle = 0;
+> -	if (dev->iestate)
+> -		omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+>  }
+>  
+>  static void omap_i2c_idle(struct omap_i2c_dev *dev)
+> @@ -258,7 +273,7 @@ static void omap_i2c_idle(struct omap_i2c_dev *dev)
+>  
+>  static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  {
+> -	u16 psc = 0, scll = 0, sclh = 0;
+> +	u16 psc = 0, scll = 0, sclh = 0, buf = 0;
+>  	u16 fsscll = 0, fssclh = 0, hsscll = 0, hssclh = 0;
+>  	unsigned long fclk_rate = 12000000;
+>  	unsigned long timeout;
+> @@ -287,24 +302,22 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  					   SYSC_AUTOIDLE_MASK);
+>  
+>  		} else if (dev->rev >= OMAP_I2C_REV_ON_3430) {
+> -			u32 v;
+> -
+> -			v = SYSC_AUTOIDLE_MASK;
+> -			v |= SYSC_ENAWAKEUP_MASK;
+> -			v |= (SYSC_IDLEMODE_SMART <<
+> +			dev->syscstate = SYSC_AUTOIDLE_MASK;
+> +			dev->syscstate |= SYSC_ENAWAKEUP_MASK;
+> +			dev->syscstate |= (SYSC_IDLEMODE_SMART <<
+>  			      __ffs(SYSC_SIDLEMODE_MASK));
+> -			v |= (SYSC_CLOCKACTIVITY_FCLK <<
+> +			dev->syscstate |= (SYSC_CLOCKACTIVITY_FCLK <<
+>  			      __ffs(SYSC_CLOCKACTIVITY_MASK));
+>  
+> -			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG, v);
+> +			omap_i2c_write_reg(dev, OMAP_I2C_SYSC_REG,
+> +							dev->syscstate);
+>  			/*
+>  			 * Enabling all wakup sources to stop I2C freezing on
+>  			 * WFI instruction.
+>  			 * REVISIT: Some wkup sources might not be needed.
+>  			 */
+> -			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG,
+> -							OMAP_I2C_WE_ALL);
+> -
+> +			dev->westate = OMAP_I2C_WE_ALL;
+> +			omap_i2c_write_reg(dev, OMAP_I2C_WE_REG, dev->westate);
+>  		}
+>  	}
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, 0);
+> @@ -394,23 +407,28 @@ static int omap_i2c_init(struct omap_i2c_dev *dev)
+>  	omap_i2c_write_reg(dev, OMAP_I2C_SCLL_REG, scll);
+>  	omap_i2c_write_reg(dev, OMAP_I2C_SCLH_REG, sclh);
+>  
+> -	if (dev->fifo_size)
+> -		/* Note: setup required fifo size - 1 */
+> -		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG,
+> -					(dev->fifo_size - 1) << 8 | /* RTRSH */
+> -					OMAP_I2C_BUF_RXFIF_CLR |
+> -					(dev->fifo_size - 1) | /* XTRSH */
+> -					OMAP_I2C_BUF_TXFIF_CLR);
+> +	if (dev->fifo_size) {
+> +		/* Note: setup required fifo size - 1. RTRSH and XTRSH */
+> +		buf = (dev->fifo_size - 1) << 8 | OMAP_I2C_BUF_RXFIF_CLR |
+> +			(dev->fifo_size - 1) | OMAP_I2C_BUF_TXFIF_CLR;
+> +		omap_i2c_write_reg(dev, OMAP_I2C_BUF_REG, buf);
+> +	}
+>  
+>  	/* Take the I2C module out of reset: */
+>  	omap_i2c_write_reg(dev, OMAP_I2C_CON_REG, OMAP_I2C_CON_EN);
+>  
+>  	/* Enable interrupts */
+> -	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG,
+> -			(OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+> +	dev->iestate = (OMAP_I2C_IE_XRDY | OMAP_I2C_IE_RRDY |
+>  			OMAP_I2C_IE_ARDY | OMAP_I2C_IE_NACK |
+>  			OMAP_I2C_IE_AL)  | ((dev->fifo_size) ?
+> -				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0));
+> +				(OMAP_I2C_IE_RDR | OMAP_I2C_IE_XDR) : 0);
+> +	omap_i2c_write_reg(dev, OMAP_I2C_IE_REG, dev->iestate);
+> +	if (cpu_is_omap34xx()) {
+> +		dev->pscstate = psc;
+> +		dev->scllstate = scll;
+> +		dev->sclhstate = sclh;
+> +		dev->bufstate = buf;
+> +	}
+>  	return 0;
+>  }
+>  
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Fixes a wrong setting of resource parameter list in
-SMSC911x platform driver data structure for Overo case.
+-- 
+Ben (ben@fluff.org, http://www.fluff.org/)
 
-This fixes folowing warning when compiling for Overo board:
-
-	warning: initialization from incompatible pointer type
-
-Introduced since commit id:
-	commit 172ef275444efa12d834fb9d1b1acdac92db47f7
-	Author: Steve Sakoman <sakoman@gmail.com>
-	Date:   Mon Feb 2 06:27:49 2009 +0000
-
-	    ARM: Add SMSC911X support to Overo platform (V2)
-
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/board-overo.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-=
-overo.c
-index 501d020..7e54713 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -146,7 +146,7 @@ static struct platform_device overo_smsc911x_device =3D=
- {
- 	.name		=3D "smsc911x",
- 	.id		=3D -1,
- 	.num_resources	=3D ARRAY_SIZE(overo_smsc911x_resources),
--	.resource	=3D &overo_smsc911x_resources,
-+	.resource	=3D overo_smsc911x_resources,
- 	.dev		=3D {
- 		.platform_data =3D &overo_smsc911x_config,
- 	},
---=20
-1.6.3.2
-
---_002_A24693684029E5489D1D202277BE894449BD64D0dlee02entticom_
-Content-Type: text/x-patch;
-	name="0001-ARM-Overo-Fix-smsc911x-platform-device-resource-valu.patch"
-Content-Description: 0001-ARM-Overo-Fix-smsc911x-platform-device-resource-valu.patch
-Content-Disposition: attachment;
-	filename="0001-ARM-Overo-Fix-smsc911x-platform-device-resource-valu.patch";
-	size=1331; creation-date="Wed, 29 Jul 2009 16:46:30 GMT";
-	modification-date="Wed, 29 Jul 2009 16:46:30 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSA3YTM1Yjg0MzY4OTkzNzI1NjM5OWVjZTZlZjgwN2Q0M2I2ZTkyOTZhIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTZXJnaW8gQWd1aXJyZSA8c2FhZ3VpcnJlQHRpLmNvbT4KRGF0
-ZTogV2VkLCAyOSBKdWwgMjAwOSAxNjozMDo0NiAtMDUwMApTdWJqZWN0OiBbUEFUQ0hdIEFSTTog
-T3Zlcm86IEZpeCBzbXNjOTExeCBwbGF0Zm9ybSBkZXZpY2UgcmVzb3VyY2UgdmFsdWUKCkZpeGVz
-IGEgd3Jvbmcgc2V0dGluZyBvZiByZXNvdXJjZSBwYXJhbWV0ZXIgbGlzdCBpbgpTTVNDOTExeCBw
-bGF0Zm9ybSBkcml2ZXIgZGF0YSBzdHJ1Y3R1cmUgZm9yIE92ZXJvIGNhc2UuCgpUaGlzIGZpeGVz
-IGZvbG93aW5nIHdhcm5pbmcgd2hlbiBjb21waWxpbmcgZm9yIE92ZXJvIGJvYXJkOgoKCXdhcm5p
-bmc6IGluaXRpYWxpemF0aW9uIGZyb20gaW5jb21wYXRpYmxlIHBvaW50ZXIgdHlwZQoKSW50cm9k
-dWNlZCBzaW5jZSBjb21taXQgaWQ6Cgljb21taXQgMTcyZWYyNzU0NDRlZmExMmQ4MzRmYjlkMWIx
-YWNkYWM5MmRiNDdmNwoJQXV0aG9yOiBTdGV2ZSBTYWtvbWFuIDxzYWtvbWFuQGdtYWlsLmNvbT4K
-CURhdGU6ICAgTW9uIEZlYiAyIDA2OjI3OjQ5IDIwMDkgKzAwMDAKCgkgICAgQVJNOiBBZGQgU01T
-QzkxMVggc3VwcG9ydCB0byBPdmVybyBwbGF0Zm9ybSAoVjIpCgpTaWduZWQtb2ZmLWJ5OiBTZXJn
-aW8gQWd1aXJyZSA8c2FhZ3VpcnJlQHRpLmNvbT4KLS0tCiBhcmNoL2FybS9tYWNoLW9tYXAyL2Jv
-YXJkLW92ZXJvLmMgfCAgICAyICstCiAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwg
-MSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW92
-ZXJvLmMgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2JvYXJkLW92ZXJvLmMKaW5kZXggNTAxZDAyMC4u
-N2U1NDcxMyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9ib2FyZC1vdmVyby5jCisr
-KyBiL2FyY2gvYXJtL21hY2gtb21hcDIvYm9hcmQtb3Zlcm8uYwpAQCAtMTQ2LDcgKzE0Niw3IEBA
-IHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlIG92ZXJvX3Ntc2M5MTF4X2RldmljZSA9IHsK
-IAkubmFtZQkJPSAic21zYzkxMXgiLAogCS5pZAkJPSAtMSwKIAkubnVtX3Jlc291cmNlcwk9IEFS
-UkFZX1NJWkUob3Zlcm9fc21zYzkxMXhfcmVzb3VyY2VzKSwKLQkucmVzb3VyY2UJPSAmb3Zlcm9f
-c21zYzkxMXhfcmVzb3VyY2VzLAorCS5yZXNvdXJjZQk9IG92ZXJvX3Ntc2M5MTF4X3Jlc291cmNl
-cywKIAkuZGV2CQk9IHsKIAkJLnBsYXRmb3JtX2RhdGEgPSAmb3Zlcm9fc21zYzkxMXhfY29uZmln
-LAogCX0sCi0tIAoxLjYuMy4yCgo=
-
---_002_A24693684029E5489D1D202277BE894449BD64D0dlee02entticom_--
+  'a smiley only costs 4 bytes'
