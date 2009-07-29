@@ -1,69 +1,30 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3: PM: Move the clk stabilization delay to the right
- place
-Date: Tue, 28 Jul 2009 11:18:31 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0907281117120.13295@utopia.booyaka.com>
-References: <1246015755-9267-1-git-send-email-rnayak@ti.com>
+From: Mike Chan <mike@android.com>
+Subject: drivers that require headers in mach-omap
+Date: Tue, 28 Jul 2009 18:49:19 -0700
+Message-ID: <8bb80c380907281849i1cd271f3n64a391327cd8bb5e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:50211 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753489AbZG1RSc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 13:18:32 -0400
-In-Reply-To: <1246015755-9267-1-git-send-email-rnayak@ti.com>
+Received: from mail-pz0-f204.google.com ([209.85.222.204]:37239 "EHLO
+	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752014AbZG2BtT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 28 Jul 2009 21:49:19 -0400
+Received: by pzk42 with SMTP id 42so296696pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 28 Jul 2009 18:49:19 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rajendra Nayak <rnayak@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-On Fri, 26 Jun 2009, Rajendra Nayak wrote:
+Omap folks, how are drivers that require access to prm and cm
+registers via cm_read_mod_reg() etc... suppose to access these?
 
-> The clock stabilization delay post a M2 divider change is needed
-> even before a SDRC interface clock re-enable and not only before
-> jumping back to SDRAM.
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+For example if drivers/usb/host/ohci-omap.c wanted to call:
+cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_IDLEST);
 
-For the archives: this patch has been accepted and sent upstream for 
-2.6.31-rc fixes.
+It seems some of the headers in mach-omap2 should be in
+plat-omap/include/mach, or is there a more elegant way? The other
+alternatives are to register calls in all the board files, or #include
+../../.. both do not seem very elegant to me.
 
-- Paul
-
-> ---
->  arch/arm/mach-omap2/sram34xx.S |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-> index f41f8d9..481f912 100644
-> --- a/arch/arm/mach-omap2/sram34xx.S
-> +++ b/arch/arm/mach-omap2/sram34xx.S
-> @@ -97,6 +97,8 @@ ENTRY(omap3_sram_configure_core_dpll)
->  	blne	lock_dll
->  	bl	sdram_in_selfrefresh	@ put SDRAM in self refresh, idle SDRC
->  	bl 	configure_core_dpll	@ change the DPLL3 M2 divider
-> +	mov	r12, r5
-> +	bl	wait_clk_stable		@ wait for SDRC to stabilize
->  	bl	enable_sdrc		@ take SDRC out of idle
->  	cmp	r4, #SDRC_UNLOCK_DLL	@ wait for DLL status to change
->  	bleq	wait_dll_unlock
-> @@ -104,8 +106,6 @@ ENTRY(omap3_sram_configure_core_dpll)
->  	cmp	r7, #1			@ if increasing SDRC clk rate,
->  	beq	return_to_sdram		@ return to SDRAM code, otherwise,
->  	bl	configure_sdrc		@ reprogram SDRC regs now
-> -	mov	r12, r5
-> -	bl	wait_clk_stable		@ wait for SDRC to stabilize
->  return_to_sdram:
->  	isb				@ prevent speculative exec past here
->  	mov 	r0, #0 			@ return value
-> -- 
-> 1.5.4.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
-- Paul
+-- Mike
