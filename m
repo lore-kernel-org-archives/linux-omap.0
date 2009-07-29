@@ -1,802 +1,280 @@
 From: balajitk-l0cyMroinI0@public.gmane.org
-Subject: [RFC][PATCH v2 1/4] OMAP4: PMIC: Add support for twl6030 irq framework
-Date: Wed, 29 Jul 2009 09:59:56 +0530
-Message-ID: <1248841796-21223-1-git-send-email-balajitk@ti.com>
+Subject: [RFC][PATCH v2 2/4] OMAP4: PMIC: Add support for twl6030 RTC
+Date: Wed, 29 Jul 2009 10:05:09 +0530
+Message-ID: <1248842109-21713-1-git-send-email-balajitk@ti.com>
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
 From: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
 
 This version of patch series enables RUN TIME selection of TWL4030 or TWL6030.
-CONFIG_TWL4030_CORE and CONFIG_TWL6030_CORE is replaced by CONFIG_TWL_CORE
 
-This patch adds support for phoenix interrupt framework. New Interrupt status
-register A, B, C are introduced in Phoenix and are cleared on write.
-Due to difference in interrupt handling with respect to TWL4030,
-twl6030-irq.c is created for TWL6030 PMIC
+This patch adds support for RTC in phoenix TWL6030.
+Register offset addresses have changed in TWL6030
+rtc-twl.c will hence forth support all twl RTC (4030, 5030, 6030 ..)
 
-Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
 Signed-off-by: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/plat-omap/include/mach/irqs.h |   18 ++-
- drivers/mfd/Kconfig                    |    4 +-
- drivers/mfd/Makefile                   |    2 +-
- drivers/mfd/twl-core.c                 |  128 ++++++++++++--
- drivers/mfd/twl4030-irq.c              |    4 +-
- drivers/mfd/twl6030-irq.c              |  301 ++++++++++++++++++++++++++++++++
- include/linux/i2c/twl.h                |   64 +++++++-
- 7 files changed, 498 insertions(+), 23 deletions(-)
- create mode 100644 drivers/mfd/twl6030-irq.c
+ drivers/mfd/twl-core.c |    2 +-
+ drivers/rtc/Kconfig    |    8 ++--
+ drivers/rtc/Makefile   |    2 +-
+ drivers/rtc/rtc-twl.c  |  113 ++++++++++++++++++++++++++++++++++++------------
+ 4 files changed, 91 insertions(+), 34 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index fb7cb77..e9e0500 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -531,7 +531,7 @@
- 
- /* External TWL4030 can handle interrupts on 2430 and 34xx boards */
- #define	TWL4030_IRQ_BASE	(OMAP_FPGA_IRQ_END)
--#ifdef	CONFIG_TWL4030_CORE
-+#ifdef	CONFIG_TWL_CORE
- #define	TWL4030_BASE_NR_IRQS	8
- #define	TWL4030_PWR_NR_IRQS	8
- #else
-@@ -551,8 +551,22 @@
- #endif
- #define TWL4030_GPIO_IRQ_END	(TWL4030_GPIO_IRQ_BASE + TWL4030_GPIO_NR_IRQS)
- 
-+#define	TWL6030_IRQ_BASE	(OMAP_FPGA_IRQ_END)
-+#ifdef CONFIG_TWL_CORE
-+#define	TWL6030_BASE_NR_IRQS	20
-+#else
-+#define	TWL6030_BASE_NR_IRQS	0
-+#endif
-+#define TWL6030_IRQ_END		(TWL6030_IRQ_BASE + TWL6030_BASE_NR_IRQS)
-+
- /* Total number of interrupts depends on the enabled blocks above */
--#define NR_IRQS			TWL4030_GPIO_IRQ_END
-+#if (TWL4030_GPIO_IRQ_END > TWL6030_IRQ_END)
-+#define TWL_IRQ_END 		TWL4030_GPIO_IRQ_END
-+#else
-+#define TWL_IRQ_END		TWL6030_IRQ_END
-+#endif
-+
-+#define NR_IRQS			TWL_IRQ_END
- 
- #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
- 
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 491ac0f..38ad70b 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -94,11 +94,11 @@ config MENELAUS
- 	  and other features that are often used in portable devices like
- 	  cell phones and PDAs.
- 
--config TWL4030_CORE
-+config TWL_CORE
- 	bool "Texas Instruments TWL4030/TPS659x0 Support"
- 	depends on I2C=y && GENERIC_HARDIRQS
- 	help
--	  Say yes here if you have TWL4030 family chip on your board.
-+	  Say yes here if you have TWL4030 / TWL6030 family chip on your board.
- 	  This core driver provides register access and IRQ handling
- 	  facilities, and registers devices for the various functions
- 	  so that function-specific drivers can bind to them.
-diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
-index 4e9d513..c733440 100644
---- a/drivers/mfd/Makefile
-+++ b/drivers/mfd/Makefile
-@@ -22,7 +22,7 @@ obj-$(CONFIG_MFD_WM8350_I2C)	+= wm8350-i2c.o
- obj-$(CONFIG_TPS65010)		+= tps65010.o
- obj-$(CONFIG_MENELAUS)		+= menelaus.o
- 
--obj-$(CONFIG_TWL4030_CORE)	+= twl-core.o twl4030-irq.o
-+obj-$(CONFIG_TWL_CORE)		+= twl-core.o twl4030-irq.o twl6030-irq.o
- 
- obj-$(CONFIG_MFD_CORE)		+= mfd-core.o
- 
 diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index 6122db2..4066b2f 100644
+index 4066b2f..78109ca 100644
 --- a/drivers/mfd/twl-core.c
 +++ b/drivers/mfd/twl-core.c
-@@ -163,6 +163,35 @@
- /* Triton Core internal information (END) */
+@@ -89,7 +89,7 @@
+ #define twl_has_madc()	false
+ #endif
  
+-#if defined(CONFIG_RTC_DRV_TWL4030) || defined(CONFIG_RTC_DRV_TWL4030_MODULE)
++#if defined(CONFIG_RTC_DRV_TWL) || defined(CONFIG_RTC_DRV_TWL_MODULE)
+ #define twl_has_rtc()	true
+ #else
+ #define twl_has_rtc()	false
+diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
+index 81adbdb..bb94924 100644
+--- a/drivers/rtc/Kconfig
++++ b/drivers/rtc/Kconfig
+@@ -257,15 +257,15 @@ config RTC_DRV_TWL92330
+ 	  platforms. The support is integrated with the rest of
+ 	  the Menelaus driver; it's not separate module.
  
-+/* subchip/slave 0 0x48 - POWER */
-+#define TWL6030_BASEADD_RTC		0x0000
-+#define TWL6030_BASEADD_MEM		0x0017
-+#define TWL6030_BASEADD_PM_MASTER	0x001F
-+#define TWL6030_BASEADD_PM_SLAVE_MISC	0x0030
-+#define TWL6030_BASEADD_PM_SLAVE_SMPS	0x0040
-+#define TWL6030_BASEADD_PM_SLAVE_LDO	0x0080
-+#define TWL6030_BASEADD_PM_SLAVE_RES	0x00AD
-+#define TWL6030_BASEADD_PM_MISC		0x00E3
-+#define TWL6030_BASEADD_PM_PUPD		0x00F0
-+
-+/* subchip/slave 1 0x49 - FEATURE */
-+#define TWL6030_BASEADD_USB		0x0000
-+#define TWL6030_BASEADD_GPADC_CTRL	0x0030
-+#define TWL6030_BASEADD_GPADC_RT	0x0035
-+#define TWL6030_BASEADD_GPADC		0x005D
-+#define TWL6030_BASEADD_AUX		0x0090
-+#define TWL6030_BASEADD_PWM		0x00BA
-+#define TWL6030_BASEADD_GASGAUGE	0x00C0
-+#define TWL6030_BASEADD_PIH		0x00D0
-+#define TWL6030_BASEADD_CHARGER		0x00E0
-+
-+/* subchip/slave 2 0x4A - DFT */
-+#define TWL6030_BASEADD_DIEID		0x00C0
-+
-+/* subchip/slave 3 0x4B - AUDIO */
-+#define TWL6030_BASEADD_AUDIO		0x0000
-+#define TWL6030_BASEADD_RSV		0x0000
-+
- /* Few power values */
- #define R_CFG_BOOT			0x05
- #define R_PROTECT_KEY			0x0E
-@@ -182,13 +211,19 @@
- /* chip-specific feature flags, for i2c_device_id.driver_data */
- #define TWL4030_VAUX2		BIT(0)	/* pre-5030 voltage ranges */
- #define TPS_SUBSET		BIT(1)	/* tps659[23]0 have fewer LDOs */
-+#define TWL6030_CLASS	BIT(2)	/* TWL6030 class */
+-config RTC_DRV_TWL4030
+-	tristate "TI TWL4030/TWL5030/TPS659x0"
+-	depends on RTC_CLASS && TWL4030_CORE
++config RTC_DRV_TWL
++	tristate "TI TWL4030/TWL5030/TWL6030/TPS659x0"
++	depends on RTC_CLASS && TWL_CORE
+ 	help
+ 	  If you say yes here you get support for the RTC on the
+ 	  TWL4030 family chips, used mostly with OMAP3 platforms.
  
- /*----------------------------------------------------------------------*/
+ 	  This driver can also be built as a module. If so, the module
+-	  will be called rtc-twl4030.
++	  will be called rtc-twl.
  
- /* is driver active, bound to a chip? */
- static bool inuse;
- 
--/* Structure for each TWL4030 Slave */
-+static unsigned int twl_id;
-+unsigned int twl_rev(void)
-+{
-+	return twl_id;
-+}
-+/* Structure for each TWL4030/TWL6030 Slave */
- struct twl_client {
- 	struct i2c_client *client;
- 	u8 address;
-@@ -208,11 +243,12 @@ struct twl_mapping {
- 	unsigned char sid;	/* Slave ID */
- 	unsigned char base;	/* base address */
- };
-+struct twl_mapping *twl_map;
- 
- static struct twl_mapping twl4030_map[TWL4030_MODULE_LAST + 1] = {
- 	/*
- 	 * NOTE:  don't change this table without updating the
--	 * <linux/i2c/twl4030.h> defines for TWL4030_MODULE_*
-+	 * <linux/i2c/twl.h> defines for TWL4030_MODULE_*
- 	 * so they continue to match the order in this table.
- 	 */
- 
-@@ -243,12 +279,55 @@ static struct twl_mapping twl4030_map[TWL4030_MODULE_LAST + 1] = {
- 	{ 3, TWL4030_BASEADD_SECURED_REG },
- };
- 
-+static struct twl_mapping twl6030_map[] = {
-+	/*
-+	 * NOTE:  don't change this table without updating the
-+	 * <linux/i2c/twl.h> defines for TWL6030_MODULE_*
-+	 * so they continue to match the order in this table.
-+	 */
-+	{ SUB_CHIP_ID1, TWL6030_BASEADD_USB },
-+	{ SUB_CHIP_ID3, TWL6030_BASEADD_AUDIO },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_DIEID },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID1, TWL6030_BASEADD_PIH },
-+
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID1, TWL6030_BASEADD_GPADC_CTRL },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+
-+	{ SUB_CHIP_ID1, TWL6030_BASEADD_CHARGER },
-+	{ SUB_CHIP_ID1, TWL6030_BASEADD_GASGAUGE },
-+	{ SUB_CHIP_ID1, TWL6030_BASEADD_PWM },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_MASTER },
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_SLAVE_MISC },
-+
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_RTC },
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_SLAVE_SMPS },
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_SLAVE_LDO },
-+	{ SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_MEM },
-+
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_SLAVE_RES },
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_MISC },
-+	{ SUB_CHIP_ID0, TWL6030_BASEADD_PM_PUPD },
-+	{ SUB_CHIP_ID1, TWL6030_BASEADD_AUX },
-+
-+};
-+
- /*----------------------------------------------------------------------*/
- 
- /* Exported Functions */
- 
- /**
-- * twl_i2c_write - Writes a n bit register in TWL4030
-+ * twl_i2c_write - Writes a n bit register in TWL4030/TWL6030
-  * @mod_no: module number
-  * @value: an array of num_bytes+1 containing data to write
-  * @reg: register address (just offset will do)
-@@ -270,7 +349,7 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
- 		return -EPERM;
- 	}
--	sid = twl4030_map[mod_no].sid;
-+	sid = twl_map[mod_no].sid;
- 	twl = &twl_modules[sid];
- 
- 	if (unlikely(!inuse)) {
-@@ -288,7 +367,7 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 	msg->flags = 0;
- 	msg->buf = value;
- 	/* over write the first byte of buffer with the register address */
--	*value = twl4030_map[mod_no].base + reg;
-+	*value = twl_map[mod_no].base + reg;
- 	ret = i2c_transfer(twl->client->adapter, twl->xfer_msg, 1);
- 	mutex_unlock(&twl->xfer_lock);
- 
-@@ -300,7 +379,7 @@ int twl_i2c_write(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- EXPORT_SYMBOL(twl_i2c_write);
- 
- /**
-- * twl_i2c_read - Reads a n bit register in TWL4030
-+ * twl_i2c_read - Reads a n bit register in TWL4030/TWL6030
-  * @mod_no: module number
-  * @value: an array of num_bytes containing data to be read
-  * @reg: register address (just offset will do)
-@@ -320,7 +399,7 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 		pr_err("%s: invalid module number %d\n", DRIVER_NAME, mod_no);
- 		return -EPERM;
- 	}
--	sid = twl4030_map[mod_no].sid;
-+	sid = twl_map[mod_no].sid;
- 	twl = &twl_modules[sid];
- 
- 	if (unlikely(!inuse)) {
-@@ -333,7 +412,7 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- 	msg->addr = twl->address;
- 	msg->len = 1;
- 	msg->flags = 0;	/* Read the register value */
--	val = twl4030_map[mod_no].base + reg;
-+	val = twl_map[mod_no].base + reg;
- 	msg->buf = &val;
- 	/* [MSG2] fill the data rx buffer */
- 	msg = &twl->xfer_msg[1];
-@@ -352,7 +431,7 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes)
- EXPORT_SYMBOL(twl_i2c_read);
- 
- /**
-- * twl_i2c_write_u8 - Writes a 8 bit register in TWL4030
-+ * twl_i2c_write_u8 - Writes a 8 bit register in TWL4030/TWL6030
-  * @mod_no: module number
-  * @value: the value to be written 8 bit
-  * @reg: register address (just offset will do)
-@@ -371,7 +450,7 @@ int twl_i2c_write_u8(u8 mod_no, u8 value, u8 reg)
- EXPORT_SYMBOL(twl_i2c_write_u8);
- 
- /**
-- * twl_i2c_read_u8 - Reads a 8 bit register from TWL4030
-+ * twl_i2c_read_u8 - Reads a 8 bit register from TWL4030/TWL6030
-  * @mod_no: module number
-  * @value: the value read 8 bit
-  * @reg: register address (just offset will do)
-@@ -450,6 +529,7 @@ add_regulator_linked(int num, struct regulator_init_data *pdata,
- 		struct regulator_consumer_supply *consumers,
- 		unsigned num_consumers)
- {
-+	unsigned sub_chip_id;
- 	/* regulator framework demands init_data ... */
- 	if (!pdata)
- 		return NULL;
-@@ -460,7 +540,8 @@ add_regulator_linked(int num, struct regulator_init_data *pdata,
- 	}
- 
- 	/* NOTE:  we currently ignore regulator IRQs, e.g. for short circuits */
--	return add_numbered_child(REG_SUB_CHIP_ID, "twl_reg", num,
-+	sub_chip_id = twl_map[TWL_MODULE_PM_MASTER].sid;
-+	return add_numbered_child(sub_chip_id, "twl_reg", num,
- 		pdata, sizeof(*pdata), false, 0, 0);
- }
- 
-@@ -481,6 +562,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- {
- 	struct device	*child;
- 	struct device	*usb_transceiver = NULL;
-+	unsigned sub_chip_id;
- 
- 	if (twl_has_bci() && pdata->bci && !(features & TPS_SUBSET)) {
- 		child = add_child(BCI_SUB_CHIP_ID, "twl4030_bci",
-@@ -525,7 +607,8 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 		 * Eventually, Linux might become more aware of such
- 		 * HW security concerns, and "least privilege".
- 		 */
--		child = add_child(RTC_SUB_CHIP_ID, "twl_rtc",
-+		sub_chip_id = twl_map[TWL_MODULE_RTC].sid;
-+		child = add_child(sub_chip_id, "twl_rtc",
- 				NULL, 0,
- 				true, pdata->irq_base + RTC_INTR_OFFSET, 0);
- 		if (IS_ERR(child))
-@@ -736,7 +819,11 @@ static int twl_remove(struct i2c_client *client)
- 	unsigned i;
- 	int status;
- 
--	status = twl_exit_irq();
-+	if (is_class_twl4030())
-+		status = twl4030_exit_irq();
-+	else
-+		status = twl6030_exit_irq();
-+
- 	if (status < 0)
- 		return status;
- 
-@@ -795,6 +882,13 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		mutex_init(&twl->xfer_lock);
- 	}
- 	inuse = true;
-+	if ((id->driver_data) & TWL6030_CLASS) {
-+		twl_id = TWL6030_CLASS_ID;
-+		twl_map = &twl6030_map[0];
-+	} else {
-+		twl_id = TWL4030_CLASS_ID;
-+		twl_map = &twl4030_map[0];
-+	}
- 
- 	/* setup clock framework */
- 	clocks_init(&client->dev);
-@@ -803,8 +897,13 @@ twl_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	if (client->irq
- 			&& pdata->irq_base
- 			&& pdata->irq_end > pdata->irq_base) {
--		status = twl_init_irq(client->irq, pdata->irq_base,
-+		if (is_class_twl4030()) {
-+			status = twl4030_init_irq(client->irq, pdata->irq_base,
-+			 pdata->irq_end);
-+		} else {
-+			status = twl6030_init_irq(client->irq, pdata->irq_base,
- 			 pdata->irq_end);
-+		}
- 		if (status < 0)
- 			goto fail;
- 	}
-@@ -822,6 +921,7 @@ static const struct i2c_device_id twl_ids[] = {
- 	{ "tps65950", 0 },		/* catalog version of twl5030 */
- 	{ "tps65930", TPS_SUBSET },	/* fewer LDOs and DACs; no charger */
- 	{ "tps65920", TPS_SUBSET },	/* fewer LDOs; no codec or charger */
-+	{ "twl6030", TWL6030_CLASS },	/* "Phoenix power chip" */
- 	{ /* end of list */ },
- };
- MODULE_DEVICE_TABLE(i2c, twl_ids);
-diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-index 6e55da4..5408dec 100644
---- a/drivers/mfd/twl4030-irq.c
-+++ b/drivers/mfd/twl4030-irq.c
-@@ -685,7 +685,7 @@ int twl4030_sih_setup(int module)
- /* FIXME pass in which interrupt line we'll use ... */
- #define twl_irq_line	0
- 
--int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
-+int twl4030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
- {
- 	static struct irq_chip	twl4030_irq_chip;
- 
-@@ -754,7 +754,7 @@ fail:
- 	return status;
- }
- 
--int twl_exit_irq(void)
-+int twl4030_exit_irq(void)
- {
- 	/* FIXME undo twl_init_irq() */
- 	if (twl4030_irq_base) {
-diff --git a/drivers/mfd/twl6030-irq.c b/drivers/mfd/twl6030-irq.c
-new file mode 100644
-index 0000000..6252724
---- /dev/null
-+++ b/drivers/mfd/twl6030-irq.c
-@@ -0,0 +1,301 @@
-+/*
-+ * twl6030-irq.c - TWL6030 irq support
-+ *
-+ * Copyright (C) 2005-2009 Texas Instruments, Inc.
-+ *
-+ * Modifications to defer interrupt handling to a kernel thread:
-+ * Copyright (C) 2006 MontaVista Software, Inc.
-+ *
-+ * Based on tlv320aic23.c:
-+ * Copyright (c) by Kai Svahn <kai.svahn-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-+ *
-+ * Code cleanup and modifications to IRQ handler.
-+ * by syed khasim <x0khasim-l0cyMroinI0@public.gmane.org>
-+ *
-+ * TWL6030 specific code and IRQ handling changes by
-+ * Jagadeesh Bhaskar Pakaravoor <j-pakaravoor-l0cyMroinI0@public.gmane.org>
-+ * Balaji T K <balajitk-l0cyMroinI0@public.gmane.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/irq.h>
-+#include <linux/kthread.h>
-+#include <linux/i2c/twl.h>
-+
-+/*
-+ * TWL6030 (unlike its predecessors, which had two level interrupt handling)
-+ * three interrupt registers INT_STS_A, INT_STS_B and INT_STS_C.
-+ * It exposes status bits saying who has raised an interrupt. There are
-+ * three mask registers that corresponds to these status registers, that
-+ * enables/disables these interrupts.
-+ *
-+ * We set up IRQs starting at a platform-specified base. An interrupt map table,
-+ * specifies mapping between interrupt number and the associated module.
-+ *
-+ */
-+
-+static int twl6030_interrupt_mapping[24] = {
-+	PWR_INTR_OFFSET,	/* Bit 0	PWRON			*/
-+	PWR_INTR_OFFSET,	/* Bit 1	RPWRON			*/
-+	PWR_INTR_OFFSET,	/* Bit 2	BAT_VLOW		*/
-+	PWR_INTR_OFFSET,	/* Bit 3	VBAT			*/
-+	RTC_INTR_OFFSET,	/* Bit 4	RTC_ALARM		*/
-+	RTC_INTR_OFFSET,	/* Bit 5	RTC_PERIOD		*/
-+	HOTDIE_INTR_OFFSET,	/* Bit 6	HOT_DIE			*/
-+	RSV_INTR_OFFSET,  	/* Bit 7	Reserved		*/
-+
-+	SMPSLDO_INTR_OFFSET,	/* Bit 8	VXXX_SHORT		*/
-+	SMPSLDO_INTR_OFFSET,	/* Bit 9	VMMC_SHORT		*/
-+	SMPSLDO_INTR_OFFSET,	/* Bit 10	VUSIM_SHORT		*/
-+	SIMDETECT_INTR_OFFSET,	/* Bit 11	SIM			*/
-+	MMCDETECT_INTR_OFFSET,	/* Bit 12	MMC			*/
-+	GPADC_INTR_OFFSET,	/* Bit 13	GPADC_RT_EOC		*/
-+	GPADC_INTR_OFFSET,	/* Bit 14	GPADC_SW_EOC		*/
-+	GASGAUGE_INTR_OFFSET,	/* Bit 15	CC_AUTOCAL		*/
-+
-+	USBOTG_INTR_OFFSET,	/* Bit 16	ID_WKUP			*/
-+	USBOTG_INTR_OFFSET,	/* Bit 17	VBUS_WKUP		*/
-+	USBOTG_INTR_OFFSET,	/* Bit 18	ID			*/
-+	USBOTG_INTR_OFFSET,	/* Bit 19	VBUS			*/
-+	CHARGER_INTR_OFFSET,	/* Bit 20	CHRG_CTRL		*/
-+	CHARGER_INTR_OFFSET,	/* Bit 21	EXT_CHRG		*/
-+	CHARGER_INTR_OFFSET,	/* Bit 22	INT_CHRG		*/
-+	CHARGER_INTR_OFFSET,	/* Bit 23	BAT_OVT			*/
-+};
-+/*----------------------------------------------------------------------*/
-+
-+static unsigned twl6030_irq_base;
-+
-+static struct completion irq_event;
-+
-+/*
-+ * This thread processes interrupts reported by the Primary Interrupt Handler.
-+ */
-+static int twl6030_irq_thread(void *data)
-+{
-+	long irq = (long)data;
-+	static unsigned i2c_errors;
-+	static const unsigned max_i2c_errors = 100;
-+	int ret;
-+
-+	current->flags |= PF_NOFREEZE;
-+
-+	while (!kthread_should_stop()) {
-+		int i;
-+		union {
-+		u8 bytes[4];
-+		u32 int_sts;
-+		} sts;
-+
-+		/* Wait for IRQ, then read PIH irq status (also blocking) */
-+		wait_for_completion_interruptible(&irq_event);
-+
-+		/* read INT_STS_A, B and C in one shot using a burst read */
-+		ret = twl_i2c_read(TWL_MODULE_PIH, sts.bytes,
-+				REG_INT_STS_A, 3);
-+		if (ret) {
-+			pr_warning("twl6030: I2C error %d reading PIH ISR\n",
-+					ret);
-+			if (++i2c_errors >= max_i2c_errors) {
-+				printk(KERN_ERR "Maximum I2C error count"
-+						" exceeded.  Terminating %s.\n",
-+						__func__);
-+				break;
-+			}
-+			complete(&irq_event);
-+			continue;
-+		}
-+
-+
-+
-+		sts.bytes[3] = 0; /* Only 24 bits are valid*/
-+
-+		for (i = 0; sts.int_sts; sts.int_sts >>= 1, i++) {
-+			local_irq_disable();
-+			if (sts.int_sts & 0x1) {
-+				int module_irq = TWL6030_IRQ_BASE +
-+					twl6030_interrupt_mapping[i];
-+				struct irq_desc *d = irq_to_desc(module_irq);
-+
-+				if (!d) {
-+					pr_err("twl6030: Invalid SIH IRQ: %d\n",
-+					       module_irq);
-+					return -EINVAL;
-+				}
-+
-+				/* These can't be masked ... always warn
-+				 * if we get any surprises.
-+				 */
-+				if (d->status & IRQ_DISABLED)
-+					note_interrupt(module_irq, d,
-+							IRQ_NONE);
-+				else
-+					d->handle_irq(module_irq, d);
-+
-+			}
-+		local_irq_enable();
-+		}
-+		ret = twl_i2c_write(TWL_MODULE_PIH, sts.bytes,
-+				REG_INT_STS_A, 3); /* clear INT_STS_A */
-+		if (ret)
-+			pr_warning("twl6030: I2C error in clearing PIH ISR\n");
-+
-+		enable_irq(irq);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * handle_twl6030_int() is the desc->handle method for the twl6030 interrupt.
-+ * This is a chained interrupt, so there is no desc->action method for it.
-+ * Now we need to query the interrupt controller in the twl6030 to determine
-+ * which module is generating the interrupt request.  However, we can't do i2c
-+ * transactions in interrupt context, so we must defer that work to a kernel
-+ * thread.  All we do here is acknowledge and mask the interrupt and wakeup
-+ * the kernel thread.
-+ */
-+static irqreturn_t handle_twl6030_pih(int irq, void *devid)
-+{
-+	disable_irq_nosync(irq);
-+	complete(devid);
-+	return IRQ_HANDLED;
-+}
-+
-+/*----------------------------------------------------------------------*/
-+
-+static inline void activate_irq(int irq)
-+{
-+#ifdef CONFIG_ARM
-+	/* ARM requires an extra step to clear IRQ_NOREQUEST, which it
-+	 * sets on behalf of every irq_chip.  Also sets IRQ_NOPROBE.
-+	 */
-+	set_irq_flags(irq, IRQF_VALID);
-+#else
-+	/* same effect on other architectures */
-+	set_irq_noprobe(irq);
-+#endif
-+}
-+
-+/*----------------------------------------------------------------------*/
-+
-+static unsigned twl6030_irq_next;
-+
-+/*----------------------------------------------------------------------*/
-+int twl_int_mask_reset(u8 bit_mask, u8 offset)
-+{
-+	int ret;
-+	u8 unmask_value;
-+	ret = twl_i2c_read_u8(TWL_MODULE_PIH, &unmask_value,
-+			REG_INT_STS_A + offset);
-+	unmask_value &= (~(bit_mask));
-+	ret |= twl_i2c_write_u8(TWL_MODULE_PIH, unmask_value,
-+			REG_INT_STS_A + offset); /* unmask INT_MSK_A/B/C */
-+	return ret;
-+}
-+
-+int twl_int_mask_set(u8 bit_mask, u8 offset)
-+{
-+	int ret;
-+	u8 mask_value;
-+	ret = twl_i2c_read_u8(TWL_MODULE_PIH, &mask_value,
-+			REG_INT_STS_A + offset);
-+	mask_value |= (bit_mask);
-+	ret |= twl_i2c_write_u8(TWL_MODULE_PIH, mask_value,
-+			REG_INT_STS_A + offset); /* mask INT_MSK_A/B/C */
-+	return ret;
-+}
-+
-+int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
-+{
-+
-+	int	status = 0;
-+	int	i;
-+	struct task_struct	*task;
-+	int ret;
-+	u8 mask[4];
-+
-+	static struct irq_chip	twl6030_irq_chip;
-+	mask[1] = 0xFF;
-+	mask[2] = 0xFF;
-+	mask[3] = 0xFF;
-+	ret = twl_i2c_write(TWL_MODULE_PIH, &mask[0],
-+			REG_INT_MSK_LINE_A, 3); /* MASK ALL INT LINES*/
-+
-+	mask[1] = 0;
-+	mask[2] = 0;
-+	mask[3] = 0;
-+	ret = twl_i2c_write(TWL_MODULE_PIH, &mask[0],
-+			REG_INT_STS_A, 3); /* clear INT_STS_A,B,C */
-+
-+	ret |= twl_int_mask_reset(TWL6030_RTC_INT_MASK, REG_INT_MSK_LINE_A);
-+
-+	twl6030_irq_base = irq_base;
-+
-+	/* install an irq handler for each of the modules;
-+	 * clone dummy irq_chip since PIH can't *do* anything
-+	 */
-+	twl6030_irq_chip = dummy_irq_chip;
-+	twl6030_irq_chip.name = "twl6030";
-+	twl6030_irq_chip.set_type = NULL;
-+
-+	for (i = irq_base; i < irq_end; i++) {
-+		set_irq_chip_and_handler(i, &twl6030_irq_chip,
-+				handle_simple_irq);
-+		activate_irq(i);
-+	}
-+
-+	twl6030_irq_next = i;
-+	pr_info("twl6030: %s (irq %d) chaining IRQs %d..%d\n", "PIH",
-+			irq_num, irq_base, twl6030_irq_next - 1);
-+
-+	/* install an irq handler to demultiplex the TWL6030 interrupt */
-+	init_completion(&irq_event);
-+	task = kthread_run(twl6030_irq_thread, (void *)irq_num, "twl6030-irq");
-+	if (IS_ERR(task)) {
-+		pr_err("twl6030: could not create irq %d thread!\n", irq_num);
-+		status = PTR_ERR(task);
-+		goto fail_kthread;
-+	}
-+
-+	status = request_irq(irq_num, handle_twl6030_pih, IRQF_DISABLED,
-+				"TWL6030-PIH", &irq_event);
-+	if (status < 0) {
-+		pr_err("twl6030: could not claim irq%d: %d\n", irq_num, status);
-+		goto fail;
-+	}
-+	return status;
-+fail_kthread:
-+	free_irq(irq_num, &irq_event);
-+
-+fail:
-+	for (i = irq_base; i < irq_end; i++)
-+		set_irq_chip_and_handler(i, NULL, NULL);
-+	return status;
-+}
-+
-+int twl6030_exit_irq(void)
-+{
-+
-+	if (twl6030_irq_base) {
-+		pr_err("twl6030: can't yet clean up IRQs?\n");
-+		return -ENOSYS;
-+	}
-+	return 0;
-+}
-+
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 0f8e0c2..987472f 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -66,6 +66,7 @@
- #define TWL4030_MODULE_RTC		0x14
- #define TWL4030_MODULE_SECURED_REG	0x15
- 
-+/* FIXME define TWL4030_MODULE_* until all drivers are modified*/
- #define TWL_MODULE_USB		TWL4030_MODULE_USB
- #define TWL_MODULE_AUDIO_VOICE	TWL4030_MODULE_AUDIO_VOICE
- #define TWL_MODULE_GPIO		TWL4030_MODULE_GPIO
-@@ -97,6 +98,61 @@
- #define BCI_PRES_INTR_OFFSET	9
- #define USB_PRES_INTR_OFFSET	10
- #define RTC_INTR_OFFSET		11
-+
-+/*
-+ * Offset from TWL6030_IRQ_BASE / pdata->irq_base
-+ */
-+#define PWR_INTR_OFFSET		0
-+#define RTC_INTR_OFFSET		11
-+#define HOTDIE_INTR_OFFSET	12
-+#define SMPSLDO_INTR_OFFSET	13
-+#define SIMDETECT_INTR_OFFSET	14
-+#define MMCDETECT_INTR_OFFSET	15
-+#define GPADC_INTR_OFFSET	3
-+#define GASGAUGE_INTR_OFFSET	16
-+#define USBOTG_INTR_OFFSET	4
-+#define CHARGER_INTR_OFFSET	2
-+#define RSV_INTR_OFFSET		0
-+
-+/* INT register offsets */
-+#define REG_INT_STS_A			0x00
-+#define REG_INT_STS_B			0x01
-+#define REG_INT_STS_C			0x02
-+
-+#define REG_INT_MSK_LINE_A		0x03
-+#define REG_INT_MSK_LINE_B		0x04
-+#define REG_INT_MSK_LINE_C		0x05
-+
-+#define REG_INT_MSK_STS_A		0x06
-+#define REG_INT_MSK_STS_B		0x07
-+#define REG_INT_MSK_STS_C		0x08
-+
-+#define TWL6030_PWR_INT_MASK 		0x0F
-+#define TWL6030_RTC_INT_MASK 		0x30
-+#define TWL6030_HOTDIE_INT_MASK 	0x40
-+
-+#define TWL6030_SMPSLDO_INT_MASK 	0x07
-+#define TWL6030_SIMDETECT_INT_MASK 	0x08
-+#define TWL6030_MMCDETECT_INT_MASK 	0x10
-+#define TWL6030_GPADC_INT_MASK 		0x60
-+#define TWL6030_GASGAUGE_INT_MASK 	0x80
-+
-+#define TWL6030_USBOTG_INT_MASK  	0x0F
-+#define TWL6030_CHARGER_INT_MASK 	0xF0
-+
-+#define TWL4030_CLASS_ID 0x4030
-+#define TWL6030_CLASS_ID 0x6030
-+unsigned int twl_rev(void);
-+#define GET_TWL_REV (twl_rev())
-+#define IS_TWL_CLASS(class, id)			\
-+static inline int is_class_twl  ##class(void)	\
-+{						\
-+	return ((id) == (GET_TWL_REV)) ? 1 : 0;	\
-+}
-+
-+IS_TWL_CLASS(4030, TWL4030_CLASS_ID)
-+IS_TWL_CLASS(6030, TWL6030_CLASS_ID)
-+
+ config RTC_DRV_S35390A
+ 	tristate "Seiko Instruments S-35390A"
+diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
+index e331b1c..c32e21d 100644
+--- a/drivers/rtc/Makefile
++++ b/drivers/rtc/Makefile
+@@ -70,7 +70,7 @@ obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
+ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
+ obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
+ obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
+-obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl.o
++obj-$(CONFIG_RTC_DRV_TWL)	+= rtc-twl.o
+ obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
+ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
+ obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
+diff --git a/drivers/rtc/rtc-twl.c b/drivers/rtc/rtc-twl.c
+index 630acb7..1e9f90d 100644
+--- a/drivers/rtc/rtc-twl.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -34,27 +34,75 @@
  /*
-  * Read and write single 8-bit registers
+  * RTC block register offsets (use TWL_MODULE_RTC)
   */
-@@ -430,7 +486,11 @@ int twl4030_sih_setup(int module);
- #define TWL4030_REG_VUSB1V8	18
- #define TWL4030_REG_VUSB3V1	19
+-#define REG_SECONDS_REG                          0x00
+-#define REG_MINUTES_REG                          0x01
+-#define REG_HOURS_REG                            0x02
+-#define REG_DAYS_REG                             0x03
+-#define REG_MONTHS_REG                           0x04
+-#define REG_YEARS_REG                            0x05
+-#define REG_WEEKS_REG                            0x06
+-
+-#define REG_ALARM_SECONDS_REG                    0x07
+-#define REG_ALARM_MINUTES_REG                    0x08
+-#define REG_ALARM_HOURS_REG                      0x09
+-#define REG_ALARM_DAYS_REG                       0x0A
+-#define REG_ALARM_MONTHS_REG                     0x0B
+-#define REG_ALARM_YEARS_REG                      0x0C
+-
+-#define REG_RTC_CTRL_REG                         0x0D
+-#define REG_RTC_STATUS_REG                       0x0E
+-#define REG_RTC_INTERRUPTS_REG                   0x0F
+-
+-#define REG_RTC_COMP_LSB_REG                     0x10
+-#define REG_RTC_COMP_MSB_REG                     0x11
++enum {
++	REG_SECONDS_REG = 0,
++	REG_MINUTES_REG,
++	REG_HOURS_REG,
++	REG_DAYS_REG,
++	REG_MONTHS_REG,
++	REG_YEARS_REG,
++	REG_WEEKS_REG,
++
++	REG_ALARM_SECONDS_REG,
++	REG_ALARM_MINUTES_REG,
++	REG_ALARM_HOURS_REG,
++	REG_ALARM_DAYS_REG,
++	REG_ALARM_MONTHS_REG,
++	REG_ALARM_YEARS_REG,
++
++	REG_RTC_CTRL_REG,
++	REG_RTC_STATUS_REG,
++	REG_RTC_INTERRUPTS_REG,
++
++	REG_RTC_COMP_LSB_REG,
++	REG_RTC_COMP_MSB_REG,
++};
++const static u8 twl4030_rtc_reg_map[] = {
++	[REG_SECONDS_REG] = 0x00,
++	[REG_MINUTES_REG] = 0x01,
++	[REG_HOURS_REG] = 0x02,
++	[REG_DAYS_REG] = 0x03,
++	[REG_MONTHS_REG] = 0x04,
++	[REG_YEARS_REG] = 0x05,
++	[REG_WEEKS_REG] = 0x06,
++
++	[REG_ALARM_SECONDS_REG] = 0x07,
++	[REG_ALARM_MINUTES_REG] = 0x08,
++	[REG_ALARM_HOURS_REG] = 0x09,
++	[REG_ALARM_DAYS_REG] = 0x0A,
++	[REG_ALARM_MONTHS_REG] = 0x0B,
++	[REG_ALARM_YEARS_REG] = 0x0C,
++
++	[REG_RTC_CTRL_REG] = 0x0D,
++	[REG_RTC_STATUS_REG] = 0x0E,
++	[REG_RTC_INTERRUPTS_REG] = 0x0F,
++
++	[REG_RTC_COMP_LSB_REG] = 0x10,
++	[REG_RTC_COMP_MSB_REG] = 0x11,
++};
++const static u8 twl6030_rtc_reg_map[] = {
++	[REG_SECONDS_REG] = 0x00,
++	[REG_MINUTES_REG] = 0x01,
++	[REG_HOURS_REG] = 0x02,
++	[REG_DAYS_REG] = 0x03,
++	[REG_MONTHS_REG] = 0x04,
++	[REG_YEARS_REG] = 0x05,
++	[REG_WEEKS_REG] = 0x06,
++
++	[REG_ALARM_SECONDS_REG] = 0x08,
++	[REG_ALARM_MINUTES_REG] = 0x09,
++	[REG_ALARM_HOURS_REG] = 0x0A,
++	[REG_ALARM_DAYS_REG] = 0x0B,
++	[REG_ALARM_MONTHS_REG] = 0x0C,
++	[REG_ALARM_YEARS_REG] = 0x0D,
++
++	[REG_RTC_CTRL_REG] = 0x10,
++	[REG_RTC_STATUS_REG] = 0x11,
++	[REG_RTC_INTERRUPTS_REG] = 0x12,
++
++	[REG_RTC_COMP_LSB_REG] = 0x13,
++	[REG_RTC_COMP_MSB_REG] = 0x14,
++};
  
--int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end);
--int twl_exit_irq(void);
-+int twl_int_mask_reset(u8 bit_mask, u8 offset);
-+int twl_int_mask_set(u8 bit_mask, u8 offset);
-+int twl4030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end);
-+int twl6030_init_irq(int irq_num, unsigned irq_base, unsigned irq_end);
-+int twl4030_exit_irq(void);
-+int twl6030_exit_irq(void);
+ /* RTC_CTRL_REG bitfields */
+ #define BIT_RTC_CTRL_REG_STOP_RTC_M              0x01
+@@ -84,6 +132,7 @@
+ #define ALL_TIME_REGS		6
  
- #endif /* End of __TWL4030_H */
+ /*----------------------------------------------------------------------*/
++static u8  *rtc_reg_map;
+ 
+ /*
+  * Supports 1 byte read from TWL4030 RTC register.
+@@ -92,7 +141,7 @@ static int twl_rtc_read_u8(u8 *data, u8 reg)
+ {
+ 	int ret;
+ 
+-	ret = twl_i2c_read_u8(TWL_MODULE_RTC, data, reg);
++	ret = twl_i2c_read_u8(TWL_MODULE_RTC, data, (rtc_reg_map[reg]));
+ 	if (ret < 0)
+ 		pr_err("twl_rtc: Could not read TWL4030"
+ 		       "register %X - error %d\n", reg, ret);
+@@ -106,7 +155,7 @@ static int twl_rtc_write_u8(u8 data, u8 reg)
+ {
+ 	int ret;
+ 
+-	ret = twl_i2c_write_u8(TWL_MODULE_RTC, data, reg);
++	ret = twl_i2c_write_u8(TWL_MODULE_RTC, data, (rtc_reg_map[reg]));
+ 	if (ret < 0)
+ 		pr_err("twl_rtc: Could not write TWL4030"
+ 		       "register %X - error %d\n", reg, ret);
+@@ -202,7 +251,7 @@ static int twl_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ 		return ret;
+ 
+ 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
+-			       REG_SECONDS_REG, ALL_TIME_REGS);
++			(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
+ 
+ 	if (ret < 0) {
+ 		dev_err(dev, "rtc_read_time error %d\n", ret);
+@@ -244,7 +293,7 @@ static int twl_rtc_set_time(struct device *dev, struct rtc_time *tm)
+ 
+ 	/* update all the time registers in one shot */
+ 	ret = twl_i2c_write(TWL_MODULE_RTC, rtc_data,
+-			REG_SECONDS_REG, ALL_TIME_REGS);
++		(rtc_reg_map[REG_SECONDS_REG]), ALL_TIME_REGS);
+ 	if (ret < 0) {
+ 		dev_err(dev, "rtc_set_time error %d\n", ret);
+ 		goto out;
+@@ -267,7 +316,7 @@ static int twl_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ 	int ret;
+ 
+ 	ret = twl_i2c_read(TWL_MODULE_RTC, rtc_data,
+-			       REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
++			(rtc_reg_map[REG_ALARM_SECONDS_REG]), ALL_TIME_REGS);
+ 	if (ret < 0) {
+ 		dev_err(dev, "rtc_read_alarm error %d\n", ret);
+ 		return ret;
+@@ -306,7 +355,7 @@ static int twl_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alm)
+ 
+ 	/* update all the alarm registers in one shot */
+ 	ret = twl_i2c_write(TWL_MODULE_RTC, alarm_data,
+-			REG_ALARM_SECONDS_REG, ALL_TIME_REGS);
++		(rtc_reg_map[REG_ALARM_SECONDS_REG]), ALL_TIME_REGS);
+ 	if (ret) {
+ 		dev_err(dev, "rtc_set_alarm error %d\n", ret);
+ 		goto out;
+@@ -352,6 +401,7 @@ static irqreturn_t twl_rtc_interrupt(int irq, void *rtc)
+ 	if (res)
+ 		goto out;
+ 
++if (is_class_twl4030()) {
+ 	/* Clear on Read enabled. RTC_IT bit of TWL4030_INT_PWR_ISR1
+ 	 * needs 2 reads to clear the interrupt. One read is done in
+ 	 * do_twl_pwrirq(). Doing the second read, to clear
+@@ -367,6 +417,8 @@ static irqreturn_t twl_rtc_interrupt(int irq, void *rtc)
+ 			&rd_reg, TWL4030_INT_PWR_ISR1);
+ 	if (res)
+ 		goto out;
++}
++
+ 
+ 	/* Notify RTC core on event */
+ 	rtc_update_irq(rtc, 1, events);
+@@ -438,7 +490,7 @@ static int __devinit twl_rtc_probe(struct platform_device *pdev)
+ 		goto out2;
+ 
+ 	if (!(rd_reg & BIT_RTC_CTRL_REG_STOP_RTC_M)) {
+-		dev_info(&pdev->dev, "Enabling TWL4030-RTC.\n");
++		dev_info(&pdev->dev, "Enabling TWL-RTC.\n");
+ 		rd_reg = BIT_RTC_CTRL_REG_STOP_RTC_M;
+ 		ret = twl_rtc_write_u8(rd_reg, REG_RTC_CTRL_REG);
+ 		if (ret < 0)
+@@ -526,6 +578,11 @@ static struct platform_driver twl4030rtc_driver = {
+ 
+ static int __init twl_rtc_init(void)
+ {
++	if (is_class_twl4030())
++		rtc_reg_map = (u8 *) twl4030_rtc_reg_map;
++	else
++		rtc_reg_map = (u8 *) twl6030_rtc_reg_map;
++
+ 	return platform_driver_register(&twl4030rtc_driver);
+ }
+ module_init(twl_rtc_init);
 -- 
 1.5.4.7
