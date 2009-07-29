@@ -1,39 +1,37 @@
-From: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
-Subject: Re: [PATCH 0/3] [OMAP:I2C] Small bug fixes and errata 1.153
-Date: Thu, 30 Jul 2009 00:51:05 +0100
-Message-ID: <20090729235105.GD8850@fluff.org.uk>
-References: <CD8CC2B65FEE304DA95744A5472698F202958D2F85@dlee06.ent.ti.com>
+From: Ben Dooks <ben-elnMNo+KYs3pIgCt6eIbzw@public.gmane.org>
+Subject: Re: [RESUBMIT][PATCH-v2][RFC] OMAP4: I2C Support for OMAP4430
+Date: Thu, 30 Jul 2009 00:51:50 +0100
+Message-ID: <20090729235150.GE8850@fluff.org.uk>
+References: <54914.192.168.10.89.1248270620.squirrel@dbdmail.itg.ti.com> <58468.192.168.10.89.1248433802.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202958D2F85-UmuGNrFEPrGIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <58468.192.168.10.89.1248433802.squirrel-pJFUjGLopx31T2qfsofKZtBPR1lH4CV8@public.gmane.org>
 Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
-Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Syed Rafiuddin <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
+Cc: ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-On Tue, Jul 21, 2009 at 10:13:20AM -0500, Sonasath, Moiz wrote:
+On Fri, Jul 24, 2009 at 04:40:02PM +0530, Syed Rafiuddin wrote:
+> Hi Ben,
 > 
-> This patch includes the following:
-> - Bug in reading the RXSTAT/TXSTAT values from I2C_BUFFSTAT
-> - In case of a NACK|ARDY|AL interrupts return from the ISR
-> - OMAP3430 silicon errata 1.153
+> > This patch adds OMAP4 support to the I2C driver. All I2C register addresses  are different between
+> > OMAP1/2/3 and OMAP4. In order to not have #ifdef's at  various places in code, as well as to
+> > support multi-OMAP build, Array's are  created to hold the register addresses.
+> >
+> > Signed-off-by: Syed Rafiuddin <rafiuddin.syed-l0cyMroinI0@public.gmane.org>
+> > ---
+> 
+> No comment received on this patch,
+> Is there anything that I need to resolve?
+> Else can this patch get merged.
 
-hi, in future it would be better to prefix the patch subjects with
-i2c-omap (IE, the driver name).
+sorry, been busy, will look at this in the next few days.
  
-> Signed-off-by: Moiz Sonasath<m-sonasath-l0cyMroinI0@public.gmane.org> 
-                              ^ space to go in here.
-> Signed-off-by: Vikram pandita<vikram.pandita-l0cyMroinI0@public.gmane.org>
-> Moiz Sonasath (3):
->   [OMAP:I2C]Bug in reading the RXSTAT/TXSTAT values from the
->     I2C_BUFFSTAT register
->   [OMAP:I2C]In case of a NACK|ARDY|AL return from the ISR
->   [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+> Regards,
+> Syed Rafiuddin
 > 
->  drivers/i2c/busses/i2c-omap.c |   42 +++++++++++++++++++++++++++++++++-------
->  1 files changed, 34 insertions(+), 8 deletions(-)
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
