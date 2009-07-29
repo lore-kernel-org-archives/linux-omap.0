@@ -1,100 +1,92 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: OMAP: CAM ISP: looking for a good start point
-Date: Wed, 29 Jul 2009 12:01:03 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444A2D90F2@dlee02.ent.ti.com>
-References: <200907291559.41265.linz@li-pro.net>
+From: green <greenfreedom10@gmail.com>
+Subject: N810: external mmc died?
+Date: Wed, 29 Jul 2009 12:29:48 -0600
+Message-ID: <20090729182948.GN7597@swansys>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="LvAn5G4Ewe70kJ1i"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59034 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755789AbZG2Q5V convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jul 2009 12:57:21 -0400
-In-Reply-To: <200907291559.41265.linz@li-pro.net>
-Content-Language: en-US
+Received: from mail-yx0-f188.google.com ([209.85.210.188]:52478 "EHLO
+	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493AbZG2S3w (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 29 Jul 2009 14:29:52 -0400
+Received: by yxe26 with SMTP id 26so1648490yxe.4
+        for <linux-omap@vger.kernel.org>; Wed, 29 Jul 2009 11:29:52 -0700 (PDT)
+Content-Disposition: inline
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stephan Linz <linz@li-pro.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "sakari.ailus@maxwell.research.nokia.com" <sakari.ailus@maxwell.research.nokia.com>
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
 
+--LvAn5G4Ewe70kJ1i
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: Stephan Linz [mailto:linz@li-pro.net]
-> Sent: Wednesday, July 29, 2009 9:00 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Aguirre Rodriguez, Sergio Alberto;
-> sakari.ailus@maxwell.research.nokia.com
-> Subject: OMAP: CAM ISP: looking for a good start point
-> 
-> Hi Sergio, Hi Sakari,
-> Hello OMAP devel team,
+I was working on moving Debian's root from internal mmc (because it still =
+=0D
+doesn't work with linux-omap) to external mmc, running standard Maemo and =
+=0D
+connected by USB to the MMC cards (with the cards mounted), when suddenly t=
+he =0D
+N810 reset.  I have no idea why, but now external MMC does not work.=0D
+=0D
+I have been using this card for a while and have not had any problems with =
+it; =0D
+it surely can also be considered still nearly 'new'.=0D
+=0D
+I reflashed Maemo with the latest RX-44_DIABLO_5.2008.43-7_PR_COMBINED_MR0_=
+ARM =0D
+(and checked md5sum) and now I get the following from dmesg with either an =
+open =0D
+or close of the external MMC slot.=0D
+=0D
+[ 2292.843750] menelaus 1-0072: Setting voltage 'VMMC' to 3100 mV (reg 0x0a=
+, val 0xf8)=0D
+[ 2292.953125] menelaus 1-0072: Setting voltage 'VMMC' to 3000 mV (reg 0x0a=
+, val 0xb8)=0D
+[ 2295.320312] menelaus 1-0072: Shutting off 'VMMC'=0D
+=0D
+No device ever shows up in /dev, only mmcblk0 (the internal MMC).  When I =
+=0D
+connect by USB to the MMC cards, I see in the logs on my Debian system:=0D
+=0D
+kernel: scsi 43:0:0:0: Direct-Access     Nokia    N810              031 PQ:=
+ 0 ANSI: 2=0D
+kernel: scsi 43:0:0:1: Direct-Access     Nokia    N810              031 PQ:=
+ 0 ANSI: 2=0D
+kernel: sd 43:0:0:0: [sdb] 3932160 512-byte hardware sectors: (2.01 GB/1.87=
+ GiB)=0D
+kernel: sd 43:0:0:0: [sdb] Write Protect is off=0D
+kernel: sd 43:0:0:0: [sdb] Mode Sense: 0f 00 00 00=0D
+kernel: sd 43:0:0:0: [sdb] Assuming drive cache: write through=0D
+kernel: sd 43:0:0:0: [sdb] 3932160 512-byte hardware sectors: (2.01 GB/1.87=
+ GiB)=0D
+kernel: sd 43:0:0:0: [sdb] Write Protect is off=0D
+kernel: sd 43:0:0:0: [sdb] Mode Sense: 0f 00 00 00=0D
+kernel: sd 43:0:0:0: [sdb] Assuming drive cache: write through=0D
+kernel: sdb: sdb1=0D
+kernel: sd 43:0:0:0: [sdb] Attached SCSI removable disk=0D
+kernel: sd 43:0:0:0: Attached scsi generic sg1 type 0=0D
+kernel: sd 43:0:0:1: [sdc] Attached SCSI removable disk=0D
+kernel: sd 43:0:0:1: Attached scsi generic sg2 type 0=0D
+=0D
+No information about the external MMC.=0D
+=0D
+Thanks for any hints.=0D
 
-Hi Stephan,
+--LvAn5G4Ewe70kJ1i
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-> 
-> as far as I can see you are working on a V4L2 driver set for the OMAP3
-> Camera
-> Interface Subsystem (ISP) at this time. Just I'm looking for a good start
-> point to integrate your ongoing work in my own devel git tree and further
-> expand it with my own sensor and board specific code. But, there are two
-> different git trees hosted by gitorious:
->   * http://www.gitorious.org/omap3-linux-camera-driver
->   * http://www.gitorious.org/omap3camera/
-> 
-> Which of them is the latest and active development tree?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-The latest OMAP Camera-ISP code is hosted by Sakari's gitorious repository here:
+iEYEARECAAYFAkpwlRwACgkQ682C+dBP+oQK6wCgp0J3wkYVurYywk0DfFcjN8ZV
+DQgAn0CLpb+QB6MEELB1UR3LQBRFzFYB
+=1mJ0
+-----END PGP SIGNATURE-----
 
-	http://www.gitorious.org/omap3camera/
-
-But his repository is currently based on this commit in linux-omap:
-
-commit f6ea2bbc8d4346c3a263ed86a92435d67f652809
-Author: Roger Quadros <ext-roger.quadros@nokia.com>
-Date:   Thu May 14 13:48:27 2009 -0700
-
-    RX51: Remove multiple definition of MACH_NOKIA_RX51 in Kconfig
-    
-    This patch prevents "Nokia RX-51 board" from being shown twice in
-    'System Type' within Menuconfig.
-    
-    Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-    Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-Which is somewhere around v2.6.30-rc5 kernel.
-
-I'm currently trying to rebase this code on top of latest Kevin Hilman's linux-omap-pm Power Management branch, and I'll be publishing it here:
-
-	http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=shortlog;h=refs/heads/devel
-
-NOTE: I'm trying to put some sensor drivers there aswell for my 3430SDP/Zoom1 (and coming soon also for Zoom2), but I'm still trying to make it work.
-
-The other gitorious repository was a first try to do that with an older ISP development codebase, but as I had better control under the new dev.omapzoom.org tree, I'm dropping the gitorious one.
-
-> 
-> Are there any thirt party dependencies to other kernel development? I know
-> the
-> IOMMU patch set by Hiroshi Doyu (http://lwn.net/Articles/321692/), it is
-> all?
-
-There's a version of the IOMMU already merged in mainline for 2.6.30 stable AFAIK, so this dependency should be no more in latest kernel.
-
-> 
-> Is there a short README or TODO list (status)?
-
-In the works...
-
-Thanks for the interest!
-
-Regards,
-Sergio
-> 
-> 
-> 
-> Thank you and
-> Best Regards
-> Stephan Linz
-> 
-
+--LvAn5G4Ewe70kJ1i--
