@@ -1,44 +1,76 @@
-From: Laine Walker-Avina <lwalkera@ieee.org>
-Subject: Re: OMAP3 EHCI USB on Beagleboard
-Date: Thu, 30 Jul 2009 14:29:53 -0700
-Message-ID: <dfb660300907301429o484d808bp5c3ff2c54b307db1@mail.gmail.com>
-References: <dfb660300907301336i1b1c196dpbd390961370ecd05@mail.gmail.com>
-	 <bb2708720907301402x78834952oa1040c281044d908@mail.gmail.com>
+From: Mike Chan <mike@android.com>
+Subject: Re: drivers that require headers in mach-omap
+Date: Thu, 30 Jul 2009 16:20:03 -0700
+Message-ID: <8bb80c380907301620g5761ae36j55bec6747e32657a@mail.gmail.com>
+References: <8bb80c380907281849i1cd271f3n64a391327cd8bb5e@mail.gmail.com>
+	 <FCCFB4CDC6E5564B9182F639FC35608702F58506D2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f200.google.com ([209.85.222.200]:49939 "EHLO
-	mail-pz0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752755AbZG3V3x (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 17:29:53 -0400
-Received: by pzk38 with SMTP id 38so672261pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 30 Jul 2009 14:29:54 -0700 (PDT)
-In-Reply-To: <bb2708720907301402x78834952oa1040c281044d908@mail.gmail.com>
+Received: from wf-out-1314.google.com ([209.85.200.175]:6931 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752340AbZG3XUC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 19:20:02 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so484039wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jul 2009 16:20:03 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F58506D2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: John Sarman <johnsarman@gmail.com>, linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Jul 30, 2009 at 2:02 PM, John Sarman<johnsarman@gmail.com> wrote:
-> On Thu, Jul 30, 2009 at 4:36 PM, Laine Walker-Avina<lwalkera@ieee.org> wrote:
->> Hi,
->>
->> I've been trying to get the EHCI USB host port on the beagleboard to
->> work but with little success. The board initial finds the usb devices
->> plugged into a hub on boot, but once I'm able to login, I get a
->> disconnect notice on the hub and the port will no longer recognize any
->> usb device inserted until reboot. Any ideas what's going on? I'm using
->> the current master branch of the omap git repo.
+On Thu, Jul 30, 2009 at 8:44 AM, Pandita, Vikram<vikram.pandita@ti.com>=
+ wrote:
 >
-> Do you have it connected to an external self powered USB hub, or
-> direct connect ?
-> Also is it a high spped device, I think the transaction translator can
-> only support high speed, but have not verified that.
->
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
+kernel.org] On Behalf Of Mike
+>>Chan
+>>Sent: Tuesday, July 28, 2009 8:49 PM
+>>To: Kevin Hilman; linux-omap@vger.kernel.org
+>>Subject: drivers that require headers in mach-omap
 >>
->> Thanks,
->> Laine Walker-Avina
+>>Omap folks, how are drivers that require access to prm and cm
+>>registers via cm_read_mod_reg() etc... suppose to access these?
+>>
+>>For example if drivers/usb/host/ohci-omap.c wanted to call:
+>>cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_IDLEST);
+>
+> The design was supposed to encapsulate the PRCM API's from drivers.
+> Driver has control over the iclk and fclk and the clock framework wou=
+ld take care of any CM/PRM register settings.
+>
+> Accessing these registers in drivers would make the driver non-compat=
+ible for non-omap platforms.
+>
 
-It's a high speed, self-powered hub, with various devices connected.
+Are drivers such as
 
--Laine
+drivers/usb/host/ohci-omap.c
+drivers/usb/musb/omap2430.c
+
+suppose to be compatible for non-omap platforms?
+
+-- Mike
+
+>>
+>>It seems some of the headers in mach-omap2 should be in
+>>plat-omap/include/mach, or is there a more elegant way? The other
+>>alternatives are to register calls in all the board files, or #includ=
+e
+>>../../.. both do not seem very elegant to me.
+>>
+>>-- Mike
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
