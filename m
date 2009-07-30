@@ -1,54 +1,28 @@
-From: "Reddy, Teerth" <teerth@ti.com>
-Subject: [PATCH] PM: Enable DVFS for Zoom2
-Date: Thu, 30 Jul 2009 18:32:16 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305F29A04@dbde02.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 11/20] OMAP: McBSP: Add link DMA mode selection
+Date: Thu, 30 Jul 2009 14:04:42 +0100
+Message-ID: <20090730130442.GD9975@sirena.org.uk>
+References: <1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-11-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38857 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750925AbZG3NC0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 09:02:26 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n6UD2KCa029446
-	for <linux-omap@vger.kernel.org>; Thu, 30 Jul 2009 08:02:26 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n6UD2KoM005044
-	for <linux-omap@vger.kernel.org>; Thu, 30 Jul 2009 18:32:20 +0530 (IST)
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:53068 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522AbZG3NEm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 09:04:42 -0400
+Content-Disposition: inline
+In-Reply-To: <1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-From: Teerth Reddy <teerth@ti.com>
+On Thu, Jul 30, 2009 at 03:49:34PM +0300, Eduardo Valentin wrote:
 
-This patch enables DVFS for Zoom2 and initializes the SDRC params and 
-OPP tables.
+> It adds a new sysfs file, where the user can configure the mcbsp mode to use.
+> If the mcbsp channel is in use, it does not allow the change.
+> Than in omap_pcm_open we can call the omap_mcbsp_get_opmode to get the mode,
+> store it, than use it to implement the different modes.
 
-Signed-off-by: Teerth Reddy <teerth@ti.com>
----
- arch/arm/mach-omap2/board-zoom2.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 5742b55..f29c476 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -28,6 +28,7 @@
- 
- #include "mmc-twl4030.h"
- #include "omap3-opp.h"
-+#include "sdram-micron-mt46h32m32lf-6.h"
- 
- #define ZOOM2_QUART_PHYS        0x10000000
- #define ZOOM2_QUART_VIRT        0xFB000000
-@@ -109,7 +110,7 @@ static void __init omap_zoom2_init_irq(void)
- {
- 	omap_board_config = zoom2_config;
- 	omap_board_config_size = ARRAY_SIZE(zoom2_config);
--	omap2_init_common_hw(NULL, omap3_mpu_rate_table,
-+	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, omap3_mpu_rate_table,
- 	                     omap3_dsp_rate_table, omap3_l3_rate_table);
- 	omap_init_irq();
- 	omap_gpio_init();
+Is this really something that people would want to tweak at runtime
+(except for test purposes)?
