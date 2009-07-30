@@ -1,144 +1,53 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH V2 13/32] omap_hsmmc: context save/restore support
-Date: Thu, 30 Jul 2009 10:40:09 +0300
-Message-ID: <4A714E59.7080902@nokia.com>
-References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop> <20090728104011.2371.89249.sendpatchset@ahunter-laptop> <00ad01ca10b9$82a5d260$544ff780@am.dhcp.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] [PATCH 3/3 v2] ASoC: add support for Amstrad E3 (Delta) machine
+Date: Thu, 30 Jul 2009 11:12:52 +0200
+Message-ID: <200907301112.53525.jkrzyszt@tis.icnet.pl>
+References: <200907291318.54897.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63558 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754079AbZG3HkU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 03:40:20 -0400
-In-Reply-To: <00ad01ca10b9$82a5d260$544ff780@am.dhcp.ti.com>
+Received: from d1.icnet.pl ([212.160.220.21]:47046 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751338AbZG3JNz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 05:13:55 -0400
+In-Reply-To: <200907291318.54897.jkrzyszt@tis.icnet.pl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Andrew Morton' <akpm@linux-foundation.org>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>, 'Pierre Ossman' <pierre@ossman.eu>, "Karpov Denis.2 (EXT-Teleca/Helsinki)" <ext-denis.2.karpov@nokia.com>, 'Matt Fleming' <matt@console-pimps.org>, 'lkml' <linux-kernel@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, alsa-devel@alsa-project.org, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Madhusudhan wrote:
-> 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Adrian Hunter
->> Sent: Tuesday, July 28, 2009 5:40 AM
->> To: Andrew Morton
->> Cc: Jarkko Lavinen; Adrian Hunter; linux-omap Mailing List; Pierre Ossman;
->> Denis Karpov; Matt Fleming; lkml
->> Subject: [PATCH V2 13/32] omap_hsmmc: context save/restore support
->>
->> From 43e9fa346d7e386328876a8535dc8619bd1f47ae Mon Sep 17 00:00:00 2001
->> From: Denis Karpov <ext-denis.2.karpov@nokia.com>
->> Date: Wed, 22 Apr 2009 16:04:25 +0200
->> Subject: [PATCH] omap_hsmmc: context save/restore support
->>
->> Keep the context over PM dynamic OFF states.
->>
->> Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
->> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
->> ---
->>  drivers/mmc/host/omap_hsmmc.c |  194
->> ++++++++++++++++++++++++++++++++++++++--
->>  1 files changed, 184 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
->> index c28d055..ac1a3bf 100644
->> --- a/drivers/mmc/host/omap_hsmmc.c
->> +++ b/drivers/mmc/host/omap_hsmmc.c
->> @@ -37,6 +37,7 @@
->>
->>  /* OMAP HSMMC Host Controller Registers */
->>  #define OMAP_HSMMC_SYSCONFIG	0x0010
->> +#define OMAP_HSMMC_SYSSTATUS	0x0014
->>  #define OMAP_HSMMC_CON		0x002C
->>  #define OMAP_HSMMC_BLK		0x0104
->>  #define OMAP_HSMMC_ARG		0x0108
->> @@ -94,6 +95,8 @@
->>  #define DUAL_VOLT_OCR_BIT	7
->>  #define SRC			(1 << 25)
->>  #define SRD			(1 << 26)
->> +#define SOFTRESET		(1 << 1)
->> +#define RESETDONE		(1 << 0)
->>
->>  /*
->>   * FIXME: Most likely all the data using these _DEVID defines should come
->> @@ -152,6 +155,8 @@ struct mmc_omap_host {
->>  	int			slot_id;
->>  	int			dbclk_enabled;
->>  	int			response_busy;
->> +	int			context_loss;
->> +
->>  	struct	omap_mmc_platform_data	*pdata;
->>  };
->>
->> @@ -166,6 +171,166 @@ static void omap_mmc_stop_clock(struct mmc_omap_host
->> *host)
->>  		dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
->>  }
->>
->> +#ifdef CONFIG_PM
->> +
->> +/*
->> + * Restore the MMC host context, if it was lost as result of a
->> + * power state change.
->> + */
->> +static int omap_mmc_restore_ctx(struct mmc_omap_host *host)
->> +{
->> +	struct mmc_ios *ios = &host->mmc->ios;
->> +	struct omap_mmc_platform_data *pdata = host->pdata;
->> +	int context_loss = 0;
->> +	u32 hctl, capa, con;
->> +	u16 dsor = 0;
->> +	unsigned long timeout;
->> +
->> +	if (pdata->get_context_loss_count) {
->> +		context_loss = pdata->get_context_loss_count(host->dev);
->> +		if (context_loss < 0)
->> +			return 1;
->> +	}
-> This seems to restore the context always. The context should be restored
-> only if the card was powered OFF, Right?
+Wednesday 29 July 2009 13:18:53 Janusz Krzysztofik napisa=C5=82(a):
+> This patch adds machine support for Amstrad E3 (Delta) videophone to =
+ASoC.
+>
+> Created and tested against linux-2.6.31-rc3.
 
-Not exactly. The "context" is just the host controller registers, which get
-lost if power management decides to power off the host controller, which it
-will if it decides it is not doing anything.  For us, switching off the
-functional clock lets PM power off the host controller.  The card can be in
-any power state: on, off, card/regulator sleep.
+I am aware that I have forgot to correct one checkpatch indicated issue=
+=2E Sorry
+for this.  If there are no other changes to the locking bits suggested,=
+ the
+issue will be corrected this way:
 
-The context is restored only when it has been lost - see the following
-lines.  But this is done from the "enable" method, so this is only called
-if someone is trying to access the card.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
 
-+	dev_dbg(mmc_dev(host->mmc), "context was %slost\n",
-+		context_loss == host->context_loss ? "not " : "");
-+	if (host->context_loss == context_loss)
-+		return 1;
+--- linux-2.6.31-rc3/sound/soc/omap/ams-delta.c.orig    2009-07-30 11:0=
+1:37.000000000 +0200
++++ linux-2.6.31-rc3/sound/soc/omap/ams-delta.c 2009-07-30 00:52:34.000=
+000000 +0200
+@@ -251,7 +251,7 @@ static struct snd_soc_jack_pin ams_delta
+ static struct timer_list cx81801_timer;
+ static bool cx81801_cmd_pending;
+ static bool ams_delta_muted;
+-static spinlock_t ams_delta_lock =3D SPIN_LOCK_UNLOCKED;
++static DEFINE_SPINLOCK(ams_delta_lock);
 
-And then further down, we skip some things if the card is off:
-
-+	/* Do not initialize card-specific things if the power is off */
-+	if (host->power_mode == MMC_POWER_OFF)
-+		goto out;
-
-
-> The context could also be lost if the CORE transitions to OFF. I assume that
-> case gets handled here without anything extra required if "power_saving" is
-> set to true. Am I right?
-
-Yes, "power_saving" is not related to "Power Management".  "power_saving"
-is about controlling the power regulators, which the host controller does
-itself without any support from PM.
-
-To put it another way, "power_saving" and CONFIG_PM can be set independently
-of one another.
-
-> How about the case of eMMC? Since it is not a removable device the card is
-> not powered OFF. But the CORE OFF would result in context loss. Do we hit
-> the restore_ctx path in that case?
-
-On the contrary, eMMC *is* powered off.  After 100ms of inactivity, eMMC is
-put to card sleep, and the regulator is put to sleep also - in fact there
-are two regulators and one is powered off here.  After 8 seconds
-the other regulator is powered off and consequently after that the eMMC must
-be reinitialised (rescanned) before it can be used.
+ static void cx81801_timeout(unsigned long data)
+ {
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
