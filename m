@@ -1,18 +1,17 @@
 From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: [PATCH V2 4/32] mmc: add ability to save power by powering off
- cards
-Date: Thu, 30 Jul 2009 10:16:19 +0300
-Message-ID: <4A7148C3.2000005@nokia.com>
-References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop> <20090728103904.2371.68231.sendpatchset@ahunter-laptop> <00a001ca10b1$e4d7e390$544ff780@am.dhcp.ti.com>
+Subject: Re: [PATCH V2 13/32] omap_hsmmc: context save/restore support
+Date: Thu, 30 Jul 2009 10:40:09 +0300
+Message-ID: <4A714E59.7080902@nokia.com>
+References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop> <20090728104011.2371.89249.sendpatchset@ahunter-laptop> <00ad01ca10b9$82a5d260$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48902 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752880AbZG3HQR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 03:16:17 -0400
-In-Reply-To: <00a001ca10b1$e4d7e390$544ff780@am.dhcp.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:63558 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754079AbZG3HkU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 03:40:20 -0400
+In-Reply-To: <00ad01ca10b9$82a5d260$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Madhusudhan <madhu.cr@ti.com>
@@ -23,86 +22,123 @@ Madhusudhan wrote:
 >> -----Original Message-----
 >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
 >> owner@vger.kernel.org] On Behalf Of Adrian Hunter
->> Sent: Tuesday, July 28, 2009 5:39 AM
+>> Sent: Tuesday, July 28, 2009 5:40 AM
 >> To: Andrew Morton
 >> Cc: Jarkko Lavinen; Adrian Hunter; linux-omap Mailing List; Pierre Ossman;
 >> Denis Karpov; Matt Fleming; lkml
->> Subject: [PATCH V2 4/32] mmc: add ability to save power by powering off
->> cards
+>> Subject: [PATCH V2 13/32] omap_hsmmc: context save/restore support
 >>
->> From e6355578d082d94707c8fda1e1342c478019b5c8 Mon Sep 17 00:00:00 2001
->> From: Adrian Hunter <adrian.hunter@nokia.com>
->> Date: Mon, 11 May 2009 12:20:57 +0300
->> Subject: [PATCH] mmc: add ability to save power by powering off cards
+>> From 43e9fa346d7e386328876a8535dc8619bd1f47ae Mon Sep 17 00:00:00 2001
+>> From: Denis Karpov <ext-denis.2.karpov@nokia.com>
+>> Date: Wed, 22 Apr 2009 16:04:25 +0200
+>> Subject: [PATCH] omap_hsmmc: context save/restore support
 >>
->> Power can be saved by powering off cards that are not
->> in use.  This is similar to suspend / resume except
->> it is under the control of the driver, and does not
->> require any power management support.  It can only
->> be used when the driver can monitor whether the card
->> is removed, otherwise it is unsafe.  This is possible
->> because, unlike suspend, the driver still receives
->> card detect and / or cover switch interrupts.
+>> Keep the context over PM dynamic OFF states.
 >>
+>> Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
 >> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
 >> ---
->>  drivers/mmc/core/core.c  |   34 ++++++++++++++++++++++++++++++++++
->>  drivers/mmc/core/core.h  |    2 ++
->>  drivers/mmc/core/mmc.c   |   11 +++++++++++
->>  drivers/mmc/core/sd.c    |   11 +++++++++++
->>  include/linux/mmc/host.h |    3 +++
->>  5 files changed, 61 insertions(+), 0 deletions(-)
+>>  drivers/mmc/host/omap_hsmmc.c |  194
+>> ++++++++++++++++++++++++++++++++++++++--
+>>  1 files changed, 184 insertions(+), 10 deletions(-)
 >>
->> diff --git a/drivers/mmc/core/core.c b/drivers/mmc/core/core.c
->> index bab5015..39f7bd1 100644
->> --- a/drivers/mmc/core/core.c
->> +++ b/drivers/mmc/core/core.c
->> @@ -1145,6 +1145,40 @@ void mmc_stop_host(struct mmc_host *host)
->>  	mmc_power_off(host);
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+>> index c28d055..ac1a3bf 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -37,6 +37,7 @@
+>>
+>>  /* OMAP HSMMC Host Controller Registers */
+>>  #define OMAP_HSMMC_SYSCONFIG	0x0010
+>> +#define OMAP_HSMMC_SYSSTATUS	0x0014
+>>  #define OMAP_HSMMC_CON		0x002C
+>>  #define OMAP_HSMMC_BLK		0x0104
+>>  #define OMAP_HSMMC_ARG		0x0108
+>> @@ -94,6 +95,8 @@
+>>  #define DUAL_VOLT_OCR_BIT	7
+>>  #define SRC			(1 << 25)
+>>  #define SRD			(1 << 26)
+>> +#define SOFTRESET		(1 << 1)
+>> +#define RESETDONE		(1 << 0)
+>>
+>>  /*
+>>   * FIXME: Most likely all the data using these _DEVID defines should come
+>> @@ -152,6 +155,8 @@ struct mmc_omap_host {
+>>  	int			slot_id;
+>>  	int			dbclk_enabled;
+>>  	int			response_busy;
+>> +	int			context_loss;
+>> +
+>>  	struct	omap_mmc_platform_data	*pdata;
+>>  };
+>>
+>> @@ -166,6 +171,166 @@ static void omap_mmc_stop_clock(struct mmc_omap_host
+>> *host)
+>>  		dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
 >>  }
 >>
->> +void mmc_power_save_host(struct mmc_host *host)
+>> +#ifdef CONFIG_PM
+>> +
+>> +/*
+>> + * Restore the MMC host context, if it was lost as result of a
+>> + * power state change.
+>> + */
+>> +static int omap_mmc_restore_ctx(struct mmc_omap_host *host)
 >> +{
->> +	mmc_bus_get(host);
+>> +	struct mmc_ios *ios = &host->mmc->ios;
+>> +	struct omap_mmc_platform_data *pdata = host->pdata;
+>> +	int context_loss = 0;
+>> +	u32 hctl, capa, con;
+>> +	u16 dsor = 0;
+>> +	unsigned long timeout;
 >> +
->> +	if (!host->bus_ops || host->bus_dead || !host->bus_ops-
->>> power_restore) {
->> +		mmc_bus_put(host);
->> +		return;
+>> +	if (pdata->get_context_loss_count) {
+>> +		context_loss = pdata->get_context_loss_count(host->dev);
+>> +		if (context_loss < 0)
+>> +			return 1;
 >> +	}
->> +
->> +	if (host->bus_ops->power_save)
->> +		host->bus_ops->power_save(host);
->> +
->> +	mmc_bus_put(host);
->> +
->> +	mmc_power_off(host);
->> +}
->> +EXPORT_SYMBOL(mmc_power_save_host);
->> +
->> +void mmc_power_restore_host(struct mmc_host *host)
->> +{
->> +	mmc_bus_get(host);
->> +
->> +	if (!host->bus_ops || host->bus_dead || !host->bus_ops-
->>> power_restore) {
->> +		mmc_bus_put(host);
->> +		return;
->> +	}
->> +
->> +	mmc_power_up(host);
->> +	host->bus_ops->power_restore(host);
->> +
->> +	mmc_bus_put(host);
->> +}
->> +EXPORT_SYMBOL(mmc_power_restore_host);
->> +
-> 
-> Who calls these exported functions " mmc_power_save_host" and "
-> mmc_power_restore_host"? 
+> This seems to restore the context always. The context should be restored
+> only if the card was powered OFF, Right?
 
-The present design has the host driver calling them i.e. for us it
-is omap_hsmmc.  See the "support for deeper power saving states"
-patch.
+Not exactly. The "context" is just the host controller registers, which get
+lost if power management decides to power off the host controller, which it
+will if it decides it is not doing anything.  For us, switching off the
+functional clock lets PM power off the host controller.  The card can be in
+any power state: on, off, card/regulator sleep.
+
+The context is restored only when it has been lost - see the following
+lines.  But this is done from the "enable" method, so this is only called
+if someone is trying to access the card.
+
++	dev_dbg(mmc_dev(host->mmc), "context was %slost\n",
++		context_loss == host->context_loss ? "not " : "");
++	if (host->context_loss == context_loss)
++		return 1;
+
+And then further down, we skip some things if the card is off:
+
++	/* Do not initialize card-specific things if the power is off */
++	if (host->power_mode == MMC_POWER_OFF)
++		goto out;
 
 
+> The context could also be lost if the CORE transitions to OFF. I assume that
+> case gets handled here without anything extra required if "power_saving" is
+> set to true. Am I right?
+
+Yes, "power_saving" is not related to "Power Management".  "power_saving"
+is about controlling the power regulators, which the host controller does
+itself without any support from PM.
+
+To put it another way, "power_saving" and CONFIG_PM can be set independently
+of one another.
+
+> How about the case of eMMC? Since it is not a removable device the card is
+> not powered OFF. But the CORE OFF would result in context loss. Do we hit
+> the restore_ctx path in that case?
+
+On the contrary, eMMC *is* powered off.  After 100ms of inactivity, eMMC is
+put to card sleep, and the regulator is put to sleep also - in fact there
+are two regulators and one is powered off here.  After 8 seconds
+the other regulator is powered off and consequently after that the eMMC must
+be reinitialised (rescanned) before it can be used.
