@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH 20/20] ASoC: Always syncronize audio transfers on frames
-Date: Thu, 30 Jul 2009 15:49:43 +0300
-Message-ID: <1248958183-15015-21-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCH 09/20] OMAP3: McBSP: Lower the maximum buffersize for McBSP1,3,4,5
+Date: Thu, 30 Jul 2009 15:49:32 +0300
+Message-ID: <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
 References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
  <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
  <1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
@@ -11,90 +11,69 @@ References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
  <1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
  <1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
  <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-11-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-14-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-15-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-16-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-17-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-18-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-19-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-20-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35094 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751174AbZG3NBL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 09:01:11 -0400
-In-Reply-To: <1248958183-15015-20-git-send-email-eduardo.valentin@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:25911 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751225AbZG3NBD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 09:01:03 -0400
+In-Reply-To: <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-All these steps are required for ASoC to behave correctly.
-This is, no RFIG or XFIG (Not defined in 34xx), correct
-initiliazation of rccr and xccr. They are format dependent,
-for example TDM audio has different values than I2S or
-DSP_A. Also the omap_mcbsp_xmit_enable and/or
-omap_mcbsp_recv_enable must be called right after the
-DMA has started. This provides no longer L and R channels
-switching at random.
+Do not allow applications to use the full buffer found on
+McBSP1,3,4,5. Using the full buffer in threshold mode causes
+the McBSP buffer to run dry, which can be observed as channels
+are switching (in reality the channels are shifting).
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- sound/soc/omap/omap-mcbsp.c |   16 ++++++++++++++--
- 1 files changed, 14 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index a5d46a7..0272d3f 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -191,6 +191,11 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
- 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
- 		if (!mcbsp_data->active++)
- 			omap_mcbsp_start(mcbsp_data->bus_id);
-+		/* Make sure data transfer is frame synchronized */
-+		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-+			omap_mcbsp_xmit_enable(mcbsp_data->bus_id, 1);
-+		else
-+			omap_mcbsp_recv_enable(mcbsp_data->bus_id, 1);
- 		break;
- 
- 	case SNDRV_PCM_TRIGGER_STOP:
-@@ -321,8 +326,11 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
- 	/* Generic McBSP register settings */
- 	regs->spcr2	|= XINTM(3) | FREE;
- 	regs->spcr1	|= RINTM(3);
--	regs->rcr2	|= RFIG;
--	regs->xcr2	|= XFIG;
-+	/* RFIG and XFIG are not defined in 34xx */
-+	if (!cpu_is_omap34xx()) {
-+		regs->rcr2	|= RFIG;
-+		regs->xcr2	|= XFIG;
-+	}
- 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
- 		regs->xccr = DXENDLY(1) | XDMAEN;
- 		regs->rccr = RFULL_CYCLE | RDMAEN;
-@@ -333,11 +341,15 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
- 		/* 1-bit data delay */
- 		regs->rcr2	|= RDATDLY(1);
- 		regs->xcr2	|= XDATDLY(1);
-+		regs->rccr	|= RFULL_CYCLE | RDMAEN | RDISABLE;
-+		regs->xccr	|= (DXENDLY(1) | XDMAEN | XDISABLE);
- 		break;
- 	case SND_SOC_DAIFMT_DSP_A:
- 		/* 1-bit data delay */
- 		regs->rcr2      |= RDATDLY(1);
- 		regs->xcr2      |= XDATDLY(1);
-+		regs->rccr	|= RFULL_CYCLE | RDMAEN | RDISABLE;
-+		regs->xccr	|= (DXENDLY(1) | XDMAEN | XDISABLE);
- 		/* Invert FS polarity configuration */
- 		temp_fmt ^= SND_SOC_DAIFMT_NB_IF;
- 		break;
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index f837114..7d22caf 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -129,7 +129,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x7F,
++		.buffer_size	= 0x6F,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP2_BASE,
+@@ -147,7 +147,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x7F,
++		.buffer_size	= 0x6F,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP4_BASE,
+@@ -156,7 +156,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x7F,
++		.buffer_size	= 0x6F,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP5_BASE,
+@@ -165,7 +165,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x7F,
++		.buffer_size	= 0x6F,
+ 	},
+ };
+ #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
 -- 
 1.6.2.GIT
 
