@@ -1,178 +1,172 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [PATCH V2 13/32] omap_hsmmc: context save/restore support
-Date: Thu, 30 Jul 2009 14:12:31 -0500
-Message-ID: <00c501ca1149$affb7ea0$544ff780@am.dhcp.ti.com>
-References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop> <20090728104011.2371.89249.sendpatchset@ahunter-laptop> <00ad01ca10b9$82a5d260$544ff780@am.dhcp.ti.com> <4A714E59.7080902@nokia.com>
+From: John Sarman <johnsarman@gmail.com>
+Subject: Re: MMC3 Overo
+Date: Thu, 30 Jul 2009 15:23:50 -0400
+Message-ID: <bb2708720907301223h616eb215gb4aea1df8e1d578e@mail.gmail.com>
+References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34967 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751477AbZG3TMw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 30 Jul 2009 15:12:52 -0400
-In-Reply-To: <4A714E59.7080902@nokia.com>
+Received: from mail-yw0-f183.google.com ([209.85.211.183]:58206 "EHLO
+	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220AbZG3TXu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 15:23:50 -0400
+Received: by ywh13 with SMTP id 13so996374ywh.15
+        for <linux-omap@vger.kernel.org>; Thu, 30 Jul 2009 12:23:50 -0700 (PDT)
+In-Reply-To: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Adrian Hunter' <adrian.hunter@nokia.com>
-Cc: 'Andrew Morton' <akpm@linux-foundation.org>, "'Lavinen Jarkko (Nokia-D/Helsinki)'" <jarkko.lavinen@nokia.com>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>, 'Pierre Ossman' <pierre@ossman.eu>, "'Karpov Denis.2 (EXT-Teleca/Helsinki)'" <ext-denis.2.karpov@nokia.com>, 'Matt Fleming' <matt@console-pimps.org>, 'lkml' <linux-kernel@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
+On Thu, Jul 30, 2009 at 11:49 AM, John Sarman<johnsarman@gmail.com> wro=
+te:
+> I am trying to use mmc3 on the Overo Gumstix board with no luck. =A0I
+> have patched the kernel with the latest changes and have yet to see a
+> clk pulse, both before and after the patches.
+After adding some debugging printks, I have determined the mmc3 fails
+getting IRQ
+mmci-omap-hs mmci-omap-hs.0: Failed to get debounce clock
+REQUEST IRQ =3D 83 HOST =3D -812068416
+mmci-omap-hs mmci-omap-hs.1: Failed to get debounce clock
+REQUEST IRQ =3D 86 HOST =3D -812067392
+mmci-omap-hs mmci-omap-hs.2: Failed to get debounce clock
+REQUEST IRQ =3D 83 HOST =3D -812066368
+mmci-omap-hs mmci-omap-hs.2: Unable to grab HSMMC IRQ
+mmci-omap-hs mmci-omap-hs.2: Probe Failed
+mmci-omap-hs: probe of mmci-omap-hs.2 failed with error -16
 
+=46or some reason mmc1 and mmc3 ask for the same interrupt 83 ???
 
-> -----Original Message-----
-> From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
-> Sent: Thursday, July 30, 2009 2:40 AM
-> To: Madhusudhan
-> Cc: 'Andrew Morton'; Lavinen Jarkko (Nokia-D/Helsinki); 'linux-omap
-> Mailing List'; 'Pierre Ossman'; Karpov Denis.2 (EXT-Teleca/Helsinki);
-> 'Matt Fleming'; 'lkml'
-> Subject: Re: [PATCH V2 13/32] omap_hsmmc: context save/restore support
-> 
-> Madhusudhan wrote:
-> >
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Adrian Hunter
-> >> Sent: Tuesday, July 28, 2009 5:40 AM
-> >> To: Andrew Morton
-> >> Cc: Jarkko Lavinen; Adrian Hunter; linux-omap Mailing List; Pierre
-> Ossman;
-> >> Denis Karpov; Matt Fleming; lkml
-> >> Subject: [PATCH V2 13/32] omap_hsmmc: context save/restore support
-> >>
-> >> From 43e9fa346d7e386328876a8535dc8619bd1f47ae Mon Sep 17 00:00:00 2001
-> >> From: Denis Karpov <ext-denis.2.karpov@nokia.com>
-> >> Date: Wed, 22 Apr 2009 16:04:25 +0200
-> >> Subject: [PATCH] omap_hsmmc: context save/restore support
-> >>
-> >> Keep the context over PM dynamic OFF states.
-> >>
-> >> Signed-off-by: Denis Karpov <ext-denis.2.karpov@nokia.com>
-> >> Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
-> >> ---
-> >>  drivers/mmc/host/omap_hsmmc.c |  194
-> >> ++++++++++++++++++++++++++++++++++++++--
-> >>  1 files changed, 184 insertions(+), 10 deletions(-)
-> >>
-> >> diff --git a/drivers/mmc/host/omap_hsmmc.c
-> b/drivers/mmc/host/omap_hsmmc.c
-> >> index c28d055..ac1a3bf 100644
-> >> --- a/drivers/mmc/host/omap_hsmmc.c
-> >> +++ b/drivers/mmc/host/omap_hsmmc.c
-> >> @@ -37,6 +37,7 @@
-> >>
-> >>  /* OMAP HSMMC Host Controller Registers */
-> >>  #define OMAP_HSMMC_SYSCONFIG	0x0010
-> >> +#define OMAP_HSMMC_SYSSTATUS	0x0014
-> >>  #define OMAP_HSMMC_CON		0x002C
-> >>  #define OMAP_HSMMC_BLK		0x0104
-> >>  #define OMAP_HSMMC_ARG		0x0108
-> >> @@ -94,6 +95,8 @@
-> >>  #define DUAL_VOLT_OCR_BIT	7
-> >>  #define SRC			(1 << 25)
-> >>  #define SRD			(1 << 26)
-> >> +#define SOFTRESET		(1 << 1)
-> >> +#define RESETDONE		(1 << 0)
-> >>
-> >>  /*
-> >>   * FIXME: Most likely all the data using these _DEVID defines should
-> come
-> >> @@ -152,6 +155,8 @@ struct mmc_omap_host {
-> >>  	int			slot_id;
-> >>  	int			dbclk_enabled;
-> >>  	int			response_busy;
-> >> +	int			context_loss;
-> >> +
-> >>  	struct	omap_mmc_platform_data	*pdata;
-> >>  };
-> >>
-> >> @@ -166,6 +171,166 @@ static void omap_mmc_stop_clock(struct
-> mmc_omap_host
-> >> *host)
-> >>  		dev_dbg(mmc_dev(host->mmc), "MMC Clock is not stoped\n");
-> >>  }
-> >>
-> >> +#ifdef CONFIG_PM
-> >> +
-> >> +/*
-> >> + * Restore the MMC host context, if it was lost as result of a
-> >> + * power state change.
-> >> + */
-> >> +static int omap_mmc_restore_ctx(struct mmc_omap_host *host)
-> >> +{
-> >> +	struct mmc_ios *ios = &host->mmc->ios;
-> >> +	struct omap_mmc_platform_data *pdata = host->pdata;
-> >> +	int context_loss = 0;
-> >> +	u32 hctl, capa, con;
-> >> +	u16 dsor = 0;
-> >> +	unsigned long timeout;
-> >> +
-> >> +	if (pdata->get_context_loss_count) {
-> >> +		context_loss = pdata->get_context_loss_count(host->dev);
-> >> +		if (context_loss < 0)
-> >> +			return 1;
-> >> +	}
-> > This seems to restore the context always. The context should be restored
-> > only if the card was powered OFF, Right?
-> 
-> Not exactly. The "context" is just the host controller registers, which
-> get
-> lost if power management decides to power off the host controller, which
-> it
-> will if it decides it is not doing anything.  For us, switching off the
-> functional clock lets PM power off the host controller.  The card can be
-> in
-> any power state: on, off, card/regulator sleep.
-> 
-> The context is restored only when it has been lost - see the following
-> lines.  But this is done from the "enable" method, so this is only called
-> if someone is trying to access the card.
-> 
-> +	dev_dbg(mmc_dev(host->mmc), "context was %slost\n",
-> +		context_loss == host->context_loss ? "not " : "");
-> +	if (host->context_loss == context_loss)
-> +		return 1;
-> 
-> And then further down, we skip some things if the card is off:
-> 
-> +	/* Do not initialize card-specific things if the power is off */
-> +	if (host->power_mode == MMC_POWER_OFF)
-> +		goto out;
-> 
-> 
-> > The context could also be lost if the CORE transitions to OFF. I assume
-> that
-> > case gets handled here without anything extra required if "power_saving"
-> is
-> > set to true. Am I right?
-> 
-> Yes, "power_saving" is not related to "Power Management".  "power_saving"
-> is about controlling the power regulators, which the host controller does
-> itself without any support from PM.
-> 
-> To put it another way, "power_saving" and CONFIG_PM can be set
-> independently
-> of one another.
+Why would this be assigned the same value?
 
-But the "omap_hsmmc_context_save" and " omap_hsmmc_context_restore" are
-under CONFIG_PM. They are empty functions if CONFIG_PM is not set. Does this
-mean that if CONFIG_PM is not set the host regulators are not turned OFF
-even if there is no activity on MMC?
-
-> 
-> > How about the case of eMMC? Since it is not a removable device the card
-> is
-> > not powered OFF. But the CORE OFF would result in context loss. Do we
-> hit
-> > the restore_ctx path in that case?
-> 
-> On the contrary, eMMC *is* powered off.  After 100ms of inactivity, eMMC
-> is
-> put to card sleep, and the regulator is put to sleep also - in fact there
-> are two regulators and one is powered off here.  After 8 seconds
-> the other regulator is powered off and consequently after that the eMMC
-> must
-> be reinitialised (rescanned) before it can be used.
-
-
+> So far I have reconfigured the pins with uboot to GPIO and tested eac=
+h
+> pin to verify that the signals are connected properly. =A0That test
+> passed.
+> Then I reconfigured them back to MODE 2(mmc modes) for each pin. =A0I=
+ am
+> confident that the level transceiver(TXS0108ERGYR) is operating
+> properly. This transceiver is automatic so no external controls are
+> necessary.
+>
+>
+> <u-boot_snip>
+> =A0MUX_VAL(CP(ETK_CLK_ES2), =A0 =A0 =A0 (IDIS | PTU | EN =A0| M2)) /*=
+MMC3_CLK*/\
+> =A0MUX_VAL(CP(ETK_CTL_ES2), =A0 =A0 =A0 (IEN =A0| PTU | EN =A0| M2)) =
+/*MMC3_CMD*/\
+> =A0MUX_VAL(CP(ETK_D3_ES2), =A0 =A0 =A0 =A0(IEN =A0| PTU | EN =A0| M2)=
+) /*MMC3_DAT3*/\
+> =A0MUX_VAL(CP(ETK_D4_ES2), =A0 =A0 =A0 =A0(IEN =A0| PTU | EN =A0| M2)=
+) /*MMC3_DAT0*/\
+> =A0MUX_VAL(CP(ETK_D5_ES2), =A0 =A0 =A0 =A0(IEN =A0| PTU | EN =A0| M2)=
+) /*MMC3_DAT1*/\
+> =A0MUX_VAL(CP(ETK_D6_ES2), =A0 =A0 =A0 =A0(IEN =A0| PTU | EN =A0| M2)=
+) /*MMC3_DAT2*/\
+> </u-boot_snip>
+>
+> <mmc_params>
+> // I Switched mmc 2 and 3 in a feeble attempt. =A0Also I removed 2 in=
+ an
+> earlier attempt and the kernel would not boot ???????
+> // Also I have tested working gpio connected to CD and WP but not
+> attempting to tackle that yet.
+> static struct twl4030_hsmmc_info mmc[] =3D {
+> =A0 =A0 =A0 =A0{
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.mmc =A0 =A0 =A0 =A0 =A0 =A0=3D 1,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.wires =A0 =A0 =A0 =A0 =A0=3D 4,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.gpio_cd =A0 =A0 =A0 =A0=3D -EINVAL,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.gpio_wp =A0 =A0 =A0 =A0=3D -EINVAL,
+> =A0 =A0 =A0 =A0},
+> =A0 =A0 =A0 =A0{
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.mmc =A0 =A0 =A0 =A0 =A0 =A0=3D 3,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.wires =A0 =A0 =A0 =A0 =A0=3D 4,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.gpio_cd =A0 =A0 =A0 =A0=3D -EINVAL,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.gpio_wp =A0 =A0 =A0 =A0=3D -EINVAL,
+> =A0 =A0 =A0 =A0},
+> =A0 =A0 =A0 =A0{
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.mmc =A0 =A0 =A0 =A0 =A0 =A0=3D 2,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.wires =A0 =A0 =A0 =A0 =A0=3D 4,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.gpio_cd =A0 =A0 =A0 =A0=3D -EINVAL,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.gpio_wp =A0 =A0 =A0 =A0=3D -EINVAL,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.transceiver =A0 =A0=3D true,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.ocr_mask =A0 =A0 =A0 =3D 0x00100000, =
+=A0 /* 3.3V */
+> =A0 =A0 =A0 =A0},
+> =A0 =A0 =A0 =A0{} =A0 =A0 =A0/* Terminator */
+> };
+> </mmc_params>
+>
+> <twl_setup>
+>
+> static int overo_twl_gpio_setup(struct device *dev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned gpio, unsigned ngpio)
+> {
+> =A0 =A0 =A0 =A0twl4030_mmc_init(mmc); =A0 =A0 =A0 =A0<-- mmc params =A0=
+ =A0passed to init
+>
+> =A0 =A0 =A0 =A0overo_vmmc1_supply.dev =3D mmc[0].dev;
+>
+> =A0 =A0 =A0 =A0return 0;
+> }
+> static struct twl4030_gpio_platform_data overo_gpio_data =3D {
+> =A0 =A0 =A0 =A0.gpio_base =A0 =A0 =A0=3D OMAP_MAX_GPIO_LINES,
+> =A0 =A0 =A0 =A0.irq_base =A0 =A0 =A0 =3D TWL4030_GPIO_IRQ_BASE,
+> =A0 =A0 =A0 =A0.irq_end =A0 =A0 =A0 =A0=3D TWL4030_GPIO_IRQ_END,
+> =A0 =A0 =A0 =A0.setup =A0 =A0 =A0 =A0 =A0=3D overo_twl_gpio_setup,
+> <----- =A0 =A0setup passed into the twl4030 gpio platform data
+> };
+>
+> static struct twl4030_platform_data overo_twldata =3D {
+> =A0 =A0 =A0 =A0.irq_base =A0 =A0 =A0 =3D TWL4030_IRQ_BASE,
+> =A0 =A0 =A0 =A0.irq_end =A0 =A0 =A0 =A0=3D TWL4030_IRQ_END,
+> =A0 =A0 =A0 =A0.gpio =A0 =A0 =A0 =A0 =A0 =3D &overo_gpio_data,
+> <--- gpio data passed into twl4030 plat data
+> =A0 =A0 =A0 =A0.usb =A0 =A0 =A0 =A0 =A0 =A0=3D &overo_usb_data,
+> =A0 =A0 =A0 =A0.power =A0 =A0 =A0 =A0 =A0=3D GENERIC3430_T2SCRIPTS_DA=
+TA,
+> =A0 =A0 =A0 =A0.vmmc1 =A0 =A0 =A0 =A0 =A0=3D &overo_vmmc1,
+> };
+>
+> static struct i2c_board_info __initdata overo_i2c_boardinfo[] =3D {
+> =A0 =A0 =A0 =A0{
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0I2C_BOARD_INFO("tps65950", 0x48),
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.flags =3D I2C_CLIENT_WAKE,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.irq =3D INT_34XX_SYS_NIRQ,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.platform_data =3D &overo_twldata,
+> =A0 =A0 =A0 =A0},
+> };
+>
+> static int __init overo_i2c_init(void)
+> {
+> =A0 =A0 =A0 =A0omap_register_i2c_bus(1, 2600, overo_i2c_boardinfo,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ARRAY_SIZE(overo_i2c_b=
+oardinfo));
+> =A0 =A0 =A0 =A0/* i2c2 pins are used for gpio */
+> =A0 =A0 =A0 =A0omap_register_i2c_bus(3, 400, NULL, 0);
+> =A0 =A0 =A0 =A0return 0;
+> }
+>
+> // i2c_init called first in init.
+> static void __init overo_init(void)
+> {
+> =A0 =A0 =A0 =A0overo_i2c_init();
+> =A0.....
+> =A0</twl_setup>
+>
+>
+> So the way I see it working is i2c is initialized, which sets up the
+> twl4030. =A0When the twl4030 configures gpio it initializes the mmc.
+> mmc0 comes up fine (I have a root File System), but I never get a clk
+> on mmc3.
+>
+> Any help would be greatly appreciated.
+>
+> Thanks
+> John Sarman
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
