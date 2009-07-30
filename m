@@ -1,55 +1,59 @@
 From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 09/20] OMAP3: McBSP: Lower the maximum buffersize for
- McBSP1,3,4,5
-Date: Thu, 30 Jul 2009 21:57:21 +0300
-Message-ID: <20090730215721.a899e2f4.jhnikula@gmail.com>
+Subject: Re: [PATCH 20/20] ASoC: Always syncronize audio transfers on frames
+Date: Thu, 30 Jul 2009 21:57:48 +0300
+Message-ID: <20090730215748.5ba9fd07.jhnikula@gmail.com>
 References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
 	<1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
 	<1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
 	<1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-11-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-14-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-15-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-16-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-17-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-18-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-19-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-20-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-21-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:51254 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966AbZG3S42 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 14:56:28 -0400
-In-Reply-To: <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
+Received: from ey-out-2122.google.com ([74.125.78.25]:26505 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750928AbZG3S4x (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 30 Jul 2009 14:56:53 -0400
+In-Reply-To: <1248958183-15015-21-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-On Thu, 30 Jul 2009 15:49:32 +0300
+On Thu, 30 Jul 2009 15:49:43 +0300
 Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 
-> From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-> 
-> Do not allow applications to use the full buffer found on
-> McBSP1,3,4,5. Using the full buffer in threshold mode causes
-> the McBSP buffer to run dry, which can be observed as channels
-> are switching (in reality the channels are shifting).
-> 
-...
-> --- a/arch/arm/mach-omap2/mcbsp.c
-> +++ b/arch/arm/mach-omap2/mcbsp.c
-> @@ -129,7 +129,7 @@ static struct omap_mcbsp_platform_data
-> omap34xx_mcbsp_pdata[] = { .rx_irq		=
-> INT_24XX_MCBSP1_IRQ_RX, .tx_irq		=
-> INT_24XX_MCBSP1_IRQ_TX, .ops		= &omap2_mcbsp_ops,
-> -		.buffer_size	= 0x7F,
-> +		.buffer_size	= 0x6F,
->  	},
+> @@ -321,8 +326,11 @@ static int omap_mcbsp_dai_set_dai_fmt(struct
+> snd_soc_dai *cpu_dai, /* Generic McBSP register settings */
+>  	regs->spcr2	|= XINTM(3) | FREE;
+>  	regs->spcr1	|= RINTM(3);
+> -	regs->rcr2	|= RFIG;
+> -	regs->xcr2	|= XFIG;
+> +	/* RFIG and XFIG are not defined in 34xx */
+> +	if (!cpu_is_omap34xx()) {
+> +		regs->rcr2	|= RFIG;
+> +		regs->xcr2	|= XFIG;
+> +	}
 
-Is it possible that also McBSP2 would require that maximum burst
-transmit size should be 0x10 smaller than size of internal buffer/fifo?
+This is true. These bits are marked as reserved read only bits in 34xx.
+I'm fine if you do change here in this patch but I can add immediate
+acked-by if you want to post this as a separate change for 2.6.32
+(setting them for 34xx is null-op at the moment AFAIK).
+
+If you find generic fix for channel switching problem found also from
+older OMAP's like 2420 then I give you a deep bow and acked-by for
+2.6.31!
 
 -- 
 Jarkko
