@@ -1,27 +1,51 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [RFC] [PATCH 3/3 v2] ASoC: add support for Amstrad E3 (Delta)
- machine
-Date: Fri, 31 Jul 2009 10:52:34 +0100
-Message-ID: <20090731095234.GB10844@rakim.wolfsonmicro.main>
-References: <200907291318.54897.jkrzyszt@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/5] dspbridge: static code analysis issues - dead code path
+Date: Fri, 31 Jul 2009 13:39:24 +0300
+Message-ID: <1249036768-754-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38660 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751661AbZGaJwh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Jul 2009 05:52:37 -0400
-Content-Disposition: inline
-In-Reply-To: <200907291318.54897.jkrzyszt@tis.icnet.pl>
+Received: from smtp.nokia.com ([192.100.105.134]:31851 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099AbZGaKjo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 06:39:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Jonathan McDowell <noodles@earth.li>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>
+To: linux-omap@vger.kernel.org
+Cc: ameya.palande@nokia.com, h-kanigeri2@ti.com, x0095840@ti.com, omar.ramirez@ti.com, Phil Carmody <ext-phil.2.carmody@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-On Wed, Jul 29, 2009 at 01:18:53PM +0200, Janusz Krzysztofik wrote:
+From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-> 2) patch 2/3 form this series: TTY: Add definition of a new line
->    discipline required by Amstrad E3 (Delta) ASoC driver[2].
+Pointless dead code path - there is nothing to fail before the
+DSP_SUCCEEDED check.
 
-The ASoC parts of this all look OK - what's the status of the TTY patch?
+Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ drivers/dsp/bridge/pmgr/wcd.c |   11 ++++-------
+ 1 files changed, 4 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index ee15b02..9c3fe6f 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -709,14 +709,11 @@ u32 PROCWRAP_Ctrl(union Trapped_Args *args)
+ 			goto func_end;
+ 		}
+ 		cbDataSize += sizeof(u32);
+-		if (DSP_SUCCEEDED(status)) {
+-			pArgs = MEM_Alloc(cbDataSize, MEM_NONPAGED);
+-			if (pArgs == NULL) {
+-				status = DSP_EMEMORY;
+-				goto func_end;
+-			}
+-		} else
++		pArgs = MEM_Alloc(cbDataSize, MEM_NONPAGED);
++		if (pArgs == NULL) {
++			status = DSP_EMEMORY;
+ 			goto func_end;
++		}
+ 
+ 		cp_fm_usr(pArgs, args->ARGS_PROC_CTRL.pArgs, status,
+ 			 cbDataSize);
+-- 
+1.6.0.4
+
