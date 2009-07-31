@@ -1,46 +1,46 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: OMAP3 EHCI USB on Beagleboard
-Date: Fri, 31 Jul 2009 11:53:28 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305F29B93@dbde02.ent.ti.com>
-References: <dfb660300907301336i1b1c196dpbd390961370ecd05@mail.gmail.com>
-	 <bb2708720907301402x78834952oa1040c281044d908@mail.gmail.com>
- <dfb660300907301429o484d808bp5c3ff2c54b307db1@mail.gmail.com>
+From: <ext-Eero.Nurkkala@nokia.com>
+Subject: RE: [PATCH 06/20] OMAP: McBSP: Use appropriate value for startup
+ delay
+Date: Fri, 31 Jul 2009 09:21:30 +0200
+Message-ID: <1FFEF31EBAA4F64B80D33027D4297760047DF3D65A@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>,<20090730215642.2f509757.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44876 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751160AbZGaGXh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Jul 2009 02:23:37 -0400
-In-Reply-To: <dfb660300907301429o484d808bp5c3ff2c54b307db1@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:38400 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548AbZGaHVu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 03:21:50 -0400
+In-Reply-To: <20090730215642.2f509757.jhnikula@gmail.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Laine Walker-Avina <lwalkera@ieee.org>, John Sarman <johnsarman@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: jhnikula@gmail.com, eduardo.valentin@nokia.com
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org, peter.ujfalusi@nokia.com
 
-PiA+PiBJJ3ZlIGJlZW4gdHJ5aW5nIHRvIGdldCB0aGUgRUhDSSBVU0IgaG9zdCBwb3J0IG9uIHRo
-ZSBiZWFnbGVib2FyZCB0bw0KPiA+PiB3b3JrIGJ1dCB3aXRoIGxpdHRsZSBzdWNjZXNzLiBUaGUg
-Ym9hcmQgaW5pdGlhbCBmaW5kcyB0aGUgdXNiIGRldmljZXMNCj4gPj4gcGx1Z2dlZCBpbnRvIGEg
-aHViIG9uIGJvb3QsIGJ1dCBvbmNlIEknbSBhYmxlIHRvIGxvZ2luLCBJIGdldCBhDQo+ID4+IGRp
-c2Nvbm5lY3Qgbm90aWNlIG9uIHRoZSBodWIgYW5kIHRoZSBwb3J0IHdpbGwgbm8gbG9uZ2VyIHJl
-Y29nbml6ZSBhbnkNCj4gPj4gdXNiIGRldmljZSBpbnNlcnRlZCB1bnRpbCByZWJvb3QuIEFueSBp
-ZGVhcyB3aGF0J3MgZ29pbmcgb24/IEknbSB1c2luZw0KPiA+PiB0aGUgY3VycmVudCBtYXN0ZXIg
-YnJhbmNoIG9mIHRoZSBvbWFwIGdpdCByZXBvLg0KPiA+DQo+ID4gRG8geW91IGhhdmUgaXQgY29u
-bmVjdGVkIHRvIGFuIGV4dGVybmFsIHNlbGYgcG93ZXJlZCBVU0IgaHViLCBvcg0KPiA+IGRpcmVj
-dCBjb25uZWN0ID8NCj4gPiBBbHNvIGlzIGl0IGEgaGlnaCBzcHBlZCBkZXZpY2UsIEkgdGhpbmsg
-dGhlIHRyYW5zYWN0aW9uIHRyYW5zbGF0b3IgY2FuDQo+ID4gb25seSBzdXBwb3J0IGhpZ2ggc3Bl
-ZWQsIGJ1dCBoYXZlIG5vdCB2ZXJpZmllZCB0aGF0Lg0KPiA+DQo+ID4+DQo+ID4+IFRoYW5rcywN
-Cj4gPj4gTGFpbmUgV2Fsa2VyLUF2aW5hDQo+IA0KPiBJdCdzIGEgaGlnaCBzcGVlZCwgc2VsZi1w
-b3dlcmVkIGh1Yiwgd2l0aCB2YXJpb3VzIGRldmljZXMgY29ubmVjdGVkLg0KPiANCj4gLUxhaW5l
-DQoNClRoZSBiZWFnbGVib2FyZCB1c2VzIGFuIFNNU0MgMzMyeCB0cmFuc2NlaXZlci4gU3VzcGVu
-ZC1yZXN1bWUgd2lsbCBub3QNCndvcmsgYXQgYWxsIHdoZW4gdGhpcyB0cmFuc2NlaXZlciBpcyBj
-b25uZWN0ZWQgdG8gdGhlIEVIQ0kgcG9ydCAoc29tZQ0KaGFyZHdhcmUgYnVnIC0gdGhlIE9NQVAz
-IGRvZXMgbm90IGxpa2UgdGhpcyB0cmFuc2NlaXZlcikuDQoNCldoZW4geW91IGNvbm5lY3QgYSBo
-dWIgd2l0aCBubyBkZXZpY2VzIHRvIGl0LCB0aGUgaHViIHdpbGwgYXV0by1zdXNwZW5kDQphZnRl
-ciAyIHNlY29uZHMgb3Igc28uIElmIHlvdSBjYW4gZGlzYWJsZSBhdXRvc3VzcGVuZCBmb3IgdGhl
-IGh1Yg0KKGVjaG8gb24gPiAvc3lzL2J1cy91c2IvZGV2aWNlcy8uLi4vLi4uL3Bvd2VyL2xldmVs
-KSwgSSdtIGd1ZXNzaW5nIGl0DQpzaG91bGQgd29yayBmb3IgeW91LiBUbyBwcmV2ZW50IGl0IGZy
-b20gYXV0b3N1c3BlbmRpbmcgcmlnaHQgYWZ0ZXIgeW91DQpjb25uZWN0LCB5b3UgbWlnaHQgbmVl
-ZCB0byBjb25uZWN0IHRoZSBodWIgd2l0aCBhIFVTQiBkZXZpY2UgYWxyZWFkeQ0KY29ubmVjdGVk
-IHRvIGl0Lg0KDQpIb3BlIHRoaXMgaGVscHMuDQoNCi0gQW5hbmQNCg==
+
+Jarkko Nikula [jhnikula@gmail.com] wrote:
+> Are you sure this change is necessary? CLKSRG is kind of master clock
+> to McBSP so original stetson guessed (?) 100 us should be fine for all
+> serial links where bit clock is higher than 20 kHz.
+
+The McBSP / DMA stuff doesn't really work properly, when PM is enabled
+to full extent. The first DMA goes in _before_ the omap_mcbsp_start(),
+so the higher delay compensates DMA misbehavior in a way...
+
+.. L/R channels also may switch at random initially with full PM enabled.
+So the L/R fix is only working, if no PM is enabled (sigh).
+
+Need to make that work fine (no L/R switching and early no DMA completions)
+to get rid of the higher, 500us, timeout. Maybe try not having 
+XCCR/RCCR dma enable bit initially, but enabling them at omap_mcbsp_start()?
+(I'd try if I wasn't also on vacation).
+
+- Eero
