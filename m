@@ -1,47 +1,60 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 02/20] OMAP: McBSP: Wakeups utilized
-Date: Fri, 31 Jul 2009 10:56:22 +0300
-Message-ID: <20090731075622.GA27083@esdhcp037198.research.nokia.com>
-References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 09/20] OMAP3: McBSP: Lower the maximum buffersize for
+ McBSP1,3,4,5
+Date: Fri, 31 Jul 2009 10:58:23 +0300
+Message-ID: <20090731075823.GB27083@esdhcp037198.research.nokia.com>
+References: <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
  <1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
- <20090730215602.8fdcbaf1.jhnikula@gmail.com>
+ <1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
+ <20090730215721.a899e2f4.jhnikula@gmail.com>
 Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:17497 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbZGaIHp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 04:07:45 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:35103 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863AbZGaIJo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 04:09:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20090730215602.8fdcbaf1.jhnikula@gmail.com>
+In-Reply-To: <20090730215721.a899e2f4.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Jarkko Nikula <jhnikula@gmail.com>
 Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
 
-On Thu, Jul 30, 2009 at 08:56:02PM +0200, ext Jarkko Nikula wrote:
-> On Thu, 30 Jul 2009 15:49:25 +0300
+On Thu, Jul 30, 2009 at 08:57:21PM +0200, ext Jarkko Nikula wrote:
+> On Thu, 30 Jul 2009 15:49:32 +0300
 > Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 > 
-> > --- a/arch/arm/plat-omap/mcbsp.c
-> > +++ b/arch/arm/plat-omap/mcbsp.c
-> > @@ -257,6 +257,23 @@ int omap_mcbsp_request(unsigned int id)
-> >  	clk_enable(mcbsp->iclk);
-> >  	clk_enable(mcbsp->fclk);
-> >  
-> > +#ifdef CONFIG_ARCH_OMAP34XX
-> > +	/*
+> > From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+> > 
+> > Do not allow applications to use the full buffer found on
+> > McBSP1,3,4,5. Using the full buffer in threshold mode causes
+> > the McBSP buffer to run dry, which can be observed as channels
+> > are switching (in reality the channels are shifting).
+> > 
+> ...
+> > --- a/arch/arm/mach-omap2/mcbsp.c
+> > +++ b/arch/arm/mach-omap2/mcbsp.c
+> > @@ -129,7 +129,7 @@ static struct omap_mcbsp_platform_data
+> > omap34xx_mcbsp_pdata[] = { .rx_irq		=
+> > INT_24XX_MCBSP1_IRQ_RX, .tx_irq		=
+> > INT_24XX_MCBSP1_IRQ_TX, .ops		= &omap2_mcbsp_ops,
+> > -		.buffer_size	= 0x7F,
+> > +		.buffer_size	= 0x6F,
+> >  	},
 > 
-> I'm sure there is a way to avoid all of these added ifdefs in this patch
-> and in patches 7 and 8 as well.
+> Is it possible that also McBSP2 would require that maximum burst
+> transmit size should be 0x10 smaller than size of internal buffer/fifo?
 
-hmmm.. these ifdef's are required because I've put the extra field (for
-34xx only) inside an ifdef on their declaration in mcbsp.h. We can remove it
-there, but will leave a few extra bytes on !omap3xx binaries.
+That's already not at full size. There is room for 1024+256 places on mcbsp2.
 
-> 
 > 
 > -- 
 > Jarkko
