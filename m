@@ -1,63 +1,41 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 09/20] OMAP3: McBSP: Lower the maximum buffersize for
- McBSP1,3,4,5
-Date: Fri, 31 Jul 2009 10:58:23 +0300
-Message-ID: <20090731075823.GB27083@esdhcp037198.research.nokia.com>
-References: <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
- <20090730215721.a899e2f4.jhnikula@gmail.com>
-Reply-To: eduardo.valentin@nokia.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: drivers that require headers in mach-omap
+Date: Fri, 31 Jul 2009 02:49:08 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0907310245250.9998@utopia.booyaka.com>
+References: <8bb80c380907281849i1cd271f3n64a391327cd8bb5e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35103 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbZGaIJo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 04:09:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20090730215721.a899e2f4.jhnikula@gmail.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:46252 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052AbZGaItJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 04:49:09 -0400
+In-Reply-To: <8bb80c380907281849i1cd271f3n64a391327cd8bb5e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
+To: Mike Chan <mike@android.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-On Thu, Jul 30, 2009 at 08:57:21PM +0200, ext Jarkko Nikula wrote:
-> On Thu, 30 Jul 2009 15:49:32 +0300
-> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+On Tue, 28 Jul 2009, Mike Chan wrote:
+
+> Omap folks, how are drivers that require access to prm and cm
+> registers via cm_read_mod_reg() etc... suppose to access these?
 > 
-> > From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-> > 
-> > Do not allow applications to use the full buffer found on
-> > McBSP1,3,4,5. Using the full buffer in threshold mode causes
-> > the McBSP buffer to run dry, which can be observed as channels
-> > are switching (in reality the channels are shifting).
-> > 
-> ...
-> > --- a/arch/arm/mach-omap2/mcbsp.c
-> > +++ b/arch/arm/mach-omap2/mcbsp.c
-> > @@ -129,7 +129,7 @@ static struct omap_mcbsp_platform_data
-> > omap34xx_mcbsp_pdata[] = { .rx_irq		=
-> > INT_24XX_MCBSP1_IRQ_RX, .tx_irq		=
-> > INT_24XX_MCBSP1_IRQ_TX, .ops		= &omap2_mcbsp_ops,
-> > -		.buffer_size	= 0x7F,
-> > +		.buffer_size	= 0x6F,
-> >  	},
+> For example if drivers/usb/host/ohci-omap.c wanted to call:
+> cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_IDLEST);
 > 
-> Is it possible that also McBSP2 would require that maximum burst
-> transmit size should be 0x10 smaller than size of internal buffer/fifo?
+> It seems some of the headers in mach-omap2 should be in
+> plat-omap/include/mach, or is there a more elegant way? The other
+> alternatives are to register calls in all the board files, or #include
+> ../../.. both do not seem very elegant to me.
 
-That's already not at full size. There is room for 1024+256 places on mcbsp2.
+Generally, if a device driver requires platform-specific functions, those 
+functions should go into a separate file in plat-omap/ or mach-omap*/, and 
+should be called via platform_data function pointers.  
 
-> 
-> -- 
-> Jarkko
+For the specific case you mention, no device driver should need direct 
+PRCM access.  These details change frequently between chip versions and 
+are generally chip integration-specific rather than device IP-specific.
 
--- 
-Eduardo Valentin
+
+- Paul
