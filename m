@@ -1,56 +1,68 @@
 From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 06/20] OMAP: McBSP: Use appropriate value for startup
- delay
-Date: Fri, 31 Jul 2009 20:25:39 +0300
-Message-ID: <20090731202539.c10b29b1.jhnikula@gmail.com>
-References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 09/20] OMAP3: McBSP: Lower the maximum buffersize for
+ McBSP1,3,4,5
+Date: Fri, 31 Jul 2009 20:26:11 +0300
+Message-ID: <20090731202611.c689c31c.jhnikula@gmail.com>
+References: <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
 	<1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
 	<1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com>
 	<1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com>
 	<1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
 	<1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
-	<20090730215642.2f509757.jhnikula@gmail.com>
-	<1FFEF31EBAA4F64B80D33027D4297760047DF3D65A@NOK-EUMSG-02.mgdnok.nokia.com>
+	<1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
+	<20090730215721.a899e2f4.jhnikula@gmail.com>
+	<20090731075823.GB27083@esdhcp037198.research.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ew0-f214.google.com ([209.85.219.214]:36657 "EHLO
 	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961AbZGaRYi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 13:24:38 -0400
-In-Reply-To: <1FFEF31EBAA4F64B80D33027D4297760047DF3D65A@NOK-EUMSG-02.mgdnok.nokia.com>
+	with ESMTP id S1752498AbZGaRZJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 13:25:09 -0400
+In-Reply-To: <20090731075823.GB27083@esdhcp037198.research.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext-Eero.Nurkkala@nokia.com
-Cc: eduardo.valentin@nokia.com, linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org, peter.ujfalusi@nokia.com
+To: eduardo.valentin@nokia.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
 
-On Fri, 31 Jul 2009 09:21:30 +0200
-<ext-Eero.Nurkkala@nokia.com> wrote:
+On Fri, 31 Jul 2009 10:58:23 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 
-> Jarkko Nikula [jhnikula@gmail.com] wrote:
-> > Are you sure this change is necessary? CLKSRG is kind of master
-> > clock to McBSP so original stetson guessed (?) 100 us should be
-> > fine for all serial links where bit clock is higher than 20 kHz.
+> On Thu, Jul 30, 2009 at 08:57:21PM +0200, ext Jarkko Nikula wrote:
+> > On Thu, 30 Jul 2009 15:49:32 +0300
+> > Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+> > 
+> > > From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+> > > 
+> > > Do not allow applications to use the full buffer found on
+> > > McBSP1,3,4,5. Using the full buffer in threshold mode causes
+> > > the McBSP buffer to run dry, which can be observed as channels
+> > > are switching (in reality the channels are shifting).
+> > > 
+> > ...
+> > > --- a/arch/arm/mach-omap2/mcbsp.c
+> > > +++ b/arch/arm/mach-omap2/mcbsp.c
+> > > @@ -129,7 +129,7 @@ static struct omap_mcbsp_platform_data
+> > > omap34xx_mcbsp_pdata[] = { .rx_irq		=
+> > > INT_24XX_MCBSP1_IRQ_RX, .tx_irq		=
+> > > INT_24XX_MCBSP1_IRQ_TX, .ops		= &omap2_mcbsp_ops,
+> > > -		.buffer_size	= 0x7F,
+> > > +		.buffer_size	= 0x6F,
+> > >  	},
+> > 
+> > Is it possible that also McBSP2 would require that maximum burst
+> > transmit size should be 0x10 smaller than size of internal
+> > buffer/fifo?
 > 
-> The McBSP / DMA stuff doesn't really work properly, when PM is enabled
-> to full extent. The first DMA goes in _before_ the omap_mcbsp_start(),
-> so the higher delay compensates DMA misbehavior in a way...
+> That's already not at full size. There is room for 1024+256 places on
+> mcbsp2.
 > 
-> .. L/R channels also may switch at random initially with full PM
-> enabled. So the L/R fix is only working, if no PM is enabled (sigh).
-> 
-> Need to make that work fine (no L/R switching and early no DMA
-> completions) to get rid of the higher, 500us, timeout. Maybe try not
-> having XCCR/RCCR dma enable bit initially, but enabling them at
-> omap_mcbsp_start()? (I'd try if I wasn't also on vacation).
-> 
-Ok, 500 us is not so long delay here compared to benefits but it would
-be good to have a little revisit comment for future reference. I think
-that by default 100 us provides enough time for two CLKSRG cycles but
-due some unknown PM related, clock gating etc. reason it must be
-extended to 500 us now.
+True, but I was wondering can this same problem occur also on McBSP2 if
+using proper size threshold? Like size near the McBSP2 audio buffer
+(1024x32) or near the TX buffer (256x32).
 
 -- 
 Jarkko
