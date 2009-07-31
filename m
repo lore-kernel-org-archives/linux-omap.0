@@ -1,132 +1,58 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH] Fixed processing of bootarg 'mpurate'
-Date: Fri, 31 Jul 2009 17:13:50 +0530
-Message-ID: <1249040630-2712-1-git-send-email-premi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54716 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752021AbZGaLn6 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 31 Jul 2009 07:43:58 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n6VBhqee006187
-	for <linux-omap@vger.kernel.org>; Fri, 31 Jul 2009 06:43:58 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] [PATCH 3/3 v2] ASoC: add support for Amstrad
+ E3 (Delta) machine
+Date: Fri, 31 Jul 2009 13:58:41 +0200
+Message-ID: <4A72DC71.6020904@tis.icnet.pl>
+References: <200907291318.54897.jkrzyszt@tis.icnet.pl>
+	<20090731095234.GB10844@rakim.wolfsonmicro.main>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090731095234.GB10844@rakim.wolfsonmicro.main>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: alsa-devel@alsa-project.org, Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
 
-The argument 'mpurate' had no effect on the MPU
-frequency. This patch fixes the same.
+Mark Brown wrote:
+> On Wed, Jul 29, 2009 at 01:18:53PM +0200, Janusz Krzysztofik wrote:
+> 
+>> 2) patch 2/3 form this series: TTY: Add definition of a new line
+>>    discipline required by Amstrad E3 (Delta) ASoC driver[2].
+> 
+> The ASoC parts of this all look OK - what's the status of the TTY patch?
+> 
 
-It also ensures that DSP frequency is set according
-to the OPP definitions.
+Alan replied off-list yet before v2 submission. Then I replied him 
+off-list as well... I hope he doesn't mind quoting him here.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/clock34xx.c |   57 +++++++++++++++++++++++++++++++++++---
- 1 files changed, 52 insertions(+), 5 deletions(-)
+Janusz Krzysztofik wrote:
+> Alan Cox wrote:
+>> Interesting use of a line discipline. The tty/ldisc bits look good to me
+>>
+> 
+> Thanks.
+> Could you please have a look at today's version 2 of the patch 3/3 as 
+> well? The ldisc bits has been split into machine and codec related parts 
+> and, what's more important, updated with locking that I am not quite 
+> sure about its correctness.
+> 
+> Furthermore, I am still thinking about renaming the ldisc with a more 
+> generic name. That way, it could be probably reused by other similiar 
+> implementations. As long as the ldisc is registered from a board 
+> specific code, it should not interfere with other implemnetations 
+> reusing the same ldisc number, even if compiled in side by side.
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index c2e5ef8..a9e7e82 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -29,6 +29,7 @@
- #include <linux/err.h>
- #include <linux/cpufreq.h>
- 
-+#include <mach/cpu.h>
- #include <mach/clock.h>
- #include <mach/sram.h>
- #include <mach/omap-pm.h>
-@@ -42,6 +43,7 @@
- #include "prm-regbits-34xx.h"
- #include "cm.h"
- #include "cm-regbits-34xx.h"
-+#include "omap3-opp.h"
- 
- static const struct clkops clkops_noncore_dpll_ops;
- 
-@@ -1083,6 +1085,11 @@ void omap2_clk_prepare_for_reboot(void)
-  */
- static int __init omap2_clk_arch_init(void)
- {
-+	unsigned short opp=0;
-+	unsigned short i;
-+	unsigned long dsprate;
-+	struct omap_opp *opp_table;
-+
- 	if (!mpurate)
- 		return -EINVAL;
- 
-@@ -1092,12 +1099,49 @@ static int __init omap2_clk_arch_init(void)
- 		printk(KERN_ERR "Could not find matching MPU rate\n");
- #endif
- 
-+	if (clk_set_rate(&dpll1_ck, mpurate))
-+		printk(KERN_ERR "*** Unable to set MPU rate\n");
-+	omap3_dpll_recalc(&dpll1_ck);
-+
-+	/* Get the OPP corresponding to the mpurate */
-+	if (mpu_opps) {
-+		opp_table = mpu_opps;
-+
-+		for (i=0;  opp_table[i].opp_id <= MAX_VDD1_OPP; i++)
-+			if (opp_table[i].rate == mpurate)
-+				break;
-+
-+		opp = opp_table[i].opp_id;
-+
-+		pr_debug("Switched to OPP:%d\n", opp);
-+	}
-+
-+	/* Get dsprate corresponding to the opp */
-+	if ((dsp_opps) && (opp >= VDD1_OPP1) && (opp <= VDD1_OPP5)) {
-+		opp_table = dsp_opps;
-+
-+		for (i=0;  opp_table[i].opp_id <= MAX_VDD1_OPP; i++)
-+			if (opp_table[i].opp_id == opp)
-+				break;
-+
-+		dsprate = opp_table[i].rate;
-+
-+		if (clk_set_rate(&dpll2_ck, dsprate))
-+			printk(KERN_ERR "*** Unable to set IVA2 rate\n");
-+		omap3_dpll_recalc(&dpll2_ck);
-+	}
-+
- 	recalculate_root_clocks();
- 
--	printk(KERN_INFO "Switched to new clocking rate (Crystal/DPLL3/MPU): "
-+	printk(KERN_INFO "Switched to new clocking rate (Crystal/Core/MPU): "
- 	       "%ld.%01ld/%ld/%ld MHz\n",
--	       (osc_sys_ck.rate / 1000000), (osc_sys_ck.rate / 100000) % 10,
--	       (core_ck.rate / 1000000), (dpll1_fck.rate / 1000000)) ;
-+	       (osc_sys_ck.rate / 1000000), ((osc_sys_ck.rate / 100000) % 10),
-+	       (core_ck.rate / 1000000), (dpll1_ck.rate / 1000000)) ;
-+
-+	printk(KERN_INFO "IVA2 clocking rate: %ld MHz\n",
-+	       (dpll2_ck.rate / 1000000)) ;
-+
-+	calibrate_delay();
- 
- 	return 0;
- }
-@@ -1156,10 +1200,13 @@ int __init omap2_clk_init(void)
- 
- 	recalculate_root_clocks();
- 
--	printk(KERN_INFO "Clocking rate (Crystal/DPLL/ARM core): "
-+	printk(KERN_INFO "Clocking rate (Crystal/DPLL/MPU core): "
- 	       "%ld.%01ld/%ld/%ld MHz\n",
- 	       (osc_sys_ck.rate / 1000000), (osc_sys_ck.rate / 100000) % 10,
--	       (core_ck.rate / 1000000), (arm_fck.rate / 1000000));
-+               (core_ck.rate / 1000000), (dpll1_ck.rate / 1000000));
-+
-+	printk(KERN_INFO "IVA2 clocking rate: %ld MHz\n",
-+	       (dpll2_ck.rate / 1000000)) ;
- 
- 	/*
- 	 * Only enable those clocks we will need, let the drivers
--- 
-1.6.2.2
+Any objections on renaming ldisc from N_AMSDLETA to N_V253?
 
+Thnaks,
+Janusz
