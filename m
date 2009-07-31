@@ -1,41 +1,27 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: drivers that require headers in mach-omap
-Date: Fri, 31 Jul 2009 02:49:08 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0907310245250.9998@utopia.booyaka.com>
-References: <8bb80c380907281849i1cd271f3n64a391327cd8bb5e@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC] [PATCH 3/3 v2] ASoC: add support for Amstrad E3 (Delta)
+ machine
+Date: Fri, 31 Jul 2009 10:52:34 +0100
+Message-ID: <20090731095234.GB10844@rakim.wolfsonmicro.main>
+References: <200907291318.54897.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46252 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbZGaItJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 04:49:09 -0400
-In-Reply-To: <8bb80c380907281849i1cd271f3n64a391327cd8bb5e@mail.gmail.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38660 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751661AbZGaJwh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 31 Jul 2009 05:52:37 -0400
+Content-Disposition: inline
+In-Reply-To: <200907291318.54897.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Chan <mike@android.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Jonathan McDowell <noodles@earth.li>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, alsa-devel@alsa-project.org, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, e3-hacking@earth.li, Arun KS <arunks@mistralsolutions.com>
 
-On Tue, 28 Jul 2009, Mike Chan wrote:
+On Wed, Jul 29, 2009 at 01:18:53PM +0200, Janusz Krzysztofik wrote:
 
-> Omap folks, how are drivers that require access to prm and cm
-> registers via cm_read_mod_reg() etc... suppose to access these?
-> 
-> For example if drivers/usb/host/ohci-omap.c wanted to call:
-> cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_IDLEST);
-> 
-> It seems some of the headers in mach-omap2 should be in
-> plat-omap/include/mach, or is there a more elegant way? The other
-> alternatives are to register calls in all the board files, or #include
-> ../../.. both do not seem very elegant to me.
+> 2) patch 2/3 form this series: TTY: Add definition of a new line
+>    discipline required by Amstrad E3 (Delta) ASoC driver[2].
 
-Generally, if a device driver requires platform-specific functions, those 
-functions should go into a separate file in plat-omap/ or mach-omap*/, and 
-should be called via platform_data function pointers.  
-
-For the specific case you mention, no device driver should need direct 
-PRCM access.  These details change frequently between chip versions and 
-are generally chip integration-specific rather than device IP-specific.
-
-
-- Paul
+The ASoC parts of this all look OK - what's the status of the TTY patch?
