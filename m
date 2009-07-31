@@ -1,12 +1,16 @@
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 1/5] dspbridge: static code analysis issues - dead code path
-Date: Fri, 31 Jul 2009 13:39:24 +0300
-Message-ID: <1249036768-754-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 4/5] dspbridge: static code analysis issues - failure to handle null paramters
+Date: Fri, 31 Jul 2009 13:39:27 +0300
+Message-ID: <1249036768-754-4-git-send-email-Hiroshi.DOYU@nokia.com>
+References: <1249036768-754-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1249036768-754-2-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1249036768-754-3-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31851 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099AbZGaKjo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 06:39:44 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:37182 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752201AbZGaKjp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 31 Jul 2009 06:39:45 -0400
+In-Reply-To: <1249036768-754-3-git-send-email-Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -14,38 +18,40 @@ Cc: ameya.palande@nokia.com, h-kanigeri2@ti.com, x0095840@ti.com, omar.ramirez@t
 
 From: Phil Carmody <ext-phil.2.carmody@nokia.com>
 
-Pointless dead code path - there is nothing to fail before the
-DSP_SUCCEEDED check.
+There's no point in continuing if zlLib is null, so just set the
+status to an error value, and let the rest of the code be skipped
+over naturally.
 
 Signed-off-by: Phil Carmody <ext-phil.2.carmody@nokia.com>
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- drivers/dsp/bridge/pmgr/wcd.c |   11 ++++-------
- 1 files changed, 4 insertions(+), 7 deletions(-)
+ drivers/dsp/bridge/pmgr/dbll.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index ee15b02..9c3fe6f 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -709,14 +709,11 @@ u32 PROCWRAP_Ctrl(union Trapped_Args *args)
- 			goto func_end;
+diff --git a/drivers/dsp/bridge/pmgr/dbll.c b/drivers/dsp/bridge/pmgr/dbll.c
+index 82430a3..c57f557 100644
+--- a/drivers/dsp/bridge/pmgr/dbll.c
++++ b/drivers/dsp/bridge/pmgr/dbll.c
+@@ -459,6 +459,8 @@ DSP_STATUS DBLL_getSect(struct DBLL_LibraryObj *lib, char *name, u32 *pAddr,
+ 			(*(zlLib->pTarget->attrs.fseek))(zlLib->fp,
+ 			 zlLib->ulPos, SEEK_SET);
  		}
- 		cbDataSize += sizeof(u32);
--		if (DSP_SUCCEEDED(status)) {
--			pArgs = MEM_Alloc(cbDataSize, MEM_NONPAGED);
--			if (pArgs == NULL) {
--				status = DSP_EMEMORY;
--				goto func_end;
--			}
--		} else
-+		pArgs = MEM_Alloc(cbDataSize, MEM_NONPAGED);
-+		if (pArgs == NULL) {
-+			status = DSP_EMEMORY;
- 			goto func_end;
-+		}
++	} else {
++		status = DSP_EHANDLE;
+ 	}
+ 	if (DSP_SUCCEEDED(status)) {
+ 		uByteSize = 1;
+@@ -834,8 +836,9 @@ DSP_STATUS DBLL_readSect(struct DBLL_LibraryObj *lib, char *name,
+ 			(*(zlLib->pTarget->attrs.fseek))(zlLib->fp,
+ 				zlLib->ulPos, SEEK_SET);
+ 		}
++	} else {
++		status = DSP_EHANDLE;
+ 	}
+-
+ 	if (DSP_FAILED(status))
+ 		goto func_cont;
  
- 		cp_fm_usr(pArgs, args->ARGS_PROC_CTRL.pArgs, status,
- 			 cbDataSize);
 -- 
 1.6.0.4
 
