@@ -1,43 +1,65 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: Enabling TPS65950 / TWL4030 Real-time clock functions
-Date: Sat, 1 Aug 2009 20:25:39 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2375@dbde02.ent.ti.com>
-References: <4C8A2DCE-F2C2-419C-AD4A-E78BB796BCB8@mac.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: Question about tput constraint on zoom2 camera
+Date: Sat, 1 Aug 2009 20:57:42 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908012017340.14755@utopia.booyaka.com>
+References: <F12EBA124C6E064B9CF1B45E67DDB7E77D4E028E@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38024 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706AbZHAOzr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Aug 2009 10:55:47 -0400
-In-Reply-To: <4C8A2DCE-F2C2-419C-AD4A-E78BB796BCB8@mac.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:57509 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751730AbZHBC5n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 1 Aug 2009 22:57:43 -0400
+In-Reply-To: <F12EBA124C6E064B9CF1B45E67DDB7E77D4E028E@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>, Linux OMAP Users <linux-omap@vger.kernel.org>
+To: "Curran, Dominic" <dcurran@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Subramaniam, Muthu" <muthu@ti.com>
 
- -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Elvis Dowson
-> Sent: Saturday, August 01, 2009 7:27 PM
-> To: Linux OMAP Users
-> Subject: Enabling TPS65950 / TWL4030 Real-time clock functions
+Hello Dominic,
+
+On Fri, 31 Jul 2009, Curran, Dominic wrote:
+
+> I have been testing the zoom2 camera streaming while using different OPP's.
+> Following table provides summary of what OPP's caused to happen:
 > 
-> Hi,
->           I am using a Gumstix Overo Earth (TI OMAP 3503) and this has
-> a TPS69590/TWL4030 module, which I understand has a real-time clock
-> subsystem.
+>   Streaming      Vdd1(OPP)        Vdd2(OPP)           P/F
+>  VGA @ 30fps           1                2             Pass
+>  8MP @ 7.5fps          1                2             Fails (stop streaming)
+>  8MP @ 7.5fps          1                3             Pass
 > 
-> Is there support in the linux 2.6.29 or 2.6.31 kernel for enabling the
-> RTC functions? I would like to preserve the system data and time
-> between reboots. I've seen a 32Khz RTC clock option in the linux kernel.
+> So table shows that locking Vdd2 to OPP=3 when streaming 8MPixel works, but at OPP=2 then streaming fails (stops).
 > 
-> Is there a separate pin for a small battery just to keep supplying
-> power to the RTC module?
+> So I thought the tput constraint made the most sense for camera.
+> The Zoom2 camera sensor has a max tput of:
+> 
+>     3280 x 2464 x 2bpp x 7.5fps = 121228800 bytes/s
+>                                 = 118387 KB/s
+> 
+> However, this calculated value doesn't constrain Vdd2 to OPP3 (DVFS enabled).
+> 
+> Experimentation shows that a tput value of 350000 KB/s is required to constrain Vdd2 to OPP=3.
+>
+> Can you explain why the practical tput constraint is so much greater than the theoretical value ?
 
-Yes there is support on 2.6.29 and 2.6.31.Refer drivers/rtc/rtc-twl4030.c for more details.
+Probably it is mostly due to two reasons: 
+
+1. most other L3 initiator drivers (eg., for DSS, SDMA, USB, etc) don't 
+currently set bus throughput constraints, so we aren't currently adding in 
+their interconnect usage; and
+
+2. the interconnect throughput model in omap-pm-srf.c is optimistic.
+
+A couple of questions for you: (please forgive my ignorance of the camera 
+subsystem):
+
+A. What other L3 initiators are active during the test?  Presumably DSS, 
+MPU?  IVA2?
+
+B. I am assuming you are using the CCP2.  What do you have CCP2_CTRL.BURST 
+set to?  This could impact interconnect utilization.
 
 
-Regards,
-Santosh
+- Paul
+
+
