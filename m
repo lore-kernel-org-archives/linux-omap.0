@@ -1,64 +1,66 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Mon, 3 Aug 2009 18:14:05 +0300
-Message-ID: <20090803181405.6249b843.jhnikula@gmail.com>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl>
-	<20090803112950.3fb6cda9.jhnikula@gmail.com>
-	<4A76ED80.6040001@tis.icnet.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: VDD2 setting question
+Date: Mon, 3 Aug 2009 16:49:06 +0200
+Message-ID: <3DB2B9F4-7903-47BA-9E66-1E34C512A3FD@student.utwente.nl>
+Mime-Version: 1.0 (Apple Message framework v935.3)
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-5-420806841"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:58293 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754544AbZHCPM5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 11:12:57 -0400
-Received: by ewy10 with SMTP id 10so3095452ewy.37
-        for <linux-omap@vger.kernel.org>; Mon, 03 Aug 2009 08:12:57 -0700 (PDT)
-In-Reply-To: <4A76ED80.6040001@tis.icnet.pl>
+Received: from smtp2.utsp.utwente.nl ([130.89.2.9]:57696 "EHLO smtp.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932290AbZHCPZt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 3 Aug 2009 11:25:49 -0400
+Received: from [172.20.1.5] (vpn006014.vpn.utwente.nl [130.89.6.14])
+          by smtp.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n73EnAFN019975
+          for <linux-omap@vger.kernel.org>; Mon, 3 Aug 2009 16:49:11 +0200
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Arun K S <arunks@mistralsolutions.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
+To: Linux OMAP Users <linux-omap@vger.kernel.org>
 
-On Mon, 03 Aug 2009 16:00:32 +0200
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-5-420806841
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-> Hi,
-> I made more testing on my OMAP1510 and found out that I could get your 
-> example usage working without my patch, but only if started like this:
-> 
-> 	arecord -D hw:0,0 -f S16_LE|aplay -D hw:0,0
-> 
-> If I start the same with "-D hw:0,0" omitted from aplay, it doesn't work 
-> any longer, waiting forever. It definitelly doesn't work if I start 
-> capture and playback one after another, no matter which one goes first 
-> (record while playing or play while recording). So it looks like 
-> starting both streams simultaneously can do the job, but a short delay 
-> breaks it.
-> 
-> With my patch, it seems to work fine for me in all cases.
-> 
-So it looks that McBSP-DMA for another stream cease to work if there is
-more than certain delay between first stream start and second one but
-omap_mcbsp_pollwrite or _pollread will clear the error condition. Can
-you debug is this due clearing the possible XSYNC_ERR, waiting for
-transmit/receive confirmation or playing with data registers there?
+Hi,
 
-> Jarkko, have you ever tried it on your OMAP2/3 with parallel playback 
-> and capture started one after another, not simultaneously?
-> 
-Yes I have. Like recording into file (arecord /dev/shm/foo) and start
-playing it after some time (aplay /dev/shm/foo) or playing a file and
-start recording into another.
+I'm to trying to lower VDD2 on beagleboard to something slightly below  
+1V instead of the current slightly above 1V setting, but I'm having a  
+hard time figuring out how to do that in the linux-omap (non-PM) tree.
+I grepped in (admittedly 2.6.29) arch/arm/mach-omap2 and it only  
+returned hits that seem to be related to smartreflex. Now, enabling  
+smartreflex would accomplish my goal if the beagleboards had there  
+efuses blown, which they didn't and the debug values make some of my  
+boards lock up :( So the questions I have are:
 
-> If the problem appears to be OMAP1510 or AMS_DELTA specific, I can add a 
-> check for a machine or cpu type to avoid braking unaffected machines.
-> 
-I'm thinking can your platform show some existing problem not noted
-before... but yes, check for 1510 would be bit safer now and is also
-kind of revisit comment why 1510 needs special handling.
+o How do I lower VDD2 in the non-PM kernel, should I be doing it in  
+uboot or in the kernel?
+o For the PM kernel, where should I go patching the VDD2 reference  
+value?
 
+And the most important question:
 
--- 
-Jarkko
+o Would a patch to lower the default value of VDD2 be accepted into  
+the tree? Can it be lowered globally or should it be guarded with an  
+machine_is_omap3beagle() clause?
+
+regards,
+
+Koen
+
+--Apple-Mail-5-420806841
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
+
+iD8DBQFKdvjmMkyGM64RGpERAhphAJ9jDGRE16JoLYIdQOHrp/ekVPWHmQCfUQDo
+MnzF+hDVhEjAu+e5ybKuUgY=
+=LSsk
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-5-420806841--
