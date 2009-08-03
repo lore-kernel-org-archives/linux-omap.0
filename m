@@ -1,49 +1,137 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RFC][PATCH 0/4] TWL6030 patch series
-Date: Mon, 3 Aug 2009 11:45:58 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2678@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E739404329D66BE@dbde02.ent.ti.com>
- <20090720121157.GA13867@nokia.com> <20090720121526.GB5215@sirena.org.uk>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B59F2A0F@dbde02.ent.ti.com>
- <20090724092034.GB27429@rakim.wolfsonmicro.main>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Mon, 3 Aug 2009 01:35:44 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908030054390.19529@utopia.booyaka.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47767 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751558AbZHCGQS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 02:16:18 -0400
-In-Reply-To: <20090724092034.GB27429@rakim.wolfsonmicro.main>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:33749 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512AbZHCHfo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 03:35:44 -0400
+In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Felipe Balbi <felipe.balbi@nokia.com>
-Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "Nayak, Rajendra" <rnayak@ti.com>
+To: "Sonasath, Moiz" <m-sonasath@ti.com>
+Cc: "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, nm@ti.com, vikram.pandita@ti.com
 
-Mark, Felipe,
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie@opensource.wolfsonmicro.com]
-> Sent: Friday, July 24, 2009 2:51 PM
-> To: Shilimkar, Santosh
-> Cc: Felipe Balbi; Krishnamoorthy, Balaji T; linux-omap@vger.kernel.org;
-> tony@atomide.com; khilman@deeprootsystems.com; david-b@pacbell.net; Nayak,
-> Rajendra
-> Subject: Re: [RFC][PATCH 0/4] TWL6030 patch series
+Hello Moiz,
+
+A few remaining comments, most of these from an earlier message.
+
+On Tue, 21 Jul 2009, Sonasath, Moiz wrote:
+
+> When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
+> Otherwise some data bytes can be lost while transferring them from the
+> memory to the I2C interface.
 > 
-> On Fri, Jul 24, 2009 at 09:46:27AM +0530, Shilimkar, Santosh wrote:
+> Do a Busy-wait for XUDF, before writing data to DATA_REG. While waiting
+> if there is NACK | AL, set the appropriate error flags, ack the pending
+> interrupts and return from the ISR.
 > 
-> > Mark, Liam,
-> > Can you please your comments of regulator patches.
+> Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
+> Signed-off-by: Vikram pandita<vikram.pandita@ti.com>
+> ---
+>  drivers/i2c/busses/i2c-omap.c |   24 +++++++++++++++++++++++-
+>  1 files changed, 23 insertions(+), 1 deletions(-)
 > 
-> I'd really like to see the ifdefs go as someone else requested earlier
-> in the thread.  Allowing both twl4030 and twl6030 support to be built
-> simultaneously is much nicer from a maintinance perspective and will
-> scale better as further devices are added to the family.
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 05b5e4c..8deaf87 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -672,9 +672,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
+>  			break;
+>  		}
+>  
+> +		err = 0;
+> +complete:
+>  		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
+>  
+> -		err = 0;
+>  		if (stat & OMAP_I2C_STAT_NACK) {
+>  			err |= OMAP_I2C_STAT_NACK;
+>  			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> @@ -764,6 +765,27 @@ omap_i2c_isr(int this_irq, void *dev_id)
+>  							"data to send\n");
+>  					break;
+>  				}
+> +
+> +				/*
+> +				 * OMAP3430 Errata 1.153: When an XRDY/XDR
+> +				 * is hit, wait for XUDF before writing data
+> +				 * to DATA_REG. Otherwise some data bytes can
+> +				 * be lost while transferring them from the
+> +				 * memory to the I2C interface.
+> +				 */
 
-Can you please provide your comments on the v2 version of the patches in which Balaji has fixed the "ifdef's"
+Based on this description, shouldn't this patch also zero the transmit 
+FIFO threshold?  Consider what the transmit path becomes after this patch:
 
-Thanks!!
+1. Fill transmit FIFO
+2. Leave ISR & wait for interrupt
+3. Interrupt happens due to XDR/XRDY (transmit FIFO low-water-mark 
+   reached)
+4. Busy-wait until transmit FIFO & shift register completely empty
+5. If more data to send, go to step #1
 
-Regards,
-Santosh
+i2c-omap.c currently sets the transmit FIFO threshold to 1/2 of the total 
+FIFO size[1].  This means that, in the worst case, I2C3, the I2C ISR will 
+busy-wait in step 4 for the time it takes 32 bytes to be transmitted.  
+This is time that the MPU spends doing nothing but spinning, wasting 
+power.  This seems unnecessary and wasteful.  The time the driver spends 
+busy-waiting in the ISR should be reduced to the lowest possible duration.
+
+To do this, what I suggest that you additionally do in the patch is to 
+reduce the transit FIFO threshold/low-water-mark, controlled by 
+I2C_BUF.XTRSH, to the lowest possible value.  This should maximize the 
+time spent between steps 2 and 3 and minimize the time spent between steps 
+3 and 5.
+
+Is there a reason why this can't be done?
+
+> +
+> +				if (cpu_is_omap34xx()) {
+
+Does this erratum apply to the I2C IP block on OMAP2430?  It also has FIFO 
+transmit capability.  It would be ideal if you can find out from the I2C 
+IP block designers.  If you cannot, please consider adding a comment that 
+this may also apply to the I2C block on OMAP2430.
+
+In general it is best to enable these workarounds based on the I2C IP 
+block's own revision register contents, not the OMAP CPU type.  The goal 
+is to remove all these OMAP-specific "cpu_is_omapxxxx()" macros from 
+device drivers.  For example, what if a future DaVinci part uses the same 
+I2C IP block?
+
+> +						while (!(stat & OMAP_I2C_STAT_XUDF)) {
+
+Is there a reason why you can't just reuse the main while() loop in the 
+ISR, and add a state variable to handle any special casing needed in this 
+context?  That will avoid this separate while() loop.
+
+> +							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+> +								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+> +								err |= OMAP_I2C_STAT_XUDF;
+> +								goto complete;
+> +							}
+> +							cpu_relax();
+> +							stat = omap_i2c_read_reg(dev, OMAP_I2C_STAT_REG);
+> +						}
+> +				}
+> +
+>  				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+>  			}
+>  			omap_i2c_ack_stat(dev,
+
+For those following along in the archives, this is an extension of 
+comments from
+
+   http://www.mail-archive.com/linux-omap@vger.kernel.org/msg13846.html
+
+
+- Paul
+
+
+1. Eventually this is likely to change, based on power management 
+   constraints.
