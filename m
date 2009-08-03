@@ -1,106 +1,45 @@
-From: Arun KS <arunks@mistralsolutions.com>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Mon, 3 Aug 2009 10:57:26 -0700
-Message-ID: <dfeb90390908031057u2a3b81a0ob4194006f26babc6@mail.gmail.com>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl>
-	 <20090803112950.3fb6cda9.jhnikula@gmail.com>
-	 <4A76ED80.6040001@tis.icnet.pl>
-	 <dfeb90390908031053o14b4583fh83e4306253a13944@mail.gmail.com>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: VDD2 setting question
+Date: Mon, 3 Aug 2009 13:35:28 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C011EB6D687@dlee02.ent.ti.com>
+References: <3DB2B9F4-7903-47BA-9E66-1E34C512A3FD@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:35202 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753106AbZHCR50 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 13:57:26 -0400
-Received: by qyk34 with SMTP id 34so3094947qyk.33
-        for <linux-omap@vger.kernel.org>; Mon, 03 Aug 2009 10:57:26 -0700 (PDT)
-In-Reply-To: <dfeb90390908031053o14b4583fh83e4306253a13944@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60375 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753351AbZHCSfg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 14:35:36 -0400
+In-Reply-To: <3DB2B9F4-7903-47BA-9E66-1E34C512A3FD@student.utwente.nl>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li, Jesslyn Abdul Salam <jesslyn.abdulsalam@gmail.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>, Linux OMAP Users <linux-omap@vger.kernel.org>
 
-CCing Jesslyn Abdul Salam <jesslyn.abdulsalam@gmail.com>
+Koen,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Koen Kooi
+> Sent: Monday, August 03, 2009 9:49 AM
+> To: Linux OMAP Users
+> Subject: VDD2 setting question
+> I'm to trying to lower VDD2 on beagleboard to something slightly below
+> 1V instead of the current slightly above 1V setting, but I'm having a
+VDD2 is tied to OMAP voltage, am I right?
+OPP2 and OPP3 are respectively at 1.15  and 1.06 or there abouts if I am not wrong -> since VDD2 essentially drives core domain (including L3 and SDRAM as a result), you really don't want to move the voltage lower without considering the implications. Smartreflex is the guy who can measure various points on OMAP and decide if the voltage can safely be lowered without impacting device behavior.
 
-Hope he has one osk.
+> hard time figuring out how to do that in the linux-omap (non-PM) tree.
+> I grepped in (admittedly 2.6.29) arch/arm/mach-omap2 and it only
+> returned hits that seem to be related to smartreflex. Now, enabling
+If you still insist on doing this, see arch/arm/mach-omap2/omap3-opp.h
+ 
+> And the most important question:
+> 
+> o Would a patch to lower the default value of VDD2 be accepted into
+> the tree? Can it be lowered globally or should it be guarded with an
+> machine_is_omap3beagle() clause?
+I don't think this is even valid. 
 
-On Mon, Aug 3, 2009 at 10:53 AM, Arun KS <arunks@mistralsolutions.com> =
-wrote:
->
->
-> On Mon, Aug 3, 2009 at 7:00 AM, Janusz Krzysztofik <jkrzyszt@tis.icne=
-t.pl> wrote:
->>
->> Jarkko Nikula wrote:
->>>
->>> On Mon, 3 Aug 2009 03:32:04 +0200
->>> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
->>>
->>>> This patch tries to correct the problem of full duplex mode not wo=
-rking
->>>> over a single McBSP based CPU DAI.
->>>>
->>>> Created against linux-2.6.31-rc5.
->>>> Tested on Amstrad Delta.
->>>>
->>> Do you have some specific test case how to trigger this? I haven't
->>> seen this on 2420 or 34xx (e.g. with 'arecord -d 1 -f dat |aplay') =
-but
->>> I have no doubt that this can happen on 1510. At least this doesn't
->>> cause any harm on Beagle so I'm fine with the fix.
->>
->> Hi,
->> I made more testing on my OMAP1510 and found out that I could get yo=
-ur example usage working without my patch, but only if started like thi=
-s:
->>
->> =A0 =A0 =A0 =A0arecord -D hw:0,0 -f S16_LE|aplay -D hw:0,0
->>
->> If I start the same with "-D hw:0,0" omitted from aplay, it doesn't =
-work any longer, waiting forever. It definitelly doesn't work if I star=
-t capture and playback one after another, no matter which one goes firs=
-t (record while playing or play while recording). So it looks like star=
-ting both streams simultaneously can do the job, but a short delay brea=
-ks it.
->>
->> With my patch, it seems to work fine for me in all cases.
->>
->> Jarkko, have you ever tried it on your OMAP2/3 with parallel playbac=
-k and capture started one after another, not simultaneously?
->>
->> Arun, can your snd-soc-osk9512 work on OMAP1610 in full duplex mode =
-without any limitations?
->
->
-> Janusz,
->
-> Haven't done testing in full duplex mode.
-> I don't have access to osk5912 board now. If someone has got osk and =
-do the testing it ll be good. It=A0 ll take at least another 2 more mon=
-th for me to do the testing on osk.
->
-> Regards,
-> Arun
->
->>
->>
->> If the problem appears to be OMAP1510 or AMS_DELTA specific, I can a=
-dd a check for a machine or cpu type to avoid braking unaffected machin=
-es.
->>
->> Thanks,
->> Janusz
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Nishanth Menon
