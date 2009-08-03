@@ -1,60 +1,43 @@
 From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Mon, 3 Aug 2009 11:29:50 +0300
-Message-ID: <20090803112950.3fb6cda9.jhnikula@gmail.com>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 09/20] OMAP3: McBSP: Lower the maximum buffersize for
+ McBSP1,3,4,5
+Date: Mon, 3 Aug 2009 11:36:38 +0300
+Message-ID: <20090803113638.f82699b2.jhnikula@gmail.com>
+References: <1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
+	<20090730215721.a899e2f4.jhnikula@gmail.com>
+	<20090731075823.GB27083@esdhcp037198.research.nokia.com>
+	<20090731202611.c689c31c.jhnikula@gmail.com>
+	<20090803081107.GA1333@esdhcp037198.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200908030332.06727.jkrzyszt@tis.icnet.pl>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, e3-hacking@earth.li, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:39415 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753794AbZHCIf1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 04:35:27 -0400
+In-Reply-To: <20090803081107.GA1333@esdhcp037198.research.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: eduardo.valentin@nokia.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
 
-Hi
+On Mon, 3 Aug 2009 11:11:07 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 
-On Mon, 3 Aug 2009 03:32:04 +0200
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
-
-> This patch tries to correct the problem of full duplex mode not working
-> over a single McBSP based CPU DAI.
+> > True, but I was wondering can this same problem occur also on McBSP2 if
+> > using proper size threshold? Like size near the McBSP2 audio buffer
+> > (1024x32) or near the TX buffer (256x32).
 > 
-> Created against linux-2.6.31-rc5.
-> Tested on Amstrad Delta.
+> Yes, it can happen with mcbsp2 also if you use all places (1024+256).
 > 
-Do you have some specific test case how to trigger this? I haven't
-seen this on 2420 or 34xx (e.g. with 'arecord -d 1 -f dat |aplay') but
-I have no doubt that this can happen on 1510. At least this doesn't
-cause any harm on Beagle so I'm fine with the fix.
-
-> @@ -191,6 +192,14 @@ static int omap_mcbsp_dai_trigger(struct
->  	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
->  		if (!mcbsp_data->active++)
->  			omap_mcbsp_start(mcbsp_data->bus_id);
-> +		else if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-> +			/* looks like capture already in progress,
-> +			 * start playback by taking it out of error condition */
-> +			omap_mcbsp_pollwrite(mcbsp_data->bus_id, 0x0);
-> +		else
-> +			/* looks like playback already in progress,
-> +			 * start capture by taking it out of error condition */
-> +			omap_mcbsp_pollread(mcbsp_data->bus_id, &buf);
->  		break;
-Minor note: See preferred style for multi-line comments in
-Documentation/CodingStyle. I'm not 100 % sure about the braces but I
-think they are also preferred if there are indented comment lines with
-the single code line.
-
+So should the patch then take into account McBSP2 also?
 
 -- 
 Jarkko
