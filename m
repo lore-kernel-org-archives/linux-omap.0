@@ -1,34 +1,30 @@
-From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Subject: Re: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
- create twl6030 regulators
-Date: Mon, 3 Aug 2009 15:23:56 +0100
-Message-ID: <20090803142356.GA4265@rakim.wolfsonmicro.main>
-References: <1248842173-21821-1-git-send-email-balajitk@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC][PATCH 0/4] TWL6030 patch series
+Date: Mon, 3 Aug 2009 15:25:34 +0100
+Message-ID: <20090803142534.GB4265@rakim.wolfsonmicro.main>
+References: <19F8576C6E063C45BE387C64729E739404329D66BE@dbde02.ent.ti.com>
+ <20090720121157.GA13867@nokia.com>
+ <20090720121526.GB5215@sirena.org.uk>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B59F2A0F@dbde02.ent.ti.com>
+ <20090724092034.GB27429@rakim.wolfsonmicro.main>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2678@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:57918 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755047AbZHCOZf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 10:25:35 -0400
 Content-Disposition: inline
-In-Reply-To: <1248842173-21821-1-git-send-email-balajitk-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: balajitk-l0cyMroinI0@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2678@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "Nayak, Rajendra" <rnayak@ti.com>
 
-On Wed, Jul 29, 2009 at 10:06:13AM +0530, balajitk-l0cyMroinI0@public.gmane.org wrote:
+On Mon, Aug 03, 2009 at 11:45:58AM +0530, Shilimkar, Santosh wrote:
 
-> -	if (twl_has_regulator()) {
-> +	if (twl_has_regulator() && is_class_twl4030()) {
+> Can you please provide your comments on the v2 version of the patches in which Balaji has fixed the "ifdef's"
 
-is_class_twl4030() feels like it should have better namespacing, though
-having the part name in there means it's not actually an issue.
-
-> @@ -306,6 +306,7 @@ int twl_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
->  #define TWL4030_INT_PWR_EDR2		0x6
->  #define TWL4030_INT_PWR_SIH_CTRL	0x7
->  
-> +
->  /*----------------------------------------------------------------------*/
->  
->  /* Power bus message definitions */
-
-Random unrelated indentation change?
+They're basically OK from a regulator API point of view but the series
+appears to depend on the renaming patch and possibly some others.
