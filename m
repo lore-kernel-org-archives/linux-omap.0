@@ -1,102 +1,71 @@
-From: "Lohithakshan, Ranjith" <ranjithl@ti.com>
-Subject: RE: drivers that require headers in mach-omap
-Date: Mon, 3 Aug 2009 16:19:20 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2954@dbde02.ent.ti.com>
-References: <8bb80c380907281849i1cd271f3n64a391327cd8bb5e@mail.gmail.com>
-  <FCCFB4CDC6E5564B9182F639FC35608702F58506D2@dbde02.ent.ti.com>
- <8bb80c380907301620g5761ae36j55bec6747e32657a@mail.gmail.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F58507F8@dbde02.ent.ti.com>
- <alpine.DEB.2.00.0908021733120.19529@utopia.booyaka.com>
+From: John Sarman <johnsarman@gmail.com>
+Subject: Fwd: MMC3 Overo
+Date: Mon, 3 Aug 2009 06:57:48 -0400
+Message-ID: <bb2708720908030357n246555a2u8f0ef0ced1ed3716@mail.gmail.com>
+References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
+	 <bb2708720907301223h616eb215gb4aea1df8e1d578e@mail.gmail.com>
+	 <alpine.DEB.2.00.0908021919320.19529@utopia.booyaka.com>
+	 <bb2708720908030333x1c9521b6ua76122b0f80e1fdc@mail.gmail.com>
+	 <52AC0DF6-BA95-421B-8C56-5F3DC62279DF@mac.com>
+	 <bb2708720908030356p6d7b1cdegf0bd8c39a5c4ecd9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52068 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119AbZHCKtc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 06:49:32 -0400
-In-Reply-To: <alpine.DEB.2.00.0908021733120.19529@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mail-gx0-f213.google.com ([209.85.217.213]:36026 "EHLO
+	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752318AbZHCK5r convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 06:57:47 -0400
+Received: by gxk9 with SMTP id 9so5694129gxk.13
+        for <linux-omap@vger.kernel.org>; Mon, 03 Aug 2009 03:57:48 -0700 (PDT)
+In-Reply-To: <bb2708720908030356p6d7b1cdegf0bd8c39a5c4ecd9@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Mike Chan <mike@android.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
- 
+On Mon, Aug 3, 2009 at 6:37 AM, Elvis Dowson<elvis.dowson@mac.com> wrot=
+e:
+> Hi John,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 What does MMC3 on the Overo connect t=
+o?
+MMC3 connects to one of the 70 pin bottom connectors. =A0The datasheet
+states that MMC3 has no PBIAS circuit so you have to interface it with
+1.8V logic. =A0I used a TXS0108 from TI as a level translator.
+Datasheet states "The TXS0108E device is a semi-buffered
+auto-direction-sensing voltage translator design is optimized for
+translation applications (e.g. MMC Card Interfaces) that require the
+system to start out in a low-speed open-drain mode and then switch to
+a higher speed push-pull mode." So no need for transceiver control
+with this IC.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Monday, August 03, 2009 5:04 AM
-> To: Pandita, Vikram
-> Cc: Mike Chan; Kevin Hilman; linux-omap@vger.kernel.org
-> Subject: RE: drivers that require headers in mach-omap
-> 
-> On Fri, 31 Jul 2009, Pandita, Vikram wrote:
-> 
-> > >-----Original Message-----
-> > >From: Mike Chan [mailto:mike@android.com]
-> > >Sent: Thursday, July 30, 2009 6:20 PM
-> > >To: Pandita, Vikram
-> > >Cc: Kevin Hilman; linux-omap@vger.kernel.org
-> > >Subject: Re: drivers that require headers in mach-omap
-> > >
-> > >On Thu, Jul 30, 2009 at 8:44 AM, Pandita, 
-> Vikram<vikram.pandita@ti.com> wrote:
-> > >>
-> > >>>-----Original Message-----
-> > >>>From: linux-omap-owner@vger.kernel.org 
-> > >>>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Mike Chan
-> > >>>Sent: Tuesday, July 28, 2009 8:49 PM
-> > >>>To: Kevin Hilman; linux-omap@vger.kernel.org
-> > >>>Subject: drivers that require headers in mach-omap
-> > >>>
-> > >>>Omap folks, how are drivers that require access to prm and cm 
-> > >>>registers via cm_read_mod_reg() etc... suppose to access these?
-> > >>>
-> > >>>For example if drivers/usb/host/ohci-omap.c wanted to call:
-> > >>>cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_IDLEST);
-> > >>
-> > >> The design was supposed to encapsulate the PRCM API's 
-> from drivers.
-> > >> Driver has control over the iclk and fclk and the clock 
-> framework 
-> > >> would take care of any CM/PRM
-> > >register settings.
-> > >>
-> > >> Accessing these registers in drivers would make the 
-> driver non-compatible for non-omap platforms.
-> > >>
-> > >
-> > >Are drivers such as
-> > >
-> > >drivers/usb/host/ohci-omap.c
-> > >drivers/usb/musb/omap2430.c
-> > >
-> > >suppose to be compatible for non-omap platforms?
-> > 
-> > As you put it, no they are not.
-> > All PRM/CM register accesses have been restricted to 
-> mach-omap2/plat-omap parts till now.
-> > The question to ask is, what functionality is missing on 
-> enabling say the usbhost clock that clock framework is not 
-> doing, that driver has a need to do.
-> 
-> Just to follow up on this: the plan should be to remove all 
-> PRM and CM references from those drivers.  Some of those can 
-> be replaced with clock framework calls, others may need 
-> platform_data function pointers.
+>
+> I am trying to get pm working on the overo, and I have a recipe for t=
+he
+> overo for v.2.6.29 (which still has some issues with mmc1) and I have
+> v2.6.31 latest kernel update recipe for overo that has both DSS2 and =
+PM
+> integrated.
 
-To add to the list, drivers/usb/host/ehci-omap.c need a similar re-work. At the moment,
-it does some amount of DPLL5 programming in itself before enabling the iclk and fclk.
+Have you tested the USB host with 2.6.31 recipe yet?
+Definitely would like the recipe for the v2.6.31. I have tested DSS2
+on 2.6.30-rc8 and either I have a user error(most likely) or it wasn't
+working.
+I attempted to backport PM but as my main concern was for MMC. I
+stopped after realizing it wasn't absolutely necessary to get the new
+mmc patches to compile.
 
-> 
-> 
-> - Paul
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in the body of a message to 
-> majordomo@vger.kernel.org More majordomo info at  
-> http://vger.kernel.org/majordomo-info.html
-> 
-> 
+>
+> I can share it with you if you like.
+>
+> Best regards,
+>
+> Elvis
+>
+>
+
+John Sarman
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
