@@ -1,189 +1,170 @@
-From: Arun KS <arunks@mistralsolutions.com>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Mon, 3 Aug 2009 10:53:31 -0700
-Message-ID: <dfeb90390908031053o14b4583fh83e4306253a13944@mail.gmail.com>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl>
-	<20090803112950.3fb6cda9.jhnikula@gmail.com>
-	<4A76ED80.6040001@tis.icnet.pl>
-Reply-To: Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
+From: "Sonasath, Moiz" <m-sonasath@ti.com>
+Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Mon, 3 Aug 2009 15:19:34 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F202959C0D61@dlee06.ent.ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com>
+ <alpine.DEB.2.00.0908030054390.19529@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============1055905484072374536=="
-Return-path: <e3-hacking-bounces@earth.li>
-In-Reply-To: <4A76ED80.6040001@tis.icnet.pl>
-List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
-List-Archive: <http://www.earth.li/pipermail/e3-hacking>
-List-Post: <mailto:e3-hacking@earth.li>
-List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
-List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=subscribe>
-Mime-version: 1.0
-Sender: e3-hacking-bounces@earth.li
-Errors-To: e3-hacking-bounces@earth.li
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, e3-hacking@earth.li, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-List-Id: linux-omap@vger.kernel.org
-
---===============1055905484072374536==
-Content-Type: multipart/alternative; boundary=00163642749eaf2db1047040724b
-
---00163642749eaf2db1047040724b
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-On Mon, Aug 3, 2009 at 7:00 AM, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>wrote:
-
-> Jarkko Nikula wrote:
->
->> On Mon, 3 Aug 2009 03:32:04 +0200
->> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
->>
->>  This patch tries to correct the problem of full duplex mode not working
->>> over a single McBSP based CPU DAI.
->>>
->>> Created against linux-2.6.31-rc5.
->>> Tested on Amstrad Delta.
->>>
->>>  Do you have some specific test case how to trigger this? I haven't
->> seen this on 2420 or 34xx (e.g. with 'arecord -d 1 -f dat |aplay') but
->> I have no doubt that this can happen on 1510. At least this doesn't
->> cause any harm on Beagle so I'm fine with the fix.
->>
->
-> Hi,
-> I made more testing on my OMAP1510 and found out that I could get your
-> example usage working without my patch, but only if started like this:
->
->        arecord -D hw:0,0 -f S16_LE|aplay -D hw:0,0
->
-> If I start the same with "-D hw:0,0" omitted from aplay, it doesn't work
-> any longer, waiting forever. It definitelly doesn't work if I start capture
-> and playback one after another, no matter which one goes first (record while
-> playing or play while recording). So it looks like starting both streams
-> simultaneously can do the job, but a short delay breaks it.
->
-> With my patch, it seems to work fine for me in all cases.
->
-> Jarkko, have you ever tried it on your OMAP2/3 with parallel playback and
-> capture started one after another, not simultaneously?
->
-> Arun, can your snd-soc-osk9512 work on OMAP1610 in full duplex mode without
-> any limitations?
-
-
-Janusz,
-
-Haven't done testing in full duplex mode.
-I don't have access to osk5912 board now. If someone has got osk and do the
-testing it ll be good. It  ll take at least another 2 more month for me to
-do the testing on osk.
-
-Regards,
-Arun
-
-
->
-> If the problem appears to be OMAP1510 or AMS_DELTA specific, I can add a
-> check for a machine or cpu type to avoid braking unaffected machines.
->
-> Thanks,
-> Janusz
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
---00163642749eaf2db1047040724b
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<br><br><div class=3D"gmail_quote">On Mon, Aug 3, 2009 at 7:00 AM, Janusz K=
-rzysztofik <span dir=3D"ltr">&lt;<a href=3D"mailto:jkrzyszt@tis.icnet.pl">j=
-krzyszt@tis.icnet.pl</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_qu=
-ote" style=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0p=
-t 0.8ex; padding-left: 1ex;">
-<div class=3D"im">Jarkko Nikula wrote:<br>
-<blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, =
-204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-On Mon, 3 Aug 2009 03:32:04 +0200<br>
-Janusz Krzysztofik &lt;<a href=3D"mailto:jkrzyszt@tis.icnet.pl" target=3D"_=
-blank">jkrzyszt@tis.icnet.pl</a>&gt; wrote:<br>
-<br>
-<blockquote class=3D"gmail_quote" style=3D"border-left: 1px solid rgb(204, =
-204, 204); margin: 0pt 0pt 0pt 0.8ex; padding-left: 1ex;">
-This patch tries to correct the problem of full duplex mode not working<br>
-over a single McBSP based CPU DAI.<br>
-<br>
-Created against linux-2.6.31-rc5.<br>
-Tested on Amstrad Delta.<br>
-<br>
-</blockquote>
-Do you have some specific test case how to trigger this? I haven&#39;t<br>
-seen this on 2420 or 34xx (e.g. with &#39;arecord -d 1 -f dat |aplay&#39;) =
-but<br>
-I have no doubt that this can happen on 1510. At least this doesn&#39;t<br>
-cause any harm on Beagle so I&#39;m fine with the fix.<br>
-</blockquote>
-<br></div>
-Hi,<br>
-I made more testing on my OMAP1510 and found out that I could get your exam=
-ple usage working without my patch, but only if started like this:<br>
-<br>
- =A0 =A0 =A0 =A0arecord -D hw:0,0 -f S16_LE|aplay -D hw:0,0<br>
-<br>
-If I start the same with &quot;-D hw:0,0&quot; omitted from aplay, it doesn=
-&#39;t work any longer, waiting forever. It definitelly doesn&#39;t work if=
- I start capture and playback one after another, no matter which one goes f=
-irst (record while playing or play while recording). So it looks like start=
-ing both streams simultaneously can do the job, but a short delay breaks it=
-.<br>
-
-<br>
-With my patch, it seems to work fine for me in all cases.<br>
-<br>
-Jarkko, have you ever tried it on your OMAP2/3 with parallel playback and c=
-apture started one after another, not simultaneously?<br>
-<br>
-Arun, can your snd-soc-osk9512 work on OMAP1610 in full duplex mode without=
- any limitations?</blockquote><div>=A0</div><div>Janusz,<br><br>Haven&#39;t=
- done testing in full duplex mode.<br>I don&#39;t have access to osk5912 bo=
-ard now. If someone has got osk and do the testing it ll be good. It=A0 ll =
-take at least another 2 more month for me to do the testing on osk.<br>
-<br>Regards,<br>Arun<br><br></div><blockquote class=3D"gmail_quote" style=
-=3D"border-left: 1px solid rgb(204, 204, 204); margin: 0pt 0pt 0pt 0.8ex; p=
-adding-left: 1ex;"><br>
-<br>
-If the problem appears to be OMAP1510 or AMS_DELTA specific, I can add a ch=
-eck for a machine or cpu type to avoid braking unaffected machines.<br>
-<br>
-Thanks,<br><font color=3D"#888888">
-Janusz</font><div><div></div><div class=3D"h5"><br>
-<br>
---<br>
-To unsubscribe from this list: send the line &quot;unsubscribe linux-omap&q=
-uot; in<br>
-the body of a message to <a href=3D"mailto:majordomo@vger.kernel.org" targe=
-t=3D"_blank">majordomo@vger.kernel.org</a><br>
-More majordomo info at =A0<a href=3D"http://vger.kernel.org/majordomo-info.=
-html" target=3D"_blank">http://vger.kernel.org/majordomo-info.html</a><br>
-</div></div></blockquote></div><br>
-
---00163642749eaf2db1047040724b--
-
-
---===============1055905484072374536==
 Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38498 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752578AbZHCUTl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 16:19:41 -0400
+In-Reply-To: <alpine.DEB.2.00.0908030054390.19529@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-_______________________________________________
-e3-hacking mailing list
-e3-hacking@earth.li
-http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking
 
---===============1055905484072374536==--
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Monday, August 03, 2009 2:36 AM
+> To: Sonasath, Moiz
+> Cc: linux-i2c@vger.kernel.org; linux-omap@vger.kernel.org; Menon,
+> Nishanth; Pandita, Vikram
+> Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+> 
+> Hello Moiz,
+> 
+> A few remaining comments, most of these from an earlier message.
+> 
+> On Tue, 21 Jul 2009, Sonasath, Moiz wrote:
+> 
+> > When an XRDY/XDR is hit, wait for XUDF before writing data to DATA_REG.
+> > Otherwise some data bytes can be lost while transferring them from the
+> > memory to the I2C interface.
+> >
+> > Do a Busy-wait for XUDF, before writing data to DATA_REG. While waiting
+> > if there is NACK | AL, set the appropriate error flags, ack the pending
+> > interrupts and return from the ISR.
+> >
+> > Signed-off-by: Moiz Sonasath<m-sonasath@ti.com>
+> > Signed-off-by: Vikram pandita<vikram.pandita@ti.com>
+> > ---
+> >  drivers/i2c/busses/i2c-omap.c |   24 +++++++++++++++++++++++-
+> >  1 files changed, 23 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-
+> omap.c
+> > index 05b5e4c..8deaf87 100644
+> > --- a/drivers/i2c/busses/i2c-omap.c
+> > +++ b/drivers/i2c/busses/i2c-omap.c
+> > @@ -672,9 +672,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  			break;
+> >  		}
+> >
+> > +		err = 0;
+> > +complete:
+> >  		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
+> >
+> > -		err = 0;
+> >  		if (stat & OMAP_I2C_STAT_NACK) {
+> >  			err |= OMAP_I2C_STAT_NACK;
+> >  			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> > @@ -764,6 +765,27 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> >  							"data to send\n");
+> >  					break;
+> >  				}
+> > +
+> > +				/*
+> > +				 * OMAP3430 Errata 1.153: When an XRDY/XDR
+> > +				 * is hit, wait for XUDF before writing data
+> > +				 * to DATA_REG. Otherwise some data bytes can
+> > +				 * be lost while transferring them from the
+> > +				 * memory to the I2C interface.
+> > +				 */
+> 
+> Based on this description, shouldn't this patch also zero the transmit
+> FIFO threshold?  Consider what the transmit path becomes after this patch:
+> 
+> 1. Fill transmit FIFO
+> 2. Leave ISR & wait for interrupt
+> 3. Interrupt happens due to XDR/XRDY (transmit FIFO low-water-mark
+>    reached)
+> 4. Busy-wait until transmit FIFO & shift register completely empty
+> 5. If more data to send, go to step #1
+> 
+> i2c-omap.c currently sets the transmit FIFO threshold to 1/2 of the total
+> FIFO size[1].  This means that, in the worst case, I2C3, the I2C ISR will
+> busy-wait in step 4 for the time it takes 32 bytes to be transmitted.
+> This is time that the MPU spends doing nothing but spinning, wasting
+> power.  This seems unnecessary and wasteful.  The time the driver spends
+> busy-waiting in the ISR should be reduced to the lowest possible duration.
+> 
+> To do this, what I suggest that you additionally do in the patch is to
+> reduce the transit FIFO threshold/low-water-mark, controlled by
+> I2C_BUF.XTRSH, to the lowest possible value.  This should maximize the
+> time spent between steps 2 and 3 and minimize the time spent between steps
+> 3 and 5.
+> 
+> Is there a reason why this can't be done?
+
+Yes, this is actually lined up in my list of actions. I will be working on this to test the functionality and stability of I2C code with the threshold set to zero.
+
+> 
+> > +
+> > +				if (cpu_is_omap34xx()) {
+> 
+> Does this erratum apply to the I2C IP block on OMAP2430?  It also has FIFO
+> transmit capability.  It would be ideal if you can find out from the I2C
+> IP block designers.  If you cannot, please consider adding a comment that
+> this may also apply to the I2C block on OMAP2430.
+> 
+> In general it is best to enable these workarounds based on the I2C IP
+> block's own revision register contents, not the OMAP CPU type.  The goal
+> is to remove all these OMAP-specific "cpu_is_omapxxxx()" macros from
+> device drivers.  For example, what if a future DaVinci part uses the same
+> I2C IP block?
+
+Yes this is the right way.
+I am checking with the IP team and will get back on this action item.
+
+> 
+> > +						while (!(stat & OMAP_I2C_STAT_XUDF)) {
+> 
+> Is there a reason why you can't just reuse the main while() loop in the
+> ISR, and add a state variable to handle any special casing needed in this
+> context?  That will avoid this separate while() loop.
+> 
+
+The problem with using the main while() loop is the counter 'count' associated with it as I am not sure if the count value of 100 is enough wait time for allowing the XUDF bit to set and if we can come up with an accurate wait count to be used there. 
+
+The idea is that if the hardware is functional, XUDF bit will be set once the FIFO and shift registers are empty and the only thing that can go wrong at that point is a sudden NACK or AL. These errors are taken care in my while loop thereby eliminating the need of a timeout on XUDF wait.
+
+
+
+> > +							if (stat & (OMAP_I2C_STAT_NACK |
+> OMAP_I2C_STAT_AL)) {
+> > +								omap_i2c_ack_stat(dev,
+> stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+> > +								err |= OMAP_I2C_STAT_XUDF;
+> > +								goto complete;
+> > +							}
+> > +							cpu_relax();
+> > +							stat = omap_i2c_read_reg(dev,
+> OMAP_I2C_STAT_REG);
+> > +						}
+> > +				}
+> > +
+> >  				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+> >  			}
+> >  			omap_i2c_ack_stat(dev,
+> 
+> For those following along in the archives, this is an extension of
+> comments from
+> 
+>    http://www.mail-archive.com/linux-omap@vger.kernel.org/msg13846.html
+> 
+> 
+> - Paul
+> 
+> 
+> 1. Eventually this is likely to change, based on power management
+>    constraints.
+
+Regards
+Moiz Sonasath
