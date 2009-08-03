@@ -1,67 +1,232 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: drivers that require headers in mach-omap
-Date: Sun, 2 Aug 2009 17:34:24 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908021733120.19529@utopia.booyaka.com>
-References: <8bb80c380907281849i1cd271f3n64a391327cd8bb5e@mail.gmail.com>  <FCCFB4CDC6E5564B9182F639FC35608702F58506D2@dbde02.ent.ti.com> <8bb80c380907301620g5761ae36j55bec6747e32657a@mail.gmail.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F58507F8@dbde02.ent.ti.com>
+Subject: Re: [RFC/RFT 1/4] OMAP3: PM: Prevent hang in
+ prcm_interrupt_handler
+Date: Sun, 2 Aug 2009 18:09:07 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908021808120.19529@utopia.booyaka.com>
+References: <1248458068-21747-1-git-send-email-khilman@deeprootsystems.com> <1248458068-21747-2-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38223 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:32822 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753552AbZHBXeY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Aug 2009 19:34:24 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F58507F8@dbde02.ent.ti.com>
+	with ESMTP id S1753426AbZHCAJH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 2 Aug 2009 20:09:07 -0400
+In-Reply-To: <1248458068-21747-2-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: Mike Chan <mike@android.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>, Jon Hunter <jon-hunter@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Fri, 31 Jul 2009, Pandita, Vikram wrote:
+On Fri, 24 Jul 2009, Kevin Hilman wrote:
 
-> >-----Original Message-----
-> >From: Mike Chan [mailto:mike@android.com]
-> >Sent: Thursday, July 30, 2009 6:20 PM
-> >To: Pandita, Vikram
-> >Cc: Kevin Hilman; linux-omap@vger.kernel.org
-> >Subject: Re: drivers that require headers in mach-omap
-> >
-> >On Thu, Jul 30, 2009 at 8:44 AM, Pandita, Vikram<vikram.pandita@ti.com> wrote:
-> >>
-> >>>-----Original Message-----
-> >>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Mike
-> >>>Chan
-> >>>Sent: Tuesday, July 28, 2009 8:49 PM
-> >>>To: Kevin Hilman; linux-omap@vger.kernel.org
-> >>>Subject: drivers that require headers in mach-omap
-> >>>
-> >>>Omap folks, how are drivers that require access to prm and cm
-> >>>registers via cm_read_mod_reg() etc... suppose to access these?
-> >>>
-> >>>For example if drivers/usb/host/ohci-omap.c wanted to call:
-> >>>cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, CM_IDLEST);
-> >>
-> >> The design was supposed to encapsulate the PRCM API's from drivers.
-> >> Driver has control over the iclk and fclk and the clock framework would take care of any CM/PRM
-> >register settings.
-> >>
-> >> Accessing these registers in drivers would make the driver non-compatible for non-omap platforms.
-> >>
-> >
-> >Are drivers such as
-> >
-> >drivers/usb/host/ohci-omap.c
-> >drivers/usb/musb/omap2430.c
-> >
-> >suppose to be compatible for non-omap platforms?
+> From: Jon Hunter <jon-hunter@ti.com>
 > 
-> As you put it, no they are not.
-> All PRM/CM register accesses have been restricted to mach-omap2/plat-omap parts till now.
-> The question to ask is, what functionality is missing on enabling say the usbhost clock that clock framework is not doing, that driver has a need to do.
+> There are two scenarios where a race condition could result in a hang
+> in the prcm_interrupt handler. These are:
+> 
+> 1). Waiting for PRM_IRQSTATUS_MPU register to clear.
+> Bit 0 of the PRM_IRQSTATUS_MPU register indicates that a wake-up event
+> is pending for the MPU. This bit can only be cleared if the all the
+> wake-up events latched in the various PM_WKST_x registers have been
+> cleared. If a wake-up event occurred during the processing of the prcm
+> interrupt handler, after the corresponding PM_WKST_x register was
+> checked but before the PRM_IRQSTATUS_MPU was cleared, then the CPU
+> would be stuck forever waiting for bit 0 in PRM_IRQSTATUS_MPU to be
+> cleared.
+> 
+> 2). Waiting for the PM_WKST_x register to clear.
+> Some power domains have more than one wake-up source. The PM_WKST_x
+> registers indicate the source of a wake-up event and need to be cleared
+> after a wake-up event occurs. When the PM_WKST_x registers are read and
+> before they are cleared, it is possible that another wake-up event
+> could occur causing another bit to be set in one of the PM_WKST_x
+> registers. If this did occur after reading a PM_WKST_x register then
+> the CPU would miss this event and get stuck forever in a loop waiting
+> for that PM_WKST_x register to clear.
+> 
+> This patch address the above race conditions that would result in a
+> hang.
+> 
+> Signed-off-by: Jon Hunter <jon-hunter@ti.com>
 
-Just to follow up on this: the plan should be to remove all PRM and CM 
-references from those drivers.  Some of those can be replaced with clock 
-framework calls, others may need platform_data function pointers.
+Reviewed-by: Paul Walmsley <paul@pwsan.com>
+
+Nice comments on this patch, Jon, they are definitely appreciated.
+
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |  143 ++++++++++++++++++------------------------
+>  1 files changed, 60 insertions(+), 83 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 14f10bc..f6cc71a 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -194,97 +194,74 @@ static void omap3_save_secure_ram_context(u32 target_mpu_state)
+>  	}
+>  }
+>  
+> -/* PRCM Interrupt Handler for wakeups */
+> -static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+> +/*
+> + * PRCM Interrupt Handler Helper Function
+> + *
+> + * The purpose of this function is to clear any wake-up events latched
+> + * in the PRCM PM_WKST_x registers. It is possible that a wake-up event
+> + * may occur whilst attempting to clear a PM_WKST_x register and thus
+> + * set another bit in this register. A while loop is used to ensure
+> + * that any peripheral wake-up events occurring while attempting to
+> + * clear the PM_WKST_x are detected and cleared.
+> + */
+> +static void prcm_clear_mod_irqs(s16 module, u8 regs)
+>  {
+> -	u32 wkst, irqstatus_mpu;
+> -	u32 fclk, iclk;
+> -
+> -	/* WKUP */
+> -	wkst = prm_read_mod_reg(WKUP_MOD, PM_WKST);
+> -	if (wkst) {
+> -		iclk = cm_read_mod_reg(WKUP_MOD, CM_ICLKEN);
+> -		fclk = cm_read_mod_reg(WKUP_MOD, CM_FCLKEN);
+> -		cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_ICLKEN);
+> -		cm_set_mod_reg_bits(wkst, WKUP_MOD, CM_FCLKEN);
+> -		prm_write_mod_reg(wkst, WKUP_MOD, PM_WKST);
+> -		while (prm_read_mod_reg(WKUP_MOD, PM_WKST))
+> -			cpu_relax();
+> -		cm_write_mod_reg(iclk, WKUP_MOD, CM_ICLKEN);
+> -		cm_write_mod_reg(fclk, WKUP_MOD, CM_FCLKEN);
+> -	}
+> +	u32 wkst, fclk, iclk;
+> +	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
+> +	u16 fclk_off = (regs == 3) ? OMAP3430ES2_CM_FCLKEN3 : CM_FCLKEN1;
+> +	u16 iclk_off = (regs == 3) ? CM_ICLKEN3 : CM_ICLKEN1;
+>  
+> -	/* CORE */
+> -	wkst = prm_read_mod_reg(CORE_MOD, PM_WKST1);
+> -	if (wkst) {
+> -		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN1);
+> -		fclk = cm_read_mod_reg(CORE_MOD, CM_FCLKEN1);
+> -		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN1);
+> -		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_FCLKEN1);
+> -		prm_write_mod_reg(wkst, CORE_MOD, PM_WKST1);
+> -		while (prm_read_mod_reg(CORE_MOD, PM_WKST1))
+> -			cpu_relax();
+> -		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN1);
+> -		cm_write_mod_reg(fclk, CORE_MOD, CM_FCLKEN1);
+> -	}
+> -	wkst = prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3);
+> +	wkst = prm_read_mod_reg(module, wkst_off);
+>  	if (wkst) {
+> -		iclk = cm_read_mod_reg(CORE_MOD, CM_ICLKEN3);
+> -		fclk = cm_read_mod_reg(CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
+> -		cm_set_mod_reg_bits(wkst, CORE_MOD, CM_ICLKEN3);
+> -		cm_set_mod_reg_bits(wkst, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
+> -		prm_write_mod_reg(wkst, CORE_MOD, OMAP3430ES2_PM_WKST3);
+> -		while (prm_read_mod_reg(CORE_MOD, OMAP3430ES2_PM_WKST3))
+> -			cpu_relax();
+> -		cm_write_mod_reg(iclk, CORE_MOD, CM_ICLKEN3);
+> -		cm_write_mod_reg(fclk, CORE_MOD, OMAP3430ES2_CM_FCLKEN3);
+> -	}
+> -
+> -	/* PER */
+> -	wkst = prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST);
+> -	if (wkst) {
+> -		iclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_ICLKEN);
+> -		fclk = cm_read_mod_reg(OMAP3430_PER_MOD, CM_FCLKEN);
+> -		cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD, CM_ICLKEN);
+> -		cm_set_mod_reg_bits(wkst, OMAP3430_PER_MOD, CM_FCLKEN);
+> -		prm_write_mod_reg(wkst, OMAP3430_PER_MOD, PM_WKST);
+> -		while (prm_read_mod_reg(OMAP3430_PER_MOD, PM_WKST))
+> -			cpu_relax();
+> -		cm_write_mod_reg(iclk, OMAP3430_PER_MOD, CM_ICLKEN);
+> -		cm_write_mod_reg(fclk, OMAP3430_PER_MOD, CM_FCLKEN);
+> +		iclk = cm_read_mod_reg(module, iclk_off);
+> +		fclk = cm_read_mod_reg(module, fclk_off);
+> +		while (wkst) {
+> +			cm_set_mod_reg_bits(wkst, module, iclk_off);
+> +			cm_set_mod_reg_bits(wkst, module, fclk_off);
+> +			prm_write_mod_reg(wkst, module, wkst_off);
+> +			wkst = prm_read_mod_reg(module, wkst_off);
+> +		}
+> +		cm_write_mod_reg(iclk, module, iclk_off);
+> +		cm_write_mod_reg(fclk, module, fclk_off);
+>  	}
+> +}
+>  
+> -	if (omap_rev() > OMAP3430_REV_ES1_0) {
+> -		/* USBHOST */
+> -		wkst = prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD, PM_WKST);
+> -		if (wkst) {
+> -			iclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> -					       CM_ICLKEN);
+> -			fclk = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> -					       CM_FCLKEN);
+> -			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
+> -					    CM_ICLKEN);
+> -			cm_set_mod_reg_bits(wkst, OMAP3430ES2_USBHOST_MOD,
+> -					    CM_FCLKEN);
+> -			prm_write_mod_reg(wkst, OMAP3430ES2_USBHOST_MOD,
+> -					  PM_WKST);
+> -			while (prm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+> -						PM_WKST))
+> -				cpu_relax();
+> -			cm_write_mod_reg(iclk, OMAP3430ES2_USBHOST_MOD,
+> -					 CM_ICLKEN);
+> -			cm_write_mod_reg(fclk, OMAP3430ES2_USBHOST_MOD,
+> -					 CM_FCLKEN);
+> +/*
+> + * PRCM Interrupt Handler
+> + *
+> + * The PRM_IRQSTATUS_MPU register indicates if there are any pending
+> + * interrupts from the PRCM for the MPU. These bits must be cleared in
+> + * order to clear the PRCM interrupt. The PRCM interrupt handler is
+> + * implemented to simply clear the PRM_IRQSTATUS_MPU in order to clear
+> + * the PRCM interrupt. Please note that bit 0 of the PRM_IRQSTATUS_MPU
+> + * register indicates that a wake-up event is pending for the MPU and
+> + * this bit can only be cleared if the all the wake-up events latched
+> + * in the various PM_WKST_x registers have been cleared. The interrupt
+> + * handler is implemented using a do-while loop so that if a wake-up
+> + * event occurred during the processing of the prcm interrupt handler
+> + * (setting a bit in the corresponding PM_WKST_x register and thus
+> + * preventing us from clearing bit 0 of the PRM_IRQSTATUS_MPU register)
+> + * this would be handled.
+> + */
+> +static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+> +{
+> +	u32 irqstatus_mpu;
+> +
+> +	do {
+> +		prcm_clear_mod_irqs(WKUP_MOD, 1);
+> +		prcm_clear_mod_irqs(CORE_MOD, 1);
+> +		prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
+> +		if (omap_rev() > OMAP3430_REV_ES1_0) {
+> +			prcm_clear_mod_irqs(CORE_MOD, 3);
+> +			prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
+>  		}
+> -	}
+>  
+> -	irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
+> -					 OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+> -	prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
+> -			  OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+> +		irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
+> +					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+> +		prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
+> +					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
+>  
+> -	while (prm_read_mod_reg(OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET))
+> -		cpu_relax();
+> +	} while (prm_read_mod_reg(OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET));
+>  
+>  	return IRQ_HANDLED;
+>  }
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
 - Paul
