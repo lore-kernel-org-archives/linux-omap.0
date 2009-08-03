@@ -1,55 +1,49 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 09/20] OMAP3: McBSP: Lower the maximum buffersize for
- McBSP1,3,4,5
-Date: Mon, 3 Aug 2009 11:36:19 +0300
-Message-ID: <20090803083619.GB1333@esdhcp037198.research.nokia.com>
-References: <1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
- <20090730215721.a899e2f4.jhnikula@gmail.com>
- <20090731075823.GB27083@esdhcp037198.research.nokia.com>
- <20090731202611.c689c31c.jhnikula@gmail.com>
- <20090803081107.GA1333@esdhcp037198.research.nokia.com>
- <20090803113638.f82699b2.jhnikula@gmail.com>
-Reply-To: eduardo.valentin@nokia.com
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: Pull Request for OMAP4
+Date: Mon, 3 Aug 2009 14:37:58 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2825@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:28515 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754178AbZHCIsI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 04:48:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20090803113638.f82699b2.jhnikula@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51240 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753706AbZHCJIR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 05:08:17 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
+To: Russell King <rmk+kernel@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, Linux OMAP Users <linux-omap@vger.kernel.org>
 
-On Mon, Aug 03, 2009 at 10:36:38AM +0200, ext Jarkko Nikula wrote:
-> On Mon, 3 Aug 2009 11:11:07 +0300
-> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
-> 
-> > > True, but I was wondering can this same problem occur also on McBSP2 if
-> > > using proper size threshold? Like size near the McBSP2 audio buffer
-> > > (1024x32) or near the TX buffer (256x32).
-> > 
-> > Yes, it can happen with mcbsp2 also if you use all places (1024+256).
-> > 
-> So should the patch then take into account McBSP2 also?
+Hi Russell,
 
-hmmm.. But I've seen the problem only if you use 1024+256 for mcbsp2 (0x500) or
-very close to that (0x4F0). I haven't seen this problem using 0x3FF, as currently is.
+Could you please pull four patches below for the upcoming merging window.
 
-> 
-> -- 
-> Jarkko
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patches are rebased on commit 4be3bd7849165e7efa6b0b35a23d6a3598d97465:
+  Linus Torvalds (1):        Linux 2.6.31-rc4
 
--- 
-Eduardo Valentin
+and available in the git repository at:
+
+git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4_upstream
+
+Summary:
+
+Santosh Shilimkar (1):	
+	OMAP4: sDMA: Update the request lines and new registers.
+Syed Rafiuddin (3):
+      ARM: OMAP4: Add McBSP support
+      ARM: OMAP4: Add UART4 support
+      ARM: OMAP4: Update the GPIO support
+
+ arch/arm/mach-omap2/board-4430sdp.c     |    2 +-
+ arch/arm/mach-omap2/mcbsp.c             |   41 +++++
+ arch/arm/mach-omap2/serial.c            |   10 ++
+ arch/arm/plat-omap/gpio.c               |  249 ++++++++++++++++++++++++-------
+ arch/arm/plat-omap/include/mach/dma.h   |   88 +++++++++++
+ arch/arm/plat-omap/include/mach/mcbsp.h |    8 +-
+ arch/arm/plat-omap/mcbsp.c              |    2 +-
+ 7 files changed, 346 insertions(+), 54 deletions(-)
+
+Regards,
+Santosh
