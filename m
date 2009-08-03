@@ -1,55 +1,45 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Mon, 3 Aug 2009 03:32:04 +0200
-Message-ID: <200908030332.06727.jkrzyszt@tis.icnet.pl>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: Enabling TPS65950 / TWL4030 Real-time clock functions
+Date: Mon, 3 Aug 2009 11:16:35 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF260A@dbde02.ent.ti.com>
+References: <4C8A2DCE-F2C2-419C-AD4A-E78BB796BCB8@mac.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2375@dbde02.ent.ti.com>
+ <B78DF7E1-501F-43A5-AF3F-91E7E9AED466@mac.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: alsa-devel@alsa-project.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, e3-hacking@earth.li, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:46006 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751757AbZHCFqq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 01:46:46 -0400
+In-Reply-To: <B78DF7E1-501F-43A5-AF3F-91E7E9AED466@mac.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Elvis Dowson <elvis.dowson@mac.com>
+Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
 
-This patch tries to correct the problem of full duplex mode not working
-over a single McBSP based CPU DAI.
+> -----Original Message-----
+> From: Elvis Dowson [mailto:elvis.dowson@mac.com]
+> Sent: Saturday, August 01, 2009 8:56 PM
+> To: Shilimkar, Santosh
+> Cc: Linux OMAP Users
+> Subject: Re: Enabling TPS65950 / TWL4030 Real-time clock functions
+> 
+> Hi Santosh,
+> 			Thanks for the reply.
+> 
+> On Aug 1, 2009, at 6:55 PM, Shilimkar, Santosh wrote:
+> 
+> >> Yes there is support on 2.6.29 and 2.6.31.Refer drivers/rtc/rtc-
+> >> twl4030.c for more details.
+> 
+> Is there any way to hook up a battery backup for the RTC for the
+> Gumstix Overo Earth (TI OMAP 3503).
+Not sure whether I got your question correctly. The software driver you already know. Are you asking where to plug the backup battery on hardware pins?
+I don't have Gumstix Overo hardware but if above is your question and schematics are available then it can be traced.
 
-Created against linux-2.6.31-rc5.
-Tested on Amstrad Delta.
 
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
----
---- linux-2.6.31-rc5/sound/soc/omap/omap-mcbsp.c.orig	2009-08-01 02:40:45.000000000 +0200
-+++ linux-2.6.31-rc5/sound/soc/omap/omap-mcbsp.c	2009-08-03 03:28:07.000000000 +0200
-@@ -183,6 +183,7 @@ static int omap_mcbsp_dai_trigger(struct
- 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
- 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
- 	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
-+	u16 buf;
- 	int err = 0;
- 
- 	switch (cmd) {
-@@ -191,6 +192,14 @@ static int omap_mcbsp_dai_trigger(struct
- 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
- 		if (!mcbsp_data->active++)
- 			omap_mcbsp_start(mcbsp_data->bus_id);
-+		else if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-+			/* looks like capture already in progress,
-+			 * start playback by taking it out of error condition */
-+			omap_mcbsp_pollwrite(mcbsp_data->bus_id, 0x0);
-+		else
-+			/* looks like playback already in progress,
-+			 * start capture by taking it out of error condition */
-+			omap_mcbsp_pollread(mcbsp_data->bus_id, &buf);
- 		break;
- 
- 	case SNDRV_PCM_TRIGGER_STOP:
+Regards,
+Santosh
