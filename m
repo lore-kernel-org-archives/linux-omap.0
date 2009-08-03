@@ -1,152 +1,55 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
+From: Russell King <rmk@arm.linux.org.uk>
 Subject: Re: [PATCH] ARM: OMAP: TWL4030 IRQ
-Date: Mon, 3 Aug 2009 18:36:12 +0200
-Message-ID: <20090803163611.GB28606@sortiz.org>
-References: <1248674448-17495-1-git-send-email-santosh.shilimkar@ti.com>
+Date: Mon, 3 Aug 2009 18:23:21 +0100
+Message-ID: <20090803172321.GB32479@flint.arm.linux.org.uk>
+References: <1248674448-17495-1-git-send-email-santosh.shilimkar@ti.com> <20090803163611.GB28606@sortiz.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga07.intel.com ([143.182.124.22]:48590 "EHLO
-	azsmga101.ch.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932161AbZHCQeQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 12:34:16 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:44365 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006AbZHCRXj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 13:23:39 -0400
 Content-Disposition: inline
-In-Reply-To: <1248674448-17495-1-git-send-email-santosh.shilimkar@ti.com>
+In-Reply-To: <20090803163611.GB28606@sortiz.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, Russell King <rmk+kernel@arm.linux.org.uk>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-Hi Santosh,
+On Mon, Aug 03, 2009 at 06:36:12PM +0200, Samuel Ortiz wrote:
+> Hi Santosh,
+> 
+> On Mon, Jul 27, 2009 at 11:30:48AM +0530, Santosh Shilimkar wrote:
+> > From: Russell King <rmk+kernel@arm.linux.org.uk>
+> > 
+> > (Rebased on 2.6.31-rc4)
+> > 
+> > The TWL4030 IRQ handler has a bug which leads to spinlock lock-up. It is
+> > calling the 'unmask' function in a process context. :The mask/unmask/ack
+> > functions are only designed to be called from the IRQ handler code,
+> > or the proper API interfaces found in linux/interrupt.h.
+> > 
+> > Also there is no need to have IRQ chaining mechanism. The right way to
+> > handle this is to claim the parent interrupt as a standard interrupt
+> > and arrange for handle_twl4030_pih to take care of the rest of the devices.
+> I'd like this one to be split in 2 different patches as you're addressing 2
+> different issues here.
 
-On Mon, Jul 27, 2009 at 11:30:48AM +0530, Santosh Shilimkar wrote:
-> From: Russell King <rmk+kernel@arm.linux.org.uk>
-> 
-> (Rebased on 2.6.31-rc4)
-> 
-> The TWL4030 IRQ handler has a bug which leads to spinlock lock-up. It is
-> calling the 'unmask' function in a process context. :The mask/unmask/ack
-> functions are only designed to be called from the IRQ handler code,
-> or the proper API interfaces found in linux/interrupt.h.
-> 
-> Also there is no need to have IRQ chaining mechanism. The right way to
-> handle this is to claim the parent interrupt as a standard interrupt
-> and arrange for handle_twl4030_pih to take care of the rest of the devices.
-I'd like this one to be split in 2 different patches as you're addressing 2
-different issues here.
+You'd like me to remove the IRQ handling entirely from this code as one
+patch, thereby breaking it, and then add the new IRQ handling as a
+separate patch?
 
-Cheers,
-Samuel.
+Are you sure?
 
-> Mail thread on this issue can be found at:
-> http://marc.info/?l=linux-arm-kernel&m=124629940123396&w=2
-> 
-> Signed-off-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Tested-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  drivers/mfd/twl4030-irq.c |   55 +++++++++++++++++++-------------------------
->  1 files changed, 24 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-> index bae61b2..7d43083 100644
-> --- a/drivers/mfd/twl4030-irq.c
-> +++ b/drivers/mfd/twl4030-irq.c
-> @@ -180,14 +180,9 @@ static struct completion irq_event;
->  static int twl4030_irq_thread(void *data)
->  {
->  	long irq = (long)data;
-> -	struct irq_desc *desc = irq_to_desc(irq);
->  	static unsigned i2c_errors;
->  	static const unsigned max_i2c_errors = 100;
->  
-> -	if (!desc) {
-> -		pr_err("twl4030: Invalid IRQ: %ld\n", irq);
-> -		return -EINVAL;
-> -	}
->  
->  	current->flags |= PF_NOFREEZE;
->  
-> @@ -240,7 +235,7 @@ static int twl4030_irq_thread(void *data)
->  		}
->  		local_irq_enable();
->  
-> -		desc->chip->unmask(irq);
-> +		enable_irq(irq);
->  	}
->  
->  	return 0;
-> @@ -255,25 +250,13 @@ static int twl4030_irq_thread(void *data)
->   * thread.  All we do here is acknowledge and mask the interrupt and wakeup
->   * the kernel thread.
->   */
-> -static void handle_twl4030_pih(unsigned int irq, struct irq_desc *desc)
-> +static irqreturn_t handle_twl4030_pih(int irq, void *devid)
->  {
->  	/* Acknowledge, clear *AND* mask the interrupt... */
-> -	desc->chip->ack(irq);
-> -	complete(&irq_event);
-> -}
-> -
-> -static struct task_struct *start_twl4030_irq_thread(long irq)
-> -{
-> -	struct task_struct *thread;
-> -
-> -	init_completion(&irq_event);
-> -	thread = kthread_run(twl4030_irq_thread, (void *)irq, "twl4030-irq");
-> -	if (!thread)
-> -		pr_err("twl4030: could not create irq %ld thread!\n", irq);
-> -
-> -	return thread;
-> +	disable_irq_nosync(irq);
-> +	complete(devid);
-> +	return IRQ_HANDLED;
->  }
-> -
->  /*----------------------------------------------------------------------*/
->  
->  /*
-> @@ -734,18 +717,28 @@ int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end)
->  	}
->  
->  	/* install an irq handler to demultiplex the TWL4030 interrupt */
-> -	task = start_twl4030_irq_thread(irq_num);
-> -	if (!task) {
-> -		pr_err("twl4030: irq thread FAIL\n");
-> -		status = -ESRCH;
-> -		goto fail;
-> -	}
->  
-> -	set_irq_data(irq_num, task);
-> -	set_irq_chained_handler(irq_num, handle_twl4030_pih);
->  
-> -	return status;
-> +	init_completion(&irq_event);
->  
-> +	status = request_irq(irq_num, handle_twl4030_pih, IRQF_DISABLED,
-> +				"TWL4030-PIH", &irq_event);
-> +	if (status < 0) {
-> +		pr_err("twl4030: could not claim irq%d: %d\n", irq_num, status);
-> +		goto fail_rqirq;
-> +	}
-> +
-> +	task = kthread_run(twl4030_irq_thread, (void *)irq_num, "twl4030-irq");
-> +	if (IS_ERR(task)) {
-> +		pr_err("twl4030: could not create irq %d thread!\n", irq_num);
-> +		status = PTR_ERR(task);
-> +		goto fail_kthread;
-> +	}
-> +	return status;
-> +fail_kthread:
-> +	free_irq(irq_num, &irq_event);
-> +fail_rqirq:
-> +	/* clean up twl4030_sih_setup */
->  fail:
->  	for (i = irq_base; i < irq_end; i++)
->  		set_irq_chip_and_handler(i, NULL, NULL);
-> -- 
-> 1.5.4.7
-> 
+I really don't think so, and I suspect you haven't even read the patch.
+
+It's all _one_ issue, with two explainations of why the current code is
+wrong.
+
+So my reply is: unable to split patch.
 
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:
