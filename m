@@ -1,65 +1,67 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: MMC3 Overo
-Date: Mon, 3 Aug 2009 05:11:34 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908030510420.17502@utopia.booyaka.com>
-References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>  <bb2708720907301223h616eb215gb4aea1df8e1d578e@mail.gmail.com>  <alpine.DEB.2.00.0908021919320.19529@utopia.booyaka.com> <bb2708720908030333x1c9521b6ua76122b0f80e1fdc@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1283566761-1249297894=:17502"
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH 0/4) OMAPFB patches
+Date: Mon,  3 Aug 2009 16:15:11 +0300
+Message-ID: <1249305315-25595-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:46883 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754574AbZHCLLe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 07:11:34 -0400
-In-Reply-To: <bb2708720908030333x1c9521b6ua76122b0f80e1fdc@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:26078 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755068AbZHCNPt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 09:15:49 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: John Sarman <johnsarman@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: linux-fbdev-devel@lists.sourceforge.net
+Cc: linux-omap@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This patch set makes preparations for the new DSS2 driver. It implements VRFB
+support and a VRAM manager, omapfb.h is split and moved, and a dummy DSS device
+is created to make it possible for old DSS and new DSS2 to co-exist.
 
---155748971-1283566761-1249297894=:17502
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+VRFB and VRAM are not used by the current DSS driver.
 
-On Mon, 3 Aug 2009, John Sarman wrote:
+The patches are based on linux-omap, as omapfb seems to be broken in mainstream
+kernel.
 
-> On Sun, Aug 2, 2009 at 9:20 PM, Paul Walmsley<paul@pwsan.com> wrote:
+ Tomi Valkeinen
 
-> > From: Paul Walmsley <paul@pwsan.com>
-> > Date: Mon, 3 Aug 2009 04:18:45 +0300
-> > Subject: [PATCH] OMAP3 hwmod: fix MMC3 IRQ
-> >
-> > The MMC3 IRQ is incorrect in mach-omap2/omap_hwmod_34xx.h, which causes
-> > MMC3 init to fail.
-> >
-> > Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> > ---
-> > =A0arch/arm/mach-omap2/omap_hwmod_34xx.h | =A0 =A02 +-
-> > =A01 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap=
-2/omap_hwmod_34xx.h
-> > index 29a2d60..56215bd 100644
-> > --- a/arch/arm/mach-omap2/omap_hwmod_34xx.h
-> > +++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-> > @@ -470,7 +470,7 @@ static struct omap_hwmod omap34xx_mmc2_hwmod =3D {
-> > =A0static struct mmc_dev_attr mmc3_dev_attr;
-> >
-> > =A0static u8 mmc3_mpu_irqs[] =3D {
-> > - =A0 =A0 =A0 INT_24XX_MMC_IRQ,
-> > + =A0 =A0 =A0 INT_34XX_MMC3_IRQ,
-> > =A0};
-> >
-> > =A0static struct omap_hwmod_dma_info mmc3_sdma_chs[] =3D {
-> > --
-> > 1.6.3.GIT
-> >
-> Thanks for the patch, I will apply that and keep on testing.
+ arch/arm/mach-omap1/board-nokia770.c     |    2 +-
+ arch/arm/mach-omap2/board-n800.c         |    2 +-
+ arch/arm/mach-omap2/clock24xx.c          |    8 +-
+ arch/arm/mach-omap2/clock34xx.c          |   10 +-
+ arch/arm/mach-omap2/io.c                 |    4 +-
+ arch/arm/plat-omap/Kconfig               |    6 +
+ arch/arm/plat-omap/Makefile              |    2 +
+ arch/arm/plat-omap/fb.c                  |    2 +-
+ arch/arm/plat-omap/include/mach/omapfb.h |  398 ------------------
+ arch/arm/plat-omap/include/mach/vram.h   |   63 +++
+ arch/arm/plat-omap/include/mach/vrfb.h   |   46 ++
+ arch/arm/plat-omap/sram.c                |    8 +
+ arch/arm/plat-omap/vram.c                |  655 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/vrfb.c                |  281 +++++++++++++
+ drivers/video/omap/blizzard.c            |    2 +-
+ drivers/video/omap/dispc.c               |   21 +-
+ drivers/video/omap/hwa742.c              |    2 +-
+ drivers/video/omap/lcd_2430sdp.c         |    2 +-
+ drivers/video/omap/lcd_ams_delta.c       |    2 +-
+ drivers/video/omap/lcd_apollon.c         |    2 +-
+ drivers/video/omap/lcd_h3.c              |    2 +-
+ drivers/video/omap/lcd_h4.c              |    2 +-
+ drivers/video/omap/lcd_inn1510.c         |    2 +-
+ drivers/video/omap/lcd_inn1610.c         |    2 +-
+ drivers/video/omap/lcd_ldp.c             |    2 +-
+ drivers/video/omap/lcd_mipid.c           |    3 +-
+ drivers/video/omap/lcd_omap2evm.c        |    2 +-
+ drivers/video/omap/lcd_omap3beagle.c     |    2 +-
+ drivers/video/omap/lcd_omap3evm.c        |    2 +-
+ drivers/video/omap/lcd_osk.c             |    2 +-
+ drivers/video/omap/lcd_overo.c           |    3 +-
+ drivers/video/omap/lcd_palmte.c          |    2 +-
+ drivers/video/omap/lcd_palmtt.c          |    2 +-
+ drivers/video/omap/lcd_palmz71.c         |    2 +-
+ drivers/video/omap/lcdc.c                |    3 +-
+ drivers/video/omap/omapfb.h              |  227 +++++++++++
+ drivers/video/omap/omapfb_main.c         |    2 +-
+ drivers/video/omap/rfbi.c                |    3 +-
+ drivers/video/omap/sossi.c               |    2 +-
+ include/linux/omapfb.h                   |  197 +++++++++
+ 40 files changed, 1543 insertions(+), 439 deletions(-)
 
-I'm afraid that the patch will only be useful on a recent version of=20
-Kevin's PM branch.
-
-- Paul
---155748971-1283566761-1249297894=:17502--
