@@ -1,49 +1,35 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: Pull Request for OMAP4
-Date: Mon, 3 Aug 2009 14:37:58 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5BF2825@dbde02.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
+Date: Mon, 3 Aug 2009 10:43:47 +0100
+Message-ID: <20090803094346.GA7820@rakim.wolfsonmicro.main>
+References: <200908030332.06727.jkrzyszt@tis.icnet.pl>
+ <20090803112950.3fb6cda9.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51240 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753706AbZHCJIR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 05:08:17 -0400
-Content-Language: en-US
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:47684 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753176AbZHCJns (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 05:43:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20090803112950.3fb6cda9.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King <rmk+kernel@arm.linux.org.uk>, "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, Linux OMAP Users <linux-omap@vger.kernel.org>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
 
-Hi Russell,
+On Mon, Aug 03, 2009 at 11:29:50AM +0300, Jarkko Nikula wrote:
+> Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
 
-Could you please pull four patches below for the upcoming merging window.
+> > +		else
+> > +			/* looks like playback already in progress,
+> > +			 * start capture by taking it out of error condition */
+> > +			omap_mcbsp_pollread(mcbsp_data->bus_id, &buf);
 
-The patches are rebased on commit 4be3bd7849165e7efa6b0b35a23d6a3598d97465:
-  Linus Torvalds (1):        Linux 2.6.31-rc4
+> Minor note: See preferred style for multi-line comments in
+> Documentation/CodingStyle. I'm not 100 % sure about the braces but I
+> think they are also preferred if there are indented comment lines with
+> the single code line.
 
-and available in the git repository at:
-
-git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4_upstream
-
-Summary:
-
-Santosh Shilimkar (1):	
-	OMAP4: sDMA: Update the request lines and new registers.
-Syed Rafiuddin (3):
-      ARM: OMAP4: Add McBSP support
-      ARM: OMAP4: Add UART4 support
-      ARM: OMAP4: Update the GPIO support
-
- arch/arm/mach-omap2/board-4430sdp.c     |    2 +-
- arch/arm/mach-omap2/mcbsp.c             |   41 +++++
- arch/arm/mach-omap2/serial.c            |   10 ++
- arch/arm/plat-omap/gpio.c               |  249 ++++++++++++++++++++++++-------
- arch/arm/plat-omap/include/mach/dma.h   |   88 +++++++++++
- arch/arm/plat-omap/include/mach/mcbsp.h |    8 +-
- arch/arm/plat-omap/mcbsp.c              |    2 +-
- 7 files changed, 346 insertions(+), 54 deletions(-)
-
-Regards,
-Santosh
+Indeed; only omit the braces if the *only* thing in the block is a
+single statement.
