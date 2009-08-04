@@ -1,80 +1,74 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
-	create twl6030 regulators
-Date: Tue, 4 Aug 2009 18:56:13 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8BFF@dbde02.ent.ti.com>
-References: <1248842173-21821-1-git-send-email-balajitk@ti.com>
- <20090803142356.GA4265@rakim.wolfsonmicro.main>
- <20090804074544.GG24334@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8884@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301D8BD1708@dbde02.ent.ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH] ARM: OMAP: TWL4030 IRQ
+Date: Tue, 4 Aug 2009 15:30:44 +0200
+Message-ID: <20090804133041.GC8601@sortiz.org>
+References: <1248674448-17495-1-git-send-email-santosh.shilimkar@ti.com> <20090803163611.GB28606@sortiz.org> <20090803172321.GB32479@flint.arm.linux.org.uk> <20090804105100.GK24334@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301D8BD1708-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org" <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org" <sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org>, "wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org" <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, "timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:18359 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755546AbZHDN2d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Aug 2009 09:28:33 -0400
+Content-Disposition: inline
+In-Reply-To: <20090804105100.GK24334@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King <rmk@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-> -----Original Message-----
-> From: Premi, Sanjeev
-> Sent: Tuesday, August 04, 2009 6:54 PM
-> To: Shilimkar, Santosh; Tony Lindgren; Mark Brown
-> Cc: Krishnamoorthy, Balaji T; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org; david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org; linux-
-> i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org; wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org;
-> timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org; Nayak,
-> Rajendra
-> Subject: RE: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
-> create twl6030 regulators
-> 
-> -----Original Message-----
-> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
-> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Shilimkar, Santosh
-> Sent: Tuesday, August 04, 2009 1:27 PM
-> To: Tony Lindgren; Mark Brown
-> Cc: Krishnamoorthy, Balaji T; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org; david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org; linux-
-> i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org; wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org;
-> timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org; Nayak,
-> Rajendra
-> Subject: RE: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
-> create twl6030 regulators
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
-> > owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Tony Lindgren
-> > Sent: Tuesday, August 04, 2009 1:16 PM
-> > To: Mark Brown
-> > Cc: Krishnamoorthy, Balaji T; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
-> > khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org; david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org; linux-
-> > i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org; wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org;
-> > timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org;
-> Nayak,
-> > Rajendra
-> > Subject: Re: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
-> > create twl6030 regulators
-> >
-> > * Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org> [090803 17:23]:
-> > > On Wed, Jul 29, 2009 at 10:06:13AM +0530, balajitk-l0cyMroinI0@public.gmane.org wrote:
-> > >
-> > > > -	if (twl_has_regulator()) {
-> > > > +	if (twl_has_regulator() && is_class_twl4030()) {
-> > >
-> > > is_class_twl4030() feels like it should have better namespacing,
-> though
-> > > having the part name in there means it's not actually an issue.
-> >
-> > How about twl_is_4030()?
-> The idea was to have a class of twl4030 IC's type IC's. There are many of
-> them with just different name (TPS *)
-> ... twl_class_is_4030().... What you say ?
-> 
-> Can I suggest: pmic_class_is_xxx() ?
-Even better
+Hi Tony,
 
-Regards,
-Santosh
+On Tue, Aug 04, 2009 at 01:51:00PM +0300, Tony Lindgren wrote:
+> * Russell King <rmk@arm.linux.org.uk> [090803 20:26]:
+> > On Mon, Aug 03, 2009 at 06:36:12PM +0200, Samuel Ortiz wrote:
+> > > Hi Santosh,
+> > > 
+> > > On Mon, Jul 27, 2009 at 11:30:48AM +0530, Santosh Shilimkar wrote:
+> > > > From: Russell King <rmk+kernel@arm.linux.org.uk>
+> > > > 
+> > > > (Rebased on 2.6.31-rc4)
+> > > > 
+> > > > The TWL4030 IRQ handler has a bug which leads to spinlock lock-up. It is
+> > > > calling the 'unmask' function in a process context. :The mask/unmask/ack
+> > > > functions are only designed to be called from the IRQ handler code,
+> > > > or the proper API interfaces found in linux/interrupt.h.
+> > > > 
+> > > > Also there is no need to have IRQ chaining mechanism. The right way to
+> > > > handle this is to claim the parent interrupt as a standard interrupt
+> > > > and arrange for handle_twl4030_pih to take care of the rest of the devices.
+> > > I'd like this one to be split in 2 different patches as you're addressing 2
+> > > different issues here.
+> > 
+> > You'd like me to remove the IRQ handling entirely from this code as one
+> > patch, thereby breaking it, and then add the new IRQ handling as a
+> > separate patch?
+> > 
+> > Are you sure?
+> > 
+> > I really don't think so, and I suspect you haven't even read the patch.
+> > 
+> > It's all _one_ issue, with two explainations of why the current code is
+> > wrong.
+> > 
+> > So my reply is: unable to split patch.
+> 
+> Yeah I guess the description "Also there is no need.." above could be
+> just "This is fixed by not using IRQ chaining mechanism" if anything.
+Yep, I was mislead by the description, but I also didnt look at the patch
+carefully enough.
+
+ 
+> Anyways would be nice to get this in as a fix.
+I applied it to my for-next branch for now, and I'll also try to have Linus
+pulling it.
+
+Cheers,
+Samuel.
+
+
+> Acked-by: Tony Lindgren <tony@atomide.com>
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
