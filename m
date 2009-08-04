@@ -1,52 +1,58 @@
-From: "Raj Kumar E" <raj.e.kumar@stericsson.com>
-Subject: Query about zoom2 board
-Date: Tue, 4 Aug 2009 12:47:16 +0200
-Message-ID: <B4F8E3A39D48914A917D366C2F96E7CB01C58F2B@esealmw107.eemea.ericsson.se>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] ARM: OMAP: TWL4030 IRQ
+Date: Tue, 4 Aug 2009 13:51:00 +0300
+Message-ID: <20090804105100.GK24334@atomide.com>
+References: <1248674448-17495-1-git-send-email-santosh.shilimkar@ti.com> <20090803163611.GB28606@sortiz.org> <20090803172321.GB32479@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailgw3.ericsson.se ([193.180.251.60]:59273 "EHLO
-	mailgw3.ericsson.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932433AbZHDKra convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 06:47:30 -0400
-Content-class: urn:content-classes:message
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49681 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932557AbZHDKvO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 06:51:14 -0400
+Content-Disposition: inline
+In-Reply-To: <20090803172321.GB32479@flint.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Russell King <rmk@arm.linux.org.uk>
+Cc: Samuel Ortiz <sameo@linux.intel.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-Hi all, 
+* Russell King <rmk@arm.linux.org.uk> [090803 20:26]:
+> On Mon, Aug 03, 2009 at 06:36:12PM +0200, Samuel Ortiz wrote:
+> > Hi Santosh,
+> > 
+> > On Mon, Jul 27, 2009 at 11:30:48AM +0530, Santosh Shilimkar wrote:
+> > > From: Russell King <rmk+kernel@arm.linux.org.uk>
+> > > 
+> > > (Rebased on 2.6.31-rc4)
+> > > 
+> > > The TWL4030 IRQ handler has a bug which leads to spinlock lock-up. It is
+> > > calling the 'unmask' function in a process context. :The mask/unmask/ack
+> > > functions are only designed to be called from the IRQ handler code,
+> > > or the proper API interfaces found in linux/interrupt.h.
+> > > 
+> > > Also there is no need to have IRQ chaining mechanism. The right way to
+> > > handle this is to claim the parent interrupt as a standard interrupt
+> > > and arrange for handle_twl4030_pih to take care of the rest of the devices.
+> > I'd like this one to be split in 2 different patches as you're addressing 2
+> > different issues here.
+> 
+> You'd like me to remove the IRQ handling entirely from this code as one
+> patch, thereby breaking it, and then add the new IRQ handling as a
+> separate patch?
+> 
+> Are you sure?
+> 
+> I really don't think so, and I suspect you haven't even read the patch.
+> 
+> It's all _one_ issue, with two explainations of why the current code is
+> wrong.
+> 
+> So my reply is: unable to split patch.
 
-I am working on OMAP zoom2 board for USB. I am making the ethernet
-gadget running on the zoom2 board. As all know, There
+Yeah I guess the description "Also there is no need.." above could be
+just "This is fixed by not using IRQ chaining mechanism" if anything.
 
-Are 2 boards one is main board and other is debug board. 
+Anyways would be nice to get this in as a fix.
 
-I did the following configuration: 
-
-Battery connected to main board 
-AC supply to debug board 
-
-Now I am able to see the output on hyper terminal. I have MCCI host side
-USB drivers for Ethernet. 
-So I started the ethernet gadget and did some network configuration on
-zoom2 board. Now How will my host detect this ethernet gadget as when
-
-I am making off the debug board power and insert usb cable(mini-B) on
-OTG port and connecting to my PC host, it is not detecting this gadget.
-
-The other thing is if my board is battery powered and connected to debug
-board( with debug power supply off) and if i insert usb cable mini-B usb
-connector on
-
-Main board and connect this to host, i am getting "Found new hardware
-OMAP 3430" but i did not get USB drivers for that.
-
-I saw the www.omapzoom.org site but i did not find some information. 
-
-Can somebody explain what should i do in order to get this working on
-OMAP zoom2 board. 
-
-Thanks, 
-Raj. 
+Acked-by: Tony Lindgren <tony@atomide.com>
