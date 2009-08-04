@@ -1,78 +1,98 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Tue, 4 Aug 2009 22:46:09 +0200
-Message-ID: <200908042246.09919.jkrzyszt@tis.icnet.pl>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl> <4A76ED80.6040001@tis.icnet.pl> <20090803181405.6249b843.jhnikula@gmail.com>
+From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Subject: RE: [PATCH 2/2] DSPBRIDGE: introduce VMA checking for cache
+ operation
+Date: Tue, 4 Aug 2009 16:59:37 -0500
+Message-ID: <27F9C60D11D683428E133F85D2BB4A5304193E7C55@dlee03.ent.ti.com>
+References: <1248250970-417-1-git-send-email-Hiroshi.DOYU@nokia.com>
+ <1248250970-417-2-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:35181 "EHLO d1.icnet.pl"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53591 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753215AbZHDUqs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Aug 2009 16:46:48 -0400
-In-Reply-To: <20090803181405.6249b843.jhnikula@gmail.com>
-Content-Disposition: inline
+	id S933165AbZHDV7q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 17:59:46 -0400
+In-Reply-To: <1248250970-417-2-git-send-email-Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Arun K S <arunks@mistralsolutions.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Menon, Nishanth" <nm@ti.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
-Monday 03 August 2009 17:14:05 Jarkko Nikula wrote:
-> So it looks that McBSP-DMA for another stream cease to work if there is
-> more than certain delay between first stream start and second one but
-> omap_mcbsp_pollwrite or _pollread will clear the error condition. Can
-> you debug is this due clearing the possible XSYNC_ERR, waiting for
-> transmit/receive confirmation or playing with data registers there?
+Hi Doyu-san,
 
-I have temporarily modified those omap_mcbsp_pollwrite/_pollread() to do 
-nothing but reporting, put them into omap_mcbsp_dai_trigger() as before and 
-additionally into a newly created and registered omap_mcbsp_dai_prepare(), 
-called before omap_start_dma(), and got the following result:
+>From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
+>Sent: Wednesday, July 22, 2009 3:23 AM
+>To: linux-omap@vger.kernel.org
+>Cc: Menon, Nishanth; ameya.palande@nokia.com; Ramirez Luna, Omar; Guzman Lugo, Fernando; Kanigeri,
+>Hari; Hiroshi DOYU
+>Subject: [PATCH 2/2] DSPBRIDGE: introduce VMA checking for cache operation
+>
+>Check if the given area blongs to process virtul memory address space.
+>
+>Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+>---
+> drivers/dsp/bridge/rmgr/proc.c |   32 ++++++++++++++++++++++++++++++++
+> 1 files changed, 32 insertions(+), 0 deletions(-)
+>
 
-For both playback start while capturing and capture start while playing, 
-XSYNC_ERR/RSYNC_ERR is clear and XRDY/RRDY is ready, respectively, both 
-before and after omap_start_dma(). No DMA transfer is actually started, so 
-the operation fails with i/o error.
+Is this patch solving any specific issue?
 
-My interpretation based on my SPRU592 and SPRU674 understanding:
+>diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+>index 3a2879f..fe9dabf 100644
+>--- a/drivers/dsp/bridge/rmgr/proc.c
+>+++ b/drivers/dsp/bridge/rmgr/proc.c
+>@@ -735,6 +735,30 @@ DSP_STATUS PROC_EnumNodes(DSP_HPROCESSOR hProcessor, OUT DSP_HNODE *aNodeTab,
+> 	return status;
+> }
+>
+>+/* Check if the given area blongs to process virtul memory address space */
+>+static int memory_check_vma(unsigned long start, u32 len)
+>+{
+>+	int err = 0;
+>+	unsigned long end;
+>+	struct vm_area_struct *vma;
+>+
+>+	len = PAGE_ALIGN(len);
+>+	end = start + len;
+>+	if (end <= start)
+>+		return -EINVAL;
+>+
+>+	down_read(&current->mm->mmap_sem);
+>+
+>+	vma = find_vma(current->mm, start);
+>+	if (!vma || start < vma->vm_start) {
+>+		pr_err("%s: no vma for %08lx %08lx\n", __func__, start, end);
+>+		err = -EINVAL;
+>+	}
+>+
+>+	up_read(&current->mm->mmap_sem);
+>+
+>+	return err;
+>+}
+>
+> static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
+> 				   u32 ulSize, u32 ulFlags,
+>@@ -757,6 +781,14 @@ static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
+> 		goto err_out;
+> 	}
+>
+>+	if (memory_check_vma((u32)pMpuAddr, ulSize)) {
+>+		GT_3trace(PROC_DebugMask, GT_7CLASS,
+>+			  "%s: InValid address parameters\n",
+>+			  __func__, pMpuAddr, ulSize);
+>+		status = DSP_EHANDLE;
+>+		goto err_out;
+>+	}
+>+
+> 	(void)SYNC_EnterCS(hProcLock);
+> 	MEM_FlushCache(pMpuAddr, ulSize, FlushMemType);
+> 	(void)SYNC_LeaveCS(hProcLock);
+>--
+>1.6.0.4
+>
 
-While starting the first stream, omap_mcbsp_start(), called by 
-omap_mcbsp_dai_trigger(), instructs McBSP to start shifting bits in both 
-directions, no matter which one has just been requested. After that, the 
-direction, for which a corresponding DMA transfer has just been started from 
-omap_pcm_trigger() with omap_start_dma(), starts doing its job, while the 
-opposite direction, after shifting in one word in case of capture, issues a 
-DMA event that is missed and waits for an I/O to occur.
+Regards,
 
-Then, when omap_pcm_trigger() starts DMA for the opposite direction, the DMA 
-controller, configured for synchronized transfer, waits for a corresponding 
-DMA event before it performs its first I/O operation. That event already 
-occurred far before and will not occur again, so the transfer will not start 
-without any intervention. This time, omap_mcbsp_start() is not called again 
-for an already started hardware action (correct), so there is no chance for 
-the transfer to start that way.
-
-With my patch, performing an I/O operation by calling 
-omap_mcbsp_pollwrite/_pollread() forces McBSP to issue next DMA event, that 
-initiates the transfer.
-
-While starting both streams (semi)simultaneously, it may happen that the DMA 
-event for the opposite direction will occur after the DMA has just been 
-started for that direction as well and will not be missed, so both streams 
-will run correctly.
-
-Does it make sense, or am I missing something?
-
-If my analysis is correct, the best solution I can see would be starting McBSP 
-transfer for one direction only, not both, so the opposite direction can be 
-started when needed. That requires deeper and wider OMAP knowledge and a 
-change in omap_mcbsp_start() API though. I am not in a position to deal with 
-this myself, I'm afraid.
-
-Thanks,
-Janusz
-
-PS: Not CCing arch/arm/plat-omap/mcbsp.c author as his email address is 
-probably out-of-date.
+Omar
