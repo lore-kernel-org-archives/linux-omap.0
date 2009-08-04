@@ -1,54 +1,66 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC PATCH] OMAP3:PM: Fix OPP scale logic
-Date: Tue, 4 Aug 2009 08:11:15 -0500
-Message-ID: <4A783373.8010009@ti.com>
-References: <1249306912-12099-1-git-send-email-nm@ti.com> <4A77EAB6.3070208@nokia.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
+	create twl6030 regulators
+Date: Tue, 4 Aug 2009 18:54:21 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D8BD1708@dbde02.ent.ti.com>
+References: <1248842173-21821-1-git-send-email-balajitk@ti.com>
+ <20090803142356.GA4265@rakim.wolfsonmicro.main>
+ <20090804074544.GG24334@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8884@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43277 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:44060 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751247AbZHDNLX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Aug 2009 09:11:23 -0400
-In-Reply-To: <4A77EAB6.3070208@nokia.com>
+	id S1755518AbZHDNZD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 09:25:03 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8884@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <ext-roger.quadros@nokia.com>
-Cc: Kevin <khilman@deeprootsystems.com>, Paul <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "sameo@openedhand.com" <sameo@openedhand.com>, "wim@iguana.be" <wim@iguana.be>, "timo.t.kokkonen@nokia.com" <timo.t.kokkonen@nokia.com>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "Nayak, Rajendra" <rnayak@ti.com>
 
-Roger Quadros had written, on 08/04/2009 03:00 AM, the following:
-> ext Nishanth Menon wrote:
->> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
->> index 25535a3..1ceaed8 100644
->> --- a/arch/arm/mach-omap2/resource34xx.c
->> +++ b/arch/arm/mach-omap2/resource34xx.c
->> @@ -240,13 +240,23 @@ static int program_opp_freq(int res, int target_level, int current_level)
->>  	lock_scratchpad_sem();
->>  	if (res == VDD1_OPP) {
->>  		curr_opp = &curr_vdd1_opp;
->> -		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
->> -		clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
->> +		ret = clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
->> +		if (unlikely(ret))
->> +			return ret;
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
+Sent: Tuesday, August 04, 2009 1:27 PM
+To: Tony Lindgren; Mark Brown
+Cc: Krishnamoorthy, Balaji T; linux-omap@vger.kernel.org; khilman@deeprootsystems.com; david-b@pacbell.net; linux-i2c@vger.kernel.org; sameo@openedhand.com; wim@iguana.be; timo.t.kokkonen@nokia.com; ben-linux@fluff.org; lrg@slimlogic.co.uk; Nayak, Rajendra
+Subject: RE: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to create twl6030 regulators
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> Sent: Tuesday, August 04, 2009 1:16 PM
+> To: Mark Brown
+> Cc: Krishnamoorthy, Balaji T; linux-omap@vger.kernel.org;
+> khilman@deeprootsystems.com; david-b@pacbell.net; linux-
+> i2c@vger.kernel.org; sameo@openedhand.com; wim@iguana.be;
+> timo.t.kokkonen@nokia.com; ben-linux@fluff.org; lrg@slimlogic.co.uk; Nayak,
+> Rajendra
+> Subject: Re: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
+> create twl6030 regulators
 > 
-> if we return here we're not calling unlock_scratchpad_sem(). if you remove the 
-> return statement the expected functionality will be achieved by the next if(ret) 
-> statement.
-yep. my bad.. thanks.. will fix and resend.
+> * Mark Brown <broonie@opensource.wolfsonmicro.com> [090803 17:23]:
+> > On Wed, Jul 29, 2009 at 10:06:13AM +0530, balajitk@ti.com wrote:
+> >
+> > > -	if (twl_has_regulator()) {
+> > > +	if (twl_has_regulator() && is_class_twl4030()) {
+> >
+> > is_class_twl4030() feels like it should have better namespacing, though
+> > having the part name in there means it's not actually an issue.
 > 
-> looks like you are changing the return behaviour from opp level to 0/1. You 
-> should explain this in a function header comment.
-This function does not have a function header comment. this information 
-is already part of the patch header. Quote:"
-This changes program_freq_opp return type in the process
-for program_opp to handle error in a consistent
-manner.
-"
+> How about twl_is_4030()?
+The idea was to have a class of twl4030 IC's type IC's. There are many of them with just different name (TPS *)
+... twl_class_is_4030().... What you say ?
 
-Will send out a rev2 based on comment 1 (unlock_scratchpad_sem).
+Can I suggest: pmic_class_is_xxx() ?
 
--- 
 Regards,
-Nishanth Menon
+Santosh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
