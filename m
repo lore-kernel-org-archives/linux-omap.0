@@ -1,35 +1,45 @@
-From: Ben Goska <goskab@onid.oregonstate.edu>
-Subject: arch/arm/mach-omap* organization
-Date: Mon, 03 Aug 2009 15:23:36 -0700
-Message-ID: <4A776368.1010503@onid.oregonstate.edu>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: arch/arm/mach-omap* organization
+Date: Tue, 4 Aug 2009 10:05:27 +0300
+Message-ID: <20090804070526.GD24334@atomide.com>
+References: <4A776368.1010503@onid.oregonstate.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp2.oregonstate.edu ([128.193.15.36]:46125 "EHLO
-	smtp2.oregonstate.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553AbZHCWxg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 3 Aug 2009 18:53:36 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.oregonstate.edu (Postfix) with ESMTP id 595563C592
-	for <linux-omap@vger.kernel.org>; Mon,  3 Aug 2009 15:23:37 -0700 (PDT)
-Received: from smtp2.oregonstate.edu ([127.0.0.1])
-	by localhost (smtp.oregonstate.edu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id kTCqcYBa-YaB for <linux-omap@vger.kernel.org>;
-	Mon,  3 Aug 2009 15:23:37 -0700 (PDT)
-Received: from [128.193.61.28] (128-193-61-28.public.oregonstate.edu [128.193.61.28])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp2.oregonstate.edu (Postfix) with ESMTP id 349703C57E
-	for <linux-omap@vger.kernel.org>; Mon,  3 Aug 2009 15:23:37 -0700 (PDT)
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63528 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932462AbZHDHFa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 03:05:30 -0400
+Content-Disposition: inline
+In-Reply-To: <4A776368.1010503@onid.oregonstate.edu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Ben Goska <goskab@onid.oregonstate.edu>
+Cc: linux-omap@vger.kernel.org
 
-Is there a reason why omap2, omap3, and now omap4 files are all packed 
-into the mach-omap2 directory?
+* Ben Goska <goskab@onid.oregonstate.edu> [090804 01:53]:
+> Is there a reason why omap2, omap3, and now omap4 files are all packed  
+> into the mach-omap2 directory?
+>
+> It seems like it would make more sense for each omap version to have  
+> it's own directory.
 
-It seems like it would make more sense for each omap version to have 
-it's own directory.
+Majority of the mach-omap2 code is shared across them.
 
--Ben Goska
+For example, the initial patch to add minimal omap3 support on top of
+the omap2 code was about 500 lines of diff. The situation was pretty
+much the same to add minimal omap4 support on top of omap3.
+
+If we wanted to, in the long run we could move more of the shared
+code to plat-omap, and just keep board-*.c files under each mach-*
+directory.
+
+But before we start doing rearranging like that we should first
+concentrate on more important things, such as getting all the
+PM code into the mainline, getting clock framework up and running
+for omap4, get rid of IO_ADDRESS macros and omap_read/write and so
+on.
+
+Regards,
+
+Tony
