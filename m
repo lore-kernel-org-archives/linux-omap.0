@@ -1,74 +1,141 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH] ARM: OMAP: TWL4030 IRQ
-Date: Tue, 4 Aug 2009 15:30:44 +0200
-Message-ID: <20090804133041.GC8601@sortiz.org>
-References: <1248674448-17495-1-git-send-email-santosh.shilimkar@ti.com> <20090803163611.GB28606@sortiz.org> <20090803172321.GB32479@flint.arm.linux.org.uk> <20090804105100.GK24334@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [RFC][PATCH v2] OMAP3:PM: Fix OPP scale logic
+Date: Tue,  4 Aug 2009 08:29:55 -0500
+Message-ID: <1249392595-18758-1-git-send-email-nm@ti.com>
+References: <[RFC PATCH] OMAP3:PM: Fix OPP scale logic>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:18359 "EHLO mga09.intel.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50292 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755546AbZHDN2d (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Aug 2009 09:28:33 -0400
-Content-Disposition: inline
-In-Reply-To: <20090804105100.GK24334@atomide.com>
+	id S932161AbZHDNaD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Aug 2009 09:30:03 -0400
+In-Reply-To: <[RFC PATCH] OMAP3:PM: Fix OPP scale logic>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Russell King <rmk@arm.linux.org.uk>, Santosh Shilimkar <santosh.shilimkar@ti.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: Kevin <khilman@deeprootsystems.com>
+Cc: Paul <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-Hi Tony,
+Rev 2 of the patch:
+Ref: http://marc.info/?t=124930700200005&r=1&w=2
 
-On Tue, Aug 04, 2009 at 01:51:00PM +0300, Tony Lindgren wrote:
-> * Russell King <rmk@arm.linux.org.uk> [090803 20:26]:
-> > On Mon, Aug 03, 2009 at 06:36:12PM +0200, Samuel Ortiz wrote:
-> > > Hi Santosh,
-> > > 
-> > > On Mon, Jul 27, 2009 at 11:30:48AM +0530, Santosh Shilimkar wrote:
-> > > > From: Russell King <rmk+kernel@arm.linux.org.uk>
-> > > > 
-> > > > (Rebased on 2.6.31-rc4)
-> > > > 
-> > > > The TWL4030 IRQ handler has a bug which leads to spinlock lock-up. It is
-> > > > calling the 'unmask' function in a process context. :The mask/unmask/ack
-> > > > functions are only designed to be called from the IRQ handler code,
-> > > > or the proper API interfaces found in linux/interrupt.h.
-> > > > 
-> > > > Also there is no need to have IRQ chaining mechanism. The right way to
-> > > > handle this is to claim the parent interrupt as a standard interrupt
-> > > > and arrange for handle_twl4030_pih to take care of the rest of the devices.
-> > > I'd like this one to be split in 2 different patches as you're addressing 2
-> > > different issues here.
-> > 
-> > You'd like me to remove the IRQ handling entirely from this code as one
-> > patch, thereby breaking it, and then add the new IRQ handling as a
-> > separate patch?
-> > 
-> > Are you sure?
-> > 
-> > I really don't think so, and I suspect you haven't even read the patch.
-> > 
-> > It's all _one_ issue, with two explainations of why the current code is
-> > wrong.
-> > 
-> > So my reply is: unable to split patch.
-> 
-> Yeah I guess the description "Also there is no need.." above could be
-> just "This is fixed by not using IRQ chaining mechanism" if anything.
-Yep, I was mislead by the description, but I also didnt look at the patch
-carefully enough.
+While switching from higher OPP to lower OPP,
+current scale logic can fail by switching to lower
+voltage while frequency remains at old value.
 
+This patch adds a cleaner recovery logic and
+additional freq dpll checks. This changes
+program_freq_opp return type in the process
+for program_opp to handle error in a consistent
+manner.
+
+NOTE: I moved the *cur_opp setting to under the
+scratchpad locked region to allow for code
+simplicity - I wonder if anyone sees an issue with it
+
+Tested on:rx-51, ported to pm branch - untested linux-omap
+Patch generated on linux-omap pm branch, commit:
+7e7377395d6b4576341a6939bf2179f3946f2ea0
+
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/resource34xx.c |   61 +++++++++++++++++++++++++++---------
+ 1 files changed, 46 insertions(+), 15 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+index 25535a3..83241c4 100644
+--- a/arch/arm/mach-omap2/resource34xx.c
++++ b/arch/arm/mach-omap2/resource34xx.c
+@@ -240,13 +240,23 @@ static int program_opp_freq(int res, int target_level, int current_level)
+ 	lock_scratchpad_sem();
+ 	if (res == VDD1_OPP) {
+ 		curr_opp = &curr_vdd1_opp;
+-		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
+-		clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
++		ret = clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
++		if (unlikely(ret))
++			goto out;
++
++		ret = clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
++		if (unlikely(ret))
++			/* reset the dpll1 if failed */
++			clk_set_rate(dpll1_clk, mpu_opps[current_level].rate);
+ #ifndef CONFIG_CPU_FREQ
+-		/*Update loops_per_jiffy if processor speed is being changed*/
+-		loops_per_jiffy = compute_lpj(loops_per_jiffy,
+-			mpu_opps[current_level].rate/1000,
+-			mpu_opps[target_level].rate/1000);
++		else
++			/*
++			 * Update loops_per_jiffy if processor speed
++			 * is being changed
++			 */
++			loops_per_jiffy = compute_lpj(loops_per_jiffy,
++				mpu_opps[current_level].rate/1000,
++				mpu_opps[target_level].rate/1000);
+ #endif
+ 	} else {
+ 		curr_opp = &curr_vdd2_opp;
+@@ -255,17 +265,16 @@ static int program_opp_freq(int res, int target_level, int current_level)
+ 		ret = clk_set_rate(dpll3_clk,
+ 				l3_opps[target_level].rate * l3_div);
+ 	}
+-	if (ret) {
+-		unlock_scratchpad_sem();
+-		return current_level;
+-	}
++out:
++	if (!ret) {
+ #ifdef CONFIG_PM
+-	omap3_save_scratchpad_contents();
++		omap3_save_scratchpad_contents();
++		*curr_opp = target_level;
+ #endif
++	}
+ 	unlock_scratchpad_sem();
  
-> Anyways would be nice to get this in as a fix.
-I applied it to my for-next branch for now, and I'll also try to have Linus
-pulling it.
-
-Cheers,
-Samuel.
-
-
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
+-	*curr_opp = target_level;
+-	return target_level;
++	return ret;
+ }
+ 
+ static int program_opp(int res, struct omap_opp *opp, int target_level,
+@@ -289,13 +298,35 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
+ 					current_level);
+ #ifdef CONFIG_OMAP_SMARTREFLEX
+ 		else
+-			sr_voltagescale_vcbypass(t_opp, c_opp,
++			ret = sr_voltagescale_vcbypass(t_opp, c_opp,
+ 				opp[target_level].vsel,
+ 				opp[current_level].vsel);
++		if (ret) {
++			int ret1 = 0;
++			/*
++			 * If something did not work, put me back to old state.
++			 * Recover the other guy if at least 1 prev iteration
++			 * had run
++			 */
++			if (i && raise)
++				ret1 = sr_voltagescale_vcbypass(c_opp, t_opp,
++					opp[current_level].vsel,
++					opp[target_level].vsel);
++			else if (i)
++				ret1 = program_opp_freq(res, current_level,
++						target_level);
++			/*
++			 * If I could not reset my old state back.. system
++			 * is no longer in a controlled state.. bug me
++			 */
++			if (unlikely(ret1))
++				BUG();
++			break;
++		}
+ #endif
+ 	}
+ 
+-	return ret;
++	return (res == PRCM_VDD1) ?  curr_vdd1_opp : curr_vdd2_opp;
+ }
+ 
+ int resource_set_opp_level(int res, u32 target_level, int flags)
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+1.5.4.3
+
