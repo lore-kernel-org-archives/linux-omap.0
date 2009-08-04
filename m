@@ -1,98 +1,99 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH 2/2] DSPBRIDGE: introduce VMA checking for cache
- operation
-Date: Tue, 4 Aug 2009 16:59:37 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A5304193E7C55@dlee03.ent.ti.com>
-References: <1248250970-417-1-git-send-email-Hiroshi.DOYU@nokia.com>
- <1248250970-417-2-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Mike Booth <mike_booth76@iprimus.com.au>
+Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
+Date: Wed, 5 Aug 2009 08:15:17 +1000
+Message-ID: <200908050815.18049.mike_booth76@iprimus.com.au>
+References: <200908040912.24718.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53591 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933165AbZHDV7q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 17:59:46 -0400
-In-Reply-To: <1248250970-417-2-git-send-email-Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
+Content-Disposition: inline
+Sender: linux-media-owner@vger.kernel.org
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Menon, Nishanth" <nm@ti.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
 
-Hi Doyu-san,
+On Wed, 5 Aug 2009 03:13:29 Hiremath, Vaibhav wrote:
+> > -----Original Message-----
+> > From: davinci-linux-open-source-bounces@linux.davincidsp.com
+> > [mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On
+> > Behalf Of Hans Verkuil
+> > Sent: Tuesday, August 04, 2009 12:42 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: eduardo.valentin@nokia.com; davinci-linux-open-
+> > source@linux.davincidsp.com; linux-omap@vger.kernel.org; Magnus
+> > Damm; Dongsoo, Nathaniel Kim
+> > Subject: Linux Plumbers Conference 2009: V4L2 API discussions
+> >
+> > Hi all,
+> >
+> > During this years Plumbers Conference I will be organizing a session
+> > (or
+> > possibly more than one) on what sort of new V4L2 APIs are needed to
+> > support the new SoC devices. These new APIs should also solve the
+> > problem
+> > of how to find all the related alsa/fb/ir/dvb devices that a typical
+> > video
+> > device might create.
+> >
+> > A proposal was made about a year ago (note that this is a bit
+> > outdated
+> > by now, but the basics are still valid):
+> >
+> > http://www.archivum.info/video4linux-list%40redhat.com/2008-
+> > 07/msg00371.html
+> >
+> > In the past year the v4l2 core has evolved enough so that we can
+> > finally
+> > start thinking about this for real.
+> >
+> > I would like to know who will be attending this conference. I also
+> > urge
+> > anyone who is working in this area and who wants to have a say in
+> > this to
+> > attend the conference. The goal is to prepare a new RFC with a
+> > detailed
+> > proposal on the new APIs that are needed to fully support all the
+> > new
+> > SoCs. So the more input we get, the better the end-result will be.
+>
+> [Hiremath, Vaibhav] Hi Hans,
+>
+> I will be attending the conference and along with above mentioned RFC I
+> would want to discuss some of the open issues, forthcoming TI devices,
+> their complexity and required software interfaces (media processor (as you
+> mentioned above)) and similar stuff.
+>
+> I will work with you offline before sharing the details here with the
+> community.
+>
+> Thanks,
+> Vaibhav Hiremath
+>
+> > Early-bird registration is still possible up to August 5th (that's
+> > tomorrow :-) ).
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> > --
+> > Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> >
+> > _______________________________________________
+> > Davinci-linux-open-source mailing list
+> > Davinci-linux-open-source@linux.davincidsp.com
+> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-
+> > source
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
->From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com]
->Sent: Wednesday, July 22, 2009 3:23 AM
->To: linux-omap@vger.kernel.org
->Cc: Menon, Nishanth; ameya.palande@nokia.com; Ramirez Luna, Omar; Guzman Lugo, Fernando; Kanigeri,
->Hari; Hiroshi DOYU
->Subject: [PATCH 2/2] DSPBRIDGE: introduce VMA checking for cache operation
->
->Check if the given area blongs to process virtul memory address space.
->
->Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
->---
-> drivers/dsp/bridge/rmgr/proc.c |   32 ++++++++++++++++++++++++++++++++
-> 1 files changed, 32 insertions(+), 0 deletions(-)
->
+does this mean that the definition of "howto" signal to noise and signal 
+strength might get fixed up?
 
-Is this patch solving any specific issue?
-
->diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
->index 3a2879f..fe9dabf 100644
->--- a/drivers/dsp/bridge/rmgr/proc.c
->+++ b/drivers/dsp/bridge/rmgr/proc.c
->@@ -735,6 +735,30 @@ DSP_STATUS PROC_EnumNodes(DSP_HPROCESSOR hProcessor, OUT DSP_HNODE *aNodeTab,
-> 	return status;
-> }
->
->+/* Check if the given area blongs to process virtul memory address space */
->+static int memory_check_vma(unsigned long start, u32 len)
->+{
->+	int err = 0;
->+	unsigned long end;
->+	struct vm_area_struct *vma;
->+
->+	len = PAGE_ALIGN(len);
->+	end = start + len;
->+	if (end <= start)
->+		return -EINVAL;
->+
->+	down_read(&current->mm->mmap_sem);
->+
->+	vma = find_vma(current->mm, start);
->+	if (!vma || start < vma->vm_start) {
->+		pr_err("%s: no vma for %08lx %08lx\n", __func__, start, end);
->+		err = -EINVAL;
->+	}
->+
->+	up_read(&current->mm->mmap_sem);
->+
->+	return err;
->+}
->
-> static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
-> 				   u32 ulSize, u32 ulFlags,
->@@ -757,6 +781,14 @@ static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
-> 		goto err_out;
-> 	}
->
->+	if (memory_check_vma((u32)pMpuAddr, ulSize)) {
->+		GT_3trace(PROC_DebugMask, GT_7CLASS,
->+			  "%s: InValid address parameters\n",
->+			  __func__, pMpuAddr, ulSize);
->+		status = DSP_EHANDLE;
->+		goto err_out;
->+	}
->+
-> 	(void)SYNC_EnterCS(hProcLock);
-> 	MEM_FlushCache(pMpuAddr, ulSize, FlushMemType);
-> 	(void)SYNC_LeaveCS(hProcLock);
->--
->1.6.0.4
->
-
-Regards,
-
-Omar
+Mike
