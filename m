@@ -1,62 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: VDD2 setting question
-Date: Tue, 4 Aug 2009 05:31:28 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908040510590.14005@utopia.booyaka.com>
-References: <3DB2B9F4-7903-47BA-9E66-1E34C512A3FD@student.utwente.nl>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: ISP buffer issue
+Date: Tue, 04 Aug 2009 06:00:42 -0600
+Message-ID: <4A7822EA.2020300@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:43964 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754472AbZHDLb3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 07:31:29 -0400
-In-Reply-To: <3DB2B9F4-7903-47BA-9E66-1E34C512A3FD@student.utwente.nl>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:4775 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754530AbZHDMAs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 08:00:48 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Hello Koen,
+I'm having trouble with the OMAP3 camera (ISP) support when
+I have a large sensor.  I'm working with a 3M CCD sensor which
+has a native resolution of 2048x1536.  The problem is when I
+run V4L2 code which tries to allocate & map buffers for input
+streaming.  If the frame is much bigger than PAL size (720x576)
+the system hangs.
 
-On Mon, 3 Aug 2009, Koen Kooi wrote:
+I traced this into the ISP layer and found that when the
+buffer being allocated is over 1MB, this happens:
+  isp_tmp_buf_alloc: allocating 1531904 bytes
+which eventually fails in iommu_vmalloc()
 
-> I'm to trying to lower VDD2 on beagleboard to something slightly below 1V
-> instead of the current slightly above 1V setting, but I'm having a hard time
-> figuring out how to do that in the linux-omap (non-PM) tree.
-> I grepped in (admittedly 2.6.29) arch/arm/mach-omap2 and it only returned hits
-> that seem to be related to smartreflex. 
+Looking at the code, there seems to be some magic here - the
+buffer allocation falls over if the request is large.  I'm
+working from this code:
+  http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git
+starting from commit (ti_display head on 2009-07-23)
+  6810d6d683e768c3bc6b5647c214804045665e22
 
-It should be possible to backport sr_voltagescale_vcbypass() from the PM 
-branch smartreflex.c file.  Despite the location, there's not much that 
-has to do with SmartReflex.
+Ideas?
 
-> Now, enabling smartreflex would accomplish my goal if the beagleboards 
-> had there efuses blown, which they didn't and the debug values make some 
-> of my boards lock up :( So the questions I have are:
-> 
-> o How do I lower VDD2 in the non-PM kernel, should I be doing it in uboot or
-> in the kernel?
->
-> o For the PM kernel, where should I go patching the VDD2 reference value?
+Thanks
 
-You can copy the table you want to modify from mach-omap2/omap3-opp.h into 
-the particular board file, then tinker with the values appropriately.  
-
-Do you just want to run at VDD2 OPP1?  That entry is already in the 
-omap3-opp.h file and is probably <1 Vdc.  Just FYI, there are some system 
-devices that are known to not work at this OPP; I think it is either EHCI 
-or MUSB.
-
-> And the most important question:
-> 
-> o Would a patch to lower the default value of VDD2 be accepted into the tree?
-> Can it be lowered globally or should it be guarded with an
-> machine_is_omap3beagle() clause?
-
-Probably there would be a strong desire to use the OPP levels from the TI 
-Data Manual Operating Condition Addenda, since TI has apparently done some 
-validation on these levels, and let people patch their own custom values 
-in their own trees if they wanted to run at something unusual.
-
-
-- Paul
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
