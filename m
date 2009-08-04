@@ -1,45 +1,46 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: arch/arm/mach-omap* organization
-Date: Tue, 4 Aug 2009 10:05:27 +0300
-Message-ID: <20090804070526.GD24334@atomide.com>
-References: <4A776368.1010503@onid.oregonstate.edu>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Linux Plumbers Conference 2009: V4L2 API discussions
+Date: Tue, 4 Aug 2009 09:12:24 +0200
+Message-ID: <200908040912.24718.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63528 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932462AbZHDHFa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 03:05:30 -0400
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4A776368.1010503@onid.oregonstate.edu>
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com, linux-omap@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>, "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>, eduardo.valentin@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: Ben Goska <goskab@onid.oregonstate.edu>
-Cc: linux-omap@vger.kernel.org
 
-* Ben Goska <goskab@onid.oregonstate.edu> [090804 01:53]:
-> Is there a reason why omap2, omap3, and now omap4 files are all packed  
-> into the mach-omap2 directory?
->
-> It seems like it would make more sense for each omap version to have  
-> it's own directory.
+Hi all,
 
-Majority of the mach-omap2 code is shared across them.
+During this years Plumbers Conference I will be organizing a session (or
+possibly more than one) on what sort of new V4L2 APIs are needed to
+support the new SoC devices. These new APIs should also solve the problem
+of how to find all the related alsa/fb/ir/dvb devices that a typical video
+device might create.
 
-For example, the initial patch to add minimal omap3 support on top of
-the omap2 code was about 500 lines of diff. The situation was pretty
-much the same to add minimal omap4 support on top of omap3.
+A proposal was made about a year ago (note that this is a bit outdated
+by now, but the basics are still valid):
 
-If we wanted to, in the long run we could move more of the shared
-code to plat-omap, and just keep board-*.c files under each mach-*
-directory.
+http://www.archivum.info/video4linux-list%40redhat.com/2008-07/msg00371.html
 
-But before we start doing rearranging like that we should first
-concentrate on more important things, such as getting all the
-PM code into the mainline, getting clock framework up and running
-for omap4, get rid of IO_ADDRESS macros and omap_read/write and so
-on.
+In the past year the v4l2 core has evolved enough so that we can finally
+start thinking about this for real.
+
+I would like to know who will be attending this conference. I also urge
+anyone who is working in this area and who wants to have a say in this to
+attend the conference. The goal is to prepare a new RFC with a detailed
+proposal on the new APIs that are needed to fully support all the new
+SoCs. So the more input we get, the better the end-result will be.
+
+Early-bird registration is still possible up to August 5th (that's
+tomorrow :-) ).
 
 Regards,
 
-Tony
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
