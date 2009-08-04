@@ -1,167 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS2 Video Overlay Scaling Patch
-Date: Tue, 04 Aug 2009 14:06:15 +0300
-Message-ID: <4A781627.2060405@nokia.com>
-References: <84FF2D40FEDEB74A98203E6EA01A4E1C059446C7@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446CD@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446D0@de01exm63.ds.mot.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: VDD2 setting question
+Date: Tue, 4 Aug 2009 05:31:28 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908040510590.14005@utopia.booyaka.com>
+References: <3DB2B9F4-7903-47BA-9E66-1E34C512A3FD@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020506040700050409060509"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32986 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831AbZHDLGW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 07:06:22 -0400
-In-Reply-To: <84FF2D40FEDEB74A98203E6EA01A4E1C059446D0@de01exm63.ds.mot.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:43964 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754472AbZHDLb3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 07:31:29 -0400
+In-Reply-To: <3DB2B9F4-7903-47BA-9E66-1E34C512A3FD@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Fischer Steven-P27614 <Steven.Fischer@motorola.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020506040700050409060509
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello Koen,
 
-Hi,
+On Mon, 3 Aug 2009, Koen Kooi wrote:
 
-ext Fischer Steven-P27614 wrote:
-> Ugh, messed up morning, forgot the patch as well :(
+> I'm to trying to lower VDD2 on beagleboard to something slightly below 1V
+> instead of the current slightly above 1V setting, but I'm having a hard time
+> figuring out how to do that in the linux-omap (non-PM) tree.
+> I grepped in (admittedly 2.6.29) arch/arm/mach-omap2 and it only returned hits
+> that seem to be related to smartreflex. 
+
+It should be possible to backport sr_voltagescale_vcbypass() from the PM 
+branch smartreflex.c file.  Despite the location, there's not much that 
+has to do with SmartReflex.
+
+> Now, enabling smartreflex would accomplish my goal if the beagleboards 
+> had there efuses blown, which they didn't and the debug values make some 
+> of my boards lock up :( So the questions I have are:
 > 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
-> Steven-P27614
-> Sent: Tuesday, July 07, 2009 8:05 AM
-> To: linux-omap@vger.kernel.org
-> Subject: RE: DSS2 Video Overlay Scaling Patch
+> o How do I lower VDD2 in the non-PM kernel, should I be doing it in uboot or
+> in the kernel?
+>
+> o For the PM kernel, where should I go patching the VDD2 reference value?
+
+You can copy the table you want to modify from mach-omap2/omap3-opp.h into 
+the particular board file, then tinker with the values appropriately.  
+
+Do you just want to run at VDD2 OPP1?  That entry is already in the 
+omap3-opp.h file and is probably <1 Vdc.  Just FYI, there are some system 
+devices that are known to not work at this OPP; I think it is either EHCI 
+or MUSB.
+
+> And the most important question:
 > 
-> Sorry, missed the subject line.
-> 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
-> Steven-P27614
-> Sent: Tuesday, July 07, 2009 7:54 AM
-> To: linux-omap@vger.kernel.org
-> Subject: 
-> 
-> All,
->  
-> The DSS2 code base seems to inadvertently prevent downscaling of video
-> overlay frames.  Attached is my attempt at a patch to resolve this
-> issue.
->  
-> As I gather from the code, there is an attempt to limit the overlay
-> output frame size (x, y, outw, outh) to the managers updated window
-> (mc->x, mc->y, mc->w, mc->h).  The problem is that the input frame size
-> (w & h) is being used to instead of the output frame size (outw, outh).
-> Due to this, when the input frame size is large than the output frame
-> size, the input frame is being cropped, thus no downscaling occurs.  My
-> patch corrects this issue and also attempts to properly scale the input
-> frame size if indeed the output frame is cropped.
->  
-> In my particular case, the output frame size is never cropped, so I have
-> not explicitly tested these equations, but I believe they are
-> mathematically correct.
->  
-> With this patch overlay downscaling is functional.
->  
+> o Would a patch to lower the default value of VDD2 be accepted into the tree?
+> Can it be lowered globally or should it be guarded with an
+> machine_is_omap3beagle() clause?
 
-It was indeed slightly broken. The code is there because we cannot use 
-partial update for scaled overlays, but we need to update the whole 
-overlay. Otherwise there could be visual errors on the screen.
-
-However, your patch didn't apply to my tree, and I think it can be 
-solved in slightly more clear way. If the overlay in question is scaled, 
-we don't even need to run that code. All we have to do is to adjust x/y 
-depending on the x/y of the update area.
-
-Here's a patch, can you check if it works for you?
-
-  Tomi
+Probably there would be a strong desire to use the OPP levels from the TI 
+Data Manual Operating Condition Addenda, since TI has apparently done some 
+validation on these levels, and let people patch their own custom values 
+in their own trees if they wanted to run at something unusual.
 
 
---------------020506040700050409060509
-Content-Type: text/x-patch;
- name="0001-DSS2-fix-downscaling-with-manual-update.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="0001-DSS2-fix-downscaling-with-manual-update.patch"
-
->From 0bd1ee54051fa6b890a9a8b558f8f734ac0303e9 Mon Sep 17 00:00:00 2001
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Date: Tue, 4 Aug 2009 13:59:54 +0300
-Subject: [PATCH] DSS2: fix downscaling with manual update
-
-Updating a downscaled overlay caused out_width/height to
-be adjusted wrongly in certain cases.
-
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
----
- drivers/video/omap2/dss/manager.c |   47 +++++++++++++++++++++---------------
- 1 files changed, 27 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/video/omap2/dss/manager.c b/drivers/video/omap2/dss/manager.c
-index 7b8e556..c77212b 100644
---- a/drivers/video/omap2/dss/manager.c
-+++ b/drivers/video/omap2/dss/manager.c
-@@ -755,29 +755,36 @@ static int configure_overlay(enum omap_plane plane)
- 			BUG();
- 		}
- 
--		if (mc->x > c->pos_x) {
--			x = 0;
--			w -= (mc->x - c->pos_x);
--			paddr += (mc->x - c->pos_x) * bpp / 8;
--		} else {
-+		if (dispc_is_overlay_scaled(c)) {
-+			/* If the overlay is scaled, the update area has already been
-+			 * enlarged to cover the whole overlay. We only need to adjust
-+			 * x/y here */
- 			x = c->pos_x - mc->x;
--		}
--
--		if (mc->y > c->pos_y) {
--			y = 0;
--			h -= (mc->y - c->pos_y);
--			paddr += (mc->y - c->pos_y) * c->screen_width * bpp / 8;
--		} else {
- 			y = c->pos_y - mc->y;
--		}
-+		} else {
-+			if (mc->x > c->pos_x) {
-+				x = 0;
-+				w -= (mc->x - c->pos_x);
-+				paddr += (mc->x - c->pos_x) * bpp / 8;
-+			} else {
-+				x = c->pos_x - mc->x;
-+			}
-+
-+			if (mc->y > c->pos_y) {
-+				y = 0;
-+				h -= (mc->y - c->pos_y);
-+				paddr += (mc->y - c->pos_y) * c->screen_width *
-+					bpp / 8;
-+			} else {
-+				y = c->pos_y - mc->y;
-+			}
- 
--		if (mc->w < (x+w))
--			w -= (x+w) - (mc->w);
-+			if (mc->w < (x+w))
-+				w -= (x+w) - (mc->w);
- 
--		if (mc->h < (y+h))
--			h -= (y+h) - (mc->h);
-+			if (mc->h < (y+h))
-+				h -= (y+h) - (mc->h);
- 
--		if (!dispc_is_overlay_scaled(c)) {
- 			outw = w;
- 			outh = h;
- 		}
--- 
-1.6.3.2
-
-
---------------020506040700050409060509--
+- Paul
