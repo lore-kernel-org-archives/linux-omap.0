@@ -1,128 +1,78 @@
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: RE: Linux Plumbers Conference 2009: V4L2 API discussions
-Date: Tue, 4 Aug 2009 15:14:46 -0500
-Message-ID: <A69FA2915331DC488A831521EAE36FE401451814F8@dlee06.ent.ti.com>
-References: <200908040912.24718.hverkuil@xs4all.nl>
- <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
+Date: Tue, 4 Aug 2009 22:46:09 +0200
+Message-ID: <200908042246.09919.jkrzyszt@tis.icnet.pl>
+References: <200908030332.06727.jkrzyszt@tis.icnet.pl> <4A76ED80.6040001@tis.icnet.pl> <20090803181405.6249b843.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35196 "EHLO comal.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:35181 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754978AbZHDUO4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 16:14:56 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
-Content-Language: en-US
+	id S1753215AbZHDUqs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 4 Aug 2009 16:46:48 -0400
+In-Reply-To: <20090803181405.6249b843.jhnikula@gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Magnus Damm <magnus.damm@gmail.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Arun K S <arunks@mistralsolutions.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Hans,
+Monday 03 August 2009 17:14:05 Jarkko Nikula wrote:
+> So it looks that McBSP-DMA for another stream cease to work if there is
+> more than certain delay between first stream start and second one but
+> omap_mcbsp_pollwrite or _pollread will clear the error condition. Can
+> you debug is this due clearing the possible XSYNC_ERR, waiting for
+> transmit/receive confirmation or playing with data registers there?
 
-I plan to register for this. Following are some of the issues that I face today while porting TI DaVinci video drivers to open source:-
+I have temporarily modified those omap_mcbsp_pollwrite/_pollread() to do 
+nothing but reporting, put them into omap_mcbsp_dai_trigger() as before and 
+additionally into a newly created and registered omap_mcbsp_dai_prepare(), 
+called before omap_start_dma(), and got the following result:
 
-1) VPBE display drivers (DM6446,DM355 & DM365): Current implementation of display drivers uses encoder manager (encoders registers with this framework) and display manager (allocating video and OSD layers, managing the OSD hardware etc.). Both FBDev and V4l2 bridge drivers interfaces with these for display timing information and resource allocation. The encoders are developed using a encoder interface that are protocol independent vs sub devices framework in open source that are v4l2 specific. The protocol independent interface was used to avoid building v4l2 sub system when using FBDev devices (That driver VPBE). Internal driver uses SysFs interface to change output and standard at the active encoder (Same functionality is removed from v4l2 display device). I plan to discuss this with you
-  in detail so that we could start working on the porting. I will also go through your RFC to find out if any thing is applicable related to this work
+For both playback start while capturing and capture start while playing, 
+XSYNC_ERR/RSYNC_ERR is clear and XRDY/RRDY is ready, respectively, both 
+before and after omap_start_dma(). No DMA transfer is actually started, so 
+the operation fails with i/o error.
 
-2) Previewer & Resizer driver. I am working with Vaibhav who had worked on an RFC for this. The previewer and resizer devices are doing memory to memory operations. Also should be flexible to use these hardware with capture driver to do on the fly preview and resize. The TI hardware is parameter intensive. We believe these parameters are to be exported to user space through IOCTLs and would require addition of new IOCTLs and extension of control IDs. We will be working with you on this as well.
+My interpretation based on my SPRU592 and SPRU674 understanding:
 
-3) Setting up timing information in capture and display sub devices (example for HD resolution capture and display) . I think Your media processor RFC discuss this.
+While starting the first stream, omap_mcbsp_start(), called by 
+omap_mcbsp_dai_trigger(), instructs McBSP to start shifting bits in both 
+directions, no matter which one has just been requested. After that, the 
+direction, for which a corresponding DMA transfer has just been started from 
+omap_pcm_trigger() with omap_start_dma(), starts doing its job, while the 
+opposite direction, after shifting in one word in case of capture, issues a 
+DMA event that is missed and waits for an I/O to occur.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-new phone: 301-407-9583
-Old Phone : 301-515-3736 (will be deprecated)
-email: m-karicheri2@ti.com
+Then, when omap_pcm_trigger() starts DMA for the opposite direction, the DMA 
+controller, configured for synchronized transfer, waits for a corresponding 
+DMA event before it performs its first I/O operation. That event already 
+occurred far before and will not occur again, so the transfer will not start 
+without any intervention. This time, omap_mcbsp_start() is not called again 
+for an already started hardware action (correct), so there is no chance for 
+the transfer to start that way.
 
->-----Original Message-----
->From: davinci-linux-open-source-bounces@linux.davincidsp.com
->[mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On Behalf
->Of Hiremath, Vaibhav
->Sent: Tuesday, August 04, 2009 1:13 PM
->To: Hans Verkuil; linux-media@vger.kernel.org
->Cc: Magnus Damm; davinci-linux-open-source@linux.davincidsp.com; linux-
->omap@vger.kernel.org; eduardo.valentin@nokia.com; Dongsoo, Nathaniel Kim
->Subject: RE: Linux Plumbers Conference 2009: V4L2 API discussions
->
->
->
->> -----Original Message-----
->> From: davinci-linux-open-source-bounces@linux.davincidsp.com
->> [mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On
->> Behalf Of Hans Verkuil
->> Sent: Tuesday, August 04, 2009 12:42 PM
->> To: linux-media@vger.kernel.org
->> Cc: eduardo.valentin@nokia.com; davinci-linux-open-
->> source@linux.davincidsp.com; linux-omap@vger.kernel.org; Magnus
->> Damm; Dongsoo, Nathaniel Kim
->> Subject: Linux Plumbers Conference 2009: V4L2 API discussions
->>
->> Hi all,
->>
->> During this years Plumbers Conference I will be organizing a session
->> (or
->> possibly more than one) on what sort of new V4L2 APIs are needed to
->> support the new SoC devices. These new APIs should also solve the
->> problem
->> of how to find all the related alsa/fb/ir/dvb devices that a typical
->> video
->> device might create.
->>
->> A proposal was made about a year ago (note that this is a bit
->> outdated
->> by now, but the basics are still valid):
->>
->> http://www.archivum.info/video4linux-list%40redhat.com/2008-
->> 07/msg00371.html
->>
->> In the past year the v4l2 core has evolved enough so that we can
->> finally
->> start thinking about this for real.
->>
->> I would like to know who will be attending this conference. I also
->> urge
->> anyone who is working in this area and who wants to have a say in
->> this to
->> attend the conference. The goal is to prepare a new RFC with a
->> detailed
->> proposal on the new APIs that are needed to fully support all the
->> new
->> SoCs. So the more input we get, the better the end-result will be.
->>
->[Hiremath, Vaibhav] Hi Hans,
->
->I will be attending the conference and along with above mentioned RFC I
->would want to discuss some of the open issues, forthcoming TI devices,
->their complexity and required software interfaces (media processor (as you
->mentioned above)) and similar stuff.
->
->
->I will work with you offline before sharing the details here with the
->community.
->
->Thanks,
->Vaibhav Hiremath
->
->> Early-bird registration is still possible up to August 5th (that's
->> tomorrow :-) ).
->>
->> Regards,
->>
->> 	Hans
->>
->> --
->> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
->>
->> _______________________________________________
->> Davinci-linux-open-source mailing list
->> Davinci-linux-open-source@linux.davincidsp.com
->> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-
->> source
->_______________________________________________
->Davinci-linux-open-source mailing list
->Davinci-linux-open-source@linux.davincidsp.com
->http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+With my patch, performing an I/O operation by calling 
+omap_mcbsp_pollwrite/_pollread() forces McBSP to issue next DMA event, that 
+initiates the transfer.
+
+While starting both streams (semi)simultaneously, it may happen that the DMA 
+event for the opposite direction will occur after the DMA has just been 
+started for that direction as well and will not be missed, so both streams 
+will run correctly.
+
+Does it make sense, or am I missing something?
+
+If my analysis is correct, the best solution I can see would be starting McBSP 
+transfer for one direction only, not both, so the opposite direction can be 
+started when needed. That requires deeper and wider OMAP knowledge and a 
+change in omap_mcbsp_start() API though. I am not in a position to deal with 
+this myself, I'm afraid.
+
+Thanks,
+Janusz
+
+PS: Not CCing arch/arm/plat-omap/mcbsp.c author as his email address is 
+probably out-of-date.
