@@ -1,99 +1,103 @@
-From: Mike Booth <mike_booth76@iprimus.com.au>
-Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
-Date: Wed, 5 Aug 2009 08:15:17 +1000
-Message-ID: <200908050815.18049.mike_booth76@iprimus.com.au>
-References: <200908040912.24718.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
+From: "Fischer Steven-P27614" <Steven.Fischer@motorola.com>
+Subject: RE: DSS2 Video Overlay Scaling Patch
+Date: Tue, 4 Aug 2009 18:22:08 -0400
+Message-ID: <84FF2D40FEDEB74A98203E6EA01A4E1C05AA1023@de01exm63.ds.mot.com>
+References: <84FF2D40FEDEB74A98203E6EA01A4E1C059446C7@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446CD@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446D0@de01exm63.ds.mot.com> <4A781627.2060405@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
-Content-Disposition: inline
-Sender: linux-media-owner@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail128.messagelabs.com ([216.82.250.131]:18501 "EHLO
+	mail128.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933461AbZHDWWa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 18:22:30 -0400
+Received: from il27exr03.cig.mot.com (il27exr03.mot.com [10.17.196.72])
+	by motgate4.mot.com (8.14.3/8.14.3) with ESMTP id n74MMUGo000182
+	for <linux-omap@vger.kernel.org>; Tue, 4 Aug 2009 15:22:30 -0700 (MST)
+Received: from il27vts03 (il27vts03.cig.mot.com [10.17.196.87])
+	by il27exr03.cig.mot.com (8.13.1/Vontu) with SMTP id n74MMUN6012725
+	for <linux-omap@vger.kernel.org>; Tue, 4 Aug 2009 17:22:30 -0500 (CDT)
+Received: from de01exm63.ds.mot.com (de01exm63.am.mot.com [10.176.8.108])
+	by il27exr03.cig.mot.com (8.13.1/8.13.0) with ESMTP id n74MMUCf012721
+	for <linux-omap@vger.kernel.org>; Tue, 4 Aug 2009 17:22:30 -0500 (CDT)
+Content-class: urn:content-classes:message
+In-Reply-To: <4A781627.2060405@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-On Wed, 5 Aug 2009 03:13:29 Hiremath, Vaibhav wrote:
-> > -----Original Message-----
-> > From: davinci-linux-open-source-bounces@linux.davincidsp.com
-> > [mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On
-> > Behalf Of Hans Verkuil
-> > Sent: Tuesday, August 04, 2009 12:42 PM
-> > To: linux-media@vger.kernel.org
-> > Cc: eduardo.valentin@nokia.com; davinci-linux-open-
-> > source@linux.davincidsp.com; linux-omap@vger.kernel.org; Magnus
-> > Damm; Dongsoo, Nathaniel Kim
-> > Subject: Linux Plumbers Conference 2009: V4L2 API discussions
-> >
-> > Hi all,
-> >
-> > During this years Plumbers Conference I will be organizing a session
-> > (or
-> > possibly more than one) on what sort of new V4L2 APIs are needed to
-> > support the new SoC devices. These new APIs should also solve the
-> > problem
-> > of how to find all the related alsa/fb/ir/dvb devices that a typical
-> > video
-> > device might create.
-> >
-> > A proposal was made about a year ago (note that this is a bit
-> > outdated
-> > by now, but the basics are still valid):
-> >
-> > http://www.archivum.info/video4linux-list%40redhat.com/2008-
-> > 07/msg00371.html
-> >
-> > In the past year the v4l2 core has evolved enough so that we can
-> > finally
-> > start thinking about this for real.
-> >
-> > I would like to know who will be attending this conference. I also
-> > urge
-> > anyone who is working in this area and who wants to have a say in
-> > this to
-> > attend the conference. The goal is to prepare a new RFC with a
-> > detailed
-> > proposal on the new APIs that are needed to fully support all the
-> > new
-> > SoCs. So the more input we get, the better the end-result will be.
->
-> [Hiremath, Vaibhav] Hi Hans,
->
-> I will be attending the conference and along with above mentioned RFC I
-> would want to discuss some of the open issues, forthcoming TI devices,
-> their complexity and required software interfaces (media processor (as you
-> mentioned above)) and similar stuff.
->
-> I will work with you offline before sharing the details here with the
-> community.
->
-> Thanks,
-> Vaibhav Hiremath
->
-> > Early-bird registration is still possible up to August 5th (that's
-> > tomorrow :-) ).
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> > --
-> > Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> >
-> > _______________________________________________
-> > Davinci-linux-open-source mailing list
-> > Davinci-linux-open-source@linux.davincidsp.com
-> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-
-> > source
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'll try out your patch, hopefully tomorrow, and let you know.
 
-does this mean that the definition of "howto" signal to noise and signal 
-strength might get fixed up?
+Thanks,
 
-Mike
+Steve.
+
+-----Original Message-----
+From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com] 
+Sent: Tuesday, August 04, 2009 6:06 AM
+To: Fischer Steven-P27614
+Cc: linux-omap@vger.kernel.org
+Subject: Re: DSS2 Video Overlay Scaling Patch
+
+Hi,
+
+ext Fischer Steven-P27614 wrote:
+> Ugh, messed up morning, forgot the patch as well :(
+> 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
+> Steven-P27614
+> Sent: Tuesday, July 07, 2009 8:05 AM
+> To: linux-omap@vger.kernel.org
+> Subject: RE: DSS2 Video Overlay Scaling Patch
+> 
+> Sorry, missed the subject line.
+> 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
+> Steven-P27614
+> Sent: Tuesday, July 07, 2009 7:54 AM
+> To: linux-omap@vger.kernel.org
+> Subject: 
+> 
+> All,
+>  
+> The DSS2 code base seems to inadvertently prevent downscaling of video
+
+> overlay frames.  Attached is my attempt at a patch to resolve this 
+> issue.
+>  
+> As I gather from the code, there is an attempt to limit the overlay 
+> output frame size (x, y, outw, outh) to the managers updated window 
+> (mc->x, mc->y, mc->w, mc->h).  The problem is that the input frame 
+> size (w & h) is being used to instead of the output frame size (outw,
+outh).
+> Due to this, when the input frame size is large than the output frame 
+> size, the input frame is being cropped, thus no downscaling occurs.  
+> My patch corrects this issue and also attempts to properly scale the 
+> input frame size if indeed the output frame is cropped.
+>  
+> In my particular case, the output frame size is never cropped, so I 
+> have not explicitly tested these equations, but I believe they are 
+> mathematically correct.
+>  
+> With this patch overlay downscaling is functional.
+>  
+
+It was indeed slightly broken. The code is there because we cannot use
+partial update for scaled overlays, but we need to update the whole
+overlay. Otherwise there could be visual errors on the screen.
+
+However, your patch didn't apply to my tree, and I think it can be
+solved in slightly more clear way. If the overlay in question is scaled,
+we don't even need to run that code. All we have to do is to adjust x/y
+depending on the x/y of the update area.
+
+Here's a patch, can you check if it works for you?
+
+  Tomi
+
