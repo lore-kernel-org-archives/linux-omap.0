@@ -1,141 +1,41 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [RFC][PATCH v2] OMAP3:PM: Fix OPP scale logic
-Date: Tue,  4 Aug 2009 08:29:55 -0500
-Message-ID: <1249392595-18758-1-git-send-email-nm@ti.com>
-References: <[RFC PATCH] OMAP3:PM: Fix OPP scale logic>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50292 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932161AbZHDNaD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 4 Aug 2009 09:30:03 -0400
-In-Reply-To: <[RFC PATCH] OMAP3:PM: Fix OPP scale logic>
-Sender: linux-omap-owner@vger.kernel.org
+From: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
+Subject: Re: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
+ create twl6030 regulators
+Date: Tue, 4 Aug 2009 14:42:48 +0100
+Message-ID: <20090804134247.GA32353@rakim.wolfsonmicro.main>
+References: <1248842173-21821-1-git-send-email-balajitk@ti.com>
+ <20090803142356.GA4265@rakim.wolfsonmicro.main>
+ <20090804074544.GG24334@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8884@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301D8BD1708@dbde02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8BFF@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8BFF-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
+Cc: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org" <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org" <sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org>, "wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org" <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, "timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin <khilman@deeprootsystems.com>
-Cc: Paul <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, Nishanth Menon <nm@ti.com>
 
-Rev 2 of the patch:
-Ref: http://marc.info/?t=124930700200005&r=1&w=2
+On Tue, Aug 04, 2009 at 06:56:13PM +0530, Shilimkar, Santosh wrote:
 
-While switching from higher OPP to lower OPP,
-current scale logic can fail by switching to lower
-voltage while frequency remains at old value.
+> > > > is_class_twl4030() feels like it should have better namespacing,
+> > though
+> > > > having the part name in there means it's not actually an issue.
 
-This patch adds a cleaner recovery logic and
-additional freq dpll checks. This changes
-program_freq_opp return type in the process
-for program_opp to handle error in a consistent
-manner.
+> > > How about twl_is_4030()?
 
-NOTE: I moved the *cur_opp setting to under the
-scratchpad locked region to allow for code
-simplicity - I wonder if anyone sees an issue with it
+> > The idea was to have a class of twl4030 IC's type IC's. There are many of
+> > them with just different name (TPS *)
+> > ... twl_class_is_4030().... What you say ?
 
-Tested on:rx-51, ported to pm branch - untested linux-omap
-Patch generated on linux-omap pm branch, commit:
-7e7377395d6b4576341a6939bf2179f3946f2ea0
+> > Can I suggest: pmic_class_is_xxx() ?
 
-Signed-off-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/mach-omap2/resource34xx.c |   61 +++++++++++++++++++++++++++---------
- 1 files changed, 46 insertions(+), 15 deletions(-)
+> Even better
 
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index 25535a3..83241c4 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -240,13 +240,23 @@ static int program_opp_freq(int res, int target_level, int current_level)
- 	lock_scratchpad_sem();
- 	if (res == VDD1_OPP) {
- 		curr_opp = &curr_vdd1_opp;
--		clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
--		clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
-+		ret = clk_set_rate(dpll1_clk, mpu_opps[target_level].rate);
-+		if (unlikely(ret))
-+			goto out;
-+
-+		ret = clk_set_rate(dpll2_clk, dsp_opps[target_level].rate);
-+		if (unlikely(ret))
-+			/* reset the dpll1 if failed */
-+			clk_set_rate(dpll1_clk, mpu_opps[current_level].rate);
- #ifndef CONFIG_CPU_FREQ
--		/*Update loops_per_jiffy if processor speed is being changed*/
--		loops_per_jiffy = compute_lpj(loops_per_jiffy,
--			mpu_opps[current_level].rate/1000,
--			mpu_opps[target_level].rate/1000);
-+		else
-+			/*
-+			 * Update loops_per_jiffy if processor speed
-+			 * is being changed
-+			 */
-+			loops_per_jiffy = compute_lpj(loops_per_jiffy,
-+				mpu_opps[current_level].rate/1000,
-+				mpu_opps[target_level].rate/1000);
- #endif
- 	} else {
- 		curr_opp = &curr_vdd2_opp;
-@@ -255,17 +265,16 @@ static int program_opp_freq(int res, int target_level, int current_level)
- 		ret = clk_set_rate(dpll3_clk,
- 				l3_opps[target_level].rate * l3_div);
- 	}
--	if (ret) {
--		unlock_scratchpad_sem();
--		return current_level;
--	}
-+out:
-+	if (!ret) {
- #ifdef CONFIG_PM
--	omap3_save_scratchpad_contents();
-+		omap3_save_scratchpad_contents();
-+		*curr_opp = target_level;
- #endif
-+	}
- 	unlock_scratchpad_sem();
- 
--	*curr_opp = target_level;
--	return target_level;
-+	return ret;
- }
- 
- static int program_opp(int res, struct omap_opp *opp, int target_level,
-@@ -289,13 +298,35 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
- 					current_level);
- #ifdef CONFIG_OMAP_SMARTREFLEX
- 		else
--			sr_voltagescale_vcbypass(t_opp, c_opp,
-+			ret = sr_voltagescale_vcbypass(t_opp, c_opp,
- 				opp[target_level].vsel,
- 				opp[current_level].vsel);
-+		if (ret) {
-+			int ret1 = 0;
-+			/*
-+			 * If something did not work, put me back to old state.
-+			 * Recover the other guy if at least 1 prev iteration
-+			 * had run
-+			 */
-+			if (i && raise)
-+				ret1 = sr_voltagescale_vcbypass(c_opp, t_opp,
-+					opp[current_level].vsel,
-+					opp[target_level].vsel);
-+			else if (i)
-+				ret1 = program_opp_freq(res, current_level,
-+						target_level);
-+			/*
-+			 * If I could not reset my old state back.. system
-+			 * is no longer in a controlled state.. bug me
-+			 */
-+			if (unlikely(ret1))
-+				BUG();
-+			break;
-+		}
- #endif
- 	}
- 
--	return ret;
-+	return (res == PRCM_VDD1) ?  curr_vdd1_opp : curr_vdd2_opp;
- }
- 
- int resource_set_opp_level(int res, u32 target_level, int flags)
--- 
-1.5.4.3
-
+That feels like it's got a more global namespace than it ought - this is
+really only for this class of chip.  It's also got a bit of an
+assumption that there's only one PMIC in the system which isn't always
+the case.
