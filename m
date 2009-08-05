@@ -1,129 +1,248 @@
-From: "Fischer Steven-P27614" <Steven.Fischer@motorola.com>
-Subject: RE: DSS2 Video Overlay Scaling Patch
-Date: Wed, 5 Aug 2009 15:09:56 -0400
-Message-ID: <84FF2D40FEDEB74A98203E6EA01A4E1C05AA125E@de01exm63.ds.mot.com>
-References: <84FF2D40FEDEB74A98203E6EA01A4E1C059446C7@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446CD@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446D0@de01exm63.ds.mot.com> <4A781627.2060405@nokia.com>
+From: "Ramos Falcon, Ernesto" <ernesto@ti.com>
+Subject: RE: [PATCH 2/3] DSPBRIDGE: Move resource cleanup to bridge_release
+Date: Wed, 5 Aug 2009 14:20:26 -0500
+Message-ID: <B852767254C5C94EBB1040EE0EFA06006821961B@dlee01.ent.ti.com>
+References: <1249478717-4446-1-git-send-email-ameya.palande@nokia.com>
+ <1249478717-4446-2-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail128.messagelabs.com ([216.82.250.131]:59940 "EHLO
-	mail128.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750964AbZHETKS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 15:10:18 -0400
-Received: from il06exr04.mot.com (il06exr04.mot.com [129.188.137.134])
-	by motgate8.mot.com (8.14.3/8.14.3) with ESMTP id n75JAI5W018218
-	for <linux-omap@vger.kernel.org>; Wed, 5 Aug 2009 12:10:18 -0700 (MST)
-Received: from il06vts02.mot.com (il06vts02.mot.com [129.188.137.142])
-	by il06exr04.mot.com (8.13.1/Vontu) with SMTP id n75JAIXF024908
-	for <linux-omap@vger.kernel.org>; Wed, 5 Aug 2009 14:10:18 -0500 (CDT)
-Received: from de01exm63.ds.mot.com (de01exm63.am.mot.com [10.176.8.108])
-	by il06exr04.mot.com (8.13.1/8.13.0) with ESMTP id n75JAI8S024905
-	for <linux-omap@vger.kernel.org>; Wed, 5 Aug 2009 14:10:18 -0500 (CDT)
-Content-class: urn:content-classes:message
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50253 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751803AbZHETUg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 15:20:36 -0400
+In-Reply-To: <1249478717-4446-2-git-send-email-ameya.palande@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Fischer Steven-P27614 <Steven.Fischer@motorola.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-omap@vger.kernel.org
-
-Tomi,
-
-I tried the patch you sent and after just a little testing I'm fairly
-confident the change works just fine.  Thanks.
-
-I couple of comments on the configure_overlay() function.  Unless I'm
-mis-understanding the code the overlay output rectangle is defined by
-the local variable "x/y/outw/outh".  I find it quite confusing that
-there are separate "w" & "h" locals, since it makes it appear as if "x"
-& "y" should be paired with "w" & "h" to make a rectangle.  Further
-more, I see "x" & "w" added together, which similarly makes them appear
-to be part of the same rectangle.  I would lightly suggest changing the
-"x" & "y" locals to "outx" and "outy", just for clarity sake.
-
-Also, I wonder about the code that adds "x" & "w" or even "y" & "h".
-Shouldn't that code be adding "x" & "outw" or "y" & "outh"?  Again,
-maybe I'm mis-understanding the code.
-
-Steve.
-
------Original Message-----
-From: Fischer Steven-P27614 
-Sent: Tuesday, August 04, 2009 5:22 PM
-To: 'Tomi Valkeinen'
-Cc: linux-omap@vger.kernel.org
-Subject: RE: DSS2 Video Overlay Scaling Patch
-
-I'll try out your patch, hopefully tomorrow, and let you know.
-
-Thanks,
-
-Steve.
-
------Original Message-----
-From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-Sent: Tuesday, August 04, 2009 6:06 AM
-To: Fischer Steven-P27614
-Cc: linux-omap@vger.kernel.org
-Subject: Re: DSS2 Video Overlay Scaling Patch
+To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "roman.tereshonkov@nokia.com" <roman.tereshonkov@nokia.com>, "Moogi, Suyog" <suyog@ti.com>
 
 Hi,
 
-ext Fischer Steven-P27614 wrote:
-> Ugh, messed up morning, forgot the patch as well :(
-> 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
-> Steven-P27614
-> Sent: Tuesday, July 07, 2009 8:05 AM
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Ameya Palande
+> Sent: Wednesday, August 05, 2009 8:25 AM
 > To: linux-omap@vger.kernel.org
-> Subject: RE: DSS2 Video Overlay Scaling Patch
+> Cc: hiroshi.doyu@nokia.com; Guzman Lugo, Fernando; Ramirez Luna, Omar;
+> roman.tereshonkov@nokia.com; Moogi, Suyog
+> Subject: [PATCH 2/3] DSPBRIDGE: Move resource cleanup to bridge_release
 > 
-> Sorry, missed the subject line.
+> Instead of doing lazy resource cleanup in bridge_open, this patch will
+> move
+> it to bridge_release. This way the resources allocated will be cleaned up
+> when that instance of the open is closed and will not wait till the next
+> instance of open happens.
 > 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
-> Steven-P27614
-> Sent: Tuesday, July 07, 2009 7:54 AM
-> To: linux-omap@vger.kernel.org
-> Subject: 
+> Signed-off-by: Fernando Guzman Lugo <x0095840@ti.com>
+> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+> ---
+>  drivers/dsp/bridge/rmgr/drv_interface.c |  132 ++++++++++++--------------
+> -----
+>  1 files changed, 52 insertions(+), 80 deletions(-)
 > 
-> All,
->  
-> The DSS2 code base seems to inadvertently prevent downscaling of video
+> diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c
+> b/drivers/dsp/bridge/rmgr/drv_interface.c
+> index 8cbdeee..2fcd6f9 100644
+> --- a/drivers/dsp/bridge/rmgr/drv_interface.c
+> +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+> @@ -562,102 +562,74 @@ static void __exit bridge_exit(void)
+>  	platform_driver_unregister(&bridge_driver);
+>  }
+> 
+> -/* This function is called when an application opens handle to the
+> - * bridge driver. */
+> -
+> +/*
+> + * This function is called when an application opens handle to the
+> + * bridge driver.
+> + */
+>  static int bridge_open(struct inode *ip, struct file *filp)
+>  {
+>  	int status = 0;
+> -#ifndef RES_CLEANUP_DISABLE
+> -       u32     hProcess;
+> -	DSP_STATUS dsp_status = DSP_SOK;
+> -	HANDLE	     hDrvObject = NULL;
+> -	struct PROCESS_CONTEXT    *pPctxt = NULL;
+> -	struct PROCESS_CONTEXT	*next_node = NULL;
+> -	struct PROCESS_CONTEXT    *pCtxtclosed = NULL;
+> -	struct PROCESS_CONTEXT    *pCtxttraverse = NULL;
+> -	struct task_struct *tsk = NULL;
+> -	GT_0trace(driverTrace, GT_ENTER, "-> driver_open\n");
+> -	dsp_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+> +	DSP_STATUS dsp_status;
+> +	HANDLE hDrvObject;
+> +	struct PROCESS_CONTEXT *pr_ctxt = NULL;
+> 
+> -	/* Checking weather task structure for all process existing
+> -	 * in the process context list If not removing those processes*/
+> -	if (DSP_FAILED(dsp_status))
+> -		goto func_cont;
+> +	GT_0trace(driverTrace, GT_ENTER, "-> bridge_open\n");
+> 
+> -	DRV_GetProcCtxtList(&pCtxtclosed, (struct DRV_OBJECT *)hDrvObject);
+> -	while (pCtxtclosed != NULL) {
+> -		tsk = find_task_by_vpid(pCtxtclosed->pid);
+> -		next_node = pCtxtclosed->next;
+> -
+> -		if ((tsk == NULL) || (tsk->exit_state == EXIT_ZOMBIE)) {
+> -
+> -			GT_1trace(driverTrace, GT_5CLASS,
+> -				 "***Task structure not existing for "
+> -				 "process***%d\n", pCtxtclosed->pid);
+> -			DRV_RemoveAllResources(pCtxtclosed);
+> -			if (pCtxtclosed->hProcessor != NULL) {
+> -				DRV_GetProcCtxtList(&pCtxttraverse,
+> -					    (struct DRV_OBJECT *)hDrvObject);
+> -				if (pCtxttraverse->next == NULL) {
+> -					PROC_Detach(pCtxtclosed->hProcessor);
+> -				} else {
+> -					if ((pCtxtclosed->pid ==
+> -					  pCtxttraverse->pid) &&
+> -					  (pCtxttraverse->next != NULL)) {
+> -						pCtxttraverse =
+> -							pCtxttraverse->next;
+> -					}
+> -					while ((pCtxttraverse != NULL) &&
+> -					     (pCtxtclosed->hProcessor
+> -					     != pCtxttraverse->hProcessor)) {
+> -						pCtxttraverse =
+> -							pCtxttraverse->next;
+> -						if ((pCtxttraverse != NULL) &&
+> -						  (pCtxtclosed->pid ==
+> -						  pCtxttraverse->pid)) {
+> -							pCtxttraverse =
+> -							   pCtxttraverse->next;
+> -						}
+> -					}
+> -					if (pCtxttraverse == NULL) {
+> -						PROC_Detach
+> -						     (pCtxtclosed->hProcessor);
+> -					}
+> -				}
+> -			}
+> -			DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
+> -					     pCtxtclosed,
+> -					     (void *)pCtxtclosed->pid);
+> +	dsp_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+> +	if (DSP_SUCCEEDED(dsp_status)) {
+> +		/*
+> +		 * Allocate a new process context and insert it into global
+> +		 * process context list.
+> +		 */
+> +		DRV_InsertProcContext(hDrvObject, &pr_ctxt);
+> +		if (pr_ctxt) {
+> +			DRV_ProcUpdatestate(pr_ctxt, PROC_RES_ALLOCATED);
+> +			DRV_ProcSetPID(pr_ctxt, current->pid);
+> +		} else {
+> +			status = -ENOMEM;
+>  		}
+> -		pCtxtclosed = next_node;
+> +	} else {
+> +		status = -EIO;
+>  	}
+> -func_cont:
+> -	dsp_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+> -	if (DSP_SUCCEEDED(dsp_status))
+> -		dsp_status = DRV_InsertProcContext(
+> -				(struct DRV_OBJECT *)hDrvObject, &pPctxt);
+> 
+> -	if (pPctxt != NULL) {
+> -			/* Return PID instead of process handle */
+> -			hProcess = current->pid;
+> +	filp->private_data = pr_ctxt;
+> 
+> -		DRV_ProcUpdatestate(pPctxt, PROC_RES_ALLOCATED);
+> -			DRV_ProcSetPID(pPctxt, hProcess);
+> -	}
+> -#endif
+> -
+> -	GT_0trace(driverTrace, GT_ENTER, " <- driver_open\n");
+> +	GT_0trace(driverTrace, GT_ENTER, "<- bridge_open\n");
+>  	return status;
+>  }
+> 
+> -/* This function is called when an application closes handle to the
+> bridge
+> - * driver. */
+> +/*
+> + * This function is called when an application closes handle to the
+> bridge
+> + * driver.
+> + */
+>  static int bridge_release(struct inode *ip, struct file *filp)
+>  {
+> +	int status = 0;
+> +	DSP_STATUS dsp_status;
+> +	HANDLE hDrvObject;
+> +	struct PROCESS_CONTEXT *pr_ctxt;
+> +
+>  	GT_0trace(driverTrace, GT_ENTER, "-> bridge_release\n");
+> +
+> +	if (!filp->private_data) {
+> +		status = -EIO;
+> +	} else {
+> +		pr_ctxt = filp->private_data;
+> +		dsp_status = CFG_GetObject((u32 *)&hDrvObject,
+> REG_DRV_OBJECT);
+> +		if (DSP_SUCCEEDED(dsp_status)) {
+> +			flush_signals(current);
+> +			DRV_RemoveAllResources(pr_ctxt);
+> +			PROC_Detach(pr_ctxt->hProcessor);
+> +			DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
+> +					pr_ctxt, (void *)pr_ctxt->pid);
+> +		} else {
+> +			status = -EIO;
+> +		}
+> +		filp->private_data = NULL;
+> +	}
+> +
+>  	GT_0trace(driverTrace, GT_ENTER, "<- bridge_release\n");
+> -	return 0;
+> +	return status;
+>  }
+> 
+>  /* This function provides IO interface to the bridge driver. */
+> --
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> overlay frames.  Attached is my attempt at a patch to resolve this 
-> issue.
->  
-> As I gather from the code, there is an attempt to limit the overlay 
-> output frame size (x, y, outw, outh) to the managers updated window 
-> (mc->x, mc->y, mc->w, mc->h).  The problem is that the input frame 
-> size (w & h) is being used to instead of the output frame size (outw,
-outh).
-> Due to this, when the input frame size is large than the output frame 
-> size, the input frame is being cropped, thus no downscaling occurs.
-> My patch corrects this issue and also attempts to properly scale the 
-> input frame size if indeed the output frame is cropped.
->  
-> In my particular case, the output frame size is never cropped, so I 
-> have not explicitly tested these equations, but I believe they are 
-> mathematically correct.
->  
-> With this patch overlay downscaling is functional.
->  
+We have detected a use case where if an application creates a child process using fork call, and then the child and father processes call DSPProcessor_Attach() and create a new process context with new tgid; when the processes are terminated, only the last process calls bridge_release cleaning only the resources in the father process, leaving the child resources unreleased.
 
-It was indeed slightly broken. The code is there because we cannot use
-partial update for scaled overlays, but we need to update the whole
-overlay. Otherwise there could be visual errors on the screen.
+One solution we have seen is to perform goes through the entire process context list, clean up all the resources for all terminated processes or in "zombie" state, as below,
 
-However, your patch didn't apply to my tree, and I think it can be
-solved in slightly more clear way. If the overlay in question is scaled,
-we don't even need to run that code. All we have to do is to adjust x/y
-depending on the x/y of the update area.
+DRV_GetProcCtxtList(&pCtxtclosed, (struct DRV_OBJECT *)hDrvObject);
+while (pCtxtclosed != NULL) {
+	printk("pCtxtclosed->pid = %d\n",pCtxtclosed->pid);
+	tsk = find_task_by_pid(pCtxtclosed->pid);
 
-Here's a patch, can you check if it works for you?
+	if ((tsk == NULL) || (tsk->exit_state == EXIT_ZOMBIE)) {
+	
+		GT_1trace(driverTrace, GT_5CLASS,
+			"***Task structure not existing for "
+			 "process***%d\n", pCtxtclosed->pid);
+		DRV_RemoveAllResources(pCtxtclosed);
+		if (pCtxtclosed->hProcessor != NULL) {
+					PROC_Detach
+						 (pCtxtclosed->hProcessor);
+		}
+		pTmp = pCtxtclosed->next;
+		DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
+					 pCtxtclosed,
+					 (void *)pCtxtclosed->pid);
+	} else {
+		pTmp = pCtxtclosed->next;
+	}
+	pCtxtclosed = pTmp;
+}
 
-  Tomi
+Please let me know your comments.
 
+/Ernesto
