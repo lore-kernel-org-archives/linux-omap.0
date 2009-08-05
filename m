@@ -1,53 +1,52 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP: PM: warn if CONFIG_CPU_IDLE is not enabled
-Date: Wed, 05 Aug 2009 08:33:37 -0700
-Message-ID: <87fxc68ecu.fsf@deeprootsystems.com>
-References: <alpine.DEB.2.00.0908030138020.19529@utopia.booyaka.com>
+From: John Sarman <johnsarman@gmail.com>
+Subject: Fwd: MMC3 Overo
+Date: Wed, 5 Aug 2009 12:02:01 -0400
+Message-ID: <bb2708720908050902o39c67430pbdcd12e9b835ab70@mail.gmail.com>
+References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
+	 <6ed0b2680908050132n33abc45bgd4e91690c43ba277@mail.gmail.com>
+	 <bb2708720908050901lbc67b1cx5a75a7667fa36fd1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f179.google.com ([209.85.222.179]:34213 "EHLO
-	mail-pz0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755753AbZHEPdi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 11:33:38 -0400
-Received: by pzk9 with SMTP id 9so117882pzk.21
-        for <linux-omap@vger.kernel.org>; Wed, 05 Aug 2009 08:33:39 -0700 (PDT)
-In-Reply-To: <alpine.DEB.2.00.0908030138020.19529@utopia.booyaka.com> (Paul Walmsley's message of "Mon\, 3 Aug 2009 01\:39\:02 -0600 \(MDT\)")
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:39695 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750938AbZHEQCC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 12:02:02 -0400
+Received: by bwz19 with SMTP id 19so180211bwz.37
+        for <linux-omap@vger.kernel.org>; Wed, 05 Aug 2009 09:02:01 -0700 (PDT)
+In-Reply-To: <bb2708720908050901lbc67b1cx5a75a7667fa36fd1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Paul Walmsley <paul@pwsan.com> writes:
+---------- Forwarded message ----------
+=46rom: John Sarman <johnsarman@gmail.com>
+Date: Wed, Aug 5, 2009 at 12:01 PM
+Subject: Re: MMC3 Overo
+To: Grazvydas Ignotas <notasas@gmail.com>
 
-> For MPU latency constraints to work, CONFIG_CPU_IDLE must be enabled,
-> since CPUIdle is where the constraints are evaluated.  Warn during
-> compilation if CONFIG_CPU_IDLE is not defined.
+
+On Wed, Aug 5, 2009 at 4:32 AM, Grazvydas Ignotas<notasas@gmail.com> wr=
+ote:
+>> <u-boot_snip>
+>> =A0MUX_VAL(CP(ETK_CLK_ES2), =A0 =A0 =A0 (IDIS | PTU | EN =A0| M2)) /=
+*MMC3_CLK*/\
 >
-> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
-Thanks, pushing to PM branch.
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/resource34xx.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
+> You must have input enable on CLK line for MMC3 or it won't work for
+> some reason (MMC 1 and 2 doesn't need that). Without this part of the
+> host controller hardware doesn't get the clock I guess, or something
+> like that. You won't believe how much time we've wasted on this!
 >
-> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-> index 25535a3..1693e9b 100644
-> --- a/arch/arm/mach-omap2/resource34xx.c
-> +++ b/arch/arm/mach-omap2/resource34xx.c
-> @@ -28,6 +28,10 @@
->  #include "cm.h"
->  #include "cm-regbits-34xx.h"
->  
-> +#ifndef CONFIG_CPU_IDLE
-> +#warning MPU latency constraints require CONFIG_CPU_IDLE to function!
-> +#endif
-> +
->  /**
->   * init_latency - Initializes the mpu/core latency resource.
->   * @resp: Latency resource to be initalized
-> -- 
-> 1.6.3.GIT
+MUX_VAL(CP(ETK_CLK_ES2), =A0 =A0 =A0 (IEN | PTU | EN =A0| M2)) /*MMC3_C=
+LK*/\
+
+Works Beautifully, Thank you so much. =A0I have also burnt too much
+midnight oil on this problem.
+So looks like Overo MMC3 works like a champ!
+John Sarman
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
