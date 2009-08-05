@@ -1,15 +1,15 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Wed, 5 Aug 2009 09:45:21 +0300
-Message-ID: <200908050945.22160.peter.ujfalusi@nokia.com>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl>
-	<20090803181405.6249b843.jhnikula@gmail.com>
-	<200908042246.09919.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 01/20] OMAP: McBSP: Provide functions for
+	ASoC frame syncronization
+Date: Wed, 5 Aug 2009 10:18:09 +0300
+Message-ID: <200908051018.09304.peter.ujfalusi@nokia.com>
+References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200908042246.09919.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
@@ -20,130 +20,113 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Arun K S <arunks@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: alsa-devel@alsa-project.org
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
-
-On Tuesday 04 August 2009 23:46:09 ext Janusz Krzysztofik wrote:
-
-> I have temporarily modified those omap_mcbsp_pollwrite/_pollread() to do
-> nothing but reporting, put them into omap_mcbsp_dai_trigger() as before a=
-nd
-> additionally into a newly created and registered omap_mcbsp_dai_prepare(),
-> called before omap_start_dma(), and got the following result:
+On Thursday 30 July 2009 15:49:24 Valentin Eduardo (Nokia-D/Helsinki) wrote:
+> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 >
-> For both playback start while capturing and capture start while playing,
-> XSYNC_ERR/RSYNC_ERR is clear
-> and XRDY/RRDY is ready,
-
-This means that XRDY/RRDY is set (1)?
-
-> respectively, both
-> before and after omap_start_dma(). No DMA transfer is actually started, so
-> the operation fails with i/o error.
-
-In case of playback start while capture: What is the state of the XEMPTY bi=
-t =
-
-(SPCR2:2)? Is it 0? It should.
-
+> ASoC has an annoying bug letting either L or R channel to be
+> played on L channel. In other words, L and R channels can
+> switch at random. This provides McBSP funtionality that may
+> be used to fix this feature.
 >
-> My interpretation based on my SPRU592 and SPRU674 understanding:
+> Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> ---
+>  arch/arm/plat-omap/include/mach/mcbsp.h |    2 +
+>  arch/arm/plat-omap/mcbsp.c              |   52
+> +++++++++++++++++++++++++++++++ 2 files changed, 54 insertions(+), 0
+> deletions(-)
 >
-> While starting the first stream, omap_mcbsp_start(), called by
-> omap_mcbsp_dai_trigger(), instructs McBSP to start shifting bits in both
-> directions, no matter which one has just been requested. After that, the
-> direction, for which a corresponding DMA transfer has just been started
-> from omap_pcm_trigger() with omap_start_dma(), starts doing its job, while
-> the opposite direction, after shifting in one word in case of capture,
-> issues a DMA event that is missed and waits for an I/O to occur.
+> diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h
+> b/arch/arm/plat-omap/include/mach/mcbsp.h index bb154ea..77191c5 100644
+> --- a/arch/arm/plat-omap/include/mach/mcbsp.h
+> +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+> @@ -389,6 +389,8 @@ int omap_mcbsp_request(unsigned int id);
+>  void omap_mcbsp_free(unsigned int id);
+>  void omap_mcbsp_start(unsigned int id);
+>  void omap_mcbsp_stop(unsigned int id);
+> +void omap_mcbsp_xmit_enable(unsigned int id, u8 enable);
+> +void omap_mcbsp_recv_enable(unsigned int id, u8 enable);
+>  void omap_mcbsp_xmit_word(unsigned int id, u32 word);
+>  u32 omap_mcbsp_recv_word(unsigned int id);
 >
-> Then, when omap_pcm_trigger() starts DMA for the opposite direction, the
-> DMA controller, configured for synchronized transfer, waits for a
-> corresponding DMA event before it performs its first I/O operation. That
-> event already occurred far before and will not occur again, so the transf=
-er
-> will not start without any intervention. This time, omap_mcbsp_start() is
-> not called again for an already started hardware action (correct), so the=
-re
-> is no chance for the transfer to start that way.
-
-I think the reason is quite simple: on OMAP1 the DMA request is edge sensit=
-ive =
-
-(compared to OMAP2 and OMAP3 where it is level based). This means:
-When you start the capture, both RX and TX is started. Since the playback i=
-s not =
-
-running, no data will be written to the DXR register, McBSP asserts the DMA =
-
-request line, but since there is no DMA configured for playback it  stays h=
-igh =
-
-(and McBSP will shift out 0). Now if you start the playback (using DMA) the=
- DMA =
-
-engine waits for a pulse on the request line, which will not occur, the req=
-uest =
-
-line is asserted, so the DMA will not start pushing any data to the McBSP D=
-XR =
-
-register.
-Now if you force write to the DXR register, than it de-asserts the DMA requ=
-est =
-
-line, when the DXR -> XSR copy has been done, McBSP asserts the DMA request =
-
-line, which will kick the DMA engine to push data to DXR register and the =
-
-playback will start.
-
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> index efa0e01..84cc323 100644
+> --- a/arch/arm/plat-omap/mcbsp.c
+> +++ b/arch/arm/plat-omap/mcbsp.c
+> @@ -398,6 +398,58 @@ void omap_mcbsp_stop(unsigned int id)
+>  }
+>  EXPORT_SYMBOL(omap_mcbsp_stop);
 >
-> With my patch, performing an I/O operation by calling
-> omap_mcbsp_pollwrite/_pollread() forces McBSP to issue next DMA event, th=
-at
-> initiates the transfer.
+> +void omap_mcbsp_xmit_enable(unsigned int id, u8 enable)
+> +{
+> +	struct omap_mcbsp *mcbsp;
+> +	void __iomem *io_base;
+> +	u16 w;
+> +
+> +	if (!(cpu_is_omap2430() || cpu_is_omap34xx()))
+> +		return;
+> +
+> +	if (!omap_mcbsp_check_valid_id(id)) {
+> +		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+> +		return;
+> +	}
+> +
+> +	mcbsp =3D id_to_mcbsp_ptr(id);
+> +	io_base =3D mcbsp->io_base;
+> +
+> +	w =3D OMAP_MCBSP_READ(io_base, XCCR);
+> +
+> +	if (enable)
+> +		OMAP_MCBSP_WRITE(io_base, XCCR, w & ~(XDISABLE));
+> +	else
+> +		OMAP_MCBSP_WRITE(io_base, XCCR, w | XDISABLE);
 
-The danger with the pollwrite/pollread is:
-If the stream is not mono, than you kind of ensure a certain channel shift =
+Have you tried to play with the SPCR2:XRST bit instead of the XCCR:XDISABLE?
+It places the transmitter to reset, thus disabling it also, furthermore it =
+is =
 
-(channel switch in case of stereo stream).
+available on OMAP1 as well, so we can use the same code there as well...
 
->
-> While starting both streams (semi)simultaneously, it may happen that the
-> DMA event for the opposite direction will occur after the DMA has just be=
-en
-> started for that direction as well and will not be missed, so both streams
-> will run correctly.
+> +}
+> +EXPORT_SYMBOL(omap_mcbsp_xmit_enable);
+> +
+> +void omap_mcbsp_recv_enable(unsigned int id, u8 enable)
+> +{
+> +	struct omap_mcbsp *mcbsp;
+> +	void __iomem *io_base;
+> +	u16 w;
+> +
+> +	if (!(cpu_is_omap2430() || cpu_is_omap34xx()))
+> +		return;
+> +
+> +	if (!omap_mcbsp_check_valid_id(id)) {
+> +		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+> +		return;
+> +	}
+> +
+> +	mcbsp =3D id_to_mcbsp_ptr(id);
+> +	io_base =3D mcbsp->io_base;
+> +
+> +	w =3D OMAP_MCBSP_READ(io_base, RCCR);
+> +
+> +	if (enable)
+> +		OMAP_MCBSP_WRITE(io_base, RCCR, w & ~(RDISABLE));
+> +	else
+> +		OMAP_MCBSP_WRITE(io_base, RCCR, w | RDISABLE);
 
-Yep, this is kind of a race condition (in a good way): Most likely both DMA=
- has =
+Same goes here: can you try the SPCR1:RRST bit here instead of the =
 
-been started before the McBSP ports asserted their DMA request lines, so th=
-e DMA =
+RCCR:RDISABLE?
 
-engine will push or read the data correctly.
-
->
-> Does it make sense, or am I missing something?
->
-> If my analysis is correct, the best solution I can see would be starting
-> McBSP transfer for one direction only, not both, so the opposite direction
-> can be started when needed. That requires deeper and wider OMAP knowledge
-> and a change in omap_mcbsp_start() API though. I am not in a position to
-> deal with this myself, I'm afraid.
-
-I agree, this would be the best solution for the problem.
-
->
-> Thanks,
-> Janusz
->
-> PS: Not CCing arch/arm/plat-omap/mcbsp.c author as his email address is
-> probably out-of-date.
+> +}
+> +EXPORT_SYMBOL(omap_mcbsp_recv_enable);
+> +
+>  /* polled mcbsp i/o operations */
+>  int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
+>  {
 
 -- =
 
