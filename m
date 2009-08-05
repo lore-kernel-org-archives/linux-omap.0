@@ -1,50 +1,57 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH v1 3/3] ARM:OMAP4 iommu:provide build support for omap4
- iommu
-Date: Wed, 05 Aug 2009 07:35:38 +0300 (EEST)
-Message-ID: <20090805.073538.258116604.Hiroshi.DOYU@nokia.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E3ABDBAC2@dlee03.ent.ti.com>
-	<20090804224241.GA17716@n2100.arm.linux.org.uk>
+From: Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH] mtd: make onenand/generic.c more generic
+Date: Wed, 5 Aug 2009 13:41:32 +0900
+Message-ID: <aec7e5c30908042141l18b25ba4l66b3cb309f080b21@mail.gmail.com>
+References: <20090804092046.16025.83910.sendpatchset@rx1.opensource.se>
+	 <9c9fda240908042124y4f783dfehd575601c0a09550e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:24140 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751282AbZHEEgU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 00:36:20 -0400
-In-Reply-To: <20090804224241.GA17716@n2100.arm.linux.org.uk>
+Received: from mail-qy0-f196.google.com ([209.85.221.196]:59821 "EHLO
+	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752964AbZHEElc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 00:41:32 -0400
+In-Reply-To: <9c9fda240908042124y4f783dfehd575601c0a09550e@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: h-kanigeri2@ti.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, linux@arm.linux.org.uk, santosh.shilimkar@ti.com
+To: Kyungmin Park <kmpark@infradead.org>
+Cc: linux-mtd@lists.infradead.org, linux-sh@vger.kernel.org, tony@atomide.com, lethal@linux-sh.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, akpm@linux-foundation.org
 
-From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v1 3/3] ARM:OMAP4 iommu:provide build support for omap4 iommu
-Date: Wed, 5 Aug 2009 00:42:41 +0200
+Hi Kyungmin!
 
-> On Tue, Aug 04, 2009 at 05:32:12PM -0500, Kanigeri, Hari wrote:
-> > diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-> > index efe85d0..50aaefb 100644
-> > --- a/arch/arm/plat-omap/Kconfig
-> > +++ b/arch/arm/plat-omap/Kconfig
-> > @@ -118,8 +118,11 @@ config OMAP_MBOX_FWK
-> >  	  DSP, IVA1.0 and IVA2 in OMAP1/2/3.
-> >  
-> >  config OMAP_IOMMU
-> > -	tristate
-> > -
-> > +	tristate "iommu"
-> 
-> Insufficiently verbose description.  "OMAP IOMMU Support" would be
-> better.  I thought the idea here was to arrange for things to select
-> OMAP_IOMMU when they require it rather than offering it as a separate
-> configuration option.
-> 
-> The former way has the advantage that you don't need to know that you
-> need IOMMU support to (eg) use the Camera - enabling the Camera
-> should automatically enable IOMMU support.
+> On Tue, Aug 4, 2009 at 6:20 PM, Magnus Damm<magnus.damm@gmail.com> wrote:
+>> From: Magnus Damm <damm@igel.co.jp>
+>>
+>> This patch removes the ARM dependency from the generic "onenand"
+>> platform device driver. This change makes the driver useful for
+>> other architectures as well. Needed for the SuperH kfr2r09 board.
 
-The following is the original discussion.
+On Wed, Aug 5, 2009 at 1:24 PM, Kyungmin Park<kmpark@infradead.org> wrote:
+> Good idea add the onenand_platform_data, but dont' agree the renaming
+> the onenand-flash.
+> Other boards are use it even though it's not released it
 
-http://lists.arm.linux.org.uk/lurker/message/20090518.130233.3f238e72.en.html
+I suspected so. But this is the only reason why changed the name. =)
+
+If we don't change the name then the platform device will be attached
+to the platform driver as usual, but the old platform data structure
+will use a different binary format compated to what the driver
+expects.
+
+Changing the driver name makes sure that the old device disappears and
+that people can move over to the new name and at the same time update
+the platform data to the new format.
+
+> Others are good.
+
+Thanks.
+
+I can post an updated version where I keep the driver name unchanged
+if you prefer that. But I'm pretty sure out-of-tree drivers will break
+with NULL pointer accesses or similar if we update the platform data
+format without changing the name. I don't think you want that. =)
+
+Cheers,
+
+/ magnus
