@@ -1,34 +1,45 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: MMC3 Overo
-Date: Wed, 5 Aug 2009 11:32:30 +0300
-Message-ID: <6ed0b2680908050132n33abc45bgd4e91690c43ba277@mail.gmail.com>
-References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: arch/arm/mach-omap* organization
+Date: Wed, 5 Aug 2009 11:39:35 +0300
+Message-ID: <20090805083935.GB28674@nokia.com>
+References: <4A776368.1010503@onid.oregonstate.edu>
+ <20090804070526.GD24334@atomide.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f228.google.com ([209.85.220.228]:64141 "EHLO
-	mail-fx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933555AbZHEIcb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 04:32:31 -0400
-Received: by fxm28 with SMTP id 28so3626863fxm.17
-        for <linux-omap@vger.kernel.org>; Wed, 05 Aug 2009 01:32:31 -0700 (PDT)
-In-Reply-To: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.122.233]:18751 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933326AbZHEIjF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 04:39:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20090804070526.GD24334@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: John Sarman <johnsarman@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Ben Goska <goskab@onid.oregonstate.edu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> <u-boot_snip>
-> =A0MUX_VAL(CP(ETK_CLK_ES2), =A0 =A0 =A0 (IDIS | PTU | EN =A0| M2)) /*=
-MMC3_CLK*/\
+On Tue, Aug 04, 2009 at 09:05:27AM +0200, ext Tony Lindgren wrote:
+> * Ben Goska <goskab@onid.oregonstate.edu> [090804 01:53]:
+> > Is there a reason why omap2, omap3, and now omap4 files are all packed  
+> > into the mach-omap2 directory?
+> >
+> > It seems like it would make more sense for each omap version to have  
+> > it's own directory.
+> 
+> Majority of the mach-omap2 code is shared across them.
+> 
+> For example, the initial patch to add minimal omap3 support on top of
+> the omap2 code was about 500 lines of diff. The situation was pretty
+> much the same to add minimal omap4 support on top of omap3.
+> 
+> If we wanted to, in the long run we could move more of the shared
+> code to plat-omap, and just keep board-*.c files under each mach-*
+> directory.
 
-You must have input enable on CLK line for MMC3 or it won't work for
-some reason (MMC 1 and 2 doesn't need that). Without this part of the
-host controller hardware doesn't get the clock I guess, or something
-like that. You won't believe how much time we've wasted on this!
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I guess that will start to show as a necessary change since we would be
+able to remove several "if (cpu_is_omapXXX())" from platform_device
+registration code and related changes.
+
+-- 
+balbi
