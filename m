@@ -1,52 +1,37 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Wed, 05 Aug 2009 15:26:47 +0200
-Message-ID: <4A798897.5000904@tis.icnet.pl>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl>	<4A76ED80.6040001@tis.icnet.pl>	<20090803181405.6249b843.jhnikula@gmail.com>	<200908042246.09919.jkrzyszt@tis.icnet.pl>	<20090805102149.bfcafa35.jhnikula@gmail.com>
-	<20090805114254.02e3d0e2.jhnikula@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH v2] OMAP3: RX51: Define TWL4030 USB transceiver in board file
+Date: Wed, 5 Aug 2009 09:29:01 -0400
+Message-ID: <notify-1249478939@atomide.com>
+References: <1246965322-14449-1-git-send-email-ext-roger.quadros@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090805114254.02e3d0e2.jhnikula@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: alsa-devel@alsa-project.org, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Arun K S <arunks@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49605 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934294AbZHEN3B (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 09:29:01 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MYgY9-000OQ4-IU
+	for linux-omap@vger.kernel.org; Wed, 05 Aug 2009 13:29:01 +0000
+In-Reply-To: <1246965322-14449-1-git-send-email-ext-roger.quadros@nokia.com>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Jarkko Nikula wrote:
-> On Wed, 5 Aug 2009 10:21:49 +0300
-> Jarkko Nikula <jhnikula@gmail.com> wrote:
-> 
->>> If my analysis is correct, the best solution I can see would be starting McBSP 
->>> transfer for one direction only, not both, so the opposite direction can be 
->>> started when needed. That requires deeper and wider OMAP knowledge and a 
->>> change in omap_mcbsp_start() API though. I am not in a position to deal with 
->>> this myself, I'm afraid.
->>>
->> I favor this change. Actually I remember I was thinking shortly to
->> change API of omap_mcbsp_start and _stop more than year back or so but
->> didn't find it necessary back then.
->>
->> I think change will be trivial. Basically two new arguments indicating
->> are the TX/RX active and let the first/last caller to deal with
->> sample-rate generator and frame sync activation/de-activation.
->>
-> I hacked a patch below. Can you test does it help?
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Will do tonight (CET).
+Branch in linux-omap: omap-fixes
 
-Now seeing how easy it was (for you ;), I think I could try to follow 
-that way an modify omap_mcbsp_config() in the same spirit, if you find 
-it of any use.
+Initial commit ID (Likely to change): 9cea4f1eda7e18a59a6f6a5d9edc6384318df492
 
-Cheers,
-Janusz
+PatchWorks
+http://patchwork.kernel.org/patch/34410/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=9cea4f1eda7e18a59a6f6a5d9edc6384318df492
+
+
