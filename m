@@ -1,166 +1,129 @@
-From: Philip Balister <philip@balister.org>
-Subject: Re: Fwd: MMC3 Overo
-Date: Wed, 05 Aug 2009 14:55:35 -0400
-Message-ID: <4A79D5A7.3000500@balister.org>
-References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>	 <6ed0b2680908050132n33abc45bgd4e91690c43ba277@mail.gmail.com>	 <bb2708720908050901lbc67b1cx5a75a7667fa36fd1@mail.gmail.com>	 <bb2708720908050902o39c67430pbdcd12e9b835ab70@mail.gmail.com>	 <873a866xdo.fsf@deeprootsystems.com>	 <bb2708720908050935s6602d76dq2dbaa00195008132@mail.gmail.com>	 <5e088bd90908051051s98875e0vddab60dd122f3e8b@mail.gmail.com>	 <4A79C83E.9040603@deeprootsystems.com> <5e088bd90908051121h38678c9fha73b7beb88752156@mail.gmail.com> <4A79D104.60607@deeprootsystems.com>
+From: "Fischer Steven-P27614" <Steven.Fischer@motorola.com>
+Subject: RE: DSS2 Video Overlay Scaling Patch
+Date: Wed, 5 Aug 2009 15:09:56 -0400
+Message-ID: <84FF2D40FEDEB74A98203E6EA01A4E1C05AA125E@de01exm63.ds.mot.com>
+References: <84FF2D40FEDEB74A98203E6EA01A4E1C059446C7@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446CD@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446D0@de01exm63.ds.mot.com> <4A781627.2060405@nokia.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms020309010003040301080503"
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.geekisp.com ([216.168.135.169]:26794 "EHLO
-	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752230AbZHESzh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 14:55:37 -0400
-In-Reply-To: <4A79D104.60607@deeprootsystems.com>
+Received: from mail128.messagelabs.com ([216.82.250.131]:59940 "EHLO
+	mail128.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750964AbZHETKS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 15:10:18 -0400
+Received: from il06exr04.mot.com (il06exr04.mot.com [129.188.137.134])
+	by motgate8.mot.com (8.14.3/8.14.3) with ESMTP id n75JAI5W018218
+	for <linux-omap@vger.kernel.org>; Wed, 5 Aug 2009 12:10:18 -0700 (MST)
+Received: from il06vts02.mot.com (il06vts02.mot.com [129.188.137.142])
+	by il06exr04.mot.com (8.13.1/Vontu) with SMTP id n75JAIXF024908
+	for <linux-omap@vger.kernel.org>; Wed, 5 Aug 2009 14:10:18 -0500 (CDT)
+Received: from de01exm63.ds.mot.com (de01exm63.am.mot.com [10.176.8.108])
+	by il06exr04.mot.com (8.13.1/8.13.0) with ESMTP id n75JAI8S024905
+	for <linux-omap@vger.kernel.org>; Wed, 5 Aug 2009 14:10:18 -0500 (CDT)
+Content-class: urn:content-classes:message
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Fischer Steven-P27614 <Steven.Fischer@motorola.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-This is a cryptographically signed message in MIME format.
+Tomi,
 
---------------ms020309010003040301080503
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+I tried the patch you sent and after just a little testing I'm fairly
+confident the change works just fine.  Thanks.
 
-Kevin Hilman wrote:
-> Steve Sakoman wrote:
->> On Wed, Aug 5, 2009 at 10:58 AM, Kevin
->> Hilman<khilman@deeprootsystems.com> wrote:
->>> Steve Sakoman wrote:
->>>> And up to now in each case I shrug and say "no time to do that now,
->>>> I'll just leave kernel pinmuxing turned off and do it in u-boot"
->>> I agree there are lots of shortcomings in the current mux code and we've
->>> been hitting them regularily lately.
->>>
->>> That being said, for mux settings that done one-time only at boot, 
->>> what are
->>> the problems you're running into?
->>
->> It's been a few months since I last encountered this, so the exact
->> details are a bit fuzzy.
->>
->> I seem to recall that there were some basic issues with enabling
->> kernel pinmuxing in that some of the setup that was done for all
->> machines was just wrong for my particular machine.  IIRC, it was due
->> to assumptions about which pad was used for a particular function (for
->> those functions which can be steered to multiple GPIO pads).
->>
->> So I faced having to undo that change in my board file as well as any
->> issues that may have arisen from glitches on the GPIO pins during the
->> process.  And since there were several of these I gave up and turned
->> off kernel pinmuxing.
->>
->> I'd be happy if we cleaned up the "one size fits all" pinmuxing to
->> just that subset that truly does fit all boards, and leave the rest to
->> the board files.  I'd also be content to have it all done in the board
->> file for each machine.
+I couple of comments on the configure_overlay() function.  Unless I'm
+mis-understanding the code the overlay output rectangle is defined by
+the local variable "x/y/outw/outh".  I find it quite confusing that
+there are separate "w" & "h" locals, since it makes it appear as if "x"
+& "y" should be paired with "w" & "h" to make a rectangle.  Further
+more, I see "x" & "w" added together, which similarly makes them appear
+to be part of the same rectangle.  I would lightly suggest changing the
+"x" & "y" locals to "outx" and "outy", just for clarity sake.
+
+Also, I wonder about the code that adds "x" & "w" or even "y" & "h".
+Shouldn't that code be adding "x" & "outw" or "y" & "outh"?  Again,
+maybe I'm mis-understanding the code.
+
+Steve.
+
+-----Original Message-----
+From: Fischer Steven-P27614 
+Sent: Tuesday, August 04, 2009 5:22 PM
+To: 'Tomi Valkeinen'
+Cc: linux-omap@vger.kernel.org
+Subject: RE: DSS2 Video Overlay Scaling Patch
+
+I'll try out your patch, hopefully tomorrow, and let you know.
+
+Thanks,
+
+Steve.
+
+-----Original Message-----
+From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+Sent: Tuesday, August 04, 2009 6:06 AM
+To: Fischer Steven-P27614
+Cc: linux-omap@vger.kernel.org
+Subject: Re: DSS2 Video Overlay Scaling Patch
+
+Hi,
+
+ext Fischer Steven-P27614 wrote:
+> Ugh, messed up morning, forgot the patch as well :(
 > 
-> Indeed, any assumptions about common muxing that are not indeed common 
-> are bugs and should be fixed.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
+> Steven-P27614
+> Sent: Tuesday, July 07, 2009 8:05 AM
+> To: linux-omap@vger.kernel.org
+> Subject: RE: DSS2 Video Overlay Scaling Patch
 > 
-> The "right" solution is to have everything in the kernel, and split 
-> across SoC "common" init and board specific init.  Of course u-boot
-> will still have to do some early muxing, but it should be redone in
-> the kernel so it's trivial to change bootloaders.
+> Sorry, missed the subject line.
 > 
-> So the real missing piece is someone to step up and rework the mux code.
-> The bigger problem is that the vast majority of folks don't care about 
-> the common case and only care about getting thing working for a specific 
-> platform.
-
-I posted some changes to add support for changing the Beagle expansion 
-connector MCSPI muxing in the board file and some general muxing 
-questions and received no comments (OK, a number of people were on 
-vacation). If people would like I can repost it to aid in discussion.
-
-I agree we need to more muxing in the kernel and less in u-boot. I do 
-not want a different u-boot for the Beagle based on what I have 
-connected to the expansion connector. (Same applies to the Overo)
-
-The current mux requires you make an entry in an enum, then a 
-corresponding entry in an array to configure the pin. SO the enum length 
-is basically number of pins * the number of possible pin configurations.
-
-There is no way to account for the different packages the OMAP3 is 
-available in.
-
-Is the code omap specific, or is it shared with other chips?
-
-Philip
-
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
+> Steven-P27614
+> Sent: Tuesday, July 07, 2009 7:54 AM
+> To: linux-omap@vger.kernel.org
+> Subject: 
 > 
-> Kevin
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> All,
+>  
+> The DSS2 code base seems to inadvertently prevent downscaling of video
 
---------------ms020309010003040301080503
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
+> overlay frames.  Attached is my attempt at a patch to resolve this 
+> issue.
+>  
+> As I gather from the code, there is an attempt to limit the overlay 
+> output frame size (x, y, outw, outh) to the managers updated window 
+> (mc->x, mc->y, mc->w, mc->h).  The problem is that the input frame 
+> size (w & h) is being used to instead of the output frame size (outw,
+outh).
+> Due to this, when the input frame size is large than the output frame 
+> size, the input frame is being cropped, thus no downscaling occurs.
+> My patch corrects this issue and also attempts to properly scale the 
+> input frame size if indeed the output frame is cropped.
+>  
+> In my particular case, the output frame size is never cropped, so I 
+> have not explicitly tested these equations, but I believe they are 
+> mathematically correct.
+>  
+> With this patch overlay downscaling is functional.
+>  
 
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
-Av0wggJmoAMCAQICECwlen/oUcoDd1VrNqKp/fwwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA5MDQxNTAwNDQ1OFoX
-DTEwMDQxNTAwNDQ1OFowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
-MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
-ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx5Xoie8CV9dJeiaiKRdy
-lvicHE9Aha6f9/CLlVs+Ezob7fIuRa4P9ugzZZ2VCtPMQU3Qsjw35mVmYaKXB1U+fZeffbya
-d6OJEIK1jhqBIz5jtJMc/YWXn/bRmqClMfTCgilUMOcsfiHAbmLVhYiNbEhOuy6vWdxSSolH
-qVa/IHE72qqjhoYWHd+5XVfx1c4jW+CePNMQEHxjCzuD+wq6Mzle72dXw+bnyIpG99hB26uN
-mV//h5iz1VmJU63FZWynSjG79NcY9+mTWXeX213VV6kJ2wce2rETbYvKQ7err6NnZnG/tiwG
-I1M7fQqQAti+CkDciLJ129LO+APVYZQgEwIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
-YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAIUyDAPIEniN6
-SUdbDiBqi2dtITdnkoUItm/tX9TRn66P0VtWug7k7xjo6piWRE7BZwhihotNY0ZnjlK+h0Vo
-rxfY63B5tarRB6qJ7f26ukmpltwWWLDB2hWFoKUCn6PE2NTdj+1xNinhZNQHy4GyygXjlVfV
-Sn/ZnaGJ31z4PK0wggL9MIICZqADAgECAhAsJXp/6FHKA3dVazaiqf38MA0GCSqGSIb3DQEB
-BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
-dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
-OTA0MTUwMDQ0NThaFw0xMDA0MTUwMDQ0NThaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
-VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
-cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMeV
-6InvAlfXSXomoikXcpb4nBxPQIWun/fwi5VbPhM6G+3yLkWuD/boM2WdlQrTzEFN0LI8N+Zl
-ZmGilwdVPn2Xn328mnejiRCCtY4agSM+Y7STHP2Fl5/20ZqgpTH0woIpVDDnLH4hwG5i1YWI
-jWxITrsur1ncUkqJR6lWvyBxO9qqo4aGFh3fuV1X8dXOI1vgnjzTEBB8Yws7g/sKujM5Xu9n
-V8Pm58iKRvfYQdurjZlf/4eYs9VZiVOtxWVsp0oxu/TXGPfpk1l3l9td1VepCdsHHtqxE22L
-ykO3q6+jZ2Zxv7YsBiNTO30KkALYvgpA3IiyddvSzvgD1WGUIBMCAwEAAaMwMC4wHgYDVR0R
-BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
-A4GBACFMgwDyBJ4jeklHWw4gaotnbSE3Z5KFCLZv7V/U0Z+uj9FbVroO5O8Y6OqYlkROwWcI
-YoaLTWNGZ45SvodFaK8X2OtwebWq0Qeqie39urpJqZbcFliwwdoVhaClAp+jxNjU3Y/tcTYp
-4WTUB8uBssoF45VX1Up/2Z2hid9c+DytMIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
-ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
-ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
-dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
-DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
-HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
-bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
-c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
-8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
-BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
-BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
-aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
-TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
-nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
-qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
-ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
-dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
-AhAsJXp/6FHKA3dVazaiqf38MAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
-9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDgwNTE4NTUzNVowIwYJKoZIhvcNAQkEMRYEFK+Y
-CdRVR8jkrMLzSJIoOUHkwBqjMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
-hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
-BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
-ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQQIQLCV6f+hRygN3VWs2oqn9/DCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
-AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
-aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQLCV6f+hRygN3VWs2oqn9/DAN
-BgkqhkiG9w0BAQEFAASCAQCDg7XwJZukIi9FysK+TolgRWlnYgPconHdp/wkY2PDs4LLxAEv
-z+QNKAM0ixiOmhMpbM94Ad4knBl3dmv6JweeQHDFyNoeHLNQ6U48QSUcGgYEugPgri8bVbU7
-4KrZIF6WsZT0UmZVfeW6pvWCcKHuCQfibKXN/mN3wDRYXsBtdw++FMz/5A5unzwfBQVNlWaZ
-gzoNArsS6wgyUxg1SqpptN8eBiczOfprqW9K5dgqENYmhWQ+9+meAFHaxbiE8O+Pm56zFkzL
-b54nSptKsNt4onVOD7n1b38PeBLHNTcRjkrHJvlPUFMpCMOyWfFMi7arv0t2H3byOs9TQEBa
-CYRZAAAAAAAA
---------------ms020309010003040301080503--
+It was indeed slightly broken. The code is there because we cannot use
+partial update for scaled overlays, but we need to update the whole
+overlay. Otherwise there could be visual errors on the screen.
+
+However, your patch didn't apply to my tree, and I think it can be
+solved in slightly more clear way. If the overlay in question is scaled,
+we don't even need to run that code. All we have to do is to adjust x/y
+depending on the x/y of the update area.
+
+Here's a patch, can you check if it works for you?
+
+  Tomi
+
