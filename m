@@ -1,409 +1,402 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 09/15] OMAP: DSS2: SDI driver
-Date: Wed,  5 Aug 2009 17:15:35 +0300
-Message-ID: <1249481741-14008-10-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 04/15] OMAP: Add support for VRFB rotation engine
+Date: Wed,  5 Aug 2009 17:15:30 +0300
+Message-ID: <1249481741-14008-5-git-send-email-tomi.valkeinen@nokia.com>
 References: <1249481741-14008-1-git-send-email-tomi.valkeinen@nokia.com>
  <1249481741-14008-2-git-send-email-tomi.valkeinen@nokia.com>
  <1249481741-14008-3-git-send-email-tomi.valkeinen@nokia.com>
  <1249481741-14008-4-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-5-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-6-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-7-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-8-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-9-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:47626 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:47610 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934516AbZHEOQ5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 10:16:57 -0400
-In-Reply-To: <1249481741-14008-9-git-send-email-tomi.valkeinen@nokia.com>
+	with ESMTP id S934517AbZHEOQy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 10:16:54 -0400
+In-Reply-To: <1249481741-14008-4-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev-devel@lists.sourceforge.net
 Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
+VRFB rotation engine is a block in OMAP2/3 that offers 12 independent
+contexts that can be used for framebuffer rotation.
+
+Each context has a backend area of real memory, where it stores the
+pixels in undisclosed format. This memory is offered to users via 4
+virtual memory areas, which see the same memory area in different
+rotation angles (0, 90, 180 and 270 degrees).
+
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- drivers/video/omap2/dss/sdi.c |  370 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 370 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/dss/sdi.c
+ arch/arm/plat-omap/Kconfig             |    3 +
+ arch/arm/plat-omap/Makefile            |    1 +
+ arch/arm/plat-omap/include/mach/vrfb.h |   46 +++++
+ arch/arm/plat-omap/vrfb.c              |  281 ++++++++++++++++++++++++++++++++
+ 4 files changed, 331 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/mach/vrfb.h
+ create mode 100644 arch/arm/plat-omap/vrfb.c
 
-diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index ca06037..2d6ae55 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -186,6 +186,9 @@ config OMAP_SERIAL_WAKE
+ config OMAP2_VRAM
+ 	bool
+ 
++config OMAP2_VRFB
++	bool
++
+ endmenu
+ 
+ endif
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index 0472bbe..462edf3 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -26,3 +26,4 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
+ obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+ 
+ obj-$(CONFIG_OMAP2_VRAM) += vram.o
++obj-$(CONFIG_OMAP2_VRFB) += vrfb.o
+diff --git a/arch/arm/plat-omap/include/mach/vrfb.h b/arch/arm/plat-omap/include/mach/vrfb.h
 new file mode 100644
-index 0000000..2f4d226
+index 0000000..8790612
 --- /dev/null
-+++ b/drivers/video/omap2/dss/sdi.c
-@@ -0,0 +1,370 @@
++++ b/arch/arm/plat-omap/include/mach/vrfb.h
+@@ -0,0 +1,46 @@
 +/*
-+ * linux/drivers/video/omap2/dss/sdi.c
++ * VRFB Rotation Engine
 + *
 + * Copyright (C) 2009 Nokia Corporation
 + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 + *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
 + *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
 +
-+#define DSS_SUBSYS_NAME "SDI"
++#ifndef __OMAP_VRFB_H__
++#define __OMAP_VRFB_H__
 +
-+#include <linux/kernel.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/io.h>
++#define OMAP_VRFB_LINE_LEN 2048
 +
-+#include <mach/board.h>
-+#include <mach/display.h>
-+#include "dss.h"
-+
-+#define CONTROL_PADCONF_BASE	0x48002000
-+
-+#define OMAP_SDI_PAD_DIS(pe, pu) ((7 << 0)		| /* MODE 7 = safe */ \
-+				 (((pe) ? 1 : 0) << 3)	| /* PULL_ENA */      \
-+				 (((pu) ? 1 : 0) << 4)	| /* PULL_UP  */      \
-+				 (1 << 8))		  /* INPUT_EN */
-+
-+#define OMAP_SDI_PAD_EN		 (1 << 0)		  /* MODE 1 = SDI_xx */
-+
-+#define OMAP_SDI_PAD_MASK	OMAP_SDI_PAD_DIS(1, 1)
-+
-+static struct {
-+	bool skip_init;
-+	bool update_enabled;
-+} sdi;
-+
-+/* CONTROL_PADCONF_DSS_DATAXX */
-+static const u16 sdi_pads[] =
-+{
-+	0x0f0,		/* 10[ 7..0]:SDI_DAT1N */
-+	0x0f2,		/* 10[15..0]:SDI_DAT1P */
-+	0x0f4,		/* 12[ 7..0]:SDI_DAT2N */
-+	0x0f6,		/* 12[15..0]:SDI_DAT2P */
-+	0x0f8,		/* 14[ 7..0]:SDI_DAT3N */
-+	0x0fa,		/* 14[15..0]:SDI_DAT3P */
-+	0x108,		/* 22[ 7..0]:SDI_CLKN */
-+	0x10a,		/* 22[15..0]:SDI_CLKP */
++struct vrfb {
++	u8 context;
++	void __iomem *vaddr[4];
++	unsigned long paddr[4];
++	u16 xoffset;
++	u16 yoffset;
++	u8 bytespp;
 +};
 +
++extern int omap_vrfb_request_ctx(struct vrfb *vrfb);
++extern void omap_vrfb_release_ctx(struct vrfb *vrfb);
++extern void omap_vrfb_suspend_ctx(struct vrfb *vrfb);
++extern void omap_vrfb_resume_ctx(struct vrfb *vrfb);
++extern void omap_vrfb_adjust_size(u16 *width, u16 *height,
++		u8 bytespp);
++extern void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
++		u16 width, u16 height,
++		unsigned bytespp, bool yuv_mode);
++extern void omap_vrfb_restore_context(void);
++
++#endif /* __VRFB_H */
+diff --git a/arch/arm/plat-omap/vrfb.c b/arch/arm/plat-omap/vrfb.c
+new file mode 100644
+index 0000000..240058f
+--- /dev/null
++++ b/arch/arm/plat-omap/vrfb.c
+@@ -0,0 +1,281 @@
 +/*
-+ * Check if bootloader / platform code has configured the SDI pads properly.
-+ * This means it either configured all required pads for SDI mode, or that it
-+ * left all the required pads unconfigured.
++ * VRFB Rotation Engine
++ *
++ * Copyright (C) 2009 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
-+static int sdi_pad_init(struct omap_dss_device *dssdev)
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/ioport.h>
++#include <linux/io.h>
++#include <linux/bitops.h>
++#include <linux/mutex.h>
++
++#include <mach/io.h>
++#include <mach/vrfb.h>
++/*#define DEBUG*/
++
++#ifdef DEBUG
++#define DBG(format, ...) pr_debug("VRFB: " format, ## __VA_ARGS__)
++#else
++#define DBG(format, ...)
++#endif
++
++#define SMS_ROT_VIRT_BASE(context, rot) \
++	(((context >= 4) ? 0xD0000000 : 0x70000000) \
++	 + (0x4000000 * (context)) \
++	 + (0x1000000 * (rot)))
++
++#define OMAP_VRFB_SIZE			(2048 * 2048 * 4)
++
++#define VRFB_PAGE_WIDTH_EXP	5 /* Assuming SDRAM pagesize= 1024 */
++#define VRFB_PAGE_HEIGHT_EXP	5 /* 1024 = 2^5 * 2^5 */
++#define VRFB_PAGE_WIDTH		(1 << VRFB_PAGE_WIDTH_EXP)
++#define VRFB_PAGE_HEIGHT	(1 << VRFB_PAGE_HEIGHT_EXP)
++#define SMS_IMAGEHEIGHT_OFFSET	16
++#define SMS_IMAGEWIDTH_OFFSET	0
++#define SMS_PH_OFFSET		8
++#define SMS_PW_OFFSET		4
++#define SMS_PS_OFFSET		0
++
++#define OMAP_SMS_BASE		0x6C000000
++#define SMS_ROT_CONTROL(context)	(OMAP_SMS_BASE + 0x180 + 0x10 * context)
++#define SMS_ROT_SIZE(context)		(OMAP_SMS_BASE + 0x184 + 0x10 * context)
++#define SMS_ROT_PHYSICAL_BA(context)	(OMAP_SMS_BASE + 0x188 + 0x10 * context)
++
++#define VRFB_NUM_CTXS 12
++/* bitmap of reserved contexts */
++static unsigned long ctx_map;
++/* bitmap of contexts for which we have to keep the HW context valid */
++static unsigned long ctx_map_active;
++
++static DEFINE_MUTEX(ctx_lock);
++
++/*
++ * Access to this happens from client drivers or the PM core after wake-up.
++ * For the first case we require locking at the driver level, for the second
++ * we don't need locking, since no drivers will run until after the wake-up
++ * has finished.
++ */
++static struct {
++	u32 physical_ba;
++	u32 control;
++	u32 size;
++} vrfb_hw_context[VRFB_NUM_CTXS];
++
++static inline void restore_hw_context(int ctx)
 +{
-+	unsigned req_map;
-+	bool configured = false;
-+	bool unconfigured = false;
-+	int data_pairs;
++	omap_writel(vrfb_hw_context[ctx].control, SMS_ROT_CONTROL(ctx));
++	omap_writel(vrfb_hw_context[ctx].size, SMS_ROT_SIZE(ctx));
++	omap_writel(vrfb_hw_context[ctx].physical_ba, SMS_ROT_PHYSICAL_BA(ctx));
++}
++
++void omap_vrfb_restore_context(void)
++{
 +	int i;
++	unsigned long map = ctx_map_active;
 +
-+	data_pairs = dssdev->phy.sdi.datapairs;
-+	req_map = (1 << (data_pairs * 2)) - 1;		/* data lanes */
-+	req_map |= 3 << 6;				/* clk lane */
-+	for (i = 0; i < ARRAY_SIZE(sdi_pads); i++) {
-+		u32 reg;
-+		u32 val;
-+
-+		if (!((1 << i) & req_map))
-+			/* Ignore unneded pads. */
-+			continue;
-+		reg = CONTROL_PADCONF_BASE + sdi_pads[i];
-+		val = omap_readw(reg);
-+		switch (val & 0x07) {	/* pad mode */
-+		case 1:
-+			if (unconfigured)
-+				break;
-+			/* Is the pull configuration ok for SDI mode? */
-+			if ((val & OMAP_SDI_PAD_MASK) != OMAP_SDI_PAD_EN)
-+				break;
-+			configured = true;
-+			break;
-+		case 0:
-+		case 7:
-+			if (configured)
-+				break;
-+			unconfigured = true;
-+			break;
-+		default:
-+			break;
-+		}
-+	}
-+	if (i != ARRAY_SIZE(sdi_pads)) {
-+		DSSERR("SDI: invalid pad configuration\n");
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-+
-+static void sdi_pad_config(struct omap_dss_device *dssdev, bool enable)
-+{
-+	int data_pairs;
-+	bool pad_off_pe, pad_off_pu;
-+	unsigned req_map;
-+	int i;
-+
-+	data_pairs = dssdev->phy.sdi.datapairs;
-+	pad_off_pe = dssdev->phy.sdi.pad_off_pe;
-+	pad_off_pu = dssdev->phy.sdi.pad_off_pu;
-+	req_map = (1 << (data_pairs * 2)) - 1;		/* data lanes */
-+	req_map |= 3 << 6;				/* clk lane */
-+	for (i = 0; i < ARRAY_SIZE(sdi_pads); i++) {
-+		u32 reg;
-+		u16 val;
-+
-+		if (!((1 << i) & req_map))
-+			continue;
-+		if (enable)
-+			val = OMAP_SDI_PAD_EN;
-+		else
-+			val = OMAP_SDI_PAD_DIS(pad_off_pe, pad_off_pu);
-+		reg = CONTROL_PADCONF_BASE + sdi_pads[i];
-+		omap_writew(val, reg);
++	for (i = ffs(map); i; i = ffs(map)) {
++		/* i=1..32 */
++		i--;
++		map &= ~(1 << i);
++		restore_hw_context(i);
 +	}
 +}
 +
-+static void sdi_basic_init(void)
++void omap_vrfb_adjust_size(u16 *width, u16 *height,
++		u8 bytespp)
 +{
-+	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_BYPASS);
-+
-+	dispc_set_lcd_display_type(OMAP_DSS_LCD_DISPLAY_TFT);
-+	dispc_set_tft_data_lines(24);
-+	dispc_lcd_enable_signal_polarity(1);
++	*width = ALIGN(*width * bytespp, VRFB_PAGE_WIDTH) / bytespp;
++	*height = ALIGN(*height, VRFB_PAGE_HEIGHT);
 +}
++EXPORT_SYMBOL(omap_vrfb_adjust_size);
 +
-+static int sdi_display_enable(struct omap_dss_device *dssdev)
++void omap_vrfb_setup(struct vrfb *vrfb, unsigned long paddr,
++		u16 width, u16 height,
++		unsigned bytespp, bool yuv_mode)
 +{
-+	struct omap_video_timings *t = &dssdev->panel.timings;
-+	struct dispc_clock_info cinfo;
-+	u16 lck_div, pck_div;
-+	unsigned long fck;
-+	unsigned long pck;
-+	int r;
++	unsigned pixel_size_exp;
++	u16 vrfb_width;
++	u16 vrfb_height;
++	u8 ctx = vrfb->context;
++	u32 size;
++	u32 control;
 +
-+	r = omap_dss_start_device(dssdev);
-+	if (r) {
-+		DSSERR("failed to start device\n");
-+		goto err0;
++	DBG("omapfb_set_vrfb(%d, %lx, %dx%d, %d)\n", ctx, paddr,
++			width, height, color_mode);
++
++	/* For YUV2 and UYVY modes VRFB needs to handle pixels a bit
++	 * differently. See TRM. */
++	if (yuv_mode) {
++		bytespp *= 2;
++		width /= 2;
 +	}
 +
-+	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
-+		DSSERR("dssdev already enabled\n");
-+		r = -EINVAL;
-+		goto err1;
-+	}
-+
-+	sdi_pad_config(dssdev, 1);
-+
-+	/* In case of skip_init sdi_init has already enabled the clocks */
-+	if (!sdi.skip_init)
-+		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	sdi_basic_init();
-+
-+	/* 15.5.9.1.2 */
-+	dssdev->panel.config |= OMAP_DSS_LCD_RF | OMAP_DSS_LCD_ONOFF;
-+
-+	dispc_set_pol_freq(dssdev->panel.config, dssdev->panel.acbi,
-+			dssdev->panel.acb);
-+
-+	if (!sdi.skip_init)
-+		r = dispc_calc_clock_div(1, t->pixel_clock * 1000,
-+				&cinfo);
++	if (bytespp == 4)
++		pixel_size_exp = 2;
++	else if (bytespp == 2)
++		pixel_size_exp = 1;
 +	else
-+		r = dispc_get_clock_div(&cinfo);
++		BUG();
 +
-+	if (r)
-+		goto err2;
++	vrfb_width = ALIGN(width * bytespp, VRFB_PAGE_WIDTH) / bytespp;
++	vrfb_height = ALIGN(height, VRFB_PAGE_HEIGHT);
 +
-+	fck = cinfo.fck;
-+	lck_div = cinfo.lck_div;
-+	pck_div = cinfo.pck_div;
++	DBG("vrfb w %u, h %u bytespp %d\n", vrfb_width, vrfb_height, bytespp);
 +
-+	pck = fck / lck_div / pck_div / 1000;
++	size  = vrfb_width << SMS_IMAGEWIDTH_OFFSET;
++	size |= vrfb_height << SMS_IMAGEHEIGHT_OFFSET;
 +
-+	if (pck != t->pixel_clock) {
-+		DSSWARN("Could not find exact pixel clock. Requested %d kHz, "
-+				"got %lu kHz\n",
-+				t->pixel_clock, pck);
++	control  = pixel_size_exp << SMS_PS_OFFSET;
++	control |= VRFB_PAGE_WIDTH_EXP  << SMS_PW_OFFSET;
++	control |= VRFB_PAGE_HEIGHT_EXP << SMS_PH_OFFSET;
 +
-+		t->pixel_clock = pck;
-+	}
++	vrfb_hw_context[ctx].physical_ba = paddr;
++	vrfb_hw_context[ctx].size = size;
++	vrfb_hw_context[ctx].control = control;
 +
++	omap_writel(paddr, SMS_ROT_PHYSICAL_BA(ctx));
++	omap_writel(size, SMS_ROT_SIZE(ctx));
++	omap_writel(control, SMS_ROT_CONTROL(ctx));
 +
-+	dispc_set_lcd_timings(t);
++	DBG("vrfb offset pixels %d, %d\n",
++			vrfb_width - width, vrfb_height - height);
 +
-+	r = dispc_set_clock_div(&cinfo);
-+	if (r)
-+		goto err2;
-+
-+	if (!sdi.skip_init) {
-+		dss_sdi_init(dssdev->phy.sdi.datapairs);
-+		dss_sdi_enable();
-+		mdelay(2);
-+	}
-+
-+	dispc_enable_lcd_out(1);
-+
-+	if (dssdev->driver->enable) {
-+		r = dssdev->driver->enable(dssdev);
-+		if (r)
-+			goto err3;
-+	}
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	sdi.skip_init = 0;
-+
-+	return 0;
-+err3:
-+	dispc_enable_lcd_out(0);
-+err2:
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+err1:
-+	omap_dss_stop_device(dssdev);
-+err0:
-+	return r;
++	vrfb->xoffset = vrfb_width - width;
++	vrfb->yoffset = vrfb_height - height;
++	vrfb->bytespp = bytespp;
 +}
++EXPORT_SYMBOL(omap_vrfb_setup);
 +
-+static int sdi_display_resume(struct omap_dss_device *dssdev);
-+
-+static void sdi_display_disable(struct omap_dss_device *dssdev)
++void omap_vrfb_release_ctx(struct vrfb *vrfb)
 +{
-+	if (dssdev->state == OMAP_DSS_DISPLAY_DISABLED)
++	int rot;
++	int ctx = vrfb->context;
++
++	if (ctx == 0xff)
 +		return;
 +
-+	if (dssdev->state == OMAP_DSS_DISPLAY_SUSPENDED)
-+		sdi_display_resume(dssdev);
++	DBG("release ctx %d\n", ctx);
 +
-+	if (dssdev->driver->disable)
-+		dssdev->driver->disable(dssdev);
++	mutex_lock(&ctx_lock);
 +
-+	dispc_enable_lcd_out(0);
++	BUG_ON(!(ctx_map & (1 << ctx)));
 +
-+	dss_sdi_disable();
++	clear_bit(ctx, &ctx_map_active);
++	clear_bit(ctx, &ctx_map);
 +
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+	sdi_pad_config(dssdev, 0);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+
-+	omap_dss_stop_device(dssdev);
-+}
-+
-+static int sdi_display_suspend(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-+		return -EINVAL;
-+
-+	if (dssdev->driver->suspend)
-+		dssdev->driver->suspend(dssdev);
-+
-+	dispc_enable_lcd_out(0);
-+
-+	dss_sdi_disable();
-+
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+	sdi_pad_config(dssdev, 0);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
-+
-+	return 0;
-+}
-+
-+static int sdi_display_resume(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
-+		return -EINVAL;
-+
-+	sdi_pad_config(dssdev, 1);
-+	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	dss_sdi_enable();
-+	mdelay(2);
-+
-+	dispc_enable_lcd_out(1);
-+
-+	if (dssdev->driver->resume)
-+		dssdev->driver->resume(dssdev);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	return 0;
-+}
-+
-+static int sdi_display_set_update_mode(struct omap_dss_device *dssdev,
-+		enum omap_dss_update_mode mode)
-+{
-+	if (mode == OMAP_DSS_UPDATE_MANUAL)
-+		return -EINVAL;
-+
-+	if (mode == OMAP_DSS_UPDATE_DISABLED) {
-+		dispc_enable_lcd_out(0);
-+		sdi.update_enabled = 0;
-+	} else {
-+		dispc_enable_lcd_out(1);
-+		sdi.update_enabled = 1;
++	for (rot = 0; rot < 4; ++rot) {
++		if (vrfb->paddr[rot]) {
++			release_mem_region(vrfb->paddr[rot], OMAP_VRFB_SIZE);
++			vrfb->paddr[rot] = 0;
++		}
 +	}
 +
-+	return 0;
++	vrfb->context = 0xff;
++
++	mutex_unlock(&ctx_lock);
 +}
++EXPORT_SYMBOL(omap_vrfb_release_ctx);
 +
-+static enum omap_dss_update_mode sdi_display_get_update_mode(
-+		struct omap_dss_device *dssdev)
++int omap_vrfb_request_ctx(struct vrfb *vrfb)
 +{
-+	return sdi.update_enabled ? OMAP_DSS_UPDATE_AUTO :
-+		OMAP_DSS_UPDATE_DISABLED;
++	int rot;
++	u32 paddr;
++	u8 ctx;
++	int r;
++
++	DBG("request ctx\n");
++
++	mutex_lock(&ctx_lock);
++
++	for (ctx = 0; ctx < VRFB_NUM_CTXS; ++ctx)
++		if ((ctx_map & (1 << ctx)) == 0)
++			break;
++
++	if (ctx == VRFB_NUM_CTXS) {
++		pr_err("vrfb: no free contexts\n");
++		r = -EBUSY;
++		goto out;
++	}
++
++	DBG("found free ctx %d\n", ctx);
++
++	set_bit(ctx, &ctx_map);
++	WARN_ON(ctx_map_active & (1 << ctx));
++	set_bit(ctx, &ctx_map_active);
++
++	memset(vrfb, 0, sizeof(*vrfb));
++
++	vrfb->context = ctx;
++
++	for (rot = 0; rot < 4; ++rot) {
++		paddr = SMS_ROT_VIRT_BASE(ctx, rot);
++		if (!request_mem_region(paddr, OMAP_VRFB_SIZE, "vrfb")) {
++			pr_err("vrfb: failed to reserve VRFB "
++					"area for ctx %d, rotation %d\n",
++					ctx, rot * 90);
++			omap_vrfb_release_ctx(vrfb);
++			r = -ENOMEM;
++			goto out;
++		}
++
++		vrfb->paddr[rot] = paddr;
++
++		DBG("VRFB %d/%d: %lx\n", ctx, rot*90, vrfb->paddr[rot]);
++	}
++
++	r = 0;
++out:
++	mutex_unlock(&ctx_lock);
++	return r;
 +}
++EXPORT_SYMBOL(omap_vrfb_request_ctx);
 +
-+static void sdi_get_timings(struct omap_dss_device *dssdev,
-+			struct omap_video_timings *timings)
++void omap_vrfb_suspend_ctx(struct vrfb *vrfb)
 +{
-+	*timings = dssdev->panel.timings;
++	DBG("suspend ctx %d\n", vrfb->context);
++	mutex_lock(&ctx_lock);
++
++	BUG_ON(vrfb->context >= VRFB_NUM_CTXS);
++	BUG_ON(!((1 << vrfb->context) & ctx_map_active));
++
++	clear_bit(vrfb->context, &ctx_map_active);
++	mutex_unlock(&ctx_lock);
 +}
++EXPORT_SYMBOL(omap_vrfb_suspend_ctx);
 +
-+int sdi_init_display(struct omap_dss_device *dssdev)
++void omap_vrfb_resume_ctx(struct vrfb *vrfb)
 +{
-+	DSSDBG("SDI init\n");
++	DBG("resume ctx %d\n", vrfb->context);
++	mutex_lock(&ctx_lock);
 +
-+	dssdev->enable = sdi_display_enable;
-+	dssdev->disable = sdi_display_disable;
-+	dssdev->suspend = sdi_display_suspend;
-+	dssdev->resume = sdi_display_resume;
-+	dssdev->set_update_mode = sdi_display_set_update_mode;
-+	dssdev->get_update_mode = sdi_display_get_update_mode;
-+	dssdev->get_timings = sdi_get_timings;
-+
-+	return sdi_pad_init(dssdev);
-+}
-+
-+int sdi_init(bool skip_init)
-+{
-+	/* we store this for first display enable, then clear it */
-+	sdi.skip_init = skip_init;
++	BUG_ON(vrfb->context >= VRFB_NUM_CTXS);
++	BUG_ON((1 << vrfb->context) & ctx_map_active);
 +
 +	/*
-+	 * Enable clocks already here, otherwise there would be a toggle
-+	 * of them until sdi_display_enable is called.
++	 * omap_vrfb_restore_context is normally called by the core domain
++	 * save / restore logic, but since this VRFB context was suspended
++	 * those calls didn't actually restore the context and now we might
++	 * have an invalid context. Do an explicit restore here.
 +	 */
-+	if (skip_init)
-+		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+	return 0;
++	restore_hw_context(vrfb->context);
++	set_bit(vrfb->context, &ctx_map_active);
++	mutex_unlock(&ctx_lock);
 +}
++EXPORT_SYMBOL(omap_vrfb_resume_ctx);
 +
-+void sdi_exit(void)
-+{
-+}
 -- 
 1.6.4
 
