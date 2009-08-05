@@ -1,67 +1,81 @@
-From: "Kanigeri, Hari" <h-kanigeri2@ti.com>
-Subject: RE: [PATCH v1 1/3] ARM:OMAP4 iommu:changes in iommu for OMAP4
-Date: Wed, 5 Aug 2009 11:33:56 -0500
-Message-ID: <8F7AF80515AF0D4D93307E594F3CB40E3ABDC0CB@dlee03.ent.ti.com>
-References: <8F7AF80515AF0D4D93307E594F3CB40E3ABDBABD@dlee03.ent.ti.com>
- <20090804224504.GB17716@n2100.arm.linux.org.uk>
- <20090805072001.GB7374@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD943C@dbde02.ent.ti.com>
+From: John Sarman <johnsarman@gmail.com>
+Subject: Re: Fwd: MMC3 Overo
+Date: Wed, 5 Aug 2009 12:35:28 -0400
+Message-ID: <bb2708720908050935s6602d76dq2dbaa00195008132@mail.gmail.com>
+References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
+	 <6ed0b2680908050132n33abc45bgd4e91690c43ba277@mail.gmail.com>
+	 <bb2708720908050901lbc67b1cx5a75a7667fa36fd1@mail.gmail.com>
+	 <bb2708720908050902o39c67430pbdcd12e9b835ab70@mail.gmail.com>
+	 <873a866xdo.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60901 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934641AbZHEQeM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 12:34:12 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD943C@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-yx0-f175.google.com ([209.85.210.175]:63508 "EHLO
+	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934655AbZHEQfs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 12:35:48 -0400
+Received: by yxe5 with SMTP id 5so272146yxe.33
+        for <linux-omap@vger.kernel.org>; Wed, 05 Aug 2009 09:35:48 -0700 (PDT)
+In-Reply-To: <873a866xdo.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Russell, Tony, Santosh,
+On Wed, Aug 5, 2009 at 12:25 PM, Kevin
+Hilman<khilman@deeprootsystems.com> wrote:
+> John Sarman <johnsarman@gmail.com> writes:
+>
+>> ---------- Forwarded message ----------
+>> From: John Sarman <johnsarman@gmail.com>
+>> Date: Wed, Aug 5, 2009 at 12:01 PM
+>> Subject: Re: MMC3 Overo
+>> To: Grazvydas Ignotas <notasas@gmail.com>
+>>
+>>
+>> On Wed, Aug 5, 2009 at 4:32 AM, Grazvydas Ignotas<notasas@gmail.com>=
+ wrote:
+>>>> <u-boot_snip>
+>>>> =A0MUX_VAL(CP(ETK_CLK_ES2), =A0 =A0 =A0 (IDIS | PTU | EN =A0| M2))=
+ /*MMC3_CLK*/\
+>>>
+>>> You must have input enable on CLK line for MMC3 or it won't work fo=
+r
+>>> some reason (MMC 1 and 2 doesn't need that). Without this part of t=
+he
+>>> host controller hardware doesn't get the clock I guess, or somethin=
+g
+>>> like that. You won't believe how much time we've wasted on this!
+>>>
+>> MUX_VAL(CP(ETK_CLK_ES2), =A0 =A0 =A0 (IEN | PTU | EN =A0| M2)) /*MMC=
+3_CLK*/\
+>>
+>> Works Beautifully, Thank you so much. =A0I have also burnt too much
+>> midnight oil on this problem.
+>> So looks like Overo MMC3 works like a champ!
+>
+> Might I suggest a kernel patch for this rather than fixing u-boot so =
+that
+> all the midnight oil you've burnt does not have to be duplicated by o=
+thers.
+Well I dont know how to answer that.  Because the Mux architecture is
+slightly on the scary side.  I personally have had success with it,
+but everytime you need to add a new pin functionality you have to
+update mux.h.  I finally decided to just focus on having the MUX
+correct at boot up via u-boot.
 
-> Russell / Tony,
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Wednesday, August 05, 2009 12:50 PM
-> > To: Russell King - ARM Linux
-> > Cc: Kanigeri, Hari; linux-omap@vger.kernel.org; Hiroshi DOYU;
-> > Shilimkar, Santosh
-> > Subject: Re: [PATCH v1 1/3] ARM:OMAP4 iommu:changes in iommu for OMAP4
-> >
-> > * Russell King - ARM Linux <linux@arm.linux.org.uk> [090805 01:45]:
-> > > On Tue, Aug 04, 2009 at 05:30:23PM -0500, Kanigeri, Hari wrote:
-> > > > -	obj->clk = clk_get(&pdev->dev, pdata->clk_name);
-> > > > -	if (IS_ERR(obj->clk))
-> > > > -		goto err_clk;
-> > > > +	/*
-> > > > +	 * FIX-ME: Replace with correct clk node when clk
-> > > > +	 * framework is available
-> > > > +	 */
-> > > > +	if (!cpu_is_omap44xx())	{
-> > > > +		obj->clk = clk_get(&pdev->dev, pdata->clk_name);
-> > > > +		if (IS_ERR(obj->clk))
-> > > > +			goto err_clk;
-> > > > +	}
-> > >
-> > > I've no visibility on when these are going to get resolved, and it's
-> > > starting to concern me that there appears to be no progress on it,
-> > > especially as we have more and more code being merged with these
-> > > workarounds.  It's getting towards the point where enough is enough
-> > > and we need OMAP4 clk support in place, even if it is just a simple
-> > > stop-gap implementation rather than all these horrible hacks spread
-> > > through the code which one day will need to be found and removed.
-> >
-> > Yeah I agree.
-> The initial set of clock patches are more or less ready now and we
-> will posting them in next few days.
-> 
+I could just add the code to update the mux without using the mux archi=
+tecture.
 
--- Ok, then. I will wait for the clock patches to resend the iommu patches.
-
-Thank you,
-Best regards,
-Hari
+I would appreciate some opinions on this.
+>
+> Thanks,
+>
+> Kevin
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
