@@ -1,64 +1,107 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Wed, 05 Aug 2009 15:14:42 +0200
-Message-ID: <4A7985C2.1040403@tis.icnet.pl>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl> <20090803181405.6249b843.jhnikula@gmail.com> <200908042246.09919.jkrzyszt@tis.icnet.pl> <200908050945.22160.peter.ujfalusi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP: GPIO: Avoid generating extra IRQs
+Date: Wed, 5 Aug 2009 16:17:03 +0300
+Message-ID: <20090805131703.GG7374@atomide.com>
+References: <1246602393-8812-1-git-send-email-ext-eero.nurkkala@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:38437 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933713AbZHENOx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Aug 2009 09:14:53 -0400
-In-Reply-To: <200908050945.22160.peter.ujfalusi@nokia.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50452 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933326AbZHENRG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 09:17:06 -0400
+Content-Disposition: inline
+In-Reply-To: <1246602393-8812-1-git-send-email-ext-eero.nurkkala@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Arun K S <arunks@mistralsolutions.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: ext-eero.nurkkala@nokia.com
+Cc: linux-omap@vger.kernel.org
 
 Hi,
 
-Peter Ujfalusi wrote:
-> On Tuesday 04 August 2009 23:46:09 ext Janusz Krzysztofik wrote:
+* ext-eero.nurkkala@nokia.com <ext-eero.nurkkala@nokia.com> [090703 09:27]:
+> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 > 
->> For both playback start while capturing and capture start while playing,
->> XSYNC_ERR/RSYNC_ERR is clear
->> and XRDY/RRDY is ready,
+> It is possible for GPIO IRQ lines configured with
+> falling edge triggering only to get IRQs at the
+> rising edge upon the exit of offmode. And vice
+> versa. Prevent such IRQs to arrive by generating
+> the IRQ obeying the detection scheme.
+
+Is the situation still the same if we temporarily change the
+level lines to edge for the duration of idle? This would allow
+waking up even if the line is level.
+
+Also one question below.
+
+> Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> ---
+>  arch/arm/plat-omap/gpio.c |   27 +++++++++++++++++++++++----
+>  1 files changed, 23 insertions(+), 4 deletions(-)
 > 
-> This means that XRDY/RRDY is set (1)?
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index 26b387c..7a270c0 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -1804,7 +1804,7 @@ void omap2_gpio_resume_after_retention(void)
+>  		return;
+>  	for (i = 0; i < gpio_bank_count; i++) {
+>  		struct gpio_bank *bank = &gpio_bank[i];
+> -		u32 l;
+> +		u32 l, gen, gen0, gen1;
+>  
+>  		if (!(bank->enabled_non_wakeup_gpios))
+>  			continue;
+> @@ -1825,14 +1825,33 @@ void omap2_gpio_resume_after_retention(void)
+>  #endif
+>  		l ^= bank->saved_datain;
+>  		l &= bank->non_wakeup_gpios;
+> -		if (l) {
+> +
+> +		/*
+> +		 * No need to generate IRQs for the rising edge for gpio IRQs
+> +		 * configured with falling edge only; and vice versa.
+> +		 */
+> +		gen0 = l & bank->saved_fallingdetect;
+> +		gen0 &= bank->saved_datain;
+> +
+> +		gen1 = l & bank->saved_risingdetect;
+> +		gen1 &= ~(bank->saved_datain);
+> +
 
-Yes, trasmit/recieve confirmed at first while(!(readw(...) & XRDY/RRDY)) 
-attempt.
+Is the gen0 &= correct or should it also clear the bits?
 
-> In case of playback start while capture: What is the state of the XEMPTY bit 
-> (SPCR2:2)? Is it 0? It should.
+Also, have you checked the code flow on omap1 when l, gen, gen0 & gen1
+are not initialized? Just wondering ;)
 
-Have not checked, but will do for completness.
+Tony
 
-> I think the reason is quite simple: on OMAP1 the DMA request is edge sensitive 
-> (compared to OMAP2 and OMAP3 where it is level based). This means:
 
-Good recap.
-
-> The danger with the pollwrite/pollread is:
-> If the stream is not mono, than you kind of ensure a certain channel shift 
-> (channel switch in case of stereo stream).
-
-Good point, I was trying break all not mono.
-
->> If my analysis is correct, the best solution I can see would be starting
->> McBSP transfer for one direction only, not both, so the opposite direction
->> can be started when needed. That requires deeper and wider OMAP knowledge
->> and a change in omap_mcbsp_start() API though. I am not in a position to
->> deal with this myself, I'm afraid.
+> +		/* FIXME: Consider GPIO IRQs with level detections properly! */
+> +		gen = l & (~(bank->saved_fallingdetect) &
+> +				~(bank->saved_risingdetect));
+> +		/* Consider all GPIO IRQs needed to be updated */
+> +		gen |= gen0 | gen1;
+> +
+> +		if (gen) {
+>  			u32 old0, old1;
+>  #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
+>  			defined(CONFIG_ARCH_OMAP4)
+>  			old0 = __raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+>  			old1 = __raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+> -			__raw_writel(old0 | l, bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+> -			__raw_writel(old1 | l, bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+> +			__raw_writel(old0 | gen, bank->base +
+> +					OMAP24XX_GPIO_LEVELDETECT0);
+> +			__raw_writel(old1 | gen, bank->base +
+> +					OMAP24XX_GPIO_LEVELDETECT1);
+>  			__raw_writel(old0, bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+>  			__raw_writel(old1, bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+>  #endif
+> -- 
+> 1.6.0.4
 > 
-> I agree, this would be the best solution for the problem.
-
-I was also considering omap_mcbsp_restart(id, direction) as a more 
-conservative solution, but now, after Jarkko has subbmitted his patch on 
-omap_mcbsp_start(), it's not an option any longer, I think.
-
-Cheers,
-Janusz
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
