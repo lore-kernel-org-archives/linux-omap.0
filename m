@@ -1,90 +1,50 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/2] OMAP3: PM: Add function omap_device_find_pdev to omap_device layer
-Date: Wed, 05 Aug 2009 15:30:25 -0700
-Message-ID: <87prb999mm.fsf@deeprootsystems.com>
-References: <1248694087-7177-1-git-send-email-ranjithl@ti.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [RFC][PATCH] Maintainers update for hsmmc driver
+Date: Thu, 6 Aug 2009 05:12:21 +0530 (IST)
+Message-ID: <39332.192.168.10.88.1249515741.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.180]:39448 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752685AbZHEWa3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 18:30:29 -0400
-Received: by wa-out-1112.google.com with SMTP id j5so66671wah.21
-        for <linux-omap@vger.kernel.org>; Wed, 05 Aug 2009 15:30:28 -0700 (PDT)
-In-Reply-To: <1248694087-7177-1-git-send-email-ranjithl@ti.com> (Ranjith Lohithakshan's message of "Mon\, 27 Jul 2009 16\:58\:07 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36555 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751267AbZHEXm2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 5 Aug 2009 19:42:28 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ranjith Lohithakshan <ranjithl@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, adrian.hunter@nokia.com
 
-Ranjith Lohithakshan <ranjithl@ti.com> writes:
+Hi,
 
-> This patch adds a function, omap_device_find_pdev, which will get the
-> omap_device associated with the platform_device provided. This is currently
-> required by the SRF layer for setting max_dev_wakeup_lat and getting
-> dev_context_loss_count.
->
-> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
+I intend to post this patch upstream for TI OMAP 2430/3430 HSMMC controller
+driver maintainance. Any thoughts or comments welcome.
 
-Thanks, appying this to PM branch for now to get SRF working again but
-Paul will review/comment/merge into his omap_device branch for
-upstream.
+Regards,
+Madhu
 
-Kevin
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+---
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+Index: linux-omap-2.6/MAINTAINERS
+===================================================================
+--- linux-omap-2.6.orig/MAINTAINERS
++++ linux-omap-2.6/MAINTAINERS
+@@ -3700,6 +3700,12 @@ L:	linux-omap@vger.kernel.org
+ S:	Maintained
+ F:	drivers/mmc/host/*omap*
+
++OMAP HS MMC SUPPORT
++M:	Madhusudhan Chikkature <madhu.cr@ti.com>
++L:	linux-omap@vger.kernel.org
++S:	Maintained
++F:	drivers/mmc/host/*omap_hsmmc*
++
+ OMAP RANDOM NUMBER GENERATOR SUPPORT
+ M:	Deepak Saxena <dsaxena@plexity.net>
+ S:	Maintained
 
 
-> ---
->  arch/arm/plat-omap/include/mach/omap_device.h |    2 +-
->  arch/arm/plat-omap/omap_device.c              |   22 ++++++++++++++++++++++
->  2 files changed, 23 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/mach/omap_device.h b/arch/arm/plat-omap/include/mach/omap_device.h
-> index bd0e136..5874af2 100644
-> --- a/arch/arm/plat-omap/include/mach/omap_device.h
-> +++ b/arch/arm/plat-omap/include/mach/omap_device.h
-> @@ -136,6 +136,6 @@ struct omap_device_pm_latency {
->  	int (*activate_func)(struct omap_device *od);
->  };
->  
-> -
-> +struct omap_device *omap_device_find_pdev(struct platform_device *pdev);
->  #endif
->  
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 2c409fc..b947faf 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -685,3 +685,25 @@ int omap_device_enable_clocks(struct omap_device *od)
->  	/* XXX pass along return value here? */
->  	return 0;
->  }
-> +
-> +/**
-> + * omap_device_find_pdev - look up an OMAP module by platform_device
-> + * @pdev: platform_device to find
-> + *
-> + * Finds a registered OMAP module by the platform_device associated
-> + * with it in the omap_device structure. Returns a pointer to the
-> + * struct omap_device if found, or NULL otherwise.
-> + */
-> +
-> +struct omap_device *omap_device_find_pdev(struct platform_device *pdev)
-> +{
-> +	struct omap_device *od;
-> +
-> +	if (!pdev)
-> +		return NULL;
-> +
-> +	od = _find_by_pdev(pdev);
-> +
-> +	return od;
-> +}
-> +
-> -- 
-> 1.6.2.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
