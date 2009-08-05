@@ -1,65 +1,74 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Fwd: MMC3 Overo
-Date: Wed, 05 Aug 2009 09:25:39 -0700
-Message-ID: <873a866xdo.fsf@deeprootsystems.com>
-References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
-	<6ed0b2680908050132n33abc45bgd4e91690c43ba277@mail.gmail.com>
-	<bb2708720908050901lbc67b1cx5a75a7667fa36fd1@mail.gmail.com>
-	<bb2708720908050902o39c67430pbdcd12e9b835ab70@mail.gmail.com>
+Subject: pull request (Re: [PATCH 00/14] OMAP PM fixes for .31-rc series)
+Date: Wed, 05 Aug 2009 09:17:59 -0700
+Message-ID: <87ab2e6xqg.fsf_-_@deeprootsystems.com>
+References: <1248214120-18886-1-git-send-email-khilman@deeprootsystems.com>
+	<20090721223730.GF7547@n2100.arm.linux.org.uk>
+	<20090803123516.GC24334@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f179.google.com ([209.85.222.179]:48182 "EHLO
-	mail-pz0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934611AbZHEQZm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 12:25:42 -0400
-Received: by pzk9 with SMTP id 9so150509pzk.21
-        for <linux-omap@vger.kernel.org>; Wed, 05 Aug 2009 09:25:41 -0700 (PDT)
-In-Reply-To: <bb2708720908050902o39c67430pbdcd12e9b835ab70@mail.gmail.com> (John Sarman's message of "Wed\, 5 Aug 2009 12\:02\:01 -0400")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+In-Reply-To: <20090803123516.GC24334@atomide.com> (Tony Lindgren's message of
+	"Mon\, 3 Aug 2009 15\:35\:17 +0300")
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: John Sarman <johnsarman@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-John Sarman <johnsarman@gmail.com> writes:
+Russell,
 
-> ---------- Forwarded message ----------
-> From: John Sarman <johnsarman@gmail.com>
-> Date: Wed, Aug 5, 2009 at 12:01 PM
-> Subject: Re: MMC3 Overo
-> To: Grazvydas Ignotas <notasas@gmail.com>
->
->
-> On Wed, Aug 5, 2009 at 4:32 AM, Grazvydas Ignotas<notasas@gmail.com> =
-wrote:
->>> <u-boot_snip>
->>> =A0MUX_VAL(CP(ETK_CLK_ES2), =A0 =A0 =A0 (IDIS | PTU | EN =A0| M2)) =
-/*MMC3_CLK*/\
->>
->> You must have input enable on CLK line for MMC3 or it won't work for
->> some reason (MMC 1 and 2 doesn't need that). Without this part of th=
-e
->> host controller hardware doesn't get the clock I guess, or something
->> like that. You won't believe how much time we've wasted on this!
->>
-> MUX_VAL(CP(ETK_CLK_ES2), =A0 =A0 =A0 (IEN | PTU | EN =A0| M2)) /*MMC3=
-_CLK*/\
->
-> Works Beautifully, Thank you so much. =A0I have also burnt too much
-> midnight oil on this problem.
-> So looks like Overo MMC3 works like a champ!
+This series was rebased against v2.6.31-rc5, and here's the pull request.
 
-Might I suggest a kernel patch for this rather than fixing u-boot so th=
-at
-all the midnight oil you've burnt does not have to be duplicated by oth=
-ers.
+The following changes since commit ed680c4ad478d0fee9740f7d029087f181346564:
+  Linus Torvalds (1):
+        Linux 2.6.31-rc5
 
-Thanks,
+are available in the git repository at:
 
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git pm-upstream/fixes
+
+Eero Nurkkala (1):
+      OMAP: PM: CPUfreq: obey min/max settings of policy
+
+Jouni Hogander (1):
+      OMAP3: PM: Fix wrong sequence in suspend.
+
+Kevin Hilman (11):
+      OMAP2/3: PM: make PM __init calls static
+      OMAP3: PM: CM_REGADDR macros using wrong name
+      OMAP3: PM: Ensure PRCM interrupts are cleared at boot
+      OMAP3: PM: Clear pending PRCM reset flags on init
+      OMAP3: PM: prevent module wakeups from waking IVA2
+      OMAP3: PM: Do not build suspend code if SUSPEND is not enabled
+      OMAP4: UART: cleanup special case IRQ handling
+      OMAP2/3/4: UART: Allow per-UART disabling wakeup for serial ports
+      OMAP2/3/4: UART: allow in-order port traversal
+      OMAP: GPIO: clear/restore level/edge detect settings on mask/unmask
+      OMAP3: Overo: add missing pen-down GPIO definition
+
+Tero Kristo (1):
+      OMAP3: Fixed crash bug with serial + suspend
+
+ arch/arm/mach-omap2/board-overo.c        |    1 +
+ arch/arm/mach-omap2/cm.h                 |    6 +-
+ arch/arm/mach-omap2/pm.h                 |    3 -
+ arch/arm/mach-omap2/pm24xx.c             |    2 +-
+ arch/arm/mach-omap2/pm34xx.c             |   51 +++++++-
+ arch/arm/mach-omap2/serial.c             |  197 ++++++++++++++++++++----------
+ arch/arm/plat-omap/cpu-omap.c            |    8 +-
+ arch/arm/plat-omap/gpio.c                |    6 +
+ arch/arm/plat-omap/include/mach/serial.h |    1 +
+ 9 files changed, 197 insertions(+), 78 deletions(-)
+
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
