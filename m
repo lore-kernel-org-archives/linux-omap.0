@@ -1,62 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP2/3 Avoid GPIO pending irq status been set after
-	irq_disable
-Date: Wed, 5 Aug 2009 18:11:00 +0300
-Message-ID: <20090805151059.GT7374@atomide.com>
-References: <B00E06E2766C2744B022DE9BAF3C59D532D196@zmy16exm69.ds.mot.com> <20090805123354.GF7374@atomide.com> <877hxi9vl7.fsf@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: GPIO: Avoid generating extra IRQs
+Date: Wed, 5 Aug 2009 18:15:41 +0300
+Message-ID: <20090805151540.GU7374@atomide.com>
+References: <20090805131703.GG7374@atomide.com> <1FFEF31EBAA4F64B80D33027D4297760047F6AECFD@NOK-EUMSG-02.mgdnok.nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55563 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933080AbZHEPLH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 11:11:07 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54672 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751371AbZHEPPn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 11:15:43 -0400
 Content-Disposition: inline
-In-Reply-To: <877hxi9vl7.fsf@deeprootsystems.com>
+In-Reply-To: <1FFEF31EBAA4F64B80D33027D4297760047F6AECFD@NOK-EUMSG-02.mgdnok.nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Wang Sawsd-A24013 <cqwang@motorola.com>, linux-omap@vger.kernel.org
+To: ext-Eero.Nurkkala@nokia.com
+Cc: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090805 17:36]:
-> Tony Lindgren <tony@atomide.com> writes:
+* ext-Eero.Nurkkala@nokia.com <ext-Eero.Nurkkala@nokia.com> [090805 17:45]:
 > 
-> > Hi,
-> >
-> > Sorry for the long delay on replying to this one.
+> >>               l ^= bank->saved_datain;
+> >>               l &= bank->non_wakeup_gpios;
+> >> -             if (l) {
+> >> +
+> >> +             /*
+> >> +              * No need to generate IRQs for the rising edge for gpio IRQs
+> >> +              * configured with falling edge only; and vice versa.
+> >> +              */
+> >> +             gen0 = l & bank->saved_fallingdetect;
+> >> +             gen0 &= bank->saved_datain;
+> >> +
+> >> +             gen1 = l & bank->saved_risingdetect;
+> >> +             gen1 &= ~(bank->saved_datain);
+> >> +
 > 
-> Tony, this one has been superceded, and the irq_enable/disable stuff no
-> longer is needed due to the patch
+> > Is the gen0 &= correct or should it also clear the bits?
 > 
->   OMAP: GPIO: clear/restore level/edge detect settings on mask/unmask
+> What do you mean, eg, what bits should be cleared?
 > 
-> from my PM fixes queue.
+> gen0 = (bit has changed) and is falling_edge
+> gen0 &= (the bit has changed) is falling edge and former state was "HIGH"
+> (transition from HIGH to LOW has occurred)
 > 
-> An updated version (currently in the PM branch) is here:
-> http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=commit;h=c80a909697ad931ffad9d30ed321469fa699b208
+> for rising edge, needed is LOW to HIGH transition.
 
-OK, thanks.
-
-
-> 
-> but...
-> 
-
-<snip>
-
-> > To me it looks like the right way to deal with the level gpio
-> > would be to change it temporarily to be edge for the duration of
-> > idle, then change it back to be level after returning from idle.
-> 
-> Not sure about that.  That would have to be experimented with to 
-> see if there are any other side effects.
-> 
-> In any case, that kind of change would be independent of this change
-> as this change just fixes a bug so wake-enables are only set on
-> edge-triggered GPIOs.
-
-OK. Just FYI, I think I experimented on that for 2420 at some point
-and it worked, but that was several years ago.
+OK, my comment was just based on looking at the patch, sounds like
+you have verified that it's correct. 
 
 Tony
-
