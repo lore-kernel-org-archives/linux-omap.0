@@ -1,76 +1,199 @@
-From: Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
-Date: Wed, 5 Aug 2009 12:57:28 +0900
-Message-ID: <aec7e5c30908042057u4c875382uec350737644ec25f@mail.gmail.com>
-References: <200908040912.24718.hverkuil@xs4all.nl>
-	 <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
-	 <A69FA2915331DC488A831521EAE36FE401451814F8@dlee06.ent.ti.com>
-	 <aec7e5c30908041931m2113cecerec2c732f8b5927ea@mail.gmail.com>
-	 <19F8576C6E063C45BE387C64729E73940432AF3AA3@dbde02.ent.ti.com>
+From: Kyungmin Park <kmpark@infradead.org>
+Subject: Re: [PATCH] mtd: make onenand/generic.c more generic
+Date: Wed, 5 Aug 2009 13:24:28 +0900
+Message-ID: <9c9fda240908042124y4f783dfehd575601c0a09550e@mail.gmail.com>
+References: <20090804092046.16025.83910.sendpatchset@rx1.opensource.se>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:35680 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933141AbZHED52 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 4 Aug 2009 23:57:28 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940432AF3AA3@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-sh-owner@vger.kernel.org>
+In-Reply-To: <20090804092046.16025.83910.sendpatchset@rx1.opensource.se>
+Sender: linux-sh-owner@vger.kernel.org
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: linux-mtd@lists.infradead.org, linux-sh@vger.kernel.org, tony@atomide.com, lethal@linux-sh.org, linux-omap@vger.kernel.org, dwmw2@infradead.org, akpm@linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
 
-On Wed, Aug 5, 2009 at 12:06 PM, Hiremath, Vaibhav<hvaibhav@ti.com> wrote:
->> -----Original Message-----
->> From: Magnus Damm [mailto:magnus.damm@gmail.com]
->> Sent: Wednesday, August 05, 2009 8:01 AM
->> To: Karicheri, Muralidharan
->> Cc: Hiremath, Vaibhav; Hans Verkuil; linux-media@vger.kernel.org;
->> davinci-linux-open-source@linux.davincidsp.com; linux-
->> omap@vger.kernel.org; eduardo.valentin@nokia.com; Dongsoo, Nathaniel
->> Kim
->> Subject: Re: Linux Plumbers Conference 2009: V4L2 API discussions
->>
->> On Wed, Aug 5, 2009 at 5:14 AM, Karicheri,
->> Muralidharan<m-karicheri2@ti.com> wrote:
->> > 2) Previewer & Resizer driver. I am working with Vaibhav who had
->> worked on an RFC for this. The previewer and resizer devices are
->> doing memory to memory operations. Also should be flexible to use
->> these hardware with capture driver to do on the fly preview and
->> resize. The TI hardware is parameter intensive. We believe these
->> parameters are to be exported to user space through IOCTLs and would
->> require addition of new IOCTLs and extension of control IDs. We will
->> be working with you on this as well.
->>
->> FWIW, for our SuperH Mobile devices we make use of UIO and user
->> space
->> libraries to support for our on-chip multimedia blocks. These blocks
->> do scaling, rotation, color space conversion and hardware
->> encode/decode of various formats including h264 and mpeg4 in HD
->> resolution.
->>
->> Apart from UIO we use V4L2 for the camera capture interface driver
->> sh_mobile_ceu_camera.c. It has support for on the fly color space
->> conversion and scaling/cropping. The CEU driver is making use of
->> videobuf-dma-contig.c and the USERPTR changes included in 2.6.31-rc
->> gives the driver zero copy frame capture support.
->>
->> All of this is of course available upstream.
-> [Hiremath, Vaibhav] Thanks Magnus,
+Hi
+
+Good idea add the onenand_platform_data, but dont' agree the renaming
+the onenand-flash.
+Other boards are use it even though it's not released it
+
+Others are good.
+
+Thank you,
+Kyungmin Park
+
+On Tue, Aug 4, 2009 at 6:20 PM, Magnus Damm<magnus.damm@gmail.com> wrot=
+e:
+> From: Magnus Damm <damm@igel.co.jp>
 >
-> I will definitely take reference from this device and driver code. I think now I have one more device which has similar capabilities. Can you please share or point me to the spec/TRM for SuperH Mobile device for my reference?
-
-The multimedia software is used on a wide range of devices, so it's
-hard to come up with a specific device. Google may give you some
-examples.
-
-> Currently we are referring to Davinci, OMAP and Samsung S3C6400X devices, the user configurable/exported parameters are very different.
-
-This is why we do the most of the multimedia pipe line in user space
-using UIO . High level frameworks like gstreamer and openmax are
-suitable for this kind of stuff IMO.
-
-Cheers,
-
-/ magnus
+> This patch removes the ARM dependency from the generic "onenand"
+> platform device driver. This change makes the driver useful for
+> other architectures as well. Needed for the SuperH kfr2r09 board.
+>
+> Apart from the obvious Kconfig bits, the most important change
+> is the move away from ARM specific includes and platform data.
+> Together with this change the only in-tree board code gets an
+> update, and the driver name is also changed gracefully break
+> potential out of tree drivers.
+>
+> The driver is also updated to allow NULL as platform data together
+> with a few changes to make use of resource_size() and dev_name().
+>
+> Signed-off-by: Magnus Damm <damm@igel.co.jp>
+> ---
+>
+> =A0Tested on the sh7724 kfr2r09 board with a separate platform data p=
+atch.
+>
+> =A0arch/arm/mach-omap2/board-apollon.c | =A0 =A04 ++--
+> =A0drivers/mtd/onenand/Kconfig =A0 =A0 =A0 =A0 | =A0 =A01 -
+> =A0drivers/mtd/onenand/generic.c =A0 =A0 =A0 | =A0 24 ++++++++++++++-=
+---------
+> =A0include/linux/mtd/onenand.h =A0 =A0 =A0 =A0 | =A0 =A08 ++++++++
+> =A04 files changed, 24 insertions(+), 13 deletions(-)
+>
+> --- 0001/arch/arm/mach-omap2/board-apollon.c
+> +++ work/arch/arm/mach-omap2/board-apollon.c =A0 =A02009-08-04 17:01:=
+18.000000000 +0900
+> @@ -87,7 +87,7 @@ static struct mtd_partition apollon_part
+> =A0 =A0 =A0 =A0},
+> =A0};
+>
+> -static struct flash_platform_data apollon_flash_data =3D {
+> +static struct onenand_platform_data apollon_flash_data =3D {
+> =A0 =A0 =A0 =A0.parts =A0 =A0 =A0 =A0 =A0=3D apollon_partitions,
+> =A0 =A0 =A0 =A0.nr_parts =A0 =A0 =A0 =3D ARRAY_SIZE(apollon_partition=
+s),
+> =A0};
+> @@ -99,7 +99,7 @@ static struct resource apollon_flash_res
+> =A0};
+>
+> =A0static struct platform_device apollon_onenand_device =3D {
+> - =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "onenand",
+> + =A0 =A0 =A0 .name =A0 =A0 =A0 =A0 =A0 =3D "onenand-flash",
+> =A0 =A0 =A0 =A0.id =A0 =A0 =A0 =A0 =A0 =A0 =3D -1,
+> =A0 =A0 =A0 =A0.dev =A0 =A0 =A0 =A0 =A0 =A0=3D {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.platform_data =A0=3D &apollon_flash_d=
+ata,
+> --- 0001/drivers/mtd/onenand/Kconfig
+> +++ work/drivers/mtd/onenand/Kconfig =A0 =A02009-08-04 17:01:18.00000=
+0000 +0900
+> @@ -23,7 +23,6 @@ config MTD_ONENAND_VERIFY_WRITE
+>
+> =A0config MTD_ONENAND_GENERIC
+> =A0 =A0 =A0 =A0tristate "OneNAND Flash device via platform device dri=
+ver"
+> - =A0 =A0 =A0 depends on ARM
+> =A0 =A0 =A0 =A0help
+> =A0 =A0 =A0 =A0 =A0Support for OneNAND flash via platform device driv=
+er.
+>
+> --- 0001/drivers/mtd/onenand/generic.c
+> +++ work/drivers/mtd/onenand/generic.c =A02009-08-04 17:12:00.0000000=
+00 +0900
+> @@ -19,12 +19,16 @@
+> =A0#include <linux/mtd/mtd.h>
+> =A0#include <linux/mtd/onenand.h>
+> =A0#include <linux/mtd/partitions.h>
+> -
+> =A0#include <asm/io.h>
+> -#include <asm/mach/flash.h>
+> -
+> -#define DRIVER_NAME =A0 =A0"onenand"
+>
+> +/*
+> + * Note: Driver name and platform data format have been updated!
+> + *
+> + * This version of the driver is named "onenand-flash" and takes str=
+uct
+> + * onenand_platform_data as platform data. The old ARM-specific vers=
+ion
+> + * with the name "onenand" used to take struct flash_platform_data.
+> + */
+> +#define DRIVER_NAME =A0 =A0"onenand-flash"
+>
+> =A0#ifdef CONFIG_MTD_PARTITIONS
+> =A0static const char *part_probes[] =3D { "cmdlinepart", NULL, =A0};
+> @@ -39,16 +43,16 @@ struct onenand_info {
+> =A0static int __devinit generic_onenand_probe(struct platform_device =
+*pdev)
+> =A0{
+> =A0 =A0 =A0 =A0struct onenand_info *info;
+> - =A0 =A0 =A0 struct flash_platform_data *pdata =3D pdev->dev.platfor=
+m_data;
+> + =A0 =A0 =A0 struct onenand_platform_data *pdata =3D pdev->dev.platf=
+orm_data;
+> =A0 =A0 =A0 =A0struct resource *res =3D pdev->resource;
+> - =A0 =A0 =A0 unsigned long size =3D res->end - res->start + 1;
+> + =A0 =A0 =A0 unsigned long size =3D resource_size(res);
+> =A0 =A0 =A0 =A0int err;
+>
+> =A0 =A0 =A0 =A0info =3D kzalloc(sizeof(struct onenand_info), GFP_KERN=
+EL);
+> =A0 =A0 =A0 =A0if (!info)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return -ENOMEM;
+>
+> - =A0 =A0 =A0 if (!request_mem_region(res->start, size, pdev->dev.dri=
+ver->name)) {
+> + =A0 =A0 =A0 if (!request_mem_region(res->start, size, dev_name(&pde=
+v->dev))) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0err =3D -EBUSY;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out_free_info;
+> =A0 =A0 =A0 =A0}
+> @@ -59,7 +63,7 @@ static int __devinit generic_onenand_pro
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out_release_mem_region;
+> =A0 =A0 =A0 =A0}
+>
+> - =A0 =A0 =A0 info->onenand.mmcontrol =3D pdata->mmcontrol;
+> + =A0 =A0 =A0 info->onenand.mmcontrol =3D pdata ? pdata->mmcontrol : =
+0;
+> =A0 =A0 =A0 =A0info->onenand.irq =3D platform_get_irq(pdev, 0);
+>
+> =A0 =A0 =A0 =A0info->mtd.name =3D dev_name(&pdev->dev);
+> @@ -75,7 +79,7 @@ static int __devinit generic_onenand_pro
+> =A0 =A0 =A0 =A0err =3D parse_mtd_partitions(&info->mtd, part_probes, =
+&info->parts, 0);
+> =A0 =A0 =A0 =A0if (err > 0)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0add_mtd_partitions(&info->mtd, info->p=
+arts, err);
+> - =A0 =A0 =A0 else if (err <=3D 0 && pdata->parts)
+> + =A0 =A0 =A0 else if (err <=3D 0 && pdata && pdata->parts)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0add_mtd_partitions(&info->mtd, pdata->=
+parts, pdata->nr_parts);
+> =A0 =A0 =A0 =A0else
+> =A0#endif
+> @@ -99,7 +103,7 @@ static int __devexit generic_onenand_rem
+> =A0{
+> =A0 =A0 =A0 =A0struct onenand_info *info =3D platform_get_drvdata(pde=
+v);
+> =A0 =A0 =A0 =A0struct resource *res =3D pdev->resource;
+> - =A0 =A0 =A0 unsigned long size =3D res->end - res->start + 1;
+> + =A0 =A0 =A0 unsigned long size =3D resource_size(res);
+>
+> =A0 =A0 =A0 =A0platform_set_drvdata(pdev, NULL);
+>
+> --- 0001/include/linux/mtd/onenand.h
+> +++ work/include/linux/mtd/onenand.h =A0 =A02009-08-04 17:01:18.00000=
+0000 +0900
+> @@ -214,4 +214,12 @@ unsigned onenand_block(struct onenand_ch
+> =A0loff_t onenand_addr(struct onenand_chip *this, int block);
+> =A0int flexonenand_region(struct mtd_info *mtd, loff_t addr);
+>
+> +struct mtd_partition;
+> +
+> +struct onenand_platform_data {
+> + =A0 =A0 =A0 void =A0 =A0 =A0 =A0 =A0 =A0(*mmcontrol)(struct mtd_inf=
+o *mtd, int sync_read);
+> + =A0 =A0 =A0 struct mtd_partition *parts;
+> + =A0 =A0 =A0 unsigned int =A0 =A0nr_parts;
+> +};
+> +
+> =A0#endif /* __LINUX_MTD_ONENAND_H */
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
