@@ -1,54 +1,44 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 11/20] OMAP: McBSP: Add link DMA mode
-	selection
-Date: Wed, 5 Aug 2009 11:58:57 +0300
-Message-ID: <200908051158.57440.peter.ujfalusi@nokia.com>
-References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
-	<20090805103900.5ad89efe.jhnikula@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RESEND][PATCH 2/2] McSPI Slave and DMA,FIFO support
+Date: Wed, 5 Aug 2009 11:59:27 +0300
+Message-ID: <20090805085927.GD7374@atomide.com>
+References: <42150.10.24.255.18.1245765248.squirrel@dbdmail.itg.ti.com> <200907021722.02459.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090805103900.5ad89efe.jhnikula@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57971 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933639AbZHEI7b (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 04:59:31 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+In-Reply-To: <200907021722.02459.david-b@pacbell.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: David Brownell <david-b@pacbell.net>
+Cc: Hemanth V <hemanthv@ti.com>, spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
 
-On Wednesday 05 August 2009 10:39:00 ext Jarkko Nikula wrote:
-> On Thu, 30 Jul 2009 15:49:34 +0300
->
-> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
-> > From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-> >
-> > +
-> > +	return sprintf(buf, "%d\n", dma_op_mode);
->
-> It would be good to handle this as an ascii like e.g /sys/power/state
-> does. "element", "threshold" or "frame". A number value doesn't tell
-> much (for me when testing).
+* David Brownell <david-b@pacbell.net> [090703 03:22]:
+> On Tuesday 23 June 2009, Hemanth V wrote:
+> > This patch adds support for McSPI slave and FIFO. DMA and FIFO
+> > could be enabled together for better throughput.
+> > 
+> > This has a dependency on patch
+> > [RESEND][PATCH 1/2] McSPI Slave and DMA,FIFO support
+> 
+> ... in this case I'd think they would better be part of
+> a single patch.
+> 
+> However, anything related to SPI slave support should
+> be separated entirely from FIFO support.
+> 
+> Ditto anything adding more SPI_DEBUG support.
+> 
+> Oh, and use the BIT(n) syntax not (1 << n) in the new
+> constants you define... the patch making this driver
+> use that style finally went upstream.
 
-At least when reading it it would be nice to have asci, like "element (0)", =
+I agree with Dave's comments. Maybe repost one more time,
+then I'd actually prefer these get merged via the SPI list
+once everybody's happy.
 
-"threshold (1)"...
-
->
-> I would say the default mode for the omap34xx should be also element as
-> it keeps the omap_pcm_pointer behavior the same than currently and
-> avoids possible regression.
-
-Yes, the default mode should be the element mode in my opinion as well.
-
--- =
-
-P=E9ter
+Tony
