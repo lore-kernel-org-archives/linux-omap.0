@@ -1,37 +1,50 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] ARM: Overo: Fix smsc911x platform device resource value
-Date: Wed, 5 Aug 2009 09:45:19 -0400
-Message-ID: <notify-1249479917@atomide.com>
-References: <A24693684029E5489D1D202277BE894449BD64D0@dlee02.ent.ti.com>
+Subject: [PATCH 0/5] Few more omap fixes for 2.6.31
+Date: Wed, 05 Aug 2009 17:11:38 +0300
+Message-ID: <20090805141051.1964.74687.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51045 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932964AbZHENpT (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 09:45:19 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MYgnw-0004Ue-1M
-	for linux-omap@vger.kernel.org; Wed, 05 Aug 2009 13:45:20 +0000
-In-Reply-To: <A24693684029E5489D1D202277BE894449BD64D0@dlee02.ent.ti.com>
-Content-Disposition: inline
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49244 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933270AbZHEOLq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 10:11:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+Hi all,
 
-Branch in linux-omap: omap-fixes
+Here are few more fixes for omap for review.
 
-Initial commit ID (Likely to change): 8a333860f6d99652489c3b0fd3761d73d9af8bcf
+Regards,
 
-PatchWorks
-http://patchwork.kernel.org/patch/38244/
+Tony
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=8a333860f6d99652489c3b0fd3761d73d9af8bcf
+---
+
+Janboe Ye (1):
+      OMAP3: Fix omap3 sram virtual addres overlap vmalloc space after increasing vmalloc size
+
+Roger Quadros (2):
+      OMAP3: RX51: Define TWL4030 USB transceiver in board file
+      OMAP: GPIO: Fix incorrect gpio_get logic for output GPIOs
+
+Sergio Aguirre (1):
+      OMAP3: Overo: Fix smsc911x platform device resource value
+
+Vikram Pandita (1):
+      OMAP2/3: DMA errata correction
 
 
+ arch/arm/mach-omap2/board-overo.c            |    2 -
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    5 ++
+ arch/arm/plat-omap/dma.c                     |    4 +-
+ arch/arm/plat-omap/gpio.c                    |   68 ++++++++++++++++++++++++--
+ arch/arm/plat-omap/sram.c                    |    4 +-
+ 5 files changed, 75 insertions(+), 8 deletions(-)
+
+-- 
+Signature
