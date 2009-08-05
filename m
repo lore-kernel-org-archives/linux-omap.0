@@ -1,275 +1,1319 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 14/15] OMAP: Beagle: Enable DSS2 for Beagle board
-Date: Wed,  5 Aug 2009 17:15:40 +0300
-Message-ID: <1249481741-14008-15-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 01/15] OMAP: OMAPFB: split omapfb.h
+Date: Wed,  5 Aug 2009 17:15:27 +0300
+Message-ID: <1249481741-14008-2-git-send-email-tomi.valkeinen@nokia.com>
 References: <1249481741-14008-1-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-2-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-3-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-4-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-5-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-6-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-7-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-8-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-9-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-10-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-11-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-12-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-13-git-send-email-tomi.valkeinen@nokia.com>
- <1249481741-14008-14-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:25046 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934534AbZHEOQ7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 10:16:59 -0400
-In-Reply-To: <1249481741-14008-14-git-send-email-tomi.valkeinen@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:47707 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934462AbZHEORK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 10:17:10 -0400
+In-Reply-To: <1249481741-14008-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev-devel@lists.sourceforge.net
 Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
+Split arch/arm/plat-omap/include/mach/omapfb.h into two files:
+
+include/linux/omapfb.h - ioctls etc for userspace and some kernel
+                         stuff for board files
+drivers/video/omap/omapfb.h - for omapfb internal use
+
+This cleans up omapfb.h and also makes it easier for the upcoming new
+DSS driver to co-exist with the old driver.
+
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- arch/arm/configs/omap3_beagle_defconfig |   26 ++++++-
- arch/arm/mach-omap2/board-omap3beagle.c |  119 ++++++++++++++++++++++++-------
- 2 files changed, 116 insertions(+), 29 deletions(-)
+ arch/arm/mach-omap1/board-nokia770.c     |    2 +-
+ arch/arm/mach-omap2/board-n800.c         |    2 +-
+ arch/arm/mach-omap2/io.c                 |    2 +-
+ arch/arm/plat-omap/fb.c                  |    2 +-
+ arch/arm/plat-omap/include/mach/omapfb.h |  398 ------------------------------
+ drivers/video/omap/blizzard.c            |    2 +-
+ drivers/video/omap/dispc.c               |    2 +-
+ drivers/video/omap/hwa742.c              |    2 +-
+ drivers/video/omap/lcd_2430sdp.c         |    2 +-
+ drivers/video/omap/lcd_ams_delta.c       |    2 +-
+ drivers/video/omap/lcd_apollon.c         |    2 +-
+ drivers/video/omap/lcd_h3.c              |    2 +-
+ drivers/video/omap/lcd_h4.c              |    2 +-
+ drivers/video/omap/lcd_inn1510.c         |    2 +-
+ drivers/video/omap/lcd_inn1610.c         |    2 +-
+ drivers/video/omap/lcd_ldp.c             |    2 +-
+ drivers/video/omap/lcd_mipid.c           |    3 +-
+ drivers/video/omap/lcd_omap2evm.c        |    2 +-
+ drivers/video/omap/lcd_omap3beagle.c     |    2 +-
+ drivers/video/omap/lcd_omap3evm.c        |    2 +-
+ drivers/video/omap/lcd_osk.c             |    2 +-
+ drivers/video/omap/lcd_overo.c           |    3 +-
+ drivers/video/omap/lcd_palmte.c          |    2 +-
+ drivers/video/omap/lcd_palmtt.c          |    2 +-
+ drivers/video/omap/lcd_palmz71.c         |    2 +-
+ drivers/video/omap/lcdc.c                |    3 +-
+ drivers/video/omap/omapfb.h              |  227 +++++++++++++++++
+ drivers/video/omap/omapfb_main.c         |    2 +-
+ drivers/video/omap/rfbi.c                |    3 +-
+ drivers/video/omap/sossi.c               |    2 +-
+ include/linux/omapfb.h                   |  197 +++++++++++++++
+ 31 files changed, 455 insertions(+), 427 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/mach/omapfb.h
+ create mode 100644 drivers/video/omap/omapfb.h
+ create mode 100644 include/linux/omapfb.h
 
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index c4726f0..1740be3 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -792,10 +792,30 @@ CONFIG_FB_CFB_IMAGEBLIT=y
- #
- # CONFIG_FB_S1D13XXX is not set
- # CONFIG_FB_VIRTUAL is not set
--CONFIG_FB_OMAP=y
--# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
- # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
--CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=6
-+CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
-+
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+CONFIG_PANEL_GENERIC=y
-+# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
-+# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
-+CONFIG_FB_OMAP2=y
-+CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=3
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index ed2a48a..6fbde33 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -14,6 +14,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+ #include <linux/clk.h>
++#include <linux/omapfb.h>
  
- #
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index b6a68d5..d27c63f 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -30,6 +30,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+@@ -32,7 +33,6 @@
+ #include <mach/keypad.h>
+ #include <mach/common.h>
+ #include <mach/dsp_common.h>
+-#include <mach/omapfb.h>
+ #include <mach/hwa742.h>
+ #include <mach/lcd_mipid.h>
+ #include <mach/mmc.h>
+diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+index 23296e9..e2907ac 100644
+--- a/arch/arm/mach-omap2/board-n800.c
++++ b/arch/arm/mach-omap2/board-n800.c
+@@ -22,6 +22,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/i2c.h>
++#include <linux/omapfb.h>
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+@@ -34,7 +35,6 @@
+ #include <mach/lcd_mipid.h>
+ #include <mach/clock.h>
+ #include <mach/menelaus.h>
+-#include <mach/omapfb.h>
+ #include <mach/blizzard.h>
+ #include <mach/onenand.h>
+ #include <mach/board-nokia.h>
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 3a86b0f..7a54e12 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -22,13 +22,13 @@
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
++#include <linux/omapfb.h>
  
- #include <linux/regulator/machine.h>
- #include <linux/i2c/twl4030.h>
+ #include <asm/tlb.h>
+ 
+ #include <asm/mach/map.h>
+ 
+ #include <mach/mux.h>
+-#include <mach/omapfb.h>
+ #include <mach/sram.h>
+ #include <mach/sdrc.h>
+ #include <mach/gpmc.h>
+diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
+index 3746222..40615a6 100644
+--- a/arch/arm/plat-omap/fb.c
++++ b/arch/arm/plat-omap/fb.c
+@@ -28,13 +28,13 @@
+ #include <linux/platform_device.h>
+ #include <linux/bootmem.h>
+ #include <linux/io.h>
 +#include <linux/omapfb.h>
  
  #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -44,6 +45,7 @@
+ #include <asm/mach/map.h>
+ 
+ #include <mach/board.h>
+ #include <mach/sram.h>
+-#include <mach/omapfb.h>
+ 
+ #if defined(CONFIG_FB_OMAP) || defined(CONFIG_FB_OMAP_MODULE)
+ 
+diff --git a/arch/arm/plat-omap/include/mach/omapfb.h b/arch/arm/plat-omap/include/mach/omapfb.h
+deleted file mode 100644
+index b226bdf..0000000
+--- a/arch/arm/plat-omap/include/mach/omapfb.h
++++ /dev/null
+@@ -1,398 +0,0 @@
+-/*
+- * File: arch/arm/plat-omap/include/mach/omapfb.h
+- *
+- * Framebuffer driver for TI OMAP boards
+- *
+- * Copyright (C) 2004 Nokia Corporation
+- * Author: Imre Deak <imre.deak@nokia.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation; either version 2 of the License, or (at your
+- * option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License along
+- * with this program; if not, write to the Free Software Foundation, Inc.,
+- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+- */
+-
+-#ifndef __OMAPFB_H
+-#define __OMAPFB_H
+-
+-#include <asm/ioctl.h>
+-#include <asm/types.h>
+-
+-/* IOCTL commands. */
+-
+-#define OMAP_IOW(num, dtype)	_IOW('O', num, dtype)
+-#define OMAP_IOR(num, dtype)	_IOR('O', num, dtype)
+-#define OMAP_IOWR(num, dtype)	_IOWR('O', num, dtype)
+-#define OMAP_IO(num)		_IO('O', num)
+-
+-#define OMAPFB_MIRROR		OMAP_IOW(31, int)
+-#define OMAPFB_SYNC_GFX		OMAP_IO(37)
+-#define OMAPFB_VSYNC		OMAP_IO(38)
+-#define OMAPFB_SET_UPDATE_MODE	OMAP_IOW(40, int)
+-#define OMAPFB_GET_CAPS		OMAP_IOR(42, struct omapfb_caps)
+-#define OMAPFB_GET_UPDATE_MODE	OMAP_IOW(43, int)
+-#define OMAPFB_LCD_TEST		OMAP_IOW(45, int)
+-#define OMAPFB_CTRL_TEST	OMAP_IOW(46, int)
+-#define OMAPFB_UPDATE_WINDOW_OLD OMAP_IOW(47, struct omapfb_update_window_old)
+-#define OMAPFB_SET_COLOR_KEY	OMAP_IOW(50, struct omapfb_color_key)
+-#define OMAPFB_GET_COLOR_KEY	OMAP_IOW(51, struct omapfb_color_key)
+-#define OMAPFB_SETUP_PLANE	OMAP_IOW(52, struct omapfb_plane_info)
+-#define OMAPFB_QUERY_PLANE	OMAP_IOW(53, struct omapfb_plane_info)
+-#define OMAPFB_UPDATE_WINDOW	OMAP_IOW(54, struct omapfb_update_window)
+-#define OMAPFB_SETUP_MEM	OMAP_IOW(55, struct omapfb_mem_info)
+-#define OMAPFB_QUERY_MEM	OMAP_IOW(56, struct omapfb_mem_info)
+-
+-#define OMAPFB_CAPS_GENERIC_MASK	0x00000fff
+-#define OMAPFB_CAPS_LCDC_MASK		0x00fff000
+-#define OMAPFB_CAPS_PANEL_MASK		0xff000000
+-
+-#define OMAPFB_CAPS_MANUAL_UPDATE	0x00001000
+-#define OMAPFB_CAPS_TEARSYNC		0x00002000
+-#define OMAPFB_CAPS_PLANE_RELOCATE_MEM	0x00004000
+-#define OMAPFB_CAPS_PLANE_SCALE		0x00008000
+-#define OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE	0x00010000
+-#define OMAPFB_CAPS_WINDOW_SCALE	0x00020000
+-#define OMAPFB_CAPS_WINDOW_OVERLAY	0x00040000
+-#define OMAPFB_CAPS_WINDOW_ROTATE	0x00080000
+-#define OMAPFB_CAPS_SET_BACKLIGHT	0x01000000
+-
+-/* Values from DSP must map to lower 16-bits */
+-#define OMAPFB_FORMAT_MASK		0x00ff
+-#define OMAPFB_FORMAT_FLAG_DOUBLE	0x0100
+-#define OMAPFB_FORMAT_FLAG_TEARSYNC	0x0200
+-#define OMAPFB_FORMAT_FLAG_FORCE_VSYNC	0x0400
+-#define OMAPFB_FORMAT_FLAG_ENABLE_OVERLAY	0x0800
+-#define OMAPFB_FORMAT_FLAG_DISABLE_OVERLAY	0x1000
+-
+-#define OMAPFB_EVENT_READY	1
+-#define OMAPFB_EVENT_DISABLED	2
+-
+-#define OMAPFB_MEMTYPE_SDRAM		0
+-#define OMAPFB_MEMTYPE_SRAM		1
+-#define OMAPFB_MEMTYPE_MAX		1
+-
+-enum omapfb_color_format {
+-	OMAPFB_COLOR_RGB565 = 0,
+-	OMAPFB_COLOR_YUV422,
+-	OMAPFB_COLOR_YUV420,
+-	OMAPFB_COLOR_CLUT_8BPP,
+-	OMAPFB_COLOR_CLUT_4BPP,
+-	OMAPFB_COLOR_CLUT_2BPP,
+-	OMAPFB_COLOR_CLUT_1BPP,
+-	OMAPFB_COLOR_RGB444,
+-	OMAPFB_COLOR_YUY422,
+-};
+-
+-struct omapfb_update_window {
+-	__u32 x, y;
+-	__u32 width, height;
+-	__u32 format;
+-	__u32 out_x, out_y;
+-	__u32 out_width, out_height;
+-	__u32 reserved[8];
+-};
+-
+-struct omapfb_update_window_old {
+-	__u32 x, y;
+-	__u32 width, height;
+-	__u32 format;
+-};
+-
+-enum omapfb_plane {
+-	OMAPFB_PLANE_GFX = 0,
+-	OMAPFB_PLANE_VID1,
+-	OMAPFB_PLANE_VID2,
+-};
+-
+-enum omapfb_channel_out {
+-	OMAPFB_CHANNEL_OUT_LCD = 0,
+-	OMAPFB_CHANNEL_OUT_DIGIT,
+-};
+-
+-struct omapfb_plane_info {
+-	__u32 pos_x;
+-	__u32 pos_y;
+-	__u8  enabled;
+-	__u8  channel_out;
+-	__u8  mirror;
+-	__u8  reserved1;
+-	__u32 out_width;
+-	__u32 out_height;
+-	__u32 reserved2[12];
+-};
+-
+-struct omapfb_mem_info {
+-	__u32 size;
+-	__u8  type;
+-	__u8  reserved[3];
+-};
+-
+-struct omapfb_caps {
+-	__u32 ctrl;
+-	__u32 plane_color;
+-	__u32 wnd_color;
+-};
+-
+-enum omapfb_color_key_type {
+-	OMAPFB_COLOR_KEY_DISABLED = 0,
+-	OMAPFB_COLOR_KEY_GFX_DST,
+-	OMAPFB_COLOR_KEY_VID_SRC,
+-};
+-
+-struct omapfb_color_key {
+-	__u8  channel_out;
+-	__u32 background;
+-	__u32 trans_key;
+-	__u8  key_type;
+-};
+-
+-enum omapfb_update_mode {
+-	OMAPFB_UPDATE_DISABLED = 0,
+-	OMAPFB_AUTO_UPDATE,
+-	OMAPFB_MANUAL_UPDATE
+-};
+-
+-#ifdef __KERNEL__
+-
+-#include <linux/completion.h>
+-#include <linux/interrupt.h>
+-#include <linux/fb.h>
+-#include <linux/mutex.h>
+-
+-#include <mach/board.h>
+-
+-#define OMAP_LCDC_INV_VSYNC             0x0001
+-#define OMAP_LCDC_INV_HSYNC             0x0002
+-#define OMAP_LCDC_INV_PIX_CLOCK         0x0004
+-#define OMAP_LCDC_INV_OUTPUT_EN         0x0008
+-#define OMAP_LCDC_HSVS_RISING_EDGE      0x0010
+-#define OMAP_LCDC_HSVS_OPPOSITE         0x0020
+-
+-#define OMAP_LCDC_SIGNAL_MASK		0x003f
+-
+-#define OMAP_LCDC_PANEL_TFT		0x0100
+-
+-#define OMAPFB_PLANE_XRES_MIN		8
+-#define OMAPFB_PLANE_YRES_MIN		8
+-
+-#ifdef CONFIG_ARCH_OMAP1
+-#define OMAPFB_PLANE_NUM		1
+-#else
+-#define OMAPFB_PLANE_NUM		3
+-#endif
+-
+-struct omapfb_device;
+-
+-struct lcd_panel {
+-	const char	*name;
+-	int		config;		/* TFT/STN, signal inversion */
+-	int		bpp;		/* Pixel format in fb mem */
+-	int		data_lines;	/* Lines on LCD HW interface */
+-
+-	int		x_res, y_res;
+-	int		pixel_clock;	/* In kHz */
+-	int		hsw;		/* Horizontal synchronization
+-					   pulse width */
+-	int		hfp;		/* Horizontal front porch */
+-	int		hbp;		/* Horizontal back porch */
+-	int		vsw;		/* Vertical synchronization
+-					   pulse width */
+-	int		vfp;		/* Vertical front porch */
+-	int		vbp;		/* Vertical back porch */
+-	int		acb;		/* ac-bias pin frequency */
+-	int		pcd;		/* pixel clock divider.
+-					   Obsolete use pixel_clock instead */
+-
+-	int		(*init)		(struct lcd_panel *panel,
+-					 struct omapfb_device *fbdev);
+-	void		(*cleanup)	(struct lcd_panel *panel);
+-	int		(*enable)	(struct lcd_panel *panel);
+-	void		(*disable)	(struct lcd_panel *panel);
+-	unsigned long	(*get_caps)	(struct lcd_panel *panel);
+-	int		(*set_bklight_level)(struct lcd_panel *panel,
+-					     unsigned int level);
+-	unsigned int	(*get_bklight_level)(struct lcd_panel *panel);
+-	unsigned int	(*get_bklight_max)  (struct lcd_panel *panel);
+-	int		(*run_test)	(struct lcd_panel *panel, int test_num);
+-};
+-
+-struct extif_timings {
+-	int cs_on_time;
+-	int cs_off_time;
+-	int we_on_time;
+-	int we_off_time;
+-	int re_on_time;
+-	int re_off_time;
+-	int we_cycle_time;
+-	int re_cycle_time;
+-	int cs_pulse_width;
+-	int access_time;
+-
+-	int clk_div;
+-
+-	u32 tim[5];		/* set by extif->convert_timings */
+-
+-	int converted;
+-};
+-
+-struct lcd_ctrl_extif {
+-	int  (*init)		(struct omapfb_device *fbdev);
+-	void (*cleanup)		(void);
+-	void (*get_clk_info)	(u32 *clk_period, u32 *max_clk_div);
+-	unsigned long (*get_max_tx_rate)(void);
+-	int  (*convert_timings)	(struct extif_timings *timings);
+-	void (*set_timings)	(const struct extif_timings *timings);
+-	void (*set_bits_per_cycle)(int bpc);
+-	void (*write_command)	(const void *buf, unsigned int len);
+-	void (*read_data)	(void *buf, unsigned int len);
+-	void (*write_data)	(const void *buf, unsigned int len);
+-	void (*transfer_area)	(int width, int height,
+-				 void (callback)(void * data), void *data);
+-	int  (*setup_tearsync)	(unsigned pin_cnt,
+-				 unsigned hs_pulse_time, unsigned vs_pulse_time,
+-				 int hs_pol_inv, int vs_pol_inv, int div);
+-	int  (*enable_tearsync) (int enable, unsigned line);
+-
+-	unsigned long		max_transmit_size;
+-};
+-
+-struct omapfb_notifier_block {
+-	struct notifier_block	nb;
+-	void			*data;
+-	int			plane_idx;
+-};
+-
+-typedef int (*omapfb_notifier_callback_t)(struct notifier_block *,
+-					  unsigned long event,
+-					  void *fbi);
+-
+-struct omapfb_mem_region {
+-	u32		paddr;
+-	void __iomem	*vaddr;
+-	unsigned long	size;
+-	u8		type;		/* OMAPFB_PLANE_MEM_* */
+-	unsigned	alloc:1;	/* allocated by the driver */
+-	unsigned	map:1;		/* kernel mapped by the driver */
+-};
+-
+-struct omapfb_mem_desc {
+-	int				region_cnt;
+-	struct omapfb_mem_region	region[OMAPFB_PLANE_NUM];
+-};
+-
+-struct lcd_ctrl {
+-	const char	*name;
+-	void		*data;
+-
+-	int		(*init)		  (struct omapfb_device *fbdev,
+-					   int ext_mode,
+-					   struct omapfb_mem_desc *req_md);
+-	void		(*cleanup)	  (void);
+-	void		(*bind_client)	  (struct omapfb_notifier_block *nb);
+-	void		(*get_caps)	  (int plane, struct omapfb_caps *caps);
+-	int		(*set_update_mode)(enum omapfb_update_mode mode);
+-	enum omapfb_update_mode (*get_update_mode)(void);
+-	int		(*setup_plane)	  (int plane, int channel_out,
+-					   unsigned long offset,
+-					   int screen_width,
+-					   int pos_x, int pos_y, int width,
+-					   int height, int color_mode);
+-	int		(*set_rotate)	  (int angle);
+-	int		(*setup_mem)	  (int plane, size_t size,
+-					   int mem_type, unsigned long *paddr);
+-	int		(*mmap)		  (struct fb_info *info,
+-					   struct vm_area_struct *vma);
+-	int		(*set_scale)	  (int plane,
+-					   int orig_width, int orig_height,
+-					   int out_width, int out_height);
+-	int		(*enable_plane)	  (int plane, int enable);
+-	int		(*update_window)  (struct fb_info *fbi,
+-					   struct omapfb_update_window *win,
+-					   void (*callback)(void *),
+-					   void *callback_data);
+-	void		(*sync)		  (void);
+-	void		(*suspend)	  (void);
+-	void		(*resume)	  (void);
+-	int		(*run_test)	  (int test_num);
+-	int		(*setcolreg)	  (u_int regno, u16 red, u16 green,
+-					   u16 blue, u16 transp,
+-					   int update_hw_mem);
+-	int		(*set_color_key)  (struct omapfb_color_key *ck);
+-	int		(*get_color_key)  (struct omapfb_color_key *ck);
+-};
+-
+-enum omapfb_state {
+-	OMAPFB_DISABLED	= 0,
+-	OMAPFB_SUSPENDED= 99,
+-	OMAPFB_ACTIVE	= 100
+-};
+-
+-struct omapfb_plane_struct {
+-	int				idx;
+-	struct omapfb_plane_info	info;
+-	enum omapfb_color_format	color_mode;
+-	struct omapfb_device		*fbdev;
+-};
+-
+-struct omapfb_device {
+-	int			state;
+-	int                     ext_lcdc;               /* Using external
+-                                                           LCD controller */
+-	struct mutex		rqueue_mutex;
+-
+-	int			palette_size;
+-	u32			pseudo_palette[17];
+-
+-	struct lcd_panel	*panel;			/* LCD panel */
+-	const struct lcd_ctrl	*ctrl;			/* LCD controller */
+-	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
+-	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
+-							   interface */
+-	struct device		*dev;
+-	struct fb_var_screeninfo	new_var;	/* for mode changes */
+-
+-	struct omapfb_mem_desc		mem_desc;
+-	struct fb_info			*fb_info[OMAPFB_PLANE_NUM];
+-};
+-
+-struct omapfb_platform_data {
+-	struct omap_lcd_config		lcd;
+-	struct omapfb_mem_desc		mem_desc;
+-	void				*ctrl_platform_data;
+-};
+-
+-#ifdef CONFIG_ARCH_OMAP1
+-extern struct lcd_ctrl omap1_lcd_ctrl;
+-#else
+-extern struct lcd_ctrl omap2_disp_ctrl;
+-#endif
+-
+-extern void omapfb_reserve_sdram(void);
+-extern void omapfb_register_panel(struct lcd_panel *panel);
+-extern void omapfb_write_first_pixel(struct omapfb_device *fbdev, u16 pixval);
+-extern void omapfb_notify_clients(struct omapfb_device *fbdev,
+-				  unsigned long event);
+-extern int  omapfb_register_client(struct omapfb_notifier_block *nb,
+-				   omapfb_notifier_callback_t callback,
+-				   void *callback_data);
+-extern int  omapfb_unregister_client(struct omapfb_notifier_block *nb);
+-extern int  omapfb_update_window_async(struct fb_info *fbi,
+-				       struct omapfb_update_window *win,
+-				       void (*callback)(void *),
+-				       void *callback_data);
+-
+-/* in arch/arm/plat-omap/fb.c */
+-extern void omapfb_set_ctrl_platform_data(void *pdata);
+-
+-#endif /* __KERNEL__ */
+-
+-#endif /* __OMAPFB_H */
+diff --git a/drivers/video/omap/blizzard.c b/drivers/video/omap/blizzard.c
+index d5e5955..f35a277 100644
+--- a/drivers/video/omap/blizzard.c
++++ b/drivers/video/omap/blizzard.c
+@@ -27,9 +27,9 @@
+ #include <linux/clk.h>
+ 
+ #include <mach/dma.h>
+-#include <mach/omapfb.h>
+ #include <mach/blizzard.h>
+ 
++#include "omapfb.h"
+ #include "dispc.h"
+ 
+ #define MODULE_NAME				"blizzard"
+diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+index 350b444..06438d0 100644
+--- a/drivers/video/omap/dispc.c
++++ b/drivers/video/omap/dispc.c
+@@ -26,9 +26,9 @@
+ #include <linux/io.h>
+ 
+ #include <mach/sram.h>
+-#include <mach/omapfb.h>
+ #include <mach/board.h>
+ 
++#include "omapfb.h"
+ #include "dispc.h"
+ 
+ #define MODULE_NAME			"dispc"
+diff --git a/drivers/video/omap/hwa742.c b/drivers/video/omap/hwa742.c
+index ca51583..b84fb7c 100644
+--- a/drivers/video/omap/hwa742.c
++++ b/drivers/video/omap/hwa742.c
+@@ -27,8 +27,8 @@
+ #include <linux/clk.h>
+ 
+ #include <mach/dma.h>
+-#include <mach/omapfb.h>
+ #include <mach/hwa742.h>
++#include "omapfb.h"
+ 
+ #define HWA742_REV_CODE_REG       0x0
+ #define HWA742_CONFIG_REG         0x2
+diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
+index 13c822e..a0095a6 100644
+--- a/drivers/video/omap/lcd_2430sdp.c
++++ b/drivers/video/omap/lcd_2430sdp.c
+@@ -28,8 +28,8 @@
+ #include <linux/i2c/twl4030.h>
+ 
  #include <mach/mux.h>
- #include <mach/usb.h>
- #include <mach/timer-gp.h>
-+#include <mach/display.h>
+-#include <mach/omapfb.h>
+ #include <asm/mach-types.h>
++#include "omapfb.h"
  
- #include "mmc-twl4030.h"
+ #define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
+ #define SDP2430_LCD_PANEL_ENABLE_GPIO		154
+diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
+index 1f74399..10b1bbe 100644
+--- a/drivers/video/omap/lcd_ams_delta.c
++++ b/drivers/video/omap/lcd_ams_delta.c
+@@ -27,7 +27,7 @@
  
-@@ -106,6 +108,92 @@ static struct platform_device omap3beagle_nand_device = {
- 	.resource	= &omap3beagle_nand_resource,
- };
+ #include <mach/board-ams-delta.h>
+ #include <mach/hardware.h>
+-#include <mach/omapfb.h>
++#include "omapfb.h"
  
-+/* DSS */
-+
-+static int beagle_enable_dvi(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->reset_gpio != -1)
-+		gpio_set_value(dssdev->reset_gpio, 1);
-+
-+	return 0;
-+}
-+
-+static void beagle_disable_dvi(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->reset_gpio != -1)
-+		gpio_set_value(dssdev->reset_gpio, 0);
-+}
-+
-+static struct omap_dss_device beagle_dvi_device = {
-+	.type = OMAP_DISPLAY_TYPE_DPI,
-+	.name = "dvi",
-+	.driver_name = "generic_panel",
-+	.phy.dpi.data_lines = 24,
-+	.reset_gpio = 170,
-+	.platform_enable = beagle_enable_dvi,
-+	.platform_disable = beagle_disable_dvi,
-+};
-+
-+static int beagle_panel_enable_tv(struct omap_dss_device *dssdev)
-+{
-+	return 0;
-+}
-+
-+static void beagle_panel_disable_tv(struct omap_dss_device *dssdev)
-+{
-+}
-+
-+static struct omap_dss_device beagle_tv_device = {
-+	.name = "tv",
-+	.driver_name = "venc",
-+	.type = OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type = OMAP_DSS_VENC_TYPE_SVIDEO,
-+	.platform_enable = beagle_panel_enable_tv,
-+	.platform_disable = beagle_panel_disable_tv,
-+};
-+
-+static struct omap_dss_device *beagle_dss_devices[] = {
-+	&beagle_dvi_device,
-+	&beagle_tv_device,
-+};
-+
-+static struct omap_dss_board_info beagle_dss_data = {
-+	.num_devices = ARRAY_SIZE(beagle_dss_devices),
-+	.devices = beagle_dss_devices,
-+	.default_device = &beagle_dvi_device,
-+};
-+
-+static struct platform_device beagle_dss_device = {
-+	.name          = "omapdss",
-+	.id            = -1,
-+	.dev            = {
-+		.platform_data = &beagle_dss_data,
-+	},
-+};
-+
-+static struct regulator_consumer_supply beagle_vdda_dac_supply = {
-+	.supply		= "vdda_dac",
-+	.dev		= &beagle_dss_device.dev,
-+};
-+
-+static struct regulator_consumer_supply beagle_vdds_dsi_supply = {
-+	.supply		= "vdds_dsi",
-+	.dev		= &beagle_dss_device.dev,
-+};
-+
-+static void __init beagle_display_init(void)
-+{
-+	int r;
-+
-+	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
-+	if (r < 0) {
-+		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
-+		return;
-+	}
-+
-+	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
-+}
-+
- #include "sdram-micron-mt46h32m32lf-6.h"
+ #define AMS_DELTA_DEFAULT_CONTRAST	112
  
- static struct omap_uart_config omap3_beagle_uart_config __initdata = {
-@@ -121,15 +209,6 @@ static struct twl4030_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
- };
+diff --git a/drivers/video/omap/lcd_apollon.c b/drivers/video/omap/lcd_apollon.c
+index 626ae3a..4b4f754 100644
+--- a/drivers/video/omap/lcd_apollon.c
++++ b/drivers/video/omap/lcd_apollon.c
+@@ -26,7 +26,7 @@
  
--static struct platform_device omap3_beagle_lcd_device = {
--	.name		= "omap3beagle_lcd",
--	.id		= -1,
--};
+ #include <mach/gpio.h>
+ #include <mach/mux.h>
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ /* #define USE_35INCH_LCD 1 */
+ 
+diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
+index 2486237..fb4cc4b 100644
+--- a/drivers/video/omap/lcd_h3.c
++++ b/drivers/video/omap/lcd_h3.c
+@@ -24,7 +24,7 @@
+ #include <linux/i2c/tps65010.h>
+ 
+ #include <mach/gpio.h>
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+ 
+diff --git a/drivers/video/omap/lcd_h4.c b/drivers/video/omap/lcd_h4.c
+index 6ff5643..d7e9b36 100644
+--- a/drivers/video/omap/lcd_h4.c
++++ b/drivers/video/omap/lcd_h4.c
+@@ -22,7 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ 
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ static int h4_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
+diff --git a/drivers/video/omap/lcd_inn1510.c b/drivers/video/omap/lcd_inn1510.c
+index 6953ed4..bc34607 100644
+--- a/drivers/video/omap/lcd_inn1510.c
++++ b/drivers/video/omap/lcd_inn1510.c
+@@ -24,7 +24,7 @@
+ #include <linux/io.h>
+ 
+ #include <mach/fpga.h>
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ static int innovator1510_panel_init(struct lcd_panel *panel,
+ 				    struct omapfb_device *fbdev)
+diff --git a/drivers/video/omap/lcd_inn1610.c b/drivers/video/omap/lcd_inn1610.c
+index 4c4f7ee..3e0abda 100644
+--- a/drivers/video/omap/lcd_inn1610.c
++++ b/drivers/video/omap/lcd_inn1610.c
+@@ -23,7 +23,7 @@
+ #include <linux/platform_device.h>
+ 
+ #include <mach/gpio.h>
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+ 
+diff --git a/drivers/video/omap/lcd_ldp.c b/drivers/video/omap/lcd_ldp.c
+index 8925230..d5caae3 100644
+--- a/drivers/video/omap/lcd_ldp.c
++++ b/drivers/video/omap/lcd_ldp.c
+@@ -28,8 +28,8 @@
+ 
+ #include <mach/gpio.h>
+ #include <mach/mux.h>
+-#include <mach/omapfb.h>
+ #include <asm/mach-types.h>
++#include "omapfb.h"
+ 
+ #define LCD_PANEL_BACKLIGHT_GPIO 	(15 + OMAP_MAX_GPIO_LINES)
+ #define LCD_PANEL_ENABLE_GPIO 		(7 + OMAP_MAX_GPIO_LINES)
+diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
+index 3165d3d..b70e1ad 100644
+--- a/drivers/video/omap/lcd_mipid.c
++++ b/drivers/video/omap/lcd_mipid.c
+@@ -23,9 +23,10 @@
+ #include <linux/workqueue.h>
+ #include <linux/spi/spi.h>
+ 
+-#include <mach/omapfb.h>
+ #include <mach/lcd_mipid.h>
+ 
++#include "omapfb.h"
++
+ #define MIPID_MODULE_NAME		"lcd_mipid"
+ 
+ #define MIPID_CMD_READ_DISP_ID		0x04
+diff --git a/drivers/video/omap/lcd_omap2evm.c b/drivers/video/omap/lcd_omap2evm.c
+index 2fc46c2..d85252f 100644
+--- a/drivers/video/omap/lcd_omap2evm.c
++++ b/drivers/video/omap/lcd_omap2evm.c
+@@ -27,8 +27,8 @@
+ #include <linux/i2c/twl4030.h>
+ 
+ #include <mach/mux.h>
+-#include <mach/omapfb.h>
+ #include <asm/mach-types.h>
++#include "omapfb.h"
+ 
+ #define LCD_PANEL_ENABLE_GPIO	154
+ #define LCD_PANEL_LR		128
+diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
+index 40454dc..5868d8e 100644
+--- a/drivers/video/omap/lcd_omap3beagle.c
++++ b/drivers/video/omap/lcd_omap3beagle.c
+@@ -26,8 +26,8 @@
+ #include <linux/i2c/twl4030.h>
+ 
+ #include <mach/mux.h>
+-#include <mach/omapfb.h>
+ #include <asm/mach-types.h>
++#include "omapfb.h"
+ 
+ #define LCD_PANEL_ENABLE_GPIO       170
+ 
+diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
+index 1c3d814..b122393 100644
+--- a/drivers/video/omap/lcd_omap3evm.c
++++ b/drivers/video/omap/lcd_omap3evm.c
+@@ -26,8 +26,8 @@
+ #include <linux/i2c/twl4030.h>
+ 
+ #include <mach/mux.h>
+-#include <mach/omapfb.h>
+ #include <asm/mach-types.h>
++#include "omapfb.h"
+ 
+ #define LCD_PANEL_ENABLE_GPIO       153
+ #define LCD_PANEL_LR                2
+diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
+index 379c96d..68b8668 100644
+--- a/drivers/video/omap/lcd_osk.c
++++ b/drivers/video/omap/lcd_osk.c
+@@ -25,7 +25,7 @@
+ 
+ #include <mach/gpio.h>
+ #include <mach/mux.h>
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
+diff --git a/drivers/video/omap/lcd_overo.c b/drivers/video/omap/lcd_overo.c
+index 2bc5c92..63ebb1f 100644
+--- a/drivers/video/omap/lcd_overo.c
++++ b/drivers/video/omap/lcd_overo.c
+@@ -25,9 +25,10 @@
+ 
+ #include <mach/gpio.h>
+ #include <mach/mux.h>
+-#include <mach/omapfb.h>
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #define LCD_ENABLE       144
+ 
+ static int overo_panel_init(struct lcd_panel *panel,
+diff --git a/drivers/video/omap/lcd_palmte.c b/drivers/video/omap/lcd_palmte.c
+index 2183173..f993457 100644
+--- a/drivers/video/omap/lcd_palmte.c
++++ b/drivers/video/omap/lcd_palmte.c
+@@ -24,7 +24,7 @@
+ #include <linux/io.h>
+ 
+ #include <mach/fpga.h>
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ static int palmte_panel_init(struct lcd_panel *panel,
+ 				struct omapfb_device *fbdev)
+diff --git a/drivers/video/omap/lcd_palmtt.c b/drivers/video/omap/lcd_palmtt.c
+index 57b0f6c..d4cf822 100644
+--- a/drivers/video/omap/lcd_palmtt.c
++++ b/drivers/video/omap/lcd_palmtt.c
+@@ -30,7 +30,7 @@ GPIO13 - screen blanking
+ #include <linux/io.h>
+ 
+ #include <mach/gpio.h>
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ static int palmtt_panel_init(struct lcd_panel *panel,
+ 	struct omapfb_device *fbdev)
+diff --git a/drivers/video/omap/lcd_palmz71.c b/drivers/video/omap/lcd_palmz71.c
+index d33d78b..1382891 100644
+--- a/drivers/video/omap/lcd_palmz71.c
++++ b/drivers/video/omap/lcd_palmz71.c
+@@ -24,7 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ 
+-#include <mach/omapfb.h>
++#include "omapfb.h"
+ 
+ static int palmz71_panel_init(struct lcd_panel *panel,
+ 			      struct omapfb_device *fbdev)
+diff --git a/drivers/video/omap/lcdc.c b/drivers/video/omap/lcdc.c
+index ab39492..520ed97 100644
+--- a/drivers/video/omap/lcdc.c
++++ b/drivers/video/omap/lcdc.c
+@@ -30,10 +30,11 @@
+ #include <linux/clk.h>
+ 
+ #include <mach/dma.h>
+-#include <mach/omapfb.h>
+ 
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #include "lcdc.h"
+ 
+ #define MODULE_NAME			"lcdc"
+diff --git a/drivers/video/omap/omapfb.h b/drivers/video/omap/omapfb.h
+new file mode 100644
+index 0000000..46e4714
+--- /dev/null
++++ b/drivers/video/omap/omapfb.h
+@@ -0,0 +1,227 @@
++/*
++ * File: drivers/video/omap/omapfb.h
++ *
++ * Framebuffer driver for TI OMAP boards
++ *
++ * Copyright (C) 2004 Nokia Corporation
++ * Author: Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#ifndef __OMAPFB_H
++#define __OMAPFB_H
++
++#include <linux/fb.h>
++#include <linux/mutex.h>
++#include <linux/omapfb.h>
++
++#define OMAPFB_EVENT_READY	1
++#define OMAPFB_EVENT_DISABLED	2
++
++#define OMAP_LCDC_INV_VSYNC             0x0001
++#define OMAP_LCDC_INV_HSYNC             0x0002
++#define OMAP_LCDC_INV_PIX_CLOCK         0x0004
++#define OMAP_LCDC_INV_OUTPUT_EN         0x0008
++#define OMAP_LCDC_HSVS_RISING_EDGE      0x0010
++#define OMAP_LCDC_HSVS_OPPOSITE         0x0020
++
++#define OMAP_LCDC_SIGNAL_MASK		0x003f
++
++#define OMAP_LCDC_PANEL_TFT		0x0100
++
++#define OMAPFB_PLANE_XRES_MIN		8
++#define OMAPFB_PLANE_YRES_MIN		8
++
++struct omapfb_device;
++
++struct lcd_panel {
++	const char	*name;
++	int		config;		/* TFT/STN, signal inversion */
++	int		bpp;		/* Pixel format in fb mem */
++	int		data_lines;	/* Lines on LCD HW interface */
++
++	int		x_res, y_res;
++	int		pixel_clock;	/* In kHz */
++	int		hsw;		/* Horizontal synchronization
++					   pulse width */
++	int		hfp;		/* Horizontal front porch */
++	int		hbp;		/* Horizontal back porch */
++	int		vsw;		/* Vertical synchronization
++					   pulse width */
++	int		vfp;		/* Vertical front porch */
++	int		vbp;		/* Vertical back porch */
++	int		acb;		/* ac-bias pin frequency */
++	int		pcd;		/* pixel clock divider.
++					   Obsolete use pixel_clock instead */
++
++	int		(*init)		(struct lcd_panel *panel,
++					 struct omapfb_device *fbdev);
++	void		(*cleanup)	(struct lcd_panel *panel);
++	int		(*enable)	(struct lcd_panel *panel);
++	void		(*disable)	(struct lcd_panel *panel);
++	unsigned long	(*get_caps)	(struct lcd_panel *panel);
++	int		(*set_bklight_level)(struct lcd_panel *panel,
++					     unsigned int level);
++	unsigned int	(*get_bklight_level)(struct lcd_panel *panel);
++	unsigned int	(*get_bklight_max)  (struct lcd_panel *panel);
++	int		(*run_test)	(struct lcd_panel *panel, int test_num);
++};
++
++struct extif_timings {
++	int cs_on_time;
++	int cs_off_time;
++	int we_on_time;
++	int we_off_time;
++	int re_on_time;
++	int re_off_time;
++	int we_cycle_time;
++	int re_cycle_time;
++	int cs_pulse_width;
++	int access_time;
++
++	int clk_div;
++
++	u32 tim[5];		/* set by extif->convert_timings */
++
++	int converted;
++};
++
++struct lcd_ctrl_extif {
++	int  (*init)		(struct omapfb_device *fbdev);
++	void (*cleanup)		(void);
++	void (*get_clk_info)	(u32 *clk_period, u32 *max_clk_div);
++	unsigned long (*get_max_tx_rate)(void);
++	int  (*convert_timings)	(struct extif_timings *timings);
++	void (*set_timings)	(const struct extif_timings *timings);
++	void (*set_bits_per_cycle)(int bpc);
++	void (*write_command)	(const void *buf, unsigned int len);
++	void (*read_data)	(void *buf, unsigned int len);
++	void (*write_data)	(const void *buf, unsigned int len);
++	void (*transfer_area)	(int width, int height,
++				 void (callback)(void *data), void *data);
++	int  (*setup_tearsync)	(unsigned pin_cnt,
++				 unsigned hs_pulse_time, unsigned vs_pulse_time,
++				 int hs_pol_inv, int vs_pol_inv, int div);
++	int  (*enable_tearsync) (int enable, unsigned line);
++
++	unsigned long		max_transmit_size;
++};
++
++struct omapfb_notifier_block {
++	struct notifier_block	nb;
++	void			*data;
++	int			plane_idx;
++};
++
++typedef int (*omapfb_notifier_callback_t)(struct notifier_block *,
++					  unsigned long event,
++					  void *fbi);
++
++struct lcd_ctrl {
++	const char	*name;
++	void		*data;
++
++	int		(*init)		  (struct omapfb_device *fbdev,
++					   int ext_mode,
++					   struct omapfb_mem_desc *req_md);
++	void		(*cleanup)	  (void);
++	void		(*bind_client)	  (struct omapfb_notifier_block *nb);
++	void		(*get_caps)	  (int plane, struct omapfb_caps *caps);
++	int		(*set_update_mode)(enum omapfb_update_mode mode);
++	enum omapfb_update_mode (*get_update_mode)(void);
++	int		(*setup_plane)	  (int plane, int channel_out,
++					   unsigned long offset,
++					   int screen_width,
++					   int pos_x, int pos_y, int width,
++					   int height, int color_mode);
++	int		(*set_rotate)	  (int angle);
++	int		(*setup_mem)	  (int plane, size_t size,
++					   int mem_type, unsigned long *paddr);
++	int		(*mmap)		  (struct fb_info *info,
++					   struct vm_area_struct *vma);
++	int		(*set_scale)	  (int plane,
++					   int orig_width, int orig_height,
++					   int out_width, int out_height);
++	int		(*enable_plane)	  (int plane, int enable);
++	int		(*update_window)  (struct fb_info *fbi,
++					   struct omapfb_update_window *win,
++					   void (*callback)(void *),
++					   void *callback_data);
++	void		(*sync)		  (void);
++	void		(*suspend)	  (void);
++	void		(*resume)	  (void);
++	int		(*run_test)	  (int test_num);
++	int		(*setcolreg)	  (u_int regno, u16 red, u16 green,
++					   u16 blue, u16 transp,
++					   int update_hw_mem);
++	int		(*set_color_key)  (struct omapfb_color_key *ck);
++	int		(*get_color_key)  (struct omapfb_color_key *ck);
++};
++
++enum omapfb_state {
++	OMAPFB_DISABLED		= 0,
++	OMAPFB_SUSPENDED	= 99,
++	OMAPFB_ACTIVE		= 100
++};
++
++struct omapfb_plane_struct {
++	int				idx;
++	struct omapfb_plane_info	info;
++	enum omapfb_color_format	color_mode;
++	struct omapfb_device		*fbdev;
++};
++
++struct omapfb_device {
++	int			state;
++	int                     ext_lcdc;		/* Using external
++							   LCD controller */
++	struct mutex		rqueue_mutex;
++
++	int			palette_size;
++	u32			pseudo_palette[17];
++
++	struct lcd_panel	*panel;			/* LCD panel */
++	const struct lcd_ctrl	*ctrl;			/* LCD controller */
++	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
++	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
++							   interface */
++	struct device		*dev;
++	struct fb_var_screeninfo	new_var;	/* for mode changes */
++
++	struct omapfb_mem_desc		mem_desc;
++	struct fb_info			*fb_info[OMAPFB_PLANE_NUM];
++};
++
++#ifdef CONFIG_ARCH_OMAP1
++extern struct lcd_ctrl omap1_lcd_ctrl;
++#else
++extern struct lcd_ctrl omap2_disp_ctrl;
++#endif
++
++extern void omapfb_register_panel(struct lcd_panel *panel);
++extern void omapfb_write_first_pixel(struct omapfb_device *fbdev, u16 pixval);
++extern void omapfb_notify_clients(struct omapfb_device *fbdev,
++				  unsigned long event);
++extern int  omapfb_register_client(struct omapfb_notifier_block *nb,
++				   omapfb_notifier_callback_t callback,
++				   void *callback_data);
++extern int  omapfb_unregister_client(struct omapfb_notifier_block *nb);
++extern int  omapfb_update_window_async(struct fb_info *fbi,
++				       struct omapfb_update_window *win,
++				       void (*callback)(void *),
++				       void *callback_data);
++
++#endif /* __OMAPFB_H */
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index 0df4523..10eb05a 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -29,8 +29,8 @@
+ #include <linux/uaccess.h>
+ 
+ #include <mach/dma.h>
+-#include <mach/omapfb.h>
+ 
++#include "omapfb.h"
+ #include "lcdc.h"
+ #include "dispc.h"
+ 
+diff --git a/drivers/video/omap/rfbi.c b/drivers/video/omap/rfbi.c
+index ee01e84..fed7b1b 100644
+--- a/drivers/video/omap/rfbi.c
++++ b/drivers/video/omap/rfbi.c
+@@ -27,8 +27,7 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ 
+-#include <mach/omapfb.h>
 -
--static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
- static struct regulator_consumer_supply beagle_vmmc1_supply = {
- 	.supply			= "vmmc",
- };
-@@ -180,16 +259,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
- 	.setup		= beagle_twl_gpio_setup,
- };
++#include "omapfb.h"
+ #include "dispc.h"
  
--static struct regulator_consumer_supply beagle_vdac_supply = {
--	.supply		= "vdac",
--	.dev		= &omap3_beagle_lcd_device.dev,
--};
--
--static struct regulator_consumer_supply beagle_vdvi_supply = {
--	.supply		= "vdvi",
--	.dev		= &omap3_beagle_lcd_device.dev,
--};
--
- /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
- static struct regulator_init_data beagle_vmmc1 = {
- 	.constraints = {
-@@ -225,13 +294,14 @@ static struct regulator_init_data beagle_vdac = {
- 	.constraints = {
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
-+		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &beagle_vdac_supply,
-+	.consumer_supplies	= &beagle_vdda_dac_supply,
- };
+ /* To work around an RFBI transfer rate limitation */
+diff --git a/drivers/video/omap/sossi.c b/drivers/video/omap/sossi.c
+index a769462..6853627 100644
+--- a/drivers/video/omap/sossi.c
++++ b/drivers/video/omap/sossi.c
+@@ -25,8 +25,8 @@
+ #include <linux/io.h>
  
- /* VPLL2 for digital video outputs */
-@@ -246,7 +316,7 @@ static struct regulator_init_data beagle_vpll2 = {
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &beagle_vdvi_supply,
-+	.consumer_supplies	= &beagle_vdds_dsi_supply,
- };
+ #include <mach/dma.h>
+-#include <mach/omapfb.h>
  
- static struct twl4030_platform_data beagle_twldata = {
-@@ -345,11 +415,10 @@ static struct platform_device keys_gpio = {
++#include "omapfb.h"
+ #include "lcdc.h"
  
- static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
--	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
- };
- 
- static struct platform_device *omap3_beagle_devices[] __initdata = {
--	&omap3_beagle_lcd_device,
-+	&beagle_dss_device,
- 	&leds_gpio,
- 	&keys_gpio,
- };
-@@ -402,13 +471,11 @@ static void __init omap3_beagle_init(void)
- 	omap_serial_init();
- 
- 	omap_cfg_reg(J25_34XX_GPIO170);
--	gpio_request(170, "DVI_nPD");
--	/* REVISIT leave DVI powered down until it's needed ... */
--	gpio_direction_output(170, true);
- 
- 	usb_musb_init();
- 	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, true, true, 57, 61);
- 	omap3beagle_flash_init();
-+	beagle_display_init();
- }
- 
- static void __init omap3_beagle_map_io(void)
+ #define MODULE_NAME		"omapfb-sossi"
+diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
+new file mode 100644
+index 0000000..a3611d3
+--- /dev/null
++++ b/include/linux/omapfb.h
+@@ -0,0 +1,197 @@
++/*
++ * File: include/linux/omapfb.h
++ *
++ * Framebuffer driver for TI OMAP boards
++ *
++ * Copyright (C) 2004 Nokia Corporation
++ * Author: Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
++
++#ifndef __LINUX_OMAPFB_H__
++#define __LINUX_OMAPFB_H__
++
++#include <linux/ioctl.h>
++#include <linux/types.h>
++
++/* IOCTL commands. */
++
++#define OMAP_IOW(num, dtype)	_IOW('O', num, dtype)
++#define OMAP_IOR(num, dtype)	_IOR('O', num, dtype)
++#define OMAP_IOWR(num, dtype)	_IOWR('O', num, dtype)
++#define OMAP_IO(num)		_IO('O', num)
++
++#define OMAPFB_MIRROR		OMAP_IOW(31, int)
++#define OMAPFB_SYNC_GFX		OMAP_IO(37)
++#define OMAPFB_VSYNC		OMAP_IO(38)
++#define OMAPFB_SET_UPDATE_MODE	OMAP_IOW(40, int)
++#define OMAPFB_GET_CAPS		OMAP_IOR(42, struct omapfb_caps)
++#define OMAPFB_GET_UPDATE_MODE	OMAP_IOW(43, int)
++#define OMAPFB_LCD_TEST		OMAP_IOW(45, int)
++#define OMAPFB_CTRL_TEST	OMAP_IOW(46, int)
++#define OMAPFB_UPDATE_WINDOW_OLD OMAP_IOW(47, struct omapfb_update_window_old)
++#define OMAPFB_SET_COLOR_KEY	OMAP_IOW(50, struct omapfb_color_key)
++#define OMAPFB_GET_COLOR_KEY	OMAP_IOW(51, struct omapfb_color_key)
++#define OMAPFB_SETUP_PLANE	OMAP_IOW(52, struct omapfb_plane_info)
++#define OMAPFB_QUERY_PLANE	OMAP_IOW(53, struct omapfb_plane_info)
++#define OMAPFB_UPDATE_WINDOW	OMAP_IOW(54, struct omapfb_update_window)
++#define OMAPFB_SETUP_MEM	OMAP_IOW(55, struct omapfb_mem_info)
++#define OMAPFB_QUERY_MEM	OMAP_IOW(56, struct omapfb_mem_info)
++
++#define OMAPFB_CAPS_GENERIC_MASK	0x00000fff
++#define OMAPFB_CAPS_LCDC_MASK		0x00fff000
++#define OMAPFB_CAPS_PANEL_MASK		0xff000000
++
++#define OMAPFB_CAPS_MANUAL_UPDATE	0x00001000
++#define OMAPFB_CAPS_TEARSYNC		0x00002000
++#define OMAPFB_CAPS_PLANE_RELOCATE_MEM	0x00004000
++#define OMAPFB_CAPS_PLANE_SCALE		0x00008000
++#define OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE	0x00010000
++#define OMAPFB_CAPS_WINDOW_SCALE	0x00020000
++#define OMAPFB_CAPS_WINDOW_OVERLAY	0x00040000
++#define OMAPFB_CAPS_WINDOW_ROTATE	0x00080000
++#define OMAPFB_CAPS_SET_BACKLIGHT	0x01000000
++
++/* Values from DSP must map to lower 16-bits */
++#define OMAPFB_FORMAT_MASK		0x00ff
++#define OMAPFB_FORMAT_FLAG_DOUBLE	0x0100
++#define OMAPFB_FORMAT_FLAG_TEARSYNC	0x0200
++#define OMAPFB_FORMAT_FLAG_FORCE_VSYNC	0x0400
++#define OMAPFB_FORMAT_FLAG_ENABLE_OVERLAY	0x0800
++#define OMAPFB_FORMAT_FLAG_DISABLE_OVERLAY	0x1000
++
++#define OMAPFB_MEMTYPE_SDRAM		0
++#define OMAPFB_MEMTYPE_SRAM		1
++#define OMAPFB_MEMTYPE_MAX		1
++
++enum omapfb_color_format {
++	OMAPFB_COLOR_RGB565 = 0,
++	OMAPFB_COLOR_YUV422,
++	OMAPFB_COLOR_YUV420,
++	OMAPFB_COLOR_CLUT_8BPP,
++	OMAPFB_COLOR_CLUT_4BPP,
++	OMAPFB_COLOR_CLUT_2BPP,
++	OMAPFB_COLOR_CLUT_1BPP,
++	OMAPFB_COLOR_RGB444,
++	OMAPFB_COLOR_YUY422,
++};
++
++struct omapfb_update_window {
++	__u32 x, y;
++	__u32 width, height;
++	__u32 format;
++	__u32 out_x, out_y;
++	__u32 out_width, out_height;
++	__u32 reserved[8];
++};
++
++struct omapfb_update_window_old {
++	__u32 x, y;
++	__u32 width, height;
++	__u32 format;
++};
++
++enum omapfb_plane {
++	OMAPFB_PLANE_GFX = 0,
++	OMAPFB_PLANE_VID1,
++	OMAPFB_PLANE_VID2,
++};
++
++enum omapfb_channel_out {
++	OMAPFB_CHANNEL_OUT_LCD = 0,
++	OMAPFB_CHANNEL_OUT_DIGIT,
++};
++
++struct omapfb_plane_info {
++	__u32 pos_x;
++	__u32 pos_y;
++	__u8  enabled;
++	__u8  channel_out;
++	__u8  mirror;
++	__u8  reserved1;
++	__u32 out_width;
++	__u32 out_height;
++	__u32 reserved2[12];
++};
++
++struct omapfb_mem_info {
++	__u32 size;
++	__u8  type;
++	__u8  reserved[3];
++};
++
++struct omapfb_caps {
++	__u32 ctrl;
++	__u32 plane_color;
++	__u32 wnd_color;
++};
++
++enum omapfb_color_key_type {
++	OMAPFB_COLOR_KEY_DISABLED = 0,
++	OMAPFB_COLOR_KEY_GFX_DST,
++	OMAPFB_COLOR_KEY_VID_SRC,
++};
++
++struct omapfb_color_key {
++	__u8  channel_out;
++	__u32 background;
++	__u32 trans_key;
++	__u8  key_type;
++};
++
++enum omapfb_update_mode {
++	OMAPFB_UPDATE_DISABLED = 0,
++	OMAPFB_AUTO_UPDATE,
++	OMAPFB_MANUAL_UPDATE
++};
++
++#ifdef __KERNEL__
++
++#include <mach/board.h>
++
++#ifdef CONFIG_ARCH_OMAP1
++#define OMAPFB_PLANE_NUM		1
++#else
++#define OMAPFB_PLANE_NUM		3
++#endif
++
++struct omapfb_mem_region {
++	u32		paddr;
++	void __iomem	*vaddr;
++	unsigned long	size;
++	u8		type;		/* OMAPFB_PLANE_MEM_* */
++	unsigned	alloc:1;	/* allocated by the driver */
++	unsigned	map:1;		/* kernel mapped by the driver */
++};
++
++struct omapfb_mem_desc {
++	int				region_cnt;
++	struct omapfb_mem_region	region[OMAPFB_PLANE_NUM];
++};
++
++struct omapfb_platform_data {
++	struct omap_lcd_config		lcd;
++	struct omapfb_mem_desc		mem_desc;
++	void				*ctrl_platform_data;
++};
++
++/* in arch/arm/plat-omap/fb.c */
++extern void omapfb_set_ctrl_platform_data(void *pdata);
++extern void omapfb_reserve_sdram(void);
++
++#endif
++
++#endif /* __OMAPFB_H */
 -- 
 1.6.4
 
