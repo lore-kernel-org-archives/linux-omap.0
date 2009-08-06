@@ -1,61 +1,53 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 02/20] OMAP: McBSP: Wakeups utilized
-Date: Thu, 6 Aug 2009 15:00:43 +0300
-Message-ID: <20090806120043.GC14093@esdhcp037198.research.nokia.com>
-References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
- <20090730215602.8fdcbaf1.jhnikula@gmail.com>
- <20090731075622.GA27083@esdhcp037198.research.nokia.com>
- <20090806120525.GJ2358@atomide.com>
-Reply-To: eduardo.valentin@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 2/9] ehci: adding mux pin for EHCI phy reset line
+Date: Thu,  6 Aug 2009 17:37:33 +0530
+Message-ID: <1249560460-16306-2-git-send-email-ajay.gupta@ti.com>
+References: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:24057 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006AbZHFMNE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 08:13:04 -0400
-Content-Disposition: inline
-In-Reply-To: <20090806120525.GJ2358@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41153 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754902AbZHFMN3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Aug 2009 08:13:29 -0400
+In-Reply-To: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
+To: linux-omap@vger.kernel.org
+Cc: felipe.balbi@nokia.com, david-b@pacbell.net, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-On Thu, Aug 06, 2009 at 02:05:25PM +0200, ext Tony Lindgren wrote:
-> * Eduardo Valentin <eduardo.valentin@nokia.com> [090731 11:08]:
-> > On Thu, Jul 30, 2009 at 08:56:02PM +0200, ext Jarkko Nikula wrote:
-> > > On Thu, 30 Jul 2009 15:49:25 +0300
-> > > Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
-> > > 
-> > > > --- a/arch/arm/plat-omap/mcbsp.c
-> > > > +++ b/arch/arm/plat-omap/mcbsp.c
-> > > > @@ -257,6 +257,23 @@ int omap_mcbsp_request(unsigned int id)
-> > > >  	clk_enable(mcbsp->iclk);
-> > > >  	clk_enable(mcbsp->fclk);
-> > > >  
-> > > > +#ifdef CONFIG_ARCH_OMAP34XX
-> > > > +	/*
-> > > 
-> > > I'm sure there is a way to avoid all of these added ifdefs in this patch
-> > > and in patches 7 and 8 as well.
-> > 
-> > hmmm.. these ifdef's are required because I've put the extra field (for
-> > 34xx only) inside an ifdef on their declaration in mcbsp.h. We can remove it
-> > there, but will leave a few extra bytes on !omap3xx binaries.
-> 
-> Hmm which field are you talking about? The define does not matter, and the
-> u16 syscon also gets optimized out if 34xx is not selected.
+GPIO135 is used as EHCI (port2) phy reset pin on Multi Media Daughter card
+connected to OMAP3EVM.
 
-dma_op_mode. see patch 0012.
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+---
+ arch/arm/mach-omap2/mux.c             |    2 ++
+ arch/arm/plat-omap/include/mach/mux.h |    1 +
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
-> 
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 026c4fc..80547cf 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -472,6 +472,8 @@ MUX_CFG_34XX("G25_34XX_GPIO86_OUT", 0x0fc,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AG4_34XX_GPIO134_OUT", 0x160,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("AF4_34XX_GPIO135_OUT", 0x162,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AE4_34XX_GPIO136_OUT", 0x164,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+index 85a6217..498fa0c 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -846,6 +846,7 @@ enum omap34xx_index {
+ 	L8_34XX_GPIO63,
+ 	G25_34XX_GPIO86_OUT,
+ 	AG4_34XX_GPIO134_OUT,
++	AF4_34XX_GPIO135_OUT,
+ 	AE4_34XX_GPIO136_OUT,
+ 	AF6_34XX_GPIO140_UP,
+ 	AE6_34XX_GPIO141,
 -- 
-Eduardo Valentin
+1.6.2.4
+
