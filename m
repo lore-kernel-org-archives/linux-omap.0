@@ -1,187 +1,215 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 8/9] ehci: Support for ES3.x
-Date: Thu,  6 Aug 2009 17:37:39 +0530
-Message-ID: <1249560460-16306-8-git-send-email-ajay.gupta@ti.com>
-References: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com>
- <1249560460-16306-2-git-send-email-ajay.gupta@ti.com>
- <1249560460-16306-3-git-send-email-ajay.gupta@ti.com>
- <1249560460-16306-4-git-send-email-ajay.gupta@ti.com>
- <1249560460-16306-5-git-send-email-ajay.gupta@ti.com>
- <1249560460-16306-6-git-send-email-ajay.gupta@ti.com>
- <1249560460-16306-7-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 1/9] ehci: fix ehci pin mux init
+Date: Thu,  6 Aug 2009 17:37:32 +0530
+Message-ID: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36260 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755154AbZHFMJH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 08:09:07 -0400
-In-Reply-To: <1249560460-16306-7-git-send-email-ajay.gupta@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46480 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755266AbZHFMJK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Aug 2009 08:09:10 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: felipe.balbi@nokia.com, david-b@pacbell.net, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-OMAP ES3.x supports portwise PHY or TLL mode of operation whereas
-in ES2.x all the three ports can either be in PHY mode or in TLL
-mode.Port3 can not be configured in PHY mode.
+EHCI pin mux init fucntion is still using old #ifdef which are not defined
+anymore.This causes pin mux init to always set TLL settings and thus EHCI
+PHY mode doesn't work.
 
-Port mode must be defined either PHY, TLL or UNKNOWN in platform
-files.Be careful of the scenario where one port is set as PHY and
-other in TLL but the OMAP silicon version is 2.x or earlier where
-this scenario is *not* supported.
-
-Changes are :
-        - Setup all the bypass configuration in omap_start_ehc()
-          based on ES version.
-        - Remove UHH_HOSTCONFIG programming for bypass settings
-          in omap_usb_utmi_init()
+Fixing this issue by using phy_mode parameter to initialize mux settings.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
 ---
- drivers/usb/host/ehci-omap.c |   90 ++++++++++++++++++++++++------------------
- 1 files changed, 52 insertions(+), 38 deletions(-)
+ arch/arm/mach-omap2/usb-ehci.c |  167 ++++++++++++++++++++--------------------
+ 1 files changed, 83 insertions(+), 84 deletions(-)
 
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 3175122..81a0b65 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -32,7 +32,6 @@
-  *	- move DPLL5 programming to clock fw
-  *	- add suspend/resume
-  *	- move workarounds to board-files
-- *	- differentiate between ES2.x and ES3.x
+diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
+index 0fe26f2..53e6e85 100644
+--- a/arch/arm/mach-omap2/usb-ehci.c
++++ b/arch/arm/mach-omap2/usb-ehci.c
+@@ -68,90 +68,89 @@ static struct platform_device ehci_device = {
+ /*
+  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
   */
- 
- #include <linux/platform_device.h>
-@@ -102,6 +101,9 @@
- #define	OMAP_UHH_SYSSTATUS				(0x14)
- #define	OMAP_UHH_HOSTCONFIG				(0x40)
- #define	OMAP_UHH_HOSTCONFIG_ULPI_BYPASS			(1 << 0)
-+#define	OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS		(1 << 0)
-+#define	OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS		(1 << 11)
-+#define	OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS		(1 << 12)
- #define OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN		(1 << 2)
- #define OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN		(1 << 3)
- #define OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN		(1 << 4)
-@@ -185,16 +187,6 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
- 	unsigned reg;
- 	int i;
- 
--	reg = ehci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
--	reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS
--		| OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
--		| OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN
--		| OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN;
--	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
--
--	/* Use UTMI Ports of TLL */
--	ehci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
--
- 	/* Program the 3 TLL channels upfront */
- 	for (i = 0; i < OMAP_TLL_CHANNEL_COUNT; i++) {
- 		reg = ehci_omap_readl(omap->tll_base, OMAP_TLL_CHANNEL_CONF(i));
-@@ -243,7 +235,9 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
-  */
- static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+-static void setup_ehci_io_mux(void)
++static void setup_ehci_io_mux(enum ehci_hcd_omap_mode phy_mode)
  {
-+	struct omap_chip_id oci = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3);
- 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
-+	u8 tll_ch_mask = 0;
- 	unsigned reg = 0;
- 	int ret = 0;
- 
-@@ -362,37 +356,58 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
- 
- 	ehci_omap_writel(omap->uhh_base, OMAP_UHH_SYSCONFIG, reg);
- 
--	if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_PHY) ||
--		(omap->port_mode[1] == EHCI_HCD_OMAP_MODE_PHY) ||
--		(omap->port_mode[2] == EHCI_HCD_OMAP_MODE_PHY)) {
-+	reg = ehci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
- 
--		reg = ehci_omap_readl(omap->uhh_base, OMAP_UHH_HOSTCONFIG);
-+	/* setup ULPI bypass and burst configurations */
-+	reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
-+			| OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN
-+			| OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN);
-+	reg &= ~OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN;
- 
--		reg |= (OMAP_UHH_HOSTCONFIG_INCR4_BURST_EN
--				| OMAP_UHH_HOSTCONFIG_INCR8_BURST_EN
--				| OMAP_UHH_HOSTCONFIG_INCR16_BURST_EN);
--		reg &= ~(OMAP_UHH_HOSTCONFIG_ULPI_BYPASS
--				| OMAP_UHH_HOSTCONFIG_INCRX_ALIGN_EN);
-+	/* Bypass the TLL module for PHY mode operation */
-+	if (omap_chip_is(oci)) {
-+		dev_dbg(omap->dev, "OMAP3 ES version > ES3\n");
-+		if (omap->port_mode[0] == EHCI_HCD_OMAP_MODE_PHY)
-+			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
-+		else if (omap->port_mode[0] == EHCI_HCD_OMAP_MODE_TLL)
-+			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P1_BYPASS;
- 
--		/* Bypass the TLL module for PHY mode operation */
--		ehci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
--		dev_dbg(omap->dev, "Entered ULPI PHY MODE: success\n");
-+		if (omap->port_mode[1] == EHCI_HCD_OMAP_MODE_PHY)
-+			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
-+		else if (omap->port_mode[1] == EHCI_HCD_OMAP_MODE_TLL)
-+			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P2_BYPASS;
-+
-+		if (omap->port_mode[2] == EHCI_HCD_OMAP_MODE_PHY)
-+			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
-+		else if (omap->port_mode[2] == EHCI_HCD_OMAP_MODE_TLL)
-+			reg |= OMAP_UHH_HOSTCONFIG_ULPI_P3_BYPASS;
- 
--	} else if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_TLL) ||
--		(omap->port_mode[1] == EHCI_HCD_OMAP_MODE_TLL) ||
--		(omap->port_mode[2] == EHCI_HCD_OMAP_MODE_TLL)) {
+-#ifdef CONFIG_OMAP_EHCI_PHY_MODE
+-	/* PHY mode of operation for board: 750-2083-001
+-	 * ISP1504 connected to Port1 and Port2
+-	 * Do Func Mux setting for 12-pin ULPI PHY mode
+-	 */
 -
--		/* Enable UTMI mode for all 3 TLL channels */
--		omap_usb_utmi_init(omap,
--			OMAP_TLL_CHANNEL_1_EN_MASK |
--			OMAP_TLL_CHANNEL_2_EN_MASK |
--			OMAP_TLL_CHANNEL_3_EN_MASK
--			);
- 	} else {
--		dev_err(hcd->self.controller,
--				"UNKOWN mode requested\n");
--		ret = -EINVAL;
--		goto err_unknown_mode;
-+		dev_dbg(omap->dev, "OMAP3 ES version < ES3\n");
-+		if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_PHY) ||
-+			(omap->port_mode[1] == EHCI_HCD_OMAP_MODE_PHY) ||
-+				(omap->port_mode[2] == EHCI_HCD_OMAP_MODE_PHY))
-+			reg &= ~OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
-+		else
-+			reg |= OMAP_UHH_HOSTCONFIG_ULPI_BYPASS;
+-	/* Port1 */
+-	omap_cfg_reg(Y9_3430_USB1HS_PHY_STP);
+-	omap_cfg_reg(Y8_3430_USB1HS_PHY_CLK);
+-	omap_cfg_reg(AA14_3430_USB1HS_PHY_DIR);
+-	omap_cfg_reg(AA11_3430_USB1HS_PHY_NXT);
+-	omap_cfg_reg(W13_3430_USB1HS_PHY_DATA0);
+-	omap_cfg_reg(W12_3430_USB1HS_PHY_DATA1);
+-	omap_cfg_reg(W11_3430_USB1HS_PHY_DATA2);
+-	omap_cfg_reg(Y11_3430_USB1HS_PHY_DATA3);
+-	omap_cfg_reg(W9_3430_USB1HS_PHY_DATA4);
+-	omap_cfg_reg(Y12_3430_USB1HS_PHY_DATA5);
+-	omap_cfg_reg(W8_3430_USB1HS_PHY_DATA6);
+-	omap_cfg_reg(Y13_3430_USB1HS_PHY_DATA7);
+-
+-	/* Port2 */
+-	omap_cfg_reg(AA10_3430_USB2HS_PHY_STP);
+-	omap_cfg_reg(AA8_3430_USB2HS_PHY_CLK);
+-	omap_cfg_reg(AA9_3430_USB2HS_PHY_DIR);
+-	omap_cfg_reg(AB11_3430_USB2HS_PHY_NXT);
+-	omap_cfg_reg(AB10_3430_USB2HS_PHY_DATA0);
+-	omap_cfg_reg(AB9_3430_USB2HS_PHY_DATA1);
+-	omap_cfg_reg(W3_3430_USB2HS_PHY_DATA2);
+-	omap_cfg_reg(T4_3430_USB2HS_PHY_DATA3);
+-	omap_cfg_reg(T3_3430_USB2HS_PHY_DATA4);
+-	omap_cfg_reg(R3_3430_USB2HS_PHY_DATA5);
+-	omap_cfg_reg(R4_3430_USB2HS_PHY_DATA6);
+-	omap_cfg_reg(T2_3430_USB2HS_PHY_DATA7);
+-
+-#else
+-	/* Set Func mux for :
+-	 * TLL mode of operation
+-	 * 12-pin ULPI SDR TLL mode for Port1/2/3
+-	 */
+-
+-	/* Port1 */
+-	omap_cfg_reg(Y9_3430_USB1HS_TLL_STP);
+-	omap_cfg_reg(Y8_3430_USB1HS_TLL_CLK);
+-	omap_cfg_reg(AA14_3430_USB1HS_TLL_DIR);
+-	omap_cfg_reg(AA11_3430_USB1HS_TLL_NXT);
+-	omap_cfg_reg(W13_3430_USB1HS_TLL_DATA0);
+-	omap_cfg_reg(W12_3430_USB1HS_TLL_DATA1);
+-	omap_cfg_reg(W11_3430_USB1HS_TLL_DATA2);
+-	omap_cfg_reg(Y11_3430_USB1HS_TLL_DATA3);
+-	omap_cfg_reg(W9_3430_USB1HS_TLL_DATA4);
+-	omap_cfg_reg(Y12_3430_USB1HS_TLL_DATA5);
+-	omap_cfg_reg(W8_3430_USB1HS_TLL_DATA6);
+-	omap_cfg_reg(Y13_3430_USB1HS_TLL_DATA7);
+-
+-	/* Port2 */
+-	omap_cfg_reg(AA10_3430_USB2HS_TLL_STP);
+-	omap_cfg_reg(AA8_3430_USB2HS_TLL_CLK);
+-	omap_cfg_reg(AA9_3430_USB2HS_TLL_DIR);
+-	omap_cfg_reg(AB11_3430_USB2HS_TLL_NXT);
+-	omap_cfg_reg(AB10_3430_USB2HS_TLL_DATA0);
+-	omap_cfg_reg(AB9_3430_USB2HS_TLL_DATA1);
+-	omap_cfg_reg(W3_3430_USB2HS_TLL_DATA2);
+-	omap_cfg_reg(T4_3430_USB2HS_TLL_DATA3);
+-	omap_cfg_reg(T3_3430_USB2HS_TLL_DATA4);
+-	omap_cfg_reg(R3_3430_USB2HS_TLL_DATA5);
+-	omap_cfg_reg(R4_3430_USB2HS_TLL_DATA6);
+-	omap_cfg_reg(T2_3430_USB2HS_TLL_DATA7);
+-
+-	/* Port3 */
+-	omap_cfg_reg(AB3_3430_USB3HS_TLL_STP);
+-	omap_cfg_reg(AA6_3430_USB3HS_TLL_CLK);
+-	omap_cfg_reg(AA3_3430_USB3HS_TLL_DIR);
+-	omap_cfg_reg(Y3_3430_USB3HS_TLL_NXT);
+-	omap_cfg_reg(AA5_3430_USB3HS_TLL_DATA0);
+-	omap_cfg_reg(Y4_3430_USB3HS_TLL_DATA1);
+-	omap_cfg_reg(Y5_3430_USB3HS_TLL_DATA2);
+-	omap_cfg_reg(W5_3430_USB3HS_TLL_DATA3);
+-	omap_cfg_reg(AB12_3430_USB3HS_TLL_DATA4);
+-	omap_cfg_reg(AB13_3430_USB3HS_TLL_DATA5);
+-	omap_cfg_reg(AA13_3430_USB3HS_TLL_DATA6);
+-	omap_cfg_reg(AA12_3430_USB3HS_TLL_DATA7);
+-#endif /* CONFIG_OMAP_EHCI_PHY_MODE */
++	if (phy_mode == EHCI_HCD_OMAP_MODE_PHY) {
++		/* PHY mode of operation for board: 750-2083-001
++		 * ISP1504 connected to Port1 and Port2
++		 * Do Func Mux setting for 12-pin ULPI PHY mode
++		 */
++		/* Port1 */
++		omap_cfg_reg(Y9_3430_USB1HS_PHY_STP);
++		omap_cfg_reg(Y8_3430_USB1HS_PHY_CLK);
++		omap_cfg_reg(AA14_3430_USB1HS_PHY_DIR);
++		omap_cfg_reg(AA11_3430_USB1HS_PHY_NXT);
++		omap_cfg_reg(W13_3430_USB1HS_PHY_DATA0);
++		omap_cfg_reg(W12_3430_USB1HS_PHY_DATA1);
++		omap_cfg_reg(W11_3430_USB1HS_PHY_DATA2);
++		omap_cfg_reg(Y11_3430_USB1HS_PHY_DATA3);
++		omap_cfg_reg(W9_3430_USB1HS_PHY_DATA4);
++		omap_cfg_reg(Y12_3430_USB1HS_PHY_DATA5);
++		omap_cfg_reg(W8_3430_USB1HS_PHY_DATA6);
++		omap_cfg_reg(Y13_3430_USB1HS_PHY_DATA7);
++
++		/* Port2 */
++		omap_cfg_reg(AA10_3430_USB2HS_PHY_STP);
++		omap_cfg_reg(AA8_3430_USB2HS_PHY_CLK);
++		omap_cfg_reg(AA9_3430_USB2HS_PHY_DIR);
++		omap_cfg_reg(AB11_3430_USB2HS_PHY_NXT);
++		omap_cfg_reg(AB10_3430_USB2HS_PHY_DATA0);
++		omap_cfg_reg(AB9_3430_USB2HS_PHY_DATA1);
++		omap_cfg_reg(W3_3430_USB2HS_PHY_DATA2);
++		omap_cfg_reg(T4_3430_USB2HS_PHY_DATA3);
++		omap_cfg_reg(T3_3430_USB2HS_PHY_DATA4);
++		omap_cfg_reg(R3_3430_USB2HS_PHY_DATA5);
++		omap_cfg_reg(R4_3430_USB2HS_PHY_DATA6);
++		omap_cfg_reg(T2_3430_USB2HS_PHY_DATA7);
++
++	} else {
++		/* Set Func mux for :
++		 * TLL mode of operation
++		 * 12-pin ULPI SDR TLL mode for Port1/2/3
++		 */
++
++		/* Port1 */
++		omap_cfg_reg(Y9_3430_USB1HS_TLL_STP);
++		omap_cfg_reg(Y8_3430_USB1HS_TLL_CLK);
++		omap_cfg_reg(AA14_3430_USB1HS_TLL_DIR);
++		omap_cfg_reg(AA11_3430_USB1HS_TLL_NXT);
++		omap_cfg_reg(W13_3430_USB1HS_TLL_DATA0);
++		omap_cfg_reg(W12_3430_USB1HS_TLL_DATA1);
++		omap_cfg_reg(W11_3430_USB1HS_TLL_DATA2);
++		omap_cfg_reg(Y11_3430_USB1HS_TLL_DATA3);
++		omap_cfg_reg(W9_3430_USB1HS_TLL_DATA4);
++		omap_cfg_reg(Y12_3430_USB1HS_TLL_DATA5);
++		omap_cfg_reg(W8_3430_USB1HS_TLL_DATA6);
++		omap_cfg_reg(Y13_3430_USB1HS_TLL_DATA7);
++
++		/* Port2 */
++		omap_cfg_reg(AA10_3430_USB2HS_TLL_STP);
++		omap_cfg_reg(AA8_3430_USB2HS_TLL_CLK);
++		omap_cfg_reg(AA9_3430_USB2HS_TLL_DIR);
++		omap_cfg_reg(AB11_3430_USB2HS_TLL_NXT);
++		omap_cfg_reg(AB10_3430_USB2HS_TLL_DATA0);
++		omap_cfg_reg(AB9_3430_USB2HS_TLL_DATA1);
++		omap_cfg_reg(W3_3430_USB2HS_TLL_DATA2);
++		omap_cfg_reg(T4_3430_USB2HS_TLL_DATA3);
++		omap_cfg_reg(T3_3430_USB2HS_TLL_DATA4);
++		omap_cfg_reg(R3_3430_USB2HS_TLL_DATA5);
++		omap_cfg_reg(R4_3430_USB2HS_TLL_DATA6);
++		omap_cfg_reg(T2_3430_USB2HS_TLL_DATA7);
++
++		/* Port3 */
++		omap_cfg_reg(AB3_3430_USB3HS_TLL_STP);
++		omap_cfg_reg(AA6_3430_USB3HS_TLL_CLK);
++		omap_cfg_reg(AA3_3430_USB3HS_TLL_DIR);
++		omap_cfg_reg(Y3_3430_USB3HS_TLL_NXT);
++		omap_cfg_reg(AA5_3430_USB3HS_TLL_DATA0);
++		omap_cfg_reg(Y4_3430_USB3HS_TLL_DATA1);
++		omap_cfg_reg(Y5_3430_USB3HS_TLL_DATA2);
++		omap_cfg_reg(W5_3430_USB3HS_TLL_DATA3);
++		omap_cfg_reg(AB12_3430_USB3HS_TLL_DATA4);
++		omap_cfg_reg(AB13_3430_USB3HS_TLL_DATA5);
++		omap_cfg_reg(AA13_3430_USB3HS_TLL_DATA6);
++		omap_cfg_reg(AA12_3430_USB3HS_TLL_DATA7);
 +	}
-+	ehci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
-+	dev_dbg(omap->dev, "UHH setup done, uhh_base=%x\n", reg);
-+
-+
-+	if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_TLL) ||
-+		(omap->port_mode[1] == EHCI_HCD_OMAP_MODE_TLL) ||
-+			(omap->port_mode[2] == EHCI_HCD_OMAP_MODE_TLL)) {
-+
-+		if (omap->port_mode[0] == EHCI_HCD_OMAP_MODE_TLL)
-+			tll_ch_mask |= OMAP_TLL_CHANNEL_1_EN_MASK;
-+		if (omap->port_mode[1] == EHCI_HCD_OMAP_MODE_TLL)
-+			tll_ch_mask |= OMAP_TLL_CHANNEL_2_EN_MASK;
-+		if (omap->port_mode[2] == EHCI_HCD_OMAP_MODE_TLL)
-+			tll_ch_mask |= OMAP_TLL_CHANNEL_3_EN_MASK;
-+
-+		/* Enable UTMI mode for required TLL channels */
-+		omap_usb_utmi_init(omap, tll_ch_mask);
- 	}
  
- 	if (omap->phy_reset) {
-@@ -430,7 +445,6 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+ 	return;
+ }
+@@ -172,7 +171,7 @@ void __init usb_ehci_init(enum ehci_hcd_omap_mode phy_mode,
  
- 	return 0;
+ 	/* Setup Pin IO MUX for EHCI */
+ 	if (cpu_is_omap34xx())
+-		setup_ehci_io_mux();
++		setup_ehci_io_mux(phy_mode);
  
--err_unknown_mode:
- err_sys_status:
- 	clk_disable(omap->usbtll_ick);
- 	clk_put(omap->usbtll_ick);
+ 	if (platform_device_register(&ehci_device) < 0) {
+ 		printk(KERN_ERR "Unable to register HS-USB (EHCI) device\n");
 -- 
 1.6.2.4
 
