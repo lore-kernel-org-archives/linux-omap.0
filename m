@@ -1,182 +1,133 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 2/3] OMAP: Rename OMAP_MPUIO_BASE to OMAP1_MPUIO_BASE
-Date: Thu, 06 Aug 2009 13:11:45 +0300
-Message-ID: <20090806101145.2569.24809.stgit@localhost>
+Subject: [PATCH 3/3] OMAP: Remove ifdefs for io.h
+Date: Thu, 06 Aug 2009 13:13:02 +0300
+Message-ID: <20090806101302.2569.25069.stgit@localhost>
 References: <20090806100614.2569.8531.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52962 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754808AbZHFKLq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 06:11:46 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61822 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754821AbZHFKNE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 06:13:04 -0400
 In-Reply-To: <20090806100614.2569.8531.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
 Cc: linux-omap@vger.kernel.org
 
-Rename OMAP_MPUIO_BASE to OMAP1_MPUIO_BASE
+Remove ifdefs for io.h
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/gpio.c              |    4 ++--
- arch/arm/plat-omap/include/mach/gpio.h |    2 +-
- drivers/input/keyboard/omap-keypad.c   |   22 +++++++++++-----------
- drivers/mtd/nand/ams-delta.c           |    8 ++++----
- 4 files changed, 18 insertions(+), 18 deletions(-)
+ arch/arm/mach-omap1/io.c             |    6 +++---
+ arch/arm/plat-omap/include/mach/io.h |   37 +++++++++++++++++++++++++++-------
+ arch/arm/plat-omap/io.c              |    4 ++--
+ 3 files changed, 34 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 59010e5..3b4b407 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -99,7 +99,7 @@
- #define OMAP850_GPIO_INT_MASK		0x10
- #define OMAP850_GPIO_INT_STATUS		0x14
- 
--#define OMAP1_MPUIO_VBASE		OMAP1_IO_ADDRESS(OMAP_MPUIO_BASE)
-+#define OMAP1_MPUIO_VBASE		OMAP1_IO_ADDRESS(OMAP1_MPUIO_BASE)
- 
- /*
-  * omap24xx specific GPIO registers
-@@ -224,7 +224,7 @@ static struct gpio_bank gpio_bank_730[7] = {
- 
- #ifdef CONFIG_ARCH_OMAP850
- static struct gpio_bank gpio_bank_850[7] = {
--	{ OMAP_MPUIO_BASE,     INT_850_MPUIO,	    IH_MPUIO_BASE,	METHOD_MPUIO },
-+	{ OMAP1_MPUIO_BASE,     INT_850_MPUIO,	    IH_MPUIO_BASE,	METHOD_MPUIO },
- 	{ OMAP850_GPIO1_BASE,  INT_850_GPIO_BANK1,  IH_GPIO_BASE,	METHOD_GPIO_850 },
- 	{ OMAP850_GPIO2_BASE,  INT_850_GPIO_BANK2,  IH_GPIO_BASE + 32,	METHOD_GPIO_850 },
- 	{ OMAP850_GPIO3_BASE,  INT_850_GPIO_BANK3,  IH_GPIO_BASE + 64,	METHOD_GPIO_850 },
-diff --git a/arch/arm/plat-omap/include/mach/gpio.h b/arch/arm/plat-omap/include/mach/gpio.h
-index 2b22a87..633ff68 100644
---- a/arch/arm/plat-omap/include/mach/gpio.h
-+++ b/arch/arm/plat-omap/include/mach/gpio.h
-@@ -29,7 +29,7 @@
- #include <linux/io.h>
- #include <mach/irqs.h>
- 
--#define OMAP_MPUIO_BASE			0xfffb5000
-+#define OMAP1_MPUIO_BASE			0xfffb5000
- 
- #if (defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850))
- 
-diff --git a/drivers/input/keyboard/omap-keypad.c b/drivers/input/keyboard/omap-keypad.c
-index 87ec7b1..bba85ad 100644
---- a/drivers/input/keyboard/omap-keypad.c
-+++ b/drivers/input/keyboard/omap-keypad.c
-@@ -116,7 +116,7 @@ static irqreturn_t omap_kp_interrupt(int irq, void *dev_id)
- 		}
- 	} else
- 		/* disable keyboard interrupt and schedule for handling */
--		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-+		omap_writew(1, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
- 
- 	tasklet_schedule(&kp_tasklet);
- 
-@@ -143,20 +143,20 @@ static void omap_kp_scan_keypad(struct omap_kp *omap_kp, unsigned char *state)
- 
- 	} else {
- 		/* disable keyboard interrupt and schedule for handling */
--		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-+		omap_writew(1, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
- 
- 		/* read the keypad status */
--		omap_writew(0xff, OMAP_MPUIO_BASE + OMAP_MPUIO_KBC);
-+		omap_writew(0xff, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBC);
- 		for (col = 0; col < omap_kp->cols; col++) {
- 			omap_writew(~(1 << col) & 0xff,
--				    OMAP_MPUIO_BASE + OMAP_MPUIO_KBC);
-+				    OMAP1_MPUIO_BASE + OMAP_MPUIO_KBC);
- 
- 			udelay(omap_kp->delay);
- 
--			state[col] = ~omap_readw(OMAP_MPUIO_BASE +
-+			state[col] = ~omap_readw(OMAP1_MPUIO_BASE +
- 						 OMAP_MPUIO_KBR_LATCH) & 0xff;
- 		}
--		omap_writew(0x00, OMAP_MPUIO_BASE + OMAP_MPUIO_KBC);
-+		omap_writew(0x00, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBC);
- 		udelay(2);
+diff --git a/arch/arm/mach-omap1/io.c b/arch/arm/mach-omap1/io.c
+index 3afe540..7030f92 100644
+--- a/arch/arm/mach-omap1/io.c
++++ b/arch/arm/mach-omap1/io.c
+@@ -29,9 +29,9 @@ extern void omapfb_reserve_sdram(void);
+  */
+ static struct map_desc omap_io_desc[] __initdata = {
+ 	{
+-		.virtual	= IO_VIRT,
+-		.pfn		= __phys_to_pfn(IO_PHYS),
+-		.length		= IO_SIZE,
++		.virtual	= OMAP1_IO_VIRT,
++		.pfn		= __phys_to_pfn(OMAP1_IO_PHYS),
++		.length		= OMAP1_IO_SIZE,
+ 		.type		= MT_DEVICE
  	}
- }
-@@ -234,7 +234,7 @@ static void omap_kp_tasklet(unsigned long data)
- 			for (i = 0; i < omap_kp_data->rows; i++)
- 				enable_irq(gpio_to_irq(row_gpios[i]));
- 		} else {
--			omap_writew(0, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-+			omap_writew(0, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
- 			kp_cur_group = -1;
- 		}
- 	}
-@@ -317,7 +317,7 @@ static int __devinit omap_kp_probe(struct platform_device *pdev)
+ };
+diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
+index 8541388..c4886f9 100644
+--- a/arch/arm/plat-omap/include/mach/io.h
++++ b/arch/arm/plat-omap/include/mach/io.h
+@@ -66,13 +66,21 @@
+ #define OMAP2_IO_OFFSET		0x90000000
+ #define OMAP2_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_IO_OFFSET) /* L3 and L4 */
  
- 	/* Disable the interrupt for the MPUIO keyboard */
- 	if (!cpu_is_omap24xx())
--		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-+		omap_writew(1, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
+-#if defined(CONFIG_ARCH_OMAP1)
++/*
++ * ----------------------------------------------------------------------------
++ * Omap1 specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
  
- 	keymap = pdata->keymap;
+-#define IO_PHYS			0xFFFB0000
+-#define IO_SIZE			0x40000
+-#define IO_VIRT			(IO_PHYS - OMAP1_IO_OFFSET)
++#define OMAP1_IO_PHYS		0xFFFB0000
++#define OMAP1_IO_SIZE		0x40000
++#define OMAP1_IO_VIRT		(OMAP1_IO_PHYS - OMAP1_IO_OFFSET)
  
-@@ -391,7 +391,7 @@ static int __devinit omap_kp_probe(struct platform_device *pdev)
- 	}
+-#elif defined(CONFIG_ARCH_OMAP2)
++/*
++ * ----------------------------------------------------------------------------
++ * Omap2 specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
  
- 	if (pdata->dbounce)
--		omap_writew(0xff, OMAP_MPUIO_BASE + OMAP_MPUIO_GPIO_DEBOUNCING);
-+		omap_writew(0xff, OMAP1_MPUIO_BASE + OMAP_MPUIO_GPIO_DEBOUNCING);
+ /* We map both L3 and L4 on OMAP2 */
+ #define L3_24XX_PHYS	L3_24XX_BASE	/* 0x68000000 */
+@@ -106,7 +114,11 @@
+ #define DSP_MMU_24XX_VIRT	0xe2000000
+ #define DSP_MMU_24XX_SIZE	SZ_4K
  
- 	/* scan current status and enable interrupt */
- 	omap_kp_scan_keypad(omap_kp, keypad_state);
-@@ -402,7 +402,7 @@ static int __devinit omap_kp_probe(struct platform_device *pdev)
- 					"omap-keypad", omap_kp) < 0)
- 				goto err4;
- 		}
--		omap_writew(0, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-+		omap_writew(0, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
- 	} else {
- 		for (irq_idx = 0; irq_idx < omap_kp->rows; irq_idx++) {
- 			if (request_irq(gpio_to_irq(row_gpios[irq_idx]),
-@@ -449,7 +449,7 @@ static int __devexit omap_kp_remove(struct platform_device *pdev)
- 			free_irq(gpio_to_irq(row_gpios[i]), 0);
- 		}
- 	} else {
--		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
-+		omap_writew(1, OMAP1_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
- 		free_irq(omap_kp->irq, 0);
- 	}
+-#elif defined(CONFIG_ARCH_OMAP3)
++/*
++ * ----------------------------------------------------------------------------
++ * Omap3 specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
  
-diff --git a/drivers/mtd/nand/ams-delta.c b/drivers/mtd/nand/ams-delta.c
-index 782994e..005b91f 100644
---- a/drivers/mtd/nand/ams-delta.c
-+++ b/drivers/mtd/nand/ams-delta.c
-@@ -63,7 +63,7 @@ static void ams_delta_write_byte(struct mtd_info *mtd, u_char byte)
+ /* We map both L3 and L4 on OMAP3 */
+ #define L3_34XX_PHYS		L3_34XX_BASE	/* 0x68000000 */
+@@ -157,8 +169,12 @@
+ #define DSP_MMU_34XX_VIRT	0xe2000000
+ #define DSP_MMU_34XX_SIZE	SZ_4K
+ 
++/*
++ * ----------------------------------------------------------------------------
++ * Omap4 specific IO mapping
++ * ----------------------------------------------------------------------------
++ */
+ 
+-#elif defined(CONFIG_ARCH_OMAP4)
+ /* We map both L3 and L4 on OMAP4 */
+ #define L3_44XX_PHYS		L3_44XX_BASE
+ #define L3_44XX_VIRT		0xd4000000
+@@ -185,7 +201,12 @@
+ #define OMAP44XX_GPMC_VIRT	0xe0000000
+ #define OMAP44XX_GPMC_SIZE	SZ_1M
+ 
+-#endif
++
++/*
++ * ----------------------------------------------------------------------------
++ * Omap specific register access
++ * ----------------------------------------------------------------------------
++ */
+ 
+ #ifndef __ASSEMBLER__
+ 
+diff --git a/arch/arm/plat-omap/io.c b/arch/arm/plat-omap/io.c
+index d491ad1..b6defa2 100644
+--- a/arch/arm/plat-omap/io.c
++++ b/arch/arm/plat-omap/io.c
+@@ -30,8 +30,8 @@ void __iomem *omap_ioremap(unsigned long p, size_t size, unsigned int type)
  {
- 	struct nand_chip *this = mtd->priv;
- 
--	omap_writew(0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
-+	omap_writew(0, (OMAP1_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
- 	omap_writew(byte, this->IO_ADDR_W);
- 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NWE, 0);
- 	ndelay(40);
-@@ -78,7 +78,7 @@ static u_char ams_delta_read_byte(struct mtd_info *mtd)
- 
- 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE, 0);
- 	ndelay(40);
--	omap_writew(~0, (OMAP_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
-+	omap_writew(~0, (OMAP1_MPUIO_BASE + OMAP_MPUIO_IO_CNTL));
- 	res = omap_readw(this->IO_ADDR_R);
- 	ams_delta_latch2_write(AMS_DELTA_LATCH2_NAND_NRE,
- 			       AMS_DELTA_LATCH2_NAND_NRE);
-@@ -178,8 +178,8 @@ static int __init ams_delta_init(void)
- 	ams_delta_mtd->priv = this;
- 
- 	/* Set address of NAND IO lines */
--	this->IO_ADDR_R = (OMAP_MPUIO_BASE + OMAP_MPUIO_INPUT_LATCH);
--	this->IO_ADDR_W = (OMAP_MPUIO_BASE + OMAP_MPUIO_OUTPUT);
-+	this->IO_ADDR_R = (OMAP1_MPUIO_BASE + OMAP_MPUIO_INPUT_LATCH);
-+	this->IO_ADDR_W = (OMAP1_MPUIO_BASE + OMAP_MPUIO_OUTPUT);
- 	this->read_byte = ams_delta_read_byte;
- 	this->write_buf = ams_delta_write_buf;
- 	this->read_buf = ams_delta_read_buf;
+ #ifdef CONFIG_ARCH_OMAP1
+ 	if (cpu_class_is_omap1()) {
+-		if (BETWEEN(p, IO_PHYS, IO_SIZE))
+-			return XLATE(p, IO_PHYS, IO_VIRT);
++		if (BETWEEN(p, OMAP1_IO_PHYS, OMAP1_IO_SIZE))
++			return XLATE(p, OMAP1_IO_PHYS, OMAP1_IO_VIRT);
+ 	}
+ 	if (cpu_is_omap730()) {
+ 		if (BETWEEN(p, OMAP730_DSP_BASE, OMAP730_DSP_SIZE))
 
