@@ -1,136 +1,179 @@
 From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 5/6] OMAP3: OMAP35x: Board specific updates
-Date: Thu,  6 Aug 2009 16:06:26 +0530
-Message-ID: <1249554986-20464-1-git-send-email-premi@ti.com>
+Subject: [PATCH 6/6] OMAP3: Add board specific file for OMAP3517EVM
+Date: Thu,  6 Aug 2009 16:06:34 +0530
+Message-ID: <1249554994-20499-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36707 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47027 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751536AbZHFKgd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Aug 2009 06:36:33 -0400
+	id S1751749AbZHFKgk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Aug 2009 06:36:40 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n76AaRO5008552
-	for <linux-omap@vger.kernel.org>; Thu, 6 Aug 2009 05:36:33 -0500
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n76AaZla027088
+	for <linux-omap@vger.kernel.org>; Thu, 6 Aug 2009 05:36:41 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sanjeev Premi <premi@ti.com>
 
-Includes:
-- Updates to default board configuration.
-- Call function omap2_set_globals_35xx()
+Created a minimal board file with placeholders for
+the OMAP3517 EVM. It will help in getting a minimal
+kernel image running on the EVM.
+
+More board specific updates will follow in subsequent
+patches.
 
 Signed-off-by: Sanjeev Premi <premi@ti.com>
 ---
- arch/arm/configs/omap3_beagle_defconfig  |    1 +
- arch/arm/configs/omap3_evm_defconfig     |    1 +
- arch/arm/configs/omap3_pandora_defconfig |    1 +
- arch/arm/configs/overo_defconfig         |    1 +
- arch/arm/mach-omap2/board-omap3beagle.c  |    2 +-
- arch/arm/mach-omap2/board-omap3evm.c     |    2 +-
- arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
- arch/arm/mach-omap2/board-overo.c        |    2 +-
- 8 files changed, 8 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/Makefile            |    1 +
+ arch/arm/mach-omap2/board-omap3517evm.c |  127 +++++++++++++++++++++++++++++++
+ 2 files changed, 128 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap3517evm.c
 
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index c4726f0..8eddbdf 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -195,6 +195,7 @@ CONFIG_OMAP_DM_TIMER=y
- CONFIG_OMAP_LL_DEBUG_UART3=y
- CONFIG_ARCH_OMAP34XX=y
- CONFIG_ARCH_OMAP3430=y
-+CONFIG_ARCH_OMAP35XX=y
- 
- #
- # OMAP Board Type
-diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
-index 28be17f..da80ca7 100644
---- a/arch/arm/configs/omap3_evm_defconfig
-+++ b/arch/arm/configs/omap3_evm_defconfig
-@@ -205,6 +205,7 @@ CONFIG_OMAP_LL_DEBUG_UART1=y
- CONFIG_OMAP_SERIAL_WAKE=y
- CONFIG_ARCH_OMAP34XX=y
- CONFIG_ARCH_OMAP3430=y
-+CONFIG_ARCH_OMAP35XX=y
- 
- #
- # OMAP Board Type
-diff --git a/arch/arm/configs/omap3_pandora_defconfig b/arch/arm/configs/omap3_pandora_defconfig
-index b54ad2e..3df0644 100644
---- a/arch/arm/configs/omap3_pandora_defconfig
-+++ b/arch/arm/configs/omap3_pandora_defconfig
-@@ -190,6 +190,7 @@ CONFIG_OMAP_DM_TIMER=y
- CONFIG_OMAP_LL_DEBUG_UART3=y
- CONFIG_ARCH_OMAP34XX=y
- CONFIG_ARCH_OMAP3430=y
-+CONFIG_ARCH_OMAP35XX=y
- 
- #
- # OMAP Board Type
-diff --git a/arch/arm/configs/overo_defconfig b/arch/arm/configs/overo_defconfig
-index a57f9e4..5669be7 100644
---- a/arch/arm/configs/overo_defconfig
-+++ b/arch/arm/configs/overo_defconfig
-@@ -199,6 +199,7 @@ CONFIG_OMAP_DM_TIMER=y
- CONFIG_OMAP_LL_DEBUG_UART3=y
- CONFIG_ARCH_OMAP34XX=y
- CONFIG_ARCH_OMAP3430=y
-+CONFIG_ARCH_OMAP35XX=y
- 
- #
- # OMAP Board Type
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index b6a68d5..20ae92f 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -413,7 +413,7 @@ static void __init omap3_beagle_init(void)
- 
- static void __init omap3_beagle_map_io(void)
- {
--	omap2_set_globals_343x();
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 8d0c9ba..18e15fc 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -58,6 +58,7 @@ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+ 					   mmc-twl4030.o
++obj-$(CONFIG_MACH_OMAP3517EVM)		+= board-omap3517evm.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+diff --git a/arch/arm/mach-omap2/board-omap3517evm.c b/arch/arm/mach-omap2/board-omap3517evm.c
+new file mode 100644
+index 0000000..c64255e
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap3517evm.c
+@@ -0,0 +1,127 @@
++/*
++ * linux/arch/arm/mach-omap2/board-omap3517evm.c
++ *
++ * Copyright (C) 2009 Texas Instruments Incorporated
++ *
++ * Based on mach-omap2/board-omap3evm.c
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as  published by the
++ * Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
++ * whether express or implied; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/input.h>
++#include <linux/leds.h>
++
++#include <linux/spi/spi.h>
++
++#include <mach/hardware.h>
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <mach/gpio.h>
++#include <mach/board.h>
++#include <mach/mux.h>
++#include <mach/usb.h>
++#include <mach/common.h>
++#include <mach/mcspi.h>
++
++
++/*
++ * UART
++ */
++static struct omap_uart_config omap3517_evm_uart_config __initdata = {
++	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
++};
++
++/*
++ * Ethernet
++ */
++static int __init omap3517_evm_ethernet_init (void)
++{
++
++	return 0 ;
++}
++
++/*
++ * I2C
++ */
++static int __init omap3517_evm_i2c_init(void)
++{
++	return 0;
++}
++
++/*
++ * Power Management IC
++ */
++
++/*
++ * MTD
++ */
++
++/*
++ * SPI
++ */
++
++/*
++ * MTD
++ */
++
++/*
++ * Board initialization
++ */
++static struct omap_board_config_kernel omap3517_evm_config[] __initdata = {
++	{ OMAP_TAG_UART,	&omap3517_evm_uart_config },
++};
++
++static struct platform_device *omap3517_evm_devices[] __initdata = {
++};
++
++static void __init omap3517_evm_init_irq(void)
++{
++	omap2_init_common_hw(NULL, NULL, NULL, NULL);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++static void __init omap3517_evm_init(void)
++{
++	omap3517_evm_i2c_init();
++
++	platform_add_devices(omap3517_evm_devices,
++				ARRAY_SIZE(omap3517_evm_devices));
++
++	omap_board_config = omap3517_evm_config;
++	omap_board_config_size = ARRAY_SIZE(omap3517_evm_config);
++
++	omap_serial_init();
++	omap3517_evm_ethernet_init();
++}
++
++static void __init omap3517_evm_map_io(void)
++{
 +	omap2_set_globals_35xx();
- 	omap2_map_common_io();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 595beac..79dda7a 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -314,7 +314,7 @@ static void __init omap3_evm_init(void)
- 
- static void __init omap3_evm_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_35xx();
- 	omap2_map_common_io();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 85cc2a7..f6227fd 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -402,7 +402,7 @@ static void __init omap3pandora_init(void)
- 
- static void __init omap3pandora_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_35xx();
- 	omap2_map_common_io();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 501d020..7d90261 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -443,7 +443,7 @@ static void __init overo_init(void)
- 
- static void __init overo_map_io(void)
- {
--	omap2_set_globals_343x();
-+	omap2_set_globals_35xx();
- 	omap2_map_common_io();
- }
- 
++	omap2_map_common_io();
++}
++
++MACHINE_START(OMAP3517EVM, "OMAP3517 EVM")
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap3517_evm_map_io,
++	.init_irq	= omap3517_evm_init_irq,
++	.init_machine	= omap3517_evm_init,
++	.timer		= &omap_timer,
++MACHINE_END
 -- 
 1.6.2.2
 
