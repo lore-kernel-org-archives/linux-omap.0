@@ -1,69 +1,61 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 12/20] OMAP: McBSP: Configure NO IDLE mode for DMA mode
- different of threshold
-Date: Thu, 6 Aug 2009 15:00:08 +0300
-Message-ID: <20090806120008.GB14093@esdhcp037198.research.nokia.com>
-References: <1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-11-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 02/20] OMAP: McBSP: Wakeups utilized
+Date: Thu, 6 Aug 2009 15:00:43 +0300
+Message-ID: <20090806120043.GC14093@esdhcp037198.research.nokia.com>
+References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
+ <20090730215602.8fdcbaf1.jhnikula@gmail.com>
+ <20090731075622.GA27083@esdhcp037198.research.nokia.com>
+ <20090806120525.GJ2358@atomide.com>
 Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30852 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755266AbZHFMMX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 08:12:23 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:24057 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006AbZHFMNE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 08:13:04 -0400
 Content-Disposition: inline
-In-Reply-To: <1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <20090806120525.GJ2358@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
 
-Tony and Jarkko,
-
-On Thu, Jul 30, 2009 at 02:49:35PM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
-> Use dma mode property to configure NO IDLE or SMART IDLE of McBSPs.
+On Thu, Aug 06, 2009 at 02:05:25PM +0200, ext Tony Lindgren wrote:
+> * Eduardo Valentin <eduardo.valentin@nokia.com> [090731 11:08]:
+> > On Thu, Jul 30, 2009 at 08:56:02PM +0200, ext Jarkko Nikula wrote:
+> > > On Thu, 30 Jul 2009 15:49:25 +0300
+> > > Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+> > > 
+> > > > --- a/arch/arm/plat-omap/mcbsp.c
+> > > > +++ b/arch/arm/plat-omap/mcbsp.c
+> > > > @@ -257,6 +257,23 @@ int omap_mcbsp_request(unsigned int id)
+> > > >  	clk_enable(mcbsp->iclk);
+> > > >  	clk_enable(mcbsp->fclk);
+> > > >  
+> > > > +#ifdef CONFIG_ARCH_OMAP34XX
+> > > > +	/*
+> > > 
+> > > I'm sure there is a way to avoid all of these added ifdefs in this patch
+> > > and in patches 7 and 8 as well.
+> > 
+> > hmmm.. these ifdef's are required because I've put the extra field (for
+> > 34xx only) inside an ifdef on their declaration in mcbsp.h. We can remove it
+> > there, but will leave a few extra bytes on !omap3xx binaries.
 > 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> ---
->  arch/arm/plat-omap/mcbsp.c |   10 +++++++++-
->  1 files changed, 9 insertions(+), 1 deletions(-)
+> Hmm which field are you talking about? The define does not matter, and the
+> u16 syscon also gets optimized out if 34xx is not selected.
+
+dma_op_mode. see patch 0012.
+
 > 
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index 6c535b3..11cfcfe 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -376,7 +376,15 @@ int omap_mcbsp_request(unsigned int id)
->  
->  		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
->  		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
-> -		syscon |= (ENAWAKEUP | SIDLEMODE(0x02) | CLOCKACTIVITY(0x02));
-> +
-> +		spin_lock_irq(&mcbsp->lock);
-> +		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
-> +			syscon |= SIDLEMODE(0x02);
-> +		else
-> +			syscon |= SIDLEMODE(0x01);
-> +		spin_unlock_irq(&mcbsp->lock);
-> +
-> +		syscon |= (ENAWAKEUP | CLOCKACTIVITY(0x02));
-
-Because of this piece of code that patch 0002 is using ifdefs.
-
->  		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
->  
->  		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, WAKEUPEN_ALL);
-> -- 
-> 1.6.2.GIT
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 Eduardo Valentin
