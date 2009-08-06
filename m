@@ -1,235 +1,137 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-Date: Thu, 6 Aug 2009 14:50:25 +0300
-Message-ID: <20090806115025.GG2358@atomide.com>
-References: <1249554967-20394-1-git-send-email-premi@ti.com> <20090806110359.GD2358@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D8C80741@dbde02.ent.ti.com>
+Subject: Re: [PATCH 02/20] OMAP: McBSP: Wakeups utilized
+Date: Thu, 6 Aug 2009 15:00:47 +0300
+Message-ID: <20090806120047.GH2358@atomide.com>
+References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-2-git-send-email-eduardo.valentin@nokia.com> <1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54387 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836AbZHFLu3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 07:50:29 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65012 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755194AbZHFMAw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 08:00:52 -0400
 Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301D8C80741@dbde02.ent.ti.com>
+In-Reply-To: <1248958183-15015-3-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: linux-omap@vger.kernel.org, alsa-devel@vger.kernel.org, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-* Premi, Sanjeev <premi@ti.com> [090806 14:34]:
+* Eduardo Valentin <eduardo.valentin@nokia.com> [090730 16:01]:
+> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> 
+> This patch enables the smart idle mode while
+> McBPS is being utilized. Once it's done,
+> force idle mode is taken instead. Apart of it,
+> it also configures what signals will wake mcbsp up.
+> 
+> Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> ---
+>  arch/arm/plat-omap/include/mach/mcbsp.h |   17 +++++++++++++++
+>  arch/arm/plat-omap/mcbsp.c              |   35 +++++++++++++++++++++++++++++++
+>  2 files changed, 52 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+> index 77191c5..758ad5c 100644
+> --- a/arch/arm/plat-omap/include/mach/mcbsp.h
+> +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+> @@ -134,6 +134,7 @@
+>  #define OMAP_MCBSP_REG_XCERG	0x74
+>  #define OMAP_MCBSP_REG_XCERH	0x78
+>  #define OMAP_MCBSP_REG_SYSCON	0x8C
+> +#define OMAP_MCBSP_REG_WAKEUPEN	0xA8
+>  #define OMAP_MCBSP_REG_XCCR	0xAC
+>  #define OMAP_MCBSP_REG_RCCR	0xB0
 >  
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Thursday, August 06, 2009 4:34 PM
-> > To: Premi, Sanjeev
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-> > 
-> > Hi,
-> > 
-> > * Sanjeev Premi <premi@ti.com> [090806 13:36]:
-> > > Added runtime check via omap2_set_globals_35xx().
-> > > 
-> > > Parts of this patch have been derived from an earlier
-> > > earlier patch submitted by Tony Lindgren <tony@atomide.com>
-> > > 
-> > >  [1] http://marc.info/?l=linux-omap&m=123301852702797&w=2
-> > >  [2] http://marc.info/?l=linux-omap&m=123334055822212&w=2
-> > > 
-> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > > ---
-> > >  arch/arm/mach-omap2/id.c                 |  115 
-> > ++++++++++++++++++++++++------
-> > >  arch/arm/plat-omap/common.c              |   18 +++++-
-> > >  arch/arm/plat-omap/include/mach/common.h |    1 +
-> > >  arch/arm/plat-omap/include/mach/cpu.h    |   64 ++++++++++++++++-
-> > >  4 files changed, 173 insertions(+), 25 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > > index a98201c..06770aa 100644
-> > > --- a/arch/arm/mach-omap2/id.c
-> > > +++ b/arch/arm/mach-omap2/id.c
-> > > @@ -28,6 +28,14 @@
-> > >  static struct omap_chip_id omap_chip;
-> > >  static unsigned int omap_revision;
-> > >  
-> > > +/* The new OMAP35x devices have assymetric names - 
-> > OMAP3505 and OMAP3517.
-> > > + * It is not possible to define a common macro to identify them.
-> > > + *
-> > > + * A quick way is to separate them across 'generations' as below.
-> > > + */
-> > > +#define OMAP35XX_G1	0x1	/* Applies to 3503, 
-> > 3515, 3525 and 3530 */
-> > > +#define OMAP35XX_G2	0x2	/* Applies to 3505 and 3517 */
-> > > +
-> > >  
-> > >  unsigned int omap_rev(void)
-> > >  {
-> > > @@ -155,12 +163,71 @@ void __init omap24xx_check_revision(void)
-> > >  	pr_info("\n");
-> > >  }
-> > >  
-> > > +static void __init omap34xx_set_revision(u8 rev, char *rev_name)
-> > > +{
-> > > +	switch (rev) {
-> > > +	case 0:
-> > > +		omap_revision = OMAP3430_REV_ES2_0;
-> > > +		strcat(rev_name, "ES2.0");
-> > > +		break;
-> > > +	case 2:
-> > > +		omap_revision = OMAP3430_REV_ES2_1;
-> > > +		strcat(rev_name, "ES2.1");
-> > > +		break;
-> > > +	case 3:
-> > > +		omap_revision = OMAP3430_REV_ES3_0;
-> > > +		strcat(rev_name, "ES3.0");
-> > > +		break;
-> > > +	case 4:
-> > > +		omap_revision = OMAP3430_REV_ES3_1;
-> > > +		strcat(rev_name, "ES3.1");
-> > > +		break;
-> > > +	default:
-> > > +		/* Use the latest known revision as default */
-> > > +		omap_revision = OMAP3430_REV_ES3_1;
-> > > +		strcat(rev_name, "Unknown revision");
-> > > +	}
-> > > +}
-> > > +
-> > > +static void __init omap35xx_set_revision(u8 rev, u8 gen, 
-> > char *rev_name)
-> > > +{
-> > > +	omap_revision = OMAP35XX_CLASS ;
-> > > +
-> > > +	if (gen == OMAP35XX_G1) {
-> > > +		switch (rev) {
-> > > +		case 0:	/* Take care of some older boards */
-> > > +		case 1:
-> > > +			omap_revision |= OMAP35XX_MASK_ES2_0;
-> > > +			strcat(rev_name, "ES2.0");
-> > > +			break;
-> > > +		case 2:
-> > > +			omap_revision |= OMAP35XX_MASK_ES2_1;
-> > > +			strcat(rev_name, "ES2.1");
-> > > +			break;
-> > > +		case 3:
-> > > +			omap_revision |= OMAP35XX_MASK_ES3_0;
-> > > +			strcat(rev_name, "ES3.0");
-> > > +			break;
-> > > +		case 4:
-> > > +			omap_revision |= OMAP35XX_MASK_ES3_1;
-> > > +			strcat(rev_name, "ES3.1");
-> > > +			break;
-> > > +		default:
-> > > +			/* Use the latest known revision as default */
-> > > +			omap_revision |= OMAP35XX_MASK_ES3_0;
-> > > +			strcat(rev_name, "Unknown revision");
-> > > +		}
-> > > +	} else {
-> > > +		strcat(rev_name, "ES1.0");
-> > > +	}
-> > > +}
-> > > +
-> > 
-> > To me it looks like you're checking the exact same cores as 
-> > we already do
-> > for 34xx. That is, (idcode >> 28) & 0xff for both 34xx and 
-> > 35xx. So basically
-> > they have the same omap cores.
-> 
-> No, the cores in OMAP3505 and OMAP3517 are very different.
-> I have listed major differences in PATCH 2/6.
-> 
-> These devices differ in following areas:
->  - Power management capabilities
->    (Only 1 power domain, 1 OPP, etc.)
->  - EMIF4 instead of SDRC
->  - Support for DDR2
->  - EMAC
->  - USB
->  - HECC
+> @@ -249,8 +250,24 @@
+>  #define RDISABLE		0x0001
+>  
+>  /********************** McBSP SYSCONFIG bit definitions ********************/
+> +#define SIDLEMODE(value)	((value)<<3)
+> +#define ENAWAKEUP		0x0004
+>  #define SOFTRST			0x0002
+>  
+> +/********************** McBSP WAKEUPEN bit definitions *********************/
+> +#define XEMPTYEOFEN		0x4000
+> +#define XRDYEN			0x0400
+> +#define XEOFEN			0x0200
+> +#define XFSXEN			0x0100
+> +#define XSYNCERREN		0x0080
+> +#define RRDYEN			0x0008
+> +#define REOFEN			0x0004
+> +#define RFSREN			0x0002
+> +#define RSYNCERREN		0x0001
+> +#define WAKEUPEN_ALL		(XEMPTYEOFEN | XRDYEN | XEOFEN | XFSXEN | \
+> +				 XSYNCERREN | RRDYEN | REOFEN | RFSREN | \
+> +				 RSYNCERREN)
+> +
+>  /* we don't do multichannel for now */
+>  struct omap_mcbsp_reg_cfg {
+>  	u16 spcr2;
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> index 84cc323..b64896b 100644
+> --- a/arch/arm/plat-omap/mcbsp.c
+> +++ b/arch/arm/plat-omap/mcbsp.c
+> @@ -257,6 +257,23 @@ int omap_mcbsp_request(unsigned int id)
+>  	clk_enable(mcbsp->iclk);
+>  	clk_enable(mcbsp->fclk);
+>  
+> +#ifdef CONFIG_ARCH_OMAP34XX
+> +	/*
+> +	 * Enable wakup behavior, smart idle and all wakeups
+> +	 * REVISIT: some wakeups may be unnecessary
+> +	 */
+> +	if (cpu_is_omap34xx()) {
+> +		u16 syscon;
+> +
+> +		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
+> +		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
+> +		syscon |= (ENAWAKEUP | SIDLEMODE(0x02));
+> +		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
+> +
+> +		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, WAKEUPEN_ALL);
+> +	}
+> +#endif
+> +
+>  	/*
+>  	 * Make sure that transmitter, receiver and sample-rate generator are
+>  	 * not running before activating IRQs.
+> @@ -295,6 +312,7 @@ EXPORT_SYMBOL(omap_mcbsp_request);
+>  void omap_mcbsp_free(unsigned int id)
+>  {
+>  	struct omap_mcbsp *mcbsp;
+> +	u16 wakeupen;
+>  
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+>  		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
+> @@ -305,6 +323,23 @@ void omap_mcbsp_free(unsigned int id)
+>  	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
+>  		mcbsp->pdata->ops->free(id);
+>  
+> +#ifdef CONFIG_ARCH_OMAP34XX
+> +	/*
+> +	 * Disable wakup behavior, smart idle and all wakeups
+> +	 */
+> +	if (cpu_is_omap34xx()) {
+> +		u16 syscon;
+> +
+> +		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
+> +		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
+> +		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
+> +
+> +		wakeupen = OMAP_MCBSP_READ(mcbsp->io_base, WAKEUPEN);
+> +		wakeupen &= ~WAKEUPEN_ALL;
+> +		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, wakeupen);
+> +	}
+> +#endif
+> +
+>  	clk_disable(mcbsp->fclk);
+>  	clk_disable(mcbsp->iclk);
 
-Sure, but from compiler flags and io point of view they can still
-be treated as 34xx.
+Looks like you should not need the ifdefs here, cpu_is_omap34xx() already
+optimizes the code out if not selected.
 
-How about just add the individual type detection for 35xx processors,
-and then have something like this:
+Regards,
 
-#define cpu_is_omap35xx()	(cpu_is_omap34xx() && (cpu_is_omap3510() || \
-					cpu_is_omap3520() || cpu_is_omap3530())
-
-That should pretty much shrink this patch series down to about 50 lines or
-so of code.
-
-> 
-> > 
-> > Considering this I don't see much sense adding cpu_is_35xx() category
-> > because cpu_is_34xx() already covers these processors. Just 
-> > like cpu_is_16xx()
-> > covers both 1610 and 1710.
-> > 
-> > Let's just rather add more feature tests for IVA2 etc as needed, then
-> > cpu_is_35something() becomse just cpu_is_34xx() && 
-> > cpu_has_iva2() or similar.
-> 
-> I did feel the need for these tests as well, and have an internal patch.
-> It was in my queue for submission next.
-> 
-> 
-> > 
-> > 
-> > >  void __init omap34xx_check_revision(void)
-> > >  {
-> > >  	u32 cpuid, idcode;
-> > >  	u16 hawkeye;
-> > >  	u8 rev;
-> > > -	char *rev_name = "ES1.0";
-> > > +	char rev_name[16] = "";
-> > >  
-> > >  	/*
-> > >  	 * We cannot access revision registers on ES1.0.
-> > > @@ -184,28 +251,12 @@ void __init omap34xx_check_revision(void)
-> > >  	rev = (idcode >> 28) & 0xff;
-> > >  
-> > >  	if (hawkeye == 0xb7ae) {
-> > > -		switch (rev) {
-> > > -		case 0:
-> > > -			omap_revision = OMAP3430_REV_ES2_0;
-> > > -			rev_name = "ES2.0";
-> > > -			break;
-> > > -		case 2:
-> > > -			omap_revision = OMAP3430_REV_ES2_1;
-> > > -			rev_name = "ES2.1";
-> > > -			break;
-> > > -		case 3:
-> > > -			omap_revision = OMAP3430_REV_ES3_0;
-> > > -			rev_name = "ES3.0";
-> > > -			break;
-> > > -		case 4:
-> > > -			omap_revision = OMAP3430_REV_ES3_1;
-> > > -			rev_name = "ES3.1";
-> > > -			break;
-> > > -		default:
-> > > -			/* Use the latest known revision as default */
-> > > -			omap_revision = OMAP3430_REV_ES3_1;
-> > > -			rev_name = "Unknown revision\n";
-> > > -		}
-> > > +		if (cpu_is_omap35xx())
-> > > +			omap35xx_set_revision(rev, OMAP35XX_G1, 
-> > rev_name);
-> > > +		else
-> > > +			omap34xx_set_revision(rev, rev_name);
-> > > +	} else if (hawkeye == 0xb868) {
-> > > +		omap35xx_set_revision(rev, OMAP35XX_G2, rev_name);
-> > >  	}
-> > 
-> > Testing for hawkeye == 0xb868 test should just be added into 
-> > the current
-> > omap34xx_check_revision().
-> > 
-> > Regards,
-> > 
-> > Tony
-> > 
-> > 
+Tony
