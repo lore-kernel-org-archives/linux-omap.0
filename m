@@ -1,215 +1,69 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 1/9] ehci: fix ehci pin mux init
-Date: Thu,  6 Aug 2009 17:37:32 +0530
-Message-ID: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 12/20] OMAP: McBSP: Configure NO IDLE mode for DMA mode
+ different of threshold
+Date: Thu, 6 Aug 2009 15:00:08 +0300
+Message-ID: <20090806120008.GB14093@esdhcp037198.research.nokia.com>
+References: <1248958183-15015-4-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-5-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-6-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-7-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-8-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-11-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
+ <1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46480 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755266AbZHFMJK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Aug 2009 08:09:10 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:30852 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755266AbZHFMMX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 08:12:23 -0400
+Content-Disposition: inline
+In-Reply-To: <1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: felipe.balbi@nokia.com, david-b@pacbell.net, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
 
-EHCI pin mux init fucntion is still using old #ifdef which are not defined
-anymore.This causes pin mux init to always set TLL settings and thus EHCI
-PHY mode doesn't work.
+Tony and Jarkko,
 
-Fixing this issue by using phy_mode parameter to initialize mux settings.
+On Thu, Jul 30, 2009 at 02:49:35PM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
+> Use dma mode property to configure NO IDLE or SMART IDLE of McBSPs.
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> ---
+>  arch/arm/plat-omap/mcbsp.c |   10 +++++++++-
+>  1 files changed, 9 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> index 6c535b3..11cfcfe 100644
+> --- a/arch/arm/plat-omap/mcbsp.c
+> +++ b/arch/arm/plat-omap/mcbsp.c
+> @@ -376,7 +376,15 @@ int omap_mcbsp_request(unsigned int id)
+>  
+>  		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
+>  		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
+> -		syscon |= (ENAWAKEUP | SIDLEMODE(0x02) | CLOCKACTIVITY(0x02));
+> +
+> +		spin_lock_irq(&mcbsp->lock);
+> +		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
+> +			syscon |= SIDLEMODE(0x02);
+> +		else
+> +			syscon |= SIDLEMODE(0x01);
+> +		spin_unlock_irq(&mcbsp->lock);
+> +
+> +		syscon |= (ENAWAKEUP | CLOCKACTIVITY(0x02));
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/mach-omap2/usb-ehci.c |  167 ++++++++++++++++++++--------------------
- 1 files changed, 83 insertions(+), 84 deletions(-)
+Because of this piece of code that patch 0002 is using ifdefs.
 
-diff --git a/arch/arm/mach-omap2/usb-ehci.c b/arch/arm/mach-omap2/usb-ehci.c
-index 0fe26f2..53e6e85 100644
---- a/arch/arm/mach-omap2/usb-ehci.c
-+++ b/arch/arm/mach-omap2/usb-ehci.c
-@@ -68,90 +68,89 @@ static struct platform_device ehci_device = {
- /*
-  * setup_ehci_io_mux - initialize IO pad mux for USBHOST
-  */
--static void setup_ehci_io_mux(void)
-+static void setup_ehci_io_mux(enum ehci_hcd_omap_mode phy_mode)
- {
--#ifdef CONFIG_OMAP_EHCI_PHY_MODE
--	/* PHY mode of operation for board: 750-2083-001
--	 * ISP1504 connected to Port1 and Port2
--	 * Do Func Mux setting for 12-pin ULPI PHY mode
--	 */
--
--	/* Port1 */
--	omap_cfg_reg(Y9_3430_USB1HS_PHY_STP);
--	omap_cfg_reg(Y8_3430_USB1HS_PHY_CLK);
--	omap_cfg_reg(AA14_3430_USB1HS_PHY_DIR);
--	omap_cfg_reg(AA11_3430_USB1HS_PHY_NXT);
--	omap_cfg_reg(W13_3430_USB1HS_PHY_DATA0);
--	omap_cfg_reg(W12_3430_USB1HS_PHY_DATA1);
--	omap_cfg_reg(W11_3430_USB1HS_PHY_DATA2);
--	omap_cfg_reg(Y11_3430_USB1HS_PHY_DATA3);
--	omap_cfg_reg(W9_3430_USB1HS_PHY_DATA4);
--	omap_cfg_reg(Y12_3430_USB1HS_PHY_DATA5);
--	omap_cfg_reg(W8_3430_USB1HS_PHY_DATA6);
--	omap_cfg_reg(Y13_3430_USB1HS_PHY_DATA7);
--
--	/* Port2 */
--	omap_cfg_reg(AA10_3430_USB2HS_PHY_STP);
--	omap_cfg_reg(AA8_3430_USB2HS_PHY_CLK);
--	omap_cfg_reg(AA9_3430_USB2HS_PHY_DIR);
--	omap_cfg_reg(AB11_3430_USB2HS_PHY_NXT);
--	omap_cfg_reg(AB10_3430_USB2HS_PHY_DATA0);
--	omap_cfg_reg(AB9_3430_USB2HS_PHY_DATA1);
--	omap_cfg_reg(W3_3430_USB2HS_PHY_DATA2);
--	omap_cfg_reg(T4_3430_USB2HS_PHY_DATA3);
--	omap_cfg_reg(T3_3430_USB2HS_PHY_DATA4);
--	omap_cfg_reg(R3_3430_USB2HS_PHY_DATA5);
--	omap_cfg_reg(R4_3430_USB2HS_PHY_DATA6);
--	omap_cfg_reg(T2_3430_USB2HS_PHY_DATA7);
--
--#else
--	/* Set Func mux for :
--	 * TLL mode of operation
--	 * 12-pin ULPI SDR TLL mode for Port1/2/3
--	 */
--
--	/* Port1 */
--	omap_cfg_reg(Y9_3430_USB1HS_TLL_STP);
--	omap_cfg_reg(Y8_3430_USB1HS_TLL_CLK);
--	omap_cfg_reg(AA14_3430_USB1HS_TLL_DIR);
--	omap_cfg_reg(AA11_3430_USB1HS_TLL_NXT);
--	omap_cfg_reg(W13_3430_USB1HS_TLL_DATA0);
--	omap_cfg_reg(W12_3430_USB1HS_TLL_DATA1);
--	omap_cfg_reg(W11_3430_USB1HS_TLL_DATA2);
--	omap_cfg_reg(Y11_3430_USB1HS_TLL_DATA3);
--	omap_cfg_reg(W9_3430_USB1HS_TLL_DATA4);
--	omap_cfg_reg(Y12_3430_USB1HS_TLL_DATA5);
--	omap_cfg_reg(W8_3430_USB1HS_TLL_DATA6);
--	omap_cfg_reg(Y13_3430_USB1HS_TLL_DATA7);
--
--	/* Port2 */
--	omap_cfg_reg(AA10_3430_USB2HS_TLL_STP);
--	omap_cfg_reg(AA8_3430_USB2HS_TLL_CLK);
--	omap_cfg_reg(AA9_3430_USB2HS_TLL_DIR);
--	omap_cfg_reg(AB11_3430_USB2HS_TLL_NXT);
--	omap_cfg_reg(AB10_3430_USB2HS_TLL_DATA0);
--	omap_cfg_reg(AB9_3430_USB2HS_TLL_DATA1);
--	omap_cfg_reg(W3_3430_USB2HS_TLL_DATA2);
--	omap_cfg_reg(T4_3430_USB2HS_TLL_DATA3);
--	omap_cfg_reg(T3_3430_USB2HS_TLL_DATA4);
--	omap_cfg_reg(R3_3430_USB2HS_TLL_DATA5);
--	omap_cfg_reg(R4_3430_USB2HS_TLL_DATA6);
--	omap_cfg_reg(T2_3430_USB2HS_TLL_DATA7);
--
--	/* Port3 */
--	omap_cfg_reg(AB3_3430_USB3HS_TLL_STP);
--	omap_cfg_reg(AA6_3430_USB3HS_TLL_CLK);
--	omap_cfg_reg(AA3_3430_USB3HS_TLL_DIR);
--	omap_cfg_reg(Y3_3430_USB3HS_TLL_NXT);
--	omap_cfg_reg(AA5_3430_USB3HS_TLL_DATA0);
--	omap_cfg_reg(Y4_3430_USB3HS_TLL_DATA1);
--	omap_cfg_reg(Y5_3430_USB3HS_TLL_DATA2);
--	omap_cfg_reg(W5_3430_USB3HS_TLL_DATA3);
--	omap_cfg_reg(AB12_3430_USB3HS_TLL_DATA4);
--	omap_cfg_reg(AB13_3430_USB3HS_TLL_DATA5);
--	omap_cfg_reg(AA13_3430_USB3HS_TLL_DATA6);
--	omap_cfg_reg(AA12_3430_USB3HS_TLL_DATA7);
--#endif /* CONFIG_OMAP_EHCI_PHY_MODE */
-+	if (phy_mode == EHCI_HCD_OMAP_MODE_PHY) {
-+		/* PHY mode of operation for board: 750-2083-001
-+		 * ISP1504 connected to Port1 and Port2
-+		 * Do Func Mux setting for 12-pin ULPI PHY mode
-+		 */
-+		/* Port1 */
-+		omap_cfg_reg(Y9_3430_USB1HS_PHY_STP);
-+		omap_cfg_reg(Y8_3430_USB1HS_PHY_CLK);
-+		omap_cfg_reg(AA14_3430_USB1HS_PHY_DIR);
-+		omap_cfg_reg(AA11_3430_USB1HS_PHY_NXT);
-+		omap_cfg_reg(W13_3430_USB1HS_PHY_DATA0);
-+		omap_cfg_reg(W12_3430_USB1HS_PHY_DATA1);
-+		omap_cfg_reg(W11_3430_USB1HS_PHY_DATA2);
-+		omap_cfg_reg(Y11_3430_USB1HS_PHY_DATA3);
-+		omap_cfg_reg(W9_3430_USB1HS_PHY_DATA4);
-+		omap_cfg_reg(Y12_3430_USB1HS_PHY_DATA5);
-+		omap_cfg_reg(W8_3430_USB1HS_PHY_DATA6);
-+		omap_cfg_reg(Y13_3430_USB1HS_PHY_DATA7);
-+
-+		/* Port2 */
-+		omap_cfg_reg(AA10_3430_USB2HS_PHY_STP);
-+		omap_cfg_reg(AA8_3430_USB2HS_PHY_CLK);
-+		omap_cfg_reg(AA9_3430_USB2HS_PHY_DIR);
-+		omap_cfg_reg(AB11_3430_USB2HS_PHY_NXT);
-+		omap_cfg_reg(AB10_3430_USB2HS_PHY_DATA0);
-+		omap_cfg_reg(AB9_3430_USB2HS_PHY_DATA1);
-+		omap_cfg_reg(W3_3430_USB2HS_PHY_DATA2);
-+		omap_cfg_reg(T4_3430_USB2HS_PHY_DATA3);
-+		omap_cfg_reg(T3_3430_USB2HS_PHY_DATA4);
-+		omap_cfg_reg(R3_3430_USB2HS_PHY_DATA5);
-+		omap_cfg_reg(R4_3430_USB2HS_PHY_DATA6);
-+		omap_cfg_reg(T2_3430_USB2HS_PHY_DATA7);
-+
-+	} else {
-+		/* Set Func mux for :
-+		 * TLL mode of operation
-+		 * 12-pin ULPI SDR TLL mode for Port1/2/3
-+		 */
-+
-+		/* Port1 */
-+		omap_cfg_reg(Y9_3430_USB1HS_TLL_STP);
-+		omap_cfg_reg(Y8_3430_USB1HS_TLL_CLK);
-+		omap_cfg_reg(AA14_3430_USB1HS_TLL_DIR);
-+		omap_cfg_reg(AA11_3430_USB1HS_TLL_NXT);
-+		omap_cfg_reg(W13_3430_USB1HS_TLL_DATA0);
-+		omap_cfg_reg(W12_3430_USB1HS_TLL_DATA1);
-+		omap_cfg_reg(W11_3430_USB1HS_TLL_DATA2);
-+		omap_cfg_reg(Y11_3430_USB1HS_TLL_DATA3);
-+		omap_cfg_reg(W9_3430_USB1HS_TLL_DATA4);
-+		omap_cfg_reg(Y12_3430_USB1HS_TLL_DATA5);
-+		omap_cfg_reg(W8_3430_USB1HS_TLL_DATA6);
-+		omap_cfg_reg(Y13_3430_USB1HS_TLL_DATA7);
-+
-+		/* Port2 */
-+		omap_cfg_reg(AA10_3430_USB2HS_TLL_STP);
-+		omap_cfg_reg(AA8_3430_USB2HS_TLL_CLK);
-+		omap_cfg_reg(AA9_3430_USB2HS_TLL_DIR);
-+		omap_cfg_reg(AB11_3430_USB2HS_TLL_NXT);
-+		omap_cfg_reg(AB10_3430_USB2HS_TLL_DATA0);
-+		omap_cfg_reg(AB9_3430_USB2HS_TLL_DATA1);
-+		omap_cfg_reg(W3_3430_USB2HS_TLL_DATA2);
-+		omap_cfg_reg(T4_3430_USB2HS_TLL_DATA3);
-+		omap_cfg_reg(T3_3430_USB2HS_TLL_DATA4);
-+		omap_cfg_reg(R3_3430_USB2HS_TLL_DATA5);
-+		omap_cfg_reg(R4_3430_USB2HS_TLL_DATA6);
-+		omap_cfg_reg(T2_3430_USB2HS_TLL_DATA7);
-+
-+		/* Port3 */
-+		omap_cfg_reg(AB3_3430_USB3HS_TLL_STP);
-+		omap_cfg_reg(AA6_3430_USB3HS_TLL_CLK);
-+		omap_cfg_reg(AA3_3430_USB3HS_TLL_DIR);
-+		omap_cfg_reg(Y3_3430_USB3HS_TLL_NXT);
-+		omap_cfg_reg(AA5_3430_USB3HS_TLL_DATA0);
-+		omap_cfg_reg(Y4_3430_USB3HS_TLL_DATA1);
-+		omap_cfg_reg(Y5_3430_USB3HS_TLL_DATA2);
-+		omap_cfg_reg(W5_3430_USB3HS_TLL_DATA3);
-+		omap_cfg_reg(AB12_3430_USB3HS_TLL_DATA4);
-+		omap_cfg_reg(AB13_3430_USB3HS_TLL_DATA5);
-+		omap_cfg_reg(AA13_3430_USB3HS_TLL_DATA6);
-+		omap_cfg_reg(AA12_3430_USB3HS_TLL_DATA7);
-+	}
- 
- 	return;
- }
-@@ -172,7 +171,7 @@ void __init usb_ehci_init(enum ehci_hcd_omap_mode phy_mode,
- 
- 	/* Setup Pin IO MUX for EHCI */
- 	if (cpu_is_omap34xx())
--		setup_ehci_io_mux();
-+		setup_ehci_io_mux(phy_mode);
- 
- 	if (platform_device_register(&ehci_device) < 0) {
- 		printk(KERN_ERR "Unable to register HS-USB (EHCI) device\n");
+>  		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
+>  
+>  		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, WAKEUPEN_ALL);
+> -- 
+> 1.6.2.GIT
+
 -- 
-1.6.2.4
-
+Eduardo Valentin
