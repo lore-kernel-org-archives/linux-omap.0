@@ -1,72 +1,152 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 1/9] ehci: fix ehci pin mux init
-Date: Thu, 6 Aug 2009 20:01:46 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940432AF3FAD@dbde02.ent.ti.com>
-References: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com>
- <20090806124044.GN2358@atomide.com>
- <19F8576C6E063C45BE387C64729E73940432AF3F8D@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0305FC64E2@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] Fixed processing of bootarg 'mpurate'
+Date: Thu, 06 Aug 2009 07:34:15 -0700
+Message-ID: <87ocqt6mfs.fsf@deeprootsystems.com>
+References: <1249040630-2712-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60124 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753275AbZHFOb7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 10:31:59 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305FC64E2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.225]:5515 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753227AbZHFOeZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 10:34:25 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so163831rvb.1
+        for <linux-omap@vger.kernel.org>; Thu, 06 Aug 2009 07:34:26 -0700 (PDT)
+In-Reply-To: <1249040630-2712-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Fri\, 31 Jul 2009 17\:13\:50 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "david-b@pacbell.net" <david-b@pacbell.net>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
- -----Original Message-----
-> From: Gadiyar, Anand
-> Sent: Thursday, August 06, 2009 7:32 PM
-> To: Gupta, Ajay Kumar; Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; felipe.balbi@nokia.com; david-
-> b@pacbell.net
-> Subject: RE: [PATCH 1/9] ehci: fix ehci pin mux init
-> 
-> > > > +		omap_cfg_reg(W5_3430_USB3HS_TLL_DATA3);
-> > > > +		omap_cfg_reg(AB12_3430_USB3HS_TLL_DATA4);
-> > > > +		omap_cfg_reg(AB13_3430_USB3HS_TLL_DATA5);
-> > > > +		omap_cfg_reg(AA13_3430_USB3HS_TLL_DATA6);
-> > > > +		omap_cfg_reg(AA12_3430_USB3HS_TLL_DATA7);
-> > > > +	}
-> > > >
-> > > >  	return;
-> > > >  }
-> > >
-> > > Hmm, is this safe to do? Or does it remember on the number of data
-> lines
-> > > that the transceiver uses? If so, maybe something like the recent mmc
-> > > muxing could be done where the number of pins is passed from
-> > > platform_data.
-> >
-> > This is actually done in "PATCH[6/9] ehci: portwise
-> > configurations" where number of ports is being passed from
-> > platform files and muxing is done only for required lines.
-> >
-> > >
-> > > This is assuming that the data lines do not have alternative pins.. In
-> > > that case  only the common pins can be muxed and the rest
-> > would have to be > muxed in the board-*.c files.
-> >
-> > These are common pins for HS USB ports 1/2/3 but muxing board
-> > specific pins such as PHY RESET is getting done in board-*.c
-> > files only.
-> >
-> > >
-> 
-> At the very least, some pins of HSUSB2 are muxed with MMC and MCSPI2.
-> 
-> So users of those could possibly see something stop working.
+Sanjeev Premi <premi@ti.com> writes:
 
-In such scenarios where MMC or MCSPI2 is used then board-*.c file would not report those conflicting ports to be in use and so they wouldn't get muxed
-for EHCI.
+> The argument 'mpurate' had no effect on the MPU
+> frequency. This patch fixes the same.
+>
+> It also ensures that DSP frequency is set according
+> to the OPP definitions.
+>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 
--Ajay
-> 
-> - Anand
+Can you break this into two patches.  One that simply fixes the MPU
+rate setting bug and that applies against linux-omap master and
+can be queued for omap-fixes.
+
+The DSP rate setting is a separate problem and could be done in
+a patch against the PM branch.
+
+Kevin
+
+
+> ---
+>  arch/arm/mach-omap2/clock34xx.c |   57 +++++++++++++++++++++++++++++++++++---
+>  1 files changed, 52 insertions(+), 5 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index c2e5ef8..a9e7e82 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -29,6 +29,7 @@
+>  #include <linux/err.h>
+>  #include <linux/cpufreq.h>
+>  
+> +#include <mach/cpu.h>
+>  #include <mach/clock.h>
+>  #include <mach/sram.h>
+>  #include <mach/omap-pm.h>
+> @@ -42,6 +43,7 @@
+>  #include "prm-regbits-34xx.h"
+>  #include "cm.h"
+>  #include "cm-regbits-34xx.h"
+> +#include "omap3-opp.h"
+>  
+>  static const struct clkops clkops_noncore_dpll_ops;
+>  
+> @@ -1083,6 +1085,11 @@ void omap2_clk_prepare_for_reboot(void)
+>   */
+>  static int __init omap2_clk_arch_init(void)
+>  {
+> +	unsigned short opp=0;
+> +	unsigned short i;
+> +	unsigned long dsprate;
+> +	struct omap_opp *opp_table;
+> +
+>  	if (!mpurate)
+>  		return -EINVAL;
+>  
+> @@ -1092,12 +1099,49 @@ static int __init omap2_clk_arch_init(void)
+>  		printk(KERN_ERR "Could not find matching MPU rate\n");
+>  #endif
+>  
+> +	if (clk_set_rate(&dpll1_ck, mpurate))
+> +		printk(KERN_ERR "*** Unable to set MPU rate\n");
+> +	omap3_dpll_recalc(&dpll1_ck);
+> +
+> +	/* Get the OPP corresponding to the mpurate */
+> +	if (mpu_opps) {
+> +		opp_table = mpu_opps;
+> +
+> +		for (i=0;  opp_table[i].opp_id <= MAX_VDD1_OPP; i++)
+> +			if (opp_table[i].rate == mpurate)
+> +				break;
+> +
+> +		opp = opp_table[i].opp_id;
+> +
+> +		pr_debug("Switched to OPP:%d\n", opp);
+> +	}
+> +
+> +	/* Get dsprate corresponding to the opp */
+> +	if ((dsp_opps) && (opp >= VDD1_OPP1) && (opp <= VDD1_OPP5)) {
+> +		opp_table = dsp_opps;
+> +
+> +		for (i=0;  opp_table[i].opp_id <= MAX_VDD1_OPP; i++)
+> +			if (opp_table[i].opp_id == opp)
+> +				break;
+> +
+> +		dsprate = opp_table[i].rate;
+> +
+> +		if (clk_set_rate(&dpll2_ck, dsprate))
+> +			printk(KERN_ERR "*** Unable to set IVA2 rate\n");
+> +		omap3_dpll_recalc(&dpll2_ck);
+> +	}
+> +
+>  	recalculate_root_clocks();
+>  
+> -	printk(KERN_INFO "Switched to new clocking rate (Crystal/DPLL3/MPU): "
+> +	printk(KERN_INFO "Switched to new clocking rate (Crystal/Core/MPU): "
+>  	       "%ld.%01ld/%ld/%ld MHz\n",
+> -	       (osc_sys_ck.rate / 1000000), (osc_sys_ck.rate / 100000) % 10,
+> -	       (core_ck.rate / 1000000), (dpll1_fck.rate / 1000000)) ;
+> +	       (osc_sys_ck.rate / 1000000), ((osc_sys_ck.rate / 100000) % 10),
+> +	       (core_ck.rate / 1000000), (dpll1_ck.rate / 1000000)) ;
+> +
+> +	printk(KERN_INFO "IVA2 clocking rate: %ld MHz\n",
+> +	       (dpll2_ck.rate / 1000000)) ;
+> +
+> +	calibrate_delay();
+>  
+>  	return 0;
+>  }
+> @@ -1156,10 +1200,13 @@ int __init omap2_clk_init(void)
+>  
+>  	recalculate_root_clocks();
+>  
+> -	printk(KERN_INFO "Clocking rate (Crystal/DPLL/ARM core): "
+> +	printk(KERN_INFO "Clocking rate (Crystal/DPLL/MPU core): "
+>  	       "%ld.%01ld/%ld/%ld MHz\n",
+>  	       (osc_sys_ck.rate / 1000000), (osc_sys_ck.rate / 100000) % 10,
+> -	       (core_ck.rate / 1000000), (arm_fck.rate / 1000000));
+> +               (core_ck.rate / 1000000), (dpll1_ck.rate / 1000000));
+> +
+> +	printk(KERN_INFO "IVA2 clocking rate: %ld MHz\n",
+> +	       (dpll2_ck.rate / 1000000)) ;
+>  
+>  	/*
+>  	 * Only enable those clocks we will need, let the drivers
+> -- 
+> 1.6.2.2
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
