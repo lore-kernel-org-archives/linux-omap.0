@@ -1,84 +1,107 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Question regarding MUSB and dynamic fifo sizing
-Date: Fri, 7 Aug 2009 01:41:50 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0305398DE4@dbde02.ent.ti.com>
-References: <1249589441.10885.75.camel@blitz>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [RFC][PATCH] OMAP3: PM: Fix workaround implementation for OMAP3 errata (1.142)
+Date: Thu, 06 Aug 2009 15:14:42 -0700
+Message-ID: <87tz0k614d.fsf@deeprootsystems.com>
+References: <1248873393-29503-1-git-send-email-ext-roger.quadros@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41801 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932168AbZHFUQU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 16:16:20 -0400
-In-Reply-To: <1249589441.10885.75.camel@blitz>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.173]:30005 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752361AbZHFWOx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 18:14:53 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so474337wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 06 Aug 2009 15:14:53 -0700 (PDT)
+In-Reply-To: <1248873393-29503-1-git-send-email-ext-roger.quadros@nokia.com> (Roger Quadros's message of "Wed\, 29 Jul 2009 16\:16\:33 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Roger Quadros <ext-roger.quadros@nokia.com>, Rajendra Nayak <rnayak@ti.com>, kalle.jokiniemi@digia.com
+Cc: linux-omap@vger.kernel.org
 
-Peter Barada wrote:
-> I'm running into a problem where the MUSB controller stops talking with
-> the hardwired device on the other end, and I wasn to unload the musb as
-> a module and reload it to the connection working again.
-> 
-> I can compile MSUB as a module, but when I load it the 2nd time it
-> complains with:
-> 
-> OMAP-35x# modprobe musb_hdrc
-> musb_hdrc: version 6.0, pio, otg (peripheral+host), debug=0
-> musb_core_init 1421: reconfigure software for static FIFOs
-> musb_hdrc musb_hdrc: musb_init_controller failed with status -19
-> 
-> This is due to the platform device wanting dynamic fifo sizing but the
-> CONFIGDATA register has DYNFIFO bit cleared.  Looking through the TRM, I
-> can't find informaiton on how the MUSB controller changes the state of
-> DYNFIFO - I'm guessing once any of the dynamic registers are written to
-> that the controller switches to Dynamic Fifo sizing.
+Roger Quadros <ext-roger.quadros@nokia.com> writes:
 
-This patch from Ajay (already in mainline) should fix it for you.
+> As per errata 1.142, on EMU/HS devices, SDRC_POWER should be programmed
+> for automatic self-refresh before transition to OFF mode.
+> In the current implementation this is done in omap3_scratchpad_contents()
+> which is wrong, since this is the value that will be restored while
+> resuming from OFF mode and not while transitioning to it.
+>
+> This patch implements the workaround in the correct way as per errata.
+>
+> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
 
-<http://marc.info/?l=linux-usb&m=124881724122257&w=2>
+This looks right to me.
 
-The problem is not that the CONFIGDATA changes, but that we attempt
-to read from CONFIGDATA without having set the INDEX register to 0.
+Rajendra, Kalle, any comments? since you were the originators of
+the original patch.
 
-CONFIGDATA is a read-only register.
+Kevin
 
-- Anand
-
-
-> 
-> The code that aborts is:
-> 
->         if (reg & MUSB_CONFIGDATA_DYNFIFO) {
->                 if (musb->config->dyn_fifo)
->                         status = ep_config_from_table(musb);
->                 else {
->                         ERR("reconfigure software for Dynamic FIFOs\n");
->                         status = -ENODEV;
->                 }
->         } else {
->                 if (!musb->config->dyn_fifo)
->                         status = ep_config_from_hw(musb);
->                 else {
->                         ERR("reconfigure software for static FIFOs\n");
->                         return -ENODEV;
->                 }
->         }
-> 
-> 1) How can one change from dynamic to static fifo sizing in the MUSB?
-> 
-> 2) Would it be safe to program for dynamic fifo sizing if CONFIG_DATA
-> indicates the fifos are Statically sized?
-> 
-> 
-> --
-> Peter Barada <peterb@logicpd.com>
-> Logic Product Development, Inc.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> ---
+>  arch/arm/mach-omap2/control.c |   16 ++--------------
+>  arch/arm/mach-omap2/pm34xx.c  |   20 ++++++++++++++------
+>  2 files changed, 16 insertions(+), 20 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index a7159a9..0a563c8 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -272,20 +272,8 @@ void omap3_save_scratchpad_contents(void)
+>  			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
+>  	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
+>  	sdrc_block_contents.dll_b_ctrl = 0x0;
+> -	/*
+> -	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
+> -	 * be programed to issue automatic self refresh on timeout
+> -	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
+> -	 */
+> -	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
+> -			&& (omap_rev() >= OMAP3430_REV_ES3_0))
+> -		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
+> -				~(SDRC_POWER_AUTOCOUNT_MASK|
+> -				SDRC_POWER_CLKCTRL_MASK)) |
+> -				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
+> -				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
+> -	else
+> -		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
+> +
+> +	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
+>  
+>  	sdrc_block_contents.cs_0 = 0x0;
+>  	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 14f10bc..eb3c9e5 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -405,15 +405,23 @@ void omap_sram_idle(void)
+>  	}
+>  
+>  	/*
+> -	* On EMU/HS devices ROM code restores a SRDC value
+> -	* from scratchpad which has automatic self refresh on timeout
+> -	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
+> -	* Hence store/restore the SDRC_POWER register here.
+> -	*/
+> +	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
+> +	 * be programed to issue automatic self refresh on timeout
+> +	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
+> +	 */
+> +
+>  	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+> -	    core_next_state == PWRDM_POWER_OFF)
+> +	    core_next_state == PWRDM_POWER_OFF) {
+> +
+>  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
+> +		sdrc_write_reg((sdrc_pwr &
+> +				~(SDRC_POWER_AUTOCOUNT_MASK|
+> +				SDRC_POWER_CLKCTRL_MASK)) |
+> +				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
+> +				SDRC_SELF_REFRESH_ON_AUTOCOUNT,
+> +					SDRC_POWER);
+> +	}
+>  
+>  	if (regset_save_on_suspend)
+>  		pm_dbg_regset_save(1);
+> -- 
+> 1.6.0.4
