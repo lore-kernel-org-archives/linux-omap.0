@@ -1,125 +1,68 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: Linux Plumbers Conference 2009: V4L2 API discussions
-Date: Thu, 6 Aug 2009 10:18:15 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444A4D863C@dlee02.ent.ti.com>
-References: <200908040912.24718.hverkuil@xs4all.nl>
- <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: MMC3 Overo
+Date: Thu, 06 Aug 2009 08:16:03 -0700
+Message-ID: <873a856ki4.fsf@deeprootsystems.com>
+References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
+	<bb2708720908050901lbc67b1cx5a75a7667fa36fd1@mail.gmail.com>
+	<bb2708720908050902o39c67430pbdcd12e9b835ab70@mail.gmail.com>
+	<873a866xdo.fsf@deeprootsystems.com>
+	<bb2708720908050935s6602d76dq2dbaa00195008132@mail.gmail.com>
+	<5e088bd90908051051s98875e0vddab60dd122f3e8b@mail.gmail.com>
+	<4A79C83E.9040603@deeprootsystems.com>
+	<5e088bd90908051121h38678c9fha73b7beb88752156@mail.gmail.com>
+	<4A79D104.60607@deeprootsystems.com>
+	<bb2708720908051229x49f10094w9b19b468d4bfaec8@mail.gmail.com>
+	<bb2708720908051902p4b369784s8fc5056be9ba047d@mail.gmail.com>
+	<871vnp8170.fsf@deeprootsystems.com> <4A7AEC54.107@nt.tu-darmstadt.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52997 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755984AbZHFPOf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 11:14:35 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940432AF3A5D@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.168]:34303 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756004AbZHFPQN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 11:16:13 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so376557wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 06 Aug 2009 08:16:14 -0700 (PDT)
+In-Reply-To: <4A7AEC54.107@nt.tu-darmstadt.de> (Vladimir Pantelic's message of "Thu\, 06 Aug 2009 16\:44\:36 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>, "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Magnus Damm <magnus.damm@gmail.com>, "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Vladimir Pantelic <pan@nt.tu-darmstadt.de>
+Cc: linux-omap@vger.kernel.org
 
+Vladimir Pantelic <pan@nt.tu-darmstadt.de> writes:
 
+> Kevin Hilman wrote:
+>
+>>>         AB1_35XXCBB_MMC3_CLK
+>>>         AF10_35XXCBB_MMC3_CLK
+>>>         R9_35XXCBC_MMC3_CLK
+>>>         AB2_35XXCBC_MMC3_CLK
+>>>         AC1_35XXCUS_MMC3_CLK
+>>>  We would then have to update mux.c making sure the position matches
+>>>  and add the proper settings.
+>>>
+>>>  So this is obviously a maintenance nightmare.
+>>
+>> So why don't we drop the ball (pun intended.) ;)
+>>
+>> This is what I proposed to Phillip Ballister for his SPI changes for Beagle.
+>>
+>> Though I haven't looked at the details for each package, I have a hard
+>> time imagining that the reg offsets and functionality for each package
+>> is different.  In fact, I'm pretty sure they're even the same between
+>> 34xx and 35xx.
+>>
+>> IOW, why not just name it OMAP3_MMC3_CLK and have a single entry.
+>>
+>> Then each board file that cares simply has to call omap_cfg_reg() on
+>> that name and not care about the package.
+>
+> even for 1 package, how will you know whether OMAP3_MMC3_CLK is connected
+> to ball AB1 or AF10 as both is possible...
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
-> Sent: Tuesday, August 04, 2009 12:13 PM
-> To: Hans Verkuil; linux-media@vger.kernel.org
-> Cc: eduardo.valentin@nokia.com; davinci-linux-open-
-> source@linux.davincidsp.com; linux-omap@vger.kernel.org; Magnus Damm;
-> Dongsoo, Nathaniel Kim
-> Subject: RE: Linux Plumbers Conference 2009: V4L2 API discussions
-> 
-> 
-> 
-> > -----Original Message-----
-> > From: davinci-linux-open-source-bounces@linux.davincidsp.com
-> > [mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On
-> > Behalf Of Hans Verkuil
-> > Sent: Tuesday, August 04, 2009 12:42 PM
-> > To: linux-media@vger.kernel.org
-> > Cc: eduardo.valentin@nokia.com; davinci-linux-open-
-> > source@linux.davincidsp.com; linux-omap@vger.kernel.org; Magnus
-> > Damm; Dongsoo, Nathaniel Kim
-> > Subject: Linux Plumbers Conference 2009: V4L2 API discussions
-> >
-> > Hi all,
-> >
-> > During this years Plumbers Conference I will be organizing a session
-> > (or
-> > possibly more than one) on what sort of new V4L2 APIs are needed to
-> > support the new SoC devices. These new APIs should also solve the
-> > problem
-> > of how to find all the related alsa/fb/ir/dvb devices that a typical
-> > video
-> > device might create.
-> >
-> > A proposal was made about a year ago (note that this is a bit
-> > outdated
-> > by now, but the basics are still valid):
-> >
-> > http://www.archivum.info/video4linux-list%40redhat.com/2008-
-> > 07/msg00371.html
-> >
-> > In the past year the v4l2 core has evolved enough so that we can
-> > finally
-> > start thinking about this for real.
-> >
-> > I would like to know who will be attending this conference. I also
-> > urge
-> > anyone who is working in this area and who wants to have a say in
-> > this to
-> > attend the conference. The goal is to prepare a new RFC with a
-> > detailed
-> > proposal on the new APIs that are needed to fully support all the
-> > new
-> > SoCs. So the more input we get, the better the end-result will be.
-> >
-> [Hiremath, Vaibhav] Hi Hans,
-> 
-> I will be attending the conference and along with above mentioned RFC I
-> would want to discuss some of the open issues, forthcoming TI devices,
-> their complexity and required software interfaces (media processor (as you
-> mentioned above)) and similar stuff.
+doh! good point.  I was thinking of functions that are only availble
+on a single ball.  
 
-Hans, Vaibhav,
+/me resolves to finish waking up before thinking more about mux issues
 
-I'll be attending this conference too. I just got approval from my boss ;).
-
-I'm starting to take the v4l2_subdev migration task as a high priority now, since most of the stability related issues in some proprietary platform are gone now. :)
-
-Actually, I'm also interested on the discussions about the Preview/Resizer Wrappers.
-
-Meet you there.
-
-Regards,
-Sergio
-> 
-> 
-> I will work with you offline before sharing the details here with the
-> community.
-> 
-> Thanks,
-> Vaibhav Hiremath
-> 
-> > Early-bird registration is still possible up to August 5th (that's
-> > tomorrow :-) ).
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> > --
-> > Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> >
-> > _______________________________________________
-> > Davinci-linux-open-source mailing list
-> > Davinci-linux-open-source@linux.davincidsp.com
-> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-
-> > source
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Kevin
