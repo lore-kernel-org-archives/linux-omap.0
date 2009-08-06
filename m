@@ -1,51 +1,49 @@
-From: Vladimir Pantelic <pan@nt.tu-darmstadt.de>
-Subject: Re: MMC3 Overo
-Date: Thu, 06 Aug 2009 16:44:36 +0200
-Message-ID: <4A7AEC54.107@nt.tu-darmstadt.de>
-References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>	<bb2708720908050901lbc67b1cx5a75a7667fa36fd1@mail.gmail.com>	<bb2708720908050902o39c67430pbdcd12e9b835ab70@mail.gmail.com>	<873a866xdo.fsf@deeprootsystems.com>	<bb2708720908050935s6602d76dq2dbaa00195008132@mail.gmail.com>	<5e088bd90908051051s98875e0vddab60dd122f3e8b@mail.gmail.com>	<4A79C83E.9040603@deeprootsystems.com>	<5e088bd90908051121h38678c9fha73b7beb88752156@mail.gmail.com>	<4A79D104.60607@deeprootsystems.com>	<bb2708720908051229x49f10094w9b19b468d4bfaec8@mail.gmail.com>	<bb2708720908051902p4b369784s8fc5056be9ba047d@mail.gmail.com> <871vnp8170.fsf@deeprootsystems.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: ISP buffer issue
+Date: Thu, 06 Aug 2009 17:47:56 +0300 (EEST)
+Message-ID: <20090806.174756.260101773.Hiroshi.DOYU@nokia.com>
+References: <4A7822EA.2020300@mlbassoc.com>
+	<4A7AE905.4020600@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mo-p05-ob.rzone.de ([81.169.146.182]:50836 "EHLO
-	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752183AbZHFOok (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 10:44:40 -0400
-Received: from [192.168.1.22] (p50996ded.dip0.t-ipconnect.de [80.153.109.237])
-	by post.strato.de (klopstock mo51) (RZmta 20.2)
-	with ESMTP id a04032l76EOU4e for <linux-omap@vger.kernel.org>;
-	Thu, 6 Aug 2009 16:44:37 +0200 (MEST)
-In-Reply-To: <871vnp8170.fsf@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.105.134]:37121 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753728AbZHFOsn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 10:48:43 -0400
+In-Reply-To: <4A7AE905.4020600@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: gary@mlbassoc.com
+Cc: linux-omap@vger.kernel.org
 
-Kevin Hilman wrote:
+From: ext Gary Thomas <gary@mlbassoc.com>
+Subject: Re: ISP buffer issue
+Date: Thu, 6 Aug 2009 16:30:29 +0200
 
->>         AB1_35XXCBB_MMC3_CLK
->>         AF10_35XXCBB_MMC3_CLK
->>         R9_35XXCBC_MMC3_CLK
->>         AB2_35XXCBC_MMC3_CLK
->>         AC1_35XXCUS_MMC3_CLK
->>  We would then have to update mux.c making sure the position matches
->>  and add the proper settings.
->>
->>  So this is obviously a maintenance nightmare.
->
-> So why don't we drop the ball (pun intended.) ;)
->
-> This is what I proposed to Phillip Ballister for his SPI changes for Beagle.
->
-> Though I haven't looked at the details for each package, I have a hard
-> time imagining that the reg offsets and functionality for each package
-> is different.  In fact, I'm pretty sure they're even the same between
-> 34xx and 35xx.
->
-> IOW, why not just name it OMAP3_MMC3_CLK and have a single entry.
->
-> Then each board file that cares simply has to call omap_cfg_reg() on
-> that name and not care about the package.
+> Gary Thomas wrote:
+> > I'm having trouble with the OMAP3 camera (ISP) support when
+> > I have a large sensor.  I'm working with a 3M CCD sensor which
+> > has a native resolution of 2048x1536.  The problem is when I
+> > run V4L2 code which tries to allocate & map buffers for input
+> > streaming.  If the frame is much bigger than PAL size (720x576)
+> > the system hangs.
+> > 
+> > I traced this into the ISP layer and found that when the
+> > buffer being allocated is over 1MB, this happens:
+> >   isp_tmp_buf_alloc: allocating 1531904 bytes
+> > which eventually fails in iommu_vmalloc()
+> > 
+> > Looking at the code, there seems to be some magic here - the
+> > buffer allocation falls over if the request is large.  I'm
+> > working from this code:
+> >   http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git
+> > starting from commit (ti_display head on 2009-07-23)
+> >   6810d6d683e768c3bc6b5647c214804045665e22
+> 
+> Hiroshi - I CC'd you directly as this code seems to be yours.
+> Could you comment on my problem?
 
-even for 1 package, how will you know whether OMAP3_MMC3_CLK is connected
-to ball AB1 or AF10 as both is possible...
+Can you point out which function returns error in iommu_vmalloc()?
 
