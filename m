@@ -1,41 +1,52 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Thu, 6 Aug 2009 02:27:08 +0200
-Message-ID: <200908060227.09357.jkrzyszt@tis.icnet.pl>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl> <20090805114254.02e3d0e2.jhnikula@gmail.com> <4A798897.5000904@tis.icnet.pl>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [RFC][PATCH] Maintainers update for hsmmc driver
+Date: Wed, 05 Aug 2009 20:00:46 -0500
+Message-ID: <4A7A2B3E.5070308@gmail.com>
+References: <39332.192.168.10.88.1249515741.squirrel@dbdmail.itg.ti.com> <4A7A1B09.2040006@ti.com> <000001ca1628$f1f4b6d0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:44830 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751814AbZHFA1y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 5 Aug 2009 20:27:54 -0400
-In-Reply-To: <4A798897.5000904@tis.icnet.pl>
-Content-Disposition: inline
+Received: from mail-yw0-f183.google.com ([209.85.211.183]:65188 "EHLO
+	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751814AbZHFBA0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 5 Aug 2009 21:00:26 -0400
+Received: by ywh13 with SMTP id 13so674828ywh.15
+        for <linux-omap@vger.kernel.org>; Wed, 05 Aug 2009 18:00:26 -0700 (PDT)
+In-Reply-To: <000001ca1628$f1f4b6d0$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Tony Lindgren <tony@atomide.com>
-Cc: alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Nishanth Menon' <nm@ti.com>, tony@atomide.com, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, adrian.hunter@nokia.com
 
-Wednesday 05 August 2009 15:26:47 Janusz Krzysztofik wrote:
-> Jarkko Nikula wrote:
-> > On Wed, 5 Aug 2009 10:21:49 +0300
-> > I hacked a patch below. Can you test does it help?
+Madhusudhan said the following on 08/05/2009 07:00 PM:
+>>> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+>>> ---
+>>>  MAINTAINERS |    6 ++++++
+>>>  1 file changed, 6 insertions(+)
+>>>
+>>> Index: linux-omap-2.6/MAINTAINERS
+>>> ===================================================================
+>>> --- linux-omap-2.6.orig/MAINTAINERS
+>>> +++ linux-omap-2.6/MAINTAINERS
+>>> @@ -3700,6 +3700,12 @@ L:	linux-omap@vger.kernel.org
+>>>  S:	Maintained
+>>>  F:	drivers/mmc/host/*omap*
+>>>       
+>> this regex *omap* and your regex *omap_hsmmc* are conflicting IMHO.
+>>     
 >
-> Will do tonight (CET).
+> Why do you think so? The omap driver which could support OMAP1 + 2420 vs
+> omap_hsmmc driver which support 2430/3430 controller are two separate
+> drivers.
+>
+>   
+Simple:
+$ ls drivers/mmc/host/*omap*
+drivers/mmc/host/omap.c  drivers/mmc/host/omap_hsmmc.c
+$ ls drivers/mmc/host/*omap_hsmmc*
+drivers/mmc/host/omap_hsmmc.c
 
-Sorry, but I was not able to perform any tests in a consistent way. Something 
-strange was happening to my hardware, no matter with or without your patch, 
-omap_mcbsp_dump_reg() readings was somewhat random. Will retry tomorrow.
 
-> Now seeing how easy it was (for you ;), I think I could try to follow
-> that way an modify omap_mcbsp_config() in the same spirit, if you find
-> it of any use.
-
-Maybe not omap_mcbsp_config() itself, but rather asoc omap functions that 
-prepare data for it, not sure yet. The idea would be to enable independent 
-(asymmetric) configuration of streams.
-
-Janusz
+Regards,
+Nishanth Menon
