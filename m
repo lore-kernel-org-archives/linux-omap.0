@@ -1,272 +1,185 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-Date: Thu, 6 Aug 2009 17:18:24 +0300
-Message-ID: <20090806141823.GQ2358@atomide.com>
-References: <1249554967-20394-1-git-send-email-premi@ti.com> <20090806110359.GD2358@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D8C80741@dbde02.ent.ti.com> <20090806115025.GG2358@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D8C80860@dbde02.ent.ti.com>
+From: "Fischer Steven-P27614" <Steven.Fischer@motorola.com>
+Subject: RE: DSS2 Video Overlay Scaling Patch
+Date: Thu, 6 Aug 2009 10:23:40 -0400
+Message-ID: <84FF2D40FEDEB74A98203E6EA01A4E1C05AA1458@de01exm63.ds.mot.com>
+References: <84FF2D40FEDEB74A98203E6EA01A4E1C059446C7@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446CD@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446D0@de01exm63.ds.mot.com> <4A781627.2060405@nokia.com> <84FF2D40FEDEB74A98203E6EA01A4E1C05AA125E@de01exm63.ds.mot.com> <4A7ADCBC.9060801@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60699 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751719AbZHFOS1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 10:18:27 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301D8C80860@dbde02.ent.ti.com>
+Received: from mail153.messagelabs.com ([216.82.253.51]:10041 "EHLO
+	mail153.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753215AbZHFOYD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 10:24:03 -0400
+Received: from il27exr03.cig.mot.com (il27exr03.mot.com [10.17.196.72])
+	by motgate3.mot.com (8.14.3/8.14.3) with ESMTP id n76EO2En015372
+	for <linux-omap@vger.kernel.org>; Thu, 6 Aug 2009 07:24:02 -0700 (MST)
+Received: from il27vts02.mot.com (il27vts02.cig.mot.com [10.17.196.86])
+	by il27exr03.cig.mot.com (8.13.1/Vontu) with SMTP id n76EO2XU026203
+	for <linux-omap@vger.kernel.org>; Thu, 6 Aug 2009 09:24:02 -0500 (CDT)
+Received: from de01exm63.ds.mot.com (de01exm63.am.mot.com [10.176.8.108])
+	by il27exr03.cig.mot.com (8.13.1/8.13.0) with ESMTP id n76EO1Ww026188
+	for <linux-omap@vger.kernel.org>; Thu, 6 Aug 2009 09:24:02 -0500 (CDT)
+Content-class: urn:content-classes:message
+In-Reply-To: <4A7ADCBC.9060801@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-* Premi, Sanjeev <premi@ti.com> [090806 17:11]:
+ Tomi,
+
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com] 
+> Sent: Thursday, August 06, 2009 8:38 AM
+> To: Fischer Steven-P27614
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: DSS2 Video Overlay Scaling Patch
+> 
+> Hi,
+> 
+> ext Fischer Steven-P27614 wrote:
+> > Tomi,
+> > 
+> > I tried the patch you sent and after just a little testing 
+> I'm fairly 
+> > confident the change works just fine.  Thanks.
+> > 
+> > I couple of comments on the configure_overlay() function.  
+> Unless I'm 
+> > mis-understanding the code the overlay output rectangle is 
+> defined by 
+> > the local variable "x/y/outw/outh".  I find it quite confusing that 
+> > there are separate "w" & "h" locals, since it makes it 
+> appear as if "x"
+> > & "y" should be paired with "w" & "h" to make a rectangle.  Further 
+> > more, I see "x" & "w" added together, which similarly makes them 
+> > appear to be part of the same rectangle.  I would lightly suggest 
+> > changing the "x" & "y" locals to "outx" and "outy", just 
+> for clarity sake.
+> 
+> I agree that it's confusing. Better naming making it clear 
+> what is used for input data and for output data would make it 
+> a bit clearer. Perhaps also use "inw" and "inh" to make it 
+> absolutely clear.
+> 
+
+Yes, I would agree with that approach.
+
+For now, I will use your patch as given and then wait for further
+updates as they show up in your repo.
+
+Thanks again,
+
+Steve.
+
+> > 
+> > Also, I wonder about the code that adds "x" & "w" or even "y" & "h".
+> > Shouldn't that code be adding "x" & "outw" or "y" & "outh"?  Again, 
+> > maybe I'm mis-understanding the code.
+> >
+> 
+> They are added only when w == outw, so it doesn't change the 
+> functionality. But you are again right, it's a bit confusing.
+> 
+> I remember I was at some point trying to clean up this 
+> input/output confusion, but I think it wasn't too simple at 
+> some points. I'll have to look at it again at some point.
+> 
+>   Tomi
+> 
+> 
+> > Steve.
+> > 
 > > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Thursday, August 06, 2009 5:20 PM
-> > To: Premi, Sanjeev
+> > From: Fischer Steven-P27614
+> > Sent: Tuesday, August 04, 2009 5:22 PM
+> > To: 'Tomi Valkeinen'
 > > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
+> > Subject: RE: DSS2 Video Overlay Scaling Patch
 > > 
-> > * Premi, Sanjeev <premi@ti.com> [090806 14:34]:
-> > >  
-> > > > -----Original Message-----
-> > > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > > > Sent: Thursday, August 06, 2009 4:34 PM
-> > > > To: Premi, Sanjeev
-> > > > Cc: linux-omap@vger.kernel.org
-> > > > Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-> > > > 
-> > > > Hi,
-> > > > 
-> > > > * Sanjeev Premi <premi@ti.com> [090806 13:36]:
-> > > > > Added runtime check via omap2_set_globals_35xx().
-> > > > > 
-> > > > > Parts of this patch have been derived from an earlier
-> > > > > earlier patch submitted by Tony Lindgren <tony@atomide.com>
-> > > > > 
-> > > > >  [1] http://marc.info/?l=linux-omap&m=123301852702797&w=2
-> > > > >  [2] http://marc.info/?l=linux-omap&m=123334055822212&w=2
-> > > > > 
-> > > > > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > > > > ---
-> > > > >  arch/arm/mach-omap2/id.c                 |  115 
-> > > > ++++++++++++++++++++++++------
-> > > > >  arch/arm/plat-omap/common.c              |   18 +++++-
-> > > > >  arch/arm/plat-omap/include/mach/common.h |    1 +
-> > > > >  arch/arm/plat-omap/include/mach/cpu.h    |   64 
-> > ++++++++++++++++-
-> > > > >  4 files changed, 173 insertions(+), 25 deletions(-)
-> > > > > 
-> > > > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > > > > index a98201c..06770aa 100644
-> > > > > --- a/arch/arm/mach-omap2/id.c
-> > > > > +++ b/arch/arm/mach-omap2/id.c
-> > > > > @@ -28,6 +28,14 @@
-> > > > >  static struct omap_chip_id omap_chip;
-> > > > >  static unsigned int omap_revision;
-> > > > >  
-> > > > > +/* The new OMAP35x devices have assymetric names - 
-> > > > OMAP3505 and OMAP3517.
-> > > > > + * It is not possible to define a common macro to 
-> > identify them.
-> > > > > + *
-> > > > > + * A quick way is to separate them across 
-> > 'generations' as below.
-> > > > > + */
-> > > > > +#define OMAP35XX_G1	0x1	/* Applies to 3503, 
-> > > > 3515, 3525 and 3530 */
-> > > > > +#define OMAP35XX_G2	0x2	/* Applies to 3505 and 3517 */
-> > > > > +
-> > > > >  
-> > > > >  unsigned int omap_rev(void)
-> > > > >  {
-> > > > > @@ -155,12 +163,71 @@ void __init omap24xx_check_revision(void)
-> > > > >  	pr_info("\n");
-> > > > >  }
-> > > > >  
-> > > > > +static void __init omap34xx_set_revision(u8 rev, char 
-> > *rev_name)
-> > > > > +{
-> > > > > +	switch (rev) {
-> > > > > +	case 0:
-> > > > > +		omap_revision = OMAP3430_REV_ES2_0;
-> > > > > +		strcat(rev_name, "ES2.0");
-> > > > > +		break;
-> > > > > +	case 2:
-> > > > > +		omap_revision = OMAP3430_REV_ES2_1;
-> > > > > +		strcat(rev_name, "ES2.1");
-> > > > > +		break;
-> > > > > +	case 3:
-> > > > > +		omap_revision = OMAP3430_REV_ES3_0;
-> > > > > +		strcat(rev_name, "ES3.0");
-> > > > > +		break;
-> > > > > +	case 4:
-> > > > > +		omap_revision = OMAP3430_REV_ES3_1;
-> > > > > +		strcat(rev_name, "ES3.1");
-> > > > > +		break;
-> > > > > +	default:
-> > > > > +		/* Use the latest known revision as default */
-> > > > > +		omap_revision = OMAP3430_REV_ES3_1;
-> > > > > +		strcat(rev_name, "Unknown revision");
-> > > > > +	}
-> > > > > +}
-> > > > > +
-> > > > > +static void __init omap35xx_set_revision(u8 rev, u8 gen, 
-> > > > char *rev_name)
-> > > > > +{
-> > > > > +	omap_revision = OMAP35XX_CLASS ;
-> > > > > +
-> > > > > +	if (gen == OMAP35XX_G1) {
-> > > > > +		switch (rev) {
-> > > > > +		case 0:	/* Take care of some older boards */
-> > > > > +		case 1:
-> > > > > +			omap_revision |= OMAP35XX_MASK_ES2_0;
-> > > > > +			strcat(rev_name, "ES2.0");
-> > > > > +			break;
-> > > > > +		case 2:
-> > > > > +			omap_revision |= OMAP35XX_MASK_ES2_1;
-> > > > > +			strcat(rev_name, "ES2.1");
-> > > > > +			break;
-> > > > > +		case 3:
-> > > > > +			omap_revision |= OMAP35XX_MASK_ES3_0;
-> > > > > +			strcat(rev_name, "ES3.0");
-> > > > > +			break;
-> > > > > +		case 4:
-> > > > > +			omap_revision |= OMAP35XX_MASK_ES3_1;
-> > > > > +			strcat(rev_name, "ES3.1");
-> > > > > +			break;
-> > > > > +		default:
-> > > > > +			/* Use the latest known 
-> > revision as default */
-> > > > > +			omap_revision |= OMAP35XX_MASK_ES3_0;
-> > > > > +			strcat(rev_name, "Unknown revision");
-> > > > > +		}
-> > > > > +	} else {
-> > > > > +		strcat(rev_name, "ES1.0");
-> > > > > +	}
-> > > > > +}
-> > > > > +
-> > > > 
-> > > > To me it looks like you're checking the exact same cores as 
-> > > > we already do
-> > > > for 34xx. That is, (idcode >> 28) & 0xff for both 34xx and 
-> > > > 35xx. So basically
-> > > > they have the same omap cores.
-> > > 
-> > > No, the cores in OMAP3505 and OMAP3517 are very different.
-> > > I have listed major differences in PATCH 2/6.
-> > > 
-> > > These devices differ in following areas:
-> > >  - Power management capabilities
-> > >    (Only 1 power domain, 1 OPP, etc.)
-> > >  - EMIF4 instead of SDRC
-> > >  - Support for DDR2
-> > >  - EMAC
-> > >  - USB
-> > >  - HECC
+> > I'll try out your patch, hopefully tomorrow, and let you know.
 > > 
-> > Sure, but from compiler flags and io point of view they can still
-> > be treated as 34xx.
+> > Thanks,
 > > 
-> > How about just add the individual type detection for 35xx processors,
-> > and then have something like this:
+> > Steve.
 > > 
-> > #define cpu_is_omap35xx()	(cpu_is_omap34xx() && 
-> > (cpu_is_omap3510() || \
-> > 					cpu_is_omap3520() || 
-> > cpu_is_omap3530())
+> > -----Original Message-----
+> > From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > Sent: Tuesday, August 04, 2009 6:06 AM
+> > To: Fischer Steven-P27614
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: DSS2 Video Overlay Scaling Patch
 > > 
-> > That should pretty much shrink this patch series down to 
-> > about 50 lines or
-> > so of code.
+> > Hi,
+> > 
+> > ext Fischer Steven-P27614 wrote:
+> >> Ugh, messed up morning, forgot the patch as well :(
+> >>
+> >> -----Original Message-----
+> >> From: linux-omap-owner@vger.kernel.org 
+> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
+> >> Steven-P27614
+> >> Sent: Tuesday, July 07, 2009 8:05 AM
+> >> To: linux-omap@vger.kernel.org
+> >> Subject: RE: DSS2 Video Overlay Scaling Patch
+> >>
+> >> Sorry, missed the subject line.
+> >>
+> >> -----Original Message-----
+> >> From: linux-omap-owner@vger.kernel.org 
+> >> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
+> >> Steven-P27614
+> >> Sent: Tuesday, July 07, 2009 7:54 AM
+> >> To: linux-omap@vger.kernel.org
+> >> Subject: 
+> >>
+> >> All,
+> >>  
+> >> The DSS2 code base seems to inadvertently prevent downscaling of 
+> >> video
+> > 
+> >> overlay frames.  Attached is my attempt at a patch to resolve this 
+> >> issue.
+> >>  
+> >> As I gather from the code, there is an attempt to limit 
+> the overlay 
+> >> output frame size (x, y, outw, outh) to the managers 
+> updated window 
+> >> (mc->x, mc->y, mc->w, mc->h).  The problem is that the input frame 
+> >> size (w & h) is being used to instead of the output frame 
+> size (outw,
+> > outh).
+> >> Due to this, when the input frame size is large than the 
+> output frame 
+> >> size, the input frame is being cropped, thus no downscaling occurs.
+> >> My patch corrects this issue and also attempts to properly 
+> scale the 
+> >> input frame size if indeed the output frame is cropped.
+> >>  
+> >> In my particular case, the output frame size is never 
+> cropped, so I 
+> >> have not explicitly tested these equations, but I believe they are 
+> >> mathematically correct.
+> >>  
+> >> With this patch overlay downscaling is functional.
+> >>  
+> > 
+> > It was indeed slightly broken. The code is there because we 
+> cannot use 
+> > partial update for scaled overlays, but we need to update the whole 
+> > overlay. Otherwise there could be visual errors on the screen.
+> > 
+> > However, your patch didn't apply to my tree, and I think it can be 
+> > solved in slightly more clear way. If the overlay in question is 
+> > scaled, we don't even need to run that code. All we have to 
+> do is to 
+> > adjust x/y depending on the x/y of the update area.
+> > 
+> > Here's a patch, can you check if it works for you?
+> > 
+> >   Tomi
+> > 
 > 
-> Okay, I will try this. Just not sure if some of the differences
-> in OMAP3530 and OMAP3430 can be detected.
-
-OK, let's take it from there. We really need the feature checks
-implemented..
- 
-> Will submit a patch soon.
-
-Thanks!
-
-Tony
-
 > 
-> > 
-> > > 
-> > > > 
-> > > > Considering this I don't see much sense adding 
-> > cpu_is_35xx() category
-> > > > because cpu_is_34xx() already covers these processors. Just 
-> > > > like cpu_is_16xx()
-> > > > covers both 1610 and 1710.
-> > > > 
-> > > > Let's just rather add more feature tests for IVA2 etc as 
-> > needed, then
-> > > > cpu_is_35something() becomse just cpu_is_34xx() && 
-> > > > cpu_has_iva2() or similar.
-> > > 
-> > > I did feel the need for these tests as well, and have an 
-> > internal patch.
-> > > It was in my queue for submission next.
-> > > 
-> > > 
-> > > > 
-> > > > 
-> > > > >  void __init omap34xx_check_revision(void)
-> > > > >  {
-> > > > >  	u32 cpuid, idcode;
-> > > > >  	u16 hawkeye;
-> > > > >  	u8 rev;
-> > > > > -	char *rev_name = "ES1.0";
-> > > > > +	char rev_name[16] = "";
-> > > > >  
-> > > > >  	/*
-> > > > >  	 * We cannot access revision registers on ES1.0.
-> > > > > @@ -184,28 +251,12 @@ void __init omap34xx_check_revision(void)
-> > > > >  	rev = (idcode >> 28) & 0xff;
-> > > > >  
-> > > > >  	if (hawkeye == 0xb7ae) {
-> > > > > -		switch (rev) {
-> > > > > -		case 0:
-> > > > > -			omap_revision = OMAP3430_REV_ES2_0;
-> > > > > -			rev_name = "ES2.0";
-> > > > > -			break;
-> > > > > -		case 2:
-> > > > > -			omap_revision = OMAP3430_REV_ES2_1;
-> > > > > -			rev_name = "ES2.1";
-> > > > > -			break;
-> > > > > -		case 3:
-> > > > > -			omap_revision = OMAP3430_REV_ES3_0;
-> > > > > -			rev_name = "ES3.0";
-> > > > > -			break;
-> > > > > -		case 4:
-> > > > > -			omap_revision = OMAP3430_REV_ES3_1;
-> > > > > -			rev_name = "ES3.1";
-> > > > > -			break;
-> > > > > -		default:
-> > > > > -			/* Use the latest known 
-> > revision as default */
-> > > > > -			omap_revision = OMAP3430_REV_ES3_1;
-> > > > > -			rev_name = "Unknown revision\n";
-> > > > > -		}
-> > > > > +		if (cpu_is_omap35xx())
-> > > > > +			omap35xx_set_revision(rev, OMAP35XX_G1, 
-> > > > rev_name);
-> > > > > +		else
-> > > > > +			omap34xx_set_revision(rev, rev_name);
-> > > > > +	} else if (hawkeye == 0xb868) {
-> > > > > +		omap35xx_set_revision(rev, OMAP35XX_G2, 
-> > rev_name);
-> > > > >  	}
-> > > > 
-> > > > Testing for hawkeye == 0xb868 test should just be added into 
-> > > > the current
-> > > > omap34xx_check_revision().
-> > > > 
-> > > > Regards,
-> > > > 
-> > > > Tony
-> > > > 
-> > > > 
-> > 
-> > 
