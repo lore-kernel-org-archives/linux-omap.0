@@ -1,54 +1,57 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to
-	create twl6030 regulators
-Date: Thu, 6 Aug 2009 12:57:26 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B5D8155B@dbde02.ent.ti.com>
-References: <1248842173-21821-1-git-send-email-balajitk@ti.com>
- <20090803142356.GA4265@rakim.wolfsonmicro.main>
- <20090804074544.GG24334@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8884@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301D8BD1708@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8BFF@dbde02.ent.ti.com>
- <20090804134247.GA32353@rakim.wolfsonmicro.main>
- <EAF47CD23C76F840A9E7FCE10091EFAB02B5CD8C25@dbde02.ent.ti.com>
- <20090805213932.GD20853@opensource.wolfsonmicro.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090805213932.GD20853-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Content-Language: en-US
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Brown <broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>
-Cc: "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Krishnamoorthy, Balaji T" <balajitk-l0cyMroinI0@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org" <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org" <sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org>, "wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org" <wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org>, "timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, "lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org" <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: [PATCH v2] OMAP3: RX51: Updated rx51_defconfig
+Date: Thu,  6 Aug 2009 11:01:45 +0300
+Message-ID: <1249545705-9651-1-git-send-email-ext-roger.quadros@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:37004 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090AbZHFICY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 04:02:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Mark Brown [mailto:broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org] 
-> Sent: Thursday, August 06, 2009 3:10 AM
-> To: Shilimkar, Santosh
-> Cc: Premi, Sanjeev; Tony Lindgren; Krishnamoorthy, Balaji T; 
-> linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org; 
-> david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org; linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; 
-> sameo-RWuK6r/cQWRpLGFMi4vTTA@public.gmane.org; wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org; 
-> timo.t.kokkonen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org; ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org; 
-> lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org; Nayak, Rajendra
-> Subject: Re: [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd 
-> driver to create twl6030 regulators
-> 
-> On Tue, Aug 04, 2009 at 07:28:22PM +0530, Shilimkar, Santosh wrote:
-> 
-> > Do you have boards / use cases where more than one PM IC 
-> would be used _and_ it will use the same driver ?
-> 
-> I don't personally but it's certainly something that I would consider
-> realistic (if not mainstream).
-So what you suggest here. 
+Added REGULATOR, MMC and updated default CMDLINE. Linux-omap
+now boots on RX51.
 
-Regards,
-Santosh
+Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+---
+ arch/arm/configs/rx51_defconfig |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
+index eb2cb31..f238df6 100644
+--- a/arch/arm/configs/rx51_defconfig
++++ b/arch/arm/configs/rx51_defconfig
+@@ -282,7 +282,7 @@ CONFIG_ALIGNMENT_TRAP=y
+ #
+ CONFIG_ZBOOT_ROM_TEXT=0x0
+ CONFIG_ZBOOT_ROM_BSS=0x0
+-CONFIG_CMDLINE="init=/sbin/preinit ubi.mtd=rootfs root=ubi0:rootfs rootfstype=ubifs rootflags=bulk_read,no_chk_data_crc rw console=ttyMTD,log console=tty0"
++CONFIG_CMDLINE="init=/sbin/preinit ubi.mtd=rootfs root=ubi0:rootfs rootfstype=ubifs rootflags=bulk_read,no_chk_data_crc rw console=ttyMTD,log console=tty0 console=ttyS2,115200n8"
+ # CONFIG_XIP_KERNEL is not set
+ # CONFIG_KEXEC is not set
  
- --
-To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+@@ -1354,7 +1354,7 @@ CONFIG_USB_OTG_UTILS=y
+ # CONFIG_USB_GPIO_VBUS is not set
+ # CONFIG_ISP1301_OMAP is not set
+ CONFIG_TWL4030_USB=y
+-CONFIG_MMC=m
++CONFIG_MMC=y
+ # CONFIG_MMC_DEBUG is not set
+ # CONFIG_MMC_UNSAFE_RESUME is not set
+ 
+@@ -1449,7 +1449,8 @@ CONFIG_RTC_DRV_TWL4030=m
+ # on-CPU RTC drivers
+ #
+ # CONFIG_DMADEVICES is not set
+-# CONFIG_REGULATOR is not set
++CONFIG_REGULATOR=y
++CONFIG_REGULATOR_TWL4030=y
+ # CONFIG_UIO is not set
+ # CONFIG_STAGING is not set
+ 
+-- 
+1.6.0.4
+
