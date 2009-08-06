@@ -1,183 +1,42 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-Date: Thu, 6 Aug 2009 14:04:00 +0300
-Message-ID: <20090806110359.GD2358@atomide.com>
-References: <1249554967-20394-1-git-send-email-premi@ti.com>
+Subject: Re: [PATCH 0/3] Omap header cleanup for upcoming 2.6.32 merge
+	window
+Date: Thu, 6 Aug 2009 14:11:06 +0300
+Message-ID: <20090806111105.GE2358@atomide.com>
+References: <20090806100614.2569.8531.stgit@localhost> <20090806110103.GB22623@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56661 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60997 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332AbZHFLED (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 07:04:03 -0400
+	with ESMTP id S1751578AbZHFLLS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 07:11:18 -0400
 Content-Disposition: inline
-In-Reply-To: <1249554967-20394-1-git-send-email-premi@ti.com>
+In-Reply-To: <20090806110103.GB22623@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hi,
-
-* Sanjeev Premi <premi@ti.com> [090806 13:36]:
-> Added runtime check via omap2_set_globals_35xx().
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090806 14:01]:
+> On Thu, Aug 06, 2009 at 01:08:56PM +0300, Tony Lindgren wrote:
+> > Here are few patches for the upcoming merge window to remove unnecessary
+> > ifdeffery in the header files.
 > 
-> Parts of this patch have been derived from an earlier
-> earlier patch submitted by Tony Lindgren <tony@atomide.com>
-> 
->  [1] http://marc.info/?l=linux-omap&m=123301852702797&w=2
->  [2] http://marc.info/?l=linux-omap&m=123334055822212&w=2
-> 
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
-> ---
->  arch/arm/mach-omap2/id.c                 |  115 ++++++++++++++++++++++++------
->  arch/arm/plat-omap/common.c              |   18 +++++-
->  arch/arm/plat-omap/include/mach/common.h |    1 +
->  arch/arm/plat-omap/include/mach/cpu.h    |   64 ++++++++++++++++-
->  4 files changed, 173 insertions(+), 25 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index a98201c..06770aa 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -28,6 +28,14 @@
->  static struct omap_chip_id omap_chip;
->  static unsigned int omap_revision;
->  
-> +/* The new OMAP35x devices have assymetric names - OMAP3505 and OMAP3517.
-> + * It is not possible to define a common macro to identify them.
-> + *
-> + * A quick way is to separate them across 'generations' as below.
-> + */
-> +#define OMAP35XX_G1	0x1	/* Applies to 3503, 3515, 3525 and 3530 */
-> +#define OMAP35XX_G2	0x2	/* Applies to 3505 and 3517 */
-> +
->  
->  unsigned int omap_rev(void)
->  {
-> @@ -155,12 +163,71 @@ void __init omap24xx_check_revision(void)
->  	pr_info("\n");
->  }
->  
-> +static void __init omap34xx_set_revision(u8 rev, char *rev_name)
-> +{
-> +	switch (rev) {
-> +	case 0:
-> +		omap_revision = OMAP3430_REV_ES2_0;
-> +		strcat(rev_name, "ES2.0");
-> +		break;
-> +	case 2:
-> +		omap_revision = OMAP3430_REV_ES2_1;
-> +		strcat(rev_name, "ES2.1");
-> +		break;
-> +	case 3:
-> +		omap_revision = OMAP3430_REV_ES3_0;
-> +		strcat(rev_name, "ES3.0");
-> +		break;
-> +	case 4:
-> +		omap_revision = OMAP3430_REV_ES3_1;
-> +		strcat(rev_name, "ES3.1");
-> +		break;
-> +	default:
-> +		/* Use the latest known revision as default */
-> +		omap_revision = OMAP3430_REV_ES3_1;
-> +		strcat(rev_name, "Unknown revision");
-> +	}
-> +}
-> +
-> +static void __init omap35xx_set_revision(u8 rev, u8 gen, char *rev_name)
-> +{
-> +	omap_revision = OMAP35XX_CLASS ;
-> +
-> +	if (gen == OMAP35XX_G1) {
-> +		switch (rev) {
-> +		case 0:	/* Take care of some older boards */
-> +		case 1:
-> +			omap_revision |= OMAP35XX_MASK_ES2_0;
-> +			strcat(rev_name, "ES2.0");
-> +			break;
-> +		case 2:
-> +			omap_revision |= OMAP35XX_MASK_ES2_1;
-> +			strcat(rev_name, "ES2.1");
-> +			break;
-> +		case 3:
-> +			omap_revision |= OMAP35XX_MASK_ES3_0;
-> +			strcat(rev_name, "ES3.0");
-> +			break;
-> +		case 4:
-> +			omap_revision |= OMAP35XX_MASK_ES3_1;
-> +			strcat(rev_name, "ES3.1");
-> +			break;
-> +		default:
-> +			/* Use the latest known revision as default */
-> +			omap_revision |= OMAP35XX_MASK_ES3_0;
-> +			strcat(rev_name, "Unknown revision");
-> +		}
-> +	} else {
-> +		strcat(rev_name, "ES1.0");
-> +	}
-> +}
-> +
+> I'm not sure what the plans are wrt OMAP1 vs the later OMAPs, but
+> given that OMAP1 lives in a separate mach directory, I think it
+> would make sense for the OMAP1 parts of the headers to be moved
+> out to arch/arm/mach-omap1/include/mach, leaving the other parts
+> in arch/arm/mach-omap2/include/mach.
 
-To me it looks like you're checking the exact same cores as we already do
-for 34xx. That is, (idcode >> 28) & 0xff for both 34xx and 35xx. So basically
-they have the same omap cores.
+Yees.
 
-Considering this I don't see much sense adding cpu_is_35xx() category
-because cpu_is_34xx() already covers these processors. Just like cpu_is_16xx()
-covers both 1610 and 1710.
+After this series is applied we can move the remaining omap1 specific
+defines in hardware.h into omap1.h.
+ 
+> Common stuff can be in arch/arm/plat-omap/include/plat/ and which
+> should only really cover the code in arch/arm/plat-omap/
 
-Let's just rather add more feature tests for IVA2 etc as needed, then
-cpu_is_35something() becomse just cpu_is_34xx() && cpu_has_iva2() or similar.
-
-
->  void __init omap34xx_check_revision(void)
->  {
->  	u32 cpuid, idcode;
->  	u16 hawkeye;
->  	u8 rev;
-> -	char *rev_name = "ES1.0";
-> +	char rev_name[16] = "";
->  
->  	/*
->  	 * We cannot access revision registers on ES1.0.
-> @@ -184,28 +251,12 @@ void __init omap34xx_check_revision(void)
->  	rev = (idcode >> 28) & 0xff;
->  
->  	if (hawkeye == 0xb7ae) {
-> -		switch (rev) {
-> -		case 0:
-> -			omap_revision = OMAP3430_REV_ES2_0;
-> -			rev_name = "ES2.0";
-> -			break;
-> -		case 2:
-> -			omap_revision = OMAP3430_REV_ES2_1;
-> -			rev_name = "ES2.1";
-> -			break;
-> -		case 3:
-> -			omap_revision = OMAP3430_REV_ES3_0;
-> -			rev_name = "ES3.0";
-> -			break;
-> -		case 4:
-> -			omap_revision = OMAP3430_REV_ES3_1;
-> -			rev_name = "ES3.1";
-> -			break;
-> -		default:
-> -			/* Use the latest known revision as default */
-> -			omap_revision = OMAP3430_REV_ES3_1;
-> -			rev_name = "Unknown revision\n";
-> -		}
-> +		if (cpu_is_omap35xx())
-> +			omap35xx_set_revision(rev, OMAP35XX_G1, rev_name);
-> +		else
-> +			omap34xx_set_revision(rev, rev_name);
-> +	} else if (hawkeye == 0xb868) {
-> +		omap35xx_set_revision(rev, OMAP35XX_G2, rev_name);
->  	}
-
-Testing for hawkeye == 0xb868 test should just be added into the current
-omap34xx_check_revision().
-
-Regards,
+Sounds good.
 
 Tony
