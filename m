@@ -1,68 +1,51 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
+From: Steve Sakoman <sakoman@gmail.com>
 Subject: Re: MMC3 Overo
-Date: Thu, 06 Aug 2009 08:16:03 -0700
-Message-ID: <873a856ki4.fsf@deeprootsystems.com>
+Date: Thu, 6 Aug 2009 08:35:57 -0700
+Message-ID: <5e088bd90908060835g3019c3d1gf402c6a229daa851@mail.gmail.com>
 References: <bb2708720907300849m78b24a3av3721ccf272cbaa5b@mail.gmail.com>
-	<bb2708720908050901lbc67b1cx5a75a7667fa36fd1@mail.gmail.com>
-	<bb2708720908050902o39c67430pbdcd12e9b835ab70@mail.gmail.com>
-	<873a866xdo.fsf@deeprootsystems.com>
-	<bb2708720908050935s6602d76dq2dbaa00195008132@mail.gmail.com>
-	<5e088bd90908051051s98875e0vddab60dd122f3e8b@mail.gmail.com>
-	<4A79C83E.9040603@deeprootsystems.com>
-	<5e088bd90908051121h38678c9fha73b7beb88752156@mail.gmail.com>
-	<4A79D104.60607@deeprootsystems.com>
-	<bb2708720908051229x49f10094w9b19b468d4bfaec8@mail.gmail.com>
-	<bb2708720908051902p4b369784s8fc5056be9ba047d@mail.gmail.com>
-	<871vnp8170.fsf@deeprootsystems.com> <4A7AEC54.107@nt.tu-darmstadt.de>
+	 <5e088bd90908051051s98875e0vddab60dd122f3e8b@mail.gmail.com>
+	 <4A79C83E.9040603@deeprootsystems.com>
+	 <5e088bd90908051121h38678c9fha73b7beb88752156@mail.gmail.com>
+	 <4A79D104.60607@deeprootsystems.com>
+	 <bb2708720908051229x49f10094w9b19b468d4bfaec8@mail.gmail.com>
+	 <bb2708720908051902p4b369784s8fc5056be9ba047d@mail.gmail.com>
+	 <871vnp8170.fsf@deeprootsystems.com> <4A7AEC54.107@nt.tu-darmstadt.de>
+	 <873a856ki4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:34303 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756004AbZHFPQN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 11:16:13 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so376557wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 06 Aug 2009 08:16:14 -0700 (PDT)
-In-Reply-To: <4A7AEC54.107@nt.tu-darmstadt.de> (Vladimir Pantelic's message of "Thu\, 06 Aug 2009 16\:44\:36 +0200")
+Received: from qw-out-2122.google.com ([74.125.92.24]:24225 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754207AbZHFPf6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 11:35:58 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so377441qwh.37
+        for <linux-omap@vger.kernel.org>; Thu, 06 Aug 2009 08:35:59 -0700 (PDT)
+In-Reply-To: <873a856ki4.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vladimir Pantelic <pan@nt.tu-darmstadt.de>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Vladimir Pantelic <pan@nt.tu-darmstadt.de>, linux-omap@vger.kernel.org
 
-Vladimir Pantelic <pan@nt.tu-darmstadt.de> writes:
+On Thu, Aug 6, 2009 at 8:16 AM, Kevin Hilman<khilman@deeprootsystems.co=
+m> wrote:
 
-> Kevin Hilman wrote:
+>> even for 1 package, how will you know whether OMAP3_MMC3_CLK is conn=
+ected
+>> to ball AB1 or AF10 as both is possible...
 >
->>>         AB1_35XXCBB_MMC3_CLK
->>>         AF10_35XXCBB_MMC3_CLK
->>>         R9_35XXCBC_MMC3_CLK
->>>         AB2_35XXCBC_MMC3_CLK
->>>         AC1_35XXCUS_MMC3_CLK
->>>  We would then have to update mux.c making sure the position matches
->>>  and add the proper settings.
->>>
->>>  So this is obviously a maintenance nightmare.
->>
->> So why don't we drop the ball (pun intended.) ;)
->>
->> This is what I proposed to Phillip Ballister for his SPI changes for Beagle.
->>
->> Though I haven't looked at the details for each package, I have a hard
->> time imagining that the reg offsets and functionality for each package
->> is different.  In fact, I'm pretty sure they're even the same between
->> 34xx and 35xx.
->>
->> IOW, why not just name it OMAP3_MMC3_CLK and have a single entry.
->>
->> Then each board file that cares simply has to call omap_cfg_reg() on
->> that name and not care about the package.
->
-> even for 1 package, how will you know whether OMAP3_MMC3_CLK is connected
-> to ball AB1 or AF10 as both is possible...
+> doh! good point. =A0I was thinking of functions that are only availbl=
+e
+> on a single ball.
 
-doh! good point.  I was thinking of functions that are only availble
-on a single ball.  
+This is the point I was (unsuccessfully) trying to make in my original
+response :-)  It was the main source of my frustration, since Overo
+seemed to pick "the other" choice of ball far too often.  It made
+using kernel pinmuxing a nightmare.
 
-/me resolves to finish waking up before thinking more about mux issues
-
-Kevin
+Steve
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
