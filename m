@@ -1,46 +1,36 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Thu, 6 Aug 2009 11:16:51 +0200
-Message-ID: <200908061116.53726.jkrzyszt@tis.icnet.pl>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl> <20090805102149.bfcafa35.jhnikula@gmail.com> <20090805114254.02e3d0e2.jhnikula@gmail.com>
+Date: Thu, 6 Aug 2009 11:30:29 +0200
+Message-ID: <200908061130.30804.jkrzyszt@tis.icnet.pl>
+References: <200908030332.06727.jkrzyszt@tis.icnet.pl>
+	<200908042246.09919.jkrzyszt@tis.icnet.pl>
+	<200908050945.22160.peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:39775 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751232AbZHFJUA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Aug 2009 05:20:00 -0400
-In-Reply-To: <20090805114254.02e3d0e2.jhnikula@gmail.com>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <200908050945.22160.peter.ujfalusi@nokia.com>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Arun K S <arunks@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>, e3-hacking@earth.li
-Cc: Arun K S <arunks@mistralsolutions.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, alsa-devel@alsa-project.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-Wednesday 05 August 2009 10:42:54 Jarkko Nikula wrote:
-> On Wed, 5 Aug 2009 10:21:49 +0300
-> Jarkko Nikula <jhnikula@gmail.com> wrote:
-> > > If my analysis is correct, the best solution I can see would be
-> > > starting McBSP transfer for one direction only, not both, so the
-> > > opposite direction can be started when needed. That requires deeper and
-> > > wider OMAP knowledge and a change in omap_mcbsp_start() API though. I
-> > > am not in a position to deal with this myself, I'm afraid.
-> >
-> > I favor this change. Actually I remember I was thinking shortly to
-> > change API of omap_mcbsp_start and _stop more than year back or so but
-> > didn't find it necessary back then.
-> >
-> > I think change will be trivial. Basically two new arguments indicating
-> > are the TX/RX active and let the first/last caller to deal with
-> > sample-rate generator and frame sync activation/de-activation.
->
-> I hacked a patch below. Can you test does it help?
+Wednesday 05 August 2009 08:45:21 Peter Ujfalusi wrote:
+> In case of playback start while capture: What is the state of the XEMPTY
+> bit (SPCR2:2)? Is it 0? It should.
 
-Yes, it does. Works as expected in all possible combinations I have tried: 
-start recording while playing, start playing while recording, start recording 
-and playing simultaneously.
-Thanks.
+Yes, XEMPTY was 0, both before and after omap_start_dma().
 
-Tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+For completness of the record:
+RFULL was 1 (again as expected) in case of capture start while playing.
+
+Janusz
