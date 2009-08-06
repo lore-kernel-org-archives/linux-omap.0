@@ -1,76 +1,139 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS2 questions
-Date: Thu, 06 Aug 2009 16:16:37 +0300
-Message-ID: <4A7AD7B5.10500@nokia.com>
-References: <4A7AC798.6070409@mlbassoc.com>
+Subject: Re: DSS2 Video Overlay Scaling Patch
+Date: Thu, 06 Aug 2009 16:38:04 +0300
+Message-ID: <4A7ADCBC.9060801@nokia.com>
+References: <84FF2D40FEDEB74A98203E6EA01A4E1C059446C7@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446CD@de01exm63.ds.mot.com> <84FF2D40FEDEB74A98203E6EA01A4E1C059446D0@de01exm63.ds.mot.com> <4A781627.2060405@nokia.com> <84FF2D40FEDEB74A98203E6EA01A4E1C05AA125E@de01exm63.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:33145 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755665AbZHFNQw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 09:16:52 -0400
-In-Reply-To: <4A7AC798.6070409@mlbassoc.com>
+Received: from smtp.nokia.com ([192.100.105.134]:31039 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755318AbZHFNiO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 09:38:14 -0400
+In-Reply-To: <84FF2D40FEDEB74A98203E6EA01A4E1C05AA125E@de01exm63.ds.mot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Gary Thomas <gary@mlbassoc.com>
+To: ext Fischer Steven-P27614 <Steven.Fischer@motorola.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 Hi,
 
-ext Gary Thomas wrote:
+ext Fischer Steven-P27614 wrote:
 > Tomi,
 > 
-> I've been following your DSS2 work, with reasonable success.
-> However, when I tried to pull from your repo today, I got
-> a ton of merge errors.  I cloned your tree a [little] while
-> back (it seems it was 2009-06-16, but where did the time go?)
+> I tried the patch you sent and after just a little testing I'm fairly
+> confident the change works just fine.  Thanks.
 > 
-> Here's what I did:
->   git clone http://www.bat.org/~tomba/git/linux-omap-dss.git
->     HEAD=5bd374f9b199d46ae434489d56615b240de5a6d7
->   git checkout -b my_branch origin/master
->     ...
-> When I went to pull into my_branch, I got the merge errors.
-> Any clues what I did wrong?  How could/should I have managed
-> this better?
+> I couple of comments on the configure_overlay() function.  Unless I'm
+> mis-understanding the code the overlay output rectangle is defined by
+> the local variable "x/y/outw/outh".  I find it quite confusing that
+> there are separate "w" & "h" locals, since it makes it appear as if "x"
+> & "y" should be paired with "w" & "h" to make a rectangle.  Further
+> more, I see "x" & "w" added together, which similarly makes them appear
+> to be part of the same rectangle.  I would lightly suggest changing the
+> "x" & "y" locals to "outx" and "outy", just for clarity sake.
 
-The problem is that I have rebased my tree so that I end up with a clean 
-set of patches that can be posted to mailing lists. And rebasing means 
-changing history, which means that you cannot merge it normally.
-
-Perhaps I should keep the master branch as it is, and do rebasing on a 
-separate branch. I don't know, I'm no git-master ;).
-
-If you have no changes of your own in the branch, you can do
-git reset --hard origin/master
-which will reset that branch to the exact version that is in origin/master.
+I agree that it's confusing. Better naming making it clear what is used 
+for input data and for output data would make it a bit clearer. Perhaps 
+also use "inw" and "inh" to make it absolutely clear.
 
 > 
-> n.b. you earlier told me that git was better than sliced
-> bread; I'm still waiting to be shown the light :-)
+> Also, I wonder about the code that adds "x" & "w" or even "y" & "h".
+> Shouldn't that code be adding "x" & "outw" or "y" & "outh"?  Again,
+> maybe I'm mis-understanding the code.
+>
 
-You'll see it when you understand how git works ;)
+They are added only when w == outw, so it doesn't change the 
+functionality. But you are again right, it's a bit confusing.
 
-> 
-> Second question; I've set up my system much the same as the
-> boards you are working on, with an LCD and TV outputs.  I'm
-> a bit confused as to how I configure the overlays and managers
-> to be able to send YUV data directly through to either the
-> LCD or TV.  Can you explain this?
-
-You need to change the framebuffer to YUV color mode. And YUV only works 
-on video overlays, so you need to setup video overlay to be shown on the 
-LCD or TV.
-
-If you have fb1 as a video overlay, you can do for example:
-
-fbset -fb /dev/fb1 -nonstd 1
-
-which sets fb1 to YUV422 mode. 8 would be YUY422. Those numbers come 
-from omapfb.h, enum omapfb_color_format.
-
-Check also Documentation/arm/OMAP/DSS, if you haven't already done so.
+I remember I was at some point trying to clean up this input/output 
+confusion, but I think it wasn't too simple at some points. I'll have to 
+look at it again at some point.
 
   Tomi
+
+
+> Steve.
+> 
+> -----Original Message-----
+> From: Fischer Steven-P27614 
+> Sent: Tuesday, August 04, 2009 5:22 PM
+> To: 'Tomi Valkeinen'
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: DSS2 Video Overlay Scaling Patch
+> 
+> I'll try out your patch, hopefully tomorrow, and let you know.
+> 
+> Thanks,
+> 
+> Steve.
+> 
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Tuesday, August 04, 2009 6:06 AM
+> To: Fischer Steven-P27614
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: DSS2 Video Overlay Scaling Patch
+> 
+> Hi,
+> 
+> ext Fischer Steven-P27614 wrote:
+>> Ugh, messed up morning, forgot the patch as well :(
+>>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
+>> Steven-P27614
+>> Sent: Tuesday, July 07, 2009 8:05 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: RE: DSS2 Video Overlay Scaling Patch
+>>
+>> Sorry, missed the subject line.
+>>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Fischer
+>> Steven-P27614
+>> Sent: Tuesday, July 07, 2009 7:54 AM
+>> To: linux-omap@vger.kernel.org
+>> Subject: 
+>>
+>> All,
+>>  
+>> The DSS2 code base seems to inadvertently prevent downscaling of video
+> 
+>> overlay frames.  Attached is my attempt at a patch to resolve this 
+>> issue.
+>>  
+>> As I gather from the code, there is an attempt to limit the overlay 
+>> output frame size (x, y, outw, outh) to the managers updated window 
+>> (mc->x, mc->y, mc->w, mc->h).  The problem is that the input frame 
+>> size (w & h) is being used to instead of the output frame size (outw,
+> outh).
+>> Due to this, when the input frame size is large than the output frame 
+>> size, the input frame is being cropped, thus no downscaling occurs.
+>> My patch corrects this issue and also attempts to properly scale the 
+>> input frame size if indeed the output frame is cropped.
+>>  
+>> In my particular case, the output frame size is never cropped, so I 
+>> have not explicitly tested these equations, but I believe they are 
+>> mathematically correct.
+>>  
+>> With this patch overlay downscaling is functional.
+>>  
+> 
+> It was indeed slightly broken. The code is there because we cannot use
+> partial update for scaled overlays, but we need to update the whole
+> overlay. Otherwise there could be visual errors on the screen.
+> 
+> However, your patch didn't apply to my tree, and I think it can be
+> solved in slightly more clear way. If the overlay in question is scaled,
+> we don't even need to run that code. All we have to do is to adjust x/y
+> depending on the x/y of the update area.
+> 
+> Here's a patch, can you check if it works for you?
+> 
+>   Tomi
+> 
+
