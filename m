@@ -1,222 +1,136 @@
 From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 4/6] OMAP3: Show coprocessor details during boot
-Date: Thu,  6 Aug 2009 16:06:17 +0530
-Message-ID: <1249554977-20429-1-git-send-email-premi@ti.com>
+Subject: [PATCH 5/6] OMAP3: OMAP35x: Board specific updates
+Date: Thu,  6 Aug 2009 16:06:26 +0530
+Message-ID: <1249554986-20464-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47024 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36707 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751332AbZHFKgX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 6 Aug 2009 06:36:23 -0400
+	id S1751536AbZHFKgd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Aug 2009 06:36:33 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n76AaHuD026835
-	for <linux-omap@vger.kernel.org>; Thu, 6 Aug 2009 05:36:23 -0500
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n76AaRO5008552
+	for <linux-omap@vger.kernel.org>; Thu, 6 Aug 2009 05:36:33 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sanjeev Premi <premi@ti.com>
 
-Extract details related to coprocessors and print during
-the boot process.
-
-Parts of this patch have been derived from an earlier
-earlier patch submitted by Tony Lindgren <tony@atomide.com>
-
- [1] http://marc.info/?l=linux-omap&m=123301852702797&w=2
- [2] http://marc.info/?l=linux-omap&m=123334055822212&w=2
+Includes:
+- Updates to default board configuration.
+- Call function omap2_set_globals_35xx()
 
 Signed-off-by: Sanjeev Premi <premi@ti.com>
 ---
- arch/arm/mach-omap2/id.c                  |  106 ++++++++++++++++++++++++++--
- arch/arm/plat-omap/include/mach/control.h |   24 +++++++
- 2 files changed, 122 insertions(+), 8 deletions(-)
+ arch/arm/configs/omap3_beagle_defconfig  |    1 +
+ arch/arm/configs/omap3_evm_defconfig     |    1 +
+ arch/arm/configs/omap3_pandora_defconfig |    1 +
+ arch/arm/configs/overo_defconfig         |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c  |    2 +-
+ arch/arm/mach-omap2/board-omap3evm.c     |    2 +-
+ arch/arm/mach-omap2/board-omap3pandora.c |    2 +-
+ arch/arm/mach-omap2/board-overo.c        |    2 +-
+ 8 files changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 06770aa..da35c01 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -86,6 +86,14 @@ EXPORT_SYMBOL(omap_type);
- #define OMAP_TAP_DIE_ID_2	0x0220
- #define OMAP_TAP_DIE_ID_3	0x0224
+diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
+index c4726f0..8eddbdf 100644
+--- a/arch/arm/configs/omap3_beagle_defconfig
++++ b/arch/arm/configs/omap3_beagle_defconfig
+@@ -195,6 +195,7 @@ CONFIG_OMAP_DM_TIMER=y
+ CONFIG_OMAP_LL_DEBUG_UART3=y
+ CONFIG_ARCH_OMAP34XX=y
+ CONFIG_ARCH_OMAP3430=y
++CONFIG_ARCH_OMAP35XX=y
  
-+#define FEAT_MPU_ONLY		((OMAP343X_SGX_NONE << \
-+					OMAP343X_FEATURE_SGX_SHIFT) | \
-+						OMAP343X_FEATURE_IVA2_HW_NONE)
-+#define FEAT_MPU_SGX		OMAP343X_FEATURE_IVA2_HW_NONE
-+#define FEAT_MPU_IVA		(OMAP343X_SGX_NONE << \
-+					OMAP343X_FEATURE_SGX_SHIFT)
-+#define FEAT_MPU_IVA_SGX	0
-+
- #define read_tap_reg(reg)	__raw_readl(tap_base  + (reg))
+ #
+ # OMAP Board Type
+diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
+index 28be17f..da80ca7 100644
+--- a/arch/arm/configs/omap3_evm_defconfig
++++ b/arch/arm/configs/omap3_evm_defconfig
+@@ -205,6 +205,7 @@ CONFIG_OMAP_LL_DEBUG_UART1=y
+ CONFIG_OMAP_SERIAL_WAKE=y
+ CONFIG_ARCH_OMAP34XX=y
+ CONFIG_ARCH_OMAP3430=y
++CONFIG_ARCH_OMAP35XX=y
  
- struct omap_id {
-@@ -163,8 +171,52 @@ void __init omap24xx_check_revision(void)
- 	pr_info("\n");
- }
+ #
+ # OMAP Board Type
+diff --git a/arch/arm/configs/omap3_pandora_defconfig b/arch/arm/configs/omap3_pandora_defconfig
+index b54ad2e..3df0644 100644
+--- a/arch/arm/configs/omap3_pandora_defconfig
++++ b/arch/arm/configs/omap3_pandora_defconfig
+@@ -190,6 +190,7 @@ CONFIG_OMAP_DM_TIMER=y
+ CONFIG_OMAP_LL_DEBUG_UART3=y
+ CONFIG_ARCH_OMAP34XX=y
+ CONFIG_ARCH_OMAP3430=y
++CONFIG_ARCH_OMAP35XX=y
  
--static void __init omap34xx_set_revision(u8 rev, char *rev_name)
-+static u32 __init omap3_get_features(char *feat_name)
-+{
-+	u32 features, module;
-+
-+	features = omap_ctrl_readl(OMAP343X_CONTROL_FEATURE_OMAP_STATUS) &
-+					(OMAP343X_FEATURE_SGX_MASK |
-+						OMAP343X_FEATURE_IVA2_HW_NONE);
-+
-+	module = (features & OMAP343X_FEATURE_SGX_MASK) >>
-+					OMAP343X_FEATURE_SGX_SHIFT;
-+	switch (module) {
-+	case OMAP343X_SGX_FULL:
-+		strcat(feat_name, "full speed SGX, ");
-+		break;
-+	case OMAP343X_SGX_HALF:
-+		strcat(feat_name, "half speed SGX, ");
-+		break;
-+	case OMAP343X_SGX_NONE:
-+		strcat(feat_name, "no SGX, ");
-+		break;
-+	default:
-+		strcat(feat_name, "unknown SGX, ");
-+		break;
-+	}
-+
-+	module = features & OMAP343X_FEATURE_IVA2_HW_NONE;
-+	switch (module) {
-+	case 0:
-+		strcat(feat_name, "IVA2");
-+		break;
-+	case OMAP343X_FEATURE_IVA2_HW_NONE:
-+		strcat(feat_name, "no IVA2");
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return features;
-+}
-+
-+static void __init omap34xx_set_revision(u8 rev, char *rev_name, char *features)
+ #
+ # OMAP Board Type
+diff --git a/arch/arm/configs/overo_defconfig b/arch/arm/configs/overo_defconfig
+index a57f9e4..5669be7 100644
+--- a/arch/arm/configs/overo_defconfig
++++ b/arch/arm/configs/overo_defconfig
+@@ -199,6 +199,7 @@ CONFIG_OMAP_DM_TIMER=y
+ CONFIG_OMAP_LL_DEBUG_UART3=y
+ CONFIG_ARCH_OMAP34XX=y
+ CONFIG_ARCH_OMAP3430=y
++CONFIG_ARCH_OMAP35XX=y
+ 
+ #
+ # OMAP Board Type
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index b6a68d5..20ae92f 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -413,7 +413,7 @@ static void __init omap3_beagle_init(void)
+ 
+ static void __init omap3_beagle_map_io(void)
  {
-+	u32 coprocessors;
-+
-+	coprocessors = omap3_get_features(features);
-+
- 	switch (rev) {
- 	case 0:
- 		omap_revision = OMAP3430_REV_ES2_0;
-@@ -189,9 +241,46 @@ static void __init omap34xx_set_revision(u8 rev, char *rev_name)
- 	}
+-	omap2_set_globals_343x();
++	omap2_set_globals_35xx();
+ 	omap2_map_common_io();
  }
  
--static void __init omap35xx_set_revision(u8 rev, u8 gen, char *rev_name)
-+static void __init omap35xx_set_revision(u8 rev, u8 gen, char *rev_name,
-+						char *features)
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 595beac..79dda7a 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -314,7 +314,7 @@ static void __init omap3_evm_init(void)
+ 
+ static void __init omap3_evm_map_io(void)
  {
--	omap_revision = OMAP35XX_CLASS ;
-+	u32 coprocessors;
-+
-+	coprocessors = omap3_get_features(features);
-+
-+	if (gen == OMAP35XX_G1) {
-+		switch (coprocessors) {
-+		case FEAT_MPU_ONLY:
-+			omap_revision |= OMAP3503_MASK;
-+			break;
-+		case FEAT_MPU_SGX:
-+			omap_revision |= OMAP3515_MASK;
-+			break;
-+		case FEAT_MPU_IVA:
-+			omap_revision |= OMAP3525_MASK;
-+			break;
-+		case FEAT_MPU_IVA_SGX:
-+			omap_revision |= OMAP3530_MASK;
-+			break;
-+		default:
-+			/* Assume full-featured device */
-+			omap_revision |= OMAP3530_MASK;
-+			break;
-+		}
-+	} else {
-+		switch (coprocessors) {
-+		case FEAT_MPU_ONLY:
-+			omap_revision |= OMAP3505_MASK;
-+			break;
-+		case FEAT_MPU_SGX:
-+			omap_revision |= OMAP3517_MASK;
-+			break;
-+		default:
-+			/* Assume full featured device */
-+			omap_revision |= OMAP3517_MASK;
-+			break;
-+		}
-+	}
- 
- 	if (gen == OMAP35XX_G1) {
- 		switch (rev) {
-@@ -227,7 +316,7 @@ void __init omap34xx_check_revision(void)
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
- 	u8 rev;
--	char rev_name[16] = "";
-+	char rev_name[16] = "", feat_name[32] = "";
- 
- 	/*
- 	 * We cannot access revision registers on ES1.0.
-@@ -252,15 +341,16 @@ void __init omap34xx_check_revision(void)
- 
- 	if (hawkeye == 0xb7ae) {
- 		if (cpu_is_omap35xx())
--			omap35xx_set_revision(rev, OMAP35XX_G1, rev_name);
-+			omap35xx_set_revision(rev, OMAP35XX_G1,
-+						rev_name, feat_name);
- 		else
--			omap34xx_set_revision(rev, rev_name);
-+			omap34xx_set_revision(rev, rev_name, feat_name);
- 	} else if (hawkeye == 0xb868) {
--		omap35xx_set_revision(rev, OMAP35XX_G2, rev_name);
-+		omap35xx_set_revision(rev, OMAP35XX_G2, rev_name, feat_name);
- 	}
- 
- out:
--	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
-+	pr_info("OMAP%04x %s (%s)\n", omap_rev() >> 16, rev_name, feat_name);
+-	omap2_set_globals_343x();
++	omap2_set_globals_35xx();
+ 	omap2_map_common_io();
  }
  
- /*
-diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-index 8140dbc..43e0a92 100644
---- a/arch/arm/plat-omap/include/mach/control.h
-+++ b/arch/arm/plat-omap/include/mach/control.h
-@@ -181,6 +181,30 @@
- #define OMAP2_SYSBOOT_1_MASK		(1 << 1)
- #define OMAP2_SYSBOOT_0_MASK		(1 << 0)
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 85cc2a7..f6227fd 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -402,7 +402,7 @@ static void __init omap3pandora_init(void)
  
-+/* CONTROL_FEATURE_OMAP_STATUS register and bits */
-+#define OMAP343X_CONTROL_FEATURE_OMAP_STATUS  0x044c
-+
-+#define OMAP343X_FEATURE_SGX_MASK		(0x3 << 13)
-+#define OMAP343X_FEATURE_SGX_SHIFT		13
-+#define OMAP343X_SGX_FULL			0
-+#define OMAP343X_SGX_HALF			1
-+#define OMAP343X_SGX_NONE			2
-+
-+#define OMAP343X_FEATURE_IVA2_HW_NONE		(1 << 12)
-+
-+#define OMAP343X_FEATURE_L2_CACHE_MASK		(0x3 << 10)
-+#define OMAP343X_FEATURE_L2_CACHE_SHIFT		10
-+#define OMAP343X_L2_0KB				0
-+#define OMAP343X_L2_64KB			1
-+#define OMAP343X_L2_128KB			2
-+#define OMAP343X_L2_256KB			3
-+
-+#define OMAP343X_FEATURE_ARM_MHZ_MASK		(0x3 << 8)
-+#define OMAP343X_FEATURE_ARM_MHZ_SHIFT		8
-+
-+#define OMAP343X_FEATURE_IVA2_MHZ_MASK		(0x3 << 6)
-+#define OMAP343X_FEATURE_IVA2_MHZ_SHIFT		6
-+
- /* CONTROL_PBIAS_LITE bits */
- #define OMAP343X_PBIASLITESUPPLY_HIGH1	(1 << 15)
- #define OMAP343X_PBIASLITEVMODEERROR1	(1 << 11)
+ static void __init omap3pandora_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_35xx();
+ 	omap2_map_common_io();
+ }
+ 
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 501d020..7d90261 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -443,7 +443,7 @@ static void __init overo_init(void)
+ 
+ static void __init overo_map_io(void)
+ {
+-	omap2_set_globals_343x();
++	omap2_set_globals_35xx();
+ 	omap2_map_common_io();
+ }
+ 
 -- 
 1.6.2.2
 
