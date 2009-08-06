@@ -1,36 +1,72 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH] ASoC: OMAP: full duplex mode fix
-Date: Thu, 6 Aug 2009 11:30:29 +0200
-Message-ID: <200908061130.30804.jkrzyszt@tis.icnet.pl>
-References: <200908030332.06727.jkrzyszt@tis.icnet.pl>
-	<200908042246.09919.jkrzyszt@tis.icnet.pl>
-	<200908050945.22160.peter.ujfalusi@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 0/3] Omap header cleanup for upcoming 2.6.32 merge window
+Date: Thu, 06 Aug 2009 13:08:56 +0300
+Message-ID: <20090806100614.2569.8531.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200908050945.22160.peter.ujfalusi@nokia.com>
-Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Arun K S <arunks@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51063 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752622AbZHFKJE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 06:09:04 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-Wednesday 05 August 2009 08:45:21 Peter Ujfalusi wrote:
-> In case of playback start while capture: What is the state of the XEMPTY
-> bit (SPCR2:2)? Is it 0? It should.
+Hi all,
 
-Yes, XEMPTY was 0, both before and after omap_start_dma().
+Here are few patches for the upcoming merge window to remove unnecessary
+ifdeffery in the header files.
 
-For completness of the record:
-RFULL was 1 (again as expected) in case of capture start while playing.
+We should get these merged early to avoid merge conflicts with other
+patchsets.
 
-Janusz
+Regards,
+
+Tony
+
+---
+
+Tony Lindgren (3):
+      OMAP: Remove ifdefs for io.h
+      OMAP: Rename OMAP_MPUIO_BASE to OMAP1_MPUIO_BASE
+      OMAP: Remove OMAP_IO_ADDRESS, use OMAP1_IO_ADDRESS and OMAP2_IO_ADDRESS instead
+
+
+ arch/arm/mach-omap1/devices.c                 |    2 -
+ arch/arm/mach-omap1/io.c                      |    6 +-
+ arch/arm/mach-omap1/pm.h                      |    4 +
+ arch/arm/mach-omap1/serial.c                  |    6 +-
+ arch/arm/mach-omap1/sram.S                    |   12 ++-
+ arch/arm/mach-omap1/time.c                    |    4 +
+ arch/arm/mach-omap2/board-4430sdp.c           |    4 +
+ arch/arm/mach-omap2/cm.h                      |    6 +-
+ arch/arm/mach-omap2/omap-smp.c                |    2 -
+ arch/arm/mach-omap2/pm-debug.c                |    2 -
+ arch/arm/mach-omap2/prm.h                     |    6 +-
+ arch/arm/mach-omap2/sdrc.h                    |    6 +-
+ arch/arm/mach-omap2/serial.c                  |    6 +-
+ arch/arm/mach-omap2/sram242x.S                |    4 +
+ arch/arm/mach-omap2/sram243x.S                |    4 +
+ arch/arm/mach-omap2/timer-gp.c                |    2 -
+ arch/arm/plat-omap/dma.c                      |    8 +-
+ arch/arm/plat-omap/dmtimer.c                  |    5 +
+ arch/arm/plat-omap/gpio.c                     |   88 +++++++++++------------
+ arch/arm/plat-omap/include/mach/control.h     |   12 ++-
+ arch/arm/plat-omap/include/mach/entry-macro.S |    8 +-
+ arch/arm/plat-omap/include/mach/gpio.h        |    2 -
+ arch/arm/plat-omap/include/mach/io.h          |   97 ++++++++++++-------------
+ arch/arm/plat-omap/include/mach/mtd-xip.h     |    2 -
+ arch/arm/plat-omap/include/mach/omap44xx.h    |    8 +-
+ arch/arm/plat-omap/include/mach/sdrc.h        |    6 +-
+ arch/arm/plat-omap/io.c                       |   62 +++++++++++++++-
+ arch/arm/plat-omap/sram.c                     |   20 +++--
+ drivers/input/keyboard/omap-keypad.c          |   22 +++---
+ drivers/mtd/nand/ams-delta.c                  |    8 +-
+ drivers/video/omap/dispc.c                    |    6 +-
+ 31 files changed, 245 insertions(+), 185 deletions(-)
+
+-- 
+Signature
