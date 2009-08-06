@@ -1,93 +1,145 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] OMAP3: PM: Add function omap_device_find_pdev to
- omap_device layer
-Date: Thu, 6 Aug 2009 07:39:07 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908060738249.22103@utopia.booyaka.com>
-References: <1248694087-7177-1-git-send-email-ranjithl@ti.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: DSS2 questions
+Date: Thu, 06 Aug 2009 07:42:21 -0600
+Message-ID: <4A7ADDBD.8010901@mlbassoc.com>
+References: <4A7AC798.6070409@mlbassoc.com> <4A7AD7B5.10500@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+ boundary="------------030003040406040809080204"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57551 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755372AbZHFNjI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 09:39:08 -0400
-In-Reply-To: <1248694087-7177-1-git-send-email-ranjithl@ti.com>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:3977 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755883AbZHFNmX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 09:42:23 -0400
+In-Reply-To: <4A7AD7B5.10500@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ranjith Lohithakshan <ranjithl@ti.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Ranjith,
+This is a multi-part message in MIME format.
+--------------030003040406040809080204
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-On Mon, 27 Jul 2009, Ranjith Lohithakshan wrote:
-
-> This patch adds a function, omap_device_find_pdev, which will get the
-> omap_device associated with the platform_device provided. This is currently
-> required by the SRF layer for setting max_dev_wakeup_lat and getting
-> dev_context_loss_count.
+Tomi Valkeinen wrote:
+> Hi,
 > 
-> Signed-off-by: Ranjith Lohithakshan <ranjithl@ti.com>
-
-Looks good to me, I will pull this into omap_device.
-
-
-- Paul
-
-> ---
->  arch/arm/plat-omap/include/mach/omap_device.h |    2 +-
->  arch/arm/plat-omap/omap_device.c              |   22 ++++++++++++++++++++++
->  2 files changed, 23 insertions(+), 1 deletions(-)
+> ext Gary Thomas wrote:
+>> Tomi,
+>>
+>> I've been following your DSS2 work, with reasonable success.
+>> However, when I tried to pull from your repo today, I got
+>> a ton of merge errors.  I cloned your tree a [little] while
+>> back (it seems it was 2009-06-16, but where did the time go?)
+>>
+>> Here's what I did:
+>>   git clone http://www.bat.org/~tomba/git/linux-omap-dss.git
+>>     HEAD=5bd374f9b199d46ae434489d56615b240de5a6d7
+>>   git checkout -b my_branch origin/master
+>>     ...
+>> When I went to pull into my_branch, I got the merge errors.
+>> Any clues what I did wrong?  How could/should I have managed
+>> this better?
 > 
-> diff --git a/arch/arm/plat-omap/include/mach/omap_device.h b/arch/arm/plat-omap/include/mach/omap_device.h
-> index bd0e136..5874af2 100644
-> --- a/arch/arm/plat-omap/include/mach/omap_device.h
-> +++ b/arch/arm/plat-omap/include/mach/omap_device.h
-> @@ -136,6 +136,6 @@ struct omap_device_pm_latency {
->  	int (*activate_func)(struct omap_device *od);
->  };
->  
-> -
-> +struct omap_device *omap_device_find_pdev(struct platform_device *pdev);
->  #endif
->  
-> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-> index 2c409fc..b947faf 100644
-> --- a/arch/arm/plat-omap/omap_device.c
-> +++ b/arch/arm/plat-omap/omap_device.c
-> @@ -685,3 +685,25 @@ int omap_device_enable_clocks(struct omap_device *od)
->  	/* XXX pass along return value here? */
->  	return 0;
->  }
-> +
-> +/**
-> + * omap_device_find_pdev - look up an OMAP module by platform_device
-> + * @pdev: platform_device to find
-> + *
-> + * Finds a registered OMAP module by the platform_device associated
-> + * with it in the omap_device structure. Returns a pointer to the
-> + * struct omap_device if found, or NULL otherwise.
-> + */
-> +
-> +struct omap_device *omap_device_find_pdev(struct platform_device *pdev)
-> +{
-> +	struct omap_device *od;
-> +
-> +	if (!pdev)
-> +		return NULL;
-> +
-> +	od = _find_by_pdev(pdev);
-> +
-> +	return od;
-> +}
-> +
-> -- 
-> 1.6.2.4
+> The problem is that I have rebased my tree so that I end up with a clean
+> set of patches that can be posted to mailing lists. And rebasing means
+> changing history, which means that you cannot merge it normally.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Perhaps I should keep the master branch as it is, and do rebasing on a
+> separate branch. I don't know, I'm no git-master ;).
+> 
+> If you have no changes of your own in the branch, you can do
+> git reset --hard origin/master
+> which will reset that branch to the exact version that is in origin/master.
 > 
 
+I'll give this a try - I still have the old tree I was working from.
 
-- Paul
+>>
+>> n.b. you earlier told me that git was better than sliced
+>> bread; I'm still waiting to be shown the light :-)
+> 
+> You'll see it when you understand how git works ;)
+> 
+>>
+>> Second question; I've set up my system much the same as the
+>> boards you are working on, with an LCD and TV outputs.  I'm
+>> a bit confused as to how I configure the overlays and managers
+>> to be able to send YUV data directly through to either the
+>> LCD or TV.  Can you explain this?
+> 
+> You need to change the framebuffer to YUV color mode. And YUV only works
+> on video overlays, so you need to setup video overlay to be shown on the
+> LCD or TV.
+> 
+> If you have fb1 as a video overlay, you can do for example:
+> 
+> fbset -fb /dev/fb1 -nonstd 1
+> 
+> which sets fb1 to YUV422 mode. 8 would be YUY422. Those numbers come
+> from omapfb.h, enum omapfb_color_format.
+> 
+> Check also Documentation/arm/OMAP/DSS, if you haven't already done so.
+> 
+
+Still a bit fuzzy on this.  I'm sure that document helps, if
+one already knows how all the overlays and managers and ...
+are wired together.  I'm new at this game :-)
+
+I tried to set my TV to be video/uyv422 via the attached script.
+I was trying to leave fb0 alone (running on the LCD) and use fb1
+to display the YUV422 data. Alas, 'fbset' gives me "Bad video mode"?
+Any pointers?
+
+Thanks
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
+
+--------------030003040406040809080204
+Content-Type: text/plain;
+ name="tv_video"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="tv_video"
+
+#! /bin/sh
+
+ovl0=/sys/devices/platform/omapdss/overlay0
+ovl1=/sys/devices/platform/omapdss/overlay1
+ovl2=/sys/devices/platform/omapdss/overlay2
+
+mgr0=/sys/devices/platform/omapdss/manager0
+mgr1=/sys/devices/platform/omapdss/manager1
+
+lcd=/sys/devices/platform/omapdss/display0
+tv=/sys/devices/platform/omapdss/display1
+
+fb0=/sys/class/graphics/fb0
+fb1=/sys/class/graphics/fb1
+fb2=/sys/class/graphics/fb2
+
+MODE=${MODE:-ntsc}
+echo "0" > $tv/enabled
+echo ${MODE} >$tv/timings
+w=`cat $tv/timings | cut -d "," -f 2 | cut -d "/" -f 1`
+h=`cat $tv/timings | cut -d "," -f 3 | cut -d "/" -f 1`
+echo "... Setting ${MODE} mode, Width = ${w}, Height = ${h}"
+
+echo "0" > $ovl2/enabled
+echo "2" > $fb1/overlays
+
+echo "$w,$h" > $ovl2/output_size
+echo "tv" > $ovl2/manager
+
+echo "1" > $ovl2/enabled
+echo "1" > $tv/enabled
+
+fbset -fb /dev/fb1 -nonstd 1
+
+
+--------------030003040406040809080204--
