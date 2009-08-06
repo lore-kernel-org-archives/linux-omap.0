@@ -1,49 +1,44 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: DSS2 questions
-Date: Thu, 06 Aug 2009 06:07:52 -0600
-Message-ID: <4A7AC798.6070409@mlbassoc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH 5/9] ehci: increase timeout to fix ehci failure
+Date: Thu,  6 Aug 2009 17:37:36 +0530
+Message-ID: <1249560460-16306-5-git-send-email-ajay.gupta@ti.com>
+References: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com>
+ <1249560460-16306-2-git-send-email-ajay.gupta@ti.com>
+ <1249560460-16306-3-git-send-email-ajay.gupta@ti.com>
+ <1249560460-16306-4-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:5090 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755210AbZHFMIr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 08:08:47 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:51384 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755276AbZHFMI7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 6 Aug 2009 08:08:59 -0400
+In-Reply-To: <1249560460-16306-4-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: felipe.balbi@nokia.com, david-b@pacbell.net, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-Tomi,
+Sometime during TLL reset and waiting loop for TLL reset timeouts and thus
+ehci init fails. Fixing this by increasing timeout value.
 
-I've been following your DSS2 work, with reasonable success.
-However, when I tried to pull from your repo today, I got
-a ton of merge errors.  I cloned your tree a [little] while
-back (it seems it was 2009-06-16, but where did the time go?)
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+---
+ drivers/usb/host/ehci-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Here's what I did:
-  git clone http://www.bat.org/~tomba/git/linux-omap-dss.git
-    HEAD=5bd374f9b199d46ae434489d56615b240de5a6d7
-  git checkout -b my_branch origin/master
-    ...
-When I went to pull into my_branch, I got the merge errors.
-Any clues what I did wrong?  How could/should I have managed
-this better?
-
-n.b. you earlier told me that git was better than sliced
-bread; I'm still waiting to be shown the light :-)
-
-Second question; I've set up my system much the same as the
-boards you are working on, with an LCD and TV outputs.  I'm
-a bit confused as to how I configure the overlays and managers
-to be able to send YUV data directly through to either the
-LCD or TV.  Can you explain this?
-
-Thanks
-
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 55e5259..c7631f5 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -244,7 +244,7 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
+  */
+ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+ {
+-	unsigned long timeout = jiffies + msecs_to_jiffies(100);
++	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
+ 	unsigned reg = 0;
+ 	int ret = 0;
+ 
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.6.2.4
+
