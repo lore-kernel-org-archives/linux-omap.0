@@ -1,62 +1,76 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 7/9] omap3: Add CHIP_GE_OMAP3430ES3 for HSUSB
-Date: Thu, 6 Aug 2009 16:13:37 +0300
-Message-ID: <20090806131336.GP2358@atomide.com>
-References: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com> <1249560460-16306-2-git-send-email-ajay.gupta@ti.com> <1249560460-16306-3-git-send-email-ajay.gupta@ti.com> <1249560460-16306-4-git-send-email-ajay.gupta@ti.com> <1249560460-16306-5-git-send-email-ajay.gupta@ti.com> <1249560460-16306-6-git-send-email-ajay.gupta@ti.com> <1249560460-16306-7-git-send-email-ajay.gupta@ti.com> <20090806130715.GA2874@nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: DSS2 questions
+Date: Thu, 06 Aug 2009 16:16:37 +0300
+Message-ID: <4A7AD7B5.10500@nokia.com>
+References: <4A7AC798.6070409@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54434 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755746AbZHFNNl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 09:13:41 -0400
-Content-Disposition: inline
-In-Reply-To: <20090806130715.GA2874@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:33145 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755665AbZHFNQw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 09:16:52 -0400
+In-Reply-To: <4A7AC798.6070409@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: ext Ajay Kumar Gupta <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "david-b@pacbell.net" <david-b@pacbell.net>
+To: ext Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Felipe Balbi <felipe.balbi@nokia.com> [090806 16:06]:
-> On Thu, Aug 06, 2009 at 02:07:38PM +0200, ext Ajay Kumar Gupta wrote:
-> > OMAP3 HSUSB ports can be individually programmed in PHY or TLL
-> > mode in ES3.0 onwards whereas this is not supported in ES2.1
-> > and earlier versions.
-> > 
-> > CHIP_GE_OMAP3430ES3 is added to program this behavior at runtime.
-> > 
-> > Also updated the existing macros to use the priviously defined
-> > *_GE_* logic instead of repeating the same logic again.
-> > 
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > ---
-> >  arch/arm/plat-omap/include/mach/cpu.h |    7 ++++---
-> >  1 files changed, 4 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-> > index 285eaa3..5848717 100644
-> > --- a/arch/arm/plat-omap/include/mach/cpu.h
-> > +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> > @@ -428,10 +428,11 @@ IS_OMAP_TYPE(3430, 0x3430)
-> >   * chips at ES2 and beyond, but not, for example, any OMAP lines after
-> >   * OMAP3.
-> >   */
-> > -#define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
-> > -					 CHIP_IS_OMAP3430ES3_0 | \
-> > -					 CHIP_IS_OMAP3430ES3_1)
-> >  #define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1)
-> > +#define CHIP_GE_OMAP3430ES3		(CHIP_IS_OMAP3430ES3_0 | \
-> > +					 CHIP_GE_OMAP3430ES3_1)
-> > +#define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
-> > +					 CHIP_GE_OMAP3430ES3)
+Hi,
+
+ext Gary Thomas wrote:
+> Tomi,
 > 
-> Tony, what about this one ? Do you agree with it ? I need this in order
-> to get a buildable driver merged through linux-usb. The usb-ehci.c stuff
-> I can postpone to be sent later but without this, ehci-omap.c won't
-> build.
+> I've been following your DSS2 work, with reasonable success.
+> However, when I tried to pull from your repo today, I got
+> a ton of merge errors.  I cloned your tree a [little] while
+> back (it seems it was 2009-06-16, but where did the time go?)
 > 
-> any input is appreciated.
+> Here's what I did:
+>   git clone http://www.bat.org/~tomba/git/linux-omap-dss.git
+>     HEAD=5bd374f9b199d46ae434489d56615b240de5a6d7
+>   git checkout -b my_branch origin/master
+>     ...
+> When I went to pull into my_branch, I got the merge errors.
+> Any clues what I did wrong?  How could/should I have managed
+> this better?
 
-Yeh looks OK to me.
+The problem is that I have rebased my tree so that I end up with a clean 
+set of patches that can be posted to mailing lists. And rebasing means 
+changing history, which means that you cannot merge it normally.
 
-Tony
+Perhaps I should keep the master branch as it is, and do rebasing on a 
+separate branch. I don't know, I'm no git-master ;).
+
+If you have no changes of your own in the branch, you can do
+git reset --hard origin/master
+which will reset that branch to the exact version that is in origin/master.
+
+> 
+> n.b. you earlier told me that git was better than sliced
+> bread; I'm still waiting to be shown the light :-)
+
+You'll see it when you understand how git works ;)
+
+> 
+> Second question; I've set up my system much the same as the
+> boards you are working on, with an LCD and TV outputs.  I'm
+> a bit confused as to how I configure the overlays and managers
+> to be able to send YUV data directly through to either the
+> LCD or TV.  Can you explain this?
+
+You need to change the framebuffer to YUV color mode. And YUV only works 
+on video overlays, so you need to setup video overlay to be shown on the 
+LCD or TV.
+
+If you have fb1 as a video overlay, you can do for example:
+
+fbset -fb /dev/fb1 -nonstd 1
+
+which sets fb1 to YUV422 mode. 8 would be YUY422. Those numbers come 
+from omapfb.h, enum omapfb_color_format.
+
+Check also Documentation/arm/OMAP/DSS, if you haven't already done so.
+
+  Tomi
