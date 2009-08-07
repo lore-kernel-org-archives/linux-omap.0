@@ -1,169 +1,208 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: MMC3 Overo
-Date: Fri, 7 Aug 2009 11:21:18 +0300
-Message-ID: <20090807082115.GY2358@atomide.com>
-References: <bb2708720908050935s6602d76dq2dbaa00195008132@mail.gmail.com> <5e088bd90908051051s98875e0vddab60dd122f3e8b@mail.gmail.com> <4A79C83E.9040603@deeprootsystems.com> <5e088bd90908051121h38678c9fha73b7beb88752156@mail.gmail.com> <4A79D104.60607@deeprootsystems.com> <bb2708720908051229x49f10094w9b19b468d4bfaec8@mail.gmail.com> <bb2708720908051902p4b369784s8fc5056be9ba047d@mail.gmail.com> <871vnp8170.fsf@deeprootsystems.com> <4A7AF213.6040301@balister.org> <1249574990.10885.43.camel@blitz>
+Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
+Date: Fri, 7 Aug 2009 11:23:25 +0300
+Message-ID: <20090807082322.GZ2358@atomide.com>
+References: <1249554967-20394-1-git-send-email-premi@ti.com> <20090806110359.GD2358@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D8C80741@dbde02.ent.ti.com> <20090806115025.GG2358@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D8C80860@dbde02.ent.ti.com> <87fxc56lfz.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62782 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757041AbZHGIVZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 04:21:25 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52638 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757249AbZHGIXe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 04:23:34 -0400
 Content-Disposition: inline
-In-Reply-To: <1249574990.10885.43.camel@blitz>
+In-Reply-To: <87fxc56lfz.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: Philip Balister <philip@balister.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Peter Barada <peterb@logicpd.com> [090806 19:31]:
-> On Thu, 2009-08-06 at 11:09 -0400, Philip Balister wrote:
-> > Kevin Hilman wrote:
-> > > John Sarman <johnsarman@gmail.com> writes:
-> > > 
-> > >> On Wed, Aug 5, 2009 at 2:35 PM, Kevin Hilman<khilman@deeprootsystems.com> wrote:
-> > >>> Steve Sakoman wrote:
-> > >>>> On Wed, Aug 5, 2009 at 10:58 AM, Kevin
-> > >>>> Hilman<khilman@deeprootsystems.com> wrote:
-> > >>>>> Steve Sakoman wrote:
-> > >>>>>> And up to now in each case I shrug and say "no time to do that now,
-> > >>>>>> I'll just leave kernel pinmuxing turned off and do it in u-boot"
-> > >>>>> I agree there are lots of shortcomings in the current mux code and we've
-> > >>>>> been hitting them regularily lately.
-> > >>>>>
-> > >>>>> That being said, for mux settings that done one-time only at boot, what
-> > >>>>> are
-> > >>>>> the problems you're running into?
-> > >>>> It's been a few months since I last encountered this, so the exact
-> > >>>> details are a bit fuzzy.
-> > >>>>
-> > >>>> I seem to recall that there were some basic issues with enabling
-> > >>>> kernel pinmuxing in that some of the setup that was done for all
-> > >>>> machines was just wrong for my particular machine.  IIRC, it was due
-> > >>>> to assumptions about which pad was used for a particular function (for
-> > >>>> those functions which can be steered to multiple GPIO pads).
-> > >>>>
-> > >>>> So I faced having to undo that change in my board file as well as any
-> > >>>> issues that may have arisen from glitches on the GPIO pins during the
-> > >>>> process.  And since there were several of these I gave up and turned
-> > >>>> off kernel pinmuxing.
-> > >>>>
-> > >>>> I'd be happy if we cleaned up the "one size fits all" pinmuxing to
-> > >>>> just that subset that truly does fit all boards, and leave the rest to
-> > >>>> the board files.  I'd also be content to have it all done in the board
-> > >>>> file for each machine.
-> > >>> Indeed, any assumptions about common muxing that are not indeed common are
-> > >>> bugs and should be fixed.
-> > >>>
-> > >>> The "right" solution is to have everything in the kernel, and split across
-> > >>> SoC "common" init and board specific init.  Of course u-boot
-> > >>> will still have to do some early muxing, but it should be redone in
-> > >>> the kernel so it's trivial to change bootloaders.
-> > >>>
-> > >>> So the real missing piece is someone to step up and rework the mux code.
-> > >>> The bigger problem is that the vast majority of folks don't care about the
-> > >>> common case and only care about getting thing working for a specific
-> > >>> platform.
-> > >>>
-> > >>> Kevin
-> > >>>
-> > >> I  like the idea of having the board file configure the mux.  First of
-> > >> all lets address the shortcomings of mux.h.  The Pin values are
-> > >> labeled as so:
-> > >> <snip from mux.h>
-> > >> * NOTE: Please use the following naming style for new pin entries.
-> > >>  *       For example, W8_1610_MMC2_DAT0, where:
-> > >>  *       - W8        = ball
-> > >>  *       - 1610      = 1510 or 1610, none if common for both 1510 and 1610
-> > >>  *       - MMC2_DAT0 = function
-> > >>
-> > >> But lets take the 3530 as an example.
-> > >>  The 3530 has three separate packages.  CBB, CBC, and CUS.  Now lets
-> > >> look at MMC3_clk (the root of my original problem that started this
-> > >> thread)
-> > >>                        CBB              CBC            CUS
-> > >> mmc3_clk         AB1 / AF10    R9 / AB2     AC1
-> > >>
-> > >> So to properly add these to mux.h we need to add 5 entries for mmc3_clk
-> > >>       AB1_35XXCBB_MMC3_CLK
-> > >>       AF10_35XXCBB_MMC3_CLK
-> > >>       R9_35XXCBC_MMC3_CLK
-> > >>       AB2_35XXCBC_MMC3_CLK
-> > >>       AC1_35XXCUS_MMC3_CLK
-> > >> We would then have to update mux.c making sure the position matches
-> > >> and add the proper settings.
-> > >>
-> > >> So this is obviously a maintenance nightmare.
-> > > 
-> > > So why don't we drop the ball (pun intended.) ;)
-> > > 
-> > > This is what I proposed to Phillip Ballister for his SPI changes for Beagle.
-> > > 
-> > > Though I haven't looked at the details for each package, I have a hard
-> > > time imagining that the reg offsets and functionality for each package
-> > > is different.  In fact, I'm pretty sure they're even the same between
-> > > 34xx and 35xx.  
-> > > 
-> > > IOW, why not just name it OMAP3_MMC3_CLK and have a single entry.
-> > > 
-> > > Then each board file that cares simply has to call omap_cfg_reg() on
-> > > that name and not care about the package.
-> > 
-> > They first problem I see is the MMC3_CLK is available on multiple balls, 
-> > so the mux files need to list them all.
-> > 
-> > Unless you are proposing custom mux files for each board? Is this is 
-> > good idea (just had this thought). In other words, instead of trying to 
-> > come up with one set of mux files, make them board specific.
+* Kevin Hilman <khilman@deeprootsystems.com> [090806 17:56]:
+> "Premi, Sanjeev" <premi@ti.com> writes:
 > 
-> Here's an idea:
+> >> -----Original Message-----
+> >> From: Tony Lindgren [mailto:tony@atomide.com] 
+> >> Sent: Thursday, August 06, 2009 5:20 PM
+> >> To: Premi, Sanjeev
+> >> Cc: linux-omap@vger.kernel.org
+> >> Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
+> >> 
+> >> * Premi, Sanjeev <premi@ti.com> [090806 14:34]:
+> >> >  
+> >> > > -----Original Message-----
+> >> > > From: Tony Lindgren [mailto:tony@atomide.com] 
+> >> > > Sent: Thursday, August 06, 2009 4:34 PM
+> >> > > To: Premi, Sanjeev
+> >> > > Cc: linux-omap@vger.kernel.org
+> >> > > Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
+> >> > > 
+> >> > > Hi,
+> >> > > 
+> >> > > * Sanjeev Premi <premi@ti.com> [090806 13:36]:
+> >> > > > Added runtime check via omap2_set_globals_35xx().
+> >> > > > 
+> >> > > > Parts of this patch have been derived from an earlier
+> >> > > > earlier patch submitted by Tony Lindgren <tony@atomide.com>
+> >> > > > 
+> >> > > >  [1] http://marc.info/?l=linux-omap&m=123301852702797&w=2
+> >> > > >  [2] http://marc.info/?l=linux-omap&m=123334055822212&w=2
+> >> > > > 
+> >> > > > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> >> > > > ---
+> >> > > >  arch/arm/mach-omap2/id.c                 |  115 
+> >> > > ++++++++++++++++++++++++------
+> >> > > >  arch/arm/plat-omap/common.c              |   18 +++++-
+> >> > > >  arch/arm/plat-omap/include/mach/common.h |    1 +
+> >> > > >  arch/arm/plat-omap/include/mach/cpu.h    |   64 
+> >> ++++++++++++++++-
+> >> > > >  4 files changed, 173 insertions(+), 25 deletions(-)
+> >> > > > 
+> >> > > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> >> > > > index a98201c..06770aa 100644
+> >> > > > --- a/arch/arm/mach-omap2/id.c
+> >> > > > +++ b/arch/arm/mach-omap2/id.c
+> >> > > > @@ -28,6 +28,14 @@
+> >> > > >  static struct omap_chip_id omap_chip;
+> >> > > >  static unsigned int omap_revision;
+> >> > > >  
+> >> > > > +/* The new OMAP35x devices have assymetric names - 
+> >> > > OMAP3505 and OMAP3517.
+> >> > > > + * It is not possible to define a common macro to 
+> >> identify them.
+> >> > > > + *
+> >> > > > + * A quick way is to separate them across 
+> >> 'generations' as below.
+> >> > > > + */
+> >> > > > +#define OMAP35XX_G1	0x1	/* Applies to 3503, 
+> >> > > 3515, 3525 and 3530 */
+> >> > > > +#define OMAP35XX_G2	0x2	/* Applies to 3505 and 3517 */
+> >> > > > +
+> >> > > >  
+> >> > > >  unsigned int omap_rev(void)
+> >> > > >  {
+> >> > > > @@ -155,12 +163,71 @@ void __init omap24xx_check_revision(void)
+> >> > > >  	pr_info("\n");
+> >> > > >  }
+> >> > > >  
+> >> > > > +static void __init omap34xx_set_revision(u8 rev, char 
+> >> *rev_name)
+> >> > > > +{
+> >> > > > +	switch (rev) {
+> >> > > > +	case 0:
+> >> > > > +		omap_revision = OMAP3430_REV_ES2_0;
+> >> > > > +		strcat(rev_name, "ES2.0");
+> >> > > > +		break;
+> >> > > > +	case 2:
+> >> > > > +		omap_revision = OMAP3430_REV_ES2_1;
+> >> > > > +		strcat(rev_name, "ES2.1");
+> >> > > > +		break;
+> >> > > > +	case 3:
+> >> > > > +		omap_revision = OMAP3430_REV_ES3_0;
+> >> > > > +		strcat(rev_name, "ES3.0");
+> >> > > > +		break;
+> >> > > > +	case 4:
+> >> > > > +		omap_revision = OMAP3430_REV_ES3_1;
+> >> > > > +		strcat(rev_name, "ES3.1");
+> >> > > > +		break;
+> >> > > > +	default:
+> >> > > > +		/* Use the latest known revision as default */
+> >> > > > +		omap_revision = OMAP3430_REV_ES3_1;
+> >> > > > +		strcat(rev_name, "Unknown revision");
+> >> > > > +	}
+> >> > > > +}
+> >> > > > +
+> >> > > > +static void __init omap35xx_set_revision(u8 rev, u8 gen, 
+> >> > > char *rev_name)
+> >> > > > +{
+> >> > > > +	omap_revision = OMAP35XX_CLASS ;
+> >> > > > +
+> >> > > > +	if (gen == OMAP35XX_G1) {
+> >> > > > +		switch (rev) {
+> >> > > > +		case 0:	/* Take care of some older boards */
+> >> > > > +		case 1:
+> >> > > > +			omap_revision |= OMAP35XX_MASK_ES2_0;
+> >> > > > +			strcat(rev_name, "ES2.0");
+> >> > > > +			break;
+> >> > > > +		case 2:
+> >> > > > +			omap_revision |= OMAP35XX_MASK_ES2_1;
+> >> > > > +			strcat(rev_name, "ES2.1");
+> >> > > > +			break;
+> >> > > > +		case 3:
+> >> > > > +			omap_revision |= OMAP35XX_MASK_ES3_0;
+> >> > > > +			strcat(rev_name, "ES3.0");
+> >> > > > +			break;
+> >> > > > +		case 4:
+> >> > > > +			omap_revision |= OMAP35XX_MASK_ES3_1;
+> >> > > > +			strcat(rev_name, "ES3.1");
+> >> > > > +			break;
+> >> > > > +		default:
+> >> > > > +			/* Use the latest known 
+> >> revision as default */
+> >> > > > +			omap_revision |= OMAP35XX_MASK_ES3_0;
+> >> > > > +			strcat(rev_name, "Unknown revision");
+> >> > > > +		}
+> >> > > > +	} else {
+> >> > > > +		strcat(rev_name, "ES1.0");
+> >> > > > +	}
+> >> > > > +}
+> >> > > > +
+> >> > > 
+> >> > > To me it looks like you're checking the exact same cores as 
+> >> > > we already do
+> >> > > for 34xx. That is, (idcode >> 28) & 0xff for both 34xx and 
+> >> > > 35xx. So basically
+> >> > > they have the same omap cores.
+> >> > 
+> >> > No, the cores in OMAP3505 and OMAP3517 are very different.
+> >> > I have listed major differences in PATCH 2/6.
+> >> > 
+> >> > These devices differ in following areas:
+> >> >  - Power management capabilities
+> >> >    (Only 1 power domain, 1 OPP, etc.)
+> >> >  - EMIF4 instead of SDRC
+> >> >  - Support for DDR2
+> >> >  - EMAC
+> >> >  - USB
+> >> >  - HECC
+> >> 
+> >> Sure, but from compiler flags and io point of view they can still
+> >> be treated as 34xx.
+> >> 
+> >> How about just add the individual type detection for 35xx processors,
+> >> and then have something like this:
+> >> 
+> >> #define cpu_is_omap35xx()	(cpu_is_omap34xx() && 
+> >> (cpu_is_omap3510() || \
+> >> 					cpu_is_omap3520() || 
+> >> cpu_is_omap3530())
+> >> 
+> >> That should pretty much shrink this patch series down to 
+> >> about 50 lines or
+> >> so of code.
+> >
+> > Okay, I will try this. Just not sure if some of the differences
+> > in OMAP3530 and OMAP3430 can be detected.
+> >
+> > Will submit a patch soon.
 > 
-> 1) Replace index with enum search in pin table - this breaks the
-> requirement that the enum list and table align - a good thing as
-> misalingment has bitten me multiple times when adding pins to the
-> current mux table.  Also, pinmux setup is done infrequently, so the
-> search doesn't add much overall execution time.
+> 
+> IMO, we should not be using cpu_is_* for detecting the differences
+> between 34xx and 35xx, but rather we could query the features like
+> you're doing in PATCH 4/6.
+> 
+> Adding conditionals like
+> 
+>   if (omap3_has_iva2())
+>      ...
+> 
+> and
+> 
+>   if (omap3_has_sgx()) 
+>      ...
+> 
+> rather than having a long list of cpu_is checks that have to be changed
+> each time a new SoC comes out.
 
-Yeh something like that sounds good. We should just move the omap1
-specific code to live in mach-omap1 and keep it as it is for now.
-
-You might also want to take a look at what the sh people have done:
-
-$ find arch/sh -name \*mux*
- 
-> 2) Break up mux table into two parts, the "common" mux list, and a
-> "custom" mux list - the latter in the board file, and add a function to
-> add the custom mux list to mux lists searched by omap_cfg_reg().
-> 
-> 3) Search the custom mux list first (if specified - allows replacing an
-> entry in the common table if hardware required differences in
-> termination, custom pins for GPIO, etc).
-> 
-> For example, on the OMAP3530, balls H18-H21 can be associated with
-> either UART3, or GPIOs 163-166. In the common mux list (where multiple
-> boards use those pins for UART3, the common mux file can have the
-> entries:
-> 
-> H18_35XX_UART3_CTS
-> H19_35XX_UART3_RTS
-> H20_35XX_UART3_RX
-> H21_35XX_UART_TX
-> 
-> that sets up the mux for those pines as a UART.  If a board wants to use
-> those pins instead for GPIO, then in the board file it can have a custom
-> mux list with:
-> 
-> H18_35XX_GPIO_163
-> H19_35XX_GPIO_164
-> H20_35XX_GPIO_165
-> H21_35XX_GPIO_166
-> 
-> and call into the mux code to add the custom mux list to be searched
-> first.
-> 
-> Thoughts?
-
-Sounds pretty good to me!
+Agreed.
 
 Tony
