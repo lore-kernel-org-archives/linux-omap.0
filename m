@@ -1,238 +1,94 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH][2.6.31-rc5] ARM: OMAP: McBSP: Fix ASoC on
-	OMAP1510 by fixing API of omap_mcbsp_start/stop
-Date: Fri, 7 Aug 2009 11:30:54 +0300
-Message-ID: <200908071130.54337.peter.ujfalusi@nokia.com>
-References: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 04/15] OMAP: Add support for VRFB rotation engine
+Date: Fri, 07 Aug 2009 11:33:53 +0300
+Message-ID: <4A7BE6F1.6070308@nokia.com>
+References: <1249481741-14008-1-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-2-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-3-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-4-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-5-git-send-email-tomi.valkeinen@nokia.com> <20090805143141.GI7374@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
-Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:57410 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757260AbZHGIfD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 04:35:03 -0400
+In-Reply-To: <20090805143141.GI7374@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Friday 07 August 2009 09:59:47 ext Jarkko Nikula wrote:
-> Simultaneous audio playback and capture on OMAP1510 can cause that second
-> stream is stalled if there is enough delay between startup of the audio
-> streams.
->
-> Current implementation of the omap_mcbsp_start is starting both transmitt=
-er
-> and receiver at the same time and it is called only for firstly started
-> audio stream from the OMAP McBSP based ASoC DAI driver.
->
-> Since DMA request lines on OMAP1510 are edge sensitive, the DMA request is
-> missed if there is no DMA transfer set up at that time when the first word
-> after McBSP startup is transmitted. The problem hasn't noted before since
-> later OMAPs are using level sensitive DMA request lines.
->
-> Fix the problem by changing API of omap_mcbsp_start and omap_mcbsp_stop by
-> allowing to start and stop individually McBSP transmitter and receiver
-> logics. Then call those functions individually for both audio playback
-> and capture streams. This ensures that DMA transfer is setup before
-> transmitter or receiver is started.
+ext Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [090805 17:19]:
+>> VRFB rotation engine is a block in OMAP2/3 that offers 12 independent
+>> contexts that can be used for framebuffer rotation.
+>>
+>> Each context has a backend area of real memory, where it stores the
+>> pixels in undisclosed format. This memory is offered to users via 4
+>> virtual memory areas, which see the same memory area in different
+>> rotation angles (0, 90, 180 and 270 degrees).
+>>
+>> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+>> ---
+>>  arch/arm/plat-omap/Kconfig             |    3 +
+>>  arch/arm/plat-omap/Makefile            |    1 +
+>>  arch/arm/plat-omap/include/mach/vrfb.h |   46 +++++
+>>  arch/arm/plat-omap/vrfb.c              |  281 ++++++++++++++++++++++++++++++++
+>>  4 files changed, 331 insertions(+), 0 deletions(-)
+>>  create mode 100644 arch/arm/plat-omap/include/mach/vrfb.h
+>>  create mode 100644 arch/arm/plat-omap/vrfb.c
+>>
+>> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+>> index ca06037..2d6ae55 100644
+>> --- a/arch/arm/plat-omap/Kconfig
+>> +++ b/arch/arm/plat-omap/Kconfig
+>> @@ -186,6 +186,9 @@ config OMAP_SERIAL_WAKE
+>>  config OMAP2_VRAM
+>>       bool
+>>
+>> +config OMAP2_VRFB
+>> +     bool
+>> +
+>>  endmenu
+>>
+>>  endif
+>> diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+>> index 0472bbe..462edf3 100644
+>> --- a/arch/arm/plat-omap/Makefile
+>> +++ b/arch/arm/plat-omap/Makefile
+>> @@ -26,3 +26,4 @@ obj-y += $(i2c-omap-m) $(i2c-omap-y)
+>>  obj-$(CONFIG_OMAP_MBOX_FWK) += mailbox.o
+>>
+>>  obj-$(CONFIG_OMAP2_VRAM) += vram.o
+>> +obj-$(CONFIG_OMAP2_VRFB) += vrfb.o
+> 
+> Can you please place this file under drivers/video?
 
-Looks nice, but I would have done it a bit differently...
+Ok. I still feel a common place, like plat-omap is better place for vrfb 
+and vram, but I don't feel too strongly about it =). drivers/video works 
+fine also.
 
->
-> Thanks to Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> for detailed problem
-> analysis and Peter Ujfalusi <peter.ujfalusi@nokia.com> for info about DMA
-> request line behavior differences between the OMAP generations.
->
-> Reported-and-tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Cc: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/plat-omap/include/mach/mcbsp.h |    4 +-
->  arch/arm/plat-omap/mcbsp.c              |   50
-> +++++++++++++++++++----------- sound/soc/omap/omap-mcbsp.c             |  =
+> 
+> 
+>> diff --git a/arch/arm/plat-omap/include/mach/vrfb.h b/arch/arm/plat-omap/include/mach/vrfb.h
+>> new file mode 100644
 
-> 10 +++---
->  3 files changed, 39 insertions(+), 25 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h
-> b/arch/arm/plat-omap/include/mach/mcbsp.h index bb154ea..57249bb 100644
-> --- a/arch/arm/plat-omap/include/mach/mcbsp.h
-> +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-> @@ -387,8 +387,8 @@ void omap_mcbsp_register_board_cfg(struct
-> omap_mcbsp_platform_data *config, void omap_mcbsp_config(unsigned int id,
-> const struct omap_mcbsp_reg_cfg * config); int omap_mcbsp_request(unsigned
-> int id);
->  void omap_mcbsp_free(unsigned int id);
-> -void omap_mcbsp_start(unsigned int id);
-> -void omap_mcbsp_stop(unsigned int id);
-> +void omap_mcbsp_start(unsigned int id, int tx, int rx);
-> +void omap_mcbsp_stop(unsigned int id, int tx, int rx);
+<snip>
 
-void omap_mcbsp_start(unsigned int id, int dir);
-void omap_mcbsp_stop(unsigned int id, int dir);
+>> +
+>> +static inline void restore_hw_context(int ctx)
+>> +{
+>> +     omap_writel(vrfb_hw_context[ctx].control, SMS_ROT_CONTROL(ctx));
+>> +     omap_writel(vrfb_hw_context[ctx].size, SMS_ROT_SIZE(ctx));
+>> +     omap_writel(vrfb_hw_context[ctx].physical_ba, SMS_ROT_PHYSICAL_BA(ctx));
+>> +}
+> 
+> Please use ioremap + and readl/writel instead of omap_read/write for all new code.
+> 
+> Otherwise we'll have harder time to reclaim more address space for kernel
+> as discussed earlier on linux-omap list.
 
->  void omap_mcbsp_xmit_word(unsigned int id, u32 word);
->  u32 omap_mcbsp_recv_word(unsigned int id);
->
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index efa0e01..a3d2313 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -328,14 +328,15 @@ void omap_mcbsp_free(unsigned int id)
->  EXPORT_SYMBOL(omap_mcbsp_free);
->
->  /*
-> - * Here we start the McBSP, by enabling the sample
-> - * generator, both transmitter and receivers,
-> - * and the frame sync.
-> + * Here we start the McBSP, by enabling transmitter, receiver or both.
-> + * If no transmitter or receiver is active prior calling, then sample-ra=
-te
-> + * generator and frame sync are started.
+True. But I noticed that SMS registers are already mapped by sdrc.c. I 
+sent a patch adding functions for manipulating SMS_ROT_* registers. I 
+think that's a cleaner way than remapping them again in VRFB.
 
- * dir =3D=3D 0: tx
- * dir =3D=3D 1: rx
-
->   */
-> -void omap_mcbsp_start(unsigned int id)
-> +void omap_mcbsp_start(unsigned int id, int tx, int rx)
-
-void omap_mcbsp_start(unsigned int id, int dir)
-
->  {
->  	struct omap_mcbsp *mcbsp;
->  	void __iomem *io_base;
-> +	int idle;
->  	u16 w;
-
-...
-
->  	/* Enable transmitter and receiver */
->  	w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | 1);
-> +	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (tx & 1));
->
->  	w =3D OMAP_MCBSP_READ(io_base, SPCR1);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR1, w | 1);
-> +	OMAP_MCBSP_WRITE(io_base, SPCR1, w | (rx & 1));
-
-	if (dir) {
-		/* RX: Enable receiver */
-	  	w =3D OMAP_MCBSP_READ(io_base, SPCR1);
-		OMAP_MCBSP_WRITE(io_base, SPCR1, w | 1);
-	} else {
-		/* TX: Enable transmitter */
-	  	w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-		OMAP_MCBSP_WRITE(io_base, SPCR2, w | 1);
-	}
-
->  	udelay(100);
-
-...
-
-> -void omap_mcbsp_stop(unsigned int id)
-> +void omap_mcbsp_stop(unsigned int id, int tx, int rx)
-
-void omap_mcbsp_stop(unsigned int id, int dir)
-
->  {
->  	struct omap_mcbsp *mcbsp;
->  	void __iomem *io_base;
-> +	int idle;
->  	u16 w;
->
->  	if (!omap_mcbsp_check_valid_id(id)) {
-> @@ -386,15 +395,20 @@ void omap_mcbsp_stop(unsigned int id)
->
->  	/* Reset transmitter */
->  	w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1));
-> +	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(tx & 1));
->
->  	/* Reset receiver */
->  	w =3D OMAP_MCBSP_READ(io_base, SPCR1);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(1));
-> +	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(rx & 1));
-
-	if (dir) {
-	  	/* RX: Reset receiver */
-	  	w =3D OMAP_MCBSP_READ(io_base, SPCR1);
-		OMAP_MCBSP_WRITE(io_base, SPCR1, w | ~(1));
-	} else {
-		/* TX: Reset transmitter */
-	  	w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-		OMAP_MCBSP_WRITE(io_base, SPCR2, w | ~(1));
-	}
-
-
-> -	/* Reset the sample rate generator */
-> -	w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
-> +	idle =3D !((OMAP_MCBSP_READ(io_base, SPCR2) |
-> +		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
-> +
-> +	if (idle) {
-> +		/* Reset the sample rate generator */
-> +		w =3D OMAP_MCBSP_READ(io_base, SPCR2);
-> +		OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
-> +	}
->  }
->  EXPORT_SYMBOL(omap_mcbsp_stop);
->
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index a5d46a7..6a837ff 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -183,21 +183,21 @@ static int omap_mcbsp_dai_trigger(struct
-> snd_pcm_substream *substream, int cmd, struct snd_soc_pcm_runtime *rtd =
-=3D
-> substream->private_data;
->  	struct snd_soc_dai *cpu_dai =3D rtd->dai->cpu_dai;
->  	struct omap_mcbsp_data *mcbsp_data =3D to_mcbsp(cpu_dai->private_data);
-> -	int err =3D 0;
-> +	int err =3D 0, play =3D (substream->stream =3D=3D SNDRV_PCM_STREAM_PLAY=
-BACK);
-
-no need for this change.
-
->
->  	switch (cmd) {
->  	case SNDRV_PCM_TRIGGER_START:
->  	case SNDRV_PCM_TRIGGER_RESUME:
->  	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-> -		if (!mcbsp_data->active++)
-> -			omap_mcbsp_start(mcbsp_data->bus_id);
-> +		mcbsp_data->active++;
-> +		omap_mcbsp_start(mcbsp_data->bus_id, play, !play);
-
-		omap_mcbsp_start(mcbsp_data->bus_id, substream->stream);
-
->  		break;
->
->  	case SNDRV_PCM_TRIGGER_STOP:
->  	case SNDRV_PCM_TRIGGER_SUSPEND:
->  	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-> -		if (!--mcbsp_data->active)
-> -			omap_mcbsp_stop(mcbsp_data->bus_id);
-> +		omap_mcbsp_stop(mcbsp_data->bus_id, play, !play);
-
-		omap_mcbsp_stop(mcbsp_data->bus_id, substream->stream);
-
-
-> +		mcbsp_data->active--;
->  		break;
->  	default:
->  		err =3D -EINVAL;
-
--- =
-
-P=E9ter
+  Tomi
