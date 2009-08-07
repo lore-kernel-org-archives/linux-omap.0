@@ -1,353 +1,307 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 06/20] OMAP: DSS2: Documentation for DSS2
-Date: Fri,  7 Aug 2009 15:27:44 +0300
-Message-ID: <1249648078-7780-7-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 13/20] OMAP: DSS2: SDI driver
+Date: Fri,  7 Aug 2009 15:27:51 +0300
+Message-ID: <1249648078-7780-14-git-send-email-tomi.valkeinen@nokia.com>
 References: <1249648078-7780-1-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-2-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-3-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-4-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-5-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-6-git-send-email-tomi.valkeinen@nokia.com>
+ <1249648078-7780-7-git-send-email-tomi.valkeinen@nokia.com>
+ <1249648078-7780-8-git-send-email-tomi.valkeinen@nokia.com>
+ <1249648078-7780-9-git-send-email-tomi.valkeinen@nokia.com>
+ <1249648078-7780-10-git-send-email-tomi.valkeinen@nokia.com>
+ <1249648078-7780-11-git-send-email-tomi.valkeinen@nokia.com>
+ <1249648078-7780-12-git-send-email-tomi.valkeinen@nokia.com>
+ <1249648078-7780-13-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:64441 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757764AbZHGM3G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:29:06 -0400
-In-Reply-To: <1249648078-7780-6-git-send-email-tomi.valkeinen@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:30219 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757780AbZHGM3J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:29:09 -0400
+In-Reply-To: <1249648078-7780-13-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev-devel@lists.sourceforge.net
 Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
+SDI (Serial Display Interface) implements TI Flatlink 3G display
+interface.
+
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 ---
- Documentation/arm/OMAP/DSS |  317 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 317 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/arm/OMAP/DSS
+ drivers/video/omap2/dss/sdi.c |  261 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 261 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/dss/sdi.c
 
-diff --git a/Documentation/arm/OMAP/DSS b/Documentation/arm/OMAP/DSS
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
 new file mode 100644
-index 0000000..0af0e9e
+index 0000000..a9c727e
 --- /dev/null
-+++ b/Documentation/arm/OMAP/DSS
-@@ -0,0 +1,317 @@
-+OMAP2/3 Display Subsystem
-+-------------------------
-+
-+This is an almost total rewrite of the OMAP FB driver in drivers/video/omap
-+(let's call it DSS1). The main differences between DSS1 and DSS2 are DSI,
-+TV-out and multiple display support, but there are lots of small improvements
-+also.
-+
-+The DSS2 driver (omapdss module) is in arch/arm/plat-omap/dss/, and the FB,
-+panel and controller drivers are in drivers/video/omap2/. DSS1 and DSS2 live
-+currently side by side, you can choose which one to use.
-+
-+Features
-+--------
-+
-+Working and tested features include:
-+
-+- MIPI DPI (parallel) output
-+- MIPI DSI output in command mode
-+- MIPI DBI (RFBI) output
-+- SDI output
-+- TV output
-+- All pieces can be compiled as a module or inside kernel
-+- Use DISPC to update any of the outputs
-+- Use CPU to update RFBI or DSI output
-+- OMAP DISPC planes
-+- RGB16, RGB24 packed, RGB24 unpacked
-+- YUV2, UYVY
-+- Scaling
-+- Adjusting DSS FCK to find a good pixel clock
-+- Use DSI DPLL to create DSS FCK
-+
-+Tested boards include:
-+- OMAP3 SDP board
-+- Beagle board
-+- N810
-+
-+omapdss driver
-+--------------
-+
-+The DSS driver does not itself have any support for Linux framebuffer, V4L or
-+such like the current ones, but it has an internal kernel API that upper level
-+drivers can use.
-+
-+The DSS driver models OMAP's overlays, overlay managers and displays in a
-+flexible way to enable non-common multi-display configuration. In addition to
-+modelling the hardware overlays, omapdss supports virtual overlays and overlay
-+managers. These can be used when updating a display with CPU or system DMA.
-+
-+Panel and controller drivers
-+----------------------------
-+
-+The drivers implement panel or controller specific functionality and are not
-+usually visible to users except through omapfb driver.  They register
-+themselves to the DSS driver.
-+
-+omapfb driver
-+-------------
-+
-+The omapfb driver implements arbitrary number of standard linux framebuffers.
-+These framebuffers can be routed flexibly to any overlays, thus allowing very
-+dynamic display architecture.
-+
-+The driver exports some omapfb specific ioctls, which are compatible with the
-+ioctls in the old driver.
-+
-+The rest of the non standard features are exported via sysfs. Whether the final
-+implementation will use sysfs, or ioctls, is still open.
-+
-+V4L2 drivers
-+------------
-+
-+V4L2 is being implemented in TI.
-+
-+From omapdss point of view the V4L2 drivers should be similar to framebuffer
-+driver.
-+
-+Architecture
-+--------------------
-+
-+Some clarification what the different components do:
-+
-+    - Framebuffer is a memory area inside OMAP's SRAM/SDRAM that contains the
-+      pixel data for the image. Framebuffer has width and height and color
-+      depth.
-+    - Overlay defines where the pixels are read from and where they go on the
-+      screen. The overlay may be smaller than framebuffer, thus displaying only
-+      part of the framebuffer. The position of the overlay may be changed if
-+      the overlay is smaller than the display.
-+    - Overlay manager combines the overlays in to one image and feeds them to
-+      display.
-+    - Display is the actual physical display device.
-+
-+A framebuffer can be connected to multiple overlays to show the same pixel data
-+on all of the overlays. Note that in this case the overlay input sizes must be
-+the same, but, in case of video overlays, the output size can be different. Any
-+framebuffer can be connected to any overlay.
-+
-+An overlay can be connected to one overlay manager. Also DISPC overlays can be
-+connected only to DISPC overlay managers, and virtual overlays can be only
-+connected to virtual overlays.
-+
-+An overlay manager can be connected to one display. There are certain
-+restrictions which kinds of displays an overlay manager can be connected:
-+
-+    - DISPC TV overlay manager can be only connected to TV display.
-+    - Virtual overlay managers can only be connected to DBI or DSI displays.
-+    - DISPC LCD overlay manager can be connected to all displays, except TV
-+      display.
-+
-+Sysfs
-+-----
-+The sysfs interface is mainly used for testing. I don't think sysfs
-+interface is the best for this in the final version, but I don't quite know
-+what would be the best interfaces for these things.
-+
-+The sysfs interface is divided to two parts: DSS and FB.
-+
-+/sys/class/graphics/fb? directory:
-+mirror		0=off, 1=on
-+rotate		Rotation 0-3 for 0, 90, 180, 270 degrees
-+rotate_type	0 = DMA rotation, 1 = VRFB rotation
-+overlays	List of overlay numbers to which framebuffer pixels go
-+phys_addr	Physical address of the framebuffer
-+virt_addr	Virtual address of the framebuffer
-+size		Size of the framebuffer
-+
-+/sys/devices/platform/omapdss/overlay? directory:
-+enabled		0=off, 1=on
-+input_size	width,height (ie. the framebuffer size)
-+manager		Destination overlay manager name
-+name
-+output_size	width,height
-+position	x,y
-+screen_width	width
-+global_alpha   	global alpha 0-255 0=transparent 255=opaque
-+
-+/sys/devices/platform/omapdss/manager? directory:
-+display				Destination display
-+name
-+alpha_blending_enabled		0=off, 1=on
-+trans_key_enabled		0=off, 1=on
-+trans_key_type			gfx-destination, video-source
-+trans_key_value			transparency color key (RGB24)
-+default_color			default background color (RGB24)
-+
-+/sys/devices/platform/omapdss/display? directory:
-+ctrl_name	Controller name
-+mirror		0=off, 1=on
-+update_mode	0=off, 1=auto, 2=manual
-+enabled		0=off, 1=on
-+name
-+rotate		Rotation 0-3 for 0, 90, 180, 270 degrees
-+timings		Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
-+		When writing, two special timings are accepted for tv-out:
-+		"pal" and "ntsc"
-+panel_name
-+tear_elim	Tearing elimination 0=off, 1=on
-+
-+There are also some debugfs files at <debugfs>/omapdss/ which show information
-+about clocks and registers.
-+
-+Examples
-+--------
-+
-+The following definitions have been made for the examples below:
-+
-+ovl0=/sys/devices/platform/omapdss/overlay0
-+ovl1=/sys/devices/platform/omapdss/overlay1
-+ovl2=/sys/devices/platform/omapdss/overlay2
-+
-+mgr0=/sys/devices/platform/omapdss/manager0
-+mgr1=/sys/devices/platform/omapdss/manager1
-+
-+lcd=/sys/devices/platform/omapdss/display0
-+dvi=/sys/devices/platform/omapdss/display1
-+tv=/sys/devices/platform/omapdss/display2
-+
-+fb0=/sys/class/graphics/fb0
-+fb1=/sys/class/graphics/fb1
-+fb2=/sys/class/graphics/fb2
-+
-+Default setup on OMAP3 SDP
-+--------------------------
-+
-+Here's the default setup on OMAP3 SDP board. All planes go to LCD. DVI
-+and TV-out are not in use. The columns from left to right are:
-+framebuffers, overlays, overlay managers, displays. Framebuffers are
-+handled by omapfb, and the rest by the DSS.
-+
-+FB0 --- GFX  -\            DVI
-+FB1 --- VID1 --+- LCD ---- LCD
-+FB2 --- VID2 -/   TV ----- TV
-+
-+Example: Switch from LCD to DVI
-+----------------------
-+
-+w=`cat $dvi/timings | cut -d "," -f 2 | cut -d "/" -f 1`
-+h=`cat $dvi/timings | cut -d "," -f 3 | cut -d "/" -f 1`
-+
-+echo "0" > $lcd/enabled
-+echo "" > $mgr0/display
-+fbset -fb /dev/fb0 -xres $w -yres $h -vxres $w -vyres $h
-+# at this point you have to switch the dvi/lcd dip-switch from the omap board
-+echo "dvi" > $mgr0/display
-+echo "1" > $dvi/enabled
-+
-+After this the configuration looks like:
-+
-+FB0 --- GFX  -\         -- DVI
-+FB1 --- VID1 --+- LCD -/   LCD
-+FB2 --- VID2 -/   TV ----- TV
-+
-+Example: Clone GFX overlay to LCD and TV
-+-------------------------------
-+
-+w=`cat $tv/timings | cut -d "," -f 2 | cut -d "/" -f 1`
-+h=`cat $tv/timings | cut -d "," -f 3 | cut -d "/" -f 1`
-+
-+echo "0" > $ovl0/enabled
-+echo "0" > $ovl1/enabled
-+
-+echo "" > $fb1/overlays
-+echo "0,1" > $fb0/overlays
-+
-+echo "$w,$h" > $ovl1/output_size
-+echo "tv" > $ovl1/manager
-+
-+echo "1" > $ovl0/enabled
-+echo "1" > $ovl1/enabled
-+
-+echo "1" > $tv/enabled
-+
-+After this the configuration looks like (only relevant parts shown):
-+
-+FB0 +-- GFX  ---- LCD ---- LCD
-+     \- VID1 ---- TV  ---- TV
-+
-+Misc notes
-+----------
-+
-+OMAP FB allocates the framebuffer memory using the OMAP VRAM allocator.
-+
-+Using DSI DPLL to generate pixel clock it is possible produce the pixel clock
-+of 86.5MHz (max possible), and with that you get 1280x1024@57 output from DVI.
-+
-+Rotation and mirroring currently only supports RGB565 and RGB8888 modes. VRFB
-+does not support mirroring.
-+
-+VRFB rotation requires much more memory than non-rotated framebuffer, so you
-+probably need to increase your vram setting before using VRFB rotation. Also,
-+many applications may not work with VRFB if they do not pay attention to all
-+framebuffer parameters.
-+
-+Kernel boot arguments
-+---------------------
-+
-+vram=<size>
-+	- Amount of total VRAM to preallocate. For example, "10M". omapfb
-+	  allocates memory for framebuffers from VRAM.
-+
-+omapfb.mode=<display>:<mode>[,...]
-+	- Default video mode for specified displays. For example,
-+	  "dvi:800x400MR-24@60".  See drivers/video/modedb.c.
-+	  There are also two special modes: "pal" and "ntsc" that
-+	  can be used to tv out.
-+
-+omapfb.vram=<fbnum>:<size>[@<physaddr>][,...]
-+	- VRAM allocated for a framebuffer. Normally omapfb allocates vram
-+	  depending on the display size. With this you can manually allocate
-+	  more or define the physical address of each framebuffer. For example,
-+	  "1:4M" to allocate 4M for fb1.
-+
-+omapfb.debug=<y|n>
-+	- Enable debug printing. You have to have OMAPFB debug support enabled
-+	  in kernel config.
-+
-+omapfb.test=<y|n>
-+	- Draw test pattern to framebuffer whenever framebuffer settings change.
-+	  You need to have OMAPFB debug support enabled in kernel config.
-+
-+omapfb.vrfb=<y|n>
-+	- Use VRFB rotation for all framebuffers.
-+
-+omapfb.rotate=<angle>
-+	- Default rotation applied to all framebuffers.
-+	  0 - 0 degree rotation
-+	  1 - 90 degree rotation
-+	  2 - 180 degree rotation
-+	  3 - 270 degree rotation
-+
-+omapfb.mirror=<y|n>
-+	- Default mirror for all framebuffers. Only works with DMA rotation.
-+
-+omapdss.def_disp=<display>
-+	- Name of default display, to which all overlays will be connected.
-+	  Common examples are "lcd" or "tv".
-+
-+omapdss.debug=<y|n>
-+	- Enable debug printing. You have to have DSS debug support enabled in
-+	  kernel config.
-+
-+TODO
-+----
-+
-+DSS locking
-+
-+Error checking
-+- Lots of checks are missing or implemented just as BUG()
-+
-+System DMA update for DSI
-+- Can be used for RGB16 and RGB24P modes. Probably not for RGB24U (how
-+  to skip the empty byte?)
-+
-+OMAP1 support
-+- Not sure if needed
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -0,0 +1,261 @@
++/*
++ * linux/drivers/video/omap2/dss/sdi.c
++ *
++ * Copyright (C) 2009 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#define DSS_SUBSYS_NAME "SDI"
++
++#include <linux/kernel.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++
++#include <mach/board.h>
++#include <mach/display.h>
++#include "dss.h"
++
++static struct {
++	bool skip_init;
++	bool update_enabled;
++} sdi;
++
++static void sdi_basic_init(void)
++{
++	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_BYPASS);
++
++	dispc_set_lcd_display_type(OMAP_DSS_LCD_DISPLAY_TFT);
++	dispc_set_tft_data_lines(24);
++	dispc_lcd_enable_signal_polarity(1);
++}
++
++static int sdi_display_enable(struct omap_dss_device *dssdev)
++{
++	struct omap_video_timings *t = &dssdev->panel.timings;
++	struct dispc_clock_info cinfo;
++	u16 lck_div, pck_div;
++	unsigned long fck;
++	unsigned long pck;
++	int r;
++
++	r = omap_dss_start_device(dssdev);
++	if (r) {
++		DSSERR("failed to start device\n");
++		goto err0;
++	}
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
++		DSSERR("dssdev already enabled\n");
++		r = -EINVAL;
++		goto err1;
++	}
++
++	/* In case of skip_init sdi_init has already enabled the clocks */
++	if (!sdi.skip_init)
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	sdi_basic_init();
++
++	/* 15.5.9.1.2 */
++	dssdev->panel.config |= OMAP_DSS_LCD_RF | OMAP_DSS_LCD_ONOFF;
++
++	dispc_set_pol_freq(dssdev->panel.config, dssdev->panel.acbi,
++			dssdev->panel.acb);
++
++	if (!sdi.skip_init)
++		r = dispc_calc_clock_div(1, t->pixel_clock * 1000,
++				&cinfo);
++	else
++		r = dispc_get_clock_div(&cinfo);
++
++	if (r)
++		goto err2;
++
++	fck = cinfo.fck;
++	lck_div = cinfo.lck_div;
++	pck_div = cinfo.pck_div;
 +
++	pck = fck / lck_div / pck_div / 1000;
++
++	if (pck != t->pixel_clock) {
++		DSSWARN("Could not find exact pixel clock. Requested %d kHz, "
++				"got %lu kHz\n",
++				t->pixel_clock, pck);
++
++		t->pixel_clock = pck;
++	}
++
++
++	dispc_set_lcd_timings(t);
++
++	r = dispc_set_clock_div(&cinfo);
++	if (r)
++		goto err2;
++
++	if (!sdi.skip_init) {
++		dss_sdi_init(dssdev->phy.sdi.datapairs);
++		dss_sdi_enable();
++		mdelay(2);
++	}
++
++	dispc_enable_lcd_out(1);
++
++	if (dssdev->driver->enable) {
++		r = dssdev->driver->enable(dssdev);
++		if (r)
++			goto err3;
++	}
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	sdi.skip_init = 0;
++
++	return 0;
++err3:
++	dispc_enable_lcd_out(0);
++err2:
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++err1:
++	omap_dss_stop_device(dssdev);
++err0:
++	return r;
++}
++
++static int sdi_display_resume(struct omap_dss_device *dssdev);
++
++static void sdi_display_disable(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state == OMAP_DSS_DISPLAY_DISABLED)
++		return;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_SUSPENDED)
++		sdi_display_resume(dssdev);
++
++	if (dssdev->driver->disable)
++		dssdev->driver->disable(dssdev);
++
++	dispc_enable_lcd_out(0);
++
++	dss_sdi_disable();
++
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	omap_dss_stop_device(dssdev);
++}
++
++static int sdi_display_suspend(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++		return -EINVAL;
++
++	if (dssdev->driver->suspend)
++		dssdev->driver->suspend(dssdev);
++
++	dispc_enable_lcd_out(0);
++
++	dss_sdi_disable();
++
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++
++	return 0;
++}
++
++static int sdi_display_resume(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
++		return -EINVAL;
++
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dss_sdi_enable();
++	mdelay(2);
++
++	dispc_enable_lcd_out(1);
++
++	if (dssdev->driver->resume)
++		dssdev->driver->resume(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++}
++
++static int sdi_display_set_update_mode(struct omap_dss_device *dssdev,
++		enum omap_dss_update_mode mode)
++{
++	if (mode == OMAP_DSS_UPDATE_MANUAL)
++		return -EINVAL;
++
++	if (mode == OMAP_DSS_UPDATE_DISABLED) {
++		dispc_enable_lcd_out(0);
++		sdi.update_enabled = 0;
++	} else {
++		dispc_enable_lcd_out(1);
++		sdi.update_enabled = 1;
++	}
++
++	return 0;
++}
++
++static enum omap_dss_update_mode sdi_display_get_update_mode(
++		struct omap_dss_device *dssdev)
++{
++	return sdi.update_enabled ? OMAP_DSS_UPDATE_AUTO :
++		OMAP_DSS_UPDATE_DISABLED;
++}
++
++static void sdi_get_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
++{
++	*timings = dssdev->panel.timings;
++}
++
++int sdi_init_display(struct omap_dss_device *dssdev)
++{
++	DSSDBG("SDI init\n");
++
++	dssdev->enable = sdi_display_enable;
++	dssdev->disable = sdi_display_disable;
++	dssdev->suspend = sdi_display_suspend;
++	dssdev->resume = sdi_display_resume;
++	dssdev->set_update_mode = sdi_display_set_update_mode;
++	dssdev->get_update_mode = sdi_display_get_update_mode;
++	dssdev->get_timings = sdi_get_timings;
++
++	return 0;
++}
++
++int sdi_init(bool skip_init)
++{
++	/* we store this for first display enable, then clear it */
++	sdi.skip_init = skip_init;
++
++	/*
++	 * Enable clocks already here, otherwise there would be a toggle
++	 * of them until sdi_display_enable is called.
++	 */
++	if (skip_init)
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	return 0;
++}
++
++void sdi_exit(void)
++{
++}
 -- 
 1.6.4
 
