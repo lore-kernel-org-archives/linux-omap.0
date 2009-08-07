@@ -1,7 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 18/20] OMAP: SDP: Enable DSS2 for OMAP3 SDP board
-Date: Fri,  7 Aug 2009 15:27:56 +0300
-Message-ID: <1249648078-7780-19-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 10/20] OMAP: DSS2: DPI driver
+Date: Fri,  7 Aug 2009 15:27:48 +0300
+Message-ID: <1249648078-7780-11-git-send-email-tomi.valkeinen@nokia.com>
 References: <1249648078-7780-1-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-2-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-3-git-send-email-tomi.valkeinen@nokia.com>
@@ -12,307 +12,419 @@ References: <1249648078-7780-1-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-8-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-9-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-10-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-11-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-12-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-13-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-14-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-15-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-16-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-17-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-18-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:64461 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:64460 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757805AbZHGM3U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:29:20 -0400
-In-Reply-To: <1249648078-7780-18-git-send-email-tomi.valkeinen@nokia.com>
+	with ESMTP id S1757799AbZHGM3R (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:29:17 -0400
+In-Reply-To: <1249648078-7780-10-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev-devel@lists.sourceforge.net
 Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap_3430sdp_defconfig |   31 +++++-
- arch/arm/mach-omap2/board-3430sdp.c     |  171 +++++++++++++++++++++++++++----
- 2 files changed, 181 insertions(+), 21 deletions(-)
+This implements MIPI DPI interface.
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 73e0128..a0dce8f 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -1336,10 +1336,35 @@ CONFIG_FB_CFB_IMAGEBLIT=y
- #
- # CONFIG_FB_S1D13XXX is not set
- # CONFIG_FB_VIRTUAL is not set
--CONFIG_FB_OMAP=y
--# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
-+# CONFIG_FB_OMAP_LCD_VGA is not set
-+# CONFIG_FB_OMAP_031M3R is not set
-+# CONFIG_FB_OMAP_048M3R is not set
-+# CONFIG_FB_OMAP_079M3R is not set
-+# CONFIG_FB_OMAP_092M9R is not set
- # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
--CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=6
-+CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ drivers/video/omap2/dss/dpi.c |  388 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 388 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/dss/dpi.c
+
+diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
+new file mode 100644
+index 0000000..b6543c8
+--- /dev/null
++++ b/drivers/video/omap2/dss/dpi.c
+@@ -0,0 +1,388 @@
++/*
++ * linux/drivers/video/omap2/dss/dpi.c
++ *
++ * Copyright (C) 2009 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * Some code and ideas taken from drivers/video/omap/ driver
++ * by Imre Deak.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+CONFIG_PANEL_GENERIC=y
-+# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
-+CONFIG_PANEL_SHARP_LS037V7DW01=y
-+CONFIG_FB_OMAP2=y
-+CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=3
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
- 
- #
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 21b4a52..0bb83f5 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -36,6 +36,7 @@
- #include <mach/common.h>
- #include <mach/dma.h>
- #include <mach/gpmc.h>
++#define DSS_SUBSYS_NAME "DPI"
++
++#include <linux/kernel.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/errno.h>
++
++#include <mach/board.h>
 +#include <mach/display.h>
- 
- #include <mach/control.h>
- #include <mach/keypad.h>
-@@ -148,23 +149,149 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
- 	},
- };
- 
--static struct platform_device sdp3430_lcd_device = {
--	.name		= "sdp2430_lcd",
--	.id		= -1,
++#include <mach/cpu.h>
 +
-+#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
-+#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
++#include "dss.h"
 +
-+static unsigned backlight_gpio;
-+static unsigned enable_gpio;
-+static int lcd_enabled;
-+static int dvi_enabled;
++static struct {
++	int update_enabled;
++} dpi;
 +
-+static void __init sdp3430_display_init(void)
++#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
++static int dpi_set_dsi_clk(bool is_tft, unsigned long pck_req,
++		unsigned long *fck, int *lck_div, int *pck_div)
++{
++	struct dsi_clock_info cinfo;
++	int r;
++
++	r = dsi_pll_calc_pck(is_tft, pck_req, &cinfo);
++	if (r)
++		return r;
++
++	r = dsi_pll_program(&cinfo);
++	if (r)
++		return r;
++
++	dss_select_clk_source(0, 1);
++
++	dispc_set_lcd_divisor(cinfo.lck_div, cinfo.pck_div);
++
++	*fck = cinfo.dsi1_pll_fclk;
++	*lck_div = cinfo.lck_div;
++	*pck_div = cinfo.pck_div;
++
++	return 0;
++}
++#else
++static int dpi_set_dispc_clk(bool is_tft, unsigned long pck_req,
++		unsigned long *fck, int *lck_div, int *pck_div)
++{
++	struct dispc_clock_info cinfo;
++	int r;
++
++	r = dispc_calc_clock_div(is_tft, pck_req, &cinfo);
++	if (r)
++		return r;
++
++	r = dispc_set_clock_div(&cinfo);
++	if (r)
++		return r;
++
++	*fck = cinfo.fck;
++	*lck_div = cinfo.lck_div;
++	*pck_div = cinfo.pck_div;
++
++	return 0;
++}
++#endif
++
++static int dpi_set_mode(struct omap_dss_device *dssdev)
++{
++	struct omap_video_timings *t = &dssdev->panel.timings;
++	int lck_div, pck_div;
++	unsigned long fck;
++	unsigned long pck;
++	bool is_tft;
++	int r = 0;
++
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dispc_set_pol_freq(dssdev->panel.config, dssdev->panel.acbi,
++			dssdev->panel.acb);
++
++	is_tft = (dssdev->panel.config & OMAP_DSS_LCD_TFT) != 0;
++
++#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
++	r = dpi_set_dsi_clk(is_tft, t->pixel_clock * 1000,
++			&fck, &lck_div, &pck_div);
++#else
++	r = dpi_set_dispc_clk(is_tft, t->pixel_clock * 1000,
++			&fck, &lck_div, &pck_div);
++#endif
++	if (r)
++		goto err0;
++
++	pck = fck / lck_div / pck_div / 1000;
++
++	if (pck != t->pixel_clock) {
++		DSSWARN("Could not find exact pixel clock. "
++				"Requested %d kHz, got %lu kHz\n",
++				t->pixel_clock, pck);
++
++		t->pixel_clock = pck;
++	}
++
++	dispc_set_lcd_timings(t);
++
++err0:
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	return r;
++}
++
++static int dpi_basic_init(struct omap_dss_device *dssdev)
++{
++	bool is_tft;
++
++	is_tft = (dssdev->panel.config & OMAP_DSS_LCD_TFT) != 0;
++
++	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_BYPASS);
++	dispc_set_lcd_display_type(is_tft ? OMAP_DSS_LCD_DISPLAY_TFT :
++			OMAP_DSS_LCD_DISPLAY_STN);
++	dispc_set_tft_data_lines(dssdev->phy.dpi.data_lines);
++
++	return 0;
++}
++
++static int dpi_display_enable(struct omap_dss_device *dssdev)
 +{
 +	int r;
 +
-+	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
-+	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
-+
-+	r = gpio_request(enable_gpio, "LCD reset");
++	r = omap_dss_start_device(dssdev);
 +	if (r) {
-+		printk(KERN_ERR "failed to get LCD reset GPIO\n");
++		DSSERR("failed to start device\n");
 +		goto err0;
 +	}
 +
-+	r = gpio_request(backlight_gpio, "LCD Backlight");
-+	if (r) {
-+		printk(KERN_ERR "failed to get LCD backlight GPIO\n");
++	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
++		DSSERR("display already enabled\n");
++		r = -EINVAL;
 +		goto err1;
 +	}
 +
-+	gpio_direction_output(enable_gpio, 0);
-+	gpio_direction_output(backlight_gpio, 0);
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
 +
-+	return;
++	r = dpi_basic_init(dssdev);
++	if (r)
++		goto err2;
++
++#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
++	dss_clk_enable(DSS_CLK_FCK2);
++	r = dsi_pll_init(0, 1);
++	if (r)
++		goto err3;
++#endif
++	r = dpi_set_mode(dssdev);
++	if (r)
++		goto err4;
++
++	mdelay(2);
++
++	dispc_enable_lcd_out(1);
++
++	r = dssdev->driver->enable(dssdev);
++	if (r)
++		goto err5;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++
++err5:
++	dispc_enable_lcd_out(0);
++err4:
++#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
++	dsi_pll_uninit();
++err3:
++	dss_clk_disable(DSS_CLK_FCK2);
++#endif
++err2:
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
 +err1:
-+	gpio_free(enable_gpio);
++	omap_dss_stop_device(dssdev);
 +err0:
-+	return;
++	return r;
 +}
 +
-+static int sdp3430_panel_enable_lcd(struct omap_dss_device *dssdev)
++static int dpi_display_resume(struct omap_dss_device *dssdev);
++
++static void dpi_display_disable(struct omap_dss_device *dssdev)
 +{
-+	if (dvi_enabled) {
-+		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
++	if (dssdev->state == OMAP_DSS_DISPLAY_DISABLED)
++		return;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_SUSPENDED)
++		dpi_display_resume(dssdev);
++
++	dssdev->driver->disable(dssdev);
++
++	dispc_enable_lcd_out(0);
++
++#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
++	dss_select_clk_source(0, 0);
++	dsi_pll_uninit();
++	dss_clk_disable(DSS_CLK_FCK2);
++#endif
++
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	omap_dss_stop_device(dssdev);
++}
++
++static int dpi_display_suspend(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
 +		return -EINVAL;
-+	}
 +
-+	gpio_direction_output(enable_gpio, 1);
-+	gpio_direction_output(backlight_gpio, 1);
++	DSSDBG("dpi_display_suspend\n");
 +
-+	lcd_enabled = 1;
++	if (dssdev->driver->suspend)
++		dssdev->driver->suspend(dssdev);
++
++	dispc_enable_lcd_out(0);
++
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
 +
 +	return 0;
 +}
 +
-+static void sdp3430_panel_disable_lcd(struct omap_dss_device *dssdev)
++static int dpi_display_resume(struct omap_dss_device *dssdev)
 +{
-+	lcd_enabled = 0;
-+
-+	gpio_direction_output(enable_gpio, 0);
-+	gpio_direction_output(backlight_gpio, 0);
-+}
-+
-+static int sdp3430_panel_enable_dvi(struct omap_dss_device *dssdev)
-+{
-+	if (lcd_enabled) {
-+		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
++	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
 +		return -EINVAL;
-+	}
 +
-+	dvi_enabled = 1;
++	DSSDBG("dpi_display_resume\n");
++
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dispc_enable_lcd_out(1);
++
++	if (dssdev->driver->resume)
++		dssdev->driver->resume(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
 +
 +	return 0;
 +}
 +
-+static void sdp3430_panel_disable_dvi(struct omap_dss_device *dssdev)
++static void dpi_set_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
 +{
-+	dvi_enabled = 0;
++	DSSDBG("dpi_set_timings\n");
++	dssdev->panel.timings = *timings;
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++		dpi_set_mode(dssdev);
++		dispc_go(OMAP_DSS_CHANNEL_LCD);
++	}
 +}
 +
-+static int sdp3430_panel_enable_tv(struct omap_dss_device *dssdev)
++static int dpi_check_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
++{
++	bool is_tft;
++	int r;
++	int lck_div, pck_div;
++	unsigned long fck;
++	unsigned long pck;
++
++	if (!dispc_lcd_timings_ok(timings))
++		return -EINVAL;
++
++	if (timings->pixel_clock == 0)
++		return -EINVAL;
++
++	is_tft = (dssdev->panel.config & OMAP_DSS_LCD_TFT) != 0;
++
++#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
++	{
++		struct dsi_clock_info cinfo;
++		r = dsi_pll_calc_pck(is_tft, timings->pixel_clock * 1000,
++				&cinfo);
++
++		if (r)
++			return r;
++
++		fck = cinfo.dsi1_pll_fclk;
++		lck_div = cinfo.lck_div;
++		pck_div = cinfo.pck_div;
++	}
++#else
++	{
++		struct dispc_clock_info cinfo;
++		r = dispc_calc_clock_div(is_tft, timings->pixel_clock * 1000,
++				&cinfo);
++
++		if (r)
++			return r;
++
++		fck = cinfo.fck;
++		lck_div = cinfo.lck_div;
++		pck_div = cinfo.pck_div;
++	}
++#endif
++
++	pck = fck / lck_div / pck_div / 1000;
++
++	timings->pixel_clock = pck;
++
++	return 0;
++}
++
++static void dpi_get_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
++{
++	*timings = dssdev->panel.timings;
++}
++
++static int dpi_display_set_update_mode(struct omap_dss_device *dssdev,
++		enum omap_dss_update_mode mode)
++{
++	if (mode == OMAP_DSS_UPDATE_MANUAL)
++		return -EINVAL;
++
++	if (mode == OMAP_DSS_UPDATE_DISABLED) {
++		dispc_enable_lcd_out(0);
++		dpi.update_enabled = 0;
++	} else {
++		dispc_enable_lcd_out(1);
++		dpi.update_enabled = 1;
++	}
++
++	return 0;
++}
++
++static enum omap_dss_update_mode dpi_display_get_update_mode(
++		struct omap_dss_device *dssdev)
++{
++	return dpi.update_enabled ? OMAP_DSS_UPDATE_AUTO :
++		OMAP_DSS_UPDATE_DISABLED;
++}
++
++int dpi_init_display(struct omap_dss_device *dssdev)
++{
++	DSSDBG("init_display\n");
++
++	dssdev->enable = dpi_display_enable;
++	dssdev->disable = dpi_display_disable;
++	dssdev->suspend = dpi_display_suspend;
++	dssdev->resume = dpi_display_resume;
++	dssdev->set_timings = dpi_set_timings;
++	dssdev->check_timings = dpi_check_timings;
++	dssdev->get_timings = dpi_get_timings;
++	dssdev->set_update_mode = dpi_display_set_update_mode;
++	dssdev->get_update_mode = dpi_display_get_update_mode;
++
++	return 0;
++}
++
++int dpi_init(void)
 +{
 +	return 0;
 +}
 +
-+static void sdp3430_panel_disable_tv(struct omap_dss_device *dssdev)
++void dpi_exit(void)
 +{
 +}
 +
-+
-+static struct omap_dss_device sdp3430_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "sharp_ls_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 16,
-+	.platform_enable	= sdp3430_panel_enable_lcd,
-+	.platform_disable	= sdp3430_panel_disable_lcd,
- };
- 
--static struct regulator_consumer_supply sdp3430_vdac_supply = {
--	.supply		= "vdac",
--	.dev		= &sdp3430_lcd_device.dev,
-+static struct omap_dss_device sdp3430_dvi_device = {
-+	.name			= "dvi",
-+	.driver_name		= "generic_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 24,
-+	.platform_enable	= sdp3430_panel_enable_dvi,
-+	.platform_disable	= sdp3430_panel_disable_dvi,
- };
- 
--static struct regulator_consumer_supply sdp3430_vdvi_supply = {
--	.supply		= "vdvi",
--	.dev		= &sdp3430_lcd_device.dev,
-+static struct omap_dss_device sdp3430_tv_device = {
-+	.name			= "tv",
-+	.driver_name		= "venc",
-+	.type			= OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+	.platform_enable	= sdp3430_panel_enable_tv,
-+	.platform_disable	= sdp3430_panel_disable_tv,
- };
- 
--static struct platform_device *sdp3430_devices[] __initdata = {
-+
-+static struct omap_dss_device *sdp3430_dss_devices[] = {
- 	&sdp3430_lcd_device,
-+	&sdp3430_dvi_device,
-+	&sdp3430_tv_device,
-+};
-+
-+static struct omap_dss_board_info sdp3430_dss_data = {
-+	.num_devices	= ARRAY_SIZE(sdp3430_dss_devices),
-+	.devices	= sdp3430_dss_devices,
-+	.default_device	= &sdp3430_lcd_device,
-+};
-+
-+static struct platform_device sdp3430_dss_device = {
-+	.name		= "omapdss",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data = &sdp3430_dss_data,
-+	},
-+};
-+
-+static struct regulator_consumer_supply sdp3430_vdda_dac_supply = {
-+	.supply		= "vdda_dac",
-+	.dev		= &sdp3430_dss_device.dev,
-+};
-+
-+static struct platform_device *sdp3430_devices[] __initdata = {
-+	&sdp3430_dss_device,
- };
- 
- static void __init omap_3430sdp_init_irq(void)
-@@ -178,13 +305,8 @@ static struct omap_uart_config sdp3430_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
- };
- 
--static struct omap_lcd_config sdp3430_lcd_config __initdata = {
--	.ctrl_name	= "internal",
--};
--
- static struct omap_board_config_kernel sdp3430_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&sdp3430_uart_config },
--	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
- };
- 
- static int sdp3430_batt_table[] = {
-@@ -391,22 +513,34 @@ static struct regulator_init_data sdp3430_vdac = {
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &sdp3430_vdac_supply,
-+	.consumer_supplies	= &sdp3430_vdda_dac_supply,
- };
- 
- /* VPLL2 for digital video outputs */
-+static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
-+	{
-+		.supply		= "vdvi",
-+		.dev		= &sdp3430_lcd_device.dev,
-+	},
-+	{
-+		.supply		= "vdds_dsi",
-+		.dev		= &sdp3430_dss_device.dev,
-+	}
-+};
-+
- static struct regulator_init_data sdp3430_vpll2 = {
- 	.constraints = {
- 		.name			= "VDVI",
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
-+		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &sdp3430_vdvi_supply,
-+	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vpll2_supplies),
-+	.consumer_supplies	= sdp3430_vpll2_supplies,
- };
- 
- static struct twl4030_platform_data sdp3430_twldata = {
-@@ -496,6 +630,7 @@ static void __init omap_3430sdp_init(void)
- 	usb_musb_init();
- 	board_smc91x_init();
- 	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, true, true, 57, 61);
-+	sdp3430_display_init();
- }
- 
- static void __init omap_3430sdp_map_io(void)
 -- 
 1.6.4
 
