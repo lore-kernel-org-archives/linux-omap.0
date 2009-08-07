@@ -1,132 +1,144 @@
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 8/8] Regulator: Added board-dependent code for TPS65073
-Date: Fri,  7 Aug 2009 20:59:34 +0530
-Message-ID: <1249658974-11151-1-git-send-email-anuj.aggarwal@ti.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752995AbZHGPaL@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: broonie@sirena.org.uk, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/8] Regulator: Add TPS65023 regulator driver
+Date: Fri, 7 Aug 2009 16:53:59 +0100
+Message-ID: <20090807155358.GI639@sirena.org.uk>
+References: <1249658726-10769-1-git-send-email-anuj.aggarwal@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:47594 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785AbZHGPyA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 11:54:00 -0400
+Content-Disposition: inline
+In-Reply-To: <1249658726-10769-1-git-send-email-anuj.aggarwal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Added OMAP35x specific code for TPS65073 in board-omap35x-pmic.c
+On Fri, Aug 07, 2009 at 08:55:26PM +0530, Anuj Aggarwal wrote:
 
-Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
----
- arch/arm/mach-omap2/board-omap35x-pmic.c |   95 +++++++++++++++++++++++++++++-
- 1 files changed, 94 insertions(+), 1 deletions(-)
+> +static int tps_65023_set_bits(struct tps_pmic *tps, u8 reg, u8 mask)
+> +{
+> +	u8 data;
+> +	int err;
+> +
+> +	err = tps_65023_read_reg(tps, reg, &data);
+> +	if (err) {
+> +		pr_err("Read from reg 0x%x failed\n", reg);
+> +		return err;
+> +	}
+> +
+> +	data |= mask;
+> +
+> +	return tps_65023_write_reg(tps, reg, data);
+> +}
 
-diff --git a/arch/arm/mach-omap2/board-omap35x-pmic.c b/arch/arm/mach-omap2/board-omap35x-pmic.c
-index 0bf47fd..2c33965 100644
---- a/arch/arm/mach-omap2/board-omap35x-pmic.c
-+++ b/arch/arm/mach-omap2/board-omap35x-pmic.c
-@@ -124,6 +124,98 @@ static struct i2c_board_info __initdata board_tps65023_instances[] = {
- /*
-  * Definitions specific to TPS65073
-  */
-+#if defined(CONFIG_OMAP3EVM_TPS65073)
-+/* MPU voltage regulator of DCDC type */
-+struct regulator_consumer_supply tps65073_mpu_consumers = {
-+	.supply = "vdd1",
-+};
-+
-+/* CORE voltage regulator of DCDC type */
-+struct regulator_consumer_supply tps65073_core_consumers = {
-+	.supply = "vdd2",
-+};
-+
-+/* SRAM/MEM/WKUP_BG/VDDS voltage regulator of DCDC type */
-+struct regulator_consumer_supply tps65073_vdds_consumers = {
-+	.supply = "vdds",
-+};
-+
-+/* DPLL voltage regulator of LDO type */
-+struct regulator_consumer_supply tps65073_dpll_consumers = {
-+	.supply = "dpll",
-+};
-+
-+/* MMC voltage regulator of LDO type */
-+struct regulator_consumer_supply tps65073_mmc_consumers = {
-+	.supply = "mmc",
-+};
-+
-+struct regulator_init_data tps65073_regulator_data[] = {
-+	{
-+		.constraints = {
-+			.min_uV = 725000,
-+			.max_uV = 3300000,
-+			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
-+				REGULATOR_CHANGE_STATUS),
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65073_vdds_consumers,
-+	},
-+	{
-+		.constraints = {
-+			.min_uV = 725000,
-+			.max_uV = 3300000,
-+			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
-+				REGULATOR_CHANGE_STATUS),
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65073_core_consumers,
-+	},
-+	{
-+		.constraints = {
-+			.min_uV = 725000,
-+			.max_uV = 3300000,
-+			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
-+				REGULATOR_CHANGE_STATUS),
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65073_mpu_consumers,
-+	},
-+	{
-+		.constraints = {
-+			.min_uV = 1000000,
-+			.max_uV = 3300000,
-+			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
-+				REGULATOR_CHANGE_STATUS),
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65073_dpll_consumers,
-+	},
-+	{
-+		.constraints = {
-+			.min_uV = 725000,
-+			.max_uV = 3300000,
-+			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
-+				REGULATOR_CHANGE_STATUS),
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65073_mmc_consumers,
-+	},
-+};
-+
-+static struct i2c_board_info __initdata board_tps65073_instances[] = {
-+	{
-+		I2C_BOARD_INFO("tps6507x", 0x48),
-+		.flags = I2C_CLIENT_WAKE,
-+		.platform_data = &tps65073_regulator_data[0],
-+	},
-+};
-+#endif
- 
- static int flag_pmic_twl4030;
- static int flag_pmic_tps6235x;
-@@ -204,7 +296,8 @@ int oma35x_pmic_init(void)
- #endif
- 
- #if defined(CONFIG_OMAP3EVM_TPS65073)
--	/* do stuff specific to TPS65073 */
-+	omap_register_i2c_bus(1, 400, board_tps65073_instances,
-+		ARRAY_SIZE(board_tps65073_instances));
- #endif
- 
- 	return 0;
--- 
-1.6.2.4
+This and the clear_bits() function should use a lock to stop data
+corruption if two simultaneous read/modify/write operations occur.  The
+regulator framework doesn't stop two different regulators being updated
+simultaneously.
+
+> +	if (min_uV < tps->info[dcdc]->min_uV 
+> +			|| min_uV > tps->info[dcdc]->max_uV)
+> +		return -EINVAL;
+
+Odd indentation for the or clause here and elsewhere.
+
+> +	for (vsel = 0; vsel < tps->info[dcdc]->table_len; vsel++) {
+> +		int mV = tps->info[dcdc]->table[vsel];
+> +		int uV = mV * 1000;
+> +
+> +		/* Break at the first in-range value */
+> +		if (min_uV <= uV && uV <= max_uV)
+> +			break;
+> +	}
+> +
+> +	/* write to the register */
+> +	return tps_65023_write_reg(tps, TPS65023_REG_DEF_CORE, vsel);
+
+There should be a check after the for loop to make sure we actually
+found a voltage - the min/max check earlier isn't enough since a
+consumer could ask for a very narrow voltage range that the chip is
+unable to generate.  For example, if 1.1V and 1.2V are supported a
+request for exactly 1.15V would fail to match.
+
+The same issue applies to the LDO.
+
+> +	ret = tps_65023_read_reg(tps, TPS65023_REG_LDO_CTRL, &reg_ctrl);
+> +
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	reg_ctrl &= TPS65023_LDO_CTRL_LDOx_MASK(ldo - TPS65023_LDO_1);
+> +	reg_ctrl |= 
+> +		(vsel << (TPS65023_LDO_CTRL_LDOx_SHIFT(ldo - TPS65023_LDO_1)));
+> +	return tps_65023_write_reg(tps, TPS65023_REG_LDO_CTRL, reg_ctrl);
+
+This will also have the locking issue I mentioned earlier with the set
+bits operation.
+
+> +/* Operations permitted on VDCDCx */
+> +static struct regulator_ops tps65023_dcdc_ops = {
+> +	.is_enabled = tps65023_dcdc_is_enabled,
+> +	.enable = tps65023_dcdc_enable,
+> +	.disable = tps65023_dcdc_disable,
+> +	.get_voltage = tps65023_dcdc_get_voltage,
+> +	.set_voltage = tps65023_dcdc_set_voltage,
+
+It'd be good to also implement list_voltage().
+
+> +								init_data, tps);
+> +		if (IS_ERR(rdev)) {
+> +			dev_err(&client->dev, "failed to register %s\n",
+> +				id->name);
+> +			kfree(tps);
+> +			return PTR_ERR(rdev);
+> +		}
+
+This should go through and deallocate any regulators that were
+succesfully allocated if it hits an error.
+
+> +/* Supported voltage values for regulators */
+> +static const u16 VDCDC1_VSEL_table[] = {
+
+It'd feel more natural when reading the source if these tables were at
+the top of the driver (so the reader knows they're there when going from
+the top of the driver to the bottom) but that's just a personal
+preference.
+
+> +static const struct tps_info tps65023_regs[] = {
+> +	{
+> +	.name = "VDCDC1",
+> +	.min_uV =  800000,
+> +	.max_uV = 1600000,
+> +	.fixed = 0,
+> +	.table_len = ARRAY_SIZE(VDCDC1_VSEL_table),
+> +	.table = VDCDC1_VSEL_table,
+> +	},
+
+Indentation here is a bit non-standard - I'd expect either the {} around
+the elements to be in column 0 or another level of indentation for the
+fields.
+
+> +	{
+> +	.name = "VDCDC2",
+> +	.min_uV =  3300000,
+> +	.max_uV = 3300000,
+> +	.fixed = 1,
+> +	.table_len = 0,
+> +	},
+
+You could drop the fixed flag and just have fixed be inferred from
+min_uV == max_uV?
+
+> +static struct i2c_driver tps_65023_i2c_driver = {
+> +	.driver = {
+> +		.name = "tps_65023_pwr",
+> +		.owner = THIS_MODULE,
+> +	},
+
+It'd be more natural to drop the _pwr from the name of the driver - most
+I2C devices have a name which is just the chip name (and normally with
+no _s too so tps65023).
