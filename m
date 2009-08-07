@@ -1,135 +1,216 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [RFC][PATCH] OMAP3: PM: Fix workaround implementation for	OMAP3
- errata (1.142)
-Date: Fri, 07 Aug 2009 11:03:30 +0300
-Message-ID: <4A7BDFD2.6090403@nokia.com>
-References: <1248873393-29503-1-git-send-email-ext-roger.quadros@nokia.com>	 <87tz0k614d.fsf@deeprootsystems.com> <1249625784.6485.249.camel@ubuntu>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH][2.6.31-rc5] ARM: OMAP: McBSP: Fix ASoC on
+	OMAP1510 by	fixing API of omap_mcbsp_start/stop
+Date: Fri, 7 Aug 2009 11:14:55 +0300
+Message-ID: <20090807081207.GX2358@atomide.com>
+References: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:54441 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754811AbZHGIEF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 04:04:05 -0400
-In-Reply-To: <1249625784.6485.249.camel@ubuntu>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
-To: ext Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ext Kalle Jokiniemi wrote:
-> On Fri, 2009-08-07 at 01:14 +0300, Kevin Hilman wrote:
->> Roger Quadros <ext-roger.quadros@nokia.com> writes:
->>
->>> As per errata 1.142, on EMU/HS devices, SDRC_POWER should be programmed
->>> for automatic self-refresh before transition to OFF mode.
->>> In the current implementation this is done in omap3_scratchpad_contents()
->>> which is wrong, since this is the value that will be restored while
->>> resuming from OFF mode and not while transitioning to it.
->>>
->>> This patch implements the workaround in the correct way as per errata.
->>>
->>> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
->> This looks right to me.
->>
->> Rajendra, Kalle, any comments? since you were the originators of
->> the original patch.
->>
->> Kevin
->>
->>> ---
->>>  arch/arm/mach-omap2/control.c |   16 ++--------------
->>>  arch/arm/mach-omap2/pm34xx.c  |   20 ++++++++++++++------
->>>  2 files changed, 16 insertions(+), 20 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
->>> index a7159a9..0a563c8 100644
->>> --- a/arch/arm/mach-omap2/control.c
->>> +++ b/arch/arm/mach-omap2/control.c
->>> @@ -272,20 +272,8 @@ void omap3_save_scratchpad_contents(void)
->>>  			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
->>>  	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
->>>  	sdrc_block_contents.dll_b_ctrl = 0x0;
->>> -	/*
->>> -	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
->>> -	 * be programed to issue automatic self refresh on timeout
->>> -	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
->>> -	 */
->>> -	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
->>> -			&& (omap_rev() >= OMAP3430_REV_ES3_0))
->>> -		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
->>> -				~(SDRC_POWER_AUTOCOUNT_MASK|
->>> -				SDRC_POWER_CLKCTRL_MASK)) |
->>> -				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
->>> -				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
->>> -	else
->>> -		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
->>> +
->>> +	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
+* Jarkko Nikula <jhnikula@gmail.com> [090807 09:59]:
+> Simultaneous audio playback and capture on OMAP1510 can cause that second
+> stream is stalled if there is enough delay between startup of the audio
+> streams.
 > 
-> Why do you want to remove the workaround from scratchpad?
+> Current implementation of the omap_mcbsp_start is starting both transmitter
+> and receiver at the same time and it is called only for firstly started
+> audio stream from the OMAP McBSP based ASoC DAI driver.
 > 
-> When we wake up from off mode, the boot ROM code writes these settings
-> as the first sdrc_power settings after wakeup. If that setting does not
-> include the workaround, we'll have a period of time where sdram is not
-> being refreshed. This hits especially HS devices that do long secure
-> context restore in ROM code as well.
+> Since DMA request lines on OMAP1510 are edge sensitive, the DMA request is
+> missed if there is no DMA transfer set up at that time when the first word
+> after McBSP startup is transmitted. The problem hasn't noted before since
+> later OMAPs are using level sensitive DMA request lines.
 > 
+> Fix the problem by changing API of omap_mcbsp_start and omap_mcbsp_stop by
+> allowing to start and stop individually McBSP transmitter and receiver
+> logics. Then call those functions individually for both audio playback
+> and capture streams. This ensures that DMA transfer is setup before
+> transmitter or receiver is started.
 > 
-I suppose SDRAM is always refreshed (i.e. auto refresh) when ON. However when we 
-enter OFF mode it should be _self_ refreshed. That is done by the below code 
-before we switch to OFF mode.
+> Thanks to Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> for detailed problem
+> analysis and Peter Ujfalusi <peter.ujfalusi@nokia.com> for info about DMA
+> request line behavior differences between the OMAP generations.
+> 
+> Reported-and-tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 
-When we wake up from OFF mode (the scratchpad contents are used), we should 
-restore the original register setting that was there before we went to OFF mode 
-and not the self refresh mode setting. Hence the removal of above code.
+This seems OK to me queue via the alsa list as it's mostly audio related.
 
--roger
->>>  
->>>  	sdrc_block_contents.cs_0 = 0x0;
->>>  	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
->>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->>> index 14f10bc..eb3c9e5 100644
->>> --- a/arch/arm/mach-omap2/pm34xx.c
->>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>> @@ -405,15 +405,23 @@ void omap_sram_idle(void)
->>>  	}
->>>  
->>>  	/*
->>> -	* On EMU/HS devices ROM code restores a SRDC value
->>> -	* from scratchpad which has automatic self refresh on timeout
->>> -	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
->>> -	* Hence store/restore the SDRC_POWER register here.
->>> -	*/
->>> +	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
->>> +	 * be programed to issue automatic self refresh on timeout
->>> +	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
->>> +	 */
->>> +
->>>  	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
->>>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
->>> -	    core_next_state == PWRDM_POWER_OFF)
->>> +	    core_next_state == PWRDM_POWER_OFF) {
->>> +
->>>  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
->>> +		sdrc_write_reg((sdrc_pwr &
->>> +				~(SDRC_POWER_AUTOCOUNT_MASK|
->>> +				SDRC_POWER_CLKCTRL_MASK)) |
->>> +				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
->>> +				SDRC_SELF_REFRESH_ON_AUTOCOUNT,
->>> +					SDRC_POWER);
->>> +	}
-> 
-> This part seems ok to me.
-> 
-> - Kalle
-> 
-> 
->>>  
->>>  	if (regset_save_on_suspend)
->>>  		pm_dbg_regset_save(1);
->>> -- 
->>> 1.6.0.4
-> 
+Acked-by: Tony Lindgren <tony@atomide.com>
 
+
+
+
+> ---
+>  arch/arm/plat-omap/include/mach/mcbsp.h |    4 +-
+>  arch/arm/plat-omap/mcbsp.c              |   50 +++++++++++++++++++-----------
+>  sound/soc/omap/omap-mcbsp.c             |   10 +++---
+>  3 files changed, 39 insertions(+), 25 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+> index bb154ea..57249bb 100644
+> --- a/arch/arm/plat-omap/include/mach/mcbsp.h
+> +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+> @@ -387,8 +387,8 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
+>  void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
+>  int omap_mcbsp_request(unsigned int id);
+>  void omap_mcbsp_free(unsigned int id);
+> -void omap_mcbsp_start(unsigned int id);
+> -void omap_mcbsp_stop(unsigned int id);
+> +void omap_mcbsp_start(unsigned int id, int tx, int rx);
+> +void omap_mcbsp_stop(unsigned int id, int tx, int rx);
+>  void omap_mcbsp_xmit_word(unsigned int id, u32 word);
+>  u32 omap_mcbsp_recv_word(unsigned int id);
+>  
+> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+> index efa0e01..a3d2313 100644
+> --- a/arch/arm/plat-omap/mcbsp.c
+> +++ b/arch/arm/plat-omap/mcbsp.c
+> @@ -328,14 +328,15 @@ void omap_mcbsp_free(unsigned int id)
+>  EXPORT_SYMBOL(omap_mcbsp_free);
+>  
+>  /*
+> - * Here we start the McBSP, by enabling the sample
+> - * generator, both transmitter and receivers,
+> - * and the frame sync.
+> + * Here we start the McBSP, by enabling transmitter, receiver or both.
+> + * If no transmitter or receiver is active prior calling, then sample-rate
+> + * generator and frame sync are started.
+>   */
+> -void omap_mcbsp_start(unsigned int id)
+> +void omap_mcbsp_start(unsigned int id, int tx, int rx)
+>  {
+>  	struct omap_mcbsp *mcbsp;
+>  	void __iomem *io_base;
+> +	int idle;
+>  	u16 w;
+>  
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+> @@ -348,32 +349,40 @@ void omap_mcbsp_start(unsigned int id)
+>  	mcbsp->rx_word_length = (OMAP_MCBSP_READ(io_base, RCR1) >> 5) & 0x7;
+>  	mcbsp->tx_word_length = (OMAP_MCBSP_READ(io_base, XCR1) >> 5) & 0x7;
+>  
+> -	/* Start the sample generator */
+> -	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
+> +	idle = !((OMAP_MCBSP_READ(io_base, SPCR2) |
+> +		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
+> +
+> +	if (idle) {
+> +		/* Start the sample generator */
+> +		w = OMAP_MCBSP_READ(io_base, SPCR2);
+> +		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
+> +	}
+>  
+>  	/* Enable transmitter and receiver */
+>  	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | 1);
+> +	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (tx & 1));
+>  
+>  	w = OMAP_MCBSP_READ(io_base, SPCR1);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR1, w | 1);
+> +	OMAP_MCBSP_WRITE(io_base, SPCR1, w | (rx & 1));
+>  
+>  	udelay(100);
+>  
+> -	/* Start frame sync */
+> -	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
+> +	if (idle) {
+> +		/* Start frame sync */
+> +		w = OMAP_MCBSP_READ(io_base, SPCR2);
+> +		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
+> +	}
+>  
+>  	/* Dump McBSP Regs */
+>  	omap_mcbsp_dump_reg(id);
+>  }
+>  EXPORT_SYMBOL(omap_mcbsp_start);
+>  
+> -void omap_mcbsp_stop(unsigned int id)
+> +void omap_mcbsp_stop(unsigned int id, int tx, int rx)
+>  {
+>  	struct omap_mcbsp *mcbsp;
+>  	void __iomem *io_base;
+> +	int idle;
+>  	u16 w;
+>  
+>  	if (!omap_mcbsp_check_valid_id(id)) {
+> @@ -386,15 +395,20 @@ void omap_mcbsp_stop(unsigned int id)
+>  
+>  	/* Reset transmitter */
+>  	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1));
+> +	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(tx & 1));
+>  
+>  	/* Reset receiver */
+>  	w = OMAP_MCBSP_READ(io_base, SPCR1);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(1));
+> +	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(rx & 1));
+>  
+> -	/* Reset the sample rate generator */
+> -	w = OMAP_MCBSP_READ(io_base, SPCR2);
+> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
+> +	idle = !((OMAP_MCBSP_READ(io_base, SPCR2) |
+> +		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
+> +
+> +	if (idle) {
+> +		/* Reset the sample rate generator */
+> +		w = OMAP_MCBSP_READ(io_base, SPCR2);
+> +		OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
+> +	}
+>  }
+>  EXPORT_SYMBOL(omap_mcbsp_stop);
+>  
+> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+> index a5d46a7..6a837ff 100644
+> --- a/sound/soc/omap/omap-mcbsp.c
+> +++ b/sound/soc/omap/omap-mcbsp.c
+> @@ -183,21 +183,21 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
+>  	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+>  	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
+>  	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
+> -	int err = 0;
+> +	int err = 0, play = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
+>  
+>  	switch (cmd) {
+>  	case SNDRV_PCM_TRIGGER_START:
+>  	case SNDRV_PCM_TRIGGER_RESUME:
+>  	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+> -		if (!mcbsp_data->active++)
+> -			omap_mcbsp_start(mcbsp_data->bus_id);
+> +		mcbsp_data->active++;
+> +		omap_mcbsp_start(mcbsp_data->bus_id, play, !play);
+>  		break;
+>  
+>  	case SNDRV_PCM_TRIGGER_STOP:
+>  	case SNDRV_PCM_TRIGGER_SUSPEND:
+>  	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+> -		if (!--mcbsp_data->active)
+> -			omap_mcbsp_stop(mcbsp_data->bus_id);
+> +		omap_mcbsp_stop(mcbsp_data->bus_id, play, !play);
+> +		mcbsp_data->active--;
+>  		break;
+>  	default:
+>  		err = -EINVAL;
+> -- 
+> 1.6.3.3
+> 
