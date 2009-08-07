@@ -1,16 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 Subject: Re: [PATCH][2.6.31-rc5] ARM: OMAP: McBSP: Fix ASoC on
 	OMAP1510 by fixing API of omap_mcbsp_start/stop
-Date: Fri, 7 Aug 2009 11:51:43 +0300
-Message-ID: <200908071151.44083.peter.ujfalusi@nokia.com>
+Date: Fri, 7 Aug 2009 11:52:47 +0300
+Message-ID: <200908071152.47243.peter.ujfalusi@nokia.com>
 References: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
-	<200908071130.54337.peter.ujfalusi@nokia.com>
-	<20090807114757.0067a707.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090807114757.0067a707.jhnikula@gmail.com>
+In-Reply-To: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
 Content-Disposition: inline
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
@@ -21,34 +19,43 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: alsa-devel@alsa-project.org
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Friday 07 August 2009 11:47:57 ext Jarkko Nikula wrote:
-> On Fri, 7 Aug 2009 11:30:54 +0300
+On Friday 07 August 2009 09:59:47 ext Jarkko Nikula wrote:
+> Simultaneous audio playback and capture on OMAP1510 can cause that second
+> stream is stalled if there is enough delay between startup of the audio
+> streams.
 >
-> Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
-> > Looks nice, but I would have done it a bit differently...
+> Current implementation of the omap_mcbsp_start is starting both transmitter
+> and receiver at the same time and it is called only for firstly started
+> audio stream from the OMAP McBSP based ASoC DAI driver.
 >
-> ...
+> Since DMA request lines on OMAP1510 are edge sensitive, the DMA request is
+> missed if there is no DMA transfer set up at that time when the first word
+> after McBSP startup is transmitted. The problem hasn't noted before since
+> later OMAPs are using level sensitive DMA request lines.
 >
-> > > -void omap_mcbsp_start(unsigned int id);
-> > > -void omap_mcbsp_stop(unsigned int id);
-> > > +void omap_mcbsp_start(unsigned int id, int tx, int rx);
-> > > +void omap_mcbsp_stop(unsigned int id, int tx, int rx);
-> >
-> > void omap_mcbsp_start(unsigned int id, int dir);
-> > void omap_mcbsp_stop(unsigned int id, int dir);
+> Fix the problem by changing API of omap_mcbsp_start and omap_mcbsp_stop by
+> allowing to start and stop individually McBSP transmitter and receiver
+> logics. Then call those functions individually for both audio playback
+> and capture streams. This ensures that DMA transfer is setup before
+> transmitter or receiver is started.
 >
-> Valid point and cleans up a bit the ALSA SoC part of the patch.
-> However I didn't want to limit this generic arch/arm/plat-omap/mcbsp.c
-> into audio use case only. My change still allows to start transmitter
-> and receiver exactly at the same time. Might be worth if the
-> generic McBSP driver is used for something else than audio.
+> Thanks to Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> for detailed problem
+> analysis and Peter Ujfalusi <peter.ujfalusi@nokia.com> for info about DMA
+> request line behavior differences between the OMAP generations.
+>
+> Reported-and-tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/plat-omap/include/mach/mcbsp.h |    4 +-
+>  arch/arm/plat-omap/mcbsp.c              |   50
+> +++++++++++++++++++----------- sound/soc/omap/omap-mcbsp.c             |  
+> 10 +++---
+>  3 files changed, 39 insertions(+), 25 deletions(-)
 
-Good point.
-
--- =
-
-P=E9ter
+Acked-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
