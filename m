@@ -1,43 +1,37 @@
-From: Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [PATCH] mtd: make onenand/generic.c more generic
-Date: Fri, 7 Aug 2009 14:46:34 +0900
-Message-ID: <aec7e5c30908062246m2ef5b13dv57dd05bd07d23d67__19186.9460199543$1249624010$gmane$org@mail.gmail.com>
-References: <20090804092046.16025.83910.sendpatchset@rx1.opensource.se>
-	 <9c9fda240908042124y4f783dfehd575601c0a09550e@mail.gmail.com>
-	 <aec7e5c30908042141l18b25ba4l66b3cb309f080b21@mail.gmail.com>
-	 <aec7e5c30908062228g737c1f6cr25f6c67c07d80bd9@mail.gmail.com>
-	 <20090807053020.GA902@linux-sh.org>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: [PATCH 2/2] OMAP: remove OMAP_TAG_UART
+Date: Fri, 07 Aug 2009 09:03:09 +0300
+Message-ID: <87tz0kma8y.fsf@litku.valot.fi>
+References: <20090807051516.4787.36125.stgit@tikku>
+	<20090807051650.4787.84433.stgit@tikku>
+	<FCCFB4CDC6E5564B9182F639FC35608702F5988C18@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:49221 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476AbZHGFqd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 01:46:33 -0400
-In-Reply-To: <20090807053020.GA902@linux-sh.org>
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:62268 "EHLO
+	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752476AbZHGGDL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 02:03:11 -0400
+Received: by bwz9 with SMTP id 9so1182711bwz.41
+        for <linux-omap@vger.kernel.org>; Thu, 06 Aug 2009 23:03:10 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F5988C18@dbde02.ent.ti.com> (Vikram Pandita's message of "Fri\, 7 Aug 2009 11\:10\:12 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Mundt <lethal@linux-sh.org>, Magnus Damm <magnus.damm@gmail.com>, Kyungmin Park <kmpark@infradead.org>, linux-mtd@lists.infradead.org, linux-sh@vger.kernel.org, tony@atomide.com
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Aug 7, 2009 at 2:30 PM, Paul Mundt<lethal@linux-sh.org> wrote:
-> On Fri, Aug 07, 2009 at 02:28:01PM +0900, Magnus Damm wrote:
->> On Wed, Aug 5, 2009 at 1:41 PM, Magnus Damm<magnus.damm@gmail.com> wrote:
->> >> On Tue, Aug 4, 2009 at 6:20 PM, Magnus Damm<magnus.damm@gmail.com> wrote:
->> >>> From: Magnus Damm <damm@igel.co.jp>
->> >>>
->> >>> This patch removes the ARM dependency from the generic "onenand"
->> >>> platform device driver. This change makes the driver useful for
->> >>> other architectures as well. Needed for the SuperH kfr2r09 board.
->> >
->> Any update on this?
+"Pandita, Vikram" <vikram.pandita@ti.com> writes:
+
+>>Omap tags are deprecrated and convert all OMAP_TAG_UART cases to use
+>>omap_uart_platform_data instead.
 >>
-> You have failed at reading your email:
+>>Tested on rx51 and n8x0. Compile tested on omap_osk_5912.
+>>
+>>Signed-off-by: Kalle Valo <kalle.valo@iki.fi>
 >
-> http://lists.infradead.org/pipermail/linux-mtd/2009-August/026805.html
-> http://lists.infradead.org/pipermail/linux-mtd/2009-August/026809.html
+> Any plans to remove OMAP_TAG_LCD
 
-As usual, sorry about that. I'll solve that soon enough by signing off
-with a different address.
+I don't have any plans, but I don't know about others.
 
-/ magnus
+-- 
+Kalle Valo
