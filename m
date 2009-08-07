@@ -1,430 +1,61 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 10/20] OMAP: DSS2: DPI driver
-Date: Fri,  7 Aug 2009 15:27:48 +0300
-Message-ID: <1249648078-7780-11-git-send-email-tomi.valkeinen@nokia.com>
-References: <1249648078-7780-1-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-2-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-3-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-4-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-5-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-6-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-7-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-8-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-9-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-10-git-send-email-tomi.valkeinen@nokia.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: [PATCH] omap2: compile usb-tusb6010.c
+Date: Fri, 07 Aug 2009 15:48:01 +0300
+Message-ID: <20090807124801.3164.35116.stgit@tikku>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:64460 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757799AbZHGM3R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:29:17 -0400
-In-Reply-To: <1249648078-7780-10-git-send-email-tomi.valkeinen@nokia.com>
+Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:53591 "EHLO
+	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757388AbZHGMsD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:48:03 -0400
+Received: from saunalahti-vams (vs3-10.mail.saunalahti.fi [62.142.5.94])
+	by emh03-2.mail.saunalahti.fi (Postfix) with SMTP id B4E36EBEF0
+	for <linux-omap@vger.kernel.org>; Fri,  7 Aug 2009 15:48:02 +0300 (EEST)
+Received: from [127.0.1.1] (a91-155-131-184.elisa-laajakaista.fi [91.155.131.184])
+	by emh04.mail.saunalahti.fi (Postfix) with ESMTP id A4FD341BE2
+	for <linux-omap@vger.kernel.org>; Fri,  7 Aug 2009 15:48:01 +0300 (EEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-fbdev-devel@lists.sourceforge.net
-Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: linux-omap@vger.kernel.org
 
-This implements MIPI DPI interface.
+For some reason usb-tusb6010.c was't compiled, add it to Makefile and
+Kconfig. This is prepraration for upcoming n8x0 support.
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Signed-off-by: Kalle Valo <kalle.valo@iki.fi>
 ---
- drivers/video/omap2/dss/dpi.c |  388 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 388 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/dss/dpi.c
 
-diff --git a/drivers/video/omap2/dss/dpi.c b/drivers/video/omap2/dss/dpi.c
-new file mode 100644
-index 0000000..b6543c8
---- /dev/null
-+++ b/drivers/video/omap2/dss/dpi.c
-@@ -0,0 +1,388 @@
-+/*
-+ * linux/drivers/video/omap2/dss/dpi.c
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-+ *
-+ * Some code and ideas taken from drivers/video/omap/ driver
-+ * by Imre Deak.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#define DSS_SUBSYS_NAME "DPI"
-+
-+#include <linux/kernel.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/errno.h>
-+
-+#include <mach/board.h>
-+#include <mach/display.h>
-+#include <mach/cpu.h>
-+
-+#include "dss.h"
-+
-+static struct {
-+	int update_enabled;
-+} dpi;
-+
-+#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
-+static int dpi_set_dsi_clk(bool is_tft, unsigned long pck_req,
-+		unsigned long *fck, int *lck_div, int *pck_div)
-+{
-+	struct dsi_clock_info cinfo;
-+	int r;
-+
-+	r = dsi_pll_calc_pck(is_tft, pck_req, &cinfo);
-+	if (r)
-+		return r;
-+
-+	r = dsi_pll_program(&cinfo);
-+	if (r)
-+		return r;
-+
-+	dss_select_clk_source(0, 1);
-+
-+	dispc_set_lcd_divisor(cinfo.lck_div, cinfo.pck_div);
-+
-+	*fck = cinfo.dsi1_pll_fclk;
-+	*lck_div = cinfo.lck_div;
-+	*pck_div = cinfo.pck_div;
-+
-+	return 0;
-+}
-+#else
-+static int dpi_set_dispc_clk(bool is_tft, unsigned long pck_req,
-+		unsigned long *fck, int *lck_div, int *pck_div)
-+{
-+	struct dispc_clock_info cinfo;
-+	int r;
-+
-+	r = dispc_calc_clock_div(is_tft, pck_req, &cinfo);
-+	if (r)
-+		return r;
-+
-+	r = dispc_set_clock_div(&cinfo);
-+	if (r)
-+		return r;
-+
-+	*fck = cinfo.fck;
-+	*lck_div = cinfo.lck_div;
-+	*pck_div = cinfo.pck_div;
-+
-+	return 0;
-+}
-+#endif
-+
-+static int dpi_set_mode(struct omap_dss_device *dssdev)
-+{
-+	struct omap_video_timings *t = &dssdev->panel.timings;
-+	int lck_div, pck_div;
-+	unsigned long fck;
-+	unsigned long pck;
-+	bool is_tft;
-+	int r = 0;
-+
-+	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	dispc_set_pol_freq(dssdev->panel.config, dssdev->panel.acbi,
-+			dssdev->panel.acb);
-+
-+	is_tft = (dssdev->panel.config & OMAP_DSS_LCD_TFT) != 0;
-+
-+#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
-+	r = dpi_set_dsi_clk(is_tft, t->pixel_clock * 1000,
-+			&fck, &lck_div, &pck_div);
-+#else
-+	r = dpi_set_dispc_clk(is_tft, t->pixel_clock * 1000,
-+			&fck, &lck_div, &pck_div);
-+#endif
-+	if (r)
-+		goto err0;
-+
-+	pck = fck / lck_div / pck_div / 1000;
-+
-+	if (pck != t->pixel_clock) {
-+		DSSWARN("Could not find exact pixel clock. "
-+				"Requested %d kHz, got %lu kHz\n",
-+				t->pixel_clock, pck);
-+
-+		t->pixel_clock = pck;
-+	}
-+
-+	dispc_set_lcd_timings(t);
-+
-+err0:
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+	return r;
-+}
-+
-+static int dpi_basic_init(struct omap_dss_device *dssdev)
-+{
-+	bool is_tft;
-+
-+	is_tft = (dssdev->panel.config & OMAP_DSS_LCD_TFT) != 0;
-+
-+	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_BYPASS);
-+	dispc_set_lcd_display_type(is_tft ? OMAP_DSS_LCD_DISPLAY_TFT :
-+			OMAP_DSS_LCD_DISPLAY_STN);
-+	dispc_set_tft_data_lines(dssdev->phy.dpi.data_lines);
-+
-+	return 0;
-+}
-+
-+static int dpi_display_enable(struct omap_dss_device *dssdev)
-+{
-+	int r;
-+
-+	r = omap_dss_start_device(dssdev);
-+	if (r) {
-+		DSSERR("failed to start device\n");
-+		goto err0;
-+	}
-+
-+	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
-+		DSSERR("display already enabled\n");
-+		r = -EINVAL;
-+		goto err1;
-+	}
-+
-+	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	r = dpi_basic_init(dssdev);
-+	if (r)
-+		goto err2;
-+
-+#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
-+	dss_clk_enable(DSS_CLK_FCK2);
-+	r = dsi_pll_init(0, 1);
-+	if (r)
-+		goto err3;
-+#endif
-+	r = dpi_set_mode(dssdev);
-+	if (r)
-+		goto err4;
-+
-+	mdelay(2);
-+
-+	dispc_enable_lcd_out(1);
-+
-+	r = dssdev->driver->enable(dssdev);
-+	if (r)
-+		goto err5;
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	return 0;
-+
-+err5:
-+	dispc_enable_lcd_out(0);
-+err4:
-+#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
-+	dsi_pll_uninit();
-+err3:
-+	dss_clk_disable(DSS_CLK_FCK2);
-+#endif
-+err2:
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+err1:
-+	omap_dss_stop_device(dssdev);
-+err0:
-+	return r;
-+}
-+
-+static int dpi_display_resume(struct omap_dss_device *dssdev);
-+
-+static void dpi_display_disable(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->state == OMAP_DSS_DISPLAY_DISABLED)
-+		return;
-+
-+	if (dssdev->state == OMAP_DSS_DISPLAY_SUSPENDED)
-+		dpi_display_resume(dssdev);
-+
-+	dssdev->driver->disable(dssdev);
-+
-+	dispc_enable_lcd_out(0);
-+
-+#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
-+	dss_select_clk_source(0, 0);
-+	dsi_pll_uninit();
-+	dss_clk_disable(DSS_CLK_FCK2);
-+#endif
-+
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
-+
-+	omap_dss_stop_device(dssdev);
-+}
-+
-+static int dpi_display_suspend(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-+		return -EINVAL;
-+
-+	DSSDBG("dpi_display_suspend\n");
-+
-+	if (dssdev->driver->suspend)
-+		dssdev->driver->suspend(dssdev);
-+
-+	dispc_enable_lcd_out(0);
-+
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
-+
-+	return 0;
-+}
-+
-+static int dpi_display_resume(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
-+		return -EINVAL;
-+
-+	DSSDBG("dpi_display_resume\n");
-+
-+	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	dispc_enable_lcd_out(1);
-+
-+	if (dssdev->driver->resume)
-+		dssdev->driver->resume(dssdev);
-+
-+	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
-+
-+	return 0;
-+}
-+
-+static void dpi_set_timings(struct omap_dss_device *dssdev,
-+			struct omap_video_timings *timings)
-+{
-+	DSSDBG("dpi_set_timings\n");
-+	dssdev->panel.timings = *timings;
-+	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
-+		dpi_set_mode(dssdev);
-+		dispc_go(OMAP_DSS_CHANNEL_LCD);
-+	}
-+}
-+
-+static int dpi_check_timings(struct omap_dss_device *dssdev,
-+			struct omap_video_timings *timings)
-+{
-+	bool is_tft;
-+	int r;
-+	int lck_div, pck_div;
-+	unsigned long fck;
-+	unsigned long pck;
-+
-+	if (!dispc_lcd_timings_ok(timings))
-+		return -EINVAL;
-+
-+	if (timings->pixel_clock == 0)
-+		return -EINVAL;
-+
-+	is_tft = (dssdev->panel.config & OMAP_DSS_LCD_TFT) != 0;
-+
-+#ifdef CONFIG_OMAP2_DSS_USE_DSI_PLL
-+	{
-+		struct dsi_clock_info cinfo;
-+		r = dsi_pll_calc_pck(is_tft, timings->pixel_clock * 1000,
-+				&cinfo);
-+
-+		if (r)
-+			return r;
-+
-+		fck = cinfo.dsi1_pll_fclk;
-+		lck_div = cinfo.lck_div;
-+		pck_div = cinfo.pck_div;
-+	}
-+#else
-+	{
-+		struct dispc_clock_info cinfo;
-+		r = dispc_calc_clock_div(is_tft, timings->pixel_clock * 1000,
-+				&cinfo);
-+
-+		if (r)
-+			return r;
-+
-+		fck = cinfo.fck;
-+		lck_div = cinfo.lck_div;
-+		pck_div = cinfo.pck_div;
-+	}
-+#endif
-+
-+	pck = fck / lck_div / pck_div / 1000;
-+
-+	timings->pixel_clock = pck;
-+
-+	return 0;
-+}
-+
-+static void dpi_get_timings(struct omap_dss_device *dssdev,
-+			struct omap_video_timings *timings)
-+{
-+	*timings = dssdev->panel.timings;
-+}
-+
-+static int dpi_display_set_update_mode(struct omap_dss_device *dssdev,
-+		enum omap_dss_update_mode mode)
-+{
-+	if (mode == OMAP_DSS_UPDATE_MANUAL)
-+		return -EINVAL;
-+
-+	if (mode == OMAP_DSS_UPDATE_DISABLED) {
-+		dispc_enable_lcd_out(0);
-+		dpi.update_enabled = 0;
-+	} else {
-+		dispc_enable_lcd_out(1);
-+		dpi.update_enabled = 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static enum omap_dss_update_mode dpi_display_get_update_mode(
-+		struct omap_dss_device *dssdev)
-+{
-+	return dpi.update_enabled ? OMAP_DSS_UPDATE_AUTO :
-+		OMAP_DSS_UPDATE_DISABLED;
-+}
-+
-+int dpi_init_display(struct omap_dss_device *dssdev)
-+{
-+	DSSDBG("init_display\n");
-+
-+	dssdev->enable = dpi_display_enable;
-+	dssdev->disable = dpi_display_disable;
-+	dssdev->suspend = dpi_display_suspend;
-+	dssdev->resume = dpi_display_resume;
-+	dssdev->set_timings = dpi_set_timings;
-+	dssdev->check_timings = dpi_check_timings;
-+	dssdev->get_timings = dpi_get_timings;
-+	dssdev->set_update_mode = dpi_display_set_update_mode;
-+	dssdev->get_update_mode = dpi_display_get_update_mode;
-+
-+	return 0;
-+}
-+
-+int dpi_init(void)
-+{
-+	return 0;
-+}
-+
-+void dpi_exit(void)
-+{
-+}
-+
--- 
-1.6.4
+ arch/arm/mach-omap2/Kconfig  |    5 +++++
+ arch/arm/mach-omap2/Makefile |    1 +
+ 2 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index a755eb5..bf54686 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -31,6 +31,11 @@ config MACH_OMAP_GENERIC
+ 	bool "Generic OMAP board"
+ 	depends on ARCH_OMAP2 && ARCH_OMAP24XX
+ 
++config MACH_OMAP2_TUSB6010
++	bool
++	depends on ARCH_OMAP2 && ARCH_OMAP2420
++	default y if MACH_NOKIA_N8X0
++
+ config MACH_OMAP_H4
+ 	bool "OMAP 2420 H4 board"
+ 	depends on ARCH_OMAP2 && ARCH_OMAP24XX
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 735bae5..757c84b 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -74,6 +74,7 @@ obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
+ 
+ # Platform specific device init code
+ obj-y					+= usb-musb.o
++obj-$(CONFIG_MACH_OMAP2_TUSB6010)	+= usb-tusb6010.o
+ 
+ onenand-$(CONFIG_MTD_ONENAND_OMAP2)	:= gpmc-onenand.o
+ obj-y					+= $(onenand-m) $(onenand-y)
 
