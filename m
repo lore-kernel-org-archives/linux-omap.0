@@ -1,142 +1,106 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 4/8] Regulator: Adding header file for TI TPS6507x
- regulator driver
-Date: Fri, 7 Aug 2009 23:27:51 +0300
-Message-ID: <20090807202751.GF9780@nokia.com>
-References: <1249658954-10977-1-git-send-email-anuj.aggarwal@ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Wang Limei-E12499" <E12499@motorola.com>
+Subject: RE: Linux-omap PM:  Fix dead lock condition in resource_release(vdd1_opp)
+Date: Sat, 8 Aug 2009 04:55:40 +0800
+Message-ID: <DF4DCBD3DB270B419320B577AC0C3C8602F48030@zmy16exm62.ds.mot.com>
+References: <DF4DCBD3DB270B419320B577AC0C3C8602F4801A@zmy16exm62.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:62539 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933779AbZHGU1I (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 16:27:08 -0400
-Content-Disposition: inline
-In-Reply-To: <1249658954-10977-1-git-send-email-anuj.aggarwal@ti.com>
+Received: from mail153.messagelabs.com ([216.82.253.51]:10841 "EHLO
+	mail153.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366AbZHGU4G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 16:56:06 -0400
+Content-class: urn:content-classes:message
+In-Reply-To: <DF4DCBD3DB270B419320B577AC0C3C8602F4801A@zmy16exm62.ds.mot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: "broonie@sirena.org.uk" <broonie@sirena.org.uk>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org
+To: Wang Limei-E12499 <E12499@motorola.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap-owner@vger.kernel.org
 
-move this to the driver, unless any other piece of code will use it,
-which seems unlikely.
+ 
+Re-sent to linux-omap-owner@vger.kernel.org. 
 
-On Fri, Aug 07, 2009 at 05:29:14PM +0200, ext Anuj Aggarwal wrote:
-> 
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> ---
->  include/linux/mfd/tps6507x.h |   93 ++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 93 insertions(+), 0 deletions(-)
->  create mode 100644 include/linux/mfd/tps6507x.h
-> 
-> diff --git a/include/linux/mfd/tps6507x.h b/include/linux/mfd/tps6507x.h
-> new file mode 100644
-> index 0000000..069b02a
-> --- /dev/null
-> +++ b/include/linux/mfd/tps6507x.h
-> @@ -0,0 +1,93 @@
-> +/*
-> + * tps6507x.h
-> + *
-> + * Header file for TI TPS6507x Regulators
-> + *
-> + * Copyright (C) 2009 Texas Instrument Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-> + * whether express or implied; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + */
-> +
-> +/* Register definitions */
-> +#define	TPS6507X_REG_PPATH1				0X01
-> +#define	TPS6507X_REG_INT				0X02
-> +#define	TPS6507X_REG_CHGCONFIG0				0X03
-> +#define	TPS6507X_REG_CHGCONFIG1				0X04
-> +#define	TPS6507X_REG_CHGCONFIG2				0X05
-> +#define	TPS6507X_REG_CHGCONFIG3				0X06
-> +#define	TPS6507X_REG_REG_ADCONFIG			0X07
-> +#define	TPS6507X_REG_TSCMODE				0X08
-> +#define	TPS6507X_REG_ADRESULT_1				0X09
-> +#define	TPS6507X_REG_ADRESULT_2				0X0A
-> +#define	TPS6507X_REG_PGOOD				0X0B
-> +#define	TPS6507X_REG_PGOODMASK				0X0C
-> +#define	TPS6507X_REG_CON_CTRL1				0X0D
-> +#define	TPS6507X_REG_CON_CTRL2				0X0E
-> +#define	TPS6507X_REG_CON_CTRL3				0X0F
-> +#define	TPS6507X_REG_DEFDCDC1				0X10
-> +#define	TPS6507X_REG_DEFDCDC2_LOW			0X11
-> +#define	TPS6507X_REG_DEFDCDC2_HIGH			0X12
-> +#define	TPS6507X_REG_DEFDCDC3_LOW			0X13
-> +#define	TPS6507X_REG_DEFDCDC3_HIGH			0X14
-> +#define	TPS6507X_REG_DEFSLEW				0X15
-> +#define	TPS6507X_REG_LDO_CTRL1				0X16
-> +#define	TPS6507X_REG_DEFLDO2				0X17
-> +#define	TPS6507X_REG_WLED_CTRL1				0X18
-> +#define	TPS6507X_REG_WLED_CTRL2				0X19
-> +
-> +/* CON_CTRL1 bitfields */
-> +#define	TPS6507X_CON_CTRL1_DCDC1_ENABLE		BIT(4)
-> +#define	TPS6507X_CON_CTRL1_DCDC2_ENABLE		BIT(3)
-> +#define	TPS6507X_CON_CTRL1_DCDC3_ENABLE		BIT(2)
-> +#define	TPS6507X_CON_CTRL1_LDO1_ENABLE		BIT(1)
-> +#define	TPS6507X_CON_CTRL1_LDO2_ENABLE		BIT(0)
-> +
-> +/* DEFDCDC1 bitfields */
-> +#define TPS6507X_DEFDCDC1_DCDC1_EXT_ADJ_EN	BIT(7)
-> +#define TPS6507X_DEFDCDC1_DCDC1_MASK		0X3F
-> +
-> +/* DEFDCDC2_LOW bitfields */
-> +#define TPS6507X_DEFDCDC2_LOW_DCDC2_MASK	0X3F
-> +
-> +/* DEFDCDC2_HIGH bitfields */
-> +#define TPS6507X_DEFDCDC2_HIGH_DCDC2_MASK	0X3F
-> +
-> +/* DEFDCDC3_LOW bitfields */
-> +#define TPS6507X_DEFDCDC3_LOW_DCDC3_MASK	0X3F
-> +
-> +/* DEFDCDC3_HIGH bitfields */
-> +#define TPS6507X_DEFDCDC3_HIGH_DCDC3_MASK	0X3F
-> +
-> +/* TPS6507X_REG_LDO_CTRL1 bitfields */
-> +#define TPS6507X_REG_LDO_CTRL1_LDO1_MASK	0X0F
-> +
-> +/* TPS6507X_REG_DEFLDO2 bitfields */
-> +#define TPS6507X_REG_DEFLDO2_LDO2_MASK		0X3F
-> +
-> +/* VDCDC MASK */
-> +#define TPS6507X_DEFDCDCX_DCDC_MASK		0X3F
-> +
-> +/* DCDC's */
-> +#define TPS6507X_DCDC_1				0
-> +#define TPS6507X_DCDC_2				1
-> +#define TPS6507X_DCDC_3				2
-> +/* LDOs */
-> +#define TPS6507X_LDO_1				3
-> +#define TPS6507X_LDO_2				4
-> +
-> +#define TPS6507X_MAX_REG_ID			TPS6507X_LDO_2
-> +
-> +/* Number of step-down converters available */
-> +#define TPS6507X_NUM_DCDC			3
-> +/* Number of LDO voltage regulators  available */
-> +#define TPS6507X_NUM_LDO			2
-> +/* Number of total regulators available */
-> +#define TPS6507X_NUM_REGULATOR		(TPS6507X_NUM_DCDC + TPS6507X_NUM_LDO)
-> +
-> -- 
-> 1.6.2.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+-----Original Message-----
+From: Wang Limei-E12499 
+Sent: Friday, August 07, 2009 12:05 PM
+To: linux-omap@vger.kernel.org; Kevin Hilman
+Cc: Wang Limei-E12499
+Subject: Linux-omap PM: Fix dead lock condition in
+resource_release(vdd1_opp)
 
--- 
-balbi
+Kevin,
+ 
+I am using linux-omap pm-2.6.29
+<http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=s
+hortlog;h=pm-2.6.29>  branch,found a dead lock condition in:
+arch/arm/plat-omap/resource.c->resource_release().   
+ 
+The dead lock happens when using resource_request("vdd1_opp",&dev,...)
+and resource_release("vdd1_opp", &dev) to set and release vdd1 opp
+constraint. The  scenario is:  
+ 
+plat-omap/resource.c/resource_release("vdd1_opp",
+&dev)==>resource.c/update_resource_level()=>mach-omap2/resource34xx.c/se
+t_opp().  In set_opp(),  if the target_level of vdd1 is less than
+OPP3,will release the constraint set on VDD2 by calling
+resource_release(), but it will never return because can not get the
+mutex which is holding  by the previous caller. 
+ 
+int resource_release(const char *name, struct device *dev)
+{           .......
+	down(&res_mutex);
+	........
+	/* Recompute and set the current level for the resource */
+	ret = update_resource_level(resp);
+res_unlock:
+	up(&res_mutex);
+	return ret;
+}
+
+int set_opp(struct shared_resource *resp, u32 target_level) {
+	.....
+ if (resp == vdd1_resp) {
+      if (target_level < 3)
+           resource_release("vdd2_opp", &vdd2_dev); }
+ 
+The patch to fix this issue is below, will you pls review it and let me
+know your feedback?
+ 
+From: Limei Wang <e12499@motorola.com>
+Date: Fri, 7 Aug 2009 11:40:35 -0500
+Subject: [PATCH] OMAP PM: Fix dead lock bug in
+resourc_release(vdd1_opp).
+ 
+
+Signed-off-by: Limei Wang <e12499@motorola.com>
+---
+ arch/arm/plat-omap/resource.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+ 
+diff --git a/arch/arm/plat-omap/resource.c
+b/arch/arm/plat-omap/resource.c index ec31727..876fd12 100644
+--- a/arch/arm/plat-omap/resource.c
++++ b/arch/arm/plat-omap/resource.c
+@@ -418,10 +418,12 @@ int resource_release(const char *name, struct
+device *dev)
+    list_del(&user->node);
+    free_user(user);
+ 
+-   /* Recompute and set the current level for the resource */
+-   ret = update_resource_level(resp);
+ res_unlock:
+    up(&res_mutex);
++
++   /* Recompute and set the current level for the resource */
++   if (!ret)
++       ret = update_resource_level(resp);
+    return ret;
+ }
+ EXPORT_SYMBOL(resource_release);
+--
+1.5.6.3
+
+ 
+Thanks,
+Limei
