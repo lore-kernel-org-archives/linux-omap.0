@@ -1,24 +1,31 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 2/8] Regulator: Adding header file for TPS65023
-Date: Fri, 7 Aug 2009 16:55:58 +0100
-Message-ID: <20090807155558.GJ639@sirena.org.uk>
-References: <1249658736-10811-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: Re: [PATCH 3/8] Regulator: Add TPS6507x regulator driver
+Date: Fri, 7 Aug 2009 17:02:53 +0100
+Message-ID: <20090807160253.GK639@sirena.org.uk>
+References: <1249658766-10859-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753762AbZHGPz7@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:60419 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753736AbZHGQCx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 12:02:53 -0400
 Content-Disposition: inline
-In-Reply-To: <1249658736-10811-1-git-send-email-anuj.aggarwal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
+In-Reply-To: <1249658766-10859-1-git-send-email-anuj.aggarwal@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: Anuj Aggarwal <anuj.aggarwal@ti.com>
 Cc: lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-On Fri, Aug 07, 2009 at 08:55:36PM +0530, Anuj Aggarwal wrote:
+On Fri, Aug 07, 2009 at 08:56:06PM +0530, Anuj Aggarwal wrote:
+> Adding support for TI TPS6507x regulator driver
 
-This is OK but since you'll need to resubmit anyway it might be nice to
-consider moving the register & bitfield definitions into the driver file
-since they can't be used by any other code.
+Exactly which chips does this driver support?  Google tells me that at
+least some of the parts in the TPS6507x range have functionality other
+than regulator support on them like power path management and touch
+which would mean that the drivers should be using the MFD framework to
+hook in to the various subsystems unless the device presents as multiple
+devices on the I2C bus.
 
-> +/* DCDC's */
-
-Extra ' here :)
+Otherwise my comments here are essentially the same as for the previous
+driver - it looks good but the same relatively minor issues apply.
