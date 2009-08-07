@@ -1,74 +1,170 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] Clear the SDRC_POWER.PWRENA bit before putting the SDRAM
- into  self-refresh before suspend
-Date: Fri, 7 Aug 2009 06:03:18 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908070555200.7977@utopia.booyaka.com>
-References: <af3ea28a0907071444m7c9ef14i8eaf15b45b14db9d@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCHv2 00/20] OMAP: DSS intro v2
+Date: Fri,  7 Aug 2009 15:27:38 +0300
+Message-ID: <1249648078-7780-1-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:60933 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925AbZHGMDS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:03:18 -0400
-In-Reply-To: <af3ea28a0907071444m7c9ef14i8eaf15b45b14db9d@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:30171 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753185AbZHGM2q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:28:46 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ye janboe <janboe.ye@gmail.com>
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+To: linux-fbdev-devel@lists.sourceforge.net
+Cc: linux-omap@vger.kernel.org
 
-Hello Janboe,
+This patch set implement new display subsystem driver (DSS2) and omapfb=
+ driver
+for OMAP2/3. The patches can also be found from
+http://gitorious.org/linux-omap-dss2/linux
 
-On Tue, 7 Jul 2009, ye janboe wrote:
+The patches include DSS documentation patch that includes more instruct=
+ions for
+module parameters, sysfs files etc.
 
-> I saw you clear clear the SDRC PWRENA bit during SDRC frequency change
-> but not during suspend.
-> 
-> Please review if it is necessary to clear PWRENA bit during suspend.
+The patches enable DSS2 for SDP, Beagle and Overo boards.
 
-I hope we don't need this after:
+I don't currently have any OMAP2 board to test DSS2, but it has worked =
+on OMAP2
+and the possible fixes needed should be minimal.
 
-http://patchwork.kernel.org/patch/37284/
+OMAP1 is not supported, and so the old DSS needs to be used on OMAP1 bo=
+ards.
 
-Of course, the bootloader might still set it :-(
+DSS2 is partly based on the old omapfb driver by Imre Deak, and Imre ha=
+s also
+contributed to DSS2 quite a bit. Ville Syrj=C3=A4l=C3=A4 has been contr=
+ibuting to scaling
+and tv-out work. Also some contributions have been made by Hardik Shah,=
+ Vaibhav
+Hiremath, and perhaps some others that I have forgotten =3D).
 
-- Paul
+---
 
-> 
-> Thanks
-> 
-> Janboe Ye
-> 
-> rom 287db2e188391be0ac95128131724e0e035e945a Mon Sep 17 00:00:00 2001
-> From: janboe <janboe.ye@gmail.com>
-> Date: Tue, 7 Jul 2009 16:30:26 -0500
-> Subject: [PATCH] Clear the SDRC_POWER.PWRENA bit before putting the
-> SDRAM into self-refresh and then suspend
-> 
-> Signed-off-by: janboe <janboe.ye@gmail.com>
-> ---
->  arch/arm/mach-omap2/sleep34xx.S |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> index e5e2553..2bc0c3b 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -70,6 +70,7 @@ loop:
->         ldr     r4, sdrc_power          @ read the SDRC_POWER register
->         ldr     r5, [r4]                @ read the contents of SDRC_POWER
->         orr     r5, r5, #0x40           @ enable self refresh on idle req
-> +       bic     r5, r5, #0x4            @ clear PWDENA
->         str     r5, [r4]                @ write back to SDRC_POWER register
-> 
->         cmp     r1, #0x0
-> -- 
-> 1.6.3.1
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Changes to the previous posted version:
 
+- Split the commits more to make them smaller
+- Print error if fclk is too low for scaling
+- Indent SDP, Beagle, Overo board files
+- DSI: return -EIO instead of -1
+- VRFB: Move to drivers/video/omap2/
+- VRAM: Move to drivers/video/omap2/
+- VRFB: use omap2_sms_write_*() functions instead of omap_writel
+- SDI: Remove custom pinmuxing. Will be added later properly.
+- VENC: indentation changes
+- Add Taal DSI panel driver
 
-- Paul
+---
+
+[PATCH 01/20] OMAP2: Add funcs for writing SMS_ROT_* registers
+[PATCH 02/20] OMAP: OMAPFB: split omapfb.h
+[PATCH 03/20] OMAP: OMAPFB: add omapdss device
+[PATCH 04/20] OMAP: Add VRAM manager
+[PATCH 05/20] OMAP: Add support for VRFB rotation engine
+[PATCH 06/20] OMAP: DSS2: Documentation for DSS2
+[PATCH 07/20] OMAP: DSS2: Display Subsystem Driver core
+[PATCH 08/20] OMAP: DSS2: Add more core files
+[PATCH 09/20] OMAP: DSS2: DISPC
+[PATCH 10/20] OMAP: DSS2: DPI driver
+[PATCH 11/20] OMAP: DSS2: Video encoder driver
+[PATCH 12/20] OMAP: DSS2: RFBI driver
+[PATCH 13/20] OMAP: DSS2: SDI driver
+[PATCH 14/20] OMAP: DSS2: DSI driver
+[PATCH 15/20] OMAP: DSS2: omapfb driver
+[PATCH 16/20] OMAP: DSS2: Add DPI panel drivers
+[PATCH 17/20] OMAP: DSS2: Taal DSI command mode panel driver
+[PATCH 18/20] OMAP: SDP: Enable DSS2 for OMAP3 SDP board
+[PATCH 19/20] OMAP: Beagle: Enable DSS2 for Beagle board
+[PATCH 20/20] OMAP: Overo: Enable DSS2 for Overo
+
+---
+
+ Documentation/arm/OMAP/DSS                         |  317 ++
+ arch/arm/configs/omap3_beagle_defconfig            |   26 +-
+ arch/arm/configs/omap_3430sdp_defconfig            |   31 +-
+ arch/arm/configs/overo_defconfig                   |  265 +--
+ arch/arm/mach-omap1/board-nokia770.c               |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |  171 +-
+ arch/arm/mach-omap2/board-n800.c                   |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c            |  119 +-
+ arch/arm/mach-omap2/board-overo.c                  |  149 +-
+ arch/arm/mach-omap2/clock24xx.c                    |    8 +-
+ arch/arm/mach-omap2/clock34xx.c                    |   10 +-
+ arch/arm/mach-omap2/io.c                           |    4 +-
+ arch/arm/mach-omap2/sdrc.c                         |   16 +
+ arch/arm/plat-omap/fb.c                            |   41 +-
+ arch/arm/plat-omap/include/mach/display.h          |  540 +++
+ arch/arm/plat-omap/include/mach/omapfb.h           |  398 ---
+ arch/arm/plat-omap/include/mach/sdrc.h             |    8 +-
+ arch/arm/plat-omap/include/mach/vram.h             |   63 +
+ arch/arm/plat-omap/include/mach/vrfb.h             |   46 +
+ arch/arm/plat-omap/sram.c                          |    8 +
+ drivers/video/Kconfig                              |    1 +
+ drivers/video/Makefile                             |    1 +
+ drivers/video/omap/Kconfig                         |    5 +-
+ drivers/video/omap/blizzard.c                      |    2 +-
+ drivers/video/omap/dispc.c                         |   21 +-
+ drivers/video/omap/hwa742.c                        |    2 +-
+ drivers/video/omap/lcd_2430sdp.c                   |    2 +-
+ drivers/video/omap/lcd_ams_delta.c                 |    2 +-
+ drivers/video/omap/lcd_apollon.c                   |    2 +-
+ drivers/video/omap/lcd_h3.c                        |    2 +-
+ drivers/video/omap/lcd_h4.c                        |    2 +-
+ drivers/video/omap/lcd_inn1510.c                   |    2 +-
+ drivers/video/omap/lcd_inn1610.c                   |    2 +-
+ drivers/video/omap/lcd_ldp.c                       |    2 +-
+ drivers/video/omap/lcd_mipid.c                     |    3 +-
+ drivers/video/omap/lcd_omap2evm.c                  |    2 +-
+ drivers/video/omap/lcd_omap3beagle.c               |    2 +-
+ drivers/video/omap/lcd_omap3evm.c                  |    2 +-
+ drivers/video/omap/lcd_osk.c                       |    2 +-
+ drivers/video/omap/lcd_overo.c                     |    3 +-
+ drivers/video/omap/lcd_palmte.c                    |    2 +-
+ drivers/video/omap/lcd_palmtt.c                    |    2 +-
+ drivers/video/omap/lcd_palmz71.c                   |    2 +-
+ drivers/video/omap/lcdc.c                          |    3 +-
+ drivers/video/omap/omapfb.h                        |  227 ++
+ drivers/video/omap/omapfb_main.c                   |    2 +-
+ drivers/video/omap/rfbi.c                          |    3 +-
+ drivers/video/omap/sossi.c                         |    2 +-
+ drivers/video/omap2/Kconfig                        |    9 +
+ drivers/video/omap2/Makefile                       |    6 +
+ drivers/video/omap2/displays/Kconfig               |   28 +
+ drivers/video/omap2/displays/Makefile              |    5 +
+ drivers/video/omap2/displays/panel-generic.c       |  104 +
+ .../omap2/displays/panel-samsung-lte430wq-f0c.c    |  113 +
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  153 +
+ drivers/video/omap2/displays/panel-taal.c          |  900 +++++
+ drivers/video/omap2/dss/Kconfig                    |   89 +
+ drivers/video/omap2/dss/Makefile                   |    6 +
+ drivers/video/omap2/dss/core.c                     |  917 +++++
+ drivers/video/omap2/dss/dispc.c                    | 3182 ++++++++++++=
+++++++
+ drivers/video/omap2/dss/display.c                  |  658 ++++
+ drivers/video/omap2/dss/dpi.c                      |  388 +++
+ drivers/video/omap2/dss/dsi.c                      | 3509 ++++++++++++=
+++++++++
+ drivers/video/omap2/dss/dss.c                      |  347 ++
+ drivers/video/omap2/dss/dss.h                      |  356 ++
+ drivers/video/omap2/dss/manager.c                  | 1487 +++++++++
+ drivers/video/omap2/dss/overlay.c                  |  673 ++++
+ drivers/video/omap2/dss/rfbi.c                     | 1310 ++++++++
+ drivers/video/omap2/dss/sdi.c                      |  261 ++
+ drivers/video/omap2/dss/venc.c                     |  797 +++++
+ drivers/video/omap2/omapfb/Kconfig                 |   37 +
+ drivers/video/omap2/omapfb/Makefile                |    2 +
+ drivers/video/omap2/omapfb/omapfb-ioctl.c          |  727 ++++
+ drivers/video/omap2/omapfb/omapfb-main.c           | 2137 ++++++++++++
+ drivers/video/omap2/omapfb/omapfb-sysfs.c          |  507 +++
+ drivers/video/omap2/omapfb/omapfb.h                |  146 +
+ drivers/video/omap2/vram.c                         |  655 ++++
+ drivers/video/omap2/vrfb.c                         |  277 ++
+ include/linux/omapfb.h                             |  242 ++
+ 79 files changed, 21846 insertions(+), 711 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
