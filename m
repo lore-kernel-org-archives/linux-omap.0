@@ -1,107 +1,69 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC][PATCH] OMAP3: PM: Fix workaround implementation for OMAP3 errata (1.142)
-Date: Thu, 06 Aug 2009 15:14:42 -0700
-Message-ID: <87tz0k614d.fsf@deeprootsystems.com>
-References: <1248873393-29503-1-git-send-email-ext-roger.quadros@nokia.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: [PATCH 0/2] Remove omap serial tags
+Date: Fri, 07 Aug 2009 08:16:37 +0300
+Message-ID: <20090807051516.4787.36125.stgit@tikku>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:30005 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752361AbZHFWOx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 6 Aug 2009 18:14:53 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so474337wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 06 Aug 2009 15:14:53 -0700 (PDT)
-In-Reply-To: <1248873393-29503-1-git-send-email-ext-roger.quadros@nokia.com> (Roger Quadros's message of "Wed\, 29 Jul 2009 16\:16\:33 +0300")
+Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:47787 "EHLO
+	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752150AbZHGF0O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 01:26:14 -0400
+Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
+	by emh06-2.mail.saunalahti.fi (Postfix) with SMTP id 61BF6C7CA7
+	for <linux-omap@vger.kernel.org>; Fri,  7 Aug 2009 08:16:38 +0300 (EEST)
+Received: from [127.0.1.1] (a91-155-131-184.elisa-laajakaista.fi [91.155.131.184])
+	by emh05.mail.saunalahti.fi (Postfix) with ESMTP id 52E4D27D88
+	for <linux-omap@vger.kernel.org>; Fri,  7 Aug 2009 08:16:37 +0300 (EEST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <ext-roger.quadros@nokia.com>, Rajendra Nayak <rnayak@ti.com>, kalle.jokiniemi@digia.com
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Roger Quadros <ext-roger.quadros@nokia.com> writes:
+Here are patches which remove OMAP_TAG_SERIAL_CONSOLE and
+OMAP_TAG_UART. The patches are based on linus' tree commit 90bc1a658.
+If I need to rebase it some other tree, please let me know.
 
-> As per errata 1.142, on EMU/HS devices, SDRC_POWER should be programmed
-> for automatic self-refresh before transition to OFF mode.
-> In the current implementation this is done in omap3_scratchpad_contents()
-> which is wrong, since this is the value that will be restored while
-> resuming from OFF mode and not while transitioning to it.
->
-> This patch implements the workaround in the correct way as per errata.
->
-> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+Please review.
 
-This looks right to me.
+---
 
-Rajendra, Kalle, any comments? since you were the originators of
-the original patch.
+Kalle Valo (2):
+      OMAP: remove OMAP_TAG_UART
+      OMAP: remove OMAP_TAG_SERIAL_CONSOLE
 
-Kevin
 
-> ---
->  arch/arm/mach-omap2/control.c |   16 ++--------------
->  arch/arm/mach-omap2/pm34xx.c  |   20 ++++++++++++++------
->  2 files changed, 16 insertions(+), 20 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> index a7159a9..0a563c8 100644
-> --- a/arch/arm/mach-omap2/control.c
-> +++ b/arch/arm/mach-omap2/control.c
-> @@ -272,20 +272,8 @@ void omap3_save_scratchpad_contents(void)
->  			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
->  	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
->  	sdrc_block_contents.dll_b_ctrl = 0x0;
-> -	/*
-> -	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
-> -	 * be programed to issue automatic self refresh on timeout
-> -	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
-> -	 */
-> -	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
-> -			&& (omap_rev() >= OMAP3430_REV_ES3_0))
-> -		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
-> -				~(SDRC_POWER_AUTOCOUNT_MASK|
-> -				SDRC_POWER_CLKCTRL_MASK)) |
-> -				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
-> -				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
-> -	else
-> -		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
-> +
-> +	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
->  
->  	sdrc_block_contents.cs_0 = 0x0;
->  	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 14f10bc..eb3c9e5 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -405,15 +405,23 @@ void omap_sram_idle(void)
->  	}
->  
->  	/*
-> -	* On EMU/HS devices ROM code restores a SRDC value
-> -	* from scratchpad which has automatic self refresh on timeout
-> -	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
-> -	* Hence store/restore the SDRC_POWER register here.
-> -	*/
-> +	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
-> +	 * be programed to issue automatic self refresh on timeout
-> +	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
-> +	 */
-> +
->  	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
->  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
-> -	    core_next_state == PWRDM_POWER_OFF)
-> +	    core_next_state == PWRDM_POWER_OFF) {
-> +
->  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
-> +		sdrc_write_reg((sdrc_pwr &
-> +				~(SDRC_POWER_AUTOCOUNT_MASK|
-> +				SDRC_POWER_CLKCTRL_MASK)) |
-> +				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
-> +				SDRC_SELF_REFRESH_ON_AUTOCOUNT,
-> +					SDRC_POWER);
-> +	}
->  
->  	if (regset_save_on_suspend)
->  		pm_dbg_regset_save(1);
-> -- 
-> 1.6.0.4
+ arch/arm/mach-omap1/board-ams-delta.c    |    5 +--
+ arch/arm/mach-omap1/board-fsample.c      |    5 +--
+ arch/arm/mach-omap1/board-generic.c      |    5 +--
+ arch/arm/mach-omap1/board-h2.c           |    5 +--
+ arch/arm/mach-omap1/board-h3.c           |    5 +--
+ arch/arm/mach-omap1/board-innovator.c    |    5 +--
+ arch/arm/mach-omap1/board-nokia770.c     |    5 +++
+ arch/arm/mach-omap1/board-osk.c          |    5 +--
+ arch/arm/mach-omap1/board-palmte.c       |    5 +--
+ arch/arm/mach-omap1/board-palmtt.c       |    5 +--
+ arch/arm/mach-omap1/board-palmz71.c      |    5 +--
+ arch/arm/mach-omap1/board-perseus2.c     |    5 +--
+ arch/arm/mach-omap1/board-sx1.c          |    5 +--
+ arch/arm/mach-omap1/board-voiceblue.c    |    5 +--
+ arch/arm/mach-omap1/serial.c             |    8 ++---
+ arch/arm/mach-omap2/board-2430sdp.c      |    5 +--
+ arch/arm/mach-omap2/board-3430sdp.c      |    5 +--
+ arch/arm/mach-omap2/board-4430sdp.c      |    5 +--
+ arch/arm/mach-omap2/board-apollon.c      |    5 +--
+ arch/arm/mach-omap2/board-generic.c      |    5 +--
+ arch/arm/mach-omap2/board-h4.c           |    5 +--
+ arch/arm/mach-omap2/board-ldp.c          |    5 +--
+ arch/arm/mach-omap2/board-omap3beagle.c  |    5 +--
+ arch/arm/mach-omap2/board-omap3evm.c     |    5 +--
+ arch/arm/mach-omap2/board-omap3pandora.c |    5 +--
+ arch/arm/mach-omap2/board-overo.c        |    5 +--
+ arch/arm/mach-omap2/board-rx51.c         |    5 +--
+ arch/arm/mach-omap2/board-zoom2.c        |    5 +--
+ arch/arm/mach-omap2/serial.c             |    9 ++----
+ arch/arm/plat-omap/common.c              |   44 ------------------------------
+ arch/arm/plat-omap/include/mach/board.h  |    4 +--
+ arch/arm/plat-omap/include/mach/serial.h |    4 ++-
+ 32 files changed, 66 insertions(+), 138 deletions(-)
+
