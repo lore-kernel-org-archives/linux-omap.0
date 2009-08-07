@@ -1,106 +1,76 @@
-From: "Wang Limei-E12499" <E12499@motorola.com>
-Subject: RE: Linux-omap PM:  Fix dead lock condition in resource_release(vdd1_opp)
-Date: Sat, 8 Aug 2009 04:55:40 +0800
-Message-ID: <DF4DCBD3DB270B419320B577AC0C3C8602F48030@zmy16exm62.ds.mot.com>
-References: <DF4DCBD3DB270B419320B577AC0C3C8602F4801A@zmy16exm62.ds.mot.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
+Date: Fri, 7 Aug 2009 16:19:18 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620396C928A2@dlee02.ent.ti.com>
+References: <0680EC522D0CC943BC586913CF3768C00378FF3971@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail153.messagelabs.com ([216.82.253.51]:10841 "EHLO
-	mail153.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366AbZHGU4G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 16:56:06 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <DF4DCBD3DB270B419320B577AC0C3C8602F4801A@zmy16exm62.ds.mot.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:52951 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753218AbZHGVTb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 17:19:31 -0400
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C00378FF3971@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Wang Limei-E12499 <E12499@motorola.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap-owner@vger.kernel.org
+To: "Syed Mohammed, Khasim" <khasim@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
-Re-sent to linux-omap-owner@vger.kernel.org. 
+Used to be you needed to build with CONFIG_ARCH_DISCONTIGMEM_ENABLE did you do this?
 
------Original Message-----
-From: Wang Limei-E12499 
-Sent: Friday, August 07, 2009 12:05 PM
-To: linux-omap@vger.kernel.org; Kevin Hilman
-Cc: Wang Limei-E12499
-Subject: Linux-omap PM: Fix dead lock condition in
-resource_release(vdd1_opp)
+Regards,
+Richard W.
 
-Kevin,
- 
-I am using linux-omap pm-2.6.29
-<http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=s
-hortlog;h=pm-2.6.29>  branch,found a dead lock condition in:
-arch/arm/plat-omap/resource.c->resource_release().   
- 
-The dead lock happens when using resource_request("vdd1_opp",&dev,...)
-and resource_release("vdd1_opp", &dev) to set and release vdd1 opp
-constraint. The  scenario is:  
- 
-plat-omap/resource.c/resource_release("vdd1_opp",
-&dev)==>resource.c/update_resource_level()=>mach-omap2/resource34xx.c/se
-t_opp().  In set_opp(),  if the target_level of vdd1 is less than
-OPP3,will release the constraint set on VDD2 by calling
-resource_release(), but it will never return because can not get the
-mutex which is holding  by the previous caller. 
- 
-int resource_release(const char *name, struct device *dev)
-{           .......
-	down(&res_mutex);
-	........
-	/* Recompute and set the current level for the resource */
-	ret = update_resource_level(resp);
-res_unlock:
-	up(&res_mutex);
-	return ret;
-}
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Syed Mohammed, Khasim
+> Sent: Friday, August 07, 2009 3:17 PM
+> To: linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
+> Subject: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
+>
+> Hi all,
+>
+> On OMAP3 we are creating a space for DSP components to have shared buffers
+> using the boot arguments.
+>
+> mem=88M@0x80000000 mem=128M@0x88000000
+>
+> This creates a 40M hole for DSP components, the drivers dynamically do a
+> request mem region and ioremap of pre-defined address space with in the 40M
+> region.
+>
+> With the above setup, we see the system running for a while but then ends up
+> with exception.
+>
+> "Unable to handle kernel paging request at virtual address c7381000"
+>
+> The address reported here is not in kernel space, and this doesn't result in a
+> kernel panic.
+>
+> Other observation:
+> - The same setup works fine with no hole or space created. The 40M space for
+> DSP components will be allocated at the end (216M).
+> - If we increase the mem hole region we can make the system fail with in less
+> time.
+> - Free returns expected memory map
+>
+> While I am still debugging the issue, I thought of posting this message to
+> know if there are any known issues with ARM architecture in handling such non
+> contiguous space / mem hole.
+>
+> I see some special boot parameters for other architectures like exactmap, we
+> don't see similar stuff on ARM. Do we need to port any such support for ARM ?
+>
+> Kindly advice,
+>
+> Thanks.
+>
+> Regards,
+> Khasim
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-int set_opp(struct shared_resource *resp, u32 target_level) {
-	.....
- if (resp == vdd1_resp) {
-      if (target_level < 3)
-           resource_release("vdd2_opp", &vdd2_dev); }
- 
-The patch to fix this issue is below, will you pls review it and let me
-know your feedback?
- 
-From: Limei Wang <e12499@motorola.com>
-Date: Fri, 7 Aug 2009 11:40:35 -0500
-Subject: [PATCH] OMAP PM: Fix dead lock bug in
-resourc_release(vdd1_opp).
- 
-
-Signed-off-by: Limei Wang <e12499@motorola.com>
----
- arch/arm/plat-omap/resource.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
- 
-diff --git a/arch/arm/plat-omap/resource.c
-b/arch/arm/plat-omap/resource.c index ec31727..876fd12 100644
---- a/arch/arm/plat-omap/resource.c
-+++ b/arch/arm/plat-omap/resource.c
-@@ -418,10 +418,12 @@ int resource_release(const char *name, struct
-device *dev)
-    list_del(&user->node);
-    free_user(user);
- 
--   /* Recompute and set the current level for the resource */
--   ret = update_resource_level(resp);
- res_unlock:
-    up(&res_mutex);
-+
-+   /* Recompute and set the current level for the resource */
-+   if (!ret)
-+       ret = update_resource_level(resp);
-    return ret;
- }
- EXPORT_SYMBOL(resource_release);
---
-1.5.6.3
-
- 
-Thanks,
-Limei
