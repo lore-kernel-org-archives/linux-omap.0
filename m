@@ -1,7 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 19/20] OMAP: Beagle: Enable DSS2 for Beagle board
-Date: Fri,  7 Aug 2009 15:27:57 +0300
-Message-ID: <1249648078-7780-20-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 18/20] OMAP: SDP: Enable DSS2 for OMAP3 SDP board
+Date: Fri,  7 Aug 2009 15:27:56 +0300
+Message-ID: <1249648078-7780-19-git-send-email-tomi.valkeinen@nokia.com>
 References: <1249648078-7780-1-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-2-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-3-git-send-email-tomi.valkeinen@nokia.com>
@@ -20,13 +20,12 @@ References: <1249648078-7780-1-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-16-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-17-git-send-email-tomi.valkeinen@nokia.com>
  <1249648078-7780-18-git-send-email-tomi.valkeinen@nokia.com>
- <1249648078-7780-19-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:30242 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757800AbZHGM3R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:29:17 -0400
-In-Reply-To: <1249648078-7780-19-git-send-email-tomi.valkeinen@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:64461 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757805AbZHGM3U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:29:20 -0400
+In-Reply-To: <1249648078-7780-18-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-fbdev-devel@lists.sourceforge.net
@@ -35,15 +34,15 @@ Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/configs/omap3_beagle_defconfig |   26 ++++++-
- arch/arm/mach-omap2/board-omap3beagle.c |  119 ++++++++++++++++++++++++-------
- 2 files changed, 116 insertions(+), 29 deletions(-)
+ arch/arm/configs/omap_3430sdp_defconfig |   31 +++++-
+ arch/arm/mach-omap2/board-3430sdp.c     |  171 +++++++++++++++++++++++++++----
+ 2 files changed, 181 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index c4726f0..1740be3 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -792,10 +792,30 @@ CONFIG_FB_CFB_IMAGEBLIT=y
+diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
+index 73e0128..a0dce8f 100644
+--- a/arch/arm/configs/omap_3430sdp_defconfig
++++ b/arch/arm/configs/omap_3430sdp_defconfig
+@@ -1336,10 +1336,35 @@ CONFIG_FB_CFB_IMAGEBLIT=y
  #
  # CONFIG_FB_S1D13XXX is not set
  # CONFIG_FB_VIRTUAL is not set
@@ -52,6 +51,11 @@ index c4726f0..1740be3 100644
 +# CONFIG_FB_METRONOME is not set
 +# CONFIG_FB_MB862XX is not set
 +# CONFIG_FB_BROADSHEET is not set
++# CONFIG_FB_OMAP_LCD_VGA is not set
++# CONFIG_FB_OMAP_031M3R is not set
++# CONFIG_FB_OMAP_048M3R is not set
++# CONFIG_FB_OMAP_079M3R is not set
++# CONFIG_FB_OMAP_092M9R is not set
  # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
 -CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
 +CONFIG_OMAP2_DSS=y
@@ -69,7 +73,7 @@ index c4726f0..1740be3 100644
 +#
 +CONFIG_PANEL_GENERIC=y
 +# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
-+# CONFIG_PANEL_SHARP_LS037V7DW01 is not set
++CONFIG_PANEL_SHARP_LS037V7DW01=y
 +CONFIG_FB_OMAP2=y
 +CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
 +# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
@@ -77,154 +81,215 @@ index c4726f0..1740be3 100644
  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
  
  #
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index b6a68d5..c24dc76 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -30,6 +30,7 @@
- 
- #include <linux/regulator/machine.h>
- #include <linux/i2c/twl4030.h>
-+#include <linux/omapfb.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -44,6 +45,7 @@
- #include <mach/mux.h>
- #include <mach/usb.h>
- #include <mach/timer-gp.h>
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 21b4a52..0bb83f5 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -36,6 +36,7 @@
+ #include <mach/common.h>
+ #include <mach/dma.h>
+ #include <mach/gpmc.h>
 +#include <mach/display.h>
  
- #include "mmc-twl4030.h"
- 
-@@ -106,6 +108,92 @@ static struct platform_device omap3beagle_nand_device = {
- 	.resource	= &omap3beagle_nand_resource,
+ #include <mach/control.h>
+ #include <mach/keypad.h>
+@@ -148,23 +149,149 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
+ 	},
  };
  
-+/* DSS */
+-static struct platform_device sdp3430_lcd_device = {
+-	.name		= "sdp2430_lcd",
+-	.id		= -1,
 +
-+static int beagle_enable_dvi(struct omap_dss_device *dssdev)
++#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
++#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
++
++static unsigned backlight_gpio;
++static unsigned enable_gpio;
++static int lcd_enabled;
++static int dvi_enabled;
++
++static void __init sdp3430_display_init(void)
 +{
-+	if (dssdev->reset_gpio != -1)
-+		gpio_set_value(dssdev->reset_gpio, 1);
++	int r;
++
++	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
++	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
++
++	r = gpio_request(enable_gpio, "LCD reset");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD reset GPIO\n");
++		goto err0;
++	}
++
++	r = gpio_request(backlight_gpio, "LCD Backlight");
++	if (r) {
++		printk(KERN_ERR "failed to get LCD backlight GPIO\n");
++		goto err1;
++	}
++
++	gpio_direction_output(enable_gpio, 0);
++	gpio_direction_output(backlight_gpio, 0);
++
++	return;
++err1:
++	gpio_free(enable_gpio);
++err0:
++	return;
++}
++
++static int sdp3430_panel_enable_lcd(struct omap_dss_device *dssdev)
++{
++	if (dvi_enabled) {
++		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
++		return -EINVAL;
++	}
++
++	gpio_direction_output(enable_gpio, 1);
++	gpio_direction_output(backlight_gpio, 1);
++
++	lcd_enabled = 1;
 +
 +	return 0;
 +}
 +
-+static void beagle_disable_dvi(struct omap_dss_device *dssdev)
++static void sdp3430_panel_disable_lcd(struct omap_dss_device *dssdev)
 +{
-+	if (dssdev->reset_gpio != -1)
-+		gpio_set_value(dssdev->reset_gpio, 0);
++	lcd_enabled = 0;
++
++	gpio_direction_output(enable_gpio, 0);
++	gpio_direction_output(backlight_gpio, 0);
 +}
 +
-+static struct omap_dss_device beagle_dvi_device = {
++static int sdp3430_panel_enable_dvi(struct omap_dss_device *dssdev)
++{
++	if (lcd_enabled) {
++		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
++		return -EINVAL;
++	}
++
++	dvi_enabled = 1;
++
++	return 0;
++}
++
++static void sdp3430_panel_disable_dvi(struct omap_dss_device *dssdev)
++{
++	dvi_enabled = 0;
++}
++
++static int sdp3430_panel_enable_tv(struct omap_dss_device *dssdev)
++{
++	return 0;
++}
++
++static void sdp3430_panel_disable_tv(struct omap_dss_device *dssdev)
++{
++}
++
++
++static struct omap_dss_device sdp3430_lcd_device = {
++	.name			= "lcd",
++	.driver_name		= "sharp_ls_panel",
 +	.type			= OMAP_DISPLAY_TYPE_DPI,
++	.phy.dpi.data_lines	= 16,
++	.platform_enable	= sdp3430_panel_enable_lcd,
++	.platform_disable	= sdp3430_panel_disable_lcd,
+ };
+ 
+-static struct regulator_consumer_supply sdp3430_vdac_supply = {
+-	.supply		= "vdac",
+-	.dev		= &sdp3430_lcd_device.dev,
++static struct omap_dss_device sdp3430_dvi_device = {
 +	.name			= "dvi",
 +	.driver_name		= "generic_panel",
++	.type			= OMAP_DISPLAY_TYPE_DPI,
 +	.phy.dpi.data_lines	= 24,
-+	.reset_gpio		= 170,
-+	.platform_enable	= beagle_enable_dvi,
-+	.platform_disable	= beagle_disable_dvi,
-+};
-+
-+static int beagle_panel_enable_tv(struct omap_dss_device *dssdev)
-+{
-+	return 0;
-+}
-+
-+static void beagle_panel_disable_tv(struct omap_dss_device *dssdev)
-+{
-+}
-+
-+static struct omap_dss_device beagle_tv_device = {
++	.platform_enable	= sdp3430_panel_enable_dvi,
++	.platform_disable	= sdp3430_panel_disable_dvi,
+ };
+ 
+-static struct regulator_consumer_supply sdp3430_vdvi_supply = {
+-	.supply		= "vdvi",
+-	.dev		= &sdp3430_lcd_device.dev,
++static struct omap_dss_device sdp3430_tv_device = {
 +	.name			= "tv",
 +	.driver_name		= "venc",
 +	.type			= OMAP_DISPLAY_TYPE_VENC,
 +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+	.platform_enable	= beagle_panel_enable_tv,
-+	.platform_disable	= beagle_panel_disable_tv,
++	.platform_enable	= sdp3430_panel_enable_tv,
++	.platform_disable	= sdp3430_panel_disable_tv,
+ };
+ 
+-static struct platform_device *sdp3430_devices[] __initdata = {
++
++static struct omap_dss_device *sdp3430_dss_devices[] = {
+ 	&sdp3430_lcd_device,
++	&sdp3430_dvi_device,
++	&sdp3430_tv_device,
 +};
 +
-+static struct omap_dss_device *beagle_dss_devices[] = {
-+	&beagle_dvi_device,
-+	&beagle_tv_device,
++static struct omap_dss_board_info sdp3430_dss_data = {
++	.num_devices	= ARRAY_SIZE(sdp3430_dss_devices),
++	.devices	= sdp3430_dss_devices,
++	.default_device	= &sdp3430_lcd_device,
 +};
 +
-+static struct omap_dss_board_info beagle_dss_data = {
-+	.num_devices	= ARRAY_SIZE(beagle_dss_devices),
-+	.devices	= beagle_dss_devices,
-+	.default_device	= &beagle_dvi_device,
-+};
-+
-+static struct platform_device beagle_dss_device = {
-+	.name          = "omapdss",
-+	.id            = -1,
-+	.dev            = {
-+		.platform_data = &beagle_dss_data,
++static struct platform_device sdp3430_dss_device = {
++	.name		= "omapdss",
++	.id		= -1,
++	.dev		= {
++		.platform_data = &sdp3430_dss_data,
 +	},
 +};
 +
-+static struct regulator_consumer_supply beagle_vdda_dac_supply = {
++static struct regulator_consumer_supply sdp3430_vdda_dac_supply = {
 +	.supply		= "vdda_dac",
-+	.dev		= &beagle_dss_device.dev,
++	.dev		= &sdp3430_dss_device.dev,
 +};
 +
-+static struct regulator_consumer_supply beagle_vdds_dsi_supply = {
-+	.supply		= "vdds_dsi",
-+	.dev		= &beagle_dss_device.dev,
-+};
-+
-+static void __init beagle_display_init(void)
-+{
-+	int r;
-+
-+	r = gpio_request(beagle_dvi_device.reset_gpio, "DVI reset");
-+	if (r < 0) {
-+		printk(KERN_ERR "Unable to get DVI reset GPIO\n");
-+		return;
-+	}
-+
-+	gpio_direction_output(beagle_dvi_device.reset_gpio, 0);
-+}
-+
- #include "sdram-micron-mt46h32m32lf-6.h"
- 
- static struct omap_uart_config omap3_beagle_uart_config __initdata = {
-@@ -121,15 +209,6 @@ static struct twl4030_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
++static struct platform_device *sdp3430_devices[] __initdata = {
++	&sdp3430_dss_device,
  };
  
--static struct platform_device omap3_beagle_lcd_device = {
--	.name		= "omap3beagle_lcd",
--	.id		= -1,
--};
--
--static struct omap_lcd_config omap3_beagle_lcd_config __initdata = {
+ static void __init omap_3430sdp_init_irq(void)
+@@ -178,13 +305,8 @@ static struct omap_uart_config sdp3430_uart_config __initdata = {
+ 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+ };
+ 
+-static struct omap_lcd_config sdp3430_lcd_config __initdata = {
 -	.ctrl_name	= "internal",
 -};
 -
- static struct regulator_consumer_supply beagle_vmmc1_supply = {
- 	.supply			= "vmmc",
- };
-@@ -180,16 +259,6 @@ static struct twl4030_gpio_platform_data beagle_gpio_data = {
- 	.setup		= beagle_twl_gpio_setup,
+ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
+ 	{ OMAP_TAG_UART,	&sdp3430_uart_config },
+-	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
  };
  
--static struct regulator_consumer_supply beagle_vdac_supply = {
--	.supply		= "vdac",
--	.dev		= &omap3_beagle_lcd_device.dev,
--};
--
--static struct regulator_consumer_supply beagle_vdvi_supply = {
--	.supply		= "vdvi",
--	.dev		= &omap3_beagle_lcd_device.dev,
--};
--
- /* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
- static struct regulator_init_data beagle_vmmc1 = {
+ static int sdp3430_batt_table[] = {
+@@ -391,22 +513,34 @@ static struct regulator_init_data sdp3430_vdac = {
+ 					| REGULATOR_CHANGE_STATUS,
+ 	},
+ 	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &sdp3430_vdac_supply,
++	.consumer_supplies	= &sdp3430_vdda_dac_supply,
+ };
+ 
+ /* VPLL2 for digital video outputs */
++static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
++	{
++		.supply		= "vdvi",
++		.dev		= &sdp3430_lcd_device.dev,
++	},
++	{
++		.supply		= "vdds_dsi",
++		.dev		= &sdp3430_dss_device.dev,
++	}
++};
++
+ static struct regulator_init_data sdp3430_vpll2 = {
  	.constraints = {
-@@ -225,13 +294,14 @@ static struct regulator_init_data beagle_vdac = {
- 	.constraints = {
+ 		.name			= "VDVI",
  		.min_uV			= 1800000,
  		.max_uV			= 1800000,
 +		.apply_uV		= true,
@@ -233,49 +298,21 @@ index b6a68d5..c24dc76 100644
  		.valid_ops_mask		= REGULATOR_CHANGE_MODE
  					| REGULATOR_CHANGE_STATUS,
  	},
- 	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &beagle_vdac_supply,
-+	.consumer_supplies	= &beagle_vdda_dac_supply,
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &sdp3430_vdvi_supply,
++	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vpll2_supplies),
++	.consumer_supplies	= sdp3430_vpll2_supplies,
  };
  
- /* VPLL2 for digital video outputs */
-@@ -246,7 +316,7 @@ static struct regulator_init_data beagle_vpll2 = {
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &beagle_vdvi_supply,
-+	.consumer_supplies	= &beagle_vdds_dsi_supply,
- };
- 
- static struct twl4030_platform_data beagle_twldata = {
-@@ -345,11 +415,10 @@ static struct platform_device keys_gpio = {
- 
- static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&omap3_beagle_uart_config },
--	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
- };
- 
- static struct platform_device *omap3_beagle_devices[] __initdata = {
--	&omap3_beagle_lcd_device,
-+	&beagle_dss_device,
- 	&leds_gpio,
- 	&keys_gpio,
- };
-@@ -402,13 +471,11 @@ static void __init omap3_beagle_init(void)
- 	omap_serial_init();
- 
- 	omap_cfg_reg(J25_34XX_GPIO170);
--	gpio_request(170, "DVI_nPD");
--	/* REVISIT leave DVI powered down until it's needed ... */
--	gpio_direction_output(170, true);
- 
+ static struct twl4030_platform_data sdp3430_twldata = {
+@@ -496,6 +630,7 @@ static void __init omap_3430sdp_init(void)
  	usb_musb_init();
+ 	board_smc91x_init();
  	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, true, true, 57, 61);
- 	omap3beagle_flash_init();
-+	beagle_display_init();
++	sdp3430_display_init();
  }
  
- static void __init omap3_beagle_map_io(void)
+ static void __init omap_3430sdp_map_io(void)
 -- 
 1.6.4
 
