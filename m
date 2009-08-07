@@ -1,160 +1,54 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [RFC][PATCH] OMAP3: PM: Fix workaround implementation	for	OMAP3
- errata (1.142)
-Date: Fri, 07 Aug 2009 11:48:24 +0300
-Message-ID: <4A7BEA58.8060002@nokia.com>
-References: <1248873393-29503-1-git-send-email-ext-roger.quadros@nokia.com>	 <87tz0k614d.fsf@deeprootsystems.com> <1249625784.6485.249.camel@ubuntu>	 <4A7BDFD2.6090403@nokia.com> <1249633704.6485.284.camel@ubuntu>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH][2.6.31-rc5] ARM: OMAP: McBSP: Fix ASoC on
+	OMAP1510 by fixing API of omap_mcbsp_start/stop
+Date: Fri, 7 Aug 2009 11:51:43 +0300
+Message-ID: <200908071151.44083.peter.ujfalusi@nokia.com>
+References: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
+	<200908071130.54337.peter.ujfalusi@nokia.com>
+	<20090807114757.0067a707.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:62033 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757057AbZHGIsx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 04:48:53 -0400
-In-Reply-To: <1249633704.6485.284.camel@ubuntu>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090807114757.0067a707.jhnikula@gmail.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: ext Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ext Kalle Jokiniemi wrote:
-> On Fri, 2009-08-07 at 11:03 +0300, Roger Quadros wrote:
->> ext Kalle Jokiniemi wrote:
->>> On Fri, 2009-08-07 at 01:14 +0300, Kevin Hilman wrote:
->>>> Roger Quadros <ext-roger.quadros@nokia.com> writes:
->>>>
->>>>> As per errata 1.142, on EMU/HS devices, SDRC_POWER should be programmed
->>>>> for automatic self-refresh before transition to OFF mode.
->>>>> In the current implementation this is done in omap3_scratchpad_contents()
->>>>> which is wrong, since this is the value that will be restored while
->>>>> resuming from OFF mode and not while transitioning to it.
->>>>>
->>>>> This patch implements the workaround in the correct way as per errata.
->>>>>
->>>>> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
->>>> This looks right to me.
->>>>
->>>> Rajendra, Kalle, any comments? since you were the originators of
->>>> the original patch.
->>>>
->>>> Kevin
->>>>
->>>>> ---
->>>>>  arch/arm/mach-omap2/control.c |   16 ++--------------
->>>>>  arch/arm/mach-omap2/pm34xx.c  |   20 ++++++++++++++------
->>>>>  2 files changed, 16 insertions(+), 20 deletions(-)
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
->>>>> index a7159a9..0a563c8 100644
->>>>> --- a/arch/arm/mach-omap2/control.c
->>>>> +++ b/arch/arm/mach-omap2/control.c
->>>>> @@ -272,20 +272,8 @@ void omap3_save_scratchpad_contents(void)
->>>>>  			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
->>>>>  	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
->>>>>  	sdrc_block_contents.dll_b_ctrl = 0x0;
->>>>> -	/*
->>>>> -	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
->>>>> -	 * be programed to issue automatic self refresh on timeout
->>>>> -	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
->>>>> -	 */
->>>>> -	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
->>>>> -			&& (omap_rev() >= OMAP3430_REV_ES3_0))
->>>>> -		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
->>>>> -				~(SDRC_POWER_AUTOCOUNT_MASK|
->>>>> -				SDRC_POWER_CLKCTRL_MASK)) |
->>>>> -				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
->>>>> -				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
->>>>> -	else
->>>>> -		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
->>>>> +
->>>>> +	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
->>> Why do you want to remove the workaround from scratchpad?
->>>
->>> When we wake up from off mode, the boot ROM code writes these settings
->>> as the first sdrc_power settings after wakeup. If that setting does not
->>> include the workaround, we'll have a period of time where sdram is not
->>> being refreshed. This hits especially HS devices that do long secure
->>> context restore in ROM code as well.
->>>
->>>
->> I suppose SDRAM is always refreshed (i.e. auto refresh) when ON. However when we 
->> enter OFF mode it should be _self_ refreshed. That is done by the below code 
->> before we switch to OFF mode.
-> 
-> The erratum speaks of auto-refresh failing after waking up from CORE off
-> mode. I think there is the described workaround in place in sleep34xx.S
-> code to kick up the auto refresh, but this still leaves a short gap
-> between boot ROM and the sleep code.
-> 
-> Unless the self-refresh mode does not get changed by the scratchpad
-> settings?
-> 
-> - Kalle
+On Friday 07 August 2009 11:47:57 ext Jarkko Nikula wrote:
+> On Fri, 7 Aug 2009 11:30:54 +0300
+>
+> Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+> > Looks nice, but I would have done it a bit differently...
+>
+> ...
+>
+> > > -void omap_mcbsp_start(unsigned int id);
+> > > -void omap_mcbsp_stop(unsigned int id);
+> > > +void omap_mcbsp_start(unsigned int id, int tx, int rx);
+> > > +void omap_mcbsp_stop(unsigned int id, int tx, int rx);
+> >
+> > void omap_mcbsp_start(unsigned int id, int dir);
+> > void omap_mcbsp_stop(unsigned int id, int dir);
+>
+> Valid point and cleans up a bit the ALSA SoC part of the patch.
+> However I didn't want to limit this generic arch/arm/plat-omap/mcbsp.c
+> into audio use case only. My change still allows to start transmitter
+> and receiver exactly at the same time. Might be worth if the
+> generic McBSP driver is used for something else than audio.
 
-There are 2 parts in the errata 1.142.
+Good point.
 
-The 1st part is what you are talking about. And it needs to be applied only on 
-ES3.0 devices.
+-- =
 
-The 2nd part is valid only for HS devices.
-"..it is mandatory on HS device to have the SDRC issuing automatic self-refresh
-entries on inactivity periods.."
-
-My patch is only fixing the implementation of the 2nd part without changing the 
-work around for the 1st part. no?
-
--roger
-
-> 
->> When we wake up from OFF mode (the scratchpad contents are used), we should 
->> restore the original register setting that was there before we went to OFF mode 
->> and not the self refresh mode setting. Hence the removal of above code.
->>
->> -roger
->>>>>  
->>>>>  	sdrc_block_contents.cs_0 = 0x0;
->>>>>  	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
->>>>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
->>>>> index 14f10bc..eb3c9e5 100644
->>>>> --- a/arch/arm/mach-omap2/pm34xx.c
->>>>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>>>> @@ -405,15 +405,23 @@ void omap_sram_idle(void)
->>>>>  	}
->>>>>  
->>>>>  	/*
->>>>> -	* On EMU/HS devices ROM code restores a SRDC value
->>>>> -	* from scratchpad which has automatic self refresh on timeout
->>>>> -	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
->>>>> -	* Hence store/restore the SDRC_POWER register here.
->>>>> -	*/
->>>>> +	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
->>>>> +	 * be programed to issue automatic self refresh on timeout
->>>>> +	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
->>>>> +	 */
->>>>> +
->>>>>  	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
->>>>>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
->>>>> -	    core_next_state == PWRDM_POWER_OFF)
->>>>> +	    core_next_state == PWRDM_POWER_OFF) {
->>>>> +
->>>>>  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
->>>>> +		sdrc_write_reg((sdrc_pwr &
->>>>> +				~(SDRC_POWER_AUTOCOUNT_MASK|
->>>>> +				SDRC_POWER_CLKCTRL_MASK)) |
->>>>> +				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
->>>>> +				SDRC_SELF_REFRESH_ON_AUTOCOUNT,
->>>>> +					SDRC_POWER);
->>>>> +	}
->>> This part seems ok to me.
->>>
->>> - Kalle
->>>
->>>
->>>>>  
->>>>>  	if (regset_save_on_suspend)
->>>>>  		pm_dbg_regset_save(1);
->>>>> -- 
->>>>> 1.6.0.4
-> 
-
+P=E9ter
