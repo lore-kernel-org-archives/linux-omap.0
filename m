@@ -1,57 +1,74 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [PATCH 11/15] OMAP: DSS2: omapfb driver
-Date: Fri, 07 Aug 2009 14:54:23 +0300
-Message-ID: <4A7C15EF.1000800@nokia.com>
-References: <1249481741-14008-1-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-2-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-3-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-4-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-5-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-6-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-7-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-8-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-9-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-10-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-11-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-12-git-send-email-tomi.valkeinen@nokia.com> <4A7C145B.20800@nokia.com> <4A7C1577.2050408@nokia.co
- m>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] Clear the SDRC_POWER.PWRENA bit before putting the SDRAM
+ into  self-refresh before suspend
+Date: Fri, 7 Aug 2009 06:03:18 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908070555200.7977@utopia.booyaka.com>
+References: <af3ea28a0907071444m7c9ef14i8eaf15b45b14db9d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27248 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756081AbZHGLy7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 07:54:59 -0400
-In-Reply-To: <4A7C1577.2050408@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:60933 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925AbZHGMDS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 08:03:18 -0400
+In-Reply-To: <af3ea28a0907071444m7c9ef14i8eaf15b45b14db9d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ye janboe <janboe.ye@gmail.com>
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-Tomi Valkeinen wrote:
-> Hi,
-> 
-> Quadros Roger (EXT-Teleca/Helsinki) wrote:
->>> diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
->>> index 244b80d..89bf210 100644
->>> --- a/drivers/video/omap2/Kconfig
->>> +++ b/drivers/video/omap2/Kconfig
->>
->> This file does not exist in linus' tree or linux-omap so it fails to 
->> apply as it does not have 'new file node' attribute
->>
->>> @@ -1,2 +1,3 @@
->>>  source "drivers/video/omap2/dss/Kconfig"
->>>  source "drivers/video/omap2/displays/Kconfig"
->>> +source "drivers/video/omap2/omapfb/Kconfig"
->>> diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
->>> index 2d2c83e..0c0414f 100644
->>> --- a/drivers/video/omap2/Makefile
->>> +++ b/drivers/video/omap2/Makefile
->>
->> ditto
->>
->>> @@ -1,2 +1,3 @@
->>>  obj-y += dss/
->>>  obj-y += displays/
->>> +obj-y += omapfb/
->>
-> 
-> You need to apply the patches in order. Those files, and the files 
-> needed by panel drivers patch, are created in
-> 
-> [PATCH 06/15] OMAP: DSS2: Display Subsystem
-> 
->  Tomi
+Hello Janboe,
 
-oh ya. i downloaded it but forgot to apply. Thanks :)
+On Tue, 7 Jul 2009, ye janboe wrote:
+
+> I saw you clear clear the SDRC PWRENA bit during SDRC frequency change
+> but not during suspend.
+> 
+> Please review if it is necessary to clear PWRENA bit during suspend.
+
+I hope we don't need this after:
+
+http://patchwork.kernel.org/patch/37284/
+
+Of course, the bootloader might still set it :-(
+
+- Paul
+
+> 
+> Thanks
+> 
+> Janboe Ye
+> 
+> rom 287db2e188391be0ac95128131724e0e035e945a Mon Sep 17 00:00:00 2001
+> From: janboe <janboe.ye@gmail.com>
+> Date: Tue, 7 Jul 2009 16:30:26 -0500
+> Subject: [PATCH] Clear the SDRC_POWER.PWRENA bit before putting the
+> SDRAM into self-refresh and then suspend
+> 
+> Signed-off-by: janboe <janboe.ye@gmail.com>
+> ---
+>  arch/arm/mach-omap2/sleep34xx.S |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> index e5e2553..2bc0c3b 100644
+> --- a/arch/arm/mach-omap2/sleep34xx.S
+> +++ b/arch/arm/mach-omap2/sleep34xx.S
+> @@ -70,6 +70,7 @@ loop:
+>         ldr     r4, sdrc_power          @ read the SDRC_POWER register
+>         ldr     r5, [r4]                @ read the contents of SDRC_POWER
+>         orr     r5, r5, #0x40           @ enable self refresh on idle req
+> +       bic     r5, r5, #0x4            @ clear PWDENA
+>         str     r5, [r4]                @ write back to SDRC_POWER register
+> 
+>         cmp     r1, #0x0
+> -- 
+> 1.6.3.1
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
