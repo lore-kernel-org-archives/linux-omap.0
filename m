@@ -1,135 +1,150 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 7/8] Regulator: Added board-dependent code for TPS65023
-Date: Fri,  7 Aug 2009 20:59:30 +0530
-Message-ID: <1249658970-11100-1-git-send-email-anuj.aggarwal@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59005 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707AbZHGP3v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 11:29:51 -0400
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Subject: [PATCH 6/8] Regulator: Add board-omap35x-pmic.c to arch/arm/mach-omap2/
+Date: Fri,  7 Aug 2009 20:59:26 +0530
+Message-ID: <1249658966-11062-1-git-send-email-anuj.aggarwal@ti.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752741AbZHGP3p@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: broonie@sirena.org.uk, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>
+List-Id: linux-omap@vger.kernel.org
 
-Added OMAP35x specific code for TPS65023 in board-omap35x-pmic.c
+Added arch/arm/mach-omap2/board-omap35x-pmic.c file which will
+have the board specific information for different regulators
+and will do the regulator initialization depending on the one
+which is available.
 
 Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 ---
- arch/arm/mach-omap2/board-omap35x-pmic.c |   93 +++++++++++++++++++++++++++++-
- 1 files changed, 92 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-omap35x-pmic.c |  121 ++++++++++++++++++++++++++++++
+ 1 files changed, 121 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap35x-pmic.c
 
 diff --git a/arch/arm/mach-omap2/board-omap35x-pmic.c b/arch/arm/mach-omap2/board-omap35x-pmic.c
-index 11db66f..0bf47fd 100644
---- a/arch/arm/mach-omap2/board-omap35x-pmic.c
+new file mode 100644
+index 0000000..11db66f
+--- /dev/null
 +++ b/arch/arm/mach-omap2/board-omap35x-pmic.c
-@@ -30,6 +30,96 @@
- /*
-  * Definitions specific to TPS65023
-  */
-+#if defined(CONFIG_OMAP3EVM_TPS65023)
-+/* MPU voltage regulator of DCDC type */
-+struct regulator_consumer_supply tps65023_mpu_consumers = {
-+	.supply = "vdd1",
-+};
+@@ -0,0 +1,121 @@
++/*
++ * board-omap35x-pmic.c
++ *
++ * Board specific information for different regulators and platforms.
++ *
++ * Copyright (C) 2009 Texas Instrument Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
++ * whether express or implied; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
 +
-+/* CORE voltage regulator of DCDC type */
-+struct regulator_consumer_supply tps65023_core_consumers = {
-+	.supply = "vdd2",
-+};
++#include <linux/regulator/driver.h>
++#include <linux/regulator/machine.h>
++#include <mach/common.h>
 +
-+/* SRAM/MEM/WKUP_BG voltage regulator of DCDC type */
-+struct regulator_consumer_supply tps65023_vdds_consumers = {
-+	.supply = "vdds",
-+};
++/*
++ * Definitions specific to TWL4030
++ */
 +
-+/* DPLL voltage regulator of LDO type */
-+struct regulator_consumer_supply tps65023_dpll_consumers = {
-+	.supply = "dpll",
-+};
++/*
++ * Definitions specific to TPS6235x
++ */
 +
-+/* MMC voltage regulator of LDO type */
-+struct regulator_consumer_supply tps65023_mmc_consumers = {
-+	.supply = "mmc",
-+};
++/*
++ * Definitions specific to TPS65023
++ */
 +
-+struct regulator_init_data tps65023_regulator_data[] = {
-+	{
-+		.constraints = {
-+			.min_uV = 800000,
-+			.max_uV = 1600000,
-+			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
-+				REGULATOR_CHANGE_STATUS),
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65023_mpu_consumers,
-+	},
-+	{
-+		.constraints = {
-+			.min_uV = 1800000,
-+			.max_uV = 3300000,
-+			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65023_core_consumers,
-+	},
-+	{
-+		.constraints = {
-+			.min_uV = 1800000,
-+			.max_uV = 3300000,
-+			.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65023_vdds_consumers,
-+	},
-+	{
-+		.constraints = {
-+			.min_uV = 1000000,
-+			.max_uV = 3150000,
-+			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
-+				REGULATOR_CHANGE_STATUS),
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65023_dpll_consumers,
-+	},
-+	{
-+		.constraints = {
-+			.min_uV = 1050000,
-+			.max_uV = 3300000,
-+			.valid_ops_mask = (REGULATOR_CHANGE_VOLTAGE |
-+				REGULATOR_CHANGE_STATUS),
-+			.boot_on = 1,
-+		},
-+		.num_consumer_supplies = 1,
-+		.consumer_supplies = &tps65023_mmc_consumers,
-+	},
-+};
++/*
++ * Definitions specific to TPS65073
++ */
 +
-+static struct i2c_board_info __initdata board_tps65023_instances[] = {
-+	{
-+		I2C_BOARD_INFO("tps65023", 0x48),
-+		.flags = I2C_CLIENT_WAKE,
-+		.platform_data = &tps65023_regulator_data[0],
-+	},
-+};
++static int flag_pmic_twl4030;
++static int flag_pmic_tps6235x;
++static int flag_pmic_tps65023;
++static int flag_pmic_tps65073;
++
++/*
++ * Detect the current PMIC, set one of the flags
++ */
++static inline int detect_pmic(void)
++{
++#if defined(CONFIG_TWL4030_CORE)
++	flag_pmic_twl4030 = 1;
 +#endif
- 
- /*
-  * Definitions specific to TPS65073
-@@ -109,7 +199,8 @@ int oma35x_pmic_init(void)
- #endif
- 
- #if defined(CONFIG_OMAP3EVM_TPS65023)
--	/* do stuff specific to TPS65023 */
-+	omap_register_i2c_bus(1, 400, board_tps65023_instances,
-+		ARRAY_SIZE(board_tps65023_instances));
- #endif
- 
- #if defined(CONFIG_OMAP3EVM_TPS65073)
++
++#if defined(CONFIG_OMAP3EVM_TPS6235X)
++	flag_pmic_tps6235x = 1;
++#endif
++
++#if defined(CONFIG_OMAP3EVM_TPS65023)
++	flag_pmic_tps65023 = 1;
++#endif
++
++#if defined(CONFIG_OMAP3EVM_TPS65073)
++	flag_pmic_tps65073 = 1;
++#endif
++
++	return 0;
++}
++
++/* Functions to detect which PMIC is present */
++
++int pmic_is_twl4030(void)
++{
++	return flag_pmic_twl4030;
++}
++
++int pmic_is_tps6235x(void)
++{
++	return flag_pmic_tps6235x;
++}
++
++int pmic_is_tps65020(void) { return 0; }
++
++int pmic_is_tps65021(void) { return 0; }
++
++int pmic_is_tps65022(void) { return 0; }
++
++int pmic_is_tps65023(void)
++{
++	return flag_pmic_tps65023;
++}
++
++int pmic_is_tps65073(void)
++{
++	return flag_pmic_tps65073;
++}
++
++int pmic_is_tps65950(void)
++{
++	return flag_pmic_twl4030;
++}
++
++/* Detects the PMIC and initializes it accordingly */
++int oma35x_pmic_init(void)
++{
++#if defined(CONFIG_TWL4030_CORE)
++	/* do stuff specific to TWL4030 */
++#endif
++
++#if defined(CONFIG_OMAP3EVM_TPS6235X)
++	/* do stuff specific to TPS62350 */
++#endif
++
++#if defined(CONFIG_OMAP3EVM_TPS65023)
++	/* do stuff specific to TPS65023 */
++#endif
++
++#if defined(CONFIG_OMAP3EVM_TPS65073)
++	/* do stuff specific to TPS65073 */
++#endif
++
++	return 0;
++}
++
 -- 
 1.6.2.4
-
