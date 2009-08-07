@@ -1,44 +1,63 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [PATCH 11/15] OMAP: DSS2: omapfb driver
-Date: Fri, 07 Aug 2009 14:47:39 +0300
-Message-ID: <4A7C145B.20800@nokia.com>
-References: <1249481741-14008-1-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-2-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-3-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-4-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-5-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-6-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-7-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-8-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-9-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-10-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-11-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-12-git-send-email-tomi.valkeinen@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] OMAP3: PM: Fix SDRC register addresses
+Date: Fri, 7 Aug 2009 05:48:48 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908070548000.7977@utopia.booyaka.com>
+References: <1249477918-7200-1-git-send-email-ext-roger.quadros@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61192 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757335AbZHGLsa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 07:48:30 -0400
-In-Reply-To: <1249481741-14008-12-git-send-email-tomi.valkeinen@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:35029 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757293AbZHGLss (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 07:48:48 -0400
+In-Reply-To: <1249477918-7200-1-git-send-email-ext-roger.quadros@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+
+On Wed, 5 Aug 2009, Roger Quadros wrote:
+
+> SDRC addresses are offset from OMAP3430_SDRC_RT_BASE and not
+> OMAP3430_SMS_RT_BASE.
+> This fixes OFF mode on EMU/HS devices.
+> 
+> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+
+> ---
+>  arch/arm/mach-omap2/sleep34xx.S |   14 +++++++-------
+>  1 files changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+> index 807b23e..53b6da9 100644
+> --- a/arch/arm/mach-omap2/sleep34xx.S
+> +++ b/arch/arm/mach-omap2/sleep34xx.S
+> @@ -49,13 +49,13 @@
+>  #define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
+>  						+ SCRATCHPAD_MEM_OFFS)
+>  #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
+> -#define SDRC_SYSCONFIG_P	(OMAP3430_SMS_RT_BASE + SDRC_SYSCONFIG)
+> -#define SDRC_MR_0_P		(OMAP3430_SMS_RT_BASE + SDRC_MR_0)
+> -#define SDRC_EMR2_0_P		(OMAP3430_SMS_RT_BASE + SDRC_EMR2_0)
+> -#define SDRC_MANUAL_0_P		(OMAP3430_SMS_RT_BASE + SDRC_MANUAL_0)
+> -#define SDRC_MR_1_P		(OMAP3430_SMS_RT_BASE + SDRC_MR_1)
+> -#define SDRC_EMR2_1_P		(OMAP3430_SMS_RT_BASE + SDRC_EMR2_1)
+> -#define SDRC_MANUAL_1_P		(OMAP3430_SMS_RT_BASE + SDRC_MANUAL_1)
+> +#define SDRC_SYSCONFIG_P	(OMAP3430_SDRC_RT_BASE + SDRC_SYSCONFIG)
+> +#define SDRC_MR_0_P		(OMAP3430_SDRC_RT_BASE + SDRC_MR_0)
+> +#define SDRC_EMR2_0_P		(OMAP3430_SDRC_RT_BASE + SDRC_EMR2_0)
+> +#define SDRC_MANUAL_0_P		(OMAP3430_SDRC_RT_BASE + SDRC_MANUAL_0)
+> +#define SDRC_MR_1_P		(OMAP3430_SDRC_RT_BASE + SDRC_MR_1)
+> +#define SDRC_EMR2_1_P		(OMAP3430_SDRC_RT_BASE + SDRC_EMR2_1)
+> +#define SDRC_MANUAL_1_P		(OMAP3430_SDRC_RT_BASE + SDRC_MANUAL_1)
+>  #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
+>  #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
+>  
+> -- 
+> 1.6.0.4
+> 
 
 
-> diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
-> index 244b80d..89bf210 100644
-> --- a/drivers/video/omap2/Kconfig
-> +++ b/drivers/video/omap2/Kconfig
-
-This file does not exist in linus' tree or linux-omap so it fails to apply as it 
-does not have 'new file node' attribute
-
-> @@ -1,2 +1,3 @@
->  source "drivers/video/omap2/dss/Kconfig"
->  source "drivers/video/omap2/displays/Kconfig"
-> +source "drivers/video/omap2/omapfb/Kconfig"
-> diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
-> index 2d2c83e..0c0414f 100644
-> --- a/drivers/video/omap2/Makefile
-> +++ b/drivers/video/omap2/Makefile
-
-ditto
-
-> @@ -1,2 +1,3 @@
->  obj-y += dss/
->  obj-y += displays/
-> +obj-y += omapfb/
-
+- Paul
