@@ -1,208 +1,150 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-Date: Fri, 7 Aug 2009 11:23:25 +0300
-Message-ID: <20090807082322.GZ2358@atomide.com>
-References: <1249554967-20394-1-git-send-email-premi@ti.com> <20090806110359.GD2358@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D8C80741@dbde02.ent.ti.com> <20090806115025.GG2358@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301D8C80860@dbde02.ent.ti.com> <87fxc56lfz.fsf@deeprootsystems.com>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: Re: [RFC][PATCH] OMAP3: PM: Fix workaround implementation
+	for	OMAP3 errata (1.142)
+Date: Fri, 7 Aug 2009 11:28:24 +0300
+Message-ID: <1249633704.6485.284.camel@ubuntu>
+References: <1248873393-29503-1-git-send-email-ext-roger.quadros@nokia.com>
+	 <87tz0k614d.fsf@deeprootsystems.com> <1249625784.6485.249.camel@ubuntu>
+	 <4A7BDFD2.6090403@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52638 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757249AbZHGIXe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 04:23:34 -0400
-Content-Disposition: inline
-In-Reply-To: <87fxc56lfz.fsf@deeprootsystems.com>
+Received: from smtp1.digia.com ([82.118.214.156]:12776 "EHLO smtp1.digia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757096AbZHGI2L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 7 Aug 2009 04:28:11 -0400
+In-Reply-To: <4A7BDFD2.6090403@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090806 17:56]:
-> "Premi, Sanjeev" <premi@ti.com> writes:
-> 
-> >> -----Original Message-----
-> >> From: Tony Lindgren [mailto:tony@atomide.com] 
-> >> Sent: Thursday, August 06, 2009 5:20 PM
-> >> To: Premi, Sanjeev
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-> >> 
-> >> * Premi, Sanjeev <premi@ti.com> [090806 14:34]:
-> >> >  
-> >> > > -----Original Message-----
-> >> > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> >> > > Sent: Thursday, August 06, 2009 4:34 PM
-> >> > > To: Premi, Sanjeev
-> >> > > Cc: linux-omap@vger.kernel.org
-> >> > > Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-> >> > > 
-> >> > > Hi,
-> >> > > 
-> >> > > * Sanjeev Premi <premi@ti.com> [090806 13:36]:
-> >> > > > Added runtime check via omap2_set_globals_35xx().
-> >> > > > 
-> >> > > > Parts of this patch have been derived from an earlier
-> >> > > > earlier patch submitted by Tony Lindgren <tony@atomide.com>
-> >> > > > 
-> >> > > >  [1] http://marc.info/?l=linux-omap&m=123301852702797&w=2
-> >> > > >  [2] http://marc.info/?l=linux-omap&m=123334055822212&w=2
-> >> > > > 
-> >> > > > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> >> > > > ---
-> >> > > >  arch/arm/mach-omap2/id.c                 |  115 
-> >> > > ++++++++++++++++++++++++------
-> >> > > >  arch/arm/plat-omap/common.c              |   18 +++++-
-> >> > > >  arch/arm/plat-omap/include/mach/common.h |    1 +
-> >> > > >  arch/arm/plat-omap/include/mach/cpu.h    |   64 
-> >> ++++++++++++++++-
-> >> > > >  4 files changed, 173 insertions(+), 25 deletions(-)
-> >> > > > 
-> >> > > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> >> > > > index a98201c..06770aa 100644
-> >> > > > --- a/arch/arm/mach-omap2/id.c
-> >> > > > +++ b/arch/arm/mach-omap2/id.c
-> >> > > > @@ -28,6 +28,14 @@
-> >> > > >  static struct omap_chip_id omap_chip;
-> >> > > >  static unsigned int omap_revision;
-> >> > > >  
-> >> > > > +/* The new OMAP35x devices have assymetric names - 
-> >> > > OMAP3505 and OMAP3517.
-> >> > > > + * It is not possible to define a common macro to 
-> >> identify them.
-> >> > > > + *
-> >> > > > + * A quick way is to separate them across 
-> >> 'generations' as below.
-> >> > > > + */
-> >> > > > +#define OMAP35XX_G1	0x1	/* Applies to 3503, 
-> >> > > 3515, 3525 and 3530 */
-> >> > > > +#define OMAP35XX_G2	0x2	/* Applies to 3505 and 3517 */
-> >> > > > +
-> >> > > >  
-> >> > > >  unsigned int omap_rev(void)
-> >> > > >  {
-> >> > > > @@ -155,12 +163,71 @@ void __init omap24xx_check_revision(void)
-> >> > > >  	pr_info("\n");
-> >> > > >  }
-> >> > > >  
-> >> > > > +static void __init omap34xx_set_revision(u8 rev, char 
-> >> *rev_name)
-> >> > > > +{
-> >> > > > +	switch (rev) {
-> >> > > > +	case 0:
-> >> > > > +		omap_revision = OMAP3430_REV_ES2_0;
-> >> > > > +		strcat(rev_name, "ES2.0");
-> >> > > > +		break;
-> >> > > > +	case 2:
-> >> > > > +		omap_revision = OMAP3430_REV_ES2_1;
-> >> > > > +		strcat(rev_name, "ES2.1");
-> >> > > > +		break;
-> >> > > > +	case 3:
-> >> > > > +		omap_revision = OMAP3430_REV_ES3_0;
-> >> > > > +		strcat(rev_name, "ES3.0");
-> >> > > > +		break;
-> >> > > > +	case 4:
-> >> > > > +		omap_revision = OMAP3430_REV_ES3_1;
-> >> > > > +		strcat(rev_name, "ES3.1");
-> >> > > > +		break;
-> >> > > > +	default:
-> >> > > > +		/* Use the latest known revision as default */
-> >> > > > +		omap_revision = OMAP3430_REV_ES3_1;
-> >> > > > +		strcat(rev_name, "Unknown revision");
-> >> > > > +	}
-> >> > > > +}
-> >> > > > +
-> >> > > > +static void __init omap35xx_set_revision(u8 rev, u8 gen, 
-> >> > > char *rev_name)
-> >> > > > +{
-> >> > > > +	omap_revision = OMAP35XX_CLASS ;
-> >> > > > +
-> >> > > > +	if (gen == OMAP35XX_G1) {
-> >> > > > +		switch (rev) {
-> >> > > > +		case 0:	/* Take care of some older boards */
-> >> > > > +		case 1:
-> >> > > > +			omap_revision |= OMAP35XX_MASK_ES2_0;
-> >> > > > +			strcat(rev_name, "ES2.0");
-> >> > > > +			break;
-> >> > > > +		case 2:
-> >> > > > +			omap_revision |= OMAP35XX_MASK_ES2_1;
-> >> > > > +			strcat(rev_name, "ES2.1");
-> >> > > > +			break;
-> >> > > > +		case 3:
-> >> > > > +			omap_revision |= OMAP35XX_MASK_ES3_0;
-> >> > > > +			strcat(rev_name, "ES3.0");
-> >> > > > +			break;
-> >> > > > +		case 4:
-> >> > > > +			omap_revision |= OMAP35XX_MASK_ES3_1;
-> >> > > > +			strcat(rev_name, "ES3.1");
-> >> > > > +			break;
-> >> > > > +		default:
-> >> > > > +			/* Use the latest known 
-> >> revision as default */
-> >> > > > +			omap_revision |= OMAP35XX_MASK_ES3_0;
-> >> > > > +			strcat(rev_name, "Unknown revision");
-> >> > > > +		}
-> >> > > > +	} else {
-> >> > > > +		strcat(rev_name, "ES1.0");
-> >> > > > +	}
-> >> > > > +}
-> >> > > > +
-> >> > > 
-> >> > > To me it looks like you're checking the exact same cores as 
-> >> > > we already do
-> >> > > for 34xx. That is, (idcode >> 28) & 0xff for both 34xx and 
-> >> > > 35xx. So basically
-> >> > > they have the same omap cores.
-> >> > 
-> >> > No, the cores in OMAP3505 and OMAP3517 are very different.
-> >> > I have listed major differences in PATCH 2/6.
-> >> > 
-> >> > These devices differ in following areas:
-> >> >  - Power management capabilities
-> >> >    (Only 1 power domain, 1 OPP, etc.)
-> >> >  - EMIF4 instead of SDRC
-> >> >  - Support for DDR2
-> >> >  - EMAC
-> >> >  - USB
-> >> >  - HECC
-> >> 
-> >> Sure, but from compiler flags and io point of view they can still
-> >> be treated as 34xx.
-> >> 
-> >> How about just add the individual type detection for 35xx processors,
-> >> and then have something like this:
-> >> 
-> >> #define cpu_is_omap35xx()	(cpu_is_omap34xx() && 
-> >> (cpu_is_omap3510() || \
-> >> 					cpu_is_omap3520() || 
-> >> cpu_is_omap3530())
-> >> 
-> >> That should pretty much shrink this patch series down to 
-> >> about 50 lines or
-> >> so of code.
-> >
-> > Okay, I will try this. Just not sure if some of the differences
-> > in OMAP3530 and OMAP3430 can be detected.
-> >
-> > Will submit a patch soon.
-> 
-> 
-> IMO, we should not be using cpu_is_* for detecting the differences
-> between 34xx and 35xx, but rather we could query the features like
-> you're doing in PATCH 4/6.
-> 
-> Adding conditionals like
-> 
->   if (omap3_has_iva2())
->      ...
-> 
-> and
-> 
->   if (omap3_has_sgx()) 
->      ...
-> 
-> rather than having a long list of cpu_is checks that have to be changed
-> each time a new SoC comes out.
+On Fri, 2009-08-07 at 11:03 +0300, Roger Quadros wrote:
+> ext Kalle Jokiniemi wrote:
+> > On Fri, 2009-08-07 at 01:14 +0300, Kevin Hilman wrote:
+> >> Roger Quadros <ext-roger.quadros@nokia.com> writes:
+> >>
+> >>> As per errata 1.142, on EMU/HS devices, SDRC_POWER should be programmed
+> >>> for automatic self-refresh before transition to OFF mode.
+> >>> In the current implementation this is done in omap3_scratchpad_contents()
+> >>> which is wrong, since this is the value that will be restored while
+> >>> resuming from OFF mode and not while transitioning to it.
+> >>>
+> >>> This patch implements the workaround in the correct way as per errata.
+> >>>
+> >>> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+> >> This looks right to me.
+> >>
+> >> Rajendra, Kalle, any comments? since you were the originators of
+> >> the original patch.
+> >>
+> >> Kevin
+> >>
+> >>> ---
+> >>>  arch/arm/mach-omap2/control.c |   16 ++--------------
+> >>>  arch/arm/mach-omap2/pm34xx.c  |   20 ++++++++++++++------
+> >>>  2 files changed, 16 insertions(+), 20 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> >>> index a7159a9..0a563c8 100644
+> >>> --- a/arch/arm/mach-omap2/control.c
+> >>> +++ b/arch/arm/mach-omap2/control.c
+> >>> @@ -272,20 +272,8 @@ void omap3_save_scratchpad_contents(void)
+> >>>  			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
+> >>>  	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
+> >>>  	sdrc_block_contents.dll_b_ctrl = 0x0;
+> >>> -	/*
+> >>> -	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
+> >>> -	 * be programed to issue automatic self refresh on timeout
+> >>> -	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
+> >>> -	 */
+> >>> -	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
+> >>> -			&& (omap_rev() >= OMAP3430_REV_ES3_0))
+> >>> -		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
+> >>> -				~(SDRC_POWER_AUTOCOUNT_MASK|
+> >>> -				SDRC_POWER_CLKCTRL_MASK)) |
+> >>> -				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
+> >>> -				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
+> >>> -	else
+> >>> -		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
+> >>> +
+> >>> +	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
+> > 
+> > Why do you want to remove the workaround from scratchpad?
+> > 
+> > When we wake up from off mode, the boot ROM code writes these settings
+> > as the first sdrc_power settings after wakeup. If that setting does not
+> > include the workaround, we'll have a period of time where sdram is not
+> > being refreshed. This hits especially HS devices that do long secure
+> > context restore in ROM code as well.
+> > 
+> > 
+> I suppose SDRAM is always refreshed (i.e. auto refresh) when ON. However when we 
+> enter OFF mode it should be _self_ refreshed. That is done by the below code 
+> before we switch to OFF mode.
 
-Agreed.
+The erratum speaks of auto-refresh failing after waking up from CORE off
+mode. I think there is the described workaround in place in sleep34xx.S
+code to kick up the auto refresh, but this still leaves a short gap
+between boot ROM and the sleep code.
 
-Tony
+Unless the self-refresh mode does not get changed by the scratchpad
+settings?
+
+- Kalle
+
+> 
+> When we wake up from OFF mode (the scratchpad contents are used), we should 
+> restore the original register setting that was there before we went to OFF mode 
+> and not the self refresh mode setting. Hence the removal of above code.
+> 
+> -roger
+> >>>  
+> >>>  	sdrc_block_contents.cs_0 = 0x0;
+> >>>  	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
+> >>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> >>> index 14f10bc..eb3c9e5 100644
+> >>> --- a/arch/arm/mach-omap2/pm34xx.c
+> >>> +++ b/arch/arm/mach-omap2/pm34xx.c
+> >>> @@ -405,15 +405,23 @@ void omap_sram_idle(void)
+> >>>  	}
+> >>>  
+> >>>  	/*
+> >>> -	* On EMU/HS devices ROM code restores a SRDC value
+> >>> -	* from scratchpad which has automatic self refresh on timeout
+> >>> -	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
+> >>> -	* Hence store/restore the SDRC_POWER register here.
+> >>> -	*/
+> >>> +	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
+> >>> +	 * be programed to issue automatic self refresh on timeout
+> >>> +	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
+> >>> +	 */
+> >>> +
+> >>>  	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+> >>>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+> >>> -	    core_next_state == PWRDM_POWER_OFF)
+> >>> +	    core_next_state == PWRDM_POWER_OFF) {
+> >>> +
+> >>>  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
+> >>> +		sdrc_write_reg((sdrc_pwr &
+> >>> +				~(SDRC_POWER_AUTOCOUNT_MASK|
+> >>> +				SDRC_POWER_CLKCTRL_MASK)) |
+> >>> +				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
+> >>> +				SDRC_SELF_REFRESH_ON_AUTOCOUNT,
+> >>> +					SDRC_POWER);
+> >>> +	}
+> > 
+> > This part seems ok to me.
+> > 
+> > - Kalle
+> > 
+> > 
+> >>>  
+> >>>  	if (regset_save_on_suspend)
+> >>>  		pm_dbg_regset_save(1);
+> >>> -- 
+> >>> 1.6.0.4
+> > 
+> 
+
