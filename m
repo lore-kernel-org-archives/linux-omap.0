@@ -1,103 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 1/2] OMAP2: Add funcs for writing SMS_ROT_* registers
-Date: Fri, 7 Aug 2009 05:38:34 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908070538200.7977@utopia.booyaka.com>
-References: <1249633796-12266-1-git-send-email-tomi.valkeinen@nokia.com> <4A7BE751.20001@nokia.com> <20090807112913.GD2358@atomide.com>
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: Re: [PATCH 11/15] OMAP: DSS2: omapfb driver
+Date: Fri, 07 Aug 2009 14:47:39 +0300
+Message-ID: <4A7C145B.20800@nokia.com>
+References: <1249481741-14008-1-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-2-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-3-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-4-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-5-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-6-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-7-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-8-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-9-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-10-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-11-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-12-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:53112 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752516AbZHGLie (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 07:38:34 -0400
-In-Reply-To: <20090807112913.GD2358@atomide.com>
+Received: from smtp.nokia.com ([192.100.122.233]:61192 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757335AbZHGLsa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 07:48:30 -0400
+In-Reply-To: <1249481741-14008-12-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-On Fri, 7 Aug 2009, Tony Lindgren wrote:
-
-> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [090807 11:36]:
-> > Hmm sorry, this was meant to be [PATCH 1/1].
-> >
-> >  Tomi
-> >
-> >
-> > Valkeinen Tomi (Nokia-D/Helsinki) wrote:
-> >> SMS_ROT_* registers are used by VRFB rotation engine.
-> 
-> Assuming Paul acks it too, I suggest you merge this via the fbdev queue
-> to avoid dependencies of having to wait for all the arm patches to get
-> merged.
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
-
-Acked-by: Paul Walmsley <paul@pwsan.com>
-
-> 
-> 
-> >>
-> >> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-> >> ---
-> >>  arch/arm/mach-omap2/sdrc.c             |   16 ++++++++++++++++
-> >>  arch/arm/plat-omap/include/mach/sdrc.h |    8 +++++++-
-> >>  2 files changed, 23 insertions(+), 1 deletions(-)
-> >>
-> >> diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
-> >> index 2045441..56f6dab 100644
-> >> --- a/arch/arm/mach-omap2/sdrc.c
-> >> +++ b/arch/arm/mach-omap2/sdrc.c
-> >> @@ -111,3 +111,19 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
-> >>  		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
-> >>  	sdrc_write_reg(l, SDRC_POWER);
-> >>  }
-> >> +
-> >> +void omap2_sms_write_rot_control(u32 val, unsigned ctx)
-> >> +{
-> >> +	sms_write_reg(val, SMS_ROT_CONTROL(ctx));
-> >> +}
-> >> +
-> >> +void omap2_sms_write_rot_size(u32 val, unsigned ctx)
-> >> +{
-> >> +	sms_write_reg(val, SMS_ROT_SIZE(ctx));
-> >> +}
-> >> +
-> >> +void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx)
-> >> +{
-> >> +	sms_write_reg(val, SMS_ROT_PHYSICAL_BA(ctx));
-> >> +}
-> >> +
-> >> diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
-> >> index adc7352..4199c19 100644
-> >> --- a/arch/arm/plat-omap/include/mach/sdrc.h
-> >> +++ b/arch/arm/plat-omap/include/mach/sdrc.h
-> >> @@ -75,7 +75,10 @@
-> >>   /* SMS register offsets - read/write with sms_{read,write}_reg() */
-> >>  -#define SMS_SYSCONFIG		0x010
-> >> +#define SMS_SYSCONFIG			0x010
-> >> +#define SMS_ROT_CONTROL(context)	(0x180 + 0x10 * context)
-> >> +#define SMS_ROT_SIZE(context)		(0x184 + 0x10 * context)
-> >> +#define SMS_ROT_PHYSICAL_BA(context)	(0x188 + 0x10 * context)
-> >>  /* REVISIT: fill in other SMS registers here */
-> >>   @@ -104,6 +107,9 @@ struct omap_sdrc_params {
-> >>   void __init omap2_sdrc_init(struct omap_sdrc_params *sp);
-> >>  struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r);
-> >> +void omap2_sms_write_rot_control(u32 val, unsigned ctx);
-> >> +void omap2_sms_write_rot_size(u32 val, unsigned ctx);
-> >> +void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx);
-> >>   #ifdef CONFIG_ARCH_OMAP2
-> >>  
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+To: ext Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org
 
 
-- Paul
+> diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
+> index 244b80d..89bf210 100644
+> --- a/drivers/video/omap2/Kconfig
+> +++ b/drivers/video/omap2/Kconfig
+
+This file does not exist in linus' tree or linux-omap so it fails to apply as it 
+does not have 'new file node' attribute
+
+> @@ -1,2 +1,3 @@
+>  source "drivers/video/omap2/dss/Kconfig"
+>  source "drivers/video/omap2/displays/Kconfig"
+> +source "drivers/video/omap2/omapfb/Kconfig"
+> diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
+> index 2d2c83e..0c0414f 100644
+> --- a/drivers/video/omap2/Makefile
+> +++ b/drivers/video/omap2/Makefile
+
+ditto
+
+> @@ -1,2 +1,3 @@
+>  obj-y += dss/
+>  obj-y += displays/
+> +obj-y += omapfb/
+
