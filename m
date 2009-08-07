@@ -1,203 +1,54 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH][2.6.31-rc5] ARM: OMAP: McBSP: Fix ASoC on
-	OMAP1510 by fixing API of omap_mcbsp_start/stop
-Date: Fri,  7 Aug 2009 09:59:47 +0300
-Message-ID: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: N8x0 to mainline patches
+Date: Fri, 7 Aug 2009 10:03:20 +0300
+Message-ID: <20090807070317.GR2358@atomide.com>
+References: <87zlb95dwx.fsf@litku.valot.fi> <20090713060354.GJ6589@nokia.com> <87vdlx5b3y.fsf@litku.valot.fi> <20090713065341.GC16778@nokia.com> <20090806071038.GE7374@atomide.com> <87y6pwnc9t.fsf@litku.valot.fi> <da94abde0908060927s57a5bdcfxac4e46db16913820@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: linux-kernel@vger.kernel.org
-Cc: alsa-devel@alsa-project.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61484 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754811AbZHGHD1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 03:03:27 -0400
+Content-Disposition: inline
+In-Reply-To: <da94abde0908060927s57a5bdcfxac4e46db16913820@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kalle Valo <kalle.valo@iki.fi>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>, Max Filippov <jcmvbkbc@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Simultaneous audio playback and capture on OMAP1510 can cause that second
-stream is stalled if there is enough delay between startup of the audio
-streams.
+* Kalle Valo <kalle.valo@iki.fi> [090806 19:29]:
+> On Thu, Aug 6, 2009 at 7:21 PM, Kalle Valo<kalle.valo@iki.fi> wrote:
+> > My plan is this:
+> >
+> > 1. first finish OMAP_TAG_UART removal patch and send it for review
 
-Current implementation of the omap_mcbsp_start is starting both transmitter
-and receiver at the same time and it is called only for firstly started
-audio stream from the OMAP McBSP based ASoC DAI driver.
+This would be great.
 
-Since DMA request lines on OMAP1510 are edge sensitive, the DMA request is
-missed if there is no DMA transfer set up at that time when the first word
-after McBSP startup is transmitted. The problem hasn't noted before since
-later OMAPs are using level sensitive DMA request lines.
+> > 2. finins and send tusb6010 patch
+> >
+> > + omap2-add-usb-tusb6010-c
 
-Fix the problem by changing API of omap_mcbsp_start and omap_mcbsp_stop by
-allowing to start and stop individually McBSP transmitter and receiver
-logics. Then call those functions individually for both audio playback
-and capture streams. This ensures that DMA transfer is setup before
-transmitter or receiver is started.
+The tusb6010 could be added later on as a fix too if you want to cut
+down dependencies.
 
-Thanks to Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> for detailed problem
-analysis and Peter Ujfalusi <peter.ujfalusi@nokia.com> for info about DMA
-request line behavior differences between the OMAP generations.
+> > 2. fold these n8x0 board file patches into one and send it for review:
+> >
+> > + n8x0-add-board-file
+> > + n8x0-onenand-support
+> > + n8x0-add-spi-support
+> > + n8x0-add-usb-support
 
-Reported-and-tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/plat-omap/include/mach/mcbsp.h |    4 +-
- arch/arm/plat-omap/mcbsp.c              |   50 +++++++++++++++++++-----------
- sound/soc/omap/omap-mcbsp.c             |   10 +++---
- 3 files changed, 39 insertions(+), 25 deletions(-)
+Yeh one patch for the board file.
+ 
+> This was item 3, of course. And I forget n8x0_defconfig, I'll send
+> that as a separate patch.
 
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index bb154ea..57249bb 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -387,8 +387,8 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
- void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
- int omap_mcbsp_request(unsigned int id);
- void omap_mcbsp_free(unsigned int id);
--void omap_mcbsp_start(unsigned int id);
--void omap_mcbsp_stop(unsigned int id);
-+void omap_mcbsp_start(unsigned int id, int tx, int rx);
-+void omap_mcbsp_stop(unsigned int id, int tx, int rx);
- void omap_mcbsp_xmit_word(unsigned int id, u32 word);
- u32 omap_mcbsp_recv_word(unsigned int id);
+Yeah it's easier to read the series that way.
  
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index efa0e01..a3d2313 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -328,14 +328,15 @@ void omap_mcbsp_free(unsigned int id)
- EXPORT_SYMBOL(omap_mcbsp_free);
- 
- /*
-- * Here we start the McBSP, by enabling the sample
-- * generator, both transmitter and receivers,
-- * and the frame sync.
-+ * Here we start the McBSP, by enabling transmitter, receiver or both.
-+ * If no transmitter or receiver is active prior calling, then sample-rate
-+ * generator and frame sync are started.
-  */
--void omap_mcbsp_start(unsigned int id)
-+void omap_mcbsp_start(unsigned int id, int tx, int rx)
- {
- 	struct omap_mcbsp *mcbsp;
- 	void __iomem *io_base;
-+	int idle;
- 	u16 w;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
-@@ -348,32 +349,40 @@ void omap_mcbsp_start(unsigned int id)
- 	mcbsp->rx_word_length = (OMAP_MCBSP_READ(io_base, RCR1) >> 5) & 0x7;
- 	mcbsp->tx_word_length = (OMAP_MCBSP_READ(io_base, XCR1) >> 5) & 0x7;
- 
--	/* Start the sample generator */
--	w = OMAP_MCBSP_READ(io_base, SPCR2);
--	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
-+	idle = !((OMAP_MCBSP_READ(io_base, SPCR2) |
-+		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
-+
-+	if (idle) {
-+		/* Start the sample generator */
-+		w = OMAP_MCBSP_READ(io_base, SPCR2);
-+		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
-+	}
- 
- 	/* Enable transmitter and receiver */
- 	w = OMAP_MCBSP_READ(io_base, SPCR2);
--	OMAP_MCBSP_WRITE(io_base, SPCR2, w | 1);
-+	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (tx & 1));
- 
- 	w = OMAP_MCBSP_READ(io_base, SPCR1);
--	OMAP_MCBSP_WRITE(io_base, SPCR1, w | 1);
-+	OMAP_MCBSP_WRITE(io_base, SPCR1, w | (rx & 1));
- 
- 	udelay(100);
- 
--	/* Start frame sync */
--	w = OMAP_MCBSP_READ(io_base, SPCR2);
--	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
-+	if (idle) {
-+		/* Start frame sync */
-+		w = OMAP_MCBSP_READ(io_base, SPCR2);
-+		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
-+	}
- 
- 	/* Dump McBSP Regs */
- 	omap_mcbsp_dump_reg(id);
- }
- EXPORT_SYMBOL(omap_mcbsp_start);
- 
--void omap_mcbsp_stop(unsigned int id)
-+void omap_mcbsp_stop(unsigned int id, int tx, int rx)
- {
- 	struct omap_mcbsp *mcbsp;
- 	void __iomem *io_base;
-+	int idle;
- 	u16 w;
- 
- 	if (!omap_mcbsp_check_valid_id(id)) {
-@@ -386,15 +395,20 @@ void omap_mcbsp_stop(unsigned int id)
- 
- 	/* Reset transmitter */
- 	w = OMAP_MCBSP_READ(io_base, SPCR2);
--	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1));
-+	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(tx & 1));
- 
- 	/* Reset receiver */
- 	w = OMAP_MCBSP_READ(io_base, SPCR1);
--	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(1));
-+	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(rx & 1));
- 
--	/* Reset the sample rate generator */
--	w = OMAP_MCBSP_READ(io_base, SPCR2);
--	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
-+	idle = !((OMAP_MCBSP_READ(io_base, SPCR2) |
-+		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
-+
-+	if (idle) {
-+		/* Reset the sample rate generator */
-+		w = OMAP_MCBSP_READ(io_base, SPCR2);
-+		OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
-+	}
- }
- EXPORT_SYMBOL(omap_mcbsp_stop);
- 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index a5d46a7..6a837ff 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -183,21 +183,21 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
- 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
- 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
- 	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
--	int err = 0;
-+	int err = 0, play = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
- 
- 	switch (cmd) {
- 	case SNDRV_PCM_TRIGGER_START:
- 	case SNDRV_PCM_TRIGGER_RESUME:
- 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
--		if (!mcbsp_data->active++)
--			omap_mcbsp_start(mcbsp_data->bus_id);
-+		mcbsp_data->active++;
-+		omap_mcbsp_start(mcbsp_data->bus_id, play, !play);
- 		break;
- 
- 	case SNDRV_PCM_TRIGGER_STOP:
- 	case SNDRV_PCM_TRIGGER_SUSPEND:
- 	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
--		if (!--mcbsp_data->active)
--			omap_mcbsp_stop(mcbsp_data->bus_id);
-+		omap_mcbsp_stop(mcbsp_data->bus_id, play, !play);
-+		mcbsp_data->active--;
- 		break;
- 	default:
- 		err = -EINVAL;
--- 
-1.6.3.3
+> Tony, does this look ok to you?
+
+Looks good to me!
+
+Tony
+
