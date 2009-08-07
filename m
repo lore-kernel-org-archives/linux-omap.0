@@ -1,150 +1,78 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: Re: [RFC][PATCH] OMAP3: PM: Fix workaround implementation
-	for	OMAP3 errata (1.142)
-Date: Fri, 7 Aug 2009 11:28:24 +0300
-Message-ID: <1249633704.6485.284.camel@ubuntu>
-References: <1248873393-29503-1-git-send-email-ext-roger.quadros@nokia.com>
-	 <87tz0k614d.fsf@deeprootsystems.com> <1249625784.6485.249.camel@ubuntu>
-	 <4A7BDFD2.6090403@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH 1/2] OMAP2: Add funcs for writing SMS_ROT_* registers
+Date: Fri,  7 Aug 2009 11:29:56 +0300
+Message-ID: <1249633796-12266-1-git-send-email-tomi.valkeinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:12776 "EHLO smtp1.digia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757096AbZHGI2L (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 7 Aug 2009 04:28:11 -0400
-In-Reply-To: <4A7BDFD2.6090403@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:56909 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757106AbZHGIaZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 04:30:25 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n778U2Xr009389
+	for <linux-omap@vger.kernel.org>; Fri, 7 Aug 2009 03:30:08 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <ext-roger.quadros@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Rajendra Nayak <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-On Fri, 2009-08-07 at 11:03 +0300, Roger Quadros wrote:
-> ext Kalle Jokiniemi wrote:
-> > On Fri, 2009-08-07 at 01:14 +0300, Kevin Hilman wrote:
-> >> Roger Quadros <ext-roger.quadros@nokia.com> writes:
-> >>
-> >>> As per errata 1.142, on EMU/HS devices, SDRC_POWER should be programmed
-> >>> for automatic self-refresh before transition to OFF mode.
-> >>> In the current implementation this is done in omap3_scratchpad_contents()
-> >>> which is wrong, since this is the value that will be restored while
-> >>> resuming from OFF mode and not while transitioning to it.
-> >>>
-> >>> This patch implements the workaround in the correct way as per errata.
-> >>>
-> >>> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-> >> This looks right to me.
-> >>
-> >> Rajendra, Kalle, any comments? since you were the originators of
-> >> the original patch.
-> >>
-> >> Kevin
-> >>
-> >>> ---
-> >>>  arch/arm/mach-omap2/control.c |   16 ++--------------
-> >>>  arch/arm/mach-omap2/pm34xx.c  |   20 ++++++++++++++------
-> >>>  2 files changed, 16 insertions(+), 20 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-> >>> index a7159a9..0a563c8 100644
-> >>> --- a/arch/arm/mach-omap2/control.c
-> >>> +++ b/arch/arm/mach-omap2/control.c
-> >>> @@ -272,20 +272,8 @@ void omap3_save_scratchpad_contents(void)
-> >>>  			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
-> >>>  	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
-> >>>  	sdrc_block_contents.dll_b_ctrl = 0x0;
-> >>> -	/*
-> >>> -	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
-> >>> -	 * be programed to issue automatic self refresh on timeout
-> >>> -	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
-> >>> -	 */
-> >>> -	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
-> >>> -			&& (omap_rev() >= OMAP3430_REV_ES3_0))
-> >>> -		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
-> >>> -				~(SDRC_POWER_AUTOCOUNT_MASK|
-> >>> -				SDRC_POWER_CLKCTRL_MASK)) |
-> >>> -				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
-> >>> -				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
-> >>> -	else
-> >>> -		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
-> >>> +
-> >>> +	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
-> > 
-> > Why do you want to remove the workaround from scratchpad?
-> > 
-> > When we wake up from off mode, the boot ROM code writes these settings
-> > as the first sdrc_power settings after wakeup. If that setting does not
-> > include the workaround, we'll have a period of time where sdram is not
-> > being refreshed. This hits especially HS devices that do long secure
-> > context restore in ROM code as well.
-> > 
-> > 
-> I suppose SDRAM is always refreshed (i.e. auto refresh) when ON. However when we 
-> enter OFF mode it should be _self_ refreshed. That is done by the below code 
-> before we switch to OFF mode.
+SMS_ROT_* registers are used by VRFB rotation engine.
 
-The erratum speaks of auto-refresh failing after waking up from CORE off
-mode. I think there is the described workaround in place in sleep34xx.S
-code to kick up the auto refresh, but this still leaves a short gap
-between boot ROM and the sleep code.
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ arch/arm/mach-omap2/sdrc.c             |   16 ++++++++++++++++
+ arch/arm/plat-omap/include/mach/sdrc.h |    8 +++++++-
+ 2 files changed, 23 insertions(+), 1 deletions(-)
 
-Unless the self-refresh mode does not get changed by the scratchpad
-settings?
-
-- Kalle
-
-> 
-> When we wake up from OFF mode (the scratchpad contents are used), we should 
-> restore the original register setting that was there before we went to OFF mode 
-> and not the self refresh mode setting. Hence the removal of above code.
-> 
-> -roger
-> >>>  
-> >>>  	sdrc_block_contents.cs_0 = 0x0;
-> >>>  	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
-> >>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> >>> index 14f10bc..eb3c9e5 100644
-> >>> --- a/arch/arm/mach-omap2/pm34xx.c
-> >>> +++ b/arch/arm/mach-omap2/pm34xx.c
-> >>> @@ -405,15 +405,23 @@ void omap_sram_idle(void)
-> >>>  	}
-> >>>  
-> >>>  	/*
-> >>> -	* On EMU/HS devices ROM code restores a SRDC value
-> >>> -	* from scratchpad which has automatic self refresh on timeout
-> >>> -	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
-> >>> -	* Hence store/restore the SDRC_POWER register here.
-> >>> -	*/
-> >>> +	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
-> >>> +	 * be programed to issue automatic self refresh on timeout
-> >>> +	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
-> >>> +	 */
-> >>> +
-> >>>  	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
-> >>>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
-> >>> -	    core_next_state == PWRDM_POWER_OFF)
-> >>> +	    core_next_state == PWRDM_POWER_OFF) {
-> >>> +
-> >>>  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
-> >>> +		sdrc_write_reg((sdrc_pwr &
-> >>> +				~(SDRC_POWER_AUTOCOUNT_MASK|
-> >>> +				SDRC_POWER_CLKCTRL_MASK)) |
-> >>> +				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
-> >>> +				SDRC_SELF_REFRESH_ON_AUTOCOUNT,
-> >>> +					SDRC_POWER);
-> >>> +	}
-> > 
-> > This part seems ok to me.
-> > 
-> > - Kalle
-> > 
-> > 
-> >>>  
-> >>>  	if (regset_save_on_suspend)
-> >>>  		pm_dbg_regset_save(1);
-> >>> -- 
-> >>> 1.6.0.4
-> > 
-> 
+diff --git a/arch/arm/mach-omap2/sdrc.c b/arch/arm/mach-omap2/sdrc.c
+index 2045441..56f6dab 100644
+--- a/arch/arm/mach-omap2/sdrc.c
++++ b/arch/arm/mach-omap2/sdrc.c
+@@ -111,3 +111,19 @@ void __init omap2_sdrc_init(struct omap_sdrc_params *sp)
+ 		(1 << SDRC_POWER_PAGEPOLICY_SHIFT);
+ 	sdrc_write_reg(l, SDRC_POWER);
+ }
++
++void omap2_sms_write_rot_control(u32 val, unsigned ctx)
++{
++	sms_write_reg(val, SMS_ROT_CONTROL(ctx));
++}
++
++void omap2_sms_write_rot_size(u32 val, unsigned ctx)
++{
++	sms_write_reg(val, SMS_ROT_SIZE(ctx));
++}
++
++void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx)
++{
++	sms_write_reg(val, SMS_ROT_PHYSICAL_BA(ctx));
++}
++
+diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
+index adc7352..4199c19 100644
+--- a/arch/arm/plat-omap/include/mach/sdrc.h
++++ b/arch/arm/plat-omap/include/mach/sdrc.h
+@@ -75,7 +75,10 @@
+ 
+ /* SMS register offsets - read/write with sms_{read,write}_reg() */
+ 
+-#define SMS_SYSCONFIG		0x010
++#define SMS_SYSCONFIG			0x010
++#define SMS_ROT_CONTROL(context)	(0x180 + 0x10 * context)
++#define SMS_ROT_SIZE(context)		(0x184 + 0x10 * context)
++#define SMS_ROT_PHYSICAL_BA(context)	(0x188 + 0x10 * context)
+ /* REVISIT: fill in other SMS registers here */
+ 
+ 
+@@ -104,6 +107,9 @@ struct omap_sdrc_params {
+ 
+ void __init omap2_sdrc_init(struct omap_sdrc_params *sp);
+ struct omap_sdrc_params *omap2_sdrc_get_params(unsigned long r);
++void omap2_sms_write_rot_control(u32 val, unsigned ctx);
++void omap2_sms_write_rot_size(u32 val, unsigned ctx);
++void omap2_sms_write_rot_physical_ba(u32 val, unsigned ctx);
+ 
+ #ifdef CONFIG_ARCH_OMAP2
+ 
+-- 
+1.6.4
 
