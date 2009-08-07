@@ -1,63 +1,49 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP3: PM: Fix SDRC register addresses
-Date: Fri, 7 Aug 2009 05:48:48 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908070548000.7977@utopia.booyaka.com>
-References: <1249477918-7200-1-git-send-email-ext-roger.quadros@nokia.com>
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: Re: [PATCH 12/15] OMAP: DSS2: Add panel drivers
+Date: Fri, 07 Aug 2009 14:50:25 +0300
+Message-ID: <4A7C1501.9070602@nokia.com>
+References: <1249481741-14008-1-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-2-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-3-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-4-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-5-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-6-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-7-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-8-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-9-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-10-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-11-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-12-git-send-email-tomi.valkeinen@nokia.com> <1249481741-14008-13-git-send-email-tomi.valkeinen@no
+ kia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35029 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757293AbZHGLss (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 07:48:48 -0400
-In-Reply-To: <1249477918-7200-1-git-send-email-ext-roger.quadros@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:26764 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932431AbZHGLvM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 07:51:12 -0400
+In-Reply-To: <1249481741-14008-13-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <ext-roger.quadros@nokia.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: ext Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org
 
-On Wed, 5 Aug 2009, Roger Quadros wrote:
-
-> SDRC addresses are offset from OMAP3430_SDRC_RT_BASE and not
-> OMAP3430_SMS_RT_BASE.
-> This fixes OFF mode on EMU/HS devices.
+ext Tomi Valkeinen wrote:
+> - Generic panel
+> - Samsung LTE430WQ-F0C LCD Panel
+> - Sharp LS037V7DW01 LCD Panel
 > 
-> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-
+> Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 > ---
->  arch/arm/mach-omap2/sleep34xx.S |   14 +++++++-------
->  1 files changed, 7 insertions(+), 7 deletions(-)
+>  drivers/video/omap2/displays/Kconfig               |   18 +++
+>  drivers/video/omap2/displays/Makefile              |    3 +
+>  drivers/video/omap2/displays/panel-generic.c       |  104 +++++++++++++
+>  .../omap2/displays/panel-samsung-lte430wq-f0c.c    |  113 +++++++++++++++
+>  .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  153 ++++++++++++++++++++
+>  5 files changed, 391 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/video/omap2/displays/panel-generic.c
+>  create mode 100644 drivers/video/omap2/displays/panel-samsung-lte430wq-f0c.c
+>  create mode 100644 drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
 > 
-> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-> index 807b23e..53b6da9 100644
-> --- a/arch/arm/mach-omap2/sleep34xx.S
-> +++ b/arch/arm/mach-omap2/sleep34xx.S
-> @@ -49,13 +49,13 @@
->  #define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
->  						+ SCRATCHPAD_MEM_OFFS)
->  #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
-> -#define SDRC_SYSCONFIG_P	(OMAP3430_SMS_RT_BASE + SDRC_SYSCONFIG)
-> -#define SDRC_MR_0_P		(OMAP3430_SMS_RT_BASE + SDRC_MR_0)
-> -#define SDRC_EMR2_0_P		(OMAP3430_SMS_RT_BASE + SDRC_EMR2_0)
-> -#define SDRC_MANUAL_0_P		(OMAP3430_SMS_RT_BASE + SDRC_MANUAL_0)
-> -#define SDRC_MR_1_P		(OMAP3430_SMS_RT_BASE + SDRC_MR_1)
-> -#define SDRC_EMR2_1_P		(OMAP3430_SMS_RT_BASE + SDRC_EMR2_1)
-> -#define SDRC_MANUAL_1_P		(OMAP3430_SMS_RT_BASE + SDRC_MANUAL_1)
-> +#define SDRC_SYSCONFIG_P	(OMAP3430_SDRC_RT_BASE + SDRC_SYSCONFIG)
-> +#define SDRC_MR_0_P		(OMAP3430_SDRC_RT_BASE + SDRC_MR_0)
-> +#define SDRC_EMR2_0_P		(OMAP3430_SDRC_RT_BASE + SDRC_EMR2_0)
-> +#define SDRC_MANUAL_0_P		(OMAP3430_SDRC_RT_BASE + SDRC_MANUAL_0)
-> +#define SDRC_MR_1_P		(OMAP3430_SDRC_RT_BASE + SDRC_MR_1)
-> +#define SDRC_EMR2_1_P		(OMAP3430_SDRC_RT_BASE + SDRC_EMR2_1)
-> +#define SDRC_MANUAL_1_P		(OMAP3430_SDRC_RT_BASE + SDRC_MANUAL_1)
->  #define SDRC_DLLA_STATUS_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_STATUS)
->  #define SDRC_DLLA_CTRL_V	OMAP34XX_SDRC_REGADDR(SDRC_DLLA_CTRL)
->  
-> -- 
-> 1.6.0.4
-> 
+This does not apply on linux-omap tree.
 
+I get,
 
-- Paul
+Applying: OMAP: DSS2: Add panel drivers
+error: drivers/video/omap2/displays/Kconfig: does not exist in index
+error: drivers/video/omap2/displays/Makefile: does not exist in index
+Patch failed at 0011.
+
+probably missing the 'new file node' attribute here too.
+
+-roger
