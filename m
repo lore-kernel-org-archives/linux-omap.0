@@ -1,216 +1,169 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH][2.6.31-rc5] ARM: OMAP: McBSP: Fix ASoC on
-	OMAP1510 by	fixing API of omap_mcbsp_start/stop
-Date: Fri, 7 Aug 2009 11:14:55 +0300
-Message-ID: <20090807081207.GX2358@atomide.com>
-References: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
+Subject: Re: MMC3 Overo
+Date: Fri, 7 Aug 2009 11:21:18 +0300
+Message-ID: <20090807082115.GY2358@atomide.com>
+References: <bb2708720908050935s6602d76dq2dbaa00195008132@mail.gmail.com> <5e088bd90908051051s98875e0vddab60dd122f3e8b@mail.gmail.com> <4A79C83E.9040603@deeprootsystems.com> <5e088bd90908051121h38678c9fha73b7beb88752156@mail.gmail.com> <4A79D104.60607@deeprootsystems.com> <bb2708720908051229x49f10094w9b19b468d4bfaec8@mail.gmail.com> <bb2708720908051902p4b369784s8fc5056be9ba047d@mail.gmail.com> <871vnp8170.fsf@deeprootsystems.com> <4A7AF213.6040301@balister.org> <1249574990.10885.43.camel@blitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62782 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757041AbZHGIVZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 04:21:25 -0400
 Content-Disposition: inline
-In-Reply-To: <1249628387-7372-1-git-send-email-jhnikula@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+In-Reply-To: <1249574990.10885.43.camel@blitz>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Peter Barada <peterb@logicpd.com>
+Cc: Philip Balister <philip@balister.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Jarkko Nikula <jhnikula@gmail.com> [090807 09:59]:
-> Simultaneous audio playback and capture on OMAP1510 can cause that second
-> stream is stalled if there is enough delay between startup of the audio
-> streams.
+* Peter Barada <peterb@logicpd.com> [090806 19:31]:
+> On Thu, 2009-08-06 at 11:09 -0400, Philip Balister wrote:
+> > Kevin Hilman wrote:
+> > > John Sarman <johnsarman@gmail.com> writes:
+> > > 
+> > >> On Wed, Aug 5, 2009 at 2:35 PM, Kevin Hilman<khilman@deeprootsystems.com> wrote:
+> > >>> Steve Sakoman wrote:
+> > >>>> On Wed, Aug 5, 2009 at 10:58 AM, Kevin
+> > >>>> Hilman<khilman@deeprootsystems.com> wrote:
+> > >>>>> Steve Sakoman wrote:
+> > >>>>>> And up to now in each case I shrug and say "no time to do that now,
+> > >>>>>> I'll just leave kernel pinmuxing turned off and do it in u-boot"
+> > >>>>> I agree there are lots of shortcomings in the current mux code and we've
+> > >>>>> been hitting them regularily lately.
+> > >>>>>
+> > >>>>> That being said, for mux settings that done one-time only at boot, what
+> > >>>>> are
+> > >>>>> the problems you're running into?
+> > >>>> It's been a few months since I last encountered this, so the exact
+> > >>>> details are a bit fuzzy.
+> > >>>>
+> > >>>> I seem to recall that there were some basic issues with enabling
+> > >>>> kernel pinmuxing in that some of the setup that was done for all
+> > >>>> machines was just wrong for my particular machine.  IIRC, it was due
+> > >>>> to assumptions about which pad was used for a particular function (for
+> > >>>> those functions which can be steered to multiple GPIO pads).
+> > >>>>
+> > >>>> So I faced having to undo that change in my board file as well as any
+> > >>>> issues that may have arisen from glitches on the GPIO pins during the
+> > >>>> process.  And since there were several of these I gave up and turned
+> > >>>> off kernel pinmuxing.
+> > >>>>
+> > >>>> I'd be happy if we cleaned up the "one size fits all" pinmuxing to
+> > >>>> just that subset that truly does fit all boards, and leave the rest to
+> > >>>> the board files.  I'd also be content to have it all done in the board
+> > >>>> file for each machine.
+> > >>> Indeed, any assumptions about common muxing that are not indeed common are
+> > >>> bugs and should be fixed.
+> > >>>
+> > >>> The "right" solution is to have everything in the kernel, and split across
+> > >>> SoC "common" init and board specific init.  Of course u-boot
+> > >>> will still have to do some early muxing, but it should be redone in
+> > >>> the kernel so it's trivial to change bootloaders.
+> > >>>
+> > >>> So the real missing piece is someone to step up and rework the mux code.
+> > >>> The bigger problem is that the vast majority of folks don't care about the
+> > >>> common case and only care about getting thing working for a specific
+> > >>> platform.
+> > >>>
+> > >>> Kevin
+> > >>>
+> > >> I  like the idea of having the board file configure the mux.  First of
+> > >> all lets address the shortcomings of mux.h.  The Pin values are
+> > >> labeled as so:
+> > >> <snip from mux.h>
+> > >> * NOTE: Please use the following naming style for new pin entries.
+> > >>  *       For example, W8_1610_MMC2_DAT0, where:
+> > >>  *       - W8        = ball
+> > >>  *       - 1610      = 1510 or 1610, none if common for both 1510 and 1610
+> > >>  *       - MMC2_DAT0 = function
+> > >>
+> > >> But lets take the 3530 as an example.
+> > >>  The 3530 has three separate packages.  CBB, CBC, and CUS.  Now lets
+> > >> look at MMC3_clk (the root of my original problem that started this
+> > >> thread)
+> > >>                        CBB              CBC            CUS
+> > >> mmc3_clk         AB1 / AF10    R9 / AB2     AC1
+> > >>
+> > >> So to properly add these to mux.h we need to add 5 entries for mmc3_clk
+> > >>       AB1_35XXCBB_MMC3_CLK
+> > >>       AF10_35XXCBB_MMC3_CLK
+> > >>       R9_35XXCBC_MMC3_CLK
+> > >>       AB2_35XXCBC_MMC3_CLK
+> > >>       AC1_35XXCUS_MMC3_CLK
+> > >> We would then have to update mux.c making sure the position matches
+> > >> and add the proper settings.
+> > >>
+> > >> So this is obviously a maintenance nightmare.
+> > > 
+> > > So why don't we drop the ball (pun intended.) ;)
+> > > 
+> > > This is what I proposed to Phillip Ballister for his SPI changes for Beagle.
+> > > 
+> > > Though I haven't looked at the details for each package, I have a hard
+> > > time imagining that the reg offsets and functionality for each package
+> > > is different.  In fact, I'm pretty sure they're even the same between
+> > > 34xx and 35xx.  
+> > > 
+> > > IOW, why not just name it OMAP3_MMC3_CLK and have a single entry.
+> > > 
+> > > Then each board file that cares simply has to call omap_cfg_reg() on
+> > > that name and not care about the package.
+> > 
+> > They first problem I see is the MMC3_CLK is available on multiple balls, 
+> > so the mux files need to list them all.
+> > 
+> > Unless you are proposing custom mux files for each board? Is this is 
+> > good idea (just had this thought). In other words, instead of trying to 
+> > come up with one set of mux files, make them board specific.
 > 
-> Current implementation of the omap_mcbsp_start is starting both transmitter
-> and receiver at the same time and it is called only for firstly started
-> audio stream from the OMAP McBSP based ASoC DAI driver.
+> Here's an idea:
 > 
-> Since DMA request lines on OMAP1510 are edge sensitive, the DMA request is
-> missed if there is no DMA transfer set up at that time when the first word
-> after McBSP startup is transmitted. The problem hasn't noted before since
-> later OMAPs are using level sensitive DMA request lines.
-> 
-> Fix the problem by changing API of omap_mcbsp_start and omap_mcbsp_stop by
-> allowing to start and stop individually McBSP transmitter and receiver
-> logics. Then call those functions individually for both audio playback
-> and capture streams. This ensures that DMA transfer is setup before
-> transmitter or receiver is started.
-> 
-> Thanks to Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> for detailed problem
-> analysis and Peter Ujfalusi <peter.ujfalusi@nokia.com> for info about DMA
-> request line behavior differences between the OMAP generations.
-> 
-> Reported-and-tested-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-> Cc: Tony Lindgren <tony@atomide.com>
+> 1) Replace index with enum search in pin table - this breaks the
+> requirement that the enum list and table align - a good thing as
+> misalingment has bitten me multiple times when adding pins to the
+> current mux table.  Also, pinmux setup is done infrequently, so the
+> search doesn't add much overall execution time.
 
-This seems OK to me queue via the alsa list as it's mostly audio related.
+Yeh something like that sounds good. We should just move the omap1
+specific code to live in mach-omap1 and keep it as it is for now.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+You might also want to take a look at what the sh people have done:
 
-
-
-
-> ---
->  arch/arm/plat-omap/include/mach/mcbsp.h |    4 +-
->  arch/arm/plat-omap/mcbsp.c              |   50 +++++++++++++++++++-----------
->  sound/soc/omap/omap-mcbsp.c             |   10 +++---
->  3 files changed, 39 insertions(+), 25 deletions(-)
+$ find arch/sh -name \*mux*
+ 
+> 2) Break up mux table into two parts, the "common" mux list, and a
+> "custom" mux list - the latter in the board file, and add a function to
+> add the custom mux list to mux lists searched by omap_cfg_reg().
 > 
-> diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-> index bb154ea..57249bb 100644
-> --- a/arch/arm/plat-omap/include/mach/mcbsp.h
-> +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-> @@ -387,8 +387,8 @@ void omap_mcbsp_register_board_cfg(struct omap_mcbsp_platform_data *config,
->  void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config);
->  int omap_mcbsp_request(unsigned int id);
->  void omap_mcbsp_free(unsigned int id);
-> -void omap_mcbsp_start(unsigned int id);
-> -void omap_mcbsp_stop(unsigned int id);
-> +void omap_mcbsp_start(unsigned int id, int tx, int rx);
-> +void omap_mcbsp_stop(unsigned int id, int tx, int rx);
->  void omap_mcbsp_xmit_word(unsigned int id, u32 word);
->  u32 omap_mcbsp_recv_word(unsigned int id);
->  
-> diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-> index efa0e01..a3d2313 100644
-> --- a/arch/arm/plat-omap/mcbsp.c
-> +++ b/arch/arm/plat-omap/mcbsp.c
-> @@ -328,14 +328,15 @@ void omap_mcbsp_free(unsigned int id)
->  EXPORT_SYMBOL(omap_mcbsp_free);
->  
->  /*
-> - * Here we start the McBSP, by enabling the sample
-> - * generator, both transmitter and receivers,
-> - * and the frame sync.
-> + * Here we start the McBSP, by enabling transmitter, receiver or both.
-> + * If no transmitter or receiver is active prior calling, then sample-rate
-> + * generator and frame sync are started.
->   */
-> -void omap_mcbsp_start(unsigned int id)
-> +void omap_mcbsp_start(unsigned int id, int tx, int rx)
->  {
->  	struct omap_mcbsp *mcbsp;
->  	void __iomem *io_base;
-> +	int idle;
->  	u16 w;
->  
->  	if (!omap_mcbsp_check_valid_id(id)) {
-> @@ -348,32 +349,40 @@ void omap_mcbsp_start(unsigned int id)
->  	mcbsp->rx_word_length = (OMAP_MCBSP_READ(io_base, RCR1) >> 5) & 0x7;
->  	mcbsp->tx_word_length = (OMAP_MCBSP_READ(io_base, XCR1) >> 5) & 0x7;
->  
-> -	/* Start the sample generator */
-> -	w = OMAP_MCBSP_READ(io_base, SPCR2);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
-> +	idle = !((OMAP_MCBSP_READ(io_base, SPCR2) |
-> +		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
-> +
-> +	if (idle) {
-> +		/* Start the sample generator */
-> +		w = OMAP_MCBSP_READ(io_base, SPCR2);
-> +		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 6));
-> +	}
->  
->  	/* Enable transmitter and receiver */
->  	w = OMAP_MCBSP_READ(io_base, SPCR2);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | 1);
-> +	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (tx & 1));
->  
->  	w = OMAP_MCBSP_READ(io_base, SPCR1);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR1, w | 1);
-> +	OMAP_MCBSP_WRITE(io_base, SPCR1, w | (rx & 1));
->  
->  	udelay(100);
->  
-> -	/* Start frame sync */
-> -	w = OMAP_MCBSP_READ(io_base, SPCR2);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
-> +	if (idle) {
-> +		/* Start frame sync */
-> +		w = OMAP_MCBSP_READ(io_base, SPCR2);
-> +		OMAP_MCBSP_WRITE(io_base, SPCR2, w | (1 << 7));
-> +	}
->  
->  	/* Dump McBSP Regs */
->  	omap_mcbsp_dump_reg(id);
->  }
->  EXPORT_SYMBOL(omap_mcbsp_start);
->  
-> -void omap_mcbsp_stop(unsigned int id)
-> +void omap_mcbsp_stop(unsigned int id, int tx, int rx)
->  {
->  	struct omap_mcbsp *mcbsp;
->  	void __iomem *io_base;
-> +	int idle;
->  	u16 w;
->  
->  	if (!omap_mcbsp_check_valid_id(id)) {
-> @@ -386,15 +395,20 @@ void omap_mcbsp_stop(unsigned int id)
->  
->  	/* Reset transmitter */
->  	w = OMAP_MCBSP_READ(io_base, SPCR2);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1));
-> +	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(tx & 1));
->  
->  	/* Reset receiver */
->  	w = OMAP_MCBSP_READ(io_base, SPCR1);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(1));
-> +	OMAP_MCBSP_WRITE(io_base, SPCR1, w & ~(rx & 1));
->  
-> -	/* Reset the sample rate generator */
-> -	w = OMAP_MCBSP_READ(io_base, SPCR2);
-> -	OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
-> +	idle = !((OMAP_MCBSP_READ(io_base, SPCR2) |
-> +		  OMAP_MCBSP_READ(io_base, SPCR1)) & 1);
-> +
-> +	if (idle) {
-> +		/* Reset the sample rate generator */
-> +		w = OMAP_MCBSP_READ(io_base, SPCR2);
-> +		OMAP_MCBSP_WRITE(io_base, SPCR2, w & ~(1 << 6));
-> +	}
->  }
->  EXPORT_SYMBOL(omap_mcbsp_stop);
->  
-> diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-> index a5d46a7..6a837ff 100644
-> --- a/sound/soc/omap/omap-mcbsp.c
-> +++ b/sound/soc/omap/omap-mcbsp.c
-> @@ -183,21 +183,21 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
->  	struct snd_soc_pcm_runtime *rtd = substream->private_data;
->  	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
->  	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
-> -	int err = 0;
-> +	int err = 0, play = (substream->stream == SNDRV_PCM_STREAM_PLAYBACK);
->  
->  	switch (cmd) {
->  	case SNDRV_PCM_TRIGGER_START:
->  	case SNDRV_PCM_TRIGGER_RESUME:
->  	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-> -		if (!mcbsp_data->active++)
-> -			omap_mcbsp_start(mcbsp_data->bus_id);
-> +		mcbsp_data->active++;
-> +		omap_mcbsp_start(mcbsp_data->bus_id, play, !play);
->  		break;
->  
->  	case SNDRV_PCM_TRIGGER_STOP:
->  	case SNDRV_PCM_TRIGGER_SUSPEND:
->  	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-> -		if (!--mcbsp_data->active)
-> -			omap_mcbsp_stop(mcbsp_data->bus_id);
-> +		omap_mcbsp_stop(mcbsp_data->bus_id, play, !play);
-> +		mcbsp_data->active--;
->  		break;
->  	default:
->  		err = -EINVAL;
-> -- 
-> 1.6.3.3
+> 3) Search the custom mux list first (if specified - allows replacing an
+> entry in the common table if hardware required differences in
+> termination, custom pins for GPIO, etc).
 > 
+> For example, on the OMAP3530, balls H18-H21 can be associated with
+> either UART3, or GPIOs 163-166. In the common mux list (where multiple
+> boards use those pins for UART3, the common mux file can have the
+> entries:
+> 
+> H18_35XX_UART3_CTS
+> H19_35XX_UART3_RTS
+> H20_35XX_UART3_RX
+> H21_35XX_UART_TX
+> 
+> that sets up the mux for those pines as a UART.  If a board wants to use
+> those pins instead for GPIO, then in the board file it can have a custom
+> mux list with:
+> 
+> H18_35XX_GPIO_163
+> H19_35XX_GPIO_164
+> H20_35XX_GPIO_165
+> H21_35XX_GPIO_166
+> 
+> and call into the mux code to add the custom mux list to be searched
+> first.
+> 
+> Thoughts?
+
+Sounds pretty good to me!
+
+Tony
