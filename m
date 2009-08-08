@@ -1,46 +1,55 @@
-From: kpairote@bunga.pn.psu.ac.th
-Subject: 2009 Prize Award!!
-Date: Sat, 08 Aug 2009 04:44:53 +0700
-Message-ID: <20090808044453.86456h1agrhit484@mail-staff.pn.psu.ac.th>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH][pm-2.6.29] OMAP: PM: Fix MUSB power domain association
+Date: Fri, 07 Aug 2009 17:02:32 -0700
+Message-ID: <87iqgzkw9z.fsf@deeprootsystems.com>
+References: <1249688520-22946-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bunga.pn.psu.ac.th ([202.12.73.87]:56301 "EHLO
-	bunga.pn.psu.ac.th" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757181AbZHGXto convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 19:49:44 -0400
-Content-Disposition: inline
+Received: from wf-out-1314.google.com ([209.85.200.175]:29011 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756660AbZHHACd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 20:02:33 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so734949wfd.4
+        for <linux-omap@vger.kernel.org>; Fri, 07 Aug 2009 17:02:34 -0700 (PDT)
+In-Reply-To: <1249688520-22946-1-git-send-email-vikram.pandita@ti.com> (Vikram Pandita's message of "Fri\,  7 Aug 2009 18\:42\:00 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-2009 Prize Award!!
-Winning/Confirm!!
+Vikram Pandita <vikram.pandita@ti.com> writes:
 
-This email is to notify you that you have won an Award Sum of =20
-=E2=82=AC500,000.00 (Five Hundred Thousand Euros)in an E-mail program h=
-eld in =20
-Den Haag, The Netherlands.
-Please contact the claim officer with your winning info. REF =20
-NUM.(NL80246) BATCH NUM.(EU-0375908NL) TICKET NUM.(460205)Name;Mr.Paul =
-=20
-Hanson,TEL.+31-643608961,E-mail:spbg09@aol.nl.
+> MUSB lies in CORE power domain.
+> Current code wrongly associates MUSB with USBHOST domain.
+> USBHOST domain is for EHCI/OHCI controller.
+>
+> Correct the association of MUSB to CORE power domain.
+>
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 
-Yours Sincerely,
-Mrs.Sandra Sleeswijk,
-Public Relation Officer.
+Thanks, pushed to pm-2.6.29 branch.
+(Not relevant to current PM branch due to new omap_hwmod/omap_device 
+infrastructure.)
 
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+Kevin
 
---    Computer Center PSU PATTANI     --
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  arch/arm/mach-omap2/omapdev3xxx.h |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/omapdev3xxx.h b/arch/arm/mach-omap2/omapdev3xxx.h
+> index d2772c4..fd29129 100644
+> --- a/arch/arm/mach-omap2/omapdev3xxx.h
+> +++ b/arch/arm/mach-omap2/omapdev3xxx.h
+> @@ -663,7 +663,7 @@ static struct omapdev usbhost_3xxx_omapdev = {
+>  
+>  static struct omapdev usbotg_3xxx_omapdev = {
+>  	.name		= "usbotg_omapdev",
+> -	.pwrdm		= { .name = "usbhost_pwrdm" },
+> +	.pwrdm		= { .name = "core_pwrdm" },
+>  	.pdev_name	= "musb_hdrc",
+>  	.pdev_id	= -1,
+>  	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
+> -- 
+> 1.6.3.3.334.g916e1
