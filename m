@@ -1,55 +1,58 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH][pm-2.6.29] OMAP: PM: Fix MUSB power domain association
-Date: Fri, 07 Aug 2009 17:02:32 -0700
-Message-ID: <87iqgzkw9z.fsf@deeprootsystems.com>
-References: <1249688520-22946-1-git-send-email-vikram.pandita@ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: Question regarding MUSB and dynamic fifo sizing
+Date: Sat, 8 Aug 2009 08:34:17 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404322AA355@dbde02.ent.ti.com>
+References: <1249589441.10885.75.camel@blitz>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB0305398DE4@dbde02.ent.ti.com>
+	 <1249665817.11736.21.camel@blitz>
+	 <FCCFB4CDC6E5564B9182F639FC35608702F5988E89@dbde02.ent.ti.com>,<1249672953.11736.76.camel@blitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:29011 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756660AbZHHACd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 20:02:33 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so734949wfd.4
-        for <linux-omap@vger.kernel.org>; Fri, 07 Aug 2009 17:02:34 -0700 (PDT)
-In-Reply-To: <1249688520-22946-1-git-send-email-vikram.pandita@ti.com> (Vikram Pandita's message of "Fri\,  7 Aug 2009 18\:42\:00 -0500")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48160 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932931AbZHHDE1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 7 Aug 2009 23:04:27 -0400
+In-Reply-To: <1249672953.11736.76.camel@blitz>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Peter Barada <peterb@logicpd.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Vikram Pandita <vikram.pandita@ti.com> writes:
+>Someting strange is going on.  If I boot with the MUSB->OTG adapter ->
+>thumbdrive plugged in, and then modprobe the driver, it finds the
+>thumbdrive.  I can then remove/reinsert the OTG adapter -> thumbdrive
+>multiple times, and each time it is enumerated.
 
-> MUSB lies in CORE power domain.
-> Current code wrongly associates MUSB with USBHOST domain.
-> USBHOST domain is for EHCI/OHCI controller.
->
-> Correct the association of MUSB to CORE power domain.
->
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+>If I boot w/o the OTG adapter -> thumbdrive plugged in, modprobe the
+>musb driver, and then plug in the OTG adaptor ->thumbdrive, it is not
+>enumerated.
+>Any idea why I need the OTG adapter -> thumbdrive plugged in at kernel
+>boot for it to enumerate the thumbdrive?
 
-Thanks, pushed to pm-2.6.29 branch.
-(Not relevant to current PM branch due to new omap_hwmod/omap_device 
-infrastructure.)
+It seems Vbus is off and thus nothing is detected.
+There is already a fix for this (at least for host only driver) in mainline but as 
+you are using v2.6.28-rc8 that fix is not in your driver.
 
-Kevin
+Please try using below patch,
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=743821717c611913a5a3f95010b141f0b4cb5463
 
-> ---
->  arch/arm/mach-omap2/omapdev3xxx.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omapdev3xxx.h b/arch/arm/mach-omap2/omapdev3xxx.h
-> index d2772c4..fd29129 100644
-> --- a/arch/arm/mach-omap2/omapdev3xxx.h
-> +++ b/arch/arm/mach-omap2/omapdev3xxx.h
-> @@ -663,7 +663,7 @@ static struct omapdev usbhost_3xxx_omapdev = {
->  
->  static struct omapdev usbotg_3xxx_omapdev = {
->  	.name		= "usbotg_omapdev",
-> -	.pwrdm		= { .name = "usbhost_pwrdm" },
-> +	.pwrdm		= { .name = "core_pwrdm" },
->  	.pdev_name	= "musb_hdrc",
->  	.pdev_id	= -1,
->  	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
-> -- 
-> 1.6.3.3.334.g916e1
+This will solve the problem for host only driver but for otg build driver Vbus will be switched off 
+as of now we don't have any entry to revive it.We use to start session and Vbus using
+$echo  F >/proc/driver/musb_hdrc but now that proc entry is gone and equivalent debugfs
+entry is suppose to come.
+
+I would suggest to pull in all musb specific patches from mainline tree into your driver or move
+to a newer kernel version.
+
+-Ajay
+--
+Peter Barada <peterb@logicpd.com>
+Logic Product Development, Inc.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
