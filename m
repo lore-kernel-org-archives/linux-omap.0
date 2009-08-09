@@ -1,40 +1,55 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: [PATCH v2 0/2] Nokia n8x0 support for mainline
-Date: Sun, 9 Aug 2009 13:27:28 +0300
-Message-ID: <da94abde0908090327x58937e54g6ada5f2200a679cf@mail.gmail.com>
-References: <20090808095404.4829.43749.stgit@tikku>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCH 1/8] Regulator: Add TPS65023 regulator driver
+Date: Sun, 09 Aug 2009 12:20:55 +0100
+Message-ID: <1249816855.11250.33.camel@vega>
+References: <1249658726-10769-1-git-send-email-anuj.aggarwal@ti.com>
+	 <20090807155358.GI639@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:53495 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211AbZHIK12 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 9 Aug 2009 06:27:28 -0400
-Received: by ewy10 with SMTP id 10so2441054ewy.37
-        for <linux-omap@vger.kernel.org>; Sun, 09 Aug 2009 03:27:28 -0700 (PDT)
-In-Reply-To: <20090808095404.4829.43749.stgit@tikku>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752519AbZHILU6@vger.kernel.org>
+In-Reply-To: <20090807155358.GI639@sirena.org.uk>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-On Sat, Aug 8, 2009 at 12:57 PM, Kalle Valo<kalle.valo@iki.fi> wrote:
-> Here's v2 of n8x0 patches. Added proper commit logs and fixed copyright
-> years reported by our patch review machine Felipe Balbi :)
->
-> I hope these are now ready for mainline. These patches depend on my serial
-> omap tag removal patches.
+On Fri, 2009-08-07 at 16:53 +0100, Mark Brown wrote:
+> On Fri, Aug 07, 2009 at 08:55:26PM +0530, Anuj Aggarwal wrote:
+> 
 
-The patches also depend on the patch below, which I sent earlier this week:
+> > +static const struct tps_info tps65023_regs[] = {
+> > +	{
+> > +	.name = "VDCDC1",
+> > +	.min_uV =  800000,
+> > +	.max_uV = 1600000,
+> > +	.fixed = 0,
 
-Author: Kalle Valo <kalle.valo@iki.fi>
-Date:   Fri Aug 7 15:46:30 2009 +0300
+No need to add fixed = 0 in this array as compiler will do this for you.
 
-    omap2: compile usb-tusb6010.c
+> > +	.table_len = ARRAY_SIZE(VDCDC1_VSEL_table),
+> > +	.table = VDCDC1_VSEL_table,
+> > +	},
+> 
+> Indentation here is a bit non-standard - I'd expect either the {} around
+> the elements to be in column 0 or another level of indentation for the
+> fields.
+> 
+> > +	{
+> > +	.name = "VDCDC2",
+> > +	.min_uV =  3300000,
+> > +	.max_uV = 3300000,
+> > +	.fixed = 1,
+> > +	.table_len = 0,
+> > +	},
+> 
+> You could drop the fixed flag and just have fixed be inferred from
+> min_uV == max_uV?
+> 
 
-    For some reason usb-tusb6010.c was't compiled, add it to Makefile and
-    Kconfig. This is prepraration for upcoming n8x0 support.
+To be honest I prefer having the fixed = 1 here. It stands out more and
+imho keeps things simple. Also table_len could be omitted.
 
-    Signed-off-by: Kalle Valo <kalle.valo@iki.fi>
+Thanks
 
-Kalle
+Liam
