@@ -1,104 +1,108 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH v2] OMAP2: Zoom2: Pass irqflags to 8250 driver
-Date: Mon, 10 Aug 2009 22:14:09 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F59893C0@dbde02.ent.ti.com>
-References: <1245713126-18312-1-git-send-email-vikram.pandita@ti.com>
- <20090810163859.GI1938@atomide.com>
+From: Peter Barada <peterb@logicpd.com>
+Subject: Re: Question regarding MUSB and dynamic fifo sizing
+Date: Mon, 10 Aug 2009 13:00:07 -0400
+Message-ID: <1249923607.31495.13.camel@blitz>
+References: <1249589441.10885.75.camel@blitz>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB0305398DE4@dbde02.ent.ti.com>
+	 <1249665817.11736.21.camel@blitz>
+	 <FCCFB4CDC6E5564B9182F639FC35608702F5988E89@dbde02.ent.ti.com>
+	 <1249672953.11736.76.camel@blitz> <20090807201712.GB9780@nokia.com>
+	 <20090808064313.GA11613@nokia.com> <20090808071705.GA11844@nokia.com>
+	 <1249914799.25044.4.camel@blitz>  <20090810161605.GA4357@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58096 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932218AbZHJQov convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 12:44:51 -0400
-In-Reply-To: <20090810163859.GI1938@atomide.com>
-Content-Language: en-US
+Received: from mail.logicpd.com ([66.162.60.3]:4116 "EHLO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932092AbZHJQ4H (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Aug 2009 12:56:07 -0400
+In-Reply-To: <20090810161605.GA4357@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: me@felipebalbi.com
+Cc: felipe.balbi@nokia.com, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+
+On Mon, 2009-08-10 at 19:16 +0300, Felipe Balbi wrote:
+> Hi,
+> 
+> On Mon, Aug 10, 2009 at 10:33:19AM -0400, Peter Barada wrote:
+> > On Sat, 2009-08-08 at 10:17 +0300, Felipe Balbi wrote:
+> > > Hi,
+> > > 
+> > > On Sat, Aug 08, 2009 at 09:43:13AM +0300, Felipe Balbi wrote:
+> > > > On Fri, Aug 07, 2009 at 10:17:12PM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
+> > > > > On Fri, Aug 07, 2009 at 09:22:33PM +0200, ext Peter Barada wrote:
+> > > > > > Someting strange is going on.  If I boot with the MUSB->OTG adapter ->
+> > > > > > thumbdrive plugged in, and then modprobe the driver, it finds the
+> > > > > > thumbdrive.  I can then remove/reinsert the OTG adapter -> thumbdrive
+> > > > > > multiple times, and each time it is enumerated.
+> > > > > > 
+> > > > > > If I boot w/o the OTG adapter -> thumbdrive plugged in, modprobe the
+> > > > > > musb driver, and then plug in the OTG adaptor ->thumbdrive, it is not
+> > > > > > enumerated.
+> > > > > > 
+> > > > > > Any idea why I need the OTG adapter -> thumbdrive plugged in at kernel
+> > > > > > boot for it to enumerate the thumbdrive?
+> > > > > 
+> > > > > which board are you using ?
+> > > > 
+> > > > ok, got you. it's 35xx-based with twl4030.
+> > > > 
+> > > > when you plug the micro-a cable, see on drivers/usb/otg/twl4030-usb.c
+> > > > what happens. You should have a print about the link status, see if that
+> > > > is ID.
+> > > > 
+> > > > Then try something like this patch:
+> > > > 
+> > > > diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+> > > > index 9e3e7a5..4bc5b7f 100644
+> > > > --- a/drivers/usb/otg/twl4030-usb.c
+> > > > +++ b/drivers/usb/otg/twl4030-usb.c
+> > 
+> > Felipe,
+> > 
+> > Thanks for the patch.  With the following modified patch (to fit my tree
+> > as my pull was from the Kevin's PM tree, commit
+> > 7c5cb7862d32cb344be7831d466535d5255e35ac) it worked like a charm:
+> 
+> Great, I'll clean it up and send it to Greg for mainline integration.
+
+Actually, not quite.  I noticed that twl4030_vbus_work only sets Vbus,
+never clears it. 
+With that change and the driver configured for OTG mode (I had it host
+when I tested), it doesn't enumerate.
+
+I added code to decipher the link state, and on startup I now see:
+
+Jan  1 00:00:13 OMAP-35x user.debug kernel: twl4030_usb twl4030_usb:
+HW_CONDITIONS 0x72/114; link 1 (None)
+
+Then when I load the driver:
+
+Jan  1 00:01:30 OMAP-35x user.debug kernel: twl4030_usb twl4030_usb:
+HW_CONDITIONS 0xf2/242; link 2 (Vbus)
+Jan  1 00:01:30 OMAP-35x user.debug kernel: twl4030_usb twl4030_usb:
+HW_CONDITIONS 0x72/114; link 1 (None)
+
+And when I plug in the OTG adapter/thumbdrive:
+
+Jan  1 00:02:24 OMAP-35x user.debug kernel: twl4030_usb twl4030_usb:
+HW_CONDITIONS 0x76/118; link 3 (ID)
+
+and Vbus goes to +5V 30mS after ID grounds, and stays at 5V for only
+30mS then goes back to ground.  Pulling out and reinserting repeast the
+cycle.
+
+During this total time, only two interrupts occur ont he MUSB
+controller.  It looks like the connect interrupt is not occuring.
+
+I'm adding more code to track the interrupts for both the twl4030-usb
+and musb_hdrc so I can understand better what's happening (and more
+importantly what's not).
 
 
 
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Monday, August 10, 2009 11:39 AM
->To: Pandita, Vikram
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH v2] OMAP2: Zoom2: Pass irqflags to 8250 driver
->
->* Vikram Pandita <vikram.pandita@ti.com> [090623 02:29]:
->> Pass irqflags to 8250 driver from zoom2 board file
->> Zoom2 has IRQF_TRIGGER_RISING requirement for the 8250 GPIO irq
->>
->> This patch is dependent on 8250 driver changes getting accepted upstream:
->> Refer: http://patchwork.kernel.org/patch/31884/
->
->FYI, I'll archive this for now, please resubmit once the related changes
->are integrated. Or if resubmitting the related changes, please submit this
->too via the serial list.
-
-Looks like the dependency patch is already in linux-next tree at [1].
-The dependency patch is already lined up stream. 
-
-So looks like you can line this irqflag change for zoom2.
-
-[1] http://git.kernel.org/?p=linux/kernel/git/sfr/linux-next.git;a=commit;h=7053133124d5cdf207c1168c7a0c582a18e12ea7
-
->
->Acked-by: Tony Lindgren <tony@atomide.com>
->
->
->> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->> ---
->>
->> Warning:
->> could cause compilation break if 8250 patch is not integrated first
->>
->>  arch/arm/mach-omap2/board-zoom-debugboard.c |    2 ++
->>  arch/arm/mach-omap2/serial.c                |    2 +-
->>  2 files changed, 3 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-
->debugboard.c
->> index bac5c43..f546063 100644
->> --- a/arch/arm/mach-omap2/board-zoom-debugboard.c
->> +++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
->> @@ -12,6 +12,7 @@
->>  #include <linux/gpio.h>
->>  #include <linux/serial_8250.h>
->>  #include <linux/smsc911x.h>
->> +#include <linux/interrupt.h>
->>
->>  #include <mach/gpmc.h>
->>
->> @@ -84,6 +85,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
->>  		.mapbase	= 0x10000000,
->>  		.irq		= OMAP_GPIO_IRQ(102),
->>  		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
->> +		.irqflags	= IRQF_SHARED | IRQF_TRIGGER_RISING,
->>  		.iotype		= UPIO_MEM,
->>  		.regshift	= 1,
->>  		.uartclk	= QUART_CLK,
->> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
->> index b094c15..45d4884 100644
->> --- a/arch/arm/mach-omap2/serial.c
->> +++ b/arch/arm/mach-omap2/serial.c
->> @@ -429,7 +429,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
->>  		omap_ctrl_writew(v, uart->padconf);
->>  	}
->>
->> -	p->flags |= UPF_SHARE_IRQ;
->> +	p->irqflags |= IRQF_SHARED;
->>  	ret = request_irq(p->irq, omap_uart_interrupt, IRQF_SHARED,
->>  			  "serial idle", (void *)uart);
->>  	WARN_ON(ret);
->> --
->> 1.6.0.3.613.g9f8f13
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Peter Barada <peterb@logicpd.com>
+Logic Product Development, Inc.
