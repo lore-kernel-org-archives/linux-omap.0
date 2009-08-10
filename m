@@ -1,180 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/8] Regulator: Add board-omap35x-pmic.c to
-	arch/arm/mach-omap2/
-Date: Mon, 10 Aug 2009 10:32:55 +0300
-Message-ID: <20090810073255.GG2358@atomide.com>
-References: <1249658966-11062-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [APPLIED] [PATCH] omap2: compile usb-tusb6010.c
+Date: Mon, 10 Aug 2009 03:46:09 -0400
+Message-ID: <notify-1249890368@atomide.com>
+References: <20090807124801.3164.35116.stgit@tikku>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64249 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752208AbZHJHdA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 03:33:00 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54931 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653AbZHJHqJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 03:46:09 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MaPa6-0005CU-Jo
+	for linux-omap@vger.kernel.org; Mon, 10 Aug 2009 07:46:10 +0000
+In-Reply-To: <20090807124801.3164.35116.stgit@tikku>
 Content-Disposition: inline
-In-Reply-To: <1249658966-11062-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: broonie@sirena.org.uk, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-* Anuj Aggarwal <anuj.aggarwal@ti.com> [090807 18:30]:
-> Added arch/arm/mach-omap2/board-omap35x-pmic.c file which will
-> have the board specific information for different regulators
-> and will do the regulator initialization depending on the one
-> which is available.
-> 
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> ---
->  arch/arm/mach-omap2/board-omap35x-pmic.c |  121 ++++++++++++++++++++++++++++++
->  1 files changed, 121 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-omap35x-pmic.c
-> 
-> diff --git a/arch/arm/mach-omap2/board-omap35x-pmic.c b/arch/arm/mach-omap2/board-omap35x-pmic.c
-> new file mode 100644
-> index 0000000..11db66f
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-omap35x-pmic.c
-> @@ -0,0 +1,121 @@
-> +/*
-> + * board-omap35x-pmic.c
-> + *
-> + * Board specific information for different regulators and platforms.
-> + *
-> + * Copyright (C) 2009 Texas Instrument Incorporated - http://www.ti.com/
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-> + * whether express or implied; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + */
-> +
-> +#include <linux/regulator/driver.h>
-> +#include <linux/regulator/machine.h>
-> +#include <mach/common.h>
-> +
-> +/*
-> + * Definitions specific to TWL4030
-> + */
-> +
-> +/*
-> + * Definitions specific to TPS6235x
-> + */
-> +
-> +/*
-> + * Definitions specific to TPS65023
-> + */
-> +
-> +/*
-> + * Definitions specific to TPS65073
-> + */
-> +
-> +static int flag_pmic_twl4030;
-> +static int flag_pmic_tps6235x;
-> +static int flag_pmic_tps65023;
-> +static int flag_pmic_tps65073;
-> +
-> +/*
-> + * Detect the current PMIC, set one of the flags
-> + */
-> +static inline int detect_pmic(void)
-> +{
-> +#if defined(CONFIG_TWL4030_CORE)
-> +	flag_pmic_twl4030 = 1;
-> +#endif
-> +
-> +#if defined(CONFIG_OMAP3EVM_TPS6235X)
-> +	flag_pmic_tps6235x = 1;
-> +#endif
-> +
-> +#if defined(CONFIG_OMAP3EVM_TPS65023)
-> +	flag_pmic_tps65023 = 1;
-> +#endif
-> +
-> +#if defined(CONFIG_OMAP3EVM_TPS65073)
-> +	flag_pmic_tps65073 = 1;
-> +#endif
-> +
-> +	return 0;
-> +}
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-This should be done without having to set the flags based on the
-Kconfig. We already allow compiling all the boards into the same
-kernel, and that should not be limited by device driver .config
-options.
+Branch in linux-omap: omap-upstream
 
-Please change this so you try to register various i2c devices,
-and the one that does not fail is the PMIC you have.
+Initial commit ID (Likely to change): c3459357f00c2759c4e09ce1440f10eafad0e24c
 
-Regards,
+PatchWorks
+http://patchwork.kernel.org/patch/39916/
 
-Tony
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=c3459357f00c2759c4e09ce1440f10eafad0e24c
 
 
-> +
-> +/* Functions to detect which PMIC is present */
-> +
-> +int pmic_is_twl4030(void)
-> +{
-> +	return flag_pmic_twl4030;
-> +}
-> +
-> +int pmic_is_tps6235x(void)
-> +{
-> +	return flag_pmic_tps6235x;
-> +}
-> +
-> +int pmic_is_tps65020(void) { return 0; }
-> +
-> +int pmic_is_tps65021(void) { return 0; }
-> +
-> +int pmic_is_tps65022(void) { return 0; }
-> +
-> +int pmic_is_tps65023(void)
-> +{
-> +	return flag_pmic_tps65023;
-> +}
-> +
-> +int pmic_is_tps65073(void)
-> +{
-> +	return flag_pmic_tps65073;
-> +}
-> +
-> +int pmic_is_tps65950(void)
-> +{
-> +	return flag_pmic_twl4030;
-> +}
-> +
-> +/* Detects the PMIC and initializes it accordingly */
-> +int oma35x_pmic_init(void)
-> +{
-> +#if defined(CONFIG_TWL4030_CORE)
-> +	/* do stuff specific to TWL4030 */
-> +#endif
-> +
-> +#if defined(CONFIG_OMAP3EVM_TPS6235X)
-> +	/* do stuff specific to TPS62350 */
-> +#endif
-> +
-> +#if defined(CONFIG_OMAP3EVM_TPS65023)
-> +	/* do stuff specific to TPS65023 */
-> +#endif
-> +
-> +#if defined(CONFIG_OMAP3EVM_TPS65073)
-> +	/* do stuff specific to TPS65073 */
-> +#endif
-> +
-> +	return 0;
-> +}
-> +
-> -- 
-> 1.6.2.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
