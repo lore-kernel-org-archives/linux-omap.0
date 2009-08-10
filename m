@@ -1,74 +1,107 @@
-From: Felipe Balbi <me@felipebalbi.com>
-Subject: Re: Question regarding MUSB and dynamic fifo sizing
-Date: Mon, 10 Aug 2009 19:16:06 +0300
-Message-ID: <20090810161605.GA4357@gandalf>
-References: <1249589441.10885.75.camel@blitz>
- <5A47E75E594F054BAF48C5E4FC4B92AB0305398DE4@dbde02.ent.ti.com>
- <1249665817.11736.21.camel@blitz>
- <FCCFB4CDC6E5564B9182F639FC35608702F5988E89@dbde02.ent.ti.com>
- <1249672953.11736.76.camel@blitz>
- <20090807201712.GB9780@nokia.com>
- <20090808064313.GA11613@nokia.com>
- <20090808071705.GA11844@nokia.com>
- <1249914799.25044.4.camel@blitz>
-Reply-To: me@felipebalbi.com
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Linux-omap PM:  Fix dead lock condition in resource_release(vdd1_opp)
+Date: Mon, 10 Aug 2009 09:23:20 -0700
+Message-ID: <87ws5bk58n.fsf@deeprootsystems.com>
+References: <DF4DCBD3DB270B419320B577AC0C3C8602F4801A@zmy16exm62.ds.mot.com>
+	<DF4DCBD3DB270B419320B577AC0C3C8602F48030@zmy16exm62.ds.mot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ns1.siteground211.com ([209.62.36.12]:54465 "EHLO
-	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755438AbZHJQQZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 12:16:25 -0400
-Content-Disposition: inline
-In-Reply-To: <1249914799.25044.4.camel@blitz>
+Received: from wf-out-1314.google.com ([209.85.200.172]:64381 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755642AbZHJQXW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 12:23:22 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1138715wfd.4
+        for <linux-omap@vger.kernel.org>; Mon, 10 Aug 2009 09:23:23 -0700 (PDT)
+In-Reply-To: <DF4DCBD3DB270B419320B577AC0C3C8602F48030@zmy16exm62.ds.mot.com> (Wang Limei-E's message of "Sat\, 8 Aug 2009 04\:55\:40 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: felipe.balbi@nokia.com, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Wang Limei-E12499 <E12499@motorola.com>
+Cc: linux-omap@vger.kernel.org
 
-Hi,
+"Wang Limei-E12499" <E12499@motorola.com> writes:
 
-On Mon, Aug 10, 2009 at 10:33:19AM -0400, Peter Barada wrote:
-> On Sat, 2009-08-08 at 10:17 +0300, Felipe Balbi wrote:
-> > Hi,
-> > 
-> > On Sat, Aug 08, 2009 at 09:43:13AM +0300, Felipe Balbi wrote:
-> > > On Fri, Aug 07, 2009 at 10:17:12PM +0200, Balbi Felipe (Nokia-D/Helsinki) wrote:
-> > > > On Fri, Aug 07, 2009 at 09:22:33PM +0200, ext Peter Barada wrote:
-> > > > > Someting strange is going on.  If I boot with the MUSB->OTG adapter ->
-> > > > > thumbdrive plugged in, and then modprobe the driver, it finds the
-> > > > > thumbdrive.  I can then remove/reinsert the OTG adapter -> thumbdrive
-> > > > > multiple times, and each time it is enumerated.
-> > > > > 
-> > > > > If I boot w/o the OTG adapter -> thumbdrive plugged in, modprobe the
-> > > > > musb driver, and then plug in the OTG adaptor ->thumbdrive, it is not
-> > > > > enumerated.
-> > > > > 
-> > > > > Any idea why I need the OTG adapter -> thumbdrive plugged in at kernel
-> > > > > boot for it to enumerate the thumbdrive?
-> > > > 
-> > > > which board are you using ?
-> > > 
-> > > ok, got you. it's 35xx-based with twl4030.
-> > > 
-> > > when you plug the micro-a cable, see on drivers/usb/otg/twl4030-usb.c
-> > > what happens. You should have a print about the link status, see if that
-> > > is ID.
-> > > 
-> > > Then try something like this patch:
-> > > 
-> > > diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-> > > index 9e3e7a5..4bc5b7f 100644
-> > > --- a/drivers/usb/otg/twl4030-usb.c
-> > > +++ b/drivers/usb/otg/twl4030-usb.c
-> 
-> Felipe,
-> 
-> Thanks for the patch.  With the following modified patch (to fit my tree
-> as my pull was from the Kevin's PM tree, commit
-> 7c5cb7862d32cb344be7831d466535d5255e35ac) it worked like a charm:
+> I am using linux-omap pm-2.6.29
+> <http://git.kernel.org/?p=linux/kernel/git/khilman/linux-omap-pm.git;a=s
+> hortlog;h=pm-2.6.29>  branch,found a dead lock condition in:
+> arch/arm/plat-omap/resource.c->resource_release().   
+>  
+> The dead lock happens when using resource_request("vdd1_opp",&dev,...)
+> and resource_release("vdd1_opp", &dev) to set and release vdd1 opp
+> constraint. The  scenario is:  
+>  
+> plat-omap/resource.c/resource_release("vdd1_opp",
+> &dev)==>resource.c/update_resource_level()=>mach-omap2/resource34xx.c/se
+> t_opp().  In set_opp(),  if the target_level of vdd1 is less than
+> OPP3,will release the constraint set on VDD2 by calling
+> resource_release(), but it will never return because can not get the
+> mutex which is holding  by the previous caller. 
+>  
+> int resource_release(const char *name, struct device *dev)
+> {           .......
+> 	down(&res_mutex);
+> 	........
+> 	/* Recompute and set the current level for the resource */
+> 	ret = update_resource_level(resp);
+> res_unlock:
+> 	up(&res_mutex);
+> 	return ret;
+> }
+>
+> int set_opp(struct shared_resource *resp, u32 target_level) {
+> 	.....
+>  if (resp == vdd1_resp) {
+>       if (target_level < 3)
+>            resource_release("vdd2_opp", &vdd2_dev); }
+>  
+> The patch to fix this issue is below, will you pls review it and let me
+> know your feedback?
+>  
+> From: Limei Wang <e12499@motorola.com>
+> Date: Fri, 7 Aug 2009 11:40:35 -0500
+> Subject: [PATCH] OMAP PM: Fix dead lock bug in
+> resourc_release(vdd1_opp).
+>  
+>
+> Signed-off-by: Limei Wang <e12499@motorola.com>
+> ---
+>  arch/arm/plat-omap/resource.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+>  
+> diff --git a/arch/arm/plat-omap/resource.c
+> b/arch/arm/plat-omap/resource.c index ec31727..876fd12 100644
+> --- a/arch/arm/plat-omap/resource.c
+> +++ b/arch/arm/plat-omap/resource.c
+> @@ -418,10 +418,12 @@ int resource_release(const char *name, struct
+> device *dev)
+>     list_del(&user->node);
+>     free_user(user);
+>  
+> -   /* Recompute and set the current level for the resource */
+> -   ret = update_resource_level(resp);
+>  res_unlock:
+>     up(&res_mutex);
+> +
+> +   /* Recompute and set the current level for the resource */
+> +   if (!ret)
+> +       ret = update_resource_level(resp);
+>     return ret;
+>  }
+>  EXPORT_SYMBOL(resource_release);
+> --
+> 1.5.6.3
 
-Great, I'll clean it up and send it to Greg for mainline integration.
+This is wrong for several reasons.
 
--- 
-balbi
+First, you're not fixing the problem, you're just moving the call
+outside of the lock, thus creating other locking problems.
+
+Second, the various error paths would break because
+update_resource_level() would be called on the 'res_unlock' error path
+where it is not currently being called.
+
+A per-resource mutex as suggest by Romit seems like the right approach
+to fixing this problem.
+
+Kevin
+
