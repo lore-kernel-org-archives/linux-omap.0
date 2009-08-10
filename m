@@ -1,85 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Git pull request for omap fixes for 2.6.31, v2
-Date: Mon, 10 Aug 2009 16:18:08 +0300
-Message-ID: <20090810131808.GF1938@atomide.com>
-References: <20090805141051.1964.74687.stgit@localhost> <20090807090145.GA2358@atomide.com> <20090807090632.GA20011@n2100.arm.linux.org.uk> <20090807091348.GB2358@atomide.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Audio on OMAP3
+Date: Mon, 10 Aug 2009 07:19:33 -0600
+Message-ID: <4A801E65.8030305@mlbassoc.com>
+References: <4A7F068D.6090407@mlbassoc.com> <20090809190452.GC4390@sirena.org.uk> <4A7F32CA.8000108@mlbassoc.com> <20090810095156.GA24947@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="nHwqXXcoX0o6fKCv"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55367 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754512AbZHJNS1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 09:18:27 -0400
-Content-Disposition: inline
-In-Reply-To: <20090807091348.GB2358@atomide.com>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:3680 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754521AbZHJNTd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 09:19:33 -0400
+In-Reply-To: <20090810095156.GA24947@sirena.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: linux-omap@vger.kernel.org
 
-
---nHwqXXcoX0o6fKCv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-* Tony Lindgren <tony@atomide.com> [090807 12:14]:
-> * Russell King - ARM Linux <linux@arm.linux.org.uk> [090807 12:06]:
-> > On Fri, Aug 07, 2009 at 12:01:48PM +0300, Tony Lindgren wrote:
-> > > Here's the pull request for you.
-> > 
-> > I'll hold off merging this for a bit - I've sent Linus two pull requests
-> > over the last couple of weeks, both of which so far haven't produced a
-> > reaction. It would be unfair for me to merge more stuff onto that branch
-> > until Linus has pulled.
+Mark Brown wrote:
+> On Sun, Aug 09, 2009 at 02:34:18PM -0600, Gary Thomas wrote:
 > 
-> OK thanks.
+>> Thanks.  How is this normally configured - ALSA or OSS?
+> 
+> It's all ALSA.  There is some OSS emulation for ALSA.
+> 
 
-Looks like I did not test this series enough.. I've updated it now for the
-two patches as posted here earlier today. Updated pull request below.
+Sorry for being dense, but I'm just trying to understand how to
+get this going.  I turned on the SOC+ALSA support (there didn't
+seem to be an easy way to configure just the TWL4030 driver) and
+I got this:
 
-Regards,
+Advanced Linux Sound Architecture Driver Version 1.0.20.
+Platform driver 'soc-audio' needs updating - please use dev_pm_ops
+No device for DAI AD73311
+Asahi Kasei AK4104 ALSA SoC Codec Driver
+No device for DAI AK4535
+Cirrus Logic CS4270 ALSA SoC Codec Driver
+No device for DAI PCM3008 HiFi
+No device for DAI SSM2602
+No device for DAI tlv320aic23
+No device for DAI tlv320aic3x
+No device for DAI twl4030
+No device for DAI twl4030 Voice
+No device for DAI UDA134X
+No device for DAI UDA1380
+No device for DAI UDA1380
+No device for DAI UDA1380
+No device for DAI WM8510 HiFi
+No device for DAI WM8728
+No device for DAI WM8750
+No device for DAI WM8971
+No device for DAI WM8990 ADC/DAC Primary
+ALSA device list:
+  No soundcards found.
 
-Tony
+Is there more configury/setup required, beyond just enabling the drivers?
+Is there an example board that uses this?
+Is the code in the mainline linux-omap tree?
 
-
---nHwqXXcoX0o6fKCv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename="pull.txt"
-
-The following changes since commit ed680c4ad478d0fee9740f7d029087f181346564:
-  Linus Torvalds (1):
-        Linux 2.6.31-rc5
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes
-
-Janboe Ye (1):
-      OMAP3: Fix omap3 sram virtual addres overlap vmalloc space after increasing vmalloc size
-
-Roger Quadros (4):
-      OMAP: GPIO: Fix incorrect gpio_get logic for output GPIOs
-      OMAP3: RX51: Define TWL4030 USB transceiver in board file
-      OMAP2/3: mmc-twl4030: Free up MMC regulators while cleaning up
-      OMAP3: RX51: Updated rx51_defconfig
-
-Sergio Aguirre (1):
-      OMAP3: Overo: Fix smsc911x platform device resource value
-
-Tony Lindgren (1):
-      OMAP: Fix testing of cpu defines for mach-omap1
-
-Vikram Pandita (1):
-      OMAP2/3: DMA errata correction
-
- arch/arm/configs/rx51_defconfig              |    7 +-
- arch/arm/mach-omap2/board-overo.c            |    2 +-
- arch/arm/mach-omap2/board-rx51-peripherals.c |    5 +
- arch/arm/mach-omap2/mmc-twl4030.c            |    6 ++
- arch/arm/plat-omap/dma.c                     |    4 +-
- arch/arm/plat-omap/gpio.c                    |  121 +++++++++++++++++++-------
- arch/arm/plat-omap/include/mach/cpu.h        |    5 -
- arch/arm/plat-omap/sram.c                    |    4 +-
- 8 files changed, 110 insertions(+), 44 deletions(-)
-
---nHwqXXcoX0o6fKCv--
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
