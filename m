@@ -1,86 +1,71 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC][PATCH 3/3 v2] ASoC: OMAP: Enhance OMAP1510 DMA progress software counter
-Date: Tue, 11 Aug 2009 01:07:10 +0200
-Message-ID: <200908110107.11485.jkrzyszt@tis.icnet.pl>
-References: <200908101050.08074.jkrzyszt@tis.icnet.pl>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] MAINTAINERS: Add list entries
+ linux-arm@vger.kernel.org and linux-arm-kernel@ to OMAP sections
+Date: Mon, 10 Aug 2009 16:48:06 -0700
+Message-ID: <1249948086.8895.95.camel@Joe-Laptop.home>
+References: <1249576450.3467.25.camel@Joe-Laptop.home>
+	 <20090807080102.GV2358@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:38589 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754135AbZHJXIr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Aug 2009 19:08:47 -0400
-In-Reply-To: <200908101050.08074.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
+Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:3112 "EHLO
+	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799AbZHJXs6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 19:48:58 -0400
+In-Reply-To: <20090807080102.GV2358@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>, Andrew Morton <akpm@linux-foundation.org>
 
-Enhance period index accuracy, particularly just before buffer rewind, by
-making use of DMA interrupt status flags in addition to simply counting up
-interrupts.
+Resend for Andrew Morton
 
-Corrections since v1:
-1. Fix buggy DMA interrupt handling in case of multiple status flags set in
-   parallel.
-2. Enable OMAP_DMA_LAST_IRQ only for playback on OMAP1510.
+On Fri, 2009-08-07 at 11:01 +0300, Tony Lindgren wrote:
+> * Joe Perches <joe@perches.com> [090806 19:35]:
+> > Perhaps it's useful for OMAP patches and bug reports
+> > to CC entries to the primary and secondary ARM lists.
+> > Added a pattern entry for OMAP USB as well.
+> ... I think let's not add the drivers. The related driver list
+> and linux-omap list should be enough for these.
 
-This patch applies on top of patch 2 from this series:
-[RFC][PATCH 2/3] ASoC: OMAP: Make use of DMA channel self linking on OMAP1510
+Fine by me.  I fixed up your M: entry as well.
 
-Created against linux-2.6.31-rc5.
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Tested on Amstrad Delta.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-
----
---- linux-2.6.31-rc5/sound/soc/omap/omap-pcm.c.orig	2009-08-10 22:41:25.000000000 +0200
-+++ linux-2.6.31-rc5/sound/soc/omap/omap-pcm.c	2009-08-10 23:15:46.000000000 +0200
-@@ -68,13 +68,27 @@ static void omap_pcm_dma_irq(int ch, u16
- 		 * that can be used by omap_pcm_pointer() instead.
- 		 */
- 		spin_lock_irqsave(&prtd->lock, flags);
-+		if ((stat == OMAP_DMA_LAST_IRQ) &&
-+				(prtd->period_index == runtime->periods - 1)) {
-+			/* we are in sync, do nothing */
-+			spin_unlock_irqrestore(&prtd->lock, flags);
-+			return;
-+		}
- 		if (prtd->period_index >= 0) {
--			if (++prtd->period_index == runtime->periods) {
-+			if (stat & OMAP_DMA_BLOCK_IRQ) {
-+				/* end of buffer reached, loop back */
-+				prtd->period_index = 0;
-+			} else if (stat & OMAP_DMA_LAST_IRQ) {
-+				/* update the counter for the last period */
-+				prtd->period_index = runtime->periods - 1;
-+			} else if (++prtd->period_index >= runtime->periods) {
-+				/* end of buffer missed? loop back */
- 				prtd->period_index = 0;
- 			}
- 		}
- 		spin_unlock_irqrestore(&prtd->lock, flags);
--	}
-+	} else if (stat == OMAP_DMA_LAST_IRQ)
-+		return;
+diff --git a/MAINTAINERS b/MAINTAINERS
+index b1114cf..6a82733 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3660,8 +3660,10 @@ F:	drivers/video/riva/
+ F:	drivers/video/nvidia/
  
- 	snd_pcm_period_elapsed(substream);
- }
-@@ -175,7 +189,12 @@ static int omap_pcm_prepare(struct snd_p
- 	dma_params.frame_count	= runtime->periods;
- 	omap_set_dma_params(prtd->dma_ch, &dma_params);
+ OMAP SUPPORT
+-M:	"Tony Lindgren <tony@atomide.com>" <tony@atomide.com>
++M:	Tony Lindgren <tony@atomide.com>
+ L:	linux-omap@vger.kernel.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
++L:	linux-arm@vger.kernel.org
+ W:	http://www.muru.com/linux/omap/
+ W:	http://linux.omap.com/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+@@ -3671,12 +3673,16 @@ F:	arch/arm/*omap*
+ OMAP CLOCK FRAMEWORK SUPPORT
+ M:	Paul Walmsley <paul@pwsan.com>
+ L:	linux-omap@vger.kernel.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
++L:	linux-arm@vger.kernel.org
+ S:	Maintained
+ F:	arch/arm/*omap*/*clock*
  
--	omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ);
-+	if ((cpu_is_omap1510()) &&
-+			(substream->stream == SNDRV_PCM_STREAM_PLAYBACK))
-+		omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ |
-+							OMAP_DMA_LAST_IRQ);
-+	else
-+		omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ);
+ OMAP POWER MANAGEMENT SUPPORT
+ M:	Kevin Hilman <khilman@deeprootsystems.com>
+ L:	linux-omap@vger.kernel.org
++L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
++L:	linux-arm@vger.kernel.org
+ S:	Maintained
+ F:	arch/arm/*omap*/*pm*
  
- 	return 0;
- }
+
+
