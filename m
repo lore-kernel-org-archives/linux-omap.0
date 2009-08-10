@@ -1,37 +1,28 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH 3/3] ASoC: OMAP: Enhance OMAP1510 DMA
-	progress software counter
-Date: Mon, 10 Aug 2009 11:43:25 +0200
-Message-ID: <200908101143.26542.jkrzyszt@tis.icnet.pl>
-References: <200908101050.08074.jkrzyszt@tis.icnet.pl>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: Audio on OMAP3
+Date: Mon, 10 Aug 2009 10:51:57 +0100
+Message-ID: <20090810095156.GA24947@sirena.org.uk>
+References: <4A7F068D.6090407@mlbassoc.com> <20090809190452.GC4390@sirena.org.uk> <4A7F32CA.8000108@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200908101050.08074.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:60123 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753305AbZHJJv5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 05:51:57 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+In-Reply-To: <4A7F32CA.8000108@mlbassoc.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-omap@vger.kernel.org
 
-Monday 10 August 2009 10:50:06 Janusz Krzysztofik wrote:
-> Enhance period index accuracy, particularly just before buffer rewind, by
-> making use of DMA interrupt status flags in addition to simply counting
-> interrupts
+On Sun, Aug 09, 2009 at 02:34:18PM -0600, Gary Thomas wrote:
 
-Sorry, this one is still buggy an can break other OMAP models. Please, do not 
-apply, but wait for next version. However, comments are welcome.
+> Thanks.  How is this normally configured - ALSA or OSS?
 
-The bug hits when multiple interrupt flags are set in parallel.
+It's all ALSA.  There is some OSS emulation for ALSA.
 
-Thanks,
-Janusz
+> What tools have been used (simple busybox system, not Android)?
+
+It's all standard ALSA stuff from the point of view of userspace.
