@@ -1,119 +1,129 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH] OMAP3: PM : Set DSP frequency corresponding to mpurate
-Date: Mon, 10 Aug 2009 15:55:09 +0530
-Message-ID: <1249899909-5848-1-git-send-email-premi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v3] OMAP1: AMS_DELTA: add modem support
+Date: Mon, 10 Aug 2009 13:25:02 +0300
+Message-ID: <20090810102502.GB1938@atomide.com>
+References: <200907061224.29292.jkrzyszt@tis.icnet.pl> <200908101112.49447.jkrzyszt@tis.icnet.pl> <20090810093924.GF5729@earth.li>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35886 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752484AbZHJKZQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 10 Aug 2009 06:25:16 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7AAPADX010267
-	for <linux-omap@vger.kernel.org>; Mon, 10 Aug 2009 05:25:16 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58299 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752706AbZHJKZY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 06:25:24 -0400
+Content-Disposition: inline
+In-Reply-To: <20090810093924.GF5729@earth.li>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Jonathan McDowell <noodles@earth.li>
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
 
-Argument 'mpurate' is used to change the MPU frequency
-at boot time. This patch changes the DSP frequency as
-per the OPP definition corresponding to the mpurate
+* Jonathan McDowell <noodles@earth.li> [090810 13:01]:
+> On Mon, Aug 10, 2009 at 11:12:48AM +0200, Janusz Krzysztofik wrote:
+> > Jonathan, Tony,
+> > 
+> > Any chance for this patch ready for 2.6.32 inclusion? Or maybe v2,
+> > that has no external dependencies and can be updated later to v3 when
+> > Vikram's changes get accepted upstream?
+> 
+> Vikram's patch is in linux-next, so there shouldn't be a problem with
+> this version of your patch for 2.6.32. I haven't been able to test it
+> myself (though I hope to next week), but it looks ok from a brief
+> inspection, so:
+> 
+> Acked-By: Jonathan McDowell <noodles@earth.li>
 
-It also verifies if the specified mpurate is valid in
-the OPP table.
+Looks good to me, will queue it to my omap1-upstream shortly.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/clock34xx.c |   45 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 45 insertions(+), 0 deletions(-)
+Tony
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index c956fdc..b22d1f7 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -43,6 +43,7 @@
- #include "prm-regbits-34xx.h"
- #include "cm.h"
- #include "cm-regbits-34xx.h"
-+#include "omap3-opp.h"
- 
- static const struct clkops clkops_noncore_dpll_ops;
- 
-@@ -1103,6 +1104,11 @@ void omap2_clk_prepare_for_reboot(void)
-  */
- static int __init omap2_clk_arch_init(void)
- {
-+	short opp=0, valid=0;
-+	short i;
-+	unsigned long dsprate;
-+	struct omap_opp *opp_table;
-+
- 	if (!mpurate)
- 		return -EINVAL;
- 
-@@ -1111,16 +1117,53 @@ static int __init omap2_clk_arch_init(void)
- 	if (clk_set_rate(&virt_prcm_set, mpurate))
- 		printk(KERN_ERR "Could not find matching MPU rate\n");
- #endif
-+	/* Check if mpurate is valid */
-+	if (mpu_opps) {
-+		opp_table = mpu_opps;
-+
-+		for (i = 1; opp_table[i].opp_id <= MAX_VDD1_OPP; i++) {
-+			if (opp_table[i].rate == mpurate) {
-+				valid = 1;
-+				break;
-+			}
-+		}
-+
-+		if (valid) {
-+			opp = opp_table[i].opp_id;
-+			pr_debug("Switching to OPP:%d\n", opp);
-+		} else {
-+			printk(KERN_ERR "*** Invalid MPU rate specified\n");
-+			return 1;
-+		}
-+	}
-+
- 	if (clk_set_rate(&dpll1_ck, mpurate))
- 		printk(KERN_ERR "*** Unable to set MPU rate\n");
- 	omap3_dpll_recalc(&dpll1_ck);
- 
-+	/* Get dsprate corresponding to the opp */
-+	if ((dsp_opps) && (opp >= VDD1_OPP1) && (opp <= VDD1_OPP5)) {
-+		opp_table = dsp_opps;
-+
-+		for (i=0;  opp_table[i].opp_id <= MAX_VDD1_OPP; i++)
-+			if (opp_table[i].opp_id == opp)
-+				break;
-+
-+		dsprate = opp_table[i].rate;
-+
-+		if (clk_set_rate(&dpll2_ck, dsprate))
-+			printk(KERN_ERR "*** Unable to set IVA2 rate\n");
-+		omap3_dpll_recalc(&dpll2_ck);
-+	}
-+
- 	recalculate_root_clocks();
- 
- 	printk(KERN_INFO "Switched to new clocking rate (Crystal/Core/MPU): "
- 	       "%ld.%01ld/%ld/%ld MHz\n",
- 	       (osc_sys_ck.rate / 1000000), ((osc_sys_ck.rate / 100000) % 10),
- 	       (core_ck.rate / 1000000), (arm_fck.rate / 1000000)) ;
-+	printk(KERN_INFO "IVA2 clocking rate: %ld MHz\n",
-+	       (iva2_ck.rate / 1000000)) ;
- 
- 	calibrate_delay();
- 
-@@ -1185,6 +1228,8 @@ int __init omap2_clk_init(void)
- 	       "%ld.%01ld/%ld/%ld MHz\n",
- 	       (osc_sys_ck.rate / 1000000), (osc_sys_ck.rate / 100000) % 10,
- 	       (core_ck.rate / 1000000), (arm_fck.rate / 1000000));
-+	printk(KERN_INFO "IVA2 clocking rate: %ld MHz\n",
-+	       (iva2_ck.rate / 1000000)) ;
- 
- 	/*
- 	 * Only enable those clocks we will need, let the drivers
--- 
-1.6.2.2
-
+>  
+> > Monday 06 July 2009 12:24:27 Janusz Krzysztofik wrote:
+> > > This patch adds support for modem device found on Amstrad E3 (Delta) board.
+> > >
+> > > Based on earlier patch by Jonathan McDowell, available at
+> > > http://the.earth.li/pub/e3/2.6.19/ams-delta-modem.patch.
+> > > Modified after Ladislav Michl's arch/arm/mach-omap1/board-voiceblue.c.
+> > >
+> > > This version, unlike v2, is dependent on 8250 driver changes getting
+> > > accepted upstream:
+> > > Refer: http://patchwork.kernel.org/patch/31884/
+> > >
+> > > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> > > ---
+> > > Registering the modem platform device from a separate arch_initcall (and
+> > > not from init_machine() callback) preserves serial console port at ttyS0.
+> > >
+> > > OMAP mux pin set up just for case if Amstrad bootloader is ever replaced.
+> > >
+> > > Warning:
+> > > could cause compilation break if 8250 patch is not integrated first
+> > >
+> > > --- linux-2.6.31-rc1/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-07-04
+> > > 16:39:37.000000000 +0200 +++
+> > > linux-2.6.31-rc1/arch/arm/mach-omap1/board-ams-delta.c	2009-07-05
+> > > 13:41:08.000000000 +0200 @@ -15,8 +15,11 @@
+> > >  #include <linux/kernel.h>
+> > >  #include <linux/init.h>
+> > >  #include <linux/input.h>
+> > > +#include <linux/interrupt.h>
+> > >  #include <linux/platform_device.h>
+> > > +#include <linux/serial_8250.h>
+> > >
+> > > +#include <asm/serial.h>
+> > >  #include <mach/hardware.h>
+> > >  #include <asm/mach-types.h>
+> > >  #include <asm/mach/arch.h>
+> > > @@ -235,6 +238,41 @@ static void __init ams_delta_init(void)
+> > >  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+> > >  }
+> > >
+> > > +static struct plat_serial8250_port ams_delta_modem_ports[] = {
+> > > +	{
+> > > +		.membase	= (void *) AMS_DELTA_MODEM_VIRT,
+> > > +		.mapbase	= AMS_DELTA_MODEM_PHYS,
+> > > +		.irq		= -EINVAL, /* changed later */
+> > > +		.flags		= UPF_BOOT_AUTOCONF,
+> > > +		.irqflags	= IRQF_TRIGGER_RISING,
+> > > +		.iotype		= UPIO_MEM,
+> > > +		.regshift	= 1,
+> > > +		.uartclk	= BASE_BAUD * 16,
+> > > +	},
+> > > +	{ },
+> > > +};
+> > > +
+> > > +static struct platform_device ams_delta_modem_device = {
+> > > +	.name	= "serial8250",
+> > > +	.id	= PLAT8250_DEV_PLATFORM1,
+> > > +	.dev		= {
+> > > +		.platform_data = ams_delta_modem_ports,
+> > > +	},
+> > > +};
+> > > +
+> > > +static int __init ams_delta_modem_init(void)
+> > > +{
+> > > +	omap_cfg_reg(M14_1510_GPIO2);
+> > > +	ams_delta_modem_ports[0].irq = gpio_to_irq(2);
+> > > +
+> > > +	ams_delta_latch2_write(
+> > > +		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
+> > > +		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
+> > > +
+> > > +	return platform_device_register(&ams_delta_modem_device);
+> > > +}
+> > > +arch_initcall(ams_delta_modem_init);
+> > > +
+> > >  static void __init ams_delta_map_io(void)
+> > >  {
+> > >  	omap1_map_common_io();
+> > 
+> > 
+> 
+> J.
+> 
+> -- 
+> Revd. Jonathan McDowell, ULC | I am a passenger.
+> 
+> -------------------------------------------------------------------
+> List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+> FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+> Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
