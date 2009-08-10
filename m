@@ -1,61 +1,52 @@
-From: Jean Pihet <jpihet@mvista.com>
-Subject: Re: PM branch updated
-Date: Mon, 10 Aug 2009 10:26:07 +0200
-Message-ID: <200908101026.07364.jpihet@mvista.com>
-References: <87d479921p.fsf@deeprootsystems.com> <200908071029.30047.jpihet@mvista.com> <87ws5f35xj.fsf@deeprootsystems.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [RFC][PATCH 0/3] Enhance ASoC on OMAP1510 by implementing DMA channel linking
+Date: Mon, 10 Aug 2009 10:49:49 +0200
+Message-ID: <200908101049.52744.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:37392 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbZHJI0q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 04:26:46 -0400
-In-Reply-To: <87ws5f35xj.fsf@deeprootsystems.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752780AbZHJIvX@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Jarkko Nikula <jhnikula@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
 
-Hi Kevin,
+Current implementation of ASoC OMAP PCM makes use of DMA channel self linking
+feature for all machines but OMAP1510. This is caused by channel linking not
+supported on OMAP1510 in current OMAP DMA implementation. Instead, DMA
+interrputs are counted as periods, and after all periods in a buffer has been
+detected, DMA transfer is started again for a new buffer content. The period
+counter is also used as a software replacement for a hardware DMA progress
+counter that has been found unusable on OMAP1510 in case of playback.
 
-On Friday 07 August 2009 19:11:20 Kevin Hilman wrote:
-> Jean Pihet <jpihet@mvista.com> writes:
-> > On Thursday 06 August 2009 19:13:06 Kevin Hilman wrote:
-> >> Kevin Hilman wrote:
-> >> > I just pushed an updated PM branch which was rebased to current
-> >> > omap/master (which is based on v2.6.31-rc5)
-> >>
-> >> Also, please check out
-> >>
-> >>    http://elinux.org/OMAP_Power_Management
-> >>
-> >> This page includes the stuff I normally put in the announcment of a new
-> >> PM branch, but also tries to describe how to use the various features of
-> >> the PM branch (which has been sorely missing for a while.)
-> >
-> > I think this page had been long-awaited. Thanks a lot for putting it
-> > together.
-> >
-> > One question about it:
-> >
-> > What about the cpufreq interface for doing DVFS? Is it preferred way
-> > to change OPPs or is it using /sys/power/vddx_opp? I think cpufreq
-> > utils are more standard, easier to use and to understand.
->
-> CPUfreq is much preferred.  The /sys/power/vdd* are just for manual
-> testing and more fore PM developers than PM users.
-Ok, thanks for the confirmation.
+In my attempts to debug random PCM hangups, I was wondering what could happen
+if a single interrupt was missing, ie. the period index was not incremented
+for a period. It seems that the transfer would just hang after the current
+buffer processed, as DMA would not be started again, waiting for a
+missing period.
 
-> Hey, sounds like a perfect opportunity for you to update the wiki. ;)
-Exactly! http://elinux.org/OMAP_Power_Management has been updated with 
-per-feature usage, CPUfreq kernel interface and debugging info for power 
-users ;p
+Furthermore, software calculated PCM pointer accuracy can suffer from missing
+DMA interrupts.
 
-Can you check it?
+Even if OMAP1510 DMA hardware does not support channel linking in a way like
+newer models do, it has some other features that could be used for the
+purpose.
 
->
-> Kevin
-Jean
+Interrupt status flags, passed to OMAP PCM interrupt handler routine, can be
+used to get more accurate DMA progress counter software calculation.
+
+Even if these enhancements did not help me in eliminating random PCM hangups
+completely, I find them worth of sharing.
+
+There are three patches in the series:
+[RFC][PATCH 1/3] ARM: OMAP: DMA: Add support for DMA channel self linking on OMAP1510
+[RFC][PATCH 2/3] ASoC: OMAP: Make use of DMA channel self linking on OMAP1510
+[RFC][PATCH 3/3] ASoC: OMAP: Enhance OMAP1510 DMA progress software counter
+
+Created against linux-2.6.31-rc5.
+
+Tested on Amstrad Delta.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
