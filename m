@@ -1,129 +1,187 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] OMAP1: AMS_DELTA: add modem support
-Date: Mon, 10 Aug 2009 13:25:02 +0300
-Message-ID: <20090810102502.GB1938@atomide.com>
-References: <200907061224.29292.jkrzyszt@tis.icnet.pl> <200908101112.49447.jkrzyszt@tis.icnet.pl> <20090810093924.GF5729@earth.li>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: [PATCH v3] OMAP: GPIO: Fix incorrect gpio_get logic for output GPIOs
+Date: Mon, 10 Aug 2009 14:44:51 +0300
+Message-ID: <1249904691-4810-1-git-send-email-ext-roger.quadros@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58299 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752706AbZHJKZY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 06:25:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20090810093924.GF5729@earth.li>
+Received: from smtp.nokia.com ([192.100.105.134]:39740 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753070AbZHJLpU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 07:45:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan McDowell <noodles@earth.li>
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, linux-omap@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-kernel@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org
 
-* Jonathan McDowell <noodles@earth.li> [090810 13:01]:
-> On Mon, Aug 10, 2009 at 11:12:48AM +0200, Janusz Krzysztofik wrote:
-> > Jonathan, Tony,
-> > 
-> > Any chance for this patch ready for 2.6.32 inclusion? Or maybe v2,
-> > that has no external dependencies and can be updated later to v3 when
-> > Vikram's changes get accepted upstream?
-> 
-> Vikram's patch is in linux-next, so there shouldn't be a problem with
-> this version of your patch for 2.6.32. I haven't been able to test it
-> myself (though I hope to next week), but it looks ok from a brief
-> inspection, so:
-> 
-> Acked-By: Jonathan McDowell <noodles@earth.li>
+gpio_get() should return DATAIN register value when the GPIO
+is configured as input whereas it should return DATAOUT register
+value when the GPIO is configured as output.
+Now /sys/kernel/debug/gpio shows proper values for output GPIOs
 
-Looks good to me, will queue it to my omap1-upstream shortly.
+Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+---
+ arch/arm/plat-omap/gpio.c |  121 +++++++++++++++++++++++++++++++++------------
+ 1 files changed, 89 insertions(+), 32 deletions(-)
 
-Tony
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 26b387c..9c16ca8 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -476,14 +476,12 @@ static void _set_gpio_dataout(struct gpio_bank *bank, int gpio, int enable)
+ 	__raw_writel(l, reg);
+ }
+ 
+-static int __omap_get_gpio_datain(int gpio)
++static int _get_gpio_datain(struct gpio_bank *bank, int gpio)
+ {
+-	struct gpio_bank *bank;
+ 	void __iomem *reg;
+ 
+ 	if (check_gpio(gpio) < 0)
+ 		return -EINVAL;
+-	bank = get_gpio_bank(gpio);
+ 	reg = bank->base;
+ 	switch (bank->method) {
+ #ifdef CONFIG_ARCH_OMAP1
+@@ -524,6 +522,53 @@ static int __omap_get_gpio_datain(int gpio)
+ 			& (1 << get_gpio_index(gpio))) != 0;
+ }
+ 
++static int _get_gpio_dataout(struct gpio_bank *bank, int gpio)
++{
++	void __iomem *reg;
++
++	if (check_gpio(gpio) < 0)
++		return -EINVAL;
++	reg = bank->base;
++
++	switch (bank->method) {
++#ifdef CONFIG_ARCH_OMAP1
++	case METHOD_MPUIO:
++		reg += OMAP_MPUIO_OUTPUT;
++		break;
++#endif
++#ifdef CONFIG_ARCH_OMAP15XX
++	case METHOD_GPIO_1510:
++		reg += OMAP1510_GPIO_DATA_OUTPUT;
++		break;
++#endif
++#ifdef CONFIG_ARCH_OMAP16XX
++	case METHOD_GPIO_1610:
++		reg += OMAP1610_GPIO_DATAOUT;
++		break;
++#endif
++#ifdef CONFIG_ARCH_OMAP730
++	case METHOD_GPIO_730:
++		reg += OMAP730_GPIO_DATA_OUTPUT;
++		break;
++#endif
++#ifdef CONFIG_ARCH_OMAP850
++	case METHOD_GPIO_850:
++		reg += OMAP850_GPIO_DATA_OUTPUT;
++		break;
++#endif
++#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
++		defined(CONFIG_ARCH_OMAP4)
++	case METHOD_GPIO_24XX:
++		reg += OMAP24XX_GPIO_DATAOUT;
++		break;
++#endif
++	default:
++		return -EINVAL;
++	}
++
++	return (__raw_readl(reg) & (1 << get_gpio_index(gpio))) != 0;
++}
++
+ #define MOD_REG_BIT(reg, bit_mask, set)	\
+ do {	\
+ 	int l = __raw_readl(base + reg); \
+@@ -1350,9 +1395,49 @@ static int gpio_input(struct gpio_chip *chip, unsigned offset)
+ 	return 0;
+ }
+ 
++static int gpio_is_input(struct gpio_bank *bank, int mask)
++{
++	void __iomem *reg = bank->base;
++
++	switch (bank->method) {
++	case METHOD_MPUIO:
++		reg += OMAP_MPUIO_IO_CNTL;
++		break;
++	case METHOD_GPIO_1510:
++		reg += OMAP1510_GPIO_DIR_CONTROL;
++		break;
++	case METHOD_GPIO_1610:
++		reg += OMAP1610_GPIO_DIRECTION;
++		break;
++	case METHOD_GPIO_730:
++		reg += OMAP730_GPIO_DIR_CONTROL;
++		break;
++	case METHOD_GPIO_850:
++		reg += OMAP850_GPIO_DIR_CONTROL;
++		break;
++	case METHOD_GPIO_24XX:
++		reg += OMAP24XX_GPIO_OE;
++		break;
++	}
++	return __raw_readl(reg) & mask;
++}
++
+ static int gpio_get(struct gpio_chip *chip, unsigned offset)
+ {
+-	return __omap_get_gpio_datain(chip->base + offset);
++	struct gpio_bank *bank;
++	void __iomem *reg;
++	int gpio;
++	u32 mask;
++
++	gpio = chip->base + offset;
++	bank = get_gpio_bank(gpio);
++	reg = bank->base;
++	mask = 1 << get_gpio_index(gpio);
++
++	if (gpio_is_input(bank, mask))
++		return _get_gpio_datain(bank, gpio);
++	else
++		return _get_gpio_dataout(bank, gpio);
+ }
+ 
+ static int gpio_output(struct gpio_chip *chip, unsigned offset, int value)
+@@ -1886,34 +1971,6 @@ arch_initcall(omap_gpio_sysinit);
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
+ 
+-static int gpio_is_input(struct gpio_bank *bank, int mask)
+-{
+-	void __iomem *reg = bank->base;
+-
+-	switch (bank->method) {
+-	case METHOD_MPUIO:
+-		reg += OMAP_MPUIO_IO_CNTL;
+-		break;
+-	case METHOD_GPIO_1510:
+-		reg += OMAP1510_GPIO_DIR_CONTROL;
+-		break;
+-	case METHOD_GPIO_1610:
+-		reg += OMAP1610_GPIO_DIRECTION;
+-		break;
+-	case METHOD_GPIO_730:
+-		reg += OMAP730_GPIO_DIR_CONTROL;
+-		break;
+-	case METHOD_GPIO_850:
+-		reg += OMAP850_GPIO_DIR_CONTROL;
+-		break;
+-	case METHOD_GPIO_24XX:
+-		reg += OMAP24XX_GPIO_OE;
+-		break;
+-	}
+-	return __raw_readl(reg) & mask;
+-}
+-
+-
+ static int dbg_gpio_show(struct seq_file *s, void *unused)
+ {
+ 	unsigned	i, j, gpio;
+-- 
+1.6.0.4
 
->  
-> > Monday 06 July 2009 12:24:27 Janusz Krzysztofik wrote:
-> > > This patch adds support for modem device found on Amstrad E3 (Delta) board.
-> > >
-> > > Based on earlier patch by Jonathan McDowell, available at
-> > > http://the.earth.li/pub/e3/2.6.19/ams-delta-modem.patch.
-> > > Modified after Ladislav Michl's arch/arm/mach-omap1/board-voiceblue.c.
-> > >
-> > > This version, unlike v2, is dependent on 8250 driver changes getting
-> > > accepted upstream:
-> > > Refer: http://patchwork.kernel.org/patch/31884/
-> > >
-> > > Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> > > ---
-> > > Registering the modem platform device from a separate arch_initcall (and
-> > > not from init_machine() callback) preserves serial console port at ttyS0.
-> > >
-> > > OMAP mux pin set up just for case if Amstrad bootloader is ever replaced.
-> > >
-> > > Warning:
-> > > could cause compilation break if 8250 patch is not integrated first
-> > >
-> > > --- linux-2.6.31-rc1/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-07-04
-> > > 16:39:37.000000000 +0200 +++
-> > > linux-2.6.31-rc1/arch/arm/mach-omap1/board-ams-delta.c	2009-07-05
-> > > 13:41:08.000000000 +0200 @@ -15,8 +15,11 @@
-> > >  #include <linux/kernel.h>
-> > >  #include <linux/init.h>
-> > >  #include <linux/input.h>
-> > > +#include <linux/interrupt.h>
-> > >  #include <linux/platform_device.h>
-> > > +#include <linux/serial_8250.h>
-> > >
-> > > +#include <asm/serial.h>
-> > >  #include <mach/hardware.h>
-> > >  #include <asm/mach-types.h>
-> > >  #include <asm/mach/arch.h>
-> > > @@ -235,6 +238,41 @@ static void __init ams_delta_init(void)
-> > >  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
-> > >  }
-> > >
-> > > +static struct plat_serial8250_port ams_delta_modem_ports[] = {
-> > > +	{
-> > > +		.membase	= (void *) AMS_DELTA_MODEM_VIRT,
-> > > +		.mapbase	= AMS_DELTA_MODEM_PHYS,
-> > > +		.irq		= -EINVAL, /* changed later */
-> > > +		.flags		= UPF_BOOT_AUTOCONF,
-> > > +		.irqflags	= IRQF_TRIGGER_RISING,
-> > > +		.iotype		= UPIO_MEM,
-> > > +		.regshift	= 1,
-> > > +		.uartclk	= BASE_BAUD * 16,
-> > > +	},
-> > > +	{ },
-> > > +};
-> > > +
-> > > +static struct platform_device ams_delta_modem_device = {
-> > > +	.name	= "serial8250",
-> > > +	.id	= PLAT8250_DEV_PLATFORM1,
-> > > +	.dev		= {
-> > > +		.platform_data = ams_delta_modem_ports,
-> > > +	},
-> > > +};
-> > > +
-> > > +static int __init ams_delta_modem_init(void)
-> > > +{
-> > > +	omap_cfg_reg(M14_1510_GPIO2);
-> > > +	ams_delta_modem_ports[0].irq = gpio_to_irq(2);
-> > > +
-> > > +	ams_delta_latch2_write(
-> > > +		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
-> > > +		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
-> > > +
-> > > +	return platform_device_register(&ams_delta_modem_device);
-> > > +}
-> > > +arch_initcall(ams_delta_modem_init);
-> > > +
-> > >  static void __init ams_delta_map_io(void)
-> > >  {
-> > >  	omap1_map_common_io();
-> > 
-> > 
-> 
-> J.
-> 
-> -- 
-> Revd. Jonathan McDowell, ULC | I am a passenger.
-> 
-> -------------------------------------------------------------------
-> List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-> FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-> Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
