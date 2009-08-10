@@ -1,21 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 2/2] OMAP: remove OMAP_TAG_UART
-Date: Mon, 10 Aug 2009 11:49:15 -0400
-Message-ID: <notify-1249919354@atomide.com>
-References: <20090807051650.4787.84433.stgit@tikku>
+Subject: [APPLIED] [PATCH] OMAP: GPIO: Avoid generating extra IRQs
+Date: Mon, 10 Aug 2009 12:10:59 -0400
+Message-ID: <notify-1249920657@atomide.com>
+References: <1246602393-8812-1-git-send-email-ext-eero.nurkkala@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49867 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755480AbZHJPtP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 11:49:15 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50199 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750856AbZHJQK7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 12:10:59 -0400
 Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
 	(envelope-from <tony@atomide.com>)
-	id 1MaX7c-0002PP-8V
-	for linux-omap@vger.kernel.org; Mon, 10 Aug 2009 15:49:16 +0000
-In-Reply-To: <20090807051650.4787.84433.stgit@tikku>
+	id 1MaXSd-0003CZ-VC
+	for linux-omap@vger.kernel.org; Mon, 10 Aug 2009 16:11:00 +0000
+In-Reply-To: <1246602393-8812-1-git-send-email-ext-eero.nurkkala@nokia.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -26,12 +26,12 @@ by youw fwiendly patch wobot.
 
 Branch in linux-omap: omap-upstream
 
-Initial commit ID (Likely to change): 5ea0fbdf56dd4e127ce620d49bbbb606e2bf68e7
+Initial commit ID (Likely to change): ad23735d6744e7eeec4d2f012aa2ed2c1f8d64a9
 
 PatchWorks
-http://patchwork.kernel.org/patch/39779/
+http://patchwork.kernel.org/patch/33855/
 
 Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=5ea0fbdf56dd4e127ce620d49bbbb606e2bf68e7
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=ad23735d6744e7eeec4d2f012aa2ed2c1f8d64a9
 
 
