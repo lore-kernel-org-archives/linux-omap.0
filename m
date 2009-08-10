@@ -1,97 +1,110 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 16/20] ASoC: OMAP: Use McBSP threshold again
-Date: Mon, 10 Aug 2009 11:53:55 +0300
-Message-ID: <20090810085355.GA23461@esdhcp037198.research.nokia.com>
-References: <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-11-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-14-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-15-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-16-git-send-email-eduardo.valentin@nokia.com>
- <1248958183-15015-17-git-send-email-eduardo.valentin@nokia.com>
- <20090805104856.ff3e0f31.jhnikula@gmail.com>
-Reply-To: eduardo.valentin@nokia.com
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH v3] OMAP1: AMS_DELTA: add modem support
+Date: Mon, 10 Aug 2009 11:12:48 +0200
+Message-ID: <200908101112.49447.jkrzyszt@tis.icnet.pl>
+References: <200907061224.29292.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:61550 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362AbZHJJGg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 05:06:36 -0400
+Received: from d1.icnet.pl ([212.160.220.21]:59448 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752687AbZHJJNy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 10 Aug 2009 05:13:54 -0400
+In-Reply-To: <200907061224.29292.jkrzyszt@tis.icnet.pl>
 Content-Disposition: inline
-In-Reply-To: <20090805104856.ff3e0f31.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
+To: Jonathan McDowell <noodles@earth.li>, Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi Jarkko,
+Jonathan, Tony,
 
-On Wed, Aug 05, 2009 at 09:48:56AM +0200, ext Jarkko Nikula wrote:
-> On Thu, 30 Jul 2009 15:49:39 +0300
-> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
-> 
-> > Now this patch implements again the McBSP threshold
-> > usage for OMAP ASoC.
-> > 
-> > We figured out that there is no need to have so much
-> > SW control in order to have DMA in idle state during
-> > audio streaming. Configuring McBSP threshold value
-> > and DMA to FRAME_SYNC are sufficient.
-> > 
-> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > ---
-> >  sound/soc/omap/omap-pcm.c |   37 +++++++++++++++++++++++++++++++++++--
-> >  1 files changed, 35 insertions(+), 2 deletions(-)
-> > 
-> > @@ -192,6 +203,12 @@ static int omap_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
-> >  	case SNDRV_PCM_TRIGGER_RESUME:
-> >  	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-> >  		prtd->period_index = 0;
-> > +		/* Configure McBSP internal buffer usage */
-> > +		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-> > +			omap_mcbsp_set_tx_threshold(bus_id, samples - 1);
-> > +		else
-> > +			omap_mcbsp_set_rx_threshold(bus_id, samples - 1);
-> > +
-> >  		omap_start_dma(prtd->dma_ch);
-> >  		break;
-> >  
-> Oops, didn't notice this before. This will hard glue the DMA and McBSP
-> together. Even currently there is only McBSP based DAI link driver,
-> there can be others as well. EAC DAI for OMAP2420 would be necessary
-> for instance if one wants to develop ASoC support for Nokia N800. Nokia
-> N810 could use that too.
+Any chance for this patch ready for 2.6.32 inclusion? Or maybe v2, that has no 
+external dependencies and can be updated later to v3 when Vikram's changes 
+get accepted upstream?
 
-True. And the same comment is valid for the patch which adds op mode selection.
-My idea to un-glue them is to put some callbacks in omap_mcbsp_data of omap-mcbsp.c,
-and share it as something more generic, so that they can be called from omap-pcm.c.
+Thanks,
+Janusz
 
-Something like:
+Monday 06 July 2009 12:24:27 Janusz Krzysztofik wrote:
+> This patch adds support for modem device found on Amstrad E3 (Delta) board.
+>
+> Based on earlier patch by Jonathan McDowell, available at
+> http://the.earth.li/pub/e3/2.6.19/ams-delta-modem.patch.
+> Modified after Ladislav Michl's arch/arm/mach-omap1/board-voiceblue.c.
+>
+> This version, unlike v2, is dependent on 8250 driver changes getting
+> accepted upstream:
+> Refer: http://patchwork.kernel.org/patch/31884/
+>
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> ---
+> Registering the modem platform device from a separate arch_initcall (and
+> not from init_machine() callback) preserves serial console port at ttyS0.
+>
+> OMAP mux pin set up just for case if Amstrad bootloader is ever replaced.
+>
+> Warning:
+> could cause compilation break if 8250 patch is not integrated first
+>
+> --- linux-2.6.31-rc1/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-07-04
+> 16:39:37.000000000 +0200 +++
+> linux-2.6.31-rc1/arch/arm/mach-omap1/board-ams-delta.c	2009-07-05
+> 13:41:08.000000000 +0200 @@ -15,8 +15,11 @@
+>  #include <linux/kernel.h>
+>  #include <linux/init.h>
+>  #include <linux/input.h>
+> +#include <linux/interrupt.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/serial_8250.h>
+>
+> +#include <asm/serial.h>
+>  #include <mach/hardware.h>
+>  #include <asm/mach-types.h>
+>  #include <asm/mach/arch.h>
+> @@ -235,6 +238,41 @@ static void __init ams_delta_init(void)
+>  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+>  }
+>
+> +static struct plat_serial8250_port ams_delta_modem_ports[] = {
+> +	{
+> +		.membase	= (void *) AMS_DELTA_MODEM_VIRT,
+> +		.mapbase	= AMS_DELTA_MODEM_PHYS,
+> +		.irq		= -EINVAL, /* changed later */
+> +		.flags		= UPF_BOOT_AUTOCONF,
+> +		.irqflags	= IRQF_TRIGGER_RISING,
+> +		.iotype		= UPIO_MEM,
+> +		.regshift	= 1,
+> +		.uartclk	= BASE_BAUD * 16,
+> +	},
+> +	{ },
+> +};
+> +
+> +static struct platform_device ams_delta_modem_device = {
+> +	.name	= "serial8250",
+> +	.id	= PLAT8250_DEV_PLATFORM1,
+> +	.dev		= {
+> +		.platform_data = ams_delta_modem_ports,
+> +	},
+> +};
+> +
+> +static int __init ams_delta_modem_init(void)
+> +{
+> +	omap_cfg_reg(M14_1510_GPIO2);
+> +	ams_delta_modem_ports[0].irq = gpio_to_irq(2);
+> +
+> +	ams_delta_latch2_write(
+> +		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC,
+> +		AMS_DELTA_LATCH2_MODEM_NRESET | AMS_DELTA_LATCH2_MODEM_CODEC);
+> +
+> +	return platform_device_register(&ams_delta_modem_device);
+> +}
+> +arch_initcall(ams_delta_modem_init);
+> +
+>  static void __init ams_delta_map_io(void)
+>  {
+>  	omap1_map_common_io();
 
-struct omap_dma_data {
-	unsigned int			bus_id;
-	unsigned int			fmt;
-	/*
-	 * Flags indicating is the bus already activated and configured by
-	 * another substream
-	 */
-	int				active;
-	int				configured;
-	/* threshold callbacks can be added then here */
-	void				*data; /* struct omap_mcbsp_reg_cfg	regs; can go here */
-};
 
-And this goes in omap-pcm.h.
-
-what do you think??
-
-> 
-> 
-> -- 
-> Jarkko
-
--- 
-Eduardo Valentin
