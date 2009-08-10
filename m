@@ -1,75 +1,178 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] MAINTAINERS: Add list entries
-	linux-arm@vger.kernel.org and linux-arm-kernel@ to OMAP sections
-Date: Mon, 10 Aug 2009 09:56:17 +0300
-Message-ID: <20090810065616.GF2358@atomide.com>
-References: <1249576450.3467.25.camel@Joe-Laptop.home> <20090807080102.GV2358@atomide.com> <1249657581.3467.76.camel@Joe-Laptop.home>
+Subject: Re: [PATCH 6/8] Regulator: Add board-omap35x-pmic.c to
+	arch/arm/mach-omap2/
+Date: Mon, 10 Aug 2009 10:32:55 +0300
+Message-ID: <20090810073255.GG2358@atomide.com>
+References: <1249658966-11062-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52256 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718AbZHJG4V (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 02:56:21 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64249 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752208AbZHJHdA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 03:33:00 -0400
 Content-Disposition: inline
-In-Reply-To: <1249657581.3467.76.camel@Joe-Laptop.home>
+In-Reply-To: <1249658966-11062-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: linux-omap@vger.kernel.org, linux-arm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>, Andrew Morton <akpm@linux-foundation.org>
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: broonie@sirena.org.uk, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-* Joe Perches <joe@perches.com> [090807 18:07]:
-> On Fri, 2009-08-07 at 11:01 +0300, Tony Lindgren wrote:
-> > * Joe Perches <joe@perches.com> [090806 19:35]:
-> > > Perhaps it's useful for OMAP patches and bug reports
-> > > to CC entries to the primary and secondary ARM lists.
-> > > Added a pattern entry for OMAP USB as well.
-> > ... I think let's not add the drivers. The related driver list
-> > and linux-omap list should be enough for these.
+* Anuj Aggarwal <anuj.aggarwal@ti.com> [090807 18:30]:
+> Added arch/arm/mach-omap2/board-omap35x-pmic.c file which will
+> have the board specific information for different regulators
+> and will do the regulator initialization depending on the one
+> which is available.
 > 
-> Fine by me.  I fixed up your M: entry as well.
-
-Oh thanks :)
- 
-> Signed-off-by: Joe Perches <joe@perches.com>
-
-Acked-by: Tony Lindgren <tony@atomide.com>
-
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap35x-pmic.c |  121 ++++++++++++++++++++++++++++++
+>  1 files changed, 121 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-omap35x-pmic.c
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index b1114cf..6a82733 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -3660,8 +3660,10 @@ F:	drivers/video/riva/
->  F:	drivers/video/nvidia/
->  
->  OMAP SUPPORT
-> -M:	"Tony Lindgren <tony@atomide.com>" <tony@atomide.com>
-> +M:	Tony Lindgren <tony@atomide.com>
->  L:	linux-omap@vger.kernel.org
-> +L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
-> +L:	linux-arm@vger.kernel.org
->  W:	http://www.muru.com/linux/omap/
->  W:	http://linux.omap.com/
->  T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-> @@ -3671,12 +3673,16 @@ F:	arch/arm/*omap*
->  OMAP CLOCK FRAMEWORK SUPPORT
->  M:	Paul Walmsley <paul@pwsan.com>
->  L:	linux-omap@vger.kernel.org
-> +L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
-> +L:	linux-arm@vger.kernel.org
->  S:	Maintained
->  F:	arch/arm/*omap*/*clock*
->  
->  OMAP POWER MANAGEMENT SUPPORT
->  M:	Kevin Hilman <khilman@deeprootsystems.com>
->  L:	linux-omap@vger.kernel.org
-> +L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
-> +L:	linux-arm@vger.kernel.org
->  S:	Maintained
->  F:	arch/arm/*omap*/*pm*
->  
-> 
+> diff --git a/arch/arm/mach-omap2/board-omap35x-pmic.c b/arch/arm/mach-omap2/board-omap35x-pmic.c
+> new file mode 100644
+> index 0000000..11db66f
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-omap35x-pmic.c
+> @@ -0,0 +1,121 @@
+> +/*
+> + * board-omap35x-pmic.c
+> + *
+> + * Board specific information for different regulators and platforms.
+> + *
+> + * Copyright (C) 2009 Texas Instrument Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
+> + * whether express or implied; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#include <linux/regulator/driver.h>
+> +#include <linux/regulator/machine.h>
+> +#include <mach/common.h>
+> +
+> +/*
+> + * Definitions specific to TWL4030
+> + */
+> +
+> +/*
+> + * Definitions specific to TPS6235x
+> + */
+> +
+> +/*
+> + * Definitions specific to TPS65023
+> + */
+> +
+> +/*
+> + * Definitions specific to TPS65073
+> + */
+> +
+> +static int flag_pmic_twl4030;
+> +static int flag_pmic_tps6235x;
+> +static int flag_pmic_tps65023;
+> +static int flag_pmic_tps65073;
+> +
+> +/*
+> + * Detect the current PMIC, set one of the flags
+> + */
+> +static inline int detect_pmic(void)
+> +{
+> +#if defined(CONFIG_TWL4030_CORE)
+> +	flag_pmic_twl4030 = 1;
+> +#endif
+> +
+> +#if defined(CONFIG_OMAP3EVM_TPS6235X)
+> +	flag_pmic_tps6235x = 1;
+> +#endif
+> +
+> +#if defined(CONFIG_OMAP3EVM_TPS65023)
+> +	flag_pmic_tps65023 = 1;
+> +#endif
+> +
+> +#if defined(CONFIG_OMAP3EVM_TPS65073)
+> +	flag_pmic_tps65073 = 1;
+> +#endif
+> +
+> +	return 0;
+> +}
+
+This should be done without having to set the flags based on the
+Kconfig. We already allow compiling all the boards into the same
+kernel, and that should not be limited by device driver .config
+options.
+
+Please change this so you try to register various i2c devices,
+and the one that does not fail is the PMIC you have.
+
+Regards,
+
+Tony
+
+
+> +
+> +/* Functions to detect which PMIC is present */
+> +
+> +int pmic_is_twl4030(void)
+> +{
+> +	return flag_pmic_twl4030;
+> +}
+> +
+> +int pmic_is_tps6235x(void)
+> +{
+> +	return flag_pmic_tps6235x;
+> +}
+> +
+> +int pmic_is_tps65020(void) { return 0; }
+> +
+> +int pmic_is_tps65021(void) { return 0; }
+> +
+> +int pmic_is_tps65022(void) { return 0; }
+> +
+> +int pmic_is_tps65023(void)
+> +{
+> +	return flag_pmic_tps65023;
+> +}
+> +
+> +int pmic_is_tps65073(void)
+> +{
+> +	return flag_pmic_tps65073;
+> +}
+> +
+> +int pmic_is_tps65950(void)
+> +{
+> +	return flag_pmic_twl4030;
+> +}
+> +
+> +/* Detects the PMIC and initializes it accordingly */
+> +int oma35x_pmic_init(void)
+> +{
+> +#if defined(CONFIG_TWL4030_CORE)
+> +	/* do stuff specific to TWL4030 */
+> +#endif
+> +
+> +#if defined(CONFIG_OMAP3EVM_TPS6235X)
+> +	/* do stuff specific to TPS62350 */
+> +#endif
+> +
+> +#if defined(CONFIG_OMAP3EVM_TPS65023)
+> +	/* do stuff specific to TPS65023 */
+> +#endif
+> +
+> +#if defined(CONFIG_OMAP3EVM_TPS65073)
+> +	/* do stuff specific to TPS65073 */
+> +#endif
+> +
+> +	return 0;
+> +}
+> +
+> -- 
+> 1.6.2.4
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
