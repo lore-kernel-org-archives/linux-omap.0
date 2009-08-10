@@ -1,338 +1,216 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-Date: Mon, 10 Aug 2009 20:40:58 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D8D27B50@dbde02.ent.ti.com>
-References: <1249554967-20394-1-git-send-email-premi@ti.com>
- <20090806110359.GD2358@atomide.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301D8C80741@dbde02.ent.ti.com>
- <20090806115025.GG2358@atomide.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301D8C80860@dbde02.ent.ti.com>
- <87fxc56lfz.fsf@deeprootsystems.com> <20090807082322.GZ2358@atomide.com>
+From: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Mon, 10 Aug 2009 10:44:38 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F20295A89778@dlee06.ent.ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com>
+ <alpine.DEB.2.00.0908030054390.19529@utopia.booyaka.com>
+ <CD8CC2B65FEE304DA95744A5472698F202959C0D61@dlee06.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58425 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932126AbZHJPLR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 11:11:17 -0400
-In-Reply-To: <20090807082322.GZ2358@atomide.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F202959C0D61-UmuGNrFEPrGIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>, Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
 
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com] 
-> Sent: Friday, August 07, 2009 1:53 PM
-> To: Kevin Hilman
-> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 3/6] OMAP3: Add runtime check for OMAP35x
-> 
-
-<snip>--<snip>
-
-> > 
-> > Adding conditionals like
-> > 
-> >   if (omap3_has_iva2())
-> >      ...
-> > 
-> > and
-> > 
-> >   if (omap3_has_sgx()) 
-> >      ...
-> > 
-> > rather than having a long list of cpu_is checks that have 
-> to be changed
-> > each time a new SoC comes out.
-> 
-> Agreed.
-> 
-> Tony
+> From: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-i2c-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sonasath, Moiz
+> Sent: Monday, August 03, 2009 3:20 PM
+> To: Paul Walmsley
+> Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Menon,
+> Nishanth; Pandita, Vikram
+> Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
 > 
 > 
+> > -----Original Message-----
+> > From: Paul Walmsley [mailto:paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org]
+> > Sent: Monday, August 03, 2009 2:36 AM
+> > To: Sonasath, Moiz
+> > Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Menon,
+> > Nishanth; Pandita, Vikram
+> > Subject: Re: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+> >
+> > Hello Moiz,
+> >
+> > A few remaining comments, most of these from an earlier message.
+> >
+> > On Tue, 21 Jul 2009, Sonasath, Moiz wrote:
+> >
+> > > When an XRDY/XDR is hit, wait for XUDF before writing data to
+> DATA_REG.
+> > > Otherwise some data bytes can be lost while transferring them from the
+> > > memory to the I2C interface.
+> > >
+> > > Do a Busy-wait for XUDF, before writing data to DATA_REG. While
+> waiting
+> > > if there is NACK | AL, set the appropriate error flags, ack the
+> pending
+> > > interrupts and return from the ISR.
+> > >
+> > > Signed-off-by: Moiz Sonasath<m-sonasath-l0cyMroinI0@public.gmane.org>
+> > > Signed-off-by: Vikram pandita<vikram.pandita-l0cyMroinI0@public.gmane.org>
+> > > ---
+> > >  drivers/i2c/busses/i2c-omap.c |   24 +++++++++++++++++++++++-
+> > >  1 files changed, 23 insertions(+), 1 deletions(-)
+> > >
+> > > diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-
+> > omap.c
+> > > index 05b5e4c..8deaf87 100644
+> > > --- a/drivers/i2c/busses/i2c-omap.c
+> > > +++ b/drivers/i2c/busses/i2c-omap.c
+> > > @@ -672,9 +672,10 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> > >  			break;
+> > >  		}
+> > >
+> > > +		err = 0;
+> > > +complete:
+> > >  		omap_i2c_write_reg(dev, OMAP_I2C_STAT_REG, stat);
+> > >
+> > > -		err = 0;
+> > >  		if (stat & OMAP_I2C_STAT_NACK) {
+> > >  			err |= OMAP_I2C_STAT_NACK;
+> > >  			omap_i2c_write_reg(dev, OMAP_I2C_CON_REG,
+> > > @@ -764,6 +765,27 @@ omap_i2c_isr(int this_irq, void *dev_id)
+> > >  							"data to send\n");
+> > >  					break;
+> > >  				}
+> > > +
+> > > +				/*
+> > > +				 * OMAP3430 Errata 1.153: When an XRDY/XDR
+> > > +				 * is hit, wait for XUDF before writing data
+> > > +				 * to DATA_REG. Otherwise some data bytes can
+> > > +				 * be lost while transferring them from the
+> > > +				 * memory to the I2C interface.
+> > > +				 */
+> >
+> > Based on this description, shouldn't this patch also zero the transmit
+> > FIFO threshold?  Consider what the transmit path becomes after this
+> patch:
+> >
+> > 1. Fill transmit FIFO
+> > 2. Leave ISR & wait for interrupt
+> > 3. Interrupt happens due to XDR/XRDY (transmit FIFO low-water-mark
+> >    reached)
+> > 4. Busy-wait until transmit FIFO & shift register completely empty
+> > 5. If more data to send, go to step #1
+> >
+> > i2c-omap.c currently sets the transmit FIFO threshold to 1/2 of the
+> total
+> > FIFO size[1].  This means that, in the worst case, I2C3, the I2C ISR
+> will
+> > busy-wait in step 4 for the time it takes 32 bytes to be transmitted.
+> > This is time that the MPU spends doing nothing but spinning, wasting
+> > power.  This seems unnecessary and wasteful.  The time the driver spends
+> > busy-waiting in the ISR should be reduced to the lowest possible
+> duration.
+> >
+> > To do this, what I suggest that you additionally do in the patch is to
+> > reduce the transit FIFO threshold/low-water-mark, controlled by
+> > I2C_BUF.XTRSH, to the lowest possible value.  This should maximize the
+> > time spent between steps 2 and 3 and minimize the time spent between
+> steps
+> > 3 and 5.
+> >
+> > Is there a reason why this can't be done?
+> 
+> Yes, this is actually lined up in my list of actions. I will be working on
+> this to test the functionality and stability of I2C code with the
+> threshold set to zero.
+> 
 
-Tony, Kevin,
+I did some analysis and testing of the code with threshold set to zero, we cannot make the threshold zero with the present code in place, as this would hamper the functionality of the draining feature because in this case the XDR interrupt will not be triggered.
 
-Here is a work in progress patch implementing the conditionals.
+XDR-> when TX FIFO level equal/below the XTRSH AND TXSTAT is less than XTRSH
 
-I am looking for your suggestions on these:
-1) The detection of ES2.0 is different between OMAP3530 and OMAP3430.
-   For 3430 ES2.0, (idcode >> 28) == 0x0
-   For 3530 ES2.0, (idcode >> 28) == 0x1
+XRDY-> when TX FIFO level equal/below the XTRSH AND TXSTAT is equal/greater than XTRSH 
 
-   What can be easy way to make this distinction?
+This in turn causes XRDY to be triggered always (even when there are only last few bytes left to be transmitted) and therefore the code tries to transmit data when the upper application is out of data.
 
-2) How do we handle the power domain differences between OMAP34x
-   and the new OMAP3517 and OMAP05 devices. The hawkeye is different,
-   but, would it make sense to omap_revision to be like:
-   0x34050034, 0x34170034 - when we reuse the 34xx class.
+> >
+> > > +
+> > > +				if (cpu_is_omap34xx()) {
+> >
+> > Does this erratum apply to the I2C IP block on OMAP2430?  It also has
+> FIFO
+> > transmit capability.  It would be ideal if you can find out from the I2C
+> > IP block designers.  If you cannot, please consider adding a comment
+> that
+> > this may also apply to the I2C block on OMAP2430.
+> >
+> > In general it is best to enable these workarounds based on the I2C IP
+> > block's own revision register contents, not the OMAP CPU type.  The goal
+> > is to remove all these OMAP-specific "cpu_is_omapxxxx()" macros from
+> > device drivers.  For example, what if a future DaVinci part uses the
+> same
+> > I2C IP block?
+> 
+> Yes this is the right way.
+> I am checking with the IP team and will get back on this action item.
 
-3) Currently, the macros like OMAP3430_REV_ES1_0 are defined to
-   be whole numbers. I am trying to change them to something like:
+I checked with the I2C IP team, yes the errata applies to the I2C block on OMAP2430 and OMAP2420. I will send out a patch to include OMAP24XX for this erratum.
 
-#define OMAP34XX_REV(type,rev)  (OMAP34XX_CLASS & (type << 16) & (rev << 12))
+> 
+> >
+> > > +						while (!(stat & OMAP_I2C_STAT_XUDF)) {
+> >
+> > Is there a reason why you can't just reuse the main while() loop in the
+> > ISR, and add a state variable to handle any special casing needed in
+> this
+> > context?  That will avoid this separate while() loop.
+> >
+> 
+> The problem with using the main while() loop is the counter 'count'
+> associated with it as I am not sure if the count value of 100 is enough
+> wait time for allowing the XUDF bit to set and if we can come up with an
+> accurate wait count to be used there.
+> 
+> The idea is that if the hardware is functional, XUDF bit will be set once
+> the FIFO and shift registers are empty and the only thing that can go
+> wrong at that point is a sudden NACK or AL. These errors are taken care in
+> my while loop thereby eliminating the need of a timeout on XUDF wait.
+> 
+> 
+> 
+> > > +							if (stat & (OMAP_I2C_STAT_NACK |
+> > OMAP_I2C_STAT_AL)) {
+> > > +								omap_i2c_ack_stat(dev,
+> > stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
+> > > +								err |= OMAP_I2C_STAT_XUDF;
+> > > +								goto complete;
+> > > +							}
+> > > +							cpu_relax();
+> > > +							stat = omap_i2c_read_reg(dev,
+> > OMAP_I2C_STAT_REG);
+> > > +						}
+> > > +				}
+> > > +
+> > >  				omap_i2c_write_reg(dev, OMAP_I2C_DATA_REG, w);
+> > >  			}
+> > >  			omap_i2c_ack_stat(dev,
+> >
+> > For those following along in the archives, this is an extension of
+> > comments from
+> >
+> >    http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg13846.html
+> >
+> >
+> > - Paul
+> >
+> >
+> > 1. Eventually this is likely to change, based on power management
+> >    constraints.
+> 
+> Regards
+> Moiz Sonasath
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-And use as (if needed):
-
-#define OMAP3430_REV_ES3_1      OMAP34XX_REV(0x30, 0x4)
-
-#define OMAP3403_REV_ES3_1      OMAP34XX_REV(0x03, 0x4)
-
-   What is your view?
-
-   In fact, wouldn't it be better if we tested for si rev independent
-   from si type?
-
-4) These macros are, possibly, duplicating the data in omap_revision:
-
-#define CHIP_IS_OMAP3430ES3_0		(1 << 5)
-#define CHIP_IS_OMAP3430ES3_1		(1 << 6)
-
-   But, might be used for faster checking. Is this duplication necessary?
-
-5) Assuming that we are able to maintain current, macros, would this
-   help in reducing the duplication?
-
-struct omap_id {
-	u16	id;		/* e.g. 0x3430, 0x3517, ... */
-	u8	class;	/* 34x */
-	u8	subclass;   /* 0x30, 0x03, 0x05, 0x15, 0x17 ... */
-	u8	rev;        /* 0x10 (for ES 1.0), 0x21 (for ES2.1) etc. */
-				/* use nibble as decimal separator */
-}
-
-I have tried many approaches, before sending this mail,
-so there might be few duplications in the code below.
-The cpu_is_35xx() macros are also incomplete for now.
-
-Best regards,
-Sanjeev
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index a98201c..f17d4db 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -25,9 +25,47 @@
- #include <mach/control.h>
- #include <mach/cpu.h>
- 
-+#define OMAP3_CONTROL_OMAP_STATUS	0x044c
-+
-+#define OMAP3_SGX_SHIFT			13
-+#define OMAP3_SGX_MASK			(3 << OMAP3_SGX_SHIFT)
-+#define		FEAT_SGX_FULL		0
-+#define		FEAT_SGX_HALF		1
-+#define		FEAT_SGX_NONE		2
-+
-+#define OMAP3_IVA_SHIFT			12
-+#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
-+#define		FEAT_IVA		0
-+#define		FEAT_IVA_NONE		1
-+
-+#define OMAP3_L2CACHE_SHIFT		10
-+#define OMAP3_L2CACHE_MASK		(3 << OMAP3_L2CACHE_SHIFT)
-+#define		FEAT_L2CACHE_0KB	0
-+#define		FEAT_L2CACHE_64KB	1
-+#define		FEAT_L2CACHE_128KB	2
-+#define		FEAT_L2CACHE_256KB	3
-+
-+#define OMAP3_ISP_SHIFT			5
-+#define OMAP3_ISP_MASK			(1<< OMAP3_ISP_SHIFT)
-+#define		FEAT_ISP		0
-+#define		FEAT_ISP_NONE		1
-+
-+#define OMAP3_NEON_SHIFT		4
-+#define OMAP3_NEON_MASK			(1<< OMAP3_NEON_SHIFT)
-+#define		FEAT_NEON		0
-+#define		FEAT_NEON_NONE		1
-+
- static struct omap_chip_id omap_chip;
- static unsigned int omap_revision;
- 
-+struct omap_feature {
-+	u8 avail;
-+	u32 attrib;
-+};
-+
-+static struct omap_feature feat_sgx;
-+static struct omap_feature feat_iva;
-+static struct omap_feature feat_l2cache;
- 
- unsigned int omap_rev(void)
- {
-@@ -35,6 +73,24 @@ unsigned int omap_rev(void)
- }
- EXPORT_SYMBOL(omap_rev);
- 
-+unsigned int omap3_has_sgx(void)
-+{
-+	return feat_sgx.avail;
-+}
-+EXPORT_SYMBOL(omap3_has_sgx);
-+
-+unsigned int omap3_has_iva(void)
-+{
-+	return feat_iva.avail;
-+}
-+EXPORT_SYMBOL(omap3_has_iva);
-+
-+unsigned int omap3_has_l2cache(void)
-+{
-+	return feat_l2cache.avail;
-+}
-+EXPORT_SYMBOL(omap3_has_l2cache);
-+
- /**
-  * omap_chip_is - test whether currently running OMAP matches a chip type
-  * @oc: omap_chip_t to test against
-@@ -155,12 +211,32 @@ void __init omap24xx_check_revision(void)
- 	pr_info("\n");
- }
- 
--void __init omap34xx_check_revision(void)
-+void __init omap3_check_features(void)
-+{
-+	u32 status;
-+
-+	status = omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS);
-+
-+	/* Check for SGX */
-+	feat_sgx.attrib = ((status & OMAP3_SGX_MASK) >> OMAP3_SGX_SHIFT) ;
-+	feat_sgx.avail  = (feat_sgx.attrib == FEAT_SGX_NONE) ? 0 : 1 ;
-+
-+	/* Check for IVA */
-+	feat_iva.attrib = ((status & OMAP3_IVA_MASK) >> OMAP3_IVA_SHIFT) ;
-+	feat_iva.avail = (feat_iva.attrib == FEAT_IVA_NONE) ? 0 : 1 ;
-+
-+	/* Check for L2 Cache */
-+	feat_l2cache.attrib = ((status & OMAP3_L2CACHE_MASK) >> \
-+					OMAP3_L2CACHE_SHIFT) ;
-+	feat_l2cache.avail = (feat_l2cache.attrib == FEAT_L2CACHE_0KB) ? 0 : 1 ;
-+}
-+
-+void __init omap3_check_revision(void)
- {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
- 	u8 rev;
--	char *rev_name = "ES1.0";
-+	char cpu_name[16]= "", rev_name[16] = "", feat_name[32] = "";
- 
- 	/*
- 	 * We cannot access revision registers on ES1.0.
-@@ -187,29 +263,50 @@ void __init omap34xx_check_revision(void)
- 		switch (rev) {
- 		case 0:
- 			omap_revision = OMAP3430_REV_ES2_0;
--			rev_name = "ES2.0";
-+			strcat (rev_name, "ES2.0");
- 			break;
- 		case 2:
- 			omap_revision = OMAP3430_REV_ES2_1;
--			rev_name = "ES2.1";
-+			strcat (rev_name, "ES2.1");
- 			break;
- 		case 3:
- 			omap_revision = OMAP3430_REV_ES3_0;
--			rev_name = "ES3.0";
-+			strcat (rev_name, "ES3.0");
- 			break;
- 		case 4:
- 			omap_revision = OMAP3430_REV_ES3_1;
--			rev_name = "ES3.1";
-+			strcat (rev_name, "ES3.1");
- 			break;
- 		default:
- 			/* Use the latest known revision as default */
- 			omap_revision = OMAP3430_REV_ES3_1;
--			rev_name = "Unknown revision\n";
-+			strcat (rev_name, "Unknown revision");
-+		}
-+	}
-+	else if (hawkeye == 0xb868) {
-+		if (omap3_has_sgx()) {
-+			omap_revision = OMAP35XX_REV(0x17, 0x0);
-+		}
-+		else {
-+			omap_revision = OMAP35XX_REV(0x05, 0x0);
- 		}
- 	}
- 
- out:
--	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
-+	if (omap3_has_iva() && omap3_has_sgx()) {
-+		strcat(cpu_name, "3430/3530");
-+	}
-+	else if (omap3_has_sgx()) {
-+		strcat(cpu_name, "3525");
-+	}
-+	else if (omap3_has_iva()) {
-+		strcat(cpu_name, "3515");
-+	}
-+	else {
-+		strcat(cpu_name, "3505");
-+	}
-+
-+	pr_info("OMAP%s %s\n", cpu_name, rev_name);
- }
- 
- /*
-@@ -223,8 +320,10 @@ void __init omap2_check_revision(void)
- 	 */
- 	if (cpu_is_omap24xx())
- 		omap24xx_check_revision();
--	else if (cpu_is_omap34xx())
--		omap34xx_check_revision();
-+	else if (cpu_is_omap34xx()) {
-+		omap3_check_features();
-+		omap3_check_revision();
-+	}
- 	else if (cpu_is_omap44xx()) {
- 		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
- 		return;
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index 285eaa3..e9d6bc2 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -363,6 +363,23 @@ IS_OMAP_TYPE(3430, 0x3430)
- #if defined(CONFIG_ARCH_OMAP34XX)
- # undef cpu_is_omap3430
- # define cpu_is_omap3430()		is_omap3430()
-+
-+# undef cpu_is_omap3503
-+# undef cpu_is_omap3515
-+# undef cpu_is_omap3525
-+# undef cpu_is_omap3530
-+
-+# undef cpu_is_omap3505
-+# undef cpu_is_omap3517
-+
-+# define cpu_is_omap3503()		(!omap3_has_iva() && !omap3_has_sgx())
-+# define cpu_is_omap3515()		(!omap3_has_iva() && !omap3_has_sgx())
-+# define cpu_is_omap3525()		(!omap3_has_iva() && !omap3_has_sgx())
-+# define cpu_is_omap3530()		(omap3_has_iva() && omap3_has_sgx())
-+/* How to make these different from the ones above */
-+# define cpu_is_omap3505()		(!omap3_has_iva() && !omap3_has_sgx())
-+# define cpu_is_omap3517()		(!omap3_has_iva() && omap3_has_sgx())
-+
- #endif
- 
- # if defined(CONFIG_ARCH_OMAP4)
-@@ -396,6 +413,12 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP3430_REV_ES3_0	0x34303034
- #define OMAP3430_REV_ES3_1	0x34304034
- 
-+
-+#define OMAP35XX_CLASS		0x35000035
-+
-+
-+#define OMAP35XX_REV(type,rev)	(OMAP35XX_CLASS & (type << 16) & (rev << 12))
-+
- #define OMAP443X_CLASS		0x44300034
- 
- /*
+Regards
+Moiz Sonasath
