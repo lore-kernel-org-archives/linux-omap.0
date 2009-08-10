@@ -1,1066 +1,351 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 2/2] arm: omap: beagle: update defconfig
-Date: Mon, 10 Aug 2009 14:48:59 +0300
-Message-ID: <1249904939-3213-3-git-send-email-felipe.balbi@nokia.com>
-References: <1249904939-3213-1-git-send-email-felipe.balbi@nokia.com>
- <1249904939-3213-2-git-send-email-felipe.balbi@nokia.com>
+From: "vimal singh" <vimalsingh@ti.com>
+Subject: Re: [PATCH][OMAP]: Adding flash devices support back for OMAP3430
+     SDP      boards
+Date: Mon, 10 Aug 2009 17:18:18 +0530 (IST)
+Message-ID: <61775.192.168.10.89.1249904898.squirrel@dbdmail.itg.ti.com>
+References: <56431.192.168.10.89.1249904549.squirrel@dbdmail.itg.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:39997 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753417AbZHJLro (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 07:47:44 -0400
-In-Reply-To: <1249904939-3213-2-git-send-email-felipe.balbi@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39080 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753399AbZHJLsa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 07:48:30 -0400
+In-Reply-To: <56431.192.168.10.89.1249904549.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Tony Lindgren <tony@atomide.com>, Felipe Balbi <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org, linux-mtd@lists.infradead.org
 
-enable pm, twl4030-core, twl4030-regulator, twl4030-usb and
-put musb into otg mode.
+Adding Linux-Omap mailing list too...
 
-Without all of this, current l-o will oops on beagle board with a null
-pointer dereference as shown below:
+-vimal
 
-<3>musb_hdrc musb_hdrc: musb_init_controller failed with status -19
-<1>Unable to handle kernel NULL pointer dereference at virtual address 00000028
-<1>pgd = c0004000
-<1>[00000028] *pgd=00000000
-Internal error: Oops: 5 [#1]
-<d>Modules linked in:
-CPU: 0    Not tainted  (2.6.31-rc5-omap1-05833-g4baadee-dirty #44)
-PC is at musb_platform_suspend+0x34/0x78
-LR is at musb_platform_exit+0xc/0x20
-pc : [<c01e0e84>]    lr : [<c01e0ed4>]    psr: a0000013
-sp : c7819e00  ip : 00000064  fp : 00000000
-r10: 00000000  r9 : c782b150  r8 : c03814a0
-r7 : c788ac20  r6 : c782b0d0  r5 : c782b0d0  r4 : c782b0d0
-r3 : d80ab000  r2 : 00000004  r1 : c0318df1  r0 : 00000000
-Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-Control: 10c5387d  Table: 80004019  DAC: 00000017
-Process swapper (pid: 1, stack limit = 0xc78182e8)
-Stack: (0xc7819e00 to 0xc781a000)
-9e00: c782b0d0 c01e0ed4 00000000 c01dfbac ffffffed 00000000 c782b0d0 c001a5d0
-9e20: 00000001 c7819e5c 00000003 ffffffff c03658d8 c03658e0 0000005c d80ab000
-9e40: c03658bc c782b000 00000000 c039365c c7819ea4 c0165420 00000000 c780e7a8
-9e60: 00000000 c0165420 0000005f c780e7a8 c00d6fa8 c785c788 00000000 c0275d78
-9e80: 00000000 c7819ec0 c788c8a8 c00d775c c788c8a8 c00d7378 c788c908 c788c8a8
-9ea0: c7819ec0 c00d7450 00000000 c7819ec0 c788c8a8 c785c788 00000001 c00d81cc
-9ec0: c785c788 00000000 00000000 c03658e0 c03658e0 c0383a84 c788ac20 c03814a0
-9ee0: 00000000 00000000 00000000 c01aa234 c03658e0 c01a94d8 c03658e0 c0365914
-9f00: c0383a84 c788ac20 c03814a0 c01a95e4 00000000 c01a9584 c0383a84 c01a8e00
-9f20: c78034d8 c7841290 c0020440 c0383a68 c0383a84 c01a8720 c028f04c c028f04c
-9f40: 00000001 c0020440 c0383a68 c0383a84 c0019904 00000000 00000000 c01a98b4
-9f60: c0020440 c0383a68 00000000 c0019904 00000000 c01aa69c c0020440 00000000
-9f80: 00000000 c002529c c7819fb4 c02f76b8 00008124 0000024e c036fe00 c78400a0
-9fa0: c036fef0 0000015f c03912c0 c00d197c c02f76b8 c7841680 c7819fc6 c006f0a4
-9fc0: 00000000 35333f60 00000031 00000000 00000000 00000180 c0020440 00000000
-9fe0: 00000000 00000000 00000000 c0008574 00000000 c0026cd0 003bef00 0267fe20
-[<c01e0e84>] (musb_platform_suspend+0x34/0x78) from [<c01e0ed4>] (musb_platform_exit+0xc/0x20)
-[<c01e0ed4>] (musb_platform_exit+0xc/0x20) from [<c01dfbac>] (musb_free+0x94/0xd8)
-[<c01dfbac>] (musb_free+0x94/0xd8) from [<c001a5d0>] (musb_probe+0xb2c/0xc24)
-[<c001a5d0>] (musb_probe+0xb2c/0xc24) from [<c01aa234>] (platform_drv_probe+0x18/0x1c)
-[<c01aa234>] (platform_drv_probe+0x18/0x1c) from [<c01a94d8>] (driver_probe_device+0xa0/0x14c)
-[<c01a94d8>] (driver_probe_device+0xa0/0x14c) from [<c01a95e4>] (__driver_attach+0x60/0x84)
-[<c01a95e4>] (__driver_attach+0x60/0x84) from [<c01a8e00>] (bus_for_each_dev+0x44/0x74)
-[<c01a8e00>] (bus_for_each_dev+0x44/0x74) from [<c01a8720>] (bus_add_driver+0x9c/0x214)
-[<c01a8720>] (bus_add_driver+0x9c/0x214) from [<c01a98b4>] (driver_register+0xa8/0x130)
-[<c01a98b4>] (driver_register+0xa8/0x130) from [<c01aa69c>] (platform_driver_probe+0x10/0x60)
-[<c01aa69c>] (platform_driver_probe+0x10/0x60) from [<c002529c>] (do_one_initcall+0x54/0x194)
-[<c002529c>] (do_one_initcall+0x54/0x194) from [<c0008574>] (kernel_init+0x8c/0x108)
-[<c0008574>] (kernel_init+0x8c/0x108) from [<c0026cd0>] (kernel_thread_exit+0x0/0x8)
-Code: e5932404 e3822004 e5832404 e5900074 (e5903028)
-<4>---[ end trace 1b75b31a2719ed1c ]---
+> Adding flash devices support back for OMAP3430 SDP boards.
+>
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> ---
+>
+>  mach-omap2/Makefile              |    1
+>  mach-omap2/board-3430sdp-flash.c |  267 +++++++++++++++++++++++++++++++++++++++
+>  mach-omap2/board-3430sdp.c       |    3
+>  plat-omap/include/mach/gpmc.h    |    2
+>  4 files changed, 273 insertions(+)
+> ================================================================================
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -61,6 +61,7 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-om
+>  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+> +					   board-3430sdp-flash.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_NOKIA_N800)		+= board-n800.o \
+>  					   board-n800-mmc.o \
+> ================================================================================
+> --- a/arch/arm/plat-omap/include/mach/gpmc.h
+> +++ b/arch/arm/plat-omap/include/mach/gpmc.h
+> @@ -27,6 +27,8 @@
+>
+>  #define GPMC_CONFIG		0x50
+>  #define GPMC_STATUS		0x54
+> +#define GPMC_CS0_BASE		0x60
+> +#define GPMC_CS_SIZE		0x30
+>
+>  #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+>  #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+> ================================================================================
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -54,6 +54,8 @@
+>
+>  #define TWL4030_MSECURE_GPIO 22
+>
+> +extern void sdp3430_flash_init(void);
+> +
+>  static int sdp3430_keymap[] = {
+>  	KEY(0, 0, KEY_LEFT),
+>  	KEY(0, 1, KEY_RIGHT),
+> @@ -492,6 +494,7 @@ static void __init omap_3430sdp_init(voi
+>  	spi_register_board_info(sdp3430_spi_board_info,
+>  				ARRAY_SIZE(sdp3430_spi_board_info));
+>  	ads7846_dev_init();
+> +	sdp3430_flash_init();
+>  	omap_serial_init();
+>  	usb_musb_init();
+>  	board_smc91x_init();
+> ================================================================================
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-3430sdp-flash.c
+> @@ -0,0 +1,267 @@
+> +/*
+> + * linux/arch/arm/mach-omap2/board-3430sdp-flash.c
+> + *
+> + * Copyright (c) 2007 Texas Instruments
+> + *
+> + * Modified from mach-omap2/board-2430sdp-flash.c
+> + * Author: Rohit Choraria <rohitkc@ti.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/mtd/mtd.h>
+> +#include <linux/mtd/partitions.h>
+> +#include <linux/mtd/nand.h>
+> +#include <linux/mtd/onenand_regs.h>
+> +#include <linux/types.h>
+> +#include <linux/io.h>
+> +
+> +#include <asm/mach/flash.h>
+> +#include <mach/onenand.h>
+> +#include <mach/board.h>
+> +#include <mach/gpmc.h>
+> +#include <mach/nand.h>
+> +
+> +#define NAND_BLOCK_SIZE                SZ_128K
+> +
+> +/* NAND */
+> +/* IMPORTANT NOTE ON MAPPING
+> + * 3430SDP - 34XX
+> + * ----------
+> + * NOR always on 0x04000000 for SDPV1
+> + * NOR always on 0x10000000 for SDPV2
+> + * MPDB always on 0x08000000
+> + * NAND always on 0x0C000000
+> + * OneNand Mapped to 0x20000000
+> + * Boot Mode(NAND/NOR). The other on CS1
+> + */
+> +#define FLASH_BASE_SDPV1       0x04000000 /* NOR flash (64 Meg aligned) */
+> +#define FLASH_BASE_SDPV2       0x10000000 /* NOR flash (256 Meg aligned) */
+> +#define DEBUG_BASE             0x08000000 /* debug board */
+> +#define NAND_BASE              0x0C000000 /* NAND flash */
+> +#define ONENAND_MAP            0x20000000 /* OneNand flash */
+> +
+> +/* various memory sizes */
+> +#define FLASH_SIZE_SDPV1       SZ_64M
+> +#define FLASH_SIZE_SDPV2       SZ_128M
+> +
+> +static struct mtd_partition sdp_nor_partitions[] = {
+> +       /* bootloader (U-Boot, etc) in first sector */
+> +       {
+> +               .name           = "Bootloader-NOR",
+> +               .offset         = 0,
+> +               .size           = SZ_256K,
+> +               .mask_flags     = MTD_WRITEABLE, /* force read-only */
+> +       },
+> +       /* bootloader params in the next sector */
+> +       {
+> +               .name           = "Params-NOR",
+> +               .offset         = MTDPART_OFS_APPEND,
+> +               .size           = SZ_256K,
+> +               .mask_flags     = 0,
+> +       },
+> +       /* kernel */
+> +       {
+> +               .name           = "Kernel-NOR",
+> +               .offset         = MTDPART_OFS_APPEND,
+> +               .size           = SZ_2M,
+> +               .mask_flags     = 0
+> +       },
+> +       /* file system */
+> +       {
+> +               .name           = "Filesystem-NOR",
+> +               .offset         = MTDPART_OFS_APPEND,
+> +               .size           = MTDPART_SIZ_FULL,
+> +               .mask_flags     = 0
+> +       }
+> +};
+> +
+> +static struct flash_platform_data sdp_nor_data = {
+> +       .map_name       = "cfi_probe",
+> +       .width          = 2,
+> +       .parts          = sdp_nor_partitions,
+> +       .nr_parts       = ARRAY_SIZE(sdp_nor_partitions),
+> +};
+> +
+> +static struct resource sdp_nor_resource = {
+> +       .start          = 0,
+> +       .end            = 0,
+> +       .flags          = IORESOURCE_MEM,
+> +};
+> +
+> +static struct platform_device sdp_nor_device = {
+> +       .name           = "omapflash",
+> +       .id             = 0,
+> +       .dev            = {
+> +                       .platform_data = &sdp_nor_data,
+> +       },
+> +       .num_resources  = 1,
+> +       .resource       = &sdp_nor_resource,
+> +};
+> +
+> +static struct mtd_partition sdp_onenand_partitions[] = {
+> +       {
+> +               .name           = "X-Loader-OneNAND",
+> +               .offset         = 0,
+> +               .size           = 4 * (64 * 2048),
+> +               .mask_flags     = MTD_WRITEABLE  /* force read-only */
+> +       },
+> +       {
+> +               .name           = "U-Boot-OneNAND",
+> +               .offset         = MTDPART_OFS_APPEND,
+> +               .size           = 2 * (64 * 2048),
+> +               .mask_flags     = MTD_WRITEABLE  /* force read-only */
+> +       },
+> +       {
+> +               .name           = "U-Boot Environment-OneNAND",
+> +               .offset         = MTDPART_OFS_APPEND,
+> +               .size           = 1 * (64 * 2048),
+> +       },
+> +       {
+> +               .name           = "Kernel-OneNAND",
+> +               .offset         = MTDPART_OFS_APPEND,
+> +               .size           = 16 * (64 * 2048),
+> +       },
+> +       {
+> +               .name           = "File System-OneNAND",
+> +               .offset         = MTDPART_OFS_APPEND,
+> +               .size           = MTDPART_SIZ_FULL,
+> +       },
+> +};
+> +
+> +static struct omap_onenand_platform_data sdp_onenand_data = {
+> +       .parts          = sdp_onenand_partitions,
+> +       .nr_parts       = ARRAY_SIZE(sdp_onenand_partitions),
+> +       .dma_channel    = -1,   /* disable DMA in OMAP OneNAND driver */
+> +};
+> +
+> +static struct mtd_partition sdp_nand_partitions[] = {
+> +       /* All the partition sizes are listed in terms of NAND block size */
+> +       {
+> +               .name           = "X-Loader-NAND",
+> +               .offset         = 0,
+> +               .size           = 4 * NAND_BLOCK_SIZE,
+> +               .mask_flags     = MTD_WRITEABLE,        /* force read-only */
+> +       },
+> +       {
+> +               .name           = "U-Boot-NAND",
+> +               .offset         = MTDPART_OFS_APPEND,   /* Offset = 0x80000 */
+> +               .size           = 4 * NAND_BLOCK_SIZE,
+> +               .mask_flags     = MTD_WRITEABLE,        /* force read-only */
+> +       },
+> +       {
+> +               .name           = "Boot Env-NAND",
+> +               .offset         = MTDPART_OFS_APPEND,   /* Offset = 0x100000 */
+> +               .size           = 2 * NAND_BLOCK_SIZE,
+> +       },
+> +       {
+> +               .name           = "Kernel-NAND",
+> +               .offset         = MTDPART_OFS_APPEND,   /* Offset = 0x140000 */
+> +               .size           = 32 * NAND_BLOCK_SIZE,
+> +       },
+> +       {
+> +               .name           = "File System - NAND",
+> +               .size           = MTDPART_SIZ_FULL,
+> +               .offset         = MTDPART_OFS_APPEND,   /* Offset = 0x540000 */
+> +       },
+> +};
+> +
+> +static struct omap_nand_platform_data sdp_nand_data = {
+> +       .parts          = sdp_nand_partitions,
+> +       .nr_parts       = ARRAY_SIZE(sdp_nand_partitions),
+> +       .nand_setup     = NULL,
+> +       .dma_channel    = -1,           /* disable DMA in OMAP NAND driver */
+> +       .dev_ready      = NULL,
+> +};
+> +
+> +static struct resource sdp_nand_resource = {
+> +       .flags          = IORESOURCE_MEM,
+> +};
+> +
+> +static struct platform_device sdp_nand_device = {
+> +       .name           = "omap2-nand",
+> +       .id             = 0,
+> +       .dev            = {
+> +       .platform_data  = &sdp_nand_data,
+> +       },
+> +       .num_resources  = 1,
+> +       .resource       = &sdp_nand_resource,
+> +};
+> +
+> +
+> +/**
+> + * sdp3430_flash_init - Identify devices connected to GPMC and register.
+> + *
+> + * @return - void.
+> + */
+> +void __init sdp3430_flash_init(void)
+> +{
+> +       u8              cs = 0;
+> +       u8              nandcs = GPMC_CS_NUM + 1;
+> +       u8              onenandcs = GPMC_CS_NUM + 1;
+> +       unsigned long   gpmc_base_add;
+> +
+> +       gpmc_base_add   = OMAP34XX_GPMC_VIRT;
+> +
+> +       /* Configure start address and size of NOR device */
+> +       if (omap_rev() > OMAP3430_REV_ES1_0) {
+> +               sdp_nor_resource.start  = FLASH_BASE_SDPV2;
+> +               sdp_nor_resource.end    = FLASH_BASE_SDPV2
+> +                                               + FLASH_SIZE_SDPV2 - 1;
+> +       } else {
+> +               sdp_nor_resource.start  = FLASH_BASE_SDPV1;
+> +               sdp_nor_resource.end    = FLASH_BASE_SDPV1
+> +                                               + FLASH_SIZE_SDPV1 - 1;
+> +       }
+> +
+> +       if (platform_device_register(&sdp_nor_device) < 0)
+> +               printk(KERN_ERR "Unable to register NOR device\n");
+> +
+> +       while (cs < GPMC_CS_NUM) {
+> +               u32 ret = 0;
+> +               ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
+> +
+> +               /*
+> +               * xloader/Uboot would have programmed the NAND/oneNAND
+> +               * base address for us This is a ugly hack. The proper
+> +               * way of doing this is to pass the setup of u-boot up
+> +               * to kernel using kernel params - something on the
+> +               * lines of machineID. Check if oneNAND is configured
+> +               */
+> +               if ((ret & 0xC00) == 0x800) {
+> +                       /* Found it!! */
+> +                       if (nandcs > GPMC_CS_NUM)
+> +                               nandcs = cs;
+> +               } else {
+> +                       ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG7);
+> +                       if ((ret & 0x3F) == (ONENAND_MAP >> 24))
+> +                               onenandcs = cs;
+> +               }
+> +               cs++;
+> +       }
+> +       if ((nandcs > GPMC_CS_NUM) && (onenandcs > GPMC_CS_NUM)) {
+> +               printk(KERN_INFO "NAND/OneNAND: Unable to find configuration "
+> +                               " in GPMC\n ");
+> +               return;
+> +       }
+> +
+> +       if (nandcs < GPMC_CS_NUM) {
+> +               sdp_nand_data.cs        = nandcs;
+> +               sdp_nand_data.gpmc_cs_baseaddr   = (void *)(gpmc_base_add +
+> +                                       GPMC_CS0_BASE + nandcs*GPMC_CS_SIZE);
+> +               sdp_nand_data.gpmc_baseaddr     = (void *) (gpmc_base_add);
+> +
+> +               if (platform_device_register(&sdp_nand_device) < 0)
+> +                       printk(KERN_ERR "Unable to register NAND device\n");
+> +       }
+> +
+> +       if (onenandcs < GPMC_CS_NUM) {
+> +               sdp_onenand_data.cs = onenandcs;
+> +               gpmc_onenand_init(&sdp_onenand_data);
+> +       }
+> +}
+> +
+>
+>
 
-by using gdb we can see that's the otg pointer from otg_set_suspend() as
-shown below:
-
-(gdb) l *(musb_platform_suspend + 0x34)
-0xc01e27bc is in musb_platform_suspend (include/linux/usb/otg.h:128).
-123
-124     /* Context: can sleep */
-125     static inline int
-126     otg_set_suspend(struct otg_transceiver *otg, int suspend)
-127     {
-128             if (otg->set_suspend != NULL)
-129                     return otg->set_suspend(otg, suspend);
-130             else
-131                     return 0;
-132     }
-
-Fix this problem by enabling all the necessary drivers on the defconfig.
-
-Reported-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
- arch/arm/configs/omap3_beagle_defconfig |  357 ++++++++++++++++++++-----------
- 1 files changed, 233 insertions(+), 124 deletions(-)
-
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index c4726f0..40574b6 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -1,7 +1,7 @@
- #
- # Automatically generated make config: don't edit
--# Linux kernel version: 2.6.27-rc8
--# Wed Oct  1 17:14:22 2008
-+# Linux kernel version: 2.6.31-rc1-omap1
-+# Mon Aug 10 13:54:06 2009
- #
- CONFIG_ARM=y
- CONFIG_SYS_SUPPORTS_APM_EMULATION=y
-@@ -9,7 +9,6 @@ CONFIG_GENERIC_GPIO=y
- CONFIG_GENERIC_TIME=y
- CONFIG_GENERIC_CLOCKEVENTS=y
- CONFIG_MMU=y
--# CONFIG_NO_IOPORT is not set
- CONFIG_GENERIC_HARDIRQS=y
- CONFIG_STACKTRACE_SUPPORT=y
- CONFIG_HAVE_LATENCYTOP_SUPPORT=y
-@@ -18,15 +17,12 @@ CONFIG_TRACE_IRQFLAGS_SUPPORT=y
- CONFIG_HARDIRQS_SW_RESEND=y
- CONFIG_GENERIC_IRQ_PROBE=y
- CONFIG_RWSEM_GENERIC_SPINLOCK=y
--# CONFIG_ARCH_HAS_ILOG2_U32 is not set
--# CONFIG_ARCH_HAS_ILOG2_U64 is not set
- CONFIG_GENERIC_HWEIGHT=y
- CONFIG_GENERIC_CALIBRATE_DELAY=y
--CONFIG_ARCH_SUPPORTS_AOUT=y
--CONFIG_ZONE_DMA=y
- CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
- CONFIG_VECTORS_BASE=0xffff0000
- CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
-+CONFIG_CONSTRUCTORS=y
- 
- #
- # General setup
-@@ -44,22 +40,35 @@ CONFIG_BSD_PROCESS_ACCT=y
- # CONFIG_BSD_PROCESS_ACCT_V3 is not set
- # CONFIG_TASKSTATS is not set
- # CONFIG_AUDIT is not set
-+
-+#
-+# RCU Subsystem
-+#
-+CONFIG_CLASSIC_RCU=y
-+# CONFIG_TREE_RCU is not set
-+# CONFIG_PREEMPT_RCU is not set
-+# CONFIG_TREE_RCU_TRACE is not set
-+# CONFIG_PREEMPT_RCU_TRACE is not set
- # CONFIG_IKCONFIG is not set
- CONFIG_LOG_BUF_SHIFT=14
--# CONFIG_CGROUPS is not set
- CONFIG_GROUP_SCHED=y
- CONFIG_FAIR_GROUP_SCHED=y
- # CONFIG_RT_GROUP_SCHED is not set
- CONFIG_USER_SCHED=y
- # CONFIG_CGROUP_SCHED is not set
-+# CONFIG_CGROUPS is not set
- CONFIG_SYSFS_DEPRECATED=y
- CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_RELAY is not set
- # CONFIG_NAMESPACES is not set
- CONFIG_BLK_DEV_INITRD=y
- CONFIG_INITRAMFS_SOURCE=""
-+CONFIG_RD_GZIP=y
-+# CONFIG_RD_BZIP2 is not set
-+# CONFIG_RD_LZMA is not set
- CONFIG_CC_OPTIMIZE_FOR_SIZE=y
- CONFIG_SYSCTL=y
-+CONFIG_ANON_INODES=y
- CONFIG_EMBEDDED=y
- CONFIG_UID16=y
- # CONFIG_SYSCTL_SYSCALL is not set
-@@ -70,16 +79,21 @@ CONFIG_HOTPLUG=y
- CONFIG_PRINTK=y
- CONFIG_BUG=y
- CONFIG_ELF_CORE=y
--CONFIG_COMPAT_BRK=y
- CONFIG_BASE_FULL=y
- CONFIG_FUTEX=y
--CONFIG_ANON_INODES=y
- CONFIG_EPOLL=y
- CONFIG_SIGNALFD=y
- CONFIG_TIMERFD=y
- CONFIG_EVENTFD=y
- CONFIG_SHMEM=y
-+CONFIG_AIO=y
-+
-+#
-+# Performance Counters
-+#
- CONFIG_VM_EVENT_COUNTERS=y
-+# CONFIG_STRIP_ASM_SYMS is not set
-+CONFIG_COMPAT_BRK=y
- CONFIG_SLAB=y
- # CONFIG_SLUB is not set
- # CONFIG_SLOB is not set
-@@ -87,19 +101,17 @@ CONFIG_SLAB=y
- # CONFIG_MARKERS is not set
- CONFIG_HAVE_OPROFILE=y
- # CONFIG_KPROBES is not set
--# CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS is not set
--# CONFIG_HAVE_IOREMAP_PROT is not set
- CONFIG_HAVE_KPROBES=y
- CONFIG_HAVE_KRETPROBES=y
--# CONFIG_HAVE_ARCH_TRACEHOOK is not set
--# CONFIG_HAVE_DMA_ATTRS is not set
--# CONFIG_USE_GENERIC_SMP_HELPERS is not set
- CONFIG_HAVE_CLK=y
--CONFIG_PROC_PAGE_MONITOR=y
-+
-+#
-+# GCOV-based kernel profiling
-+#
-+# CONFIG_SLOW_WORK is not set
- CONFIG_HAVE_GENERIC_DMA_COHERENT=y
- CONFIG_SLABINFO=y
- CONFIG_RT_MUTEXES=y
--# CONFIG_TINY_SHMEM is not set
- CONFIG_BASE_SMALL=0
- CONFIG_MODULES=y
- # CONFIG_MODULE_FORCE_LOAD is not set
-@@ -107,11 +119,8 @@ CONFIG_MODULE_UNLOAD=y
- # CONFIG_MODULE_FORCE_UNLOAD is not set
- CONFIG_MODVERSIONS=y
- CONFIG_MODULE_SRCVERSION_ALL=y
--CONFIG_KMOD=y
- CONFIG_BLOCK=y
--# CONFIG_LBD is not set
--# CONFIG_BLK_DEV_IO_TRACE is not set
--# CONFIG_LSF is not set
-+CONFIG_LBDAF=y
- # CONFIG_BLK_DEV_BSG is not set
- # CONFIG_BLK_DEV_INTEGRITY is not set
- 
-@@ -127,7 +136,7 @@ CONFIG_DEFAULT_AS=y
- # CONFIG_DEFAULT_CFQ is not set
- # CONFIG_DEFAULT_NOOP is not set
- CONFIG_DEFAULT_IOSCHED="anticipatory"
--CONFIG_CLASSIC_RCU=y
-+CONFIG_FREEZER=y
- 
- #
- # System Type
-@@ -137,14 +146,15 @@ CONFIG_CLASSIC_RCU=y
- # CONFIG_ARCH_REALVIEW is not set
- # CONFIG_ARCH_VERSATILE is not set
- # CONFIG_ARCH_AT91 is not set
--# CONFIG_ARCH_CLPS7500 is not set
- # CONFIG_ARCH_CLPS711X is not set
-+# CONFIG_ARCH_GEMINI is not set
- # CONFIG_ARCH_EBSA110 is not set
- # CONFIG_ARCH_EP93XX is not set
- # CONFIG_ARCH_FOOTBRIDGE is not set
-+# CONFIG_ARCH_MXC is not set
-+# CONFIG_ARCH_STMP3XXX is not set
- # CONFIG_ARCH_NETX is not set
- # CONFIG_ARCH_H720X is not set
--# CONFIG_ARCH_IMX is not set
- # CONFIG_ARCH_IOP13XX is not set
- # CONFIG_ARCH_IOP32X is not set
- # CONFIG_ARCH_IOP33X is not set
-@@ -153,22 +163,25 @@ CONFIG_CLASSIC_RCU=y
- # CONFIG_ARCH_IXP4XX is not set
- # CONFIG_ARCH_L7200 is not set
- # CONFIG_ARCH_KIRKWOOD is not set
--# CONFIG_ARCH_KS8695 is not set
--# CONFIG_ARCH_NS9XXX is not set
- # CONFIG_ARCH_LOKI is not set
- # CONFIG_ARCH_MV78XX0 is not set
--# CONFIG_ARCH_MXC is not set
- # CONFIG_ARCH_ORION5X is not set
-+# CONFIG_ARCH_MMP is not set
-+# CONFIG_ARCH_KS8695 is not set
-+# CONFIG_ARCH_NS9XXX is not set
-+# CONFIG_ARCH_W90X900 is not set
- # CONFIG_ARCH_PNX4008 is not set
- # CONFIG_ARCH_PXA is not set
-+# CONFIG_ARCH_MSM is not set
- # CONFIG_ARCH_RPC is not set
- # CONFIG_ARCH_SA1100 is not set
- # CONFIG_ARCH_S3C2410 is not set
-+# CONFIG_ARCH_S3C64XX is not set
- # CONFIG_ARCH_SHARK is not set
- # CONFIG_ARCH_LH7A40X is not set
-+# CONFIG_ARCH_U300 is not set
- # CONFIG_ARCH_DAVINCI is not set
- CONFIG_ARCH_OMAP=y
--# CONFIG_ARCH_MSM7X00A is not set
- 
- #
- # TI OMAP Implementations
-@@ -177,6 +190,7 @@ CONFIG_ARCH_OMAP_OTG=y
- # CONFIG_ARCH_OMAP1 is not set
- # CONFIG_ARCH_OMAP2 is not set
- CONFIG_ARCH_OMAP3=y
-+# CONFIG_ARCH_OMAP4 is not set
- 
- #
- # OMAP Feature Selections
-@@ -186,6 +200,7 @@ CONFIG_ARCH_OMAP3=y
- # CONFIG_OMAP_RESET_CLOCKS is not set
- # CONFIG_OMAP_MUX is not set
- # CONFIG_OMAP_MCBSP is not set
-+# CONFIG_OMAP_MBOX_FWK is not set
- # CONFIG_OMAP_MPU_TIMER is not set
- CONFIG_OMAP_32K_TIMER=y
- CONFIG_OMAP_32K_TIMER_HZ=128
-@@ -199,15 +214,14 @@ CONFIG_ARCH_OMAP3430=y
- #
- # OMAP Board Type
- #
-+# CONFIG_MACH_NOKIA_RX51 is not set
-+# CONFIG_MACH_OMAP_LDP is not set
-+# CONFIG_MACH_OMAP_3430SDP is not set
-+# CONFIG_MACH_OMAP3EVM is not set
- CONFIG_MACH_OMAP3_BEAGLE=y
--
--#
--# Boot options
--#
--
--#
--# Power management
--#
-+# CONFIG_MACH_OVERO is not set
-+# CONFIG_MACH_OMAP3_PANDORA is not set
-+# CONFIG_MACH_OMAP_ZOOM2 is not set
- 
- #
- # Processor Type
-@@ -235,7 +249,10 @@ CONFIG_ARM_THUMB=y
- # CONFIG_CPU_DCACHE_DISABLE is not set
- # CONFIG_CPU_BPREDICT_DISABLE is not set
- CONFIG_HAS_TLS_REG=y
--# CONFIG_OUTER_CACHE is not set
-+# CONFIG_ARM_ERRATA_430973 is not set
-+# CONFIG_ARM_ERRATA_458693 is not set
-+# CONFIG_ARM_ERRATA_460075 is not set
-+CONFIG_COMMON_CLKDEV=y
- 
- #
- # Bus support
-@@ -259,24 +276,26 @@ CONFIG_PAGE_OFFSET=0xC0000000
- CONFIG_HZ=128
- CONFIG_AEABI=y
- CONFIG_OABI_COMPAT=y
--CONFIG_ARCH_FLATMEM_HAS_HOLES=y
--# CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
-+# CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
-+# CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
-+# CONFIG_HIGHMEM is not set
- CONFIG_SELECT_MEMORY_MODEL=y
- CONFIG_FLATMEM_MANUAL=y
- # CONFIG_DISCONTIGMEM_MANUAL is not set
- # CONFIG_SPARSEMEM_MANUAL is not set
- CONFIG_FLATMEM=y
- CONFIG_FLAT_NODE_MEM_MAP=y
--# CONFIG_SPARSEMEM_STATIC is not set
--# CONFIG_SPARSEMEM_VMEMMAP_ENABLE is not set
- CONFIG_PAGEFLAGS_EXTENDED=y
- CONFIG_SPLIT_PTLOCK_CPUS=4
--# CONFIG_RESOURCES_64BIT is not set
--CONFIG_ZONE_DMA_FLAG=1
--CONFIG_BOUNCE=y
-+# CONFIG_PHYS_ADDR_T_64BIT is not set
-+CONFIG_ZONE_DMA_FLAG=0
- CONFIG_VIRT_TO_BUS=y
-+CONFIG_HAVE_MLOCK=y
-+CONFIG_HAVE_MLOCKED_PAGE_BIT=y
-+CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
- # CONFIG_LEDS is not set
- CONFIG_ALIGNMENT_TRAP=y
-+# CONFIG_UACCESS_WITH_MEMCPY is not set
- 
- #
- # Boot options
-@@ -311,13 +330,20 @@ CONFIG_VFPv3=y
- # Userspace binary formats
- #
- CONFIG_BINFMT_ELF=y
-+# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
-+CONFIG_HAVE_AOUT=y
- # CONFIG_BINFMT_AOUT is not set
- CONFIG_BINFMT_MISC=y
- 
- #
- # Power management options
- #
--# CONFIG_PM is not set
-+CONFIG_PM=y
-+# CONFIG_PM_DEBUG is not set
-+CONFIG_PM_SLEEP=y
-+CONFIG_SUSPEND=y
-+CONFIG_SUSPEND_FREEZER=y
-+# CONFIG_APM_EMULATION is not set
- CONFIG_ARCH_SUSPEND_POSSIBLE=y
- CONFIG_NET=y
- 
-@@ -369,6 +395,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_TIPC is not set
- # CONFIG_ATM is not set
- # CONFIG_BRIDGE is not set
-+# CONFIG_NET_DSA is not set
- # CONFIG_VLAN_8021Q is not set
- # CONFIG_DECNET is not set
- # CONFIG_LLC2 is not set
-@@ -378,7 +405,10 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_LAPB is not set
- # CONFIG_ECONET is not set
- # CONFIG_WAN_ROUTER is not set
-+# CONFIG_PHONET is not set
-+# CONFIG_IEEE802154 is not set
- # CONFIG_NET_SCHED is not set
-+# CONFIG_DCB is not set
- 
- #
- # Network testing
-@@ -389,14 +419,17 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
- # CONFIG_IRDA is not set
- # CONFIG_BT is not set
- # CONFIG_AF_RXRPC is not set
-+CONFIG_WIRELESS=y
-+# CONFIG_CFG80211 is not set
-+# CONFIG_WIRELESS_OLD_REGULATORY is not set
-+# CONFIG_WIRELESS_EXT is not set
-+# CONFIG_LIB80211 is not set
- 
- #
--# Wireless
-+# CFG80211 needs to be enabled for MAC80211
- #
--# CONFIG_CFG80211 is not set
--# CONFIG_WIRELESS_EXT is not set
--# CONFIG_MAC80211 is not set
--# CONFIG_IEEE80211 is not set
-+CONFIG_MAC80211_DEFAULT_PS_VALUE=0
-+# CONFIG_WIMAX is not set
- # CONFIG_RFKILL is not set
- # CONFIG_NET_9P is not set
- 
-@@ -419,6 +452,7 @@ CONFIG_MTD=y
- # CONFIG_MTD_DEBUG is not set
- # CONFIG_MTD_CONCAT is not set
- CONFIG_MTD_PARTITIONS=y
-+# CONFIG_MTD_TESTS is not set
- # CONFIG_MTD_REDBOOT_PARTS is not set
- # CONFIG_MTD_CMDLINE_PARTS is not set
- # CONFIG_MTD_AFS_PARTS is not set
-@@ -480,6 +514,8 @@ CONFIG_MTD_NAND=y
- # CONFIG_MTD_NAND_VERIFY_WRITE is not set
- # CONFIG_MTD_NAND_ECC_SMC is not set
- # CONFIG_MTD_NAND_MUSEUM_IDS is not set
-+# CONFIG_MTD_NAND_GPIO is not set
-+# CONFIG_MTD_NAND_OMAP2 is not set
- CONFIG_MTD_NAND_IDS=y
- # CONFIG_MTD_NAND_DISKONCHIP is not set
- # CONFIG_MTD_NAND_NANDSIM is not set
-@@ -488,6 +524,11 @@ CONFIG_MTD_NAND_IDS=y
- # CONFIG_MTD_ONENAND is not set
- 
- #
-+# LPDDR flash memory drivers
-+#
-+# CONFIG_MTD_LPDDR is not set
-+
-+#
- # UBI - Unsorted block images
- #
- # CONFIG_MTD_UBI is not set
-@@ -504,6 +545,7 @@ CONFIG_BLK_DEV_RAM_SIZE=16384
- # CONFIG_BLK_DEV_XIP is not set
- # CONFIG_CDROM_PKTCDVD is not set
- # CONFIG_ATA_OVER_ETH is not set
-+# CONFIG_MG_DISK is not set
- # CONFIG_MISC_DEVICES is not set
- CONFIG_HAVE_IDE=y
- # CONFIG_IDE is not set
-@@ -527,10 +569,6 @@ CONFIG_BLK_DEV_SD=y
- # CONFIG_BLK_DEV_SR is not set
- # CONFIG_CHR_DEV_SG is not set
- # CONFIG_CHR_DEV_SCH is not set
--
--#
--# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
--#
- # CONFIG_SCSI_MULTI_LUN is not set
- # CONFIG_SCSI_CONSTANTS is not set
- # CONFIG_SCSI_LOGGING is not set
-@@ -547,8 +585,11 @@ CONFIG_SCSI_WAIT_SCAN=m
- # CONFIG_SCSI_SRP_ATTRS is not set
- CONFIG_SCSI_LOWLEVEL=y
- # CONFIG_ISCSI_TCP is not set
-+# CONFIG_LIBFC is not set
-+# CONFIG_LIBFCOE is not set
- # CONFIG_SCSI_DEBUG is not set
- # CONFIG_SCSI_DH is not set
-+# CONFIG_SCSI_OSD_INITIATOR is not set
- # CONFIG_ATA is not set
- # CONFIG_MD is not set
- CONFIG_NETDEVICES=y
-@@ -567,7 +608,10 @@ CONFIG_NETDEVICES=y
- #
- # CONFIG_WLAN_PRE80211 is not set
- # CONFIG_WLAN_80211 is not set
--# CONFIG_IWLWIFI_LEDS is not set
-+
-+#
-+# Enable WiMAX (Networking options) to see the WiMAX drivers
-+#
- 
- #
- # USB Network Adapters
-@@ -646,10 +690,11 @@ CONFIG_SERIAL_8250_RSA=y
- CONFIG_SERIAL_CORE=y
- CONFIG_SERIAL_CORE_CONSOLE=y
- CONFIG_UNIX98_PTYS=y
-+# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
- # CONFIG_LEGACY_PTYS is not set
- # CONFIG_IPMI_HANDLER is not set
- CONFIG_HW_RANDOM=y
--# CONFIG_NVRAM is not set
-+# CONFIG_HW_RANDOM_TIMERIOMEM is not set
- # CONFIG_R3964 is not set
- # CONFIG_RAW_DRIVER is not set
- # CONFIG_TCG_TPM is not set
-@@ -665,6 +710,7 @@ CONFIG_I2C_HELPER_AUTO=y
- #
- # I2C system bus drivers (mostly embedded / system-on-chip)
- #
-+# CONFIG_I2C_DESIGNWARE is not set
- # CONFIG_I2C_GPIO is not set
- # CONFIG_I2C_OCORES is not set
- CONFIG_I2C_OMAP=y
-@@ -687,15 +733,9 @@ CONFIG_I2C_OMAP=y
- # Miscellaneous I2C Chip support
- #
- # CONFIG_DS1682 is not set
--# CONFIG_EEPROM_AT24 is not set
--# CONFIG_EEPROM_LEGACY is not set
- # CONFIG_SENSORS_PCF8574 is not set
- # CONFIG_PCF8575 is not set
- # CONFIG_SENSORS_PCA9539 is not set
--# CONFIG_SENSORS_PCF8591 is not set
--# CONFIG_ISP1301_OMAP is not set
--# CONFIG_TPS65010 is not set
--# CONFIG_SENSORS_MAX6875 is not set
- # CONFIG_SENSORS_TSL2550 is not set
- # CONFIG_I2C_DEBUG_CORE is not set
- # CONFIG_I2C_DEBUG_ALGO is not set
-@@ -708,11 +748,16 @@ CONFIG_GPIOLIB=y
- # CONFIG_GPIO_SYSFS is not set
- 
- #
-+# Memory mapped GPIO expanders:
-+#
-+
-+#
- # I2C GPIO expanders:
- #
- # CONFIG_GPIO_MAX732X is not set
- # CONFIG_GPIO_PCA953X is not set
- # CONFIG_GPIO_PCF857X is not set
-+# CONFIG_GPIO_TWL4030 is not set
- 
- #
- # PCI GPIO expanders:
-@@ -727,11 +772,11 @@ CONFIG_GPIOLIB=y
- # CONFIG_THERMAL is not set
- # CONFIG_THERMAL_HWMON is not set
- # CONFIG_WATCHDOG is not set
-+CONFIG_SSB_POSSIBLE=y
- 
- #
- # Sonics Silicon Backplane
- #
--CONFIG_SSB_POSSIBLE=y
- # CONFIG_SSB is not set
- 
- #
-@@ -739,30 +784,21 @@ CONFIG_SSB_POSSIBLE=y
- #
- # CONFIG_MFD_CORE is not set
- # CONFIG_MFD_SM501 is not set
-+# CONFIG_MFD_ASIC3 is not set
- # CONFIG_HTC_EGPIO is not set
- # CONFIG_HTC_PASIC3 is not set
--# CONFIG_UCB1400_CORE is not set
-+# CONFIG_TPS65010 is not set
-+CONFIG_TWL4030_CORE=y
- # CONFIG_MFD_TMIO is not set
- # CONFIG_MFD_T7L66XB is not set
- # CONFIG_MFD_TC6387XB is not set
- # CONFIG_MFD_TC6393XB is not set
--
--#
--# Multimedia devices
--#
--
--#
--# Multimedia core support
--#
--# CONFIG_VIDEO_DEV is not set
--# CONFIG_DVB_CORE is not set
--# CONFIG_VIDEO_MEDIA is not set
--
--#
--# Multimedia drivers
--#
--CONFIG_DAB=y
--# CONFIG_USB_DABUSB is not set
-+# CONFIG_PMIC_DA903X is not set
-+# CONFIG_MFD_WM8400 is not set
-+# CONFIG_MFD_WM8350_I2C is not set
-+# CONFIG_MFD_PCF50633 is not set
-+# CONFIG_AB3100_CORE is not set
-+# CONFIG_MEDIA_SUPPORT is not set
- 
- #
- # Graphics support
-@@ -772,6 +808,7 @@ CONFIG_DAB=y
- CONFIG_FB=y
- # CONFIG_FIRMWARE_EDID is not set
- # CONFIG_FB_DDC is not set
-+# CONFIG_FB_BOOT_VESA_SUPPORT is not set
- CONFIG_FB_CFB_FILLRECT=y
- CONFIG_FB_CFB_COPYAREA=y
- CONFIG_FB_CFB_IMAGEBLIT=y
-@@ -792,6 +829,9 @@ CONFIG_FB_CFB_IMAGEBLIT=y
- #
- # CONFIG_FB_S1D13XXX is not set
- # CONFIG_FB_VIRTUAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
- CONFIG_FB_OMAP=y
- # CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
- # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
-@@ -823,16 +863,12 @@ CONFIG_FONT_8x16=y
- # CONFIG_FONT_SUN12x22 is not set
- # CONFIG_FONT_10x18 is not set
- # CONFIG_LOGO is not set
--
--#
--# Sound
--#
- # CONFIG_SOUND is not set
- # CONFIG_HID_SUPPORT is not set
- CONFIG_USB_SUPPORT=y
- CONFIG_USB_ARCH_HAS_HCD=y
- CONFIG_USB_ARCH_HAS_OHCI=y
--# CONFIG_USB_ARCH_HAS_EHCI is not set
-+CONFIG_USB_ARCH_HAS_EHCI=y
- CONFIG_USB=y
- # CONFIG_USB_DEBUG is not set
- # CONFIG_USB_ANNOUNCE_NEW_DEVICES is not set
-@@ -843,30 +879,36 @@ CONFIG_USB=y
- CONFIG_USB_DEVICEFS=y
- CONFIG_USB_DEVICE_CLASS=y
- # CONFIG_USB_DYNAMIC_MINORS is not set
--# CONFIG_USB_OTG is not set
-+CONFIG_USB_SUSPEND=y
-+CONFIG_USB_OTG=y
- # CONFIG_USB_OTG_WHITELIST is not set
- # CONFIG_USB_OTG_BLACKLIST_HUB is not set
- CONFIG_USB_MON=y
-+# CONFIG_USB_WUSB is not set
-+# CONFIG_USB_WUSB_CBAF is not set
- 
- #
- # USB Host Controller Drivers
- #
- # CONFIG_USB_C67X00_HCD is not set
-+# CONFIG_USB_EHCI_HCD is not set
-+# CONFIG_USB_OXU210HP_HCD is not set
- # CONFIG_USB_ISP116X_HCD is not set
- # CONFIG_USB_ISP1760_HCD is not set
- # CONFIG_USB_OHCI_HCD is not set
- # CONFIG_USB_SL811_HCD is not set
- # CONFIG_USB_R8A66597_HCD is not set
-+# CONFIG_USB_HWA_HCD is not set
- CONFIG_USB_MUSB_HDRC=y
- CONFIG_USB_MUSB_SOC=y
- 
- #
- # OMAP 343x high speed USB support
- #
--CONFIG_USB_MUSB_HOST=y
-+# CONFIG_USB_MUSB_HOST is not set
- # CONFIG_USB_MUSB_PERIPHERAL is not set
--# CONFIG_USB_MUSB_OTG is not set
--# CONFIG_USB_GADGET_MUSB_HDRC is not set
-+CONFIG_USB_MUSB_OTG=y
-+CONFIG_USB_GADGET_MUSB_HDRC=y
- CONFIG_USB_MUSB_HDRC_HCD=y
- # CONFIG_MUSB_PIO_ONLY is not set
- CONFIG_USB_INVENTRA_DMA=y
-@@ -879,13 +921,14 @@ CONFIG_USB_INVENTRA_DMA=y
- # CONFIG_USB_ACM is not set
- # CONFIG_USB_PRINTER is not set
- # CONFIG_USB_WDM is not set
-+# CONFIG_USB_TMC is not set
- 
- #
--# NOTE: USB_STORAGE enables SCSI, and 'SCSI disk support'
-+# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
- #
- 
- #
--# may also be needed; see USB_STORAGE Help for more information
-+# also be needed; see USB_STORAGE Help for more info
- #
- # CONFIG_USB_STORAGE is not set
- # CONFIG_USB_LIBUSUAL is not set
-@@ -907,6 +950,7 @@ CONFIG_USB_INVENTRA_DMA=y
- # CONFIG_USB_EMI62 is not set
- # CONFIG_USB_EMI26 is not set
- # CONFIG_USB_ADUTUX is not set
-+# CONFIG_USB_SEVSEG is not set
- # CONFIG_USB_RIO500 is not set
- # CONFIG_USB_LEGOTOWER is not set
- # CONFIG_USB_LCD is not set
-@@ -914,35 +958,42 @@ CONFIG_USB_INVENTRA_DMA=y
- # CONFIG_USB_LED is not set
- # CONFIG_USB_CYPRESS_CY7C63 is not set
- # CONFIG_USB_CYTHERM is not set
--# CONFIG_USB_PHIDGET is not set
- # CONFIG_USB_IDMOUSE is not set
- # CONFIG_USB_FTDI_ELAN is not set
- # CONFIG_USB_APPLEDISPLAY is not set
-+# CONFIG_USB_SISUSBVGA is not set
- # CONFIG_USB_LD is not set
- # CONFIG_USB_TRANCEVIBRATOR is not set
- # CONFIG_USB_IOWARRIOR is not set
- # CONFIG_USB_TEST is not set
- # CONFIG_USB_ISIGHTFW is not set
-+# CONFIG_USB_VST is not set
- CONFIG_USB_GADGET=y
- # CONFIG_USB_GADGET_DEBUG is not set
- # CONFIG_USB_GADGET_DEBUG_FILES is not set
-+CONFIG_USB_GADGET_VBUS_DRAW=2
- CONFIG_USB_GADGET_SELECTED=y
--# CONFIG_USB_GADGET_AMD5536UDC is not set
-+# CONFIG_USB_GADGET_AT91 is not set
- # CONFIG_USB_GADGET_ATMEL_USBA is not set
- # CONFIG_USB_GADGET_FSL_USB2 is not set
--# CONFIG_USB_GADGET_NET2280 is not set
--# CONFIG_USB_GADGET_PXA25X is not set
--CONFIG_USB_GADGET_M66592=y
--CONFIG_USB_M66592=y
--# CONFIG_USB_GADGET_PXA27X is not set
--# CONFIG_USB_GADGET_GOKU is not set
- # CONFIG_USB_GADGET_LH7A40X is not set
- # CONFIG_USB_GADGET_OMAP is not set
-+# CONFIG_USB_GADGET_PXA25X is not set
-+# CONFIG_USB_GADGET_PXA27X is not set
-+# CONFIG_USB_GADGET_S3C_HSOTG is not set
- # CONFIG_USB_GADGET_S3C2410 is not set
--# CONFIG_USB_GADGET_AT91 is not set
-+# CONFIG_USB_GADGET_IMX is not set
-+# CONFIG_USB_GADGET_M66592 is not set
-+# CONFIG_USB_GADGET_AMD5536UDC is not set
-+# CONFIG_USB_GADGET_FSL_QE is not set
-+# CONFIG_USB_GADGET_CI13XXX is not set
-+# CONFIG_USB_GADGET_NET2280 is not set
-+# CONFIG_USB_GADGET_GOKU is not set
-+# CONFIG_USB_GADGET_LANGWELL is not set
- # CONFIG_USB_GADGET_DUMMY_HCD is not set
- CONFIG_USB_GADGET_DUALSPEED=y
- # CONFIG_USB_ZERO is not set
-+# CONFIG_USB_AUDIO is not set
- CONFIG_USB_ETH=m
- CONFIG_USB_ETH_RNDIS=y
- # CONFIG_USB_GADGETFS is not set
-@@ -951,12 +1002,21 @@ CONFIG_USB_ETH_RNDIS=y
- # CONFIG_USB_MIDI_GADGET is not set
- # CONFIG_USB_G_PRINTER is not set
- # CONFIG_USB_CDC_COMPOSITE is not set
-+
-+#
-+# OTG and related infrastructure
-+#
-+CONFIG_USB_OTG_UTILS=y
-+# CONFIG_USB_GPIO_VBUS is not set
-+# CONFIG_ISP1301_OMAP is not set
-+CONFIG_TWL4030_USB=y
-+# CONFIG_NOP_USB_XCEIV is not set
- CONFIG_MMC=y
- # CONFIG_MMC_DEBUG is not set
- # CONFIG_MMC_UNSAFE_RESUME is not set
- 
- #
--# MMC/SD Card Drivers
-+# MMC/SD/SDIO Card Drivers
- #
- CONFIG_MMC_BLOCK=y
- CONFIG_MMC_BLOCK_BOUNCE=y
-@@ -964,10 +1024,10 @@ CONFIG_MMC_BLOCK_BOUNCE=y
- # CONFIG_MMC_TEST is not set
- 
- #
--# MMC/SD Host Controller Drivers
-+# MMC/SD/SDIO Host Controller Drivers
- #
- # CONFIG_MMC_SDHCI is not set
--# CONFIG_MMC_OMAP is not set
-+# CONFIG_MMC_OMAP_HS is not set
- # CONFIG_MEMSTICK is not set
- # CONFIG_ACCESSIBILITY is not set
- # CONFIG_NEW_LEDS is not set
-@@ -999,8 +1059,11 @@ CONFIG_RTC_INTF_DEV=y
- # CONFIG_RTC_DRV_PCF8563 is not set
- # CONFIG_RTC_DRV_PCF8583 is not set
- # CONFIG_RTC_DRV_M41T80 is not set
-+# CONFIG_RTC_DRV_TWL4030 is not set
- # CONFIG_RTC_DRV_S35390A is not set
- # CONFIG_RTC_DRV_FM3130 is not set
-+# CONFIG_RTC_DRV_RX8581 is not set
-+# CONFIG_RTC_DRV_RX8025 is not set
- 
- #
- # SPI RTC drivers
-@@ -1010,27 +1073,38 @@ CONFIG_RTC_INTF_DEV=y
- # Platform RTC drivers
- #
- # CONFIG_RTC_DRV_CMOS is not set
-+# CONFIG_RTC_DRV_DS1286 is not set
- # CONFIG_RTC_DRV_DS1511 is not set
- # CONFIG_RTC_DRV_DS1553 is not set
- # CONFIG_RTC_DRV_DS1742 is not set
- # CONFIG_RTC_DRV_STK17TA8 is not set
- # CONFIG_RTC_DRV_M48T86 is not set
-+# CONFIG_RTC_DRV_M48T35 is not set
- # CONFIG_RTC_DRV_M48T59 is not set
-+# CONFIG_RTC_DRV_BQ4802 is not set
- # CONFIG_RTC_DRV_V3020 is not set
- 
- #
- # on-CPU RTC drivers
- #
- # CONFIG_DMADEVICES is not set
--
--#
--# Voltage and Current regulators
--#
--# CONFIG_REGULATOR is not set
-+# CONFIG_AUXDISPLAY is not set
-+CONFIG_REGULATOR=y
-+# CONFIG_REGULATOR_DEBUG is not set
- # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
- # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
-+# CONFIG_REGULATOR_USERSPACE_CONSUMER is not set
- # CONFIG_REGULATOR_BQ24022 is not set
-+# CONFIG_REGULATOR_MAX1586 is not set
-+CONFIG_REGULATOR_TWL4030=y
-+# CONFIG_REGULATOR_LP3971 is not set
- # CONFIG_UIO is not set
-+# CONFIG_STAGING is not set
-+
-+#
-+# CBUS support
-+#
-+# CONFIG_CBUS is not set
- 
- #
- # File systems
-@@ -1039,20 +1113,26 @@ CONFIG_EXT2_FS=y
- # CONFIG_EXT2_FS_XATTR is not set
- # CONFIG_EXT2_FS_XIP is not set
- CONFIG_EXT3_FS=y
-+# CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
- # CONFIG_EXT3_FS_XATTR is not set
--# CONFIG_EXT4DEV_FS is not set
-+# CONFIG_EXT4_FS is not set
- CONFIG_JBD=y
- # CONFIG_REISERFS_FS is not set
- # CONFIG_JFS_FS is not set
- # CONFIG_FS_POSIX_ACL is not set
- # CONFIG_XFS_FS is not set
-+# CONFIG_GFS2_FS is not set
- # CONFIG_OCFS2_FS is not set
-+# CONFIG_BTRFS_FS is not set
-+CONFIG_FILE_LOCKING=y
-+CONFIG_FSNOTIFY=y
- CONFIG_DNOTIFY=y
- CONFIG_INOTIFY=y
- CONFIG_INOTIFY_USER=y
- CONFIG_QUOTA=y
- # CONFIG_QUOTA_NETLINK_INTERFACE is not set
- CONFIG_PRINT_QUOTA_WARNING=y
-+CONFIG_QUOTA_TREE=y
- # CONFIG_QFMT_V1 is not set
- CONFIG_QFMT_V2=y
- CONFIG_QUOTACTL=y
-@@ -1061,6 +1141,11 @@ CONFIG_QUOTACTL=y
- # CONFIG_FUSE_FS is not set
- 
- #
-+# Caches
-+#
-+# CONFIG_FSCACHE is not set
-+
-+#
- # CD-ROM/DVD Filesystems
- #
- # CONFIG_ISO9660_FS is not set
-@@ -1081,15 +1166,13 @@ CONFIG_FAT_DEFAULT_IOCHARSET="iso8859-1"
- #
- CONFIG_PROC_FS=y
- CONFIG_PROC_SYSCTL=y
-+CONFIG_PROC_PAGE_MONITOR=y
- CONFIG_SYSFS=y
- CONFIG_TMPFS=y
- # CONFIG_TMPFS_POSIX_ACL is not set
- # CONFIG_HUGETLB_PAGE is not set
- # CONFIG_CONFIGFS_FS is not set
--
--#
--# Miscellaneous filesystems
--#
-+CONFIG_MISC_FILESYSTEMS=y
- # CONFIG_ADFS_FS is not set
- # CONFIG_AFFS_FS is not set
- # CONFIG_HFS_FS is not set
-@@ -1109,6 +1192,7 @@ CONFIG_JFFS2_ZLIB=y
- CONFIG_JFFS2_RTIME=y
- # CONFIG_JFFS2_RUBIN is not set
- # CONFIG_CRAMFS is not set
-+# CONFIG_SQUASHFS is not set
- # CONFIG_VXFS_FS is not set
- # CONFIG_MINIX_FS is not set
- # CONFIG_OMFS_FS is not set
-@@ -1117,11 +1201,13 @@ CONFIG_JFFS2_RTIME=y
- # CONFIG_ROMFS_FS is not set
- # CONFIG_SYSV_FS is not set
- # CONFIG_UFS_FS is not set
-+# CONFIG_NILFS2_FS is not set
- CONFIG_NETWORK_FILESYSTEMS=y
- CONFIG_NFS_FS=y
- CONFIG_NFS_V3=y
- # CONFIG_NFS_V3_ACL is not set
- CONFIG_NFS_V4=y
-+# CONFIG_NFS_V4_1 is not set
- CONFIG_ROOT_NFS=y
- # CONFIG_NFSD is not set
- CONFIG_LOCKD=y
-@@ -1216,11 +1302,15 @@ CONFIG_DEBUG_KERNEL=y
- CONFIG_DETECT_SOFTLOCKUP=y
- # CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
- CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
-+CONFIG_DETECT_HUNG_TASK=y
-+# CONFIG_BOOTPARAM_HUNG_TASK_PANIC is not set
-+CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE=0
- CONFIG_SCHED_DEBUG=y
- # CONFIG_SCHEDSTATS is not set
- # CONFIG_TIMER_STATS is not set
- # CONFIG_DEBUG_OBJECTS is not set
- # CONFIG_DEBUG_SLAB is not set
-+# CONFIG_DEBUG_KMEMLEAK is not set
- # CONFIG_DEBUG_RT_MUTEXES is not set
- # CONFIG_RT_MUTEX_TESTER is not set
- # CONFIG_DEBUG_SPINLOCK is not set
-@@ -1238,21 +1328,22 @@ CONFIG_DEBUG_INFO=y
- # CONFIG_DEBUG_MEMORY_INIT is not set
- # CONFIG_DEBUG_LIST is not set
- # CONFIG_DEBUG_SG is not set
--CONFIG_FRAME_POINTER=y
-+# CONFIG_DEBUG_NOTIFIERS is not set
- # CONFIG_BOOT_PRINTK_DELAY is not set
- # CONFIG_RCU_TORTURE_TEST is not set
-+# CONFIG_RCU_CPU_STALL_DETECTOR is not set
- # CONFIG_BACKTRACE_SELF_TEST is not set
-+# CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
- # CONFIG_FAULT_INJECTION is not set
- # CONFIG_LATENCYTOP is not set
--CONFIG_HAVE_FTRACE=y
--CONFIG_HAVE_DYNAMIC_FTRACE=y
-+# CONFIG_PAGE_POISONING is not set
-+CONFIG_HAVE_FUNCTION_TRACER=y
-+CONFIG_TRACING_SUPPORT=y
- # CONFIG_FTRACE is not set
--# CONFIG_IRQSOFF_TRACER is not set
--# CONFIG_SCHED_TRACER is not set
--# CONFIG_CONTEXT_SWITCH_TRACER is not set
- # CONFIG_SAMPLES is not set
- CONFIG_HAVE_ARCH_KGDB=y
- # CONFIG_KGDB is not set
-+CONFIG_ARM_UNWIND=y
- # CONFIG_DEBUG_USER is not set
- # CONFIG_DEBUG_ERRORS is not set
- # CONFIG_DEBUG_STACK_USAGE is not set
-@@ -1263,17 +1354,28 @@ CONFIG_HAVE_ARCH_KGDB=y
- #
- # CONFIG_KEYS is not set
- # CONFIG_SECURITY is not set
-+# CONFIG_SECURITYFS is not set
- # CONFIG_SECURITY_FILE_CAPABILITIES is not set
- CONFIG_CRYPTO=y
- 
- #
- # Crypto core or helper
- #
-+# CONFIG_CRYPTO_FIPS is not set
- CONFIG_CRYPTO_ALGAPI=y
-+CONFIG_CRYPTO_ALGAPI2=y
-+CONFIG_CRYPTO_AEAD2=y
- CONFIG_CRYPTO_BLKCIPHER=y
-+CONFIG_CRYPTO_BLKCIPHER2=y
-+CONFIG_CRYPTO_HASH=y
-+CONFIG_CRYPTO_HASH2=y
-+CONFIG_CRYPTO_RNG2=y
-+CONFIG_CRYPTO_PCOMP=y
- CONFIG_CRYPTO_MANAGER=y
-+CONFIG_CRYPTO_MANAGER2=y
- # CONFIG_CRYPTO_GF128MUL is not set
- # CONFIG_CRYPTO_NULL is not set
-+CONFIG_CRYPTO_WORKQUEUE=y
- # CONFIG_CRYPTO_CRYPTD is not set
- # CONFIG_CRYPTO_AUTHENC is not set
- # CONFIG_CRYPTO_TEST is not set
-@@ -1305,7 +1407,7 @@ CONFIG_CRYPTO_PCBC=m
- #
- # Digest
- #
--# CONFIG_CRYPTO_CRC32C is not set
-+CONFIG_CRYPTO_CRC32C=y
- # CONFIG_CRYPTO_MD4 is not set
- CONFIG_CRYPTO_MD5=y
- # CONFIG_CRYPTO_MICHAEL_MIC is not set
-@@ -1342,15 +1444,21 @@ CONFIG_CRYPTO_DES=y
- # Compression
- #
- # CONFIG_CRYPTO_DEFLATE is not set
-+# CONFIG_CRYPTO_ZLIB is not set
- # CONFIG_CRYPTO_LZO is not set
-+
-+#
-+# Random Number Generation
-+#
-+# CONFIG_CRYPTO_ANSI_CPRNG is not set
- CONFIG_CRYPTO_HW=y
-+# CONFIG_BINARY_PRINTF is not set
- 
- #
- # Library routines
- #
- CONFIG_BITREVERSE=y
--# CONFIG_GENERIC_FIND_FIRST_BIT is not set
--# CONFIG_GENERIC_FIND_NEXT_BIT is not set
-+CONFIG_GENERIC_FIND_LAST_BIT=y
- CONFIG_CRC_CCITT=y
- # CONFIG_CRC16 is not set
- # CONFIG_CRC_T10DIF is not set
-@@ -1360,7 +1468,8 @@ CONFIG_CRC32=y
- CONFIG_LIBCRC32C=y
- CONFIG_ZLIB_INFLATE=y
- CONFIG_ZLIB_DEFLATE=y
--CONFIG_PLIST=y
-+CONFIG_DECOMPRESS_GZIP=y
- CONFIG_HAS_IOMEM=y
- CONFIG_HAS_IOPORT=y
- CONFIG_HAS_DMA=y
-+CONFIG_NLATTR=y
--- 
-1.6.3.3.385.g60647
 
