@@ -1,251 +1,295 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 1/1] omap iommu: add initial debugfs support
-Date: Tue, 11 Aug 2009 12:47:49 +0300 (EEST)
-Message-ID: <20090811.124749.232739664.Hiroshi.DOYU@nokia.com>
-References: <20090811.115337.70184536.Hiroshi.DOYU@nokia.com>
-	<20090811091958.GQ1938@atomide.com>
-	<20090811092617.GR1938@atomide.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Question regarding MUSB and dynamic fifo sizing
+Date: Tue, 11 Aug 2009 09:33:05 +0300
+Message-ID: <20090811063305.GB4573@nokia.com>
+References: <20090807201712.GB9780@nokia.com>
+ <20090808064313.GA11613@nokia.com>
+ <20090808071705.GA11844@nokia.com>
+ <1249914799.25044.4.camel@blitz>
+ <20090810161605.GA4357@gandalf>
+ <1249923607.31495.13.camel@blitz>
+ <20090810170236.GA3528@gandalf>
+ <1249925323.31495.31.camel@blitz>
+ <20090810184818.GA4281@gandalf>
+ <1249936961.31495.87.camel@blitz>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
- boundary="--Next_Part(Tue_Aug_11_12_47_49_2009_878)--"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:26109 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:23764 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750937AbZHKMPr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 08:15:47 -0400
-In-Reply-To: <20090811092617.GR1938@atomide.com>
+	with ESMTP id S1753316AbZHKMIz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 08:08:55 -0400
+Received: from mgw-mx06.nokia.com (mgw-mx06.nokia.com [192.100.122.233])
+	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n7B6qhAr008923
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-omap@vger.kernel.org>; Tue, 11 Aug 2009 09:52:44 +0300
+Content-Disposition: inline
+In-Reply-To: <1249936961.31495.87.camel@blitz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: ameya.palande@nokia.com, h-kanigeri2@ti.com, x0095840@ti.com, omar.ramirez@ti.com, linux-omap@vger.kernel.org
+To: ext Peter Barada <peterb@logicpd.com>
+Cc: "me@felipebalbi.com" <me@felipebalbi.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-----Next_Part(Tue_Aug_11_12_47_49_2009_878)--
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Hi,
 
-From: ext Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] omap iommu: add initial debugfs support
-Date: Tue, 11 Aug 2009 11:26:17 +0200
-
-> * Tony Lindgren <tony@atomide.com> [090811 12:19]:
-> > * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090811 11:54]:
-> > > Hi Tony,
-> > > 
-> > > From: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
-> > > Subject: [PATCH 1/1] omap iommu: add initial debugfs support
-> > > Date: Wed, 22 Jul 2009 16:24:02 +0200
-> > > 
-> > > > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > > > 
-> > > > This enables to peek the following data.
-> > > > 
-> > > > $ /debug/iommu/isp# ls
-> > > > mem             nr_tlb_entries  regs
-> > > > mmap            pagetable       tlb
-> > > > $ /debug/iommu/isp# head pagetable
-> > > > L:      da:      pa:
-> > > > -----------------------------------------
-> > > > 2: 00001000 8ae4a002
-> > > > 2: 00002000 8e7bb002
-> > > > 2: 00003000 8ae49002
-> > > > 2: 00004000 8ae65002
-> > > > .....
-> > > > 
-> > > > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > > 
-> > > Please apply this one too if there's no problem.
-> > 
-> > OK, will add it into my omap-upstream queue.
+On Mon, Aug 10, 2009 at 10:42:41PM +0200, ext Peter Barada wrote:
+> Since the twl4030 thinks its got Vbus, I've added code to dump the
+> TWL4030 register accesses and other structure in the twl4030-usb.c code
+> to understand what its doing. So, from power up(with nothing connected),
+> I see:
 > 
-> Looks like it needs to be refreshed, can you please repost?
+> twl4030_usb twl4030_usb: ++ twl4030_usb_ldo_init:
+> twl4030_usb twl4030_usb: -- twl4030_usb_ldo_init:
+> twl4030_usb twl4030_usb: ++ twl4030_usb_irq:
+> twl4030_usb twl4030_usb: twl4030_readb: module 12 address 0f data 72
+> twl4030_usb twl4030_usb: HW_CONDITIONS 0x72/114; link 1 (None)
+> twl4030_usb twl4030_usb: ++ twl4030_phy_suspend: controller_off 0
+> twl4030_usb twl4030_usb: -- twl4030_usb_irq:
+> twl4030_usb twl4030_usb: Initialized TWL4030 USB module
+> twl4030_usb twl4030_usb: twl4030_usb_write: address 0c data 20
+> 
+> 1) The only write is from twl4030_vbus_work to clear DRVBUS in OTG_CTRL
+> since HW_CONDITION shows Vbus and ID not set.
 
-Attached the new one.
+that's ok, so far.
 
-----Next_Part(Tue_Aug_11_12_47_49_2009_878)--
-Content-Type: Application/Octet-Stream
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="0001-omap-iommu-add-initial-debugfs-support.patch"
+> modprobe of the driver gives
+> 
+> OMAP-35x# modprobe musb_hdrc
+> musb_hdrc: version 6.0, pio, host, debug=3
+> twl4030_usb twl4030_usb: ++ twl4030_phy_resume:
+> twl4030_usb twl4030_usb: ++ twl4030_phy_power: on 1
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fd data 01
+> twl4030_usb twl4030_usb: twl4030_i2c_write_u8_verify: module 00 address
+> fd data 00
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fe data 06
+> twl4030_usb twl4030_usb: twl4030_usb_write: address fe data 06
+> twl4030_usb twl4030_usb: -- twl4030_phy_power:
+> twl4030_usb twl4030_usb: twl4030_i2c_access: on 1
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fe data 06
+> twl4030_usb twl4030_usb: twl4030_i2c_write_u8_verify: module 00 address
+> fe data 07
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address ff data 01
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address ff data 01
+> twl4030_usb twl4030_usb: -- twl4030_i2c_access:
+> twl4030_usb twl4030_usb: twl4030_usb_set_mode: mode 1
+> twl4030_usb twl4030_usb: twl4030_usb_write: address 09 data 04
+> twl4030_usb twl4030_usb: twl4030_usb_write: address ad data 20
+> twl4030_usb twl4030_usb: twl4030_usb_write: address 06 data 1b
+> twl4030_usb twl4030_usb: -- twl4030_usb_set_mode:
+> twl4030_usb twl4030_usb: twl4030_i2c_access: on 0
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fe data 07
+> twl4030_usb twl4030_usb: twl4030_i2c_write_u8_verify: module 00 address
+> fe data 06
+> twl4030_usb twl4030_usb: -- twl4030_i2c_access:
+> twl4030_usb twl4030_usb: -- twl4030_phy_resume:
+> HS USB OTG: revision 0x33, sysconfig 0x2010, sysstatus 0x1, intrfsel
+> 0x1, simenable  0x0
+> musb_hdrc: ConfigData=0xde (UTMI-8, dyn FIFOs, bulk combine (X), bulk
+> split (X), HB-ISO Rx, HB-ISO Tx, SoftConn)
+> musb_hdrc: MHDRC RTL version 1.400
+> musb_hdrc: setup fifo_mode 4
+> musb_hdrc: 28/31 max ep, 16384/16384 memory
+> musb_hdrc: hw_ep 0shared, max 64
+> musb_hdrc: hw_ep 1tx, max 512
+> musb_hdrc: hw_ep 1rx, max 512
+> musb_hdrc: hw_ep 2tx, max 512
+> musb_hdrc: hw_ep 2rx, max 512
+> musb_hdrc: hw_ep 3tx, max 512
+> musb_hdrc: hw_ep 3rx, max 512
+> musb_hdrc: hw_ep 4tx, max 512
+> musb_hdrc: hw_ep 4rx, max 512
+> musb_hdrc: hw_ep 5tx, max 512
+> musb_hdrc: hw_ep 5rx, max 512
+> musb_hdrc: hw_ep 6tx, max 512
+> musb_hdrc: hw_ep 6rx, max 512
+> musb_hdrc: hw_ep 7tx, max 512
+> musb_hdrc: hw_ep 7rx, max 512
+> musb_hdrc: hw_ep 8tx, max 512
+> musb_hdrc: hw_ep 8rx, max 512
+> musb_hdrc: hw_ep 9tx, max 512
+> musb_hdrc: hw_ep 9rx, max 512
+> musb_hdrc: hw_ep 10tx, max 256
+> musb_hdrc: hw_ep 10rx, max 64
+> musb_hdrc: hw_ep 11tx, max 256
+> musb_hdrc: hw_ep 11rx, max 64
+> musb_hdrc: hw_ep 12tx, max 256
+> musb_hdrc: hw_ep 12rx, max 64
+> musb_hdrc: hw_ep 13shared, max 4096
+> musb_hdrc: hw_ep 14shared, max 1024
+> musb_hdrc: hw_ep 15shared, max 1024
+> musb_hdrc: USB Host mode controller at d80ab000 using PIO, IRQ 92
+> musb_hdrc musb_hdrc: MUSB HDRC host driver
+> musb_hdrc musb_hdrc: new USB bus registered, assigned bus number 1
+> usb usb1: configuration #1 chosen from 1 choice
+> hub 1-0:1.0: USB hub found
+> hub 1-0:1.0: 1 port detected
+> musb_start 883: <== devctl 80
+> usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+> usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+> usb usb1: Product: MUSB HDRC host driver
+> usb usb1: Manufacturer: Linux 2.6.28-rc8-omap1-05704-gf6ea2bb-dirty
+> musb-hcd
+> usb usb1: SerialNumber: musb_hdrc
+> musb_init_controller 2057: HOST mode, status 0, devctl 81 B
+> twl4030_usb twl4030_usb: ++ twl4030_usb_irq:
+> twl4030_usb twl4030_usb: twl4030_readb: module 12 address 0f data f2
+> twl4030_usb twl4030_usb: HW_CONDITIONS 0xf2/242; link 2 (Vbus)
+> twl4030_usb twl4030_usb: ++ twl4030_phy_resume:
+> twl4030_usb twl4030_usb: -- twl4030_usb_irq:
+> twl4030_usb twl4030_usb: twl4030_usb_write: address 0c data 20
+> OMAP-35x# musb_stage2_irq 812: SUSPEND (b_idle) devctl 91 power e0
+> twl4030_usb twl4030_usb: ++ twl4030_usb_irq:
+> twl4030_usb twl4030_usb: twl4030_readb: module 12 address 0f data 72
+> twl4030_usb twl4030_usb: HW_CONDITIONS 0x72/114; link 1 (None)
+> twl4030_usb twl4030_usb: ++ twl4030_phy_suspend: controller_off 0
+> twl4030_usb twl4030_usb: ++ twl4030_phy_power: on 0
+> twl4030_usb twl4030_usb: twl4030_usb_write: address 0c data 20
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fd data 00
+> twl4030_usb twl4030_usb: twl4030_i2c_write_u8_verify: module 00 address
+> fd data 01
+> twl4030_usb twl4030_usb: -- twl4030_phy_power:
+> twl4030_usb twl4030_usb: -- twl4030_phy_suspend:
+> twl4030_usb twl4030_usb: -- twl4030_usb_irq:
+> 
+> 
+> As you can see, the twl4030-usb interrupt triggers and HW_CONDITIONS
+> shows that Vbus is set. At this point, musb_hdrc (apparently) tries to
+> talk to the device that it assumes is attached, and since nothing is out
+> there, triggers the SUSPEND interrupt and then the twl4030 triggers to
+> pull Vbus.
 
-RnJvbSBlNzY5NjM5ZDhmZTk4NTc5Y2ZkMDA3ZjA4NjI4MzYwZDdmZDM2ZTNjIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
-CkRhdGU6IFR1ZSwgMTEgQXVnIDIwMDkgMTI6Mzc6NDMgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
-MV0gb21hcCBpb21tdTogYWRkIGluaXRpYWwgZGVidWdmcyBzdXBwb3J0CgpUaGlzIGVuYWJsZXMg
-dG8gcGVlayB0aGUgZm9sbG93aW5nIGRhdGEuCgokIC9kZWJ1Zy9pb21tdS9pc3AjIGxzCm1lbSAg
-ICAgICAgICAgICBucl90bGJfZW50cmllcyAgcmVncwptbWFwICAgICAgICAgICAgcGFnZXRhYmxl
-ICAgICAgIHRsYgokIC9kZWJ1Zy9pb21tdS9pc3AjIGhlYWQgcGFnZXRhYmxlCkw6ICAgICAgZGE6
-ICAgICAgcGE6Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCjI6IDAw
-MDAxMDAwIDhhZTRhMDAyCjI6IDAwMDAyMDAwIDhlN2JiMDAyCjI6IDAwMDAzMDAwIDhhZTQ5MDAy
-CjI6IDAwMDA0MDAwIDhhZTY1MDAyCi4uLi4uCgpTaWduZWQtb2ZmLWJ5OiBIaXJvc2hpIERPWVUg
-PEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+Ci0tLQogYXJjaC9hcm0vcGxhdC1vbWFwL0tjb25maWcg
-ICAgICAgfCAgICA0ICsKIGFyY2gvYXJtL3BsYXQtb21hcC9NYWtlZmlsZSAgICAgIHwgICAgMSAr
-CiBhcmNoL2FybS9wbGF0LW9tYXAvaW9tbXUtZGVidWcuYyB8ICAzMzQgKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysKIDMgZmlsZXMgY2hhbmdlZCwgMzM5IGluc2VydGlvbnMo
-KyksIDAgZGVsZXRpb25zKC0pCiBjcmVhdGUgbW9kZSAxMDA2NDQgYXJjaC9hcm0vcGxhdC1vbWFw
-L2lvbW11LWRlYnVnLmMKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvS2NvbmZpZyBi
-L2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnCmluZGV4IGVmZTg1ZDAuLmFiOWY5ZWYgMTAwNjQ0
-Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnCisrKyBiL2FyY2gvYXJtL3BsYXQtb21h
-cC9LY29uZmlnCkBAIC0xMjAsNiArMTIwLDEwIEBAIGNvbmZpZyBPTUFQX01CT1hfRldLCiBjb25m
-aWcgT01BUF9JT01NVQogCXRyaXN0YXRlCiAKK2NvbmZpZyBPTUFQX0lPTU1VX0RFQlVHCisJZGVw
-ZW5kcyBvbiBPTUFQX0lPTU1VCisJdHJpc3RhdGUKKwogY2hvaWNlCiAgICAgICAgIHByb21wdCAi
-U3lzdGVtIHRpbWVyIgogCWRlZmF1bHQgT01BUF9NUFVfVElNRVIKZGlmZiAtLWdpdCBhL2FyY2gv
-YXJtL3BsYXQtb21hcC9NYWtlZmlsZSBiL2FyY2gvYXJtL3BsYXQtb21hcC9NYWtlZmlsZQppbmRl
-eCBhODMyNzk1Li43NjlhNGMyIDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9tYXAvTWFrZWZp
-bGUKKysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL01ha2VmaWxlCkBAIC0xNCw2ICsxNCw3IEBAIG9i
-ai0kKENPTkZJR19BUkNIX09NQVAxNlhYKSArPSBvY3BpLm8KIAogb2JqLSQoQ09ORklHX09NQVBf
-TUNCU1ApICs9IG1jYnNwLm8KIG9iai0kKENPTkZJR19PTUFQX0lPTU1VKSArPSBpb21tdS5vIGlv
-dm1tLm8KK29iai0kKENPTkZJR19PTUFQX0lPTU1VX0RFQlVHKSArPSBpb21tdS1kZWJ1Zy5vCiAK
-IG9iai0kKENPTkZJR19DUFVfRlJFUSkgKz0gY3B1LW9tYXAubwogb2JqLSQoQ09ORklHX09NQVBf
-RE1fVElNRVIpICs9IGRtdGltZXIubwpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2lv
-bW11LWRlYnVnLmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW9tbXUtZGVidWcuYwpuZXcgZmlsZSBt
-b2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi45ODExYzE5Ci0tLSAvZGV2L251bGwKKysrIGIvYXJj
-aC9hcm0vcGxhdC1vbWFwL2lvbW11LWRlYnVnLmMKQEAgLTAsMCArMSwzMzQgQEAKKy8qCisgKiBv
-bWFwIGlvbW11OiBkZWJ1Z2ZzIGludGVyZmFjZQorICoKKyAqIENvcHlyaWdodCAoQykgMjAwOC0y
-MDA5IE5va2lhIENvcnBvcmF0aW9uCisgKgorICogV3JpdHRlbiBieSBIaXJvc2hpIERPWVUgPEhp
-cm9zaGkuRE9ZVUBub2tpYS5jb20+CisgKgorICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdh
-cmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vciBtb2RpZnkKKyAqIGl0IHVuZGVyIHRo
-ZSB0ZXJtcyBvZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UgdmVyc2lvbiAyIGFzCisg
-KiBwdWJsaXNoZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbi4KKyAqLworCisjaW5j
-bHVkZSA8bGludXgvZXJyLmg+CisjaW5jbHVkZSA8bGludXgvY2xrLmg+CisjaW5jbHVkZSA8bGlu
-dXgvaW8uaD4KKyNpbmNsdWRlIDxsaW51eC91YWNjZXNzLmg+CisjaW5jbHVkZSA8bGludXgvcGxh
-dGZvcm1fZGV2aWNlLmg+CisjaW5jbHVkZSA8bGludXgvZGVidWdmcy5oPgorCisjaW5jbHVkZSA8
-bWFjaC9pb21tdS5oPgorI2luY2x1ZGUgPG1hY2gvaW92bW0uaD4KKworI2luY2x1ZGUgImlvcGd0
-YWJsZS5oIgorCisjZGVmaW5lIE1BWENPTFVNTiAxMDAgLyogZm9yIHNob3J0IG1lc3NhZ2VzICov
-CisKK3N0YXRpYyBERUZJTkVfTVVURVgoaW9tbXVfZGVidWdfbG9jayk7CitzdGF0aWMgY2hhciBs
-b2NhbF9idWZmZXJbU1pfNEtdOworCitzdGF0aWMgc3RydWN0IGRlbnRyeSAqaW9tbXVfZGVidWdf
-cm9vdDsKKworc3RhdGljIHNzaXplX3QgZGVidWdfcmVhZF92ZXIoc3RydWN0IGZpbGUgKmZpbGUs
-IGNoYXIgX191c2VyICp1c2VyYnVmLAorCQkJICAgICAgc2l6ZV90IGNvdW50LCBsb2ZmX3QgKnBw
-b3MpCit7CisJdTMyIHZlciA9IGlvbW11X2FyY2hfdmVyc2lvbigpOworCWNoYXIgYnVmW01BWENP
-TFVNTl0sICpwID0gYnVmOworCisJcCArPSBzcHJpbnRmKHAsICJIL1cgdmVyc2lvbjogJWQuJWRc
-biIsICh2ZXIgPj4gNCkgJiAweGYgLCB2ZXIgJiAweGYpOworCisJcmV0dXJuIHNpbXBsZV9yZWFk
-X2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBidWYsIHAgLSBidWYpOworfQorCitz
-dGF0aWMgc3NpemVfdCBkZWJ1Z19yZWFkX3JlZ3Moc3RydWN0IGZpbGUgKmZpbGUsIGNoYXIgX191
-c2VyICp1c2VyYnVmLAorCQkJICAgICAgIHNpemVfdCBjb3VudCwgbG9mZl90ICpwcG9zKQorewor
-CXN0cnVjdCBpb21tdSAqb2JqID0gZmlsZS0+cHJpdmF0ZV9kYXRhOworCWNoYXIgKnAgPSBsb2Nh
-bF9idWZmZXI7CisJc3NpemVfdCBieXRlczsKKworCW11dGV4X2xvY2soJmlvbW11X2RlYnVnX2xv
-Y2spOworCXAgKz0gaW9tbXVfZHVtcF9jdHgob2JqLCBwKTsKKwlieXRlcyA9IHNpbXBsZV9yZWFk
-X2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBsb2NhbF9idWZmZXIsCisJCQkJCXAg
-LSBsb2NhbF9idWZmZXIpOworCW11dGV4X3VubG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisJcmV0
-dXJuIGJ5dGVzOworfQorCitzdGF0aWMgc3NpemVfdCBkZWJ1Z19yZWFkX3RsYihzdHJ1Y3QgZmls
-ZSAqZmlsZSwgY2hhciBfX3VzZXIgKnVzZXJidWYsCisJCQkgICAgICBzaXplX3QgY291bnQsIGxv
-ZmZfdCAqcHBvcykKK3sKKwlzdHJ1Y3QgaW9tbXUgKm9iaiA9IGZpbGUtPnByaXZhdGVfZGF0YTsK
-KwljaGFyICpwID0gbG9jYWxfYnVmZmVyOworCXNzaXplX3QgYnl0ZXM7CisKKwltdXRleF9sb2Nr
-KCZpb21tdV9kZWJ1Z19sb2NrKTsKKwlwICs9IHNwcmludGYocCwgIiU4cyAlOHNcbiIsICJjYW06
-IiwgInJhbToiKTsKKwlwICs9IHNwcmludGYocCwgIi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tXG4iKTsKKwlwICs9IGR1bXBfdGxiX2VudHJpZXMob2JqLCBwKTsKKwli
-eXRlcyA9IHNpbXBsZV9yZWFkX2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBsb2Nh
-bF9idWZmZXIsCisJCQkJCXAgLSBsb2NhbF9idWZmZXIpOworCW11dGV4X3VubG9jaygmaW9tbXVf
-ZGVidWdfbG9jayk7CisJcmV0dXJuIGJ5dGVzOworfQorCitzdGF0aWMgc3NpemVfdCBkZWJ1Z193
-cml0ZV9wYWdldGFibGUoc3RydWN0IGZpbGUgKmZpbGUsCisJCSAgICAgY29uc3QgY2hhciBfX3Vz
-ZXIgKnVzZXJidWYsIHNpemVfdCBjb3VudCwgbG9mZl90ICpwcG9zKQoreworCXN0cnVjdCBpb3Rs
-Yl9lbnRyeSBlOworCXN0cnVjdCBjcl9yZWdzIGNyOworCWludCBlcnI7CisJc3RydWN0IGlvbW11
-ICpvYmogPSBmaWxlLT5wcml2YXRlX2RhdGE7CisJY2hhciBidWZbTUFYQ09MVU1OXSwgKnAgPSBi
-dWY7CisKKwljb3VudCA9IG1pbihjb3VudCwgc2l6ZW9mKGJ1ZikpOworCisJbXV0ZXhfbG9jaygm
-aW9tbXVfZGVidWdfbG9jayk7CisJaWYgKGNvcHlfZnJvbV91c2VyKHAsIHVzZXJidWYsIGNvdW50
-KSkgeworCQltdXRleF91bmxvY2soJmlvbW11X2RlYnVnX2xvY2spOworCQlyZXR1cm4gLUVGQVVM
-VDsKKwl9CisKKwlzc2NhbmYocCwgIiV4ICV4IiwgJmNyLmNhbSwgJmNyLnJhbSk7CisJaWYgKCFj
-ci5jYW0gfHwgIWNyLnJhbSkgeworCQltdXRleF91bmxvY2soJmlvbW11X2RlYnVnX2xvY2spOwor
-CQlyZXR1cm4gLUVJTlZBTDsKKwl9CisKKwlpb3RsYl9jcl90b19lKCZjciwgJmUpOworCWVyciA9
-IGlvcGd0YWJsZV9zdG9yZV9lbnRyeShvYmosICZlKTsKKwlpZiAoZXJyKQorCQlkZXZfZXJyKG9i
-ai0+ZGV2LCAiJXM6IGZhaWwgdG8gc3RvcmUgY3JcbiIsIF9fZnVuY19fKTsKKworCW11dGV4X3Vu
-bG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisJcmV0dXJuIGNvdW50OworfQorCitzdGF0aWMgc3Np
-emVfdCBkZWJ1Z19yZWFkX3BhZ2V0YWJsZShzdHJ1Y3QgZmlsZSAqZmlsZSwgY2hhciBfX3VzZXIg
-KnVzZXJidWYsCisJCQkJICAgIHNpemVfdCBjb3VudCwgbG9mZl90ICpwcG9zKQoreworCWludCBp
-OworCXUzMiAqaW9wZ2Q7CisJc3RydWN0IGlvbW11ICpvYmogPSBmaWxlLT5wcml2YXRlX2RhdGE7
-CisJY2hhciAqcCA9IGxvY2FsX2J1ZmZlcjsKKwlzc2l6ZV90IGJ5dGVzOworCisJbXV0ZXhfbG9j
-aygmaW9tbXVfZGVidWdfbG9jayk7CisKKwlwICs9IHNwcmludGYocCwgIkw6ICU4cyAlOHNcbiIs
-ICJkYToiLCAicGE6Iik7CisJcCArPSBzcHJpbnRmKHAsICItLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLVxuIik7CisKKwlzcGluX2xvY2soJm9iai0+cGFnZV90YWJsZV9s
-b2NrKTsKKworCWlvcGdkID0gaW9wZ2Rfb2Zmc2V0KG9iaiwgMCk7CisJZm9yIChpID0gMDsgaSA8
-IFBUUlNfUEVSX0lPUEdEOyBpKyssIGlvcGdkKyspIHsKKwkJaW50IGo7CisJCXUzMiAqaW9wdGU7
-CisKKwkJaWYgKCEqaW9wZ2QpCisJCQljb250aW51ZTsKKworCQlpZiAoISgqaW9wZ2QgJiBJT1BH
-RF9UQUJMRSkpIHsKKwkJCXUzMiBkYTsKKworCQkJZGEgPSBpIDw8IElPUEdEX1NISUZUOworCQkJ
-cCArPSBzcHJpbnRmKHAsICIxOiAlMDh4ICUwOHhcbiIsIGRhLCAqaW9wZ2QpOworCQkJY29udGlu
-dWU7CisJCX0KKworCQlpb3B0ZSA9IGlvcHRlX29mZnNldChpb3BnZCwgMCk7CisKKwkJZm9yIChq
-ID0gMDsgaiA8IFBUUlNfUEVSX0lPUFRFOyBqKyssIGlvcHRlKyspIHsKKwkJCXUzMiBkYTsKKwor
-CQkJaWYgKCEqaW9wdGUpCisJCQkJY29udGludWU7CisKKwkJCWRhID0gKGkgPDwgSU9QR0RfU0hJ
-RlQpICsgKGogPDwgSU9QVEVfU0hJRlQpOworCQkJcCArPSBzcHJpbnRmKHAsICIyOiAlMDh4ICUw
-OHhcbiIsIGRhLCAqaW9wdGUpOworCQl9CisJfQorCXNwaW5fdW5sb2NrKCZvYmotPnBhZ2VfdGFi
-bGVfbG9jayk7CisKKwlieXRlcyA9IHNpbXBsZV9yZWFkX2Zyb21fYnVmZmVyKHVzZXJidWYsIGNv
-dW50LCBwcG9zLCBsb2NhbF9idWZmZXIsCisJCQkJCXAgLSBsb2NhbF9idWZmZXIpOworCW11dGV4
-X3VubG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisJcmV0dXJuIGJ5dGVzOworfQorCitzdGF0aWMg
-c3NpemVfdCBkZWJ1Z19yZWFkX21tYXAoc3RydWN0IGZpbGUgKmZpbGUsIGNoYXIgX191c2VyICp1
-c2VyYnVmLAorCQkJICAgICAgIHNpemVfdCBjb3VudCwgbG9mZl90ICpwcG9zKQoreworCXN0cnVj
-dCBpb21tdSAqb2JqID0gZmlsZS0+cHJpdmF0ZV9kYXRhOworCWNoYXIgKnAgPSBsb2NhbF9idWZm
-ZXI7CisJc3RydWN0IGlvdm1fc3RydWN0ICp0bXA7CisJaW50IHVuaW5pdGlhbGl6ZWRfdmFyKGkp
-OworCXNzaXplX3QgYnl0ZXM7CisKKwltdXRleF9sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwor
-CXAgKz0gc3ByaW50ZihwLCAiJS0zcyAlLThzICUtOHMgJTZzICU4c1xuIiwKKwkJICAgICAiTm8i
-LCAic3RhcnQiLCAiZW5kIiwgInNpemUiLCAiZmxhZ3MiKTsKKwlwICs9IHNwcmludGYocCwgIi0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS1cbiIpOworCisJ
-bGlzdF9mb3JfZWFjaF9lbnRyeSh0bXAsICZvYmotPm1tYXAsIGxpc3QpIHsKKwkJc2l6ZV90IGxl
-bjsKKworCQlsZW4gPSB0bXAtPmRhX2VuZCAtIHRtcC0+ZGFfc3RhcnQ7CisJCXAgKz0gc3ByaW50
-ZihwLCAiJTNkICUwOHgtJTA4eCAlNnggJTh4XG4iLAorCQkJICAgICBpLCB0bXAtPmRhX3N0YXJ0
-LCB0bXAtPmRhX2VuZCwgbGVuLCB0bXAtPmZsYWdzKTsKKwkJaSsrOworCX0KKwlieXRlcyA9IHNp
-bXBsZV9yZWFkX2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBsb2NhbF9idWZmZXIs
-CisJCQkJCXAgLSBsb2NhbF9idWZmZXIpOworCW11dGV4X3VubG9jaygmaW9tbXVfZGVidWdfbG9j
-ayk7CisJcmV0dXJuIGJ5dGVzOworfQorCitzdGF0aWMgc3NpemVfdCBkZWJ1Z19yZWFkX21lbShz
-dHJ1Y3QgZmlsZSAqZmlsZSwgY2hhciBfX3VzZXIgKnVzZXJidWYsCisJCQkgICAgICBzaXplX3Qg
-Y291bnQsIGxvZmZfdCAqcHBvcykKK3sKKwlzdHJ1Y3QgaW9tbXUgKm9iaiA9IGZpbGUtPnByaXZh
-dGVfZGF0YTsKKwljaGFyICpwID0gbG9jYWxfYnVmZmVyOworCXN0cnVjdCBpb3ZtX3N0cnVjdCAq
-YXJlYTsKKwlzc2l6ZV90IGJ5dGVzOworCisJbXV0ZXhfbG9jaygmaW9tbXVfZGVidWdfbG9jayk7
-CisKKwlhcmVhID0gZmluZF9pb3ZtX2FyZWEob2JqLCAodTMyKXBwb3MpOworCWlmIChJU19FUlIo
-YXJlYSkpIHsKKwkJbXV0ZXhfdW5sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwkJcmV0dXJuIC1F
-SU5WQUw7CisJfQorCW1lbWNweShwLCBhcmVhLT52YSwgY291bnQpOworCXAgKz0gY291bnQ7CisK
-KwlieXRlcyA9IHNpbXBsZV9yZWFkX2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBs
-b2NhbF9idWZmZXIsCisJCQkJCXAgLSBsb2NhbF9idWZmZXIpOworCW11dGV4X3VubG9jaygmaW9t
-bXVfZGVidWdfbG9jayk7CisJcmV0dXJuIGJ5dGVzOworfQorCitzdGF0aWMgc3NpemVfdCBkZWJ1
-Z193cml0ZV9tZW0oc3RydWN0IGZpbGUgKmZpbGUsIGNvbnN0IGNoYXIgX191c2VyICp1c2VyYnVm
-LAorCQkJICAgICAgIHNpemVfdCBjb3VudCwgbG9mZl90ICpwcG9zKQoreworCXN0cnVjdCBpb21t
-dSAqb2JqID0gZmlsZS0+cHJpdmF0ZV9kYXRhOworCXN0cnVjdCBpb3ZtX3N0cnVjdCAqYXJlYTsK
-KwljaGFyICpwID0gbG9jYWxfYnVmZmVyOworCisJY291bnQgPSBtaW4oY291bnQsIHNpemVvZihs
-b2NhbF9idWZmZXIpKTsKKworCW11dGV4X2xvY2soJmlvbW11X2RlYnVnX2xvY2spOworCisJaWYg
-KGNvcHlfZnJvbV91c2VyKHAsIHVzZXJidWYsIGNvdW50KSkgeworCQltdXRleF91bmxvY2soJmlv
-bW11X2RlYnVnX2xvY2spOworCQlyZXR1cm4gLUVGQVVMVDsKKwl9CisKKwlhcmVhID0gZmluZF9p
-b3ZtX2FyZWEob2JqLCAodTMyKXBwb3MpOworCWlmIChJU19FUlIoYXJlYSkpIHsKKwkJbXV0ZXhf
-dW5sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQorCW1lbWNw
-eShhcmVhLT52YSwgcCwgY291bnQpOworCW11dGV4X3VubG9jaygmaW9tbXVfZGVidWdfbG9jayk7
-CisJcmV0dXJuIGNvdW50OworfQorCitzdGF0aWMgaW50IGRlYnVnX29wZW5fZ2VuZXJpYyhzdHJ1
-Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZmlsZSAqZmlsZSkKK3sKKwlmaWxlLT5wcml2YXRlX2Rh
-dGEgPSBpbm9kZS0+aV9wcml2YXRlOworCXJldHVybiAwOworfQorCisjZGVmaW5lIERFQlVHX0ZP
-UFMobmFtZSkJCQkJCQlcCisJc3RhdGljIGNvbnN0IHN0cnVjdCBmaWxlX29wZXJhdGlvbnMgZGVi
-dWdfIyNuYW1lIyNfZm9wcyA9IHsJXAorCQkub3BlbiA9IGRlYnVnX29wZW5fZ2VuZXJpYywJCQkJ
-XAorCQkucmVhZCA9IGRlYnVnX3JlYWRfIyNuYW1lLAkJCQlcCisJCS53cml0ZSA9IGRlYnVnX3dy
-aXRlXyMjbmFtZSwJCQkJXAorCX07CisKKyNkZWZpbmUgREVCVUdfRk9QU19STyhuYW1lKQkJCQkJ
-CVwKKwlzdGF0aWMgY29uc3Qgc3RydWN0IGZpbGVfb3BlcmF0aW9ucyBkZWJ1Z18jI25hbWUjI19m
-b3BzID0gewlcCisJCS5vcGVuID0gZGVidWdfb3Blbl9nZW5lcmljLAkJCQlcCisJCS5yZWFkID0g
-ZGVidWdfcmVhZF8jI25hbWUsCQkJCVwKKwl9OworCitERUJVR19GT1BTX1JPKHZlcik7CitERUJV
-R19GT1BTX1JPKHJlZ3MpOworREVCVUdfRk9QU19STyh0bGIpOworREVCVUdfRk9QUyhwYWdldGFi
-bGUpOworREVCVUdfRk9QU19STyhtbWFwKTsKK0RFQlVHX0ZPUFMobWVtKTsKKworI2RlZmluZSBf
-X0RFQlVHX0FERF9GSUxFKGF0dHIsIG1vZGUpCQkJCQlcCisJewkJCQkJCQkJXAorCQlzdHJ1Y3Qg
-ZGVudHJ5ICpkZW50OwkJCQkJXAorCQlkZW50ID0gZGVidWdmc19jcmVhdGVfZmlsZSgjYXR0ciwg
-bW9kZSwgcGFyZW50LAkJXAorCQkJCQkgICBvYmosICZkZWJ1Z18jI2F0dHIjI19mb3BzKTsJXAor
-CQlpZiAoIWRlbnQpCQkJCQkJXAorCQkJcmV0dXJuIC1FTk9NRU07CQkJCQlcCisJfQorCisjZGVm
-aW5lIERFQlVHX0FERF9GSUxFKG5hbWUpIF9fREVCVUdfQUREX0ZJTEUobmFtZSwgNjAwKQorI2Rl
-ZmluZSBERUJVR19BRERfRklMRV9STyhuYW1lKSBfX0RFQlVHX0FERF9GSUxFKG5hbWUsIDQwMCkK
-Kworc3RhdGljIGludCBpb21tdV9kZWJ1Z19yZWdpc3RlcihzdHJ1Y3QgZGV2aWNlICpkZXYsIHZv
-aWQgKmRhdGEpCit7CisJc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldiA9IHRvX3BsYXRmb3Jt
-X2RldmljZShkZXYpOworCXN0cnVjdCBpb21tdSAqb2JqID0gcGxhdGZvcm1fZ2V0X2RydmRhdGEo
-cGRldik7CisJc3RydWN0IGRlbnRyeSAqZCwgKnBhcmVudDsKKworCWlmICghb2JqIHx8ICFvYmot
-PmRldikKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwlkID0gZGVidWdmc19jcmVhdGVfZGlyKG9iai0+
-bmFtZSwgaW9tbXVfZGVidWdfcm9vdCk7CisJaWYgKCFkKQorCQlyZXR1cm4gLUVOT01FTTsKKwlw
-YXJlbnQgPSBkOworCisJZCA9IGRlYnVnZnNfY3JlYXRlX3U4KCJucl90bGJfZW50cmllcyIsIDQw
-MCwgcGFyZW50LAorCQkJICAgICAgKHU4ICopJm9iai0+bnJfdGxiX2VudHJpZXMpOworCWlmICgh
-ZCkKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlERUJVR19BRERfRklMRV9STyh2ZXIpOworCURFQlVH
-X0FERF9GSUxFX1JPKHJlZ3MpOworCURFQlVHX0FERF9GSUxFX1JPKHRsYik7CisJREVCVUdfQURE
-X0ZJTEUocGFnZXRhYmxlKTsKKwlERUJVR19BRERfRklMRV9STyhtbWFwKTsKKwlERUJVR19BRERf
-RklMRShtZW0pOworCisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgX19pbml0IGlvbW11X2Rl
-YnVnX2luaXQodm9pZCkKK3sKKwlzdHJ1Y3QgZGVudHJ5ICpkOworCWludCBlcnI7CisKKwlkID0g
-ZGVidWdmc19jcmVhdGVfZGlyKCJpb21tdSIsIE5VTEwpOworCWlmICghZCkKKwkJcmV0dXJuIC1F
-Tk9NRU07CisJaW9tbXVfZGVidWdfcm9vdCA9IGQ7CisKKwllcnIgPSBmb3JlYWNoX2lvbW11X2Rl
-dmljZShkLCBpb21tdV9kZWJ1Z19yZWdpc3Rlcik7CisJaWYgKGVycikKKwkJZ290byBlcnJfb3V0
-OworCXJldHVybiAwOworCitlcnJfb3V0OgorCWRlYnVnZnNfcmVtb3ZlX3JlY3Vyc2l2ZShpb21t
-dV9kZWJ1Z19yb290KTsKKwlyZXR1cm4gZXJyOworfQorbW9kdWxlX2luaXQoaW9tbXVfZGVidWdf
-aW5pdCkKKworc3RhdGljIHZvaWQgX19leGl0IGlvbW11X2RlYnVnZnNfZXhpdCh2b2lkKQorewor
-CWRlYnVnZnNfcmVtb3ZlX3JlY3Vyc2l2ZShpb21tdV9kZWJ1Z19yb290KTsKK30KK21vZHVsZV9l
-eGl0KGlvbW11X2RlYnVnZnNfZXhpdCkKKworTU9EVUxFX0RFU0NSSVBUSU9OKCJvbWFwIGlvbW11
-OiBkZWJ1Z2ZzIGludGVyZmFjZSIpOworTU9EVUxFX0FVVEhPUigiSGlyb3NoaSBET1lVIDxIaXJv
-c2hpLkRPWVVAbm9raWEuY29tPiIpOworTU9EVUxFX0xJQ0VOU0UoIkdQTCB2MiIpOwotLSAKMS42
-LjAuNAoK
+weird you got a suspend irq. that should only come when musb sees 3
+consecutive SOFs.
 
-----Next_Part(Tue_Aug_11_12_47_49_2009_878)----
+Anyways, that shouldn't harm, and that new device found is just the
+roothub. Should be fine as well.
+
+> > 1. connect micro-a cable and see what happens and what musb tells you ?
+> 
+> twl4030_usb twl4030_usb: ++ twl4030_usb_irq:
+> twl4030_usb twl4030_usb: twl4030_readb: module 12 address 0f data 76
+> twl4030_usb twl4030_usb: HW_CONDITIONS 0x76/118; link 3 (ID)
+> twl4030_usb twl4030_usb: ++ twl4030_phy_resume:
+> twl4030_usb twl4030_usb: ++ twl4030_phy_power: on 1
+> twl4030_usb twl4030_usb: twl4030_usb_write: address 0b data 20
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fd data 01
+> twl4030_usb twl4030_usb: twl4030_i2c_write_u8_verify: module 00 address
+> fd data 00
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fe data 06
+> twl4030_usb twl4030_usb: twl4030_usb_write: address fe data 06
+> twl4030_usb twl4030_usb: -- twl4030_phy_power:
+> twl4030_usb twl4030_usb: ++ twl4030_i2c_access: on 1
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fe data 06
+> twl4030_usb twl4030_usb: twl4030_i2c_write_u8_verify: module 00 address
+> fe data 07
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address ff data 01
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address ff data 01
+> twl4030_usb twl4030_usb: -- twl4030_i2c_access:
+> twl4030_usb twl4030_usb: ++ twl4030_usb_set_mode: mode 1
+> twl4030_usb twl4030_usb: twl4030_usb_write: address 09 data 04
+> twl4030_usb twl4030_usb: twl4030_usb_write: address ad data 20
+> twl4030_usb twl4030_usb: twl4030_usb_write: address 06 data 1b
+> twl4030_usb twl4030_usb: -- twl4030_usb_set_mode:
+> twl4030_usb twl4030_usb: twl4030_i2c_access: on 0
+> twl4030_usb twl4030_usb: twl4030_readb: module 00 address fe data 07
+> twl4030_usb twl4030_usb: twl4030_i2c_write_u8_verify: module 00 address
+> fe data 06
+> twl4030_usb twl4030_usb: -- twl4030_i2c_access:
+> twl4030_usb twl4030_usb: -- twl4030_phy_resume:
+> twl4030_usb twl4030_usb: -- twl4030_usb_irq:
+
+but this is weird. When you connect micro-A, vbus should go on and musb
+should set the session bit in the devctl register. Maybe that's what
+it's missing.
+
+let's try some other hackish test, apply this patch and after connecting
+micro-a cable do: echo 1 > /sys/devices/platform/musb_hdrc/connect
+
+diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+index c7c1ca0..9a615ee 100644
+--- a/drivers/usb/musb/musb_core.c
++++ b/drivers/usb/musb/musb_core.c
+@@ -1682,6 +1682,54 @@ musb_mode_store(struct device *dev, struct device_attribute *attr,
+ static DEVICE_ATTR(mode, 0644, musb_mode_show, musb_mode_store);
+ 
+ static ssize_t
++musb_connect_show(struct device *dev, struct device_attribute *attr, char *buf)
++{
++       struct musb     *musb = dev_to_musb(dev);
++       unsigned long   flags;
++       int             ret = -EINVAL;
++
++       spin_lock_irqsave(&musb->lock, flags);
++       ret = sprintf(buf, "%d\n", musb->softconnect);
++       spin_unlock_irqrestore(&musb->lock, flags);
++
++       return ret;
++}
++
++static ssize_t
++musb_connect_store(struct device *dev, struct device_attribute *attr,
++               const char *buf, size_t n)
++{
++       struct musb     *musb = dev_to_musb(dev);
++       unsigned long   flags;
++       unsigned        val;
++       int             status;
++       u8              power;
++
++       status = sscanf(buf, "%u", &val);
++       if (status < 1) {
++               printk(KERN_ERR "invalid parameter, %d\n", status);
++               return -EINVAL;
++       }
++
++       spin_lock_irqsave(&musb->lock, flags);
++
++       power = musb_readb(musb->mregs, MUSB_POWER);
++
++       if (val)
++               power |= MUSB_POWER_SOFTCONN;
++       else
++               power &= ~MUSB_POWER_SOFTCONN;
++
++       musb->softconnect = !!val;
++       musb_writeb(musb->mregs, MUSB_POWER, power);
++
++       spin_unlock_irqrestore(&musb->lock, flags);
++
++       return n;
++}
++static DEVICE_ATTR(connect, 0644, musb_connect_show, musb_connect_store);
++
++static ssize_t
+ musb_vbus_store(struct device *dev, struct device_attribute *attr,
+                const char *buf, size_t n)
+ {
+@@ -1828,6 +1876,7 @@ static void musb_free(struct musb *musb)
+ 
+ #ifdef CONFIG_SYSFS
+        device_remove_file(musb->controller, &dev_attr_mode);
++       device_remove_file(musb->controller, &dev_attr_connect);
+        device_remove_file(musb->controller, &dev_attr_vbus);
+ #ifdef CONFIG_USB_GADGET_MUSB_HDRC
+        device_remove_file(musb->controller, &dev_attr_srp);
+@@ -2074,6 +2123,7 @@ bad_config:
+ 
+ #ifdef CONFIG_SYSFS
+        status = device_create_file(dev, &dev_attr_mode);
++       status = device_create_file(dev, &dev_attr_connect);
+        status = device_create_file(dev, &dev_attr_vbus);
+ #ifdef CONFIG_USB_GADGET_MUSB_HDRC
+        status = device_create_file(dev, &dev_attr_srp);
+@@ -2088,6 +2138,7 @@ bad_config:
+ fail2:
+ #ifdef CONFIG_SYSFS
+        device_remove_file(musb->controller, &dev_attr_mode);
++       device_remove_file(musb->controller, &dev_attr_connect);
+        device_remove_file(musb->controller, &dev_attr_vbus);
+ #ifdef CONFIG_USB_GADGET_MUSB_HDRC
+        device_remove_file(musb->controller, &dev_attr_srp);
+
+-- 
+balbi
