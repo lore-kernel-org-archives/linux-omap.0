@@ -1,71 +1,22 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH] MAINTAINERS: Add list entries
- linux-arm@vger.kernel.org and linux-arm-kernel@ to OMAP sections
-Date: Mon, 10 Aug 2009 16:48:06 -0700
-Message-ID: <1249948086.8895.95.camel@Joe-Laptop.home>
-References: <1249576450.3467.25.camel@Joe-Laptop.home>
-	 <20090807080102.GV2358@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: DSPBRIDGE: Tie Resource accounting to Process Context
+Date: Tue, 11 Aug 2009 04:21:41 +0300
+Message-ID: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:3112 "EHLO
-	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799AbZHJXs6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 19:48:58 -0400
-In-Reply-To: <20090807080102.GV2358@atomide.com>
+Received: from smtp.nokia.com ([192.100.105.134]:49872 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751785AbZHKBWD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:03 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-arm@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Felipe Balbi <felipe.balbi@nokia.com>, David Brownell <dbrownell@users.sourceforge.net>, Andrew Morton <akpm@linux-foundation.org>
+To: linux-omap@vger.kernel.org
+Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, suyog@ti.com, roman.tereshonkov@nokia.com, ernesto@ti.com
 
-Resend for Andrew Morton
+This patch series uses filp->private data to get access to a PROCESS_CONTEXT
+pointer which in turn tracks all the resources tied to an open file handle.
 
-On Fri, 2009-08-07 at 11:01 +0300, Tony Lindgren wrote:
-> * Joe Perches <joe@perches.com> [090806 19:35]:
-> > Perhaps it's useful for OMAP patches and bug reports
-> > to CC entries to the primary and secondary ARM lists.
-> > Added a pattern entry for OMAP USB as well.
-> ... I think let's not add the drivers. The related driver list
-> and linux-omap list should be enough for these.
-
-Fine by me.  I fixed up your M: entry as well.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b1114cf..6a82733 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -3660,8 +3660,10 @@ F:	drivers/video/riva/
- F:	drivers/video/nvidia/
- 
- OMAP SUPPORT
--M:	"Tony Lindgren <tony@atomide.com>" <tony@atomide.com>
-+M:	Tony Lindgren <tony@atomide.com>
- L:	linux-omap@vger.kernel.org
-+L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
-+L:	linux-arm@vger.kernel.org
- W:	http://www.muru.com/linux/omap/
- W:	http://linux.omap.com/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
-@@ -3671,12 +3673,16 @@ F:	arch/arm/*omap*
- OMAP CLOCK FRAMEWORK SUPPORT
- M:	Paul Walmsley <paul@pwsan.com>
- L:	linux-omap@vger.kernel.org
-+L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
-+L:	linux-arm@vger.kernel.org
- S:	Maintained
- F:	arch/arm/*omap*/*clock*
- 
- OMAP POWER MANAGEMENT SUPPORT
- M:	Kevin Hilman <khilman@deeprootsystems.com>
- L:	linux-omap@vger.kernel.org
-+L:	linux-arm-kernel@lists.arm.linux.org.uk	(subscribers-only)
-+L:	linux-arm@vger.kernel.org
- S:	Maintained
- F:	arch/arm/*omap*/*pm*
- 
-
+This will help in:
+1. Implementation of clean resource accounting.
+2. Proper resource cleanup irrespective of multithreading or multitasking in
+   user space applications.
 
