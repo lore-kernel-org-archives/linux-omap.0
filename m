@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv2 11/20] OMAP: McBSP: Retain McBSP FCLK clockactivity
-Date: Tue, 11 Aug 2009 16:05:22 +0300
-Message-ID: <1249995931-26015-12-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv2 17/20] ASoC: OMAP: Make DMA 64 aligned
+Date: Tue, 11 Aug 2009 16:05:28 +0300
+Message-ID: <1249995931-26015-18-git-send-email-eduardo.valentin@nokia.com>
 References: <1249995931-26015-1-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-2-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-3-git-send-email-eduardo.valentin@nokia.com>
@@ -13,67 +13,52 @@ References: <1249995931-26015-1-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-9-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-10-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-11-git-send-email-eduardo.valentin@nokia.com>
+ <1249995931-26015-12-git-send-email-eduardo.valentin@nokia.com>
+ <1249995931-26015-13-git-send-email-eduardo.valentin@nokia.com>
+ <1249995931-26015-14-git-send-email-eduardo.valentin@nokia.com>
+ <1249995931-26015-15-git-send-email-eduardo.valentin@nokia.com>
+ <1249995931-26015-16-git-send-email-eduardo.valentin@nokia.com>
+ <1249995931-26015-17-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19805 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754305AbZHKNSk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 09:18:40 -0400
-In-Reply-To: <1249995931-26015-11-git-send-email-eduardo.valentin@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:46178 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754598AbZHKNSm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 09:18:42 -0400
+In-Reply-To: <1249995931-26015-17-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-FCLK may get autogated so that it prevents the McBSP
-to work properly. It is the bit 9 that must be set
-for maintaining the McBSP FCLK.
-
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-Acked-by: Jarkko Nikula <jarkko.nikula@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/mcbsp.h |    1 +
- arch/arm/plat-omap/mcbsp.c              |    6 +++---
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ sound/soc/omap/omap-pcm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index 776ea4d..895f001 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -254,6 +254,7 @@
- #define RDISABLE		0x0001
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index d8f52e8..b41a18b 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -310,7 +310,7 @@ static struct snd_pcm_ops omap_pcm_ops = {
+ 	.mmap		= omap_pcm_mmap,
+ };
  
- /********************** McBSP SYSCONFIG bit definitions ********************/
-+#define CLOCKACTIVITY(value)	((value)<<8)
- #define SIDLEMODE(value)	((value)<<3)
- #define ENAWAKEUP		0x0004
- #define SOFTRST			0x0002
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 940ef03..e87c887 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -316,8 +316,8 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- 		u16 syscon;
+-static u64 omap_pcm_dmamask = DMA_BIT_MASK(32);
++static u64 omap_pcm_dmamask = DMA_BIT_MASK(64);
  
- 		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
--		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
--		syscon |= (ENAWAKEUP | SIDLEMODE(0x02));
-+		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
-+		syscon |= (ENAWAKEUP | SIDLEMODE(0x02) | CLOCKACTIVITY(0x02));
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
+ static int omap_pcm_preallocate_dma_buffer(struct snd_pcm *pcm,
+ 	int stream)
+@@ -360,7 +360,7 @@ int omap_pcm_new(struct snd_card *card, struct snd_soc_dai *dai,
+ 	if (!card->dev->dma_mask)
+ 		card->dev->dma_mask = &omap_pcm_dmamask;
+ 	if (!card->dev->coherent_dma_mask)
+-		card->dev->coherent_dma_mask = DMA_BIT_MASK(32);
++		card->dev->coherent_dma_mask = DMA_BIT_MASK(64);
  
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, XRDYEN | RRDYEN);
-@@ -333,7 +333,7 @@ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
- 		u16 syscon;
- 
- 		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
--		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
-+		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
- 
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, 0);
+ 	if (dai->playback.channels_min) {
+ 		ret = omap_pcm_preallocate_dma_buffer(pcm,
 -- 
 1.6.2.GIT
 
