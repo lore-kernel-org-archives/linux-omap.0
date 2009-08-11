@@ -1,54 +1,75 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH 1/2] arm: omap: beagle: add missing twl4030 usb platform_data
-Date: Tue, 11 Aug 2009 11:43:12 +0300
-Message-ID: <1249980192-17843-1-git-send-email-felipe.balbi@nokia.com>
-References: <20090811080450.GP1938@atomide.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27448 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753821AbZHKMSz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 08:18:55 -0400
-Received: from mgw-mx06.nokia.com (mgw-mx06.nokia.com [192.100.122.233])
-	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n7B92igh028629
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-omap@vger.kernel.org>; Tue, 11 Aug 2009 12:02:44 +0300
-In-Reply-To: <20090811080450.GP1938@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 16/20] ASoC: OMAP: Use McBSP threshold again
+Date: Tue, 11 Aug 2009 08:34:45 +0300
+Message-ID: <20090811083445.3d5ee595.jhnikula@gmail.com>
+References: <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-11-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-14-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-15-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-16-git-send-email-eduardo.valentin@nokia.com>
+	<1248958183-15015-17-git-send-email-eduardo.valentin@nokia.com>
+	<20090805104856.ff3e0f31.jhnikula@gmail.com>
+	<20090810085355.GA23461@esdhcp037198.research.nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090810085355.GA23461@esdhcp037198.research.nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Eduardo Valentin <eduardo.valentin@nokia.com>, Felipe Balbi <felipe.balbi@nokia.com>
 
-without it twl4030_usb driver will not probe.
+On Mon, 10 Aug 2009 11:53:55 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
----
+> > Oops, didn't notice this before. This will hard glue the DMA and McBSP
+> > together. Even currently there is only McBSP based DAI link driver,
+> > there can be others as well. EAC DAI for OMAP2420 would be necessary
+> > for instance if one wants to develop ASoC support for Nokia N800. Nokia
+> > N810 could use that too.
+> 
+> True. And the same comment is valid for the patch which adds op mode selection.
+> My idea to un-glue them is to put some callbacks in omap_mcbsp_data of omap-mcbsp.c,
+> and share it as something more generic, so that they can be called from omap-pcm.c.
+> 
+> Something like:
+> 
+> struct omap_dma_data {
+> 	unsigned int			bus_id;
+> 	unsigned int			fmt;
+> 	/*
+> 	 * Flags indicating is the bus already activated and configured by
+> 	 * another substream
+> 	 */
+> 	int				active;
+> 	int				configured;
+> 	/* threshold callbacks can be added then here */
+> 	void				*data; /* struct omap_mcbsp_reg_cfg	regs; can go here */
+> };
+> 
+> And this goes in omap-pcm.h.
+> 
+> what do you think??
+> 
+I'm thinking is it just enough to share sync_mode between the
+omap-pcm.c and omap-mcbsp.c? For me it looks that both period_bytes_max
+(by using snd_pcm_hw_constraint_minmax) adjustment and threshold
+setting can be done in omap-mcbsp.c. Then there is no need to invent
+any callbacks to the omap_dma_data (for now) and omap-pcm.c remains
+cleanear as the threshold is not so much DMA programming specific.
 
-Oops, mis-wrote the struct name, here's updated version.
 
- arch/arm/mach-omap2/board-omap3beagle.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index b6a68d5..cf0244b 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -249,11 +249,16 @@ static struct regulator_init_data beagle_vpll2 = {
- 	.consumer_supplies	= &beagle_vdvi_supply,
- };
- 
-+static struct twl4030_usb_data beagle_usb_data = {
-+	.usb_mode	= T2_USB_MODE_ULPI,
-+};
-+
- static struct twl4030_platform_data beagle_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
- 
- 	/* platform_data for children goes here */
-+	.usb		= &beagle_usb_data,
- 	.gpio		= &beagle_gpio_data,
- 	.vmmc1		= &beagle_vmmc1,
- 	.vsim		= &beagle_vsim,
 -- 
-1.6.3.3.385.g60647
-
+Jarkko
