@@ -1,20 +1,16 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 07/13] DSPBRIDGE: Support multiple processor objects per process context
-Date: Tue, 11 Aug 2009 04:21:48 +0300
-Message-ID: <1249953714-20972-8-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 03/13] DSPBRIDGE: Use pr_ctxt in PROC_Map
+Date: Tue, 11 Aug 2009 04:21:44 +0300
+Message-ID: <1249953714-20972-4-git-send-email-ameya.palande@nokia.com>
 References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-4-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-5-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-6-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:49889 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412AbZHKBWL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:11 -0400
-In-Reply-To: <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.233]:28868 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752272AbZHKBWO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:14 -0400
+In-Reply-To: <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -22,288 +18,112 @@ Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, suyog@ti.com, 
 
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/drv.h  |    5 +-
- arch/arm/plat-omap/include/dspbridge/proc.h |   23 ++++++++++
- drivers/dsp/bridge/rmgr/drv.c               |   23 ++++++++--
- drivers/dsp/bridge/rmgr/drv_interface.c     |   13 +++++-
- drivers/dsp/bridge/rmgr/proc.c              |   61 ++++++++++----------------
- 5 files changed, 79 insertions(+), 46 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/proc.h |    4 +++-
+ drivers/dsp/bridge/pmgr/wcd.c               |    2 +-
+ drivers/dsp/bridge/rmgr/node.c              |    2 +-
+ drivers/dsp/bridge/rmgr/proc.c              |   26 +++++---------------------
+ 4 files changed, 10 insertions(+), 24 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
-index c468461..efc3a92 100644
---- a/arch/arm/plat-omap/include/dspbridge/drv.h
-+++ b/arch/arm/plat-omap/include/dspbridge/drv.h
-@@ -180,8 +180,9 @@ struct PROCESS_CONTEXT{
- 	* (To maintain a linked list of process contexts) */
- 	struct PROCESS_CONTEXT *next;
- 
--	/* Processor info to which the process is related */
--	DSP_HPROCESSOR hProcessor;
-+	/* List of Processors */
-+	struct list_head processor_list;
-+	spinlock_t proc_list_lock;
- 
- 	/* DSP Node resources */
- 	struct NODE_RES_OBJECT *pNodeList;
 diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
-index f5b0c50..1936a4e 100644
+index 486652e..ff1573f 100644
 --- a/arch/arm/plat-omap/include/dspbridge/proc.h
 +++ b/arch/arm/plat-omap/include/dspbridge/proc.h
-@@ -66,6 +66,29 @@
- #include <dspbridge/devdefs.h>
- #include <dspbridge/drv.h>
+@@ -64,6 +64,7 @@
  
-+/* The PROC_OBJECT structure.   */
-+struct PROC_OBJECT {
-+	struct LST_ELEM link;		/* Link to next PROC_OBJECT */
-+	u32 dwSignature;		/* Used for object validation */
-+	struct DEV_OBJECT *hDevObject;	/* Device this PROC represents */
-+	u32 hProcess;			/* Process owning this Processor */
-+	struct MGR_OBJECT *hMgrObject;	/* Manager Object Handle */
-+	u32 uAttachCount;		/* Processor attach count */
-+	u32 uProcessor;			/* Processor number */
-+	u32 uTimeout;			/* Time out count */
-+	enum DSP_PROCSTATE sState;	/* Processor state */
-+	u32 ulUnit;			/* DDSP unit number */
-+	bool bIsAlreadyAttached;	/*
-+					 * True if the Device below has
-+					 * GPP Client attached
-+					 */
-+	struct NTFY_OBJECT *hNtfy;	/* Manages  notifications */
-+	struct WMD_DEV_CONTEXT *hWmdContext;	/* WMD Context Handle */
-+	struct WMD_DRV_INTERFACE *pIntfFxns;	/* Function interface to WMD */
-+	char *g_pszLastCoff;
-+	struct list_head proc_object;
-+};
-+
+ #include <dspbridge/cfgdefs.h>
+ #include <dspbridge/devdefs.h>
++#include <dspbridge/drv.h>
+ 
  /*
   *  ======== PROC_Attach ========
-  *  Purpose:
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 4a4ebfa..e64b997 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -278,9 +278,19 @@ DSP_STATUS DRV_InsertProcContext(struct DRV_OBJECT *hDrVObject, HANDLE hPCtxt)
- 	struct DRV_OBJECT	     *hDRVObject;
+@@ -578,7 +579,8 @@
+ 				   void *pMpuAddr,
+ 				   u32 ulSize,
+ 				   void *pReqAddr,
+-				   void **ppMapAddr, u32 ulMapAttr);
++				   void **ppMapAddr, u32 ulMapAttr,
++				   struct PROCESS_CONTEXT *pr_ctxt);
  
- 	GT_0trace(curTrace, GT_ENTER, "\n In DRV_InsertProcContext\n");
-+
- 	status = CFG_GetObject((u32 *)&hDRVObject, REG_DRV_OBJECT);
- 	DBC_Assert(hDRVObject != NULL);
-+
- 	*pCtxt = MEM_Calloc(1 * sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
-+	if (!*pCtxt) {
-+		pr_err("DSP: MEM_Calloc failed in DRV_InsertProcContext\n");
-+		return DSP_EMEMORY;
-+	}
-+
-+	spin_lock_init(&(*pCtxt)->proc_list_lock);
-+	INIT_LIST_HEAD(&(*pCtxt)->processor_list);
-+
- 	GT_0trace(curTrace, GT_ENTER,
- 		 "\n In DRV_InsertProcContext Calling "
- 		 "DRV_GetProcCtxtList\n");
-@@ -1005,6 +1015,7 @@ static DSP_STATUS PrintProcessInformation(void)
- 	struct DMM_RES_OBJECT *pDMMRes = NULL;
- 	struct STRM_RES_OBJECT *pSTRMRes = NULL;
- 	struct DSPHEAP_RES_OBJECT *pDSPHEAPRes = NULL;
-+	struct PROC_OBJECT *proc_obj_ptr;
- 	DSP_STATUS status = DSP_SOK;
- 	u32 tempCount;
- 	u32  procID;
-@@ -1031,11 +1042,11 @@ static DSP_STATUS PrintProcessInformation(void)
- 			GT_0trace(curTrace, GT_4CLASS, "\nThe Process"
- 					" is in DeAllocated state\n");
- 		}
--		GT_1trace(curTrace, GT_4CLASS, "\nThe  hProcessor"
--				" handle is: 0X%x\n",
--				(u32)pCtxtList->hProcessor);
--		if (pCtxtList->hProcessor != NULL) {
--			PROC_GetProcessorId(pCtxtList->hProcessor, &procID);
-+
-+		spin_lock(&pCtxtList->proc_list_lock);
-+		list_for_each_entry(proc_obj_ptr, &pCtxtList->processor_list,
-+				proc_object) {
-+			PROC_GetProcessorId(proc_obj_ptr, &procID);
- 			if (procID == DSP_UNIT) {
- 				GT_0trace(curTrace, GT_4CLASS,
- 					"\nProcess connected to"
-@@ -1049,6 +1060,8 @@ static DSP_STATUS PrintProcessInformation(void)
- 					"\n***ERROR:Invalid Processor Id***\n");
- 			}
- 		}
-+		spin_unlock(&pCtxtList->proc_list_lock);
-+
- 		pNodeRes = pCtxtList->pNodeList;
- 		tempCount = 1;
- 		while (pNodeRes != NULL) {
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 7d4a6ea..1cb3d74 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -452,6 +452,7 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
- 	HANDLE	     hDrvObject = NULL;
- 	struct PROCESS_CONTEXT	*pTmp = NULL;
- 	struct PROCESS_CONTEXT    *pCtxtclosed = NULL;
-+	struct PROC_OBJECT *proc_obj_ptr, *temp;
- 
- 	GT_0trace(driverTrace, GT_ENTER, "-> driver_exit\n");
- 
-@@ -474,7 +475,10 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
- 		GT_1trace(driverTrace, GT_5CLASS, "***Cleanup of "
- 			 "process***%d\n", pCtxtclosed->pid);
- 		DRV_RemoveAllResources(pCtxtclosed);
--		PROC_Detach(pCtxtclosed->hProcessor, pCtxtclosed);
-+		list_for_each_entry_safe(proc_obj_ptr, temp,
-+				&pCtxtclosed->processor_list, proc_object) {
-+			PROC_Detach(proc_obj_ptr, pCtxtclosed);
-+		}
- 		pTmp = pCtxtclosed->next;
- 		DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
- 				     pCtxtclosed, (void *)pCtxtclosed->pid);
-@@ -608,6 +612,7 @@ static int bridge_release(struct inode *ip, struct file *filp)
- 	DSP_STATUS dsp_status;
- 	HANDLE hDrvObject;
- 	struct PROCESS_CONTEXT *pr_ctxt;
-+	struct PROC_OBJECT *proc_obj_ptr, *temp;
- 
- 	GT_0trace(driverTrace, GT_ENTER, "-> bridge_release\n");
- 
-@@ -619,7 +624,11 @@ static int bridge_release(struct inode *ip, struct file *filp)
- 		if (DSP_SUCCEEDED(dsp_status)) {
- 			flush_signals(current);
- 			DRV_RemoveAllResources(pr_ctxt);
--			PROC_Detach(pr_ctxt->hProcessor, pr_ctxt);
-+			list_for_each_entry_safe(proc_obj_ptr, temp,
-+					&pr_ctxt->processor_list,
-+					proc_object) {
-+				PROC_Detach(proc_obj_ptr, pr_ctxt);
-+			}
- 			DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
- 					pr_ctxt, (void *)pr_ctxt->pid);
- 		} else {
+ /*
+  *  ======== PROC_ReserveMemory ========
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index 05afb2c..bf8f672 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -1023,7 +1023,7 @@ u32 PROCWRAP_Map(union Trapped_Args *args, void *pr_ctxt)
+ 			 args->ARGS_PROC_MAPMEM.pMpuAddr,
+ 			 args->ARGS_PROC_MAPMEM.ulSize,
+ 			 args->ARGS_PROC_MAPMEM.pReqAddr, &pMapAddr,
+-			 args->ARGS_PROC_MAPMEM.ulMapAttr);
++			 args->ARGS_PROC_MAPMEM.ulMapAttr, pr_ctxt);
+ 	if (DSP_SUCCEEDED(status)) {
+ 		if (put_user(pMapAddr, args->ARGS_PROC_MAPMEM.ppMapAddr))
+ 			status = DSP_EINVALIDARG;
+diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
+index b7bdf08..a6d4d25 100644
+--- a/drivers/dsp/bridge/rmgr/node.c
++++ b/drivers/dsp/bridge/rmgr/node.c
+@@ -561,7 +561,7 @@ func_cont:
+ 	status = PROC_Map(hProcessor, (void *)pAttrIn->pGPPVirtAddr,
+ 			pNode->createArgs.asa.taskArgs.uHeapSize,
+ 			(void *)pNode->createArgs.asa.taskArgs.uDSPHeapResAddr,
+-			(void **)&pMappedAddr, mapAttrs);
++			(void **)&pMappedAddr, mapAttrs, pr_ctxt);
+ 	if (DSP_FAILED(status)) {
+ 		GT_1trace(NODE_debugMask, GT_5CLASS,
+ 			 "NODE_Allocate: Failed to map memory"
 diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 323054f..4a76f24 100644
+index c6bfda1..0ee0656 100644
 --- a/drivers/dsp/bridge/rmgr/proc.c
 +++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -160,27 +160,6 @@
- #define EXTEND	      "_EXT_END"	/* Extmem end addr in DSP binary */
- 
- extern char *iva_img;
--/* The PROC_OBJECT structure.   */
--struct PROC_OBJECT {
--	struct LST_ELEM link;		/* Link to next PROC_OBJECT */
--	u32 dwSignature;	/* Used for object validation */
--	struct DEV_OBJECT *hDevObject;	/* Device this PROC represents */
--	u32 hProcess;   /* Process owning this Processor */
--	struct MGR_OBJECT *hMgrObject;	/* Manager Object Handle */
--	u32 uAttachCount;	/* Processor attach count */
--	u32 uProcessor;	/* Processor number */
--	u32 uTimeout;		/* Time out count */
--	enum DSP_PROCSTATE sState;	/* Processor state */
--	u32 ulUnit;		/* DDSP unit number */
--	bool bIsAlreadyAttached;	/*
--					 * True if the Device below has
--					 * GPP Client attached
--					 */
--	struct NTFY_OBJECT *hNtfy;	/* Manages  notifications */
--	struct WMD_DEV_CONTEXT *hWmdContext;	/* WMD Context Handle */
--	struct WMD_DRV_INTERFACE *pIntfFxns;	/* Function interface to WMD */
--	char *g_pszLastCoff;
--} ;
- 
- /*  ----------------------------------- Globals */
- #if GT_TRACE
-@@ -207,24 +186,32 @@ static char **PrependEnvp(char **newEnvp, char **envp, s32 cEnvp, s32 cNewEnvp,
- DSP_STATUS PROC_CleanupAllResources(void)
+@@ -1412,7 +1412,8 @@ func_end:
+  *      Maps a MPU buffer to DSP address space.
+  */
+ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
+-		   void *pReqAddr, void **ppMapAddr, u32 ulMapAttr)
++		   void *pReqAddr, void **ppMapAddr, u32 ulMapAttr,
++		   struct PROCESS_CONTEXT *pr_ctxt)
  {
- 	DSP_STATUS dsp_status = DSP_SOK;
--	HANDLE	     hDrvObject = NULL;
--	struct PROCESS_CONTEXT    *pCtxtclosed = NULL;
-+	HANDLE hDrvObject = NULL;
-+	struct PROCESS_CONTEXT *pCtxtclosed = NULL;
-+	struct PROC_OBJECT *proc_obj_ptr, *temp;
-+
- 	GT_0trace(PROC_DebugMask, GT_ENTER, "PROC_CleanupAllResources\n");
-+
- 	dsp_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
- 	if (DSP_FAILED(dsp_status))
- 		goto func_end;
-+
- 	DRV_GetProcCtxtList(&pCtxtclosed, (struct DRV_OBJECT *)hDrvObject);
-+
- 	while (pCtxtclosed != NULL) {
- 		if (current->tgid != pCtxtclosed->pid) {
- 			GT_1trace(PROC_DebugMask, GT_5CLASS,
- 				 "***Cleanup of "
- 				 "process***%d\n", pCtxtclosed->pid);
--			if (pCtxtclosed->hProcessor)
--				PROC_Detach(pCtxtclosed->hProcessor,
--						pCtxtclosed);
-+			list_for_each_entry_safe(proc_obj_ptr, temp,
-+					&pCtxtclosed->processor_list,
-+					proc_object) {
-+				PROC_Detach(proc_obj_ptr, pCtxtclosed);
-+			}
- 		}
- 		pCtxtclosed = pCtxtclosed->next;
- 	}
-+
- 	WMD_DEH_ReleaseDummyMem();
- func_end:
- 	return dsp_status;
-@@ -254,12 +241,6 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
- 		 "uProcessor:  0x%x\n\tpAttrIn:  0x%x\n\tphProcessor:"
- 		 "0x%x\n", uProcessor, pAttrIn, phProcessor);
+ 	u32 vaAlign;
+ 	u32 paAlign;
+@@ -1422,11 +1423,7 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
+ 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
  
--	if (pr_ctxt->hProcessor) {
--		pr_err("DSP: PROC_Attach() on same file handle is "
--				"not supported!\n");
--		goto func_end;
--	}
--
- 	/* Get the Driver and Manager Object Handles */
- 	status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+ #ifndef RES_CLEANUP_DISABLE
+-       u32               hProcess;
+-       HANDLE        pCtxt = NULL;
+-       HANDLE        hDrvObject;
+        HANDLE        dmmRes;
+-       DSP_STATUS res_status = DSP_SOK;
+ #endif
+ 
+ 	GT_6trace(PROC_DebugMask, GT_ENTER, "Entered PROC_Map, args:\n\t"
+@@ -1476,22 +1473,9 @@ DSP_STATUS PROC_Map(DSP_HPROCESSOR hProcessor, void *pMpuAddr, u32 ulSize,
+ 
+ #ifndef RES_CLEANUP_DISABLE
  	if (DSP_SUCCEEDED(status)) {
-@@ -308,10 +289,11 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
- 	pProcObject->hDevObject = hDevObject;
- 	pProcObject->hMgrObject = hMgrObject;
- 	pProcObject->uProcessor = devType;
--	/* Get Caller Process and store it */
--	/* Return TGID instead of process handle */
-+	/* Store TGID of Caller Process */
- 	pProcObject->hProcess = current->tgid;
- 
-+	INIT_LIST_HEAD(&pProcObject->proc_object);
-+
- 	if (pAttrIn)
- 		pProcObject->uTimeout = pAttrIn->uTimeout;
- 	else
-@@ -382,7 +364,9 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
- 		MEM_FreeObject(pProcObject);
+-		/* Update the node and stream resource status */
+-		/* Return TGID instead of process handle */
+-		hProcess = current->tgid;
+-
+-		res_status = CFG_GetObject((u32 *)&hDrvObject,
+-					  REG_DRV_OBJECT);
+-		if (DSP_SUCCEEDED(res_status)) {
+-                       if (DRV_GetProcContext(hProcess,
+-                               (struct DRV_OBJECT *)hDrvObject, &pCtxt, NULL,
+-                                       (u32)pMpuAddr) != DSP_ENOTFOUND) {
+-				DRV_InsertDMMResElement(&dmmRes, pCtxt);
+-				DRV_UpdateDMMResElement(dmmRes, (u32)pMpuAddr,
+-						ulSize, (u32)pReqAddr,
+-						(u32)*ppMapAddr, hProcessor);
+-			}
+-		}
++		DRV_InsertDMMResElement(&dmmRes, pr_ctxt);
++		DRV_UpdateDMMResElement(dmmRes, (u32)pMpuAddr, ulSize,
++				(u32)pReqAddr, (u32)*ppMapAddr, hProcessor);
  	}
- #ifndef RES_CLEANUP_DISABLE
--	pr_ctxt->hProcessor = pProcObject;
-+	spin_lock(&pr_ctxt->proc_list_lock);
-+	list_add(&pProcObject->proc_object, &pr_ctxt->processor_list);
-+	spin_unlock(&pr_ctxt->proc_list_lock);
  #endif
  func_end:
- 	DBC_Ensure((status == DSP_EFAIL && *phProcessor == NULL) ||
-@@ -616,8 +600,11 @@ DSP_STATUS PROC_Detach(DSP_HPROCESSOR hProcessor,
- 
- 	if (MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
- #ifndef RES_CLEANUP_DISABLE
--		if (pr_ctxt != NULL)
--			pr_ctxt->hProcessor = NULL;
-+		if (pr_ctxt) {
-+			spin_lock(&pr_ctxt->proc_list_lock);
-+			list_del(&pProcObject->proc_object);
-+			spin_unlock(&pr_ctxt->proc_list_lock);
-+		}
- #endif
- 		/* Notify the Client */
- 		NTFY_Notify(pProcObject->hNtfy, DSP_PROCESSORDETACH);
 -- 
 1.6.2.4
 
