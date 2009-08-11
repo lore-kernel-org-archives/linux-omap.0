@@ -1,119 +1,45 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH 3/3 v3] ASoC: OMAP: Enhance OMAP1510 DMA progress software counter
-Date: Tue, 11 Aug 2009 21:44:29 +0200
-Message-ID: <200908112144.30731.jkrzyszt@tis.icnet.pl>
-References: <200908101050.08074.jkrzyszt@tis.icnet.pl> <200908110107.11485.jkrzyszt@tis.icnet.pl>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: Question regarding MUSB and dynamic fifo sizing
+Date: Tue, 11 Aug 2009 23:51:06 +0300
+Message-ID: <20090811205106.GC13969@gandalf>
+References: <20090808071705.GA11844@nokia.com>
+ <1249914799.25044.4.camel@blitz>
+ <20090810161605.GA4357@gandalf>
+ <1249923607.31495.13.camel@blitz>
+ <20090810170236.GA3528@gandalf>
+ <1249925323.31495.31.camel@blitz>
+ <20090810184818.GA4281@gandalf>
+ <1249936961.31495.87.camel@blitz>
+ <20090811063305.GB4573@nokia.com>
+ <1250004077.18768.17.camel@blitz>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:47611 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754740AbZHKTpS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 15:45:18 -0400
-In-Reply-To: <200908110107.11485.jkrzyszt@tis.icnet.pl>
+Received: from ns1.siteground211.com ([209.62.36.12]:40882 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754524AbZHKUvP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 16:51:15 -0400
 Content-Disposition: inline
+In-Reply-To: <1250004077.18768.17.camel@blitz>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Peter Barada <peterb@logicpd.com>
+Cc: felipe.balbi@nokia.com, "me@felipebalbi.com" <me@felipebalbi.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Enhance period_index accuracy, particularly just before buffer rewind, =
-by
-making use of DMA interrupt status flags in addition to simply counting=
- up
-interrupts.
+Hi,
 
-Changes since v2:
-> > > -=A0=A0=A0}
-> > > +=A0=A0=A0} else if (stat =3D=3D OMAP_DMA_LAST_IRQ)
-> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return;
-> >
-> > Is this test needed? This interrupt is set only for playback on
-> > omap1510 so this looks null-op.
->
-> You're right, I have put it here before limiting the flag request to
-> playback on OMAP1510 only. So it can be omitted...
+On Tue, Aug 11, 2009 at 11:21:17AM -0400, Peter Barada wrote:
+> Unfortunately, with the patch, and:
+> 
+> 1) modprobe musb_hdrc
+> 2) modprobe g_ether
+> 3) connect micro-a cable
+> 4) echo 1 > /sys/devices/platform/musb_hdrc/connect
+> 
+> Nothing happens - no isr or output.
 
-> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0omap_enable_dma_irq(prtd->dma_c=
-h, OMAP_DMA_FRAME_IRQ |
-> > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0OMAP_DMA_LAST_IRQ);
-> >
-> > Indent OMAP_DMA_LAST_IRQ with tab(s) and spaces to the same column
-> > than OMAP_DMA_FRAME_IRQ. Looks nicer then.
->
-> OK, will fix it.
->
-> > Should the
-> > OMAP_DMA_BLOCK_IRQ to be set since it is handled in omap_pcm_dma_ir=
-q?
->
-> This one is already requested from inside omap_request_dma() and used
-> inside omap1_dma_handle_ch() in addition to passing it to us.
-But for less confusion, it'll be better if requested from here too.
+did you have anything at the other end of the micro-a cable ?
 
-Changes since v1:
-1. Fix buggy DMA interrupt handling in case of multiple status flags se=
-t in
-   parallel.
-2. Enable OMAP_DMA_LAST_IRQ only for playback on OMAP1510.
-
-This patch applies on top of patch 2 from this series:
-[RFC][PATCH 2/3] ASoC: OMAP: Make use of DMA channel self linking on OM=
-AP1510
-
-Created against linux-2.6.31-rc5.
-
-Tested on Amstrad Delta.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-
----
---- linux-2.6.31-rc5/sound/soc/omap/omap-pcm.c.orig	2009-08-11 21:13:22=
-=2E000000000 +0200
-+++ linux-2.6.31-rc5/sound/soc/omap/omap-pcm.c	2009-08-11 21:34:34.0000=
-00000 +0200
-@@ -68,8 +68,21 @@ static void omap_pcm_dma_irq(int ch, u16
- 		 * that can be used by omap_pcm_pointer() instead.
- 		 */
- 		spin_lock_irqsave(&prtd->lock, flags);
-+		if ((stat =3D=3D OMAP_DMA_LAST_IRQ) &&
-+				(prtd->period_index =3D=3D runtime->periods - 1)) {
-+			/* we are in sync, do nothing */
-+			spin_unlock_irqrestore(&prtd->lock, flags);
-+			return;
-+		}
- 		if (prtd->period_index >=3D 0) {
--			if (++prtd->period_index =3D=3D runtime->periods) {
-+			if (stat & OMAP_DMA_BLOCK_IRQ) {
-+				/* end of buffer reached, loop back */
-+				prtd->period_index =3D 0;
-+			} else if (stat & OMAP_DMA_LAST_IRQ) {
-+				/* update the counter for the last period */
-+				prtd->period_index =3D runtime->periods - 1;
-+			} else if (++prtd->period_index >=3D runtime->periods) {
-+				/* end of buffer missed? loop back */
- 				prtd->period_index =3D 0;
- 			}
- 		}
-@@ -175,7 +188,12 @@ static int omap_pcm_prepare(struct snd_p
- 	dma_params.frame_count	=3D runtime->periods;
- 	omap_set_dma_params(prtd->dma_ch, &dma_params);
-=20
--	omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ);
-+	if ((cpu_is_omap1510()) &&
-+			(substream->stream =3D=3D SNDRV_PCM_STREAM_PLAYBACK))
-+		omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ |
-+			      OMAP_DMA_LAST_IRQ | OMAP_DMA_BLOCK_IRQ);
-+	else
-+		omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ);
-=20
- 	return 0;
- }
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+balbi
