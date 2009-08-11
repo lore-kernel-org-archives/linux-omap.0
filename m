@@ -1,710 +1,309 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 01/13] DSPBRIDGE: Pass filp->private to all the ioctl wrappers
-Date: Tue, 11 Aug 2009 04:21:42 +0300
-Message-ID: <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 07/13] DSPBRIDGE: Support multiple processor objects per process context
+Date: Tue, 11 Aug 2009 04:21:48 +0300
+Message-ID: <1249953714-20972-8-git-send-email-ameya.palande@nokia.com>
 References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-4-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-5-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-6-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:49877 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:49889 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078AbZHKBWF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:05 -0400
-In-Reply-To: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
+	with ESMTP id S1752412AbZHKBWL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:11 -0400
+In-Reply-To: <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, suyog@ti.com, roman.tereshonkov@nokia.com, ernesto@ti.com
 
-This patch enables passing of filp->private_data to all the ioctl wrappers
-functions. This change will facilitate retrival of PROCESS_CONTEXT pointer in
-ioctl, and will remove the call to DRV_GetProcContext().
-
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/_dcd.h |  135 ++++++++++++++++-----------
- drivers/dsp/bridge/pmgr/wcd.c               |  112 +++++++++++-----------
- drivers/dsp/bridge/rmgr/drv_interface.c     |    3 +-
- 3 files changed, 138 insertions(+), 112 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/drv.h  |    5 +-
+ arch/arm/plat-omap/include/dspbridge/proc.h |   23 ++++++++++
+ drivers/dsp/bridge/rmgr/drv.c               |   23 ++++++++--
+ drivers/dsp/bridge/rmgr/drv_interface.c     |   13 +++++-
+ drivers/dsp/bridge/rmgr/proc.c              |   61 ++++++++++----------------
+ 5 files changed, 79 insertions(+), 46 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/_dcd.h b/arch/arm/plat-omap/include/dspbridge/_dcd.h
-index b6a8d9e..6e6aec5 100644
---- a/arch/arm/plat-omap/include/dspbridge/_dcd.h
-+++ b/arch/arm/plat-omap/include/dspbridge/_dcd.h
-@@ -72,7 +72,7 @@
-  */
- 	extern DSP_STATUS WCD_CallDevIOCtl(unsigned int cmd,
- 					   union Trapped_Args *args,
--					   u32 *pResult);
-+					   u32 *pResult, void *pr_ctxt);
+diff --git a/arch/arm/plat-omap/include/dspbridge/drv.h b/arch/arm/plat-omap/include/dspbridge/drv.h
+index c468461..efc3a92 100644
+--- a/arch/arm/plat-omap/include/dspbridge/drv.h
++++ b/arch/arm/plat-omap/include/dspbridge/drv.h
+@@ -180,8 +180,9 @@ struct PROCESS_CONTEXT{
+ 	* (To maintain a linked list of process contexts) */
+ 	struct PROCESS_CONTEXT *next;
  
- /*
-  *  ======== WCD_Init ========
-@@ -119,69 +119,94 @@
- 	extern void WCD_Exit(void);
+-	/* Processor info to which the process is related */
+-	DSP_HPROCESSOR hProcessor;
++	/* List of Processors */
++	struct list_head processor_list;
++	spinlock_t proc_list_lock;
  
- /* MGR wrapper functions */
--	extern u32 MGRWRAP_EnumNode_Info(union Trapped_Args *args);
--	extern u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args);
--	extern u32 MGRWRAP_RegisterObject(union Trapped_Args *args);
--	extern u32 MGRWRAP_UnregisterObject(union Trapped_Args *args);
--	extern u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args);
-+	extern u32 MGRWRAP_EnumNode_Info(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 MGRWRAP_RegisterObject(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 MGRWRAP_UnregisterObject(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args,
-+			void *pr_ctxt);
+ 	/* DSP Node resources */
+ 	struct NODE_RES_OBJECT *pNodeList;
+diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
+index f5b0c50..1936a4e 100644
+--- a/arch/arm/plat-omap/include/dspbridge/proc.h
++++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+@@ -66,6 +66,29 @@
+ #include <dspbridge/devdefs.h>
+ #include <dspbridge/drv.h>
  
- #ifndef RES_CLEANUP_DISABLE
--	extern u32 MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args);
-+	extern u32 MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args,
-+			void *pr_ctxt);
- #endif
- 
- 
- /* CPRC (Processor) wrapper Functions */
--	extern u32 PROCWRAP_Attach(union Trapped_Args *args);
--	extern u32 PROCWRAP_Ctrl(union Trapped_Args *args);
--	extern u32 PROCWRAP_Detach(union Trapped_Args *args);
--	extern u32 PROCWRAP_EnumNode_Info(union Trapped_Args *args);
--	extern u32 PROCWRAP_EnumResources(union Trapped_Args *args);
--	extern u32 PROCWRAP_GetState(union Trapped_Args *args);
--	extern u32 PROCWRAP_GetTrace(union Trapped_Args *args);
--	extern u32 PROCWRAP_Load(union Trapped_Args *args);
--	extern u32 PROCWRAP_RegisterNotify(union Trapped_Args *args);
--	extern u32 PROCWRAP_Start(union Trapped_Args *args);
--	extern u32 PROCWRAP_ReserveMemory(union Trapped_Args *args);
--	extern u32 PROCWRAP_UnReserveMemory(union Trapped_Args *args);
--	extern u32 PROCWRAP_Map(union Trapped_Args *args);
--	extern u32 PROCWRAP_UnMap(union Trapped_Args *args);
--	extern u32 PROCWRAP_FlushMemory(union Trapped_Args *args);
--	extern u32 PROCWRAP_Stop(union Trapped_Args *args);
--	extern u32 PROCWRAP_InvalidateMemory(union Trapped_Args *args);
-+	extern u32 PROCWRAP_Attach(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_Ctrl(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_Detach(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_EnumNode_Info(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 PROCWRAP_EnumResources(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 PROCWRAP_GetState(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_GetTrace(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_Load(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_RegisterNotify(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 PROCWRAP_Start(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_ReserveMemory(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 PROCWRAP_UnReserveMemory(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 PROCWRAP_Map(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_UnMap(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_FlushMemory(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 PROCWRAP_Stop(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 PROCWRAP_InvalidateMemory(union Trapped_Args *args,
-+			void *pr_ctxt);
- 
- /* NODE wrapper functions */
--	extern u32 NODEWRAP_Allocate(union Trapped_Args *args);
--	extern u32 NODEWRAP_AllocMsgBuf(union Trapped_Args *args);
--	extern u32 NODEWRAP_ChangePriority(union Trapped_Args *args);
--	extern u32 NODEWRAP_Connect(union Trapped_Args *args);
--	extern u32 NODEWRAP_Create(union Trapped_Args *args);
--	extern u32 NODEWRAP_Delete(union Trapped_Args *args);
--	extern u32 NODEWRAP_FreeMsgBuf(union Trapped_Args *args);
--	extern u32 NODEWRAP_GetAttr(union Trapped_Args *args);
--	extern u32 NODEWRAP_GetMessage(union Trapped_Args *args);
--	extern u32 NODEWRAP_Pause(union Trapped_Args *args);
--	extern u32 NODEWRAP_PutMessage(union Trapped_Args *args);
--	extern u32 NODEWRAP_RegisterNotify(union Trapped_Args *args);
--	extern u32 NODEWRAP_Run(union Trapped_Args *args);
--	extern u32 NODEWRAP_Terminate(union Trapped_Args *args);
--	extern u32 NODEWRAP_GetUUIDProps(union Trapped_Args *args);
-+	extern u32 NODEWRAP_Allocate(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 NODEWRAP_AllocMsgBuf(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 NODEWRAP_ChangePriority(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 NODEWRAP_Connect(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 NODEWRAP_Create(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 NODEWRAP_Delete(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 NODEWRAP_FreeMsgBuf(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 NODEWRAP_GetAttr(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 NODEWRAP_GetMessage(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 NODEWRAP_Pause(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 NODEWRAP_PutMessage(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 NODEWRAP_RegisterNotify(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 NODEWRAP_Run(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 NODEWRAP_Terminate(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 NODEWRAP_GetUUIDProps(union Trapped_Args *args,
-+			void *pr_ctxt);
- 
- /* STRM wrapper functions */
--	extern u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args);
--	extern u32 STRMWRAP_Close(union Trapped_Args *args);
--	extern u32 STRMWRAP_FreeBuffer(union Trapped_Args *args);
--	extern u32 STRMWRAP_GetEventHandle(union Trapped_Args *args);
--	extern u32 STRMWRAP_GetInfo(union Trapped_Args *args);
--	extern u32 STRMWRAP_Idle(union Trapped_Args *args);
--	extern u32 STRMWRAP_Issue(union Trapped_Args *args);
--	extern u32 STRMWRAP_Open(union Trapped_Args *args);
--	extern u32 STRMWRAP_Reclaim(union Trapped_Args *args);
--	extern u32 STRMWRAP_RegisterNotify(union Trapped_Args *args);
--	extern u32 STRMWRAP_Select(union Trapped_Args *args);
--
--	extern u32 CMMWRAP_CallocBuf(union Trapped_Args *args);
--	extern u32 CMMWRAP_FreeBuf(union Trapped_Args *args);
--	extern u32 CMMWRAP_GetHandle(union Trapped_Args *args);
--	extern u32 CMMWRAP_GetInfo(union Trapped_Args *args);
-+	extern u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 STRMWRAP_Close(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 STRMWRAP_FreeBuffer(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 STRMWRAP_GetEventHandle(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 STRMWRAP_GetInfo(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 STRMWRAP_Idle(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 STRMWRAP_Issue(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 STRMWRAP_Open(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 STRMWRAP_Reclaim(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 STRMWRAP_RegisterNotify(union Trapped_Args *args,
-+			void *pr_ctxt);
-+	extern u32 STRMWRAP_Select(union Trapped_Args *args, void *pr_ctxt);
++/* The PROC_OBJECT structure.   */
++struct PROC_OBJECT {
++	struct LST_ELEM link;		/* Link to next PROC_OBJECT */
++	u32 dwSignature;		/* Used for object validation */
++	struct DEV_OBJECT *hDevObject;	/* Device this PROC represents */
++	u32 hProcess;			/* Process owning this Processor */
++	struct MGR_OBJECT *hMgrObject;	/* Manager Object Handle */
++	u32 uAttachCount;		/* Processor attach count */
++	u32 uProcessor;			/* Processor number */
++	u32 uTimeout;			/* Time out count */
++	enum DSP_PROCSTATE sState;	/* Processor state */
++	u32 ulUnit;			/* DDSP unit number */
++	bool bIsAlreadyAttached;	/*
++					 * True if the Device below has
++					 * GPP Client attached
++					 */
++	struct NTFY_OBJECT *hNtfy;	/* Manages  notifications */
++	struct WMD_DEV_CONTEXT *hWmdContext;	/* WMD Context Handle */
++	struct WMD_DRV_INTERFACE *pIntfFxns;	/* Function interface to WMD */
++	char *g_pszLastCoff;
++	struct list_head proc_object;
++};
 +
-+	extern u32 CMMWRAP_CallocBuf(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 CMMWRAP_FreeBuf(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 CMMWRAP_GetHandle(union Trapped_Args *args, void *pr_ctxt);
-+	extern u32 CMMWRAP_GetInfo(union Trapped_Args *args, void *pr_ctxt);
+ /*
+  *  ======== PROC_Attach ========
+  *  Purpose:
+diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
+index 4a4ebfa..e64b997 100644
+--- a/drivers/dsp/bridge/rmgr/drv.c
++++ b/drivers/dsp/bridge/rmgr/drv.c
+@@ -278,9 +278,19 @@ DSP_STATUS DRV_InsertProcContext(struct DRV_OBJECT *hDrVObject, HANDLE hPCtxt)
+ 	struct DRV_OBJECT	     *hDRVObject;
  
- #endif				/* _WCD_ */
-diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index ee15b02..23ed3a7 100644
---- a/drivers/dsp/bridge/pmgr/wcd.c
-+++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -147,7 +147,7 @@
- 
- /* Device IOCtl function pointer */
- struct WCD_Cmd {
--	u32(*fxn)(union Trapped_Args *args);
-+	u32(*fxn)(union Trapped_Args *args, void *pr_ctxt);
- 	u32 dwIndex;
- } ;
- 
-@@ -272,11 +272,11 @@ static struct WCD_Cmd WCD_cmdTable[] = {
-  *      Call the (wrapper) function for the corresponding WCD IOCTL.
-  */
- inline DSP_STATUS WCD_CallDevIOCtl(u32 cmd, union Trapped_Args *args,
--				    u32 *pResult)
-+				    u32 *pResult, void *pr_ctxt)
- {
- 	if ((cmd < (sizeof(WCD_cmdTable) / sizeof(struct WCD_Cmd)))) {
- 		/* make the fxn call via the cmd table */
--		*pResult = (*WCD_cmdTable[cmd].fxn) (args);
-+		*pResult = (*WCD_cmdTable[cmd].fxn) (args, pr_ctxt);
- 		return DSP_SOK;
- 	} else {
- 		return DSP_EINVALIDARG;
-@@ -460,7 +460,7 @@ DSP_STATUS WCD_InitComplete2(void)
- /*
-  * ======== MGRWRAP_EnumNode_Info ========
-  */
--u32 MGRWRAP_EnumNode_Info(union Trapped_Args *args)
-+u32 MGRWRAP_EnumNode_Info(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u8 *pNDBProps;
- 	u32 uNumNodes;
-@@ -496,7 +496,7 @@ u32 MGRWRAP_EnumNode_Info(union Trapped_Args *args)
- /*
-  * ======== MGRWRAP_EnumProc_Info ========
-  */
--u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args)
-+u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u8 *pProcessorInfo;
- 	u32 uNumProcs;
-@@ -535,7 +535,7 @@ u32 MGRWRAP_EnumProc_Info(union Trapped_Args *args)
- /*
-  * ======== MGRWRAP_RegisterObject ========
-  */
--u32 MGRWRAP_RegisterObject(union Trapped_Args *args)
-+u32 MGRWRAP_RegisterObject(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 	struct DSP_UUID pUuid;
-@@ -575,7 +575,7 @@ func_end:
- /*
-  * ======== MGRWRAP_UnregisterObject ========
-  */
--u32 MGRWRAP_UnregisterObject(union Trapped_Args *args)
-+u32 MGRWRAP_UnregisterObject(union Trapped_Args *args, void *pr_ctxt)
- {
+ 	GT_0trace(curTrace, GT_ENTER, "\n In DRV_InsertProcContext\n");
++
+ 	status = CFG_GetObject((u32 *)&hDRVObject, REG_DRV_OBJECT);
+ 	DBC_Assert(hDRVObject != NULL);
++
+ 	*pCtxt = MEM_Calloc(1 * sizeof(struct PROCESS_CONTEXT), MEM_PAGED);
++	if (!*pCtxt) {
++		pr_err("DSP: MEM_Calloc failed in DRV_InsertProcContext\n");
++		return DSP_EMEMORY;
++	}
++
++	spin_lock_init(&(*pCtxt)->proc_list_lock);
++	INIT_LIST_HEAD(&(*pCtxt)->processor_list);
++
+ 	GT_0trace(curTrace, GT_ENTER,
+ 		 "\n In DRV_InsertProcContext Calling "
+ 		 "DRV_GetProcCtxtList\n");
+@@ -1005,6 +1015,7 @@ static DSP_STATUS PrintProcessInformation(void)
+ 	struct DMM_RES_OBJECT *pDMMRes = NULL;
+ 	struct STRM_RES_OBJECT *pSTRMRes = NULL;
+ 	struct DSPHEAP_RES_OBJECT *pDSPHEAPRes = NULL;
++	struct PROC_OBJECT *proc_obj_ptr;
  	DSP_STATUS status = DSP_SOK;
- 	struct DSP_UUID pUuid;
-@@ -597,7 +597,7 @@ func_end:
- /*
-  * ======== MGRWRAP_WaitForBridgeEvents ========
-  */
--u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args)
-+u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_NOTIFICATION *aNotifications[MAX_EVENTS];
-@@ -635,7 +635,7 @@ u32 MGRWRAP_WaitForBridgeEvents(union Trapped_Args *args)
- /*
-  * ======== MGRWRAP_GetProcessResourceInfo ========
-  */
--u32 MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args)
-+u32 MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args, void *pr_ctxt)
- {
-     DSP_STATUS status = DSP_SOK;
-     u32 uSize = 0;
-@@ -658,7 +658,7 @@ u32 MGRWRAP_GetProcessResourcesInfo(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_Attach ========
-  */
--u32 PROCWRAP_Attach(union Trapped_Args *args)
-+u32 PROCWRAP_Attach(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_HPROCESSOR processor;
- 	DSP_STATUS status = DSP_SOK;
-@@ -690,7 +690,7 @@ func_end:
- /*
-  * ======== PROCWRAP_Ctrl ========
-  */
--u32 PROCWRAP_Ctrl(union Trapped_Args *args)
-+u32 PROCWRAP_Ctrl(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 cbDataSize, __user *pSize = (u32 __user *)
- 			args->ARGS_PROC_CTRL.pArgs;
-@@ -737,7 +737,7 @@ func_end:
- /*
-  * ======== PROCWRAP_Detach ========
-  */
--u32 PROCWRAP_Detach(union Trapped_Args *args)
-+u32 PROCWRAP_Detach(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -752,7 +752,7 @@ u32 PROCWRAP_Detach(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_EnumNode_Info ========
-  */
--u32 PROCWRAP_EnumNode_Info(union Trapped_Args *args)
-+u32 PROCWRAP_EnumNode_Info(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	DSP_HNODE aNodeTab[MAX_NODES];
-@@ -785,7 +785,7 @@ u32 PROCWRAP_EnumNode_Info(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_FlushMemory ========
-  */
--u32 PROCWRAP_FlushMemory(union Trapped_Args *args)
-+u32 PROCWRAP_FlushMemory(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 
-@@ -802,7 +802,7 @@ u32 PROCWRAP_FlushMemory(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_InvalidateMemory ========
-  */
--u32 PROCWRAP_InvalidateMemory(union Trapped_Args *args)
-+u32 PROCWRAP_InvalidateMemory(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 
-@@ -820,7 +820,7 @@ u32 PROCWRAP_InvalidateMemory(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_EnumResources ========
-  */
--u32 PROCWRAP_EnumResources(union Trapped_Args *args)
-+u32 PROCWRAP_EnumResources(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_RESOURCEINFO pResourceInfo;
-@@ -852,7 +852,7 @@ func_end:
- /*
-  * ======== PROCWRAP_GetState ========
-  */
--u32 PROCWRAP_GetState(union Trapped_Args *args)
-+u32 PROCWRAP_GetState(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	struct DSP_PROCESSORSTATE procStatus;
-@@ -867,7 +867,7 @@ u32 PROCWRAP_GetState(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_GetTrace ========
-  */
--u32 PROCWRAP_GetTrace(union Trapped_Args *args)
-+u32 PROCWRAP_GetTrace(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	u8 *pBuf;
-@@ -894,7 +894,7 @@ u32 PROCWRAP_GetTrace(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_Load ========
-  */
--u32 PROCWRAP_Load(union Trapped_Args *args)
-+u32 PROCWRAP_Load(union Trapped_Args *args, void *pr_ctxt)
- {
- 	s32 i, len;
- 	DSP_STATUS status = DSP_SOK;
-@@ -1013,7 +1013,7 @@ func_cont:
- /*
-  * ======== PROCWRAP_Map ========
-  */
--u32 PROCWRAP_Map(union Trapped_Args *args)
-+u32 PROCWRAP_Map(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	void *pMapAddr;
-@@ -1035,7 +1035,7 @@ u32 PROCWRAP_Map(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_RegisterNotify ========
-  */
--u32 PROCWRAP_RegisterNotify(union Trapped_Args *args)
-+u32 PROCWRAP_RegisterNotify(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	struct DSP_NOTIFICATION notification;
-@@ -1059,7 +1059,7 @@ u32 PROCWRAP_RegisterNotify(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_ReserveMemory ========
-  */
--u32 PROCWRAP_ReserveMemory(union Trapped_Args *args)
-+u32 PROCWRAP_ReserveMemory(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	void *pRsvAddr;
-@@ -1076,7 +1076,7 @@ u32 PROCWRAP_ReserveMemory(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_Start ========
-  */
--u32 PROCWRAP_Start(union Trapped_Args *args)
-+u32 PROCWRAP_Start(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1088,7 +1088,7 @@ u32 PROCWRAP_Start(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_UnMap ========
-  */
--u32 PROCWRAP_UnMap(union Trapped_Args *args)
-+u32 PROCWRAP_UnMap(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 
-@@ -1101,7 +1101,7 @@ u32 PROCWRAP_UnMap(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_UnReserveMemory ========
-  */
--u32 PROCWRAP_UnReserveMemory(union Trapped_Args *args)
-+u32 PROCWRAP_UnReserveMemory(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 
-@@ -1115,7 +1115,7 @@ u32 PROCWRAP_UnReserveMemory(union Trapped_Args *args)
- /*
-  * ======== PROCWRAP_Stop ========
-  */
--u32 PROCWRAP_Stop(union Trapped_Args *args)
-+u32 PROCWRAP_Stop(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1128,7 +1128,7 @@ u32 PROCWRAP_Stop(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_Allocate ========
-  */
--u32 NODEWRAP_Allocate(union Trapped_Args *args)
-+u32 NODEWRAP_Allocate(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_UUID nodeId;
-@@ -1183,7 +1183,7 @@ func_cont:
- /*
-  *  ======== NODEWRAP_AllocMsgBuf ========
-  */
--u32 NODEWRAP_AllocMsgBuf(union Trapped_Args *args)
-+u32 NODEWRAP_AllocMsgBuf(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_BUFFERATTR *pAttr = NULL;
-@@ -1210,7 +1210,7 @@ u32 NODEWRAP_AllocMsgBuf(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_ChangePriority ========
-  */
--u32 NODEWRAP_ChangePriority(union Trapped_Args *args)
-+u32 NODEWRAP_ChangePriority(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1225,7 +1225,7 @@ u32 NODEWRAP_ChangePriority(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_Connect ========
-  */
--u32 NODEWRAP_Connect(union Trapped_Args *args)
-+u32 NODEWRAP_Connect(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_STRMATTR attrs;
-@@ -1278,7 +1278,7 @@ func_cont:
- /*
-  * ======== NODEWRAP_Create ========
-  */
--u32 NODEWRAP_Create(union Trapped_Args *args)
-+u32 NODEWRAP_Create(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1291,7 +1291,7 @@ u32 NODEWRAP_Create(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_Delete ========
-  */
--u32 NODEWRAP_Delete(union Trapped_Args *args)
-+u32 NODEWRAP_Delete(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1304,7 +1304,7 @@ u32 NODEWRAP_Delete(union Trapped_Args *args)
- /*
-  *  ======== NODEWRAP_FreeMsgBuf ========
-  */
--u32 NODEWRAP_FreeMsgBuf(union Trapped_Args *args)
-+u32 NODEWRAP_FreeMsgBuf(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_BUFFERATTR *pAttr = NULL;
-@@ -1327,7 +1327,7 @@ u32 NODEWRAP_FreeMsgBuf(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_GetAttr ========
-  */
--u32 NODEWRAP_GetAttr(union Trapped_Args *args)
-+u32 NODEWRAP_GetAttr(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_NODEATTR attr;
-@@ -1344,7 +1344,7 @@ u32 NODEWRAP_GetAttr(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_GetMessage ========
-  */
--u32 NODEWRAP_GetMessage(union Trapped_Args *args)
-+u32 NODEWRAP_GetMessage(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	struct DSP_MSG msg;
-@@ -1362,7 +1362,7 @@ u32 NODEWRAP_GetMessage(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_Pause ========
-  */
--u32 NODEWRAP_Pause(union Trapped_Args *args)
-+u32 NODEWRAP_Pause(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1375,7 +1375,7 @@ u32 NODEWRAP_Pause(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_PutMessage ========
-  */
--u32 NODEWRAP_PutMessage(union Trapped_Args *args)
-+u32 NODEWRAP_PutMessage(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_MSG msg;
-@@ -1395,7 +1395,7 @@ u32 NODEWRAP_PutMessage(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_RegisterNotify ========
-  */
--u32 NODEWRAP_RegisterNotify(union Trapped_Args *args)
-+u32 NODEWRAP_RegisterNotify(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_NOTIFICATION notification;
-@@ -1419,7 +1419,7 @@ u32 NODEWRAP_RegisterNotify(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_Run ========
-  */
--u32 NODEWRAP_Run(union Trapped_Args *args)
-+u32 NODEWRAP_Run(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1432,7 +1432,7 @@ u32 NODEWRAP_Run(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_Terminate ========
-  */
--u32 NODEWRAP_Terminate(union Trapped_Args *args)
-+u32 NODEWRAP_Terminate(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	DSP_STATUS tempstatus;
-@@ -1450,7 +1450,7 @@ u32 NODEWRAP_Terminate(union Trapped_Args *args)
- /*
-  * ======== NODEWRAP_GetUUIDProps ========
-  */
--u32 NODEWRAP_GetUUIDProps(union Trapped_Args *args)
-+u32 NODEWRAP_GetUUIDProps(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_UUID nodeId;
-@@ -1481,7 +1481,7 @@ func_cont:
- /*
-  * ======== STRMWRAP_AllocateBuffer ========
-  */
--u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args)
-+u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status;
- 	u8 **apBuffer = NULL;
-@@ -1505,7 +1505,7 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_Close ========
-  */
--u32 STRMWRAP_Close(union Trapped_Args *args)
-+u32 STRMWRAP_Close(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1517,7 +1517,7 @@ u32 STRMWRAP_Close(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_FreeBuffer ========
-  */
--u32 STRMWRAP_FreeBuffer(union Trapped_Args *args)
-+u32 STRMWRAP_FreeBuffer(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	u8 **apBuffer = NULL;
-@@ -1545,7 +1545,7 @@ u32 STRMWRAP_FreeBuffer(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_GetEventHandle ========
-  */
--u32 STRMWRAP_GetEventHandle(union Trapped_Args *args)
-+u32 STRMWRAP_GetEventHandle(union Trapped_Args *args, void *pr_ctxt)
- {
- 	return DSP_ENOTIMPL;
- }
-@@ -1553,7 +1553,7 @@ u32 STRMWRAP_GetEventHandle(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_GetInfo ========
-  */
--u32 STRMWRAP_GetInfo(union Trapped_Args *args)
-+u32 STRMWRAP_GetInfo(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct STRM_INFO strmInfo;
-@@ -1578,7 +1578,7 @@ u32 STRMWRAP_GetInfo(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_Idle ========
-  */
--u32 STRMWRAP_Idle(union Trapped_Args *args)
-+u32 STRMWRAP_Idle(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 retVal;
- 
-@@ -1591,7 +1591,7 @@ u32 STRMWRAP_Idle(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_Issue ========
-  */
--u32 STRMWRAP_Issue(union Trapped_Args *args)
-+u32 STRMWRAP_Issue(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	/* No need of doing cp_fm_usr for the user buffer (pBuffer)
-@@ -1609,7 +1609,7 @@ u32 STRMWRAP_Issue(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_Open ========
-  */
--u32 STRMWRAP_Open(union Trapped_Args *args)
-+u32 STRMWRAP_Open(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct STRM_ATTR attr;
-@@ -1634,7 +1634,7 @@ u32 STRMWRAP_Open(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_Reclaim ========
-  */
--u32 STRMWRAP_Reclaim(union Trapped_Args *args)
-+u32 STRMWRAP_Reclaim(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	u8 *pBufPtr;
-@@ -1659,7 +1659,7 @@ u32 STRMWRAP_Reclaim(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_RegisterNotify ========
-  */
--u32 STRMWRAP_RegisterNotify(union Trapped_Args *args)
-+u32 STRMWRAP_RegisterNotify(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct DSP_NOTIFICATION notification;
-@@ -1684,7 +1684,7 @@ u32 STRMWRAP_RegisterNotify(union Trapped_Args *args)
- /*
-  * ======== STRMWRAP_Select ========
-  */
--u32 STRMWRAP_Select(union Trapped_Args *args)
-+u32 STRMWRAP_Select(union Trapped_Args *args, void *pr_ctxt)
- {
- 	u32 mask;
- 	struct STRM_OBJECT *aStrmTab[MAX_STREAMS];
-@@ -1707,7 +1707,7 @@ u32 STRMWRAP_Select(union Trapped_Args *args)
- /*
-  * ======== CMMWRAP_CallocBuf ========
-  */
--u32 CMMWRAP_CallocBuf(union Trapped_Args *args)
-+u32 CMMWRAP_CallocBuf(union Trapped_Args *args, void *pr_ctxt)
- {
- 	/* This operation is done in kernel */
- 	return DSP_ENOTIMPL;
-@@ -1716,7 +1716,7 @@ u32 CMMWRAP_CallocBuf(union Trapped_Args *args)
- /*
-  * ======== CMMWRAP_FreeBuf ========
-  */
--u32 CMMWRAP_FreeBuf(union Trapped_Args *args)
-+u32 CMMWRAP_FreeBuf(union Trapped_Args *args, void *pr_ctxt)
- {
- 	/* This operation is done in kernel */
- 	return DSP_ENOTIMPL;
-@@ -1725,7 +1725,7 @@ u32 CMMWRAP_FreeBuf(union Trapped_Args *args)
- /*
-  * ======== CMMWRAP_GetHandle ========
-  */
--u32 CMMWRAP_GetHandle(union Trapped_Args *args)
-+u32 CMMWRAP_GetHandle(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct CMM_OBJECT *hCmmMgr;
-@@ -1740,7 +1740,7 @@ u32 CMMWRAP_GetHandle(union Trapped_Args *args)
- /*
-  * ======== CMMWRAP_GetInfo ========
-  */
--u32 CMMWRAP_GetInfo(union Trapped_Args *args)
-+u32 CMMWRAP_GetInfo(union Trapped_Args *args, void *pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
- 	struct CMM_INFO cmmInfo;
+ 	u32 tempCount;
+ 	u32  procID;
+@@ -1031,11 +1042,11 @@ static DSP_STATUS PrintProcessInformation(void)
+ 			GT_0trace(curTrace, GT_4CLASS, "\nThe Process"
+ 					" is in DeAllocated state\n");
+ 		}
+-		GT_1trace(curTrace, GT_4CLASS, "\nThe  hProcessor"
+-				" handle is: 0X%x\n",
+-				(u32)pCtxtList->hProcessor);
+-		if (pCtxtList->hProcessor != NULL) {
+-			PROC_GetProcessorId(pCtxtList->hProcessor, &procID);
++
++		spin_lock(&pCtxtList->proc_list_lock);
++		list_for_each_entry(proc_obj_ptr, &pCtxtList->processor_list,
++				proc_object) {
++			PROC_GetProcessorId(proc_obj_ptr, &procID);
+ 			if (procID == DSP_UNIT) {
+ 				GT_0trace(curTrace, GT_4CLASS,
+ 					"\nProcess connected to"
+@@ -1049,6 +1060,8 @@ static DSP_STATUS PrintProcessInformation(void)
+ 					"\n***ERROR:Invalid Processor Id***\n");
+ 			}
+ 		}
++		spin_unlock(&pCtxtList->proc_list_lock);
++
+ 		pNodeRes = pCtxtList->pNodeList;
+ 		tempCount = 1;
+ 		while (pNodeRes != NULL) {
 diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 80c0eeb..9ac7f19 100644
+index 7d4a6ea..1cb3d74 100644
 --- a/drivers/dsp/bridge/rmgr/drv_interface.c
 +++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -656,7 +656,8 @@ static long bridge_ioctl(struct file *filp, unsigned int code,
- 				sizeof(union Trapped_Args));
+@@ -452,6 +452,7 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
+ 	HANDLE	     hDrvObject = NULL;
+ 	struct PROCESS_CONTEXT	*pTmp = NULL;
+ 	struct PROCESS_CONTEXT    *pCtxtclosed = NULL;
++	struct PROC_OBJECT *proc_obj_ptr, *temp;
  
- 	if (status >= 0) {
--		status = WCD_CallDevIOCtl(code, &pBufIn, &retval);
-+		status = WCD_CallDevIOCtl(code, &pBufIn, &retval,
-+				filp->private_data);
+ 	GT_0trace(driverTrace, GT_ENTER, "-> driver_exit\n");
  
- 		if (DSP_SUCCEEDED(status)) {
- 			status = retval;
+@@ -474,7 +475,10 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
+ 		GT_1trace(driverTrace, GT_5CLASS, "***Cleanup of "
+ 			 "process***%d\n", pCtxtclosed->pid);
+ 		DRV_RemoveAllResources(pCtxtclosed);
+-		PROC_Detach(pCtxtclosed->hProcessor, pCtxtclosed);
++		list_for_each_entry_safe(proc_obj_ptr, temp,
++				&pCtxtclosed->processor_list, proc_object) {
++			PROC_Detach(proc_obj_ptr, pCtxtclosed);
++		}
+ 		pTmp = pCtxtclosed->next;
+ 		DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
+ 				     pCtxtclosed, (void *)pCtxtclosed->pid);
+@@ -608,6 +612,7 @@ static int bridge_release(struct inode *ip, struct file *filp)
+ 	DSP_STATUS dsp_status;
+ 	HANDLE hDrvObject;
+ 	struct PROCESS_CONTEXT *pr_ctxt;
++	struct PROC_OBJECT *proc_obj_ptr, *temp;
+ 
+ 	GT_0trace(driverTrace, GT_ENTER, "-> bridge_release\n");
+ 
+@@ -619,7 +624,11 @@ static int bridge_release(struct inode *ip, struct file *filp)
+ 		if (DSP_SUCCEEDED(dsp_status)) {
+ 			flush_signals(current);
+ 			DRV_RemoveAllResources(pr_ctxt);
+-			PROC_Detach(pr_ctxt->hProcessor, pr_ctxt);
++			list_for_each_entry_safe(proc_obj_ptr, temp,
++					&pr_ctxt->processor_list,
++					proc_object) {
++				PROC_Detach(proc_obj_ptr, pr_ctxt);
++			}
+ 			DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
+ 					pr_ctxt, (void *)pr_ctxt->pid);
+ 		} else {
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 323054f..4a76f24 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -160,27 +160,6 @@
+ #define EXTEND	      "_EXT_END"	/* Extmem end addr in DSP binary */
+ 
+ extern char *iva_img;
+-/* The PROC_OBJECT structure.   */
+-struct PROC_OBJECT {
+-	struct LST_ELEM link;		/* Link to next PROC_OBJECT */
+-	u32 dwSignature;	/* Used for object validation */
+-	struct DEV_OBJECT *hDevObject;	/* Device this PROC represents */
+-	u32 hProcess;   /* Process owning this Processor */
+-	struct MGR_OBJECT *hMgrObject;	/* Manager Object Handle */
+-	u32 uAttachCount;	/* Processor attach count */
+-	u32 uProcessor;	/* Processor number */
+-	u32 uTimeout;		/* Time out count */
+-	enum DSP_PROCSTATE sState;	/* Processor state */
+-	u32 ulUnit;		/* DDSP unit number */
+-	bool bIsAlreadyAttached;	/*
+-					 * True if the Device below has
+-					 * GPP Client attached
+-					 */
+-	struct NTFY_OBJECT *hNtfy;	/* Manages  notifications */
+-	struct WMD_DEV_CONTEXT *hWmdContext;	/* WMD Context Handle */
+-	struct WMD_DRV_INTERFACE *pIntfFxns;	/* Function interface to WMD */
+-	char *g_pszLastCoff;
+-} ;
+ 
+ /*  ----------------------------------- Globals */
+ #if GT_TRACE
+@@ -207,24 +186,32 @@ static char **PrependEnvp(char **newEnvp, char **envp, s32 cEnvp, s32 cNewEnvp,
+ DSP_STATUS PROC_CleanupAllResources(void)
+ {
+ 	DSP_STATUS dsp_status = DSP_SOK;
+-	HANDLE	     hDrvObject = NULL;
+-	struct PROCESS_CONTEXT    *pCtxtclosed = NULL;
++	HANDLE hDrvObject = NULL;
++	struct PROCESS_CONTEXT *pCtxtclosed = NULL;
++	struct PROC_OBJECT *proc_obj_ptr, *temp;
++
+ 	GT_0trace(PROC_DebugMask, GT_ENTER, "PROC_CleanupAllResources\n");
++
+ 	dsp_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+ 	if (DSP_FAILED(dsp_status))
+ 		goto func_end;
++
+ 	DRV_GetProcCtxtList(&pCtxtclosed, (struct DRV_OBJECT *)hDrvObject);
++
+ 	while (pCtxtclosed != NULL) {
+ 		if (current->tgid != pCtxtclosed->pid) {
+ 			GT_1trace(PROC_DebugMask, GT_5CLASS,
+ 				 "***Cleanup of "
+ 				 "process***%d\n", pCtxtclosed->pid);
+-			if (pCtxtclosed->hProcessor)
+-				PROC_Detach(pCtxtclosed->hProcessor,
+-						pCtxtclosed);
++			list_for_each_entry_safe(proc_obj_ptr, temp,
++					&pCtxtclosed->processor_list,
++					proc_object) {
++				PROC_Detach(proc_obj_ptr, pCtxtclosed);
++			}
+ 		}
+ 		pCtxtclosed = pCtxtclosed->next;
+ 	}
++
+ 	WMD_DEH_ReleaseDummyMem();
+ func_end:
+ 	return dsp_status;
+@@ -254,12 +241,6 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
+ 		 "uProcessor:  0x%x\n\tpAttrIn:  0x%x\n\tphProcessor:"
+ 		 "0x%x\n", uProcessor, pAttrIn, phProcessor);
+ 
+-	if (pr_ctxt->hProcessor) {
+-		pr_err("DSP: PROC_Attach() on same file handle is "
+-				"not supported!\n");
+-		goto func_end;
+-	}
+-
+ 	/* Get the Driver and Manager Object Handles */
+ 	status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+ 	if (DSP_SUCCEEDED(status)) {
+@@ -308,10 +289,11 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
+ 	pProcObject->hDevObject = hDevObject;
+ 	pProcObject->hMgrObject = hMgrObject;
+ 	pProcObject->uProcessor = devType;
+-	/* Get Caller Process and store it */
+-	/* Return TGID instead of process handle */
++	/* Store TGID of Caller Process */
+ 	pProcObject->hProcess = current->tgid;
+ 
++	INIT_LIST_HEAD(&pProcObject->proc_object);
++
+ 	if (pAttrIn)
+ 		pProcObject->uTimeout = pAttrIn->uTimeout;
+ 	else
+@@ -382,7 +364,9 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
+ 		MEM_FreeObject(pProcObject);
+ 	}
+ #ifndef RES_CLEANUP_DISABLE
+-	pr_ctxt->hProcessor = pProcObject;
++	spin_lock(&pr_ctxt->proc_list_lock);
++	list_add(&pProcObject->proc_object, &pr_ctxt->processor_list);
++	spin_unlock(&pr_ctxt->proc_list_lock);
+ #endif
+ func_end:
+ 	DBC_Ensure((status == DSP_EFAIL && *phProcessor == NULL) ||
+@@ -616,8 +600,11 @@ DSP_STATUS PROC_Detach(DSP_HPROCESSOR hProcessor,
+ 
+ 	if (MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
+ #ifndef RES_CLEANUP_DISABLE
+-		if (pr_ctxt != NULL)
+-			pr_ctxt->hProcessor = NULL;
++		if (pr_ctxt) {
++			spin_lock(&pr_ctxt->proc_list_lock);
++			list_del(&pProcObject->proc_object);
++			spin_unlock(&pr_ctxt->proc_list_lock);
++		}
+ #endif
+ 		/* Notify the Client */
+ 		NTFY_Notify(pProcObject->hNtfy, DSP_PROCESSORDETACH);
 -- 
 1.6.2.4
 
