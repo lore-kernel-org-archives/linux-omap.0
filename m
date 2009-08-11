@@ -1,24 +1,19 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 11/13] DSPBRIDGE: Use pr_ctxt in STRM_AllocateBuffer
-Date: Tue, 11 Aug 2009 04:21:52 +0300
-Message-ID: <1249953714-20972-12-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 06/13] DSPBRIDGE: Use pr_ctxt in PROC_Detach
+Date: Tue, 11 Aug 2009 04:21:47 +0300
+Message-ID: <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
 References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-4-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-5-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-6-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-8-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-9-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-10-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-11-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:49894 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752894AbZHKBWP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:15 -0400
-In-Reply-To: <1249953714-20972-11-git-send-email-ameya.palande@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:37634 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753417AbZHKBWW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:22 -0400
+In-Reply-To: <1249953714-20972-6-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -26,89 +21,112 @@ Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, suyog@ti.com, 
 
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/strm.h |    3 +-
+ arch/arm/plat-omap/include/dspbridge/proc.h |    3 ++-
  drivers/dsp/bridge/pmgr/wcd.c               |    2 +-
- drivers/dsp/bridge/rmgr/strm.c              |   28 ++++++--------------------
- 3 files changed, 10 insertions(+), 23 deletions(-)
+ drivers/dsp/bridge/rmgr/drv_interface.c     |    4 ++--
+ drivers/dsp/bridge/rmgr/proc.c              |   24 ++++++------------------
+ 4 files changed, 11 insertions(+), 22 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-index 23a9f17..9929210 100644
---- a/arch/arm/plat-omap/include/dspbridge/strm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -84,7 +84,8 @@
- 	extern DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm,
- 					      u32 uSize,
- 					      OUT u8 **apBuffer,
--					      u32 uNumBufs);
-+					      u32 uNumBufs,
-+					      struct PROCESS_CONTEXT *pr_ctxt);
+diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
+index 1737761..f5b0c50 100644
+--- a/arch/arm/plat-omap/include/dspbridge/proc.h
++++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+@@ -163,7 +163,8 @@
+  *  Ensures:
+  *      PROC Object is destroyed.
+  */
+-	extern DSP_STATUS PROC_Detach(DSP_HPROCESSOR hProcessor);
++	extern DSP_STATUS PROC_Detach(DSP_HPROCESSOR hProcessor,
++			struct PROCESS_CONTEXT *pr_ctxt);
  
  /*
-  *  ======== STRM_Close ========
+  *  ======== PROC_EnumNodes ========
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index c9b29ea..4fdcb18 100644
+index ddb2aea..4f902a3 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -1493,7 +1493,7 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
+@@ -744,7 +744,7 @@ u32 PROCWRAP_Detach(union Trapped_Args *args, void *pr_ctxt)
+ 	GT_1trace(WCD_debugMask, GT_ENTER,
+ 		 "PROCWRAP_Detach: entered args\n0x%x "
+ 		 "hProceesor \n", args->ARGS_PROC_DETACH.hProcessor);
+-	retVal = PROC_Detach(args->ARGS_PROC_DETACH.hProcessor);
++	retVal = PROC_Detach(args->ARGS_PROC_DETACH.hProcessor, pr_ctxt);
  
- 	status = STRM_AllocateBuffer(args->ARGS_STRM_ALLOCATEBUFFER.hStream,
- 				     args->ARGS_STRM_ALLOCATEBUFFER.uSize,
--				     apBuffer, uNumBufs);
-+				     apBuffer, uNumBufs, pr_ctxt);
- 	cp_to_usr(args->ARGS_STRM_ALLOCATEBUFFER.apBuffer, apBuffer, status,
- 		 uNumBufs);
- 	if (apBuffer)
-diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index e25818f..d68251f 100644
---- a/drivers/dsp/bridge/rmgr/strm.c
-+++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -154,18 +154,15 @@ static void DeleteStrmMgr(struct STRM_MGR *hStrmMgr);
-  *      Allocates buffers for a stream.
+ 	return retVal;
+ }
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 9ac7f19..7d4a6ea 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -474,7 +474,7 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
+ 		GT_1trace(driverTrace, GT_5CLASS, "***Cleanup of "
+ 			 "process***%d\n", pCtxtclosed->pid);
+ 		DRV_RemoveAllResources(pCtxtclosed);
+-		PROC_Detach(pCtxtclosed->hProcessor);
++		PROC_Detach(pCtxtclosed->hProcessor, pCtxtclosed);
+ 		pTmp = pCtxtclosed->next;
+ 		DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
+ 				     pCtxtclosed, (void *)pCtxtclosed->pid);
+@@ -619,7 +619,7 @@ static int bridge_release(struct inode *ip, struct file *filp)
+ 		if (DSP_SUCCEEDED(dsp_status)) {
+ 			flush_signals(current);
+ 			DRV_RemoveAllResources(pr_ctxt);
+-			PROC_Detach(pr_ctxt->hProcessor);
++			PROC_Detach(pr_ctxt->hProcessor, pr_ctxt);
+ 			DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
+ 					pr_ctxt, (void *)pr_ctxt->pid);
+ 		} else {
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index c475436..323054f 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -220,7 +220,8 @@ DSP_STATUS PROC_CleanupAllResources(void)
+ 				 "***Cleanup of "
+ 				 "process***%d\n", pCtxtclosed->pid);
+ 			if (pCtxtclosed->hProcessor)
+-				PROC_Detach(pCtxtclosed->hProcessor);
++				PROC_Detach(pCtxtclosed->hProcessor,
++						pCtxtclosed);
+ 		}
+ 		pCtxtclosed = pCtxtclosed->next;
+ 	}
+@@ -604,32 +605,19 @@ DSP_STATUS PROC_Ctrl(DSP_HPROCESSOR hProcessor, u32 dwCmd,
+  *      Destroys the  Processor Object. Removes the notification from the Dev
+  *      List.
   */
- DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
--				OUT u8 **apBuffer, u32 uNumBufs)
-+				OUT u8 **apBuffer, u32 uNumBufs,
-+				struct PROCESS_CONTEXT *pr_ctxt)
+-DSP_STATUS PROC_Detach(DSP_HPROCESSOR hProcessor)
++DSP_STATUS PROC_Detach(DSP_HPROCESSOR hProcessor,
++		struct PROCESS_CONTEXT *pr_ctxt)
  {
  	DSP_STATUS status = DSP_SOK;
- 	u32 uAllocated = 0;
- 	u32 i;
--	#ifndef RES_CLEANUP_DISABLE
+ 	struct PROC_OBJECT *pProcObject = (struct PROC_OBJECT *)hProcessor;
+-#ifndef RES_CLEANUP_DISABLE
+-	HANDLE hDRVObject;
+-       u32 hProcess;
 -	DSP_STATUS res_status = DSP_SOK;
--       u32                  hProcess;
--	HANDLE	     pCtxt = NULL;
--	HANDLE	     hDrvObject;
-+#ifndef RES_CLEANUP_DISABLE
- 	HANDLE hSTRMRes;
--	#endif
-+#endif
+-	struct PROCESS_CONTEXT   *pPctxt = NULL;
+-#endif
  	DBC_Require(cRefs > 0);
- 	DBC_Require(apBuffer != NULL);
+ 	GT_1trace(PROC_DebugMask, GT_ENTER, "Entered PROC_Detach, args:\n\t"
+ 		 "hProcessor:  0x%x\n", hProcessor);
  
-@@ -203,20 +200,9 @@ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
- 	if (DSP_FAILED(status))
- 		goto func_end;
- 
--	/* Return TGID instead of process handle */
--	hProcess = current->tgid;
--
--	res_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
--	if (DSP_FAILED(res_status))
--		goto func_end;
--
--       DRV_GetProcContext(hProcess, (struct DRV_OBJECT *)hDrvObject,
--			 &pCtxt, NULL, 0);
--	if (pCtxt != NULL) {
--		if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pCtxt) !=
--		   DSP_ENOTFOUND) {
--			DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes, pCtxt);
+ 	if (MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) {
+ #ifndef RES_CLEANUP_DISABLE
+-		/* Return PID instead of process handle */
+-		hProcess = pProcObject->hProcess;
+-		res_status = CFG_GetObject((u32 *)&hDRVObject, REG_DRV_OBJECT);
+-		if (DSP_SUCCEEDED(res_status)) {
+-			DRV_GetProcContext(hProcess,
+-				(struct DRV_OBJECT *)hDRVObject, &pPctxt,
+-					 NULL, 0);
+-			if (pPctxt != NULL)
+-				pPctxt->hProcessor = NULL;
 -		}
-+	if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pr_ctxt) !=
-+			DSP_ENOTFOUND) {
-+		DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes, pr_ctxt);
- 	}
++		if (pr_ctxt != NULL)
++			pr_ctxt->hProcessor = NULL;
  #endif
- func_end:
+ 		/* Notify the Client */
+ 		NTFY_Notify(pProcObject->hNtfy, DSP_PROCESSORDETACH);
 -- 
 1.6.2.4
 
