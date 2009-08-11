@@ -1,130 +1,121 @@
 From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 1/6] ARM: OMAP4: PM: Fix the PRM and CM base addresses
-Date: Tue, 11 Aug 2009 21:12:32 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0306050241@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.0908110615170.17390@utopia.booyaka.com>
+Subject: RE: [PATCH 2/6] ARM: OMAP4: PM: PRM/CM module offsets for OMAP4
+Date: Tue, 11 Aug 2009 21:20:36 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0306050246@dbde02.ent.ti.com>
+References: <alpine.DEB.2.00.0908110632080.17390@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45476 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752416AbZHKPm7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 11:42:59 -0400
-In-Reply-To: <alpine.DEB.2.00.0908110615170.17390@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39451 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753882AbZHKPuw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 11:50:52 -0400
+In-Reply-To: <alpine.DEB.2.00.0908110632080.17390@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "sakari.poussa@nokia.com" <sakari.poussa@nokia.com>
 
-Hi Paul, 
+ 
 
 >-----Original Message-----
 >From: Paul Walmsley [mailto:paul@pwsan.com] 
->Sent: Tuesday, August 11, 2009 6:02 PM
+>Sent: Tuesday, August 11, 2009 6:32 PM
 >To: Nayak, Rajendra
 >Cc: linux-arm-kernel@lists.arm.linux.org.uk; 
->linux-omap@vger.kernel.org; Cousson, Benoit
->Subject: Re: [PATCH 1/6] ARM: OMAP4: PM: Fix the PRM and CM 
->base addresses
+>linux-omap@vger.kernel.org; Cousson, Benoit; sakari.poussa@nokia.com
+>Subject: Re: [PATCH 2/6] ARM: OMAP4: PM: PRM/CM module offsets 
+>for OMAP4
 >
->Hello Rajendra
+>Hello Rajendra, 
 >
->Most of this patch looks fine to me but I have one question:
+>Some comments.
 >
 >On Mon, 10 Aug 2009, Rajendra Nayak wrote:
 >
->> This patch fixes the PRM and CM base addresses and adds
->> a new CM2 base address for OMAP4
+>> This patch adds the offsets for new modules in PRM
+>> and CM for OMAP4
 >> 
 >> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 >> ---
->>  arch/arm/mach-omap2/prcm.c                 |    2 ++
->>  arch/arm/plat-omap/common.c                |    2 ++
->>  arch/arm/plat-omap/include/mach/common.h   |    1 +
->>  arch/arm/plat-omap/include/mach/omap44xx.h |    6 ++++--
->>  4 files changed, 9 insertions(+), 2 deletions(-)
+>>  arch/arm/mach-omap2/prcm-common.h |   22 ++++++++++++++++++++++
+>>  1 files changed, 22 insertions(+), 0 deletions(-)
 >> 
->> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
->> index f945156..de307fa 100644
->> --- a/arch/arm/mach-omap2/prcm.c
->> +++ b/arch/arm/mach-omap2/prcm.c
->> @@ -27,6 +27,7 @@
+>> diff --git a/arch/arm/mach-omap2/prcm-common.h 
+>b/arch/arm/mach-omap2/prcm-common.h
+>> index cb1ae84..ab0dd8e 100644
+>> --- a/arch/arm/mach-omap2/prcm-common.h
+>> +++ b/arch/arm/mach-omap2/prcm-common.h
+>> @@ -49,6 +49,28 @@
+>>  #define OMAP3430_NEON_MOD				0xb00
+>>  #define OMAP3430ES2_USBHOST_MOD				0xc00
 >>  
->>  static void __iomem *prm_base;
->>  static void __iomem *cm_base;
->> +static void __iomem *cm2_base;
->>  
->>  u32 omap_prcm_get_reset_sources(void)
->>  {
->> @@ -124,4 +125,5 @@ void __init 
->omap2_set_globals_prcm(struct omap_globals *omap2_globals)
->>  {
->>  	prm_base = omap2_globals->prm;
->>  	cm_base = omap2_globals->cm;
->> +	cm2_base = omap2_globals->cm2;
->>  }
->> diff --git a/arch/arm/plat-omap/common.c 
->b/arch/arm/plat-omap/common.c
->> index ebcf006..e848a12 100644
->> --- a/arch/arm/plat-omap/common.c
->> +++ b/arch/arm/plat-omap/common.c
->> @@ -372,12 +372,14 @@ static struct omap_globals omap4_globals = {
->>  	.ctrl	= OMAP2_IO_ADDRESS(OMAP443X_CTRL_BASE),
->>  	.prm	= OMAP2_IO_ADDRESS(OMAP4430_PRM_BASE),
->>  	.cm	= OMAP2_IO_ADDRESS(OMAP4430_CM_BASE),
->> +	.cm2	= OMAP2_IO_ADDRESS(OMAP4430_CM2_BASE),
->>  };
->>  
->>  void __init omap2_set_globals_443x(void)
->>  {
->>  	omap2_set_globals_tap(&omap4_globals);
->>  	omap2_set_globals_control(&omap4_globals);
->> +	omap2_set_globals_prcm(&omap4_globals);
->>  }
->>  #endif
->>  
->> diff --git a/arch/arm/plat-omap/include/mach/common.h 
->b/arch/arm/plat-omap/include/mach/common.h
->> index fdeab42..878c4f9 100644
->> --- a/arch/arm/plat-omap/include/mach/common.h
->> +++ b/arch/arm/plat-omap/include/mach/common.h
->> @@ -55,6 +55,7 @@ struct omap_globals {
->>  	void __iomem	*ctrl;		/* System Control Module */
->>  	void __iomem	*prm;		/* Power and Reset Management */
->>  	void __iomem	*cm;		/* Clock Management */
->> +	void __iomem	*cm2;
->>  };
->>  
->>  void omap2_set_globals_242x(void);
->> diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h 
->b/arch/arm/plat-omap/include/mach/omap44xx.h
->> index 15dec7f..be29d77 100644
->> --- a/arch/arm/plat-omap/include/mach/omap44xx.h
->> +++ b/arch/arm/plat-omap/include/mach/omap44xx.h
->> @@ -23,8 +23,10 @@
->>  #define L4_EMU_44XX_BASE		0x54000000
->>  #define L3_44XX_BASE			0x44000000
->>  #define OMAP4430_32KSYNCT_BASE		0x4a304000
->> -#define OMAP4430_CM_BASE		0x4a004000
->> -#define OMAP4430_PRM_BASE		0x48306000
->> +#define OMAP4430_CM1_BASE		0x4A30A000
+>> +/* OMAP44XX specific module offsets */
+>> +#define OMAP4430_OCP_SOCKET_MOD				0x0000
+>> +#define OMAP4430_CKGEN_MOD				0x0100
+>> +#define OMAP4430_MPU_MOD				0x0300
+>> +#define OMAP4430_DSP_MOD				0x0400
+>> +#define OMAP4430_ABE_MOD				0x0500
+>> +#define OMAP4430_ALWAYS_ON_MOD				0x0600
+>> +#define OMAP4430_CORE_MOD				0x0700
+>> +#define OMAP4430_IVAHD_MOD				0x0F00
+>> +#define OMAP4430_CAM_MOD				0x1000
+>> +#define OMAP4430_DSS_MOD				0x1100
+>> +#define OMAP4430_GFX_MOD				0x1200
+>> +#define OMAP4430_L3INIT_MOD				0x1300
+>> +#define OMAP4430_L4PER_MOD				0x1400
+>> +#define OMAP4430_CEFUSE_MOD				0x1600
+>> +#define OMAP4430_WKUP_MOD				0x1700
+>> +#define OMAP4430_WKUP_CM_MOD				0x1800
+>> +#define OMAP4430_EMU_MOD				0x1900
+>> +#define OMAP4430_EMU_CM_MOD				0x1A00
+>> +#define OMAP4430_DEVICE_MOD				0x1B00
+>> +#define OMAP4430_RESTORE_MOD				0x1E00
+>> +#define OMAP4430_INSTR_MOD				0x1F00
 >
->The data from Benoit shows CM1 at the previous address - did this move 
->recently?
+>
+>1. In the data above, some PRCM submodules, e.g., CM1.INSTR_CM1 and 
+>   CM2.RESTORE_CM2, are either at the wrong address or are not listed, 
+>   depending on one's perspective.
 
-These are based on the latest TRM that I have access to. Having said that
-it's quite likely that the TRM is'nt up to date since its still early days for OMAP4.
-Thanks for pointing it out, I will doublecheck this and update the patch.
+I still see these are correct based on the TRM I have. Can you clarify more on what you
+see wrong here?
 
 >
->> +#define OMAP4430_CM_BASE		OMAP4430_CM1_BASE
->> +#define OMAP4430_CM2_BASE		0x4A008000
->> +#define OMAP4430_PRM_BASE		0x4A306000
->>  #define OMAP44XX_GPMC_BASE		0x50000000
->>  #define OMAP443X_SCM_BASE		0x4a002000
->>  #define OMAP443X_CTRL_BASE		OMAP443X_SCM_BASE
+>2. It would be better to infix the module name in these, e.g., 
+>   OMAP4430_CM2_INSTR_MOD (and add PRM, CM1 variants) rather than 
+>   just OMAP4430_INSTR_MOD.  This will increase the number of 
+>defines but 
+>   will decrease 
+
+Does it really make sense in case all those are the same?
+Instead of having one define something like
+#define OMAP4430_RESTORE_MOD				0x1E00
+There would be 3 defines
+#define OMAP4430_PRM_RESTORE_MOD				0x1E00
+#define OMAP4430_CM1_RESTORE_MOD				0x1E00
+#define OMAP4430_CM2_RESTORE_MOD				0x1E00
+
+>
+>3. The autoprcm repo has a script, gen_prcm44xx.py, that 
+>auto-generates 
+>   almost all of these, without the errors described above, 
+>from Benoit's
+>   data.  Is there some reason why we can't use the output from that 
+>   script? 
+
+I am not quite sure of Benoit's data but it most likely points to a superset
+of all OMAP4 architectures and not just whats supported/present on  OMAP4430.
+These patches are to support just 4430 and hence mostly data from whats
+mentioned in the TRM.
+
+ It seems far superior to using manually-entered data.  The 
+>   source data comes directly from the hardware database, so the
+>   possibility of manual error seems lessened, and the same 
+>script should
+>   work with future OMAP4 revision.
 >
 >
 >- Paul
