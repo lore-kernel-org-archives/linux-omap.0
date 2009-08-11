@@ -1,127 +1,70 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
-Date: Tue, 11 Aug 2009 11:33:11 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F20295A89A21@dlee06.ent.ti.com>
-References: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com>
- <alpine.DEB.2.00.0908030054390.19529@utopia.booyaka.com>
- <CD8CC2B65FEE304DA95744A5472698F202959C0D61@dlee06.ent.ti.com>
- <CD8CC2B65FEE304DA95744A5472698F20295A89778@dlee06.ent.ti.com>
- <alpine.DEB.2.00.0908100950040.5505@utopia.booyaka.com>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: N810: external mmc died?
+Date: Tue, 11 Aug 2009 10:57:28 -0600
+Message-ID: <20090811165728.GB29557@swansys>
+References: <20090729182948.GN7597@swansys> <20090729191231.GO7597@swansys> <20090729202941.GR7597@swansys>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="jq0ap7NbKX2Kqbes"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49095 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754494AbZHKQdS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 12:33:18 -0400
-In-Reply-To: <alpine.DEB.2.00.0908100950040.5505@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mail-fx0-f228.google.com ([209.85.220.228]:38289 "EHLO
+	mail-fx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752349AbZHKQ6A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 12:58:00 -0400
+Received: by fxm28 with SMTP id 28so1651598fxm.17
+        for <linux-omap@vger.kernel.org>; Tue, 11 Aug 2009 09:58:00 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20090729202941.GR7597@swansys>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+To: Linux-OMAP List <linux-omap@vger.kernel.org>
 
-Hello Paul,
 
-> -----Original Message-----
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Monday, August 10, 2009 11:30 AM
-> To: Sonasath, Moiz
-> Cc: linux-i2c@vger.kernel.org; linux-omap@vger.kernel.org; Menon,
-> Nishanth; Pandita, Vikram
-> Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
-> 
-> Hello Moiz,
-> 
-> On Mon, 10 Aug 2009, Sonasath, Moiz wrote:
-> 
-> > I did some analysis and testing of the code with threshold set to zero,
-> > we cannot make the threshold zero with the present code in place, as
-> > this would hamper the functionality of the draining feature because in
-> > this case the XDR interrupt will not be triggered.
-> >
-> > XDR-> when TX FIFO level equal/below the XTRSH AND TXSTAT is less than
-> XTRSH
-> >
-> > XRDY-> when TX FIFO level equal/below the XTRSH AND TXSTAT is
-> > equal/greater than XTRSH
-> >
-> > This in turn causes XRDY to be triggered always (even when there are
-> > only last few bytes left to be transmitted) and therefore the code tries
-> > to transmit data when the upper application is out of data.
-> 
-> Thanks for looking into this.  How about just changing
-> 
-> 	if (dev->fifo_size) {
-> 		if (stat & OMAP_I2C_STAT_XRDY)
-> 			num_bytes = dev->fifo_size;
-> 		else    /* read TXSTAT on XDR interrupt */
-> 			num_bytes = omap_i2c_read_reg(dev,
-> 					    OMAP_I2C_BUFSTAT_REG)
-> 					    & 0x3F;
-> 	}
-> 
-> to something like:
-> 
-> 	if (dev->fifo_size) {   /* 2430 and beyond */
-> 		if (stat & OMAP_I2C_STAT_XRDY)
-> 			num_bytes = clamp(dev->buf_len, 1, dev->fifo_size);
-> 	        else
-> 		        num_bytes = omap_i2c_read_reg(dev,
-> 
->                                          OMAP_I2C_BUFSTAT_REG)
-> 		 			 & 0x3F;
->         }
-> 
-> in the ISR?
-> 
-> The transmit and receive FIFO thresholds should also be split, so the
-> short transmit FIFO threshold doesn't affect the receive FIFO threshold.
-> 
+--jq0ap7NbKX2Kqbes
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks Paul for suggesting this, it definitely works. But there are a few things that I would like to discuss:
+green wrote at 2009-07-29 14:29 -0600:
+> green wrote at 2009-07-29 13:12 -0600:
+> > I was working on moving Debian's root from internal mmc (because it sti=
+ll=20
+> > doesn't work with linux-omap) to external mmc, running standard Maemo a=
+nd=20
+> > connected by USB to the MMC cards (with the cards mounted), when sudden=
+ly the=20
+> > N810 reset.  I have no idea why, but now external MMC does not work.
+>=20
+> I went back to commit 401b285465488f515290e0f9111872b94e1cf922 where both=
+=20
+> internal and external MMC worked, and now I get this error message while=
+=20
+> booting:
+>=20
+> mmc0: error -110 whilst initialising SD card
+>=20
+> I have never seen that message before.  It seems that some hardware has b=
+roken. =20
+> Has this thing decided to start eating MMC cards now?  Can a MMC card not=
+=20
+> handle a reset while mounted (it probably was not being written to)?  If =
+it=20
+> helps, the card is labeled with "Patriot Memory MiniSDHC Class 6 8GB".
 
-1. From the code we have in place now, we are writing 
-num_bytes=dev->fifosize(=XTRSH+1) bytes in case of XRDY OR
-num_bytes=TXSTAT (last few bytes left) in case of XDR (draining feature)
+I guess I'll look for a replacement and hope it works.
 
-Without the errata we were writing these num_bytes in a while loop one by one into I2C_DATA reg (TXFIFO).
+--jq0ap7NbKX2Kqbes
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-With the errata we are writing num_bytes in a while loop, but now we write one byte wait for XUDF bit to get set and then write another byte. Thereby, we write a byte, wait for it to get out of the TXFIFO and only then we write the second byte and so on. 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-	While(num_bytes)
-	{
-		Write one byte to I2C_DATA Reg
-		Wait for XUDF to set
-	}
-	Ack the interrupt
+iEYEARECAAYFAkqBovgACgkQ682C+dBP+oSZDgCg8qRodKVcnvq2yRmwbaDVWGGJ
+KyAAn10+JotO4ZtgwagjKTdGUJITZ4Kh
+=cmkn
+-----END PGP SIGNATURE-----
 
-So irrespective of the XTRSH value, the wait time is actually the same.
-
-2. Now if we see it from the perspective of interrupts, we are generating an interrupt after every chunk of 4 bytes (with XTRSH+1=4) written to the TXFIFO because we ACK the interrupt after writing a chunk of 4 bytes (one byte at a time waiting for the XUDF bit to be set in between each byte). 
-
->From the TRM Figure-18-31, in the XRDY path:
-Write I2Ci.I2C_DATA register for (XTRSH+1) times and then clear XRDY interrupt
-
-Thus, XTRSH is actually driving how many chunks of data you write before generating a next interrupt. So from this point of view it will be more desirable to make the XTRSH=7 and write chunk of 8 bytes before generating a new interrupt. But we end up staying a longer time in the ISR.
-
-Essentially we are looking at a tradeoff between:
-1. Lower XTRSH value: More number of interrupts, less time in an ISR  
-2. Higher XTRSH value: Less number of interrupts, more time in an ISR 
-
-Please correct me if I am wrong.
-
-> > I checked with the I2C IP team, yes the errata applies to the I2C block
-> > on OMAP2430 and OMAP2420. I will send out a patch to include OMAP24XX
-> > for this erratum.
-> 
-> Great, thanks for checking this.  Might as well combine it with the same
-> patch and make it a revision test based on the I2C controller revision
-> reg.
-> 
-> 
-> - Paul
-
-Regards
-Moiz Sonasath
+--jq0ap7NbKX2Kqbes--
