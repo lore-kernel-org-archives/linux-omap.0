@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/9] OMAP: Remove omap boot parsing code
-Date: Tue, 11 Aug 2009 12:49:15 +0300
-Message-ID: <20090811094914.32577.90182.stgit@localhost>
+Subject: [PATCH 4/9] OMAP: GPIO: Avoid generating extra IRQs
+Date: Tue, 11 Aug 2009 12:50:32 +0300
+Message-ID: <20090811095032.32577.69831.stgit@localhost>
 References: <20090811094348.32577.81307.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -17,76 +17,73 @@ List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
 	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: linux-omap@vger.kernel.org, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 List-Id: linux-omap@vger.kernel.org
 
-From: Roger Quadros <ext-roger.quadros@nokia.com>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-Remove left over code for parsing omap boot tags. This is
-no longer used.
-see commit fc0ef1bfa1353e048e055374a09c75320d22231b
+It is possible for GPIO IRQ lines configured with
+falling edge triggering only to get IRQs at the
+rising edge upon the exit of offmode. And vice
+versa. Prevent such IRQs to arrive by generating
+the IRQ obeying the detection scheme.
 
-Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/common.c |   44 -------------------------------------------
- 1 files changed, 0 insertions(+), 44 deletions(-)
+ arch/arm/plat-omap/gpio.c |   27 +++++++++++++++++++++++----
+ 1 files changed, 23 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index f37a29a..a6fa786 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -54,50 +54,6 @@ static const void *get_config(u16 tag, size_t len, int skip, size_t *len_out)
- 	struct omap_board_config_kernel *kinfo = NULL;
- 	int i;
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index 555bab0..19d4dfb 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -1804,7 +1804,7 @@ void omap2_gpio_resume_after_retention(void)
+ 		return;
+ 	for (i = 0; i < gpio_bank_count; i++) {
+ 		struct gpio_bank *bank = &gpio_bank[i];
+-		u32 l;
++		u32 l, gen, gen0, gen1;
  
--#ifdef CONFIG_OMAP_BOOT_TAG
--	struct omap_board_config_entry *info = NULL;
--
--	if (omap_bootloader_tag_len > 4)
--		info = (struct omap_board_config_entry *) omap_bootloader_tag;
--	while (info != NULL) {
--		u8 *next;
--
--		if (info->tag == tag) {
--			if (skip == 0)
--				break;
--			skip--;
--		}
--
--		if ((info->len & 0x03) != 0) {
--			/* We bail out to avoid an alignment fault */
--			printk(KERN_ERR "OMAP peripheral config: Length (%d) not word-aligned (tag %04x)\n",
--			       info->len, info->tag);
--			return NULL;
--		}
--		next = (u8 *) info + sizeof(*info) + info->len;
--		if (next >= omap_bootloader_tag + omap_bootloader_tag_len)
--			info = NULL;
--		else
--			info = (struct omap_board_config_entry *) next;
--	}
--	if (info != NULL) {
--		/* Check the length as a lame attempt to check for
--		 * binary inconsistency. */
--		if (len != NO_LENGTH_CHECK) {
--			/* Word-align len */
--			if (len & 0x03)
--				len = (len + 3) & ~0x03;
--			if (info->len != len) {
--				printk(KERN_ERR "OMAP peripheral config: Length mismatch with tag %x (want %d, got %d)\n",
--				       tag, len, info->len);
--				return NULL;
--			}
--		}
--		if (len_out != NULL)
--			*len_out = info->len;
--		return info->data;
--	}
--#endif
- 	/* Try to find the config from the board-specific structures
- 	 * in the kernel. */
- 	for (i = 0; i < omap_board_config_size; i++) {
+ 		if (!(bank->enabled_non_wakeup_gpios))
+ 			continue;
+@@ -1825,14 +1825,33 @@ void omap2_gpio_resume_after_retention(void)
+ #endif
+ 		l ^= bank->saved_datain;
+ 		l &= bank->non_wakeup_gpios;
+-		if (l) {
++
++		/*
++		 * No need to generate IRQs for the rising edge for gpio IRQs
++		 * configured with falling edge only; and vice versa.
++		 */
++		gen0 = l & bank->saved_fallingdetect;
++		gen0 &= bank->saved_datain;
++
++		gen1 = l & bank->saved_risingdetect;
++		gen1 &= ~(bank->saved_datain);
++
++		/* FIXME: Consider GPIO IRQs with level detections properly! */
++		gen = l & (~(bank->saved_fallingdetect) &
++				~(bank->saved_risingdetect));
++		/* Consider all GPIO IRQs needed to be updated */
++		gen |= gen0 | gen1;
++
++		if (gen) {
+ 			u32 old0, old1;
+ #if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
+ 			defined(CONFIG_ARCH_OMAP4)
+ 			old0 = __raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+ 			old1 = __raw_readl(bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+-			__raw_writel(old0 | l, bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+-			__raw_writel(old1 | l, bank->base + OMAP24XX_GPIO_LEVELDETECT1);
++			__raw_writel(old0 | gen, bank->base +
++					OMAP24XX_GPIO_LEVELDETECT0);
++			__raw_writel(old1 | gen, bank->base +
++					OMAP24XX_GPIO_LEVELDETECT1);
+ 			__raw_writel(old0, bank->base + OMAP24XX_GPIO_LEVELDETECT0);
+ 			__raw_writel(old1, bank->base + OMAP24XX_GPIO_LEVELDETECT1);
+ #endif
 
 
 -------------------------------------------------------------------
