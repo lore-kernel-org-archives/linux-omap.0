@@ -1,109 +1,83 @@
-From: Peter Barada <peterb@logicpd.com>
-Subject: smsc911x IRQ on MMC1_DAT7 pin problem with ES3.1 35x
-Date: Tue, 11 Aug 2009 13:28:17 -0400
-Message-ID: <1250011697.18517.86.camel@blitz>
+From: Mike Chan <mike@android.com>
+Subject: Re: [PATCH] omap: pm: Fix overflow when doing powerdomain deps
+	lookups.
+Date: Tue, 11 Aug 2009 11:11:43 -0700
+Message-ID: <8bb80c380908111111m5a0a3417n3fea568cb8ea9124@mail.gmail.com>
+References: <1249956052-21893-1-git-send-email-mike@android.com>
+	 <87tz0e76vk.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:30382 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752986AbZHKRYO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 11 Aug 2009 13:24:14 -0400
+Received: from mail-vw0-f172.google.com ([209.85.212.172]:50054 "EHLO
+	mail-vw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753911AbZHKSLm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 14:11:42 -0400
+Received: by vws2 with SMTP id 2so3532465vws.4
+        for <linux-omap@vger.kernel.org>; Tue, 11 Aug 2009 11:11:43 -0700 (PDT)
+In-Reply-To: <87tz0e76vk.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-I have a board that has the smsx911x driver IRQ hooked up to
-R25_MMC1_DAT7, and I've setup the pin (mux offset 0x156) as "
-OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT", and a gpio input.
+On Tue, Aug 11, 2009 at 7:38 AM, Kevin
+Hilman<khilman@deeprootsystems.com> wrote:
+> Mike Chan <mike@android.com> writes:
+>
+>> Signed-off-by: Mike Chan <mike@android.com>
+>> ---
+>> =A0arch/arm/mach-omap2/powerdomain.c | =A0 =A02 +-
+>> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2=
+/powerdomain.c
+>> index 0334609..6077629 100644
+>> --- a/arch/arm/mach-omap2/powerdomain.c
+>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>> @@ -90,7 +90,7 @@ static struct powerdomain *_pwrdm_deps_lookup(stru=
+ct powerdomain *pwrdm,
+>> =A0 =A0 =A0 if (!pwrdm || !deps || !omap_chip_is(pwrdm->omap_chip))
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ERR_PTR(-EINVAL);
+>>
+>> - =A0 =A0 for (pd =3D deps; pd; pd++) {
+>> + =A0 =A0 for (pd =3D deps; pd->pwrdm_name; pd++) {
+>
+> Maybe should be:
+>
+> =A0 =A0 =A0 =A0for (pd =3D deps; pd && pd->pwrdm_name; pd++) {
+>
 
-The smsc911x platform data is:
+At the end of the list pd is a pointer to a NULL struct, so checking
+if the address =3D=3D NULL doesn't help here. In fact the original code
+will just keep running past the struct to read who knows what in
+memory.
 
-static struct smsc911x_platform_config ldp_smsc911x_platform_data = {
-	.irq_polarity = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
-	.irq_type = SMSC911X_IRQ_TYPE_OPEN_DRAIN,
-	.flags = SMSC911X_USE_16BIT,
-	.phy_interface = PHY_INTERFACE_MODE_MII,
-};
+This case manifests itself when from clkdms_setup() when enabling auto
+idle for a clock domain and the clockdomain usecount is greater than
+0. When _clkdm_add_autodeps() tries to add the a dependency that does
+not exist in the powerdomain->wkdep_srcs array the for loop will run
+past the wkdep_srcs array.
 
-and the IRQ pin from the LAN9211 is hooked up to SD1_MMC7 and pulled to
-1.8V via a 4.75Kohm resistor.
+Currently in linux-omap you won't hit this because the not found case
+is never executed, unless you start modifying powerdomains and their
+wakeup/sleep deps.
 
-Unfortunately with ES3.1 silicon I'm getting:
+--Mike
 
-OMAP-Torpedo# modprobe smsc911x
-smsc911x: Driver version 2008-10-21.
-irq 289: nobody cared (try booting with the "irqpoll" option)
-[<c0036e40>] (dump_stack+0x0/0x14) from [<c008500c>] (__report_bad_irq
-+0x3c/0x94)
-[<c0084fd0>] (__report_bad_irq+0x0/0x94) from [<c00851b8>]
-(note_interrupt+0x154/0x1cc)
- r4:c0406f14
-[<c0085064>] (note_interrupt+0x0/0x1cc) from [<c0085f4c>]
-(handle_level_irq+0xb4/0xec)
-[<c0085e98>] (handle_level_irq+0x0/0xec) from [<c0048f74>]
-(gpio_irq_handler+0x13c/0x180)
- r5:c0406f14 r4:00000121
-[<c0048e38>] (gpio_irq_handler+0x0/0x180) from [<c0032068>]
-(__exception_text_start+0x68/0x8c)
-[<c0032000>] (__exception_text_start+0x0/0x8c) from [<c00329d0>]
-(__irq_svc+0x30/0x80)
-Exception stack(0xc7817c60 to 0xc7817ca8)
-7c60: 00000000 0000033d 00000001 00000000 c0406f14 40000013 c7a26720
-00000121
-7c80: c0406f2c c78a8800 00000088 c7817ccc d9056000 c7817ca8 00000002
-c0084974
-7ca0: 40000013 ffffffff
- r5:d8200000 r4:ffffffff
-[<c0084800>] (__setup_irq+0x0/0x1e0) from [<c0084a8c>] (request_irq
-+0xac/0xd8)
- r8:c01e7a60 r7:c0406f14 r6:00000000 r5:00000121 r4:c7a26720
-[<c00849e0>] (request_irq+0x0/0xd8) from [<c030719c>]
-(smsc911x_drv_probe+0x5bc/0x12f8)
-[<c0306be0>] (smsc911x_drv_probe+0x0/0x12f8) from [<c01db38c>]
-(platform_drv_probe+0x20/0x24)
-[<c01db36c>] (platform_drv_probe+0x0/0x24) from [<c01da540>]
-(driver_probe_device+0xec/0x198)
-[<c01da454>] (driver_probe_device+0x0/0x198) from [<c01da658>]
-(__driver_attach+0x6c/0x90)
- r6:c03ff6dc r5:c04183b4 r4:c03ff630
-[<c01da5ec>] (__driver_attach+0x0/0x90) from [<c01d9a7c>]
-(bus_for_each_dev+0x4c/0x84)
- r6:c01da5ec r5:c7817db0 r4:00000000
-[<c01d9a30>] (bus_for_each_dev+0x0/0x84) from [<c01da368>]
-(driver_attach+0x20/0x28)
- r7:00000000 r6:c78c8b40 r5:c04183b4 r4:00000000
-[<c01da348>] (driver_attach+0x0/0x28) from [<c01d9f18>] (bus_add_driver
-+0xa8/0x218)
-[<c01d9e70>] (bus_add_driver+0x0/0x218) from [<c01da85c>]
-(driver_register+0x98/0x11c)
-[<c01da7c4>] (driver_register+0x0/0x11c) from [<c01db728>]
-(platform_driver_register+0x78/0x94)
-[<c01db6b0>] (platform_driver_register+0x0/0x94) from [<c001ebb0>]
-(smsc911x_init_module+0x14/0x1c)
-[<c001eb9c>] (smsc911x_init_module+0x0/0x1c) from [<c00322d8>]
-(__exception_text_end+0x60/0x190)
-[<c0032278>] (__exception_text_end+0x0/0x190) from [<c0008730>]
-(kernel_init+0x6c/0xd8)
-[<c00086c4>] (kernel_init+0x0/0xd8) from [<c0060d90>] (do_exit
-+0x0/0x6e0)
- r5:00000000 r4:00000000
-handlers:
-[<c01e7a60>] (smsc911x_irqhandler+0x0/0x558)
-Disabling IRQ #289
-
-
-0) Looking at the IRQ pin with a scope while modprobing the driver shows
-it steady at 1.8V.
-
-1) Do I need (and how?) to setup PBIAS and/or VMMC1 to make the
-MMC1_DAT4 through MMC1_DAT7 usable as GPIO pins at 1.8V while allowing
-MMC1_DAT0 through MMC1_DAT3 to be used for an SD/MMC port?
-
-2) Will the code in twl_mmc1_set_power() affect the voltage/bias on pins
-MMC1_dat4 through MMC1_DAT7?
-
--- 
-Peter Barada <peterb@logicpd.com>
-Logic Product Development, Inc.
+> ?
+>
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!omap_chip_is(pd->omap_chip))
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 continue;
+>
+> Also, a descriptive changelog would be helpful here describing the
+> conditions where you saw overflow etc.
+>
+> Kevin
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
