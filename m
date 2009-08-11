@@ -1,105 +1,83 @@
-From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Subject: RE: [RFC][PATCH 0/4] TWL6030 patch series
-Date: Tue, 11 Aug 2009 18:30:24 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940432B7A0B6@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E739404329D670F@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940432AF3EB6@dbde02.ent.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP4: PM: PRM/CM module offsets for OMAP4
+Date: Tue, 11 Aug 2009 07:01:31 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908110632080.17390@utopia.booyaka.com>
+References: <1249907048-12163-1-git-send-email-rnayak@ti.com> <1249907048-12163-2-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33632 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750821AbZHKNBM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 09:01:12 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940432AF3EB6@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:57087 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754552AbZHKNBb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 09:01:31 -0400
+In-Reply-To: <1249907048-12163-2-git-send-email-rnayak@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "sameo@openedhand.com" <sameo@openedhand.com>, "wim@iguana.be" <wim@iguana.be>, "timo.t.kokkonen@nokia.com" <timo.t.kokkonen@nokia.com>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "me@felipebalbi.com" <me@felipebalbi.com>
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, b-cousson@ti.com, sakari.poussa@nokia.com
 
-Hi All,
+Hello Rajendra, 
 
-Can I have your comments on this so that I can rebase the patch for the upcoming merge window.
+Some comments.
 
-Thanks and Regards,
-Balaji T K
-> -----Original Message-----
-> From: Krishnamoorthy, Balaji T
-> Sent: Thursday, August 06, 2009 2:28 PM
-> To: sameo@linux.intel.com
-> Cc: linux-omap@vger.kernel.org; tony@atomide.com; khilman@deeprootsystems.com;
-> david-b@pacbell.net; Shilimkar, Santosh; Nayak, Rajendra;
-> sameo@openedhand.com; wim@iguana.be; timo.t.kokkonen@nokia.com; ben-
-> linux@fluff.org; broonie@opensource.wolfsonmicro.com; lrg@slimlogic.co.uk;
-> Krishnamoorthy, Balaji T
-> Subject: RE: [RFC][PATCH 0/4] TWL6030 patch series
-> 
-> Hi Samuel,
-> 
-> Could you please add your comments on the following patch series.
-> 
-> series 1
-> [PATCH 1/4] ARM: OMAP: Rename twl4030* driver files to enable re-use
-> [PATCH 2/4] ARM: OMAP: Rename all twl4030_i2c*.
-> [PATCH 3/4] ARM: OMAP: Rename twl4030_ in rtc-twl.c to make it generic rtc
-> [PATCH 4/4] ARM: OMAP: Rename twl4030_ to twl_ in twl-regulator.c to make it
-> generic reg
-> 
-> series 2 dependent on series 1
-> [RFC][PATCH v2 4/4] OMAP4: PMIC: Update TWL mfd driver to create twl6030
-> regulators
-> [RFC][PATCH v2 3/4] OMAP4: PMIC: Add support for twl6030 regulators
-> [RFC][PATCH v2 2/4] OMAP4: PMIC: Add support for twl6030 RTC
-> [RFC][PATCH v2 1/4] OMAP4: PMIC: Add support for twl6030 irq framework
-> 
-> Thanks and Regards,
-> Balaji T K
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Krishnamoorthy, Balaji T
-> > Sent: Monday, July 20, 2009 7:04 PM
-> > To: linux-kernel@vger.kernel.org
-> > Cc: linux-i2c@vger.kernel.org; linux-omap@vger.kernel.org; tony@atomide.com;
-> > khilman@deeprootsystems.com; david-b@pacbell.net; Shilimkar, Santosh; Nayak,
-> > Rajendra; sameo@openedhand.com; wim@iguana.be; timo.t.kokkonen@nokia.com;
-> ben-
-> > linux@fluff.org; broonie@opensource.wolfsonmicro.com; lrg@slimlogic.co.uk
-> > Subject: [RFC][PATCH 0/4] TWL6030 patch series
-> >
-> > The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
-> > for OMAP3. This patch series adds support for TWL6030 irq framework, and
-> > driver support for RTC and regulator.
-> >
-> > 	drivers/mfd/twl6030-irq.c  files is newly added as INTERRUPT status
-> > 		registers, ack and clear mechanism has changed from twl4030,5030.
-> > 	drivers/rtc/rtc-twl.c will support twl4030,twl5030, and also twl6030 rtc
-> > 	drivers/regulator/twl-regulator.c will support twl regulators.
-> > 	include/linux/i2c/twl.h  will have TWL4030 and TWL6030 offsets selected
-> > 		at compile time by CONFIG_TWL4030_CORE / CONFIG_TWL6030_CORE
-> >
-> > These patches are generated against mainline 2.6.31-rc1 and has dependancy
-> on
-> > my 1st series[1].
-> > Patch list:
-> > 	[RFC][PATCH 1/4] OMAP4: PMIC: Add support for twl6030 irq framework
-> > 	[RFC][PATCH 2/4] OMAP4: PMIC: Add support for twl6030 RTC
-> > 	[RFC][PATCH 3/4] OMAP4: PMIC: Add support for twl6030 regulators
-> > 	[RFC][PATCH 4/4] OMAP4: PMIC: Update TWL mfd driver to create twl6030
-> > regulators
-> >
-> > Needed board-* changes and defconfig changes will be done later.Please let
-> me
-> > know your feedback/suggestion on this patch series.
-> >
-> > Thanks and Regards,
-> > Balaji T K
-> > [1] http://marc.info/?l=linux-omap&m=124757921417187&w=2
-> >   [PATCH 0/4] TWL patch series
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, 10 Aug 2009, Rajendra Nayak wrote:
 
+> This patch adds the offsets for new modules in PRM
+> and CM for OMAP4
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/prcm-common.h |   22 ++++++++++++++++++++++
+>  1 files changed, 22 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+> index cb1ae84..ab0dd8e 100644
+> --- a/arch/arm/mach-omap2/prcm-common.h
+> +++ b/arch/arm/mach-omap2/prcm-common.h
+> @@ -49,6 +49,28 @@
+>  #define OMAP3430_NEON_MOD				0xb00
+>  #define OMAP3430ES2_USBHOST_MOD				0xc00
+>  
+> +/* OMAP44XX specific module offsets */
+> +#define OMAP4430_OCP_SOCKET_MOD				0x0000
+> +#define OMAP4430_CKGEN_MOD				0x0100
+> +#define OMAP4430_MPU_MOD				0x0300
+> +#define OMAP4430_DSP_MOD				0x0400
+> +#define OMAP4430_ABE_MOD				0x0500
+> +#define OMAP4430_ALWAYS_ON_MOD				0x0600
+> +#define OMAP4430_CORE_MOD				0x0700
+> +#define OMAP4430_IVAHD_MOD				0x0F00
+> +#define OMAP4430_CAM_MOD				0x1000
+> +#define OMAP4430_DSS_MOD				0x1100
+> +#define OMAP4430_GFX_MOD				0x1200
+> +#define OMAP4430_L3INIT_MOD				0x1300
+> +#define OMAP4430_L4PER_MOD				0x1400
+> +#define OMAP4430_CEFUSE_MOD				0x1600
+> +#define OMAP4430_WKUP_MOD				0x1700
+> +#define OMAP4430_WKUP_CM_MOD				0x1800
+> +#define OMAP4430_EMU_MOD				0x1900
+> +#define OMAP4430_EMU_CM_MOD				0x1A00
+> +#define OMAP4430_DEVICE_MOD				0x1B00
+> +#define OMAP4430_RESTORE_MOD				0x1E00
+> +#define OMAP4430_INSTR_MOD				0x1F00
+
+
+1. In the data above, some PRCM submodules, e.g., CM1.INSTR_CM1 and 
+   CM2.RESTORE_CM2, are either at the wrong address or are not listed, 
+   depending on one's perspective.
+
+2. It would be better to infix the module name in these, e.g., 
+   OMAP4430_CM2_INSTR_MOD (and add PRM, CM1 variants) rather than 
+   just OMAP4430_INSTR_MOD.  This will increase the number of defines but 
+   will decrease 
+
+3. The autoprcm repo has a script, gen_prcm44xx.py, that auto-generates 
+   almost all of these, without the errors described above, from Benoit's
+   data.  Is there some reason why we can't use the output from that 
+   script?  It seems far superior to using manually-entered data.  The 
+   source data comes directly from the hardware database, so the
+   possibility of manual error seems lessened, and the same script should
+   work with future OMAP4 revision.
+
+
+- Paul
