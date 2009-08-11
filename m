@@ -1,71 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/1] omap iommu: add initial debugfs support
-Date: Tue, 11 Aug 2009 12:26:17 +0300
-Message-ID: <20090811092617.GR1938@atomide.com>
-References: <1248272642-5200-1-git-send-email-Hiroshi.DOYU@nokia.com> <20090811.115337.70184536.Hiroshi.DOYU@nokia.com> <20090811091958.GQ1938@atomide.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/6] ARM: OMAP4: PM: PRM/CM module offsets for OMAP4
+Date: Tue, 11 Aug 2009 08:21:32 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908110816570.17390@utopia.booyaka.com>
+References: <1249907048-12163-1-git-send-email-rnayak@ti.com> <1249907048-12163-2-git-send-email-rnayak@ti.com> <alpine.DEB.2.00.0908110632080.17390@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65078 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751665AbZHKNdZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 09:33:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20090811091958.GQ1938@atomide.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:38266 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752096AbZHKOVc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 10:21:32 -0400
+In-Reply-To: <alpine.DEB.2.00.0908110632080.17390@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: ameya.palande@nokia.com, h-kanigeri2@ti.com, x0095840@ti.com, omar.ramirez@ti.com, linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, b-cousson@ti.com, sakari.poussa@nokia.com
 
-* Tony Lindgren <tony@atomide.com> [090811 12:19]:
-> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090811 11:54]:
-> > Hi Tony,
-> > 
-> > From: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
-> > Subject: [PATCH 1/1] omap iommu: add initial debugfs support
-> > Date: Wed, 22 Jul 2009 16:24:02 +0200
-> > 
-> > > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > > 
-> > > This enables to peek the following data.
-> > > 
-> > > $ /debug/iommu/isp# ls
-> > > mem             nr_tlb_entries  regs
-> > > mmap            pagetable       tlb
-> > > $ /debug/iommu/isp# head pagetable
-> > > L:      da:      pa:
-> > > -----------------------------------------
-> > > 2: 00001000 8ae4a002
-> > > 2: 00002000 8e7bb002
-> > > 2: 00003000 8ae49002
-> > > 2: 00004000 8ae65002
-> > > .....
-> > > 
-> > > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-> > 
-> > Please apply this one too if there's no problem.
+On Tue, 11 Aug 2009, Paul Walmsley wrote:
+
+> On Mon, 10 Aug 2009, Rajendra Nayak wrote:
 > 
-> OK, will add it into my omap-upstream queue.
+> > diff --git a/arch/arm/mach-omap2/prcm-common.h b/arch/arm/mach-omap2/prcm-common.h
+> > index cb1ae84..ab0dd8e 100644
+> > --- a/arch/arm/mach-omap2/prcm-common.h
+> > +++ b/arch/arm/mach-omap2/prcm-common.h
 
-Looks like it needs to be refreshed, can you please repost?
+...
 
-Hunk #1 FAILED at 135.
-Hunk #2 succeeded at 166 with fuzz 2 (offset 11 lines).
-1 out of 2 hunks FAILED -- rejects in file arch/arm/plat-omap/include/mach/iommu.h
-patching file arch/arm/plat-omap/iommu-debug.c
-patching file arch/arm/plat-omap/iommu.c
-Hunk #1 FAILED at 120.
-Hunk #2 FAILED at 148.
-Hunk #3 FAILED at 207.
-Hunk #4 succeeded at 422 with fuzz 2 (offset 71 lines).
-Hunk #5 FAILED at 659.
-Hunk #6 FAILED at 670.
-Hunk #7 FAILED at 814.
-Hunk #8 FAILED at 833.
-7 out of 8 hunks FAILED -- rejects in file arch/arm/plat-omap/iommu.c
-Patch apply does not apply (enforce with -f)
+> > +#define OMAP4430_WKUP_MOD				0x1700
+> > +#define OMAP4430_WKUP_CM_MOD				0x1800
+> > +#define OMAP4430_EMU_MOD				0x1900
+> > +#define OMAP4430_EMU_CM_MOD				0x1A00
+
+...
+
+> 2. It would be better to infix the module name in these, e.g., 
+>    OMAP4430_CM2_INSTR_MOD (and add PRM, CM1 variants) rather than 
+>    just OMAP4430_INSTR_MOD.
+
+One other comment on macros like the above: it would also be best 
+to use the full PRM/CM submodule name.  So, for instance, 
+use OMAP4430_PRM_EMU_PRM_MOD and OMAP4430_PRM_EMU_CM_MOD.  
+
+This is to avoid any potential confusion caused by having to remember a 
+rule like "when the PRCM submodule name ends in _PRM, drop the _PRM".  One 
+can just use the name from the TRM, always prefixed with the module name, 
+and suffixed with _MOD (or whatever).
+
+The gen_prcm44xx.py script will generate these in this format.
 
 
-Regards,
-
-Tony
+- Paul
