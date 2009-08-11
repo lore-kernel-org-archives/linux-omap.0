@@ -1,137 +1,35 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 13/13] DSPBRIDGE: Removal of DRV_GetProcContext
-Date: Tue, 11 Aug 2009 04:21:54 +0300
-Message-ID: <1249953714-20972-14-git-send-email-ameya.palande@nokia.com>
-References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-4-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-5-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-6-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-8-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-9-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-10-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-11-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-12-git-send-email-ameya.palande@nokia.com>
- <1249953714-20972-13-git-send-email-ameya.palande@nokia.com>
+From: Mike Chan <mike@android.com>
+Subject: [PATCH] omap: pm: Fix overflow when doing powerdomain deps lookups.
+Date: Mon, 10 Aug 2009 19:00:52 -0700
+Message-ID: <1249956052-21893-1-git-send-email-mike@android.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:49920 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753651AbZHKBWh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:37 -0400
-In-Reply-To: <1249953714-20972-13-git-send-email-ameya.palande@nokia.com>
+Received: from smtp-out.google.com ([216.239.33.17]:28558 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750798AbZHKCA6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 22:00:58 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, suyog@ti.com, roman.tereshonkov@nokia.com, ernesto@ti.com
+Cc: khilman@deeprootsystems.com, Mike Chan <mike@android.com>
 
-Use filp->private_data instead of DRV_GetProcContext
-
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+Signed-off-by: Mike Chan <mike@android.com>
 ---
- .../plat-omap/include/dspbridge/resourcecleanup.h  |    5 --
- drivers/dsp/bridge/rmgr/drv.c                      |   71 --------------------
- 2 files changed, 0 insertions(+), 76 deletions(-)
+ arch/arm/mach-omap2/powerdomain.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-index 5592f38..9ddf1b3 100644
---- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-+++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-@@ -35,11 +35,6 @@ extern DSP_STATUS DRV_ProcUpdatestate(HANDLE pCtxt,
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 0334609..6077629 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -90,7 +90,7 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
+ 	if (!pwrdm || !deps || !omap_chip_is(pwrdm->omap_chip))
+ 		return ERR_PTR(-EINVAL);
  
- extern DSP_STATUS DRV_ProcSetPID(HANDLE pCtxt, s32 hProcess);
+-	for (pd = deps; pd; pd++) {
++	for (pd = deps; pd->pwrdm_name; pd++) {
  
--extern DSP_STATUS DRV_GetProcContext(u32 phProcess,
--				struct DRV_OBJECT *hDrvObject,
--				HANDLE hPCtxt, DSP_HNODE hNode,
--				u32 pMapAddr);
--
- extern DSP_STATUS DRV_RemoveAllResources(HANDLE pPctxt);
- 
- extern DSP_STATUS DRV_RemoveProcContext(struct DRV_OBJECT *hDRVObject,
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index e880ea8..0432a4b 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -198,77 +198,6 @@ DSP_STATUS DRV_GetProcCtxtList(struct PROCESS_CONTEXT **pPctxt,
- 	return status;
- }
- 
--
--
--/* Get a particular process context based on process handle (phProcess) */
--DSP_STATUS DRV_GetProcContext(u32 phProcess,
--				struct DRV_OBJECT *hDrvObject,
--				HANDLE hPCtxt, DSP_HNODE hNode,
--				u32 pMapAddr)
--{
--	struct PROCESS_CONTEXT **pCtxt = (struct PROCESS_CONTEXT **)hPCtxt;
--	DSP_STATUS status = DSP_SOK;
--	struct PROCESS_CONTEXT *pCtxtList = NULL;
--	struct DRV_OBJECT *pDrvObject = (struct DRV_OBJECT *)hDrvObject;
--	struct NODE_RES_OBJECT *pTempNode2 = NULL;
--	struct NODE_RES_OBJECT *pTempNode = NULL;
--	struct DMM_RES_OBJECT *pTempDMM2 = NULL;
--	struct DMM_RES_OBJECT *pTempDMM = NULL;
--	s32 pCtxtFound = 0;
--
--	DBC_Assert(pDrvObject != NULL);
--	pCtxtList = pDrvObject->procCtxtList;
--	GT_0trace(curTrace, GT_ENTER, "2DRV_GetProcContext: 2");
--	while ((pCtxtList != NULL) && (pCtxtList->pid != phProcess)) {
--		pCtxtList = pCtxtList->next;
--		GT_0trace(curTrace, GT_ENTER, "2DRV_GetProcContext: 3");
--	}
--	if (pCtxtList == NULL) {
--		if (hNode != NULL) {
--			pCtxtList = pDrvObject->procCtxtList;
--			while ((pCtxtList != NULL) && (pCtxtFound == 0)) {
--				pTempNode = pCtxtList->pNodeList;
--				while ((pTempNode != NULL) &&
--				      (pTempNode->hNode != hNode)) {
--					pTempNode2 = pTempNode;
--					pTempNode = pTempNode->next;
--				}
--				if (pTempNode != NULL) {
--					pCtxtFound = 1;
--					status = DSP_SOK;
--				} else {
--					pCtxtList = pCtxtList->next;
--				}
--			}
--		} else if ((pMapAddr != 0) && (pCtxtFound == 0)) {
--			pCtxtList = pDrvObject->procCtxtList;
--			while ((pCtxtList != NULL) && (pCtxtFound == 0)) {
--				pTempDMM = pCtxtList->pDMMList;
--				while ((pTempDMM != NULL) &&
--				     (pTempDMM->ulDSPAddr != pMapAddr)) {
--					pTempDMM2 = pTempDMM;
--					pTempDMM = pTempDMM->next;
--				}
--				if (pTempDMM != NULL) {
--					pCtxtFound = 1;
--					status = DSP_SOK;
--				} else {
--					pCtxtList = pCtxtList->next;
--				}
--			}
--			if (pCtxtList == NULL)
--				status = DSP_ENOTFOUND;
--
--		}
--	} else{
--		status = DSP_SOK;
--	}
--	GT_0trace(curTrace, GT_ENTER, "2DRV_GetProcContext: 4");
--	*pCtxt = pCtxtList;
--	return status;
--}
--
--
- /* Add a new process context to process context list */
- DSP_STATUS DRV_InsertProcContext(struct DRV_OBJECT *hDrVObject, HANDLE hPCtxt)
- {
+ 		if (!omap_chip_is(pd->omap_chip))
+ 			continue;
 -- 
-1.6.2.4
+1.5.4.5
 
