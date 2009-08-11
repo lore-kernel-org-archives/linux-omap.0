@@ -1,7 +1,7 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 08/13] DSPBRIDGE: Use pr_ctxt in DRV_RemoveProcContext
-Date: Tue, 11 Aug 2009 04:21:49 +0300
-Message-ID: <1249953714-20972-9-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 10/13] DSPBRIDGE: Use pr_ctxt in STRM_Close
+Date: Tue, 11 Aug 2009 04:21:51 +0300
+Message-ID: <1249953714-20972-11-git-send-email-ameya.palande@nokia.com>
 References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
@@ -10,12 +10,14 @@ References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-6-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-8-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-9-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-10-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28870 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbZHKBWP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:15 -0400
-In-Reply-To: <1249953714-20972-8-git-send-email-ameya.palande@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:49896 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752873AbZHKBWQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:16 -0400
+In-Reply-To: <1249953714-20972-10-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -23,103 +25,119 @@ Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, suyog@ti.com, 
 
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- .../plat-omap/include/dspbridge/resourcecleanup.h  |    2 +-
- drivers/dsp/bridge/rmgr/drv.c                      |   32 ++++++++++----------
- drivers/dsp/bridge/rmgr/drv_interface.c            |    4 +-
- 3 files changed, 19 insertions(+), 19 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/strm.h |    3 ++-
+ drivers/dsp/bridge/pmgr/wcd.c               |    6 +-----
+ drivers/dsp/bridge/rmgr/drv.c               |    5 +++--
+ drivers/dsp/bridge/rmgr/strm.c              |   27 +++++----------------------
+ 4 files changed, 11 insertions(+), 30 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-index b43fa16..5592f38 100644
---- a/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-+++ b/arch/arm/plat-omap/include/dspbridge/resourcecleanup.h
-@@ -43,7 +43,7 @@ extern DSP_STATUS DRV_GetProcContext(u32 phProcess,
- extern DSP_STATUS DRV_RemoveAllResources(HANDLE pPctxt);
+diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
+index 36b128d..23a9f17 100644
+--- a/arch/arm/plat-omap/include/dspbridge/strm.h
++++ b/arch/arm/plat-omap/include/dspbridge/strm.h
+@@ -102,7 +102,8 @@
+  *      STRM_Init(void) called.
+  *  Ensures:
+  */
+-	extern DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm);
++	extern DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
++			struct PROCESS_CONTEXT *pr_ctxt);
  
- extern DSP_STATUS DRV_RemoveProcContext(struct DRV_OBJECT *hDRVObject,
--				     HANDLE hPCtxt, HANDLE hProcess);
-+				     HANDLE hPCtxt);
+ /*
+  *  ======== STRM_Create ========
+diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
+index cf3fc2d..c9b29ea 100644
+--- a/drivers/dsp/bridge/pmgr/wcd.c
++++ b/drivers/dsp/bridge/pmgr/wcd.c
+@@ -1507,11 +1507,7 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
+  */
+ u32 STRMWRAP_Close(union Trapped_Args *args, void *pr_ctxt)
+ {
+-	u32 retVal;
+-
+-	retVal = STRM_Close(args->ARGS_STRM_CLOSE.hStream);
+-
+-	return retVal;
++	return STRM_Close(args->ARGS_STRM_CLOSE.hStream, pr_ctxt);
+ }
  
- extern DSP_STATUS DRV_GetNodeResElement(HANDLE hNode, HANDLE nodeRes,
- 					HANDLE pCtxt);
+ /*
 diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index e64b997..6cfd349 100644
+index 6cfd349..bf7d0b2 100644
 --- a/drivers/dsp/bridge/rmgr/drv.c
 +++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -317,36 +317,36 @@ DSP_STATUS DRV_InsertProcContext(struct DRV_OBJECT *hDrVObject, HANDLE hPCtxt)
- 
- /* Delete a process context from process resource context list */
- DSP_STATUS DRV_RemoveProcContext(struct DRV_OBJECT *hDRVObject,
--				     HANDLE hPCtxt, HANDLE hProcess)
-+		HANDLE pr_ctxt)
- {
- 	DSP_STATUS status = DSP_SOK;
--	struct PROCESS_CONTEXT    *pCtxt2 = NULL;
--	struct PROCESS_CONTEXT    *pTmp = NULL;
--	struct PROCESS_CONTEXT    *pCtxtList = NULL;
-+	struct PROCESS_CONTEXT *pr_ctxt_list = NULL;
-+	struct PROCESS_CONTEXT *ptr_prev;
- 
- 	DBC_Assert(hDRVObject != NULL);
--	DRV_GetProcContext((u32)hProcess, hDRVObject, &pCtxt2, NULL, 0);
- 
- 	GT_0trace(curTrace, GT_ENTER, "DRV_RemoveProcContext: 12");
--	DRV_GetProcCtxtList(&pCtxtList, hDRVObject);
-+	DRV_GetProcCtxtList(&pr_ctxt_list, hDRVObject);
-+	ptr_prev = pr_ctxt_list;
-+
- 	GT_0trace(curTrace, GT_ENTER, "DRV_RemoveProcContext: 13");
--	pTmp = pCtxtList;
--	while ((pCtxtList != NULL) && (pCtxtList != pCtxt2)) {
--		pTmp = pCtxtList;
--		pCtxtList = pCtxtList->next;
-+	while (pr_ctxt_list && (pr_ctxt_list != pr_ctxt)) {
-+		ptr_prev = pr_ctxt_list;
-+		pr_ctxt_list = pr_ctxt_list->next;
- 		GT_0trace(curTrace, GT_ENTER,
- 			 "DRV_RemoveProcContext: 2");
- 	}
-+
- 	GT_0trace(curTrace, GT_ENTER, "DRV_RemoveProcContext: 3");
--	if (hDRVObject->procCtxtList == pCtxt2)
--		hDRVObject->procCtxtList = pCtxt2->next;
- 
--	if (pCtxtList == NULL)
-+	if (!pr_ctxt_list)
- 		return DSP_ENOTFOUND;
--	else if (pTmp->next != NULL)
--		pTmp->next = pTmp->next->next;
-+	else if (pr_ctxt_list->next != NULL)
-+		ptr_prev->next = pr_ctxt_list->next;
-+	else
-+		hDRVObject->procCtxtList = NULL;
- 
--	MEM_Free(pCtxt2);
-+	MEM_Free(pr_ctxt);
- 	GT_0trace(curTrace, GT_ENTER, "DRV_RemoveProcContext: 7");
- 
- 	return status;
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index 1cb3d74..fa79695 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -481,7 +481,7 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
+@@ -801,14 +801,15 @@ static DSP_STATUS  DRV_ProcFreeSTRMRes(HANDLE hPCtxt)
+ 						pSTRMRes->uNumBufs);
+ 			MEM_Free(apBuffer);
  		}
- 		pTmp = pCtxtclosed->next;
- 		DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
--				     pCtxtclosed, (void *)pCtxtclosed->pid);
-+				pCtxtclosed);
- 		pCtxtclosed = pTmp;
- 	}
+-		status = STRM_Close(pSTRMRes->hStream);
++		status = STRM_Close(pSTRMRes->hStream, pCtxt);
+ 		if (DSP_FAILED(status)) {
+ 			if (status == DSP_EPENDING) {
+ 				status = STRM_Reclaim(pSTRMRes->hStream,
+ 						     &pBufPtr, &ulBytes,
+ 						     (u32 *)&ulBufSize, &dwArg);
+ 				if (DSP_SUCCEEDED(status))
+-					status = STRM_Close(pSTRMRes->hStream);
++					status = STRM_Close(pSTRMRes->hStream,
++							pCtxt);
  
-@@ -630,7 +630,7 @@ static int bridge_release(struct inode *ip, struct file *filp)
- 				PROC_Detach(proc_obj_ptr, pr_ctxt);
  			}
- 			DRV_RemoveProcContext((struct DRV_OBJECT *)hDrvObject,
--					pr_ctxt, (void *)pr_ctxt->pid);
-+					pr_ctxt);
- 		} else {
- 			status = -EIO;
  		}
+diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
+index 4a05ed4..e25818f 100644
+--- a/drivers/dsp/bridge/rmgr/strm.c
++++ b/drivers/dsp/bridge/rmgr/strm.c
+@@ -228,22 +228,17 @@ func_end:
+  *  Purpose:
+  *      Close a stream opened with STRM_Open().
+  */
+-DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm)
++DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
++		struct PROCESS_CONTEXT *pr_ctxt)
+ {
+ 	struct WMD_DRV_INTERFACE *pIntfFxns;
+ 	struct CHNL_INFO chnlInfo;
+ 	DSP_STATUS status = DSP_SOK;
+ 
+-
+ #ifndef RES_CLEANUP_DISABLE
+-    u32                      hProcess;
+-    HANDLE	      pCtxt = NULL;
+-    HANDLE	      hDrvObject;
+     HANDLE	      hSTRMRes;
+-    DSP_STATUS	  res_status = DSP_SOK;
+ #endif
+ 
+-
+ 	DBC_Require(cRefs > 0);
+ 
+ 	GT_1trace(STRM_debugMask, GT_ENTER, "STRM_Close: hStrm: 0x%x\n", hStrm);
+@@ -276,21 +271,9 @@ DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm)
+ 	if (DSP_FAILED(status))
+ 		goto func_end;
+ 
+-	/* Update the node and stream resource status */
+-	/* Return TGID instead of process handle */
+-	hProcess = current->tgid;
+-
+-	res_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+-	if (DSP_FAILED(res_status))
+-		goto func_end;
+-
+-       DRV_GetProcContext(hProcess, (struct DRV_OBJECT *)hDrvObject,
+-			 &pCtxt, NULL, 0);
+-	if (pCtxt != NULL) {
+-		if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pCtxt) !=
+-		   DSP_ENOTFOUND) {
+-			DRV_ProcRemoveSTRMResElement(hSTRMRes, pCtxt);
+-		}
++	if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pr_ctxt) !=
++			DSP_ENOTFOUND) {
++		DRV_ProcRemoveSTRMResElement(hSTRMRes, pr_ctxt);
+ 	}
+ func_end:
+ #endif
 -- 
 1.6.2.4
 
