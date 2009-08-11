@@ -1,75 +1,108 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 16/20] ASoC: OMAP: Use McBSP threshold again
-Date: Tue, 11 Aug 2009 08:34:45 +0300
-Message-ID: <20090811083445.3d5ee595.jhnikula@gmail.com>
-References: <1248958183-15015-9-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-10-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-11-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-13-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-14-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-15-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-16-git-send-email-eduardo.valentin@nokia.com>
-	<1248958183-15015-17-git-send-email-eduardo.valentin@nokia.com>
-	<20090805104856.ff3e0f31.jhnikula@gmail.com>
-	<20090810085355.GA23461@esdhcp037198.research.nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 1/6] ARM: OMAP4: PM: Fix the PRM and CM base addresses
+Date: Tue, 11 Aug 2009 06:32:00 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908110615170.17390@utopia.booyaka.com>
+References: <1249907048-12163-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090810085355.GA23461@esdhcp037198.research.nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:48933 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751480AbZHKMcA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 08:32:00 -0400
+In-Reply-To: <1249907048-12163-1-git-send-email-rnayak@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, b-cousson@ti.com
 
-On Mon, 10 Aug 2009 11:53:55 +0300
-Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+Hello Rajendra
 
-> > Oops, didn't notice this before. This will hard glue the DMA and McBSP
-> > together. Even currently there is only McBSP based DAI link driver,
-> > there can be others as well. EAC DAI for OMAP2420 would be necessary
-> > for instance if one wants to develop ASoC support for Nokia N800. Nokia
-> > N810 could use that too.
+Most of this patch looks fine to me but I have one question:
+
+On Mon, 10 Aug 2009, Rajendra Nayak wrote:
+
+> This patch fixes the PRM and CM base addresses and adds
+> a new CM2 base address for OMAP4
 > 
-> True. And the same comment is valid for the patch which adds op mode selection.
-> My idea to un-glue them is to put some callbacks in omap_mcbsp_data of omap-mcbsp.c,
-> and share it as something more generic, so that they can be called from omap-pcm.c.
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/mach-omap2/prcm.c                 |    2 ++
+>  arch/arm/plat-omap/common.c                |    2 ++
+>  arch/arm/plat-omap/include/mach/common.h   |    1 +
+>  arch/arm/plat-omap/include/mach/omap44xx.h |    6 ++++--
+>  4 files changed, 9 insertions(+), 2 deletions(-)
 > 
-> Something like:
-> 
-> struct omap_dma_data {
-> 	unsigned int			bus_id;
-> 	unsigned int			fmt;
-> 	/*
-> 	 * Flags indicating is the bus already activated and configured by
-> 	 * another substream
-> 	 */
-> 	int				active;
-> 	int				configured;
-> 	/* threshold callbacks can be added then here */
-> 	void				*data; /* struct omap_mcbsp_reg_cfg	regs; can go here */
-> };
-> 
-> And this goes in omap-pcm.h.
-> 
-> what do you think??
-> 
-I'm thinking is it just enough to share sync_mode between the
-omap-pcm.c and omap-mcbsp.c? For me it looks that both period_bytes_max
-(by using snd_pcm_hw_constraint_minmax) adjustment and threshold
-setting can be done in omap-mcbsp.c. Then there is no need to invent
-any callbacks to the omap_dma_data (for now) and omap-pcm.c remains
-cleanear as the threshold is not so much DMA programming specific.
+> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> index f945156..de307fa 100644
+> --- a/arch/arm/mach-omap2/prcm.c
+> +++ b/arch/arm/mach-omap2/prcm.c
+> @@ -27,6 +27,7 @@
+>  
+>  static void __iomem *prm_base;
+>  static void __iomem *cm_base;
+> +static void __iomem *cm2_base;
+>  
+>  u32 omap_prcm_get_reset_sources(void)
+>  {
+> @@ -124,4 +125,5 @@ void __init omap2_set_globals_prcm(struct omap_globals *omap2_globals)
+>  {
+>  	prm_base = omap2_globals->prm;
+>  	cm_base = omap2_globals->cm;
+> +	cm2_base = omap2_globals->cm2;
+>  }
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index ebcf006..e848a12 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -372,12 +372,14 @@ static struct omap_globals omap4_globals = {
+>  	.ctrl	= OMAP2_IO_ADDRESS(OMAP443X_CTRL_BASE),
+>  	.prm	= OMAP2_IO_ADDRESS(OMAP4430_PRM_BASE),
+>  	.cm	= OMAP2_IO_ADDRESS(OMAP4430_CM_BASE),
+> +	.cm2	= OMAP2_IO_ADDRESS(OMAP4430_CM2_BASE),
+>  };
+>  
+>  void __init omap2_set_globals_443x(void)
+>  {
+>  	omap2_set_globals_tap(&omap4_globals);
+>  	omap2_set_globals_control(&omap4_globals);
+> +	omap2_set_globals_prcm(&omap4_globals);
+>  }
+>  #endif
+>  
+> diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
+> index fdeab42..878c4f9 100644
+> --- a/arch/arm/plat-omap/include/mach/common.h
+> +++ b/arch/arm/plat-omap/include/mach/common.h
+> @@ -55,6 +55,7 @@ struct omap_globals {
+>  	void __iomem	*ctrl;		/* System Control Module */
+>  	void __iomem	*prm;		/* Power and Reset Management */
+>  	void __iomem	*cm;		/* Clock Management */
+> +	void __iomem	*cm2;
+>  };
+>  
+>  void omap2_set_globals_242x(void);
+> diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h b/arch/arm/plat-omap/include/mach/omap44xx.h
+> index 15dec7f..be29d77 100644
+> --- a/arch/arm/plat-omap/include/mach/omap44xx.h
+> +++ b/arch/arm/plat-omap/include/mach/omap44xx.h
+> @@ -23,8 +23,10 @@
+>  #define L4_EMU_44XX_BASE		0x54000000
+>  #define L3_44XX_BASE			0x44000000
+>  #define OMAP4430_32KSYNCT_BASE		0x4a304000
+> -#define OMAP4430_CM_BASE		0x4a004000
+> -#define OMAP4430_PRM_BASE		0x48306000
+> +#define OMAP4430_CM1_BASE		0x4A30A000
+
+The data from Benoit shows CM1 at the previous address - did this move 
+recently?
+
+> +#define OMAP4430_CM_BASE		OMAP4430_CM1_BASE
+> +#define OMAP4430_CM2_BASE		0x4A008000
+> +#define OMAP4430_PRM_BASE		0x4A306000
+>  #define OMAP44XX_GPMC_BASE		0x50000000
+>  #define OMAP443X_SCM_BASE		0x4a002000
+>  #define OMAP443X_CTRL_BASE		OMAP443X_SCM_BASE
 
 
--- 
-Jarkko
+- Paul
