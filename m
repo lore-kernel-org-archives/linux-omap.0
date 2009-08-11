@@ -1,123 +1,127 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH 2/6] ARM: OMAP4: PM: PRM/CM module offsets for OMAP4
-Date: Tue, 11 Aug 2009 21:20:36 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0306050246@dbde02.ent.ti.com>
-References: <alpine.DEB.2.00.0908110632080.17390@utopia.booyaka.com>
+From: "Sonasath, Moiz" <m-sonasath@ti.com>
+Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Tue, 11 Aug 2009 11:33:11 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F20295A89A21@dlee06.ent.ti.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com>
+ <alpine.DEB.2.00.0908030054390.19529@utopia.booyaka.com>
+ <CD8CC2B65FEE304DA95744A5472698F202959C0D61@dlee06.ent.ti.com>
+ <CD8CC2B65FEE304DA95744A5472698F20295A89778@dlee06.ent.ti.com>
+ <alpine.DEB.2.00.0908100950040.5505@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39451 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbZHKPuw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 11:50:52 -0400
-In-Reply-To: <alpine.DEB.2.00.0908110632080.17390@utopia.booyaka.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49095 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754494AbZHKQdS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 12:33:18 -0400
+In-Reply-To: <alpine.DEB.2.00.0908100950040.5505@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Cousson, Benoit" <b-cousson@ti.com>, "sakari.poussa@nokia.com" <sakari.poussa@nokia.com>
+Cc: "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
- 
+Hello Paul,
 
->-----Original Message-----
->From: Paul Walmsley [mailto:paul@pwsan.com] 
->Sent: Tuesday, August 11, 2009 6:32 PM
->To: Nayak, Rajendra
->Cc: linux-arm-kernel@lists.arm.linux.org.uk; 
->linux-omap@vger.kernel.org; Cousson, Benoit; sakari.poussa@nokia.com
->Subject: Re: [PATCH 2/6] ARM: OMAP4: PM: PRM/CM module offsets 
->for OMAP4
->
->Hello Rajendra, 
->
->Some comments.
->
->On Mon, 10 Aug 2009, Rajendra Nayak wrote:
->
->> This patch adds the offsets for new modules in PRM
->> and CM for OMAP4
->> 
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> ---
->>  arch/arm/mach-omap2/prcm-common.h |   22 ++++++++++++++++++++++
->>  1 files changed, 22 insertions(+), 0 deletions(-)
->> 
->> diff --git a/arch/arm/mach-omap2/prcm-common.h 
->b/arch/arm/mach-omap2/prcm-common.h
->> index cb1ae84..ab0dd8e 100644
->> --- a/arch/arm/mach-omap2/prcm-common.h
->> +++ b/arch/arm/mach-omap2/prcm-common.h
->> @@ -49,6 +49,28 @@
->>  #define OMAP3430_NEON_MOD				0xb00
->>  #define OMAP3430ES2_USBHOST_MOD				0xc00
->>  
->> +/* OMAP44XX specific module offsets */
->> +#define OMAP4430_OCP_SOCKET_MOD				0x0000
->> +#define OMAP4430_CKGEN_MOD				0x0100
->> +#define OMAP4430_MPU_MOD				0x0300
->> +#define OMAP4430_DSP_MOD				0x0400
->> +#define OMAP4430_ABE_MOD				0x0500
->> +#define OMAP4430_ALWAYS_ON_MOD				0x0600
->> +#define OMAP4430_CORE_MOD				0x0700
->> +#define OMAP4430_IVAHD_MOD				0x0F00
->> +#define OMAP4430_CAM_MOD				0x1000
->> +#define OMAP4430_DSS_MOD				0x1100
->> +#define OMAP4430_GFX_MOD				0x1200
->> +#define OMAP4430_L3INIT_MOD				0x1300
->> +#define OMAP4430_L4PER_MOD				0x1400
->> +#define OMAP4430_CEFUSE_MOD				0x1600
->> +#define OMAP4430_WKUP_MOD				0x1700
->> +#define OMAP4430_WKUP_CM_MOD				0x1800
->> +#define OMAP4430_EMU_MOD				0x1900
->> +#define OMAP4430_EMU_CM_MOD				0x1A00
->> +#define OMAP4430_DEVICE_MOD				0x1B00
->> +#define OMAP4430_RESTORE_MOD				0x1E00
->> +#define OMAP4430_INSTR_MOD				0x1F00
->
->
->1. In the data above, some PRCM submodules, e.g., CM1.INSTR_CM1 and 
->   CM2.RESTORE_CM2, are either at the wrong address or are not listed, 
->   depending on one's perspective.
+> -----Original Message-----
+> From: Paul Walmsley [mailto:paul@pwsan.com]
+> Sent: Monday, August 10, 2009 11:30 AM
+> To: Sonasath, Moiz
+> Cc: linux-i2c@vger.kernel.org; linux-omap@vger.kernel.org; Menon,
+> Nishanth; Pandita, Vikram
+> Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+> 
+> Hello Moiz,
+> 
+> On Mon, 10 Aug 2009, Sonasath, Moiz wrote:
+> 
+> > I did some analysis and testing of the code with threshold set to zero,
+> > we cannot make the threshold zero with the present code in place, as
+> > this would hamper the functionality of the draining feature because in
+> > this case the XDR interrupt will not be triggered.
+> >
+> > XDR-> when TX FIFO level equal/below the XTRSH AND TXSTAT is less than
+> XTRSH
+> >
+> > XRDY-> when TX FIFO level equal/below the XTRSH AND TXSTAT is
+> > equal/greater than XTRSH
+> >
+> > This in turn causes XRDY to be triggered always (even when there are
+> > only last few bytes left to be transmitted) and therefore the code tries
+> > to transmit data when the upper application is out of data.
+> 
+> Thanks for looking into this.  How about just changing
+> 
+> 	if (dev->fifo_size) {
+> 		if (stat & OMAP_I2C_STAT_XRDY)
+> 			num_bytes = dev->fifo_size;
+> 		else    /* read TXSTAT on XDR interrupt */
+> 			num_bytes = omap_i2c_read_reg(dev,
+> 					    OMAP_I2C_BUFSTAT_REG)
+> 					    & 0x3F;
+> 	}
+> 
+> to something like:
+> 
+> 	if (dev->fifo_size) {   /* 2430 and beyond */
+> 		if (stat & OMAP_I2C_STAT_XRDY)
+> 			num_bytes = clamp(dev->buf_len, 1, dev->fifo_size);
+> 	        else
+> 		        num_bytes = omap_i2c_read_reg(dev,
+> 
+>                                          OMAP_I2C_BUFSTAT_REG)
+> 		 			 & 0x3F;
+>         }
+> 
+> in the ISR?
+> 
+> The transmit and receive FIFO thresholds should also be split, so the
+> short transmit FIFO threshold doesn't affect the receive FIFO threshold.
+> 
 
-I still see these are correct based on the TRM I have. Can you clarify more on what you
-see wrong here?
+Thanks Paul for suggesting this, it definitely works. But there are a few things that I would like to discuss:
 
->
->2. It would be better to infix the module name in these, e.g., 
->   OMAP4430_CM2_INSTR_MOD (and add PRM, CM1 variants) rather than 
->   just OMAP4430_INSTR_MOD.  This will increase the number of 
->defines but 
->   will decrease 
+1. From the code we have in place now, we are writing 
+num_bytes=dev->fifosize(=XTRSH+1) bytes in case of XRDY OR
+num_bytes=TXSTAT (last few bytes left) in case of XDR (draining feature)
 
-Does it really make sense in case all those are the same?
-Instead of having one define something like
-#define OMAP4430_RESTORE_MOD				0x1E00
-There would be 3 defines
-#define OMAP4430_PRM_RESTORE_MOD				0x1E00
-#define OMAP4430_CM1_RESTORE_MOD				0x1E00
-#define OMAP4430_CM2_RESTORE_MOD				0x1E00
+Without the errata we were writing these num_bytes in a while loop one by one into I2C_DATA reg (TXFIFO).
 
->
->3. The autoprcm repo has a script, gen_prcm44xx.py, that 
->auto-generates 
->   almost all of these, without the errors described above, 
->from Benoit's
->   data.  Is there some reason why we can't use the output from that 
->   script? 
+With the errata we are writing num_bytes in a while loop, but now we write one byte wait for XUDF bit to get set and then write another byte. Thereby, we write a byte, wait for it to get out of the TXFIFO and only then we write the second byte and so on. 
 
-I am not quite sure of Benoit's data but it most likely points to a superset
-of all OMAP4 architectures and not just whats supported/present on  OMAP4430.
-These patches are to support just 4430 and hence mostly data from whats
-mentioned in the TRM.
+	While(num_bytes)
+	{
+		Write one byte to I2C_DATA Reg
+		Wait for XUDF to set
+	}
+	Ack the interrupt
 
- It seems far superior to using manually-entered data.  The 
->   source data comes directly from the hardware database, so the
->   possibility of manual error seems lessened, and the same 
->script should
->   work with future OMAP4 revision.
->
->
->- Paul
->
->
+So irrespective of the XTRSH value, the wait time is actually the same.
+
+2. Now if we see it from the perspective of interrupts, we are generating an interrupt after every chunk of 4 bytes (with XTRSH+1=4) written to the TXFIFO because we ACK the interrupt after writing a chunk of 4 bytes (one byte at a time waiting for the XUDF bit to be set in between each byte). 
+
+>From the TRM Figure-18-31, in the XRDY path:
+Write I2Ci.I2C_DATA register for (XTRSH+1) times and then clear XRDY interrupt
+
+Thus, XTRSH is actually driving how many chunks of data you write before generating a next interrupt. So from this point of view it will be more desirable to make the XTRSH=7 and write chunk of 8 bytes before generating a new interrupt. But we end up staying a longer time in the ISR.
+
+Essentially we are looking at a tradeoff between:
+1. Lower XTRSH value: More number of interrupts, less time in an ISR  
+2. Higher XTRSH value: Less number of interrupts, more time in an ISR 
+
+Please correct me if I am wrong.
+
+> > I checked with the I2C IP team, yes the errata applies to the I2C block
+> > on OMAP2430 and OMAP2420. I will send out a patch to include OMAP24XX
+> > for this erratum.
+> 
+> Great, thanks for checking this.  Might as well combine it with the same
+> patch and make it a revision test based on the I2C controller revision
+> reg.
+> 
+> 
+> - Paul
+
+Regards
+Moiz Sonasath
