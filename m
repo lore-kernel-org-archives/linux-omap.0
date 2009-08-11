@@ -1,83 +1,71 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv2 10/20] OMAP: McBSP: Change wakeup signals
-Date: Tue, 11 Aug 2009 16:05:21 +0300
-Message-ID: <1249995931-26015-11-git-send-email-eduardo.valentin@nokia.com>
-References: <1249995931-26015-1-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-2-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-3-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-4-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-5-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-6-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-7-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-8-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-9-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-10-git-send-email-eduardo.valentin@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] omap iommu: add initial debugfs support
+Date: Tue, 11 Aug 2009 12:26:17 +0300
+Message-ID: <20090811092617.GR1938@atomide.com>
+References: <1248272642-5200-1-git-send-email-Hiroshi.DOYU@nokia.com> <20090811.115337.70184536.Hiroshi.DOYU@nokia.com> <20090811091958.GQ1938@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:47843 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754629AbZHKNSn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 09:18:43 -0400
-In-Reply-To: <1249995931-26015-10-git-send-email-eduardo.valentin@nokia.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:65078 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751665AbZHKNdZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 09:33:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20090811091958.GQ1938@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: ameya.palande@nokia.com, h-kanigeri2@ti.com, x0095840@ti.com, omar.ramirez@ti.com, linux-omap@vger.kernel.org
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+* Tony Lindgren <tony@atomide.com> [090811 12:19]:
+> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090811 11:54]:
+> > Hi Tony,
+> > 
+> > From: "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>
+> > Subject: [PATCH 1/1] omap iommu: add initial debugfs support
+> > Date: Wed, 22 Jul 2009 16:24:02 +0200
+> > 
+> > > From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > > 
+> > > This enables to peek the following data.
+> > > 
+> > > $ /debug/iommu/isp# ls
+> > > mem             nr_tlb_entries  regs
+> > > mmap            pagetable       tlb
+> > > $ /debug/iommu/isp# head pagetable
+> > > L:      da:      pa:
+> > > -----------------------------------------
+> > > 2: 00001000 8ae4a002
+> > > 2: 00002000 8e7bb002
+> > > 2: 00003000 8ae49002
+> > > 2: 00004000 8ae65002
+> > > .....
+> > > 
+> > > Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+> > 
+> > Please apply this one too if there's no problem.
+> 
+> OK, will add it into my omap-upstream queue.
 
-Configure only XRDYEN and RRDYEN wakeup signals
-in order to get better power consumption.
+Looks like it needs to be refreshed, can you please repost?
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- arch/arm/plat-omap/include/mach/mcbsp.h |    3 ---
- arch/arm/plat-omap/mcbsp.c              |    7 ++-----
- 2 files changed, 2 insertions(+), 8 deletions(-)
+Hunk #1 FAILED at 135.
+Hunk #2 succeeded at 166 with fuzz 2 (offset 11 lines).
+1 out of 2 hunks FAILED -- rejects in file arch/arm/plat-omap/include/mach/iommu.h
+patching file arch/arm/plat-omap/iommu-debug.c
+patching file arch/arm/plat-omap/iommu.c
+Hunk #1 FAILED at 120.
+Hunk #2 FAILED at 148.
+Hunk #3 FAILED at 207.
+Hunk #4 succeeded at 422 with fuzz 2 (offset 71 lines).
+Hunk #5 FAILED at 659.
+Hunk #6 FAILED at 670.
+Hunk #7 FAILED at 814.
+Hunk #8 FAILED at 833.
+7 out of 8 hunks FAILED -- rejects in file arch/arm/plat-omap/iommu.c
+Patch apply does not apply (enforce with -f)
 
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index 2c5612a..776ea4d 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -273,9 +273,6 @@
- #define REOFEN			0x0004
- #define RFSREN			0x0002
- #define RSYNCERREN		0x0001
--#define WAKEUPEN_ALL		(XEMPTYEOFEN | XRDYEN | XEOFEN | XFSXEN | \
--				 XSYNCERREN | RRDYEN | REOFEN | RFSREN | \
--				 RSYNCERREN)
- 
- /* we don't do multichannel for now */
- struct omap_mcbsp_reg_cfg {
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index a8de72b..940ef03 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -320,7 +320,7 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- 		syscon |= (ENAWAKEUP | SIDLEMODE(0x02));
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
- 
--		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, WAKEUPEN_ALL);
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, XRDYEN | RRDYEN);
- 	}
- }
- 
-@@ -331,15 +331,12 @@ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
- 	 */
- 	if (cpu_is_omap34xx()) {
- 		u16 syscon;
--		u16 wakeupen;
- 
- 		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
- 		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
- 
--		wakeupen = OMAP_MCBSP_READ(mcbsp->io_base, WAKEUPEN);
--		wakeupen &= ~WAKEUPEN_ALL;
--		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, wakeupen);
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, 0);
- 	}
- }
- #else
--- 
-1.6.2.GIT
 
+Regards,
+
+Tony
