@@ -1,57 +1,99 @@
-From: vimal singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH-v3 1:2] [MTD][NAND]omap: Adding support for nand
-	prefetch-read and post-write, in MPU mode.
-Date: Tue, 11 Aug 2009 11:59:15 +0530
-Message-ID: <ce9ab5790908102329k73f66b5bgcdd8ac52d6631116@mail.gmail.com>
-References: <61339.192.168.10.89.1247226725.squirrel@dbdmail.itg.ti.com>
-	<48097.192.168.10.89.1247232736.squirrel@dbdmail.itg.ti.com>
-	<60361.192.168.10.89.1247482584.squirrel@dbdmail.itg.ti.com>
-	<20090810162734.GH1938@atomide.com>
-	<ce9ab5790908102245r28224bf5nfa2a1b22267767fe@mail.gmail.com>
-	<4A810DE4.7030202@gmail.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [RFC][PATCH 3/3 v2] ASoC: OMAP: Enhance OMAP1510
+ DMA progress software counter
+Date: Tue, 11 Aug 2009 09:42:48 +0300
+Message-ID: <20090811094248.3b869f09.jhnikula@gmail.com>
+References: <200908101050.08074.jkrzyszt@tis.icnet.pl>
+	<200908110107.11485.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org>
-In-Reply-To: <4A810DE4.7030202@gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-mtd>
-List-Post: <mailto:linux-mtd@lists.infradead.org>
-List-Help: <mailto:linux-mtd-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-mtd>,
-	<mailto:linux-mtd-request@lists.infradead.org?subject=subscribe>
-Sender: linux-mtd-bounces@lists.infradead.org
-Errors-To: linux-mtd-bounces+gldm-linux-mtd-36=gmane.org@lists.infradead.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: vimal singh <vimalsingh@ti.com>, Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, david-b@pacbell.net, dedekind@infradead.org, linux-mtd@lists.infradead.org, linux-omap@vger.kernel.org, dwmw2@infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <200908110107.11485.jkrzyszt@tis.icnet.pl>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
 
-T24gVHVlLCBBdWcgMTEsIDIwMDkgYXQgMTE6NTEgQU0sIEFydGVtIEJpdHl1dHNraXk8ZGVkZWtp
-bmQxQGdtYWlsLmNvbT4gd3JvdGU6Cj4gT24gMDgvMTEvMjAwOSAwODo0NSBBTSwgdmltYWwgc2lu
-Z2ggd3JvdGU6Cj4+Cj4+IE9uIE1vbiwgQXVnIDEwLCAyMDA5IGF0IDk6NTcgUE0sIFRvbnkgTGlu
-ZGdyZW48dG9ueUBhdG9taWRlLmNvbT4gwqB3cm90ZToKPj4+Cj4+PiAqIHZpbWFsIHNpbmdoPHZp
-bWFsc2luZ2hAdGkuY29tPiDCoFswOTA3MTMgMTM6NTZdOgo+Pj4+Cj4+Pj4gUGF0Y2ggdXBkYXRl
-ZCBmb3IgJyBpb3JlYWRYIC8gaW93cml0ZVggYW5kIGlvcmVhZFhfcmVwIC8gaW93cml0ZVhfcmVw
-Jwo+Pj4+IGFzIHBlcgo+Pj4+IERhdmlkIEJyb3duZWxsJ3MgY29tbWVudC4gSSB1cGRhdGVkICdv
-bWFwXyhyZWFkL3dyaXRlKV9idWYxNicgZnVjbnRpb25zCj4+Pj4gYWxzbwo+Pj4+IGZvciB0aGlz
-Lgo+Pj4+Cj4+Pj4gLXZpbWFsCj4+Pj4KPj4+PiBUaGlzIHBhdGNoIGFkZHMgcHJlZmV0Y2ggc3Vw
-cG9ydCB0byBhY2Nlc3MgbmFuZCBmbGFzaCBpbiBtcHUgbW9kZS4KPj4+PiBUaGlzIHBhdGNoIGFs
-c28gYWRkcyA4LWJpdCBuYW5kIHN1cHBvcnQgKG9tYXBfcmVhZC93cml0ZV9idWY4KS4KPj4+PiBQ
-cmVmZXRjaCBjYW4gYmUgdXNlZCBmb3IgYm90aCA4LSBhbmQgMTYtYml0IGRldmljZXMuCj4+Pj4K
-Pj4+PiBTaWduZWQtb2ZmLWJ5OiBWaW1hbCBTaW5naDx2aW1hbHNpbmdoQHRpLmNvbT4KPj4+Cj4+
-PiBTb3JyeSBmb3IgdGhlIGRlbGF5LiBJJ3ZlIGxvb2tlZCBhdCB0aGUgR1BNQyBwYXJ0LCBhbmQg
-dGhhdCBub3cgbG9va3MgT0sKPj4+IHRvIG1lLiBTbyBJJ20gT0sgZm9yIHRoaXMgdG8gZ2V0IGlu
-dGVncmF0ZWQgdmlhIHRoZSBNVEQgbGlzdC4KPj4+Cj4+PiBBY2tlZC1ieTogVG9ueSBMaW5kZ3Jl
-bjx0b255QGF0b21pZGUuY29tPgo+Pj4KPj4KPj4gQ2FuIHlvdSBnaXZlIHlvdXIgYWNrIHRvIGJl
-bG93IHBhdGNoIHRvbz8KPj4KPj4gaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvcGlwZXJtYWls
-L2xpbnV4LW10ZC8yMDA5LUp1bHkvMDI2MzczLmh0bWwKPgo+IEkndmUgcGlja2VkIHVwIGJvdGgg
-b2YgeW91ciBwYXRjaGVzLCBwbGVhc2UsIGNoZWNrOgo+IGh0dHA6Ly9naXQuaW5mcmFkZWFkLm9y
-Zy91c2Vycy9kZWRla2luZC9sMi1tdGQtMi42LmdpdC9jb21taXQvMzNmNDhmNTk3MzE1ODQyZjM5
-NDI3ZWU0MjYxY2JmODJhOWFmZWFmMwo+IGh0dHA6Ly9naXQuaW5mcmFkZWFkLm9yZy91c2Vycy9k
-ZWRla2luZC9sMi1tdGQtMi42LmdpdC9jb21taXQvYjY3ZDUyYzkxYjI2ZTk3Zjk4MWYyYzI5MjYx
-OWQzMTY2N2Q1YjI3Mgo+CgpUaGFua3MgQXJ0ZW0uCgo+IC0tCj4gQmVzdCBSZWdhcmRzLAo+IEFy
-dGVtIEJpdHl1dHNraXkgKNCQ0YDRgtGR0Lwg0JHQuNGC0Y7RhtC60LjQuSkKPgoKX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkxpbnV4IE1URCBk
-aXNjdXNzaW9uIG1haWxpbmcgbGlzdApodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LW10ZC8K
+On Tue, 11 Aug 2009 01:07:10 +0200
+Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+
+> Enhance period index accuracy, particularly just before buffer rewind, by
+> making use of DMA interrupt status flags in addition to simply counting up
+> interrupts.
+> 
+> Corrections since v1:
+> 1. Fix buggy DMA interrupt handling in case of multiple status flags set in
+>    parallel.
+> 2. Enable OMAP_DMA_LAST_IRQ only for playback on OMAP1510.
+> 
+> This patch applies on top of patch 2 from this series:
+> [RFC][PATCH 2/3] ASoC: OMAP: Make use of DMA channel self linking on OMAP1510
+> 
+> Created against linux-2.6.31-rc5.
+> 
+> Tested on Amstrad Delta.
+> 
+> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+> 
+> ---
+> --- linux-2.6.31-rc5/sound/soc/omap/omap-pcm.c.orig	2009-08-10 22:41:25.000000000 +0200
+> +++ linux-2.6.31-rc5/sound/soc/omap/omap-pcm.c	2009-08-10 23:15:46.000000000 +0200
+> @@ -68,13 +68,27 @@ static void omap_pcm_dma_irq(int ch, u16
+>  		 * that can be used by omap_pcm_pointer() instead.
+>  		 */
+>  		spin_lock_irqsave(&prtd->lock, flags);
+> +		if ((stat == OMAP_DMA_LAST_IRQ) &&
+> +				(prtd->period_index == runtime->periods - 1)) {
+> +			/* we are in sync, do nothing */
+> +			spin_unlock_irqrestore(&prtd->lock, flags);
+> +			return;
+> +		}
+>  		if (prtd->period_index >= 0) {
+> -			if (++prtd->period_index == runtime->periods) {
+> +			if (stat & OMAP_DMA_BLOCK_IRQ) {
+> +				/* end of buffer reached, loop back */
+> +				prtd->period_index = 0;
+> +			} else if (stat & OMAP_DMA_LAST_IRQ) {
+> +				/* update the counter for the last period */
+> +				prtd->period_index = runtime->periods - 1;
+> +			} else if (++prtd->period_index >= runtime->periods) {
+> +				/* end of buffer missed? loop back */
+>  				prtd->period_index = 0;
+>  			}
+>  		}
+>  		spin_unlock_irqrestore(&prtd->lock, flags);
+> -	}
+> +	} else if (stat == OMAP_DMA_LAST_IRQ)
+> +		return;
+>  
+Is this test needed? This interrupt is set only for playback on
+omap1510 so this looks null-op.
+
+>  	snd_pcm_period_elapsed(substream);
+>  }
+> @@ -175,7 +189,12 @@ static int omap_pcm_prepare(struct snd_p
+>  	dma_params.frame_count	= runtime->periods;
+>  	omap_set_dma_params(prtd->dma_ch, &dma_params);
+>  
+> -	omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ);
+> +	if ((cpu_is_omap1510()) &&
+> +			(substream->stream == SNDRV_PCM_STREAM_PLAYBACK))
+> +		omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ |
+> +							OMAP_DMA_LAST_IRQ);
+
+Indent OMAP_DMA_LAST_IRQ with tab(s) and spaces to the same column
+than OMAP_DMA_FRAME_IRQ. Looks nicer then. Should the
+OMAP_DMA_BLOCK_IRQ to be set since it is handled in omap_pcm_dma_irq?
+
+
+-- 
+Jarkko
