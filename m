@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv2 20/20] ASoC: Always syncronize audio transfers on frames
-Date: Tue, 11 Aug 2009 16:05:31 +0300
-Message-ID: <1249995931-26015-21-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv2 18/20] ASoC: OMAP: Enable DMA burst mode
+Date: Tue, 11 Aug 2009 16:05:29 +0300
+Message-ID: <1249995931-26015-19-git-send-email-eduardo.valentin@nokia.com>
 References: <1249995931-26015-1-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-2-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-3-git-send-email-eduardo.valentin@nokia.com>
@@ -20,65 +20,38 @@ References: <1249995931-26015-1-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-16-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-17-git-send-email-eduardo.valentin@nokia.com>
  <1249995931-26015-18-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-19-git-send-email-eduardo.valentin@nokia.com>
- <1249995931-26015-20-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19813 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:19812 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754641AbZHKNSn (ORCPT
+	with ESMTP id S1754413AbZHKNSn (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Tue, 11 Aug 2009 09:18:43 -0400
-In-Reply-To: <1249995931-26015-20-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1249995931-26015-18-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-All these steps are required for ASoC to behave correctly.
-rccr and xccr are format dependent, for example TDM audio
-has different values than I2S or DSP_A. Also the
-omap_mcbsp_xmit_enable and/or omap_mcbsp_recv_enable must
-be called right after the DMA has started.
-This provides no longer L and R channels switching at random.
-
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- sound/soc/omap/omap-mcbsp.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ sound/soc/omap/omap-pcm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 2d96548..ad40da7 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -224,6 +224,11 @@ static int omap_mcbsp_dai_trigger(struct snd_pcm_substream *substream, int cmd,
- 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
- 		if (!mcbsp_data->active++)
- 			omap_mcbsp_start(mcbsp_data->bus_id);
-+		/* Make sure data transfer is frame synchronized */
-+		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
-+			omap_mcbsp_xmit_enable(mcbsp_data->bus_id, 1);
-+		else
-+			omap_mcbsp_recv_enable(mcbsp_data->bus_id, 1);
- 		break;
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index b41a18b..4506603 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -185,6 +185,9 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
  
- 	case SNDRV_PCM_TRIGGER_STOP:
-@@ -373,11 +378,15 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
- 		/* 1-bit data delay */
- 		regs->rcr2	|= RDATDLY(1);
- 		regs->xcr2	|= XDATDLY(1);
-+		regs->rccr	|= RFULL_CYCLE | RDMAEN | RDISABLE;
-+		regs->xccr	|= (DXENDLY(1) | XDMAEN | XDISABLE);
- 		break;
- 	case SND_SOC_DAIFMT_DSP_A:
- 		/* 1-bit data delay */
- 		regs->rcr2      |= RDATDLY(1);
- 		regs->xcr2      |= XDATDLY(1);
-+		regs->rccr	|= RFULL_CYCLE | RDMAEN | RDISABLE;
-+		regs->xccr	|= (DXENDLY(1) | XDMAEN | XDISABLE);
- 		/* Invert FS polarity configuration */
- 		temp_fmt ^= SND_SOC_DAIFMT_NB_IF;
- 		break;
+ 	omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ);
+ 
++	omap_set_dma_src_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
++	omap_set_dma_dest_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
++
+ 	return 0;
+ }
+ 
 -- 
 1.6.2.GIT
 
