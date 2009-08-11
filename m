@@ -1,7 +1,7 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 09/13] DSPBRIDGE: Use pr_ctxt in STRM_Open
-Date: Tue, 11 Aug 2009 04:21:50 +0300
-Message-ID: <1249953714-20972-10-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 11/13] DSPBRIDGE: Use pr_ctxt in STRM_AllocateBuffer
+Date: Tue, 11 Aug 2009 04:21:52 +0300
+Message-ID: <1249953714-20972-12-git-send-email-ameya.palande@nokia.com>
 References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
@@ -11,12 +11,14 @@ References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-7-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-8-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-9-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-10-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-11-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:28874 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753417AbZHKBWR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:17 -0400
-In-Reply-To: <1249953714-20972-9-git-send-email-ameya.palande@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:49894 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752894AbZHKBWP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:15 -0400
+In-Reply-To: <1249953714-20972-11-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -24,100 +26,89 @@ Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, suyog@ti.com, 
 
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/strm.h |    4 ++-
- drivers/dsp/bridge/pmgr/wcd.c               |    3 +-
- drivers/dsp/bridge/rmgr/strm.c              |   28 +++++++-------------------
- 3 files changed, 13 insertions(+), 22 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/strm.h |    3 +-
+ drivers/dsp/bridge/pmgr/wcd.c               |    2 +-
+ drivers/dsp/bridge/rmgr/strm.c              |   28 ++++++--------------------
+ 3 files changed, 10 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-index 5825615..36b128d 100644
+index 23a9f17..9929210 100644
 --- a/arch/arm/plat-omap/include/dspbridge/strm.h
 +++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -59,6 +59,7 @@
- #include <dspbridge/dev.h>
- 
- #include <dspbridge/strmdefs.h>
-+#include <dspbridge/proc.h>
- 
- /*
-  *  ======== STRM_AllocateBuffer ========
-@@ -307,7 +308,8 @@
-  */
- 	extern DSP_STATUS STRM_Open(struct NODE_OBJECT *hNode, u32 uDir,
- 				    u32 uIndex, IN struct STRM_ATTR *pAttr,
--				    OUT struct STRM_OBJECT **phStrm);
-+				    OUT struct STRM_OBJECT **phStrm,
-+				    struct PROCESS_CONTEXT *pr_ctxt);
+@@ -84,7 +84,8 @@
+ 	extern DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm,
+ 					      u32 uSize,
+ 					      OUT u8 **apBuffer,
+-					      u32 uNumBufs);
++					      u32 uNumBufs,
++					      struct PROCESS_CONTEXT *pr_ctxt);
  
  /*
-  *  ======== STRM_PrepareBuffer ========
+  *  ======== STRM_Close ========
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 4f902a3..cf3fc2d 100644
+index c9b29ea..4fdcb18 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -1626,7 +1626,8 @@ u32 STRMWRAP_Open(union Trapped_Args *args, void *pr_ctxt)
- 	}
- 	status = STRM_Open(args->ARGS_STRM_OPEN.hNode,
- 			  args->ARGS_STRM_OPEN.uDirection,
--			  args->ARGS_STRM_OPEN.uIndex, &attr, &pStrm);
-+			  args->ARGS_STRM_OPEN.uIndex, &attr, &pStrm,
-+			  pr_ctxt);
- 	cp_to_usr(args->ARGS_STRM_OPEN.phStream, &pStrm, status, 1);
- 	return status;
- }
+@@ -1493,7 +1493,7 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
+ 
+ 	status = STRM_AllocateBuffer(args->ARGS_STRM_ALLOCATEBUFFER.hStream,
+ 				     args->ARGS_STRM_ALLOCATEBUFFER.uSize,
+-				     apBuffer, uNumBufs);
++				     apBuffer, uNumBufs, pr_ctxt);
+ 	cp_to_usr(args->ARGS_STRM_ALLOCATEBUFFER.apBuffer, apBuffer, status,
+ 		 uNumBufs);
+ 	if (apBuffer)
 diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index b6dbe46..4a05ed4 100644
+index e25818f..d68251f 100644
 --- a/drivers/dsp/bridge/rmgr/strm.c
 +++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -626,7 +626,9 @@ DSP_STATUS STRM_Issue(struct STRM_OBJECT *hStrm, IN u8 *pBuf, u32 ulBytes,
-  *      XDAIS socket node on the DSP.
+@@ -154,18 +154,15 @@ static void DeleteStrmMgr(struct STRM_MGR *hStrmMgr);
+  *      Allocates buffers for a stream.
   */
- DSP_STATUS STRM_Open(struct NODE_OBJECT *hNode, u32 uDir, u32 uIndex,
--		    IN struct STRM_ATTR *pAttr, OUT struct STRM_OBJECT **phStrm)
-+		    IN struct STRM_ATTR *pAttr,
-+		    OUT struct STRM_OBJECT **phStrm,
-+		    struct PROCESS_CONTEXT *pr_ctxt)
+ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
+-				OUT u8 **apBuffer, u32 uNumBufs)
++				OUT u8 **apBuffer, u32 uNumBufs,
++				struct PROCESS_CONTEXT *pr_ctxt)
  {
- 	struct STRM_MGR *hStrmMgr;
- 	struct WMD_DRV_INTERFACE *pIntfFxns;
-@@ -637,13 +639,10 @@ DSP_STATUS STRM_Open(struct NODE_OBJECT *hNode, u32 uDir, u32 uIndex,
  	DSP_STATUS status = DSP_SOK;
- 	struct CMM_OBJECT *hCmmMgr = NULL;	/* Shared memory manager hndl */
- 
+ 	u32 uAllocated = 0;
+ 	u32 i;
 -	#ifndef RES_CLEANUP_DISABLE
 -	DSP_STATUS res_status = DSP_SOK;
 -       u32                  hProcess;
 -	HANDLE	     pCtxt = NULL;
 -	HANDLE	     hDrvObject;
--	HANDLE 		    hSTRMRes;
--	#endif
 +#ifndef RES_CLEANUP_DISABLE
-+	HANDLE              hSTRMRes;
+ 	HANDLE hSTRMRes;
+-	#endif
 +#endif
-+
  	DBC_Require(cRefs > 0);
- 	DBC_Require(phStrm != NULL);
- 	DBC_Require(pAttr != NULL);
-@@ -779,18 +778,7 @@ func_cont:
- 		(void)DeleteStrm(pStrm);
+ 	DBC_Require(apBuffer != NULL);
  
- #ifndef RES_CLEANUP_DISABLE
+@@ -203,20 +200,9 @@ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
+ 	if (DSP_FAILED(status))
+ 		goto func_end;
+ 
 -	/* Return TGID instead of process handle */
 -	hProcess = current->tgid;
 -
 -	res_status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
--	if (DSP_SUCCEEDED(res_status)) {
--               DRV_GetProcContext(hProcess,
--				 (struct DRV_OBJECT *)hDrvObject, &pCtxt,
--				 hNode, 0);
--		if (pCtxt != NULL)
--			DRV_ProcInsertSTRMResElement(*phStrm, &hSTRMRes, pCtxt);
+-	if (DSP_FAILED(res_status))
+-		goto func_end;
 -
--	}
-+	DRV_ProcInsertSTRMResElement(*phStrm, &hSTRMRes, pr_ctxt);
+-       DRV_GetProcContext(hProcess, (struct DRV_OBJECT *)hDrvObject,
+-			 &pCtxt, NULL, 0);
+-	if (pCtxt != NULL) {
+-		if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pCtxt) !=
+-		   DSP_ENOTFOUND) {
+-			DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes, pCtxt);
+-		}
++	if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pr_ctxt) !=
++			DSP_ENOTFOUND) {
++		DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes, pr_ctxt);
+ 	}
  #endif
- 
- 	 /* ensure we return a documented error code */
+ func_end:
 -- 
 1.6.2.4
 
