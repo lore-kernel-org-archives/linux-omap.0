@@ -1,15 +1,18 @@
 From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCH 02/13] DSPBRIDGE: Use pr_ctxt in NODE_Allocate
-Date: Tue, 11 Aug 2009 04:21:43 +0300
-Message-ID: <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
+Subject: [PATCH 05/13] DSPBRIDGE: Use pr_ctxt in PROC_Attach
+Date: Tue, 11 Aug 2009 04:21:46 +0300
+Message-ID: <1249953714-20972-6-git-send-email-ameya.palande@nokia.com>
 References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-4-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-5-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:49882 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:49885 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751987AbZHKBWH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:07 -0400
-In-Reply-To: <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
+	with ESMTP id S1752355AbZHKBWJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 10 Aug 2009 21:22:09 -0400
+In-Reply-To: <1249953714-20972-5-git-send-email-ameya.palande@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -17,121 +20,122 @@ Cc: hiroshi.doyu@nokia.com, omar.ramirez@ti.com, x0095840@ti.com, suyog@ti.com, 
 
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/node.h |    4 ++-
+ arch/arm/plat-omap/include/dspbridge/proc.h |    3 +-
  drivers/dsp/bridge/pmgr/wcd.c               |    2 +-
- drivers/dsp/bridge/rmgr/node.c              |   49 +++------------------------
- 3 files changed, 9 insertions(+), 46 deletions(-)
+ drivers/dsp/bridge/rmgr/proc.c              |   51 +++++---------------------
+ 3 files changed, 13 insertions(+), 43 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/node.h b/arch/arm/plat-omap/include/dspbridge/node.h
-index d253962..db3be05 100644
---- a/arch/arm/plat-omap/include/dspbridge/node.h
-+++ b/arch/arm/plat-omap/include/dspbridge/node.h
-@@ -68,6 +68,7 @@
- #include <dspbridge/nodedefs.h>
- #include <dspbridge/dispdefs.h>
- #include <dspbridge/nldrdefs.h>
-+#include <dspbridge/drv.h>
+diff --git a/arch/arm/plat-omap/include/dspbridge/proc.h b/arch/arm/plat-omap/include/dspbridge/proc.h
+index 832b518..1737761 100644
+--- a/arch/arm/plat-omap/include/dspbridge/proc.h
++++ b/arch/arm/plat-omap/include/dspbridge/proc.h
+@@ -95,7 +95,8 @@
+ 	extern DSP_STATUS PROC_Attach(u32 uProcessor,
+ 				      OPTIONAL CONST struct DSP_PROCESSORATTRIN
+ 				      *pAttrIn,
+-				      OUT DSP_HPROCESSOR *phProcessor);
++				      OUT DSP_HPROCESSOR *phProcessor,
++				      struct PROCESS_CONTEXT *pr_ctxt);
  
  /*
-  *  ======== NODE_Allocate ========
-@@ -104,7 +105,8 @@
- 					*pArgs,
- 					OPTIONAL IN CONST struct DSP_NODEATTRIN
- 					*pAttrIn,
--					OUT struct NODE_OBJECT **phNode);
-+					OUT struct NODE_OBJECT **phNode,
-+					struct PROCESS_CONTEXT *pr_ctxt);
- 
- /*
-  *  ======== NODE_AllocMsgBuf ========
+  *  ======== PROC_AutoStart =========
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index 23ed3a7..05afb2c 100644
+index a574278..ddb2aea 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -1170,7 +1170,7 @@ u32 NODEWRAP_Allocate(union Trapped_Args *args, void *pr_ctxt)
- 	if (DSP_SUCCEEDED(status)) {
- 		status = NODE_Allocate(args->ARGS_NODE_ALLOCATE.hProcessor,
- 				      &nodeId, (struct DSP_CBDATA *)pArgs,
--				      pAttrIn, &hNode);
-+				      pAttrIn, &hNode, pr_ctxt);
+@@ -681,7 +681,7 @@ u32 PROCWRAP_Attach(union Trapped_Args *args, void *pr_ctxt)
+ 
  	}
- 	cp_to_usr(args->ARGS_NODE_ALLOCATE.phNode, &hNode, status, 1);
- func_cont:
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index 5ff87e9..b7bdf08 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -389,7 +389,8 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
- 			IN CONST struct DSP_UUID *pNodeId,
- 			OPTIONAL IN CONST struct DSP_CBDATA *pArgs,
- 			OPTIONAL IN CONST struct DSP_NODEATTRIN *pAttrIn,
--			OUT struct NODE_OBJECT **phNode)
-+			OUT struct NODE_OBJECT **phNode,
-+			struct PROCESS_CONTEXT *pr_ctxt)
+ 	status = PROC_Attach(args->ARGS_PROC_ATTACH.uProcessor, pAttrIn,
+-			    &processor);
++			    &processor, pr_ctxt);
+ 	cp_to_usr(args->ARGS_PROC_ATTACH.phProcessor, &processor, status, 1);
+ func_end:
+ 	return status;
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index 4ab4a88..c475436 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -237,7 +237,7 @@ func_end:
+  */
+ DSP_STATUS
+ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
+-       OUT DSP_HPROCESSOR *phProcessor)
++       OUT DSP_HPROCESSOR *phProcessor, struct PROCESS_CONTEXT *pr_ctxt)
  {
- 	struct NODE_MGR *hNodeMgr;
+ 	DSP_STATUS status = DSP_SOK;
  	struct DEV_OBJECT *hDevObject;
-@@ -418,11 +419,7 @@ DSP_STATUS NODE_Allocate(struct PROC_OBJECT *hProcessor,
- #endif
+@@ -246,19 +246,19 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
+ 	struct DRV_OBJECT *hDrvObject = NULL;
+ 	u32 devType;
  
- #ifndef RES_CLEANUP_DISABLE
--	HANDLE	     hDrvObject;
- 	HANDLE	     nodeRes;
+-#ifndef RES_CLEANUP_DISABLE
+-	HANDLE	     hDRVObject;
 -       u32                  hProcess;
--	struct PROCESS_CONTEXT   *pPctxt = NULL;
 -	DSP_STATUS res_status = DSP_SOK;
- #endif
- 
- 	DBC_Require(cRefs > 0);
-@@ -789,45 +786,9 @@ func_cont2:
- 
- #ifndef RES_CLEANUP_DISABLE
- 	if (DSP_SUCCEEDED(status)) {
--		/* Return TGID instead of process handle */
--		hProcess = current->tgid;
+-	struct PROCESS_CONTEXT   *pPctxt = NULL;
+-#endif
 -
--		res_status = CFG_GetObject((u32 *)&hDrvObject,
--					  REG_DRV_OBJECT);
--		if (DSP_SUCCEEDED(res_status)) {
--                       DRV_GetProcContext(hProcess,
--					 (struct DRV_OBJECT *)hDrvObject,
--					 &pPctxt, *phNode, 0);
--			if (pPctxt == NULL) {
--				DRV_InsertProcContext(
--					(struct DRV_OBJECT *)hDrvObject,
--					&pPctxt);
--				if (pPctxt != NULL) {
--					DRV_ProcUpdatestate(pPctxt,
--							PROC_RES_ALLOCATED);
--                                       DRV_ProcSetPID(pPctxt, hProcess);
--					pPctxt->hProcessor =
--						 (DSP_HPROCESSOR)hProcessor;
--				}
--			}
+ 	DBC_Require(cRefs > 0);
+ 	DBC_Require(phProcessor != NULL);
+ 
+ 	GT_3trace(PROC_DebugMask, GT_ENTER, "Entered PROC_Attach, args:\n\t"
+ 		 "uProcessor:  0x%x\n\tpAttrIn:  0x%x\n\tphProcessor:"
+ 		 "0x%x\n", uProcessor, pAttrIn, phProcessor);
++
++	if (pr_ctxt->hProcessor) {
++		pr_err("DSP: PROC_Attach() on same file handle is "
++				"not supported!\n");
++		goto func_end;
++	}
++
+ 	/* Get the Driver and Manager Object Handles */
+ 	status = CFG_GetObject((u32 *)&hDrvObject, REG_DRV_OBJECT);
+ 	if (DSP_SUCCEEDED(status)) {
+@@ -380,41 +380,10 @@ PROC_Attach(u32 uProcessor, OPTIONAL CONST struct DSP_PROCESSORATTRIN *pAttrIn,
+ 			 "storage for notification \n");
+ 		MEM_FreeObject(pProcObject);
+ 	}
+-func_end:
+ #ifndef RES_CLEANUP_DISABLE
+-	if (DSP_FAILED(status))
+-		goto func_cont;
+-
+-	/* Return TGID instead of process handle */
+-	hProcess = current->tgid;
+-
+-	res_status = CFG_GetObject((u32 *)&hDRVObject, REG_DRV_OBJECT);
+-	if (DSP_FAILED(res_status))
+-		goto func_cont;
+-
+-       DRV_GetProcContext(hProcess, (struct DRV_OBJECT *)hDRVObject,
+-			 &pPctxt, NULL, 0);
+-	if (pPctxt == NULL) {
+-		DRV_InsertProcContext((struct DRV_OBJECT *)hDRVObject, &pPctxt);
+-		if (pPctxt != NULL) {
+-			DRV_ProcUpdatestate(pPctxt, PROC_RES_ALLOCATED);
+-                       DRV_ProcSetPID(pPctxt, hProcess);
 -		}
 -	}
--	if (DSP_SUCCEEDED(status)) {
--		/* Return TGID instead of process handle */
--		hProcess = current->tgid;
--		res_status = CFG_GetObject((u32 *)&hDrvObject,
--					REG_DRV_OBJECT);
--		if (DSP_SUCCEEDED(res_status)) {
+-func_cont:
+-	/* Return TGID instead of process handle */
+-	hProcess = current->tgid;
+-
+-	res_status = CFG_GetObject((u32 *)&hDRVObject, REG_DRV_OBJECT);
+-	if (DSP_SUCCEEDED(res_status)) {
 -                       DRV_GetProcContext(hProcess,
--					 (struct DRV_OBJECT *)hDrvObject,
--					 &pPctxt, *phNode, 0);
--			if (pPctxt != NULL) {
--				DRV_InsertNodeResElement(*phNode, &nodeRes,
--							 pPctxt);
--				DRV_ProcNodeUpdateHeapStatus(nodeRes, true);
--				DRV_ProcNodeUpdateStatus(nodeRes, true);
--			}
--		}
-+		DRV_InsertNodeResElement(*phNode, &nodeRes, pr_ctxt);
-+		DRV_ProcNodeUpdateHeapStatus(nodeRes, true);
-+		DRV_ProcNodeUpdateStatus(nodeRes, true);
- 	}
+-				 (struct DRV_OBJECT *)hDRVObject, &pPctxt,
+-				 NULL, 0);
+-		if (pPctxt != NULL)
+-			pPctxt->hProcessor = (DSP_HPROCESSOR)*phProcessor;
+-
+-	}
++	pr_ctxt->hProcessor = pProcObject;
  #endif
- 	DBC_Ensure((DSP_FAILED(status) && (*phNode == NULL)) ||
++func_end:
+ 	DBC_Ensure((status == DSP_EFAIL && *phProcessor == NULL) ||
+ 		  (DSP_SUCCEEDED(status) &&
+ 		  MEM_IsValidHandle(pProcObject, PROC_SIGNATURE)) ||
 -- 
 1.6.2.4
 
