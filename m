@@ -1,52 +1,46 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Warnings: pm branch
-Date: Wed, 12 Aug 2009 07:38:20 -0700
-Message-ID: <87d47114ir.fsf@deeprootsystems.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702F5989815@dbde02.ent.ti.com>
-	<873a7y74mj.fsf@deeprootsystems.com>
-	<03d301ca1b32$14f97d10$LocalHost@wipultra793>
-	<7803.10.24.255.18.1250081698.squirrel@dbdmail.itg.ti.com>
-	<87d4712k4h.fsf@deeprootsystems.com>
-	<00a101ca1b58$4cdca100$LocalHost@wipultra793>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: query: omap-defconfigs
+Date: Wed, 12 Aug 2009 20:09:54 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F5A38748@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702F598989C@dbde02.ent.ti.com>
+ <87iqgt14n6.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:45547 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752513AbZHLOiV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 10:38:21 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so15534wfd.4
-        for <linux-omap@vger.kernel.org>; Wed, 12 Aug 2009 07:38:22 -0700 (PDT)
-In-Reply-To: <00a101ca1b58$4cdca100$LocalHost@wipultra793> (Hemanth V.'s message of "Wed\, 12 Aug 2009 19\:52\:16 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:36337 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751936AbZHLOkC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 10:40:02 -0400
+In-Reply-To: <87iqgt14n6.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Hemanth V" <hemanthv@ti.com> writes:
 
-> ----- Original Message ----- 
-> From: "Kevin Hilman" <khilman@deeprootsystems.com>
->>>  /* enter the state and update stats */
->>> @@ -91,6 +93,12 @@ static void cpuidle_idle_call(void)
->>>  /* give the governor an opportunity to reflect on the outcome */
->>>  if (cpuidle_curr_governor->reflect)
->>>  cpuidle_curr_governor->reflect(dev);
->>> +
->>> + return;
->>> +
->>
->> ... I think you want to drop this return.  If it returns here, it
->> will still not enable IRQs.  I think it should just fall through
->> to the enable and return.
+
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>"Pandita, Vikram" <vikram.pandita@ti.com> writes:
 >
-> Since omap3_enter_idle returns with interrupts enabled, I had
-> added this return. We could remove it also for safety purposes.
- 
-OK.  I think you should post to linux-pm for comment, and possibly
-raise this as a question.
+>> For the omap board defconfigs, is there a plan to remove these entries:
+>> CONFIG_SYSFS_DEPRECATED=y
+>> CONFIG_SYSFS_DEPRECATED_V2=y
+>>
+>> I can see that on pm branch on kevin's tree, these are not enabled.
+>>
+>> With older busybox, I needed these entries to be enabled, but switching to latest busybox 1_9_2 I
+>could disable these entries without problem.
+>>
+>> Anything we would break by removing these DEPRECATED entries?
+>
+>I vote to remove them since using OE or OE-based distros like Arago
+>require them to be disabled.
 
-You can add:
+I can post a patch removing these from all omap defconfigs if no one has an objection.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Vikram
+
 
