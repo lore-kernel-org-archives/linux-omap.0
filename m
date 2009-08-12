@@ -1,125 +1,69 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH v2 1/6] ARM: OMAP4: PM: Fix the PRM and CM base addresses
-Date: Wed, 12 Aug 2009 10:45:19 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444A6ED4DB@dlee02.ent.ti.com>
-References: <1250087254-28653-1-git-send-email-rnayak@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: charu@ti.com
+Subject: [RFC][PATCH 0/3] RTC platform data structure defined
+Date: Wed, 12 Aug 2009 21:15:12 +0530
+Message-ID: <1250091912-5334-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47792 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51947 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752071AbZHLPls convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 11:41:48 -0400
-In-Reply-To: <1250087254-28653-1-git-send-email-rnayak@ti.com>
-Content-Language: en-US
+	id S1751648AbZHLPp3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Aug 2009 11:45:29 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: tony@atomide.com, david-b@pacbell.net, sameo@linux.intel.com, p_gortmaker@yahoo.com, Charulatha V <charu@ti.com>
 
-Rajendra,
+This series contains patches which
+        1. define TWL4030 rtc platform data which has msecure gpio line info
+        2. initialise msecure gpio line from rtc driver
+        3. twl core file passes rtc platform data from board file to rtc driver
+        4. Board files handle mux configuration of msecure gpio line
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Rajendra Nayak
-> Sent: Wednesday, August 12, 2009 9:27 AM
-> To: linux-arm-kernel@lists.arm.linux.org.uk
-> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra
-> Subject: [PATCH v2 1/6] ARM: OMAP4: PM: Fix the PRM and CM base addresses
-> 
-> This patch fixes the PRM and CM base addresses and adds
-> a new CM2 base address for OMAP4
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/prcm.c                 |    2 ++
->  arch/arm/plat-omap/common.c                |    2 ++
->  arch/arm/plat-omap/include/mach/common.h   |    1 +
->  arch/arm/plat-omap/include/mach/omap44xx.h |    6 ++++--
->  4 files changed, 9 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index f945156..de307fa 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -27,6 +27,7 @@
-> 
->  static void __iomem *prm_base;
->  static void __iomem *cm_base;
-> +static void __iomem *cm2_base;
-> 
->  u32 omap_prcm_get_reset_sources(void)
->  {
-> @@ -124,4 +125,5 @@ void __init omap2_set_globals_prcm(struct omap_globals
-> *omap2_globals)
->  {
->  	prm_base = omap2_globals->prm;
->  	cm_base = omap2_globals->cm;
-> +	cm2_base = omap2_globals->cm2;
->  }
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index ebcf006..e848a12 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -372,12 +372,14 @@ static struct omap_globals omap4_globals = {
->  	.ctrl	= OMAP2_IO_ADDRESS(OMAP443X_CTRL_BASE),
->  	.prm	= OMAP2_IO_ADDRESS(OMAP4430_PRM_BASE),
->  	.cm	= OMAP2_IO_ADDRESS(OMAP4430_CM_BASE),
-> +	.cm2	= OMAP2_IO_ADDRESS(OMAP4430_CM2_BASE),
->  };
-> 
->  void __init omap2_set_globals_443x(void)
->  {
->  	omap2_set_globals_tap(&omap4_globals);
->  	omap2_set_globals_control(&omap4_globals);
-> +	omap2_set_globals_prcm(&omap4_globals);
->  }
->  #endif
-> 
-> diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-
-> omap/include/mach/common.h
-> index fdeab42..878c4f9 100644
-> --- a/arch/arm/plat-omap/include/mach/common.h
-> +++ b/arch/arm/plat-omap/include/mach/common.h
-> @@ -55,6 +55,7 @@ struct omap_globals {
->  	void __iomem	*ctrl;		/* System Control Module */
->  	void __iomem	*prm;		/* Power and Reset Management */
->  	void __iomem	*cm;		/* Clock Management */
-> +	void __iomem	*cm2;
->  };
-> 
->  void omap2_set_globals_242x(void);
-> diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h b/arch/arm/plat-
-> omap/include/mach/omap44xx.h
-> index 15dec7f..b46b154 100644
-> --- a/arch/arm/plat-omap/include/mach/omap44xx.h
-> +++ b/arch/arm/plat-omap/include/mach/omap44xx.h
-> @@ -23,8 +23,10 @@
->  #define L4_EMU_44XX_BASE		0x54000000
->  #define L3_44XX_BASE			0x44000000
->  #define OMAP4430_32KSYNCT_BASE		0x4a304000
-> -#define OMAP4430_CM_BASE		0x4a004000
-> -#define OMAP4430_PRM_BASE		0x48306000
+This series applies on top of linux-2.6.31-rc5.
 
-> +#define OMAP4430_CM1_BASE		0x4a004000
-> +#define OMAP4430_CM_BASE		OMAP4430_CM1_BASE
+CharuLatha (4):
 
-Why do you need 2 defines for the same value?
+        [PATCH 0/3] RTC platform data structure defined
+        [PATCH 1/3] RTC periodic interrupts enabling and msecure init
+        [PATCH 2/3] handling rtc platform data
+        [PATCH 3/3] board files do msecure line mux configuration
 
-Regards,
-Sergio
+Structure "twl4030_rtc_platform_data" is defined with msecure_gpio in it. 
+This structure would be initialised in board file. 
+RTC msecure line initialization happens in RTC driver.
+The same structure can be used for any future enhancements in RTC.
 
-> +#define OMAP4430_CM2_BASE		0x4a008000
-> +#define OMAP4430_PRM_BASE		0x4a306000
->  #define OMAP44XX_GPMC_BASE		0x50000000
->  #define OMAP443X_SCM_BASE		0x4a002000
->  #define OMAP443X_CTRL_BASE		OMAP443X_SCM_BASE
-> --
-> 1.5.4.7
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Signed-off-by: Charulatha V <charu@ti.com>
+---
+ include/linux/i2c/twl4030.h |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 15edfaa..6ae582b 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -341,6 +341,13 @@ struct twl4030_gpio_platform_data {
+ 				unsigned gpio, unsigned ngpio);
+ };
+ 
++struct twl4030_rtc_platform_data {
++	int 		msecure_gpio;
++	/* More structures/elements can be added
++	 * for future Triton RTC driver enhancements
++	 */
++};
++
+ struct twl4030_madc_platform_data {
+ 	int		irq_line;
+ };
+@@ -395,6 +402,7 @@ struct twl4030_platform_data {
+ 	unsigned				irq_base, irq_end;
+ 	struct twl4030_bci_platform_data	*bci;
+ 	struct twl4030_gpio_platform_data	*gpio;
++	struct twl4030_rtc_platform_data	*rtc;
+ 	struct twl4030_madc_platform_data	*madc;
+ 	struct twl4030_keypad_data		*keypad;
+ 	struct twl4030_usb_data			*usb;
+-- 
+1.6.0.4
 
