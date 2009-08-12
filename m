@@ -1,66 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 6/9] OMAP2/3: Add support for flash on SDP boards
-Date: Wed, 12 Aug 2009 14:44:43 +0300
-Message-ID: <20090812114443.GG7278@atomide.com>
-References: <20090811094348.32577.81307.stgit@localhost> <20090811095315.32577.89520.stgit@localhost> <ce9ab5790908110733g6cedd036w792ea7bc30b8e227@mail.gmail.com> <20090812113057.GE7278@atomide.com> <ce9ab5790908120441i47fe0c5aj284a1f9e423be945@mail.gmail.com>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: Re: [alsa-devel] [PATCH 11/20] OMAP: McBSP: Add link DMA mode
+ selection
+Date: Wed, 12 Aug 2009 14:48:33 +0300
+Message-ID: <1250077713.16045.31.camel@eenurkka-desktop>
+References: <1248958183-15015-1-git-send-email-eduardo.valentin@nokia.com>
+	 <1248958183-15015-12-git-send-email-eduardo.valentin@nokia.com>
+	 <20090805103900.5ad89efe.jhnikula@gmail.com>
+	 <200908051158.57440.peter.ujfalusi@nokia.com>
+	 <1FFEF31EBAA4F64B80D33027D4297760047F6AED01@NOK-EUMSG-02.mgdnok.nokia.com>
+	 <20090811090457.d89afd3e.jhnikula@gmail.com>
+	 <1249971481.16045.17.camel@eenurkka-desktop>
+	 <20090812144547.eb4bf7f2.jhnikula@gmail.com>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52147 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899AbZHLLox (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 07:44:53 -0400
-Content-Disposition: inline
-In-Reply-To: <ce9ab5790908120441i47fe0c5aj284a1f9e423be945@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:24811 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751336AbZHLLsR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 07:48:17 -0400
+In-Reply-To: <20090812144547.eb4bf7f2.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: vimal singh <vimal.newwork@gmail.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@vger.kernel.org" <alsa-devel@vger.kernel.org>
 
-* vimal singh <vimal.newwork@gmail.com> [090812 14:41]:
-> On Wed, Aug 12, 2009 at 5:00 PM, Tony Lindgren<tony@atomide.com> wrot=
-e:
-> > * vimal singh <vimal.newwork@gmail.com> [090811 17:34]:
-> >> On Tue, Aug 11, 2009 at 3:23 PM, Tony Lindgren<tony@atomide.com> w=
-rote:
-> >> > Add support for flash on SDP boards. Currently only onenand
-> >> > is supported.
-> >> >
-> >> > Only tested on 3430SDP, somebody please test on 2430SDP and
-> >> > check the chip select for 2430SDP.
-> >> >
-> >> > Also note that in the earlier 2430SDP code the kernel partition
-> >> > was set to only 1MB instead of 2MB on 3430SDP. If people want
-> >> > the old partition sizes back on 2430SDP, please provide a patch.
-> >> >
-> >
-> > <snip>
-> >
-> >> > +static struct omap_onenand_platform_data board_onenand_data =3D=
- {
-> >> > + =A0 =A0 =A0 .cs =A0 =A0 =A0 =A0 =A0 =A0 =3D 2, =A0 =A0/* REVIS=
-IT: Is this the same for 2430 SDP? */
-> >>
-> >> SDP3430 V2 Board CS organization is different from SDP3430 V1. Now=
- 4
-> >> dip switches are used to specify CS configuration for flashes.
-> >
-> > Hmm, OK thanks. That could be done with a cmdline option, or
-> > by adding the GPMC probing in some generic form on top of this patc=
-h.
-> >
-> > Do you still want this patch to get integrated, or me to drop it
-> > until somebody patches support for toggling the chip select?
->=20
-> You may drop this patch as of now. I'll submit a patch for this
-> probably next week.
+On Wed, 2009-08-12 at 13:45 +0200, ext Jarkko Nikula wrote:
+> 
+> The threshold based transfer will cause that omap_pcm_pointer will
+> loose a bit its accuracy. Probably irrelevant but still better to play
+> safe at least over one kernel release before making it default.
+> 
 
-OK, will drop.
+No, it doesn't loose accuracy =) It's as accurate with both modes.
+The difference is, that the other does things in bursts;
+that's called evolution rather than regression =) That's how
+things will be in the future =)
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Return value prints from omap_pcm_pointer while playing
+> "aplay -f dat /dev/zero"
+> 
+> element:
+> 614
+> 669
+> 691
+> 712
+> 734
+> 755
+> 
+> threshold:
+> 512
+> 512
+> 512
+> 1024
+> 1024
+> 1536
+> 
+> 
+
