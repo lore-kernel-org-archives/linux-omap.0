@@ -1,64 +1,37 @@
-From: Kovacs Peter Tamas <p.kovacs@holografika.com>
-Subject: Unable to compile kernel with omap_ldp_defconfig
-Date: Wed, 12 Aug 2009 12:34:22 +0200
-Message-ID: <4A829AAE.5000705@holografika.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH 1/1] omap iommu: fix wrong argument in flush_cache_vmap()
+Date: Wed, 12 Aug 2009 07:25:22 -0400
+Message-ID: <notify-1250076320@atomide.com>
+References: <1249982710-31681-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail00a.mail.t-online.hu ([84.2.40.5]:50203 "EHLO
-	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932511AbZHLKk4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 06:40:56 -0400
-Received: from holoiroda.com (holoiroda.com [81.182.243.140])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail00a.mail.t-online.hu (Postfix) with ESMTPSA id 505CF268CFC
-	for <linux-omap@vger.kernel.org>; Wed, 12 Aug 2009 12:32:09 +0200 (CEST)
-Received: from [192.168.0.3] (port=40812)
-	by holoiroda.com with esmtpsa (Exim 4.69-NetSys #4)
-	id 1MbBA4-0003Tj-Kh
-	for linux-omap@vger.kernel.org; Wed, 12 Aug 2009 12:34:28 +0200
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57912 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750998AbZHLLZW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 07:25:22 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MbBxK-000H9v-M3
+	for linux-omap@vger.kernel.org; Wed, 12 Aug 2009 11:25:23 +0000
+In-Reply-To: <1249982710-31681-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Dear All,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-I'm trying to compile the kernel for my Logic LDP3430-VG1.0.0.
-Following the instructions at
-https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
-and
-https://omapzoom.org/gf/project/omapzoom/wiki/?pagename=BootingAndFlashing
+Branch in linux-omap: omap3-upstream
 
-I was able to compile the x-loader and u-boot (both with 
-omap3430labrador_config), but the kernel with omap_ldp_defconfig (as it 
-was yesterday in the ti-2.6.27-omap3 git) did not compile saying:
+Initial commit ID (Likely to change): 860936a13ed727d5b83649eb5665fcc5392c2784
 
-omap@omap-devel:~/OMAP_kernel/bootloader_build/omapkernel$ make 
-CROSS_COMPILE=arm-none-linux-gnueabi- uImage
-  CHK     include/linux/version.h
-make[1]: `include/asm-arm/mach-types.h' is up to date.
-  CHK     include/linux/utsrelease.h
-  CALL    scripts/checksyscalls.sh
-<stdin>:1097:2: warning: #warning syscall fadvise64 not implemented
-<stdin>:1265:2: warning: #warning syscall migrate_pages not implemented
-<stdin>:1321:2: warning: #warning syscall pselect6 not implemented
-<stdin>:1325:2: warning: #warning syscall ppoll not implemented
-<stdin>:1365:2: warning: #warning syscall epoll_pwait not implemented
-  CHK     include/linux/compile.h
-  AS      arch/arm/kernel/debug.o
-arch/arm/plat-omap/include/mach/debug-macro.S: Assembler messages:
-arch/arm/plat-omap/include/mach/debug-macro.S:39: Error: invalid 
-constant (fb6000) after fixup
-arch/arm/plat-omap/include/mach/debug-macro.S:39: Error: invalid 
-constant (fb6000) after fixup
-make[1]: *** [arch/arm/kernel/debug.o] Error 1
-make: *** [arch/arm/kernel] Error 2
+PatchWorks
+http://patchwork.kernel.org/patch/40595/
 
-Please note that it compiles fine with the omap_3430sdp_defconfig.
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=860936a13ed727d5b83649eb5665fcc5392c2784
 
-Could you please help me with this issue?
 
-Thanks for your help,
-Peter
