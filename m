@@ -1,70 +1,45 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 00/10] Omap3 updates for upcoming 2.6.32 merge window
-Date: Wed, 12 Aug 2009 15:10:36 +0300
-Message-ID: <20090812120926.17601.85860.stgit@localhost>
+Subject: [PATCH 01/10] OMAP: iommu: fix wrong argument in flush_cache_vmap()
+Date: Wed, 12 Aug 2009 15:12:00 +0300
+Message-ID: <20090812121200.17601.61014.stgit@localhost>
+References: <20090812120926.17601.85860.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57720 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466AbZHLMKo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 08:10:44 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61043 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617AbZHLMMI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 08:12:08 -0400
+In-Reply-To: <20090812120926.17601.85860.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Hi all,
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-Here are mostly omap3 specific updates for the merge window.
+The second argument should be the end address, not the
+length. Actually there will not be any effect on the behavior of this
+driver since flush_cache_vmap() calls flush_cache_all() in the end.
 
-Regards,
-
-Tony
-
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
+ arch/arm/plat-omap/iovmm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Felipe Balbi (1):
-      OMAP3: beagle: add missing twl4030 usb platform_data
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 2fce2c1..6fc52fc 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -199,7 +199,7 @@ static void *vmap_sg(const struct sg_table *sgt)
+ 		va += bytes;
+ 	}
+ 
+-	flush_cache_vmap(new->addr, total);
++	flush_cache_vmap(new->addr, new->addr + total);
+ 	return new->addr;
+ 
+ err_out:
 
-Hiroshi DOYU (2):
-      OMAP: iommu: add initial debugfs support
-      OMAP: iommu: fix wrong argument in flush_cache_vmap()
-
-Paul Walmsley (1):
-      OMAP3: update OMAP3 Beagle defconfig
-
-Sergio Aguirre (1):
-      OMAP3: 3430SDP: Fix defconfig
-
-Timo Kokkonen (1):
-      OMAP3: rx51_defconfig: add twl4030 to rx51 default configuration
-
-Vikram Pandita (4):
-      OMAP3: Zoom2: Update board defconfig
-      OMAP3: Zoom2: Add TWL4030 support
-      OMAP3: MMC: Add mux for pins
-      OMAP2/3: Pass irqflags to 8250 driver
-
-
- arch/arm/configs/omap3_beagle_defconfig     |   11 +
- arch/arm/configs/omap_3430sdp_defconfig     |   20 +
- arch/arm/configs/omap_zoom2_defconfig       |  484 +++++++++++++++++++++++----
- arch/arm/configs/rx51_defconfig             |    1 
- arch/arm/mach-omap2/board-omap3beagle.c     |    5 
- arch/arm/mach-omap2/board-zoom-debugboard.c |    2 
- arch/arm/mach-omap2/board-zoom2.c           |  204 +++++++++++
- arch/arm/mach-omap2/devices.c               |   42 ++
- arch/arm/mach-omap2/mux.c                   |   49 +++
- arch/arm/mach-omap2/serial.c                |    2 
- arch/arm/plat-omap/Kconfig                  |    4 
- arch/arm/plat-omap/Makefile                 |    1 
- arch/arm/plat-omap/include/mach/mux.h       |   28 ++
- arch/arm/plat-omap/iommu-debug.c            |  334 +++++++++++++++++++
- arch/arm/plat-omap/iovmm.c                  |    2 
- 15 files changed, 1088 insertions(+), 101 deletions(-)
- create mode 100644 arch/arm/plat-omap/iommu-debug.c
-
--- 
-Signature
