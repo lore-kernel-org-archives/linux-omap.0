@@ -1,141 +1,70 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCHv2 08/20] OMAP: McBSP: Add link DMA mode selection
-Date: Wed, 12 Aug 2009 14:51:26 +0300
-Message-ID: <20090812145126.bd028e6f.jhnikula@gmail.com>
-References: <1249995931-26015-1-git-send-email-eduardo.valentin@nokia.com>
-	<1249995931-26015-2-git-send-email-eduardo.valentin@nokia.com>
-	<1249995931-26015-3-git-send-email-eduardo.valentin@nokia.com>
-	<1249995931-26015-4-git-send-email-eduardo.valentin@nokia.com>
-	<1249995931-26015-5-git-send-email-eduardo.valentin@nokia.com>
-	<1249995931-26015-6-git-send-email-eduardo.valentin@nokia.com>
-	<1249995931-26015-7-git-send-email-eduardo.valentin@nokia.com>
-	<1249995931-26015-8-git-send-email-eduardo.valentin@nokia.com>
-	<1249995931-26015-9-git-send-email-eduardo.valentin@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 00/10] Omap3 updates for upcoming 2.6.32 merge window
+Date: Wed, 12 Aug 2009 15:10:36 +0300
+Message-ID: <20090812120926.17601.85860.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:62292 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752599AbZHLLuC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 07:50:02 -0400
-In-Reply-To: <1249995931-26015-9-git-send-email-eduardo.valentin@nokia.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57720 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751466AbZHLMKo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 08:10:44 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-On Tue, 11 Aug 2009 16:05:19 +0300
-Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+Hi all,
 
-> From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-> 
-> It adds a new sysfs file, where the user can configure the mcbsp mode to use.
-> If the mcbsp channel is in use, it does not allow the change.
-> Than in omap_pcm_open we can call the omap_mcbsp_get_opmode to get the mode,
-> store it, than use it to implement the different modes.
+Here are mostly omap3 specific updates for the merge window.
 
-...
-> +static ssize_t dma_op_mode_show(struct device *dev,
-> +			struct device_attribute *attr, char *buf)
-> +{
-> +	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
-> +	int dma_op_mode;
-> +
-> +	spin_lock_irq(&mcbsp->lock);
-> +	dma_op_mode = mcbsp->dma_op_mode;
-> +	spin_unlock_irq(&mcbsp->lock);
-> +
-> +	return sprintf(buf, "current mode: %d\n"
-> +			"possible mode values are:\n"
-> +			"%d - %s\n"
-> +			"%d - %s\n"
-> +			"%d - %s\n",
-> +			dma_op_mode,
-> +			MCBSP_DMA_MODE_ELEMENT, "element mode",
-> +			MCBSP_DMA_MODE_THRESHOLD, "threshold mode",
-> +			MCBSP_DMA_MODE_FRAME, "frame mode");
-> +}
-> +
+Regards,
 
-Btw: I hacked a patch below on top of the set for setting and reading the
-operating mode in ascii. Freely usable, no guarantee :-)
+Tony
 
+---
+
+Felipe Balbi (1):
+      OMAP3: beagle: add missing twl4030 usb platform_data
+
+Hiroshi DOYU (2):
+      OMAP: iommu: add initial debugfs support
+      OMAP: iommu: fix wrong argument in flush_cache_vmap()
+
+Paul Walmsley (1):
+      OMAP3: update OMAP3 Beagle defconfig
+
+Sergio Aguirre (1):
+      OMAP3: 3430SDP: Fix defconfig
+
+Timo Kokkonen (1):
+      OMAP3: rx51_defconfig: add twl4030 to rx51 default configuration
+
+Vikram Pandita (4):
+      OMAP3: Zoom2: Update board defconfig
+      OMAP3: Zoom2: Add TWL4030 support
+      OMAP3: MMC: Add mux for pins
+      OMAP2/3: Pass irqflags to 8250 driver
+
+
+ arch/arm/configs/omap3_beagle_defconfig     |   11 +
+ arch/arm/configs/omap_3430sdp_defconfig     |   20 +
+ arch/arm/configs/omap_zoom2_defconfig       |  484 +++++++++++++++++++++++----
+ arch/arm/configs/rx51_defconfig             |    1 
+ arch/arm/mach-omap2/board-omap3beagle.c     |    5 
+ arch/arm/mach-omap2/board-zoom-debugboard.c |    2 
+ arch/arm/mach-omap2/board-zoom2.c           |  204 +++++++++++
+ arch/arm/mach-omap2/devices.c               |   42 ++
+ arch/arm/mach-omap2/mux.c                   |   49 +++
+ arch/arm/mach-omap2/serial.c                |    2 
+ arch/arm/plat-omap/Kconfig                  |    4 
+ arch/arm/plat-omap/Makefile                 |    1 
+ arch/arm/plat-omap/include/mach/mux.h       |   28 ++
+ arch/arm/plat-omap/iommu-debug.c            |  334 +++++++++++++++++++
+ arch/arm/plat-omap/iovmm.c                  |    2 
+ 15 files changed, 1088 insertions(+), 101 deletions(-)
+ create mode 100644 arch/arm/plat-omap/iommu-debug.c
 
 -- 
-Jarkko
-
---- 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 50a9fea..e637a28 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -1147,6 +1147,10 @@ static DEVICE_ATTR(prop, 0644, prop##_show, prop##_store);
- THRESHOLD_PROP_BUILDER(max_tx_thres);
- THRESHOLD_PROP_BUILDER(max_rx_thres);
- 
-+static const char *dma_op_modes[] = {
-+	"element", "threshold", "frame",
-+};
-+
- static ssize_t dma_op_mode_show(struct device *dev,
- 			struct device_attribute *attr, char *buf)
- {
-@@ -1157,15 +1161,7 @@ static ssize_t dma_op_mode_show(struct device *dev,
- 	dma_op_mode = mcbsp->dma_op_mode;
- 	spin_unlock_irq(&mcbsp->lock);
- 
--	return sprintf(buf, "current mode: %d\n"
--			"possible mode values are:\n"
--			"%d - %s\n"
--			"%d - %s\n"
--			"%d - %s\n",
--			dma_op_mode,
--			MCBSP_DMA_MODE_ELEMENT, "element mode",
--			MCBSP_DMA_MODE_THRESHOLD, "threshold mode",
--			MCBSP_DMA_MODE_FRAME, "frame mode");
-+	return sprintf(buf, "%s\n", dma_op_modes[dma_op_mode]);
- }
- 
- static ssize_t dma_op_mode_store(struct device *dev,
-@@ -1173,12 +1169,19 @@ static ssize_t dma_op_mode_store(struct device *dev,
- 				const char *buf, size_t size)
- {
- 	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
--	unsigned long val;
--	int status;
--
--	status = strict_strtoul(buf, 0, &val);
--	if (status)
--		return status;
-+	const char * const *s;
-+	char *p;
-+	int len, mode = 0;
-+
-+	p = memchr(buf, '\n', size);
-+	len = p ? p - buf : size;
-+
-+	for (s = &dma_op_modes[mode];
-+	     mode < ARRAY_SIZE(dma_op_modes); s++, mode++)
-+		if (*s && len == strlen(*s) && !strncmp(buf, *s, len))
-+			break;
-+	if (mode == ARRAY_SIZE(dma_op_modes))
-+		return -EINVAL;
- 
- 	spin_lock_irq(&mcbsp->lock);
- 
-@@ -1187,12 +1190,7 @@ static ssize_t dma_op_mode_store(struct device *dev,
- 		goto unlock;
- 	}
- 
--	if (val > MCBSP_DMA_MODE_FRAME || val < MCBSP_DMA_MODE_ELEMENT) {
--		size = -EINVAL;
--		goto unlock;
--	}
--
--	mcbsp->dma_op_mode = val;
-+	mcbsp->dma_op_mode = mode;
- 
- unlock:
- 	spin_unlock_irq(&mcbsp->lock);
-
+Signature
