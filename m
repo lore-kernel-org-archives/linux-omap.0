@@ -1,67 +1,41 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH v2 5/6] ARM: OMAP4: PM: Adds CM1/2 register defs for
- OMAP4
-Date: Wed, 12 Aug 2009 12:40:31 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444A6ED6C0@dlee02.ent.ti.com>
-References: <1250087254-28653-1-git-send-email-rnayak@ti.com>
- <1250087254-28653-2-git-send-email-rnayak@ti.com>
- <1250087254-28653-3-git-send-email-rnayak@ti.com>
- <1250087254-28653-4-git-send-email-rnayak@ti.com>
- <1250087254-28653-5-git-send-email-rnayak@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-omap-2.6 git not updated?
+Date: Wed, 12 Aug 2009 20:41:03 +0300
+Message-ID: <20090812174103.GO7278@atomide.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB03060505F9@dbde02.ent.ti.com> <20090812134839.GJ7278@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59906 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754632AbZHLRhB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 13:37:01 -0400
-In-Reply-To: <1250087254-28653-5-git-send-email-rnayak@ti.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53723 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751429AbZHLRlF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 13:41:05 -0400
+Content-Disposition: inline
+In-Reply-To: <20090812134839.GJ7278@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Rajendra,
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Nayak, Rajendra
-> Sent: Wednesday, August 12, 2009 9:28 AM
-> To: linux-arm-kernel@lists.arm.linux.org.uk
-> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra
-> Subject: [PATCH v2 5/6] ARM: OMAP4: PM: Adds CM1/2 register defs for OMAP4
+* Tony Lindgren <tony@atomide.com> [090812 16:48]:
+> * Gadiyar, Anand <gadiyar@ti.com> [090812 16:27]:
+> > Tony,
+> > 
+> > Is something wrong with the kernel.org mirror? The last commit
+> > I see is:
+> > 
+> > commit 4baadee6e2dd5228e1b17cb5f931c4e0ed8fcb96
+> > Author: Anand Gadiyar <gadiyar@ti.com>
+> > Date:   Wed Aug 5 16:22:59 2009 +0300
+> > 
+> > I do see that the other branches (upstream, omap4, ...)
+> > are updated. Looks like only the master is not yet
+> > reflecting the patches you applied in the last 7 days.
 > 
-> This patch adds OMAP4 specific CM1 and CM2 module
-> register defs and corresponding register field bit
-> shifts
-> 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> ---
->  arch/arm/mach-omap2/cm.h               |  249
-> +++++++++++++++++++++++++++++-
->  arch/arm/mach-omap2/cm1-regbits-44xx.h |  161 +++++++++++++++++++
->  arch/arm/mach-omap2/cm2-regbits-44xx.h |  269
-> ++++++++++++++++++++++++++++++++
->  3 files changed, 678 insertions(+), 1 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/cm1-regbits-44xx.h
->  create mode 100644 arch/arm/mach-omap2/cm2-regbits-44xx.h
-> 
-> diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
-> index 1d3c93b..19f7aeb 100644
-> --- a/arch/arm/mach-omap2/cm.h
-> +++ b/arch/arm/mach-omap2/cm.h
-> @@ -4,10 +4,11 @@
->  /*
->   * OMAP2/3 Clock Management (CM) register definitions
+> Yeah I have not updated master yet with the patches going upstream.
+> Will reset arch/arm/*omap* in master, and merge in the posted
+> upstream branches.
 
-According to the new content, this should be updated aswell, like:
+Updated now with the patches queued for mainline.
 
-OMAP2/3/4 Clock Management (CM) register definitions
-
-Regards,
-Sergio
-
-<snip>
-
+Tony
