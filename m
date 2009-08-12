@@ -1,52 +1,135 @@
-From: John Sarman <johnsarman@gmail.com>
-Subject: Re: TI OMAP 3503 GPIO signal I/O standard for interfacing with FPGA
-Date: Wed, 12 Aug 2009 08:54:06 -0400
-Message-ID: <bb2708720908120554m33caeb32v4d13da69d1e94e7d@mail.gmail.com>
-References: <BD5F061C-76EC-40EF-93D6-5C64860EBEA7@mac.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: Warnings: pm branch
+Date: Wed, 12 Aug 2009 18:24:58 +0530 (IST)
+Message-ID: <7803.10.24.255.18.1250081698.squirrel@dbdmail.itg.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702F5989815@dbde02.ent.ti.com>
+    <873a7y74mj.fsf@deeprootsystems.com>
+    <03d301ca1b32$14f97d10$LocalHost@wipultra793>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f191.google.com ([209.85.211.191]:37602 "EHLO
-	mail-yw0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411AbZHLMyG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 08:54:06 -0400
-Received: by ywh29 with SMTP id 29so1133218ywh.33
-        for <linux-omap@vger.kernel.org>; Wed, 12 Aug 2009 05:54:06 -0700 (PDT)
-In-Reply-To: <BD5F061C-76EC-40EF-93D6-5C64860EBEA7@mac.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39293 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751285AbZHLMzI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 12 Aug 2009 08:55:08 -0400
+In-Reply-To: <03d301ca1b32$14f97d10$LocalHost@wipultra793>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Elvis Dowson <elvis.dowson@mac.com>
-Cc: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: Hemanth V <hemanthv@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, linux-omap@vger.kernel.org
 
-On Tue, Aug 11, 2009 at 3:12 PM, Elvis Dowson<elvis.dowson@mac.com> wro=
-te:
-> Hi,
-> =A0 =A0 =A0 =A0If I have to interface the TI OMAP 3503 GPIO signals t=
-o an FPGA
-> (Xilinx Virtex-5), which I/O standard should I use.
-Use LVCMOS at 1.8V  if you can not use 1.8 V (get another FPGA, just
-kidding)  then you will need a buffer (level translator) between them.
- I had great success with
-http://focus.ti.com/docs/prod/folders/print/txs0108e.html  (TXS0108)
-8-channel push-pull/ open drain level transceiver.
-John Sarman
+> ----- Original Message -----
+> From: "Kevin Hilman" <khilman@deeprootsystems.com>
+> To: "Pandita, Vikram" <vikram.pandita@ti.com>
+> Cc: <linux-omap@vger.kernel.org>
+> Sent: Tuesday, August 11, 2009 8:57 PM
+> Subject: Re: Warnings: pm branch
 >
-> The options available to me for single ended I/O on the FPGA are : LV=
-CMOS,
-> LVTTL, HSTL, SSTL, GTL, PCI
 >
-> Best regards,
+>> "Pandita, Vikram" <vikram.pandita@ti.com> writes:
+>>
+>>> Has anyone send these warning logs on the pm branch on kevin's tree [1]
+>>> This seems to be some issue in CpuIdle path with interrupts?
+>>>
+>>> <4>WARNING: at arch/arm/kernel/process.c:171 cpu_idle+0x60/0x88()
+>>> WARNING: at arch/arm/kernel/process.c:171 cpu_idle+0x60/0x88()
+>>> <d>Modules linked in:Modules linked in:
+>>> [<c0031344>] [<c0031344>] (unwind_backtrace+0x0/0xdc)
+>>> (unwind_backtrace+0x0/0xdc
+>>> ) from [<c0057a08>] from [<c0057a08>] (warn_slowpath_common+0x48/0x60)
+>>> (warn_slowpath_common+0x48/0x60)
+>>> [<c0057a08>] [<c0057a08>] (warn_slowpath_common+0x48/0x60)
+>>> (warn_slowpath_common
+>>> +0x48/0x60) from [<c002d204>] from [<c002d204>] (cpu_idle+0x60/0x88)
+>>> (cpu_idle+0x60/0x88)
+>>> [<c002d204>] [<c002d204>] (cpu_idle+0x60/0x88) (cpu_idle+0x60/0x88) from
+>>> [<c0008
+>>> a70>] from [<c0008a70>] (start_kernel+0x234/0x28c)
+>>> (start_kernel+0x234/0x28c)
+>>> [<c0008a70>] [<c0008a70>] (start_kernel+0x234/0x28c)
+>>> (start_kernel+0x234/0x28c)
+>>> from [<80008034>] from [<80008034>] (0x80008034)
+>>> (0x80008034)
+>>>
+>>
+>> Yes, I've seen it, but have yet to debug it.
+>>
+>> This warning is from the generic ARM idle loop reporting that the OMAP
+>> idle path is returning with IRQs disabled.
+>>
+>> Kevin
 >
-> Elvis
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+> I did some more debugging on this. I added the below instrumentation to
+> local_irq_disable to capture
+> the PC of the last call to local_irq_disable.
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> extern unsigned long hem_pc;
+> register unsigned long current_pc asm ("pc");
+>
+> #define local_irq_disable() \
+>         do { hem_pc = current_pc;raw_local_irq_disable();
+> trace_hardirqs_off(); } while (0)
+>
+>
+> When I set a breakpoint  at the instruction pointing to
+> WARN_ON(irqs_disabled()) using
+> lauterbach and dump hem_pc, I see that the last call to irq_disable is
+> actuall from cpu_idle itself.
+> Looks like some recursion is happening. Does anyone have any inputs on this.
+>
+> void cpu_idle(void)
+> {
+>
+>         local_fiq_enable();
+>
+>         /* endless idle loop with no priority at all */
+>         while (1) {
+>                 tick_nohz_stop_sched_tick(1);
+>                 leds_event(led_idle_start);
+>                 while (!need_resched()) {
+> #ifdef CONFIG_HOTPLUG_CPU
+>                         if (cpu_is_offline(smp_processor_id()))
+>                                 cpu_die();
+> #endif
+>
+>>>                        local_irq_disable();
+>
+>
+> Thanks
+> Hemanth
+>
+
+Below patch seems to fix the issue.
+
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 8504a21..3014104 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -75,8 +75,10 @@ static void cpuidle_idle_call(void)
+ #endif
+ 	/* ask the governor for the next state */
+ 	next_state = cpuidle_curr_governor->select(dev);
++
+ 	if (need_resched())
+-		return;
++		goto out;
++
+ 	target_state = &dev->states[next_state];
+
+ 	/* enter the state and update stats */
+@@ -91,6 +93,12 @@ static void cpuidle_idle_call(void)
+ 	/* give the governor an opportunity to reflect on the outcome */
+ 	if (cpuidle_curr_governor->reflect)
+ 		cpuidle_curr_governor->reflect(dev);
++
++	return;
++
++out:
++	local_irq_enable();
++	return;
+ }
+
+ /**
+
+
