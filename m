@@ -1,25 +1,35 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Warnings: pm branch
-Date: Wed, 12 Aug 2009 06:28:52 -0700
-Message-ID: <874osd40vf.fsf@deeprootsystems.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: RE: Warnings: pm branch
+Date: Wed, 12 Aug 2009 19:08:45 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F5A3871B@dbde02.ent.ti.com>
 References: <FCCFB4CDC6E5564B9182F639FC35608702F5989815@dbde02.ent.ti.com>
 	<873a7y74mj.fsf@deeprootsystems.com>
 	<03d301ca1b32$14f97d10$LocalHost@wipultra793>
 	<7803.10.24.255.18.1250081698.squirrel@dbdmail.itg.ti.com>
+ <874osd40vf.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f196.google.com ([209.85.222.196]:38307 "EHLO
-	mail-pz0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752464AbZHLN2y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 09:28:54 -0400
-Received: by pzk34 with SMTP id 34so4458pzk.4
-        for <linux-omap@vger.kernel.org>; Wed, 12 Aug 2009 06:28:55 -0700 (PDT)
-In-Reply-To: <7803.10.24.255.18.1250081698.squirrel@dbdmail.itg.ti.com> (Hemanth V.'s message of "Wed\, 12 Aug 2009 18\:24\:58 +0530 \(IST\)")
+Received: from comal.ext.ti.com ([198.47.26.152]:38745 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751118AbZHLNiz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 09:38:55 -0400
+In-Reply-To: <874osd40vf.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, "V, Hemanth" <hemanthv@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+Sent: Wednesday, August 12, 2009 6:59 PM
+To: V, Hemanth
+Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+Subject: Re: Warnings: pm branch
 
 "Hemanth V" <hemanthv@ti.com> writes:
 
@@ -106,12 +116,47 @@ Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
 >
 > Below patch seems to fix the issue.
 
-The question remains, who is disabling interrupts?
+> The question remains, who is disabling interrupts?
+>
+> If this patch works, someone is disabling interrupts between the
+> enable in this routine and the return of this function.
 
-If this patch works, someone is disabling interrupts between the
-enable in this routine and the return of this function.
+> Kevin
+It's disabled in cpu_idle function itself before calling pm_idle
+Here is the snap of cpu_idle
 
-Kevin
+void cpu_idle(void)
+{
+	local_fiq_enable();
+
+	/* endless idle loop with no priority at all */
+	while (1) {
+		tick_nohz_stop_sched_tick(1);
+		leds_event(led_idle_start);
+		while (!need_resched()) {
+#ifdef CONFIG_HOTPLUG_CPU
+			if (cpu_is_offline(smp_processor_id()))
+				cpu_die();
+#endif
+
+			local_irq_disable();  //it's disabled here
+			if (hlt_counter) {
+				local_irq_enable();
+				cpu_relax();
+			} else {
+				stop_critical_timings();
+				pm_idle();
+				start_critical_timings();
+				/*
+				 * This will eventually be removed - pm_idle
+				 * functions should always return with IRQs
+				 * enabled.
+				 */
+				WARN_ON(irqs_disabled());
+				local_irq_enable();
+			}
+		}
+
 
 > diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
 > index 8504a21..3014104 100644
@@ -142,3 +187,8 @@ Kevin
 >  }
 >
 >  /**
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
