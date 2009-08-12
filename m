@@ -1,412 +1,68 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 02/10] OMAP: iommu: add initial debugfs support
-Date: Wed, 12 Aug 2009 15:13:24 +0300
-Message-ID: <20090812121324.17601.39083.stgit@localhost>
+Subject: [PATCH 03/10] OMAP2/3: Pass irqflags to 8250 driver
+Date: Wed, 12 Aug 2009 15:14:42 +0300
+Message-ID: <20090812121442.17601.39625.stgit@localhost>
 References: <20090812120926.17601.85860.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59935 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609AbZHLMN0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 08:13:26 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63324 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767AbZHLMOn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 12 Aug 2009 08:14:43 -0400
 In-Reply-To: <20090812120926.17601.85860.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-This enables to peek the following data.
+Pass irqflags to 8250 driver with platform_data. At least Zoom2 has
+IRQF_TRIGGER_RISING requirement for the 8250 GPIO irq.
 
-$ /debug/iommu/isp# ls
-mem             nr_tlb_entries  regs
-mmap            pagetable       tlb
-$ /debug/iommu/isp# head pagetable
-L:      da:      pa:
------------------------------------------
-2: 00001000 8ae4a002
-2: 00002000 8e7bb002
-2: 00003000 8ae49002
-2: 00004000 8ae65002
-.....
+This patch is dependent on 8250 driver changes getting accepted upstream:
+http://git.kernel.org/?p=linux/kernel/git/sfr/linux-next.git;a=commit;h=7053133124d5cdf207c1168c7a0c582a18e12ea7
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/Kconfig       |    4 
- arch/arm/plat-omap/Makefile      |    1 
- arch/arm/plat-omap/iommu-debug.c |  334 ++++++++++++++++++++++++++++++++++++++
- 3 files changed, 339 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/iommu-debug.c
+ arch/arm/mach-omap2/board-zoom-debugboard.c |    2 ++
+ arch/arm/mach-omap2/serial.c                |    2 +-
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index efe85d0..ab9f9ef 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -120,6 +120,10 @@ config OMAP_MBOX_FWK
- config OMAP_IOMMU
- 	tristate
+diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+index bac5c43..f546063 100644
+--- a/arch/arm/mach-omap2/board-zoom-debugboard.c
++++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
+@@ -12,6 +12,7 @@
+ #include <linux/gpio.h>
+ #include <linux/serial_8250.h>
+ #include <linux/smsc911x.h>
++#include <linux/interrupt.h>
  
-+config OMAP_IOMMU_DEBUG
-+	depends on OMAP_IOMMU
-+	tristate
-+
- choice
-         prompt "System timer"
- 	default OMAP_MPU_TIMER
-diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
-index a832795..769a4c2 100644
---- a/arch/arm/plat-omap/Makefile
-+++ b/arch/arm/plat-omap/Makefile
-@@ -14,6 +14,7 @@ obj-$(CONFIG_ARCH_OMAP16XX) += ocpi.o
+ #include <mach/gpmc.h>
  
- obj-$(CONFIG_OMAP_MCBSP) += mcbsp.o
- obj-$(CONFIG_OMAP_IOMMU) += iommu.o iovmm.o
-+obj-$(CONFIG_OMAP_IOMMU_DEBUG) += iommu-debug.o
+@@ -84,6 +85,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
+ 		.mapbase	= 0x10000000,
+ 		.irq		= OMAP_GPIO_IRQ(102),
+ 		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
++		.irqflags	= IRQF_SHARED | IRQF_TRIGGER_RISING,
+ 		.iotype		= UPIO_MEM,
+ 		.regshift	= 1,
+ 		.uartclk	= QUART_CLK,
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 555e735..3f29376 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -429,7 +429,7 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
+ 		omap_ctrl_writew(v, uart->padconf);
+ 	}
  
- obj-$(CONFIG_CPU_FREQ) += cpu-omap.o
- obj-$(CONFIG_OMAP_DM_TIMER) += dmtimer.o
-diff --git a/arch/arm/plat-omap/iommu-debug.c b/arch/arm/plat-omap/iommu-debug.c
-new file mode 100644
-index 0000000..9811c19
---- /dev/null
-+++ b/arch/arm/plat-omap/iommu-debug.c
-@@ -0,0 +1,334 @@
-+/*
-+ * omap iommu: debugfs interface
-+ *
-+ * Copyright (C) 2008-2009 Nokia Corporation
-+ *
-+ * Written by Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+#include <linux/uaccess.h>
-+#include <linux/platform_device.h>
-+#include <linux/debugfs.h>
-+
-+#include <mach/iommu.h>
-+#include <mach/iovmm.h>
-+
-+#include "iopgtable.h"
-+
-+#define MAXCOLUMN 100 /* for short messages */
-+
-+static DEFINE_MUTEX(iommu_debug_lock);
-+static char local_buffer[SZ_4K];
-+
-+static struct dentry *iommu_debug_root;
-+
-+static ssize_t debug_read_ver(struct file *file, char __user *userbuf,
-+			      size_t count, loff_t *ppos)
-+{
-+	u32 ver = iommu_arch_version();
-+	char buf[MAXCOLUMN], *p = buf;
-+
-+	p += sprintf(p, "H/W version: %d.%d\n", (ver >> 4) & 0xf , ver & 0xf);
-+
-+	return simple_read_from_buffer(userbuf, count, ppos, buf, p - buf);
-+}
-+
-+static ssize_t debug_read_regs(struct file *file, char __user *userbuf,
-+			       size_t count, loff_t *ppos)
-+{
-+	struct iommu *obj = file->private_data;
-+	char *p = local_buffer;
-+	ssize_t bytes;
-+
-+	mutex_lock(&iommu_debug_lock);
-+	p += iommu_dump_ctx(obj, p);
-+	bytes = simple_read_from_buffer(userbuf, count, ppos, local_buffer,
-+					p - local_buffer);
-+	mutex_unlock(&iommu_debug_lock);
-+	return bytes;
-+}
-+
-+static ssize_t debug_read_tlb(struct file *file, char __user *userbuf,
-+			      size_t count, loff_t *ppos)
-+{
-+	struct iommu *obj = file->private_data;
-+	char *p = local_buffer;
-+	ssize_t bytes;
-+
-+	mutex_lock(&iommu_debug_lock);
-+	p += sprintf(p, "%8s %8s\n", "cam:", "ram:");
-+	p += sprintf(p, "-----------------------------------------\n");
-+	p += dump_tlb_entries(obj, p);
-+	bytes = simple_read_from_buffer(userbuf, count, ppos, local_buffer,
-+					p - local_buffer);
-+	mutex_unlock(&iommu_debug_lock);
-+	return bytes;
-+}
-+
-+static ssize_t debug_write_pagetable(struct file *file,
-+		     const char __user *userbuf, size_t count, loff_t *ppos)
-+{
-+	struct iotlb_entry e;
-+	struct cr_regs cr;
-+	int err;
-+	struct iommu *obj = file->private_data;
-+	char buf[MAXCOLUMN], *p = buf;
-+
-+	count = min(count, sizeof(buf));
-+
-+	mutex_lock(&iommu_debug_lock);
-+	if (copy_from_user(p, userbuf, count)) {
-+		mutex_unlock(&iommu_debug_lock);
-+		return -EFAULT;
-+	}
-+
-+	sscanf(p, "%x %x", &cr.cam, &cr.ram);
-+	if (!cr.cam || !cr.ram) {
-+		mutex_unlock(&iommu_debug_lock);
-+		return -EINVAL;
-+	}
-+
-+	iotlb_cr_to_e(&cr, &e);
-+	err = iopgtable_store_entry(obj, &e);
-+	if (err)
-+		dev_err(obj->dev, "%s: fail to store cr\n", __func__);
-+
-+	mutex_unlock(&iommu_debug_lock);
-+	return count;
-+}
-+
-+static ssize_t debug_read_pagetable(struct file *file, char __user *userbuf,
-+				    size_t count, loff_t *ppos)
-+{
-+	int i;
-+	u32 *iopgd;
-+	struct iommu *obj = file->private_data;
-+	char *p = local_buffer;
-+	ssize_t bytes;
-+
-+	mutex_lock(&iommu_debug_lock);
-+
-+	p += sprintf(p, "L: %8s %8s\n", "da:", "pa:");
-+	p += sprintf(p, "-----------------------------------------\n");
-+
-+	spin_lock(&obj->page_table_lock);
-+
-+	iopgd = iopgd_offset(obj, 0);
-+	for (i = 0; i < PTRS_PER_IOPGD; i++, iopgd++) {
-+		int j;
-+		u32 *iopte;
-+
-+		if (!*iopgd)
-+			continue;
-+
-+		if (!(*iopgd & IOPGD_TABLE)) {
-+			u32 da;
-+
-+			da = i << IOPGD_SHIFT;
-+			p += sprintf(p, "1: %08x %08x\n", da, *iopgd);
-+			continue;
-+		}
-+
-+		iopte = iopte_offset(iopgd, 0);
-+
-+		for (j = 0; j < PTRS_PER_IOPTE; j++, iopte++) {
-+			u32 da;
-+
-+			if (!*iopte)
-+				continue;
-+
-+			da = (i << IOPGD_SHIFT) + (j << IOPTE_SHIFT);
-+			p += sprintf(p, "2: %08x %08x\n", da, *iopte);
-+		}
-+	}
-+	spin_unlock(&obj->page_table_lock);
-+
-+	bytes = simple_read_from_buffer(userbuf, count, ppos, local_buffer,
-+					p - local_buffer);
-+	mutex_unlock(&iommu_debug_lock);
-+	return bytes;
-+}
-+
-+static ssize_t debug_read_mmap(struct file *file, char __user *userbuf,
-+			       size_t count, loff_t *ppos)
-+{
-+	struct iommu *obj = file->private_data;
-+	char *p = local_buffer;
-+	struct iovm_struct *tmp;
-+	int uninitialized_var(i);
-+	ssize_t bytes;
-+
-+	mutex_lock(&iommu_debug_lock);
-+
-+	p += sprintf(p, "%-3s %-8s %-8s %6s %8s\n",
-+		     "No", "start", "end", "size", "flags");
-+	p += sprintf(p, "-------------------------------------------------\n");
-+
-+	list_for_each_entry(tmp, &obj->mmap, list) {
-+		size_t len;
-+
-+		len = tmp->da_end - tmp->da_start;
-+		p += sprintf(p, "%3d %08x-%08x %6x %8x\n",
-+			     i, tmp->da_start, tmp->da_end, len, tmp->flags);
-+		i++;
-+	}
-+	bytes = simple_read_from_buffer(userbuf, count, ppos, local_buffer,
-+					p - local_buffer);
-+	mutex_unlock(&iommu_debug_lock);
-+	return bytes;
-+}
-+
-+static ssize_t debug_read_mem(struct file *file, char __user *userbuf,
-+			      size_t count, loff_t *ppos)
-+{
-+	struct iommu *obj = file->private_data;
-+	char *p = local_buffer;
-+	struct iovm_struct *area;
-+	ssize_t bytes;
-+
-+	mutex_lock(&iommu_debug_lock);
-+
-+	area = find_iovm_area(obj, (u32)ppos);
-+	if (IS_ERR(area)) {
-+		mutex_unlock(&iommu_debug_lock);
-+		return -EINVAL;
-+	}
-+	memcpy(p, area->va, count);
-+	p += count;
-+
-+	bytes = simple_read_from_buffer(userbuf, count, ppos, local_buffer,
-+					p - local_buffer);
-+	mutex_unlock(&iommu_debug_lock);
-+	return bytes;
-+}
-+
-+static ssize_t debug_write_mem(struct file *file, const char __user *userbuf,
-+			       size_t count, loff_t *ppos)
-+{
-+	struct iommu *obj = file->private_data;
-+	struct iovm_struct *area;
-+	char *p = local_buffer;
-+
-+	count = min(count, sizeof(local_buffer));
-+
-+	mutex_lock(&iommu_debug_lock);
-+
-+	if (copy_from_user(p, userbuf, count)) {
-+		mutex_unlock(&iommu_debug_lock);
-+		return -EFAULT;
-+	}
-+
-+	area = find_iovm_area(obj, (u32)ppos);
-+	if (IS_ERR(area)) {
-+		mutex_unlock(&iommu_debug_lock);
-+		return -EINVAL;
-+	}
-+	memcpy(area->va, p, count);
-+	mutex_unlock(&iommu_debug_lock);
-+	return count;
-+}
-+
-+static int debug_open_generic(struct inode *inode, struct file *file)
-+{
-+	file->private_data = inode->i_private;
-+	return 0;
-+}
-+
-+#define DEBUG_FOPS(name)						\
-+	static const struct file_operations debug_##name##_fops = {	\
-+		.open = debug_open_generic,				\
-+		.read = debug_read_##name,				\
-+		.write = debug_write_##name,				\
-+	};
-+
-+#define DEBUG_FOPS_RO(name)						\
-+	static const struct file_operations debug_##name##_fops = {	\
-+		.open = debug_open_generic,				\
-+		.read = debug_read_##name,				\
-+	};
-+
-+DEBUG_FOPS_RO(ver);
-+DEBUG_FOPS_RO(regs);
-+DEBUG_FOPS_RO(tlb);
-+DEBUG_FOPS(pagetable);
-+DEBUG_FOPS_RO(mmap);
-+DEBUG_FOPS(mem);
-+
-+#define __DEBUG_ADD_FILE(attr, mode)					\
-+	{								\
-+		struct dentry *dent;					\
-+		dent = debugfs_create_file(#attr, mode, parent,		\
-+					   obj, &debug_##attr##_fops);	\
-+		if (!dent)						\
-+			return -ENOMEM;					\
-+	}
-+
-+#define DEBUG_ADD_FILE(name) __DEBUG_ADD_FILE(name, 600)
-+#define DEBUG_ADD_FILE_RO(name) __DEBUG_ADD_FILE(name, 400)
-+
-+static int iommu_debug_register(struct device *dev, void *data)
-+{
-+	struct platform_device *pdev = to_platform_device(dev);
-+	struct iommu *obj = platform_get_drvdata(pdev);
-+	struct dentry *d, *parent;
-+
-+	if (!obj || !obj->dev)
-+		return -EINVAL;
-+
-+	d = debugfs_create_dir(obj->name, iommu_debug_root);
-+	if (!d)
-+		return -ENOMEM;
-+	parent = d;
-+
-+	d = debugfs_create_u8("nr_tlb_entries", 400, parent,
-+			      (u8 *)&obj->nr_tlb_entries);
-+	if (!d)
-+		return -ENOMEM;
-+
-+	DEBUG_ADD_FILE_RO(ver);
-+	DEBUG_ADD_FILE_RO(regs);
-+	DEBUG_ADD_FILE_RO(tlb);
-+	DEBUG_ADD_FILE(pagetable);
-+	DEBUG_ADD_FILE_RO(mmap);
-+	DEBUG_ADD_FILE(mem);
-+
-+	return 0;
-+}
-+
-+static int __init iommu_debug_init(void)
-+{
-+	struct dentry *d;
-+	int err;
-+
-+	d = debugfs_create_dir("iommu", NULL);
-+	if (!d)
-+		return -ENOMEM;
-+	iommu_debug_root = d;
-+
-+	err = foreach_iommu_device(d, iommu_debug_register);
-+	if (err)
-+		goto err_out;
-+	return 0;
-+
-+err_out:
-+	debugfs_remove_recursive(iommu_debug_root);
-+	return err;
-+}
-+module_init(iommu_debug_init)
-+
-+static void __exit iommu_debugfs_exit(void)
-+{
-+	debugfs_remove_recursive(iommu_debug_root);
-+}
-+module_exit(iommu_debugfs_exit)
-+
-+MODULE_DESCRIPTION("omap iommu: debugfs interface");
-+MODULE_AUTHOR("Hiroshi DOYU <Hiroshi.DOYU@nokia.com>");
-+MODULE_LICENSE("GPL v2");
+-	p->flags |= UPF_SHARE_IRQ;
++	p->irqflags |= IRQF_SHARED;
+ 	ret = request_irq(p->irq, omap_uart_interrupt, IRQF_SHARED,
+ 			  "serial idle", (void *)uart);
+ 	WARN_ON(ret);
 
