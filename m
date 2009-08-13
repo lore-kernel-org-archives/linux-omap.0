@@ -1,7 +1,7 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv3 14/20] OMAP: McBSP: Let element DMA mode hit retention also
-Date: Thu, 13 Aug 2009 17:35:27 +0300
-Message-ID: <1250174133-451-15-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv3 15/20] ASoC: OMAP: Make DMA 64 aligned
+Date: Thu, 13 Aug 2009 17:35:28 +0300
+Message-ID: <1250174133-451-16-git-send-email-eduardo.valentin@nokia.com>
 References: <1250174133-451-1-git-send-email-eduardo.valentin@nokia.com>
  <1250174133-451-2-git-send-email-eduardo.valentin@nokia.com>
  <1250174133-451-3-git-send-email-eduardo.valentin@nokia.com>
@@ -16,50 +16,45 @@ References: <1250174133-451-1-git-send-email-eduardo.valentin@nokia.com>
  <1250174133-451-12-git-send-email-eduardo.valentin@nokia.com>
  <1250174133-451-13-git-send-email-eduardo.valentin@nokia.com>
  <1250174133-451-14-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-15-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38977 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:38979 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753916AbZHMOsu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:48:50 -0400
-In-Reply-To: <1250174133-451-14-git-send-email-eduardo.valentin@nokia.com>
+	with ESMTP id S1754120AbZHMOsv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:48:51 -0400
+In-Reply-To: <1250174133-451-15-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-
-The device no longer hits retention if element DMA
-mode is taken for at least the duration of the
-serial console timeout. Force element DMA mode to
-shut down through smartidle.
-
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Acked-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/plat-omap/mcbsp.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+ sound/soc/omap/omap-pcm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index c6df47d..a4af1fa 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -343,6 +343,15 @@ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index 84a1950..2422a42 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -288,7 +288,7 @@ static struct snd_pcm_ops omap_pcm_ops = {
+ 	.mmap		= omap_pcm_mmap,
+ };
  
- 		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
- 		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
-+		/*
-+		 * HW bug workaround - If no_idle mode is taken, we need to
-+		 * go to smart_idle before going to always_idle, or the
-+		 * device will not hit retention anymore.
-+		 */
-+		syscon |= SIDLEMODE(0x02);
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
-+
-+		syscon &= ~(SIDLEMODE(0x03));
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
+-static u64 omap_pcm_dmamask = DMA_BIT_MASK(32);
++static u64 omap_pcm_dmamask = DMA_BIT_MASK(64);
  
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, 0);
+ static int omap_pcm_preallocate_dma_buffer(struct snd_pcm *pcm,
+ 	int stream)
+@@ -338,7 +338,7 @@ int omap_pcm_new(struct snd_card *card, struct snd_soc_dai *dai,
+ 	if (!card->dev->dma_mask)
+ 		card->dev->dma_mask = &omap_pcm_dmamask;
+ 	if (!card->dev->coherent_dma_mask)
+-		card->dev->coherent_dma_mask = DMA_BIT_MASK(32);
++		card->dev->coherent_dma_mask = DMA_BIT_MASK(64);
+ 
+ 	if (dai->playback.channels_min) {
+ 		ret = omap_pcm_preallocate_dma_buffer(pcm,
 -- 
 1.6.2.GIT
 
