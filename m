@@ -1,63 +1,91 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv3 00/20] OMAP ASoC changes in DMA utilization
-Date: Thu, 13 Aug 2009 17:35:13 +0300
-Message-ID: <1250174133-451-1-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv3 07/20] OMAP: McBSP: Rename thres sysfs symbols
+Date: Thu, 13 Aug 2009 17:35:20 +0300
+Message-ID: <1250174133-451-8-git-send-email-eduardo.valentin@nokia.com>
+References: <1250174133-451-1-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-2-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-3-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-4-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-5-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-6-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-7-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:57816 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753933AbZHMOsy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:48:54 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:38986 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753955AbZHMOsx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:48:53 -0400
+In-Reply-To: <1250174133-451-7-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 Cc: Jarkko Nikula <jhnikula@gmail.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Hello again guys,
+This patch renames the symbols that handles threshold
+sysfs properties. This way we can add more sysfs properties
+to them.
 
-Here is version 3 of these changes. I've changed just 2
-things:
-- all mcbsp instances are in element mode by default
-- moved all mcbsp related code to omap-mcbsp.c
-(although a single callback is still needed)
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ arch/arm/plat-omap/mcbsp.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-Jarkko, I think we can add your patch for reading strings
-for dma op mode later on.
-
-BR,
-
-Eduardo Valentin (11):
-  OMAP: McBSP: Add IRQEN, IRQSTATUS, THRESHOLD2 and THRESHOLD1
-    registers.
-  OMAP: McBSP: Use appropriate value for startup delay
-  OMAP: McBSP: Add transmit/receive threshold handler
-  OMAP: McBSP: Create and export max_(r|t)x_thres property
-  OMAP: McBSP: Rename thres sysfs symbols
-  OMAP: McBSP: Change wakeup signals
-  OMAP: McBSP: Configure NO IDLE mode for DMA mode different of
-    threshold
-  ASoC: OMAP: Make DMA 64 aligned
-  ASoC: OMAP: Enable DMA burst mode
-  ASoC: OMAP: Use McBSP threshold to playback and capture
-  ASoC: OMAP: Use DMA operating mode of McBSP
-
-Eero Nurkkala (7):
-  OMAP: McBSP: Provide functions for ASoC frame syncronization
-  OMAP: McBSP: Wakeups utilized
-  OMAP: McBSP: Retain McBSP FCLK clockactivity
-  OMAP: McBSP: Do not enable wakeups for no-idle mode
-  OMAP: McBSP: Let element DMA mode hit retention also
-  ASoC: Add runtime check for RFIG and XFIG
-  ASoC: Always syncronize audio transfers on frames
-
-Peter Ujfalusi (2):
-  OMAP3: McBSP: Lower the maximum buffersize for McBSP1,3,4,5
-  OMAP: McBSP: Add link DMA mode selection
-
- arch/arm/mach-omap2/mcbsp.c             |    5 +
- arch/arm/plat-omap/include/mach/mcbsp.h |   49 ++++
- arch/arm/plat-omap/mcbsp.c              |  377 ++++++++++++++++++++++++++++++-
- sound/soc/omap/omap-mcbsp.c             |   77 ++++++-
- sound/soc/omap/omap-pcm.c               |   14 +-
- sound/soc/omap/omap-pcm.h               |    2 +
- 6 files changed, 511 insertions(+), 13 deletions(-)
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 2c97051..13e7ce3 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -1063,24 +1063,24 @@ static DEVICE_ATTR(prop, 0644, prop##_show, prop##_store);
+ THRESHOLD_PROP_BUILDER(max_tx_thres);
+ THRESHOLD_PROP_BUILDER(max_rx_thres);
+ 
+-static const struct attribute *threshold_attrs[] = {
++static const struct attribute *additional_attrs[] = {
+ 	&dev_attr_max_tx_thres.attr,
+ 	&dev_attr_max_rx_thres.attr,
+ 	NULL,
+ };
+ 
+-static const struct attribute_group threshold_attr_group = {
+-	.attrs = (struct attribute **)threshold_attrs,
++static const struct attribute_group additional_attr_group = {
++	.attrs = (struct attribute **)additional_attrs,
+ };
+ 
+-static inline int __devinit omap_thres_add(struct device *dev)
++static inline int __devinit omap_additional_add(struct device *dev)
+ {
+-	return sysfs_create_group(&dev->kobj, &threshold_attr_group);
++	return sysfs_create_group(&dev->kobj, &additional_attr_group);
+ }
+ 
+-static inline void __devexit omap_thres_remove(struct device *dev)
++static inline void __devexit omap_additional_remove(struct device *dev)
+ {
+-	sysfs_remove_group(&dev->kobj, &threshold_attr_group);
++	sysfs_remove_group(&dev->kobj, &additional_attr_group);
+ }
+ 
+ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
+@@ -1088,9 +1088,9 @@ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
+ 	if (cpu_is_omap34xx()) {
+ 		mcbsp->max_tx_thres = max_thres(mcbsp);
+ 		mcbsp->max_rx_thres = max_thres(mcbsp);
+-		if (omap_thres_add(mcbsp->dev))
++		if (omap_additional_add(mcbsp->dev))
+ 			dev_warn(mcbsp->dev,
+-				"Unable to create threshold controls\n");
++				"Unable to create additional controls\n");
+ 	} else {
+ 		mcbsp->max_tx_thres = -EINVAL;
+ 		mcbsp->max_rx_thres = -EINVAL;
+@@ -1100,7 +1100,7 @@ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
+ static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp)
+ {
+ 	if (cpu_is_omap34xx())
+-		omap_thres_remove(mcbsp->dev);
++		omap_additional_remove(mcbsp->dev);
+ }
+ #else
+ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp) {}
+-- 
+1.6.2.GIT
 
