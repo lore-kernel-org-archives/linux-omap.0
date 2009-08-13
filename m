@@ -1,127 +1,64 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: [PATCH 1/2] DSPBRIDGE: Cleanup SleepDSP
-Date: Thu, 13 Aug 2009 01:38:12 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53041956F244@dlee03.ent.ti.com>
-References: <1248272767-29223-1-git-send-email-ameya.palande@nokia.com>
- <1248418882-28164-1-git-send-email-ameya.palande@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 10/10] OMAP3: update OMAP3 Beagle defconfig, v2
+Date: Thu, 13 Aug 2009 10:02:33 +0300
+Message-ID: <20090813070233.GP7278@atomide.com>
+References: <20090812120926.17601.85860.stgit@localhost> <20090812122415.17601.44872.stgit@localhost> <20090812122710.GA23166@nokia.com> <20090812165258.GM7278@atomide.com> <87d471vti5.fsf@deeprootsystems.com> <20090812191109.GB21001@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46144 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752952AbZHMGiV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 02:38:21 -0400
-In-Reply-To: <1248418882-28164-1-git-send-email-ameya.palande@nokia.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54164 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753164AbZHMHCt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 03:02:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20090812191109.GB21001@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Felipe Balbi <felipe.balbi@nokia.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, Paul Walmsley <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jason Kridner <jkridner@beagleboard.org>
 
->From: Ameya Palande [mailto:ameya.palande@nokia.com]
->Subject: [PATCH 1/2] DSPBRIDGE: Cleanup SleepDSP
->
->Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+* Felipe Balbi <me@felipebalbi.com> [090812 22:11]:
+> On Wed, Aug 12, 2009 at 10:20:34AM -0700, Kevin Hilman wrote:
+> > Tony Lindgren <tony@atomide.com> writes:
+> > 
+> > > * Felipe Balbi <felipe.balbi@nokia.com> [090812 15:29]:
+> > >> Hi,
+> > >> 
+> > >> On Wed, Aug 12, 2009 at 02:24:15PM +0200, ext Tony Lindgren wrote:
+> > >> > From: Paul Walmsley <paul@pwsan.com>
+> > >> > 
+> > >> > Update the OMAP3 Beagle defconfig to add EHCI, MMC, TWL4030 GPIO support.
+> > >> > Beagle can again use MMC rootfs after this patch.  Tested on BeagleBoard
+> > >> > rev C2.
+> > >> > 
+> > >
+> > > <snip>
+> > >
+> > >> > @@ -981,10 +987,11 @@ CONFIG_RTC_INTF_DEV=y
+> > >> >  #
+> > >> >  # Voltage and Current regulators
+> > >> >  #
+> > >> > -# CONFIG_REGULATOR is not set
+> > >> > +CONFIG_REGULATOR=y
+> > >> >  # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
+> > >> >  # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
+> > >> >  # CONFIG_REGULATOR_BQ24022 is not set
+> > >> > +CONFIG_REGULATOR_TWL4030=y
+> > >> >  # CONFIG_UIO is not set
+> > >> 
+> > >> musb will still fail here if we don't have twl4030-usb enabled.
+> > >> 
+> > >> could you updated the patch to add that as well ??
+> > >
+> > > Updated. Maybe take a look and see if the USB options make sense
+> > > to you? I could not enable OTG for some reason..
+> > >
+> > 
+> > Probably because OTG depends on CONFIG_PM I think.
+> 
+> correct
 
-[omar ramirez: avoid saving mailbox settings while setting a contraint]
+I don't have a Beagle, so somebody please check this defconfig and enable
+PM and OTG if possible.
 
-Acked-by: Omar Ramirez Luna <omar.ramirez@ti.com>
-
->---
-> drivers/dsp/bridge/wmd/tiomap3430_pwr.c |   33 ++++++++++++++++++------------
-> 1 files changed, 20 insertions(+), 13 deletions(-)
->
->diff --git a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->index b81df8c..7aa58d1 100644
->--- a/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->+++ b/drivers/dsp/bridge/wmd/tiomap3430_pwr.c
->@@ -204,20 +204,21 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
-> 	struct CFG_HOSTRES resources;
-> 	struct DEH_MGR *hDehMgr;
-> 	u16 usCount = TIHELEN_ACKTIMEOUT;
->-	enum HW_PwrState_t pwrState;
->-	enum HW_PwrState_t targetPwrState;
->+	enum HW_PwrState_t pwrState, targetPwrState;
->
->-	status = CFG_GetHostResources(
->-		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
->-	if (DSP_FAILED(status))
->-		return status;
-> 	DBG_Trace(DBG_LEVEL7, "SleepDSP- Enter function \n");
->
->-		/* next, check if sleep code is valid... */
->+	/* Check if sleep code is valid */
-> 	if ((dwCmd != PWR_DEEPSLEEP) && (dwCmd != PWR_EMERGENCYDEEPSLEEP)) {
-> 		DBG_Trace(DBG_LEVEL7, "SleepDSP- Illegal sleep command\n");
-> 		return DSP_EINVALIDARG;
-> 	}
->+
->+	status = CFG_GetHostResources(
->+		 (struct CFG_DEVNODE *)DRV_GetFirstDevExtension(), &resources);
->+	if (DSP_FAILED(status))
->+		return status;
->+
-> 	switch (pDevContext->dwBrdState) {
-> 	case BRD_RUNNING:
-> 		status = HW_MBOX_saveSettings(resources.dwMboxBase);
->@@ -245,7 +246,6 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
-> 		break;
-> 	case BRD_HIBERNATION:
-> 	case BRD_DSP_HIBERNATION:
->-		status = HW_MBOX_saveSettings(resources.dwMboxBase);
-> 		/* Already in Hibernation, so just return */
-> 		DBG_Trace(DBG_LEVEL7, "SleepDSP- DSP already in "
-> 			 "hibernation\n");
->@@ -259,17 +259,22 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
-> 			 "SleepDSP- Bridge in Illegal state\n");
-> 			return DSP_EFAIL;
-> 	}
->+
-> 	/* Get the PRCM DSP power domain status */
-> 	HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
->-			    &pwrState);
->-	/* Wait for DSP to move into Standby state,  how much time
->-	 * should we wait?*/
->+			&pwrState);
->+
->+	/*
->+	 * Wait for DSP to move into Standby state,  how much time
->+	 * should we wait?
->+	 */
-> 	while ((pwrState != targetPwrState) && --usCount) {
-> 		udelay(500);
-> 		HW_PWR_IVA2StateGet(resources.dwPrmBase, HW_PWR_DOMAIN_DSP,
-> 				    &pwrState);
-> 	}
->-	if (usCount == 0) {
->+
->+	if (!usCount) {
-> 		DBG_Trace(DBG_LEVEL7, "SleepDSP: Timed out Waiting for DSP"
-> 			 " STANDBY %x \n", pwrState);
-> 		DEV_GetDehMgr(pDevContext->hDevObject, &hDehMgr);
->@@ -278,17 +283,19 @@ DSP_STATUS SleepDSP(struct WMD_DEV_CONTEXT *pDevContext, IN u32 dwCmd,
-> 	} else {
-> 		DBG_Trace(DBG_LEVEL7, "SleepDSP: DSP STANDBY Pwr state %x \n",
-> 			 pwrState);
->+
-> 		/* Update the Bridger Driver state */
-> 		if (enable_off_mode)
-> 			pDevContext->dwBrdState = BRD_HIBERNATION;
-> 		else
-> 			pDevContext->dwBrdState = BRD_RETENTION;
->+
-> 		/* Turn off DSP Peripheral clocks  */
-> 		status = DSP_PeripheralClocks_Disable(pDevContext, NULL);
-> 		if (DSP_FAILED(status))
-> 			DBG_Trace(DBG_LEVEL7, "SleepDSP- FAILED\n");
-> 	}
->-#endif
->+#endif /* CONFIG_PM */
-> 	return status;
-> }
->
->--
->1.6.2.4
->
-
+Tony
