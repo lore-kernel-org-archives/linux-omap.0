@@ -1,87 +1,195 @@
-From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: RE: What does the DSPBRIDGE do?
-Date: Thu, 13 Aug 2009 09:30:59 -0500
-Message-ID: <27F9C60D11D683428E133F85D2BB4A53041956F38F@dlee03.ent.ti.com>
-References: <436C2ED5-B3D9-419D-88C1-9CDE693E8F30@mac.com>
- <4A83C3AD.6000908@nt.tu-darmstadt.de>
- <9B5783D4-1503-4B19-8126-721EA0714BC6@mac.com> <4A83E1AD.5020303@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv3 08/20] OMAP: McBSP: Add link DMA mode selection
+Date: Thu, 13 Aug 2009 17:35:21 +0300
+Message-ID: <1250174133-451-9-git-send-email-eduardo.valentin@nokia.com>
+References: <1250174133-451-1-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-2-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-3-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-4-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-5-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-6-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-7-git-send-email-eduardo.valentin@nokia.com>
+ <1250174133-451-8-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44456 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751124AbZHMObl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:31:41 -0400
-In-Reply-To: <4A83E1AD.5020303@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:39324 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752852AbZHMOsq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:48:46 -0400
+In-Reply-To: <1250174133-451-8-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>, ext Elvis Dowson <elvis.dowson@mac.com>
-Cc: Vladimir Pantelic <pan@nt.tu-darmstadt.de>, Linux OMAP Users <linux-omap@vger.kernel.org>
+To: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Hi Elvis,
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ameya
->Palande
->Subject: Re: What does the DSPBRIDGE do?
->
->Hi Elvis,
->
->ext Elvis Dowson wrote:
->> Hi Vladimir,
->>
->> On Aug 13, 2009, at 11:41 AM, Vladimir Pantelic wrote:
->>
->>> Elvis Dowson wrote:
->>>> Hi,
->>>> 	I was wondering what the DSPBRIDGE does?
->>> it allows the arm to load/run code on the dsp
->>
->> And this code would be compiled and linked using the ti dsp compiler?
->> what role will the arm gcc compiler play, when using ti dsp compiler?
->>
->> Are there some examples this?
->>
+It adds a new sysfs file, where the user can configure the mcbsp mode to use.
+If the mcbsp channel is in use, it does not allow the change.
+Than in omap_pcm_open we can call the omap_mcbsp_get_opmode to get the mode,
+store it, than use it to implement the different modes.
 
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ arch/arm/plat-omap/include/mach/mcbsp.h |    8 +++
+ arch/arm/plat-omap/mcbsp.c              |   84 +++++++++++++++++++++++++++++++
+ 2 files changed, 92 insertions(+), 0 deletions(-)
 
-You can also checkout our portal in omapzoom, if you need a more technical overview about dspbridge you can check out in the Docs section: db_linux_rguide.pdf & db_linux_pguide.pdf
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index 51a6655..9b2b03e 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -255,6 +255,11 @@
+ /********************** McBSP SYSCONFIG bit definitions ********************/
+ #define SOFTRST			0x0002
+ 
++/********************** McBSP DMA operating modes **************************/
++#define MCBSP_DMA_MODE_ELEMENT		0
++#define MCBSP_DMA_MODE_THRESHOLD	1
++#define MCBSP_DMA_MODE_FRAME		2
++
+ /* we don't do multichannel for now */
+ struct omap_mcbsp_reg_cfg {
+ 	u16 spcr2;
+@@ -385,6 +390,7 @@ struct omap_mcbsp {
+ 	struct clk *iclk;
+ 	struct clk *fclk;
+ #ifdef CONFIG_ARCH_OMAP34XX
++	int dma_op_mode;
+ 	u16 max_tx_thres;
+ 	u16 max_rx_thres;
+ #endif
+@@ -401,6 +407,7 @@ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
+ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold);
+ u16 omap_mcbsp_get_max_tx_threshold(unsigned int id);
+ u16 omap_mcbsp_get_max_rx_threshold(unsigned int id);
++int omap_mcbsp_get_dma_op_mode(unsigned int id);
+ #else
+ static inline void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
+ { }
+@@ -408,6 +415,7 @@ static inline void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+ { }
+ static inline u16 omap_mcbsp_get_max_tx_threshold(unsigned int id) { return 0; }
+ static inline u16 omap_mcbsp_get_max_rx_threshold(unsigned int id) { return 0; }
++static inline int omap_mcbsp_get_dma_op_mode(unsigned int id) { return 0; }
+ #endif
+ int omap_mcbsp_request(unsigned int id);
+ void omap_mcbsp_free(unsigned int id);
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 13e7ce3..6a4a621 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -282,6 +282,29 @@ u16 omap_mcbsp_get_max_rx_threshold(unsigned int id)
+ 	return mcbsp->max_rx_thres;
+ }
+ EXPORT_SYMBOL(omap_mcbsp_get_max_rx_threshold);
++
++/*
++ * omap_mcbsp_get_dma_op_mode just return the current configured
++ * operating mode for the mcbsp channel
++ */
++int omap_mcbsp_get_dma_op_mode(unsigned int id)
++{
++	struct omap_mcbsp *mcbsp;
++	int dma_op_mode;
++
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%u)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++	mcbsp = id_to_mcbsp_ptr(id);
++
++	spin_lock_irq(&mcbsp->lock);
++	dma_op_mode = mcbsp->dma_op_mode;
++	spin_unlock_irq(&mcbsp->lock);
++
++	return dma_op_mode;
++}
++EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
+ #endif
+ 
+ /*
+@@ -1063,9 +1086,65 @@ static DEVICE_ATTR(prop, 0644, prop##_show, prop##_store);
+ THRESHOLD_PROP_BUILDER(max_tx_thres);
+ THRESHOLD_PROP_BUILDER(max_rx_thres);
+ 
++static ssize_t dma_op_mode_show(struct device *dev,
++			struct device_attribute *attr, char *buf)
++{
++	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
++	int dma_op_mode;
++
++	spin_lock_irq(&mcbsp->lock);
++	dma_op_mode = mcbsp->dma_op_mode;
++	spin_unlock_irq(&mcbsp->lock);
++
++	return sprintf(buf, "current mode: %d\n"
++			"possible mode values are:\n"
++			"%d - %s\n"
++			"%d - %s\n"
++			"%d - %s\n",
++			dma_op_mode,
++			MCBSP_DMA_MODE_ELEMENT, "element mode",
++			MCBSP_DMA_MODE_THRESHOLD, "threshold mode",
++			MCBSP_DMA_MODE_FRAME, "frame mode");
++}
++
++static ssize_t dma_op_mode_store(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t size)
++{
++	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
++	unsigned long val;
++	int status;
++
++	status = strict_strtoul(buf, 0, &val);
++	if (status)
++		return status;
++
++	spin_lock_irq(&mcbsp->lock);
++
++	if (!mcbsp->free) {
++		size = -EBUSY;
++		goto unlock;
++	}
++
++	if (val > MCBSP_DMA_MODE_FRAME || val < MCBSP_DMA_MODE_ELEMENT) {
++		size = -EINVAL;
++		goto unlock;
++	}
++
++	mcbsp->dma_op_mode = val;
++
++unlock:
++	spin_unlock_irq(&mcbsp->lock);
++
++	return size;
++}
++
++static DEVICE_ATTR(dma_op_mode, 0644, dma_op_mode_show, dma_op_mode_store);
++
+ static const struct attribute *additional_attrs[] = {
+ 	&dev_attr_max_tx_thres.attr,
+ 	&dev_attr_max_rx_thres.attr,
++	&dev_attr_dma_op_mode.attr,
+ 	NULL,
+ };
+ 
+@@ -1085,9 +1164,14 @@ static inline void __devexit omap_additional_remove(struct device *dev)
+ 
+ static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
+ {
++	mcbsp->dma_op_mode = MCBSP_DMA_MODE_ELEMENT;
+ 	if (cpu_is_omap34xx()) {
+ 		mcbsp->max_tx_thres = max_thres(mcbsp);
+ 		mcbsp->max_rx_thres = max_thres(mcbsp);
++		/*
++		 * REVISIT: Set dmap_op_mode to THRESHOLD as default
++		 * for mcbsp2 instances.
++		 */
+ 		if (omap_additional_add(mcbsp->dev))
+ 			dev_warn(mcbsp->dev,
+ 				"Unable to create additional controls\n");
+-- 
+1.6.2.GIT
 
-https://www.omapzoom.org/gf/project/omapbridge/wiki/?
-
-Samples to the code are at:
-
-DSP Bridge Userspace gitweb: 
-http://dev.omapzoom.org/?p=tidspbridge/userspace-dspbridge.git;a=summary
-
-DSP samples (code running in the dsp, either baseimage or dll): source/samples/dsp
-
-MPU samples (arm side app using bridge to interact with the dsp): source/samples/mpu/src
-
-As mentioned before:
-
-GCC compiler will take care of bridge driver (compiled in the kernel), libbridge.so (API) and samples (in case youe need them). CGT Tools and DSP/BIOS package is used to generate the code which will be running on the dsp side.
-
-You can look here for initial environment setup:
-https://www.omapzoom.org/gf/project/omapbridge/wiki/?pagename=Build+userspace+files
-
->> Best regards,
->>
->> Elvis
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->I guess you need TI compiler only for compiling Codes which run on DSP, rest of
->the stuff can be compiled using arm-gcc.
->
->Cheers,
->Ameya.
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-- omar
