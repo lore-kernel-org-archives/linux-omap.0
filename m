@@ -1,203 +1,58 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: [PATCH 01/10] OMAP: PM counter infrastructure.
-Date: Thu, 13 Aug 2009 09:52:30 -0700
-Message-ID: <1250182359-18830-2-git-send-email-khilman@deeprootsystems.com>
-References: <1250182359-18830-1-git-send-email-khilman@deeprootsystems.com>
-Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1250182359-18830-1-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 00/10] OMAP PM debug infrastructure for 2.6.32
+Date: Thu, 13 Aug 2009 09:52:29 -0700
+Message-ID: <1250182359-18830-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wf-out-1314.google.com ([209.85.200.169]:49955 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754438AbZHMQwk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 12:52:40 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-From: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+This series adds the PM debug infrastructure which is
+currently used in the OMAP PM branch[1].
 
-This patch provides the infrastructure to count how many times a
-powerdomain entered a given power state (on, inactive, retention,
-off). A number of functions are provided which will be called by the
-chip specific powerdomain and clockdomain code whenever a transition
-might have happened.
+Applies on v2.6.31-rc5 plus previous PM fixes queue:
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
----
- arch/arm/mach-omap2/clockdomain.c             |    2 +
- arch/arm/mach-omap2/powerdomain.c             |  101 ++++++++++++++++++++++++-
- arch/arm/plat-omap/include/mach/powerdomain.h |    7 ++
- 3 files changed, 108 insertions(+), 2 deletions(-)
+  [PATCH 00/14] OMAP PM fixes for .31-rc series
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 0e7d501..26912a9 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -484,6 +484,8 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
- 			    v << __ffs(clkdm->clktrctrl_mask),
- 			    clkdm->pwrdm.ptr->prcm_offs,
- 			    CM_CLKSTCTRL);
-+
-+	pwrdm_clkdm_state_switch(clkdm);
- }
- 
- /**
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 983f1cb..a2d9871 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -35,6 +35,11 @@
- #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
- 
-+enum {
-+	PWRDM_STATE_NOW = 0,
-+	PWRDM_STATE_PREV,
-+};
-+
- /* pwrdm_list contains all registered struct powerdomains */
- static LIST_HEAD(pwrdm_list);
- 
-@@ -102,6 +107,63 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
- 	return pd->pwrdm;
- }
- 
-+static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
-+{
-+
-+	int prev;
-+	int state;
-+
-+	if (pwrdm == NULL)
-+		return -EINVAL;
-+
-+	state = pwrdm_read_pwrst(pwrdm);
-+
-+	switch (flag) {
-+	case PWRDM_STATE_NOW:
-+		prev = pwrdm->state;
-+		break;
-+	case PWRDM_STATE_PREV:
-+		prev = pwrdm_read_prev_pwrst(pwrdm);
-+		if (pwrdm->state != prev)
-+			pwrdm->state_counter[prev]++;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (state != prev)
-+		pwrdm->state_counter[state]++;
-+
-+	pwrdm->state = state;
-+
-+	return 0;
-+}
-+
-+static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm)
-+{
-+	pwrdm_clear_all_prev_pwrst(pwrdm);
-+	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+	return 0;
-+}
-+
-+static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm)
-+{
-+	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
-+	return 0;
-+}
-+
-+static __init void _pwrdm_setup(struct powerdomain *pwrdm)
-+{
-+	int i;
-+
-+	for (i = 0; i < 4; i++)
-+		pwrdm->state_counter[i] = 0;
-+
-+	pwrdm_wait_transition(pwrdm);
-+	pwrdm->state = pwrdm_read_pwrst(pwrdm);
-+	pwrdm->state_counter[pwrdm->state] = 1;
-+
-+}
- 
- /* Public functions */
- 
-@@ -117,9 +179,12 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
- {
- 	struct powerdomain **p = NULL;
- 
--	if (pwrdm_list)
--		for (p = pwrdm_list; *p; p++)
-+	if (pwrdm_list) {
-+		for (p = pwrdm_list; *p; p++) {
- 			pwrdm_register(*p);
-+			_pwrdm_setup(*p);
-+		}
-+	}
- }
- 
- /**
-@@ -1110,4 +1175,36 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
- 	return 0;
- }
- 
-+int pwrdm_state_switch(struct powerdomain *pwrdm)
-+{
-+	return _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+}
-+
-+int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
-+{
-+	if (clkdm != NULL && clkdm->pwrdm.ptr != NULL) {
-+		pwrdm_wait_transition(clkdm->pwrdm.ptr);
-+		return pwrdm_state_switch(clkdm->pwrdm.ptr);
-+	}
-+
-+	return -EINVAL;
-+}
-+int pwrdm_clk_state_switch(struct clk *clk)
-+{
-+	if (clk != NULL && clk->clkdm != NULL)
-+		return pwrdm_clkdm_state_switch(clk->clkdm);
-+	return -EINVAL;
-+}
-+
-+int pwrdm_pre_transition(void)
-+{
-+	pwrdm_for_each(_pwrdm_pre_transition_cb);
-+	return 0;
-+}
-+
-+int pwrdm_post_transition(void)
-+{
-+	pwrdm_for_each(_pwrdm_post_transition_cb);
-+	return 0;
-+}
- 
-diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
-index 69c9e67..52663fc 100644
---- a/arch/arm/plat-omap/include/mach/powerdomain.h
-+++ b/arch/arm/plat-omap/include/mach/powerdomain.h
-@@ -117,6 +117,8 @@ struct powerdomain {
- 
- 	struct list_head node;
- 
-+	int state;
-+	unsigned state_counter[4];
- };
- 
- 
-@@ -164,4 +166,9 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
- 
- int pwrdm_wait_transition(struct powerdomain *pwrdm);
- 
-+int pwrdm_state_switch(struct powerdomain *pwrdm);
-+int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
-+int pwrdm_pre_transition(void);
-+int pwrdm_post_transition(void);
-+
- #endif
--- 
-1.6.4
+Kevin
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-arm" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[1] http://elinux.org/OMAP_Power_Management
+
+Peter 'p2' De Schrijver (8):
+  OMAP: PM counter infrastructure.
+  OMAP: PM: Hook into PM counters
+  OMAP: PM: Add closures to clkdm_for_each and pwrdm_for_each.
+  OMAP: PM: Add pm-debug counters
+  OMAP: PM debug: make powerdomains use PM-debug counters
+  OMAP: PM: Add definitions for ETK pads and observability registers
+  OMAP3: Debug observability and ETK padconf implementation
+  OMAP3: Add debug observablity (debobs) Kconfig item
+
+Tero Kristo (2):
+  OMAP: PM debug: Add PRCM register dump support
+  OMAP: PM: Added suspend target state control to debugfs for OMAP3
+
+ arch/arm/mach-omap2/Makefile                  |    3 +
+ arch/arm/mach-omap2/clock.c                   |    2 +
+ arch/arm/mach-omap2/clockdomain.c             |   10 +-
+ arch/arm/mach-omap2/debobs.c                  |  240 ++++++++++++++
+ arch/arm/mach-omap2/pm-debug.c                |  413 ++++++++++++++++++++++++-
+ arch/arm/mach-omap2/pm.h                      |   11 +
+ arch/arm/mach-omap2/pm24xx.c                  |    4 +-
+ arch/arm/mach-omap2/pm34xx.c                  |   38 ++-
+ arch/arm/mach-omap2/powerdomain.c             |  110 +++++++-
+ arch/arm/plat-omap/Kconfig                    |    7 +
+ arch/arm/plat-omap/include/mach/clockdomain.h |    3 +-
+ arch/arm/plat-omap/include/mach/control.h     |   47 +++-
+ arch/arm/plat-omap/include/mach/debobs.h      |    7 +
+ arch/arm/plat-omap/include/mach/powerdomain.h |   15 +-
+ 14 files changed, 893 insertions(+), 17 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/debobs.c
+ mode change 100644 => 100755 arch/arm/mach-omap2/pm.h
+ create mode 100644 arch/arm/plat-omap/include/mach/debobs.h
+
