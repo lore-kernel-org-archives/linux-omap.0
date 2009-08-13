@@ -1,68 +1,69 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Runtime detection of Si features
-Date: Thu, 13 Aug 2009 09:40:42 -0700
-Message-ID: <873a7vfz05.fsf@deeprootsystems.com>
-References: <1250176701-23998-1-git-send-email-premi@ti.com>
-	<877hx7g09i.fsf@deeprootsystems.com> <4A843FDE.5090209@ti.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F5A38B8C@dbde02.ent.ti.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: OMAP PM status?
+Date: Thu, 13 Aug 2009 19:41:33 +0300
+Message-ID: <877hx7k6o2.fsf@litku.valot.fi>
+References: <87bpmkkegw.fsf@litku.valot.fi>
+	<873a7wsjm9.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.175]:48586 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754910AbZHMQkn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 12:40:43 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so280385wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 09:40:44 -0700 (PDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F5A38B8C@dbde02.ent.ti.com> (Vikram Pandita's message of "Thu\, 13 Aug 2009 22\:07\:26 +0530")
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:57272 "EHLO
+	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754158AbZHMQlf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 12:41:35 -0400
+Received: by bwz22 with SMTP id 22so697793bwz.18
+        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 09:41:36 -0700 (PDT)
+In-Reply-To: <873a7wsjm9.fsf@deeprootsystems.com> (Kevin Hilman's message of "Wed\, 12 Aug 2009 16\:22\:22 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-"Pandita, Vikram" <vikram.pandita@ti.com> writes:
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->>Nishanth Menon
->>Sent: Thursday, August 13, 2009 11:31 AM
->>To: Kevin Hilman
->>Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
->>Subject: Re: [PATCH] Runtime detection of Si features
->>
->>Kevin Hilman had written, on 08/13/2009 11:13 AM, the following:
->>> Sanjeev Premi <premi@ti.com> writes:
->>>
->>>> The OMAP35x family has multiple variants differing
->>>> in the HW features. This patch detects these features
->>>> at runtime and prints information during the boot.
->>>>
->>>> Since most of the code seemed repetitive, macros
->>>> have been used for readability.
->>>>
->>>> Signed-off-by: Sanjeev Premi <premi@ti.com>
->>>
->>> I like the feature-based approach.
->>>
->>> A couple questions though.  Is there a bit/register that reports the
->>> collapsed powerdomains of the devices with modified PRCM?
->>>
->>> Also, how will other code query the features?  You're currently
->>> exporting the omap_has_*() functions, but there are no prototypes.
->>>
->>> I think I'd rather see a static inline functions in <mach/cpu.h>
->>> for checking features.  Comments to that end inlined below...
->>Wonder if we can setup some sort of infrastructure for:
->>a) features
->>b) erratas
->>linked to OMAP revs + even better w.r.t silicon module(SGX,I2c)
->>revisions since at times they are used across multiple OMAPs?
+> Hi Kalle,
+
+Hello,
+
+> Kalle Valo <kalle.valo@iki.fi> writes:
 >
-> We are hitting exactly this issue with I2C errata 1.153
-> Instead of basing the errata check on cpu_is...(), 
-> its more appropriate to base it on IP revision of I2C.
+>> as you might guess, I'm eagerly waiting for OMAP PM support to hit
+>> mainline :) I'm just curious, what's the current status? Are we
+>> going to get PM support in 2.6.32?
+>
+> Hmmm, good question.  To avoid giving an answer that can be archived
+> and used against me, I updated the PM branch wiki page[1] with a
+> 'mainline plans' section[2] which I can edit as plans slip^Wchange. :)
 
-Shouldn't the IP revision of I2C be avaialble in an I2C revision
-register an be used in the driver instead of cpu_is*?
+Excellent, the page was very helpful for me and I'm sure also for
+others.
 
-Kevin
+>> Especially I'm interested about 2420 support for n8x0.
+>
+> Well, I'm afraid I've done basically no testing for OMAP2, and have
+> been focusing solely on OMAP3.  I'm pretty sure things at least should
+> compile for OMAP2, as care has been taken to keep OMAP2 up to speed
+> with OMAP3 for the base features, but I haven't done any boot testing
+> on OMAP2 for some time.
+
+I'm sorry to hear that, but I understand that you don't have time for
+everything.
+
+> That being said, all the infrastructure for OMAP2 that was in
+> linux-omap is already in mainline so will work as good as it did in
+> linux-omap.  The last time I actually tried PM on OMAP2, I found/fixed
+> a bug[3] in the asm sleep code for OMAP2 that was causing fault.  At
+> least it no longer faults when suspended
+>
+> Of course, I'll be glad to take any OMAP2 patches/fixes and get them
+> upstream with the rest of my changes, but I'm afraid with my current
+> plans, I do not have the cycles to spend on OMAP2.
+
+As soon as I find some spare time (which usually means three to four
+months from now :) I'll start experimenting with N800 PM. If I have any
+problems, I'll send email to the list as usual.
+
+Thanks.
+
+-- 
+Kalle Valo
