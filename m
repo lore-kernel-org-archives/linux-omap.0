@@ -1,83 +1,79 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: PM branch update: rebase to .31-rc, added omap_hwmod/omap_device
-Date: Thu, 13 Aug 2009 06:03:51 -0700
-Message-ID: <873a7voog8.fsf@deeprootsystems.com>
-References: <87fxcqq44h.fsf@deeprootsystems.com>
-	<00f101ca1b5a$6e519f50$LocalHost@wipultra793>
-	<87my65yt8k.fsf@deeprootsystems.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0306050777@dbde02.ent.ti.com>
+From: John Sarman <johnsarman@gmail.com>
+Subject: Re: TI OMAP 3503 GPIO signal I/O standard for interfacing with FPGA
+Date: Thu, 13 Aug 2009 09:14:28 -0400
+Message-ID: <bb2708720908130614p6ded4627o848631cfb0d3eaa4@mail.gmail.com>
+References: <BD5F061C-76EC-40EF-93D6-5C64860EBEA7@mac.com>
+	 <bb2708720908120554m33caeb32v4d13da69d1e94e7d@mail.gmail.com>
+	 <3E9F21C0-53FC-4673-BE6B-BD1DC9B8D3EC@mac.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:19999 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049AbZHMNDx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 09:03:53 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so244876wfd.4
-        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 06:03:54 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0306050777@dbde02.ent.ti.com> (Teerth Reddy's message of "Thu\, 13 Aug 2009 11\:30\:57 +0530")
+Received: from mail-yx0-f175.google.com ([209.85.210.175]:50483 "EHLO
+	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752114AbZHMNO2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 09:14:28 -0400
+Received: by yxe5 with SMTP id 5so922379yxe.33
+        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 06:14:28 -0700 (PDT)
+In-Reply-To: <3E9F21C0-53FC-4673-BE6B-BD1DC9B8D3EC@mac.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
-Cc: "V, Hemanth" <hemanthv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Elvis Dowson <elvis.dowson@mac.com>, linux-omap <linux-omap@vger.kernel.org>
 
-"Reddy, Teerth" <teerth@ti.com> writes:
-
-> I did some testing with the current PM branch and don't see this issue on SDP. 
-
-Thanks for testing.
-
-> I could not find the patch which fixes this issue. Can you please
-> point us to the patch which fixes this issue?
-
-To be honest, I actually don't know which patch fixed the issue.  I saw the
-problem during some early testing of the latest PM branch, and in the process
-of restructuring the tree it went away.
-
-More than likely, I had left out part of the series when reorganizing
-that caused this temporary problem.
-
-I think I'll remove it from the 'known problems' list as it appears to
-have been operator error on my part.
-
-Kevin
-
-
+On Wed, Aug 12, 2009 at 10:13 AM, Elvis Dowson<elvis.dowson@mac.com> wr=
+ote:
+> Hi John,
 >
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Wednesday, August 12, 2009 8:28 PM
-> To: V, Hemanth
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: PM branch update: rebase to .31-rc, added omap_hwmod/omap_device
+> On Aug 12, 2009, at 4:54 PM, John Sarman wrote:
 >
-> "Hemanth V" <hemanthv@ti.com> writes:
+>> Use LVCMOS at 1.8V =A0if you can not use 1.8 V (get another FPGA, ju=
+st
+>> kidding) =A0then you will need a buffer (level translator) between t=
+hem.
 >
->> ----- Original Message ----- 
->> From: "Kevin Hilman" <khilman@deeprootsystems.com>
->>> Known problems:
->>
->>> - network drivers and off-mode
->>>  - various hangs when using off-while-idle and NFS-mounted rootfs
->>>  - network drivers likely need some context save/restore support
->>
->> Kevin, was this known to work earlier. Could this be related to
->> GPMC context save/restore.
+> Thanks for the info. I think I have support for LVCMOS at 1.8v on the
+> Virtex-5. :-)
 >
-> I wrote this based on some early testing of the latest PM branch,
-> where I may of still had some bugs.  But I also have not seen
-> this in a while, so it may have been just a problem when I was
-> reworking/reordering the context save/restore code.
+> BTW, what about the GPMC controller, does same signal I/O standard ap=
+ply?
+
+LVCMOS  Single ended standard IO for low power low voltage.
+LVTTL  Single ended standard IO for compatiblity with older
+technologies, can sink souce more current and have higher voltage
+tolerances.
+HSTL  differential pair, no good for GPMC
+SSTL  SSTL_18 Series Stub Terminated, used with DDR II memory;
+requires Vddq =3D 1.8v, Vt =3D 0.5 x Vddq.  Worth doing research to see=
+ if
+this would make sense for the GPMC.
+ GTL is a backplane Ghz IO only swings to 1.2V
+ PCI for interfacing with the PCI bus, so again probably not.
+
+I would look into SSTL if you are going to interface the FPGA with the
+OMAP as if the FPGA appears as a memory device.  Not 100% sure though.
+
+<snip from omap 35xx page>
+   General Purpose Memory Controller (GPMC)
+
+    * 16-bit Wide Multiplexed Address/Data Bus
+    * Up to 8 Chip Select Pins With 128M-Byte Address Space per Chip Se=
+lect Pin
+    * Glueless Interface to NOR Flash, NAND Flash (With ECC Hamming
+Code Calculation), SRAM and Pseudo-SRAM
+    * Flexible Asynchronous Protocol Control for Interface to Custom
+Logic (FPGA, CPLD, ASICs, etc.)
+    * Nonmultiplexed Address/Data Mode (Limited 2K-Byte Address Space)
+</snip from omap 35xx page>
+
+John
 >
-> I decided to leave it in the 'known problems' list in case anyone else
-> has seen it and because I didn't go back and re-test all the boards
-> for this issue.
+> Best regards,
 >
-> I don't see any issues on SDP or EVM anymore, have you tested the
-> current PM branch for this?
+> Elvis
 >
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
