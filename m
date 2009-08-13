@@ -1,221 +1,28 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] Runtime detection of Si features
-Date: Thu, 13 Aug 2009 09:13:29 -0700
-Message-ID: <877hx7g09i.fsf@deeprootsystems.com>
-References: <1250176701-23998-1-git-send-email-premi@ti.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH V2 0/32] mmc and omap_hsmmc patches
+Date: Thu, 13 Aug 2009 09:29:27 -0700
+Message-ID: <20090813092927.bed99855.akpm@linux-foundation.org>
+References: <20090728103834.2371.65809.sendpatchset@ahunter-laptop>
+	<20090729111327.GB6057@console-pimps.org>
+	<000c01ca1179$387d6f20$544ff780@am.dhcp.ti.com>
+	<005201ca1c2a$898b4390$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f196.google.com ([209.85.221.196]:54638 "EHLO
-	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754888AbZHMQNg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 12:13:36 -0400
-Received: by qyk34 with SMTP id 34so687523qyk.33
-        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 09:13:36 -0700 (PDT)
-In-Reply-To: <1250176701-23998-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Thu\, 13 Aug 2009 20\:48\:21 +0530")
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40677 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751612AbZHMQ3l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 13 Aug 2009 12:29:41 -0400
+In-Reply-To: <005201ca1c2a$898b4390$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Matt Fleming' <matt@console-pimps.org>, 'Adrian Hunter' <adrian.hunter@nokia.com>, 'Jarkko Lavinen' <jarkko.lavinen@nokia.com>, 'linux-omap Mailing List' <linux-omap@vger.kernel.org>, 'Pierre Ossman' <pierre@ossman.eu>, 'Denis Karpov' <ext-denis.2.karpov@nokia.com>, 'lkml' <linux-kernel@vger.kernel.org>, linux-mmc@vger.kernel.org
 
-Sanjeev Premi <premi@ti.com> writes:
+On Thu, 13 Aug 2009 10:27:15 -0500 "Madhusudhan" <madhu.cr@ti.com> wrote:
 
-> The OMAP35x family has multiple variants differing
-> in the HW features. This patch detects these features
-> at runtime and prints information during the boot.
->
-> Since most of the code seemed repetitive, macros
-> have been used for readability.
->
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> I am curious to know is this series lined up for upstream?
 
-I like the feature-based approach.
-
-A couple questions though.  Is there a bit/register that reports the
-collapsed powerdomains of the devices with modified PRCM?
-
-Also, how will other code query the features?  You're currently
-exporting the omap_has_*() functions, but there are no prototypes.
-
-I think I'd rather see a static inline functions in <mach/cpu.h>
-for checking features.  Comments to that end inlined below...
-
-> ---
->  arch/arm/mach-omap2/id.c |  106 ++++++++++++++++++++++++++++++++++++++++++++--
->  1 files changed, 102 insertions(+), 4 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index a98201c..4476491 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -25,9 +25,49 @@
->  #include <mach/control.h>
->  #include <mach/cpu.h>
->  
-> +/*
-> + * OMAP3 features
-> + */
-> +#define OMAP3_CONTROL_OMAP_STATUS	0x044c
-
-This should probably go in <mach/control.h>
-
-> +#define OMAP3_SGX_SHIFT			13
-> +#define OMAP3_SGX_MASK			(3 << OMAP3_SGX_SHIFT)
-> +#define		FEAT_SGX_FULL		0
-> +#define		FEAT_SGX_HALF		1
-> +#define		FEAT_SGX_NONE		2
->
-> +#define OMAP3_IVA_SHIFT			12
-> +#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
-> +#define		FEAT_IVA		0
-> +#define		FEAT_IVA_NONE		1
-> +
-> +#define OMAP3_L2CACHE_SHIFT		10
-> +#define OMAP3_L2CACHE_MASK		(3 << OMAP3_L2CACHE_SHIFT)
-> +#define		FEAT_L2CACHE_NONE	0
-> +#define		FEAT_L2CACHE_64KB	1
-> +#define		FEAT_L2CACHE_128KB	2
-> +#define		FEAT_L2CACHE_256KB	3
-> +
-> +#define OMAP3_ISP_SHIFT			5
-> +#define OMAP3_ISP_MASK			(1<< OMAP3_ISP_SHIFT)
-> +#define		FEAT_ISP		0
-> +#define		FEAT_ISP_NONE		1
-> +
-> +#define OMAP3_NEON_SHIFT		4
-> +#define OMAP3_NEON_MASK			(1<< OMAP3_NEON_SHIFT)
-> +#define		FEAT_NEON		0
-> +#define		FEAT_NEON_NONE		1
-> +
-> +
-> +#define OMAP_HAS_L2CACHE		1
-> +#define OMAP_HAS_IVA			(1 << 1)
-> +#define OMAP_HAS_SGX			(1 << 2)
-> +#define OMAP_HAS_NEON			(1 << 3)
-> +#define OMAP_HAS_ISP			(1 << 4)
-> +
-
-Use BIT()
-Rename to OMAP3_*
-move to <mach/cpu.h>
-
->  static struct omap_chip_id omap_chip;
->  static unsigned int omap_revision;
-> -
-> +static u32 omap_features ;
-
-Call this omap3_features and make it global (with extern in <mach/cpu.h>)
-
->  unsigned int omap_rev(void)
->  {
-> @@ -35,6 +75,19 @@ unsigned int omap_rev(void)
->  }
->  EXPORT_SYMBOL(omap_rev);
->  
-> +#define OMAP3_HAS_FEATURE(feat,flag)				\
-> +	unsigned int omap3_has_ ##feat(void)			\
-
-make this 
-	static inline unsigned int omap3_has_ ##feat(void) ...
-
-
-> +	{							\
-> +		return (omap_features & OMAP_HAS_ ##flag);	\
-> +	}							\
-> +	EXPORT_SYMBOL(omap3_has_ ##feat);
->
-> +OMAP3_HAS_FEATURE(l2cache, L2CACHE);
-> +OMAP3_HAS_FEATURE(sgx, SGX);
-> +OMAP3_HAS_FEATURE(iva, IVA);
-> +OMAP3_HAS_FEATURE(neon, NEON);
-> +OMAP3_HAS_FEATURE(isp, ISP);
-> +
-
-... and move this set to <mach/cpu.h>
-
-and I'm ok with the rest of this patch.
-
-Kevin
-
->  /**
->   * omap_chip_is - test whether currently running OMAP matches a chip type
->   * @oc: omap_chip_t to test against
-> @@ -155,7 +208,33 @@ void __init omap24xx_check_revision(void)
->  	pr_info("\n");
->  }
->  
-> -void __init omap34xx_check_revision(void)
-> +#define OMAP3_CHECK_FEATURE(status,feat)				\
-> +	if (((status & OMAP3_ ##feat## _MASK) 				\
-> +		>> OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) { 	\
-> +		omap_features |= OMAP_HAS_ ##feat;			\
-> +	}
-> +
-> +void __init omap3_check_features(void)
-> +{
-> +	u32 status, temp;
-> +
-> +	omap_features = 0;
-> +
-> +	status = omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS);
-> +
-> +	OMAP3_CHECK_FEATURE(status, L2CACHE);
-> +	OMAP3_CHECK_FEATURE(status, IVA);
-> +	OMAP3_CHECK_FEATURE(status, SGX);
-> +	OMAP3_CHECK_FEATURE(status, NEON);
-> +	OMAP3_CHECK_FEATURE(status, ISP);
-> +
-> +	/*
-> +	 * TODO: Get additional info (where applicable)
-> +	 *       e.g. Size of L2 cache.
-> +	 */
-> +}
-> +
-> +void __init omap3_check_revision(void)
->  {
->  	u32 cpuid, idcode;
->  	u16 hawkeye;
-> @@ -212,6 +291,22 @@ out:
->  	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
->  }
->  
-> +#define OMAP3_SHOW_FEATURE(feat)		\
-> +	if (omap3_has_ ##feat()) {		\
-> +		pr_info (" - "#feat" : Y");	\
-> +	} else {				\
-> +		pr_info (" - "#feat" : N");	\
-> +	}
-> +
-> +void __init omap3_cpuinfo(void)
-> +{
-> +	OMAP3_SHOW_FEATURE(l2cache);
-> +	OMAP3_SHOW_FEATURE(iva);
-> +	OMAP3_SHOW_FEATURE(sgx);
-> +	OMAP3_SHOW_FEATURE(neon);
-> +	OMAP3_SHOW_FEATURE(isp);
-> +}
-> +
->  /*
->   * Try to detect the exact revision of the omap we're running on
->   */
-> @@ -223,8 +318,11 @@ void __init omap2_check_revision(void)
->  	 */
->  	if (cpu_is_omap24xx())
->  		omap24xx_check_revision();
-> -	else if (cpu_is_omap34xx())
-> -		omap34xx_check_revision();
-> +	else if (cpu_is_omap34xx()) {
-> +		omap3_check_features();
-> +		omap3_check_revision();
-> +		omap3_cpuinfo();
-> +	}
->  	else if (cpu_is_omap44xx()) {
->  		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
->  		return;
-> -- 
-> 1.6.2.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+yup.  http://userweb.kernel.org/~akpm/mmotm/ is the place to check for that.
