@@ -1,68 +1,68 @@
-From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: Re: [PATCH 10/10] OMAP: PM: Added suspend target state control to debugfs for OMAP3
-Date: Thu, 13 Aug 2009 14:35:02 -0700
-Message-ID: <878whne6t5.fsf@deeprootsystems.com>
-References: <1250182359-18830-1-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-2-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-3-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-4-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-5-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-6-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-7-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-8-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-9-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-10-git-send-email-khilman@deeprootsystems.com>
-	<1250182359-18830-11-git-send-email-khilman@deeprootsystems.com>
-	<A24693684029E5489D1D202277BE89444A78398A@dlee02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [Resend][PATCH] Maintainers update for hsmmc driver
+Date: Thu, 13 Aug 2009 14:39:10 -0700
+Message-ID: <87zla3cs1t.fsf@deeprootsystems.com>
+References: <50872.192.168.10.88.1249658504.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <A24693684029E5489D1D202277BE89444A78398A-EovWT4A8QTWIQmiDNMet8wC/G2K4zDHf@public.gmane.org> (Aguirre Rodriguez's message of "Thu\, 13 Aug 2009 13\:42\:08 -0500")
-Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre-l0cyMroinI0@public.gmane.org>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org>, "linux-arm@vger.kernel.org" <linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap@vger.kernel.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tero Kristo <tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wf-out-1314.google.com ([209.85.200.171]:21307 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753191AbZHMVjM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 17:39:12 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so323781wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 14:39:13 -0700 (PDT)
+In-Reply-To: <50872.192.168.10.88.1249658504.squirrel@dbdmail.itg.ti.com> (Madhusudhan Chikkature's message of "Fri\, 7 Aug 2009 20\:51\:44 +0530 \(IST\)")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: tony@atomide.com, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, adrian.hunter@nokia.com, felipe.balbi@nokia.com
 
-"Aguirre Rodriguez, Sergio Alberto" <saaguirre-l0cyMroinI0@public.gmane.org> writes:
+"Madhusudhan Chikkature" <madhu.cr@ti.com> writes:
 
-> Kevin,
+> Hi,
 >
->> -----Original Message-----
->> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Kevin Hilman
->> Sent: Thursday, August 13, 2009 11:53 AM
->> To: linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org; linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Tero Kristo
->> Subject: [PATCH 10/10] OMAP: PM: Added suspend target state control to
->> debugfs for OMAP3
->> 
->> From: Tero Kristo <tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->> 
->> Target state can be read / programmed via files under:
->>   [debugfs]/pm_debug/[pwrdm]/suspend
->> 
->> Signed-off-by: Tero Kristo <tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->> Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
->> ---
->>  arch/arm/mach-omap2/pm-debug.c |   31 +++++++++++++++++++++++++++++--
->>  arch/arm/mach-omap2/pm.h       |    3 +++
->>  arch/arm/mach-omap2/pm34xx.c   |   24 ++++++++++++++++++++++++
->>  3 files changed, 56 insertions(+), 2 deletions(-)
->>  mode change 100755 => 100644 arch/arm/mach-omap2/pm-debug.c
->> 
->> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-
->> debug.c
->> old mode 100755
->> new mode 100644
+> Resending the patch after changing omap_hs* to omap_hsmmc.c.
 >
-> And here one 755 mode change mistake in 6/10 is fixed... So, you'll need to refresh this aswell I guess...
+> Regards,
+> Madhu
 >
+>
+>
+> Update maintainers entry for TI OMAP HS MMC support.
+>
+> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-Thanks, will do.
+Madhu is the right guy for the job.
 
-Kevin
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-arm" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> ---
+>  MAINTAINERS |    8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+>
+> Index: linux-omap-2.6/MAINTAINERS
+> ===================================================================
+> --- linux-omap-2.6.orig/MAINTAINERS
+> +++ linux-omap-2.6/MAINTAINERS
+> @@ -3698,7 +3698,13 @@ OMAP MMC SUPPORT
+>  M:	Jarkko Lavinen <jarkko.lavinen@nokia.com>
+>  L:	linux-omap@vger.kernel.org
+>  S:	Maintained
+> -F:	drivers/mmc/host/*omap*
+> +F:	drivers/mmc/host/omap.c
+> +
+> +OMAP HS MMC SUPPORT
+> +M:	Madhusudhan Chikkature <madhu.cr@ti.com>
+> +L:	linux-omap@vger.kernel.org
+> +S:	Maintained
+> +F:	drivers/mmc/host/omap_hsmmc.c
+>
+>  OMAP RANDOM NUMBER GENERATOR SUPPORT
+>  M:	Deepak Saxena <dsaxena@plexity.net>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
