@@ -1,78 +1,37 @@
-From: "Nayak, Rajendra" <rnayak@ti.com>
-Subject: RE: [PATCH v2 5/6] ARM: OMAP4: PM: Adds CM1/2 register defs for
- OMAP4
-Date: Thu, 13 Aug 2009 13:49:08 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030605080A@dbde02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89444A6ED6C0@dlee02.ent.ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 8/9] OMAP2: add board file for Nokia N800 and N810
+Date: Thu, 13 Aug 2009 10:15:10 +0100
+Message-ID: <20090813091510.GK6132@n2100.arm.linux.org.uk>
+References: <20090811094348.32577.81307.stgit@localhost> <20090811095558.32577.26177.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:32947 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752917AbZHMIT3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 04:19:29 -0400
-In-Reply-To: <A24693684029E5489D1D202277BE89444A6ED6C0@dlee02.ent.ti.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36759 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753578AbZHMJPZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 05:15:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20090811095558.32577.26177.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, Kalle Valo <kalle.valo@iki.fi>, linux-omap@vger.kernel.org
 
- 
+On Tue, Aug 11, 2009 at 12:55:58PM +0300, Tony Lindgren wrote:
+> +#include <mach/gpio.h>
 
->-----Original Message-----
->From: Aguirre Rodriguez, Sergio Alberto 
->Sent: Wednesday, August 12, 2009 11:11 PM
->To: Nayak, Rajendra; linux-arm-kernel@lists.arm.linux.org.uk
->Cc: linux-omap@vger.kernel.org
->Subject: RE: [PATCH v2 5/6] ARM: OMAP4: PM: Adds CM1/2 
->register defs for OMAP4
->
->Rajendra,
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Nayak, Rajendra
->> Sent: Wednesday, August 12, 2009 9:28 AM
->> To: linux-arm-kernel@lists.arm.linux.org.uk
->> Cc: linux-omap@vger.kernel.org; Nayak, Rajendra
->> Subject: [PATCH v2 5/6] ARM: OMAP4: PM: Adds CM1/2 register 
->defs for OMAP4
->> 
->> This patch adds OMAP4 specific CM1 and CM2 module
->> register defs and corresponding register field bit
->> shifts
->> 
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> ---
->>  arch/arm/mach-omap2/cm.h               |  249
->> +++++++++++++++++++++++++++++-
->>  arch/arm/mach-omap2/cm1-regbits-44xx.h |  161 +++++++++++++++++++
->>  arch/arm/mach-omap2/cm2-regbits-44xx.h |  269
->> ++++++++++++++++++++++++++++++++
->>  3 files changed, 678 insertions(+), 1 deletions(-)
->>  create mode 100644 arch/arm/mach-omap2/cm1-regbits-44xx.h
->>  create mode 100644 arch/arm/mach-omap2/cm2-regbits-44xx.h
->> 
->> diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
->> index 1d3c93b..19f7aeb 100644
->> --- a/arch/arm/mach-omap2/cm.h
->> +++ b/arch/arm/mach-omap2/cm.h
->> @@ -4,10 +4,11 @@
->>  /*
->>   * OMAP2/3 Clock Management (CM) register definitions
->
->According to the new content, this should be updated aswell, like:
->
->OMAP2/3/4 Clock Management (CM) register definitions
+linux/gpio.h
 
-Yes, I'll update that, thanks.
+> +#include <mach/io.h>
 
->
->Regards,
->Sergio
->
-><snip>
->
->
+linux/io.h
+
+> +static struct musb_hdrc_platform_data tusb_data = {
+> +	.mode		= BOARD_MODE,
+> +	.set_power	= tusb_set_power,
+> +	.set_clock	= tusb_set_clock,
+> +	.min_power	= 25,	/* x2 = 50 mA drawn from VBUS as peripheral */
+> +	.power		= 100,	/* Max 100 mA VBUS for host mode */
+> +	.clock		= "osc_ck",
+
+Still passing clock names around?
