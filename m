@@ -1,60 +1,203 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] Runtime detection of Si features
-Date: Thu, 13 Aug 2009 11:43:09 -0500
-Message-ID: <4A84429D.4050600@ti.com>
-References: <1250176701-23998-1-git-send-email-premi@ti.com>	<877hx7g09i.fsf@deeprootsystems.com> <4A843FDE.5090209@ti.com>	<FCCFB4CDC6E5564B9182F639FC35608702F5A38B8C@dbde02.ent.ti.com> <873a7vfz05.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35650 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752124AbZHMQnP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 13 Aug 2009 12:43:15 -0400
-In-Reply-To: <873a7vfz05.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: [PATCH 01/10] OMAP: PM counter infrastructure.
+Date: Thu, 13 Aug 2009 09:52:30 -0700
+Message-ID: <1250182359-18830-2-git-send-email-khilman@deeprootsystems.com>
+References: <1250182359-18830-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1250182359-18830-1-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin Hilman had written, on 08/13/2009 11:40 AM, the following:
-> "Pandita, Vikram" <vikram.pandita@ti.com> writes:
-> 
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->>> Sent: Thursday, August 13, 2009 11:31 AM
->>>>> Since most of the code seemed repetitive, macros
->>>>> have been used for readability.
->>>>>
->>>>> Signed-off-by: Sanjeev Premi <premi@ti.com>
->>>> I like the feature-based approach.
->>>>
->>>> A couple questions though.  Is there a bit/register that reports the
->>>> collapsed powerdomains of the devices with modified PRCM?
->>>>
->>>> Also, how will other code query the features?  You're currently
->>>> exporting the omap_has_*() functions, but there are no prototypes.
->>>>
->>>> I think I'd rather see a static inline functions in <mach/cpu.h>
->>>> for checking features.  Comments to that end inlined below...
->>> Wonder if we can setup some sort of infrastructure for:
->>> a) features
->>> b) erratas
->>> linked to OMAP revs + even better w.r.t silicon module(SGX,I2c)
->>> revisions since at times they are used across multiple OMAPs?
->> We are hitting exactly this issue with I2C errata 1.153
->> Instead of basing the errata check on cpu_is...(), 
->> its more appropriate to base it on IP revision of I2C.
-> 
-> Shouldn't the IP revision of I2C be avaialble in an I2C revision
-> register an be used in the driver instead of cpu_is*?
-what I was proposing is a much more generic infrastructure which i2c 
-among other modules can use. Getting IP revision is already available in 
-the specific IP modules REVISION registers - we might want to 
-standardize how drivers handle revision based feature/errata set to 
-ensure that they would have an optimal way to handle the same.. just my 
-2 cents..
+From: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
+This patch provides the infrastructure to count how many times a
+powerdomain entered a given power state (on, inactive, retention,
+off). A number of functions are provided which will be called by the
+chip specific powerdomain and clockdomain code whenever a transition
+might have happened.
+
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+---
+ arch/arm/mach-omap2/clockdomain.c             |    2 +
+ arch/arm/mach-omap2/powerdomain.c             |  101 ++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/mach/powerdomain.h |    7 ++
+ 3 files changed, 108 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 0e7d501..26912a9 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -484,6 +484,8 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
+ 			    v << __ffs(clkdm->clktrctrl_mask),
+ 			    clkdm->pwrdm.ptr->prcm_offs,
+ 			    CM_CLKSTCTRL);
++
++	pwrdm_clkdm_state_switch(clkdm);
+ }
+ 
+ /**
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 983f1cb..a2d9871 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -35,6 +35,11 @@
+ #include <mach/powerdomain.h>
+ #include <mach/clockdomain.h>
+ 
++enum {
++	PWRDM_STATE_NOW = 0,
++	PWRDM_STATE_PREV,
++};
++
+ /* pwrdm_list contains all registered struct powerdomains */
+ static LIST_HEAD(pwrdm_list);
+ 
+@@ -102,6 +107,63 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
+ 	return pd->pwrdm;
+ }
+ 
++static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
++{
++
++	int prev;
++	int state;
++
++	if (pwrdm == NULL)
++		return -EINVAL;
++
++	state = pwrdm_read_pwrst(pwrdm);
++
++	switch (flag) {
++	case PWRDM_STATE_NOW:
++		prev = pwrdm->state;
++		break;
++	case PWRDM_STATE_PREV:
++		prev = pwrdm_read_prev_pwrst(pwrdm);
++		if (pwrdm->state != prev)
++			pwrdm->state_counter[prev]++;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	if (state != prev)
++		pwrdm->state_counter[state]++;
++
++	pwrdm->state = state;
++
++	return 0;
++}
++
++static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm)
++{
++	pwrdm_clear_all_prev_pwrst(pwrdm);
++	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
++	return 0;
++}
++
++static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm)
++{
++	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
++	return 0;
++}
++
++static __init void _pwrdm_setup(struct powerdomain *pwrdm)
++{
++	int i;
++
++	for (i = 0; i < 4; i++)
++		pwrdm->state_counter[i] = 0;
++
++	pwrdm_wait_transition(pwrdm);
++	pwrdm->state = pwrdm_read_pwrst(pwrdm);
++	pwrdm->state_counter[pwrdm->state] = 1;
++
++}
+ 
+ /* Public functions */
+ 
+@@ -117,9 +179,12 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+ {
+ 	struct powerdomain **p = NULL;
+ 
+-	if (pwrdm_list)
+-		for (p = pwrdm_list; *p; p++)
++	if (pwrdm_list) {
++		for (p = pwrdm_list; *p; p++) {
+ 			pwrdm_register(*p);
++			_pwrdm_setup(*p);
++		}
++	}
+ }
+ 
+ /**
+@@ -1110,4 +1175,36 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
+ 	return 0;
+ }
+ 
++int pwrdm_state_switch(struct powerdomain *pwrdm)
++{
++	return _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
++}
++
++int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
++{
++	if (clkdm != NULL && clkdm->pwrdm.ptr != NULL) {
++		pwrdm_wait_transition(clkdm->pwrdm.ptr);
++		return pwrdm_state_switch(clkdm->pwrdm.ptr);
++	}
++
++	return -EINVAL;
++}
++int pwrdm_clk_state_switch(struct clk *clk)
++{
++	if (clk != NULL && clk->clkdm != NULL)
++		return pwrdm_clkdm_state_switch(clk->clkdm);
++	return -EINVAL;
++}
++
++int pwrdm_pre_transition(void)
++{
++	pwrdm_for_each(_pwrdm_pre_transition_cb);
++	return 0;
++}
++
++int pwrdm_post_transition(void)
++{
++	pwrdm_for_each(_pwrdm_post_transition_cb);
++	return 0;
++}
+ 
+diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
+index 69c9e67..52663fc 100644
+--- a/arch/arm/plat-omap/include/mach/powerdomain.h
++++ b/arch/arm/plat-omap/include/mach/powerdomain.h
+@@ -117,6 +117,8 @@ struct powerdomain {
+ 
+ 	struct list_head node;
+ 
++	int state;
++	unsigned state_counter[4];
+ };
+ 
+ 
+@@ -164,4 +166,9 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
+ 
+ int pwrdm_wait_transition(struct powerdomain *pwrdm);
+ 
++int pwrdm_state_switch(struct powerdomain *pwrdm);
++int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
++int pwrdm_pre_transition(void);
++int pwrdm_post_transition(void);
++
+ #endif
 -- 
-Regards,
-Nishanth Menon
+1.6.4
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-arm" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
