@@ -1,325 +1,292 @@
 From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Subject: [PATCH 06/10] OMAP: PM debug: Add PRCM register dump support
-Date: Thu, 13 Aug 2009 09:52:35 -0700
-Message-ID: <1250182359-18830-7-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 08/10] OMAP3: Debug observability and ETK padconf implementation
+Date: Thu, 13 Aug 2009 09:52:37 -0700
+Message-ID: <1250182359-18830-9-git-send-email-khilman@deeprootsystems.com>
 References: <1250182359-18830-1-git-send-email-khilman@deeprootsystems.com>
  <1250182359-18830-2-git-send-email-khilman@deeprootsystems.com>
  <1250182359-18830-3-git-send-email-khilman@deeprootsystems.com>
  <1250182359-18830-4-git-send-email-khilman@deeprootsystems.com>
  <1250182359-18830-5-git-send-email-khilman@deeprootsystems.com>
  <1250182359-18830-6-git-send-email-khilman@deeprootsystems.com>
+ <1250182359-18830-7-git-send-email-khilman@deeprootsystems.com>
+ <1250182359-18830-8-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1250182359-18830-6-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1250182359-18830-8-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tero Kristo <tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
 
-From: Tero Kristo <tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+From: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-Allows dumping out current register contents from the debug filesystem, and
-also allows user to add arbitrary register save points into code. Current
-register contents are available under debugfs at:
-
-[debugfs]/pm_debug/registers/current
-
-To add a save point, do following:
-
->From module init (or somewhere before the save call, called only once):
-  pm_dbg_init_regset(n); // n=1..4, allocates memory for dump area #n
-
->From arbitrary code location:
-  pm_dbg_regset_save(n); // n=1..4, saves registers to dump area #n
-
-After this, the register dump can be seen under [debugfs]/pm_debug/registers/n
-
-Signed-off-by: Tero Kristo <tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 ---
- arch/arm/mach-omap2/pm-debug.c |  208 ++++++++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h       |    4 +
- 2 files changed, 212 insertions(+), 0 deletions(-)
- mode change 100644 => 100755 arch/arm/mach-omap2/pm-debug.c
- mode change 100644 => 100755 arch/arm/mach-omap2/pm.h
+ arch/arm/mach-omap2/debobs.c             |  240 ++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/debobs.h |    7 +
+ 2 files changed, 247 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/debobs.c
+ create mode 100644 arch/arm/plat-omap/include/mach/debobs.h
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-old mode 100644
-new mode 100755
-index 9199c17..37b883b
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -157,6 +157,8 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- 
-+static void pm_dbg_regset_store(u32 *ptr);
+diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
+new file mode 100644
+index 0000000..397a599
+--- /dev/null
++++ b/arch/arm/mach-omap2/debobs.c
+@@ -0,0 +1,240 @@
++/*
++ * arch/arm/mach-omap2/debobs.c
++ *
++ * Handle debobs pads
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ *
++ * Written by Peter De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
++ *
++ * This file is subject to the terms and conditions of the GNU General
++ * Public License. See the file "COPYING" in the main directory of this
++ * archive for more details.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
 +
- struct dentry *pm_dbg_dir;
- 
- static int pm_dbg_init_done;
-@@ -166,6 +168,159 @@ enum {
- 	DEBUG_FILE_TIMERS,
- };
- 
-+struct pm_module_def {
-+	char name[8]; /* Name of the module */
-+	short type; /* CM or PRM */
-+	unsigned short offset;
-+	int low; /* First register address on this module */
-+	int high; /* Last register address on this module */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/debugfs.h>
++#include <linux/uaccess.h>
++#include <linux/module.h>
++#include <linux/gpio.h>
++
++#include <mach/control.h>
++#include <mach/mux.h>
++#include <mach/board.h>
++
++#define ETK_GPIO_BEGIN		12
++#define ETK_GPIO(i)		(ETK_GPIO_BEGIN + i)
++#define NUM_OF_DEBOBS_PADS	18
++
++static int debobs_initialized;
++
++enum debobs_pad_mode {
++	GPIO = 0,
++	OBS = 1,
++	ETK = 2,
++	NO_MODE = 3,
 +};
 +
-+#define MOD_CM 0
-+#define MOD_PRM 1
-+
-+static const struct pm_module_def pm_dbg_reg_modules[] = {
-+	{ "IVA2", MOD_CM, OMAP3430_IVA2_MOD, 0, 0x4c },
-+	{ "OCP", MOD_CM, OCP_MOD, 0, 0x10 },
-+	{ "MPU", MOD_CM, MPU_MOD, 4, 0x4c },
-+	{ "CORE", MOD_CM, CORE_MOD, 0, 0x4c },
-+	{ "SGX", MOD_CM, OMAP3430ES2_SGX_MOD, 0, 0x4c },
-+	{ "WKUP", MOD_CM, WKUP_MOD, 0, 0x40 },
-+	{ "CCR", MOD_CM, PLL_MOD, 0, 0x70 },
-+	{ "DSS", MOD_CM, OMAP3430_DSS_MOD, 0, 0x4c },
-+	{ "CAM", MOD_CM, OMAP3430_CAM_MOD, 0, 0x4c },
-+	{ "PER", MOD_CM, OMAP3430_PER_MOD, 0, 0x4c },
-+	{ "EMU", MOD_CM, OMAP3430_EMU_MOD, 0x40, 0x54 },
-+	{ "NEON", MOD_CM, OMAP3430_NEON_MOD, 0x20, 0x48 },
-+	{ "USB", MOD_CM, OMAP3430ES2_USBHOST_MOD, 0, 0x4c },
-+
-+	{ "IVA2", MOD_PRM, OMAP3430_IVA2_MOD, 0x50, 0xfc },
-+	{ "OCP", MOD_PRM, OCP_MOD, 4, 0x1c },
-+	{ "MPU", MOD_PRM, MPU_MOD, 0x58, 0xe8 },
-+	{ "CORE", MOD_PRM, CORE_MOD, 0x58, 0xf8 },
-+	{ "SGX", MOD_PRM, OMAP3430ES2_SGX_MOD, 0x58, 0xe8 },
-+	{ "WKUP", MOD_PRM, WKUP_MOD, 0xa0, 0xb0 },
-+	{ "CCR", MOD_PRM, PLL_MOD, 0x40, 0x70 },
-+	{ "DSS", MOD_PRM, OMAP3430_DSS_MOD, 0x58, 0xe8 },
-+	{ "CAM", MOD_PRM, OMAP3430_CAM_MOD, 0x58, 0xe8 },
-+	{ "PER", MOD_PRM, OMAP3430_PER_MOD, 0x58, 0xe8 },
-+	{ "EMU", MOD_PRM, OMAP3430_EMU_MOD, 0x58, 0xe4 },
-+	{ "GLBL", MOD_PRM, OMAP3430_GR_MOD, 0x20, 0xe4 },
-+	{ "NEON", MOD_PRM, OMAP3430_NEON_MOD, 0x58, 0xe8 },
-+	{ "USB", MOD_PRM, OMAP3430ES2_USBHOST_MOD, 0x58, 0xe8 },
-+	{ "", 0, 0, 0, 0 },
++static char *debobs_pad_mode_names[] = {
++	[GPIO] = "GPIO",
++	[OBS] = "OBS",
++	[ETK] = "ETK",
 +};
 +
-+#define PM_DBG_MAX_REG_SETS 4
++struct obs {
++	u16 offset;
++	u8 value;
++	u8 mask;
++};
 +
-+static void *pm_dbg_reg_set[PM_DBG_MAX_REG_SETS];
++struct debobs_pad {
++	enum debobs_pad_mode mode;
++	struct obs core_obs;
++	struct obs wakeup_obs;
++};
 +
-+static int pm_dbg_get_regset_size(void)
++static struct debobs_pad debobs_pads[NUM_OF_DEBOBS_PADS];
++
++static int debobs_mode_open(struct inode *inode, struct file *file)
 +{
-+	static int regset_size;
++	file->private_data = inode->i_private;
 +
-+	if (regset_size == 0) {
-+		int i = 0;
-+
-+		while (pm_dbg_reg_modules[i].name[0] != 0) {
-+			regset_size += pm_dbg_reg_modules[i].high +
-+				4 - pm_dbg_reg_modules[i].low;
-+			i++;
-+		}
-+	}
-+	return regset_size;
++	return 0;
 +}
 +
-+static int pm_dbg_show_regs(struct seq_file *s, void *unused)
++static ssize_t debobs_mode_read(struct file *file, char __user *user_buf,
++				size_t count, loff_t *ppos)
 +{
-+	int i, j;
-+	unsigned long val;
-+	int reg_set = (int)s->private;
-+	u32 *ptr;
-+	void *store = NULL;
-+	int regs;
-+	int linefeed;
++	char buffer[10];
++	int size;
++	int pad_number = (int)file->private_data;
++	struct debobs_pad *e = &debobs_pads[pad_number];
 +
-+	if (reg_set == 0) {
-+		store = kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
-+		ptr = store;
-+		pm_dbg_regset_store(ptr);
-+	} else {
-+		ptr = pm_dbg_reg_set[reg_set - 1];
-+	}
++	size = snprintf(buffer, sizeof(buffer), "%s\n",
++			debobs_pad_mode_names[e->mode]);
++	return simple_read_from_buffer(user_buf, count, ppos, buffer, size);
++}
 +
-+	i = 0;
++static ssize_t debobs_mode_write(struct file *file, const char __user *user_buf,
++				size_t count, loff_t *ppos)
++{
++	char buffer[10];
++	int buf_size, i, pad_number;
++	u16 muxmode = OMAP34XX_MUX_MODE7;
 +
-+	while (pm_dbg_reg_modules[i].name[0] != 0) {
-+		regs = 0;
-+		linefeed = 0;
-+		if (pm_dbg_reg_modules[i].type == MOD_CM)
-+			seq_printf(s, "MOD: CM_%s (%08x)\n",
-+				pm_dbg_reg_modules[i].name,
-+				(u32)(OMAP3430_CM_BASE +
-+				pm_dbg_reg_modules[i].offset));
-+		else
-+			seq_printf(s, "MOD: PRM_%s (%08x)\n",
-+				pm_dbg_reg_modules[i].name,
-+				(u32)(OMAP3430_PRM_BASE +
-+				pm_dbg_reg_modules[i].offset));
++	memset(buffer, 0, sizeof(buffer));
++	buf_size = min(count, (sizeof(buffer)-1));
 +
-+		for (j = pm_dbg_reg_modules[i].low;
-+			j <= pm_dbg_reg_modules[i].high; j += 4) {
-+			val = *(ptr++);
-+			if (val != 0) {
-+				regs++;
-+				if (linefeed) {
-+					seq_printf(s, "\n");
-+					linefeed = 0;
-+				}
-+				seq_printf(s, "  %02x => %08lx", j, val);
-+				if (regs % 4 == 0)
-+					linefeed = 1;
++	if (copy_from_user(buffer, user_buf, buf_size))
++		return -EFAULT;
++
++	pad_number = (int)file->private_data;
++
++	for (i = 0; i < NO_MODE; i++) {
++		if (!strnicmp(debobs_pad_mode_names[i],
++				buffer,
++				strlen(debobs_pad_mode_names[i]))) {
++			switch (i) {
++			case ETK:
++				muxmode = OMAP34XX_MUX_MODE0;
++				break;
++			case GPIO:
++				muxmode = OMAP34XX_MUX_MODE4;
++				break;
++			case OBS:
++				muxmode = OMAP34XX_MUX_MODE7;
++				break;
 +			}
++			omap_ctrl_writew(muxmode,
++					OMAP343X_PADCONF_ETK(pad_number));
++			debobs_pads[pad_number].mode = i;
++
++			return count;
 +		}
-+		seq_printf(s, "\n");
-+		i++;
 +	}
 +
-+	if (store != NULL)
-+		kfree(store);
-+
-+	return 0;
++	return -EINVAL;
 +}
 +
-+static void pm_dbg_regset_store(u32 *ptr)
-+{
-+	int i, j;
-+	u32 val;
-+
-+	i = 0;
-+
-+	while (pm_dbg_reg_modules[i].name[0] != 0) {
-+		for (j = pm_dbg_reg_modules[i].low;
-+			j <= pm_dbg_reg_modules[i].high; j += 4) {
-+			if (pm_dbg_reg_modules[i].type == MOD_CM)
-+				val = cm_read_mod_reg(
-+					pm_dbg_reg_modules[i].offset, j);
-+			else
-+				val = prm_read_mod_reg(
-+					pm_dbg_reg_modules[i].offset, j);
-+			*(ptr++) = val;
-+		}
-+		i++;
-+	}
-+}
-+
-+int pm_dbg_regset_save(int reg_set)
-+{
-+	if (pm_dbg_reg_set[reg_set-1] == NULL)
-+		return -EINVAL;
-+
-+	pm_dbg_regset_store(pm_dbg_reg_set[reg_set-1]);
-+
-+	return 0;
-+}
-+
- static const char pwrdm_state_names[][4] = {
- 	"OFF",
- 	"RET",
-@@ -280,6 +435,11 @@ static int pm_dbg_open(struct inode *inode, struct file *file)
- 	};
- }
- 
-+static int pm_dbg_reg_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, pm_dbg_show_regs, inode->i_private);
-+}
-+
- static const struct file_operations debug_fops = {
- 	.open           = pm_dbg_open,
- 	.read           = seq_read,
-@@ -287,6 +447,37 @@ static const struct file_operations debug_fops = {
- 	.release        = single_release,
- };
- 
-+static const struct file_operations debug_reg_fops = {
-+	.open           = pm_dbg_reg_open,
-+	.read           = seq_read,
-+	.llseek         = seq_lseek,
-+	.release        = single_release,
++static const struct file_operations debobs_mode_fops = {
++	.open 	= debobs_mode_open,
++	.read	= debobs_mode_read,
++	.write	= debobs_mode_write,
 +};
 +
-+int pm_dbg_regset_init(int reg_set)
++static int debobs_get(void *data, u64 *val)
 +{
-+	char name[2];
++	struct obs *o = data;
 +
-+	if (reg_set < 1 || reg_set > PM_DBG_MAX_REG_SETS ||
-+		pm_dbg_reg_set[reg_set-1] != NULL)
-+		return -EINVAL;
-+
-+	pm_dbg_reg_set[reg_set-1] =
-+		kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
-+
-+	if (pm_dbg_reg_set[reg_set-1] == NULL)
-+		return -ENOMEM;
-+
-+	if (pm_dbg_dir != NULL) {
-+		sprintf(name, "%d", reg_set);
-+
-+		(void) debugfs_create_file(name, S_IRUGO,
-+			pm_dbg_dir, (void *)reg_set, &debug_reg_fops);
-+	}
++	*val = o->value;
 +
 +	return 0;
 +}
 +
- static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- {
- 	int i;
-@@ -304,7 +495,9 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
- 
- static int __init pm_dbg_init(void)
- {
-+	int i;
- 	struct dentry *d;
-+	char name[2];
- 
- 	d = debugfs_create_dir("pm_debug", NULL);
- 	if (IS_ERR(d))
-@@ -317,6 +510,21 @@ static int __init pm_dbg_init(void)
- 
- 	pwrdm_for_each(pwrdms_setup, NULL);
- 
-+	pm_dbg_dir = debugfs_create_dir("registers", d);
-+	if (IS_ERR(pm_dbg_dir))
-+		return PTR_ERR(pm_dbg_dir);
++static int debobs_set(void *data, u64 val)
++{
++	struct obs *o = data;
 +
-+	(void) debugfs_create_file("current", S_IRUGO,
-+		pm_dbg_dir, (void *)0, &debug_reg_fops);
++	val &= BIT(o->mask) - 1;
 +
-+	for (i = 0; i < PM_DBG_MAX_REG_SETS; i++)
-+		if (pm_dbg_reg_set[i] != NULL) {
-+			sprintf(name, "%d", i+1);
-+			(void) debugfs_create_file(name, S_IRUGO,
-+				pm_dbg_dir, (void *)(i+1), &debug_reg_fops);
++	omap_ctrl_writeb(val, o->offset);
++	o->value = val;
 +
-+		}
++	return 0;
++}
 +
- 	pm_dbg_init_done = 1;
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-old mode 100644
-new mode 100755
-index 4589db1..8fa8567
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -17,10 +17,14 @@
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
- extern int omap2_pm_debug;
- extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
-+extern int pm_dbg_regset_save(int reg_set);
-+extern int pm_dbg_regset_init(int reg_set);
- #else
- #define omap2_pm_dump(mode, resume, us)		do {} while (0);
- #define omap2_pm_debug				0
- #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
-+#define pm_dbg_regset_save(reg_set) do {} while (0);
-+#define pm_dbg_regset_init(reg_set) do {} while (0);
- #endif /* CONFIG_PM_DEBUG */
- 
- extern void omap24xx_idle_loop_suspend(void);
++DEFINE_SIMPLE_ATTRIBUTE(debobs_fops, debobs_get, debobs_set, "%llu\n");
++
++static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
++					int number, struct dentry *root)
++{
++	struct dentry *d;
++	struct obs *o;
++
++	d = debugfs_create_dir(name, root);
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	omap_ctrl_writew(OMAP34XX_MUX_MODE4, OMAP343X_PADCONF_ETK(number));
++	gpio_direction_input(ETK_GPIO(number));
++	gpio_export(ETK_GPIO(number), 1);
++	(void) debugfs_create_file("mode", S_IRUGO | S_IWUGO, d,
++					(void *)number, &debobs_mode_fops);
++
++	o = &pad->core_obs;
++	o->offset = OMAP343X_CONTROL_DEBOBS(number);
++	o->value = omap_ctrl_readw(o->offset);
++	o->mask = 7;
++	(void) debugfs_create_file("coreobs", S_IRUGO | S_IWUGO, d, o,
++					&debobs_fops);
++
++	o = &pad->wakeup_obs;
++	o->offset = OMAP343X_CONTROL_WKUP_DEBOBSMUX(number);
++	o->value = omap_ctrl_readb(o->offset);
++	o->mask = 5;
++	(void) debugfs_create_file("wakeupobs", S_IRUGO | S_IWUGO, d, o,
++					&debobs_fops);
++
++	return 0;
++}
++
++/* Public functions */
++
++void debug_gpio_set(unsigned gpio, int value)
++{
++	if (!debobs_initialized)
++		return ;
++
++	WARN_ON(gpio >= NUM_OF_DEBOBS_PADS);
++	if (gpio < NUM_OF_DEBOBS_PADS)
++		__gpio_set_value(ETK_GPIO(gpio), value);
++}
++
++int debug_gpio_get(unsigned gpio)
++{
++	if (!debobs_initialized)
++		return -EINVAL;
++
++	WARN_ON(gpio >= NUM_OF_DEBOBS_PADS);
++	if (gpio < NUM_OF_DEBOBS_PADS)
++		return __gpio_get_value(ETK_GPIO(gpio));
++
++	return -EINVAL;
++}
++
++int __init init_debobs(void)
++{
++	struct dentry *debobs_root;
++	int i, err;
++	char name[10];
++
++	debobs_root = debugfs_create_dir("debobs", NULL);
++	if (IS_ERR(debobs_root))
++		return PTR_ERR(debobs_root);
++
++	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++) {
++		snprintf(name, sizeof(name), "hw_dbg%d", i);
++		if (!gpio_request(ETK_GPIO(i), name)) {
++			err = _new_debobs_pad(&debobs_pads[i], name, i,
++						debobs_root);
++		} else
++			gpio_free(ETK_GPIO(i));
++	}
++
++	debobs_initialized = 1;
++
++	return 0;
++}
++
++late_initcall_sync(init_debobs);
+diff --git a/arch/arm/plat-omap/include/mach/debobs.h b/arch/arm/plat-omap/include/mach/debobs.h
+new file mode 100644
+index 0000000..67f765d
+--- /dev/null
++++ b/arch/arm/plat-omap/include/mach/debobs.h
+@@ -0,0 +1,7 @@
++#ifndef __DEBOBS_H
++#define __DEBOBS_H
++
++void debug_gpio_set(unsigned gpio, int value);
++int debug_gpio_get(unsigned gpio);
++
++#endif
 -- 
 1.6.4
 
