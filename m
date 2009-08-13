@@ -1,71 +1,63 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv3 13/20] OMAP: McBSP: Do not enable wakeups for no-idle mode
-Date: Thu, 13 Aug 2009 17:35:26 +0300
-Message-ID: <1250174133-451-14-git-send-email-eduardo.valentin@nokia.com>
-References: <1250174133-451-1-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-2-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-3-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-4-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-5-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-6-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-7-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-8-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-9-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-10-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-11-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-12-git-send-email-eduardo.valentin@nokia.com>
- <1250174133-451-13-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv3 00/20] OMAP ASoC changes in DMA utilization
+Date: Thu, 13 Aug 2009 17:35:13 +0300
+Message-ID: <1250174133-451-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:38974 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753732AbZHMOst (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:48:49 -0400
-In-Reply-To: <1250174133-451-13-git-send-email-eduardo.valentin@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:57816 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753933AbZHMOsy (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:48:54 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, "\\\"Ujfalusi Peter (Nokia-D/Tampere)\\\"" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Hello again guys,
 
-When no-idle mode is taken, wakeups need not to be enabled.
-Moreover, CLOCKACTIVITY bits are unnecessary with this mode
-also.
+Here is version 3 of these changes. I've changed just 2
+things:
+- all mcbsp instances are in element mode by default
+- moved all mcbsp related code to omap-mcbsp.c
+(although a single callback is still needed)
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Acked-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- arch/arm/plat-omap/mcbsp.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+Jarkko, I think we can add your patch for reading strings
+for dma op mode later on.
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 8a78b61..c6df47d 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -319,16 +319,17 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- 		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
- 
- 		spin_lock_irq(&mcbsp->lock);
--		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
--			syscon |= SIDLEMODE(0x02);
--		else
-+		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
-+			syscon |= (ENAWAKEUP | SIDLEMODE(0x02) |
-+					CLOCKACTIVITY(0x02));
-+			OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN,
-+					XRDYEN | RRDYEN);
-+		} else {
- 			syscon |= SIDLEMODE(0x01);
-+		}
- 		spin_unlock_irq(&mcbsp->lock);
- 
--		syscon |= (ENAWAKEUP | CLOCKACTIVITY(0x02));
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
--
--		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, XRDYEN | RRDYEN);
- 	}
- }
- 
--- 
-1.6.2.GIT
+BR,
+
+Eduardo Valentin (11):
+  OMAP: McBSP: Add IRQEN, IRQSTATUS, THRESHOLD2 and THRESHOLD1
+    registers.
+  OMAP: McBSP: Use appropriate value for startup delay
+  OMAP: McBSP: Add transmit/receive threshold handler
+  OMAP: McBSP: Create and export max_(r|t)x_thres property
+  OMAP: McBSP: Rename thres sysfs symbols
+  OMAP: McBSP: Change wakeup signals
+  OMAP: McBSP: Configure NO IDLE mode for DMA mode different of
+    threshold
+  ASoC: OMAP: Make DMA 64 aligned
+  ASoC: OMAP: Enable DMA burst mode
+  ASoC: OMAP: Use McBSP threshold to playback and capture
+  ASoC: OMAP: Use DMA operating mode of McBSP
+
+Eero Nurkkala (7):
+  OMAP: McBSP: Provide functions for ASoC frame syncronization
+  OMAP: McBSP: Wakeups utilized
+  OMAP: McBSP: Retain McBSP FCLK clockactivity
+  OMAP: McBSP: Do not enable wakeups for no-idle mode
+  OMAP: McBSP: Let element DMA mode hit retention also
+  ASoC: Add runtime check for RFIG and XFIG
+  ASoC: Always syncronize audio transfers on frames
+
+Peter Ujfalusi (2):
+  OMAP3: McBSP: Lower the maximum buffersize for McBSP1,3,4,5
+  OMAP: McBSP: Add link DMA mode selection
+
+ arch/arm/mach-omap2/mcbsp.c             |    5 +
+ arch/arm/plat-omap/include/mach/mcbsp.h |   49 ++++
+ arch/arm/plat-omap/mcbsp.c              |  377 ++++++++++++++++++++++++++++++-
+ sound/soc/omap/omap-mcbsp.c             |   77 ++++++-
+ sound/soc/omap/omap-pcm.c               |   14 +-
+ sound/soc/omap/omap-pcm.h               |    2 +
+ 6 files changed, 511 insertions(+), 13 deletions(-)
 
