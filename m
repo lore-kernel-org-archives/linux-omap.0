@@ -1,63 +1,74 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] OMAP2/3: DMA errata correction
-Date: Thu, 13 Aug 2009 07:18:15 -0700
-Message-ID: <871vnfkdaw.fsf@deeprootsystems.com>
-References: <1250128880-1517-1-git-send-email-vikram.pandita@ti.com>
+Subject: Re: 3430SDP: Build break in pm-2.6.29 branch
+Date: Thu, 13 Aug 2009 07:25:15 -0700
+Message-ID: <87skfviyes.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0306050762@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f196.google.com ([209.85.216.196]:39752 "EHLO
-	mail-px0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751869AbZHMOSQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:18:16 -0400
-Received: by pxi34 with SMTP id 34so38654pxi.4
-        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 07:18:18 -0700 (PDT)
-In-Reply-To: <1250128880-1517-1-git-send-email-vikram.pandita@ti.com> (Vikram Pandita's message of "Wed\, 12 Aug 2009 21\:01\:20 -0500")
+Received: from mail-pz0-f196.google.com ([209.85.222.196]:50605 "EHLO
+	mail-pz0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103AbZHMOZU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 10:25:20 -0400
+Received: by pzk34 with SMTP id 34so584275pzk.4
+        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 07:25:21 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0306050762@dbde02.ent.ti.com> (Anand Gadiyar's message of "Thu\, 13 Aug 2009 11\:10\:22 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Vikram Pandita <vikram.pandita@ti.com> writes:
+"Gadiyar, Anand" <gadiyar@ti.com> writes:
 
-> This errata is valid for:
-> OMAP2420 Errata 1.85 Impacts all 2420 ES rev
-> OMAP2430 Errata 1.10 Impacts only ES1.0
-> Description: DMA may hang when several channels are used in parallel
+> With the omap_3430sdp_pm_defconfig, I get the following build break
 >
-> OMAP3430: Not impacted, so remove the errata fix for omap3
->
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> Reviewed-by: Kamat, Nishant <nskamat@ti.com>
+>   CC      arch/arm/mach-omap2/pm34xx.o
+> arch/arm/mach-omap2/pm34xx.c: In function 'prcm_interrupt_handler':
+> arch/arm/mach-omap2/pm34xx.c:286: error: 'OMAP3_PRM_IRQSTATUS_MPU_OFFSET' undeclared (first use in this function)
+> arch/arm/mach-omap2/pm34xx.c:286: error: (Each undeclared identifier is reported only once
+> arch/arm/mach-omap2/pm34xx.c:286: error: for each function it appears in.)
+> make[1]: *** [arch/arm/mach-omap2/pm34xx.o] Error 1
+> make: *** [arch/arm/mach-omap2] Error 2
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Thanks for the report.  This is a problem with my backport of Jon
+Hunter's PRCM IRQ rework.
 
-> ---
-> [Note: Respin of - 
-> http://patchwork.kernel.org/patch/32513/
-> Incorporated Nishant's review comment]
->  arch/arm/plat-omap/dma.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 34939bf..bf08634 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -946,7 +946,9 @@ void omap_start_dma(int lch)
->  
->  			cur_lch = next_lch;
->  		} while (next_lch != -1);
-> -	} else if (cpu_class_is_omap2()) {
-> +	} else if (cpu_is_omap242x() ||
-> +		(cpu_is_omap243x() &&  omap_type() <= OMAP2430_REV_ES1_0)) {
-> +
->  		/* Errata: Need to write lch even if not using chaining */
->  		dma_write(lch, CLNK_CTRL(lch));
->  	}
-> -- 
-> 1.6.3.3.334.g916e1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Just pushed the fix below to pm-2.6.29.
+
+Kevin
+
+
+commit e63cf0710a4fb639d91d3e8b05aa485fbfa381b3
+Author: Kevin Hilman <khilman@deeprootsystems.com>
+Date:   Thu Aug 13 07:21:15 2009 -0700
+
+    OMAP3: PM: PRCM IRQ rework: fix backport error.
+    
+    Reported-by: Anand Gadiyar <gadiyar@ti.com>
+    Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 1fee053..a064605 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -283,7 +283,7 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ 
+ 	do {
+ 		irqstatus_mpu = prm_read_mod_reg(OCP_MOD,
+-					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
++					OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
+ 
+ 		if (irqstatus_mpu & (OMAP3430_WKUP_ST | OMAP3430_IO_ST)) {
+ 			c = _prcm_int_handle_wakeup();
+@@ -301,9 +301,9 @@ static irqreturn_t prcm_interrupt_handler (int irq, void *dev_id)
+ 		}
+ 
+ 		prm_write_mod_reg(irqstatus_mpu, OCP_MOD,
+-					OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
++					OMAP2_PRM_IRQSTATUS_MPU_OFFSET);
+ 
+-	} while (prm_read_mod_reg(OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET));
++	} while (prm_read_mod_reg(OCP_MOD, OMAP2_PRM_IRQSTATUS_MPU_OFFSET));
+ 
+ 	return IRQ_HANDLED;
+ }
