@@ -1,74 +1,83 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH v2 1/6] ARM: OMAP4: PM: Fix the PRM and CM base addresses
-Date: Thu, 13 Aug 2009 08:06:51 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444A783459@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89444A6ED4DB@dlee02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0306050809@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: PM branch update: rebase to .31-rc, added omap_hwmod/omap_device
+Date: Thu, 13 Aug 2009 06:03:51 -0700
+Message-ID: <873a7voog8.fsf@deeprootsystems.com>
+References: <87fxcqq44h.fsf@deeprootsystems.com>
+	<00f101ca1b5a$6e519f50$LocalHost@wipultra793>
+	<87my65yt8k.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0306050777@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38520 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751999AbZHMNDX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 09:03:23 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0306050809@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from wf-out-1314.google.com ([209.85.200.173]:19999 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049AbZHMNDx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 09:03:53 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so244876wfd.4
+        for <linux-omap@vger.kernel.org>; Thu, 13 Aug 2009 06:03:54 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0306050777@dbde02.ent.ti.com> (Teerth Reddy's message of "Thu\, 13 Aug 2009 11\:30\:57 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Nayak, Rajendra" <rnayak@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "V, Hemanth" <hemanthv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Rajendra,
+"Reddy, Teerth" <teerth@ti.com> writes:
 
-<snip>
+> I did some testing with the current PM branch and don't see this issue on SDP. 
 
-> >> +#define OMAP4430_CM1_BASE		0x4a004000
-> >> +#define OMAP4430_CM_BASE		OMAP4430_CM1_BASE
-> >
-> >Why do you need 2 defines for the same value?
-> 
-> Hi Sergio,
-> PRCM had just one CM module in OMAP2/3 and OMAP4 has
-> 2 of them , CM1 and CM2.
+Thanks for testing.
 
-That I can understand...
+> I could not find the patch which fixes this issue. Can you please
+> point us to the patch which fixes this issue?
 
-> The older CM defines are now mapped to CM1
-> for OMAP4 and new ones created for CM2.
+To be honest, I actually don't know which patch fixed the issue.  I saw the
+problem during some early testing of the latest PM branch, and in the process
+of restructuring the tree it went away.
 
-Ok, but if you're trying to set that convention, IMHO either keep one or the another.
+More than likely, I had left out part of the series when reorganizing
+that caused this temporary problem.
 
-For example, you can keep only this definition:
+I think I'll remove it from the 'known problems' list as it appears to
+have been operator error on my part.
 
-#define OMAP4430_CM1_BASE		0x4a004000
+Kevin
 
-And change in all the currently merged code from CM to CM1...
 
-Anyways, its just my thoughts... Of course you're free to take them or not.
-
-Thanks and Regards,
-Sergio
-
-> 
-> regards,
-> Rajendra
-> >
-> >Regards,
-> >Sergio
-> >
-> >> +#define OMAP4430_CM2_BASE		0x4a008000
-> >> +#define OMAP4430_PRM_BASE		0x4a306000
-> >>  #define OMAP44XX_GPMC_BASE		0x50000000
-> >>  #define OMAP443X_SCM_BASE		0x4a002000
-> >>  #define OMAP443X_CTRL_BASE		OMAP443X_SCM_BASE
-> >> --
-> >> 1.5.4.7
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe
-> >linux-omap" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
+>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Wednesday, August 12, 2009 8:28 PM
+> To: V, Hemanth
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: PM branch update: rebase to .31-rc, added omap_hwmod/omap_device
+>
+> "Hemanth V" <hemanthv@ti.com> writes:
+>
+>> ----- Original Message ----- 
+>> From: "Kevin Hilman" <khilman@deeprootsystems.com>
+>>> Known problems:
+>>
+>>> - network drivers and off-mode
+>>>  - various hangs when using off-while-idle and NFS-mounted rootfs
+>>>  - network drivers likely need some context save/restore support
+>>
+>> Kevin, was this known to work earlier. Could this be related to
+>> GPMC context save/restore.
+>
+> I wrote this based on some early testing of the latest PM branch,
+> where I may of still had some bugs.  But I also have not seen
+> this in a while, so it may have been just a problem when I was
+> reworking/reordering the context save/restore code.
+>
+> I decided to leave it in the 'known problems' list in case anyone else
+> has seen it and because I didn't go back and re-test all the boards
+> for this issue.
+>
+> I don't see any issues on SDP or EVM anymore, have you tested the
+> current PM branch for this?
+>
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
