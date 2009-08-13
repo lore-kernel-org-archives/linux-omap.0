@@ -1,25 +1,28 @@
 From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH 9/9] OMAP2: n8x0: add n8x0_defconfig
-Date: Thu, 13 Aug 2009 10:18:59 +0100
-Message-ID: <20090813091859.GQ6132@n2100.arm.linux.org.uk>
-References: <20090811094348.32577.81307.stgit@localhost> <20090811095716.32577.2424.stgit@localhost>
+Subject: Re: [PATCH 01/10] OMAP: iommu: fix wrong argument in
+	flush_cache_vmap()
+Date: Thu, 13 Aug 2009 10:21:10 +0100
+Message-ID: <20090813092110.GR6132@n2100.arm.linux.org.uk>
+References: <20090812120926.17601.85860.stgit@localhost> <20090812121200.17601.61014.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52963 "EHLO
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52967 "EHLO
 	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753870AbZHMJTM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 05:19:12 -0400
+	with ESMTP id S1753868AbZHMJVU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 13 Aug 2009 05:21:20 -0400
 Content-Disposition: inline
-In-Reply-To: <20090811095716.32577.2424.stgit@localhost>
+In-Reply-To: <20090812121200.17601.61014.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tony Lindgren <tony@atomide.com>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Kalle Valo <kalle.valo@iki.fi>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-On Tue, Aug 11, 2009 at 12:57:16PM +0300, Tony Lindgren wrote:
-> From: Kalle Valo <kalle.valo@iki.fi>
+On Wed, Aug 12, 2009 at 03:12:00PM +0300, Tony Lindgren wrote:
+> From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 > 
-> Add defconfig file for OMAP2 N800 and N810 devices.
+> The second argument should be the end address, not the
+> length. Actually there will not be any effect on the behavior of this
+> driver since flush_cache_vmap() calls flush_cache_all() in the end.
 
 Ok.
