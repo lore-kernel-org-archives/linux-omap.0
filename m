@@ -1,151 +1,239 @@
 From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [RFC][PATCH 1/3] RTC periodic interrupts enabling and msecure
- init
-Date: Fri, 14 Aug 2009 15:26:41 +0300
-Message-ID: <4A855801.8070102@nokia.com>
-References: <1250091924-5399-1-git-send-email-charu@ti.com>
+Subject: Re: [RFC][PATCH 3/3] board files for msecure line mux configuration
+Date: Fri, 14 Aug 2009 15:42:48 +0300
+Message-ID: <4A855BC8.5030608@nokia.com>
+References: <1250091945-5472-1-git-send-email-charu@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:16554 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756630AbZHNM1N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Aug 2009 08:27:13 -0400
-In-Reply-To: <1250091924-5399-1-git-send-email-charu@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:62062 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756692AbZHNMnY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Aug 2009 08:43:24 -0400
+In-Reply-To: <1250091945-5472-1-git-send-email-charu@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "ext charu@ti.com" <charu@ti.com>
 Cc: linux-omap@vger.kernel.org, tony@atomide.com, david-b@pacbell.net, sameo@linux.intel.com, p_gortmaker@yahoo.com
 
 ext charu@ti.com wrote:
-> Triton2 RTC code changes for fixing periodic interrupt feature in RTC.
-> rtc-twlcore.c does initialisation of the msecure gpio pin. 
-> Board files indicate msecure gpio line through twl4030 platform data. 
-> twl4030-core.c passes this information to RTC driver.
-> Board files does msecure gpio mux configuration.
-> 
-> 
-> Signed-off-by: Charulatha V <charu@ti.com>
+ > Board files do platform dependent msecure line mux configuration.
+ > Board files initialize rtc platform data.
+ > RTC platform data required for configuring msecure line in rtc-twl4030.c.
+ > mux.c and mux.h files modified for defining muxed RTC msecure GPIO lines.
+ > These msecure lines are used in various twl4030 based platforms.
+ >
+ >
+ >
+ > +int sdp3430_rtc_init(void)
+ > +{
+ > +	/* msecure mux cfg */
+ > +	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
+ > +			omap_rev() < OMAP3430_REV_ES2_0)
+ > +		return omap_cfg_reg(AF9_34XX_V1_X_GPIO22_OUT);
+ > +	else
+ > +		return 0;
+ > +};
+ > +
+ >  static void __init omap_3430sdp_init(void)
+ >  {
+ >  	omap3430_i2c_init();
+ > @@ -585,6 +600,9 @@ static void __init omap_3430sdp_init(void)
+ >  	sdp3430_spi_board_info[0].irq = gpio_to_irq(ts_gpio);
+ >  	spi_register_board_info(sdp3430_spi_board_info,
+ >  				ARRAY_SIZE(sdp3430_spi_board_info));
+ > +	if (sdp3430_rtc_init())
+ > +		printk(KERN_ERR "Failed to configure msecure gpio: "
+ > +			"RTC functionality will not be available\n");
 
-Periodic interrupts and msecure are 2 different entities. I think they should be 
-implemented in different patches.
+You are printing this here, but since .rtc is already provided
+the GPIO will be allocated and used by the twl4030 rtc driver.
+Instead it will be better to set .rtc platform data to null at run time
+before calling omap3430_i2c_init() so at least RTC functionality can be used.
 
-> ---
->  drivers/rtc/rtc-twl4030.c |   63 ++++++++++++++++++++++++++++++++++++++++++++-
->  1 files changed, 62 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl4030.c
-> index 9c8c70c..614adf0 100644
-> --- a/drivers/rtc/rtc-twl4030.c
-> +++ b/drivers/rtc/rtc-twl4030.c
-> @@ -29,7 +29,12 @@
->  #include <linux/interrupt.h>
->  
->  #include <linux/i2c/twl4030.h>
-> +#include <linux/gpio.h>
->  
-> +/*
-> + * To find if the value is a power of two
-> + */
-> +#define is_power_of_two(x)    (!((x) & ((x)-1)))
->  
->  /*
->   * RTC block register offsets (use TWL_MODULE_RTC)
-> @@ -86,6 +91,37 @@
->  /*----------------------------------------------------------------------*/
->  
->  /*
-> + * msecure line initialisation for TWL4030 RTC registers write access
-> + */
-> +static int msecure_init(struct twl4030_rtc_platform_data *pdata)
-> +{
-> +	int ret = 0;
-> +	if (pdata == NULL)
-> +		goto out;
-> +
-> +	ret = gpio_request(pdata->msecure_gpio, "msecure");
-> +	if (ret < 0) {
-
-if (ret) should suffice
-
-> +		pr_err("twl4030_rtc: can't reserve msecure GPIO:%d !\n"
-> +			"RTC functionality will not be available\n",
-> +			pdata->msecure_gpio);
-> +		goto out;
-> +	}
-> +	/*
-> +	 * TWL4030 will be in secure mode if msecure line from OMAP is low.
-> +	 * Make msecure line high in order to change the TWL4030 RTC time
-> +	 * and calender registers.
-> +	 */
-> +	ret = gpio_direction_output(pdata->msecure_gpio, 1);
-> +	if (ret < 0)
+ >  	ads7846_dev_init();
+ >  	omap_serial_init();
+ >  	usb_musb_init();
+ > diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+ > index 73e2bbb..ee66a35 100644
+ > --- a/arch/arm/mach-omap2/board-ldp.c
+ > +++ b/arch/arm/mach-omap2/board-ldp.c
+ > @@ -33,6 +33,7 @@
+ >  #include <asm/mach/map.h>
+ >
+ >  #include <mach/mcspi.h>
+ > +#include <mach/mux.h>
+ >  #include <mach/gpio.h>
+ >  #include <mach/board.h>
+ >  #include <mach/common.h>
+ > @@ -45,6 +46,8 @@
+ >
+ >  #include "mmc-twl4030.h"
+ >
+ > +#define TWL4030_MSECURE_GPIO	22
+ > +
+ >  #define LDP_SMSC911X_CS		1
+ >  #define LDP_SMSC911X_GPIO	152
+ >  #define DEBUG_BASE		0x08000000
+ > @@ -306,6 +309,10 @@ static struct twl4030_gpio_platform_data ldp_gpio_data = {
+ >  	.irq_end	= TWL4030_GPIO_IRQ_END,
+ >  };
+ >
+ > +static struct twl4030_rtc_platform_data ldp_rtc_data = {
+ > +	.msecure_gpio	= TWL4030_MSECURE_GPIO,
+ > +};
+ > +
+ >  static struct twl4030_madc_platform_data ldp_madc_data = {
+ >  	.irq_line	= 1,
+ >  };
+ > @@ -338,6 +345,7 @@ static struct twl4030_platform_data ldp_twldata = {
+ >  	.usb		= &ldp_usb_data,
+ >  	.vmmc1		= &ldp_vmmc1,
+ >  	.gpio		= &ldp_gpio_data,
+ > +	.rtc		= &ldp_rtc_data,
+ >  	.keypad		= &ldp_kp_twl4030_data,
+ >  };
+ >
+ > @@ -375,6 +383,16 @@ static struct platform_device *ldp_devices[] __initdata = {
+ >  	&ldp_gpio_keys_device,
+ >  };
+ >
+ > +int ldp_rtc_init(void)
+ > +{
+ > +	/* msecure mux cfg */
+ > +	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
+ > +			omap_rev() < OMAP3430_REV_ES2_0)
+ > +		return omap_cfg_reg(AF9_34XX_V1_X_GPIO22_OUT);
+ > +	else
+ > +		return 0;
+ > +}
+ > +
+ >  static void __init omap_ldp_init(void)
+ >  {
+ >  	omap_i2c_init();
+ > @@ -383,6 +401,9 @@ static void __init omap_ldp_init(void)
+ >  	ldp_spi_board_info[0].irq = gpio_to_irq(ts_gpio);
+ >  	spi_register_board_info(ldp_spi_board_info,
+ >  				ARRAY_SIZE(ldp_spi_board_info));
+ > +	if (ldp_rtc_init())
+ > +		printk(KERN_ERR "Failed to configure msecure gpio: "
+ > +			"RTC functionality will not be available\n");
 
 ditto
 
-> +		pr_err("twl4030_rtc: can't set msecure GPIO direction:%d !\n"
-> +			"RTC functionality will not be available\n",
-> +			pdata->msecure_gpio);
-> +
-> +out:
-> +	return ret;
-> +}
-> +
-> +/*
->   * Supports 1 byte read from TWL4030 RTC register.
->   */
->  static int twl4030_rtc_read_u8(u8 *data, u8 reg)
-> @@ -128,7 +164,6 @@ static int set_rtc_irq_bit(unsigned char bit)
->  	int ret;
->  
->  	val = rtc_irq_bits | bit;
-> -	val &= ~BIT_RTC_INTERRUPTS_REG_EVERY_M;
->  	ret = twl4030_rtc_write_u8(val, REG_RTC_INTERRUPTS_REG);
->  	if (ret == 0)
->  		rtc_irq_bits = val;
-> @@ -318,6 +353,25 @@ out:
->  	return ret;
->  }
->  
-> +static int twl4030_rtc_irq_set_freq(struct device *dev, int freq)
-> +{
-> +	int ret, val = 1;
-> +	int regbit = 0;
-> +
-> +	if ((!is_power_of_2(freq)) || (freq > 8) || (freq <= 0))
-> +		return -EINVAL;
+ >  	ads7846_dev_init();
+ >  	omap_serial_init();
+ >  	usb_musb_init();
+ > diff --git a/arch/arm/mach-omap2/board-omap3beagle.c 
+b/arch/arm/mach-omap2/board-omap3beagle.c
+ > index 0c427ec..84e1bca 100644
+ > --- a/arch/arm/mach-omap2/board-omap3beagle.c
+ > +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+ > @@ -259,6 +259,7 @@ static struct twl4030_platform_data beagle_twldata = {
+ >
+ >  	/* platform_data for children goes here */
+ >  	.gpio		= &beagle_gpio_data,
+ > +	.rtc		= NULL,
 
-0 is valid freq. it means disable periodic interrupts.
+not required as it will be NULL by default.
 
-> +
-> +	while ((freq & val) == 0) {
-> +		val = val << 1;
-> +		regbit++;
-> +	}
+ >  	.vmmc1		= &beagle_vmmc1,
+ >  	.vsim		= &beagle_vsim,
+ >  	.vdac		= &beagle_vdac,
+ > diff --git a/arch/arm/mach-omap2/board-omap3evm.c 
+b/arch/arm/mach-omap2/board-omap3evm.c
+ > index b35efaa..d667843 100644
+ > --- a/arch/arm/mach-omap2/board-omap3evm.c
+ > +++ b/arch/arm/mach-omap2/board-omap3evm.c
+ > @@ -206,6 +206,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
+ >  	.madc		= &omap3evm_madc_data,
+ >  	.usb		= &omap3evm_usb_data,
+ >  	.gpio		= &omap3evm_gpio_data,
+ > +	.rtc		= NULL,
 
-as per your implementation, if user sets interrupt rate of 4 Hz then you will 
-set regbit to 2 which means interrupt every hour? i.e. 0.00027 Hz. no?
+ditto
 
-> +	ret = set_rtc_irq_bit(regbit);
-> +	if (ret)
-> +		dev_err(dev, "rtc_irq_set_freq error %d\n", ret);
-> +
-> +	return ret;
-> +}
-> +
->  static irqreturn_t twl4030_rtc_interrupt(int irq, void *rtc)
->  {
->  	unsigned long events = 0;
-> @@ -383,6 +437,7 @@ static struct rtc_class_ops twl4030_rtc_ops = {
->  	.set_alarm	= twl4030_rtc_set_alarm,
->  	.alarm_irq_enable = twl4030_rtc_alarm_irq_enable,
->  	.update_irq_enable = twl4030_rtc_update_irq_enable,
-> +	.irq_set_freq   = twl4030_rtc_irq_set_freq,
+ >  };
+ >
+ >  static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+ > diff --git a/arch/arm/mach-omap2/board-omap3pandora.c 
+b/arch/arm/mach-omap2/board-omap3pandora.c
+ > index bf6e09a..663c0ed 100644
+ > --- a/arch/arm/mach-omap2/board-omap3pandora.c
+ > +++ b/arch/arm/mach-omap2/board-omap3pandora.c
+ > @@ -285,6 +285,7 @@ static struct twl4030_platform_data omap3pandora_twldata = {
+ >  	.irq_base	= TWL4030_IRQ_BASE,
+ >  	.irq_end	= TWL4030_IRQ_END,
+ >  	.gpio		= &omap3pandora_gpio_data,
+ > +	.rtc		= NULL,
 
-IMHO this does not make sense.
-twl4030 supports a max interrupt rate of 1 Hz (i.e. 1 sec). So you can only 
-support freq values of 0 and 1 i.e. 0 for disabled and 1 for 1 sec interrupt.
-This functionality is already achieved by update_irq_enable.
+ditto
 
--roger
+ >  	.usb		= &omap3pandora_usb_data,
+ >  	.vmmc1		= &pandora_vmmc1,
+ >  	.vmmc2		= &pandora_vmmc2,
+ > diff --git a/arch/arm/mach-omap2/board-overo.c 
+b/arch/arm/mach-omap2/board-overo.c
+ > index 7f4937e..6dc590e 100644
+ > --- a/arch/arm/mach-omap2/board-overo.c
+ > +++ b/arch/arm/mach-omap2/board-overo.c
+ > @@ -338,6 +338,7 @@ static struct twl4030_platform_data overo_twldata = {
+ >  	.irq_base	= TWL4030_IRQ_BASE,
+ >  	.irq_end	= TWL4030_IRQ_END,
+ >  	.gpio		= &overo_gpio_data,
+ > +	.rtc		= NULL,
+
+ditto :)
+
+ >  	.usb		= &overo_usb_data,
+ >  	.vmmc1		= &overo_vmmc1,
+ >  };
+ > diff --git a/arch/arm/mach-omap2/board-zoom2.c 
+b/arch/arm/mach-omap2/board-zoom2.c
+ > index 56b6f00..6b84d75 100644
+ > --- a/arch/arm/mach-omap2/board-zoom2.c
+ > +++ b/arch/arm/mach-omap2/board-zoom2.c
+ > @@ -54,6 +54,7 @@ static struct twl4030_platform_data zoom2_twldata = {
+ >
+ >  	/* platform_data for children goes here */
+ >  	.gpio		= &zoom2_gpio_data,
+ > +	.rtc		= NULL,
+
+:)
+
+ >  };
+ >
+ >  static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
+ > diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+ > index 43d6b92..9e1caeb 100644
+ > --- a/arch/arm/mach-omap2/mux.c
+ > +++ b/arch/arm/mach-omap2/mux.c
+ > @@ -492,6 +492,11 @@ MUX_CFG_34XX("H16_34XX_SDRC_CKE0", 0x262,
+ >  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
+ >  MUX_CFG_34XX("H17_34XX_SDRC_CKE1", 0x264,
+ >  		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_OUTPUT)
+ > +MUX_CFG_34XX("AF9_34XX_GPIO22_OUT", 0x5ec,
+ > +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OFF_OUTPUT_HIGH)
+ > +/* AF9_34XX_V1_X_GPIO22_OUT pin used only for omap 3430 version<2.0 */
+ > +MUX_CFG_34XX("AF9_34XX_V1_X_GPIO22_OUT", 0xa3c,
+ > +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ >  };
+ >
+ >  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+ > diff --git a/arch/arm/plat-omap/include/mach/mux.h 
+b/arch/arm/plat-omap/include/mach/mux.h
+ > index 80281c4..efa9d0c 100644
+ > --- a/arch/arm/plat-omap/include/mach/mux.h
+ > +++ b/arch/arm/plat-omap/include/mach/mux.h
+ > @@ -857,6 +857,8 @@ enum omap34xx_index {
+ >  	/* OMAP3 SDRC CKE signals to SDR/DDR ram chips */
+ >  	H16_34XX_SDRC_CKE0,
+ >  	H17_34XX_SDRC_CKE1,
+ > +	AF9_34XX_GPIO22_OUT,
+ > +	AF9_34XX_V1_X_GPIO22_OUT
+ >  };
+ >
+ >  struct omap_mux_cfg {
+
+
