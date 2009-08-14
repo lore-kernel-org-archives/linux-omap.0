@@ -1,7 +1,7 @@
 From: "Guzman Lugo, Fernando" <x0095840@ti.com>
-Subject: RE: [PATCH 10/13] DSPBRIDGE: Use pr_ctxt in STRM_Close
-Date: Fri, 14 Aug 2009 14:28:54 -0500
-Message-ID: <496565EC904933469F292DDA3F1663E602A35B0D3F@dlee06.ent.ti.com>
+Subject: RE: [PATCH 11/13] DSPBRIDGE: Use pr_ctxt in STRM_AllocateBuffer
+Date: Fri, 14 Aug 2009 14:30:23 -0500
+Message-ID: <496565EC904933469F292DDA3F1663E602A35B0D41@dlee06.ent.ti.com>
 References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-2-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-3-git-send-email-ameya.palande@nokia.com>
@@ -13,15 +13,16 @@ References: <1249953714-20972-1-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-9-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-10-git-send-email-ameya.palande@nokia.com>
  <1249953714-20972-11-git-send-email-ameya.palande@nokia.com>
+ <1249953714-20972-12-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57416 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756498AbZHNT3D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Aug 2009 15:29:03 -0400
-In-Reply-To: <1249953714-20972-11-git-send-email-ameya.palande@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:36015 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757008AbZHNTac convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 14 Aug 2009 15:30:32 -0400
+In-Reply-To: <1249953714-20972-12-git-send-email-ameya.palande@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -29,113 +30,83 @@ To: Ameya Palande <ameya.palande@nokia.com>, "linux-omap@vger.kernel.org" <linux
 Cc: "hiroshi.doyu@nokia.com" <hiroshi.doyu@nokia.com>, "Ramirez Luna, Omar" <omar.ramirez@ti.com>, "Moogi, Suyog" <suyog@ti.com>, "roman.tereshonkov@nokia.com" <roman.tereshonkov@nokia.com>, "Ramos Falcon, Ernesto" <ernesto@ti.com>
 
 
+Hi,
+
 Acked-by: Fernando Guzman Lugo <x0095840@ti.com>
 
-Regards,
-Fernando.
 
 -----Original Message-----
 From: Ameya Palande [mailto:ameya.palande@nokia.com] 
 Sent: Monday, August 10, 2009 8:22 PM
 To: linux-omap@vger.kernel.org
 Cc: hiroshi.doyu@nokia.com; Ramirez Luna, Omar; Guzman Lugo, Fernando; Moogi, Suyog; roman.tereshonkov@nokia.com; Ramos Falcon, Ernesto
-Subject: [PATCH 10/13] DSPBRIDGE: Use pr_ctxt in STRM_Close
+Subject: [PATCH 11/13] DSPBRIDGE: Use pr_ctxt in STRM_AllocateBuffer
 
 Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/strm.h |    3 ++-
- drivers/dsp/bridge/pmgr/wcd.c               |    6 +-----
- drivers/dsp/bridge/rmgr/drv.c               |    5 +++--
- drivers/dsp/bridge/rmgr/strm.c              |   27 +++++----------------------
- 4 files changed, 11 insertions(+), 30 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/strm.h |    3 +-
+ drivers/dsp/bridge/pmgr/wcd.c               |    2 +-
+ drivers/dsp/bridge/rmgr/strm.c              |   28 ++++++--------------------
+ 3 files changed, 10 insertions(+), 23 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/dspbridge/strm.h b/arch/arm/plat-omap/include/dspbridge/strm.h
-index 36b128d..23a9f17 100644
+index 23a9f17..9929210 100644
 --- a/arch/arm/plat-omap/include/dspbridge/strm.h
 +++ b/arch/arm/plat-omap/include/dspbridge/strm.h
-@@ -102,7 +102,8 @@
-  *      STRM_Init(void) called.
-  *  Ensures:
-  */
--	extern DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm);
-+	extern DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
-+			struct PROCESS_CONTEXT *pr_ctxt);
+@@ -84,7 +84,8 @@
+ 	extern DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm,
+ 					      u32 uSize,
+ 					      OUT u8 **apBuffer,
+-					      u32 uNumBufs);
++					      u32 uNumBufs,
++					      struct PROCESS_CONTEXT *pr_ctxt);
  
  /*
-  *  ======== STRM_Create ========
+  *  ======== STRM_Close ========
 diff --git a/drivers/dsp/bridge/pmgr/wcd.c b/drivers/dsp/bridge/pmgr/wcd.c
-index cf3fc2d..c9b29ea 100644
+index c9b29ea..4fdcb18 100644
 --- a/drivers/dsp/bridge/pmgr/wcd.c
 +++ b/drivers/dsp/bridge/pmgr/wcd.c
-@@ -1507,11 +1507,7 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
-  */
- u32 STRMWRAP_Close(union Trapped_Args *args, void *pr_ctxt)
- {
--	u32 retVal;
--
--	retVal = STRM_Close(args->ARGS_STRM_CLOSE.hStream);
--
--	return retVal;
-+	return STRM_Close(args->ARGS_STRM_CLOSE.hStream, pr_ctxt);
- }
+@@ -1493,7 +1493,7 @@ u32 STRMWRAP_AllocateBuffer(union Trapped_Args *args, void *pr_ctxt)
  
- /*
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 6cfd349..bf7d0b2 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -801,14 +801,15 @@ static DSP_STATUS  DRV_ProcFreeSTRMRes(HANDLE hPCtxt)
- 						pSTRMRes->uNumBufs);
- 			MEM_Free(apBuffer);
- 		}
--		status = STRM_Close(pSTRMRes->hStream);
-+		status = STRM_Close(pSTRMRes->hStream, pCtxt);
- 		if (DSP_FAILED(status)) {
- 			if (status == DSP_EPENDING) {
- 				status = STRM_Reclaim(pSTRMRes->hStream,
- 						     &pBufPtr, &ulBytes,
- 						     (u32 *)&ulBufSize, &dwArg);
- 				if (DSP_SUCCEEDED(status))
--					status = STRM_Close(pSTRMRes->hStream);
-+					status = STRM_Close(pSTRMRes->hStream,
-+							pCtxt);
- 
- 			}
- 		}
+ 	status = STRM_AllocateBuffer(args->ARGS_STRM_ALLOCATEBUFFER.hStream,
+ 				     args->ARGS_STRM_ALLOCATEBUFFER.uSize,
+-				     apBuffer, uNumBufs);
++				     apBuffer, uNumBufs, pr_ctxt);
+ 	cp_to_usr(args->ARGS_STRM_ALLOCATEBUFFER.apBuffer, apBuffer, status,
+ 		 uNumBufs);
+ 	if (apBuffer)
 diff --git a/drivers/dsp/bridge/rmgr/strm.c b/drivers/dsp/bridge/rmgr/strm.c
-index 4a05ed4..e25818f 100644
+index e25818f..d68251f 100644
 --- a/drivers/dsp/bridge/rmgr/strm.c
 +++ b/drivers/dsp/bridge/rmgr/strm.c
-@@ -228,22 +228,17 @@ func_end:
-  *  Purpose:
-  *      Close a stream opened with STRM_Open().
+@@ -154,18 +154,15 @@ static void DeleteStrmMgr(struct STRM_MGR *hStrmMgr);
+  *      Allocates buffers for a stream.
   */
--DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm)
-+DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm,
-+		struct PROCESS_CONTEXT *pr_ctxt)
+ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
+-				OUT u8 **apBuffer, u32 uNumBufs)
++				OUT u8 **apBuffer, u32 uNumBufs,
++				struct PROCESS_CONTEXT *pr_ctxt)
  {
- 	struct WMD_DRV_INTERFACE *pIntfFxns;
- 	struct CHNL_INFO chnlInfo;
  	DSP_STATUS status = DSP_SOK;
- 
--
- #ifndef RES_CLEANUP_DISABLE
--    u32                      hProcess;
--    HANDLE	      pCtxt = NULL;
--    HANDLE	      hDrvObject;
-     HANDLE	      hSTRMRes;
--    DSP_STATUS	  res_status = DSP_SOK;
- #endif
- 
--
+ 	u32 uAllocated = 0;
+ 	u32 i;
+-	#ifndef RES_CLEANUP_DISABLE
+-	DSP_STATUS res_status = DSP_SOK;
+-       u32                  hProcess;
+-	HANDLE	     pCtxt = NULL;
+-	HANDLE	     hDrvObject;
++#ifndef RES_CLEANUP_DISABLE
+ 	HANDLE hSTRMRes;
+-	#endif
++#endif
  	DBC_Require(cRefs > 0);
+ 	DBC_Require(apBuffer != NULL);
  
- 	GT_1trace(STRM_debugMask, GT_ENTER, "STRM_Close: hStrm: 0x%x\n", hStrm);
-@@ -276,21 +271,9 @@ DSP_STATUS STRM_Close(struct STRM_OBJECT *hStrm)
+@@ -203,20 +200,9 @@ DSP_STATUS STRM_AllocateBuffer(struct STRM_OBJECT *hStrm, u32 uSize,
  	if (DSP_FAILED(status))
  		goto func_end;
  
--	/* Update the node and stream resource status */
 -	/* Return TGID instead of process handle */
 -	hProcess = current->tgid;
 -
@@ -148,14 +119,14 @@ index 4a05ed4..e25818f 100644
 -	if (pCtxt != NULL) {
 -		if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pCtxt) !=
 -		   DSP_ENOTFOUND) {
--			DRV_ProcRemoveSTRMResElement(hSTRMRes, pCtxt);
+-			DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes, pCtxt);
 -		}
 +	if (DRV_GetSTRMResElement(hStrm, &hSTRMRes, pr_ctxt) !=
 +			DSP_ENOTFOUND) {
-+		DRV_ProcRemoveSTRMResElement(hSTRMRes, pr_ctxt);
++		DRV_ProcUpdateSTRMRes(uNumBufs, hSTRMRes, pr_ctxt);
  	}
- func_end:
  #endif
+ func_end:
 -- 
 1.6.2.4
 
