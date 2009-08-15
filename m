@@ -1,65 +1,64 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 01/13] [PATCH] OMAP: powerdomain: Fix overflow when doing
-	powerdomain deps lookups.
-Date: Sat, 15 Aug 2009 14:18:43 +0300
-Message-ID: <20090815111840.7384.20607.stgit@localhost.localdomain>
+Subject: [PATCH 02/13] OMAP: SDRC: Add several new register definitions
+Date: Sat, 15 Aug 2009 14:19:38 +0300
+Message-ID: <20090815111843.7384.7271.stgit@localhost.localdomain>
 References: <20090815111704.7384.31564.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32946 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:32949 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303AbZHOL0N (ORCPT
+	with ESMTP id S1753090AbZHOL0N (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 07:26:13 -0400
 In-Reply-To: <20090815111704.7384.31564.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org
-Cc: Mike Chan <mike@android.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
-At the end of the list pd is a pointer to a NULL struct, so checking
-if the address == NULL doesn't help here. In fact the original code
-will just keep running past the struct to read who knows what in
-memory.
+Add missing SDRC register offset macros.
 
-This case manifests itself when from clkdms_setup() when enabling auto
-idle for a clock domain and the clockdomain usecount is greater than
-0. When _clkdm_add_autodeps() tries to add the a dependency that does
-not exist in the powerdomain->wkdep_srcs array the for loop will run
-past the wkdep_srcs array.
-
-Currently in linux-omap you won't hit this because the not found case
-is never executed, unless you start modifying powerdomains and their
-wakeup/sleep deps.
-
-Signed-off-by: Mike Chan <mike@android.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+[paul@pwsan.com: added commit message]
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/plat-omap/include/mach/sdrc.h |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 983f1cb..66206b6 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -83,7 +83,7 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
- 	if (!pwrdm || !deps || !omap_chip_is(pwrdm->omap_chip))
- 		return ERR_PTR(-EINVAL);
+diff --git a/arch/arm/plat-omap/include/mach/sdrc.h b/arch/arm/plat-omap/include/mach/sdrc.h
+index 0be18e4..8fff90a 100644
+--- a/arch/arm/plat-omap/include/mach/sdrc.h
++++ b/arch/arm/plat-omap/include/mach/sdrc.h
+@@ -21,19 +21,28 @@
+ /* SDRC register offsets - read/write with sdrc_{read,write}_reg() */
  
--	for (pd = deps; pd; pd++) {
-+	for (pd = deps; pd->pwrdm_name; pd++) {
+ #define SDRC_SYSCONFIG		0x010
++#define SDRC_CS_CFG		0x040
++#define SDRC_SHARING		0x044
++#define SDRC_ERR_TYPE		0x04C
+ #define SDRC_DLLA_CTRL		0x060
+ #define SDRC_DLLA_STATUS	0x064
+ #define SDRC_DLLB_CTRL		0x068
+ #define SDRC_DLLB_STATUS	0x06C
+ #define SDRC_POWER		0x070
++#define SDRC_MCFG_0		0x080
+ #define SDRC_MR_0		0x084
++#define SDRC_EMR2_0		0x08c
+ #define SDRC_ACTIM_CTRL_A_0	0x09c
+ #define SDRC_ACTIM_CTRL_B_0	0x0a0
+ #define SDRC_RFR_CTRL_0		0x0a4
++#define SDRC_MANUAL_0		0x0a8
++#define SDRC_MCFG_1		0x0B0
+ #define SDRC_MR_1		0x0B4
++#define SDRC_EMR2_1		0x0BC
+ #define SDRC_ACTIM_CTRL_A_1	0x0C4
+ #define SDRC_ACTIM_CTRL_B_1	0x0C8
+ #define SDRC_RFR_CTRL_1		0x0D4
++#define SDRC_MANUAL_1		0x0D8
  
- 		if (!omap_chip_is(pd->omap_chip))
- 			continue;
-@@ -96,7 +96,7 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
- 
- 	}
- 
--	if (!pd)
-+	if (!pd->pwrdm_name)
- 		return ERR_PTR(-ENOENT);
- 
- 	return pd->pwrdm;
+ /*
+  * These values represent the number of memory clock cycles between
 
 
