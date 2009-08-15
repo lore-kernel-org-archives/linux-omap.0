@@ -1,51 +1,64 @@
-From: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: MUSB regression in 2.6.31-rc6
-Date: Sat, 15 Aug 2009 18:07:01 +0300
-Message-ID: <20090815180701.7710de51.jhnikula@gmail.com>
-References: <20090815174352.c2883585.jhnikula@gmail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0305398E07@dbde02.ent.ti.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
+Date: Sat, 15 Aug 2009 20:53:15 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C003790C65EB@dbde02.ent.ti.com>
+References: <0680EC522D0CC943BC586913CF3768C00378FF3971@dbde02.ent.ti.com>
+ <20090807220016.GG31543@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C5B3A@dbde02.ent.ti.com>
+ <20090808170300.GA23481@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C64CF@dbde02.ent.ti.com>
+ <20090813173327.GA14872@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C6586@dbde02.ent.ti.com>
+ <366f00c80908150603m2b6f3235y7e47256adc11234a@mail.gmail.com>
+ <20090815131027.GE29616@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0305398E07-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:48486 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754962AbZHOPXt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 11:23:49 -0400
+In-Reply-To: <20090815131027.GE29616@n2100.arm.linux.org.uk>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Sudeep K N <sudeepholla.maillist@gmail.com>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sat, 15 Aug 2009 20:19:17 +0530
-"Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org> wrote:
 
-> > diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-> > index 803adcb..e27ed96 100644
-> > --- a/drivers/usb/musb/Kconfig
-> > +++ b/drivers/usb/musb/Kconfig
-> > @@ -13,6 +13,7 @@ config USB_MUSB_HDRC
-> >         select NOP_USB_XCEIV if ARCH_DAVINCI
-> >         select TWL4030_USB if MACH_OMAP_3430SDP
-> >         select NOP_USB_XCEIV if MACH_OMAP3EVM
-> > +       select NOP_USB_XCEIV if MACH_OMAP3_BEAGLE
 > 
-> Shouldn't we be selecting TWL4030_USB if MACH_OMAP3_BEAGLE.
-> The beagleboard does use the PHY in the TWL4030, and not
-> a transparent PHY.
+> On Sat, Aug 15, 2009 at 06:33:20PM +0530, Sudeep K N wrote:
+> > I had intially tried memmap=xxM$yyM to reserve xxM at yyM
+> > This has some issue with 2.6.27 and fixed in later versions(not sure
+> > of exact version) and I have not tried it.
 > 
-Could be. I have no very much idea of these :-)
+> memmap= is not supported on ARM - there is no code to parse or use the
+> option except on x86 and blackfin, so it gets passed to the init program
+> when userspace starts.
 
-I happened to have both of these below enabled and 2.6.31-rc5 was still
-booting.
+I am just wondering if there is something extra that needs to be done in my kernel or app, below are the lines that I feel will matter,
 
-CONFIG_TWL4030_USB=y
-CONFIG_NOP_USB_XCEIV=y
+In driver module:
+- request_mem_region(start_addr, length, "name");
+- ioremap_nocache (start_addr,length);
+(in mmap function)
+- vma->vm_flags |= VM_RESERVED | VM_IO;
+- remap_pfn_range(vma,vma->vm_start,vma->vm_pgoff,vma->vm_end-vma->vm_start, vma->vm_page_prot);
 
-But anyway, I don't get Beagle booting with 2.6.31-rc6 if I disable any
-of them and IRCC another oops will follow if both are disabled.
+In my app:
+- userp = mmap((void *)0x0, size, PROT_WRITE|PROT_READ,MAP_SHARED,fd,0x85800000);
+- memset((void *)userp,0,0x1000000);
 
+Few Observations:
+- When my bootargs doesn't is just mem=88M@0x80000000, I don't see any issues it works great
+- When my bootargs is mem=88M@0x80000000 mem=60M@0x8C400000 it crashes at user space. Where as when I do same memset in driver (kernel space) it passes, the issue is only with user space (over mmap)
+- With hole, when I use mmap with MAP_PRIVATE it passes fine.
 
--- 
-Jarkko
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I can give both driver and app that I have, but it has nothing but the above lines.
+
+Thanks for the comments.
+
+Regards,
+Khasim
+
