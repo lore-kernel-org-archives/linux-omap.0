@@ -1,102 +1,62 @@
-From: "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH 07/10] OMAP: PM: Add definitions for ETK pads and
- observability registers
-Date: Sat, 15 Aug 2009 10:40:05 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0306050AFF@dbde02.ent.ti.com>
-References: <1250182359-18830-8-git-send-email-khilman@deeprootsystems.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: [PATCH 8/9] OMAP2: add board file for Nokia N800 and N810
+Date: Sat, 15 Aug 2009 09:28:17 +0300
+Message-ID: <da94abde0908142328y5b7701cm711b6d9727463a1f@mail.gmail.com>
+References: <20090811094348.32577.81307.stgit@localhost>
+	 <20090811095558.32577.26177.stgit@localhost>
+	 <20090813091510.GK6132@n2100.arm.linux.org.uk>
+	 <87vdkrhr2q.fsf@litku.valot.fi> <20090814110850.GU7278@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1250182359-18830-8-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-Content-Language: en-US
-Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, "linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org" <linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org>, "linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:47535 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544AbZHOG2R convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 02:28:17 -0400
+Received: by ewy10 with SMTP id 10so1949931ewy.37
+        for <linux-omap@vger.kernel.org>; Fri, 14 Aug 2009 23:28:17 -0700 (PDT)
+In-Reply-To: <20090814110850.GU7278@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-> From: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> 
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
-> ---
->  arch/arm/plat-omap/include/mach/control.h |   47 +++++++++++++++++++++++++++-
->  1 files changed, 45 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-> index 8140dbc..81afe26 100644
-> --- a/arch/arm/plat-omap/include/mach/control.h
-> +++ b/arch/arm/plat-omap/include/mach/control.h
-> @@ -141,8 +141,51 @@
->  #define OMAP343X_CONTROL_TEST_KEY_13	(OMAP2_CONTROL_GENERAL + 0x00fc)
->  #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
->  #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
-> -#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02b0)
-> -#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
-> +#define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
-> +					+ ((i) >> 1) * 4 + (!(i & 1)) * 2)
-> +#define OMAP343X_CONTROL_PROG_IO0	(OMAP2_CONTROL_GENERAL + 0x01D4)
-> +#define OMAP343X_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
-> +#define OMAP343X_CONTROL_DSS_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E0)
-> +#define OMAP343X_CONTROL_CORE_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E4)
-> +#define OMAP343X_CONTROL_PER_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E8)
-> +#define OMAP343X_CONTROL_USBHOST_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01EC)
-> +#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02B0)
-> +#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02B4)
-> +#define OMAP343X_CONTROL_SRAMLDO4	(OMAP2_CONTROL_GENERAL + 0x02B8)
-> +#define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
-> +#define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
-> +
-> +
-> +/* 34xx PADCONF register offsets */
-> +#define OMAP343X_PADCONF_ETK(i)	(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
-> +						(i)*2)
-> +#define OMAP343X_PADCONF_ETK_CLK	OMAP343X_PADCONF_ETK(0)
-> +#define OMAP343X_PADCONF_ETK_CTL	OMAP343X_PADCONF_ETK(1)
-> +#define OMAP343X_PADCONF_ETK_D0		OMAP343X_PADCONF_ETK(2)
-> +#define OMAP343X_PADCONF_ETK_D1		OMAP343X_PADCONF_ETK(3)
-> +#define OMAP343X_PADCONF_ETK_D2		OMAP343X_PADCONF_ETK(4)
-> +#define OMAP343X_PADCONF_ETK_D3		OMAP343X_PADCONF_ETK(5)
-> +#define OMAP343X_PADCONF_ETK_D4		OMAP343X_PADCONF_ETK(6)
-> +#define OMAP343X_PADCONF_ETK_D5		OMAP343X_PADCONF_ETK(7)
-> +#define OMAP343X_PADCONF_ETK_D6		OMAP343X_PADCONF_ETK(8)
-> +#define OMAP343X_PADCONF_ETK_D7		OMAP343X_PADCONF_ETK(9)
-> +#define OMAP343X_PADCONF_ETK_D8		OMAP343X_PADCONF_ETK(10)
-> +#define OMAP343X_PADCONF_ETK_D9		OMAP343X_PADCONF_ETK(11)
-> +#define OMAP343X_PADCONF_ETK_D10	OMAP343X_PADCONF_ETK(12)
-> +#define OMAP343X_PADCONF_ETK_D11	OMAP343X_PADCONF_ETK(13)
-> +#define OMAP343X_PADCONF_ETK_D12	OMAP343X_PADCONF_ETK(14)
-> +#define OMAP343X_PADCONF_ETK_D13	OMAP343X_PADCONF_ETK(15)
-> +#define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
-> +#define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
-
-I'm not sure if we need to use only these pads. There is an alternative
-set of pad that bring out the debobs signals.
-
-
-> +
-> +/* 34xx GENERAL_WKUP regist offsets */
-> +#define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
-> +						0x008 + (i))
-> +#define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
-> +#define OMAP343X_CONTROL_WKUP_DEBOBS1 (OMAP343X_CONTROL_GENERAL_WKUP + 0x00C)
-> +#define OMAP343X_CONTROL_WKUP_DEBOBS2 (OMAP343X_CONTROL_GENERAL_WKUP + 0x010)
-> +#define OMAP343X_CONTROL_WKUP_DEBOBS3 (OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
-> +#define OMAP343X_CONTROL_WKUP_DEBOBS4 (OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
->  
->  /* 34xx D2D idle-related pins, handled by PM core */
->  #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
-> -- 
-> 1.6.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+On Fri, Aug 14, 2009 at 2:08 PM, Tony Lindgren<tony@atomide.com> wrote:
+>> >> +static struct musb_hdrc_platform_data tusb_data =3D {
+>> >> + =A0.mode =A0 =A0 =A0 =A0 =A0 =3D BOARD_MODE,
+>> >> + =A0.set_power =A0 =A0 =A0=3D tusb_set_power,
+>> >> + =A0.set_clock =A0 =A0 =A0=3D tusb_set_clock,
+>> >> + =A0.min_power =A0 =A0 =A0=3D 25, =A0 /* x2 =3D 50 mA drawn from=
+ VBUS as peripheral */
+>> >> + =A0.power =A0 =A0 =A0 =A0 =A0=3D 100, =A0/* Max 100 mA VBUS for=
+ host mode */
+>> >> + =A0.clock =A0 =A0 =A0 =A0 =A0=3D "osc_ck",
+>> >
+>> > Still passing clock names around?
+>>
+>> Sorry, I'm not familiar with this. How should I fix it?
 >
- --
-To unsubscribe from this list: send the line "unsubscribe linux-arm" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> This should be fixed with the clkdev alias, see omap24xx_clks[].
+>
+> But we need to check how the fix affects other platforms for
+> drivers/usb/musb/musb_core.c and send the patch via linux-usb.
+>
+> Maybe take a quick look, and if it looks like a bigger change,
+> then leave out the tusb_data for now and let's do it in a separate
+> patch?
+
+Thanks, I'll take a look.
+
+>> Tony, do you want me to send v2?
+>
+> Sure, it's best that you update it.
+
+I'll send v2 later today.
+
+Kalle
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
