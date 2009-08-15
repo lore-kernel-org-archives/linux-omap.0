@@ -1,106 +1,161 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 12/13] OMAP: omap_hwmod: call omap_hwmod init at boot;
-	create interconnects
-Date: Sat, 15 Aug 2009 14:20:30 +0300
-Message-ID: <20090815112028.7384.79447.stgit@localhost.localdomain>
+Subject: [PATCH 09/13] OMAP2/3/4 PRCM: add module IDLEST wait code
+Date: Sat, 15 Aug 2009 14:20:22 +0300
+Message-ID: <20090815112017.7384.27646.stgit@localhost.localdomain>
 References: <20090815111704.7384.31564.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33004 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:32985 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753456AbZHOL0Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 07:26:16 -0400
+	with ESMTP id S1753437AbZHOL0P (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 07:26:15 -0400
 In-Reply-To: <20090815111704.7384.31564.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org
 
-Connect the omap_hwmod code to the kernel boot.  Create some basic
-interconnect and device structures for OMAP2/3 chips.
+After a hardware module's clocks are enabled, Linux must wait for it
+to indicate readiness via its IDLEST bit before attempting to access
+the device, otherwise register accesses to the device may trigger an
+abort.  This has traditionally been implemented in the clock
+framework, but this is the wrong place for it: the clock framework
+doesn't know which module clocks must be enabled for a module to leave
+idle; and if a module is not in smart-idle mode, it may never leave
+idle at all.  This type of information is best stored in a
+per-hardware module data structure (coming in a following patch),
+rather than a per-clock data structure.  The new code will use these new
+functions to handle waiting for modules to enable.
+
+Once hardware module data is filled in for all of the on-chip devices,
+the clock framework code to handle IDLEST waiting can be removed.
 
 Signed-off-by: Paul Walmsley <paul@pwsan.com>
 ---
- arch/arm/mach-omap2/io.c              |   17 +++
- arch/arm/mach-omap2/omap_hwmod.c      |    3 -
- arch/arm/mach-omap2/omap_hwmod_2420.h |  140 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_2430.h |  142 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/omap_hwmod_34xx.h |  167 +++++++++++++++++++++++++++++++++
- 5 files changed, 466 insertions(+), 3 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_2420.h
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_2430.h
- create mode 100644 arch/arm/mach-omap2/omap_hwmod_34xx.h
+ arch/arm/mach-omap2/Makefile |    5 +++
+ arch/arm/mach-omap2/cm.c     |   70 ++++++++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/cm.h     |    4 ++
+ arch/arm/mach-omap2/cm4xxx.c |   68 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 147 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cm.c
+ create mode 100644 arch/arm/mach-omap2/cm4xxx.c
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 470b1d1..7574b6f 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -39,12 +39,16 @@
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 735bae5..fa0f0db 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -35,6 +35,11 @@ obj-$(CONFIG_ARCH_OMAP3)		+= pm34xx.o sleep34xx.o
+ obj-$(CONFIG_PM_DEBUG)			+= pm-debug.o
+ endif
  
- #include <mach/omap-pm.h>
- #include <mach/powerdomain.h>
--
- #include "powerdomains.h"
- 
- #include <mach/clockdomain.h>
- #include "clockdomains.h"
- #endif
-+#include <mach/omap_hwmod.h>
-+#include "omap_hwmod_2420.h"
-+#include "omap_hwmod_2430.h"
-+#include "omap_hwmod_34xx.h"
++# PRCM
++obj-$(CONFIG_ARCH_OMAP2)		+= cm.o
++obj-$(CONFIG_ARCH_OMAP3)		+= cm.o
++obj-$(CONFIG_ARCH_OMAP4)		+= cm4xxx.o
 +
- /*
-  * The machine specific code may provide the extra mapping besides the
-  * default mapping provided here.
-@@ -281,6 +285,16 @@ static int __init _omap2_init_reprogram_sdrc(void)
- void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 				 struct omap_sdrc_params *sdrc_cs1)
- {
-+	struct omap_hwmod **hwmods = NULL;
+ # Clock framework
+ obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
+ obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
+diff --git a/arch/arm/mach-omap2/cm.c b/arch/arm/mach-omap2/cm.c
+new file mode 100644
+index 0000000..8eb2dab
+--- /dev/null
++++ b/arch/arm/mach-omap2/cm.c
+@@ -0,0 +1,70 @@
++/*
++ * OMAP2/3 CM module functions
++ *
++ * Copyright (C) 2009 Nokia Corporation
++ * Paul Walmsley
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	if (cpu_is_omap2420())
-+		hwmods = omap2420_hwmods;
-+	else if (cpu_is_omap2430())
-+		hwmods = omap2430_hwmods;
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/list.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/io.h>
++
++#include <asm/atomic.h>
++
++#include "cm.h"
++#include "cm-regbits-24xx.h"
++#include "cm-regbits-34xx.h"
++
++/* MAX_MODULE_READY_TIME: max milliseconds for module to leave idle */
++#define MAX_MODULE_READY_TIME		20000
++
++static const u8 cm_idlest_offs[] = {
++	CM_IDLEST1, CM_IDLEST2, OMAP2430_CM_IDLEST3
++};
++
++/**
++ * omap2_cm_wait_idlest_ready - wait for a module to leave idle or standby
++ * @prcm_mod: PRCM module offset
++ * @idlest_id: CM_IDLESTx register ID (i.e., x = 1, 2, 3)
++ * @idlest_shift: shift of the bit in the CM_IDLEST* register to check
++ *
++ * XXX document
++ */
++int omap2_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id, u8 idlest_shift)
++{
++	int ena = 0, i = 0;
++	u8 cm_idlest_reg;
++	u32 mask;
++
++	if (!idlest_id || (idlest_id > ARRAY_SIZE(cm_idlest_offs)))
++		return -EINVAL;
++
++	cm_idlest_reg = cm_idlest_offs[idlest_id - 1];
++
++	if (cpu_is_omap24xx())
++		ena = idlest_shift;
 +	else if (cpu_is_omap34xx())
-+		hwmods = omap34xx_hwmods;
++		ena = 0;
++	else
++		BUG();
 +
-+	omap_hwmod_init(hwmods);
- 	omap2_mux_init();
- #ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is ready */
- 	/* The OPP tables have to be registered before a clk init */
-@@ -289,6 +303,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
- 	omap2_clk_init();
- 	omap_serial_early_init();
-+	omap_hwmod_late_init();
- 	omap_pm_if_init();
- 	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 	_omap2_init_reprogram_sdrc();
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index 8f3b2c3..cb0f08e 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -763,8 +763,7 @@ static int _reset(struct omap_hwmod *oh)
- 		WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
- 		     oh->name, MAX_MODULE_RESET_WAIT);
- 	else
--		pr_debug("omap_hwmod: %s: reset in %d usec\n", oh->name,
--			 MAX_MODULE_RESET_WAIT);
-+		pr_debug("omap_hwmod: %s: reset in %d usec\n", oh->name, c);
++	mask = 1 << idlest_shift;
++
++	/* XXX should be OMAP2 CM */
++	while (((cm_read_mod_reg(prcm_mod, cm_idlest_reg) & mask) != ena) &&
++	       (i++ < MAX_MODULE_READY_TIME))
++		udelay(1);
++
++	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
++}
++
+diff --git a/arch/arm/mach-omap2/cm.h b/arch/arm/mach-omap2/cm.h
+index f3c91a1..df435d1 100644
+--- a/arch/arm/mach-omap2/cm.h
++++ b/arch/arm/mach-omap2/cm.h
+@@ -98,6 +98,10 @@ extern u32 cm_read_mod_reg(s16 module, u16 idx);
+ extern void cm_write_mod_reg(u32 val, s16 module, u16 idx);
+ extern u32 cm_rmw_mod_reg_bits(u32 mask, u32 bits, s16 module, s16 idx);
  
- 	/*
- 	 * XXX add _HWMOD_STATE_WEDGED for modules that don't come back from
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2420.h b/arch/arm/mach-omap2/omap_hwmod_2420.h
++extern int omap2_cm_wait_module_ready(s16 prcm_mod, u8 idlest_id,
++				      u8 idlest_shift);
++extern int omap4_cm_wait_module_ready(u32 prcm_mod, u8 prcm_dev_offs);
++
+ static inline u32 cm_set_mod_reg_bits(u32 bits, s16 module, s16 idx)
+ {
+ 	return cm_rmw_mod_reg_bits(bits, bits, module, idx);
+diff --git a/arch/arm/mach-omap2/cm4xxx.c b/arch/arm/mach-omap2/cm4xxx.c
 new file mode 100644
-index 0000000..8b93c74
+index 0000000..e4ebd6d
 --- /dev/null
-+++ b/arch/arm/mach-omap2/omap_hwmod_2420.h
-@@ -0,0 +1,140 @@
++++ b/arch/arm/mach-omap2/cm4xxx.c
+@@ -0,0 +1,68 @@
 +/*
-+ * omap_hwmod_2420.h - hardware modules present on the OMAP2420 chips
++ * OMAP4 CM module functions
 + *
 + * Copyright (C) 2009 Nokia Corporation
 + * Paul Walmsley
@@ -108,457 +163,64 @@ index 0000000..8b93c74
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
-+ *
-+ * XXX handle crossbar/shared link difference for L3?
-+ *
 + */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_HWMOD2420_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_HWMOD2420_H
 +
-+#ifdef CONFIG_ARCH_OMAP2420
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/list.h>
++#include <linux/errno.h>
++#include <linux/err.h>
++#include <linux/io.h>
 +
-+#include <mach/omap_hwmod.h>
-+#include <mach/irqs.h>
-+#include <mach/cpu.h>
-+#include <mach/dma.h>
++#include <asm/atomic.h>
 +
-+#include "prm-regbits-24xx.h"
++#include "cm.h"
++#include "cm-regbits-4xxx.h"
 +
-+static struct omap_hwmod omap2420_mpu_hwmod;
-+static struct omap_hwmod omap2420_l3_hwmod;
-+static struct omap_hwmod omap2420_l4_core_hwmod;
++/* XXX move this to cm.h */
++/* MAX_MODULE_READY_TIME: max milliseconds for module to leave idle */
++#define MAX_MODULE_READY_TIME			20000
 +
-+/* L3 -> L4_CORE interface */
-+static struct omap_hwmod_ocp_if omap2420_l3__l4_core = {
-+	.master	= &omap2420_l3_hwmod,
-+	.slave	= &omap2420_l4_core_hwmod,
-+	.user	= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* MPU -> L3 interface */
-+static struct omap_hwmod_ocp_if omap2420_mpu__l3 = {
-+	.master = &omap2420_mpu_hwmod,
-+	.slave	= &omap2420_l3_hwmod,
-+	.user	= OCP_USER_MPU,
-+};
-+
-+/* Slave interfaces on the L3 interconnect */
-+static struct omap_hwmod_ocp_if *omap2420_l3_slaves[] = {
-+	&omap2420_mpu__l3,
-+};
-+
-+/* Master interfaces on the L3 interconnect */
-+static struct omap_hwmod_ocp_if *omap2420_l3_masters[] = {
-+	&omap2420_l3__l4_core,
-+};
-+
-+/* L3 */
-+static struct omap_hwmod omap2420_l3_hwmod = {
-+	.name		= "l3_hwmod",
-+	.masters	= omap2420_l3_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2420_l3_masters),
-+	.slaves		= omap2420_l3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_l3_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+static struct omap_hwmod omap2420_l4_wkup_hwmod;
-+
-+/* L4_CORE -> L4_WKUP interface */
-+static struct omap_hwmod_ocp_if omap2420_l4_core__l4_wkup = {
-+	.master	= &omap2420_l4_core_hwmod,
-+	.slave	= &omap2420_l4_wkup_hwmod,
-+	.user	= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* Slave interfaces on the L4_CORE interconnect */
-+static struct omap_hwmod_ocp_if *omap2420_l4_core_slaves[] = {
-+	&omap2420_l3__l4_core,
-+};
-+
-+/* Master interfaces on the L4_CORE interconnect */
-+static struct omap_hwmod_ocp_if *omap2420_l4_core_masters[] = {
-+	&omap2420_l4_core__l4_wkup,
-+};
-+
-+/* L4 CORE */
-+static struct omap_hwmod omap2420_l4_core_hwmod = {
-+	.name		= "l4_core_hwmod",
-+	.masters	= omap2420_l4_core_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2420_l4_core_masters),
-+	.slaves		= omap2420_l4_core_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_l4_core_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* Slave interfaces on the L4_WKUP interconnect */
-+static struct omap_hwmod_ocp_if *omap2420_l4_wkup_slaves[] = {
-+	&omap2420_l4_core__l4_wkup,
-+};
-+
-+/* Master interfaces on the L4_WKUP interconnect */
-+static struct omap_hwmod_ocp_if *omap2420_l4_wkup_masters[] = {
-+};
-+
-+/* L4 WKUP */
-+static struct omap_hwmod omap2420_l4_wkup_hwmod = {
-+	.name		= "l4_wkup_hwmod",
-+	.masters	= omap2420_l4_wkup_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2420_l4_wkup_masters),
-+	.slaves		= omap2420_l4_wkup_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2420_l4_wkup_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420)
-+};
-+
-+/* Master interfaces on the MPU device */
-+static struct omap_hwmod_ocp_if *omap2420_mpu_masters[] = {
-+	&omap2420_mpu__l3,
-+};
-+
-+/* MPU */
-+static struct omap_hwmod omap2420_mpu_hwmod = {
-+	.name		= "mpu_hwmod",
-+	.main_clk	= { .name = "mpu_ck" },
-+	.masters	= omap2420_mpu_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2420_mpu_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2420),
-+};
-+
-+static __initdata struct omap_hwmod *omap2420_hwmods[] = {
-+	&omap2420_l3_hwmod,
-+	&omap2420_l4_core_hwmod,
-+	&omap2420_l4_wkup_hwmod,
-+	&omap2420_mpu_hwmod,
-+	NULL,
-+};
-+
-+#else
-+# define omap2420_hwmods		0
-+#endif
-+
-+#endif
-+
-+
-diff --git a/arch/arm/mach-omap2/omap_hwmod_2430.h b/arch/arm/mach-omap2/omap_hwmod_2430.h
-new file mode 100644
-index 0000000..24e3521
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap_hwmod_2430.h
-@@ -0,0 +1,142 @@
 +/*
-+ * omap_hwmod_2430.h - hardware modules present on the OMAP2430 chips
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * XXX handle crossbar/shared link difference for L3?
-+ *
++ * OMAP4_PRCM_CM_CLKCTRL_IDLEST_MASK: isolates the IDLEST field in the
++ * CM_CLKCTRL register.
 + */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_HWMOD2430_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_HWMOD2430_H
++#define OMAP4_PRCM_CM_CLKCTRL_IDLEST_MASK	(0x2 << 16)
 +
-+#ifdef CONFIG_ARCH_OMAP2430
-+
-+#include <mach/omap_hwmod.h>
-+#include <mach/irqs.h>
-+#include <mach/cpu.h>
-+#include <mach/dma.h>
-+
-+#include "prm-regbits-24xx.h"
-+
-+static struct omap_hwmod omap2430_mpu_hwmod;
-+static struct omap_hwmod omap2430_l3_hwmod;
-+static struct omap_hwmod omap2430_l4_core_hwmod;
-+
-+/* L3 -> L4_CORE interface */
-+static struct omap_hwmod_ocp_if omap2430_l3__l4_core = {
-+	.master	= &omap2430_l3_hwmod,
-+	.slave	= &omap2430_l4_core_hwmod,
-+	.user	= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* MPU -> L3 interface */
-+static struct omap_hwmod_ocp_if omap2430_mpu__l3 = {
-+	.master = &omap2430_mpu_hwmod,
-+	.slave	= &omap2430_l3_hwmod,
-+	.user	= OCP_USER_MPU,
-+};
-+
-+/* Slave interfaces on the L3 interconnect */
-+static struct omap_hwmod_ocp_if *omap2430_l3_slaves[] = {
-+	&omap2430_mpu__l3,
-+};
-+
-+/* Master interfaces on the L3 interconnect */
-+static struct omap_hwmod_ocp_if *omap2430_l3_masters[] = {
-+	&omap2430_l3__l4_core,
-+};
-+
-+/* L3 */
-+static struct omap_hwmod omap2430_l3_hwmod = {
-+	.name		= "l3_hwmod",
-+	.masters	= omap2430_l3_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2430_l3_masters),
-+	.slaves		= omap2430_l3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_l3_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+};
-+
-+static struct omap_hwmod omap2430_l4_wkup_hwmod;
-+static struct omap_hwmod omap2430_mmc1_hwmod;
-+static struct omap_hwmod omap2430_mmc2_hwmod;
-+
-+/* L4_CORE -> L4_WKUP interface */
-+static struct omap_hwmod_ocp_if omap2430_l4_core__l4_wkup = {
-+	.master	= &omap2430_l4_core_hwmod,
-+	.slave	= &omap2430_l4_wkup_hwmod,
-+	.user	= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* Slave interfaces on the L4_CORE interconnect */
-+static struct omap_hwmod_ocp_if *omap2430_l4_core_slaves[] = {
-+	&omap2430_l3__l4_core,
-+};
-+
-+/* Master interfaces on the L4_CORE interconnect */
-+static struct omap_hwmod_ocp_if *omap2430_l4_core_masters[] = {
-+	&omap2430_l4_core__l4_wkup,
-+};
-+
-+/* L4 CORE */
-+static struct omap_hwmod omap2430_l4_core_hwmod = {
-+	.name		= "l4_core_hwmod",
-+	.masters	= omap2430_l4_core_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2430_l4_core_masters),
-+	.slaves		= omap2430_l4_core_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_l4_core_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+};
-+
-+/* Slave interfaces on the L4_WKUP interconnect */
-+static struct omap_hwmod_ocp_if *omap2430_l4_wkup_slaves[] = {
-+	&omap2430_l4_core__l4_wkup,
-+};
-+
-+/* Master interfaces on the L4_WKUP interconnect */
-+static struct omap_hwmod_ocp_if *omap2430_l4_wkup_masters[] = {
-+};
-+
-+/* L4 WKUP */
-+static struct omap_hwmod omap2430_l4_wkup_hwmod = {
-+	.name		= "l4_wkup_hwmod",
-+	.masters	= omap2430_l4_wkup_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2430_l4_wkup_masters),
-+	.slaves		= omap2430_l4_wkup_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap2430_l4_wkup_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430)
-+};
-+
-+/* Master interfaces on the MPU device */
-+static struct omap_hwmod_ocp_if *omap2430_mpu_masters[] = {
-+	&omap2430_mpu__l3,
-+};
-+
-+/* MPU */
-+static struct omap_hwmod omap2430_mpu_hwmod = {
-+	.name		= "mpu_hwmod",
-+	.main_clk	= { .name = "mpu_ck" },
-+	.masters	= omap2430_mpu_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap2430_mpu_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP2430),
-+};
-+
-+static __initdata struct omap_hwmod *omap2430_hwmods[] = {
-+	&omap2430_l3_hwmod,
-+	&omap2430_l4_core_hwmod,
-+	&omap2430_l4_wkup_hwmod,
-+	&omap2430_mpu_hwmod,
-+	NULL,
-+};
-+
-+#else
-+# define omap2430_hwmods		0
-+#endif
-+
-+#endif
-+
-+
-diff --git a/arch/arm/mach-omap2/omap_hwmod_34xx.h b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-new file mode 100644
-index 0000000..f936e11
---- /dev/null
-+++ b/arch/arm/mach-omap2/omap_hwmod_34xx.h
-@@ -0,0 +1,167 @@
 +/*
-+ * omap_hwmod_34xx.h - hardware modules present on the OMAP34xx chips
-+ *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Paul Walmsley
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
++ * OMAP4 prcm_mod u32 fields contain packed data: the CM ID in bit 16 and
++ * the PRCM module offset address (from the CM module base) in bits 15-0.
 + */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_HWMOD34XX_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_HWMOD34XX_H
++#define OMAP4_PRCM_MOD_CM_ID_SHIFT		16
++#define OMAP4_PRCM_MOD_OFFS_MASK		0xffff
 +
-+#ifdef CONFIG_ARCH_OMAP34XX
++/**
++ * omap4_cm_wait_idlest_ready - wait for a module to leave idle or standby
++ * @prcm_mod: PRCM module offset (XXX example)
++ * @prcm_dev_offs: PRCM device offset (e.g. MCASP XXX example)
++ *
++ * XXX document
++ */
++int omap4_cm_wait_idlest_ready(u32 prcm_mod, u8 prcm_dev_offs)
++{
++	int i = 0;
++	u8 cm_id;
++	u16 prcm_mod_offs;
++	u32 mask = OMAP4_PRCM_CM_CLKCTRL_IDLEST_MASK;
 +
-+#include <mach/omap_hwmod.h>
-+#include <mach/irqs.h>
-+#include <mach/cpu.h>
-+#include <mach/dma.h>
++	cm_id = prcm_mod >> OMAP4_PRCM_MOD_CM_ID_SHIFT;
++	prcm_mod_offs = prcm_mod & OMAP4_PRCM_MOD_OFFS_MASK;
 +
-+#include "prm-regbits-34xx.h"
++	while (((omap4_cm_read_mod_reg(cm_id, prcm_mod_offs, prcm_dev_offs,
++				       OMAP4_CM_CLKCTRL_DREG) & mask) != 0) &&
++	       (i++ < MAX_MODULE_READY_TIME))
++		udelay(1);
 +
-+static struct omap_hwmod omap34xx_mpu_hwmod;
-+static struct omap_hwmod omap34xx_l3_hwmod;
-+static struct omap_hwmod omap34xx_l4_core_hwmod;
-+static struct omap_hwmod omap34xx_l4_per_hwmod;
-+
-+/* L3 -> L4_CORE interface */
-+static struct omap_hwmod_ocp_if omap34xx_l3__l4_core = {
-+	.master	= &omap34xx_l3_hwmod,
-+	.slave	= &omap34xx_l4_core_hwmod,
-+	.user	= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* L3 -> L4_PER interface */
-+static struct omap_hwmod_ocp_if omap34xx_l3__l4_per = {
-+	.master = &omap34xx_l3_hwmod,
-+	.slave	= &omap34xx_l4_per_hwmod,
-+	.user	= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* MPU -> L3 interface */
-+static struct omap_hwmod_ocp_if omap34xx_mpu__l3 = {
-+	.master = &omap34xx_mpu_hwmod,
-+	.slave	= &omap34xx_l3_hwmod,
-+	.user	= OCP_USER_MPU,
-+};
-+
-+/* Slave interfaces on the L3 interconnect */
-+static struct omap_hwmod_ocp_if *omap34xx_l3_slaves[] = {
-+	&omap34xx_mpu__l3,
-+};
-+
-+/* Master interfaces on the L3 interconnect */
-+static struct omap_hwmod_ocp_if *omap34xx_l3_masters[] = {
-+	&omap34xx_l3__l4_core,
-+	&omap34xx_l3__l4_per,
-+};
-+
-+/* L3 */
-+static struct omap_hwmod omap34xx_l3_hwmod = {
-+	.name		= "l3_hwmod",
-+	.masters	= omap34xx_l3_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap34xx_l3_masters),
-+	.slaves		= omap34xx_l3_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap34xx_l3_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+};
-+
-+static struct omap_hwmod omap34xx_l4_wkup_hwmod;
-+
-+/* L4_CORE -> L4_WKUP interface */
-+static struct omap_hwmod_ocp_if omap34xx_l4_core__l4_wkup = {
-+	.master	= &omap34xx_l4_core_hwmod,
-+	.slave	= &omap34xx_l4_wkup_hwmod,
-+	.user	= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* Slave interfaces on the L4_CORE interconnect */
-+static struct omap_hwmod_ocp_if *omap34xx_l4_core_slaves[] = {
-+	&omap34xx_l3__l4_core,
-+};
-+
-+/* Master interfaces on the L4_CORE interconnect */
-+static struct omap_hwmod_ocp_if *omap34xx_l4_core_masters[] = {
-+	&omap34xx_l4_core__l4_wkup,
-+};
-+
-+/* L4 CORE */
-+static struct omap_hwmod omap34xx_l4_core_hwmod = {
-+	.name		= "l4_core_hwmod",
-+	.masters	= omap34xx_l4_core_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap34xx_l4_core_masters),
-+	.slaves		= omap34xx_l4_core_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap34xx_l4_core_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+};
-+
-+/* Slave interfaces on the L4_PER interconnect */
-+static struct omap_hwmod_ocp_if *omap34xx_l4_per_slaves[] = {
-+	&omap34xx_l3__l4_per,
-+};
-+
-+/* Master interfaces on the L4_PER interconnect */
-+static struct omap_hwmod_ocp_if *omap34xx_l4_per_masters[] = {
-+};
-+
-+/* L4 PER */
-+static struct omap_hwmod omap34xx_l4_per_hwmod = {
-+	.name		= "l4_per_hwmod",
-+	.masters	= omap34xx_l4_per_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap34xx_l4_per_masters),
-+	.slaves		= omap34xx_l4_per_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap34xx_l4_per_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+};
-+
-+/* Slave interfaces on the L4_WKUP interconnect */
-+static struct omap_hwmod_ocp_if *omap34xx_l4_wkup_slaves[] = {
-+	&omap34xx_l4_core__l4_wkup,
-+};
-+
-+/* Master interfaces on the L4_WKUP interconnect */
-+static struct omap_hwmod_ocp_if *omap34xx_l4_wkup_masters[] = {
-+};
-+
-+/* L4 WKUP */
-+static struct omap_hwmod omap34xx_l4_wkup_hwmod = {
-+	.name		= "l4_wkup_hwmod",
-+	.masters	= omap34xx_l4_wkup_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap34xx_l4_wkup_masters),
-+	.slaves		= omap34xx_l4_wkup_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap34xx_l4_wkup_slaves),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430)
-+};
-+
-+/* Master interfaces on the MPU device */
-+static struct omap_hwmod_ocp_if *omap34xx_mpu_masters[] = {
-+	&omap34xx_mpu__l3,
-+};
-+
-+/* MPU */
-+static struct omap_hwmod omap34xx_mpu_hwmod = {
-+	.name		= "mpu_hwmod",
-+	.main_clk	= { .name = "arm_fck" },
-+	.masters	= omap34xx_mpu_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap34xx_mpu_masters),
-+	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+};
-+
-+static __initdata struct omap_hwmod *omap34xx_hwmods[] = {
-+	&omap34xx_l3_hwmod,
-+	&omap34xx_l4_core_hwmod,
-+	&omap34xx_l4_per_hwmod,
-+	&omap34xx_l4_wkup_hwmod,
-+	&omap34xx_mpu_hwmod,
-+	NULL,
-+};
-+
-+#else
-+# define omap34xx_hwmods		0
-+#endif
-+
-+#endif
-+
++	return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
++}
 +
 
 
