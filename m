@@ -1,620 +1,329 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 10/13] OMAP2/3 board-*.c files: read bootloader configuration
-	earlier
-Date: Sat, 15 Aug 2009 14:20:23 +0300
-Message-ID: <20090815112022.7384.7824.stgit@localhost.localdomain>
-References: <20090815111704.7384.31564.stgit@localhost.localdomain>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 02/10] OMAP: iommu: add initial debugfs support
+Date: Sat, 15 Aug 2009 15:06:03 +0300 (EEST)
+Message-ID: <20090815.150603.104063905.Hiroshi.DOYU@nokia.com>
+References: <20090812120926.17601.85860.stgit@localhost>
+	<20090812121324.17601.39083.stgit@localhost>
+	<20090813092359.GS6132@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Sat_Aug_15_15_06_03_2009_910)--"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:32988 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753441AbZHOL0P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 07:26:15 -0400
-In-Reply-To: <20090815111704.7384.31564.stgit@localhost.localdomain>
+Received: from smtp.nokia.com ([192.100.122.233]:60568 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751640AbZHOMGX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 08:06:23 -0400
+In-Reply-To: <20090813092359.GS6132@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org
+To: linux@arm.linux.org.uk
+Cc: tony@atomide.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Most board-*.c files read configuration data from the bootloader in
-their .init_machine() function.  This needs to happen earlier, at some
-point before omap2_init_common_hw() is called.  This is because a
-future patch will use the bootloader serial console port information
-to enable the UART clocks earlier, immediately after omap2_clk_init().
-This is in turn necessary since otherwise clock tree usecounts on
-clocks like dpll4_m2x2_ck will be bogus, which can cause the
-currently-active console UART clock to be disabled during boot.
+----Next_Part(Sat_Aug_15_15_06_03_2009_910)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/board-2430sdp.c      |   17 ++++++++---------
- arch/arm/mach-omap2/board-3430sdp.c      |   18 +++++++++---------
- arch/arm/mach-omap2/board-apollon.c      |   20 ++++++++++----------
- arch/arm/mach-omap2/board-generic.c      |   14 +++++++-------
- arch/arm/mach-omap2/board-h4.c           |   20 ++++++++++----------
- arch/arm/mach-omap2/board-ldp.c          |   20 ++++++++++----------
- arch/arm/mach-omap2/board-omap3beagle.c  |   26 +++++++++++++-------------
- arch/arm/mach-omap2/board-omap3evm.c     |   14 +++++++-------
- arch/arm/mach-omap2/board-omap3pandora.c |   20 ++++++++++----------
- arch/arm/mach-omap2/board-overo.c        |   20 ++++++++++----------
- arch/arm/mach-omap2/board-rx51.c         |    4 ++--
- arch/arm/mach-omap2/board-zoom2.c        |   18 +++++++++---------
- arch/arm/mach-omap2/io.c                 |    2 ++
- arch/arm/mach-omap2/serial.c             |   11 ++++++++++-
- arch/arm/plat-omap/include/mach/serial.h |    3 +++
- 15 files changed, 120 insertions(+), 107 deletions(-)
+Hi Russell,
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index 8ec2a13..06c644d 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -139,13 +139,6 @@ static inline void board_smc91x_init(void)
- 
- #endif
- 
--static void __init omap_2430sdp_init_irq(void)
--{
--	omap2_init_common_hw(NULL, NULL);
--	omap_init_irq();
--	omap_gpio_init();
--}
--
- static struct omap_uart_config sdp2430_uart_config __initdata = {
- 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
- };
-@@ -155,6 +148,14 @@ static struct omap_board_config_kernel sdp2430_config[] = {
- 	{OMAP_TAG_LCD, &sdp2430_lcd_config},
- };
- 
-+static void __init omap_2430sdp_init_irq(void)
-+{
-+	omap_board_config = sdp2430_config;
-+	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
- 
- static struct twl4030_gpio_platform_data sdp2430_gpio_data = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
-@@ -205,8 +206,6 @@ static void __init omap_2430sdp_init(void)
- 	omap2430_i2c_init();
- 
- 	platform_add_devices(sdp2430_devices, ARRAY_SIZE(sdp2430_devices));
--	omap_board_config = sdp2430_config;
--	omap_board_config_size = ARRAY_SIZE(sdp2430_config);
- 	omap_serial_init();
- 	twl4030_mmc_init(mmc);
- 	usb_musb_init();
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index ac262cd..e51c124 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -167,13 +167,6 @@ static struct platform_device *sdp3430_devices[] __initdata = {
- 	&sdp3430_lcd_device,
- };
- 
--static void __init omap_3430sdp_init_irq(void)
--{
--	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
--	omap_init_irq();
--	omap_gpio_init();
--}
--
- static struct omap_uart_config sdp3430_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
- };
-@@ -187,6 +180,15 @@ static struct omap_board_config_kernel sdp3430_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
- };
- 
-+static void __init omap_3430sdp_init_irq(void)
-+{
-+	omap_board_config = sdp3430_config;
-+	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
-+	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
- static int sdp3430_batt_table[] = {
- /* 0 C*/
- 30800, 29500, 28300, 27100,
-@@ -482,8 +484,6 @@ static void __init omap_3430sdp_init(void)
- {
- 	omap3430_i2c_init();
- 	platform_add_devices(sdp3430_devices, ARRAY_SIZE(sdp3430_devices));
--	omap_board_config = sdp3430_config;
--	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
- 	if (omap_rev() > OMAP3430_REV_ES1_0)
- 		ts_gpio = SDP3430_TS_GPIO_IRQ_SDPV2;
- 	else
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index dcfc20d..8e063ba 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -248,14 +248,6 @@ out:
- 	clk_put(gpmc_fck);
- }
- 
--static void __init omap_apollon_init_irq(void)
--{
--	omap2_init_common_hw(NULL, NULL);
--	omap_init_irq();
--	omap_gpio_init();
--	apollon_init_smc91x();
--}
--
- static struct omap_uart_config apollon_uart_config __initdata = {
- 	.enabled_uarts = (1 << 0) | (0 << 1) | (0 << 2),
- };
-@@ -276,6 +268,16 @@ static struct omap_board_config_kernel apollon_config[] = {
- 	{ OMAP_TAG_LCD,		&apollon_lcd_config },
- };
- 
-+static void __init omap_apollon_init_irq(void)
-+{
-+	omap_board_config = apollon_config;
-+	omap_board_config_size = ARRAY_SIZE(apollon_config);
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+	apollon_init_smc91x();
-+}
-+
- static void __init apollon_led_init(void)
- {
- 	/* LED0 - AA10 */
-@@ -324,8 +326,6 @@ static void __init omap_apollon_init(void)
- 	 * if not needed.
- 	 */
- 	platform_add_devices(apollon_devices, ARRAY_SIZE(apollon_devices));
--	omap_board_config = apollon_config;
--	omap_board_config_size = ARRAY_SIZE(apollon_config);
- 	omap_serial_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index fd00aa0..ef0dc67 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -31,12 +31,6 @@
- #include <mach/board.h>
- #include <mach/common.h>
- 
--static void __init omap_generic_init_irq(void)
--{
--	omap2_init_common_hw(NULL, NULL);
--	omap_init_irq();
--}
--
- static struct omap_uart_config generic_uart_config __initdata = {
- 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
- };
-@@ -45,10 +39,16 @@ static struct omap_board_config_kernel generic_config[] = {
- 	{ OMAP_TAG_UART,	&generic_uart_config },
- };
- 
--static void __init omap_generic_init(void)
-+static void __init omap_generic_init_irq(void)
- {
- 	omap_board_config = generic_config;
- 	omap_board_config_size = ARRAY_SIZE(generic_config);
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+}
-+
-+static void __init omap_generic_init(void)
-+{
- 	omap_serial_init();
- }
- 
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 7b1d61d..66f710e 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -268,14 +268,6 @@ static void __init h4_init_flash(void)
- 	h4_flash_resource.end	= base + SZ_64M - 1;
- }
- 
--static void __init omap_h4_init_irq(void)
--{
--	omap2_init_common_hw(NULL, NULL);
--	omap_init_irq();
--	omap_gpio_init();
--	h4_init_flash();
--}
--
- static struct omap_uart_config h4_uart_config __initdata = {
- 	.enabled_uarts = ((1 << 0) | (1 << 1) | (1 << 2)),
- };
-@@ -322,6 +314,16 @@ static struct omap_board_config_kernel h4_config[] = {
- 	{ OMAP_TAG_LCD,		&h4_lcd_config },
- };
- 
-+static void __init omap_h4_init_irq(void)
-+{
-+	omap_board_config = h4_config;
-+	omap_board_config_size = ARRAY_SIZE(h4_config);
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+	h4_init_flash();
-+}
-+
- static struct at24_platform_data m24c01 = {
- 	.byte_len	= SZ_1K / 8,
- 	.page_size	= 16,
-@@ -366,8 +368,6 @@ static void __init omap_h4_init(void)
- 			ARRAY_SIZE(h4_i2c_board_info));
- 
- 	platform_add_devices(h4_devices, ARRAY_SIZE(h4_devices));
--	omap_board_config = h4_config;
--	omap_board_config_size = ARRAY_SIZE(h4_config);
- 	omap_usb_init(&h4_usb_config);
- 	omap_serial_init();
- }
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index ea383f8..cc64aa7 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -268,14 +268,6 @@ static inline void __init ldp_init_smsc911x(void)
- 	gpio_direction_input(eth_gpio);
- }
- 
--static void __init omap_ldp_init_irq(void)
--{
--	omap2_init_common_hw(NULL, NULL);
--	omap_init_irq();
--	omap_gpio_init();
--	ldp_init_smsc911x();
--}
--
- static struct omap_uart_config ldp_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
- };
-@@ -294,6 +286,16 @@ static struct omap_board_config_kernel ldp_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&ldp_lcd_config },
- };
- 
-+static void __init omap_ldp_init_irq(void)
-+{
-+	omap_board_config = ldp_config;
-+	omap_board_config_size = ARRAY_SIZE(ldp_config);
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+	ldp_init_smsc911x();
-+}
-+
- static struct twl4030_usb_data ldp_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
-@@ -377,8 +379,6 @@ static void __init omap_ldp_init(void)
- {
- 	omap_i2c_init();
- 	platform_add_devices(ldp_devices, ARRAY_SIZE(ldp_devices));
--	omap_board_config = ldp_config;
--	omap_board_config_size = ARRAY_SIZE(ldp_config);
- 	ts_gpio = 54;
- 	ldp_spi_board_info[0].irq = gpio_to_irq(ts_gpio);
- 	spi_register_board_info(ldp_spi_board_info,
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index e00ba12..f74358a 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -280,17 +280,6 @@ static int __init omap3_beagle_i2c_init(void)
- 	return 0;
- }
- 
--static void __init omap3_beagle_init_irq(void)
--{
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
--	omap_init_irq();
--#ifdef CONFIG_OMAP_32K_TIMER
--	omap2_gp_clockevent_set_gptimer(12);
--#endif
--	omap_gpio_init();
--}
--
- static struct gpio_led gpio_leds[] = {
- 	{
- 		.name			= "beagleboard::usr0",
-@@ -349,6 +338,19 @@ static struct omap_board_config_kernel omap3_beagle_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&omap3_beagle_lcd_config },
- };
- 
-+static void __init omap3_beagle_init_irq(void)
-+{
-+	omap_board_config = omap3_beagle_config;
-+	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
-+	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-+			     mt46h32m32lf6_sdrc_params);
-+	omap_init_irq();
-+#ifdef CONFIG_OMAP_32K_TIMER
-+	omap2_gp_clockevent_set_gptimer(12);
-+#endif
-+	omap_gpio_init();
-+}
-+
- static struct platform_device *omap3_beagle_devices[] __initdata = {
- 	&omap3_beagle_lcd_device,
- 	&leds_gpio,
-@@ -398,8 +400,6 @@ static void __init omap3_beagle_init(void)
- 	omap3_beagle_i2c_init();
- 	platform_add_devices(omap3_beagle_devices,
- 			ARRAY_SIZE(omap3_beagle_devices));
--	omap_board_config = omap3_beagle_config;
--	omap_board_config_size = ARRAY_SIZE(omap3_beagle_config);
- 	omap_serial_init();
- 
- 	omap_cfg_reg(J25_34XX_GPIO170);
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index c4b1446..067d2bc 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -278,19 +278,21 @@ struct spi_board_info omap3evm_spi_board_info[] = {
- 	},
- };
- 
-+static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
-+	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
-+	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
-+};
-+
- static void __init omap3_evm_init_irq(void)
- {
-+	omap_board_config = omap3_evm_config;
-+	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
- 	omap3evm_init_smc911x();
- }
- 
--static struct omap_board_config_kernel omap3_evm_config[] __initdata = {
--	{ OMAP_TAG_UART,	&omap3_evm_uart_config },
--	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
--};
--
- static struct platform_device *omap3_evm_devices[] __initdata = {
- 	&omap3_evm_lcd_device,
- 	&omap3evm_smc911x_device,
-@@ -301,8 +303,6 @@ static void __init omap3_evm_init(void)
- 	omap3_evm_i2c_init();
- 
- 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
--	omap_board_config = omap3_evm_config;
--	omap_board_config_size = ARRAY_SIZE(omap3_evm_config);
- 
- 	spi_register_board_info(omap3evm_spi_board_info,
- 				ARRAY_SIZE(omap3evm_spi_board_info));
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 864ee3d..4958d94 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -309,14 +309,6 @@ static int __init omap3pandora_i2c_init(void)
- 	return 0;
- }
- 
--static void __init omap3pandora_init_irq(void)
--{
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
--	omap_init_irq();
--	omap_gpio_init();
--}
--
- static void __init omap3pandora_ads7846_init(void)
- {
- 	int gpio = OMAP3_PANDORA_TS_GPIO;
-@@ -380,6 +372,16 @@ static struct omap_board_config_kernel omap3pandora_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&omap3pandora_lcd_config },
- };
- 
-+static void __init omap3pandora_init_irq(void)
-+{
-+	omap_board_config = omap3pandora_config;
-+	omap_board_config_size = ARRAY_SIZE(omap3pandora_config);
-+	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-+			     mt46h32m32lf6_sdrc_params);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
- static struct platform_device *omap3pandora_devices[] __initdata = {
- 	&omap3pandora_lcd_device,
- 	&pandora_leds_gpio,
-@@ -391,8 +393,6 @@ static void __init omap3pandora_init(void)
- 	omap3pandora_i2c_init();
- 	platform_add_devices(omap3pandora_devices,
- 			ARRAY_SIZE(omap3pandora_devices));
--	omap_board_config = omap3pandora_config;
--	omap_board_config_size = ARRAY_SIZE(omap3pandora_config);
- 	omap_serial_init();
- 	spi_register_board_info(omap3pandora_spi_board_info,
- 			ARRAY_SIZE(omap3pandora_spi_board_info));
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 6bce230..a44aa13 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -360,14 +360,6 @@ static int __init overo_i2c_init(void)
- 	return 0;
- }
- 
--static void __init overo_init_irq(void)
--{
--	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
--			     mt46h32m32lf6_sdrc_params);
--	omap_init_irq();
--	omap_gpio_init();
--}
--
- static struct platform_device overo_lcd_device = {
- 	.name		= "overo_lcd",
- 	.id		= -1,
-@@ -382,6 +374,16 @@ static struct omap_board_config_kernel overo_config[] __initdata = {
- 	{ OMAP_TAG_LCD,		&overo_lcd_config },
- };
- 
-+static void __init overo_init_irq(void)
-+{
-+	omap_board_config = overo_config;
-+	omap_board_config_size = ARRAY_SIZE(overo_config);
-+	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-+			     mt46h32m32lf6_sdrc_params);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
- static struct platform_device *overo_devices[] __initdata = {
- 	&overo_lcd_device,
- };
-@@ -390,8 +392,6 @@ static void __init overo_init(void)
- {
- 	overo_i2c_init();
- 	platform_add_devices(overo_devices, ARRAY_SIZE(overo_devices));
--	omap_board_config = overo_config;
--	omap_board_config_size = ARRAY_SIZE(overo_config);
- 	omap_serial_init();
- 	overo_flash_init();
- 	usb_musb_init();
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index 1c9e07f..5a0f83e 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -61,6 +61,8 @@ static struct omap_board_config_kernel rx51_config[] = {
- 
- static void __init rx51_init_irq(void)
- {
-+	omap_board_config = rx51_config;
-+	omap_board_config_size = ARRAY_SIZE(rx51_config);
- 	omap2_init_common_hw(NULL, NULL);
- 	omap_init_irq();
- 	omap_gpio_init();
-@@ -70,8 +72,6 @@ extern void __init rx51_peripherals_init(void);
- 
- static void __init rx51_init(void)
- {
--	omap_board_config = rx51_config;
--	omap_board_config_size = ARRAY_SIZE(rx51_config);
- 	omap_serial_init();
- 	usb_musb_init();
- 	rx51_peripherals_init();
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 427b7b8..df36b46 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -23,13 +23,6 @@
- 
- #include "mmc-twl4030.h"
- 
--static void __init omap_zoom2_init_irq(void)
--{
--	omap2_init_common_hw(NULL, NULL);
--	omap_init_irq();
--	omap_gpio_init();
--}
--
- static struct omap_uart_config zoom2_uart_config __initdata = {
- 	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
- };
-@@ -38,6 +31,15 @@ static struct omap_board_config_kernel zoom2_config[] __initdata = {
- 	{ OMAP_TAG_UART,	&zoom2_uart_config },
- };
- 
-+static void __init omap_zoom2_init_irq(void)
-+{
-+	omap_board_config = zoom2_config;
-+	omap_board_config_size = ARRAY_SIZE(zoom2_config);
-+	omap2_init_common_hw(NULL, NULL);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
- static struct twl4030_gpio_platform_data zoom2_gpio_data = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
-@@ -85,8 +87,6 @@ extern int __init omap_zoom2_debugboard_init(void);
- static void __init omap_zoom2_init(void)
- {
- 	omap_i2c_init();
--	omap_board_config = zoom2_config;
--	omap_board_config_size = ARRAY_SIZE(zoom2_config);
- 	omap_serial_init();
- 	omap_zoom2_debugboard_init();
- 	twl4030_mmc_init(mmc);
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 4bfe873..470b1d1 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -32,6 +32,7 @@
- #include <mach/sram.h>
- #include <mach/sdrc.h>
- #include <mach/gpmc.h>
-+#include <mach/serial.h>
- 
- #ifndef CONFIG_ARCH_OMAP4	/* FIXME: Remove this once clkdev is ready */
- #include "clock.h"
-@@ -287,6 +288,7 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
- 	pwrdm_init(powerdomains_omap);
- 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
- 	omap2_clk_init();
-+	omap_serial_early_init();
- 	omap_pm_if_init();
- 	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
- 	_omap2_init_reprogram_sdrc();
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index a7421a5..e459161 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -552,7 +552,7 @@ static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS] = {
- 	},
- };
- 
--void __init omap_serial_init(void)
-+void __init omap_serial_early_init(void)
- {
- 	int i;
- 	const struct omap_uart_config *info;
-@@ -607,6 +607,15 @@ void __init omap_serial_init(void)
- 			p->irq += 32;
- 
- 		omap_uart_enable_clocks(uart);
-+	}
-+}
-+
-+void __init omap_serial_init(void)
-+{
-+	int err, i;
-+
-+	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+		struct omap_uart_state *uart = &omap_uart[i];
- 		omap_uart_reset(uart);
- 		omap_uart_idle_init(uart);
- 
-diff --git a/arch/arm/plat-omap/include/mach/serial.h b/arch/arm/plat-omap/include/mach/serial.h
-index def0529..e249186 100644
---- a/arch/arm/plat-omap/include/mach/serial.h
-+++ b/arch/arm/plat-omap/include/mach/serial.h
-@@ -13,6 +13,8 @@
- #ifndef __ASM_ARCH_SERIAL_H
- #define __ASM_ARCH_SERIAL_H
- 
-+#include <linux/init.h>
-+
- #if defined(CONFIG_ARCH_OMAP1)
- /* OMAP1 serial ports */
- #define OMAP_UART1_BASE		0xfffb0000
-@@ -53,6 +55,7 @@
- 			})
- 
- #ifndef __ASSEMBLER__
-+extern void __init omap_serial_early_init(void);
- extern void omap_serial_init(void);
- extern int omap_uart_can_sleep(void);
- extern void omap_uart_check_wakeup(void);
+From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 02/10] OMAP: iommu: add initial debugfs support
+Date: Thu, 13 Aug 2009 11:23:59 +0200
+
+> On Wed, Aug 12, 2009 at 03:13:24PM +0300, Tony Lindgren wrote:
+> > +static DEFINE_MUTEX(iommu_debug_lock);
+> > +static char local_buffer[SZ_4K];
+> 
+> I don't like this - what if the data you're sprintf'ing into this
+> buffer overflows it?
+
+Right.
+
+I have attached the updated version which limits max write counts to
+avoid the above buffer overflow.
 
 
+
+
+----Next_Part(Sat_Aug_15_15_06_03_2009_910)--
+Content-Type: Application/Octet-Stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0001-OMAP-iommu-add-initial-debugfs-support.patch"
+
+RnJvbSBhYzY5NjJmZTk3MGM3ZDYyNTlhMTdlMzZhNTc4ZWFjOGE4MDA0NTJhIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
+CkRhdGU6IFdlZCwgMTIgQXVnIDIwMDkgMTU6MDY6MzMgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
+MV0gT01BUDogaW9tbXU6IGFkZCBpbml0aWFsIGRlYnVnZnMgc3VwcG9ydAoKVGhpcyBlbmFibGVz
+IHRvIHBlZWsgdGhlIGZvbGxvd2luZyBkYXRhLgoKJCAvZGVidWcvaW9tbXUvaXNwIyBscwptZW0g
+ICAgICAgICAgICAgbnJfdGxiX2VudHJpZXMgIHJlZ3MKbW1hcCAgICAgICAgICAgIHBhZ2V0YWJs
+ZSAgICAgICB0bGIKJCAvZGVidWcvaW9tbXUvaXNwIyBoZWFkIHBhZ2V0YWJsZQpMOiAgICAgIGRh
+OiAgICAgIHBhOgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoyOiAw
+MDAwMTAwMCA4YWU0YTAwMgoyOiAwMDAwMjAwMCA4ZTdiYjAwMgoyOiAwMDAwMzAwMCA4YWU0OTAw
+MgoyOiAwMDAwNDAwMCA4YWU2NTAwMgouLi4uLgoKU2lnbmVkLW9mZi1ieTogSGlyb3NoaSBET1lV
+IDxIaXJvc2hpLkRPWVVAbm9raWEuY29tPgpTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0
+b255QGF0b21pZGUuY29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvaW9tbXUyLmMgICAgICAg
+ICAgICB8ICAgMTggKy0KIGFyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnICAgICAgICAgICAgICB8
+ICAgIDQgKwogYXJjaC9hcm0vcGxhdC1vbWFwL01ha2VmaWxlICAgICAgICAgICAgIHwgICAgMSAr
+CiBhcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9tYWNoL2lvbW11LmggfCAgICA2ICstCiBhcmNo
+L2FybS9wbGF0LW9tYXAvaW9tbXUtZGVidWcuYyAgICAgICAgfCAgNDEzICsrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysKIGFyY2gvYXJtL3BsYXQtb21hcC9pb21tdS5jICAgICAgICAgICAg
+ICB8ICAgMjMgKy0KIDYgZmlsZXMgY2hhbmdlZCwgNDQ2IGluc2VydGlvbnMoKyksIDE5IGRlbGV0
+aW9ucygtKQogY3JlYXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL3BsYXQtb21hcC9pb21tdS1kZWJ1
+Zy5jCgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9pb21tdTIuYyBiL2FyY2gvYXJt
+L21hY2gtb21hcDIvaW9tbXUyLmMKaW5kZXggMDE1ZjIyYS4uMDBmMGFiMyAxMDA2NDQKLS0tIGEv
+YXJjaC9hcm0vbWFjaC1vbWFwMi9pb21tdTIuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2lv
+bW11Mi5jCkBAIC0yMTcsMTAgKzIxNywxOCBAQCBzdGF0aWMgc3NpemVfdCBvbWFwMl9kdW1wX2Ny
+KHN0cnVjdCBpb21tdSAqb2JqLCBzdHJ1Y3QgY3JfcmVncyAqY3IsIGNoYXIgKmJ1ZikKIH0KIAog
+I2RlZmluZSBwcl9yZWcobmFtZSkJCQkJCQkJXAotCXAgKz0gc3ByaW50ZihwLCAiJTIwczogJTA4
+eFxuIiwJCQkJCVwKLQkJICAgICBfX3N0cmluZ2lmeShuYW1lKSwgaW9tbXVfcmVhZF9yZWcob2Jq
+LCBNTVVfIyNuYW1lKSk7Ci0KLXN0YXRpYyBzc2l6ZV90IG9tYXAyX2lvbW11X2R1bXBfY3R4KHN0
+cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYpCisJZG8gewkJCQkJCQkJXAorCQlzc2l6ZV90IGJ5
+dGVzOwkJCQkJCVwKKwkJY29uc3QgY2hhciAqc3RyID0gIiUyMHM6ICUwOHhcbiI7CQkJXAorCQli
+eXRlcyA9IHNucHJpbnRmKHAsIDMyLCBzdHIsIF9fc3RyaW5naWZ5KG5hbWUpLAkJXAorCQkJCSBp
+b21tdV9yZWFkX3JlZyhvYmosIE1NVV8jI25hbWUpKTsJXAorCQlwICs9IGJ5dGVzOwkJCQkJCVwK
+KwkJbGVuIC09IGJ5dGVzOwkJCQkJCVwKKwkJaWYgKGxlbiA8IHN0cmxlbihzdHIpICsgMSkJCQkJ
+XAorCQkJZ290byBvdXQ7CQkJCQlcCisJfSB3aGlsZSAoMCkKKworc3RhdGljIHNzaXplX3Qgb21h
+cDJfaW9tbXVfZHVtcF9jdHgoc3RydWN0IGlvbW11ICpvYmosIGNoYXIgKmJ1Ziwgc3NpemVfdCBs
+ZW4pCiB7CiAJY2hhciAqcCA9IGJ1ZjsKIApAQCAtMjQyLDcgKzI1MCw3IEBAIHN0YXRpYyBzc2l6
+ZV90IG9tYXAyX2lvbW11X2R1bXBfY3R4KHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYpCiAJ
+cHJfcmVnKFJFQURfQ0FNKTsKIAlwcl9yZWcoUkVBRF9SQU0pOwogCXByX3JlZyhFTVVfRkFVTFRf
+QUQpOwotCitvdXQ6CiAJcmV0dXJuIHAgLSBidWY7CiB9CiAKZGlmZiAtLWdpdCBhL2FyY2gvYXJt
+L3BsYXQtb21hcC9LY29uZmlnIGIvYXJjaC9hcm0vcGxhdC1vbWFwL0tjb25maWcKaW5kZXggZWZl
+ODVkMC4uYWI5ZjllZiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL0tjb25maWcKKysr
+IGIvYXJjaC9hcm0vcGxhdC1vbWFwL0tjb25maWcKQEAgLTEyMCw2ICsxMjAsMTAgQEAgY29uZmln
+IE9NQVBfTUJPWF9GV0sKIGNvbmZpZyBPTUFQX0lPTU1VCiAJdHJpc3RhdGUKIAorY29uZmlnIE9N
+QVBfSU9NTVVfREVCVUcKKwlkZXBlbmRzIG9uIE9NQVBfSU9NTVUKKwl0cmlzdGF0ZQorCiBjaG9p
+Y2UKICAgICAgICAgcHJvbXB0ICJTeXN0ZW0gdGltZXIiCiAJZGVmYXVsdCBPTUFQX01QVV9USU1F
+UgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL01ha2VmaWxlIGIvYXJjaC9hcm0vcGxh
+dC1vbWFwL01ha2VmaWxlCmluZGV4IGE4MzI3OTUuLjc2OWE0YzIgMTAwNjQ0Ci0tLSBhL2FyY2gv
+YXJtL3BsYXQtb21hcC9NYWtlZmlsZQorKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvTWFrZWZpbGUK
+QEAgLTE0LDYgKzE0LDcgQEAgb2JqLSQoQ09ORklHX0FSQ0hfT01BUDE2WFgpICs9IG9jcGkubwog
+CiBvYmotJChDT05GSUdfT01BUF9NQ0JTUCkgKz0gbWNic3Aubwogb2JqLSQoQ09ORklHX09NQVBf
+SU9NTVUpICs9IGlvbW11Lm8gaW92bW0ubworb2JqLSQoQ09ORklHX09NQVBfSU9NTVVfREVCVUcp
+ICs9IGlvbW11LWRlYnVnLm8KIAogb2JqLSQoQ09ORklHX0NQVV9GUkVRKSArPSBjcHUtb21hcC5v
+CiBvYmotJChDT05GSUdfT01BUF9ETV9USU1FUikgKz0gZG10aW1lci5vCmRpZmYgLS1naXQgYS9h
+cmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9tYWNoL2lvbW11LmggYi9hcmNoL2FybS9wbGF0LW9t
+YXAvaW5jbHVkZS9tYWNoL2lvbW11LmgKaW5kZXggNzY5YjAwYi4uNDZkNDFhYyAxMDA2NDQKLS0t
+IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvbWFjaC9pb21tdS5oCisrKyBiL2FyY2gvYXJt
+L3BsYXQtb21hcC9pbmNsdWRlL21hY2gvaW9tbXUuaApAQCAtOTUsNyArOTUsNyBAQCBzdHJ1Y3Qg
+aW9tbXVfZnVuY3Rpb25zIHsKIAogCXZvaWQgKCpzYXZlX2N0eCkoc3RydWN0IGlvbW11ICpvYmop
+OwogCXZvaWQgKCpyZXN0b3JlX2N0eCkoc3RydWN0IGlvbW11ICpvYmopOwotCXNzaXplX3QgKCpk
+dW1wX2N0eCkoc3RydWN0IGlvbW11ICpvYmosIGNoYXIgKmJ1Zik7CisJc3NpemVfdCAoKmR1bXBf
+Y3R4KShzdHJ1Y3QgaW9tbXUgKm9iaiwgY2hhciAqYnVmLCBzc2l6ZV90IGxlbik7CiB9OwogCiBz
+dHJ1Y3QgaW9tbXVfcGxhdGZvcm1fZGF0YSB7CkBAIC0xNjIsNyArMTYyLDcgQEAgZXh0ZXJuIHZv
+aWQgdW5pbnN0YWxsX2lvbW11X2FyY2goY29uc3Qgc3RydWN0IGlvbW11X2Z1bmN0aW9ucyAqb3Bz
+KTsKIGV4dGVybiBpbnQgZm9yZWFjaF9pb21tdV9kZXZpY2Uodm9pZCAqZGF0YSwKIAkJCQlpbnQg
+KCpmbikoc3RydWN0IGRldmljZSAqLCB2b2lkICopKTsKIAotZXh0ZXJuIHNzaXplX3QgaW9tbXVf
+ZHVtcF9jdHgoc3RydWN0IGlvbW11ICpvYmosIGNoYXIgKmJ1Zik7Ci1leHRlcm4gc2l6ZV90IGR1
+bXBfdGxiX2VudHJpZXMoc3RydWN0IGlvbW11ICpvYmosIGNoYXIgKmJ1Zik7CitleHRlcm4gc3Np
+emVfdCBpb21tdV9kdW1wX2N0eChzdHJ1Y3QgaW9tbXUgKm9iaiwgY2hhciAqYnVmLCBzc2l6ZV90
+IGxlbik7CitleHRlcm4gc2l6ZV90IGR1bXBfdGxiX2VudHJpZXMoc3RydWN0IGlvbW11ICpvYmos
+IGNoYXIgKmJ1Ziwgc3NpemVfdCBsZW4pOwogCiAjZW5kaWYgLyogX19NQUNIX0lPTU1VX0ggKi8K
+ZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9pb21tdS1kZWJ1Zy5jIGIvYXJjaC9hcm0v
+cGxhdC1vbWFwL2lvbW11LWRlYnVnLmMKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAw
+MC4uNTM2ZTg5NwotLS0gL2Rldi9udWxsCisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9pb21tdS1k
+ZWJ1Zy5jCkBAIC0wLDAgKzEsNDEzIEBACisvKgorICogb21hcCBpb21tdTogZGVidWdmcyBpbnRl
+cmZhY2UKKyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMDgtMjAwOSBOb2tpYSBDb3Jwb3JhdGlvbgor
+ICoKKyAqIFdyaXR0ZW4gYnkgSGlyb3NoaSBET1lVIDxIaXJvc2hpLkRPWVVAbm9raWEuY29tPgor
+ICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0
+ZSBpdCBhbmQvb3IgbW9kaWZ5CisgKiBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5l
+cmFsIFB1YmxpYyBMaWNlbnNlIHZlcnNpb24gMiBhcworICogcHVibGlzaGVkIGJ5IHRoZSBGcmVl
+IFNvZnR3YXJlIEZvdW5kYXRpb24uCisgKi8KKworI2luY2x1ZGUgPGxpbnV4L2Vyci5oPgorI2lu
+Y2x1ZGUgPGxpbnV4L2Nsay5oPgorI2luY2x1ZGUgPGxpbnV4L2lvLmg+CisjaW5jbHVkZSA8bGlu
+dXgvdWFjY2Vzcy5oPgorI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2RldmljZS5oPgorI2luY2x1
+ZGUgPGxpbnV4L2RlYnVnZnMuaD4KKworI2luY2x1ZGUgPG1hY2gvaW9tbXUuaD4KKyNpbmNsdWRl
+IDxtYWNoL2lvdm1tLmg+CisKKyNpbmNsdWRlICJpb3BndGFibGUuaCIKKworI2RlZmluZSBNQVhD
+T0xVTU4gMTAwIC8qIGZvciBzaG9ydCBtZXNzYWdlcyAqLworCitzdGF0aWMgREVGSU5FX01VVEVY
+KGlvbW11X2RlYnVnX2xvY2spOworCitzdGF0aWMgc3RydWN0IGRlbnRyeSAqaW9tbXVfZGVidWdf
+cm9vdDsKKworc3RhdGljIHNzaXplX3QgZGVidWdfcmVhZF92ZXIoc3RydWN0IGZpbGUgKmZpbGUs
+IGNoYXIgX191c2VyICp1c2VyYnVmLAorCQkJICAgICAgc2l6ZV90IGNvdW50LCBsb2ZmX3QgKnBw
+b3MpCit7CisJdTMyIHZlciA9IGlvbW11X2FyY2hfdmVyc2lvbigpOworCWNoYXIgYnVmW01BWENP
+TFVNTl0sICpwID0gYnVmOworCisJcCArPSBzcHJpbnRmKHAsICJIL1cgdmVyc2lvbjogJWQuJWRc
+biIsICh2ZXIgPj4gNCkgJiAweGYgLCB2ZXIgJiAweGYpOworCisJcmV0dXJuIHNpbXBsZV9yZWFk
+X2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBidWYsIHAgLSBidWYpOworfQorCitz
+dGF0aWMgc3NpemVfdCBkZWJ1Z19yZWFkX3JlZ3Moc3RydWN0IGZpbGUgKmZpbGUsIGNoYXIgX191
+c2VyICp1c2VyYnVmLAorCQkJICAgICAgIHNpemVfdCBjb3VudCwgbG9mZl90ICpwcG9zKQorewor
+CXN0cnVjdCBpb21tdSAqb2JqID0gZmlsZS0+cHJpdmF0ZV9kYXRhOworCWNoYXIgKnAsICpidWY7
+CisJc3NpemVfdCBieXRlczsKKworCWJ1ZiA9IGttYWxsb2MoY291bnQsIEdGUF9LRVJORUwpOwor
+CWlmICghYnVmKQorCQlyZXR1cm4gLUVOT01FTTsKKwlwID0gYnVmOworCisJbXV0ZXhfbG9jaygm
+aW9tbXVfZGVidWdfbG9jayk7CisKKwlieXRlcyA9IGlvbW11X2R1bXBfY3R4KG9iaiwgcCwgY291
+bnQpOworCWJ5dGVzID0gc2ltcGxlX3JlYWRfZnJvbV9idWZmZXIodXNlcmJ1ZiwgY291bnQsIHBw
+b3MsIGJ1ZiwgYnl0ZXMpOworCisJbXV0ZXhfdW5sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwlr
+ZnJlZShidWYpOworCisJcmV0dXJuIGJ5dGVzOworfQorCitzdGF0aWMgc3NpemVfdCBkZWJ1Z19y
+ZWFkX3RsYihzdHJ1Y3QgZmlsZSAqZmlsZSwgY2hhciBfX3VzZXIgKnVzZXJidWYsCisJCQkgICAg
+ICBzaXplX3QgY291bnQsIGxvZmZfdCAqcHBvcykKK3sKKwlzdHJ1Y3QgaW9tbXUgKm9iaiA9IGZp
+bGUtPnByaXZhdGVfZGF0YTsKKwljaGFyICpwLCAqYnVmOworCXNzaXplX3QgYnl0ZXMsIHJlc3Q7
+CisKKwlidWYgPSBrbWFsbG9jKGNvdW50LCBHRlBfS0VSTkVMKTsKKwlpZiAoIWJ1ZikKKwkJcmV0
+dXJuIC1FTk9NRU07CisJcCA9IGJ1ZjsKKworCW11dGV4X2xvY2soJmlvbW11X2RlYnVnX2xvY2sp
+OworCisJcCArPSBzcHJpbnRmKHAsICIlOHMgJThzXG4iLCAiY2FtOiIsICJyYW06Iik7CisJcCAr
+PSBzcHJpbnRmKHAsICItLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLVxu
+Iik7CisJcmVzdCA9IGNvdW50IC0gKHAgLSBidWYpOworCXAgKz0gZHVtcF90bGJfZW50cmllcyhv
+YmosIHAsIHJlc3QpOworCisJYnl0ZXMgPSBzaW1wbGVfcmVhZF9mcm9tX2J1ZmZlcih1c2VyYnVm
+LCBjb3VudCwgcHBvcywgYnVmLCBwIC0gYnVmKTsKKworCW11dGV4X3VubG9jaygmaW9tbXVfZGVi
+dWdfbG9jayk7CisJa2ZyZWUoYnVmKTsKKworCXJldHVybiBieXRlczsKK30KKworc3RhdGljIHNz
+aXplX3QgZGVidWdfd3JpdGVfcGFnZXRhYmxlKHN0cnVjdCBmaWxlICpmaWxlLAorCQkgICAgIGNv
+bnN0IGNoYXIgX191c2VyICp1c2VyYnVmLCBzaXplX3QgY291bnQsIGxvZmZfdCAqcHBvcykKK3sK
+KwlzdHJ1Y3QgaW90bGJfZW50cnkgZTsKKwlzdHJ1Y3QgY3JfcmVncyBjcjsKKwlpbnQgZXJyOwor
+CXN0cnVjdCBpb21tdSAqb2JqID0gZmlsZS0+cHJpdmF0ZV9kYXRhOworCWNoYXIgYnVmW01BWENP
+TFVNTl0sICpwID0gYnVmOworCisJY291bnQgPSBtaW4oY291bnQsIHNpemVvZihidWYpKTsKKwor
+CW11dGV4X2xvY2soJmlvbW11X2RlYnVnX2xvY2spOworCWlmIChjb3B5X2Zyb21fdXNlcihwLCB1
+c2VyYnVmLCBjb3VudCkpIHsKKwkJbXV0ZXhfdW5sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwkJ
+cmV0dXJuIC1FRkFVTFQ7CisJfQorCisJc3NjYW5mKHAsICIleCAleCIsICZjci5jYW0sICZjci5y
+YW0pOworCWlmICghY3IuY2FtIHx8ICFjci5yYW0pIHsKKwkJbXV0ZXhfdW5sb2NrKCZpb21tdV9k
+ZWJ1Z19sb2NrKTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQorCisJaW90bGJfY3JfdG9fZSgmY3Is
+ICZlKTsKKwllcnIgPSBpb3BndGFibGVfc3RvcmVfZW50cnkob2JqLCAmZSk7CisJaWYgKGVycikK
+KwkJZGV2X2VycihvYmotPmRldiwgIiVzOiBmYWlsIHRvIHN0b3JlIGNyXG4iLCBfX2Z1bmNfXyk7
+CisKKwltdXRleF91bmxvY2soJmlvbW11X2RlYnVnX2xvY2spOworCXJldHVybiBjb3VudDsKK30K
+KworI2RlZmluZSBkdW1wX2lvcHRhYmxlX2VudHJ5X29uZShsdiwgZGEsIHB0ZXZhbCkJCQlcCisJ
+KHsJCQkJCQkJXAorCQlpbnQgX19lcnIgPSAwOwkJCQkJXAorCQlzc2l6ZV90IGJ5dGVzOwkJCQkJ
+XAorCQljb25zdCBjaGFyICpzdHIgPSAiJWQ6ICUwOHggJTA4eFxuIjsJCVwKKwkJYnl0ZXMgPSBz
+bnByaW50ZihwLCAyMiwgc3RyLCBsdiwgZGEsIHB0ZXZhbCk7CVwKKwkJcCArPSBieXRlczsJCQkJ
+CVwKKwkJbGVuIC09IGJ5dGVzOwkJCQkJXAorCQlpZiAobGVuIDwgc3RybGVuKHN0cikgKyAxKQkJ
+CVwKKwkJCV9fZXJyID0gLUVOT01FTTsJCQlcCisJCV9fZXJyOwkJCQkJCVwKKwl9KQorCitzdGF0
+aWMgc3NpemVfdCBkdW1wX2lvcHRhYmxlKHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYsIHNz
+aXplX3QgbGVuKQoreworCWludCBpOworCXUzMiAqaW9wZ2Q7CisJY2hhciAqcCA9IGJ1ZjsKKwor
+CXNwaW5fbG9jaygmb2JqLT5wYWdlX3RhYmxlX2xvY2spOworCisJaW9wZ2QgPSBpb3BnZF9vZmZz
+ZXQob2JqLCAwKTsKKwlmb3IgKGkgPSAwOyBpIDwgUFRSU19QRVJfSU9QR0Q7IGkrKywgaW9wZ2Qr
+KykgeworCQlpbnQgaiwgZXJyOworCQl1MzIgKmlvcHRlOworCQl1MzIgZGE7CisKKwkJaWYgKCEq
+aW9wZ2QpCisJCQljb250aW51ZTsKKworCQlpZiAoISgqaW9wZ2QgJiBJT1BHRF9UQUJMRSkpIHsK
+KwkJCWRhID0gaSA8PCBJT1BHRF9TSElGVDsKKworCQkJZXJyID0gZHVtcF9pb3B0YWJsZV9lbnRy
+eV9vbmUoMSwgZGEsICppb3BnZCk7CisJCQlpZiAoZXJyKQorCQkJCWdvdG8gb3V0OworCQkJY29u
+dGludWU7CisJCX0KKworCQlpb3B0ZSA9IGlvcHRlX29mZnNldChpb3BnZCwgMCk7CisKKwkJZm9y
+IChqID0gMDsgaiA8IFBUUlNfUEVSX0lPUFRFOyBqKyssIGlvcHRlKyspIHsKKwkJCWlmICghKmlv
+cHRlKQorCQkJCWNvbnRpbnVlOworCisJCQlkYSA9IChpIDw8IElPUEdEX1NISUZUKSArIChqIDw8
+IElPUFRFX1NISUZUKTsKKwkJCWVyciA9IGR1bXBfaW9wdGFibGVfZW50cnlfb25lKDIsIGRhLCAq
+aW9wZ2QpOworCQkJaWYgKGVycikKKwkJCQlnb3RvIG91dDsKKwkJfQorCX0KK291dDoKKwlzcGlu
+X3VubG9jaygmb2JqLT5wYWdlX3RhYmxlX2xvY2spOworCisJcmV0dXJuIHAgLSBidWY7Cit9CisK
+K3N0YXRpYyBzc2l6ZV90IGRlYnVnX3JlYWRfcGFnZXRhYmxlKHN0cnVjdCBmaWxlICpmaWxlLCBj
+aGFyIF9fdXNlciAqdXNlcmJ1ZiwKKwkJCQkgICAgc2l6ZV90IGNvdW50LCBsb2ZmX3QgKnBwb3Mp
+Cit7CisJc3RydWN0IGlvbW11ICpvYmogPSBmaWxlLT5wcml2YXRlX2RhdGE7CisJY2hhciAqcCwg
+KmJ1ZjsKKwlzaXplX3QgYnl0ZXM7CisKKwlidWYgPSAoY2hhciAqKV9fZ2V0X2ZyZWVfcGFnZShH
+RlBfS0VSTkVMKTsKKwlpZiAoIWJ1ZikKKwkJcmV0dXJuIC1FTk9NRU07CisJcCA9IGJ1ZjsKKwor
+CXAgKz0gc3ByaW50ZihwLCAiTDogJThzICU4c1xuIiwgImRhOiIsICJwYToiKTsKKwlwICs9IHNw
+cmludGYocCwgIi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tXG4iKTsK
+KworCW11dGV4X2xvY2soJmlvbW11X2RlYnVnX2xvY2spOworCisJYnl0ZXMgPSBQQUdFX1NJWkUg
+LSAocCAtIGJ1Zik7CisJcCArPSBkdW1wX2lvcHRhYmxlKG9iaiwgcCwgYnl0ZXMpOworCisJYnl0
+ZXMgPSBzaW1wbGVfcmVhZF9mcm9tX2J1ZmZlcih1c2VyYnVmLCBjb3VudCwgcHBvcywgYnVmLCBw
+IC0gYnVmKTsKKworCW11dGV4X3VubG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisJZnJlZV9wYWdl
+KCh1bnNpZ25lZCBsb25nKWJ1Zik7CisKKwlyZXR1cm4gYnl0ZXM7Cit9CisKK3N0YXRpYyBzc2l6
+ZV90IGRlYnVnX3JlYWRfbW1hcChzdHJ1Y3QgZmlsZSAqZmlsZSwgY2hhciBfX3VzZXIgKnVzZXJi
+dWYsCisJCQkgICAgICAgc2l6ZV90IGNvdW50LCBsb2ZmX3QgKnBwb3MpCit7CisJc3RydWN0IGlv
+bW11ICpvYmogPSBmaWxlLT5wcml2YXRlX2RhdGE7CisJY2hhciAqcCwgKmJ1ZjsKKwlzdHJ1Y3Qg
+aW92bV9zdHJ1Y3QgKnRtcDsKKwlpbnQgdW5pbml0aWFsaXplZF92YXIoaSk7CisJc3NpemVfdCBi
+eXRlczsKKworCWJ1ZiA9IChjaGFyICopX19nZXRfZnJlZV9wYWdlKEdGUF9LRVJORUwpOworCWlm
+ICghYnVmKQorCQlyZXR1cm4gLUVOT01FTTsKKwlwID0gYnVmOworCisJcCArPSBzcHJpbnRmKHAs
+ICIlLTNzICUtOHMgJS04cyAlNnMgJThzXG4iLAorCQkgICAgICJObyIsICJzdGFydCIsICJlbmQi
+LCAic2l6ZSIsICJmbGFncyIpOworCXAgKz0gc3ByaW50ZihwLCAiLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLVxuIik7CisKKwltdXRleF9sb2NrKCZpb21t
+dV9kZWJ1Z19sb2NrKTsKKworCWxpc3RfZm9yX2VhY2hfZW50cnkodG1wLCAmb2JqLT5tbWFwLCBs
+aXN0KSB7CisJCXNpemVfdCBsZW47CisJCWNvbnN0IGNoYXIgKnN0ciA9ICIlM2QgJTA4eC0lMDh4
+ICU2eCAlOHhcbiI7CisKKwkJbGVuID0gdG1wLT5kYV9lbmQgLSB0bXAtPmRhX3N0YXJ0OworCQlw
+ICs9IHNucHJpbnRmKHAsIHN0cmxlbihzdHIpICsgMSwgc3RyLAorCQkJICAgICAgaSwgdG1wLT5k
+YV9zdGFydCwgdG1wLT5kYV9lbmQsIGxlbiwgdG1wLT5mbGFncyk7CisKKwkJaWYgKChzdHJsZW4o
+c3RyKSArIDEpID4gKFBBR0VfU0laRSAtIChwIC0gYnVmKSkpCisJCQlicmVhazsKKwkJaSsrOwor
+CX0KKworCWJ5dGVzID0gc2ltcGxlX3JlYWRfZnJvbV9idWZmZXIodXNlcmJ1ZiwgY291bnQsIHBw
+b3MsIGJ1ZiwgcCAtIGJ1Zik7CisKKwltdXRleF91bmxvY2soJmlvbW11X2RlYnVnX2xvY2spOwor
+CWZyZWVfcGFnZSgodW5zaWduZWQgbG9uZylidWYpOworCisJcmV0dXJuIGJ5dGVzOworfQorCitz
+dGF0aWMgc3NpemVfdCBkZWJ1Z19yZWFkX21lbShzdHJ1Y3QgZmlsZSAqZmlsZSwgY2hhciBfX3Vz
+ZXIgKnVzZXJidWYsCisJCQkgICAgICBzaXplX3QgY291bnQsIGxvZmZfdCAqcHBvcykKK3sKKwlz
+dHJ1Y3QgaW9tbXUgKm9iaiA9IGZpbGUtPnByaXZhdGVfZGF0YTsKKwljaGFyICpwLCAqYnVmOwor
+CXN0cnVjdCBpb3ZtX3N0cnVjdCAqYXJlYTsKKwlzc2l6ZV90IGJ5dGVzOworCisJY291bnQgPSBt
+aW5fdChzc2l6ZV90LCBjb3VudCwgUEFHRV9TSVpFKTsKKworCWJ1ZiA9IChjaGFyICopX19nZXRf
+ZnJlZV9wYWdlKEdGUF9LRVJORUwpOworCWlmICghYnVmKQorCQlyZXR1cm4gLUVOT01FTTsKKwlw
+ID0gYnVmOworCisJbXV0ZXhfbG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisKKwlhcmVhID0gZmlu
+ZF9pb3ZtX2FyZWEob2JqLCAodTMyKXBwb3MpOworCWlmIChJU19FUlIoYXJlYSkpIHsKKwkJbXV0
+ZXhfdW5sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQorCW1l
+bWNweShwLCBhcmVhLT52YSwgY291bnQpOworCXAgKz0gY291bnQ7CisKKwlieXRlcyA9IHNpbXBs
+ZV9yZWFkX2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBidWYsIHAgLSBidWYpOwor
+CisJbXV0ZXhfdW5sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwlmcmVlX3BhZ2UoKHVuc2lnbmVk
+IGxvbmcpYnVmKTsKKworCXJldHVybiBieXRlczsKK30KKworc3RhdGljIHNzaXplX3QgZGVidWdf
+d3JpdGVfbWVtKHN0cnVjdCBmaWxlICpmaWxlLCBjb25zdCBjaGFyIF9fdXNlciAqdXNlcmJ1ZiwK
+KwkJCSAgICAgICBzaXplX3QgY291bnQsIGxvZmZfdCAqcHBvcykKK3sKKwlzdHJ1Y3QgaW9tbXUg
+Km9iaiA9IGZpbGUtPnByaXZhdGVfZGF0YTsKKwlzdHJ1Y3QgaW92bV9zdHJ1Y3QgKmFyZWE7CisJ
+Y2hhciAqcCwgKmJ1ZjsKKworCWNvdW50ID0gbWluX3Qoc2l6ZV90LCBjb3VudCwgUEFHRV9TSVpF
+KTsKKworCWJ1ZiA9IChjaGFyICopX19nZXRfZnJlZV9wYWdlKEdGUF9LRVJORUwpOworCWlmICgh
+YnVmKQorCQlyZXR1cm4gLUVOT01FTTsKKwlwID0gYnVmOworCisJbXV0ZXhfbG9jaygmaW9tbXVf
+ZGVidWdfbG9jayk7CisKKwlpZiAoY29weV9mcm9tX3VzZXIocCwgdXNlcmJ1ZiwgY291bnQpKSB7
+CisJCW11dGV4X3VubG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisJCXJldHVybiAtRUZBVUxUOwor
+CX0KKworCWFyZWEgPSBmaW5kX2lvdm1fYXJlYShvYmosICh1MzIpcHBvcyk7CisJaWYgKElTX0VS
+UihhcmVhKSkgeworCQltdXRleF91bmxvY2soJmlvbW11X2RlYnVnX2xvY2spOworCQlyZXR1cm4g
+LUVJTlZBTDsKKwl9CisJbWVtY3B5KGFyZWEtPnZhLCBwLCBjb3VudCk7CisKKwltdXRleF91bmxv
+Y2soJmlvbW11X2RlYnVnX2xvY2spOworCWZyZWVfcGFnZSgodW5zaWduZWQgbG9uZylidWYpOwor
+CisJcmV0dXJuIGNvdW50OworfQorCitzdGF0aWMgaW50IGRlYnVnX29wZW5fZ2VuZXJpYyhzdHJ1
+Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZmlsZSAqZmlsZSkKK3sKKwlmaWxlLT5wcml2YXRlX2Rh
+dGEgPSBpbm9kZS0+aV9wcml2YXRlOworCXJldHVybiAwOworfQorCisjZGVmaW5lIERFQlVHX0ZP
+UFMobmFtZSkJCQkJCQlcCisJc3RhdGljIGNvbnN0IHN0cnVjdCBmaWxlX29wZXJhdGlvbnMgZGVi
+dWdfIyNuYW1lIyNfZm9wcyA9IHsJXAorCQkub3BlbiA9IGRlYnVnX29wZW5fZ2VuZXJpYywJCQkJ
+XAorCQkucmVhZCA9IGRlYnVnX3JlYWRfIyNuYW1lLAkJCQlcCisJCS53cml0ZSA9IGRlYnVnX3dy
+aXRlXyMjbmFtZSwJCQkJXAorCX07CisKKyNkZWZpbmUgREVCVUdfRk9QU19STyhuYW1lKQkJCQkJ
+CVwKKwlzdGF0aWMgY29uc3Qgc3RydWN0IGZpbGVfb3BlcmF0aW9ucyBkZWJ1Z18jI25hbWUjI19m
+b3BzID0gewlcCisJCS5vcGVuID0gZGVidWdfb3Blbl9nZW5lcmljLAkJCQlcCisJCS5yZWFkID0g
+ZGVidWdfcmVhZF8jI25hbWUsCQkJCVwKKwl9OworCitERUJVR19GT1BTX1JPKHZlcik7CitERUJV
+R19GT1BTX1JPKHJlZ3MpOworREVCVUdfRk9QU19STyh0bGIpOworREVCVUdfRk9QUyhwYWdldGFi
+bGUpOworREVCVUdfRk9QU19STyhtbWFwKTsKK0RFQlVHX0ZPUFMobWVtKTsKKworI2RlZmluZSBf
+X0RFQlVHX0FERF9GSUxFKGF0dHIsIG1vZGUpCQkJCQlcCisJewkJCQkJCQkJXAorCQlzdHJ1Y3Qg
+ZGVudHJ5ICpkZW50OwkJCQkJXAorCQlkZW50ID0gZGVidWdmc19jcmVhdGVfZmlsZSgjYXR0ciwg
+bW9kZSwgcGFyZW50LAkJXAorCQkJCQkgICBvYmosICZkZWJ1Z18jI2F0dHIjI19mb3BzKTsJXAor
+CQlpZiAoIWRlbnQpCQkJCQkJXAorCQkJcmV0dXJuIC1FTk9NRU07CQkJCQlcCisJfQorCisjZGVm
+aW5lIERFQlVHX0FERF9GSUxFKG5hbWUpIF9fREVCVUdfQUREX0ZJTEUobmFtZSwgNjAwKQorI2Rl
+ZmluZSBERUJVR19BRERfRklMRV9STyhuYW1lKSBfX0RFQlVHX0FERF9GSUxFKG5hbWUsIDQwMCkK
+Kworc3RhdGljIGludCBpb21tdV9kZWJ1Z19yZWdpc3RlcihzdHJ1Y3QgZGV2aWNlICpkZXYsIHZv
+aWQgKmRhdGEpCit7CisJc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldiA9IHRvX3BsYXRmb3Jt
+X2RldmljZShkZXYpOworCXN0cnVjdCBpb21tdSAqb2JqID0gcGxhdGZvcm1fZ2V0X2RydmRhdGEo
+cGRldik7CisJc3RydWN0IGRlbnRyeSAqZCwgKnBhcmVudDsKKworCWlmICghb2JqIHx8ICFvYmot
+PmRldikKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwlkID0gZGVidWdmc19jcmVhdGVfZGlyKG9iai0+
+bmFtZSwgaW9tbXVfZGVidWdfcm9vdCk7CisJaWYgKCFkKQorCQlyZXR1cm4gLUVOT01FTTsKKwlw
+YXJlbnQgPSBkOworCisJZCA9IGRlYnVnZnNfY3JlYXRlX3U4KCJucl90bGJfZW50cmllcyIsIDQw
+MCwgcGFyZW50LAorCQkJICAgICAgKHU4ICopJm9iai0+bnJfdGxiX2VudHJpZXMpOworCWlmICgh
+ZCkKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlERUJVR19BRERfRklMRV9STyh2ZXIpOworCURFQlVH
+X0FERF9GSUxFX1JPKHJlZ3MpOworCURFQlVHX0FERF9GSUxFX1JPKHRsYik7CisJREVCVUdfQURE
+X0ZJTEUocGFnZXRhYmxlKTsKKwlERUJVR19BRERfRklMRV9STyhtbWFwKTsKKwlERUJVR19BRERf
+RklMRShtZW0pOworCisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgX19pbml0IGlvbW11X2Rl
+YnVnX2luaXQodm9pZCkKK3sKKwlzdHJ1Y3QgZGVudHJ5ICpkOworCWludCBlcnI7CisKKwlkID0g
+ZGVidWdmc19jcmVhdGVfZGlyKCJpb21tdSIsIE5VTEwpOworCWlmICghZCkKKwkJcmV0dXJuIC1F
+Tk9NRU07CisJaW9tbXVfZGVidWdfcm9vdCA9IGQ7CisKKwllcnIgPSBmb3JlYWNoX2lvbW11X2Rl
+dmljZShkLCBpb21tdV9kZWJ1Z19yZWdpc3Rlcik7CisJaWYgKGVycikKKwkJZ290byBlcnJfb3V0
+OworCXJldHVybiAwOworCitlcnJfb3V0OgorCWRlYnVnZnNfcmVtb3ZlX3JlY3Vyc2l2ZShpb21t
+dV9kZWJ1Z19yb290KTsKKwlyZXR1cm4gZXJyOworfQorbW9kdWxlX2luaXQoaW9tbXVfZGVidWdf
+aW5pdCkKKworc3RhdGljIHZvaWQgX19leGl0IGlvbW11X2RlYnVnZnNfZXhpdCh2b2lkKQorewor
+CWRlYnVnZnNfcmVtb3ZlX3JlY3Vyc2l2ZShpb21tdV9kZWJ1Z19yb290KTsKK30KK21vZHVsZV9l
+eGl0KGlvbW11X2RlYnVnZnNfZXhpdCkKKworTU9EVUxFX0RFU0NSSVBUSU9OKCJvbWFwIGlvbW11
+OiBkZWJ1Z2ZzIGludGVyZmFjZSIpOworTU9EVUxFX0FVVEhPUigiSGlyb3NoaSBET1lVIDxIaXJv
+c2hpLkRPWVVAbm9raWEuY29tPiIpOworTU9EVUxFX0xJQ0VOU0UoIkdQTCB2MiIpOwpkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2lvbW11LmMgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW9t
+bXUuYwppbmRleCA0YTAzMDEzLi40YjYwMTI3IDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0LW9t
+YXAvaW9tbXUuYworKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW9tbXUuYwpAQCAtMzUxLDE2ICsz
+NTEsMTQgQEAgRVhQT1JUX1NZTUJPTF9HUEwoZmx1c2hfaW90bGJfYWxsKTsKIAogI2lmIGRlZmlu
+ZWQoQ09ORklHX09NQVBfSU9NTVVfREVCVUdfTU9EVUxFKQogCi1zc2l6ZV90IGlvbW11X2R1bXBf
+Y3R4KHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYpCitzc2l6ZV90IGlvbW11X2R1bXBfY3R4
+KHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYsIHNzaXplX3QgYnl0ZXMpCiB7Ci0Jc3NpemVf
+dCBieXRlczsKLQogCWlmICghb2JqIHx8ICFidWYpCiAJCXJldHVybiAtRUlOVkFMOwogCiAJY2xr
+X2VuYWJsZShvYmotPmNsayk7CiAKLQlieXRlcyA9IGFyY2hfaW9tbXUtPmR1bXBfY3R4KG9iaiwg
+YnVmKTsKKwlieXRlcyA9IGFyY2hfaW9tbXUtPmR1bXBfY3R4KG9iaiwgYnVmLCBieXRlcyk7CiAK
+IAljbGtfZGlzYWJsZShvYmotPmNsayk7CiAKQEAgLTM2OCw3ICszNjYsNyBAQCBzc2l6ZV90IGlv
+bW11X2R1bXBfY3R4KHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYpCiB9CiBFWFBPUlRfU1lN
+Qk9MX0dQTChpb21tdV9kdW1wX2N0eCk7CiAKLXN0YXRpYyBpbnQgX19kdW1wX3RsYl9lbnRyaWVz
+KHN0cnVjdCBpb21tdSAqb2JqLCBzdHJ1Y3QgY3JfcmVncyAqY3JzKQorc3RhdGljIGludCBfX2R1
+bXBfdGxiX2VudHJpZXMoc3RydWN0IGlvbW11ICpvYmosIHN0cnVjdCBjcl9yZWdzICpjcnMsIGlu
+dCBudW0pCiB7CiAJaW50IGk7CiAJc3RydWN0IGlvdGxiX2xvY2sgc2F2ZWQsIGw7CkBAIC0zNzks
+NyArMzc3LDcgQEAgc3RhdGljIGludCBfX2R1bXBfdGxiX2VudHJpZXMoc3RydWN0IGlvbW11ICpv
+YmosIHN0cnVjdCBjcl9yZWdzICpjcnMpCiAJaW90bGJfbG9ja19nZXQob2JqLCAmc2F2ZWQpOwog
+CW1lbWNweSgmbCwgJnNhdmVkLCBzaXplb2Yoc2F2ZWQpKTsKIAotCWZvciAoaSA9IDA7IGkgPCBv
+YmotPm5yX3RsYl9lbnRyaWVzOyBpKyspIHsKKwlmb3IgKGkgPSAwOyBpIDwgbnVtOyBpKyspIHsK
+IAkJc3RydWN0IGNyX3JlZ3MgdG1wOwogCiAJCWlvdGxiX2xvY2tfZ2V0KG9iaiwgJmwpOwpAQCAt
+NDAyLDE4ICs0MDAsMjEgQEAgc3RhdGljIGludCBfX2R1bXBfdGxiX2VudHJpZXMoc3RydWN0IGlv
+bW11ICpvYmosIHN0cnVjdCBjcl9yZWdzICpjcnMpCiAgKiBAb2JqOgl0YXJnZXQgaW9tbXUKICAq
+IEBidWY6CW91dHB1dCBidWZmZXIKICAqKi8KLXNpemVfdCBkdW1wX3RsYl9lbnRyaWVzKHN0cnVj
+dCBpb21tdSAqb2JqLCBjaGFyICpidWYpCitzaXplX3QgZHVtcF90bGJfZW50cmllcyhzdHJ1Y3Qg
+aW9tbXUgKm9iaiwgY2hhciAqYnVmLCBzc2l6ZV90IGJ5dGVzKQogewotCWludCBpLCBuOworCWlu
+dCBpLCBudW07CiAJc3RydWN0IGNyX3JlZ3MgKmNyOwogCWNoYXIgKnAgPSBidWY7CiAKLQljciA9
+IGtjYWxsb2Mob2JqLT5ucl90bGJfZW50cmllcywgc2l6ZW9mKCpjciksIEdGUF9LRVJORUwpOwor
+CW51bSA9IGJ5dGVzIC8gc2l6ZW9mKCpjcik7CisJbnVtID0gbWluKG9iai0+bnJfdGxiX2VudHJp
+ZXMsIG51bSk7CisKKwljciA9IGtjYWxsb2MobnVtLCBzaXplb2YoKmNyKSwgR0ZQX0tFUk5FTCk7
+CiAJaWYgKCFjcikKIAkJcmV0dXJuIDA7CiAKLQluID0gX19kdW1wX3RsYl9lbnRyaWVzKG9iaiwg
+Y3IpOwotCWZvciAoaSA9IDA7IGkgPCBuOyBpKyspCisJbnVtID0gX19kdW1wX3RsYl9lbnRyaWVz
+KG9iaiwgY3IsIG51bSk7CisJZm9yIChpID0gMDsgaSA8IG51bTsgaSsrKQogCQlwICs9IGlvdGxi
+X2R1bXBfY3Iob2JqLCBjciArIGksIHApOwogCWtmcmVlKGNyKTsKIAotLSAKMS42LjAuNAoK
+
+----Next_Part(Sat_Aug_15_15_06_03_2009_910)----
