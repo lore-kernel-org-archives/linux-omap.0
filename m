@@ -1,69 +1,61 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [beagleboard] Re: USB EHCI problems
-Date: Sat, 15 Aug 2009 21:53:51 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE89671620396DFEB5D@dlee02.ent.ti.com>
-References: <cc69eebf0907230459jb47f4e9pb1b5953a4819aa45@mail.gmail.com>
- <cc69eebf0908130606l78849436j459f4bf4ceaecf7b@mail.gmail.com>
- <4A85E7D0.2070807@gmail.com> <200908152304.15249.siarhei.siamashka@gmail.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: MUSB regression in 2.6.31-rc6
+Date: Sun, 16 Aug 2009 09:17:47 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E739404322AA358@dbde02.ent.ti.com>
+References: <20090815174352.c2883585.jhnikula@gmail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0305398E07@dbde02.ent.ti.com>
+ <20090815180701.7710de51.jhnikula@gmail.com>,<20090815174000.GA13164@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42996 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753700AbZHPCx6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 22:53:58 -0400
-In-Reply-To: <200908152304.15249.siarhei.siamashka@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:51675 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752242AbZHPDr7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 15 Aug 2009 23:47:59 -0400
+In-Reply-To: <20090815174000.GA13164@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Siarhei Siamashka <siarhei.siamashka@gmail.com>, "beagleboard@googlegroups.com" <beagleboard@googlegroups.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Siarhei Siamashka
-> Sent: Saturday, August 15, 2009 3:04 PM
-
-> On Saturday 15 August 2009, Frantisek Dufka wrote:
-> > Gerald Coley wrote:
-> > > You need to enable Smart Reflex on VDD2 in the Kernel. I can't seem to
-> > > get anyone around here to help me formalize exactly how to do this in
-> > > the Kernel. So if you can figure it out, I would go ahead and do it. If
-> > > you could please then post it to the community, that would be great.
-> > >
-> > > Gerald
+> > > @@ -13,6 +13,7 @@ config USB_MUSB_HDRC
+> > >         select NOP_USB_XCEIV if ARCH_DAVINCI
+> > >         select TWL4030_USB if MACH_OMAP_3430SDP
+> > >         select NOP_USB_XCEIV if MACH_OMAP3EVM
+> > > +       select NOP_USB_XCEIV if MACH_OMAP3_BEAGLE
 > >
-> > http://www.webos-internals.org/wiki/Patch_webOS_CPU_Frequency_or_Voltage_Sc
-> >aling#Enable_SmartReflex
+> > Shouldn't we be selecting TWL4030_USB if MACH_OMAP3_BEAGLE.
+> > The beagleboard does use the PHY in the TWL4030, and not
+> > a transparent PHY.
+> >
+> Could be. I have no very much idea of these :-)
 
-Seems hacking moves along fast, some basic info and mis-info on Pre.  Pre kernel which is shipped needs a few patches and it is capable of running sr+dvfs at the same time.
+Beagle has to use TWL4030_USB only and not NOP_USB_XCEIV. 
 
-> > the file is there but after running
-> > echo -n 1 > /sys/power/sr_vdd2_autocomp
-> > there is still zero in the file and in kernel log I see
-> > OPP3 doesn't support SmartReflex
-> > SR2: VDD autocomp not activated
+The NOP registration was removed from common file usb-musb.c
+to board specific file because different board uses different transceiver.
 
-In older code you need both compile time and run time to get it to take.  Just turning it on won't be so safe until some bug fixes make their way out.
-
-> It may make sense to look at the 'pm' branch:
-> http://elinux.org/OMAP_Power_Management
-
-pm branch needs a few changes to make it viable for sr.
-
-> But this wiki page has comment:
-> "Enables SmartReflex autocompensation on VDD2 (Note: This feature can only be
-> tested on a ES3.1 silicon):
-> # echo 1 > /sys/power/sr_vdd2_autocomp"
 >
-> And AFAIK beagleboard revision C has ES3.0 silicon. So no luck here. Or can
-> something still be done?
+> I happened to have both of these below enabled and 2.6.31-rc5 was still
+> booting.
+>
+> CONFIG_TWL4030_USB=y
+> CONFIG_NOP_USB_XCEIV=y
+>
+> But anyway, I don't get Beagle booting with 2.6.31-rc6 if I disable any
+> of them and IRCC another oops will follow if both are disabled.
 
-You will only find characterized parameters for 3.1 and 3.1.1.  These are production parts.
+For Beagle;  only CONFIG_TWL4030_USB=y is required and should work with that alone.
 
-I had heard a few bits of talk about running at lower voltage helping ehci out.  That seems backwards even if tests show it working. I wonder if it is some artifact of a timing change which happens at lower voltage and because of some new internal chip activity.
+> There's a patch from me adding back the twl4030_usb pdata to beagle
+> board-file and another one from Paul which changed the defconfig.
 
-Regards,
-Richard W.
+It seems this dependency might be the cause why CONFIG_TWL4030_USB=y alone
+didn't work as reported by Nikula.
+
+> It should be easy to find on the archives. Eduardo Valentin reported
+> that to me so I was asking him to test the stuff for me.
+
 
