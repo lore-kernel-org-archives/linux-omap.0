@@ -1,113 +1,186 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
-Date: Sun, 16 Aug 2009 11:39:03 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908160841160.31720@utopia.booyaka.com>
-References: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com> <alpine.DEB.2.00.0908030054390.19529@utopia.booyaka.com> <CD8CC2B65FEE304DA95744A5472698F202959C0D61@dlee06.ent.ti.com> <CD8CC2B65FEE304DA95744A5472698F20295A89778@dlee06.ent.ti.com>
- <alpine.DEB.2.00.0908100950040.5505@utopia.booyaka.com> <CD8CC2B65FEE304DA95744A5472698F20295A89A21@dlee06.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: MUSB regression in 2.6.31-rc6
+Date: Sun, 16 Aug 2009 20:43:45 +0300
+Message-ID: <20090816204345.0fa2fbf1.jhnikula@gmail.com>
+References: <20090815174352.c2883585.jhnikula@gmail.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0305398E07@dbde02.ent.ti.com>
+	<20090815180701.7710de51.jhnikula@gmail.com>
+	<20090815174000.GA13164@nokia.com>
+	<20090816104415.e12a5e46.jhnikula@gmail.com>
+	<19F8576C6E063C45BE387C64729E739404322AA35B@dbde02.ent.ti.com>
+	<20090816131337.GA7634@gandalf>
+	<20090816194953.8d96cdb7.jhnikula@gmail.com>
+	<20090816171016.GB9923@gandalf>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F20295A89A21-UmuGNrFEPrGIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
-Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Sun__16_Aug_2009_20_43_45_+0300_McAbrHL8CC50X=gJ"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:59300 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201AbZHPRmS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 13:42:18 -0400
+In-Reply-To: <20090816171016.GB9923@gandalf>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: me@felipebalbi.com
+Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Moiz,
+This is a multi-part message in MIME format.
 
-On Tue, 11 Aug 2009, Sonasath, Moiz wrote:
+--Multipart=_Sun__16_Aug_2009_20_43_45_+0300_McAbrHL8CC50X=gJ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 
-> 1. From the code we have in place now, we are writing 
-> num_bytes=dev->fifosize(=XTRSH+1) bytes in case of XRDY OR 
-> num_bytes=TXSTAT (last few bytes left) in case of XDR (draining feature)
+On Sun, 16 Aug 2009 20:10:18 +0300
+Felipe Balbi <me@felipebalbi.com> wrote:
+
+> how about checking whether twl4030_usb is probing fine ?
 > 
-> Without the errata we were writing these num_bytes in a while loop one 
-> by one into I2C_DATA reg (TXFIFO).
-> 
-> With the errata we are writing num_bytes in a while loop, but now we 
-> write one byte wait for XUDF bit to get set and then write another byte. 
-> Thereby, we write a byte, wait for it to get out of the TXFIFO and only 
-> then we write the second byte and so on.
-> 
-> 	While(num_bytes)
-> 	{
-> 		Write one byte to I2C_DATA Reg
-> 		Wait for XUDF to set
-> 	}
-> 	Ack the interrupt
+Oh yes, looks like not. I didn't notice this before and didn't post the
+full log. Bad me, now included. See
 
-Doesn't your patch do:
-
- 	While(num_bytes)
- 	{
- 		Wait for XUDF to set
- 		Write one byte to I2C_DATA Reg
- 	}
- 	Ack the interrupt
-
-?
-
-> So irrespective of the XTRSH value, the wait time is actually the same.
-> 
-> 2. Now if we see it from the perspective of interrupts, we are 
-> generating an interrupt after every chunk of 4 bytes (with XTRSH+1=4) 
-> written to the TXFIFO because we ACK the interrupt after writing a chunk 
-> of 4 bytes (one byte at a time waiting for the XUDF bit to be set in 
-> between each byte).
-> 
-> >From the TRM Figure-18-31, in the XRDY path:
-> Write I2Ci.I2C_DATA register for (XTRSH+1) times and then clear XRDY interrupt
-> 
-> Thus, XTRSH is actually driving how many chunks of data you write before 
-> generating a next interrupt. So from this point of view it will be more 
-> desirable to make the XTRSH=7 and write chunk of 8 bytes before 
-> generating a new interrupt. But we end up staying a longer time in the 
-> ISR.
-> 
-> Essentially we are looking at a tradeoff between:
-> 1. Lower XTRSH value: More number of interrupts, less time in an ISR  
-> 2. Higher XTRSH value: Less number of interrupts, more time in an ISR 
-> 
-> Please correct me if I am wrong.
-
-Your analysis looks correct.  I suppose my point is dependent on when the 
-XRDY interrupt occurs if XTRSH = 0.
-
-If it occurs one I2C byte transmission time before the XUDF condition 
-occurs, then we should just use your busy-waiting patch.  I don't think we 
-can do better than that.
-
-But if the XRDY interrupt occurs at the same time as the shift register 
-empties, or if there is an undocumented XUDF interrupt that we can use, 
-then please consider:
-
-For slower I2C bus speeds, e.g., for a 400KHz I2C bus, emptying a byte out 
-of the transmit FIFO should take about 20 microseconds [1].  Another way 
-of expressing this is that the duration from when we write a byte to the 
-I2C FIFO, to when the controller raises the XRDY/XDR interrupt, should be 
-about 20 microseconds when XTRSH = 0.
-
-We can either spend this time busy-looping in the ISR (the tradeoff #2 
-that you mention above), or trying to reach WFI and hopefully entering it 
-(the tradeoff #1 above).  If possible, tradeoff #1 seems better.  If the 
-MPU can reach WFI, it will waste less active power, but it will also 
-trigger the PRCM to shut down any inactive power domains, which might not 
-need to wake back up when the next system wakeup event occurs.
-
-This should improve over time, from a power efficiency perspective, 
-as the amount of time the MPU spends trying to reach WFI should decrease 
-[2].
-
-What do you think?
+<3>twl4030_usb twl4030_usb: ldo init failed
 
 
-- Paul
+-- 
+Jarkko
 
+--Multipart=_Sun__16_Aug_2009_20_43_45_+0300_McAbrHL8CC50X=gJ
+Content-Type: application/cap;
+ name="minicom.cap"
+Content-Disposition: attachment;
+ filename="minicom.cap"
+Content-Transfer-Encoding: base64
 
-1. (8 I2C-cycles/byte / 400000 I2C-cycles/second) = 20 microseconds
+VGV4YXMgSW5zdHJ1bWVudHMgWC1Mb2FkZXIgMS40LjIgKEZlYiAxOSAyMDA5IC0gMTI6MDE6MjQp
+ClJlYWRpbmcgYm9vdCBzZWN0b3IKRXJyb3I6IHJlYWRpbmcgYm9vdCBzZWN0b3IKTG9hZGluZyB1
+LWJvb3QuYmluIGZyb20gbmFuZAoKClUtQm9vdCAyMDA5LjAxLWRpcnR5IChGZWIgMTkgMjAwOSAt
+IDEyOjIyOjMxKQoKSTJDOiAgIHJlYWR5Ck9NQVAzNTMwLUdQIHJldiAyLCBDUFUtT1BQMiBMMy0x
+NjVNSHoKT01BUDMgQmVhZ2xlIGJvYXJkICsgTFBERFIvTkFORApEUkFNOiAgMjU2IE1CCk5BTkQ6
+ICAyNTYgTWlCCk1VU0I6IHVzaW5nIGhpZ2ggc3BlZWQKSW46ICAgIHNlcmlhbCB1c2J0dHkgCk91
+dDogICBzZXJpYWwgdXNidHR5IApFcnI6ICAgc2VyaWFsIHVzYnR0eSAKQm9hcmQgcmV2aXNpb24g
+QwpTZXJpYWwgIzVmMjIwMDAzMDAwMDAwMDAwNDAxM2Y3OTA0MDE3MDBlCkhpdCBhbnkga2V5IHRv
+IHN0b3AgYXV0b2Jvb3Q6ICAyIAgICCAxIAgICCAwIApyZWFkaW5nIGJvb3Quc2NyCgoqKiBVbmFi
+bGUgdG8gcmVhZCAiYm9vdC5zY3IiIGZyb20gbW1jIDA6MSAqKgpyZWFkaW5nIHVJbWFnZQoKMTc4
+NzAwMCBieXRlcyByZWFkCnJlYWRpbmcgcmFtZGlzay5negoKKiogVW5hYmxlIHRvIHJlYWQgInJh
+bWRpc2suZ3oiIGZyb20gbW1jIDA6MSAqKgpCb290aW5nIGZyb20gbW1jIC4uLgojIyBCb290aW5n
+IGtlcm5lbCBmcm9tIExlZ2FjeSBJbWFnZSBhdCA4MDIwMDAwMCAuLi4KICAgSW1hZ2UgTmFtZTog
+ICBMaW51eC0yLjYuMzEtcmM2LTAwMDQ1LWdmNWNmNTY5LQogICBJbWFnZSBUeXBlOiAgIEFSTSBM
+aW51eCBLZXJuZWwgSW1hZ2UgKHVuY29tcHJlc3NlZCkKICAgRGF0YSBTaXplOiAgICAxNzg2OTM2
+IEJ5dGVzID0gIDEuNyBNQgogICBMb2FkIEFkZHJlc3M6IDgwMDA4MDAwCiAgIEVudHJ5IFBvaW50
+OiAgODAwMDgwMDAKICAgVmVyaWZ5aW5nIENoZWNrc3VtIC4uLiBPSwogICBMb2FkaW5nIEtlcm5l
+bCBJbWFnZSAuLi4gT0sKT0sKClN0YXJ0aW5nIGtlcm5lbCAuLi4KClVuY29tcHJlc3NpbmcgTGlu
+dXguLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
+IGRvbmUsIGJvb3RpbmcgdGhlIGtlcm5lbC4KPDU+TGludXggdmVyc2lvbiAyLjYuMzEtcmM2LTAw
+MDQ1LWdmNWNmNTY5LWRpcnR5IChqYXJra29AbXlsbHkpIChnY2MgdmVyc2lvbiA0LjIuMyAoU291
+cmNlcnkgRysrIExpdGUgMjAwOHExLTEyNikpICMxIFN1biBBdWcgMTYgMjA6MjY6MDYgRUVTVCAy
+MDA5CkNQVTogQVJNdjcgUHJvY2Vzc29yIFs0MTFmYzA4M10gcmV2aXNpb24gMyAoQVJNdjcpLCBj
+cj0xMGM1M2M3ZgpDUFU6IFZJUFQgbm9uYWxpYXNpbmcgZGF0YSBjYWNoZSwgVklQVCBub25hbGlh
+c2luZyBpbnN0cnVjdGlvbiBjYWNoZQpNYWNoaW5lOiBPTUFQMyBCZWFnbGUgQm9hcmQKTWVtb3J5
+IHBvbGljeTogRUNDIGRpc2FibGVkLCBEYXRhIGNhY2hlIHdyaXRlYmFjawo8Nz5PbiBub2RlIDAg
+dG90YWxwYWdlczogNjU1MzYKPDc+ZnJlZV9hcmVhX2luaXRfbm9kZTogbm9kZSAwLCBwZ2RhdCBj
+MDM2ZThmMCwgbm9kZV9tZW1fbWFwIGMwMzg5MDAwCjw3PiAgTm9ybWFsIHpvbmU6IDUxMiBwYWdl
+cyB1c2VkIGZvciBtZW1tYXAKPDc+ICBOb3JtYWwgem9uZTogMCBwYWdlcyByZXNlcnZlZAo8Nz4g
+IE5vcm1hbCB6b25lOiA2NTAyNCBwYWdlcywgTElGTyBiYXRjaDoxNQo8Nj5PTUFQMzQzMCBFUzMu
+MAo8Nj5TUkFNOiBNYXBwZWQgcGEgMHg0MDIwMDAwMCB0byB2YSAweGQ3MDAwMDAwIHNpemU6IDB4
+MTAwMDAwCkJ1aWx0IDEgem9uZWxpc3RzIGluIFpvbmUgb3JkZXIsIG1vYmlsaXR5IGdyb3VwaW5n
+IG9uLiAgVG90YWwgcGFnZXM6IDY1MDI0Cjw1Pktlcm5lbCBjb21tYW5kIGxpbmU6IGNvbnNvbGU9
+dHR5UzIsMTE1MjAwbjggcm9vdD0vZGV2L21tY2JsazBwMiBydyByb290ZnN0eXBlPWV4dDMgcm9v
+dHdhaXQKUElEIGhhc2ggdGFibGUgZW50cmllczogMTAyNCAob3JkZXI6IDEwLCA0MDk2IGJ5dGVz
+KQo8Nj5EZW50cnkgY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAzMjc2OCAob3JkZXI6IDUsIDEz
+MTA3MiBieXRlcykKPDY+SW5vZGUtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAxNjM4NCAob3Jk
+ZXI6IDQsIDY1NTM2IGJ5dGVzKQo8Nj5NZW1vcnk6IDEyOE1CIDEyOE1CID0gMjU2TUIgdG90YWwK
+PDU+TWVtb3J5OiAyNTYxMjhLQiBhdmFpbGFibGUgKDMwNzZLIGNvZGUsIDI4MUsgZGF0YSwgMTEy
+SyBpbml0LCAwSyBoaWdobWVtKQo8Nj5OUl9JUlFTOjM4NAo8Nj5DbG9ja2luZyByYXRlIChDcnlz
+dGFsL0RQTEwvQVJNIGNvcmUpOiAyNi4wLzMzMi81MDAgTUh6Cjw2PlJlcHJvZ3JhbW1pbmcgU0RS
+QyBjbG9jayB0byAzMzIwMDAwMDAgSHoKPDY+R1BNQyByZXZpc2lvbiA1LjAKPDY+SVJROiBGb3Vu
+ZCBhbiBJTlRDIGF0IDB4ZDgyMDAwMDAgKHJldmlzaW9uIDQuMCkgd2l0aCA5NiBpbnRlcnJ1cHRz
+Cjw2PlRvdGFsIG9mIDk2IGludGVycnVwdHMgb24gMSBhY3RpdmUgY29udHJvbGxlcgo8Nj5PTUFQ
+MzR4eCBHUElPIGhhcmR3YXJlIHZlcnNpb24gMi41Cjw2Pk9NQVAgY2xvY2tldmVudCBzb3VyY2U6
+IEdQVElNRVIxMiBhdCAzMjc2OCBIegpDb25zb2xlOiBjb2xvdXIgZHVtbXkgZGV2aWNlIDgweDMw
+Cjw2PkNhbGlicmF0aW5nIGRlbGF5IGxvb3AuLi4gPGM+NDcwLjU2IEJvZ29NSVBTIChscGo9MTgz
+OTEwNCkKTW91bnQtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA1MTIKPDY+Q1BVOiBUZXN0aW5n
+IHdyaXRlIGJ1ZmZlciBjb2hlcmVuY3k6IG9rCjw2PnJlZ3VsYXRvcjogY29yZSB2ZXJzaW9uIDAu
+NQo8Nj5ORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2Cjw2PkZvdW5kIE5BTkQgb24g
+Q1MwCjw2PlJlZ2lzdGVyaW5nIE5BTkQgb24gQ1MwCjw2Pk9NQVAgRE1BIGhhcmR3YXJlIHJldmlz
+aW9uIDQuMApiaW86IGNyZWF0ZSBzbGFiIDxiaW8tMD4gYXQgMAo8NT5TQ1NJIHN1YnN5c3RlbSBp
+bml0aWFsaXplZAo8Nj51c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVz
+YmZzCjw2PnVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgaHViCjw2PnVz
+YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGRldmljZSBkcml2ZXIgdXNiCjw2PmkyY19vbWFwIGkyY19v
+bWFwLjE6IGJ1cyAxIHJldjMuMTIgYXQgMjYwMCBrSHoKPDY+dHdsNDAzMDogUElIIChpcnEgNykg
+Y2hhaW5pbmcgSVJRcyAzNjguLjM3NQo8Nj50d2w0MDMwOiBwb3dlciAoaXJxIDM3MykgY2hhaW5p
+bmcgSVJRcyAzNzYuLjM4Mwo8Mz50d2w0MDMwX3VzYiB0d2w0MDMwX3VzYjogbGRvIGluaXQgZmFp
+bGVkCjw2PnJlZ3VsYXRvcjogVk1NQzE6IDE4NTAgPC0tPiAzMTUwIG1WIG5vcm1hbCBzdGFuZGJ5
+Cjw2PnJlZ3VsYXRvcjogVkRBQzogMTgwMCBtViBub3JtYWwgc3RhbmRieQo8Nj5yZWd1bGF0b3I6
+IFZVU0IxVjU6IDE1MDAgbVYgbm9ybWFsIHN0YW5kYnkKPDY+cmVndWxhdG9yOiBWVVNCMVY4OiAx
+ODAwIG1WIG5vcm1hbCBzdGFuZGJ5Cjw2PnJlZ3VsYXRvcjogVlVTQjNWMTogMzEwMCBtViBub3Jt
+YWwgc3RhbmRieQo8Nj5yZWd1bGF0b3I6IFZQTEwyOiAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5Cjw2
+PnJlZ3VsYXRvcjogVlNJTTogMTgwMCA8LS0+IDMwMDAgbVYgbm9ybWFsIHN0YW5kYnkKPDY+aTJj
+X29tYXAgaTJjX29tYXAuMzogYnVzIDMgcmV2My4xMiBhdCAxMDAga0h6Cjw2Pm11c2JfaGRyYzog
+dmVyc2lvbiA2LjAsIG11c2ItZG1hLCBvdGcgKHBlcmlwaGVyYWwraG9zdCksIGRlYnVnPTAKPDc+
+U3dpdGNoZWQgdG8gaGlnaCByZXNvbHV0aW9uIG1vZGUgb24gQ1BVIDAKPDM+SFMgVVNCIE9URzog
+bm8gdHJhbnNjZWl2ZXIgY29uZmlndXJlZAo8Mz5tdXNiX2hkcmMgbXVzYl9oZHJjOiBtdXNiX2lu
+aXRfY29udHJvbGxlciBmYWlsZWQgd2l0aCBzdGF0dXMgLTE5CjwxPlVuYWJsZSB0byBoYW5kbGUg
+a2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdCB2aXJ0dWFsIGFkZHJlc3MgMDAwMDAw
+MjgKPDE+cGdkID0gYzAwMDQwMDAKPDE+WzAwMDAwMDI4XSAqcGdkPTAwMDAwMDAwCkludGVybmFs
+IGVycm9yOiBPb3BzOiA1IFsjMV0KPGQ+TW9kdWxlcyBsaW5rZWQgaW46CkNQVTogMCAgICBOb3Qg
+dGFpbnRlZCAgKDIuNi4zMS1yYzYtMDAwNDUtZ2Y1Y2Y1NjktZGlydHkgIzEpClBDIGlzIGF0IG11
+c2JfcGxhdGZvcm1fc3VzcGVuZCsweDM0LzB4NzQKTFIgaXMgYXQgbXVzYl9wbGF0Zm9ybV9leGl0
+KzB4Yy8weDIwCnBjIDogWzxjMDFjYTdmND5dICAgIGxyIDogWzxjMDFjYTg0MD5dICAgIHBzcjog
+YTAwMDAwMTMKc3AgOiBjZjgyMWRlOCAgaXAgOiAyMjIyMjIyMiAgZnAgOiBjMDM0YjhmOApyMTA6
+IDAwMDAwMDAwICByOSA6IDAwMDAwMDAwICByOCA6IGMwMzY2ZmI4CnI3IDogYzAzNjkzMmMgIHI2
+IDogY2Y4MWYwZDAgIHI1IDogY2Y4MWYwZDAgIHI0IDogY2Y4MWYwZDAKcjMgOiBkODBhYjAwMCAg
+cjIgOiAwMDAwMDAwNCAgcjEgOiBjMDJmZmVhOCAgcjAgOiAwMDAwMDAwMApGbGFnczogTnpDdiAg
+SVJRcyBvbiAgRklRcyBvbiAgTW9kZSBTVkNfMzIgIElTQSBBUk0gIFNlZ21lbnQga2VybmVsCkNv
+bnRyb2w6IDEwYzUzODdkICBUYWJsZTogODAwMDQwMTkgIERBQzogMDAwMDAwMTcKUHJvY2VzcyBz
+d2FwcGVyIChwaWQ6IDEsIHN0YWNrIGxpbWl0ID0gMHhjZjgyMDJlOCkKU3RhY2s6ICgweGNmODIx
+ZGU4IHRvIDB4Y2Y4MjIwMDApCjFkZTA6ICAgICAgICAgICAgICAgICAgIGNmODFmMGQwIGMwMWNh
+ODQwIDAwMDAwMDAwIGMwMWM5MmEwIGZmZmZmZmVkIDAwMDAwMDAwIAoxZTAwOiBjZjgxZjBkMCBj
+MDAxOTZiYyAwMDAwMDAwMCBjZjgyMWU0NCAwMDAwMDAwMCBmZmZmZmZmZiBjMDJkZTFjMyBjMDM0
+YjhmMCAKMWUyMDogMDAwMDAwNWMgZDgwYWIwMDAgYzAzNGI4ZDQgYzAzNzkxMzQgMDAwMDAwMDAg
+MDAwMDAwMDAgY2Y4MjFlOGMgYzAxNjRkOGMgCjFlNDA6IDAwMDA4MGQwIGNmODBjN2E4IDAwMDAw
+MDAwIDYwMDAwMDEzIGNmODNlYmUwIGNmODAwZjAwIGMwMGQ2MjQ4IGNmODRjNzg4IAoxZTYwOiAw
+MDAwMDAwMCBjMDI2MmNkOCAwMDAwMDAwMCBjZjhkNWMzOCBjZjgyMWVhOCBjMDBkNjk0YyBjZjhk
+NWMzOCBjMDBkNjVhNCAKMWU4MDogY2Y4ZjNjOTggY2Y4ZDVjMzggY2Y4MjFlYTggYzAwZDY2N2Mg
+MDAwMDAwMDAgY2Y4ZDVjMzggY2Y4MjFlYTggY2Y4NGM3ODggCjFlYTA6IDAwMDAwMDAxIGMwMGQ3
+NTI4IGNmODRjNzg4IDAwMDAwMDAwIDAwMDAwMDAwIGMwMzRiOGY4IGMwMzRiOTJjIGMwMzY5MzJj
+IAoxZWMwOiBjMDM2OTMyYyBjMDM2NmZiOCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCBjMDE5
+NmJmYyBjMDM0YjhmOCBjMDE5NWU5OCAKMWVlMDogYzAzNGI4ZjggYzAzNGI5MmMgYzAzNjkzMmMg
+YzAzNjkzMmMgYzAzNjZmYjggYzAxOTVmYTQgMDAwMDAwMDAgY2Y4MjFmMDggCjFmMDA6IGMwMTk1
+ZjQ0IGMwMTk1MzcwIGNmODAzNGQ4IGNmODQxMjkwIGMwMzY5MzJjIGMwMDFmYjMwIGMwMzY5MzJj
+IGNmOGYxYWEwIAoxZjIwOiAwMDAwMDAwMCBjMDE5NThmMCBjMDI3OTVlNCBjMDI3OTVlNCAwMDAw
+MDA2OSBjMDAxZmIzMCBjMDM2OTMyYyBjMDM2ZWYwMCAKMWY0MDogMDAwMDAwMDAgMDAwMDAwMDAg
+YzAwMThhZjQgYzAxOTYyNzQgYzAwMWZiMzAgYzAzNjkzMTAgYzAzNmVmMDAgMDAwMDAwMDAgCjFm
+NjA6IDAwMDAwMDAwIDAwMDAwMDAwIGMwMDE4YWY0IGMwMTk2ZmFjIGMwMDFmYjMwIDAwMDAwMDAw
+IGMwMzZlZjAwIGMwMDI0MmEwIAoxZjgwOiAwMDAwMDAwMCBjMDBkMDhhOCBjZjgyMWZiNCBjMDJk
+ZjllOSAwMDAwODEwMCAwMDAwMDI0ZSBjMDM1NWU0MCBjZjg0MDBhMCAKMWZhMDogYzAzNTVlNDAg
+MDAwMDAxNWYgYzAzNzZkYTAgYzAwZDBhZmMgYzAyZGY5ZTkgY2Y4NDE2ODAgY2Y4MjFmYzYgYzAw
+NmRmYTAgCjFmYzA6IDAwMDAwMDAwIDM1MzMzZjYwIDAwMDAwMDMxIDAwMDAwMDAwIGMwMDFmYjMw
+IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIAoxZmUwOiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAw
+MDAwMCBjMDAwODg2MCAwMDAwMDAwMCBjMDAyNWNhNCAzNDdiNWY2OCAxMDNiZmUwMSAKWzxjMDFj
+YTdmND5dIChtdXNiX3BsYXRmb3JtX3N1c3BlbmQrMHgzNC8weDc0KSBmcm9tIFs8YzAxY2E4NDA+
+XSAobXVzYl9wbGF0Zm9ybV9leGl0KzB4Yy8weDIwKQpbPGMwMWNhODQwPl0gKG11c2JfcGxhdGZv
+cm1fZXhpdCsweGMvMHgyMCkgZnJvbSBbPGMwMWM5MmEwPl0gKG11c2JfZnJlZSsweDk0LzB4ZDgp
+Cls8YzAxYzkyYTA+XSAobXVzYl9mcmVlKzB4OTQvMHhkOCkgZnJvbSBbPGMwMDE5NmJjPl0gKG11
+c2JfcHJvYmUrMHhhMjgvMHhiZmMpCls8YzAwMTk2YmM+XSAobXVzYl9wcm9iZSsweGEyOC8weGJm
+YykgZnJvbSBbPGMwMTk2YmZjPl0gKHBsYXRmb3JtX2Rydl9wcm9iZSsweDE4LzB4MWMpCls8YzAx
+OTZiZmM+XSAocGxhdGZvcm1fZHJ2X3Byb2JlKzB4MTgvMHgxYykgZnJvbSBbPGMwMTk1ZTk4Pl0g
+KGRyaXZlcl9wcm9iZV9kZXZpY2UrMHhhMC8weDE0YykKWzxjMDE5NWU5OD5dIChkcml2ZXJfcHJv
+YmVfZGV2aWNlKzB4YTAvMHgxNGMpIGZyb20gWzxjMDE5NWZhND5dIChfX2RyaXZlcl9hdHRhY2gr
+MHg2MC8weDg0KQpbPGMwMTk1ZmE0Pl0gKF9fZHJpdmVyX2F0dGFjaCsweDYwLzB4ODQpIGZyb20g
+WzxjMDE5NTM3MD5dIChidXNfZm9yX2VhY2hfZGV2KzB4NDQvMHg3OCkKWzxjMDE5NTM3MD5dIChi
+dXNfZm9yX2VhY2hfZGV2KzB4NDQvMHg3OCkgZnJvbSBbPGMwMTk1OGYwPl0gKGJ1c19hZGRfZHJp
+dmVyKzB4OWMvMHgyMTgpCls8YzAxOTU4ZjA+XSAoYnVzX2FkZF9kcml2ZXIrMHg5Yy8weDIxOCkg
+ZnJvbSBbPGMwMTk2Mjc0Pl0gKGRyaXZlcl9yZWdpc3RlcisweGE4LzB4MTMwKQpbPGMwMTk2Mjc0
+Pl0gKGRyaXZlcl9yZWdpc3RlcisweGE4LzB4MTMwKSBmcm9tIFs8YzAxOTZmYWM+XSAocGxhdGZv
+cm1fZHJpdmVyX3Byb2JlKzB4MTAvMHg2MCkKWzxjMDE5NmZhYz5dIChwbGF0Zm9ybV9kcml2ZXJf
+cHJvYmUrMHgxMC8weDYwKSBmcm9tIFs8YzAwMjQyYTA+XSAoZG9fb25lX2luaXRjYWxsKzB4NTAv
+MHgxN2MpCls8YzAwMjQyYTA+XSAoZG9fb25lX2luaXRjYWxsKzB4NTAvMHgxN2MpIGZyb20gWzxj
+MDAwODg2MD5dIChrZXJuZWxfaW5pdCsweDhjLzB4MTA0KQpbPGMwMDA4ODYwPl0gKGtlcm5lbF9p
+bml0KzB4OGMvMHgxMDQpIGZyb20gWzxjMDAyNWNhND5dIChrZXJuZWxfdGhyZWFkX2V4aXQrMHgw
+LzB4OCkKQ29kZTogZTU5MzI0MDQgZTM4MjIwMDQgZTU4MzI0MDQgZTU5MDAwNzQgKGU1OTAzMDI4
+KSAKPDQ+LS0tWyBlbmQgdHJhY2UgMWI3NWIzMWEyNzE5ZWQxYyBdLS0tCjwwPktlcm5lbCBwYW5p
+YyAtIG5vdCBzeW5jaW5nOiBBdHRlbXB0ZWQgdG8ga2lsbCBpbml0IQo=
 
-2. With currently-available OMAP3 chips, the CPU cycle time can be as 
-  short as 1.67 ns (1/600000000 cycles/second).  Future chips will 
-  presumably reach at least a 1 ns cycle time, if 
-  http://en.wikipedia.org/wiki/Texas_Instruments_OMAP is to be believed. 
-  Multiple instructions can be executed per clock cycle.
+--Multipart=_Sun__16_Aug_2009_20_43_45_+0300_McAbrHL8CC50X=gJ--
