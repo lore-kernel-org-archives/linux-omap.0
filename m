@@ -1,7 +1,7 @@
 From: Tar Gz <bsdraisefromhell@gmail.com>
 Subject: Re: [help] 2.6.30 can't booting
-Date: Sun, 16 Aug 2009 14:01:40 -0400
-Message-ID: <d9ca78710908161101n4e2420b6xba6665e5c5d8cc21@mail.gmail.com>
+Date: Sun, 16 Aug 2009 14:02:28 -0400
+Message-ID: <d9ca78710908161102q13ddf8e8m669e495b11e7b999@mail.gmail.com>
 References: <d9ca78710908160948y246fa71epd564903d7fbbddbb@mail.gmail.com>
 	 <20090816171236.GC9923@gandalf>
 	 <d9ca78710908161016n5789f08cvd313c596e6cb290f@mail.gmail.com>
@@ -10,17 +10,18 @@ References: <d9ca78710908160948y246fa71epd564903d7fbbddbb@mail.gmail.com>
 	 <d9ca78710908161031s7f19ea94j61cb6ae849664168@mail.gmail.com>
 	 <4A884705.1060905@holografika.com>
 	 <d9ca78710908161055t548d0964l92b9e47d5bd693f7@mail.gmail.com>
+	 <d9ca78710908161101n4e2420b6xba6665e5c5d8cc21@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f175.google.com ([209.85.210.175]:41363 "EHLO
-	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932080AbZHPSBj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 14:01:39 -0400
-Received: by yxe5 with SMTP id 5so3093005yxe.33
-        for <linux-omap@vger.kernel.org>; Sun, 16 Aug 2009 11:01:40 -0700 (PDT)
-In-Reply-To: <d9ca78710908161055t548d0964l92b9e47d5bd693f7@mail.gmail.com>
+Received: from mail-gx0-f205.google.com ([209.85.217.205]:40623 "EHLO
+	mail-gx0-f205.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755354AbZHPSC2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 14:02:28 -0400
+Received: by gxk1 with SMTP id 1so3443634gxk.17
+        for <linux-omap@vger.kernel.org>; Sun, 16 Aug 2009 11:02:29 -0700 (PDT)
+In-Reply-To: <d9ca78710908161101n4e2420b6xba6665e5c5d8cc21@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Kovacs Peter Tamas <p.kovacs@holografika.com>
@@ -33,58 +34,56 @@ Sending DHCP Requests . <7>hub 1-0:1.0 hub_suspend
 how to boot filesystems has installed from mmc?...thanks
 
 On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
-> thanks mr.peter
+> thanks peter, i can boot but the kernel stop in the
+> Sending DHCP Requests . <7>hub 1-0:1.0 hub_suspend
+> .......
 >
-> i should try the command like that
+> how to boot filesystems has installed from mmc?...thanks
 >
-> #nand unlock
-> #nand ecc sw
-> #setenv bootargs 'console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
-> rootdelay=1 mem=256M init=/init'
-> #setenv bootcmd 'mmcinit; fatload mmc 0 0x80c00000 uImage; bootm
-> 0x80c00000'
-> #saveenv
-> #boot
->
-> it is stop(like hang) and i must restart again
->
-> On 8/16/09, Kovacs Peter Tamas <p.kovacs@holografika.com> wrote:
->> Dear Aldyth,
+> On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
+>> thanks mr.peter
 >>
->> u-boot stops and waits for your command to load and start the kernel, as
->> the bootcmd is not doing it automatically with your setup (setting
->> bootargs is not enough alone, you need to load the kernel image from the
->> card and run it).
->> You should try:
->> mmcinit
->> fatload mmc 0 80300000 uImage
->> bootm 80300000
+>> i should try the command like that
 >>
->> As described at eg:
->> http://www.codeshogun.com/blog/2009/04/15/porting-android-to-beagle-board/
+>> #nand unlock
+>> #nand ecc sw
+>> #setenv bootargs 'console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
+>> rootdelay=1 mem=256M init=/init'
+>> #setenv bootcmd 'mmcinit; fatload mmc 0 0x80c00000 uImage; bootm
+>> 0x80c00000'
+>> #saveenv
+>> #boot
 >>
->> Hope this helps,
->> Peter
->>> it is my step to build u-boot, x-loader and kernel
+>> it is stop(like hang) and i must restart again
+>>
+>> On 8/16/09, Kovacs Peter Tamas <p.kovacs@holografika.com> wrote:
+>>> Dear Aldyth,
 >>>
->>> i'm try linux 2.6.30 and using the omap3430sdp_defconfig to build the
->>> uImage
+>>> u-boot stops and waits for your command to load and start the kernel, as
+>>> the bootcmd is not doing it automatically with your setup (setting
+>>> bootargs is not enough alone, you need to load the kernel image from the
+>>> card and run it).
+>>> You should try:
+>>> mmcinit
+>>> fatload mmc 0 80300000 uImage
+>>> bootm 80300000
 >>>
->>> my u-boot and x-loader using omap3430zoom2_config
+>>> As described at eg:
+>>> http://www.codeshogun.com/blog/2009/04/15/porting-android-to-beagle-board/
 >>>
->>> any idea to solve that problem?...
->>>
->>> regards,
->>> Aldyth M
->>>
->>> On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
->>>
->>>> i'm format mmc in the fat win95...
+>>> Hope this helps,
+>>> Peter
+>>>> it is my step to build u-boot, x-loader and kernel
 >>>>
->>>> i following step by step in the
->>>> https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
+>>>> i'm try linux 2.6.30 and using the omap3430sdp_defconfig to build the
+>>>> uImage
 >>>>
->>>> why can't read?
+>>>> my u-boot and x-loader using omap3430zoom2_config
+>>>>
+>>>> any idea to solve that problem?...
+>>>>
+>>>> regards,
+>>>> Aldyth M
 >>>>
 >>>> On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
 >>>>
@@ -95,56 +94,68 @@ On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
 >>>>>
 >>>>> why can't read?
 >>>>>
+>>>>> On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
 >>>>>
->>>>>> On 8/16/09, Felipe Balbi <me@felipebalbi.com> wrote:
+>>>>>> i'm format mmc in the fat win95...
 >>>>>>
->>>>>>> Hi,
+>>>>>> i following step by step in the
+>>>>>> https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
+>>>>>>
+>>>>>> why can't read?
+>>>>>>
+>>>>>>
+>>>>>>> On 8/16/09, Felipe Balbi <me@felipebalbi.com> wrote:
 >>>>>>>
->>>>>>> On Sun, Aug 16, 2009 at 12:48:52PM -0400, Tar Gz wrote:
->>>>>>>
->>>>>>>> Hi all,,i'm sorry if my english too bad
+>>>>>>>> Hi,
 >>>>>>>>
->>>>>>>> i try to porting linux kernel 2.6.30 from kernel.org into omap 3430
+>>>>>>>> On Sun, Aug 16, 2009 at 12:48:52PM -0400, Tar Gz wrote:
 >>>>>>>>
->>>>>>>> i have the problem linux kernel can't booting
+>>>>>>>>> Hi all,,i'm sorry if my english too bad
+>>>>>>>>>
+>>>>>>>>> i try to porting linux kernel 2.6.30 from kernel.org into omap
+>>>>>>>>> 3430
+>>>>>>>>>
+>>>>>>>>> i have the problem linux kernel can't booting
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> i'm following step by step in the omapzoom.org
+>>>>>>>>> $ setenv bootargs console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
+>>>>>>>>> rootdelay=1 mem=256M init=/sbin/init
+>>>>>>>>> $ saveenv
+>>>>>>>>> $ bootd
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> OMAP34XX LAB # print
+>>>>>>>>> bootdelay=3
+>>>>>>>>> baudrate=115200
+>>>>>>>>> bootargs=console=ttyS3,115200n8 root=/dev/mmcblk0p2 rootdelay=1
+>>>>>>>>> mem=256M init=/sbin/init
+>>>>>>>>> bootcmd=mmcinit
+>>>>>>>>> bootfile="uImage"
+>>>>>>>>>
+>>>>>>>>> if i'm type bootd i'm still in the konsole like this,
+>>>>>>>>> OMAP34XX LAB # bootd
+>>>>>>>>> OMAP34XX LAB #
+>>>>>>>>>
+>>>>>>>>> any idea?
+>>>>>>>>>
+>>>>>>>> you're not reading the kernel image to memory.
+>>>>>>>>
+>>>>>>>> is your mmc formated with FAT32 or what ?
+>>>>>>>>
+>>>>>>>> You need to read kernel from mmc to memory and boot from there.
+>>>>>>>>
+>>>>>>>> --
+>>>>>>>> balbi
 >>>>>>>>
 >>>>>>>>
->>>>>>>> i'm following step by step in the omapzoom.org
->>>>>>>> $ setenv bootargs console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
->>>>>>>> rootdelay=1 mem=256M init=/sbin/init
->>>>>>>> $ saveenv
->>>>>>>> $ bootd
->>>>>>>>
->>>>>>>>
->>>>>>>> OMAP34XX LAB # print
->>>>>>>> bootdelay=3
->>>>>>>> baudrate=115200
->>>>>>>> bootargs=console=ttyS3,115200n8 root=/dev/mmcblk0p2 rootdelay=1
->>>>>>>> mem=256M init=/sbin/init
->>>>>>>> bootcmd=mmcinit
->>>>>>>> bootfile="uImage"
->>>>>>>>
->>>>>>>> if i'm type bootd i'm still in the konsole like this,
->>>>>>>> OMAP34XX LAB # bootd
->>>>>>>> OMAP34XX LAB #
->>>>>>>>
->>>>>>>> any idea?
->>>>>>>>
->>>>>>> you're not reading the kernel image to memory.
->>>>>>>
->>>>>>> is your mmc formated with FAT32 or what ?
->>>>>>>
->>>>>>> You need to read kernel from mmc to memory and boot from there.
->>>>>>>
->>>>>>> --
->>>>>>> balbi
->>>>>>>
->>>>>>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-omap"
+>>>> in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
 >>>
->>
+>>>
 >>
 >
