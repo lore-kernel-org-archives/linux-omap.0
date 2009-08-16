@@ -1,96 +1,113 @@
-From: Tar Gz <bsdraisefromhell@gmail.com>
-Subject: Re: [help] 2.6.30 can't booting
-Date: Sun, 16 Aug 2009 13:31:22 -0400
-Message-ID: <d9ca78710908161031s7f19ea94j61cb6ae849664168@mail.gmail.com>
-References: <d9ca78710908160948y246fa71epd564903d7fbbddbb@mail.gmail.com>
-	 <20090816171236.GC9923@gandalf>
-	 <d9ca78710908161016n5789f08cvd313c596e6cb290f@mail.gmail.com>
-	 <d9ca78710908161018i4c3e54ebifd173c40dea81935@mail.gmail.com>
-	 <d9ca78710908161019o32902715y9f6af58ad41dab66@mail.gmail.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 3/3] [OMAP:I2C]OMAP3430 Silicon Errata 1.153
+Date: Sun, 16 Aug 2009 11:39:03 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908160841160.31720@utopia.booyaka.com>
+References: <CD8CC2B65FEE304DA95744A5472698F202958D2F89@dlee06.ent.ti.com> <alpine.DEB.2.00.0908030054390.19529@utopia.booyaka.com> <CD8CC2B65FEE304DA95744A5472698F202959C0D61@dlee06.ent.ti.com> <CD8CC2B65FEE304DA95744A5472698F20295A89778@dlee06.ent.ti.com>
+ <alpine.DEB.2.00.0908100950040.5505@utopia.booyaka.com> <CD8CC2B65FEE304DA95744A5472698F20295A89A21@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f175.google.com ([209.85.210.175]:52584 "EHLO
-	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751415AbZHPRbV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 13:31:21 -0400
-Received: by yxe5 with SMTP id 5so3082291yxe.33
-        for <linux-omap@vger.kernel.org>; Sun, 16 Aug 2009 10:31:22 -0700 (PDT)
-In-Reply-To: <d9ca78710908161019o32902715y9f6af58ad41dab66@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F20295A89A21-UmuGNrFEPrGIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Sonasath, Moiz" <m-sonasath-l0cyMroinI0@public.gmane.org>
+Cc: "linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Menon, Nishanth" <nm-l0cyMroinI0@public.gmane.org>, "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: me <me@felipebalbi.com>, linux-omap <linux-omap@vger.kernel.org>
 
-it is my step to build u-boot, x-loader and kernel
+Hi Moiz,
 
-i'm try linux 2.6.30 and using the omap3430sdp_defconfig to build the uImage
+On Tue, 11 Aug 2009, Sonasath, Moiz wrote:
 
-my u-boot and x-loader using omap3430zoom2_config
+> 1. From the code we have in place now, we are writing 
+> num_bytes=dev->fifosize(=XTRSH+1) bytes in case of XRDY OR 
+> num_bytes=TXSTAT (last few bytes left) in case of XDR (draining feature)
+> 
+> Without the errata we were writing these num_bytes in a while loop one 
+> by one into I2C_DATA reg (TXFIFO).
+> 
+> With the errata we are writing num_bytes in a while loop, but now we 
+> write one byte wait for XUDF bit to get set and then write another byte. 
+> Thereby, we write a byte, wait for it to get out of the TXFIFO and only 
+> then we write the second byte and so on.
+> 
+> 	While(num_bytes)
+> 	{
+> 		Write one byte to I2C_DATA Reg
+> 		Wait for XUDF to set
+> 	}
+> 	Ack the interrupt
 
-any idea to solve that problem?...
+Doesn't your patch do:
 
-regards,
-Aldyth M
+ 	While(num_bytes)
+ 	{
+ 		Wait for XUDF to set
+ 		Write one byte to I2C_DATA Reg
+ 	}
+ 	Ack the interrupt
 
-On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
-> i'm format mmc in the fat win95...
->
-> i following step by step in the
-> https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
->
-> why can't read?
->
-> On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
->> i'm format mmc in the fat win95...
->>
->> i following step by step in the
->> https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
->>
->> why can't read?
->>
->>>
->>> On 8/16/09, Felipe Balbi <me@felipebalbi.com> wrote:
->>>> Hi,
->>>>
->>>> On Sun, Aug 16, 2009 at 12:48:52PM -0400, Tar Gz wrote:
->>>>> Hi all,,i'm sorry if my english too bad
->>>>>
->>>>> i try to porting linux kernel 2.6.30 from kernel.org into omap 3430
->>>>>
->>>>> i have the problem linux kernel can't booting
->>>>>
->>>>>
->>>>> i'm following step by step in the omapzoom.org
->>>>> $ setenv bootargs console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
->>>>> rootdelay=1 mem=256M init=/sbin/init
->>>>> $ saveenv
->>>>> $ bootd
->>>>>
->>>>>
->>>>> OMAP34XX LAB # print
->>>>> bootdelay=3
->>>>> baudrate=115200
->>>>> bootargs=console=ttyS3,115200n8 root=/dev/mmcblk0p2 rootdelay=1
->>>>> mem=256M init=/sbin/init
->>>>> bootcmd=mmcinit
->>>>> bootfile="uImage"
->>>>>
->>>>> if i'm type bootd i'm still in the konsole like this,
->>>>> OMAP34XX LAB # bootd
->>>>> OMAP34XX LAB #
->>>>>
->>>>> any idea?
->>>>
->>>> you're not reading the kernel image to memory.
->>>>
->>>> is your mmc formated with FAT32 or what ?
->>>>
->>>> You need to read kernel from mmc to memory and boot from there.
->>>>
->>>> --
->>>> balbi
->>>>
->>>
->>
->
+?
+
+> So irrespective of the XTRSH value, the wait time is actually the same.
+> 
+> 2. Now if we see it from the perspective of interrupts, we are 
+> generating an interrupt after every chunk of 4 bytes (with XTRSH+1=4) 
+> written to the TXFIFO because we ACK the interrupt after writing a chunk 
+> of 4 bytes (one byte at a time waiting for the XUDF bit to be set in 
+> between each byte).
+> 
+> >From the TRM Figure-18-31, in the XRDY path:
+> Write I2Ci.I2C_DATA register for (XTRSH+1) times and then clear XRDY interrupt
+> 
+> Thus, XTRSH is actually driving how many chunks of data you write before 
+> generating a next interrupt. So from this point of view it will be more 
+> desirable to make the XTRSH=7 and write chunk of 8 bytes before 
+> generating a new interrupt. But we end up staying a longer time in the 
+> ISR.
+> 
+> Essentially we are looking at a tradeoff between:
+> 1. Lower XTRSH value: More number of interrupts, less time in an ISR  
+> 2. Higher XTRSH value: Less number of interrupts, more time in an ISR 
+> 
+> Please correct me if I am wrong.
+
+Your analysis looks correct.  I suppose my point is dependent on when the 
+XRDY interrupt occurs if XTRSH = 0.
+
+If it occurs one I2C byte transmission time before the XUDF condition 
+occurs, then we should just use your busy-waiting patch.  I don't think we 
+can do better than that.
+
+But if the XRDY interrupt occurs at the same time as the shift register 
+empties, or if there is an undocumented XUDF interrupt that we can use, 
+then please consider:
+
+For slower I2C bus speeds, e.g., for a 400KHz I2C bus, emptying a byte out 
+of the transmit FIFO should take about 20 microseconds [1].  Another way 
+of expressing this is that the duration from when we write a byte to the 
+I2C FIFO, to when the controller raises the XRDY/XDR interrupt, should be 
+about 20 microseconds when XTRSH = 0.
+
+We can either spend this time busy-looping in the ISR (the tradeoff #2 
+that you mention above), or trying to reach WFI and hopefully entering it 
+(the tradeoff #1 above).  If possible, tradeoff #1 seems better.  If the 
+MPU can reach WFI, it will waste less active power, but it will also 
+trigger the PRCM to shut down any inactive power domains, which might not 
+need to wake back up when the next system wakeup event occurs.
+
+This should improve over time, from a power efficiency perspective, 
+as the amount of time the MPU spends trying to reach WFI should decrease 
+[2].
+
+What do you think?
+
+
+- Paul
+
+
+1. (8 I2C-cycles/byte / 400000 I2C-cycles/second) = 20 microseconds
+
+2. With currently-available OMAP3 chips, the CPU cycle time can be as 
+  short as 1.67 ns (1/600000000 cycles/second).  Future chips will 
+  presumably reach at least a 1 ns cycle time, if 
+  http://en.wikipedia.org/wiki/Texas_Instruments_OMAP is to be believed. 
+  Multiple instructions can be executed per clock cycle.
