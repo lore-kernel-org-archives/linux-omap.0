@@ -1,53 +1,37 @@
-From: Tar Gz <bsdraisefromhell@gmail.com>
-Subject: Fwd: 2.6.30 can't booting
-Date: Sun, 16 Aug 2009 12:54:49 -0400
-Message-ID: <d9ca78710908160954i21de255ala35ce916ed9def23@mail.gmail.com>
-References: <d9ca78710908160942p6a4f17bbh74cd5878dbfe65c7@mail.gmail.com>
+From: Felipe Balbi <me@felipebalbi.com>
+Subject: Re: [PATCH 10/10] OMAP3: update OMAP3 Beagle defconfig, v3
+Date: Sun, 16 Aug 2009 20:07:25 +0300
+Message-ID: <20090816170721.GA9923@gandalf>
+References: <20090812120926.17601.85860.stgit@localhost>
+ <20090812122415.17601.44872.stgit@localhost>
+ <20090812122710.GA23166@nokia.com>
+ <20090812165258.GM7278@atomide.com>
+ <87d471vti5.fsf@deeprootsystems.com>
+ <20090812191109.GB21001@gandalf>
+ <20090813070233.GP7278@atomide.com>
+ <loom.20090816T011000-32@post.gmane.org>
+ <20090816154154.GC7278@atomide.com>
+Reply-To: me@felipebalbi.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f175.google.com ([209.85.210.175]:49225 "EHLO
-	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846AbZHPQys (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 12:54:48 -0400
-Received: by yxe5 with SMTP id 5so3069313yxe.33
-        for <linux-omap@vger.kernel.org>; Sun, 16 Aug 2009 09:54:49 -0700 (PDT)
-In-Reply-To: <d9ca78710908160942p6a4f17bbh74cd5878dbfe65c7@mail.gmail.com>
+Received: from ns1.siteground211.com ([209.62.36.12]:53457 "EHLO
+	serv01.siteground211.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001AbZHPRHt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 13:07:49 -0400
+Content-Disposition: inline
+In-Reply-To: <20090816154154.GC7278@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Eric Witcher <ewitcher@mindspring.com>, linux-omap@vger.kernel.org
 
----------- Forwarded message ----------
-From: Tar Gz <bsdraisefromhell@gmail.com>
-Date: Sun, 16 Aug 2009 12:42:08 -0400
-Subject: 2.6.30 can't booting
-To: linux-omap@vger.kernel.org
+Hi,
 
-Hi all,,i'm sorry if my english too bad
+On Sun, Aug 16, 2009 at 06:42:00PM +0300, Tony Lindgren wrote:
+> Felipe, can you please check if you have the twl4030-usb.c fix queued up?
 
-i try to porting linux kernel 2.6.30 from kernel.org into omap 3430
+Should I take it via linux-usb ? The fix is in board-omap3beagle.c
 
-i have the problem linux kernel can't booting
-
-
-i'm following step by step in the omapzoom.org
-$ setenv bootargs console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
-rootdelay=1 mem=256M init=/sbin/init
-$ saveenv
-$ bootd
-
-
-OMAP34XX LAB # print
-bootdelay=3
-baudrate=115200
-bootargs=console=ttyS3,115200n8 root=/dev/mmcblk0p2 rootdelay=1
-mem=256M init=/sbin/init
-bootcmd=mmcinit
-bootfile="uImage"
-
-if i'm type bootd i'm still in the konsole like this,
-OMAP34XX LAB # bootd
-OMAP34XX LAB #
-
-any idea?
+-- 
+balbi
