@@ -1,59 +1,44 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/3] ARM: OMAP4: PM: Upgrade the makefile for power domain
- initialisations
-Date: Sun, 16 Aug 2009 13:15:29 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908161313510.1930@utopia.booyaka.com>
-References: <1250247553-22525-1-git-send-email-abhijitpagare@ti.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 02/10] OMAP: iommu: add initial debugfs support
+Date: Sun, 16 Aug 2009 21:47:32 +0100
+Message-ID: <20090816204732.GA23875@n2100.arm.linux.org.uk>
+References: <20090812120926.17601.85860.stgit@localhost> <20090812121324.17601.39083.stgit@localhost> <20090813092359.GS6132@n2100.arm.linux.org.uk> <20090815.150603.104063905.Hiroshi.DOYU@nokia.com> <20090816151347.GZ7278@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38579 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753054AbZHPTP2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 15:15:28 -0400
-In-Reply-To: <1250247553-22525-1-git-send-email-abhijitpagare@ti.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33394 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755941AbZHPUrn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 16:47:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20090816151347.GZ7278@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Abhijit Pagare <abhijitpagare@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org
 
-Hello Abhijit,
-
-On Fri, 14 Aug 2009, abhijitpagare@ti.com wrote:
-
-> From: Abhijit Pagare <abhijitpagare@ti.com>
+On Sun, Aug 16, 2009 at 06:13:55PM +0300, Tony Lindgren wrote:
+> * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090815 15:06]:
+> > Hi Russell,
+> > 
+> > From: ext Russell King - ARM Linux <linux@arm.linux.org.uk>
+> > Subject: Re: [PATCH 02/10] OMAP: iommu: add initial debugfs support
+> > Date: Thu, 13 Aug 2009 11:23:59 +0200
+> > 
+> > > On Wed, Aug 12, 2009 at 03:13:24PM +0300, Tony Lindgren wrote:
+> > > > +static DEFINE_MUTEX(iommu_debug_lock);
+> > > > +static char local_buffer[SZ_4K];
+> > > 
+> > > I don't like this - what if the data you're sprintf'ing into this
+> > > buffer overflows it?
+> > 
+> > Right.
+> > 
+> > I have attached the updated version which limits max write counts to
+> > avoid the above buffer overflow.
 > 
-> This Patch upgrades the Makefile for Power Domain Framework
-> 
-> Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-> ---
->  arch/arm/mach-omap2/Makefile |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 3322292..1a18026 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -3,7 +3,7 @@
->  #
->  
->  # Common support
-> -obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o clock.o prcm.o
-> +obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o clock.o prcm.o powerdomain.o
->  
->  omap-2-3-common				= irq.o sdrc.o
->  prcm-common				= powerdomain.o
+> Thanks, I've update my queue with it.
 
-NACK, please use the same mechanism that is present a few lines down in 
-the Makefile:
-
-obj-$(CONFIG_ARCH_OMAP2) += $(omap-2-3-common) $(prcm-common) $(clock-common)
-obj-$(CONFIG_ARCH_OMAP3) += $(omap-2-3-common) $(prcm-common) $(clock-common)
-
-then add an OMAP4 line, etc.
-
-Also, this patch can be rolled into one of your other patches, there's no 
-need for it to be separate.
-
-
-- Paul
+I'm not sure the patch is correct yet.  I think this update introduced
+some bugs.  Consider the debug_read_* functions and consider what
+happens if count = 1 but ppos != 0.
