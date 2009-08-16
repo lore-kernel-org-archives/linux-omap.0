@@ -1,225 +1,326 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 06/10] OMAP3: MMC: Add mux for pins, v2
-Date: Sun, 16 Aug 2009 18:25:23 +0300
-Message-ID: <20090816152518.GA7278@atomide.com>
-References: <20090812120926.17601.85860.stgit@localhost> <20090812121849.17601.42907.stgit@localhost> <20090813092651.GV6132@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 07/10] OMAP3: Zoom2: Add TWL4030 support,v 2
+Date: Sun, 16 Aug 2009 18:28:45 +0300
+Message-ID: <20090816152840.GB7278@atomide.com>
+References: <20090812120926.17601.85860.stgit@localhost> <20090812122007.17601.25934.stgit@localhost> <20090813092755.GW6132@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="qGV0fN9tzfkG3CxV"
+Content-Type: multipart/mixed; boundary="ZRyEpB+iJ+qUx0kp"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50367 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754727AbZHPPZk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 11:25:40 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56279 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258AbZHPP26 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 11:28:58 -0400
 Content-Disposition: inline
-In-Reply-To: <20090813092651.GV6132@n2100.arm.linux.org.uk>
+In-Reply-To: <20090813092755.GW6132@n2100.arm.linux.org.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org, Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
 
 
---qGV0fN9tzfkG3CxV
+--ZRyEpB+iJ+qUx0kp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090813 12:26]:
-> On Wed, Aug 12, 2009 at 03:18:49PM +0300, Tony Lindgren wrote:
-> > +			if (mmc_controller->slots[0].wires == 8)
-> > +				printk(KERN_WARNING
-> > +					"\n MMC2: DAT4, DAT5, DAT6, DAT7: "
-> > +					"Setup the mux in board file");
-> > +		}
-> > +		if (controller_nr == 2) {
-> > +			/* MMC3 */
-> > +			printk(KERN_WARNING
-> > +				"\n MMC3: Setup the mux in board file: "
-> > +				"Multiple options exist, so is board specific");
-> > +		}
+* Russell King - ARM Linux <linux@arm.linux.org.uk> [090813 12:28]:
+> On Wed, Aug 12, 2009 at 03:20:07PM +0300, Tony Lindgren wrote:
+> > +static struct twl4030_keypad_data zoom2_kp_twl4030_data = {
+> > +	.rows		= 8,
+> > +	.cols		= 8,
+> > +	.keymap		= zoom2_twl4030_keymap,
+> > +	.keymapsize	= ARRAY_SIZE(zoom2_twl4030_keymap),
+> > +	.rep		= 1,
+> > +};
 > 
-> Having printks which issue a level, followed by a newline, message and
-> omitting the newline at the end looks really wrong:
+> Normally have a blank line here.
 > 
-> - firstly, the KERN_WARNING "\n" line creates a blank line in the kernel
->   message log.
-> - the message itself will be at the kernels default message level
-> - the following kernel message will be appended to the end, with any
->   level tag exposed.
+> >  static void __init omap_zoom2_init_irq(void)
+> >  {
+> >  	omap2_init_common_hw(NULL);
 > 
-> So I think the above printk statements are completely wrong and broken.
+> Otherwise ok.
 
-I've updated the patch to change the printk statements to just comments.
-
-Regards,
+Updated patch below.
 
 Tony
 
---qGV0fN9tzfkG3CxV
+--ZRyEpB+iJ+qUx0kp
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="mmc-mux-v2.patch"
+Content-Disposition: inline; filename="zoom2-twl-v2.patch"
 
->From fc3866a4da5cfcc7090809367997b2f4fce6a382 Mon Sep 17 00:00:00 2001
+>From 319fc2ce44067ec84eae3a7effd5ad0bb3515a84 Mon Sep 17 00:00:00 2001
 From: Vikram Pandita <vikram.pandita@ti.com>
-Date: Sun, 16 Aug 2009 18:17:06 +0300
-Subject: [PATCH] OMAP3: MMC: Add mux for pins
+Date: Sun, 16 Aug 2009 18:26:19 +0300
+Subject: [PATCH] OMAP3: Zoom2: Add TWL4030 support
 
-For OMAP3 add MMC1 MMC2 pin mux MMC3 mux is not added as there are
-multiple configurations possible, so the muxing is left to be done
-in board file.
+Add TWL4030 CORE and TWL4030 drivers to Zoom2 board file
+TWL drivers enabled are:
+	bci
+	madc
+	usb
+	keypad
+	mmc
 
 Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Chikkature Rajashekar <madhu.cr@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 894cc35..a2e9156 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -513,6 +513,47 @@ static inline void omap2_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
- 			omap_ctrl_writel(v, OMAP2_CONTROL_DEVCONF0);
- 		}
- 	}
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 4cefa3f..368e6aa 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -12,17 +12,84 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
++#include <linux/input.h>
+ #include <linux/gpio.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/regulator/machine.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ 
+ #include <mach/common.h>
+ #include <mach/usb.h>
++#include <mach/keypad.h>
+ 
+ #include "mmc-twl4030.h"
+ 
++/* Zoom2 has Qwerty keyboard*/
++static int zoom2_twl4030_keymap[] = {
++	KEY(0, 0, KEY_E),
++	KEY(1, 0, KEY_R),
++	KEY(2, 0, KEY_T),
++	KEY(3, 0, KEY_HOME),
++	KEY(6, 0, KEY_I),
++	KEY(7, 0, KEY_LEFTSHIFT),
++	KEY(0, 1, KEY_D),
++	KEY(1, 1, KEY_F),
++	KEY(2, 1, KEY_G),
++	KEY(3, 1, KEY_SEND),
++	KEY(6, 1, KEY_K),
++	KEY(7, 1, KEY_ENTER),
++	KEY(0, 2, KEY_X),
++	KEY(1, 2, KEY_C),
++	KEY(2, 2, KEY_V),
++	KEY(3, 2, KEY_END),
++	KEY(6, 2, KEY_DOT),
++	KEY(7, 2, KEY_CAPSLOCK),
++	KEY(0, 3, KEY_Z),
++	KEY(1, 3, KEY_KPPLUS),
++	KEY(2, 3, KEY_B),
++	KEY(3, 3, KEY_F1),
++	KEY(6, 3, KEY_O),
++	KEY(7, 3, KEY_SPACE),
++	KEY(0, 4, KEY_W),
++	KEY(1, 4, KEY_Y),
++	KEY(2, 4, KEY_U),
++	KEY(3, 4, KEY_F2),
++	KEY(4, 4, KEY_VOLUMEUP),
++	KEY(6, 4, KEY_L),
++	KEY(7, 4, KEY_LEFT),
++	KEY(0, 5, KEY_S),
++	KEY(1, 5, KEY_H),
++	KEY(2, 5, KEY_J),
++	KEY(3, 5, KEY_F3),
++	KEY(5, 5, KEY_VOLUMEDOWN),
++	KEY(6, 5, KEY_M),
++	KEY(4, 5, KEY_ENTER),
++	KEY(7, 5, KEY_RIGHT),
++	KEY(0, 6, KEY_Q),
++	KEY(1, 6, KEY_A),
++	KEY(2, 6, KEY_N),
++	KEY(3, 6, KEY_BACKSPACE),
++	KEY(6, 6, KEY_P),
++	KEY(7, 6, KEY_UP),
++	KEY(6, 7, KEY_SELECT),
++	KEY(7, 7, KEY_DOWN),
++	KEY(0, 7, KEY_PROG1),	/*MACRO 1 <User defined> */
++	KEY(1, 7, KEY_PROG2),	/*MACRO 2 <User defined> */
++	KEY(2, 7, KEY_PROG3),	/*MACRO 3 <User defined> */
++	KEY(3, 7, KEY_PROG4),	/*MACRO 4 <User defined> */
++	0
++};
 +
-+	if (cpu_is_omap3430()) {
-+		if (controller_nr == 0) {
-+			omap_cfg_reg(N28_3430_MMC1_CLK);
-+			omap_cfg_reg(M27_3430_MMC1_CMD);
-+			omap_cfg_reg(N27_3430_MMC1_DAT0);
-+			if (mmc_controller->slots[0].wires == 4 ||
-+				mmc_controller->slots[0].wires == 8) {
-+				omap_cfg_reg(N26_3430_MMC1_DAT1);
-+				omap_cfg_reg(N25_3430_MMC1_DAT2);
-+				omap_cfg_reg(P28_3430_MMC1_DAT3);
-+			}
-+			if (mmc_controller->slots[0].wires == 8) {
-+				omap_cfg_reg(P27_3430_MMC1_DAT4);
-+				omap_cfg_reg(P26_3430_MMC1_DAT5);
-+				omap_cfg_reg(R27_3430_MMC1_DAT6);
-+				omap_cfg_reg(R25_3430_MMC1_DAT7);
-+			}
-+		}
-+		if (controller_nr == 1) {
-+			/* MMC2 */
-+			omap_cfg_reg(AE2_3430_MMC2_CLK);
-+			omap_cfg_reg(AG5_3430_MMC2_CMD);
-+			omap_cfg_reg(AH5_3430_MMC2_DAT0);
++static struct twl4030_keypad_data zoom2_kp_twl4030_data = {
++	.rows		= 8,
++	.cols		= 8,
++	.keymap		= zoom2_twl4030_keymap,
++	.keymapsize	= ARRAY_SIZE(zoom2_twl4030_keymap),
++	.rep		= 1,
++};
 +
-+			/*
-+			 * For 8 wire configurations, Lines DAT4, 5, 6 and 7 need to be muxed
-+			 * in the board-*.c files
-+			 */
-+			if (mmc_controller->slots[0].wires == 4 ||
-+				mmc_controller->slots[0].wires == 8) {
-+				omap_cfg_reg(AH4_3430_MMC2_DAT1);
-+				omap_cfg_reg(AG4_3430_MMC2_DAT2);
-+				omap_cfg_reg(AF4_3430_MMC2_DAT3);
-+			}
-+		}
+ static void __init omap_zoom2_init_irq(void)
+ {
+ 	omap2_init_common_hw(NULL);
+@@ -37,10 +104,127 @@ static struct omap_uart_platform_data zoom2_uart_config __initdata = {
+ static struct omap_board_config_kernel zoom2_config[] __initdata = {
+ };
+ 
++static struct regulator_consumer_supply zoom2_vmmc1_supply = {
++	.supply		= "vmmc",
++};
 +
-+		/*
-+		 * For MMC3 the pins need to be muxed in the board-*.c files
-+		 */
-+	}
++static struct regulator_consumer_supply zoom2_vsim_supply = {
++	.supply		= "vmmc_aux",
++};
++
++static struct regulator_consumer_supply zoom2_vmmc2_supply = {
++	.supply		= "vmmc",
++};
++
++/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
++static struct regulator_init_data zoom2_vmmc1 = {
++	.constraints = {
++		.min_uV			= 1850000,
++		.max_uV			= 3150000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &zoom2_vmmc1_supply,
++};
++
++/* VMMC2 for MMC2 card */
++static struct regulator_init_data zoom2_vmmc2 = {
++	.constraints = {
++		.min_uV			= 1850000,
++		.max_uV			= 1850000,
++		.apply_uV		= true,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &zoom2_vmmc2_supply,
++};
++
++/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
++static struct regulator_init_data zoom2_vsim = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 3000000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies  = 1,
++	.consumer_supplies      = &zoom2_vsim_supply,
++};
++
++static struct twl4030_hsmmc_info mmc[] __initdata = {
++	{
++		.mmc		= 1,
++		.wires		= 4,
++		.gpio_wp	= -EINVAL,
++	},
++	{
++		.mmc		= 2,
++		.wires		= 4,
++		.gpio_wp	= -EINVAL,
++	},
++	{}      /* Terminator */
++};
++
++static int zoom2_twl_gpio_setup(struct device *dev,
++		unsigned gpio, unsigned ngpio)
++{
++	/* gpio + 0 is "mmc0_cd" (input/IRQ),
++	 * gpio + 1 is "mmc1_cd" (input/IRQ)
++	 */
++	mmc[0].gpio_cd = gpio + 0;
++	mmc[1].gpio_cd = gpio + 1;
++	twl4030_mmc_init(mmc);
++
++	/* link regulators to MMC adapters ... we "know" the
++	 * regulators will be set up only *after* we return.
++	*/
++	zoom2_vmmc1_supply.dev = mmc[0].dev;
++	zoom2_vsim_supply.dev = mmc[0].dev;
++	zoom2_vmmc2_supply.dev = mmc[1].dev;
++
++	return 0;
++}
++
++
++static int zoom2_batt_table[] = {
++/* 0 C*/
++30800, 29500, 28300, 27100,
++26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
++17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
++11600, 11200, 10800, 10400, 10000, 9630,  9280,  8950,  8620,  8310,
++8020,  7730,  7460,  7200,  6950,  6710,  6470,  6250,  6040,  5830,
++5640,  5450,  5260,  5090,  4920,  4760,  4600,  4450,  4310,  4170,
++4040,  3910,  3790,  3670,  3550
++};
++
++static struct twl4030_bci_platform_data zoom2_bci_data = {
++	.battery_tmp_tbl	= zoom2_batt_table,
++	.tblsize		= ARRAY_SIZE(zoom2_batt_table),
++};
++
++static struct twl4030_usb_data zoom2_usb_data = {
++	.usb_mode	= T2_USB_MODE_ULPI,
++};
++
+ static struct twl4030_gpio_platform_data zoom2_gpio_data = {
+ 	.gpio_base	= OMAP_MAX_GPIO_LINES,
+ 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+ 	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.setup		= zoom2_twl_gpio_setup,
++};
++
++static struct twl4030_madc_platform_data zoom2_madc_data = {
++	.irq_line	= 1,
+ };
+ 
+ static struct twl4030_platform_data zoom2_twldata = {
+@@ -48,7 +232,15 @@ static struct twl4030_platform_data zoom2_twldata = {
+ 	.irq_end	= TWL4030_IRQ_END,
+ 
+ 	/* platform_data for children goes here */
++	.bci		= &zoom2_bci_data,
++	.madc		= &zoom2_madc_data,
++	.usb		= &zoom2_usb_data,
+ 	.gpio		= &zoom2_gpio_data,
++	.keypad		= &zoom2_kp_twl4030_data,
++	.vmmc1          = &zoom2_vmmc1,
++	.vmmc2          = &zoom2_vmmc2,
++	.vsim           = &zoom2_vsim,
++
+ };
+ 
+ static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
+@@ -69,16 +261,6 @@ static int __init omap_i2c_init(void)
+ 	return 0;
  }
  
- void __init omap2_init_mmc(struct omap_mmc_platform_data **mmc_data,
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 026c4fc..d49b9a7 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -486,6 +486,55 @@ MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
- MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-+/* MMC1 */
-+MUX_CFG_34XX("N28_3430_MMC1_CLK", 0x144,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("M27_3430_MMC1_CMD", 0x146,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("N27_3430_MMC1_DAT0", 0x148,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("N26_3430_MMC1_DAT1", 0x14a,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("N25_3430_MMC1_DAT2", 0x14c,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("P28_3430_MMC1_DAT3", 0x14e,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("P27_3430_MMC1_DAT4", 0x150,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("P26_3430_MMC1_DAT5", 0x152,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("R27_3430_MMC1_DAT6", 0x154,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("R25_3430_MMC1_DAT7", 0x156,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+
-+/* MMC2 */
-+MUX_CFG_34XX("AE2_3430_MMC2_CLK", 0x158,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AG5_3430_MMC2_CMD", 0x15A,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AH5_3430_MMC2_DAT0", 0x15c,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AH4_3430_MMC2_DAT1", 0x15e,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AG4_3430_MMC2_DAT2", 0x160,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF4_3430_MMC2_DAT3", 0x162,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+
-+/* MMC3 */
-+MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AC3_3430_MMC3_CMD", 0x1d0,
-+		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AE11_3430_MMC3_DAT0", 0x5e4,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AH9_3430_MMC3_DAT1", 0x5e6,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF13_3430_MMC3_DAT2", 0x5e8,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
-+		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLUP)
- };
+-static struct twl4030_hsmmc_info mmc[] __initdata = {
+-	{
+-		.mmc		= 1,
+-		.wires		= 4,
+-		.gpio_cd	= -EINVAL,
+-		.gpio_wp	= -EINVAL,
+-	},
+-	{}	/* Terminator */
+-};
+-
+ extern int __init omap_zoom2_debugboard_init(void);
  
- #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-index 85a6217..d24fdf9 100644
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -853,6 +853,34 @@ enum omap34xx_index {
- 	AE5_34XX_GPIO143,
- 	H19_34XX_GPIO164_OUT,
- 	J25_34XX_GPIO170,
-+
-+	/* MMC1 */
-+	N28_3430_MMC1_CLK,
-+	M27_3430_MMC1_CMD,
-+	N27_3430_MMC1_DAT0,
-+	N26_3430_MMC1_DAT1,
-+	N25_3430_MMC1_DAT2,
-+	P28_3430_MMC1_DAT3,
-+	P27_3430_MMC1_DAT4,
-+	P26_3430_MMC1_DAT5,
-+	R27_3430_MMC1_DAT6,
-+	R25_3430_MMC1_DAT7,
-+
-+	/* MMC2 */
-+	AE2_3430_MMC2_CLK,
-+	AG5_3430_MMC2_CMD,
-+	AH5_3430_MMC2_DAT0,
-+	AH4_3430_MMC2_DAT1,
-+	AG4_3430_MMC2_DAT2,
-+	AF4_3430_MMC2_DAT3,
-+
-+	/* MMC3 */
-+	AF10_3430_MMC3_CLK,
-+	AC3_3430_MMC3_CMD,
-+	AE11_3430_MMC3_DAT0,
-+	AH9_3430_MMC3_DAT1,
-+	AF13_3430_MMC3_DAT2,
-+	AF13_3430_MMC3_DAT3,
- };
+ static void __init omap_zoom2_init(void)
+@@ -88,7 +270,6 @@ static void __init omap_zoom2_init(void)
+ 	omap_board_config_size = ARRAY_SIZE(zoom2_config);
+ 	omap_serial_init(&zoom2_uart_config);
+ 	omap_zoom2_debugboard_init();
+-	twl4030_mmc_init(mmc);
+ 	usb_musb_init();
+ }
  
- struct omap_mux_cfg {
 
---qGV0fN9tzfkG3CxV--
+--ZRyEpB+iJ+qUx0kp--
