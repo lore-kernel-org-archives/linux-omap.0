@@ -1,82 +1,31 @@
-From: Tar Gz <bsdraisefromhell@gmail.com>
-Subject: Re: [help] 2.6.30 can't booting
-Date: Sun, 16 Aug 2009 13:19:13 -0400
-Message-ID: <d9ca78710908161019o32902715y9f6af58ad41dab66@mail.gmail.com>
-References: <d9ca78710908160948y246fa71epd564903d7fbbddbb@mail.gmail.com>
-	 <20090816171236.GC9923@gandalf>
-	 <d9ca78710908161016n5789f08cvd313c596e6cb290f@mail.gmail.com>
-	 <d9ca78710908161018i4c3e54ebifd173c40dea81935@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 10/10] OMAP3: update OMAP3 Beagle defconfig, v3
+Date: Sun, 16 Aug 2009 20:22:26 +0300
+Message-ID: <20090816172224.GG7278@atomide.com>
+References: <20090812120926.17601.85860.stgit@localhost> <20090812122415.17601.44872.stgit@localhost> <20090812122710.GA23166@nokia.com> <20090812165258.GM7278@atomide.com> <87d471vti5.fsf@deeprootsystems.com> <20090812191109.GB21001@gandalf> <20090813070233.GP7278@atomide.com> <loom.20090816T011000-32@post.gmane.org> <20090816154154.GC7278@atomide.com> <20090816170721.GA9923@gandalf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f205.google.com ([209.85.217.205]:54578 "EHLO
-	mail-gx0-f205.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753054AbZHPRTM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 13:19:12 -0400
-Received: by gxk1 with SMTP id 1so3425028gxk.17
-        for <linux-omap@vger.kernel.org>; Sun, 16 Aug 2009 10:19:13 -0700 (PDT)
-In-Reply-To: <d9ca78710908161018i4c3e54ebifd173c40dea81935@mail.gmail.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51328 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753491AbZHPRWZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 13:22:25 -0400
+Content-Disposition: inline
+In-Reply-To: <20090816170721.GA9923@gandalf>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me <me@felipebalbi.com>, linux-omap <linux-omap@vger.kernel.org>
+To: Felipe Balbi <me@felipebalbi.com>
+Cc: Eric Witcher <ewitcher@mindspring.com>, linux-omap@vger.kernel.org
 
-i'm format mmc in the fat win95...
+* Felipe Balbi <me@felipebalbi.com> [090816 20:07]:
+> Hi,
+> 
+> On Sun, Aug 16, 2009 at 06:42:00PM +0300, Tony Lindgren wrote:
+> > Felipe, can you please check if you have the twl4030-usb.c fix queued up?
+> 
+> Should I take it via linux-usb ? The fix is in board-omap3beagle.c
 
-i following step by step in the
-https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
+Yeh, please do, here's my ack:
 
-why can't read?
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
-> i'm format mmc in the fat win95...
->
-> i following step by step in the
-> https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
->
-> why can't read?
->
->>
->> On 8/16/09, Felipe Balbi <me@felipebalbi.com> wrote:
->>> Hi,
->>>
->>> On Sun, Aug 16, 2009 at 12:48:52PM -0400, Tar Gz wrote:
->>>> Hi all,,i'm sorry if my english too bad
->>>>
->>>> i try to porting linux kernel 2.6.30 from kernel.org into omap 3430
->>>>
->>>> i have the problem linux kernel can't booting
->>>>
->>>>
->>>> i'm following step by step in the omapzoom.org
->>>> $ setenv bootargs console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
->>>> rootdelay=1 mem=256M init=/sbin/init
->>>> $ saveenv
->>>> $ bootd
->>>>
->>>>
->>>> OMAP34XX LAB # print
->>>> bootdelay=3
->>>> baudrate=115200
->>>> bootargs=console=ttyS3,115200n8 root=/dev/mmcblk0p2 rootdelay=1
->>>> mem=256M init=/sbin/init
->>>> bootcmd=mmcinit
->>>> bootfile="uImage"
->>>>
->>>> if i'm type bootd i'm still in the konsole like this,
->>>> OMAP34XX LAB # bootd
->>>> OMAP34XX LAB #
->>>>
->>>> any idea?
->>>
->>> you're not reading the kernel image to memory.
->>>
->>> is your mmc formated with FAT32 or what ?
->>>
->>> You need to read kernel from mmc to memory and boot from there.
->>>
->>> --
->>> balbi
->>>
->>
->
