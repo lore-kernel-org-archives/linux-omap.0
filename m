@@ -1,186 +1,140 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: MUSB regression in 2.6.31-rc6
-Date: Sun, 16 Aug 2009 20:43:45 +0300
-Message-ID: <20090816204345.0fa2fbf1.jhnikula@gmail.com>
-References: <20090815174352.c2883585.jhnikula@gmail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0305398E07@dbde02.ent.ti.com>
-	<20090815180701.7710de51.jhnikula@gmail.com>
-	<20090815174000.GA13164@nokia.com>
-	<20090816104415.e12a5e46.jhnikula@gmail.com>
-	<19F8576C6E063C45BE387C64729E739404322AA35B@dbde02.ent.ti.com>
-	<20090816131337.GA7634@gandalf>
-	<20090816194953.8d96cdb7.jhnikula@gmail.com>
-	<20090816171016.GB9923@gandalf>
+From: Tar Gz <bsdraisefromhell@gmail.com>
+Subject: Re: [help] 2.6.30 can't booting
+Date: Sun, 16 Aug 2009 13:55:06 -0400
+Message-ID: <d9ca78710908161055t548d0964l92b9e47d5bd693f7@mail.gmail.com>
+References: <d9ca78710908160948y246fa71epd564903d7fbbddbb@mail.gmail.com>
+	 <20090816171236.GC9923@gandalf>
+	 <d9ca78710908161016n5789f08cvd313c596e6cb290f@mail.gmail.com>
+	 <d9ca78710908161018i4c3e54ebifd173c40dea81935@mail.gmail.com>
+	 <d9ca78710908161019o32902715y9f6af58ad41dab66@mail.gmail.com>
+	 <d9ca78710908161031s7f19ea94j61cb6ae849664168@mail.gmail.com>
+	 <4A884705.1060905@holografika.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="Multipart=_Sun__16_Aug_2009_20_43_45_+0300_McAbrHL8CC50X=gJ"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:59300 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201AbZHPRmS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 13:42:18 -0400
-In-Reply-To: <20090816171016.GB9923@gandalf>
+Received: from mail-gx0-f205.google.com ([209.85.217.205]:45256 "EHLO
+	mail-gx0-f205.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753491AbZHPRzG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 13:55:06 -0400
+Received: by gxk1 with SMTP id 1so3440329gxk.17
+        for <linux-omap@vger.kernel.org>; Sun, 16 Aug 2009 10:55:07 -0700 (PDT)
+In-Reply-To: <4A884705.1060905@holografika.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: me@felipebalbi.com
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kovacs Peter Tamas <p.kovacs@holografika.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-This is a multi-part message in MIME format.
+thanks mr.peter
 
---Multipart=_Sun__16_Aug_2009_20_43_45_+0300_McAbrHL8CC50X=gJ
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+i should try the command like that
 
-On Sun, 16 Aug 2009 20:10:18 +0300
-Felipe Balbi <me@felipebalbi.com> wrote:
+#nand unlock
+#nand ecc sw
+#setenv bootargs 'console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
+rootdelay=1 mem=256M init=/init'
+#setenv bootcmd 'mmcinit; fatload mmc 0 0x80c00000 uImage; bootm 0x80c00000'
+#saveenv
+#boot
 
-> how about checking whether twl4030_usb is probing fine ?
-> 
-Oh yes, looks like not. I didn't notice this before and didn't post the
-full log. Bad me, now included. See
+it is stop(like hang) and i must restart again
 
-<3>twl4030_usb twl4030_usb: ldo init failed
-
-
--- 
-Jarkko
-
---Multipart=_Sun__16_Aug_2009_20_43_45_+0300_McAbrHL8CC50X=gJ
-Content-Type: application/cap;
- name="minicom.cap"
-Content-Disposition: attachment;
- filename="minicom.cap"
-Content-Transfer-Encoding: base64
-
-VGV4YXMgSW5zdHJ1bWVudHMgWC1Mb2FkZXIgMS40LjIgKEZlYiAxOSAyMDA5IC0gMTI6MDE6MjQp
-ClJlYWRpbmcgYm9vdCBzZWN0b3IKRXJyb3I6IHJlYWRpbmcgYm9vdCBzZWN0b3IKTG9hZGluZyB1
-LWJvb3QuYmluIGZyb20gbmFuZAoKClUtQm9vdCAyMDA5LjAxLWRpcnR5IChGZWIgMTkgMjAwOSAt
-IDEyOjIyOjMxKQoKSTJDOiAgIHJlYWR5Ck9NQVAzNTMwLUdQIHJldiAyLCBDUFUtT1BQMiBMMy0x
-NjVNSHoKT01BUDMgQmVhZ2xlIGJvYXJkICsgTFBERFIvTkFORApEUkFNOiAgMjU2IE1CCk5BTkQ6
-ICAyNTYgTWlCCk1VU0I6IHVzaW5nIGhpZ2ggc3BlZWQKSW46ICAgIHNlcmlhbCB1c2J0dHkgCk91
-dDogICBzZXJpYWwgdXNidHR5IApFcnI6ICAgc2VyaWFsIHVzYnR0eSAKQm9hcmQgcmV2aXNpb24g
-QwpTZXJpYWwgIzVmMjIwMDAzMDAwMDAwMDAwNDAxM2Y3OTA0MDE3MDBlCkhpdCBhbnkga2V5IHRv
-IHN0b3AgYXV0b2Jvb3Q6ICAyIAgICCAxIAgICCAwIApyZWFkaW5nIGJvb3Quc2NyCgoqKiBVbmFi
-bGUgdG8gcmVhZCAiYm9vdC5zY3IiIGZyb20gbW1jIDA6MSAqKgpyZWFkaW5nIHVJbWFnZQoKMTc4
-NzAwMCBieXRlcyByZWFkCnJlYWRpbmcgcmFtZGlzay5negoKKiogVW5hYmxlIHRvIHJlYWQgInJh
-bWRpc2suZ3oiIGZyb20gbW1jIDA6MSAqKgpCb290aW5nIGZyb20gbW1jIC4uLgojIyBCb290aW5n
-IGtlcm5lbCBmcm9tIExlZ2FjeSBJbWFnZSBhdCA4MDIwMDAwMCAuLi4KICAgSW1hZ2UgTmFtZTog
-ICBMaW51eC0yLjYuMzEtcmM2LTAwMDQ1LWdmNWNmNTY5LQogICBJbWFnZSBUeXBlOiAgIEFSTSBM
-aW51eCBLZXJuZWwgSW1hZ2UgKHVuY29tcHJlc3NlZCkKICAgRGF0YSBTaXplOiAgICAxNzg2OTM2
-IEJ5dGVzID0gIDEuNyBNQgogICBMb2FkIEFkZHJlc3M6IDgwMDA4MDAwCiAgIEVudHJ5IFBvaW50
-OiAgODAwMDgwMDAKICAgVmVyaWZ5aW5nIENoZWNrc3VtIC4uLiBPSwogICBMb2FkaW5nIEtlcm5l
-bCBJbWFnZSAuLi4gT0sKT0sKClN0YXJ0aW5nIGtlcm5lbCAuLi4KClVuY29tcHJlc3NpbmcgTGlu
-dXguLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
-Li4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4uLi4u
-IGRvbmUsIGJvb3RpbmcgdGhlIGtlcm5lbC4KPDU+TGludXggdmVyc2lvbiAyLjYuMzEtcmM2LTAw
-MDQ1LWdmNWNmNTY5LWRpcnR5IChqYXJra29AbXlsbHkpIChnY2MgdmVyc2lvbiA0LjIuMyAoU291
-cmNlcnkgRysrIExpdGUgMjAwOHExLTEyNikpICMxIFN1biBBdWcgMTYgMjA6MjY6MDYgRUVTVCAy
-MDA5CkNQVTogQVJNdjcgUHJvY2Vzc29yIFs0MTFmYzA4M10gcmV2aXNpb24gMyAoQVJNdjcpLCBj
-cj0xMGM1M2M3ZgpDUFU6IFZJUFQgbm9uYWxpYXNpbmcgZGF0YSBjYWNoZSwgVklQVCBub25hbGlh
-c2luZyBpbnN0cnVjdGlvbiBjYWNoZQpNYWNoaW5lOiBPTUFQMyBCZWFnbGUgQm9hcmQKTWVtb3J5
-IHBvbGljeTogRUNDIGRpc2FibGVkLCBEYXRhIGNhY2hlIHdyaXRlYmFjawo8Nz5PbiBub2RlIDAg
-dG90YWxwYWdlczogNjU1MzYKPDc+ZnJlZV9hcmVhX2luaXRfbm9kZTogbm9kZSAwLCBwZ2RhdCBj
-MDM2ZThmMCwgbm9kZV9tZW1fbWFwIGMwMzg5MDAwCjw3PiAgTm9ybWFsIHpvbmU6IDUxMiBwYWdl
-cyB1c2VkIGZvciBtZW1tYXAKPDc+ICBOb3JtYWwgem9uZTogMCBwYWdlcyByZXNlcnZlZAo8Nz4g
-IE5vcm1hbCB6b25lOiA2NTAyNCBwYWdlcywgTElGTyBiYXRjaDoxNQo8Nj5PTUFQMzQzMCBFUzMu
-MAo8Nj5TUkFNOiBNYXBwZWQgcGEgMHg0MDIwMDAwMCB0byB2YSAweGQ3MDAwMDAwIHNpemU6IDB4
-MTAwMDAwCkJ1aWx0IDEgem9uZWxpc3RzIGluIFpvbmUgb3JkZXIsIG1vYmlsaXR5IGdyb3VwaW5n
-IG9uLiAgVG90YWwgcGFnZXM6IDY1MDI0Cjw1Pktlcm5lbCBjb21tYW5kIGxpbmU6IGNvbnNvbGU9
-dHR5UzIsMTE1MjAwbjggcm9vdD0vZGV2L21tY2JsazBwMiBydyByb290ZnN0eXBlPWV4dDMgcm9v
-dHdhaXQKUElEIGhhc2ggdGFibGUgZW50cmllczogMTAyNCAob3JkZXI6IDEwLCA0MDk2IGJ5dGVz
-KQo8Nj5EZW50cnkgY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAzMjc2OCAob3JkZXI6IDUsIDEz
-MTA3MiBieXRlcykKPDY+SW5vZGUtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAxNjM4NCAob3Jk
-ZXI6IDQsIDY1NTM2IGJ5dGVzKQo8Nj5NZW1vcnk6IDEyOE1CIDEyOE1CID0gMjU2TUIgdG90YWwK
-PDU+TWVtb3J5OiAyNTYxMjhLQiBhdmFpbGFibGUgKDMwNzZLIGNvZGUsIDI4MUsgZGF0YSwgMTEy
-SyBpbml0LCAwSyBoaWdobWVtKQo8Nj5OUl9JUlFTOjM4NAo8Nj5DbG9ja2luZyByYXRlIChDcnlz
-dGFsL0RQTEwvQVJNIGNvcmUpOiAyNi4wLzMzMi81MDAgTUh6Cjw2PlJlcHJvZ3JhbW1pbmcgU0RS
-QyBjbG9jayB0byAzMzIwMDAwMDAgSHoKPDY+R1BNQyByZXZpc2lvbiA1LjAKPDY+SVJROiBGb3Vu
-ZCBhbiBJTlRDIGF0IDB4ZDgyMDAwMDAgKHJldmlzaW9uIDQuMCkgd2l0aCA5NiBpbnRlcnJ1cHRz
-Cjw2PlRvdGFsIG9mIDk2IGludGVycnVwdHMgb24gMSBhY3RpdmUgY29udHJvbGxlcgo8Nj5PTUFQ
-MzR4eCBHUElPIGhhcmR3YXJlIHZlcnNpb24gMi41Cjw2Pk9NQVAgY2xvY2tldmVudCBzb3VyY2U6
-IEdQVElNRVIxMiBhdCAzMjc2OCBIegpDb25zb2xlOiBjb2xvdXIgZHVtbXkgZGV2aWNlIDgweDMw
-Cjw2PkNhbGlicmF0aW5nIGRlbGF5IGxvb3AuLi4gPGM+NDcwLjU2IEJvZ29NSVBTIChscGo9MTgz
-OTEwNCkKTW91bnQtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA1MTIKPDY+Q1BVOiBUZXN0aW5n
-IHdyaXRlIGJ1ZmZlciBjb2hlcmVuY3k6IG9rCjw2PnJlZ3VsYXRvcjogY29yZSB2ZXJzaW9uIDAu
-NQo8Nj5ORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2Cjw2PkZvdW5kIE5BTkQgb24g
-Q1MwCjw2PlJlZ2lzdGVyaW5nIE5BTkQgb24gQ1MwCjw2Pk9NQVAgRE1BIGhhcmR3YXJlIHJldmlz
-aW9uIDQuMApiaW86IGNyZWF0ZSBzbGFiIDxiaW8tMD4gYXQgMAo8NT5TQ1NJIHN1YnN5c3RlbSBp
-bml0aWFsaXplZAo8Nj51c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVz
-YmZzCjw2PnVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgaHViCjw2PnVz
-YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGRldmljZSBkcml2ZXIgdXNiCjw2PmkyY19vbWFwIGkyY19v
-bWFwLjE6IGJ1cyAxIHJldjMuMTIgYXQgMjYwMCBrSHoKPDY+dHdsNDAzMDogUElIIChpcnEgNykg
-Y2hhaW5pbmcgSVJRcyAzNjguLjM3NQo8Nj50d2w0MDMwOiBwb3dlciAoaXJxIDM3MykgY2hhaW5p
-bmcgSVJRcyAzNzYuLjM4Mwo8Mz50d2w0MDMwX3VzYiB0d2w0MDMwX3VzYjogbGRvIGluaXQgZmFp
-bGVkCjw2PnJlZ3VsYXRvcjogVk1NQzE6IDE4NTAgPC0tPiAzMTUwIG1WIG5vcm1hbCBzdGFuZGJ5
-Cjw2PnJlZ3VsYXRvcjogVkRBQzogMTgwMCBtViBub3JtYWwgc3RhbmRieQo8Nj5yZWd1bGF0b3I6
-IFZVU0IxVjU6IDE1MDAgbVYgbm9ybWFsIHN0YW5kYnkKPDY+cmVndWxhdG9yOiBWVVNCMVY4OiAx
-ODAwIG1WIG5vcm1hbCBzdGFuZGJ5Cjw2PnJlZ3VsYXRvcjogVlVTQjNWMTogMzEwMCBtViBub3Jt
-YWwgc3RhbmRieQo8Nj5yZWd1bGF0b3I6IFZQTEwyOiAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5Cjw2
-PnJlZ3VsYXRvcjogVlNJTTogMTgwMCA8LS0+IDMwMDAgbVYgbm9ybWFsIHN0YW5kYnkKPDY+aTJj
-X29tYXAgaTJjX29tYXAuMzogYnVzIDMgcmV2My4xMiBhdCAxMDAga0h6Cjw2Pm11c2JfaGRyYzog
-dmVyc2lvbiA2LjAsIG11c2ItZG1hLCBvdGcgKHBlcmlwaGVyYWwraG9zdCksIGRlYnVnPTAKPDc+
-U3dpdGNoZWQgdG8gaGlnaCByZXNvbHV0aW9uIG1vZGUgb24gQ1BVIDAKPDM+SFMgVVNCIE9URzog
-bm8gdHJhbnNjZWl2ZXIgY29uZmlndXJlZAo8Mz5tdXNiX2hkcmMgbXVzYl9oZHJjOiBtdXNiX2lu
-aXRfY29udHJvbGxlciBmYWlsZWQgd2l0aCBzdGF0dXMgLTE5CjwxPlVuYWJsZSB0byBoYW5kbGUg
-a2VybmVsIE5VTEwgcG9pbnRlciBkZXJlZmVyZW5jZSBhdCB2aXJ0dWFsIGFkZHJlc3MgMDAwMDAw
-MjgKPDE+cGdkID0gYzAwMDQwMDAKPDE+WzAwMDAwMDI4XSAqcGdkPTAwMDAwMDAwCkludGVybmFs
-IGVycm9yOiBPb3BzOiA1IFsjMV0KPGQ+TW9kdWxlcyBsaW5rZWQgaW46CkNQVTogMCAgICBOb3Qg
-dGFpbnRlZCAgKDIuNi4zMS1yYzYtMDAwNDUtZ2Y1Y2Y1NjktZGlydHkgIzEpClBDIGlzIGF0IG11
-c2JfcGxhdGZvcm1fc3VzcGVuZCsweDM0LzB4NzQKTFIgaXMgYXQgbXVzYl9wbGF0Zm9ybV9leGl0
-KzB4Yy8weDIwCnBjIDogWzxjMDFjYTdmND5dICAgIGxyIDogWzxjMDFjYTg0MD5dICAgIHBzcjog
-YTAwMDAwMTMKc3AgOiBjZjgyMWRlOCAgaXAgOiAyMjIyMjIyMiAgZnAgOiBjMDM0YjhmOApyMTA6
-IDAwMDAwMDAwICByOSA6IDAwMDAwMDAwICByOCA6IGMwMzY2ZmI4CnI3IDogYzAzNjkzMmMgIHI2
-IDogY2Y4MWYwZDAgIHI1IDogY2Y4MWYwZDAgIHI0IDogY2Y4MWYwZDAKcjMgOiBkODBhYjAwMCAg
-cjIgOiAwMDAwMDAwNCAgcjEgOiBjMDJmZmVhOCAgcjAgOiAwMDAwMDAwMApGbGFnczogTnpDdiAg
-SVJRcyBvbiAgRklRcyBvbiAgTW9kZSBTVkNfMzIgIElTQSBBUk0gIFNlZ21lbnQga2VybmVsCkNv
-bnRyb2w6IDEwYzUzODdkICBUYWJsZTogODAwMDQwMTkgIERBQzogMDAwMDAwMTcKUHJvY2VzcyBz
-d2FwcGVyIChwaWQ6IDEsIHN0YWNrIGxpbWl0ID0gMHhjZjgyMDJlOCkKU3RhY2s6ICgweGNmODIx
-ZGU4IHRvIDB4Y2Y4MjIwMDApCjFkZTA6ICAgICAgICAgICAgICAgICAgIGNmODFmMGQwIGMwMWNh
-ODQwIDAwMDAwMDAwIGMwMWM5MmEwIGZmZmZmZmVkIDAwMDAwMDAwIAoxZTAwOiBjZjgxZjBkMCBj
-MDAxOTZiYyAwMDAwMDAwMCBjZjgyMWU0NCAwMDAwMDAwMCBmZmZmZmZmZiBjMDJkZTFjMyBjMDM0
-YjhmMCAKMWUyMDogMDAwMDAwNWMgZDgwYWIwMDAgYzAzNGI4ZDQgYzAzNzkxMzQgMDAwMDAwMDAg
-MDAwMDAwMDAgY2Y4MjFlOGMgYzAxNjRkOGMgCjFlNDA6IDAwMDA4MGQwIGNmODBjN2E4IDAwMDAw
-MDAwIDYwMDAwMDEzIGNmODNlYmUwIGNmODAwZjAwIGMwMGQ2MjQ4IGNmODRjNzg4IAoxZTYwOiAw
-MDAwMDAwMCBjMDI2MmNkOCAwMDAwMDAwMCBjZjhkNWMzOCBjZjgyMWVhOCBjMDBkNjk0YyBjZjhk
-NWMzOCBjMDBkNjVhNCAKMWU4MDogY2Y4ZjNjOTggY2Y4ZDVjMzggY2Y4MjFlYTggYzAwZDY2N2Mg
-MDAwMDAwMDAgY2Y4ZDVjMzggY2Y4MjFlYTggY2Y4NGM3ODggCjFlYTA6IDAwMDAwMDAxIGMwMGQ3
-NTI4IGNmODRjNzg4IDAwMDAwMDAwIDAwMDAwMDAwIGMwMzRiOGY4IGMwMzRiOTJjIGMwMzY5MzJj
-IAoxZWMwOiBjMDM2OTMyYyBjMDM2NmZiOCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCBjMDE5
-NmJmYyBjMDM0YjhmOCBjMDE5NWU5OCAKMWVlMDogYzAzNGI4ZjggYzAzNGI5MmMgYzAzNjkzMmMg
-YzAzNjkzMmMgYzAzNjZmYjggYzAxOTVmYTQgMDAwMDAwMDAgY2Y4MjFmMDggCjFmMDA6IGMwMTk1
-ZjQ0IGMwMTk1MzcwIGNmODAzNGQ4IGNmODQxMjkwIGMwMzY5MzJjIGMwMDFmYjMwIGMwMzY5MzJj
-IGNmOGYxYWEwIAoxZjIwOiAwMDAwMDAwMCBjMDE5NThmMCBjMDI3OTVlNCBjMDI3OTVlNCAwMDAw
-MDA2OSBjMDAxZmIzMCBjMDM2OTMyYyBjMDM2ZWYwMCAKMWY0MDogMDAwMDAwMDAgMDAwMDAwMDAg
-YzAwMThhZjQgYzAxOTYyNzQgYzAwMWZiMzAgYzAzNjkzMTAgYzAzNmVmMDAgMDAwMDAwMDAgCjFm
-NjA6IDAwMDAwMDAwIDAwMDAwMDAwIGMwMDE4YWY0IGMwMTk2ZmFjIGMwMDFmYjMwIDAwMDAwMDAw
-IGMwMzZlZjAwIGMwMDI0MmEwIAoxZjgwOiAwMDAwMDAwMCBjMDBkMDhhOCBjZjgyMWZiNCBjMDJk
-ZjllOSAwMDAwODEwMCAwMDAwMDI0ZSBjMDM1NWU0MCBjZjg0MDBhMCAKMWZhMDogYzAzNTVlNDAg
-MDAwMDAxNWYgYzAzNzZkYTAgYzAwZDBhZmMgYzAyZGY5ZTkgY2Y4NDE2ODAgY2Y4MjFmYzYgYzAw
-NmRmYTAgCjFmYzA6IDAwMDAwMDAwIDM1MzMzZjYwIDAwMDAwMDMxIDAwMDAwMDAwIGMwMDFmYjMw
-IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIAoxZmUwOiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAw
-MDAwMCBjMDAwODg2MCAwMDAwMDAwMCBjMDAyNWNhNCAzNDdiNWY2OCAxMDNiZmUwMSAKWzxjMDFj
-YTdmND5dIChtdXNiX3BsYXRmb3JtX3N1c3BlbmQrMHgzNC8weDc0KSBmcm9tIFs8YzAxY2E4NDA+
-XSAobXVzYl9wbGF0Zm9ybV9leGl0KzB4Yy8weDIwKQpbPGMwMWNhODQwPl0gKG11c2JfcGxhdGZv
-cm1fZXhpdCsweGMvMHgyMCkgZnJvbSBbPGMwMWM5MmEwPl0gKG11c2JfZnJlZSsweDk0LzB4ZDgp
-Cls8YzAxYzkyYTA+XSAobXVzYl9mcmVlKzB4OTQvMHhkOCkgZnJvbSBbPGMwMDE5NmJjPl0gKG11
-c2JfcHJvYmUrMHhhMjgvMHhiZmMpCls8YzAwMTk2YmM+XSAobXVzYl9wcm9iZSsweGEyOC8weGJm
-YykgZnJvbSBbPGMwMTk2YmZjPl0gKHBsYXRmb3JtX2Rydl9wcm9iZSsweDE4LzB4MWMpCls8YzAx
-OTZiZmM+XSAocGxhdGZvcm1fZHJ2X3Byb2JlKzB4MTgvMHgxYykgZnJvbSBbPGMwMTk1ZTk4Pl0g
-KGRyaXZlcl9wcm9iZV9kZXZpY2UrMHhhMC8weDE0YykKWzxjMDE5NWU5OD5dIChkcml2ZXJfcHJv
-YmVfZGV2aWNlKzB4YTAvMHgxNGMpIGZyb20gWzxjMDE5NWZhND5dIChfX2RyaXZlcl9hdHRhY2gr
-MHg2MC8weDg0KQpbPGMwMTk1ZmE0Pl0gKF9fZHJpdmVyX2F0dGFjaCsweDYwLzB4ODQpIGZyb20g
-WzxjMDE5NTM3MD5dIChidXNfZm9yX2VhY2hfZGV2KzB4NDQvMHg3OCkKWzxjMDE5NTM3MD5dIChi
-dXNfZm9yX2VhY2hfZGV2KzB4NDQvMHg3OCkgZnJvbSBbPGMwMTk1OGYwPl0gKGJ1c19hZGRfZHJp
-dmVyKzB4OWMvMHgyMTgpCls8YzAxOTU4ZjA+XSAoYnVzX2FkZF9kcml2ZXIrMHg5Yy8weDIxOCkg
-ZnJvbSBbPGMwMTk2Mjc0Pl0gKGRyaXZlcl9yZWdpc3RlcisweGE4LzB4MTMwKQpbPGMwMTk2Mjc0
-Pl0gKGRyaXZlcl9yZWdpc3RlcisweGE4LzB4MTMwKSBmcm9tIFs8YzAxOTZmYWM+XSAocGxhdGZv
-cm1fZHJpdmVyX3Byb2JlKzB4MTAvMHg2MCkKWzxjMDE5NmZhYz5dIChwbGF0Zm9ybV9kcml2ZXJf
-cHJvYmUrMHgxMC8weDYwKSBmcm9tIFs8YzAwMjQyYTA+XSAoZG9fb25lX2luaXRjYWxsKzB4NTAv
-MHgxN2MpCls8YzAwMjQyYTA+XSAoZG9fb25lX2luaXRjYWxsKzB4NTAvMHgxN2MpIGZyb20gWzxj
-MDAwODg2MD5dIChrZXJuZWxfaW5pdCsweDhjLzB4MTA0KQpbPGMwMDA4ODYwPl0gKGtlcm5lbF9p
-bml0KzB4OGMvMHgxMDQpIGZyb20gWzxjMDAyNWNhND5dIChrZXJuZWxfdGhyZWFkX2V4aXQrMHgw
-LzB4OCkKQ29kZTogZTU5MzI0MDQgZTM4MjIwMDQgZTU4MzI0MDQgZTU5MDAwNzQgKGU1OTAzMDI4
-KSAKPDQ+LS0tWyBlbmQgdHJhY2UgMWI3NWIzMWEyNzE5ZWQxYyBdLS0tCjwwPktlcm5lbCBwYW5p
-YyAtIG5vdCBzeW5jaW5nOiBBdHRlbXB0ZWQgdG8ga2lsbCBpbml0IQo=
-
---Multipart=_Sun__16_Aug_2009_20_43_45_+0300_McAbrHL8CC50X=gJ--
+On 8/16/09, Kovacs Peter Tamas <p.kovacs@holografika.com> wrote:
+> Dear Aldyth,
+>
+> u-boot stops and waits for your command to load and start the kernel, as
+> the bootcmd is not doing it automatically with your setup (setting
+> bootargs is not enough alone, you need to load the kernel image from the
+> card and run it).
+> You should try:
+> mmcinit
+> fatload mmc 0 80300000 uImage
+> bootm 80300000
+>
+> As described at eg:
+> http://www.codeshogun.com/blog/2009/04/15/porting-android-to-beagle-board/
+>
+> Hope this helps,
+> Peter
+>> it is my step to build u-boot, x-loader and kernel
+>>
+>> i'm try linux 2.6.30 and using the omap3430sdp_defconfig to build the
+>> uImage
+>>
+>> my u-boot and x-loader using omap3430zoom2_config
+>>
+>> any idea to solve that problem?...
+>>
+>> regards,
+>> Aldyth M
+>>
+>> On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
+>>
+>>> i'm format mmc in the fat win95...
+>>>
+>>> i following step by step in the
+>>> https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
+>>>
+>>> why can't read?
+>>>
+>>> On 8/16/09, Tar Gz <bsdraisefromhell@gmail.com> wrote:
+>>>
+>>>> i'm format mmc in the fat win95...
+>>>>
+>>>> i following step by step in the
+>>>> https://omapzoom.org/gf/project/omapkernel/wiki/?pagename=Getting+Stated+with+Linux+OMAP+Kernel
+>>>>
+>>>> why can't read?
+>>>>
+>>>>
+>>>>> On 8/16/09, Felipe Balbi <me@felipebalbi.com> wrote:
+>>>>>
+>>>>>> Hi,
+>>>>>>
+>>>>>> On Sun, Aug 16, 2009 at 12:48:52PM -0400, Tar Gz wrote:
+>>>>>>
+>>>>>>> Hi all,,i'm sorry if my english too bad
+>>>>>>>
+>>>>>>> i try to porting linux kernel 2.6.30 from kernel.org into omap 3430
+>>>>>>>
+>>>>>>> i have the problem linux kernel can't booting
+>>>>>>>
+>>>>>>>
+>>>>>>> i'm following step by step in the omapzoom.org
+>>>>>>> $ setenv bootargs console=ttyS3,115200n8 root=/dev/mmcblk0p2 rw
+>>>>>>> rootdelay=1 mem=256M init=/sbin/init
+>>>>>>> $ saveenv
+>>>>>>> $ bootd
+>>>>>>>
+>>>>>>>
+>>>>>>> OMAP34XX LAB # print
+>>>>>>> bootdelay=3
+>>>>>>> baudrate=115200
+>>>>>>> bootargs=console=ttyS3,115200n8 root=/dev/mmcblk0p2 rootdelay=1
+>>>>>>> mem=256M init=/sbin/init
+>>>>>>> bootcmd=mmcinit
+>>>>>>> bootfile="uImage"
+>>>>>>>
+>>>>>>> if i'm type bootd i'm still in the konsole like this,
+>>>>>>> OMAP34XX LAB # bootd
+>>>>>>> OMAP34XX LAB #
+>>>>>>>
+>>>>>>> any idea?
+>>>>>>>
+>>>>>> you're not reading the kernel image to memory.
+>>>>>>
+>>>>>> is your mmc formated with FAT32 or what ?
+>>>>>>
+>>>>>> You need to read kernel from mmc to memory and boot from there.
+>>>>>>
+>>>>>> --
+>>>>>> balbi
+>>>>>>
+>>>>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
