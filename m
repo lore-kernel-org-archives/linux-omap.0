@@ -1,326 +1,229 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 07/10] OMAP3: Zoom2: Add TWL4030 support,v 2
-Date: Sun, 16 Aug 2009 18:28:45 +0300
-Message-ID: <20090816152840.GB7278@atomide.com>
-References: <20090812120926.17601.85860.stgit@localhost> <20090812122007.17601.25934.stgit@localhost> <20090813092755.GW6132@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH 10/10] OMAP3: update OMAP3 Beagle defconfig, v3
+Date: Sun, 16 Aug 2009 18:42:00 +0300
+Message-ID: <20090816154154.GC7278@atomide.com>
+References: <20090812120926.17601.85860.stgit@localhost> <20090812122415.17601.44872.stgit@localhost> <20090812122710.GA23166@nokia.com> <20090812165258.GM7278@atomide.com> <87d471vti5.fsf@deeprootsystems.com> <20090812191109.GB21001@gandalf> <20090813070233.GP7278@atomide.com> <loom.20090816T011000-32@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="ZRyEpB+iJ+qUx0kp"
+Content-Type: multipart/mixed; boundary="cpvLTH7QU4gwfq3S"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56279 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258AbZHPP26 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 11:28:58 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58077 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737AbZHPPl7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 16 Aug 2009 11:41:59 -0400
 Content-Disposition: inline
-In-Reply-To: <20090813092755.GW6132@n2100.arm.linux.org.uk>
+In-Reply-To: <loom.20090816T011000-32@post.gmane.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: linux-arm-kernel@lists.arm.linux.org.uk, Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
+To: Eric Witcher <ewitcher@mindspring.com>
+Cc: linux-omap@vger.kernel.org
 
 
---ZRyEpB+iJ+qUx0kp
+--cpvLTH7QU4gwfq3S
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-* Russell King - ARM Linux <linux@arm.linux.org.uk> [090813 12:28]:
-> On Wed, Aug 12, 2009 at 03:20:07PM +0300, Tony Lindgren wrote:
-> > +static struct twl4030_keypad_data zoom2_kp_twl4030_data = {
-> > +	.rows		= 8,
-> > +	.cols		= 8,
-> > +	.keymap		= zoom2_twl4030_keymap,
-> > +	.keymapsize	= ARRAY_SIZE(zoom2_twl4030_keymap),
-> > +	.rep		= 1,
-> > +};
-> 
-> Normally have a blank line here.
-> 
-> >  static void __init omap_zoom2_init_irq(void)
-> >  {
-> >  	omap2_init_common_hw(NULL);
-> 
-> Otherwise ok.
+Hi,
 
-Updated patch below.
+* Eric Witcher <ewitcher@mindspring.com> [090816 04:50]:
+> Tony Lindgren <tony <at> atomide.com> writes:
+> 
+> <snip>
+> 
+> > I don't have a Beagle, so somebody please check this defconfig and enable
+> > PM and OTG if possible.
+> > 
+> > Tony
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo <at> vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> Hi,
+> 
+> I checked this defconfig at it's commit
+> 5dc8c8ffb27d93533d71493ca4a419f0290a3b2f
+> with the following:
+> 
+> 1.  Brought omap3_beagle_defconfig forward to  2.6.31-rc5 level.
+> (via make gconfig)  
+> 
+> 2.  Enabled CONFIG_PM, CONFIG_USB_MUSB_OTG, and
+>  CONFIG_USB_GADGET_MUSB_HDRC with associated
+> default subchoices. (via make gconfig)
+
+Great!
+ 
+> 3.  Removed 1 line work in progress? from arch/arm/mach-omap2/serial.c
+
+Yes, the related change is still in for-next, seem that it's going in
+when the merge window opens.
+ 
+> 4.  Added previously posted (but not committed) patch
+> for drivers/usb/otg/twl4030-usb.c
+> 
+> I was able to boot through INIT.
+> 
+
+Felipe, can you please check if you have the twl4030-usb.c fix queued up?
+
+> The diffs are against the 2.6.31-rc5 generated
+> version of omap3_beagle_defconfig.
+> 
+> Hope this helps.
+
+Yes, thanks! Updated patch below.
 
 Tony
 
---ZRyEpB+iJ+qUx0kp
+--cpvLTH7QU4gwfq3S
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="zoom2-twl-v2.patch"
+Content-Disposition: inline; filename="beagle-defconfig-v3.patch"
 
->From 319fc2ce44067ec84eae3a7effd5ad0bb3515a84 Mon Sep 17 00:00:00 2001
-From: Vikram Pandita <vikram.pandita@ti.com>
-Date: Sun, 16 Aug 2009 18:26:19 +0300
-Subject: [PATCH] OMAP3: Zoom2: Add TWL4030 support
+>From f9356c9b5ca663feb3a985b42d0409da5625d537 Mon Sep 17 00:00:00 2001
+From: Paul Walmsley <paul@pwsan.com>
+Date: Sun, 16 Aug 2009 18:29:49 +0300
+Subject: [PATCH] OMAP3: update OMAP3 Beagle defconfig
 
-Add TWL4030 CORE and TWL4030 drivers to Zoom2 board file
-TWL drivers enabled are:
-	bci
-	madc
-	usb
-	keypad
-	mmc
+Update the OMAP3 Beagle defconfig to add EHCI, MMC, TWL4030 GPIO support.
+Beagle can again use MMC rootfs after this patch.  Tested on BeagleBoard
+rev C2.
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Patch updated to enable PM and OTG options as suggested by
+Eric Witcher <ewitcher@mindspring.com>.
+
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+Cc: Jason Kridner <jkridner@beagleboard.org>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 4cefa3f..368e6aa 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -12,17 +12,84 @@
- #include <linux/kernel.h>
- #include <linux/init.h>
- #include <linux/platform_device.h>
-+#include <linux/input.h>
- #include <linux/gpio.h>
- #include <linux/i2c/twl4030.h>
-+#include <linux/regulator/machine.h>
+diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
+index 4c6fb7e..b213e3b 100644
+--- a/arch/arm/configs/omap3_beagle_defconfig
++++ b/arch/arm/configs/omap3_beagle_defconfig
+@@ -128,6 +128,7 @@ CONFIG_DEFAULT_AS=y
+ # CONFIG_DEFAULT_NOOP is not set
+ CONFIG_DEFAULT_IOSCHED="anticipatory"
+ CONFIG_CLASSIC_RCU=y
++CONFIG_FREEZER=y
  
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
+ #
+ # System Type
+@@ -236,6 +237,7 @@ CONFIG_ARM_THUMB=y
+ # CONFIG_CPU_BPREDICT_DISABLE is not set
+ CONFIG_HAS_TLS_REG=y
+ # CONFIG_OUTER_CACHE is not set
++CONFIG_COMMON_CLKDEV=y
  
- #include <mach/common.h>
- #include <mach/usb.h>
-+#include <mach/keypad.h>
+ #
+ # Bus support
+@@ -317,7 +319,12 @@ CONFIG_BINFMT_MISC=y
+ #
+ # Power management options
+ #
+-# CONFIG_PM is not set
++CONFIG_PM=y
++# CONFIG_PM_DEBUG is not set
++CONFIG_PM_SLEEP=y
++CONFIG_SUSPEND=y
++CONFIG_SUSPEND_FREEZER=y
++# CONFIG_APM_EMULATION is not set
+ CONFIG_ARCH_SUSPEND_POSSIBLE=y
+ CONFIG_NET=y
  
- #include "mmc-twl4030.h"
+@@ -713,6 +720,7 @@ CONFIG_GPIOLIB=y
+ # CONFIG_GPIO_MAX732X is not set
+ # CONFIG_GPIO_PCA953X is not set
+ # CONFIG_GPIO_PCF857X is not set
++CONFIG_GPIO_TWL4030=y
  
-+/* Zoom2 has Qwerty keyboard*/
-+static int zoom2_twl4030_keymap[] = {
-+	KEY(0, 0, KEY_E),
-+	KEY(1, 0, KEY_R),
-+	KEY(2, 0, KEY_T),
-+	KEY(3, 0, KEY_HOME),
-+	KEY(6, 0, KEY_I),
-+	KEY(7, 0, KEY_LEFTSHIFT),
-+	KEY(0, 1, KEY_D),
-+	KEY(1, 1, KEY_F),
-+	KEY(2, 1, KEY_G),
-+	KEY(3, 1, KEY_SEND),
-+	KEY(6, 1, KEY_K),
-+	KEY(7, 1, KEY_ENTER),
-+	KEY(0, 2, KEY_X),
-+	KEY(1, 2, KEY_C),
-+	KEY(2, 2, KEY_V),
-+	KEY(3, 2, KEY_END),
-+	KEY(6, 2, KEY_DOT),
-+	KEY(7, 2, KEY_CAPSLOCK),
-+	KEY(0, 3, KEY_Z),
-+	KEY(1, 3, KEY_KPPLUS),
-+	KEY(2, 3, KEY_B),
-+	KEY(3, 3, KEY_F1),
-+	KEY(6, 3, KEY_O),
-+	KEY(7, 3, KEY_SPACE),
-+	KEY(0, 4, KEY_W),
-+	KEY(1, 4, KEY_Y),
-+	KEY(2, 4, KEY_U),
-+	KEY(3, 4, KEY_F2),
-+	KEY(4, 4, KEY_VOLUMEUP),
-+	KEY(6, 4, KEY_L),
-+	KEY(7, 4, KEY_LEFT),
-+	KEY(0, 5, KEY_S),
-+	KEY(1, 5, KEY_H),
-+	KEY(2, 5, KEY_J),
-+	KEY(3, 5, KEY_F3),
-+	KEY(5, 5, KEY_VOLUMEDOWN),
-+	KEY(6, 5, KEY_M),
-+	KEY(4, 5, KEY_ENTER),
-+	KEY(7, 5, KEY_RIGHT),
-+	KEY(0, 6, KEY_Q),
-+	KEY(1, 6, KEY_A),
-+	KEY(2, 6, KEY_N),
-+	KEY(3, 6, KEY_BACKSPACE),
-+	KEY(6, 6, KEY_P),
-+	KEY(7, 6, KEY_UP),
-+	KEY(6, 7, KEY_SELECT),
-+	KEY(7, 7, KEY_DOWN),
-+	KEY(0, 7, KEY_PROG1),	/*MACRO 1 <User defined> */
-+	KEY(1, 7, KEY_PROG2),	/*MACRO 2 <User defined> */
-+	KEY(2, 7, KEY_PROG3),	/*MACRO 3 <User defined> */
-+	KEY(3, 7, KEY_PROG4),	/*MACRO 4 <User defined> */
-+	0
-+};
+ #
+ # PCI GPIO expanders:
+@@ -741,6 +749,7 @@ CONFIG_SSB_POSSIBLE=y
+ # CONFIG_MFD_SM501 is not set
+ # CONFIG_HTC_EGPIO is not set
+ # CONFIG_HTC_PASIC3 is not set
++CONFIG_TWL4030_CORE=y
+ # CONFIG_UCB1400_CORE is not set
+ # CONFIG_MFD_TMIO is not set
+ # CONFIG_MFD_T7L66XB is not set
+@@ -787,7 +796,7 @@ CONFIG_DUMMY_CONSOLE=y
+ CONFIG_USB_SUPPORT=y
+ CONFIG_USB_ARCH_HAS_HCD=y
+ CONFIG_USB_ARCH_HAS_OHCI=y
+-# CONFIG_USB_ARCH_HAS_EHCI is not set
++CONFIG_USB_ARCH_HAS_EHCI=y
+ CONFIG_USB=y
+ # CONFIG_USB_DEBUG is not set
+ # CONFIG_USB_ANNOUNCE_NEW_DEVICES is not set
+@@ -798,7 +807,8 @@ CONFIG_USB=y
+ CONFIG_USB_DEVICEFS=y
+ CONFIG_USB_DEVICE_CLASS=y
+ # CONFIG_USB_DYNAMIC_MINORS is not set
+-# CONFIG_USB_OTG is not set
++CONFIG_USB_SUSPEND=y
++CONFIG_USB_OTG=y
+ # CONFIG_USB_OTG_WHITELIST is not set
+ # CONFIG_USB_OTG_BLACKLIST_HUB is not set
+ CONFIG_USB_MON=y
+@@ -806,6 +816,8 @@ CONFIG_USB_MON=y
+ #
+ # USB Host Controller Drivers
+ #
++CONFIG_USB_EHCI_HCD=y
++CONFIG_USB_EHCI_ROOT_HUB_TT=y
+ # CONFIG_USB_C67X00_HCD is not set
+ # CONFIG_USB_ISP116X_HCD is not set
+ # CONFIG_USB_ISP1760_HCD is not set
+@@ -818,10 +830,10 @@ CONFIG_USB_MUSB_SOC=y
+ #
+ # OMAP 343x high speed USB support
+ #
+-CONFIG_USB_MUSB_HOST=y
++# CONFIG_USB_MUSB_HOST is not set
+ # CONFIG_USB_MUSB_PERIPHERAL is not set
+-# CONFIG_USB_MUSB_OTG is not set
+-# CONFIG_USB_GADGET_MUSB_HDRC is not set
++CONFIG_USB_MUSB_OTG=y
++CONFIG_USB_GADGET_MUSB_HDRC=y
+ CONFIG_USB_MUSB_HDRC_HCD=y
+ # CONFIG_MUSB_PIO_ONLY is not set
+ CONFIG_USB_INVENTRA_DMA=y
+@@ -906,6 +918,15 @@ CONFIG_USB_ETH_RNDIS=y
+ # CONFIG_USB_MIDI_GADGET is not set
+ # CONFIG_USB_G_PRINTER is not set
+ # CONFIG_USB_CDC_COMPOSITE is not set
 +
-+static struct twl4030_keypad_data zoom2_kp_twl4030_data = {
-+	.rows		= 8,
-+	.cols		= 8,
-+	.keymap		= zoom2_twl4030_keymap,
-+	.keymapsize	= ARRAY_SIZE(zoom2_twl4030_keymap),
-+	.rep		= 1,
-+};
-+
- static void __init omap_zoom2_init_irq(void)
- {
- 	omap2_init_common_hw(NULL);
-@@ -37,10 +104,127 @@ static struct omap_uart_platform_data zoom2_uart_config __initdata = {
- static struct omap_board_config_kernel zoom2_config[] __initdata = {
- };
++#
++# OTG and related infrastructure
++#
++CONFIG_USB_OTG_UTILS=y
++# CONFIG_USB_GPIO_VBUS is not set
++# CONFIG_ISP1301_OMAP is not set
++CONFIG_TWL4030_USB=y
++# CONFIG_NOP_USB_XCEIV is not set
+ CONFIG_MMC=y
+ # CONFIG_MMC_DEBUG is not set
+ # CONFIG_MMC_UNSAFE_RESUME is not set
+@@ -923,6 +944,7 @@ CONFIG_MMC_BLOCK_BOUNCE=y
+ #
+ # CONFIG_MMC_SDHCI is not set
+ # CONFIG_MMC_OMAP is not set
++CONFIG_MMC_OMAP_HS=y
+ # CONFIG_MEMSTICK is not set
+ # CONFIG_ACCESSIBILITY is not set
+ # CONFIG_NEW_LEDS is not set
+@@ -981,10 +1003,11 @@ CONFIG_RTC_INTF_DEV=y
+ #
+ # Voltage and Current regulators
+ #
+-# CONFIG_REGULATOR is not set
++CONFIG_REGULATOR=y
+ # CONFIG_REGULATOR_FIXED_VOLTAGE is not set
+ # CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
+ # CONFIG_REGULATOR_BQ24022 is not set
++CONFIG_REGULATOR_TWL4030=y
+ # CONFIG_UIO is not set
  
-+static struct regulator_consumer_supply zoom2_vmmc1_supply = {
-+	.supply		= "vmmc",
-+};
-+
-+static struct regulator_consumer_supply zoom2_vsim_supply = {
-+	.supply		= "vmmc_aux",
-+};
-+
-+static struct regulator_consumer_supply zoom2_vmmc2_supply = {
-+	.supply		= "vmmc",
-+};
-+
-+/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
-+static struct regulator_init_data zoom2_vmmc1 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 3150000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &zoom2_vmmc1_supply,
-+};
-+
-+/* VMMC2 for MMC2 card */
-+static struct regulator_init_data zoom2_vmmc2 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 1850000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &zoom2_vmmc2_supply,
-+};
-+
-+/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
-+static struct regulator_init_data zoom2_vsim = {
-+	.constraints = {
-+		.min_uV			= 1800000,
-+		.max_uV			= 3000000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &zoom2_vsim_supply,
-+};
-+
-+static struct twl4030_hsmmc_info mmc[] __initdata = {
-+	{
-+		.mmc		= 1,
-+		.wires		= 4,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{
-+		.mmc		= 2,
-+		.wires		= 4,
-+		.gpio_wp	= -EINVAL,
-+	},
-+	{}      /* Terminator */
-+};
-+
-+static int zoom2_twl_gpio_setup(struct device *dev,
-+		unsigned gpio, unsigned ngpio)
-+{
-+	/* gpio + 0 is "mmc0_cd" (input/IRQ),
-+	 * gpio + 1 is "mmc1_cd" (input/IRQ)
-+	 */
-+	mmc[0].gpio_cd = gpio + 0;
-+	mmc[1].gpio_cd = gpio + 1;
-+	twl4030_mmc_init(mmc);
-+
-+	/* link regulators to MMC adapters ... we "know" the
-+	 * regulators will be set up only *after* we return.
-+	*/
-+	zoom2_vmmc1_supply.dev = mmc[0].dev;
-+	zoom2_vsim_supply.dev = mmc[0].dev;
-+	zoom2_vmmc2_supply.dev = mmc[1].dev;
-+
-+	return 0;
-+}
-+
-+
-+static int zoom2_batt_table[] = {
-+/* 0 C*/
-+30800, 29500, 28300, 27100,
-+26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
-+17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
-+11600, 11200, 10800, 10400, 10000, 9630,  9280,  8950,  8620,  8310,
-+8020,  7730,  7460,  7200,  6950,  6710,  6470,  6250,  6040,  5830,
-+5640,  5450,  5260,  5090,  4920,  4760,  4600,  4450,  4310,  4170,
-+4040,  3910,  3790,  3670,  3550
-+};
-+
-+static struct twl4030_bci_platform_data zoom2_bci_data = {
-+	.battery_tmp_tbl	= zoom2_batt_table,
-+	.tblsize		= ARRAY_SIZE(zoom2_batt_table),
-+};
-+
-+static struct twl4030_usb_data zoom2_usb_data = {
-+	.usb_mode	= T2_USB_MODE_ULPI,
-+};
-+
- static struct twl4030_gpio_platform_data zoom2_gpio_data = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
-+	.setup		= zoom2_twl_gpio_setup,
-+};
-+
-+static struct twl4030_madc_platform_data zoom2_madc_data = {
-+	.irq_line	= 1,
- };
- 
- static struct twl4030_platform_data zoom2_twldata = {
-@@ -48,7 +232,15 @@ static struct twl4030_platform_data zoom2_twldata = {
- 	.irq_end	= TWL4030_IRQ_END,
- 
- 	/* platform_data for children goes here */
-+	.bci		= &zoom2_bci_data,
-+	.madc		= &zoom2_madc_data,
-+	.usb		= &zoom2_usb_data,
- 	.gpio		= &zoom2_gpio_data,
-+	.keypad		= &zoom2_kp_twl4030_data,
-+	.vmmc1          = &zoom2_vmmc1,
-+	.vmmc2          = &zoom2_vmmc2,
-+	.vsim           = &zoom2_vsim,
-+
- };
- 
- static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
-@@ -69,16 +261,6 @@ static int __init omap_i2c_init(void)
- 	return 0;
- }
- 
--static struct twl4030_hsmmc_info mmc[] __initdata = {
--	{
--		.mmc		= 1,
--		.wires		= 4,
--		.gpio_cd	= -EINVAL,
--		.gpio_wp	= -EINVAL,
--	},
--	{}	/* Terminator */
--};
--
- extern int __init omap_zoom2_debugboard_init(void);
- 
- static void __init omap_zoom2_init(void)
-@@ -88,7 +270,6 @@ static void __init omap_zoom2_init(void)
- 	omap_board_config_size = ARRAY_SIZE(zoom2_config);
- 	omap_serial_init(&zoom2_uart_config);
- 	omap_zoom2_debugboard_init();
--	twl4030_mmc_init(mmc);
- 	usb_musb_init();
- }
- 
+ #
 
---ZRyEpB+iJ+qUx0kp--
+--cpvLTH7QU4gwfq3S--
