@@ -1,77 +1,118 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
+From: Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: MUSB regression in 2.6.31-rc6
-Date: Sun, 16 Aug 2009 10:14:03 +0200
-Message-ID: <D1AF0CA1-B658-4BA3-8D68-F2DD5B1D91B8@student.utwente.nl>
-References: <20090815174352.c2883585.jhnikula@gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB0305398E07@dbde02.ent.ti.com> <20090815180701.7710de51.jhnikula@gmail.com> <20090815174000.GA13164@nokia.com> <20090816104415.e12a5e46.jhnikula@gmail.com>
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-19--627179958"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx2.utsp.utwente.nl ([130.89.2.13]:54343 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751064AbZHPIOR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 16 Aug 2009 04:14:17 -0400
-In-Reply-To: <20090816104415.e12a5e46.jhnikula@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Date: Sun, 16 Aug 2009 11:47:31 +0300
+Message-ID: <20090816114731.68a0ffc3.jhnikula@gmail.com>
+References: <20090815174352.c2883585.jhnikula@gmail.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0305398E07@dbde02.ent.ti.com>
+	<20090815180701.7710de51.jhnikula@gmail.com>
+	<20090815174000.GA13164@nokia.com>
+	<20090816104415.e12a5e46.jhnikula@gmail.com>
+	<20090816082513.GA22757@gandalf>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="Multipart=_Sun__16_Aug_2009_11_47_31_+0300__DNH_1IYR8Ya5F0a"
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090816082513.GA22757@gandalf>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org
+Cc: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: felipe.balbi@nokia.com, "Gadiyar, Anand" <gadiyar@ti.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---Apple-Mail-19--627179958
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+This is a multi-part message in MIME format.
+
+--Multipart=_Sun__16_Aug_2009_11_47_31_+0300__DNH_1IYR8Ya5F0a
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 
+On Sun, 16 Aug 2009 11:25:14 +0300
+Felipe Balbi <me-uiRdBs8odbtmTBlB0Cgj/Q@public.gmane.org> wrote:
 
-Op 16 aug 2009, om 09:44 heeft Jarkko Nikula het volgende geschreven:
-
->
-> By some reason CONFIG_OMAP_LL_DEBUG_UART3=y and CONFIG_DEBUG_LL=y
-> don't work in mainline so hard to trace what is make an oops.
-
-Try updating this patch to current mainline:
-
---- a/kernel/printk.c
-+++ b/kernel/printk.c
-@@ -16,6 +16,8 @@
-   *     01Mar01 Andrew Morton <andrewm@uow.edu.au>
-   */
-
-+extern void printascii(const char *);
-+
-  #include <linux/kernel.h>
-  #include <linux/mm.h>
-  #include <linux/tty.h>
-@@ -653,6 +655,8 @@ asmlinkage int vprintk(const char *fmt, va_list  
-args)
-         /* Emit the output into the temporary buffer */
-         printed_len = vscnprintf(printk_buf, sizeof(printk_buf), fmt,  
-args);
-
-+       printascii(printk_buf);
-+
-         /*
-          * Copy the output into log_buf.  If the caller didn't provide
-          * appropriate log level tags, we insert them here
+> NOP should not be necessary, beagle uses twl4030-usb as its transceiver,
+> unlike evm, which uses isp1504, if I'm not wrong.
+> 
+> Could you try the following patch ?
+> 
+No help but thanks to Koen's hint, I was able to capture the oops. I
+compiled the kernel using your defconfig change and set the DEBUG_LL.
 
 
-regards,
+-- 
+Jarkko
 
-Koen
+--Multipart=_Sun__16_Aug_2009_11_47_31_+0300__DNH_1IYR8Ya5F0a
+Content-Type: application/cap;
+ name="minicom.cap"
+Content-Disposition: attachment;
+ filename="minicom.cap"
+Content-Transfer-Encoding: base64
 
---Apple-Mail-19--627179958
-content-type: application/pgp-signature; x-mac-type=70674453;
-	name=PGP.sig
-content-description: Dit deel van het bericht is digitaal ondertekend
-content-disposition: inline; filename=PGP.sig
-content-transfer-encoding: 7bit
+PDc+U3dpdGNoZWQgdG8gaGlnaCByZXNvbHV0aW9uIG1vZGUgb24gQ1BVIDAKPDY+bXVzYl9oZHJj
+OiB2ZXJzaW9uIDYuMCwgbXVzYi1kbWEsIG90ZyAocGVyaXBoZXJhbCtob3N0KSwgZGVidWc9MAo8
+Mz5IUyBVU0IgT1RHOiBubyB0cmFuc2NlaXZlciBjb25maWd1cmVkCjwzPm11c2JfaGRyYyBtdXNi
+X2hkcmM6IG11c2JfaW5pdF9jb250cm9sbGVyIGZhaWxlZCB3aXRoIHN0YXR1cyAtMTkKPDE+VW5h
+YmxlIHRvIGhhbmRsZSBrZXJuZWwgTlVMTCBwb2ludGVyIGRlcmVmZXJlbmNlIGF0IHZpcnR1YWwg
+YWRkcmVzcyAwMDAwMDAyOAo8MT5wZ2QgPSBjMDAwNDAwMAo8MT5bMDAwMDAwMjhdICpwZ2Q9MDAw
+MDAwMDAKSW50ZXJuYWwgZXJyb3I6IE9vcHM6IDUgWyMxXQo8ZD5Nb2R1bGVzIGxpbmtlZCBpbjoK
+Q1BVOiAwICAgIE5vdCB0YWludGVkICAoMi42LjMxLXJjNi0wMDA0Mi1nYjJhZGQ3My1kaXJ0eSAj
+NjYpClBDIGlzIGF0IG11c2JfcGxhdGZvcm1fc3VzcGVuZCsweDM0LzB4NzQKTFIgaXMgYXQgbXVz
+Yl9wbGF0Zm9ybV9leGl0KzB4Yy8weDIwCnBjIDogWzxjMDFjYTdmND5dICAgIGxyIDogWzxjMDFj
+YTg0MD5dICAgIHBzcjogYTAwMDAwMTMKc3AgOiBjZjgyMWRlOCAgaXAgOiAyMjIyMjIyMiAgZnAg
+OiBjMDM0YjhmOApyMTA6IDAwMDAwMDAwICByOSA6IDAwMDAwMDAwICByOCA6IGMwMzY2ZmI4CnI3
+IDogYzAzNjkzMmMgIHI2IDogY2Y4MWYwZDAgIHI1IDogY2Y4MWYwZDAgIHI0IDogY2Y4MWYwZDAK
+cjMgOiBkODBhYjAwMCAgcjIgOiAwMDAwMDAwNCAgcjEgOiBjMDJmZmVhOCAgcjAgOiAwMDAwMDAw
+MApGbGFnczogTnpDdiAgSVJRcyBvbiAgRklRcyBvbiAgTW9kZSBTVkNfMzIgIElTQSBBUk0gIFNl
+Z21lbnQga2VybmVsCkNvbnRyb2w6IDEwYzUzODdkICBUYWJsZTogODAwMDQwMTkgIERBQzogMDAw
+MDAwMTcKUHJvY2VzcyBzd2FwcGVyIChwaWQ6IDEsIHN0YWNrIGxpbWl0ID0gMHhjZjgyMDJlOCkK
+U3RhY2s6ICgweGNmODIxZGU4IHRvIDB4Y2Y4MjIwMDApCjFkZTA6ICAgICAgICAgICAgICAgICAg
+IGNmODFmMGQwIGMwMWNhODQwIDAwMDAwMDAwIGMwMWM5MmEwIGZmZmZmZmVkIDAwMDAwMDAwIAox
+ZTAwOiBjZjgxZjBkMCBjMDAxOTZiYyAwMDAwMDAwMCBjZjgyMWU0NCAwMDAwMDAwMCBmZmZmZmZm
+ZiAwMDAwMDAwMCBjMDM0YjhmMCAKMWUyMDogMDAwMDAwNWMgZDgwYWIwMDAgYzAzNGI4ZDQgYzAz
+NzkxMzQgMDAwMDAwMDAgMDAwMDAwMDAgY2Y4MjFlOGMgYzAxNjRkOGMgCjFlNDA6IDAwMDA4MGQw
+IGNmODBjN2E4IDAwMDAwMDAwIDYwMDAwMDEzIGNmODJjYmUwIGNmODAwZjAwIGMwMGQ2MjQ4IGNm
+ODRjNzg4IAoxZTYwOiAwMDAwMDAwMCBjMDI2MmNkOCAwMDAwMDAwMCBjZjkxM2MzOCBjZjgyMWVh
+OCBjMDBkNjk0YyBjZjkxM2MzOCBjMDBkNjVhNCAKMWU4MDogY2Y5MTFjOTggY2Y5MTNjMzggY2Y4
+MjFlYTggYzAwZDY2N2MgMDAwMDAwMDAgY2Y5MTNjMzggY2Y4MjFlYTggY2Y4NGM3ODggCjFlYTA6
+IDAwMDAwMDAxIGMwMGQ3NTI4IGNmODRjNzg4IDAwMDAwMDAwIDAwMDAwMDAwIGMwMzRiOGY4IGMw
+MzRiOTJjIGMwMzY5MzJjIAoxZWMwOiBjMDM2OTMyYyBjMDM2NmZiOCAwMDAwMDAwMCAwMDAwMDAw
+MCAwMDAwMDAwMCBjMDE5NmJmYyBjMDM0YjhmOCBjMDE5NWU5OCAKMWVlMDogYzAzNGI4ZjggYzAz
+NGI5MmMgYzAzNjkzMmMgYzAzNjkzMmMgYzAzNjZmYjggYzAxOTVmYTQgMDAwMDAwMDAgY2Y4MjFm
+MDggCjFmMDA6IGMwMTk1ZjQ0IGMwMTk1MzcwIGNmODAzNGQ4IGNmODQxMjkwIGMwMzY5MzJjIGMw
+MDFmYjMwIGMwMzY5MzJjIGNmOGYzYWEwIAoxZjIwOiAwMDAwMDAwMCBjMDE5NThmMCBjMDI3OTVl
+NCBjMDI3OTVlNCAwMDAwMDA2OSBjMDAxZmIzMCBjMDM2OTMyYyBjMDM2ZWYwMCAKMWY0MDogMDAw
+MDAwMDAgMDAwMDAwMDAgYzAwMThhZjQgYzAxOTYyNzQgYzAwMWZiMzAgYzAzNjkzMTAgYzAzNmVm
+MDAgMDAwMDAwMDAgCjFmNjA6IDAwMDAwMDAwIDAwMDAwMDAwIGMwMDE4YWY0IGMwMTk2ZmFjIGMw
+MDFmYjMwIDAwMDAwMDAwIGMwMzZlZjAwIGMwMDI0MmEwIAoxZjgwOiAwMDAwMDAwMCBjMDBkMDhh
+OCBjZjgyMWZiNCBjMDJkZjllOSAwMDAwODEwMCAwMDAwMDI0ZSBjMDM1NWU0MCBjZjg0MDBhMCAK
+MWZhMDogYzAzNTVlNDAgMDAwMDAxNWYgYzAzNzZkYTAgYzAwZDBhZmMgYzAyZGY5ZTkgY2Y4NDE2
+ODAgY2Y4MjFmYzYgYzAwNmRmYTAgCjFmYzA6IDAwMDAwMDAwIDM1MzMzZjYwIDAwMDAwMDMxIDAw
+MDAwMDAwIGMwMDFmYjMwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIAoxZmUwOiAwMDAwMDAw
+MCAwMDAwMDAwMCAwMDAwMDAwMCBjMDAwODg2MCAwMDAwMDAwMCBjMDAyNWNhNCAzNDdiNWU2OCAx
+MDNiZmMwMSAKWzxjMDFjYTdmND5dIChtdXNiX3BsYXRmb3JtX3N1c3BlbmQrMHgzNC8weDc0KSBm
+cm9tIFs8YzAxY2E4NDA+XSAobXVzYl9wbGF0Zm9ybV9leGl0KzB4Yy8weDIwKQpbPGMwMWNhODQw
+Pl0gKG11c2JfcGxhdGZvcm1fZXhpdCsweGMvMHgyMCkgZnJvbSBbPGMwMWM5MmEwPl0gKG11c2Jf
+ZnJlZSsweDk0LzB4ZDgpCls8YzAxYzkyYTA+XSAobXVzYl9mcmVlKzB4OTQvMHhkOCkgZnJvbSBb
+PGMwMDE5NmJjPl0gKG11c2JfcHJvYmUrMHhhMjgvMHhiZmMpCls8YzAwMTk2YmM+XSAobXVzYl9w
+cm9iZSsweGEyOC8weGJmYykgZnJvbSBbPGMwMTk2YmZjPl0gKHBsYXRmb3JtX2Rydl9wcm9iZSsw
+eDE4LzB4MWMpCls8YzAxOTZiZmM+XSAocGxhdGZvcm1fZHJ2X3Byb2JlKzB4MTgvMHgxYykgZnJv
+bSBbPGMwMTk1ZTk4Pl0gKGRyaXZlcl9wcm9iZV9kZXZpY2UrMHhhMC8weDE0YykKWzxjMDE5NWU5
+OD5dIChkcml2ZXJfcHJvYmVfZGV2aWNlKzB4YTAvMHgxNGMpIGZyb20gWzxjMDE5NWZhND5dIChf
+X2RyaXZlcl9hdHRhY2grMHg2MC8weDg0KQpbPGMwMTk1ZmE0Pl0gKF9fZHJpdmVyX2F0dGFjaCsw
+eDYwLzB4ODQpIGZyb20gWzxjMDE5NTM3MD5dIChidXNfZm9yX2VhY2hfZGV2KzB4NDQvMHg3OCkK
+WzxjMDE5NTM3MD5dIChidXNfZm9yX2VhY2hfZGV2KzB4NDQvMHg3OCkgZnJvbSBbPGMwMTk1OGYw
+Pl0gKGJ1c19hZGRfZHJpdmVyKzB4OWMvMHgyMTgpCls8YzAxOTU4ZjA+XSAoYnVzX2FkZF9kcml2
+ZXIrMHg5Yy8weDIxOCkgZnJvbSBbPGMwMTk2Mjc0Pl0gKGRyaXZlcl9yZWdpc3RlcisweGE4LzB4
+MTMwKQpbPGMwMTk2Mjc0Pl0gKGRyaXZlcl9yZWdpc3RlcisweGE4LzB4MTMwKSBmcm9tIFs8YzAx
+OTZmYWM+XSAocGxhdGZvcm1fZHJpdmVyX3Byb2JlKzB4MTAvMHg2MCkKWzxjMDE5NmZhYz5dIChw
+bGF0Zm9ybV9kcml2ZXJfcHJvYmUrMHgxMC8weDYwKSBmcm9tIFs8YzAwMjQyYTA+XSAoZG9fb25l
+X2luaXRjYWxsKzB4NTAvMHgxN2MpCls8YzAwMjQyYTA+XSAoZG9fb25lX2luaXRjYWxsKzB4NTAv
+MHgxN2MpIGZyb20gWzxjMDAwODg2MD5dIChrZXJuZWxfaW5pdCsweDhjLzB4MTA0KQpbPGMwMDA4
+ODYwPl0gKGtlcm5lbF9pbml0KzB4OGMvMHgxMDQpIGZyb20gWzxjMDAyNWNhND5dIChrZXJuZWxf
+dGhyZWFkX2V4aXQrMHgwLzB4OCkKQ29kZTogZTU5MzI0MDQgZTM4MjIwMDQgZTU4MzI0MDQgZTU5
+MDAwNzQgKGU1OTAzMDI4KSAKPDQ+LS0tWyBlbmQgdHJhY2UgMWI3NWIzMWEyNzE5ZWQxYyBdLS0t
+CjwwPktlcm5lbCBwYW5pYyAtIG5vdCBzeW5jaW5nOiBBdHRlbXB0ZWQgdG8ga2lsbCBpbml0IQo=
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.5 (Darwin)
-
-iD8DBQFKh7/NMkyGM64RGpERAsqSAJ0fqSTi1cuyp0EOsPVKdWDBipBueQCeMdle
-e+VgSlqNvBxm94228FlVHos=
-=BeQ+
------END PGP SIGNATURE-----
-
---Apple-Mail-19--627179958--
+--Multipart=_Sun__16_Aug_2009_11_47_31_+0300__DNH_1IYR8Ya5F0a--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
