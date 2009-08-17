@@ -1,108 +1,74 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 01/20] OMAP: McBSP: Provide functions for ASoC frame syncronization
-Date: Mon, 17 Aug 2009 14:51:00 +0300
-Message-ID: <1250509879-6703-2-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv4 10/20] OMAP: McBSP: Change wakeup signals
+Date: Mon, 17 Aug 2009 14:51:09 +0300
+Message-ID: <1250509879-6703-11-git-send-email-eduardo.valentin@nokia.com>
 References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23232 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757904AbZHQMFW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 08:05:22 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:17838 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757916AbZHQMFZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 08:05:25 -0400
 In-Reply-To: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Takashi Iwai <tiwai@suse.de>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-ASoC has an annoying bug letting either L or R channel to be
-played on L channel. In other words, L and R channels can
-switch at random. This provides McBSP funtionality that may
-be used to fix this feature.
+Configure only XRDYEN and RRDYEN wakeup signals
+in order to get better power consumption.
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/mcbsp.h |    2 +
- arch/arm/plat-omap/mcbsp.c              |   52 +++++++++++++++++++++++++++++++
- 2 files changed, 54 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/mach/mcbsp.h |    3 ---
+ arch/arm/plat-omap/mcbsp.c              |    7 ++-----
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index 57249bb..b85e6e6 100644
+index 333061d..fe10ae8 100644
 --- a/arch/arm/plat-omap/include/mach/mcbsp.h
 +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -389,6 +389,8 @@ int omap_mcbsp_request(unsigned int id);
- void omap_mcbsp_free(unsigned int id);
- void omap_mcbsp_start(unsigned int id, int tx, int rx);
- void omap_mcbsp_stop(unsigned int id, int tx, int rx);
-+void omap_mcbsp_xmit_enable(unsigned int id, u8 enable);
-+void omap_mcbsp_recv_enable(unsigned int id, u8 enable);
- void omap_mcbsp_xmit_word(unsigned int id, u32 word);
- u32 omap_mcbsp_recv_word(unsigned int id);
+@@ -273,9 +273,6 @@
+ #define REOFEN			0x0004
+ #define RFSREN			0x0002
+ #define RSYNCERREN		0x0001
+-#define WAKEUPEN_ALL		(XEMPTYEOFEN | XRDYEN | XEOFEN | XFSXEN | \
+-				 XSYNCERREN | RRDYEN | REOFEN | RFSREN | \
+-				 RSYNCERREN)
  
+ /* we don't do multichannel for now */
+ struct omap_mcbsp_reg_cfg {
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index a3d2313..0aa2524 100644
+index 136f8c5..86bfad8 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -412,6 +412,58 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
- }
- EXPORT_SYMBOL(omap_mcbsp_stop);
+@@ -320,7 +320,7 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ 		syscon |= (ENAWAKEUP | SIDLEMODE(0x02));
+ 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
  
-+void omap_mcbsp_xmit_enable(unsigned int id, u8 enable)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	void __iomem *io_base;
-+	u16 w;
-+
-+	if (!(cpu_is_omap2430() || cpu_is_omap34xx()))
-+		return;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return;
-+	}
-+
-+	mcbsp = id_to_mcbsp_ptr(id);
-+	io_base = mcbsp->io_base;
-+
-+	w = OMAP_MCBSP_READ(io_base, XCCR);
-+
-+	if (enable)
-+		OMAP_MCBSP_WRITE(io_base, XCCR, w & ~(XDISABLE));
-+	else
-+		OMAP_MCBSP_WRITE(io_base, XCCR, w | XDISABLE);
-+}
-+EXPORT_SYMBOL(omap_mcbsp_xmit_enable);
-+
-+void omap_mcbsp_recv_enable(unsigned int id, u8 enable)
-+{
-+	struct omap_mcbsp *mcbsp;
-+	void __iomem *io_base;
-+	u16 w;
-+
-+	if (!(cpu_is_omap2430() || cpu_is_omap34xx()))
-+		return;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return;
-+	}
-+
-+	mcbsp = id_to_mcbsp_ptr(id);
-+	io_base = mcbsp->io_base;
-+
-+	w = OMAP_MCBSP_READ(io_base, RCCR);
-+
-+	if (enable)
-+		OMAP_MCBSP_WRITE(io_base, RCCR, w & ~(RDISABLE));
-+	else
-+		OMAP_MCBSP_WRITE(io_base, RCCR, w | RDISABLE);
-+}
-+EXPORT_SYMBOL(omap_mcbsp_recv_enable);
-+
- /* polled mcbsp i/o operations */
- int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
- {
+-		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, WAKEUPEN_ALL);
++		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, XRDYEN | RRDYEN);
+ 	}
+ }
+ 
+@@ -331,15 +331,12 @@ static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
+ 	 */
+ 	if (cpu_is_omap34xx()) {
+ 		u16 syscon;
+-		u16 wakeupen;
+ 
+ 		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
+ 		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
+ 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
+ 
+-		wakeupen = OMAP_MCBSP_READ(mcbsp->io_base, WAKEUPEN);
+-		wakeupen &= ~WAKEUPEN_ALL;
+-		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, wakeupen);
++		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, 0);
+ 	}
+ }
+ #else
 -- 
 1.6.2.GIT
 
