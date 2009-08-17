@@ -1,77 +1,62 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 04/13] OMAP2/3 clock: ensure each clock has a unique
- name
-Date: Mon, 17 Aug 2009 11:37:48 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908171125510.7023@utopia.booyaka.com>
-References: <20090815111704.7384.31564.stgit@localhost.localdomain> <20090815111944.7384.13541.stgit@localhost.localdomain> <20090817084704.GN7278@atomide.com> <alpine.DEB.2.00.0908170259250.18309@utopia.booyaka.com> <20090817092904.GA2752@n2100.arm.linux.org.uk>
- <alpine.DEB.2.00.0908170339380.7023@utopia.booyaka.com> <20090817165913.GS10764@n2100.arm.linux.org.uk>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
+Date: Mon, 17 Aug 2009 18:47:18 +0100
+Message-ID: <20090817174718.GU10764@n2100.arm.linux.org.uk>
+References: <20090807220016.GG31543@n2100.arm.linux.org.uk> <0680EC522D0CC943BC586913CF3768C003790C5B3A@dbde02.ent.ti.com> <20090808170300.GA23481@n2100.arm.linux.org.uk> <0680EC522D0CC943BC586913CF3768C003790C64CF@dbde02.ent.ti.com> <20090813173327.GA14872@n2100.arm.linux.org.uk> <0680EC522D0CC943BC586913CF3768C003790C6586@dbde02.ent.ti.com> <20090815153357.GF29616@n2100.arm.linux.org.uk> <0680EC522D0CC943BC586913CF3768C003790C65ED@dbde02.ent.ti.com> <20090815181711.GG29616@n2100.arm.linux.org.uk> <20090817173343.GA17323@debian>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090817165913.GS10764-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:60962 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757819AbZHQRsT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 13:48:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20090817173343.GA17323@debian>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Rabin Vincent <rabin@rab.in>
+Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Russell,
-
-On Mon, 17 Aug 2009, Russell King - ARM Linux wrote:
-
-> On Mon, Aug 17, 2009 at 04:06:44AM -0600, Paul Walmsley wrote:
-> > 
-> > On Mon, 17 Aug 2009, Russell King - ARM Linux wrote:
-> > 
-> > > On Mon, Aug 17, 2009 at 03:14:45AM -0600, Paul Walmsley wrote:
-> > > > What it does remove is the need for internal core code to fake up a struct 
-> > > > device simply to access a clock.  It also allows us to harmonize the 
-> > > > clock names, used internally in core code, with the hardware reality, 
-> > > > which uses unique names to identify clocks.
-> > > 
-> > > That problem is already solved.  clk_get_sys()
-> > 
-> > That solves the first problem, but not the second.  Is there some reason 
-> > that OMAP core code (aside from the clkdev mapping structures in 
-> > mach-omap2/clock*.c) should know, or care, whether a platform device name 
-> > is bound to that clock?
+On Mon, Aug 17, 2009 at 11:03:44PM +0530, Rabin Vincent wrote:
+> On Sat, Aug 15, 2009 at 07:17:11PM +0100, Russell King - ARM Linux wrote:
+> > +#ifndef CONFIG_SPARSEMEM
+> > +int pfn_valid(unsigned long pfn)
+> > +{
+> > +	struct meminfo *mi = &meminfo;
+> > +	unsigned int mid, left = 0, right = mi->nr_banks;
+> > +
+> > +	while ((mid = (right - left) / 2) > 0) {
+> > +		struct membank *bank = &mi->bank[mid];
+> > +
+> > +		if (pfn < bank_pfn_start(bank))
+> > +			right = mid;
+> > +		else if (pfn >= bank_pfn_end(bank))
+> > +			left = mid + 1;
+> > +		else
+> > +			return 1;
+> > +	}
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL(pfn_valid);
+> > +#endif
 > 
-> It's not a platform device name.  It's a _device_ name.  It really has
-> precisely nothing what so ever to do with platform devices.  clkdev
-> really couldn't care if the struct device you gave it was representing
-> a PCI device, AMBA device or a platform device.
+> The above function will ignore the first bank.  I don't think that was
+> intended.
 
-Sure, I mistyped.  So, to revise the question,
+Why do you say that?
 
-Is there some reason that OMAP core code (aside from the clkdev mapping 
-structures in mach-omap2/clock*.c) should know, or care, whether a device 
-name is bound to that clock?
+Let's start with 4 membank entries - 0 1 2 3.
 
-> > On OMAP, we have uniquely-named clock lines in the technical 
-> > documentation.  It is possible that other platforms don't have this.  But 
-> > for us, I'd submit that it makes more sense for internal core code to 
-> > fetch a clock documented as "MMC1_FCLK" with:
-> > 
-> >     c = omap_clk_get_by_name("mmc1_fck");
-> 
-> The point is - why invent yet another different clock lookup mechanism
-> when there already exists adequate mechanisms?
+0 covers 0-10, 1 covers 20-30, 2 covers 40-50 and 3 covers 60-70.
 
-Is there an existing mechanism that allows us to look up a clock by simply 
-using its unique name?
+Let's run through the steps looking for 5:
 
-> Second question - there is going to be debugfs support for clkdev coming
-> along.  Have you involved yourself with those discussions to ensure that
-> what is being proposed is going to be suitable for OMAPs usage, or is
-> OMAP going to implement its own version independently?
+Initally, left = 0, right = 4, so mid=2.  5 < 40?  Yes, so right becomes 2.
 
-It's already implemented for OMAP, in mainline, from commit 
-137b3ee27ab1b27dba081542476054836978ca45.  At the moment, clkdev doesn't 
-have anything here.  When debugfs support is added to clkdev, I'm sure 
-we'll be happy to switch to it.
+left = 0, right = 2, so mid=1.  5 < 20?  Yes, so right becomes 1.
 
+left = 0, right = 1, so mid=0.  5 < 0?  No.  5 >= 10?  No.  so return 1.
 
-- Paul
---
-To unsubscribe from this list: send the line "unsubscribe linux-arm" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This doesn't look to me like it ignores the first bank.  I think you're
+wrong.  Please provide me with your proof ASAP because right now it's
+pending for Linus.
