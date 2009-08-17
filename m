@@ -1,47 +1,44 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 17/20] ASoC: Add runtime check for RFIG and XFIG
-Date: Mon, 17 Aug 2009 14:51:16 +0300
-Message-ID: <1250509879-6703-18-git-send-email-eduardo.valentin@nokia.com>
-References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [Linux-fbdev-devel] Getting DSS2 to mainline
+Date: Mon, 17 Aug 2009 14:17:17 +0200
+Message-ID: <4A894A4D.4000501@gmx.de>
+References: <4A893DF4.3050705@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23263 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757914AbZHQMFX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 08:05:23 -0400
-In-Reply-To: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:47749 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750842AbZHQMRN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Aug 2009 08:17:13 -0400
+In-Reply-To: <4A893DF4.3050705@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, ext Tony Lindgren <tony@atomide.com>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Hi,
 
-This is, no RFIG or XFIG (Not defined in 34xx), correct
-initiliazation of rccr and xccr.
+Tomi Valkeinen schrieb:
+> Hi,
+> 
+> As I'm new to sending patches upstream, I'm not sure how to go forward 
+> with DSS2 now. Should I send it to linux-arm-kernel mailing list, or 
+> directly to main linux kernel mailing list? Or is there a route through 
+> fbdev-devel list for DSS2 to go forward?
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
----
- sound/soc/omap/omap-mcbsp.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+I am also new to this process but from what I've heard I decided to 
+always cc Andrew Morton <akpm@linux-foundation.org> when I think that 
+something is mature enough for inclusion. That works very well, thanks 
+Andrew.
+Sending them only to linux-fbdev-devel looks rather like a dead end at 
+least if I look on the fate of some patches in the archive.
+I always cc the LKML but until now I didn't hear anything from there 
+either so I doubt that would be the right way.
 
-diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
-index 6a837ff..a7b0961 100644
---- a/sound/soc/omap/omap-mcbsp.c
-+++ b/sound/soc/omap/omap-mcbsp.c
-@@ -321,8 +321,11 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
- 	/* Generic McBSP register settings */
- 	regs->spcr2	|= XINTM(3) | FREE;
- 	regs->spcr1	|= RINTM(3);
--	regs->rcr2	|= RFIG;
--	regs->xcr2	|= XFIG;
-+	/* RFIG and XFIG are not defined in 34xx */
-+	if (!cpu_is_omap34xx()) {
-+		regs->rcr2	|= RFIG;
-+		regs->xcr2	|= XFIG;
-+	}
- 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
- 		regs->xccr = DXENDLY(1) | XDMAEN;
- 		regs->rccr = RFULL_CYCLE | RDMAEN;
--- 
-1.6.2.GIT
+I'm sorry if anything of the above is incorrect, it's just my experience.
 
+
+Regards,
+
+Florian Tobias Schandinat
