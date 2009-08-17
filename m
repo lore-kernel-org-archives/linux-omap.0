@@ -1,106 +1,128 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv4 16/20] ASoC: OMAP: Enable DMA burst mode
-Date: Mon, 17 Aug 2009 17:39:56 +0300
-Message-ID: <20090817143956.GE8831@esdhcp037198.research.nokia.com>
-References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
- <1250509879-6703-17-git-send-email-eduardo.valentin@nokia.com>
- <20090817162500.f01772a9.jhnikula@gmail.com>
- <20090817140128.GY7278@atomide.com>
-Reply-To: eduardo.valentin@nokia.com
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] Fix mismatched ifdefs
+Date: Mon, 17 Aug 2009 20:26:39 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301D8E1D921@dbde02.ent.ti.com>
+References: <1250506755-920-1-git-send-email-premi@ti.com>
+ <20090817144526.GA7278@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:57594 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982AbZHQOxq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 10:53:46 -0400
-Content-Disposition: inline
-In-Reply-To: <20090817140128.GY7278@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:41130 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750982AbZHQO4s convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 10:56:48 -0400
+In-Reply-To: <20090817144526.GA7278@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Takashi Iwai <tiwai@suse.de>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Tony
+ 
 
-On Mon, Aug 17, 2009 at 04:01:29PM +0200, ext Tony Lindgren wrote:
-> * Jarkko Nikula <jhnikula@gmail.com> [090817 16:23]:
-> > On Mon, 17 Aug 2009 14:51:15 +0300
-> > Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
-> > 
-> > > From: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > 
-> > > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > ---
-> > >  sound/soc/omap/omap-pcm.c |    3 +++
-> > >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-> > > index f769a52..f037db0 100644
-> > > --- a/sound/soc/omap/omap-pcm.c
-> > > +++ b/sound/soc/omap/omap-pcm.c
-> > > @@ -193,6 +193,9 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
-> > >  	omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ |
-> > >  				(cpu_is_omap1510() ? OMAP_DMA_LAST_IRQ : 0));
-> > >  
-> > > +	omap_set_dma_src_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-> > > +	omap_set_dma_dest_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-> > > +
-> > >  	return 0;
-> > 
-> > This seems to be based on first version of Janusz's "[RFC] [PATCH 3/3]
-> > ASoC: OMAP: Enhance OMAP1510 DMA progress software counter".
-> > 
-> > I Attached a version which is based on "[PATCH 3/3 v3] ASoC: OMAP:
-> > Enhance OMAP1510 DMA progress software counter.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Monday, August 17, 2009 8:15 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] Fix mismatched ifdefs
 > 
-> Needs also a patch description.
+> * Sanjeev Premi <premi@ti.com> [090817 13:59]:
+> > The #endif at end of the file was missing. However, an
+> > additional #else ... #endif was causing the compiler to
+> > keep going.
+> > 
+> > The problem was found when compiler started reporting
+> > the newly added inline functions were being reported as
+> > redeclared by the compiler.
+> > 
+> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > ---
+> >  arch/arm/plat-omap/include/mach/cpu.h |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/plat-omap/include/mach/cpu.h 
+> b/arch/arm/plat-omap/include/mach/cpu.h
+> > index 11e73d9..4fbc6a9 100644
+> > --- a/arch/arm/plat-omap/include/mach/cpu.h
+> > +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> > @@ -317,8 +317,6 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >  #  undef  cpu_is_omap730
+> >  #  define cpu_is_omap730()		1
+> >  # endif
+> > -#endif
+> > -#else
+> 
+> Hmm, to me it looks like this should remove the second 
+> #endif, but keep the
+> #else for the !MULTI_OMAP1 configurations.
+> 
 
-I've added patch description for those which were missing and sent them
-in reply to your commented reply. If you prefer I can send version 5 of this series.
+[sp] I did the maching as annotated in the snippet below:
 
-BR,
+#if defined(MULTI_OMAP1)
+# if defined(CONFIG_ARCH_OMAP730)
+#  undef  cpu_is_omap730
+#  define cpu_is_omap730()		is_omap730()
+# endif 
+# if defined(CONFIG_ARCH_OMAP850)
+#  undef  cpu_is_omap850
+#  define cpu_is_omap850()		is_omap850()
+# endif
+#else  /* sp - else for multi-omap1 */
+# if defined(CONFIG_ARCH_OMAP730)
+#  undef  cpu_is_omap730
+#  define cpu_is_omap730()		1
+# endif
+#endif
+#else
+  /* sp - seems like needed in the else path of MULTI_OMAP1
+   * else the symbol could go undefined.
+   */
+# if defined(CONFIG_ARCH_OMAP850)
+#  undef  cpu_is_omap850
+#  define cpu_is_omap850()		1
+# endif
+#endif
 
+> >  # if defined(CONFIG_ARCH_OMAP850)
+> >  #  undef  cpu_is_omap850
+> >  #  define cpu_is_omap850()		1
+> > @@ -433,3 +431,5 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >  
+> >  int omap_chip_is(struct omap_chip_id oci);
+> >  void omap2_check_revision(void);
+> > +
+> > +#endif	/* __ASM_ARCH_OMAP_CPU_H */
+> 
+> And this should not be needed.
+
+[sp] So where does this end:
+
+#ifndef __ASM_ARCH_OMAP_CPU_H
+#define __ASM_ARCH_OMAP_CPU_H
+
+I was hitting the problem possibly due to mutiple inclusion of cpu.h
+
+Any static inline function declared at bottom of cpu.h gets the errors like:
+
+arch/arm/plat-omap/include/mach/cpu.h:465: error: redefinition of 'omap3_has_iva'
+arch/arm/plat-omap/include/mach/cpu.h:465: error: previous definition of 'omap3_has_iva' was here
+
+
+> 
+> Regards,
 > 
 > Tony
 > 
-> > 
-> > 
 > > -- 
-> > Jarkko
+> > 1.6.2.2
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> > From a5eb199316c4731c11c7f5f8d02612ede4de7199 Mon Sep 17 00:00:00 2001
-> > From: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > Date: Mon, 17 Aug 2009 14:51:15 +0300
-> > Subject: [PATCH] ASoC: OMAP: Enable DMA burst mode
-> > 
-> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > ---
-> >  sound/soc/omap/omap-pcm.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-> > index eab4533..b9633d5 100644
-> > --- a/sound/soc/omap/omap-pcm.c
-> > +++ b/sound/soc/omap/omap-pcm.c
-> > @@ -195,6 +195,9 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
-> >  	else
-> >  		omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ);
-> >  
-> > +	omap_set_dma_src_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-> > +	omap_set_dma_dest_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-> > +
-> >  	return 0;
-> >  }
-> >  
-> > -- 
-> > 1.6.3.3
-> > 
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe alsa-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Eduardo Valentin
