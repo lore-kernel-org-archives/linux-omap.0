@@ -1,146 +1,108 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 09/20] OMAP: McBSP: Wakeups utilized
-Date: Mon, 17 Aug 2009 14:51:08 +0300
-Message-ID: <1250509879-6703-10-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv4 01/20] OMAP: McBSP: Provide functions for ASoC frame syncronization
+Date: Mon, 17 Aug 2009 14:51:00 +0300
+Message-ID: <1250509879-6703-2-git-send-email-eduardo.valentin@nokia.com>
 References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23259 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:23232 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757912AbZHQMFX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 08:05:23 -0400
+	with ESMTP id S1757904AbZHQMFW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 08:05:22 -0400
 In-Reply-To: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Takashi Iwai <tiwai@suse.de>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
 From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-This patch enables the smart idle mode while
-McBPS is being utilized. Once it's done,
-force idle mode is taken instead. Apart of it,
-it also configures what signals will wake mcbsp up.
+ASoC has an annoying bug letting either L or R channel to be
+played on L channel. In other words, L and R channels can
+switch at random. This provides McBSP funtionality that may
+be used to fix this feature.
 
 Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/mcbsp.h |   17 +++++++++++
- arch/arm/plat-omap/mcbsp.c              |   46 +++++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+), 0 deletions(-)
+ arch/arm/plat-omap/include/mach/mcbsp.h |    2 +
+ arch/arm/plat-omap/mcbsp.c              |   52 +++++++++++++++++++++++++++++++
+ 2 files changed, 54 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index bd5b759..333061d 100644
+index 57249bb..b85e6e6 100644
 --- a/arch/arm/plat-omap/include/mach/mcbsp.h
 +++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -138,6 +138,7 @@
- #define OMAP_MCBSP_REG_THRSH1	0x94
- #define OMAP_MCBSP_REG_IRQST	0xA0
- #define OMAP_MCBSP_REG_IRQEN	0xA4
-+#define OMAP_MCBSP_REG_WAKEUPEN	0xA8
- #define OMAP_MCBSP_REG_XCCR	0xAC
- #define OMAP_MCBSP_REG_RCCR	0xB0
+@@ -389,6 +389,8 @@ int omap_mcbsp_request(unsigned int id);
+ void omap_mcbsp_free(unsigned int id);
+ void omap_mcbsp_start(unsigned int id, int tx, int rx);
+ void omap_mcbsp_stop(unsigned int id, int tx, int rx);
++void omap_mcbsp_xmit_enable(unsigned int id, u8 enable);
++void omap_mcbsp_recv_enable(unsigned int id, u8 enable);
+ void omap_mcbsp_xmit_word(unsigned int id, u32 word);
+ u32 omap_mcbsp_recv_word(unsigned int id);
  
-@@ -253,6 +254,8 @@
- #define RDISABLE		0x0001
- 
- /********************** McBSP SYSCONFIG bit definitions ********************/
-+#define SIDLEMODE(value)	((value)<<3)
-+#define ENAWAKEUP		0x0004
- #define SOFTRST			0x0002
- 
- /********************** McBSP DMA operating modes **************************/
-@@ -260,6 +263,20 @@
- #define MCBSP_DMA_MODE_THRESHOLD	1
- #define MCBSP_DMA_MODE_FRAME		2
- 
-+/********************** McBSP WAKEUPEN bit definitions *********************/
-+#define XEMPTYEOFEN		0x4000
-+#define XRDYEN			0x0400
-+#define XEOFEN			0x0200
-+#define XFSXEN			0x0100
-+#define XSYNCERREN		0x0080
-+#define RRDYEN			0x0008
-+#define REOFEN			0x0004
-+#define RFSREN			0x0002
-+#define RSYNCERREN		0x0001
-+#define WAKEUPEN_ALL		(XEMPTYEOFEN | XRDYEN | XEOFEN | XFSXEN | \
-+				 XSYNCERREN | RRDYEN | REOFEN | RFSREN | \
-+				 RSYNCERREN)
-+
- /* we don't do multichannel for now */
- struct omap_mcbsp_reg_cfg {
- 	u16 spcr2;
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 9e69994..136f8c5 100644
+index a3d2313..0aa2524 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -305,6 +305,46 @@ int omap_mcbsp_get_dma_op_mode(unsigned int id)
- 	return dma_op_mode;
+@@ -412,6 +412,58 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
  }
- EXPORT_SYMBOL(omap_mcbsp_get_dma_op_mode);
-+
-+static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ EXPORT_SYMBOL(omap_mcbsp_stop);
+ 
++void omap_mcbsp_xmit_enable(unsigned int id, u8 enable)
 +{
-+	/*
-+	 * Enable wakup behavior, smart idle and all wakeups
-+	 * REVISIT: some wakeups may be unnecessary
-+	 */
-+	if (cpu_is_omap34xx()) {
-+		u16 syscon;
++	struct omap_mcbsp *mcbsp;
++	void __iomem *io_base;
++	u16 w;
 +
-+		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
-+		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
-+		syscon |= (ENAWAKEUP | SIDLEMODE(0x02));
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
++	if (!(cpu_is_omap2430() || cpu_is_omap34xx()))
++		return;
 +
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, WAKEUPEN_ALL);
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return;
 +	}
-+}
 +
-+static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp)
++	mcbsp = id_to_mcbsp_ptr(id);
++	io_base = mcbsp->io_base;
++
++	w = OMAP_MCBSP_READ(io_base, XCCR);
++
++	if (enable)
++		OMAP_MCBSP_WRITE(io_base, XCCR, w & ~(XDISABLE));
++	else
++		OMAP_MCBSP_WRITE(io_base, XCCR, w | XDISABLE);
++}
++EXPORT_SYMBOL(omap_mcbsp_xmit_enable);
++
++void omap_mcbsp_recv_enable(unsigned int id, u8 enable)
 +{
-+	/*
-+	 * Disable wakup behavior, smart idle and all wakeups
-+	 */
-+	if (cpu_is_omap34xx()) {
-+		u16 syscon;
-+		u16 wakeupen;
++	struct omap_mcbsp *mcbsp;
++	void __iomem *io_base;
++	u16 w;
 +
-+		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
-+		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03));
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
++	if (!(cpu_is_omap2430() || cpu_is_omap34xx()))
++		return;
 +
-+		wakeupen = OMAP_MCBSP_READ(mcbsp->io_base, WAKEUPEN);
-+		wakeupen &= ~WAKEUPEN_ALL;
-+		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, wakeupen);
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return;
 +	}
++
++	mcbsp = id_to_mcbsp_ptr(id);
++	io_base = mcbsp->io_base;
++
++	w = OMAP_MCBSP_READ(io_base, RCCR);
++
++	if (enable)
++		OMAP_MCBSP_WRITE(io_base, RCCR, w & ~(RDISABLE));
++	else
++		OMAP_MCBSP_WRITE(io_base, RCCR, w | RDISABLE);
 +}
-+#else
-+static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp) {}
-+static inline void omap34xx_mcbsp_free(struct omap_mcbsp *mcbsp) {}
- #endif
- 
- /*
-@@ -366,6 +406,9 @@ int omap_mcbsp_request(unsigned int id)
- 	clk_enable(mcbsp->iclk);
- 	clk_enable(mcbsp->fclk);
- 
-+	/* Do procedure specific to omap34xx arch, if applicable */
-+	omap34xx_mcbsp_request(mcbsp);
++EXPORT_SYMBOL(omap_mcbsp_recv_enable);
 +
- 	/*
- 	 * Make sure that transmitter, receiver and sample-rate generator are
- 	 * not running before activating IRQs.
-@@ -414,6 +457,9 @@ void omap_mcbsp_free(unsigned int id)
- 	if (mcbsp->pdata && mcbsp->pdata->ops && mcbsp->pdata->ops->free)
- 		mcbsp->pdata->ops->free(id);
- 
-+	/* Do procedure specific to omap34xx arch, if applicable */
-+	omap34xx_mcbsp_free(mcbsp);
-+
- 	clk_disable(mcbsp->fclk);
- 	clk_disable(mcbsp->iclk);
- 
+ /* polled mcbsp i/o operations */
+ int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
+ {
 -- 
 1.6.2.GIT
 
