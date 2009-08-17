@@ -1,49 +1,70 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH] ASoC: OMAP: Enable DMA burst mode
-Date: Mon, 17 Aug 2009 17:29:49 +0300
-Message-ID: <1250519389-14521-1-git-send-email-eduardo.valentin@nokia.com>
-References: <20090817140128.GY7278@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] Fix mismatched ifdefs
+Date: Mon, 17 Aug 2009 17:45:26 +0300
+Message-ID: <20090817144526.GA7278@atomide.com>
+References: <1250506755-920-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090817140128.GY7278@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: Takashi Iwai <tiwai@suse.de>, Eduardo Valentin <eduardo.valentin@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58718 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755047AbZHQOp3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 10:45:29 -0400
+Content-Disposition: inline
+In-Reply-To: <1250506755-920-1-git-send-email-premi@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+* Sanjeev Premi <premi@ti.com> [090817 13:59]:
+> The #endif at end of the file was missing. However, an
+> additional #else ... #endif was causing the compiler to
+> keep going.
+> 
+> The problem was found when compiler started reporting
+> the newly added inline functions were being reported as
+> redeclared by the compiler.
+> 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  arch/arm/plat-omap/include/mach/cpu.h |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+> index 11e73d9..4fbc6a9 100644
+> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> @@ -317,8 +317,6 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #  undef  cpu_is_omap730
+>  #  define cpu_is_omap730()		1
+>  # endif
+> -#endif
+> -#else
 
-Improve DMA transfers by enabling Burst transaction.
+Hmm, to me it looks like this should remove the second #endif, but keep the
+#else for the !MULTI_OMAP1 configurations.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- sound/soc/omap/omap-pcm.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+>  # if defined(CONFIG_ARCH_OMAP850)
+>  #  undef  cpu_is_omap850
+>  #  define cpu_is_omap850()		1
+> @@ -433,3 +431,5 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  
+>  int omap_chip_is(struct omap_chip_id oci);
+>  void omap2_check_revision(void);
+> +
+> +#endif	/* __ASM_ARCH_OMAP_CPU_H */
 
-diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index eab4533..b9633d5 100644
---- a/sound/soc/omap/omap-pcm.c
-+++ b/sound/soc/omap/omap-pcm.c
-@@ -195,6 +195,9 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
- 	else
- 		omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ);
- 
-+	omap_set_dma_src_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-+	omap_set_dma_dest_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-+
- 	return 0;
- }
- 
--- 
-1.6.3.3
+And this should not be needed.
 
+Regards,
+
+Tony
+
+> -- 
+> 1.6.2.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
