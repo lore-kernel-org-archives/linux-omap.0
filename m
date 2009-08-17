@@ -1,20 +1,14 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv3 00/20] OMAP ASoC changes in DMA
- utilization
-Date: Mon, 17 Aug 2009 14:45:05 +0300
-Message-ID: <20090817114505.GB8831@esdhcp037198.research.nokia.com>
-References: <1250174133-451-1-git-send-email-eduardo.valentin@nokia.com>
-	<200908171122.30731.peter.ujfalusi@nokia.com>
-	<20090817120737.caff7f92.jhnikula@gmail.com>
-	<20090817113659.GA8831@esdhcp037198.research.nokia.com>
-	<20090817115258.GB4464@sirena.org.uk>
-Reply-To: eduardo.valentin@nokia.com
+Subject: [PATCHv4 02/20] OMAP: McBSP: Add IRQEN, IRQSTATUS,
+	THRESHOLD2 and THRESHOLD1 registers.
+Date: Mon, 17 Aug 2009 14:51:01 +0300
+Message-ID: <1250509879-6703-3-git-send-email-eduardo.valentin@nokia.com>
+References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20090817115258.GB4464@sirena.org.uk>
+In-Reply-To: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -24,23 +18,32 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+To: alsa-devel@alsa-project.org
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Aug 17, 2009 at 01:52:58PM +0200, ext Mark Brown wrote:
-> On Mon, Aug 17, 2009 at 02:36:59PM +0300, Eduardo Valentin wrote:
-> 
-> > Cool. I've rebased and tested the series with beagle using Takashi's tree.
-> > I'm about to send version #4 based on his tree then.
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Forgot to mention that I've tested this also using those three patches from Janusz Krzysztofik.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ arch/arm/plat-omap/include/mach/mcbsp.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-> 
-> Please could you use --no-chain-reply-to when sending?  It works a lot
-> better with threaded mail readers.
-
-Sure!
-
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index b85e6e6..ceaf9ee 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -134,6 +134,10 @@
+ #define OMAP_MCBSP_REG_XCERG	0x74
+ #define OMAP_MCBSP_REG_XCERH	0x78
+ #define OMAP_MCBSP_REG_SYSCON	0x8C
++#define OMAP_MCBSP_REG_THRSH2	0x90
++#define OMAP_MCBSP_REG_THRSH1	0x94
++#define OMAP_MCBSP_REG_IRQST	0xA0
++#define OMAP_MCBSP_REG_IRQEN	0xA4
+ #define OMAP_MCBSP_REG_XCCR	0xAC
+ #define OMAP_MCBSP_REG_RCCR	0xB0
+ 
 -- 
-Eduardo Valentin
+1.6.2.GIT
+
