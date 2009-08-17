@@ -1,178 +1,63 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: [PATCH 3/3] MFD: TWL4030: OMAP: Board-specifc DPS scripts for RX51 board
-Date: Mon, 17 Aug 2009 17:02:01 +0300
-Message-ID: <1250517721-16104-1-git-send-email-amit.kucheria@verdurent.com>
-References: <1250517469-15899-1-git-send-email-amit.kucheria@verdurent.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:63570 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753754AbZHQOCH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 10:02:07 -0400
-In-Reply-To: <1250517469-15899-1-git-send-email-amit.kucheria@verdurent.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCHv4 00/20] OMAP ASoC changes in DMA
+	utilization
+Date: Mon, 17 Aug 2009 17:05:49 +0300
+Message-ID: <20090817170549.f0adf2a4.jhnikula@gmail.com>
+References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: sameo@linux.intel.com, tony@atomide.com, dbrownell@users.sourceforge.net, linux-omap@vger.kernel.org
 
-Add support for Dynamic Power Switching (DPS) for the RX51 board.
+On Mon, 17 Aug 2009 14:50:59 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 
-These scripts are still a work-in-progress. I'll keep sending patches to
-update the scripts as they are optimised.
+> Hello again guys,
+> 
+> Here is version 4 of these changes. No real changes from previous versions.
+> The only thing is that now I've rebased on top of Takashi's tree:
+> http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=summary
+> 
+> as there are pending things there which Jarkko has pointed on previous series.
+> 
+Here's my ack to the ASoC part. I tested the set on top of these
+Janusz's patches:
 
-Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: sameo@linux.intel.com
-Cc: tony@atomide.com
-Cc: dbrownell@users.sourceforge.net
-Cc: linux-omap@vger.kernel.org
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |  122 +++++++++++++++++++++++++-
- 1 files changed, 120 insertions(+), 2 deletions(-)
+http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020170.html
+http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020171.html
+http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020262.html
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 9a0bf67..8fc6dbf 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -1,5 +1,5 @@
- /*
-- * linux/arch/arm/mach-omap2/board-rx51-flash.c
-+ * linux/arch/arm/mach-omap2/board-rx51-peripherals.c
-  *
-  * Copyright (C) 2008-2009 Nokia
-  *
-@@ -278,7 +278,124 @@ static struct twl4030_gpio_platform_data rx51_gpio_data = {
- 	.setup			= rx51_twlgpio_setup,
- };
- 
--static struct twl4030_platform_data rx51_twldata = {
-+static struct twl4030_ins sleep_on_seq[] __initdata = {
-+/*
-+ * Turn off VDD1 and VDD2.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-+/*
-+ * And also turn off the OMAP3 PLLs and the sysclk output.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_OFF), 3},
-+};
-+
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script = sleep_on_seq,
-+	.size   = ARRAY_SIZE(sleep_on_seq),
-+	.flags  = TWL4030_SLEEP_SCRIPT,
-+};
-+
-+static struct twl4030_ins wakeup_seq[] __initdata = {
-+/*
-+ * Reenable the OMAP3 PLLs.
-+ * Wakeup VDD1 and VDD2.
-+ * Reenable sysclk output.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
-+};
-+
-+static struct twl4030_script wakeup_script __initdata = {
-+	.script	= wakeup_seq,
-+	.size	= ARRAY_SIZE(wakeup_seq),
-+	.flags	= TWL4030_WAKEUP12_SCRIPT,
-+};
-+
-+static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-+/*
-+ * Wakeup VDD1 (dummy to be able to insert a delay)
-+ * Enable CLKEN
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_ACTIVE), 3},
-+};
-+
-+static struct twl4030_script wakeup_p3_script __initdata = {
-+	.script	= wakeup_p3_seq,
-+	.size	= ARRAY_SIZE(wakeup_p3_seq),
-+	.flags	= TWL4030_WAKEUP3_SCRIPT,
-+};
-+
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+/*
-+ * Reset twl4030.
-+ * Reset VDD1 regulator.
-+ * Reset VDD2 regulator.
-+ * Reset VPLL1 regulator.
-+ * Enable sysclk output.
-+ * Reenable twl4030.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
-+		0x13},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 2, RES_STATE_WRST), 0x13},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
-+	{MSG_SINGULAR(DEV_GRP_P1, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size   = ARRAY_SIZE(wrst_seq),
-+	.flags  = TWL4030_WRST_SCRIPT,
-+};
-+
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	/* wakeup12 script should be loaded before sleep script, otherwise a
-+	   board might hit retention before loading of wakeup script is
-+	   completed. This can cause boot failures depending on timing issues.
-+	*/
-+	&wakeup_script,
-+	&sleep_on_script,
-+	&wakeup_p3_script,
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
-+	{ .resource = RES_VINTANA1, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VINTANA2, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VINTDIG, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VMMC1, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VMMC2, .devgroup = DEV_GRP_NULL, .type = -1,
-+	  .type2 = 3},
-+	{ .resource = RES_VAUX1, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX2, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX3, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX4, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VPLL2, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VDAC, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VSIM, .devgroup = DEV_GRP_NULL, .type = -1,
-+	  .type2 = 3},
-+	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P3, .type = -1,
-+		.type2 = 1 },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data rx51_t2scripts_data __initdata = {
-+	.scripts        = twl4030_scripts,
-+	.num = ARRAY_SIZE(twl4030_scripts),
-+	.resource_config = twl4030_rconfig,
-+};
-+
-+
-+
-+static struct twl4030_platform_data rx51_twldata __initdata = {
- 	.irq_base		= TWL4030_IRQ_BASE,
- 	.irq_end		= TWL4030_IRQ_END,
- 
-@@ -286,6 +403,7 @@ static struct twl4030_platform_data rx51_twldata = {
- 	.gpio			= &rx51_gpio_data,
- 	.keypad			= &rx51_kp_data,
- 	.madc			= &rx51_madc_data,
-+	.power			= &rx51_t2scripts_data,
- 
- 	.vaux1			= &rx51_vaux1,
- 	.vaux2			= &rx51_vaux2,
+Note, that I posted modified version for the patch 16 based on Janusz's
+[PATCH 3/3 v3].
+
+Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+
+> 
+>  arch/arm/mach-omap2/mcbsp.c             |    5 +
+>  arch/arm/plat-omap/include/mach/mcbsp.h |   49 ++++
+>  arch/arm/plat-omap/mcbsp.c              |  377 ++++++++++++++++++++++++++++++-
+>  sound/soc/omap/omap-mcbsp.c             |   78 ++++++-
+>  sound/soc/omap/omap-pcm.c               |   14 +-
+>  sound/soc/omap/omap-pcm.h               |    2 +
+>  6 files changed, 511 insertions(+), 14 deletions(-)
+> 
+Tony, if you are ok with the OMAP McBSP changes, how it would be best
+get these merged? Via ASoC, LKML or separately from both
+subsystems during the merge window?
+
+
 -- 
-1.6.3.3
-
+Jarkko
