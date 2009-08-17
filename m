@@ -1,14 +1,14 @@
 From: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 08/10] OMAP3: Debug observability and ETK padconf
-	implementation
-Date: Mon, 17 Aug 2009 11:07:19 +0300
-Message-ID: <20090817080718.GJ7278@atomide.com>
-References: <1250182359-18830-1-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-2-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-3-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-4-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-5-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-6-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-7-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-8-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-9-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH 09/10] OMAP3: Add debug observablity (debobs) Kconfig
+	item
+Date: Mon, 17 Aug 2009 11:08:17 +0300
+Message-ID: <20090817080816.GK7278@atomide.com>
+References: <1250182359-18830-1-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-2-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-3-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-4-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-5-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-6-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-7-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-8-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-9-git-send-email-khilman@deeprootsystems.com> <1250182359-18830-10-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1250182359-18830-9-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+In-Reply-To: <1250182359-18830-10-git-send-email-khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 Cc: linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
@@ -20,280 +20,46 @@ List-Id: linux-omap@vger.kernel.org
 > Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 > Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
 > ---
->  arch/arm/mach-omap2/debobs.c             |  240 ++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/debobs.h |    7 +
->  2 files changed, 247 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/debobs.c
->  create mode 100644 arch/arm/plat-omap/include/mach/debobs.h
+>  arch/arm/mach-omap2/Makefile |    3 +++
+>  arch/arm/plat-omap/Kconfig   |    7 +++++++
+>  2 files changed, 10 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
-> new file mode 100644
-> index 0000000..397a599
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/debobs.c
-> @@ -0,0 +1,240 @@
-> +/*
-> + * arch/arm/mach-omap2/debobs.c
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 735bae5..cc515a4 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -44,6 +44,9 @@ iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
+>  
+>  obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
+>  
+> +# Debobs
+> +obj-$(CONFIG_OMAP3_DEBOBS)	+= debobs.o
+> +
+>  # Specific board support
+>  obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+>  obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+> diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+> index efe85d0..4e90a36 100644
+> --- a/arch/arm/plat-omap/Kconfig
+> +++ b/arch/arm/plat-omap/Kconfig
+> @@ -143,6 +143,13 @@ config OMAP_32K_TIMER
+>  
+>  endchoice
+>  
+> +config OMAP3_DEBOBS
+> +	bool "OMAP3 Debug observability support"
+> +	depends on ARCH_OMAP3 && DEBUG_FS
+> +	default n
+> +	help
+> +	  Use ETK pads for debug observability
+> +
 
-Should this name be 34xx-debobs.c?
-
-
-> + *
-> + * Handle debobs pads
-> + *
-> + * Copyright (C) 2008 Nokia Corporation
-> + *
-> + * Written by Peter De Schrijver <peter.de-schrijver-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-> + *
-> + * This file is subject to the terms and conditions of the GNU General
-> + * Public License. See the file "COPYING" in the main directory of this
-> + * archive for more details.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + */
-> +
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/debugfs.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/module.h>
-> +#include <linux/gpio.h>
-> +
-> +#include <mach/control.h>
-> +#include <mach/mux.h>
-> +#include <mach/board.h>
-> +
-> +#define ETK_GPIO_BEGIN		12
-> +#define ETK_GPIO(i)		(ETK_GPIO_BEGIN + i)
-> +#define NUM_OF_DEBOBS_PADS	18
-> +
-> +static int debobs_initialized;
-> +
-> +enum debobs_pad_mode {
-> +	GPIO = 0,
-> +	OBS = 1,
-> +	ETK = 2,
-> +	NO_MODE = 3,
-> +};
-> +
-> +static char *debobs_pad_mode_names[] = {
-> +	[GPIO] = "GPIO",
-> +	[OBS] = "OBS",
-> +	[ETK] = "ETK",
-> +};
-> +
-> +struct obs {
-> +	u16 offset;
-> +	u8 value;
-> +	u8 mask;
-> +};
-> +
-> +struct debobs_pad {
-> +	enum debobs_pad_mode mode;
-> +	struct obs core_obs;
-> +	struct obs wakeup_obs;
-> +};
-> +
-> +static struct debobs_pad debobs_pads[NUM_OF_DEBOBS_PADS];
-> +
-> +static int debobs_mode_open(struct inode *inode, struct file *file)
-> +{
-> +	file->private_data = inode->i_private;
-> +
-> +	return 0;
-> +}
-> +
-> +static ssize_t debobs_mode_read(struct file *file, char __user *user_buf,
-> +				size_t count, loff_t *ppos)
-> +{
-> +	char buffer[10];
-> +	int size;
-> +	int pad_number = (int)file->private_data;
-> +	struct debobs_pad *e = &debobs_pads[pad_number];
-> +
-> +	size = snprintf(buffer, sizeof(buffer), "%s\n",
-> +			debobs_pad_mode_names[e->mode]);
-> +	return simple_read_from_buffer(user_buf, count, ppos, buffer, size);
-> +}
-> +
-> +static ssize_t debobs_mode_write(struct file *file, const char __user *user_buf,
-> +				size_t count, loff_t *ppos)
-> +{
-> +	char buffer[10];
-> +	int buf_size, i, pad_number;
-> +	u16 muxmode = OMAP34XX_MUX_MODE7;
-> +
-> +	memset(buffer, 0, sizeof(buffer));
-> +	buf_size = min(count, (sizeof(buffer)-1));
-> +
-> +	if (copy_from_user(buffer, user_buf, buf_size))
-> +		return -EFAULT;
-> +
-> +	pad_number = (int)file->private_data;
-> +
-> +	for (i = 0; i < NO_MODE; i++) {
-> +		if (!strnicmp(debobs_pad_mode_names[i],
-> +				buffer,
-> +				strlen(debobs_pad_mode_names[i]))) {
-> +			switch (i) {
-> +			case ETK:
-> +				muxmode = OMAP34XX_MUX_MODE0;
-> +				break;
-> +			case GPIO:
-> +				muxmode = OMAP34XX_MUX_MODE4;
-> +				break;
-> +			case OBS:
-> +				muxmode = OMAP34XX_MUX_MODE7;
-> +				break;
-> +			}
-> +			omap_ctrl_writew(muxmode,
-> +					OMAP343X_PADCONF_ETK(pad_number));
-> +			debobs_pads[pad_number].mode = i;
-> +
-> +			return count;
-> +		}
-> +	}
-> +
-> +	return -EINVAL;
-> +}
-
-We need to keep processor specific stuff out of generic code in general.
-Otherwise we'll easily mess up things for the other processors.
+The code in the previous patch seems to be 34xx specific.
 
 
-> +
-> +static const struct file_operations debobs_mode_fops = {
-> +	.open 	= debobs_mode_open,
-> +	.read	= debobs_mode_read,
-> +	.write	= debobs_mode_write,
-> +};
-> +
-> +static int debobs_get(void *data, u64 *val)
-> +{
-> +	struct obs *o = data;
-> +
-> +	*val = o->value;
-> +
-> +	return 0;
-> +}
-> +
-> +static int debobs_set(void *data, u64 val)
-> +{
-> +	struct obs *o = data;
-> +
-> +	val &= BIT(o->mask) - 1;
-> +
-> +	omap_ctrl_writeb(val, o->offset);
-> +	o->value = val;
-> +
-> +	return 0;
-> +}
-> +
-> +DEFINE_SIMPLE_ATTRIBUTE(debobs_fops, debobs_get, debobs_set, "%llu\n");
-> +
-> +static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
-> +					int number, struct dentry *root)
-> +{
-> +	struct dentry *d;
-> +	struct obs *o;
-> +
-> +	d = debugfs_create_dir(name, root);
-> +	if (IS_ERR(d))
-> +		return PTR_ERR(d);
-> +
-> +	omap_ctrl_writew(OMAP34XX_MUX_MODE4, OMAP343X_PADCONF_ETK(number));
-> +	gpio_direction_input(ETK_GPIO(number));
-> +	gpio_export(ETK_GPIO(number), 1);
-> +	(void) debugfs_create_file("mode", S_IRUGO | S_IWUGO, d,
-> +					(void *)number, &debobs_mode_fops);
-> +
-> +	o = &pad->core_obs;
-> +	o->offset = OMAP343X_CONTROL_DEBOBS(number);
-> +	o->value = omap_ctrl_readw(o->offset);
-> +	o->mask = 7;
-> +	(void) debugfs_create_file("coreobs", S_IRUGO | S_IWUGO, d, o,
-> +					&debobs_fops);
-> +
-> +	o = &pad->wakeup_obs;
-> +	o->offset = OMAP343X_CONTROL_WKUP_DEBOBSMUX(number);
-> +	o->value = omap_ctrl_readb(o->offset);
-> +	o->mask = 5;
-> +	(void) debugfs_create_file("wakeupobs", S_IRUGO | S_IWUGO, d, o,
-> +					&debobs_fops);
-> +
-> +	return 0;
-> +}
-> +
-> +/* Public functions */
-> +
-> +void debug_gpio_set(unsigned gpio, int value)
-> +{
-> +	if (!debobs_initialized)
-> +		return ;
-> +
-> +	WARN_ON(gpio >= NUM_OF_DEBOBS_PADS);
-> +	if (gpio < NUM_OF_DEBOBS_PADS)
-> +		__gpio_set_value(ETK_GPIO(gpio), value);
-> +}
-> +
-> +int debug_gpio_get(unsigned gpio)
-> +{
-> +	if (!debobs_initialized)
-> +		return -EINVAL;
-> +
-> +	WARN_ON(gpio >= NUM_OF_DEBOBS_PADS);
-> +	if (gpio < NUM_OF_DEBOBS_PADS)
-> +		return __gpio_get_value(ETK_GPIO(gpio));
-> +
-> +	return -EINVAL;
-> +}
-> +
-> +int __init init_debobs(void)
-> +{
-> +	struct dentry *debobs_root;
-> +	int i, err;
-> +	char name[10];
-> +
-> +	debobs_root = debugfs_create_dir("debobs", NULL);
-> +	if (IS_ERR(debobs_root))
-> +		return PTR_ERR(debobs_root);
-> +
-> +	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++) {
-> +		snprintf(name, sizeof(name), "hw_dbg%d", i);
-> +		if (!gpio_request(ETK_GPIO(i), name)) {
-> +			err = _new_debobs_pad(&debobs_pads[i], name, i,
-> +						debobs_root);
-> +		} else
-> +			gpio_free(ETK_GPIO(i));
-> +	}
-> +
-> +	debobs_initialized = 1;
-> +
-> +	return 0;
-> +}
-> +
-> +late_initcall_sync(init_debobs);
-> diff --git a/arch/arm/plat-omap/include/mach/debobs.h b/arch/arm/plat-omap/include/mach/debobs.h
-> new file mode 100644
-> index 0000000..67f765d
-> --- /dev/null
-> +++ b/arch/arm/plat-omap/include/mach/debobs.h
-> @@ -0,0 +1,7 @@
-> +#ifndef __DEBOBS_H
-> +#define __DEBOBS_H
-> +
-> +void debug_gpio_set(unsigned gpio, int value);
-> +int debug_gpio_get(unsigned gpio);
-> +
-> +#endif
+>  config OMAP_32K_TIMER_HZ
+>         int "Kernel internal timer frequency for 32KHz timer"
+>         range 32 1024
 > -- 
 > 1.6.4
 > 
