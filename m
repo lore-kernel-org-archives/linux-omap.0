@@ -1,12 +1,12 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 15/20] ASoC: OMAP: Make DMA 64 aligned
-Date: Mon, 17 Aug 2009 14:51:14 +0300
-Message-ID: <1250509879-6703-16-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv4 16/20] ASoC: OMAP: Enable DMA burst mode
+Date: Mon, 17 Aug 2009 14:51:15 +0300
+Message-ID: <1250509879-6703-17-git-send-email-eduardo.valentin@nokia.com>
 References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:23238 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:23230 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757907AbZHQMFW (ORCPT
+	with ESMTP id S1757903AbZHQMFW (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 08:05:22 -0400
 In-Reply-To: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -18,31 +18,23 @@ From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- sound/soc/omap/omap-pcm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ sound/soc/omap/omap-pcm.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
 diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
-index dd9e728..f769a52 100644
+index f769a52..f037db0 100644
 --- a/sound/soc/omap/omap-pcm.c
 +++ b/sound/soc/omap/omap-pcm.c
-@@ -305,7 +305,7 @@ static struct snd_pcm_ops omap_pcm_ops = {
- 	.mmap		= omap_pcm_mmap,
- };
+@@ -193,6 +193,9 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
+ 	omap_enable_dma_irq(prtd->dma_ch, OMAP_DMA_FRAME_IRQ |
+ 				(cpu_is_omap1510() ? OMAP_DMA_LAST_IRQ : 0));
  
--static u64 omap_pcm_dmamask = DMA_BIT_MASK(32);
-+static u64 omap_pcm_dmamask = DMA_BIT_MASK(64);
++	omap_set_dma_src_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
++	omap_set_dma_dest_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
++
+ 	return 0;
+ }
  
- static int omap_pcm_preallocate_dma_buffer(struct snd_pcm *pcm,
- 	int stream)
-@@ -355,7 +355,7 @@ static int omap_pcm_new(struct snd_card *card, struct snd_soc_dai *dai,
- 	if (!card->dev->dma_mask)
- 		card->dev->dma_mask = &omap_pcm_dmamask;
- 	if (!card->dev->coherent_dma_mask)
--		card->dev->coherent_dma_mask = DMA_BIT_MASK(32);
-+		card->dev->coherent_dma_mask = DMA_BIT_MASK(64);
- 
- 	if (dai->playback.channels_min) {
- 		ret = omap_pcm_preallocate_dma_buffer(pcm,
 -- 
 1.6.2.GIT
 
