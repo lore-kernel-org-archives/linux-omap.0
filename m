@@ -1,14 +1,14 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 02/20] OMAP: McBSP: Add IRQEN, IRQSTATUS, THRESHOLD2 and THRESHOLD1 registers.
-Date: Mon, 17 Aug 2009 17:13:18 +0300
-Message-ID: <1250518398-13657-1-git-send-email-eduardo.valentin@nokia.com>
-References: <20090817135301.GV7278@atomide.com>
+Subject: [PATCHv4 20/20] ASoC: OMAP: Use DMA operating mode of McBSP
+Date: Mon, 17 Aug 2009 17:19:47 +0300
+Message-ID: <1250518787-13915-1-git-send-email-eduardo.valentin@nokia.com>
+References: <20090817140201.GZ7278@atomide.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20316 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752928AbZHQO1X (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 10:27:23 -0400
-In-Reply-To: <20090817135301.GV7278@atomide.com>
+Received: from smtp.nokia.com ([192.100.105.134]:56078 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752580AbZHQOeb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 10:34:31 -0400
+In-Reply-To: <20090817140201.GZ7278@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: ext Tony Lindgren <tony@atomide.com>
@@ -16,28 +16,67 @@ Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.
 
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Adding McBSP register definition for IRQEN, IRQSTATUS, THRESHOLD2 and THRESHOLD1 registers.
+Configures DMA sync mode depending on McBSP operating mode value.
+The value is configurable by McBSP instance. So, depending
+on McBSP operating mode, the DMA sync mode is passed from
+omap-mcbsp to omap-pcm. Besides that, it also configures
+McBSP threshold value depending on which McBSP mode is activated.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/mcbsp.h |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+ sound/soc/omap/omap-mcbsp.c |   18 +++++++++++++++---
+ 1 files changed, 15 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index b85e6e6..ceaf9ee 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -134,6 +134,10 @@
- #define OMAP_MCBSP_REG_XCERG	0x74
- #define OMAP_MCBSP_REG_XCERH	0x78
- #define OMAP_MCBSP_REG_SYSCON	0x8C
-+#define OMAP_MCBSP_REG_THRSH2	0x90
-+#define OMAP_MCBSP_REG_THRSH1	0x94
-+#define OMAP_MCBSP_REG_IRQST	0xA0
-+#define OMAP_MCBSP_REG_IRQEN	0xA4
- #define OMAP_MCBSP_REG_XCCR	0xAC
- #define OMAP_MCBSP_REG_RCCR	0xB0
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 2aec7a6..60c360b 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -144,7 +144,14 @@ static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+ 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
+ 	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
+-	int samples = snd_pcm_lib_period_bytes(substream) >> 1;
++	int dma_op_mode = omap_mcbsp_get_dma_op_mode(mcbsp_data->bus_id);
++	int samples;
++
++	/* TODO: Currently, MODE_ELEMENT == MODE_FRAME */
++	if (dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
++		samples = snd_pcm_lib_period_bytes(substream) >> 1;
++	else
++		samples = 1;
  
+ 	/* Configure McBSP internal buffer usage */
+ 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
+@@ -166,6 +173,7 @@ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
+ 		err = omap_mcbsp_request(bus_id);
+ 
+ 	if (cpu_is_omap343x()) {
++		int dma_op_mode = omap_mcbsp_get_dma_op_mode(bus_id);
+ 		int max_period;
+ 
+ 		/*
+@@ -187,7 +195,8 @@ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
+ 		max_period++;
+ 		max_period <<= 1;
+ 
+-		snd_pcm_hw_constraint_minmax(substream->runtime,
++		if (dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
++			snd_pcm_hw_constraint_minmax(substream->runtime,
+ 						SNDRV_PCM_HW_PARAM_PERIOD_BYTES,
+ 						32, max_period);
+ 	}
+@@ -268,7 +277,10 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 		port = omap34xx_mcbsp_port[bus_id][substream->stream];
+ 		omap_mcbsp_dai_dma_params[id][substream->stream].set_threshold =
+ 						omap_mcbsp_set_threshold;
+-		sync_mode = OMAP_DMA_SYNC_FRAME;
++		/* TODO: Currently, MODE_ELEMENT == MODE_FRAME */
++		if (omap_mcbsp_get_dma_op_mode(bus_id) ==
++						MCBSP_DMA_MODE_THRESHOLD)
++			sync_mode = OMAP_DMA_SYNC_FRAME;
+ 	} else {
+ 		return -ENODEV;
+ 	}
 -- 
 1.6.2.GIT
 
