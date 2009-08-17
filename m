@@ -1,39 +1,48 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC][PATCH 1/3] ARM: OMAP: DMA: Add support for DMA channel
- self linking on OMAP1510
-Date: Mon, 17 Aug 2009 12:16:01 +0300
-Message-ID: <20090817121601.2fdb0c0f.jhnikula@gmail.com>
-References: <200908101050.02530.jkrzyszt@tis.icnet.pl>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 04/13] OMAP2/3 clock: ensure each clock has a unique
+ name
+Date: Mon, 17 Aug 2009 03:14:45 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908170259250.18309@utopia.booyaka.com>
+References: <20090815111704.7384.31564.stgit@localhost.localdomain> <20090815111944.7384.13541.stgit@localhost.localdomain> <20090817084704.GN7278@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:25714 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757482AbZHQJOb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 05:14:31 -0400
-In-Reply-To: <200908101050.02530.jkrzyszt@tis.icnet.pl>
+Received: from utopia.booyaka.com ([72.9.107.138]:35106 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757554AbZHQJOp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 05:14:45 -0400
+In-Reply-To: <20090817084704.GN7278@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org
 
-On Mon, 10 Aug 2009 10:50:00 +0200
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+Hi Tony,
 
-> Implement DMA channel self linking on OMAP1510 using AUTO_INIT and REPEAT
-> flags of the DMA CCR register.
-> 
-> Created against linux-2.6.31-rc5.
-> 
-> Tested on Amstrad Delta.
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> 
-Tony, I'm fine with this patch. Although the autoinitialization !=
-channel linking, in SW point of view autoinitialization and channel
-linking with itself looks the same so it's better to re-utilize
-existing omap_dma_link_lch also for 1510 DMA autoinitialization than
-inventing own API for it.
+On Mon, 17 Aug 2009, Tony Lindgren wrote:
 
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+> * Paul Walmsley <paul@pwsan.com> [090815 14:26]:
+> > After the clkdev conversion, struct clk .name fields are free to be
+> > unique and to reflect the underlying hardware naming convention.  This
+> > is important since it is useful for some core code that is unrelated
+> > to the platform_device subsystem, such as the clock debugfs code and
+> > the omap_hwmod code, to be able to address clocks by a single unique
+> > identifier, since platform drivers are only weakly bound to clocks.
+> > So, update all of the non-unique clock names in OMAP2/3 to be unique
+> > names.  In the future it might be ideal to ensure that the names match
+> > the hardware information exactly, for ease of debugging and reference.
+> 
+> Giving up on the name + id combination is against what we've tried to
+> do with the clock framework in general.
+
+This already happened with the clkdev conversion a few months ago.  At 
+that point, device drivers address clocks with a clock alias string, e.g., 
+"fck", plus a struct device pointer.  This patch doesn't change that.  
+
+What it does remove is the need for internal core code to fake up a struct 
+device simply to access a clock.  It also allows us to harmonize the 
+clock names, used internally in core code, with the hardware reality, 
+which uses unique names to identify clocks.
+
+
+- Paul
