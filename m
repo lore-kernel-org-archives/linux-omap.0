@@ -1,14 +1,14 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCHv4 00/20] OMAP ASoC changes in DMA
-	utilization
-Date: Mon, 17 Aug 2009 17:05:49 +0300
-Message-ID: <20090817170549.f0adf2a4.jhnikula@gmail.com>
-References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv5 03/20] OMAP: McBSP: Use appropriate value for
+	startup delay
+Date: Mon, 17 Aug 2009 17:09:03 +0300
+Message-ID: <1250518143-13336-1-git-send-email-eduardo.valentin@nokia.com>
+References: <20090817135632.GW7278@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <20090817135632.GW7278@atomide.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -19,45 +19,42 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
 To: alsa-devel@alsa-project.org
-Cc: Takashi Iwai <tiwai@suse.de>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Cc: Takashi Iwai <tiwai@suse.de>, Eduardo Valentin <eduardo.valentin@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, 17 Aug 2009 14:50:59 +0300
-Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-> Hello again guys,
-> 
-> Here is version 4 of these changes. No real changes from previous versions.
-> The only thing is that now I've rebased on top of Takashi's tree:
-> http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=summary
-> 
-> as there are pending things there which Jarkko has pointed on previous series.
-> 
-Here's my ack to the ASoC part. I tested the set on top of these
-Janusz's patches:
+Increasing startup delay value as worst case:
+ CLKSRG*2 = 8000khz: (1/8000) * 2 * 2 usec
 
-http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020170.html
-http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020171.html
-http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020262.html
+Although, 100us may give enough time for two CLKSRG,
+due to some unknown PM related, clock gating etc. reason,
+this patch increases it to 500us.
 
-Note, that I posted modified version for the patch 16 based on Janusz's
-[PATCH 3/3 v3].
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ arch/arm/plat-omap/mcbsp.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
-
-> 
->  arch/arm/mach-omap2/mcbsp.c             |    5 +
->  arch/arm/plat-omap/include/mach/mcbsp.h |   49 ++++
->  arch/arm/plat-omap/mcbsp.c              |  377 ++++++++++++++++++++++++++++++-
->  sound/soc/omap/omap-mcbsp.c             |   78 ++++++-
->  sound/soc/omap/omap-pcm.c               |   14 +-
->  sound/soc/omap/omap-pcm.h               |    2 +
->  6 files changed, 511 insertions(+), 14 deletions(-)
-> 
-Tony, if you are ok with the OMAP McBSP changes, how it would be best
-get these merged? Via ASoC, LKML or separately from both
-subsystems during the merge window?
-
-
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 0aa2524..e9dd703 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -365,7 +365,13 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
+ 	w = OMAP_MCBSP_READ(io_base, SPCR1);
+ 	OMAP_MCBSP_WRITE(io_base, SPCR1, w | (rx & 1));
+ 
+-	udelay(100);
++	/*
++	 * Worst case: CLKSRG*2 = 8000khz: (1/8000) * 2 * 2 usec
++	 * REVISIT: 100us may give enough time for two CLKSRG, however
++	 * due to some unknown PM related, clock gating etc. reason it
++	 * is now at 500us.
++	 */
++	udelay(500);
+ 
+ 	if (idle) {
+ 		/* Start frame sync */
 -- 
-Jarkko
+1.6.2.GIT
+
