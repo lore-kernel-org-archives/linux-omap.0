@@ -1,73 +1,27 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 3/3 v3] ASoC: OMAP: Enhance OMAP1510 DMA progress
- software counter
-Date: Mon, 17 Aug 2009 12:26:05 +0300
-Message-ID: <20090817122605.0b240ea7.jhnikula@gmail.com>
-References: <200908101050.08074.jkrzyszt@tis.icnet.pl>
-	<200908110107.11485.jkrzyszt@tis.icnet.pl>
-	<200908112144.30731.jkrzyszt@tis.icnet.pl>
+From: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Subject: Re: [PATCH 04/13] OMAP2/3 clock: ensure each clock has a unique
+	name
+Date: Mon, 17 Aug 2009 10:29:04 +0100
+Message-ID: <20090817092904.GA2752@n2100.arm.linux.org.uk>
+References: <20090815111704.7384.31564.stgit@localhost.localdomain> <20090815111944.7384.13541.stgit@localhost.localdomain> <20090817084704.GN7278@atomide.com> <alpine.DEB.2.00.0908170259250.18309@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:56222 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932165AbZHQJYe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 05:24:34 -0400
-In-Reply-To: <200908112144.30731.jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0908170259250.18309-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, 11 Aug 2009 21:44:29 +0200
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+On Mon, Aug 17, 2009 at 03:14:45AM -0600, Paul Walmsley wrote:
+> What it does remove is the need for internal core code to fake up a struct 
+> device simply to access a clock.  It also allows us to harmonize the 
+> clock names, used internally in core code, with the hardware reality, 
+> which uses unique names to identify clocks.
 
-> Enhance period_index accuracy, particularly just before buffer rewind=
-, by
-> making use of DMA interrupt status flags in addition to simply counti=
-ng up
-> interrupts.
->=20
-> Changes since v2:
-> > > > -=A0=A0=A0}
-> > > > +=A0=A0=A0} else if (stat =3D=3D OMAP_DMA_LAST_IRQ)
-> > > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return;
-> > >
-> > > Is this test needed? This interrupt is set only for playback on
-> > > omap1510 so this looks null-op.
-> >
-> > You're right, I have put it here before limiting the flag request t=
-o
-> > playback on OMAP1510 only. So it can be omitted...
->=20
-> > > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0omap_enable_dma_irq(prtd->dma=
-_ch, OMAP_DMA_FRAME_IRQ |
-> > > > +=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
-=A0=A0=A0=A0=A0=A0OMAP_DMA_LAST_IRQ);
-> > >
-> > > Indent OMAP_DMA_LAST_IRQ with tab(s) and spaces to the same colum=
-n
-> > > than OMAP_DMA_FRAME_IRQ. Looks nicer then.
-> >
-> > OK, will fix it.
-> >
-> > > Should the
-> > > OMAP_DMA_BLOCK_IRQ to be set since it is handled in omap_pcm_dma_=
-irq?
-> >
-> > This one is already requested from inside omap_request_dma() and us=
-ed
-> > inside omap1_dma_handle_ch() in addition to passing it to us.
-> But for less confusion, it'll be better if requested from here too.
->=20
-I'm fine with this 3rd version. Probably Mark would like to have git
-format-patch formatted version for avoiding manual commit log editing.
-
-Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+That problem is already solved.  clk_get_sys()
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-arm" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
