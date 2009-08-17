@@ -1,18 +1,17 @@
-From: Unknown <unknown@unknown.invalid>
+From: Moiz Sonasath <m-sonasath@ti.com>
 Subject: [PATCH 1/3] i2c-omap: Fix I2C status ACK
-Date: Mon, 17 Aug 2009 17:42:09 -0500
-Message-ID: <45451.1979049586$1250548668@news.gmane.org>
-References: <1250548931-18279-1-git-send-email-n>
+Date: Mon, 17 Aug 2009 17:45:44 -0500
+Message-ID: <1250549146-18362-2-git-send-email-m-sonasath@ti.com>
+References: <1250549146-18362-1-git-send-email-m-sonasath@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42127 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35724 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758256AbZHQWhW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 17 Aug 2009 18:37:22 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7HMbIvn030998
-	for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2009 17:37:23 -0500
-From: n@lina0132712
-In-Reply-To: <1250548931-18279-1-git-send-email-n>
+	id S1758265AbZHQWk5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Aug 2009 18:40:57 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7HMerv4017220
+	for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2009 17:40:58 -0500
+In-Reply-To: <1250549146-18362-1-git-send-email-m-sonasath@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
