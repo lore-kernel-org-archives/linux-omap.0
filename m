@@ -1,199 +1,208 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: [PATCH 3/3] MFD: TWL4030: OMAP: Board-specifc DPS scripts for
- RX51 board
-Date: Mon, 17 Aug 2009 14:46:51 +0300
-Message-ID: <20090817114651.GD5007@everest>
-References: <1247050179-31187-1-git-send-email-amit.kucheria@verdurent.com>
- <20090804180304.GI8601@sortiz.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH v2] Runtime detection of Si features
+Date: Mon, 17 Aug 2009 17:20:58 +0530
+Message-ID: <1250509858-7951-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:54157 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757762AbZHQLq4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 07:46:56 -0400
-Content-Disposition: inline
-In-Reply-To: <20090804180304.GI8601@sortiz.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:42576 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751754AbZHQLvF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 17 Aug 2009 07:51:05 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7HBp0qA011236
+	for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2009 06:51:05 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: dbrownell@users.sourceforge.net, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On 09 Aug 04, Samuel Ortiz wrote:
-> Hi Amit,
-> 
-> On Wed, Jul 08, 2009 at 01:49:39PM +0300, Amit Kucheria wrote:
-> > Add support for Dynamic Power Switching (DPS) for the RX51 board.
-> Could I have an Acked-by from Tony or someone from Nokia maintaining this
-> board (e.g. Lauri) ?
-> 
+The OMAP35x family has multiple variants differing
+in the HW features. This patch detects these features
+at runtime and prints information during the boot.
 
-I'll cc Tony in the refreshed patches. Please note that this is not the
-final version of the script. As the scripts are optimised, I'll send in
-fixes.
+Since most of the code seemed repetitive, macros
+have been used for readability.
 
-Regards,
-Amit
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/id.c                  |   52 +++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/mmc-twl4030.c         |    1 +
+ arch/arm/plat-omap/include/mach/control.h |   34 +++++++++++++++++++
+ arch/arm/plat-omap/include/mach/cpu.h     |   23 +++++++++++++
+ 4 files changed, 107 insertions(+), 3 deletions(-)
 
-> > Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> > ---
-> >  arch/arm/mach-omap2/board-rx51-peripherals.c |  122 +++++++++++++++++++++++++-
-> >  1 files changed, 120 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> > index 9a0bf67..f7ebec8 100644
-> > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> > @@ -1,5 +1,5 @@
-> >  /*
-> > - * linux/arch/arm/mach-omap2/board-rx51-flash.c
-> > + * linux/arch/arm/mach-omap2/board-rx51-peripherals.c
-> >   *
-> >   * Copyright (C) 2008-2009 Nokia
-> >   *
-> > @@ -278,7 +278,124 @@ static struct twl4030_gpio_platform_data rx51_gpio_data = {
-> >  	.setup			= rx51_twlgpio_setup,
-> >  };
-> >  
-> > -static struct twl4030_platform_data rx51_twldata = {
-> > +static struct twl4030_ins sleep_on_seq[] __initdata = {
-> > +/*
-> > + * Turn off VDD1 and VDD2.
-> > + */
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-> > +/*
-> > + * And also turn off the OMAP3 PLLs and the sysclk output.
-> > + */
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_OFF), 3},
-> > +};
-> > +
-> > +static struct twl4030_script sleep_on_script __initdata = {
-> > +	.script = sleep_on_seq,
-> > +	.size   = ARRAY_SIZE(sleep_on_seq),
-> > +	.flags  = TRITON_SLEEP_SCRIPT,
-> > +};
-> > +
-> > +static struct twl4030_ins wakeup_seq[] __initdata = {
-> > +/*
-> > + * Reenable the OMAP3 PLLs.
-> > + * Wakeup VDD1 and VDD2.
-> > + * Reenable sysclk output.
-> > + */
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
-> > +};
-> > +
-> > +static struct twl4030_script wakeup_script __initdata = {
-> > +	.script	= wakeup_seq,
-> > +	.size	= ARRAY_SIZE(wakeup_seq),
-> > +	.flags	= TRITON_WAKEUP12_SCRIPT,
-> > +};
-> > +
-> > +static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-> > +/*
-> > + * Wakeup VDD1 (dummy to be able to insert a delay)
-> > + * Enable CLKEN
-> > + */
-> > +	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_ACTIVE), 3},
-> > +};
-> > +
-> > +static struct twl4030_script wakeup_p3_script __initdata = {
-> > +	.script	= wakeup_p3_seq,
-> > +	.size	= ARRAY_SIZE(wakeup_p3_seq),
-> > +	.flags	= TRITON_WAKEUP3_SCRIPT,
-> > +};
-> > +
-> > +static struct twl4030_ins wrst_seq[] __initdata = {
-> > +/*
-> > + * Reset twl4030.
-> > + * Reset VDD1 regulator.
-> > + * Reset VDD2 regulator.
-> > + * Reset VPLL1 regulator.
-> > + * Enable sysclk output.
-> > + * Reenable twl4030.
-> > + */
-> > +	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-> > +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
-> > +		0x13},
-> > +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 2, RES_STATE_WRST), 0x13},
-> > +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF), 0x13},
-> > +	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
-> > +	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
-> > +	{MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
-> > +	{MSG_SINGULAR(DEV_GRP_P1, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
-> > +	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-> > +};
-> > +
-> > +static struct twl4030_script wrst_script __initdata = {
-> > +	.script = wrst_seq,
-> > +	.size   = ARRAY_SIZE(wrst_seq),
-> > +	.flags  = TRITON_WRST_SCRIPT,
-> > +};
-> > +
-> > +static struct twl4030_script *twl4030_scripts[] __initdata = {
-> > +	/* wakeup12 script should be loaded before sleep script, otherwise a
-> > +	   board might hit retention before loading of wakeup script is
-> > +	   completed. This can cause boot failures depending on timing issues.
-> > +	*/
-> > +	&wakeup_script,
-> > +	&sleep_on_script,
-> > +	&wakeup_p3_script,
-> > +	&wrst_script,
-> > +};
-> > +
-> > +static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
-> > +	{ .resource = RES_VINTANA1, .devgroup = -1, .type = -1, .type2 = 1 },
-> > +	{ .resource = RES_VINTANA2, .devgroup = -1, .type = -1, .type2 = 1 },
-> > +	{ .resource = RES_VINTDIG, .devgroup = -1, .type = -1, .type2 = 1 },
-> > +	{ .resource = RES_VMMC1, .devgroup = -1, .type = -1, .type2 = 3},
-> > +	{ .resource = RES_VMMC2, .devgroup = DEV_GRP_NULL, .type = -1,
-> > +	  .type2 = 3},
-> > +	{ .resource = RES_VAUX1, .devgroup = -1, .type = -1, .type2 = 3},
-> > +	{ .resource = RES_VAUX2, .devgroup = -1, .type = -1, .type2 = 3},
-> > +	{ .resource = RES_VAUX3, .devgroup = -1, .type = -1, .type2 = 3},
-> > +	{ .resource = RES_VAUX4, .devgroup = -1, .type = -1, .type2 = 3},
-> > +	{ .resource = RES_VPLL2, .devgroup = -1, .type = -1, .type2 = 3},
-> > +	{ .resource = RES_VDAC, .devgroup = -1, .type = -1, .type2 = 3},
-> > +	{ .resource = RES_VSIM, .devgroup = DEV_GRP_NULL, .type = -1,
-> > +	  .type2 = 3},
-> > +	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P3, .type = -1,
-> > +		.type2 = 1 },
-> > +	{ 0, 0},
-> > +};
-> > +
-> > +static struct twl4030_power_data rx51_t2scripts_data __initdata = {
-> > +	.scripts        = twl4030_scripts,
-> > +	.size   = ARRAY_SIZE(twl4030_scripts),
-> > +	.resource_config = twl4030_rconfig,
-> > +};
-> > +
-> > +
-> > +
-> > +static struct twl4030_platform_data rx51_twldata __initdata = {
-> >  	.irq_base		= TWL4030_IRQ_BASE,
-> >  	.irq_end		= TWL4030_IRQ_END,
-> >  
-> > @@ -286,6 +403,7 @@ static struct twl4030_platform_data rx51_twldata = {
-> >  	.gpio			= &rx51_gpio_data,
-> >  	.keypad			= &rx51_kp_data,
-> >  	.madc			= &rx51_madc_data,
-> > +	.power			= &rx51_t2scripts_data,
-> >  
-> >  	.vaux1			= &rx51_vaux1,
-> >  	.vaux2			= &rx51_vaux2,
-> > -- 
-> > 1.6.3.3
-> > 
-> 
-> -- 
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
-
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index a98201c..03b80f2 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -28,6 +28,7 @@
+ static struct omap_chip_id omap_chip;
+ static unsigned int omap_revision;
+ 
++u32 omap3_features;
+ 
+ unsigned int omap_rev(void)
+ {
+@@ -155,7 +156,33 @@ void __init omap24xx_check_revision(void)
+ 	pr_info("\n");
+ }
+ 
+-void __init omap34xx_check_revision(void)
++#define OMAP3_CHECK_FEATURE(status,feat)				\
++	if (((status & OMAP3_ ##feat## _MASK) 				\
++		>> OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) { 	\
++		omap3_features |= OMAP3_HAS_ ##feat;			\
++	}
++
++void __init omap3_check_features(void)
++{
++	u32 status;
++
++	omap3_features = 0;
++
++	status = omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS);
++
++	OMAP3_CHECK_FEATURE(status, L2CACHE);
++	OMAP3_CHECK_FEATURE(status, IVA);
++	OMAP3_CHECK_FEATURE(status, SGX);
++	OMAP3_CHECK_FEATURE(status, NEON);
++	OMAP3_CHECK_FEATURE(status, ISP);
++
++	/*
++	 * TODO: Get additional info (where applicable)
++	 *       e.g. Size of L2 cache.
++	 */
++}
++
++void __init omap3_check_revision(void)
+ {
+ 	u32 cpuid, idcode;
+ 	u16 hawkeye;
+@@ -212,6 +239,22 @@ out:
+ 	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
+ }
+ 
++#define OMAP3_SHOW_FEATURE(feat)		\
++	if (omap3_has_ ##feat()) {		\
++		pr_info (" - "#feat" : Y");	\
++	} else {				\
++		pr_info (" - "#feat" : N");	\
++	}
++
++void __init omap3_cpuinfo(void)
++{
++	OMAP3_SHOW_FEATURE(l2cache);
++	OMAP3_SHOW_FEATURE(iva);
++	OMAP3_SHOW_FEATURE(sgx);
++	OMAP3_SHOW_FEATURE(neon);
++	OMAP3_SHOW_FEATURE(isp);
++}
++
+ /*
+  * Try to detect the exact revision of the omap we're running on
+  */
+@@ -223,8 +266,11 @@ void __init omap2_check_revision(void)
+ 	 */
+ 	if (cpu_is_omap24xx())
+ 		omap24xx_check_revision();
+-	else if (cpu_is_omap34xx())
+-		omap34xx_check_revision();
++	else if (cpu_is_omap34xx()) {
++		omap3_check_features();
++		omap3_check_revision();
++		omap3_cpuinfo();
++	}
+ 	else if (cpu_is_omap44xx()) {
+ 		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
+ 		return;
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 3c04c2f..d68284d 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -10,6 +10,7 @@
+  * published by the Free Software Foundation.
+  */
+ #include <linux/err.h>
++#include <linux/bitops.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
+index 826d317..74ec2f9 100644
+--- a/arch/arm/plat-omap/include/mach/control.h
++++ b/arch/arm/plat-omap/include/mach/control.h
+@@ -202,6 +202,40 @@
+ #define OMAP3_PADCONF_WAKEUPEVENT0	(1 << 15)
+ #define OMAP3_PADCONF_WAKEUPENABLE0	(1 << 14)
+ 
++/*
++ * CONTROL OMAP STATUS register to identify OMAP3 features
++ */
++#define OMAP3_CONTROL_OMAP_STATUS	0x044c
++
++#define OMAP3_SGX_SHIFT			13
++#define OMAP3_SGX_MASK			(3 << OMAP3_SGX_SHIFT)
++#define		FEAT_SGX_FULL		0
++#define		FEAT_SGX_HALF		1
++#define		FEAT_SGX_NONE		2
++
++#define OMAP3_IVA_SHIFT			12
++#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
++#define		FEAT_IVA		0
++#define		FEAT_IVA_NONE		1
++
++#define OMAP3_L2CACHE_SHIFT		10
++#define OMAP3_L2CACHE_MASK		(3 << OMAP3_L2CACHE_SHIFT)
++#define		FEAT_L2CACHE_NONE	0
++#define		FEAT_L2CACHE_64KB	1
++#define		FEAT_L2CACHE_128KB	2
++#define		FEAT_L2CACHE_256KB	3
++
++#define OMAP3_ISP_SHIFT			5
++#define OMAP3_ISP_MASK			(1<< OMAP3_ISP_SHIFT)
++#define		FEAT_ISP		0
++#define		FEAT_ISP_NONE		1
++
++#define OMAP3_NEON_SHIFT		4
++#define OMAP3_NEON_MASK			(1<< OMAP3_NEON_SHIFT)
++#define		FEAT_NEON		0
++#define		FEAT_NEON_NONE		1
++
++
+ #ifndef __ASSEMBLY__
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
+ 		defined(CONFIG_ARCH_OMAP4)
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index 4fbc6a9..4a04f77 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -432,4 +432,27 @@ IS_OMAP_TYPE(3430, 0x3430)
+ int omap_chip_is(struct omap_chip_id oci);
+ void omap2_check_revision(void);
+ 
++/*
++ * Runtime detection of OMAP3 features
++ */
++extern u32 omap3_features;
++
++#define OMAP3_HAS_L2CACHE		BIT(0)
++#define OMAP3_HAS_IVA			BIT(1)
++#define OMAP3_HAS_SGX			BIT(2)
++#define OMAP3_HAS_NEON			BIT(3)
++#define OMAP3_HAS_ISP			BIT(4)
++
++#define OMAP3_HAS_FEATURE(feat,flag)			\
++static inline unsigned int omap3_has_ ##feat(void)	\
++{							\
++	return (omap3_features & OMAP3_HAS_ ##flag);	\
++}							\
++
++OMAP3_HAS_FEATURE(l2cache, L2CACHE)
++OMAP3_HAS_FEATURE(sgx, SGX)
++OMAP3_HAS_FEATURE(iva, IVA)
++OMAP3_HAS_FEATURE(neon, NEON)
++OMAP3_HAS_FEATURE(isp, ISP)
++
+ #endif	/* __ASM_ARCH_OMAP_CPU_H */
 -- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
+1.6.2.2
+
