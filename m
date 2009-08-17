@@ -1,86 +1,41 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
-Date: Mon, 17 Aug 2009 15:23:18 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444A8201BE@dlee02.ent.ti.com>
-References: <20090808170300.GA23481@n2100.arm.linux.org.uk>
- <0680EC522D0CC943BC586913CF3768C003790C64CF@dbde02.ent.ti.com>
- <20090813173327.GA14872@n2100.arm.linux.org.uk>
- <0680EC522D0CC943BC586913CF3768C003790C6586@dbde02.ent.ti.com>
- <20090815153357.GF29616@n2100.arm.linux.org.uk>
- <0680EC522D0CC943BC586913CF3768C003790C65ED@dbde02.ent.ti.com>
- <20090815181711.GG29616@n2100.arm.linux.org.uk>
- <20090817173343.GA17323@debian>
- <20090817174718.GU10764@n2100.arm.linux.org.uk>
- <20090817180145.GA17378@debian>
- <20090817180455.GW10764@n2100.arm.linux.org.uk>
+From: ewitcher <ewitcher-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>
+Subject: Re: MUSB regression in 2.6.31-rc6
+Date: Mon, 17 Aug 2009 17:27:09 -0400 (GMT-04:00)
+Message-ID: <6055571.1250544429670.JavaMail.root@elwamui-hound.atl.sa.earthlink.net>
+Reply-To: ewitcher <ewitcher-mn4gwa5WIIQysxA8WJXlww@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58764 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757726AbZHQUUr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 16:20:47 -0400
-In-Reply-To: <20090817180455.GW10764@n2100.arm.linux.org.uk>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>, Jarkko Nikula <jhnikula-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, "Gadiyar,Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "Gupta,Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Rabin Vincent <rabin@rab.in>
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Hello,
 
+The below referenced patch was helpful to me in resolving the
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Russell King - ARM Linux
-> Sent: Monday, August 17, 2009 1:05 PM
-> To: Rabin Vincent
-> Cc: Syed Mohammed, Khasim; linux-arm-kernel@lists.arm.linux.org.uk; linux-
-> omap@vger.kernel.org
-> Subject: Re: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
-> 
-> On Mon, Aug 17, 2009 at 11:31:45PM +0530, Rabin Vincent wrote:
-> > When mid == 0, the loop exits because the condition you have is :
-> >
-> >   while ((mid = (right - left) / 2) > 0) {
-> >                                   ^^^^^^
-> >
-> > Thus bank[0] will never be checked.
-> 
-> Ah yes, right.  Damn it.
-> 
-> Oh well, this will probably have to wait a couple of weeks now (by
-> which time I expect I will have forgotten about the problem.)
+<3>twl4030_usb twl4030_usb: ldo init failed
 
-How about this?:
+error.
 
-#ifndef CONFIG_SPARSEMEM
-int pfn_valid(unsigned long pfn)
-{
-	struct meminfo *mi = &meminfo;
-	unsigned int left = 0, right = mi->nr_banks;
+Examining the minicom.cap attachment, I can see that twl4030_usb  is initialized before regulator.  If you move the twl4030_usb initialization to after regulator, you should be ok.
 
-	while (left <= right) {
-		unsigned int mid = (right - left) / 2;
-		struct membank *bank = &mi->bank[mid];
+[PATCH] USB:otg:twl4030-usb.c: mark .init as subsys_initcall_sync
+http://marc.info/?l=linux-usb&m=124913041802639&w=2
 
-		if (pfn < bank_pfn_start(bank))
-			right = mid;
-		else if (pfn >= bank_pfn_end(bank))
-			left = mid + 1;
-		else
-			return 1;
-	}
-	return 0;
-}
-EXPORT_SYMBOL(pfn_valid);
-#endif
+I also included the aforementioned patch at the end of
+
+ Re: [PATCH 10/10] OMAP3: update OMAP3 Beagle defconfig, v2
+http://marc.info/?l=linux-omap&m=125038741913297&w=2
 
 Regards,
-Sergio
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Eric
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
