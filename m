@@ -1,53 +1,73 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Pull request for OMAP PM, clock, SDRC 2.6.32 patches
-Date: Mon, 17 Aug 2009 18:09:21 +0100
-Message-ID: <20090817170921.GT10764@n2100.arm.linux.org.uk>
-References: <alpine.DEB.2.00.0908160737380.31720@utopia.booyaka.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
+Date: Mon, 17 Aug 2009 22:51:46 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C0037CB51FBE@dbde02.ent.ti.com>
+References: <0680EC522D0CC943BC586913CF3768C00378FF3971@dbde02.ent.ti.com>
+ <20090807220016.GG31543@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C5B3A@dbde02.ent.ti.com>
+ <20090808170300.GA23481@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C64CF@dbde02.ent.ti.com>
+ <20090813173327.GA14872@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C6586@dbde02.ent.ti.com>
+ <20090815153357.GF29616@n2100.arm.linux.org.uk>
+ <20090815181711.GG29616@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C67DC@dbde02.ent.ti.com>
+ <20090817165054.GR10764@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33577 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757148AbZHQRJ3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 13:09:29 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0908160737380.31720@utopia.booyaka.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47224 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932352AbZHQRWI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 13:22:08 -0400
+In-Reply-To: <20090817165054.GR10764@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org, hiroshi.doyu@nokia.com
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Sun, Aug 16, 2009 at 07:45:59AM -0600, Paul Walmsley wrote:
+
+
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Monday, August 17, 2009 10:21 PM
+> To: Syed Mohammed, Khasim
+> Cc: linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
+> Subject: Re: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
 > 
-> Hello Russell,
+> On Mon, Aug 17, 2009 at 04:40:27PM +0530, Syed Mohammed, Khasim wrote:
+> > This patch seem to be working, I don't see any dump like before.
 > 
-> Here's the pull request for the thirteen patches posted earlier, plus 
-> Hiroshi's clock debugfs error path fix.
-
-I'm afraid to say that I think you've left it far too late to send this.
-I did set a date of the 16th as being the final date to sort out stuff
-(which was flexible to a degree) but since these patches were only posted
-on Saturday, and they're still being discussed, I don't think it would
-make sense for me to pull it today.
-
-And this is likely to be the final day that I merge anything into my
-kernel tree for the next two weeks.
+> Great.
 > 
-> regards,
+> > Can you please advice on how to get this patch into kernel? I mean,
+> > will you be handling it or we need to re-submit them with your signed off?
 > 
-> - Paul
+> Yes, I'll be sending it.  However, I believe the patch I sent contains
+> one error:
+Thanks.
+
+> > > +static int __init meminfo_cmp(const void *_a, const void *_b)
+> > > +{
+> > > +	const struct membank *a = _a, *b = _b;
+> > > +	long cmp = bank_pfn_start(b) - bank_pfn_start(a);
 > 
-> The following changes since commit 3b3119fc549c93df60316d28bdd77c2de3986588:
->   Russell King (1):
->         Merge branch 'ixp4xx-fixes' of git://git.kernel.org/.../chris/linux-2.6
+> I think this should be bank_pfn_start(a) - bank_pfn_start(b).  When you
+> tested this unmodified patch, did the "Memory:" line list the memory
+> bank sizes in reverse order?
 
-That's stupid.  Someone publishing _my_ tree, which I make no guarantees
-about the life of the commits, for other people to base their work on...
-That's definitely a big FAIL.
+Unmodified results in
 
-Luckily for you though, that commit still exists in my tree, and I've
-asked Linus to pull that set; so essentially it became immutable only
-last night.
+MEM: unordered memory banks.  Not freeing memmap.
+Memory: 60MB 88MB = 148MB total
 
-Don't base patches on the contents of my tree without talking to me first
-please.
+Making it a - b results in
+
+Memory: 88MB 60MB = 148MB total
+
+a-b is correct one, fortunately both worked for me. 
+
+Regards,
+Khasim
