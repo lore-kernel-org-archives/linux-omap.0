@@ -1,36 +1,61 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 3/3 v3] ASoC: OMAP: Enhance OMAP1510 DMA
- progress software counter
-Date: Mon, 17 Aug 2009 11:03:14 +0100
-Message-ID: <20090817100313.GA5756@rakim.wolfsonmicro.main>
-References: <200908101050.08074.jkrzyszt@tis.icnet.pl>
-	<200908110107.11485.jkrzyszt@tis.icnet.pl>
-	<200908112144.30731.jkrzyszt@tis.icnet.pl>
-	<20090817122605.0b240ea7.jhnikula@gmail.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 04/13] OMAP2/3 clock: ensure each clock has a unique
+ name
+Date: Mon, 17 Aug 2009 04:06:44 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908170339380.7023@utopia.booyaka.com>
+References: <20090815111704.7384.31564.stgit@localhost.localdomain> <20090815111944.7384.13541.stgit@localhost.localdomain> <20090817084704.GN7278@atomide.com> <alpine.DEB.2.00.0908170259250.18309@utopia.booyaka.com>
+ <20090817092904.GA2752@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20090817122605.0b240ea7.jhnikula@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:45991 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757582AbZHQKGn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 06:06:43 -0400
+In-Reply-To: <20090817092904.GA2752@n2100.arm.linux.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org
 
-On Mon, Aug 17, 2009 at 12:26:05PM +0300, Jarkko Nikula wrote:
+Hello Russell,
 
-> I'm fine with this 3rd version. Probably Mark would like to have git
-> format-patch formatted version for avoiding manual commit log editing.
+On Mon, 17 Aug 2009, Russell King - ARM Linux wrote:
 
-> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+> On Mon, Aug 17, 2009 at 03:14:45AM -0600, Paul Walmsley wrote:
+> > What it does remove is the need for internal core code to fake up a struct 
+> > device simply to access a clock.  It also allows us to harmonize the 
+> > clock names, used internally in core code, with the hardware reality, 
+> > which uses unique names to identify clocks.
+> 
+> That problem is already solved.  clk_get_sys()
 
-Applied both 2-3, thanks.
+That solves the first problem, but not the second.  Is there some reason 
+that OMAP core code (aside from the clkdev mapping structures in 
+mach-omap2/clock*.c) should know, or care, whether a platform device name 
+is bound to that clock?
+
+On OMAP, we have uniquely-named clock lines in the technical 
+documentation.  It is possible that other platforms don't have this.  But 
+for us, I'd submit that it makes more sense for internal core code to 
+fetch a clock documented as "MMC1_FCLK" with:
+
+    c = omap_clk_get_by_name("mmc1_fck");
+
+rather than: 
+
+    c = clk_get_sys("mmci-omap-hs.0", "ick");
+
+(* ideally, of course, we'd use "mmc1_fclk" rather than "mmc1_fck", this 
+is a legacy issue that has been left for a future patch.)
+
+As a side benefit, it also makes our clock debugfs setup easier, so a 
+clock can be identified in the path as simply 
+/debugfs/clock/.../mmc1_fck/, rather than something like 
+/debugfs/clock/.../mmci-omap-hs.0-mmc1_fck/ or 
+/debugfs/clock/.../mmci-omap-hs.0/mmc1_fck.
+
+Thoughts?
+
+
+- Paul
