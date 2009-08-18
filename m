@@ -1,55 +1,81 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: MUSB regression in 2.6.31-rc6
-Date: Tue, 18 Aug 2009 10:31:44 +0300
-Message-ID: <20090818103144.e44df407.jhnikula@gmail.com>
-References: <6055571.1250544429670.JavaMail.root@elwamui-hound.atl.sa.earthlink.net>
+From: rt_sal retour <youssef.rtsal@gmail.com>
+Subject: Probleme to connect OMAP3 DevKit8000 Board card to Pc via rs232
+Date: Tue, 18 Aug 2009 08:35:40 +0100
+Message-ID: <c717a6ff0908180035m6576ea08l84735e0c7e67820b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:37327 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752243AbZHRHaN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 03:30:13 -0400
-In-Reply-To: <6055571.1250544429670.JavaMail.root@elwamui-hound.atl.sa.earthlink.net>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
+List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
+List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
+List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
+List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
+List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
+To: khasim@ti.com, r-woodruff2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, adrian.hunter@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: ewitcher <ewitcher@mindspring.com>
-Cc: Kalle Valo <kalle.valo@iki.fi>, felipe.balbi@nokia.com, "Gadiyar,Anand" <gadiyar@ti.com>, "Gupta,Ajay Kumar" <ajay.gupta@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 17 Aug 2009 17:27:09 -0400 (GMT-04:00)
-ewitcher <ewitcher@mindspring.com> wrote:
+Hello,
+I have a problem with connecting my PC to the OMAP3 DevKit8000 Board card ;
+I can not
+communicate with it by terminal (rs232) and I have a screen with
+character like this :
+=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=FB=
+=FF=FF=FF=FF=FF=FB=FF=FF=FF=FB=FB=DF=FF=FB=FB=FF=FF=FF=FB=FB=FF=FF=FB=FB=DF=
+=FF=FF=FF=DB=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FF=FF=FF=FB=FF=FB=FF=DF=
+=FF=FF=FF=DF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=DF=FF=FF=FF=FF=FF=FF=FB=DF=
+=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FB=FB=FB=FF=DF=FB=FF=DF=FF=FB=FF=
+=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=FF=FB=FF=FF=
+=AD=FB=FF=FF=FF=FF=FF=FB=DB=FF=FF=FF=FF=FF=DF=FF=FF=DF=FF=FB=FF=FF=FF=FF=FF=
+=FB=FF=FF=FF=FF=FF=FF=FF=DB=FF=FF=DB=FF=DF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FB=FF=
+=FF=FF=FF=FB=FF=FF=FF=FB=FB=FF=FB=FF=FF=FB=FF=FF=FF=FF=FF=DF=FF=FF=FF=DF=FB=
+=FF=FB=FF=FF=FF=FB=DF=FF=FB=DF=FF=FB=FF=FF=FF=FF=FB=FF=FF=FF=FF=FB=FB=FF=FF=
+=FB=FF=FF=FF=FB=FF=FF=FF=FF=FB=FB=FF=DF=FF=FF=FB=FB=FB=FF=FF=FF=FB=FB=FF=FF=
+=FB=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=DB=FF=FF=FF=FF=FF=FF=FF=FF=
+=FF=AD=DF=FF=FF=FF=FF=FF=FF=FB=FF=FF=DB=FF=FF=FF=FB=FF=DB=DF=FF=FF=FF=FF=FB=
+=FF=FF=DF=FB=FF=FF=FB=FF=FB=FF=FB=FF=FB=FF=DB=DF=FF=FF=FF=FF=FF=FB=FF=FF=FF=
+=FB=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FF=FF=FF=FB=FF=FB=FF=FF=FF=
+=FF=DF=FF=FB=FF=DF=FF=FF=FF=FB=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=
+=FB=FB=FF=DF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=
+=FB=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FB=FF=FB=FF=FF=DF=FF=FF=DB=DF=FF=FF=FB=FF=
+=FF=FF=AD=FF=FF=FF=FF=FF=FF=FF=FF=DF=DF=FF=FF=FF=FF=FF=FB=FF=FB=FF=FB=FF=FB=
+=FF=FF=FF=FB=FB=FF=FB=FB=FF=DF=FF=FF=FF=FF=FB=FF=FF=FF=FB=DF=FF=FF=FF=FB=FF=
+=FF=FF=FF=DF=FB=FB=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FB=FF=FF=FB=FF=FF=FF=FF=FF=
+=FF=FB=FF=FF=FB=FB=FF=FF=FF=FF=FF=FF=FF=FB=FB=DB=FF=FF=FF=FF=FF=FF=FF=FF=FF=
+=DF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FF=FF=FB=FF=FF=FF=FB=
+=DB=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FB=FF=FF=FF=FF=FB=FB=FF=
+=DF=FB=FF=AD=DF=FB=FB=FF=FF=FF=FF=FF=FB=EF=FF=FF=FB=DB=FF=FF=FF=FF=FF=FF=FB=
+=FF=FF=FF=FF=FF=FF=FF=FF=FF=DF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=FF=
+=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=
+=FF=FF=FF=FF=FF=DF=FF=FB=FF=DF=FF=FF=FF=FB=DF=FB=FB=FB=FF=FB=FB=FF=FF=FF=FB=
+=FF=FF=FF=FF=FF=FF=DF=FB=FF=FF=FB=FF=FB=DF=FF=FB=FF=FF=FF=FB=FF=FF=FF=FF=FF=
+=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=DF=DF=
+=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=DF=FF=FB=FB=FF=DF...............
+i used it under vista.
+Regards,
+Youssef
+-- =
 
-> Hello,
-> 
-> The below referenced patch was helpful to me in resolving the
-> 
-> <3>twl4030_usb twl4030_usb: ldo init failed
-> 
-> error.
-> 
-> Examining the minicom.cap attachment, I can see that twl4030_usb  is initialized before regulator.  If you move the twl4030_usb initialization to after regulator, you should be ok.
-> 
-> [PATCH] USB:otg:twl4030-usb.c: mark .init as subsys_initcall_sync
-> http://marc.info/?l=linux-usb&m=124913041802639&w=2
-> 
-Thanks! That patch and Felipe's patch to board-omap3beagle.c made it
-booting.
+Youssef Fares
+Ing=E9nieur  D=E9veloppement
 
-http://marc.info/?l=linux-arm-kernel&m=125007992121335&w=2
+ARDIA
+P=F4le Technologique "El-Ghazala"
+B=E2t E1
 
-However, I'm not able to get a bit going but at least now one is able to
-debug it. There is only this "unexpected notification 03!" seen on pc
-side when the cable is plugged in.
+BP 99-2088 - Ariana Nord
 
-Beagle:
-g_ether gadget: high speed config #1: CDC Ethernet (ECM)
+TUNISIA
 
-PC:
-usb0: register 'cdc_ether' at usb-0000:00:1d.7-1, CDC Ethernet Device,
-a6:9c:9f:d0:8a:65
-usb0: CDC: unexpected notification 03!
+Phone:. +216 96832062
 
-
--- 
-Jarkko
+Mob: +216 96832062
+E-mail: fares.youssef@ardia.com.tn
+Skype:faresardia
+http://www.actia.com
+-------------------------------------------------------------------
+List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
+FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
+Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
