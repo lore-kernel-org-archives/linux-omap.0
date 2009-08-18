@@ -1,86 +1,54 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: FW: [patch 4/9] mmc: add the new linux-mmc mailing list to MAINTAINERS
-Date: Tue, 18 Aug 2009 17:31:33 -0500
-Message-ID: <003d01ca2053$a3d1f1e0$544ff780@am.dhcp.ti.com>
+From: "Woodruff, Richard" <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Subject: RE: Pull request for OMAP PM, clock, SDRC 2.6.32 patches
+Date: Tue, 18 Aug 2009 18:04:40 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE89671620399F63372@dlee02.ent.ti.com>
+References: <alpine.DEB.2.00.0908160737380.31720@utopia.booyaka.com>
+ <20090817170921.GT10764@n2100.arm.linux.org.uk>
+ <alpine.DEB.2.00.0908180621270.7224@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57789 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751233AbZHRWbl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 18:31:41 -0400
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.0908180621270.7224-rwI8Ez+7Ko+d5PgPZx9QOdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
+Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>, Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org" <linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org>, "linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hiroshi.doyu-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <hiroshi.doyu-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "Nayak, Rajendra" <rnayak-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>, jarkko.lavinen@nokia.com
-Cc: linux-omap@vger.kernel.org
 
-
+Hi Paul,
 
 > -----Original Message-----
-> From: Andrew Morton [mailto:akpm@linux-foundation.org]
-> Sent: Tuesday, August 18, 2009 5:17 PM
-> To: Madhusudhan
-> Cc: torvalds@linux-foundation.org; HaraldWelte@viatech.com;
-> JosephChan@via.com.tw; ben-linux@fluff.org; drzeus@drzeus.cx;
-> ian@mnementh.co.uk; jarkko.lavinen@nokia.com; linux-mmc@vger.kernel.org;
-> manuel.lauss@gmail.com; nico@cam.org; ppisa@pikron.com;
-> saschasommer@freenet.de
-> Subject: Re: [patch 4/9] mmc: add the new linux-mmc mailing list to
-> MAINTAINERS
-> 
-> On Tue, 18 Aug 2009 17:08:40 -0500
-> "Madhusudhan" <madhu.cr@ti.com> wrote:
-> 
-> >
-> >
-> > > -----Original Message-----
-> > > From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
-> > > owner@vger.kernel.org] On Behalf Of akpm@linux-foundation.org
-> > > Sent: Tuesday, August 18, 2009 4:11 PM
-> > > To: torvalds@linux-foundation.org
-> > > Cc: akpm@linux-foundation.org; HaraldWelte@viatech.com;
-> > > JosephChan@via.com.tw; ben-linux@fluff.org; drzeus@drzeus.cx;
-> > > ian@mnementh.co.uk; jarkko.lavinen@nokia.com; linux-
-> mmc@vger.kernel.org;
-> > > manuel.lauss@gmail.com; nico@cam.org; ppisa@pikron.com;
-> > > saschasommer@freenet.de
-> > > Subject: [patch 4/9] mmc: add the new linux-mmc mailing list to
-> > > MAINTAINERS
-> > >
-> > > From: Andrew Morton <akpm@linux-foundation.org>
-> > >
-> > > There are a number of individual MMC drivers listed in MAINTAINERS.  I
-> > > didn't modify those records.  Perhaps I should have.
-> > >
-> > Does this mean that the individual MMC drivers list needs to be changed
-> to
-> > linux-mmc@vger.kernel.org?
-> >
-> > For e.g. the OMAP MMC support currently listed as
-> >
-> > L:     linux-omap@vger.kernel.org
-> >
-> > Should now be changed as below?
-> >
-> > L:     linux-mmc@vger.kernel.org
-> 
-> I don't know - that's why I cc'ed all you guys.  If you think that
-> linux-mmc should be mentioned in your driver's MAINTAINERS record then
-> please raise a patch to make that change.
-> 
-Hi Tony, Jarkko,
+> From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-
+> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Paul Walmsley
+> Sent: Tuesday, August 18, 2009 7:36 AM
+> To: Russell King - ARM Linux
 
-What is your opinion?
+> > I'm afraid to say that I think you've left it far too late to send this.
+> > I did set a date of the 16th as being the final date to sort out stuff
+> > (which was flexible to a degree) but since these patches were only posted
+> > on Saturday, and they're still being discussed, I don't think it would
+> > make sense for me to pull it today.
+>
+> I've dropped the two patches that are being discussed and reposted the
+> remainder.  The updated series is here (et seq.):
+>
+>     http://marc.info/?l=linux-arm-kernel&m=125059872200340&w=2
+>
+> and the pull request is here:
+>
+>     http://marc.info/?l=linux-arm-kernel&m=125059845132331&w=2
 
-The patch I posted earlier today to linux-mmc@vger.kernel.org list for HSMMC
-updation did not make this change to the list name. If you guys agree with
-this change I can post it back combining the HS MMC entry. 
+Does this series conflict with patches already submitted on OMAP4?
 
-Regards,
-Madhu
-> 
-> 
+http://www.mail-archive.com/linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg15488.html
 
+I'm not able to check now but its best to be careful here.
 
+Thanks,
+Richard W.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-arm" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
