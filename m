@@ -1,46 +1,37 @@
-From: Frederik Kriewitz <frederik@kriewitz.eu>
-Subject: OMAPFB: LL pointer dereference because of uninitialized mutex
-Date: Tue, 18 Aug 2009 15:32:10 +0200
-Message-ID: <f67028d40908180632l26e62512n8e342629faeda36d@mail.gmail.com>
-Reply-To: frederik@kriewitz.eu
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH 3/3 v3] ASoC: OMAP: Enhance OMAP1510 DMA progress software
+ counter
+Date: Tue, 18 Aug 2009 15:42:05 +0200
+Message-ID: <4A8AAFAD.9050705@tis.icnet.pl>
+References: <200908101050.08074.jkrzyszt@tis.icnet.pl> <200908110107.11485.jkrzyszt@tis.icnet.pl> <200908112144.30731.jkrzyszt@tis.icnet.pl> <20090817122605.0b240ea7.jhnikula@gmail.com> <20090817100313.GA5756@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:3373 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753490AbZHRNeF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 09:34:05 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so598902fga.17
-        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 06:34:05 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756972AbZHRNmY@vger.kernel.org>
+In-Reply-To: <20090817100313.GA5756@rakim.wolfsonmicro.main>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, Jarkko Nikula <jhnikula@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hello,
+Mark Brown wrote:
+> On Mon, Aug 17, 2009 at 12:26:05PM +0300, Jarkko Nikula wrote:
+> 
+>> I'm fine with this 3rd version. Probably Mark would like to have git
+>> format-patch formatted version for avoiding manual commit log editing.
+> 
+>> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+> 
+> Applied both 2-3, thanks.
 
-I'm trying to add support for a omap3 board.
+Jarkko, Mark,
 
-But I get a NULL pointer dereference during initialization of the lcd
-panel driver because framebufferInfo->mm_lock wasn't initialized.
+Thanks.
 
-Code of the lcd driver: http://pastebin.com/m44ccc56d (nothing special)
+And now, how is the patch 1/3 supposed to get into the mainline? Whom 
+should I ping from time to time to get it integrated? If not then, as 
+you know for sure, applying patch 2/3 whithout 1/3 will result in ASoC 
+support for OMAP1510 broken.
 
-Stack trace:
-__mutex_lock_slowpath()
-mutex_lock()
-set_fb_fix()
-omapfb_do_probe()
-devkit8000_panel_probe() << my probe function
-platform_drv_probe()
-...
-
-It get's initialized in register_framebuffer() but in my case the
-probe function gets called before register_framebuffer().
-
-Once I added the missing inits to framebuffer_alloc()
-(drivers/video/fbsysfs.c) it works fine:
-mutex_init(&info->lock);
-mutex_init(&info->mm_lock);
-
-How I'm intended to fix this?
+Thanks,
+Janusz
