@@ -1,83 +1,61 @@
-From: rt_sal retour <youssef.rtsal@gmail.com>
-Subject: Probleme to connect OMAP3 DevKit8000 Board card to Pc via rs232
-Date: Tue, 18 Aug 2009 08:41:37 +0100
-Message-ID: <c717a6ff0908180041h7d6f7f68jc18e641a59f491ae@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHv2] OMAP3: PM: Ensure MUSB is accessible before we attempt to reset it
+Date: Tue, 18 Aug 2009 11:04:44 +0200
+Message-ID: <87k511lcgj.fsf@deeprootsystems.com>
+References: <1250196401-24433-1-git-send-email-jon-hunter@ti.com>
+	<87prazcq5g.fsf@deeprootsystems.com> <4A859DF7.1070303@ti.com>
+	<87fxbu8dvb.fsf@deeprootsystems.com>
+	<20090817081359.GM7278@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk>
-List-Unsubscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=unsubscribe>
-List-Archive: <http://lists.arm.linux.org.uk/lurker/list/linux-arm-kernel.html>
-List-Post: <mailto:linux-arm-kernel@lists.arm.linux.org.uk>
-List-Help: <mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=help>
-List-Subscribe: <http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.arm.linux.org.uk?subject=subscribe>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.arm.linux.org.uk
-To: khasim@ti.com, r-woodruff2@ti.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, adrian.hunter@nokia.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-px0-f196.google.com ([209.85.216.196]:62180 "EHLO
+	mail-px0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750847AbZHRJEt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 05:04:49 -0400
+Received: by pxi34 with SMTP id 34so1691413pxi.4
+        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 02:04:50 -0700 (PDT)
+In-Reply-To: <20090817081359.GM7278@atomide.com> (Tony Lindgren's message of "Mon\, 17 Aug 2009 11\:13\:59 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jon Hunter <jon-hunter@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-Hello,
-I have a problem with connecting my PC to the OMAP3 DevKit8000 Board card ;
-I can not
-communicate with it by terminal (rs232) and I have a screen with
-character like this :
-=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=FB=
-=FF=FF=FF=FF=FF=FB=FF=FF=FF=FB=FB=DF=FF=FB=FB=FF=FF=FF=FB=FB=FF=FF=FB=FB=DF=
-=FF=FF=FF=DB=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FF=FF=FF=FB=FF=FB=FF=DF=
-=FF=FF=FF=DF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=DF=FF=FF=FF=FF=FF=FF=FB=DF=
-=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FB=FB=FB=FF=DF=FB=FF=DF=FF=FB=FF=
-=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=FF=FB=FF=FF=
-=FB=FF=FF=FF=FF=FF=FB=DB=FF=FF=FF=FF=FF=DF=FF=FF=DF=FF=FB=FF=FF=FF=FF=FF=FB=
-=FF=FF=FF=FF=FF=FF=FF=DB=FF=FF=DB=FF=DF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=
-=FF=FF=FB=FF=FF=FF=FB=FB=FF=FB=FF=FF=FB=FF=FF=FF=FF=FF=DF=FF=FF=FF=DF=FB=FF=
-=FB=FF=FF=FF=FB=DF=FF=FB=DF=FF=FB=FF=FF=FF=FF=FB=FF=FF=FF=FF=FB=FB=FF=FF=FB=
-=FF=FF=FF=FB=FF=FF=FF=FF=FB=FB=FF=DF=FF=FF=FB=FB=FB=FF=FF=FF=FB=FB=FF=FF=FB=
-=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=DB=FF=FF=FF=FF=FF=FF=FF=FF=FF=
-=DF=FF=FF=FF=FF=FF=FF=FB=FF=FF=DB=FF=FF=FF=FB=FF=DB=DF=FF=FF=FF=FF=FB=FF=FF=
-=DF=FB=FF=FF=FB=FF=FB=FF=FB=FF=FB=FF=DB=DF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FB=FB=
-=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FF=FF=FF=FB=FF=FB=FF=FF=FF=FF=DF=
-=FF=FB=FF=DF=FF=FF=FF=FB=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=
-=FF=DF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FB=FF=
-=FF=FF=FF=FF=FF=FF=FF=FB=FF=FB=FF=FB=FF=FF=DF=FF=FF=DB=DF=FF=FF=FB=FF=FF=FF=
-=AD=FF=FF=FF=FF=FF=FF=FF=FF=DF=DF=FF=FF=FF=FF=FF=FB=FF=FB=FF=FB=FF=FB=FF=FF=
-=FF=FB=FB=FF=FB=FB=FF=DF=FF=FF=FF=FF=FB=FF=FF=FF=FB=DF=FF=FF=FF=FB=FF=FF=FF=
-=FF=DF=FB=FB=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FB=FF=FF=FB=FF=FF=FF=FF=FF=FF=FB=
-=FF=FF=FB=FB=FF=FF=FF=FF=FF=FF=FF=FB=FB=DB=FF=FF=FF=FF=FF=FF=FF=FF=FF=DF=FF=
-=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FB=FF=FF=FF=FF=FF=FB=FF=FF=FF=FB=DB=FF=
-=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FB=FF=FF=FF=FF=FB=FB=FF=DF=FB=
-=FF=DF=FB=FB=FF=FF=FF=FF=FF=FB=EF=FF=FF=FB=DB=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=
-=FF=FF=FF=FF=FF=FF=DF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=
-=FF=FF=FB=FB=FF=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=
-=FF=FF=DF=FF=FB=FF=DF=FF=FF=FF=FB=DF=FB=FB=FB=FF=FB=FB=FF=FF=FF=FB=FF=FF=FF=
-=FF=FF=FF=DF=FB=FF=FF=FB=FF=FB=DF=FF=FB=FF=FF=FF=FB=FF=FF=FF=FF=FF=FF=FF=FF=
-=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=FF=DF=DF=FF=FF=FF=
-=FF=FF=FF=FB=FF=FF=FF=FF=DF=FF=FB=FB=FF=DF...............
-i used it under vista.
-Regards,
-Youssef
+Tony Lindgren <tony@atomide.com> writes:
 
+> * Kevin Hilman <khilman@deeprootsystems.com> [090814 21:11]:
+>> Jon Hunter <jon-hunter@ti.com> writes:
+>> 
+>> > Kevin Hilman wrote:
+>> >> Jon, you're raising the bar and spoiling us with such descriptive
+>> >> changelogs.  If everyone was as thorough as you, the world would be a
+>> >> merrier place. :)
+>> >>
+>> >> Thanks, pushing to PM branch and pm-2.6.29.
+>> >>
+>> >> Kevin
+>> >
+>> > No problem. You are welcome. Just an FYI, but for 2.6.29, I was doing
+>> > some testing this morning and I found that I needed to make the
+>> > following change to the patch to make it work for 2.6.29. You are
+>> > probably aware already as this makes the patch similar to your
+>> > original patch for mmc-reset.
+>> >
+>> > -	dev_set_name(dev, "musb_hdrc");
+>> > -	otg_clk = clk_get(dev, "ick");
+>> > +	otg_clk = clk_get(dev, "hsotgusb_ick");
+>> 
+>> Ah yes, I thought of that when I first saw the patch but forgot to do
+>> that on pm-2.6.29.
+>> 
+>> Thanks, pushing to pm-2.6.29.
+>
+> Where's the dependency with this patch to the PM branch? If there is 
+> a dependency, can it be removed for mainline?
+>
+> To me it looks like we should send a patch against the mainline tree via
+> linux-usb list.
 
--- =
+No, this is a temporary patch until OTG support is added to omap_hwmod.
 
-Youssef Fares
-Ing=E9nieur  D=E9veloppement
-
-ARDIA
-P=F4le Technologique "El-Ghazala"
-B=E2t E1
-
-BP 99-2088 - Ariana Nord
-
-TUNISIA
-
-Phone:. +216 96832062
-
-Mob: +216 96832062
-E-mail: fares.youssef@ardia.com.tn
-Skype:faresardia
-http://www.actia.com
--------------------------------------------------------------------
-List admin: http://lists.arm.linux.org.uk/mailman/listinfo/linux-arm-kernel
-FAQ:        http://www.arm.linux.org.uk/mailinglists/faq.php
-Etiquette:  http://www.arm.linux.org.uk/mailinglists/etiquette.php
+Kevin
