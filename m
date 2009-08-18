@@ -1,35 +1,46 @@
-From: vimal singh <vimal.newwork@gmail.com>
-Subject: Re: SDP support seems broken in LO
-Date: Tue, 18 Aug 2009 18:59:42 +0530
-Message-ID: <ce9ab5790908180629x514878abgd7d3e04ae7d1e12d@mail.gmail.com>
-References: <ce9ab5790908180519t644723cbw6876901066f1f213@mail.gmail.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02B9DCC60E@dbde02.ent.ti.com>
-	<ce9ab5790908180558m184fd48euece1093575160c0c@mail.gmail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0309BD5C0A@dbde02.ent.ti.com>
-	<ce9ab5790908180610l20ebdb5bw458616c409ddba94@mail.gmail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0309BD5C1F@dbde02.ent.ti.com>
+From: Frederik Kriewitz <frederik@kriewitz.eu>
+Subject: OMAPFB: LL pointer dereference because of uninitialized mutex
+Date: Tue, 18 Aug 2009 15:32:10 +0200
+Message-ID: <f67028d40908180632l26e62512n8e342629faeda36d@mail.gmail.com>
+Reply-To: frederik@kriewitz.eu
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:57862 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758877AbZHRNaB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 09:30:01 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so1221946qwh.37
-        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 06:30:02 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0309BD5C1F@dbde02.ent.ti.com>
+Received: from fg-out-1718.google.com ([72.14.220.153]:3373 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753490AbZHRNeF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 09:34:05 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so598902fga.17
+        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 06:34:05 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-> Move to 2008q3 or 2009q1 as a workaround.
+Hello,
 
-Thanks Anand... it came up. :)
+I'm trying to add support for a omap3 board.
 
--vimal
-> - Anand
->
->
->
+But I get a NULL pointer dereference during initialization of the lcd
+panel driver because framebufferInfo->mm_lock wasn't initialized.
+
+Code of the lcd driver: http://pastebin.com/m44ccc56d (nothing special)
+
+Stack trace:
+__mutex_lock_slowpath()
+mutex_lock()
+set_fb_fix()
+omapfb_do_probe()
+devkit8000_panel_probe() << my probe function
+platform_drv_probe()
+...
+
+It get's initialized in register_framebuffer() but in my case the
+probe function gets called before register_framebuffer().
+
+Once I added the missing inits to framebuffer_alloc()
+(drivers/video/fbsysfs.c) it works fine:
+mutex_init(&info->lock);
+mutex_init(&info->mm_lock);
+
+How I'm intended to fix this?
