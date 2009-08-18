@@ -1,69 +1,84 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE:  Zoom2 Support on LO Master broken ?
-Date: Tue, 18 Aug 2009 05:28:28 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F969A0AA@dbde02.ent.ti.com>
-References: <007301ca1f34$df482c50$LocalHost@wipultra793>
- <008201ca1f35$ae17bf00$LocalHost@wipultra793>
+From: Rabin Vincent <rabin@rab.in>
+Subject: Re: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
+Date: Tue, 18 Aug 2009 08:31:49 +0530
+Message-ID: <20090818030148.GA2283@debian>
+References: <20090813173327.GA14872@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C6586@dbde02.ent.ti.com>
+ <20090815153357.GF29616@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C003790C65ED@dbde02.ent.ti.com>
+ <20090815181711.GG29616@n2100.arm.linux.org.uk>
+ <20090817173343.GA17323@debian>
+ <20090817174718.GU10764@n2100.arm.linux.org.uk>
+ <20090817180145.GA17378@debian>
+ <20090817180455.GW10764@n2100.arm.linux.org.uk>
+ <A24693684029E5489D1D202277BE89444A8201BE@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52763 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934AbZHQX6p convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 19:58:45 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7HNweIB021831
-	for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2009 18:58:46 -0500
-In-Reply-To: <008201ca1f35$ae17bf00$LocalHost@wipultra793>
-Content-Language: en-US
+Received: from rv-out-0506.google.com ([209.85.198.225]:59518 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750979AbZHRDCF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 17 Aug 2009 23:02:05 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so596711rvb.5
+        for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2009 20:02:05 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <A24693684029E5489D1D202277BE89444A8201BE@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "V, Hemanth" <hemanthv@ti.com>"V, Hemanth" <hemanthv@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, "Syed Mohammed, Khasim" <khasim@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Mon, Aug 17, 2009 at 03:23:18PM -0500, Aguirre Rodriguez, Sergio Alberto wrote:
+> #ifndef CONFIG_SPARSEMEM
+> int pfn_valid(unsigned long pfn)
+> {
+> 	struct meminfo *mi = &meminfo;
+> 	unsigned int left = 0, right = mi->nr_banks;
+> 
+> 	while (left <= right) {
 
-Hemanth
+This condition will cause the while to loop forever when left == right
+and pfn < bank_pfn_start(bank).
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of 
->
->
->>I am unable to boot from quad uart and if I try uart3 I get the below error
->
->For quad uart it stops after downloading kernel (ZOOM2 defconfig), probably
->related to LL_DEBUG setting.
+> 		unsigned int mid = (right - left) / 2;
 
-There are couple of problems that I found.
-The serial.c has recently changed and hence there is a change required in zoom2-debug file.
+This calculation is incorrect when left != 0 (also in the original
+patch).
 
-And then there is the correct implementation for low level debug uart for zoom2.
+> 		struct membank *bank = &mi->bank[mid];
+> 
+> 		if (pfn < bank_pfn_start(bank))
+> 			right = mid;
+> 		else if (pfn >= bank_pfn_end(bank))
+> 			left = mid + 1;
+> 		else
+> 			return 1;
+> 	}
+> 	return 0;
+> }
+> EXPORT_SYMBOL(pfn_valid);
+> #endif
 
-I have this work-in-progress patch at:
-git://dev.omapzoom.org/pub/scm/vikram/omap3.git zoom2_boot
+Here's a fixed version:
 
-with this you can boot the zoom2 fine.
+int pfn_valid(unsigned long pfn)
+{
+	struct meminfo *mi = &meminfo;
+	unsigned int left = 0, right = mi->nr_banks;
 
-Will post the patch series tomorrow. Reference combined patch [1]
+	while (left < right) {
+			unsigned int mid = (left + right) / 2;
+			struct membank *bank = &mi->bank[mid];
 
+			if (pfn < bank_pfn_start(bank))
+				right = mid;
+			else if (pfn >= bank_pfn_end(bank))
+				left = mid + 1;
+			else
+				return 1;
+	}
 
-[1]
-http://dev.omapzoom.org/?p=vikram/omap3.git;a=commitdiff;h=81280ed52d20ef935e926e43d702ddf918d0f13c
+	return 0;
+}
 
-
-
->
->>
->> <3>IP-Config: No network devices available.
->> IP-Config: No network devices available.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Rabin
