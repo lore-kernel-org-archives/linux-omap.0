@@ -1,55 +1,255 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 3/3 v3] ASoC: OMAP: Enhance OMAP1510 DMA
- progress software counter
-Date: Tue, 18 Aug 2009 19:57:01 +0300
-Message-ID: <20090818195701.6f260d33.jhnikula@gmail.com>
-References: <200908101050.08074.jkrzyszt@tis.icnet.pl>
-	<200908110107.11485.jkrzyszt@tis.icnet.pl>
-	<200908112144.30731.jkrzyszt@tis.icnet.pl>
-	<20090817122605.0b240ea7.jhnikula@gmail.com>
-	<20090817100313.GA5756@rakim.wolfsonmicro.main>
-	<4A8AAFAD.9050705@tis.icnet.pl>
-	<20090818134540.GB24620@sirena.org.uk>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH] omap_hsmmc: Fix for the db clock failure message
+Date: Tue, 18 Aug 2009 12:10:25 -0500
+Message-ID: <000b01ca2026$c72e5930$544ff780@am.dhcp.ti.com>
+References: <60037.192.168.10.88.1250546653.squirrel@dbdmail.itg.ti.com> <4A8A4FC1.1090206@nokia.com> <006501ca2018$4bb7a170$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	charset="US-ASCII"
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090818134540.GB24620@sirena.org.uk>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:41821 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751087AbZHRRLS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 18 Aug 2009 13:11:18 -0400
+In-Reply-To: <006501ca2018$4bb7a170$544ff780@am.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: 'Adrian Hunter' <adrian.hunter@nokia.com>
+Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-On Tue, 18 Aug 2009 14:45:41 +0100
-Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
 
-> On Tue, Aug 18, 2009 at 03:42:05PM +0200, Janusz Krzysztofik wrote:
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Madhusudhan
+> Sent: Tuesday, August 18, 2009 10:27 AM
+> To: 'Adrian Hunter'
+> Cc: akpm@linux-foundation.org; linux-kernel@vger.kernel.org; linux-
+> omap@vger.kernel.org; linux-arm-kernel@lists.arm.linux.org.uk
+> Subject: RE: [PATCH] omap_hsmmc: Fix for the db clock failure message
 > 
-> > And now, how is the patch 1/3 supposed to get into the mainline? Whom  
-> > should I ping from time to time to get it integrated? If not then, as  
-> > you know for sure, applying patch 2/3 whithout 1/3 will result in ASoC  
-> > support for OMAP1510 broken.
 > 
-> Normally the OMAP tree, though that's possibly a bit tricky due to the
-> ARM tree closing early.  If Tony's OK with merging via the ALSA tree we
-> could also apply the ARM patch there?
+> 
+> > -----Original Message-----
+> > From: Adrian Hunter [mailto:adrian.hunter@nokia.com]
+> > Sent: Tuesday, August 18, 2009 1:53 AM
+> > To: Madhusudhan Chikkature
+> > Cc: akpm@linux-foundation.org; linux-kernel@vger.kernel.org; linux-
+> > omap@vger.kernel.org; linux-arm-kernel@lists.arm.linux.org.uk
+> > Subject: Re: [PATCH] omap_hsmmc: Fix for the db clock failure message
+> >
+> > Madhusudhan Chikkature wrote:
+> > > This patch applies on top of the series "[PATCH V2 0/32] mmc and
+> > omap_hsmmc
+> > > patches" posted by Adrian Hunter.
+> > >
+> > > -------------------------------------------------
+> > >
+> > >
+> > >
+> > > This patch removes the error message "Failed to get debounce clock.."
+> > printed
+> > > out by the HSMMC driver on OMAP3430. The debounce clock needs to be
+> > handled only
+> > > for OMAP2430.
+> >
+> > I have a suggestion that may make it tidier.
+> >
+> > What about renaming host->dbclk_enabled to host->got_dbclk and leaving
+> it
+> > alone
+> > after it is set in the probe function.  Then create a macro to use in
+> > conditions:
+> >
+> > #define have_dbclk(host) (cpu_is_omap2430() && (host)->got_dbclk)
+> >
+> > So the following:
+> >
+> > -	if (host->dbclk_enabled)
+> > +	if (cpu_is_omap2430() && host->dbclk_enabled) {
+> >  		clk_disable(host->dbclk);
+> > +		host->dbclk_enabled = 0;
+> > +	}
+> >
+> > becomes:
+> >
+> > -	if (host->dbclk_enabled)
+> > +	if (have_dbclk(host))
+> >  		clk_disable(host->dbclk);
+> >
+> > Or alternatively, forget the macro, and let the code always compile in:
+> >
+> > -	if (host->dbclk_enabled)
+> > +	if (host->got_dbclk)
+> >  		clk_disable(host->dbclk);
+> >
+> In both the cases how about the enable path? We want to enable the
+> debounce
+> clock only for OMAP2430, Right? Otherwise we will still end up throwing an
+> error message for 3430 if we check the result of clk_enable for db clock.
+> 
+> Regards,
+> Madhu
+> 
+I got your point after looking at the patch again. I guess you want to set
+the "host->got_dbclk" only once in probe if the clk_get succeeds for db clk
+and handle clk_enable/disable only based on got_dbclk. That should be fine.
+I will resubmit the patch.
 
-I would say that it's better to keep in Tony's hand since otherwise
-there can be risk for DMA code being out-of-sync as there are quite
-frequent other PM, OMAP4, errata, etc. patches coming into it.
+Regards,
+Madhu
+> >
+> > >
+> > > Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> > > ---
+> > >  drivers/mmc/host/omap_hsmmc.c |   63 +++++++++++++++++++++++++++-----
+> --
+> > --------
+> > >  1 file changed, 41 insertions(+), 22 deletions(-)
+> > >
+> > > Index: linux-2.6/drivers/mmc/host/omap_hsmmc.c
+> > > ===================================================================
+> > > --- linux-2.6.orig/drivers/mmc/host/omap_hsmmc.c
+> > > +++ linux-2.6/drivers/mmc/host/omap_hsmmc.c
+> > > @@ -735,8 +735,10 @@ static int omap_hsmmc_switch_opcond(stru
+> > >  	/* Disable the clocks */
+> > >  	clk_disable(host->fclk);
+> > >  	clk_disable(host->iclk);
+> > > -	if (host->dbclk_enabled)
+> > > +	if (cpu_is_omap2430() && host->dbclk_enabled) {
+> > >  		clk_disable(host->dbclk);
+> > > +		host->dbclk_enabled = 0;
+> > > +	}
+> > >
+> > >  	/* Turn the power off */
+> > >  	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+> > > @@ -746,9 +748,14 @@ static int omap_hsmmc_switch_opcond(stru
+> > >  		ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1,
+> > >  					       vdd);
+> > >  	clk_enable(host->iclk);
+> > > -	if (host->dbclk_enabled)
+> > > -		clk_enable(host->dbclk);
+> > >  	clk_enable(host->fclk);
+> > > +	if (cpu_is_omap2430() && !host->dbclk_enabled) {
+> > > +		if (clk_enable(host->dbclk) != 0)
+> > > +			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
+> > > +						" clk failed\n");
+> > > +		else
+> > > +			host->dbclk_enabled = 1;
+> > > +	}
+> > >
+> > >  	if (ret != 0)
+> > >  		goto err;
+> > > @@ -1697,18 +1704,21 @@ static int __init omap_hsmmc_probe(struc
+> > >  		goto err1;
+> > >  	}
+> > >
+> > > -	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+> > > -	/*
+> > > -	 * MMC can still work without debounce clock.
+> > > -	 */
+> > > -	if (IS_ERR(host->dbclk))
+> > > -		dev_warn(mmc_dev(host->mmc), "Failed to get debounce
+> > clock\n");
+> > > -	else
+> > > -		if (clk_enable(host->dbclk) != 0)
+> > > -			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
+> > > -							" clk failed\n");
+> > > +	if (cpu_is_omap2430()) {
+> > > +		host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+> > > +		/*
+> > > +		 * MMC can still work without debounce clock.
+> > > +		 */
+> > > +		if (IS_ERR(host->dbclk))
+> > > +			dev_warn(mmc_dev(host->mmc),
+> > > +				"Failed to get debounce clock\n");
+> > >  		else
+> > > -			host->dbclk_enabled = 1;
+> > > +			if (clk_enable(host->dbclk) != 0)
+> > > +				dev_dbg(mmc_dev(host->mmc), "Enabling
+> debounce"
+> > > +							" clk failed\n");
+> > > +			else
+> > > +				host->dbclk_enabled = 1;
+> > > +	}
+> > >
+> > >  	/* Since we do only SG emulation, we can have as many segs
+> > >  	 * as we want. */
+> > > @@ -1825,8 +1835,9 @@ err_irq:
+> > >  	clk_disable(host->iclk);
+> > >  	clk_put(host->fclk);
+> > >  	clk_put(host->iclk);
+> > > -	if (host->dbclk_enabled) {
+> > > -		clk_disable(host->dbclk);
+> > > +	if (cpu_is_omap2430()) {
+> > > +		if (host->dbclk_enabled)
+> > > +			clk_disable(host->dbclk);
+> > >  		clk_put(host->dbclk);
+> > >  	}
+> > >
+> > > @@ -1859,8 +1870,9 @@ static int omap_hsmmc_remove(struct plat
+> > >  		clk_disable(host->iclk);
+> > >  		clk_put(host->fclk);
+> > >  		clk_put(host->iclk);
+> > > -		if (host->dbclk_enabled) {
+> > > -			clk_disable(host->dbclk);
+> > > +		if (cpu_is_omap2430()) {
+> > > +			if (host->dbclk_enabled)
+> > > +				clk_disable(host->dbclk);
+> > >  			clk_put(host->dbclk);
+> > >  		}
+> > >
+> > > @@ -1910,8 +1922,10 @@ static int omap_hsmmc_suspend(struct pla
+> > >  				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+> > >  			mmc_host_disable(host->mmc);
+> > >  			clk_disable(host->iclk);
+> > > -			if (host->dbclk_enabled)
+> > > +			if (cpu_is_omap2430() && host->dbclk_enabled) {
+> > >  				clk_disable(host->dbclk);
+> > > +				host->dbclk_enabled = 0;
+> > > +			}
+> > >  		} else {
+> > >  			host->suspended = 0;
+> > >  			if (host->pdata->resume) {
+> > > @@ -1942,14 +1956,19 @@ static int omap_hsmmc_resume(struct plat
+> > >  		if (ret)
+> > >  			goto clk_en_err;
+> > >
+> > > -		if (host->dbclk_enabled)
+> > > -			clk_enable(host->dbclk);
+> > > -
+> > >  		if (mmc_host_enable(host->mmc) != 0) {
+> > >  			clk_disable(host->iclk);
+> > >  			goto clk_en_err;
+> > >  		}
+> > >
+> > > +		if (cpu_is_omap2430() && !host->dbclk_enabled) {
+> > > +			if (clk_enable(host->dbclk) != 0)
+> > > +				dev_dbg(mmc_dev(host->mmc), "Enabling
+> debounce"
+> > > +							" clk failed\n");
+> > > +			else
+> > > +				host->dbclk_enabled = 1;
+> > > +		}
+> > > +
+> > >  		omap_hsmmc_conf_bus_power(host);
+> > >
+> > >  		if (host->pdata->resume) {
+> > >
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > >
+> >
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Of course it means that OMAP1510 audio is broken until the patch 1/3 is
-merged but probably patch can be merged as a fix if merge window is
-missed.
 
-
--- 
-Jarkko
