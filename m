@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: Linux-omap PM:  Fix dead lock condition in resource_release(vdd1_opp)
-Date: Tue, 18 Aug 2009 09:23:42 +0200
-Message-ID: <87skfplh4x.fsf@deeprootsystems.com>
+Date: Tue, 18 Aug 2009 09:27:59 +0200
+Message-ID: <87pratlgxs.fsf@deeprootsystems.com>
 References: <DF4DCBD3DB270B419320B577AC0C3C8602F4801A@zmy16exm62.ds.mot.com>
 	<DF4DCBD3DB270B419320B577AC0C3C8602F48030@zmy16exm62.ds.mot.com>
 	<87ws5bk58n.fsf@deeprootsystems.com>
@@ -12,12 +12,12 @@ References: <DF4DCBD3DB270B419320B577AC0C3C8602F4801A@zmy16exm62.ds.mot.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:24863 "EHLO
+Received: from wf-out-1314.google.com ([209.85.200.175]:25726 "EHLO
 	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167AbZHRHXs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 03:23:48 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so971171wfd.4
-        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 00:23:49 -0700 (PDT)
+	with ESMTP id S1752052AbZHRH2F (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 03:28:05 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so971921wfd.4
+        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 00:28:06 -0700 (PDT)
 In-Reply-To: <DF4DCBD3DB270B419320B577AC0C3C8602F95518@zmy16exm62.ds.mot.com> (Wang Limei-E's message of "Tue\, 18 Aug 2009 00\:50\:25 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
