@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: [PATCHv2] OMAP3: PM: Ensure MUSB is accessible before we attempt to reset it
-Date: Tue, 18 Aug 2009 11:04:44 +0200
-Message-ID: <87k511lcgj.fsf@deeprootsystems.com>
+Date: Tue, 18 Aug 2009 11:07:24 +0200
+Message-ID: <87eir9lcc3.fsf@deeprootsystems.com>
 References: <1250196401-24433-1-git-send-email-jon-hunter@ti.com>
 	<87prazcq5g.fsf@deeprootsystems.com> <4A859DF7.1070303@ti.com>
 	<87fxbu8dvb.fsf@deeprootsystems.com>
@@ -9,12 +9,12 @@ References: <1250196401-24433-1-git-send-email-jon-hunter@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f196.google.com ([209.85.216.196]:62180 "EHLO
-	mail-px0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750847AbZHRJEt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 05:04:49 -0400
-Received: by pxi34 with SMTP id 34so1691413pxi.4
-        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 02:04:50 -0700 (PDT)
+Received: from rv-out-0506.google.com ([209.85.198.234]:14872 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886AbZHRJH1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 05:07:27 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so970463rvb.1
+        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 02:07:29 -0700 (PDT)
 In-Reply-To: <20090817081359.GM7278@atomide.com> (Tony Lindgren's message of "Mon\, 17 Aug 2009 11\:13\:59 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
