@@ -1,71 +1,180 @@
-From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Pull request for OMAP PM, clock, SDRC 2.6.32 patches
-Date: Tue, 18 Aug 2009 06:35:38 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908180621270.7224@utopia.booyaka.com>
-References: <alpine.DEB.2.00.0908160737380.31720@utopia.booyaka.com> <20090817170921.GT10764@n2100.arm.linux.org.uk>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 10/10] OMAP: PM: Added suspend target state control to debugfs for OMAP3
+Date: Tue, 18 Aug 2009 14:43:36 +0200
+Message-ID: <87zl9xi96v.fsf@deeprootsystems.com>
+References: <1250182359-18830-2-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-3-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-4-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-5-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-6-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-7-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-8-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-9-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-10-git-send-email-khilman@deeprootsystems.com>
+	<1250182359-18830-11-git-send-email-khilman@deeprootsystems.com>
+	<20090817081016.GL7278@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090817170921.GT10764-l+eeeJia6m9vn6HldHNs0ANdhmdF6hFW@public.gmane.org>
-Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hiroshi.doyu-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from wf-out-1314.google.com ([209.85.200.172]:1761 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753841AbZHRMnl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 08:43:41 -0400
+In-Reply-To: <20090817081016.GL7278@atomide.com> (Tony Lindgren's message of "Mon\, 17 Aug 2009 11\:10\:16 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org, linux-omap@vger.kernel.org, Tero Kristo <tero.kristo@nokia.com>
 
-Hello Russell,
+Tony Lindgren <tony@atomide.com> writes:
 
-On Mon, 17 Aug 2009, Russell King - ARM Linux wrote:
+> * Kevin Hilman <khilman@deeprootsystems.com> [090813 19:54]:
+>> From: Tero Kristo <tero.kristo@nokia.com>
+>> 
+>> Target state can be read / programmed via files under:
+>>   [debugfs]/pm_debug/[pwrdm]/suspend
+>
+>
+> Does this compile when CONFIG_DEBUG_FS is not set?
+>
 
-> On Sun, Aug 16, 2009 at 07:45:59AM -0600, Paul Walmsley wrote:
-> > 
-> > Hello Russell,
-> > 
-> > Here's the pull request for the thirteen patches posted earlier, plus 
-> > Hiroshi's clock debugfs error path fix.
-> 
-> I'm afraid to say that I think you've left it far too late to send this.
-> I did set a date of the 16th as being the final date to sort out stuff
-> (which was flexible to a degree) but since these patches were only posted
-> on Saturday, and they're still being discussed, I don't think it would
-> make sense for me to pull it today.
+Yes.  The relevant code is added to a section that is already
+wrapped by #ifdef CONFIG_DEBUG_FS.
 
-I've dropped the two patches that are being discussed and reposted the 
-remainder.  The updated series is here (et seq.):
-
-    http://marc.info/?l=linux-arm-kernel&m=125059872200340&w=2
-
-and the pull request is here:
-
-    http://marc.info/?l=linux-arm-kernel&m=125059845132331&w=2
-
-
-- Paul
+Kevin
 
 >
-> And this is likely to be the final day that I merge anything into my
-> kernel tree for the next two weeks.
-> > 
-> > regards,
-> > 
-> > - Paul
-> > 
-> > The following changes since commit 3b3119fc549c93df60316d28bdd77c2de3986588:
-> >   Russell King (1):
-> >         Merge branch 'ixp4xx-fixes' of git://git.kernel.org/.../chris/linux-2.6
-> 
-> That's stupid.  Someone publishing _my_ tree, which I make no guarantees
-> about the life of the commits, for other people to base their work on...
-> That's definitely a big FAIL.
-> 
-> Luckily for you though, that commit still exists in my tree, and I've
-> asked Linus to pull that set; so essentially it became immutable only
-> last night.
-> 
-> Don't base patches on the contents of my tree without talking to me first
-> please.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-arm" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+>> ---
+>>  arch/arm/mach-omap2/pm-debug.c |   31 +++++++++++++++++++++++++++++--
+>>  arch/arm/mach-omap2/pm.h       |    3 +++
+>>  arch/arm/mach-omap2/pm34xx.c   |   24 ++++++++++++++++++++++++
+>>  3 files changed, 56 insertions(+), 2 deletions(-)
+>>  mode change 100755 => 100644 arch/arm/mach-omap2/pm-debug.c
+>> 
+>> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+>> old mode 100755
+>> new mode 100644
+>> index 37b883b..eded6a4
+>> --- a/arch/arm/mach-omap2/pm-debug.c
+>> +++ b/arch/arm/mach-omap2/pm-debug.c
+>> @@ -24,6 +24,7 @@
+>>  #include <linux/clk.h>
+>>  #include <linux/err.h>
+>>  #include <linux/io.h>
+>> +#include <linux/module.h>
+>>  
+>>  #include <mach/clock.h>
+>>  #include <mach/board.h>
+>> @@ -478,10 +479,28 @@ int pm_dbg_regset_init(int reg_set)
+>>  	return 0;
+>>  }
+>>  
+>> -static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+>> +static int pwrdm_suspend_get(void *data, u64 *val)
+>> +{
+>> +	*val = omap3_pm_get_suspend_state((struct powerdomain *)data);
+>> +
+>> +	if (*val >= 0)
+>> +		return 0;
+>> +	return *val;
+>> +}
+>> +
+>> +static int pwrdm_suspend_set(void *data, u64 val)
+>> +{
+>> +	return omap3_pm_set_suspend_state((struct powerdomain *)data, (int)val);
+>> +}
+>> +
+>> +DEFINE_SIMPLE_ATTRIBUTE(pwrdm_suspend_fops, pwrdm_suspend_get,
+>> +			pwrdm_suspend_set, "%llu\n");
+>> +
+>> +static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
+>>  {
+>>  	int i;
+>>  	s64 t;
+>> +	struct dentry *d;
+>>  
+>>  	t = sched_clock();
+>>  
+>> @@ -490,6 +509,14 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+>>  
+>>  	pwrdm->timer = t;
+>>  
+>> +	if (strncmp(pwrdm->name, "dpll", 4) == 0)
+>> +		return 0;
+>> +
+>> +	d = debugfs_create_dir(pwrdm->name, (struct dentry *)dir);
+>> +
+>> +	(void) debugfs_create_file("suspend", S_IRUGO|S_IWUSR, d,
+>> +			(void *)pwrdm, &pwrdm_suspend_fops);
+>> +
+>>  	return 0;
+>>  }
+>>  
+>> @@ -508,7 +535,7 @@ static int __init pm_dbg_init(void)
+>>  	(void) debugfs_create_file("time", S_IRUGO,
+>>  		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
+>>  
+>> -	pwrdm_for_each(pwrdms_setup, NULL);
+>> +	pwrdm_for_each(pwrdms_setup, (void *)d);
+>>  
+>>  	pm_dbg_dir = debugfs_create_dir("registers", d);
+>>  	if (IS_ERR(pm_dbg_dir))
+>> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+>> index 8fa8567..8400f57 100755
+>> --- a/arch/arm/mach-omap2/pm.h
+>> +++ b/arch/arm/mach-omap2/pm.h
+>> @@ -13,6 +13,9 @@
+>>  
+>>  #include <mach/powerdomain.h>
+>>  
+>> +extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+>> +extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+>> +
+>>  #ifdef CONFIG_PM_DEBUG
+>>  extern void omap2_pm_dump(int mode, int resume, unsigned int us);
+>>  extern int omap2_pm_debug;
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>> index 331dfca..26f2aca 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -664,6 +664,30 @@ static void __init prcm_setup_regs(void)
+>>  	omap3_d2d_idle();
+>>  }
+>>  
+>> +int omap3_pm_get_suspend_state(struct powerdomain *pwrdm)
+>> +{
+>> +	struct power_state *pwrst;
+>> +
+>> +	list_for_each_entry(pwrst, &pwrst_list, node) {
+>> +		if (pwrst->pwrdm == pwrdm)
+>> +			return pwrst->next_state;
+>> +	}
+>> +	return -EINVAL;
+>> +}
+>> +
+>> +int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
+>> +{
+>> +	struct power_state *pwrst;
+>> +
+>> +	list_for_each_entry(pwrst, &pwrst_list, node) {
+>> +		if (pwrst->pwrdm == pwrdm) {
+>> +			pwrst->next_state = state;
+>> +			return 0;
+>> +		}
+>> +	}
+>> +	return -EINVAL;
+>> +}
+>> +
+>>  static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+>>  {
+>>  	struct power_state *pwrst;
+>> -- 
+>> 1.6.4
+>> 
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-arm" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
