@@ -1,68 +1,193 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [RFC][PATCH 1/2] OMAP4: sDMA drvier: adding OMAP kConfig option
-	CONFIG_OMAP_DMA_DESCRIPTOR_LOAD
-Date: Tue, 18 Aug 2009 09:33:00 +0530
-Message-ID: <618f0c910908172103g7b2d7968wce454b65fbc3a84d@mail.gmail.com>
-References: <0680EC522D0CC943BC586913CF3768C003790C62AD@dbde02.ent.ti.com>
-	 <87k518ppoy.fsf@deeprootsystems.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: [PATCH] omap_hsmmc: Fix for the db clock failure message
+Date: Tue, 18 Aug 2009 09:52:49 +0300
+Message-ID: <4A8A4FC1.1090206@nokia.com>
+References: <60037.192.168.10.88.1250546653.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.241]:21042 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbZHREC7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 00:02:59 -0400
-Received: by an-out-0708.google.com with SMTP id d40so3204911and.1
-        for <linux-omap@vger.kernel.org>; Mon, 17 Aug 2009 21:03:00 -0700 (PDT)
-In-Reply-To: <87k518ppoy.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752237AbZHRGwt@vger.kernel.org>
+In-Reply-To: <60037.192.168.10.88.1250546653.squirrel@dbdmail.itg.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Kevin,
-On Thu, Aug 13, 2009 at 5:09 AM, Kevin
-Hilman<khilman@deeprootsystems.com> wrote:
-> "S, Venkatraman" <svenkatr@ti.com> writes:
->
->> The hardware feature is available on OMAP4430 and also expected to b=
-e
->> in OMAP3630. Hence the feature flag will control the inclusion of th=
-e additional functions.
->>
->> Addition of omap kconfig option CONFIG_OMAP_DMA_DESCRIPTOR_LOAD.
->
-> Short version: (a.k.a caveman version)
->
-> - Compile-time option: bad.
-> - Run-time option: good.
->
-> Long version:
->
-> Without looking at the docs, I would hope that the some revision reg
-> or similar would report whether this feature is available or not. =A0=
-The
-> user configuring the kernel should not have to know whether his SoC
-> has this feature or not.
->
-> Kevin
+Madhusudhan Chikkature wrote:
+> This patch applies on top of the series "[PATCH V2 0/32] mmc and omap_hsmmc
+> patches" posted by Adrian Hunter.
+> 
+> -------------------------------------------------
+> 
+> 
+> 
+> This patch removes the error message "Failed to get debounce clock.." printed
+> out by the HSMMC driver on OMAP3430. The debounce clock needs to be handled only
+> for OMAP2430.
+
+I have a suggestion that may make it tidier.
+
+What about renaming host->dbclk_enabled to host->got_dbclk and leaving it alone
+after it is set in the probe function.  Then create a macro to use in conditions:
+
+#define have_dbclk(host) (cpu_is_omap2430() && (host)->got_dbclk)
+
+So the following:
+
+-	if (host->dbclk_enabled)
++	if (cpu_is_omap2430() && host->dbclk_enabled) {
+ 		clk_disable(host->dbclk);
++		host->dbclk_enabled = 0;
++	}
+
+becomes:
+
+-	if (host->dbclk_enabled)
++	if (have_dbclk(host))
+ 		clk_disable(host->dbclk);
+
+Or alternatively, forget the macro, and let the code always compile in:
+
+-	if (host->dbclk_enabled)
++	if (host->got_dbclk)
+ 		clk_disable(host->dbclk);
+
+
+> 
+> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> ---
+>  drivers/mmc/host/omap_hsmmc.c |   63 +++++++++++++++++++++++++++---------------
+>  1 file changed, 41 insertions(+), 22 deletions(-)
+> 
+> Index: linux-2.6/drivers/mmc/host/omap_hsmmc.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/mmc/host/omap_hsmmc.c
+> +++ linux-2.6/drivers/mmc/host/omap_hsmmc.c
+> @@ -735,8 +735,10 @@ static int omap_hsmmc_switch_opcond(stru
+>  	/* Disable the clocks */
+>  	clk_disable(host->fclk);
+>  	clk_disable(host->iclk);
+> -	if (host->dbclk_enabled)
+> +	if (cpu_is_omap2430() && host->dbclk_enabled) {
+>  		clk_disable(host->dbclk);
+> +		host->dbclk_enabled = 0;
+> +	}
+> 
+>  	/* Turn the power off */
+>  	ret = mmc_slot(host).set_power(host->dev, host->slot_id, 0, 0);
+> @@ -746,9 +748,14 @@ static int omap_hsmmc_switch_opcond(stru
+>  		ret = mmc_slot(host).set_power(host->dev, host->slot_id, 1,
+>  					       vdd);
+>  	clk_enable(host->iclk);
+> -	if (host->dbclk_enabled)
+> -		clk_enable(host->dbclk);
+>  	clk_enable(host->fclk);
+> +	if (cpu_is_omap2430() && !host->dbclk_enabled) {
+> +		if (clk_enable(host->dbclk) != 0)
+> +			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
+> +						" clk failed\n");
+> +		else
+> +			host->dbclk_enabled = 1;
+> +	}
+> 
+>  	if (ret != 0)
+>  		goto err;
+> @@ -1697,18 +1704,21 @@ static int __init omap_hsmmc_probe(struc
+>  		goto err1;
+>  	}
+> 
+> -	host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+> -	/*
+> -	 * MMC can still work without debounce clock.
+> -	 */
+> -	if (IS_ERR(host->dbclk))
+> -		dev_warn(mmc_dev(host->mmc), "Failed to get debounce clock\n");
+> -	else
+> -		if (clk_enable(host->dbclk) != 0)
+> -			dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
+> -							" clk failed\n");
+> +	if (cpu_is_omap2430()) {
+> +		host->dbclk = clk_get(&pdev->dev, "mmchsdb_fck");
+> +		/*
+> +		 * MMC can still work without debounce clock.
+> +		 */
+> +		if (IS_ERR(host->dbclk))
+> +			dev_warn(mmc_dev(host->mmc),
+> +				"Failed to get debounce clock\n");
+>  		else
+> -			host->dbclk_enabled = 1;
+> +			if (clk_enable(host->dbclk) != 0)
+> +				dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
+> +							" clk failed\n");
+> +			else
+> +				host->dbclk_enabled = 1;
+> +	}
+> 
+>  	/* Since we do only SG emulation, we can have as many segs
+>  	 * as we want. */
+> @@ -1825,8 +1835,9 @@ err_irq:
+>  	clk_disable(host->iclk);
+>  	clk_put(host->fclk);
+>  	clk_put(host->iclk);
+> -	if (host->dbclk_enabled) {
+> -		clk_disable(host->dbclk);
+> +	if (cpu_is_omap2430()) {
+> +		if (host->dbclk_enabled)
+> +			clk_disable(host->dbclk);
+>  		clk_put(host->dbclk);
+>  	}
+> 
+> @@ -1859,8 +1870,9 @@ static int omap_hsmmc_remove(struct plat
+>  		clk_disable(host->iclk);
+>  		clk_put(host->fclk);
+>  		clk_put(host->iclk);
+> -		if (host->dbclk_enabled) {
+> -			clk_disable(host->dbclk);
+> +		if (cpu_is_omap2430()) {
+> +			if (host->dbclk_enabled)
+> +				clk_disable(host->dbclk);
+>  			clk_put(host->dbclk);
+>  		}
+> 
+> @@ -1910,8 +1922,10 @@ static int omap_hsmmc_suspend(struct pla
+>  				OMAP_HSMMC_READ(host->base, HCTL) & ~SDBP);
+>  			mmc_host_disable(host->mmc);
+>  			clk_disable(host->iclk);
+> -			if (host->dbclk_enabled)
+> +			if (cpu_is_omap2430() && host->dbclk_enabled) {
+>  				clk_disable(host->dbclk);
+> +				host->dbclk_enabled = 0;
+> +			}
+>  		} else {
+>  			host->suspended = 0;
+>  			if (host->pdata->resume) {
+> @@ -1942,14 +1956,19 @@ static int omap_hsmmc_resume(struct plat
+>  		if (ret)
+>  			goto clk_en_err;
+> 
+> -		if (host->dbclk_enabled)
+> -			clk_enable(host->dbclk);
+> -
+>  		if (mmc_host_enable(host->mmc) != 0) {
+>  			clk_disable(host->iclk);
+>  			goto clk_en_err;
+>  		}
+> 
+> +		if (cpu_is_omap2430() && !host->dbclk_enabled) {
+> +			if (clk_enable(host->dbclk) != 0)
+> +				dev_dbg(mmc_dev(host->mmc), "Enabling debounce"
+> +							" clk failed\n");
+> +			else
+> +				host->dbclk_enabled = 1;
+> +		}
+> +
+>  		omap_hsmmc_conf_bus_power(host);
+> 
+>  		if (host->pdata->resume) {
+> 
+> 
 > --
-Thanks for your comments.
-Yes, the DMA_CAPS_0 register contains flags for linked list capability
-and it can be checked.
-  Obviously, I intended this (compile time flag) for code space
-saving for all older platforms. Not only in this file, but all client
-drivers those that would eventually start using this capability.
- I am preparing a patch with the runtime check (+ other changes you'd
-suggested), but I am curious to know what's the general threshold at
-which compile time flag (and it's associated code savings) is
-considered a valid trade off?
-
-Thanks and regards,
-Venkat.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
