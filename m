@@ -1,2108 +1,896 @@
 From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 09/11] OMAP2/3/4: create omap_hwmod layer
-Date: Tue, 18 Aug 2009 14:56:30 +0300
-Message-ID: <20090818115629.14171.84300.stgit@localhost.localdomain>
+Subject: [PATCH v2 06/11] OMAP2/3 PM: create the OMAP PM interface and add a
+	default OMAP PM no-op layer
+Date: Tue, 18 Aug 2009 14:56:27 +0300
+Message-ID: <20090818115626.14171.38445.stgit@localhost.localdomain>
 References: <20090818115147.14171.55785.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20090818115147.14171.55785.stgit-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>, Richard Woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>, Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Eric Thomas <ethomas-l0cyMroinI0@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sakari Poussa <sakari.poussa-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Anand Sawant <sawant-l0cyMroinI0@public.gmane.org>, Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Karthik Dasu <karthik-dp-l0cyMroinI0@public.gmane.org>, Richard Woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>, Igor Stoppa <igor.stoppa-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Veeramanikandan Raju <veera-l0cyMroinI0@public.gmane.org>, Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>, Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>, Jouni =?utf-8?b?SMO2Z2FuZGVy?= <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tero Kristo <tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, Sakari Poussa <sakari.poussa-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, Anand Sawant <sawant-l0cyMroinI0@public.gmane.org>, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
 
-OMAP SoCs can be considered a collection of hardware IP blocks
-connected by various interconnects.  The bus topology and device
-integration data is somewhat more complex than platform_device can
-encode.  This patch creates code and structures to manage information
-about OMAP on-chip devices ("hardware modules") and their integration
-to the rest of the chip.  Hardware module data is intended to be
-generated dynamically from the TI hardware database for the OMAP4
-chips and beyond, easing Linux support for new chip variants.
+The interface provides device drivers, CPUFreq, and DSPBridge with a
+means of controlling OMAP power management parameters that are not yet
+supported by the Linux PM PMQoS interface.  Copious documentation is
+in the patch in Documentation/arm/OMAP/omap_pm and the interface
+header file, arch/arm/plat-omap/include/mach/omap-pm.h.
 
-This code currently:
-
-- resets and configures all hardware modules upon startup, reducing bootloader
-  dependencies;
-
-- provides hooks for Linux driver model code to enable, idle, and shutdown
-  hardware modules (forthcoming patch);
-
-- waits for hardware modules to leave idle once their clocks
-  are enabled and OCP_SYSCONFIG bits are set appropriately.
-
-- provides a means to pass arbitrary IP block configuration data (e.g.,
-  FIFO size) to the device driver (via the dev_attr void pointer)
-
-In the future this code is intended to:
-
-- estimate interconnect bandwidth and latency characteristics to
-  ensure constraints are satisfied during DVFS
-
-- provide *GRPSEL bit data to the powerdomain code
-
-- handle pin/ball muxing for devices
-
-- generate IO mapping information dynamically
-
-- supply device firewall configuration data
-
-- provide hardware module data to other on-chip coprocessor software
-
-- allow the removal of the "disable unused clocks" code in the OMAP2/3
-  clock code
-
-This patch represents a collaborative effort involving many people from TI,
-Nokia, and the Linux-OMAP community.
+Thanks to Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org> for adding CORE (VDD2) OPP
+support and moving the OPP table initialization earlier in the event
+that the clock code needs them.  Thanks to Tero Kristo
+<tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org> for fixing the parameter check in
+omap_pm_set_min_bus_tput().  Jouni signed off on Tero's patch.
 
 Signed-off-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
-Cc: Benoit Cousson <b-cousson-l0cyMroinI0@public.gmane.org>
-Cc: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Signed-off-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Signed-off-by: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Tero Kristo <tero.kristo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jouni H=C3=B6gander <jouni.hogander-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Cc: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
-Cc: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
-Cc: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Cc: Sakari Poussa <sakari.poussa-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Cc: Anand Sawant <sawant-l0cyMroinI0@public.gmane.org>
-Cc: Santosh Shilimkar <santosh.shilimkar-l0cyMroinI0@public.gmane.org>
-Cc: Eric Thomas <ethomas-l0cyMroinI0@public.gmane.org>
+Cc: Igor Stoppa <igor.stoppa-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 Cc: Richard Woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
+Cc: Anand Sawant <sawant-l0cyMroinI0@public.gmane.org>
+Cc: Sakari Poussa <sakari.poussa-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Cc: Veeramanikandan Raju <veera-l0cyMroinI0@public.gmane.org>
+Cc: Karthik Dasu <karthik-dp-l0cyMroinI0@public.gmane.org>
 ---
- arch/arm/mach-omap2/Makefile                 |    2 
- arch/arm/mach-omap2/omap_hwmod.c             | 1555 ++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/omap_hwmod.h |  447 +++++++
- 3 files changed, 2003 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/omap_hwmod.c
- create mode 100644 arch/arm/plat-omap/include/mach/omap_hwmod.h
+ Documentation/arm/OMAP/omap_pm            |  129 ++++++++++++
+ arch/arm/mach-omap2/io.c                  |    4=20
+ arch/arm/plat-omap/Kconfig                |   13 +
+ arch/arm/plat-omap/Makefile               |    1=20
+ arch/arm/plat-omap/include/mach/omap-pm.h |  301 +++++++++++++++++++++=
+++++++++
+ arch/arm/plat-omap/omap-pm-noop.c         |  296 +++++++++++++++++++++=
+++++++++
+ 6 files changed, 744 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/arm/OMAP/omap_pm
+ create mode 100644 arch/arm/plat-omap/include/mach/omap-pm.h
+ create mode 100644 arch/arm/plat-omap/omap-pm-noop.c
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index fa0f0db..16b9308 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -5,7 +5,7 @@
- # Common support
- obj-y := id.o io.o control.o mux.o devices.o serial.o gpmc.o timer-gp.o
- 
--omap-2-3-common				= irq.o sdrc.o
-+omap-2-3-common				= irq.o sdrc.o omap_hwmod.o
- prcm-common				= prcm.o powerdomain.o
- clock-common				= clock.o clockdomain.o
- 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
+diff --git a/Documentation/arm/OMAP/omap_pm b/Documentation/arm/OMAP/om=
+ap_pm
 new file mode 100644
-index 0000000..d1ef3ef
+index 0000000..5389440
 --- /dev/null
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -0,0 +1,1555 @@
++++ b/Documentation/arm/OMAP/omap_pm
+@@ -0,0 +1,129 @@
++
++The OMAP PM interface
++=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
++
++This document describes the temporary OMAP PM interface.  Driver
++authors use these functions to communicate minimum latency or
++throughput constraints to the kernel power management code.
++Over time, the intention is to merge features from the OMAP PM
++interface into the Linux PM QoS code.
++
++Drivers need to express PM parameters which:
++
++- support the range of power management parameters present in the TI S=
+RF;
++
++- separate the drivers from the underlying PM parameter
++  implementation, whether it is the TI SRF or Linux PM QoS or Linux
++  latency framework or something else;
++
++- specify PM parameters in terms of fundamental units, such as
++  latency and throughput, rather than units which are specific to OMAP
++  or to particular OMAP variants;
++
++- allow drivers which are shared with other architectures (e.g.,
++  DaVinci) to add these constraints in a way which won't affect non-OM=
+AP
++  systems,
++
++- can be implemented immediately with minimal disruption of other
++  architectures.
++
++
++This document proposes the OMAP PM interface, including the following
++five power management functions for driver code:
++
++1. Set the maximum MPU wakeup latency:
++   (*pdata->set_max_mpu_wakeup_lat)(struct device *dev, unsigned long =
+t)
++
++2. Set the maximum device wakeup latency:
++   (*pdata->set_max_dev_wakeup_lat)(struct device *dev, unsigned long =
+t)
++
++3. Set the maximum system DMA transfer start latency (CORE pwrdm):
++   (*pdata->set_max_sdma_lat)(struct device *dev, long t)
++
++4. Set the minimum bus throughput needed by a device:
++   (*pdata->set_min_bus_tput)(struct device *dev, u8 agent_id, unsigne=
+d long r)
++
++5. Return the number of times the device has lost context
++   (*pdata->get_dev_context_loss_count)(struct device *dev)
++
++
++Further documentation for all OMAP PM interface functions can be
++found in arch/arm/plat-omap/include/mach/omap-pm.h.
++
++
++The OMAP PM layer is intended to be temporary
++---------------------------------------------
++
++The intention is that eventually the Linux PM QoS layer should support
++the range of power management features present in OMAP3.  As this
++happens, existing drivers using the OMAP PM interface can be modified
++to use the Linux PM QoS code; and the OMAP PM interface can disappear.
++
++
++Driver usage of the OMAP PM functions
++-------------------------------------
++
++As the 'pdata' in the above examples indicates, these functions are
++exposed to drivers through function pointers in driver .platform_data
++structures.  The function pointers are initialized by the board-*.c
++files to point to the corresponding OMAP PM functions:
++.set_max_dev_wakeup_lat will point to
++omap_pm_set_max_dev_wakeup_lat(), etc.  Other architectures which do
++not support these functions should leave these function pointers set
++to NULL.  Drivers should use the following idiom:
++
++        if (pdata->set_max_dev_wakeup_lat)
++            (*pdata->set_max_dev_wakeup_lat)(dev, t);
++
++The most common usage of these functions will probably be to specify
++the maximum time from when an interrupt occurs, to when the device
++becomes accessible.  To accomplish this, driver writers should use the
++set_max_mpu_wakeup_lat() function to to constrain the MPU wakeup
++latency, and the set_max_dev_wakeup_lat() function to constrain the
++device wakeup latency (from clk_enable() to accessibility).  For
++example,
++
++        /* Limit MPU wakeup latency */
++        if (pdata->set_max_mpu_wakeup_lat)
++            (*pdata->set_max_mpu_wakeup_lat)(dev, tc);
++
++        /* Limit device powerdomain wakeup latency */
++        if (pdata->set_max_dev_wakeup_lat)
++            (*pdata->set_max_dev_wakeup_lat)(dev, td);
++
++        /* total wakeup latency in this example: (tc + td) */
++
++The PM parameters can be overwritten by calling the function again
++with the new value.  The settings can be removed by calling the
++function with a t argument of -1 (except in the case of
++set_max_bus_tput(), which should be called with an r argument of 0).
++
++The fifth function above, omap_pm_get_dev_context_loss_count(),
++is intended as an optimization to allow drivers to determine whether t=
+he
++device has lost its internal context.  If context has been lost, the
++driver must restore its internal context before proceeding.
++
++
++Other specialized interface functions
++-------------------------------------
++
++The five functions listed above are intended to be usable by any
++device driver.  DSPBridge and CPUFreq have a few special requirements.
++DSPBridge expresses target DSP performance levels in terms of OPP IDs.
++CPUFreq expresses target MPU performance levels in terms of MPU
++frequency.  The OMAP PM interface contains functions for these
++specialized cases to convert that input information (OPPs/MPU
++frequency) into the form that the underlying power management
++implementation needs:
++
++6. (*pdata->dsp_get_opp_table)(void)
++
++7. (*pdata->dsp_set_min_opp)(u8 opp_id)
++
++8. (*pdata->dsp_get_opp)(void)
++
++9. (*pdata->cpu_get_freq_table)(void)
++
++10. (*pdata->cpu_set_freq)(unsigned long f)
++
++11. (*pdata->cpu_get_freq)(void)
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index e9b9bcb..4bfe873 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -36,6 +36,7 @@
+ #ifndef CONFIG_ARCH_OMAP4	/* FIXME: Remove this once clkdev is ready *=
+/
+ #include "clock.h"
+=20
++#include <mach/omap-pm.h>
+ #include <mach/powerdomain.h>
+=20
+ #include "powerdomains.h"
+@@ -281,9 +282,12 @@ void __init omap2_init_common_hw(struct omap_sdrc_=
+params *sdrc_cs0,
+ {
+ 	omap2_mux_init();
+ #ifndef CONFIG_ARCH_OMAP4 /* FIXME: Remove this once the clkdev is rea=
+dy */
++	/* The OPP tables have to be registered before a clk init */
++	omap_pm_if_early_init(mpu_opps, dsp_opps, l3_opps);
+ 	pwrdm_init(powerdomains_omap);
+ 	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+ 	omap2_clk_init();
++	omap_pm_if_init();
+ 	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+ 	_omap2_init_reprogram_sdrc();
+ #endif
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index efe85d0..5bb07c2 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -183,6 +183,19 @@ config OMAP_SERIAL_WAKE
+ 	  to data on the serial RX line. This allows you to wake the
+ 	  system from serial console.
+=20
++choice
++	prompt "OMAP PM layer selection"
++	depends on ARCH_OMAP
++	default OMAP_PM_NOOP
++
++config OMAP_PM_NONE
++	bool "No PM layer"
++
++config OMAP_PM_NOOP
++	bool "No-op/debug PM layer"
++
++endchoice
++
+ endmenu
+=20
+ endif
+diff --git a/arch/arm/plat-omap/Makefile b/arch/arm/plat-omap/Makefile
+index a832795..86ca86f 100644
+--- a/arch/arm/plat-omap/Makefile
++++ b/arch/arm/plat-omap/Makefile
+@@ -25,3 +25,4 @@ obj-y +=3D $(i2c-omap-m) $(i2c-omap-y)
+ # OMAP mailbox framework
+ obj-$(CONFIG_OMAP_MBOX_FWK) +=3D mailbox.o
+=20
++obj-$(CONFIG_OMAP_PM_NOOP) +=3D omap-pm-noop.o
+\ No newline at end of file
+diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-=
+omap/include/mach/omap-pm.h
+new file mode 100644
+index 0000000..3ee41d7
+--- /dev/null
++++ b/arch/arm/plat-omap/include/mach/omap-pm.h
+@@ -0,0 +1,301 @@
 +/*
-+ * omap_hwmod implementation for OMAP2/3/4
++ * omap-pm.h - OMAP power management interface
 + *
-+ * Copyright (C) 2009 Nokia Corporation
++ * Copyright (C) 2008-2009 Texas Instruments, Inc.
++ * Copyright (C) 2008-2009 Nokia Corporation
 + * Paul Walmsley
-+ * With fixes and testing from Kevin Hilman
 + *
-+ * Created in collaboration with (alphabetical order): Benoit Cousson,
-+ * Kevin Hilman, Tony Lindgren, Rajendra Nayak, Vikram Pandita, Sakari
-+ * Poussa, Anand Sawant, Santosh Shilimkar, Richard Woodruff
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This code manages "OMAP modules" (on-chip devices) and their
-+ * integration with Linux device driver and bus code.
-+ *
-+ * References:
-+ * - OMAP2420 Multimedia Processor Silicon Revision 2.1.1, 2.2 (SWPU064)
-+ * - OMAP2430 Multimedia Device POP Silicon Revision 2.1 (SWPU090)
-+ * - OMAP34xx Multimedia Device Silicon Revision 3.1 (SWPU108)
-+ * - OMAP4430 Multimedia Device Silicon Revision 1.0 (SWPU140)
-+ * - Open Core Protocol Specification 2.2
-+ *
-+ * To do:
-+ * - pin mux handling
-+ * - handle IO mapping
-+ * - bus throughput & module latency measurement code
-+ *
-+ * XXX add tests at the beginning of each function to ensure the hwmod is
-+ * in the appropriate state
-+ * XXX error return values should be checked to ensure that they are
-+ * appropriate
++ * Interface developed by (in alphabetical order): Karthik Dasu, Jouni
++ * H=C3=B6gander, Tony Lindgren, Rajendra Nayak, Sakari Poussa,
++ * Veeramanikandan Raju, Anand Sawant, Igor Stoppa, Paul Walmsley,
++ * Richard Woodruff
 + */
-+#undef DEBUG
 +
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/io.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/err.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/bootmem.h>
++#ifndef ASM_ARM_ARCH_OMAP_OMAP_PM_H
++#define ASM_ARM_ARCH_OMAP_OMAP_PM_H
 +
-+#include <mach/cpu.h>
-+#include <mach/clockdomain.h>
-+#include <mach/powerdomain.h>
-+#include <mach/clock.h>
-+#include <mach/omap_hwmod.h>
++#include <linux/device.h>
++#include <linux/cpufreq.h>
 +
-+#include "cm.h"
-+
-+/* Maximum microseconds to wait for OMAP module to reset */
-+#define MAX_MODULE_RESET_WAIT		10000
-+
-+/* Name of the OMAP hwmod for the MPU */
-+#define MPU_INITIATOR_NAME		"mpu_hwmod"
-+
-+/* omap_hwmod_list contains all registered struct omap_hwmods */
-+static LIST_HEAD(omap_hwmod_list);
-+
-+static DEFINE_MUTEX(omap_hwmod_mutex);
-+
-+/* mpu_oh: used to add/remove MPU initiator from sleepdep list */
-+static struct omap_hwmod *mpu_oh;
-+
-+/* inited: 0 if omap_hwmod_init() has not yet been called; 1 otherwise */
-+static u8 inited;
-+
-+
-+/* Private functions */
++#include "powerdomain.h"
 +
 +/**
-+ * _update_sysc_cache - return the module OCP_SYSCONFIG register, keep copy
-+ * @oh: struct omap_hwmod *
++ * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
++ * @rate: target clock rate
++ * @opp_id: OPP ID
++ * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
 + *
-+ * Load the current value of the hwmod OCP_SYSCONFIG register into the
-+ * struct omap_hwmod for later use.  Returns -EINVAL if the hwmod has no
-+ * OCP_SYSCONFIG register or 0 upon success.
++ * Operating performance point data.  Can vary by OMAP chip and board.
 + */
-+static int _update_sysc_cache(struct omap_hwmod *oh)
-+{
-+	if (!oh->sysconfig) {
-+		WARN(!oh->sysconfig, "omap_hwmod: %s: cannot read "
-+		     "OCP_SYSCONFIG: not defined on hwmod\n", oh->name);
-+		return -EINVAL;
-+	}
++struct omap_opp {
++	unsigned long rate;
++	u8 opp_id;
++	u16 min_vdd;
++};
 +
-+	/* XXX ensure module interface clock is up */
++extern struct omap_opp *mpu_opps;
++extern struct omap_opp *dsp_opps;
++extern struct omap_opp *l3_opps;
 +
-+	oh->_sysc_cache = omap_hwmod_readl(oh, oh->sysconfig->sysc_offs);
-+
-+	oh->_int_flags |= _HWMOD_SYSCONFIG_LOADED;
-+
-+	return 0;
-+}
++/*
++ * agent_id values for use with omap_pm_set_min_bus_tput():
++ *
++ * OCP_INITIATOR_AGENT is only valid for devices that can act as
++ * initiators -- it represents the device's L3 interconnect
++ * connection.  OCP_TARGET_AGENT represents the device's L4
++ * interconnect connection.
++ */
++#define OCP_TARGET_AGENT		1
++#define OCP_INITIATOR_AGENT		2
 +
 +/**
-+ * _write_sysconfig - write a value to the module's OCP_SYSCONFIG register
-+ * @v: OCP_SYSCONFIG value to write
-+ * @oh: struct omap_hwmod *
++ * omap_pm_if_early_init - OMAP PM init code called before clock fw in=
+it
++ * @mpu_opp_table: array ptr to struct omap_opp for MPU
++ * @dsp_opp_table: array ptr to struct omap_opp for DSP
++ * @l3_opp_table : array ptr to struct omap_opp for CORE
 + *
-+ * Write @v into the module OCP_SYSCONFIG register, if it has one.  No
++ * Initialize anything that must be configured before the clock
++ * framework starts.  The "_if_" is to avoid name collisions with the
++ * PM idle-loop code.
++ */
++int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
++				 struct omap_opp *dsp_opp_table,
++				 struct omap_opp *l3_opp_table);
++
++/**
++ * omap_pm_if_init - OMAP PM init code called after clock fw init
++ *
++ * The main initialization code.  OPP tables are passed in here.  The
++ * "_if_" is to avoid name collisions with the PM idle-loop code.
++ */
++int __init omap_pm_if_init(void);
++
++/**
++ * omap_pm_if_exit - OMAP PM exit code
++ *
++ * Exit code; currently unused.  The "_if_" is to avoid name
++ * collisions with the PM idle-loop code.
++ */
++void omap_pm_if_exit(void);
++
++/*
++ * Device-driver-originated constraints (via board-*.c files, platform=
+_data)
++ */
++
++
++/**
++ * omap_pm_set_max_mpu_wakeup_lat - set the maximum MPU wakeup latency
++ * @dev: struct device * requesting the constraint
++ * @t: maximum MPU wakeup latency in microseconds
++ *
++ * Request that the maximum interrupt latency for the MPU to be no
++ * greater than 't' microseconds. "Interrupt latency" in this case is
++ * defined as the elapsed time from the occurrence of a hardware or
++ * timer interrupt to the time when the device driver's interrupt
++ * service routine has been entered by the MPU.
++ *
++ * It is intended that underlying PM code will use this information to
++ * determine what power state to put the MPU powerdomain into, and
++ * possibly the CORE powerdomain as well, since interrupt handling
++ * code currently runs from SDRAM.  Advanced PM or board*.c code may
++ * also configure interrupt controller priorities, OCP bus priorities,
++ * CPU speed(s), etc.
++ *
++ * This function will not affect device wakeup latency, e.g., time
++ * elapsed from when a device driver enables a hardware device with
++ * clk_enable(), to when the device is ready for register access or
++ * other use.  To control this device wakeup latency, use
++ * set_max_dev_wakeup_lat()
++ *
++ * Multiple calls to set_max_mpu_wakeup_lat() will replace the
++ * previous t value.  To remove the latency target for the MPU, call
++ * with t =3D -1.
++ *
++ * No return value.
++ */
++void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t);
++
++
++/**
++ * omap_pm_set_min_bus_tput - set minimum bus throughput needed by dev=
+ice
++ * @dev: struct device * requesting the constraint
++ * @tbus_id: interconnect to operate on (OCP_{INITIATOR,TARGET}_AGENT)
++ * @r: minimum throughput (in KiB/s)
++ *
++ * Request that the minimum data throughput on the OCP interconnect
++ * attached to device 'dev' interconnect agent 'tbus_id' be no less
++ * than 'r' KiB/s.
++ *
++ * It is expected that the OMAP PM or bus code will use this
++ * information to set the interconnect clock to run at the lowest
++ * possible speed that satisfies all current system users.  The PM or
++ * bus code will adjust the estimate based on its model of the bus, so
++ * device driver authors should attempt to specify an accurate
++ * quantity for their device use case, and let the PM or bus code
++ * overestimate the numbers as necessary to handle request/response
++ * latency, other competing users on the system, etc.  On OMAP2/3, if
++ * a driver requests a minimum L4 interconnect speed constraint, the
++ * code will also need to add an minimum L3 interconnect speed
++ * constraint,
++ *
++ * Multiple calls to set_min_bus_tput() will replace the previous rate
++ * value for this device.  To remove the interconnect throughput
++ * restriction for this device, call with r =3D 0.
++ *
++ * No return value.
++ */
++void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigne=
+d long r);
++
++
++/**
++ * omap_pm_set_max_dev_wakeup_lat - set the maximum device enable late=
+ncy
++ * @dev: struct device *
++ * @t: maximum device wakeup latency in microseconds
++ *
++ * Request that the maximum amount of time necessary for a device to
++ * become accessible after its clocks are enabled should be no greater
++ * than 't' microseconds.  Specifically, this represents the time from
++ * when a device driver enables device clocks with clk_enable(), to
++ * when the register reads and writes on the device will succeed.
++ * This function should be called before clk_disable() is called,
++ * since the power state transition decision may be made during
++ * clk_disable().
++ *
++ * It is intended that underlying PM code will use this information to
++ * determine what power state to put the powerdomain enclosing this
++ * device into.
++ *
++ * Multiple calls to set_max_dev_wakeup_lat() will replace the
++ * previous wakeup latency values for this device.  To remove the wake=
+up
++ * latency restriction for this device, call with t =3D -1.
++ *
++ * No return value.
++ */
++void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t);
++
++
++/**
++ * omap_pm_set_max_sdma_lat - set the maximum system DMA transfer star=
+t latency
++ * @dev: struct device *
++ * @t: maximum DMA transfer start latency in microseconds
++ *
++ * Request that the maximum system DMA transfer start latency for this
++ * device 'dev' should be no greater than 't' microseconds.  "DMA
++ * transfer start latency" here is defined as the elapsed time from
++ * when a device (e.g., McBSP) requests that a system DMA transfer
++ * start or continue, to the time at which data starts to flow into
++ * that device from the system DMA controller.
++ *
++ * It is intended that underlying PM code will use this information to
++ * determine what power state to put the CORE powerdomain into.
++ *
++ * Since system DMA transfers may not involve the MPU, this function
++ * will not affect MPU wakeup latency.  Use set_max_cpu_lat() to do
++ * so.  Similarly, this function will not affect device wakeup latency
++ * -- use set_max_dev_wakeup_lat() to affect that.
++ *
++ * Multiple calls to set_max_sdma_lat() will replace the previous t
++ * value for this device.  To remove the maximum DMA latency for this
++ * device, call with t =3D -1.
++ *
++ * No return value.
++ */
++void omap_pm_set_max_sdma_lat(struct device *dev, long t);
++
++
++/*
++ * DSP Bridge-specific constraints
++ */
++
++/**
++ * omap_pm_dsp_get_opp_table - get OPP->DSP clock frequency table
++ *
++ * Intended for use by DSPBridge.  Returns an array of OPP->DSP clock
++ * frequency entries.  The final item in the array should have .rate =3D
++ * .opp_id =3D 0.
++ */
++const struct omap_opp *omap_pm_dsp_get_opp_table(void);
++
++/**
++ * omap_pm_dsp_set_min_opp - receive desired OPP target ID from DSP Br=
+idge
++ * @opp_id: target DSP OPP ID
++ *
++ * Set a minimum OPP ID for the DSP.  This is intended to be called
++ * only from the DSP Bridge MPU-side driver.  Unfortunately, the only
++ * information that code receives from the DSP/BIOS load estimator is =
+the
++ * target OPP ID; hence, this interface.  No return value.
++ */
++void omap_pm_dsp_set_min_opp(u8 opp_id);
++
++/**
++ * omap_pm_dsp_get_opp - report the current DSP OPP ID
++ *
++ * Report the current OPP for the DSP.  Since on OMAP3, the DSP and
++ * MPU share a single voltage domain, the OPP ID returned back may
++ * represent a higher DSP speed than the OPP requested via
++ * omap_pm_dsp_set_min_opp().
++ *
++ * Returns the current VDD1 OPP ID, or 0 upon error.
++ */
++u8 omap_pm_dsp_get_opp(void);
++
++
++/*
++ * CPUFreq-originated constraint
++ *
++ * In the future, this should be handled by custom OPP clocktype
++ * functions.
++ */
++
++/**
++ * omap_pm_cpu_get_freq_table - return a cpufreq_frequency_table array=
+ ptr
++ *
++ * Provide a frequency table usable by CPUFreq for the current chip/bo=
+ard.
++ * Returns a pointer to a struct cpufreq_frequency_table array or NULL
++ * upon error.
++ */
++struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
++
++/**
++ * omap_pm_cpu_set_freq - set the current minimum MPU frequency
++ * @f: MPU frequency in Hz
++ *
++ * Set the current minimum CPU frequency.  The actual CPU frequency
++ * used could end up higher if the DSP requested a higher OPP.
++ * Intended to be called by plat-omap/cpu_omap.c:omap_target().  No
 + * return value.
 + */
-+static void _write_sysconfig(u32 v, struct omap_hwmod *oh)
-+{
-+	if (!oh->sysconfig) {
-+		WARN(!oh->sysconfig, "omap_hwmod: %s: cannot write "
-+		     "OCP_SYSCONFIG: not defined on hwmod\n", oh->name);
-+		return;
-+	}
-+
-+	/* XXX ensure module interface clock is up */
-+
-+	if (oh->_sysc_cache != v) {
-+		oh->_sysc_cache = v;
-+		omap_hwmod_writel(v, oh, oh->sysconfig->sysc_offs);
-+	}
-+}
++void omap_pm_cpu_set_freq(unsigned long f);
 +
 +/**
-+ * _set_master_standbymode: set the OCP_SYSCONFIG MIDLEMODE field in @v
-+ * @oh: struct omap_hwmod *
-+ * @standbymode: MIDLEMODE field bits
-+ * @v: pointer to register contents to modify
++ * omap_pm_cpu_get_freq - report the current CPU frequency
 + *
-+ * Update the master standby mode bits in @v to be @standbymode for
-+ * the @oh hwmod.  Does not write to the hardware.  Returns -EINVAL
-+ * upon error or 0 upon success.
++ * Returns the current MPU frequency, or 0 upon error.
 + */
-+static int _set_master_standbymode(struct omap_hwmod *oh, u8 standbymode,
-+				   u32 *v)
-+{
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_MIDLEMODE))
-+		return -EINVAL;
++unsigned long omap_pm_cpu_get_freq(void);
 +
-+	*v &= ~SYSC_MIDLEMODE_MASK;
-+	*v |= __ffs(standbymode) << SYSC_MIDLEMODE_SHIFT;
 +
-+	return 0;
-+}
++/*
++ * Device context loss tracking
++ */
 +
 +/**
-+ * _set_slave_idlemode: set the OCP_SYSCONFIG SIDLEMODE field in @v
-+ * @oh: struct omap_hwmod *
-+ * @idlemode: SIDLEMODE field bits
-+ * @v: pointer to register contents to modify
++ * omap_pm_get_dev_context_loss_count - return count of times dev has =
+lost ctx
++ * @dev: struct device *
 + *
-+ * Update the slave idle mode bits in @v to be @idlemode for the @oh
-+ * hwmod.  Does not write to the hardware.  Returns -EINVAL upon error
-+ * or 0 upon success.
++ * This function returns the number of times that the device @dev has
++ * lost its internal context.  This generally occurs on a powerdomain
++ * transition to OFF.  Drivers use this as an optimization to avoid re=
+storing
++ * context if the device hasn't lost it.  To use, drivers should initi=
+ally
++ * call this in their context save functions and store the result.  Ea=
+rly in
++ * the driver's context restore function, the driver should call this =
+function
++ * again, and compare the result to the stored counter.  If they diffe=
+r, the
++ * driver must restore device context.   If the number of context loss=
+es
++ * exceeds the maximum positive integer, the function will wrap to 0 a=
+nd
++ * continue counting.  Returns the number of context losses for this d=
+evice,
++ * or -EINVAL upon error.
 + */
-+static int _set_slave_idlemode(struct omap_hwmod *oh, u8 idlemode, u32 *v)
-+{
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_SIDLEMODE))
-+		return -EINVAL;
++int omap_pm_get_dev_context_loss_count(struct device *dev);
 +
-+	*v &= ~SYSC_SIDLEMODE_MASK;
-+	*v |= __ffs(idlemode) << SYSC_SIDLEMODE_SHIFT;
 +
-+	return 0;
-+}
-+
-+/**
-+ * _set_clockactivity: set OCP_SYSCONFIG.CLOCKACTIVITY bits in @v
-+ * @oh: struct omap_hwmod *
-+ * @clockact: CLOCKACTIVITY field bits
-+ * @v: pointer to register contents to modify
-+ *
-+ * Update the clockactivity mode bits in @v to be @clockact for the
-+ * @oh hwmod.  Used for additional powersaving on some modules.  Does
-+ * not write to the hardware.  Returns -EINVAL upon error or 0 upon
-+ * success.
-+ */
-+static int _set_clockactivity(struct omap_hwmod *oh, u8 clockact, u32 *v)
-+{
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_CLOCKACTIVITY))
-+		return -EINVAL;
-+
-+	*v &= ~SYSC_CLOCKACTIVITY_MASK;
-+	*v |= clockact << SYSC_CLOCKACTIVITY_SHIFT;
-+
-+	return 0;
-+}
-+
-+/**
-+ * _set_softreset: set OCP_SYSCONFIG.CLOCKACTIVITY bits in @v
-+ * @oh: struct omap_hwmod *
-+ * @v: pointer to register contents to modify
-+ *
-+ * Set the SOFTRESET bit in @v for hwmod @oh.  Returns -EINVAL upon
-+ * error or 0 upon success.
-+ */
-+static int _set_softreset(struct omap_hwmod *oh, u32 *v)
-+{
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_SOFTRESET))
-+		return -EINVAL;
-+
-+	*v |= SYSC_SOFTRESET_MASK;
-+
-+	return 0;
-+}
-+
-+/**
-+ * _enable_wakeup: set OCP_SYSCONFIG.ENAWAKEUP bit in the hardware
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Allow the hardware module @oh to send wakeups.  Returns -EINVAL
-+ * upon error or 0 upon success.
-+ */
-+static int _enable_wakeup(struct omap_hwmod *oh)
-+{
-+	u32 v;
-+
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_ENAWAKEUP))
-+		return -EINVAL;
-+
-+	v = oh->_sysc_cache;
-+	v |= SYSC_ENAWAKEUP_MASK;
-+	_write_sysconfig(v, oh);
-+
-+	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
-+
-+	oh->_int_flags |= _HWMOD_WAKEUP_ENABLED;
-+
-+	return 0;
-+}
-+
-+/**
-+ * _disable_wakeup: clear OCP_SYSCONFIG.ENAWAKEUP bit in the hardware
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Prevent the hardware module @oh to send wakeups.  Returns -EINVAL
-+ * upon error or 0 upon success.
-+ */
-+static int _disable_wakeup(struct omap_hwmod *oh)
-+{
-+	u32 v;
-+
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_ENAWAKEUP))
-+		return -EINVAL;
-+
-+	v = oh->_sysc_cache;
-+	v &= ~SYSC_ENAWAKEUP_MASK;
-+	_write_sysconfig(v, oh);
-+
-+	/* XXX test pwrdm_get_wken for this hwmod's subsystem */
-+
-+	oh->_int_flags &= ~_HWMOD_WAKEUP_ENABLED;
-+
-+	return 0;
-+}
-+
-+/**
-+ * _add_initiator_dep: prevent @oh from smart-idling while @init_oh is active
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Prevent the hardware module @oh from entering idle while the
-+ * hardare module initiator @init_oh is active.  Useful when a module
-+ * will be accessed by a particular initiator (e.g., if a module will
-+ * be accessed by the IVA, there should be a sleepdep between the IVA
-+ * initiator and the module).  Only applies to modules in smart-idle
-+ * mode.  Returns -EINVAL upon error or passes along
-+ * pwrdm_add_sleepdep() value upon success.
-+ */
-+static int _add_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
-+{
-+	if (!oh->_clk)
-+		return -EINVAL;
-+
-+	return pwrdm_add_sleepdep(oh->_clk->clkdm->pwrdm.ptr,
-+				  init_oh->_clk->clkdm->pwrdm.ptr);
-+}
-+
-+/**
-+ * _del_initiator_dep: allow @oh to smart-idle even if @init_oh is active
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Allow the hardware module @oh to enter idle while the hardare
-+ * module initiator @init_oh is active.  Useful when a module will not
-+ * be accessed by a particular initiator (e.g., if a module will not
-+ * be accessed by the IVA, there should be no sleepdep between the IVA
-+ * initiator and the module).  Only applies to modules in smart-idle
-+ * mode.  Returns -EINVAL upon error or passes along
-+ * pwrdm_add_sleepdep() value upon success.
-+ */
-+static int _del_initiator_dep(struct omap_hwmod *oh, struct omap_hwmod *init_oh)
-+{
-+	if (!oh->_clk)
-+		return -EINVAL;
-+
-+	return pwrdm_del_sleepdep(oh->_clk->clkdm->pwrdm.ptr,
-+				  init_oh->_clk->clkdm->pwrdm.ptr);
-+}
-+
-+/**
-+ * _init_main_clk - get a struct clk * for the the hwmod's main functional clk
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Called from _init_clocks().  Populates the @oh _clk (main
-+ * functional clock pointer) if a main_clk is present.  Returns 0 on
-+ * success or -EINVAL on error.
-+ */
-+static int _init_main_clk(struct omap_hwmod *oh)
-+{
-+	struct clk *c;
-+	int ret = 0;
-+
-+	if (!oh->clkdev_con_id)
-+		return 0;
-+
-+	c = clk_get_sys(oh->clkdev_dev_id, oh->clkdev_con_id);
-+	WARN(IS_ERR(c), "omap_hwmod: %s: cannot clk_get main_clk %s.%s\n",
-+	     oh->name, oh->clkdev_dev_id, oh->clkdev_con_id);
-+	if (IS_ERR(c))
-+		ret = -EINVAL;
-+	oh->_clk = c;
-+
-+	return ret;
-+}
-+
-+/**
-+ * _init_interface_clk - get a struct clk * for the the hwmod's interface clks
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Called from _init_clocks().  Populates the @oh OCP slave interface
-+ * clock pointers.  Returns 0 on success or -EINVAL on error.
-+ */
-+static int _init_interface_clks(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_ocp_if *os;
-+	struct clk *c;
-+	int i;
-+	int ret = 0;
-+
-+	if (oh->slaves_cnt == 0)
-+		return 0;
-+
-+	for (i = 0, os = *oh->slaves; i < oh->slaves_cnt; i++, os++) {
-+		if (!os->clkdev_con_id)
-+			continue;
-+
-+		c = clk_get_sys(os->clkdev_dev_id, os->clkdev_con_id);
-+		WARN(IS_ERR(c), "omap_hwmod: %s: cannot clk_get "
-+		     "interface_clk %s.%s\n", oh->name,
-+		     os->clkdev_dev_id, os->clkdev_con_id);
-+		if (IS_ERR(c))
-+			ret = -EINVAL;
-+		os->_clk = c;
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * _init_opt_clk - get a struct clk * for the the hwmod's optional clocks
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Called from _init_clocks().  Populates the @oh omap_hwmod_opt_clk
-+ * clock pointers.  Returns 0 on success or -EINVAL on error.
-+ */
-+static int _init_opt_clks(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_opt_clk *oc;
-+	struct clk *c;
-+	int i;
-+	int ret = 0;
-+
-+	for (i = oh->opt_clks_cnt, oc = oh->opt_clks; i > 0; i--, oc++) {
-+		c = clk_get_sys(oc->clkdev_dev_id, oc->clkdev_con_id);
-+		WARN(IS_ERR(c), "omap_hwmod: %s: cannot clk_get opt_clk "
-+		     "%s.%s\n", oh->name, oc->clkdev_dev_id,
-+		     oc->clkdev_con_id);
-+		if (IS_ERR(c))
-+			ret = -EINVAL;
-+		oc->_clk = c;
-+	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * _enable_clocks - enable hwmod main clock and interface clocks
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Enables all clocks necessary for register reads and writes to succeed
-+ * on the hwmod @oh.  Returns 0.
-+ */
-+static int _enable_clocks(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_ocp_if *os;
-+	int i;
-+
-+	pr_debug("omap_hwmod: %s: enabling clocks\n", oh->name);
-+
-+	if (oh->_clk && !IS_ERR(oh->_clk))
-+		clk_enable(oh->_clk);
-+
-+	if (oh->slaves_cnt > 0) {
-+		for (i = 0, os = *oh->slaves; i < oh->slaves_cnt; i++, os++) {
-+			struct clk *c = os->_clk;
-+
-+			if (c && !IS_ERR(c) && (os->flags & OCPIF_SWSUP_IDLE))
-+				clk_enable(c);
-+		}
-+	}
-+
-+	/* The opt clocks are controlled by the device driver. */
-+
-+	return 0;
-+}
-+
-+/**
-+ * _disable_clocks - disable hwmod main clock and interface clocks
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Disables the hwmod @oh main functional and interface clocks.  Returns 0.
-+ */
-+static int _disable_clocks(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_ocp_if *os;
-+	int i;
-+
-+	pr_debug("omap_hwmod: %s: disabling clocks\n", oh->name);
-+
-+	if (oh->_clk && !IS_ERR(oh->_clk))
-+		clk_disable(oh->_clk);
-+
-+	if (oh->slaves_cnt > 0) {
-+		for (i = 0, os = *oh->slaves; i < oh->slaves_cnt; i++, os++) {
-+			struct clk *c = os->_clk;
-+
-+			if (c && !IS_ERR(c) && (os->flags & OCPIF_SWSUP_IDLE))
-+				clk_disable(c);
-+		}
-+	}
-+
-+	/* The opt clocks are controlled by the device driver. */
-+
-+	return 0;
-+}
-+
-+/**
-+ * _find_mpu_port_index - find hwmod OCP slave port ID intended for MPU use
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Returns the array index of the OCP slave port that the MPU
-+ * addresses the device on, or -EINVAL upon error or not found.
-+ */
-+static int _find_mpu_port_index(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_ocp_if *os;
-+	int i;
-+	int found = 0;
-+
-+	if (!oh || oh->slaves_cnt == 0)
-+		return -EINVAL;
-+
-+	for (i = 0, os = *oh->slaves; i < oh->slaves_cnt; i++, os++) {
-+		if (os->user & OCP_USER_MPU) {
-+			found = 1;
-+			break;
-+		}
-+	}
-+
-+	if (found)
-+		pr_debug("omap_hwmod: %s: MPU OCP slave port ID  %d\n",
-+			 oh->name, i);
-+	else
-+		pr_debug("omap_hwmod: %s: no MPU OCP slave port found\n",
-+			 oh->name);
-+
-+	return (found) ? i : -EINVAL;
-+}
-+
-+/**
-+ * _find_mpu_rt_base - find hwmod register target base addr accessible by MPU
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Return the virtual address of the base of the register target of
-+ * device @oh, or NULL on error.
-+ */
-+static void __iomem *_find_mpu_rt_base(struct omap_hwmod *oh, u8 index)
-+{
-+	struct omap_hwmod_ocp_if *os;
-+	struct omap_hwmod_addr_space *mem;
-+	int i;
-+	int found = 0;
-+
-+	if (!oh || oh->slaves_cnt == 0)
-+		return NULL;
-+
-+	os = *oh->slaves + index;
-+
-+	for (i = 0, mem = os->addr; i < os->addr_cnt; i++, mem++) {
-+		if (mem->flags & ADDR_TYPE_RT) {
-+			found = 1;
-+			break;
-+		}
-+	}
-+
-+	/* XXX use ioremap() instead? */
-+
-+	if (found)
-+		pr_debug("omap_hwmod: %s: MPU register target at va %p\n",
-+			 oh->name, IO_ADDRESS(mem->pa_start));
-+	else
-+		pr_debug("omap_hwmod: %s: no MPU register target found\n",
-+			 oh->name);
-+
-+	return (found) ? IO_ADDRESS(mem->pa_start) : NULL;
-+}
-+
-+/**
-+ * _sysc_enable - try to bring a module out of idle via OCP_SYSCONFIG
-+ * @oh: struct omap_hwmod *
-+ *
-+ * If module is marked as SWSUP_SIDLE, force the module out of slave
-+ * idle; otherwise, configure it for smart-idle.  If module is marked
-+ * as SWSUP_MSUSPEND, force the module out of master standby;
-+ * otherwise, configure it for smart-standby.  No return value.
-+ */
-+static void _sysc_enable(struct omap_hwmod *oh)
-+{
-+	u8 idlemode;
-+	u32 v;
-+
-+	if (!oh->sysconfig)
-+		return;
-+
-+	v = oh->_sysc_cache;
-+
-+	if (oh->sysconfig->sysc_flags & SYSC_HAS_SIDLEMODE) {
-+		idlemode = (oh->flags & HWMOD_SWSUP_SIDLE) ?
-+			HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
-+		_set_slave_idlemode(oh, idlemode, &v);
-+	}
-+
-+	if (oh->sysconfig->sysc_flags & SYSC_HAS_MIDLEMODE) {
-+		idlemode = (oh->flags & HWMOD_SWSUP_MSTANDBY) ?
-+			HWMOD_IDLEMODE_NO : HWMOD_IDLEMODE_SMART;
-+		_set_master_standbymode(oh, idlemode, &v);
-+	}
-+
-+	/* XXX OCP AUTOIDLE bit? */
-+
-+	if (oh->flags & HWMOD_SET_DEFAULT_CLOCKACT &&
-+	    oh->sysconfig->sysc_flags & SYSC_HAS_CLOCKACTIVITY)
-+		_set_clockactivity(oh, oh->sysconfig->clockact, &v);
-+
-+	_write_sysconfig(v, oh);
-+}
-+
-+/**
-+ * _sysc_idle - try to put a module into idle via OCP_SYSCONFIG
-+ * @oh: struct omap_hwmod *
-+ *
-+ * If module is marked as SWSUP_SIDLE, force the module into slave
-+ * idle; otherwise, configure it for smart-idle.  If module is marked
-+ * as SWSUP_MSUSPEND, force the module into master standby; otherwise,
-+ * configure it for smart-standby.  No return value.
-+ */
-+static void _sysc_idle(struct omap_hwmod *oh)
-+{
-+	u8 idlemode;
-+	u32 v;
-+
-+	if (!oh->sysconfig)
-+		return;
-+
-+	v = oh->_sysc_cache;
-+
-+	if (oh->sysconfig->sysc_flags & SYSC_HAS_SIDLEMODE) {
-+		idlemode = (oh->flags & HWMOD_SWSUP_SIDLE) ?
-+			HWMOD_IDLEMODE_FORCE : HWMOD_IDLEMODE_SMART;
-+		_set_slave_idlemode(oh, idlemode, &v);
-+	}
-+
-+	if (oh->sysconfig->sysc_flags & SYSC_HAS_MIDLEMODE) {
-+		idlemode = (oh->flags & HWMOD_SWSUP_MSTANDBY) ?
-+			HWMOD_IDLEMODE_FORCE : HWMOD_IDLEMODE_SMART;
-+		_set_master_standbymode(oh, idlemode, &v);
-+	}
-+
-+	_write_sysconfig(v, oh);
-+}
-+
-+/**
-+ * _sysc_shutdown - force a module into idle via OCP_SYSCONFIG
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Force the module into slave idle and master suspend. No return
-+ * value.
-+ */
-+static void _sysc_shutdown(struct omap_hwmod *oh)
-+{
-+	u32 v;
-+
-+	if (!oh->sysconfig)
-+		return;
-+
-+	v = oh->_sysc_cache;
-+
-+	if (oh->sysconfig->sysc_flags & SYSC_HAS_SIDLEMODE)
-+		_set_slave_idlemode(oh, HWMOD_IDLEMODE_FORCE, &v);
-+
-+	if (oh->sysconfig->sysc_flags & SYSC_HAS_MIDLEMODE)
-+		_set_master_standbymode(oh, HWMOD_IDLEMODE_FORCE, &v);
-+
-+	/* XXX clear OCP AUTOIDLE bit? */
-+
-+	_write_sysconfig(v, oh);
-+}
-+
-+/**
-+ * _lookup - find an omap_hwmod by name
-+ * @name: find an omap_hwmod by name
-+ *
-+ * Return a pointer to an omap_hwmod by name, or NULL if not found.
-+ * Caller must hold omap_hwmod_mutex.
-+ */
-+static struct omap_hwmod *_lookup(const char *name)
-+{
-+	struct omap_hwmod *oh, *temp_oh;
-+
-+	oh = NULL;
-+
-+	list_for_each_entry(temp_oh, &omap_hwmod_list, node) {
-+		if (!strcmp(name, temp_oh->name)) {
-+			oh = temp_oh;
-+			break;
-+		}
-+	}
-+
-+	return oh;
-+}
-+
-+/**
-+ * _init_clocks - clk_get() all clocks associated with this hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Called by omap_hwmod_late_init() (after omap2_clk_init()).
-+ * Resolves all clock names embedded in the hwmod.  Must be called
-+ * with omap_hwmod_mutex held.  Returns -EINVAL if the omap_hwmod
-+ * has not yet been registered or if the clocks have already been
-+ * initialized, 0 on success, or a non-zero error on failure.
-+ */
-+static int _init_clocks(struct omap_hwmod *oh)
-+{
-+	int ret = 0;
-+
-+	if (!oh || (oh->_state != _HWMOD_STATE_REGISTERED))
-+		return -EINVAL;
-+
-+	pr_debug("omap_hwmod: %s: looking up clocks\n", oh->name);
-+
-+	ret |= _init_main_clk(oh);
-+	ret |= _init_interface_clks(oh);
-+	ret |= _init_opt_clks(oh);
-+
-+	oh->_state = _HWMOD_STATE_CLKS_INITED;
-+
-+	return ret;
-+}
-+
-+/**
-+ * _wait_target_ready - wait for a module to leave slave idle
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Wait for a module @oh to leave slave idle.  Returns 0 if the module
-+ * does not have an IDLEST bit or if the module successfully leaves
-+ * slave idle; otherwise, pass along the return value of the
-+ * appropriate *_cm_wait_module_ready() function.
-+ */
-+static int _wait_target_ready(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_ocp_if *os;
-+	int ret;
-+
-+	if (!oh)
-+		return -EINVAL;
-+
-+	if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
-+		return 0;
-+
-+	os = *oh->slaves + oh->_mpu_port_index;
-+
-+	if (!(os->flags & OCPIF_HAS_IDLEST))
-+		return 0;
-+
-+	/* XXX check module SIDLEMODE */
-+
-+	/* XXX check clock enable states */
-+
-+	if (cpu_is_omap24xx() || cpu_is_omap34xx()) {
-+		ret = omap2_cm_wait_module_ready(oh->prcm.omap2.module_offs,
-+						 oh->prcm.omap2.idlest_reg_id,
-+						 oh->prcm.omap2.idlest_idle_bit);
-+#if 0
-+	} else if (cpu_is_omap44xx()) {
-+		ret = omap4_cm_wait_module_ready(oh->prcm.omap4.module_offs,
-+						 oh->prcm.omap4.device_offs);
 +#endif
-+	} else {
-+		BUG();
-+	};
-+
-+	return ret;
-+}
-+
-+/**
-+ * _reset - reset an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Resets an omap_hwmod @oh via the OCP_SYSCONFIG bit.  hwmod must be
-+ * enabled for this to work.  Must be called with omap_hwmod_mutex
-+ * held.  Returns -EINVAL if the hwmod cannot be reset this way or if
-+ * the hwmod is in the wrong state, -ETIMEDOUT if the module did not
-+ * reset in time, or 0 upon success.
-+ */
-+static int _reset(struct omap_hwmod *oh)
-+{
-+	u32 r, v;
-+	int c;
-+
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_SOFTRESET) ||
-+	    (oh->sysconfig->sysc_flags & SYSS_MISSING))
-+		return -EINVAL;
-+
-+	/* clocks must be on for this operation */
-+	if (oh->_state != _HWMOD_STATE_ENABLED) {
-+		WARN(1, "omap_hwmod: %s: reset can only be entered from "
-+		     "enabled state\n", oh->name);
-+		return -EINVAL;
-+	}
-+
-+	pr_debug("omap_hwmod: %s: resetting\n", oh->name);
-+
-+	v = oh->_sysc_cache;
-+	r = _set_softreset(oh, &v);
-+	if (r)
-+		return r;
-+	_write_sysconfig(v, oh);
-+
-+	c = 0;
-+	while (c < MAX_MODULE_RESET_WAIT &&
-+	       !(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
-+		 SYSS_RESETDONE_MASK)) {
-+		udelay(1);
-+		c++;
-+	}
-+
-+	if (c == MAX_MODULE_RESET_WAIT)
-+		WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
-+		     oh->name, MAX_MODULE_RESET_WAIT);
-+	else
-+		pr_debug("omap_hwmod: %s: reset in %d usec\n", oh->name,
-+			 MAX_MODULE_RESET_WAIT);
-+
-+	/*
-+	 * XXX add _HWMOD_STATE_WEDGED for modules that don't come back from
-+	 * _wait_target_ready() or _reset()
-+	 */
-+
-+	return (c == MAX_MODULE_RESET_WAIT) ? -ETIMEDOUT : 0;
-+}
-+
-+/**
-+ * _enable - enable an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Enables an omap_hwmod @oh such that the MPU can access the hwmod's
-+ * register target.  Must be called with omap_hwmod_mutex held.
-+ * Returns -EINVAL if the hwmod is in the wrong state or passes along
-+ * the return value of _wait_target_ready().
-+ */
-+static int _enable(struct omap_hwmod *oh)
-+{
-+	int r;
-+
-+	if (oh->_state != _HWMOD_STATE_INITIALIZED &&
-+	    oh->_state != _HWMOD_STATE_IDLE &&
-+	    oh->_state != _HWMOD_STATE_DISABLED) {
-+		WARN(1, "omap_hwmod: %s: enabled state can only be entered "
-+		     "from initialized, idle, or disabled state\n", oh->name);
-+		return -EINVAL;
-+	}
-+
-+	pr_debug("omap_hwmod: %s: enabling\n", oh->name);
-+
-+	/* XXX mux balls */
-+
-+	_add_initiator_dep(oh, mpu_oh);
-+	_enable_clocks(oh);
-+
-+	if (oh->sysconfig) {
-+		if (!(oh->_int_flags & _HWMOD_SYSCONFIG_LOADED))
-+			_update_sysc_cache(oh);
-+		_sysc_enable(oh);
-+	}
-+
-+	r = _wait_target_ready(oh);
-+	if (!r)
-+		oh->_state = _HWMOD_STATE_ENABLED;
-+
-+	return r;
-+}
-+
-+/**
-+ * _idle - idle an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Idles an omap_hwmod @oh.  This should be called once the hwmod has
-+ * no further work.  Returns -EINVAL if the hwmod is in the wrong
-+ * state or returns 0.
-+ */
-+static int _idle(struct omap_hwmod *oh)
-+{
-+	if (oh->_state != _HWMOD_STATE_ENABLED) {
-+		WARN(1, "omap_hwmod: %s: idle state can only be entered from "
-+		     "enabled state\n", oh->name);
-+		return -EINVAL;
-+	}
-+
-+	pr_debug("omap_hwmod: %s: idling\n", oh->name);
-+
-+	if (oh->sysconfig)
-+		_sysc_idle(oh);
-+	_del_initiator_dep(oh, mpu_oh);
-+	_disable_clocks(oh);
-+
-+	oh->_state = _HWMOD_STATE_IDLE;
-+
-+	return 0;
-+}
-+
-+/**
-+ * _shutdown - shutdown an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Shut down an omap_hwmod @oh.  This should be called when the driver
-+ * used for the hwmod is removed or unloaded or if the driver is not
-+ * used by the system.  Returns -EINVAL if the hwmod is in the wrong
-+ * state or returns 0.
-+ */
-+static int _shutdown(struct omap_hwmod *oh)
-+{
-+	if (oh->_state != _HWMOD_STATE_IDLE &&
-+	    oh->_state != _HWMOD_STATE_ENABLED) {
-+		WARN(1, "omap_hwmod: %s: disabled state can only be entered "
-+		     "from idle, or enabled state\n", oh->name);
-+		return -EINVAL;
-+	}
-+
-+	pr_debug("omap_hwmod: %s: disabling\n", oh->name);
-+
-+	if (oh->sysconfig)
-+		_sysc_shutdown(oh);
-+	_del_initiator_dep(oh, mpu_oh);
-+	/* XXX what about the other system initiators here? DMA, tesla, d2d */
-+	_disable_clocks(oh);
-+	/* XXX Should this code also force-disable the optional clocks? */
-+
-+	/* XXX mux any associated balls to safe mode */
-+
-+	oh->_state = _HWMOD_STATE_DISABLED;
-+
-+	return 0;
-+}
-+
-+/**
-+ * _write_clockact_lock - set the module's clockactivity bits
-+ * @oh: struct omap_hwmod *
-+ * @clockact: CLOCKACTIVITY field bits
-+ *
-+ * Writes the CLOCKACTIVITY bits @clockact to the hwmod @oh
-+ * OCP_SYSCONFIG register.  Returns -EINVAL if the hwmod is in the
-+ * wrong state or returns 0.
-+ */
-+static int _write_clockact_lock(struct omap_hwmod *oh, u8 clockact)
-+{
-+	u32 v;
-+
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_CLOCKACTIVITY))
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	v = oh->_sysc_cache;
-+	_set_clockactivity(oh, clockact, &v);
-+	_write_sysconfig(v, oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return 0;
-+}
-+
-+
-+/**
-+ * _setup - do initial configuration of omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Writes the CLOCKACTIVITY bits @clockact to the hwmod @oh
-+ * OCP_SYSCONFIG register.  Must be called with omap_hwmod_mutex
-+ * held.  Returns -EINVAL if the hwmod is in the wrong state or returns
-+ * 0.
-+ */
-+static int _setup(struct omap_hwmod *oh)
-+{
-+	struct omap_hwmod_ocp_if *os;
-+	int i;
-+
-+	if (!oh)
-+		return -EINVAL;
-+
-+	/* Set iclk autoidle mode */
-+	if (oh->slaves_cnt > 0) {
-+		for (i = 0, os = *oh->slaves; i < oh->slaves_cnt; i++, os++) {
-+			struct clk *c = os->_clk;
-+
-+			if (!c || IS_ERR(c))
-+				continue;
-+
-+			if (os->flags & OCPIF_SWSUP_IDLE) {
-+				/* XXX omap_iclk_deny_idle(c); */
-+			} else {
-+				/* XXX omap_iclk_allow_idle(c); */
-+				clk_enable(c);
-+			}
-+		}
-+	}
-+
-+	oh->_state = _HWMOD_STATE_INITIALIZED;
-+
-+	_enable(oh);
-+
-+	if (!(oh->flags & HWMOD_INIT_NO_RESET))
-+		_reset(oh);
-+
-+	/* XXX OCP AUTOIDLE bit? */
-+	/* XXX OCP ENAWAKEUP bit? */
-+
-+	if (!(oh->flags & HWMOD_INIT_NO_IDLE))
-+		_idle(oh);
-+
-+	return 0;
-+}
-+
-+
-+
-+/* Public functions */
-+
-+u32 omap_hwmod_readl(struct omap_hwmod *oh, u16 reg_offs)
-+{
-+	return __raw_readl(oh->_rt_va + reg_offs);
-+}
-+
-+void omap_hwmod_writel(u32 v, struct omap_hwmod *oh, u16 reg_offs)
-+{
-+	__raw_writel(v, oh->_rt_va + reg_offs);
-+}
-+
-+/**
-+ * omap_hwmod_register - register a struct omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Registers the omap_hwmod @oh.  Returns -EEXIST if an omap_hwmod already
-+ * has been registered by the same name; -EINVAL if the omap_hwmod is in the
-+ * wrong state, or 0 on success.
-+ *
-+ * XXX The data should be copied into bootmem, so the original data
-+ * should be marked __initdata and freed after init.  This would allow
-+ * unneeded omap_hwmods to be freed on multi-OMAP configurations.  Note
-+ * that the copy process would be relatively complex due to the large number
-+ * of substructures.
-+ */
-+int omap_hwmod_register(struct omap_hwmod *oh)
-+{
-+	int ret, ms_id;
-+
-+	if (!oh || (oh->_state != _HWMOD_STATE_UNKNOWN))
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+
-+	pr_debug("omap_hwmod: %s: registering\n", oh->name);
-+
-+	if (_lookup(oh->name)) {
-+		ret = -EEXIST;
-+		goto ohr_unlock;
-+	}
-+
-+	ms_id = _find_mpu_port_index(oh);
-+	if (!IS_ERR_VALUE(ms_id)) {
-+		oh->_mpu_port_index = ms_id;
-+		oh->_rt_va = _find_mpu_rt_base(oh, oh->_mpu_port_index);
-+	} else {
-+		oh->_int_flags |= _HWMOD_NO_MPU_PORT;
-+	}
-+
-+	list_add_tail(&oh->node, &omap_hwmod_list);
-+
-+	oh->_state = _HWMOD_STATE_REGISTERED;
-+
-+	ret = 0;
-+
-+ohr_unlock:
-+	mutex_unlock(&omap_hwmod_mutex);
-+	return ret;
-+}
-+
-+/**
-+ * omap_hwmod_lookup - look up a registered omap_hwmod by name
-+ * @name: name of the omap_hwmod to look up
-+ *
-+ * Given a @name of an omap_hwmod, return a pointer to the registered
-+ * struct omap_hwmod *, or NULL upon error.
-+ */
-+struct omap_hwmod *omap_hwmod_lookup(const char *name)
-+{
-+	struct omap_hwmod *oh;
-+
-+	if (!name)
-+		return NULL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	oh = _lookup(name);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return oh;
-+}
-+
-+/**
-+ * omap_hwmod_for_each - call function for each registered omap_hwmod
-+ * @fn: pointer to a callback function
-+ *
-+ * Call @fn for each registered omap_hwmod, passing @data to each
-+ * function.  @fn must return 0 for success or any other value for
-+ * failure.  If @fn returns non-zero, the iteration across omap_hwmods
-+ * will stop and the non-zero return value will be passed to the
-+ * caller of omap_hwmod_for_each().  @fn is called with
-+ * omap_hwmod_for_each() held.
-+ */
-+int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh))
-+{
-+	struct omap_hwmod *temp_oh;
-+	int ret;
-+
-+	if (!fn)
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	list_for_each_entry(temp_oh, &omap_hwmod_list, node) {
-+		ret = (*fn)(temp_oh);
-+		if (ret)
-+			break;
-+	}
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return ret;
-+}
-+
-+
-+/**
-+ * omap_hwmod_init - init omap_hwmod code and register hwmods
-+ * @ohs: pointer to an array of omap_hwmods to register
-+ *
-+ * Intended to be called early in boot before the clock framework is
-+ * initialized.  If @ohs is not null, will register all omap_hwmods
-+ * listed in @ohs that are valid for this chip.  Returns -EINVAL if
-+ * omap_hwmod_init() has already been called or 0 otherwise.
-+ */
-+int omap_hwmod_init(struct omap_hwmod **ohs)
-+{
-+	struct omap_hwmod *oh;
-+	int r;
-+
-+	if (inited)
-+		return -EINVAL;
-+
-+	inited = 1;
-+
-+	if (!ohs)
-+		return 0;
-+
-+	oh = *ohs;
-+	while (oh) {
-+		if (omap_chip_is(oh->omap_chip)) {
-+			r = omap_hwmod_register(oh);
-+			WARN(r, "omap_hwmod: %s: omap_hwmod_register returned "
-+			     "%d\n", oh->name, r);
-+		}
-+		oh = *++ohs;
-+	}
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_late_init - do some post-clock framework initialization
-+ *
-+ * Must be called after omap2_clk_init().  Resolves the struct clk names
-+ * to struct clk pointers for each registered omap_hwmod.  Also calls
-+ * _setup() on each hwmod.  Returns 0.
-+ */
-+int omap_hwmod_late_init(void)
-+{
-+	int r;
-+
-+	/* XXX check return value */
-+	r = omap_hwmod_for_each(_init_clocks);
-+	WARN(r, "omap_hwmod: omap_hwmod_late_init(): _init_clocks failed\n");
-+
-+	mpu_oh = omap_hwmod_lookup(MPU_INITIATOR_NAME);
-+	WARN(!mpu_oh, "omap_hwmod: could not find MPU initiator hwmod %s\n",
-+	     MPU_INITIATOR_NAME);
-+
-+	omap_hwmod_for_each(_setup);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_unregister - unregister an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Unregisters a previously-registered omap_hwmod @oh.  There's probably
-+ * no use case for this, so it is likely to be removed in a later version.
-+ *
-+ * XXX Free all of the bootmem-allocated structures here when that is
-+ * implemented.  Make it clear that core code is the only code that is
-+ * expected to unregister modules.
-+ */
-+int omap_hwmod_unregister(struct omap_hwmod *oh)
-+{
-+	if (!oh)
-+		return -EINVAL;
-+
-+	pr_debug("omap_hwmod: %s: unregistering\n", oh->name);
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	list_del(&oh->node);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_enable - enable an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Enable an omap_hwomd @oh.  Intended to be called by omap_device_enable().
-+ * Returns -EINVAL on error or passes along the return value from _enable().
-+ */
-+int omap_hwmod_enable(struct omap_hwmod *oh)
-+{
-+	int r;
-+
-+	if (!oh)
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	r = _enable(oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return r;
-+}
-+
-+/**
-+ * omap_hwmod_idle - idle an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Idle an omap_hwomd @oh.  Intended to be called by omap_device_idle().
-+ * Returns -EINVAL on error or passes along the return value from _idle().
-+ */
-+int omap_hwmod_idle(struct omap_hwmod *oh)
-+{
-+	if (!oh)
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	_idle(oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_shutdown - shutdown an omap_hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Shutdown an omap_hwomd @oh.  Intended to be called by
-+ * omap_device_shutdown().  Returns -EINVAL on error or passes along
-+ * the return value from _shutdown().
-+ */
-+int omap_hwmod_shutdown(struct omap_hwmod *oh)
-+{
-+	if (!oh)
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	_shutdown(oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_enable_clocks - enable main_clk, all interface clocks
-+ * @oh: struct omap_hwmod *oh
-+ *
-+ * Intended to be called by the omap_device code.
-+ */
-+int omap_hwmod_enable_clocks(struct omap_hwmod *oh)
-+{
-+	mutex_lock(&omap_hwmod_mutex);
-+	_enable_clocks(oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_disable_clocks - disable main_clk, all interface clocks
-+ * @oh: struct omap_hwmod *oh
-+ *
-+ * Intended to be called by the omap_device code.
-+ */
-+int omap_hwmod_disable_clocks(struct omap_hwmod *oh)
-+{
-+	mutex_lock(&omap_hwmod_mutex);
-+	_disable_clocks(oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_ocp_barrier - wait for posted writes against the hwmod to complete
-+ * @oh: struct omap_hwmod *oh
-+ *
-+ * Intended to be called by drivers and core code when all posted
-+ * writes to a device must complete before continuing further
-+ * execution (for example, after clearing some device IRQSTATUS
-+ * register bits)
-+ *
-+ * XXX what about targets with multiple OCP threads?
-+ */
-+void omap_hwmod_ocp_barrier(struct omap_hwmod *oh)
-+{
-+	BUG_ON(!oh);
-+
-+	if (!oh->sysconfig || !oh->sysconfig->sysc_flags) {
-+		WARN(1, "omap_device: %s: OCP barrier impossible due to "
-+		      "device configuration\n", oh->name);
-+		return;
-+	}
-+
-+	/*
-+	 * Forces posted writes to complete on the OCP thread handling
-+	 * register writes
-+	 */
-+	omap_hwmod_readl(oh, oh->sysconfig->sysc_offs);
-+}
-+
-+/**
-+ * omap_hwmod_reset - reset the hwmod
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Under some conditions, a driver may wish to reset the entire device.
-+ * Called from omap_device code.  Returns -EINVAL on error or passes along
-+ * the return value from _reset()/_enable().
-+ */
-+int omap_hwmod_reset(struct omap_hwmod *oh)
-+{
-+	int r;
-+
-+	if (!oh || !(oh->_state & _HWMOD_STATE_ENABLED))
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	r = _reset(oh);
-+	if (!r)
-+		r = _enable(oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return r;
-+}
-+
-+/**
-+ * omap_hwmod_count_resources - count number of struct resources needed by hwmod
-+ * @oh: struct omap_hwmod *
-+ * @res: pointer to the first element of an array of struct resource to fill
-+ *
-+ * Count the number of struct resource array elements necessary to
-+ * contain omap_hwmod @oh resources.  Intended to be called by code
-+ * that registers omap_devices.  Intended to be used to determine the
-+ * size of a dynamically-allocated struct resource array, before
-+ * calling omap_hwmod_fill_resources().  Returns the number of struct
-+ * resource array elements needed.
-+ *
-+ * XXX This code is not optimized.  It could attempt to merge adjacent
-+ * resource IDs.
-+ *
-+ */
-+int omap_hwmod_count_resources(struct omap_hwmod *oh)
-+{
-+	int ret, i;
-+
-+	ret = oh->mpu_irqs_cnt + oh->sdma_chs_cnt;
-+
-+	for (i = 0; i < oh->slaves_cnt; i++)
-+		ret += (*oh->slaves + i)->addr_cnt;
-+
-+	return ret;
-+}
-+
-+/**
-+ * omap_hwmod_fill_resources - fill struct resource array with hwmod data
-+ * @oh: struct omap_hwmod *
-+ * @res: pointer to the first element of an array of struct resource to fill
-+ *
-+ * Fill the struct resource array @res with resource data from the
-+ * omap_hwmod @oh.  Intended to be called by code that registers
-+ * omap_devices.  See also omap_hwmod_count_resources().  Returns the
-+ * number of array elements filled.
-+ */
-+int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res)
-+{
-+	int i, j;
-+	int r = 0;
-+
-+	/* For each IRQ, DMA, memory area, fill in array.*/
-+
-+	for (i = 0; i < oh->mpu_irqs_cnt; i++) {
-+		(res + r)->start = *(oh->mpu_irqs + i);
-+		(res + r)->end = *(oh->mpu_irqs + i);
-+		(res + r)->flags = IORESOURCE_IRQ;
-+		r++;
-+	}
-+
-+	for (i = 0; i < oh->sdma_chs_cnt; i++) {
-+		(res + r)->name = (oh->sdma_chs + i)->name;
-+		(res + r)->start = (oh->sdma_chs + i)->dma_ch;
-+		(res + r)->end = (oh->sdma_chs + i)->dma_ch;
-+		(res + r)->flags = IORESOURCE_DMA;
-+		r++;
-+	}
-+
-+	for (i = 0; i < oh->slaves_cnt; i++) {
-+		struct omap_hwmod_ocp_if *os;
-+
-+		os = *oh->slaves + i;
-+
-+		for (j = 0; j < os->addr_cnt; j++) {
-+			(res + r)->start = (os->addr + j)->pa_start;
-+			(res + r)->end = (os->addr + j)->pa_end;
-+			(res + r)->flags = IORESOURCE_MEM;
-+			r++;
-+		}
-+	}
-+
-+	return r;
-+}
-+
-+/**
-+ * omap_hwmod_get_pwrdm - return pointer to this module's main powerdomain
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Return the powerdomain pointer associated with the OMAP module
-+ * @oh's main clock.  If @oh does not have a main clk, return the
-+ * powerdomain associated with the interface clock associated with the
-+ * module's MPU port. (XXX Perhaps this should use the SDMA port
-+ * instead?)  Returns NULL on error, or a struct powerdomain * on
-+ * success.
-+ */
-+struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh)
-+{
-+	struct clk *c;
-+
-+	if (!oh)
-+		return NULL;
-+
-+	if (oh->_clk) {
-+		c = oh->_clk;
-+	} else {
-+		if (oh->_int_flags & _HWMOD_NO_MPU_PORT)
-+			return NULL;
-+		c = oh->slaves[oh->_mpu_port_index]->_clk;
-+	}
-+
-+	return c->clkdm->pwrdm.ptr;
-+
-+}
-+
-+/**
-+ * omap_hwmod_add_initiator_dep - add sleepdep from @init_oh to @oh
-+ * @oh: struct omap_hwmod *
-+ * @init_oh: struct omap_hwmod * (initiator)
-+ *
-+ * Add a sleep dependency between the initiator @init_oh and @oh.
-+ * Intended to be called by DSP/Bridge code via platform_data for the
-+ * DSP case; and by the DMA code in the sDMA case.  DMA code, *Bridge
-+ * code needs to add/del initiator dependencies dynamically
-+ * before/after accessing a device.  Returns the return value from
-+ * _add_initiator_dep().
-+ *
-+ * XXX Keep a usecount in the clockdomain code
-+ */
-+int omap_hwmod_add_initiator_dep(struct omap_hwmod *oh,
-+				 struct omap_hwmod *init_oh)
-+{
-+	return _add_initiator_dep(oh, init_oh);
-+}
-+
-+/*
-+ * XXX what about functions for drivers to save/restore ocp_sysconfig
-+ * for context save/restore operations?
-+ */
-+
-+/**
-+ * omap_hwmod_del_initiator_dep - remove sleepdep from @init_oh to @oh
-+ * @oh: struct omap_hwmod *
-+ * @init_oh: struct omap_hwmod * (initiator)
-+ *
-+ * Remove a sleep dependency between the initiator @init_oh and @oh.
-+ * Intended to be called by DSP/Bridge code via platform_data for the
-+ * DSP case; and by the DMA code in the sDMA case.  DMA code, *Bridge
-+ * code needs to add/del initiator dependencies dynamically
-+ * before/after accessing a device.  Returns the return value from
-+ * _del_initiator_dep().
-+ *
-+ * XXX Keep a usecount in the clockdomain code
-+ */
-+int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
-+				 struct omap_hwmod *init_oh)
-+{
-+	return _del_initiator_dep(oh, init_oh);
-+}
-+
-+/**
-+ * omap_hwmod_set_clockact_none - set clockactivity test to BOTH
-+ * @oh: struct omap_hwmod *
-+ *
-+ * On some modules, this function can affect the wakeup latency vs.
-+ * power consumption balance.  Intended to be called by the
-+ * omap_device layer.  Passes along the return value from
-+ * _write_clockact_lock().
-+ */
-+int omap_hwmod_set_clockact_both(struct omap_hwmod *oh)
-+{
-+	return _write_clockact_lock(oh, CLOCKACT_TEST_BOTH);
-+}
-+
-+/**
-+ * omap_hwmod_set_clockact_none - set clockactivity test to MAIN
-+ * @oh: struct omap_hwmod *
-+ *
-+ * On some modules, this function can affect the wakeup latency vs.
-+ * power consumption balance.  Intended to be called by the
-+ * omap_device layer.  Passes along the return value from
-+ * _write_clockact_lock().
-+ */
-+int omap_hwmod_set_clockact_main(struct omap_hwmod *oh)
-+{
-+	return _write_clockact_lock(oh, CLOCKACT_TEST_MAIN);
-+}
-+
-+/**
-+ * omap_hwmod_set_clockact_none - set clockactivity test to ICLK
-+ * @oh: struct omap_hwmod *
-+ *
-+ * On some modules, this function can affect the wakeup latency vs.
-+ * power consumption balance.  Intended to be called by the
-+ * omap_device layer.  Passes along the return value from
-+ * _write_clockact_lock().
-+ */
-+int omap_hwmod_set_clockact_iclk(struct omap_hwmod *oh)
-+{
-+	return _write_clockact_lock(oh, CLOCKACT_TEST_ICLK);
-+}
-+
-+/**
-+ * omap_hwmod_set_clockact_none - set clockactivity test to NONE
-+ * @oh: struct omap_hwmod *
-+ *
-+ * On some modules, this function can affect the wakeup latency vs.
-+ * power consumption balance.  Intended to be called by the
-+ * omap_device layer.  Passes along the return value from
-+ * _write_clockact_lock().
-+ */
-+int omap_hwmod_set_clockact_none(struct omap_hwmod *oh)
-+{
-+	return _write_clockact_lock(oh, CLOCKACT_TEST_NONE);
-+}
-+
-+/**
-+ * omap_hwmod_enable_wakeup - allow device to wake up the system
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Sets the module OCP socket ENAWAKEUP bit to allow the module to
-+ * send wakeups to the PRCM.  Eventually this should sets PRCM wakeup
-+ * registers to cause the PRCM to receive wakeup events from the
-+ * module.  Does not set any wakeup routing registers beyond this
-+ * point - if the module is to wake up any other module or subsystem,
-+ * that must be set separately.  Called by omap_device code.  Returns
-+ * -EINVAL on error or 0 upon success.
-+ */
-+int omap_hwmod_enable_wakeup(struct omap_hwmod *oh)
-+{
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_ENAWAKEUP))
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	_enable_wakeup(oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return 0;
-+}
-+
-+/**
-+ * omap_hwmod_disable_wakeup - prevent device from waking the system
-+ * @oh: struct omap_hwmod *
-+ *
-+ * Clears the module OCP socket ENAWAKEUP bit to prevent the module
-+ * from sending wakeups to the PRCM.  Eventually this should clear
-+ * PRCM wakeup registers to cause the PRCM to ignore wakeup events
-+ * from the module.  Does not set any wakeup routing registers beyond
-+ * this point - if the module is to wake up any other module or
-+ * subsystem, that must be set separately.  Called by omap_device
-+ * code.  Returns -EINVAL on error or 0 upon success.
-+ */
-+int omap_hwmod_disable_wakeup(struct omap_hwmod *oh)
-+{
-+	if (!oh->sysconfig ||
-+	    !(oh->sysconfig->sysc_flags & SYSC_HAS_ENAWAKEUP))
-+		return -EINVAL;
-+
-+	mutex_lock(&omap_hwmod_mutex);
-+	_disable_wakeup(oh);
-+	mutex_unlock(&omap_hwmod_mutex);
-+
-+	return 0;
-+}
-diff --git a/arch/arm/plat-omap/include/mach/omap_hwmod.h b/arch/arm/plat-omap/include/mach/omap_hwmod.h
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/oma=
+p-pm-noop.c
 new file mode 100644
-index 0000000..1f79c20
+index 0000000..e98f0a2
 --- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/omap_hwmod.h
-@@ -0,0 +1,447 @@
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -0,0 +1,296 @@
 +/*
-+ * omap_hwmod macros, structures
++ * omap-pm-noop.c - OMAP power management interface - dummy version
 + *
-+ * Copyright (C) 2009 Nokia Corporation
++ * This code implements the OMAP power management interface to
++ * drivers, CPUIdle, CPUFreq, and DSP Bridge.  It is strictly for
++ * debug/demonstration use, as it does nothing but printk() whenever a
++ * function is called (when DEBUG is defined, below)
++ *
++ * Copyright (C) 2008-2009 Texas Instruments, Inc.
++ * Copyright (C) 2008-2009 Nokia Corporation
 + * Paul Walmsley
 + *
-+ * Created in collaboration with (alphabetical order): Benoit Cousson,
-+ * Kevin Hilman, Tony Lindgren, Rajendra Nayak, Vikram Pandita, Sakari
-+ * Poussa, Anand Sawant, Santosh Shilimkar, Richard Woodruff
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * These headers and macros are used to define OMAP on-chip module
-+ * data and their integration with other OMAP modules and Linux.
-+ *
-+ * References:
-+ * - OMAP2420 Multimedia Processor Silicon Revision 2.1.1, 2.2 (SWPU064)
-+ * - OMAP2430 Multimedia Device POP Silicon Revision 2.1 (SWPU090)
-+ * - OMAP34xx Multimedia Device Silicon Revision 3.1 (SWPU108)
-+ * - OMAP4430 Multimedia Device Silicon Revision 1.0 (SWPU140)
-+ * - Open Core Protocol Specification 2.2
-+ *
-+ * To do:
-+ * - add interconnect error log structures
-+ * - add pinmuxing
-+ * - init_conn_id_bit (CONNID_BIT_VECTOR)
-+ * - implement default hwmod SMS/SDRC flags?
-+ *
++ * Interface developed by (in alphabetical order):
++ * Karthik Dasu, Tony Lindgren, Rajendra Nayak, Sakari Poussa, Veerama=
+nikandan
++ * Raju, Anand Sawant, Igor Stoppa, Paul Walmsley, Richard Woodruff
 + */
-+#ifndef __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_HWMOD_H
-+#define __ARCH_ARM_PLAT_OMAP_INCLUDE_MACH_OMAP_HWMOD_H
 +
-+#include <linux/kernel.h>
-+#include <linux/ioport.h>
++#undef DEBUG
 +
-+#include <mach/cpu.h>
++#include <linux/init.h>
++#include <linux/cpufreq.h>
++#include <linux/device.h>
 +
-+struct omap_device;
++/* Interface documentation is in mach/omap-pm.h */
++#include <mach/omap-pm.h>
 +
-+/* OCP SYSCONFIG bit shifts/masks */
-+#define SYSC_MIDLEMODE_SHIFT		12
-+#define SYSC_MIDLEMODE_MASK		(0x3 << SYSC_MIDLEMODE_SHIFT)
-+#define SYSC_CLOCKACTIVITY_SHIFT	8
-+#define SYSC_CLOCKACTIVITY_MASK		(0x3 << SYSC_CLOCKACTIVITY_SHIFT)
-+#define SYSC_SIDLEMODE_SHIFT		3
-+#define SYSC_SIDLEMODE_MASK		(0x3 << SYSC_SIDLEMODE_SHIFT)
-+#define SYSC_ENAWAKEUP_SHIFT		2
-+#define SYSC_ENAWAKEUP_MASK		(1 << SYSC_ENAWAKEUP_SHIFT)
-+#define SYSC_SOFTRESET_SHIFT		1
-+#define SYSC_SOFTRESET_MASK		(1 << SYSC_SOFTRESET_SHIFT)
++#include <mach/powerdomain.h>
 +
-+/* OCP SYSSTATUS bit shifts/masks */
-+#define SYSS_RESETDONE_SHIFT		0
-+#define SYSS_RESETDONE_MASK		(1 << SYSS_RESETDONE_SHIFT)
++struct omap_opp *dsp_opps;
++struct omap_opp *mpu_opps;
++struct omap_opp *l3_opps;
 +
-+/* Master standby/slave idle mode flags */
-+#define HWMOD_IDLEMODE_FORCE		(1 << 0)
-+#define HWMOD_IDLEMODE_NO		(1 << 1)
-+#define HWMOD_IDLEMODE_SMART		(1 << 2)
-+
-+
-+/**
-+ * struct omap_hwmod_dma_info - MPU address space handled by the hwmod
-+ * @name: name of the DMA channel (module local name)
-+ * @dma_ch: DMA channel ID
-+ *
-+ * @name should be something short, e.g., "tx" or "rx".  It is for use
-+ * by platform_get_resource_byname().  It is defined locally to the
-+ * hwmod.
++/*
++ * Device-driver-originated constraints (via board-*.c files)
 + */
-+struct omap_hwmod_dma_info {
-+	const char	*name;
-+	u16		dma_ch;
-+};
 +
-+/**
-+ * struct omap_hwmod_opt_clk - optional clocks used by this hwmod
-+ * @role: "sys", "32k", "tv", etc -- for use in clk_get()
-+ * @clkdev_dev_id: opt clock: clkdev dev_id string
-+ * @clkdev_con_id: opt clock: clkdev con_id string
-+ * @_clk: pointer to the struct clk (filled in at runtime)
-+ *
-+ * The module's interface clock and main functional clock should not
-+ * be added as optional clocks.
-+ */
-+struct omap_hwmod_opt_clk {
-+	const char	*role;
-+	const char	*clkdev_dev_id;
-+	const char	*clkdev_con_id;
-+	struct clk	*_clk;
-+};
++void omap_pm_set_max_mpu_wakeup_lat(struct device *dev, long t)
++{
++	if (!dev || t < -1) {
++		WARN_ON(1);
++		return;
++	};
 +
++	if (t =3D=3D -1)
++		pr_debug("OMAP PM: remove max MPU wakeup latency constraint: "
++			 "dev %s\n", dev_name(dev));
++	else
++		pr_debug("OMAP PM: add max MPU wakeup latency constraint: "
++			 "dev %s, t =3D %ld usec\n", dev_name(dev), t);
 +
-+/* omap_hwmod_omap2_firewall.flags bits */
-+#define OMAP_FIREWALL_L3		(1 << 0)
-+#define OMAP_FIREWALL_L4		(1 << 1)
++	/*
++	 * For current Linux, this needs to map the MPU to a
++	 * powerdomain, then go through the list of current max lat
++	 * constraints on the MPU and find the smallest.  If
++	 * the latency constraint has changed, the code should
++	 * recompute the state to enter for the next powerdomain
++	 * state.
++	 *
++	 * TI CDP code can call constraint_set here.
++	 */
++}
 +
-+/**
-+ * struct omap_hwmod_omap2_firewall - OMAP2/3 device firewall data
-+ * @l3_perm_bit: bit shift for L3_PM_*_PERMISSION_*
-+ * @l4_fw_region: L4 firewall region ID
-+ * @l4_prot_group: L4 protection group ID
-+ * @flags: (see omap_hwmod_omap2_firewall.flags macros above)
-+ */
-+struct omap_hwmod_omap2_firewall {
-+	u8 l3_perm_bit;
-+	u8 l4_fw_region;
-+	u8 l4_prot_group;
-+	u8 flags;
-+};
++void omap_pm_set_min_bus_tput(struct device *dev, u8 agent_id, unsigne=
+d long r)
++{
++	if (!dev || (agent_id !=3D OCP_INITIATOR_AGENT &&
++	    agent_id !=3D OCP_TARGET_AGENT)) {
++		WARN_ON(1);
++		return;
++	};
++
++	if (r =3D=3D 0)
++		pr_debug("OMAP PM: remove min bus tput constraint: "
++			 "dev %s for agent_id %d\n", dev_name(dev), agent_id);
++	else
++		pr_debug("OMAP PM: add min bus tput constraint: "
++			 "dev %s for agent_id %d: rate %ld KiB\n",
++			 dev_name(dev), agent_id, r);
++
++	/*
++	 * This code should model the interconnect and compute the
++	 * required clock frequency, convert that to a VDD2 OPP ID, then
++	 * set the VDD2 OPP appropriately.
++	 *
++	 * TI CDP code can call constraint_set here on the VDD2 OPP.
++	 */
++}
++
++void omap_pm_set_max_dev_wakeup_lat(struct device *dev, long t)
++{
++	if (!dev || t < -1) {
++		WARN_ON(1);
++		return;
++	};
++
++	if (t =3D=3D -1)
++		pr_debug("OMAP PM: remove max device latency constraint: "
++			 "dev %s\n", dev_name(dev));
++	else
++		pr_debug("OMAP PM: add max device latency constraint: "
++			 "dev %s, t =3D %ld usec\n", dev_name(dev), t);
++
++	/*
++	 * For current Linux, this needs to map the device to a
++	 * powerdomain, then go through the list of current max lat
++	 * constraints on that powerdomain and find the smallest.  If
++	 * the latency constraint has changed, the code should
++	 * recompute the state to enter for the next powerdomain
++	 * state.  Conceivably, this code should also determine
++	 * whether to actually disable the device clocks or not,
++	 * depending on how long it takes to re-enable the clocks.
++	 *
++	 * TI CDP code can call constraint_set here.
++	 */
++}
++
++void omap_pm_set_max_sdma_lat(struct device *dev, long t)
++{
++	if (!dev || t < -1) {
++		WARN_ON(1);
++		return;
++	};
++
++	if (t =3D=3D -1)
++		pr_debug("OMAP PM: remove max DMA latency constraint: "
++			 "dev %s\n", dev_name(dev));
++	else
++		pr_debug("OMAP PM: add max DMA latency constraint: "
++			 "dev %s, t =3D %ld usec\n", dev_name(dev), t);
++
++	/*
++	 * For current Linux PM QOS params, this code should scan the
++	 * list of maximum CPU and DMA latencies and select the
++	 * smallest, then set cpu_dma_latency pm_qos_param
++	 * accordingly.
++	 *
++	 * For future Linux PM QOS params, with separate CPU and DMA
++	 * latency params, this code should just set the dma_latency param.
++	 *
++	 * TI CDP code can call constraint_set here.
++	 */
++
++}
 +
 +
 +/*
-+ * omap_hwmod_addr_space.flags bits
-+ *
-+ * ADDR_MAP_ON_INIT: Map this address space during omap_hwmod init.
-+ * ADDR_TYPE_RT: Address space contains module register target data.
++ * DSP Bridge-specific constraints
 + */
-+#define ADDR_MAP_ON_INIT	(1 << 0)
-+#define ADDR_TYPE_RT		(1 << 1)
 +
-+/**
-+ * struct omap_hwmod_addr_space - MPU address space handled by the hwmod
-+ * @pa_start: starting physical address
-+ * @pa_end: ending physical address
-+ * @flags: (see omap_hwmod_addr_space.flags macros above)
-+ *
-+ * Address space doesn't necessarily follow physical interconnect
-+ * structure.  GPMC is one example.
-+ */
-+struct omap_hwmod_addr_space {
-+	u32 pa_start;
-+	u32 pa_end;
-+	u8 flags;
-+};
++const struct omap_opp *omap_pm_dsp_get_opp_table(void)
++{
++	pr_debug("OMAP PM: DSP request for OPP table\n");
 +
++	/*
++	 * Return DSP frequency table here:  The final item in the
++	 * array should have .rate =3D .opp_id =3D 0.
++	 */
++
++	return NULL;
++}
++
++void omap_pm_dsp_set_min_opp(u8 opp_id)
++{
++	if (opp_id =3D=3D 0) {
++		WARN_ON(1);
++		return;
++	}
++
++	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id)=
+;
++
++	/*
++	 *
++	 * For l-o dev tree, our VDD1 clk is keyed on OPP ID, so we
++	 * can just test to see which is higher, the CPU's desired OPP
++	 * ID or the DSP's desired OPP ID, and use whichever is
++	 * highest.
++	 *
++	 * In CDP12.14+, the VDD1 OPP custom clock that controls the DSP
++	 * rate is keyed on MPU speed, not the OPP ID.  So we need to
++	 * map the OPP ID to the MPU speed for use with clk_set_rate()
++	 * if it is higher than the current OPP clock rate.
++	 *
++	 */
++}
++
++
++u8 omap_pm_dsp_get_opp(void)
++{
++	pr_debug("OMAP PM: DSP requests current DSP OPP ID\n");
++
++	/*
++	 * For l-o dev tree, call clk_get_rate() on VDD1 OPP clock
++	 *
++	 * CDP12.14+:
++	 * Call clk_get_rate() on the OPP custom clock, map that to an
++	 * OPP ID using the tables defined in board-*.c/chip-*.c files.
++	 */
++
++	return 0;
++}
 +
 +/*
-+ * omap_hwmod_ocp_if.user bits: these indicate the initiators that use this
-+ * interface to interact with the hwmod.  Used to add sleep dependencies
-+ * when the module is enabled or disabled.
-+ */
-+#define OCP_USER_MPU			(1 << 0)
-+#define OCP_USER_SDMA			(1 << 1)
-+
-+/* omap_hwmod_ocp_if.flags bits */
-+#define OCPIF_HAS_IDLEST		(1 << 0)
-+#define OCPIF_SWSUP_IDLE		(1 << 1)
-+#define OCPIF_CAN_BURST			(1 << 2)
-+
-+/**
-+ * struct omap_hwmod_ocp_if - OCP interface data
-+ * @master: struct omap_hwmod that initiates OCP transactions on this link
-+ * @slave: struct omap_hwmod that responds to OCP transactions on this link
-+ * @addr: address space associated with this link
-+ * @clkdev_dev_id: interface clock: clkdev dev_id string
-+ * @clkdev_con_id: interface clock: clkdev con_id string
-+ * @_clk: pointer to the interface struct clk (filled in at runtime)
-+ * @fw: interface firewall data
-+ * @addr_cnt: ARRAY_SIZE(@addr)
-+ * @width: OCP data width
-+ * @thread_cnt: number of threads
-+ * @max_burst_len: maximum burst length in @width sized words (0 if unlimited)
-+ * @user: initiators using this interface (see OCP_USER_* macros above)
-+ * @flags: OCP interface flags (see OCPIF_* macros above)
++ * CPUFreq-originated constraint
 + *
-+ * It may also be useful to add a tag_cnt field for OCP2.x devices.
-+ *
-+ * Parameter names beginning with an underscore are managed internally by
-+ * the omap_hwmod code and should not be set during initialization.
++ * In the future, this should be handled by custom OPP clocktype
++ * functions.
 + */
-+struct omap_hwmod_ocp_if {
-+	struct omap_hwmod		*master;
-+	struct omap_hwmod		*slave;
-+	struct omap_hwmod_addr_space	*addr;
-+	const char			*clkdev_dev_id;
-+	const char			*clkdev_con_id;
-+	struct clk			*_clk;
-+	union {
-+		struct omap_hwmod_omap2_firewall omap2;
-+	}				fw;
-+	u8				addr_cnt;
-+	u8				width;
-+	u8				thread_cnt;
-+	u8				max_burst_len;
-+	u8				user;
-+	u8				flags;
-+};
 +
++struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
++{
++	pr_debug("OMAP PM: CPUFreq request for frequency table\n");
 +
-+/* Macros for use in struct omap_hwmod_sysconfig */
++	/*
++	 * Return CPUFreq frequency table here: loop over
++	 * all VDD1 clkrates, pull out the mpu_ck frequencies, build
++	 * table
++	 */
 +
-+/* Flags for use in omap_hwmod_sysconfig.idlemodes */
-+#define MASTER_STANDBY_SHIFT	2
-+#define SLAVE_IDLE_SHIFT	0
-+#define SIDLE_FORCE		(HWMOD_IDLEMODE_FORCE << SLAVE_IDLE_SHIFT)
-+#define SIDLE_NO		(HWMOD_IDLEMODE_NO << SLAVE_IDLE_SHIFT)
-+#define SIDLE_SMART		(HWMOD_IDLEMODE_SMART << SLAVE_IDLE_SHIFT)
-+#define MSTANDBY_FORCE		(HWMOD_IDLEMODE_FORCE << MASTER_STANDBY_SHIFT)
-+#define MSTANDBY_NO		(HWMOD_IDLEMODE_NO << MASTER_STANDBY_SHIFT)
-+#define MSTANDBY_SMART		(HWMOD_IDLEMODE_SMART << MASTER_STANDBY_SHIFT)
++	return NULL;
++}
 +
-+/* omap_hwmod_sysconfig.sysc_flags capability flags */
-+#define SYSC_HAS_AUTOIDLE	(1 << 0)
-+#define SYSC_HAS_SOFTRESET	(1 << 1)
-+#define SYSC_HAS_ENAWAKEUP	(1 << 2)
-+#define SYSC_HAS_EMUFREE	(1 << 3)
-+#define SYSC_HAS_CLOCKACTIVITY	(1 << 4)
-+#define SYSC_HAS_SIDLEMODE	(1 << 5)
-+#define SYSC_HAS_MIDLEMODE	(1 << 6)
-+#define SYSS_MISSING		(1 << 7)
++void omap_pm_cpu_set_freq(unsigned long f)
++{
++	if (f =3D=3D 0) {
++		WARN_ON(1);
++		return;
++	}
 +
-+/* omap_hwmod_sysconfig.clockact flags */
-+#define CLOCKACT_TEST_BOTH	0x0
-+#define CLOCKACT_TEST_MAIN	0x1
-+#define CLOCKACT_TEST_ICLK	0x2
-+#define CLOCKACT_TEST_NONE	0x3
++	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n"=
+,
++		 f);
 +
-+/**
-+ * struct omap_hwmod_sysconfig - hwmod OCP_SYSCONFIG/OCP_SYSSTATUS data
-+ * @rev_offs: IP block revision register offset (from module base addr)
-+ * @sysc_offs: OCP_SYSCONFIG register offset (from module base addr)
-+ * @syss_offs: OCP_SYSSTATUS register offset (from module base addr)
-+ * @idlemodes: One or more of {SIDLE,MSTANDBY}_{OFF,FORCE,SMART}
-+ * @sysc_flags: SYS{C,S}_HAS* flags indicating SYSCONFIG bits supported
-+ * @clockact: the default value of the module CLOCKACTIVITY bits
-+ *
-+ * @clockact describes to the module which clocks are likely to be
-+ * disabled when the PRCM issues its idle request to the module.  Some
-+ * modules have separate clockdomains for the interface clock and main
-+ * functional clock, and can check whether they should acknowledge the
-+ * idle request based on the internal module functionality that has
-+ * been associated with the clocks marked in @clockact.  This field is
-+ * only used if HWMOD_SET_DEFAULT_CLOCKACT is set (see below)
-+ *
-+ */
-+struct omap_hwmod_sysconfig {
-+	u16 rev_offs;
-+	u16 sysc_offs;
-+	u16 syss_offs;
-+	u8 idlemodes;
-+	u8 sysc_flags;
-+	u8 clockact;
-+};
++	/*
++	 * For l-o dev tree, determine whether MPU freq or DSP OPP id
++	 * freq is higher.  Find the OPP ID corresponding to the
++	 * higher frequency.  Call clk_round_rate() and clk_set_rate()
++	 * on the OPP custom clock.
++	 *
++	 * CDP should just be able to set the VDD1 OPP clock rate here.
++	 */
++}
 +
-+/**
-+ * struct omap_hwmod_omap2_prcm - OMAP2/3-specific PRCM data
-+ * @module_offs: PRCM submodule offset from the start of the PRM/CM
-+ * @prcm_reg_id: PRCM register ID (e.g., 3 for CM_AUTOIDLE3)
-+ * @module_bit: register bit shift for AUTOIDLE, WKST, WKEN, GRPSEL regs
-+ * @idlest_reg_id: IDLEST register ID (e.g., 3 for CM_IDLEST3)
-+ * @idlest_idle_bit: register bit shift for CM_IDLEST slave idle bit
-+ * @idlest_stdby_bit: register bit shift for CM_IDLEST master standby bit
-+ *
-+ * @prcm_reg_id and @module_bit are specific to the AUTOIDLE, WKST,
-+ * WKEN, GRPSEL registers.  In an ideal world, no extra information
-+ * would be needed for IDLEST information, but alas, there are some
-+ * exceptions, so @idlest_reg_id, @idlest_idle_bit, @idlest_stdby_bit
-+ * are needed for the IDLEST registers (c.f. 2430 I2CHS, 3430 USBHOST)
-+ */
-+struct omap_hwmod_omap2_prcm {
-+	s16 module_offs;
-+	u8 prcm_reg_id;
-+	u8 module_bit;
-+	u8 idlest_reg_id;
-+	u8 idlest_idle_bit;
-+	u8 idlest_stdby_bit;
-+};
++unsigned long omap_pm_cpu_get_freq(void)
++{
++	pr_debug("OMAP PM: CPUFreq requests current CPU frequency\n");
 +
++	/*
++	 * Call clk_get_rate() on the mpu_ck.
++	 */
 +
-+/**
-+ * struct omap_hwmod_omap4_prcm - OMAP4-specific PRCM data
-+ * @module_offs: PRCM submodule offset from the start of the PRM/CM1/CM2
-+ * @device_offs: device register offset from @module_offs
-+ * @submodule_wkdep_bit: bit shift of the WKDEP range
-+ */
-+struct omap_hwmod_omap4_prcm {
-+	u32 module_offs;
-+	u16 device_offs;
-+	u8 submodule_wkdep_bit;
-+};
-+
++	return 0;
++}
 +
 +/*
-+ * omap_hwmod.flags definitions
-+ *
-+ * HWMOD_SWSUP_SIDLE: omap_hwmod code should manually bring module in and out
-+ *     of idle, rather than relying on module smart-idle
-+ * HWMOD_SWSUP_MSTDBY: omap_hwmod code should manually bring module in and out
-+ *     of standby, rather than relying on module smart-standby
-+ * HWMOD_INIT_NO_RESET: don't reset this module at boot - important for
-+ *     SDRAM controller, etc.
-+ * HWMOD_INIT_NO_IDLE: don't idle this module at boot - important for SDRAM
-+ *     controller, etc.
-+ * HWMOD_SET_DEFAULT_CLOCKACT: program CLOCKACTIVITY bits at startup
++ * Device context loss tracking
 + */
-+#define HWMOD_SWSUP_SIDLE			(1 << 0)
-+#define HWMOD_SWSUP_MSTANDBY			(1 << 1)
-+#define HWMOD_INIT_NO_RESET			(1 << 2)
-+#define HWMOD_INIT_NO_IDLE			(1 << 3)
-+#define HWMOD_SET_DEFAULT_CLOCKACT		(1 << 4)
 +
-+/*
-+ * omap_hwmod._int_flags definitions
-+ * These are for internal use only and are managed by the omap_hwmod code.
-+ *
-+ * _HWMOD_NO_MPU_PORT: no path exists for the MPU to write to this module
-+ * _HWMOD_WAKEUP_ENABLED: set when the omap_hwmod code has enabled ENAWAKEUP
-+ * _HWMOD_SYSCONFIG_LOADED: set when the OCP_SYSCONFIG value has been cached
-+ */
-+#define _HWMOD_NO_MPU_PORT			(1 << 0)
-+#define _HWMOD_WAKEUP_ENABLED			(1 << 1)
-+#define _HWMOD_SYSCONFIG_LOADED			(1 << 2)
++int omap_pm_get_dev_context_loss_count(struct device *dev)
++{
++	if (!dev) {
++		WARN_ON(1);
++		return -EINVAL;
++	};
 +
-+/*
-+ * omap_hwmod._state definitions
-+ *
-+ * INITIALIZED: reset (optionally), initialized, enabled, disabled
-+ *              (optionally)
-+ *
-+ *
-+ */
-+#define _HWMOD_STATE_UNKNOWN			0
-+#define _HWMOD_STATE_REGISTERED			1
-+#define _HWMOD_STATE_CLKS_INITED		2
-+#define _HWMOD_STATE_INITIALIZED		3
-+#define _HWMOD_STATE_ENABLED			4
-+#define _HWMOD_STATE_IDLE			5
-+#define _HWMOD_STATE_DISABLED			6
++	pr_debug("OMAP PM: returning context loss count for dev %s\n",
++		 dev_name(dev));
 +
-+/**
-+ * struct omap_hwmod - integration data for OMAP hardware "modules" (IP blocks)
-+ * @name: name of the hwmod
-+ * @od: struct omap_device currently associated with this hwmod (internal use)
-+ * @mpu_irqs: ptr to an array of MPU IRQs (see also mpu_irqs_cnt)
-+ * @sdma_chs: ptr to an array of SDMA channel IDs (see also sdma_chs_cnt)
-+ * @prcm: PRCM data pertaining to this hwmod
-+ * @clkdev_dev_id: main clock: clkdev dev_id string
-+ * @clkdev_con_id: main clock: clkdev con_id string
-+ * @_clk: pointer to the main struct clk (filled in at runtime)
-+ * @opt_clks: other device clocks that drivers can request (0..*)
-+ * @masters: ptr to array of OCP ifs that this hwmod can initiate on
-+ * @slaves: ptr to array of OCP ifs that this hwmod can respond on
-+ * @sysconfig: device SYSCONFIG/SYSSTATUS register data
-+ * @dev_attr: arbitrary device attributes that can be passed to the driver
-+ * @_sysc_cache: internal-use hwmod flags
-+ * @_rt_va: cached register target start address (internal use)
-+ * @_mpu_port_index: cached MPU register target slave ID (internal use)
-+ * @msuspendmux_reg_id: CONTROL_MSUSPENDMUX register ID (1-6)
-+ * @msuspendmux_shift: CONTROL_MSUSPENDMUX register bit shift
-+ * @mpu_irqs_cnt: number of @mpu_irqs
-+ * @sdma_chs_cnt: number of @sdma_chs
-+ * @opt_clks_cnt: number of @opt_clks
-+ * @master_cnt: number of @master entries
-+ * @slaves_cnt: number of @slave entries
-+ * @response_lat: device OCP response latency (in interface clock cycles)
-+ * @_int_flags: internal-use hwmod flags
-+ * @_state: internal-use hwmod state
-+ * @flags: hwmod flags (documented below)
-+ * @omap_chip: OMAP chips this hwmod is present on
-+ * @node: list node for hwmod list (internal use)
-+ *
-+ * @clkdev_dev_id, @clkdev_con_id, and @clk all refer to this module's "main
-+ * clock," which for our purposes is defined as "the functional clock needed
-+ * for register accesses to complete."  Modules may not have a main clock if
-+ * the interface clock also serves as a main clock.
-+ *
-+ * Parameter names beginning with an underscore are managed internally by
-+ * the omap_hwmod code and should not be set during initialization.
-+ */
-+struct omap_hwmod {
-+	const char			*name;
-+	struct omap_device		*od;
-+	u8				*mpu_irqs;
-+	struct omap_hwmod_dma_info	*sdma_chs;
-+	union {
-+		struct omap_hwmod_omap2_prcm omap2;
-+		struct omap_hwmod_omap4_prcm omap4;
-+	}				prcm;
-+	const char			*clkdev_dev_id;
-+	const char			*clkdev_con_id;
-+	struct clk			*_clk;
-+	struct omap_hwmod_opt_clk	*opt_clks;
-+	struct omap_hwmod_ocp_if	**masters; /* connect to *_IA */
-+	struct omap_hwmod_ocp_if	**slaves;  /* connect to *_TA */
-+	struct omap_hwmod_sysconfig	*sysconfig;
-+	void				*dev_attr;
-+	u32				_sysc_cache;
-+	void __iomem			*_rt_va;
-+	struct list_head		node;
-+	u16				flags;
-+	u8				_mpu_port_index;
-+	u8				msuspendmux_reg_id;
-+	u8				msuspendmux_shift;
-+	u8				response_lat;
-+	u8				mpu_irqs_cnt;
-+	u8				sdma_chs_cnt;
-+	u8				opt_clks_cnt;
-+	u8				masters_cnt;
-+	u8				slaves_cnt;
-+	u8				hwmods_cnt;
-+	u8				_int_flags;
-+	u8				_state;
-+	const struct omap_chip_id	omap_chip;
-+};
++	/*
++	 * Map the device to the powerdomain.  Return the powerdomain
++	 * off counter.
++	 */
 +
-+int omap_hwmod_init(struct omap_hwmod **ohs);
-+int omap_hwmod_register(struct omap_hwmod *oh);
-+int omap_hwmod_unregister(struct omap_hwmod *oh);
-+struct omap_hwmod *omap_hwmod_lookup(const char *name);
-+int omap_hwmod_for_each(int (*fn)(struct omap_hwmod *oh));
-+int omap_hwmod_late_init(void);
++	return 0;
++}
 +
-+int omap_hwmod_enable(struct omap_hwmod *oh);
-+int omap_hwmod_idle(struct omap_hwmod *oh);
-+int omap_hwmod_shutdown(struct omap_hwmod *oh);
 +
-+int omap_hwmod_enable_clocks(struct omap_hwmod *oh);
-+int omap_hwmod_disable_clocks(struct omap_hwmod *oh);
++/* Should be called before clk framework init */
++int __init omap_pm_if_early_init(struct omap_opp *mpu_opp_table,
++				 struct omap_opp *dsp_opp_table,
++				 struct omap_opp *l3_opp_table)
++{
++	mpu_opps =3D mpu_opp_table;
++	dsp_opps =3D dsp_opp_table;
++	l3_opps =3D l3_opp_table;
++	return 0;
++}
 +
-+int omap_hwmod_reset(struct omap_hwmod *oh);
-+void omap_hwmod_ocp_barrier(struct omap_hwmod *oh);
++/* Must be called after clock framework is initialized */
++int __init omap_pm_if_init(void)
++{
++	return 0;
++}
 +
-+void omap_hwmod_writel(u32 v, struct omap_hwmod *oh, u16 reg_offs);
-+u32 omap_hwmod_readl(struct omap_hwmod *oh, u16 reg_offs);
++void omap_pm_if_exit(void)
++{
++	/* Deallocate CPUFreq frequency table here */
++}
 +
-+int omap_hwmod_count_resources(struct omap_hwmod *oh);
-+int omap_hwmod_fill_resources(struct omap_hwmod *oh, struct resource *res);
-+
-+struct powerdomain *omap_hwmod_get_pwrdm(struct omap_hwmod *oh);
-+
-+int omap_hwmod_add_initiator_dep(struct omap_hwmod *oh,
-+				 struct omap_hwmod *init_oh);
-+int omap_hwmod_del_initiator_dep(struct omap_hwmod *oh,
-+				 struct omap_hwmod *init_oh);
-+
-+int omap_hwmod_set_clockact_both(struct omap_hwmod *oh);
-+int omap_hwmod_set_clockact_main(struct omap_hwmod *oh);
-+int omap_hwmod_set_clockact_iclk(struct omap_hwmod *oh);
-+int omap_hwmod_set_clockact_none(struct omap_hwmod *oh);
-+
-+int omap_hwmod_enable_wakeup(struct omap_hwmod *oh);
-+int omap_hwmod_disable_wakeup(struct omap_hwmod *oh);
-+
-+#endif
 
 
 --
