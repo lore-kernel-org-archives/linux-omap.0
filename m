@@ -1,81 +1,105 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 07/10] OMAP: PM: Add definitions for ETK pads and observability registers
-Date: Tue, 18 Aug 2009 14:12:18 +0200
-Message-ID: <878whhjp7h.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0306050AFF@dbde02.ent.ti.com>
+From: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+Subject: Pull request v2 for remaining OMAP PM, clock, SDRC 2.6.32 patches
+Date: Tue, 18 Aug 2009 06:12:36 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908180606250.7224@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:61399 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413AbZHRMMY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 18 Aug 2009 08:12:24 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0306050AFF@dbde02.ent.ti.com> (Anand Gadiyar's message of "Sat\, 15 Aug 2009 10\:40\:05 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-arm-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Russell King - ARM Linux <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-xIg/pKzrS19vn6HldHNs0ANdhmdF6hFW@public.gmane.org, linux-arm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hiroshi.doyu-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-arm@vger.kernel.org" <linux-arm@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-"Gadiyar, Anand" <gadiyar@ti.com> writes:
 
->> From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
->> 
->> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
->> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->>  arch/arm/plat-omap/include/mach/control.h |   47 +++++++++++++++++++++++++++-
->>  1 files changed, 45 insertions(+), 2 deletions(-)
->> 
->> diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
->> index 8140dbc..81afe26 100644
->> --- a/arch/arm/plat-omap/include/mach/control.h
->> +++ b/arch/arm/plat-omap/include/mach/control.h
->> @@ -141,8 +141,51 @@
->>  #define OMAP343X_CONTROL_TEST_KEY_13	(OMAP2_CONTROL_GENERAL + 0x00fc)
->>  #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
->>  #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
->> -#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02b0)
->> -#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
->> +#define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
->> +					+ ((i) >> 1) * 4 + (!(i & 1)) * 2)
->> +#define OMAP343X_CONTROL_PROG_IO0	(OMAP2_CONTROL_GENERAL + 0x01D4)
->> +#define OMAP343X_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
->> +#define OMAP343X_CONTROL_DSS_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E0)
->> +#define OMAP343X_CONTROL_CORE_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E4)
->> +#define OMAP343X_CONTROL_PER_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E8)
->> +#define OMAP343X_CONTROL_USBHOST_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01EC)
->> +#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02B0)
->> +#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02B4)
->> +#define OMAP343X_CONTROL_SRAMLDO4	(OMAP2_CONTROL_GENERAL + 0x02B8)
->> +#define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
->> +#define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
->> +
->> +
->> +/* 34xx PADCONF register offsets */
->> +#define OMAP343X_PADCONF_ETK(i)	(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
->> +						(i)*2)
->> +#define OMAP343X_PADCONF_ETK_CLK	OMAP343X_PADCONF_ETK(0)
->> +#define OMAP343X_PADCONF_ETK_CTL	OMAP343X_PADCONF_ETK(1)
->> +#define OMAP343X_PADCONF_ETK_D0		OMAP343X_PADCONF_ETK(2)
->> +#define OMAP343X_PADCONF_ETK_D1		OMAP343X_PADCONF_ETK(3)
->> +#define OMAP343X_PADCONF_ETK_D2		OMAP343X_PADCONF_ETK(4)
->> +#define OMAP343X_PADCONF_ETK_D3		OMAP343X_PADCONF_ETK(5)
->> +#define OMAP343X_PADCONF_ETK_D4		OMAP343X_PADCONF_ETK(6)
->> +#define OMAP343X_PADCONF_ETK_D5		OMAP343X_PADCONF_ETK(7)
->> +#define OMAP343X_PADCONF_ETK_D6		OMAP343X_PADCONF_ETK(8)
->> +#define OMAP343X_PADCONF_ETK_D7		OMAP343X_PADCONF_ETK(9)
->> +#define OMAP343X_PADCONF_ETK_D8		OMAP343X_PADCONF_ETK(10)
->> +#define OMAP343X_PADCONF_ETK_D9		OMAP343X_PADCONF_ETK(11)
->> +#define OMAP343X_PADCONF_ETK_D10	OMAP343X_PADCONF_ETK(12)
->> +#define OMAP343X_PADCONF_ETK_D11	OMAP343X_PADCONF_ETK(13)
->> +#define OMAP343X_PADCONF_ETK_D12	OMAP343X_PADCONF_ETK(14)
->> +#define OMAP343X_PADCONF_ETK_D13	OMAP343X_PADCONF_ETK(15)
->> +#define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
->> +#define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
->
-> I'm not sure if we need to use only these pads. There is an alternative
-> set of pad that bring out the debobs signals.
+Hello Russell,
 
-... and they can be added in a separate patch when needed.
+Here's the updated pull request for the eleven patches for 2.6.32, plus 
+Hiroshi's OMAP clock debugfs error path fix.
 
-Kevin
+
+regards,
+
+- Paul
+
+
+The following changes since commit df4ecf1524c7793de3121b2d4e5fc6bcc0da3bfb:
+  Linus Torvalds (1):
+        Merge branch 'upstream' of git://ftp.linux-mips.org/pub/scm/upstream-linus
+
+are available in the git repository at:
+
+  git://git.pwsan.com/linux-2.6 2_6_32_merge
+
+Hiroshi DOYU (1):
+      OMAP clock: use debugfs_remove_recursive() for rewinding
+
+Paul Walmsley (9):
+      OMAP: powerdomain: Fix overflow when doing powerdomain deps lookups.
+      OMAP clock: associate MPU clocks with the mpu_clkdm
+      OMAP3 clock: remove superfluous calls to omap2_init_clk_clkdm
+      OMAP2/3 PM: create the OMAP PM interface and add a default OMAP PM no-op layer
+      OMAP2/3/4 PRCM: add module IDLEST wait code
+      OMAP2/3 board-*.c files: read bootloader configuration earlier
+      OMAP2/3/4: create omap_hwmod layer
+      OMAP: omap_hwmod: call omap_hwmod init at boot; create interconnects
+      OMAP2/3/4 core: create omap_device layer
+
+Sanjeev Premi (1):
+      OMAP3 clock: Fixed processing of bootarg 'mpurate'
+
+Tero Kristo (1):
+      OMAP: SDRC: Add several new register definitions
+
+ Documentation/arm/OMAP/omap_pm                |  129 ++
+ arch/arm/mach-omap2/Makefile                  |    7 +-
+ arch/arm/mach-omap2/board-2430sdp.c           |   17 +-
+ arch/arm/mach-omap2/board-3430sdp.c           |   18 +-
+ arch/arm/mach-omap2/board-apollon.c           |   20 +-
+ arch/arm/mach-omap2/board-generic.c           |   14 +-
+ arch/arm/mach-omap2/board-h4.c                |   20 +-
+ arch/arm/mach-omap2/board-ldp.c               |   20 +-
+ arch/arm/mach-omap2/board-omap3beagle.c       |   26 +-
+ arch/arm/mach-omap2/board-omap3evm.c          |   14 +-
+ arch/arm/mach-omap2/board-omap3pandora.c      |   20 +-
+ arch/arm/mach-omap2/board-overo.c             |   20 +-
+ arch/arm/mach-omap2/board-rx51.c              |    4 +-
+ arch/arm/mach-omap2/board-zoom2.c             |   18 +-
+ arch/arm/mach-omap2/clock34xx.c               |   17 +-
+ arch/arm/mach-omap2/clock34xx.h               |   21 +-
+ arch/arm/mach-omap2/cm.c                      |   70 ++
+ arch/arm/mach-omap2/cm.h                      |    4 +
+ arch/arm/mach-omap2/cm4xxx.c                  |   68 ++
+ arch/arm/mach-omap2/io.c                      |   23 +-
+ arch/arm/mach-omap2/omap_hwmod.c              | 1554 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/omap_hwmod_2420.h         |  141 +++
+ arch/arm/mach-omap2/omap_hwmod_2430.h         |  143 +++
+ arch/arm/mach-omap2/omap_hwmod_34xx.h         |  168 +++
+ arch/arm/mach-omap2/powerdomain.c             |    4 +-
+ arch/arm/mach-omap2/serial.c                  |   14 +-
+ arch/arm/plat-omap/Kconfig                    |   13 +
+ arch/arm/plat-omap/Makefile                   |    5 +
+ arch/arm/plat-omap/clock.c                    |    2 +-
+ arch/arm/plat-omap/include/mach/omap-pm.h     |  301 +++++
+ arch/arm/plat-omap/include/mach/omap_device.h |  141 +++
+ arch/arm/plat-omap/include/mach/omap_hwmod.h  |  447 +++++++
+ arch/arm/plat-omap/include/mach/sdrc.h        |    9 +
+ arch/arm/plat-omap/include/mach/serial.h      |    3 +
+ arch/arm/plat-omap/omap-pm-noop.c             |  296 +++++
+ arch/arm/plat-omap/omap_device.c              |  687 +++++++++++
+ 36 files changed, 4338 insertions(+), 140 deletions(-)
+ create mode 100644 Documentation/arm/OMAP/omap_pm
+ create mode 100644 arch/arm/mach-omap2/cm.c
+ create mode 100644 arch/arm/mach-omap2/cm4xxx.c
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod.c
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_2420.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_2430.h
+ create mode 100644 arch/arm/mach-omap2/omap_hwmod_34xx.h
+ create mode 100644 arch/arm/plat-omap/include/mach/omap-pm.h
+ create mode 100644 arch/arm/plat-omap/include/mach/omap_device.h
+ create mode 100644 arch/arm/plat-omap/include/mach/omap_hwmod.h
+ create mode 100644 arch/arm/plat-omap/omap-pm-noop.c
+ create mode 100644 arch/arm/plat-omap/omap_device.c
+--
+To unsubscribe from this list: send the line "unsubscribe linux-arm" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
