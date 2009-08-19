@@ -1,189 +1,82 @@
-From: abhijitpagare@ti.com
-Subject: [PATCH 2/2] ARM: OMAP4: PM: Refine API's for Power domain Framework Support.
-Date: Wed, 19 Aug 2009 11:54:50 +0530
-Message-ID: <1250663090-10409-1-git-send-email-abhijitpagare@ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv4 00/20] OMAP ASoC changes in DMA utilization
+Date: Wed, 19 Aug 2009 10:40:12 +0300
+Message-ID: <20090819074011.GA25559@esdhcp037198.research.nokia.com>
+References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com>
+ <20090817170549.f0adf2a4.jhnikula@gmail.com>
+Reply-To: eduardo.valentin@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33802 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbZHSGY4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Aug 2009 02:24:56 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7J6OpHC020949
-	for <linux-omap@vger.kernel.org>; Wed, 19 Aug 2009 01:24:57 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:38989 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751120AbZHSHyM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Aug 2009 03:54:12 -0400
+Content-Disposition: inline
+In-Reply-To: <20090817170549.f0adf2a4.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Abhijit Pagare <abhijitpagare@ti.com>
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, Takashi Iwai <tiwai@suse.de>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-From: Abhijit Pagare <abhijitpagare@ti.com>
+Hello guys,
 
-This Patch Adds Silicon Specific initialisations for the API support.
+On Mon, Aug 17, 2009 at 04:05:49PM +0200, Jarkko Nikula wrote:
+> On Mon, 17 Aug 2009 14:50:59 +0300
+> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+> 
+> > Hello again guys,
+> > 
+> > Here is version 4 of these changes. No real changes from previous versions.
+> > The only thing is that now I've rebased on top of Takashi's tree:
+> > http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=summary
+> > 
+> > as there are pending things there which Jarkko has pointed on previous series.
+> > 
+> Here's my ack to the ASoC part. I tested the set on top of these
+> Janusz's patches:
+> 
+> http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020170.html
+> http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020171.html
+> http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020262.html
+> 
+> Note, that I posted modified version for the patch 16 based on Janusz's
+> [PATCH 3/3 v3].
+> 
+> Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+> 
+> > 
+> >  arch/arm/mach-omap2/mcbsp.c             |    5 +
+> >  arch/arm/plat-omap/include/mach/mcbsp.h |   49 ++++
+> >  arch/arm/plat-omap/mcbsp.c              |  377 ++++++++++++++++++++++++++++++-
+> >  sound/soc/omap/omap-mcbsp.c             |   78 ++++++-
+> >  sound/soc/omap/omap-pcm.c               |   14 +-
+> >  sound/soc/omap/omap-pcm.h               |    2 +
+> >  6 files changed, 511 insertions(+), 14 deletions(-)
+> > 
+> Tony, if you are ok with the OMAP McBSP changes, how it would be best
+> get these merged? Via ASoC, LKML or separately from both
+> subsystems during the merge window?
 
-Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
----
- arch/arm/mach-omap2/powerdomain.c |   96 +++++++++++++++++++++++++++++++------
- 1 files changed, 81 insertions(+), 15 deletions(-)
+Tony, Takashi,
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 8f19c38..5ea7afa 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -38,6 +38,63 @@
- #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
- 
-+/* OMAP3 Or OMAP4 specific register bit initialisations
-+ * Notice that the names here are not according to each power
-+ * domain but the bit mapping used applies to all of them
-+ */
-+#ifdef CONFIG_ARCH_OMAP34XX
-+
-+/* OMAP3 Logic Retention control and status bits */
-+#define OMAP_LOGICRET_STATE OMAP3430_LOGICL1CACHERETSTATE
-+#define OMAP_LOGICSTATEST OMAP3430_LOGICSTATEST
-+
-+/* OMAP3 Memory Onstate Masks (common across all power domains) */
-+#define OMAP_MEM0_ONSTATE_MASK OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK
-+#define OMAP_MEM1_ONSTATE_MASK OMAP3430_L1FLATMEMONSTATE_MASK
-+#define OMAP_MEM2_ONSTATE_MASK OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK
-+#define OMAP_MEM3_ONSTATE_MASK OMAP3430_L2FLATMEMONSTATE_MASK
-+
-+/* OMAP3 Memory Retstate Masks (common across all power domains) */
-+#define OMAP_MEM0_RETSTATE_MASK OMAP3430_SHAREDL1CACHEFLATRETSTATE
-+#define OMAP_MEM1_RETSTATE_MASK OMAP3430_L1FLATMEMRETSTATE
-+#define OMAP_MEM2_RETSTATE_MASK OMAP3430_SHAREDL2CACHEFLATRETSTATE
-+#define OMAP_MEM3_RETSTATE_MASK OMAP3430_L2FLATMEMRETSTATE
-+
-+/* OMAP3 Memory Status bits */
-+#define OMAP_MEM0_STATEST_MASK OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK
-+#define OMAP_MEM1_STATEST_MASK OMAP3430_L1FLATMEMSTATEST_MASK
-+#define OMAP_MEM2_STATEST_MASK OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK
-+#define OMAP_MEM3_STATEST_MASK OMAP3430_L2FLATMEMSTATEST_MASK
-+
-+#else
-+
-+/* OMAP4 Logic Retention control and status bits*/
-+#define OMAP_LOGICRET_STATE OMAP4430_LOGICRETSTATE_MASK
-+#define OMAP_LOGICSTATEST OMAP4430_LOGICSTATEST
-+
-+/* OMAP4 Memory Onstate Masks (common across all power domains) */
-+#define OMAP_MEM0_ONSTATE_MASK OMAP4430_CORE_OTHER_BANK_ONSTATE_MASK
-+#define OMAP_MEM1_ONSTATE_MASK OMAP4430_CORE_OCMRAM_ONSTATE_MASK
-+#define OMAP_MEM2_ONSTATE_MASK OMAP4430_DUCATI_L2RAM_ONSTATE_MASK
-+#define OMAP_MEM3_ONSTATE_MASK OMAP4430_DUCATI_UNICACHE_ONSTATE_MASK
-+#define OMAP_MEM4_ONSTATE_MASK OMAP4430_OCP_NRET_BANK_ONSTATE_MASK
-+
-+/* OMAP4 Memory Retstate Masks (common across all power domains) */
-+#define OMAP_MEM0_RETSTATE_MASK OMAP4430_CORE_OTHER_BANK_RETSTATE_MASK
-+#define OMAP_MEM1_RETSTATE_MASK OMAP4430_CORE_OCMRAM_RETSTATE_MASK
-+#define OMAP_MEM2_RETSTATE_MASK OMAP4430_DUCATI_L2RAM_RETSTATE_MASK
-+#define OMAP_MEM3_RETSTATE_MASK OMAP4430_DUCATI_UNICACHE_RETSTATE_MASK
-+#define OMAP_MEM4_RETSTATE_MASK OMAP4430_OCP_NRET_BANK_RETSTATE_MASK
-+
-+/* OMAP4 Memory Status bits */
-+#define OMAP_MEM0_STATEST_MASK OMAP4430_CORE_OTHER_BANK_STATEST_MASK
-+#define OMAP_MEM1_STATEST_MASK OMAP4430_CORE_OCMRAM_STATEST_MASK
-+#define OMAP_MEM2_STATEST_MASK OMAP4430_DUCATI_L2RAM_STATEST_MASK
-+#define OMAP_MEM3_STATEST_MASK OMAP4430_DUCATI_UNICACHE_STATEST_MASK
-+#define OMAP_MEM4_STATEST_MASK OMAP4430_OCP_NRET_BANK_STATEST_MASK
-+
-+#endif
-+
- /* pwrdm_list contains all registered struct powerdomains */
- static LIST_HEAD(pwrdm_list);
- 
-@@ -714,8 +771,8 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
- 	 * but the type of value returned is the same for each
- 	 * powerdomain.
- 	 */
--	prm_rmw_mod_reg_bits(OMAP3430_LOGICL1CACHERETSTATE,
--			     (pwrst << __ffs(OMAP3430_LOGICL1CACHERETSTATE)),
-+	prm_rmw_mod_reg_bits(OMAP_LOGICRET_STATE,
-+			     (pwrst << __ffs(OMAP_LOGICRET_STATE)),
- 			     pwrdm->prcm_offs, PM_PWSTCTRL);
- 
- 	return 0;
-@@ -759,16 +816,19 @@ int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
- 	 */
- 	switch (bank) {
- 	case 0:
--		m = OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK;
-+		m = OMAP_MEM0_ONSTATE_MASK;
- 		break;
- 	case 1:
--		m = OMAP3430_L1FLATMEMONSTATE_MASK;
-+		m = OMAP_MEM1_ONSTATE_MASK;
- 		break;
- 	case 2:
--		m = OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK;
-+		m = OMAP_MEM2_ONSTATE_MASK;
- 		break;
- 	case 3:
--		m = OMAP3430_L2FLATMEMONSTATE_MASK;
-+		m = OMAP_MEM3_ONSTATE_MASK;
-+		break;
-+	case 4:
-+		m = OMAP_MEM4_ONSTATE_MASK;
- 		break;
- 	default:
- 		WARN_ON(1); /* should never happen */
-@@ -820,16 +880,19 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
- 	 */
- 	switch (bank) {
- 	case 0:
--		m = OMAP3430_SHAREDL1CACHEFLATRETSTATE;
-+		m = OMAP_MEM0_RETSTATE_MASK;
- 		break;
- 	case 1:
--		m = OMAP3430_L1FLATMEMRETSTATE;
-+		m = OMAP_MEM1_RETSTATE_MASK;
- 		break;
- 	case 2:
--		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
-+		m = OMAP_MEM2_RETSTATE_MASK;
- 		break;
- 	case 3:
--		m = OMAP3430_L2FLATMEMRETSTATE;
-+		m = OMAP_MEM3_RETSTATE_MASK;
-+		break;
-+	case 4:
-+		m = OMAP_MEM4_RETSTATE_MASK;
- 		break;
- 	default:
- 		WARN_ON(1); /* should never happen */
-@@ -857,7 +920,7 @@ int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
- 		return -EINVAL;
- 
- 	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTST,
--					OMAP3430_LOGICSTATEST);
-+					OMAP_LOGICSTATEST);
- }
- 
- /**
-@@ -911,16 +974,19 @@ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
- 	 */
- 	switch (bank) {
- 	case 0:
--		m = OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK;
-+		m = OMAP_MEM0_STATEST_MASK;
- 		break;
- 	case 1:
--		m = OMAP3430_L1FLATMEMSTATEST_MASK;
-+		m = OMAP_MEM1_STATEST_MASK;
- 		break;
- 	case 2:
--		m = OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK;
-+		m = OMAP_MEM2_STATEST_MASK;
- 		break;
- 	case 3:
--		m = OMAP3430_L2FLATMEMSTATEST_MASK;
-+		m = OMAP_MEM3_STATEST_MASK;
-+		break;
-+	case 4:
-+		m = OMAP_MEM4_STATEST_MASK;
- 		break;
- 	default:
- 		WARN_ON(1); /* should never happen */
+About these changes. I have one doubt. What is the correct tree to base them?
+There are changes under arch/arm/plat-omap/ and under sound/soc/omap/.
+
+Should I base them:
+- all 20 patches against sound-2.6.git tree (Takashi's tree),
+- all 20 patches against linux-omap.git tree (Tony's tree),
+- make mcbsp part against Tony's tree and asoc part against Takashi's tree
+
+Please do not apply this version. Let's define this first, then I send
+the correct version.
+
+BR,
+
+> 
+> 
+> -- 
+> Jarkko
+
 -- 
-1.5.4.7
-
+Eduardo Valentin
