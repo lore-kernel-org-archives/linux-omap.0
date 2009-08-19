@@ -1,65 +1,53 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] arch: arm: omap: terminate ifndef
-Date: Wed, 19 Aug 2009 17:04:43 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD1AD8FB@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DCD67D97@dbde02.ent.ti.com>
- <1250677938-27955-1-git-send-email-felipe.balbi@nokia.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 10/10] OMAP3: update OMAP3 Beagle defconfig, v3
+Date: Wed, 19 Aug 2009 16:40:56 +0300
+Message-ID: <20090819134056.GC30306@nokia.com>
+References: <20090812120926.17601.85860.stgit@localhost>
+ <20090812122415.17601.44872.stgit@localhost>
+ <20090812122710.GA23166@nokia.com>
+ <20090812165258.GM7278@atomide.com>
+ <87d471vti5.fsf@deeprootsystems.com>
+ <20090812191109.GB21001@gandalf>
+ <20090813070233.GP7278@atomide.com>
+ <loom.20090816T011000-32@post.gmane.org>
+ <20090816154154.GC7278@atomide.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40604 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751203AbZHSLey convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Aug 2009 07:34:54 -0400
-In-Reply-To: <1250677938-27955-1-git-send-email-felipe.balbi@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:60693 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751713AbZHSNmr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Aug 2009 09:42:47 -0400
+Content-Disposition: inline
+In-Reply-To: <20090816154154.GC7278@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Balbi <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Tony Lindgren <tony@atomide.com>
+Cc: Eric Witcher <ewitcher@mindspring.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
+Hi,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Felipe Balbi
-> Sent: Wednesday, August 19, 2009 4:02 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Felipe Balbi
-> Subject: [PATCH] arch: arm: omap: terminate ifndef
+On Sun, Aug 16, 2009 at 05:42:00PM +0200, ext Tony Lindgren wrote:
+> From f9356c9b5ca663feb3a985b42d0409da5625d537 Mon Sep 17 00:00:00 2001
+> From: Paul Walmsley <paul@pwsan.com>
+> Date: Sun, 16 Aug 2009 18:29:49 +0300
+> Subject: [PATCH] OMAP3: update OMAP3 Beagle defconfig
 > 
-> There was a missing endif on cpu.h
+> Update the OMAP3 Beagle defconfig to add EHCI, MMC, TWL4030 GPIO support.
+> Beagle can again use MMC rootfs after this patch.  Tested on BeagleBoard
+> rev C2.
 > 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  arch/arm/plat-omap/include/mach/cpu.h |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
+> Patch updated to enable PM and OTG options as suggested by
+> Eric Witcher <ewitcher@mindspring.com>.
 > 
-> diff --git a/arch/arm/plat-omap/include/mach/cpu.h 
-> b/arch/arm/plat-omap/include/mach/cpu.h
-> index 61dbe90..7a5f9e8 100644
-> --- a/arch/arm/plat-omap/include/mach/cpu.h
-> +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> @@ -422,3 +422,5 @@ IS_OMAP_TYPE(3430, 0x3430)
->  
->  int omap_chip_is(struct omap_chip_id oci);
->  void omap2_check_revision(void);
-> +
-> +#endif /* __ASM_ARCH_OMAP_CPU_H */
+> Signed-off-by: Paul Walmsley <paul@pwsan.com>
+> Cc: Jason Kridner <jkridner@beagleboard.org>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
 
-ACKed.
-Have mentioned the same yesterday.
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-Best regards,
-Sanjeev
+now that we have REGULATOR and TWL4030_USB it will work.
 
-> -- 
-> 1.6.3.3.385.g60647
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+-- 
+balbi
