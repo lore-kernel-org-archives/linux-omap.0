@@ -1,41 +1,47 @@
-From: Amit Kucheria <amit.kucheria@canonical.com>
+From: Tim Bird <tim.bird@am.sony.com>
 Subject: Re: Patch format for submission?
-Date: Wed, 19 Aug 2009 18:46:24 +0300
-Message-ID: <20090819154624.GI10442@everest>
-References: <1250695463.10817.4.camel@blitz>
+Date: Wed, 19 Aug 2009 09:31:34 -0700
+Message-ID: <4A8C28E6.7060209@am.sony.com>
+References: <1250695463.10817.4.camel@blitz> <alpine.DEB.2.00.0908190921130.5294@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:56384 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084AbZHSPqd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Aug 2009 11:46:33 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so1085240fga.17
-        for <linux-omap@vger.kernel.org>; Wed, 19 Aug 2009 08:46:33 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1250695463.10817.4.camel@blitz>
+Received: from va3ehsobe005.messaging.microsoft.com ([216.32.180.15]:22289
+	"EHLO VA3EHSOBE006.bigfish.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751133AbZHSQcV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 19 Aug 2009 12:32:21 -0400
+In-Reply-To: <alpine.DEB.2.00.0908190921130.5294@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: Peter Barada <peterb@logicpd.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On 09 Aug 19, Peter Barada wrote:
-> 1) Does anyone have a URL of the format patches should be in that are
-> submitted to the linux-omap list?
+Paul Walmsley wrote:
+> Hi Peter,
 > 
-> I've got some patches to add base support for the Logic OMAP 35x SOM and
-> Torpedo boards and I'd like to submit them in the right format for
-> inclusion and push into mainline.
+> On Wed, 19 Aug 2009, Peter Barada wrote:
+> 
+>> 1) Does anyone have a URL of the format patches should be in that are
+>> submitted to the linux-omap list?
+>>
+>> I've got some patches to add base support for the Logic OMAP 35x SOM and
+>> Torpedo boards and I'd like to submit them in the right format for
+>> inclusion and push into mainline.
+> 
+> Documentation/SubmittingPatches and Documentation/CodingStyle are pretty 
+> good intros to this.
+>
+Also, Andrew Morton wrote a paper called "The Perfect Patch"
+with a nice checklist of attributes.
 
-Peter,
+http://userweb.kernel.org/~akpm/stuff/tpp.txt
 
-Look at Documentation/SubmittingPatches in the kernel top level directory. It
-has instructions and links to other documents for submitting a correct patch.
+ -- Tim
+=============================
+Tim Bird
+Architecture Group Chair, CE Linux Forum
+Senior Staff Engineer, Sony Corporation of America
+=============================
 
-Regards,
-Amit
-
--- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
