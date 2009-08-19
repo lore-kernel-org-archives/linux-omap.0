@@ -1,37 +1,43 @@
-From: Suresh Rajashekara <suresh@mistralsolutions.com>
-Subject: Where is DSP Gateway
-Date: Tue, 18 Aug 2009 21:45:55 -0700
-Message-ID: <deb0f030908182145r68b8021cj49f2fac24d330eca@mail.gmail.com>
-References: <deb0f030908181654m71a6a10l10a29426377a702a@mail.gmail.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the omap tree with the arm tree
+Date: Wed, 19 Aug 2009 15:04:33 +1000
+Message-ID: <20090819150433.4c12c612.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f204.google.com ([209.85.223.204]:42360 "EHLO
-	mail-iw0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076AbZHSEpy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Aug 2009 00:45:54 -0400
-Received: by iwn42 with SMTP id 42so89973iwn.33
-        for <linux-omap@vger.kernel.org>; Tue, 18 Aug 2009 21:45:55 -0700 (PDT)
-In-Reply-To: <deb0f030908181654m71a6a10l10a29426377a702a@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>, Russell King <rmk@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Hi All,
+Hi all,
 
-We had been using dspgateway 3.3 on 2.6.16. Recently we changed our
-kernel to 2.6.29 and we found that the dspgateway driver has been
-removed from the tree
-( http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=2512fd29db4eb09e82d182596304c7aaf76d2c5c).
+Today's linux-next merge of the omap tree got a conflict in
+arch/arm/mach-omap2/board-4430sdp.c between commit
+085b54d99b8ee999e7905b8f16e201e0da8ba369 ("ARM: OMAP4: Add UART4
+support") from the arm tree and commit
+4c29fa3e47342666e12e46f35f40dd90b12cd1a4 ("OMAP: remove OMAP_TAG_UART")
+from the omap tree.
 
-What do I do, If I want to use the dspgateway on 2.6.29?
+Just context changes (I think).  I fixed it up (see below) and can carry
+the fix as necessary.
+-- 
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-I tried searching the patch for dspgateway on 2.6.29, but found none
-except this
-http://archive.netbsd.se/?ml=linux-kernel&a=2009-07&m=11155350
-
-Any pointers would be really helpful
-
-Thanks in advance,
-Suresh
+diff --cc arch/arm/mach-omap2/board-4430sdp.c
+index 1b22307,646079f..0000000
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@@ -38,8 -38,8 +38,8 @@@ static struct platform_device *sdp4430_
+  	&sdp4430_lcd_device,
+  };
+  
+- static struct omap_uart_config sdp4430_uart_config __initdata = {
++ static struct omap_uart_platform_data sdp4430_uart_config __initdata = {
+ -	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2),
+ +	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
+  };
+  
+  static struct omap_lcd_config sdp4430_lcd_config __initdata = {
