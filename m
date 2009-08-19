@@ -1,43 +1,78 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the omap tree with the arm tree
-Date: Wed, 19 Aug 2009 15:04:33 +1000
-Message-ID: <20090819150433.4c12c612.sfr@canb.auug.org.au>
+From: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Subject: [PATCH 0/2] OMAP4 Power Domain Framework
+Date: Wed, 19 Aug 2009 11:48:28 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02B9DCCA10@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>, Russell King <rmk@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38019 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750759AbZHSGSf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 19 Aug 2009 02:18:35 -0400
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "paul@pwsan.com" <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi all,
+Paul,
 
-Today's linux-next merge of the omap tree got a conflict in
-arch/arm/mach-omap2/board-4430sdp.c between commit
-085b54d99b8ee999e7905b8f16e201e0da8ba369 ("ARM: OMAP4: Add UART4
-support") from the arm tree and commit
-4c29fa3e47342666e12e46f35f40dd90b12cd1a4 ("OMAP: remove OMAP_TAG_UART")
-from the omap tree.
+I am resending the patches with the suggested changes.
 
-Just context changes (I think).  I fixed it up (see below) and can carry
-the fix as necessary.
--- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+This series contains patches which add the power domain framework suppo=
+rt for OMAP4.
 
-diff --cc arch/arm/mach-omap2/board-4430sdp.c
-index 1b22307,646079f..0000000
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@@ -38,8 -38,8 +38,8 @@@ static struct platform_device *sdp4430_
-  	&sdp4430_lcd_device,
-  };
-  
-- static struct omap_uart_config sdp4430_uart_config __initdata = {
-+ static struct omap_uart_platform_data sdp4430_uart_config __initdata = {
- -	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2),
- +	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
-  };
-  
-  static struct omap_lcd_config sdp4430_lcd_config __initdata = {
+This series applies on top of v2.6.31-rc5. It applies on top of the pat=
+ches sent by Rajendra Nayak for the PRM/CM1/CM2 module register offsets=
+ and masks initialization.
+
+http://www.mail-archive.com/linux-omap@vger.kernel.org/
+
+Abhijit Pagare (3):
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ARM: OMAP4: PM: Add power domain fram=
+ework.
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ARM: OMAP4: PM: Refine API's for Powe=
+r domain Framework Support.
+
+
+=A0arch/arm/mach-omap2/Makefile=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 |=A0=
+=A0=A0 1 +
+=A0arch/arm/mach-omap2/io.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0|=A0=A0=A0 2 +-
+=A0arch/arm/mach-omap2/powerdomain.c=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0      |=A0=A0=A0 3 +
+=A0arch/arm/mach-omap2/powerdomains.h=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0       |=A0=A0 53 +++---
+=A0arch/arm/mach-omap2/powerdomains24xx.h=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0 		 |=A0=A0 18 ++
+=A0arch/arm/mach-omap2/powerdomains34xx.h=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0 		 |=A0=A0 18 ++
+=A0arch/arm/mach-omap2/powerdomains44xx.h=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0 		 |  =A0258 +++++++++++++++++++++++++
+=A0arch/arm/mach-omap2/prcm.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+ |=A0=A0=A0 2 +
+=A0arch/arm/mach-omap2/prm.h=A0=A0=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+ |=A0=A0 24 ++-
+=A0arch/arm/plat-omap/include/mach/cpu.h=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0 =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0    |=A0=A0=A0 4 +-
+=A0arch/arm/plat-omap/include/mach/powerdomain.h=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0          |=A0=A0=A0 4 +-
+++++++++++++++++++++++++++++
+arch/arm/mach-omap2/powerdomain.c=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0      |=A0=A0 96 +++++++++=
+++++++++++++++++++++++------
+
+
+
+Best Regards,
+Abhijit Pagare
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
