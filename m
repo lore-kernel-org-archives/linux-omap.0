@@ -1,49 +1,71 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv5 12/20] OMAP: McBSP: Configure NO IDLE mode for DMA mode different of threshold
-Date: Thu, 20 Aug 2009 16:18:18 +0300
-Message-ID: <1250774306-7581-12-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv5 06/20] OMAP3: McBSP: Lower the maximum buffersize for McBSP1,3,4,5
+Date: Thu, 20 Aug 2009 16:18:12 +0300
+Message-ID: <1250774306-7581-6-git-send-email-eduardo.valentin@nokia.com>
 References: <1250774306-7581-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:65224 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517AbZHTNdK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 09:33:10 -0400
+Received: from smtp.nokia.com ([192.100.122.233]:48203 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754476AbZHTNc7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 09:32:59 -0400
 In-Reply-To: <1250774306-7581-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Takashi Iwai <tiwai@suse.de>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-Use dma mode property to configure NO IDLE or SMART IDLE of McBSPs.
+Do not allow applications to use the full buffer found on
+McBSP1,3,4,5. Using the full buffer in threshold mode causes
+the McBSP buffer to run dry, which can be observed as channels
+are switching (in reality the channels are shifting).
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- arch/arm/plat-omap/mcbsp.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 2c274e6..85176a5 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -317,7 +317,15 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
- 
- 		syscon = OMAP_MCBSP_READ(mcbsp->io_base, SYSCON);
- 		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
--		syscon |= (ENAWAKEUP | SIDLEMODE(0x02) | CLOCKACTIVITY(0x02));
-+
-+		spin_lock_irq(&mcbsp->lock);
-+		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
-+			syscon |= SIDLEMODE(0x02);
-+		else
-+			syscon |= SIDLEMODE(0x01);
-+		spin_unlock_irq(&mcbsp->lock);
-+
-+		syscon |= (ENAWAKEUP | CLOCKACTIVITY(0x02));
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
- 
- 		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, XRDYEN | RRDYEN);
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 85d4fd0..0447d26 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -128,7 +128,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x7F,
++		.buffer_size	= 0x6F,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP2_BASE,
+@@ -146,7 +146,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x7F,
++		.buffer_size	= 0x6F,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP4_BASE,
+@@ -155,7 +155,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x7F,
++		.buffer_size	= 0x6F,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP5_BASE,
+@@ -164,7 +164,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
+-		.buffer_size	= 0x7F,
++		.buffer_size	= 0x6F,
+ 	},
+ };
+ #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
 -- 
 1.6.2.GIT
 
