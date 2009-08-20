@@ -1,47 +1,42 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCHv5 00/20] OMAP ASoC changes in DMA utilization
-Date: Thu, 20 Aug 2009 19:15:42 +0300
-Message-ID: <20090820191542.bc7b0d4d.jhnikula@gmail.com>
-References: <1250774523-7950-1-git-send-email-eduardo.valentin@nokia.com>
-	<20090820143017.GH12309@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:43194 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754805AbZHTQOI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 12:14:08 -0400
-In-Reply-To: <20090820143017.GH12309@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+Subject: [PATCH 3/3] i2c-omap: Enable workaround for Errata 1.153 based on
+Date: Thu, 20 Aug 2009 11:21:16 -0500
+Message-ID: <1250785276-31713-4-git-send-email-m-sonasath@ti.com>
+References: <1250785276-31713-1-git-send-email-m-sonasath@ti.com>
+ <1250785276-31713-2-git-send-email-m-sonasath@ti.com>
+ <1250785276-31713-3-git-send-email-m-sonasath@ti.com>
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1250785276-31713-3-git-send-email-m-sonasath-l0cyMroinI0@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org, Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Takashi Iwai <tiwai@suse.de>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-On Thu, 20 Aug 2009 17:30:18 +0300
-Tony Lindgren <tony@atomide.com> wrote:
+Silicon Errata 1.153 has been fixed on OMAP 3630|4430 with the use of a later
+version of I2C IP block.
 
-> * Eduardo Valentin <eduardo.valentin@nokia.com> [090820 16:36]:
-> > Hello guys,
-> > 
-> > I've updated this series after some previous confusion from my side.
-> > 
-> > Now that all dependencies are merged (Janusz's patches and Jarkko's patch),
-> > I've based this series on Takashi's tree (master branch).
-> > 
-Mark: Set applies and works (with Beagle) on top of both master and
-topic/asoc branches.
+The errata impacts OMAP 2420|2430|3430, enable the workaround for these based 
+on I2C IP block revision number instead of OMAP CPU type
 
-> > I've also talked with Tony and he agrees to have this changes merged
-> > by alsa tree. And as pointed by Jarkko, the mcbsp code is currently
-> > used only by Audio inside OMAP code. So, that should be safe.
-> 
-> You might want to merge patches 5 and 6 together as 5 adds the
-> fifo, then 6 limits it's size. But in general, for patches
-> 1 - 14: Acked-by: Tony Lindgren <tony@atomide.com>
->  
-15-20: Acked-by: Jarkko Nikula <jhnikula@gmail.com>
+Signed-off-by: Moiz Sonasath <m-sonasath-l0cyMroinI0@public.gmane.org>
+Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org
+Reviewed-by: Paul Walmsley <paul-DWxLp4Yu+b8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/i2c/busses/i2c-omap.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 16b39f4..827da08 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -784,7 +784,7 @@ complete:
+ 				 * memory to the I2C interface.
+ 				 */
+ 
+-				if (cpu_is_omap34xx()) {
++				if (dev->rev <= OMAP_I2C_REV_ON_3430) {
+ 						while (!(stat & OMAP_I2C_STAT_XUDF)) {
+ 							if (stat & (OMAP_I2C_STAT_NACK | OMAP_I2C_STAT_AL)) {
+ 								omap_i2c_ack_stat(dev, stat & (OMAP_I2C_STAT_XRDY | OMAP_I2C_STAT_XDR));
 -- 
-Jarkko
+1.5.6.3
