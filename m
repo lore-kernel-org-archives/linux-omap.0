@@ -1,68 +1,54 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Booting from busy box failed
-Date: Thu, 20 Aug 2009 05:01:40 -0600
-Message-ID: <4A8D2D14.2060000@mlbassoc.com>
-References: <d9ca78710908192215r2812d61u5cc627a1e6e22f15@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-next: manual merge of the omap tree with the arm tree
+Date: Thu, 20 Aug 2009 13:20:05 +0300
+Message-ID: <20090820102004.GD12309@atomide.com>
+References: <20090819150433.4c12c612.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:1216 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752334AbZHTLBu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 07:01:50 -0400
-In-Reply-To: <d9ca78710908192215r2812d61u5cc627a1e6e22f15@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090819150433.4c12c612.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>, Russell King <rmk@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>
 List-Id: linux-omap@vger.kernel.org
-To: Tar Gz <bsdraisefromhell@gmail.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Tar Gz wrote:
-> hi all,
-> i try to using linux 2.6.26-omap1 at omap3430
+* Stephen Rothwell <sfr@canb.auug.org.au> [090819 08:04]:
+> Hi all,
 > 
-> it's my env variable
+> Today's linux-next merge of the omap tree got a conflict in
+> arch/arm/mach-omap2/board-4430sdp.c between commit
+> 085b54d99b8ee999e7905b8f16e201e0da8ba369 ("ARM: OMAP4: Add UART4
+> support") from the arm tree and commit
+> 4c29fa3e47342666e12e46f35f40dd90b12cd1a4 ("OMAP: remove OMAP_TAG_UART")
+> from the omap tree.
 > 
-> OMAP34XX LAB # print
-> bootdelay=3
-> baudrate=115200
-> filesize=34a8
-> bootfile="uImage"
-> bootargs=console=ttyS2,115200n8 rw root=/dev/mmcblk0p2 rootdelay=2 mem=128M
-> 
-> #mmcinit
-> #fatload mmc 0 80300000
-> #bootm 80300000
-> 
-> ******************************************
-> Starting System Init for OMAP3430LAB
-> Release: 0.1
-> ******************************************
-> Saving kernel ring buffer : OK
-> Mounting devpts : OK
-> Starting syslogd : OK
-> Starting klogd : OK
-> Mounting filesystems : OK
-> 
-> Please press Enter to activate this console.
-> 
-> 
-> BusyBox v1.6.1 (2008-07-17 12:54:29 CDT) Built-in shell (ash)
-> Enter 'help' for a list of built-in commands.
-> 
-> #
-> 
-> then i try to type :
-> 
-> # /etc/init.d/rcS
-> Mounting proc : mount: mounting /proc on /proc failed
-> Error in /proc filesystem - init aborted
-> 
+> Just context changes (I think).  I fixed it up (see below) and can carry
+> the fix as necessary.
 
-Does the directory [mount point] '/proc' exist?
+Thanks yeh the fix looks right. I'll take a look if I can squeeze something
+like that into my queue so the merge conflict disappears.
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Regards,
+
+Tony
+
+> -- 
+> Cheers,
+> Stephen Rothwell                    sfr@canb.auug.org.au
+> 
+> diff --cc arch/arm/mach-omap2/board-4430sdp.c
+> index 1b22307,646079f..0000000
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@@ -38,8 -38,8 +38,8 @@@ static struct platform_device *sdp4430_
+>   	&sdp4430_lcd_device,
+>   };
+>   
+> - static struct omap_uart_config sdp4430_uart_config __initdata = {
+> + static struct omap_uart_platform_data sdp4430_uart_config __initdata = {
+>  -	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2),
+>  +	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
+>   };
+>   
+>   static struct omap_lcd_config sdp4430_lcd_config __initdata = {
