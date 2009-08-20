@@ -1,61 +1,77 @@
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCHv2 3/3] Regulator: Adding TPS65023 and TPS6507x in Kconfig and Makefile
-Date: Thu, 20 Aug 2009 19:21:05 +0530
-Message-ID: <1250776265-444-1-git-send-email-anuj.aggarwal@ti.com>
+From: Tar Gz <bsdraisefromhell@gmail.com>
+Subject: Re: Booting from busy box failed
+Date: Thu, 20 Aug 2009 07:39:31 -0700
+Message-ID: <d9ca78710908200739h342f1590madf7554d762a2968@mail.gmail.com>
+References: <d9ca78710908192215r2812d61u5cc627a1e6e22f15@mail.gmail.com>
+	 <4A8D2D14.2060000@mlbassoc.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36793 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754429AbZHTNv1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 09:51:27 -0400
+Received: from mail-yx0-f175.google.com ([209.85.210.175]:33641 "EHLO
+	mail-yx0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754537AbZHTOjk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 10:39:40 -0400
+Received: by mail-yx0-f175.google.com with SMTP id 5so6306101yxe.33
+        for <linux-omap@vger.kernel.org>; Thu, 20 Aug 2009 07:39:42 -0700 (PDT)
+In-Reply-To: <4A8D2D14.2060000@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: broonie@sirena.org.uk, lrg@slimlogic.co.uk, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, felipe.balbi@nokia.com, tony@atomide.com, linux-i2c@vger.kernel.org
-Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Adding TPS65023 and TPS6507x regulator driver support in
-drivers/regulator/Makefile and drivers/regulator/Kconfig
----
- drivers/regulator/Kconfig  |   16 ++++++++++++++++
- drivers/regulator/Makefile |    3 +++
- 2 files changed, 19 insertions(+), 0 deletions(-)
+directory /proc in the second partition(my filesystem) and my kernel
+configure to support proc filesystems...any idea?
 
-diff --git a/drivers/regulator/Kconfig b/drivers/regulator/Kconfig
-index f431779..8568f3e 100644
---- a/drivers/regulator/Kconfig
-+++ b/drivers/regulator/Kconfig
-@@ -117,4 +117,20 @@ config REGULATOR_LP3971
- 	 Say Y here to support the voltage regulators and convertors
- 	 on National Semiconductors LP3971 PMIC
- 
-+config REGULATOR_TPS65023
-+	tristate "TI TPS65023 Power regulators"
-+	depends on I2C
-+	help
-+	  This driver supports TPS65023 voltage regulator chips. TPS65023 provides
-+	  three step-down converters and two general-purpose LDO voltage regulators.
-+	  It supports TI's software based Class-2 SmartReflex implementation.
-+
-+config REGULATOR_TPS6507X
-+	tristate "TI TPS6507X Power regulators"
-+	depends on I2C
-+	help
-+	  This driver supports TPS6507X voltage regulator chips. TPS6507X provides
-+	  three step-down converters and two general-purpose LDO voltage regulators.
-+	  It supports TI's software based Class-2 SmartReflex implementation.
-+
- endif
-diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
-index 4d762c4..5263913 100644
---- a/drivers/regulator/Makefile
-+++ b/drivers/regulator/Makefile
-@@ -17,4 +17,7 @@ obj-$(CONFIG_REGULATOR_WM8400) += wm8400-regulator.o
- obj-$(CONFIG_REGULATOR_DA903X)	+= da903x.o
- obj-$(CONFIG_REGULATOR_PCF50633) += pcf50633-regulator.o
- 
-+obj-$(CONFIG_REGULATOR_TPS65023) += tps65023-regulator.o
-+obj-$(CONFIG_REGULATOR_TPS6507X) += tps6507x-regulator.o
-+
- ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
--- 
-1.6.2.4
-
+On 8/20/09, Gary Thomas <gary@mlbassoc.com> wrote:
+> Tar Gz wrote:
+>> hi all,
+>> i try to using linux 2.6.26-omap1 at omap3430
+>>
+>> it's my env variable
+>>
+>> OMAP34XX LAB # print
+>> bootdelay=3
+>> baudrate=115200
+>> filesize=34a8
+>> bootfile="uImage"
+>> bootargs=console=ttyS2,115200n8 rw root=/dev/mmcblk0p2 rootdelay=2
+>> mem=128M
+>>
+>> #mmcinit
+>> #fatload mmc 0 80300000
+>> #bootm 80300000
+>>
+>> ******************************************
+>> Starting System Init for OMAP3430LAB
+>> Release: 0.1
+>> ******************************************
+>> Saving kernel ring buffer : OK
+>> Mounting devpts : OK
+>> Starting syslogd : OK
+>> Starting klogd : OK
+>> Mounting filesystems : OK
+>>
+>> Please press Enter to activate this console.
+>>
+>>
+>> BusyBox v1.6.1 (2008-07-17 12:54:29 CDT) Built-in shell (ash)
+>> Enter 'help' for a list of built-in commands.
+>>
+>> #
+>>
+>> then i try to type :
+>>
+>> # /etc/init.d/rcS
+>> Mounting proc : mount: mounting /proc on /proc failed
+>> Error in /proc filesystem - init aborted
+>>
+>
+> Does the directory [mount point] '/proc' exist?
+>
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
+>
