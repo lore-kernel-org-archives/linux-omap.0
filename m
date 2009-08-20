@@ -1,56 +1,111 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Oops on shutdown?
-Date: Thu, 20 Aug 2009 08:34:12 -0700
-Message-ID: <5e088bd90908200834o5b816127offa6b592a99526ca@mail.gmail.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [PATCHv5 00/20] OMAP ASoC changes in DMA utilization
+Date: Thu, 20 Aug 2009 18:56:03 +0300
+Message-ID: <a0580c510908200856h5c766fedg259a852bb9f84cbe@mail.gmail.com>
+References: <1250774523-7950-1-git-send-email-eduardo.valentin@nokia.com>
+	 <20090820143017.GH12309@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:22990 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637AbZHTPeM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 11:34:12 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so1781635qwh.37
-        for <linux-omap@vger.kernel.org>; Thu, 20 Aug 2009 08:34:13 -0700 (PDT)
+Received: from mail-yw0-f173.google.com ([209.85.211.173]:60113 "EHLO
+	mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754602AbZHTP4D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 11:56:03 -0400
+In-Reply-To: <20090820143017.GH12309@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Takashi Iwai <tiwai@suse.de>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-I've been doing a bit of testing on 2.6.31-rc5 on Overo with good
-results overall.
+Hello Tony,
 
-The only major issue I see at the moment is an oops on shutdown/restart.
+On Thu, Aug 20, 2009 at 5:30 PM, Tony Lindgren<tony@atomide.com> wrote:
+> * Eduardo Valentin <eduardo.valentin@nokia.com> [090820 16:36]:
+>> Hello guys,
+>>
+>> I've updated this series after some previous confusion from my side.
+>>
+>> Now that all dependencies are merged (Janusz's patches and Jarkko's =
+patch),
+>> I've based this series on Takashi's tree (master branch).
+>>
+>> I've also talked with Tony and he agrees to have this changes merged
+>> by alsa tree. And as pointed by Jarkko, the mcbsp code is currently
+>> used only by Audio inside OMAP code. So, that should be safe.
+>
+> You might want to merge patches 5 and 6 together as 5 adds the
+> fifo, then 6 limits it's size. But in general, for patches
 
-Is anyone else seeing this?
+Right, I left it as it is just to keep track of what was done and to gi=
+ve
+kudos to Peter.
 
-Rebooting... Internal error: Oops - undefined instruction: 0 [#1]
-Modules linked in: ipv6 udf libertas_sdio libertas lib80211 sg sr_mod
-cdrom uvcvideo videodev v4l1_compat ads7846
-CPU: 0    Not tainted  (2.6.31-rc5-omap1 #1)
-PC is at 0xcf8ab014
-LR is at usb_hcd_platform_shutdown+0x20/0x28
-pc : [<cf8ab014>]    lr : [<c031ac00>]    psr: a0000013
-sp : cb307e60  ip : 00000001  fp : 00000001
-r10: 00000000  r9 : cb306000  r8 : c00eefc4
-r7 : 0000006c  r6 : fee1dead  r5 : c0635258  r4 : c05bcae8
-r3 : cf8aae88  r2 : cf802c20  r1 : c05bcdc0  r0 : cf8a4b60
-Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-Control: 10c5387d  Table: 8a31c019  DAC: 00000015
-Process reboot (pid: 10985, stack limit = 0xcb3062f0)
-Stack: (0xcb307e60 to 0xcb308000)
-7e60: c0635258 c02dcbc8 c00eefc4 c02d874c 00000000 00000000 28121969 c0121840
-7e80: 400d8000 c012188c 01234567 c01219a0 00000000 cf8652c0 cb2eff40 400d8000
-7ea0: ca31c000 00000200 cfbd5680 c01684ac 000000b2 00000000 00000000 cf8bc168
-7ec0: cb307f10 000000d8 00000000 00000360 ca31d000 000000d0 c0639124 ffffffff
-7ee0: 400d8000 cf8652c0 ca14dca0 c03a6110 00000200 400d8000 cf8652c0 c00f457c
-7f00: ca14dca0 ca14dd40 00000000 ca990848 cf67b418 00200200 00100100 cf401398
-7f20: cf67b418 00200200 00100100 cf67b418 cf80a620 c0189480 cf67b418 cf67b418
-7f40: c05cacd4 c0189be0 ca990848 00000021 00000000 caba28a0 00000000 c017b630
-7f60: 00000000 00000000 00000003 caba28a0 00000000 caba28a0 00000000 cb0bbe40
-7f80: 00000006 c01784d4 00000003 cb0bbe40 caba28a0 00000000 00000001 00000004
-7fa0: 00000058 c00eee40 00000000 00000001 fee1dead 28121969 01234567 0000006c
-7fc0: 00000000 00000001 00000004 00000058 00000001 00000001 00000000 00000001
-7fe0: 400e0880 bedd1cb0 00009210 400e0898 60000010 fee1dead 00000000 00000000
-Code: cf8a3000 00000158 cf8ab158 0000004e (ffffffff)
----[ end trace 59776612ba8fbf0c ]---
-Segmentation fault
+> 1 - 14: Acked-by: Tony Lindgren <tony@atomide.com>
+
+Okei.
+
+>
+>> It is the same series. It now includes patch description for
+>> every patch. And also, as I already said, it is based on master
+>> branch of sound-2.6.
+>>
+>> Tested with beagle and rx51. Compiled tested for n770.
+>>
+>> BR,
+>>
+>> Eduardo Valentin (11):
+>> =A0 OMAP: McBSP: Add IRQEN, IRQSTATUS, THRESHOLD2 and THRESHOLD1
+>> =A0 =A0 registers.
+>> =A0 OMAP: McBSP: Use appropriate value for startup delay
+>> =A0 OMAP: McBSP: Add transmit/receive threshold handler
+>> =A0 OMAP: McBSP: Create and export max_(r|t)x_thres property
+>> =A0 OMAP: McBSP: Rename thres sysfs symbols
+>> =A0 OMAP: McBSP: Change wakeup signals
+>> =A0 OMAP: McBSP: Configure NO IDLE mode for DMA mode different of
+>> =A0 =A0 threshold
+>> =A0 ASoC: OMAP: Enable DMA burst mode
+>> =A0 ASoC: OMAP: Make DMA 64 aligned
+>> =A0 ASoC: OMAP: Use McBSP threshold to playback and capture
+>> =A0 ASoC: OMAP: Use DMA operating mode of McBSP
+>>
+>> Eero Nurkkala (7):
+>> =A0 OMAP: McBSP: Provide functions for ASoC frame syncronization
+>> =A0 OMAP: McBSP: Wakeups utilized
+>> =A0 OMAP: McBSP: Retain McBSP FCLK clockactivity
+>> =A0 OMAP: McBSP: Do not enable wakeups for no-idle mode
+>> =A0 OMAP: McBSP: Let element DMA mode hit retention also
+>> =A0 ASoC: Add runtime check for RFIG and XFIG
+>> =A0 ASoC: Always syncronize audio transfers on frames
+>>
+>> Peter Ujfalusi (2):
+>> =A0 OMAP3: McBSP: Lower the maximum buffersize for McBSP1,3,4,5
+>> =A0 OMAP: McBSP: Add link DMA mode selection
+>>
+>> =A0arch/arm/mach-omap2/mcbsp.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A05 +
+>> =A0arch/arm/plat-omap/include/mach/mcbsp.h | =A0 49 ++++
+>> =A0arch/arm/plat-omap/mcbsp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0377 ++=
+++++++++++++++++++++++++++++-
+>> =A0sound/soc/omap/omap-mcbsp.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 77 ++++=
+++-
+>> =A0sound/soc/omap/omap-pcm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 14 +-
+>> =A0sound/soc/omap/omap-pcm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A02 =
++
+>> =A06 files changed, 511 insertions(+), 13 deletions(-)
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+--=20
+Eduardo Bezerra Valentin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
