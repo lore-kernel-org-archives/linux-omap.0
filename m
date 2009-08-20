@@ -1,12 +1,12 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv5 05/20] OMAP: McBSP: Create and export max_(r|t)x_thres property
-Date: Thu, 20 Aug 2009 16:18:11 +0300
-Message-ID: <1250774306-7581-5-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv5 19/20] ASoC: OMAP: Use McBSP threshold to playback and capture
+Date: Thu, 20 Aug 2009 16:18:25 +0300
+Message-ID: <1250774306-7581-19-git-send-email-eduardo.valentin@nokia.com>
 References: <1250774306-7581-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:48180 "EHLO
+Received: from smtp.nokia.com ([192.100.122.233]:48183 "EHLO
 	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754259AbZHTNc4 (ORCPT
+	with ESMTP id S1754268AbZHTNc4 (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 09:32:56 -0400
 In-Reply-To: <1250774306-7581-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
@@ -16,257 +16,160 @@ Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.
 
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-This patch export through sysfs two properties to configure
-maximum threshold for transmission and reception on each
-mcbsp instance. Also, it exports two helper functions to
-allow mcbsp users to read this values.
+This patch changes the way DMA is done in omap-pcm.c
+in order to reduce power consumption. There is no need
+to have so much SW control in order to have DMA in idle
+state during audio streaming. Configuring McBSP threshold value
+and DMA to FRAME_SYNC are sufficient.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/mach-omap2/mcbsp.c             |    5 +
- arch/arm/plat-omap/include/mach/mcbsp.h |   11 +++
- arch/arm/plat-omap/mcbsp.c              |  122 +++++++++++++++++++++++++++++++
- 3 files changed, 138 insertions(+), 0 deletions(-)
+ sound/soc/omap/omap-mcbsp.c |   47 +++++++++++++++++++++++++++++++++++++-----
+ sound/soc/omap/omap-pcm.c   |    7 +++++-
+ sound/soc/omap/omap-pcm.h   |    2 +
+ 3 files changed, 49 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
-index 99b6e15..85d4fd0 100644
---- a/arch/arm/mach-omap2/mcbsp.c
-+++ b/arch/arm/mach-omap2/mcbsp.c
-@@ -128,6 +128,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
-+		.buffer_size	= 0x7F,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP2_BASE,
-@@ -136,6 +137,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
-+		.buffer_size	= 0x3FF,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP3_BASE,
-@@ -144,6 +146,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
-+		.buffer_size	= 0x7F,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP4_BASE,
-@@ -152,6 +155,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
-+		.buffer_size	= 0x7F,
- 	},
- 	{
- 		.phys_base	= OMAP34XX_MCBSP5_BASE,
-@@ -160,6 +164,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
- 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
- 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
- 		.ops		= &omap2_mcbsp_ops,
-+		.buffer_size	= 0x7F,
- 	},
- };
- #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
-index 2544aa5..832330d 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -348,6 +348,9 @@ struct omap_mcbsp_platform_data {
- 	u8 dma_rx_sync, dma_tx_sync;
- 	u16 rx_irq, tx_irq;
- 	struct omap_mcbsp_ops *ops;
-+#ifdef CONFIG_ARCH_OMAP34XX
-+	u16 buffer_size;
-+#endif
- };
- 
- struct omap_mcbsp {
-@@ -381,6 +384,10 @@ struct omap_mcbsp {
- 	struct omap_mcbsp_platform_data *pdata;
- 	struct clk *iclk;
- 	struct clk *fclk;
-+#ifdef CONFIG_ARCH_OMAP34XX
-+	u16 max_tx_thres;
-+	u16 max_rx_thres;
-+#endif
- };
- extern struct omap_mcbsp **mcbsp_ptr;
- extern int omap_mcbsp_count;
-@@ -392,11 +399,15 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config
- #ifdef CONFIG_ARCH_OMAP34XX
- void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
- void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold);
-+u16 omap_mcbsp_get_max_tx_threshold(unsigned int id);
-+u16 omap_mcbsp_get_max_rx_threshold(unsigned int id);
- #else
- static inline void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
- { }
- static inline void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
- { }
-+static inline u16 omap_mcbsp_get_max_tx_threshold(unsigned int id) { return 0; }
-+static inline u16 omap_mcbsp_get_max_rx_threshold(unsigned int id) { return 0; }
- #endif
- int omap_mcbsp_request(unsigned int id);
- void omap_mcbsp_free(unsigned int id);
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 081f2ea..0bbc912 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -246,6 +246,42 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
- 	OMAP_MCBSP_WRITE(io_base, THRSH1, threshold);
- }
- EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
-+
-+/*
-+ * omap_mcbsp_get_max_tx_thres just return the current configured
-+ * maximum threshold for transmission
-+ */
-+u16 omap_mcbsp_get_max_tx_threshold(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	return mcbsp->max_tx_thres;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_get_max_tx_threshold);
-+
-+/*
-+ * omap_mcbsp_get_max_rx_thres just return the current configured
-+ * maximum threshold for reception
-+ */
-+u16 omap_mcbsp_get_max_rx_threshold(unsigned int id)
-+{
-+	struct omap_mcbsp *mcbsp;
-+
-+	if (!omap_mcbsp_check_valid_id(id)) {
-+		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
-+		return -ENODEV;
-+	}
-+	mcbsp = id_to_mcbsp_ptr(id);
-+
-+	return mcbsp->max_rx_thres;
-+}
-+EXPORT_SYMBOL(omap_mcbsp_get_max_rx_threshold);
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index 6e85508..580de5a 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -139,28 +139,59 @@ static const unsigned long omap34xx_mcbsp_port[][2] = {
+ static const unsigned long omap34xx_mcbsp_port[][2] = {};
  #endif
  
- /*
-@@ -1005,6 +1041,86 @@ void omap_mcbsp_set_spi_mode(unsigned int id,
++static void omap_mcbsp_set_threshold(struct snd_pcm_substream *substream)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
++	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
++	int samples = snd_pcm_lib_period_bytes(substream) >> 1;
++
++	/* Configure McBSP internal buffer usage */
++	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
++		omap_mcbsp_set_tx_threshold(mcbsp_data->bus_id, samples - 1);
++	else
++		omap_mcbsp_set_rx_threshold(mcbsp_data->bus_id, samples - 1);
++}
++
+ static int omap_mcbsp_dai_startup(struct snd_pcm_substream *substream,
+ 				  struct snd_soc_dai *dai)
+ {
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+ 	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
+ 	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
++	int bus_id = mcbsp_data->bus_id;
+ 	int err = 0;
+ 
+-	if (cpu_is_omap343x() && mcbsp_data->bus_id == 1) {
++	if (!cpu_dai->active)
++		err = omap_mcbsp_request(bus_id);
++
++	if (cpu_is_omap343x()) {
++		int max_period;
++
+ 		/*
+ 		 * McBSP2 in OMAP3 has 1024 * 32-bit internal audio buffer.
+ 		 * Set constraint for minimum buffer size to the same than FIFO
+ 		 * size in order to avoid underruns in playback startup because
+ 		 * HW is keeping the DMA request active until FIFO is filled.
+ 		 */
++		if (bus_id == 1)
++			snd_pcm_hw_constraint_minmax(substream->runtime,
++					SNDRV_PCM_HW_PARAM_BUFFER_BYTES,
++					4096, UINT_MAX);
++
++		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK)
++			max_period = omap_mcbsp_get_max_tx_threshold(bus_id);
++		else
++			max_period = omap_mcbsp_get_max_rx_threshold(bus_id);
++
++		max_period++;
++		max_period <<= 1;
++
+ 		snd_pcm_hw_constraint_minmax(substream->runtime,
+-			SNDRV_PCM_HW_PARAM_BUFFER_BYTES, 4096, UINT_MAX);
++						SNDRV_PCM_HW_PARAM_PERIOD_BYTES,
++						32, max_period);
+ 	}
+ 
+-	if (!cpu_dai->active)
+-		err = omap_mcbsp_request(mcbsp_data->bus_id);
+-
+ 	return err;
  }
- EXPORT_SYMBOL(omap_mcbsp_set_spi_mode);
  
-+#ifdef CONFIG_ARCH_OMAP34XX
-+#define max_thres(m)			(mcbsp->pdata->buffer_size)
-+#define valid_threshold(m, val)		((val) <= max_thres(m))
-+#define THRESHOLD_PROP_BUILDER(prop)					\
-+static ssize_t prop##_show(struct device *dev,				\
-+			struct device_attribute *attr, char *buf)	\
-+{									\
-+	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);		\
-+									\
-+	return sprintf(buf, "%u\n", mcbsp->prop);			\
-+}									\
-+									\
-+static ssize_t prop##_store(struct device *dev,				\
-+				struct device_attribute *attr,		\
-+				const char *buf, size_t size)		\
-+{									\
-+	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);		\
-+	unsigned long val;						\
-+	int status;							\
-+									\
-+	status = strict_strtoul(buf, 0, &val);				\
-+	if (status)							\
-+		return status;						\
-+									\
-+	if (!valid_threshold(mcbsp, val))				\
-+		return -EDOM;						\
-+									\
-+	mcbsp->prop = val;						\
-+	return size;							\
-+}									\
-+									\
-+static DEVICE_ATTR(prop, 0644, prop##_show, prop##_store);
-+
-+THRESHOLD_PROP_BUILDER(max_tx_thres);
-+THRESHOLD_PROP_BUILDER(max_rx_thres);
-+
-+static const struct attribute *threshold_attrs[] = {
-+	&dev_attr_max_tx_thres.attr,
-+	&dev_attr_max_rx_thres.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group threshold_attr_group = {
-+	.attrs = (struct attribute **)threshold_attrs,
-+};
-+
-+static inline int __devinit omap_thres_add(struct device *dev)
-+{
-+	return sysfs_create_group(&dev->kobj, &threshold_attr_group);
-+}
-+
-+static inline void __devexit omap_thres_remove(struct device *dev)
-+{
-+	sysfs_remove_group(&dev->kobj, &threshold_attr_group);
-+}
-+
-+static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
-+{
-+	if (cpu_is_omap34xx()) {
-+		mcbsp->max_tx_thres = max_thres(mcbsp);
-+		mcbsp->max_rx_thres = max_thres(mcbsp);
-+		if (omap_thres_add(mcbsp->dev))
-+			dev_warn(mcbsp->dev,
-+				"Unable to create threshold controls\n");
-+	} else {
-+		mcbsp->max_tx_thres = -EINVAL;
-+		mcbsp->max_rx_thres = -EINVAL;
-+	}
-+}
-+
-+static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp)
-+{
-+	if (cpu_is_omap34xx())
-+		omap_thres_remove(mcbsp->dev);
-+}
-+#else
-+static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp) {}
-+static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp) {}
-+#endif /* CONFIG_ARCH_OMAP34XX */
-+
- /*
-  * McBSP1 and McBSP3 are directly mapped on 1610 and 1510.
-  * 730 has only 2 McBSP, and both of them are MPU peripherals.
-@@ -1075,6 +1191,10 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
- 	mcbsp->dev = &pdev->dev;
- 	mcbsp_ptr[id] = mcbsp;
- 	platform_set_drvdata(pdev, mcbsp);
-+
-+	/* Initialize mcbsp properties for OMAP34XX if needed / applicable */
-+	omap34xx_device_init(mcbsp);
-+
- 	return 0;
+@@ -220,7 +251,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	struct omap_mcbsp_data *mcbsp_data = to_mcbsp(cpu_dai->private_data);
+ 	struct omap_mcbsp_reg_cfg *regs = &mcbsp_data->regs;
+ 	int dma, bus_id = mcbsp_data->bus_id, id = cpu_dai->id;
+-	int wlen, channels, wpf;
++	int wlen, channels, wpf, sync_mode = OMAP_DMA_SYNC_ELEMENT;
+ 	unsigned long port;
+ 	unsigned int format;
  
- err_fclk:
-@@ -1098,6 +1218,8 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
- 				mcbsp->pdata->ops->free)
- 			mcbsp->pdata->ops->free(mcbsp->id);
+@@ -236,6 +267,9 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 	} else if (cpu_is_omap343x()) {
+ 		dma = omap24xx_dma_reqs[bus_id][substream->stream];
+ 		port = omap34xx_mcbsp_port[bus_id][substream->stream];
++		omap_mcbsp_dai_dma_params[id][substream->stream].set_threshold =
++						omap_mcbsp_set_threshold;
++		sync_mode = OMAP_DMA_SYNC_FRAME;
+ 	} else {
+ 		return -ENODEV;
+ 	}
+@@ -243,6 +277,7 @@ static int omap_mcbsp_dai_hw_params(struct snd_pcm_substream *substream,
+ 		substream->stream ? "Audio Capture" : "Audio Playback";
+ 	omap_mcbsp_dai_dma_params[id][substream->stream].dma_req = dma;
+ 	omap_mcbsp_dai_dma_params[id][substream->stream].port_addr = port;
++	omap_mcbsp_dai_dma_params[id][substream->stream].sync_mode = sync_mode;
+ 	cpu_dai->dma_data = &omap_mcbsp_dai_dma_params[id][substream->stream];
  
-+		omap34xx_device_exit(mcbsp);
+ 	if (mcbsp_data->configured) {
+diff --git a/sound/soc/omap/omap-pcm.c b/sound/soc/omap/omap-pcm.c
+index b9633d5..5735945 100644
+--- a/sound/soc/omap/omap-pcm.c
++++ b/sound/soc/omap/omap-pcm.c
+@@ -162,7 +162,7 @@ static int omap_pcm_prepare(struct snd_pcm_substream *substream)
+ 	 */
+ 	dma_params.data_type			= OMAP_DMA_DATA_TYPE_S16;
+ 	dma_params.trigger			= dma_data->dma_req;
+-	dma_params.sync_mode			= OMAP_DMA_SYNC_ELEMENT;
++	dma_params.sync_mode			= dma_data->sync_mode;
+ 	if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
+ 		dma_params.src_amode		= OMAP_DMA_AMODE_POST_INC;
+ 		dma_params.dst_amode		= OMAP_DMA_AMODE_CONSTANT;
+@@ -205,6 +205,7 @@ static int omap_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
+ {
+ 	struct snd_pcm_runtime *runtime = substream->runtime;
+ 	struct omap_runtime_data *prtd = runtime->private_data;
++	struct omap_pcm_dma_data *dma_data = prtd->dma_data;
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
+@@ -214,6 +215,10 @@ static int omap_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
+ 	case SNDRV_PCM_TRIGGER_RESUME:
+ 	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+ 		prtd->period_index = 0;
++		/* Configure McBSP internal buffer usage */
++		if (dma_data->set_threshold)
++			dma_data->set_threshold(substream);
 +
- 		clk_disable(mcbsp->fclk);
- 		clk_disable(mcbsp->iclk);
- 		clk_put(mcbsp->fclk);
+ 		omap_start_dma(prtd->dma_ch);
+ 		break;
+ 
+diff --git a/sound/soc/omap/omap-pcm.h b/sound/soc/omap/omap-pcm.h
+index 8d9d269..38a821d 100644
+--- a/sound/soc/omap/omap-pcm.h
++++ b/sound/soc/omap/omap-pcm.h
+@@ -29,6 +29,8 @@ struct omap_pcm_dma_data {
+ 	char		*name;		/* stream identifier */
+ 	int		dma_req;	/* DMA request line */
+ 	unsigned long	port_addr;	/* transmit/receive register */
++	int		sync_mode;	/* DMA sync mode */
++	void (*set_threshold)(struct snd_pcm_substream *substream);
+ };
+ 
+ extern struct snd_soc_platform omap_soc_platform;
 -- 
 1.6.2.GIT
 
