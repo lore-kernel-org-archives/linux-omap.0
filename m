@@ -1,47 +1,47 @@
-From: Stephan Linz <linz@li-pro.net>
-Subject: Re: Patch format for submission?
-Date: Thu, 20 Aug 2009 18:02:06 +0200
-Message-ID: <200908201802.07169.linz@li-pro.net>
-References: <1250695463.10817.4.camel@blitz>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCHv5 00/20] OMAP ASoC changes in DMA utilization
+Date: Thu, 20 Aug 2009 19:15:42 +0300
+Message-ID: <20090820191542.bc7b0d4d.jhnikula@gmail.com>
+References: <1250774523-7950-1-git-send-email-eduardo.valentin@nokia.com>
+	<20090820143017.GH12309@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fw02.mazet.de ([82.100.204.34]:38753 "EHLO mail.mazet.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751216AbZHTQCf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 12:02:35 -0400
-In-Reply-To: <1250695463.10817.4.camel@blitz>
-Content-Disposition: inline
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:43194 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754805AbZHTQOI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 12:14:08 -0400
+In-Reply-To: <20090820143017.GH12309@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Barada <peterb@logicpd.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, Takashi Iwai <tiwai@suse.de>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Am Mittwoch, 19. August 2009 schrieb Peter Barada:
-> 1) Does anyone have a URL of the format patches should be in that are
-> submitted to the linux-omap list?
->
-> I've got some patches to add base support for the Logic OMAP 35x SOM =
-and
-> Torpedo boards and I'd like to submit them in the right format for
-> inclusion and push into mainline.
+On Thu, 20 Aug 2009 17:30:18 +0300
+Tony Lindgren <tony@atomide.com> wrote:
 
-Hi Peter,
+> * Eduardo Valentin <eduardo.valentin@nokia.com> [090820 16:36]:
+> > Hello guys,
+> > 
+> > I've updated this series after some previous confusion from my side.
+> > 
+> > Now that all dependencies are merged (Janusz's patches and Jarkko's patch),
+> > I've based this series on Takashi's tree (master branch).
+> > 
+Mark: Set applies and works (with Beagle) on top of both master and
+topic/asoc branches.
 
-nice to see your announcement here at linux-omap. Today I've finished m=
-y own=20
-port for the Logic OMAP 35x SOM based on 2.6.31-rc1. We should share ou=
-r=20
-results befor submitting any patches to the list, or not?
+> > I've also talked with Tony and he agrees to have this changes merged
+> > by alsa tree. And as pointed by Jarkko, the mcbsp code is currently
+> > used only by Audio inside OMAP code. So, that should be safe.
+> 
+> You might want to merge patches 5 and 6 together as 5 adds the
+> fifo, then 6 limits it's size. But in general, for patches
+> 1 - 14: Acked-by: Tony Lindgren <tony@atomide.com>
+>  
+15-20: Acked-by: Jarkko Nikula <jhnikula@gmail.com>
 
 
---=20
-Viele Gr=C3=BC=C3=9Fe / Best Regards
-Stephan Linz
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jarkko
