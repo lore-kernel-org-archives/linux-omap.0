@@ -1,125 +1,178 @@
 From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [RFC][PATCH] omapfb: Reorder Register_framebuffer call
-Date: Thu, 20 Aug 2009 15:12:56 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444BA0DB52@dlee02.ent.ti.com>
+Subject: RE: SDP broken (l-o-2.6.31-rc6)
+Date: Thu, 20 Aug 2009 15:17:43 -0500
+Message-ID: <A24693684029E5489D1D202277BE89444BA0DB62@dlee02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702F969AE49@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_A24693684029E5489D1D202277BE89444BA0DB52dlee02entticom_"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34376 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751822AbZHTUJD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 16:09:03 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:41079 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751735AbZHTUNb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 16:13:31 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7KKDSYA005752
+	for <linux-omap@vger.kernel.org>; Thu, 20 Aug 2009 15:13:33 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n7KKDRTN029528
+	for <linux-omap@vger.kernel.org>; Thu, 20 Aug 2009 15:13:27 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n7KKDRHc029290
+	for <linux-omap@vger.kernel.org>; Thu, 20 Aug 2009 15:13:27 -0500 (CDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F969AE49@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
-Cc: Imre Deak <imre.deak@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---_002_A24693684029E5489D1D202277BE89444BA0DB52dlee02entticom_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+> Sent: Thursday, August 20, 2009 11:55 AM
+> To: linux-omap@vger.kernel.org
+> Subject: SDP broken (l-o-2.6.31-rc6)
+> 
+> 
+> I am seeing a crash on bootup on SDP on the latest head of linux omap
+> (7a8d53a06009b)
+> 
+> Anyone seen this before??
 
-From: Sergio Aguirre <saaguirre@ti.com>
+Yes.
 
-This fixes the issue in which mm_lock mutex was attempted to be
-used without initializing previously.
+Vikram,
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- drivers/video/omap/omapfb_main.c |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+I just sent a patch for RFC to attempt fixing this.
 
-diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_m=
-ain.c
-index 125e605..60f9482 100644
---- a/drivers/video/omap/omapfb_main.c
-+++ b/drivers/video/omap/omapfb_main.c
-@@ -1503,12 +1503,21 @@ static int fbinfo_init(struct omapfb_device *fbdev,=
- struct fb_info *info)
- 	var->rotate	  =3D def_rotate;
- 	var->bits_per_pixel =3D fbdev->panel->bpp;
-=20
-+	r =3D register_framebuffer(info);
-+	if (r !=3D 0) {
-+		dev_err(fbdev->dev,
-+			"registering framebuffer failed\n");
-+		return r;
-+	}
-+
- 	set_fb_var(info, var);
- 	set_fb_fix(info);
-=20
- 	r =3D fb_alloc_cmap(&info->cmap, 16, 0);
--	if (r !=3D 0)
-+	if (r !=3D 0) {
- 		dev_err(fbdev->dev, "unable to allocate color map memory\n");
-+		unregister_framebuffer(info);
-+	}
-=20
- 	return r;
- }
-@@ -1773,15 +1782,8 @@ static int omapfb_do_probe(struct platform_device *p=
-dev,
- 	init_state++;
-=20
- 	vram =3D 0;
--	for (i =3D 0; i < fbdev->mem_desc.region_cnt; i++) {
--		r =3D register_framebuffer(fbdev->fb_info[i]);
--		if (r !=3D 0) {
--			dev_err(fbdev->dev,
--				"registering framebuffer %d failed\n", i);
--			goto cleanup;
--		}
-+	for (i =3D 0; i < fbdev->mem_desc.region_cnt; i++)
- 		vram +=3D fbdev->mem_desc.region[i].size;
--	}
-=20
- 	fbdev->state =3D OMAPFB_ACTIVE;
-=20
---=20
-1.6.3.2
+Not sure if it's the right fix, since I'm not a FB expert. (Just compared with other fb device driver init sequences)
 
+Regards,
+Sergio
+> 
+> ---
+> 6>JFFS2 version 2.2. (NAND) (SUMMARY)  (c) 2001-2006 Red Hat, Inc.
+> <6>msgmni has been set to 243
+> <6>alg: No test for stdrng (krng)
+> <6>io scheduler noop registered
+> <6>io scheduler anticipatory registered
+> <6>io scheduler deadline registered
+> <6>io scheduler cfq registered (default)
+> <4>Platform driver 'omapfb' needs updating - please use dev_pm_ops
+> <4>Platform driver 'sdp2430_lcd' needs updating - please use dev_pm_ops
+> <6>omapfb: configured for panel sdp2430
+> <6>omapfb: DISPC version 3.0 initialized
+> <4>------------[ cut here ]------------
+> <4>WARNING: at kernel/mutex.c:207 __mutex_lock_slowpath+0xb0/0x234()
+> <d>Modules linked in:
+> [<c00325e4>] (unwind_backtrace+0x0/0xdc) from [<c00508e0>]
+> (warn_slowpath_common+0x48/0x60)
+> [<c00508e0>] (warn_slowpath_common+0x48/0x60) from [<c03728b4>]
+> (__mutex_lock_slowpath+0xb0/0x234)
+> [<c03728b4>] (__mutex_lock_slowpath+0xb0/0x234) from [<c0372a44>]
+> (mutex_lock+0xc/0x20)
+> [<c0372a44>] (mutex_lock+0xc/0x20) from [<c01b96c4>]
+> (set_fb_fix+0x30/0xbc)
+> [<c01b96c4>] (set_fb_fix+0x30/0xbc) from [<c01bab1c>]
+> (omapfb_do_probe+0x428/0x86c)
+> [<c01bab1c>] (omapfb_do_probe+0x428/0x86c) from [<c01bcde0>]
+> (sdp2430_panel_probe+0xc/0x18)
+> [<c01bcde0>] (sdp2430_panel_probe+0xc/0x18) from [<c01e0454>]
+> (platform_drv_probe+0x18/0x1c)
+> [<c01e0454>] (platform_drv_probe+0x18/0x1c) from [<c01df624>]
+> (driver_probe_device+0xa0/0x14c)
+> [<c01df624>] (driver_probe_device+0xa0/0x14c) from [<c01df730>]
+> (__driver_attach+0x60/0x84)
+> [<c01df730>] (__driver_attach+0x60/0x84) from [<c01deee8>]
+> (bus_for_each_dev+0x44/0x74)
+> [<c01deee8>] (bus_for_each_dev+0x44/0x74) from [<c01de7fc>]
+> (bus_add_driver+0xf4/0x278)
+> [<c01de7fc>] (bus_add_driver+0xf4/0x278) from [<c01dfa00>]
+> (driver_register+0xa8/0x130)
+> [<c01dfa00>] (driver_register+0xa8/0x130) from [<c002d29c>]
+> (do_one_initcall+0x54/0x194)
+> [<c002d29c>] (do_one_initcall+0x54/0x194) from [<c0008574>]
+> (kernel_init+0x8c/0x108)
+> [<c0008574>] (kernel_init+0x8c/0x108) from [<c002e77c>]
+> (kernel_thread_exit+0x0/0x8)
+> <4>---[ end trace da227214a82491b7 ]---
+> <1>Unable to handle kernel NULL pointer dereference at virtual address
+> 00000000
+> <1>pgd = c0004000
+> <1>[00000000] *pgd=00000000
+> Internal error: Oops: 805 [#1]
+> <d>Modules linked in:
+> CPU: 0    Tainted: G        W   (2.6.31-rc5-omap1-05899-gf622368 #33)
+> PC is at __mutex_lock_slowpath+0xe0/0x234
+> LR is at __mutex_lock_slowpath+0xcc/0x234
+> pc : [<c03728e4>]    lr : [<c03728d0>]    psr: 40000093
+> sp : c7825e58  ip : 11111111  fp : c7980624
+> r10: c7980600  r9 : c7980600  r8 : c78b9824
+> r7 : c7820000  r6 : 60000013  r5 : c78b9820  r4 : c78b9820
+> r3 : 00000000  r2 : c7824000  r1 : c7825e58  r0 : c78b9820
+> Flags: nZcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+> Control: 10c5387d  Table: 80004019  DAC: 00000017
+> Process swapper (pid: 1, stack limit = 0xc78242f0)
+> Stack: (0xc7825e58 to 0xc7826000)
+> 5e40:                                                       c78b9824
+> 00000000
+> 5e60: 11111111 c7825e58 c78b9820 c7980600 00000000 c78b9820 c78b9800
+> c0372a44
+> 5e80: c7980600 c01b96c4 c05387b8 00000000 c78b9800 c78b9a68 00000000
+> c01bab1c
+> 5ea0: c79c9030 c00fa894 c7825ed0 c7980600 c79bcfc0 c7980600 00000000
+> 69825ed0
+> 5ec0: 7265746e 006c616e 00000000 00000000 c785aa80 c04c4dc0 c04c4dc0
+> c04e0484
+> 5ee0: c785dd20 c04e44b0 00000000 00000000 00000000 c01bcde0 c04c4dc0
+> c01e0454
+> 5f00: c04c4dc0 c01df624 c04c4dc0 c04c4df4 c04e0484 c785dd20 c04e44b0
+> c01df730
+> 5f20: 00000000 c01df6d0 c04e0484 c01deee8 c78045b8 c785d210 c00250b8
+> 00000060
+> 5f40: c04e0484 c01de7fc c0425ee9 c0425ee9 00000001 c00250b8 00000000
+> c04e0484
+> 5f60: c0018d60 00000000 00000000 c01dfa00 c00250b8 00000000 00000000
+> c0018d60
+> 5f80: 00000000 c002d29c c7825fb4 c042bcd3 00008124 0000024e c04d0200
+> c784a680
+> 5fa0: c04d0210 0000015f c050f108 c00f4ae8 c042bcd3 c78498a0 c7825fc6
+> c007c190
+> 5fc0: 00000000 35339ae0 00000031 00000000 00000000 00000192 c00250b8
+> 00000000
+> 5fe0: 00000000 00000000 00000000 c0008574 00000000 c002e77c aaaa5555
+> aaaa5555
+> [<c03728e4>] (__mutex_lock_slowpath+0xe0/0x234) from [<c0372a44>]
+> (mutex_lock+0xc/0x20)
+> [<c0372a44>] (mutex_lock+0xc/0x20) from [<c01b96c4>]
+> (set_fb_fix+0x30/0xbc)
+> [<c01b96c4>] (set_fb_fix+0x30/0xbc) from [<c01bab1c>]
+> (omapfb_do_probe+0x428/0x86c)
+> [<c01bab1c>] (omapfb_do_probe+0x428/0x86c) from [<c01bcde0>]
+> (sdp2430_panel_probe+0xc/0x18)
+> [<c01bcde0>] (sdp2430_panel_probe+0xc/0x18) from [<c01e0454>]
+> (platform_drv_probe+0x18/0x1c)
+> [<c01e0454>] (platform_drv_probe+0x18/0x1c) from [<c01df624>]
+> (driver_probe_device+0xa0/0x14c)
+> [<c01df624>] (driver_probe_device+0xa0/0x14c) from [<c01df730>]
+> (__driver_attach+0x60/0x84)
+> [<c01df730>] (__driver_attach+0x60/0x84) from [<c01deee8>]
+> (bus_for_each_dev+0x44/0x74)
+> [<c01deee8>] (bus_for_each_dev+0x44/0x74) from [<c01de7fc>]
+> (bus_add_driver+0xf4/0x278)
+> [<c01de7fc>] (bus_add_driver+0xf4/0x278) from [<c01dfa00>]
+> (driver_register+0xa8/0x130)
+> [<c01dfa00>] (driver_register+0xa8/0x130) from [<c002d29c>]
+> (do_one_initcall+0x54/0x194)
+> [<c002d29c>] (do_one_initcall+0x54/0x194) from [<c0008574>]
+> (kernel_init+0x8c/0x108)
+> [<c0008574>] (kernel_init+0x8c/0x108) from [<c002e77c>]
+> (kernel_thread_exit+0x0/0x8)
+> Code: e2858004 e585d008 e58d8000 e58d3004 (e583d000)
+> <4>---[ end trace da227214a82491b8 ]---
+> <0>Kernel panic - not syncing: Attempted to kill init!
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---_002_A24693684029E5489D1D202277BE89444BA0DB52dlee02entticom_
-Content-Type: application/octet-stream;
-	name="0001-omapfb-Reorder-Register_framebuffer-call.patch"
-Content-Description: 0001-omapfb-Reorder-Register_framebuffer-call.patch
-Content-Disposition: attachment;
-	filename="0001-omapfb-Reorder-Register_framebuffer-call.patch"; size=1681;
-	creation-date="Thu, 20 Aug 2009 15:08:11 GMT";
-	modification-date="Thu, 20 Aug 2009 15:08:11 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSBiZjY4MTM0YzBkMTNjOWRmNjE4ZDllZjRkM2U5ZDA2NTU4NWYzZDE1IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTZXJnaW8gQWd1aXJyZSA8c2FhZ3VpcnJlQHRpLmNvbT4KRGF0
-ZTogVGh1LCAyMCBBdWcgMjAwOSAxNDo1ODoyMiAtMDUwMApTdWJqZWN0OiBbUEFUQ0hdIG9tYXBm
-YjogUmVvcmRlciBSZWdpc3Rlcl9mcmFtZWJ1ZmZlciBjYWxsCgpUaGlzIGZpeGVzIHRoZSBpc3N1
-ZSBpbiB3aGljaCBtbV9sb2NrIG11dGV4IHdhcyBhdHRlbXB0ZWQgdG8gYmUKdXNlZCB3aXRob3V0
-IGluaXRpYWxpemluZyBwcmV2aW91c2x5LgoKU2lnbmVkLW9mZi1ieTogU2VyZ2lvIEFndWlycmUg
-PHNhYWd1aXJyZUB0aS5jb20+Ci0tLQogZHJpdmVycy92aWRlby9vbWFwL29tYXBmYl9tYWluLmMg
-fCAgIDIwICsrKysrKysrKysrLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDExIGluc2VydGlv
-bnMoKyksIDkgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy92aWRlby9vbWFwL29t
-YXBmYl9tYWluLmMgYi9kcml2ZXJzL3ZpZGVvL29tYXAvb21hcGZiX21haW4uYwppbmRleCAxMjVl
-NjA1Li42MGY5NDgyIDEwMDY0NAotLS0gYS9kcml2ZXJzL3ZpZGVvL29tYXAvb21hcGZiX21haW4u
-YworKysgYi9kcml2ZXJzL3ZpZGVvL29tYXAvb21hcGZiX21haW4uYwpAQCAtMTUwMywxMiArMTUw
-MywyMSBAQCBzdGF0aWMgaW50IGZiaW5mb19pbml0KHN0cnVjdCBvbWFwZmJfZGV2aWNlICpmYmRl
-diwgc3RydWN0IGZiX2luZm8gKmluZm8pCiAJdmFyLT5yb3RhdGUJICA9IGRlZl9yb3RhdGU7CiAJ
-dmFyLT5iaXRzX3Blcl9waXhlbCA9IGZiZGV2LT5wYW5lbC0+YnBwOwogCisJciA9IHJlZ2lzdGVy
-X2ZyYW1lYnVmZmVyKGluZm8pOworCWlmIChyICE9IDApIHsKKwkJZGV2X2VycihmYmRldi0+ZGV2
-LAorCQkJInJlZ2lzdGVyaW5nIGZyYW1lYnVmZmVyIGZhaWxlZFxuIik7CisJCXJldHVybiByOwor
-CX0KKwogCXNldF9mYl92YXIoaW5mbywgdmFyKTsKIAlzZXRfZmJfZml4KGluZm8pOwogCiAJciA9
-IGZiX2FsbG9jX2NtYXAoJmluZm8tPmNtYXAsIDE2LCAwKTsKLQlpZiAociAhPSAwKQorCWlmIChy
-ICE9IDApIHsKIAkJZGV2X2VycihmYmRldi0+ZGV2LCAidW5hYmxlIHRvIGFsbG9jYXRlIGNvbG9y
-IG1hcCBtZW1vcnlcbiIpOworCQl1bnJlZ2lzdGVyX2ZyYW1lYnVmZmVyKGluZm8pOworCX0KIAog
-CXJldHVybiByOwogfQpAQCAtMTc3MywxNSArMTc4Miw4IEBAIHN0YXRpYyBpbnQgb21hcGZiX2Rv
-X3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYsCiAJaW5pdF9zdGF0ZSsrOwogCiAJ
-dnJhbSA9IDA7Ci0JZm9yIChpID0gMDsgaSA8IGZiZGV2LT5tZW1fZGVzYy5yZWdpb25fY250OyBp
-KyspIHsKLQkJciA9IHJlZ2lzdGVyX2ZyYW1lYnVmZmVyKGZiZGV2LT5mYl9pbmZvW2ldKTsKLQkJ
-aWYgKHIgIT0gMCkgewotCQkJZGV2X2VycihmYmRldi0+ZGV2LAotCQkJCSJyZWdpc3RlcmluZyBm
-cmFtZWJ1ZmZlciAlZCBmYWlsZWRcbiIsIGkpOwotCQkJZ290byBjbGVhbnVwOwotCQl9CisJZm9y
-IChpID0gMDsgaSA8IGZiZGV2LT5tZW1fZGVzYy5yZWdpb25fY250OyBpKyspCiAJCXZyYW0gKz0g
-ZmJkZXYtPm1lbV9kZXNjLnJlZ2lvbltpXS5zaXplOwotCX0KIAogCWZiZGV2LT5zdGF0ZSA9IE9N
-QVBGQl9BQ1RJVkU7CiAKLS0gCjEuNi4zLjIKCg==
-
---_002_A24693684029E5489D1D202277BE89444BA0DB52dlee02entticom_--
