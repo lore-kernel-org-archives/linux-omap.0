@@ -1,52 +1,59 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv5 03/20] OMAP: McBSP: Use appropriate value for startup delay
-Date: Thu, 20 Aug 2009 16:18:09 +0300
-Message-ID: <1250774306-7581-3-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv5 13/20] OMAP: McBSP: Do not enable wakeups for no-idle mode
+Date: Thu, 20 Aug 2009 16:18:19 +0300
+Message-ID: <1250774306-7581-13-git-send-email-eduardo.valentin@nokia.com>
 References: <1250774306-7581-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35170 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:35182 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754382AbZHTNdA (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 09:33:00 -0400
+	with ESMTP id S1754464AbZHTNdE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 09:33:04 -0400
 In-Reply-To: <1250774306-7581-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Takashi Iwai <tiwai@suse.de>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-Increasing startup delay value as worst case:
- CLKSRG*2 = 8000khz: (1/8000) * 2 * 2 usec
+When no-idle mode is taken, wakeups need not to be enabled.
+Moreover, CLOCKACTIVITY bits are unnecessary with this mode
+also.
 
-Although, 100us may give enough time for two CLKSRG,
-due to some unknown PM related, clock gating etc. reason,
-this patch increases it to 500us.
-
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Acked-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/plat-omap/mcbsp.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/mcbsp.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
 diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index 0aa2524..e9dd703 100644
+index 85176a5..56a5688 100644
 --- a/arch/arm/plat-omap/mcbsp.c
 +++ b/arch/arm/plat-omap/mcbsp.c
-@@ -365,7 +365,13 @@ void omap_mcbsp_start(unsigned int id, int tx, int rx)
- 	w = OMAP_MCBSP_READ(io_base, SPCR1);
- 	OMAP_MCBSP_WRITE(io_base, SPCR1, w | (rx & 1));
+@@ -319,16 +319,17 @@ static inline void omap34xx_mcbsp_request(struct omap_mcbsp *mcbsp)
+ 		syscon &= ~(ENAWAKEUP | SIDLEMODE(0x03) | CLOCKACTIVITY(0x03));
  
--	udelay(100);
-+	/*
-+	 * Worst case: CLKSRG*2 = 8000khz: (1/8000) * 2 * 2 usec
-+	 * REVISIT: 100us may give enough time for two CLKSRG, however
-+	 * due to some unknown PM related, clock gating etc. reason it
-+	 * is now at 500us.
-+	 */
-+	udelay(500);
+ 		spin_lock_irq(&mcbsp->lock);
+-		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD)
+-			syscon |= SIDLEMODE(0x02);
+-		else
++		if (mcbsp->dma_op_mode == MCBSP_DMA_MODE_THRESHOLD) {
++			syscon |= (ENAWAKEUP | SIDLEMODE(0x02) |
++					CLOCKACTIVITY(0x02));
++			OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN,
++					XRDYEN | RRDYEN);
++		} else {
+ 			syscon |= SIDLEMODE(0x01);
++		}
+ 		spin_unlock_irq(&mcbsp->lock);
  
- 	if (idle) {
- 		/* Start frame sync */
+-		syscon |= (ENAWAKEUP | CLOCKACTIVITY(0x02));
+ 		OMAP_MCBSP_WRITE(mcbsp->io_base, SYSCON, syscon);
+-
+-		OMAP_MCBSP_WRITE(mcbsp->io_base, WAKEUPEN, XRDYEN | RRDYEN);
+ 	}
+ }
+ 
 -- 
 1.6.2.GIT
 
