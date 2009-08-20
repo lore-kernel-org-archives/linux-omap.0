@@ -1,173 +1,272 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: linux-next: manual merge of the omap tree with the arm tree
-Date: Thu, 20 Aug 2009 18:43:15 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA29B961@dbde02.ent.ti.com>
-References: <20090819150433.4c12c612.sfr@canb.auug.org.au>
- <20090820102004.GD12309@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BA29B949@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv5 05/20] OMAP: McBSP: Create and export max_(r|t)x_thres property
+Date: Thu, 20 Aug 2009 16:18:11 +0300
+Message-ID: <1250774306-7581-5-git-send-email-eduardo.valentin@nokia.com>
+References: <1250774306-7581-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39817 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754456AbZHTNNj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 09:13:39 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BA29B949@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:48180 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754259AbZHTNc4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 20 Aug 2009 09:32:56 -0400
+In-Reply-To: <1250774306-7581-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>, Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>, Russell King <rmk@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Eduardo Valentin <eduardo.valentin@nokia.com>
 
-(Resending with a correction)
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> Sent: Thursday, August 20, 2009 6:33 PM
-> To: Tony Lindgren; Stephen Rothwell
-> Cc: linux-omap@vger.kernel.org; linux-next@vger.kernel.org; linux-
-> kernel@vger.kernel.org; Syed, Rafiuddin; Russell King; Kalle Valo
-> Subject: RE: linux-next: manual merge of the omap tree with the arm tree
-> 
-> > > Today's linux-next merge of the omap tree got a conflict in
-> > > arch/arm/mach-omap2/board-4430sdp.c between commit
-> > > 085b54d99b8ee999e7905b8f16e201e0da8ba369 ("ARM: OMAP4: Add UART4
-> > > support") from the arm tree and commit
-> > > 4c29fa3e47342666e12e46f35f40dd90b12cd1a4 ("OMAP: remove
-> OMAP_TAG_UART")
-> > > from the omap tree.
-> > >
-> > > Just context changes (I think).  I fixed it up (see below) and can
-> carry
-> > > the fix as necessary.
-> >
-> > Thanks yeh the fix looks right. I'll take a look if I can squeeze
-> > something
-> > like that into my queue so the merge conflict disappears.
-> 
-> There is another issue with the same merge I noticed which not seems to be
-> correct.
-> http://git.kernel.org/?p=linux/kernel/git/sfr/linux-
-> next.git;a=commit;h=a11128de5baf523cf73176170659902fe1335527
-> 
-> < Code snippet >
-> 
-> 102 static struct plat_serial8250_port serial_platform_data2[] = {
-> 103         {
-> 104                 .membase        = OMAP2_IO_ADDRESS(OMAP_UART3_BASE),
-> 105                 .mapbase        = OMAP_UART3_BASE,
-> 106                 .irq            = 74,
-> 107                 .flags          = UPF_BOOT_AUTOCONF,
-> 108                 .iotype         = UPIO_MEM,
-> 109                 .regshift       = 2,
-> 110                 .uartclk        = OMAP24XX_BASE_BAUD * 16,
-> 111         }, {
-> 112 #ifdef CONFIG_ARCH_OMAP4
-> 113                 .membase        = IO_ADDRESS(OMAP_UART4_BASE),
-> 114                 .mapbase        = OMAP_UART4_BASE,
-> 115                 .irq            = 70,
-> 116                 .flags          = UPF_BOOT_AUTOCONF,
-> 117                 .iotype         = UPIO_MEM,
-> 118                 .regshift       = 2,
-> 119                 .uartclk        = OMAP24XX_BASE_BAUD * 16,
-> 120         }, {
-> 121 #endif
-> 122                 .flags          = 0
-> 123         }
-> 124 };
-> 
-> This patch (ARM: OMAP4: Add UART4) was generated when there was single
-> structure holding all three UARTs and fourth UART was added accordingly.
-> And now it's been merged with serial.c which has UART's structures
-> separated already.
-> Below patch fixes the same but don't know what is the way to get merged in
-> such cases.
-> 
-> Tony,
-> Could you please review it?
+This patch export through sysfs two properties to configure
+maximum threshold for transmission and reception on each
+mcbsp instance. Also, it exports two helper functions to
+allow mcbsp users to read this values.
 
->From c8be9f1b5d4fe1dce06b6f33be33fe57f376ea7f Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Thu, 20 Aug 2009 18:33:43 +0530
-Subject: [PATCH] OMAP4: UART4 : Reworked patch to fix merge conflicts.
-
-This patch adds UART4 support on OMAP4430 development platform.
-The serial omap patches has split the UART platform
-data into separate structure hence needs rework.
-
-Without this patch omap_serial_init() would produce kernel crash
-on OMAP4430 platform while looping for the 4 th UART platform
-data.
-
-Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/mach-omap2/board-4430sdp.c |    2 +-
- arch/arm/mach-omap2/serial.c        |   27 ++++++++++++++++++++++++++-
- 2 files changed, 27 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/mcbsp.c             |    5 +
+ arch/arm/plat-omap/include/mach/mcbsp.h |   11 +++
+ arch/arm/plat-omap/mcbsp.c              |  122 +++++++++++++++++++++++++++++++
+ 3 files changed, 138 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index b0c7402..1b22307 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -39,7 +39,7 @@ static struct platform_device *sdp4430_devices[] __initdata = {
- };
- 
- static struct omap_uart_config sdp4430_uart_config __initdata = {
--	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2),
-+	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
- };
- 
- static struct omap_lcd_config sdp4430_lcd_config __initdata = {
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index a7421a5..b96cac4 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -112,7 +112,21 @@ static struct plat_serial8250_port serial_platform_data2[] = {
- 		.flags		= 0
- 	}
- };
--
-+#ifdef CONFIG_ARCH_OMAP4
-+static struct plat_serial8250_port serial_platform_data3[] = {
-+	{
-+		.membase	= IO_ADDRESS(OMAP_UART4_BASE),
-+		.mapbase	= OMAP_UART4_BASE,
-+		.irq		= 70,
-+		.flags		= UPF_BOOT_AUTOCONF,
-+		.iotype		= UPIO_MEM,
-+		.regshift	= 2,
-+		.uartclk	= OMAP24XX_BASE_BAUD * 16,
-+	}, {
-+		.flags		= 0
-+	}
-+};
-+#endif
- static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
- 					   int offset)
- {
-@@ -550,6 +564,17 @@ static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS] = {
- 			},
- 		},
+diff --git a/arch/arm/mach-omap2/mcbsp.c b/arch/arm/mach-omap2/mcbsp.c
+index 99b6e15..85d4fd0 100644
+--- a/arch/arm/mach-omap2/mcbsp.c
++++ b/arch/arm/mach-omap2/mcbsp.c
+@@ -128,6 +128,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP1_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP1_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
++		.buffer_size	= 0x7F,
  	},
-+#ifdef CONFIG_ARCH_OMAP4
-+	{
-+		.pdev = {
-+			.name			= "serial8250",
-+			.id			= PLAT8250_DEV_PLATFORM2,
-+			.dev			= {
-+				.platform_data	= serial_platform_data3,
-+			},
-+		},
-+	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP2_BASE,
+@@ -136,6 +137,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP2_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP2_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
++		.buffer_size	= 0x3FF,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP3_BASE,
+@@ -144,6 +146,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP3_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP3_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
++		.buffer_size	= 0x7F,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP4_BASE,
+@@ -152,6 +155,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP4_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP4_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
++		.buffer_size	= 0x7F,
+ 	},
+ 	{
+ 		.phys_base	= OMAP34XX_MCBSP5_BASE,
+@@ -160,6 +164,7 @@ static struct omap_mcbsp_platform_data omap34xx_mcbsp_pdata[] = {
+ 		.rx_irq		= INT_24XX_MCBSP5_IRQ_RX,
+ 		.tx_irq		= INT_24XX_MCBSP5_IRQ_TX,
+ 		.ops		= &omap2_mcbsp_ops,
++		.buffer_size	= 0x7F,
+ 	},
+ };
+ #define OMAP34XX_MCBSP_PDATA_SZ		ARRAY_SIZE(omap34xx_mcbsp_pdata)
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index 2544aa5..832330d 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -348,6 +348,9 @@ struct omap_mcbsp_platform_data {
+ 	u8 dma_rx_sync, dma_tx_sync;
+ 	u16 rx_irq, tx_irq;
+ 	struct omap_mcbsp_ops *ops;
++#ifdef CONFIG_ARCH_OMAP34XX
++	u16 buffer_size;
 +#endif
  };
  
- void __init omap_serial_init(void)
+ struct omap_mcbsp {
+@@ -381,6 +384,10 @@ struct omap_mcbsp {
+ 	struct omap_mcbsp_platform_data *pdata;
+ 	struct clk *iclk;
+ 	struct clk *fclk;
++#ifdef CONFIG_ARCH_OMAP34XX
++	u16 max_tx_thres;
++	u16 max_rx_thres;
++#endif
+ };
+ extern struct omap_mcbsp **mcbsp_ptr;
+ extern int omap_mcbsp_count;
+@@ -392,11 +399,15 @@ void omap_mcbsp_config(unsigned int id, const struct omap_mcbsp_reg_cfg * config
+ #ifdef CONFIG_ARCH_OMAP34XX
+ void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold);
+ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold);
++u16 omap_mcbsp_get_max_tx_threshold(unsigned int id);
++u16 omap_mcbsp_get_max_rx_threshold(unsigned int id);
+ #else
+ static inline void omap_mcbsp_set_tx_threshold(unsigned int id, u16 threshold)
+ { }
+ static inline void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+ { }
++static inline u16 omap_mcbsp_get_max_tx_threshold(unsigned int id) { return 0; }
++static inline u16 omap_mcbsp_get_max_rx_threshold(unsigned int id) { return 0; }
+ #endif
+ int omap_mcbsp_request(unsigned int id);
+ void omap_mcbsp_free(unsigned int id);
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 081f2ea..0bbc912 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -246,6 +246,42 @@ void omap_mcbsp_set_rx_threshold(unsigned int id, u16 threshold)
+ 	OMAP_MCBSP_WRITE(io_base, THRSH1, threshold);
+ }
+ EXPORT_SYMBOL(omap_mcbsp_set_rx_threshold);
++
++/*
++ * omap_mcbsp_get_max_tx_thres just return the current configured
++ * maximum threshold for transmission
++ */
++u16 omap_mcbsp_get_max_tx_threshold(unsigned int id)
++{
++	struct omap_mcbsp *mcbsp;
++
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++	mcbsp = id_to_mcbsp_ptr(id);
++
++	return mcbsp->max_tx_thres;
++}
++EXPORT_SYMBOL(omap_mcbsp_get_max_tx_threshold);
++
++/*
++ * omap_mcbsp_get_max_rx_thres just return the current configured
++ * maximum threshold for reception
++ */
++u16 omap_mcbsp_get_max_rx_threshold(unsigned int id)
++{
++	struct omap_mcbsp *mcbsp;
++
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++	mcbsp = id_to_mcbsp_ptr(id);
++
++	return mcbsp->max_rx_thres;
++}
++EXPORT_SYMBOL(omap_mcbsp_get_max_rx_threshold);
+ #endif
+ 
+ /*
+@@ -1005,6 +1041,86 @@ void omap_mcbsp_set_spi_mode(unsigned int id,
+ }
+ EXPORT_SYMBOL(omap_mcbsp_set_spi_mode);
+ 
++#ifdef CONFIG_ARCH_OMAP34XX
++#define max_thres(m)			(mcbsp->pdata->buffer_size)
++#define valid_threshold(m, val)		((val) <= max_thres(m))
++#define THRESHOLD_PROP_BUILDER(prop)					\
++static ssize_t prop##_show(struct device *dev,				\
++			struct device_attribute *attr, char *buf)	\
++{									\
++	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);		\
++									\
++	return sprintf(buf, "%u\n", mcbsp->prop);			\
++}									\
++									\
++static ssize_t prop##_store(struct device *dev,				\
++				struct device_attribute *attr,		\
++				const char *buf, size_t size)		\
++{									\
++	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);		\
++	unsigned long val;						\
++	int status;							\
++									\
++	status = strict_strtoul(buf, 0, &val);				\
++	if (status)							\
++		return status;						\
++									\
++	if (!valid_threshold(mcbsp, val))				\
++		return -EDOM;						\
++									\
++	mcbsp->prop = val;						\
++	return size;							\
++}									\
++									\
++static DEVICE_ATTR(prop, 0644, prop##_show, prop##_store);
++
++THRESHOLD_PROP_BUILDER(max_tx_thres);
++THRESHOLD_PROP_BUILDER(max_rx_thres);
++
++static const struct attribute *threshold_attrs[] = {
++	&dev_attr_max_tx_thres.attr,
++	&dev_attr_max_rx_thres.attr,
++	NULL,
++};
++
++static const struct attribute_group threshold_attr_group = {
++	.attrs = (struct attribute **)threshold_attrs,
++};
++
++static inline int __devinit omap_thres_add(struct device *dev)
++{
++	return sysfs_create_group(&dev->kobj, &threshold_attr_group);
++}
++
++static inline void __devexit omap_thres_remove(struct device *dev)
++{
++	sysfs_remove_group(&dev->kobj, &threshold_attr_group);
++}
++
++static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp)
++{
++	if (cpu_is_omap34xx()) {
++		mcbsp->max_tx_thres = max_thres(mcbsp);
++		mcbsp->max_rx_thres = max_thres(mcbsp);
++		if (omap_thres_add(mcbsp->dev))
++			dev_warn(mcbsp->dev,
++				"Unable to create threshold controls\n");
++	} else {
++		mcbsp->max_tx_thres = -EINVAL;
++		mcbsp->max_rx_thres = -EINVAL;
++	}
++}
++
++static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp)
++{
++	if (cpu_is_omap34xx())
++		omap_thres_remove(mcbsp->dev);
++}
++#else
++static inline void __devinit omap34xx_device_init(struct omap_mcbsp *mcbsp) {}
++static inline void __devexit omap34xx_device_exit(struct omap_mcbsp *mcbsp) {}
++#endif /* CONFIG_ARCH_OMAP34XX */
++
+ /*
+  * McBSP1 and McBSP3 are directly mapped on 1610 and 1510.
+  * 730 has only 2 McBSP, and both of them are MPU peripherals.
+@@ -1075,6 +1191,10 @@ static int __devinit omap_mcbsp_probe(struct platform_device *pdev)
+ 	mcbsp->dev = &pdev->dev;
+ 	mcbsp_ptr[id] = mcbsp;
+ 	platform_set_drvdata(pdev, mcbsp);
++
++	/* Initialize mcbsp properties for OMAP34XX if needed / applicable */
++	omap34xx_device_init(mcbsp);
++
+ 	return 0;
+ 
+ err_fclk:
+@@ -1098,6 +1218,8 @@ static int __devexit omap_mcbsp_remove(struct platform_device *pdev)
+ 				mcbsp->pdata->ops->free)
+ 			mcbsp->pdata->ops->free(mcbsp->id);
+ 
++		omap34xx_device_exit(mcbsp);
++
+ 		clk_disable(mcbsp->fclk);
+ 		clk_disable(mcbsp->iclk);
+ 		clk_put(mcbsp->fclk);
 -- 
-1.5.4.7
+1.6.2.GIT
 
-Regards,
-Santosh
