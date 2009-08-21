@@ -1,66 +1,57 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP4: Bypass the clock check.
-Date: Fri, 21 Aug 2009 17:59:09 +0200
-Message-ID: <87eir5ma42.fsf@deeprootsystems.com>
-References: <1250846095-6381-1-git-send-email-santosh.shilimkar@ti.com>
-	<1250846095-6381-2-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 0/2] ARM: OMAP4: Boot up crash 2.6.31-rc6
+Date: Fri, 21 Aug 2009 18:00:27 +0200
+Message-ID: <878whdma1w.fsf@deeprootsystems.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02BA29BE14@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:40807 "EHLO
+Received: from qw-out-2122.google.com ([74.125.92.27]:59202 "EHLO
 	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754651AbZHUP7P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Aug 2009 11:59:15 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so475409qwh.37
-        for <linux-omap@vger.kernel.org>; Fri, 21 Aug 2009 08:59:16 -0700 (PDT)
-In-Reply-To: <1250846095-6381-2-git-send-email-santosh.shilimkar@ti.com> (Santosh Shilimkar's message of "Fri\, 21 Aug 2009 14\:44\:55 +0530")
+	with ESMTP id S1754695AbZHUQAc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 21 Aug 2009 12:00:32 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so475971qwh.37
+        for <linux-omap@vger.kernel.org>; Fri, 21 Aug 2009 09:00:33 -0700 (PDT)
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BA29BE14@dbde02.ent.ti.com> (Santosh Shilimkar's message of "Fri\, 21 Aug 2009 14\:40\:59 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: rmk@arm.linux.org.uk, tony@atomide.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: Russell King <rmk@arm.linux.org.uk>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 
-Santosh Shilimkar <santosh.shilimkar@ti.com> writes:
+"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
 
-> Second reason of OMAP4 boot failure on 2.6.31.rc6, the UART
-> platform data is not getting registered to kernel.
-> Registration was failing because of clock check failure in
-> omap_serial_init().
-> Below patch fix the same.
+> Russell,
 >
-> OMAP4 clock framework patches are still getting discussed on mailing
-> list so till then we need this.
+> On the mainline 2.6.31-rc6, OMAP4 boot is crashing. Also serial code in the linux-next branch isn't merge correctly and needs reworked patches. 
 >
-> Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->
-> ---
->  arch/arm/mach-omap2/serial.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index e1be77b..e8d55f4 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -620,8 +620,10 @@ void __init omap_serial_init(void)
->  			uart->fck = NULL;
->  		}
+> Can you please see if they are ok? 
+
+After the fix I suggested on patch 2/2, I'm OK with these.
+
+Tony, should I pull these into my fixes queue, or do you want to merge
+them directly.  We will need them in your for-next branch to resolve
+the problems in linux-next.
+
+Kevin
+
+> This patch series addresses the OMAP4430 boot up crash issues on the latest 2.6.31-rc6 kernel release. They are generated against 2.6.31-rc6 
+> (commit= 6c30c53fd5ae6a99a23ad78e90c428d2c8ffb07f)
+> OMAP4 was broken after "[PATCH 00/14] OMAP PM fixes for .31-rc series" series got merged in.
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14527.html
 >  
-> -		if (!uart->ick || !uart->fck)
-> -			continue;
-
-I'd like to see another FIXME here to the effect that this can be removed
-when OMAP4 clock framework is in place.
-
-> +		if (!cpu_is_omap44xx()) {
-> +			if (!uart->ick || !uart->fck)
-> +				continue;
-> +		}
->  
->  		uart->num = i;
->  		p->private_data = uart;
-> -- 
-> 1.5.4.7
-
-Other than that,
-
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Two issues -
+> 1. NULL pointer dereference in omap_serial_init()-
+> static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS], has three instances populated and for OMAP4 macro OMAP_MAX_NR_PORTS=4. So at the fourth iteration, there is NULL pointer oops.
+> This was also related to the merge issue in the linux-next branch. 
+> http://lkml.org/lkml/2009/8/20/192
+>
+> 	[PATCH 1/2] ARM: OMAP4: Fix NULL pointer dereference crash.
+>
+> 2. Console is not working because the uart platform data is not getting registered to kernel. Registration fails because of clock check failure in omap_serial_init(). As you aware the clock framework is still under review on mailing list. Hence below patch is necessary to fix the same.
+>
+> 	[PATCH 2/2] ARM: OMAP4: Bypass the clock check.
+>
+> Thanks !!
+>
+> Regards,
+> Santosh
