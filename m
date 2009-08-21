@@ -1,47 +1,226 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 0/5] Cleanup DEBUG_LL infrastructure
-Date: Fri, 21 Aug 2009 12:55:09 -0500
-Message-ID: <1250877309-10220-1-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH 1/5] OMAP1/2/3/4: DEBUG_LL: cleanup
+Date: Fri, 21 Aug 2009 12:55:24 -0500
+Message-ID: <1250877324-10494-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42906 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37490 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932441AbZHURzp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Aug 2009 13:55:45 -0400
+	id S1753016AbZHUR4A (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Aug 2009 13:56:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-Patch1/2: clean up the DEBUG_LL infrastructure.
-Patch3: add DEBUG_LL support for Zoom2 board
-Patch4/5: some Zoom2 fixes
+This patch cleans up the DEBUG_LL infrastructure for omap boards.
 
-Vikram Pandita (5):
-  OMAP1/2/3/4: DEBUG_LL: cleanup
-  OMAP1/2/3/4: Adapt board files for cleand DEBUG_LL interface
-  OMAP: Zoom2: Add DEBUG_LL interface using external Quart
-  OMAP: Zoom2: Fix serial break
-  OMAP: Zoom2: Release Dbg board detect gpio
+The three stages of log printing infrastructure is using their own #defines
+The patch integrates the three stages to use the same variable.
 
- arch/arm/mach-omap2/board-2430sdp.c           |    4 +-
- arch/arm/mach-omap2/board-3430sdp.c           |    4 +-
- arch/arm/mach-omap2/board-4430sdp.c           |    4 +-
- arch/arm/mach-omap2/board-apollon.c           |    4 +-
- arch/arm/mach-omap2/board-generic.c           |    4 +-
- arch/arm/mach-omap2/board-h4.c                |    4 +-
- arch/arm/mach-omap2/board-ldp.c               |    4 +-
- arch/arm/mach-omap2/board-n8x0.c              |   12 +++---
- arch/arm/mach-omap2/board-omap3beagle.c       |    4 +-
- arch/arm/mach-omap2/board-omap3evm.c          |    4 +-
- arch/arm/mach-omap2/board-omap3pandora.c      |    4 +-
- arch/arm/mach-omap2/board-overo.c             |    4 +-
- arch/arm/mach-omap2/board-rx51.c              |    4 +-
- arch/arm/mach-omap2/board-zoom-debugboard.c   |   14 ++++---
- arch/arm/mach-omap2/board-zoom2.c             |   19 ++++++++-
- arch/arm/plat-omap/Kconfig                    |   50 +++++++++++++++++-------
+Three stages are:
+Stage 1: Prints - Uncompressing Linux......
+	File getting used: arch/arm/plat-omap/include/mach/uncompress.h
+Stage 2: Prints - <5>Linux version 2.6.31
+	File getting used: arch/arm/plat-omap/include/mach/debug-macro.S
+Stage 3: Kernel ttyS console takes over
+
+On enabling the DEBUG_LL menuconfig item
+[Kernel Hacking -> Kernel low-level debugging functions]
+
+the following entry gets auto selected
+[Systerm Type -> TI OMAP Implementations -> Low-level Debug console UART]
+
+This is the physical address of the UART getting used for the board.
+The physical address of debug uart is provided as a menuconfig option now.
+
+Issue with current system:
+(a) Zoom2 board has a detachable debug board having the TL16CP754 Quad uart chip.
+If the debug board is not attached, _NO_ debug uart is available.
+OMAP internal uarts are not used for traces on zoom2 board.
+Current framework does not account for boards that may not have a debug uart
+at all. The Stage 1 always accesses one of the uarts. Thats fixed now.
+
+(b) this patch does a cleanup of arch/arm/plat-omap/include/mach/debug-macro.S
+
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ arch/arm/plat-omap/Kconfig                    |   50 ++++++++++++++++++-------
  arch/arm/plat-omap/include/mach/common.h      |    7 +++
- arch/arm/plat-omap/include/mach/debug-macro.S |   52 +++++++++----------------
- arch/arm/plat-omap/include/mach/io.h          |    6 +++
- arch/arm/plat-omap/include/mach/uncompress.h  |   17 ++++----
- 20 files changed, 132 insertions(+), 93 deletions(-)
+ arch/arm/plat-omap/include/mach/debug-macro.S |   40 ++++----------------
+ arch/arm/plat-omap/include/mach/uncompress.h  |   12 +----
+ 4 files changed, 54 insertions(+), 55 deletions(-)
+
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index ab9f9ef..2fefb64 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -162,21 +162,43 @@ config OMAP_DM_TIMER
+ 	help
+ 	 Select this option if you want to use OMAP Dual-Mode timers.
+ 
+-choice
+-	prompt "Low-level debug console UART"
+-	depends on ARCH_OMAP
+-	default OMAP_LL_DEBUG_UART1
+-
+-config OMAP_LL_DEBUG_UART1
+-	bool "UART1"
+-
+-config OMAP_LL_DEBUG_UART2
+-	bool "UART2"
+ 
+-config OMAP_LL_DEBUG_UART3
+-	bool "UART3"
+-
+-endchoice
++config OMAP_DEBUG_LL_UART_PHY_ADDR
++	hex "Low-level debug console UART Physical Address"
++	depends on ARCH_OMAP && DEBUG_LL
++
++	default "0xfffb0800" if ARCH_OMAP1 && (MACH_OMAP_PALMTT || MACH_SX1)
++	default "0xfffb0000" if ARCH_OMAP1
++	default "0x4806e000" if ARCH_OMAP2 && MACH_NOKIA_N8X0
++	default "0x4806a000" if ARCH_OMAP2
++	default "0x49020000" if ARCH_OMAP3 && (MACH_NOKIA_RX51 || MACH_OMAP_BEAGLE)
++	default "0x49020000" if ARCH_OMAP3 && (MACH_OMAP3_PANDORA || MACH_OMAP_LDP || MACH_OVERO)
++	default "0x10000000" if ARCH_OMAP3 && MACH_OMAP_ZOOM2
++	default "0x4806a000" if ARCH_OMAP3
++	default "0x4806a000" if ARCH_OMAP4
++	help
++	  Specify the Physical address of Low level debug UART
++	  Specify 0x0 in case you do not want DEBUG_LL functions to iterfere with your board uarts
++
++	  OMAP1:
++	  -------------------
++	  UART1 -> 0xfffb0000 (default)
++	  UART2 -> 0xfffb0800
++	  UART3 -> 0xfffb9800 (sx1, palmtt)
++
++	  OMAP2:
++	  -------------------
++	  UART1 -> 0x4806a000 (default)
++	  UART2 -> 0x4806c000
++	  UART3 -> 0x4806e000 (N8X0)
++
++	  OMAP3/4:
++	  -------------------
++	  UART1		-> 0x4806a000 (default: except following)
++	  UART2		-> 0x4806c000
++	  UART3		-> 0x49020000 (rx51, beagle, pendora, ldp, overo)
++	  UART4		-> 0x4806e000
++	  UART_EXT 	-> 0x10000000 (zoom2: Debug uart is on external debug board)
+ 
+ config OMAP_SERIAL_WAKE
+ 	bool "Enable wake-up events for serial ports"
+diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
+index fdeab42..f29d31f 100644
+--- a/arch/arm/plat-omap/include/mach/common.h
++++ b/arch/arm/plat-omap/include/mach/common.h
+@@ -68,4 +68,11 @@ void omap2_set_globals_sdrc(struct omap_globals *);
+ void omap2_set_globals_control(struct omap_globals *);
+ void omap2_set_globals_prcm(struct omap_globals *);
+ 
++/* In case Low Level debug is not defined
++ * make the low level uart address as zero
++ */
++#if !defined(CONFIG_DEBUG_LL)
++#define CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR 0
++#endif
++
+ #endif /* __ARCH_ARM_MACH_OMAP_COMMON_H */
+diff --git a/arch/arm/plat-omap/include/mach/debug-macro.S b/arch/arm/plat-omap/include/mach/debug-macro.S
+index ac24050..f546d6c 100644
+--- a/arch/arm/plat-omap/include/mach/debug-macro.S
++++ b/arch/arm/plat-omap/include/mach/debug-macro.S
+@@ -10,43 +10,19 @@
+  * published by the Free Software Foundation.
+  *
+ */
++#include "io.h"
+ 
+ 		.macro	addruart,rx
+ 		mrc	p15, 0, \rx, c1, c0
+ 		tst	\rx, #1			@ MMU enabled?
+ #ifdef CONFIG_ARCH_OMAP1
+-		moveq	\rx, #0xff000000	@ physical base address
+-		movne	\rx, #0xfe000000	@ virtual base
+-		orr	\rx, \rx, #0x00fb0000
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART3
+-		orr	\rx, \rx, #0x00009000	@ UART 3
+-#endif
+-#if defined(CONFIG_OMAP_LL_DEBUG_UART2) || defined(CONFIG_OMAP_LL_DEBUG_UART3)
+-		orr	\rx, \rx, #0x00000800	@ UART 2 & 3
+-#endif
+-
+-#elif  CONFIG_ARCH_OMAP2
+-		moveq	\rx, #0x48000000	@ physical base address
+-		movne	\rx, #0xd8000000	@ virtual base
+-		orr	\rx, \rx, #0x0006a000
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART2
+-		add	\rx, \rx, #0x00002000	@ UART 2
+-#endif
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART3
+-		add	\rx, \rx, #0x00004000	@ UART 3
+-#endif
+-
+-#elif defined(CONFIG_ARCH_OMAP3) || defined(CONFIG_ARCH_OMAP4)
+-		moveq	\rx, #0x48000000	@ physical base address
+-		movne	\rx, #0xd8000000	@ virtual base
+-		orr	\rx, \rx, #0x0006a000
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART2
+-		add	\rx, \rx, #0x00002000	@ UART 2
+-#endif
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART3
+-		add	\rx, \rx, #0x00fb0000	@ UART 3
+-		add	\rx, \rx, #0x00006000
+-#endif
++					/* omap1 */
++		ldr	\rx, =CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR @ physical base address
++		subne	\rx, #CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR, #OMAP1_IO_OFFSET @ virtual base
++#else
++					/* omap2/omap3/omap4 */
++		ldr	\rx, =CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR @ physical base address
++		orrne	\rx, \rx, #OMAP2_IO_OFFSET	 @ virtual base
+ #endif
+ 		.endm
+ 
+diff --git a/arch/arm/plat-omap/include/mach/uncompress.h b/arch/arm/plat-omap/include/mach/uncompress.h
+index 0814c5f..0e21eb3 100644
+--- a/arch/arm/plat-omap/include/mach/uncompress.h
++++ b/arch/arm/plat-omap/include/mach/uncompress.h
+@@ -38,14 +38,8 @@ static void putc(int c)
+ 	return;
+ #endif
+ 
+-#ifdef CONFIG_ARCH_OMAP
+-#ifdef	CONFIG_OMAP_LL_DEBUG_UART3
+-	uart = (volatile u8 *)(OMAP_UART3_BASE);
+-#elif defined(CONFIG_OMAP_LL_DEBUG_UART2)
+-	uart = (volatile u8 *)(OMAP_UART2_BASE);
+-#else
+-	uart = (volatile u8 *)(OMAP_UART1_BASE);
+-#endif
++#if defined(CONFIG_DEBUG_LL)
++	uart = (volatile u8 *)(CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR);
+ 
+ #ifdef CONFIG_ARCH_OMAP1
+ 	/* Determine which serial port to use */
+@@ -62,7 +56,6 @@ static void putc(int c)
+ 		return;
+ 	} while (0);
+ #endif /* CONFIG_ARCH_OMAP1 */
+-#endif
+ 
+ 	/*
+ 	 * Now, xmit each character
+@@ -70,6 +63,7 @@ static void putc(int c)
+ 	while (!(uart[UART_LSR << shift] & UART_LSR_THRE))
+ 		barrier();
+ 	uart[UART_TX << shift] = c;
++#endif /* CONFIG_DEBUG_LL */
+ }
+ 
+ static inline void flush(void)
+-- 
+1.6.3.3.334.g916e1
 
