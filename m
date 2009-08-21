@@ -1,277 +1,180 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 2/5] OMAP1/2/3/4: Adapt board files for cleand DEBUG_LL interface
-Date: Fri, 21 Aug 2009 13:09:07 -0500
-Message-ID: <1250878147-10551-1-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH 3/5] OMAP: Zoom2: Add DEBUG_LL interface using external Quart
+Date: Fri, 21 Aug 2009 13:10:51 -0500
+Message-ID: <1250878251-10593-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45269 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43953 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932336AbZHUSJm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 21 Aug 2009 14:09:42 -0400
+	id S1751412AbZHUSLU (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 21 Aug 2009 14:11:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: konkers@android.com, Vikram Pandita <vikram.pandita@ti.com>
 
-This patch assigns the physical address of debug uart as defined
-in menucoinfig item CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR to phys_io
+This patch adds DEBUG_LL interface for Zoom2 board.
+The low level debug uart now points corrctly to External Quad uart
+controller on detachable debug board.
 
-The virtual address for io_pg_offset is calculated as per static
-mapping
+The Quad uart is available over GPMC chip select with physical address
+0x10000000.
 
-CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR is a hex value and for boards
-like Zoom2, the phy address can be zero, in case debug board
-is not attached.
+This physical address has been mapped to virtual address 0xFB000000
+as per static mapping.
+
+Also the register accesses to Quad uart have a requirement of shift=1
+based on the h/w mapping of the registers
+
+This patch is adapted from a version by Erik Gilling:
+http://android.git.kernel.org/?p=kernel/omap.git;
+a=commit;h=e9d72efdd88877d2d6ea74a08983ace0dcc771d3
 
 Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Erik Gilling <konkers@android.com>
 ---
- arch/arm/mach-omap2/board-2430sdp.c      |    4 ++--
- arch/arm/mach-omap2/board-3430sdp.c      |    4 ++--
- arch/arm/mach-omap2/board-4430sdp.c      |    4 ++--
- arch/arm/mach-omap2/board-apollon.c      |    4 ++--
- arch/arm/mach-omap2/board-generic.c      |    4 ++--
- arch/arm/mach-omap2/board-h4.c           |    4 ++--
- arch/arm/mach-omap2/board-ldp.c          |    4 ++--
- arch/arm/mach-omap2/board-n8x0.c         |   12 ++++++------
- arch/arm/mach-omap2/board-omap3beagle.c  |    4 ++--
- arch/arm/mach-omap2/board-omap3evm.c     |    4 ++--
- arch/arm/mach-omap2/board-omap3pandora.c |    4 ++--
- arch/arm/mach-omap2/board-overo.c        |    4 ++--
- arch/arm/mach-omap2/board-rx51.c         |    4 ++--
- arch/arm/mach-omap2/board-zoom2.c        |    4 ++--
- 14 files changed, 32 insertions(+), 32 deletions(-)
+ arch/arm/mach-omap2/board-zoom-debugboard.c   |    5 +++--
+ arch/arm/mach-omap2/board-zoom2.c             |   15 +++++++++++++++
+ arch/arm/plat-omap/include/mach/debug-macro.S |   14 ++++++++++++--
+ arch/arm/plat-omap/include/mach/io.h          |    6 ++++++
+ arch/arm/plat-omap/include/mach/uncompress.h  |    7 +++++++
+ 5 files changed, 43 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index c693668..9ed2f2c 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -225,8 +225,8 @@ static void __init omap_2430sdp_map_io(void)
+diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+index f546063..f8b0726 100644
+--- a/arch/arm/mach-omap2/board-zoom-debugboard.c
++++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
+@@ -82,9 +82,10 @@ static inline void __init zoom2_init_smsc911x(void)
  
- MACHINE_START(OMAP_2430SDP, "OMAP2430 sdp2430 board")
- 	/* Maintainer: Syed Khasim - Texas Instruments Inc */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_2430sdp_map_io,
- 	.init_irq	= omap_2430sdp_init_irq,
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index c71417f..f085eee 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -505,8 +505,8 @@ static void __init omap_3430sdp_map_io(void)
- 
- MACHINE_START(OMAP_3430SDP, "OMAP3430 3430SDP board")
- 	/* Maintainer: Syed Khasim - Texas Instruments Inc */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io	= CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst	= ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_3430sdp_map_io,
- 	.init_irq	= omap_3430sdp_init_irq,
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 646079f..4c1a166 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -83,8 +83,8 @@ static void __init omap_4430sdp_map_io(void)
- 
- MACHINE_START(OMAP_4430SDP, "OMAP4430 4430SDP board")
- 	/* Maintainer: Santosh Shilimkar - Texas Instruments Inc */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_4430sdp_map_io,
- 	.init_irq	= omap_4430sdp_init_irq,
-diff --git a/arch/arm/mach-omap2/board-apollon.c b/arch/arm/mach-omap2/board-apollon.c
-index e2947fd..61da659 100644
---- a/arch/arm/mach-omap2/board-apollon.c
-+++ b/arch/arm/mach-omap2/board-apollon.c
-@@ -336,8 +336,8 @@ static void __init omap_apollon_map_io(void)
- 
- MACHINE_START(OMAP_APOLLON, "OMAP24xx Apollon")
- 	/* Maintainer: Kyungmin Park <kyungmin.park@samsung.com> */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_apollon_map_io,
- 	.init_irq	= omap_apollon_init_irq,
-diff --git a/arch/arm/mach-omap2/board-generic.c b/arch/arm/mach-omap2/board-generic.c
-index fc9eccb..6d39eaa 100644
---- a/arch/arm/mach-omap2/board-generic.c
-+++ b/arch/arm/mach-omap2/board-generic.c
-@@ -59,8 +59,8 @@ static void __init omap_generic_map_io(void)
- 
- MACHINE_START(OMAP_GENERIC, "Generic OMAP24xx")
- 	/* Maintainer: Paul Mundt <paul.mundt@nokia.com> */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR - OMAP1_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_generic_map_io,
- 	.init_irq	= omap_generic_init_irq,
-diff --git a/arch/arm/mach-omap2/board-h4.c b/arch/arm/mach-omap2/board-h4.c
-index 7eda321..4ce760f 100644
---- a/arch/arm/mach-omap2/board-h4.c
-+++ b/arch/arm/mach-omap2/board-h4.c
-@@ -379,8 +379,8 @@ static void __init omap_h4_map_io(void)
- 
- MACHINE_START(OMAP_H4, "OMAP2420 H4 board")
- 	/* Maintainer: Paul Mundt <paul.mundt@nokia.com> */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_h4_map_io,
- 	.init_irq	= omap_h4_init_irq,
-diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
-index 4a4b300..5f06434 100644
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@ -398,8 +398,8 @@ static void __init omap_ldp_map_io(void)
- }
- 
- MACHINE_START(OMAP_LDP, "OMAP LDP board")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_ldp_map_io,
- 	.init_irq	= omap_ldp_init_irq,
-diff --git a/arch/arm/mach-omap2/board-n8x0.c b/arch/arm/mach-omap2/board-n8x0.c
-index af6fcee..464b432 100644
---- a/arch/arm/mach-omap2/board-n8x0.c
-+++ b/arch/arm/mach-omap2/board-n8x0.c
-@@ -125,8 +125,8 @@ static void __init n8x0_init_machine(void)
- }
- 
- MACHINE_START(NOKIA_N800, "Nokia N800")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= n8x0_map_io,
- 	.init_irq	= n8x0_init_irq,
-@@ -135,8 +135,8 @@ MACHINE_START(NOKIA_N800, "Nokia N800")
- MACHINE_END
- 
- MACHINE_START(NOKIA_N810, "Nokia N810")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= n8x0_map_io,
- 	.init_irq	= n8x0_init_irq,
-@@ -145,8 +145,8 @@ MACHINE_START(NOKIA_N810, "Nokia N810")
- MACHINE_END
- 
- MACHINE_START(NOKIA_N810_WIMAX, "Nokia N810 WiMAX")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= n8x0_map_io,
- 	.init_irq	= n8x0_init_irq,
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 07aee90..4d30948 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -428,8 +428,8 @@ static void __init omap3_beagle_map_io(void)
- 
- MACHINE_START(OMAP3_BEAGLE, "OMAP3 Beagle Board")
- 	/* Maintainer: Syed Mohammed Khasim - http://beagleboard.org */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap3_beagle_map_io,
- 	.init_irq	= omap3_beagle_init_irq,
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b3a080f..9157e3c 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -319,8 +319,8 @@ static void __init omap3_evm_map_io(void)
- 
- MACHINE_START(OMAP3EVM, "OMAP3 EVM")
- 	/* Maintainer: Syed Mohammed Khasim - Texas Instruments */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap3_evm_map_io,
- 	.init_irq	= omap3_evm_init_irq,
-diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-index 1991f19..05d1994 100644
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@ -412,8 +412,8 @@ static void __init omap3pandora_map_io(void)
- }
- 
- MACHINE_START(OMAP3_PANDORA, "Pandora Handheld Console")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap3pandora_map_io,
- 	.init_irq	= omap3pandora_init_irq,
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index a9d7c2e..4057a1b 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -454,8 +454,8 @@ static void __init overo_map_io(void)
- }
- 
- MACHINE_START(OVERO, "Gumstix Overo")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= overo_map_io,
- 	.init_irq	= overo_init_irq,
-diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
-index 8a3dc61..4b97fe8 100644
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@ -88,8 +88,8 @@ static void __init rx51_map_io(void)
- 
- MACHINE_START(NOKIA_RX51, "Nokia RX-51 board")
- 	/* Maintainer: Lauri Leukkunen <lauri.leukkunen@nokia.com> */
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR + OMAP2_IO_OFFSET) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= rx51_map_io,
- 	.init_irq	= rx51_init_irq,
+ static struct plat_serial8250_port serial_platform_data[] = {
+ 	{
+-		.mapbase	= 0x10000000,
++		.membase	= IOMEM(ZOOM2_EXT_QUART_VIRT),
++		.mapbase	= ZOOM2_EXT_QUART_PHYS,
+ 		.irq		= OMAP_GPIO_IRQ(102),
+-		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
++		.flags		= UPF_BOOT_AUTOCONF|UPF_SHARE_IRQ,
+ 		.irqflags	= IRQF_SHARED | IRQF_TRIGGER_RISING,
+ 		.iotype		= UPIO_MEM,
+ 		.regshift	= 1,
 diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 4d295d5..58baee3 100644
+index 58baee3..fc27b07 100644
 --- a/arch/arm/mach-omap2/board-zoom2.c
 +++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -280,8 +280,8 @@ static void __init omap_zoom2_map_io(void)
+@@ -16,9 +16,11 @@
+ #include <linux/gpio.h>
+ #include <linux/i2c/twl4030.h>
+ #include <linux/regulator/machine.h>
++#include <linux/io.h>
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
++#include <asm/mach/map.h>
+ 
+ #include <mach/common.h>
+ #include <mach/usb.h>
+@@ -273,9 +275,22 @@ static void __init omap_zoom2_init(void)
+ 	usb_musb_init();
  }
  
- MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
--	.phys_io	= 0x48000000,
--	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
-+	.phys_io        = CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR,
-+	.io_pg_offst    = ((ZOOM2_EXT_QUART_VIRT) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
- 	.map_io		= omap_zoom2_map_io,
- 	.init_irq	= omap_zoom2_init_irq,
++static struct map_desc zoom2_io_desc[] __initdata = {
++	{
++		.virtual        = ZOOM2_EXT_QUART_VIRT,
++		.pfn            = __phys_to_pfn(ZOOM2_EXT_QUART_PHYS),
++		.length         = ZOOM2_EXT_QUART_SIZE,
++		.type           = MT_DEVICE
++	}
++};
++
+ static void __init omap_zoom2_map_io(void)
+ {
+ 	omap2_set_globals_343x();
++
++	/* Map external quad UART virt to phy mapping */
++	iotable_init(zoom2_io_desc, ARRAY_SIZE(zoom2_io_desc));
++
+ 	omap2_map_common_io();
+ }
+ 
+diff --git a/arch/arm/plat-omap/include/mach/debug-macro.S b/arch/arm/plat-omap/include/mach/debug-macro.S
+index f546d6c..a97f2fb 100644
+--- a/arch/arm/plat-omap/include/mach/debug-macro.S
++++ b/arch/arm/plat-omap/include/mach/debug-macro.S
+@@ -12,6 +12,14 @@
+ */
+ #include "io.h"
+ 
++#if (CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR == 0x10000000)
++#define REGSHIFT 1
++#define UART_VIRT_TO_PHY_OFFSET ZOOM2_EXT_QUART_PHY_TO_VIRT_OFF
++#else
++#define REGSHIFT 2
++#define UART_VIRT_TO_PHY_OFFSET OMAP2_IO_OFFSET
++#endif
++
+ 		.macro	addruart,rx
+ 		mrc	p15, 0, \rx, c1, c0
+ 		tst	\rx, #1			@ MMU enabled?
+@@ -22,7 +30,7 @@
+ #else
+ 					/* omap2/omap3/omap4 */
+ 		ldr	\rx, =CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR @ physical base address
+-		orrne	\rx, \rx, #OMAP2_IO_OFFSET	 @ virtual base
++		orrne	\rx, \rx, #UART_VIRT_TO_PHY_OFFSET	 @ virtual base
+ #endif
+ 		.endm
+ 
+@@ -31,13 +39,15 @@
+ 		.endm
+ 
+ 		.macro	busyuart,rd,rx
+-1001:		ldrb	\rd, [\rx, #(0x5 << 2)]	@ OMAP-1510 and friends
++1001:		ldrb	\rd, [\rx, #(0x5 << REGSHIFT)] @ OMAP-1510 and friends
+ 		and	\rd, \rd, #0x60
+ 		teq	\rd, #0x60
++#if (CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR != 0x10000000)
+ 		beq	1002f
+ 		ldrb	\rd, [\rx, #(0x5 << 0)]	@ OMAP-730 only
+ 		and	\rd, \rd, #0x60
+ 		teq	\rd, #0x60
++#endif
+ 		bne	1001b
+ 1002:
+ 		.endm
+diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
+index 8d32df3..97702e6 100644
+--- a/arch/arm/plat-omap/include/mach/io.h
++++ b/arch/arm/plat-omap/include/mach/io.h
+@@ -169,6 +169,12 @@
+ #define DSP_MMU_34XX_VIRT	0xe2000000
+ #define DSP_MMU_34XX_SIZE	SZ_4K
+ 
++/* Map External Quad UART for Zoom2 board */
++#define ZOOM2_EXT_QUART_PHYS		0x10000000 /* PHY address if fixed */
++#define ZOOM2_EXT_QUART_PHY_TO_VIRT_OFF	0xeb000000
++#define ZOOM2_EXT_QUART_VIRT		0xfb000000
++#define ZOOM2_EXT_QUART_SIZE		SZ_16
++
+ /*
+  * ----------------------------------------------------------------------------
+  * Omap4 specific IO mapping
+diff --git a/arch/arm/plat-omap/include/mach/uncompress.h b/arch/arm/plat-omap/include/mach/uncompress.h
+index 0e21eb3..959195a 100644
+--- a/arch/arm/plat-omap/include/mach/uncompress.h
++++ b/arch/arm/plat-omap/include/mach/uncompress.h
+@@ -41,6 +41,13 @@ static void putc(int c)
+ #if defined(CONFIG_DEBUG_LL)
+ 	uart = (volatile u8 *)(CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR);
+ 
++#if (CONFIG_OMAP_DEBUG_LL_UART_PHY_ADDR == 0x10000000)
++	/* External UART has a shift=1 requirement
++	 * Internal OMAP UARTs have shift=2 requirement
++	 */
++	shift = 1;
++#endif
++
+ #ifdef CONFIG_ARCH_OMAP1
+ 	/* Determine which serial port to use */
+ 	do {
 -- 
 1.6.3.3.334.g916e1
 
