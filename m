@@ -1,54 +1,38 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH 2/2 v2] ARM: OMAP4: Bypass the clock check.
-Date: Sat, 22 Aug 2009 13:30:12 +0530
-Message-ID: <1250928012-5233-2-git-send-email-santosh.shilimkar@ti.com>
-References: <1250928012-5233-1-git-send-email-santosh.shilimkar@ti.com>
+From: Graeme Gregory <dp@xora.org.uk>
+Subject: Re: [PATCH 0/5] Cleanup DEBUG_LL infrastructure
+Date: Sat, 22 Aug 2009 13:35:54 +0100
+Message-ID: <4A8FE62A.8020801@xora.org.uk>
+References: <1250877309-10220-1-git-send-email-vikram.pandita@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51962 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754301AbZHVIAu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 22 Aug 2009 04:00:50 -0400
-In-Reply-To: <1250928012-5233-1-git-send-email-santosh.shilimkar@ti.com>
+Received: from ey-out-2122.google.com ([74.125.78.27]:4298 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbZHVMfz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 22 Aug 2009 08:35:55 -0400
+Received: by ey-out-2122.google.com with SMTP id 22so340072eye.37
+        for <linux-omap@vger.kernel.org>; Sat, 22 Aug 2009 05:35:56 -0700 (PDT)
+In-Reply-To: <1250877309-10220-1-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, khilman@deeprootsystems.com, rmk@arm.linux.org.uk
-Cc: linux-arm-kernel@lists.infradead.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Syed Rafiuddin <rafiuddin.syed@ti.com>
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-Second reason of OMAP4 boot failure on 2.6.31.rc6, the UART
-platform data is not getting registered to kernel.
-Registration was failing because of clock check failure in
-omap_serial_init().
-Below patch fix the same.
+Vikram Pandita wrote:
+> Patch1/2: clean up the DEBUG_LL infrastructure.
+> Patch3: add DEBUG_LL support for Zoom2 board
+> Patch4/5: some Zoom2 fixes
+>
+> Vikram Pandita (5):
+>   OMAP1/2/3/4: DEBUG_LL: cleanup
+>   OMAP1/2/3/4: Adapt board files for cleand DEBUG_LL interface
+>   OMAP: Zoom2: Add DEBUG_LL interface using external Quart
+>   OMAP: Zoom2: Fix serial break
+>   OMAP: Zoom2: Release Dbg board detect gpio
+>
+>  
+Thanks for this patch series, makes my zoom2 bootable again.
 
-OMAP4 clock framework patches are still getting discussed on mailing
-list so till then we need this.
-
-Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/serial.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index e1be77b..6bbdfe0 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -620,8 +620,11 @@ void __init omap_serial_init(void)
- 			uart->fck = NULL;
- 		}
- 
--		if (!uart->ick || !uart->fck)
--			continue;
-+		/* FIXME: Remove this once the clkdev is ready */
-+		if (!cpu_is_omap44xx()) {
-+			if (!uart->ick || !uart->fck)
-+				continue;
-+		}
- 
- 		uart->num = i;
- 		p->private_data = uart;
--- 
-1.5.4.7
+Graeme
 
