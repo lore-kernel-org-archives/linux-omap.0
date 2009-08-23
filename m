@@ -1,40 +1,31 @@
-From: Ramesh Gupta Guntha <grgupta77@gmail.com>
-Subject: Shopping
-Date: Mon, 24 Aug 2009 00:20:34 +0800
-Message-ID: <3a2dabf50908230920q4215ec7m27d3f7203c4f7740@mail.gmail.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add support
+	for DMA channel self linking on OMAP1510
+Date: Sun, 23 Aug 2009 18:03:59 +0100
+Message-ID: <20090823170359.GA3488@sirena.org.uk>
+References: <200908101050.02530.jkrzyszt@tis.icnet.pl> <200908231756.13016.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:47505 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933919AbZHWQUd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 12:20:33 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so1066383qwh.37
-        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 09:20:34 -0700 (PDT)
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:49878 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934021AbZHWREj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 13:04:39 -0400
+Content-Disposition: inline
+In-Reply-To: <200908231756.13016.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: kavithasrao@gmail.com, kavithasr@ti.com, khilman@deeprootsystems.com, pkiran@carazoo.com, kishor.gaganan@kotak.com, krishna@finalysis.net, krishna.kishore@sasken.com, lambsk@tx.rr.com
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Hi.
-I am sorry to say that the impact of your work, this is the company
-with your friends by e-mail the information to do publicity, we know
-that this is the improper way, please understand ...! However, our
-goal is very friendly, and absolutely no deception, in order to
-long-term viability and credibility,It can offer you all kinds of
-products that variety of brand-name merchandise can be found here
-(Nike=E3=80=81Gucci=E3=80=81Puma=E3=80=81Bape=E3=80=81 A &amp; F=E3=80=81=
-D &amp;
-G=E3=80=81Adidas=E3=80=81Chanel=E3=80=81Fendi=E3=80=81shoe=E3=80=81wrap=
-=E3=80=81POLO=E3=80=81clothes=E3=80=81the the sun
-mirror=E3=80=81microphone=E3=80=81Watches ......).
-Its website is http://www.ccoshop. com Here there are many special
-commodities=E3=80=81quality assurance.
-I hope you Happy shopping!You can take some time to have a check
-,there must be something interesting you 'd like to purchase .
-Sincere greetings:Happiness and joy with your
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Sun, Aug 23, 2009 at 05:56:12PM +0200, Janusz Krzysztofik wrote:
+
+> I know it's not very fair to change the patch after others that depend on it
+> have already been applied, but I hope there will be no problems with accepting
+> the way I have reimplemented it. In any case, I'll appreciate any comments or
+> suggestions.
+
+It's not that it's not fair, at this point it's not possible - please
+make any changes you feel are required against current ASoC.  The patch
+has been applied for a little while now and is buried quite deep in the
+already published history.
