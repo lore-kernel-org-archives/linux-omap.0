@@ -1,75 +1,40 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add support for DMA channel self linking on OMAP1510
-Date: Sun, 23 Aug 2009 17:56:12 +0200
-Message-ID: <200908231756.13016.jkrzyszt@tis.icnet.pl>
-References: <200908101050.02530.jkrzyszt@tis.icnet.pl>
+From: Ramesh Gupta Guntha <grgupta77@gmail.com>
+Subject: Shopping
+Date: Mon, 24 Aug 2009 00:20:34 +0800
+Message-ID: <3a2dabf50908230920q4215ec7m27d3f7203c4f7740@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:44644 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933774AbZHWP7J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 23 Aug 2009 11:59:09 -0400
-In-Reply-To: <200908101050.02530.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
+Received: from qw-out-2122.google.com ([74.125.92.25]:47505 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933919AbZHWQUd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 12:20:33 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so1066383qwh.37
+        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 09:20:34 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: kavithasrao@gmail.com, kavithasr@ti.com, khilman@deeprootsystems.com, pkiran@carazoo.com, kishor.gaganan@kotak.com, krishna@finalysis.net, krishna.kishore@sasken.com, lambsk@tx.rr.com
 
-Implement DMA channel self linking on OMAP1510 using AUTO_INIT and REPEAT
-flags of the DMA CCR register.
-
-Created against linux-2.6.31-rc5.
-
-Tested on Amstrad Delta.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-
----
-I'm sorry, but the original patch appears to have an issue. To be honest, I
-started with the one I submit here as v2, got pretty good results, then
-modified it in order to better fit into existing framework, and did not test
-it well enough after the change.
-
-The problem reveals itself when an application keeps a stream open while
-cycling through playing sounds. I don't know if that particular application
-may just behave wrong, however, I know that setting AUTO_INIT and REPEAT
-flags once after opening a stream and unsetting them once before closing it
-gives stable, correct results, while redoing it for every single piece of
-sound without closing the stream in between, like the current patch does,
-results in inaccurate transfer startups and random application hangups.
-
-I know it's not very fair to change the patch after others that depend on it
-have already been applied, but I hope there will be no problems with accepting
-the way I have reimplemented it. In any case, I'll appreciate any comments or
-suggestions.
-
---- linux-2.6.31-rc5/arch/arm/plat-omap/dma.c.orig	2009-08-23 02:24:46.000000000 +0200
-+++ linux-2.6.31-rc5/arch/arm/plat-omap/dma.c	2009-08-23 14:53:48.000000000 +0200
-@@ -1131,6 +1131,11 @@ int omap_dma_running(void)
- void omap_dma_link_lch(int lch_head, int lch_queue)
- {
- 	if (omap_dma_in_1510_mode()) {
-+		if (lch_head == lch_queue) {
-+			dma_write(dma_read(CCR(lch_head)) | (3 << 8),
-+								CCR(lch_head));
-+			return;
-+		}
- 		printk(KERN_ERR "DMA linking is not supported in 1510 mode\n");
- 		BUG();
- 		return;
-@@ -1153,6 +1158,11 @@ EXPORT_SYMBOL(omap_dma_link_lch);
- void omap_dma_unlink_lch(int lch_head, int lch_queue)
- {
- 	if (omap_dma_in_1510_mode()) {
-+		if (lch_head == lch_queue) {
-+			dma_write(dma_read(CCR(lch_head)) & ~(3 << 8),
-+								CCR(lch_head));
-+			return;
-+		}
- 		printk(KERN_ERR "DMA linking is not supported in 1510 mode\n");
- 		BUG();
- 		return;
+Hi.
+I am sorry to say that the impact of your work, this is the company
+with your friends by e-mail the information to do publicity, we know
+that this is the improper way, please understand ...! However, our
+goal is very friendly, and absolutely no deception, in order to
+long-term viability and credibility,It can offer you all kinds of
+products that variety of brand-name merchandise can be found here
+(Nike=E3=80=81Gucci=E3=80=81Puma=E3=80=81Bape=E3=80=81 A &amp; F=E3=80=81=
+D &amp;
+G=E3=80=81Adidas=E3=80=81Chanel=E3=80=81Fendi=E3=80=81shoe=E3=80=81wrap=
+=E3=80=81POLO=E3=80=81clothes=E3=80=81the the sun
+mirror=E3=80=81microphone=E3=80=81Watches ......).
+Its website is http://www.ccoshop. com Here there are many special
+commodities=E3=80=81quality assurance.
+I hope you Happy shopping!You can take some time to have a check
+,there must be something interesting you 'd like to purchase .
+Sincere greetings:Happiness and joy with your
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
