@@ -1,48 +1,55 @@
-From: Tar Gz <bsdraisefromhell@gmail.com>
-Subject: Re: Can't mount proc filesystem
-Date: Sun, 23 Aug 2009 11:37:37 -0700
-Message-ID: <d9ca78710908231137uf28715bm9fb41cf4a6266fce@mail.gmail.com>
-References: <d9ca78710908231126n5082c0e6tc86acd9448f5e2c9@mail.gmail.com>
-	 <4A918B79.5030607@mlbassoc.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [alsa-devel] [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add support for DMA channel self linking on OMAP1510
+Date: Sun, 23 Aug 2009 20:38:05 +0200
+Message-ID: <200908232038.05593.jkrzyszt@tis.icnet.pl>
+References: <200908101050.02530.jkrzyszt@tis.icnet.pl> <200908231945.40187.jkrzyszt@tis.icnet.pl> <20090823180543.GA6167@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f183.google.com ([209.85.211.183]:58279 "EHLO
-	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933613AbZHWShg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 14:37:36 -0400
-Received: by ywh13 with SMTP id 13so2156356ywh.15
-        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 11:37:37 -0700 (PDT)
-In-Reply-To: <4A918B79.5030607@mlbassoc.com>
+Received: from d1.icnet.pl ([212.160.220.21]:34823 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933475AbZHWSkM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 23 Aug 2009 14:40:12 -0400
+In-Reply-To: <20090823180543.GA6167@opensource.wolfsonmicro.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jarkko Nikula <jhnikula@gmail.com>
 
-because my kernel booting and enter the busybox manually
+Sunday 23 August 2009 20:05:43 Mark Brown wrote:
+> If none of your patches have been applied
 
-how to enter to shell like bash?
+Mark,
 
-On 8/23/09, Gary Thomas <gary@mlbassoc.com> wrote:
-> Tar Gz wrote:
->> hi all
->>
->> i try to develop linux 2.6.26 kernel with omap patch but when i'm
->> booting, i'm enter busybox and running /etc/init.d/rcS
->>
->> but failed to mount proc filesystem...i have enabled kernel /rpoc
->> filesystems support but it's still can't mounting..any idea?
->
-> You should not be running /etc/init.d/rcS manually.  The log
-> you sent previously shows it has already run.
->
-> What makes you think that /proc wasn't mounted?
-> Why are you running /etc/init.d/rcS by hand?
->
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
->
+I did not say that. You have applied patches 2/3 [1] and 3/3 [2] from the 
+series.
+
+> then what are the other 
+> patches that depend on this? Nobody reported any issues in testing with 
+> the other OMAP patches.
+
+Dependency on patch 1/3 is not compile time, but run time, and OMAP1510 
+specific, that's probably why nobody has reported any issues.
+
+> I don't really mind which tree these go via but I rather suspect that
+> ALSA will be better given all the other changes and I also suspect that
+> you'll need to regenerate your changes against a current tree due to
+> those changes.
+
+arch/arm/plat-omap/dma.c has not been touched since 2009-05-28 in yours [3] 
+and since 2009-06-23 in Takashi's tree, so my patch, whether original or v2, 
+should still be up to date. That may change if it is to be pushed via OMAP 
+tree.
+
+Sorry for all that noise.
+
+Thanks,
+Janusz
+
+[1]http://git.kernel.org/?p=linux/kernel/git/broonie/sound-2.6.git;a=commit;h=64844a6ac8ddd586cb832fea7cf2e93e5e7e03f4
+[2]http://git.kernel.org/?p=linux/kernel/git/broonie/sound-2.6.git;a=commit;h=471e3dec3abe2d41e8c742046353fcb01bc2459e
+[3]http://git.kernel.org/?p=linux/kernel/git/broonie/sound-2.6.git;a=commit;h=44169075e6eaa87bab6a296209d8d0610879b394
+[4]http://git.kernel.org/?p=linux/kernel/git/tiwai/sound-2.6.git;a=commit;h=aecedb94b366d6fb5e2a17ca18a5dc78e593198e
