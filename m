@@ -1,108 +1,155 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 5/7] OMAP: PM debug: make powerdomains use PM-debug counters
-Date: Mon, 24 Aug 2009 00:32:24 +0300
-Message-ID: <1251063146-9255-6-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 7/7] OMAP: PM: Added suspend target state control to debugfs for OMAP3
+Date: Mon, 24 Aug 2009 00:32:26 +0300
+Message-ID: <1251063146-9255-8-git-send-email-khilman@deeprootsystems.com>
 References: <1251063146-9255-1-git-send-email-khilman@deeprootsystems.com>
  <1251063146-9255-2-git-send-email-khilman@deeprootsystems.com>
  <1251063146-9255-3-git-send-email-khilman@deeprootsystems.com>
  <1251063146-9255-4-git-send-email-khilman@deeprootsystems.com>
  <1251063146-9255-5-git-send-email-khilman@deeprootsystems.com>
+ <1251063146-9255-6-git-send-email-khilman@deeprootsystems.com>
+ <1251063146-9255-7-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ew0-f207.google.com ([209.85.219.207]:35606 "EHLO
 	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934139AbZHWVcm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 17:32:42 -0400
+	with ESMTP id S934144AbZHWVcr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 17:32:47 -0400
 Received: by mail-ew0-f207.google.com with SMTP id 3so1908394ewy.18
-        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 14:32:44 -0700 (PDT)
-In-Reply-To: <1251063146-9255-5-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 14:32:49 -0700 (PDT)
+In-Reply-To: <1251063146-9255-7-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>
 
-From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+From: Tero Kristo <tero.kristo@nokia.com>
 
-Make the powerdomain code call the new hook for updating the time.
-Also implement the updated pwrdm_for_each.
+Target state can be read / programmed via files under:
+  [debugfs]/pm_debug/[pwrdm]/suspend
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/powerdomain.c |   17 +++++++++++------
- 1 files changed, 11 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c |   31 +++++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/pm.h       |    3 +++
+ arch/arm/mach-omap2/pm34xx.c   |   24 ++++++++++++++++++++++++
+ 3 files changed, 56 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index a2d9871..5a6cef3 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -35,6 +35,8 @@
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 982aa67..1b4c160 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -24,6 +24,7 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/io.h>
++#include <linux/module.h>
+ 
+ #include <mach/clock.h>
+ #include <mach/board.h>
+@@ -484,10 +485,28 @@ int pm_dbg_regset_init(int reg_set)
+ 	return 0;
+ }
+ 
+-static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
++static int pwrdm_suspend_get(void *data, u64 *val)
++{
++	*val = omap3_pm_get_suspend_state((struct powerdomain *)data);
++
++	if (*val >= 0)
++		return 0;
++	return *val;
++}
++
++static int pwrdm_suspend_set(void *data, u64 val)
++{
++	return omap3_pm_set_suspend_state((struct powerdomain *)data, (int)val);
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(pwrdm_suspend_fops, pwrdm_suspend_get,
++			pwrdm_suspend_set, "%llu\n");
++
++static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
+ {
+ 	int i;
+ 	s64 t;
++	struct dentry *d;
+ 
+ 	t = sched_clock();
+ 
+@@ -496,6 +515,14 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 
+ 	pwrdm->timer = t;
+ 
++	if (strncmp(pwrdm->name, "dpll", 4) == 0)
++		return 0;
++
++	d = debugfs_create_dir(pwrdm->name, (struct dentry *)dir);
++
++	(void) debugfs_create_file("suspend", S_IRUGO|S_IWUSR, d,
++			(void *)pwrdm, &pwrdm_suspend_fops);
++
+ 	return 0;
+ }
+ 
+@@ -524,7 +551,7 @@ static int __init pm_dbg_init(void)
+ 	(void) debugfs_create_file("time", S_IRUGO,
+ 		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
+ 
+-	pwrdm_for_each(pwrdms_setup, NULL);
++	pwrdm_for_each(pwrdms_setup, (void *)d);
+ 
+ 	pm_dbg_dir = debugfs_create_dir("registers", d);
+ 	if (IS_ERR(pm_dbg_dir))
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 8fa8567..8400f57 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -13,6 +13,9 @@
+ 
  #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
  
-+#include "pm.h"
++extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
++extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
 +
- enum {
- 	PWRDM_STATE_NOW = 0,
- 	PWRDM_STATE_PREV,
-@@ -134,19 +136,21 @@ static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
- 	if (state != prev)
- 		pwrdm->state_counter[state]++;
+ #ifdef CONFIG_PM_DEBUG
+ extern void omap2_pm_dump(int mode, int resume, unsigned int us);
+ extern int omap2_pm_debug;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 331dfca..26f2aca 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -664,6 +664,30 @@ static void __init prcm_setup_regs(void)
+ 	omap3_d2d_idle();
+ }
  
-+	pm_dbg_update_time(pwrdm, prev);
++int omap3_pm_get_suspend_state(struct powerdomain *pwrdm)
++{
++	struct power_state *pwrst;
 +
- 	pwrdm->state = state;
- 
- 	return 0;
- }
- 
--static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm)
-+static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm, void *unused)
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		if (pwrst->pwrdm == pwrdm)
++			return pwrst->next_state;
++	}
++	return -EINVAL;
++}
++
++int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
++{
++	struct power_state *pwrst;
++
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		if (pwrst->pwrdm == pwrdm) {
++			pwrst->next_state = state;
++			return 0;
++		}
++	}
++	return -EINVAL;
++}
++
+ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
  {
- 	pwrdm_clear_all_prev_pwrst(pwrdm);
- 	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
- 	return 0;
- }
- 
--static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm)
-+static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm, void *unused)
- {
- 	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
- 	return 0;
-@@ -282,7 +286,8 @@ struct powerdomain *pwrdm_lookup(const char *name)
-  * anything else to indicate failure; or -EINVAL if the function
-  * pointer is null.
-  */
--int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
-+int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
-+			void *user)
- {
- 	struct powerdomain *temp_pwrdm;
- 	unsigned long flags;
-@@ -293,7 +298,7 @@ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm))
- 
- 	read_lock_irqsave(&pwrdm_rwlock, flags);
- 	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
--		ret = (*fn)(temp_pwrdm);
-+		ret = (*fn)(temp_pwrdm, user);
- 		if (ret)
- 			break;
- 	}
-@@ -1198,13 +1203,13 @@ int pwrdm_clk_state_switch(struct clk *clk)
- 
- int pwrdm_pre_transition(void)
- {
--	pwrdm_for_each(_pwrdm_pre_transition_cb);
-+	pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
- 	return 0;
- }
- 
- int pwrdm_post_transition(void)
- {
--	pwrdm_for_each(_pwrdm_post_transition_cb);
-+	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
- 	return 0;
- }
- 
+ 	struct power_state *pwrst;
 -- 
 1.6.4
 
