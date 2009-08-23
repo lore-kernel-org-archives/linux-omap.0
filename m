@@ -1,205 +1,355 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 1/7] OMAP: PM counter infrastructure.
-Date: Mon, 24 Aug 2009 00:32:20 +0300
-Message-ID: <1251063146-9255-2-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 6/7] OMAP: PM debug: Add PRCM register dump support
+Date: Mon, 24 Aug 2009 00:32:25 +0300
+Message-ID: <1251063146-9255-7-git-send-email-khilman@deeprootsystems.com>
 References: <1251063146-9255-1-git-send-email-khilman@deeprootsystems.com>
+ <1251063146-9255-2-git-send-email-khilman@deeprootsystems.com>
+ <1251063146-9255-3-git-send-email-khilman@deeprootsystems.com>
+ <1251063146-9255-4-git-send-email-khilman@deeprootsystems.com>
+ <1251063146-9255-5-git-send-email-khilman@deeprootsystems.com>
+ <1251063146-9255-6-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-ew0-f207.google.com ([209.85.219.207]:35606 "EHLO
 	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755982AbZHWVca (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 17:32:30 -0400
+	with ESMTP id S934141AbZHWVcp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 17:32:45 -0400
 Received: by mail-ew0-f207.google.com with SMTP id 3so1908394ewy.18
-        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 14:32:32 -0700 (PDT)
-In-Reply-To: <1251063146-9255-1-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 14:32:46 -0700 (PDT)
+In-Reply-To: <1251063146-9255-6-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>
 
-From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+From: Tero Kristo <tero.kristo@nokia.com>
 
-This patch provides the infrastructure to count how many times a
-powerdomain entered a given power state (on, inactive, retention,
-off). A number of functions are provided which will be called by the
-chip specific powerdomain and clockdomain code whenever a transition
-might have happened.
+Allows dumping out current register contents from the debug filesystem, and
+also allows user to add arbitrary register save points into code. Current
+register contents are available under debugfs at:
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+[debugfs]/pm_debug/registers/current
+
+To add a save point, do following:
+
+>From module init (or somewhere before the save call, called only once):
+  pm_dbg_init_regset(n); // n=1..4, allocates memory for dump area #n
+
+>From arbitrary code location:
+  pm_dbg_regset_save(n); // n=1..4, saves registers to dump area #n
+
+After this, the register dump can be seen under [debugfs]/pm_debug/registers/n
+
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/clockdomain.c             |    2 +
- arch/arm/mach-omap2/powerdomain.c             |  101 ++++++++++++++++++++++++-
- arch/arm/plat-omap/include/mach/powerdomain.h |    7 ++
- 3 files changed, 108 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c |  226 +++++++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/pm.h       |    4 +
+ 2 files changed, 229 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
-index 0e7d501..26912a9 100644
---- a/arch/arm/mach-omap2/clockdomain.c
-+++ b/arch/arm/mach-omap2/clockdomain.c
-@@ -484,6 +484,8 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
- 			    v << __ffs(clkdm->clktrctrl_mask),
- 			    clkdm->pwrdm.ptr->prcm_offs,
- 			    CM_CLKSTCTRL);
-+
-+	pwrdm_clkdm_state_switch(clkdm);
- }
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 7383e85..982aa67 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -52,6 +52,8 @@ int omap2_pm_debug;
+ 	regs[reg_count].name = #reg; \
+ 	regs[reg_count++].val = __raw_readl(OMAP2_IO_ADDRESS(0x480fe000 + (off)))
  
- /**
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 983f1cb..a2d9871 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -35,6 +35,11 @@
- #include <mach/powerdomain.h>
- #include <mach/clockdomain.h>
- 
-+enum {
-+	PWRDM_STATE_NOW = 0,
-+	PWRDM_STATE_PREV,
-+};
++static int __init pm_dbg_init(void);
 +
- /* pwrdm_list contains all registered struct powerdomains */
- static LIST_HEAD(pwrdm_list);
- 
-@@ -102,6 +107,63 @@ static struct powerdomain *_pwrdm_deps_lookup(struct powerdomain *pwrdm,
- 	return pd->pwrdm;
- }
- 
-+static int _pwrdm_state_switch(struct powerdomain *pwrdm, int flag)
-+{
-+
-+	int prev;
-+	int state;
-+
-+	if (pwrdm == NULL)
-+		return -EINVAL;
-+
-+	state = pwrdm_read_pwrst(pwrdm);
-+
-+	switch (flag) {
-+	case PWRDM_STATE_NOW:
-+		prev = pwrdm->state;
-+		break;
-+	case PWRDM_STATE_PREV:
-+		prev = pwrdm_read_prev_pwrst(pwrdm);
-+		if (pwrdm->state != prev)
-+			pwrdm->state_counter[prev]++;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (state != prev)
-+		pwrdm->state_counter[state]++;
-+
-+	pwrdm->state = state;
-+
-+	return 0;
-+}
-+
-+static int _pwrdm_pre_transition_cb(struct powerdomain *pwrdm)
-+{
-+	pwrdm_clear_all_prev_pwrst(pwrdm);
-+	_pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+	return 0;
-+}
-+
-+static int _pwrdm_post_transition_cb(struct powerdomain *pwrdm)
-+{
-+	_pwrdm_state_switch(pwrdm, PWRDM_STATE_PREV);
-+	return 0;
-+}
-+
-+static __init void _pwrdm_setup(struct powerdomain *pwrdm)
-+{
-+	int i;
-+
-+	for (i = 0; i < 4; i++)
-+		pwrdm->state_counter[i] = 0;
-+
-+	pwrdm_wait_transition(pwrdm);
-+	pwrdm->state = pwrdm_read_pwrst(pwrdm);
-+	pwrdm->state_counter[pwrdm->state] = 1;
-+
-+}
- 
- /* Public functions */
- 
-@@ -117,9 +179,12 @@ void pwrdm_init(struct powerdomain **pwrdm_list)
+ void omap2_pm_dump(int mode, int resume, unsigned int us)
  {
- 	struct powerdomain **p = NULL;
+ 	struct reg {
+@@ -157,6 +159,8 @@ void omap2_pm_dump(int mode, int resume, unsigned int us)
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
  
--	if (pwrdm_list)
--		for (p = pwrdm_list; *p; p++)
-+	if (pwrdm_list) {
-+		for (p = pwrdm_list; *p; p++) {
- 			pwrdm_register(*p);
-+			_pwrdm_setup(*p);
-+		}
-+	}
- }
- 
- /**
-@@ -1110,4 +1175,36 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm)
- 	return 0;
- }
- 
-+int pwrdm_state_switch(struct powerdomain *pwrdm)
-+{
-+	return _pwrdm_state_switch(pwrdm, PWRDM_STATE_NOW);
-+}
++static void pm_dbg_regset_store(u32 *ptr);
 +
-+int pwrdm_clkdm_state_switch(struct clockdomain *clkdm)
-+{
-+	if (clkdm != NULL && clkdm->pwrdm.ptr != NULL) {
-+		pwrdm_wait_transition(clkdm->pwrdm.ptr);
-+		return pwrdm_state_switch(clkdm->pwrdm.ptr);
-+	}
-+
-+	return -EINVAL;
-+}
-+int pwrdm_clk_state_switch(struct clk *clk)
-+{
-+	if (clk != NULL && clk->clkdm != NULL)
-+		return pwrdm_clkdm_state_switch(clk->clkdm);
-+	return -EINVAL;
-+}
-+
-+int pwrdm_pre_transition(void)
-+{
-+	pwrdm_for_each(_pwrdm_pre_transition_cb);
-+	return 0;
-+}
-+
-+int pwrdm_post_transition(void)
-+{
-+	pwrdm_for_each(_pwrdm_post_transition_cb);
-+	return 0;
-+}
+ struct dentry *pm_dbg_dir;
  
-diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
-index 69c9e67..52663fc 100644
---- a/arch/arm/plat-omap/include/mach/powerdomain.h
-+++ b/arch/arm/plat-omap/include/mach/powerdomain.h
-@@ -117,6 +117,8 @@ struct powerdomain {
- 
- 	struct list_head node;
- 
-+	int state;
-+	unsigned state_counter[4];
+ static int pm_dbg_init_done;
+@@ -166,6 +170,160 @@ enum {
+ 	DEBUG_FILE_TIMERS,
  };
  
- 
-@@ -164,4 +166,9 @@ bool pwrdm_has_hdwr_sar(struct powerdomain *pwrdm);
- 
- int pwrdm_wait_transition(struct powerdomain *pwrdm);
- 
-+int pwrdm_state_switch(struct powerdomain *pwrdm);
-+int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
-+int pwrdm_pre_transition(void);
-+int pwrdm_post_transition(void);
++struct pm_module_def {
++	char name[8]; /* Name of the module */
++	short type; /* CM or PRM */
++	unsigned short offset;
++	int low; /* First register address on this module */
++	int high; /* Last register address on this module */
++};
 +
- #endif
++#define MOD_CM 0
++#define MOD_PRM 1
++
++static const struct pm_module_def *pm_dbg_reg_modules;
++static const struct pm_module_def omap3_pm_reg_modules[] = {
++	{ "IVA2", MOD_CM, OMAP3430_IVA2_MOD, 0, 0x4c },
++	{ "OCP", MOD_CM, OCP_MOD, 0, 0x10 },
++	{ "MPU", MOD_CM, MPU_MOD, 4, 0x4c },
++	{ "CORE", MOD_CM, CORE_MOD, 0, 0x4c },
++	{ "SGX", MOD_CM, OMAP3430ES2_SGX_MOD, 0, 0x4c },
++	{ "WKUP", MOD_CM, WKUP_MOD, 0, 0x40 },
++	{ "CCR", MOD_CM, PLL_MOD, 0, 0x70 },
++	{ "DSS", MOD_CM, OMAP3430_DSS_MOD, 0, 0x4c },
++	{ "CAM", MOD_CM, OMAP3430_CAM_MOD, 0, 0x4c },
++	{ "PER", MOD_CM, OMAP3430_PER_MOD, 0, 0x4c },
++	{ "EMU", MOD_CM, OMAP3430_EMU_MOD, 0x40, 0x54 },
++	{ "NEON", MOD_CM, OMAP3430_NEON_MOD, 0x20, 0x48 },
++	{ "USB", MOD_CM, OMAP3430ES2_USBHOST_MOD, 0, 0x4c },
++
++	{ "IVA2", MOD_PRM, OMAP3430_IVA2_MOD, 0x50, 0xfc },
++	{ "OCP", MOD_PRM, OCP_MOD, 4, 0x1c },
++	{ "MPU", MOD_PRM, MPU_MOD, 0x58, 0xe8 },
++	{ "CORE", MOD_PRM, CORE_MOD, 0x58, 0xf8 },
++	{ "SGX", MOD_PRM, OMAP3430ES2_SGX_MOD, 0x58, 0xe8 },
++	{ "WKUP", MOD_PRM, WKUP_MOD, 0xa0, 0xb0 },
++	{ "CCR", MOD_PRM, PLL_MOD, 0x40, 0x70 },
++	{ "DSS", MOD_PRM, OMAP3430_DSS_MOD, 0x58, 0xe8 },
++	{ "CAM", MOD_PRM, OMAP3430_CAM_MOD, 0x58, 0xe8 },
++	{ "PER", MOD_PRM, OMAP3430_PER_MOD, 0x58, 0xe8 },
++	{ "EMU", MOD_PRM, OMAP3430_EMU_MOD, 0x58, 0xe4 },
++	{ "GLBL", MOD_PRM, OMAP3430_GR_MOD, 0x20, 0xe4 },
++	{ "NEON", MOD_PRM, OMAP3430_NEON_MOD, 0x58, 0xe8 },
++	{ "USB", MOD_PRM, OMAP3430ES2_USBHOST_MOD, 0x58, 0xe8 },
++	{ "", 0, 0, 0, 0 },
++};
++
++#define PM_DBG_MAX_REG_SETS 4
++
++static void *pm_dbg_reg_set[PM_DBG_MAX_REG_SETS];
++
++static int pm_dbg_get_regset_size(void)
++{
++	static int regset_size;
++
++	if (regset_size == 0) {
++		int i = 0;
++
++		while (pm_dbg_reg_modules[i].name[0] != 0) {
++			regset_size += pm_dbg_reg_modules[i].high +
++				4 - pm_dbg_reg_modules[i].low;
++			i++;
++		}
++	}
++	return regset_size;
++}
++
++static int pm_dbg_show_regs(struct seq_file *s, void *unused)
++{
++	int i, j;
++	unsigned long val;
++	int reg_set = (int)s->private;
++	u32 *ptr;
++	void *store = NULL;
++	int regs;
++	int linefeed;
++
++	if (reg_set == 0) {
++		store = kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
++		ptr = store;
++		pm_dbg_regset_store(ptr);
++	} else {
++		ptr = pm_dbg_reg_set[reg_set - 1];
++	}
++
++	i = 0;
++
++	while (pm_dbg_reg_modules[i].name[0] != 0) {
++		regs = 0;
++		linefeed = 0;
++		if (pm_dbg_reg_modules[i].type == MOD_CM)
++			seq_printf(s, "MOD: CM_%s (%08x)\n",
++				pm_dbg_reg_modules[i].name,
++				(u32)(OMAP3430_CM_BASE +
++				pm_dbg_reg_modules[i].offset));
++		else
++			seq_printf(s, "MOD: PRM_%s (%08x)\n",
++				pm_dbg_reg_modules[i].name,
++				(u32)(OMAP3430_PRM_BASE +
++				pm_dbg_reg_modules[i].offset));
++
++		for (j = pm_dbg_reg_modules[i].low;
++			j <= pm_dbg_reg_modules[i].high; j += 4) {
++			val = *(ptr++);
++			if (val != 0) {
++				regs++;
++				if (linefeed) {
++					seq_printf(s, "\n");
++					linefeed = 0;
++				}
++				seq_printf(s, "  %02x => %08lx", j, val);
++				if (regs % 4 == 0)
++					linefeed = 1;
++			}
++		}
++		seq_printf(s, "\n");
++		i++;
++	}
++
++	if (store != NULL)
++		kfree(store);
++
++	return 0;
++}
++
++static void pm_dbg_regset_store(u32 *ptr)
++{
++	int i, j;
++	u32 val;
++
++	i = 0;
++
++	while (pm_dbg_reg_modules[i].name[0] != 0) {
++		for (j = pm_dbg_reg_modules[i].low;
++			j <= pm_dbg_reg_modules[i].high; j += 4) {
++			if (pm_dbg_reg_modules[i].type == MOD_CM)
++				val = cm_read_mod_reg(
++					pm_dbg_reg_modules[i].offset, j);
++			else
++				val = prm_read_mod_reg(
++					pm_dbg_reg_modules[i].offset, j);
++			*(ptr++) = val;
++		}
++		i++;
++	}
++}
++
++int pm_dbg_regset_save(int reg_set)
++{
++	if (pm_dbg_reg_set[reg_set-1] == NULL)
++		return -EINVAL;
++
++	pm_dbg_regset_store(pm_dbg_reg_set[reg_set-1]);
++
++	return 0;
++}
++
+ static const char pwrdm_state_names[][4] = {
+ 	"OFF",
+ 	"RET",
+@@ -280,6 +438,11 @@ static int pm_dbg_open(struct inode *inode, struct file *file)
+ 	};
+ }
+ 
++static int pm_dbg_reg_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, pm_dbg_show_regs, inode->i_private);
++}
++
+ static const struct file_operations debug_fops = {
+ 	.open           = pm_dbg_open,
+ 	.read           = seq_read,
+@@ -287,6 +450,40 @@ static const struct file_operations debug_fops = {
+ 	.release        = single_release,
+ };
+ 
++static const struct file_operations debug_reg_fops = {
++	.open           = pm_dbg_reg_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
++int pm_dbg_regset_init(int reg_set)
++{
++	char name[2];
++
++	if (!pm_dbg_init_done)
++		pm_dbg_init();
++
++	if (reg_set < 1 || reg_set > PM_DBG_MAX_REG_SETS ||
++		pm_dbg_reg_set[reg_set-1] != NULL)
++		return -EINVAL;
++
++	pm_dbg_reg_set[reg_set-1] =
++		kmalloc(pm_dbg_get_regset_size(), GFP_KERNEL);
++
++	if (pm_dbg_reg_set[reg_set-1] == NULL)
++		return -ENOMEM;
++
++	if (pm_dbg_dir != NULL) {
++		sprintf(name, "%d", reg_set);
++
++		(void) debugfs_create_file(name, S_IRUGO,
++			pm_dbg_dir, (void *)reg_set, &debug_reg_fops);
++	}
++
++	return 0;
++}
++
+ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ {
+ 	int i;
+@@ -304,8 +501,20 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+ 
+ static int __init pm_dbg_init(void)
+ {
++	int i;
+ 	struct dentry *d;
++	char name[2];
+ 
++	if (pm_dbg_init_done)
++		return 0;
++
++	if (cpu_is_omap34xx())
++		pm_dbg_reg_modules = omap3_pm_reg_modules;
++	else {
++		printk(KERN_ERR "%s: only OMAP3 supported\n", __func__);
++		return -ENODEV;
++	}
++		
+ 	d = debugfs_create_dir("pm_debug", NULL);
+ 	if (IS_ERR(d))
+ 		return PTR_ERR(d);
+@@ -317,11 +526,26 @@ static int __init pm_dbg_init(void)
+ 
+ 	pwrdm_for_each(pwrdms_setup, NULL);
+ 
++	pm_dbg_dir = debugfs_create_dir("registers", d);
++	if (IS_ERR(pm_dbg_dir))
++		return PTR_ERR(pm_dbg_dir);
++
++	(void) debugfs_create_file("current", S_IRUGO,
++		pm_dbg_dir, (void *)0, &debug_reg_fops);
++
++	for (i = 0; i < PM_DBG_MAX_REG_SETS; i++)
++		if (pm_dbg_reg_set[i] != NULL) {
++			sprintf(name, "%d", i+1);
++			(void) debugfs_create_file(name, S_IRUGO,
++				pm_dbg_dir, (void *)(i+1), &debug_reg_fops);
++
++		}
++
+ 	pm_dbg_init_done = 1;
+ 
+ 	return 0;
+ }
+-late_initcall(pm_dbg_init);
++arch_initcall(pm_dbg_init);
+ 
+ #else
+ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev) {}
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 4589db1..8fa8567 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -17,10 +17,14 @@
+ extern void omap2_pm_dump(int mode, int resume, unsigned int us);
+ extern int omap2_pm_debug;
+ extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
++extern int pm_dbg_regset_save(int reg_set);
++extern int pm_dbg_regset_init(int reg_set);
+ #else
+ #define omap2_pm_dump(mode, resume, us)		do {} while (0);
+ #define omap2_pm_debug				0
+ #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
++#define pm_dbg_regset_save(reg_set) do {} while (0);
++#define pm_dbg_regset_init(reg_set) do {} while (0);
+ #endif /* CONFIG_PM_DEBUG */
+ 
+ extern void omap24xx_idle_loop_suspend(void);
 -- 
 1.6.4
 
