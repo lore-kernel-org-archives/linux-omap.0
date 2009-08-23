@@ -1,154 +1,75 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
-Date: Sun, 23 Aug 2009 20:32:25 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F996E313@dbde02.ent.ti.com>
-References: <1251034495-10107-1-git-send-email-santosh.shilimkar@ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add support for DMA channel self linking on OMAP1510
+Date: Sun, 23 Aug 2009 17:56:12 +0200
+Message-ID: <200908231756.13016.jkrzyszt@tis.icnet.pl>
+References: <200908101050.02530.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58189 "EHLO arroyo.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:44644 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933613AbZHWPCi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 11:02:38 -0400
-In-Reply-To: <1251034495-10107-1-git-send-email-santosh.shilimkar@ti.com>
-Content-Language: en-US
+	id S933774AbZHWP7J (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 23 Aug 2009 11:59:09 -0400
+In-Reply-To: <200908101050.02530.jkrzyszt@tis.icnet.pl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Jarkko Nikula <jhnikula@gmail.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Santosh
+Implement DMA channel self linking on OMAP1510 using AUTO_INIT and REPEAT
+flags of the DMA CCR register.
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->Shilimkar, Santosh
->Sent: Sunday, August 23, 2009 8:35 AM
->To: tony@atomide.com; khilman@deeprootsystems.com
->Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh
->Subject: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
+Created against linux-2.6.31-rc5.
 
-That sure is a big cleanup patch and would take patience to complete!!
+Tested on Amstrad Delta.
 
->
->This patch splits OMAP2_IO_ADDRESS to OMAP2_L3_IO_ADDRESS and
->OMAP2_L4_IO_ADDRESS to reclaim more IO space.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-There is no reclaim of space with this patch. Its done with [2/5]
-
-This patch only changes the macro definitions but the offsets are still the same as in old code.
-So the description needs to be more explicit as to why you introduced L3/L4 macro split.
-
-Another suggestion to minimize the so intrusive code change: As per the wiki approach: [1]
-Lot of code will remain un-touched if you re-used the existing IO_OFFSET macro as follows --- 
 ---
-#define L3_IO_OFFSET		0x90000000
-#define __L3_IO_ADDRESS(pa)	((pa) + L3_IO_OFFSET)/* Works for L3 */
-#define __OMAP2_L3_IO_ADDRESS(pa)	((pa) + L3_IO_OFFSET)/* Works for L3 */
-#define l3_io_v2p(va)		((va) - L3_IO_OFFSET)/* Works for L3 */
- 
-#define IO_OFFSET		0xb2000000
-#define __IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L4  */
-#define __OMAP2_IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L4 */
-#define io_v2p(va)		((va) - IO_OFFSET)/* Works for L4*/
----
+I'm sorry, but the original patch appears to have an issue. To be honest, I
+started with the one I submit here as v2, got pretty good results, then
+modified it in order to better fit into existing framework, and did not test
+it well enough after the change.
 
-This way you don't have to introduce new L4 macro at all => much lesser code impact.
+The problem reveals itself when an application keeps a stream open while
+cycling through playing sounds. I don't know if that particular application
+may just behave wrong, however, I know that setting AUTO_INIT and REPEAT
+flags once after opening a stream and unsetting them once before closing it
+gives stable, correct results, while redoing it for every single piece of
+sound without closing the stream in between, like the current patch does,
+results in inaccurate transfer startups and random application hangups.
 
-[1] http://wiki.davincidsp.com/index.php/HOWTO_Support_512MB_SDRAM
+I know it's not very fair to change the patch after others that depend on it
+have already been applied, but I hope there will be no problems with accepting
+the way I have reimplemented it. In any case, I'll appreciate any comments or
+suggestions.
 
->
->The omap_read*() and omap_write*() functions will work only over
->L4 address space. Current omap kernel stack uses these functions
->only to access registers over L4 io address space
-
-Since the patch touches all IP blocks in OMAP, 
-what if put a check in omap_read*/omap_write* if anyone passes an L3 address and return a KERN_ERR
-
-Earlier code it was possible to pass L3 as well as L4 addresses to this function.
-An Error log will surely go a long way in debug.
-
->
->Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
->---
-> arch/arm/plat-omap/io.c                       |   12 +++---
-> 23 files changed, 117 insertions(+), 105 deletions(-)
->
->diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
->index 8d32df3..c475be7 100644
->--- a/arch/arm/plat-omap/include/mach/io.h
->+++ b/arch/arm/plat-omap/include/mach/io.h
->@@ -63,9 +63,11 @@
-> #define OMAP1_IO_OFFSET		0x01000000	/* Virtual IO = 0xfefb0000 */
-> #define OMAP1_IO_ADDRESS(pa)	IOMEM((pa) - OMAP1_IO_OFFSET)
->
->-#define OMAP2_IO_OFFSET		0x90000000
->-#define OMAP2_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_IO_OFFSET) /* L3 and L4 */
->+#define OMAP2_L3_IO_OFFSET	0x90000000
->+#define OMAP2_L3_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L3_IO_OFFSET) /* L3 */
->
->+#define OMAP2_L4_IO_OFFSET	0x90000000
->+#define OMAP2_L4_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L4_IO_OFFSET) /* L4 */
-
-
-> /*
->  * ----------------------------------------------------------------------------
->  * Omap1 specific IO mapping
->
->diff --git a/arch/arm/plat-omap/io.c b/arch/arm/plat-omap/io.c
->index b6defa2..35adca8 100644
->--- a/arch/arm/plat-omap/io.c
->+++ b/arch/arm/plat-omap/io.c
->@@ -142,7 +142,7 @@ u8 omap_readb(u32 pa)
-> 	if (cpu_class_is_omap1())
-> 		return __raw_readb(OMAP1_IO_ADDRESS(pa));
-> 	else
->-		return __raw_readb(OMAP2_IO_ADDRESS(pa));
->+		return __raw_readb(OMAP2_L4_IO_ADDRESS(pa));
-> }
-> EXPORT_SYMBOL(omap_readb);
->
->@@ -151,7 +151,7 @@ u16 omap_readw(u32 pa)
-> 	if (cpu_class_is_omap1())
-> 		return __raw_readw(OMAP1_IO_ADDRESS(pa));
-> 	else
->-		return __raw_readw(OMAP2_IO_ADDRESS(pa));
->+		return __raw_readw(OMAP2_L4_IO_ADDRESS(pa));
-> }
-> EXPORT_SYMBOL(omap_readw);
->
->@@ -160,7 +160,7 @@ u32 omap_readl(u32 pa)
-> 	if (cpu_class_is_omap1())
-> 		return __raw_readl(OMAP1_IO_ADDRESS(pa));
-> 	else
->-		return __raw_readl(OMAP2_IO_ADDRESS(pa));
->+		return __raw_readl(OMAP2_L4_IO_ADDRESS(pa));
-> }
-> EXPORT_SYMBOL(omap_readl);
->
->@@ -169,7 +169,7 @@ void omap_writeb(u8 v, u32 pa)
-> 	if (cpu_class_is_omap1())
-> 		__raw_writeb(v, OMAP1_IO_ADDRESS(pa));
-> 	else
->-		__raw_writeb(v, OMAP2_IO_ADDRESS(pa));
->+		__raw_writeb(v, OMAP2_L4_IO_ADDRESS(pa));
-> }
-> EXPORT_SYMBOL(omap_writeb);
->
->@@ -178,7 +178,7 @@ void omap_writew(u16 v, u32 pa)
-> 	if (cpu_class_is_omap1())
-> 		__raw_writew(v, OMAP1_IO_ADDRESS(pa));
-> 	else
->-		__raw_writew(v, OMAP2_IO_ADDRESS(pa));
->+		__raw_writew(v, OMAP2_L4_IO_ADDRESS(pa));
-> }
-> EXPORT_SYMBOL(omap_writew);
->
->@@ -187,6 +187,6 @@ void omap_writel(u32 v, u32 pa)
-> 	if (cpu_class_is_omap1())
-> 		__raw_writel(v, OMAP1_IO_ADDRESS(pa));
-> 	else
->-		__raw_writel(v, OMAP2_IO_ADDRESS(pa));
->+		__raw_writel(v, OMAP2_L4_IO_ADDRESS(pa));
-> }
-> EXPORT_SYMBOL(omap_writel);
+--- linux-2.6.31-rc5/arch/arm/plat-omap/dma.c.orig	2009-08-23 02:24:46.000000000 +0200
++++ linux-2.6.31-rc5/arch/arm/plat-omap/dma.c	2009-08-23 14:53:48.000000000 +0200
+@@ -1131,6 +1131,11 @@ int omap_dma_running(void)
+ void omap_dma_link_lch(int lch_head, int lch_queue)
+ {
+ 	if (omap_dma_in_1510_mode()) {
++		if (lch_head == lch_queue) {
++			dma_write(dma_read(CCR(lch_head)) | (3 << 8),
++								CCR(lch_head));
++			return;
++		}
+ 		printk(KERN_ERR "DMA linking is not supported in 1510 mode\n");
+ 		BUG();
+ 		return;
+@@ -1153,6 +1158,11 @@ EXPORT_SYMBOL(omap_dma_link_lch);
+ void omap_dma_unlink_lch(int lch_head, int lch_queue)
+ {
+ 	if (omap_dma_in_1510_mode()) {
++		if (lch_head == lch_queue) {
++			dma_write(dma_read(CCR(lch_head)) & ~(3 << 8),
++								CCR(lch_head));
++			return;
++		}
+ 		printk(KERN_ERR "DMA linking is not supported in 1510 mode\n");
+ 		BUG();
+ 		return;
