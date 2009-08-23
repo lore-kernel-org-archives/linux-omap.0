@@ -1,45 +1,35 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [alsa-devel] [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add support for DMA channel self linking on OMAP1510
-Date: Sun, 23 Aug 2009 19:45:39 +0200
-Message-ID: <200908231945.40187.jkrzyszt@tis.icnet.pl>
-References: <200908101050.02530.jkrzyszt@tis.icnet.pl> <200908231756.13016.jkrzyszt@tis.icnet.pl> <20090823170359.GA3488@sirena.org.uk>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add support
+	for DMA channel self linking on OMAP1510
+Date: Sun, 23 Aug 2009 19:05:43 +0100
+Message-ID: <20090823180543.GA6167@opensource.wolfsonmicro.com>
+References: <200908101050.02530.jkrzyszt@tis.icnet.pl> <200908231756.13016.jkrzyszt@tis.icnet.pl> <20090823170359.GA3488@sirena.org.uk> <200908231945.40187.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:56952 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753566AbZHWRtO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 23 Aug 2009 13:49:14 -0400
-In-Reply-To: <20090823170359.GA3488@sirena.org.uk>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:36281 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S933063AbZHWSFn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Sun, 23 Aug 2009 14:05:43 -0400
 Content-Disposition: inline
+In-Reply-To: <200908231945.40187.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Cc: Tony Lindgren <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jarkko Nikula <jhnikula@gmail.com>
 
-Sunday 23 August 2009 19:03:59 Mark Brown wrote:
-> It's not that it's not fair, at this point it's not possible - please
-> make any changes you feel are required against current ASoC.  The patch
-> has been applied for a little while now and is buried quite deep in the
-> already published history.
+On Sun, Aug 23, 2009 at 07:45:39PM +0200, Janusz Krzysztofik wrote:
 
-Mark,
+> If I missed something and my original patch has really been applied, I'll be 
+> happy to prepare a new version that reverts previos changes and makes those 
+> proposed in patch v2, if those are acceptable.
 
-I see your point. It also seemed to me that you had already applied my 
-original patch, however while preparing that v2 I found no single evidence of 
-it being applied, so took into consideration it was not my patch I had on my 
-mind but Eduardo's patches on OMAP McBSP that you had agreeed with Tony to 
-push via ASoC tree. The last message regarding this original patch I am able 
-to locate was from Jarkko[1], where he said it would be better to leave this 
-one in Tony's hands.
+If none of your patches have been applied then what are the other
+patches that depend on this?  Nobody reported any issues in testing with
+the other OMAP patches.
 
-If I missed something and my original patch has really been applied, I'll be 
-happy to prepare a new version that reverts previos changes and makes those 
-proposed in patch v2, if those are acceptable.
-
-Thanks,
-Janusz
-
-[1] http://www.spinics.net/lists/linux-omap/msg17172.html
+I don't really mind which tree these go via but I rather suspect that
+ALSA will be better given all the other changes and I also suspect that
+you'll need to regenerate your changes against a current tree due to
+those changes.  Tony, are you OK with that?
