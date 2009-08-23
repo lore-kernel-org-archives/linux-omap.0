@@ -1,124 +1,68 @@
 From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH 1/3] OMAP: McBSP: Use textual values in DMA
-	operating mode sysfs files
-Date: Sun, 23 Aug 2009 12:24:25 +0300
-Message-ID: <1251019467-11677-2-git-send-email-jhnikula@gmail.com>
+Subject: [PATCH 2/3] ASoC: OMAP: Fix setup of XCCR and RCCR registers in McBSP DAI
+Date: Sun, 23 Aug 2009 12:24:26 +0300
+Message-ID: <1251019467-11677-3-git-send-email-jhnikula@gmail.com>
 References: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:32790 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755927AbZHWJXW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 05:23:22 -0400
+Received: by mail-ew0-f207.google.com with SMTP id 3so1640891ewy.18
+        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 02:23:24 -0700 (PDT)
 In-Reply-To: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: tony@atomide.com, Eduardo Valentin <eduardo.valentin@nokia.com>, broonie@opensource.wolfsonmicro.com, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-omap@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: alsa-devel@alsa-project.org
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, tony@atomide.com, Jarkko Nikula <jhnikula@gmail.com>, Eero Nurkkala <ext-eero.nurkkala@nokia.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>
 
-Use more descriptive than numerical value when showing and storing the
-McBSP DMA operating mode. Show function is using similar syntax than e.g.
-the led triggers so that all possible values for store function are
-printed but with current value surrounded with square brackets.
+Commit ca6e2ce08679c094878d7f39a0349a7db1d13675 is setting up few XCCR and
+RCCR bits for I2S and DPS_A formats. Part of the bits are already set
+for all formats and I believe that XDISABLE and RDISABLE bits are
+format independent.
+
+As XCCR and RCCR are found only from OMAP2430 and OMAP34xx, I move setup
+of XDISABLE and RDISABLE to where those cpu's are tested and remove format
+dependent part for simplicity.
 
 Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- arch/arm/plat-omap/mcbsp.c |   52 ++++++++++++++++++++++++-------------------
- 1 files changed, 29 insertions(+), 23 deletions(-)
+ sound/soc/omap/omap-mcbsp.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
-index b63a720..28e29b9 100644
---- a/arch/arm/plat-omap/mcbsp.c
-+++ b/arch/arm/plat-omap/mcbsp.c
-@@ -1161,25 +1161,31 @@ static DEVICE_ATTR(prop, 0644, prop##_show, prop##_store);
- THRESHOLD_PROP_BUILDER(max_tx_thres);
- THRESHOLD_PROP_BUILDER(max_rx_thres);
- 
-+static const char *dma_op_modes[] = {
-+	"element", "threshold", "frame",
-+};
-+
- static ssize_t dma_op_mode_show(struct device *dev,
- 			struct device_attribute *attr, char *buf)
- {
- 	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
--	int dma_op_mode;
-+	int dma_op_mode, i = 0;
-+	ssize_t len = 0;
-+	const char * const *s;
- 
- 	spin_lock_irq(&mcbsp->lock);
- 	dma_op_mode = mcbsp->dma_op_mode;
- 	spin_unlock_irq(&mcbsp->lock);
- 
--	return sprintf(buf, "current mode: %d\n"
--			"possible mode values are:\n"
--			"%d - %s\n"
--			"%d - %s\n"
--			"%d - %s\n",
--			dma_op_mode,
--			MCBSP_DMA_MODE_ELEMENT, "element mode",
--			MCBSP_DMA_MODE_THRESHOLD, "threshold mode",
--			MCBSP_DMA_MODE_FRAME, "frame mode");
-+	for (s = &dma_op_modes[i]; i < ARRAY_SIZE(dma_op_modes); s++, i++) {
-+		if (dma_op_mode == i)
-+			len += sprintf(buf + len, "[%s] ", *s);
-+		else
-+			len += sprintf(buf + len, "%s ", *s);
-+	}
-+	len += sprintf(len+buf, "\n");
-+
-+	return len;
- }
- 
- static ssize_t dma_op_mode_store(struct device *dev,
-@@ -1187,26 +1193,26 @@ static ssize_t dma_op_mode_store(struct device *dev,
- 				const char *buf, size_t size)
- {
- 	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
--	unsigned long val;
--	int status;
-+	const char * const *s;
-+	char *p;
-+	int len, i = 0;
- 
--	status = strict_strtoul(buf, 0, &val);
--	if (status)
--		return status;
-+	p = memchr(buf, '\n', size);
-+	len = p ? p - buf : size;
- 
--	spin_lock_irq(&mcbsp->lock);
-+	for (s = &dma_op_modes[i]; i < ARRAY_SIZE(dma_op_modes); s++, i++)
-+		if (*s && len == strlen(*s) && !strncmp(buf, *s, len))
-+			break;
- 
-+	if (i == ARRAY_SIZE(dma_op_modes))
-+		return -EINVAL;
-+
-+	spin_lock_irq(&mcbsp->lock);
- 	if (!mcbsp->free) {
- 		size = -EBUSY;
- 		goto unlock;
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index f5387d9..89e8bce 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -379,8 +379,8 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 		regs->xcr2	|= XFIG;
  	}
--
--	if (val > MCBSP_DMA_MODE_FRAME || val < MCBSP_DMA_MODE_ELEMENT) {
--		size = -EINVAL;
--		goto unlock;
--	}
--
--	mcbsp->dma_op_mode = val;
-+	mcbsp->dma_op_mode = i;
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+-		regs->xccr = DXENDLY(1) | XDMAEN;
+-		regs->rccr = RFULL_CYCLE | RDMAEN;
++		regs->xccr = DXENDLY(1) | XDMAEN | XDISABLE;
++		regs->rccr = RFULL_CYCLE | RDMAEN | RDISABLE;
+ 	}
  
- unlock:
- 	spin_unlock_irq(&mcbsp->lock);
+ 	switch (fmt & SND_SOC_DAIFMT_FORMAT_MASK) {
+@@ -388,15 +388,11 @@ static int omap_mcbsp_dai_set_dai_fmt(struct snd_soc_dai *cpu_dai,
+ 		/* 1-bit data delay */
+ 		regs->rcr2	|= RDATDLY(1);
+ 		regs->xcr2	|= XDATDLY(1);
+-		regs->rccr	|= RFULL_CYCLE | RDMAEN | RDISABLE;
+-		regs->xccr	|= (DXENDLY(1) | XDMAEN | XDISABLE);
+ 		break;
+ 	case SND_SOC_DAIFMT_DSP_A:
+ 		/* 1-bit data delay */
+ 		regs->rcr2      |= RDATDLY(1);
+ 		regs->xcr2      |= XDATDLY(1);
+-		regs->rccr	|= RFULL_CYCLE | RDMAEN | RDISABLE;
+-		regs->xccr	|= (DXENDLY(1) | XDMAEN | XDISABLE);
+ 		/* Invert FS polarity configuration */
+ 		temp_fmt ^= SND_SOC_DAIFMT_NB_IF;
+ 		break;
 -- 
 1.6.3.3
+
