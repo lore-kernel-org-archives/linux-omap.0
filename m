@@ -1,84 +1,68 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Patch format for submission?
-Date: Mon, 24 Aug 2009 00:36:27 +0300
-Message-ID: <20090823213627.GA6440@nokia.com>
-References: <1250695463.10817.4.camel@blitz>
- <alpine.DEB.2.00.0908190921130.5294@utopia.booyaka.com>
- <4A8C28E6.7060209@am.sony.com>
- <87skflmhwh.fsf@deeprootsystems.com>
- <1250865273.8268.7.camel@blitz>
-Reply-To: felipe.balbi@nokia.com
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
+Date: Mon, 24 Aug 2009 09:47:38 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA29C290@dbde02.ent.ti.com>
+References: <1251034495-10107-1-git-send-email-santosh.shilimkar@ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702F996E313@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:40154 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755940AbZHWVll (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 23 Aug 2009 17:41:41 -0400
-Content-Disposition: inline
-In-Reply-To: <1250865273.8268.7.camel@blitz>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59701 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751342AbZHXERt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 00:17:49 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F996E313@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Peter Barada <peterb@logicpd.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Tim Bird <tim.bird@am.sony.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Aug 21, 2009 at 04:34:33PM +0200, ext Peter Barada wrote:
-> On Fri, 2009-08-21 at 15:10 +0200, Kevin Hilman wrote:
-> > Tim Bird <tim.bird@am.sony.com> writes:
-> > 
-> > > Paul Walmsley wrote:
-> > >> Hi Peter,
-> > >> 
-> > >> On Wed, 19 Aug 2009, Peter Barada wrote:
-> > >> 
-> > >>> 1) Does anyone have a URL of the format patches should be in that are
-> > >>> submitted to the linux-omap list?
-> > >>>
-> > >>> I've got some patches to add base support for the Logic OMAP 35x SOM and
-> > >>> Torpedo boards and I'd like to submit them in the right format for
-> > >>> inclusion and push into mainline.
-> > >> 
-> > >> Documentation/SubmittingPatches and Documentation/CodingStyle are pretty 
-> > >> good intros to this.
-> > >>
-> > > Also, Andrew Morton wrote a paper called "The Perfect Patch"
-> > > with a nice checklist of attributes.
-> > >
-> > > http://userweb.kernel.org/~akpm/stuff/tpp.txt
-> > >
-> > 
-> > In addition to above suggestions, I highly recommend using git tools
-> > which automate many of these recommended steps.
-> > 
-> > Usin 'git format-patch' and then 'git send-email' will get you a long
-> > ways.
+ >-----Original Message-----
+> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of
+> >Shilimkar, Santosh
+> >Sent: Sunday, August 23, 2009 8:35 AM
+> >To: tony@atomide.com; khilman@deeprootsystems.com
+> >Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh
+> >Subject: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
 > 
-> Kevin,
+> That sure is a big cleanup patch and would take patience to complete!!
 > 
-> Most of my work is done with LTIB/svn.  Is there a good starter document
-> for git on how to have a local tree, local changes, and keep it up to
-> date with a remote tree?  I've waded through some of git's
-> documentation, but its bit daunting bending my brain around git after
-> many years of SVN/CVS.
+> >
+> >This patch splits OMAP2_IO_ADDRESS to OMAP2_L3_IO_ADDRESS and
+> >OMAP2_L4_IO_ADDRESS to reclaim more IO space.
+> 
+> There is no reclaim of space with this patch. Its done with [2/5]
 
-git svn clone <repository url> <local repo name>
+Yes comment is valid. I wanted to put - "This patch splits OMAP2_IO_ADDRESS to OMAP2_L3_IO_ADDRESS and OMAP2_L4_IO_ADDRESS to enable freeing up of more IO space.
 
-will do it.
+> This patch only changes the macro definitions but the offsets are still
+> the same as in old code.
+> So the description needs to be more explicit as to why you introduced
+> L3/L4 macro split.
+> 
+> Another suggestion to minimize the so intrusive code change: As per the
+> wiki approach: [1]
+> Lot of code will remain un-touched if you re-used the existing IO_OFFSET
+> macro as follows ---
+> ---
+> #define L3_IO_OFFSET		0x90000000
+> #define __L3_IO_ADDRESS(pa)	((pa) + L3_IO_OFFSET)/* Works for L3 */
+> #define __OMAP2_L3_IO_ADDRESS(pa)	((pa) + L3_IO_OFFSET)/* Works for L3
+> */
+> #define l3_io_v2p(va)		((va) - L3_IO_OFFSET)/* Works for L3 */
+> 
+> #define IO_OFFSET		0xb2000000
+> #define __IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L4  */
+> #define __OMAP2_IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L4 */
+> #define io_v2p(va)		((va) - IO_OFFSET)/* Works for L4*/
+> ---
+> 
+> This way you don't have to introduce new L4 macro at all => much lesser
+> code impact.
+Initially I thought about this but later preferred to split it. The only change what you are suggesting is instead of calling "OMAP2_L4_IO_ADDRESS", we keep that as "OMAP2_IO_ADDRESS". But the idea was to differentiate between various IO accesses because at some point of time all these has to be removed in favor of ioremap() + read*()/write*() one by one and that time this would be beneficial.
 
-Something like:
 
-git svn clone https://www.mydomain.com/svn/project/trunk project
 
-then you can even commit and push to a svn tree. after getting newest
-git tarball from [1], you can:
-
-$ make prefix=/usr all doc
-# make prefix=/usr install install-doc
-$ git help svn
-
-then you get git installed and help about svn support on git ;-)
-
-[1] http://www.kernel.org/pub/scm/git/git-1.6.4.1.tar.bz2
-
--- 
-balbi
