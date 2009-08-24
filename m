@@ -1,58 +1,53 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add support
- for DMA channel self linking on OMAP1510
-Date: Mon, 24 Aug 2009 08:49:20 +0300
-Message-ID: <20090824084920.c99c561a.jhnikula@gmail.com>
-References: <200908101050.02530.jkrzyszt@tis.icnet.pl>
-	<200908231945.40187.jkrzyszt@tis.icnet.pl>
-	<20090823180543.GA6167@opensource.wolfsonmicro.com>
-	<200908232038.05593.jkrzyszt@tis.icnet.pl>
-	<20090823184943.GA6994@opensource.wolfsonmicro.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
+Date: Mon, 24 Aug 2009 11:39:57 +0530
+Message-ID: <002c01ca2481$82c30340$LocalHost@wipultra793>
+References: <1251034495-10107-1-git-send-email-santosh.shilimkar@ti.com> <FCCFB4CDC6E5564B9182F639FC35608702F996E313@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BA29C290@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20090823184943.GA6994@opensource.wolfsonmicro.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Tony Lindgren <tony@atomide.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37059 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751452AbZHXGKI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Aug 2009 02:10:08 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, tony@atomide.com, khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org
 
-On Sun, 23 Aug 2009 19:49:43 +0100
-Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
+----- Original Message ----- 
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+>> ---
+>> #define L3_IO_OFFSET 0x90000000
+>> #define __L3_IO_ADDRESS(pa) ((pa) + L3_IO_OFFSET)/* Works for L3 */
+>> #define __OMAP2_L3_IO_ADDRESS(pa) ((pa) + L3_IO_OFFSET)/* Works for L3
+>> */
+>> #define l3_io_v2p(va) ((va) - L3_IO_OFFSET)/* Works for L3 */
+>>
+>> #define IO_OFFSET 0xb2000000
+>> #define __IO_ADDRESS(pa) ((pa) + IO_OFFSET)/* Works for L4  */
+>> #define __OMAP2_IO_ADDRESS(pa) ((pa) + IO_OFFSET)/* Works for L4 */
+>> #define io_v2p(va) ((va) - IO_OFFSET)/* Works for L4*/
+>> ---
+>>
+>> This way you don't have to introduce new L4 macro at all => much lesser
+>> code impact.
+> Initially I thought about this but later preferred to split it. The only 
+> change what you are suggesting is instead of calling 
+> "OMAP2_L4_IO_ADDRESS", we keep >that as "OMAP2_IO_ADDRESS". But the idea 
+> was to differentiate between various IO accesses because at some point of 
+> time all these has to be removed in
+> favor of ioremap() + read*()/write*() one by one and that time this would 
+> be beneficial.
 
-> On Sun, Aug 23, 2009 at 08:38:05PM +0200, Janusz Krzysztofik wrote:
-> > Sunday 23 August 2009 20:05:43 Mark Brown wrote:
-> 
-> > > then what are the other 
-> > > patches that depend on this? Nobody reported any issues in testing with 
-> > > the other OMAP patches.
-> 
-> > Dependency on patch 1/3 is not compile time, but run time, and OMAP1510 
-> > specific, that's probably why nobody has reported any issues.
-> 
-> OK, given that and the fact that you're reporting that none of these
-> files are afected by any of the other patches it sounds like it'd be
-> better to keep it in the OMAP tree unless Tony says otherwse.
+Does that mean all drivers, including the ones in other trees like camera, 
+dss etc need to be modified if they are using IO_ADDRESS macros. The idea of 
+having a macro as below was to reduce this impact.
 
-Yep, Janusz's commits 64844a6ac8ddd586cb832fea7cf2e93e5e7e03f4 and
-471e3dec3abe2d41e8c742046353fcb01bc2459e do not cause problems on other
-OMAPs but will cause that ASoC on 1510 is broken until his DMA
-patch(es) are applied. I'm sure you Janusz will ping Tony until he'll
-apply them :-)
+#define __IO_ADDRESS(pa) ((pa) >= L3_34XX_PHYS ?   ((pa) + L3_IO_OFFSET) : 
+((pa) + IO_OFFSET))
 
-We should remember that arch/arm/plat-omap/mcbsp.c changes done via
-ALSA tree has been an exception and that's only for simpler procedure.
-McBSP is not so critical if sources goes out-of-sync but DMA is.
-
-
--- 
-Jarkko
