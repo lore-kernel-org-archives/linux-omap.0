@@ -1,79 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/10] Omap3 updates for upcoming 2.6.32 merge window
-Date: Mon, 24 Aug 2009 16:05:41 +0300
-Message-ID: <20090824130540.GB5165@atomide.com>
-References: <20090812120926.17601.85860.stgit@localhost>
+Subject: Re: linux-next: manual merge of the omap tree with the arm tree
+Date: Mon, 24 Aug 2009 16:07:18 +0300
+Message-ID: <20090824130718.GC5165@atomide.com>
+References: <20090819150433.4c12c612.sfr@canb.auug.org.au> <20090820102004.GD12309@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56332 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752461AbZHXNFs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 09:05:48 -0400
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20090812120926.17601.85860.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20090820102004.GD12309@atomide.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>, Russell King <rmk@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.arm.linux.org.uk
-Cc: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [090812 15:10]:
-> Hi all,
+* Tony Lindgren <tony@atomide.com> [090820 14:20]:
+> * Stephen Rothwell <sfr@canb.auug.org.au> [090819 08:04]:
+> > Hi all,
+> > 
+> > Today's linux-next merge of the omap tree got a conflict in
+> > arch/arm/mach-omap2/board-4430sdp.c between commit
+> > 085b54d99b8ee999e7905b8f16e201e0da8ba369 ("ARM: OMAP4: Add UART4
+> > support") from the arm tree and commit
+> > 4c29fa3e47342666e12e46f35f40dd90b12cd1a4 ("OMAP: remove OMAP_TAG_UART")
+> > from the omap tree.
+> > 
+> > Just context changes (I think).  I fixed it up (see below) and can carry
+> > the fix as necessary.
 > 
-> Here are mostly omap3 specific updates for the merge window.
+> Thanks yeh the fix looks right. I'll take a look if I can squeeze something
+> like that into my queue so the merge conflict disappears.
 
-I've added this series into omap for-next branch.
+The merge conflict should be gone now, Kevin realized we don't need the
+platform_data any longer. Will remove that for board-4430sdp.c and serial.h
+as a fix once the other pending changes have been merged.
  
 > Regards,
 > 
 > Tony
 > 
-> ---
-> 
-> Felipe Balbi (1):
->       OMAP3: beagle: add missing twl4030 usb platform_data
-> 
-> Hiroshi DOYU (2):
->       OMAP: iommu: add initial debugfs support
->       OMAP: iommu: fix wrong argument in flush_cache_vmap()
-> 
-> Paul Walmsley (1):
->       OMAP3: update OMAP3 Beagle defconfig
-> 
-> Sergio Aguirre (1):
->       OMAP3: 3430SDP: Fix defconfig
-> 
-> Timo Kokkonen (1):
->       OMAP3: rx51_defconfig: add twl4030 to rx51 default configuration
-> 
-> Vikram Pandita (4):
->       OMAP3: Zoom2: Update board defconfig
->       OMAP3: Zoom2: Add TWL4030 support
->       OMAP3: MMC: Add mux for pins
->       OMAP2/3: Pass irqflags to 8250 driver
-> 
-> 
->  arch/arm/configs/omap3_beagle_defconfig     |   11 +
->  arch/arm/configs/omap_3430sdp_defconfig     |   20 +
->  arch/arm/configs/omap_zoom2_defconfig       |  484 +++++++++++++++++++++++----
->  arch/arm/configs/rx51_defconfig             |    1 
->  arch/arm/mach-omap2/board-omap3beagle.c     |    5 
->  arch/arm/mach-omap2/board-zoom-debugboard.c |    2 
->  arch/arm/mach-omap2/board-zoom2.c           |  204 +++++++++++
->  arch/arm/mach-omap2/devices.c               |   42 ++
->  arch/arm/mach-omap2/mux.c                   |   49 +++
->  arch/arm/mach-omap2/serial.c                |    2 
->  arch/arm/plat-omap/Kconfig                  |    4 
->  arch/arm/plat-omap/Makefile                 |    1 
->  arch/arm/plat-omap/include/mach/mux.h       |   28 ++
->  arch/arm/plat-omap/iommu-debug.c            |  334 +++++++++++++++++++
->  arch/arm/plat-omap/iovmm.c                  |    2 
->  15 files changed, 1088 insertions(+), 101 deletions(-)
->  create mode 100644 arch/arm/plat-omap/iommu-debug.c
-> 
-> -- 
-> Signature
+> > -- 
+> > Cheers,
+> > Stephen Rothwell                    sfr@canb.auug.org.au
+> > 
+> > diff --cc arch/arm/mach-omap2/board-4430sdp.c
+> > index 1b22307,646079f..0000000
+> > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > @@@ -38,8 -38,8 +38,8 @@@ static struct platform_device *sdp4430_
+> >   	&sdp4430_lcd_device,
+> >   };
+> >   
+> > - static struct omap_uart_config sdp4430_uart_config __initdata = {
+> > + static struct omap_uart_platform_data sdp4430_uart_config __initdata = {
+> >  -	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2),
+> >  +	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
+> >   };
+> >   
+> >   static struct omap_lcd_config sdp4430_lcd_config __initdata = {
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
