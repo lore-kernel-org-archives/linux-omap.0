@@ -1,93 +1,75 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 4/5] OMAP: Zoom2: Fix serial break
-Date: Mon, 24 Aug 2009 14:50:04 +0300
-Message-ID: <87k50tqvmb.fsf@deeprootsystems.com>
-References: <1250878266-10632-1-git-send-email-vikram.pandita@ti.com>
-	<87ocq7vrcx.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH] MUSB: Remove usb_musb_pm_init() call
+Date: Mon, 24 Aug 2009 17:36:37 +0530
+Message-ID: <1251115597-23096-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:38990 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbZHXLuG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 07:50:06 -0400
-Received: by fxm17 with SMTP id 17so1401472fxm.37
-        for <linux-omap@vger.kernel.org>; Mon, 24 Aug 2009 04:50:07 -0700 (PDT)
-In-Reply-To: <87ocq7vrcx.fsf@deeprootsystems.com> (Kevin Hilman's message of "Sat\, 22 Aug 2009 16\:46\:22 +0200")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57516 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752230AbZHXMGo (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Aug 2009 08:06:44 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7OC6d0H006773
+	for <linux-omap@vger.kernel.org>; Mon, 24 Aug 2009 07:06:45 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: linux-omap@vger.kernel.org
+Cc: Anand Gadiyar <gadiyar@ti.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+MUSB: Remove usb_musb_pm_init() call
 
-> Vikram Pandita <vikram.pandita@ti.com> writes:
->
->> Fix the break in Zoom2 Quad uart debug port support.
->>
->> Patch by Kevin Hilman fd455ea899b5a14 caused a break as it introuduced
->> per port PLATFORM id and Zoom2 was not tested with this change.
->
-> ...because working zoom2 UART support was not yet upstream.
->
->> For Zoom2 serial port, add platform id as 4
->>
->> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->> cc: Kevin Hilman <khilman@deeprootsystems.com>
->> ---
->>  arch/arm/mach-omap2/board-zoom-debugboard.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
->> index f8b0726..4dd714d 100644
->> --- a/arch/arm/mach-omap2/board-zoom-debugboard.c
->> +++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
->> @@ -97,7 +97,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
->>  
->>  static struct platform_device zoom2_debugboard_serial_device = {
->>  	.name			= "serial8250",
->> -	.id			= PLAT8250_DEV_PLATFORM1,
->> +	.id			= PLAT8250_DEV_FOURPORT,
->
-> Using FOURPORT isn't right either.  Just use a number.
->
-> If you're OK with the version below, I'll pull it into my fixes queue.
-> I've also updated the changelog to explain the problem instead of just
-> "fix the break..."  This fix messages are not useful when looking back
-> through the changelog history.
->
-> I don't currently have access to a Zoom2, so this has not been tested.
->
-> Kevin
->
->
-> commit c52bc1989540d1305aa5372a73bc6096636c8432
-> Author: Vikram Pandita <vikram.pandita@ti.com>
-> Date:   Fri Aug 21 13:11:06 2009 -0500
->
->     OMAP: Zoom2: update serial platform_data id for external UART
->     
->     Now that on-chip UARTs each have separate platform_data, the external
->     UART needs an non-conflicting ID.  Since there are 3 on-chip UARTs,
->     the Zoom2 external UART will be registered after as the fourth.
->     
->     Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->     Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
->
-> diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-> index bac5c43..66fe940 100644
-> --- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-> +++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-> @@ -94,7 +94,7 @@ static struct plat_serial8250_port serial_platform_data[] = {
->  
->  static struct platform_device zoom2_debugboard_serial_device = {
->  	.name			= "serial8250",
-> -	.id			= PLAT8250_DEV_PLATFORM1,
-> +	.id			= 3,
->  	.dev			= {
->  		.platform_data	= serial_platform_data,
->  	},
+In usb_musb_pm_init, we attempt to access an MUSB register
+when the i-clock may not be on, or the module is otherwise
+not accessible.
 
-Queuing this in my fixes queue for the next merge window.
+We need to either:
+- enable the clock before this access, or
+- remove this code and move it to the bootloader, or
+- enable the clock in the bootloader
 
-Kevin
+If we enable the clock in the bootloader, we might as well
+add the workaround in the bootloader itself. This code will
+anyway be changed once hwmod is in place, so remove it for now
+
+This allows us to boot the kernel on certain OMAP3 boards with
+a bootloader that doesn't enable this clock. Without this, we
+will need to upgrade the bootloaders on these boards.
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+ arch/arm/mach-omap2/usb-musb.c |   12 ------------
+ 1 files changed, 12 deletions(-)
+
+Index: linux-2.6/arch/arm/mach-omap2/usb-musb.c
+===================================================================
+--- linux-2.6.orig/arch/arm/mach-omap2/usb-musb.c
++++ linux-2.6/arch/arm/mach-omap2/usb-musb.c
+@@ -31,15 +31,6 @@
+ #include <mach/mux.h>
+ #include <mach/usb.h>
+ 
+-#define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
+-
+-static void __init usb_musb_pm_init(void)
+-{
+-	/* Ensure force-idle mode for OTG controller */
+-	if (cpu_is_omap34xx())
+-		omap_writel(0, OTG_SYSCONFIG);
+-}
+-
+ #ifdef CONFIG_USB_MUSB_SOC
+ 
+ static struct resource musb_resources[] = {
+@@ -194,13 +185,10 @@ void __init usb_musb_init(void)
+ 		printk(KERN_ERR "Unable to register HS-USB (MUSB) device\n");
+ 		return;
+ 	}
+-
+-	usb_musb_pm_init();
+ }
+ 
+ #else
+ void __init usb_musb_init(void)
+ {
+-	usb_musb_pm_init();
+ }
+ #endif /* CONFIG_USB_MUSB_SOC */
