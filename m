@@ -1,51 +1,55 @@
-From: "Pagare, Abhijit" <abhijitpagare@ti.com>
-Subject: RE: [PATCH 0/2] OMAP4 Power Domain Framework
-Date: Mon, 24 Aug 2009 18:38:47 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA434F13@dbde02.ent.ti.com>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02B9DCCA10@dbde02.ent.ti.com>
- <alpine.DEB.2.00.0908190323230.5294@utopia.booyaka.com>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: Re: linux-next: manual merge of the omap tree with the arm tree
+Date: Mon, 24 Aug 2009 23:14:15 +1000
+Message-ID: <20090824231415.79c6909f.sfr@canb.auug.org.au>
+References: <20090819150433.4c12c612.sfr@canb.auug.org.au>
+	<20090820102004.GD12309@atomide.com>
+	<20090824130718.GC5165@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__24_Aug_2009_23_14_15_+1000_vOsNeYunizt0oiU7"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49382 "EHLO bear.ext.ti.com"
+Received: from chilli.pcug.org.au ([203.10.76.44]:44754 "EHLO smtps.tip.net.au"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752397AbZHXNI4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 09:08:56 -0400
-In-Reply-To: <alpine.DEB.2.00.0908190323230.5294@utopia.booyaka.com>
-Content-Language: en-US
+	id S1752397AbZHXNOS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Aug 2009 09:14:18 -0400
+In-Reply-To: <20090824130718.GC5165@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>, Russell King <rmk@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>
 
-Paul,
-	Have you framed the comments for the Power Domain Framework Patches that I had submitted? If yes then can you update me with the same?
+--Signature=_Mon__24_Aug_2009_23_14_15_+1000_vOsNeYunizt0oiU7
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Best Regards,
-Abhijit Pagare
+Hi Tony,
 
------Original Message-----
-From: Paul Walmsley [mailto:paul@pwsan.com] 
-Sent: Wednesday, August 19, 2009 2:54 PM
-To: Pagare, Abhijit
-Cc: linux-omap@vger.kernel.org
-Subject: Re: [PATCH 0/2] OMAP4 Power Domain Framework
+On Mon, 24 Aug 2009 16:07:18 +0300 Tony Lindgren <tony@atomide.com> wrote:
+>
+> The merge conflict should be gone now, Kevin realized we don't need the
+> platform_data any longer. Will remove that for board-4430sdp.c and serial=
+.h
+> as a fix once the other pending changes have been merged.
 
-On Wed, 19 Aug 2009, Pagare, Abhijit wrote:
+OK, thanks.
 
-> Paul,
-> 
-> I am resending the patches with the suggested changes.
-> 
-> This series contains patches which add the power domain framework support for OMAP4.
-> 
-> This series applies on top of v2.6.31-rc5. It applies on top of the patches sent by Rajendra Nayak for the PRM/CM1/CM2 module register offsets and masks initialization.
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-Thanks.  I have a few more comments that I've been working on and I plan to send them soon.
+--Signature=_Mon__24_Aug_2009_23_14_15_+1000_vOsNeYunizt0oiU7
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-- Paul
+iEYEARECAAYFAkqSkicACgkQjjKRsyhoI8yd3wCgk3zLj6rV9lUEKmB7ZX9FkhKw
+ELQAn38MgMIkjWQd/6LIHhJyCMNC0xgx
+=0/6H
+-----END PGP SIGNATURE-----
 
+--Signature=_Mon__24_Aug_2009_23_14_15_+1000_vOsNeYunizt0oiU7--
