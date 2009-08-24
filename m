@@ -1,66 +1,43 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 0/3] Few patches to recent OMAP McBSP and
-	ASoC changes
-Date: Mon, 24 Aug 2009 16:17:45 +0300
-Message-ID: <20090824131745.GB32701@esdhcp037198.research.nokia.com>
-References: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
-Reply-To: eduardo.valentin@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [alsa-devel] [PATCHv4 00/20] OMAP ASoC changes in DMA
+	utilization
+Date: Mon, 24 Aug 2009 17:00:21 +0300
+Message-ID: <20090824140020.GE5165@atomide.com>
+References: <1250509879-6703-1-git-send-email-eduardo.valentin@nokia.com> <20090817170549.f0adf2a4.jhnikula@gmail.com> <20090819074011.GA25559@esdhcp037198.research.nokia.com> <20090819074835.GB25559@esdhcp037198.research.nokia.com> <20090819082632.GA19168@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63075 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752468AbZHXOAa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 10:00:30 -0400
 Content-Disposition: inline
-In-Reply-To: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Jarkko Nikula <jhnikula@gmail.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+In-Reply-To: <20090819082632.GA19168@sirena.org.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 
-On Sun, Aug 23, 2009 at 11:24:24AM +0200, Jarkko Nikula wrote:
-> Hi
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [090819 11:27]:
+> On Wed, Aug 19, 2009 at 10:48:35AM +0300, Eduardo Valentin wrote:
+> > On Wed, Aug 19, 2009 at 09:40:12AM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
 > 
-> I would like to add these tree patches to recent set:
+> > > About these changes. I have one doubt. What is the correct tree to base them?
+> > > There are changes under arch/arm/plat-omap/ and under sound/soc/omap/.
 > 
-> [PATCHv5 00/20] OMAP ASoC changes in DMA utilization
-> http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020619.html
+> ...
 > 
-> These are actually independent patches but probably easier to handle as with
-> the set above since some of the patches are touching both ASoC and OMAP
-> subsystems. First patch is the most important since it changes the user space
-> API for McBSP DMA operating mode selection. It would be more difficult to
-> change it later if software starts to use current numeric value based
-> operating mode selection in sysfs files.
-
-
-For the other two changes (patches 02 and 03) I'm giving my ack here.
-Tested them and after running several playback/capture tasks, looks like the
-streaming was ok.
-
-And for the channel swapping issue, I think the thing remains the same.
-If I increase the max threshold to something closer to its maximum (0x500)
-than, channels swap quite easily. Just:
-
-# aplay -c2 -fdat -I /dev/urandom /dev/zero
-
-But that wouldn't block your two patch Jarkko. I liked this merge.
-Code looks cleaner now.
-
+> > > Please do not apply this version. Let's define this first, then I send
+> > > the correct version.
 > 
+> > There is 1 Jarkko's patch which changes arch/arm/plat-omap/ which is already
+> > in Takashi's tree, IIRC.
 > 
-> -- 
-> Jarkko
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I believe there's colisons with the OMAP1 stuff too.  Might be worth
+> applying these on a branch and then providing merges into both the ASoC
+> and OMAP trees?
 
--- 
-Eduardo Valentin
+I'm fine with these all going in via the alsa tree. If there are conflicts,
+let's get those parts into the omap for-next branch first.
+
+Tony
