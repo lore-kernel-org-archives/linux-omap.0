@@ -1,64 +1,51 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-next: manual merge of the omap tree with the arm tree
-Date: Mon, 24 Aug 2009 16:07:18 +0300
-Message-ID: <20090824130718.GC5165@atomide.com>
-References: <20090819150433.4c12c612.sfr@canb.auug.org.au> <20090820102004.GD12309@atomide.com>
+From: "Pagare, Abhijit" <abhijitpagare@ti.com>
+Subject: RE: [PATCH 0/2] OMAP4 Power Domain Framework
+Date: Mon, 24 Aug 2009 18:38:47 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA434F13@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02B9DCCA10@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.0908190323230.5294@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-next-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090820102004.GD12309@atomide.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>, Russell King <rmk@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49382 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752397AbZHXNI4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 09:08:56 -0400
+In-Reply-To: <alpine.DEB.2.00.0908190323230.5294@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tony Lindgren <tony@atomide.com> [090820 14:20]:
-> * Stephen Rothwell <sfr@canb.auug.org.au> [090819 08:04]:
-> > Hi all,
-> > 
-> > Today's linux-next merge of the omap tree got a conflict in
-> > arch/arm/mach-omap2/board-4430sdp.c between commit
-> > 085b54d99b8ee999e7905b8f16e201e0da8ba369 ("ARM: OMAP4: Add UART4
-> > support") from the arm tree and commit
-> > 4c29fa3e47342666e12e46f35f40dd90b12cd1a4 ("OMAP: remove OMAP_TAG_UART")
-> > from the omap tree.
-> > 
-> > Just context changes (I think).  I fixed it up (see below) and can carry
-> > the fix as necessary.
-> 
-> Thanks yeh the fix looks right. I'll take a look if I can squeeze something
-> like that into my queue so the merge conflict disappears.
+Paul,
+	Have you framed the comments for the Power Domain Framework Patches that I had submitted? If yes then can you update me with the same?
 
-The merge conflict should be gone now, Kevin realized we don't need the
-platform_data any longer. Will remove that for board-4430sdp.c and serial.h
-as a fix once the other pending changes have been merged.
- 
-> Regards,
+Best Regards,
+Abhijit Pagare
+
+-----Original Message-----
+From: Paul Walmsley [mailto:paul@pwsan.com] 
+Sent: Wednesday, August 19, 2009 2:54 PM
+To: Pagare, Abhijit
+Cc: linux-omap@vger.kernel.org
+Subject: Re: [PATCH 0/2] OMAP4 Power Domain Framework
+
+On Wed, 19 Aug 2009, Pagare, Abhijit wrote:
+
+> Paul,
 > 
-> Tony
+> I am resending the patches with the suggested changes.
 > 
-> > -- 
-> > Cheers,
-> > Stephen Rothwell                    sfr@canb.auug.org.au
-> > 
-> > diff --cc arch/arm/mach-omap2/board-4430sdp.c
-> > index 1b22307,646079f..0000000
-> > --- a/arch/arm/mach-omap2/board-4430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> > @@@ -38,8 -38,8 +38,8 @@@ static struct platform_device *sdp4430_
-> >   	&sdp4430_lcd_device,
-> >   };
-> >   
-> > - static struct omap_uart_config sdp4430_uart_config __initdata = {
-> > + static struct omap_uart_platform_data sdp4430_uart_config __initdata = {
-> >  -	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2),
-> >  +	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
-> >   };
-> >   
-> >   static struct omap_lcd_config sdp4430_lcd_config __initdata = {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> This series contains patches which add the power domain framework support for OMAP4.
+> 
+> This series applies on top of v2.6.31-rc5. It applies on top of the patches sent by Rajendra Nayak for the PRM/CM1/CM2 module register offsets and masks initialization.
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/
+
+Thanks.  I have a few more comments that I've been working on and I plan to send them soon.
+
+
+- Paul
+
