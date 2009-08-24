@@ -1,70 +1,64 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
-Date: Mon, 24 Aug 2009 11:43:23 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA434AEC@dbde02.ent.ti.com>
-References: <1251034495-10107-1-git-send-email-santosh.shilimkar@ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F996E313@dbde02.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BA29C290@dbde02.ent.ti.com>
- <002c01ca2481$82c30340$LocalHost@wipultra793>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: Where is DSP Gateway
+Date: Mon, 24 Aug 2009 09:27:30 +0300
+Message-ID: <94a0d4530908232327h79334d81u20686c5a773d3501@mail.gmail.com>
+References: <deb0f030908181654m71a6a10l10a29426377a702a@mail.gmail.com>
+	 <deb0f030908182145r68b8021cj49f2fac24d330eca@mail.gmail.com>
+	 <4A8D4064.7050005@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39471 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751513AbZHXGN3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 02:13:29 -0400
-In-Reply-To: <002c01ca2481$82c30340$LocalHost@wipultra793>
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.157]:53313 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859AbZHXG13 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 02:27:29 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so449297fga.17
+        for <linux-omap@vger.kernel.org>; Sun, 23 Aug 2009 23:27:30 -0700 (PDT)
+In-Reply-To: <4A8D4064.7050005@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "V, Hemanth" <hemanthv@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: ext Suresh Rajashekara <suresh@mistralsolutions.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
+On Thu, Aug 20, 2009 at 3:24 PM, Ameya Palande<ameya.palande@nokia.com>=
+ wrote:
+> ext Suresh Rajashekara wrote:
+>> Hi All,
+>>
+>> We had been using dspgateway 3.3 on 2.6.16. Recently we changed our
+>> kernel to 2.6.29 and we found that the dspgateway driver has been
+>> removed from the tree
+>> ( http://git.kernel.org/?p=3Dlinux/kernel/git/tmlind/linux-omap-2.6.=
+git;a=3Dcommit;h=3D2512fd29db4eb09e82d182596304c7aaf76d2c5c).
+>>
+>> What do I do, If I want to use the dspgateway on 2.6.29?
+>>
+>> I tried searching the patch for dspgateway on 2.6.29, but found none
+>> except this
+>> http://archive.netbsd.se/?ml=3Dlinux-kernel&a=3D2009-07&m=3D11155350
+>>
+>> Any pointers would be really helpful
+>>
+>> Thanks in advance,
+>> Suresh
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
+tml
+>
+> I think DSP-gateway is not maintained, and they are now using bridged=
+river.
 
-> -----Original Message-----
-> From: V, Hemanth
-> Sent: Monday, August 24, 2009 11:40 AM
-> To: Shilimkar, Santosh; Pandita, Vikram; tony@atomide.com;
-> khilman@deeprootsystems.com
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and
-> L4
-> 
-> ----- Original Message -----
-> From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-> >> ---
-> >> #define L3_IO_OFFSET 0x90000000
-> >> #define __L3_IO_ADDRESS(pa) ((pa) + L3_IO_OFFSET)/* Works for L3 */
-> >> #define __OMAP2_L3_IO_ADDRESS(pa) ((pa) + L3_IO_OFFSET)/* Works for L3
-> >> */
-> >> #define l3_io_v2p(va) ((va) - L3_IO_OFFSET)/* Works for L3 */
-> >>
-> >> #define IO_OFFSET 0xb2000000
-> >> #define __IO_ADDRESS(pa) ((pa) + IO_OFFSET)/* Works for L4  */
-> >> #define __OMAP2_IO_ADDRESS(pa) ((pa) + IO_OFFSET)/* Works for L4 */
-> >> #define io_v2p(va) ((va) - IO_OFFSET)/* Works for L4*/
-> >> ---
-> >>
-> >> This way you don't have to introduce new L4 macro at all => much lesser
-> >> code impact.
-> > Initially I thought about this but later preferred to split it. The only
-> > change what you are suggesting is instead of calling
-> > "OMAP2_L4_IO_ADDRESS", we keep >that as "OMAP2_IO_ADDRESS". But the idea
-> > was to differentiate between various IO accesses because at some point
-> of
-> > time all these has to be removed in
-> > favor of ioremap() + read*()/write*() one by one and that time this
-> would
-> > be beneficial.
-> 
-> Does that mean all drivers, including the ones in other trees like camera,
-> dss etc need to be modified if they are using IO_ADDRESS macros. The idea
-> of
-> having a macro as below was to reduce this impact.
-Going forward yes.  Refer the mailing thread comments from Tony/Kevin/Richard on below thread.
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14015.html
+AFAIK Hiroshi is the maintainer, but probably haven't had time to work
+on that since a while.
 
-
-Regards,
-Santosh
+--=20
+=46elipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
