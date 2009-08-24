@@ -1,58 +1,82 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/2] OMAP: remove OMAP_TAG_UART
-Date: Mon, 24 Aug 2009 15:57:57 +0300
-Message-ID: <87hbvxpdwq.fsf@deeprootsystems.com>
-References: <20090807051516.4787.36125.stgit@tikku>
-	<20090807051650.4787.84433.stgit@tikku>
-	<87k50tslp1.fsf@deeprootsystems.com>
-	<6ed0b2680908240554m7e7b7fc3m95ec28d7223cb85e@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/3] Omap header cleanup for upcoming 2.6.32 merge
+	window
+Date: Mon, 24 Aug 2009 16:05:13 +0300
+Message-ID: <20090824130512.GA5165@atomide.com>
+References: <20090806100614.2569.8531.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:40200 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752406AbZHXM6A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 08:58:00 -0400
-Received: by fxm17 with SMTP id 17so1431171fxm.37
-        for <linux-omap@vger.kernel.org>; Mon, 24 Aug 2009 05:58:01 -0700 (PDT)
-In-Reply-To: <6ed0b2680908240554m7e7b7fc3m95ec28d7223cb85e@mail.gmail.com> (Grazvydas Ignotas's message of "Mon\, 24 Aug 2009 15\:54\:02 +0300")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64930 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752419AbZHXNFT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 09:05:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20090806100614.2569.8531.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Kalle Valo <kalle.valo@iki.fi>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.arm.linux.org.uk
+Cc: linux-omap@vger.kernel.org
 
-Grazvydas Ignotas <notasas@gmail.com> writes:
+* Tony Lindgren <tony@atomide.com> [090806 13:09]:
+> Hi all,
+> 
+> Here are few patches for the upcoming merge window to remove unnecessary
+> ifdeffery in the header files.
+> 
+> We should get these merged early to avoid merge conflicts with other
+> patchsets.
 
-> On Mon, Aug 24, 2009 at 10:41 AM, Kevin
-> Hilman<khilman@deeprootsystems.com> wrote:
->> Kalle Valo <kalle.valo@iki.fi> writes:
->>
->>> Omap tags are deprecrated and convert all OMAP_TAG_UART cases to use
->>> omap_uart_platform_data instead.
->>>
->>> Tested on rx51 and n8x0. Compile tested on omap_osk_5912.
->>>
->>> Signed-off-by: Kalle Valo <kalle.valo@iki.fi>
->>
->> Rather than converting all the omap_uart_configs into platform_data.
->> Any objections to just dropping the platform_data all together?
->>
->> This is only used for selecting which UARTs to enable at boot time,
->> and all the board files simply enable all the UARTs.
->
-> Pandora wasn't enabling all UARTs, as did some other off-tree board
-> (someone was posting UART questions on this list). This meant that
-> UART3 was appearing as ttyS0 here, and after this patch it will appear
-> as ttyS2, which means we will have to update our boot scripts. Not a
-> huge deal but I'd prefer retaining platform_data.
-
-I think your boot scripts should be fixed.
-
-Your problem actually points out another justification for my patch.
-Having all the UARTs enabled means that the ttyS* names will be
-consistent across multiple boards and result in much more portable
-userspace init.
-
-Kevin
-
-
+I've added this series into omap for-next branch.
+ 
+> Regards,
+> 
+> Tony
+> 
+> ---
+> 
+> Tony Lindgren (3):
+>       OMAP: Remove ifdefs for io.h
+>       OMAP: Rename OMAP_MPUIO_BASE to OMAP1_MPUIO_BASE
+>       OMAP: Remove OMAP_IO_ADDRESS, use OMAP1_IO_ADDRESS and OMAP2_IO_ADDRESS instead
+> 
+> 
+>  arch/arm/mach-omap1/devices.c                 |    2 -
+>  arch/arm/mach-omap1/io.c                      |    6 +-
+>  arch/arm/mach-omap1/pm.h                      |    4 +
+>  arch/arm/mach-omap1/serial.c                  |    6 +-
+>  arch/arm/mach-omap1/sram.S                    |   12 ++-
+>  arch/arm/mach-omap1/time.c                    |    4 +
+>  arch/arm/mach-omap2/board-4430sdp.c           |    4 +
+>  arch/arm/mach-omap2/cm.h                      |    6 +-
+>  arch/arm/mach-omap2/omap-smp.c                |    2 -
+>  arch/arm/mach-omap2/pm-debug.c                |    2 -
+>  arch/arm/mach-omap2/prm.h                     |    6 +-
+>  arch/arm/mach-omap2/sdrc.h                    |    6 +-
+>  arch/arm/mach-omap2/serial.c                  |    6 +-
+>  arch/arm/mach-omap2/sram242x.S                |    4 +
+>  arch/arm/mach-omap2/sram243x.S                |    4 +
+>  arch/arm/mach-omap2/timer-gp.c                |    2 -
+>  arch/arm/plat-omap/dma.c                      |    8 +-
+>  arch/arm/plat-omap/dmtimer.c                  |    5 +
+>  arch/arm/plat-omap/gpio.c                     |   88 +++++++++++------------
+>  arch/arm/plat-omap/include/mach/control.h     |   12 ++-
+>  arch/arm/plat-omap/include/mach/entry-macro.S |    8 +-
+>  arch/arm/plat-omap/include/mach/gpio.h        |    2 -
+>  arch/arm/plat-omap/include/mach/io.h          |   97 ++++++++++++-------------
+>  arch/arm/plat-omap/include/mach/mtd-xip.h     |    2 -
+>  arch/arm/plat-omap/include/mach/omap44xx.h    |    8 +-
+>  arch/arm/plat-omap/include/mach/sdrc.h        |    6 +-
+>  arch/arm/plat-omap/io.c                       |   62 +++++++++++++++-
+>  arch/arm/plat-omap/sram.c                     |   20 +++--
+>  drivers/input/keyboard/omap-keypad.c          |   22 +++---
+>  drivers/mtd/nand/ams-delta.c                  |    8 +-
+>  drivers/video/omap/dispc.c                    |    6 +-
+>  31 files changed, 245 insertions(+), 185 deletions(-)
+> 
+> -- 
+> Signature
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
