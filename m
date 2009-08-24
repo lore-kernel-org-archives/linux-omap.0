@@ -1,68 +1,99 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
-Date: Mon, 24 Aug 2009 09:47:38 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA29C290@dbde02.ent.ti.com>
-References: <1251034495-10107-1-git-send-email-santosh.shilimkar@ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F996E313@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Subject: [PATCH 1/2 v3] ARM: OMAP4: Fix NULL pointer dereference crash.
+Date: Mon, 24 Aug 2009 10:21:26 +0530
+Message-ID: <1251089486-25239-1-git-send-email-santosh.shilimkar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59701 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:46966 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751342AbZHXERt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 00:17:49 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F996E313@dbde02.ent.ti.com>
-Content-Language: en-US
+	id S1751446AbZHXEwF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 24 Aug 2009 00:52:05 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "tony@atomide.com" <tony@atomide.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: khilman@deeprootsystems.com, tony@atomide.com, rmk@arm.linux.org.uk
+Cc: linux-arm-kernel@lists.infradead.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Syed Rafiuddin <rafiuddin.syed@ti.com>
 
- >-----Original Message-----
-> >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of
-> >Shilimkar, Santosh
-> >Sent: Sunday, August 23, 2009 8:35 AM
-> >To: tony@atomide.com; khilman@deeprootsystems.com
-> >Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh
-> >Subject: [PATCH 1/5] ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
-> 
-> That sure is a big cleanup patch and would take patience to complete!!
-> 
-> >
-> >This patch splits OMAP2_IO_ADDRESS to OMAP2_L3_IO_ADDRESS and
-> >OMAP2_L4_IO_ADDRESS to reclaim more IO space.
-> 
-> There is no reclaim of space with this patch. Its done with [2/5]
+After the patch series "[PATCH 00/14] OMAP PM fixes for .31-rc"
+merge in 2.6.31-rc5, the kernel crashed during boot on OMAP4430.
+This patch fixes it by adding UART4 support and related code.
+Without this patch omap_serial_init() would produce " NULL pointer
+dereference" and kernel crashes in the bootup on OMAP4430 platform.
 
-Yes comment is valid. I wanted to put - "This patch splits OMAP2_IO_ADDRESS to OMAP2_L3_IO_ADDRESS and OMAP2_L4_IO_ADDRESS to enable freeing up of more IO space.
+Some more info on the merge issue can be found here.
+More info- http://lkml.org/lkml/2009/8/20/192
 
-> This patch only changes the macro definitions but the offsets are still
-> the same as in old code.
-> So the description needs to be more explicit as to why you introduced
-> L3/L4 macro split.
-> 
-> Another suggestion to minimize the so intrusive code change: As per the
-> wiki approach: [1]
-> Lot of code will remain un-touched if you re-used the existing IO_OFFSET
-> macro as follows ---
-> ---
-> #define L3_IO_OFFSET		0x90000000
-> #define __L3_IO_ADDRESS(pa)	((pa) + L3_IO_OFFSET)/* Works for L3 */
-> #define __OMAP2_L3_IO_ADDRESS(pa)	((pa) + L3_IO_OFFSET)/* Works for L3
-> */
-> #define l3_io_v2p(va)		((va) - L3_IO_OFFSET)/* Works for L3 */
-> 
-> #define IO_OFFSET		0xb2000000
-> #define __IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L4  */
-> #define __OMAP2_IO_ADDRESS(pa)	((pa) + IO_OFFSET)/* Works for L4 */
-> #define io_v2p(va)		((va) - IO_OFFSET)/* Works for L4*/
-> ---
-> 
-> This way you don't have to introduce new L4 macro at all => much lesser
-> code impact.
-Initially I thought about this but later preferred to split it. The only change what you are suggesting is instead of calling "OMAP2_L4_IO_ADDRESS", we keep that as "OMAP2_IO_ADDRESS". But the idea was to differentiate between various IO accesses because at some point of time all these has to be removed in favor of ioremap() + read*()/write*() one by one and that time this would be beneficial.
+Note: While merging this patch,"IO_ADDRESS" needs to be changed
+to "OMAP2_IO_ADDRESS" if the Tony's below series is already merged in.
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg15072.html
 
+id = 3 instead of "PLAT8250_DEV_FOURPORT" as suggested by Kevin.
 
+Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/board-4430sdp.c |    2 +-
+ arch/arm/mach-omap2/serial.c        |   27 ++++++++++++++++++++++++++-
+ 2 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index b0c7402..1b22307 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -39,7 +39,7 @@ static struct platform_device *sdp4430_devices[] __initdata = {
+ };
+ 
+ static struct omap_uart_config sdp4430_uart_config __initdata = {
+-	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2),
++	.enabled_uarts	= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3),
+ };
+ 
+ static struct omap_lcd_config sdp4430_lcd_config __initdata = {
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index a7421a5..e1be77b 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -112,7 +112,21 @@ static struct plat_serial8250_port serial_platform_data2[] = {
+ 		.flags		= 0
+ 	}
+ };
+-
++#ifdef CONFIG_ARCH_OMAP4
++static struct plat_serial8250_port serial_platform_data3[] = {
++	{
++		.membase	= IO_ADDRESS(OMAP_UART4_BASE),
++		.mapbase	= OMAP_UART4_BASE,
++		.irq		= 70,
++		.flags		= UPF_BOOT_AUTOCONF,
++		.iotype		= UPIO_MEM,
++		.regshift	= 2,
++		.uartclk	= OMAP24XX_BASE_BAUD * 16,
++	}, {
++		.flags		= 0
++	}
++};
++#endif
+ static inline unsigned int serial_read_reg(struct plat_serial8250_port *up,
+ 					   int offset)
+ {
+@@ -550,6 +564,17 @@ static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS] = {
+ 			},
+ 		},
+ 	},
++#ifdef CONFIG_ARCH_OMAP4
++	{
++		.pdev = {
++			.name			= "serial8250",
++			.id			= 3,
++			.dev			= {
++				.platform_data	= serial_platform_data3,
++			},
++		},
++	},
++#endif
+ };
+ 
+ void __init omap_serial_init(void)
+-- 
+1.5.4.7
 
