@@ -1,117 +1,43 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: FW: [patch 4/9] mmc: add the new linux-mmc mailing list toMAINTAINERS
-Date: Mon, 24 Aug 2009 11:39:29 -0500
-Message-ID: <005501ca24d9$73b81ef0$544ff780@am.dhcp.ti.com>
-References: <003d01ca2053$a3d1f1e0$544ff780@am.dhcp.ti.com> <20090824140534.GF5165@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add support
+ for DMA channel self linking on OMAP1510
+Date: Mon, 24 Aug 2009 23:06:13 +0100
+Message-ID: <20090824220612.GB4338@sirena.org.uk>
+References: <200908101050.02530.jkrzyszt@tis.icnet.pl>
+	<200908231945.40187.jkrzyszt@tis.icnet.pl>
+	<20090823180543.GA6167@opensource.wolfsonmicro.com>
+	<200908232038.05593.jkrzyszt@tis.icnet.pl>
+	<20090823184943.GA6994@opensource.wolfsonmicro.com>
+	<20090824084920.c99c561a.jhnikula@gmail.com>
+	<20090824124902.GH7069@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50543 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752808AbZHXQji (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Aug 2009 12:39:38 -0400
-In-Reply-To: <20090824140534.GF5165@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20090824124902.GH7069@atomide.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>
-Cc: jarkko.lavinen@nokia.com, linux-omap@vger.kernel.org
 
+On Mon, Aug 24, 2009 at 03:49:03PM +0300, Tony Lindgren wrote:
 
+> > We should remember that arch/arm/plat-omap/mcbsp.c changes done via
+> > ALSA tree has been an exception and that's only for simpler procedure.
+> > McBSP is not so critical if sources goes out-of-sync but DMA is.
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Monday, August 24, 2009 9:06 AM
-> To: Madhusudhan
-> Cc: jarkko.lavinen@nokia.com; linux-omap@vger.kernel.org
-> Subject: Re: FW: [patch 4/9] mmc: add the new linux-mmc mailing list
-> toMAINTAINERS
-> 
-> Hi,
-> 
-> * Madhusudhan <madhu.cr@ti.com> [090819 01:31]:
-> >
-> >
-> > > -----Original Message-----
-> > > From: Andrew Morton [mailto:akpm@linux-foundation.org]
-> > > Sent: Tuesday, August 18, 2009 5:17 PM
-> > > To: Madhusudhan
-> > > Cc: torvalds@linux-foundation.org; HaraldWelte@viatech.com;
-> > > JosephChan@via.com.tw; ben-linux@fluff.org; drzeus@drzeus.cx;
-> > > ian@mnementh.co.uk; jarkko.lavinen@nokia.com; linux-
-> mmc@vger.kernel.org;
-> > > manuel.lauss@gmail.com; nico@cam.org; ppisa@pikron.com;
-> > > saschasommer@freenet.de
-> > > Subject: Re: [patch 4/9] mmc: add the new linux-mmc mailing list to
-> > > MAINTAINERS
-> > >
-> > > On Tue, 18 Aug 2009 17:08:40 -0500
-> > > "Madhusudhan" <madhu.cr@ti.com> wrote:
-> > >
-> > > >
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
-> > > > > owner@vger.kernel.org] On Behalf Of akpm@linux-foundation.org
-> > > > > Sent: Tuesday, August 18, 2009 4:11 PM
-> > > > > To: torvalds@linux-foundation.org
-> > > > > Cc: akpm@linux-foundation.org; HaraldWelte@viatech.com;
-> > > > > JosephChan@via.com.tw; ben-linux@fluff.org; drzeus@drzeus.cx;
-> > > > > ian@mnementh.co.uk; jarkko.lavinen@nokia.com; linux-
-> > > mmc@vger.kernel.org;
-> > > > > manuel.lauss@gmail.com; nico@cam.org; ppisa@pikron.com;
-> > > > > saschasommer@freenet.de
-> > > > > Subject: [patch 4/9] mmc: add the new linux-mmc mailing list to
-> > > > > MAINTAINERS
-> > > > >
-> > > > > From: Andrew Morton <akpm@linux-foundation.org>
-> > > > >
-> > > > > There are a number of individual MMC drivers listed in
-> MAINTAINERS.  I
-> > > > > didn't modify those records.  Perhaps I should have.
-> > > > >
-> > > > Does this mean that the individual MMC drivers list needs to be
-> changed
-> > > to
-> > > > linux-mmc@vger.kernel.org?
-> > > >
-> > > > For e.g. the OMAP MMC support currently listed as
-> > > >
-> > > > L:     linux-omap@vger.kernel.org
-> > > >
-> > > > Should now be changed as below?
-> > > >
-> > > > L:     linux-mmc@vger.kernel.org
-> > >
-> > > I don't know - that's why I cc'ed all you guys.  If you think that
-> > > linux-mmc should be mentioned in your driver's MAINTAINERS record then
-> > > please raise a patch to make that change.
-> > >
-> > Hi Tony, Jarkko,
-> >
-> > What is your opinion?
-> >
-> > The patch I posted earlier today to linux-mmc@vger.kernel.org list for
-> HSMMC
-> > updation did not make this change to the list name. If you guys agree
-> with
-> > this change I can post it back combining the HS MMC entry.
-> 
-> I suggest you have two L entries, linux-mmc and linux-omap lists both so
-> the
-> omap people can easily follow the dicussion without having to separately
-> subscribe to all the driver lists.
-> 
-Sure. That makes sense. Currently, my patch for updating the HS MMC
-maintainers is already lined up in Andrew's tree for upstream. I left the
-list as omap list because this is where we discuss omap stuff. 
+> Sorry for the delay in replying. I'm OK for these to go in via the alsa
+> tree as there are not currently other patches pending in the mcbsp or
+> dma area for omap. So I think it's better merge all the audio related
+> patches together in this case.
 
-I will plan to post one more patch to add the linux-mmc list later on.
-
-Regards,
-Madhu
- 
-> Tony
-
-
+Applied, thanks.
