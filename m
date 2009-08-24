@@ -1,55 +1,66 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: manual merge of the omap tree with the arm tree
-Date: Mon, 24 Aug 2009 23:14:15 +1000
-Message-ID: <20090824231415.79c6909f.sfr@canb.auug.org.au>
-References: <20090819150433.4c12c612.sfr@canb.auug.org.au>
-	<20090820102004.GD12309@atomide.com>
-	<20090824130718.GC5165@atomide.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 0/3] Few patches to recent OMAP McBSP and
+	ASoC changes
+Date: Mon, 24 Aug 2009 16:17:45 +0300
+Message-ID: <20090824131745.GB32701@esdhcp037198.research.nokia.com>
+References: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Mon__24_Aug_2009_23_14_15_+1000_vOsNeYunizt0oiU7"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:44754 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752397AbZHXNOS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 24 Aug 2009 09:14:18 -0400
-In-Reply-To: <20090824130718.GC5165@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Syed Rafiuddin <rafiuddin.syed@ti.com>, Russell King <rmk@arm.linux.org.uk>, Kalle Valo <kalle.valo@iki.fi>
-
---Signature=_Mon__24_Aug_2009_23_14_15_+1000_vOsNeYunizt0oiU7
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+List-Id: linux-omap@vger.kernel.org
 
-Hi Tony,
+On Sun, Aug 23, 2009 at 11:24:24AM +0200, Jarkko Nikula wrote:
+> Hi
+> 
+> I would like to add these tree patches to recent set:
+> 
+> [PATCHv5 00/20] OMAP ASoC changes in DMA utilization
+> http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020619.html
+> 
+> These are actually independent patches but probably easier to handle as with
+> the set above since some of the patches are touching both ASoC and OMAP
+> subsystems. First patch is the most important since it changes the user space
+> API for McBSP DMA operating mode selection. It would be more difficult to
+> change it later if software starts to use current numeric value based
+> operating mode selection in sysfs files.
 
-On Mon, 24 Aug 2009 16:07:18 +0300 Tony Lindgren <tony@atomide.com> wrote:
->
-> The merge conflict should be gone now, Kevin realized we don't need the
-> platform_data any longer. Will remove that for board-4430sdp.c and serial=
-.h
-> as a fix once the other pending changes have been merged.
 
-OK, thanks.
+For the other two changes (patches 02 and 03) I'm giving my ack here.
+Tested them and after running several playback/capture tasks, looks like the
+streaming was ok.
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+And for the channel swapping issue, I think the thing remains the same.
+If I increase the max threshold to something closer to its maximum (0x500)
+than, channels swap quite easily. Just:
 
---Signature=_Mon__24_Aug_2009_23_14_15_+1000_vOsNeYunizt0oiU7
-Content-Type: application/pgp-signature
+# aplay -c2 -fdat -I /dev/urandom /dev/zero
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+But that wouldn't block your two patch Jarkko. I liked this merge.
+Code looks cleaner now.
 
-iEYEARECAAYFAkqSkicACgkQjjKRsyhoI8yd3wCgk3zLj6rV9lUEKmB7ZX9FkhKw
-ELQAn38MgMIkjWQd/6LIHhJyCMNC0xgx
-=0/6H
------END PGP SIGNATURE-----
+> 
+> 
+> -- 
+> Jarkko
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
---Signature=_Mon__24_Aug_2009_23_14_15_+1000_vOsNeYunizt0oiU7--
+-- 
+Eduardo Valentin
