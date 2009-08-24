@@ -1,82 +1,145 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Pull request for OMAP PM, clock, SDRC 2.6.32 patches
-Date: Mon, 24 Aug 2009 17:29:51 +0300
-Message-ID: <20090824142951.GK5165@atomide.com>
-References: <alpine.DEB.2.00.0908160737380.31720@utopia.booyaka.com> <20090817170921.GT10764@n2100.arm.linux.org.uk> <alpine.DEB.2.00.0908180621270.7224@utopia.booyaka.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [PATCH 1/3] OMAP: McBSP: Use textual values in DMA
+ operating mode sysfs files
+Date: Mon, 24 Aug 2009 17:45:50 +0300
+Message-ID: <20090824174550.dc918361.jhnikula@gmail.com>
+References: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
+	<1251019467-11677-2-git-send-email-jhnikula@gmail.com>
+	<20090824064941.GA24398@esdhcp037198.research.nokia.com>
+	<20090824103503.2ce92c16.jhnikula@gmail.com>
+	<20090824073422.GA27298@esdhcp037198.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56012 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532AbZHXO37 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 10:29:59 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.0908180621270.7224@utopia.booyaka.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090824073422.GA27298@esdhcp037198.research.nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: eduardo.valentin@nokia.com
+Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm@vger.kernel.org, hiroshi.doyu@nokia.com
 
-* Paul Walmsley <paul@pwsan.com> [090818 15:35]:
-> Hello Russell,
-> 
-> On Mon, 17 Aug 2009, Russell King - ARM Linux wrote:
-> 
-> > On Sun, Aug 16, 2009 at 07:45:59AM -0600, Paul Walmsley wrote:
-> > > 
-> > > Hello Russell,
-> > > 
-> > > Here's the pull request for the thirteen patches posted earlier, plus 
-> > > Hiroshi's clock debugfs error path fix.
-> > 
-> > I'm afraid to say that I think you've left it far too late to send this.
-> > I did set a date of the 16th as being the final date to sort out stuff
-> > (which was flexible to a degree) but since these patches were only posted
-> > on Saturday, and they're still being discussed, I don't think it would
-> > make sense for me to pull it today.
-> 
-> I've dropped the two patches that are being discussed and reposted the 
-> remainder.  The updated series is here (et seq.):
-> 
->     http://marc.info/?l=linux-arm-kernel&m=125059872200340&w=2
-> 
-> and the pull request is here:
-> 
->     http://marc.info/?l=linux-arm-kernel&m=125059845132331&w=2
+On Mon, 24 Aug 2009 10:34:22 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 
-I've added this into omap for-next branch.
+> > Are there need for case insensitive check? The sysfs_streq is not.
+> 
+> Yes, sysfs_streq is not. There is no need for the insensitive, but
+> it can give user more options (ELEMENT or element)?
+> 
+> If using strcicmp, then strstrip would be required.
+> 
+> Just to reminder that strstrip does a wider job by cleaning any kind of
+> spaces. sysfs_streq deals only with 1 leading "\n".
+> 
+Sounds too fancy :-)
 
-Tony
+Here with sysfs_streq. Clean and simple.
 
-> 
-> 
-> - Paul
-> 
-> >
-> > And this is likely to be the final day that I merge anything into my
-> > kernel tree for the next two weeks.
-> > > 
-> > > regards,
-> > > 
-> > > - Paul
-> > > 
-> > > The following changes since commit 3b3119fc549c93df60316d28bdd77c2de3986588:
-> > >   Russell King (1):
-> > >         Merge branch 'ixp4xx-fixes' of git://git.kernel.org/.../chris/linux-2.6
-> > 
-> > That's stupid.  Someone publishing _my_ tree, which I make no guarantees
-> > about the life of the commits, for other people to base their work on...
-> > That's definitely a big FAIL.
-> > 
-> > Luckily for you though, that commit still exists in my tree, and I've
-> > asked Linus to pull that set; so essentially it became immutable only
-> > last night.
-> > 
-> > Don't base patches on the contents of my tree without talking to me first
-> > please.
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-arm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+============================== CUT HERE ==============================
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH 1/3] OMAP: McBSP: Use textual values in DMA operating mode sysfs files
+
+Use more descriptive than numerical value when showing and storing the
+McBSP DMA operating mode. Show function is using similar syntax than e.g.
+the led triggers so that all possible values for store function are
+printed but with current value surrounded with square brackets.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ arch/arm/plat-omap/mcbsp.c |   48 ++++++++++++++++++++++---------------------
+ 1 files changed, 25 insertions(+), 23 deletions(-)
+
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index b63a720..ee60ab6 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -1161,25 +1161,31 @@ static DEVICE_ATTR(prop, 0644, prop##_show, prop##_store);
+ THRESHOLD_PROP_BUILDER(max_tx_thres);
+ THRESHOLD_PROP_BUILDER(max_rx_thres);
+ 
++static const char *dma_op_modes[] = {
++	"element", "threshold", "frame",
++};
++
+ static ssize_t dma_op_mode_show(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+ {
+ 	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
+-	int dma_op_mode;
++	int dma_op_mode, i = 0;
++	ssize_t len = 0;
++	const char * const *s;
+ 
+ 	spin_lock_irq(&mcbsp->lock);
+ 	dma_op_mode = mcbsp->dma_op_mode;
+ 	spin_unlock_irq(&mcbsp->lock);
+ 
+-	return sprintf(buf, "current mode: %d\n"
+-			"possible mode values are:\n"
+-			"%d - %s\n"
+-			"%d - %s\n"
+-			"%d - %s\n",
+-			dma_op_mode,
+-			MCBSP_DMA_MODE_ELEMENT, "element mode",
+-			MCBSP_DMA_MODE_THRESHOLD, "threshold mode",
+-			MCBSP_DMA_MODE_FRAME, "frame mode");
++	for (s = &dma_op_modes[i]; i < ARRAY_SIZE(dma_op_modes); s++, i++) {
++		if (dma_op_mode == i)
++			len += sprintf(buf + len, "[%s] ", *s);
++		else
++			len += sprintf(buf + len, "%s ", *s);
++	}
++	len += sprintf(buf + len, "\n");
++
++	return len;
+ }
+ 
+ static ssize_t dma_op_mode_store(struct device *dev,
+@@ -1187,26 +1193,22 @@ static ssize_t dma_op_mode_store(struct device *dev,
+ 				const char *buf, size_t size)
+ {
+ 	struct omap_mcbsp *mcbsp = dev_get_drvdata(dev);
+-	unsigned long val;
+-	int status;
++	const char * const *s;
++	int i = 0;
+ 
+-	status = strict_strtoul(buf, 0, &val);
+-	if (status)
+-		return status;
++	for (s = &dma_op_modes[i]; i < ARRAY_SIZE(dma_op_modes); s++, i++)
++		if (sysfs_streq(buf, *s))
++			break;
+ 
+-	spin_lock_irq(&mcbsp->lock);
++	if (i == ARRAY_SIZE(dma_op_modes))
++		return -EINVAL;
+ 
++	spin_lock_irq(&mcbsp->lock);
+ 	if (!mcbsp->free) {
+ 		size = -EBUSY;
+ 		goto unlock;
+ 	}
+-
+-	if (val > MCBSP_DMA_MODE_FRAME || val < MCBSP_DMA_MODE_ELEMENT) {
+-		size = -EINVAL;
+-		goto unlock;
+-	}
+-
+-	mcbsp->dma_op_mode = val;
++	mcbsp->dma_op_mode = i;
+ 
+ unlock:
+ 	spin_unlock_irq(&mcbsp->lock);
+-- 
+1.6.3.3
