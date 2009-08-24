@@ -1,58 +1,64 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/2 v2] ARM: OMAP4: Fix NULL pointer dereference crash.
-Date: Mon, 24 Aug 2009 15:39:39 +0300
-Message-ID: <87tyzxper8.fsf@deeprootsystems.com>
-References: <1250928012-5233-1-git-send-email-santosh.shilimkar@ti.com>
-	<87hbvytich.fsf@deeprootsystems.com>
-	<87pralqvnp.fsf@deeprootsystems.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02BA434EC2@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC][PATCH 1/3 v2] ARM: OMAP: DMA: Add
+	support	for DMA channel self linking on OMAP1510
+Date: Mon, 24 Aug 2009 15:49:03 +0300
+Message-ID: <20090824124902.GH7069@atomide.com>
+References: <200908101050.02530.jkrzyszt@tis.icnet.pl>
+	<200908231945.40187.jkrzyszt@tis.icnet.pl>
+	<20090823180543.GA6167@opensource.wolfsonmicro.com>
+	<200908232038.05593.jkrzyszt@tis.icnet.pl>
+	<20090823184943.GA6994@opensource.wolfsonmicro.com>
+	<20090824084920.c99c561a.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f217.google.com ([209.85.220.217]:40882 "EHLO
-	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752349AbZHXMjl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 08:39:41 -0400
-Received: by fxm17 with SMTP id 17so1422831fxm.37
-        for <linux-omap@vger.kernel.org>; Mon, 24 Aug 2009 05:39:42 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BA434EC2@dbde02.ent.ti.com> (Santosh Shilimkar's message of "Mon\, 24 Aug 2009 17\:56\:00 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20090824084920.c99c561a.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Mark Brown <broonie@opensource.wolfsonmicro.com>, Peter Ujfalusi <peter.ujfalusi@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
 
-"Shilimkar, Santosh" <santosh.shilimkar@ti.com> writes:
+* Jarkko Nikula <jhnikula@gmail.com> [090824 08:47]:
+> On Sun, 23 Aug 2009 19:49:43 +0100
+> Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
+> 
+> > On Sun, Aug 23, 2009 at 08:38:05PM +0200, Janusz Krzysztofik wrote:
+> > > Sunday 23 August 2009 20:05:43 Mark Brown wrote:
+> > 
+> > > > then what are the other 
+> > > > patches that depend on this? Nobody reported any issues in testing with 
+> > > > the other OMAP patches.
+> > 
+> > > Dependency on patch 1/3 is not compile time, but run time, and OMAP1510 
+> > > specific, that's probably why nobody has reported any issues.
+> > 
+> > OK, given that and the fact that you're reporting that none of these
+> > files are afected by any of the other patches it sounds like it'd be
+> > better to keep it in the OMAP tree unless Tony says otherwse.
+> 
+> Yep, Janusz's commits 64844a6ac8ddd586cb832fea7cf2e93e5e7e03f4 and
+> 471e3dec3abe2d41e8c742046353fcb01bc2459e do not cause problems on other
+> OMAPs but will cause that ASoC on 1510 is broken until his DMA
+> patch(es) are applied. I'm sure you Janusz will ping Tony until he'll
+> apply them :-)
+> 
+> We should remember that arch/arm/plat-omap/mcbsp.c changes done via
+> ALSA tree has been an exception and that's only for simpler procedure.
+> McBSP is not so critical if sources goes out-of-sync but DMA is.
 
->> >>  static inline unsigned int serial_read_reg(struct plat_serial8250_port
->> *up,
->> >>  					   int offset)
->> >>  {
->> >> @@ -550,6 +564,17 @@ static struct omap_uart_state
->> omap_uart[OMAP_MAX_NR_PORTS] = {
->> >>  			},
->> >>  		},
->> >>  	},
->> >> +#ifdef CONFIG_ARCH_OMAP4
->> >> +	{
->> >> +		.pdev = {
->> >> +			.name			= "serial8250",
->> >> +			.id			= PLAT8250_DEV_FOURPORT,
->> >
->> > This should not be FOURPORT, it should just be a number.  In this case,
->> > it should be 3 (the others start from zero.)
->> 
->> Santosh,
->> 
->> I've changed the .id field to '3' and will queue up this fix for the
->> next merge window along with my fixes queue[1].  Please let me know if you
->> want to do otherwise.
->
-> This is fine Kevin. Thanks !!
->
-> Bye the way I have also posted v3 version in which I changed the .id field to 3.
+Sorry for the delay in replying. I'm OK for these to go in via the alsa
+tree as there are not currently other patches pending in the mcbsp or
+dma area for omap. So I think it's better merge all the audio related
+patches together in this case.
 
-Yeah, saw that after I replied.  Thanks!
-
-Kevin
-
-
+Acked-by: Tony Lindgren <tony@atomide.com>
