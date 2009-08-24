@@ -1,43 +1,40 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 1/2] ARM: OMAP4: Fix NULL pointer dereference crash.
-Date: Mon, 24 Aug 2009 20:58:46 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA434FD3@dbde02.ent.ti.com>
-References: <1250846095-6381-1-git-send-email-santosh.shilimkar@ti.com>
-	<20090824141040.GH5165@atomide.com>
-	<EAF47CD23C76F840A9E7FCE10091EFAB02BA434F93@dbde02.ent.ti.com>
- <87r5v1mdws.fsf@deeprootsystems.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: Patch format for submission?
+Date: Mon, 24 Aug 2009 18:55:47 +0300
+Message-ID: <8763cdtddo.fsf@litku.valot.fi>
+References: <1250695463.10817.4.camel@blitz>
+	<87skflmhwh.fsf@deeprootsystems.com> <1250865273.8268.7.camel@blitz>
+	<200908211720.17115.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60352 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752499AbZHXP3R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 11:29:17 -0400
-In-Reply-To: <87r5v1mdws.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:44338 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761AbZHXQB3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 24 Aug 2009 12:01:29 -0400
+Received: by fxm17 with SMTP id 17so1534210fxm.37
+        for <linux-omap@vger.kernel.org>; Mon, 24 Aug 2009 09:01:30 -0700 (PDT)
+In-Reply-To: <200908211720.17115.jpihet@mvista.com> (Jean Pihet's message of "Fri\, 21 Aug 2009 17\:20\:16 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
+To: Jean Pihet <jpihet@mvista.com>
+Cc: Peter Barada <peterb@logicpd.com>, Kevin Hilman <khilman@deeprootsystems.com>, Tim Bird <tim.bird@am.sony.com>, Paul Walmsley <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>
 
+Jean Pihet <jpihet@mvista.com> writes:
 
+>> documentation, but its bit daunting bending my brain around git after
+>> many years of SVN/CVS.
+>
+> You can start with the Git tutorial [1] and Everyday Git [2]. The
+> entry point for git documentation is at [3].
+>
+> [1] http://www.kernel.org/pub/software/scm/git/docs/gittutorial.html
+> [2] http://www.kernel.org/pub/software/scm/git/docs/everyday.html
+> [3] http://www.kernel.org/pub/software/scm/git/docs/git.html
 
-Regards,
-Santosh
+For SVN users this is also handy:
 
-> >> This part above won't be needed any longer with patches in omap for
-> next.
-> >
-> > Will you fix this in your branch or shall I post v4.
-> 
-> Santosh,
-> 
-> I'll fix this.
-> 
-> Kevin
+http://git-scm.com/course/svn.html
 
-Thanks Kevin!!
-
-Regards
-Santosh
+-- 
+Kalle Valo
