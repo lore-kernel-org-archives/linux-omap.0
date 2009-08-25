@@ -1,23 +1,23 @@
 From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH v2] Runtime detection of Si features
-Date: Tue, 25 Aug 2009 17:06:16 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD39A358@dbde02.ent.ti.com>
-References: <1250509858-7951-1-git-send-email-premi@ti.com>
+Subject: RE: [PATCH] Runtime detection of OMAP35x devices
+Date: Tue, 25 Aug 2009 17:06:44 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD39A35A@dbde02.ent.ti.com>
+References: <1250612150-16345-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59145 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309AbZHYLgX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 07:36:23 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:34890 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754640AbZHYLgv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 07:36:51 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7PBaJji017215
-	for <linux-omap@vger.kernel.org>; Tue, 25 Aug 2009 06:36:24 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n7PBaI5Z027754
-	for <linux-omap@vger.kernel.org>; Tue, 25 Aug 2009 17:06:18 +0530 (IST)
-In-Reply-To: <1250509858-7951-1-git-send-email-premi@ti.com>
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7PBalsB013832
+	for <linux-omap@vger.kernel.org>; Tue, 25 Aug 2009 06:36:52 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n7PBakGN027810
+	for <linux-omap@vger.kernel.org>; Tue, 25 Aug 2009 17:06:46 +0530 (IST)
+In-Reply-To: <1250612150-16345-1-git-send-email-premi@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -25,32 +25,28 @@ To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vg
 
 > -----Original Message-----
 > From: Premi, Sanjeev 
-> Sent: Monday, August 17, 2009 5:21 PM
+> Sent: Tuesday, August 18, 2009 9:46 PM
 > To: linux-omap@vger.kernel.org
 > Cc: Premi, Sanjeev
-> Subject: [PATCH v2] Runtime detection of Si features
+> Subject: [PATCH] Runtime detection of OMAP35x devices
 > 
-> The OMAP35x family has multiple variants differing
-> in the HW features. This patch detects these features
-> at runtime and prints information during the boot.
+> Add runtime check for these OMAP35x variations
+> based on the detected Si features:
+>   OMAP3503, OMAP3515, OMAP3525 and OMA3530.
 > 
-> Since most of the code seemed repetitive, macros
-> have been used for readability.
+> Also, delayed the call to pr_info() into actual
+> variant is detected in omap3_cpuinfo()
 > 
 > Signed-off-by: Sanjeev Premi <premi@ti.com>
 > ---
->  arch/arm/mach-omap2/id.c                  |   52 
-> +++++++++++++++++++++++++++--
->  arch/arm/mach-omap2/mmc-twl4030.c         |    1 +
->  arch/arm/plat-omap/include/mach/control.h |   34 +++++++++++++++++++
->  arch/arm/plat-omap/include/mach/cpu.h     |   23 +++++++++++++
->  4 files changed, 107 insertions(+), 3 deletions(-)
+>  arch/arm/mach-omap2/id.c              |   59 
+> +++++++++++++++++++++++++++-----
+>  arch/arm/plat-omap/include/mach/cpu.h |   25 ++++++++++++++
+>  2 files changed, 74 insertions(+), 10 deletions(-)
 > 
 <snip>--<snip>
 
-Hi Tony,
-
-Where does this patch stand in your queue?
+...and this one as well.
 
 Best regards,
 Sanjeev
