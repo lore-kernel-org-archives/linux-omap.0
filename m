@@ -1,22 +1,19 @@
 From: "Syed Rafiuddin" <rafiuddin.syed@ti.com>
-Subject: (unknown)
-Date: Tue, 25 Aug 2009 16:04:19 +0530 (IST)
-Message-ID: <45433.192.168.10.88.1251196459.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH-v2][RFC] OMAP4: Keypad Support for OMAP4430
+Date: Tue, 25 Aug 2009 16:09:03 +0530 (IST)
+Message-ID: <47940.192.168.10.88.1251196743.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52386 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752547AbZHYKea (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 25 Aug 2009 06:34:30 -0400
-Subject: 
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Return-path: <linux-input-owner@vger.kernel.org>
+Sender: linux-input-owner@vger.kernel.org
 To: soni.trilok@gmail.com, linux-input@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+List-Id: linux-omap@vger.kernel.org
 
 From: Syed Rafiuddin <rafiuddin.syed@ti.com>
+
+Resending with correct Subject.
 
 This patch Adds Keypad support on OMAP4.And adds
 OMAP4 register addresses and configures them for OMAP4.
@@ -36,8 +33,8 @@ Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
 
 Index: kernel-omap4-base/drivers/input/keyboard/omap-keypad.c
 ===================================================================
---- kernel-omap4-base.orig/drivers/input/keyboard/omap-keypad.c	2009-08-19 12:23:14.000000000 +0530
-+++ kernel-omap4-base/drivers/input/keyboard/omap-keypad.c	2009-08-19 18:25:17.000000000 +0530
+--- kernel-omap4-base.orig/drivers/input/keyboard/omap-keypad.c
++++ kernel-omap4-base/drivers/input/keyboard/omap-keypad.c
 @@ -44,6 +44,36 @@
 
  #undef NEW_BOARD_LEARNING_MODE
@@ -389,6 +386,5 @@ Index: kernel-omap4-base/drivers/input/keyboard/omap-keypad.c
 +		free_irq(omap_kp->irq, 0);
  	} else {
  		omap_writew(1, OMAP_MPUIO_BASE + OMAP_MPUIO_KBD_MASKIT);
- 		free_irq(omap_kp->irq, 0);
 
 
