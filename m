@@ -1,34 +1,35 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Query: MUSB clock management code
-Date: Tue, 25 Aug 2009 12:05:04 +0300
-Message-ID: <20090825090503.GO25331@nokia.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9CEF2@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 0/3] Few patches to recent OMAP McBSP and
+	ASoC changes
+Date: Tue, 25 Aug 2009 10:21:57 +0100
+Message-ID: <20090825092156.GA27234@rakim.wolfsonmicro.main>
+References: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31853 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904AbZHYJH7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 05:07:59 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9CEF2@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1251019467-11677-1-git-send-email-jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: tony@atomide.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Aug 24, 2009 at 01:09:43PM +0200, ext Gadiyar, Anand wrote:
-> Hi all,
-> 
-> Is there a reason to have a wrapper code around the clock
-> enable/disable code in arch/arm/mach-omap2/usb-musb.c?
-> Is it not okay for the glue-layer code in
-> drivers/usb/musb/omap2430.c to do this?
+On Sun, Aug 23, 2009 at 12:24:24PM +0300, Jarkko Nikula wrote:
 
-most likely, not anymore, but we needed that as means not to pass clock
-name to musb driver. Once all other users of musb move to clkdev, we can
-remove that and use plain clk fw calls.
+> These are actually independent patches but probably easier to handle as with
+> the set above since some of the patches are touching both ASoC and OMAP
+> subsystems. First patch is the most important since it changes the user space
+> API for McBSP DMA operating mode selection. It would be more difficult to
+> change it later if software starts to use current numeric value based
+> operating mode selection in sysfs files.
 
--- 
-balbi
+Applied all of these, thanks!
