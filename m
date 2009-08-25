@@ -1,60 +1,56 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: SDP support seems broken in LO
-Date: Tue, 25 Aug 2009 14:21:32 +0300
-Message-ID: <4A93C93C.3000303@nokia.com>
-References: <ce9ab5790908180519t644723cbw6876901066f1f213@mail.gmail.com> 	<EAF47CD23C76F840A9E7FCE10091EFAB02B9DCC60E@dbde02.ent.ti.com> 	<ce9ab5790908180558m184fd48euece1093575160c0c@mail.gmail.com> 	<5A47E75E594F054BAF48C5E4FC4B92AB0309BD5C0A@dbde02.ent.ti.com> <ce9ab5790908180610l20ebdb5bw458616c409ddba94@mail.gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB0309BD5C1F@dbde02.ent.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH v2] Runtime detection of Si features
+Date: Tue, 25 Aug 2009 17:06:16 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD39A358@dbde02.ent.ti.com>
+References: <1250509858-7951-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49338 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765AbZHYLVy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 07:21:54 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0309BD5C1F@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59145 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752309AbZHYLgX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 07:36:23 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7PBaJji017215
+	for <linux-omap@vger.kernel.org>; Tue, 25 Aug 2009 06:36:24 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n7PBaI5Z027754
+	for <linux-omap@vger.kernel.org>; Tue, 25 Aug 2009 17:06:18 +0530 (IST)
+In-Reply-To: <1250509858-7951-1-git-send-email-premi@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gadiyar, Anand" <gadiyar@ti.com>
-Cc: vimal singh <vimal.newwork@gmail.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-ext Gadiyar, Anand wrote:
-> <snip>
+> -----Original Message-----
+> From: Premi, Sanjeev 
+> Sent: Monday, August 17, 2009 5:21 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Premi, Sanjeev
+> Subject: [PATCH v2] Runtime detection of Si features
 > 
->> Here is the log after enabling 'CONFIG_DEBUG_LL':
->>
->> ## Booting image at 80000000 ...
->>    Image Name:   Linux-2.6.31-rc5-omap1-05896-ge0
->>    Image Type:   ARM Linux Kernel Image (uncompressed)
->>    Data Size:    2303384 Bytes =  2.2 MB
->>    Load Address: 80008000
->>    Entry Point:  80008000
->>    Verifying Checksum ... OK
->> OK
->>
->> Starting kernel ...
->>
->> Uncompressing Linux.........................................................
->> ...........................................................................................
->> done, booting the kernel.
->> <5>Linux version 2.6.31-rc5-omap1-05896-ge087f6f-dirty
->> (x0094262@omaplinux2) (gcc version 4.2.1 (CodeSourcery Sourcery G++ Lite 2007q3-51)) #7 Tue Aug 18 18:38:47 IST 2009
+> The OMAP35x family has multiple variants differing
+> in the HW features. This patch detects these features
+> at runtime and prints information during the boot.
 > 
-> And here's the problem - you're using CodeSourcery's 2007q3 toolchain.
-> This has been discussed in the past on this list. I don't know exactly
-> what causes the problem or what fixes this.
+> Since most of the code seemed repetitive, macros
+> have been used for readability.
+> 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> ---
+>  arch/arm/mach-omap2/id.c                  |   52 
+> +++++++++++++++++++++++++++--
+>  arch/arm/mach-omap2/mmc-twl4030.c         |    1 +
+>  arch/arm/plat-omap/include/mach/control.h |   34 +++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/cpu.h     |   23 +++++++++++++
+>  4 files changed, 107 insertions(+), 3 deletions(-)
+> 
+<snip>--<snip>
 
-To know more about this see the discussion in this thread
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12363.html
+Hi Tony,
 
-> 
-> Move to 2008q3 or 2009q1 as a workaround.
-> 
-> - Anand
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Where does this patch stand in your queue?
 
+Best regards,
+Sanjeev
