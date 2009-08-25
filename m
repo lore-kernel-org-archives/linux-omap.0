@@ -1,33 +1,69 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: LCD blanking?
-Date: Tue, 25 Aug 2009 07:55:10 -0600
-Message-ID: <4A93ED3E.4030505@mlbassoc.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH v2 4/4] RTC MSECURE: mux configuration in board files
+Date: Tue, 25 Aug 2009 23:54:14 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F996ECD8@dbde02.ent.ti.com>
+References: <1251126455-27258-1-git-send-email-charu@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:1046 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152AbZHYNz0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 09:55:26 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:45410 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755531AbZHYSY1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 14:24:27 -0400
+In-Reply-To: <1251126455-27258-1-git-send-email-charu@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "p_gortmaker@yahoo.com" <p_gortmaker@yahoo.com>, "Varadarajan, Charu Latha" <charu@ti.com>
 
-I have a system with an LCD, running Tomi's DSS2 support.
-One problem I'm having is that after a while, the LCD blanks
-out (I do have fbcon support enabled so I can use it as a
-glass TTY - no keyboard)
+Charu
 
-How can I keep this from happening?
-Once it does, is there any way to get it back on (remember,
-no keyboard)?
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>charu@ti.com
+>Sent: Monday, August 24, 2009 10:08 AM
+>To: linux-omap@vger.kernel.org
+>Cc: tony@atomide.com; david-b@pacbell.net; sameo@linux.intel.com; p_gortmaker@yahoo.com; Varadarajan,
+>Charu Latha
+>Subject: [PATCH v2 4/4] RTC MSECURE: mux configuration in board files
+>
+>
+> static struct i2c_board_info __initdata sdp2430_i2c_boardinfo[] = {
+>diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+>index 351e8c5..1bb79f5 100644
+>--- a/arch/arm/mach-omap2/board-3430sdp.c
+>+++ b/arch/arm/mach-omap2/board-3430sdp.c
+>@@ -54,7 +54,7 @@
+> #define ENABLE_VAUX3_DEDICATED	0x03
+> #define ENABLE_VAUX3_DEV_GRP	0x20
+>
+>-#define TWL4030_MSECURE_GPIO 22
+>+#define TWL4030_MSECURE_GPIO	22
+>
+> static int sdp3430_keymap[] = {
+> 	KEY(0, 0, KEY_LEFT),
+>@@ -574,8 +574,24 @@ static inline void board_smc91x_init(void)
+>
+> #endif
+>
+>+int sdp3430_rtc_init(void)
+>+{
+>+	struct twl4030_rtc_platform_data sdp3430_rtc_data;
+>+	/* msecure mux cfg */
+>+	if (omap_type() == OMAP2_DEVICE_TYPE_GP &&
+>+			omap_rev() < OMAP3430_REV_ES2_0) {
 
-Thanks
+What happens to msecure line on SDP/LDP with ES2.0 and above?
 
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Is it that Triton MSECURE line gets pulled up by default, and hence no need for the patch?
+
+
+>+		sdp3430_rtc_data.msecure_gpio = TWL4030_MSECURE_GPIO;
+>+		sdp3430_twldata.rtc = &sdp3430_rtc_data;
+>+		return omap_cfg_reg(AF9_34XX_V1_X_GPIO22_OUT);
+>+	} else
+>+		return 0;
+>+};
+>+
