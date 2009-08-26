@@ -1,40 +1,32 @@
-From: Tar Gz <bsdraisefromhell@gmail.com>
-Subject: linux-ldp1.8
-Date: Wed, 26 Aug 2009 03:50:10 +0700
-Message-ID: <d9ca78710908251350i6359852ajed5b13f948a48dbe@mail.gmail.com>
+From: Frederik Kriewitz <frederik@kriewitz.eu>
+Subject: Re: LCD blanking?
+Date: Wed, 26 Aug 2009 02:36:45 +0200
+Message-ID: <f67028d40908251736i1fb8037dy5aa41dad2d6621ca@mail.gmail.com>
+References: <4A93ED3E.4030505@mlbassoc.com>
+Reply-To: frederik@kriewitz.eu
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f205.google.com ([209.85.217.205]:41256 "EHLO
-	mail-gx0-f205.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756108AbZHYUuJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 16:50:09 -0400
-Received: by gxk1 with SMTP id 1so4449768gxk.17
-        for <linux-omap@vger.kernel.org>; Tue, 25 Aug 2009 13:50:11 -0700 (PDT)
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:38016 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755745AbZHZAhE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 25 Aug 2009 20:37:04 -0400
+Received: by bwz19 with SMTP id 19so2248516bwz.37
+        for <linux-omap@vger.kernel.org>; Tue, 25 Aug 2009 17:37:05 -0700 (PDT)
+In-Reply-To: <4A93ED3E.4030505@mlbassoc.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi all
+On Tue, Aug 25, 2009 at 3:55 PM, Gary Thomas<gary@mlbassoc.com> wrote:
+> I have a system with an LCD, running Tomi's DSS2 support.
+> One problem I'm having is that after a while, the LCD blanks
+> out (I do have fbcon support enabled so I can use it as a
+> glass TTY - no keyboard)
+>
+> How can I keep this from happening?
+> Once it does, is there any way to get it back on (remember,
+> no keyboard)?
 
-i' try to running linux ldp-1.8 in the omap 3430
-
-when i start the kernel
-
-.......
-Starting Kernel
-
-and stuck at this point
-
-i'm using env like that :
-
-#setenv bootargs console=ttyS0,115200n8 root=/dev/mmcblk0p2 mem=128M rootdelay=2
-#mmcinit
-#fatload mmc 0 80300000 uImage
-#bootm uImage
-
-when i'm change ttyS0 to ttyS2...this is have the same problem...
-
-best regards,
-Aldyth M
+check man console_codes
