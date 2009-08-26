@@ -1,80 +1,38 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH] ARM: OMAP: Add omap34xx revision detection for ES3.1.1
-Date: Wed, 26 Aug 2009 17:34:32 +0530
-Message-ID: <1251288272-17209-1-git-send-email-gadiyar@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:35107 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756485AbZHZMEi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Aug 2009 08:04:38 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7QC4Y6O025812
-	for <linux-omap@vger.kernel.org>; Wed, 26 Aug 2009 07:04:39 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: Audio capture not working with AIC23/McBSP1 on OMAP3517
+Date: Wed, 26 Aug 2009 18:30:52 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9D82D@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Language: en-US
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Anand Gadiyar <gadiyar@ti.com>
 
-ARM: OMAP: Add omap34xx revision detection for ES3.1.1
+Hi,
 
-- Add omap34xx revision detection for ES3.1.1 silicon.
-- Change default silicon to ES3.1.1
+I am trying to capture audio through LineIn on my OMAP3517 EVM, using 
+AIC23 codec and McBSP1, and getting the following error:
 
-- Also minor bug-fix: ES2.0 rev field is 1, not 0.
-  - This means that ES2.0 silicon would have wrongly been
-    detected as unknown
+arecord: pcm_read:1529: read error: Input/output error
 
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
-Let me know if this should be split into a bug-fix patch,
-and a separate patch for adding ES 3.1.1 revision info.
-I felt the change was too minor to split out, since
-ES2.0 silicon is rare.
+Playback is working fine using the same combination. 
 
-This patch is against linus' tree - so the cpu.h
-change will apply with an offset
+I have tried using another instance of AIC23 codec which uses McBSP2 
+and both playback & capture works fine there.
 
- arch/arm/mach-omap2/id.c              |    8 ++++++--
- arch/arm/plat-omap/include/mach/cpu.h |    1 +
- 2 files changed, 7 insertions(+), 2 deletions(-)
+Has anyone faced this issue before? Any suggestions?
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index a98201c..414c520 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -185,7 +185,7 @@ void __init omap34xx_check_revision(void)
- 
- 	if (hawkeye == 0xb7ae) {
- 		switch (rev) {
--		case 0:
-+		case 1:
- 			omap_revision = OMAP3430_REV_ES2_0;
- 			rev_name = "ES2.0";
- 			break;
-@@ -201,9 +201,13 @@ void __init omap34xx_check_revision(void)
- 			omap_revision = OMAP3430_REV_ES3_1;
- 			rev_name = "ES3.1";
- 			break;
-+		case 6:
-+			omap_revision = OMAP3430_REV_ES3_1_1;
-+			rev_name = "ES3.1.1";
-+			break;
- 		default:
- 			/* Use the latest known revision as default */
--			omap_revision = OMAP3430_REV_ES3_1;
-+			omap_revision = OMAP3430_REV_ES3_1_1;
- 			rev_name = "Unknown revision\n";
- 		}
- 	}
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index 11e73d9..22cceb8 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -392,6 +392,7 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP3430_REV_ES2_1	0x34302034
- #define OMAP3430_REV_ES3_0	0x34303034
- #define OMAP3430_REV_ES3_1	0x34304034
-+#define OMAP3430_REV_ES3_1_1	0x34306034
- 
- #define OMAP443X_CLASS		0x44300034
- 
+Regards,
+Anuj Aggarwal
