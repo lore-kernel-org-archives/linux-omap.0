@@ -1,221 +1,194 @@
-From: Peter Barada <peterb@logicpd.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
 Subject: RE: Problem tryhing to bring up new LCD on OMAP Logic board
-Date: Wed, 26 Aug 2009 00:08:40 -0400
-Message-ID: <1251259720.16110.84.camel@blitz>
+Date: Wed, 26 Aug 2009 10:44:00 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436A49FBA@dbde02.ent.ti.com>
 References: <1251227246.16110.71.camel@blitz>
 	 <5A47E75E594F054BAF48C5E4FC4B92AB0309C86152@dbde02.ent.ti.com>
 	 <1251230795.16110.76.camel@blitz>
 	 <19F8576C6E063C45BE387C64729E73940436A49F56@dbde02.ent.ti.com>
+ <1251259720.16110.84.camel@blitz>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.logicpd.com ([66.162.60.3]:58678 "EHLO smtp.logicpd.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750716AbZHZEEA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 26 Aug 2009 00:04:00 -0400
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940436A49F56@dbde02.ent.ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:55264 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756360AbZHZFOI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Aug 2009 01:14:08 -0400
+In-Reply-To: <1251259720.16110.84.camel@blitz>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Peter Barada <peterb@logicpd.com>
 Cc: "Gadiyar, Anand" <gadiyar@ti.com>, linux-omap <linux-omap@vger.kernel.org>
 
-On Wed, 2009-08-26 at 08:33 +0530, Hiremath, Vaibhav wrote:
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Peter Barada
-> > Sent: Wednesday, August 26, 2009 1:37 AM
-> > To: Gadiyar, Anand
-> > Cc: linux-omap
-> > Subject: RE: Problem tryhing to bring up new LCD on OMAP Logic board
-> > 
-> > On Wed, 2009-08-26 at 00:51 +0530, Gadiyar, Anand wrote:
-> > > > I'm using 2.6.31-rc5 from Kevin's PM branch (commit ID
-> > > > 70a1f2249bbe765f78cf5e220e4e3f539b41eb7f) and I'm trying to add
-> > in LCD
-> > > > panel support for our OMAP boards.
-> > > >
-> > > > I've cloned drivers/video/lcd_omap3evm.c, and when I call into
-> > > > omapfb_main::omapfb_register_panel() it crashes with:
-> > > >
-> > > > <4>Platform driver 'omapfb' needs updating - please use
-> > dev_pm_ops
-> > > > omapfb_probe:1829 pdev c03f0258
-> > > > omap3logic: Registering platform driver
-> > > > <4>Platform driver 'omap3logic_lcd' needs updating - please use
-> > > > dev_pm_ops
-> > > > omap3logic_panel_probe:463 panel c0425de4 (name 15)
-> > > > omapfb_register_panel:1842
-> > > > omapfb_do_probe:1673 pdev c03f0258 panel c0425de4
-> > > > omapfb_do_probe:1697
-> > > > <4>MUX: setup D28_34XX_DSS_PCLK (0xd80020d4): 0x0000 -> 0x0108
-> > > > <4>MUX: setup D26_34XX_DSS_HSYNC (0xd80020d6): 0x0000 -> 0x0108
-> > > > <4>MUX: setup D27_34XX_DSS_VSYNC (0xd80020d8): 0x0000 -> 0x0108
-> > > > <4>MUX: setup E27_34XX_DSS_ACBIAS (0xd80020da): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AG22_34XX_DSS_D0 (0xd80020dc): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AH22_34XX_DSS_D1 (0xd80020de): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AG23_34XX_DSS_D2 (0xd80020e0): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AH23_34XX_DSS_D3 (0xd80020e2): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AG24_34XX_DSS_D4 (0xd80020e4): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AH24_34XX_DSS_D5 (0xd80020e6): 0x0000 -> 0x0108
-> > > > <4>MUX: setup E26_34XX_DSS_D6 (0xd80020e8): 0x0000 -> 0x0108
-> > > > <4>MUX: setup F28_34XX_DSS_D7 (0xd80020ea): 0x0000 -> 0x0108
-> > > > <4>MUX: setup F27_34XX_DSS_D8 (0xd80020ec): 0x0000 -> 0x0108
-> > > > <4>MUX: setup G26_34XX_DSS_D9 (0xd80020ee): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AD28_34XX_DSS_D10 (0xd80020f0): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AD27_34XX_DSS_D11 (0xd80020f2): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AB28_34XX_DSS_D12 (0xd80020f4): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AB27_34XX_DSS_D13 (0xd80020f6): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AA28_34XX_DSS_D14 (0xd80020f8): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AA27_34XX_DSS_D15 (0xd80020fa): 0x0000 -> 0x0108
-> > > > <4>MUX: setup G26_34XX_DSS_D16 (0xd80020fc): 0x0000 -> 0x0108
-> > > > <4>MUX: setup H27_34XX_DSS_D17 (0xd80020fe): 0x0000 -> 0x0108
-> > > > <4>MUX: setup H26_34XX_DSS_D18 (0xd8002100): 0x0000 -> 0x0108
-> > > > <4>MUX: setup H25_34XX_DSS_D19 (0xd8002102): 0x0000 -> 0x0108
-> > > > <4>MUX: setup E28_34XX_DSS_D20 (0xd8002104): 0x0000 -> 0x0108
-> > > > <4>MUX: setup J26_34XX_DSS_D21 (0xd8002106): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AC27_34XX_DSS_D22 (0xd8002108): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AC27_34XX_DSS_D23 (0xd800210a): 0x0000 -> 0x0108
-> > > > <4>MUX: setup AD2_34XX_GPIO154 (0xd8002188): 0x0101 -> 0x0004
-> > > > <4>MUX: setup AC1_34XX_GPIO155 (0xd800218a): 0x0101 -> 0x0004
-> > > > <6>omapfb: configured for panel 15
-> > > > omapfb_do_probe:1733
-> > > > <6>omapfb: DISPC version 3.0 initialized
-> > > > omapfb_do_probe:1741
-> > > > omapfb_do_probe:1745
-> > > > planes_init:1540 region_cnt 1
-> > > > <4>------------[ cut here ]------------
-> > > > <4>WARNING: at kernel/mutex.c:207
-> > __mutex_lock_slowpath+0xb8/0x240()
-> > > > <d>Modules linked in:
-> > > > [<c0033444>] (unwind_backtrace+0x0/0xd4) from [<c005a02c>]
-> > > > (warn_slowpath_common+0x4c/0x68)
-> > > > [<c005a02c>] (warn_slowpath_common+0x4c/0x68) from [<c02dc104>]
-> > > > (__mutex_lock_slowpath+0xb8/0x240)
-> > > > [<c02dc104>] (__mutex_lock_slowpath+0xb8/0x240) from
-> > [<c02dc298>]
-> > > > (mutex_lock+0xc/0x1c)
-> > > > [<c02dc298>] (mutex_lock+0xc/0x1c) from [<c01a417c>] (set_fb_fix
-> > > > +0x40/0xcc)
-> > > > [<c01a417c>] (set_fb_fix+0x40/0xcc) from [<c01a4dc8>]
-> > (omapfb_do_probe
-> > > > +0x4d0/0x9d0)
-> > > > [<c01a4dc8>] (omapfb_do_probe+0x4d0/0x9d0) from [<c01a7ef4>]
-> > > > (omap3logic_panel_probe+0x4c/0x6c)
-> > > > [<c01a7ef4>] (omap3logic_panel_probe+0x4c/0x6c) from
-> > [<c01cbfe8>]
-> > > > (platform_drv_probe+0x1c/0x24)
-> > > > [<c01cbfe8>] (platform_drv_probe+0x1c/0x24) from [<c01cb22c>]
-> > > > (driver_probe_device+0xb8/0x164)
-> > > > [<c01cb22c>] (driver_probe_device+0xb8/0x164) from [<c01cb338>]
-> > > > (__driver_attach+0x60/0x84)
-> > > > [<c01cb338>] (__driver_attach+0x60/0x84) from [<c01ca6b8>]
-> > > > (bus_for_each_dev+0x48/0x80)
-> > > > [<c01ca6b8>] (bus_for_each_dev+0x48/0x80) from [<c01cac48>]
-> > > > (bus_add_driver+0xa0/0x224)
-> > > > [<c01cac48>] (bus_add_driver+0xa0/0x224) from [<c01cb634>]
-> > > > (driver_register+0xac/0x134)
-> > > > [<c01cb634>] (driver_register+0xac/0x134) from [<c002d2b0>]
-> > > > (do_one_initcall+0x50/0x17c)
-> > > > [<c002d2b0>] (do_one_initcall+0x50/0x17c) from [<c000888c>]
-> > (kernel_init
-> > > > +0x88/0x100)
-> > > > [<c000888c>] (kernel_init+0x88/0x100) from [<c002ece0>]
-> > > > (kernel_thread_exit+0x0/0x8)
-> > > >
-> > > > I believe the problem is in set_fb_fix() (called from
-> > planes_init())
-> > > > trying to pull the lock for fbi->mm_lock which is not
-> > initialized since
-> > > > register_framebuffer() has not yet been called (called after
-> > > > planes_init() is called).
-> > > >
-> > > > Any ideas what I'm doing wrong?
-> > > >
-> > >
-> > >
-> > > Maybe this patch will help?
-> > >
-> > > <http://patchwork.kernel.org/patch/42995/>
-> > 
-> > Thanks, that got me past the issue, but now, I get a whole raft of:
-> > 
-> > <4>__ratelimit: 1736188 callbacks suppressed
-> > __ratelimit: 1736188 callbacks suppressed
-> > <3>omapfb omapfb: irq error status 4040
-> > omapfb omapfb: irq error status 4040
-> > <3>omapfb omapfb: irq error status 4062
-> > omapfb omapfb: irq error status 4062
-> > <3>omapfb omapfb: irq error status 4040
-> > omapfb omapfb: irq error status 4040
-> > <3>omapfb omapfb: irq error status 4062
-> > omapfb omapfb: irq error status 4062
-> > 
-> > The log shows my panel timing:
-> > 
-> > omapfb: configured for panel 15
-> > omapfb: DISPC version 3.0 initialized
-> > Console: switching to colour frame buffer device 60x34
-> > omapfb: Framebuffer initialized. Total vram 262144 planes 1
-> > omapfb: Pixclock 9818 kHz hfreq 18.9 kHz vfreq 67.0 Hz
-> > 
-> > Which is pretty slow (omap3evm pixclock is 26MHz...).
-> > 
-> > What could be causing the fifo to underflow?
-> [Hiremath, Vaibhav] Can you please provide Dispc and GFX register dump?
-
-Unfortunately the kernel doesn't get to a prompt as its suffering the
-video interrupt storm and overwhelms the console.
-
-The lcd_panel structure passed to omap_register_panel() is:
-
-  {
-	.name		= "15",
-	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC |
-OMAP_LCDC_INV_HSYNC,
-
-	.bpp		= 16,
-	.data_lines	= 16,
-	.x_res		= 480,
-	.y_res		= 272,
-	.pixel_clock	= 10000,
-	.hsw		= 41,	
-	.hfp		= 2,	
-	.hbp		= 2,	
-	.vsw		= 2,	
-	.vfp		= 2,	
-	.vbp		= 3,	
-
-	.init		= omap3logic_panel_init,
-	.cleanup	= omap3logic_panel_cleanup,
-	.enable		= omap3logic_panel_enable,
-	.disable	= omap3logic_panel_disable,
-	.get_caps	= omap3logic_panel_get_caps,
-	.set_bklight_level      = omap3logic_bklight_setlevel,
-	.get_bklight_level      = omap3logic_bklight_getlevel,
-	.get_bklight_max        = omap3logic_bklight_getmaxlevel,
-  }
-
-where the init only sets up and sequences the enable/backlight GPIO,
-using a 300mS delay between the init and backlight to make sure that the
-clocks provided to the panel have enough time to initialize the panel
-(LQ043T1DG01) before the backlight is turned on.
-
-If I can get it to come up, how can I dump out the DISPC/GFX register
-set from Linux (is it in a debugfs file)?
-
-> Thanks,
-> Vaibhav
-> > 
-> > --
-> > Peter Barada <peterb@logicpd.com>
-> > Logic Product Development, Inc.
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> > omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -----Original Message-----
+> From: Peter Barada [mailto:peterb@logicpd.com]
+> Sent: Wednesday, August 26, 2009 9:39 AM
+> To: Hiremath, Vaibhav
+> Cc: Gadiyar, Anand; linux-omap
+> Subject: RE: Problem tryhing to bring up new LCD on OMAP Logic board
 > 
--- 
-Peter Barada <peterb@logicpd.com>
-Logic Product Development, Inc.
+> On Wed, 2009-08-26 at 08:33 +0530, Hiremath, Vaibhav wrote:
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Peter Barada
+> > > Sent: Wednesday, August 26, 2009 1:37 AM
+> > > To: Gadiyar, Anand
+> > > Cc: linux-omap
+> > > Subject: RE: Problem tryhing to bring up new LCD on OMAP Logic
+> board
+> > >
+> > > On Wed, 2009-08-26 at 00:51 +0530, Gadiyar, Anand wrote:
+> > > > > I'm using 2.6.31-rc5 from Kevin's PM branch (commit ID
+> > > > > 70a1f2249bbe765f78cf5e220e4e3f539b41eb7f) and I'm trying to
+> add
+> > > in LCD
+> > > > > panel support for our OMAP boards.
+<snip>
+> > >
+> > > Which is pretty slow (omap3evm pixclock is 26MHz...).
+> > >
+> > > What could be causing the fifo to underflow?
+> > [Hiremath, Vaibhav] Can you please provide Dispc and GFX register
+> dump?
+> 
+> Unfortunately the kernel doesn't get to a prompt as its suffering
+> the
+> video interrupt storm and overwhelms the console.
+> 
+> The lcd_panel structure passed to omap_register_panel() is:
+> 
+>   {
+> 	.name		= "15",
+> 	.config		= OMAP_LCDC_PANEL_TFT | OMAP_LCDC_INV_VSYNC
+> |
+> OMAP_LCDC_INV_HSYNC,
+> 
+> 	.bpp		= 16,
+> 	.data_lines	= 16,
+> 	.x_res		= 480,
+> 	.y_res		= 272,
+> 	.pixel_clock	= 10000,
+> 	.hsw		= 41,
+> 	.hfp		= 2,
+> 	.hbp		= 2,
+> 	.vsw		= 2,
+> 	.vfp		= 2,
+> 	.vbp		= 3,
+> 
+> 	.init		= omap3logic_panel_init,
+> 	.cleanup	= omap3logic_panel_cleanup,
+> 	.enable		= omap3logic_panel_enable,
+> 	.disable	= omap3logic_panel_disable,
+> 	.get_caps	= omap3logic_panel_get_caps,
+> 	.set_bklight_level      = omap3logic_bklight_setlevel,
+> 	.get_bklight_level      = omap3logic_bklight_getlevel,
+> 	.get_bklight_max        = omap3logic_bklight_getmaxlevel,
+>   }
+> 
+> where the init only sets up and sequences the enable/backlight GPIO,
+> using a 300mS delay between the init and backlight to make sure that
+> the
+> clocks provided to the panel have enough time to initialize the
+> panel
+> (LQ043T1DG01) before the backlight is turned on.
+> 
+[Hiremath, Vaibhav] Fortunately I had interfaced same LCD panel from Logic-PD with OMAP-DSS IP, you have to add delay in dpi.c file before panel->enable function call. Below is the code snippet and timing parameters which I used - 
+
+static int dpi_display_enable(struct omap_display *display)
+{
+.........
+	/*This dealy is required as per LCD (lq043t1dg01) spec */
+	mdelay(300);
+
+	r = panel->enable(display);
+.....
+
+}
+static int sharp_ls_panel_enable(struct omap_display *display)
+{
+	int r = 0;
+
+	/* wait couple of vsyncs until enabling the LCD */
+	msleep(50);
+
+	if (display->hw_config.panel_enable)
+		r = display->hw_config.panel_enable(display);
+
+	return r;
+}
+
+static void sharp_ls_panel_disable(struct omap_display *display)
+{
+	if (display->hw_config.panel_disable)
+		display->hw_config.panel_disable(display);
+
+	/* wait at least 5 vsyncs after disabling the LCD */
+
+	msleep(100);
+}
+
+static struct omap_panel sharp_ls_panel = {
+	.owner		= THIS_MODULE,
+	.name		= "sharp-lq043t1dg01",
+	.init		= sharp_ls_panel_init,
+	.cleanup	= sharp_ls_panel_cleanup,
+	.enable		= sharp_ls_panel_enable,
+	.disable	= sharp_ls_panel_disable,
+	.suspend	= sharp_ls_panel_suspend,
+	.resume		= sharp_ls_panel_resume,
+
+	.timings = {
+		.x_res = 480,
+		.y_res = 272,
+
+		.pixel_clock	= 9000,
+
+		.hsw		= 42,
+		.hfp		= 3,
+		.hbp		= 2,
+
+		.vsw		= 11,
+		.vfp		= 3,
+		.vbp		= 2,
+	},
+
+	.acb		= 0,
+
+	.config	= OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |	OMAP_DSS_LCD_IHS |
+		OMAP_DSS_LCD_IEO,
+};
+
+
+> If I can get it to come up, how can I dump out the DISPC/GFX
+> register
+> set from Linux (is it in a debugfs file)?
+> 
+[Hiremath, Vaibhav] For register dump you can make use of /dev/mem device node which will allow you to read physical memory. Just google for devmem.c, you will get one sample application, you just compile it and it should be ready to use.
+
+Syntax for devmem is - 
+
+./devmem.o -r -4 -l <size in bytes> <physical address>
+
+
+Thanks,
+Vaibhav
+
+> > Thanks,
+> > Vaibhav
+> > >
+> > > --
+> > > Peter Barada <peterb@logicpd.com>
+> > > Logic Product Development, Inc.
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-
+> > > omap" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-
+> info.html
+> >
+> --
+> Peter Barada <peterb@logicpd.com>
+> Logic Product Development, Inc.
+
