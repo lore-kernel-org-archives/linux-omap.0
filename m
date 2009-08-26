@@ -1,65 +1,33 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH] omap iommu: avoid remapping if it's been mapped in MPU side
-Date: Wed, 26 Aug 2009 13:45:40 +0300 (EEST)
-Message-ID: <20090826.134540.189712717.Hiroshi.DOYU@nokia.com>
-References: <1251283037-19573-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+From: Ben Dooks <ben@simtec.co.uk>
+Subject: Re:
+Date: Wed, 26 Aug 2009 12:10:05 +0100
+Message-ID: <4A95180D.8020006@simtec.co.uk>
+References: <45433.192.168.10.88.1251196459.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:60425 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757159AbZHZKpq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 26 Aug 2009 06:45:46 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n7QAiGBr004228
-	for <linux-omap@vger.kernel.org>; Wed, 26 Aug 2009 05:45:17 -0500
-Received: from localhost (esdhcp04130.research.nokia.com [172.21.41.30])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n7QAjZEN029950
-	for <linux-omap@vger.kernel.org>; Wed, 26 Aug 2009 13:45:36 +0300
-In-Reply-To: <1251283037-19573-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <45433.192.168.10.88.1251196459.squirrel@dbdmail.itg.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Syed Rafiuddin <rafiuddin.syed@ti.com>
+Cc: soni.trilok@gmail.com, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-input@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Syed Rafiuddin wrote:
+> From: Syed Rafiuddin <rafiuddin.syed@ti.com>
+> 
+> This patch Adds Keypad support on OMAP4.And adds
+> OMAP4 register addresses and configures them for  OMAP4.
 
-MPU side (v)-(p) mapping is necessary only if IOVMF_MMIO is set in
-"flags".
+[SNIP]
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/iovmm.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index 6fc52fc..004fd83 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -615,7 +615,7 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
- 		 u32 flags)
- {
- 	size_t bytes;
--	void *va;
-+	void *va = NULL;
- 
- 	if (!obj || !obj->dev || !sgt)
- 		return -EINVAL;
-@@ -625,9 +625,11 @@ u32 iommu_vmap(struct iommu *obj, u32 da, const struct sg_table *sgt,
- 		return -EINVAL;
- 	bytes = PAGE_ALIGN(bytes);
- 
--	va = vmap_sg(sgt);
--	if (IS_ERR(va))
--		return PTR_ERR(va);
-+	if (flags & IOVMF_MMIO) {
-+		va = vmap_sg(sgt);
-+		if (IS_ERR(va))
-+			return PTR_ERR(va);
-+	}
- 
- 	flags &= IOVMF_HW_MASK;
- 	flags |= IOVMF_DISCONT;
--- 
-1.5.6.5
-
+Subjects are considered useful, please supply at-least semi
+meaningful subject next time!
