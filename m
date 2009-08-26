@@ -1,144 +1,149 @@
-From: "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
-Subject: RE: [PATCH] usb: disable OTG AUTOIDLE only with omap3430
-Date: Wed, 26 Aug 2009 20:22:05 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9A44806@dbde02.ent.ti.com>
-References: <1242658456-5723-1-git-send-email-ext-niilo.1.minkkinen@nokia.com>
- 	<13B9B4C6EF24D648824FF11BE8967162038BED5CF1@dlee02.ent.ti.com>
- 	<19F8576C6E063C45BE387C64729E73940436A4A15B@dbde02.ent.ti.com>
- <fb705f540908260653l990f173n8b953ebc893efb9e@mail.gmail.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: Audio capture not working with AIC23/McBSP1 on
+ OMAP3517
+Date: Wed, 26 Aug 2009 18:01:41 +0300
+Message-ID: <20090826180141.37dca666.jhnikula@gmail.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9D82D@dbde02.ent.ti.com>
+	<20090826130356.GB29299@sirena.org.uk>
+	<20090826164239.a574d4ab.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <fb705f540908260653l990f173n8b953ebc893efb9e-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Niilo Minkkinen <niilo.minkkinen-X3B1VOXEql0@public.gmane.org>, "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "Woodruff, Richard" <r-woodruff2-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090826164239.a574d4ab.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Wed, 26 Aug 2009 16:42:39 +0300
+Jarkko Nikula <jhnikula@gmail.com> wrote:
+
+> Those recent patches should not any effect into this since they are
+> mostly playing with the McBSP and DMA interfacing. What comes to my
+> mind if muxing is correct and if codec is master, this might be related
+> to those McBSP1 FSR and CLKR setup.
+> 
+Anuj: I think the issue is here that by default McBSP1 receiver is
+using the CLKR and FSR pins and if those are not connected, then the
+capture doesn't work. Can you try a patch below and add following lines
+into your machine driver?
+
+snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_CLKR_SRC_CLKX, 0,
+SND_SOC_CLOCK_IN);
+snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
+SND_SOC_CLOCK_IN);
+
+Patch is compile tested only, generated against mainline 2.6.31-rc7 but should
+apply to ALSA tree as well.
 
 
->-----Original Message-----
->From: linux-omap-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-omap-owner@vger.k=
-ernel.org] On Behalf Of Niilo
->>> > Omap3 MUSB AUTOIDLE functionality configured through OTG_SYSCONFI=
-G
->>> > register prevents the device from going into retention.
->>> > This is a workaround (by Richard Woodruff/TI), as his comment :
->>> > > A new MUSB bug which is a match to data below was identified ve=
-ry
->>> > > recently (on hardware and in simulation).
->>> > > This bug is in 3430 and not 3630.
->>> > > As a priority test (and as new default) you should have enginee=
-rs
->>> > > disable autoidle for MUSB block.
->>> > > This is the workaround which will show up in next errata.
->>> >
->>> > Signed-off-by: Niilo Minkkinen <ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
->>>
->>> Signed-off-by: Richard Woodruff <r-woodruff2-l0cyMroinI0@public.gmane.org>
->>>
->>> Yes this is needed for 34xx. Side note is this cost around 1mW of p=
-ower
->>> during active mode of MUSB. When device is not active cost is not
->>> significant. =A0System impact depends on duty cycle of MUSB in usec=
-ase.
->>
->> Richard/Niilo,
->> =A0 =A0 =A0 =A0This should also be applicable to 35xx (right?) =A0an=
-d so we got to
->> update the fix with below patch.
->>
->> Regards,
->> Ajay
->>
->
->Don't have access to spec/errata of 35xx just now ;).
->Could Richard confirm, if this also applies (as original comment said)=
- .
+-- 
+Jarkko
 
-There is an official errata on MUSB auto-idle not to be set:=20
-Errata 1.164
+==================== CUT HERE ====================
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH] ASoC: OMAP: Add functionality to set CLKR and FSR sources in McBSP DAI
 
-There might be NDA issues with sharing the errata document, and so cann=
-ot attach.
-I have not come across a public omap errata document yet.
+The McBSP1 port in OMAP3 processors (I believe OMAP2 too but I don't have
+specifications to check it) have additional CLKR and FSR pins for McBSP1
+receiver. Reset default is that receiver is using bit clock and frame
+sync signal from those pins but it is possible to configure to use
+also CLKX and FSX pins as well. In fact, other McBSP ports are doing that
+internally that transmitter and receiver share the CLKX and FSX.
 
->
->-niilo-
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D patch =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> There is an issue with MUSB AUTOIDLE as reported by Niilo Minkkinen =
-in below commit.
->>
->> 9a4b5e36ce58febdd2039dd4d129ee7edf4f5536
->> usb: musb: disable OTG AUTOIDLE only with omap3430
->>
->> As OMAP35x is just a variant of OMAP34xx chip thus the fix is also a=
-pplicable for OMAP35x so
->updating it for OMAP35x.
->>
->> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
->> ---
->> =A0drivers/usb/musb/omap2430.c | =A0 =A02 +-
->> =A01 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430=
-=2Ec index 453796c..ab8336d
->100644
->> --- a/drivers/usb/musb/omap2430.c
->> +++ b/drivers/usb/musb/omap2430.c
->> @@ -233,7 +233,7 @@ int __init musb_platform_init(struct musb *musb)
->> =A0 =A0 =A0 =A0 * MUSB AUTOIDLE don't work in 3430.
->> =A0 =A0 =A0 =A0 * Workaround by Richard Woodruff/TI
->> =A0 =A0 =A0 =A0 */
->> - =A0 =A0 =A0 if (!cpu_is_omap3430())
->> + =A0 =A0 =A0 if (!cpu_is_omap3430() && !cpu_is_omap35xx())
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0l |=3D AUTOIDLE; =A0 =A0 =A0 =A0 =A0/=
-* enable auto idle */
->> =A0 =A0 =A0 =A0omap_writel(l, OTG_SYSCONFIG);
->>
->> --
->> 1.6.2.4
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->>
->>>
->>> Regards,
->>> Richard W.
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-usb=
-" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
->
->
->
->--
->---------------------------------
->Niilo Minkkinen
->Kalhontie 69C
->40950 MUURAME
->+358407324526
->niilo.minkkinen-X3B1VOXEql0@public.gmane.org
->----------------------------------
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" =
-in
->the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Add functionaly that machine drivers can set the CLKR and FSR sources by
+using the snd_soc_dai_set_sysclk.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks to "Aggarwal, Anuj" <anuj.aggarwal@ti.com> for reporting the issue.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+ sound/soc/omap/omap-mcbsp.c |   41 +++++++++++++++++++++++++++++++++++++++++
+ sound/soc/omap/omap-mcbsp.h |    4 ++++
+ 2 files changed, 45 insertions(+), 0 deletions(-)
+
+diff --git a/sound/soc/omap/omap-mcbsp.c b/sound/soc/omap/omap-mcbsp.c
+index a5d46a7..2ea2136 100644
+--- a/sound/soc/omap/omap-mcbsp.c
++++ b/sound/soc/omap/omap-mcbsp.c
+@@ -462,6 +462,40 @@ static int omap_mcbsp_dai_set_clks_src(struct omap_mcbsp_data *mcbsp_data,
+ 	return 0;
+ }
+ 
++static int omap_mcbsp_dai_set_rcvr_src(struct omap_mcbsp_data *mcbsp_data,
++				       int clk_id)
++{
++	int sel_bit, set = 0;
++	u16 reg = OMAP2_CONTROL_DEVCONF0;
++
++	if (cpu_class_is_omap1())
++		return -EINVAL; /* TODO: Can this be implemented for OMAP1? */
++	if (mcbsp_data->bus_id != 0)
++		return -EINVAL;
++
++	switch (clk_id) {
++	case OMAP_MCBSP_CLKR_SRC_CLKX:
++		set = 1;
++	case OMAP_MCBSP_CLKR_SRC_CLKR:
++		sel_bit = 3;
++		break;
++	case OMAP_MCBSP_FSR_SRC_FSX:
++		set = 1;
++	case OMAP_MCBSP_FSR_SRC_FSR:
++		sel_bit = 4;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	if (set)
++		omap_ctrl_writel(omap_ctrl_readl(reg) | (1 << sel_bit), reg);
++	else
++		omap_ctrl_writel(omap_ctrl_readl(reg) & ~(1 << sel_bit), reg);
++
++	return 0;
++}
++
+ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
+ 					 int clk_id, unsigned int freq,
+ 					 int dir)
+@@ -484,6 +518,13 @@ static int omap_mcbsp_dai_set_dai_sysclk(struct snd_soc_dai *cpu_dai,
+ 	case OMAP_MCBSP_SYSCLK_CLKR_EXT:
+ 		regs->pcr0	|= SCLKME;
+ 		break;
++
++	case OMAP_MCBSP_CLKR_SRC_CLKR:
++	case OMAP_MCBSP_CLKR_SRC_CLKX:
++	case OMAP_MCBSP_FSR_SRC_FSR:
++	case OMAP_MCBSP_FSR_SRC_FSX:
++		err = omap_mcbsp_dai_set_rcvr_src(mcbsp_data, clk_id);
++		break;
+ 	default:
+ 		err = -ENODEV;
+ 	}
+diff --git a/sound/soc/omap/omap-mcbsp.h b/sound/soc/omap/omap-mcbsp.h
+index c8147aa..647d2f9 100644
+--- a/sound/soc/omap/omap-mcbsp.h
++++ b/sound/soc/omap/omap-mcbsp.h
+@@ -32,6 +32,10 @@ enum omap_mcbsp_clksrg_clk {
+ 	OMAP_MCBSP_SYSCLK_CLK,		/* Internal ICLK */
+ 	OMAP_MCBSP_SYSCLK_CLKX_EXT,	/* External CLKX pin */
+ 	OMAP_MCBSP_SYSCLK_CLKR_EXT,	/* External CLKR pin */
++	OMAP_MCBSP_CLKR_SRC_CLKR,	/* CLKR from CLKR pin */
++	OMAP_MCBSP_CLKR_SRC_CLKX,	/* CLKR from CLKX pin */
++	OMAP_MCBSP_FSR_SRC_FSR,		/* FSR from FSR pin */
++	OMAP_MCBSP_FSR_SRC_FSX,		/* FSR from FSX pin */
+ };
+ 
+ /* McBSP dividers */
+-- 
+1.6.3.3
