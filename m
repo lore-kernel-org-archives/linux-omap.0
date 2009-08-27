@@ -1,150 +1,88 @@
-From: Maxime Petazzoni <mpetazzoni@mvista.com>
-Subject: [PATCH] OMAP3: Zoom2: provide default MTD partitions
-Date: Thu, 27 Aug 2009 13:59:46 +0200
-Message-ID: <1251374386-6733-1-git-send-email-mpetazzoni@mvista.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH 1/5] OMAP1/2/3/4: DEBUG_LL: cleanup
+Date: Thu, 27 Aug 2009 18:34:54 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9A44CAC@dbde02.ent.ti.com>
+References: <1250877324-10494-1-git-send-email-vikram.pandita@ti.com>
+	<4A8FA4E7.9020206@deeprootsystems.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702F9A44895@dbde02.ent.ti.com>
+ <87hbvtfw8g.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([63.81.120.158]:62957 "EHLO
-	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750963AbZH0MVr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 08:21:47 -0400
-Received: from localhost (unknown [10.254.1.77])
-	by hermes.mvista.com (Postfix) with ESMTP id 2B52A1B1B8
-	for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 05:01:43 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:48037 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751090AbZH0NFT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 09:05:19 -0400
+In-Reply-To: <87hbvtfw8g.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 
-This change introduces default MTD partitions for the Zoom-II board
-NAND, inspired by the OMAP3 Beagle partitions and the OMAP3 Zoom2
-partitions defined in OmapZoom.org's OMAP kernel.
 
-The size of the U-Boot environment partition was increased to 1MB, as
-the previously smaller partition couldn't contain the U-Boot environment
-correctly (erasing the next partition would erase the U-Boot env as
-well).
 
-Finally, the "system" partition gets an increased size of 256MB to take
-advantage of the size of the flash on the Zoom-II board.
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>"Pandita, Vikram" <vikram.pandita@ti.com> writes:
+>
+>>>Vikram Pandita wrote:
+>>>> This patch cleans up the DEBUG_LL infrastructure for omap boards.
+>>>
+>>
+>> Could you give reference to this code on DaVinci?
+>
+>http://git.kernel.org/?p=linux/kernel/git/khilman/linux-davinci.git;a=blobdiff;f=arch/arm/mach-
+>davinci/include/mach/uncompress.h;h=0f1f12b67875f86232c0e06e1a687a6d7f19b18a;hp=1e27475f9a2322f1a4f61
+>e25fd1a1e5858e29fc2;hb=bb9647f44b091ebff17f400bb2a468c7e419f3ac;hpb=0dc6306a65f30c0483cfed9b3e8ee1eb3
+>d093e84
+>
+>>
+>> Yes this is doable, but the question is, how do we pass these variables to the kernel start:
+>> arch/arm/kernel/head.S
+>>
+>> First stage, arch/arm/boot/compressed/head.S gets the arch type -> shift/uart-addr. Fine.
+>> This stage ends with relocated code over righting the decompressor.
+>>
+>> Second stage, arch/arm/kernel/head.S now starts.
+>>
+>> I am not sure how to share the data from Stage 1 in this stage?
+>
+>This is already taken care of.
+>
+>The zImage boot passes the machine-type in a register, then
+>arch/arm/kernel/head.S uses that to decide which machine to start.
+>This is where the MACHINE_START/MACHINE_END macros come in to
+>define the machine-specific hooks called at boot time.
 
-Signed-off-by: Maxime Petazzoni <mpetazzoni@mvista.com>
----
- arch/arm/mach-omap2/board-zoom2.c |   86 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 86 insertions(+), 0 deletions(-)
+Yes. I agree. I have reviewed that path.
 
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-index 4d295d5..ce5a4d8 100644
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -16,16 +16,101 @@
- #include <linux/gpio.h>
- #include <linux/i2c/twl4030.h>
- #include <linux/regulator/machine.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/mtd/nand.h>
- 
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
- 
- #include <mach/common.h>
-+#include <mach/nand.h>
- #include <mach/usb.h>
- #include <mach/keypad.h>
- 
- #include "mmc-twl4030.h"
- 
-+#define LDP3430_NAND_CS	0
-+#define GPMC_CS0_BASE	0x60
-+#define GPMC_CS_SIZE	0x30
-+
-+static struct mtd_partition zoom2_nand_partitions[] = {
-+	{
-+		.name		= "X-Loader-NAND",
-+		.offset		= 0,
-+		.size		= 4 * (64 * 2048),	/* 512kB */
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-+		.size		= 4 * (64 * 2048),	/* 512kB */
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "Boot Env-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x100000 */
-+		.size		= 8 * (64 * 2048),	/* 1MB */
-+	},
-+	{
-+		.name		= "Kernel-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x200000 */
-+		.size		= 32 * (64 * 2048),	/* 4MB */
-+	},
-+	{
-+		.name		= "system",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x600000 */
-+		.size		= 2048 * (64 * 2048),	/* 256MB */
-+	},
-+	{
-+		.name		= "userdata",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x10600000 */
-+		.size		= 512 * (64 * 2048),	/* 64MB */
-+	},
-+	{
-+		.name		= "cache",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x14600000 */
-+		.size		= 512 * (64 * 2048),	/* 64MB */
-+	},
-+};
-+
-+/* NAND chip access: 16 bit */
-+static struct omap_nand_platform_data zoom2_nand_data = {
-+	.parts		= zoom2_nand_partitions,
-+	.nr_parts	= ARRAY_SIZE(zoom2_nand_partitions),
-+	.nand_setup	= NULL,
-+	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
-+	.dev_ready	= NULL,
-+};
-+
-+static struct resource zoom2_nand_resource = {
-+	.flags		= IORESOURCE_MEM,
-+};
-+
-+static struct platform_device zoom2_nand_device = {
-+	.name		= "omap2-nand",
-+	.id		= 0,
-+	.dev		= {
-+		.platform_data = &zoom2_nand_data,
-+	},
-+	.num_resources	= 1,
-+	.resource	= &zoom2_nand_resource,
-+};
-+
-+static void __init zoom2_flash_init(void)
-+{
-+	u8 nandcs = LDP3430_NAND_CS;
-+	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
-+
-+	zoom2_nand_data.cs = nandcs;
-+	zoom2_nand_data.gpmc_cs_baseaddr = (void *)(gpmc_base_add +
-+			GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-+	zoom2_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
-+
-+	if (platform_device_register(&zoom2_nand_device) < 0)
-+		printk(KERN_ERR "Unable to register NAND device!\n");
-+}
-+
- /* Zoom2 has Qwerty keyboard*/
- static int zoom2_twl4030_keymap[] = {
- 	KEY(0, 0, KEY_E),
-@@ -271,6 +356,7 @@ static void __init omap_zoom2_init(void)
- 	omap_serial_init(&zoom2_uart_config);
- 	omap_zoom2_debugboard_init();
- 	usb_musb_init();
-+	zoom2_flash_init();
- }
- 
- static void __init omap_zoom2_map_io(void)
--- 
-1.6.3.3.210.g29cb3
+>
+>You should use one of the early machine hooks (probably .map_io)
+>to to set the UART base and shift for the board.
+
+I am looking at even earlier than that.
+
+The idea is to write to phys_io and io_pg_offset from kernel/head.S very early 
+based on the uart address found in compressed/misc.c 
+
+To make map_io writable, I will have to change the MACHINE_START to remove the const.
+It so happens that Russell has defined MACHINE_START to be a const.
+
+Not sure is removing const from MACHINE_START is acceptable?
+
+I can have a sample implementation and post to get review comments.
+
+>
+>The catch is that between the start of the head.S code and the
+>mach->map_io hook, printascii() may be called and use the debug
+>macros to try to print out chars.  Care must be taken that
+>if the UART is not yet known/defined, nothing is printed.
+
+That is easy and can be taken care of.
+
+>
+>Kevin
+>
 
