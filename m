@@ -1,72 +1,92 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/5] OMAP1/2/3/4: DEBUG_LL: cleanup
-Date: Thu, 27 Aug 2009 12:21:19 +0300
-Message-ID: <87hbvtfw8g.fsf@deeprootsystems.com>
-References: <1250877324-10494-1-git-send-email-vikram.pandita@ti.com>
-	<4A8FA4E7.9020206@deeprootsystems.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F9A44895@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/1] omap mailbox: execute softreset at startup
+Date: Thu, 27 Aug 2009 12:33:32 +0300
+Message-ID: <1251365612-26258-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:48863 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928AbZH0JV0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 05:21:26 -0400
-Received: by bwz19 with SMTP id 19so826880bwz.37
-        for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 02:21:27 -0700 (PDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F9A44895@dbde02.ent.ti.com> (Vikram Pandita's message of "Thu\, 27 Aug 2009 08\:08\:14 +0530")
+Received: from smtp.nokia.com ([192.100.122.230]:60269 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751972AbZH0Jdx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 05:33:53 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n7R9XKVU007757
+	for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 12:33:46 +0300
+Received: from oreo.research.nokia.com (esdhcp04130.research.nokia.com [172.21.41.30])
+	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n7R9XU32021283
+	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 12:33:31 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
+To: linux-omap@vger.kernel.org
+Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-"Pandita, Vikram" <vikram.pandita@ti.com> writes:
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
->>Vikram Pandita wrote:
->>> This patch cleans up the DEBUG_LL infrastructure for omap boards.
->>
->>Thanks Vikram, this is indeed in need of some cleanup.  But I have some
->>comments about the approach taken.
->>
->>This approach still doesn't solve one of the fundamental problems with
->>the current implementation.  It prevents using a single kernel across
->>multiple boards.  If we could drop the compile-time decision in favor of
->>a runtime one based on machine-type, we could use a single base
->>defconfig that would be able to be tested on all omap3 boards for example.
->>
->>For the zImage UART output (uncompress.h) there is a global variable
->>__machine_arch_type which could be used to check the board type and set
->>variable for UART base and shift.  We do this on DaVinci.
->
-> Could you give reference to this code on DaVinci?
+The softreset at startup is introduced as TRM describes and also some
+register bit definitions are added instead of magic number.
 
-http://git.kernel.org/?p=linux/kernel/git/khilman/linux-davinci.git;a=blobdiff;f=arch/arm/mach-davinci/include/mach/uncompress.h;h=0f1f12b67875f86232c0e06e1a687a6d7f19b18a;hp=1e27475f9a2322f1a4f61e25fd1a1e5858e29fc2;hb=bb9647f44b091ebff17f400bb2a468c7e419f3ac;hpb=0dc6306a65f30c0483cfed9b3e8ee1eb3d093e84
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+---
+ arch/arm/mach-omap2/mailbox.c |   30 +++++++++++++++++++++++++-----
+ 1 files changed, 25 insertions(+), 5 deletions(-)
 
->
-> Yes this is doable, but the question is, how do we pass these variables to the kernel start:
-> arch/arm/kernel/head.S
->
-> First stage, arch/arm/boot/compressed/head.S gets the arch type -> shift/uart-addr. Fine.
-> This stage ends with relocated code over righting the decompressor.
->
-> Second stage, arch/arm/kernel/head.S now starts.
->
-> I am not sure how to share the data from Stage 1 in this stage?
-
-This is already taken care of.
-
-The zImage boot passes the machine-type in a register, then
-arch/arm/kernel/head.S uses that to decide which machine to start. 
-This is where the MACHINE_START/MACHINE_END macros come in to
-define the machine-specific hooks called at boot time.
-
-You should use one of the early machine hooks (probably .map_io)
-to to set the UART base and shift for the board.
-
-The catch is that between the start of the head.S code and the
-mach->map_io hook, printascii() may be called and use the debug
-macros to try to print out chars.  Care must be taken that
-if the UART is not yet known/defined, nothing is printed.
-
-Kevin
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 6f71f37..5bf9a2f 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -30,6 +30,14 @@
+ #define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
+ #define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
+ 
++/* SYSCONFIG: register bit definition */
++#define AUTOIDLE	(1 << 0)
++#define SOFTRESET	(1 << 1)
++#define SMARTIDLE	(2 << 3)
++
++/* SYSSTATUS: register bit definition */
++#define RESETDONE	(1 << 0)
++
+ #define MBOX_REG_SIZE			0x120
+ #define MBOX_NR_REGS			(MBOX_REG_SIZE / sizeof(u32))
+ 
+@@ -69,21 +77,33 @@ static inline void mbox_write_reg(u32 val, size_t ofs)
+ /* Mailbox H/W preparations */
+ static int omap2_mbox_startup(struct omap_mbox *mbox)
+ {
+-	unsigned int l;
++	u32 l;
++	unsigned long timeout;
+ 
+ 	mbox_ick_handle = clk_get(NULL, "mailboxes_ick");
+ 	if (IS_ERR(mbox_ick_handle)) {
+-		printk("Could not get mailboxes_ick\n");
++		pr_err("Can't get mailboxes_ick\n");
+ 		return -ENODEV;
+ 	}
+ 	clk_enable(mbox_ick_handle);
+ 
++	mbox_write_reg(SOFTRESET, MAILBOX_SYSCONFIG);
++	timeout = jiffies + msecs_to_jiffies(20);
++	do {
++		l = mbox_read_reg(MAILBOX_SYSSTATUS);
++		if (l & RESETDONE)
++			break;
++	} while (time_after(jiffies, timeout));
++
++	if (!(l & RESETDONE)) {
++		pr_err("Can't take mmu out of reset\n");
++		return -ENODEV;
++	}
++
+ 	l = mbox_read_reg(MAILBOX_REVISION);
+ 	pr_info("omap mailbox rev %d.%d\n", (l & 0xf0) >> 4, (l & 0x0f));
+ 
+-	/* set smart-idle & autoidle */
+-	l = mbox_read_reg(MAILBOX_SYSCONFIG);
+-	l |= 0x00000011;
++	l = SMARTIDLE | AUTOIDLE;
+ 	mbox_write_reg(l, MAILBOX_SYSCONFIG);
+ 
+ 	omap2_mbox_enable_irq(mbox, IRQ_RX);
+-- 
+1.6.0.4
 
