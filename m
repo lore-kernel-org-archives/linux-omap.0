@@ -1,23 +1,19 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH 7/8] DSPBRIDGE: Check return value
-Date: Thu, 27 Aug 2009 15:19:00 +0300
-Message-ID: <1251375541-1866-8-git-send-email-andy.shevchenko@gmail.com>
+Subject: [PATCH 3/8] DSPBRIDGE: Check input value
+Date: Thu, 27 Aug 2009 15:18:56 +0300
+Message-ID: <1251375541-1866-4-git-send-email-andy.shevchenko@gmail.com>
 References: <1251375541-1866-1-git-send-email-andy.shevchenko@gmail.com>
  <1251375541-1866-2-git-send-email-andy.shevchenko@gmail.com>
  <1251375541-1866-3-git-send-email-andy.shevchenko@gmail.com>
- <1251375541-1866-4-git-send-email-andy.shevchenko@gmail.com>
- <1251375541-1866-5-git-send-email-andy.shevchenko@gmail.com>
- <1251375541-1866-6-git-send-email-andy.shevchenko@gmail.com>
- <1251375541-1866-7-git-send-email-andy.shevchenko@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:17391 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803AbZH0MTM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 08:19:12 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n7RCIXDB016597
-	for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 15:18:59 +0300
-In-Reply-To: <1251375541-1866-7-git-send-email-andy.shevchenko@gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:40979 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315AbZH0MT2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 08:19:28 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n7RCIO9d026950
+	for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 07:18:59 -0500
+In-Reply-To: <1251375541-1866-3-git-send-email-andy.shevchenko@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -25,33 +21,35 @@ Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
 From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-PROC_GetProcessorId() potentially could return different to DSP_SOK status. We
-need to check it.
+Check input value before dereferencing it.
 
 Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 ---
- drivers/dsp/bridge/rmgr/drv.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/dsp/bridge/wmd/tiomap3430.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index 44d7f2d..d21071c 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -990,8 +990,12 @@ static DSP_STATUS PrintProcessInformation(void)
- 		spin_lock(&pCtxtList->proc_list_lock);
- 		list_for_each_entry(proc_obj_ptr, &pCtxtList->processor_list,
- 				proc_object) {
--			PROC_GetProcessorId(proc_obj_ptr, &procID);
--			if (procID == DSP_UNIT) {
-+			DSP_STATUS status2 = PROC_GetProcessorId(proc_obj_ptr,
-+								 &procID);
-+			if (DSP_FAILED(status2)) {
-+				GT_0trace(curTrace, GT_7CLASS, "\n***ERROR:"
-+					  "Unable to get Processor Id***\n");
-+			} else if (procID == DSP_UNIT) {
- 				GT_0trace(curTrace, GT_4CLASS,
- 					"\nProcess connected to"
- 					" DSP Processor\n");
+diff --git a/drivers/dsp/bridge/wmd/tiomap3430.c b/drivers/dsp/bridge/wmd/tiomap3430.c
+index db48c49..4cb78c7 100644
+--- a/drivers/dsp/bridge/wmd/tiomap3430.c
++++ b/drivers/dsp/bridge/wmd/tiomap3430.c
+@@ -1266,11 +1266,16 @@ static DSP_STATUS WMD_DEV_Destroy(struct WMD_DEV_CONTEXT *hDevContext)
+ 	DSP_STATUS status = DSP_SOK;
+ 	struct WMD_DEV_CONTEXT *pDevContext = (struct WMD_DEV_CONTEXT *)
+ 						hDevContext;
++
++	/* It should never happen */
++	if (!hDevContext)
++		return DSP_EHANDLE;
++
+ 	DBG_Trace(DBG_ENTER, "Entering WMD_DEV_Destroy:n hDevContext ::0x%x\n",
+ 		  hDevContext);
+ 	/* first put the device to stop state */
+ 	WMD_BRD_Delete(pDevContext);
+-	if (pDevContext && pDevContext->pPtAttrs) {
++	if (pDevContext->pPtAttrs) {
+ 		pPtAttrs = pDevContext->pPtAttrs;
+ 		if (pPtAttrs->hCSObj)
+ 			SYNC_DeleteCS(pPtAttrs->hCSObj);
 -- 
 1.5.6.5
 
