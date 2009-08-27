@@ -1,56 +1,67 @@
-From: Matthias Schwarz <matthias.schw@googlemail.com>
-Subject: Question on ISPs CFA interpolation coefficients
-Date: Thu, 27 Aug 2009 22:40:10 +0200
-Message-ID: <4A96EF2A.9090204@gmail.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: FW: [PATCH 5/5] OMAP: Zoom2: Release Dbg board detect gpio
+Date: Fri, 28 Aug 2009 04:50:35 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9A44DB9@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:44924 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752588AbZH0UkN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 16:40:13 -0400
-Received: by ewy2 with SMTP id 2so1586197ewy.17
-        for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 13:40:14 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:43116 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142AbZH0XUo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 19:20:44 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi all,
+Kevin
+Could you please line this trivial fix for Zoom2, just like you lined up the 
+[PATCH 4/5] OMAP: Zoom2: Fix serial break
 
-i just wondered how the camera interface's, especially the previewer=20
-module's CFA coefficients are setup on OMAP3530.
+That way my DEBUG_LL series will just be related to DEBUG_LL and nothing more on zoom2 fixes.
 
-The TRM also does not give too much information about it:
-> In the generic mode, CFA interpolation is implemented using=20
-> programmable filter coefficients that operate
-> on a 5x5 grid:
-> =B7 Each coefficient is coded in S8Q6 format.
-> =B7 Each output color , G, and B) has its own set of coefficients.
-> =B7 There are 4 phases. Each pixel is associated with a phase.
-> =B7 Different sets of filter coefficients are provided, depending on =
-the=20
-> tendency (gradient in the data:
-> horizontal, vertical, or neutral).
-> =B7 So there are 3 color x 4 phase x 3 tendencies x 16 taps =3D 576=20
-> coefficients (each coefficient is 8 bits
-> wide).
-> Note: Coefficients are based on sensor type. However, users can use a=
-=20
-> different methods of
-> defining an optimal coefficient set.
+-----Original Message-----
+From: Pandita, Vikram 
+Sent: Friday, August 21, 2009 1:11 PM
+To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.arm.linux.org.uk
+Cc: Pandita, Vikram
+Subject: [PATCH 5/5] OMAP: Zoom2: Release Dbg board detect gpio
 
-Also drivers/media/video/isp/cfa_coef_table.h does not provide=20
-information on what the inserted values mean and how they are arrenged.
+Release the Dbg board detection gpio once its purpose is served
 
-My question now is: is there anyone on the list who would provide me=20
-with information on how to compose these coefficients correctly?
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ arch/arm/mach-omap2/board-zoom-debugboard.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-Thank you very much,
-Matthias
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+index 4dd714d..d80e448 100644
+--- a/arch/arm/mach-omap2/board-zoom-debugboard.c
++++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
+@@ -130,6 +130,7 @@ static inline void __init zoom2_init_quaduart(void)
+ static inline int omap_zoom2_debugboard_detect(void)
+ {
+ 	int debug_board_detect = 0;
++	int ret = 1;
+ 
+ 	debug_board_detect = ZOOM2_SMSC911X_GPIO;
+ 
+@@ -141,10 +142,10 @@ static inline int omap_zoom2_debugboard_detect(void)
+ 	gpio_direction_input(debug_board_detect);
+ 
+ 	if (!gpio_get_value(debug_board_detect)) {
+-		gpio_free(debug_board_detect);
+-		return 0;
++		ret = 0;
+ 	}
+-	return 1;
++	gpio_free(debug_board_detect);
++	return ret;
+ }
+ 
+ static struct platform_device *zoom2_devices[] __initdata = {
+-- 
+1.6.3.3.334.g916e1
+
