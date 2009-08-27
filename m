@@ -1,767 +1,361 @@
-From: Linus Walleij <linus.ml.walleij-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv2 1/8] Regulator: Add TPS65023 regulator driver
-Date: Thu, 27 Aug 2009 08:22:15 +0200
-Message-ID: <63386a3d0908262322m3bb16d2dvff328b8c653b1f68@mail.gmail.com>
-References: <1250052476-28763-1-git-send-email-anuj.aggarwal@ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 02/10] OMAP: iommu: add initial debugfs support
+Date: Thu, 27 Aug 2009 10:25:39 +0300 (EEST)
+Message-ID: <20090827.102539.246514996.Hiroshi.DOYU@nokia.com>
+References: <20090816151347.GZ7278@atomide.com>
+	<20090816204732.GA23875@n2100.arm.linux.org.uk>
+	<20090817.102805.48505615.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1250052476-28763-1-git-send-email-anuj.aggarwal-l0cyMroinI0@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Anuj Aggarwal <anuj.aggarwal-l0cyMroinI0@public.gmane.org>
-Cc: broonie-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org, lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Multipart/Mixed;
+ boundary="--Next_Part(Thu_Aug_27_10_25_39_2009_374)--"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:32587 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751230AbZH0H03 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 03:26:29 -0400
+In-Reply-To: <20090817.102805.48505615.Hiroshi.DOYU@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, linux@arm.linux.org.uk
 
-2009/8/12 Anuj Aggarwal <anuj.aggarwal-l0cyMroinI0@public.gmane.org>:
+----Next_Part(Thu_Aug_27_10_25_39_2009_374)--
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-> Adding support for TI TPS65023 regulator driver
->
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal-l0cyMroinI0@public.gmane.org>
-> ---
-> =A0drivers/regulator/tps65023-regulator.c | =A0638 ++++++++++++++++++=
-++++++++++++++
-> =A01 files changed, 638 insertions(+), 0 deletions(-)
-> =A0create mode 100644 drivers/regulator/tps65023-regulator.c
->
-> diff --git a/drivers/regulator/tps65023-regulator.c b/drivers/regulat=
-or/tps65023-regulator.c
-> new file mode 100644
-> index 0000000..dbaf295
-> --- /dev/null
-> +++ b/drivers/regulator/tps65023-regulator.c
-> @@ -0,0 +1,638 @@
-> +/*
-> + * tps65023-regulator.c
-> + *
-> + * Supports TPS65023 Regulator
-> + *
-> + * Copyright (C) 2009 Texas Instrument Incorporated - http://www.ti.=
-com/
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License as
-> + * published by the Free Software Foundation version 2.
-> + *
-> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any k=
-ind,
-> + * whether express or implied; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the G=
-NU
-> + * General Public License for more details.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/err.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/regulator/driver.h>
-> +#include <linux/regulator/machine.h>
-> +#include <linux/i2c.h>
-> +#include <linux/delay.h>
-> +
-> +/* Register definitions */
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_VERSION =A0 =A0 =A0 =A0 =A0 =A00
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_PGOODZ =A0 =A0 =A0 =A0 =A0 =A0 1
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_MASK =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- 2
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_REG_CTRL =A0 =A0 =A0 =A0 =A0 3
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_CON_CTRL =A0 =A0 =A0 =A0 =A0 4
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_CON_CTRL2 =A0 =A0 =A0 =A0 =A05
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_DEF_CORE =A0 =A0 =A0 =A0 =A0 6
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_DEFSLEW =A0 =A0 =A0 =A0 =A0 =A07
-> +#define =A0 =A0 =A0 =A0TPS65023_REG_LDO_CTRL =A0 =A0 =A0 =A0 =A0 8
-> +
-> +/* PGOODZ bitfields */
-> +#define =A0 =A0 =A0 =A0TPS65023_PGOODZ_PWRFAILZ =A0 =A0 =A0 =A0BIT(7=
-)
-> +#define =A0 =A0 =A0 =A0TPS65023_PGOODZ_LOWBATTZ =A0 =A0 =A0 =A0BIT(6=
-)
-> +#define =A0 =A0 =A0 =A0TPS65023_PGOODZ_VDCDC1 =A0 =A0 =A0 =A0 =A0BIT=
-(5)
-> +#define =A0 =A0 =A0 =A0TPS65023_PGOODZ_VDCDC2 =A0 =A0 =A0 =A0 =A0BIT=
-(4)
-> +#define =A0 =A0 =A0 =A0TPS65023_PGOODZ_VDCDC3 =A0 =A0 =A0 =A0 =A0BIT=
-(3)
-> +#define =A0 =A0 =A0 =A0TPS65023_PGOODZ_LDO2 =A0 =A0 =A0 =A0 =A0 =A0B=
-IT(2)
-> +#define =A0 =A0 =A0 =A0TPS65023_PGOODZ_LDO1 =A0 =A0 =A0 =A0 =A0 =A0B=
-IT(1)
-> +
-> +/* MASK bitfields */
-> +#define =A0 =A0 =A0 =A0TPS65023_MASK_PWRFAILZ =A0 =A0 =A0 =A0 =A0BIT=
-(7)
-> +#define =A0 =A0 =A0 =A0TPS65023_MASK_LOWBATTZ =A0 =A0 =A0 =A0 =A0BIT=
-(6)
-> +#define =A0 =A0 =A0 =A0TPS65023_MASK_VDCDC1 =A0 =A0 =A0 =A0 =A0 =A0B=
-IT(5)
-> +#define =A0 =A0 =A0 =A0TPS65023_MASK_VDCDC2 =A0 =A0 =A0 =A0 =A0 =A0B=
-IT(4)
-> +#define =A0 =A0 =A0 =A0TPS65023_MASK_VDCDC3 =A0 =A0 =A0 =A0 =A0 =A0B=
-IT(3)
-> +#define =A0 =A0 =A0 =A0TPS65023_MASK_LDO2 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-BIT(2)
-> +#define =A0 =A0 =A0 =A0TPS65023_MASK_LDO1 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
-BIT(1)
-> +
-> +/* REG_CTRL bitfields */
-> +#define TPS65023_REG_CTRL_VDCDC1_EN =A0 =A0BIT(5)
-> +#define TPS65023_REG_CTRL_VDCDC2_EN =A0 =A0BIT(4)
-> +#define TPS65023_REG_CTRL_VDCDC3_EN =A0 =A0BIT(3)
-> +#define TPS65023_REG_CTRL_LDO2_EN =A0 =A0 =A0BIT(2)
-> +#define TPS65023_REG_CTRL_LDO1_EN =A0 =A0 =A0BIT(1)
-> +
-> +/* LDO_CTRL bitfields */
-> +#define TPS65023_LDO_CTRL_LDOx_SHIFT(ldo_id) =A0 ((ldo_id)*4)
-> +#define TPS65023_LDO_CTRL_LDOx_MASK(ldo_id) =A0 =A0(0xF0 >> ((ldo_id=
-)*4))
-> +
-> +/* Number of step-down converters available */
-> +#define TPS65023_NUM_DCDC =A0 =A0 =A0 =A0 =A0 =A0 =A03
-> +/* Number of LDO voltage regulators =A0available */
-> +#define TPS65023_NUM_LDO =A0 =A0 =A0 =A0 =A0 =A0 =A0 2
-> +/* Number of total regulators available */
-> +#define TPS65023_NUM_REGULATOR (TPS65023_NUM_DCDC + TPS65023_NUM_LDO=
-)
-> +
-> +/* DCDCs */
-> +#define TPS65023_DCDC_1 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A00
-> +#define TPS65023_DCDC_2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A01
-> +#define TPS65023_DCDC_3 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A02
-> +/* LDOs */
-> +#define TPS65023_LDO_1 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 3
-> +#define TPS65023_LDO_2 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 4
-> +
-> +#define TPS65023_MAX_REG_ID =A0 =A0 =A0 =A0 =A0 =A0TPS65023_LDO_2
-> +
-> +/* Supported voltage values for regulators */
-> +static const u16 VDCDC1_VSEL_table[] =3D {
-> + =A0 =A0 =A0 800, 825, 850, 875,
-> + =A0 =A0 =A0 900, 925, 950, 975,
-> + =A0 =A0 =A0 1000, 1025, 1050, 1075,
-> + =A0 =A0 =A0 1100, 1125, 1150, 1175,
-> + =A0 =A0 =A0 1200, 1225, 1250, 1275,
-> + =A0 =A0 =A0 1300, 1325, 1350, 1375,
-> + =A0 =A0 =A0 1400, 1425, 1450, 1475,
-> + =A0 =A0 =A0 1500, 1525, 1550, 1600,
-> +};
-> +
-> +static const u16 LDO1_VSEL_table[] =3D {
-> + =A0 =A0 =A0 1000, 1100, 1300, 1800,
-> + =A0 =A0 =A0 2200, 2600, 2800, 3150,
-> +};
-> +
-> +static const u16 LDO2_VSEL_table[] =3D {
-> + =A0 =A0 =A0 1050, 1200, 1300, 1800,
-> + =A0 =A0 =A0 2500, 2800, 3000, 3300,
-> +};
-> +
-> +static unsigned int num_voltages[] =3D {ARRAY_SIZE(VDCDC1_VSEL_table=
-),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0, 0, A=
-RRAY_SIZE(LDO1_VSEL_table),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ARRAY_S=
-IZE(LDO2_VSEL_table)};
-> +
-> +/* Regulator specific details */
-> +struct tps_info {
-> + =A0 =A0 =A0 const char *name;
-> + =A0 =A0 =A0 unsigned min_uV;
-> + =A0 =A0 =A0 unsigned max_uV;
-> + =A0 =A0 =A0 bool fixed;
-> + =A0 =A0 =A0 u8 table_len;
-> + =A0 =A0 =A0 const u16 *table;
-> +};
-> +
-> +/* PMIC details */
-> +struct tps_pmic {
-> + =A0 =A0 =A0 struct regulator_desc desc[TPS65023_NUM_REGULATOR];
-> + =A0 =A0 =A0 struct i2c_client *client;
-> + =A0 =A0 =A0 struct regulator_dev *rdev[TPS65023_NUM_REGULATOR];
-> + =A0 =A0 =A0 const struct tps_info *info[TPS65023_NUM_REGULATOR];
-> + =A0 =A0 =A0 struct mutex io_lock;
-> +};
-> +
-> +static inline int tps_65023_read(struct tps_pmic *tps, u8 reg)
-> +{
-> + =A0 =A0 =A0 return i2c_smbus_read_byte_data(tps->client, reg);
-> +}
-> +
-> +static inline int tps_65023_write(struct tps_pmic *tps, u8 reg, u8 v=
-al)
-> +{
-> + =A0 =A0 =A0 return i2c_smbus_write_byte_data(tps->client, reg, val)=
-;
-> +}
-> +
-> +static int tps_65023_set_bits(struct tps_pmic *tps, u8 reg, u8 mask)
-> +{
-> + =A0 =A0 =A0 int err;
-> + =A0 =A0 =A0 u8 data;
-> +
-> + =A0 =A0 =A0 mutex_lock(&tps->io_lock);
-> +
-> + =A0 =A0 =A0 data =3D tps_65023_read(tps, reg);
-> + =A0 =A0 =A0 if (data < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&tps->client->dev, "Read from r=
-eg 0x%x failed\n", reg);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D data;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 data |=3D mask;
-> + =A0 =A0 =A0 err =3D tps_65023_write(tps, reg, data);
-> + =A0 =A0 =A0 if (err)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&tps->client->dev, "Write for r=
-eg 0x%x failed\n", reg);
-> +
-> +out:
-> + =A0 =A0 =A0 mutex_unlock(&tps->io_lock);
-> + =A0 =A0 =A0 return err;
-> +}
-> +
-> +static int tps_65023_clear_bits(struct tps_pmic *tps, u8 reg, u8 mas=
-k)
-> +{
-> + =A0 =A0 =A0 int err;
-> + =A0 =A0 =A0 u8 data;
-> +
-> + =A0 =A0 =A0 mutex_lock(&tps->io_lock);
-> +
-> + =A0 =A0 =A0 data =3D tps_65023_read(tps, reg);
-> + =A0 =A0 =A0 if (data < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&tps->client->dev, "Read from r=
-eg 0x%x failed\n", reg);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 err =3D data;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 data &=3D ~mask;
-> +
-> + =A0 =A0 =A0 err =3D tps_65023_write(tps, reg, data);
-> + =A0 =A0 =A0 if (err)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&tps->client->dev, "Write for r=
-eg 0x%x failed\n", reg);
-> +
-> +out:
-> + =A0 =A0 =A0 mutex_unlock(&tps->io_lock);
-> + =A0 =A0 =A0 return err;
-> +
-> +}
-> +
-> +static int tps_65023_reg_read(struct tps_pmic *tps, u8 reg)
-> +{
-> + =A0 =A0 =A0 u8 data;
-> +
-> + =A0 =A0 =A0 mutex_lock(&tps->io_lock);
-> +
-> + =A0 =A0 =A0 data =3D tps_65023_read(tps, reg);
-> + =A0 =A0 =A0 if (data < 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&tps->client->dev, "Read from r=
-eg 0x%x failed\n", reg);
-> +
-> + =A0 =A0 =A0 mutex_unlock(&tps->io_lock);
-> + =A0 =A0 =A0 return data;
-> +}
-> +
-> +static int tps_65023_reg_write(struct tps_pmic *tps, u8 reg, u8 val)
-> +{
-> + =A0 =A0 =A0 int err;
-> +
-> + =A0 =A0 =A0 mutex_lock(&tps->io_lock);
-> +
-> + =A0 =A0 =A0 err =3D tps_65023_write(tps, reg, val);
-> + =A0 =A0 =A0 if (err < 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&tps->client->dev, "Write for r=
-eg 0x%x failed\n", reg);
-> +
-> + =A0 =A0 =A0 mutex_unlock(&tps->io_lock);
-> + =A0 =A0 =A0 return err;
-> +}
-> +
-> +static int tps65023_dcdc_is_enabled(struct regulator_dev *dev)
-> +{
-> + =A0 =A0 =A0 u8 data;
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int dcdc =3D rdev_get_id(dev);
-> + =A0 =A0 =A0 u8 shift;
-> +
-> + =A0 =A0 =A0 if (dcdc < TPS65023_DCDC_1 || dcdc > TPS65023_DCDC_3)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 shift =3D TPS65023_NUM_REGULATOR - dcdc;
-> + =A0 =A0 =A0 data =3D tps_65023_reg_read(tps, TPS65023_REG_REG_CTRL)=
-;
-> +
-> + =A0 =A0 =A0 if (data >=3D 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 data &=3D (1 << shift);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return data ? 1 : 0;
-> + =A0 =A0 =A0 } else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return data;
-> +}
-> +
-> +static int tps65023_ldo_is_enabled(struct regulator_dev *dev)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int ldo =3D rdev_get_id(dev);
-> + =A0 =A0 =A0 u8 shift;
-> + =A0 =A0 =A0 u8 data;
-> +
-> + =A0 =A0 =A0 if (ldo < TPS65023_LDO_1 || ldo > TPS65023_LDO_2)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 shift =3D (ldo =3D=3D TPS65023_LDO_1 ? 1 : 2);
-> + =A0 =A0 =A0 data =3D tps_65023_reg_read(tps, TPS65023_REG_REG_CTRL)=
-;
-> +
-> + =A0 =A0 =A0 if (data >=3D 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 data &=3D (1 << shift);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return data ? 1 : 0;
-> + =A0 =A0 =A0 } else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return data;
-> +}
-> +
-> +static int tps65023_dcdc_enable(struct regulator_dev *dev)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int dcdc =3D rdev_get_id(dev);
-> + =A0 =A0 =A0 u8 shift;
-> +
-> + =A0 =A0 =A0 if (dcdc < TPS65023_DCDC_1 || dcdc > TPS65023_DCDC_3)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 shift =3D TPS65023_NUM_REGULATOR - dcdc;
-> + =A0 =A0 =A0 return tps_65023_set_bits(tps, TPS65023_REG_REG_CTRL, 1=
- << shift);
-> +}
-> +
-> +static int tps65023_dcdc_disable(struct regulator_dev *dev)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int dcdc =3D rdev_get_id(dev);
-> + =A0 =A0 =A0 u8 shift;
-> +
-> + =A0 =A0 =A0 if (dcdc < TPS65023_DCDC_1 || dcdc > TPS65023_DCDC_3)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 shift =3D TPS65023_NUM_REGULATOR - dcdc;
-> + =A0 =A0 =A0 return tps_65023_clear_bits(tps, TPS65023_REG_REG_CTRL,=
- 1 << shift);
-> +}
-> +
-> +static int tps65023_ldo_enable(struct regulator_dev *dev)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int ldo =3D rdev_get_id(dev);
-> + =A0 =A0 =A0 u8 shift;
-> +
-> + =A0 =A0 =A0 if (ldo < TPS65023_LDO_1 || ldo > TPS65023_LDO_2)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 shift =3D (ldo =3D=3D TPS65023_LDO_1 ? 1 : 2);
-> + =A0 =A0 =A0 return tps_65023_set_bits(tps, TPS65023_REG_REG_CTRL, 1=
- << shift);
-> +}
-> +
-> +static int tps65023_ldo_disable(struct regulator_dev *dev)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int ldo =3D rdev_get_id(dev);
-> + =A0 =A0 =A0 u8 shift;
-> +
-> + =A0 =A0 =A0 if (ldo < TPS65023_LDO_1 || ldo > TPS65023_LDO_2)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 shift =3D (ldo =3D=3D TPS65023_LDO_1 ? 1 : 2);
-> + =A0 =A0 =A0 return tps_65023_clear_bits(tps, TPS65023_REG_REG_CTRL,=
- 1 << shift);
-> +}
-> +
-> +static int tps65023_dcdc_get_voltage(struct regulator_dev *dev)
-> +{
-> + =A0 =A0 =A0 u8 data;
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int dcdc =3D rdev_get_id(dev);
-> +
-> + =A0 =A0 =A0 if (dcdc < TPS65023_DCDC_1 || dcdc > TPS65023_DCDC_3)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 if (dcdc =3D=3D TPS65023_DCDC_1) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 data =3D tps_65023_reg_read(tps, TPS650=
-23_REG_DEF_CORE);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (data < 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return data;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 data &=3D (tps->info[dcdc]->table_len -=
- 1);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return tps->info[dcdc]->table[data] * 1=
-000;
-> + =A0 =A0 =A0 } else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return tps->info[dcdc]->min_uV;
-> +}
-> +
-> +static int tps65023_dcdc_set_voltage(struct regulator_dev *dev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int min=
-_uV, int max_uV)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int dcdc =3D rdev_get_id(dev);
-> + =A0 =A0 =A0 int vsel;
-> +
-> + =A0 =A0 =A0 if (dcdc !=3D TPS65023_DCDC_1)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 if (min_uV < tps->info[dcdc]->min_uV
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 || min_uV > tps->info[d=
-cdc]->max_uV)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 if (max_uV < tps->info[dcdc]->min_uV
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 || max_uV > tps->info[d=
-cdc]->max_uV)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 for (vsel =3D 0; vsel < tps->info[dcdc]->table_len; vse=
-l++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 int mV =3D tps->info[dcdc]->table[vsel]=
-;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 int uV =3D mV * 1000;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Break at the first in-range value */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (min_uV <=3D uV && uV <=3D max_uV)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 /* write to the register in case we found a match */
-> + =A0 =A0 =A0 if (vsel =3D=3D tps->info[dcdc]->table_len)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return tps_65023_reg_write(tps, TPS6502=
-3_REG_DEF_CORE, vsel);
-> +}
-> +
-> +static int tps65023_ldo_get_voltage(struct regulator_dev *dev)
-> +{
-> + =A0 =A0 =A0 u8 data;
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int ldo =3D rdev_get_id(dev);
-> +
-> + =A0 =A0 =A0 if (ldo < TPS65023_LDO_1 || ldo > TPS65023_LDO_2)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 data =3D tps_65023_reg_read(tps, TPS65023_REG_LDO_CTRL)=
-;
-> + =A0 =A0 =A0 if (data < 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return data;
-> +
-> + =A0 =A0 =A0 data >>=3D (TPS65023_LDO_CTRL_LDOx_SHIFT(ldo - TPS65023=
-_LDO_1));
-> + =A0 =A0 =A0 data &=3D (tps->info[ldo]->table_len - 1);
-> + =A0 =A0 =A0 return tps->info[ldo]->table[data] * 1000;
-> +}
-> +
-> +static int tps65023_ldo_set_voltage(struct regulator_dev *dev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 int min=
-_uV, int max_uV)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int ldo =3D rdev_get_id(dev);
-> + =A0 =A0 =A0 int vsel;
-> + =A0 =A0 =A0 u8 data;
-> +
-> + =A0 =A0 =A0 if (ldo < TPS65023_LDO_1 || ldo > TPS65023_LDO_2)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 if (min_uV < tps->info[ldo]->min_uV || min_uV > tps->in=
-fo[ldo]->max_uV)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 if (max_uV < tps->info[ldo]->min_uV || max_uV > tps->in=
-fo[ldo]->max_uV)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 for (vsel =3D 0; vsel < tps->info[ldo]->table_len; vsel=
-++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 int mV =3D tps->info[ldo]->table[vsel];
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 int uV =3D mV * 1000;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Break at the first in-range value */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (min_uV <=3D uV && uV <=3D max_uV)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 if (vsel =3D=3D tps->info[ldo]->table_len)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 data =3D tps_65023_reg_read(tps, TPS65023_REG_LDO_CTRL)=
-;
-> + =A0 =A0 =A0 if (data < 0)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return data;
-> +
-> + =A0 =A0 =A0 data &=3D TPS65023_LDO_CTRL_LDOx_MASK(ldo - TPS65023_LD=
-O_1);
-> + =A0 =A0 =A0 data |=3D (vsel << (TPS65023_LDO_CTRL_LDOx_SHIFT(ldo - =
-TPS65023_LDO_1)));
-> + =A0 =A0 =A0 return tps_65023_reg_write(tps, TPS65023_REG_LDO_CTRL, =
-data);
-> +}
-> +
-> +static int tps65023_dcdc_list_voltage(struct regulator_dev *dev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 unsigned selector)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int dcdc =3D rdev_get_id(dev);
-> +
-> + =A0 =A0 =A0 if (dcdc < TPS65023_DCDC_1 || dcdc > TPS65023_DCDC_3)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 if (dcdc =3D=3D TPS65023_DCDC_1) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (selector >=3D tps->info[dcdc]->tabl=
-e_len)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return tps->info[dcdc]-=
->table[selector] * 1000;
-> + =A0 =A0 =A0 } else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return tps->info[dcdc]->min_uV;
-> +}
-> +
-> +static int tps65023_ldo_list_voltage(struct regulator_dev *dev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 unsigned selector)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D rdev_get_drvdata(dev);
-> + =A0 =A0 =A0 int ldo =3D rdev_get_id(dev);
-> +
-> + =A0 =A0 =A0 if (ldo < TPS65023_LDO_1 || ldo > TPS65023_LDO_2)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> +
-> + =A0 =A0 =A0 if (selector >=3D tps->info[ldo]->table_len)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 else
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return tps->info[ldo]->table[selector] =
-* 1000;
-> +}
-> +
-> +/* Operations permitted on VDCDCx */
-> +static struct regulator_ops tps65023_dcdc_ops =3D {
-> + =A0 =A0 =A0 .is_enabled =3D tps65023_dcdc_is_enabled,
-> + =A0 =A0 =A0 .enable =3D tps65023_dcdc_enable,
-> + =A0 =A0 =A0 .disable =3D tps65023_dcdc_disable,
-> + =A0 =A0 =A0 .get_voltage =3D tps65023_dcdc_get_voltage,
-> + =A0 =A0 =A0 .set_voltage =3D tps65023_dcdc_set_voltage,
-> + =A0 =A0 =A0 .list_voltage =3D tps65023_dcdc_list_voltage,
-> +};
-> +
-> +/* Operations permitted on LDOx */
-> +static struct regulator_ops tps65023_ldo_ops =3D {
-> + =A0 =A0 =A0 .is_enabled =3D tps65023_ldo_is_enabled,
-> + =A0 =A0 =A0 .enable =3D tps65023_ldo_enable,
-> + =A0 =A0 =A0 .disable =3D tps65023_ldo_disable,
-> + =A0 =A0 =A0 .get_voltage =3D tps65023_ldo_get_voltage,
-> + =A0 =A0 =A0 .set_voltage =3D tps65023_ldo_set_voltage,
-> + =A0 =A0 =A0 .list_voltage =3D tps65023_ldo_list_voltage,
-> +};
-> +
-> +static
-> +int tps_65023_probe(struct i2c_client *client, const struct i2c_devi=
-ce_id *id)
-> +{
-> + =A0 =A0 =A0 static int desc_id;
-> + =A0 =A0 =A0 const struct tps_info *info =3D (void *)id->driver_data=
-;
-> + =A0 =A0 =A0 struct regulator_init_data *init_data;
-> + =A0 =A0 =A0 struct regulator_dev *rdev;
-> + =A0 =A0 =A0 struct tps_pmic *tps;
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 if (!i2c_check_functionality(client->adapter, I2C_FUNC_=
-SMBUS_BYTE_DATA))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EIO;
-> +
-> + =A0 =A0 =A0 /**
-> + =A0 =A0 =A0 =A0* init_data points to array of regulator_init struct=
-ures
-> + =A0 =A0 =A0 =A0* coming from the board-evm file.
-> + =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 init_data =3D client->dev.platform_data;
-> +
-> + =A0 =A0 =A0 if (!init_data)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EIO;
-> +
-> + =A0 =A0 =A0 tps =3D kzalloc(sizeof(*tps), GFP_KERNEL);
-> + =A0 =A0 =A0 if (!tps)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
-> +
-> + =A0 =A0 =A0 tps->client =3D client;
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < TPS65023_NUM_REGULATOR; i++, info++, =
-init_data++) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Store regulator specific information=
- */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->info[i] =3D info;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->desc[i].name =3D info->name;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->desc[i].id =3D desc_id++;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->desc[i].n_voltages =3D num_voltage=
-s[i];
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->desc[i].ops =3D (i > TPS65023_DCDC=
-_3 ?
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 &tps65023_ldo_ops : &tps65023_dcdc_ops);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->desc[i].type =3D REGULATOR_VOLTAGE=
-;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->desc[i].owner =3D THIS_MODULE;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Register the regulators */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 rdev =3D regulator_register(&tps->desc[=
-i], &client->dev,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 init_data, tps=
-);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(rdev)) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dev_err(&client->dev, "=
-failed to register %s\n",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 id->nam=
-e);
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Unregister */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (i)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 regulat=
-or_unregister(tps->rdev[--i]);
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->client =3D NULL;
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* clear the client dat=
-a in i2c */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 i2c_set_clientdata(clie=
-nt, NULL);
+Hi Tony,
 
-You haven't yet set the clientdata at this point, so it is already NULL=
-=2E
-So this is unnecessary.
+I fixed the error exit path as below and attached the updated verion
+of the patch. Please replace the old one in for-next with the attached
+one.
+	Modified arch/arm/plat-omap/iommu-debug.c
+diff --git a/arch/arm/plat-omap/iommu-debug.c b/arch/arm/plat-omap/iommu-debug.c
+index 5a7e409..c799b3b 100644
+--- a/arch/arm/plat-omap/iommu-debug.c
++++ b/arch/arm/plat-omap/iommu-debug.c
+@@ -268,14 +268,14 @@ static ssize_t debug_read_mem(struct file *file, char __user *userbuf,
+ 
+ 	area = find_iovm_area(obj, (u32)ppos);
+ 	if (IS_ERR(area)) {
+-		mutex_unlock(&iommu_debug_lock);
+-		return -EINVAL;
++		bytes = -EINVAL;
++		goto err_out;
+ 	}
+ 	memcpy(p, area->va, count);
+ 	p += count;
+ 
+ 	bytes = simple_read_from_buffer(userbuf, count, ppos, buf, p - buf);
+-
++err_out:
+ 	mutex_unlock(&iommu_debug_lock);
+ 	free_page((unsigned long)buf);
+ 
+@@ -299,17 +299,17 @@ static ssize_t debug_write_mem(struct file *file, const char __user *userbuf,
+ 	mutex_lock(&iommu_debug_lock);
+ 
+ 	if (copy_from_user(p, userbuf, count)) {
+-		mutex_unlock(&iommu_debug_lock);
+-		return -EFAULT;
++		count =  -EFAULT;
++		goto err_out;
+ 	}
+ 
+ 	area = find_iovm_area(obj, (u32)ppos);
+ 	if (IS_ERR(area)) {
+-		mutex_unlock(&iommu_debug_lock);
+-		return -EINVAL;
++		count = -EINVAL;
++		goto err_out;
+ 	}
+ 	memcpy(area->va, p, count);
+-
++err_out:
+ 	mutex_unlock(&iommu_debug_lock);
+ 	free_page((unsigned long)buf);
+ 
 
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 kfree(tps);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(rdev);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Save regulator for cleanup */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 tps->rdev[i] =3D rdev;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 i2c_set_clientdata(client, tps);
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +/**
-> + * tps_65023_remove - TPS65023 driver i2c remove handler
-> + * @client: i2c driver client device structure
-> + *
-> + * Unregister TPS driver as an i2c client device driver
-> + */
-> +static int __devexit tps_65023_remove(struct i2c_client *client)
-> +{
-> + =A0 =A0 =A0 struct tps_pmic *tps =3D i2c_get_clientdata(client);
-> + =A0 =A0 =A0 int i;
-> +
-> + =A0 =A0 =A0 for (i =3D 0; i < TPS65023_NUM_REGULATOR; i++)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 regulator_unregister(tps->rdev[i]);
-> +
-> + =A0 =A0 =A0 tps->client =3D NULL;
-> +
-> + =A0 =A0 =A0 /* clear the client data in i2c */
-> + =A0 =A0 =A0 i2c_set_clientdata(client, NULL);
-> + =A0 =A0 =A0 kfree(tps);
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static const struct tps_info tps65023_regs[] =3D {
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "VDCDC1",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =3D =A0800000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =3D 1600000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .table_len =3D ARRAY_SIZE(VDCDC1_VSEL_t=
-able),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .table =3D VDCDC1_VSEL_table,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "VDCDC2",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =3D =A03300000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =3D 3300000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .fixed =3D 1,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "VDCDC3",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =3D =A01800000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =3D 1800000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .fixed =3D 1,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "LDO1",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =3D 1000000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =3D 3150000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .table_len =3D ARRAY_SIZE(LDO1_VSEL_tab=
-le),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .table =3D LDO1_VSEL_table,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "LDO2",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =3D 1050000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =3D 3300000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .table_len =3D ARRAY_SIZE(LDO2_VSEL_tab=
-le),
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .table =3D LDO2_VSEL_table,
-> + =A0 =A0 =A0 },
-> +};
-> +
-> +static const struct i2c_device_id tps_65023_id =3D {
-> + =A0 =A0 =A0 .name =3D "tps65023",
-> + =A0 =A0 =A0 .driver_data =3D (unsigned long) &tps65023_regs[0],
-> +};
-> +
-> +MODULE_DEVICE_TABLE(i2c, tps_65023_id);
-> +
-> +static struct i2c_driver tps_65023_i2c_driver =3D {
-> + =A0 =A0 =A0 .driver =3D {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "tps65023",
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .owner =3D THIS_MODULE,
-> + =A0 =A0 =A0 },
-> + =A0 =A0 =A0 .probe =3D tps_65023_probe,
-> + =A0 =A0 =A0 .remove =3D __devexit_p(tps_65023_remove),
-> + =A0 =A0 =A0 .id_table =3D &tps_65023_id,
-> +};
-> +
-> +/**
-> + * tps_65023_init
-> + *
-> + * Module init function
-> + */
-> +static int __init tps_65023_init(void)
-> +{
-> + =A0 =A0 =A0 return i2c_add_driver(&tps_65023_i2c_driver);
-> +}
-> +subsys_initcall(tps_65023_init);
-> +
-> +/**
-> + * tps_65023_cleanup
-> + *
-> + * Module exit function
-> + */
-> +static void __exit tps_65023_cleanup(void)
-> +{
-> + =A0 =A0 =A0 i2c_del_driver(&tps_65023_i2c_driver);
-> +}
-> +module_exit(tps_65023_cleanup);
-> +
-> +MODULE_AUTHOR("Texas Instruments");
-> +MODULE_DESCRIPTION("TPS65023 voltage regulator driver");
-> +MODULE_LICENSE("GPLv2");
-> --
-> 1.6.2.4
+----Next_Part(Thu_Aug_27_10_25_39_2009_374)--
+Content-Type: Application/Octet-Stream
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0001-OMAP-iommu-add-initial-debugfs-support.patch"
 
-Yours,
-Linus Walleij
+RnJvbSBmMTFhOTk1YWZjOWI4ZGU2ZDE1ZjEwZGM5YTg2ODg3OGUxNWJkMGRjIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBIaXJvc2hpIERPWVUgPEhpcm9zaGkuRE9ZVUBub2tpYS5jb20+
+CkRhdGU6IE1vbiwgMjQgQXVnIDIwMDkgMTI6Mjk6MDEgKzAzMDAKU3ViamVjdDogW1BBVENIIDEv
+MV0gT01BUDogaW9tbXU6IGFkZCBpbml0aWFsIGRlYnVnZnMgc3VwcG9ydAoKRnJvbTogSGlyb3No
+aSBET1lVIDxIaXJvc2hpLkRPWVVAbm9raWEuY29tPgoKVGhpcyBlbmFibGVzIHRvIHBlZWsgdGhl
+IGZvbGxvd2luZyBkYXRhLgoKJCAvZGVidWcvaW9tbXUvaXNwIyBscwptZW0gICAgICAgICAgICAg
+bnJfdGxiX2VudHJpZXMgIHJlZ3MKbW1hcCAgICAgICAgICAgIHBhZ2V0YWJsZSAgICAgICB0bGIK
+JCAvZGVidWcvaW9tbXUvaXNwIyBoZWFkIHBhZ2V0YWJsZQpMOiAgICAgIGRhOiAgICAgIHBhOgot
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoyOiAwMDAwMTAwMCA4YWU0
+YTAwMgoyOiAwMDAwMjAwMCA4ZTdiYjAwMgoyOiAwMDAwMzAwMCA4YWU0OTAwMgoyOiAwMDAwNDAw
+MCA4YWU2NTAwMgouLi4uLgoKU2lnbmVkLW9mZi1ieTogSGlyb3NoaSBET1lVIDxIaXJvc2hpLkRP
+WVVAbm9raWEuY29tPgpTaWduZWQtb2ZmLWJ5OiBUb255IExpbmRncmVuIDx0b255QGF0b21pZGUu
+Y29tPgotLS0KIGFyY2gvYXJtL21hY2gtb21hcDIvaW9tbXUyLmMgICAgICAgICAgICB8ICAgMTkg
+Ky0KIGFyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnICAgICAgICAgICAgICB8ICAgIDQgKwogYXJj
+aC9hcm0vcGxhdC1vbWFwL01ha2VmaWxlICAgICAgICAgICAgIHwgICAgMSArCiBhcmNoL2FybS9w
+bGF0LW9tYXAvaW5jbHVkZS9tYWNoL2lvbW11LmggfCAgICA2ICstCiBhcmNoL2FybS9wbGF0LW9t
+YXAvaW9tbXUtZGVidWcuYyAgICAgICAgfCAgNDE1ICsrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysKIGFyY2gvYXJtL3BsYXQtb21hcC9pb21tdS5jICAgICAgICAgICAgICB8ICAgMjMgKy0K
+IDYgZmlsZXMgY2hhbmdlZCwgNDQ5IGluc2VydGlvbnMoKyksIDE5IGRlbGV0aW9ucygtKQogY3Jl
+YXRlIG1vZGUgMTAwNjQ0IGFyY2gvYXJtL3BsYXQtb21hcC9pb21tdS1kZWJ1Zy5jCgpkaWZmIC0t
+Z2l0IGEvYXJjaC9hcm0vbWFjaC1vbWFwMi9pb21tdTIuYyBiL2FyY2gvYXJtL21hY2gtb21hcDIv
+aW9tbXUyLmMKaW5kZXggMDE1ZjIyYS4uMmQ5YjVjYyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vbWFj
+aC1vbWFwMi9pb21tdTIuYworKysgYi9hcmNoL2FybS9tYWNoLW9tYXAyL2lvbW11Mi5jCkBAIC0y
+MTcsMTAgKzIxNywxOSBAQCBzdGF0aWMgc3NpemVfdCBvbWFwMl9kdW1wX2NyKHN0cnVjdCBpb21t
+dSAqb2JqLCBzdHJ1Y3QgY3JfcmVncyAqY3IsIGNoYXIgKmJ1ZikKIH0KIAogI2RlZmluZSBwcl9y
+ZWcobmFtZSkJCQkJCQkJXAotCXAgKz0gc3ByaW50ZihwLCAiJTIwczogJTA4eFxuIiwJCQkJCVwK
+LQkJICAgICBfX3N0cmluZ2lmeShuYW1lKSwgaW9tbXVfcmVhZF9yZWcob2JqLCBNTVVfIyNuYW1l
+KSk7Ci0KLXN0YXRpYyBzc2l6ZV90IG9tYXAyX2lvbW11X2R1bXBfY3R4KHN0cnVjdCBpb21tdSAq
+b2JqLCBjaGFyICpidWYpCisJZG8gewkJCQkJCQkJXAorCQlzc2l6ZV90IGJ5dGVzOwkJCQkJCVwK
+KwkJY29uc3QgY2hhciAqc3RyID0gIiUyMHM6ICUwOHhcbiI7CQkJXAorCQljb25zdCBpbnQgbWF4
+Y29sID0gMzI7CQkJCQlcCisJCWJ5dGVzID0gc25wcmludGYocCwgbWF4Y29sLCBzdHIsIF9fc3Ry
+aW5naWZ5KG5hbWUpLAlcCisJCQkJIGlvbW11X3JlYWRfcmVnKG9iaiwgTU1VXyMjbmFtZSkpOwlc
+CisJCXAgKz0gYnl0ZXM7CQkJCQkJXAorCQlsZW4gLT0gYnl0ZXM7CQkJCQkJXAorCQlpZiAobGVu
+IDwgbWF4Y29sKQkJCQkJXAorCQkJZ290byBvdXQ7CQkJCQlcCisJfSB3aGlsZSAoMCkKKworc3Rh
+dGljIHNzaXplX3Qgb21hcDJfaW9tbXVfZHVtcF9jdHgoc3RydWN0IGlvbW11ICpvYmosIGNoYXIg
+KmJ1Ziwgc3NpemVfdCBsZW4pCiB7CiAJY2hhciAqcCA9IGJ1ZjsKIApAQCAtMjQyLDcgKzI1MSw3
+IEBAIHN0YXRpYyBzc2l6ZV90IG9tYXAyX2lvbW11X2R1bXBfY3R4KHN0cnVjdCBpb21tdSAqb2Jq
+LCBjaGFyICpidWYpCiAJcHJfcmVnKFJFQURfQ0FNKTsKIAlwcl9yZWcoUkVBRF9SQU0pOwogCXBy
+X3JlZyhFTVVfRkFVTFRfQUQpOwotCitvdXQ6CiAJcmV0dXJuIHAgLSBidWY7CiB9CiAKZGlmZiAt
+LWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9LY29uZmlnIGIvYXJjaC9hcm0vcGxhdC1vbWFwL0tj
+b25maWcKaW5kZXggZWZlODVkMC4uYWI5ZjllZiAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1v
+bWFwL0tjb25maWcKKysrIGIvYXJjaC9hcm0vcGxhdC1vbWFwL0tjb25maWcKQEAgLTEyMCw2ICsx
+MjAsMTAgQEAgY29uZmlnIE9NQVBfTUJPWF9GV0sKIGNvbmZpZyBPTUFQX0lPTU1VCiAJdHJpc3Rh
+dGUKIAorY29uZmlnIE9NQVBfSU9NTVVfREVCVUcKKwlkZXBlbmRzIG9uIE9NQVBfSU9NTVUKKwl0
+cmlzdGF0ZQorCiBjaG9pY2UKICAgICAgICAgcHJvbXB0ICJTeXN0ZW0gdGltZXIiCiAJZGVmYXVs
+dCBPTUFQX01QVV9USU1FUgpkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL01ha2VmaWxl
+IGIvYXJjaC9hcm0vcGxhdC1vbWFwL01ha2VmaWxlCmluZGV4IGE4MzI3OTUuLjc2OWE0YzIgMTAw
+NjQ0Ci0tLSBhL2FyY2gvYXJtL3BsYXQtb21hcC9NYWtlZmlsZQorKysgYi9hcmNoL2FybS9wbGF0
+LW9tYXAvTWFrZWZpbGUKQEAgLTE0LDYgKzE0LDcgQEAgb2JqLSQoQ09ORklHX0FSQ0hfT01BUDE2
+WFgpICs9IG9jcGkubwogCiBvYmotJChDT05GSUdfT01BUF9NQ0JTUCkgKz0gbWNic3Aubwogb2Jq
+LSQoQ09ORklHX09NQVBfSU9NTVUpICs9IGlvbW11Lm8gaW92bW0ubworb2JqLSQoQ09ORklHX09N
+QVBfSU9NTVVfREVCVUcpICs9IGlvbW11LWRlYnVnLm8KIAogb2JqLSQoQ09ORklHX0NQVV9GUkVR
+KSArPSBjcHUtb21hcC5vCiBvYmotJChDT05GSUdfT01BUF9ETV9USU1FUikgKz0gZG10aW1lci5v
+CmRpZmYgLS1naXQgYS9hcmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9tYWNoL2lvbW11LmggYi9h
+cmNoL2FybS9wbGF0LW9tYXAvaW5jbHVkZS9tYWNoL2lvbW11LmgKaW5kZXggNzY5YjAwYi4uNDZk
+NDFhYyAxMDA2NDQKLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2luY2x1ZGUvbWFjaC9pb21tdS5o
+CisrKyBiL2FyY2gvYXJtL3BsYXQtb21hcC9pbmNsdWRlL21hY2gvaW9tbXUuaApAQCAtOTUsNyAr
+OTUsNyBAQCBzdHJ1Y3QgaW9tbXVfZnVuY3Rpb25zIHsKIAogCXZvaWQgKCpzYXZlX2N0eCkoc3Ry
+dWN0IGlvbW11ICpvYmopOwogCXZvaWQgKCpyZXN0b3JlX2N0eCkoc3RydWN0IGlvbW11ICpvYmop
+OwotCXNzaXplX3QgKCpkdW1wX2N0eCkoc3RydWN0IGlvbW11ICpvYmosIGNoYXIgKmJ1Zik7CisJ
+c3NpemVfdCAoKmR1bXBfY3R4KShzdHJ1Y3QgaW9tbXUgKm9iaiwgY2hhciAqYnVmLCBzc2l6ZV90
+IGxlbik7CiB9OwogCiBzdHJ1Y3QgaW9tbXVfcGxhdGZvcm1fZGF0YSB7CkBAIC0xNjIsNyArMTYy
+LDcgQEAgZXh0ZXJuIHZvaWQgdW5pbnN0YWxsX2lvbW11X2FyY2goY29uc3Qgc3RydWN0IGlvbW11
+X2Z1bmN0aW9ucyAqb3BzKTsKIGV4dGVybiBpbnQgZm9yZWFjaF9pb21tdV9kZXZpY2Uodm9pZCAq
+ZGF0YSwKIAkJCQlpbnQgKCpmbikoc3RydWN0IGRldmljZSAqLCB2b2lkICopKTsKIAotZXh0ZXJu
+IHNzaXplX3QgaW9tbXVfZHVtcF9jdHgoc3RydWN0IGlvbW11ICpvYmosIGNoYXIgKmJ1Zik7Ci1l
+eHRlcm4gc2l6ZV90IGR1bXBfdGxiX2VudHJpZXMoc3RydWN0IGlvbW11ICpvYmosIGNoYXIgKmJ1
+Zik7CitleHRlcm4gc3NpemVfdCBpb21tdV9kdW1wX2N0eChzdHJ1Y3QgaW9tbXUgKm9iaiwgY2hh
+ciAqYnVmLCBzc2l6ZV90IGxlbik7CitleHRlcm4gc2l6ZV90IGR1bXBfdGxiX2VudHJpZXMoc3Ry
+dWN0IGlvbW11ICpvYmosIGNoYXIgKmJ1Ziwgc3NpemVfdCBsZW4pOwogCiAjZW5kaWYgLyogX19N
+QUNIX0lPTU1VX0ggKi8KZGlmZiAtLWdpdCBhL2FyY2gvYXJtL3BsYXQtb21hcC9pb21tdS1kZWJ1
+Zy5jIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2lvbW11LWRlYnVnLmMKbmV3IGZpbGUgbW9kZSAxMDA2
+NDQKaW5kZXggMDAwMDAwMC4uYzc5OWIzYgotLS0gL2Rldi9udWxsCisrKyBiL2FyY2gvYXJtL3Bs
+YXQtb21hcC9pb21tdS1kZWJ1Zy5jCkBAIC0wLDAgKzEsNDE1IEBACisvKgorICogb21hcCBpb21t
+dTogZGVidWdmcyBpbnRlcmZhY2UKKyAqCisgKiBDb3B5cmlnaHQgKEMpIDIwMDgtMjAwOSBOb2tp
+YSBDb3Jwb3JhdGlvbgorICoKKyAqIFdyaXR0ZW4gYnkgSGlyb3NoaSBET1lVIDxIaXJvc2hpLkRP
+WVVAbm9raWEuY29tPgorICoKKyAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3Ug
+Y2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5CisgKiBpdCB1bmRlciB0aGUgdGVybXMg
+b2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHZlcnNpb24gMiBhcworICogcHVibGlz
+aGVkIGJ5IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uCisgKi8KKworI2luY2x1ZGUgPGxp
+bnV4L2Vyci5oPgorI2luY2x1ZGUgPGxpbnV4L2Nsay5oPgorI2luY2x1ZGUgPGxpbnV4L2lvLmg+
+CisjaW5jbHVkZSA8bGludXgvdWFjY2Vzcy5oPgorI2luY2x1ZGUgPGxpbnV4L3BsYXRmb3JtX2Rl
+dmljZS5oPgorI2luY2x1ZGUgPGxpbnV4L2RlYnVnZnMuaD4KKworI2luY2x1ZGUgPG1hY2gvaW9t
+bXUuaD4KKyNpbmNsdWRlIDxtYWNoL2lvdm1tLmg+CisKKyNpbmNsdWRlICJpb3BndGFibGUuaCIK
+KworI2RlZmluZSBNQVhDT0xVTU4gMTAwIC8qIGZvciBzaG9ydCBtZXNzYWdlcyAqLworCitzdGF0
+aWMgREVGSU5FX01VVEVYKGlvbW11X2RlYnVnX2xvY2spOworCitzdGF0aWMgc3RydWN0IGRlbnRy
+eSAqaW9tbXVfZGVidWdfcm9vdDsKKworc3RhdGljIHNzaXplX3QgZGVidWdfcmVhZF92ZXIoc3Ry
+dWN0IGZpbGUgKmZpbGUsIGNoYXIgX191c2VyICp1c2VyYnVmLAorCQkJICAgICAgc2l6ZV90IGNv
+dW50LCBsb2ZmX3QgKnBwb3MpCit7CisJdTMyIHZlciA9IGlvbW11X2FyY2hfdmVyc2lvbigpOwor
+CWNoYXIgYnVmW01BWENPTFVNTl0sICpwID0gYnVmOworCisJcCArPSBzcHJpbnRmKHAsICJIL1cg
+dmVyc2lvbjogJWQuJWRcbiIsICh2ZXIgPj4gNCkgJiAweGYgLCB2ZXIgJiAweGYpOworCisJcmV0
+dXJuIHNpbXBsZV9yZWFkX2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBidWYsIHAg
+LSBidWYpOworfQorCitzdGF0aWMgc3NpemVfdCBkZWJ1Z19yZWFkX3JlZ3Moc3RydWN0IGZpbGUg
+KmZpbGUsIGNoYXIgX191c2VyICp1c2VyYnVmLAorCQkJICAgICAgIHNpemVfdCBjb3VudCwgbG9m
+Zl90ICpwcG9zKQoreworCXN0cnVjdCBpb21tdSAqb2JqID0gZmlsZS0+cHJpdmF0ZV9kYXRhOwor
+CWNoYXIgKnAsICpidWY7CisJc3NpemVfdCBieXRlczsKKworCWJ1ZiA9IGttYWxsb2MoY291bnQs
+IEdGUF9LRVJORUwpOworCWlmICghYnVmKQorCQlyZXR1cm4gLUVOT01FTTsKKwlwID0gYnVmOwor
+CisJbXV0ZXhfbG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisKKwlieXRlcyA9IGlvbW11X2R1bXBf
+Y3R4KG9iaiwgcCwgY291bnQpOworCWJ5dGVzID0gc2ltcGxlX3JlYWRfZnJvbV9idWZmZXIodXNl
+cmJ1ZiwgY291bnQsIHBwb3MsIGJ1ZiwgYnl0ZXMpOworCisJbXV0ZXhfdW5sb2NrKCZpb21tdV9k
+ZWJ1Z19sb2NrKTsKKwlrZnJlZShidWYpOworCisJcmV0dXJuIGJ5dGVzOworfQorCitzdGF0aWMg
+c3NpemVfdCBkZWJ1Z19yZWFkX3RsYihzdHJ1Y3QgZmlsZSAqZmlsZSwgY2hhciBfX3VzZXIgKnVz
+ZXJidWYsCisJCQkgICAgICBzaXplX3QgY291bnQsIGxvZmZfdCAqcHBvcykKK3sKKwlzdHJ1Y3Qg
+aW9tbXUgKm9iaiA9IGZpbGUtPnByaXZhdGVfZGF0YTsKKwljaGFyICpwLCAqYnVmOworCXNzaXpl
+X3QgYnl0ZXMsIHJlc3Q7CisKKwlidWYgPSBrbWFsbG9jKGNvdW50LCBHRlBfS0VSTkVMKTsKKwlp
+ZiAoIWJ1ZikKKwkJcmV0dXJuIC1FTk9NRU07CisJcCA9IGJ1ZjsKKworCW11dGV4X2xvY2soJmlv
+bW11X2RlYnVnX2xvY2spOworCisJcCArPSBzcHJpbnRmKHAsICIlOHMgJThzXG4iLCAiY2FtOiIs
+ICJyYW06Iik7CisJcCArPSBzcHJpbnRmKHAsICItLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLVxuIik7CisJcmVzdCA9IGNvdW50IC0gKHAgLSBidWYpOworCXAgKz0gZHVt
+cF90bGJfZW50cmllcyhvYmosIHAsIHJlc3QpOworCisJYnl0ZXMgPSBzaW1wbGVfcmVhZF9mcm9t
+X2J1ZmZlcih1c2VyYnVmLCBjb3VudCwgcHBvcywgYnVmLCBwIC0gYnVmKTsKKworCW11dGV4X3Vu
+bG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisJa2ZyZWUoYnVmKTsKKworCXJldHVybiBieXRlczsK
+K30KKworc3RhdGljIHNzaXplX3QgZGVidWdfd3JpdGVfcGFnZXRhYmxlKHN0cnVjdCBmaWxlICpm
+aWxlLAorCQkgICAgIGNvbnN0IGNoYXIgX191c2VyICp1c2VyYnVmLCBzaXplX3QgY291bnQsIGxv
+ZmZfdCAqcHBvcykKK3sKKwlzdHJ1Y3QgaW90bGJfZW50cnkgZTsKKwlzdHJ1Y3QgY3JfcmVncyBj
+cjsKKwlpbnQgZXJyOworCXN0cnVjdCBpb21tdSAqb2JqID0gZmlsZS0+cHJpdmF0ZV9kYXRhOwor
+CWNoYXIgYnVmW01BWENPTFVNTl0sICpwID0gYnVmOworCisJY291bnQgPSBtaW4oY291bnQsIHNp
+emVvZihidWYpKTsKKworCW11dGV4X2xvY2soJmlvbW11X2RlYnVnX2xvY2spOworCWlmIChjb3B5
+X2Zyb21fdXNlcihwLCB1c2VyYnVmLCBjb3VudCkpIHsKKwkJbXV0ZXhfdW5sb2NrKCZpb21tdV9k
+ZWJ1Z19sb2NrKTsKKwkJcmV0dXJuIC1FRkFVTFQ7CisJfQorCisJc3NjYW5mKHAsICIleCAleCIs
+ICZjci5jYW0sICZjci5yYW0pOworCWlmICghY3IuY2FtIHx8ICFjci5yYW0pIHsKKwkJbXV0ZXhf
+dW5sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJfQorCisJaW90
+bGJfY3JfdG9fZSgmY3IsICZlKTsKKwllcnIgPSBpb3BndGFibGVfc3RvcmVfZW50cnkob2JqLCAm
+ZSk7CisJaWYgKGVycikKKwkJZGV2X2VycihvYmotPmRldiwgIiVzOiBmYWlsIHRvIHN0b3JlIGNy
+XG4iLCBfX2Z1bmNfXyk7CisKKwltdXRleF91bmxvY2soJmlvbW11X2RlYnVnX2xvY2spOworCXJl
+dHVybiBjb3VudDsKK30KKworI2RlZmluZSBkdW1wX2lvcHRhYmxlX2VudHJ5X29uZShsdiwgZGEs
+IHZhbCkJCQlcCisJKHsJCQkJCQkJXAorCQlpbnQgX19lcnIgPSAwOwkJCQkJXAorCQlzc2l6ZV90
+IGJ5dGVzOwkJCQkJXAorCQljb25zdCBpbnQgbWF4Y29sID0gMjI7CQkJCVwKKwkJY29uc3QgY2hh
+ciAqc3RyID0gIiVkOiAlMDh4ICUwOHhcbiI7CQlcCisJCWJ5dGVzID0gc25wcmludGYocCwgbWF4
+Y29sLCBzdHIsIGx2LCBkYSwgdmFsKTsJXAorCQlwICs9IGJ5dGVzOwkJCQkJXAorCQlsZW4gLT0g
+Ynl0ZXM7CQkJCQlcCisJCWlmIChsZW4gPCBtYXhjb2wpCQkJCVwKKwkJCV9fZXJyID0gLUVOT01F
+TTsJCQlcCisJCV9fZXJyOwkJCQkJCVwKKwl9KQorCitzdGF0aWMgc3NpemVfdCBkdW1wX2lvcHRh
+YmxlKHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYsIHNzaXplX3QgbGVuKQoreworCWludCBp
+OworCXUzMiAqaW9wZ2Q7CisJY2hhciAqcCA9IGJ1ZjsKKworCXNwaW5fbG9jaygmb2JqLT5wYWdl
+X3RhYmxlX2xvY2spOworCisJaW9wZ2QgPSBpb3BnZF9vZmZzZXQob2JqLCAwKTsKKwlmb3IgKGkg
+PSAwOyBpIDwgUFRSU19QRVJfSU9QR0Q7IGkrKywgaW9wZ2QrKykgeworCQlpbnQgaiwgZXJyOwor
+CQl1MzIgKmlvcHRlOworCQl1MzIgZGE7CisKKwkJaWYgKCEqaW9wZ2QpCisJCQljb250aW51ZTsK
+KworCQlpZiAoISgqaW9wZ2QgJiBJT1BHRF9UQUJMRSkpIHsKKwkJCWRhID0gaSA8PCBJT1BHRF9T
+SElGVDsKKworCQkJZXJyID0gZHVtcF9pb3B0YWJsZV9lbnRyeV9vbmUoMSwgZGEsICppb3BnZCk7
+CisJCQlpZiAoZXJyKQorCQkJCWdvdG8gb3V0OworCQkJY29udGludWU7CisJCX0KKworCQlpb3B0
+ZSA9IGlvcHRlX29mZnNldChpb3BnZCwgMCk7CisKKwkJZm9yIChqID0gMDsgaiA8IFBUUlNfUEVS
+X0lPUFRFOyBqKyssIGlvcHRlKyspIHsKKwkJCWlmICghKmlvcHRlKQorCQkJCWNvbnRpbnVlOwor
+CisJCQlkYSA9IChpIDw8IElPUEdEX1NISUZUKSArIChqIDw8IElPUFRFX1NISUZUKTsKKwkJCWVy
+ciA9IGR1bXBfaW9wdGFibGVfZW50cnlfb25lKDIsIGRhLCAqaW9wZ2QpOworCQkJaWYgKGVycikK
+KwkJCQlnb3RvIG91dDsKKwkJfQorCX0KK291dDoKKwlzcGluX3VubG9jaygmb2JqLT5wYWdlX3Rh
+YmxlX2xvY2spOworCisJcmV0dXJuIHAgLSBidWY7Cit9CisKK3N0YXRpYyBzc2l6ZV90IGRlYnVn
+X3JlYWRfcGFnZXRhYmxlKHN0cnVjdCBmaWxlICpmaWxlLCBjaGFyIF9fdXNlciAqdXNlcmJ1ZiwK
+KwkJCQkgICAgc2l6ZV90IGNvdW50LCBsb2ZmX3QgKnBwb3MpCit7CisJc3RydWN0IGlvbW11ICpv
+YmogPSBmaWxlLT5wcml2YXRlX2RhdGE7CisJY2hhciAqcCwgKmJ1ZjsKKwlzaXplX3QgYnl0ZXM7
+CisKKwlidWYgPSAoY2hhciAqKV9fZ2V0X2ZyZWVfcGFnZShHRlBfS0VSTkVMKTsKKwlpZiAoIWJ1
+ZikKKwkJcmV0dXJuIC1FTk9NRU07CisJcCA9IGJ1ZjsKKworCXAgKz0gc3ByaW50ZihwLCAiTDog
+JThzICU4c1xuIiwgImRhOiIsICJwYToiKTsKKwlwICs9IHNwcmludGYocCwgIi0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tXG4iKTsKKworCW11dGV4X2xvY2soJmlvbW11
+X2RlYnVnX2xvY2spOworCisJYnl0ZXMgPSBQQUdFX1NJWkUgLSAocCAtIGJ1Zik7CisJcCArPSBk
+dW1wX2lvcHRhYmxlKG9iaiwgcCwgYnl0ZXMpOworCisJYnl0ZXMgPSBzaW1wbGVfcmVhZF9mcm9t
+X2J1ZmZlcih1c2VyYnVmLCBjb3VudCwgcHBvcywgYnVmLCBwIC0gYnVmKTsKKworCW11dGV4X3Vu
+bG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisJZnJlZV9wYWdlKCh1bnNpZ25lZCBsb25nKWJ1Zik7
+CisKKwlyZXR1cm4gYnl0ZXM7Cit9CisKK3N0YXRpYyBzc2l6ZV90IGRlYnVnX3JlYWRfbW1hcChz
+dHJ1Y3QgZmlsZSAqZmlsZSwgY2hhciBfX3VzZXIgKnVzZXJidWYsCisJCQkgICAgICAgc2l6ZV90
+IGNvdW50LCBsb2ZmX3QgKnBwb3MpCit7CisJc3RydWN0IGlvbW11ICpvYmogPSBmaWxlLT5wcml2
+YXRlX2RhdGE7CisJY2hhciAqcCwgKmJ1ZjsKKwlzdHJ1Y3QgaW92bV9zdHJ1Y3QgKnRtcDsKKwlp
+bnQgdW5pbml0aWFsaXplZF92YXIoaSk7CisJc3NpemVfdCBieXRlczsKKworCWJ1ZiA9IChjaGFy
+ICopX19nZXRfZnJlZV9wYWdlKEdGUF9LRVJORUwpOworCWlmICghYnVmKQorCQlyZXR1cm4gLUVO
+T01FTTsKKwlwID0gYnVmOworCisJcCArPSBzcHJpbnRmKHAsICIlLTNzICUtOHMgJS04cyAlNnMg
+JThzXG4iLAorCQkgICAgICJObyIsICJzdGFydCIsICJlbmQiLCAic2l6ZSIsICJmbGFncyIpOwor
+CXAgKz0gc3ByaW50ZihwLCAiLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLVxuIik7CisKKwltdXRleF9sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKworCWxp
+c3RfZm9yX2VhY2hfZW50cnkodG1wLCAmb2JqLT5tbWFwLCBsaXN0KSB7CisJCXNpemVfdCBsZW47
+CisJCWNvbnN0IGNoYXIgKnN0ciA9ICIlM2QgJTA4eC0lMDh4ICU2eCAlOHhcbiI7CisJCWNvbnN0
+IGludCBtYXhjb2wgPSAzOTsKKworCQlsZW4gPSB0bXAtPmRhX2VuZCAtIHRtcC0+ZGFfc3RhcnQ7
+CisJCXAgKz0gc25wcmludGYocCwgbWF4Y29sLCBzdHIsCisJCQkgICAgICBpLCB0bXAtPmRhX3N0
+YXJ0LCB0bXAtPmRhX2VuZCwgbGVuLCB0bXAtPmZsYWdzKTsKKworCQlpZiAoUEFHRV9TSVpFIC0g
+KHAgLSBidWYpIDwgbWF4Y29sKQorCQkJYnJlYWs7CisJCWkrKzsKKwl9CisKKwlieXRlcyA9IHNp
+bXBsZV9yZWFkX2Zyb21fYnVmZmVyKHVzZXJidWYsIGNvdW50LCBwcG9zLCBidWYsIHAgLSBidWYp
+OworCisJbXV0ZXhfdW5sb2NrKCZpb21tdV9kZWJ1Z19sb2NrKTsKKwlmcmVlX3BhZ2UoKHVuc2ln
+bmVkIGxvbmcpYnVmKTsKKworCXJldHVybiBieXRlczsKK30KKworc3RhdGljIHNzaXplX3QgZGVi
+dWdfcmVhZF9tZW0oc3RydWN0IGZpbGUgKmZpbGUsIGNoYXIgX191c2VyICp1c2VyYnVmLAorCQkJ
+ICAgICAgc2l6ZV90IGNvdW50LCBsb2ZmX3QgKnBwb3MpCit7CisJc3RydWN0IGlvbW11ICpvYmog
+PSBmaWxlLT5wcml2YXRlX2RhdGE7CisJY2hhciAqcCwgKmJ1ZjsKKwlzdHJ1Y3QgaW92bV9zdHJ1
+Y3QgKmFyZWE7CisJc3NpemVfdCBieXRlczsKKworCWNvdW50ID0gbWluX3Qoc3NpemVfdCwgY291
+bnQsIFBBR0VfU0laRSk7CisKKwlidWYgPSAoY2hhciAqKV9fZ2V0X2ZyZWVfcGFnZShHRlBfS0VS
+TkVMKTsKKwlpZiAoIWJ1ZikKKwkJcmV0dXJuIC1FTk9NRU07CisJcCA9IGJ1ZjsKKworCW11dGV4
+X2xvY2soJmlvbW11X2RlYnVnX2xvY2spOworCisJYXJlYSA9IGZpbmRfaW92bV9hcmVhKG9iaiwg
+KHUzMilwcG9zKTsKKwlpZiAoSVNfRVJSKGFyZWEpKSB7CisJCWJ5dGVzID0gLUVJTlZBTDsKKwkJ
+Z290byBlcnJfb3V0OworCX0KKwltZW1jcHkocCwgYXJlYS0+dmEsIGNvdW50KTsKKwlwICs9IGNv
+dW50OworCisJYnl0ZXMgPSBzaW1wbGVfcmVhZF9mcm9tX2J1ZmZlcih1c2VyYnVmLCBjb3VudCwg
+cHBvcywgYnVmLCBwIC0gYnVmKTsKK2Vycl9vdXQ6CisJbXV0ZXhfdW5sb2NrKCZpb21tdV9kZWJ1
+Z19sb2NrKTsKKwlmcmVlX3BhZ2UoKHVuc2lnbmVkIGxvbmcpYnVmKTsKKworCXJldHVybiBieXRl
+czsKK30KKworc3RhdGljIHNzaXplX3QgZGVidWdfd3JpdGVfbWVtKHN0cnVjdCBmaWxlICpmaWxl
+LCBjb25zdCBjaGFyIF9fdXNlciAqdXNlcmJ1ZiwKKwkJCSAgICAgICBzaXplX3QgY291bnQsIGxv
+ZmZfdCAqcHBvcykKK3sKKwlzdHJ1Y3QgaW9tbXUgKm9iaiA9IGZpbGUtPnByaXZhdGVfZGF0YTsK
+KwlzdHJ1Y3QgaW92bV9zdHJ1Y3QgKmFyZWE7CisJY2hhciAqcCwgKmJ1ZjsKKworCWNvdW50ID0g
+bWluX3Qoc2l6ZV90LCBjb3VudCwgUEFHRV9TSVpFKTsKKworCWJ1ZiA9IChjaGFyICopX19nZXRf
+ZnJlZV9wYWdlKEdGUF9LRVJORUwpOworCWlmICghYnVmKQorCQlyZXR1cm4gLUVOT01FTTsKKwlw
+ID0gYnVmOworCisJbXV0ZXhfbG9jaygmaW9tbXVfZGVidWdfbG9jayk7CisKKwlpZiAoY29weV9m
+cm9tX3VzZXIocCwgdXNlcmJ1ZiwgY291bnQpKSB7CisJCWNvdW50ID0gIC1FRkFVTFQ7CisJCWdv
+dG8gZXJyX291dDsKKwl9CisKKwlhcmVhID0gZmluZF9pb3ZtX2FyZWEob2JqLCAodTMyKXBwb3Mp
+OworCWlmIChJU19FUlIoYXJlYSkpIHsKKwkJY291bnQgPSAtRUlOVkFMOworCQlnb3RvIGVycl9v
+dXQ7CisJfQorCW1lbWNweShhcmVhLT52YSwgcCwgY291bnQpOworZXJyX291dDoKKwltdXRleF91
+bmxvY2soJmlvbW11X2RlYnVnX2xvY2spOworCWZyZWVfcGFnZSgodW5zaWduZWQgbG9uZylidWYp
+OworCisJcmV0dXJuIGNvdW50OworfQorCitzdGF0aWMgaW50IGRlYnVnX29wZW5fZ2VuZXJpYyhz
+dHJ1Y3QgaW5vZGUgKmlub2RlLCBzdHJ1Y3QgZmlsZSAqZmlsZSkKK3sKKwlmaWxlLT5wcml2YXRl
+X2RhdGEgPSBpbm9kZS0+aV9wcml2YXRlOworCXJldHVybiAwOworfQorCisjZGVmaW5lIERFQlVH
+X0ZPUFMobmFtZSkJCQkJCQlcCisJc3RhdGljIGNvbnN0IHN0cnVjdCBmaWxlX29wZXJhdGlvbnMg
+ZGVidWdfIyNuYW1lIyNfZm9wcyA9IHsJXAorCQkub3BlbiA9IGRlYnVnX29wZW5fZ2VuZXJpYywJ
+CQkJXAorCQkucmVhZCA9IGRlYnVnX3JlYWRfIyNuYW1lLAkJCQlcCisJCS53cml0ZSA9IGRlYnVn
+X3dyaXRlXyMjbmFtZSwJCQkJXAorCX07CisKKyNkZWZpbmUgREVCVUdfRk9QU19STyhuYW1lKQkJ
+CQkJCVwKKwlzdGF0aWMgY29uc3Qgc3RydWN0IGZpbGVfb3BlcmF0aW9ucyBkZWJ1Z18jI25hbWUj
+I19mb3BzID0gewlcCisJCS5vcGVuID0gZGVidWdfb3Blbl9nZW5lcmljLAkJCQlcCisJCS5yZWFk
+ID0gZGVidWdfcmVhZF8jI25hbWUsCQkJCVwKKwl9OworCitERUJVR19GT1BTX1JPKHZlcik7CitE
+RUJVR19GT1BTX1JPKHJlZ3MpOworREVCVUdfRk9QU19STyh0bGIpOworREVCVUdfRk9QUyhwYWdl
+dGFibGUpOworREVCVUdfRk9QU19STyhtbWFwKTsKK0RFQlVHX0ZPUFMobWVtKTsKKworI2RlZmlu
+ZSBfX0RFQlVHX0FERF9GSUxFKGF0dHIsIG1vZGUpCQkJCQlcCisJewkJCQkJCQkJXAorCQlzdHJ1
+Y3QgZGVudHJ5ICpkZW50OwkJCQkJXAorCQlkZW50ID0gZGVidWdmc19jcmVhdGVfZmlsZSgjYXR0
+ciwgbW9kZSwgcGFyZW50LAkJXAorCQkJCQkgICBvYmosICZkZWJ1Z18jI2F0dHIjI19mb3BzKTsJ
+XAorCQlpZiAoIWRlbnQpCQkJCQkJXAorCQkJcmV0dXJuIC1FTk9NRU07CQkJCQlcCisJfQorCisj
+ZGVmaW5lIERFQlVHX0FERF9GSUxFKG5hbWUpIF9fREVCVUdfQUREX0ZJTEUobmFtZSwgNjAwKQor
+I2RlZmluZSBERUJVR19BRERfRklMRV9STyhuYW1lKSBfX0RFQlVHX0FERF9GSUxFKG5hbWUsIDQw
+MCkKKworc3RhdGljIGludCBpb21tdV9kZWJ1Z19yZWdpc3RlcihzdHJ1Y3QgZGV2aWNlICpkZXYs
+IHZvaWQgKmRhdGEpCit7CisJc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldiA9IHRvX3BsYXRm
+b3JtX2RldmljZShkZXYpOworCXN0cnVjdCBpb21tdSAqb2JqID0gcGxhdGZvcm1fZ2V0X2RydmRh
+dGEocGRldik7CisJc3RydWN0IGRlbnRyeSAqZCwgKnBhcmVudDsKKworCWlmICghb2JqIHx8ICFv
+YmotPmRldikKKwkJcmV0dXJuIC1FSU5WQUw7CisKKwlkID0gZGVidWdmc19jcmVhdGVfZGlyKG9i
+ai0+bmFtZSwgaW9tbXVfZGVidWdfcm9vdCk7CisJaWYgKCFkKQorCQlyZXR1cm4gLUVOT01FTTsK
+KwlwYXJlbnQgPSBkOworCisJZCA9IGRlYnVnZnNfY3JlYXRlX3U4KCJucl90bGJfZW50cmllcyIs
+IDQwMCwgcGFyZW50LAorCQkJICAgICAgKHU4ICopJm9iai0+bnJfdGxiX2VudHJpZXMpOworCWlm
+ICghZCkKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlERUJVR19BRERfRklMRV9STyh2ZXIpOworCURF
+QlVHX0FERF9GSUxFX1JPKHJlZ3MpOworCURFQlVHX0FERF9GSUxFX1JPKHRsYik7CisJREVCVUdf
+QUREX0ZJTEUocGFnZXRhYmxlKTsKKwlERUJVR19BRERfRklMRV9STyhtbWFwKTsKKwlERUJVR19B
+RERfRklMRShtZW0pOworCisJcmV0dXJuIDA7Cit9CisKK3N0YXRpYyBpbnQgX19pbml0IGlvbW11
+X2RlYnVnX2luaXQodm9pZCkKK3sKKwlzdHJ1Y3QgZGVudHJ5ICpkOworCWludCBlcnI7CisKKwlk
+ID0gZGVidWdmc19jcmVhdGVfZGlyKCJpb21tdSIsIE5VTEwpOworCWlmICghZCkKKwkJcmV0dXJu
+IC1FTk9NRU07CisJaW9tbXVfZGVidWdfcm9vdCA9IGQ7CisKKwllcnIgPSBmb3JlYWNoX2lvbW11
+X2RldmljZShkLCBpb21tdV9kZWJ1Z19yZWdpc3Rlcik7CisJaWYgKGVycikKKwkJZ290byBlcnJf
+b3V0OworCXJldHVybiAwOworCitlcnJfb3V0OgorCWRlYnVnZnNfcmVtb3ZlX3JlY3Vyc2l2ZShp
+b21tdV9kZWJ1Z19yb290KTsKKwlyZXR1cm4gZXJyOworfQorbW9kdWxlX2luaXQoaW9tbXVfZGVi
+dWdfaW5pdCkKKworc3RhdGljIHZvaWQgX19leGl0IGlvbW11X2RlYnVnZnNfZXhpdCh2b2lkKQor
+eworCWRlYnVnZnNfcmVtb3ZlX3JlY3Vyc2l2ZShpb21tdV9kZWJ1Z19yb290KTsKK30KK21vZHVs
+ZV9leGl0KGlvbW11X2RlYnVnZnNfZXhpdCkKKworTU9EVUxFX0RFU0NSSVBUSU9OKCJvbWFwIGlv
+bW11OiBkZWJ1Z2ZzIGludGVyZmFjZSIpOworTU9EVUxFX0FVVEhPUigiSGlyb3NoaSBET1lVIDxI
+aXJvc2hpLkRPWVVAbm9raWEuY29tPiIpOworTU9EVUxFX0xJQ0VOU0UoIkdQTCB2MiIpOwpkaWZm
+IC0tZ2l0IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2lvbW11LmMgYi9hcmNoL2FybS9wbGF0LW9tYXAv
+aW9tbXUuYwppbmRleCA0YTAzMDEzLi40YjYwMTI3IDEwMDY0NAotLS0gYS9hcmNoL2FybS9wbGF0
+LW9tYXAvaW9tbXUuYworKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvaW9tbXUuYwpAQCAtMzUxLDE2
+ICszNTEsMTQgQEAgRVhQT1JUX1NZTUJPTF9HUEwoZmx1c2hfaW90bGJfYWxsKTsKIAogI2lmIGRl
+ZmluZWQoQ09ORklHX09NQVBfSU9NTVVfREVCVUdfTU9EVUxFKQogCi1zc2l6ZV90IGlvbW11X2R1
+bXBfY3R4KHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYpCitzc2l6ZV90IGlvbW11X2R1bXBf
+Y3R4KHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYsIHNzaXplX3QgYnl0ZXMpCiB7Ci0Jc3Np
+emVfdCBieXRlczsKLQogCWlmICghb2JqIHx8ICFidWYpCiAJCXJldHVybiAtRUlOVkFMOwogCiAJ
+Y2xrX2VuYWJsZShvYmotPmNsayk7CiAKLQlieXRlcyA9IGFyY2hfaW9tbXUtPmR1bXBfY3R4KG9i
+aiwgYnVmKTsKKwlieXRlcyA9IGFyY2hfaW9tbXUtPmR1bXBfY3R4KG9iaiwgYnVmLCBieXRlcyk7
+CiAKIAljbGtfZGlzYWJsZShvYmotPmNsayk7CiAKQEAgLTM2OCw3ICszNjYsNyBAQCBzc2l6ZV90
+IGlvbW11X2R1bXBfY3R4KHN0cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYpCiB9CiBFWFBPUlRf
+U1lNQk9MX0dQTChpb21tdV9kdW1wX2N0eCk7CiAKLXN0YXRpYyBpbnQgX19kdW1wX3RsYl9lbnRy
+aWVzKHN0cnVjdCBpb21tdSAqb2JqLCBzdHJ1Y3QgY3JfcmVncyAqY3JzKQorc3RhdGljIGludCBf
+X2R1bXBfdGxiX2VudHJpZXMoc3RydWN0IGlvbW11ICpvYmosIHN0cnVjdCBjcl9yZWdzICpjcnMs
+IGludCBudW0pCiB7CiAJaW50IGk7CiAJc3RydWN0IGlvdGxiX2xvY2sgc2F2ZWQsIGw7CkBAIC0z
+NzksNyArMzc3LDcgQEAgc3RhdGljIGludCBfX2R1bXBfdGxiX2VudHJpZXMoc3RydWN0IGlvbW11
+ICpvYmosIHN0cnVjdCBjcl9yZWdzICpjcnMpCiAJaW90bGJfbG9ja19nZXQob2JqLCAmc2F2ZWQp
+OwogCW1lbWNweSgmbCwgJnNhdmVkLCBzaXplb2Yoc2F2ZWQpKTsKIAotCWZvciAoaSA9IDA7IGkg
+PCBvYmotPm5yX3RsYl9lbnRyaWVzOyBpKyspIHsKKwlmb3IgKGkgPSAwOyBpIDwgbnVtOyBpKysp
+IHsKIAkJc3RydWN0IGNyX3JlZ3MgdG1wOwogCiAJCWlvdGxiX2xvY2tfZ2V0KG9iaiwgJmwpOwpA
+QCAtNDAyLDE4ICs0MDAsMjEgQEAgc3RhdGljIGludCBfX2R1bXBfdGxiX2VudHJpZXMoc3RydWN0
+IGlvbW11ICpvYmosIHN0cnVjdCBjcl9yZWdzICpjcnMpCiAgKiBAb2JqOgl0YXJnZXQgaW9tbXUK
+ICAqIEBidWY6CW91dHB1dCBidWZmZXIKICAqKi8KLXNpemVfdCBkdW1wX3RsYl9lbnRyaWVzKHN0
+cnVjdCBpb21tdSAqb2JqLCBjaGFyICpidWYpCitzaXplX3QgZHVtcF90bGJfZW50cmllcyhzdHJ1
+Y3QgaW9tbXUgKm9iaiwgY2hhciAqYnVmLCBzc2l6ZV90IGJ5dGVzKQogewotCWludCBpLCBuOwor
+CWludCBpLCBudW07CiAJc3RydWN0IGNyX3JlZ3MgKmNyOwogCWNoYXIgKnAgPSBidWY7CiAKLQlj
+ciA9IGtjYWxsb2Mob2JqLT5ucl90bGJfZW50cmllcywgc2l6ZW9mKCpjciksIEdGUF9LRVJORUwp
+OworCW51bSA9IGJ5dGVzIC8gc2l6ZW9mKCpjcik7CisJbnVtID0gbWluKG9iai0+bnJfdGxiX2Vu
+dHJpZXMsIG51bSk7CisKKwljciA9IGtjYWxsb2MobnVtLCBzaXplb2YoKmNyKSwgR0ZQX0tFUk5F
+TCk7CiAJaWYgKCFjcikKIAkJcmV0dXJuIDA7CiAKLQluID0gX19kdW1wX3RsYl9lbnRyaWVzKG9i
+aiwgY3IpOwotCWZvciAoaSA9IDA7IGkgPCBuOyBpKyspCisJbnVtID0gX19kdW1wX3RsYl9lbnRy
+aWVzKG9iaiwgY3IsIG51bSk7CisJZm9yIChpID0gMDsgaSA8IG51bTsgaSsrKQogCQlwICs9IGlv
+dGxiX2R1bXBfY3Iob2JqLCBjciArIGksIHApOwogCWtmcmVlKGNyKTsKIAotLSAKMS42LjAuNAoK
+
+----Next_Part(Thu_Aug_27_10_25_39_2009_374)----
