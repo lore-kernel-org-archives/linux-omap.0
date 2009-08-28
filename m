@@ -1,17 +1,16 @@
 From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH 2/2] ARM: OMAP4: PM: Refine API's for Power domain
- Framework Support.
-Date: Fri, 28 Aug 2009 05:01:32 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908280456350.15963@utopia.booyaka.com>
-References: <1250663090-10409-1-git-send-email-abhijitpagare@ti.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP4: PM: Add power domain framework.
+Date: Fri, 28 Aug 2009 05:15:22 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908280508100.15963@utopia.booyaka.com>
+References: <1250663046-10234-1-git-send-email-abhijitpagare@ti.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:48633 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:50406 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899AbZH1LBa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 07:01:30 -0400
-In-Reply-To: <1250663090-10409-1-git-send-email-abhijitpagare@ti.com>
+	with ESMTP id S1750811AbZH1LPU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 07:15:20 -0400
+In-Reply-To: <1250663046-10234-1-git-send-email-abhijitpagare@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Abhijit Pagare <abhijitpagare@ti.com>
@@ -19,163 +18,136 @@ Cc: linux-omap@vger.kernel.org
 
 Hello Abhijit,
 
-some comments.
+a few more comments.
 
 On Wed, 19 Aug 2009, abhijitpagare@ti.com wrote:
 
 > From: Abhijit Pagare <abhijitpagare@ti.com>
 > 
-> This Patch Adds Silicon Specific initialisations for the API support.
+> This Patch Adds the new power domain framework for OMAP4 and introduces \
+> some MACROS for OMAP4 Support. It also takes care of the initialisations \
+> of the power domains based on the silicon.
 > 
 > Signed-off-by: Abhijit Pagare <abhijitpagare@ti.com>
-> ---
->  arch/arm/mach-omap2/powerdomain.c |   96 +++++++++++++++++++++++++++++++------
->  1 files changed, 81 insertions(+), 15 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index 8f19c38..5ea7afa 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -38,6 +38,63 @@
->  #include <mach/powerdomain.h>
->  #include <mach/clockdomain.h>
+> diff --git a/arch/arm/mach-omap2/prm.h b/arch/arm/mach-omap2/prm.h
+> index bacfc97..5bab417 100644
+> --- a/arch/arm/mach-omap2/prm.h
+> +++ b/arch/arm/mach-omap2/prm.h
+> @@ -473,11 +473,17 @@
+>   *
+>   */
 >  
-> +/* OMAP3 Or OMAP4 specific register bit initialisations
-> + * Notice that the names here are not according to each power
-> + * domain but the bit mapping used applies to all of them
-> + */
-> +#ifdef CONFIG_ARCH_OMAP34XX
-
-This will break multi-OMAP builds.  And should not be necessary, given 
-that the OMAP3 defines appear to be identical to the OMAP4 defines 
-(with the exception of the additional bank).
-
-> +/* OMAP4 Logic Retention control and status bits*/
-> +#define OMAP_LOGICRET_STATE OMAP4430_LOGICRETSTATE_MASK
-> +#define OMAP_LOGICSTATEST OMAP4430_LOGICSTATEST
-
-Please drop the above and 
+> -/* Registers appearing on both 24xx and 34xx */
+> -
+> -#define RM_RSTCTRL					0x0050
+> -#define RM_RSTTIME					0x0054
+> -#define RM_RSTST					0x0058
+> +/* Registers appearing on 24xx and 34xx and 44xx */
 > +
-> +/* OMAP4 Memory Onstate Masks (common across all power domains) */
-> +#define OMAP_MEM0_ONSTATE_MASK OMAP4430_CORE_OTHER_BANK_ONSTATE_MASK
-> +#define OMAP_MEM1_ONSTATE_MASK OMAP4430_CORE_OCMRAM_ONSTATE_MASK
-> +#define OMAP_MEM2_ONSTATE_MASK OMAP4430_DUCATI_L2RAM_ONSTATE_MASK
-> +#define OMAP_MEM3_ONSTATE_MASK OMAP4430_DUCATI_UNICACHE_ONSTATE_MASK
-> +#define OMAP_MEM4_ONSTATE_MASK OMAP4430_OCP_NRET_BANK_ONSTATE_MASK
-> +
-> +/* OMAP4 Memory Retstate Masks (common across all power domains) */
-> +#define OMAP_MEM0_RETSTATE_MASK OMAP4430_CORE_OTHER_BANK_RETSTATE_MASK
-> +#define OMAP_MEM1_RETSTATE_MASK OMAP4430_CORE_OCMRAM_RETSTATE_MASK
-> +#define OMAP_MEM2_RETSTATE_MASK OMAP4430_DUCATI_L2RAM_RETSTATE_MASK
-> +#define OMAP_MEM3_RETSTATE_MASK OMAP4430_DUCATI_UNICACHE_RETSTATE_MASK
-> +#define OMAP_MEM4_RETSTATE_MASK OMAP4430_OCP_NRET_BANK_RETSTATE_MASK
-> +
-> +/* OMAP4 Memory Status bits */
-> +#define OMAP_MEM0_STATEST_MASK OMAP4430_CORE_OTHER_BANK_STATEST_MASK
-> +#define OMAP_MEM1_STATEST_MASK OMAP4430_CORE_OCMRAM_STATEST_MASK
-> +#define OMAP_MEM2_STATEST_MASK OMAP4430_DUCATI_L2RAM_STATEST_MASK
-> +#define OMAP_MEM3_STATEST_MASK OMAP4430_DUCATI_UNICACHE_STATEST_MASK
-> +#define OMAP_MEM4_STATEST_MASK OMAP4430_OCP_NRET_BANK_STATEST_MASK
+> +#ifdef CONFIG_ARCH_OMAP4
 
-I like the idea that you propose above - to use macro aliases for the bank 
-masks.  But let's make some changes.  Banks 0 - 3 should use the OMAP3430 
-macros, since that's where they were first introduced.  Bank 4 should keep 
-the OMAP4430 macro.
+This will break multi-OMAP kernels.  If those offsets differ, please define
+two sets, e.g.,
 
-> @@ -714,8 +771,8 @@ int pwrdm_set_logic_retst(struct powerdomain *pwrdm, u8 pwrst)
->  	 * but the type of value returned is the same for each
->  	 * powerdomain.
->  	 */
-> -	prm_rmw_mod_reg_bits(OMAP3430_LOGICL1CACHERETSTATE,
-> -			     (pwrst << __ffs(OMAP3430_LOGICL1CACHERETSTATE)),
-> +	prm_rmw_mod_reg_bits(OMAP_LOGICRET_STATE,
-> +			     (pwrst << __ffs(OMAP_LOGICRET_STATE)),
->  			     pwrdm->prcm_offs, PM_PWSTCTRL);
+#define OMAP2_RM_RSTCTRL				0x0050
+...
+
+#define OMAP4_RM_RSTCTRL				0x0000
+...
+
+You'll need to patch some of other code with the appropriate offsets.
+
+> +#define RM_RSTCTRL					0x0000 /* OMAP4 */
+> +#define RM_RSTTIME					0x0004 /* OMAP4 */
+> +#define RM_RSTST					0x0008 /* OMAP4 */
+> +#else
+> +#define RM_RSTCTRL					0x0050 /* OMAP2 & 3 */
+> +#define RM_RSTTIME					0x0054 /* OMAP2 & 3 */
+> +#define RM_RSTST					0x0058 /* OMAP2 & 3 */
+> +#endif
 >  
->  	return 0;
-> @@ -759,16 +816,19 @@ int pwrdm_set_mem_onst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
->  	 */
->  	switch (bank) {
->  	case 0:
-> -		m = OMAP3430_SHAREDL1CACHEFLATONSTATE_MASK;
-> +		m = OMAP_MEM0_ONSTATE_MASK;
->  		break;
->  	case 1:
-> -		m = OMAP3430_L1FLATMEMONSTATE_MASK;
-> +		m = OMAP_MEM1_ONSTATE_MASK;
->  		break;
->  	case 2:
-> -		m = OMAP3430_SHAREDL2CACHEFLATONSTATE_MASK;
-> +		m = OMAP_MEM2_ONSTATE_MASK;
->  		break;
->  	case 3:
-> -		m = OMAP3430_L2FLATMEMONSTATE_MASK;
-> +		m = OMAP_MEM3_ONSTATE_MASK;
-> +		break;
-> +	case 4:
-> +		m = OMAP_MEM4_ONSTATE_MASK;
->  		break;
->  	default:
->  		WARN_ON(1); /* should never happen */
-> @@ -820,16 +880,19 @@ int pwrdm_set_mem_retst(struct powerdomain *pwrdm, u8 bank, u8 pwrst)
->  	 */
->  	switch (bank) {
->  	case 0:
-> -		m = OMAP3430_SHAREDL1CACHEFLATRETSTATE;
-> +		m = OMAP_MEM0_RETSTATE_MASK;
->  		break;
->  	case 1:
-> -		m = OMAP3430_L1FLATMEMRETSTATE;
-> +		m = OMAP_MEM1_RETSTATE_MASK;
->  		break;
->  	case 2:
-> -		m = OMAP3430_SHAREDL2CACHEFLATRETSTATE;
-> +		m = OMAP_MEM2_RETSTATE_MASK;
->  		break;
->  	case 3:
-> -		m = OMAP3430_L2FLATMEMRETSTATE;
-> +		m = OMAP_MEM3_RETSTATE_MASK;
-> +		break;
-> +	case 4:
-> +		m = OMAP_MEM4_RETSTATE_MASK;
->  		break;
->  	default:
->  		WARN_ON(1); /* should never happen */
-> @@ -857,7 +920,7 @@ int pwrdm_read_logic_pwrst(struct powerdomain *pwrdm)
->  		return -EINVAL;
+>  #define PM_WKEN						0x00a0
+>  #define PM_WKEN1					PM_WKEN
+> @@ -487,8 +493,14 @@
+>  #define PM_EVGENCTRL					0x00d4
+>  #define PM_EVGENONTIM					0x00d8
+>  #define PM_EVGENOFFTIM					0x00dc
+> -#define PM_PWSTCTRL					0x00e0
+> -#define PM_PWSTST					0x00e4
+> +
+> +#ifdef CONFIG_ARCH_OMAP4
+
+Same here.
+
+> +#define PM_PWSTCTRL					0x0000 /* OMAP4 */
+> +#define PM_PWSTST					0x0004 /* OMAP4 */
+> +#else
+> +#define PM_PWSTCTRL					0x00e0 /* OMAP2 & 3 */
+> +#define PM_PWSTST					0x00e4 /* OMAP2 & 3 */
+> +#endif
 >  
->  	return prm_read_mod_bits_shift(pwrdm->prcm_offs, PM_PWSTST,
-> -					OMAP3430_LOGICSTATEST);
-> +					OMAP_LOGICSTATEST);
->  }
+>  /* Omap2 specific registers */
+>  #define OMAP24XX_PM_WKEN2				0x00a4
+> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+> index fc60c4e..4647f9a 100644
+> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> @@ -253,6 +253,7 @@ IS_OMAP_SUBCLASS(343x, 0x343)
+>   * cpu_is_omap2423():	True for OMAP2423
+>   * cpu_is_omap2430():	True for OMAP2430
+>   * cpu_is_omap3430():	True for OMAP3430
+> + * cpu_is_omap4430():	True for OMAP4430
+>   */
+>  #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
 >  
->  /**
-> @@ -911,16 +974,19 @@ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
->  	 */
->  	switch (bank) {
->  	case 0:
-> -		m = OMAP3430_SHAREDL1CACHEFLATSTATEST_MASK;
-> +		m = OMAP_MEM0_STATEST_MASK;
->  		break;
->  	case 1:
-> -		m = OMAP3430_L1FLATMEMSTATEST_MASK;
-> +		m = OMAP_MEM1_STATEST_MASK;
->  		break;
->  	case 2:
-> -		m = OMAP3430_SHAREDL2CACHEFLATSTATEST_MASK;
-> +		m = OMAP_MEM2_STATEST_MASK;
->  		break;
->  	case 3:
-> -		m = OMAP3430_L2FLATMEMSTATEST_MASK;
-> +		m = OMAP_MEM3_STATEST_MASK;
-> +		break;
-> +	case 4:
-> +		m = OMAP_MEM4_STATEST_MASK;
->  		break;
->  	default:
->  		WARN_ON(1); /* should never happen */
-> -- 
-> 1.5.4.7
+> @@ -385,7 +386,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #define OMAP3430_REV_ES3_0	0x34303034
+>  #define OMAP3430_REV_ES3_1	0x34304034
+>  
+> -#define OMAP443X_CLASS		0x44300034
+> +#define OMAP443X_CLASS		0x44300044
+>  
+>  /*
+>   * omap_chip bits
+> @@ -408,6 +409,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #define CHIP_IS_OMAP3430ES2		(1 << 4)
+>  #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
+>  #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
+> +#define CHIP_IS_OMAP4430		(1 << 7)
+>  
+>  #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+>  
+
+The above changes to cpu.h don't belong as part of a
+powerdomains-related patch and should be placed in a separate OMAP4
+base patch.
+
+> diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
+> index 69c9e67..2742106 100644
+> --- a/arch/arm/plat-omap/include/mach/powerdomain.h
+> +++ b/arch/arm/plat-omap/include/mach/powerdomain.h
+> @@ -46,13 +46,13 @@
+>   * Number of memory banks that are power-controllable.	On OMAP3430, the
+>   * maximum is 4.
+>   */
+> -#define PWRDM_MAX_MEM_BANKS	4
+> +#define PWRDM_MAX_MEM_BANKS	5
+>  
+>  /*
+>   * Maximum number of clockdomains that can be associated with a powerdomain.
+>   * CORE powerdomain on OMAP3 is the worst case
+
+Please update this comment.
+
+>   */
+> -#define PWRDM_MAX_CLKDMS	4
+> +#define PWRDM_MAX_CLKDMS	9
+>  
+>  /* XXX A completely arbitrary number. What is reasonable here? */
+>  #define PWRDM_TRANSITION_BAILOUT 100000
+
+I also have another comment, which, by request of others at TI India, I 
+will send you via private E-mail for now.
 
 
 - Paul
