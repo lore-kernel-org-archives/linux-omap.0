@@ -1,39 +1,98 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH-v2][RFC] OMAP4: Keypad Support for OMAP4430
-Date: Fri, 28 Aug 2009 09:16:45 -0700
-Message-ID: <20090828161645.GM25828@atomide.com>
-References: <47940.192.168.10.88.1251196743.squirrel@dbdmail.itg.ti.com> <20090827065208.9B1C0526EC9@mailhub.coreip.homeip.net>
+From: "Rix, Tom" <trix@ti.com>
+Subject: RE: [PATCH] OMAP3: Zoom2: provide default MTD partitions
+Date: Fri, 28 Aug 2009 11:26:27 -0500
+Message-ID: <7B4574D56E4ADF438756313E9A172A8788CC35FF@dlee01.ent.ti.com>
+References: <1251374386-6733-1-git-send-email-mpetazzoni@mvista.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702F9A44CDF@dbde02.ent.ti.com>,<20090827140617.GA30917@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090827065208.9B1C0526EC9@mailhub.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Syed Rafiuddin <rafiuddin.syed@ti.com>, soni.trilok@gmail.com, linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60792 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751542AbZH1Qe3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 12:34:29 -0400
+In-Reply-To: <20090827140617.GA30917@mvista.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Maxime Petazzoni <mpetazzoni@mvista.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "Singh, Vimal" <IMCEAEX-_O=TI_OU=BD_cn=Recipients_cn=x0094262@dlee86.itg.ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Dmitry Torokhov <dmitry.torokhov@gmail.com> [090826 23:20]:
-> On Tue, Aug 25, 2009 at 04:09:03PM +0530, Syed Rafiuddin wrote:
-> > From: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> > 
-> > Resending with correct Subject.
-> > 
-> > This patch Adds Keypad support on OMAP4.And adds
-> > OMAP4 register addresses and configures them for OMAP4.
-> > 
-> > 
-> > This patch has been updated as per the comments received from
-> > Trilok Soni to remove GPIO based omap2 keypad logic from omap_keypad.c
-> > (http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14570.html)
-> > Matrix_keypad.c (gpio based keypad driver) can be used in OMAP2,
-> > which is not tested on OMAP2 since unavailability of omap2 target's.
-> > 
-> 
-> So has omap2 been switched over to matrix-keypad? Otherwise ripping
-> omap2 support from omap-keypad is premature.
+The bootloader perspective..
 
-Hmm yeah that should be a separate patch that swithces 24xx to use
-the GPIO keypad driver and removes the related logic from this patch.
+The minimum set needed are for xloader, u-boot and the environment. 
+xloader is very static.
+u-boot at 1.25m should be big enough
+environment is very static and should be big enough..
+This is consistent with the bootloader.
 
-Tony
+The rest can be done with mtdparts and the differences between ldp and zoom2
+flash layout can be separated in their respective environment files. 
+
+The bootloader flashing utility 'fastboot' depends on the kernel layout.
+There is a change pending to decouple using an mtdparts-like mechanism. 
+See 'Runtime Partitions' toward the bottom of..
+
+https://omapzoom.org/gf/project/omapzoom/wiki/?pagename=FAQ-8%3A+Zoom-II+Android%C2%A0fastboot
+
+Tom
+
+________________________________________
+From: Maxime Petazzoni [mpetazzoni@mvista.com]
+Sent: Thursday, August 27, 2009 9:06 AM
+To: Pandita, Vikram
+Cc: Singh, Vimal; linux-omap@vger.kernel.org; Rix, Tom
+Subject: Re: [PATCH] OMAP3: Zoom2: provide default MTD partitions
+
+Hi,
+
+* Pandita, Vikram <vikram.pandita@ti.com> [2009-08-27 19:16:27]:
+
+> Why?
+>
+> I know of an implementation by Vimal Singh that introduces a common
+> flash file for Zoom1 and Zoom2.
+> There is reuse of code there.
+
+Thanks for your comments.
+
+There are indeed other implentations around using a common flash file
+for Zoom1 and Zoom2 boards. I didn't know of this specific
+implementation by Vimal Singh, but we use something very similar
+internally.
+
+Since linux-omap didn't had any MTD partitions definitions for either
+boards, I decided to go for the smallest change: only partitions for
+Zoom2.
+
+> Please discuss and get a converged approach on handling NAND
+> partitions on Zoom1 and Zoom2.
+
+Agreed. We should use a common file for Zoom1 and Zoom2 flash, with
+Zoom2 specific partition sizes. But I'm not sure I deserve the right to
+propose Vimal Singh's patch (by the way, why hasn't it been merged in
+the linux-omap tree?). How should we proceed then?
+
+> Also the Systerm/User/Cache partition definitions are more from Android perspective.
+>
+> Given that each system may have a different NAND partition requirement,
+> have you looked at bootargs passing the MTD partition info: Eg:
+>
+> mtdparts=omap2-nand.0:512k@0(xloader),\
+> 1536k@512k(bootloader),\
+> 29m@2m(kernel),\
+> 160m@32m(system),\
+> 32m@192m(userdata),\
+> 32m@224m(cache)
+
+Yes, I am aware of the mtdparts command line arguments, which works
+great. I think a "default", sensible partition layout for the Zoom2
+would be nice though.
+
+- Maxime
+
+--
+Maxime Petazzoni
+Linux kernel & software dev
+MontaVista Software, Inc
