@@ -1,67 +1,74 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: FW: [PATCH 5/5] OMAP: Zoom2: Release Dbg board detect gpio
-Date: Fri, 28 Aug 2009 04:50:35 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9A44DB9@dbde02.ent.ti.com>
+From: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH] usb: disable OTG AUTOIDLE only with omap3430
+Date: Fri, 28 Aug 2009 10:38:51 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436A4A53A@dbde02.ent.ti.com>
+References: <1242658456-5723-1-git-send-email-ext-niilo.1.minkkinen@nokia.com>
+ <13B9B4C6EF24D648824FF11BE8967162038BED5CF1@dlee02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E73940436A4A15B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43116 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142AbZH0XUo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 27 Aug 2009 19:20:44 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436A4A15B-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Woodruff, Richard" <r-woodruff2-l0cyMroinI0@public.gmane.org>, Niilo Minkkinen <ext-niilo.1.minkkinen-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org" <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>, "Premi, Sanjeev" <premi-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin
-Could you please line this trivial fix for Zoom2, just like you lined up the 
-[PATCH 4/5] OMAP: Zoom2: Fix serial break
+> ========== patch =========================
+> There is an issue with MUSB AUTOIDLE as reported by Niilo Minkkinen in
+> below commit.
+> 
+> 9a4b5e36ce58febdd2039dd4d129ee7edf4f5536
+> usb: musb: disable OTG AUTOIDLE only with omap3430
+> 
+> As OMAP35x is just a variant of OMAP34xx chip thus the fix is also
+> applicable for OMAP35x so updating it for OMAP35x.
+> 
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/usb/musb/omap2430.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index 453796c..ab8336d 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -233,7 +233,7 @@ int __init musb_platform_init(struct musb *musb)
+>  	 * MUSB AUTOIDLE don't work in 3430.
+>  	 * Workaround by Richard Woodruff/TI
+>  	 */
+> -	if (!cpu_is_omap3430())
+> +	if (!cpu_is_omap3430() && !cpu_is_omap35xx())
 
-That way my DEBUG_LL series will just be related to DEBUG_LL and nothing more on zoom2 fixes.
+cpu_is_omap35xx() is not yet available so this fix has to wait until this
+definition makes its way to l-o or mainline.
 
------Original Message-----
-From: Pandita, Vikram 
-Sent: Friday, August 21, 2009 1:11 PM
-To: linux-omap@vger.kernel.org; linux-arm-kernel@lists.arm.linux.org.uk
-Cc: Pandita, Vikram
-Subject: [PATCH 5/5] OMAP: Zoom2: Release Dbg board detect gpio
+-Ajay
 
-Release the Dbg board detection gpio once its purpose is served
+>  		l |= AUTOIDLE;		/* enable auto idle */
+>  	omap_writel(l, OTG_SYSCONFIG);
+> 
+> --
+> 1.6.2.4
+> ==============================================
+> 
+> >
+> > Regards,
+> > Richard W.
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
- arch/arm/mach-omap2/board-zoom-debugboard.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index 4dd714d..d80e448 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -130,6 +130,7 @@ static inline void __init zoom2_init_quaduart(void)
- static inline int omap_zoom2_debugboard_detect(void)
- {
- 	int debug_board_detect = 0;
-+	int ret = 1;
- 
- 	debug_board_detect = ZOOM2_SMSC911X_GPIO;
- 
-@@ -141,10 +142,10 @@ static inline int omap_zoom2_debugboard_detect(void)
- 	gpio_direction_input(debug_board_detect);
- 
- 	if (!gpio_get_value(debug_board_detect)) {
--		gpio_free(debug_board_detect);
--		return 0;
-+		ret = 0;
- 	}
--	return 1;
-+	gpio_free(debug_board_detect);
-+	return ret;
- }
- 
- static struct platform_device *zoom2_devices[] __initdata = {
--- 
-1.6.3.3.334.g916e1
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
