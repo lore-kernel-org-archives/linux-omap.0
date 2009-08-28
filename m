@@ -1,30 +1,36 @@
-From: David Brownell <david-b@pacbell.net>
-Subject: Re: [spi-devel-general] [RESEND][PATCH 0/2] McSPI Slave and DMA , FIFO support
-Date: Fri, 28 Aug 2009 10:32:36 -0700
-Message-ID: <200908281032.36878.david-b@pacbell.net>
-References: <42120.10.24.255.18.1245765231.squirrel@dbdmail.itg.ti.com> <200908272242.20636.david-b@pacbell.net> <060601ca27d7$d2a87df0$LocalHost@wipultra793>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 1/3] MFD: TWL4030: Add support for TWL4030/5030 dynamic
+ power switching
+Date: Fri, 28 Aug 2009 19:47:24 +0200
+Message-ID: <20090828174722.GB6162@sortiz.org>
+References: <1250517469-15899-1-git-send-email-amit.kucheria@verdurent.com>
+ <1250517706-16053-1-git-send-email-amit.kucheria@verdurent.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from n20.bullet.mail.mud.yahoo.com ([68.142.206.147]:40868 "HELO
-	n20.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751054AbZH1Rcg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Aug 2009 13:32:36 -0400
-In-Reply-To: <060601ca27d7$d2a87df0$LocalHost@wipultra793>
+Received: from mga09.intel.com ([134.134.136.24]:54726 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751283AbZH1RpT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Aug 2009 13:45:19 -0400
 Content-Disposition: inline
+In-Reply-To: <1250517706-16053-1-git-send-email-amit.kucheria@verdurent.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hemanth V <hemanthv@ti.com>
-Cc: spi-devel-general@lists.sourceforge.net, linux-omap@vger.kernel.org
+To: Amit Kucheria <amit.kucheria@verdurent.com>
+Cc: linux-kernel@vger.kernel.org, dbrownell@users.sourceforge.net, linux-omap@vger.kernel.org
 
-On Friday 28 August 2009, Hemanth V wrote:
-> So would it be possible to merge the slave support also for
-> now, and could be modified to support the new slave interface
-> as and when available.
+Hi Amit,
 
-Not really.  You still haven't split the non-slave stuff into
-a patch, note ..
+On Mon, Aug 17, 2009 at 05:01:46PM +0300, Amit Kucheria wrote:
+> +
+> +#include <asm/mach-types.h>
+You'll have to make your Kconfig entry depend on ARM if you want to include
+this file. Too bad you need it just for the special sdp and ldp cases, but I
+guess there's no other solution.
 
+Cheers,
+Samuel.
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
