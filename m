@@ -1,147 +1,78 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 10/10] OMAP3: update OMAP3 Beagle defconfig, v3
-Date: Fri, 28 Aug 2009 11:13:52 -0700
-Message-ID: <20090828181352.GN25828@atomide.com>
-References: <17586781.1251256830061.JavaMail.root@elwamui-hybrid.atl.sa.earthlink.net>
+Subject: Re: [PATCH 02/10] OMAP: iommu: add initial debugfs support
+Date: Fri, 28 Aug 2009 11:24:00 -0700
+Message-ID: <20090828182400.GO25828@atomide.com>
+References: <20090816151347.GZ7278@atomide.com> <20090816204732.GA23875@n2100.arm.linux.org.uk> <20090817.102805.48505615.Hiroshi.DOYU@nokia.com> <20090827.102539.246514996.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57812 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52267 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751045AbZH1SNx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 14:13:53 -0400
+	with ESMTP id S1751864AbZH1SYJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 14:24:09 -0400
 Content-Disposition: inline
-In-Reply-To: <17586781.1251256830061.JavaMail.root@elwamui-hybrid.atl.sa.earthlink.net>
+In-Reply-To: <20090827.102539.246514996.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eric Witcher <ewitcher@mindspring.com>
-Cc: felipe.balbi@nokia.com, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk, linux-omap@vger.kernel.org, linux@arm.linux.org.uk
 
-Hi Eric & Felipe,
-
-* Eric Witcher <ewitcher@mindspring.com> [090825 20:20]:
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090827 00:26]:
+> Hi Tony,
 > 
-> -----Original Message-----
-> >From: Felipe Balbi <felipe.balbi@nokia.com>
-> >Sent: Aug 19, 2009 9:40 AM
-> >To: ext Tony Lindgren <tony@atomide.com>
-> >Cc: Eric Witcher <ewitcher@mindspring.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-> >Subject: Re: [PATCH 10/10] OMAP3: update OMAP3 Beagle defconfig, v3
-> >
-> >Hi,
-> >
-> >On Sun, Aug 16, 2009 at 05:42:00PM +0200, ext Tony Lindgren wrote:
-> >> From f9356c9b5ca663feb3a985b42d0409da5625d537 Mon Sep 17 00:00:00 2001
-> >> From: Paul Walmsley <paul@pwsan.com>
-> >> Date: Sun, 16 Aug 2009 18:29:49 +0300
-> >> Subject: [PATCH] OMAP3: update OMAP3 Beagle defconfig
-> >> 
-> >> Update the OMAP3 Beagle defconfig to add EHCI, MMC, TWL4030 GPIO support.
-> >> Beagle can again use MMC rootfs after this patch.  Tested on BeagleBoard
-> >> rev C2.
-> >> 
-> >> Patch updated to enable PM and OTG options as suggested by
-> >> Eric Witcher <ewitcher@mindspring.com>.
-> >> 
-> >> Signed-off-by: Paul Walmsley <paul@pwsan.com>
-> >> Cc: Jason Kridner <jkridner@beagleboard.org>
-> >> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> >
-> >Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
-> >
-> >now that we have REGULATOR and TWL4030_USB it will work.
+> I fixed the error exit path as below and attached the updated verion
+> of the patch. Please replace the old one in for-next with the attached
+> one.
 
-Updated the patch with Felipe's Ack. Then see below on how
-we should deal with the remaining parts.
-
-> >
-> Hi everyone,
-> 
-> I just tested this again at the top of for-next at
->  6e083649e19ba4aa3b8a65d75f394ab8a06feb78
-> and we are still short 2 changes in order to get a working
-> boot using omap3_beagle_defconfig.
-> 
-> The changes are shown below.
-> 
-> The code deltas were discussed before
-> but I didn't follow how the twl4030-usb.c change was going to make
-> it into the tree.
-> 
-> With respect to the .config change, it was shown in my earlier post
-> but it didn't get put into the commit at
-> OMAP3: update OMAP3 Beagle defconfig
-> af9d536a65251a547864e3be87f53a22a6966b7a
-> 
-> In that check-in configuration CONFIG_USB_M66592 overrides
-> CONFIG_USB_GADGET_MUSB_HDRC and we fail during compile.
-> 
-> Eric
-> 
-> ---
->  arch/arm/configs/omap3_beagle_defconfig |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-> index b213e3b..51c0fa8 100644
-> --- a/arch/arm/configs/omap3_beagle_defconfig
-> +++ b/arch/arm/configs/omap3_beagle_defconfig
-> @@ -899,8 +899,8 @@ CONFIG_USB_GADGET_SELECTED=y
->  # CONFIG_USB_GADGET_FSL_USB2 is not set
->  # CONFIG_USB_GADGET_NET2280 is not set
->  # CONFIG_USB_GADGET_PXA25X is not set
-> -CONFIG_USB_GADGET_M66592=y
-> -CONFIG_USB_M66592=y
-> +# CONFIG_USB_GADGET_M66592 is not set
-> +# CONFIG_USB_M66592 is not set
->  # CONFIG_USB_GADGET_PXA27X is not set
->  # CONFIG_USB_GADGET_GOKU is not set
->  # CONFIG_USB_GADGET_LH7A40X is not set
-
-Thanks, merged this part into the patch.
-
-
-> -- 
-> 1.6.2.2
-> 
-> ---
->  arch/arm/mach-omap2/serial.c  |    1 -
->  drivers/usb/otg/twl4030-usb.c |    2 +-
->  2 files changed, 1 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index 021130d..1cf8078 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -475,7 +475,6 @@ static void omap_uart_idle_init(struct omap_uart_state *uart)
->  		uart->padconf = 0;
->  	}
->  
-> -	p->irqflags |= IRQF_SHARED;
->  	ret = request_irq(p->irq, omap_uart_interrupt, IRQF_SHARED,
->  			  "serial idle", (void *)uart);
->  	WARN_ON(ret);
-
-The related serial irqflags changes are already queued up in for-next,
-so this we can ignore until the omap for-next is merged.
-
-
-> diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
-> index 9e3e7a5..d1852d4 100644
-> --- a/drivers/usb/otg/twl4030-usb.c
-> +++ b/drivers/usb/otg/twl4030-usb.c
-> @@ -774,7 +774,7 @@ static int __init twl4030_usb_init(void)
->  {
->  	return platform_driver_register(&twl4030_usb_driver);
->  }
-> -subsys_initcall(twl4030_usb_init);
-> +subsys_initcall_sync(twl4030_usb_init);
->  
->  static void __exit twl4030_usb_exit(void)
->  {
-
-But this should be a separate patch and Felipe should take a look at it.
-
-Regards,
+OK will update.
 
 Tony
+
+> 	Modified arch/arm/plat-omap/iommu-debug.c
+> diff --git a/arch/arm/plat-omap/iommu-debug.c b/arch/arm/plat-omap/iommu-debug.c
+> index 5a7e409..c799b3b 100644
+> --- a/arch/arm/plat-omap/iommu-debug.c
+> +++ b/arch/arm/plat-omap/iommu-debug.c
+> @@ -268,14 +268,14 @@ static ssize_t debug_read_mem(struct file *file, char __user *userbuf,
+>  
+>  	area = find_iovm_area(obj, (u32)ppos);
+>  	if (IS_ERR(area)) {
+> -		mutex_unlock(&iommu_debug_lock);
+> -		return -EINVAL;
+> +		bytes = -EINVAL;
+> +		goto err_out;
+>  	}
+>  	memcpy(p, area->va, count);
+>  	p += count;
+>  
+>  	bytes = simple_read_from_buffer(userbuf, count, ppos, buf, p - buf);
+> -
+> +err_out:
+>  	mutex_unlock(&iommu_debug_lock);
+>  	free_page((unsigned long)buf);
+>  
+> @@ -299,17 +299,17 @@ static ssize_t debug_write_mem(struct file *file, const char __user *userbuf,
+>  	mutex_lock(&iommu_debug_lock);
+>  
+>  	if (copy_from_user(p, userbuf, count)) {
+> -		mutex_unlock(&iommu_debug_lock);
+> -		return -EFAULT;
+> +		count =  -EFAULT;
+> +		goto err_out;
+>  	}
+>  
+>  	area = find_iovm_area(obj, (u32)ppos);
+>  	if (IS_ERR(area)) {
+> -		mutex_unlock(&iommu_debug_lock);
+> -		return -EINVAL;
+> +		count = -EINVAL;
+> +		goto err_out;
+>  	}
+>  	memcpy(area->va, p, count);
+> -
+> +err_out:
+>  	mutex_unlock(&iommu_debug_lock);
+>  	free_page((unsigned long)buf);
+>  
+
+
