@@ -1,51 +1,110 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: Audio capture not working with AIC23/McBSP1 on
- OMAP3517
-Date: Fri, 28 Aug 2009 13:51:03 +0300
-Message-ID: <20090828135103.63ca2343.jhnikula@gmail.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9D82D@dbde02.ent.ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB0309E9DB24@dbde02.ent.ti.com>
-	<20090827141253.9f772f31.jhnikula@gmail.com>
-	<200908280955.01382.peter.ujfalusi@nokia.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 0/5] ARM: OMAP2/3/4: Reclaim the kernel IO address space
+Date: Fri, 28 Aug 2009 16:22:08 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA616288@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02BA29C203@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200908280955.01382.peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:39982 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751054AbZH1KwP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 06:52:15 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BA29C203@dbde02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, 28 Aug 2009 09:55:01 +0300
-Peter Ujfalusi <peter.ujfalusi@nokia.com> wrote:
+Tony, Kevin,
 
-> > Can you, Peter or who has access to 2420 and 2430 TRMs to verify is the
-> > DEVCONF0 bits 3 and 4 selecting there also the McBSP1 CLKR and FSR
-> > sources like my patch is now assuming for all OMAP2-3.
+Did you happen to go through this series?
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
+> Sent: Sunday, August 23, 2009 7:00 PM
+> To: Tony Lindgren; Kevin Hilman
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/5] ARM: OMAP2/3/4: Reclaim the kernel IO address space
 > 
-> On OMAP2:
-> DEVCONF:3 MCBSP1_CLKR
-> DEVCONF:4 MCBSP1_FSR
+> All,
 > 
-> So it is correct for  both OMAP2 and OMAP3.
+> This patch series is intended to free up the kernel IO address space for
+> OMAP2XXX, OMAP3XXX and OMAP4430. It is generated against Tony's
+> "omap-headers "(2.6.31-rc6) branch and boot tested on OMAP3430 SDP and
+> OMAP4430 platform.
 > 
-Good :-)
+> Some more combinations are possible but to make it uniform across
+> OMAP2, OMAP3 and OMAP4, these io combinations are chosen.
+> 
+> If needed documentation entry can be created to ease up reading and
+> debugging information.
+> 	Like "Documentation/arm/omap/io_map.txt"
+> 
+> Summary of changes:
+> 
+> The following changes since commit
+> 95e32bc5b2d95370fb67a108a0e3678381fc42df:
+>   Tony Lindgren (1):
+>         OMAP: Remove ifdefs for io.h
+> 
+> Santosh Shilimkar (5):
+>       ARM: OMAP2/3/4: Split OMAP2_IO_ADDRESS to L3 and L4
+>       ARM: OMAP2/3/4: Remap L3, L4 to get more kernel io address space
+>       ARM: OMAP2/3/4: Move SRAM map to claim more io space
+>       ARM: OMAP2/3/4: Fix DEBUG_LL UART io address
+>       ARM: OMAP2/3/4: Add OMAP4 L3 and L4 peripherals.
+> 
+>  arch/arm/mach-omap2/board-2430sdp.c           |    2 +-
+>  arch/arm/mach-omap2/board-3430sdp.c           |    2 +-
+>  arch/arm/mach-omap2/board-4430sdp.c           |    6 +-
+>  arch/arm/mach-omap2/board-apollon.c           |    2 +-
+>  arch/arm/mach-omap2/board-generic.c           |    2 +-
+>  arch/arm/mach-omap2/board-h4.c                |    2 +-
+>  arch/arm/mach-omap2/board-ldp.c               |    2 +-
+>  arch/arm/mach-omap2/board-omap3beagle.c       |    2 +-
+>  arch/arm/mach-omap2/board-omap3evm.c          |    2 +-
+>  arch/arm/mach-omap2/board-omap3pandora.c      |    2 +-
+>  arch/arm/mach-omap2/board-overo.c             |    2 +-
+>  arch/arm/mach-omap2/board-rx51.c              |    2 +-
+>  arch/arm/mach-omap2/board-zoom2.c             |    2 +-
+>  arch/arm/mach-omap2/cm.h                      |    6 +-
+>  arch/arm/mach-omap2/io.c                      |   18 ++++
+>  arch/arm/mach-omap2/irq.c                     |    4 +-
+>  arch/arm/mach-omap2/omap-smp.c                |    2 +-
+>  arch/arm/mach-omap2/pm-debug.c                |    3 +-
+>  arch/arm/mach-omap2/prm.h                     |    6 +-
+>  arch/arm/mach-omap2/sdrc.h                    |    9 +-
+>  arch/arm/mach-omap2/serial.c                  |    6 +-
+>  arch/arm/mach-omap2/sram242x.S                |    4 +-
+>  arch/arm/mach-omap2/sram243x.S                |    4 +-
+>  arch/arm/mach-omap2/timer-gp.c                |    2 +-
+>  arch/arm/plat-omap/common.c                   |   44 +++++-----
+>  arch/arm/plat-omap/dma.c                      |    6 +-
+>  arch/arm/plat-omap/dmtimer.c                  |    2 +-
+>  arch/arm/plat-omap/gpio.c                     |   42 ++++----
+>  arch/arm/plat-omap/include/mach/control.h     |   15 ++-
+>  arch/arm/plat-omap/include/mach/debug-macro.S |    4 +-
+>  arch/arm/plat-omap/include/mach/entry-macro.S |    4 +-
+>  arch/arm/plat-omap/include/mach/io.h          |  124 +++++++++++++++++---
+> -----
+>  arch/arm/plat-omap/include/mach/omap44xx.h    |   14 ++-
+>  arch/arm/plat-omap/include/mach/sdrc.h        |    6 +-
+>  arch/arm/plat-omap/include/mach/vmalloc.h     |    2 +-
+>  arch/arm/plat-omap/io.c                       |   20 +++-
+>  arch/arm/plat-omap/sram.c                     |   24 +++---
+>  drivers/video/omap/dispc.c                    |    6 +-
+>  38 files changed, 246 insertions(+), 161 deletions(-)
+> 
+> 
+> Regards,
+> Santosh
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Are you Mark fine with the patch [] where the snd_soc_dai_set_sysclk
-is used to specify source pin for CLKR and FSR?
-
-
--- 
-Jarkko
-
-1.
-http://mailman.alsa-project.org/pipermail/alsa-devel/2009-August/020771.html
