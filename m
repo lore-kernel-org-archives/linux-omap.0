@@ -1,28 +1,76 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] Audio capture not working with AIC23/McBSP1 on
-	OMAP3517
-Date: Fri, 28 Aug 2009 13:05:19 +0100
-Message-ID: <20090828120519.GA15915@opensource.wolfsonmicro.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9D82D@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0309E9DB24@dbde02.ent.ti.com> <20090827141253.9f772f31.jhnikula@gmail.com> <200908280955.01382.peter.ujfalusi@nokia.com> <20090828135103.63ca2343.jhnikula@gmail.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [spi-devel-general] [RESEND][PATCH 0/2] McSPI Slave and DMA , FIFO support
+Date: Fri, 28 Aug 2009 17:35:21 +0530
+Message-ID: <060601ca27d7$d2a87df0$LocalHost@wipultra793>
+References: <42120.10.24.255.18.1245765231.squirrel@dbdmail.itg.ti.com> <200907021705.18048.david-b@pacbell.net> <007b01c9fe05$9e5baeb0$LocalHost@wipultra793> <200908272242.20636.david-b@pacbell.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45631 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750948AbZH1MFS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Aug 2009 08:05:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20090828135103.63ca2343.jhnikula@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44642 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751213AbZH1MFk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Aug 2009 08:05:40 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: David Brownell <david-b@pacbell.net>, spi-devel-general@lists.sourceforge.net
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Aug 28, 2009 at 01:51:03PM +0300, Jarkko Nikula wrote:
+---- Original Message ----- 
+From: "David Brownell" <david-b@pacbell.net>
 
-> Are you Mark fine with the patch [] where the snd_soc_dai_set_sysclk
-> is used to specify source pin for CLKR and FSR?
 
-Yes, that's OK.  Could you re-send the patch, I don't think I've got a
-local copy any more?
+> On Sunday 05 July 2009, Hemanth V wrote:
+>> Do you see any major changes required to support
+>> slave mode in the SPI core driver.
+> 
+> There *is* no such thing as a "SPI core driver"...
+> 
+I was referring to
+
+spi.c - SPI init/core code
+
+> 
+>> We are able to 
+>> use the existing interface for slave mode also, but
+>> some APIs/ Structures could be made generic.
+> 
+> Three things are obvious:
+> 
+> - A spi_master is not a slave side driver!
+
+Yes a more generic or new structure would be good,
+but the current one does work for slave mode also.
+
+> 
+> - Control model would need to be inverted
+>    * Chip select would be one input,
+>      not N outputs
+>    * No clock rate controls at all
+
+Conditional checks for slave/master mode have been added in
+the driver where required.
+
+>    * latency issues ... driver can't necessarily
+>      respond quickly enough to guarantee no data
+>      loss (FIFOs help)
+
+We currently support both FIFO and DMA for
+slave mode
+
+>    * Can't re-use /dev/spidev*
+>    * Request queue would have a very different role
+> 
+> - Some primitives are likely missing, for flow
+>   control (when hardware has a READY handshake)
+> 
+> I think a few proposals for how to handle slave
+> side have been circulated.
+
+So would it be possible to merge the slave support also for
+now, and could be modified to support the new slave interface
+as and when available.
+
