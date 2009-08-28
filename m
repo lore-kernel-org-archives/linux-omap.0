@@ -1,46 +1,54 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH] musb: fix ISOC Tx programming for CPPI DMAs
-Date: Fri, 28 Aug 2009 11:28:09 +0530
-Message-ID: <1251439096-10791-1-git-send-email-ajay.gupta@ti.com>
+From: David Brownell <david-b@pacbell.net>
+Subject: Re: [spi-devel-general] [RESEND][PATCH 0/2] McSPI Slave and DMA , FIFO support
+Date: Thu, 27 Aug 2009 22:42:20 -0700
+Message-ID: <200908272242.20636.david-b@pacbell.net>
+References: <42120.10.24.255.18.1245765231.squirrel@dbdmail.itg.ti.com> <200907021705.18048.david-b@pacbell.net> <007b01c9fe05$9e5baeb0$LocalHost@wipultra793>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43236 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928AbZH1F6f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Aug 2009 01:58:35 -0400
+Received: from n21.bullet.mail.mud.yahoo.com ([68.142.206.160]:35715 "HELO
+	n21.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751635AbZH1F7U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Aug 2009 01:59:20 -0400
+In-Reply-To: <007b01c9fe05$9e5baeb0$LocalHost@wipultra793>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, david-b@pacbell.net, sshtylyov@ru.mvista.com, Ajay Kumar Gupta <ajay.gupta@ti.com>, Swaminathan S <swami.iyer@ti.com>, Babu Ravi <ravibabu@ti.com>
+To: spi-devel-general@lists.sourceforge.net
+Cc: Hemanth V <hemanthv@ti.com>, linux-omap@vger.kernel.org
 
-Isochronous Tx DMA is getting programmed but never getting started
-for CPPI and TUSB DMAs and thus Isochronous Tx doesn't work.
+On Sunday 05 July 2009, Hemanth V wrote:
+> Do you see any major changes required to support
+> slave mode in the SPI core driver.
 
-Fixing it by starting DMAs using musb_h_tx_dma_start().
+There *is* no such thing as a "SPI core driver"...
 
-Signed-off-by: Swaminathan S <swami.iyer@ti.com>
-Signed-off-by: Babu Ravi <ravibabu@ti.com>
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- drivers/usb/musb/musb_host.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
-index cf94511..e3ab40a 100644
---- a/drivers/usb/musb/musb_host.c
-+++ b/drivers/usb/musb/musb_host.c
-@@ -1301,8 +1301,11 @@ void musb_host_tx(struct musb *musb, u8 epnum)
- 		return;
- 	} else	if (usb_pipeisoc(pipe) && dma) {
- 		if (musb_tx_dma_program(musb->dma_controller, hw_ep, qh, urb,
--				offset, length))
-+				offset, length)) {
-+			if (is_cppi_enabled() || tusb_dma_omap())
-+				musb_h_tx_dma_start(hw_ep);
- 			return;
-+		}
- 	} else	if (tx_csr & MUSB_TXCSR_DMAENAB) {
- 		DBG(1, "not complete, but DMA enabled?\n");
- 		return;
--- 
-1.6.2.4
+> We are able to 
+> use the existing interface for slave mode also, but
+> some APIs/ Structures could be made generic.
+
+Three things are obvious:
+
+ - A spi_master is not a slave side driver!
+
+ - Control model would need to be inverted
+    * Chip select would be one input,
+      not N outputs
+    * No clock rate controls at all
+    * latency issues ... driver can't necessarily
+      respond quickly enough to guarantee no data
+      loss (FIFOs help)
+    * Can't re-use /dev/spidev*
+    * Request queue would have a very different role
+
+ - Some primitives are likely missing, for flow
+   control (when hardware has a READY handshake)
+
+I think a few proposals for how to handle slave
+side have been circulated.
+
 
