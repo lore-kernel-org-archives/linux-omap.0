@@ -1,76 +1,52 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: Re: [spi-devel-general] [RESEND][PATCH 0/2] McSPI Slave and DMA , FIFO support
-Date: Fri, 28 Aug 2009 17:35:21 +0530
-Message-ID: <060601ca27d7$d2a87df0$LocalHost@wipultra793>
-References: <42120.10.24.255.18.1245765231.squirrel@dbdmail.itg.ti.com> <200907021705.18048.david-b@pacbell.net> <007b01c9fe05$9e5baeb0$LocalHost@wipultra793> <200908272242.20636.david-b@pacbell.net>
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [PATCH] musb: fix ISOC Tx programming for CPPI DMAs
+Date: Fri, 28 Aug 2009 16:16:00 +0400
+Message-ID: <4A97CA80.7010600@ru.mvista.com>
+References: <1251439096-10791-1-git-send-email-ajay.gupta@ti.com> <4A97A1FF.5050501@ru.mvista.com> <19F8576C6E063C45BE387C64729E73940436A4A60D@dbde02.ent.ti.com> <4A97AB42.4070008@ru.mvista.com> <19F8576C6E063C45BE387C64729E73940436A4A635@dbde02.ent.ti.com> <19F8576C6E063C45BE387C64729E73940436A4A63E@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44642 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751213AbZH1MFk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Aug 2009 08:05:40 -0400
+Received: from h155.mvista.com ([63.81.120.155]:51891 "EHLO imap.sh.mvista.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751099AbZH1MOP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Aug 2009 08:14:15 -0400
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436A4A63E@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: David Brownell <david-b@pacbell.net>, spi-devel-general@lists.sourceforge.net
-Cc: linux-omap@vger.kernel.org
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "Subbrathnam, Swaminathan" <swami.iyer@ti.com>, "B, Ravi" <ravibabu@ti.com>
 
----- Original Message ----- 
-From: "David Brownell" <david-b@pacbell.net>
+Gupta, Ajay Kumar wrote:
 
+>>>>This part is being done at musb_host_rx()
 
-> On Sunday 05 July 2009, Hemanth V wrote:
->> Do you see any major changes required to support
->> slave mode in the SPI core driver.
+>>>   You're doing it in musb_host_tx() actually. Although musb_host_rx()
+>>>is also broken WRT the isochronous transfers.
+
+>>>> doing next packet programming within same urb and *not* starting next
+
+>>>urb. Thus musb_start_urb() doesn't come into this path.
+
+>>>   What? Read the code, please -- musb_start_urb() call should always
+>>>precede musb_host_tx() which handles the DMA interrupt. Unless something
+>>>clears DMAReqEnab after musb_start_urb() call, setting it only once
+>>>should work.
+
+>>musb_start_urb() call does precede musb_host_tx() but when urb is
+>>*completed*.
+
+> I think you are aware that there are multiple packets within same isochronous urb and musb_start_urb() programs only for first packet.
 > 
-> There *is* no such thing as a "SPI core driver"...
-> 
-I was referring to
+> ============================================================
+>         case USB_ENDPOINT_XFER_ISOC:
+>                 qh->iso_idx = 0;
+>                 qh->frame = 0;
+>                 offset = urb->iso_frame_desc[0].offset;
+>                 len = urb->iso_frame_desc[0].length;
+> ============================================================
 
-spi.c - SPI init/core code
+    Sure. What I'm still not aware of is where and how the TXCSR DMA bits 
+are cleared after the first fragment. Hopefully, testing will reveal this...
 
-> 
->> We are able to 
->> use the existing interface for slave mode also, but
->> some APIs/ Structures could be made generic.
-> 
-> Three things are obvious:
-> 
-> - A spi_master is not a slave side driver!
-
-Yes a more generic or new structure would be good,
-but the current one does work for slave mode also.
-
-> 
-> - Control model would need to be inverted
->    * Chip select would be one input,
->      not N outputs
->    * No clock rate controls at all
-
-Conditional checks for slave/master mode have been added in
-the driver where required.
-
->    * latency issues ... driver can't necessarily
->      respond quickly enough to guarantee no data
->      loss (FIFOs help)
-
-We currently support both FIFO and DMA for
-slave mode
-
->    * Can't re-use /dev/spidev*
->    * Request queue would have a very different role
-> 
-> - Some primitives are likely missing, for flow
->   control (when hardware has a READY handshake)
-> 
-> I think a few proposals for how to handle slave
-> side have been circulated.
-
-So would it be possible to merge the slave support also for
-now, and could be modified to support the new slave interface
-as and when available.
-
+WBR, Sergei
