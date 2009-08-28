@@ -1,48 +1,47 @@
-From: ye janboe <janboe.ye@gmail.com>
-Subject: [PATCH] flush the function in sdram is not correct because sram is
-	changed.
-Date: Fri, 28 Aug 2009 14:12:31 +0800
-Message-ID: <af3ea28a0908272312x1195f516h302cf68f1690f747@mail.gmail.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: Audio capture not working with AIC23/McBSP1 on
+	OMAP3517
+Date: Fri, 28 Aug 2009 09:55:01 +0300
+Message-ID: <200908280955.01382.peter.ujfalusi@nokia.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9D82D@dbde02.ent.ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB0309E9DB24@dbde02.ent.ti.com>
+	<20090827141253.9f772f31.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f178.google.com ([209.85.222.178]:47757 "EHLO
-	mail-pz0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549AbZH1GMz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 02:12:55 -0400
-Received: by pzk8 with SMTP id 8so1753233pzk.22
-        for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 23:12:57 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20090827141253.9f772f31.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, paul@pwsan.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
 
-resend because little format issue.
+On Thursday 27 August 2009 14:12:53 ext Jarkko Nikula wrote:
+> On Thu, 27 Aug 2009 15:07:32 +0530
+>
+> "Aggarwal, Anuj" <anuj.aggarwal@ti.com> wrote:
+> > Thanks Jarkko, the patch works for me.
+>
+> This is nice to hear.
+>
+> Can you, Peter or who has access to 2420 and 2430 TRMs to verify is the
+> DEVCONF0 bits 3 and 4 selecting there also the McBSP1 CLKR and FSR
+> sources like my patch is now assuming for all OMAP2-3.
 
->From fc5e771b808b5bf094846051a1c59c7e5e8ec149 Mon Sep 17 00:00:00 2001
-From: janboe <janboe.ye@gmail.com>
-Date: Fri, 28 Aug 2009 13:50:57 +0800
-Subject: [PATCH] flush the function in sdram is not correct because
-sram is changed.
+On OMAP2:
+DEVCONF:3 MCBSP1_CLKR
+DEVCONF:4 MCBSP1_FSR
 
-Signed-off-by: janboe <janboe.ye@gmail.com>
----
- arch/arm/plat-omap/sram.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+So it is correct for  both OMAP2 and OMAP3.
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index f2b0fa6..f549d8a 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -270,7 +270,8 @@ void * omap_sram_push(void * start, unsigned long size)
- 	omap_sram_ceil -= size;
- 	omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, sizeof(void *));
- 	memcpy((void *)omap_sram_ceil, start, size);
--	flush_icache_range((unsigned long)start, (unsigned long)(start + size));
-+	flush_icache_range((unsigned long)omap_sram_ceil,
-+		(unsigned long)(omap_sram_ceil + size));
+-- =
 
- 	return (void *)omap_sram_ceil;
- }
--- 
-1.6.3.3
+P=E9ter
