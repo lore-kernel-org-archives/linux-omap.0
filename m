@@ -1,114 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] flush the function in sdram is not correct because sram
- is changed.
-Date: Fri, 28 Aug 2009 03:15:28 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0908280314320.15963@utopia.booyaka.com>
-References: <af3ea28a0908272256k1743b528pdfb3dcdb88848544@mail.gmail.com>  <alpine.DEB.2.00.0908280229100.15963@utopia.booyaka.com> <af3ea28a0908280210y6d478a1bm340c7766f744df90@mail.gmail.com>
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Subject: Re: [PATCH] musb: fix ISOC Tx programming for CPPI DMAs
+Date: Fri, 28 Aug 2009 13:23:11 +0400
+Message-ID: <4A97A1FF.5050501@ru.mvista.com>
+References: <1251439096-10791-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-434110667-1251450928=:15963"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:40085 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230AbZH1JP1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 05:15:27 -0400
-In-Reply-To: <af3ea28a0908280210y6d478a1bm340c7766f744df90@mail.gmail.com>
+Received: from h155.mvista.com ([63.81.120.155]:46035 "EHLO imap.sh.mvista.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751049AbZH1JXT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Aug 2009 05:23:19 -0400
+In-Reply-To: <1251439096-10791-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ye janboe <janboe.ye@gmail.com>
-Cc: tony@atomide.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Cc: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com, david-b@pacbell.net, Swaminathan S <swami.iyer@ti.com>, Babu Ravi <ravibabu@ti.com>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hello.
 
---155748971-434110667-1251450928=:15963
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Ajay Kumar Gupta wrote:
 
-Hi Janboe,
+> Isochronous Tx DMA is getting programmed but never getting started
+> for CPPI and TUSB DMAs and thus Isochronous Tx doesn't work.
+>   
 
-On Fri, 28 Aug 2009, ye janboe wrote:
+   That's not true.
 
-> Hi, Paul
->=20
-> I resent the patch after fix the format issue.
->=20
-> Please help to review it.
+> Fixing it by starting DMAs using musb_h_tx_dma_start().
+>
+> Signed-off-by: Swaminathan S <swami.iyer@ti.com>
+> Signed-off-by: Babu Ravi <ravibabu@ti.com>
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+>   
 
-Thanks, you fixed one issue, but this other one still needs to be fixed:
+   NAK.
 
-> > Your subject line should start with something like "[PATCH] OMAP SRAM:"=
-,
-> > and you should add a short patch description that describes the bug and
-> > why the patch does what it does to fix it.
+> diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+> index cf94511..e3ab40a 100644
+> --- a/drivers/usb/musb/musb_host.c
+> +++ b/drivers/usb/musb/musb_host.c
+> @@ -1301,8 +1301,11 @@ void musb_host_tx(struct musb *musb, u8 epnum)
+>  		return;
+>  	} else	if (usb_pipeisoc(pipe) && dma) {
+>  		if (musb_tx_dma_program(musb->dma_controller, hw_ep, qh, urb,
+> -				offset, length))
+> +				offset, length)) {
+> +			if (is_cppi_enabled() || tusb_dma_omap())
+> +				musb_h_tx_dma_start(hw_ep);
+>  			return;
+>   
 
-- Paul
+   It will have been already started by this moment -- from 
+musb_start_urb() which is enough . Otherwise it wouldn't work, and I've 
+made sure it *does* work.
 
->=20
-> Thanks
->=20
-> Janboe
->=20
-> 2009/8/28 Paul Walmsley <paul@pwsan.com>:
-> > Hello janboe,
-> >
-> > On Fri, 28 Aug 2009, ye janboe wrote:
-> >
-> >> >From f10090bf307066f1317d7152c6f9a6f395007d4a Mon Sep 17 00:00:00 200=
-1
-> >> From: janboe <janboe.ye@gmail.com>
-> >> Date: Fri, 28 Aug 2009 13:50:57 +0800
-> >> Subject: [PATCH] flush the function in sdram is not correct because
-> >> sram is changed.
-> >>
-> >> Signed-off-by: janboe <janboe.ye@gmail.com>
-> >
-> > The technical part of the patch makes sense, but the patch format needs
-> > to be changed.
-> >
-> > Your subject line should start with something like "[PATCH] OMAP SRAM:"=
-,
-> > and you should add a short patch description that describes the bug and
-> > why the patch does what it does to fix it.
-> >
-> > Also your post should not include the "From", "Date", and "Subject" lin=
-es
-> > inside the E-mail. =A0You might wish to consider using 'git send-email'=
- or
-> > at least 'git format-patch' if possible.
-> >
-> >
-> > - Paul
-> >
-> >> ---
-> >> =A0arch/arm/plat-omap/sram.c | =A0 =A02 +-
-> >> =A01 files changed, 1 insertions(+), 1 deletions(-)
-> >>
-> >> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-> >> index f2b0fa6..253fcf7 100644
-> >> --- a/arch/arm/plat-omap/sram.c
-> >> +++ b/arch/arm/plat-omap/sram.c
-> >> @@ -270,7 +270,7 @@ void * omap_sram_push(void * start, unsigned long =
-size)
-> >> =A0 =A0 =A0 =A0 omap_sram_ceil -=3D size;
-> >> =A0 =A0 =A0 =A0 omap_sram_ceil =3D ROUND_DOWN(omap_sram_ceil, sizeof(v=
-oid *));
-> >> =A0 =A0 =A0 =A0 memcpy((void *)omap_sram_ceil, start, size);
-> >> - =A0 =A0 =A0 flush_icache_range((unsigned long)start, (unsigned long)=
-(start + size));
-> >> + =A0 =A0 =A0 flush_icache_range((unsigned long)omap_sram_ceil, (unsig=
-ned
-> >> long)(omap_sram_ceil + size));
-> >>
-> >> =A0 =A0 =A0 =A0 return (void *)omap_sram_ceil;
-> >> =A0}
-> >> --
-> >> 1.6.3.3
-> >>
-> >
-> >
-> >
->=20
+WBR, Sergei
 
 
-- Paul
---155748971-434110667-1251450928=:15963--
