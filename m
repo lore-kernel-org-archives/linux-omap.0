@@ -1,71 +1,114 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC][PATCH v3]OMAP3:PM: Fix OPP scale logic
-Date: Fri, 28 Aug 2009 12:13:06 +0300
-Message-ID: <87bpm01eu5.fsf@deeprootsystems.com>
-References: <Re: [RFC][PATCH v2] OMAP3:PM: Fix OPP scale logic>
-	<1249400032-23759-1-git-send-email-nm@ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] flush the function in sdram is not correct because sram
+ is changed.
+Date: Fri, 28 Aug 2009 03:15:28 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908280314320.15963@utopia.booyaka.com>
+References: <af3ea28a0908272256k1743b528pdfb3dcdb88848544@mail.gmail.com>  <alpine.DEB.2.00.0908280229100.15963@utopia.booyaka.com> <af3ea28a0908280210y6d478a1bm340c7766f744df90@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-434110667-1251450928=:15963"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:51312 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221AbZH1JNI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 05:13:08 -0400
-Received: by bwz19 with SMTP id 19so1483825bwz.37
-        for <linux-omap@vger.kernel.org>; Fri, 28 Aug 2009 02:13:09 -0700 (PDT)
-In-Reply-To: <1249400032-23759-1-git-send-email-nm@ti.com> (Nishanth Menon's message of "Tue\,  4 Aug 2009 10\:33\:52 -0500")
+Received: from utopia.booyaka.com ([72.9.107.138]:40085 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751230AbZH1JP1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 05:15:27 -0400
+In-Reply-To: <af3ea28a0908280210y6d478a1bm340c7766f744df90@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Paul <paul@pwsan.com>, linux-omap <linux-omap@vger.kernel.org>, Roger Quadros <ext-roger.quadros@nokia.com>
+To: ye janboe <janboe.ye@gmail.com>
+Cc: tony@atomide.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org
 
-Nishanth Menon <nm@ti.com> writes:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> While switching from higher OPP to lower OPP,
-> current scale logic can fail by switching to lower
-> voltage while frequency remains at old value.
->
-> This patch adds a cleaner recovery logic and
-> additional freq dpll checks. This changes
-> program_freq_opp return type in the process
-> for program_opp to handle error in a consistent
-> manner.
->
-> NOTE: I moved the *cur_opp setting to under the
-> scratchpad locked region to allow for code
-> simplicity - i wonder if anyone sees an issue with it
->
-> Thanks to Roger in patiently catching my goofups :(
->
-> Tested on:rx-51, ported to pm branch - untested linux-omap
-> Patch generated on linux-omap pm branch, commit:
-> 7e7377395d6b4576341a6939bf2179f3946f2ea0
->
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Cc: Roger Quadros <ext-roger.quadros@nokia.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com> 
-> Cc: Paul Walmsley <paul@pwsan.com>
-> ---
->  arch/arm/mach-omap2/resource34xx.c |   61 +++++++++++++++++++++++++++---------
->  1 files changed, 46 insertions(+), 15 deletions(-)
+--155748971-434110667-1251450928=:15963
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-The fix looks good for adding the extra checks, but can you do some
-more testing on current PM branch?  This currently doesn't even
-compile on current PM branch.
+Hi Janboe,
 
-Thanks,
+On Fri, 28 Aug 2009, ye janboe wrote:
 
-Kevin
+> Hi, Paul
+>=20
+> I resent the patch after fix the format issue.
+>=20
+> Please help to review it.
+
+Thanks, you fixed one issue, but this other one still needs to be fixed:
+
+> > Your subject line should start with something like "[PATCH] OMAP SRAM:"=
+,
+> > and you should add a short patch description that describes the bug and
+> > why the patch does what it does to fix it.
+
+- Paul
+
+>=20
+> Thanks
+>=20
+> Janboe
+>=20
+> 2009/8/28 Paul Walmsley <paul@pwsan.com>:
+> > Hello janboe,
+> >
+> > On Fri, 28 Aug 2009, ye janboe wrote:
+> >
+> >> >From f10090bf307066f1317d7152c6f9a6f395007d4a Mon Sep 17 00:00:00 200=
+1
+> >> From: janboe <janboe.ye@gmail.com>
+> >> Date: Fri, 28 Aug 2009 13:50:57 +0800
+> >> Subject: [PATCH] flush the function in sdram is not correct because
+> >> sram is changed.
+> >>
+> >> Signed-off-by: janboe <janboe.ye@gmail.com>
+> >
+> > The technical part of the patch makes sense, but the patch format needs
+> > to be changed.
+> >
+> > Your subject line should start with something like "[PATCH] OMAP SRAM:"=
+,
+> > and you should add a short patch description that describes the bug and
+> > why the patch does what it does to fix it.
+> >
+> > Also your post should not include the "From", "Date", and "Subject" lin=
+es
+> > inside the E-mail. =A0You might wish to consider using 'git send-email'=
+ or
+> > at least 'git format-patch' if possible.
+> >
+> >
+> > - Paul
+> >
+> >> ---
+> >> =A0arch/arm/plat-omap/sram.c | =A0 =A02 +-
+> >> =A01 files changed, 1 insertions(+), 1 deletions(-)
+> >>
+> >> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> >> index f2b0fa6..253fcf7 100644
+> >> --- a/arch/arm/plat-omap/sram.c
+> >> +++ b/arch/arm/plat-omap/sram.c
+> >> @@ -270,7 +270,7 @@ void * omap_sram_push(void * start, unsigned long =
+size)
+> >> =A0 =A0 =A0 =A0 omap_sram_ceil -=3D size;
+> >> =A0 =A0 =A0 =A0 omap_sram_ceil =3D ROUND_DOWN(omap_sram_ceil, sizeof(v=
+oid *));
+> >> =A0 =A0 =A0 =A0 memcpy((void *)omap_sram_ceil, start, size);
+> >> - =A0 =A0 =A0 flush_icache_range((unsigned long)start, (unsigned long)=
+(start + size));
+> >> + =A0 =A0 =A0 flush_icache_range((unsigned long)omap_sram_ceil, (unsig=
+ned
+> >> long)(omap_sram_ceil + size));
+> >>
+> >> =A0 =A0 =A0 =A0 return (void *)omap_sram_ceil;
+> >> =A0}
+> >> --
+> >> 1.6.3.3
+> >>
+> >
+> >
+> >
+>=20
 
 
-[...]
-  CC      arch/arm/mach-omap2/resource34xx.o
-distcc[24405] ERROR: compile /tmp/khilman/.ccache/resource34.tmp.vence.24379.i on localhost failed
-/opt/home/khilman/work.local/kernel/omap/pm-next/arch/arm/mach-omap2/resource34xx.c: In function 'program_opp':
-/opt/home/khilman/work.local/kernel/omap/pm-next/arch/arm/mach-omap2/resource34xx.c:333: error: 'PRCM_VDD1' undeclared (first use in this function)
-/opt/home/khilman/work.local/kernel/omap/pm-next/arch/arm/mach-omap2/resource34xx.c:333: error: (Each undeclared identifier is reported only once
-/opt/home/khilman/work.local/kernel/omap/pm-next/arch/arm/mach-omap2/resource34xx.c:333: error: for each function it appears in.)
-make[2]: *** [arch/arm/mach-omap2/resource34xx.o] Error 1
-make[1]: *** [arch/arm/mach-omap2] Error 2
-make[1]: *** Waiting for unfinished jobs....
-
+- Paul
+--155748971-434110667-1251450928=:15963--
