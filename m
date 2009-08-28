@@ -1,58 +1,68 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 2/2] OMAP: Zoom2: release debug board detect gpio line
-Date: Fri, 28 Aug 2009 11:28:47 +0300
-Message-ID: <1251448127-27336-3-git-send-email-khilman@deeprootsystems.com>
-References: <1251448127-27336-1-git-send-email-khilman@deeprootsystems.com>
- <1251448127-27336-2-git-send-email-khilman@deeprootsystems.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] flush the function in sdram is not correct because sram
+ is changed.
+Date: Fri, 28 Aug 2009 02:33:19 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0908280229100.15963@utopia.booyaka.com>
+References: <af3ea28a0908272256k1743b528pdfb3dcdb88848544@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:62772 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338AbZH1I2y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 04:28:54 -0400
-Received: by mail-bw0-f219.google.com with SMTP id 19so1464180bwz.37
-        for <linux-omap@vger.kernel.org>; Fri, 28 Aug 2009 01:28:56 -0700 (PDT)
-In-Reply-To: <1251448127-27336-2-git-send-email-khilman@deeprootsystems.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:40239 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751723AbZH1IdS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 04:33:18 -0400
+In-Reply-To: <af3ea28a0908272256k1743b528pdfb3dcdb88848544@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vikram Pandita <vikram.pandita@ti.com>
+To: ye janboe <janboe.ye@gmail.com>
+Cc: tony@atomide.com, khilman@deeprootsystems.com, linux-omap@vger.kernel.org
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+Hello janboe,
 
-Release the Dbg board detection gpio once its purpose is served
+On Fri, 28 Aug 2009, ye janboe wrote:
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/board-zoom-debugboard.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+> >From f10090bf307066f1317d7152c6f9a6f395007d4a Mon Sep 17 00:00:00 2001
+> From: janboe <janboe.ye@gmail.com>
+> Date: Fri, 28 Aug 2009 13:50:57 +0800
+> Subject: [PATCH] flush the function in sdram is not correct because
+> sram is changed.
+> 
+> Signed-off-by: janboe <janboe.ye@gmail.com>
 
-diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-index e0948c9..1f13e2a 100644
---- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-+++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-@@ -129,6 +129,7 @@ static inline void __init zoom2_init_quaduart(void)
- static inline int omap_zoom2_debugboard_detect(void)
- {
- 	int debug_board_detect = 0;
-+	int ret = 1;
- 
- 	debug_board_detect = ZOOM2_SMSC911X_GPIO;
- 
-@@ -140,10 +141,10 @@ static inline int omap_zoom2_debugboard_detect(void)
- 	gpio_direction_input(debug_board_detect);
- 
- 	if (!gpio_get_value(debug_board_detect)) {
--		gpio_free(debug_board_detect);
--		return 0;
-+		ret = 0;
- 	}
--	return 1;
-+	gpio_free(debug_board_detect);
-+	return ret;
- }
- 
- static struct platform_device *zoom2_devices[] __initdata = {
--- 
-1.6.4
+The technical part of the patch makes sense, but the patch format needs 
+to be changed.  
+
+Your subject line should start with something like "[PATCH] OMAP SRAM:", 
+and you should add a short patch description that describes the bug and 
+why the patch does what it does to fix it.
+
+Also your post should not include the "From", "Date", and "Subject" lines 
+inside the E-mail.  You might wish to consider using 'git send-email' or 
+at least 'git format-patch' if possible.
+
+
+- Paul
+
+> ---
+>  arch/arm/plat-omap/sram.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index f2b0fa6..253fcf7 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -270,7 +270,7 @@ void * omap_sram_push(void * start, unsigned long size)
+>         omap_sram_ceil -= size;
+>         omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, sizeof(void *));
+>         memcpy((void *)omap_sram_ceil, start, size);
+> -       flush_icache_range((unsigned long)start, (unsigned long)(start + size));
+> +       flush_icache_range((unsigned long)omap_sram_ceil, (unsigned
+> long)(omap_sram_ceil + size));
+> 
+>         return (void *)omap_sram_ceil;
+>  }
+> -- 
+> 1.6.3.3
+> 
+
 
