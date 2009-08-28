@@ -1,54 +1,64 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/2] OMAP: misc. fixes for 2.6.32
-Date: Fri, 28 Aug 2009 09:00:49 -0700
-Message-ID: <20090828160049.GI25828@atomide.com>
-References: <1251448127-27336-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP SRAM: flush the right address after memcpy in
+	omap_sram_push
+Date: Fri, 28 Aug 2009 09:03:10 -0700
+Message-ID: <20090828160310.GJ25828@atomide.com>
+References: <af3ea28a0908280226p69175f97m88b8eac5e0bd2502@mail.gmail.com> <alpine.DEB.2.00.0908280443110.15963@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62740 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:65327 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751244AbZH1QAz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 12:00:55 -0400
+	with ESMTP id S1751152AbZH1QDL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 12:03:11 -0400
 Content-Disposition: inline
-In-Reply-To: <1251448127-27336-1-git-send-email-khilman@deeprootsystems.com>
+In-Reply-To: <alpine.DEB.2.00.0908280443110.15963@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: ye janboe <janboe.ye@gmail.com>, khilman@deeprootsystems.com, linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090828 01:28]:
-> Tony,
+* Paul Walmsley <paul@pwsan.com> [090828 03:43]:
+> On Fri, 28 Aug 2009, ye janboe wrote:
 > 
-> I pushed a couple more fixes to my pm-upstream/fixes-32 branch.  You've
-> already pulled this branch into your for-next, so a re-pull will get
-> you just these two additional patches.
+> > the original flush operation is to flush the function address which is
+> > copied from.
+> > But we do not change the function code and it is not necessary to flush it.
+> > 
+> > Signed-off-by: janboe <janboe.ye@gmail.com>
+> 
+> Acked-by: Paul Walmsley <paul@pwsan.com>
+> 
+> thanks Janboe.
+> 
+> Tony, you want to take this one, or do you want me to?
 
-OK, I need to rebuild the omap for-next as there are few compilation
-issues in at least the omap3-upstream series.
-
-Regards,
+I can add it to my omap-fixes unless you have a fixes series of your
+own coming up.
 
 Tony
  
-> Thanks,
-> 
-> Kevin
+> - Paul
 > 
 > 
-> Reddy, Teerth (1):
->   OMAP3: PM: add T2 interrupt line mux setting, and enable on 3430SDP
+> > ---
+> >  arch/arm/plat-omap/sram.c |    3 ++-
+> >  1 files changed, 2 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> > index f2b0fa6..f549d8a 100644
+> > --- a/arch/arm/plat-omap/sram.c
+> > +++ b/arch/arm/plat-omap/sram.c
+> > @@ -270,7 +270,8 @@ void * omap_sram_push(void * start, unsigned long size)
+> >         omap_sram_ceil -= size;
+> >         omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, sizeof(void *));
+> >         memcpy((void *)omap_sram_ceil, start, size);
+> > -       flush_icache_range((unsigned long)start, (unsigned long)(start + size));
+> > +       flush_icache_range((unsigned long)omap_sram_ceil,
+> > +               (unsigned long)(omap_sram_ceil + size));
+> > 
+> >         return (void *)omap_sram_ceil;
+> >  }
+> > 
 > 
-> Vikram Pandita (1):
->   OMAP: Zoom2: release debug board detect gpio line
 > 
->  arch/arm/mach-omap2/board-3430sdp.c         |    6 ++++++
->  arch/arm/mach-omap2/board-zoom-debugboard.c |    7 ++++---
->  arch/arm/mach-omap2/mux.c                   |    5 +++++
->  arch/arm/plat-omap/include/mach/mux.h       |    3 +++
->  4 files changed, 18 insertions(+), 3 deletions(-)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
