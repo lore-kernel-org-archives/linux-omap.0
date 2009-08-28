@@ -1,73 +1,35 @@
-From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 Subject: Re: [PATCH] musb: fix ISOC Tx programming for CPPI DMAs
-Date: Fri, 28 Aug 2009 17:23:08 +0400
-Message-ID: <4A97DA3C.5090008@ru.mvista.com>
-References: <1251439096-10791-1-git-send-email-ajay.gupta@ti.com> <4A97A1FF.5050501@ru.mvista.com> <19F8576C6E063C45BE387C64729E73940436A4A60D@dbde02.ent.ti.com> <4A97AB42.4070008@ru.mvista.com> <19F8576C6E063C45BE387C64729E73940436A4A635@dbde02.ent.ti.com> <19F8576C6E063C45BE387C64729E73940436A4A63E@dbde02.ent.ti.com> <4A97CA80.7010600@ru.mvista.com> <4A97D665.90306@ru.mvista.com>
+Date: Fri, 28 Aug 2009 17:27:08 +0400
+Message-ID: <4A97DB2C.1040101@ru.mvista.com>
+References: <1251439096-10791-1-git-send-email-ajay.gupta@ti.com> <4A97A1FF.5050501@ru.mvista.com> <19F8576C6E063C45BE387C64729E73940436A4A60D@dbde02.ent.ti.com> <4A97AB42.4070008@ru.mvista.com> <FCCFB4CDC6E5564B9182F639FC35608702F9A45083@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from h155.mvista.com ([63.81.120.155]:53725 "EHLO imap.sh.mvista.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750813AbZH1NVY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 28 Aug 2009 09:21:24 -0400
-In-Reply-To: <4A97D665.90306@ru.mvista.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F9A45083-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Subbrathnam, Swaminathan" <swami.iyer-l0cyMroinI0@public.gmane.org>
+Cc: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "B, Ravi" <ravibabu-l0cyMroinI0@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "david-b@pacbell.net" <david-b@pacbell.net>, "Subbrathnam, Swaminathan" <swami.iyer@ti.com>, "B, Ravi" <ravibabu@ti.com>
 
-Hello, I wrote:
+Hello.
 
->>>>>   You're doing it in musb_host_tx() actually. Although musb_host_rx()
->>>>> is also broken WRT the isochronous transfers.
+Subbrathnam, Swaminathan wrote:
 
->>>>>> doing next packet programming within same urb and *not* starting next
+> Sergei,
+> 	Pl. do the required testing with and without the patch on the current tree for ISO transfers in Tx direction.  As Ajay indicated we have done the same and found it not working and hence the fix.
 
->>>>> urb. Thus musb_start_urb() doesn't come into this path.
+    Sigh, I'm now seeing it even witout testing... So, I'm sorry for all the 
+noise. It was a result of my 2 patches clashing.
 
->>>>>   What? Read the code, please -- musb_start_urb() call should always
->>>>> precede musb_host_tx() which handles the DMA interrupt. Unless 
->>>>> something
->>>>> clears DMAReqEnab after musb_start_urb() call, setting it only once
->>>>> should work.
+> 	ISO Rx is also broken and the patch for fixing the same is on the way.
 
->>>> musb_start_urb() call does precede musb_host_tx() but when urb is
->>>> *completed*.
-
->>> I think you are aware that there are multiple packets within same 
->>> isochronous urb and musb_start_urb() programs only for first packet.
-
->>> ============================================================
->>>         case USB_ENDPOINT_XFER_ISOC:
->>>                 qh->iso_idx = 0;
->>>                 qh->frame = 0;
->>>                 offset = urb->iso_frame_desc[0].offset;
->>>                 len = urb->iso_frame_desc[0].length;
->>> ============================================================
-
->>    Sure. What I'm still not aware of is where and how the TXCSR DMA 
->> bits are cleared after the first fragment. Hopefully, testing will 
->> reveal this...
-
->    I really should have stared at the code a bit more myself. Now that I 
-> have the sad truth has dawned on me... :-/
->    My patch "USB: musb: bugfixes for multi-packet TXDMA support" (commit 
-> c7bbc056a92476b3b3d70a8df7cc746ac5d56de7) inevitably causes the DMA bits 
-
-    You can also refer to this patch'es brokenness in your patch description.
-Looks like I now have the complete picture of what happened back then when 
-the patches were (re)submitted. The DaVinci case was competely broken when I 
-recast the patch "USB: musb: fix isochronous TXDMA (take 2)" to fix the 
-failure to transfer the whole ISO URB in DMA mode for the Mentor's own DMA 
-case; before that, DaVinci case could (likewise) complete the URB transfer 
-in PIO mode after transferring the first fragment via DMA...
-
->    So, I now have to ACK your patch (which could use a better description though) and strew my head with ashes. All this also must mean that I have managed to break ISO Tx DMA in the internal tree, where I added the abovementioned patch after the one that fixed it (the order of the patches in the community tree is reverse). I probably did not retest USB audio back then...
-
-    No, looks like in the internal tree transfer is completed in PIO mode 
-since the internal version of patch lacks that Mentor DMA fix (luckily :-). 
-Should still check to make sure...
+    That's good to hear... musb_host_rx() was further broken WRT ISO 
+trabnsers while the Mentor DMA case was being fixed.
 
 WBR, Sergei
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
