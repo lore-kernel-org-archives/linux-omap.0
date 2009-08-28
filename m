@@ -1,69 +1,70 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 5/5] OMAP: Zoom2: Release Dbg board detect gpio
-Date: Fri, 28 Aug 2009 10:19:15 +0300
-Message-ID: <87y6p41k3w.fsf@deeprootsystems.com>
-References: <1250878280-10667-1-git-send-email-vikram.pandita@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Thara Gopinath <thara@ti.com>
+Subject: [PATCH V2] OMAP3: PM: Fix for MPU power domain MEM BANK position
+Date: Fri, 28 Aug 2009 12:54:57 +0530
+Message-ID: <1251444297-13577-1-git-send-email-thara@ti.com>
+References: <A24693684029E5489D1D202277BE89444BE28394@dlee02.ent.ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:53279 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967AbZH1HTS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 03:19:18 -0400
-Received: by bwz19 with SMTP id 19so1436421bwz.37
-        for <linux-omap@vger.kernel.org>; Fri, 28 Aug 2009 00:19:19 -0700 (PDT)
-In-Reply-To: <1250878280-10667-1-git-send-email-vikram.pandita@ti.com> (Vikram Pandita's message of "Fri\, 21 Aug 2009 13\:11\:20 -0500")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58408 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752002AbZH1HZD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Aug 2009 03:25:03 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n7S7Owvg016271
+	for <linux-omap@vger.kernel.org>; Fri, 28 Aug 2009 02:25:04 -0500
+In-Reply-To: <A24693684029E5489D1D202277BE89444BE28394@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
+To: linux-omap@vger.kernel.org
+Cc: Thara Gopinath <thara@ti.com>
 
-Vikram Pandita <vikram.pandita@ti.com> writes:
+MPU power domain bank 0 bits are displayed in position of bank 1
+in PWRSTS and PREPWRSTS registers. So read them from correct
+position
 
-> Release the Dbg board detection gpio once its purpose is served
->
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Signed-off-by: Thara Gopinath <thara@ti.com>
+---
+Patch refresh issue.
 
-Looks fine, I'll pull into my fixes queue.
+ arch/arm/mach-omap2/powerdomain.c |   19 +++++++++++++++++++
+ 1 files changed, 19 insertions(+), 0 deletions(-)
 
-Thanks,
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 2594cbf..6c5fee9 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -971,6 +971,16 @@ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+ 		return -EEXIST;
+ 
+ 	/*
++	 * In 3430, for MPU domain bank 0 status bits
++	 * are displayed in the position of bank1 status bits
++	 * in PWST  . So the hack. Think of a cleaner
++	 * way of doing this
++	 */
++	if (cpu_is_omap34xx())
++		if (!strcmp("mpu_pwrdm", pwrdm->name))
++			bank = 1;
++
++	/*
+ 	 * The register bit names below may not correspond to the
+ 	 * actual names of the bits in each powerdomain's register,
+ 	 * but the type of value returned is the same for each
+@@ -1018,6 +1028,15 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+ 		return -EEXIST;
+ 
+ 	/*
++	 * In 3430, for MPU domain bank 0 status bits
++	 * are displayed in the position of bank1 status bits
++	 * in PREPWST  . So the hack. Think of a cleaner
++	 * way of doing this
++	 */
++	if (cpu_is_omap34xx())
++		if (!strcmp("mpu_pwrdm", pwrdm->name))
++			bank = 1;
++	/*
+ 	 * The register bit names below may not correspond to the
+ 	 * actual names of the bits in each powerdomain's register,
+ 	 * but the type of value returned is the same for each
+-- 
+1.5.4.7
 
-Kevin
-
-> ---
->  arch/arm/mach-omap2/board-zoom-debugboard.c |    7 ++++---
->  1 files changed, 4 insertions(+), 3 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
-> index 4dd714d..d80e448 100644
-> --- a/arch/arm/mach-omap2/board-zoom-debugboard.c
-> +++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
-> @@ -130,6 +130,7 @@ static inline void __init zoom2_init_quaduart(void)
->  static inline int omap_zoom2_debugboard_detect(void)
->  {
->  	int debug_board_detect = 0;
-> +	int ret = 1;
->  
->  	debug_board_detect = ZOOM2_SMSC911X_GPIO;
->  
-> @@ -141,10 +142,10 @@ static inline int omap_zoom2_debugboard_detect(void)
->  	gpio_direction_input(debug_board_detect);
->  
->  	if (!gpio_get_value(debug_board_detect)) {
-> -		gpio_free(debug_board_detect);
-> -		return 0;
-> +		ret = 0;
->  	}
-> -	return 1;
-> +	gpio_free(debug_board_detect);
-> +	return ret;
->  }
->  
->  static struct platform_device *zoom2_devices[] __initdata = {
-> -- 
-> 1.6.3.3.334.g916e1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
