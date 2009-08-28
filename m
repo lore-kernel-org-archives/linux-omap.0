@@ -1,46 +1,46 @@
-From: ye janboe <janboe.ye@gmail.com>
-Subject: [PATCH] flush the function in sdram is not correct because sram is
-	changed.
-Date: Fri, 28 Aug 2009 13:56:57 +0800
-Message-ID: <af3ea28a0908272256k1743b528pdfb3dcdb88848544@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Subject: [PATCH] musb: fix ISOC Tx programming for CPPI DMAs
+Date: Fri, 28 Aug 2009 11:28:09 +0530
+Message-ID: <1251439096-10791-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f178.google.com ([209.85.222.178]:34529 "EHLO
-	mail-pz0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751079AbZH1F4z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 28 Aug 2009 01:56:55 -0400
-Received: by pzk8 with SMTP id 8so1743639pzk.22
-        for <linux-omap@vger.kernel.org>; Thu, 27 Aug 2009 22:56:58 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:43236 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750928AbZH1F6f (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 28 Aug 2009 01:58:35 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, khilman@deeprootsystems.com, paul@pwsan.com
-Cc: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, david-b@pacbell.net, sshtylyov@ru.mvista.com, Ajay Kumar Gupta <ajay.gupta@ti.com>, Swaminathan S <swami.iyer@ti.com>, Babu Ravi <ravibabu@ti.com>
 
->From f10090bf307066f1317d7152c6f9a6f395007d4a Mon Sep 17 00:00:00 2001
-From: janboe <janboe.ye@gmail.com>
-Date: Fri, 28 Aug 2009 13:50:57 +0800
-Subject: [PATCH] flush the function in sdram is not correct because
-sram is changed.
+Isochronous Tx DMA is getting programmed but never getting started
+for CPPI and TUSB DMAs and thus Isochronous Tx doesn't work.
 
-Signed-off-by: janboe <janboe.ye@gmail.com>
+Fixing it by starting DMAs using musb_h_tx_dma_start().
+
+Signed-off-by: Swaminathan S <swami.iyer@ti.com>
+Signed-off-by: Babu Ravi <ravibabu@ti.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- arch/arm/plat-omap/sram.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/usb/musb/musb_host.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index f2b0fa6..253fcf7 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -270,7 +270,7 @@ void * omap_sram_push(void * start, unsigned long size)
-        omap_sram_ceil -= size;
-        omap_sram_ceil = ROUND_DOWN(omap_sram_ceil, sizeof(void *));
-        memcpy((void *)omap_sram_ceil, start, size);
--       flush_icache_range((unsigned long)start, (unsigned long)(start + size));
-+       flush_icache_range((unsigned long)omap_sram_ceil, (unsigned
-long)(omap_sram_ceil + size));
-
-        return (void *)omap_sram_ceil;
- }
+diff --git a/drivers/usb/musb/musb_host.c b/drivers/usb/musb/musb_host.c
+index cf94511..e3ab40a 100644
+--- a/drivers/usb/musb/musb_host.c
++++ b/drivers/usb/musb/musb_host.c
+@@ -1301,8 +1301,11 @@ void musb_host_tx(struct musb *musb, u8 epnum)
+ 		return;
+ 	} else	if (usb_pipeisoc(pipe) && dma) {
+ 		if (musb_tx_dma_program(musb->dma_controller, hw_ep, qh, urb,
+-				offset, length))
++				offset, length)) {
++			if (is_cppi_enabled() || tusb_dma_omap())
++				musb_h_tx_dma_start(hw_ep);
+ 			return;
++		}
+ 	} else	if (tx_csr & MUSB_TXCSR_DMAENAB) {
+ 		DBG(1, "not complete, but DMA enabled?\n");
+ 		return;
 -- 
-1.6.3.3
+1.6.2.4
+
