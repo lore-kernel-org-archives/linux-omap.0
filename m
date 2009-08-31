@@ -1,81 +1,45 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
-Date: Mon, 31 Aug 2009 08:55:20 -0700
-Message-ID: <20090831155518.GC16876@atomide.com>
-References: <1251462337-12531-1-git-send-email-tomi.valkeinen@nokia.com> <4A9B96A7.5040005@gmail.com> <5e088bd90908310720p290ba68dwd6106a778fd7c740@mail.gmail.com> <0680EC522D0CC943BC586913CF3768C0037CE48136@dbde02.ent.ti.com> <19F8576C6E063C45BE387C64729E73940436A4A9B6@dbde02.ent.ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: Beagleboard B6 woes
+Date: Mon, 31 Aug 2009 11:24:58 -0500
+Message-ID: <4A9BF95A.8000404@ti.com>
+References: <20090831093810.GE4927@fitfioullt278>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51951 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250AbZHaPzX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 31 Aug 2009 11:55:23 -0400
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940436A4A9B6@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:49479 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751743AbZHaQZl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 31 Aug 2009 12:25:41 -0400
+In-Reply-To: <20090831093810.GE4927@fitfioullt278>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Syed Mohammed, Khasim" <khasim@ti.com>, Steve Sakoman <sakoman@gmail.com>, Artem Bityutskiy <dedekind1@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: Mikko Rapeli <mikko.rapeli@teleca.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-* Hiremath, Vaibhav <hvaibhav@ti.com> [090831 07:44]:
+
+Mikko Rapeli wrote:
+> Hello,
 > 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Syed Mohammed, Khasim
-> > Sent: Monday, August 31, 2009 8:11 PM
-> > To: Steve Sakoman; Artem Bityutskiy; linux-kernel@vger.kernel.org;
-> > linux-omap@vger.kernel.org Mailing List
-> > Cc: Andrew Morton; Tony Lindgren; Tomi Valkeinen
-> > Subject: RE: [PATCH 00/18] OMAP: DSS2: Intro
-> > 
-> > 
-> > 
-> > > -----Original Message-----
-> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Steve
-> > > Sakoman
-> > > Sent: Monday, August 31, 2009 7:50 PM
-> > > To: Artem Bityutskiy
-> > > Cc: Andrew Morton; Tony Lindgren; Tomi Valkeinen; linux-
-> > kernel@vger.kernel.org; linux-
-> > > omap@vger.kernel.org Mailing List
-> > > Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
-> > >
-> > > On Mon, Aug 31, 2009 at 2:23 AM, Artem
-> > Bityutskiy<dedekind1@gmail.com> wrote:
-> > >
-> > > > We are using DSS2 in Nokia for about a year already. N900 is
-> > using this
-> > > > code, for example. Other (non-Nokia) projects are using DSS2 as
-> > well.
-> > > > The code was public for long time and was sent several times for
-> > review.
-> > > >
-> > > > In any case,
-> > > >
-> > > > Tested-by: Artem Bityutskiy <artem.bityutskiy@nokia.com>
-> > >
-> > > Gumstix has also been shipping with DSS2 on their Overo product
-> > for
-> > > many months now.
-> > >
-> > > Tested-by: Steve Sakoman <steve@sakoman.com>
-> > 
-> > If there is a concern on OMAP2 support, I can confirm that there is
-> > no difference between OMAP2 and OMAP3 Display Subsystem from
-> > Register level. So what ever works on OMAP3 DSS2 should straight
-> > away work for OMAP2 as well.
-> > 
-> > I agree with rest of the folks here, we should get DSS2 merged in
-> > mainline. It is being extensively used on all OMAP3 platforms.
-> > 
-> [Hiremath, Vaibhav] I am also agreeing with the point that we should merge the DSS2; it's now almost year we have migrated to DSS2. Most of our customers are based out of it.
+> I'd like to test out newer kernel on a Beagleboard B6 but latest
+> trees from Linus, linux-omap and linux-omap/for-next seem to be failing at
+> early boot [1] with omap3_beagle_defconfig.
+> 
+> Some bisecting shows that ARM_UNWIND broke something in the defconfig since
+> kernels before adf8b37bafc1495393201a2ae4235846371870d0 "[ARM] 5386/2:
+> unwind: Add Makefile and Kconfig entries for ARM stack unwinding" work.
 
-Yeh I agree this should get merged.
+If UNWIND is breaking it, then the most likely cause is that you are 
+using an older toolchain, such as code-sourcery 2007q3. If you are using 
+  2007q3, upgrade to a 2008 or 2009 release. More details here:
 
-I think it's best to merge this via the fb list and I've acked the
-patches that I'm concerned with already.
+http://marc.info/?l=linux-omap&m=124175324604568&w=2
 
-Regards,
+> On the other hand, setting ARM_UNWIND to n which falls back to FRAME_POINTERs
+> work until 84e250ffa76dddc1bad84e04248a27f442c25986 "musb: proper hookup to 
+> transceiver drivers".
 
-Tony
+You could trying enabling "CONFIG_TWL4030_USB" to see if this helps.
+
+Jon
+
