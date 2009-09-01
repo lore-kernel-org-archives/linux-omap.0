@@ -1,101 +1,68 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
-Date: Tue, 01 Sep 2009 10:10:19 +0300
-Message-ID: <4A9CC8DB.2050803@gmail.com>
-References: <1251462337-12531-1-git-send-email-tomi.valkeinen@nokia.com> <4A9B96A7.5040005@gmail.com> <5e088bd90908310720p290ba68dwd6106a778fd7c740@mail.gmail.com> <0680EC522D0CC943BC586913CF3768C0037CE48136@dbde02.ent.ti.com> <19F8576C6E063C45BE387C64729E73940436A4A9B6@dbde02.ent.ti.com> <20090831155518.GC16876@atomide.com>
+From: Maxime Petazzoni <mpetazzoni@mvista.com>
+Subject: Re: [PATCH] OMAP3: Zoom2: provide default MTD partitions
+Date: Tue, 1 Sep 2009 09:12:13 +0200
+Message-ID: <20090901071212.GA4397@mvista.com>
+References: <1251374386-6733-1-git-send-email-mpetazzoni@mvista.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702F9A44CDF@dbde02.ent.ti.com>
+ <20090827140617.GA30917@mvista.com>
+ <ce9ab5790909010004y67d3b29nf6ddc4532d390aef@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:29283 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752061AbZIAHLK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Sep 2009 03:11:10 -0400
-In-Reply-To: <20090831155518.GC16876@atomide.com>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:36513 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752834AbZIAHMS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Sep 2009 03:12:18 -0400
+Content-Disposition: inline
+In-Reply-To: <ce9ab5790909010004y67d3b29nf6ddc4532d390aef@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, Steve Sakoman <sakoman@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org Mailing List" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+To: vimal singh <vimal.newwork@gmail.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "Singh, Vimal" <IMCEAEX-_O=TI_OU=BD_cn=Recipients_cn=x0094262@dlee86.itg.ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Rix, Tom" <trix@ti.com>
 
-On 08/31/2009 06:55 PM, Tony Lindgren wrote:
-> * Hiremath, Vaibhav<hvaibhav@ti.com>  [090831 07:44]:
->>
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>> owner@vger.kernel.org] On Behalf Of Syed Mohammed, Khasim
->>> Sent: Monday, August 31, 2009 8:11 PM
->>> To: Steve Sakoman; Artem Bityutskiy; linux-kernel@vger.kernel.org;
->>> linux-omap@vger.kernel.org Mailing List
->>> Cc: Andrew Morton; Tony Lindgren; Tomi Valkeinen
->>> Subject: RE: [PATCH 00/18] OMAP: DSS2: Intro
->>>
->>>
->>>
->>>> -----Original Message-----
->>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>> owner@vger.kernel.org] On Behalf Of Steve
->>>> Sakoman
->>>> Sent: Monday, August 31, 2009 7:50 PM
->>>> To: Artem Bityutskiy
->>>> Cc: Andrew Morton; Tony Lindgren; Tomi Valkeinen; linux-
->>> kernel@vger.kernel.org; linux-
->>>> omap@vger.kernel.org Mailing List
->>>> Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
->>>>
->>>> On Mon, Aug 31, 2009 at 2:23 AM, Artem
->>> Bityutskiy<dedekind1@gmail.com>  wrote:
->>>>
->>>>> We are using DSS2 in Nokia for about a year already. N900 is
->>> using this
->>>>> code, for example. Other (non-Nokia) projects are using DSS2 as
->>> well.
->>>>> The code was public for long time and was sent several times for
->>> review.
->>>>>
->>>>> In any case,
->>>>>
->>>>> Tested-by: Artem Bityutskiy<artem.bityutskiy@nokia.com>
->>>>
->>>> Gumstix has also been shipping with DSS2 on their Overo product
->>> for
->>>> many months now.
->>>>
->>>> Tested-by: Steve Sakoman<steve@sakoman.com>
->>>
->>> If there is a concern on OMAP2 support, I can confirm that there is
->>> no difference between OMAP2 and OMAP3 Display Subsystem from
->>> Register level. So what ever works on OMAP3 DSS2 should straight
->>> away work for OMAP2 as well.
->>>
->>> I agree with rest of the folks here, we should get DSS2 merged in
->>> mainline. It is being extensively used on all OMAP3 platforms.
->>>
->> [Hiremath, Vaibhav] I am also agreeing with the point that we should=
- merge the DSS2; it's now almost year we have migrated to DSS2. Most of=
- our customers are based out of it.
->
-> Yeh I agree this should get merged.
->
-> I think it's best to merge this via the fb list and I've acked the
-> patches that I'm concerned with already.
 
-This would be a good suggestion if the fb list was alive, but it is not=
-=2E
-Do you have a specific name of a maintainer?
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-Andrew,
+* vimal singh <vimal.newwork@gmail.com> [2009-09-01 12:34:26]:
 
-could you please help with merging this piece of (well written) code?
-Could you give your blessing to include it into linux-next now, and
-merge this during the next merge window?
+> > Yes, I am aware of the mtdparts command line arguments, which works
+> > great. I think a "default", sensible partition layout for the Zoom2
+> > would be nice though.
+> 
+> I agree. Keeping it in the mind that mtdparts command line arguments
+> will be given higher precedence anyway...
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Exactly. I would recommend that your patch gets merged in. Although I'm
+a bit curious of the rationale behind a 30M kernel partition?
+
+Also, given a 512MB NAND, we could easily affect 256MB or more to the
+system partition (as well as a bit more space for the userdata
+partition).
+
+But that's just nitpicking. As we said, mtdparts can be used to take
+precedence over the default settings if they don't match the
+user/system's needs.
+
+- Maxime
+-- 
+Maxime Petazzoni
+Linux kernel & software dev
+MontaVista Software, Inc
+
+--T4sUOijqQbZv57TR
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkqcyUwACgkQ7KsOe4Pmrg2f6gCgud9CxFOL+XwnyN5Ye86EsJG/
+ulkAoKoQCRLmMh6UFFKKJwZdNgCDYD0Y
+=xJXf
+-----END PGP SIGNATURE-----
+
+--T4sUOijqQbZv57TR--
