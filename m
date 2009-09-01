@@ -1,349 +1,86 @@
-From: "vimal singh" <vimalsingh@ti.com>
-Subject: [PATCH 2/2] OMAP3: Add support for NAND on ZOOM2/LDP boards
-Date: Tue, 1 Sep 2009 14:58:52 +0530 (IST)
-Message-ID: <41810.192.168.10.89.1251797332.squirrel@dbdmail.itg.ti.com>
+From: "Hemanth V" <hemanthv@ti.com>
+Subject: Re: [PATCH v2][RFC] OMAP4: sDMA driver: descriptor autoloading feature
+Date: Tue, 1 Sep 2009 15:17:47 +0530
+Message-ID: <04ab01ca2ae9$445220a0$LocalHost@wipultra793>
+References: <0680EC522D0CC943BC586913CF3768C0037CE47C07@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37482 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45954 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751257AbZIAJ24 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 1 Sep 2009 05:28:56 -0400
+	id S1753202AbZIAJsA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 1 Sep 2009 05:48:00 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com
+To: "S, Venkatraman" <svenkatr@ti.com>, linux-omap@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-Adding NAND support for ZOOM2 and LDP board. I have tested it for ZOOM2
-boards, someone can verify it for LDP, hopefully it should not have any
-problem.
+----- Original Message ----- 
+From: "S, Venkatraman" <svenkatr@ti.com>
+To: <linux-omap@vger.kernel.org>
+Cc: <linux-arm-kernel@lists.infradead.org>; "Shilimkar, Santosh" 
+<santosh.shilimkar@ti.com>
+Sent: Thursday, August 27, 2009 4:41 PM
+Subject: [PATCH v2][RFC] OMAP4: sDMA driver: descriptor autoloading feature
 
-The size of the U-Boot environment partition was increased to 1.25MB.
 
-Singned-off-by: Vimal Singh <vimalsingh@ti.com>
----
- arch/arm/mach-omap2/Makefile                |    2
- arch/arm/mach-omap2/board-ldp-flash.c       |  196 ++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-ldp.c             |    2
- arch/arm/mach-omap2/board-zoom2.c           |    2
- arch/arm/plat-omap/include/mach/board-ldp.h |   36 +++++
- arch/arm/plat-omap/include/mach/nand.h      |    1
- 6 files changed, 239 insertions(+)
+> (Updated version of previous patch: 
+> http://marc.info/?l=linux-omap&m=125012097403050&w=2)
+> Add sDMA driver support for descriptor autoloading feature.
+> Descriptor autoloading is OMAP4 sDMA hardware capability that can be 
+> exploited for scatter gather scenarios.
+>
+> The feature works as described below
+> 1) A sDMA channel is programmed to be in 'linked list' mode
+> 2) The client (sDMA user) provides a list of descriptors in a linked list 
+> format
+> 3) Each of the 'descriptor' (element in the linked list) contains an 
+> updated set of DMA configuration register values
+> 4) Client starts DMA transfer
+> 5) sDMA controller loads the first element to its register configuration 
+> memory and executes the transfer
+> 6) After completion, loads the next element (in linked list) to 
+> configuration memory and executes the transfer, without MCU intervention.
+> 7) Interrupt is generated after all transfers are completed; this can be 
+> configured to be done differently.
+>
+> Configurations and additional features
+> 1) Fast mode & non-fast mode
+>       Fast mode/non-fast decides on how the first transfer begins. In 
+> non-fast mode, the first element in the linked list is loaded only after 
+> completing the transfer according to the configurations already in the 
+> sDMA channel registers. In fast mode, the loading of the first element 
+> precedes the transfer.
+>
+> 2) Pause / resume of transfers
+>       A transfer can be paused after a descriptor set has been loaded, 
+> provided the 'pause bit' is set in the linked list element.
+> An ongoing transfer cannot be paused. If the 'pause bit' is set, transfer 
+> is not started after loading the register set from memory.
+> Such a transfer can be resumed later.
+>
+> 3) Descriptor types
+>       3 possible configurations of descriptors (initialized as linked list 
+> elements) are possible. Type 1 provides the maximum flexibility, which 
+> contains most register definitions of a DMA logical channel. Fewer options 
+> are present in type 2. Type 3 can just modify source/destinations address 
+> of transfers. In all transfers, unmodified registers settings are 
+> maintained for the next transfer.
+>
+> Patch provides options / API for
+> 1) Setting up a descriptor loading for DMA channel for sg type transfers
+> 2) configuration with linked list elements
+> 3) Starting / pause and resume of the said transfers, query state
+> 4) Closing/Releasing the DMA channel
+>
+> The patches are generated against kernel 2.6.31-rc1, tested on OMAP4 
+> simulator platform.
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/Makefile
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/Makefile
-+++ linux-omap-2.6/arch/arm/mach-omap2/Makefile
-@@ -54,6 +54,7 @@ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= boar
- obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
-+					   board-ldp-flash.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
- 					   mmc-twl4030.o
-@@ -69,6 +70,7 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-
- 					   board-rx51-peripherals.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
-+					   board-ldp-flash.o \
- 					   mmc-twl4030.o \
- 					   board-zoom-debugboard.o
-
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-ldp-flash.c
-===================================================================
---- /dev/null
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-ldp-flash.c
-@@ -0,0 +1,196 @@
-+/*
-+ * arch/arm/mach-omap2/board-ldp-flash.c
-+ *
-+ * Copyright (C) 2008-09 Texas Instruments Inc.
-+ *
-+ * Modified from mach-omap2/board-2430sdp-flash.c
-+ * Author(s): Rohit Choraria <rohitkc@ti.com>
-+ *            Vimal Singh <vimalsingh@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/delay.h>
-+#include <linux/platform_device.h>
-+#include <linux/mtd/mtd.h>
-+#include <linux/mtd/partitions.h>
-+#include <linux/mtd/nand.h>
-+#include <linux/types.h>
-+#include <linux/io.h>
-+
-+#include <asm/mach/flash.h>
-+#include <mach/board.h>
-+#include <mach/gpmc.h>
-+#include <mach/nand.h>
-+
-+#include <mach/board-ldp.h>
-+
-+#define NAND_CMD_UNLOCK1	0x23
-+#define NAND_CMD_UNLOCK2	0x24
-+/**
-+ * @brief platform specific unlock function
-+ *
-+ * @param mtd - mtd info
-+ * @param ofs - offset to start unlock from
-+ * @param len - length to unlock
-+ *
-+ * @return - unlock status
-+ */
-+static int omap_ldp_nand_unlock(struct mtd_info *mtd, loff_t ofs, size_t len)
-+{
-+	int ret = 0;
-+	int chipnr;
-+	int status;
-+	unsigned long page;
-+	struct nand_chip *this = mtd->priv;
-+	printk(KERN_INFO "nand_unlock: start: %08x, length: %d!\n",
-+			(int)ofs, (int)len);
-+
-+	/* select the NAND device */
-+	chipnr = (int)(ofs >> this->chip_shift);
-+	this->select_chip(mtd, chipnr);
-+	/* check the WP bit */
-+	this->cmdfunc(mtd, NAND_CMD_STATUS, -1, -1);
-+	if ((this->read_byte(mtd) & 0x80) == 0) {
-+		printk(KERN_ERR "nand_unlock: Device is write protected!\n");
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	if ((ofs & (mtd->writesize - 1)) != 0) {
-+		printk(KERN_ERR "nand_unlock: Start address must be"
-+				"beginning of nand page!\n");
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	if (len == 0 || (len & (mtd->writesize - 1)) != 0) {
-+		printk(KERN_ERR "nand_unlock: Length must be a multiple of "
-+				"nand page size!\n");
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	/* submit address of first page to unlock */
-+	page = (unsigned long)(ofs >> this->page_shift);
-+	this->cmdfunc(mtd, NAND_CMD_UNLOCK1, -1, page & this->pagemask);
-+
-+	/* submit ADDRESS of LAST page to unlock */
-+	page += (unsigned long)((ofs + len) >> this->page_shift) ;
-+	this->cmdfunc(mtd, NAND_CMD_UNLOCK2, -1, page & this->pagemask);
-+
-+	/* call wait ready function */
-+	status = this->waitfunc(mtd, this);
-+	udelay(1000);
-+	/* see if device thinks it succeeded */
-+	if (status & 0x01) {
-+		/* there was an error */
-+		printk(KERN_ERR "nand_unlock: error status =0x%08x ", status);
-+		ret = -EIO;
-+		goto out;
-+	}
-+
-+ out:
-+	/* de-select the NAND device */
-+	this->select_chip(mtd, -1);
-+	return ret;
-+}
-+
-+static struct mtd_partition ldp_nand_partitions[] = {
-+	/* All the partition sizes are listed in terms of NAND block size */
-+	{
-+		.name		= "X-Loader-NAND",
-+		.offset		= 0,
-+		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-+		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
-+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
-+	},
-+	{
-+		.name		= "Boot Env-NAND",
-+		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
-+		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
-+	},
-+	{
-+		.name		= "Kernel-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
-+		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
-+	},
-+#ifdef CONFIG_MACH_OMAP_ZOOM2
-+	{
-+		.name		= "system",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
-+		.size		= 1280 * (64 * 2048),   /* 160M, 0xA000000 */
-+	},
-+	{
-+		.name		= "userdata",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xC000000 */
-+		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
-+	},
-+	{
-+		.name		= "cache",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xE000000 */
-+		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
-+	},
-+#else
-+	{
-+		.name		= "File System - NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
-+		.size		= MTDPART_SIZ_FULL,	/* 96MB, 0x6000000 */
-+	},
-+#endif
-+};
-+
-+/* NAND chip access: 16 bit */
-+static struct omap_nand_platform_data ldp_nand_data = {
-+	.parts		= ldp_nand_partitions,
-+	.nr_parts	= ARRAY_SIZE(ldp_nand_partitions),
-+	.nand_setup	= NULL,
-+	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
-+	.dev_ready	= NULL,
-+	.unlock		= omap_ldp_nand_unlock,
-+};
-+
-+static struct resource ldp_nand_resource = {
-+	.flags		= IORESOURCE_MEM,
-+};
-+
-+static struct platform_device ldp_nand_device = {
-+	.name		= "omap2-nand",
-+	.id		= 0,
-+	.dev		= {
-+	.platform_data	= &ldp_nand_data,
-+	},
-+	.num_resources	= 1,
-+	.resource	= &ldp_nand_resource,
-+};
-+
-+/**
-+ * ldp430_flash_init - Identify devices connected to GPMC and register.
-+ *
-+ * @return - void.
-+ */
-+void __init ldp_flash_init(void)
-+{
-+	u8 nandcs = GPMC_CS_NUM + 1;
-+	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
-+
-+	/* pop nand part */
-+	nandcs = LDP3430_NAND_CS;
-+
-+	ldp_nand_data.cs = nandcs;
-+	ldp_nand_data.gpmc_cs_baseaddr = (void *)(gpmc_base_add +
-+					GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-+	ldp_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
-+
-+	if (platform_device_register(&ldp_nand_device) < 0)
-+		printk(KERN_ERR "Unable to register NAND device\n");
-+}
-+
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-ldp.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/board-ldp.c
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-ldp.c
-@@ -42,6 +42,7 @@
- #include <mach/control.h>
- #include <mach/usb.h>
- #include <mach/keypad.h>
-+#include <mach/board-ldp.h>
-
- #include "mmc-twl4030.h"
-
-@@ -385,6 +386,7 @@ static void __init omap_ldp_init(void)
- 	ads7846_dev_init();
- 	omap_serial_init(&ldp_uart_config);
- 	usb_musb_init();
-+	ldp_flash_init();
-
- 	twl4030_mmc_init(mmc);
- 	/* link regulators to MMC adapters */
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom2.c
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
-@@ -20,6 +20,7 @@
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
-
-+#include <mach/board-ldp.h>
- #include <mach/common.h>
- #include <mach/usb.h>
- #include <mach/keypad.h>
-@@ -271,6 +272,7 @@ static void __init omap_zoom2_init(void)
- 	omap_serial_init(&zoom2_uart_config);
- 	omap_zoom2_debugboard_init();
- 	usb_musb_init();
-+	ldp_flash_init();
- }
-
- static void __init omap_zoom2_map_io(void)
-Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/board-ldp.h
-===================================================================
---- /dev/null
-+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/board-ldp.h
-@@ -0,0 +1,36 @@
-+/*
-+ * arch/arm/plat-omap/include/mach/board-ldp.h
-+ *
-+ * Hardware definitions for TI OMAP3 LDP/ZOOM2.
-+ *
-+ * Copyright (C) 2008-09 Texas Instruments Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef __ASM_ARCH_OMAP_LDP_H
-+#define __ASM_ARCH_OMAP_LDP_H
-+
-+extern void ldp_flash_init(void);
-+
-+#define LDP3430_NAND_CS               0
-+
-+#endif /* __ASM_ARCH_OMAP_LDP_H */
-Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/nand.h
-===================================================================
---- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/nand.h
-+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/nand.h
-@@ -18,6 +18,7 @@ struct omap_nand_platform_data {
- 	int			nr_parts;
- 	int			(*nand_setup)(void __iomem *);
- 	int			(*dev_ready)(struct omap_nand_platform_data *);
-+	int			(*unlock)(struct mtd_info *, loff_t, size_t);
- 	int			dma_channel;
- 	void __iomem		*gpmc_cs_baseaddr;
- 	void __iomem		*gpmc_baseaddr;
-
+It might be easier to understand the APIs if you could provide an example. 
+Could you take example of a contiguous/non-contiguous buffer and explain how 
+the desciptor based DMA could be used on this. 
 
