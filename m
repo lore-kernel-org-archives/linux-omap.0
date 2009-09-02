@@ -1,37 +1,32 @@
-From: "Girish S G" <girishsg@ti.com>
-Subject: RE: [PATCH][RFC] OMAP3: PM: Adding OSWR support
-Date: Tue, 1 Sep 2009 18:32:56 -0500
-Message-ID: <010201ca2b5c$897481a0$507018ac@am.dhcp.ti.com>
+From: Jon Hunter <jon-hunter@ti.com>
+Subject: Re: [PATCH][RFC] OMAP3: PM: Adding OSWR support
+Date: Tue, 1 Sep 2009 22:16:58 -0500
+Message-ID: <4A9DE3AA.2080502@ti.com>
 References: <1251391962-11217-1-git-send-email-thara@ti.com> <20090828160636.GK25828@atomide.com> <FCCFB4CDC6E5564B9182F639FC35608702F9A455D7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59749 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:44964 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbZIAXdE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Sep 2009 19:33:04 -0400
+	with ESMTP id S1755653AbZIBDRK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 1 Sep 2009 23:17:10 -0400
 In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F9A455D7@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "'Sripathy, Vishwanath'" <vishwanath.bs@ti.com>, 'Tony Lindgren' <tony@atomide.com>, "'Gopinath, Thara'" <thara@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
+Sripathy, Vishwanath wrote:
+> OSWR stands for Open Switch With Retention. 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
-> Sripathy, Vishwanath
-> Subject: RE: [PATCH][RFC] OMAP3: PM: Adding OSWR support
-> 
-> OSWR stands for Open Switch With Retention.
-> This is one of the target power states where logic is lost for all the modules in the power domain
-> except for the ones with Built in retention Flip Flops. This is the main difference between OFF and
+Not to split hairs, but the OMAP3430 Technical Reference Manual states 
+that OSwR means Open Switch Retention. So no "with". This W always 
+bother me too!
 
-So, this's supported for CORE, PER and MPU?
-
--Girish
+Cheers
+Jon
 
 
 
