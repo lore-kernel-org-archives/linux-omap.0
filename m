@@ -1,36 +1,67 @@
-From: Ameya Palande <ameya.palande@nokia.com>
-Subject: [PATCHv2] DSPBRIDGE: Fix memory leak in PROC_AutoStart()
-Date: Wed,  2 Sep 2009 22:07:36 +0300
-Message-ID: <1251918456-24501-1-git-send-email-ameya.palande@nokia.com>
-References: <1251917982-23690-1-git-send-email-ameya.palande@nokia.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: mmcqd cpu utilization
+Date: Wed, 2 Sep 2009 14:57:27 -0500
+Message-ID: <00ae01ca2c07$98d416f0$544ff780@am.dhcp.ti.com>
+References: <007301ca2bf2$2888e2a0$544ff780@am.dhcp.ti.com> <20090902194036.07c1f72c@mjolnir.ossman.eu>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20345 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753328AbZIBTHo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Sep 2009 15:07:44 -0400
-In-Reply-To: <1251917982-23690-1-git-send-email-ameya.palande@nokia.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:35522 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752337AbZIBT5h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 2 Sep 2009 15:57:37 -0400
+In-Reply-To: <20090902194036.07c1f72c@mjolnir.ossman.eu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: omar.ramirez@ti.com, x0095840@ti.com
+To: 'Pierre Ossman' <pierre@ossman.eu>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, hch@lst.de
 
-Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
----
- drivers/dsp/bridge/rmgr/proc.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index a75b64a..eb8b4a9 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -512,6 +512,7 @@ DSP_STATUS PROC_AutoStart(struct CFG_DEVNODE *hDevNode,
- 			 "No Exec file found \n");
- 	}
- func_cont:
-+	MEM_Free(hProcObject->g_pszLastCoff);
- 	MEM_FreeObject(hProcObject);
- func_end:
- 	GT_1trace(PROC_DebugMask, GT_ENTER,
--- 
-1.6.2.4
+
+> -----Original Message-----
+> From: Pierre Ossman [mailto:pierre@ossman.eu]
+> Sent: Wednesday, September 02, 2009 12:41 PM
+> To: Madhusudhan
+> Cc: linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; hch@lst.de
+> Subject: Re: mmcqd cpu utilization
+> 
+> On Wed, 2 Sep 2009 12:23:59 -0500
+> "Madhusudhan" <madhu.cr@ti.com> wrote:
+> 
+> > Hi,
+> >
+> > Has anyone monitored the cpu utilization percentage when a MMC/SD card
+> is in
+> > use? I have noticed that mmc_queue_thread "mmcqd" consumes a lot of cpu
+> > cycles in a periodic fashion. What I mean here is that I see spikes of
+> high
+> > cpu utilization due to mmcqd. There will a cp or similar which will be
+> > already consuming cpu to transfer data to the MMC/SD device. Further
+> mmcqd
+> > increases that load randomly to a high number.
+> >
+> > Has anyone seen similar behavior? Any thoughts?
+> >
+> 
+> My guess would be that the omap driver doesn't (cannot?) use the
+> hardware to wait for busy to end, so the system must poll.
+> 
+So your guess hints probably at "wait_for_completion(&complete)".
+Am I correct?
+
+Regards,
+Madhu
+
+> Anything better than that guess will require some profiling. :)
+> 
+> Rgds
+> --
+>      -- Pierre Ossman
+> 
+>   WARNING: This correspondence is being monitored by the
+>   Swedish government. Make sure your server uses encryption
+>   for SMTP traffic and consider using PGP for end-to-end
+>   encryption.
 
