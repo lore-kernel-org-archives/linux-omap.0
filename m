@@ -1,69 +1,66 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH] dspbridge: use linux memory allocator directly
-Date: Wed,  2 Sep 2009 20:27:10 +0300
-Message-ID: <1251912430-23182-1-git-send-email-andy.shevchenko@gmail.com>
-References: <1251805173-15214-3-git-send-email-andy.shevchenko@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:20809 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100AbZIBR1Y (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 2 Sep 2009 13:27:24 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n82HQPS4017392
-	for <linux-omap@vger.kernel.org>; Wed, 2 Sep 2009 12:26:51 -0500
-In-Reply-To: <1251805173-15214-3-git-send-email-andy.shevchenko@gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Pierre Ossman <pierre@ossman.eu>
+Subject: Re: mmcqd cpu utilization
+Date: Wed, 2 Sep 2009 19:40:36 +0200
+Message-ID: <20090902194036.07c1f72c@mjolnir.ossman.eu>
+References: <007301ca2bf2$2888e2a0$544ff780@am.dhcp.ti.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-3599-1251913245-0001-2"
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <007301ca2bf2$2888e2a0$544ff780@am.dhcp.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, hch@lst.de
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-Instead of MEM_Calloc()/MEM_Free() use kzalloc()/kfree() calls. Thus we get rid
-of mem.h dependency.
+--=_freyr.ossman.eu-3599-1251913245-0001-2
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
----
- arch/arm/plat-omap/include/dspbridge/list.h |   11 ++++++-----
- 1 files changed, 6 insertions(+), 5 deletions(-)
+On Wed, 2 Sep 2009 12:23:59 -0500
+"Madhusudhan" <madhu.cr@ti.com> wrote:
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/list.h b/arch/arm/plat-omap/include/dspbridge/list.h
-index c9d9e49..cda1d21 100644
---- a/arch/arm/plat-omap/include/dspbridge/list.h
-+++ b/arch/arm/plat-omap/include/dspbridge/list.h
-@@ -49,8 +49,8 @@
- #define LIST_
- 
- #include <dspbridge/host_os.h>
--/* MEM_Calloc(), MEM_NONPAGED, MEM_Free() */
--#include <dspbridge/mem.h>
-+#include <linux/types.h>
-+#include <linux/slab.h>
- #include <linux/list.h>
- 
- #define LST_ELEM            list_head
-@@ -85,9 +85,9 @@ struct LST_LIST {
- static inline struct LST_LIST *LST_Create(void)
- {
- 	struct LST_LIST *pList;
-+	gfp_t flags = (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL;
- 
--	pList = (struct LST_LIST *) MEM_Calloc(sizeof(struct LST_LIST),
--		MEM_NONPAGED);
-+	pList = (struct LST_LIST *) kzalloc(sizeof(struct LST_LIST), flags);
- 	if (pList != NULL)
- 		INIT_LIST_HEAD(&pList->head);
- 
-@@ -116,7 +116,8 @@ static inline struct LST_LIST *LST_Create(void)
-  */
- static inline void LST_Delete(struct LST_LIST *pList)
- {
--	MEM_Free(pList);
-+	if (pList != NULL)
-+		kfree(pList);
- }
- 
- /*
--- 
-1.5.6.5
+> Hi,
+>=20
+> Has anyone monitored the cpu utilization percentage when a MMC/SD card is=
+ in
+> use? I have noticed that mmc_queue_thread "mmcqd" consumes a lot of cpu
+> cycles in a periodic fashion. What I mean here is that I see spikes of hi=
+gh
+> cpu utilization due to mmcqd. There will a cp or similar which will be
+> already consuming cpu to transfer data to the MMC/SD device. Further mmcqd
+> increases that load randomly to a high number.
+>=20
+> Has anyone seen similar behavior? Any thoughts?
+>=20
 
+My guess would be that the omap driver doesn't (cannot?) use the
+hardware to wait for busy to end, so the system must poll.
+
+Anything better than that guess will require some profiling. :)
+
+Rgds
+--=20
+     -- Pierre Ossman
+
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
+
+--=_freyr.ossman.eu-3599-1251913245-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.12 (GNU/Linux)
+
+iEYEARECAAYFAkqerhgACgkQ7b8eESbyJLgWBQCcCOkc+Q7e/awwfMVuZbDWofx2
+LtAAoLbtB1SivvjiM6rAO1iiiRTiElh3
+=HWrx
+-----END PGP SIGNATURE-----
+
+--=_freyr.ossman.eu-3599-1251913245-0001-2--
