@@ -1,562 +1,380 @@
-From: "S, Venkatraman" <svenkatr@ti.com>
-Subject: [PATCH v3] OMAP4: sDMA driver: descriptor autoloading feature
-Date: Fri, 4 Sep 2009 00:04:08 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C0037CE48838@dbde02.ent.ti.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH 2/2] OMAP3: Add support for NAND on ZOOM2/LDP boards
+Date: Fri, 4 Sep 2009 00:48:55 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9AF22CB@dbde02.ent.ti.com>
+References: <41810.192.168.10.89.1251797332.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47246 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34092 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754006AbZICSeW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 14:34:22 -0400
+	id S1755029AbZICTTH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 15:19:07 -0400
+In-Reply-To: <41810.192.168.10.89.1251797332.squirrel@dbdmail.itg.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: vimal singh <vimalsingh@ti.com>, "tony@atomide.com" <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Comments received and fixed after previous posts
-http://marc.info/?l=linux-omap&m=125012097403050&w=2  (v1)
-http://marc.info/?l=linux-omap&m=125137152606644&w=2  (v2)
 
-Summary:
-OMAP sDMA driver changes for descriptor autoloading feature.
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
+Vimal/Tony
 
----
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index 7677a4a..3a75272 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -29,6 +29,7 @@
- #include <linux/interrupt.h>
- #include <linux/irq.h>
- #include <linux/io.h>
-+#include <linux/dma-mapping.h>
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of vimal
+>singh
+>Sent: Tuesday, September 01, 2009 4:29 AM
+>To: linux-omap@vger.kernel.org
+>Cc: tony@atomide.com
+>Subject: [PATCH 2/2] OMAP3: Add support for NAND on ZOOM2/LDP boards
+>
+>Adding NAND support for ZOOM2 and LDP board. I have tested it for ZOOM2
+>boards, someone can verify it for LDP, hopefully it should not have any
+>problem.
 
- #include <asm/system.h>
- #include <mach/hardware.h>
-@@ -46,13 +47,42 @@ enum { DMA_CH_ALLOC_DONE, DMA_CH_PARAMS_SET_DONE, DMA_CH_STARTED,
- enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
- #endif
+I will repost this series with LDP name replaced by ZOOM.
+The LDP board is actually Zoom1 and future platforms of this family will be called Zoom2/3/4.
 
-+/* CDP Register bitmaps */
-+#define DMA_LIST_CDP_DST_VALID (BIT(0))
-+#define DMA_LIST_CDP_SRC_VALID (BIT(2))
-+#define DMA_LIST_CDP_TYPE1     (BIT(4))
-+#define DMA_LIST_CDP_TYPE2     (BIT(5))
-+#define DMA_LIST_CDP_TYPE3     (BIT(4) | BIT(5))
-+#define DMA_LIST_CDP_PAUSEMODE (BIT(7))
-+#define DMA_LIST_CDP_LISTMODE  (BIT(8))
-+#define DMA_LIST_CDP_FASTMODE  (BIT(10))
-+/* CAPS register bitmaps */
-+#define DMA_CAPS_SGLIST_SUPPORT        (BIT(20))
-+
-+#define DMA_LIST_DESC_PAUSE    (BIT(0))
-+#define DMA_LIST_DESC_SRC_VALID        (BIT(24))
-+#define DMA_LIST_DESC_DST_VALID        (BIT(26))
-+#define DMA_LIST_DESC_BLK_END  (BIT(28))
-+
- #define OMAP_DMA_ACTIVE                        0x01
- #define OMAP_DMA_CCR_EN                        (1 << 7)
- #define OMAP2_DMA_CSR_CLEAR_MASK       0xffe
+So I will post V2 of this series with 3 patches.
 
- #define OMAP_FUNC_MUX_ARM_BASE         (0xfffe1000 + 0xec)
-+#define OMAP_DMA_INVALID_FRAME_COUNT   (0xffff)
-+#define OMAP_DMA_INVALID_ELEM_COUNT    (0xffffff)
-+#define OMAP_DMA_INVALID_DESCRIPTOR_POINTER    (0xfffffffc)
+Patch 1 - no change
+Patch 2 - change ldp name to zoom
+Patch 3 (new) - Add Zoom2 defconfig patch to update NAND partitions
 
- static int enable_1510_mode;
-+static int dma_caps0_status;
-+
-+struct omap_dma_list_config_params {
-+       int chid;
-+       int num_elem;
-+       struct omap_dma_sglist_node *sghead;
-+       int sgheadphy;
-+       int pausenode;
-+};
+I have tested this series on Zoom2 board and works fine now on Zoom2.
 
- struct omap_dma_lch {
-        int next_lch;
-@@ -72,6 +102,8 @@ struct omap_dma_lch {
-
-        int status;
- #endif
-+
-+       void *list_config;
-        long flags;
- };
-
-@@ -209,6 +241,12 @@ static void clear_lch_regs(int lch)
-                __raw_writew(0, lch_base + i);
- }
-
-+static inline void omap_dma_list_set_ntype(struct omap_dma_sglist_node *node,
-+                                          int value)
-+{
-+       node->num_of_elem |= ((value) << 29);
-+}
-+
- void omap_set_dma_priority(int lch, int dst_port, int priority)
- {
-        unsigned long reg;
-@@ -1787,6 +1825,269 @@ EXPORT_SYMBOL(omap_get_dma_chain_src_pos);
- #endif /* ifndef CONFIG_ARCH_OMAP1 */
-
- /*----------------------------------------------------------------------------*/
-+int omap_request_dma_sglist(int dev_id, const char *dev_name,
-+       void (*callback) (int channel_id, u16 ch_status, void *data),
-+       int *listid, int nelem, struct omap_dma_sglist_node **elems)
-+{
-+       struct omap_dma_list_config_params *lcfg;
-+       struct omap_dma_sglist_node *desc;
-+       int dma_lch;
-+       int rc, i;
-+
-+       if (unlikely((dma_caps0_status & DMA_CAPS_SGLIST_SUPPORT) == 0)) {
-+               printk(KERN_ERR "omap DMA: sglist feature not supported\n");
-+               return -EPERM;
-+       }
-+       if (unlikely(nelem <= 2)) {
-+               printk(KERN_ERR "omap DMA: Need >2 elements in the list\n");
-+               return -EINVAL;
-+       }
-+       rc = omap_request_dma(dev_id, dev_name,
-+                         callback, NULL, &dma_lch);
-+       if (rc < 0) {
-+               printk(KERN_ERR "omap_dma_list: Request failed %d\n", rc);
-+               return rc;
-+       }
-+       *listid = dma_lch;
-+       dma_chan[dma_lch].state = DMA_CH_NOTSTARTED;
-+       lcfg = kmalloc(sizeof(*lcfg), GFP_KERNEL);
-+       if (NULL == lcfg)
-+               goto error1;
-+       dma_chan[dma_lch].list_config = lcfg;
-+
-+       lcfg->num_elem = nelem;
-+
-+       *elems = desc = lcfg->sghead = dma_alloc_coherent(NULL,
-+               sizeof(*desc), &(lcfg->sgheadphy), 0);
-+       if (NULL == desc)
-+               goto error1;
-+
-+       for (i = 1; i < nelem; i++) {
-+               desc->next = dma_alloc_coherent(NULL,
-+                       sizeof(*(desc->next)), &(desc->next_desc_add_ptr), 0);
-+               if (NULL == desc->next)
-+                       goto error1;
-+               desc = desc->next;
-+               desc->next = NULL;
-+       }
-+       desc->next_desc_add_ptr = OMAP_DMA_INVALID_DESCRIPTOR_POINTER;
-+
-+       dma_write(0, CCDN(dma_lch)); /* Reset List index numbering */
-+       /* Initialize frame and element counters to invalid values */
-+       dma_write(OMAP_DMA_INVALID_FRAME_COUNT, CCFN(dma_lch));
-+       dma_write(OMAP_DMA_INVALID_ELEM_COUNT, CCEN(dma_lch));
-+       return 0;
-+
-+error1:
-+       omap_release_dma_sglist(dma_lch);
-+       return -ENOMEM;
-+
-+}
-+EXPORT_SYMBOL(omap_request_dma_sglist);
-+
-+/* The client can choose to not preconfigure the DMA registers
-+ * In fast mode,the DMA controller uses the first element in the list to
-+ * program the registers first, and then starts the transfer
-+ */
-+
-+int omap_set_dma_sglist_params(const int listid,
-+       struct omap_dma_sglist_node *sghead,
-+       struct omap_dma_channel_params *chparams)
-+{
-+       struct omap_dma_list_config_params *lcfg;
-+       struct omap_dma_sglist_node *sgitcurr, *sgitprev;
-+       int l = DMA_LIST_CDP_LISTMODE; /* Enable Linked list mode in CDP */
-+
-+       lcfg = dma_chan[listid].list_config;
-+       if (lcfg->sghead != sghead) {
-+               printk(KERN_ERR "Unknown config pointer passed\n");
-+               return -EPERM;
-+       }
-+
-+       if (NULL == chparams)
-+               l |= DMA_LIST_CDP_FASTMODE;
-+       else
-+               omap_set_dma_params(listid, chparams);
-+               /* The client can set the dma params and still use fast mode
-+                * by using the set fast mode api
-+                */
-+       dma_write(l, CDP(listid));
-+
-+       sgitprev = sghead;
-+       sgitcurr = sgitprev->next;
-+
-+       while (sgitcurr != NULL) {
-+               switch (sgitcurr->desc_type) {
-+               case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1:
-+                       omap_dma_list_set_ntype(sgitprev, 1);
-+                       break;
-+
-+               case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a:
-+                       /* intentional no break */
-+               case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b:
-+                       omap_dma_list_set_ntype(sgitprev, 2);
-+                       break;
-+
-+               case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a:
-+                       /* intentional no break */
-+               case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b:
-+                       omap_dma_list_set_ntype(sgitprev, 3);
-+                       break;
-+               default:
-+                       return -EINVAL;
-+               }
-+               if (sgitcurr->flags & OMAP_DMA_LIST_SRC_VALID)
-+                       sgitprev->num_of_elem |= DMA_LIST_DESC_SRC_VALID;
-+               if (sgitcurr->flags & OMAP_DMA_LIST_DST_VALID)
-+                       sgitprev->num_of_elem |= DMA_LIST_DESC_DST_VALID;
-+               if (sgitcurr->flags & OMAP_DMA_LIST_NOTIFY_BLOCK_END)
-+                       sgitprev->num_of_elem |= DMA_LIST_DESC_BLK_END;
-+
-+               sgitprev = sgitcurr;
-+               sgitcurr = sgitcurr->next;
-+       }
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(omap_set_dma_sglist_params);
-+
-+int omap_start_dma_sglist_transfers(const int listid, const int pauseafter)
-+{
-+       struct omap_dma_list_config_params *lcfg;
-+       struct omap_dma_sglist_node *sgn;
-+       unsigned int l, type_id;
-+
-+       lcfg = dma_chan[listid].list_config;
-+       lcfg->pausenode = 0;
-+       sgn = lcfg->sghead;
-+       if (pauseafter > 0 && pauseafter <= lcfg->num_elem) {
-+               for (l = 0; l < pauseafter; l++)
-+                       sgn = sgn->next;
-+               sgn->next_desc_add_ptr |= DMA_LIST_DESC_PAUSE;
-+               lcfg->pausenode = pauseafter;
-+       }
-+
-+       /* Program the head descriptor's properties into CDP */
-+       switch (lcfg->sghead->desc_type) {
-+       case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1:
-+               type_id = DMA_LIST_CDP_TYPE1;
-+               break;
-+       case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a:
-+       case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b:
-+               type_id = DMA_LIST_CDP_TYPE2;
-+               break;
-+       case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a:
-+       case OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b:
-+               type_id = DMA_LIST_CDP_TYPE3;
-+               break;
-+       default:
-+               return -EINVAL;
-+       }
-+
-+       l = dma_read(CDP(listid));
-+       l |= type_id;
-+       if (lcfg->sghead->flags & OMAP_DMA_LIST_SRC_VALID)
-+               l |= DMA_LIST_CDP_SRC_VALID;
-+       if (lcfg->sghead->flags & OMAP_DMA_LIST_DST_VALID)
-+               l |= DMA_LIST_CDP_DST_VALID;
-+
-+       dma_write(l, CDP(listid));
-+
-+       dma_write((lcfg->sgheadphy), CNDP(listid));
-+       printk(KERN_DEBUG "Start list transfer for list %x\n",
-+               lcfg->sgheadphy);
-+       omap_start_dma(listid);
-+
-+       return 0;
-+}
-+EXPORT_SYMBOL(omap_start_dma_sglist_transfers);
-+
-+int omap_resume_dma_sglist_transfers(const int listid, const int pauseafter)
-+{
-+       struct omap_dma_list_config_params *lcfg;
-+       struct omap_dma_sglist_node *sgn;
-+       int l;
-+
-+       lcfg = dma_chan[listid].list_config;
-+       sgn = lcfg->sghead;
-+       /* Clear the previous pause, if any */
-+       lcfg->pausenode = 0;
-+
-+       if (pauseafter > 0 && pauseafter <= lcfg->num_elem) {
-+               for (l = 0; l < pauseafter; l++)
-+                       sgn = sgn->next;
-+               sgn->next_desc_add_ptr |= DMA_LIST_DESC_PAUSE;
-+               lcfg->pausenode = pauseafter;
-+       }
-+
-+       /* Clear pause bit in CDP */
-+       l = dma_read(CDP(listid));
-+       printk(KERN_DEBUG "Resuming after pause: CDP=%x\n", l);
-+       l &= ~(DMA_LIST_CDP_PAUSEMODE);
-+       dma_write(l, CDP(listid));
-+       omap_start_dma(listid);
-+       return 0;
-+}
-+EXPORT_SYMBOL(omap_resume_dma_sglist_transfers);
-+
-+int omap_release_dma_sglist(const int listid)
-+{
-+       struct omap_dma_list_config_params *lcfg;
-+       struct omap_dma_sglist_node *sgn, *sgn2;
-+
-+       lcfg = dma_chan[listid].list_config;
-+       sgn = lcfg->sghead;
-+
-+       if (NULL != sgn) {
-+               sgn = sgn->next;
-+               do {
-+                       sgn2 = sgn->next;
-+                       dma_free_coherent(NULL, sizeof(*sgn), sgn,
-+                               sgn->next_desc_add_ptr);
-+                       sgn = sgn2;
-+               } while (sgn2 != NULL);
-+
-+               dma_free_coherent(NULL, sizeof(*(lcfg->sghead)),
-+                       lcfg->sghead, lcfg->sgheadphy);
-+       }
-+       if (NULL != dma_chan[listid].list_config)
-+               kfree(dma_chan[listid].list_config);
-+       dma_chan[listid].list_config = NULL;
-+       omap_free_dma(listid);
-+       return 0;
-+}
-+EXPORT_SYMBOL(omap_release_dma_sglist);
-+
-+int omap_get_completed_sglist_nodes(const int listid)
-+{
-+       int list_count;
-+
-+       list_count = dma_read(CCDN(listid));
-+       return list_count & 0xffff; /* only 16 LSB bits are valid */
-+}
-+EXPORT_SYMBOL(omap_get_completed_sglist_nodes);
-+
-+int omap_dma_sglist_is_paused(const int listid)
-+{
-+       int list_state;
-+
-+       list_state = dma_read(CDP(listid));
-+       return (list_state & DMA_LIST_CDP_PAUSEMODE) ? 1 : 0;
-+}
-+EXPORT_SYMBOL(omap_dma_sglist_is_paused);
-+
-+void omap_dma_set_sglist_fastmode(const int listid, const int fastmode)
-+{
-+       int l = dma_read(CDP(listid));
-+
-+       if (fastmode)
-+               l |= DMA_LIST_CDP_FASTMODE;
-+       else
-+               l &= ~(DMA_LIST_CDP_FASTMODE);
-+       dma_write(l, CDP(listid));
-+}
-+EXPORT_SYMBOL(omap_dma_set_sglist_fastmode);
-+
-
- #ifdef CONFIG_ARCH_OMAP1
-
-@@ -2367,6 +2668,7 @@ static int __init omap_init_dma(void)
-                        kfree(dma_chan);
-                        return -ENOMEM;
-                }
-+               dma_caps0_status = dma_read(CAPS_0);
-        }
-
-        if (cpu_is_omap15xx()) {
-@@ -2418,6 +2720,7 @@ static int __init omap_init_dma(void)
-                omap_clear_dma(ch);
-                dma_chan[ch].dev_id = -1;
-                dma_chan[ch].next_lch = -1;
-+               dma_chan[ch].list_config = NULL;
-
-                if (ch >= 6 && enable_1510_mode)
-                        continue;
-diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
-index 72f680b..ca2970d 100644
---- a/arch/arm/plat-omap/include/mach/dma.h
-+++ b/arch/arm/plat-omap/include/mach/dma.h
-@@ -112,8 +112,12 @@
- #define OMAP1_DMA_COLOR_U(n)           (0x40 * (n) + 0x22)
- #define OMAP1_DMA_CCR2(n)              (0x40 * (n) + 0x24)
- #define OMAP1_DMA_LCH_CTRL(n)          (0x40 * (n) + 0x2a)     /* not on 15xx */
-+#define OMAP1_DMA_COLOR(n)             0
- #define OMAP1_DMA_CCEN(n)              0
- #define OMAP1_DMA_CCFN(n)              0
-+#define OMAP1_DMA_CDP(n)               0
-+#define OMAP1_DMA_CNDP(n)              0
-+#define OMAP1_DMA_CCDN(n)              0
-
- /* Channel specific registers only on omap2 */
- #define OMAP_DMA4_CSSA(n)              (0x60 * (n) + 0x9c)
-@@ -132,6 +136,8 @@
- #define OMAP1_DMA_IRQSTATUS_L0         0
- #define OMAP1_DMA_IRQENABLE_L0         0
- #define OMAP1_DMA_OCP_SYSCONFIG                0
-+#define OMAP1_DMA_CAPS_0               0
-+
- #define OMAP_DMA4_HW_ID                        0
- #define OMAP_DMA4_CAPS_0_L             0
- #define OMAP_DMA4_CAPS_0_U             0
-@@ -576,6 +582,83 @@ struct omap_dma_channel_params {
- #endif
- };
-
-+struct omap_dma_sglist_type1_params {
-+       u32 src_addr;
-+       u32 dst_addr;
-+       u16 cfn_fn;
-+       u16 cicr;
-+       u16 dst_elem_idx;
-+       u16 src_elem_idx;
-+       u32 dst_frame_idx_or_pkt_size;
-+       u32 src_frame_idx_or_pkt_size;
-+       u32 color;
-+       u32 csdp;
-+       u32 clnk_ctrl;
-+       u32 ccr;
-+};
-+
-+struct omap_dma_sglist_type2a_params {
-+       u32 src_addr;
-+       u32 dst_addr;
-+       u16 cfn_fn;
-+       u16 cicr;
-+       u16 dst_elem_idx;
-+       u16 src_elem_idx;
-+       u32 dst_frame_idx_or_pkt_size;
-+       u32 src_frame_idx_or_pkt_size;
-+};
-+
-+struct omap_dma_sglist_type2b_params {
-+       u32 src_or_dest_addr;
-+       u16 cfn_fn;
-+       u16 cicr;
-+       u16 dst_elem_idx;
-+       u16 src_elem_idx;
-+       u32 dst_frame_idx_or_pkt_size;
-+       u32 src_frame_idx_or_pkt_size;
-+};
-+
-+struct omap_dma_sglist_type3a_params {
-+       u32 src_addr;
-+       u32 dst_addr;
-+};
-+
-+struct omap_dma_sglist_type3b_params {
-+       u32 src_or_dest_addr;
-+};
-+
-+enum omap_dma_sglist_descriptor_select {
-+       OMAP_DMA_SGLIST_DESCRIPTOR_TYPE1,
-+       OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2a,
-+       OMAP_DMA_SGLIST_DESCRIPTOR_TYPE2b,
-+       OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3a,
-+       OMAP_DMA_SGLIST_DESCRIPTOR_TYPE3b,
-+};
-+
-+union omap_dma_sglist_node_type{
-+       struct omap_dma_sglist_type1_params t1;
-+       struct omap_dma_sglist_type2a_params t2a;
-+       struct omap_dma_sglist_type2b_params t2b;
-+       struct omap_dma_sglist_type3a_params t3a;
-+       struct omap_dma_sglist_type3b_params t3b;
-+};
-+
-+struct omap_dma_sglist_node {
-+
-+       /* Common elements for all descriptors */
-+       u32 next_desc_add_ptr;
-+       u32 num_of_elem;
-+       /* Type specific elements */
-+       union omap_dma_sglist_node_type sg_node;
-+       /* Control fields */
-+       int flags;
-+       /* Fields that can be set in flags variable */
-+       #define OMAP_DMA_LIST_SRC_VALID         (1)
-+       #define OMAP_DMA_LIST_DST_VALID         (2)
-+       #define OMAP_DMA_LIST_NOTIFY_BLOCK_END  (4)
-+       u32 desc_type;
-+       struct omap_dma_sglist_node *next;
-+};
-
- extern void omap_set_dma_priority(int lch, int dst_port, int priority);
- extern int omap_request_dma(int dev_id, const char *dev_name,
-@@ -655,6 +738,59 @@ extern int omap_modify_dma_chain_params(int chain_id,
-                                        struct omap_dma_channel_params params);
- extern int omap_dma_chain_status(int chain_id);
- #endif
-+/* omap_request_dma_sglist:
-+ * Request to setup a DMA channel to transfer in linked list mode of nelem
-+ * elements. The memory for the list will be allocated and returned in
-+ * elems structure
-+ */
-+extern int omap_request_dma_sglist(int dev_id, const char *dev_name,
-+               void (*callback) (int channel_id, u16 ch_status, void *data),
-+               int *listid, int nelem, struct omap_dma_sglist_node **elems);
-+/* omap_set_dma_sglist_params
-+ * Provide the configuration parameters for the sglist channel
-+ * sghead should contain a fully populated list of nelems
-+ * which completely describe the transfer. chparams, if not NULL, will
-+ * set the appropriate parameters directly into the DMA register.
-+ * If chparams is NULL, fastmode will be enabled automatically
-+ */
-+extern int omap_set_dma_sglist_params(const int listid,
-+                                     struct omap_dma_sglist_node *sghead,
-+                                     struct omap_dma_channel_params *chparams);
-+/* omap_start_dma_sglist_transfers
-+ * Starts the linked list based DMA transfer for the specified listid
-+ * If no pause is required, -1 is to be set in pauseafter.
-+ * Else, the transfer will suspend after pauseafter elements.
-+ */
-+extern int omap_start_dma_sglist_transfers(const int listid,
-+                                          const int pauseafter);
-+/* omap_resume_dma_sglist_transfers
-+ * Resumes the previously paused transfer.
-+ * Can be again set to pause at pauseafter node of the linked list
-+ * The index is absolute (from the head of the list)
-+ */
-+extern int omap_resume_dma_sglist_transfers(const int listid,
-+                                           const int pauseafter);
-+/* omap_release_dma_sglist
-+ * Releases the list based DMA channel and the associated list descriptors
-+ */
-+extern int omap_release_dma_sglist(const int listid);
-+/* omap_get_completed_sglist_nodes
-+ * Returns the number of completed elements in the linked list
-+ * The value is transient if the API is invoked for an ongoing transfer
-+ */
-+int omap_get_completed_sglist_nodes(const int listid);
-+/* omap_dma_sglist_is_paused
-+ * Returns non zero if the linked list is currently in pause state
-+ */
-+int omap_dma_sglist_is_paused(const int listid);
-+/* omap_dma_set_sglist_fastmode
-+ * Set or clear the fastmode status of the transfer
-+ * In fastmode, DMA register settings are updated from the first element
-+ * of the linked list, before initiating the tranfer.
-+ * In non-fastmode, the first element is used only after completing the
-+ * transfer as already configured in the registers
-+ */
-+void omap_dma_set_sglist_fastmode(const int listid, const int fastmode);
-
- /* LCD DMA functions */
- extern int omap_request_lcd_dma(void (*callback)(u16 status, void *data),
----
+>
+>The size of the U-Boot environment partition was increased to 1.25MB.
+>
+>Singned-off-by: Vimal Singh <vimalsingh@ti.com>
+>---
+> arch/arm/mach-omap2/Makefile                |    2
+> arch/arm/mach-omap2/board-ldp-flash.c       |  196 ++++++++++++++++++++++++++++
+> arch/arm/mach-omap2/board-ldp.c             |    2
+> arch/arm/mach-omap2/board-zoom2.c           |    2
+> arch/arm/plat-omap/include/mach/board-ldp.h |   36 +++++
+> arch/arm/plat-omap/include/mach/nand.h      |    1
+> 6 files changed, 239 insertions(+)
+>
+>Index: linux-omap-2.6/arch/arm/mach-omap2/Makefile
+>===================================================================
+>--- linux-omap-2.6.orig/arch/arm/mach-omap2/Makefile
+>+++ linux-omap-2.6/arch/arm/mach-omap2/Makefile
+>@@ -54,6 +54,7 @@ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= boar
+> obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+> 					   mmc-twl4030.o
+> obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+>+					   board-ldp-flash.o \
+> 					   mmc-twl4030.o
+> obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+> 					   mmc-twl4030.o
+>@@ -69,6 +70,7 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-
+> 					   board-rx51-peripherals.o \
+> 					   mmc-twl4030.o
+> obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+>+					   board-ldp-flash.o \
+> 					   mmc-twl4030.o \
+> 					   board-zoom-debugboard.o
+>
+>Index: linux-omap-2.6/arch/arm/mach-omap2/board-ldp-flash.c
+>===================================================================
+>--- /dev/null
+>+++ linux-omap-2.6/arch/arm/mach-omap2/board-ldp-flash.c
+>@@ -0,0 +1,196 @@
+>+/*
+>+ * arch/arm/mach-omap2/board-ldp-flash.c
+>+ *
+>+ * Copyright (C) 2008-09 Texas Instruments Inc.
+>+ *
+>+ * Modified from mach-omap2/board-2430sdp-flash.c
+>+ * Author(s): Rohit Choraria <rohitkc@ti.com>
+>+ *            Vimal Singh <vimalsingh@ti.com>
+>+ *
+>+ * This program is free software; you can redistribute it and/or modify
+>+ * it under the terms of the GNU General Public License version 2 as
+>+ * published by the Free Software Foundation.
+>+ */
+>+
+>+#include <linux/kernel.h>
+>+#include <linux/delay.h>
+>+#include <linux/platform_device.h>
+>+#include <linux/mtd/mtd.h>
+>+#include <linux/mtd/partitions.h>
+>+#include <linux/mtd/nand.h>
+>+#include <linux/types.h>
+>+#include <linux/io.h>
+>+
+>+#include <asm/mach/flash.h>
+>+#include <mach/board.h>
+>+#include <mach/gpmc.h>
+>+#include <mach/nand.h>
+>+
+>+#include <mach/board-ldp.h>
+>+
+>+#define NAND_CMD_UNLOCK1	0x23
+>+#define NAND_CMD_UNLOCK2	0x24
+>+/**
+>+ * @brief platform specific unlock function
+>+ *
+>+ * @param mtd - mtd info
+>+ * @param ofs - offset to start unlock from
+>+ * @param len - length to unlock
+>+ *
+>+ * @return - unlock status
+>+ */
+>+static int omap_ldp_nand_unlock(struct mtd_info *mtd, loff_t ofs, size_t len)
+>+{
+>+	int ret = 0;
+>+	int chipnr;
+>+	int status;
+>+	unsigned long page;
+>+	struct nand_chip *this = mtd->priv;
+>+	printk(KERN_INFO "nand_unlock: start: %08x, length: %d!\n",
+>+			(int)ofs, (int)len);
+>+
+>+	/* select the NAND device */
+>+	chipnr = (int)(ofs >> this->chip_shift);
+>+	this->select_chip(mtd, chipnr);
+>+	/* check the WP bit */
+>+	this->cmdfunc(mtd, NAND_CMD_STATUS, -1, -1);
+>+	if ((this->read_byte(mtd) & 0x80) == 0) {
+>+		printk(KERN_ERR "nand_unlock: Device is write protected!\n");
+>+		ret = -EINVAL;
+>+		goto out;
+>+	}
+>+
+>+	if ((ofs & (mtd->writesize - 1)) != 0) {
+>+		printk(KERN_ERR "nand_unlock: Start address must be"
+>+				"beginning of nand page!\n");
+>+		ret = -EINVAL;
+>+		goto out;
+>+	}
+>+
+>+	if (len == 0 || (len & (mtd->writesize - 1)) != 0) {
+>+		printk(KERN_ERR "nand_unlock: Length must be a multiple of "
+>+				"nand page size!\n");
+>+		ret = -EINVAL;
+>+		goto out;
+>+	}
+>+
+>+	/* submit address of first page to unlock */
+>+	page = (unsigned long)(ofs >> this->page_shift);
+>+	this->cmdfunc(mtd, NAND_CMD_UNLOCK1, -1, page & this->pagemask);
+>+
+>+	/* submit ADDRESS of LAST page to unlock */
+>+	page += (unsigned long)((ofs + len) >> this->page_shift) ;
+>+	this->cmdfunc(mtd, NAND_CMD_UNLOCK2, -1, page & this->pagemask);
+>+
+>+	/* call wait ready function */
+>+	status = this->waitfunc(mtd, this);
+>+	udelay(1000);
+>+	/* see if device thinks it succeeded */
+>+	if (status & 0x01) {
+>+		/* there was an error */
+>+		printk(KERN_ERR "nand_unlock: error status =0x%08x ", status);
+>+		ret = -EIO;
+>+		goto out;
+>+	}
+>+
+>+ out:
+>+	/* de-select the NAND device */
+>+	this->select_chip(mtd, -1);
+>+	return ret;
+>+}
+>+
+>+static struct mtd_partition ldp_nand_partitions[] = {
+>+	/* All the partition sizes are listed in terms of NAND block size */
+>+	{
+>+		.name		= "X-Loader-NAND",
+>+		.offset		= 0,
+>+		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
+>+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+>+	},
+>+	{
+>+		.name		= "U-Boot-NAND",
+>+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+>+		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
+>+		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+>+	},
+>+	{
+>+		.name		= "Boot Env-NAND",
+>+		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
+>+		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
+>+	},
+>+	{
+>+		.name		= "Kernel-NAND",
+>+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
+>+		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
+>+	},
+>+#ifdef CONFIG_MACH_OMAP_ZOOM2
+>+	{
+>+		.name		= "system",
+>+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
+>+		.size		= 1280 * (64 * 2048),   /* 160M, 0xA000000 */
+>+	},
+>+	{
+>+		.name		= "userdata",
+>+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xC000000 */
+>+		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
+>+	},
+>+	{
+>+		.name		= "cache",
+>+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xE000000 */
+>+		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
+>+	},
+>+#else
+>+	{
+>+		.name		= "File System - NAND",
+>+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
+>+		.size		= MTDPART_SIZ_FULL,	/* 96MB, 0x6000000 */
+>+	},
+>+#endif
+>+};
+>+
+>+/* NAND chip access: 16 bit */
+>+static struct omap_nand_platform_data ldp_nand_data = {
+>+	.parts		= ldp_nand_partitions,
+>+	.nr_parts	= ARRAY_SIZE(ldp_nand_partitions),
+>+	.nand_setup	= NULL,
+>+	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
+>+	.dev_ready	= NULL,
+>+	.unlock		= omap_ldp_nand_unlock,
+>+};
+>+
+>+static struct resource ldp_nand_resource = {
+>+	.flags		= IORESOURCE_MEM,
+>+};
+>+
+>+static struct platform_device ldp_nand_device = {
+>+	.name		= "omap2-nand",
+>+	.id		= 0,
+>+	.dev		= {
+>+	.platform_data	= &ldp_nand_data,
+>+	},
+>+	.num_resources	= 1,
+>+	.resource	= &ldp_nand_resource,
+>+};
+>+
+>+/**
+>+ * ldp430_flash_init - Identify devices connected to GPMC and register.
+>+ *
+>+ * @return - void.
+>+ */
+>+void __init ldp_flash_init(void)
+>+{
+>+	u8 nandcs = GPMC_CS_NUM + 1;
+>+	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
+>+
+>+	/* pop nand part */
+>+	nandcs = LDP3430_NAND_CS;
+>+
+>+	ldp_nand_data.cs = nandcs;
+>+	ldp_nand_data.gpmc_cs_baseaddr = (void *)(gpmc_base_add +
+>+					GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
+>+	ldp_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
+>+
+>+	if (platform_device_register(&ldp_nand_device) < 0)
+>+		printk(KERN_ERR "Unable to register NAND device\n");
+>+}
+>+
+>Index: linux-omap-2.6/arch/arm/mach-omap2/board-ldp.c
+>===================================================================
+>--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-ldp.c
+>+++ linux-omap-2.6/arch/arm/mach-omap2/board-ldp.c
+>@@ -42,6 +42,7 @@
+> #include <mach/control.h>
+> #include <mach/usb.h>
+> #include <mach/keypad.h>
+>+#include <mach/board-ldp.h>
+>
+> #include "mmc-twl4030.h"
+>
+>@@ -385,6 +386,7 @@ static void __init omap_ldp_init(void)
+> 	ads7846_dev_init();
+> 	omap_serial_init(&ldp_uart_config);
+> 	usb_musb_init();
+>+	ldp_flash_init();
+>
+> 	twl4030_mmc_init(mmc);
+> 	/* link regulators to MMC adapters */
+>Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
+>===================================================================
+>--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom2.c
+>+++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
+>@@ -20,6 +20,7 @@
+> #include <asm/mach-types.h>
+> #include <asm/mach/arch.h>
+>
+>+#include <mach/board-ldp.h>
+> #include <mach/common.h>
+> #include <mach/usb.h>
+> #include <mach/keypad.h>
+>@@ -271,6 +272,7 @@ static void __init omap_zoom2_init(void)
+> 	omap_serial_init(&zoom2_uart_config);
+> 	omap_zoom2_debugboard_init();
+> 	usb_musb_init();
+>+	ldp_flash_init();
+> }
+>
+> static void __init omap_zoom2_map_io(void)
+>Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/board-ldp.h
+>===================================================================
+>--- /dev/null
+>+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/board-ldp.h
+>@@ -0,0 +1,36 @@
+>+/*
+>+ * arch/arm/plat-omap/include/mach/board-ldp.h
+>+ *
+>+ * Hardware definitions for TI OMAP3 LDP/ZOOM2.
+>+ *
+>+ * Copyright (C) 2008-09 Texas Instruments Inc.
+>+ *
+>+ * This program is free software; you can redistribute it and/or modify it
+>+ * under the terms of the GNU General Public License as published by the
+>+ * Free Software Foundation; either version 2 of the License, or (at your
+>+ * option) any later version.
+>+ *
+>+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+>+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+>+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+>+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+>+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+>+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+>+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+>+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+>+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+>+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+>+ *
+>+ * You should have received a copy of the GNU General Public License along
+>+ * with this program; if not, write to the Free Software Foundation, Inc.,
+>+ * 675 Mass Ave, Cambridge, MA 02139, USA.
+>+ */
+>+
+>+#ifndef __ASM_ARCH_OMAP_LDP_H
+>+#define __ASM_ARCH_OMAP_LDP_H
+>+
+>+extern void ldp_flash_init(void);
+>+
+>+#define LDP3430_NAND_CS               0
+>+
+>+#endif /* __ASM_ARCH_OMAP_LDP_H */
+>Index: linux-omap-2.6/arch/arm/plat-omap/include/mach/nand.h
+>===================================================================
+>--- linux-omap-2.6.orig/arch/arm/plat-omap/include/mach/nand.h
+>+++ linux-omap-2.6/arch/arm/plat-omap/include/mach/nand.h
+>@@ -18,6 +18,7 @@ struct omap_nand_platform_data {
+> 	int			nr_parts;
+> 	int			(*nand_setup)(void __iomem *);
+> 	int			(*dev_ready)(struct omap_nand_platform_data *);
+>+	int			(*unlock)(struct mtd_info *, loff_t, size_t);
+> 	int			dma_channel;
+> 	void __iomem		*gpmc_cs_baseaddr;
+> 	void __iomem		*gpmc_baseaddr;
+>
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
