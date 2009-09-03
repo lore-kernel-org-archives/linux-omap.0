@@ -1,39 +1,70 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: dspbridge rfc: get rid of services/list.c (try 2)
-Date: Thu,  3 Sep 2009 12:06:10 +0300
-Message-ID: <1251968774-25380-1-git-send-email-andy.shevchenko@gmail.com>
+Subject: [PATCH 3/4] dspbridge: use linux memory allocator directly
+Date: Thu,  3 Sep 2009 12:06:13 +0300
+Message-ID: <1251968774-25380-4-git-send-email-andy.shevchenko@gmail.com>
+References: <1251968774-25380-1-git-send-email-andy.shevchenko@gmail.com>
+ <1251968774-25380-2-git-send-email-andy.shevchenko@gmail.com>
+ <1251968774-25380-3-git-send-email-andy.shevchenko@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:32238 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754023AbZICJGs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 05:06:48 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n8396EFw023570
-	for <linux-omap@vger.kernel.org>; Thu, 3 Sep 2009 12:06:36 +0300
-Received: from dilbert.research.nokia.com (esdhcp034223.research.nokia.com [172.21.34.223])
-	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n8396JpC004758
-	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 3 Sep 2009 12:06:19 +0300
-Received: from andy by dilbert.research.nokia.com with local (Exim 4.69)
-	(envelope-from <ext-andriy.shevchenko@nokia.com>)
-	id 1Mj8Gk-0006bx-Vg
-	for linux-omap@vger.kernel.org; Thu, 03 Sep 2009 12:06:14 +0300
+Received: from smtp.nokia.com ([192.100.105.134]:34957 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754116AbZICJGv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 05:06:51 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n8395Y8I012033
+	for <linux-omap@vger.kernel.org>; Thu, 3 Sep 2009 04:06:18 -0500
+In-Reply-To: <1251968774-25380-3-git-send-email-andy.shevchenko@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
+From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-Hello.
+Instead of MEM_Calloc()/MEM_Free() use kzalloc()/kfree() calls. Thus we get rid
+of mem.h dependency.
 
-Here are two patches which change driver's own circular linked list
-implementation to native one in linux kernel. The initial idea was come from
-Hiroshi Doyu.
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+---
+ arch/arm/plat-omap/include/dspbridge/list.h |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-This version includes corrections which I got from Imre and Felipe.
-Additionally the fourth patch changes LST_ELEM name to native list_head in
-whole dsp bridge driver.
-
---
-With Best Regards,
-Andy Shevchenko
+diff --git a/arch/arm/plat-omap/include/dspbridge/list.h b/arch/arm/plat-omap/include/dspbridge/list.h
+index c9d9e49..9efbe9c 100644
+--- a/arch/arm/plat-omap/include/dspbridge/list.h
++++ b/arch/arm/plat-omap/include/dspbridge/list.h
+@@ -49,8 +49,8 @@
+ #define LIST_
+ 
+ #include <dspbridge/host_os.h>
+-/* MEM_Calloc(), MEM_NONPAGED, MEM_Free() */
+-#include <dspbridge/mem.h>
++#include <linux/types.h>
++#include <linux/slab.h>
+ #include <linux/list.h>
+ 
+ #define LST_ELEM            list_head
+@@ -85,9 +85,9 @@ struct LST_LIST {
+ static inline struct LST_LIST *LST_Create(void)
+ {
+ 	struct LST_LIST *pList;
++	gfp_t flags = (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL;
+ 
+-	pList = (struct LST_LIST *) MEM_Calloc(sizeof(struct LST_LIST),
+-		MEM_NONPAGED);
++	pList = kzalloc(sizeof(*pList), flags);
+ 	if (pList != NULL)
+ 		INIT_LIST_HEAD(&pList->head);
+ 
+@@ -116,7 +116,7 @@ static inline struct LST_LIST *LST_Create(void)
+  */
+ static inline void LST_Delete(struct LST_LIST *pList)
+ {
+-	MEM_Free(pList);
++	kfree(pList);
+ }
+ 
+ /*
+-- 
+1.5.6.5
 
