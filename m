@@ -1,86 +1,87 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
-Date: Thu, 03 Sep 2009 14:00:01 +0300
-Message-ID: <1251975601.10724.9.camel@tubuntu>
-References: <1251462337-12531-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <4A9B96A7.5040005@gmail.com>
-	 <5e088bd90908310720p290ba68dwd6106a778fd7c740@mail.gmail.com>
-	 <0680EC522D0CC943BC586913CF3768C0037CE48136@dbde02.ent.ti.com>
-	 <19F8576C6E063C45BE387C64729E73940436A4A9B6@dbde02.ent.ti.com>
-	 <20090831155518.GC16876@atomide.com>	<4A9CC8DB.2050803@gmail.com>
-	 <20090902151126.f465bb15.akpm@linux-foundation.org>
-Reply-To: tomi.valkeinen@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH] dspbridge: relocate MEM_ExtPhysPoolRelease() call
+Date: Thu,  3 Sep 2009 14:38:27 +0300
+Message-ID: <1251977907-26533-1-git-send-email-andy.shevchenko@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:46305 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753651AbZICLAP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 07:00:15 -0400
-In-Reply-To: <20090902151126.f465bb15.akpm@linux-foundation.org>
+Received: from smtp.nokia.com ([192.100.122.230]:20193 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754733AbZICLi4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 07:38:56 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n83BckDd023834
+	for <linux-omap@vger.kernel.org>; Thu, 3 Sep 2009 14:38:49 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Andrew Morton <akpm@linux-foundation.org>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "hvaibhav@ti.com" <hvaibhav@ti.com>, "khasim@ti.com" <khasim@ti.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-Hi,
+From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-On Thu, 2009-09-03 at 00:11 +0200, ext Andrew Morton wrote:
-> On Tue, 01 Sep 2009 10:10:19 +0300
-> Artem Bityutskiy <dedekind1@gmail.com> wrote:
-> 
-> > Andrew,
-> > 
-> > could you please help with merging this piece of (well written) code?
-> > Could you give your blessing to include it into linux-next now, and
-> > merge this during the next merge window?
-> 
-> I'll merge them (after I've looked through them, which I'll do now).  
-> 
-> But there are more rejects than I'm prepared to cope with.  The various
-> arch/arm files have undergone some changes in linux-next which yield
-> more breakage than I'm prepared to try to fix.  For example,
-> arch/arm/mach-omap2/board-3430sdp.c:sdp3430_config[] ends up being an
-> empty array!
+It's more logical to have calls of symmetric functions at single place.
 
-I rebased the patches on top of linux-next. The tree is at
-http://gitorious.org/linux-omap-dss2/linux , in branch linux-next-dss.
+Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+---
+ arch/arm/plat-omap/include/dspbridge/mem.h |    5 +++++
+ drivers/dsp/bridge/rmgr/drv_interface.c    |    2 ++
+ drivers/dsp/bridge/services/mem.c          |    4 ++--
+ 3 files changed, 9 insertions(+), 2 deletions(-)
 
-The only conflict was in board-3430sdp, and yes, sdp3430_config is
-supposed to end up as an empty array. 
-
-> Then there's the matter of these patches, already in -mm:
-> 
-> omapfb-add-support-for-the-apollon-lcd.patch
-> omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
-> omapfb-add-support-for-the-amstrad-delta-lcd.patch
-> omapfb-add-support-for-the-2430sdp-lcd.patch
-> omapfb-add-support-for-the-omap2evm-lcd.patch
-> omapfb-add-support-for-the-3430sdp-lcd.patch
-> omapfb-add-support-for-the-omap3-evm-lcd.patch
-> omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
-> omapfb-add-support-for-the-gumstix-overo-lcd.patch
-> omapfb-add-support-for-the-zoom-mdk-lcd.patch
-> omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
-> n770-enable-lcd-mipi-dcs-in-kconfig.patch
-> omapfb-dispc-various-typo-fixes.patch
-> omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
-> omapfb-dispc-enable-wake-up-capability.patch
-> omapfb-dispc-allow-multiple-external-irq-handlers.patch
-> omapfb-suspend-resume-only-if-fb-device-is-already-initialized.patch
-> omapfb-fix-coding-style-remove-dead-line.patch
-> omapfb-add-fb-manual-update-option-to-kconfig.patch
-> omapfb-hwa742-fix-pointer-to-be-const.patch
-
-These are not in linux-next, I think. They are for the old OMAP display
-subsystem, and may cause some conflicts with DSS2. I think those patches
-should go in also, as the old driver is used for OMAP1 and fo all the
-other boards that have not been ported to use DSS2.
-
-Should I rebase DSS2 on top of -mm and solve the conflicts? If so, where
-can I find your tree?
-
- Tomi
-
+diff --git a/arch/arm/plat-omap/include/dspbridge/mem.h b/arch/arm/plat-omap/include/dspbridge/mem.h
+index 4e43f21..b47a6d4 100644
+--- a/arch/arm/plat-omap/include/dspbridge/mem.h
++++ b/arch/arm/plat-omap/include/dspbridge/mem.h
+@@ -354,4 +354,9 @@
+ 	extern void MEM_ExtPhysPoolInit(IN u32 poolPhysBase,
+ 					IN u32 poolSize);
+ 
++/*
++ *  ======== MEM_ExtPhysPoolRelease ========
++ */
++	extern void MEM_ExtPhysPoolRelease(void);
++
+ #endif				/* MEM_ */
+diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
+index 08b5cde..e83ba3b 100644
+--- a/drivers/dsp/bridge/rmgr/drv_interface.c
++++ b/drivers/dsp/bridge/rmgr/drv_interface.c
+@@ -503,6 +503,8 @@ static int __devexit omap34xx_bridge_remove(struct platform_device *pdev)
+ 	clk_handle = NULL;
+ 
+ func_cont:
++	MEM_ExtPhysPoolRelease();
++
+ 	SERVICES_Exit();
+ 	GT_exit();
+ 
+diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
+index 22f382b..5836bae 100644
+--- a/drivers/dsp/bridge/services/mem.c
++++ b/drivers/dsp/bridge/services/mem.c
+@@ -30,6 +30,7 @@
+  *      MEM_FreePhysMem
+  *      MEM_Init
+  *      MEM_ExtPhysPoolInit
++ *      MEM_ExtPhysPoolRelease
+  *
+  *! Revision History:
+  *! =================
+@@ -199,7 +200,7 @@ void MEM_ExtPhysPoolInit(u32 poolPhysBase, u32 poolSize)
+ 	}
+ }
+ 
+-static void MEM_ExtPhysPoolRelease(void)
++void MEM_ExtPhysPoolRelease(void)
+ {
+ 	GT_0trace(MEM_debugMask, GT_1CLASS,
+ 		  "Releasing External memory pool \n");
+@@ -460,7 +461,6 @@ void MEM_Exit(void)
+ 		MEM_Check();
+ 
+ #endif
+-	MEM_ExtPhysPoolRelease();
+ 	DBC_Ensure(cRefs >= 0);
+ }
+ 
+-- 
+1.5.6.5
 
