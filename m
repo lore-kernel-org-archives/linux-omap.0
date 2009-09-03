@@ -1,195 +1,86 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [RFC] Common mechanism to identify Si revision
-Date: Thu, 3 Sep 2009 16:19:35 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD610004@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DD60FFF2@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
+Date: Thu, 03 Sep 2009 14:00:01 +0300
+Message-ID: <1251975601.10724.9.camel@tubuntu>
+References: <1251462337-12531-1-git-send-email-tomi.valkeinen@nokia.com>
+	 <4A9B96A7.5040005@gmail.com>
+	 <5e088bd90908310720p290ba68dwd6106a778fd7c740@mail.gmail.com>
+	 <0680EC522D0CC943BC586913CF3768C0037CE48136@dbde02.ent.ti.com>
+	 <19F8576C6E063C45BE387C64729E73940436A4A9B6@dbde02.ent.ti.com>
+	 <20090831155518.GC16876@atomide.com>	<4A9CC8DB.2050803@gmail.com>
+	 <20090902151126.f465bb15.akpm@linux-foundation.org>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47499 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754181AbZICKto convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 06:49:44 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n83AneGv018810
-	for <linux-omap@vger.kernel.org>; Thu, 3 Sep 2009 05:49:46 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n83Andk8012675
-	for <linux-omap@vger.kernel.org>; Thu, 3 Sep 2009 16:19:39 +0530 (IST)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD60FFF2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:46305 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753651AbZICLAP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 07:00:15 -0400
+In-Reply-To: <20090902151126.f465bb15.akpm@linux-foundation.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Andrew Morton <akpm@linux-foundation.org>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "hvaibhav@ti.com" <hvaibhav@ti.com>, "khasim@ti.com" <khasim@ti.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hi,
+
+On Thu, 2009-09-03 at 00:11 +0200, ext Andrew Morton wrote:
+> On Tue, 01 Sep 2009 10:10:19 +0300
+> Artem Bityutskiy <dedekind1@gmail.com> wrote:
+> 
+> > Andrew,
+> > 
+> > could you please help with merging this piece of (well written) code?
+> > Could you give your blessing to include it into linux-next now, and
+> > merge this during the next merge window?
+> 
+> I'll merge them (after I've looked through them, which I'll do now).  
+> 
+> But there are more rejects than I'm prepared to cope with.  The various
+> arch/arm files have undergone some changes in linux-next which yield
+> more breakage than I'm prepared to try to fix.  For example,
+> arch/arm/mach-omap2/board-3430sdp.c:sdp3430_config[] ends up being an
+> empty array!
+
+I rebased the patches on top of linux-next. The tree is at
+http://gitorious.org/linux-omap-dss2/linux , in branch linux-next-dss.
+
+The only conflict was in board-3430sdp, and yes, sdp3430_config is
+supposed to end up as an empty array. 
+
+> Then there's the matter of these patches, already in -mm:
+> 
+> omapfb-add-support-for-the-apollon-lcd.patch
+> omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
+> omapfb-add-support-for-the-amstrad-delta-lcd.patch
+> omapfb-add-support-for-the-2430sdp-lcd.patch
+> omapfb-add-support-for-the-omap2evm-lcd.patch
+> omapfb-add-support-for-the-3430sdp-lcd.patch
+> omapfb-add-support-for-the-omap3-evm-lcd.patch
+> omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
+> omapfb-add-support-for-the-gumstix-overo-lcd.patch
+> omapfb-add-support-for-the-zoom-mdk-lcd.patch
+> omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
+> n770-enable-lcd-mipi-dcs-in-kconfig.patch
+> omapfb-dispc-various-typo-fixes.patch
+> omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
+> omapfb-dispc-enable-wake-up-capability.patch
+> omapfb-dispc-allow-multiple-external-irq-handlers.patch
+> omapfb-suspend-resume-only-if-fb-device-is-already-initialized.patch
+> omapfb-fix-coding-style-remove-dead-line.patch
+> omapfb-add-fb-manual-update-option-to-kconfig.patch
+> omapfb-hwa742-fix-pointer-to-be-const.patch
+
+These are not in linux-next, I think. They are for the old OMAP display
+subsystem, and may cause some conflicts with DSS2. I think those patches
+should go in also, as the old driver is used for OMAP1 and fo all the
+other boards that have not been ported to use DSS2.
+
+Should I rebase DSS2 on top of -mm and solve the conflicts? If so, where
+can I find your tree?
+
+ Tomi
 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
-> Sent: Thursday, September 03, 2009 4:14 PM
-> To: linux-omap@vger.kernel.org
-> Subject: [RFC] Common mechanism to identify Si revision
-> 
-> Hi,
-> 
-> Currently there are multiple mechanisms for identifying the 
-> si revisions.
-> 
-> Most places the comparison is against omap_rev() as a whole 
-> number. Example:
-> 
-> arch/arm/mach-omap2/board-3430sdp.c:695:    if (omap_rev() > 
-> OMAP3430_REV_ES1_0)
-> arch/arm/mach-omap2/board-3430sdp.c:728:    if (omap_rev() > 
-> OMAP3430_REV_ES1_0)
-> 
-> Then, there are custom macros. Example (cpu.h):
-> 
-> #define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1)
-> #define CHIP_GE_OMAP3430ES3		(CHIP_IS_OMAP3430ES3_0 | \
-> 					 CHIP_GE_OMAP3430ES3_1)
-> #define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
-> 					 CHIP_GE_OMAP3430ES3)
-> 
-> The problem with comparing against a whole number is that 
-> comparison is invalid
-> for another processor series. E.g. OMAP3430 and OMAP3517.
-> 
-> Here, I am proposing a common mechanism to identify the si 
-> revision; that focuses
-> on the revision bits alone. (See code below)
-> 
-> The usage would then be (example):
-> 
->    if (omap_rev() > OMAP3430_REV_ES1_0)
-> 
-> To
-> 
->    if (cpu_is_omap34xx() && OMAP_REV_GT(OMAP_ES_1_0)
-> 
-> 
-> Though I have not looked at the OMAP1 directory, I am 
-> assuming similar case there.
-> Since there aren't any new devices in the OMAP1 category, 
-> this may not appear as
-> a need. But consistency could help.
-> 
-> Few items that I feel need to be looked at:
-> - Possible differences in the MASK defined for Si revision.
->   Irrespective of (possible) difference in the HW, the bits 
-> in 'omap_revision' can
->   be same.
-> 
-> - How to phase in the change - one shot OR in steps.
-> 
-> I am not sending this as patch, for now; just to get the 
-> discussion started.
-> 
-> Best regards,
-> Sanjeev
-> 
-
-[sp] sorry, missed the return statement in the inline functions below:
-     ... perils of writing code in mail :)
-
-~sanjeev
-
-> 
-> (cpu.h)
-> 
-> /*
->  * Identify silicon revision.
->  */
-> #define OMAP_REV_MASK		0x0000ff00
-> 
-> #define OMAP_ES_1_0		0x00
-> #define OMAP_ES_2_0		0x10
-> #define OMAP_ES_2_1		0x20
-> #define OMAP_ES_3_0		0x30
-> #define OMAP_ES_3_1		0x40
-> 
-> #define OMAP_REV_IS(revid)					
-> 	\
-> static inline u8 omap_rev_is_ ##revid (void)			
-> 	\
-> {								
-> 	\
-> 	(((omap_rev() & OMAP_REV_MASK) >> 8) == revid) ? 1 : 0 
-> ;	\
-> }
-> 
-> #define OMAP_REV_LT(revid)					
-> 	\
-> static inline u8 omap_rev_lt_ ##revid (void)			
-> 	\
-> {								
-> 	\
-> 	(((omap_rev() & OMAP_REV_MASK) >> 8) < revid) ? 1 : 0 ;	\
-> }
-> 
-> #define OMAP_REV_LE(revid)					
-> 	\
-> static inline u8 omap_rev_le_ ##revid (void)			
-> 	\
-> {								
-> 	\
-> 	(((omap_rev() & OMAP_REV_MASK) >> 8) <= revid) ? 1 : 0 
-> ;	\
-> }
-> 
-> #define OMAP_REV_GE(revid)					
-> 	\
-> static inline u8 omap_rev_ge_ ##revid (void)			
-> 	\
-> {								
-> 	\
-> 	(((omap_rev() & OMAP_REV_MASK) >> 8) >= revid) ? 1 : 0 
-> ;	\
-> }
-> 
-> #define OMAP_REV_GT(revid)					
-> 	\
-> static inline u8 omap_rev_gt_ ##revid (void)			
-> 	\
-> {								
-> 	\
-> 	(((omap_rev() & OMAP_REV_MASK) >> 8) > revid) ? 1 : 0 ;	\
-> }
-> 
-> OMAP_REV_IS(OMAP_ES_1_0)
-> OMAP_REV_LT(OMAP_ES_1_0)
-> OMAP_REV_LE(OMAP_ES_1_0)
-> OMAP_REV_GT(OMAP_ES_1_0)
-> OMAP_REV_GE(OMAP_ES_1_0)
-> 
-> OMAP_REV_IS(OMAP_ES_2_0)
-> OMAP_REV_LT(OMAP_ES_2_0)
-> OMAP_REV_LE(OMAP_ES_2_0)
-> OMAP_REV_GT(OMAP_ES_2_0)
-> OMAP_REV_GE(OMAP_ES_2_0)
-> 
-> OMAP_REV_IS(OMAP_ES_2_1)
-> OMAP_REV_LT(OMAP_ES_2_1)
-> OMAP_REV_LE(OMAP_ES_2_1)
-> OMAP_REV_GT(OMAP_ES_2_1)
-> OMAP_REV_GE(OMAP_ES_2_1)
-> 
-> OMAP_REV_IS(OMAP_ES_3_0)
-> OMAP_REV_LT(OMAP_ES_3_0)
-> OMAP_REV_LE(OMAP_ES_3_0)
-> OMAP_REV_GT(OMAP_ES_3_0)
-> OMAP_REV_GE(OMAP_ES_3_0)
-> 
-> OMAP_REV_IS(OMAP_ES_3_1)
-> OMAP_REV_LT(OMAP_ES_3_1)
-> OMAP_REV_LE(OMAP_ES_3_1)
-> OMAP_REV_GT(OMAP_ES_3_1)
-> OMAP_REV_GE(OMAP_ES_3_1)
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
