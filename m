@@ -1,34 +1,42 @@
-From: Cliff Brake <cliff.brake@gmail.com>
-Subject: Re: RT tests on OMAP3
-Date: Thu, 3 Sep 2009 16:57:03 -0400
-Message-ID: <f96d234e0909031357i45c3b689sdd034e46b786b7c4@mail.gmail.com>
-References: <f96d234e0908311350u5d3d7680gfbf46a1c8f9de58f@mail.gmail.com>
-	 <f96d234e0908312016v4ffb9765pe06dc53e5e679758@mail.gmail.com>
-	 <f96d234e0908312018j5f36d6e1s95319f4669105d06@mail.gmail.com>
-	 <87tyzkw1an.fsf@deeprootsystems.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rt-users-owner@vger.kernel.org>
-In-Reply-To: <87tyzkw1an.fsf@deeprootsystems.com>
-Sender: linux-rt-users-owner@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: rt-users <linux-rt-users@vger.kernel.org>, Linux OMAP Users <linux-omap@vger.kernel.org>
+From: Mike Chan <mike@android.com>
+Subject: [PATCH] [ARM] omap: resource: Make resource_refresh() thread safe.
+Date: Thu,  3 Sep 2009 16:18:07 -0700
+Message-ID: <1252019887-4463-1-git-send-email-mike@android.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp-out.google.com ([216.239.33.17]:46714 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756553AbZICXSL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 19:18:11 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, Mike Chan <mike@android.com>
 
-On Thu, Sep 3, 2009 at 10:28 AM, Kevin
-Hilman<khilman@deeprootsystems.com> wrote:
+Need to lock the res_mutex when traversing the res_list.
 
-> I've been using -rt on a basic OMAP3 kernel, but have not enabled
-> EHCI so haven't seen this.
+Signed-off-by: Mike Chan <mike@android.com>
+---
+ arch/arm/plat-omap/resource.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-What kernel version are you running, and what are you using for your
-timer config?
+diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
+index 25072cd..4631912 100644
+--- a/arch/arm/plat-omap/resource.c
++++ b/arch/arm/plat-omap/resource.c
+@@ -234,11 +234,13 @@ int resource_refresh(void)
+ 	struct shared_resource *resp = NULL;
+ 	int ret = 0;
+ 
++	down(&res_mutex);
+ 	list_for_each_entry(resp, &res_list, node) {
+ 		ret = update_resource_level(resp);
+ 		if (ret)
+ 			break;
+ 	}
++	up(&res_mutex);
+ 	return ret;
+ }
+ 
+-- 
+1.5.4.5
 
-# CONFIG_OMAP_MBOX_FWK is not set
-# CONFIG_OMAP_MPU_TIMER is not set
-CONFIG_OMAP_32K_TIMER=y
-CONFIG_OMAP_32K_TIMER_HZ=128
-CONFIG_OMAP_DM_TIMER=y
-
-Thanks,
-Cliff
