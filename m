@@ -1,92 +1,29 @@
-From: "vimal singh" <vimalsingh@ti.com>
-Subject: [PATCH 2/2]: twl4030: initialize pm_power_off in twl4030-core.c
-Date: Thu, 3 Sep 2009 20:44:20 +0530 (IST)
-Message-ID: <55730.192.168.10.89.1251990860.squirrel@dbdmail.itg.ti.com>
+From: Cliff Brake <cliff.brake@gmail.com>
+Subject: Re: RT tests on OMAP3
+Date: Thu, 3 Sep 2009 12:02:45 -0400
+Message-ID: <f96d234e0909030902u7db7bc6cu27e38481b6ae41bf@mail.gmail.com>
+References: <f96d234e0908311350u5d3d7680gfbf46a1c8f9de58f@mail.gmail.com>
+	 <f96d234e0908312016v4ffb9765pe06dc53e5e679758@mail.gmail.com>
+	 <50C13C4A-A0E0-4CC8-B4FD-E66B35D79348@student.utwente.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59392 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647AbZICPO1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 11:14:27 -0400
-References: 
-In-Reply-To: 
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+In-Reply-To: <50C13C4A-A0E0-4CC8-B4FD-E66B35D79348@student.utwente.nl>
+Sender: linux-rt-users-owner@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: rt-users <linux-rt-users@vger.kernel.org>, Linux OMAP Users <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: felipe.balbi@nokia.com
 
-'twl4030-poweroff' module was removed sometime back. This patch adds back
-this capability.
-We don't really need a whole new driver just for initializing one pointer.
-Initialize pm_power_off in twl4030-core.c
+On Thu, Sep 3, 2009 at 10:44 AM, Koen Kooi<k.kooi@student.utwente.nl> wrote:
+>>
+>> http://cgit.openembedded.org/cgit.cgi/openembedded/diff/recipes/linux/linux-omap-2.6.29/0001-implement-TIF_RESTORE_SIGMASK-support-and-enable-the.patch?id=1f0d91e152f16fbd40bb2fb3c44a30d774d4dede
+>
+> If people want to push that upstream, please do so, I only updated the patch
+> to a more recent kernel but don't have the time nor skills to make it
+> suitable for upstream.
 
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-CC: Felipe Balbi <felipe.balbi@nokia.com>
----
-This patch is compile tested only.
-This patch is based on Felipe Balbi's patch posted earlier:
-http://markmail.org/message/ts4if3553qnauket
+I think this is already queued:
 
- drivers/mfd/twl4030-core.c |   31 +++++++++++++++++++++++++++++++
- 1 files changed, 31 insertions(+)
+http://www.spinics.net/lists/arm-kernel/msg72676.html
 
-Index: linux-omap-2.6/drivers/mfd/twl4030-core.c
-===================================================================
---- linux-omap-2.6.orig/drivers/mfd/twl4030-core.c
-+++ linux-omap-2.6/drivers/mfd/twl4030-core.c
-@@ -178,6 +178,10 @@
- #define TWL4030_VAUX2		BIT(0)	/* pre-5030 voltage ranges */
- #define TPS_SUBSET		BIT(1)	/* tps659[23]0 have fewer LDOs */
-
-+/* for pm_power_off */
-+#define PWR_P1_SW_EVENTS	0x10
-+#define PWR_DEVOFF		(1 << 0)
-+
- /*----------------------------------------------------------------------*/
-
- /* is driver active, bound to a chip? */
-@@ -754,6 +758,30 @@ static int twl4030_remove(struct i2c_cli
- 	return 0;
- }
-
-+static void twl4030_poweroff(void)
-+{
-+	int err;
-+	u8 val;
-+
-+	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &val,
-+				  PWR_P1_SW_EVENTS);
-+	if (err) {
-+		pr_err("%s: i2c error %d while reading TWL4030"
-+			"PM_MASTER P1_SW_EVENTS\n",
-+			DRIVER_NAME, err);
-+		return;
-+	}
-+
-+	val |= PWR_DEVOFF;
-+
-+	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, val,
-+				   PWR_P1_SW_EVENTS);
-+	if (err)
-+		pr_err("%s: i2c error %d while writing TWL4030"
-+			"PM_MASTER P1_SW_EVENTS\n",
-+			DRIVER_NAME, err);
-+}
-+
- /* NOTE:  this driver only handles a single twl4030/tps659x0 chip */
- static int
- twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
-@@ -811,6 +839,9 @@ twl4030_probe(struct i2c_client *client,
- 			goto fail;
- 	}
-
-+	/* initialize pm_power_off routine */
-+	pm_power_off = twl4030_poweroff;
-+
- 	status = add_children(pdata, id->driver_data);
- fail:
- 	if (status < 0)
-
-
+Cliff
