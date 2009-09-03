@@ -1,121 +1,99 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH-v2 1/3 ] OMAP2/3: Add support for flash on SDP boards
-Date: Thu,  3 Sep 2009 14:25:59 -0500
-Message-ID: <1252005959-17650-1-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH-v2 2/3] OMAP3: Add support for NAND on ZOOM2/LDP boards
+Date: Thu,  3 Sep 2009 14:26:08 -0500
+Message-ID: <1252005968-17686-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52325 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756066AbZICTbx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 3 Sep 2009 15:31:53 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:51738 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756063AbZICTcC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 3 Sep 2009 15:32:02 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n83JVx3v029457
+	for <linux-omap@vger.kernel.org>; Thu, 3 Sep 2009 14:32:04 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Vimal Singh <vimalsingh@ti.com>, Tony Lindgren <tony@atomide.com>
+Cc: Vimal Singh <vimalsingh@ti.com>
 
 From: Vimal Singh <vimalsingh@ti.com>
 
-Add support for flash on SDP boards. NAND, NOR and OneNAND
-are supported.
+Adding NAND support for ZOOM2 and LDP board. I have tested it for ZOOM2
+boards, someone can verify it for LDP, hopefully it should not have any
+problem.
 
-Only tested on 3430SDP (ES2 and ES3.1), somebody please test on
-2430SDP and check the chips select for 2430SDP.
+The size of the U-Boot environment partition was increased to 1.25MB.
 
-Also note that:
-For OneNAND: in the earlier 2430SDP code the kernel partition
-was set to only 1MB instead of 2MB on 3430SDP. If people want
-the old partition sizes back on 2430SDP, please provide a patch.
+Vikram: Changed ldp name to zoom.
+	Future boards will be called Zoom2/3/4 etc.
+	LDP is a Zoom1. Somhow the LDP name got stuck to that.
 
-For NAND: 'U-Boot', 'Boot Env' and 'Kernel' partitions sizes increased
-by few blocks to provide few spare blocks for NAND bab block management
-in u-boot. If people want old partition sizes, please provide a patch.
-
-Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+Singned-off-by: Vimal Singh <vimalsingh@ti.com>
+Singned-off-by: Vikram Pandita <vikram.pandita@ti.com>
 ---
- arch/arm/mach-omap2/Makefile           |    2 +
- arch/arm/mach-omap2/board-2430sdp.c    |    2 +
- arch/arm/mach-omap2/board-3430sdp.c    |    2 +
- arch/arm/mach-omap2/board-sdp-flash.c  |  326 ++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-sdp.h        |   15 ++
- arch/arm/plat-omap/include/mach/gpmc.h |    2 +
- 6 files changed, 349 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
- create mode 100644 arch/arm/mach-omap2/board-sdp.h
+ arch/arm/mach-omap2/Makefile                 |    2 +
+ arch/arm/mach-omap2/board-ldp.c              |    2 +
+ arch/arm/mach-omap2/board-zoom-flash.c       |  196 ++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom2.c            |    2 +
+ arch/arm/plat-omap/include/mach/board-zoom.h |   36 +++++
+ arch/arm/plat-omap/include/mach/nand.h       |    1 +
+ 6 files changed, 239 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-zoom-flash.c
+ create mode 100644 arch/arm/plat-omap/include/mach/board-zoom.h
 
 diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index abaaead..ebe882b 100644
+index ebe882b..182861d 100644
 --- a/arch/arm/mach-omap2/Makefile
 +++ b/arch/arm/mach-omap2/Makefile
-@@ -48,6 +48,7 @@ obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
- obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
- obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
- obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
-+					   board-sdp-flash.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+@@ -54,6 +54,7 @@ obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
-@@ -61,6 +62,7 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
- obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
  					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
-+					   board-sdp-flash.o \
+ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
++					   board-zoom-flash.o \
  					   mmc-twl4030.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
-diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
-index c693668..39fcb36 100644
---- a/arch/arm/mach-omap2/board-2430sdp.c
-+++ b/arch/arm/mach-omap2/board-2430sdp.c
-@@ -38,6 +38,7 @@
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   mmc-twl4030.o
+@@ -69,6 +70,7 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   board-rx51-peripherals.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
++					   board-zoom-flash.o \
+ 					   mmc-twl4030.o \
+ 					   board-zoom-debugboard.o
+ 
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index 4a4b300..88bd54f 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -42,6 +42,7 @@
+ #include <mach/control.h>
  #include <mach/usb.h>
- #include <mach/gpmc-smc91x.h>
- 
-+#include "board-sdp.h"
- #include "mmc-twl4030.h"
- 
- #define SDP2430_CS0_BASE	0x04000000
-@@ -210,6 +211,7 @@ static void __init omap_2430sdp_init(void)
- 	twl4030_mmc_init(mmc);
- 	usb_musb_init();
- 	board_smc91x_init();
-+	sdp_flash_init();
- 
- 	/* Turn off secondary LCD backlight */
- 	ret = gpio_request(SECONDARY_LCD_GPIO, "Secondary LCD backlight");
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index c71417f..1675c02 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -41,6 +41,7 @@
  #include <mach/keypad.h>
- #include <mach/gpmc-smc91x.h>
++#include <mach/board-zoom.h>
  
-+#include "board-sdp.h"
- #include "sdram-qimonda-hyb18m512160af-6.h"
  #include "mmc-twl4030.h"
  
-@@ -494,6 +495,7 @@ static void __init omap_3430sdp_init(void)
- 	omap_serial_init(&sdp3430_uart_config);
+@@ -385,6 +386,7 @@ static void __init omap_ldp_init(void)
+ 	ads7846_dev_init();
+ 	omap_serial_init(&ldp_uart_config);
  	usb_musb_init();
- 	board_smc91x_init();
-+	sdp_flash_init();
- 	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, true, true, 57, 61);
- }
++	zoom_flash_init();
  
-diff --git a/arch/arm/mach-omap2/board-sdp-flash.c b/arch/arm/mach-omap2/board-sdp-flash.c
+ 	twl4030_mmc_init(mmc);
+ 	/* link regulators to MMC adapters */
+diff --git a/arch/arm/mach-omap2/board-zoom-flash.c b/arch/arm/mach-omap2/board-zoom-flash.c
 new file mode 100644
-index 0000000..1b992cc
+index 0000000..1007e5d
 --- /dev/null
-+++ b/arch/arm/mach-omap2/board-sdp-flash.c
-@@ -0,0 +1,326 @@
++++ b/arch/arm/mach-omap2/board-zoom-flash.c
+@@ -0,0 +1,196 @@
 +/*
-+ * arch/arm/mach-omap2/board-sdp-flash.c
++ * arch/arm/mach-omap2/board-zoom-flash.c
 + *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Copyright (C) 2009 Texas Instruments
++ * Copyright (C) 2008-09 Texas Instruments Inc.
 + *
-+ * Modified from mach-omap2/board-3430sdp-flash.c
-+ * Author: Vimal Singh <vimalsingh@ti.com>
++ * Modified from mach-omap2/board-2430sdp-flash.c
++ * Author(s): Rohit Choraria <rohitkc@ti.com>
++ *            Vimal Singh <vimalsingh@ti.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
@@ -123,351 +101,261 @@ index 0000000..1b992cc
 + */
 +
 +#include <linux/kernel.h>
++#include <linux/delay.h>
 +#include <linux/platform_device.h>
 +#include <linux/mtd/mtd.h>
 +#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
++#include <linux/types.h>
 +#include <linux/io.h>
 +
 +#include <asm/mach/flash.h>
-+#include <mach/onenand.h>
++#include <mach/board.h>
 +#include <mach/gpmc.h>
 +#include <mach/nand.h>
 +
-+#define REG_FPGA_REV			0x10
-+#define REG_FPGA_DIP_SWITCH_INPUT2	0x60
-+#define MAX_SUPPORTED_GPMC_CONFIG	3
++#include <mach/board-zoom.h>
 +
-+/* various memory sizes */
-+#define FLASH_SIZE_SDPV1	SZ_64M
-+#define FLASH_SIZE_SDPV2	SZ_128M
-+
-+#define FLASH_BASE_SDPV1	0x04000000 /* NOR flash (64 Meg aligned) */
-+#define FLASH_BASE_SDPV2	0x10000000 /* NOR flash (256 Meg aligned) */
-+
-+#define DEBUG_BASE		0x08000000 /* debug board */
-+
-+#define PDC_NOR		1
-+#define PDC_NAND	2
-+#define PDC_ONENAND	3
-+#define DBG_MPDB	4
-+
-+/* REVISIT: Does for some x, chip_sel_sdp[x] maches for 2430 SDP ? */
-+
-+/* SDP3430 V2 Board CS organization
-+ * Different from SDP3430 V1. Now 4 switches used to specify CS
++#define NAND_CMD_UNLOCK1	0x23
++#define NAND_CMD_UNLOCK2	0x24
++/**
++ * @brief platform specific unlock function
++ *
++ * @param mtd - mtd info
++ * @param ofs - offset to start unlock from
++ * @param len - length to unlock
++ *
++ * @return - unlock status
 + */
-+static const unsigned char chip_sel_sdp[][GPMC_CS_NUM] = {
-+/* GPMC CS Indices (ON=0, OFF=1)*/
-+/* S8-1 2 3 4 IDX   CS0,       CS1,      CS2 ..                    CS7  */
-+/*ON ON ON ON*/{PDC_NOR, PDC_NAND, PDC_ONENAND, DBG_MPDB, 0, 0, 0, 0},
-+/*ON ON ON OFF*/{PDC_ONENAND, PDC_NAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0},
-+/*ON ON OFF ON */{PDC_NAND, PDC_ONENAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0},
-+};
++static int omap_zoom_nand_unlock(struct mtd_info *mtd, loff_t ofs, size_t len)
++{
++	int ret = 0;
++	int chipnr;
++	int status;
++	unsigned long page;
++	struct nand_chip *this = mtd->priv;
++	printk(KERN_INFO "nand_unlock: start: %08x, length: %d!\n",
++			(int)ofs, (int)len);
 +
-+static struct mtd_partition sdp_nor_partitions[] = {
-+	/* bootloader (U-Boot, etc) in first sector */
-+	{
-+		.name		= "Bootloader-NOR",
-+		.offset		= 0,
-+		.size		= SZ_256K,
-+		.mask_flags	= MTD_WRITEABLE, /* force read-only */
-+	},
-+	/* bootloader params in the next sector */
-+	{
-+		.name		= "Params-NOR",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= SZ_256K,
-+		.mask_flags	= 0,
-+	},
-+	/* kernel */
-+	{
-+		.name		= "Kernel-NOR",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= SZ_2M,
-+		.mask_flags	= 0
-+	},
-+	/* file system */
-+	{
-+		.name		= "Filesystem-NOR",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= MTDPART_SIZ_FULL,
-+		.mask_flags	= 0
++	/* select the NAND device */
++	chipnr = (int)(ofs >> this->chip_shift);
++	this->select_chip(mtd, chipnr);
++	/* check the WP bit */
++	this->cmdfunc(mtd, NAND_CMD_STATUS, -1, -1);
++	if ((this->read_byte(mtd) & 0x80) == 0) {
++		printk(KERN_ERR "nand_unlock: Device is write protected!\n");
++		ret = -EINVAL;
++		goto out;
 +	}
-+};
 +
-+static struct flash_platform_data sdp_nor_data = {
-+	.map_name	= "cfi_probe",
-+	.width		= 2,
-+	.parts		= sdp_nor_partitions,
-+	.nr_parts	= ARRAY_SIZE(sdp_nor_partitions),
-+};
++	if ((ofs & (mtd->writesize - 1)) != 0) {
++		printk(KERN_ERR "nand_unlock: Start address must be"
++				"beginning of nand page!\n");
++		ret = -EINVAL;
++		goto out;
++	}
 +
-+static struct resource sdp_nor_resource = {
-+	.start		= 0,
-+	.end		= 0,
-+	.flags		= IORESOURCE_MEM,
-+};
++	if (len == 0 || (len & (mtd->writesize - 1)) != 0) {
++		printk(KERN_ERR "nand_unlock: Length must be a multiple of "
++				"nand page size!\n");
++		ret = -EINVAL;
++		goto out;
++	}
 +
-+static struct platform_device sdp_nor_device = {
-+	.name		= "omapflash",
-+	.id		= 0,
-+	.dev		= {
-+			.platform_data = &sdp_nor_data,
-+	},
-+	.num_resources	= 1,
-+	.resource	= &sdp_nor_resource,
-+};
++	/* submit address of first page to unlock */
++	page = (unsigned long)(ofs >> this->page_shift);
++	this->cmdfunc(mtd, NAND_CMD_UNLOCK1, -1, page & this->pagemask);
 +
-+#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
-+		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
++	/* submit ADDRESS of LAST page to unlock */
++	page += (unsigned long)((ofs + len) >> this->page_shift) ;
++	this->cmdfunc(mtd, NAND_CMD_UNLOCK2, -1, page & this->pagemask);
 +
-+static struct mtd_partition board_onenand_partitions[] = {
-+	{
-+		.name		= "X-Loader-OneNAND",
-+		.offset		= 0,
-+		.size		= 4 * (64 * 2048),
-+		.mask_flags	= MTD_WRITEABLE  /* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot-OneNAND",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 2 * (64 * 2048),
-+		.mask_flags	= MTD_WRITEABLE  /* force read-only */
-+	},
-+	{
-+		.name		= "U-Boot Environment-OneNAND",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 1 * (64 * 2048),
-+	},
-+	{
-+		.name		= "Kernel-OneNAND",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= 16 * (64 * 2048),
-+	},
-+	{
-+		.name		= "File System-OneNAND",
-+		.offset		= MTDPART_OFS_APPEND,
-+		.size		= MTDPART_SIZ_FULL,
-+	},
-+};
++	/* call wait ready function */
++	status = this->waitfunc(mtd, this);
++	udelay(1000);
++	/* see if device thinks it succeeded */
++	if (status & 0x01) {
++		/* there was an error */
++		printk(KERN_ERR "nand_unlock: error status =0x%08x ", status);
++		ret = -EIO;
++		goto out;
++	}
 +
-+static struct omap_onenand_platform_data board_onenand_data = {
-+	.parts		= board_onenand_partitions,
-+	.nr_parts	= ARRAY_SIZE(board_onenand_partitions),
-+	.dma_channel	= -1,   /* disable DMA in OMAP OneNAND driver */
-+};
-+
-+
-+static void __init board_onenand_init(void)
-+{
-+	gpmc_onenand_init(&board_onenand_data);
++ out:
++	/* de-select the NAND device */
++	this->select_chip(mtd, -1);
++	return ret;
 +}
 +
-+#else
-+
-+static inline void board_onenand_init(void)
-+{
-+}
-+#endif /* CONFIG_MTD_ONENAND_OMAP2 || CONFIG_MTD_ONENAND_OMAP2_MODULE */
-+
-+static struct mtd_partition sdp_nand_partitions[] = {
++static struct mtd_partition zoom_nand_partitions[] = {
 +	/* All the partition sizes are listed in terms of NAND block size */
 +	{
 +		.name		= "X-Loader-NAND",
 +		.offset		= 0,
-+		.size		= 4 * (64 * 2048),
++		.size		= 4 * (64 * 2048),	/* 512KB, 0x80000 */
 +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
 +	},
 +	{
 +		.name		= "U-Boot-NAND",
 +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
-+		.size		= 10 * (64 * 2048),
++		.size		= 10 * (64 * 2048),	/* 1.25MB, 0x140000 */
 +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
 +	},
 +	{
 +		.name		= "Boot Env-NAND",
-+
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1c0000 */
-+		.size		= 6 * (64 * 2048),
++		.offset		= MTDPART_OFS_APPEND,   /* Offset = 0x1c0000 */
++		.size		= 2 * (64 * 2048),	/* 256KB, 0x40000 */
 +	},
 +	{
 +		.name		= "Kernel-NAND",
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
-+		.size		= 40 * (64 * 2048),
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x0200000*/
++		.size		= 240 * (64 * 2048),	/* 30M, 0x1E00000 */
++	},
++#ifdef CONFIG_MACH_OMAP_ZOOM2
++	{
++		.name		= "system",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
++		.size		= 1280 * (64 * 2048),   /* 160M, 0xA000000 */
 +	},
 +	{
-+		.name		= "File System - NAND",
-+		.size		= MTDPART_SIZ_FULL,
-+		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x780000 */
++		.name		= "userdata",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xC000000 */
++		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
 +	},
++	{
++		.name		= "cache",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0xE000000 */
++		.size		= 256 * (64 * 2048),	/* 32M, 0x2000000 */
++	},
++#else
++	{
++		.name		= "File System - NAND",
++		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x2000000 */
++		.size		= MTDPART_SIZ_FULL,	/* 96MB, 0x6000000 */
++	},
++#endif
 +};
 +
-+static struct omap_nand_platform_data sdp_nand_data = {
-+	.parts		= sdp_nand_partitions,
-+	.nr_parts	= ARRAY_SIZE(sdp_nand_partitions),
++/* NAND chip access: 16 bit */
++static struct omap_nand_platform_data zoom_nand_data = {
++	.parts		= zoom_nand_partitions,
++	.nr_parts	= ARRAY_SIZE(zoom_nand_partitions),
 +	.nand_setup	= NULL,
 +	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
 +	.dev_ready	= NULL,
++	.unlock		= omap_zoom_nand_unlock,
 +};
 +
-+static struct resource sdp_nand_resource = {
++static struct resource zoom_nand_resource = {
 +	.flags		= IORESOURCE_MEM,
 +};
 +
-+static struct platform_device sdp_nand_device = {
-+	.name			= "omap2-nand",
-+	.id			= 0,
-+	.dev			= {
-+		.platform_data	= &sdp_nand_data,
++static struct platform_device zoom_nand_device = {
++	.name		= "omap2-nand",
++	.id		= 0,
++	.dev		= {
++	.platform_data	= &zoom_nand_data,
 +	},
 +	.num_resources	= 1,
-+	.resource		= &sdp_nand_resource,
++	.resource	= &zoom_nand_resource,
 +};
 +
 +/**
-+ * get_gpmc0_type - Reads the FPGA DIP_SWITCH_INPUT_REGISTER2 to get
-+ * the various cs values.
-+ */
-+static u8 get_gpmc0_type(void)
-+{
-+	u8 cs;
-+	void __iomem *fpga_map_addr;
-+	fpga_map_addr = ioremap(DEBUG_BASE, 4096);
-+	/* if ioremap does not return a valid pointer, exit */
-+	if (!fpga_map_addr)
-+		return -ENOMEM;
-+
-+	if (!(__raw_readw(fpga_map_addr + REG_FPGA_REV))) {
-+		/* we dont have an DEBUG FPGA??? */
-+		/* Depend on #defines!! default to strata boot return param */
-+		return 0x0;
-+	}
-+	/* S8-DIP-OFF = 1, S8-DIP-ON = 0 */
-+	cs = (u8) (__raw_readw(fpga_map_addr + REG_FPGA_DIP_SWITCH_INPUT2)
-+			& 0xF);
-+	/* ES2.0 SDP's onwards 4 dip switches are provided for CS */
-+	if (omap_rev() >= OMAP3430_REV_ES1_0)
-+		/* change (S8-1:4=DS-2:0) to (S8-4:1=DS-2:0) */
-+		cs = ((cs & 8) >> 3) | ((cs & 4) >> 1) |
-+			((cs & 2) << 1) | ((cs & 1) << 3);
-+	else
-+		/* change (S8-1:3=DS-2:0) to (S8-3:1=DS-2:0) */
-+		cs = ((cs & 4) >> 2) | (cs & 2) | ((cs & 1) << 2);
-+	iounmap(fpga_map_addr);
-+	return cs;
-+}
-+
-+/**
-+ * sdp3430_flash_init - Identify devices connected to GPMC and register.
++ * zoom_flash_init - Identify devices connected to GPMC and register.
 + *
 + * @return - void.
 + */
-+void __init sdp_flash_init(void)
++void __init zoom_flash_init(void)
 +{
-+	u8		cs = 0;
-+	u8		nandcs = GPMC_CS_NUM + 1;
-+	u8		onenandcs = GPMC_CS_NUM + 1;
-+	u8		idx;
-+	unsigned char	*config_sel = NULL;
++	u8 nandcs = GPMC_CS_NUM + 1;
++	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
 +
-+	/* REVISIT: Is this return correct idx for 2430 SDP?
-+	 * for which cs configuration matches for 2430 SDP?
-+	 */
-+	idx = get_gpmc0_type();
-+	if (idx >= MAX_SUPPORTED_GPMC_CONFIG) {
-+		printk(KERN_ERR "Invalid Chip select Selection..\
-+				sdp3430_flash_init returned with error\n");
-+		return;
-+	}
-+	config_sel = (unsigned char *)(chip_sel_sdp[idx]);
++	/* pop nand part */
++	nandcs = ZOOM_3430_NAND_CS;
 +
-+	/* Configure start address and size of NOR device */
-+	if (omap_rev() >= OMAP3430_REV_ES1_0) {
-+		sdp_nor_resource.start	= FLASH_BASE_SDPV2;
-+		sdp_nor_resource.end	= FLASH_BASE_SDPV2
-+						+ FLASH_SIZE_SDPV2 - 1;
-+	} else {
-+		sdp_nor_resource.start	= FLASH_BASE_SDPV1;
-+		sdp_nor_resource.end	= FLASH_BASE_SDPV1
-+						+ FLASH_SIZE_SDPV1 - 1;
-+	}
-+
-+	if (platform_device_register(&sdp_nor_device) < 0)
-+		printk(KERN_ERR "Unable to register NOR device\n");
-+
-+	while (cs < GPMC_CS_NUM) {
-+		switch (config_sel[cs]) {
-+		case PDC_NAND:
-+			if (nandcs > GPMC_CS_NUM)
-+				nandcs = cs;
-+			break;
-+		case PDC_ONENAND:
-+			if (onenandcs > GPMC_CS_NUM)
-+				onenandcs = cs;
-+			break;
-+		};
-+		cs++;
-+	}
-+
-+	if (onenandcs > GPMC_CS_NUM) {
-+		printk(KERN_INFO "OneNAND: Unable to find configuration "
-+				" in GPMC\n ");
-+	} else {
-+#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
-+		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
-+
-+		board_onenand_data.cs = onenandcs;
-+#endif /* CONFIG_MTD_ONENAND_OMAP2 || CONFIG_MTD_ONENAND_OMAP2_MODULE */
-+		board_onenand_init();
-+	}
-+
-+	if (nandcs > GPMC_CS_NUM) {
-+		printk(KERN_INFO "NAND: Unable to find configuration "
-+				" in GPMC\n ");
-+	} else {
-+		sdp_nand_data.cs = nandcs;
-+		sdp_nand_data.gpmc_cs_baseaddr = (void *)(OMAP34XX_GPMC_VIRT +
++	zoom_nand_data.cs = nandcs;
++	zoom_nand_data.gpmc_cs_baseaddr = (void *)(gpmc_base_add +
 +					GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
-+		sdp_nand_data.gpmc_baseaddr = (void *) (OMAP34XX_GPMC_VIRT);
++	zoom_nand_data.gpmc_baseaddr = (void *) (gpmc_base_add);
 +
-+		if (platform_device_register(&sdp_nand_device) < 0)
-+			printk(KERN_ERR "Unable to register NAND device\n");
++	if (platform_device_register(&zoom_nand_device) < 0)
++		printk(KERN_ERR "Unable to register NAND device\n");
++}
 +
-+	}
-diff --git a/arch/arm/mach-omap2/board-sdp.h b/arch/arm/mach-omap2/board-sdp.h
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 4d295d5..2142198 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -20,6 +20,7 @@
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ 
++#include <mach/board-zoom.h>
+ #include <mach/common.h>
+ #include <mach/usb.h>
+ #include <mach/keypad.h>
+@@ -271,6 +272,7 @@ static void __init omap_zoom2_init(void)
+ 	omap_serial_init(&zoom2_uart_config);
+ 	omap_zoom2_debugboard_init();
+ 	usb_musb_init();
++	zoom_flash_init();
+ }
+ 
+ static void __init omap_zoom2_map_io(void)
+diff --git a/arch/arm/plat-omap/include/mach/board-zoom.h b/arch/arm/plat-omap/include/mach/board-zoom.h
 new file mode 100644
-index 0000000..f14daa1
+index 0000000..af8850c
 --- /dev/null
-+++ b/arch/arm/mach-omap2/board-sdp.h
-@@ -0,0 +1,15 @@
++++ b/arch/arm/plat-omap/include/mach/board-zoom.h
+@@ -0,0 +1,36 @@
 +/*
-+ *  arch/arm/plat-omap/include/mach/board-sdp.h
++ * arch/arm/plat-omap/include/mach/board-zoom.h
 + *
-+ *  Information structures for SDP-specific board config data
++ * Hardware definitions for TI OMAP3 LDP/ZOOM2.
 + *
-+ *  Copyright (C) 2009 Nokia Corporation
-+ *  Copyright (C) 2009 Texas Instruments
++ * Copyright (C) 2008-09 Texas Instruments Inc.
 + *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
-+extern void sdp_flash_init(void);
++#ifndef __ASM_ARCH_OMAP_LDP_H
++#define __ASM_ARCH_OMAP_LDP_H
 +
-diff --git a/arch/arm/plat-omap/include/mach/gpmc.h b/arch/arm/plat-omap/include/mach/gpmc.h
-index 921b165..29ee89b 100644
---- a/arch/arm/plat-omap/include/mach/gpmc.h
-+++ b/arch/arm/plat-omap/include/mach/gpmc.h
-@@ -27,6 +27,8 @@
- 
- #define GPMC_CONFIG		0x50
- #define GPMC_STATUS		0x54
-+#define GPMC_CS0_BASE		0x60
-+#define GPMC_CS_SIZE		0x30
- 
- #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
- #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
++extern void zoom_flash_init(void);
++
++#define ZOOM_3430_NAND_CS               0
++
++#endif /* __ASM_ARCH_OMAP_LDP_H */
+diff --git a/arch/arm/plat-omap/include/mach/nand.h b/arch/arm/plat-omap/include/mach/nand.h
+index 631a7be..6151985 100644
+--- a/arch/arm/plat-omap/include/mach/nand.h
++++ b/arch/arm/plat-omap/include/mach/nand.h
+@@ -18,6 +18,7 @@ struct omap_nand_platform_data {
+ 	int			nr_parts;
+ 	int			(*nand_setup)(void __iomem *);
+ 	int			(*dev_ready)(struct omap_nand_platform_data *);
++	int			(*unlock)(struct mtd_info *, loff_t, size_t);
+ 	int			dma_channel;
+ 	void __iomem		*gpmc_cs_baseaddr;
+ 	void __iomem		*gpmc_baseaddr;
 -- 
 1.6.3.3.334.g916e1
 
