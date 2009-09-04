@@ -1,60 +1,45 @@
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Subject: Re: [RFC][PATCH] ARM: OMAP: McBSP: Use register cache
-Date: Fri, 04 Sep 2009 14:07:11 +0300
-Message-ID: <1252062431.23177.68.camel@eenurkka-desktop>
-References: <1252042776.23177.39.camel@eenurkka-desktop>
-	 <200909041234.06121.jkrzyszt@tis.icnet.pl>
-Reply-To: ext-eero.nurkkala@nokia.com
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH 3/4] dspbridge: use linux memory allocator directly
+Date: Fri, 4 Sep 2009 14:17:05 +0300
+Message-ID: <5ec8ebd50909040417j47abefbka1077e7f6b43b349@mail.gmail.com>
+References: <1252055941-29745-1-git-send-email-andy.shevchenko@gmail.com>
+	 <1252055941-29745-2-git-send-email-andy.shevchenko@gmail.com>
+	 <1252055941-29745-3-git-send-email-andy.shevchenko@gmail.com>
+	 <1252055941-29745-4-git-send-email-andy.shevchenko@gmail.com>
+	 <4AA0F3AA.5070606@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:16818 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754214AbZIDLId (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2009 07:08:33 -0400
-In-Reply-To: <200909041234.06121.jkrzyszt@tis.icnet.pl>
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:50273 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755223AbZIDLRE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2009 07:17:04 -0400
+Received: by ewy2 with SMTP id 2so327635ewy.17
+        for <linux-omap@vger.kernel.org>; Fri, 04 Sep 2009 04:17:06 -0700 (PDT)
+In-Reply-To: <4AA0F3AA.5070606@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "e3-hacking@earth.li" <e3-hacking@earth.li>
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: linux-omap@vger.kernel.org, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-On Fri, 2009-09-04 at 12:34 +0200, ext Janusz Krzysztofik wrote:
-> in normal (handset) mode, the noise level seems still acceptable. The only
-> missing piece of a puzzle is my patch, that prevents the kernel driver from
-> putting corrupted values into the McBSP control registers.
-> 
-> That learned, please reconsider:
-> 1. Can my patch break anything, related or not?
+On Fri, Sep 4, 2009 at 2:02 PM, Artem Bityutskiy<dedekind1@gmail.com> w=
+rote:
 
-That needs to be investigated in more detail.
+>> =C2=A0static inline struct LST_LIST *LST_Create(void)
+> Would be nice to kill this whole function as well.
 
-> 2. How does it affect performance of otherwise unaffected machines?
+> I guess whole 'LST_Delete()' could go away as well?
 
-Like you already know, shouldn't.
+Good point, I thought to get rid of a bit later.
+Anyway, I will look into. But probably this mean to revert back to
+MEM_* calls when we would like to create or destroy list head...
 
-> 3. Is correcting a poorly designed machine behaviour worth of the change?
-> 
-> Thanks,
-> Janusz
-
-
-I'd say this is in the right track. All McBSP registers
-(not status etc) will need to be stored in memory. (Now, they're not).
-And all those register contents will need to be written back
-in certain situations. So this is the case when there is an external
-audio chip, that takes audio in in bursts. So once the
-burst is complete, all McBSP clocks will be disabled for a duration.
-
-Then (at least >= 3430) device will hit OFF mode, meaning
-all register contents are lost, also McBSP's. They will
-need to be written back at some point.
-
-My quick verdict is, that your patch is, going into right
-direction. But the thing is that my words don't count much ;)
-
-(Possibly worth taking the patch in, if guaranteed to not break
- any others).
-
-- Eero
-
+--=20
+With Best Regards,
+Andy Shevchenko
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
