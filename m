@@ -1,45 +1,35 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 3/4] dspbridge: use linux memory allocator directly
-Date: Fri, 4 Sep 2009 14:17:05 +0300
-Message-ID: <5ec8ebd50909040417j47abefbka1077e7f6b43b349@mail.gmail.com>
-References: <1252055941-29745-1-git-send-email-andy.shevchenko@gmail.com>
-	 <1252055941-29745-2-git-send-email-andy.shevchenko@gmail.com>
-	 <1252055941-29745-3-git-send-email-andy.shevchenko@gmail.com>
-	 <1252055941-29745-4-git-send-email-andy.shevchenko@gmail.com>
-	 <4AA0F3AA.5070606@gmail.com>
+From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: [PATCH 0/10] omap mailbox: Adding OMAP4 support
+Date: Fri, 4 Sep 2009 17:16:57 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD6108E9@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:50273 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755223AbZIDLRE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2009 07:17:04 -0400
-Received: by ewy2 with SMTP id 2so327635ewy.17
-        for <linux-omap@vger.kernel.org>; Fri, 04 Sep 2009 04:17:06 -0700 (PDT)
-In-Reply-To: <4AA0F3AA.5070606@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:59459 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755785AbZIDLqS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2009 07:46:18 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: linux-omap@vger.kernel.org, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "tony@atomide.com" <tony@atomide.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-On Fri, Sep 4, 2009 at 2:02 PM, Artem Bityutskiy<dedekind1@gmail.com> w=
-rote:
+Hi All,
+This is the series of patches adding OMAP4 support for omap mailbox driver. The patches are generated against tag (2.6.31-rc5). Functionality has been tested in OMAP4430. These patches also include various cleanup done in the omap mailbox.
 
->> =C2=A0static inline struct LST_LIST *LST_Create(void)
-> Would be nice to kill this whole function as well.
+File modified:
 
-> I guess whole 'LST_Delete()' could go away as well?
+arch/arm/mach-omap2/Makefile
+arch/arm/mach-omap2/devices.c
+arch/arm/plat-omap/include/mach/omap44xx.h
+arch/arm/plat-omap/mailbox.c
+arch/arm/plat-omap/include/mach/mailbox.h
+arch/arm/mach-omap2/mailbox.c
 
-Good point, I thought to get rid of a bit later.
-Anyway, I will look into. But probably this mean to revert back to
-MEM_* calls when we would like to create or destroy list head...
 
---=20
-With Best Regards,
-Andy Shevchenko
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Subramaniam C A,
+Ramesh Gupta . G
+Kanigeri Hari
