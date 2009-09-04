@@ -1,22 +1,22 @@
 From: "Madhusudhan" <madhu.cr@ti.com>
 Subject: RE: [PATCH] OMAP4: MMC driver support on OMAP4
-Date: Fri, 4 Sep 2009 14:43:44 -0500
-Message-ID: <00d801ca2d98$033a9410$544ff780@am.dhcp.ti.com>
+Date: Fri, 4 Sep 2009 14:47:18 -0500
+Message-ID: <00dc01ca2d98$832f6240$544ff780@am.dhcp.ti.com>
 References: <34590.192.168.10.89.1251897876.squirrel@dbdmail.itg.ti.com> <20090904121912.4b4e2b5a.akpm@linux-foundation.org> <FCCFB4CDC6E5564B9182F639FC35608702F9B8A526@dbde02.ent.ti.com> <20090904193347.GD15715@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37280 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:37526 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757260AbZIDToi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Sep 2009 15:44:38 -0400
+	id S1757198AbZIDTsG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 4 Sep 2009 15:48:06 -0400
 In-Reply-To: <20090904193347.GD15715@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: 'Tony Lindgren' <tony@atomide.com>, "'Pandita, Vikram'" <vikram.pandita@ti.com>
-Cc: 'Andrew Morton' <akpm@linux-foundation.org>, "'Kadiyala, Kishore'" <kishore.kadiyala@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, jarkko.lavinen@nokia.com, linux-arm-kernel@lists.arm.linux.org.uk, linux-arm-kernel@lists.infradead.org, linux-mmc@vger.kernel.org
+Cc: 'Andrew Morton' <akpm@linux-foundation.org>, "'Kadiyala, Kishore'" <kishore.kadiyala@ti.com>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 
 
 
