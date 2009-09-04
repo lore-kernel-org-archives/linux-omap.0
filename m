@@ -1,61 +1,60 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH 3/4] dspbridge: use linux memory allocator directly
-Date: Fri, 04 Sep 2009 14:02:02 +0300
-Message-ID: <4AA0F3AA.5070606@gmail.com>
-References: <1252055941-29745-1-git-send-email-andy.shevchenko@gmail.com> <1252055941-29745-2-git-send-email-andy.shevchenko@gmail.com> <1252055941-29745-3-git-send-email-andy.shevchenko@gmail.com> <1252055941-29745-4-git-send-email-andy.shevchenko@gmail.com>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: Re: [RFC][PATCH] ARM: OMAP: McBSP: Use register cache
+Date: Fri, 04 Sep 2009 14:07:11 +0300
+Message-ID: <1252062431.23177.68.camel@eenurkka-desktop>
+References: <1252042776.23177.39.camel@eenurkka-desktop>
+	 <200909041234.06121.jkrzyszt@tis.icnet.pl>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:57359 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756748AbZIDLCN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2009 07:02:13 -0400
-In-Reply-To: <1252055941-29745-4-git-send-email-andy.shevchenko@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:16818 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754214AbZIDLId (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2009 07:08:33 -0400
+In-Reply-To: <200909041234.06121.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: linux-omap@vger.kernel.org, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+To: ext Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "e3-hacking@earth.li" <e3-hacking@earth.li>
 
-Nice cleanups of the cra^H^Hode now one cared about!
+On Fri, 2009-09-04 at 12:34 +0200, ext Janusz Krzysztofik wrote:
+> in normal (handset) mode, the noise level seems still acceptable. The only
+> missing piece of a puzzle is my patch, that prevents the kernel driver from
+> putting corrupted values into the McBSP control registers.
+> 
+> That learned, please reconsider:
+> 1. Can my patch break anything, related or not?
 
-:-)
+That needs to be investigated in more detail.
 
-On 09/04/2009 12:19 PM, Andy Shevchenko wrote:
->   #define LST_ELEM            list_head
-> @@ -85,9 +85,9 @@ struct LST_LIST {
->   static inline struct LST_LIST *LST_Create(void)
->   {
->   	struct LST_LIST *pList;
-> +	gfp_t flags =3D (in_atomic()) ? GFP_ATOMIC : GFP_KERNEL;
->
-> -	pList =3D (struct LST_LIST *) MEM_Calloc(sizeof(struct LST_LIST),
-> -		MEM_NONPAGED);
-> +	pList =3D kzalloc(sizeof(*pList), flags);
->   	if (pList !=3D NULL)
->   		INIT_LIST_HEAD(&pList->head);
+> 2. How does it affect performance of otherwise unaffected machines?
 
-Would be nice to kill this whole function as well.
- =20
+Like you already know, shouldn't.
 
-> @@ -116,8 +116,7 @@ static inline struct LST_LIST *LST_Create(void)
->    */
->   static inline void LST_Delete(struct LST_LIST *pList)
->   {
-> -	if (pList !=3D NULL)
-> -		MEM_Free(pList);
-> +	kfree(pList);
->   }
+> 3. Is correcting a poorly designed machine behaviour worth of the change?
+> 
+> Thanks,
+> Janusz
 
-I guess whole 'LST_Delete()' could go away as well?
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'd say this is in the right track. All McBSP registers
+(not status etc) will need to be stored in memory. (Now, they're not).
+And all those register contents will need to be written back
+in certain situations. So this is the case when there is an external
+audio chip, that takes audio in in bursts. So once the
+burst is complete, all McBSP clocks will be disabled for a duration.
+
+Then (at least >= 3430) device will hit OFF mode, meaning
+all register contents are lost, also McBSP's. They will
+need to be written back at some point.
+
+My quick verdict is, that your patch is, going into right
+direction. But the thing is that my words don't count much ;)
+
+(Possibly worth taking the patch in, if guaranteed to not break
+ any others).
+
+- Eero
+
