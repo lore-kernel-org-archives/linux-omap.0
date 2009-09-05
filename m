@@ -1,55 +1,58 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 3/3] USB: musb: omap: Enable MUSB clocks before xceiver resume
-Date: Fri,  4 Sep 2009 18:05:16 -0500
-Message-ID: <1252105516-19040-1-git-send-email-vikram.pandita@ti.com>
+From: Angelo Arrifano <miknix@gmail.com>
+Subject: [PATCH 1/3] [ARM] omap850: Fix wrong jtag_id.
+Date: Sat, 05 Sep 2009 01:00:59 +0100
+Message-ID: <4AA1AA3B.7020007@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50666 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934470AbZIDXLH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 4 Sep 2009 19:11:07 -0400
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:54531 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934002AbZIDX4Q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2009 19:56:16 -0400
+Received: by fxm17 with SMTP id 17so1000802fxm.37
+        for <linux-omap@vger.kernel.org>; Fri, 04 Sep 2009 16:56:18 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, david-b@pacbell.net, ajay.gupta@ti.com, gadiyar@ti.com, felipe.balbi@nokia.com, Vikram Pandita <vikram.pandita@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: "Zebediah C. McClure" <zmc@lurian.net>
 
-Enable MUSB clocks before the xceiver resume is called.
-As soon as xceiver resume is called, xceiver communicates an
-interrupt to MUSB over ULPI bus and the interrupt handler crashes
-as the clocks are not enabled on going to resume.
+Original message:
+The previous value of the jtag_id was set for the omap730.  For the
+omap850, this value is different, and this was causing
+autodetection to fail.
 
-So enable the MUSB clocks so that its ready to handle interrupts
-from the xceiver
+Reported-by:
+  Cory Maccarrone <darkstar6262@gmail.com>
+  Angelo Arrifano <miknix@gmail.com>
+  Alistair Buxton <a.j.buxton@gmail.com>
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Signed-off-by: Angelo Arrifano <miknix@gmail.com>
 ---
- drivers/usb/musb/omap2430.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap1/id.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index ea7a798..67dabe1 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -286,13 +286,18 @@ int musb_platform_resume(struct musb *musb)
- 	if (!musb->clock)
- 		return 0;
- 
--	otg_set_suspend(otg_get_transceiver(), 0);
--
-+	/* Keep MUSB clock enabled
-+	 * this is needed when phy xvr is enabled, MUSB gets
-+	 * an interrupt and system crashes.
-+	 * So enable clock before calling phy resume
-+	 */
- 	if (musb->set_clock)
- 		musb->set_clock(musb->clock, 1);
- 	else
- 		clk_enable(musb->clock);
- 
-+	otg_set_suspend(otg_get_transceiver(), 0);
-+
- 	l = omap_readl(OTG_SYSCONFIG);
- 	l &= ~ENABLEWAKEUP;	/* disable wakeup */
- 	omap_writel(l, OTG_SYSCONFIG);
+diff --git a/arch/arm/mach-omap1/id.c b/arch/arm/mach-omap1/id.c
+index 4ef26fa..e5dcdf7 100644
+--- a/arch/arm/mach-omap1/id.c
++++ b/arch/arm/mach-omap1/id.c
+@@ -38,7 +38,7 @@ static struct omap_id omap_ids[] __initdata = {
+ 	{ .jtag_id = 0xb574, .die_rev = 0x2, .omap_id = 0x03310315, .type =
+0x03100000},
+ 	{ .jtag_id = 0x355f, .die_rev = 0x0, .omap_id = 0x03320000, .type =
+0x07300100},
+ 	{ .jtag_id = 0xb55f, .die_rev = 0x0, .omap_id = 0x03320000, .type =
+0x07300300},
+-	{ .jtag_id = 0xb55f, .die_rev = 0x0, .omap_id = 0x03320500, .type =
+0x08500000},
++	{ .jtag_id = 0xb62c, .die_rev = 0x1, .omap_id = 0x03320500, .type =
+0x08500000},
+ 	{ .jtag_id = 0xb470, .die_rev = 0x0, .omap_id = 0x03310100, .type =
+0x15100000},
+ 	{ .jtag_id = 0xb576, .die_rev = 0x0, .omap_id = 0x03320000, .type =
+0x16100000},
+ 	{ .jtag_id = 0xb576, .die_rev = 0x2, .omap_id = 0x03320100, .type =
+0x16110000},
 -- 
-1.6.3.3.334.g916e1
+1.6.3.3
 
