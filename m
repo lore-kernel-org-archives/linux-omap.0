@@ -1,37 +1,40 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: FYI - Frankencamera is open source, runs on Linux
-Date: Sat, 5 Sep 2009 19:46:29 +0200
-Message-ID: <99B9BAB5-9CD3-4BB8-8CF7-C528C04BB107@student.utwente.nl>
-References: <61339.192.168.10.89.1247226725.squirrel@dbdmail.itg.ti.com> <48097.192.168.10.89.1247232736.squirrel@dbdmail.itg.ti.com> <60361.192.168.10.89.1247482584.squirrel@dbdmail.itg.ti.com> <20090810162734.GH1938@atomide.com> <ce9ab5790908102245r28224bf5nfa2a1b22267767fe@mail.gmail.com> <4A810DE4.7030202@gmail.com> <ce9ab5790908102329k73f66b5bgcdd8ac52d6631116@mail.gmail.com> <ce9ab5790909050306m180e7c22g7bbdea7f7053d159@mail.gmail.com> <FCCFB4CDC6E5564B9182F639FC35608702F9B8A593@dbde02.ent.ti.com>
-Mime-Version: 1.0 (Apple Message framework v1075.2)
-Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: <ext-Eero.Nurkkala@nokia.com>
+Subject: RE: [RFC][PATCH] ARM: OMAP: McBSP: Use register cache
+Date: Sat, 5 Sep 2009 22:46:53 +0200
+Message-ID: <1FFEF31EBAA4F64B80D33027D42977600CB82F95D3@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1252042776.23177.39.camel@eenurkka-desktop>
+ <200909041234.06121.jkrzyszt@tis.icnet.pl>
+ 	<1252062431.23177.68.camel@eenurkka-desktop>,<2ee9e08d0909051031g6463f1b6g1a8bb3a642dd2b0a@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:51188 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752686AbZIERqb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 5 Sep 2009 13:46:31 -0400
-Received: from [172.20.1.5] (vpn006031.vpn.utwente.nl [130.89.6.31])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id n85HkUxx032618
-          for <linux-omap@vger.kernel.org>; Sat, 5 Sep 2009 19:46:30 +0200
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F9B8A593@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:54139 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244AbZIEUrw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Sep 2009 16:47:52 -0400
+In-Reply-To: <2ee9e08d0909051031g6463f1b6g1a8bb3a642dd2b0a@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux OMAP Users <linux-omap@vger.kernel.org>
+To: anuj.aggarwal@gmail.com
+Cc: jkrzyszt@tis.icnet.pl, linux-omap@vger.kernel.org, e3-hacking@earth.li
 
 
-Op 5 sep 2009, om 19:02 heeft Pandita, Vikram het volgende geschreven:
+> Isn't the better way to achieve this thing, at least from the OFF mode
+> perspective, is to provide similar implementation for McBSP in
+> omap3_core_save_context () / omap3_core_restore_context(), in
+> file arch/arm/mach-omap2/pm34xx.c? Code for other core peripherals
+> is already there and we have to add support for rest of the core-domain
+> peripherals.
 
->
-> Have you seen this post on N95 camera using linux by Stanford Team -
-> http://news.cnet.com/8301-17938_105-10345557-1.html
->
-> Is this running on OMAP?--
+Yes and no. I'm not sure McBSP context would be needed to be restored
+after every wake up from PER off mode.. isn't that how it's handled now
+for other peripherals? But maybe restore context for McBSP whenever
+there's need for it. Rewriting millions of registers just for the case doesn't
+sound good. IMO, with an irq from an external device, a rewrite of  the
+McBSP registers occurs. You loose the point of the OFF mode if you always
+start rewriting all registers? (you're not saving power.. the opposite).
+Or did I not understand something? (most likely the case) =)
 
-
-The board in the youtube video looks a lot like the omap3evm, so I  
-guess it's safe to say it's omap3 based.
-
-regards,
-
-Koen
+- Eero
