@@ -1,238 +1,72 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: [PATCH 1/3] USB: musb: All each platform to have power hooks
-Date: Sat, 5 Sep 2009 07:11:42 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD07FCF6@dbde02.ent.ti.com>
-References: <1252105484-18966-1-git-send-email-vikram.pandita@ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 1/10] omap mailbox: OMAP4-Mailbox - Add build specific
+ changes to support OMAP4 mailbox.
+Date: Sat, 05 Sep 2009 11:03:58 +0300 (EEST)
+Message-ID: <20090905.110358.124081098.Hiroshi.DOYU@nokia.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DD6108EA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60819 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934360AbZIEBlx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 4 Sep 2009 21:41:53 -0400
-In-Reply-To: <1252105484-18966-1-git-send-email-vikram.pandita@ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:35857 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751088AbZIEIEN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 5 Sep 2009 04:04:13 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD6108EA@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+To: subramaniam.ca@ti.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, rmk@arm.linux.org.uk, h-kanigeri2@ti.com, grgupta@ti.com
 
-All the platform suspend/resume routines that have been separated out looks same. What about introducing .psuspend, .presume fields in struct musb and then from within musb_suspend() do the following? This way code duplication is reduced.
+Hi Subramaniam,
 
-     if (musb->psuspend) 
-         musb->suspend();
+From: "ext C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: [PATCH 1/10] omap mailbox: OMAP4-Mailbox - Add build specific changes to support OMAP4 mailbox.
+Date: Fri, 4 Sep 2009 13:47:09 +0200
 
-      if (musb->set_clock)
-               musb->set_clock(musb->clock, 0);
-       else
-               clk_disable(musb->clock);
-        spin_unlock_irqrestore(&musb->lock, flags);
-       return 0;
+> From aa759db084be9a2893de5e61b11f6de6d05508d9 Mon Sep 17 00:00:00 2001
+> From: C A Subramaniam <subramaniam.ca@ti.com>
+> Date: Wed, 2 Sep 2009 17:52:22 +0530
+> Subject: [PATCH 1/10] omap mailbox: OMAP4-Mailbox - Add build specific changes to support OMAP4 mailbox.
+> 
+> This patch adds changes to the build related files of mailbox
+> driver to support OMAP4 mailbox
 
+The above comment doesn't match the this modification since adding
+those module isn't just for OMAP4, but for other omap
+architecutres(omap2/3/4). So I think that this explanation should be
+changed as not only for omap4, but just for adding common mailbox
+support in this Makefile.
 
-________________________________________
-From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] On Behalf Of Pandita, Vikram
-Sent: Saturday, September 05, 2009 4:34 AM
-To: linux-usb@vger.kernel.org
-Cc: linux-omap@vger.kernel.org; david-b@pacbell.net; Gupta, Ajay Kumar; Gadiyar, Anand; felipe.balbi@nokia.com; Pandita, Vikram
-Subject: [PATCH 1/3] USB: musb: All each platform to have power hooks
+> 
+> Signed-off-by: C A Subramaniam <subramaniam.ca@ti.com>
+> Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+> ---
+>  arch/arm/mach-omap2/Makefile |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 735bae5..4bb426d 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -39,6 +39,10 @@ endif
+>  obj-$(CONFIG_ARCH_OMAP2)		+= clock24xx.o
+>  obj-$(CONFIG_ARCH_OMAP3)		+= clock34xx.o
+>  
+> +# MAILBOX
 
-This patch allows each MUSB platform (Davinci/TUSB/OMAP/Blackfin)
-to have their own musb_platform_suspend/musb_platform_resume hooks
+I think that the above line is not necessary since the module names
+are enough self-explanatory, a little bit nitpicky, though....
 
-Each platform has its own power handling requirements and hence
-distribute the suspend/resume functionality per platform
-
-No new functionality is added for other platforms (blackfin/davinci/tusb)
-In future these platforms can optimize their suspend/resume routines for
-power.
-
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- drivers/usb/musb/blackfin.c  |   15 +++++++++++++++
- drivers/usb/musb/davinci.c   |   24 ++++++++++++++++++++++++
- drivers/usb/musb/musb_core.c |   15 +++------------
- drivers/usb/musb/omap2430.c  |    4 +---
- drivers/usb/musb/tusb6010.c  |   24 ++++++++++++++++++++++++
- include/linux/usb/musb.h     |    5 +++++
- 6 files changed, 72 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/usb/musb/blackfin.c b/drivers/usb/musb/blackfin.c
-index f2f66eb..9a716b2 100644
---- a/drivers/usb/musb/blackfin.c
-+++ b/drivers/usb/musb/blackfin.c
-@@ -305,11 +305,26 @@ int __init musb_platform_init(struct musb *musb)
-
- int musb_platform_suspend(struct musb *musb)
- {
-+       if (!musb->clock)
-+               return 0;
-+
-+       if (musb->set_clock)
-+               musb->set_clock(musb->clock, 0);
-+       else
-+               clk_disable(musb->clock);
-+
-        return 0;
- }
-
- int musb_platform_resume(struct musb *musb)
- {
-+       if (!musb->clock)
-+               return 0;
-+
-+       if (musb->set_clock)
-+               musb->set_clock(musb->clock, 1);
-+       else
-+               clk_enable(musb->clock);
-        return 0;
- }
-
-diff --git a/drivers/usb/musb/davinci.c b/drivers/usb/musb/davinci.c
-index e16ff60..684e769 100644
---- a/drivers/usb/musb/davinci.c
-+++ b/drivers/usb/musb/davinci.c
-@@ -499,3 +499,27 @@ int musb_platform_exit(struct musb *musb)
-
-        return 0;
- }
-+
-+int musb_platform_suspend(struct musb *musb)
-+{
-+       if (!musb->clock)
-+               return 0;
-+
-+       if (musb->set_clock)
-+               musb->set_clock(musb->clock, 0);
-+       else
-+               clk_disable(musb->clock);
-+       return 0;
-+}
-+
-+int musb_platform_resume(struct musb *musb)
-+{
-+       if (!musb->clock)
-+               return 0;
-+
-+       if (musb->set_clock)
-+               musb->set_clock(musb->clock, 1);
-+       else
-+               clk_enable(musb->clock);
-+       return 0;
-+}
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index c7c1ca0..ef97a0c 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -2186,13 +2186,9 @@ static int musb_suspend(struct platform_device *pdev, pm_message_t message)
-                 * they will even be wakeup-enabled.
-                 */
-        }
--
--       if (musb->set_clock)
--               musb->set_clock(musb->clock, 0);
--       else
--               clk_disable(musb->clock);
-        spin_unlock_irqrestore(&musb->lock, flags);
--       return 0;
-+
-+       return musb_platform_suspend(musb);
- }
-
- static int musb_resume_early(struct platform_device *pdev)
-@@ -2202,16 +2198,11 @@ static int musb_resume_early(struct platform_device *pdev)
-        if (!musb->clock)
-                return 0;
-
--       if (musb->set_clock)
--               musb->set_clock(musb->clock, 1);
--       else
--               clk_enable(musb->clock);
--
-        /* for static cmos like DaVinci, register values were preserved
-         * unless for some reason the whole soc powered down or the USB
-         * module got reset through the PSC (vs just being disabled).
-         */
--       return 0;
-+       return musb_platform_resume(musb);
- }
-
- #else
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 3487520..b957575 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -188,8 +188,6 @@ static void omap_set_vbus(struct musb *musb, int is_on)
-                musb_readb(musb->mregs, MUSB_DEVCTL));
- }
-
--static int musb_platform_resume(struct musb *musb);
--
- int musb_platform_set_mode(struct musb *musb, u8 musb_mode)
- {
-        u8      devctl = musb_readb(musb->mregs, MUSB_DEVCTL);
-@@ -281,7 +279,7 @@ int musb_platform_suspend(struct musb *musb)
-        return 0;
- }
-
--static int musb_platform_resume(struct musb *musb)
-+int musb_platform_resume(struct musb *musb)
- {
-        u32 l;
-
-diff --git a/drivers/usb/musb/tusb6010.c b/drivers/usb/musb/tusb6010.c
-index 88b587c..7da5272 100644
---- a/drivers/usb/musb/tusb6010.c
-+++ b/drivers/usb/musb/tusb6010.c
-@@ -1169,3 +1169,27 @@ int musb_platform_exit(struct musb *musb)
-        usb_nop_xceiv_unregister();
-        return 0;
- }
-+
-+int musb_platform_suspend(struct musb *musb)
-+{
-+       if (!musb->clock)
-+               return 0;
-+
-+       if (musb->set_clock)
-+               musb->set_clock(musb->clock, 0);
-+       else
-+               clk_disable(musb->clock);
-+       return 0;
-+}
-+
-+int musb_platform_resume(struct musb *musb)
-+{
-+       if (!musb->clock)
-+               return 0;
-+
-+       if (musb->set_clock)
-+               musb->set_clock(musb->clock, 1);
-+       else
-+               clk_enable(musb->clock);
-+       return 0;
-+}
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index d437556..ede653f 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -105,4 +105,9 @@ extern int tusb6010_platform_retime(unsigned is_refclk);
-
- #endif /* OMAP2 */
-
-+/* All MUSB platforms should export their suspend/resume functions */
-+struct musb;
-+extern int musb_platform_suspend(struct musb *musb);
-+extern int musb_platform_resume(struct musb *musb);
-+
- #endif /* __LINUX_USB_MUSB_H */
---
-1.6.3.3.334.g916e1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> +obj-$(CONFIG_OMAP_MBOX_FWK)	+= mailbox_mach.o
+> +mailbox_mach-objs		:= mailbox.o
+> +
+>  iommu-y					+= iommu2.o
+>  iommu-$(CONFIG_ARCH_OMAP3)		+= omap3-iommu.o
+>  
+> -- 
+> 1.5.3.2
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
