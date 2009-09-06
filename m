@@ -1,85 +1,80 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: Re: [RFC] Common mechanism to identify Si revision
-Date: Sun, 6 Sep 2009 07:46:39 -0500
-Message-ID: <20090906124639.GA22239@lixom.net>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DD60FFF2@dbde02.ent.ti.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH]Optimize the delay in MMC power sequence
+Date: Mon, 7 Sep 2009 00:26:21 +0530 (IST)
+Message-ID: <38467.192.168.10.88.1252263381.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lixom.net ([66.141.50.11]:59697 "EHLO mail.lixom.net"
+Received: from comal.ext.ti.com ([198.47.26.152]:57607 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754876AbZIFMiz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 6 Sep 2009 08:38:55 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD60FFF2@dbde02.ent.ti.com>
+	id S1758089AbZIFS4Y (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 6 Sep 2009 14:56:24 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n86IuMLF001440
+	for <linux-omap@vger.kernel.org>; Sun, 6 Sep 2009 13:56:27 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n86IuKYF024335
+	for <linux-omap@vger.kernel.org>; Sun, 6 Sep 2009 13:56:21 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On Thu, Sep 03, 2009 at 04:14:28PM +0530, Premi, Sanjeev wrote:
-> Hi,
-> 
-> Currently there are multiple mechanisms for identifying the si revisions.
-> 
-> Most places the comparison is against omap_rev() as a whole number. Example:
-> 
-> arch/arm/mach-omap2/board-3430sdp.c:695:    if (omap_rev() > OMAP3430_REV_ES1_0)
-> arch/arm/mach-omap2/board-3430sdp.c:728:    if (omap_rev() > OMAP3430_REV_ES1_0)
-> 
-> Then, there are custom macros. Example (cpu.h):
-> 
-> #define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1)
-> #define CHIP_GE_OMAP3430ES3		(CHIP_IS_OMAP3430ES3_0 | \
-> 					 CHIP_GE_OMAP3430ES3_1)
-> #define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
-> 					 CHIP_GE_OMAP3430ES3)
-> 
-> The problem with comparing against a whole number is that comparison is invalid
-> for another processor series. E.g. OMAP3430 and OMAP3517.
-> 
-> Here, I am proposing a common mechanism to identify the si revision; that focuses
-> on the revision bits alone. (See code below)
-> 
-> The usage would then be (example):
-> 
->    if (omap_rev() > OMAP3430_REV_ES1_0)
-> 
-> To
-> 
->    if (cpu_is_omap34xx() && OMAP_REV_GT(OMAP_ES_1_0)
+commit 004a049bbab47d382a741d8e8fc6a1b9b44b36ac
+Author: Madhu <madhu.cr@ti.com>
+Date:   Sun Sep 6 13:18:21 2009 -0400
 
-What's the purpose of most of these checks in the first place? I can
-see two immediate needs:
+    Replace the 100mS delay in the MMC power sequence with an appropriate delay
+    based on the measurements taken for VDDS stability on SDP with T2 power IC.
+    The delay in the power down sequence is not needed since it is taken care in
+    the power up sequence.
 
-1) To check for various errata and do appropriate workarounds
+    Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
 
-2) To check if the current chip has a certain feature
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 3c04c2f..6a9be61 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -237,30 +237,27 @@ static int twl_mmc1_set_power(struct device *dev, int
+slot, int power_on,
+ 		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
+ 		omap_ctrl_writel(reg, control_pbias_offset);
 
-Both of these could just as well be abstracted away such that you use
-tests on the form:
+-		ret = mmc_regulator_set_ocr(c->vcc, vdd);
+-
+-		/* 100ms delay required for PBIAS configuration */
+-		msleep(100);
+ 		reg = omap_ctrl_readl(control_pbias_offset);
+-		reg |= (OMAP2_PBIASLITEPWRDNZ0 | OMAP2_PBIASSPEEDCTRL0);
+ 		if ((1 << vdd) <= MMC_VDD_165_195)
+ 			reg &= ~OMAP2_PBIASLITEVMODE0;
+ 		else
+ 			reg |= OMAP2_PBIASLITEVMODE0;
+ 		omap_ctrl_writel(reg, control_pbias_offset);
++
++		ret = mmc_regulator_set_ocr(c->vcc, vdd);
++
++		/* 400uS required for VDDS to stable */
++		udelay(400);
++
++		reg = omap_ctrl_readl(control_pbias_offset);
++		reg |= OMAP2_PBIASLITEPWRDNZ0;
++		omap_ctrl_writel(reg, control_pbias_offset);
+ 	} else {
+ 		reg = omap_ctrl_readl(control_pbias_offset);
+ 		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
+ 		omap_ctrl_writel(reg, control_pbias_offset);
 
-	if (OMAP_HAS_ERRATA_FOO) ...
+ 		ret = mmc_regulator_set_ocr(c->vcc, 0);
+-
+-		/* 100ms delay required for PBIAS configuration */
+-		msleep(100);
+-		reg = omap_ctrl_readl(control_pbias_offset);
+-		reg |= (OMAP2_PBIASSPEEDCTRL0 | OMAP2_PBIASLITEPWRDNZ0 |
+-			OMAP2_PBIASLITEVMODE0);
+-		omap_ctrl_writel(reg, control_pbias_offset);
+ 	}
 
-or:
-	if (OMAP_FEATURE_FOO) ...
-
-And then move the actual checking of a feature into the header file
-where the errata/feature setups are defined.
+ 	return ret;
 
 
-There's two major benefits to this:
-
-1) Readability. No need to sit and look up in a manual why there's a
-check for version X here.
- (and/or no need to add a specific comment about it).
-
-2) Keeping changes centralized. If there's a new revision or chip,
-there's just one header file to update, not 20 different source files.
-
-For example, a bunch of the checks in pm34xx.c would be nicer to have as:
-
-	if (OMAP_HAS_USBHOST()) 
-
-Then the current settings.
--Olof
