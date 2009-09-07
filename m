@@ -1,142 +1,138 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
-Date: Mon, 7 Sep 2009 15:22:10 +0100
-Message-ID: <20090907142210.GB23361@n2100.arm.linux.org.uk>
-References: <0680EC522D0CC943BC586913CF3768C003790C6586@dbde02.ent.ti.com> <20090815153357.GF29616@n2100.arm.linux.org.uk> <0680EC522D0CC943BC586913CF3768C003790C65ED@dbde02.ent.ti.com> <20090815181711.GG29616@n2100.arm.linux.org.uk> <20090817173343.GA17323@debian> <20090817174718.GU10764@n2100.arm.linux.org.uk> <20090817180145.GA17378@debian> <20090817180455.GW10764@n2100.arm.linux.org.uk> <A24693684029E5489D1D202277BE89444A8201BE@dlee02.ent.ti.com> <20090818030148.GA2283@debian>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: [RFC] OMAP3 : PM : Handle variable length OPP tables
+Date: Mon, 7 Sep 2009 20:09:34 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59668 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535AbZIGOXS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2009 10:23:18 -0400
-Content-Disposition: inline
-In-Reply-To: <20090818030148.GA2283@debian>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48614 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753399AbZIGOjr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2009 10:39:47 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n87Edhw8007349
+	for <linux-omap@vger.kernel.org>; Mon, 7 Sep 2009 09:39:49 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n87EdgS9021556
+	for <linux-omap@vger.kernel.org>; Mon, 7 Sep 2009 20:09:43 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Rabin Vincent <rabin@rab.in>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Aug 18, 2009 at 08:31:49AM +0530, Rabin Vincent wrote:
-> Here's a fixed version:
+Hi all,
 
-And here's my revised version with these fixes in.  I changed the
-while loop to a do..while loop instead (since we will always have
-at least one memory bank, it's pointless doing that test for the
-first iteration.)
+There is no generic function to translate an OPP to FREQ and vice versa.
+Came across the problem while trying to submit a follow-up to earlier
+patch for change in mpurate via bootargs. 
 
-Acks and tested-bys would be useful please.
+The function get_opp in resource34xx.c, but it is always called with an
+explicit addition of MAX_VDDn_OPP e.g.
 
-diff --git a/arch/arm/include/asm/memory.h b/arch/arm/include/asm/memory.h
-index 376be1a..cefedf0 100644
---- a/arch/arm/include/asm/memory.h
-+++ b/arch/arm/include/asm/memory.h
-@@ -218,7 +218,6 @@ static inline __deprecated void *bus_to_virt(unsigned long x)
-  *
-  *  page_to_pfn(page)	convert a struct page * to a PFN number
-  *  pfn_to_page(pfn)	convert a _valid_ PFN number to struct page *
-- *  pfn_valid(pfn)	indicates whether a PFN number is valid
-  *
-  *  virt_to_page(k)	convert a _valid_ virtual address to struct page *
-  *  virt_addr_valid(k)	indicates whether a virtual address is valid
-@@ -227,10 +226,6 @@ static inline __deprecated void *bus_to_virt(unsigned long x)
+  opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
+  opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
+
+This is 'addition' is required as there is no encapsulation of the
+MIN and MAX VDDs associated to the table.
+
+The patch below fixes this issue; buy creating a 'table' object with
+necessary information. It can also help in getting rid of the
+empty {0, 0, 0} at index 0 of each OPP table.
+
+At the moment, it does not break any functionality in resource34xx.c;
+migration to this encapsulation can be taken as next step.
+
+This code is bare 'git-diff' for early comments. Formal patch to follow...
+
+Best regards,
+Sanjeev
+
+diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
+index 583e540..2357784 100644
+--- a/arch/arm/plat-omap/include/mach/omap-pm.h
++++ b/arch/arm/plat-omap/include/mach/omap-pm.h
+@@ -33,6 +33,20 @@ struct omap_opp {
+        u16 vsel;
+ };
  
- #define ARCH_PFN_OFFSET		PHYS_PFN_OFFSET
- 
--#ifndef CONFIG_SPARSEMEM
--#define pfn_valid(pfn)		((pfn) >= PHYS_PFN_OFFSET && (pfn) < (PHYS_PFN_OFFSET + max_mapnr))
--#endif
--
- #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
- #define virt_addr_valid(kaddr)	((unsigned long)(kaddr) >= PAGE_OFFSET && (unsigned long)(kaddr) < (unsigned long)high_memory)
- 
-@@ -247,18 +242,6 @@ static inline __deprecated void *bus_to_virt(unsigned long x)
- #define arch_pfn_to_nid(pfn)	PFN_TO_NID(pfn)
- #define arch_local_page_offset(pfn, nid) LOCAL_MAP_NR((pfn) << PAGE_SHIFT)
- 
--#define pfn_valid(pfn)						\
--	({							\
--		unsigned int nid = PFN_TO_NID(pfn);		\
--		int valid = nid < MAX_NUMNODES;			\
--		if (valid) {					\
--			pg_data_t *node = NODE_DATA(nid);	\
--			valid = (pfn - node->node_start_pfn) <	\
--				node->node_spanned_pages;	\
--		}						\
--		valid;						\
--	})
--
- #define virt_to_page(kaddr)					\
- 	(ADDR_TO_MAPBASE(kaddr) + LOCAL_MAP_NR(kaddr))
- 
-diff --git a/arch/arm/include/asm/page.h b/arch/arm/include/asm/page.h
-index 9c746af..3a32af4 100644
---- a/arch/arm/include/asm/page.h
-+++ b/arch/arm/include/asm/page.h
-@@ -194,6 +194,10 @@ typedef unsigned long pgprot_t;
- 
- typedef struct page *pgtable_t;
- 
-+#ifndef CONFIG_SPARSEMEM
-+extern int pfn_valid(unsigned long);
-+#endif
++/* struct omap_opp_table - View OPP table as an object
++ * @min: Minimum OPP id
++ * @max: Maximim OPP id
++ * @opps: Pointer to array defining the OPPs.
++ *
++ * An OPP table has varied length. Knowing minimum and maximum
++ * OPP ids allow easy traversal.
++ */
++struct omap_opp_table {
++       u8      min;
++       u8      max;
++       struct omap_opp* opps;
++};
 +
- #include <asm/memory.h>
+ extern struct omap_opp *mpu_opps;
+ extern struct omap_opp *dsp_opps;
+ extern struct omap_opp *l3_opps;
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index fec7d00..c90b1af 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -33,6 +33,7 @@
+ #include <mach/powerdomain.h>
+ #include <mach/resource.h>
+ #include <mach/omap34xx.h>
++#include <mach/omap-pm.h>
  
- #endif /* !__ASSEMBLY__ */
-diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
-index 8277802..2542583 100644
---- a/arch/arm/mm/init.c
-+++ b/arch/arm/mm/init.c
-@@ -15,6 +15,7 @@
- #include <linux/mman.h>
- #include <linux/nodemask.h>
- #include <linux/initrd.h>
-+#include <linux/sort.h>
- #include <linux/highmem.h>
- 
- #include <asm/mach-types.h>
-@@ -334,12 +335,43 @@ static void __init bootmem_free_node(int node, struct meminfo *mi)
- 	free_area_init_node(node, zone_size, start_pfn, zhole_size);
+ #include "prm-regbits-34xx.h"
+ #include "pm.h"
+@@ -281,3 +282,50 @@ static int __init omap_pm_init(void)
+        return error;
  }
- 
-+#ifndef CONFIG_SPARSEMEM
-+int pfn_valid(unsigned long pfn)
+ late_initcall(omap_pm_init);
++
++/*
++ * Get frequency corresponding to an OPP
++ */
++int opp_to_freq(unsigned int* freq, struct omap_opp_table* table, u8 opp)
 +{
-+	struct meminfo *mi = &meminfo;
-+	unsigned int left = 0, right = mi->nr_banks;
++        int i, found=0;
 +
-+	do {
-+		unsigned int mid = (right + left) / 2;
-+		struct membank *bank = &mi->bank[mid];
++        if (table && table->opps) {
++                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
++                        if (table->opps[i].opp_id == opp) {
++                                found = 1;
++                                break;
++                        }
 +
-+		if (pfn < bank_pfn_start(bank))
-+			right = mid;
-+		else if (pfn >= bank_pfn_end(bank))
-+			left = mid + 1;
-+		else
-+			return 1;
-+	} while (left < right);
-+	return 0;
-+}
-+EXPORT_SYMBOL(pfn_valid);
-+#endif
++                if (found) {
++                        *freq = table->opps[i].rate;
++                        return 1;
++                }
++        }
 +
-+static int __init meminfo_cmp(const void *_a, const void *_b)
-+{
-+	const struct membank *a = _a, *b = _b;
-+	long cmp = bank_pfn_start(a) - bank_pfn_start(b);
-+	return cmp < 0 ? -1 : cmp > 0 ? 1 : 0;
++        return 0;
 +}
 +
- void __init bootmem_init(void)
- {
- 	struct meminfo *mi = &meminfo;
- 	unsigned long memend_pfn = 0;
- 	int node, initrd_node;
- 
-+	sort(&mi->bank, mi->nr_banks, sizeof(mi->bank[0]), meminfo_cmp, NULL);
++/*
++ * Get OPP corresponding to a frequency
++ */
++int freq_to_opp(u8* opp, struct omap_opp_table* table, unsigned long freq)
++{
++        int i, found=0;
 +
- 	/*
- 	 * Locate which node contains the ramdisk image, if any.
- 	 */
++        if (table && table->opps) {
++                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
++                        if (table->opps[i].rate == freq) {
++                                found = 1;
++                                break;
++                        }
++
++                if (found) {
++                        *opp = table->opps[i].opp_id;
++                        return 1;
++                }
++        }
++
++        return 0;
++}
++
