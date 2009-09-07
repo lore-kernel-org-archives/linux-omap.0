@@ -1,138 +1,52 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: [RFC] OMAP3 : PM : Handle variable length OPP tables
-Date: Mon, 7 Sep 2009 20:09:34 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com>
+From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: RE: [PATCH 6/10] omap mailbox: remove unnecessary arg for
+	omap_mbox_msg_send
+Date: Mon, 7 Sep 2009 21:02:48 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43EF@dbde02.ent.ti.com>
+References: <20090907150243.GB6538@flint.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48614 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:60075 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753399AbZIGOjr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2009 10:39:47 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n87Edhw8007349
-	for <linux-omap@vger.kernel.org>; Mon, 7 Sep 2009 09:39:49 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n87EdgS9021556
-	for <linux-omap@vger.kernel.org>; Mon, 7 Sep 2009 20:09:43 +0530 (IST)
+	id S1753704AbZIGPcC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2009 11:32:02 -0400
+In-Reply-To: <20090907150243.GB6538@flint.arm.linux.org.uk>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King <rmk@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-Hi all,
+Hi Russell,
+'arg' is used later in Patch 10, as part of the tasklet implementation, for writing messages to the mailbox. Should I be removing it in patch 6 and introduce it only for the tasklet implementation?
 
-There is no generic function to translate an OPP to FREQ and vice versa.
-Came across the problem while trying to submit a follow-up to earlier
-patch for change in mpurate via bootargs. 
+Thank you and regards
+Subbu 
 
-The function get_opp in resource34xx.c, but it is always called with an
-explicit addition of MAX_VDDn_OPP e.g.
-
-  opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
-  opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
-
-This is 'addition' is required as there is no encapsulation of the
-MIN and MAX VDDs associated to the table.
-
-The patch below fixes this issue; buy creating a 'table' object with
-necessary information. It can also help in getting rid of the
-empty {0, 0, 0} at index 0 of each OPP table.
-
-At the moment, it does not break any functionality in resource34xx.c;
-migration to this encapsulation can be taken as next step.
-
-This code is bare 'git-diff' for early comments. Formal patch to follow...
-
-Best regards,
-Sanjeev
-
-diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
-index 583e540..2357784 100644
---- a/arch/arm/plat-omap/include/mach/omap-pm.h
-+++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-@@ -33,6 +33,20 @@ struct omap_opp {
-        u16 vsel;
- };
- 
-+/* struct omap_opp_table - View OPP table as an object
-+ * @min: Minimum OPP id
-+ * @max: Maximim OPP id
-+ * @opps: Pointer to array defining the OPPs.
-+ *
-+ * An OPP table has varied length. Knowing minimum and maximum
-+ * OPP ids allow easy traversal.
-+ */
-+struct omap_opp_table {
-+       u8      min;
-+       u8      max;
-+       struct omap_opp* opps;
-+};
-+
- extern struct omap_opp *mpu_opps;
- extern struct omap_opp *dsp_opps;
- extern struct omap_opp *l3_opps;
-diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-index fec7d00..c90b1af 100644
---- a/arch/arm/mach-omap2/pm.c
-+++ b/arch/arm/mach-omap2/pm.c
-@@ -33,6 +33,7 @@
- #include <mach/powerdomain.h>
- #include <mach/resource.h>
- #include <mach/omap34xx.h>
-+#include <mach/omap-pm.h>
- 
- #include "prm-regbits-34xx.h"
- #include "pm.h"
-@@ -281,3 +282,50 @@ static int __init omap_pm_init(void)
-        return error;
- }
- late_initcall(omap_pm_init);
-+
-+/*
-+ * Get frequency corresponding to an OPP
-+ */
-+int opp_to_freq(unsigned int* freq, struct omap_opp_table* table, u8 opp)
-+{
-+        int i, found=0;
-+
-+        if (table && table->opps) {
-+                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
-+                        if (table->opps[i].opp_id == opp) {
-+                                found = 1;
-+                                break;
-+                        }
-+
-+                if (found) {
-+                        *freq = table->opps[i].rate;
-+                        return 1;
-+                }
-+        }
-+
-+        return 0;
-+}
-+
-+/*
-+ * Get OPP corresponding to a frequency
-+ */
-+int freq_to_opp(u8* opp, struct omap_opp_table* table, unsigned long freq)
-+{
-+        int i, found=0;
-+
-+        if (table && table->opps) {
-+                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
-+                        if (table->opps[i].rate == freq) {
-+                                found = 1;
-+                                break;
-+                        }
-+
-+                if (found) {
-+                        *opp = table->opps[i].opp_id;
-+                        return 1;
-+                }
-+        }
-+
-+        return 0;
-+}
-+
+> -----Original Message-----
+> From: Russell King [mailto:rmk@arm.linux.org.uk] 
+> Sent: Monday, September 07, 2009 8:33 PM
+> To: C.A, Subramaniam
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com; 
+> Hiroshi.DOYU@nokia.com; Kanigeri, Hari; Gupta, Ramesh
+> Subject: Re: [PATCH 6/10] omap mailbox: remove unnecessary 
+> arg for omap_mbox_msg_send
+> 
+> On Fri, Sep 04, 2009 at 05:18:04PM +0530, C.A, Subramaniam wrote:
+> > @@ -114,7 +114,6 @@ int omap_mbox_msg_send(struct omap_mbox 
+> *mbox, mbox_msg_t msg, void* arg)
+> >  	}
+> >  
+> >  	tx_data->msg = msg;
+> > -	tx_data->arg = arg;
+> 
+> What about also removing 'arg' from struct omap_msg_tx_data ?
+> 
+> --
+> Russell King
+>  Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+>  maintainer of:
+> 
+> 
