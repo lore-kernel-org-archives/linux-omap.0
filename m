@@ -1,79 +1,80 @@
-From: Eric Witcher <ewitcher@mindspring.com>
-Subject: Re: ARM: OMAP3: Beagleboard: Fix EHCI initialization
-Date: Mon, 7 Sep 2009 21:17:16 -0400
-Message-ID: <979D9760-ABA4-48A1-87DE-5E335E7C24F9@mindspring.com>
-References: <5e088bd90909011455y48ce86c4t532ed5a66bac01fe@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v936)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 2/3] USB: musb: omap: Fix wrong xceivr passing to twl4030
+Date: Tue, 8 Sep 2009 11:03:29 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436B014B8@dbde02.ent.ti.com>
+References: <1252105499-19003-1-git-send-email-vikram.pandita@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from elasmtp-banded.atl.sa.earthlink.net ([209.86.89.70]:57795 "EHLO
-	elasmtp-banded.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751280AbZIHBRV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 7 Sep 2009 21:17:21 -0400
-In-Reply-To: <5e088bd90909011455y48ce86c4t532ed5a66bac01fe@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44502 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752335AbZIHFdk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Sep 2009 01:33:40 -0400
+In-Reply-To: <1252105499-19003-1-git-send-email-vikram.pandita@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Steve Sakoman <sakoman@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "david-b@pacbell.net" <david-b@pacbell.net>, "Gadiyar, Anand" <gadiyar@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
 
+Vikram,
 
-On Sep 1, 2009, at 5:55 PM, Steve Sakoman wrote:
+> -----Original Message-----
+> From: Pandita, Vikram
+> Sent: Saturday, September 05, 2009 4:35 AM
+> To: linux-usb@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org; david-b@pacbell.net; Gupta, Ajay Kumar;
+> Gadiyar, Anand; felipe.balbi@nokia.com; Pandita, Vikram
+> Subject: [PATCH 2/3] USB: musb: omap: Fix wrong xceivr passing to twl4030
+> 
+> Wrong pointer was getting passed to twl4030 transceiver.
+> 
+> Call path is:
+> otg_set_suspend -> twl4030_set_suspend
+> 
+> drivers/usb/otg/twl4030-usb.c: twl4030_set_suspend() uses:
+> 	struct twl4030_usb *twl = xceiv_to_twl(x);
+> 
+> and xceiv_to_twl is container_of()
+> 
+> So the same pointer needs to be passed to otg_set_suspend() as has
+> been used for otg_set_transceiver.
+> 
+> A crash is seen without this patch, as twl pointer access is worng
+> 
 
-> Enable USB power, use correct gpio for usb_ehci_init
->
-> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+musb->xceiv is also taken from otg_get_transceiver() in musb_platform_init(). So this patch is not required.
 
-Tested-by: Eric Witcher <ewitcher@mindspring.com>
-This patch worked at commit
-3dff8750255bf5a1e9a69931b1d8739a65a933d0
-of linux-omap-2.6.git master
+-Ajay
 
-I also needed
-
-[PATCH 4/8] ehci: fix phy_reset init in ehci probe
-[PATCH] omapfb: Reorder Register_framebuffer call
-
-to get a clean boot.
-
-Build configuration was omap3_beagle_defconfig.
-
-
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 > ---
-> arch/arm/mach-omap2/board-omap3beagle.c |    5 +++--
-> 1 files changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
-> b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 07aee90..65934ea 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -161,7 +161,7 @@ static int beagle_twl_gpio_setup(struct device  
-> *dev,
->
-> 	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low)  
-> */
-> 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
-> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
-> +	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
->
-> 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
-> 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-> @@ -412,7 +412,8 @@ static void __init omap3_beagle_init(void)
-> 	gpio_direction_output(170, true);
->
-> 	usb_musb_init();
-> -	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, true, true, 57, 61);
-> +	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, false, true,
-> +			-EINVAL, 147);
-> 	omap3beagle_flash_init();
->
-> 	/* Ensure SDRC pins are mux'd for self-refresh */
-> -- 
-> 1.6.0.4
+>  drivers/usb/musb/omap2430.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+> index b957575..ea7a798 100644
+> --- a/drivers/usb/musb/omap2430.c
+> +++ b/drivers/usb/musb/omap2430.c
+> @@ -269,7 +269,7 @@ int musb_platform_suspend(struct musb *musb)
+>  	l |= ENABLEWAKEUP;	/* enable wakeup */
+>  	omap_writel(l, OTG_SYSCONFIG);
+> 
+> -	otg_set_suspend(musb->xceiv, 1);
+> +	otg_set_suspend(otg_get_transceiver(), 1);
+> 
+>  	if (musb->set_clock)
+>  		musb->set_clock(musb->clock, 0);
+> @@ -286,7 +286,7 @@ int musb_platform_resume(struct musb *musb)
+>  	if (!musb->clock)
+>  		return 0;
+> 
+> -	otg_set_suspend(musb->xceiv, 0);
+> +	otg_set_suspend(otg_get_transceiver(), 0);
+> 
+>  	if (musb->set_clock)
+>  		musb->set_clock(musb->clock, 1);
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.6.3.3.334.g916e1
 
