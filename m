@@ -1,98 +1,316 @@
-From: Anand Gadiyar <gadiyar@ti.com>
-Subject: [PATCH] OMAP3: Lock DPLL5 at boot
-Date: Tue,  8 Sep 2009 19:24:16 +0530
-Message-ID: <1252418056-5994-1-git-send-email-gadiyar@ti.com>
+From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: RE: [PATCH 10/10] omap mailbox: OMAP4 Mailbox-driver Patch to
+ support tasklet implementation
+Date: Tue, 8 Sep 2009 23:13:48 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C4C57@dbde02.ent.ti.com>
+References: <20090907.114943.43015441.Hiroshi.DOYU@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45235 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754399AbZIHNyX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Sep 2009 09:54:23 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n88DsJ2K029540
-	for <linux-omap@vger.kernel.org>; Tue, 8 Sep 2009 08:54:25 -0500
+Received: from comal.ext.ti.com ([198.47.26.152]:54123 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751600AbZIHRnF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Sep 2009 13:43:05 -0400
+In-Reply-To: <20090907.114943.43015441.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>, Anand Gadiyar <gadiyar@ti.com>
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+Hi Hiroshi, 
 
-OMAP3: Lock DPLL5 at boot
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com] 
+> Sent: Monday, September 07, 2009 2:20 PM
+> To: C.A, Subramaniam
+> Cc: linux-omap@vger.kernel.org; tony@atomide.com; 
+> rmk@arm.linux.org.uk; Kanigeri, Hari; Gupta, Ramesh
+> Subject: Re: [PATCH 10/10] omap mailbox: OMAP4 Mailbox-driver 
+> Patch to support tasklet implementation
+> 
+> From: "ext C.A, Subramaniam" <subramaniam.ca@ti.com>
+> Subject: [PATCH 10/10] omap mailbox: OMAP4 Mailbox-driver 
+> Patch to support tasklet implementation
+> Date: Fri, 4 Sep 2009 13:48:45 +0200
+> 
+> > From e759173e77f73fabce5177b4f685df20b16c6922 Mon Sep 17 
+> 00:00:00 2001
+> > From: C A Subramaniam <subramaniam.ca@ti.com>
+> > Date: Thu, 3 Sep 2009 17:42:35 +0530
+> > Subject: [PATCH 10/10] omap mailbox: OMAP4 Mailbox-driver 
+> Patch to support tasklet
+> >    implementation
+> > 
+> > This patch uses a tasklet implementation for sending 
+> mailbox messages.
+> > 
+> > Signed-off-by: C A Subramaniam <subramaniam.ca@ti.com>
+> > Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/mailbox.c             |   43 ++++++++++-----
+> >  arch/arm/plat-omap/include/mach/mailbox.h |   16 +++++-
+> >  arch/arm/plat-omap/mailbox.c              |   80 
+> ++++++++++++++---------------
+> >  3 files changed, 81 insertions(+), 58 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/mailbox.c 
+> > b/arch/arm/mach-omap2/mailbox.c index 52a1670..45aea98 100644
+> > --- a/arch/arm/mach-omap2/mailbox.c
+> > +++ b/arch/arm/mach-omap2/mailbox.c
+> > @@ -236,6 +237,17 @@ static struct omap_mbox_ops omap2_mbox_ops = {
+> >  	.restore_ctx	= omap2_mbox_restore_ctx,
+> >  };
+> >  
+> > +
+> > +static struct omap_mbox_task omap_mbox_1_tasklet = {
+> > +	.arg	= NULL,
+> > +};
+> > +
+> > +static struct omap_mbox_task omap_mbox_2_tasklet = {
+> > +	.arg	= NULL,
+> > +};
+> 
+> As I described in the comment on [PATCH 8/10], I think that 
+> it would be better to keep "mach-omap2/mailbox.c" simple and 
+> to add some additional logic on "plat-omap/mailbox.c".
+> 
+> Would it be possbile to move this tasklet implementation to 
+> "plat-omap/mailbox.c"?
 
-Lock DPLL5 at 120MHz at boot. The USBHOST 120MHz f-clock and
-USBTLL f-clock are the only users of this DPLL, and 120MHz is
-is the only recommended rate for these clocks.
+The implementation of the tasklet itself is maintained in plat-omap/mailbox.c
+Since, I wanted to maintain a separate tasklet for each mailbox
+instance used to send messages from MPU, I had to associate the the tasklet
+to the mailbox. Hence, the changes were done in mach-omap2/mailbox.c
 
-With this patch, the 60 MHz ULPI clock is generated correctly.
+Please give your comments on this approach.
 
-Tested on an OMAP3430 SDP.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
-Incorporated all 3 comments by Paul and Benoit. Updated
-$SUBJECT to reflect the change.
-
- arch/arm/mach-omap2/clock34xx.c |   35 +++++++++++++++++++++++++++++++++++
- 1 files changed, 35 insertions(+)
-
-Index: linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/clock34xx.c
-+++ linux-omap-2.6/arch/arm/mach-omap2/clock34xx.c
-@@ -338,6 +338,13 @@ static struct omap_clk omap34xx_clks[] =
-  */
- #define SDRC_MPURATE_LOOPS		96
- 
-+/*
-+ * DPLL5_FREQ_FOR_USBHOST: USBHOST and USBTLL are the only clocks
-+ * that are sourced by DPLL5, and both of these require this clock
-+ * to be at 120 MHz for proper operation.
-+ */
-+#define DPLL5_FREQ_FOR_USBHOST		120000000
-+
- /**
-  * omap3430es2_clk_ssi_find_idlest - return CM_IDLEST info for SSI
-  * @clk: struct clk * being enabled
-@@ -1056,6 +1063,28 @@ void omap2_clk_prepare_for_reboot(void)
- #endif
- }
- 
-+static void omap3_clk_lock_dpll5(void)
-+{
-+	struct clk *dpll5_clk;
-+	struct clk *dpll5_m2_clk;
-+
-+	dpll5_clk = clk_get(NULL, "dpll5_ck");
-+	clk_set_rate(dpll5_clk, DPLL5_FREQ_FOR_USBHOST);
-+	clk_enable(dpll5_clk);
-+
-+	/* Enable autoidle to allow it to enter low power bypass */
-+	omap3_dpll_allow_idle(dpll5_clk);
-+
-+	/* Program dpll5_m2_clk divider for no division */
-+	dpll5_m2_clk = clk_get(NULL, "dpll5_m2_ck");
-+	clk_enable(dpll5_m2_clk);
-+	clk_set_rate(dpll5_m2_clk, DPLL5_FREQ_FOR_USBHOST);
-+
-+	clk_disable(dpll5_m2_clk);
-+	clk_disable(dpll5_clk);
-+	return;
-+}
-+
- /* REVISIT: Move this init stuff out into clock.c */
- 
- /*
-@@ -1148,6 +1177,12 @@ int __init omap2_clk_init(void)
- 	 */
- 	clk_enable_init_clocks();
- 
-+	/*
-+	 * Lock DPLL5 and put it in autoidle.
-+	 */
-+	if (omap_rev() >= OMAP3430_REV_ES2_0)
-+		omap3_clk_lock_dpll5();
-+
- 	/* Avoid sleeping during omap2_clk_prepare_for_reboot() */
- 	/* REVISIT: not yet ready for 343x */
- #if 0
+> 
+> > +
+> > +
+> > +
+> >  /*
+> >   * MAILBOX 0: ARM -> DSP,
+> >   * MAILBOX 1: ARM <- DSP.
+> > @@ -272,6 +284,7 @@ struct omap_mbox mbox_1_info = {
+> >  	.name	= "mailbox-1",
+> >  	.ops	= &omap2_mbox_ops,
+> >  	.priv	= &omap2_mbox_1_priv,
+> > +	.tx_tasklet = &omap_mbox_1_tasklet,
+> >  };
+> >  EXPORT_SYMBOL(mbox_1_info);
+> >  #else
+> > @@ -305,8 +318,10 @@ struct omap_mbox mbox_2_info = {
+> >  	.name	= "mailbox-2",
+> >  	.ops	= &omap2_mbox_ops,
+> >  	.priv	= &omap2_mbox_2_priv,
+> > +	.tx_tasklet = &omap_mbox_2_tasklet,
+> >  };
+> >  EXPORT_SYMBOL(mbox_2_info);
+> > +
+> >  #endif
+> >  
+> >  
+> > diff --git a/arch/arm/plat-omap/include/mach/mailbox.h 
+> > b/arch/arm/plat-omap/include/mach/mailbox.h
+> > index bf06953..5271345 100644
+> > --- a/arch/arm/plat-omap/include/mach/mailbox.h
+> > +++ b/arch/arm/plat-omap/include/mach/mailbox.h
+> > @@ -28,8 +28,10 @@ struct omap_mbox_ops {
+> >  	int		(*fifo_empty)(struct omap_mbox *mbox);
+> >  	int		(*fifo_full)(struct omap_mbox *mbox);
+> >  	/* irq */
+> > -	void		(*enable_irq)(struct omap_mbox *mbox, 
+> omap_mbox_irq_t irq);
+> > -	void		(*disable_irq)(struct omap_mbox *mbox, 
+> omap_mbox_irq_t irq);
+> > +	void		(*enable_irq)(struct omap_mbox *mbox,
+> > +						omap_mbox_irq_t irq);
+> > +	void		(*disable_irq)(struct omap_mbox *mbox,
+> > +						omap_mbox_irq_t irq);
+> >  	void		(*ack_irq)(struct omap_mbox *mbox, 
+> omap_mbox_irq_t irq);
+> >  	int		(*is_irq)(struct omap_mbox *mbox, 
+> omap_mbox_irq_t irq);
+> >  	/* ctx */
+> > @@ -45,12 +47,22 @@ struct omap_mbox_queue {
+> >  	struct omap_mbox	*mbox;
+> >  };
+> >  
+> > +struct omap_mbox_task{
+> > +	spinlock_t		lock;
+> > +	struct tasklet_struct	*t;
+> > +	mbox_msg_t		msg;
+> > +	void			*arg;
+> > +};
+> > +
+> > +
+> >  struct omap_mbox {
+> >  	char			*name;
+> >  	unsigned int		irq;
+> >  
+> >  	struct omap_mbox_queue	*txq, *rxq;
+> >  
+> > +	struct omap_mbox_task	*tx_tasklet;
+> > +
+> >  	struct omap_mbox_ops	*ops;
+> >  
+> >  	mbox_msg_t		seq_snd, seq_rcv;
+> > diff --git a/arch/arm/plat-omap/mailbox.c 
+> > b/arch/arm/plat-omap/mailbox.c index 84cf6af..b5e53d4 100644
+> > --- a/arch/arm/plat-omap/mailbox.c
+> > +++ b/arch/arm/plat-omap/mailbox.c
+> > @@ -63,60 +63,49 @@ static inline int is_mbox_irq(struct omap_mbox 
+> > *mbox, omap_mbox_irq_t irq)
+> >  /*
+> >   * message sender
+> >   */
+> > -static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
+> > +static void __mbox_msg_send(unsigned long tx)
+> >  {
+> > +	struct omap_mbox_task *tx_data  =  (struct omap_mbox_task *)tx;
+> > +	struct omap_mbox *mbox = (struct omap_mbox *)tx_data->arg;
+> > +	mbox_msg_t msg = tx_data->msg;
+> >  	int ret = 0, i = 1000;
+> >  
+> >  	while (mbox_fifo_full(mbox)) {
+> > -		if (mbox->ops->type == OMAP_MBOX_TYPE2)
+> > -			return -1;
+> > -		if (--i == 0)
+> > -			return -1;
+> > +		if (mbox->ops->type == OMAP_MBOX_TYPE2) {
+> > +			printk(KERN_ERR "Invalid mailbox type\n");
+> > +			return ;
+> > +		}
+> > +		if (--i == 0) {
+> > +			printk(KERN_ERR "Time out writing to 
+> mailbox\n");
+> > +			return ;
+> > +		}
+> >  		udelay(1);
+> >  	}
+> >  	mbox_fifo_write(mbox, msg);
+> > -	return ret;
+> > -}
+> > -
+> > -struct omap_msg_tx_data {
+> > -	mbox_msg_t	msg;
+> > -	void		*arg;
+> > -};
+> > +	tx_data->arg = NULL;
+> > +	spin_unlock(&(mbox->tx_tasklet->lock));
+> >  
+> > -static void omap_msg_tx_end_io(struct request *rq, int error) -{
+> > -	kfree(rq->special);
+> > -	__blk_put_request(rq->q, rq);
+> > +	return;
+> >  }
+> >  
+> > +
+> >  int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)  {
+> > -	struct omap_msg_tx_data *tx_data;
+> > -	struct request *rq;
+> > -	struct request_queue *q = mbox->txq->queue;
+> > +	struct omap_mbox_task *tx_task = mbox->tx_tasklet;
+> >  
+> > -	tx_data = kmalloc(sizeof(*tx_data), GFP_ATOMIC);
+> > -	if (unlikely(!tx_data))
+> > -		return -ENOMEM;
+> > -
+> > -	rq = blk_get_request(q, WRITE, GFP_ATOMIC);
+> > -	if (unlikely(!rq)) {
+> > -		kfree(tx_data);
+> > -		return -ENOMEM;
+> > -	}
+> > +	spin_lock(&(mbox->tx_tasklet->lock));
+> > +	tx_task->arg = (void *)mbox;
+> > +	tx_task->msg = msg;
+> >  
+> > -	tx_data->msg = msg;
+> > -	rq->end_io = omap_msg_tx_end_io;
+> > -	blk_insert_request(q, rq, 0, tx_data);
+> > +	tasklet_schedule(tx_task->t);
+> >  
+> > -	schedule_work(&mbox->txq->work);
+> >  	return 0;
+> >  }
+> >  EXPORT_SYMBOL(omap_mbox_msg_send);
+> >  
+> >  static void mbox_tx_work(struct work_struct *work)  {
+> > -	int ret;
+> > +	int ret = 0;
+> >  	struct request *rq;
+> >  	struct omap_mbox_queue *mq = container_of(work,
+> >  				struct omap_mbox_queue, work);
+> > @@ -124,8 +113,6 @@ static void mbox_tx_work(struct 
+> work_struct *work)
+> >  	struct request_queue *q = mbox->txq->queue;
+> >  
+> >  	while (1) {
+> > -		struct omap_msg_tx_data *tx_data;
+> > -
+> >  		spin_lock(q->queue_lock);
+> >  		rq = blk_fetch_request(q);
+> >  		spin_unlock(q->queue_lock);
+> > @@ -133,9 +120,6 @@ static void mbox_tx_work(struct 
+> work_struct *work)
+> >  		if (!rq)
+> >  			break;
+> >  
+> > -		tx_data = rq->special;
+> > -
+> > -		ret = __mbox_msg_send(mbox, tx_data->msg);
+> >  		if (ret) {
+> >  			omap_mbox_enable_irq(mbox, IRQ_TX);
+> >  			spin_lock(q->queue_lock);
+> > @@ -206,7 +190,7 @@ static void __mbox_rx_interrupt(struct 
+> omap_mbox *mbox)
+> >  			goto nomem;
+> >  
+> >  		msg = mbox_fifo_read(mbox);
+> > -
+> > +		rq->special = (void *)msg;
+> >  
+> >  		blk_insert_request(q, rq, 0, (void *)msg);
+> >  		if (mbox->ops->type == OMAP_MBOX_TYPE1) @@ 
+> -298,13 +282,25 @@ 
+> > static int omap_mbox_startup(struct omap_mbox *mbox)
+> >  	}
+> >  	mbox->rxq = mq;
+> >  
+> > +	mbox->tx_tasklet->t =  kzalloc(sizeof(struct tasklet_struct),
+> > +					GFP_KERNEL);
+> > +	if (!mbox->tx_tasklet->t) {
+> > +		ret = -ENOMEM;
+> > +		goto fail_alloc_tasklet;
+> > +	}
+> > +	spin_lock_init(&mbox->tx_tasklet->lock);
+> > +	tasklet_init(mbox->tx_tasklet->t, __mbox_msg_send,
+> > +				(unsigned long)mbox->tx_tasklet);
+> > +
+> >  	return 0;
+> >  
+> > - fail_alloc_rxq:
+> > +fail_alloc_tasklet:
+> > +	mbox_queue_free(mbox->rxq);
+> > +fail_alloc_rxq:
+> >  	mbox_queue_free(mbox->txq);
+> > - fail_alloc_txq:
+> > +fail_alloc_txq:
+> >  	free_irq(mbox->irq, mbox);
+> > - fail_request_irq:
+> > +fail_request_irq:
+> >  	if (unlikely(mbox->ops->shutdown))
+> >  		mbox->ops->shutdown(mbox);
+> >  
+> > --
+> > 1.5.3.2
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" 
+> > in the body of a message to majordomo@vger.kernel.org More 
+> majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
