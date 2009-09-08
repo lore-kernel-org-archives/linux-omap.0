@@ -1,62 +1,91 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
-Date: Tue, 08 Sep 2009 15:17:42 -0700
-Message-ID: <87ljkpm67t.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A007938@dbde02.ent.ti.com>
+Subject: Re: [PATCH] omap: resource: Fix race in register_resource()
+Date: Tue, 08 Sep 2009 15:39:05 -0700
+Message-ID: <87k509kqnq.fsf@deeprootsystems.com>
+References: <1252006638-1697-1-git-send-email-mike@android.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f201.google.com ([209.85.222.201]:38392 "EHLO
-	mail-pz0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910AbZIHWRn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Sep 2009 18:17:43 -0400
-Received: by pzk39 with SMTP id 39so3532535pzk.15
-        for <linux-omap@vger.kernel.org>; Tue, 08 Sep 2009 15:17:46 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A007938@dbde02.ent.ti.com> (Teerth Reddy's message of "Mon\, 7 Sep 2009 19\:19\:26 +0530")
+Received: from mail-px0-f177.google.com ([209.85.216.177]:53829 "EHLO
+	mail-px0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752453AbZIHWjG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 8 Sep 2009 18:39:06 -0400
+Received: by pxi7 with SMTP id 7so3698077pxi.1
+        for <linux-omap@vger.kernel.org>; Tue, 08 Sep 2009 15:39:08 -0700 (PDT)
+In-Reply-To: <1252006638-1697-1-git-send-email-mike@android.com> (Mike Chan's message of "Thu\,  3 Sep 2009 12\:37\:18 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mike Chan <mike@android.com>
+Cc: linux-omap@vger.kernel.org
 
-"Reddy, Teerth" <teerth@ti.com> writes:
+Mike Chan <mike@android.com> writes:
 
-> This patch initializes the SDRC params for DVFS on Zoom2.
+> Checking if the resource is already registered and adding to the list
+> must be atomic or bad things can happen.
 >
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
-> ---
->  arch/arm/mach-omap2/board-zoom2.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
->
-> Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
-> ===================================================================
-> --- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom2.c
-> +++ linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
-> @@ -23,6 +23,7 @@
->  
->  #include "mmc-twl4030.h"
->  #include "omap3-opp.h"
-> +#include "sdram-micron-mt46h32m32lf-6.h"
->  
->  static struct omap_uart_config zoom2_uart_config __initdata = {
->  	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
-> @@ -36,8 +37,9 @@ static void __init omap_zoom2_init_irq(v
->  {
->  	omap_board_config = zoom2_config;
->  	omap_board_config_size = ARRAY_SIZE(zoom2_config);
-> -	omap2_init_common_hw(NULL, NULL, omap3_mpu_rate_table,
-> -	                     omap3_dsp_rate_table, omap3_l3_rate_table);
-> +	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
-> +		omap3_mpu_rate_table, omap3_dsp_rate_table,
-> +					omap3_l3_rate_table);
+> Signed-off-by: Mike Chan <mike@android.com>
 
-Not having looked at the Zoom2 schematics, are you sure this is only
-using a single chip select?  The other boards using the same part
-(beagle, overo) are interfacing to this part using both CSes.
+Functionally, this looks fine.  Some procedural details still to work
+out:
 
-Have you tested DVFS on Zoom2 using the full 256Mb?
+Are you the original author of this?  or was it Chunqiu or Limei?  The
+changelog should be prefixed with a From: line of the original author
+(handled by git-format-patch) if it was not you.  Also add the other's
+signoffs if appropriate.
+
+What tree does this apply to?  It's not specified, and does not apply
+to either current PM branch or pm-2.6.29. 
 
 Kevin
 
->  	omap_init_irq();
->  	omap_gpio_init();
+> ---
+>  arch/arm/plat-omap/resource.c |   14 +++++++++-----
+>  1 files changed, 9 insertions(+), 5 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
+> index e9ace13..9d20249 100644
+> --- a/arch/arm/plat-omap/resource.c
+> +++ b/arch/arm/plat-omap/resource.c
+> @@ -253,6 +253,7 @@ int resource_refresh(void)
+>   */
+>  int resource_register(struct shared_resource *resp)
+>  {
+> +	int ret = 0;
+>  	if (!resp)
+>  		return -EINVAL;
+>  
+> @@ -260,13 +261,15 @@ int resource_register(struct shared_resource *resp)
+>  		return -EINVAL;
+>  
+>  	/* Verify that the resource is not already registered */
+> -	if (resource_lookup(resp->name))
+> -		return -EEXIST;
+> +	down(&res_mutex);
+> +	if (_resource_lookup(resp->name)) {
+> +		ret = -EEXIST;
+> +		goto out;
+> +	}
+>  
+>  	INIT_LIST_HEAD(&resp->users_list);
+>  	mutex_init(&resp->resource_mutex);
+>  
+> -	down(&res_mutex);
+>  	/* Add the resource to the resource list */
+>  	list_add(&resp->node, &res_list);
+>  
+> @@ -274,10 +277,11 @@ int resource_register(struct shared_resource *resp)
+>  	if (resp->ops->init)
+>  		resp->ops->init(resp);
+>  
+> -	up(&res_mutex);
+>  	pr_debug("resource: registered %s\n", resp->name);
+>  
+> -	return 0;
+> +out:
+> +	up(&res_mutex);
+> +	return ret;
 >  }
+>  EXPORT_SYMBOL(resource_register);
+>  
+> -- 
+> 1.5.4.5
