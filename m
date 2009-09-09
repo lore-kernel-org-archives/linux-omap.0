@@ -1,57 +1,68 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 00/07] pm: remove late/early platform driver pm callbacks V2
-Date: Thu, 10 Sep 2009 00:09:48 +0200
-Message-ID: <200909100009.48504.rjw@sisk.pl>
-References: <20090624092306.14276.127.sendpatchset@rx1.opensource.se> <200907050145.15122.rjw@sisk.pl> <e9c3a7c20909081825i1578a522w5d7f4e5d678b5d74@mail.gmail.com>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
+Date: Thu, 10 Sep 2009 04:43:10 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C0037CF20CE7@dbde02.ent.ti.com>
+References: <20090817173343.GA17323@debian>
+ <20090817174718.GU10764@n2100.arm.linux.org.uk>
+ <20090817180145.GA17378@debian>
+ <20090817180455.GW10764@n2100.arm.linux.org.uk>
+ <A24693684029E5489D1D202277BE89444A8201BE@dlee02.ent.ti.com>
+ <20090818030148.GA2283@debian>
+ <A24693684029E5489D1D202277BE89444B781B03@dlee02.ent.ti.com>
+ <0680EC522D0CC943BC586913CF3768C0037CF20A00@dbde02.ent.ti.com>
+ <20090909071711.GF23361@n2100.arm.linux.org.uk>
+ <0680EC522D0CC943BC586913CF3768C0037CF20AA2@dbde02.ent.ti.com>
+ <20090909183358.GC5235@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35769 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752159AbZIIWIv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 9 Sep 2009 18:08:51 -0400
-In-Reply-To: <e9c3a7c20909081825i1578a522w5d7f4e5d678b5d74@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33820 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753787AbZIIXR5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Sep 2009 19:17:57 -0400
+In-Reply-To: <20090909183358.GC5235@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Magnus Damm <magnus.damm@gmail.com>, linux-kernel@vger.kernel.org, gregkh@suse.de, pavel@ucw.cz, hskinnemoen@atmel.com, anemo@mba.ocn.ne.jp, linux-usb@vger.kernel.org, akpm@linux-foundation.org, stern@rowland.harvard.edu, ben-linux@fluff.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org, felipe.balbi@nokia.com, nicolas.ferre@atmel.com, linux-next@vger.kernel.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Rabin Vincent <rabin@rab.in>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wednesday 09 September 2009, Dan Williams wrote:
-> 2009/7/4 Rafael J. Wysocki <rjw@sisk.pl>:
-> > On Wednesday 24 June 2009, Magnus Damm wrote:
-> >> pm: remove late/early platform driver pm callbacks V2
-> >>
-> >> [PATCH 01/07] arm: rework omap suspend_late()/resume_early()
-> >> [PATCH 02/07] dma: rework dw_dmac suspend_late()/resume_early()
-> >> [PATCH 03/07] dma: rework txx9dmac suspend_late()/resume_early()
-> >> [PATCH 04/07] i2c: rework i2c-pxa suspend_late()/resume_early()
-> >> [PATCH 05/07] i2c: rework i2c-s3c2410 suspend_late()/resume() V2
-> >> [PATCH 06/07] usb: rework musb suspend()/resume_early()
-> >> [PATCH 07/07] pm: remove platform device suspend_late()/resume_early() V2
-> >>
-> >> These patches simply remove ->suspend_late() and ->resume_early()
-> >> from struct platform_driver. Drivers are converted to dev_pm_ops
-> >> with CONFIG_SUSPEND in mind. Untested.
-> >>
-> >> All patches except [02/07] are known to compile.
-> >>
-> >> Signed-off-by: Magnus Damm <damm@igel.co.jp>
-> [..]
-> >
-> > The series is now in the linux-next branch of the suspend-2.6 tree.  I'll move
-> > it into the for-linus branch, which is not rebased, if the patches are not
-> > reported to cause any problems in the next few days.
-> >
+
+
+> -----Original Message-----
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Thursday, September 10, 2009 12:04 AM
+> To: Syed Mohammed, Khasim
+> Cc: Aguirre Rodriguez, Sergio Alberto; Rabin Vincent; linux-arm-
+> kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
+> Subject: Re: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
 > 
-> Hi,
+> On Wed, Sep 09, 2009 at 01:16:48PM +0530, Syed Mohammed, Khasim wrote:
+> > Hi Russell,
+> >
+> > > -----Original Message-----
+> > > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> > > Sent: Wednesday, September 09, 2009 12:47 PM
+> > > To: Syed Mohammed, Khasim
+> > > Cc: Aguirre Rodriguez, Sergio Alberto; Rabin Vincent; linux-arm-
+> > > kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
+> > > Subject: Re: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
+> > >
+> > > And how about my revised version, which is the version which is going
+> > > to be merged?
+> >
+> > Sorry for missing this out. This works, no issues reported.
 > 
-> My linux-next test builds for drivers/dma/ caught a missed conversion
-> of the at_hdmac driver.  Please check the attached fix (compile tested
-> only) and include it in this series.
+> And so can I add a:
+> 
+> Tested-by: Khasim Syed Mohammed <khasim@ti.com>
 
-Applied to suspend-2.6/linux-next, thanks.
+I did test this, please add Tested-by.
 
-Best,
-Rafael
+Thanks,
+
+Regards,
+Khasim
+
+
