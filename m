@@ -1,61 +1,89 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: [PATCH V3 30/30] ARM: OMAP: RX51: set MMC capabilities and power-saving flag
-Date: Wed, 09 Sep 2009 15:00:18 +0300
-Message-ID: <20090909120018.12833.74601.sendpatchset@ahunter-laptop>
-References: <20090909115633.12833.39619.sendpatchset@ahunter-laptop>
+From: Jean Pihet <jpihet@mvista.com>
+Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
+Date: Wed, 9 Sep 2009 14:12:07 +0200
+Message-ID: <200909091412.07748.jpihet@mvista.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A007938@dbde02.ent.ti.com> <87ljkpm67t.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:25408 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbZIIMAm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Sep 2009 08:00:42 -0400
-In-Reply-To: <20090909115633.12833.39619.sendpatchset@ahunter-laptop>
+Received: from gateway-1237.mvista.com ([63.81.120.158]:13760 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751242AbZIIMNB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Sep 2009 08:13:01 -0400
+In-Reply-To: <87ljkpm67t.fsf@deeprootsystems.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jarkko Lavinen <jarkko.lavinen@nokia.com>, Adrian Hunter <adrian.hunter@nokia.com>, Madhusudhan Chikkature <madhu.cr@ti.com>, linux-mmc Mailing List <linux-mmc@vger.kernel.org>, linux-omap Mailing List <linux-omap@vger.kernel.org>, Pierre Ossman <pierre@ossman.eu>, Matt Fleming <matt@console-pimps.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 165355201788f4efc00c37774070d8b9960e9b70 Mon Sep 17 00:00:00 2001
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Date: Fri, 10 Jul 2009 10:32:44 +0300
-Subject: [PATCH] ARM: OMAP: RX51: set MMC capabilities and power-saving flag
+On Wednesday 09 September 2009 00:17:42 Kevin Hilman wrote:
+> "Reddy, Teerth" <teerth@ti.com> writes:
+> > This patch initializes the SDRC params for DVFS on Zoom2.
+> >
+> > Signed-off-by: Teerth Reddy <teerth@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-zoom2.c |    6 ++++--
+> >  1 files changed, 4 insertions(+), 2 deletions(-)
+> >
+> > Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+> > ===================================================================
+> > --- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom2.c
+> > +++ linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+> > @@ -23,6 +23,7 @@
+> >
+> >  #include "mmc-twl4030.h"
+> >  #include "omap3-opp.h"
+> > +#include "sdram-micron-mt46h32m32lf-6.h"
+> >
+> >  static struct omap_uart_config zoom2_uart_config __initdata = {
+> >  	.enabled_uarts	= ((1 << 0) | (1 << 1) | (1 << 2)),
+> > @@ -36,8 +37,9 @@ static void __init omap_zoom2_init_irq(v
+> >  {
+> >  	omap_board_config = zoom2_config;
+> >  	omap_board_config_size = ARRAY_SIZE(zoom2_config);
+> > -	omap2_init_common_hw(NULL, NULL, omap3_mpu_rate_table,
+> > -	                     omap3_dsp_rate_table, omap3_l3_rate_table);
+> > +	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
+> > +		omap3_mpu_rate_table, omap3_dsp_rate_table,
+> > +					omap3_l3_rate_table);
+>
+> Not having looked at the Zoom2 schematics, are you sure this is only
+> using a single chip select?  The other boards using the same part
+> (beagle, overo) are interfacing to this part using both CSes.
+>
+> Have you tested DVFS on Zoom2 using the full 256Mb?
+Good point!
 
-Specify MMC capabilities and set the power-saving flag
-for RX51.
+DVFS works fine using the two chip selects:
+        omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+                             mt46h32m32lf6_sdrc_params,
+                             omap3_mpu_rate_table,
+                             omap3_dsp_rate_table,
+                             omap3_l3_rate_table);
 
-Signed-off-by: Adrian Hunter <adrian.hunter@nokia.com>
----
- arch/arm/mach-omap2/board-rx51-peripherals.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+One remark though: since the memory chips are popped on top of the OMAP chip 
+the schematics are not showing the chip selects connections. In any case 
+U-Boot is configuring the SDRC module to use the 2 chip selects, so I think 
+this change is needed.
 
-diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-index 56d931a..4ce5a76 100644
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@ -19,6 +19,7 @@
- #include <linux/delay.h>
- #include <linux/regulator/machine.h>
- #include <linux/gpio.h>
-+#include <linux/mmc/host.h>
- 
- #include <mach/mcspi.h>
- #include <mach/mux.h>
-@@ -102,6 +103,7 @@ static struct twl4030_hsmmc_info mmc[] = {
- 		.cover_only	= true,
- 		.gpio_cd	= 160,
- 		.gpio_wp	= -EINVAL,
-+		.power_saving	= true,
- 	},
- 	{
- 		.name		= "internal",
-@@ -109,6 +111,8 @@ static struct twl4030_hsmmc_info mmc[] = {
- 		.wires		= 8,
- 		.gpio_cd	= -EINVAL,
- 		.gpio_wp	= -EINVAL,
-+		.nonremovable	= true,
-+		.power_saving	= true,
- 	},
- 	{}	/* Terminator */
- };
--- 
-1.5.6.3
+We need confirmation. Anyone from TI knows?
+
+Regards,
+Jean
+
+>
+> Kevin
+>
+> >  	omap_init_irq();
+> >  	omap_gpio_init();
+> >  }
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
