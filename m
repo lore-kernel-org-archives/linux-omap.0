@@ -1,99 +1,125 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
-Date: Wed, 9 Sep 2009 13:16:48 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C0037CF20AA2@dbde02.ent.ti.com>
-References: <0680EC522D0CC943BC586913CF3768C003790C65ED@dbde02.ent.ti.com>
- <20090815181711.GG29616@n2100.arm.linux.org.uk>
- <20090817173343.GA17323@debian>
- <20090817174718.GU10764@n2100.arm.linux.org.uk>
- <20090817180145.GA17378@debian>
- <20090817180455.GW10764@n2100.arm.linux.org.uk>
- <A24693684029E5489D1D202277BE89444A8201BE@dlee02.ent.ti.com>
- <20090818030148.GA2283@debian>
- <A24693684029E5489D1D202277BE89444B781B03@dlee02.ent.ti.com>
- <0680EC522D0CC943BC586913CF3768C0037CF20A00@dbde02.ent.ti.com>
- <20090909071711.GF23361@n2100.arm.linux.org.uk>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: [PATCH 10/10] omap mailbox: OMAP4 Mailbox-driver Patch to
+ support tasklet implementation
+Date: Wed, 09 Sep 2009 12:02:22 +0300 (EEST)
+Message-ID: <20090909.120222.85401310.Hiroshi.DOYU@nokia.com>
+References: <20090907.114943.43015441.Hiroshi.DOYU@nokia.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DD6C4C57@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35057 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751786AbZIIHsE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Sep 2009 03:48:04 -0400
-In-Reply-To: <20090909071711.GF23361@n2100.arm.linux.org.uk>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:55568 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751692AbZIIJCd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Sep 2009 05:02:33 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C4C57@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Rabin Vincent <rabin@rab.in>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: subramaniam.ca@ti.com
+Cc: linux-omap@vger.kernel.org, tony@atomide.com, rmk@arm.linux.org.uk, h-kanigeri2@ti.com, grgupta@ti.com
 
-Hi Russell,
+Hi Subbu,
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Wednesday, September 09, 2009 12:47 PM
-> To: Syed Mohammed, Khasim
-> Cc: Aguirre Rodriguez, Sergio Alberto; Rabin Vincent; linux-arm-
-> kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
-> Subject: Re: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
+From: "ext C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: RE: [PATCH 10/10] omap mailbox: OMAP4 Mailbox-driver Patch to support tasklet implementation
+Date: Tue, 8 Sep 2009 19:43:48 +0200
+
+[...]
+
+> > As I described in the comment on [PATCH 8/10], I think that 
+> > it would be better to keep "mach-omap2/mailbox.c" simple and 
+> > to add some additional logic on "plat-omap/mailbox.c".
+> > 
+> > Would it be possbile to move this tasklet implementation to 
+> > "plat-omap/mailbox.c"?
 > 
-> On Wed, Sep 09, 2009 at 10:12:48AM +0530, Syed Mohammed, Khasim wrote:
-> > Hello all,
-> >
-> > > -----Original Message-----
-> > > From: Aguirre Rodriguez, Sergio Alberto
-> > > Sent: Wednesday, September 09, 2009 7:35 AM
-> > > To: Russell King - ARM Linux; Rabin Vincent
-> > > Cc: Syed Mohammed, Khasim; linux-arm-kernel@lists.arm.linux.org.uk;
-> linux-
-> > > omap@vger.kernel.org
-> > > Subject: RE: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
-> > >
-> > > From: Russell King - ARM Linux [linux@arm.linux.org.uk]
-> > > Sent: Tuesday, September 08, 2009 11:23 PM
-> > > > >
-> > > > > Acks and tested-bys would be useful please.
-> > > >
-> > > > Haven't heard anything, so I've committed it as is.  It is my intention
-> > > > to push it to Linus as is in the next couple of days.
-> > >
-> > > Russell,
-> > >
-> > > I don't have ways of testing this, but I think Khasim's testing will make
-> > > more sense,
-> > > since he reported the bug... anyways, it's probably too late.
-> > >
-> > I am really sorry, wanted to try this out when RMK returns from vacation
-> meanwhile forgot :(
-> >
-> > The below logic from Rabin works great !!! no issues with this as well.
+> The implementation of the tasklet itself is maintained in plat-omap/mailbox.c
+> Since, I wanted to maintain a separate tasklet for each mailbox
+> instance used to send messages from MPU, I had to associate the the tasklet
+> to the mailbox. Hence, the changes were done in mach-omap2/mailbox.c
 > 
-> And how about my revised version, which is the version which is going
-> to be merged?
+> Please give your comments on this approach.
 
-Sorry for missing this out. This works, no issues reported.
+Wouldn't just converting work_queue to tasklet work like below?
 
-+int pfn_valid(unsigned long pfn) 
-+{ 
-+    struct meminfo *mi = &meminfo; 
-+    unsigned int left = 0, right = mi->nr_banks; 
-+ 
-+    do { 
-+        unsigned int mid = (right + left) / 2; 
-+        struct membank *bank = &mi->bank[mid]; 
-+ 
-+        if (pfn < bank_pfn_start(bank)) 
-+            right = mid; 
-+        else if (pfn >= bank_pfn_end(bank)) 
-+            left = mid + 1; 
-+        else 
-+            return 1; 
-+    } while (left < right); 
-+    return 0; 
-+}
+(I havne't tested this at all, though...)
 
-Thanks.
-
-Regards,
-Khasim
+diff --git a/arch/arm/plat-omap/include/mach/mailbox.h b/arch/arm/plat-omap/include/mach/mailbox.h
+index b7a6991..1f4e53e 100644
+--- a/arch/arm/plat-omap/include/mach/mailbox.h
++++ b/arch/arm/plat-omap/include/mach/mailbox.h
+@@ -52,6 +52,8 @@ struct omap_mbox {
+ 
+ 	struct omap_mbox_queue	*txq, *rxq;
+ 
++	struct tasklet_struct	tx_tasklet;
++
+ 	struct omap_mbox_ops	*ops;
+ 
+ 	mbox_msg_t		seq_snd, seq_rcv;
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 40424ed..37267ca 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -184,22 +184,17 @@ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg, void* arg)
+ }
+ EXPORT_SYMBOL(omap_mbox_msg_send);
+ 
+-static void mbox_tx_work(struct work_struct *work)
++static void mbox_tx_tasklet(unsigned long data)
+ {
+ 	int ret;
+ 	struct request *rq;
+-	struct omap_mbox_queue *mq = container_of(work,
+-				struct omap_mbox_queue, work);
+-	struct omap_mbox *mbox = mq->queue->queuedata;
++ 	struct omap_mbox *mbox = (struct omap_mbox *)data;
+ 	struct request_queue *q = mbox->txq->queue;
+ 
+ 	while (1) {
+ 		struct omap_msg_tx_data *tx_data;
+ 
+-		spin_lock(q->queue_lock);
+ 		rq = blk_fetch_request(q);
+-		spin_unlock(q->queue_lock);
+-
+ 		if (!rq)
+ 			break;
+ 
+@@ -208,15 +203,10 @@ static void mbox_tx_work(struct work_struct *work)
+ 		ret = __mbox_msg_send(mbox, tx_data->msg, tx_data->arg);
+ 		if (ret) {
+ 			enable_mbox_irq(mbox, IRQ_TX);
+-			spin_lock(q->queue_lock);
+ 			blk_requeue_request(q, rq);
+-			spin_unlock(q->queue_lock);
+ 			return;
+ 		}
+-
+-		spin_lock(q->queue_lock);
+ 		__blk_end_request_all(rq, 0);
+-		spin_unlock(q->queue_lock);
+ 	}
+ }
+ 
+@@ -266,7 +256,7 @@ static void __mbox_tx_interrupt(struct omap_mbox *mbox)
+ {
+ 	disable_mbox_irq(mbox, IRQ_TX);
+ 	ack_mbox_irq(mbox, IRQ_TX);
+-	schedule_work(&mbox->txq->work);
++	tasklet_schedule(&mbox->tx_tasklet);
+ }
+ 
+ static void __mbox_rx_interrupt(struct omap_mbox *mbox)
+@@ -434,7 +424,9 @@ static int omap_mbox_init(struct omap_mbox *mbox)
+ 		goto fail_request_irq;
+ 	}
+ 
+-	mq = mbox_queue_alloc(mbox, mbox_txq_fn, mbox_tx_work);
++	tasklet_init(&mbox->tx_tasklet, mbox_tx_tasklet, (unsigned long)mbox);
++
++	mq = mbox_queue_alloc(mbox, mbox_txq_fn, NULL);
+ 	if (!mq) {
+ 		ret = -ENOMEM;
+ 		goto fail_alloc_txq;
