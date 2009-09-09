@@ -1,43 +1,40 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] OMAP3: Lock DPLL5 at boot
-Date: Wed, 9 Sep 2009 22:21:12 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309C861B1@dbde02.ent.ti.com>
-References: <1252418056-5994-1-git-send-email-gadiyar@ti.com>
- <alpine.DEB.2.00.0909090939420.8657@utopia.booyaka.com>
- <FCCFB4CDC6E5564B9182F639FC35608702F9C307DD@dbde02.ent.ti.com>,<alpine.DEB.2.00.0909091022560.8657@utopia.booyaka.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C861AF@dbde02.ent.ti.com>,<alpine.DEB.2.00.0909091035120.8657@utopia.booyaka.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: Exception while  handling MEM Hole on OMAP3 / ARM Cortex A8
+Date: Wed, 9 Sep 2009 19:33:58 +0100
+Message-ID: <20090909183358.GC5235@n2100.arm.linux.org.uk>
+References: <20090817173343.GA17323@debian> <20090817174718.GU10764@n2100.arm.linux.org.uk> <20090817180145.GA17378@debian> <20090817180455.GW10764@n2100.arm.linux.org.uk> <A24693684029E5489D1D202277BE89444A8201BE@dlee02.ent.ti.com> <20090818030148.GA2283@debian> <A24693684029E5489D1D202277BE89444B781B03@dlee02.ent.ti.com> <0680EC522D0CC943BC586913CF3768C0037CF20A00@dbde02.ent.ti.com> <20090909071711.GF23361@n2100.arm.linux.org.uk> <0680EC522D0CC943BC586913CF3768C0037CF20AA2@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38999 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751894AbZIIQxW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Sep 2009 12:53:22 -0400
-In-Reply-To: <alpine.DEB.2.00.0909091035120.8657@utopia.booyaka.com>
-Content-Language: en-US
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:48913 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752678AbZIISfH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 9 Sep 2009 14:35:07 -0400
+Content-Disposition: inline
+In-Reply-To: <0680EC522D0CC943BC586913CF3768C0037CF20AA2@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: "Syed Mohammed, Khasim" <khasim@ti.com>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Rabin Vincent <rabin@rab.in>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> > > > >Thanks for the changes, I will queue this in a for-next branch for .33.
-> > > >
-> > > > Is this for .33 or .32?
-> > >
-> > > I think it might be a little late for .32.  If there is some crash or
-> > > instability that this fixes, we could queue it up for .32-fixes ?
-> >
-> > Well, without this, there's no way the child clocks can be enabled correctly.
+On Wed, Sep 09, 2009 at 01:16:48PM +0530, Syed Mohammed, Khasim wrote:
+> Hi Russell,
 > 
-> OK.  So is it the case that USBHOST/USBTLL/USIM won't work without this
-> fix?
-
-Yup. Not sure about USIM - will check.
-
+> > -----Original Message-----
+> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> > Sent: Wednesday, September 09, 2009 12:47 PM
+> > To: Syed Mohammed, Khasim
+> > Cc: Aguirre Rodriguez, Sergio Alberto; Rabin Vincent; linux-arm-
+> > kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org
+> > Subject: Re: Exception while handling MEM Hole on OMAP3 / ARM Cortex A8
+> > 
+> > And how about my revised version, which is the version which is going
+> > to be merged?
 > 
-> If so then we'll queue it for .32-fixes.  Since .32 is already at -rc9, I
-> think it is too late for .32.
-> 
+> Sorry for missing this out. This works, no issues reported.
 
-Would be nice. Thanks!
+And so can I add a:
+
+Tested-by: Khasim Syed Mohammed <khasim@ti.com>
+
+or is it a just a Reviewed-by: ?
