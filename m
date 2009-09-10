@@ -1,75 +1,62 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP3: PM: Enable GPIO module-level wakeups
-Date: Thu, 10 Sep 2009 08:53:08 -0700
-Message-ID: <1252597988-23561-1-git-send-email-khilman@deeprootsystems.com>
+Subject: Re: FW: [RFC][PATCH]: Adding support for omap-serail driver
+Date: Thu, 10 Sep 2009 08:57:49 -0700
+Message-ID: <87ws46aj2a.fsf@deeprootsystems.com>
+References: <F12CE1A68F023D498A2691C7B539311503935BC4@ZMY16EXM66.ds.mot.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f184.google.com ([209.85.222.184]:40357 "EHLO
-	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184AbZIJPxJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2009 11:53:09 -0400
-Received: by pzk14 with SMTP id 14so182358pzk.1
-        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 08:53:11 -0700 (PDT)
+Received: from mail-px0-f189.google.com ([209.85.216.189]:58090 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751733AbZIJP5t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2009 11:57:49 -0400
+Received: by pxi27 with SMTP id 27so198543pxi.15
+        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 08:57:52 -0700 (PDT)
+In-Reply-To: <F12CE1A68F023D498A2691C7B539311503935BC4@ZMY16EXM66.ds.mot.com> (HU TAO-TGHK's message of "Tue\, 1 Sep 2009 01\:32\:45 +0800")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Mike Chan <mikechan@google.com>, rschultz@google.com
+To: HU TAO-TGHK48 <taohu@motorola.com>
+Cc: linux-omap@vger.kernel.org
 
-Currently, only GPIOs in the wakeup domain (GPIOs in bank 0) are
-enabled as wakups.  This patch also enables GPIOs in the PER
-powerdomain (banks 2-6) to be used as possible wakeup sources.
+"HU TAO-TGHK48" <taohu@motorola.com> writes:
 
-In addition, this patch ensures that all GPIO wakeups can wakeup
-the MPU using the PM_MPUGRPSEL_<pwrdm> registers.
+> Resend to linux-omap
+>
+> -----Original Message-----
+> From: HU TAO-TGHK48 
+> Sent: Monday, August 31, 2009 7:50 PM
+> To: 'vimal singh'; linux-omap@vger.kernel.org; LKML;
+> linux-serial@vger.kernel.org
+> Cc: Ye Yuan.Bo-A22116; Chen Xiaolong-A21785
+> Subject: RE: [RFC][PATCH]: Adding support for omap-serail driver
+>
+>  
+> 1. Shall we cleanup PM related stuff in arch/arm/mach-omap2/serial.c as
+> well?
+>     Originally serail.c register UART IRQ  to decide if UART idle for a
+> while and is able to enter low power mode (e.g. retention).
+>     To work with original 8250 driver, it is probably the only way since
+> 8250 is not aware of OMAP PM.
+>    
+>     However  it would be more reasonable to merge PM stuff to
+> omap-serial.c. since the new driver is already OMAP specific
+>     
+> 2. There is an issue for DMA  with current implementation in serial.c 
+>     When Rx DMA is active NO Rx IRQ will be generated.
+>     So serial.c will easily set uart->can_sleep with "1" even there is
+> Rx DMA ongoing
+>     +	if ((iir & 0x4) && up->use_dma) {
+>     +		up->ier &= ~UART_IER_RDI;
+>     +		serial_out(up, UART_IER, up->ier
+>
+>    In my view, the best way is to do the idle detection in
+> omap_serial.c.
 
-NOTE: this doesn't enable the individual GPIOs as wakeups, this simply
-enables the per-bank wakeups at the powerdomain level.
+FWIW, as the author of much of the PM hacker in mach-omap2/serial.c, I
+agree with Tao.
 
-This problem was discovered by Mike Chan when preventing the CORE
-powerdomain from going into retention/off.  When CORE was allowed to
-hit retention, GPIO wakeups via IO pad were working fine, but when
-CORE remained on, GPIO module-level wakeups were not working properly.
+The only reason for the PM hackery in mach-omap2/serial.c is because
+of the limitations of the 8250 driver.
 
-To test, prevent CORE from going inactive/retention/off, thus
-preventing the IO chain from being armed:
-
-  # echo 3 > /debug/pm_debug/core_pwrdm/suspend
-
-This ensures that GPIO wakeups happen via module-level wakeups and
-not via IO pad.
-
-Tested on 3430SDP using the touchscreen GPIO (gpio 2, in WKUP)
-Tested on Zoom2 using the QUART interrup GPIO  (gpio 102, in PER)
-
-Also, c.f. OMAP PM wiki for troubleshooting GPIO wakeup issues:
-http://elinux.org/OMAP_Power_Management
-
-Reported-by: Mike Chan <mikechan@google.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm34xx.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 3d62b06..8166118 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -918,6 +918,16 @@ static void __init prcm_setup_regs(void)
- 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
- 			  OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
- 
-+	/* Enable GPIO wakeups in PER */
-+	prm_write_mod_reg(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
-+			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
-+			  OMAP3430_EN_GPIO6, OMAP3430_PER_MOD, PM_WKEN);
-+	/* and allow them to wake up MPU */
-+	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
-+			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
-+			  OMAP3430_GRPSEL_GPIO6,
-+			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
-+
- 	/* Don't attach IVA interrupts */
- 	prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
- 	prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
--- 
-1.6.4
+Kevin
 
