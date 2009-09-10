@@ -1,31 +1,33 @@
 From: "vimal singh" <vimalsingh@ti.com>
-Subject: (unknown)
-Date: Thu, 10 Sep 2009 17:07:44 +0530 (IST)
-Message-ID: <37010.192.168.10.88.1252582664.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH-v3 2/3] OMAP3: Add support for NAND on ZOOM2/LDP boards
+Date: Thu, 10 Sep 2009 17:11:35 +0530 (IST)
+Message-ID: <41204.192.168.10.88.1252582895.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42421 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:42590 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751926AbZIJLhq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Sep 2009 07:37:46 -0400
+	id S1751510AbZIJLlh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 10 Sep 2009 07:41:37 -0400
 Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8ABbiJV017669
-	for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 06:37:49 -0500
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8ABfZL8019740
+	for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 06:41:40 -0500
 Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8ABbgZU013961
-	for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 06:37:43 -0500 (CDT)
-Subject: 
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8ABfXWR015210
+	for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 06:41:34 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
+Sorry I clicked on -send- button without $SUBJECT. Correcting this time.
+
+-vimal
+
 From: Vimal Singh <vimalsingh@ti.com>
 
-Adding NAND support for ZOOM2 and LDP board. I have tested it for ZOOM2
-boards, someone can verify it for LDP, hopefully it should not have any
-problem.
+Adding NAND support for ZOOM2 and LDP board. I have tested it for ZOOM2 boards,
+someone can verify it for LDP, hopefully it should not have any problem.
 
 The size of the U-Boot environment partition was increased to 1.25MB.
 
