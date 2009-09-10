@@ -1,124 +1,26 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH 00/18] OMAP: DSS2: Intro
-Date: Fri, 11 Sep 2009 00:14:55 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436BA4F6D@dbde02.ent.ti.com>
-References: <1251462337-12531-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <4A9B96A7.5040005@gmail.com>
-	 <5e088bd90908310720p290ba68dwd6106a778fd7c740@mail.gmail.com>
-	 <0680EC522D0CC943BC586913CF3768C0037CE48136@dbde02.ent.ti.com>
-	 <19F8576C6E063C45BE387C64729E73940436A4A9B6@dbde02.ent.ti.com>
-	 <20090831155518.GC16876@atomide.com>	<4A9CC8DB.2050803@gmail.com>
-	 <20090902151126.f465bb15.akpm@linux-foundation.org>
- <1251975601.10724.9.camel@tubuntu>
+From: Suresh Rajashekara <suresh@mistralsolutions.com>
+Subject: Is there anyway to know the way OMAP got reset
+Date: Thu, 10 Sep 2009 11:48:47 -0700
+Message-ID: <deb0f030909101148i3571d6d4lfae38aebc6e7131a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59461 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752988AbZIJSph convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2009 14:45:37 -0400
-In-Reply-To: <1251975601.10724.9.camel@tubuntu>
-Content-Language: en-US
+Received: from mail-px0-f189.google.com ([209.85.216.189]:50332 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752414AbZIJSso (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2009 14:48:44 -0400
+Received: by pxi27 with SMTP id 27so301716pxi.15
+        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 11:48:47 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, ext Andrew Morton <akpm@linux-foundation.org>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
+Is there anyway on OMAP systems (or in general in embedded systems) to
+know a way in which the processor was reset, after the reset.
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Thursday, September 03, 2009 4:30 PM
-> To: ext Andrew Morton
-> Cc: Artem Bityutskiy; tony@atomide.com; Hiremath, Vaibhav; Syed
-> Mohammed, Khasim; sakoman@gmail.com; linux-kernel@vger.kernel.org;
-> linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
-> 
-> Hi,
-> 
-> On Thu, 2009-09-03 at 00:11 +0200, ext Andrew Morton wrote:
-> > On Tue, 01 Sep 2009 10:10:19 +0300
-> > Artem Bityutskiy <dedekind1@gmail.com> wrote:
-> >
-> > > Andrew,
-> > >
-> > > could you please help with merging this piece of (well written)
-> code?
-> > > Could you give your blessing to include it into linux-next now,
-> and
-> > > merge this during the next merge window?
-> >
-> > I'll merge them (after I've looked through them, which I'll do
-> now).
-> >
-> > But there are more rejects than I'm prepared to cope with.  The
-> various
-> > arch/arm files have undergone some changes in linux-next which
-> yield
-> > more breakage than I'm prepared to try to fix.  For example,
-> > arch/arm/mach-omap2/board-3430sdp.c:sdp3430_config[] ends up being
-> an
-> > empty array!
-> 
-> I rebased the patches on top of linux-next. The tree is at
-> http://gitorious.org/linux-omap-dss2/linux , in branch linux-next-
-> dss.
-> 
-> The only conflict was in board-3430sdp, and yes, sdp3430_config is
-> supposed to end up as an empty array.
-> 
-[Hiremath, Vaibhav] I have refreshed OMAp3EVM patch support on top of l-o master, as of now I have shared it under 
+I am using a system based on OMAP5912 OSK and its getting reset for no
+known reason.
 
-http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=summary
+Thanks in advance,
 
-under ti_display branch, and will be posting to L-O once DSS2 gets accepted.
-
-> > Then there's the matter of these patches, already in -mm:
-> >
-> > omapfb-add-support-for-the-apollon-lcd.patch
-> > omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
-> > omapfb-add-support-for-the-amstrad-delta-lcd.patch
-> > omapfb-add-support-for-the-2430sdp-lcd.patch
-> > omapfb-add-support-for-the-omap2evm-lcd.patch
-> > omapfb-add-support-for-the-3430sdp-lcd.patch
-> > omapfb-add-support-for-the-omap3-evm-lcd.patch
-> > omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
-> > omapfb-add-support-for-the-gumstix-overo-lcd.patch
-> > omapfb-add-support-for-the-zoom-mdk-lcd.patch
-> > omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
-> > n770-enable-lcd-mipi-dcs-in-kconfig.patch
-> > omapfb-dispc-various-typo-fixes.patch
-> > omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
-> > omapfb-dispc-enable-wake-up-capability.patch
-> > omapfb-dispc-allow-multiple-external-irq-handlers.patch
-> > omapfb-suspend-resume-only-if-fb-device-is-already-
-> initialized.patch
-> > omapfb-fix-coding-style-remove-dead-line.patch
-> > omapfb-add-fb-manual-update-option-to-kconfig.patch
-> > omapfb-hwa742-fix-pointer-to-be-const.patch
-> 
-> These are not in linux-next, I think. They are for the old OMAP
-> display
-> subsystem, and may cause some conflicts with DSS2. I think those
-> patches
-> should go in also, as the old driver is used for OMAP1 and fo all
-> the
-> other boards that have not been ported to use DSS2.
-> 
-> Should I rebase DSS2 on top of -mm and solve the conflicts? If so,
-> where
-> can I find your tree?
-> 
-[Hiremath, Vaibhav] Andrew,
-We have not heard anything back on this, when are you planning to merge DSS2?
-
-Actually other development patches are gating because of this, like V4L2 driver on top of DSS2.
-
-Thanks,
-Vaibhav
-
->  Tomi
-> 
-> 
-
+Suresh
