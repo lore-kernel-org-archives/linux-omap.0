@@ -1,154 +1,124 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [RFC] OMAP3 : PM : Handle variable length OPP tables
-Date: Thu, 10 Sep 2009 11:29:36 -0700
-Message-ID: <87my528xgv.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 00/18] OMAP: DSS2: Intro
+Date: Fri, 11 Sep 2009 00:14:55 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436BA4F6D@dbde02.ent.ti.com>
+References: <1251462337-12531-1-git-send-email-tomi.valkeinen@nokia.com>
+	 <4A9B96A7.5040005@gmail.com>
+	 <5e088bd90908310720p290ba68dwd6106a778fd7c740@mail.gmail.com>
+	 <0680EC522D0CC943BC586913CF3768C0037CE48136@dbde02.ent.ti.com>
+	 <19F8576C6E063C45BE387C64729E73940436A4A9B6@dbde02.ent.ti.com>
+	 <20090831155518.GC16876@atomide.com>	<4A9CC8DB.2050803@gmail.com>
+	 <20090902151126.f465bb15.akpm@linux-foundation.org>
+ <1251975601.10724.9.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f184.google.com ([209.85.222.184]:34884 "EHLO
-	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751165AbZIJS3g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2009 14:29:36 -0400
-Received: by pzk14 with SMTP id 14so294258pzk.1
-        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 11:29:39 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com> (Sanjeev Premi's message of "Mon\, 7 Sep 2009 20\:09\:34 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59461 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752988AbZIJSph convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2009 14:45:37 -0400
+In-Reply-To: <1251975601.10724.9.camel@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>, ext Andrew Morton <akpm@linux-foundation.org>
+Cc: Artem Bityutskiy <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "Syed Mohammed, Khasim" <khasim@ti.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Premi, Sanjeev" <premi@ti.com> writes:
 
-> Hi all,
->
-> There is no generic function to translate an OPP to FREQ and vice versa.
-> Came across the problem while trying to submit a follow-up to earlier
-> patch for change in mpurate via bootargs. 
->
-> The function get_opp in resource34xx.c, but it is always called with an
-> explicit addition of MAX_VDDn_OPP e.g.
->
->   opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
->   opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
->
-> This is 'addition' is required as there is no encapsulation of the
-> MIN and MAX VDDs associated to the table.
->
-> The patch below fixes this issue; buy creating a 'table' object with
-> necessary information. It can also help in getting rid of the
-> empty {0, 0, 0} at index 0 of each OPP table.
->
-> At the moment, it does not break any functionality in resource34xx.c;
-> migration to this encapsulation can be taken as next step.
->
-> This code is bare 'git-diff' for early comments. Formal patch to follow...
->
-> Best regards,
-> Sanjeev
+> -----Original Message-----
+> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> Sent: Thursday, September 03, 2009 4:30 PM
+> To: ext Andrew Morton
+> Cc: Artem Bityutskiy; tony@atomide.com; Hiremath, Vaibhav; Syed
+> Mohammed, Khasim; sakoman@gmail.com; linux-kernel@vger.kernel.org;
+> linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
+> 
+> Hi,
+> 
+> On Thu, 2009-09-03 at 00:11 +0200, ext Andrew Morton wrote:
+> > On Tue, 01 Sep 2009 10:10:19 +0300
+> > Artem Bityutskiy <dedekind1@gmail.com> wrote:
+> >
+> > > Andrew,
+> > >
+> > > could you please help with merging this piece of (well written)
+> code?
+> > > Could you give your blessing to include it into linux-next now,
+> and
+> > > merge this during the next merge window?
+> >
+> > I'll merge them (after I've looked through them, which I'll do
+> now).
+> >
+> > But there are more rejects than I'm prepared to cope with.  The
+> various
+> > arch/arm files have undergone some changes in linux-next which
+> yield
+> > more breakage than I'm prepared to try to fix.  For example,
+> > arch/arm/mach-omap2/board-3430sdp.c:sdp3430_config[] ends up being
+> an
+> > empty array!
+> 
+> I rebased the patches on top of linux-next. The tree is at
+> http://gitorious.org/linux-omap-dss2/linux , in branch linux-next-
+> dss.
+> 
+> The only conflict was in board-3430sdp, and yes, sdp3430_config is
+> supposed to end up as an empty array.
+> 
+[Hiremath, Vaibhav] I have refreshed OMAp3EVM patch support on top of l-o master, as of now I have shared it under 
 
-Is the goal of the min and max fields so you could have some OPPs
-in the table that aren't valid for some SoCs?  IOW, the 'max' value
-might be higher on newer SoCs with higher OPPs.
+http://arago-project.org/git/people/?p=vaibhav/ti-psp-omap-video.git;a=summary
 
-What if you want a list of OPPs, but want to remove one from the
-middle of the list?  The min/max approach doesn't work here.
+under ti_display branch, and will be posting to L-O once DSS2 gets accepted.
 
-What about a also extending the struct omap_opp to have some sort of
-valid field.
+> > Then there's the matter of these patches, already in -mm:
+> >
+> > omapfb-add-support-for-the-apollon-lcd.patch
+> > omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
+> > omapfb-add-support-for-the-amstrad-delta-lcd.patch
+> > omapfb-add-support-for-the-2430sdp-lcd.patch
+> > omapfb-add-support-for-the-omap2evm-lcd.patch
+> > omapfb-add-support-for-the-3430sdp-lcd.patch
+> > omapfb-add-support-for-the-omap3-evm-lcd.patch
+> > omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
+> > omapfb-add-support-for-the-gumstix-overo-lcd.patch
+> > omapfb-add-support-for-the-zoom-mdk-lcd.patch
+> > omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
+> > n770-enable-lcd-mipi-dcs-in-kconfig.patch
+> > omapfb-dispc-various-typo-fixes.patch
+> > omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
+> > omapfb-dispc-enable-wake-up-capability.patch
+> > omapfb-dispc-allow-multiple-external-irq-handlers.patch
+> > omapfb-suspend-resume-only-if-fb-device-is-already-
+> initialized.patch
+> > omapfb-fix-coding-style-remove-dead-line.patch
+> > omapfb-add-fb-manual-update-option-to-kconfig.patch
+> > omapfb-hwa742-fix-pointer-to-be-const.patch
+> 
+> These are not in linux-next, I think. They are for the old OMAP
+> display
+> subsystem, and may cause some conflicts with DSS2. I think those
+> patches
+> should go in also, as the old driver is used for OMAP1 and fo all
+> the
+> other boards that have not been ported to use DSS2.
+> 
+> Should I rebase DSS2 on top of -mm and solve the conflicts? If so,
+> where
+> can I find your tree?
+> 
+[Hiremath, Vaibhav] Andrew,
+We have not heard anything back on this, when are you planning to merge DSS2?
 
-Kevin
+Actually other development patches are gating because of this, like V4L2 driver on top of DSS2.
 
->
-> diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
-> index 583e540..2357784 100644
-> --- a/arch/arm/plat-omap/include/mach/omap-pm.h
-> +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-> @@ -33,6 +33,20 @@ struct omap_opp {
->         u16 vsel;
->  };
->  
-> +/* struct omap_opp_table - View OPP table as an object
-> + * @min: Minimum OPP id
-> + * @max: Maximim OPP id
-> + * @opps: Pointer to array defining the OPPs.
-> + *
-> + * An OPP table has varied length. Knowing minimum and maximum
-> + * OPP ids allow easy traversal.
-> + */
-> +struct omap_opp_table {
-> +       u8      min;
-> +       u8      max;
-> +       struct omap_opp* opps;
-> +};
-> +
->  extern struct omap_opp *mpu_opps;
->  extern struct omap_opp *dsp_opps;
->  extern struct omap_opp *l3_opps;
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index fec7d00..c90b1af 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -33,6 +33,7 @@
->  #include <mach/powerdomain.h>
->  #include <mach/resource.h>
->  #include <mach/omap34xx.h>
-> +#include <mach/omap-pm.h>
->  
->  #include "prm-regbits-34xx.h"
->  #include "pm.h"
-> @@ -281,3 +282,50 @@ static int __init omap_pm_init(void)
->         return error;
->  }
->  late_initcall(omap_pm_init);
-> +
-> +/*
-> + * Get frequency corresponding to an OPP
-> + */
-> +int opp_to_freq(unsigned int* freq, struct omap_opp_table* table, u8 opp)
-> +{
-> +        int i, found=0;
-> +
-> +        if (table && table->opps) {
-> +                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
-> +                        if (table->opps[i].opp_id == opp) {
-> +                                found = 1;
-> +                                break;
-> +                        }
-> +
-> +                if (found) {
-> +                        *freq = table->opps[i].rate;
-> +                        return 1;
-> +                }
-> +        }
-> +
-> +        return 0;
-> +}
-> +
-> +/*
-> + * Get OPP corresponding to a frequency
-> + */
-> +int freq_to_opp(u8* opp, struct omap_opp_table* table, unsigned long freq)
-> +{
-> +        int i, found=0;
-> +
-> +        if (table && table->opps) {
-> +                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
-> +                        if (table->opps[i].rate == freq) {
-> +                                found = 1;
-> +                                break;
-> +                        }
-> +
-> +                if (found) {
-> +                        *opp = table->opps[i].opp_id;
-> +                        return 1;
-> +                }
-> +        }
-> +
-> +        return 0;
-> +}
-> +
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Vaibhav
+
+>  Tomi
+> 
+> 
+
