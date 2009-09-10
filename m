@@ -1,145 +1,153 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/1] PM : cpuidle - update statistics for correct state
-Date: Thu, 10 Sep 2009 11:20:44 -0700
-Message-ID: <87zl928xvn.fsf@deeprootsystems.com>
-References: <1252144594-17906-1-git-send-email-premi@ti.com>
+Subject: Re: [RFC] OMAP3 : PM : Handle variable length OPP tables
+Date: Thu, 10 Sep 2009 11:29:36 -0700
+Message-ID: <87my528xgv.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:60050 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940AbZIJSUn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2009 14:20:43 -0400
-Received: by pxi27 with SMTP id 27so286619pxi.15
-        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 11:20:46 -0700 (PDT)
-In-Reply-To: <1252144594-17906-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Sat\,  5 Sep 2009 15\:26\:34 +0530")
+Received: from mail-pz0-f184.google.com ([209.85.222.184]:34884 "EHLO
+	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751165AbZIJS3g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 10 Sep 2009 14:29:36 -0400
+Received: by pzk14 with SMTP id 14so294258pzk.1
+        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 11:29:39 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com> (Sanjeev Premi's message of "Mon\, 7 Sep 2009 20\:09\:34 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Sanjeev Premi <premi@ti.com> writes:
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-> When 'enable_off_mode' is 0, the target power state for MPU
-> and Core is locally changed to PWRDM_POWER_RET but, the
-> statistics are updated for idle state originally selected
-> by the governor.
+> Hi all,
 >
-> This patch 'invalidates' the idle states that lead either of
-> MPU or Core to PWRDM_POWER_OFF state when 'enable_off_mode'
-> is '0'. The states are valid once 'enable_off_mode' is set
-> to '1'.
+> There is no generic function to translate an OPP to FREQ and vice versa.
+> Came across the problem while trying to submit a follow-up to earlier
+> patch for change in mpurate via bootargs. 
 >
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> The function get_opp in resource34xx.c, but it is always called with an
+> explicit addition of MAX_VDDn_OPP e.g.
+>
+>   opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
+>   opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
+>
+> This is 'addition' is required as there is no encapsulation of the
+> MIN and MAX VDDs associated to the table.
+>
+> The patch below fixes this issue; buy creating a 'table' object with
+> necessary information. It can also help in getting rid of the
+> empty {0, 0, 0} at index 0 of each OPP table.
+>
+> At the moment, it does not break any functionality in resource34xx.c;
+> migration to this encapsulation can be taken as next step.
+>
+> This code is bare 'git-diff' for early comments. Formal patch to follow...
+>
+> Best regards,
+> Sanjeev
 
-This is a good start, but doesn't actually fix the problem.  This is
-because the 'valid' field is an OMAP specific field and is not checked
-in any of our  'enter_idle' hooks.
+Is the goal of the min and max fields so you could have some OPPs
+in the table that aren't valid for some SoCs?  IOW, the 'max' value
+might be higher on newer SoCs with higher OPPs.
 
-It works in your test case because the code snippet you mentioned in
-PATCH 0/0 still modifies the target state.
+What if you want a list of OPPs, but want to remove one from the
+middle of the list?  The min/max approach doesn't work here.
 
-What we need is for the enter_idle_bm() enter function to check the
-.valid flag.  If it's not valid, then keep dropping states until it
-finds a valid flag or it hits the safe state.
+What about a also extending the struct omap_opp to have some sort of
+valid field.
 
 Kevin
 
-
-> ---
->  arch/arm/mach-omap2/cpuidle34xx.c |   34 +++++++++++++++++++++++++++-------
->  arch/arm/mach-omap2/pm.h          |    2 ++
->  arch/arm/mach-omap2/pm34xx.c      |    2 ++
->  3 files changed, 31 insertions(+), 7 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-> index 7bbec90..19273b3 100644
-> --- a/arch/arm/mach-omap2/cpuidle34xx.c
-> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
-> @@ -104,13 +104,6 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
->  	local_irq_disable();
->  	local_fiq_disable();
+> diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
+> index 583e540..2357784 100644
+> --- a/arch/arm/plat-omap/include/mach/omap-pm.h
+> +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
+> @@ -33,6 +33,20 @@ struct omap_opp {
+>         u16 vsel;
+>  };
 >  
-> -	if (!enable_off_mode) {
-> -		if (mpu_state < PWRDM_POWER_RET)
-> -			mpu_state = PWRDM_POWER_RET;
-> -		if (core_state < PWRDM_POWER_RET)
-> -			core_state = PWRDM_POWER_RET;
-> -	}
-> -
->  	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
->  	pwrdm_set_next_pwrst(core_pd, core_state);
->  
-> @@ -254,6 +247,31 @@ void omap_init_power_states(void)
->  				CPUIDLE_FLAG_CHECK_BM;
->  }
->  
-> +/**
-> + * omap3_cpuidle_update_states - Update the cpuidle states.
+> +/* struct omap_opp_table - View OPP table as an object
+> + * @min: Minimum OPP id
+> + * @max: Maximim OPP id
+> + * @opps: Pointer to array defining the OPPs.
 > + *
-> + * Currently, this function toggles the validity of idle states based upon
-> + * the flag 'enable_off_mode'. When the flag is set all states are valid.
-> + * Else, states leading to OFF state set to be invalid.
+> + * An OPP table has varied length. Knowing minimum and maximum
+> + * OPP ids allow easy traversal.
 > + */
-> +void omap3_cpuidle_update_states(void)
-> +{
-> +	int i;
+> +struct omap_opp_table {
+> +       u8      min;
+> +       u8      max;
+> +       struct omap_opp* opps;
+> +};
 > +
-> +	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-> +		if (enable_off_mode) {
-> +			omap3_power_states[i].valid = 1;
-> +		}
-> +		else {
-> +			if ((omap3_power_states[i].mpu_state
-> +					== PWRDM_POWER_OFF)
-> +				|| (omap3_power_states[i].core_state
-> +					== PWRDM_POWER_RET))
-> +			omap3_power_states[i].valid = 0;
-> +		}
-> +	}
+>  extern struct omap_opp *mpu_opps;
+>  extern struct omap_opp *dsp_opps;
+>  extern struct omap_opp *l3_opps;
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index fec7d00..c90b1af 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -33,6 +33,7 @@
+>  #include <mach/powerdomain.h>
+>  #include <mach/resource.h>
+>  #include <mach/omap34xx.h>
+> +#include <mach/omap-pm.h>
+>  
+>  #include "prm-regbits-34xx.h"
+>  #include "pm.h"
+> @@ -281,3 +282,50 @@ static int __init omap_pm_init(void)
+>         return error;
+>  }
+>  late_initcall(omap_pm_init);
+> +
+> +/*
+> + * Get frequency corresponding to an OPP
+> + */
+> +int opp_to_freq(unsigned int* freq, struct omap_opp_table* table, u8 opp)
+> +{
+> +        int i, found=0;
+> +
+> +        if (table && table->opps) {
+> +                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
+> +                        if (table->opps[i].opp_id == opp) {
+> +                                found = 1;
+> +                                break;
+> +                        }
+> +
+> +                if (found) {
+> +                        *freq = table->opps[i].rate;
+> +                        return 1;
+> +                }
+> +        }
+> +
+> +        return 0;
 > +}
 > +
->  struct cpuidle_driver omap3_idle_driver = {
->  	.name = 	"omap3_idle",
->  	.owner = 	THIS_MODULE,
-> @@ -303,6 +321,8 @@ int omap3_idle_init(void)
->  		return -EINVAL;
->  	dev->state_count = count;
->  
-> +	omap3_cpuidle_update_states();
+> +/*
+> + * Get OPP corresponding to a frequency
+> + */
+> +int freq_to_opp(u8* opp, struct omap_opp_table* table, unsigned long freq)
+> +{
+> +        int i, found=0;
 > +
->  	if (cpuidle_register_device(dev)) {
->  		printk(KERN_ERR "%s: CPUidle register device failed\n",
->  		       __func__);
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index 498f55d..d18fe49 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -86,6 +86,8 @@ extern void omap34xx_cpu_suspend(u32 *addr, int save_state);
->  extern void save_secure_ram_context(u32 *addr);
->  extern void omap3_save_scratchpad_contents(void);
->  
-> +extern void omap3_cpuidle_update_states(void);
+> +        if (table && table->opps) {
+> +                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
+> +                        if (table->opps[i].rate == freq) {
+> +                                found = 1;
+> +                                break;
+> +                        }
 > +
->  extern unsigned int omap24xx_idle_loop_suspend_sz;
->  extern unsigned int omap34xx_suspend_sz;
->  extern unsigned int save_secure_ram_context_sz;
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 9ce651a..6ebb4d1 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -968,6 +968,8 @@ void omap3_pm_off_mode_enable(int enable)
->  	else
->  		state = PWRDM_POWER_RET;
->  
-> +	omap3_cpuidle_update_states();
+> +                if (found) {
+> +                        *opp = table->opps[i].opp_id;
+> +                        return 1;
+> +                }
+> +        }
 > +
->  #ifdef CONFIG_OMAP_PM_SRF
->  	resource_lock_opp(VDD1_OPP);
->  	resource_lock_opp(VDD2_OPP);
-> -- 
-> 1.6.2.2
->
+> +        return 0;
+> +}
+> +
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
