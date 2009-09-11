@@ -1,49 +1,42 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: FW: [RFC][PATCH]: Adding support for omap-serail driver
-Date: Fri, 11 Sep 2009 11:45:02 +0530
-Message-ID: <d6a0f7aa0909102315r3ec682a3u9b3da26eb031ca27@mail.gmail.com>
-References: <F12CE1A68F023D498A2691C7B539311503935BC4@ZMY16EXM66.ds.mot.com>
-	 <87ws46aj2a.fsf@deeprootsystems.com>
+From: Adrian Hunter <adrian.hunter@nokia.com>
+Subject: Re: V3 - mmc and omap_hsmmc patches
+Date: Fri, 11 Sep 2009 10:20:45 +0300
+Message-ID: <4AA9FA4D.7060701@nokia.com>
+References: <004e01ca3239$14eb9ab0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:32380 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbZIKGO7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 02:14:59 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so287362qwb.37
-        for <linux-omap@vger.kernel.org>; Thu, 10 Sep 2009 23:15:02 -0700 (PDT)
-In-Reply-To: <87ws46aj2a.fsf@deeprootsystems.com>
+Received: from smtp.nokia.com ([192.100.122.230]:28589 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752823AbZIKHUu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 03:20:50 -0400
+In-Reply-To: <004e01ca3239$14eb9ab0$544ff780@am.dhcp.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: HU TAO-TGHK48 <taohu@motorola.com>, linux-omap@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Andrew Morton' <akpm@linux-foundation.org>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, 'Matt Fleming' <matt@console-pimps.org>
 
-Hi,
+Madhusudhan wrote:
+> Hi Adrian,
+> 
+>> [PATCH V3 0/30] mmc and omap_hsmmc patches
+> 
+> What is the reason for V3? What is the difference between V2 and V3 series?
 
->
-> FWIW, as the author of much of the PM hacker in mach-omap2/serial.c, I
-> agree with Tao.
->
-> The only reason for the PM hackery in mach-omap2/serial.c is because
-> of the limitations of the 8250 driver.
->
+The reason for V3 is that the SD-only and MMC-only host capability patches were
+not wanted.
 
-I have an query,
+The difference is that patches originally numbered 0007 and 0027 were dropped
+and the rest re-rolled.
+i.e.
 
-We have following functionality in serial.c:
-1.) Enabling and disabling uart clocks.
-2.) Adding rx wakeup capabilities.
-3.) Preparing UARTs for idle mode.
-4.) Context save and restore.
+	Subject: [PATCH V2 7/32] mmc: add host capabilities for SD only and MMC only
+	File: 0007-mmc-add-host-capabilities-for-SD-only-and-MMC-only.patch
 
-What functionality should be retained in serial.c file?
+	Subject: [PATCH V2 27/32] omap_hsmmc: pass host capabilities for SD only and MMC only
+	File: 0027-omap_hsmmc-pass-host-capabilities-for-SD-only-and-M.patch
 
-AFAIK currently no serial driver has incorporated their platform
-specific PM functionality like context_save and restore into their
-serial driver, shouldn't these things be retained into
-*/mach-omap2/serial.c ?
+were removed.
 
----
-Regards,
-Govindraj.R
+
