@@ -1,79 +1,192 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] [ARM] omap: resource: Make resource_refresh() thread safe.
-Date: Fri, 11 Sep 2009 14:10:37 -0700
-Message-ID: <87ws455gs2.fsf@deeprootsystems.com>
-References: <1252019887-4463-1-git-send-email-mike@android.com>
-	<87eiqhkqch.fsf@deeprootsystems.com> <4AA9CE36.3080903@ti.com>
+Subject: Re: [RFC] OMAP3 : PM : Handle variable length OPP tables
+Date: Fri, 11 Sep 2009 14:21:50 -0700
+Message-ID: <87eiqd5g9d.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com>
+	<87my528xgv.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DD7D0A9A@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:46599 "EHLO
+Received: from mail-px0-f189.google.com ([209.85.216.189]:49519 "EHLO
 	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755417AbZIKVKg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 17:10:36 -0400
-Received: by pxi27 with SMTP id 27so1078866pxi.15
-        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2009 14:10:39 -0700 (PDT)
-In-Reply-To: <4AA9CE36.3080903@ti.com> (Mike Turquette's message of "Thu\, 10 Sep 2009 23\:12\:38 -0500")
+	with ESMTP id S1751923AbZIKVVu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 17:21:50 -0400
+Received: by pxi27 with SMTP id 27so1083394pxi.15
+        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2009 14:21:53 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD7D0A9A@dbde02.ent.ti.com> (Sanjeev Premi's message of "Fri\, 11 Sep 2009 11\:42\:36 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Turquette <mturquette@ti.com>
-Cc: Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Mike Turquette <mturquette@ti.com> writes:
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-> Kevin Hilman wrote:
->> Mike Chan <mike@android.com> writes:
->>
->>> Need to lock the res_mutex when traversing the res_list.
->>>
->>> Signed-off-by: Mike Chan <mike@android.com>
->>
->> Looks good, thanks.
+>> -----Original Message-----
+>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>> Sent: Friday, September 11, 2009 12:00 AM
+>> To: Premi, Sanjeev
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [RFC] OMAP3 : PM : Handle variable length OPP tables
+>> 
+>> "Premi, Sanjeev" <premi@ti.com> writes:
+>> 
+>> > Hi all,
+>> >
+>> > There is no generic function to translate an OPP to FREQ 
+>> and vice versa.
+>> > Came across the problem while trying to submit a follow-up 
+>> to earlier
+>> > patch for change in mpurate via bootargs. 
+>> >
+>> > The function get_opp in resource34xx.c, but it is always 
+>> called with an
+>> > explicit addition of MAX_VDDn_OPP e.g.
+>> >
+>> >   opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
+>> >   opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
+>> >
+>> > This is 'addition' is required as there is no encapsulation of the
+>> > MIN and MAX VDDs associated to the table.
+>> >
+>> > The patch below fixes this issue; buy creating a 'table' object with
+>> > necessary information. It can also help in getting rid of the
+>> > empty {0, 0, 0} at index 0 of each OPP table.
+>> >
+>> > At the moment, it does not break any functionality in 
+>> resource34xx.c;
+>> > migration to this encapsulation can be taken as next step.
+>> >
+>> > This code is bare 'git-diff' for early comments. Formal 
+>> patch to follow...
+>> >
+>> > Best regards,
+>> > Sanjeev
+>> 
+>> Is the goal of the min and max fields so you could have some OPPs
+>> in the table that aren't valid for some SoCs?  IOW, the 'max' value
+>> might be higher on newer SoCs with higher OPPs.
 >
-> This patch causes a hang for me when transitioning to OFF mode.  This
-> was tested on the Android 2.6.29 tree and is 100% reproducible.  The
-> moment a user runs 'echo 1 > /sys/power/enable_off_mode' the board
-> hangs without any further output.
+> The goal is to have get_*() functions where caller shouldn't be aware
+> of the MAX_ for the table. Considering table as an object, it should
+> be able to provide its own length.
 >
-> Reverting the patch allows me to hit OFF mode again.  I haven't yet
-> tested this on vanilla 2.6.29 or latest L-O.
+> Reason to use min and max was to maintain current functionality as is.
+> Else, simple 'length' should be sufficient.
 >
+>> 
+>> What if you want a list of OPPs, but want to remove one from the
+>> middle of the list?  The min/max approach doesn't work here.
+>> 
+>> What about a also extending the struct omap_opp to have some sort of
+>> valid field.
+>
+> This doesn't help in eliminating the addition of MAX value for each
+> function call.
 
-OK, reverting this in both PM branches.  Looks like a deadlock to me,
-as update_resource_level() must cause a call to something else that
-takes the mutex.
+No it doesn't.  I'm just thinking about the next step of having a more flexible list of OPPs.
 
 Kevin
 
->
->> Pushed to PM branch and pm-2.6.29.
->>
->> Kevin
->>
->>> ---
->>>  arch/arm/plat-omap/resource.c |    2 ++
->>>  1 files changed, 2 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
->>> index 25072cd..4631912 100644
->>> --- a/arch/arm/plat-omap/resource.c
->>> +++ b/arch/arm/plat-omap/resource.c
->>> @@ -234,11 +234,13 @@ int resource_refresh(void)
->>>  	struct shared_resource *resp = NULL;
->>>  	int ret = 0;
->>>  +	down(&res_mutex);
->>>  	list_for_each_entry(resp, &res_list, node) {
->>>  		ret = update_resource_level(resp);
->>>  		if (ret)
->>>  			break;
->>>  	}
->>> +	up(&res_mutex);
->>>  	return ret;
->>>  }
->>>  -- 
->>> 1.5.4.5
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+>> 
+>> >
+>> > diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h 
+>> b/arch/arm/plat-omap/include/mach/omap-pm.h
+>> > index 583e540..2357784 100644
+>> > --- a/arch/arm/plat-omap/include/mach/omap-pm.h
+>> > +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
+>> > @@ -33,6 +33,20 @@ struct omap_opp {
+>> >         u16 vsel;
+>> >  };
+>> >  
+>> > +/* struct omap_opp_table - View OPP table as an object
+>> > + * @min: Minimum OPP id
+>> > + * @max: Maximim OPP id
+>> > + * @opps: Pointer to array defining the OPPs.
+>> > + *
+>> > + * An OPP table has varied length. Knowing minimum and maximum
+>> > + * OPP ids allow easy traversal.
+>> > + */
+>> > +struct omap_opp_table {
+>> > +       u8      min;
+>> > +       u8      max;
+>> > +       struct omap_opp* opps;
+>> > +};
+>> > +
+>> >  extern struct omap_opp *mpu_opps;
+>> >  extern struct omap_opp *dsp_opps;
+>> >  extern struct omap_opp *l3_opps;
+>> > diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+>> > index fec7d00..c90b1af 100644
+>> > --- a/arch/arm/mach-omap2/pm.c
+>> > +++ b/arch/arm/mach-omap2/pm.c
+>> > @@ -33,6 +33,7 @@
+>> >  #include <mach/powerdomain.h>
+>> >  #include <mach/resource.h>
+>> >  #include <mach/omap34xx.h>
+>> > +#include <mach/omap-pm.h>
+>> >  
+>> >  #include "prm-regbits-34xx.h"
+>> >  #include "pm.h"
+>> > @@ -281,3 +282,50 @@ static int __init omap_pm_init(void)
+>> >         return error;
+>> >  }
+>> >  late_initcall(omap_pm_init);
+>> > +
+>> > +/*
+>> > + * Get frequency corresponding to an OPP
+>> > + */
+>> > +int opp_to_freq(unsigned int* freq, struct omap_opp_table* 
+>> table, u8 opp)
+>> > +{
+>> > +        int i, found=0;
+>> > +
+>> > +        if (table && table->opps) {
+>> > +                for (i=table->min;  table->opps[i].opp_id 
+>> <= table->max; i++)
+>> > +                        if (table->opps[i].opp_id == opp) {
+>> > +                                found = 1;
+>> > +                                break;
+>> > +                        }
+>> > +
+>> > +                if (found) {
+>> > +                        *freq = table->opps[i].rate;
+>> > +                        return 1;
+>> > +                }
+>> > +        }
+>> > +
+>> > +        return 0;
+>> > +}
+>> > +
+>> > +/*
+>> > + * Get OPP corresponding to a frequency
+>> > + */
+>> > +int freq_to_opp(u8* opp, struct omap_opp_table* table, 
+>> unsigned long freq)
+>> > +{
+>> > +        int i, found=0;
+>> > +
+>> > +        if (table && table->opps) {
+>> > +                for (i=table->min;  table->opps[i].opp_id 
+>> <= table->max; i++)
+>> > +                        if (table->opps[i].rate == freq) {
+>> > +                                found = 1;
+>> > +                                break;
+>> > +                        }
+>> > +
+>> > +                if (found) {
+>> > +                        *opp = table->opps[i].opp_id;
+>> > +                        return 1;
+>> > +                }
+>> > +        }
+>> > +
+>> > +        return 0;
+>> > +}
+>> > +
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe 
+>> linux-omap" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> 
