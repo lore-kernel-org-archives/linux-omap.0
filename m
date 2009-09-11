@@ -1,40 +1,121 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v2 0/2] Cleanup DEBUG_LL infrastructure
-Date: Fri, 11 Sep 2009 12:57:26 -0500
-Message-ID: <1252691846-9739-1-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH v2 1/2] OMAP: Zoom2: Add DEBUG_LL interface using Quart
+Date: Fri, 11 Sep 2009 12:57:50 -0500
+Message-ID: <1252691870-9785-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41006 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:57262 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754622AbZIKSCi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 11 Sep 2009 14:02:38 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8BI2fp9029138
-	for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2009 13:02:41 -0500
+	id S1755793AbZIKSDJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Sep 2009 14:03:09 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>, Erik Gilling <konkers@android.com>
 
-Patch1: add DEBUG_LL support for Zoom2 board that has external UART
-Patch2: clean up the DEBUG_LL infrastructure for run time detection
+This patch adds DEBUG_LL interface for Zoom2 board.
+The low level debug uart now points corrctly to External Quad uart
+controller on detachable debug board.
 
-Patchs are also hosted at:
-git://dev.omapzoom.org/pub/scm/vikram/omap3.git runtime-debug-ll
+The Quad uart is available over GPMC chip select with physical address
+0x10000000.
 
-Tested on OMAP3: SDP3430/Zoom2/Zoom1/Beagleboard
-Will appreciate if some can verify for OMAP2 and OMAP1 boards
+This physical address has been mapped to virtual address 0xFB000000
+as per static mapping.
 
-Vikram Pandita (2):
-  OMAP: Zoom2: Add DEBUG_LL interface using Quart
-  OMAP1/2/3/4: DEBUG_LL run time detection
+This patch is adapted from a version by Erik Gilling:
+http://android.git.kernel.org/?p=kernel/omap.git;
+a=commit;h=e9d72efdd88877d2d6ea74a08983ace0dcc771d3
 
- arch/arm/boot/compressed/head.S               |   17 ++++
- arch/arm/boot/compressed/misc.c               |  108 ++++++++++++++++++++++++-
- arch/arm/mach-omap2/board-zoom-debugboard.c   |    5 +-
- arch/arm/mach-omap2/board-zoom2.c             |   19 ++++-
- arch/arm/plat-omap/Kconfig                    |   16 ----
- arch/arm/plat-omap/include/mach/debug-macro.S |   74 +++++++++--------
- arch/arm/plat-omap/include/mach/io.h          |    6 ++
- arch/arm/plat-omap/include/mach/uncompress.h  |   22 +++---
- 8 files changed, 202 insertions(+), 65 deletions(-)
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Erik Gilling <konkers@android.com>
+---
+ arch/arm/mach-omap2/board-zoom-debugboard.c |    5 +++--
+ arch/arm/mach-omap2/board-zoom2.c           |   19 +++++++++++++++++--
+ arch/arm/plat-omap/include/mach/io.h        |    6 ++++++
+ 3 files changed, 26 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-zoom-debugboard.c b/arch/arm/mach-omap2/board-zoom-debugboard.c
+index 1f13e2a..70a4bba 100644
+--- a/arch/arm/mach-omap2/board-zoom-debugboard.c
++++ b/arch/arm/mach-omap2/board-zoom-debugboard.c
+@@ -82,9 +82,10 @@ static inline void __init zoom2_init_smsc911x(void)
+ 
+ static struct plat_serial8250_port serial_platform_data[] = {
+ 	{
+-		.mapbase	= 0x10000000,
++		.membase	= IOMEM(ZOOM2_EXT_QUART_VIRT),
++		.mapbase	= ZOOM2_EXT_QUART_PHYS,
+ 		.irq		= OMAP_GPIO_IRQ(102),
+-		.flags		= UPF_BOOT_AUTOCONF|UPF_IOREMAP|UPF_SHARE_IRQ,
++		.flags		= UPF_BOOT_AUTOCONF|UPF_SHARE_IRQ,
+ 		.irqflags	= IRQF_SHARED | IRQF_TRIGGER_RISING,
+ 		.iotype		= UPIO_MEM,
+ 		.regshift	= 1,
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 324009e..467e961 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -19,10 +19,12 @@
+ 
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
++#include <asm/mach/map.h>
+ 
+ #include <mach/common.h>
+ #include <mach/usb.h>
+ #include <mach/keypad.h>
++#include <mach/uncompress.h>
+ 
+ #include "mmc-twl4030.h"
+ 
+@@ -269,15 +271,28 @@ static void __init omap_zoom2_init(void)
+ 	usb_musb_init();
+ }
+ 
++static struct map_desc zoom2_io_desc[] __initdata = {
++	{
++		.virtual	= ZOOM2_EXT_QUART_VIRT,
++		.pfn		= __phys_to_pfn(ZOOM2_EXT_QUART_PHYS),
++		.length		= ZOOM2_EXT_QUART_SIZE,
++		.type		= MT_DEVICE
++	}
++};
++
+ static void __init omap_zoom2_map_io(void)
+ {
+ 	omap2_set_globals_343x();
++
++	/* Map external quad UART virt to phy mapping */
++	iotable_init(zoom2_io_desc, ARRAY_SIZE(zoom2_io_desc));
++
+ 	omap2_map_common_io();
+ }
+ 
+ MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
+-	.phys_io	= 0x48000000,
+-	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.phys_io	= ZOOM2_EXT_QUART_PHYS,
++	.io_pg_offst	= ((ZOOM2_EXT_QUART_VIRT) >> 18) & 0xfffc,
+ 	.boot_params	= 0x80000100,
+ 	.map_io		= omap_zoom2_map_io,
+ 	.init_irq	= omap_zoom2_init_irq,
+diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
+index 8d32df3..d67f06c 100644
+--- a/arch/arm/plat-omap/include/mach/io.h
++++ b/arch/arm/plat-omap/include/mach/io.h
+@@ -169,6 +169,12 @@
+ #define DSP_MMU_34XX_VIRT	0xe2000000
+ #define DSP_MMU_34XX_SIZE	SZ_4K
+ 
++/* Map External Quad UART for Zoom2 board */
++#define ZOOM2_EXT_QUART_PHYS		0x10000000 /* PHY address if fixed */
++#define ZOOM2_EXT_QUART_PHY_TO_VIRT_OFF	0xEB000000
++#define ZOOM2_EXT_QUART_VIRT		0xFB000000
++#define ZOOM2_EXT_QUART_SIZE		SZ_16
++
+ /*
+  * ----------------------------------------------------------------------------
+  * Omap4 specific IO mapping
+-- 
+1.6.3.3.334.g916e1
 
