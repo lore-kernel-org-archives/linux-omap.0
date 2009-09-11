@@ -1,49 +1,73 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH V3 28/30] omap_hsmmc: ensure all clock enables and
- disables are paired
-Date: Thu, 10 Sep 2009 15:02:10 -0700
-Message-ID: <20090910150210.e484afab.akpm@linux-foundation.org>
-References: <20090909115633.12833.39619.sendpatchset@ahunter-laptop>
-	<20090909120003.12833.82537.sendpatchset@ahunter-laptop>
+From: Mike Turquette <mturquette@ti.com>
+Subject: Re: [PATCH] [ARM] omap: resource: Make resource_refresh() thread
+ safe.
+Date: Thu, 10 Sep 2009 23:12:38 -0500
+Message-ID: <4AA9CE36.3080903@ti.com>
+References: <1252019887-4463-1-git-send-email-mike@android.com> <87eiqhkqch.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48920 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751096AbZIJWCs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 10 Sep 2009 18:02:48 -0400
-In-Reply-To: <20090909120003.12833.82537.sendpatchset@ahunter-laptop>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58494 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751078AbZIKEMt (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 11 Sep 2009 00:12:49 -0400
+In-Reply-To: <87eiqhkqch.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: jarkko.lavinen@nokia.com, adrian.hunter@nokia.com, madhu.cr@ti.com, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, pierre@ossman.eu, matt@console-pimps.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 09 Sep 2009 15:00:03 +0300
-Adrian Hunter <adrian.hunter@nokia.com> wrote:
-
-> >From baf6574a1b5e7c4fdc4a66d9e038efeee75ea1a0 Mon Sep 17 00:00:00 2001
-> From: Adrian Hunter <adrian.hunter@nokia.com>
-> Date: Sun, 31 May 2009 19:27:36 +0300
-> Subject: [PATCH] omap_hsmmc: ensure all clock enables and disables are paired
+Kevin Hilman wrote:
+> Mike Chan <mike@android.com> writes:
 > 
+>> Need to lock the res_mutex when traversing the res_list.
+>>
+>> Signed-off-by: Mike Chan <mike@android.com>
+> 
+> Looks good, thanks.
 
-This patch hasn't been updated with
-omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired-fix-for-the-db-clock-failure-message.patch,
-and
-omap_hsmmc-ensure-all-clock-enables-and-disables-are-paired-fix-for-the-db-clock-failure-message.patch
-is not present in the v3 patchset.  What's up with that?
+This patch causes a hang for me when transitioning to OFF mode.  This 
+was tested on the Android 2.6.29 tree and is 100% reproducible.  The 
+moment a user runs 'echo 1 > /sys/power/enable_off_mode' the board hangs 
+without any further output.
 
+Reverting the patch allows me to hit OFF mode again.  I haven't yet 
+tested this on vanilla 2.6.29 or latest L-O.
 
-I went through the patchset seeing what you'd done.
+Mike
 
-mmc-add-host-capabilities-for-sd-only-and-mmc-only.patch and
-omap_hsmmc-pass-host-capabilities-for-sd-only-and-mmc-only.patch were
-dropped.
-
-arm-omap-rx51-set-mmc-capabilities-and-power-saving-flag.patch was
-significantly altered (I queued a delta for that).
-
-omap_hsmmc-make-use-of-new-mmc_cap_nonremovable-host-capability.patch
-was changed a bit to fix rejects (I think).
+> Pushed to PM branch and pm-2.6.29.
+> 
+> Kevin
+> 
+>> ---
+>>  arch/arm/plat-omap/resource.c |    2 ++
+>>  1 files changed, 2 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
+>> index 25072cd..4631912 100644
+>> --- a/arch/arm/plat-omap/resource.c
+>> +++ b/arch/arm/plat-omap/resource.c
+>> @@ -234,11 +234,13 @@ int resource_refresh(void)
+>>  	struct shared_resource *resp = NULL;
+>>  	int ret = 0;
+>>  
+>> +	down(&res_mutex);
+>>  	list_for_each_entry(resp, &res_list, node) {
+>>  		ret = update_resource_level(resp);
+>>  		if (ret)
+>>  			break;
+>>  	}
+>> +	up(&res_mutex);
+>>  	return ret;
+>>  }
+>>  
+>> -- 
+>> 1.5.4.5
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
