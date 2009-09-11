@@ -1,42 +1,44 @@
-From: Adrian Hunter <adrian.hunter@nokia.com>
-Subject: Re: V3 - mmc and omap_hsmmc patches
-Date: Fri, 11 Sep 2009 10:20:45 +0300
-Message-ID: <4AA9FA4D.7060701@nokia.com>
-References: <004e01ca3239$14eb9ab0$544ff780@am.dhcp.ti.com>
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: Re: dspbridge rfc: get rid of services/list.c (v3)
+Date: Fri, 11 Sep 2009 10:47:44 +0300 (EEST)
+Message-ID: <20090911.104744.45149799.Hiroshi.DOYU@nokia.com>
+References: <1252411936-25722-1-git-send-email-andy.shevchenko@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:28589 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752823AbZIKHUu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 03:20:50 -0400
-In-Reply-To: <004e01ca3239$14eb9ab0$544ff780@am.dhcp.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:55471 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753471AbZIKHsF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 03:48:05 -0400
+In-Reply-To: <1252411936-25722-1-git-send-email-andy.shevchenko@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Andrew Morton' <akpm@linux-foundation.org>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, 'Matt Fleming' <matt@console-pimps.org>
+To: x0095840@ti.com, omar.ramirez@ti.com, bshah@ti.com
+Cc: linux-omap@vger.kernel.org, andy.shevchenko@gmail.com, ameya.palande@nokia.com, tony@atomide.com
 
-Madhusudhan wrote:
-> Hi Adrian,
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: dspbridge rfc: get rid of services/list.c (v3)
+Date: Tue, 8 Sep 2009 14:12:13 +0200
+
 > 
->> [PATCH V3 0/30] mmc and omap_hsmmc patches
+> Hello.
 > 
-> What is the reason for V3? What is the difference between V2 and V3 series?
+> Here are a few patches which change driver's own circular linked list
+> implementation to native one in linux kernel. The initial idea was come from
+> Hiroshi Doyu.
+> 
+> This version includes corrections which I got from Imre, Artem and Felipe.
+> 
+> All patches are rebased against android-bridge-2.6.29 kernel branch of the
+> kernel-dspbridge repository.
 
-The reason for V3 is that the SD-only and MMC-only host capability patches were
-not wanted.
+Any comment on those patches from TI?
 
-The difference is that patches originally numbered 0007 and 0027 were dropped
-and the rest re-rolled.
-i.e.
-
-	Subject: [PATCH V2 7/32] mmc: add host capabilities for SD only and MMC only
-	File: 0007-mmc-add-host-capabilities-for-SD-only-and-MMC-only.patch
-
-	Subject: [PATCH V2 27/32] omap_hsmmc: pass host capabilities for SD only and MMC only
-	File: 0027-omap_hsmmc-pass-host-capabilities-for-SD-only-and-M.patch
-
-were removed.
-
-
+> 
+> Please, review them. Thank you.
+> 
+> -- 
+> With Best Regards,
+> Andy Shevchenko
+> 
