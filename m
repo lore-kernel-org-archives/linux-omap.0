@@ -1,182 +1,79 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: defconfigs: remove SYSFS_DEPRECATED flag
-Date: Fri, 11 Sep 2009 14:08:55 -0700
-Message-ID: <873a6t6vfc.fsf@deeprootsystems.com>
-References: <1250112211-25445-1-git-send-email-vikram.pandita@ti.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F9C311C1@dbde02.ent.ti.com>
+Subject: Re: [PATCH] [ARM] omap: resource: Make resource_refresh() thread safe.
+Date: Fri, 11 Sep 2009 14:10:37 -0700
+Message-ID: <87ws455gs2.fsf@deeprootsystems.com>
+References: <1252019887-4463-1-git-send-email-mike@android.com>
+	<87eiqhkqch.fsf@deeprootsystems.com> <4AA9CE36.3080903@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:44814 "EHLO
+Received: from mail-px0-f189.google.com ([209.85.216.189]:46599 "EHLO
 	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932101AbZIKVI5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 17:08:57 -0400
-Received: by pxi27 with SMTP id 27so1078180pxi.15
-        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2009 14:08:59 -0700 (PDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F9C311C1@dbde02.ent.ti.com> (Vikram Pandita's message of "Sat\, 12 Sep 2009 00\:23\:56 +0530")
+	with ESMTP id S1755417AbZIKVKg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 17:10:36 -0400
+Received: by pxi27 with SMTP id 27so1078866pxi.15
+        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2009 14:10:39 -0700 (PDT)
+In-Reply-To: <4AA9CE36.3080903@ti.com> (Mike Turquette's message of "Thu\, 10 Sep 2009 23\:12\:38 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Mike Turquette <mturquette@ti.com>
+Cc: Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Pandita, Vikram" <vikram.pandita@ti.com> writes:
+Mike Turquette <mturquette@ti.com> writes:
 
-> Tony/Kevin
->  Any feedback on this patch for removal of SYSFS_DEPRECATED flag?
+> Kevin Hilman wrote:
+>> Mike Chan <mike@android.com> writes:
+>>
+>>> Need to lock the res_mutex when traversing the res_list.
+>>>
+>>> Signed-off-by: Mike Chan <mike@android.com>
+>>
+>> Looks good, thanks.
 >
-> Reference:
-> http://marc.info/?l=linux-omap&m=125011227920673&q=raw
+> This patch causes a hang for me when transitioning to OFF mode.  This
+> was tested on the Android 2.6.29 tree and is 100% reproducible.  The
+> moment a user runs 'echo 1 > /sys/power/enable_off_mode' the board
+> hangs without any further output.
+>
+> Reverting the patch allows me to hit OFF mode again.  I haven't yet
+> tested this on vanilla 2.6.29 or latest L-O.
+>
 
-I already ack'd:
+OK, reverting this in both PM branches.  Looks like a deadlock to me,
+as update_resource_level() must cause a call to something else that
+takes the mutex.
 
-  http://marc.info/?l=linux-omap&m=125011754929777&w=2
+Kevin
 
 >
->>-----Original Message-----
->>From: Pandita, Vikram
->>Sent: Wednesday, August 12, 2009 4:24 PM
->>To: linux-omap@vger.kernel.org
->>Cc: khilman@deeprootsystems.com; Pandita, Vikram
->>Subject: [PATCH] OMAP3: defconfigs: remove SYSFS_DEPRECATED flag
+>> Pushed to PM branch and pm-2.6.29.
 >>
->>Remove the SYSFS_DEPRECATED flag from OMAP3 board defconfigs
->>This is a deprecated feature no longer needed.
+>> Kevin
 >>
->>Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->>---
->>[Note: Did not change omap2/1 boards as they may still be using
->>old filesysterms requiring this flag]
+>>> ---
+>>>  arch/arm/plat-omap/resource.c |    2 ++
+>>>  1 files changed, 2 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
+>>> index 25072cd..4631912 100644
+>>> --- a/arch/arm/plat-omap/resource.c
+>>> +++ b/arch/arm/plat-omap/resource.c
+>>> @@ -234,11 +234,13 @@ int resource_refresh(void)
+>>>  	struct shared_resource *resp = NULL;
+>>>  	int ret = 0;
+>>>  +	down(&res_mutex);
+>>>  	list_for_each_entry(resp, &res_list, node) {
+>>>  		ret = update_resource_level(resp);
+>>>  		if (ret)
+>>>  			break;
+>>>  	}
+>>> +	up(&res_mutex);
+>>>  	return ret;
+>>>  }
+>>>  -- 
+>>> 1.5.4.5
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
->> arch/arm/configs/omap3_beagle_defconfig  |    4 ++--
->> arch/arm/configs/omap3_evm_defconfig     |    4 ++--
->> arch/arm/configs/omap3_pandora_defconfig |    5 +++--
->> arch/arm/configs/omap_3430sdp_defconfig  |    4 ++--
->> arch/arm/configs/omap_4430sdp_defconfig  |    4 ++--
->> arch/arm/configs/omap_ldp_defconfig      |    4 ++--
->> arch/arm/configs/omap_zoom2_defconfig    |    4 ++--
->> arch/arm/configs/overo_defconfig         |    4 ++--
->> 8 files changed, 17 insertions(+), 16 deletions(-)
->>
->>diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
->>index fe38a83..0c48a7c 100644
->>--- a/arch/arm/configs/omap3_beagle_defconfig
->>+++ b/arch/arm/configs/omap3_beagle_defconfig
->>@@ -52,8 +52,8 @@ CONFIG_FAIR_GROUP_SCHED=y
->> # CONFIG_RT_GROUP_SCHED is not set
->> CONFIG_USER_SCHED=y
->> # CONFIG_CGROUP_SCHED is not set
->>-CONFIG_SYSFS_DEPRECATED=y
->>-CONFIG_SYSFS_DEPRECATED_V2=y
->>+# CONFIG_SYSFS_DEPRECATED=y is not set
->>+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->> # CONFIG_RELAY is not set
->> # CONFIG_NAMESPACES is not set
->> CONFIG_BLK_DEV_INITRD=y
->>diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
->>index 28be17f..9273dcc 100644
->>--- a/arch/arm/configs/omap3_evm_defconfig
->>+++ b/arch/arm/configs/omap3_evm_defconfig
->>@@ -59,8 +59,8 @@ CONFIG_FAIR_GROUP_SCHED=y
->> CONFIG_USER_SCHED=y
->> # CONFIG_CGROUP_SCHED is not set
->> # CONFIG_CGROUPS is not set
->>-CONFIG_SYSFS_DEPRECATED=y
->>-CONFIG_SYSFS_DEPRECATED_V2=y
->>+# CONFIG_SYSFS_DEPRECATED=y is not set
->>+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->> # CONFIG_RELAY is not set
->> # CONFIG_NAMESPACES is not set
->> CONFIG_BLK_DEV_INITRD=y
->>diff --git a/arch/arm/configs/omap3_pandora_defconfig b/arch/arm/configs/omap3_pandora_defconfig
->>index b54ad2e..de0e659 100644
->>--- a/arch/arm/configs/omap3_pandora_defconfig
->>+++ b/arch/arm/configs/omap3_pandora_defconfig
->>@@ -51,8 +51,9 @@ CONFIG_FAIR_GROUP_SCHED=y
->> # CONFIG_RT_GROUP_SCHED is not set
->> CONFIG_USER_SCHED=y
->> # CONFIG_CGROUP_SCHED is not set
->>-CONFIG_SYSFS_DEPRECATED=y
->>-CONFIG_SYSFS_DEPRECATED_V2=y
->>+# CONFIG_SYSFS_DEPRECATED=y is not set
->>+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->>+
->> # CONFIG_RELAY is not set
->> # CONFIG_NAMESPACES is not set
->> CONFIG_BLK_DEV_INITRD=y
->>diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
->>index 8a4a7e2..5c9a686 100644
->>--- a/arch/arm/configs/omap_3430sdp_defconfig
->>+++ b/arch/arm/configs/omap_3430sdp_defconfig
->>@@ -61,8 +61,8 @@ CONFIG_FAIR_GROUP_SCHED=y
->> CONFIG_USER_SCHED=y
->> # CONFIG_CGROUP_SCHED is not set
->> # CONFIG_CGROUPS is not set
->>-CONFIG_SYSFS_DEPRECATED=y
->>-CONFIG_SYSFS_DEPRECATED_V2=y
->>+# CONFIG_SYSFS_DEPRECATED=y is not set
->>+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->> # CONFIG_RELAY is not set
->> # CONFIG_NAMESPACES is not set
->> CONFIG_BLK_DEV_INITRD=y
->>diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
->>index 23e43ea..a464ca3 100644
->>--- a/arch/arm/configs/omap_4430sdp_defconfig
->>+++ b/arch/arm/configs/omap_4430sdp_defconfig
->>@@ -52,8 +52,8 @@ CONFIG_FAIR_GROUP_SCHED=y
->> CONFIG_USER_SCHED=y
->> # CONFIG_CGROUP_SCHED is not set
->> # CONFIG_CGROUPS is not set
->>-CONFIG_SYSFS_DEPRECATED=y
->>-CONFIG_SYSFS_DEPRECATED_V2=y
->>+# CONFIG_SYSFS_DEPRECATED=y is not set
->>+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->> # CONFIG_RELAY is not set
->> # CONFIG_NAMESPACES is not set
->> CONFIG_BLK_DEV_INITRD=y
->>diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap_ldp_defconfig
->>index b9c4891..9139532 100644
->>--- a/arch/arm/configs/omap_ldp_defconfig
->>+++ b/arch/arm/configs/omap_ldp_defconfig
->>@@ -49,8 +49,8 @@ CONFIG_FAIR_GROUP_SCHED=y
->> # CONFIG_RT_GROUP_SCHED is not set
->> CONFIG_USER_SCHED=y
->> # CONFIG_CGROUP_SCHED is not set
->>-CONFIG_SYSFS_DEPRECATED=y
->>-CONFIG_SYSFS_DEPRECATED_V2=y
->>+# CONFIG_SYSFS_DEPRECATED=y is not set
->>+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->> # CONFIG_RELAY is not set
->> # CONFIG_NAMESPACES is not set
->> CONFIG_BLK_DEV_INITRD=y
->>diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
->>index f1739fa..a32d126 100644
->>--- a/arch/arm/configs/omap_zoom2_defconfig
->>+++ b/arch/arm/configs/omap_zoom2_defconfig
->>@@ -59,8 +59,8 @@ CONFIG_FAIR_GROUP_SCHED=y
->> CONFIG_USER_SCHED=y
->> # CONFIG_CGROUP_SCHED is not set
->> # CONFIG_CGROUPS is not set
->>-CONFIG_SYSFS_DEPRECATED=y
->>-CONFIG_SYSFS_DEPRECATED_V2=y
->>+# CONFIG_SYSFS_DEPRECATED=y is not set
->>+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->> # CONFIG_RELAY is not set
->> # CONFIG_NAMESPACES is not set
->> CONFIG_BLK_DEV_INITRD=y
->>diff --git a/arch/arm/configs/overo_defconfig b/arch/arm/configs/overo_defconfig
->>index a57f9e4..b3ea2c4 100644
->>--- a/arch/arm/configs/overo_defconfig
->>+++ b/arch/arm/configs/overo_defconfig
->>@@ -54,8 +54,8 @@ CONFIG_FAIR_GROUP_SCHED=y
->> # CONFIG_RT_GROUP_SCHED is not set
->> CONFIG_USER_SCHED=y
->> # CONFIG_CGROUP_SCHED is not set
->>-CONFIG_SYSFS_DEPRECATED=y
->>-CONFIG_SYSFS_DEPRECATED_V2=y
->>+# CONFIG_SYSFS_DEPRECATED=y is not set
->>+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->> # CONFIG_RELAY is not set
->> # CONFIG_NAMESPACES is not set
->> CONFIG_BLK_DEV_INITRD=y
->>--
->>1.6.3.3.334.g916e1
