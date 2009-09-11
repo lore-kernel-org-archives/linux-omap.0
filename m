@@ -1,175 +1,84 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] OMAP3: defconfigs: remove SYSFS_DEPRECATED flag
-Date: Sat, 12 Sep 2009 00:23:56 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9C311C1@dbde02.ent.ti.com>
-References: <1250112211-25445-1-git-send-email-vikram.pandita@ti.com>
+From: "Pandita, Vikram" <vikram.pandita-l0cyMroinI0@public.gmane.org>
+Subject: RE: [PATCH 2/3] USB: musb: omap: Fix wrong xceivr passing to twl4030
+Date: Sat, 12 Sep 2009 01:44:52 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9C311CF@dbde02.ent.ti.com>
+References: <1252105499-19003-1-git-send-email-vikram.pandita@ti.com>
+ <19F8576C6E063C45BE387C64729E73940436B014B8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50374 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755860AbZIKSyD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 14:54:03 -0400
-In-Reply-To: <1250112211-25445-1-git-send-email-vikram.pandita@ti.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436B014B8-/tLxBxkBPtCIQmiDNMet8wC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Gupta, Ajay Kumar" <ajay.gupta-l0cyMroinI0@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>, "Gadiyar, Anand" <gadiyar-l0cyMroinI0@public.gmane.org>, "felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, Tony Lindgren <tony@atomide.com>
 
-Tony/Kevin
- Any feedback on this patch for removal of SYSFS_DEPRECATED flag?
-
-Reference:
-http://marc.info/?l=linux-omap&m=125011227920673&q=raw
-
+Ajay
 
 >-----Original Message-----
->From: Pandita, Vikram
->Sent: Wednesday, August 12, 2009 4:24 PM
->To: linux-omap@vger.kernel.org
->Cc: khilman@deeprootsystems.com; Pandita, Vikram
->Subject: [PATCH] OMAP3: defconfigs: remove SYSFS_DEPRECATED flag
+>From: Gupta, Ajay Kumar
+>> Subject: [PATCH 2/3] USB: musb: omap: Fix wrong xceivr passing to twl4030
+>>
+>> Wrong pointer was getting passed to twl4030 transceiver.
+>>
+>> Call path is:
+>> otg_set_suspend -> twl4030_set_suspend
+>>
+>> drivers/usb/otg/twl4030-usb.c: twl4030_set_suspend() uses:
+>> 	struct twl4030_usb *twl = xceiv_to_twl(x);
+>>
+>> and xceiv_to_twl is container_of()
+>>
+>> So the same pointer needs to be passed to otg_set_suspend() as has
+>> been used for otg_set_transceiver.
+>>
+>> A crash is seen without this patch, as twl pointer access is worng
+>>
 >
->Remove the SYSFS_DEPRECATED flag from OMAP3 board defconfigs
->This is a deprecated feature no longer needed.
->
->Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->---
->[Note: Did not change omap2/1 boards as they may still be using
->old filesysterms requiring this flag]
->
-> arch/arm/configs/omap3_beagle_defconfig  |    4 ++--
-> arch/arm/configs/omap3_evm_defconfig     |    4 ++--
-> arch/arm/configs/omap3_pandora_defconfig |    5 +++--
-> arch/arm/configs/omap_3430sdp_defconfig  |    4 ++--
-> arch/arm/configs/omap_4430sdp_defconfig  |    4 ++--
-> arch/arm/configs/omap_ldp_defconfig      |    4 ++--
-> arch/arm/configs/omap_zoom2_defconfig    |    4 ++--
-> arch/arm/configs/overo_defconfig         |    4 ++--
-> 8 files changed, 17 insertions(+), 16 deletions(-)
->
->diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
->index fe38a83..0c48a7c 100644
->--- a/arch/arm/configs/omap3_beagle_defconfig
->+++ b/arch/arm/configs/omap3_beagle_defconfig
->@@ -52,8 +52,8 @@ CONFIG_FAIR_GROUP_SCHED=y
-> # CONFIG_RT_GROUP_SCHED is not set
-> CONFIG_USER_SCHED=y
-> # CONFIG_CGROUP_SCHED is not set
->-CONFIG_SYSFS_DEPRECATED=y
->-CONFIG_SYSFS_DEPRECATED_V2=y
->+# CONFIG_SYSFS_DEPRECATED=y is not set
->+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-> # CONFIG_RELAY is not set
-> # CONFIG_NAMESPACES is not set
-> CONFIG_BLK_DEV_INITRD=y
->diff --git a/arch/arm/configs/omap3_evm_defconfig b/arch/arm/configs/omap3_evm_defconfig
->index 28be17f..9273dcc 100644
->--- a/arch/arm/configs/omap3_evm_defconfig
->+++ b/arch/arm/configs/omap3_evm_defconfig
->@@ -59,8 +59,8 @@ CONFIG_FAIR_GROUP_SCHED=y
-> CONFIG_USER_SCHED=y
-> # CONFIG_CGROUP_SCHED is not set
-> # CONFIG_CGROUPS is not set
->-CONFIG_SYSFS_DEPRECATED=y
->-CONFIG_SYSFS_DEPRECATED_V2=y
->+# CONFIG_SYSFS_DEPRECATED=y is not set
->+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-> # CONFIG_RELAY is not set
-> # CONFIG_NAMESPACES is not set
-> CONFIG_BLK_DEV_INITRD=y
->diff --git a/arch/arm/configs/omap3_pandora_defconfig b/arch/arm/configs/omap3_pandora_defconfig
->index b54ad2e..de0e659 100644
->--- a/arch/arm/configs/omap3_pandora_defconfig
->+++ b/arch/arm/configs/omap3_pandora_defconfig
->@@ -51,8 +51,9 @@ CONFIG_FAIR_GROUP_SCHED=y
-> # CONFIG_RT_GROUP_SCHED is not set
-> CONFIG_USER_SCHED=y
-> # CONFIG_CGROUP_SCHED is not set
->-CONFIG_SYSFS_DEPRECATED=y
->-CONFIG_SYSFS_DEPRECATED_V2=y
->+# CONFIG_SYSFS_DEPRECATED=y is not set
->+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
->+
-> # CONFIG_RELAY is not set
-> # CONFIG_NAMESPACES is not set
-> CONFIG_BLK_DEV_INITRD=y
->diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
->index 8a4a7e2..5c9a686 100644
->--- a/arch/arm/configs/omap_3430sdp_defconfig
->+++ b/arch/arm/configs/omap_3430sdp_defconfig
->@@ -61,8 +61,8 @@ CONFIG_FAIR_GROUP_SCHED=y
-> CONFIG_USER_SCHED=y
-> # CONFIG_CGROUP_SCHED is not set
-> # CONFIG_CGROUPS is not set
->-CONFIG_SYSFS_DEPRECATED=y
->-CONFIG_SYSFS_DEPRECATED_V2=y
->+# CONFIG_SYSFS_DEPRECATED=y is not set
->+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-> # CONFIG_RELAY is not set
-> # CONFIG_NAMESPACES is not set
-> CONFIG_BLK_DEV_INITRD=y
->diff --git a/arch/arm/configs/omap_4430sdp_defconfig b/arch/arm/configs/omap_4430sdp_defconfig
->index 23e43ea..a464ca3 100644
->--- a/arch/arm/configs/omap_4430sdp_defconfig
->+++ b/arch/arm/configs/omap_4430sdp_defconfig
->@@ -52,8 +52,8 @@ CONFIG_FAIR_GROUP_SCHED=y
-> CONFIG_USER_SCHED=y
-> # CONFIG_CGROUP_SCHED is not set
-> # CONFIG_CGROUPS is not set
->-CONFIG_SYSFS_DEPRECATED=y
->-CONFIG_SYSFS_DEPRECATED_V2=y
->+# CONFIG_SYSFS_DEPRECATED=y is not set
->+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-> # CONFIG_RELAY is not set
-> # CONFIG_NAMESPACES is not set
-> CONFIG_BLK_DEV_INITRD=y
->diff --git a/arch/arm/configs/omap_ldp_defconfig b/arch/arm/configs/omap_ldp_defconfig
->index b9c4891..9139532 100644
->--- a/arch/arm/configs/omap_ldp_defconfig
->+++ b/arch/arm/configs/omap_ldp_defconfig
->@@ -49,8 +49,8 @@ CONFIG_FAIR_GROUP_SCHED=y
-> # CONFIG_RT_GROUP_SCHED is not set
-> CONFIG_USER_SCHED=y
-> # CONFIG_CGROUP_SCHED is not set
->-CONFIG_SYSFS_DEPRECATED=y
->-CONFIG_SYSFS_DEPRECATED_V2=y
->+# CONFIG_SYSFS_DEPRECATED=y is not set
->+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-> # CONFIG_RELAY is not set
-> # CONFIG_NAMESPACES is not set
-> CONFIG_BLK_DEV_INITRD=y
->diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
->index f1739fa..a32d126 100644
->--- a/arch/arm/configs/omap_zoom2_defconfig
->+++ b/arch/arm/configs/omap_zoom2_defconfig
->@@ -59,8 +59,8 @@ CONFIG_FAIR_GROUP_SCHED=y
-> CONFIG_USER_SCHED=y
-> # CONFIG_CGROUP_SCHED is not set
-> # CONFIG_CGROUPS is not set
->-CONFIG_SYSFS_DEPRECATED=y
->-CONFIG_SYSFS_DEPRECATED_V2=y
->+# CONFIG_SYSFS_DEPRECATED=y is not set
->+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-> # CONFIG_RELAY is not set
-> # CONFIG_NAMESPACES is not set
-> CONFIG_BLK_DEV_INITRD=y
->diff --git a/arch/arm/configs/overo_defconfig b/arch/arm/configs/overo_defconfig
->index a57f9e4..b3ea2c4 100644
->--- a/arch/arm/configs/overo_defconfig
->+++ b/arch/arm/configs/overo_defconfig
->@@ -54,8 +54,8 @@ CONFIG_FAIR_GROUP_SCHED=y
-> # CONFIG_RT_GROUP_SCHED is not set
-> CONFIG_USER_SCHED=y
-> # CONFIG_CGROUP_SCHED is not set
->-CONFIG_SYSFS_DEPRECATED=y
->-CONFIG_SYSFS_DEPRECATED_V2=y
->+# CONFIG_SYSFS_DEPRECATED=y is not set
->+# CONFIG_SYSFS_DEPRECATED_V2=y is not set
-> # CONFIG_RELAY is not set
-> # CONFIG_NAMESPACES is not set
-> CONFIG_BLK_DEV_INITRD=y
->--
->1.6.3.3.334.g916e1
+>musb->xceiv is also taken from otg_get_transceiver() in musb_platform_init(). So this patch is not
+>required.
 
+Thanks for pointing this out. 
+I will repost a set of 2 patches with this patch removed.
+
+Patches on their way.
+
+>
+>-Ajay
+>
+>> Signed-off-by: Vikram Pandita <vikram.pandita-l0cyMroinI0@public.gmane.org>
+>> ---
+>>  drivers/usb/musb/omap2430.c |    4 ++--
+>>  1 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+>> index b957575..ea7a798 100644
+>> --- a/drivers/usb/musb/omap2430.c
+>> +++ b/drivers/usb/musb/omap2430.c
+>> @@ -269,7 +269,7 @@ int musb_platform_suspend(struct musb *musb)
+>>  	l |= ENABLEWAKEUP;	/* enable wakeup */
+>>  	omap_writel(l, OTG_SYSCONFIG);
+>>
+>> -	otg_set_suspend(musb->xceiv, 1);
+>> +	otg_set_suspend(otg_get_transceiver(), 1);
+>>
+>>  	if (musb->set_clock)
+>>  		musb->set_clock(musb->clock, 0);
+>> @@ -286,7 +286,7 @@ int musb_platform_resume(struct musb *musb)
+>>  	if (!musb->clock)
+>>  		return 0;
+>>
+>> -	otg_set_suspend(musb->xceiv, 0);
+>> +	otg_set_suspend(otg_get_transceiver(), 0);
+>>
+>>  	if (musb->set_clock)
+>>  		musb->set_clock(musb->clock, 1);
+>> --
+>> 1.6.3.3.334.g916e1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
