@@ -1,107 +1,48 @@
-From: Mike Chan <mike@android.com>
-Subject: Re: [PATCH] [ARM] omap: resource: Make resource_refresh() thread
-	safe.
-Date: Fri, 11 Sep 2009 15:50:29 -0700
-Message-ID: <8bb80c380909111550o7041b1c5h1913f9290200429b@mail.gmail.com>
-References: <1252019887-4463-1-git-send-email-mike@android.com>
-	 <87eiqhkqch.fsf@deeprootsystems.com> <4AA9CE36.3080903@ti.com>
-	 <87ws455gs2.fsf@deeprootsystems.com>
+From: Matt Fleming <matt@console-pimps.org>
+Subject: Re: V3 - mmc and omap_hsmmc patches
+Date: Sat, 12 Sep 2009 10:49:37 +0100
+Message-ID: <20090912094936.GB21695@console-pimps.org>
+References: <004e01ca3239$14eb9ab0$544ff780@am.dhcp.ti.com>
+ <4AA9FA4D.7060701@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f195.google.com ([209.85.212.195]:41530 "EHLO
-	mail-vw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563AbZIKWu0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 11 Sep 2009 18:50:26 -0400
-Received: by vws33 with SMTP id 33so1013164vws.33
-        for <linux-omap@vger.kernel.org>; Fri, 11 Sep 2009 15:50:29 -0700 (PDT)
-In-Reply-To: <87ws455gs2.fsf@deeprootsystems.com>
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:54763 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752851AbZILJuN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Sep 2009 05:50:13 -0400
+Content-Disposition: inline
+In-Reply-To: <4AA9FA4D.7060701@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Mike Turquette <mturquette@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Adrian Hunter <adrian.hunter@nokia.com>
+Cc: Madhusudhan <madhu.cr@ti.com>, 'Andrew Morton' <akpm@linux-foundation.org>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
 
-On Fri, Sep 11, 2009 at 2:10 PM, Kevin
-Hilman<khilman@deeprootsystems.com> wrote:
-> Mike Turquette <mturquette@ti.com> writes:
->
->> Kevin Hilman wrote:
->>> Mike Chan <mike@android.com> writes:
->>>
->>>> Need to lock the res_mutex when traversing the res_list.
->>>>
->>>> Signed-off-by: Mike Chan <mike@android.com>
->>>
->>> Looks good, thanks.
->>
->> This patch causes a hang for me when transitioning to OFF mode. =A0T=
-his
->> was tested on the Android 2.6.29 tree and is 100% reproducible. =A0T=
-he
->> moment a user runs 'echo 1 > /sys/power/enable_off_mode' the board
->> hangs without any further output.
->>
->> Reverting the patch allows me to hit OFF mode again. =A0I haven't ye=
-t
->> tested this on vanilla 2.6.29 or latest L-O.
->>
->
-> OK, reverting this in both PM branches. =A0Looks like a deadlock to m=
-e,
-> as update_resource_level() must cause a call to something else that
-> takes the mutex.
->
+On Fri, Sep 11, 2009 at 10:20:45AM +0300, Adrian Hunter wrote:
+> Madhusudhan wrote:
+> > Hi Adrian,
+> > 
+> >> [PATCH V3 0/30] mmc and omap_hsmmc patches
+> > 
+> > What is the reason for V3? What is the difference between V2 and V3 series?
+> 
+> The reason for V3 is that the SD-only and MMC-only host capability patches were
+> not wanted.
+> 
+> The difference is that patches originally numbered 0007 and 0027 were dropped
+> and the rest re-rolled.
+> i.e.
+> 
+> 	Subject: [PATCH V2 7/32] mmc: add host capabilities for SD only and MMC only
+> 	File: 0007-mmc-add-host-capabilities-for-SD-only-and-MMC-only.patch
+> 
+> 	Subject: [PATCH V2 27/32] omap_hsmmc: pass host capabilities for SD only and MMC only
+> 	File: 0027-omap_hsmmc-pass-host-capabilities-for-SD-only-and-M.patch
+> 
+> were removed.
+> 
+> 
 
-Good catch, I see the deadlock are in the change_level function
-pointers. Where set_xxx will call resource_request() or
-resource_release() =3D> resource_lookup() which grabs the list mutex we
-grabbed in resource_refresh().
-
-Thoughts on changing the mutex to a RW semaphore?
-
--- Mike
-
-> Kevin
->
->>
->>> Pushed to PM branch and pm-2.6.29.
->>>
->>> Kevin
->>>
->>>> ---
->>>> =A0arch/arm/plat-omap/resource.c | =A0 =A02 ++
->>>> =A01 files changed, 2 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/re=
-source.c
->>>> index 25072cd..4631912 100644
->>>> --- a/arch/arm/plat-omap/resource.c
->>>> +++ b/arch/arm/plat-omap/resource.c
->>>> @@ -234,11 +234,13 @@ int resource_refresh(void)
->>>> =A0 =A0 struct shared_resource *resp =3D NULL;
->>>> =A0 =A0 int ret =3D 0;
->>>> =A0+ =A0down(&res_mutex);
->>>> =A0 =A0 list_for_each_entry(resp, &res_list, node) {
->>>> =A0 =A0 =A0 =A0 =A0 =A0 ret =3D update_resource_level(resp);
->>>> =A0 =A0 =A0 =A0 =A0 =A0 if (ret)
->>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->>>> =A0 =A0 }
->>>> + =A0 up(&res_mutex);
->>>> =A0 =A0 return ret;
->>>> =A0}
->>>> =A0--
->>>> 1.5.4.5
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
->>>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think my Reviewed-by can just be carried forward if this is a simple
+re-rolling. Though if for some reason they need reviewing again just
+nudge me.
