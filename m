@@ -1,48 +1,25 @@
-From: Matt Fleming <matt@console-pimps.org>
-Subject: Re: V3 - mmc and omap_hsmmc patches
-Date: Sat, 12 Sep 2009 10:49:37 +0100
-Message-ID: <20090912094936.GB21695@console-pimps.org>
-References: <004e01ca3239$14eb9ab0$544ff780@am.dhcp.ti.com>
- <4AA9FA4D.7060701@nokia.com>
+From: Tar Gz <bsdraisefromhell@gmail.com>
+Subject: OMAP 3430 Labrador Problem
+Date: Sat, 12 Sep 2009 17:59:24 +0700
+Message-ID: <d9ca78710909120359w24c6211cy2ab64a3bac4370f9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:54763 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752851AbZILJuN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Sep 2009 05:50:13 -0400
-Content-Disposition: inline
-In-Reply-To: <4AA9FA4D.7060701@nokia.com>
+Received: from mail-yw0-f174.google.com ([209.85.211.174]:53164 "EHLO
+	mail-yw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751916AbZILK7V (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Sep 2009 06:59:21 -0400
+Received: by ywh4 with SMTP id 4so2442712ywh.5
+        for <linux-omap@vger.kernel.org>; Sat, 12 Sep 2009 03:59:25 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@nokia.com>
-Cc: Madhusudhan <madhu.cr@ti.com>, 'Andrew Morton' <akpm@linux-foundation.org>, "Lavinen Jarkko (Nokia-D/Helsinki)" <jarkko.lavinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Fri, Sep 11, 2009 at 10:20:45AM +0300, Adrian Hunter wrote:
-> Madhusudhan wrote:
-> > Hi Adrian,
-> > 
-> >> [PATCH V3 0/30] mmc and omap_hsmmc patches
-> > 
-> > What is the reason for V3? What is the difference between V2 and V3 series?
-> 
-> The reason for V3 is that the SD-only and MMC-only host capability patches were
-> not wanted.
-> 
-> The difference is that patches originally numbered 0007 and 0027 were dropped
-> and the rest re-rolled.
-> i.e.
-> 
-> 	Subject: [PATCH V2 7/32] mmc: add host capabilities for SD only and MMC only
-> 	File: 0007-mmc-add-host-capabilities-for-SD-only-and-MMC-only.patch
-> 
-> 	Subject: [PATCH V2 27/32] omap_hsmmc: pass host capabilities for SD only and MMC only
-> 	File: 0027-omap_hsmmc-pass-host-capabilities-for-SD-only-and-M.patch
-> 
-> were removed.
-> 
-> 
+Hi all, i have problem with my labrador board
 
-I think my Reviewed-by can just be carried forward if this is a simple
-re-rolling. Though if for some reason they need reviewing again just
-nudge me.
+If i turn on my labrador, GPIO LED number 2 still alive and BT LED
+indicator still on(blue LED) and in my hyperterminal can't show
+anything....any suggest about that?
+
+best regards,
+Aldyth M
