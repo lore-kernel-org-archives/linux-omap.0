@@ -1,81 +1,47 @@
-From: Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH] omapfb: Reorder Register_framebuffer call
-Date: Sat, 12 Sep 2009 19:34:09 +0300
-Message-ID: <1252773249-24444-1-git-send-email-saaguirre@ti.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: several OMAP newbie questions
+Date: Sun, 13 Sep 2009 16:07:11 +0300
+Message-ID: <4AACEE7F.5030501@compulab.co.il>
+References: <4A9CF8AC.2010408@compulab.co.il>	<f96d234e0909041508m73e0f2a1r946f1c446d3880b6@mail.gmail.com> <87hbvaaiiv.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:62107 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754253AbZILQeO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 12 Sep 2009 12:34:14 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so194962fge.1
-        for <linux-omap@vger.kernel.org>; Sat, 12 Sep 2009 09:34:17 -0700 (PDT)
+Received: from compulab.co.il ([67.18.134.219]:33256 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752418AbZIMNHM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Sun, 13 Sep 2009 09:07:12 -0400
+In-Reply-To: <87hbvaaiiv.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Imre Deak <imre.deak@nokia.com>
-Cc: linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Cliff Brake <cliff.brake@gmail.com>, linux-omap@vger.kernel.org
 
-This fixes the issue in which mm_lock mutex was attempted to be
-used without initializing previously.
+Hi Kevin,
 
-Thanks to the testers!
- - OMAP3430 SDP (Anand Gadiyar)
- - OMAP3530 EVM (Vaibhav Hiremath)
- - LogicPD's OMAP boards (Peter Brada)
- - Beagleboard Rev. C2 (Eric Witcher)
+Kevin Hilman wrote:
+> There is lots of agreement around the various shortcomings of the
+> current mux framework for OMAP.  All that's missing is someone to step
+> up and do the work. :/
+> 
+> I started a new wiki topic at elinux.org for linux-omap wishlist items:
+> 
+>   http://elinux.org/OMAP_wishlist
+> 
+> here I created a pin-mux section where we could start to keep track of
+> the important features needed in a new mux framework.  Adding pointers
+> summaries to some other platforms might be useful here as well.
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Tested-by: Anand Gadiyar <gadiyar@ti.com>
-Tested-by: Peter Barada <peterb@logicpd.com>
-Tested-by: Eric Witcher <ewitcher@mindspring.com>
----
- drivers/video/omap/omapfb_main.c |   20 +++++++++++---------
- 1 files changed, 11 insertions(+), 9 deletions(-)
+If you'd like to I can add a brief description of what PXA does.
 
-diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-index 125e605..60f9482 100644
---- a/drivers/video/omap/omapfb_main.c
-+++ b/drivers/video/omap/omapfb_main.c
-@@ -1503,12 +1503,21 @@ static int fbinfo_init(struct omapfb_device *fbdev, struct fb_info *info)
- 	var->rotate	  = def_rotate;
- 	var->bits_per_pixel = fbdev->panel->bpp;
- 
-+	r = register_framebuffer(info);
-+	if (r != 0) {
-+		dev_err(fbdev->dev,
-+			"registering framebuffer failed\n");
-+		return r;
-+	}
-+
- 	set_fb_var(info, var);
- 	set_fb_fix(info);
- 
- 	r = fb_alloc_cmap(&info->cmap, 16, 0);
--	if (r != 0)
-+	if (r != 0) {
- 		dev_err(fbdev->dev, "unable to allocate color map memory\n");
-+		unregister_framebuffer(info);
-+	}
- 
- 	return r;
- }
-@@ -1773,15 +1782,8 @@ static int omapfb_do_probe(struct platform_device *pdev,
- 	init_state++;
- 
- 	vram = 0;
--	for (i = 0; i < fbdev->mem_desc.region_cnt; i++) {
--		r = register_framebuffer(fbdev->fb_info[i]);
--		if (r != 0) {
--			dev_err(fbdev->dev,
--				"registering framebuffer %d failed\n", i);
--			goto cleanup;
--		}
-+	for (i = 0; i < fbdev->mem_desc.region_cnt; i++)
- 		vram += fbdev->mem_desc.region[i].size;
--	}
- 
- 	fbdev->state = OMAPFB_ACTIVE;
- 
+> This will help us get a start so when someone is ready to step up and
+> do the work, we'll have a starting point.
+
+> Kevin
+> 
+
 -- 
-1.6.3.2
+Sincerely yours,
+Mike.
+
 
