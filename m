@@ -1,47 +1,47 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: Re: several OMAP newbie questions
-Date: Sun, 13 Sep 2009 16:07:11 +0300
-Message-ID: <4AACEE7F.5030501@compulab.co.il>
-References: <4A9CF8AC.2010408@compulab.co.il>	<f96d234e0909041508m73e0f2a1r946f1c446d3880b6@mail.gmail.com> <87hbvaaiiv.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] omap3-iommu: reorganize
+Date: Sun, 13 Sep 2009 23:36:50 +0300
+Message-ID: <94a0d4530909131336i4612b0c0jf19adaa4e6c3f166@mail.gmail.com>
+References: <1252873141-20496-1-git-send-email-felipe.contreras@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:33256 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752418AbZIMNHM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sun, 13 Sep 2009 09:07:12 -0400
-In-Reply-To: <87hbvaaiiv.fsf@deeprootsystems.com>
+Received: from fg-out-1718.google.com ([72.14.220.155]:49315 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751719AbZIMUgs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 13 Sep 2009 16:36:48 -0400
+In-Reply-To: <1252873141-20496-1-git-send-email-felipe.contreras@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Cliff Brake <cliff.brake@gmail.com>, linux-omap@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, Russell King <linux@arm.linux.org.uk>, "Tony Lindgren <tony@atomide.com> <tony@atomide.com>, Hiroshi DOYU
+	<Hiroshi.DOYU@nokia.com>," <linux-omap@vger.kernel.org>
 
-Hi Kevin,
+On Sun, Sep 13, 2009 at 11:19 PM, Felipe Contreras
+<felipe.contreras@gmail.com> wrote:
+> This way it's more object oriented and easier to see what is happening.
+> No functional changes.
+@@ -16,7 +16,7 @@
 
-Kevin Hilman wrote:
-> There is lots of agreement around the various shortcomings of the
-> current mux framework for OMAP.  All that's missing is someone to step
-> up and do the work. :/
-> 
-> I started a new wiki topic at elinux.org for linux-omap wishlist items:
-> 
->   http://elinux.org/OMAP_wishlist
-> 
-> here I created a pin-mux section where we could start to keep track of
-> the important features needed in a new mux framework.  Adding pointers
-> summaries to some other platforms might be useful here as well.
+Sorry, I forgot to address some comments from Russell from a previous
+version. I'll resend.
 
-If you'd like to I can add a brief description of what PXA does.
+ struct iommu_device {
+        resource_size_t base;
+-       resource_size_t irq;
++       int irq;
+        struct iommu_platform_data pdata;
+        struct resource res[2];
+ };
+@@ -67,7 +67,7 @@ static int __init omap3_iommu_init(void)
 
-> This will help us get a start so when someone is ready to step up and
-> do the work, we'll have a starting point.
+                res[0].start = d->base;
+                res[0].end = d->base + MMU_REG_SIZE - 1;
+-               res[1].start = d->irq;
++               res[1].start = res[1].end = d->irq;
 
-> Kevin
-> 
+                err = platform_device_add_resources(pdev, res,
+                                                    ARRAY_SIZE(res));
 
 -- 
-Sincerely yours,
-Mike.
-
-
+Felipe Contreras
