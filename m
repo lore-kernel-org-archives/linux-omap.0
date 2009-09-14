@@ -1,47 +1,40 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 3/3] ASoC: TWL6030: Handle power-up seq
- completion thru audio interrupt
-Date: Mon, 14 Sep 2009 18:33:28 +0100
-Message-ID: <20090914173327.GC2481@rakim.wolfsonmicro.main>
-References: <67059DBF19D7214F9C66BB0EA91BA90E90432709@dlee04.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: RT tests on OMAP3
+Date: Mon, 14 Sep 2009 10:50:07 -0700
+Message-ID: <8763bl4drk.fsf@deeprootsystems.com>
+References: <f96d234e0908311350u5d3d7680gfbf46a1c8f9de58f@mail.gmail.com>
+	<f96d234e0908312016v4ffb9765pe06dc53e5e679758@mail.gmail.com>
+	<f96d234e0908312018j5f36d6e1s95319f4669105d06@mail.gmail.com>
+	<87tyzkw1an.fsf@deeprootsystems.com>
+	<f96d234e0909031357i45c3b689sdd034e46b786b7c4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90E90432709@dlee04.ent.ti.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Lopez Cruz, Misael" <x0052729@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rt-users-owner@vger.kernel.org>
+In-Reply-To: <f96d234e0909031357i45c3b689sdd034e46b786b7c4@mail.gmail.com> (Cliff Brake's message of "Thu\, 3 Sep 2009 16\:57\:03 -0400")
+Sender: linux-rt-users-owner@vger.kernel.org
+To: Cliff Brake <cliff.brake@gmail.com>
+Cc: rt-users <linux-rt-users@vger.kernel.org>, Linux OMAP Users <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Sep 14, 2009 at 12:00:42PM -0500, Lopez Cruz, Misael wrote:
+Cliff Brake <cliff.brake@gmail.com> writes:
 
-> CODEC driver starts a wait_for_completion just after calling
-> external power-up callback. It's signaled as complete when
-> servicing READYINT interrupt.
+> On Thu, Sep 3, 2009 at 10:28 AM, Kevin
+> Hilman<khilman@deeprootsystems.com> wrote:
+>
+>> I've been using -rt on a basic OMAP3 kernel, but have not enabled
+>> EHCI so haven't seen this.
+>
+> What kernel version are you running, and what are you using for your
+> timer config?
+>
+> # CONFIG_OMAP_MBOX_FWK is not set
+> # CONFIG_OMAP_MPU_TIMER is not set
+> CONFIG_OMAP_32K_TIMER=y
+> CONFIG_OMAP_32K_TIMER_HZ=128
+> CONFIG_OMAP_DM_TIMER=y
 
-When you convert to registering as a normal driver you should do this
-waiting before registering the CODEC and DAI with the core - that will
-stop the ASoC card coming up before the CODEC is ready and means that
-you don't need to have a thread sitting blocked on the startup
-completing.
+I'm using the 32K timer as you are for PM reasons.  The 32k timer is
+in the wakeup powerdomain so is not disabled during low power
+idle/suspend.
 
-> MACHINE drivers should request IRQ line used in corresponding
-> hardware platform and initialize workqueue and completion structs
-> of twl6030_setup_data as well.
-
-I worry what will happen when someone builds a machine which doesn't
-bother hooking up the interrupt line - is it possible to poll for
-completion of startup if no interrupt is provided?  If they aren't using
-the jack and accessory detect functionality I can see someone not
-bothering to hook it up.  OTOH that could always be added later on if
-required.
+Kevin
