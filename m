@@ -1,639 +1,412 @@
-From: Gregoire Gentil <gregoire@gentil.com>
-Subject: Re: USB charging over TPS65950 BCI
-Date: Mon, 14 Sep 2009 15:53:39 -0700
-Message-ID: <1252968819.25977.31.camel@gregoire-laptop>
+From: "Syed Mohammed, Khasim" <khasim@ti.com>
+Subject: RE: USB charging over TPS65950 BCI
+Date: Tue, 15 Sep 2009 04:51:12 +0530
+Message-ID: <0680EC522D0CC943BC586913CF3768C0037CF214AE@dbde02.ent.ti.com>
 References: <f502236f0907310649t148117f6l8a5a06cb651dca6d@mail.gmail.com>
 	 <1249108890.20954.8.camel@gregoire-laptop>
 	 <1249489092.24549.9.camel@gregoire-laptop>
 	 <f502236f0909110651v1c323f7co1fc515654f236eda@mail.gmail.com>
 	 <f502236f0909110701o7b97959br63da1add5d3d37ba@mail.gmail.com>
-Reply-To: gregoire@gentil.com
+ <1252968819.25977.31.camel@gregoire-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:8190 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755354AbZINWxl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Sep 2009 18:53:41 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so1133669qwb.37
-        for <linux-omap@vger.kernel.org>; Mon, 14 Sep 2009 15:53:44 -0700 (PDT)
-In-Reply-To: <f502236f0909110701o7b97959br63da1add5d3d37ba@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42798 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757492AbZINXV3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 14 Sep 2009 19:21:29 -0400
+In-Reply-To: <1252968819.25977.31.camel@gregoire-laptop>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: pramod gurav <pramodforum@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tim Yamin <plasmaroo@gmail.com>, "Dighe, Gandhar" <gandhar@ti.com>
+To: "gregoire@gentil.com" <gregoire@gentil.com>, pramod gurav <pramodforum@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tim Yamin <plasmaroo@gmail.com>, "Dighe, Gandhar" <gandhar@ti.com>
 
-I don't know. I haven't seen yet a battery driver that works correctly
-with the TPS65950 and I have ping multiple times various people at TI.
-Perhaps Gandhar will have an idea. I think that it would be valuable fo=
-r
-the community that somebody at TI provides some patches to report
-correctly everything around the battery,
-
-Gr=C3=A9goire
-
-
-On Fri, 2009-09-11 at 19:31 +0530, pramod gurav wrote:=20
-> hi gregoire,
-> i did not mention about charge current. the sysfs entry charge_curren=
-t
-> always returns 360.
->=20
->=20
-> --=20
-> Best Regards
-> Pramod
->=20
->=20
-> On Fri, Sep 11, 2009 at 7:21 PM, pramod gurav <pramodforum@gmail.com>=
- wrote:
-> > Hello gregoire,
-> >
-> > Really sorry I could not reply to your mail as I was busy with some=
- other work.
-> > I applied your above patch tested. The sysfs entries return correct
-> > values for status, charger device(online), voltage_now. But the
-> > current across the battery is reported wrong. I compared the values
-> > returned by current_now sysfs entry with multimeter values across t=
-he
-> > battery. The values were varying whenever I remove AC and plug it
-> > back. But what I could see was the current_now value was approximat=
-ely
-> > double the actual current across the battery.
-> > Without your patch the twl4030_bci gives wrong values for current_n=
-ow,
-> > voltage_now, capacity etc.
-> > But your patch fixes this issue.
-> >
-> > But the USB charging did not work. Is USB charging functional with
-> > TWL4030 on any of the OMAP boards?
-> >
-> >
-> > Don't mind for the late reply. Thanks for your help.
-> >
-> > --
-> > Thanks and Best Regards
-> > Pramod
-> >
-> > On Wed, Aug 5, 2009 at 9:48 PM, Gregoire Gentil <gregoire@gentil.co=
-m> wrote:
-> >> Hello,
-> >>
-> >> Any feed-back on the patch I sent? Have you tried it? Have you fix=
-ed
-> >> your problem?
-> >>
-> >> Gr=C3=A9goire
-> >>
-> >>
-> >> On Fri, 2009-07-31 at 23:41 -0700, Gregoire Gentil wrote:
-> >>> On Fri, 2009-07-31 at 19:19 +0530, pramod gurav wrote:
-> >>> > Hi All,
-> >>> > I was trying to get the USB battery charging working over TPS65=
-950 BCI
-> >>> > on the OMAP3430 custom board. I am working with linux-omap-2.6
-> >>> > v2.6.28-omap1 tag. I enabled the TWL4030 MADC and TWL4030 BCI d=
-rivers.
-> >>> > I passed interrupt details to these drivers from platform_devic=
-e
-> >>> > structure from my board file. I could get the AC charging worki=
-ng. The
-> >>> > AC and USB detection worked. However the USB charging is not
-> >>> > happening.
-> >>> > I read through the TPS TRM and took the dumps of the registers =
-from
-> >>> > BCI and some from TWL USB module and BOOT_BCI whenever I plug i=
-n the
-> >>> > USB charger between host and the board. The register settings s=
-eem to
-> >>> > be fine. But the battery is not charging. I am using BQ27000 ch=
-ip for
-> >>> > battery monitoring and I can see the battery voltage is decreas=
-ing.
-> >>> >
-> >>> > Following are the register dumps of TWL with and without USB pl=
-ugged in:
-> >>> >
-> >>> > These are the register contents when USB charger is plugged in:
-> >>> > BCIMDEN         =3D 0x11
-> >>> > REG_BOOT_BCI    =3D 0x37
-> >>> > REG_POWER_CTRL  =3D 0x20
-> >>> > REG_BCIMFSTS4   =3D 0xf4
-> >>> > REG_BCIMFSTS1   =3D 0x13
-> >>> > REG_BCIIREF1    =3D 0x68
-> >>> > REG_BCIIREF2    =3D 0x3
-> >>> > REG_BCIMFEN4    =3D 0x6f
-> >>> > REG_BCIMFSTS2   =3D 0x0
-> >>> > REG_BCIMSTATEC  =3D 0x12
-> >>> > REG_STS_HW_CONDITIONS=3D 0x90
-> >>> >
-> >>> >
-> >>> > These are the register contents when USB charger is plugged out=
-:
-> >>> > BCIMDEN         =3D 0x0
-> >>> > REG_BOOT_BCI    =3D 0x35
-> >>> > REG_POWER_CTRL  =3D 0x20
-> >>> > REG_BCIMFSTS4   =3D 0xf0
-> >>> > REG_BCIMFSTS1   =3D 0xaa
-> >>> > REG_BCIIREF1    =3D 0x68
-> >>> > REG_BCIIREF2    =3D 0x3
-> >>> > REG_BCIMFEN4    =3D 0x68
-> >>> > REG_BCIMFSTS2   =3D 0x0
-> >>> > REG_BCIMSTATEC  =3D0x0
-> >>> > REG_STS_HW_CONDITIONS=3D 0x10
-> >>> >
-> >>> > Is there anything more I need to support to get BCI USB chargin=
-g
-> >>> > working? Need I follow any USB Communication protocol between H=
-ost and
-> >>> > the board.
-> >>> > I have pasted the kernel boot logs for reference at the end.
-> >>> > Can any one please guide me to some pointers?
-> >>> >
-> >>> > --
-> >>> > Best Regards
-> >>> > Pramod
-> >>> I'm experiencing some problems with TWL4030 DC charging and I'm
-> >>> interested by this kind of problem. Basically, the values reporte=
-d by
-> >>> our patch is different from the current going to the battery. We =
-wrote
-> >>> the attached enhanced patch so as to edit at run-time the chargin=
-g mode
-> >>> and various values including charge_current. It's against 2.6.29 =
-but I
-> >>> think that it should work again 2.6.28. Unfortunately, starting 2=
-=2E6.30,
-> >>> Tony has removed all the BCI battery code and has asked for updat=
-ed code
-> >>> against mainline but I've not seen anything so far.
-> >>>
-> >>> Pramod, can you try the attached patch (perhaps, it will help you=
-) and
-> >>> can you tell if you see the exact current going to the battery re=
-ported
-> >>> by the driver?
-> >>>
-> >>> Gr=C3=A9goire
-> >>>
-> >>>
-> >>>
-> >>>
-> >>>
-> >>> --- a/drivers/power/twl4030_bci_battery.c     2009-07-22 18:27:16=
-=2E000000000
-> >>> -0700
-> >>> +++ b/drivers/power/twl4030_bci_battery.c     2009-07-22 18:30:22=
-=2E000000000
-> >>> -0700
-> >>> @@ -15,6 +15,9 @@
-> >>>   * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PU=
-RPOSE.
-> >>>   */
-> >>>
-> >>> +/* Boot with automatic charge */
-> >>> +#define CHARGE_MODE 1
-> >>> +
-> >>>  #include <linux/init.h>
-> >>>  #include <linux/module.h>
-> >>>  #include <linux/device.h>
-> >>> @@ -50,6 +53,7 @@
-> >>>  /* Boot BCI flag bits */
-> >>>  #define BCIAUTOWEN           0x020
-> >>>  #define CONFIG_DONE          0x010
-> >>> +#define CVENAC                       0x004
-> >>>  #define BCIAUTOUSB           0x002
-> >>>  #define BCIAUTOAC            0x001
-> >>>  #define BCIMSTAT_MASK                0x03F
-> >>> @@ -81,6 +85,11 @@
-> >>>  #define REG_BB_CFG           0x012
-> >>>  #define BBCHEN                       0x010
-> >>>
-> >>> +/* GPBR */
-> >>> +#define REG_GPBR1            0x0c
-> >>> +#define MADC_HFCLK_EN                0x80
-> >>> +#define DEFAULT_MADC_CLK_EN  0x10
-> >>> +
-> >>>  /* Power supply charge interrupt */
-> >>>  #define REG_PWR_ISR1         0x00
-> >>>  #define REG_PWR_IMR1         0x01
-> >>> @@ -125,6 +134,18 @@
-> >>>  /* BCIEDR3 */
-> >>>  #define      VBATLVL_EDRRISIN        0x02
-> >>>
-> >>> +/* BCIIREF1 */
-> >>> +#define REG_BCIIREF1         0x027
-> >>> +#define REG_BCIIREF2         0x028
-> >>> +
-> >>> +/* BCIMFTH1 */
-> >>> +#define REG_BCIMFTH1         0x016
-> >>> +
-> >>> +/* Key */
-> >>> +#define KEY_IIREF            0xE7
-> >>> +#define KEY_FTH1             0xD2
-> >>> +#define REG_BCIMFKEY         0x011
-> >>> +
-> >>>  /* Step size and prescaler ratio */
-> >>>  #define TEMP_STEP_SIZE               147
-> >>>  #define TEMP_PSR_R           100
-> >>> @@ -142,9 +163,6 @@
-> >>>  #define ENABLE               1
-> >>>  #define DISABLE              1
-> >>>
-> >>> -/* Ptr to thermistor table */
-> >>> -int *therm_tbl;
-> >>> -
-> >>>  struct twl4030_bci_device_info {
-> >>>       struct device           *dev;
-> >>>
-> >>> @@ -160,6 +178,8 @@
-> >>>       struct power_supply     bk_bat;
-> >>>       struct delayed_work     twl4030_bci_monitor_work;
-> >>>       struct delayed_work     twl4030_bk_bci_monitor_work;
-> >>> +
-> >>> +     struct twl4030_bci_platform_data *pdata;
-> >>>  };
-> >>>
-> >>>  static int usb_charger_flag;
-> >>> @@ -425,15 +445,21 @@
-> >>>  /*
-> >>>   * Enable/Disable AC Charge funtionality.
-> >>>   */
-> >>> -static int twl4030charger_ac_en(int enable)
-> >>> +static int twl4030charger_ac_en(int enable, int automatic)
-> >>>  {
-> >>>       int ret;
-> >>>
-> >>>       if (enable) {
-> >>>               /* forcing the field BCIAUTOAC (BOOT_BCI[0) to 1 */
-> >>> -             ret =3D clear_n_set(TWL4030_MODULE_PM_MASTER, 0,
-> >>> -                     (CONFIG_DONE | BCIAUTOWEN | BCIAUTOAC),
-> >>> -                     REG_BOOT_BCI);
-> >>> +             if(!automatic) {
-> >>> +                     ret =3D clear_n_set(TWL4030_MODULE_PM_MASTE=
-R, BCIAUTOAC | CVENAC,
-> >>> +                             (CONFIG_DONE | BCIAUTOWEN),
-> >>> +                             REG_BOOT_BCI);
-> >>> +             } else {
-> >>> +                     ret =3D clear_n_set(TWL4030_MODULE_PM_MASTE=
-R, 0,
-> >>> +                             (CONFIG_DONE | BCIAUTOWEN | BCIAUTO=
-AC | CVENAC),
-> >>> +                             REG_BOOT_BCI);
-> >>> +             }
-> >>>               if (ret)
-> >>>                       return ret;
-> >>>       } else {
-> >>> @@ -518,11 +544,15 @@
-> >>>   * Return battery temperature
-> >>>   * Or < 0 on failure.
-> >>>   */
-> >>> -static int twl4030battery_temperature(void)
-> >>> +static int twl4030battery_temperature(struct twl4030_bci_device_=
-info
-> >>> *di)
-> >>>  {
-> >>>       u8 val;
-> >>>       int temp, curr, volt, res, ret;
-> >>>
-> >>> +     /* Is a temperature table specified? */
-> >>> +     if (!di->pdata->tblsize)
-> >>> +             return 0;
-> >>> +
-> >>>       /* Getting and calculating the thermistor voltage */
-> >>>       ret =3D read_bci_val(T2_BATTERY_TEMP);
-> >>>       if (ret < 0)
-> >>> @@ -543,7 +573,7 @@
-> >>>
-> >>>       /*calculating temperature*/
-> >>>       for (temp =3D 58; temp >=3D 0; temp--) {
-> >>> -             int actual =3D therm_tbl[temp];
-> >>> +             int actual =3D di->pdata->battery_tmp_tbl[temp];
-> >>>               if ((actual - res) >=3D 0)
-> >>>                       break;
-> >>>       }
-> >>> @@ -661,6 +691,9 @@
-> >>>               return ret;
-> >>>       }
-> >>>
-> >>> +#ifdef DEBUG
-> >>> +     printk("BCI DEBUG: BCIMSTATEC Charge state is 0x%x\n", stat=
-us);
-> >>> +#endif
-> >>>       return (int) (status & BCIMSTAT_MASK);
-> >>>  }
-> >>>
-> >>> @@ -709,14 +742,43 @@
-> >>>   */
-> >>>  static int twl4030battery_temp_setup(void)
-> >>>  {
-> >>> -     int ret;
-> >>> +#ifdef DEBUG
-> >>> +     u8 i;
-> >>> +#endif
-> >>> +     u8 ret;
-> >>>
-> >>>       /* Enabling thermistor current */
-> >>> -     ret =3D clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0, ITHEN,
-> >>> +     ret =3D clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0, 0x1B,
-> >>>               REG_BCICTL1);
-> >>>       if (ret)
-> >>>               return ret;
-> >>>
-> >>> +#ifdef DEBUG
-> >>> +     twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &ret, REG_BOO=
-T_BCI);
-> >>> +     printk("BCI DEBUG: BOOT_BCI Value is 0x%x\n", ret);
-> >>> +
-> >>> +     twl4030_i2c_read_u8(TWL4030_MODULE_PM_MASTER, &ret,
-> >>> REG_STS_HW_CONDITIONS);
-> >>> +     printk("BCI DEBUG: STS_HW_CONDITIONS Value is 0x%x\n", ret)=
-;
-> >>> +
-> >>> +     twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &ret, REG_B=
-CICTL1);
-> >>> +     printk("BCI DEBUG: BCICTL1 Value is 0x%x\n", ret);
-> >>> +
-> >>> +     twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &ret, REG_B=
-CICTL2);
-> >>> +     printk("BCI DEBUG: BCICTL2 Value is 0x%x\n", ret);
-> >>> +
-> >>> +     twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &ret, 0x0);
-> >>> +     printk("BCI DEBUG: BCIMDEN Value is 0x%x\n", ret);
-> >>> +
-> >>> +     twl4030_i2c_read_u8(TWL4030_MODULE_INTBR, &ret, REG_GPBR1);
-> >>> +     printk("BCI DEBUG: GPBR1 Value is 0x%x\n", ret);
-> >>> +
-> >>> +     for(i =3D 0x0; i <=3D 0x32; i++)
-> >>> +     {
-> >>> +             twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &re=
-t, i);
-> >>> +             printk("BCI DEBUG: BCI 0x%x Value is 0x%x\n", i, re=
-t);
-> >>> +     }
-> >>> +#endif
-> >>> +
-> >>>       return 0;
-> >>>  }
-> >>>
-> >>> @@ -732,7 +794,6 @@
-> >>>       ret =3D twl4030_i2c_read_u8(mod_no, &val, reg);
-> >>>       if (ret)
-> >>>               return ret;
-> >>> -
-> >>>       /* Clearing all those bits to clear */
-> >>>       val &=3D ~(clear);
-> >>>
-> >>> @@ -772,13 +833,14 @@
-> >>>               struct twl4030_bci_device_info,
-> >>>               twl4030_bk_bci_monitor_work.work);
-> >>>
-> >>> -     twl4030_bk_bci_battery_read_status(di);
-> >>> +     if(!di->pdata->no_backup_battery)
-> >>> +             twl4030_bk_bci_battery_read_status(di);
-> >>>       schedule_delayed_work(&di->twl4030_bk_bci_monitor_work, 500=
-);
-> >>>  }
-> >>>
-> >>>  static void twl4030_bci_battery_read_status(struct
-> >>> twl4030_bci_device_info *di)
-> >>>  {
-> >>> -     di->temp_C =3D twl4030battery_temperature();
-> >>> +     di->temp_C =3D twl4030battery_temperature(di);
-> >>>       di->voltage_uV =3D twl4030battery_voltage();
-> >>>       di->current_uA =3D twl4030battery_current();
-> >>>  }
-> >>> @@ -819,6 +881,87 @@
-> >>>  #define to_twl4030_bk_bci_device_info(x) container_of((x), \
-> >>>               struct twl4030_bci_device_info, bk_bat);
-> >>>
-> >>> +static ssize_t
-> >>> +show_charge_current(struct device *dev, struct device_attribute =
-*attr,
-> >>> char *buf)
-> >>> +{
-> >>> +     u8  ctl;
-> >>> +     int ret =3D read_bci_val(REG_BCIIREF1) & 0x1FF;
-> >>> +     twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHARGE, &ctl, REG_B=
-CICTL1);
-> >>> +
-> >>> +     if (ctl & CGAIN)
-> >>> +             ret |=3D 0x200;
-> >>> +
-> >>> +#ifdef DEBUG
-> >>> +     /* Dump debug */
-> >>> +     twl4030battery_temp_setup();
-> >>> +#endif
-> >>> +
-> >>> +     return sprintf(buf, "%d\n", ret);
-> >>> +}
-> >>> +
-> >>> +static ssize_t
-> >>> +set_charge_current(struct device *dev, struct device_attribute *=
-attr,
-> >>> const char *buf, size_t count)
-> >>> +{
-> >>> +     unsigned long newCurrent;
-> >>> +     int ret;
-> >>> +
-> >>> +     ret =3D strict_strtoul(buf, 10, &newCurrent);
-> >>> +     if (ret)
-> >>> +             return -EINVAL;
-> >>> +
-> >>> +     ret =3D twl4030_i2c_write_u8(TWL4030_MODULE_MAIN_CHARGE, KE=
-Y_IIREF,
-> >>> REG_BCIMFKEY);
-> >>> +     if (ret)
-> >>> +             return ret;
-> >>> +
-> >>> +     ret =3D twl4030_i2c_write_u8(TWL4030_MODULE_MAIN_CHARGE, ne=
-wCurrent &
-> >>> 0xff, REG_BCIIREF1);
-> >>> +     if (ret)
-> >>> +             return ret;
-> >>> +
-> >>> +     ret =3D twl4030_i2c_write_u8(TWL4030_MODULE_MAIN_CHARGE, KE=
-Y_IIREF,
-> >>> REG_BCIMFKEY);
-> >>> +     if (ret)
-> >>> +             return ret;
-> >>> +
-> >>> +     ret =3D twl4030_i2c_write_u8(TWL4030_MODULE_MAIN_CHARGE, (n=
-ewCurrent >>
-> >>> 8) & 0x1, REG_BCIIREF2);
-> >>> +     if (ret)
-> >>> +             return ret;
-> >>> +
-> >>> +     /* Set software-controlled charge */
-> >>> +     twl4030charger_ac_en(ENABLE, 0);
-> >>> +
-> >>> +     /* Set CGAIN =3D 0 or 1 */
-> >>> +     if(newCurrent > 511) {
-> >>> +             u8 tmp;
-> >>> +
-> >>> +             /* Set CGAIN =3D 1 -- need to wait until automatic =
-charge turns off */
-> >>> +             while(!ret) {
-> >>> +                     clear_n_set(TWL4030_MODULE_MAIN_CHARGE, 0, =
-CGAIN | 0x1B,
-> >>> REG_BCICTL1);
-> >>> +                     twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHA=
-RGE, &tmp, REG_BCICTL1);
-> >>> +
-> >>> +                     ret =3D tmp & CGAIN;
-> >>> +                     if(!ret)
-> >>> +                             mdelay(50);
-> >>> +             }
-> >>> +     } else {
-> >>> +             u8 tmp;
-> >>> +
-> >>> +             /* Set CGAIN =3D 0 -- need to wait until automatic =
-charge turns off */
-> >>> +             while(!ret) {
-> >>> +                     clear_n_set(TWL4030_MODULE_MAIN_CHARGE, CGA=
-IN, 0x1B, REG_BCICTL1);
-> >>> +                     twl4030_i2c_read_u8(TWL4030_MODULE_MAIN_CHA=
-RGE, &tmp, REG_BCICTL1);
-> >>> +
-> >>> +                     ret =3D !(tmp & CGAIN);
-> >>> +                     if(!ret)
-> >>> +                             mdelay(50);
-> >>> +             }
-> >>> +     }
-> >>> +
-> >>> +     /* Set automatic charge (CGAIN =3D 0/1 persists) */
-> >>> +     twl4030charger_ac_en(ENABLE, 1);
-> >>> +
-> >>> +     return count;
-> >>> +}
-> >>> +static DEVICE_ATTR(charge_current, S_IRUGO | S_IWUSR,
-> >>> show_charge_current, set_charge_current);
-> >>> +
-> >>>  static int twl4030_bk_bci_battery_get_property(struct power_supp=
-ly
-> >>> *psy,
-> >>>                                       enum power_supply_property =
-psp,
-> >>>                                       union power_supply_propval =
-*val)
-> >>> @@ -912,8 +1055,6 @@
-> >>>       int irq;
-> >>>       int ret;
-> >>>
-> >>> -     therm_tbl =3D pdata->battery_tmp_tbl;
-> >>> -
-> >>>       di =3D kzalloc(sizeof(*di), GFP_KERNEL);
-> >>>       if (!di)
-> >>>               return -ENOMEM;
-> >>> @@ -937,8 +1078,12 @@
-> >>>       di->bk_bat.num_properties =3D ARRAY_SIZE(twl4030_bk_bci_bat=
-tery_props);
-> >>>       di->bk_bat.get_property =3D twl4030_bk_bci_battery_get_prop=
-erty;
-> >>>       di->bk_bat.external_power_changed =3D NULL;
-> >>> +     di->pdata =3D pdata;
-> >>>
-> >>> -     twl4030charger_ac_en(ENABLE);
-> >>> +     /* Set up clocks */
-> >>> +     twl4030_i2c_write_u8(TWL4030_MODULE_INTBR, MADC_HFCLK_EN |
-> >>> DEFAULT_MADC_CLK_EN, REG_GPBR1);
-> >>> +
-> >>> +     twl4030charger_ac_en(ENABLE, CHARGE_MODE);
-> >>>       twl4030charger_usb_en(ENABLE);
-> >>>       twl4030battery_hw_level_en(ENABLE);
-> >>>       twl4030battery_hw_presence_en(ENABLE);
-> >>> @@ -951,9 +1096,12 @@
-> >>>               goto temp_setup_fail;
-> >>>
-> >>>       /* enabling GPCH09 for read back battery voltage */
-> >>> -     ret =3D twl4030backupbatt_voltage_setup();
-> >>> -     if (ret)
-> >>> -             goto voltage_setup_fail;
-> >>> +     if(!di->pdata->no_backup_battery)
-> >>> +     {
-> >>> +             ret =3D twl4030backupbatt_voltage_setup();
-> >>> +             if (ret)
-> >>> +                     goto voltage_setup_fail;
-> >>> +     }
-> >>>
-> >>>       /* REVISIT do we need to request both IRQs ?? */
-> >>>
-> >>> @@ -988,9 +1136,18 @@
-> >>>                               twl4030_bci_battery_work);
-> >>>       schedule_delayed_work(&di->twl4030_bci_monitor_work, 0);
-> >>>
-> >>> -     ret =3D power_supply_register(&pdev->dev, &di->bk_bat);
-> >>> +     if(!pdata->no_backup_battery)
-> >>> +     {
-> >>> +             ret =3D power_supply_register(&pdev->dev, &di->bk_b=
-at);
-> >>> +             if (ret) {
-> >>> +                     dev_dbg(&pdev->dev, "failed to register bac=
-kup battery\n");
-> >>> +                     goto bk_batt_failed;
-> >>> +             }
-> >>> +     }
-> >>> +
-> >>> +     ret =3D device_create_file(di->bat.dev, &dev_attr_charge_cu=
-rrent);
-> >>>       if (ret) {
-> >>> -             dev_dbg(&pdev->dev, "failed to register backup batt=
-ery\n");
-> >>> +             dev_err(&pdev->dev, "failed to create sysfs entries=
-\n");
-> >>>               goto bk_batt_failed;
-> >>>       }
-> >>>
-> >>> @@ -1001,7 +1158,8 @@
-> >>>       return 0;
-> >>>
-> >>>  bk_batt_failed:
-> >>> -     power_supply_unregister(&di->bat);
-> >>> +     if(!pdata->no_backup_battery)
-> >>> +             power_supply_unregister(&di->bat);
-> >>>  batt_failed:
-> >>>       free_irq(irq, di);
-> >>>  chg_irq_fail:
-> >>> @@ -1010,7 +1168,7 @@
-> >>>  batt_irq_fail:
-> >>>  voltage_setup_fail:
-> >>>  temp_setup_fail:
-> >>> -     twl4030charger_ac_en(DISABLE);
-> >>> +     twl4030charger_ac_en(DISABLE, CHARGE_MODE);
-> >>>       twl4030charger_usb_en(DISABLE);
-> >>>       twl4030battery_hw_level_en(DISABLE);
-> >>>       twl4030battery_hw_presence_en(DISABLE);
-> >>> @@ -1024,7 +1182,7 @@
-> >>>       struct twl4030_bci_device_info *di =3D platform_get_drvdata=
-(pdev);
-> >>>       int irq;
-> >>>
-> >>> -     twl4030charger_ac_en(DISABLE);
-> >>> +     twl4030charger_ac_en(DISABLE, CHARGE_MODE);
-> >>>       twl4030charger_usb_en(DISABLE);
-> >>>       twl4030battery_hw_level_en(DISABLE);
-> >>>       twl4030battery_hw_presence_en(DISABLE);
-> >>> --- a/include/linux/i2c/twl4030.h
-> >>> +++ b/include/linux/i2c/twl4030.h
-> >>> @@ -299,6 +299,8 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8=
- reg,
-> >>> unsigned num_bytes);
-> >>>  struct twl4030_bci_platform_data {
-> >>>       int *battery_tmp_tbl;
-> >>>       unsigned int tblsize;
-> >>> +
-> >>> +     bool no_backup_battery;
-> >>>  };
-> >>>
-> >>>  /* TWL4030_GPIO_MAX (18) GPIOs, with interrupts */
-> >>>
-> >>
-> >>
-> >
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtb21hcC1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1vbWFwLQ0KPiBvd25lckB2Z2VyLmtlcm5l
+bC5vcmddIE9uIEJlaGFsZiBPZiBHcmVnb2lyZSBHZW50aWwNCj4gU2VudDogVHVlc2RheSwgU2Vw
+dGVtYmVyIDE1LCAyMDA5IDQ6MjQgQU0NCj4gVG86IHByYW1vZCBndXJhdg0KPiBDYzogbGludXgt
+b21hcEB2Z2VyLmtlcm5lbC5vcmc7IFRpbSBZYW1pbjsgRGlnaGUsIEdhbmRoYXINCj4gU3ViamVj
+dDogUmU6IFVTQiBjaGFyZ2luZyBvdmVyIFRQUzY1OTUwIEJDSQ0KPg0KPiBJIGRvbid0IGtub3cu
+IEkgaGF2ZW4ndCBzZWVuIHlldCBhIGJhdHRlcnkgZHJpdmVyIHRoYXQgd29ya3MgY29ycmVjdGx5
+DQo+IHdpdGggdGhlIFRQUzY1OTUwIGFuZCBJIGhhdmUgcGluZyBtdWx0aXBsZSB0aW1lcyB2YXJp
+b3VzIHBlb3BsZSBhdCBUSS4NCklzbid0IHRoaXMgZHJpdmVyIHdvcmtpbmcgZm9yIHlvdT8gaHR0
+cDovL2dpdC5vbWFwem9vbS5vcmcvP3A9cmVwby9vbWFwa2VybmVsLmdpdDthPWJsb2I7Zj1kcml2
+ZXJzL3Bvd2VyL3R3bDQwMzBfYmNpX2JhdHRlcnkuYztoPTgxNmRiOTllMDg2ZjY5ZDNlZmE0NmVm
+ZDBjY2JiNjA3NTNhNTdiNTk7aGI9YW5kcm9pZC0yLjYuMjcNCg0KSSBrbm93IE9NQVAgWm9vbSBo
+YXMgYmF0dGVyeSBkcml2ZXIgYW5kIGl0IGRvZXMgc3VwcG9ydCBVU0IgY2hhcmdpbmcuIEl0IHdv
+cmtzIG9uIE9wZW4gUGFuZG9yYSB0byBhbiBleHRlbnQgYXMgd2VsbC4NCg0KPiBQZXJoYXBzIEdh
+bmRoYXIgd2lsbCBoYXZlIGFuIGlkZWEuIEkgdGhpbmsgdGhhdCBpdCB3b3VsZCBiZSB2YWx1YWJs
+ZSBmb3INCj4gdGhlIGNvbW11bml0eSB0aGF0IHNvbWVib2R5IGF0IFRJIHByb3ZpZGVzIHNvbWUg
+cGF0Y2hlcyB0byByZXBvcnQNCj4gY29ycmVjdGx5IGV2ZXJ5dGhpbmcgYXJvdW5kIHRoZSBiYXR0
+ZXJ5LA0KTm8gaWRlYSB3aHkgaXQgd2FzbuKAmXQgcHVibGlzaGVkLg0KDQpSZWdhcmRzLA0KS2hh
+c2ltDQoNCj4gR3LDqWdvaXJlDQo+DQo+DQo+IE9uIEZyaSwgMjAwOS0wOS0xMSBhdCAxOTozMSAr
+MDUzMCwgcHJhbW9kIGd1cmF2IHdyb3RlOg0KPiA+IGhpIGdyZWdvaXJlLA0KPiA+IGkgZGlkIG5v
+dCBtZW50aW9uIGFib3V0IGNoYXJnZSBjdXJyZW50LiB0aGUgc3lzZnMgZW50cnkgY2hhcmdlX2N1
+cnJlbnQNCj4gPiBhbHdheXMgcmV0dXJucyAzNjAuDQo+ID4NCj4gPg0KPiA+IC0tDQo+ID4gQmVz
+dCBSZWdhcmRzDQo+ID4gUHJhbW9kDQo+ID4NCj4gPg0KPiA+IE9uIEZyaSwgU2VwIDExLCAyMDA5
+IGF0IDc6MjEgUE0sIHByYW1vZCBndXJhdiA8cHJhbW9kZm9ydW1AZ21haWwuY29tPg0KPiB3cm90
+ZToNCj4gPiA+IEhlbGxvIGdyZWdvaXJlLA0KPiA+ID4NCj4gPiA+IFJlYWxseSBzb3JyeSBJIGNv
+dWxkIG5vdCByZXBseSB0byB5b3VyIG1haWwgYXMgSSB3YXMgYnVzeSB3aXRoIHNvbWUgb3RoZXIN
+Cj4gd29yay4NCj4gPiA+IEkgYXBwbGllZCB5b3VyIGFib3ZlIHBhdGNoIHRlc3RlZC4gVGhlIHN5
+c2ZzIGVudHJpZXMgcmV0dXJuIGNvcnJlY3QNCj4gPiA+IHZhbHVlcyBmb3Igc3RhdHVzLCBjaGFy
+Z2VyIGRldmljZShvbmxpbmUpLCB2b2x0YWdlX25vdy4gQnV0IHRoZQ0KPiA+ID4gY3VycmVudCBh
+Y3Jvc3MgdGhlIGJhdHRlcnkgaXMgcmVwb3J0ZWQgd3JvbmcuIEkgY29tcGFyZWQgdGhlIHZhbHVl
+cw0KPiA+ID4gcmV0dXJuZWQgYnkgY3VycmVudF9ub3cgc3lzZnMgZW50cnkgd2l0aCBtdWx0aW1l
+dGVyIHZhbHVlcyBhY3Jvc3MgdGhlDQo+ID4gPiBiYXR0ZXJ5LiBUaGUgdmFsdWVzIHdlcmUgdmFy
+eWluZyB3aGVuZXZlciBJIHJlbW92ZSBBQyBhbmQgcGx1ZyBpdA0KPiA+ID4gYmFjay4gQnV0IHdo
+YXQgSSBjb3VsZCBzZWUgd2FzIHRoZSBjdXJyZW50X25vdyB2YWx1ZSB3YXMgYXBwcm94aW1hdGVs
+eQ0KPiA+ID4gZG91YmxlIHRoZSBhY3R1YWwgY3VycmVudCBhY3Jvc3MgdGhlIGJhdHRlcnkuDQo+
+ID4gPiBXaXRob3V0IHlvdXIgcGF0Y2ggdGhlIHR3bDQwMzBfYmNpIGdpdmVzIHdyb25nIHZhbHVl
+cyBmb3IgY3VycmVudF9ub3csDQo+ID4gPiB2b2x0YWdlX25vdywgY2FwYWNpdHkgZXRjLg0KPiA+
+ID4gQnV0IHlvdXIgcGF0Y2ggZml4ZXMgdGhpcyBpc3N1ZS4NCj4gPiA+DQo+ID4gPiBCdXQgdGhl
+IFVTQiBjaGFyZ2luZyBkaWQgbm90IHdvcmsuIElzIFVTQiBjaGFyZ2luZyBmdW5jdGlvbmFsIHdp
+dGgNCj4gPiA+IFRXTDQwMzAgb24gYW55IG9mIHRoZSBPTUFQIGJvYXJkcz8NCj4gPiA+DQo+ID4g
+Pg0KPiA+ID4gRG9uJ3QgbWluZCBmb3IgdGhlIGxhdGUgcmVwbHkuIFRoYW5rcyBmb3IgeW91ciBo
+ZWxwLg0KPiA+ID4NCj4gPiA+IC0tDQo+ID4gPiBUaGFua3MgYW5kIEJlc3QgUmVnYXJkcw0KPiA+
+ID4gUHJhbW9kDQo+ID4gPg0KPiA+ID4gT24gV2VkLCBBdWcgNSwgMjAwOSBhdCA5OjQ4IFBNLCBH
+cmVnb2lyZSBHZW50aWwgPGdyZWdvaXJlQGdlbnRpbC5jb20+DQo+IHdyb3RlOg0KPiA+ID4+IEhl
+bGxvLA0KPiA+ID4+DQo+ID4gPj4gQW55IGZlZWQtYmFjayBvbiB0aGUgcGF0Y2ggSSBzZW50PyBI
+YXZlIHlvdSB0cmllZCBpdD8gSGF2ZSB5b3UgZml4ZWQNCj4gPiA+PiB5b3VyIHByb2JsZW0/DQo+
+ID4gPj4NCj4gPiA+PiBHcsOpZ29pcmUNCj4gPiA+Pg0KPiA+ID4+DQo+ID4gPj4gT24gRnJpLCAy
+MDA5LTA3LTMxIGF0IDIzOjQxIC0wNzAwLCBHcmVnb2lyZSBHZW50aWwgd3JvdGU6DQo+ID4gPj4+
+IE9uIEZyaSwgMjAwOS0wNy0zMSBhdCAxOToxOSArMDUzMCwgcHJhbW9kIGd1cmF2IHdyb3RlOg0K
+PiA+ID4+PiA+IEhpIEFsbCwNCj4gPiA+Pj4gPiBJIHdhcyB0cnlpbmcgdG8gZ2V0IHRoZSBVU0Ig
+YmF0dGVyeSBjaGFyZ2luZyB3b3JraW5nIG92ZXIgVFBTNjU5NTANCj4gQkNJDQo+ID4gPj4+ID4g
+b24gdGhlIE9NQVAzNDMwIGN1c3RvbSBib2FyZC4gSSBhbSB3b3JraW5nIHdpdGggbGludXgtb21h
+cC0yLjYNCj4gPiA+Pj4gPiB2Mi42LjI4LW9tYXAxIHRhZy4gSSBlbmFibGVkIHRoZSBUV0w0MDMw
+IE1BREMgYW5kIFRXTDQwMzAgQkNJIGRyaXZlcnMuDQo+ID4gPj4+ID4gSSBwYXNzZWQgaW50ZXJy
+dXB0IGRldGFpbHMgdG8gdGhlc2UgZHJpdmVycyBmcm9tIHBsYXRmb3JtX2RldmljZQ0KPiA+ID4+
+PiA+IHN0cnVjdHVyZSBmcm9tIG15IGJvYXJkIGZpbGUuIEkgY291bGQgZ2V0IHRoZSBBQyBjaGFy
+Z2luZyB3b3JraW5nLg0KPiBUaGUNCj4gPiA+Pj4gPiBBQyBhbmQgVVNCIGRldGVjdGlvbiB3b3Jr
+ZWQuIEhvd2V2ZXIgdGhlIFVTQiBjaGFyZ2luZyBpcyBub3QNCj4gPiA+Pj4gPiBoYXBwZW5pbmcu
+DQo+ID4gPj4+ID4gSSByZWFkIHRocm91Z2ggdGhlIFRQUyBUUk0gYW5kIHRvb2sgdGhlIGR1bXBz
+IG9mIHRoZSByZWdpc3RlcnMgZnJvbQ0KPiA+ID4+PiA+IEJDSSBhbmQgc29tZSBmcm9tIFRXTCBV
+U0IgbW9kdWxlIGFuZCBCT09UX0JDSSB3aGVuZXZlciBJIHBsdWcgaW4gdGhlDQo+ID4gPj4+ID4g
+VVNCIGNoYXJnZXIgYmV0d2VlbiBob3N0IGFuZCB0aGUgYm9hcmQuIFRoZSByZWdpc3RlciBzZXR0
+aW5ncyBzZWVtIHRvDQo+ID4gPj4+ID4gYmUgZmluZS4gQnV0IHRoZSBiYXR0ZXJ5IGlzIG5vdCBj
+aGFyZ2luZy4gSSBhbSB1c2luZyBCUTI3MDAwIGNoaXAgZm9yDQo+ID4gPj4+ID4gYmF0dGVyeSBt
+b25pdG9yaW5nIGFuZCBJIGNhbiBzZWUgdGhlIGJhdHRlcnkgdm9sdGFnZSBpcyBkZWNyZWFzaW5n
+Lg0KPiA+ID4+PiA+DQo+ID4gPj4+ID4gRm9sbG93aW5nIGFyZSB0aGUgcmVnaXN0ZXIgZHVtcHMg
+b2YgVFdMIHdpdGggYW5kIHdpdGhvdXQgVVNCIHBsdWdnZWQNCj4gaW46DQo+ID4gPj4+ID4NCj4g
+PiA+Pj4gPiBUaGVzZSBhcmUgdGhlIHJlZ2lzdGVyIGNvbnRlbnRzIHdoZW4gVVNCIGNoYXJnZXIg
+aXMgcGx1Z2dlZCBpbjoNCj4gPiA+Pj4gPiBCQ0lNREVOICAgICAgICAgPSAweDExDQo+ID4gPj4+
+ID4gUkVHX0JPT1RfQkNJICAgID0gMHgzNw0KPiA+ID4+PiA+IFJFR19QT1dFUl9DVFJMICA9IDB4
+MjANCj4gPiA+Pj4gPiBSRUdfQkNJTUZTVFM0ICAgPSAweGY0DQo+ID4gPj4+ID4gUkVHX0JDSU1G
+U1RTMSAgID0gMHgxMw0KPiA+ID4+PiA+IFJFR19CQ0lJUkVGMSAgICA9IDB4NjgNCj4gPiA+Pj4g
+PiBSRUdfQkNJSVJFRjIgICAgPSAweDMNCj4gPiA+Pj4gPiBSRUdfQkNJTUZFTjQgICAgPSAweDZm
+DQo+ID4gPj4+ID4gUkVHX0JDSU1GU1RTMiAgID0gMHgwDQo+ID4gPj4+ID4gUkVHX0JDSU1TVEFU
+RUMgID0gMHgxMg0KPiA+ID4+PiA+IFJFR19TVFNfSFdfQ09ORElUSU9OUz0gMHg5MA0KPiA+ID4+
+PiA+DQo+ID4gPj4+ID4NCj4gPiA+Pj4gPiBUaGVzZSBhcmUgdGhlIHJlZ2lzdGVyIGNvbnRlbnRz
+IHdoZW4gVVNCIGNoYXJnZXIgaXMgcGx1Z2dlZCBvdXQ6DQo+ID4gPj4+ID4gQkNJTURFTiAgICAg
+ICAgID0gMHgwDQo+ID4gPj4+ID4gUkVHX0JPT1RfQkNJICAgID0gMHgzNQ0KPiA+ID4+PiA+IFJF
+R19QT1dFUl9DVFJMICA9IDB4MjANCj4gPiA+Pj4gPiBSRUdfQkNJTUZTVFM0ICAgPSAweGYwDQo+
+ID4gPj4+ID4gUkVHX0JDSU1GU1RTMSAgID0gMHhhYQ0KPiA+ID4+PiA+IFJFR19CQ0lJUkVGMSAg
+ICA9IDB4NjgNCj4gPiA+Pj4gPiBSRUdfQkNJSVJFRjIgICAgPSAweDMNCj4gPiA+Pj4gPiBSRUdf
+QkNJTUZFTjQgICAgPSAweDY4DQo+ID4gPj4+ID4gUkVHX0JDSU1GU1RTMiAgID0gMHgwDQo+ID4g
+Pj4+ID4gUkVHX0JDSU1TVEFURUMgID0weDANCj4gPiA+Pj4gPiBSRUdfU1RTX0hXX0NPTkRJVElP
+TlM9IDB4MTANCj4gPiA+Pj4gPg0KPiA+ID4+PiA+IElzIHRoZXJlIGFueXRoaW5nIG1vcmUgSSBu
+ZWVkIHRvIHN1cHBvcnQgdG8gZ2V0IEJDSSBVU0IgY2hhcmdpbmcNCj4gPiA+Pj4gPiB3b3JraW5n
+PyBOZWVkIEkgZm9sbG93IGFueSBVU0IgQ29tbXVuaWNhdGlvbiBwcm90b2NvbCBiZXR3ZWVuIEhv
+c3QNCj4gYW5kDQo+ID4gPj4+ID4gdGhlIGJvYXJkLg0KPiA+ID4+PiA+IEkgaGF2ZSBwYXN0ZWQg
+dGhlIGtlcm5lbCBib290IGxvZ3MgZm9yIHJlZmVyZW5jZSBhdCB0aGUgZW5kLg0KPiA+ID4+PiA+
+IENhbiBhbnkgb25lIHBsZWFzZSBndWlkZSBtZSB0byBzb21lIHBvaW50ZXJzPw0KPiA+ID4+PiA+
+DQo+ID4gPj4+ID4gLS0NCj4gPiA+Pj4gPiBCZXN0IFJlZ2FyZHMNCj4gPiA+Pj4gPiBQcmFtb2QN
+Cj4gPiA+Pj4gSSdtIGV4cGVyaWVuY2luZyBzb21lIHByb2JsZW1zIHdpdGggVFdMNDAzMCBEQyBj
+aGFyZ2luZyBhbmQgSSdtDQo+ID4gPj4+IGludGVyZXN0ZWQgYnkgdGhpcyBraW5kIG9mIHByb2Js
+ZW0uIEJhc2ljYWxseSwgdGhlIHZhbHVlcyByZXBvcnRlZCBieQ0KPiA+ID4+PiBvdXIgcGF0Y2gg
+aXMgZGlmZmVyZW50IGZyb20gdGhlIGN1cnJlbnQgZ29pbmcgdG8gdGhlIGJhdHRlcnkuIFdlIHdy
+b3RlDQo+ID4gPj4+IHRoZSBhdHRhY2hlZCBlbmhhbmNlZCBwYXRjaCBzbyBhcyB0byBlZGl0IGF0
+IHJ1bi10aW1lIHRoZSBjaGFyZ2luZyBtb2RlDQo+ID4gPj4+IGFuZCB2YXJpb3VzIHZhbHVlcyBp
+bmNsdWRpbmcgY2hhcmdlX2N1cnJlbnQuIEl0J3MgYWdhaW5zdCAyLjYuMjkgYnV0IEkNCj4gPiA+
+Pj4gdGhpbmsgdGhhdCBpdCBzaG91bGQgd29yayBhZ2FpbiAyLjYuMjguIFVuZm9ydHVuYXRlbHks
+IHN0YXJ0aW5nIDIuNi4zMCwNCj4gPiA+Pj4gVG9ueSBoYXMgcmVtb3ZlZCBhbGwgdGhlIEJDSSBi
+YXR0ZXJ5IGNvZGUgYW5kIGhhcyBhc2tlZCBmb3IgdXBkYXRlZA0KPiBjb2RlDQo+ID4gPj4+IGFn
+YWluc3QgbWFpbmxpbmUgYnV0IEkndmUgbm90IHNlZW4gYW55dGhpbmcgc28gZmFyLg0KPiA+ID4+
+Pg0KPiA+ID4+PiBQcmFtb2QsIGNhbiB5b3UgdHJ5IHRoZSBhdHRhY2hlZCBwYXRjaCAocGVyaGFw
+cywgaXQgd2lsbCBoZWxwIHlvdSkgYW5kDQo+ID4gPj4+IGNhbiB5b3UgdGVsbCBpZiB5b3Ugc2Vl
+IHRoZSBleGFjdCBjdXJyZW50IGdvaW5nIHRvIHRoZSBiYXR0ZXJ5IHJlcG9ydGVkDQo+ID4gPj4+
+IGJ5IHRoZSBkcml2ZXI/DQo+ID4gPj4+DQo+ID4gPj4+IEdyw6lnb2lyZQ0KPiA+ID4+Pg0KPiA+
+ID4+Pg0KPiA+ID4+Pg0KPiA+ID4+Pg0KPiA+ID4+Pg0KPiA+ID4+PiAtLS0gYS9kcml2ZXJzL3Bv
+d2VyL3R3bDQwMzBfYmNpX2JhdHRlcnkuYyAgICAgMjAwOS0wNy0yMg0KPiAxODoyNzoxNi4wMDAw
+MDAwMDANCj4gPiA+Pj4gLTA3MDANCj4gPiA+Pj4gKysrIGIvZHJpdmVycy9wb3dlci90d2w0MDMw
+X2JjaV9iYXR0ZXJ5LmMgICAgIDIwMDktMDctMjINCj4gMTg6MzA6MjIuMDAwMDAwMDAwDQo+ID4g
+Pj4+IC0wNzAwDQo+ID4gPj4+IEBAIC0xNSw2ICsxNSw5IEBADQo+ID4gPj4+ICAgKiBXQVJSQU5U
+SUVTIE9GIE1FUkNIQU5USUJJTElUWSBBTkQgRklUTkVTUyBGT1IgQSBQQVJUSUNVTEFSIFBVUlBP
+U0UuDQo+ID4gPj4+ICAgKi8NCj4gPiA+Pj4NCj4gPiA+Pj4gKy8qIEJvb3Qgd2l0aCBhdXRvbWF0
+aWMgY2hhcmdlICovDQo+ID4gPj4+ICsjZGVmaW5lIENIQVJHRV9NT0RFIDENCj4gPiA+Pj4gKw0K
+PiA+ID4+PiAgI2luY2x1ZGUgPGxpbnV4L2luaXQuaD4NCj4gPiA+Pj4gICNpbmNsdWRlIDxsaW51
+eC9tb2R1bGUuaD4NCj4gPiA+Pj4gICNpbmNsdWRlIDxsaW51eC9kZXZpY2UuaD4NCj4gPiA+Pj4g
+QEAgLTUwLDYgKzUzLDcgQEANCj4gPiA+Pj4gIC8qIEJvb3QgQkNJIGZsYWcgYml0cyAqLw0KPiA+
+ID4+PiAgI2RlZmluZSBCQ0lBVVRPV0VOICAgICAgICAgICAweDAyMA0KPiA+ID4+PiAgI2RlZmlu
+ZSBDT05GSUdfRE9ORSAgICAgICAgICAweDAxMA0KPiA+ID4+PiArI2RlZmluZSBDVkVOQUMgICAg
+ICAgICAgICAgICAgICAgICAgIDB4MDA0DQo+ID4gPj4+ICAjZGVmaW5lIEJDSUFVVE9VU0IgICAg
+ICAgICAgIDB4MDAyDQo+ID4gPj4+ICAjZGVmaW5lIEJDSUFVVE9BQyAgICAgICAgICAgIDB4MDAx
+DQo+ID4gPj4+ICAjZGVmaW5lIEJDSU1TVEFUX01BU0sgICAgICAgICAgICAgICAgMHgwM0YNCj4g
+PiA+Pj4gQEAgLTgxLDYgKzg1LDExIEBADQo+ID4gPj4+ICAjZGVmaW5lIFJFR19CQl9DRkcgICAg
+ICAgICAgIDB4MDEyDQo+ID4gPj4+ICAjZGVmaW5lIEJCQ0hFTiAgICAgICAgICAgICAgICAgICAg
+ICAgMHgwMTANCj4gPiA+Pj4NCj4gPiA+Pj4gKy8qIEdQQlIgKi8NCj4gPiA+Pj4gKyNkZWZpbmUg
+UkVHX0dQQlIxICAgICAgICAgICAgMHgwYw0KPiA+ID4+PiArI2RlZmluZSBNQURDX0hGQ0xLX0VO
+ICAgICAgICAgICAgICAgIDB4ODANCj4gPiA+Pj4gKyNkZWZpbmUgREVGQVVMVF9NQURDX0NMS19F
+TiAgMHgxMA0KPiA+ID4+PiArDQo+ID4gPj4+ICAvKiBQb3dlciBzdXBwbHkgY2hhcmdlIGludGVy
+cnVwdCAqLw0KPiA+ID4+PiAgI2RlZmluZSBSRUdfUFdSX0lTUjEgICAgICAgICAweDAwDQo+ID4g
+Pj4+ICAjZGVmaW5lIFJFR19QV1JfSU1SMSAgICAgICAgIDB4MDENCj4gPiA+Pj4gQEAgLTEyNSw2
+ICsxMzQsMTggQEANCj4gPiA+Pj4gIC8qIEJDSUVEUjMgKi8NCj4gPiA+Pj4gICNkZWZpbmUgICAg
+ICBWQkFUTFZMX0VEUlJJU0lOICAgICAgICAweDAyDQo+ID4gPj4+DQo+ID4gPj4+ICsvKiBCQ0lJ
+UkVGMSAqLw0KPiA+ID4+PiArI2RlZmluZSBSRUdfQkNJSVJFRjEgICAgICAgICAweDAyNw0KPiA+
+ID4+PiArI2RlZmluZSBSRUdfQkNJSVJFRjIgICAgICAgICAweDAyOA0KPiA+ID4+PiArDQo+ID4g
+Pj4+ICsvKiBCQ0lNRlRIMSAqLw0KPiA+ID4+PiArI2RlZmluZSBSRUdfQkNJTUZUSDEgICAgICAg
+ICAweDAxNg0KPiA+ID4+PiArDQo+ID4gPj4+ICsvKiBLZXkgKi8NCj4gPiA+Pj4gKyNkZWZpbmUg
+S0VZX0lJUkVGICAgICAgICAgICAgMHhFNw0KPiA+ID4+PiArI2RlZmluZSBLRVlfRlRIMSAgICAg
+ICAgICAgICAweEQyDQo+ID4gPj4+ICsjZGVmaW5lIFJFR19CQ0lNRktFWSAgICAgICAgIDB4MDEx
+DQo+ID4gPj4+ICsNCj4gPiA+Pj4gIC8qIFN0ZXAgc2l6ZSBhbmQgcHJlc2NhbGVyIHJhdGlvICov
+DQo+ID4gPj4+ICAjZGVmaW5lIFRFTVBfU1RFUF9TSVpFICAgICAgICAgICAgICAgMTQ3DQo+ID4g
+Pj4+ICAjZGVmaW5lIFRFTVBfUFNSX1IgICAgICAgICAgIDEwMA0KPiA+ID4+PiBAQCAtMTQyLDkg
+KzE2Myw2IEBADQo+ID4gPj4+ICAjZGVmaW5lIEVOQUJMRSAgICAgICAgICAgICAgIDENCj4gPiA+
+Pj4gICNkZWZpbmUgRElTQUJMRSAgICAgICAgICAgICAgMQ0KPiA+ID4+Pg0KPiA+ID4+PiAtLyog
+UHRyIHRvIHRoZXJtaXN0b3IgdGFibGUgKi8NCj4gPiA+Pj4gLWludCAqdGhlcm1fdGJsOw0KPiA+
+ID4+PiAtDQo+ID4gPj4+ICBzdHJ1Y3QgdHdsNDAzMF9iY2lfZGV2aWNlX2luZm8gew0KPiA+ID4+
+PiAgICAgICBzdHJ1Y3QgZGV2aWNlICAgICAgICAgICAqZGV2Ow0KPiA+ID4+Pg0KPiA+ID4+PiBA
+QCAtMTYwLDYgKzE3OCw4IEBADQo+ID4gPj4+ICAgICAgIHN0cnVjdCBwb3dlcl9zdXBwbHkgICAg
+IGJrX2JhdDsNCj4gPiA+Pj4gICAgICAgc3RydWN0IGRlbGF5ZWRfd29yayAgICAgdHdsNDAzMF9i
+Y2lfbW9uaXRvcl93b3JrOw0KPiA+ID4+PiAgICAgICBzdHJ1Y3QgZGVsYXllZF93b3JrICAgICB0
+d2w0MDMwX2JrX2JjaV9tb25pdG9yX3dvcms7DQo+ID4gPj4+ICsNCj4gPiA+Pj4gKyAgICAgc3Ry
+dWN0IHR3bDQwMzBfYmNpX3BsYXRmb3JtX2RhdGEgKnBkYXRhOw0KPiA+ID4+PiAgfTsNCj4gPiA+
+Pj4NCj4gPiA+Pj4gIHN0YXRpYyBpbnQgdXNiX2NoYXJnZXJfZmxhZzsNCj4gPiA+Pj4gQEAgLTQy
+NSwxNSArNDQ1LDIxIEBADQo+ID4gPj4+ICAvKg0KPiA+ID4+PiAgICogRW5hYmxlL0Rpc2FibGUg
+QUMgQ2hhcmdlIGZ1bnRpb25hbGl0eS4NCj4gPiA+Pj4gICAqLw0KPiA+ID4+PiAtc3RhdGljIGlu
+dCB0d2w0MDMwY2hhcmdlcl9hY19lbihpbnQgZW5hYmxlKQ0KPiA+ID4+PiArc3RhdGljIGludCB0
+d2w0MDMwY2hhcmdlcl9hY19lbihpbnQgZW5hYmxlLCBpbnQgYXV0b21hdGljKQ0KPiA+ID4+PiAg
+ew0KPiA+ID4+PiAgICAgICBpbnQgcmV0Ow0KPiA+ID4+Pg0KPiA+ID4+PiAgICAgICBpZiAoZW5h
+YmxlKSB7DQo+ID4gPj4+ICAgICAgICAgICAgICAgLyogZm9yY2luZyB0aGUgZmllbGQgQkNJQVVU
+T0FDIChCT09UX0JDSVswKSB0byAxICovDQo+ID4gPj4+IC0gICAgICAgICAgICAgcmV0ID0gY2xl
+YXJfbl9zZXQoVFdMNDAzMF9NT0RVTEVfUE1fTUFTVEVSLCAwLA0KPiA+ID4+PiAtICAgICAgICAg
+ICAgICAgICAgICAgKENPTkZJR19ET05FIHwgQkNJQVVUT1dFTiB8IEJDSUFVVE9BQyksDQo+ID4g
+Pj4+IC0gICAgICAgICAgICAgICAgICAgICBSRUdfQk9PVF9CQ0kpOw0KPiA+ID4+PiArICAgICAg
+ICAgICAgIGlmKCFhdXRvbWF0aWMpIHsNCj4gPiA+Pj4gKyAgICAgICAgICAgICAgICAgICAgIHJl
+dCA9IGNsZWFyX25fc2V0KFRXTDQwMzBfTU9EVUxFX1BNX01BU1RFUiwNCj4gQkNJQVVUT0FDIHwg
+Q1ZFTkFDLA0KPiA+ID4+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAoQ09ORklHX0RP
+TkUgfCBCQ0lBVVRPV0VOKSwNCj4gPiA+Pj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+UkVHX0JPT1RfQkNJKTsNCj4gPiA+Pj4gKyAgICAgICAgICAgICB9IGVsc2Ugew0KPiA+ID4+PiAr
+ICAgICAgICAgICAgICAgICAgICAgcmV0ID0gY2xlYXJfbl9zZXQoVFdMNDAzMF9NT0RVTEVfUE1f
+TUFTVEVSLCAwLA0KPiA+ID4+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAoQ09ORklH
+X0RPTkUgfCBCQ0lBVVRPV0VOIHwgQkNJQVVUT0FDIHwNCj4gQ1ZFTkFDKSwNCj4gPiA+Pj4gKyAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgUkVHX0JPT1RfQkNJKTsNCj4gPiA+Pj4gKyAgICAg
+ICAgICAgICB9DQo+ID4gPj4+ICAgICAgICAgICAgICAgaWYgKHJldCkNCj4gPiA+Pj4gICAgICAg
+ICAgICAgICAgICAgICAgIHJldHVybiByZXQ7DQo+ID4gPj4+ICAgICAgIH0gZWxzZSB7DQo+ID4g
+Pj4+IEBAIC01MTgsMTEgKzU0NCwxNSBAQA0KPiA+ID4+PiAgICogUmV0dXJuIGJhdHRlcnkgdGVt
+cGVyYXR1cmUNCj4gPiA+Pj4gICAqIE9yIDwgMCBvbiBmYWlsdXJlLg0KPiA+ID4+PiAgICovDQo+
+ID4gPj4+IC1zdGF0aWMgaW50IHR3bDQwMzBiYXR0ZXJ5X3RlbXBlcmF0dXJlKHZvaWQpDQo+ID4g
+Pj4+ICtzdGF0aWMgaW50IHR3bDQwMzBiYXR0ZXJ5X3RlbXBlcmF0dXJlKHN0cnVjdCB0d2w0MDMw
+X2JjaV9kZXZpY2VfaW5mbw0KPiA+ID4+PiAqZGkpDQo+ID4gPj4+ICB7DQo+ID4gPj4+ICAgICAg
+IHU4IHZhbDsNCj4gPiA+Pj4gICAgICAgaW50IHRlbXAsIGN1cnIsIHZvbHQsIHJlcywgcmV0Ow0K
+PiA+ID4+Pg0KPiA+ID4+PiArICAgICAvKiBJcyBhIHRlbXBlcmF0dXJlIHRhYmxlIHNwZWNpZmll
+ZD8gKi8NCj4gPiA+Pj4gKyAgICAgaWYgKCFkaS0+cGRhdGEtPnRibHNpemUpDQo+ID4gPj4+ICsg
+ICAgICAgICAgICAgcmV0dXJuIDA7DQo+ID4gPj4+ICsNCj4gPiA+Pj4gICAgICAgLyogR2V0dGlu
+ZyBhbmQgY2FsY3VsYXRpbmcgdGhlIHRoZXJtaXN0b3Igdm9sdGFnZSAqLw0KPiA+ID4+PiAgICAg
+ICByZXQgPSByZWFkX2JjaV92YWwoVDJfQkFUVEVSWV9URU1QKTsNCj4gPiA+Pj4gICAgICAgaWYg
+KHJldCA8IDApDQo+ID4gPj4+IEBAIC01NDMsNyArNTczLDcgQEANCj4gPiA+Pj4NCj4gPiA+Pj4g
+ICAgICAgLypjYWxjdWxhdGluZyB0ZW1wZXJhdHVyZSovDQo+ID4gPj4+ICAgICAgIGZvciAodGVt
+cCA9IDU4OyB0ZW1wID49IDA7IHRlbXAtLSkgew0KPiA+ID4+PiAtICAgICAgICAgICAgIGludCBh
+Y3R1YWwgPSB0aGVybV90YmxbdGVtcF07DQo+ID4gPj4+ICsgICAgICAgICAgICAgaW50IGFjdHVh
+bCA9IGRpLT5wZGF0YS0+YmF0dGVyeV90bXBfdGJsW3RlbXBdOw0KPiA+ID4+PiAgICAgICAgICAg
+ICAgIGlmICgoYWN0dWFsIC0gcmVzKSA+PSAwKQ0KPiA+ID4+PiAgICAgICAgICAgICAgICAgICAg
+ICAgYnJlYWs7DQo+ID4gPj4+ICAgICAgIH0NCj4gPiA+Pj4gQEAgLTY2MSw2ICs2OTEsOSBAQA0K
+PiA+ID4+PiAgICAgICAgICAgICAgIHJldHVybiByZXQ7DQo+ID4gPj4+ICAgICAgIH0NCj4gPiA+
+Pj4NCj4gPiA+Pj4gKyNpZmRlZiBERUJVRw0KPiA+ID4+PiArICAgICBwcmludGsoIkJDSSBERUJV
+RzogQkNJTVNUQVRFQyBDaGFyZ2Ugc3RhdGUgaXMgMHgleFxuIiwgc3RhdHVzKTsNCj4gPiA+Pj4g
+KyNlbmRpZg0KPiA+ID4+PiAgICAgICByZXR1cm4gKGludCkgKHN0YXR1cyAmIEJDSU1TVEFUX01B
+U0spOw0KPiA+ID4+PiAgfQ0KPiA+ID4+Pg0KPiA+ID4+PiBAQCAtNzA5LDE0ICs3NDIsNDMgQEAN
+Cj4gPiA+Pj4gICAqLw0KPiA+ID4+PiAgc3RhdGljIGludCB0d2w0MDMwYmF0dGVyeV90ZW1wX3Nl
+dHVwKHZvaWQpDQo+ID4gPj4+ICB7DQo+ID4gPj4+IC0gICAgIGludCByZXQ7DQo+ID4gPj4+ICsj
+aWZkZWYgREVCVUcNCj4gPiA+Pj4gKyAgICAgdTggaTsNCj4gPiA+Pj4gKyNlbmRpZg0KPiA+ID4+
+PiArICAgICB1OCByZXQ7DQo+ID4gPj4+DQo+ID4gPj4+ICAgICAgIC8qIEVuYWJsaW5nIHRoZXJt
+aXN0b3IgY3VycmVudCAqLw0KPiA+ID4+PiAtICAgICByZXQgPSBjbGVhcl9uX3NldChUV0w0MDMw
+X01PRFVMRV9NQUlOX0NIQVJHRSwgMCwgSVRIRU4sDQo+ID4gPj4+ICsgICAgIHJldCA9IGNsZWFy
+X25fc2V0KFRXTDQwMzBfTU9EVUxFX01BSU5fQ0hBUkdFLCAwLCAweDFCLA0KPiA+ID4+PiAgICAg
+ICAgICAgICAgIFJFR19CQ0lDVEwxKTsNCj4gPiA+Pj4gICAgICAgaWYgKHJldCkNCj4gPiA+Pj4g
+ICAgICAgICAgICAgICByZXR1cm4gcmV0Ow0KPiA+ID4+Pg0KPiA+ID4+PiArI2lmZGVmIERFQlVH
+DQo+ID4gPj4+ICsgICAgIHR3bDQwMzBfaTJjX3JlYWRfdTgoVFdMNDAzMF9NT0RVTEVfUE1fTUFT
+VEVSLCAmcmV0LA0KPiBSRUdfQk9PVF9CQ0kpOw0KPiA+ID4+PiArICAgICBwcmludGsoIkJDSSBE
+RUJVRzogQk9PVF9CQ0kgVmFsdWUgaXMgMHgleFxuIiwgcmV0KTsNCj4gPiA+Pj4gKw0KPiA+ID4+
+PiArICAgICB0d2w0MDMwX2kyY19yZWFkX3U4KFRXTDQwMzBfTU9EVUxFX1BNX01BU1RFUiwgJnJl
+dCwNCj4gPiA+Pj4gUkVHX1NUU19IV19DT05ESVRJT05TKTsNCj4gPiA+Pj4gKyAgICAgcHJpbnRr
+KCJCQ0kgREVCVUc6IFNUU19IV19DT05ESVRJT05TIFZhbHVlIGlzIDB4JXhcbiIsIHJldCk7DQo+
+ID4gPj4+ICsNCj4gPiA+Pj4gKyAgICAgdHdsNDAzMF9pMmNfcmVhZF91OChUV0w0MDMwX01PRFVM
+RV9NQUlOX0NIQVJHRSwgJnJldCwNCj4gUkVHX0JDSUNUTDEpOw0KPiA+ID4+PiArICAgICBwcmlu
+dGsoIkJDSSBERUJVRzogQkNJQ1RMMSBWYWx1ZSBpcyAweCV4XG4iLCByZXQpOw0KPiA+ID4+PiAr
+DQo+ID4gPj4+ICsgICAgIHR3bDQwMzBfaTJjX3JlYWRfdTgoVFdMNDAzMF9NT0RVTEVfTUFJTl9D
+SEFSR0UsICZyZXQsDQo+IFJFR19CQ0lDVEwyKTsNCj4gPiA+Pj4gKyAgICAgcHJpbnRrKCJCQ0kg
+REVCVUc6IEJDSUNUTDIgVmFsdWUgaXMgMHgleFxuIiwgcmV0KTsNCj4gPiA+Pj4gKw0KPiA+ID4+
+PiArICAgICB0d2w0MDMwX2kyY19yZWFkX3U4KFRXTDQwMzBfTU9EVUxFX01BSU5fQ0hBUkdFLCAm
+cmV0LCAweDApOw0KPiA+ID4+PiArICAgICBwcmludGsoIkJDSSBERUJVRzogQkNJTURFTiBWYWx1
+ZSBpcyAweCV4XG4iLCByZXQpOw0KPiA+ID4+PiArDQo+ID4gPj4+ICsgICAgIHR3bDQwMzBfaTJj
+X3JlYWRfdTgoVFdMNDAzMF9NT0RVTEVfSU5UQlIsICZyZXQsIFJFR19HUEJSMSk7DQo+ID4gPj4+
+ICsgICAgIHByaW50aygiQkNJIERFQlVHOiBHUEJSMSBWYWx1ZSBpcyAweCV4XG4iLCByZXQpOw0K
+PiA+ID4+PiArDQo+ID4gPj4+ICsgICAgIGZvcihpID0gMHgwOyBpIDw9IDB4MzI7IGkrKykNCj4g
+PiA+Pj4gKyAgICAgew0KPiA+ID4+PiArICAgICAgICAgICAgIHR3bDQwMzBfaTJjX3JlYWRfdTgo
+VFdMNDAzMF9NT0RVTEVfTUFJTl9DSEFSR0UsICZyZXQsIGkpOw0KPiA+ID4+PiArICAgICAgICAg
+ICAgIHByaW50aygiQkNJIERFQlVHOiBCQ0kgMHgleCBWYWx1ZSBpcyAweCV4XG4iLCBpLCByZXQp
+Ow0KPiA+ID4+PiArICAgICB9DQo+ID4gPj4+ICsjZW5kaWYNCj4gPiA+Pj4gKw0KPiA+ID4+PiAg
+ICAgICByZXR1cm4gMDsNCj4gPiA+Pj4gIH0NCj4gPiA+Pj4NCj4gPiA+Pj4gQEAgLTczMiw3ICs3
+OTQsNiBAQA0KPiA+ID4+PiAgICAgICByZXQgPSB0d2w0MDMwX2kyY19yZWFkX3U4KG1vZF9ubywg
+JnZhbCwgcmVnKTsNCj4gPiA+Pj4gICAgICAgaWYgKHJldCkNCj4gPiA+Pj4gICAgICAgICAgICAg
+ICByZXR1cm4gcmV0Ow0KPiA+ID4+PiAtDQo+ID4gPj4+ICAgICAgIC8qIENsZWFyaW5nIGFsbCB0
+aG9zZSBiaXRzIHRvIGNsZWFyICovDQo+ID4gPj4+ICAgICAgIHZhbCAmPSB+KGNsZWFyKTsNCj4g
+PiA+Pj4NCj4gPiA+Pj4gQEAgLTc3MiwxMyArODMzLDE0IEBADQo+ID4gPj4+ICAgICAgICAgICAg
+ICAgc3RydWN0IHR3bDQwMzBfYmNpX2RldmljZV9pbmZvLA0KPiA+ID4+PiAgICAgICAgICAgICAg
+IHR3bDQwMzBfYmtfYmNpX21vbml0b3Jfd29yay53b3JrKTsNCj4gPiA+Pj4NCj4gPiA+Pj4gLSAg
+ICAgdHdsNDAzMF9ia19iY2lfYmF0dGVyeV9yZWFkX3N0YXR1cyhkaSk7DQo+ID4gPj4+ICsgICAg
+IGlmKCFkaS0+cGRhdGEtPm5vX2JhY2t1cF9iYXR0ZXJ5KQ0KPiA+ID4+PiArICAgICAgICAgICAg
+IHR3bDQwMzBfYmtfYmNpX2JhdHRlcnlfcmVhZF9zdGF0dXMoZGkpOw0KPiA+ID4+PiAgICAgICBz
+Y2hlZHVsZV9kZWxheWVkX3dvcmsoJmRpLT50d2w0MDMwX2JrX2JjaV9tb25pdG9yX3dvcmssIDUw
+MCk7DQo+ID4gPj4+ICB9DQo+ID4gPj4+DQo+ID4gPj4+ICBzdGF0aWMgdm9pZCB0d2w0MDMwX2Jj
+aV9iYXR0ZXJ5X3JlYWRfc3RhdHVzKHN0cnVjdA0KPiA+ID4+PiB0d2w0MDMwX2JjaV9kZXZpY2Vf
+aW5mbyAqZGkpDQo+ID4gPj4+ICB7DQo+ID4gPj4+IC0gICAgIGRpLT50ZW1wX0MgPSB0d2w0MDMw
+YmF0dGVyeV90ZW1wZXJhdHVyZSgpOw0KPiA+ID4+PiArICAgICBkaS0+dGVtcF9DID0gdHdsNDAz
+MGJhdHRlcnlfdGVtcGVyYXR1cmUoZGkpOw0KPiA+ID4+PiAgICAgICBkaS0+dm9sdGFnZV91ViA9
+IHR3bDQwMzBiYXR0ZXJ5X3ZvbHRhZ2UoKTsNCj4gPiA+Pj4gICAgICAgZGktPmN1cnJlbnRfdUEg
+PSB0d2w0MDMwYmF0dGVyeV9jdXJyZW50KCk7DQo+ID4gPj4+ICB9DQo+ID4gPj4+IEBAIC04MTks
+NiArODgxLDg3IEBADQo+ID4gPj4+ICAjZGVmaW5lIHRvX3R3bDQwMzBfYmtfYmNpX2RldmljZV9p
+bmZvKHgpIGNvbnRhaW5lcl9vZigoeCksIFwNCj4gPiA+Pj4gICAgICAgICAgICAgICBzdHJ1Y3Qg
+dHdsNDAzMF9iY2lfZGV2aWNlX2luZm8sIGJrX2JhdCk7DQo+ID4gPj4+DQo+ID4gPj4+ICtzdGF0
+aWMgc3NpemVfdA0KPiA+ID4+PiArc2hvd19jaGFyZ2VfY3VycmVudChzdHJ1Y3QgZGV2aWNlICpk
+ZXYsIHN0cnVjdCBkZXZpY2VfYXR0cmlidXRlICphdHRyLA0KPiA+ID4+PiBjaGFyICpidWYpDQo+
+ID4gPj4+ICt7DQo+ID4gPj4+ICsgICAgIHU4ICBjdGw7DQo+ID4gPj4+ICsgICAgIGludCByZXQg
+PSByZWFkX2JjaV92YWwoUkVHX0JDSUlSRUYxKSAmIDB4MUZGOw0KPiA+ID4+PiArICAgICB0d2w0
+MDMwX2kyY19yZWFkX3U4KFRXTDQwMzBfTU9EVUxFX01BSU5fQ0hBUkdFLCAmY3RsLA0KPiBSRUdf
+QkNJQ1RMMSk7DQo+ID4gPj4+ICsNCj4gPiA+Pj4gKyAgICAgaWYgKGN0bCAmIENHQUlOKQ0KPiA+
+ID4+PiArICAgICAgICAgICAgIHJldCB8PSAweDIwMDsNCj4gPiA+Pj4gKw0KPiA+ID4+PiArI2lm
+ZGVmIERFQlVHDQo+ID4gPj4+ICsgICAgIC8qIER1bXAgZGVidWcgKi8NCj4gPiA+Pj4gKyAgICAg
+dHdsNDAzMGJhdHRlcnlfdGVtcF9zZXR1cCgpOw0KPiA+ID4+PiArI2VuZGlmDQo+ID4gPj4+ICsN
+Cj4gPiA+Pj4gKyAgICAgcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIsIHJldCk7DQo+ID4gPj4+
+ICt9DQo+ID4gPj4+ICsNCj4gPiA+Pj4gK3N0YXRpYyBzc2l6ZV90DQo+ID4gPj4+ICtzZXRfY2hh
+cmdlX2N1cnJlbnQoc3RydWN0IGRldmljZSAqZGV2LCBzdHJ1Y3QgZGV2aWNlX2F0dHJpYnV0ZSAq
+YXR0ciwNCj4gPiA+Pj4gY29uc3QgY2hhciAqYnVmLCBzaXplX3QgY291bnQpDQo+ID4gPj4+ICt7
+DQo+ID4gPj4+ICsgICAgIHVuc2lnbmVkIGxvbmcgbmV3Q3VycmVudDsNCj4gPiA+Pj4gKyAgICAg
+aW50IHJldDsNCj4gPiA+Pj4gKw0KPiA+ID4+PiArICAgICByZXQgPSBzdHJpY3Rfc3RydG91bChi
+dWYsIDEwLCAmbmV3Q3VycmVudCk7DQo+ID4gPj4+ICsgICAgIGlmIChyZXQpDQo+ID4gPj4+ICsg
+ICAgICAgICAgICAgcmV0dXJuIC1FSU5WQUw7DQo+ID4gPj4+ICsNCj4gPiA+Pj4gKyAgICAgcmV0
+ID0gdHdsNDAzMF9pMmNfd3JpdGVfdTgoVFdMNDAzMF9NT0RVTEVfTUFJTl9DSEFSR0UsIEtFWV9J
+SVJFRiwNCj4gPiA+Pj4gUkVHX0JDSU1GS0VZKTsNCj4gPiA+Pj4gKyAgICAgaWYgKHJldCkNCj4g
+PiA+Pj4gKyAgICAgICAgICAgICByZXR1cm4gcmV0Ow0KPiA+ID4+PiArDQo+ID4gPj4+ICsgICAg
+IHJldCA9IHR3bDQwMzBfaTJjX3dyaXRlX3U4KFRXTDQwMzBfTU9EVUxFX01BSU5fQ0hBUkdFLCBu
+ZXdDdXJyZW50DQo+ICYNCj4gPiA+Pj4gMHhmZiwgUkVHX0JDSUlSRUYxKTsNCj4gPiA+Pj4gKyAg
+ICAgaWYgKHJldCkNCj4gPiA+Pj4gKyAgICAgICAgICAgICByZXR1cm4gcmV0Ow0KPiA+ID4+PiAr
+DQo+ID4gPj4+ICsgICAgIHJldCA9IHR3bDQwMzBfaTJjX3dyaXRlX3U4KFRXTDQwMzBfTU9EVUxF
+X01BSU5fQ0hBUkdFLCBLRVlfSUlSRUYsDQo+ID4gPj4+IFJFR19CQ0lNRktFWSk7DQo+ID4gPj4+
+ICsgICAgIGlmIChyZXQpDQo+ID4gPj4+ICsgICAgICAgICAgICAgcmV0dXJuIHJldDsNCj4gPiA+
+Pj4gKw0KPiA+ID4+PiArICAgICByZXQgPSB0d2w0MDMwX2kyY193cml0ZV91OChUV0w0MDMwX01P
+RFVMRV9NQUlOX0NIQVJHRSwNCj4gKG5ld0N1cnJlbnQgPj4NCj4gPiA+Pj4gOCkgJiAweDEsIFJF
+R19CQ0lJUkVGMik7DQo+ID4gPj4+ICsgICAgIGlmIChyZXQpDQo+ID4gPj4+ICsgICAgICAgICAg
+ICAgcmV0dXJuIHJldDsNCj4gPiA+Pj4gKw0KPiA+ID4+PiArICAgICAvKiBTZXQgc29mdHdhcmUt
+Y29udHJvbGxlZCBjaGFyZ2UgKi8NCj4gPiA+Pj4gKyAgICAgdHdsNDAzMGNoYXJnZXJfYWNfZW4o
+RU5BQkxFLCAwKTsNCj4gPiA+Pj4gKw0KPiA+ID4+PiArICAgICAvKiBTZXQgQ0dBSU4gPSAwIG9y
+IDEgKi8NCj4gPiA+Pj4gKyAgICAgaWYobmV3Q3VycmVudCA+IDUxMSkgew0KPiA+ID4+PiArICAg
+ICAgICAgICAgIHU4IHRtcDsNCj4gPiA+Pj4gKw0KPiA+ID4+PiArICAgICAgICAgICAgIC8qIFNl
+dCBDR0FJTiA9IDEgLS0gbmVlZCB0byB3YWl0IHVudGlsIGF1dG9tYXRpYyBjaGFyZ2UNCj4gdHVy
+bnMgb2ZmICovDQo+ID4gPj4+ICsgICAgICAgICAgICAgd2hpbGUoIXJldCkgew0KPiA+ID4+PiAr
+ICAgICAgICAgICAgICAgICAgICAgY2xlYXJfbl9zZXQoVFdMNDAzMF9NT0RVTEVfTUFJTl9DSEFS
+R0UsIDAsIENHQUlODQo+IHwgMHgxQiwNCj4gPiA+Pj4gUkVHX0JDSUNUTDEpOw0KPiA+ID4+PiAr
+ICAgICAgICAgICAgICAgICAgICAgdHdsNDAzMF9pMmNfcmVhZF91OChUV0w0MDMwX01PRFVMRV9N
+QUlOX0NIQVJHRSwNCj4gJnRtcCwgUkVHX0JDSUNUTDEpOw0KPiA+ID4+PiArDQo+ID4gPj4+ICsg
+ICAgICAgICAgICAgICAgICAgICByZXQgPSB0bXAgJiBDR0FJTjsNCj4gPiA+Pj4gKyAgICAgICAg
+ICAgICAgICAgICAgIGlmKCFyZXQpDQo+ID4gPj4+ICsgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgIG1kZWxheSg1MCk7DQo+ID4gPj4+ICsgICAgICAgICAgICAgfQ0KPiA+ID4+PiArICAgICB9
+IGVsc2Ugew0KPiA+ID4+PiArICAgICAgICAgICAgIHU4IHRtcDsNCj4gPiA+Pj4gKw0KPiA+ID4+
+PiArICAgICAgICAgICAgIC8qIFNldCBDR0FJTiA9IDAgLS0gbmVlZCB0byB3YWl0IHVudGlsIGF1
+dG9tYXRpYyBjaGFyZ2UNCj4gdHVybnMgb2ZmICovDQo+ID4gPj4+ICsgICAgICAgICAgICAgd2hp
+bGUoIXJldCkgew0KPiA+ID4+PiArICAgICAgICAgICAgICAgICAgICAgY2xlYXJfbl9zZXQoVFdM
+NDAzMF9NT0RVTEVfTUFJTl9DSEFSR0UsIENHQUlOLA0KPiAweDFCLCBSRUdfQkNJQ1RMMSk7DQo+
+ID4gPj4+ICsgICAgICAgICAgICAgICAgICAgICB0d2w0MDMwX2kyY19yZWFkX3U4KFRXTDQwMzBf
+TU9EVUxFX01BSU5fQ0hBUkdFLA0KPiAmdG1wLCBSRUdfQkNJQ1RMMSk7DQo+ID4gPj4+ICsNCj4g
+PiA+Pj4gKyAgICAgICAgICAgICAgICAgICAgIHJldCA9ICEodG1wICYgQ0dBSU4pOw0KPiA+ID4+
+PiArICAgICAgICAgICAgICAgICAgICAgaWYoIXJldCkNCj4gPiA+Pj4gKyAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgbWRlbGF5KDUwKTsNCj4gPiA+Pj4gKyAgICAgICAgICAgICB9DQo+ID4g
+Pj4+ICsgICAgIH0NCj4gPiA+Pj4gKw0KPiA+ID4+PiArICAgICAvKiBTZXQgYXV0b21hdGljIGNo
+YXJnZSAoQ0dBSU4gPSAwLzEgcGVyc2lzdHMpICovDQo+ID4gPj4+ICsgICAgIHR3bDQwMzBjaGFy
+Z2VyX2FjX2VuKEVOQUJMRSwgMSk7DQo+ID4gPj4+ICsNCj4gPiA+Pj4gKyAgICAgcmV0dXJuIGNv
+dW50Ow0KPiA+ID4+PiArfQ0KPiA+ID4+PiArc3RhdGljIERFVklDRV9BVFRSKGNoYXJnZV9jdXJy
+ZW50LCBTX0lSVUdPIHwgU19JV1VTUiwNCj4gPiA+Pj4gc2hvd19jaGFyZ2VfY3VycmVudCwgc2V0
+X2NoYXJnZV9jdXJyZW50KTsNCj4gPiA+Pj4gKw0KPiA+ID4+PiAgc3RhdGljIGludCB0d2w0MDMw
+X2JrX2JjaV9iYXR0ZXJ5X2dldF9wcm9wZXJ0eShzdHJ1Y3QgcG93ZXJfc3VwcGx5DQo+ID4gPj4+
+ICpwc3ksDQo+ID4gPj4+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZW51
+bSBwb3dlcl9zdXBwbHlfcHJvcGVydHkgcHNwLA0KPiA+ID4+PiAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgIHVuaW9uIHBvd2VyX3N1cHBseV9wcm9wdmFsICp2YWwpDQo+ID4g
+Pj4+IEBAIC05MTIsOCArMTA1NSw2IEBADQo+ID4gPj4+ICAgICAgIGludCBpcnE7DQo+ID4gPj4+
+ICAgICAgIGludCByZXQ7DQo+ID4gPj4+DQo+ID4gPj4+IC0gICAgIHRoZXJtX3RibCA9IHBkYXRh
+LT5iYXR0ZXJ5X3RtcF90Ymw7DQo+ID4gPj4+IC0NCj4gPiA+Pj4gICAgICAgZGkgPSBremFsbG9j
+KHNpemVvZigqZGkpLCBHRlBfS0VSTkVMKTsNCj4gPiA+Pj4gICAgICAgaWYgKCFkaSkNCj4gPiA+
+Pj4gICAgICAgICAgICAgICByZXR1cm4gLUVOT01FTTsNCj4gPiA+Pj4gQEAgLTkzNyw4ICsxMDc4
+LDEyIEBADQo+ID4gPj4+ICAgICAgIGRpLT5ia19iYXQubnVtX3Byb3BlcnRpZXMgPQ0KPiBBUlJB
+WV9TSVpFKHR3bDQwMzBfYmtfYmNpX2JhdHRlcnlfcHJvcHMpOw0KPiA+ID4+PiAgICAgICBkaS0+
+YmtfYmF0LmdldF9wcm9wZXJ0eSA9IHR3bDQwMzBfYmtfYmNpX2JhdHRlcnlfZ2V0X3Byb3BlcnR5
+Ow0KPiA+ID4+PiAgICAgICBkaS0+YmtfYmF0LmV4dGVybmFsX3Bvd2VyX2NoYW5nZWQgPSBOVUxM
+Ow0KPiA+ID4+PiArICAgICBkaS0+cGRhdGEgPSBwZGF0YTsNCj4gPiA+Pj4NCj4gPiA+Pj4gLSAg
+ICAgdHdsNDAzMGNoYXJnZXJfYWNfZW4oRU5BQkxFKTsNCj4gPiA+Pj4gKyAgICAgLyogU2V0IHVw
+IGNsb2NrcyAqLw0KPiA+ID4+PiArICAgICB0d2w0MDMwX2kyY193cml0ZV91OChUV0w0MDMwX01P
+RFVMRV9JTlRCUiwgTUFEQ19IRkNMS19FTiB8DQo+ID4gPj4+IERFRkFVTFRfTUFEQ19DTEtfRU4s
+IFJFR19HUEJSMSk7DQo+ID4gPj4+ICsNCj4gPiA+Pj4gKyAgICAgdHdsNDAzMGNoYXJnZXJfYWNf
+ZW4oRU5BQkxFLCBDSEFSR0VfTU9ERSk7DQo+ID4gPj4+ICAgICAgIHR3bDQwMzBjaGFyZ2VyX3Vz
+Yl9lbihFTkFCTEUpOw0KPiA+ID4+PiAgICAgICB0d2w0MDMwYmF0dGVyeV9od19sZXZlbF9lbihF
+TkFCTEUpOw0KPiA+ID4+PiAgICAgICB0d2w0MDMwYmF0dGVyeV9od19wcmVzZW5jZV9lbihFTkFC
+TEUpOw0KPiA+ID4+PiBAQCAtOTUxLDkgKzEwOTYsMTIgQEANCj4gPiA+Pj4gICAgICAgICAgICAg
+ICBnb3RvIHRlbXBfc2V0dXBfZmFpbDsNCj4gPiA+Pj4NCj4gPiA+Pj4gICAgICAgLyogZW5hYmxp
+bmcgR1BDSDA5IGZvciByZWFkIGJhY2sgYmF0dGVyeSB2b2x0YWdlICovDQo+ID4gPj4+IC0gICAg
+IHJldCA9IHR3bDQwMzBiYWNrdXBiYXR0X3ZvbHRhZ2Vfc2V0dXAoKTsNCj4gPiA+Pj4gLSAgICAg
+aWYgKHJldCkNCj4gPiA+Pj4gLSAgICAgICAgICAgICBnb3RvIHZvbHRhZ2Vfc2V0dXBfZmFpbDsN
+Cj4gPiA+Pj4gKyAgICAgaWYoIWRpLT5wZGF0YS0+bm9fYmFja3VwX2JhdHRlcnkpDQo+ID4gPj4+
+ICsgICAgIHsNCj4gPiA+Pj4gKyAgICAgICAgICAgICByZXQgPSB0d2w0MDMwYmFja3VwYmF0dF92
+b2x0YWdlX3NldHVwKCk7DQo+ID4gPj4+ICsgICAgICAgICAgICAgaWYgKHJldCkNCj4gPiA+Pj4g
+KyAgICAgICAgICAgICAgICAgICAgIGdvdG8gdm9sdGFnZV9zZXR1cF9mYWlsOw0KPiA+ID4+PiAr
+ICAgICB9DQo+ID4gPj4+DQo+ID4gPj4+ICAgICAgIC8qIFJFVklTSVQgZG8gd2UgbmVlZCB0byBy
+ZXF1ZXN0IGJvdGggSVJRcyA/PyAqLw0KPiA+ID4+Pg0KPiA+ID4+PiBAQCAtOTg4LDkgKzExMzYs
+MTggQEANCj4gPiA+Pj4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgdHdsNDAzMF9iY2lf
+YmF0dGVyeV93b3JrKTsNCj4gPiA+Pj4gICAgICAgc2NoZWR1bGVfZGVsYXllZF93b3JrKCZkaS0+
+dHdsNDAzMF9iY2lfbW9uaXRvcl93b3JrLCAwKTsNCj4gPiA+Pj4NCj4gPiA+Pj4gLSAgICAgcmV0
+ID0gcG93ZXJfc3VwcGx5X3JlZ2lzdGVyKCZwZGV2LT5kZXYsICZkaS0+YmtfYmF0KTsNCj4gPiA+
+Pj4gKyAgICAgaWYoIXBkYXRhLT5ub19iYWNrdXBfYmF0dGVyeSkNCj4gPiA+Pj4gKyAgICAgew0K
+PiA+ID4+PiArICAgICAgICAgICAgIHJldCA9IHBvd2VyX3N1cHBseV9yZWdpc3RlcigmcGRldi0+
+ZGV2LCAmZGktPmJrX2JhdCk7DQo+ID4gPj4+ICsgICAgICAgICAgICAgaWYgKHJldCkgew0KPiA+
+ID4+PiArICAgICAgICAgICAgICAgICAgICAgZGV2X2RiZygmcGRldi0+ZGV2LCAiZmFpbGVkIHRv
+IHJlZ2lzdGVyIGJhY2t1cA0KPiBiYXR0ZXJ5XG4iKTsNCj4gPiA+Pj4gKyAgICAgICAgICAgICAg
+ICAgICAgIGdvdG8gYmtfYmF0dF9mYWlsZWQ7DQo+ID4gPj4+ICsgICAgICAgICAgICAgfQ0KPiA+
+ID4+PiArICAgICB9DQo+ID4gPj4+ICsNCj4gPiA+Pj4gKyAgICAgcmV0ID0gZGV2aWNlX2NyZWF0
+ZV9maWxlKGRpLT5iYXQuZGV2LCAmZGV2X2F0dHJfY2hhcmdlX2N1cnJlbnQpOw0KPiA+ID4+PiAg
+ICAgICBpZiAocmV0KSB7DQo+ID4gPj4+IC0gICAgICAgICAgICAgZGV2X2RiZygmcGRldi0+ZGV2
+LCAiZmFpbGVkIHRvIHJlZ2lzdGVyIGJhY2t1cA0KPiBiYXR0ZXJ5XG4iKTsNCj4gPiA+Pj4gKyAg
+ICAgICAgICAgICBkZXZfZXJyKCZwZGV2LT5kZXYsICJmYWlsZWQgdG8gY3JlYXRlIHN5c2ZzIGVu
+dHJpZXNcbiIpOw0KPiA+ID4+PiAgICAgICAgICAgICAgIGdvdG8gYmtfYmF0dF9mYWlsZWQ7DQo+
+ID4gPj4+ICAgICAgIH0NCj4gPiA+Pj4NCj4gPiA+Pj4gQEAgLTEwMDEsNyArMTE1OCw4IEBADQo+
+ID4gPj4+ICAgICAgIHJldHVybiAwOw0KPiA+ID4+Pg0KPiA+ID4+PiAgYmtfYmF0dF9mYWlsZWQ6
+DQo+ID4gPj4+IC0gICAgIHBvd2VyX3N1cHBseV91bnJlZ2lzdGVyKCZkaS0+YmF0KTsNCj4gPiA+
+Pj4gKyAgICAgaWYoIXBkYXRhLT5ub19iYWNrdXBfYmF0dGVyeSkNCj4gPiA+Pj4gKyAgICAgICAg
+ICAgICBwb3dlcl9zdXBwbHlfdW5yZWdpc3RlcigmZGktPmJhdCk7DQo+ID4gPj4+ICBiYXR0X2Zh
+aWxlZDoNCj4gPiA+Pj4gICAgICAgZnJlZV9pcnEoaXJxLCBkaSk7DQo+ID4gPj4+ICBjaGdfaXJx
+X2ZhaWw6DQo+ID4gPj4+IEBAIC0xMDEwLDcgKzExNjgsNyBAQA0KPiA+ID4+PiAgYmF0dF9pcnFf
+ZmFpbDoNCj4gPiA+Pj4gIHZvbHRhZ2Vfc2V0dXBfZmFpbDoNCj4gPiA+Pj4gIHRlbXBfc2V0dXBf
+ZmFpbDoNCj4gPiA+Pj4gLSAgICAgdHdsNDAzMGNoYXJnZXJfYWNfZW4oRElTQUJMRSk7DQo+ID4g
+Pj4+ICsgICAgIHR3bDQwMzBjaGFyZ2VyX2FjX2VuKERJU0FCTEUsIENIQVJHRV9NT0RFKTsNCj4g
+PiA+Pj4gICAgICAgdHdsNDAzMGNoYXJnZXJfdXNiX2VuKERJU0FCTEUpOw0KPiA+ID4+PiAgICAg
+ICB0d2w0MDMwYmF0dGVyeV9od19sZXZlbF9lbihESVNBQkxFKTsNCj4gPiA+Pj4gICAgICAgdHds
+NDAzMGJhdHRlcnlfaHdfcHJlc2VuY2VfZW4oRElTQUJMRSk7DQo+ID4gPj4+IEBAIC0xMDI0LDcg
+KzExODIsNyBAQA0KPiA+ID4+PiAgICAgICBzdHJ1Y3QgdHdsNDAzMF9iY2lfZGV2aWNlX2luZm8g
+KmRpID0gcGxhdGZvcm1fZ2V0X2RydmRhdGEocGRldik7DQo+ID4gPj4+ICAgICAgIGludCBpcnE7
+DQo+ID4gPj4+DQo+ID4gPj4+IC0gICAgIHR3bDQwMzBjaGFyZ2VyX2FjX2VuKERJU0FCTEUpOw0K
+PiA+ID4+PiArICAgICB0d2w0MDMwY2hhcmdlcl9hY19lbihESVNBQkxFLCBDSEFSR0VfTU9ERSk7
+DQo+ID4gPj4+ICAgICAgIHR3bDQwMzBjaGFyZ2VyX3VzYl9lbihESVNBQkxFKTsNCj4gPiA+Pj4g
+ICAgICAgdHdsNDAzMGJhdHRlcnlfaHdfbGV2ZWxfZW4oRElTQUJMRSk7DQo+ID4gPj4+ICAgICAg
+IHR3bDQwMzBiYXR0ZXJ5X2h3X3ByZXNlbmNlX2VuKERJU0FCTEUpOw0KPiA+ID4+PiAtLS0gYS9p
+bmNsdWRlL2xpbnV4L2kyYy90d2w0MDMwLmgNCj4gPiA+Pj4gKysrIGIvaW5jbHVkZS9saW51eC9p
+MmMvdHdsNDAzMC5oDQo+ID4gPj4+IEBAIC0yOTksNiArMjk5LDggQEAgaW50IHR3bDQwMzBfaTJj
+X3JlYWQodTggbW9kX25vLCB1OCAqdmFsdWUsIHU4IHJlZywNCj4gPiA+Pj4gdW5zaWduZWQgbnVt
+X2J5dGVzKTsNCj4gPiA+Pj4gIHN0cnVjdCB0d2w0MDMwX2JjaV9wbGF0Zm9ybV9kYXRhIHsNCj4g
+PiA+Pj4gICAgICAgaW50ICpiYXR0ZXJ5X3RtcF90Ymw7DQo+ID4gPj4+ICAgICAgIHVuc2lnbmVk
+IGludCB0YmxzaXplOw0KPiA+ID4+PiArDQo+ID4gPj4+ICsgICAgIGJvb2wgbm9fYmFja3VwX2Jh
+dHRlcnk7DQo+ID4gPj4+ICB9Ow0KPiA+ID4+Pg0KPiA+ID4+PiAgLyogVFdMNDAzMF9HUElPX01B
+WCAoMTgpIEdQSU9zLCB3aXRoIGludGVycnVwdHMgKi8NCj4gPiA+Pj4NCj4gPiA+Pg0KPiA+ID4+
+DQo+ID4gPg0KPg0KPiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0
+aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtb21hcCIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNz
+YWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBh
+dCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQoNCg==
