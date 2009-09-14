@@ -1,46 +1,46 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: several OMAP newbie questions
-Date: Mon, 14 Sep 2009 08:21:00 -0700
-Message-ID: <4AAE5F5C.1000902@deeprootsystems.com>
-References: <4A9CF8AC.2010408@compulab.co.il>	<f96d234e0909041508m73e0f2a1r946f1c446d3880b6@mail.gmail.com> <87hbvaaiiv.fsf@deeprootsystems.com> <4AACEE7F.5030501@compulab.co.il>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [PATCH] omapfb: Reorder Register_framebuffer call
+Date: Mon, 14 Sep 2009 18:22:32 +0300
+Message-ID: <94a0d4530909140822h59937984hae3dea70d52fff18@mail.gmail.com>
+References: <1252773249-24444-1-git-send-email-saaguirre@ti.com>
+	 <A24693684029E5489D1D202277BE89444C327E31@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f172.google.com ([209.85.221.172]:44907 "EHLO
-	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066AbZINPVC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Sep 2009 11:21:02 -0400
-Received: by qyk2 with SMTP id 2so2430242qyk.21
-        for <linux-omap@vger.kernel.org>; Mon, 14 Sep 2009 08:21:05 -0700 (PDT)
-In-Reply-To: <4AACEE7F.5030501@compulab.co.il>
+Received: from fg-out-1718.google.com ([72.14.220.152]:30649 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754386AbZINPWa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 14 Sep 2009 11:22:30 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so988816fge.1
+        for <linux-omap@vger.kernel.org>; Mon, 14 Sep 2009 08:22:33 -0700 (PDT)
+In-Reply-To: <A24693684029E5489D1D202277BE89444C327E31@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: Cliff Brake <cliff.brake@gmail.com>, linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: Imre Deak <imre.deak@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Mike Rapoport wrote:
-> Hi Kevin,
-> 
-> Kevin Hilman wrote:
->> There is lots of agreement around the various shortcomings of the
->> current mux framework for OMAP.  All that's missing is someone to step
->> up and do the work. :/
->>
->> I started a new wiki topic at elinux.org for linux-omap wishlist items:
->>
->>   http://elinux.org/OMAP_wishlist
->>
->> here I created a pin-mux section where we could start to keep track of
->> the important features needed in a new mux framework.  Adding pointers
->> summaries to some other platforms might be useful here as well.
-> 
-> If you'd like to I can add a brief description of what PXA does.
-> 
+On Mon, Sep 14, 2009 at 5:43 PM, Aguirre Rodriguez, Sergio Alberto
+<saaguirre@ti.com> wrote:
+> Hi,
+>
+> This patch has been lying around for some weeks now, with just responses about successful testing (detailed in the description).
+>
+> Is there anything holding it for merge? Or should I try sending it to other ML?
+>
+> BTW, It applies cleanly on mainline aswell.
 
-Sure, could be useful.
+Try running 'get_maintainer' script to find other people that have
+worked on this code:
+Trilok Soni <soni.trilok@gmail.com>
+Andrew Morton <akpm@linux-foundation.org>
+Tony Lindgren <tony@atomide.com>
+Russell King <rmk+kernel@arm.linux.org.uk>
+Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Thanks,
+My feedback is: please mention in the message how the bug can be triggered.
 
-Kevin
+And watch your uppercases:
+omapfb: reorder register_framebuffer call
 
+-- 
+Felipe Contreras
