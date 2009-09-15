@@ -1,15 +1,14 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCHv3.1 2/4] dspbridge: Change LST_ELEM to list_head entirely
-Date: Tue, 15 Sep 2009 10:28:33 +0300
-Message-ID: <1252999715-19470-2-git-send-email-andy.shevchenko@gmail.com>
+Subject: [PATCHv3.1 1/4] DSPBRIDGE: Get rid of services/list.c
+Date: Tue, 15 Sep 2009 10:28:32 +0300
+Message-ID: <1252999715-19470-1-git-send-email-andy.shevchenko@gmail.com>
 References: <1252411936-25722-1-git-send-email-andy.shevchenko@gmail.com>
- <1252999715-19470-1-git-send-email-andy.shevchenko@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38833 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:38846 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758149AbZIOH2o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Sep 2009 03:28:44 -0400
-In-Reply-To: <1252999715-19470-1-git-send-email-andy.shevchenko@gmail.com>
+	with ESMTP id S1758157AbZIOH2p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 15 Sep 2009 03:28:45 -0400
+In-Reply-To: <1252411936-25722-1-git-send-email-andy.shevchenko@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org, x0095840@ti.com, hiroshi.doyu@nokia.com, omar.ramirez@ti.com
@@ -17,844 +16,628 @@ Cc: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
 From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-* Change struct LST_ELEM to struct list_head in whole dsp bridge driver
-* Remove useless commentaries
-* Minor change in the services/mem.c:
-  ...
-    struct list_head *last = &mMan.lst.head;
-    struct list_head *curr = last->next; /* was: mMan.lst.head.next */
-  ...
+* Remove LST_Init() and LST_Exit() calls because they are doing nothing except
+  tracing, Thus, remove tracing as well.
+
+* Remove DBC_* calls. It's internal kernel business whether to have those
+  assertions.
+
+* Move methods from list.c as inline functions to the list.h.
+
+* Switch to list_head structure instead of LST_ELEM:
+  - define LST_ELEM as list_head via macro
+  - substitute LST_ELEM by list_head
+  - remove redudant code that uses head->self pointer
+
+* Remove extra local variables.
+
+* Use native list methods where it's possible inside the list.h.
 
 Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 ---
- arch/arm/plat-omap/include/dspbridge/_chnl_sm.h |    2 +-
- arch/arm/plat-omap/include/dspbridge/list.h     |    1 -
- drivers/dsp/bridge/pmgr/cmm.c                   |   55 +++++++++++------------
- drivers/dsp/bridge/pmgr/dev.c                   |    8 ++--
- drivers/dsp/bridge/rmgr/drv.c                   |   14 +++---
- drivers/dsp/bridge/rmgr/node.c                  |   10 ++--
- drivers/dsp/bridge/rmgr/proc.c                  |    2 +-
- drivers/dsp/bridge/rmgr/rmm.c                   |   16 +++---
- drivers/dsp/bridge/services/cfg.c               |    2 +-
- drivers/dsp/bridge/services/mem.c               |   26 +++++-----
- drivers/dsp/bridge/services/ntfy.c              |   12 +++---
- drivers/dsp/bridge/wmd/_msg_sm.h                |    4 +-
- drivers/dsp/bridge/wmd/chnl_sm.c                |   12 +++---
- drivers/dsp/bridge/wmd/io_sm.c                  |   10 ++--
- drivers/dsp/bridge/wmd/msg_sm.c                 |   21 ++++-----
- 15 files changed, 96 insertions(+), 99 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/list.h |  131 +++++++------
+ drivers/dsp/bridge/Kbuild                   |    2 +-
+ drivers/dsp/bridge/services/list.c          |  279 ---------------------------
+ drivers/dsp/bridge/services/mem.c           |    2 -
+ drivers/dsp/bridge/services/services.c      |    9 +-
+ 5 files changed, 78 insertions(+), 345 deletions(-)
+ delete mode 100644 drivers/dsp/bridge/services/list.c
 
-diff --git a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-index 28af799..cc768c9 100644
---- a/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-+++ b/arch/arm/plat-omap/include/dspbridge/_chnl_sm.h
-@@ -197,7 +197,7 @@ struct loadMonStruct {
- 
- /* I/O Request/completion packet: */
- 	struct CHNL_IRP {
--		struct LST_ELEM link;	/* Link to next CHIRP in queue. */
-+		struct list_head link;	/* Link to next CHIRP in queue.  */
- 		/* Buffer to be filled/emptied. (User)   */
- 		u8 *pHostUserBuf;
- 		/* Buffer to be filled/emptied. (System) */
 diff --git a/arch/arm/plat-omap/include/dspbridge/list.h b/arch/arm/plat-omap/include/dspbridge/list.h
-index c251761..9baa6ae 100644
+index 2e3f995..c251761 100644
 --- a/arch/arm/plat-omap/include/dspbridge/list.h
 +++ b/arch/arm/plat-omap/include/dspbridge/list.h
-@@ -53,7 +53,6 @@
- #include <dspbridge/mem.h>
- #include <linux/list.h>
+@@ -24,11 +24,9 @@
+  *  Public Functions:
+  *      LST_Create
+  *      LST_Delete
+- *      LST_Exit
+  *      LST_First
+  *      LST_GetHead
+  *      LST_InitElem
+- *      LST_Init
+  *      LST_InsertBefore
+  *      LST_IsEmpty
+  *      LST_Next
+@@ -51,18 +49,16 @@
+ #define LIST_
  
--#define LST_ELEM            list_head
- #define LST_IsEmpty(l)      list_empty(&(l)->head)
+ #include <dspbridge/host_os.h>
++/* MEM_Calloc(), MEM_NONPAGED, MEM_Free() */
++#include <dspbridge/mem.h>
++#include <linux/list.h>
  
- struct LST_LIST {
-diff --git a/drivers/dsp/bridge/pmgr/cmm.c b/drivers/dsp/bridge/pmgr/cmm.c
-index db9baf3..eecb78e 100644
---- a/drivers/dsp/bridge/pmgr/cmm.c
-+++ b/drivers/dsp/bridge/pmgr/cmm.c
-@@ -199,7 +199,7 @@ static struct CMM_XLATORATTRS CMM_DFLTXLATORATTRS = {
+-#define LST_IsEmpty(l)      (((l)->head.next == &(l)->head))
++#define LST_ELEM            list_head
++#define LST_IsEmpty(l)      list_empty(&(l)->head)
  
- /* SM node representing a block of memory. */
- struct CMM_MNODE {
--	struct LST_ELEM link;		/* must be 1st element */
-+	struct list_head link;		/* must be 1st element */
- 	u32 dwPA;		/* Phys addr */
- 	u32 dwVA;		/* Virtual address in device process context */
- 	u32 ulSize;		/* SM block size in bytes */
-@@ -289,7 +289,7 @@ void *CMM_CallocBuf(struct CMM_OBJECT *hCmmMgr, u32 uSize,
- 
- 			/* put our node on InUse list */
- 			LST_PutTail(pAllocator->pInUseListHead,
--				   (struct LST_ELEM *)pNode);
-+				   (struct list_head *)pNode);
- 			pBufPA = (void *)pNode->dwPA;	/* physical address */
- 			/* clear mem */
- 			pByte = (u8 *)pNode->dwVA;
-@@ -428,8 +428,6 @@ DSP_STATUS CMM_Destroy(struct CMM_OBJECT *hCmmMgr, bool bForce)
- 	if (pCmmMgr->pNodeFreeListHead != NULL) {
- 		/* Free the free nodes */
- 		while (!LST_IsEmpty(pCmmMgr->pNodeFreeListHead)) {
--			/* (struct LST_ELEM*) pNode =
--			 * LST_GetHead(pCmmMgr->pNodeFreeListHead);*/
- 			pNode = (struct CMM_MNODE *)LST_GetHead(pCmmMgr->
- 				 pNodeFreeListHead);
- 			MEM_Free(pNode);
-@@ -496,7 +494,7 @@ DSP_STATUS CMM_FreeBuf(struct CMM_OBJECT *hCmmMgr, void *pBufPA, u32 ulSegId)
- 			if ((u32)pBufPA == pCurNode->dwPA) {
- 				/* Found it */
- 				LST_RemoveElem(pAllocator->pInUseListHead,
--					      (struct LST_ELEM *)pCurNode);
-+					      (struct list_head *)pCurNode);
- 				/* back to freelist */
- 				AddToFreeList(pAllocator, pCurNode);
- 				status = DSP_SOK;	/* all right! */
-@@ -504,7 +502,8 @@ DSP_STATUS CMM_FreeBuf(struct CMM_OBJECT *hCmmMgr, void *pBufPA, u32 ulSegId)
- 			}
- 			/* next node. */
- 			pCurNode = (struct CMM_MNODE *)LST_Next(pAllocator->
--				   pInUseListHead, (struct LST_ELEM *)pCurNode);
-+					pInUseListHead,
-+					(struct list_head *)pCurNode);
- 		}
- 		SYNC_LeaveCS(pCmmMgr->hCmmLock);
- 	}
-@@ -590,7 +589,7 @@ DSP_STATUS CMM_GetInfo(struct CMM_OBJECT *hCmmMgr,
- 				/* next node. */
- 				pCurNode = (struct CMM_MNODE *)LST_Next(pAltr->
- 					pInUseListHead,
--					(struct LST_ELEM *)pCurNode);
-+					(struct list_head *)pCurNode);
- 			}
- 		}
- 	}		/* end for */
-@@ -726,7 +725,7 @@ DSP_STATUS CMM_RegisterGPPSMSeg(struct CMM_OBJECT *hCmmMgr, u32 dwGPPBasePA,
- 			/* Place node on the SM allocator's free list */
- 			if (pNewNode) {
- 				LST_PutTail(pSMA->pFreeListHead,
--					   (struct LST_ELEM *)pNewNode);
-+					   (struct list_head *)pNewNode);
- 			} else {
- 				status = DSP_EMEMORY;
- 				goto func_end;
-@@ -820,9 +819,9 @@ static void UnRegisterGPPSMSeg(struct CMM_ALLOCATOR *pSMA)
- 		while (pCurNode) {
- 			pNextNode = (struct CMM_MNODE *)LST_Next(pSMA->
- 				     pFreeListHead,
--				    (struct LST_ELEM *)pCurNode);
-+				    (struct list_head *)pCurNode);
- 			LST_RemoveElem(pSMA->pFreeListHead,
--				      (struct LST_ELEM *)pCurNode);
-+				      (struct list_head *)pCurNode);
- 			MEM_Free((void *) pCurNode);
- 			/* next node. */
- 			pCurNode = pNextNode;
-@@ -833,9 +832,9 @@ static void UnRegisterGPPSMSeg(struct CMM_ALLOCATOR *pSMA)
- 		while (pCurNode) {
- 			pNextNode = (struct CMM_MNODE *)LST_Next(pSMA->
- 				    pInUseListHead,
--				    (struct LST_ELEM *)pCurNode);
-+				    (struct list_head *)pCurNode);
- 			LST_RemoveElem(pSMA->pInUseListHead,
--				      (struct LST_ELEM *)pCurNode);
-+				      (struct list_head *)pCurNode);
- 			MEM_Free((void *) pCurNode);
- 			/* next node. */
- 			pCurNode = pNextNode;
-@@ -893,17 +892,15 @@ static struct CMM_MNODE *GetNode(struct CMM_OBJECT *pCmmMgr, u32 dwPA,
- 			MEM_PAGED);
- 	} else {
- 		/* surely a valid element */
--		/* (struct LST_ELEM*) pNode = LST_GetHead(pCmmMgr->
--		 * pNodeFreeListHead);*/
- 		pNode = (struct CMM_MNODE *)LST_GetHead(pCmmMgr->
- 			pNodeFreeListHead);
- 	}
- 	if (pNode == NULL) {
- 		GT_0trace(CMM_debugMask, GT_7CLASS, "GetNode: Out Of Memory\n");
- 	} else {
--		LST_InitElem((struct LST_ELEM *) pNode);	/* set self */
--		pNode->dwPA = dwPA;	/* Physical addr of start of block */
--		pNode->dwVA = dwVA;	/* Virtual   "            "        */
-+		LST_InitElem((struct list_head *)pNode);	/* set self */
-+		pNode->dwPA = dwPA;	/* Physical addr of start of block  */
-+		pNode->dwVA = dwVA;	/* Virtual   "            "         */
- 		pNode->ulSize = ulSize;	/* Size of block */
- 	}
- 	return pNode;
-@@ -918,8 +915,8 @@ static struct CMM_MNODE *GetNode(struct CMM_OBJECT *pCmmMgr, u32 dwPA,
- static void DeleteNode(struct CMM_OBJECT *pCmmMgr, struct CMM_MNODE *pNode)
- {
- 	DBC_Require(pNode != NULL);
--	LST_InitElem((struct LST_ELEM *) pNode);	/* init .self ptr */
--	LST_PutTail(pCmmMgr->pNodeFreeListHead, (struct LST_ELEM *) pNode);
-+	LST_InitElem((struct list_head *)pNode);	/* init .self ptr */
-+	LST_PutTail(pCmmMgr->pNodeFreeListHead, (struct list_head *)pNode);
- }
+-	struct LST_ELEM {
+-		struct LST_ELEM *next;
+-		struct LST_ELEM *prev;
+-		struct LST_ELEM *self;
+-	} ;
+-
+-	struct LST_LIST {
+-		struct LST_ELEM head;
+-	} ;
++struct LST_LIST {
++	struct list_head head;
++};
  
  /*
-@@ -937,12 +934,13 @@ static struct CMM_MNODE *GetFreeBlock(struct CMM_ALLOCATOR *pAllocator,
- 		while (pCurNode) {
- 			if (uSize <= (u32) pCurNode->ulSize) {
- 				LST_RemoveElem(pAllocator->pFreeListHead,
--					      (struct LST_ELEM *)pCurNode);
-+					      (struct list_head *)pCurNode);
- 				return pCurNode;
- 			}
- 			/* next node. */
- 			pCurNode = (struct CMM_MNODE *)LST_Next(pAllocator->
--				    pFreeListHead, (struct LST_ELEM *)pCurNode);
-+					pFreeListHead,
-+					(struct list_head *)pCurNode);
- 		}
- 	}
- 	return NULL;
-@@ -977,7 +975,8 @@ static void AddToFreeList(struct CMM_ALLOCATOR *pAllocator,
- 		if ((pNodePrev == NULL) || (pNodeNext == NULL)) {
- 			/* next node. */
- 			pCurNode = (struct CMM_MNODE *)LST_Next(pAllocator->
--				    pFreeListHead, (struct LST_ELEM *)pCurNode);
-+					pFreeListHead,
-+					(struct list_head *)pCurNode);
- 		} else {
- 			/* got 'em */
- 			break;
-@@ -986,7 +985,7 @@ static void AddToFreeList(struct CMM_ALLOCATOR *pAllocator,
- 	if (pNodePrev != NULL) {
- 		/* combine with previous block */
- 		LST_RemoveElem(pAllocator->pFreeListHead,
--			      (struct LST_ELEM *)pNodePrev);
-+			      (struct list_head *)pNodePrev);
- 		/* grow node to hold both */
- 		pNode->ulSize += pNodePrev->ulSize;
- 		pNode->dwPA = pNodePrev->dwPA;
-@@ -997,7 +996,7 @@ static void AddToFreeList(struct CMM_ALLOCATOR *pAllocator,
- 	if (pNodeNext != NULL) {
- 		/* combine with next block */
- 		LST_RemoveElem(pAllocator->pFreeListHead,
--			      (struct LST_ELEM *)pNodeNext);
-+			      (struct list_head *)pNodeNext);
- 		/* grow da node */
- 		pNode->ulSize += pNodeNext->ulSize;
- 		/* place node on mgr nodeFreeList */
-@@ -1011,17 +1010,17 @@ static void AddToFreeList(struct CMM_ALLOCATOR *pAllocator,
- 
- 		/* next node. */
- 		pCurNode = (struct CMM_MNODE *)LST_Next(pAllocator->
--			   pFreeListHead, (struct LST_ELEM *)pCurNode);
-+			   pFreeListHead, (struct list_head *)pCurNode);
- 	}
- 	/* if pCurNode is NULL then add our pNode to the end of the freelist */
- 	if (pCurNode == NULL) {
- 		LST_PutTail(pAllocator->pFreeListHead,
--			   (struct LST_ELEM *)pNode);
-+			   (struct list_head *)pNode);
- 	} else {
- 		/* insert our node before the current traversed node */
- 		LST_InsertBefore(pAllocator->pFreeListHead,
--				(struct LST_ELEM *)pNode,
--				(struct LST_ELEM *)pCurNode);
-+				(struct list_head *)pNode,
-+				(struct list_head *)pCurNode);
- 	}
- }
- 
-diff --git a/drivers/dsp/bridge/pmgr/dev.c b/drivers/dsp/bridge/pmgr/dev.c
-index 206def0..8ba3a7f 100644
---- a/drivers/dsp/bridge/pmgr/dev.c
-+++ b/drivers/dsp/bridge/pmgr/dev.c
-@@ -162,7 +162,7 @@
- /* The WMD device object: */
- struct DEV_OBJECT {
- 	/* LST requires "link" to be first field!                        */
--	struct LST_ELEM link;		/* Link to next DEV_OBJECT.      */
-+	struct list_head link;		/* Link to next DEV_OBJECT.      */
- 	u32 devType;		/* Device Type */
- 	u32 dwSignature;	/* Used for object validation.   */
- 	struct CFG_DEVNODE *hDevNode;	/* Platform specific device id   */
-@@ -1045,7 +1045,7 @@ DSP_STATUS DEV_NotifyClients(struct DEV_OBJECT *hDevObject, u32 ulStatus)
- 	for (hProcObject = (DSP_HPROCESSOR)LST_First(pDevObject->procList);
- 		hProcObject != NULL;
- 		hProcObject = (DSP_HPROCESSOR)LST_Next(pDevObject->procList,
--						(struct LST_ELEM *)hProcObject))
-+					(struct list_head *)hProcObject))
- 		PROC_NotifyClients(hProcObject, (u32) ulStatus);
- 
- 	return status;
-@@ -1302,7 +1302,7 @@ DSP_STATUS DEV_InsertProcObject(struct DEV_OBJECT *hDevObject,
- 		*pbAlreadyAttached = true;
- 
- 	/* Add DevObject to tail. */
--	LST_PutTail(pDevObject->procList, (struct LST_ELEM *)hProcObject);
-+	LST_PutTail(pDevObject->procList, (struct list_head *)hProcObject);
- 
- 	GT_1trace(debugMask, GT_ENTER,
- 		 "Exiting DEV_InsetProcObject status 0x%x\n", status);
-@@ -1333,7 +1333,7 @@ DSP_STATUS DEV_RemoveProcObject(struct DEV_OBJECT *hDevObject,
- 				     u32 hProcObject)
- {
- 	DSP_STATUS status = DSP_EFAIL;
--	struct LST_ELEM *pCurElem;
-+	struct list_head *pCurElem;
- 	struct DEV_OBJECT *pDevObject = (struct DEV_OBJECT *)hDevObject;
- 
- 	DBC_Require(IsValidHandle(pDevObject));
-diff --git a/drivers/dsp/bridge/rmgr/drv.c b/drivers/dsp/bridge/rmgr/drv.c
-index d56c6c0..3e9b191 100644
---- a/drivers/dsp/bridge/rmgr/drv.c
-+++ b/drivers/dsp/bridge/rmgr/drv.c
-@@ -140,7 +140,7 @@ struct DRV_OBJECT {
-  *  DRV_ since it is living in this module
+  *  ======== LST_Create ========
+@@ -86,7 +82,17 @@
+  *      "empty" element, because its "next" and "prev" pointers point at
+  *      the same location (the element itself).
   */
- struct DRV_EXT {
--	struct LST_ELEM link;
-+	struct list_head link;
- 	char szString[MAXREGPATHLENGTH];
- };
+-	extern struct LST_LIST *LST_Create(void);
++static inline struct LST_LIST *LST_Create(void)
++{
++	struct LST_LIST *pList;
++
++	pList = (struct LST_LIST *) MEM_Calloc(sizeof(struct LST_LIST),
++		MEM_NONPAGED);
++	if (pList != NULL)
++		INIT_LIST_HEAD(&pList->head);
++
++	return pList;
++}
  
-@@ -919,7 +919,7 @@ u32 DRV_GetNextDevObject(u32 hDevObject)
- 		if ((pDrvObject->devList != NULL) &&
- 		   !LST_IsEmpty(pDrvObject->devList)) {
- 			dwNextDevObject = (u32)LST_Next(pDrvObject->devList,
--					  (struct LST_ELEM *)hDevObject);
-+					  (struct list_head *)hDevObject);
- 		}
- 	}
- 	return dwNextDevObject;
-@@ -946,7 +946,7 @@ u32 DRV_GetNextDevExtension(u32 hDevExtension)
- 		   !LST_IsEmpty(pDrvObject->devNodeString)) {
- 			dwDevExtension = (u32)LST_Next(pDrvObject->
- 				devNodeString,
--				(struct LST_ELEM *)hDevExtension);
-+				(struct list_head *)hDevExtension);
- 		}
- 	}
- 
-@@ -995,7 +995,7 @@ DSP_STATUS DRV_InsertDevObject(struct DRV_OBJECT *hDRVObject,
- 		 "Entering DRV_InsertProcObject hDRVObject "
- 		 "0x%x\n, hDevObject 0x%x\n", hDRVObject, hDevObject);
- 
--	LST_PutTail(pDRVObject->devList, (struct LST_ELEM *)hDevObject);
-+	LST_PutTail(pDRVObject->devList, (struct list_head *)hDevObject);
- 
- 	GT_1trace(curTrace, GT_ENTER,
- 		 "Exiting InsertDevObject status 0x%x\n", status);
-@@ -1016,7 +1016,7 @@ DSP_STATUS DRV_RemoveDevObject(struct DRV_OBJECT *hDRVObject,
- {
- 	DSP_STATUS status = DSP_EFAIL;
- 	struct DRV_OBJECT *pDRVObject = (struct DRV_OBJECT *)hDRVObject;
--	struct LST_ELEM *pCurElem;
-+	struct list_head *pCurElem;
- 
- 	DBC_Require(cRefs > 0);
- 	DBC_Require(MEM_IsValidHandle(pDRVObject, SIGNATURE));
-@@ -1080,7 +1080,7 @@ DSP_STATUS DRV_RequestResources(u32 dwContext, u32 *pDevNodeString)
- 			/* Update the Driver Object List */
- 			*pDevNodeString = (u32)pszdevNode->szString;
- 			LST_PutTail(pDRVObject->devNodeString,
--				(struct LST_ELEM *)pszdevNode);
-+				   (struct list_head *)pszdevNode);
- 		} else {
- 			GT_0trace(curTrace, GT_7CLASS,
- 				"Failed to Allocate Memory devNodeString ");
-@@ -1152,7 +1152,7 @@ DSP_STATUS DRV_ReleaseResources(u32 dwContext, struct DRV_OBJECT *hDrvObject)
- 			/* Found it */
- 			/* Delete from the Driver object list */
- 			LST_RemoveElem(pDRVObject->devNodeString,
--				      (struct LST_ELEM *)pszdevNode);
-+				      (struct list_head *)pszdevNode);
- 			MEM_Free((void *) pszdevNode);
- 			break;
- 		}
-diff --git a/drivers/dsp/bridge/rmgr/node.c b/drivers/dsp/bridge/rmgr/node.c
-index e5233a0..3bf14c9 100644
---- a/drivers/dsp/bridge/rmgr/node.c
-+++ b/drivers/dsp/bridge/rmgr/node.c
-@@ -268,7 +268,7 @@ struct STREAM {
-  *  ======== NODE_OBJECT ========
+ /*
+  *  ======== LST_Delete ========
+@@ -108,21 +114,11 @@
+  *      chain of list elements.  Calling this function on a non-empty list
+  *      will cause a memory leak.
   */
- struct NODE_OBJECT {
--	struct LST_ELEM listElem;
-+	struct list_head listElem;
- 	u32 dwSignature;	/* For object validation */
- 	struct NODE_MGR *hNodeMgr;	/* The manager of this node */
- 	struct PROC_OBJECT *hProcessor;	/* Back pointer to processor */
-@@ -754,14 +754,14 @@ func_cont2:
- 	if (DSP_SUCCEEDED(status)) {
- 		/* Add the node to the node manager's list of allocated
- 		 * nodes. */
--		LST_InitElem((struct LST_ELEM *)pNode);
-+		LST_InitElem((struct list_head *)pNode);
- 		NODE_SetState(pNode, NODE_ALLOCATED);
+-	extern void LST_Delete(IN struct LST_LIST *pList);
+-
+-/*
+- *  ======== LST_Exit ========
+- *  Purpose:
+- *      Discontinue usage of module; free resources when reference count
+- *      reaches 0.
+- *  Parameters:
+- *  Returns:
+- *  Requires:
+- *      LST initialized.
+- *  Ensures:
+- *      Resources used by module are freed when cRef reaches zero.
+- */
+-	extern void LST_Exit(void);
++static inline void LST_Delete(struct LST_LIST *pList)
++{
++	if (pList != NULL)
++		MEM_Free(pList);
++}
  
- 		status = SYNC_EnterCS(hNodeMgr->hSync);
- 
- 		if (DSP_SUCCEEDED(status)) {
- 			LST_PutTail(hNodeMgr->nodeList,
--			(struct LST_ELEM *) pNode);
-+				   (struct list_head *)pNode);
- 			++(hNodeMgr->uNumNodes);
- 		}
- 
-@@ -1743,7 +1743,7 @@ func_cont1:
- 	}
- 	/* Free host side resources even if a failure occurred */
- 	/* Remove node from hNodeMgr->nodeList */
--	LST_RemoveElem(hNodeMgr->nodeList, (struct LST_ELEM *) hNode);
-+	LST_RemoveElem(hNodeMgr->nodeList, (struct list_head *)hNode);
- 	hNodeMgr->uNumNodes--;
- 	/* Decrement count of nodes created on DSP */
- 	if ((state != NODE_ALLOCATED) || ((state == NODE_ALLOCATED) &&
-@@ -1836,7 +1836,7 @@ DSP_STATUS NODE_EnumNodes(struct NODE_MGR *hNodeMgr, IN DSP_HNODE *aNodeTab,
- 				aNodeTab[i] = hNode;
- 				hNode = (struct NODE_OBJECT *)LST_Next
- 					(hNodeMgr->nodeList,
--					(struct LST_ELEM *)hNode);
-+					(struct list_head *)hNode);
- 			}
- 			*puAllocated = *puNumNodes = hNodeMgr->uNumNodes;
- 		}
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index 68aa615..8c599b4 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -170,7 +170,7 @@ static struct GT_Mask PROC_DebugMask = { NULL, NULL };	/* WCD MGR Mask */
- 
- /* The PROC_OBJECT structure.   */
- struct PROC_OBJECT {
--	struct LST_ELEM link;		/* Link to next PROC_OBJECT */
-+	struct list_head link;		/* Link to next PROC_OBJECT */
- 	u32 dwSignature;		/* Used for object validation */
- 	struct DEV_OBJECT *hDevObject;	/* Device this PROC represents */
- 	u32 hProcess;			/* Process owning this Processor */
-diff --git a/drivers/dsp/bridge/rmgr/rmm.c b/drivers/dsp/bridge/rmgr/rmm.c
-index 575f675..f048728 100644
---- a/drivers/dsp/bridge/rmgr/rmm.c
-+++ b/drivers/dsp/bridge/rmgr/rmm.c
-@@ -84,7 +84,7 @@ struct RMM_Header {
-  *  Keeps track of memory occupied by overlay section.
+ /*
+  *  ======== LST_First ========
+@@ -138,7 +134,12 @@
+  *      - pList != NULL.
+  *  Ensures:
   */
- struct RMM_OvlySect {
--	struct LST_ELEM listElem;
-+	struct list_head listElem;
- 	u32 addr;		/* Start of memory section */
- 	u32 size;		/* Length (target MAUs) of section */
- 	s32 page;		/* Memory page */
-@@ -161,7 +161,7 @@ DSP_STATUS RMM_alloc(struct RMM_TargetObj *target, u32 segid, u32 size,
- 		}
- 		prevSect = sect;
- 		sect = (struct RMM_OvlySect *)LST_Next(target->ovlyList,
--			(struct LST_ELEM *)sect);
-+			(struct list_head *)sect);
- 	}
- 	if (DSP_SUCCEEDED(status)) {
- 		/* No overlap - allocate list element for new section. */
-@@ -169,19 +169,19 @@ DSP_STATUS RMM_alloc(struct RMM_TargetObj *target, u32 segid, u32 size,
- 		if (newSect == NULL) {
- 			status = DSP_EMEMORY;
- 		} else {
--			LST_InitElem((struct LST_ELEM *)newSect);
-+			LST_InitElem((struct list_head *)newSect);
- 			newSect->addr = addr;
- 			newSect->size = size;
- 			newSect->page = segid;
- 			if (sect == NULL) {
- 				/* Put new section at the end of the list */
- 				LST_PutTail(target->ovlyList,
--					   (struct LST_ELEM *)newSect);
-+					   (struct list_head *)newSect);
- 			} else {
- 				/* Put new section just before sect */
- 				LST_InsertBefore(target->ovlyList,
--						(struct LST_ELEM *)newSect,
--						(struct LST_ELEM *)sect);
-+						(struct list_head *)newSect,
-+						(struct list_head *)sect);
- 			}
- 		}
- 	}
-@@ -388,12 +388,12 @@ bool RMM_free(struct RMM_TargetObj *target, u32 segid, u32 addr, u32 size,
- 				DBC_Assert(size == sect->size);
- 				/* Remove from list */
- 				LST_RemoveElem(target->ovlyList,
--					      (struct LST_ELEM *)sect);
-+					      (struct list_head *)sect);
- 				MEM_Free(sect);
- 				break;
- 			}
- 			sect = (struct RMM_OvlySect *)LST_Next(target->ovlyList,
--			       (struct LST_ELEM *)sect);
-+			       (struct list_head *)sect);
- 		}
- 		if (sect == NULL)
- 			retVal = false;
-diff --git a/drivers/dsp/bridge/services/cfg.c b/drivers/dsp/bridge/services/cfg.c
-index 67656bf..4a39ccb 100644
---- a/drivers/dsp/bridge/services/cfg.c
-+++ b/drivers/dsp/bridge/services/cfg.c
-@@ -93,7 +93,7 @@
- #include <dspbridge/list.h>
+-	extern struct LST_ELEM *LST_First(IN struct LST_LIST *pList);
++static inline struct list_head *LST_First(struct LST_LIST *pList)
++{
++	if (pList && !list_empty(&pList->head))
++		return pList->head.next;
++	return NULL;
++}
  
- struct DRV_EXT {
--	struct LST_ELEM link;
-+	struct list_head link;
- 	char szString[MAXREGPATHLENGTH];
- };
+ /*
+  *  ======== LST_GetHead ========
+@@ -160,7 +161,6 @@
+  *      Pointer to element that was at the head of the list (success)
+  *      NULL          No elements in list
+  *  Requires:
+- *      - head.self must be correctly set to &head.
+  *      - LST initialized.
+  *      - pList != NULL.
+  *  Ensures:
+@@ -169,20 +169,19 @@
+  *      the head of the list, and the head of the list points backward (its
+  *      "prev" pointer) to the tail of the list, this list is circular.
+  */
+-	extern struct LST_ELEM *LST_GetHead(IN struct LST_LIST *pList);
++static inline struct list_head *LST_GetHead(struct LST_LIST *pList)
++{
++	struct list_head *pElem;
  
+-/*
+- *  ======== LST_Init ========
+- *  Purpose:
+- *      Initializes private state of LST module.
+- *  Parameters:
+- *  Returns:
+- *      TRUE if initialized; FALSE otherwise.
+- *  Requires:
+- *  Ensures:
+- *      LST initialized.
+- */
+-	extern bool LST_Init(void);
++	if (!pList || list_empty(&pList->head))
++		return NULL;
++
++	pElem = pList->head.next;
++	pList->head.next = pElem->next;
++	pElem->next->prev = &pList->head;
++
++	return pElem;
++}
+ 
+ /*
+  *  ======== LST_InitElem ========
+@@ -200,7 +199,13 @@
+  *      of a list chain -- that would break the chain.
+  *
+  */
+-	extern void LST_InitElem(IN struct LST_ELEM *pListElem);
++static inline void LST_InitElem(struct list_head *pElem)
++{
++	if (pElem) {
++		pElem->next = NULL;
++		pElem->prev = NULL;
++	}
++}
+ 
+ /*
+  *  ======== LST_InsertBefore ========
+@@ -218,9 +223,13 @@
+  *      - pElemExisting != NULL.
+  *  Ensures:
+  */
+-	extern void LST_InsertBefore(IN struct LST_LIST *pList,
+-				     IN struct LST_ELEM *pElem,
+-				     IN struct LST_ELEM *pElemExisting);
++static inline void LST_InsertBefore(struct LST_LIST *pList,
++				    struct list_head *pElem,
++				    struct list_head *pElemExisting)
++{
++	if (pList && pElem && pElemExisting)
++		list_add_tail(pElem, pElemExisting);
++}
+ 
+ /*
+  *  ======== LST_Next ========
+@@ -238,8 +247,14 @@
+  *      - pCurElem != NULL.
+  *  Ensures:
+  */
+-	extern struct LST_ELEM *LST_Next(IN struct LST_LIST *pList,
+-					 IN struct LST_ELEM *pCurElem);
++static inline struct list_head *LST_Next(struct LST_LIST *pList,
++					 struct list_head *pCurElem)
++{
++	if (pList && !list_empty(&pList->head) && pCurElem &&
++	   (pCurElem->next != &pList->head))
++		return pCurElem->next;
++	return NULL;
++}
+ 
+ /*
+  *  ======== LST_PutTail ========
+@@ -262,18 +277,18 @@
+  *      Void
+  *  Requires:
+  *      *pElem and *pList must both exist.
+- *      pElem->self = pElem before pElem is passed to this function.
+  *      LST initialized.
+  *  Ensures:
+  *  Notes:
+  *      Because the tail is always "just before" the head of the list (the
+  *      tail's "next" pointer points at the head of the list, and the head's
+  *      "prev" pointer points at the tail of the list), the list is circular.
+- *  Warning: if pElem->self is not set beforehand, LST_GetHead() will
+- *      return an erroneous pointer when it is called for this element.
+  */
+-	extern void LST_PutTail(IN struct LST_LIST *pList,
+-				IN struct LST_ELEM *pListElem);
++static inline void LST_PutTail(struct LST_LIST *pList, struct list_head *pElem)
++{
++	if (pList && pElem)
++		list_add_tail(pElem, &pList->head);
++}
+ 
+ /*
+  *  ======== LST_RemoveElem ========
+@@ -290,7 +305,11 @@
+  *      - pCurElem != NULL.
+  *  Ensures:
+  */
+-extern void LST_RemoveElem(IN struct LST_LIST *pList,
+-			   IN struct LST_ELEM *pCurElem);
++static inline void LST_RemoveElem(struct LST_LIST *pList,
++				  struct list_head *pCurElem)
++{
++	if (pList && !list_empty(&pList->head) && pCurElem)
++		list_del_init(pCurElem);
++}
+ 
+ #endif				/* LIST_ */
+diff --git a/drivers/dsp/bridge/Kbuild b/drivers/dsp/bridge/Kbuild
+index 8d6c5c7..e04a6e4 100644
+--- a/drivers/dsp/bridge/Kbuild
++++ b/drivers/dsp/bridge/Kbuild
+@@ -1,7 +1,7 @@
+ obj-$(CONFIG_MPU_BRIDGE)	+= bridgedriver.o
+ 
+ libgen = gen/gb.o gen/gt.o gen/gs.o gen/gh.o gen/_gt_para.o gen/uuidutil.o
+-libservices = services/csl.o services/mem.o services/list.o services/dpc.o \
++libservices = services/csl.o services/mem.o services/dpc.o \
+                services/kfile.o services/sync.o \
+ 		services/clk.o services/cfg.o services/reg.o \
+                services/regsup.o services/ntfy.o \
+diff --git a/drivers/dsp/bridge/services/list.c b/drivers/dsp/bridge/services/list.c
+deleted file mode 100644
+index 7ac7772..0000000
+--- a/drivers/dsp/bridge/services/list.c
++++ /dev/null
+@@ -1,279 +0,0 @@
+-/*
+- * list.c
+- *
+- * DSP-BIOS Bridge driver support functions for TI OMAP processors.
+- *
+- * Copyright (C) 2005-2006 Texas Instruments, Inc.
+- *
+- * This package is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+- */
+-
+-
+-/*
+- *  ======== listce.c ========
+- *  Purpose
+- *      Provides standard circular list handling functions.
+- *
+- *  Public Functions:
+- *      LST_Create
+- *      LST_Delete
+- *      LST_Exit
+- *      LST_First
+- *      LST_GetHead
+- *      LST_Init
+- *      LST_InitElem
+- *      LST_InsertBefore
+- *      LST_Next
+- *      LST_PutTail
+- *      LST_RemoveElem
+- *
+- *! Revision History
+- *! ================
+- *! 06-Mar-2002 jeh Don't set element self to NULL in LST_RemoveElem().
+- *! 10-Aug-2000 ag: Added LST_InsertBefore().
+- *! 03-Feb-2000 rr: Module init/exit is handled by SERVICES Init/Exit.
+- *!		 GT Changes.
+- *! 22-Nov-1999 kc: Added changes from code review.
+- *! 10-Aug-1999 kc: Based on wsx-c18.
+- *! 16-Jun-1997 gp: Removed unnecessary enabling/disabling of interrupts around
+- *!                 list manipulation code.
+- *! 22-Oct-1996 gp: Added LST_RemoveElem, and LST_First/LST_Next iterators.
+- *! 10-Aug-1996 gp: Acquired from SMM for WinSPOX v. 1.1; renamed identifiers.
+- */
+-
+-/*  ----------------------------------- DSP/BIOS Bridge */
+-#include <dspbridge/std.h>
+-#include <dspbridge/dbdefs.h>
+-
+-/*  ----------------------------------- Trace & Debug */
+-#include <dspbridge/dbc.h>
+-#include <dspbridge/gt.h>
+-
+-/*  ----------------------------------- OS Adaptation Layer */
+-#include <dspbridge/mem.h>
+-
+-/*  ----------------------------------- This */
+-#include <dspbridge/list.h>
+-
+-/*  ----------------------------------- Globals */
+-#if GT_TRACE
+-static struct GT_Mask LST_debugMask = { NULL, NULL };	/* GT trace var. */
+-#endif
+-
+-/*
+- *  ======== LST_Create ========
+- *  Purpose:
+- *      Allocates and initializes a circular list.
+- */
+-struct LST_LIST *LST_Create(void)
+-{
+-	struct LST_LIST *pList;
+-
+-	GT_0trace(LST_debugMask, GT_ENTER, "LST_Create: entered\n");
+-
+-	pList = (struct LST_LIST *) MEM_Calloc(sizeof(struct LST_LIST),
+-		MEM_NONPAGED);
+-	if (pList != NULL) {
+-		pList->head.next = &pList->head;
+-		pList->head.prev = &pList->head;
+-		pList->head.self = NULL;
+-	}
+-
+-	return pList;
+-}
+-
+-/*
+- *  ======== LST_Delete ========
+- *  Purpose:
+- *      Removes a list by freeing its control structure's memory space.
+- */
+-void LST_Delete(struct LST_LIST *pList)
+-{
+-	GT_1trace(LST_debugMask, GT_ENTER, "LST_Delete: pList 0x%x\n", pList);
+-
+-	if (pList != NULL)
+-		MEM_Free(pList);
+-}
+-
+-/*
+- *  ======== LST_Exit ========
+- *  Purpose:
+- *      Discontinue usage of the LST module.
+- */
+-void LST_Exit(void)
+-{
+-	GT_0trace(LST_debugMask, GT_5CLASS, "LST_Exit\n");
+-}
+-
+-/*
+- *  ======== LST_First ========
+- *  Purpose:
+- *      Returns a pointer to the first element of the list, or NULL if the
+- *      list is empty.
+- */
+-struct LST_ELEM *LST_First(struct LST_LIST *pList)
+-{
+-	struct LST_ELEM *pElem = NULL;
+-
+-	GT_1trace(LST_debugMask, GT_ENTER, "LST_First: pList 0x%x\n", pList);
+-
+-	if (pList && !LST_IsEmpty(pList))
+-		pElem = pList->head.next;
+-
+-	return pElem;
+-}
+-
+-/*
+- *  ======== LST_GetHead ========
+- *  Purpose:
+- *      "Pops" the head off the list and returns a pointer to it.
+- */
+-struct LST_ELEM *LST_GetHead(struct LST_LIST *pList)
+-{
+-	struct LST_ELEM *pElem;
+-
+-	GT_1trace(LST_debugMask, GT_ENTER, "LST_GetHead: pList 0x%x\n", pList);
+-
+-	if (!pList || LST_IsEmpty(pList))
+-		return NULL;
+-
+-	/* pElem is always valid because the list cannot be empty
+-	 * at this point */
+-	pElem = pList->head.next;
+-	pList->head.next = pElem->next;
+-	pElem->next->prev = &pList->head;
+-
+-	return pElem->self;
+-}
+-
+-/*
+- *  ======== LST_Init ========
+- *  Purpose:
+- *      Initialize LST module private state.
+- */
+-bool LST_Init(void)
+-{
+-	GT_create(&LST_debugMask, "LS");	/* LS for LSt module */
+-
+-	GT_0trace(LST_debugMask, GT_5CLASS, "LST_Init\n");
+-
+-	return true;
+-}
+-
+-/*
+- *  ======== LST_InitElem ========
+- *  Purpose:
+- *      Initializes a list element to default (cleared) values
+- */
+-void LST_InitElem(struct LST_ELEM *pElem)
+-{
+-	DBC_Require(pElem != NULL);
+-
+-	GT_1trace(LST_debugMask, GT_ENTER, "LST_InitElem: pElem 0x%x\n", pElem);
+-
+-	if (pElem) {
+-		pElem->next = NULL;
+-		pElem->prev = NULL;
+-		pElem->self = pElem;
+-	}
+-}
+-
+-/*
+- *  ======== LST_InsertBefore ========
+- *  Purpose:
+- *      Insert the element before the existing element.
+- */
+-void LST_InsertBefore(struct LST_LIST *pList, struct LST_ELEM *pElem,
+-		      struct LST_ELEM *pElemExisting)
+-{
+-	GT_3trace(LST_debugMask, GT_ENTER, "LST_InsertBefore: pList 0x%x, "
+-		  "pElem 0x%x pElemExisting 0x%x\n", pList, pElem,
+-		  pElemExisting);
+-
+-	if (!pList || !pElem || !pElemExisting)
+-		return;
+-
+-	pElemExisting->prev->next = pElem;
+-	pElem->prev = pElemExisting->prev;
+-	pElem->next = pElemExisting;
+-	pElemExisting->prev = pElem;
+-}
+-
+-/*
+- *  ======== LST_Next ========
+- *  Purpose:
+- *      Returns a pointer to the next element of the list, or NULL if the
+- *      next element is the head of the list or the list is empty.
+- */
+-struct LST_ELEM *LST_Next(struct LST_LIST *pList, struct LST_ELEM *pCurElem)
+-{
+-	struct LST_ELEM *pNextElem = NULL;
+-
+-	if (!pList || !pCurElem)
+-		return NULL;
+-
+-	GT_2trace(LST_debugMask, GT_ENTER,
+-		  "LST_Next: pList 0x%x, pCurElem 0x%x\n",
+-		  pList, pCurElem);
+-
+-	if (!LST_IsEmpty(pList)) {
+-		if (pCurElem->next != &pList->head)
+-			pNextElem = pCurElem->next;
+-	}
+-
+-	return pNextElem;
+-}
+-
+-/*
+- *  ======== LST_PutTail ========
+- *  Purpose:
+- *      Adds the specified element to the tail of the list
+- */
+-void LST_PutTail(struct LST_LIST *pList, struct LST_ELEM *pElem)
+-{
+-	GT_2trace(LST_debugMask, GT_ENTER,
+-		  "LST_PutTail: pList 0x%x, pElem 0x%x\n",
+-		  pList, pElem);
+-
+-	if (!pList || !pElem)
+-		return;
+-
+-	pElem->prev = pList->head.prev;
+-	pElem->next = &pList->head;
+-	pList->head.prev = pElem;
+-	pElem->prev->next = pElem;
+-
+-	DBC_Ensure(!LST_IsEmpty(pList));
+-}
+-
+-/*
+- *  ======== LST_RemoveElem ========
+- *  Purpose:
+- *      Removes (unlinks) the given element from the list, if the list is not
+- *      empty.  Does not free the list element.
+- */
+-void LST_RemoveElem(struct LST_LIST *pList, struct LST_ELEM *pCurElem)
+-{
+-	if (!pList || !pCurElem)
+-		return;
+-
+-	GT_2trace(LST_debugMask, GT_ENTER,
+-		  "LST_RemoveElem: pList 0x%x, pCurElem "
+-		  "0x%x\n", pList, pCurElem);
+-
+-	if (!LST_IsEmpty(pList)) {
+-		pCurElem->prev->next = pCurElem->next;
+-		pCurElem->next->prev = pCurElem->prev;
+-
+-		/* set elem fields to NULL to prevent illegal references */
+-		pCurElem->next = NULL;
+-		pCurElem->prev = NULL;
+-	}
+-}
+-
 diff --git a/drivers/dsp/bridge/services/mem.c b/drivers/dsp/bridge/services/mem.c
-index ff507d6..64f8c30 100644
+index af5adbf..ff507d6 100644
 --- a/drivers/dsp/bridge/services/mem.c
 +++ b/drivers/dsp/bridge/services/mem.c
-@@ -95,7 +95,7 @@ static struct extPhysMemPool extMemPool;
- 
- /*  Information about each element allocated on heap */
- struct memInfo {
--	struct LST_ELEM link;		/* Must be first */
-+	struct list_head link;		/* Must be first */
- 	size_t size;
- 	void *caller;
- 	u32 dwSignature;	/* Should be last */
-@@ -119,7 +119,7 @@ static struct memMan mMan;
-  *  These functions are similar to LST_PutTail and LST_RemoveElem and are
-  *  duplicated here to make MEM independent of LST
-  */
--static inline void MLST_PutTail(struct LST_LIST *pList, struct LST_ELEM *pElem)
-+static inline void MLST_PutTail(struct LST_LIST *pList, struct list_head *pElem)
- {
- 	pElem->prev = pList->head.prev;
+@@ -125,7 +125,6 @@ static inline void MLST_PutTail(struct LST_LIST *pList, struct LST_ELEM *pElem)
  	pElem->next = &pList->head;
-@@ -128,7 +128,7 @@ static inline void MLST_PutTail(struct LST_LIST *pList, struct LST_ELEM *pElem)
+ 	pList->head.prev = pElem;
+ 	pElem->prev->next = pElem;
+-	pElem->self = pElem;
  }
  
  static inline void MLST_RemoveElem(struct LST_LIST *pList,
--				   struct LST_ELEM *pCurElem)
-+				   struct list_head *pCurElem)
+@@ -617,7 +616,6 @@ bool MEM_Init(void)
+ #ifdef MEM_CHECK
+ 		mMan.lst.head.next = &mMan.lst.head;
+ 		mMan.lst.head.prev = &mMan.lst.head;
+-		mMan.lst.head.self = NULL;
+ 		spin_lock_init(&mMan.lock);
+ #endif
+ 
+diff --git a/drivers/dsp/bridge/services/services.c b/drivers/dsp/bridge/services/services.c
+index f3f700e..b68c165 100644
+--- a/drivers/dsp/bridge/services/services.c
++++ b/drivers/dsp/bridge/services/services.c
+@@ -85,7 +85,6 @@ void SERVICES_Exit(void)
+ 		SYNC_Exit();
+ 		CLK_Exit();
+ 		REG_Exit();
+-		LST_Exit();
+ 		KFILE_Exit();
+ 		DPC_Exit();
+ 		DBG_Exit();
+@@ -107,7 +106,7 @@ void SERVICES_Exit(void)
+ bool SERVICES_Init(void)
  {
- 	pCurElem->prev->next = pCurElem->next;
- 	pCurElem->next->prev = pCurElem->prev;
-@@ -139,8 +139,8 @@ static inline void MLST_RemoveElem(struct LST_LIST *pList,
- static void MEM_Check(void)
- {
- 	struct memInfo *pMem;
--	struct LST_ELEM *last = &mMan.lst.head;
--	struct LST_ELEM *curr = mMan.lst.head.next;
-+	struct list_head *last = &mMan.lst.head;
-+	struct list_head *curr = last->next;
+ 	bool fInit = true;
+-	bool fCFG, fCSL, fDBG, fDPC, fKFILE, fLST, fMEM;
++	bool fCFG, fCSL, fDBG, fDPC, fKFILE, fMEM;
+ 	bool fREG, fSYNC, fCLK, fNTFY;
  
- 	if (!LST_IsEmpty(&mMan.lst)) {
- 		GT_0trace(MEM_debugMask, GT_7CLASS, "*** MEMORY LEAK ***\n");
-@@ -156,7 +156,7 @@ static void MEM_Check(void)
- 					(u32) pMem + sizeof(struct memInfo),
- 					pMem->size, pMem->caller);
- 				MLST_RemoveElem(&mMan.lst,
--						(struct LST_ELEM *) pMem);
-+						(struct list_head *)pMem);
- 				kfree(pMem);
- 			} else {
- 				GT_1trace(MEM_debugMask, GT_7CLASS,
-@@ -292,7 +292,7 @@ void *MEM_Alloc(u32 cBytes, enum MEM_POOLATTRS type)
+ 	DBC_Require(cRefs >= 0);
+@@ -128,13 +127,12 @@ bool SERVICES_Init(void)
+ 		fDBG = DBG_Init();
+ 		fDPC = DPC_Init();
+ 		fKFILE = KFILE_Init();
+-		fLST = LST_Init();
+ 		fSYNC = SYNC_Init();
+ 		fCLK  = CLK_Init();
+ 		fNTFY = NTFY_Init();
  
- 				spin_lock(&mMan.lock);
- 				MLST_PutTail(&mMan.lst,
--					    (struct LST_ELEM *)pMem);
-+					    (struct list_head *)pMem);
- 				spin_unlock(&mMan.lock);
+ 		fInit = fCFG && fCSL && fDBG && fDPC && fKFILE &&
+-			fLST && fMEM && fREG && fSYNC && fCLK;
++			fMEM && fREG && fSYNC && fCLK;
  
- 				pMem = (void *)((u32)pMem +
-@@ -312,7 +312,7 @@ void *MEM_Alloc(u32 cBytes, enum MEM_POOLATTRS type)
+ 		if (!fInit) {
+ 			if (fNTFY)
+@@ -149,9 +147,6 @@ bool SERVICES_Init(void)
+ 			if (fREG)
+ 				REG_Exit();
  
- 				spin_lock(&mMan.lock);
- 				MLST_PutTail(&mMan.lst,
--					    (struct LST_ELEM *) pMem);
-+					    (struct list_head *)pMem);
- 				spin_unlock(&mMan.lock);
+-			if (fLST)
+-				LST_Exit();
+-
+ 			if (fKFILE)
+ 				KFILE_Exit();
  
- 				pMem = (void *)((u32)pMem +
-@@ -402,7 +402,7 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
- 				pMem->dwSignature = memInfoSign;
- 				spin_lock(&mMan.lock);
- 				MLST_PutTail(&mMan.lst,
--					(struct LST_ELEM *) pMem);
-+					(struct list_head *)pMem);
- 				spin_unlock(&mMan.lock);
- 				pMem = (void *)((u32)pMem +
- 					sizeof(struct memInfo));
-@@ -423,8 +423,8 @@ void *MEM_Calloc(u32 cBytes, enum MEM_POOLATTRS type)
- 				pMem->caller = __builtin_return_address(0);
- 				pMem->dwSignature = memInfoSign;
- 				spin_lock(&mMan.lock);
--				MLST_PutTail(&mMan.lst, (struct LST_ELEM *)
--					pMem);
-+				MLST_PutTail(&mMan.lst,
-+					    (struct list_head *)pMem);
- 				spin_unlock(&mMan.lock);
- 				pMem = (void *)((u32)pMem +
- 					sizeof(struct memInfo));
-@@ -528,7 +528,7 @@ void MEM_VFree(IN void *pMemBuf)
- 			if (pMem->dwSignature == memInfoSign) {
- 				spin_lock(&mMan.lock);
- 				MLST_RemoveElem(&mMan.lst,
--						(struct LST_ELEM *) pMem);
-+						(struct list_head *)pMem);
- 				spin_unlock(&mMan.lock);
- 				pMem->dwSignature = 0;
- 				vfree(pMem);
-@@ -567,7 +567,7 @@ void MEM_Free(IN void *pMemBuf)
- 			if (pMem->dwSignature == memInfoSign) {
- 				spin_lock(&mMan.lock);
- 				MLST_RemoveElem(&mMan.lst,
--						(struct LST_ELEM *) pMem);
-+						(struct list_head *)pMem);
- 				spin_unlock(&mMan.lock);
- 				pMem->dwSignature = 0;
- 				kfree(pMem);
-diff --git a/drivers/dsp/bridge/services/ntfy.c b/drivers/dsp/bridge/services/ntfy.c
-index 2eff3eb..5182bfa 100644
---- a/drivers/dsp/bridge/services/ntfy.c
-+++ b/drivers/dsp/bridge/services/ntfy.c
-@@ -77,7 +77,7 @@ struct NTFY_OBJECT {
-  *  This object will be created when a client registers for events.
-  */
- struct NOTIFICATION {
--	struct LST_ELEM listElem;
-+	struct list_head listElem;
- 	u32 uEventMask;	/* Events to be notified about */
- 	u32 uNotifyType;	/* Type of notification to be sent */
- 
-@@ -216,7 +216,7 @@ void NTFY_Notify(struct NTFY_OBJECT *hNtfy, u32 uEventMask)
- 
- 		}
- 		pNotify = (struct NOTIFICATION *)LST_Next(hNtfy->notifyList,
--			  (struct LST_ELEM *)pNotify);
-+			  (struct list_head *)pNotify);
- 	}
- 
- 	(void) SYNC_LeaveCS(hNtfy->hSync);
-@@ -265,7 +265,7 @@ DSP_STATUS NTFY_Register(struct NTFY_OBJECT *hNtfy,
- 			break;
- 		}
- 		pNotify = (struct NOTIFICATION *)LST_Next(hNtfy->notifyList,
--			  (struct LST_ELEM *)pNotify);
-+			  (struct list_head *)pNotify);
- 	}
- 	if (pNotify == NULL) {
- 		/* Not registered */
-@@ -280,7 +280,7 @@ DSP_STATUS NTFY_Register(struct NTFY_OBJECT *hNtfy,
- 
- 		}
- 		if (DSP_SUCCEEDED(status)) {
--			LST_InitElem((struct LST_ELEM *) pNotify);
-+			LST_InitElem((struct list_head *)pNotify);
- 			 /* If there is more than one notification type, each
- 			 * type may require its own handler code. */
- 			status = SYNC_OpenEvent(&pNotify->hSync, &syncAttrs);
-@@ -290,7 +290,7 @@ DSP_STATUS NTFY_Register(struct NTFY_OBJECT *hNtfy,
- 				pNotify->uEventMask = uEventMask;
- 				pNotify->uNotifyType = uNotifyType;
- 				LST_PutTail(hNtfy->notifyList,
--					   (struct LST_ELEM *)pNotify);
-+					   (struct list_head *)pNotify);
- 			} else {
- 				DeleteNotify(pNotify);
- 			}
-@@ -300,7 +300,7 @@ DSP_STATUS NTFY_Register(struct NTFY_OBJECT *hNtfy,
- 		if (uEventMask == 0) {
- 			/* Remove from list and free */
- 			LST_RemoveElem(hNtfy->notifyList,
--				      (struct LST_ELEM *)pNotify);
-+				      (struct list_head *)pNotify);
- 			DeleteNotify(pNotify);
- 		} else {
- 			/* Update notification mask (type shouldn't change) */
-diff --git a/drivers/dsp/bridge/wmd/_msg_sm.h b/drivers/dsp/bridge/wmd/_msg_sm.h
-index fa5e9ee..db39fd2 100644
---- a/drivers/dsp/bridge/wmd/_msg_sm.h
-+++ b/drivers/dsp/bridge/wmd/_msg_sm.h
-@@ -121,7 +121,7 @@ struct MSG_MGR {
-  *  The MSG_QUEUE's hSynEvent gets posted when a message is ready.
-  */
- struct MSG_QUEUE {
--	struct LST_ELEM listElem;
-+	struct list_head listElem;
- 	u32 dwSignature;
- 	struct MSG_MGR *hMsgMgr;
- 	u32 uMaxMsgs;	/* Node message depth */
-@@ -150,7 +150,7 @@ struct MSG_DSPMSG {
-  *  ======== MSG_FRAME ========
-  */
- struct MSG_FRAME {
--	struct LST_ELEM listElem;
-+	struct list_head listElem;
- 	struct MSG_DSPMSG msgData;
- } ;
- 
-diff --git a/drivers/dsp/bridge/wmd/chnl_sm.c b/drivers/dsp/bridge/wmd/chnl_sm.c
-index b37ff46..64e2a5a 100644
---- a/drivers/dsp/bridge/wmd/chnl_sm.c
-+++ b/drivers/dsp/bridge/wmd/chnl_sm.c
-@@ -275,8 +275,8 @@ func_cont:
- 			pChirp->dwArg = dwArg;
- 			pChirp->status = (fIsEOS ? CHNL_IOCSTATEOS :
- 					 CHNL_IOCSTATCOMPLETE);
--			LST_PutTail(pChnl->pIORequests, (struct LST_ELEM *)
--				   pChirp);
-+			LST_PutTail(pChnl->pIORequests,
-+				   (struct list_head *)pChirp);
- 			pChnl->cIOReqs++;
- 			DBC_Assert(pChnl->cIOReqs <= pChnl->cChirps);
- 			/* If end of stream, update the channel state to prevent
-@@ -361,7 +361,7 @@ DSP_STATUS WMD_CHNL_CancelIO(struct CHNL_OBJECT *hChnl)
- 			pChirp->cBytes = 0;
- 			pChirp->status |= CHNL_IOCSTATCANCEL;
- 			LST_PutTail(pChnl->pIOCompletions,
--				   (struct LST_ELEM *)pChirp);
-+				   (struct list_head *)pChirp);
- 			pChnl->cIOCs++;
- 			pChnl->cIOReqs--;
- 			DBC_Assert(pChnl->cIOReqs >= 0);
-@@ -715,8 +715,8 @@ DSP_STATUS WMD_CHNL_GetIOC(struct CHNL_OBJECT *hChnl, u32 dwTimeOut,
- 			ioc.dwArg = pChirp->dwArg;
- 			ioc.status |= pChirp->status;
- 			/* Place the used chirp on the free list: */
--			LST_PutTail(pChnl->pFreeList, (struct LST_ELEM *)
--				   pChirp);
-+			LST_PutTail(pChnl->pFreeList,
-+				   (struct list_head *)pChirp);
- 		} else {
- 			ioc.pBuf = NULL;
- 			ioc.cBytes = 0;
-@@ -1030,7 +1030,7 @@ static struct LST_LIST *CreateChirpList(u32 uChirps)
- 		/* Make N chirps and place on queue. */
- 		for (i = 0; (i < uChirps) && ((pChirp = MakeNewChirp()) !=
- 		    NULL); i++) {
--			LST_PutTail(pChirpList, (struct LST_ELEM *)pChirp);
-+			LST_PutTail(pChirpList, (struct list_head *)pChirp);
- 		}
- 
- 		/* If we couldn't allocate all chirps, free those allocated: */
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 5a1d3ed..2ee7b7b 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -1355,8 +1355,8 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
-                                        if (hMsgQueue->msgUsedList && pMsg) {
- 						pMsg->msgData = msg;
- 						LST_PutTail(hMsgQueue->
--						      msgUsedList,
--						      (struct LST_ELEM *)pMsg);
-+						    msgUsedList,
-+						    (struct list_head *)pMsg);
- 						NTFY_Notify(hMsgQueue->hNtfy,
- 							DSP_NODEMESSAGEREADY);
- 						SYNC_SetEvent(hMsgQueue->
-@@ -1375,7 +1375,7 @@ static void InputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
-                        if (!hMsgMgr->queueList || !hMsgQueue)
-                                goto func_end;
- 			hMsgQueue = (struct MSG_QUEUE *)LST_Next(hMsgMgr->
--				    queueList, (struct LST_ELEM *)hMsgQueue);
-+				    queueList, (struct list_head *)hMsgQueue);
- 		}
- 	}
- 	/* Set the post SWI flag */
-@@ -1412,7 +1412,7 @@ static void NotifyChnlComplete(struct CHNL_OBJECT *pChnl,
- 	  *  WMD_CHNL_GetIOC().  */
- 	fSignalEvent = LST_IsEmpty(pChnl->pIOCompletions);
- 	/* Enqueue the IO completion info for the client: */
--	LST_PutTail(pChnl->pIOCompletions, (struct LST_ELEM *) pChirp);
-+	LST_PutTail(pChnl->pIOCompletions, (struct list_head *)pChirp);
- 	pChnl->cIOCs++;
- 
- 	if (pChnl->cIOCs > pChnl->cChirps)
-@@ -1569,7 +1569,7 @@ static void OutputMsg(struct IO_MGR *pIOMgr, struct MSG_MGR *hMsgMgr)
-                                if (!hMsgMgr->msgFreeList)
-                                        goto func_end;
- 				LST_PutTail(hMsgMgr->msgFreeList,
--					   (struct LST_ELEM *) pMsg);
-+					   (struct list_head *)pMsg);
- 				SYNC_SetEvent(hMsgMgr->hSyncEvent);
- 			} else {
- 				DBG_Trace(DBG_LEVEL3, "pMsg is NULL\n");
-diff --git a/drivers/dsp/bridge/wmd/msg_sm.c b/drivers/dsp/bridge/wmd/msg_sm.c
-index 0231f65..333a41a 100644
---- a/drivers/dsp/bridge/wmd/msg_sm.c
-+++ b/drivers/dsp/bridge/wmd/msg_sm.c
-@@ -160,7 +160,7 @@ DSP_STATUS WMD_MSG_CreateQueue(struct MSG_MGR *hMsgMgr,
- 		status = DSP_EMEMORY;
- 		goto func_end;
- 	}
--	LST_InitElem((struct LST_ELEM *) pMsgQ);
-+	LST_InitElem((struct list_head *)pMsgQ);
- 	pMsgQ->uMaxMsgs = uMaxMsgs;
- 	pMsgQ->hMsgMgr = hMsgMgr;
- 	pMsgQ->hArg = hArg;	/* Node handle */
-@@ -212,7 +212,7 @@ DSP_STATUS WMD_MSG_CreateQueue(struct MSG_MGR *hMsgMgr,
- 			DeleteMsgQueue(pMsgQ, uNumAllocated);
- 		} else {
- 			LST_PutTail(hMsgMgr->queueList,
--				   (struct LST_ELEM *)pMsgQ);
-+				   (struct list_head *)pMsgQ);
- 			*phMsgQueue = pMsgQ;
- 			/* Signal that free frames are now available */
- 			if (!LST_IsEmpty(hMsgMgr->msgFreeList))
-@@ -264,7 +264,7 @@ void WMD_MSG_DeleteQueue(struct MSG_QUEUE *hMsgQueue)
- 	}
- 	/* Remove message queue from hMsgMgr->queueList */
- 	(void)SYNC_EnterCS(hMsgMgr->hSyncCS);
--	LST_RemoveElem(hMsgMgr->queueList, (struct LST_ELEM *)hMsgQueue);
-+	LST_RemoveElem(hMsgMgr->queueList, (struct list_head *)hMsgQueue);
- 	/* Free the message queue object */
- 	DeleteMsgQueue(hMsgQueue, hMsgQueue->uMaxMsgs);
-        if (!hMsgMgr->msgFreeList)
-@@ -311,7 +311,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
- 		if (pMsgFrame != NULL) {
- 			*pMsg = pMsgFrame->msgData.msg;
- 			LST_PutTail(hMsgQueue->msgFreeList,
--				   (struct LST_ELEM *)pMsgFrame);
-+				   (struct list_head *)pMsgFrame);
- 			if (LST_IsEmpty(hMsgQueue->msgUsedList))
- 				SYNC_ResetEvent(hMsgQueue->hSyncEvent);
- 
-@@ -356,7 +356,7 @@ DSP_STATUS WMD_MSG_Get(struct MSG_QUEUE *hMsgQueue,
- 				if (pMsgFrame != NULL) {
- 					*pMsg = pMsgFrame->msgData.msg;
- 					LST_PutTail(hMsgQueue->msgFreeList,
--					(struct LST_ELEM *)pMsgFrame);
-+					(struct list_head *)pMsgFrame);
- 				}
- 			}
- 			hMsgQueue->refCount--;
-@@ -407,8 +407,8 @@ DSP_STATUS WMD_MSG_Put(struct MSG_QUEUE *hMsgQueue,
- 		if (pMsgFrame != NULL) {
- 			pMsgFrame->msgData.msg = *pMsg;
- 			pMsgFrame->msgData.dwId = hMsgQueue->dwId;
--			LST_PutTail(hMsgMgr->msgUsedList, (struct LST_ELEM *)
--				   pMsgFrame);
-+			LST_PutTail(hMsgMgr->msgUsedList,
-+				   (struct list_head *)pMsgFrame);
- 			hMsgMgr->uMsgsPending++;
- 			fPutMsg = true;
- 		}
-@@ -460,8 +460,7 @@ DSP_STATUS WMD_MSG_Put(struct MSG_QUEUE *hMsgQueue,
- 					pMsgFrame->msgData.dwId =
- 						hMsgQueue->dwId;
- 					LST_PutTail(hMsgMgr->msgUsedList,
--						   (struct LST_ELEM *)
--						   pMsgFrame);
-+						(struct list_head *)pMsgFrame);
- 					hMsgMgr->uMsgsPending++;
- 					/* Schedule a DPC, to do the actual
- 					 * data transfer: */
-@@ -546,8 +545,8 @@ static DSP_STATUS AddNewMsg(struct LST_LIST *msgList)
- 	pMsg = (struct MSG_FRAME *)MEM_Calloc(sizeof(struct MSG_FRAME),
- 		MEM_PAGED);
- 	if (pMsg != NULL) {
--		LST_InitElem((struct LST_ELEM *) pMsg);
--		LST_PutTail(msgList, (struct LST_ELEM *) pMsg);
-+		LST_InitElem((struct list_head *)pMsg);
-+		LST_PutTail(msgList, (struct list_head *)pMsg);
- 	} else {
- 		status = DSP_EMEMORY;
- 	}
 -- 
 1.5.6.5
 
