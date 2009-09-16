@@ -1,63 +1,170 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [alsa-devel] [PATCH 1/3] ASoC: TWL6030: Add twl6030 codec
- driver
-Date: Wed, 16 Sep 2009 11:17:23 +0100
-Message-ID: <20090916101723.GA3589@rakim.wolfsonmicro.main>
-References: <67059DBF19D7214F9C66BB0EA91BA90E90432706@dlee04.ent.ti.com>
- <20090914172135.GA2481@rakim.wolfsonmicro.main>
- <67059DBF19D7214F9C66BB0EA91BA90E907FA65B@dlee04.ent.ti.com>
- <20090915183009.GA4343@sirena.org.uk>
- <67059DBF19D7214F9C66BB0EA91BA90E907FA8DC@dlee04.ent.ti.com>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: [PATCH] OMAP: Fix race condition with autodeps
+Date: Wed, 16 Sep 2009 13:53:06 +0300
+Message-ID: <1253098386-30263-1-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:59580 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751045AbZIPKRV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 16 Sep 2009 06:17:21 -0400
-Content-Disposition: inline
-In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90E907FA8DC@dlee04.ent.ti.com>
+Received: from smtp1.digia.com ([82.118.214.156]:25184 "EHLO smtp1.digia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752222AbZIPLPG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 16 Sep 2009 07:15:06 -0400
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Lopez Cruz, Misael" <x0052729@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nagalla, Hari" <hnagalla@ti.com>
+To: paul@pwsan.com, khilman@deeprootsystems.com, tony@atomide.com
+Cc: linux-omap@vger.kernel.org, ville.syrjala@nokia.com, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-On Tue, Sep 15, 2009 at 05:39:09PM -0500, Lopez Cruz, Misael wrote:
-> Mark Brown wrote:
+There is a possible race condition in clockdomain
+code handling hw supported idle transitions.
 
-> > I'd not expect full interoperability but I'd expect that at least the
-> > basic PDM support would interoperate happily.  It wouldn't surprise me
-> > if more than one manufacturer came up with the same extension
-> > for multi channel PDM.
+When multiple autodeps dependencies are being added
+or removed, a transition of still remaining dependent
+powerdomain can result in false readings of the
+state counter. This is especially fatal for off mode
+state counter, as it could result in a driver not
+noticing a context loss.
 
-> If that's the case, then a more appropriate name should be chosen.
-> Or is it fine for you _MCPDM?
+Fixed by disabling hw supported state transitions
+when autodeps are being changed.
 
-I'd suggest just plain _PDM.
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+---
+ arch/arm/mach-omap2/clockdomain.c |   74 ++++++++++++++++++++++---------------
+ 1 files changed, 44 insertions(+), 30 deletions(-)
 
-> >> The codec is turned on/off through an external line (i.e. with a
-> >> gpio). Then, codec enable is board-dependent.
+diff --git a/arch/arm/mach-omap2/clockdomain.c b/arch/arm/mach-omap2/clockdomain.c
+index 4ef7b4f..1a8c386 100644
+--- a/arch/arm/mach-omap2/clockdomain.c
++++ b/arch/arm/mach-omap2/clockdomain.c
+@@ -137,6 +137,36 @@ static void _clkdm_del_autodeps(struct clockdomain *clkdm)
+ 	}
+ }
+ 
++/*
++ * _omap2_clkdm_set_hwsup - set high the hwsup idle transition bit
++ * @clkdm: struct clockdomain *
++ * @enable: int 0 to disable, 1 to enable
++ *
++ * Internal helper for actually switching the bit that controls hwsup
++ * idle transitions for clkdm.
++ */
++void _omap2_clkdm_set_hwsup(struct clockdomain *clkdm, int enable)
++{
++	u32 v;
++
++	if (cpu_is_omap24xx()) {
++		if (enable)
++			v = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
++		else
++			v = OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
++	} else if (cpu_is_omap34xx()) {
++		if (enable)
++			v = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
++		else
++			v = OMAP34XX_CLKSTCTRL_DISABLE_AUTO;
++	} else {
++		BUG();
++	}
++
++	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
++			    v << __ffs(clkdm->clktrctrl_mask),
++			    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
++}
+ 
+ static struct clockdomain *_clkdm_lookup(const char *name)
+ {
+@@ -456,8 +486,6 @@ int omap2_clkdm_wakeup(struct clockdomain *clkdm)
+  */
+ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
+ {
+-	u32 v;
+-
+ 	if (!clkdm)
+ 		return;
+ 
+@@ -473,18 +501,7 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
+ 	if (atomic_read(&clkdm->usecount) > 0)
+ 		_clkdm_add_autodeps(clkdm);
+ 
+-	if (cpu_is_omap24xx())
+-		v = OMAP24XX_CLKSTCTRL_ENABLE_AUTO;
+-	else if (cpu_is_omap34xx())
+-		v = OMAP34XX_CLKSTCTRL_ENABLE_AUTO;
+-	else
+-		BUG();
+-
+-
+-	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+-			    v << __ffs(clkdm->clktrctrl_mask),
+-			    clkdm->pwrdm.ptr->prcm_offs,
+-			    CM_CLKSTCTRL);
++	_omap2_clkdm_set_hwsup(clkdm, 1);
+ 
+ 	pwrdm_clkdm_state_switch(clkdm);
+ }
+@@ -500,8 +517,6 @@ void omap2_clkdm_allow_idle(struct clockdomain *clkdm)
+  */
+ void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
+ {
+-	u32 v;
+-
+ 	if (!clkdm)
+ 		return;
+ 
+@@ -514,16 +529,7 @@ void omap2_clkdm_deny_idle(struct clockdomain *clkdm)
+ 	pr_debug("clockdomain: disabling automatic idle transitions for %s\n",
+ 		 clkdm->name);
+ 
+-	if (cpu_is_omap24xx())
+-		v = OMAP24XX_CLKSTCTRL_DISABLE_AUTO;
+-	else if (cpu_is_omap34xx())
+-		v = OMAP34XX_CLKSTCTRL_DISABLE_AUTO;
+-	else
+-		BUG();
+-
+-	cm_rmw_mod_reg_bits(clkdm->clktrctrl_mask,
+-			    v << __ffs(clkdm->clktrctrl_mask),
+-			    clkdm->pwrdm.ptr->prcm_offs, CM_CLKSTCTRL);
++	_omap2_clkdm_set_hwsup(clkdm, 0);
+ 
+ 	if (atomic_read(&clkdm->usecount) > 0)
+ 		_clkdm_del_autodeps(clkdm);
+@@ -569,10 +575,14 @@ int omap2_clkdm_clk_enable(struct clockdomain *clkdm, struct clk *clk)
+ 	v = omap2_clkdm_clktrctrl_read(clkdm);
+ 
+ 	if ((cpu_is_omap34xx() && v == OMAP34XX_CLKSTCTRL_ENABLE_AUTO) ||
+-	    (cpu_is_omap24xx() && v == OMAP24XX_CLKSTCTRL_ENABLE_AUTO))
++	    (cpu_is_omap24xx() && v == OMAP24XX_CLKSTCTRL_ENABLE_AUTO)) {
++		/* Disable HW transitions when we are changing deps */
++		_omap2_clkdm_set_hwsup(clkdm, 0);
+ 		_clkdm_add_autodeps(clkdm);
+-	else
++		_omap2_clkdm_set_hwsup(clkdm, 1);
++	} else {
+ 		omap2_clkdm_wakeup(clkdm);
++	}
+ 
+ 	pwrdm_wait_transition(clkdm->pwrdm.ptr);
+ 	pwrdm_clkdm_state_switch(clkdm);
+@@ -623,10 +633,14 @@ int omap2_clkdm_clk_disable(struct clockdomain *clkdm, struct clk *clk)
+ 	v = omap2_clkdm_clktrctrl_read(clkdm);
+ 
+ 	if ((cpu_is_omap34xx() && v == OMAP34XX_CLKSTCTRL_ENABLE_AUTO) ||
+-	    (cpu_is_omap24xx() && v == OMAP24XX_CLKSTCTRL_ENABLE_AUTO))
++	    (cpu_is_omap24xx() && v == OMAP24XX_CLKSTCTRL_ENABLE_AUTO)) {
++		/* Disable HW transitions when we are changing deps */
++		_omap2_clkdm_set_hwsup(clkdm, 0);
+ 		_clkdm_del_autodeps(clkdm);
+-	else
++		_omap2_clkdm_set_hwsup(clkdm, 1);
++	} else {
+ 		omap2_clkdm_sleep(clkdm);
++	}
+ 
+ 	pwrdm_clkdm_state_switch(clkdm);
+ 
+-- 
+1.5.4.3
 
-> > Might it make more sense to specify a GPIO line instead, at least by
-> > default? 
-
-> Not sure, if the GPIO line is in TWL6030 (mfd) as well then probably
-> it's fine, which may be the case for now. But isn't it violating
-> CODEC independency anyway?
-
-I don't see an abstraction problem - gpiolib can handle this well
-enough.
-
-> If you mean to sustitute the codec_enable function by the GPIO
-> line, then it opens the possibility to make the CODEC to request and
-> operate a GPIO line belonging to a different chip, for example
-> to the application processor.
-
-If the CODEC GPIOs are supported via gpiolib that shouldn't be a
-problem.  If you specify the GPIO as an int then it'll also be possible
-to have invalid values so that cases with the CODEC hard wired to power
-up will also be handled.
-
-It just seems easier for boards to have the CODEC do the gpio request
-and so on so that it's a simple data value that needs to be set.
