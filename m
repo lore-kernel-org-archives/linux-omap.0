@@ -1,25 +1,18 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: removing CSL (v3)
-Date: Wed, 16 Sep 2009 17:17:50 +0300
-Message-ID: <1253110671-26004-1-git-send-email-andy.shevchenko@gmail.com>
-References: <1253102300-25355-1-git-send-email-andy.shevchenko@gmail.com>
+From: Organization <dr.lide@tx.twcbc.com>
+Subject: YOU  HAVE WON
+Date: Wed, 16 Sep 2009 12:03:33 -0500
+Message-ID: <84r0j4$eda05p__46996.4553638876$1253120645$gmane$org@rrcs-agw-02b.hrndva.rr.com>
+Reply-To: telecom58@9.cn
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:46027 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758996AbZIPOR5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Sep 2009 10:17:57 -0400
-In-Reply-To: <1253102300-25355-1-git-send-email-andy.shevchenko@gmail.com>
+Received: from hrndva-commlb.mail.rr.com ([71.74.57.9]:47448 "EHLO
+	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753979AbZIPRDa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 16 Sep 2009 13:03:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: x0095840@ti.com, omar.ramirez@ti.com, hiroshi.doyu@nokia.com
+To: info@rog
 
-
-Hello.
-
-This version is slightly improved (I drop out atoi() wrapper).
-
--- 
-With Best Regards,
-Andy Shevchenko
-
+You are given 1,000,000.00 Pounds by the British Telecom Promotion, Provide your Name,Address,Occupatio
