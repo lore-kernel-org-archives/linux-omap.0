@@ -1,70 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 00/18] OMAP: DSS2: Intro
-Date: Thu, 17 Sep 2009 10:13:22 +0300
-Message-ID: <1253171604.5927.17.camel@tubuntu>
-References: <1251462337-12531-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <4A9B96A7.5040005@gmail.com>
-	 <5e088bd90908310720p290ba68dwd6106a778fd7c740@mail.gmail.com>
-	 <0680EC522D0CC943BC586913CF3768C0037CE48136@dbde02.ent.ti.com>
-	 <19F8576C6E063C45BE387C64729E73940436A4A9B6@dbde02.ent.ti.com>
-	 <20090831155518.GC16876@atomide.com>	<4A9CC8DB.2050803@gmail.com>
-	 <20090902151126.f465bb15.akpm@linux-foundation.org>
-Reply-To: tomi.valkeinen@nokia.com
+From: "Varadarajan, Charu Latha" <charu@ti.com>
+Subject: Issue with setting vdd2_opp level to 3 through OMAP3 SRF API's
+Date: Thu, 17 Sep 2009 14:55:01 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA31AD50@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758547AbZIQHOQ@vger.kernel.org>
-In-Reply-To: <20090902151126.f465bb15.akpm@linux-foundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Andrew Morton <akpm@linux-foundation.org>
-Cc: Artem Bityutskiy <dedekind1@gmail.com>, "tony@atomide.com" <tony@atomide.com>, "hvaibhav@ti.com" <hvaibhav@ti.com>, "khasim@ti.com" <khasim@ti.com>, "sakoman@gmail.com" <sakoman@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34464 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751394AbZIQJZA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 17 Sep 2009 05:25:00 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8H9P2gN030711
+	for <linux-omap@vger.kernel.org>; Thu, 17 Sep 2009 04:25:03 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8H9P2gQ006922
+	for <linux-omap@vger.kernel.org>; Thu, 17 Sep 2009 14:55:02 +0530 (IST)
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hello,
+When trying to make "vdd2_opp" resource to "VDD2_OPP3" level using "resource_request"(arch\arm\plat-omap\resource.c), it is observed that vdd2_opp is always put to VDD2_OPP2 level. 
 
-On Thu, 2009-09-03 at 00:11 +0200, ext Andrew Morton wrote:
-> On Tue, 01 Sep 2009 10:10:19 +0300
-> Artem Bityutskiy <dedekind1@gmail.com> wrote:
-> 
-> > Andrew,
-> > 
-> > could you please help with merging this piece of (well written) code?
-> > Could you give your blessing to include it into linux-next now, and
-> > merge this during the next merge window?
-> 
-> I'll merge them (after I've looked through them, which I'll do now).  
+Code Snippet:
+For the above, set_opp() in arch\arm\mach-omap2\resource34xx.c is called with a target level of 3.  The code flow is as given below:
+/*********************** Code Snippet Start****************************/
+else if (resp == vdd2_resp) {
+                tput = target_level;
 
-Have you had time to take a look at this?
+                /* Convert the tput in KiB/s to Bus frequency in MHz */
+                req_l3_freq = (tput * 1000)/4;
 
- Tomi
+                for (ind = 2; ind <= MAX_VDD2_OPP; ind++){
+                        if ((l3_opps + ind)->rate >= req_l3_freq) {
+                                target_level = ind;
+                                break;
+                        }
+                }
+                /* Set the highest OPP possible */
+                if (ind > MAX_VDD2_OPP)
+                        target_level = ind-1;
+                resource_set_opp_level(VDD2_OPP, target_level, 0);
+        }
+/*********************** Code Snippet End****************************/
 
-> 
-> But there are more rejects than I'm prepared to cope with.  The various
-> arch/arm files have undergone some changes in linux-next which yield
-> more breakage than I'm prepared to try to fix.  For example,
-> arch/arm/mach-omap2/board-3430sdp.c:sdp3430_config[] ends up being an
-> empty array!
-> 
-> Then there's the matter of these patches, already in -mm:
-> 
-> omapfb-add-support-for-the-apollon-lcd.patch
-> omapfb-add-support-for-mipi-dcs-compatible-lcds.patch
-> omapfb-add-support-for-the-amstrad-delta-lcd.patch
-> omapfb-add-support-for-the-2430sdp-lcd.patch
-> omapfb-add-support-for-the-omap2evm-lcd.patch
-> omapfb-add-support-for-the-3430sdp-lcd.patch
-> omapfb-add-support-for-the-omap3-evm-lcd.patch
-> omapfb-add-support-for-the-omap3-beagle-dvi-output.patch
-> omapfb-add-support-for-the-gumstix-overo-lcd.patch
-> omapfb-add-support-for-the-zoom-mdk-lcd.patch
-> omapfb-add-support-for-rotation-on-the-blizzard-lcd-ctrl.patch
-> n770-enable-lcd-mipi-dcs-in-kconfig.patch
-> omapfb-dispc-various-typo-fixes.patch
-> omapfb-dispc-disable-iface-clocks-along-with-func-clocks.patch
-> omapfb-dispc-enable-wake-up-capability.patch
-> omapfb-dispc-allow-multiple-external-irq-handlers.patch
-> omapfb-suspend-resume-only-if-fb-device-is-already-initialized.patch
-> omapfb-fix-coding-style-remove-dead-line.patch
-> omapfb-add-fb-manual-update-option-to-kconfig.patch
-> omapfb-hwa742-fix-pointer-to-be-const.patch
-> 
+Analysis:
+During execution,
+tout = 3;
+req_l3_freq = 750;
+when ind = 2, if ((l3_opps + ind)->rate >= req_l3_freq) ==> (83M > 750) which in turn makes target_level = 2.
+Hence while requesting for target_level of 3, vdd2_opp is made to target_level = 2, which is incorrect.
+
+Issues observed:
+The above code should have been made for mapping L3 freq 83MHz to VDD2_OPP2 and L3 freq 166MHz to VDD2_OPP3. But the above code would always make vdd2_opp to VDD2_OPP2 level. However, it is observed that, if we change the vdd2_opp to 3 using sysfs, it seems to be setting to level 3. I am wondering if there are any issues with sysfs entries since same is working with resource frame work API's.
+
+Please let me know if my understanding is wrong.
+
+Thanks & Regards,
+V Charu Latha
