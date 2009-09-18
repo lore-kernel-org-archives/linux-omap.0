@@ -1,120 +1,80 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
-Date: Fri, 18 Sep 2009 15:53:26 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD9914F9@dbde02.ent.ti.com>
-References: <1253264186-1013-1-git-send-email-premi@ti.com>
- <20090918.125453.179950926.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: jhnikula@gmail.com
+Subject: [PATCHv2] ARM: OMAP: Fix MMC gpio_wp for BeagleBoard C2 and above
+Date: Fri, 18 Sep 2009 13:27:22 +0300
+Message-ID: <4ab3607e.1818d00a.312c.ffff941a@mx.google.com>
+References: <20090918132250.c4382f67.jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51366 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751672AbZIRKX3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 06:23:29 -0400
-In-Reply-To: <20090918.125453.179950926.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+Received: from ey-out-2122.google.com ([74.125.78.27]:34932 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751656AbZIRK1I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 06:27:08 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so273020eya.19
+        for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2009 03:27:11 -0700 (PDT)
+In-Reply-To: <20090918132250.c4382f67.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jhnikula@gmail.com>
 
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com] 
-> Sent: Friday, September 18, 2009 3:25 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
-> 
-> Hi Premi,
-> 
-> From: ext Sanjeev Premi <premi@ti.com>
-> Subject: [PATCH] OMAP3: iovmm: fix compiler warning
-> Date: Fri, 18 Sep 2009 10:56:26 +0200
-> 
-> > This patch fixes these compiler warnings:
-> > 
-> > arch/arm/plat-omap/iovmm.c: In function 'vmap_sg':
-> > arch/arm/plat-omap/iovmm.c:202: warning: passing argument 1 of
-> >  'flush_cache_vmap' makes integer from pointer without a cast
-> > arch/arm/plat-omap/iovmm.c:202: warning: passing argument 2 of
-> >  'flush_cache_vmap' makes integer from pointer without a cast
-> > arch/arm/plat-omap/iovmm.c: In function 'sgtable_fill_vmalloc':
-> > arch/arm/plat-omap/iovmm.c:393: warning: passing argument 1 of
-> >  'flush_cache_vmap' makes integer from pointer without a cast
-> > arch/arm/plat-omap/iovmm.c:393: warning: passing argument 2 of
-> >  'flush_cache_vmap' makes integer from pointer without a cast
-> > 
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > ---
-> >  arch/arm/plat-omap/iovmm.c |    5 +++--
-> >  1 files changed, 3 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> > index 004fd83..481bf77 100644
-> > --- a/arch/arm/plat-omap/iovmm.c
-> > +++ b/arch/arm/plat-omap/iovmm.c
-> > @@ -199,7 +199,8 @@ static void *vmap_sg(const struct sg_table *sgt)
-> >  		va += bytes;
-> >  	}
-> >  
-> > -	flush_cache_vmap(new->addr, new->addr + total);
-> > +	flush_cache_vmap((unsigned long) new->addr,
-> > +				(unsigned long) (new->addr + total));
-> 
-> I think that the space after casting isn't necessary.
-> 
-> >  	return new->addr;
-> >  
-> >  err_out:
-> > @@ -390,7 +391,7 @@ static void sgtable_fill_vmalloc(struct 
-> sg_table *sgt, void *_va)
-> >  	}
-> >  
-> >  	va_end = _va + PAGE_SIZE * i;
-> > -	flush_cache_vmap(_va, va_end);
-> > +	flush_cache_vmap((unsigned long) _va, (unsigned long) va_end);
-> >  }
-> >  
-> >  static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
-> 
-> If no need for pointer, what about below?
+From: Jarkko Nikula <jhnikula@gmail.com>
 
-I did not check for the usage of sgtable_drain_vmalloc().
-Yes. If the void* isn't MUST then, change below is fine.
+Earlier BeagleBoards were using pad AH8 muxed to GPIO29 for MMC write-protect.
+However, this signal has been changed to pad AG9 in board revision C2.
 
-~sanjeev
-> 
-> 	Modified arch/arm/plat-omap/iovmm.c
-> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-> index 6fc52fc..3ea0cd0 100644
-> --- a/arch/arm/plat-omap/iovmm.c
-> +++ b/arch/arm/plat-omap/iovmm.c
-> @@ -368,12 +368,12 @@ out:
->  }
->  EXPORT_SYMBOL_GPL(da_to_va);
->  
-> -static void sgtable_fill_vmalloc(struct sg_table *sgt, void *_va)
-> +static void sgtable_fill_vmalloc(struct sg_table *sgt, u32 _va)
->  {
->  	unsigned int i;
->  	struct scatterlist *sg;
-> -	void *va = _va;
-> -	void *va_end;
-> +	u32 va = _va;
-> +	u32 va_end;
->  
->  	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
->  		struct page *pg;
-> @@ -693,7 +693,7 @@ u32 iommu_vmalloc(struct iommu *obj, u32 
-> da, size_t bytes, u32 flags)
->  		da = PTR_ERR(sgt);
->  		goto err_sgt_alloc;
->  	}
-> -	sgtable_fill_vmalloc(sgt, va);
-> +	sgtable_fill_vmalloc(sgt, (u32)va);
->  
->  	flags &= IOVMF_HW_MASK;
->  	flags |= IOVMF_DISCONT;
-> 
-> 
+Fix this by adding mux configuration for pad AG9, runtime check for board
+revisions and set the gpio number and pad muxing accordingly.
+
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/mach-omap2/board-omap3beagle.c |    7 ++++++-
+ arch/arm/mach-omap2/mux.c               |    2 ++
+ arch/arm/plat-omap/include/mach/mux.h   |    1 +
+ 3 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index a661fe3..ea7db8a 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -139,8 +139,13 @@ static struct gpio_led gpio_leds[];
+ static int beagle_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
++	if (system_rev >= 0x20 && system_rev <= 0x34301000) {
++		omap_cfg_reg(AG9_34XX_GPIO23);
++		mmc[0].gpio_wp = 23;
++	} else {
++		omap_cfg_reg(AH8_34XX_GPIO29);
++	}
+ 	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+-	omap_cfg_reg(AH8_34XX_GPIO29);
+ 	mmc[0].gpio_cd = gpio + 0;
+ 	twl4030_mmc_init(mmc);
+ 
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 2daa595..8d773e8 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -460,6 +460,8 @@ MUX_CFG_34XX("AF26_34XX_GPIO0", 0x1e0,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AF22_34XX_GPIO9", 0xa18,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
++MUX_CFG_34XX("AG9_34XX_GPIO23", 0x5ee,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("AH8_34XX_GPIO29", 0x5fa,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
+ MUX_CFG_34XX("U8_34XX_GPIO54_OUT", 0x0b4,
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+index 98dfab6..9fd6171 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -840,6 +840,7 @@ enum omap34xx_index {
+ 	 */
+ 	AF26_34XX_GPIO0,
+ 	AF22_34XX_GPIO9,
++	AG9_34XX_GPIO23,
+ 	AH8_34XX_GPIO29,
+ 	U8_34XX_GPIO54_OUT,
+ 	U8_34XX_GPIO54_DOWN,
+-- 
+1.6.3.3
+
