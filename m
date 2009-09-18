@@ -1,109 +1,152 @@
-From: Philip Balister <philip@balister.org>
-Subject: Support for =?windows-1252?Q?Zoom=99_OMAP35x_Development_K?=
- =?windows-1252?Q?it_in_linux-omap?=
-Date: Fri, 18 Sep 2009 08:45:41 -0400
-Message-ID: <4AB380F5.4070504@balister.org>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
+Date: Fri, 18 Sep 2009 20:10:29 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD9916D7@dbde02.ent.ti.com>
+References: <1253264186-1013-1-git-send-email-premi@ti.com>
+ <20090918.125453.179950926.Hiroshi.DOYU@nokia.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DD9914F9@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms070502060606020208030408"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.geekisp.com ([216.168.135.169]:9332 "EHLO
-	starfish.geekisp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753505AbZIRMwW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 08:52:22 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:43760 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752735AbZIROkb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 10:40:31 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD9914F9@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is a cryptographically signed message in MIME format.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
+> Sent: Friday, September 18, 2009 3:53 PM
+> To: Hiroshi DOYU
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
+> 
+> > -----Original Message-----
+> > From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com] 
+> > Sent: Friday, September 18, 2009 3:25 PM
+> > To: Premi, Sanjeev
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
+> > 
+> > Hi Premi,
+> > 
+> > From: ext Sanjeev Premi <premi@ti.com>
+> > Subject: [PATCH] OMAP3: iovmm: fix compiler warning
+> > Date: Fri, 18 Sep 2009 10:56:26 +0200
+> > 
+> > > This patch fixes these compiler warnings:
+> > > 
+> > > arch/arm/plat-omap/iovmm.c: In function 'vmap_sg':
+> > > arch/arm/plat-omap/iovmm.c:202: warning: passing argument 1 of
+> > >  'flush_cache_vmap' makes integer from pointer without a cast
+> > > arch/arm/plat-omap/iovmm.c:202: warning: passing argument 2 of
+> > >  'flush_cache_vmap' makes integer from pointer without a cast
+> > > arch/arm/plat-omap/iovmm.c: In function 'sgtable_fill_vmalloc':
+> > > arch/arm/plat-omap/iovmm.c:393: warning: passing argument 1 of
+> > >  'flush_cache_vmap' makes integer from pointer without a cast
+> > > arch/arm/plat-omap/iovmm.c:393: warning: passing argument 2 of
+> > >  'flush_cache_vmap' makes integer from pointer without a cast
+> > > 
+> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > > ---
+> > >  arch/arm/plat-omap/iovmm.c |    5 +++--
+> > >  1 files changed, 3 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/plat-omap/iovmm.c 
+> b/arch/arm/plat-omap/iovmm.c
+> > > index 004fd83..481bf77 100644
+> > > --- a/arch/arm/plat-omap/iovmm.c
+> > > +++ b/arch/arm/plat-omap/iovmm.c
+> > > @@ -199,7 +199,8 @@ static void *vmap_sg(const struct 
+> sg_table *sgt)
+> > >  		va += bytes;
+> > >  	}
+> > >  
+> > > -	flush_cache_vmap(new->addr, new->addr + total);
+> > > +	flush_cache_vmap((unsigned long) new->addr,
+> > > +				(unsigned long) (new->addr + total));
+> > 
+> > I think that the space after casting isn't necessary.
+> > 
+> > >  	return new->addr;
+> > >  
+> > >  err_out:
+> > > @@ -390,7 +391,7 @@ static void sgtable_fill_vmalloc(struct 
+> > sg_table *sgt, void *_va)
+> > >  	}
+> > >  
+> > >  	va_end = _va + PAGE_SIZE * i;
+> > > -	flush_cache_vmap(_va, va_end);
+> > > +	flush_cache_vmap((unsigned long) _va, (unsigned long) va_end);
+> > >  }
+> > >  
+> > >  static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
+> > 
+> > If no need for pointer, what about below?
+> 
+> I did not check for the usage of sgtable_drain_vmalloc().
+> Yes. If the void* isn't MUST then, change below is fine.
+> 
+> ~sanjeev
 
---------------ms070502060606020208030408
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: quoted-printable
+On second look, the need for void* is driven backwards from:
+     pg = vmalloc_to_page(va);
+In function sgtable_fill_vmalloc().
 
-I have a Zoom=99 OMAP35x Development Kit[1] and have successfully run=20
-Angstrom using the logicpd patches for the kernel and u-boot. Sadly,=20
-these are both based on ancient kernel and u-boot versions.
+Now we need a typecast from u32 to void*.
 
-Last time I asked, it sounded like there may be more recent kernel=20
-patches around, but I do not recall seeing them flow into linux-omap.
-Also, I u-boot that can boot from MMC would be nice :)
+Shouldn't we go with the original patch itself?
 
-Any idea what the current support for recent linux-omap is for this=20
-hardware?
+Or, new go with changes below with additional:
+-               pg = vmalloc_to_page(va);
++               pg = vmalloc_to_page((void *)va);
 
-Philip
+~sanjeev
 
-[1] -=20
-http://www.logicpd.com/products/development-kits/texas-instruments-zoom%E=
-2%84%A2-omap35x-development-kit
-
-
---------------ms070502060606020208030408
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIJRTCC
-Av0wggJmoAMCAQICECwlen/oUcoDd1VrNqKp/fwwDQYJKoZIhvcNAQEFBQAwYjELMAkGA1UE
-BhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMT
-I1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENBMB4XDTA5MDQxNTAwNDQ1OFoX
-DTEwMDQxNTAwNDQ1OFowYjERMA8GA1UEBBMIQmFsaXN0ZXIxDzANBgNVBCoTBlBoaWxpcDEY
-MBYGA1UEAxMPUGhpbGlwIEJhbGlzdGVyMSIwIAYJKoZIhvcNAQkBFhNwaGlsaXBAYmFsaXN0
-ZXIub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAx5Xoie8CV9dJeiaiKRdy
-lvicHE9Aha6f9/CLlVs+Ezob7fIuRa4P9ugzZZ2VCtPMQU3Qsjw35mVmYaKXB1U+fZeffbya
-d6OJEIK1jhqBIz5jtJMc/YWXn/bRmqClMfTCgilUMOcsfiHAbmLVhYiNbEhOuy6vWdxSSolH
-qVa/IHE72qqjhoYWHd+5XVfx1c4jW+CePNMQEHxjCzuD+wq6Mzle72dXw+bnyIpG99hB26uN
-mV//h5iz1VmJU63FZWynSjG79NcY9+mTWXeX213VV6kJ2wce2rETbYvKQ7err6NnZnG/tiwG
-I1M7fQqQAti+CkDciLJ129LO+APVYZQgEwIDAQABozAwLjAeBgNVHREEFzAVgRNwaGlsaXBA
-YmFsaXN0ZXIub3JnMAwGA1UdEwEB/wQCMAAwDQYJKoZIhvcNAQEFBQADgYEAIUyDAPIEniN6
-SUdbDiBqi2dtITdnkoUItm/tX9TRn66P0VtWug7k7xjo6piWRE7BZwhihotNY0ZnjlK+h0Vo
-rxfY63B5tarRB6qJ7f26ukmpltwWWLDB2hWFoKUCn6PE2NTdj+1xNinhZNQHy4GyygXjlVfV
-Sn/ZnaGJ31z4PK0wggL9MIICZqADAgECAhAsJXp/6FHKA3dVazaiqf38MA0GCSqGSIb3DQEB
-BQUAMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBM
-dGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQTAeFw0w
-OTA0MTUwMDQ0NThaFw0xMDA0MTUwMDQ0NThaMGIxETAPBgNVBAQTCEJhbGlzdGVyMQ8wDQYD
-VQQqEwZQaGlsaXAxGDAWBgNVBAMTD1BoaWxpcCBCYWxpc3RlcjEiMCAGCSqGSIb3DQEJARYT
-cGhpbGlwQGJhbGlzdGVyLm9yZzCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMeV
-6InvAlfXSXomoikXcpb4nBxPQIWun/fwi5VbPhM6G+3yLkWuD/boM2WdlQrTzEFN0LI8N+Zl
-ZmGilwdVPn2Xn328mnejiRCCtY4agSM+Y7STHP2Fl5/20ZqgpTH0woIpVDDnLH4hwG5i1YWI
-jWxITrsur1ncUkqJR6lWvyBxO9qqo4aGFh3fuV1X8dXOI1vgnjzTEBB8Yws7g/sKujM5Xu9n
-V8Pm58iKRvfYQdurjZlf/4eYs9VZiVOtxWVsp0oxu/TXGPfpk1l3l9td1VepCdsHHtqxE22L
-ykO3q6+jZ2Zxv7YsBiNTO30KkALYvgpA3IiyddvSzvgD1WGUIBMCAwEAAaMwMC4wHgYDVR0R
-BBcwFYETcGhpbGlwQGJhbGlzdGVyLm9yZzAMBgNVHRMBAf8EAjAAMA0GCSqGSIb3DQEBBQUA
-A4GBACFMgwDyBJ4jeklHWw4gaotnbSE3Z5KFCLZv7V/U0Z+uj9FbVroO5O8Y6OqYlkROwWcI
-YoaLTWNGZ45SvodFaK8X2OtwebWq0Qeqie39urpJqZbcFliwwdoVhaClAp+jxNjU3Y/tcTYp
-4WTUB8uBssoF45VX1Up/2Z2hid9c+DytMIIDPzCCAqigAwIBAgIBDTANBgkqhkiG9w0BAQUF
-ADCB0TELMAkGA1UEBhMCWkExFTATBgNVBAgTDFdlc3Rlcm4gQ2FwZTESMBAGA1UEBxMJQ2Fw
-ZSBUb3duMRowGAYDVQQKExFUaGF3dGUgQ29uc3VsdGluZzEoMCYGA1UECxMfQ2VydGlmaWNh
-dGlvbiBTZXJ2aWNlcyBEaXZpc2lvbjEkMCIGA1UEAxMbVGhhd3RlIFBlcnNvbmFsIEZyZWVt
-YWlsIENBMSswKQYJKoZIhvcNAQkBFhxwZXJzb25hbC1mcmVlbWFpbEB0aGF3dGUuY29tMB4X
-DTAzMDcxNzAwMDAwMFoXDTEzMDcxNjIzNTk1OVowYjELMAkGA1UEBhMCWkExJTAjBgNVBAoT
-HFRoYXd0ZSBDb25zdWx0aW5nIChQdHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25h
-bCBGcmVlbWFpbCBJc3N1aW5nIENBMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDEpjxV
-c1X7TrnKmVoeaMB1BHCd3+n/ox7svc31W/Iadr1/DDph8r9RzgHU5VAKMNcCY1osiRVwjt3J
-8CuFWqo/cVbLrzwLB+fxH5E2JCoTzyvV84J3PQO+K/67GD4Hv0CAAmTXp6a7n2XRxSpUhQ9I
-BH+nttE8YQRAHmQZcmC3+wIDAQABo4GUMIGRMBIGA1UdEwEB/wQIMAYBAf8CAQAwQwYDVR0f
-BDwwOjA4oDagNIYyaHR0cDovL2NybC50aGF3dGUuY29tL1RoYXd0ZVBlcnNvbmFsRnJlZW1h
-aWxDQS5jcmwwCwYDVR0PBAQDAgEGMCkGA1UdEQQiMCCkHjAcMRowGAYDVQQDExFQcml2YXRl
-TGFiZWwyLTEzODANBgkqhkiG9w0BAQUFAAOBgQBIjNFQg+oLLswNo2asZw9/r6y+whehQ5aU
-nX9MIbj4Nh+qLZ82L8D0HFAgk3A8/a3hYWLD2ToZfoSxmRsAxRoLgnSeJVCUYsfbJ3FXJY3d
-qZw5jowgT2Vfldr394fWxghOrvbqNOUQGls1TXfjViF4gtwhGTXeJLHTHUb/XV9lTzGCA2Qw
-ggNgAgEBMHYwYjELMAkGA1UEBhMCWkExJTAjBgNVBAoTHFRoYXd0ZSBDb25zdWx0aW5nIChQ
-dHkpIEx0ZC4xLDAqBgNVBAMTI1RoYXd0ZSBQZXJzb25hbCBGcmVlbWFpbCBJc3N1aW5nIENB
-AhAsJXp/6FHKA3dVazaiqf38MAkGBSsOAwIaBQCgggHDMBgGCSqGSIb3DQEJAzELBgkqhkiG
-9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTA5MDkxODEyNDU0MVowIwYJKoZIhvcNAQkEMRYEFIEx
-UOocjEGOuuFxnZ2A0xyxdXhBMFIGCSqGSIb3DQEJDzFFMEMwCgYIKoZIhvcNAwcwDgYIKoZI
-hvcNAwICAgCAMA0GCCqGSIb3DQMCAgFAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgEoMIGFBgkr
-BgEEAYI3EAQxeDB2MGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGlu
-ZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWlu
-ZyBDQQIQLCV6f+hRygN3VWs2oqn9/DCBhwYLKoZIhvcNAQkQAgsxeKB2MGIxCzAJBgNVBAYT
-AlpBMSUwIwYDVQQKExxUaGF3dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNU
-aGF3dGUgUGVyc29uYWwgRnJlZW1haWwgSXNzdWluZyBDQQIQLCV6f+hRygN3VWs2oqn9/DAN
-BgkqhkiG9w0BAQEFAASCAQAe605MvY4aiUluJSQLpbieXZgq2WSgVNps6zxiBr63S6sjFz/u
-9m5wthfbuKoTzJJy19sr38HoB2ZZ6UQR7I4aXU2K3iX1CdSSoomwlebxjyMJJMvvBwFEVdC2
-vHn/2wclUm5oyfp7hKHYv3odceTSz9W3B0JVENcSM2e/3RSadHRt/+7yZyW6WmSYoPSdxx3U
-dijB01ytF5zv1REtPJGur45KKqbcJSL49srTmsz2d5ueshAZ7kYhjPuB/Np9M9YA/2W8bdQw
-G0r2TOpwIBKdqPKmLp1oJxr8y0YyHwYW3Ry7jJBPs4Bq25HwExdB82LSHgMuT8jKeLZr6pQJ
-VbeyAAAAAAAA
---------------ms070502060606020208030408--
+> > 
+> > 	Modified arch/arm/plat-omap/iovmm.c
+> > diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> > index 6fc52fc..3ea0cd0 100644
+> > --- a/arch/arm/plat-omap/iovmm.c
+> > +++ b/arch/arm/plat-omap/iovmm.c
+> > @@ -368,12 +368,12 @@ out:
+> >  }
+> >  EXPORT_SYMBOL_GPL(da_to_va);
+> >  
+> > -static void sgtable_fill_vmalloc(struct sg_table *sgt, void *_va)
+> > +static void sgtable_fill_vmalloc(struct sg_table *sgt, u32 _va)
+> >  {
+> >  	unsigned int i;
+> >  	struct scatterlist *sg;
+> > -	void *va = _va;
+> > -	void *va_end;
+> > +	u32 va = _va;
+> > +	u32 va_end;
+> >  
+> >  	for_each_sg(sgt->sgl, sg, sgt->nents, i) {
+> >  		struct page *pg;
+> > @@ -693,7 +693,7 @@ u32 iommu_vmalloc(struct iommu *obj, u32 
+> > da, size_t bytes, u32 flags)
+> >  		da = PTR_ERR(sgt);
+> >  		goto err_sgt_alloc;
+> >  	}
+> > -	sgtable_fill_vmalloc(sgt, va);
+> > +	sgtable_fill_vmalloc(sgt, (u32)va);
+> >  
+> >  	flags &= IOVMF_HW_MASK;
+> >  	flags |= IOVMF_DISCONT;
+> > 
+> > --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
