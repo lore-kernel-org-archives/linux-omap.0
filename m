@@ -1,80 +1,35 @@
-From: y@ultratronik.de
-Subject: [RFC] OMAP: DSS2: Add flag to enable/disable TVOUTBYPASS for VENC
-Date: Fri, 18 Sep 2009 16:19:38 +0200
-Message-ID: <26810.8001714156$1253285973@news.gmane.org>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: Any one is still using omap-kernel on N810???
+Date: Fri, 18 Sep 2009 18:31:28 +0300
+Message-ID: <5ec8ebd50909180831w7d1e92d2xcbfac7dc1832a042@mail.gmail.com>
+References: <A2AD06B24DC9F846B5C9B99602FA10E7030D647E@cameurexb01.EUROPE.ROOT.PRI>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.ultratronik.de ([82.100.224.114]:34801 "EHLO
-	buildserver.ultratronik.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751353AbZIRO7G (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Fri, 18 Sep 2009 10:59:06 -0400
+Received: from mail-ew0-f206.google.com ([209.85.219.206]:57609 "EHLO
+	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752106AbZIRPbZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 11:31:25 -0400
+Received: by ewy2 with SMTP id 2so1424226ewy.17
+        for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2009 08:31:28 -0700 (PDT)
+In-Reply-To: <A2AD06B24DC9F846B5C9B99602FA10E7030D647E@cameurexb01.EUROPE.ROOT.PRI>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: tomi.valkeinen@nokia.com, Matthias Ludwig <mludwig@ultratronik.de>
+To: Stefano Panella <Stefano.Panella@csr.com>
+Cc: linux-omap@vger.kernel.org
 
-From: Matthias Ludwig <mludwig@ultratronik.de>
+On Fri, Sep 18, 2009 at 12:42 PM, Stefano Panella
+<Stefano.Panella@csr.com> wrote:
+> I have got a N810 board and I am trying to install ubuntu on it.
+As far as I know the N810 is a Nokia's device which runs Maemo 4.x OS.
+Maemo is an fork of linux OS for that special device.
+I think almost all opensourced components are committed to the
+linux-omap tree, but official kernels are provided from certain
+repository.
 
-Signed-off-by: Matthias Ludwig <mludwig@ultratronik.de>
----
+> Is there any how-to or update instruction I can follow?
+Perhaps more useful to ask in maemo.org.
 
-OMAP CPU can only provide a level of about 0.8V at TVOUT, which is not
-compliant with NTSC nor PAL. If one wants to have a compliant signal
-external buffers need to be added. This requires TVOUTBYPASS to be set.
-This patch implements a simple way to set it from dss platform data.
-
-Is there a more elegant way to get register address?
-
- arch/arm/plat-omap/include/mach/display.h |    1 +
- drivers/video/omap2/dss/venc.c            |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/mach/display.h b/arch/arm/plat-omap/include/mach/display.h
-index 4c7422e..3013be0 100644
---- a/arch/arm/plat-omap/include/mach/display.h
-+++ b/arch/arm/plat-omap/include/mach/display.h
-@@ -380,6 +380,7 @@ struct omap_dss_device {
- 		struct {
- 			enum omap_dss_venc_type type;
- 			bool invert_polarity;
-+			bool bypass_tvout;
- 		} venc;
- 	} phy;
- 
-diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
-index cf7827e..cb35a0d 100644
---- a/drivers/video/omap2/dss/venc.c
-+++ b/drivers/video/omap2/dss/venc.c
-@@ -35,6 +35,7 @@
- #include <linux/regulator/consumer.h>
- 
- #include <mach/display.h>
-+#include <mach/control.h>
- #include <mach/cpu.h>
- 
- #include "dss.h"
-@@ -532,6 +533,21 @@ static void venc_power_on(struct omap_dss_device *dssdev)
- 
- 	venc_write_reg(VENC_OUTPUT_CONTROL, l);
- 
-+	if (dssdev->phy.venc.bypass_tvout) {
-+		u32 dc1, dc1_addr;
-+#ifdef CONFIG_ARCH_OMAP3430
-+		dc1_addr = OMAP343X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1);
-+#elif defined(CONFIG_ARCH_OMAP2430)
-+		dc1_addr = OMAP243X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1);
-+#elif defined(CONFIG_ARCH_OMAP2420)
-+		dc1_addr = OMAP242X_CTRL_REGADDR(OMAP343X_CONTROL_DEVCONF1);
-+#else
-+		bug();
-+#endif
-+		dc1 = readl(dc1_addr) | OMAP2_TVOUTBYPASS;
-+		writel(dc1, dc1_addr);
-+	}
-+
- 	dispc_set_digit_size(dssdev->panel.timings.x_res,
- 			dssdev->panel.timings.y_res/2);
- 
 -- 
-1.6.2.5
-
+With Best Regards,
+Andy Shevchenko
