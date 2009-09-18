@@ -1,35 +1,38 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: Any one is still using omap-kernel on N810???
-Date: Fri, 18 Sep 2009 18:31:28 +0300
-Message-ID: <5ec8ebd50909180831w7d1e92d2xcbfac7dc1832a042@mail.gmail.com>
-References: <A2AD06B24DC9F846B5C9B99602FA10E7030D647E@cameurexb01.EUROPE.ROOT.PRI>
+From: Ming Lei <tom.leiming@gmail.com>
+Subject: [BUG]: v2.6.31: always output black in beagle DVI LCD
+Date: Fri, 18 Sep 2009 23:52:25 +0800
+Message-ID: <d82e647a0909180852u13dc1751pc1ae88413707706@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:57609 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbZIRPbZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 11:31:25 -0400
-Received: by ewy2 with SMTP id 2so1424226ewy.17
-        for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2009 08:31:28 -0700 (PDT)
-In-Reply-To: <A2AD06B24DC9F846B5C9B99602FA10E7030D647E@cameurexb01.EUROPE.ROOT.PRI>
+Received: from mail-pz0-f179.google.com ([209.85.222.179]:55100 "EHLO
+	mail-pz0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750805AbZIRPwV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 11:52:21 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefano Panella <Stefano.Panella@csr.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Linux-ARM Kernel <linux-arm-kernel@lists.arm.linux.org.uk>, linux-embedded@vger.kernel.org
 
-On Fri, Sep 18, 2009 at 12:42 PM, Stefano Panella
-<Stefano.Panella@csr.com> wrote:
-> I have got a N810 board and I am trying to install ubuntu on it.
-As far as I know the N810 is a Nokia's device which runs Maemo 4.x OS.
-Maemo is an fork of linux OS for that special device.
-I think almost all opensourced components are committed to the
-linux-omap tree, but official kernels are provided from certain
-repository.
+Board: beagle B5
+LCD: can show beagle logo in uboot
 
-> Is there any how-to or update instruction I can follow?
-Perhaps more useful to ask in maemo.org.
+Once I upgrade to v2.6.31 from
+         git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+
+and apply the patch:
+          omapfb: Reorder Register_framebuffer call
+          http://marc.info/?l=linux-omap&m=125277326104621&w=2
+
+the dvi lcd can't show anything but black colour. And from view of the monitor,
+there is video signal outputed from beagle, which can be indicated the
+green-led of
+monitor.
+
+Also the fb device(/dev/fb0) can be accessed well by my test code.
+
+I can provide more information if anyone needs.
+
+Thanks.
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Lei Ming
