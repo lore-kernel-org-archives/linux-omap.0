@@ -1,288 +1,244 @@
-From: Mike Chan <mike@android.com>
-Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss clocks
-	only when needed.
-Date: Fri, 18 Sep 2009 10:33:09 -0700
-Message-ID: <8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
-References: <1253230586-931-1-git-send-email-mike@android.com>
-	 <1253262472.28956.10.camel@tubuntu>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH 1/5] OMAP1/2/3/4: DEBUG_LL: cleanup
+Date: Sat, 19 Sep 2009 02:46:49 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9DAF632@dbde02.ent.ti.com>
+References: <1250877324-10494-1-git-send-email-vikram.pandita@ti.com>
+ <4A8FA4E7.9020206@deeprootsystems.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702F9A44895@dbde02.ent.ti.com>
+ <87hbvtfw8g.fsf@deeprootsystems.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702F9A44CAC@dbde02.ent.ti.com>
+ <873a7dwfk0.fsf@deeprootsystems.com>
+ <20090916191127.GB16457@n2100.arm.linux.org.uk>
+ <FCCFB4CDC6E5564B9182F639FC35608702F9DAF13E@dbde02.ent.ti.com>
+ <20090917194750.GA12766@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-vw0-f195.google.com ([209.85.212.195]:35631 "EHLO
-	mail-vw0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757297AbZIRRdI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 13:33:08 -0400
-Received: by vws33 with SMTP id 33so1062044vws.33
-        for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2009 10:33:10 -0700 (PDT)
-In-Reply-To: <1253262472.28956.10.camel@tubuntu>
+Received: from comal.ext.ti.com ([198.47.26.152]:42483 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750746AbZIRVRJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 17:17:09 -0400
+In-Reply-To: <20090917194750.GA12766@n2100.arm.linux.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.arm.linux.org.uk" <linux-arm-kernel@lists.arm.linux.org.uk>
 
-On Fri, Sep 18, 2009 at 1:27 AM, Tomi Valkeinen
-<tomi.valkeinen@nokia.com> wrote:
-> Hi,
+
+
+>-----Original Message-----
+>From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+>Sent: Thursday, September 17, 2009 2:48 PM
+>To: Pandita, Vikram
+>Cc: Kevin Hilman; linux-omap@vger.kernel.org; linux-arm-kernel@lists.arm.linux.org.uk
+>Subject: Re: [PATCH 1/5] OMAP1/2/3/4: DEBUG_LL: cleanup
 >
-> If you disable the clocks to allow RET, you also allow OFF mode. And
-> resuming from OFF mode hasn't been implemented for DSI, if I recall
-> right. And when I was testing it, it didn't seem to be trivial with t=
-he
-> DSI PLL.
+>On Fri, Sep 18, 2009 at 12:30:25AM +0530, Pandita, Vikram wrote:
+>> There are review comments by Kevin [2] still getting fixed,
+>> but a 'Russell-look' will surely help to the in-lined patch [3] .
 >
+>Still not good.
 
-You can limiting the pwrdm next state to RET when being called from cpu=
-idle.
+I have considered all your comments for this patch and 
+am working on a new approach.
 
-> That's why currently you need to disable the display to turn off the
-> clocks, and the whole DSI block is re-configured when enabling the
-> display again.
+I should be able to post V3 patch set in a day or so, 
+which does not touch any of the common files.
+
+
 >
-
-Display enable/disable should only be called when you turn on / off
-the screen, I'm not sure how this applies to getting the dss_pwrdm to
-enter RET on idle while scren is on.
-
-We haven't tested OFF, but having all power domains enter RET while
-screen is on and device idle (no rendering) can give significant (~2x)
-battery life improvements, depending on your hardware of course.
-
-
--- Mike
-
-> =A0Tomi
+>> +		mov	r9, r0
+>> +
+>> +		bl	get_uart_base		@ get uart phy address
+>> +		adr     r2, __dummy
+>> +		str	r0, [r2]		@save uart phy adder in memory
+>> +		ldm	r2, {r13}^		@save phyadder in usermode reg
+>> +
+>> +		bl	get_uart_virt_base	@ get uart virtual address
+>> +		adr     r2, __dummy
+>> +		str	r0, [r2]		@save uart phy adder in memory
+>> +		ldm	r2, {r14}^		@save phyadder in usermode reg
+>> +
+>> +		mov	r0, r9
+>> +
+>>  		bl	cache_clean_flush
+>>  		add	pc, r5, r0		@ call relocation code
+>>
+>> @@ -303,6 +317,9 @@  LC0:		.word	LC0			@ r1
+>>  LC1:		.word	reloc_end - reloc_start
+>>  		.size	LC0, . - LC0
+>>
+>> +		.type   __dummy, #object
+>> +__dummy:		.word	__dummy
 >
+>This appears to be in the text segment, and is written to.  That's not
+>going to work if the text segment is stored in flash (and in fact might
+>be dangerous in some cases.)
 >
-> On Fri, 2009-09-18 at 01:36 +0200, ext Mike Chan wrote:
->> Signed-off-by: Mike Chan <mike@android.com>
->> ---
->> =A0drivers/video/omap2/dss/dispc.c | =A0 =A06 ++++-
->> =A0drivers/video/omap2/dss/dsi.c =A0 | =A0 50 ++++++++++++++++++++++=
-+++++++++++++---
->> =A02 files changed, 51 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/video/omap2/dss/dispc.c b/drivers/video/omap2/d=
-ss/dispc.c
->> index d061d75..4216466 100644
->> --- a/drivers/video/omap2/dss/dispc.c
->> +++ b/drivers/video/omap2/dss/dispc.c
->> @@ -484,13 +484,17 @@ static inline void enable_clocks(bool enable)
->> =A0bool dispc_go_busy(enum omap_channel channel)
->> =A0{
->> =A0 =A0 =A0 int bit;
->> + =A0 =A0 bool ret;
->>
->> =A0 =A0 =A0 if (channel =3D=3D OMAP_DSS_CHANNEL_LCD)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bit =3D 5; /* GOLCD */
->> =A0 =A0 =A0 else
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 bit =3D 6; /* GODIGIT */
->>
->> - =A0 =A0 return REG_GET(DISPC_CONTROL, bit, bit) =3D=3D 1;
->> + =A0 =A0 enable_clocks(1);
->> + =A0 =A0 ret =3D REG_GET(DISPC_CONTROL, bit, bit) =3D=3D 1;
->> + =A0 =A0 enable_clocks(0);
->> + =A0 =A0 return ret;
->> =A0}
->>
->> =A0void dispc_go(enum omap_channel channel)
->> diff --git a/drivers/video/omap2/dss/dsi.c b/drivers/video/omap2/dss=
-/dsi.c
->> index 5e3d653..e9d8a5f 100644
->> --- a/drivers/video/omap2/dss/dsi.c
->> +++ b/drivers/video/omap2/dss/dsi.c
->> @@ -1186,6 +1186,9 @@ int dsi_pll_init(bool enable_hsclk, bool enabl=
-e_hsdiv)
->> =A0 =A0 =A0 if (r)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err1;
->>
->> + =A0 =A0 enable_clocks(0);
->> + =A0 =A0 dsi_enable_pll_clock(0);
 >> +
->> =A0 =A0 =A0 DSSDBG("PLL init done\n");
+>>  #ifdef CONFIG_ARCH_RPC
+>>  		.globl	params
+>>  params:		ldr	r0, =params_phys
+>> diff --git a/arch/arm/boot/compressed/misc.c b/arch/arm/boot/compressed/misc.c
+>> index 17153b5..0758656 100644
+>> --- a/arch/arm/boot/compressed/misc.c
+>> +++ b/arch/arm/boot/compressed/misc.c
+>> @@ -22,6 +22,15 @@  unsigned int __machine_arch_type;
+>>  #include <linux/types.h>	/* for size_t */
+>>  #include <linux/stddef.h>	/* for NULL */
+>>  #include <asm/string.h>
+>> +#include <asm/mach-types.h>
+>> +/* TODO:
+>> + * Include of this header is not working.
+>> + * Gives Error: undefined reference to `omap_rev'
+>> + * This header is needed for constant:
+>> + * ZOOM2_EXT_QUART_VIRT = 0xFB000000
+>> + * ZOOM2_EXT_QUART_PHYS = 0x10000000
+>> + */
+>> +/* #include <mach/io.h> */
 >>
->> =A0 =A0 =A0 return 0;
->> @@ -1199,11 +1202,9 @@ err0:
+>>  #ifdef STANDALONE_DEBUG
+>>  #define putstr printf
+>> @@ -316,6 +325,103 @@  static void error(char *x)
 >>
->> =A0void dsi_pll_uninit(void)
->> =A0{
->> - =A0 =A0 enable_clocks(0);
->> - =A0 =A0 dsi_enable_pll_clock(0);
->> -
->> =A0 =A0 =A0 dsi.pll_locked =3D 0;
->> =A0 =A0 =A0 dsi_pll_power(DSI_PLL_POWER_OFF);
+>>  #ifndef STANDALONE_DEBUG
+>>
+>> +u32  *omap_uart_debug_ll_phy_addr;
 >> +
->> =A0 =A0 =A0 regulator_disable(dsi.vdds_dsi_reg);
->> =A0 =A0 =A0 DSSDBG("PLL uninit done\n");
->> =A0}
->> @@ -1848,6 +1849,9 @@ static int dsi_vc_send_bta_sync(int channel)
->>
->> =A0 =A0 =A0 INIT_COMPLETION(dsi.bta_completion);
->>
->> + =A0 =A0 enable_clocks(1);
->> + =A0 =A0 dsi_enable_pll_clock(1);
+>> +static void find_debug_ll_uart_port(unsigned int arch_type)
+>> +{
+>> +	omap_uart_debug_ll_phy_addr = 0;
 >> +
->> =A0 =A0 =A0 dsi_vc_enable_bta_irq(channel);
->>
->> =A0 =A0 =A0 r =3D dsi_vc_send_bta(channel);
->> @@ -1870,6 +1874,9 @@ static int dsi_vc_send_bta_sync(int channel)
->> =A0err:
->> =A0 =A0 =A0 dsi_vc_disable_bta_irq(channel);
->>
->> + =A0 =A0 enable_clocks(0);
->> + =A0 =A0 dsi_enable_pll_clock(0);
+>> +	/* Add logic here for new platforms, using __macine_arch_type */
 >> +
->> =A0 =A0 =A0 return r;
->> =A0}
->>
->> @@ -1921,6 +1928,9 @@ static int dsi_vc_send_long(int channel, u8 da=
-ta_type, u8 *data, u16 len,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> =A0 =A0 =A0 }
->>
->> + =A0 =A0 enable_clocks(1);
->> + =A0 =A0 dsi_enable_pll_clock(1);
+>> +	/* TODO: REVISIT -- Check Completeness
+>> +	 * DEFINE PHY ADDRESS for EACH BOARD HERE: omap1/2/3/4 */
+>> +#if defined(CONFIG_ARCH_OMAP1)
+>> +	switch (arch_type) {
+>> +	case MACH_TYPE_OMAP_PALMTT:
+>> +	case MACH_TYPE_SX1:
+>> +		/* UART2 */
+>> +		omap_uart_debug_ll_phy_addr = (u32 *)0xfffb0800;
+>> +	break;
+>> +	default:
+>> +			/* UART1 */
+>> +		omap_uart_debug_ll_phy_addr = (u32 *)0xfffb0000;
+>> +	break;
+>> +	}
+>> +#endif
 >> +
->> =A0 =A0 =A0 dsi_vc_write_long_header(channel, data_type, len, ecc);
->>
->> =A0 =A0 =A0 /*dsi_vc_print_status(0); */
->> @@ -1964,6 +1974,9 @@ static int dsi_vc_send_long(int channel, u8 da=
-ta_type, u8 *data, u16 len,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dsi_vc_write_long_payload(channel, b1, b=
-2, b3, 0);
->> =A0 =A0 =A0 }
->>
->> + =A0 =A0 enable_clocks(0);
->> + =A0 =A0 dsi_enable_pll_clock(0);
+>> +#if defined(CONFIG_ARCH_OMAP2)
+>> +	switch (arch_type) {
+>> +	case MACH_TYPE_NOKIA_N800:
+>> +	case MACH_TYPE_NOKIA_N810:
+>> +	case MACH_TYPE_NOKIA_N810_WIMAX:
+>> +		/* UART3 */
+>> +		omap_uart_debug_ll_phy_addr = (u32 *)0x4806e000;
+>> +	break;
+>> +	default:
+>> +		/* UART1 */
+>> +		omap_uart_debug_ll_phy_addr = (u32 *)0x4806a000;
+>> +	break;
+>> +	}
+>> +#endif
 >> +
->> =A0 =A0 =A0 return r;
->> =A0}
->>
->> @@ -1979,6 +1992,9 @@ static int dsi_vc_send_short(int channel, u8 d=
-ata_type, u16 data, u8 ecc)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 channel,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 data_typ=
-e, data & 0xff, (data >> 8) & 0xff);
->>
->> + =A0 =A0 enable_clocks(1);
->> + =A0 =A0 dsi_enable_pll_clock(1);
+>> +#if defined(CONFIG_ARCH_OMAP3)
+>> +	switch (arch_type) {
+>> +	case MACH_TYPE_OMAP_LDP:
+>> +	case MACH_TYPE_OVERO:
+>> +	case MACH_TYPE_OMAP3_PANDORA:
+>> +	case MACH_TYPE_NOKIA_RX51:
+>> +	case MACH_TYPE_OMAP3_BEAGLE:
+>> +		/* UART3 */
+>> +		omap_uart_debug_ll_phy_addr = (u32 *)0x49020000;
+>> +	break;
+>> +	case MACH_TYPE_OMAP_ZOOM2:
+>> +		/* EXTERNEL UART */
+>> +		omap_uart_debug_ll_phy_addr = (u32 *)0x10000000;
+>> +	break;
+>> +	default:
+>> +		/* UART1 */
+>> +		omap_uart_debug_ll_phy_addr = (u32 *)0x4806a000;
+>> +	break;
+>> +	}
+>> +#endif
 >> +
->> =A0 =A0 =A0 if (FLD_GET(dsi_read_reg(DSI_VC_CTRL(channel)), 16, 16))=
- {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 DSSERR("ERROR FIFO FULL, aborting transf=
-er\n");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->> @@ -1990,6 +2006,9 @@ static int dsi_vc_send_short(int channel, u8 d=
-ata_type, u16 data, u8 ecc)
->>
->> =A0 =A0 =A0 dsi_write_reg(DSI_VC_SHORT_PACKET_HEADER(channel), r);
->>
->> + =A0 =A0 enable_clocks(0);
->> + =A0 =A0 dsi_enable_pll_clock(0);
+>> +#ifdef CONFIG_ARCH_OMAP4
+>> +	switch (arch_type) {
+>> +	/* OMAP3: UART1 */
+>> +	case MACH_TYPE_OMAP_4430SDP:
+>> +	default:
+>> +		omap_uart_debug_ll_phy_addr = (u32 *)0x4806a000;
+>> +		putstr("This is an OMAP4 ...\n");
+>> +	break;
+>> +	}
+>> +#endif
+>> +}
 >> +
->> =A0 =A0 =A0 return 0;
->> =A0}
->>
->> @@ -2775,13 +2794,15 @@ static int dsi_update_thread(void *data)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dsi_bus_lock();
->> -
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dsi.update_mode =3D=3D OMAP_DSS_UPDA=
-TE_DISABLED ||
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 kthread_=
-should_stop()) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dsi_bus_unlock();
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->>
->> + =A0 =A0 =A0 =A0 =A0 =A0 enable_clocks(1);
->> + =A0 =A0 =A0 =A0 =A0 =A0 dsi_enable_pll_clock(1);
+>> +ulg
+>> +get_uart_base(void)
+>> +{
+>> +	return (ulg)omap_uart_debug_ll_phy_addr;
+>> +}
 >> +
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dsi_perf_mark_setup();
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (dsi.update_region.dirty) {
->> @@ -2872,6 +2893,9 @@ static int dsi_update_thread(void *data)
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 complete_all(&dsi.update_completion);
->>
->> + =A0 =A0 =A0 =A0 =A0 =A0 enable_clocks(0);
->> + =A0 =A0 =A0 =A0 =A0 =A0 dsi_enable_pll_clock(0);
+>> +ulg
+>> +get_uart_virt_base(void)
+>> +{
+>> +	ulg val = 0;
 >> +
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dsi_bus_unlock();
->>
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* XXX We need to give others chance to =
-get the bus lock. Is
->> @@ -3068,6 +3092,9 @@ static int dsi_display_enable(struct omap_dss_=
-device *dssdev)
->> =A0 =A0 =A0 if (dsi.update_mode =3D=3D OMAP_DSS_UPDATE_AUTO)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dsi_start_auto_update(dssdev);
->>
->> + =A0 =A0 enable_clocks(0);
->> + =A0 =A0 dsi_enable_pll_clock(0);
+>> +#ifdef CONFIG_ARCH_OMAP1
+>> +	/* omap1 */
+>> +	val = 0xfef00000;
+>> +#else
+>> +	/* omap2/3/4... */
+>> +	if (MACH_TYPE_OMAP_ZOOM2 == __machine_arch_type)
+>> +		val = 0xFB000000; /* ZOOM2_EXT_QUART_VIRT */
+>> +	else
+>> +		val = 0xd8000000;
+>> +#endif
 >> +
->> =A0 =A0 =A0 dsi_bus_unlock();
->> =A0 =A0 =A0 mutex_unlock(&dsi.lock);
->>
->> @@ -3101,6 +3128,9 @@ static void dsi_display_disable(struct omap_ds=
-s_device *dssdev)
->> =A0 =A0 =A0 dsi.update_mode =3D OMAP_DSS_UPDATE_DISABLED;
->> =A0 =A0 =A0 dssdev->state =3D OMAP_DSS_DISPLAY_DISABLED;
->>
->> + =A0 =A0 enable_clocks(1);
->> + =A0 =A0 dsi_enable_pll_clock(1);
+>> +	return (ulg)(((val) >> 18) & 0xfffc);
+>> +}
 >> +
->> =A0 =A0 =A0 dsi_display_uninit_dispc(dssdev);
->>
->> =A0 =A0 =A0 dsi_display_uninit_dsi(dssdev);
->> @@ -3128,6 +3158,9 @@ static int dsi_display_suspend(struct omap_dss=
-_device *dssdev)
->> =A0 =A0 =A0 dsi.update_mode =3D OMAP_DSS_UPDATE_DISABLED;
->> =A0 =A0 =A0 dssdev->state =3D OMAP_DSS_DISPLAY_SUSPENDED;
->>
->> + =A0 =A0 enable_clocks(1);
->> + =A0 =A0 dsi_enable_pll_clock(1);
->> +
->> =A0 =A0 =A0 dsi_display_uninit_dispc(dssdev);
->>
->> =A0 =A0 =A0 dsi_display_uninit_dsi(dssdev);
->> @@ -3181,6 +3214,9 @@ static int dsi_display_resume(struct omap_dss_=
-device *dssdev)
->> =A0 =A0 =A0 if (dsi.update_mode =3D=3D OMAP_DSS_UPDATE_AUTO)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dsi_start_auto_update(dssdev);
->>
->> + =A0 =A0 enable_clocks(0);
->> + =A0 =A0 dsi_enable_pll_clock(0);
->> +
->> =A0 =A0 =A0 dsi_bus_unlock();
->> =A0 =A0 =A0 mutex_unlock(&dsi.lock);
->>
->> @@ -3325,6 +3361,9 @@ static int dsi_display_enable_te(struct omap_d=
-ss_device *dssdev, bool enable)
->>
->> =A0 =A0 =A0 dsi_bus_lock();
->>
->> + =A0 =A0 enable_clocks(1);
->> + =A0 =A0 dsi_enable_pll_clock(1);
->> +
->> =A0 =A0 =A0 dsi.te_enabled =3D enable;
->>
->> =A0 =A0 =A0 if (dssdev->state !=3D OMAP_DSS_DISPLAY_ACTIVE)
->> @@ -3332,6 +3371,9 @@ static int dsi_display_enable_te(struct omap_d=
-ss_device *dssdev, bool enable)
->>
->> =A0 =A0 =A0 dsi_set_te(dssdev, enable);
->> =A0end:
->> + =A0 =A0 enable_clocks(0);
->> + =A0 =A0 dsi_enable_pll_clock(0);
->> +
->> =A0 =A0 =A0 dsi_bus_unlock();
->>
->> =A0 =A0 =A0 return 0;
 >
+>Clearly, all this code should not be in here.  There's a perfectly good
+>header file to contain the platform specifics which it can live in, and
+>there's a perfectly good hook for it to latch into (arch_decomp_setup).
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> diff --git a/arch/arm/plat-omap/include/mach/debug-macro.S b/arch/arm/plat-omap/include/mach/debug-
+>macro.S
+>> index ac24050..ba80ca4 100644
+>> --- a/arch/arm/plat-omap/include/mach/debug-macro.S
+>> +++ b/arch/arm/plat-omap/include/mach/debug-macro.S
+>> @@ -10,43 +10,42 @@
+>>   * published by the Free Software Foundation.
+>>   *
+>>  */
+>> +#include "io.h"
+>> +
+>> +		.align
+>> +		.type   __phy_uart_addr, #object
+>> +__phy_uart_addr:       .word   0xFF
+>> +		.type   __virt_uart_addr, #object
+>> +__virt_uart_addr:       .word   0xFF
+>
+>Again, this ends up in the text segment, and in the XIP case, the text
+>segment is not writable (writes hit the flash chip.)
+>
+>> diff --git a/arch/arm/plat-omap/include/mach/uncompress.h b/arch/arm/plat-
+>omap/include/mach/uncompress.h
+>> index 0814c5f..9121d7a 100644
+>> --- a/arch/arm/plat-omap/include/mach/uncompress.h
+>> +++ b/arch/arm/plat-omap/include/mach/uncompress.h
+>> @@ -21,7 +21,8 @@
+>>  #include <linux/serial_reg.h>
+>>  #include <mach/serial.h>
+>>
+>> -unsigned int system_rev;
+>> +extern u32 *omap_uart_debug_ll_phy_addr;
+>> +extern unsigned int __machine_arch_type;
+>
+>Just include asm/mach-types.h - there's no need to declare this here.
+
