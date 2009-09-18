@@ -1,96 +1,81 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: Memory leaks on l-o kernel
-Date: Fri, 18 Sep 2009 17:11:08 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD9915B4@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A1C4C0E@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH] OMAP3: PM: Fix compile time warning and errors
+Date: Fri, 18 Sep 2009 17:18:52 +0530
+Message-ID: <1253274532-29002-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49386 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:49754 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753899AbZIRLlL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 07:41:11 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8IBfDv7013497
-	for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2009 06:41:14 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A1C4C0E@dbde02.ent.ti.com>
-Content-Language: en-US
+	with ESMTP id S1753899AbZIRLsv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 18 Sep 2009 07:48:51 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8IBmr3G017774
+	for <linux-omap@vger.kernel.org>; Fri, 18 Sep 2009 06:48:54 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, "olbpdev@list.ti.com - OMAP Linux Baseport Development Team (May contain
-	non-TIers)" <olbpdev@list.ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Adding LO list:
-(Cc'ng Madhu)
-Some additional memory leak (not the one reported by CONFIG_DEBUG_KMEMLEAK):
+Made a mistake of enabling PM_DEBUG without DEBUG_FS. This leads to
+compile time warnings and errors.
 
-1. In twl4030_mmc_init struct_ omap_mmc_platform_data is allocated using kzalloc.
-2. The pointer to the allocated memory is stored in hsmmc_data which is __initdata (contents will be lost after the init section cleanup).
-Now look at this piece of code:
+arch/arm/mach-omap2/pm-debug.c:56: warning: 'pm_dbg_init'
+ declared 'static' but never defined
 
-mmc = kzalloc(sizeof(struct omap_mmc_platform_data), GFP_KERNEL);
-                if (!mmc) {
-                        pr_err("Cannot allocate memory for mmc device!\n");
-                        return;
-                }
+arch/arm/mach-omap2/built-in.o: In function `omap_sram_idle':
+arch/arm/mach-omap2/pm34xx.c:442: undefined reference to
+ 'pm_dbg_regset_save'
+arch/arm/mach-omap2/built-in.o: In function `configure_vc':
+arch/arm/mach-omap2/pm34xx.c:1221: undefined reference to
+ 'pm_dbg_regset_init'
 
-This is within a loop. For all but first iteration if kzalloc fails, the function returns and the hsmmc_data is cleaned up (during the init memory cleanup) and pointer to the successfully allocated omap_mmc_platform_data blocks are lost. 
+Another alternate is to link these Kconfig options; but didn't seem
+intuitive.
 
-Thanks,
--Romit
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/mach-omap2/pm-debug.c |    2 ++
+ arch/arm/mach-omap2/pm34xx.c   |    4 ++++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
 
->-----Original Message-----
->From: Gadiyar, Anand
->Sent: Friday, September 18, 2009 3:27 PM
->To: olbpdev@list.ti.com - OMAP Linux Baseport Development Team (May contain
->non-TIers)
->Subject: Memory leaks on l-o kernel
->
->I enabled CONFIG_DEBUG_KMEMLEAK on the linux-omap kernel, and at boot it
->throws up this on the SDP:
->
->Worth a look?
->
->kmemleak: 2 new suspected memory leaks (see /sys/kernel/debug/kmemleak)
->
->/ # cat /sys/kernel/debug/kmemleak
->unreferenced object 0xc78e7c00 (size 192):
->  comm "swapper", pid 1, jiffies 4294928994
->  backtrace:
->    [<c002fa38>] save_stack_trace+0x24/0x28
->    [<c00a61b0>] create_object+0x134/0x21c
->    [<c00a63b4>] kmemleak_alloc+0x40/0x84
->    [<c00a3d74>] kmem_cache_alloc+0xa8/0xb8
->    [<c000f224>] twl4030_mmc_init+0x54/0x298
->    [<c003b1d4>] sdp3430_twl_gpio_setup+0x2c/0x84
->    [<c02bfa14>] gpio_twl4030_probe+0x198/0x1b4
->    [<c01c79c0>] platform_drv_probe+0x20/0x24
->    [<c01c6ab8>] driver_probe_device+0xa8/0x154
->    [<c01c6c34>] __device_attach+0x44/0x48
->    [<c01c6044>] bus_for_each_drv+0x50/0x90
->    [<c01c6cbc>] device_attach+0x58/0x70
->    [<c01c5e80>] bus_attach_device+0x30/0x64
->    [<c01c488c>] device_add+0x3fc/0x560
->    [<c01c8044>] platform_device_add+0xfc/0x158
->    [<c01cd5b0>] add_numbered_child+0xe4/0x130
->unreferenced object 0xc78e7d00 (size 192):
->  comm "swapper", pid 1, jiffies 4294928994
->  backtrace:
->    [<c002fa38>] save_stack_trace+0x24/0x28
->    [<c00a61b0>] create_object+0x134/0x21c
->    [<c00a63b4>] kmemleak_alloc+0x40/0x84
->    [<c00a3d74>] kmem_cache_alloc+0xa8/0xb8
->    [<c000f224>] twl4030_mmc_init+0x54/0x298
->    [<c003b1d4>] sdp3430_twl_gpio_setup+0x2c/0x84
->    [<c02bfa14>] gpio_twl4030_probe+0x198/0x1b4
->    [<c01c79c0>] platform_drv_probe+0x20/0x24
->    [<c01c6ab8>] driver_probe_device+0xa8/0x154
->    [<c01c6c34>] __device_attach+0x44/0x48
->    [<c01c6044>] bus_for_each_drv+0x50/0x90
->    [<c01c6cbc>] device_attach+0x58/0x70
->    [<c01c5e80>] bus_attach_device+0x30/0x64
->    [<c01c488c>] device_add+0x3fc/0x560
->    [<c01c8044>] platform_device_add+0xfc/0x158
->    [<c01cd5b0>] add_numbered_child+0xe4/0x130
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 1b4c160..175d461 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -53,7 +53,9 @@ int omap2_pm_debug;
+ 	regs[reg_count].name = #reg; \
+ 	regs[reg_count++].val = __raw_readl(OMAP2_IO_ADDRESS(0x480fe000 + (off)))
+ 
++#ifdef CONFIG_DEBUG_FS
+ static int __init pm_dbg_init(void);
++#endif
+ 
+ void omap2_pm_dump(int mode, int resume, unsigned int us)
+ {
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 7a1eb95..e3da0ab 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -438,8 +438,10 @@ void omap_sram_idle(void)
+ 	    core_next_state == PWRDM_POWER_OFF)
+ 		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
+ 
++#ifdef CONFIG_DEBUG_FS
+ 	if (regset_save_on_suspend)
+ 		pm_dbg_regset_save(1);
++#endif
+ 
+ 	/*
+ 	 * omap3_arm_context is the location where ARM registers
+@@ -1218,7 +1220,9 @@ static void __init configure_vc(void)
+ 	prm_write_mod_reg(prm_setup.voltsetup2, OMAP3430_GR_MOD,
+ 			OMAP3_PRM_VOLTSETUP2_OFFSET);
+ 
++#ifdef CONFIG_DEBUG_FS
+ 	pm_dbg_regset_init(1);
++#endif
+ }
+ 
+ static int __init omap3_pm_early_init(void)
+-- 
+1.6.2.2
+
