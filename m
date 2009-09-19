@@ -1,81 +1,109 @@
-From: Juha Leppanen <juha_motorsportcom@luukku.com>
-Subject: OMAP2/3 clock: timing logic error in prcm.c
-Date: Sat, 19 Sep 2009 08:07:41 +0300 (EEST)
-Message-ID: <1253336861024.juha_motorsportcom.1573.6LCQ1zZQT2MHIsa0_PJFxw@luukku.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH 1/2] OMAP1/2/3/4: DEBUG_LL run time detection
+Date: Sat, 19 Sep 2009 11:05:55 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BABA34A4@dbde02.ent.ti.com>
+References: <1253320780-19396-1-git-send-email-vikram.pandita@ti.com>
+ <1253320780-19396-2-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_Part_545_858059860.1253336861023"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from posti.luukku.com ([193.209.83.72]:43733 "EHLO posti.luukku.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751650AbZISFHi (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 19 Sep 2009 01:07:38 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:48946 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499AbZISFgK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Sep 2009 01:36:10 -0400
+In-Reply-To: <1253320780-19396-2-git-send-email-vikram.pandita@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, tony.lindgren@nokia.com, linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@deeprootsystems.com>
 
-------=_Part_545_858059860.1253336861023
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hi,
-
-checking some patches thru www.kernel.org
-I noticed "off by one" timing logic error in
-
-/arch/arm/mach-omap2/prcm.c
-
-in function
-
-int omap2_cm_wait_idlest(void __iomem *reg, u32 mask, const char *name)
-...
-        /* Wait for lock */
-        while (((__raw_readl(reg) & mask) !=3D ena) &&
-               (i++ < MAX_MODULE_ENABLE_WAIT))
-                udelay(1);
-
-        if (i < MAX_MODULE_ENABLE_WAIT)
-                pr_debug("cm: Module associated with clock %s ready after %=
-d "
-                         "loops\n", name, i);
-        else
-                pr_err("cm: Module associated with clock %s didn't enable i=
-n "
-                       "%d tries\n", name, MAX_MODULE_ENABLE_WAIT);
-
-        return (i < MAX_MODULE_ENABLE_WAIT) ? 1 : 0;
-...
-If the while loop "timeouts", i=3D=3DMAX_MODULE_ENABLE_WAIT+1.
-
-Simple correction could be something like
-
-....
--       if (i < MAX_MODULE_ENABLE_WAIT)
-+       if (i <=3D MAX_MODULE_ENABLE_WAIT)
-                pr_debug("cm: Module associated with clock %s ready after %=
-d "
-<SNIP>
--       return (i < MAX_MODULE_ENABLE_WAIT) ? 1 : 0;
-+       return (i <=3D MAX_MODULE_ENABLE_WAIT) ? 1 : 0;
-....
-
-Signed-off-by: "Juha Leppanen" <juha_motorsportcom@luukku.com>
-
-No reply needed to me,
-my spam filter will probably eat your reply.
-
-Reported-by: "Juha Leppanen" <juha_motorsportcom@luukku.com>
-tag would be nice in kernel.org :)
-Not so many kernel hackers give credit these days :(
-
-Happy hacking,
-
-Mr. Juha Leppanen
-Kuopio, Finland
+Vikram,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+> Sent: Saturday, September 19, 2009 6:10 AM
+> To: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
+> Cc: Pandita, Vikram; Russell King; Kevin Hilman
+> Subject: [PATCH 1/2] OMAP1/2/3/4: DEBUG_LL run time detection
 
 
-....................................................................
-Luukku Plus -paketilla p=E4=E4set eroon tila- ja turvallisuusongelmista.
-Hanki Luukku Plus ja helpotat el=E4m=E4=E4si. http://www.mtv3.fi/luukku
+> +u32 get_uart_base(void)
+> +{
+> +	static u32  omap_uart_debug_ll_phy_addr;
+> +
+> +	if (omap_uart_debug_ll_phy_addr)
+> +		return omap_uart_debug_ll_phy_addr;
+> +
+> +	/* Add logic here for new platforms, using __machine_arch_type */
+> +
+> +	/* TODO: REVISIT -- Check Completeness
+> +	 * DEFINE PHY ADDRESS for EACH BOARD HERE: omap1/2/3/4 */
+> +#if defined(CONFIG_ARCH_OMAP1)
+> +	switch (__machine_arch_type) {
+> +	case MACH_TYPE_OMAP_PALMTT:
+> +	case MACH_TYPE_SX1:
+> +		/* UART2 */
+> +		omap_uart_debug_ll_phy_addr = (u32 *)0xfffb0800;
+> +	break;
+> +	default:
+> +			/* UART1 */
+> +		omap_uart_debug_ll_phy_addr = (u32 *)0xfffb0000;
+> +	break;
+> +	}
+> +#endif
+> +
+> +#if defined(CONFIG_ARCH_OMAP2)
+> +	switch (__machine_arch_type) {
+> +	case MACH_TYPE_NOKIA_N800:
+> +	case MACH_TYPE_NOKIA_N810:
+> +	case MACH_TYPE_NOKIA_N810_WIMAX:
+> +		/* UART3 */
+> +		omap_uart_debug_ll_phy_addr = (u32 *)0x4806e000;
+> +	break;
+> +	default:
+> +		/* UART1 */
+> +		omap_uart_debug_ll_phy_addr = (u32 *)0x4806a000;
+> +	break;
+> +	}
+> +#endif
+> +
+> +#if defined(CONFIG_ARCH_OMAP3)
+> +	switch (__machine_arch_type) {
+> +	case MACH_TYPE_OMAP_LDP:
+> +	case MACH_TYPE_OVERO:
+> +	case MACH_TYPE_OMAP3_PANDORA:
+> +	case MACH_TYPE_NOKIA_RX51:
+> +	case MACH_TYPE_OMAP3_BEAGLE:
+> +		/* UART3 */
+> +		omap_uart_debug_ll_phy_addr = 0x49020000;
+> +	break;
+> +	case MACH_TYPE_OMAP_ZOOM2:
+> +		/* EXTERNEL UART */
+> +		omap_uart_debug_ll_phy_addr = 0x10000000;
+> +	break;
+> +	default:
+> +		/* UART1 */
+> +		omap_uart_debug_ll_phy_addr = 0x4806a000;
+> +	break;
+> +	}
+> +#endif
+> +
+> +#ifdef CONFIG_ARCH_OMAP4
+> +	switch (__machine_arch_type) {
+> +	/* OMAP3: UART1 */
+> +	case MACH_TYPE_OMAP_4430SDP:
+> +	default:
+> +		omap_uart_debug_ll_phy_addr = (u32 *)0x4806a000;
+> +	break;
+> +	}
+> +#endif
+> +
+> +	return omap_uart_debug_ll_phy_addr;
+> +}
+This makes only UART1 as a DEBUG_LL option for OMAP4. Will we not have options any more to select rest of the UARTs for DEBUG_LL as it was supported with previous Russell's implementation?
 
-------=_Part_545_858059860.1253336861023--
+
+Regards,
+Santosh
