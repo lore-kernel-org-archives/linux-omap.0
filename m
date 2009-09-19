@@ -1,45 +1,34 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: Any one is still using omap-kernel on N810???
-Date: Sat, 19 Sep 2009 10:06:27 +0300
-Message-ID: <20090919100627.2b946f64.jhnikula@gmail.com>
-References: <A2AD06B24DC9F846B5C9B99602FA10E7030D647E@cameurexb01.EUROPE.ROOT.PRI>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH 1/2] OMAP1/2/3/4: DEBUG_LL run time detection
+Date: Sat, 19 Sep 2009 09:40:52 +0100
+Message-ID: <20090919084051.GA20296@n2100.arm.linux.org.uk>
+References: <1253320780-19396-1-git-send-email-vikram.pandita@ti.com> <1253320780-19396-2-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:61205 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754851AbZISHGK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Sep 2009 03:06:10 -0400
-Received: by ewy2 with SMTP id 2so1869696ewy.17
-        for <linux-omap@vger.kernel.org>; Sat, 19 Sep 2009 00:06:13 -0700 (PDT)
-In-Reply-To: <A2AD06B24DC9F846B5C9B99602FA10E7030D647E@cameurexb01.EUROPE.ROOT.PRI>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:36691 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932158AbZISIlD (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Sep 2009 04:41:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1253320780-19396-2-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefano Panella <Stefano.Panella@csr.com>
-Cc: linux-omap@vger.kernel.org
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Fri, 18 Sep 2009 10:42:22 +0100
-"Stefano Panella" <Stefano.Panella@csr.com> wrote:
-
-> Is there any one testing linux-omap on N810?
-> I have got a N810 board and I am trying to install ubuntu on it.
+On Fri, Sep 18, 2009 at 07:39:39PM -0500, Vikram Pandita wrote:
+> The decision of finding the physical address of debug uart is done
+> at runtime now, making possible to use a single defconfig for multiple boards.
 > 
-> Is there any how-to or update instruction I can follow?
-> 
-I haven't run linux-omap on N8x0 recently after the board files were
-reset to mainline version. But before that, somewhere around May 2009,
-it was still working quite well. I.e. fb, nand, mmc, keyboard, musb,
-etc. You may find working commit from these threads:
+> This patch gets rid of  menuconfig options of choosing low level debug uarts.
 
-http://marc.info/?l=linux-omap&m=123578444424326&w=2
-http://marc.info/?l=linux-omap&m=124190972722908&w=2
+This approach won't work in all cases where the debug functions are called
+(which can be before the MMU is enabled.)
 
-Now there is good chance to get it working also on vanilla kernel as
-the basic board file just went to mainline. It just needs that missing
-pieces from git history are added into board-n8x0.c for those devices
-which are in mainline.
+The problem is that you can't run C code before the MMU is setup because
+C code always encodes absolute address locations, which won't be valid
+at that time.
 
-
--- 
-Jarkko
+Also, since there is no stack during the initial kernel boot, you can't
+stack registers in the LL debug functions.
