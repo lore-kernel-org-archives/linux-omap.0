@@ -1,57 +1,88 @@
 From: Juha Leppanen <juha_motorsportcom@luukku.com>
-Subject: OMAP4 CM module functions : timeout error
-Date: Sat, 19 Sep 2009 06:45:18 +0300 (EEST)
-Message-ID: <1253331918445.juha_motorsportcom.543.KxHNnTzzfLePULSw2qHuQg@luukku.com>
+Subject: OMAP: omap_hwmod: reset timeout logic
+Date: Sat, 19 Sep 2009 07:33:51 +0300 (EEST)
+Message-ID: <1253334831932.juha_motorsportcom.975.0YVkO9dYA32q_KrO0U-05g@luukku.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from pato.luukku.com ([194.215.205.55]:38382 "EHLO pato.luukku.com"
+Received: from posti.luukku.com ([193.209.83.72]:53983 "EHLO posti.luukku.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750939AbZISEHE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Sep 2009 00:07:04 -0400
+	id S1751095AbZISEdt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 19 Sep 2009 00:33:49 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: paul@pwsan.com, linux-omap@vger.kernel.org
+To: paul@pwsan.com, tony@atomide.com, linux-omap@vger.kernel.org
 
 Hi,
 
 checking some patches thru www.kernel.org
-I noticed in
+I noticed something iffy in
 
-/arch/arm/mach-omap2/cm4xxx.c
+/arch/arm/mach-omap2/omap_hwmod.c
 
 in function
 
-int omap4_cm_wait_idlest_ready(u32 prcm_mod, u8 prcm_dev_offs)
+static int _reset(struct omap_hwmod *oh)
 =2E..
-       while (((omap4_cm_read_mod_reg(cm_id, prcm_mod_offs, prcm_dev_of=
-fs,
-                                      OMAP4_CM_CLKCTRL_DREG) & mask) !=3D=
- 0) &&
-              (i++ < MAX_MODULE_READY_TIME))
+       c =3D 0;
+       while (c < MAX_MODULE_RESET_WAIT &&
+              !(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
+                SYSS_RESETDONE_MASK)) {
                udelay(1);
+               c++;
+       }
 
-       return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
+       if (c =3D=3D MAX_MODULE_RESET_WAIT)
+               WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
+                    oh->name, MAX_MODULE_RESET_WAIT);
+       else
+               pr_debug("omap_hwmod: %s: reset in %d usec\n", oh->name,=
+ c);
+
+       /*
+        * XXX add _HWMOD_STATE_WEDGED for modules that don't come back =
+from
+        * _wait_target_ready() or _reset()
+        */
+
+       return (c =3D=3D MAX_MODULE_RESET_WAIT) ? -ETIMEDOUT : 0;
 =2E..
 
-lets assume MAX_MODULE_READY_TIME=3D=3D1, so it is easier to
-see what happens if we exit the loop on the last possible
-good read or because i has grown too big(=3D=3Dtimeout).
-
-=46irst read&check is not good, i=3D=3D0, so we delay. i=3D=3D1.
-If second and last read&check is good, we exit loop, i=3D=3D1, so we re=
-turn -EBUSY.   WRONG!!
-If second and last read&check is not good, we then check i, i is too bi=
-g so exit loop, i=3D=3D2, so we return -EBUSY.   OK!!
-So if exit while loop because i gets too big,
-we have MAX_MODULE_READY_TIME udelay(1) and i has grown
-to MAX_MODULE_READY_TIME+1.
+Let's assume MAX_MODULE_RESET_WAIT=3D=3D1,
+and let's look what happens with the "reset" while loop,
+in case where we exit the loop at the last possible
+moment.
+c=3D=3D0, and rest not done so udelay(1), c=3D1.
+We do not loop another time because c=3D=3DMAX_MODULE_RESET_WAIT.
+So we give a warning and return -ETIMEDOUT.
+Hmmm, we did not check if reset was done while udelay?
+Still we warn that "failed to reset in 1 usec"!
 
 Simple correction could be something like
+=2E....
+       c =3D 0;
+-      while (c < MAX_MODULE_RESET_WAIT &&
+-             !(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
+-               SYSS_RESETDONE_MASK)) {
+-              udelay(1);
+-              c++;
+-      }
++      while (!(omap_hwmod_readl(oh, oh->sysconfig->syss_offs) &
++               SYSS_RESETDONE_MASK) &&
++               (c++ < MAX_MODULE_RESET_WAIT))
++                      udelay(1);
 
--      return (i < MAX_MODULE_READY_TIME) ? 0 : -EBUSY;
-+      return (i > MAX_MODULE_READY_TIME) ? -EBUSY : 0;
+-      if (c =3D=3D MAX_MODULE_RESET_WAIT)
++      if (c > MAX_MODULE_RESET_WAIT)
+               WARN(1, "omap_hwmod: %s: failed to reset in %d usec\n",
+<SNIP>
+-      return (c =3D=3D MAX_MODULE_RESET_WAIT) ? -ETIMEDOUT : 0;
++      return (c > MAX_MODULE_RESET_WAIT) ? -ETIMEDOUT : 0;
+=2E....
+
+Now we do max MAX_MODULE_RESET_WAIT udelay(1)'s and
+always check after udelay(1) if resetdone.
 
 Signed-off-by: "Juha Leppanen" <juha_motorsportcom@luukku.com>
 
