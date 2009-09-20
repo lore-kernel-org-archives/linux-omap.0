@@ -1,39 +1,67 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: Any one is still using omap-kernel on N810???
-Date: Sun, 20 Sep 2009 20:37:41 +0300
-Message-ID: <87ljk98ql6.fsf@litku.valot.fi>
-References: <A2AD06B24DC9F846B5C9B99602FA10E7030D647E@cameurexb01.EUROPE.ROOT.PRI>
-	<87tyyx901j.fsf@litku.valot.fi>
-	<A2AD06B24DC9F846B5C9B99602FA10E7FAEBEE@cameurexb01.EUROPE.ROOT.PRI>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH][RFC] OMAP3630: Create architecture macros and config
+ entries.
+Date: Mon, 21 Sep 2009 01:16:15 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BABA35A6@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E9402534261B3@dbde02.ent.ti.com>
+ <74583B8642AB8841B30447520659FCA9DD85B939@dnce01.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:3954 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754724AbZITRhk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Sep 2009 13:37:40 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so929606fge.1
-        for <linux-omap@vger.kernel.org>; Sun, 20 Sep 2009 10:37:43 -0700 (PDT)
-In-Reply-To: <A2AD06B24DC9F846B5C9B99602FA10E7FAEBEE@cameurexb01.EUROPE.ROOT.PRI>
-	(Stefano Panella's message of "Sun, 20 Sep 2009 17:17:49 +0100")
+Received: from bear.ext.ti.com ([192.94.94.41]:37418 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755081AbZITTqT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Sep 2009 15:46:19 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8KJkLGi012456
+	for <linux-omap@vger.kernel.org>; Sun, 20 Sep 2009 14:46:22 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8KJkLkk026145
+	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2009 01:16:21 +0530 (IST)
+In-Reply-To: <74583B8642AB8841B30447520659FCA9DD85B939@dnce01.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefano Panella <Stefano.Panella@csr.com>
-Cc: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Raju, Veeramanikandan" <veera@ti.com>, "Bongale, Hariprasad" <hariprasad.bongale@ti.com>
 
-"Stefano Panella" <Stefano.Panella@csr.com> writes:
+Allen,
 
-> I am now trying to follow all the instructions from
->
-> http://www.natisbad.org/N810/index.html
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> 
+> +config MACH_OMAP_3630SDP
+> +	bool "OMAP 3630 SDP board"
+> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX & ARCH_OMAP36XX
+> +
+>  config MACH_NOKIA_N8X0
+>  	bool "Nokia N800/N810"
+>  	depends on ARCH_OMAP2420
+> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
+> omap/include/mach/cpu.h
+> index 7a5f9e8..73c656c 100755
+> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> @@ -157,10 +157,12 @@ IS_OMAP_CLASS(15xx, 0x15)
+>  IS_OMAP_CLASS(16xx, 0x16)
+>  IS_OMAP_CLASS(24xx, 0x24)
+>  IS_OMAP_CLASS(34xx, 0x34)
+> +IS_OMAP_CLASS(36xx, 0x36)
 
-Thanks, this is a good link. I added it to the n8x0 wiki page.
+###############################
+OMAP3630 is "just" an OMAP3430 in disguise. 
+I don't think it deserves a new class. It should probably be handled like it was done for 1610 and 1710.
 
-> but I am still having problems with the internal MMC card...
+Theoretically, it should be considered as a 3430 ES4.0, because it is an OMAP3430 ES3 + couple of bug fixes + couple of improvements. 
 
-Sorry, I know nothing about mmc and I currently don't have time to study
-it. But if you find a solution, please post it here. I'm sure others are
-also interested.
+I think, that the proposal from Sanjeev to support 35xx (http://marc.info/?l=linux-omap&m=125050987112798&w=2 ) might be leveraged to handle 36xx as well.   
+###############################
 
--- 
-Kalle Valo
+I too second Benoit point here.
+
+A single runtime macro like "cpu_is_omap36xx()" should be good enough to add additional code for 3630.
+
+May be we can keep all 3430 switches by default enabled for 3630 and wherever necessary additional 3630 specific code can be added using the runtime switch like " cpu_is_omap36xx()".
+
+Regards,
+Santosh
