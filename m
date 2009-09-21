@@ -1,162 +1,161 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: [PATCH][RFC] OMAP3630: Create architecture macros and config
- entries.
-Date: Tue, 22 Sep 2009 00:40:42 +0200
-Message-ID: <74583B8642AB8841B30447520659FCA9DD8C64D9@dnce01.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402534261B3@dbde02.ent.ti.com>
- <74583B8642AB8841B30447520659FCA9DD85B939@dnce01.ent.ti.com>,<A24693684029E5489D1D202277BE89444C6864B8@dlee02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C861E2@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC] OMAP1: Massive clean up of omap730/omap850 code
+Date: Mon, 21 Sep 2009 16:17:24 -0700
+Message-ID: <20090921231723.GD27699@atomide.com>
+References: <3d374d00909192107t3e7d591dhf1a94ba43d0422e8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36360 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754127AbZIUWkm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Sep 2009 18:40:42 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8LMekPw032329
-	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2009 17:40:46 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n8LMekFg012218
-	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2009 17:40:46 -0500 (CDT)
-Received: from DNCE73.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n8LMejZV024857
-	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2009 17:40:45 -0500 (CDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0309C861E2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57143 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754385AbZIUXRX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Sep 2009 19:17:23 -0400
+Content-Disposition: inline
+In-Reply-To: <3d374d00909192107t3e7d591dhf1a94ba43d0422e8@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Raju, Veeramanikandan" <veera@ti.com>, "Bongale, Hariprasad" <hariprasad.bongale@ti.com>
+To: Alistair Buxton <a.j.buxton@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Anand,
+* Alistair Buxton <a.j.buxton@gmail.com> [090919 21:07]:
+> Hello from the Linwizard project,
+>=20
+> We have been working on supporting omap850 smartphones from HTC such
+> as Wizard, Herald etc. We have found that omap730 and omap850 are
+> almost exactly the same. As far as what is supported in linux-omap so
+> far, they are identical. Currently there are seperate code paths for
+> 730 and 850, and this is causing us a lot of problems when one is
+> changed and the other isn't. I also noticed that OMAP F-Sample board
+> uses ARCH_OMAP730 even though it has a OMAP850 SoC.
+>=20
+> In order to try to clean this up I have produced a patch series which
+> removes all cpu_is_omap730/850 and replaces them with unified
+> cpu_is_omap7xx() blocks, and similarly merges CONFIG checks. Here is =
+a
+> random example:
+>=20
+> -#ifdef CONFIG_ARCH_OMAP730
+> - if (cpu_is_omap730()) {
+> +#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+> + if (cpu_is_omap7xx()) {
+> irq_banks =3D omap730_irq_banks;
+> irq_bank_count =3D ARRAY_SIZE(omap730_irq_banks);
+> }
+> #endif
+> -#ifdef CONFIG_ARCH_OMAP850
+> - if (cpu_is_omap850()) {
+> - irq_banks =3D omap850_irq_banks;
+> - irq_bank_count =3D ARRAY_SIZE(omap850_irq_banks);
+> - }
+> -#endif
+>=20
+> Drilling down through the variables shows they are always equivalent
+> for 730 and 850, except where there is a bug.
+>=20
+> The patch series converts all 730/850 specific code to omap7xx as
+> above. Then all variables and defines have been renamed to refer to
+> 7xx. omap730.h and omap850.h are removed and replaced with omap7xx.h.
+> ARCH_OMAP730 and ARCH_OMAP850 are still distinct, as there are a few
+> differences - but only things that haven't been implemented yet.
+>=20
+> This makes several bugs go away for us on omap850, including the
+> MPUIO_VBASE bug, and the lack of working IRQs - since these bugs arn'=
+t
+> in the 730 paths. It would hopefully prevent similar bugs from showin=
+g
+> up in the future too.
+>=20
+> I did everything as small patches, so I won't spam all 35+ patches on
+> the list. The work is available in branch omap7xx here:
+>=20
+> http://ali1234.homelinux.net/linwizard-kernel.git/
 
-> -----Original Message-----
-> From: Gadiyar, Anand
-> Sent: Monday, September 21, 2009 8:42 PM
-> To: Aguirre Rodriguez, Sergio Alberto; Cousson, Benoit; Pais, Allen;
-> linux-omap@vger.kernel.org
-> Cc: Raju, Veeramanikandan; Bongale, Hariprasad
-> Subject: RE: [PATCH][RFC] OMAP3630: Create architecture macros and config
-> entries.
-> 
-> > >
-> > > Hi Allen,
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > > owner@vger.kernel.org] On Behalf Of Pais, Allen
-> > > > Sent: Sunday, September 20, 2009 9:47 AM
-> > > > To: linux-omap@vger.kernel.org; Raju, Veeramanikandan; Bongale,
-> > > Hariprasad
-> > > > Subject: [PATCH][RFC] OMAP3630: Create architecture macros and
-> config
-> > > > entries.
-> > > >
-> > > >
-> > > > This patch creates the architectural macros for OMAP3630.
-> > > >
-> > > > Signed-off-by: Allen Pais <allen.pais@ti.com>
-> > > >
-> > > > arch/arm/mach-omap2/Kconfig                 |   13 ++
-> > > > arch/arm/plat-omap/include/mach/cpu.h       |   30 +++++-
-> > > >
-> > > > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-
-> omap2/Kconfig
-> > > > index 75b1c7e..618b7d5 100755
-> > > > --- a/arch/arm/mach-omap2/Kconfig
-> > > > +++ b/arch/arm/mach-omap2/Kconfig
-> > > > @@ -19,11 +19,20 @@ config ARCH_OMAP34XX
-> > > >     bool "OMAP34xx Based System"
-> > > >     depends on ARCH_OMAP3
-> > > >
-> > > > +config ARCH_OMAP36XX
-> > > > +   bool "OMAP36xx Based System"
-> > > > +   depends on ARCH_OMAP3
-> > > > +
-> > > >  config ARCH_OMAP3430
-> > > >     bool "OMAP3430 support"
-> > > >     depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> > > >     select ARCH_OMAP_OTG
-> > > >
-> > > > +config ARCH_OMAP3630
-> > > > +   bool "OMAP3630 support"
-> > > > +   depends on ARCH_OMAP3 && ARCH_OMAP34XX && ARCH_OMAP36XX
-> > > > +   select ARCH_OMAP_OTG
-> > > > +
-> > > >  comment "OMAP Board Type"
-> > > >     depends on ARCH_OMAP2 || ARCH_OMAP3 || ARCH_OMAP4
-> > > >
-> > > > @@ -73,6 +82,10 @@ config MACH_OMAP_3430SDP
-> > > >     bool "OMAP 3430 SDP board"
-> > > >     depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> > > >
-> > > > +config MACH_OMAP_3630SDP
-> > > > +   bool "OMAP 3630 SDP board"
-> > > > +   depends on ARCH_OMAP3 && ARCH_OMAP34XX & ARCH_OMAP36XX
-> > > > +
-> > > >  config MACH_NOKIA_N8X0
-> > > >     bool "Nokia N800/N810"
-> > > >     depends on ARCH_OMAP2420
-> > > > diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
-> > > > omap/include/mach/cpu.h
-> > > > index 7a5f9e8..73c656c 100755
-> > > > --- a/arch/arm/plat-omap/include/mach/cpu.h
-> > > > +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> > > > @@ -157,10 +157,12 @@ IS_OMAP_CLASS(15xx, 0x15)
-> > > >  IS_OMAP_CLASS(16xx, 0x16)
-> > > >  IS_OMAP_CLASS(24xx, 0x24)
-> > > >  IS_OMAP_CLASS(34xx, 0x34)
-> > > > +IS_OMAP_CLASS(36xx, 0x36)
-> > >
-> > > OMAP3630 is "just" an OMAP3430 in disguise.
-> > > I don't think it deserves a new class. It should probably be handled
-> like
-> > > it was done for 1610 and 1710.
-> > >
-> > > Theoretically, it should be considered as a 3430 ES4.0, because it is
-> an
-> > > OMAP3430 ES3 + couple of bug fixes + couple of improvements.
-> > >
-> > > I think, that the proposal from Sanjeev to support 35xx
-> > > (http://marc.info/?l=linux-omap&m=125050987112798&w=2 ) might be
-> leveraged
-> > > to handle 36xx as well.
-> > >
-> >
-> > I respectfully tend to disagree with this, since there are some
-> components
-> > inside the chip that aren't specifically fixes, so IMHO they need to
-> start
-> > from scratch about silicon revisions because of that.
-> >
-> > If there are many common points between 34xx/35xx/36xx, then rename the
-> > reused functions/defines to omap3, instead of
-> omap34xx/omap35xx/omap36xx.
-> >
-> > Regards,
-> > Sergio
-> >
-> 
-> I agree with Sergio.
-> 
-> While it is definitely possible to write code treating the 3430
-> and the 3630 as the same, they are not the same animal. We will
-> need to distinguish between the two at more than a few locations
-> in code, and we might as well add the ability to do that now.
+Looks good to me. Let's plan on queuing these early so we can test it
+in the linux-omap tree to make sure the patches don't break anyting for
+other omaps. Then let's get them to the mainline tree the next merge
+window after this current one.
 
-I agree, I didn't say anything different.
+To me it looks like we could queue "OMAP7XX] irq.c: Missed a cpu_is_oma=
+p850()"
+and "OMAP7XX] PM: Add another ARCH_OMAP850 check" already during the -r=
+c
+cycle as fixes?
 
-> I see a need to distinguish between 3430 and 3630 in several locations
-> - there are changes in hardware IPs that are not reflected in the IP
-> revision information (meaning we cannot always go by CPU_HAS_FEATURE() ),
-> and we will need some kind of a cpu_is_* check for sure.
-
-Then it is pretty bad... Do you have an explicit list of such IPs? 
-Maybe even in that case it might be useful to still use a CPU_HAS_FEATURE, but use the chip version to detect the feature version.
-
+Then assuming you're done with the 7xx patches, could you please
+combine all the trivial 730 to 7xx rename patches into just one patch?
+This will make it easier for people to read through the whole series ;)
 
 Regards,
-Benoit 
 
+Tony
+
+
+=20
+> git diff-tree --stat linux-omap/master omap7xx
+>=20
+> arch/arm/mach-omap1/board-fsample.c =A0 =A0 =A0 =A0 =A0 | =A0 18 +-
+> arch/arm/mach-omap1/board-perseus2.c =A0 =A0 =A0 =A0 =A0| =A0 18 +-
+> arch/arm/mach-omap1/clock.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 22 ++-
+> arch/arm/mach-omap1/clock.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 30 ++++
+> arch/arm/mach-omap1/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 45 ++----
+> arch/arm/mach-omap1/irq.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 32 +---
+> arch/arm/mach-omap1/mcbsp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 32 ++--
+> arch/arm/mach-omap1/mux.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 70 +++-----
+> arch/arm/mach-omap1/pm.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0100 ++++++------
+> arch/arm/mach-omap1/pm.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 53 +++---
+> arch/arm/mach-omap1/serial.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 13 +-
+> arch/arm/mach-omap1/sleep.S =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ 22 ++--
+> arch/arm/plat-omap/common.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+ =A06 +-
+> arch/arm/plat-omap/devices.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0=
+ 22 ++--
+> arch/arm/plat-omap/gpio.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
+227 +++++++------------------
+> arch/arm/plat-omap/include/mach/entry-macro.S | =A0 =A08 +-
+> arch/arm/plat-omap/include/mach/hardware.h =A0 =A0| =A0 =A02 +-
+> arch/arm/plat-omap/include/mach/irqs.h =A0 =A0 =A0 =A0| =A0229 ++++++=
+++-----------------
+> arch/arm/plat-omap/include/mach/mcbsp.h =A0 =A0 =A0 | =A0 =A06 +-
+> arch/arm/plat-omap/include/mach/mux.h =A0 =A0 =A0 =A0 | =A0100 +++---=
+-----
+> arch/arm/plat-omap/include/mach/omap730.h =A0 =A0 | =A0102 ----------=
+-
+> arch/arm/plat-omap/include/mach/omap7xx.h =A0 =A0 | =A0102 ++++++++++=
++
+> arch/arm/plat-omap/include/mach/omap850.h =A0 =A0 | =A0102 ----------=
+-
+> arch/arm/plat-omap/include/mach/uncompress.h =A0| =A0 =A03 +-
+> arch/arm/plat-omap/io.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 |=
+ =A0 14 +-
+> arch/arm/plat-omap/usb.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 10 +-
+> drivers/rtc/Kconfig =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ | =A0 =A02 +-
+> drivers/spi/omap_uwire.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0|=
+ =A0 =A08 +-
+> 28 files changed, 513 insertions(+), 885 deletions(-)
+>=20
+> --
+> Alistair Buxton
+> a.j.buxton@gmail.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
