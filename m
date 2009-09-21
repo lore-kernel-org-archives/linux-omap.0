@@ -1,67 +1,51 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH][RFC] OMAP3630: Create architecture macros and config
- entries.
-Date: Mon, 21 Sep 2009 01:16:15 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BABA35A6@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402534261B3@dbde02.ent.ti.com>
- <74583B8642AB8841B30447520659FCA9DD85B939@dnce01.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss
+ clocks 	only when needed.
+Date: Mon, 21 Sep 2009 09:26:48 +0300
+Message-ID: <1253514408.4690.5.camel@tubuntu>
+References: <1253230586-931-1-git-send-email-mike@android.com>
+	 <1253262472.28956.10.camel@tubuntu>
+	 <8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37418 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755081AbZITTqT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 20 Sep 2009 15:46:19 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8KJkLGi012456
-	for <linux-omap@vger.kernel.org>; Sun, 20 Sep 2009 14:46:22 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8KJkLkk026145
-	for <linux-omap@vger.kernel.org>; Mon, 21 Sep 2009 01:16:21 +0530 (IST)
-In-Reply-To: <74583B8642AB8841B30447520659FCA9DD85B939@dnce01.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:23426 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752200AbZIUG06 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Sep 2009 02:26:58 -0400
+In-Reply-To: <8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Raju, Veeramanikandan" <veera@ti.com>, "Bongale, Hariprasad" <hariprasad.bongale@ti.com>
+To: ext Mike Chan <mike@android.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Allen,
+Hi,
 
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+On Fri, 2009-09-18 at 19:33 +0200, ext Mike Chan wrote:
+> On Fri, Sep 18, 2009 at 1:27 AM, Tomi Valkeinen
+> <tomi.valkeinen@nokia.com> wrote:
+> > Hi,
+> >
+> > If you disable the clocks to allow RET, you also allow OFF mode. And
+> > resuming from OFF mode hasn't been implemented for DSI, if I recall
+> > right. And when I was testing it, it didn't seem to be trivial with the
+> > DSI PLL.
+> >
 > 
-> +config MACH_OMAP_3630SDP
-> +	bool "OMAP 3630 SDP board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX & ARCH_OMAP36XX
-> +
->  config MACH_NOKIA_N8X0
->  	bool "Nokia N800/N810"
->  	depends on ARCH_OMAP2420
-> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
-> omap/include/mach/cpu.h
-> index 7a5f9e8..73c656c 100755
-> --- a/arch/arm/plat-omap/include/mach/cpu.h
-> +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> @@ -157,10 +157,12 @@ IS_OMAP_CLASS(15xx, 0x15)
->  IS_OMAP_CLASS(16xx, 0x16)
->  IS_OMAP_CLASS(24xx, 0x24)
->  IS_OMAP_CLASS(34xx, 0x34)
-> +IS_OMAP_CLASS(36xx, 0x36)
+> You can limiting the pwrdm next state to RET when being called from cpuidle.
 
-###############################
-OMAP3630 is "just" an OMAP3430 in disguise. 
-I don't think it deserves a new class. It should probably be handled like it was done for 1610 and 1710.
+No, you _must_ limit it to RET. Otherwise the DSI will break down. So we
+can either keep the dsi code as it is now, or explicitely disable OFF
+mode and then apply your patch. But your patch alone won't work.
 
-Theoretically, it should be considered as a 3430 ES4.0, because it is an OMAP3430 ES3 + couple of bug fixes + couple of improvements. 
+In the long run I think we anyway need to somehow dynamically manage the
+power state. I haven't measured it but I believe resuming from OFF will
+have a bit of a penalty, as (I think) DSI PLL etc. will have to
+reinitialized. But it would still be good to allow RET whenever
+possible, and OFF only after some period of inactivity.
 
-I think, that the proposal from Sanjeev to support 35xx (http://marc.info/?l=linux-omap&m=125050987112798&w=2 ) might be leveraged to handle 36xx as well.   
-###############################
+ Tomi
 
-I too second Benoit point here.
 
-A single runtime macro like "cpu_is_omap36xx()" should be good enough to add additional code for 3630.
-
-May be we can keep all 3430 switches by default enabled for 3630 and wherever necessary additional 3630 specific code can be added using the runtime switch like " cpu_is_omap36xx()".
-
-Regards,
-Santosh
