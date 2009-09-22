@@ -1,57 +1,57 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: [PATCH] omap2: ehci: Make Overo compile again
-Date: Tue, 22 Sep 2009 10:04:14 -0500
-Message-ID: <20090922150414.GA8975@lixom.net>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss clocks 	only when needed.
+Date: Tue, 22 Sep 2009 07:54:20 -0700
+Message-ID: <877hvrf2sj.fsf@deeprootsystems.com>
+References: <1253230586-931-1-git-send-email-mike@android.com>
+	<1253262472.28956.10.camel@tubuntu>
+	<8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
+	<1253514408.4690.5.camel@tubuntu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lixom.net ([66.141.50.11]:56695 "EHLO mail.lixom.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756774AbZIVOsV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Sep 2009 10:48:21 -0400
-Content-Disposition: inline
+Received: from mail-qy0-f173.google.com ([209.85.221.173]:58267 "EHLO
+	mail-qy0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752435AbZIVOyV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 10:54:21 -0400
+Received: by qyk3 with SMTP id 3so2863831qyk.4
+        for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 07:54:25 -0700 (PDT)
+In-Reply-To: <1253514408.4690.5.camel@tubuntu> (Tomi Valkeinen's message of "Mon\, 21 Sep 2009 09\:26\:48 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, tony@atomide.com
+To: tomi.valkeinen@nokia.com
+Cc: ext Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
 
-Overo needs the same changes as the other boards do for the ehci changes.
+> Hi,
+>
+> On Fri, 2009-09-18 at 19:33 +0200, ext Mike Chan wrote:
+>> On Fri, Sep 18, 2009 at 1:27 AM, Tomi Valkeinen
+>> <tomi.valkeinen@nokia.com> wrote:
+>> > Hi,
+>> >
+>> > If you disable the clocks to allow RET, you also allow OFF mode. And
+>> > resuming from OFF mode hasn't been implemented for DSI, if I recall
+>> > right. And when I was testing it, it didn't seem to be trivial with the
+>> > DSI PLL.
+>> >
+>> 
+>> You can limiting the pwrdm next state to RET when being called from cpuidle.
+>
+> No, you _must_ limit it to RET. Otherwise the DSI will break down. So we
+> can either keep the dsi code as it is now, or explicitely disable OFF
+> mode and then apply your patch. But your patch alone won't work.
 
+Or could add a hack to this patch so that 'enable_off_mode' doesn't
+affect DSS_MOD until DSS has off-mode support.
 
-Signed-off-by: Olof Johansson <olof@lixom.net>
+> In the long run I think we anyway need to somehow dynamically manage the
+> power state. I haven't measured it but I believe resuming from OFF will
+> have a bit of a penalty, as (I think) DSI PLL etc. will have to
+> reinitialized. But it would still be good to allow RET whenever
+> possible, and OFF only after some period of inactivity.
 
+This is the purpose of latency constraints.  These can be used when
+the latency of going OFF will cause a problem.
 
-diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-index 17f2318..3994974 100644
---- a/arch/arm/mach-omap2/board-overo.c
-+++ b/arch/arm/mach-omap2/board-overo.c
-@@ -384,6 +384,19 @@ static struct platform_device *overo_devices[] __initdata = {
- 	&overo_lcd_device,
- };
- 
-+static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-+	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+
-+	.chargepump = false,
-+	.phy_reset  = true,
-+	.reset_gpio_port[0]  = 183,
-+	.reset_gpio_port[1]  = -EINVAL,
-+	.reset_gpio_port[2]  = -EINVAL
-+};
-+
-+
- static void __init overo_init(void)
- {
- 	overo_i2c_init();
-@@ -391,7 +404,7 @@ static void __init overo_init(void)
- 	omap_serial_init();
- 	overo_flash_init();
- 	usb_musb_init();
--	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, false, true, 183, -EINVAL);
-+	usb_ehci_init(&ehci_pdata);
- 	overo_ads7846_init();
- 	overo_init_smsc911x();
- 
+Kevin
