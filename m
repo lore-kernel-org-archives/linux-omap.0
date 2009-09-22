@@ -1,142 +1,151 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH][RFC] OMAP3630: Create architecture macros and config
-	entries.
-Date: Tue, 22 Sep 2009 10:58:16 -0700
-Message-ID: <20090922175815.GI14890@atomide.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402534261B3@dbde02.ent.ti.com> <74583B8642AB8841B30447520659FCA9DD85B939@dnce01.ent.ti.com> <A24693684029E5489D1D202277BE89444C6864B8@dlee02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB0309C861E2@dbde02.ent.ti.com> <87pr9jdnfu.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 1/3] OMAP UART: Adding support for omap-serial driver.
+Date: Tue, 22 Sep 2009 11:03:56 -0700
+Message-ID: <20090922180356.GJ14890@atomide.com>
+References: <51076.192.168.10.88.1253639068.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53069 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756143AbZIVR6Q (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 13:58:16 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757018AbZIVSEC@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <87pr9jdnfu.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <51076.192.168.10.88.1253639068.squirrel@dbdmail.itg.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Raju, Veeramanikandan" <veera@ti.com>, "Bongale, Hariprasad" <hariprasad.bongale@ti.com>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090922 08:12]:
-> "Gadiyar, Anand" <gadiyar@ti.com> writes:
+* Govindraj.R <govindraj.raja@ti.com> [090922 10:06]:
+> From: Govindraj R <govindraj.raja@ti.com>
 > 
-> >> >
-> >> > Hi Allen,
-> >> >
-> >> > > -----Original Message-----
-> >> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> > > owner@vger.kernel.org] On Behalf Of Pais, Allen
-> >> > > Sent: Sunday, September 20, 2009 9:47 AM
-> >> > > To: linux-omap@vger.kernel.org; Raju, Veeramanikandan; Bongale,
-> >> > Hariprasad
-> >> > > Subject: [PATCH][RFC] OMAP3630: Create architecture macros and config
-> >> > > entries.
-> >> > >
-> >> > >
-> >> > > This patch creates the architectural macros for OMAP3630.
-> >> > >
-> >> > > Signed-off-by: Allen Pais <allen.pais@ti.com>
-> >> > >
-> >> > > arch/arm/mach-omap2/Kconfig                 |   13 ++
-> >> > > arch/arm/plat-omap/include/mach/cpu.h       |   30 +++++-
-> >> > >
-> >> > > diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> >> > > index 75b1c7e..618b7d5 100755
-> >> > > --- a/arch/arm/mach-omap2/Kconfig
-> >> > > +++ b/arch/arm/mach-omap2/Kconfig
-> >> > > @@ -19,11 +19,20 @@ config ARCH_OMAP34XX
-> >> > >     bool "OMAP34xx Based System"
-> >> > >     depends on ARCH_OMAP3
-> >> > >
-> >> > > +config ARCH_OMAP36XX
-> >> > > +   bool "OMAP36xx Based System"
-> >> > > +   depends on ARCH_OMAP3
-> >> > > +
-> >> > >  config ARCH_OMAP3430
-> >> > >     bool "OMAP3430 support"
-> >> > >     depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> >> > >     select ARCH_OMAP_OTG
-> >> > >
-> >> > > +config ARCH_OMAP3630
-> >> > > +   bool "OMAP3630 support"
-> >> > > +   depends on ARCH_OMAP3 && ARCH_OMAP34XX && ARCH_OMAP36XX
-> >> > > +   select ARCH_OMAP_OTG
-> >> > > +
-> >> > >  comment "OMAP Board Type"
-> >> > >     depends on ARCH_OMAP2 || ARCH_OMAP3 || ARCH_OMAP4
-> >> > >
-> >> > > @@ -73,6 +82,10 @@ config MACH_OMAP_3430SDP
-> >> > >     bool "OMAP 3430 SDP board"
-> >> > >     depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> >> > >
-> >> > > +config MACH_OMAP_3630SDP
-> >> > > +   bool "OMAP 3630 SDP board"
-> >> > > +   depends on ARCH_OMAP3 && ARCH_OMAP34XX & ARCH_OMAP36XX
-> >> > > +
-> >> > >  config MACH_NOKIA_N8X0
-> >> > >     bool "Nokia N800/N810"
-> >> > >     depends on ARCH_OMAP2420
-> >> > > diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
-> >> > > omap/include/mach/cpu.h
-> >> > > index 7a5f9e8..73c656c 100755
-> >> > > --- a/arch/arm/plat-omap/include/mach/cpu.h
-> >> > > +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> >> > > @@ -157,10 +157,12 @@ IS_OMAP_CLASS(15xx, 0x15)
-> >> > >  IS_OMAP_CLASS(16xx, 0x16)
-> >> > >  IS_OMAP_CLASS(24xx, 0x24)
-> >> > >  IS_OMAP_CLASS(34xx, 0x34)
-> >> > > +IS_OMAP_CLASS(36xx, 0x36)
-> >> >
-> >> > OMAP3630 is "just" an OMAP3430 in disguise.
-> >> > I don't think it deserves a new class. It should probably be handled like
-> >> > it was done for 1610 and 1710.
-> >> >
-> >> > Theoretically, it should be considered as a 3430 ES4.0, because it is an
-> >> > OMAP3430 ES3 + couple of bug fixes + couple of improvements.
-> >> >
-> >> > I think, that the proposal from Sanjeev to support 35xx
-> >> > (http://marc.info/?l=linux-omap&m=125050987112798&w=2 ) might be leveraged
-> >> > to handle 36xx as well.
-> >> >
-> >> 
-> >> I respectfully tend to disagree with this, since there are some components
-> >> inside the chip that aren't specifically fixes, so IMHO they need to start
-> >> from scratch about silicon revisions because of that.
-> >> 
-> >> If there are many common points between 34xx/35xx/36xx, then rename the
-> >> reused functions/defines to omap3, instead of omap34xx/omap35xx/omap36xx.
-> >> 
-> >> Regards,
-> >> Sergio
-> >> 
-> >
-> > I agree with Sergio.
-> >
-> > While it is definitely possible to write code treating the 3430
-> > and the 3630 as the same, they are not the same animal. We will
-> > need to distinguish between the two at more than a few locations
-> > in code, and we might as well add the ability to do that now.
-> >
-> > I see a need to distinguish between 3430 and 3630 in several locations
-> > - there are changes in hardware IPs that are not reflected in the IP
-> > revision information (meaning we cannot always go by CPU_HAS_FEATURE() ),
-> > and we will need some kind of a cpu_is_* check for sure.
+> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
+
+Why do you have the same subject anad description is the same for all of them?
+
+> --- a/drivers/serial/Kconfig
+> +++ b/drivers/serial/Kconfig
+> @@ -1359,6 +1359,98 @@ config SERIAL_OF_PLATFORM
+>  	  Currently, only 8250 compatible ports are supported, but
+>  	  others can easily be added.
 > 
-> And you're sure these HW IP changes require software changes?  Please
-> provide examples.
-> 
-> So, TI is changing HW IP in a way that requires software changes and
-> not providing a way for software to detect these changes?
-> 
-> IMHO, This is completely broken HW design.
+> +config SERIAL_OMAP
+> +	bool "OMAP serial port support"
+> +	depends on ARM && ARCH_OMAP
+> +	select SERIAL_CORE
+> +	help
+> +	If you have a machine based on an Texas Instruments OMAP CPU you
+> +	can enable its onboard serial ports by enabling this option.
+> +
+> +config SERIAL_OMAP_CONSOLE
+> +	bool "Console on OMAP serial port"
+> +	depends on SERIAL_OMAP
+> +	select SERIAL_CORE_CONSOLE
+> +	help
+> +	If you have enabled the serial port on the Texas Instruments OMAP
+> +	CPU you can make it the console by answering Y to this option.
+> +
+> +	Even if you say Y here, the currently visible virtual console
+> +	(/dev/tty0) will still be used as the system console by default, but
+> +	you can alter that using a kernel command line option such as
+> +	"console=ttyS0". (Try "man bootparam" or see the documentation of
+> +	your boot loader (lilo or loadlin) about how to pass options to the
+> +	kernel at boot time.)
+> +
+> +config SERIAL_OMAP_DMA_UART1
+> +	bool "UART1 DMA support"
+> +	depends on SERIAL_OMAP
+> +	help
+> +	If you have enabled the serial port on the Texas Instruments OMAP
+> +	CPU you can enable the DMA transfer on UART 1 by answering
+> +	 to this option.
+> +
 
-I agree, we should be able to detect various processors during the
-init and then just set the necessary feature flags.
+Didn't I already comment these options should be passed in platform_data
+from board-*.c files?
 
-Please provide clear cases why we should treat 3630 as a separate
-chip from 3430.
+> +config SERIAL_OMAP_UART1_RXDMA_TIMEOUT
+> +	int "Timeout value for RX DMA in microseconds"
+> +	depends on SERIAL_OMAP_DMA_UART1
+> +	default "1"
+> +	help
+> +	  Set the timeout value in which you want the data pulled by RX dma to
+> +	  be passed to the tty framework.
+> +
 
-Tony
+This too.
 
 
+> +config SERIAL_OMAP_UART1_RXDMA_BUFSIZE
+> +	int "DMA buffer size for RX in bytes"
+> +	depends on SERIAL_OMAP_DMA_UART1
+> +	default "4096"
+> +	help
+> +	  Set the dma buffer size for UART Rx
+> +
+
+And this.
+
+
+> +config SERIAL_OMAP_DMA_UART2
+> +	bool "UART2 DMA support"
+> +	depends on SERIAL_OMAP
+> +	help
+> +	  If you have enabled the serial port on the Texas Instruments OMAP
+> +	  CPU you can enable the DMA transfer on UART 2 by answering
+> +	  to this option.
+> +
+
+And this.
+
+
+> +config SERIAL_OMAP_UART2_RXDMA_TIMEOUT
+> +	int "Timeout value for RX DMA in microseconds"
+> +	depends on SERIAL_OMAP_DMA_UART2
+> +	default "1"
+> +	help
+> +	  Set the timeout value in which you want the data pulled by RX dma to
+> +	  be passed to the tty framework.
+> +
+
+Yup this too.
+
+
+> +config SERIAL_OMAP_UART2_RXDMA_BUFSIZE
+> +	int "DMA buffer size for RX in bytes"
+> +	depends on SERIAL_OMAP_DMA_UART2
+> +	default "4096"
+> +	help
+> +	  Set the dma buffer size for UART Rx
+> +
+
+And this.
+
+> +config SERIAL_OMAP_DMA_UART3
+> +	bool "UART3 DMA support"
+> +	depends on SERIAL_OMAP
+> +	help
+> +	  If you have enabled the serial port on the Texas Instruments OMAP
+> +	  CPU you can enable the DMA transfer on UART 3 by answering
+> +	  to this option.
+> +
+
+And this.
+
+> +config SERIAL_OMAP_UART3_RXDMA_TIMEOUT
+> +	int "Timeout value for RX DMA in microseconds"
+> +	depends on SERIAL_OMAP_DMA_UART3
+> +	default "1"
+> +	help
+> +	  Set the timeout value in which you want the data pulled by RX dma to
+> +	  be passed to the tty framework.
+> +
+
+Ditto.
+
+> +config SERIAL_OMAP_UART3_RXDMA_BUFSIZE
+> +	int "DMA buffer size for RX in bytes"
+> +	depends on SERIAL_OMAP_DMA_UART3
+> +	default "4096"
+> +	help
+> +	  Set the dma buffer size for UART Rx
+> +
+
+Ditto.
