@@ -1,34 +1,37 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 3/3] OMAP UART: Adding support for omap-serial driver.
-Date: Tue, 22 Sep 2009 22:34:54 +0530 (IST)
-Message-ID: <51337.192.168.10.88.1253639094.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED]  [PATCH 1/2] omap3evm: fix compilation warning for
+Date: Tue, 22 Sep 2009 13:05:19 -0400
+Message-ID: <notify-1253639118@atomide.com>
+References: <1253625132-15050-1-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-serial-owner@vger.kernel.org>
-Sender: linux-serial-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59346 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756471AbZIVRFT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 13:05:19 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Mq8no-00090q-Pf
+	for linux-omap@vger.kernel.org; Tue, 22 Sep 2009 17:05:21 +0000
+In-Reply-To: <1253625132-15050-1-git-send-email-ajay.gupta@ti.com>
+Content-Disposition: inline
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-From: Govindraj R <govindraj.raja@ti.com>
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-This patch adds omap-serial driver support 3430SDP.
+Branch in linux-omap: ehci
 
-Signed-off-by:	Govindraj R <govindraj.raja@ti.com>
----
- arch/arm/configs/omap_3430sdp_defconfig |    1 +
- 1 file changed, 1 insertion(+)
+Initial commit ID (Likely to change): 737dc8f4612fce487afdb1a1a8d982c6a54202df
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 8a4a7e2..787d52e 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -880,6 +880,7 @@ CONFIG_SERIAL_8250_RSA=y
- #
- CONFIG_SERIAL_CORE=y
- CONFIG_SERIAL_CORE_CONSOLE=y
-+# CONFIG_SERIAL_OMAP is not set
- CONFIG_UNIX98_PTYS=y
- # CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
- # CONFIG_LEGACY_PTYS is not set
+PatchWorks
+http://patchwork.kernel.org/patch/49255/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=737dc8f4612fce487afdb1a1a8d982c6a54202df
+
 
