@@ -1,189 +1,108 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] rtc: make rtc-omap driver ioremap its register space
-Date: Tue, 22 Sep 2009 10:26:53 -0700
-Message-ID: <87d45ievqa.fsf@deeprootsystems.com>
-References: <20090917000458.GA6119@mag.az.mvista.com>
+From: Steve Sakoman <sakoman@gmail.com>
+Subject: Re: [PATCH v2] omap2: ehci: Make Overo compile again
+Date: Tue, 22 Sep 2009 10:33:05 -0700
+Message-ID: <5e088bd90909221033p7d3f7d81h2e6746f6af3635cc@mail.gmail.com>
+References: <20090922150414.GA8975@lixom.net> <20090922161559.GA9767@lixom.net>
+	 <20090922171527.GG14890@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f171.google.com ([209.85.216.171]:57627 "EHLO
-	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084AbZIVR05 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 13:26:57 -0400
-Received: by pxi1 with SMTP id 1so3436266pxi.1
-        for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 10:27:00 -0700 (PDT)
-In-Reply-To: <20090917000458.GA6119@mag.az.mvista.com> (Mark A. Greer's message of "Wed\, 16 Sep 2009 17\:04\:58 -0700")
+Received: from qw-out-2122.google.com ([74.125.92.25]:44958 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752520AbZIVRdE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 13:33:04 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so1281751qwd.37
+        for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 10:33:08 -0700 (PDT)
+In-Reply-To: <20090922171527.GG14890@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Mark A. Greer" <mgreer@mvista.com>
-Cc: rtc-linux@googlegroups.com, David Brownell <david-b@pacbell.net>, linux-omap@vger.kernel.org, Davinci-linux-open-source@linux.davincidsp.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Olof Johansson <olof@lixom.net>, linux-omap@vger.kernel.org, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-"Mark A. Greer" <mgreer@mvista.com> writes:
-
-> From: Mark A. Greer <mgreer@mvista.com>
+On Tue, Sep 22, 2009 at 10:15 AM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> * Olof Johansson <olof@lixom.net> [090922 09:00]:
+>> Overo needs the same changes as the other platforms do for the ehci =
+changes.
+>>
+>> Also, roll in the corresponding change from Steve Sakoman fixing the
+>> port setup (removing the redundant GPIO setup and switching to port =
+2).
+>>
+>> Signed-off-by: Olof Johansson <olof@lixom.net>
 >
-> The rtc-omap driver currently assumes that the rtc's
-> registers are at a fixed address and already mapped
-> into virtual memory space.  Remove those assumptions
-> so the same driver can be used for similar devices
-> that reside at different physical addresses (e.g.,
-> TI's DA8xx/OMAP-L13x SoC's).
->
-> Also allow the possibility for the timer and alarm
-> interrupts to use the same IRQ.
->
-> Signed-off-by: Mark A. Greer <mgreer@mvista.com>
-> CC: David Brownell <david-b@pacbell.net>
+> Sakoman, does this look OK to you?
 
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Yes, looks correct to me.
 
-for relevance to davinci platforms.
-
-Kevin
+Acked-by: Steve Sakoman <steve@sakoman.com>
 
 
-> ---
-> Sorry for the cross-posting but this is relevant to the different lists.
+Steve
+
+
+>> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2=
+/board-overo.c
+>> index 17f2318..75bdc09 100644
+>> --- a/arch/arm/mach-omap2/board-overo.c
+>> +++ b/arch/arm/mach-omap2/board-overo.c
+>> @@ -384,6 +384,19 @@ static struct platform_device *overo_devices[] =
+__initdata =3D {
+>> =A0 =A0 =A0 &overo_lcd_device,
+>> =A0};
+>>
+>> +static struct ehci_hcd_omap_platform_data ehci_pdata __initconst =3D=
+ {
+>> + =A0 =A0 .port_mode[0] =3D EHCI_HCD_OMAP_MODE_UNKNOWN,
+>> + =A0 =A0 .port_mode[1] =3D EHCI_HCD_OMAP_MODE_PHY,
+>> + =A0 =A0 .port_mode[2] =3D EHCI_HCD_OMAP_MODE_UNKNOWN,
+>> +
+>> + =A0 =A0 .chargepump =3D false,
+>> + =A0 =A0 .phy_reset =A0=3D true,
+>> + =A0 =A0 .reset_gpio_port[0] =A0=3D -EINVAL,
+>> + =A0 =A0 .reset_gpio_port[1] =A0=3D OVERO_GPIO_USBH_NRESET,
+>> + =A0 =A0 .reset_gpio_port[2] =A0=3D -EINVAL
+>> +};
+>> +
+>> +
+>> =A0static void __init overo_init(void)
+>> =A0{
+>> =A0 =A0 =A0 overo_i2c_init();
+>> @@ -391,7 +404,7 @@ static void __init overo_init(void)
+>> =A0 =A0 =A0 omap_serial_init();
+>> =A0 =A0 =A0 overo_flash_init();
+>> =A0 =A0 =A0 usb_musb_init();
+>> - =A0 =A0 usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, false, true, 183, -E=
+INVAL);
+>> + =A0 =A0 usb_ehci_init(&ehci_pdata);
+>> =A0 =A0 =A0 overo_ads7846_init();
+>> =A0 =A0 =A0 overo_init_smsc911x();
+>>
+>> @@ -434,14 +447,6 @@ static void __init overo_init(void)
+>> =A0 =A0 =A0 else
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "could not obtain gpio f=
+or "
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 "OVERO_GPIO_USBH_CPEN\n");
+>> -
+>> - =A0 =A0 if ((gpio_request(OVERO_GPIO_USBH_NRESET,
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "OVERO_GPIO_USBH_NRESE=
+T") =3D=3D 0) &&
+>> - =A0 =A0 =A0 =A0 (gpio_direction_output(OVERO_GPIO_USBH_NRESET, 1) =
+=3D=3D 0))
+>> - =A0 =A0 =A0 =A0 =A0 =A0 gpio_export(OVERO_GPIO_USBH_NRESET, 0);
+>> - =A0 =A0 else
+>> - =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "could not obtain gpio for=
+ "
+>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 "OVERO_GPIO_USBH_NRESET\n");
+>> =A0}
+>>
+>> =A0static void __init overo_map_io(void)
 >
-> This patch was tested on a da830 and a da850.  It was only compiled
-> for an omap1 platform (don't have the hardware) but it should be low
-> risk.  Note that the platform_device data is already set up in
-> arch/arm/mach-omap1/devices.c so it those platforms should
-> "Just Work(tm)".
->
->  drivers/rtc/Kconfig    |    7 ++++---
->  drivers/rtc/rtc-omap.c |   47 ++++++++++++++++++++++++++---------------------
->  2 files changed, 30 insertions(+), 24 deletions(-)
->
-> diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-> index 81adbdb..f06e885 100644
-> --- a/drivers/rtc/Kconfig
-> +++ b/drivers/rtc/Kconfig
-> @@ -539,10 +539,11 @@ comment "on-CPU RTC drivers"
->  
->  config RTC_DRV_OMAP
->  	tristate "TI OMAP1"
-> -	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730
-> +	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_DAVINCI_DA8XX
->  	help
-> -	  Say "yes" here to support the real time clock on TI OMAP1 chips.
-> -	  This driver can also be built as a module called rtc-omap.
-> +	  Say "yes" here to support the real time clock on TI OMAP1 and
-> +	  DA8xx/OMAP-L13x chips.  This driver can also be built as a
-> +	  module called rtc-omap.
->  
->  config RTC_DRV_S3C
->  	tristate "Samsung S3C series SoC RTC"
-> diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-> index bd1ce8e..aa418d5 100644
-> --- a/drivers/rtc/rtc-omap.c
-> +++ b/drivers/rtc/rtc-omap.c
-> @@ -87,9 +87,10 @@
->  #define OMAP_RTC_INTERRUPTS_IT_ALARM    (1<<3)
->  #define OMAP_RTC_INTERRUPTS_IT_TIMER    (1<<2)
->  
-> +static void __iomem	*rtc_base;
->  
-> -#define rtc_read(addr)		omap_readb(OMAP_RTC_BASE + (addr))
-> -#define rtc_write(val, addr)	omap_writeb(val, OMAP_RTC_BASE + (addr))
-> +#define rtc_read(addr)		__raw_readb(rtc_base + (addr))
-> +#define rtc_write(val, addr)	__raw_writeb(val, rtc_base + (addr))
->  
->  
->  /* we rely on the rtc framework to handle locking (rtc->ops_lock),
-> @@ -330,32 +331,31 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->  		return -ENOENT;
->  	}
->  
-> -	/* NOTE:  using static mapping for RTC registers */
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	if (res && res->start != OMAP_RTC_BASE) {
-> -		pr_debug("%s: RTC registers at %08x, expected %08x\n",
-> -			pdev->name, (unsigned) res->start, OMAP_RTC_BASE);
-> +	if (!res) {
-> +		pr_debug("%s: RTC resource data missing\n", pdev->name);
->  		return -ENOENT;
->  	}
->  
-> -	if (res)
-> -		mem = request_mem_region(res->start,
-> -				res->end - res->start + 1,
-> -				pdev->name);
-> -	else
-> -		mem = NULL;
-> +	mem = request_mem_region(res->start, resource_size(res), pdev->name);
->  	if (!mem) {
->  		pr_debug("%s: RTC registers at %08x are not free\n",
-> -			pdev->name, OMAP_RTC_BASE);
-> +			pdev->name, res->start);
->  		return -EBUSY;
->  	}
->  
-> +	rtc_base = ioremap(res->start, resource_size(res));
-> +	if (!rtc_base) {
-> +		pr_debug("%s: RTC registers can't be mapped\n", pdev->name);
-> +		goto fail;
-> +	}
-> +
->  	rtc = rtc_device_register(pdev->name, &pdev->dev,
->  			&omap_rtc_ops, THIS_MODULE);
->  	if (IS_ERR(rtc)) {
->  		pr_debug("%s: can't register RTC device, err %ld\n",
->  			pdev->name, PTR_ERR(rtc));
-> -		goto fail;
-> +		goto fail0;
->  	}
->  	platform_set_drvdata(pdev, rtc);
->  	dev_set_drvdata(&rtc->dev, mem);
-> @@ -380,13 +380,14 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->  			dev_name(&rtc->dev), rtc)) {
->  		pr_debug("%s: RTC timer interrupt IRQ%d already claimed\n",
->  			pdev->name, omap_rtc_timer);
-> -		goto fail0;
-> +		goto fail1;
->  	}
-> -	if (request_irq(omap_rtc_alarm, rtc_irq, IRQF_DISABLED,
-> -			dev_name(&rtc->dev), rtc)) {
-> +	if ((omap_rtc_timer != omap_rtc_alarm) &&
-> +		(request_irq(omap_rtc_alarm, rtc_irq, IRQF_DISABLED,
-> +			dev_name(&rtc->dev), rtc))) {
->  		pr_debug("%s: RTC alarm interrupt IRQ%d already claimed\n",
->  			pdev->name, omap_rtc_alarm);
-> -		goto fail1;
-> +		goto fail2;
->  	}
->  
->  	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
-> @@ -419,10 +420,12 @@ static int __init omap_rtc_probe(struct platform_device *pdev)
->  
->  	return 0;
->  
-> -fail1:
-> +fail2:
->  	free_irq(omap_rtc_timer, NULL);
-> -fail0:
-> +fail1:
->  	rtc_device_unregister(rtc);
-> +fail0:
-> +	iounmap(rtc_base);
->  fail:
->  	release_resource(mem);
->  	return -EIO;
-> @@ -438,7 +441,9 @@ static int __exit omap_rtc_remove(struct platform_device *pdev)
->  	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
->  
->  	free_irq(omap_rtc_timer, rtc);
-> -	free_irq(omap_rtc_alarm, rtc);
-> +
-> +	if (omap_rtc_timer != omap_rtc_alarm)
-> +		free_irq(omap_rtc_alarm, rtc);
->  
->  	release_resource(dev_get_drvdata(&rtc->dev));
->  	rtc_device_unregister(rtc);
-> -- 
-> 1.6.2.5.182.ga808d
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
