@@ -1,37 +1,61 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCHv2] ARM: OMAP: Fix MMC gpio_wp for BeagleBoard C2 and above
-Date: Tue, 22 Sep 2009 17:10:30 -0400
-Message-ID: <notify-1253653832@atomide.com>
-References: <4ab3607e.1818d00a.312c.ffff941a@mx.google.com>
+Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
+Date: Tue, 22 Sep 2009 14:36:17 -0700
+Message-ID: <20090922213617.GD4919@atomide.com>
+References: <20090918.125453.179950926.Hiroshi.DOYU@nokia.com> <B85A65D85D7EB246BE421B3FB0FBB59301DD9914F9@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301DD9916D7@dbde02.ent.ti.com> <20090918.175434.229727484.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56178 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752696AbZIVVKa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 17:10:30 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MqCd8-000FvA-87
-	for linux-omap@vger.kernel.org; Tue, 22 Sep 2009 21:10:34 +0000
-In-Reply-To: <4ab3607e.1818d00a.312c.ffff941a@mx.google.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62176 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752972AbZIVVgQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 17:36:16 -0400
 Content-Disposition: inline
+In-Reply-To: <20090918.175434.229727484.Hiroshi.DOYU@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: premi@ti.com, linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090918 07:54]:
+> Hi Premi,
+> 
+> From: "ext Premi, Sanjeev" <premi@ti.com>
+> Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
+> Date: Fri, 18 Sep 2009 16:40:29 +0200
+> 
+> [...]
+> 
+> > > > > @@ -390,7 +391,7 @@ static void sgtable_fill_vmalloc(struct 
+> > > > sg_table *sgt, void *_va)
+> > > > >  	}
+> > > > >  
+> > > > >  	va_end = _va + PAGE_SIZE * i;
+> > > > > -	flush_cache_vmap(_va, va_end);
+> > > > > +	flush_cache_vmap((unsigned long) _va, (unsigned long) va_end);
+> > > > >  }
+> > > > >  
+> > > > >  static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
+> > > > 
+> > > > If no need for pointer, what about below?
+> > > 
+> > > I did not check for the usage of sgtable_drain_vmalloc().
+> > > Yes. If the void* isn't MUST then, change below is fine.
+> > > 
+> > > ~sanjeev
+> > 
+> > On second look, the need for void* is driven backwards from:
+> >      pg = vmalloc_to_page(va);
+> > In function sgtable_fill_vmalloc().
+> > 
+> > Now we need a typecast from u32 to void*.
+> > 
+> > Shouldn't we go with the original patch itself?
+> 
+> Right, the original is better, then;)
 
-Branch in linux-omap: omap-fixes
+Can you please specify which one (if any) should be queued?
 
-Initial commit ID (Likely to change): b4fe313921180cdc56bab164e0d99ce1e97318e8
+Do you mean http://patchwork.kernel.org/patch/48467/
 
-PatchWorks
-http://patchwork.kernel.org/patch/48485/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=b4fe313921180cdc56bab164e0d99ce1e97318e8
-
-
+Tony
