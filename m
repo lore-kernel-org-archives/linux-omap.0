@@ -1,92 +1,86 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH 8/10] omap mailbox: OMAP4-Mailbox - Adds code changes
- to support OMAP4 mailbox.
-Date: Tue, 22 Sep 2009 18:11:33 +0300 (EEST)
-Message-ID: <20090922.181133.39157696.Hiroshi.DOYU@nokia.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921E5@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+From: Ameya Palande <ameya.palande@nokia.com>
+Subject: [PATCH] OMAP: PM: Export functions from OMAP NOOP PM interface
+Date: Tue, 22 Sep 2009 18:54:18 +0300
+Message-ID: <1253634858-7883-1-git-send-email-ameya.palande@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:60885 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932085AbZIVPMB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 11:12:01 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921E5@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:32952 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761AbZIVPye (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 11:54:34 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: subramaniam.ca@ti.com
-Cc: linux-omap@vger.kernel.org, tony@atomide.com, rmk@arm.linux.org.uk, h-kanigeri2@ti.com, grgupta@ti.com
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, paul@pwsan.com
 
-Hi Tony,
+Without this patch, a driver which uses these symbols will break when user
+selects NOOP PM interface.
 
-From: "ext C.A, Subramaniam" <subramaniam.ca@ti.com>
-Subject: [PATCH 8/10] omap mailbox: OMAP4-Mailbox - Adds code changes to support OMAP4 mailbox.
-Date: Tue, 22 Sep 2009 16:33:32 +0200
+Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+---
+ arch/arm/plat-omap/omap-pm-noop.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-> From 6e3100d338c37928724821cab460ced1437bfa59 Mon Sep 17 00:00:00 2001
-> From: C A Subramaniam <subramaniam.ca@ti.com>
-> Date: Tue, 8 Sep 2009 22:36:20 +0530
-> Subject: [PATCH 8/10] omap mailbox: OMAP4-Mailbox - Adds code changes to support OMAP4 mailbox.
-> 
-> This patch adds code changes in the mailbox driver module to
-> add support for OMAP4 mailbox.
-> 
-> Signed-off-by: Hari Kanigeri <h-kanigeri2@ti.com>
-> Signed-off-by: C A Subramaniam <subramaniam.ca@ti.com>
-> Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
-> ---
->  arch/arm/mach-omap2/mailbox.c |  120 +++++++++++++++++++++++++++++++++++------
->  arch/arm/plat-omap/mailbox.c  |   25 +++++++--
->  2 files changed, 123 insertions(+), 22 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-> index 6f71f37..3d85807 100644
-> --- a/arch/arm/mach-omap2/mailbox.c
-> +++ b/arch/arm/mach-omap2/mailbox.c
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index 3b075de..10463a4 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -157,6 +157,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
+ 
+ 	return NULL;
+ }
++EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
+ 
+ void omap_pm_dsp_set_min_opp(u8 opp_id)
+ {
+@@ -181,7 +182,7 @@ void omap_pm_dsp_set_min_opp(u8 opp_id)
+ 	 *
+ 	 */
+ }
+-
++EXPORT_SYMBOL(omap_pm_dsp_set_min_opp);
+ 
+ u8 omap_pm_dsp_get_opp(void)
+ {
+@@ -197,6 +198,7 @@ u8 omap_pm_dsp_get_opp(void)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(omap_pm_dsp_get_opp);
+ 
+ u8 omap_pm_vdd1_get_opp(void)
+ {
+@@ -208,6 +210,7 @@ u8 omap_pm_vdd1_get_opp(void)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(omap_pm_vdd1_get_opp);
+ 
+ u8 omap_pm_vdd2_get_opp(void)
+ {
+@@ -219,6 +222,7 @@ u8 omap_pm_vdd2_get_opp(void)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(omap_pm_vdd2_get_opp);
+ 
+ /*
+  * CPUFreq-originated constraint
+@@ -259,6 +263,7 @@ void omap_pm_cpu_set_freq(unsigned long f)
+ 	 * CDP should just be able to set the VDD1 OPP clock rate here.
+ 	 */
+ }
++EXPORT_SYMBOL(omap_pm_cpu_set_freq);
+ 
+ unsigned long omap_pm_cpu_get_freq(void)
+ {
+@@ -270,6 +275,7 @@ unsigned long omap_pm_cpu_get_freq(void)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL(omap_pm_cpu_get_freq);
+ 
+ /*
+  * Device context loss tracking
+-- 
+1.6.2.4
 
-[...]
-
-> @@ -70,10 +88,9 @@ static inline void mbox_write_reg(u32 val, size_t ofs)
->  static int omap2_mbox_startup(struct omap_mbox *mbox)
->  {
->  	unsigned int l;
-> -
->  	mbox_ick_handle = clk_get(NULL, "mailboxes_ick");
->  	if (IS_ERR(mbox_ick_handle)) {
-> -		printk("Could not get mailboxes_ick\n");
-> +		printk(KERN_ERR "Could not get mailboxes_ick\n");
->  		return -ENODEV;
->  	}
->  	clk_enable(mbox_ick_handle);
-> @@ -85,7 +102,6 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
->  	l = mbox_read_reg(MAILBOX_SYSCONFIG);
->  	l |= 0x00000011;
->  	mbox_write_reg(l, MAILBOX_SYSCONFIG);
-> -
->  	omap2_mbox_enable_irq(mbox, IRQ_RX);
->  
->  	return 0;
-
-The above may conflict with the following patch, but it won't be
-diffcult to solve the confliction.
-
-http://patchwork.kernel.org/patch/44224/
-
-Tony, can you get the above "softreset" patch in?
-
-[...]
-
-> @@ -156,6 +172,8 @@ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
->  	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
->  
->  	mbox_write_reg(bit, p->irqstatus);
-> +	/* Flush post writing */
-> +	 mbox_read_reg(p->irqstatus);
->  }
-
-This is the same as the following patch:
-
-http://patchwork.kernel.org/patch/43740/
-
-Tony, can you get the above "flush posted write" patch in?
