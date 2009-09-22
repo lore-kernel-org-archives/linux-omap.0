@@ -1,101 +1,182 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH][RFC] OMAP3630: Create architecture macros and config
- entries.
-Date: Tue, 22 Sep 2009 17:17:56 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD9920F8@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402534261B3@dbde02.ent.ti.com>
- <74583B8642AB8841B30447520659FCA9DD85B939@dnce01.ent.ti.com>,<A24693684029E5489D1D202277BE89444C6864B8@dlee02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C861E2@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [GIT PULL]: OMAP2/3 Display Subsystem
+Date: Tue, 22 Sep 2009 15:29:48 +0300
+Message-ID: <1253622588.25232.11.camel@tubuntu>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58531 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756141AbZIVLr5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 07:47:57 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8MBlxFc021573
-	for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 06:48:00 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8MBlxXN016515
-	for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 17:17:59 +0530 (IST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0309C861E2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:64977 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751597AbZIVMa1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 08:30:27 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Pais, Allen" <allen.pais@ti.com>, linux-omap@vger.k
-Cc: "Raju, Veeramanikandan" <veera@ti.com>, "Bongale, Hariprasad" <hariprasad.bongale@ti.com>
+To: torvalds@linux-foundation.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: akpm@linux-foundation.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-fbdev-devel <linux-fbdev-devel@lists.sourceforge.net>
 
- 
+Linus,
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Gadiyar, Anand
-> Sent: Tuesday, September 22, 2009 12:12 AM
-> To: Aguirre Rodriguez, Sergio Alberto; Cousson, Benoit; Pais, 
-> Allen; linux-omap@vger.kernel.org
-> Cc: Raju, Veeramanikandan; Bongale, Hariprasad
-> Subject: RE: [PATCH][RFC] OMAP3630: Create architecture 
-> macros and config entries.
-> 
+Here's the new display subsystem and framebuffer driver for OMAP2/3.
 
-  snip -- snip --- snip
+The driver has been reviewed on linux-omap and linux-fbdev-devel, and is in
+use, for example, on N900, Beagle Board and Overo boards. We have an ACK for
+the OMAP parts from Tony Lindgren, who maintains the OMAP platform.
 
-> > 
-> > I respectfully tend to disagree with this, since there are 
-> some components
-> > inside the chip that aren't specifically fixes, so IMHO 
-> they need to start
-> > from scratch about silicon revisions because of that.
-> > 
-> > If there are many common points between 34xx/35xx/36xx, 
-> then rename the
-> > reused functions/defines to omap3, instead of 
-> omap34xx/omap35xx/omap36xx.
+We have gotten positive feedback about the driver, for example in this thread:
+http://marc.info/?l=linux-kernel&m=125171081901820&w=2
 
-[sp] We had same discussion in context of OMAP3517. And the
-     Where the IPs and features etc have been more than just
-     fixes.
+The driver is actively maintained and developed further, and I have already a
+bunch of patches on top of these patches, but I would like to get the big core
+driver merged first. After the driver is merged, other people can send patches
+to LCD drivers and board files to enable the new display subsystem on their
+boards.
 
-     I will be submitting a patch later today; that will
-     illustrate that cpu_is_xxx() changes are usually limited.
+Andrew said 2-3 weeks ago that he'll merge the driver (after he has looked
+through it), but he hasn't responded since then. I'm guessing he's quite busy.
 
-> > 
-> > Regards,
-> > Sergio
-> > 
-> 
-> I agree with Sergio.
-> 
-> While it is definitely possible to write code treating the 3430
-> and the 3630 as the same, they are not the same animal. We will
-> need to distinguish between the two at more than a few locations
-> in code, and we might as well add the ability to do that now.
-> 
-> I see a need to distinguish between 3430 and 3630 in several locations
-> - there are changes in hardware IPs that are not reflected in the IP
-> revision information (meaning we cannot always go by 
-> CPU_HAS_FEATURE() ),
-> and we will need some kind of a cpu_is_* check for sure.
+Please pull the new OMAP2/3 display subsystem driver from:
 
-[sp] See my response above.
+  git://gitorious.org/linux-omap-dss2/linux.git for-linus
 
-Also, we seem to be at a juncture where may seemlingly similar but
-Different silicons are coming up. I believe it is the *best* time to
-come up with a framework where the IP/feature based checks can be
-Streamlined.
+ Tomi
 
-Best regards,
-Sanjeev
+ ---
 
-> 
-> Regards,
-> Anand
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+The following changes since commit 43c1266ce4dc06bfd236cec31e11e9ecd69c0bef:
+  Linus Torvalds (1):
+        Merge branch 'perfcounters-rename-for-linus' of git://git.kernel.org/.../tip/linux-2.6-tip
+
+are available in the git repository at:
+
+  git://gitorious.org/linux-omap-dss2/linux.git for-linus
+
+Tomi Valkeinen (19):
+      OMAP2: Add funcs for writing SMS_ROT_* registers
+      OMAP: OMAPFB: split omapfb.h
+      OMAP: OMAPFB: add omapdss device
+      OMAP: Add VRAM manager
+      OMAP: Add support for VRFB rotation engine
+      OMAP: DSS2: Documentation for DSS2
+      OMAP: DSS2: Display Subsystem Driver core
+      OMAP: DSS2: Add more core files
+      OMAP: DSS2: DISPC
+      OMAP: DSS2: DPI driver
+      OMAP: DSS2: Video encoder driver
+      OMAP: DSS2: RFBI driver
+      OMAP: DSS2: SDI driver
+      OMAP: DSS2: DSI driver
+      OMAP: DSS2: omapfb driver
+      OMAP: DSS2: Add DPI panel drivers
+      OMAP: DSS2: Taal DSI command mode panel driver
+      OMAP: SDP: Enable DSS2 for OMAP3 SDP board
+      MAINTAINERS: Add OMAP2/3 DSS and OMAPFB maintainer
+
+ Documentation/arm/OMAP/DSS                         |  317 ++
+ MAINTAINERS                                        |   17 +
+ arch/arm/configs/omap_3430sdp_defconfig            |   61 +-
+ arch/arm/mach-omap1/board-nokia770.c               |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |  167 +-
+ arch/arm/mach-omap2/clock24xx.c                    |    8 +-
+ arch/arm/mach-omap2/clock34xx.c                    |   14 +-
+ arch/arm/mach-omap2/io.c                           |    4 +-
+ arch/arm/mach-omap2/sdrc.c                         |   16 +
+ arch/arm/plat-omap/fb.c                            |   41 +-
+ arch/arm/plat-omap/include/mach/display.h          |  540 +++
+ arch/arm/plat-omap/include/mach/omapfb.h           |  398 ---
+ arch/arm/plat-omap/include/mach/sdrc.h             |    9 +-
+ arch/arm/plat-omap/include/mach/vram.h             |   63 +
+ arch/arm/plat-omap/include/mach/vrfb.h             |   46 +
+ arch/arm/plat-omap/sram.c                          |    8 +
+ drivers/video/Kconfig                              |    1 +
+ drivers/video/Makefile                             |    1 +
+ drivers/video/omap/Kconfig                         |    5 +-
+ drivers/video/omap/blizzard.c                      |    2 +-
+ drivers/video/omap/dispc.c                         |   21 +-
+ drivers/video/omap/hwa742.c                        |    2 +-
+ drivers/video/omap/lcd_h3.c                        |    2 +-
+ drivers/video/omap/lcd_h4.c                        |    2 +-
+ drivers/video/omap/lcd_inn1510.c                   |    2 +-
+ drivers/video/omap/lcd_inn1610.c                   |    2 +-
+ drivers/video/omap/lcd_osk.c                       |    2 +-
+ drivers/video/omap/lcd_palmte.c                    |    2 +-
+ drivers/video/omap/lcd_palmtt.c                    |    2 +-
+ drivers/video/omap/lcd_palmz71.c                   |    2 +-
+ drivers/video/omap/lcdc.c                          |    3 +-
+ drivers/video/omap/omapfb.h                        |  227 ++
+ drivers/video/omap/omapfb_main.c                   |    2 +-
+ drivers/video/omap/rfbi.c                          |    3 +-
+ drivers/video/omap/sossi.c                         |    2 +-
+ drivers/video/omap2/Kconfig                        |    9 +
+ drivers/video/omap2/Makefile                       |    6 +
+ drivers/video/omap2/displays/Kconfig               |   28 +
+ drivers/video/omap2/displays/Makefile              |    5 +
+ drivers/video/omap2/displays/panel-generic.c       |  104 +
+ .../omap2/displays/panel-samsung-lte430wq-f0c.c    |  113 +
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  153 +
+ drivers/video/omap2/displays/panel-taal.c          |  900 +++++
+ drivers/video/omap2/dss/Kconfig                    |   89 +
+ drivers/video/omap2/dss/Makefile                   |    6 +
+ drivers/video/omap2/dss/core.c                     |  917 +++++
+ drivers/video/omap2/dss/dispc.c                    | 3182 ++++++++++++++++++
+ drivers/video/omap2/dss/display.c                  |  658 ++++
+ drivers/video/omap2/dss/dpi.c                      |  388 +++
+ drivers/video/omap2/dss/dsi.c                      | 3509 ++++++++++++++++++++
+ drivers/video/omap2/dss/dss.c                      |  347 ++
+ drivers/video/omap2/dss/dss.h                      |  356 ++
+ drivers/video/omap2/dss/manager.c                  | 1487 +++++++++
+ drivers/video/omap2/dss/overlay.c                  |  673 ++++
+ drivers/video/omap2/dss/rfbi.c                     | 1310 ++++++++
+ drivers/video/omap2/dss/sdi.c                      |  261 ++
+ drivers/video/omap2/dss/venc.c                     |  797 +++++
+ drivers/video/omap2/omapfb/Kconfig                 |   37 +
+ drivers/video/omap2/omapfb/Makefile                |    2 +
+ drivers/video/omap2/omapfb/omapfb-ioctl.c          |  727 ++++
+ drivers/video/omap2/omapfb/omapfb-main.c           | 2137 ++++++++++++
+ drivers/video/omap2/omapfb/omapfb-sysfs.c          |  507 +++
+ drivers/video/omap2/omapfb/omapfb.h                |  146 +
+ drivers/video/omap2/vram.c                         |  655 ++++
+ drivers/video/omap2/vrfb.c                         |  277 ++
+ include/linux/omapfb.h                             |  242 ++
+ 66 files changed, 21572 insertions(+), 452 deletions(-)
+ create mode 100644 Documentation/arm/OMAP/DSS
+ create mode 100644 arch/arm/plat-omap/include/mach/display.h
+ delete mode 100644 arch/arm/plat-omap/include/mach/omapfb.h
+ create mode 100644 arch/arm/plat-omap/include/mach/vram.h
+ create mode 100644 arch/arm/plat-omap/include/mach/vrfb.h
+ create mode 100644 drivers/video/omap/omapfb.h
+ create mode 100644 drivers/video/omap2/Kconfig
+ create mode 100644 drivers/video/omap2/Makefile
+ create mode 100644 drivers/video/omap2/displays/Kconfig
+ create mode 100644 drivers/video/omap2/displays/Makefile
+ create mode 100644 drivers/video/omap2/displays/panel-generic.c
+ create mode 100644 drivers/video/omap2/displays/panel-samsung-lte430wq-f0c.c
+ create mode 100644 drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+ create mode 100644 drivers/video/omap2/displays/panel-taal.c
+ create mode 100644 drivers/video/omap2/dss/Kconfig
+ create mode 100644 drivers/video/omap2/dss/Makefile
+ create mode 100644 drivers/video/omap2/dss/core.c
+ create mode 100644 drivers/video/omap2/dss/dispc.c
+ create mode 100644 drivers/video/omap2/dss/display.c
+ create mode 100644 drivers/video/omap2/dss/dpi.c
+ create mode 100644 drivers/video/omap2/dss/dsi.c
+ create mode 100644 drivers/video/omap2/dss/dss.c
+ create mode 100644 drivers/video/omap2/dss/dss.h
+ create mode 100644 drivers/video/omap2/dss/manager.c
+ create mode 100644 drivers/video/omap2/dss/overlay.c
+ create mode 100644 drivers/video/omap2/dss/rfbi.c
+ create mode 100644 drivers/video/omap2/dss/sdi.c
+ create mode 100644 drivers/video/omap2/dss/venc.c
+ create mode 100644 drivers/video/omap2/omapfb/Kconfig
+ create mode 100644 drivers/video/omap2/omapfb/Makefile
+ create mode 100644 drivers/video/omap2/omapfb/omapfb-ioctl.c
+ create mode 100644 drivers/video/omap2/omapfb/omapfb-main.c
+ create mode 100644 drivers/video/omap2/omapfb/omapfb-sysfs.c
+ create mode 100644 drivers/video/omap2/omapfb/omapfb.h
+ create mode 100644 drivers/video/omap2/vram.c
+ create mode 100644 drivers/video/omap2/vrfb.c
+ create mode 100644 include/linux/omapfb.h
+
+
+
