@@ -1,50 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ehci: update driver with generic change
-Date: Mon, 21 Sep 2009 17:51:39 -0700
-Message-ID: <20090922005138.GF27699@atomide.com>
-References: <1247235920-13400-1-git-send-email-ajay.gupta@ti.com>
+Subject: Re: [PATCH 2/9] ehci: adding mux pin for EHCI phy reset line
+Date: Mon, 21 Sep 2009 17:55:12 -0700
+Message-ID: <20090922005512.GG27699@atomide.com>
+References: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com> <1249560460-16306-2-git-send-email-ajay.gupta@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51901 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53855 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933AbZIVAvg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Sep 2009 20:51:36 -0400
+	with ESMTP id S1751155AbZIVAzM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Sep 2009 20:55:12 -0400
 Content-Disposition: inline
-In-Reply-To: <1247235920-13400-1-git-send-email-ajay.gupta@ti.com>
+In-Reply-To: <1249560460-16306-2-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com
+Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, david-b@pacbell.net
 
-* Ajay Kumar Gupta <ajay.gupta@ti.com> [090710 07:25]:
-> Update the OMAP EHCI driver in accordance with below patch
-> introduced in generic EHCI driver.
-> 
-> commit: b18ffd49e86102a9ed0a1cc83fdafe3891e844e5
-> USB: EHCI: update toggle state for linked QHs
+* Ajay Kumar Gupta <ajay.gupta@ti.com> [090806 05:15]:
+> GPIO135 is used as EHCI (port2) phy reset pin on Multi Media Daughter card
+> connected to OMAP3EVM.
 
-Adding this to ehci branch.
+Adding this to omap-fixes branch.
 
 Tony
  
 > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 > ---
->  drivers/usb/host/ehci-omap.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/mux.c             |    2 ++
+>  arch/arm/plat-omap/include/mach/mux.h |    1 +
+>  2 files changed, 3 insertions(+), 0 deletions(-)
 > 
-> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> index c0f9a19..858bf11 100644
-> --- a/drivers/usb/host/ehci-omap.c
-> +++ b/drivers/usb/host/ehci-omap.c
-> @@ -762,6 +762,7 @@ static const struct hc_driver ehci_omap_hc_driver = {
->  	.urb_enqueue		= ehci_urb_enqueue,
->  	.urb_dequeue		= ehci_urb_dequeue,
->  	.endpoint_disable	= ehci_endpoint_disable,
-> +	.endpoint_reset		= ehci_endpoint_reset,
->  
->  	/*
->  	 * scheduling support
+> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+> index 026c4fc..80547cf 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -472,6 +472,8 @@ MUX_CFG_34XX("G25_34XX_GPIO86_OUT", 0x0fc,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+>  MUX_CFG_34XX("AG4_34XX_GPIO134_OUT", 0x160,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+> +MUX_CFG_34XX("AF4_34XX_GPIO135_OUT", 0x162,
+> +		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+>  MUX_CFG_34XX("AE4_34XX_GPIO136_OUT", 0x164,
+>  		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+>  MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
+> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+> index 85a6217..498fa0c 100644
+> --- a/arch/arm/plat-omap/include/mach/mux.h
+> +++ b/arch/arm/plat-omap/include/mach/mux.h
+> @@ -846,6 +846,7 @@ enum omap34xx_index {
+>  	L8_34XX_GPIO63,
+>  	G25_34XX_GPIO86_OUT,
+>  	AG4_34XX_GPIO134_OUT,
+> +	AF4_34XX_GPIO135_OUT,
+>  	AE4_34XX_GPIO136_OUT,
+>  	AF6_34XX_GPIO140_UP,
+>  	AE6_34XX_GPIO141,
 > -- 
 > 1.6.2.4
 > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
