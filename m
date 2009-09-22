@@ -1,62 +1,74 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [GIT PULL]: OMAP2/3 Display Subsystem
-Date: Tue, 22 Sep 2009 15:33:45 +0300
-Message-ID: <4AB8C429.60804@gmail.com>
-References: <1253622588.25232.11.camel@tubuntu>
+From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Subject: RE: [PATCH 5/9] ehci: increase timeout to fix ehci failure
+Date: Tue, 22 Sep 2009 18:40:15 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436C43D6F@dbde02.ent.ti.com>
+References: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com>
+ <1249560460-16306-2-git-send-email-ajay.gupta@ti.com>
+ <1249560460-16306-3-git-send-email-ajay.gupta@ti.com>
+ <1249560460-16306-4-git-send-email-ajay.gupta@ti.com>
+ <1249560460-16306-5-git-send-email-ajay.gupta@ti.com>
+ <20090922011009.GJ27699@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:65458 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752098AbZIVMgK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 08:36:10 -0400
-In-Reply-To: <1253622588.25232.11.camel@tubuntu>
+Received: from comal.ext.ti.com ([198.47.26.152]:50237 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756536AbZIVNKY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 09:10:24 -0400
+In-Reply-To: <20090922011009.GJ27699@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: torvalds@linux-foundation.org
-Cc: tomi.valkeinen@nokia.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, akpm@linux-foundation.org, tony@atomide.com, linux-omap@vger.kernel.org, linux-fbdev-devel <linux-fbdev-devel@lists.sourceforge.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "david-b@pacbell.net" <david-b@pacbell.net>
 
-On 09/22/2009 03:29 PM, Tomi Valkeinen wrote:
-> Linus,
->
-> Here's the new display subsystem and framebuffer driver for OMAP2/3.
->
-> The driver has been reviewed on linux-omap and linux-fbdev-devel, and=
- is in
-> use, for example, on N900, Beagle Board and Overo boards. We have an =
-ACK for
-> the OMAP parts from Tony Lindgren, who maintains the OMAP platform.
->
-> We have gotten positive feedback about the driver, for example in thi=
-s thread:
-> http://marc.info/?l=3Dlinux-kernel&m=3D125171081901820&w=3D2
->
-> The driver is actively maintained and developed further, and I have a=
-lready a
-> bunch of patches on top of these patches, but I would like to get the=
- big core
-> driver merged first. After the driver is merged, other people can sen=
-d patches
-> to LCD drivers and board files to enable the new display subsystem on=
- their
-> boards.
->
-> Andrew said 2-3 weeks ago that he'll merge the driver (after he has l=
-ooked
-> through it), but he hasn't responded since then. I'm guessing he's qu=
-ite busy.
+Tony,
+> * Ajay Kumar Gupta <ajay.gupta@ti.com> [090806 05:13]:
+> > Sometime during TLL reset and waiting loop for TLL reset timeouts and
+> thus
+> > ehci init fails. Fixing this by increasing timeout value.
+> 
+> Applying patches 6 - 9 to ehci branch also.
 
-Just in case it matters, here is my redundant confirmation that we are
-successfully using this piece of software for about a year.
+One patch is missing which causes compilation error.
+[0002-omap3-Add-CHIP_GE_OMAP3430ES3-for-HSUSB.patch]
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Apart from this I have two more EHCI fixes and one patch to fix compilation warning on OMAP3EVM.
+
+I am submitting all four patches , Please review them.
+
+-Ajay
+ 
+> 
+> Tony
+> 
+> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+> > Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+> > ---
+> >  drivers/usb/host/ehci-omap.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> > index 55e5259..c7631f5 100644
+> > --- a/drivers/usb/host/ehci-omap.c
+> > +++ b/drivers/usb/host/ehci-omap.c
+> > @@ -244,7 +244,7 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap
+> *omap, u8 tll_channel_mask)
+> >   */
+> >  static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd
+> *hcd)
+> >  {
+> > -	unsigned long timeout = jiffies + msecs_to_jiffies(100);
+> > +	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
+> >  	unsigned reg = 0;
+> >  	int ret = 0;
+> >
+> > --
+> > 1.6.2.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
