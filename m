@@ -1,53 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/9] ehci: increase timeout to fix ehci failure
-Date: Mon, 21 Sep 2009 18:10:10 -0700
-Message-ID: <20090922011009.GJ27699@atomide.com>
-References: <1249560460-16306-1-git-send-email-ajay.gupta@ti.com> <1249560460-16306-2-git-send-email-ajay.gupta@ti.com> <1249560460-16306-3-git-send-email-ajay.gupta@ti.com> <1249560460-16306-4-git-send-email-ajay.gupta@ti.com> <1249560460-16306-5-git-send-email-ajay.gupta@ti.com>
+Subject: [APPLIED] [PATCH] EHCI USB: Don&#39;t use generic shutdown function
+Date: Mon, 21 Sep 2009 21:14:08 -0400
+Message-ID: <notify-1253582051@atomide.com>
+References: <20090916001055.GA2449@lixom.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58282 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60500 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbZIVBKJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Sep 2009 21:10:09 -0400
+	with ESMTP id S1751432AbZIVBOI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Sep 2009 21:14:08 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MptxM-0008cQ-Cg
+	for linux-omap@vger.kernel.org; Tue, 22 Sep 2009 01:14:12 +0000
+In-Reply-To: <20090916001055.GA2449@lixom.net>
 Content-Disposition: inline
-In-Reply-To: <1249560460-16306-5-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, david-b@pacbell.net
+To: linux-omap@vger.kernel.org
 
-* Ajay Kumar Gupta <ajay.gupta@ti.com> [090806 05:13]:
-> Sometime during TLL reset and waiting loop for TLL reset timeouts and thus
-> ehci init fails. Fixing this by increasing timeout value.
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Applying patches 6 - 9 to ehci branch also.
+Branch in linux-omap: ehci
 
-Tony
- 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
->  drivers/usb/host/ehci-omap.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> index 55e5259..c7631f5 100644
-> --- a/drivers/usb/host/ehci-omap.c
-> +++ b/drivers/usb/host/ehci-omap.c
-> @@ -244,7 +244,7 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
->   */
->  static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
->  {
-> -	unsigned long timeout = jiffies + msecs_to_jiffies(100);
-> +	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
->  	unsigned reg = 0;
->  	int ret = 0;
->  
-> -- 
-> 1.6.2.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Initial commit ID (Likely to change): 53e4096a17681ef7cd1ad0d97a55c9df51898594
+
+PatchWorks
+http://patchwork.kernel.org/patch/47783/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=53e4096a17681ef7cd1ad0d97a55c9df51898594
+
+
