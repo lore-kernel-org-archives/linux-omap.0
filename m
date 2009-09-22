@@ -1,97 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: ARM: OMAP3: Beagleboard: Fix EHCI initialization
-Date: Mon, 21 Sep 2009 18:35:51 -0700
-Message-ID: <20090922013550.GL27699@atomide.com>
-References: <5e088bd90909011455y48ce86c4t532ed5a66bac01fe@mail.gmail.com> <979D9760-ABA4-48A1-87DE-5E335E7C24F9@mindspring.com>
+From: Max Filippov <jcmvbkbc@gmail.com>
+Subject: Re: Bad block on N810
+Date: Tue, 22 Sep 2009 11:16:20 +0400
+Message-ID: <73aaf0dd0909220016p56a1c921g9bee92656478e872@mail.gmail.com>
+References: <4AB245B3.10909@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55404 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878AbZIVBfu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 21 Sep 2009 21:35:50 -0400
-Content-Disposition: inline
-In-Reply-To: <979D9760-ABA4-48A1-87DE-5E335E7C24F9@mindspring.com>
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:40093 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754106AbZIVHYP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 03:24:15 -0400
+Received: by ewy7 with SMTP id 7so138836ewy.17
+        for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 00:24:18 -0700 (PDT)
+In-Reply-To: <4AB245B3.10909@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eric Witcher <ewitcher@mindspring.com>
-Cc: Steve Sakoman <sakoman@gmail.com>, linux-omap@vger.kernel.org
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
 
-* Eric Witcher <ewitcher@mindspring.com> [090907 18:17]:
+> Hi folks,
 >
-> On Sep 1, 2009, at 5:55 PM, Steve Sakoman wrote:
+> I'm having a curious problem with my N810: my device turn off (turn o=
+ff, not restart) always a few seconds after just initialized.
 >
->> Enable USB power, use correct gpio for usb_ehci_init
->>
->> Signed-off-by: Steve Sakoman <steve@sakoman.com>
+> Well, after taking a look in dbug mode, I saw the the following probl=
+ems:
 >
-> Tested-by: Eric Witcher <ewitcher@mindspring.com>
-> This patch worked at commit
-> 3dff8750255bf5a1e9a69931b1d8739a65a933d0
-> of linux-omap-2.6.git master
+> [ =A0 36.921875] JFFS2 notice: (1200) check_node_data: wrong data CRC=
+ in data node at 0x0b651edc: read 0x25e088e1, calculated 0x76861b05.
+> ...
+> [ =A0 40.578125] JFFS2 warning: (1293) jffs2_sum_write_sumnode: Not e=
+nough space for summary, padsize =3D -965
+>
+> I already reflash the FIASCO image, but this error persists. So it lo=
+oks that the fs has some problem (bad block) on internal memory card. m=
+kfs could solve the problem, but, as I mentioned above, only a few seco=
+nds after starting, the device shutdown =A0:(
+>
+> Any hints?
 
-This one should also be updated to pass the configuration
-in the platform data unless already done with what's in
-the linux-omap ehci and master branches. Can you please
-check?
+Hello.
 
-> I also needed
->
-> [PATCH 4/8] ehci: fix phy_reset init in ehci probe
-> [PATCH] omapfb: Reorder Register_framebuffer call
->
-> to get a clean boot.
+AFAIK N810 is turned off by its watchdog, so be sure to touch it at
+least once a minute, like this:
 
-I've added this into omap-fixes queue and merged it
-also into the linux-omap master branch.
+echo 63 > /sys/devices/platform/retu-watchdog/period
 
-Regards,
-
-Tony
-
-
-> Build configuration was omap3_beagle_defconfig.
->
->
->> ---
->> arch/arm/mach-omap2/board-omap3beagle.c |    5 +++--
->> 1 files changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
->> b/arch/arm/mach-omap2/board-omap3beagle.c
->> index 07aee90..65934ea 100644
->> --- a/arch/arm/mach-omap2/board-omap3beagle.c
->> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
->> @@ -161,7 +161,7 @@ static int beagle_twl_gpio_setup(struct device  
->> *dev,
->>
->> 	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low)  
->> */
->> 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
->> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
->> +	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
->>
->> 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
->> 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
->> @@ -412,7 +412,8 @@ static void __init omap3_beagle_init(void)
->> 	gpio_direction_output(170, true);
->>
->> 	usb_musb_init();
->> -	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, true, true, 57, 61);
->> +	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, false, true,
->> +			-EINVAL, 147);
->> 	omap3beagle_flash_init();
->>
->> 	/* Ensure SDRC pins are mux'd for self-refresh */
->> -- 
->> 1.6.0.4
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" 
->> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+Max
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
