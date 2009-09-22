@@ -1,40 +1,55 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 1/2] omap3evm: fix compilation warning for omap3evm_flash_init
-Date: Tue, 22 Sep 2009 18:42:09 +0530
-Message-ID: <1253625132-15050-1-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 2/2] omap3: Add CHIP_GE_OMAP3430ES3 for HSUSB
+Date: Tue, 22 Sep 2009 18:42:10 +0530
+Message-ID: <1253625132-15050-2-git-send-email-ajay.gupta@ti.com>
+References: <1253625132-15050-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50372 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43987 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756539AbZIVNMW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1756543AbZIVNMW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Tue, 22 Sep 2009 09:12:22 -0400
+In-Reply-To: <1253625132-15050-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: felipe.balbi@nokia.com, david-b@pacbell.net, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-omap3evm_flash_init() was earlier defined in seperate file but now need to merge to
-board_omap3evm.c file.
+OMAP3 HSUSB ports can be individually programmed in PHY or TLL
+mode in ES3.0 onwards whereas this is not supported in ES2.1
+and earlier versions.
 
-Removing it to fix the compilation. It should be added back with function
-definitions.
+CHIP_GE_OMAP3430ES3 is added to program this behavior at runtime.
+
+Also updated the existing macros to use the priviously defined
+*_GE_* logic instead of repeating the same logic again.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+This is required to compile EHCI driver. EHCI driver patch
+"support for ES3.x" used CHIP_GE_OMAP3430ES2 and so this patch
+is also required.
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 7b4e16c..62a6f32 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -324,7 +324,6 @@ static void __init omap3_evm_init(void)
- 	/* Setup EHCI phy reset padconfig */
- 	omap_cfg_reg(AF4_34XX_GPIO135_OUT);
- 	usb_ehci_init(&ehci_pdata);
--	omap3evm_flash_init();
- 	ads7846_dev_init();
- }
+ arch/arm/plat-omap/include/mach/cpu.h |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index 7a5f9e8..be6be3b 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -414,10 +414,9 @@ IS_OMAP_TYPE(3430, 0x3430)
+  * chips at ES2 and beyond, but not, for example, any OMAP lines after
+  * OMAP3.
+  */
+-#define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
+-					 CHIP_IS_OMAP3430ES3_0 | \
+-					 CHIP_IS_OMAP3430ES3_1)
+-#define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1)
++#define CHIP_GE_OMAP3430ES3_1	(CHIP_IS_OMAP3430ES3_1)
++#define CHIP_GE_OMAP3430ES3	(CHIP_IS_OMAP3430ES3_0 | CHIP_GE_OMAP3430ES3_1)
++#define CHIP_GE_OMAP3430ES2	(CHIP_IS_OMAP3430ES2 | CHIP_GE_OMAP3430ES3)
  
+ 
+ int omap_chip_is(struct omap_chip_id oci);
 -- 
 1.6.2.4
 
