@@ -1,47 +1,40 @@
-From: Olof Johansson <olof@lixom.net>
-Subject: [PATCH] usb: ehci-omap: Fix build break
-Date: Tue, 22 Sep 2009 10:11:40 -0500
-Message-ID: <20090922151140.GB8975@lixom.net>
+From: Jan Blunck <jblunck@infradead.org>
+Subject: Re: [APPLIED] [PATCH] omapfb: Reorder Register_framebuffer call
+Date: Tue, 22 Sep 2009 16:59:41 +0200
+Message-ID: <4de7f8a60909220759g63b592eek85a2bca04b264d2e@mail.gmail.com>
+References: <1252773249-24444-1-git-send-email-saaguirre@ti.com>
+	 <notify-1253583118@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from lixom.net ([66.141.50.11]:37827 "EHLO mail.lixom.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756497AbZIVOzr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 22 Sep 2009 10:55:47 -0400
-Content-Disposition: inline
+Received: from fg-out-1718.google.com ([72.14.220.155]:14412 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756828AbZIVO7j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 10:59:39 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so1225905fge.1
+        for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 07:59:42 -0700 (PDT)
+In-Reply-To: <notify-1253583118@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Cc: linux-omap@vger.kernel.org, tony@atomide.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Fix build break:
+On Tue, Sep 22, 2009 at 3:31 AM, Tony Lindgren <tony@atomide.com> wrote:
+> This patch has been applied to the linux-omap
+> by youw fwiendly patch wobot.
+>
+> Branch in linux-omap: omap-fixes
+>
+> Initial commit ID (Likely to change): 9aef1066fb5ca8506068eaab1c552ecca4c85475
+>
+> PatchWorks
+> http://patchwork.kernel.org/patch/47089/
+>
 
-  CC      drivers/usb/host/ehci-hcd.o
-In file included from drivers/usb/host/ehci-hcd.c:1101:
-drivers/usb/host/ehci-omap.c: In function 'omap_start_ehc':
-drivers/usb/host/ehci-omap.c:238: error: 'CHIP_GE_OMAP3430ES3' undeclared (first use in this function)
-drivers/usb/host/ehci-omap.c:238: error: (Each undeclared identifier is reported only once
-drivers/usb/host/ehci-omap.c:238: error: for each function it appears in.)
-make[3]: *** [drivers/usb/host/ehci-hcd.o] Error 1
+Is it actually safe to do this? The framebuffer can be used directly
+after it is registered. In this case it would mean it is used before
+it is even fully initialized (set_fb_var(), set_fb_fix(), ... are
+being called).
 
-
-No reference to CHIP_GE_OMAP3430ES3 anywhere else, I'm assuming it's
-ES3_1 that's supposed to be used.
-
-
-Signed-off-by: Olof Johansson <olof@lixom.net>
-
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index f77a99d..301e7b6 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -235,7 +235,7 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
-  */
- static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
- {
--	struct omap_chip_id oci = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3);
-+	struct omap_chip_id oci = OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1);
- 	unsigned long timeout = jiffies + msecs_to_jiffies(1000);
- 	u8 tll_ch_mask = 0;
- 	unsigned reg = 0;
+Thanks,
+Jan
