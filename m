@@ -1,207 +1,57 @@
-From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
-Subject: [PATCH 10/10] omap mailbox: OMAP4 Mailbox-driver Patch to support
- tasklet
-Date: Tue, 22 Sep 2009 20:07:21 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921EB@dbde02.ent.ti.com>
+From: Olof Johansson <olof@lixom.net>
+Subject: [PATCH] omap2: ehci: Make Overo compile again
+Date: Tue, 22 Sep 2009 10:04:14 -0500
+Message-ID: <20090922150414.GA8975@lixom.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49665 "EHLO bear.ext.ti.com"
+Received: from lixom.net ([66.141.50.11]:56695 "EHLO mail.lixom.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755543AbZIVOhV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 10:37:21 -0400
-Content-Language: en-US
+	id S1756774AbZIVOsV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 22 Sep 2009 10:48:21 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
+To: linux-omap@vger.kernel.org
+Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, tony@atomide.com
 
->From f2ba2415d17a9bf2adc9f1240ff21e17e639b2bf Mon Sep 17 00:00:00 2001
-From: C A Subramaniam <subramaniam.ca@ti.com>
-Date: Thu, 17 Sep 2009 22:01:33 +0530
-Subject: [PATCH 10/10] omap mailbox: OMAP4 Mailbox-driver Patch to support tasklet
-     implementation
 
-This patch uses a tasklet implementation for
-sending mailbox messages.
+Overo needs the same changes as the other boards do for the ehci changes.
 
-Signed-off-by: C A Subramaniam <subramaniam.ca@ti.com>
-Signed-off-by: Ramesh Gupta G <grgupta@ti.com>
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/include/mach/mailbox.h |    8 +++-
- arch/arm/plat-omap/mailbox.c              |   59 ++++++++--------------------
- 2 files changed, 23 insertions(+), 44 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/mailbox.h b/arch/arm/plat-omap/include/mach/mailbox.h
-index bf06953..729166b 100644
---- a/arch/arm/plat-omap/include/mach/mailbox.h
-+++ b/arch/arm/plat-omap/include/mach/mailbox.h
-@@ -6,6 +6,7 @@
- #include <linux/wait.h>
- #include <linux/workqueue.h>
- #include <linux/blkdev.h>
-+#include <linux/interrupt.h>
- 
- typedef u32 mbox_msg_t;
- struct omap_mbox;
-@@ -28,8 +29,10 @@ struct omap_mbox_ops {
- 	int		(*fifo_empty)(struct omap_mbox *mbox);
- 	int		(*fifo_full)(struct omap_mbox *mbox);
- 	/* irq */
--	void		(*enable_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
--	void		(*disable_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
-+	void		(*enable_irq)(struct omap_mbox *mbox,
-+						omap_mbox_irq_t irq);
-+	void		(*disable_irq)(struct omap_mbox *mbox,
-+						omap_mbox_irq_t irq);
- 	void		(*ack_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
- 	int		(*is_irq)(struct omap_mbox *mbox, omap_mbox_irq_t irq);
- 	/* ctx */
-@@ -41,6 +44,7 @@ struct omap_mbox_queue {
- 	spinlock_t		lock;
- 	struct request_queue	*queue;
- 	struct work_struct	work;
-+	struct tasklet_struct	tasklet;
- 	int	(*callback)(void *);
- 	struct omap_mbox	*mbox;
+Signed-off-by: Olof Johansson <olof@lixom.net>
+
+
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 17f2318..3994974 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -384,6 +384,19 @@ static struct platform_device *overo_devices[] __initdata = {
+ 	&overo_lcd_device,
  };
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index 3ab3f0d..55facda 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -80,74 +80,45 @@ static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
- 	return ret;
- }
  
--struct omap_msg_tx_data {
--	mbox_msg_t	msg;
--};
--
--static void omap_msg_tx_end_io(struct request *rq, int error)
--{
--	kfree(rq->special);
--	__blk_put_request(rq->q, rq);
--}
- 
- int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
- {
--	struct omap_msg_tx_data *tx_data;
++static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
++	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[1] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
 +
- 	struct request *rq;
- 	struct request_queue *q = mbox->txq->queue;
- 
--	tx_data = kmalloc(sizeof(*tx_data), GFP_ATOMIC);
--	if (unlikely(!tx_data))
--		return -ENOMEM;
--
- 	rq = blk_get_request(q, WRITE, GFP_ATOMIC);
--	if (unlikely(!rq)) {
--		kfree(tx_data);
-+	if (unlikely(!rq))
- 		return -ENOMEM;
--	}
- 
--	tx_data->msg = msg;
--	rq->end_io = omap_msg_tx_end_io;
--	blk_insert_request(q, rq, 0, tx_data);
-+	blk_insert_request(q, rq, 0, (void *) msg);
-+	tasklet_schedule(&mbox->txq->tasklet);
- 
--	schedule_work(&mbox->txq->work);
- 	return 0;
- }
- EXPORT_SYMBOL(omap_mbox_msg_send);
- 
--static void mbox_tx_work(struct work_struct *work)
-+static void mbox_tx_tasklet(unsigned long tx_data)
++	.chargepump = false,
++	.phy_reset  = true,
++	.reset_gpio_port[0]  = 183,
++	.reset_gpio_port[1]  = -EINVAL,
++	.reset_gpio_port[2]  = -EINVAL
++};
++
++
+ static void __init overo_init(void)
  {
- 	int ret;
- 	struct request *rq;
--	struct omap_mbox_queue *mq = container_of(work,
--				struct omap_mbox_queue, work);
--	struct omap_mbox *mbox = mq->queue->queuedata;
-+	struct omap_mbox *mbox = (struct omap_mbox *)tx_data;
- 	struct request_queue *q = mbox->txq->queue;
+ 	overo_i2c_init();
+@@ -391,7 +404,7 @@ static void __init overo_init(void)
+ 	omap_serial_init();
+ 	overo_flash_init();
+ 	usb_musb_init();
+-	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, false, true, 183, -EINVAL);
++	usb_ehci_init(&ehci_pdata);
+ 	overo_ads7846_init();
+ 	overo_init_smsc911x();
  
- 	while (1) {
--		struct omap_msg_tx_data *tx_data;
- 
--		spin_lock(q->queue_lock);
- 		rq = blk_fetch_request(q);
--		spin_unlock(q->queue_lock);
- 
- 		if (!rq)
- 			break;
- 
--		tx_data = rq->special;
--
--		ret = __mbox_msg_send(mbox, tx_data->msg);
-+		ret = __mbox_msg_send(mbox, (mbox_msg_t)rq->special);
- 		if (ret) {
- 			omap_mbox_enable_irq(mbox, IRQ_TX);
--			spin_lock(q->queue_lock);
- 			blk_requeue_request(q, rq);
--			spin_unlock(q->queue_lock);
- 			return;
- 		}
--
--		spin_lock(q->queue_lock);
--		__blk_end_request_all(rq, 0);
--		spin_unlock(q->queue_lock);
-+		blk_end_request_all(rq, 0);
- 	}
- }
- 
-@@ -192,7 +163,7 @@ static void __mbox_tx_interrupt(struct omap_mbox *mbox)
- {
- 	omap_mbox_disable_irq(mbox, IRQ_TX);
- 	ack_mbox_irq(mbox, IRQ_TX);
--	schedule_work(&mbox->txq->work);
-+	tasklet_schedule(&mbox->txq->tasklet);
- }
- 
- static void __mbox_rx_interrupt(struct omap_mbox *mbox)
-@@ -235,7 +206,8 @@ static irqreturn_t mbox_interrupt(int irq, void *p)
- 
- static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
- 					request_fn_proc *proc,
--					void (*work) (struct work_struct *))
-+					void (*work) (struct work_struct *),
-+					void (*tasklet)(unsigned long))
- {
- 	struct request_queue *q;
- 	struct omap_mbox_queue *mq;
-@@ -252,8 +224,11 @@ static struct omap_mbox_queue *mbox_queue_alloc(struct omap_mbox *mbox,
- 	q->queuedata = mbox;
- 	mq->queue = q;
- 
--	INIT_WORK(&mq->work, work);
-+	if (work)
-+		INIT_WORK(&mq->work, work);
- 
-+	if (tasklet)
-+		tasklet_init(&mq->tasklet, tasklet, (unsigned long)mbox);
- 	return mq;
- error:
- 	kfree(mq);
-@@ -292,14 +267,14 @@ static int omap_mbox_startup(struct omap_mbox *mbox)
- 		goto fail_request_irq;
- 	}
- 
--	mq = mbox_queue_alloc(mbox, mbox_txq_fn, mbox_tx_work);
-+	mq = mbox_queue_alloc(mbox, mbox_txq_fn, NULL, mbox_tx_tasklet);
- 	if (!mq) {
- 		ret = -ENOMEM;
- 		goto fail_alloc_txq;
- 	}
- 	mbox->txq = mq;
- 
--	mq = mbox_queue_alloc(mbox, mbox_rxq_fn, mbox_rx_work);
-+	mq = mbox_queue_alloc(mbox, mbox_rxq_fn, mbox_rx_work, NULL);
- 	if (!mq) {
- 		ret = -ENOMEM;
- 		goto fail_alloc_rxq;
--- 
-1.5.3.2
