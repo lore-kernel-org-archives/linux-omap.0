@@ -1,89 +1,52 @@
-From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
-Subject: [PATCH 7/10] omap mailbox: expose omap_mbox_enable()/disable_irq()
-Date: Tue, 22 Sep 2009 20:02:43 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921E2@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [GIT PULL]: OMAP2/3 Display Subsystem
+Date: Tue, 22 Sep 2009 07:33:02 -0700
+Message-ID: <20090922143301.GN27699@atomide.com>
+References: <1253622588.25232.11.camel@tubuntu> <4AB8C429.60804@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39803 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756656AbZIVOcm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 10:32:42 -0400
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55251 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753327AbZIVOdI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 10:33:08 -0400
+Content-Disposition: inline
+In-Reply-To: <4AB8C429.60804@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: torvalds@linux-foundation.org, tomi.valkeinen@nokia.com, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, akpm@linux-foundation.org, linux-omap@vger.kernel.org, linux-fbdev-devel <linux-fbdev-devel@lists.sourceforge.net>
 
->From 1ba55e567917b48afc64a14202fd860b3332056d Mon Sep 17 00:00:00 2001
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Date: Wed, 2 Sep 2009 20:18:53 +0530
-Subject: [PATCH 7/10] omap mailbox: expose omap_mbox_enable()/disable_irq()
+* Artem Bityutskiy <dedekind1@gmail.com> [090922 05:36]:
+> On 09/22/2009 03:29 PM, Tomi Valkeinen wrote:
+>> Linus,
+>>
+>> Here's the new display subsystem and framebuffer driver for OMAP2/3.
+>>
+>> The driver has been reviewed on linux-omap and linux-fbdev-devel, and is in
+>> use, for example, on N900, Beagle Board and Overo boards. We have an ACK for
+>> the OMAP parts from Tony Lindgren, who maintains the OMAP platform.
+>>
+>> We have gotten positive feedback about the driver, for example in this thread:
+>> http://marc.info/?l=linux-kernel&m=125171081901820&w=2
+>>
+>> The driver is actively maintained and developed further, and I have already a
+>> bunch of patches on top of these patches, but I would like to get the big core
+>> driver merged first. After the driver is merged, other people can send patches
+>> to LCD drivers and board files to enable the new display subsystem on their
+>> boards.
+>>
+>> Andrew said 2-3 weeks ago that he'll merge the driver (after he has looked
+>> through it), but he hasn't responded since then. I'm guessing he's quite busy.
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/include/mach/mailbox.h |   12 ++++++++++++
- arch/arm/plat-omap/mailbox.c              |   12 ++----------
- 2 files changed, 14 insertions(+), 10 deletions(-)
+I guess that was because there were some merge conflicts at that point, but
+those are sorted out now.
 
-diff --git a/arch/arm/plat-omap/include/mach/mailbox.h b/arch/arm/plat-omap/include/mach/mailbox.h
-index 8260a3f..bf06953 100644
---- a/arch/arm/plat-omap/include/mach/mailbox.h
-+++ b/arch/arm/plat-omap/include/mach/mailbox.h
-@@ -92,4 +92,16 @@ static inline void omap_mbox_restore_ctx(struct omap_mbox *mbox)
- 	mbox->ops->restore_ctx(mbox);
- }
- 
-+static inline void omap_mbox_enable_irq(struct omap_mbox *mbox,
-+					omap_mbox_irq_t irq)
-+{
-+	mbox->ops->enable_irq(mbox, irq);
-+}
-+
-+static inline void omap_mbox_disable_irq(struct omap_mbox *mbox,
-+					 omap_mbox_irq_t irq)
-+{
-+	mbox->ops->disable_irq(mbox, irq);
-+}
-+
- #endif /* MAILBOX_H */
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index 2899255..032f1fe 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -50,14 +50,6 @@ static inline int mbox_fifo_full(struct omap_mbox *mbox)
- }
- 
- /* Mailbox IRQ handle functions */
--static inline void enable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
--{
--	mbox->ops->enable_irq(mbox, irq);
--}
--static inline void disable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
--{
--	mbox->ops->disable_irq(mbox, irq);
--}
- static inline void ack_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
- {
- 	if (mbox->ops->ack_irq)
-@@ -144,7 +136,7 @@ static void mbox_tx_work(struct work_struct *work)
- 
- 		ret = __mbox_msg_send(mbox, tx_data->msg);
- 		if (ret) {
--			enable_mbox_irq(mbox, IRQ_TX);
-+			omap_mbox_enable_irq(mbox, IRQ_TX);
- 			spin_lock(q->queue_lock);
- 			blk_requeue_request(q, rq);
- 			spin_unlock(q->queue_lock);
-@@ -196,7 +188,7 @@ static void mbox_rxq_fn(struct request_queue *q)
- 
- static void __mbox_tx_interrupt(struct omap_mbox *mbox)
- {
--	disable_mbox_irq(mbox, IRQ_TX);
-+	omap_mbox_disable_irq(mbox, IRQ_TX);
- 	ack_mbox_irq(mbox, IRQ_TX);
- 	schedule_work(&mbox->txq->work);
- }
--- 
-1.5.3.2
+> Just in case it matters, here is my redundant confirmation that we are
+> successfully using this piece of software for about a year.
+
+Ack, it would be nice to get this merged.
+
+Regards,
+
+Tony
