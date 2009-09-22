@@ -1,76 +1,89 @@
 From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
-Subject: [PATCH 6/10] omap mailbox: remove unnecessary arg for
- omap_mbox_msg_send
-Date: Tue, 22 Sep 2009 20:01:50 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921DF@dbde02.ent.ti.com>
+Subject: [PATCH 7/10] omap mailbox: expose omap_mbox_enable()/disable_irq()
+Date: Tue, 22 Sep 2009 20:02:43 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921E2@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60635 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754474AbZIVObs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 10:31:48 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39803 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756656AbZIVOcm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 10:32:42 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "tony@atomide.com" <tony@atomide.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>, "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "rmk@arm.linux.org.uk" <rmk@arm.linux.org.uk>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
->From 021907db683b2d7c7bf5f60bea3874fc6c2fa5a0 Mon Sep 17 00:00:00 2001
-From: C A Subramaniam <subramaniam.ca@ti.com>
-Date: Tue, 8 Sep 2009 21:35:58 +0530
-Subject: [PATCH 6/10] omap mailbox: remove unnecessary arg for omap_mbox_msg_send
-
-Also removed from tx_data
+>From 1ba55e567917b48afc64a14202fd860b3332056d Mon Sep 17 00:00:00 2001
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Wed, 2 Sep 2009 20:18:53 +0530
+Subject: [PATCH 7/10] omap mailbox: expose omap_mbox_enable()/disable_irq()
 
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- arch/arm/plat-omap/include/mach/mailbox.h |    2 +-
- arch/arm/plat-omap/mailbox.c              |    4 +---
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/include/mach/mailbox.h |   12 ++++++++++++
+ arch/arm/plat-omap/mailbox.c              |   12 ++----------
+ 2 files changed, 14 insertions(+), 10 deletions(-)
 
 diff --git a/arch/arm/plat-omap/include/mach/mailbox.h b/arch/arm/plat-omap/include/mach/mailbox.h
-index 319306a..8260a3f 100644
+index 8260a3f..bf06953 100644
 --- a/arch/arm/plat-omap/include/mach/mailbox.h
 +++ b/arch/arm/plat-omap/include/mach/mailbox.h
-@@ -63,7 +63,7 @@ struct omap_mbox {
- 	void			(*err_notify)(void);
- };
- 
--int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg, void *);
-+int omap_mbox_msg_send(struct omap_mbox *, mbox_msg_t msg);
- void omap_mbox_init_seq(struct omap_mbox *);
- 
- struct omap_mbox *omap_mbox_get(const char *);
-diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
-index 8a6d087..2899255 100644
---- a/arch/arm/plat-omap/mailbox.c
-+++ b/arch/arm/plat-omap/mailbox.c
-@@ -88,7 +88,6 @@ static int __mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
- 
- struct omap_msg_tx_data {
- 	mbox_msg_t	msg;
--	void		*arg;
- };
- 
- static void omap_msg_tx_end_io(struct request *rq, int error)
-@@ -97,7 +96,7 @@ static void omap_msg_tx_end_io(struct request *rq, int error)
- 	__blk_put_request(rq->q, rq);
+@@ -92,4 +92,16 @@ static inline void omap_mbox_restore_ctx(struct omap_mbox *mbox)
+ 	mbox->ops->restore_ctx(mbox);
  }
  
--int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg, void* arg)
-+int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg)
++static inline void omap_mbox_enable_irq(struct omap_mbox *mbox,
++					omap_mbox_irq_t irq)
++{
++	mbox->ops->enable_irq(mbox, irq);
++}
++
++static inline void omap_mbox_disable_irq(struct omap_mbox *mbox,
++					 omap_mbox_irq_t irq)
++{
++	mbox->ops->disable_irq(mbox, irq);
++}
++
+ #endif /* MAILBOX_H */
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 2899255..032f1fe 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -50,14 +50,6 @@ static inline int mbox_fifo_full(struct omap_mbox *mbox)
+ }
+ 
+ /* Mailbox IRQ handle functions */
+-static inline void enable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	mbox->ops->enable_irq(mbox, irq);
+-}
+-static inline void disable_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
+-{
+-	mbox->ops->disable_irq(mbox, irq);
+-}
+ static inline void ack_mbox_irq(struct omap_mbox *mbox, omap_mbox_irq_t irq)
  {
- 	struct omap_msg_tx_data *tx_data;
- 	struct request *rq;
-@@ -114,7 +113,6 @@ int omap_mbox_msg_send(struct omap_mbox *mbox, mbox_msg_t msg, void* arg)
- 	}
+ 	if (mbox->ops->ack_irq)
+@@ -144,7 +136,7 @@ static void mbox_tx_work(struct work_struct *work)
  
- 	tx_data->msg = msg;
--	tx_data->arg = arg;
- 	rq->end_io = omap_msg_tx_end_io;
- 	blk_insert_request(q, rq, 0, tx_data);
+ 		ret = __mbox_msg_send(mbox, tx_data->msg);
+ 		if (ret) {
+-			enable_mbox_irq(mbox, IRQ_TX);
++			omap_mbox_enable_irq(mbox, IRQ_TX);
+ 			spin_lock(q->queue_lock);
+ 			blk_requeue_request(q, rq);
+ 			spin_unlock(q->queue_lock);
+@@ -196,7 +188,7 @@ static void mbox_rxq_fn(struct request_queue *q)
  
+ static void __mbox_tx_interrupt(struct omap_mbox *mbox)
+ {
+-	disable_mbox_irq(mbox, IRQ_TX);
++	omap_mbox_disable_irq(mbox, IRQ_TX);
+ 	ack_mbox_irq(mbox, IRQ_TX);
+ 	schedule_work(&mbox->txq->work);
+ }
 -- 
 1.5.3.2
