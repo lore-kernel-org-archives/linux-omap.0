@@ -1,82 +1,61 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] omap2: ehci: Make Overo compile again
-Date: Tue, 22 Sep 2009 10:15:27 -0700
-Message-ID: <20090922171527.GG14890@atomide.com>
-References: <20090922150414.GA8975@lixom.net> <20090922161559.GA9767@lixom.net>
+From: Angelo Arrifano <miknix@gmail.com>
+Subject: Re: [APPLIED] [PATCH] omapfb: Reorder Register_framebuffer call
+Date: Tue, 22 Sep 2009 18:21:44 +0100
+Message-ID: <4AB907A8.8040805@gmail.com>
+References: <1252773249-24444-1-git-send-email-saaguirre@ti.com> <notify-1253583118@atomide.com> <4de7f8a60909220759g63b592eek85a2bca04b264d2e@mail.gmail.com> <20090922162853.GC14890@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56335 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978AbZIVRPe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 13:15:34 -0400
-Content-Disposition: inline
-In-Reply-To: <20090922161559.GA9767@lixom.net>
+Received: from ey-out-2122.google.com ([74.125.78.25]:11605 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281AbZIVRPm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 13:15:42 -0400
+Received: by ey-out-2122.google.com with SMTP id d26so641705eyd.19
+        for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 10:15:45 -0700 (PDT)
+In-Reply-To: <20090922162853.GC14890@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Olof Johansson <olof@lixom.net>
-Cc: linux-omap@vger.kernel.org, Ajay Kumar Gupta <ajay.gupta@ti.com>, sakoman@gmail.com
+To: Tony Lindgren <tony@atomide.com>
+Cc: Alistair Buxton <a.j.buxton@gmail.com>, linux-omap@vger.kernel.org
 
-* Olof Johansson <olof@lixom.net> [090922 09:00]:
-> Overo needs the same changes as the other platforms do for the ehci changes.
+Tony Lindgren wrote:
+> * Jan Blunck <jblunck@infradead.org> [090922 07:59]:
+>> On Tue, Sep 22, 2009 at 3:31 AM, Tony Lindgren <tony@atomide.com> wrote:
+>>> This patch has been applied to the linux-omap
+>>> by youw fwiendly patch wobot.
+>>>
+>>> Branch in linux-omap: omap-fixes
+>>>
+>>> Initial commit ID (Likely to change): 9aef1066fb5ca8506068eaab1c552ecca4c85475
+>>>
+>>> PatchWorks
+>>> http://patchwork.kernel.org/patch/47089/
+>>>
 > 
-> Also, roll in the corresponding change from Steve Sakoman fixing the
-> port setup (removing the redundant GPIO setup and switching to port 2).
->
-> Signed-off-by: Olof Johansson <olof@lixom.net>
-
-Sakoman, does this look OK to you?
-
-Tony
-
+> Added back the original Cc's that were dropped from the linux-omap
+> commit message.
 > 
-> ---
+>> Is it actually safe to do this? The framebuffer can be used directly
+>> after it is registered. In this case it would mean it is used before
+>> it is even fully initialized (set_fb_var(), set_fb_fix(), ... are
+>> being called).
 > 
-> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-> index 17f2318..75bdc09 100644
-> --- a/arch/arm/mach-omap2/board-overo.c
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -384,6 +384,19 @@ static struct platform_device *overo_devices[] __initdata = {
->  	&overo_lcd_device,
->  };
->  
-> +static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-> +
-> +	.chargepump = false,
-> +	.phy_reset  = true,
-> +	.reset_gpio_port[0]  = -EINVAL,
-> +	.reset_gpio_port[1]  = OVERO_GPIO_USBH_NRESET,
-> +	.reset_gpio_port[2]  = -EINVAL
-> +};
-> +
-> +
->  static void __init overo_init(void)
->  {
->  	overo_i2c_init();
-> @@ -391,7 +404,7 @@ static void __init overo_init(void)
->  	omap_serial_init();
->  	overo_flash_init();
->  	usb_musb_init();
-> -	usb_ehci_init(EHCI_HCD_OMAP_MODE_PHY, false, true, 183, -EINVAL);
-> +	usb_ehci_init(&ehci_pdata);
->  	overo_ads7846_init();
->  	overo_init_smsc911x();
->  
-> @@ -434,14 +447,6 @@ static void __init overo_init(void)
->  	else
->  		printk(KERN_ERR "could not obtain gpio for "
->  					"OVERO_GPIO_USBH_CPEN\n");
-> -
-> -	if ((gpio_request(OVERO_GPIO_USBH_NRESET,
-> -			  "OVERO_GPIO_USBH_NRESET") == 0) &&
-> -	    (gpio_direction_output(OVERO_GPIO_USBH_NRESET, 1) == 0))
-> -		gpio_export(OVERO_GPIO_USBH_NRESET, 0);
-> -	else
-> -		printk(KERN_ERR "could not obtain gpio for "
-> -					"OVERO_GPIO_USBH_NRESET\n");
->  }
->  
->  static void __init overo_map_io(void)
+> Good point, dropping the patch.
+> 
+> Also, let's let Tomi Valkeinen deal with queueing up the omap fb code.
+> I can then merge Tomi's branck into linux-omap master branch as needed.
+> 
+> Regards,
+> 
+> Tony
+
+Hello,
+
+This patch doesn't work for us at linwizard project (omap850). The
+commit 537a1bf059fa312355696fa6db80726e655e7f17 makes the HTC Wizard
+crash at boot due to usage of uninitialized mutex. Applying the referred
+patch prevents the crash but the LCD screen goes black and doesn't show
+any data.
+
+- Angelo
