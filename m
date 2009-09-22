@@ -1,27 +1,197 @@
 From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCH 0/3] OMAP UART: Adding support for omap-serial driver.
-Date: Tue, 22 Sep 2009 22:34:10 +0530 (IST)
-Message-ID: <50933.192.168.10.88.1253639050.squirrel@dbdmail.itg.ti.com>
+Subject: [PATCH 2/3] OMAP UART: Adding support for omap-serial driver.
+Date: Tue, 22 Sep 2009 22:34:41 +0530 (IST)
+Message-ID: <51283.192.168.10.88.1253639081.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756755AbZIVREJ@vger.kernel.org>
-References: 
-In-Reply-To: 
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932105AbZIVREv@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Hi All,
 
-The Following series of patch adds support for OMAP3430-HIGH SPEED UART Controller.
+From: Govindraj R <govindraj.raja@ti.com>
 
-[PATCH 1/3] - Adds support for omap-serial driver also includes header, Kconfig and Makefile.
+This patch adds platform data support for omap-serial driver.
 
-[PATCH 2/3] - Adds platform data support for omap-serial driver.
+Signed-off-by:	Govindraj R <govindraj.raja@ti.com>
+---
+ arch/arm/mach-omap2/serial.c |  146 ++++++++++++++++++++++
+ 1 file changed, 146 insertions(+)
 
-[PATCH 3/3] - Adds omap-serial driver support in omap_3430sdp_defconfig.
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index 021130d..7b46af0 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -13,6 +13,9 @@
+  * Copyright (C) 2009 Texas Instruments
+  * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com
+  *
++ * Copyright (C) 2009 Texas Instruments
++ * Added support for Omap-Serial driver - Govindraj R <govindraj.raja@ti.com>
++ *
+  * This file is subject to the terms and conditions of the GNU General Public
+  * License. See the file "COPYING" in the main directory of this archive
+  * for more details.
+@@ -29,6 +32,10 @@
+ #include <mach/clock.h>
+ #include <mach/control.h>
 
--- 
-Regards,
-Govindraj.R
++#ifdef CONFIG_SERIAL_OMAP
++#include <mach/dma.h>
++#include <mach/omap-serial.h>
++#endif
+ #include "prm.h"
+ #include "pm.h"
+ #include "prm-regbits-34xx.h"
+@@ -37,6 +44,7 @@
+
+ #define DEFAULT_TIMEOUT (5 * HZ)
+
++#ifdef CONFIG_SERIAL_8250
+ struct omap_uart_state {
+ 	int num;
+ 	int can_sleep;
+@@ -648,3 +656,141 @@ void __init omap_serial_init(void)
+ 		}
+ 	}
+ }
++#endif
++
++#ifdef CONFIG_SERIAL_OMAP
++
++static struct uart_dma_info uart1_dma_state = {
++#ifdef CONFIG_SERIAL_OMAP_DMA_UART1
++		.dma_enabled	= 1,
++		.rx_dma_bufsize	=
++			CONFIG_SERIAL_OMAP_UART1_RXDMA_BUFSIZE,
++		.rx_timeout	=
++			CONFIG_SERIAL_OMAP_UART1_RXDMA_TIMEOUT,
++#endif
++};
++
++static struct uart_dma_info uart2_dma_state = {
++#ifdef CONFIG_SERIAL_OMAP_DMA_UART2
++		.dma_enabled	= 1,
++		.rx_dma_bufsize	=
++			CONFIG_SERIAL_OMAP_UART2_RXDMA_BUFSIZE,
++		.rx_timeout	=
++			CONFIG_SERIAL_OMAP_UART2_RXDMA_TIMEOUT,
++#endif
++};
++
++static struct uart_dma_info uart3_dma_state = {
++#ifdef CONFIG_SERIAL_OMAP_DMA_UART3
++		.dma_enabled	= 1,
++		.rx_dma_bufsize	=
++			CONFIG_SERIAL_OMAP_UART3_RXDMA_BUFSIZE,
++		.rx_timeout	=
++			CONFIG_SERIAL_OMAP_UART3_RXDMA_TIMEOUT,
++#endif
++};
++
++static struct resource omap2_uart1_resources[] = {
++	{
++		.start          = OMAP_UART1_BASE,
++		.end            = OMAP_UART1_BASE + 0x3ff,
++		.flags          = IORESOURCE_MEM,
++	}, {
++		/* UART1 IRQ - 72*/
++		.start          = INT_24XX_UART1_IRQ,
++		.flags          = IORESOURCE_IRQ,
++	}, {
++		/* UART1 TX DMA CHANNEL -S_DMA_48- */
++		.start		= OMAP24XX_DMA_UART1_TX,
++		.flags		= IORESOURCE_DMA,
++	}, {
++		/* UART1 RX DMA CHANNEL -S_DMA_49- */
++		.start		= OMAP24XX_DMA_UART1_RX,
++		.flags		= IORESOURCE_DMA,
++	}
++};
++
++static struct resource omap2_uart2_resources[] = {
++	{
++		.start          = OMAP_UART2_BASE,
++		.end            = OMAP_UART2_BASE + 0x3ff,
++		.flags          = IORESOURCE_MEM,
++	}, {
++		/* UART2 IRQ - 73*/
++		.start          = INT_24XX_UART2_IRQ,
++		.flags          = IORESOURCE_IRQ,
++	}, {
++		/* UART2 TX DMA CHANNEL -S_DMA_50- */
++		.start		= OMAP24XX_DMA_UART2_TX,
++		.flags		= IORESOURCE_DMA,
++	}, {
++		/* UART2 RX DMA CHANNEL -S_DMA_51- */
++		.start		= OMAP24XX_DMA_UART2_RX,
++		.flags		= IORESOURCE_DMA,
++	}
++};
++
++static struct resource omap2_uart3_resources[] = {
++	{
++		.start          = OMAP_UART3_BASE,
++		.end            = OMAP_UART3_BASE + 0x3ff,
++		.flags          = IORESOURCE_MEM,
++	}, {
++		/* UART3 IRQ - 74*/
++		.start          = INT_24XX_UART3_IRQ,
++		.flags          = IORESOURCE_IRQ,
++	}, {
++		/* UART3 TX DMA CHANNEL -S_DMA_52- */
++		.start		= OMAP24XX_DMA_UART3_TX,
++		.flags		= IORESOURCE_DMA,
++	}, {
++		/* UART3 RX DMA CHANNEL -S_DMA_53- */
++		.start		= OMAP24XX_DMA_UART3_RX,
++		.flags		= IORESOURCE_DMA,
++	}
++};
++
++/* OMAP UART platform structure */
++static struct platform_device uart1_device = {
++	.name			= "omap-uart",
++	.id			= 1,
++	.num_resources		= ARRAY_SIZE(omap2_uart1_resources),
++	.resource		= omap2_uart1_resources,
++	.dev			= {
++		.platform_data  = &uart1_dma_state,
++	},
++};
++static struct platform_device uart2_device = {
++	.name			= "omap-uart",
++	.id			= 2,
++	.num_resources		= ARRAY_SIZE(omap2_uart2_resources),
++	.resource		= omap2_uart2_resources,
++	.dev			= {
++		.platform_data  = &uart2_dma_state,
++	},
++};
++static struct platform_device uart3_device = {
++	.name			= "omap-uart",
++	.id			= 3,
++	.num_resources		= ARRAY_SIZE(omap2_uart3_resources),
++	.resource		= omap2_uart3_resources,
++	.dev			= {
++		.platform_data  = &uart3_dma_state,
++	},
++};
++
++static struct platform_device *uart_devices[] = {
++	&uart1_device,
++	&uart2_device,
++	&uart3_device,
++};
++
++void __init omap_serial_init(void)
++{
++	int ret = 0, i;
++	for (i = 0; i < OMAP_MAX_NR_PORTS; i++)
++		omap_uart_idle_init(i);
++
++	ret = platform_add_devices(uart_devices, ARRAY_SIZE(uart_devices));
++}
++#endif /* CONFIG_SERIAL_OMAP */
