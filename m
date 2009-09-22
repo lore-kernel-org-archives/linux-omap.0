@@ -1,56 +1,66 @@
-From: Max Filippov <jcmvbkbc@gmail.com>
-Subject: Re: Bad block on N810
-Date: Tue, 22 Sep 2009 11:16:20 +0400
-Message-ID: <73aaf0dd0909220016p56a1c921g9bee92656478e872@mail.gmail.com>
-References: <4AB245B3.10909@indt.org.br>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: linux omap on sdp broken?
+Date: Tue, 22 Sep 2009 13:00:44 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DD991DFF@dbde02.ent.ti.com>
+References: <782515bb0909181942v58ea0e95n8025eb47876116bf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f211.google.com ([209.85.219.211]:40093 "EHLO
-	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754106AbZIVHYP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 03:24:15 -0400
-Received: by ewy7 with SMTP id 7so138836ewy.17
-        for <linux-omap@vger.kernel.org>; Tue, 22 Sep 2009 00:24:18 -0700 (PDT)
-In-Reply-To: <4AB245B3.10909@indt.org.br>
+Received: from comal.ext.ti.com ([198.47.26.152]:32787 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751084AbZIVHap convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 22 Sep 2009 03:30:45 -0400
+In-Reply-To: <782515bb0909181942v58ea0e95n8025eb47876116bf@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tony Lindgren <tony@atomide.com>
+To: Nishanth Menon <menon.nishanth@gmail.com>, linux-omap <linux-omap@vger.kernel.org>
 
-> Hi folks,
->
-> I'm having a curious problem with my N810: my device turn off (turn o=
-ff, not restart) always a few seconds after just initialized.
->
-> Well, after taking a look in dbug mode, I saw the the following probl=
-ems:
->
-> [ =A0 36.921875] JFFS2 notice: (1200) check_node_data: wrong data CRC=
- in data node at 0x0b651edc: read 0x25e088e1, calculated 0x76861b05.
-> ...
-> [ =A0 40.578125] JFFS2 warning: (1293) jffs2_sum_write_sumnode: Not e=
-nough space for summary, padsize =3D -965
->
-> I already reflash the FIASCO image, but this error persists. So it lo=
-oks that the fs has some problem (bad block) on internal memory card. m=
-kfs could solve the problem, but, as I mentioned above, only a few seco=
-nds after starting, the device shutdown =A0:(
->
-> Any hints?
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Nishanth Menon
+> Sent: Saturday, September 19, 2009 8:12 AM
+> To: linux-omap
+> Subject: linux omap on sdp broken?
+> 
+> Hi Folks,
+> Has Anyone tried booting latest kernel from tmlind master 
+> tree recently?
+> Ref: 
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-oma
+> p-2.6.git
+> 
+> Starting kernel ...
+> Uncompressing 
+> Linux.........................................................
+> ..............................................................
+> ..........................................
+> done, booting the kernel.
+> 
+> Gets stuck there..
 
-Hello.
+I saw similar error on OMAP3EVM but "make distclean" followed
+by regular "make" helped me.
 
-AFAIK N810 is turned off by its watchdog, so be sure to touch it at
-least once a minute, like this:
+~sanjeev
 
-echo 63 > /sys/devices/platform/retu-watchdog/period
-
---=20
-Max
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Tried with
+> arm-none-linux-gnueabi-gcc (Sourcery G++ Lite 2009q1-203) 4.3.3
+> Copyright (C) 2008 Free Software Foundation, Inc.
+> This is free software; see the source for copying conditions. 
+>  There is NO
+> warranty; not even for MERCHANTABILITY or FITNESS FOR A 
+> PARTICULAR PURPOSE.
+> 
+> Also tried 2008q3 with no luck.
+> 
+> Regards,
+> Nishanth Menon
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
