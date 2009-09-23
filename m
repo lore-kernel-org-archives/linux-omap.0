@@ -1,60 +1,65 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
-Date: Wed, 23 Sep 2009 08:45:38 +0300 (EEST)
-Message-ID: <20090923.084538.48517375.Hiroshi.DOYU@nokia.com>
-References: <20090918.175434.229727484.Hiroshi.DOYU@nokia.com>
-	<20090922213617.GD4919@atomide.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301DDA2CB2B@dbde02.ent.ti.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [GIT PULL]: OMAP2/3 Display Subsystem
+Date: Wed, 23 Sep 2009 09:42:24 +0300
+Message-ID: <1253688144.14841.7.camel@tubuntu>
+References: <1253622588.25232.11.camel@tubuntu>
+	 <20090922130304.ffe24448.akpm@linux-foundation.org>
+Reply-To: tomi.valkeinen@nokia.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:22405 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795AbZIWFpo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 01:45:44 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDA2CB2B@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754205AbZIWGnQ@vger.kernel.org>
+In-Reply-To: <20090922130304.ffe24448.akpm@linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: ext Andrew Morton <akpm@linux-foundation.org>
+Cc: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
 List-Id: linux-omap@vger.kernel.org
-To: premi@ti.com
-Cc: tony@atomide.com, linux-omap@vger.kernel.org
 
-Hi Premi,
-
-From: "ext Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
-Date: Wed, 23 Sep 2009 06:06:43 +0200
-
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Wednesday, September 23, 2009 3:06 AM
-> > To: Hiroshi DOYU
-> > Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
-> > 
-> > * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090918 07:54]:
-> > > Hi Premi,
-> > > 
-> > > From: "ext Premi, Sanjeev" <premi@ti.com>
-> > > Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
-> > > Date: Fri, 18 Sep 2009 16:40:29 +0200
-> > > 
-> > > [...]
-> > > 
+On Tue, 2009-09-22 at 22:03 +0200, ext Andrew Morton wrote:
+> On Tue, 22 Sep 2009 15:29:48 +0300
+> Tomi Valkeinen <tomi.valkeinen@nokia.com> wrote:
 > 
-> [snip]--[snip]
-> 
-> > > > Shouldn't we go with the original patch itself?
-> > > 
-> > > Right, the original is better, then;)
+> > Linus,
 > > 
-> > Can you please specify which one (if any) should be queued?
+> > Here's the new display subsystem and framebuffer driver for OMAP2/3.
 > > 
-> > Do you mean http://patchwork.kernel.org/patch/48467/
+> > The driver has been reviewed on linux-omap and linux-fbdev-devel, and is in
+> > use, for example, on N900, Beagle Board and Overo boards. We have an ACK for
+> > the OMAP parts from Tony Lindgren, who maintains the OMAP platform.
+> > 
+> > We have gotten positive feedback about the driver, for example in this thread:
+> > http://marc.info/?l=linux-kernel&m=125171081901820&w=2
+> > 
+> > The driver is actively maintained and developed further, and I have already a
+> > bunch of patches on top of these patches, but I would like to get the big core
+> > driver merged first. After the driver is merged, other people can send patches
+> > to LCD drivers and board files to enable the new display subsystem on their
+> > boards.
+> > 
+> > Andrew said 2-3 weeks ago that he'll merge the driver (after he has looked
+> > through it), but he hasn't responded since then. I'm guessing he's quite busy.
 > 
-> [sp] Yes. That's right.
+> That's because it came very late and conflicts considerably with
+> changes which are already pending.
+> 
+> > Please pull the new OMAP2/3 display subsystem driver from:
+> > 
+> >   git://gitorious.org/linux-omap-dss2/linux.git for-linus
+> > 
+> 
+> Confused.  These conflicts heavily with the changes which I've already
+> queued, does it not?  Ones which were queued way earlier than this
+> material.
+> 
+> If so, why on earth did you send a pull request, knowing that it would
+> trash my tree?
 
-I know it's nitpicky, but it's better to remove a space after casting
-as pointed previously.
+Ah, my mistake. I'm new to getting patches merged and the process
+involved. Somehow I thought the patches you have went already in, and as
+I didn't get any replies for couple of week, I pursued another route.
+Sorry about the confusion.
 
-Would it be possible to send the update version?
+Let's continue this with less audience, no need to bother everyone with
+this.
+
+ Tomi
