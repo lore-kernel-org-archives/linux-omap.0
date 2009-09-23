@@ -1,32 +1,51 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: OMAP2/3 Display Subsystem merging
-Date: Wed, 23 Sep 2009 00:10:28 -0700
-Message-ID: <20090923001028.bfe04739.akpm@linux-foundation.org>
-References: <1253689449.14841.29.camel@tubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52057 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754065AbZIWHKk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Sep 2009 03:10:40 -0400
-In-Reply-To: <1253689449.14841.29.camel@tubuntu>
-Sender: linux-omap-owner@vger.kernel.org
+From: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Subject: [PATCH] SDMA: Fixing bug in omap_dma_set_global_params()
+Date: Wed, 23 Sep 2009 12:49:06 +0530
+Message-ID: <1253690346-17865-1-git-send-email-anuj.aggarwal@ti.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754299AbZIWHTI@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev-devel <linux-fbdev-devel@lists.sourceforge.net>
 
-On Wed, 23 Sep 2009 10:04:09 +0300 Tomi Valkeinen <tomi.valkeinen@nokia.com> wrote:
+Argument tparams was not being used to program
+global register GCR.HI_THREAD_RESERVED. This patch fixes the same.
 
-> Hi,
-> 
-> How can we proceed with the OMAP DSS2 merging? I can take the old omapfb
-> patches you have to my tree, and give that tree to you as one set, or I
-> can base the DSS2 on top of your tree. If that's ok, where can I find
-> the patches or your tree?
+Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+---
+ arch/arm/plat-omap/dma.c |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
-Wait for -rc1 (or tomorrow's mainline, probably), redo and retest the
-patches, send them out for review and integration.
-
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index bf08634..7a7b6df 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -829,10 +829,10 @@ EXPORT_SYMBOL(omap_free_dma);
+  *
+  * @param arb_rate
+  * @param max_fifo_depth
+- * @param tparams - Number of thereads to reserve : DMA_THREAD_RESERVE_NORM
+- * 						    DMA_THREAD_RESERVE_ONET
+- * 						    DMA_THREAD_RESERVE_TWOT
+- * 						    DMA_THREAD_RESERVE_THREET
++ * @param tparams - Number of threads to reserve : DMA_THREAD_RESERVE_NORM
++ * 						   DMA_THREAD_RESERVE_ONET
++ * 						   DMA_THREAD_RESERVE_TWOT
++ * 						   DMA_THREAD_RESERVE_THREET
+  */
+ void
+ omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
+@@ -847,8 +847,9 @@ omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
+ 	if (arb_rate == 0)
+ 		arb_rate = 1;
+ 
+-	reg = (arb_rate & 0xff) << 16;
+-	reg |= (0xff & max_fifo_depth);
++	reg = 0xff & max_fifo_depth;
++	reg |= (0x3 & tparams) << 12;
++	reg |= (arb_rate & 0xff) << 16;
+ 
+ 	dma_write(reg, GCR);
+ }
+-- 
+1.6.2.4
