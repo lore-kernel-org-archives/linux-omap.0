@@ -1,117 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v2] Runtime detection of Si features
-Date: Wed, 23 Sep 2009 10:10:14 -0700
-Message-ID: <20090923171013.GK4919@atomide.com>
-References: <1250509858-7951-1-git-send-email-premi@ti.com> <20090922200905.GA4919@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDA2D09E@dbde02.ent.ti.com>
+From: Alistair Buxton <a.j.buxton@gmail.com>
+Subject: Re: [RFC] OMAP1: Massive clean up of omap730/omap850 code
+Date: Wed, 23 Sep 2009 19:26:44 +0100
+Message-ID: <3d374d00909231126y442c41e1y558664b360205192@mail.gmail.com>
+References: <3d374d00909192107t3e7d591dhf1a94ba43d0422e8@mail.gmail.com>
+	 <20090921231723.GD27699@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60139 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbZIWRKK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 13:10:10 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDA2D09E@dbde02.ent.ti.com>
+Received: from mail-bw0-f210.google.com ([209.85.218.210]:32980 "EHLO
+	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752775AbZIWS0m (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 14:26:42 -0400
+Received: by bwz6 with SMTP id 6so761180bwz.37
+        for <linux-omap@vger.kernel.org>; Wed, 23 Sep 2009 11:26:45 -0700 (PDT)
+In-Reply-To: <20090921231723.GD27699@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-* Premi, Sanjeev <premi@ti.com> [090923 06:41]:
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > Sent: Wednesday, September 23, 2009 1:39 AM
-> > To: Premi, Sanjeev
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH v2] Runtime detection of Si features
-> 
-> [snip]---[snip]---[snip]
-> 
-> > > diff --git a/arch/arm/mach-omap2/mmc-twl4030.c 
-> > b/arch/arm/mach-omap2/mmc-twl4030.c
-> > > index 3c04c2f..d68284d 100644
-> > > --- a/arch/arm/mach-omap2/mmc-twl4030.c
-> > > +++ b/arch/arm/mach-omap2/mmc-twl4030.c
-> > > @@ -10,6 +10,7 @@
-> > >   * published by the Free Software Foundation.
-> > >   */
-> > >  #include <linux/err.h>
-> > > +#include <linux/bitops.h>
-> > >  #include <linux/io.h>
-> > >  #include <linux/module.h>
-> > >  #include <linux/platform_device.h>
-> > 
-> > The mmc-twl4030.c change should not be related to this, right?
-> > 
-> > Other than that, let's plan on merging these after 2.6.32-rc1.
-> > 
-> 
-> [sp] Not really related to the runtime detection; but required to
->      ensure successful compilation. Using BIT() macros in cpu.h
->      (see below) make this necessary.
+2009/9/22 Tony Lindgren <tony@atomide.com>:
 
-OK
- 
->      Should I split this into patch-set; making this into a
->      separate patch?
+> Looks good to me. Let's plan on queuing these early so we can test it
+> in the linux-omap tree to make sure the patches don't break anyting for
+> other omaps. Then let's get them to the mainline tree the next merge
+> window after this current one.
+>
+> To me it looks like we could queue "OMAP7XX] irq.c: Missed a cpu_is_omap850()"
+> and "OMAP7XX] PM: Add another ARCH_OMAP850 check" already during the -rc
+> cycle as fixes?
+>
+> Then assuming you're done with the 7xx patches, could you please
+> combine all the trivial 730 to 7xx rename patches into just one patch?
+> This will make it easier for people to read through the whole series ;)
 
-No, that's fine.
+Hi,
 
-Tony
+I've done a cleaned up version of the series now, available in branch
+omap7xx-fortony (against 2.6.31) or omap7xx-fortony-rc1 (against
+linux-omap/master, 945044d1...) The end result is the same whichever
+you apply: the conflicting code in gpio.c just gets deleted anyway.
 
+The first 9 patches do the clean up. The next 2 create omap7xx.h and
+swap over the core files. Then the big rename is done in two parts.
+Finally, a separate patch for the uwire driver. After that comes misc
+fixes for omap850 and 7xx. That puts omap7xx into a state where it
+boots for us with only the addition of a board file.
 
+http://ali1234.homelinux.net/linwizard-kernel.git/
 
- 
-> Best regards,
-> Sanjeev
-> 
-> > Regards,
-> > 
-> > Tony
-> >
-> 
-> [snip]---[snip]---[snip]
->  
-> > > diff --git a/arch/arm/plat-omap/include/mach/cpu.h 
-> > b/arch/arm/plat-omap/include/mach/cpu.h
-> > > index 4fbc6a9..4a04f77 100644
-> > > --- a/arch/arm/plat-omap/include/mach/cpu.h
-> > > +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> > > @@ -432,4 +432,27 @@ IS_OMAP_TYPE(3430, 0x3430)
-> > >  int omap_chip_is(struct omap_chip_id oci);
-> > >  void omap2_check_revision(void);
-> > >  
-> > > +/*
-> > > + * Runtime detection of OMAP3 features
-> > > + */
-> > > +extern u32 omap3_features;
-> > > +
-> > > +#define OMAP3_HAS_L2CACHE		BIT(0)
-> > > +#define OMAP3_HAS_IVA			BIT(1)
-> > > +#define OMAP3_HAS_SGX			BIT(2)
-> > > +#define OMAP3_HAS_NEON			BIT(3)
-> > > +#define OMAP3_HAS_ISP			BIT(4)
-> > > +
-> > > +#define OMAP3_HAS_FEATURE(feat,flag)			\
-> > > +static inline unsigned int omap3_has_ ##feat(void)	\
-> > > +{							\
-> > > +	return (omap3_features & OMAP3_HAS_ ##flag);	\
-> > > +}							\
-> > > +
-> > > +OMAP3_HAS_FEATURE(l2cache, L2CACHE)
-> > > +OMAP3_HAS_FEATURE(sgx, SGX)
-> > > +OMAP3_HAS_FEATURE(iva, IVA)
-> > > +OMAP3_HAS_FEATURE(neon, NEON)
-> > > +OMAP3_HAS_FEATURE(isp, ISP)
-> > > +
-> > >  #endif	/* __ASM_ARCH_OMAP_CPU_H */
-> > > -- 
-> > > 1.6.2.2
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe 
-> > linux-omap" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
+Thanks
+
+-- 
+Alistair Buxton
+a.j.buxton@gmail.com
