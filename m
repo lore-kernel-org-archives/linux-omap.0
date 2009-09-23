@@ -1,47 +1,32 @@
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH] ASoC: OMAP3EVM: Use the twl4030_setup_data for headset pop-removal
-Date: Wed, 23 Sep 2009 12:40:31 +0530
-Message-ID: <1253689831-2996-1-git-send-email-anuj.aggarwal@ti.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: OMAP2/3 Display Subsystem merging
+Date: Wed, 23 Sep 2009 00:10:28 -0700
+Message-ID: <20090923001028.bfe04739.akpm@linux-foundation.org>
+References: <1253689449.14841.29.camel@tubuntu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49871 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754156AbZIWHKd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 23 Sep 2009 03:10:33 -0400
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52057 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754065AbZIWHKk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Sep 2009 03:10:40 -0400
+In-Reply-To: <1253689449.14841.29.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>
+To: tomi.valkeinen@nokia.com
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-fbdev-devel <linux-fbdev-devel@lists.sourceforge.net>
 
-The pop-removal specific values are configured for TWL4030 codec
-for OMAP3EVM through this patch.
+On Wed, 23 Sep 2009 10:04:09 +0300 Tomi Valkeinen <tomi.valkeinen@nokia.com> wrote:
 
-Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
----
- sound/soc/omap/omap3evm.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+> Hi,
+> 
+> How can we proceed with the OMAP DSS2 merging? I can take the old omapfb
+> patches you have to my tree, and give that tree to you as one set, or I
+> can base the DSS2 on top of your tree. If that's ok, where can I find
+> the patches or your tree?
 
-diff --git a/sound/soc/omap/omap3evm.c b/sound/soc/omap/omap3evm.c
-index 9114c26..8deb59b 100644
---- a/sound/soc/omap/omap3evm.c
-+++ b/sound/soc/omap/omap3evm.c
-@@ -93,10 +93,17 @@ static struct snd_soc_card snd_soc_omap3evm = {
- 	.num_links = 1,
- };
- 
-+/* twl4030 setup */
-+static struct twl4030_setup_data twl4030_setup = {
-+	.ramp_delay_value = 4,
-+	.sysclk = 26000,
-+};
-+
- /* Audio subsystem */
- static struct snd_soc_device omap3evm_snd_devdata = {
- 	.card = &snd_soc_omap3evm,
- 	.codec_dev = &soc_codec_dev_twl4030,
-+	.codec_data = &twl4030_setup,
- };
- 
- static struct platform_device *omap3evm_snd_device;
--- 
-1.6.2.4
+Wait for -rc1 (or tomorrow's mainline, probably), redo and retest the
+patches, send them out for review and integration.
 
