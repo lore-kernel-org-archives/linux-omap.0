@@ -1,19 +1,12 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH 0/2] dspbridge: OSAL: Simplify REG API
-Date: Wed, 23 Sep 2009 19:03:24 +0300
-Message-ID: <1253721804-22816-7-git-send-email-andy.shevchenko@gmail.com>
-References: <1253721804-22816-1-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-2-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-3-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-4-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-5-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-6-git-send-email-andy.shevchenko@gmail.com>
+Subject: [PATCHv2 0/5] dspbridge: OSAL: Simplify so called 'registry'
+Date: Wed, 23 Sep 2009 19:03:18 +0300
+Message-ID: <1253721804-22816-1-git-send-email-andy.shevchenko@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49797 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752929AbZIWQD0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 12:03:26 -0400
-In-Reply-To: <1253721804-22816-6-git-send-email-andy.shevchenko@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:59835 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753316AbZIWQDd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 12:03:33 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -21,21 +14,33 @@ Cc: x0095840@ti.com, omar.ramirez@ti.com, hiroshi.doyu@nokia.com, Andy Shevchenk
 
 From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-There are two patches which simplify registry API.
+There are several patches which simplify registry API and code.
 
-Andy Shevchenko (2):
+Andy Shevchenko (5):
   DSPBRIDGE: OSAL: Simplify REG API
   DSPBRIDGE: OSAL: Remove unused registry variables
+  DSPBRIDGE: OSAL: Clean up dbreg.h and move it
+  DSPBRIDGE: OSAL: Implement registry as linked list
+  DSPBRIDGE: OSAL: Remove printS()
 
- arch/arm/plat-omap/include/dspbridge/dbreg.h |    3 -
- arch/arm/plat-omap/include/dspbridge/reg.h   |  102 +++----------------------
- drivers/dsp/bridge/rmgr/dbdcd.c              |   22 ++---
- drivers/dsp/bridge/rmgr/drv.c                |   22 ++----
- drivers/dsp/bridge/rmgr/drv_interface.c      |   35 ++-------
- drivers/dsp/bridge/services/cfg.c            |   50 ++++---------
- drivers/dsp/bridge/services/reg.c            |   26 ++-----
- drivers/dsp/bridge/services/regsup.c         |    3 +-
- drivers/dsp/bridge/services/regsup.h         |    4 +-
- drivers/dsp/bridge/wmd/tiomap3430.c          |    4 +-
- 10 files changed, 68 insertions(+), 203 deletions(-)
+ arch/arm/plat-omap/include/dspbridge/dbdefs.h |   26 +++
+ arch/arm/plat-omap/include/dspbridge/dbreg.h  |  113 ------------
+ arch/arm/plat-omap/include/dspbridge/reg.h    |  102 ++---------
+ drivers/dsp/bridge/pmgr/dev.c                 |    1 -
+ drivers/dsp/bridge/rmgr/dbdcd.c               |   22 +--
+ drivers/dsp/bridge/rmgr/drv.c                 |   25 +--
+ drivers/dsp/bridge/rmgr/drv_interface.c       |   37 +---
+ drivers/dsp/bridge/rmgr/dspdrv.c              |    3 -
+ drivers/dsp/bridge/rmgr/mgr.c                 |    1 -
+ drivers/dsp/bridge/rmgr/node.c                |    1 -
+ drivers/dsp/bridge/rmgr/proc.c                |    1 -
+ drivers/dsp/bridge/rmgr/strm.c                |    1 -
+ drivers/dsp/bridge/services/cfg.c             |   53 ++----
+ drivers/dsp/bridge/services/reg.c             |   29 +--
+ drivers/dsp/bridge/services/regsup.c          |  243 +++++++-----------------
+ drivers/dsp/bridge/services/regsup.h          |    7 +-
+ drivers/dsp/bridge/wmd/io_sm.c                |    1 -
+ drivers/dsp/bridge/wmd/tiomap3430.c           |    5 +-
+ 18 files changed, 164 insertions(+), 507 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/dspbridge/dbreg.h
 
