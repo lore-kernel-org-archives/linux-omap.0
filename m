@@ -1,50 +1,69 @@
-From: Koen Kooi <koen.kooi@gmail.com>
-Subject: [PATCH] ARM: OMAP: Fix beagleboard EHCI setup
-Date: Wed, 23 Sep 2009 10:23:29 +0200
-Message-ID: <1253694209-55128-1-git-send-email-k.kooi@student.utwente.nl>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:34482 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477AbZIWIXb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 04:23:31 -0400
-Received: by fxm18 with SMTP id 18so390937fxm.17
-        for <linux-omap@vger.kernel.org>; Wed, 23 Sep 2009 01:23:34 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: [PATCH] SDMA: Fixing bug in omap_dma_set_global_params()
+Date: Wed, 23 Sep 2009 13:54:30 +0530
+Message-ID: <618f0c910909230124q773b90f6xd377e67a758e1237@mail.gmail.com>
+References: <1253690346-17865-1-git-send-email-anuj.aggarwal@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754571AbZIWIYd@vger.kernel.org>
+In-Reply-To: <1253690346-17865-1-git-send-email-anuj.aggarwal@ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Koen Kooi <koen@beagleboard.org>
 
-From: Koen Kooi <koen@beagleboard.org>
+On Wed, Sep 23, 2009 at 12:49 PM, Anuj Aggarwal <anuj.aggarwal@ti.com> =
+wrote:
+> Argument tparams was not being used to program
+> global register GCR.HI_THREAD_RESERVED. This patch fixes the same.
+>
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> ---
+> =A0arch/arm/plat-omap/dma.c | =A0 13 +++++++------
+> =A01 files changed, 7 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index bf08634..7a7b6df 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -829,10 +829,10 @@ EXPORT_SYMBOL(omap_free_dma);
+> =A0*
+> =A0* @param arb_rate
+> =A0* @param max_fifo_depth
+> - * @param tparams - Number of thereads to reserve : DMA_THREAD_RESER=
+VE_NORM
+> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 DMA_THREAD_RESERVE_ONET
+> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 DMA_THREAD_RESERVE_TWOT
+> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 DMA_THREAD_RESERVE_THREET
+> + * @param tparams - Number of threads to reserve : DMA_THREAD_RESERV=
+E_NORM
+> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0DMA_THREAD_RESERVE_ONET
+> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0DMA_THREAD_RESERVE_TWOT
+> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0DMA_THREAD_RESERVE_THREET
+> =A0*/
+> =A0void
+> =A0omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int t=
+params)
+> @@ -847,8 +847,9 @@ omap_dma_set_global_params(int arb_rate, int max_=
+fifo_depth, int tparams)
+> =A0 =A0 =A0 =A0if (arb_rate =3D=3D 0)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0arb_rate =3D 1;
+>
+> - =A0 =A0 =A0 reg =3D (arb_rate & 0xff) << 16;
+> - =A0 =A0 =A0 reg |=3D (0xff & max_fifo_depth);
+> + =A0 =A0 =A0 reg =3D 0xff & max_fifo_depth;
+> + =A0 =A0 =A0 reg |=3D (0x3 & tparams) << 12;
+> + =A0 =A0 =A0 reg |=3D (arb_rate & 0xff) << 16;
+>
+> =A0 =A0 =A0 =A0dma_write(reg, GCR);
+> =A0}
 
-The EHCI configuration in the beagleboard board file was copy/pasted
-from the sdp one and hence wrong. The beagleboard only used one port
-and lacks a charge pump.
-
-Tested on revision C1D and C3 boards
-
-Signed-off-by: Koen Kooi <koen@beagleboard.org>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 496b4a0..aa403e6 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -406,10 +406,10 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
- 	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
- 
--	.chargepump = true,
-+	.chargepump = false,
- 	.phy_reset  = true,
--	.reset_gpio_port[0]  = 57,
--	.reset_gpio_port[1]  = 61,
-+	.reset_gpio_port[0]  = -EINVAL,
-+	.reset_gpio_port[1]  = 147,
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
--- 
-1.6.2.4
-
+max_fifo_depth should not be set to zero. Perhaps it deserves a check
+similar to arb_rate ?
