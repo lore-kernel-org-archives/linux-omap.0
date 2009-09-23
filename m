@@ -1,88 +1,69 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCHv2 5/5] DSPBRIDGE: OSAL: Remove printS()
-Date: Wed, 23 Sep 2009 19:03:23 +0300
-Message-ID: <1253721804-22816-6-git-send-email-andy.shevchenko@gmail.com>
-References: <1253721804-22816-1-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-2-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-3-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-4-git-send-email-andy.shevchenko@gmail.com>
- <1253721804-22816-5-git-send-email-andy.shevchenko@gmail.com>
+From: Jan Blunck <jblunck@infradead.org>
+Subject: Re: [APPLIED] [PATCH] omapfb: Reorder Register_framebuffer call
+Date: Wed, 23 Sep 2009 19:03:37 +0200
+Message-ID: <4de7f8a60909231003w7bb9fdb9p7cf6fa0b2bc7e3c@mail.gmail.com>
+References: <1252773249-24444-1-git-send-email-saaguirre@ti.com>
+	 <notify-1253583118@atomide.com>
+	 <4de7f8a60909220759g63b592eek85a2bca04b264d2e@mail.gmail.com>
+	 <20090922162853.GC14890@atomide.com>
+	 <A24693684029E5489D1D202277BE89444B781B4E@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:40771 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753385AbZIWQEH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 12:04:07 -0400
-In-Reply-To: <1253721804-22816-5-git-send-email-andy.shevchenko@gmail.com>
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:33544 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753231AbZIWRDe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 13:03:34 -0400
+Received: by ewy7 with SMTP id 7so896808ewy.17
+        for <linux-omap@vger.kernel.org>; Wed, 23 Sep 2009 10:03:37 -0700 (PDT)
+In-Reply-To: <A24693684029E5489D1D202277BE89444B781B4E@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: x0095840@ti.com, omar.ramirez@ti.com, hiroshi.doyu@Nokia.com, Andy Shevchenko <ext-andriy.shevchenko@Nokia.com>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imre Deak <imre.deak@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
 
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+On Tue, Sep 22, 2009 at 6:57 PM, Aguirre Rodriguez, Sergio Alberto
+<saaguirre@ti.com> wrote:
+> From: Tony Lindgren [tony@atomide.com]
+> Sent: Tuesday, September 22, 2009 11:28 AM
+>> * Jan Blunck <jblunck@infradead.org> [090922 07:59]:
+>> > On Tue, Sep 22, 2009 at 3:31 AM, Tony Lindgren <tony@atomide.com> wrote:
+>> > > This patch has been applied to the linux-omap
+>> > > by youw fwiendly patch wobot.
+>> > >
+>> > > Branch in linux-omap: omap-fixes
+>> > >
+>> > > Initial commit ID (Likely to change): 9aef1066fb5ca8506068eaab1c552ecca4c85475
+>> > >
+>> > > PatchWorks
+>> > > http://patchwork.kernel.org/patch/47089/
+>> > >
+>> >
+>>
+>> Added back the original Cc's that were dropped from the linux-omap
+>> commit message.
+>>
+>> > Is it actually safe to do this? The framebuffer can be used directly
+>> > after it is registered. In this case it would mean it is used before
+>> > it is even fully initialized (set_fb_var(), set_fb_fix(), ... are
+>> > being called).
+>>
+>> Good point, dropping the patch.
+>
+> Hmm, ok. I guess i'll rework this patch considering that..
+>
+> I ran some framebuffer tests with this patch applied, and they worked fine for me.
+>
+> The only thing is that i didn't saw Tux on bootup...
+>
+> Actually, nobody ever gave this kind of feedback, which was the initial idea.
+>
 
-Remove printS() debuggin method. It's mostly useless and at least dangerous
-because of absence of boundary check.
+Sorry, I didn't look into it earlier.
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
----
- drivers/dsp/bridge/services/regsup.c |   23 -----------------------
- 1 files changed, 0 insertions(+), 23 deletions(-)
+BTW, I actually wonder if it's really necessary to initialize the
+mutex in register_framebuffer() or why it couldn't be done during
+allocation.
 
-diff --git a/drivers/dsp/bridge/services/regsup.c b/drivers/dsp/bridge/services/regsup.c
-index 71651a8..bd45b56 100644
---- a/drivers/dsp/bridge/services/regsup.c
-+++ b/drivers/dsp/bridge/services/regsup.c
-@@ -60,26 +60,6 @@ static struct LST_LIST regKey, *pRegKey = &regKey;
- 
- #if GT_TRACE
- extern struct GT_Mask REG_debugMask;	/* GT trace var. */
--/*
-- *  ======== printS ========
-- *  Purpose:
-- *      Displays printable characters in pBuf, if any.
-- */
--static inline void printS(void *pBuf)
--{
--	int pos = 0;
--	if (*(REG_debugMask).flags & (GT_2CLASS)) {
--		while (*(u8 *)((pBuf)+pos) >= ' ' &&
--		       *(u8 *)((pBuf)+pos) <= '~') {
--			GT_1trace(REG_debugMask, GT_2CLASS, "%c",
--					*(u8 *)((pBuf) + pos++));
--		}
--
--		GT_0trace(REG_debugMask, GT_2CLASS, "\n");
--	}
--}
--#else
--#define printS(pBuf)
- #endif
- 
- /*
-@@ -140,7 +120,6 @@ DSP_STATUS regsupGetValue(char *valName, void *pBuf, u32 *dataSize)
- 	if (DSP_SUCCEEDED(retVal)) {
- 		GT_2trace(REG_debugMask, GT_2CLASS, "G %s DATA %x ", valName,
- 			  *(u32 *)pBuf);
--		printS((u8 *)pBuf);
- 	} else {
- 		GT_1trace(REG_debugMask, GT_3CLASS, "G %s FAILED\n", valName);
- 	}
-@@ -160,7 +139,6 @@ DSP_STATUS regsupSetValue(char *valName, void *pBuf, u32 dataSize)
- 
- 	GT_2trace(REG_debugMask, GT_2CLASS, "S %s DATA %x ", valName,
- 		  *(u32 *)pBuf);
--	printS((u8 *)pBuf);
- 
- 	/*  Need to search through the entries looking for the right one.  */
- 	while (rv) {
-@@ -245,7 +223,6 @@ DSP_STATUS regsupEnumValue(IN u32 dwIndex, IN CONST char *pstrKey,
- 			GT_3trace(REG_debugMask, GT_2CLASS,
- 				  "E Key %s, Value %s, Data %x ",
- 				  pstrKey, pstrValue, *(u32 *)pstrData);
--			printS((u8 *)pstrData);
- 
- 			/*  Set our status to good and exit.  */
- 			retVal = DSP_SOK;
--- 
-1.5.6.5
-
+Cheers,
+Jan
