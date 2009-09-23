@@ -1,69 +1,74 @@
-From: Venkatraman S <svenkatr@ti.com>
-Subject: Re: [PATCH] SDMA: Fixing bug in omap_dma_set_global_params()
-Date: Wed, 23 Sep 2009 13:54:30 +0530
-Message-ID: <618f0c910909230124q773b90f6xd377e67a758e1237@mail.gmail.com>
-References: <1253690346-17865-1-git-send-email-anuj.aggarwal@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
+Date: Wed, 23 Sep 2009 13:59:38 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDA2CDC7@dbde02.ent.ti.com>
+References: <20090918.175434.229727484.Hiroshi.DOYU@nokia.com>
+	<20090922213617.GD4919@atomide.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DDA2CB2B@dbde02.ent.ti.com>
+ <20090923.084538.48517375.Hiroshi.DOYU@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754571AbZIWIYd@vger.kernel.org>
-In-Reply-To: <1253690346-17865-1-git-send-email-anuj.aggarwal@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37142 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754509AbZIWI3l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 04:29:41 -0400
+In-Reply-To: <20090923.084538.48517375.Hiroshi.DOYU@nokia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Sep 23, 2009 at 12:49 PM, Anuj Aggarwal <anuj.aggarwal@ti.com> =
-wrote:
-> Argument tparams was not being used to program
-> global register GCR.HI_THREAD_RESERVED. This patch fixes the same.
->
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> ---
-> =A0arch/arm/plat-omap/dma.c | =A0 13 +++++++------
-> =A01 files changed, 7 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index bf08634..7a7b6df 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -829,10 +829,10 @@ EXPORT_SYMBOL(omap_free_dma);
-> =A0*
-> =A0* @param arb_rate
-> =A0* @param max_fifo_depth
-> - * @param tparams - Number of thereads to reserve : DMA_THREAD_RESER=
-VE_NORM
-> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 DMA_THREAD_RESERVE_ONET
-> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 DMA_THREAD_RESERVE_TWOT
-> - * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 DMA_THREAD_RESERVE_THREET
-> + * @param tparams - Number of threads to reserve : DMA_THREAD_RESERV=
-E_NORM
-> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0DMA_THREAD_RESERVE_ONET
-> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0DMA_THREAD_RESERVE_TWOT
-> + * =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0DMA_THREAD_RESERVE_THREET
-> =A0*/
-> =A0void
-> =A0omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int t=
-params)
-> @@ -847,8 +847,9 @@ omap_dma_set_global_params(int arb_rate, int max_=
-fifo_depth, int tparams)
-> =A0 =A0 =A0 =A0if (arb_rate =3D=3D 0)
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0arb_rate =3D 1;
->
-> - =A0 =A0 =A0 reg =3D (arb_rate & 0xff) << 16;
-> - =A0 =A0 =A0 reg |=3D (0xff & max_fifo_depth);
-> + =A0 =A0 =A0 reg =3D 0xff & max_fifo_depth;
-> + =A0 =A0 =A0 reg |=3D (0x3 & tparams) << 12;
-> + =A0 =A0 =A0 reg |=3D (arb_rate & 0xff) << 16;
->
-> =A0 =A0 =A0 =A0dma_write(reg, GCR);
-> =A0}
+> -----Original Message-----
+> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com] 
+> Sent: Wednesday, September 23, 2009 11:16 AM
+> To: Premi, Sanjeev
+> Cc: tony@atomide.com; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
+> 
+> Hi Premi,
+> 
+> From: "ext Premi, Sanjeev" <premi@ti.com>
+> Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
+> Date: Wed, 23 Sep 2009 06:06:43 +0200
+> 
+> > > -----Original Message-----
+> > > From: Tony Lindgren [mailto:tony@atomide.com] 
+> > > Sent: Wednesday, September 23, 2009 3:06 AM
+> > > To: Hiroshi DOYU
+> > > Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
+> > > Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
+> > > 
+> > > * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090918 07:54]:
+> > > > Hi Premi,
+> > > > 
+> > > > From: "ext Premi, Sanjeev" <premi@ti.com>
+> > > > Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
+> > > > Date: Fri, 18 Sep 2009 16:40:29 +0200
+> > > > 
+> > > > [...]
+> > > > 
+> > 
+> > [snip]--[snip]
+> > 
+> > > > > Shouldn't we go with the original patch itself?
+> > > > 
+> > > > Right, the original is better, then;)
+> > > 
+> > > Can you please specify which one (if any) should be queued?
+> > > 
+> > > Do you mean http://patchwork.kernel.org/patch/48467/
+> > 
+> > [sp] Yes. That's right.
+> 
+> I know it's nitpicky, but it's better to remove a space after casting
+> as pointed previously.
+> 
+> Would it be possible to send the update version?
+> 
+> 
+In few mins...
 
-max_fifo_depth should not be set to zero. Perhaps it deserves a check
-similar to arb_rate ?
+~sanjeev
