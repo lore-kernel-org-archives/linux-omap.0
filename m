@@ -1,74 +1,61 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
-Date: Wed, 23 Sep 2009 13:59:38 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDA2CDC7@dbde02.ent.ti.com>
-References: <20090918.175434.229727484.Hiroshi.DOYU@nokia.com>
-	<20090922213617.GD4919@atomide.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301DDA2CB2B@dbde02.ent.ti.com>
- <20090923.084538.48517375.Hiroshi.DOYU@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH v2] OMAP3: iovmm: fix compiler warning
+Date: Wed, 23 Sep 2009 14:41:32 +0530
+Message-ID: <1253697092-7808-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37142 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:55509 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754509AbZIWI3l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 23 Sep 2009 04:29:41 -0400
-In-Reply-To: <20090923.084538.48517375.Hiroshi.DOYU@nokia.com>
-Content-Language: en-US
+	id S1752299AbZIWJLb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 23 Sep 2009 05:11:31 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8N9BYox015071
+	for <linux-omap@vger.kernel.org>; Wed, 23 Sep 2009 04:11:35 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-> -----Original Message-----
-> From: Hiroshi DOYU [mailto:Hiroshi.DOYU@nokia.com] 
-> Sent: Wednesday, September 23, 2009 11:16 AM
-> To: Premi, Sanjeev
-> Cc: tony@atomide.com; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
-> 
-> Hi Premi,
-> 
-> From: "ext Premi, Sanjeev" <premi@ti.com>
-> Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
-> Date: Wed, 23 Sep 2009 06:06:43 +0200
-> 
-> > > -----Original Message-----
-> > > From: Tony Lindgren [mailto:tony@atomide.com] 
-> > > Sent: Wednesday, September 23, 2009 3:06 AM
-> > > To: Hiroshi DOYU
-> > > Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
-> > > Subject: Re: [PATCH] OMAP3: iovmm: fix compiler warning
-> > > 
-> > > * Hiroshi DOYU <Hiroshi.DOYU@nokia.com> [090918 07:54]:
-> > > > Hi Premi,
-> > > > 
-> > > > From: "ext Premi, Sanjeev" <premi@ti.com>
-> > > > Subject: RE: [PATCH] OMAP3: iovmm: fix compiler warning
-> > > > Date: Fri, 18 Sep 2009 16:40:29 +0200
-> > > > 
-> > > > [...]
-> > > > 
-> > 
-> > [snip]--[snip]
-> > 
-> > > > > Shouldn't we go with the original patch itself?
-> > > > 
-> > > > Right, the original is better, then;)
-> > > 
-> > > Can you please specify which one (if any) should be queued?
-> > > 
-> > > Do you mean http://patchwork.kernel.org/patch/48467/
-> > 
-> > [sp] Yes. That's right.
-> 
-> I know it's nitpicky, but it's better to remove a space after casting
-> as pointed previously.
-> 
-> Would it be possible to send the update version?
-> 
-> 
-In few mins...
+This patch fixes these compiler warnings:
 
-~sanjeev
+arch/arm/plat-omap/iovmm.c: In function 'vmap_sg':
+arch/arm/plat-omap/iovmm.c:202: warning: passing argument 1 of
+ 'flush_cache_vmap' makes integer from pointer without a cast
+arch/arm/plat-omap/iovmm.c:202: warning: passing argument 2 of
+ 'flush_cache_vmap' makes integer from pointer without a cast
+arch/arm/plat-omap/iovmm.c: In function 'sgtable_fill_vmalloc':
+arch/arm/plat-omap/iovmm.c:393: warning: passing argument 1 of
+ 'flush_cache_vmap' makes integer from pointer without a cast
+arch/arm/plat-omap/iovmm.c:393: warning: passing argument 2 of
+ 'flush_cache_vmap' makes integer from pointer without a cast
+
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+---
+ arch/arm/plat-omap/iovmm.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 6fc52fc..57f7122 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -199,7 +199,8 @@ static void *vmap_sg(const struct sg_table *sgt)
+ 		va += bytes;
+ 	}
+ 
+-	flush_cache_vmap(new->addr, new->addr + total);
++	flush_cache_vmap((unsigned long)new->addr,
++				(unsigned long)(new->addr + total));
+ 	return new->addr;
+ 
+ err_out:
+@@ -390,7 +391,7 @@ static void sgtable_fill_vmalloc(struct sg_table *sgt, void *_va)
+ 	}
+ 
+ 	va_end = _va + PAGE_SIZE * i;
+-	flush_cache_vmap(_va, va_end);
++	flush_cache_vmap((unsigned long)_va, (unsigned long)va_end);
+ }
+ 
+ static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
+-- 
+1.6.2.2
+
