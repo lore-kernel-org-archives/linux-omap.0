@@ -1,16 +1,17 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/12] omap: mailbox: Execute softreset at startup
-Date: Thu, 24 Sep 2009 16:38:04 -0700
-Message-ID: <20090924233804.6065.32615.stgit@localhost>
+Subject: [PATCH 06/12] omap: mailbox: Flush posted write when acking mailbox
+	irq
+Date: Thu, 24 Sep 2009 16:39:21 -0700
+Message-ID: <20090924233920.6065.16789.stgit@localhost>
 References: <20090924233027.6065.95725.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50430 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51745 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257AbZIXXiB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 19:38:01 -0400
+	with ESMTP id S1752711AbZIXXjS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 19:39:18 -0400
 In-Reply-To: <20090924233027.6065.95725.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,71 +20,35 @@ Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
 From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-The softreset at startup is introduced as TRM describes and also some
-register bit definitions are added instead of magic number.
+The only way to flush posted write to L4 bus is to do a read back
+of the same register right after the write.
+
+This seems to be mostly needed in interrupt handlers to avoid
+causing spurious interrupts.
+
+The earlier fix has been to mark the L4 bus as strongly ordered
+memory, which solves the problem, but causes performance penalties.
+
+Similar to the fix, 03803a71041e3bc3c077f4e7b92f6ceaa9426df3
 
 Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/mailbox.c |   30 +++++++++++++++++++++++++-----
- 1 files changed, 25 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap2/mailbox.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 6f71f37..5bf9a2f 100644
+index 5bf9a2f..f3fefca 100644
 --- a/arch/arm/mach-omap2/mailbox.c
 +++ b/arch/arm/mach-omap2/mailbox.c
-@@ -30,6 +30,14 @@
- #define MAILBOX_IRQ_NEWMSG(u)		(1 << (2 * (u)))
- #define MAILBOX_IRQ_NOTFULL(u)		(1 << (2 * (u) + 1))
+@@ -176,6 +176,9 @@ static void omap2_mbox_ack_irq(struct omap_mbox *mbox,
+ 	u32 bit = (irq == IRQ_TX) ? p->notfull_bit : p->newmsg_bit;
  
-+/* SYSCONFIG: register bit definition */
-+#define AUTOIDLE	(1 << 0)
-+#define SOFTRESET	(1 << 1)
-+#define SMARTIDLE	(2 << 3)
+ 	mbox_write_reg(bit, p->irqstatus);
 +
-+/* SYSSTATUS: register bit definition */
-+#define RESETDONE	(1 << 0)
-+
- #define MBOX_REG_SIZE			0x120
- #define MBOX_NR_REGS			(MBOX_REG_SIZE / sizeof(u32))
++	/* Flush posted write for irq status to avoid spurious interrupts */
++	mbox_read_reg(p->irqstatus);
+ }
  
-@@ -69,21 +77,33 @@ static inline void mbox_write_reg(u32 val, size_t ofs)
- /* Mailbox H/W preparations */
- static int omap2_mbox_startup(struct omap_mbox *mbox)
- {
--	unsigned int l;
-+	u32 l;
-+	unsigned long timeout;
- 
- 	mbox_ick_handle = clk_get(NULL, "mailboxes_ick");
- 	if (IS_ERR(mbox_ick_handle)) {
--		printk("Could not get mailboxes_ick\n");
-+		pr_err("Can't get mailboxes_ick\n");
- 		return -ENODEV;
- 	}
- 	clk_enable(mbox_ick_handle);
- 
-+	mbox_write_reg(SOFTRESET, MAILBOX_SYSCONFIG);
-+	timeout = jiffies + msecs_to_jiffies(20);
-+	do {
-+		l = mbox_read_reg(MAILBOX_SYSSTATUS);
-+		if (l & RESETDONE)
-+			break;
-+	} while (time_after(jiffies, timeout));
-+
-+	if (!(l & RESETDONE)) {
-+		pr_err("Can't take mmu out of reset\n");
-+		return -ENODEV;
-+	}
-+
- 	l = mbox_read_reg(MAILBOX_REVISION);
- 	pr_info("omap mailbox rev %d.%d\n", (l & 0xf0) >> 4, (l & 0x0f));
- 
--	/* set smart-idle & autoidle */
--	l = mbox_read_reg(MAILBOX_SYSCONFIG);
--	l |= 0x00000011;
-+	l = SMARTIDLE | AUTOIDLE;
- 	mbox_write_reg(l, MAILBOX_SYSCONFIG);
- 
- 	omap2_mbox_enable_irq(mbox, IRQ_RX);
+ static int omap2_mbox_is_irq(struct omap_mbox *mbox,
 
