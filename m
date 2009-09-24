@@ -1,242 +1,120 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 1/1] OMAP3: Common mechanism to identify cpu revision
-Date: Thu, 24 Sep 2009 21:21:21 +0530
-Message-ID: <1253807481-19214-1-git-send-email-premi@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss clocks
+ 	only when needed.
+Date: Thu, 24 Sep 2009 08:52:06 -0700
+Message-ID: <4ABB95A6.7000503@deeprootsystems.com>
+References: <1253230586-931-1-git-send-email-mike@android.com>	 <1253262472.28956.10.camel@tubuntu>	 <8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>	 <1253514408.4690.5.camel@tubuntu> <877hvrf2sj.fsf@deeprootsystems.com>	 <1253690451.14841.40.camel@tubuntu>  <87my4lbr86.fsf@deeprootsystems.com> <1253788763.17009.282.camel@tubuntu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46988 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379AbZIXPvU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 11:51:20 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8OFpMnA016629
-	for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2009 10:51:23 -0500
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:48080 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752005AbZIXPwJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 11:52:09 -0400
+Received: by fxm18 with SMTP id 18so1531484fxm.17
+        for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2009 08:52:12 -0700 (PDT)
+In-Reply-To: <1253788763.17009.282.camel@tubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: tomi.valkeinen@nokia.com
+Cc: ext Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-There are multiple mechanisms to identify the cpu revisions.
-Most common is use of omap_rev(). This, however, does a
-absolute comparison of omap_revision - which includes
-CPU id, CPU rev and CPU class. This comparison fails for
-OMAP35x processors.
+Tomi Valkeinen wrote:
+> On Wed, 2009-09-23 at 17:44 +0200, ext Kevin Hilman wrote:
+>> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
+>>
+>>> On Tue, 2009-09-22 at 16:54 +0200, ext Kevin Hilman wrote:
+>>>> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
+>>>>
+>>>>> Hi,
+>>>>>
+>>>>> On Fri, 2009-09-18 at 19:33 +0200, ext Mike Chan wrote:
+>>>>>> On Fri, Sep 18, 2009 at 1:27 AM, Tomi Valkeinen
+>>>>>> <tomi.valkeinen@nokia.com> wrote:
+>>>>>>> Hi,
+>>>>>>>
+>>>>>>> If you disable the clocks to allow RET, you also allow OFF mode. And
+>>>>>>> resuming from OFF mode hasn't been implemented for DSI, if I recall
+>>>>>>> right. And when I was testing it, it didn't seem to be trivial with the
+>>>>>>> DSI PLL.
+>>>>>>>
+>>>>>> You can limiting the pwrdm next state to RET when being called from cpuidle.
+>>>>> No, you _must_ limit it to RET. Otherwise the DSI will break down. So we
+>>>>> can either keep the dsi code as it is now, or explicitely disable OFF
+>>>>> mode and then apply your patch. But your patch alone won't work.
+>>>> Or could add a hack to this patch so that 'enable_off_mode' doesn't
+>>>> affect DSS_MOD until DSS has off-mode support.
+>>> Is this something that the driver can do with the current PM API? The
+>>> thing is, most of the DSS has off-mode support, only DSI and RFBI is
+>>> missing the support. So optimally we would allow full PM normally, but
+>>> when DSI display is in use, only allow RET.
+>> There's not an official API for this, but for testing, you could just
+>> set the next state for the DSS_MOD to be off.  This would be overridden
+>> whenever someone changes the enable_off_mode flag.
+>>
+>> In general, we don't want drivers restricting states at that level.
+>> We'd rather the drivers use the OMAP PM layer to define/declare its
+>> constraints.
+> 
+> If I want to disable OFF mode for DSS with constraints, doesn't it mean
+> that I need to dig out a magic number, and use it as the max wakeup
+> latency, and that latency will then limit DSS from going to OFF mode?
 
-This patch defines generic functions that use only the
-CPU rev bits in omap_revision to identify the revision
-information.
+Yes, the various wakeup times for RET and OFF should be measured so that 
+smart decisions can be made.
 
-Usage will change from (for example):
-	if (omap_rev() > OMAP3430_REV_ES2_0)
-to:
-	if (cpu_is_omap34xx() && omap_rev_gt_2_0())
+>>>>> In the long run I think we anyway need to somehow dynamically manage the
+>>>>> power state. I haven't measured it but I believe resuming from OFF will
+>>>>> have a bit of a penalty, as (I think) DSI PLL etc. will have to
+>>>>> reinitialized. But it would still be good to allow RET whenever
+>>>>> possible, and OFF only after some period of inactivity.
+>>>> This is the purpose of latency constraints.  These can be used when
+>>>> the latency of going OFF will cause a problem.
+>>> I think this is a different problem. My understanding of the PM latency
+>>> functionality is that they control how quickly MPU responds to
+>>> interrupts, or how quickly the HW module is awake after clk_enable().
+>> That's only part of the story.
+>>
+>>> The problem here is that there's bunch of DSI initialization that needs
+>>> to be done after the DSS module has woken up. The DSI PLL needs to be
+>>> configured and locked, complex IO has to be configured etc. I don't know
+>>> how long those take (should make some measurements at some point), but I
+>>> imagine they are not anywhere near instant. And the latency from those
+>>> things is what I'm concerned about. So it would be beneficial if the DSS
+>>> driver could define easily what DSS PM level is allowed.
+>> Actually, the OMAP PM layer is meant to handle device wakeup latencies
+>> as well.  See Documentation/arm/OMAP/omap_pm, and the
+>> set_max_dev_wakeup_lat() hook in particular.
+>>
+>> For example, if you know that DSS wakeup from OFF takes X usecs and
+>> the driver has set a max device wakeup latency < X, then DSS will
+>> never go to OFF.  The same can be done to prevent RET for even faster
+>> wakeup.
+> 
+> The doc says "set_max_dev_wakeup_lat() function to constrain the device
+> wakeup latency (from clk_enable() to accessibility)". I understood
+> "accessibility" meaning that the HW registers can be accessed, and also
+> as registers should be accessible after clk_enable(), it would mean that
+> clk_enable will block at most the defined wakeup latency.
 
-Specific check for cpu_is_xxx() will not be needed for
-files specific to silicon e.g. pm34xx.c, clock34xx.c, etc.
+Not exactly, clk_enable() doesn't actually block.  Rather, the max 
+latencies are intended to be used when considering which C-state to 
+enter.  If a C-state has a wakeup latency longer than any of the latency 
+constraints set (MPU or device) then that C-state will not be entered.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/clock34xx.c       |    4 +-
- arch/arm/mach-omap2/control.c         |    6 ++--
- arch/arm/mach-omap2/pm34xx.c          |   17 +++++-----
- arch/arm/plat-omap/include/mach/cpu.h |   55 +++++++++++++++++++++++++++++++++
- 4 files changed, 69 insertions(+), 13 deletions(-)
+In this way you effectively prevent OFF mode (deeper C-state) by setting 
+a max latency which is shorter than the wakeup latency of OFF mode.
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index e0df0ce..074c593 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -815,7 +815,7 @@ static int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
- 	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
- 	 * on DPLL4.
- 	 */
--	if (omap_rev() == OMAP3430_REV_ES1_0) {
-+	if (omap_rev_is_1_0()) {
- 		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
- 		       "silicon 'Limitation 2.5' on 3430ES1.\n");
- 		return -EINVAL;
-@@ -1157,7 +1157,7 @@ int __init omap2_clk_init(void)
- 		 * Update this if there are further clock changes between ES2
- 		 * and production parts
- 		 */
--		if (omap_rev() == OMAP3430_REV_ES1_0) {
-+		if (omap_rev_is_1_0()) {
- 			/* No 3430ES1-only rates exist, so no RATE_IN_3430ES1 */
- 			cpu_clkflg |= CK_3430ES1;
- 		} else {
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index c9407c0..089e714 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -209,8 +209,8 @@ void omap3_save_scratchpad_contents(void)
- 
- 	/* Populate the Scratchpad contents */
- 	scratchpad_contents.boot_config_ptr = 0x0;
--	if (omap_rev() != OMAP3430_REV_ES3_0 &&
--					omap_rev() != OMAP3430_REV_ES3_1)
-+	if (cpu_is_omap34xx()
-+		&& !omap_rev_is_3_0() && !omap_rev_is_3_1())
- 		scratchpad_contents.public_restore_ptr =
- 			virt_to_phys(get_restore_pointer());
- 	else
-@@ -271,7 +271,7 @@ void omap3_save_scratchpad_contents(void)
- 	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
- 	 */
- 	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
--			&& (omap_rev() >= OMAP3430_REV_ES3_0))
-+		&& cpu_is_omap34xx() && omap_rev_ge_3_0())
- 		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
- 				~(SDRC_POWER_AUTOCOUNT_MASK|
- 				SDRC_POWER_CLKCTRL_MASK)) |
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index c1d58a7..7a1eb95 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -28,6 +28,7 @@
- #include <linux/clk.h>
- #include <linux/usb/musb.h>
- 
-+#include <mach/cpu.h>
- #include <mach/sram.h>
- #include <mach/prcm.h>
- #include <mach/clockdomain.h>
-@@ -108,7 +109,7 @@ static void omap3_enable_io_chain(void)
- {
- 	int timeout = 0;
- 
--	if (omap_rev() >= OMAP3430_REV_ES3_1) {
-+	if (omap_rev_ge_3_1()) {
- 		prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN, WKUP_MOD, PM_WKEN);
- 		/* Do a readback to assure write has been done */
- 		prm_read_mod_reg(WKUP_MOD, PM_WKEN);
-@@ -129,7 +130,7 @@ static void omap3_enable_io_chain(void)
- 
- static void omap3_disable_io_chain(void)
- {
--	if (omap_rev() >= OMAP3430_REV_ES3_1)
-+	if (omap_rev_ge_3_1())
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN, WKUP_MOD, PM_WKEN);
- }
- 
-@@ -248,7 +249,7 @@ static int _prcm_int_handle_wakeup(void)
- 	c = prcm_clear_mod_irqs(WKUP_MOD, 1);
- 	c += prcm_clear_mod_irqs(CORE_MOD, 1);
- 	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+	if (omap_rev_gt_1_0()) {
- 		c += prcm_clear_mod_irqs(CORE_MOD, 3);
- 		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
- 	}
-@@ -432,7 +433,7 @@ void omap_sram_idle(void)
- 	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
- 	* Hence store/restore the SDRC_POWER register here.
- 	*/
--	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
-+	if (omap_rev_ge_3_0() &&
- 	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
- 	    core_next_state == PWRDM_POWER_OFF)
- 		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
-@@ -449,7 +450,7 @@ void omap_sram_idle(void)
- 	cpu_init();
- 
- 	/* Restore normal SDRC POWER settings */
--	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
-+	if (omap_rev_ge_3_0() &&
- 	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
- 	    core_next_state == PWRDM_POWER_OFF)
- 		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
-@@ -784,7 +785,7 @@ static void __init prcm_setup_regs(void)
- 	prm_write_mod_reg(0, OMAP3430_NEON_MOD, PM_WKDEP);
- 	prm_write_mod_reg(0, OMAP3430_CAM_MOD, PM_WKDEP);
- 	prm_write_mod_reg(0, OMAP3430_PER_MOD, PM_WKDEP);
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+	if (omap_rev_gt_1_0()) {
- 		prm_write_mod_reg(0, OMAP3430ES2_SGX_MOD, PM_WKDEP);
- 		prm_write_mod_reg(0, OMAP3430ES2_USBHOST_MOD, PM_WKDEP);
- 	} else
-@@ -835,7 +836,7 @@ static void __init prcm_setup_regs(void)
- 		OMAP3430_AUTO_DES1,
- 		CORE_MOD, CM_AUTOIDLE2);
- 
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+	if (omap_rev_gt_1_0()) {
- 		cm_write_mod_reg(
- 			OMAP3430_AUTO_MAD2D |
- 			OMAP3430ES2_AUTO_USBTLL,
-@@ -883,7 +884,7 @@ static void __init prcm_setup_regs(void)
- 		OMAP3430_PER_MOD,
- 		CM_AUTOIDLE);
- 
--	if (omap_rev() > OMAP3430_REV_ES1_0) {
-+	if (omap_rev_gt_1_0()) {
- 		cm_write_mod_reg(
- 			OMAP3430ES2_AUTO_USBHOST,
- 			OMAP3430ES2_USBHOST_MOD,
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index b689013..522df64 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -453,6 +453,61 @@ IS_OMAP_TYPE(3517, 0x3517)
- #define omap35xx_rev_mask()	(omap_rev() & 0x0000F000)
- 
- /*
-+ * Silicon revisions
-+ */
-+#define OMAP_ES_1_0		0x00
-+#define OMAP_ES_2_0		0x10
-+#define OMAP_ES_2_1		0x20
-+#define OMAP_ES_3_0		0x30
-+#define OMAP_ES_3_1		0x40
-+
-+#define OMAP_REV_MASK		0x0000ff00
-+#define OMAP_REV_BITS		((omap_rev() & OMAP_REV_MASK) >> 8)
-+
-+#define OMAP_REV_IS(revid)					\
-+static inline u8 omap_rev_is_ ##revid (void)			\
-+{								\
-+	return (OMAP_REV_BITS == OMAP_ES_ ##revid) ? 1 : 0;	\
-+}
-+
-+#define OMAP_REV_LT(revid)					\
-+static inline u8 omap_rev_lt_ ##revid (void)			\
-+{								\
-+	return (OMAP_REV_BITS < OMAP_ES_ ##revid) ? 1 : 0;	\
-+}
-+
-+#define OMAP_REV_LE(revid)					\
-+static inline u8 omap_rev_le_ ##revid (void)			\
-+{								\
-+	return (OMAP_REV_BITS <= OMAP_ES_ ##revid) ? 1 : 0;	\
-+}
-+
-+#define OMAP_REV_GT(revid)					\
-+static inline u8 omap_rev_gt_ ##revid (void)			\
-+{								\
-+	return (OMAP_REV_BITS > OMAP_ES_ ##revid) ? 1 : 0;	\
-+}
-+
-+#define OMAP_REV_GE(revid)					\
-+static inline u8 omap_rev_ge_ ##revid (void)			\
-+{								\
-+	return (OMAP_REV_BITS >= OMAP_ES_ ##revid) ? 1 : 0;	\
-+}
-+
-+#define OMAP_REV_FUNCTIONS(revid)	\
-+	OMAP_REV_IS(revid)		\
-+	OMAP_REV_LT(revid)		\
-+	OMAP_REV_LE(revid)		\
-+	OMAP_REV_GT(revid)		\
-+	OMAP_REV_GE(revid)
-+
-+OMAP_REV_FUNCTIONS(1_0)
-+OMAP_REV_FUNCTIONS(2_0)
-+OMAP_REV_FUNCTIONS(2_1)
-+OMAP_REV_FUNCTIONS(3_0)
-+OMAP_REV_FUNCTIONS(3_1)
-+
-+/*
-  * omap_chip bits
-  *
-  * CHIP_IS_OMAP{2420,2430,3430} indicate that a particular structure is
--- 
-1.6.2.2
+Right now you could do it simply by setting a max MPU wakeup latency, 
+but we really need to measure the various device wakeup latencies so we 
+can use them as well.
 
+> If it is not like that, and the driver initialization is included, how
+> does the PM layer know how long it takes for the DSS driver to
+> reconfigure the DSS hardware from OFF mode?
+
+Currently it doesn't, but if you were measure it, we can use those 
+numbers in the decision making process.
+
+Kevin
