@@ -1,58 +1,61 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: Any Nokia N900 support planning?
-Date: Thu, 24 Sep 2009 19:05:02 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9E7DA8B@dbde02.ent.ti.com>
-References: <4ABB7296.2060707@csr.com>
+From: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Subject: RE: [PATCH 8/10] omap mailbox: OMAP4-Mailbox - Adds code changes	to
+ support OMAP4 mailbox.
+Date: Thu, 24 Sep 2009 20:31:15 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDA2D83B@dbde02.ent.ti.com>
+References: <20090923095627.GA29765@flint.arm.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52265 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751932AbZIXNgM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 09:36:12 -0400
-In-Reply-To: <4ABB7296.2060707@csr.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43471 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754088AbZIXPBY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 11:01:24 -0400
+In-Reply-To: <20090923095627.GA29765@flint.arm.linux.org.uk>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Stefano Panella <stefano.panella@csr.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>, "tony@atomide.com" <tony@atomide.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>
 
+Hi Russell,
 
+> -----Original Message-----
+> From: Russell King [mailto:rmk@arm.linux.org.uk] 
+> Sent: Wednesday, September 23, 2009 3:26 PM
+> To: C.A, Subramaniam
+> Cc: linux-omap@vger.kernel.org; Hiroshi DOYU; 
+> tony@atomide.com; Kanigeri, Hari; Gupta, Ramesh
+> Subject: Re: [PATCH 8/10] omap mailbox: OMAP4-Mailbox - Adds 
+> code changes to support OMAP4 mailbox.
+> 
+> On Tue, Sep 22, 2009 at 08:03:32PM +0530, C.A, Subramaniam wrote:
+> > @@ -70,10 +88,9 @@ static inline void mbox_write_reg(u32 
+> val, size_t ofs)
+> >  static int omap2_mbox_startup(struct omap_mbox *mbox)
+> >  {
+> >  	unsigned int l;
+> > -
+> >  	mbox_ick_handle = clk_get(NULL, "mailboxes_ick");
+> >  	if (IS_ERR(mbox_ick_handle)) {
+> > -		printk("Could not get mailboxes_ick\n");
+> > +		printk(KERN_ERR "Could not get mailboxes_ick\n");
+> >  		return -ENODEV;
+> 
+> Good idea: Print the error code so people can diagnose why 
+> things fail.
+> 
+> 		printk(KERN_ERR "Could not get mailboxes_ick: %d\n",
+> 			PTR_ERR(mbox_ick_handle));
+> 
+> And wonder why this hasn't been spotted before.
+> 
+> Rule: always propagate error codes when you have one to propagate.
+> 
+> 		return PTR_ERR(mbox_ick_handle);
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Stefano
->Panella
->Sent: Thursday, September 24, 2009 8:23 AM
->To: linux-omap@vger.kernel.org
->Subject: Any Nokia N900 support planning?
->
->Hi guys,
->
->I would like to buy a N900 as it will became available.
->
->Is there any plan to support it with linux-omap?
+Thank you for your comments. I will send a revised patch.
 
-I thought Rx51 board supported on linux-omap is N900 !!
-
->
->Is there someone already working on it?
->
->In case I would like to help :)
->
->Thanks,
->
->Stefano
->--
->Stefano Panella, Software Engineer, Drivers
->CSR, Churchill House, Cambridge Business Park,  Tel: +44 (0)1223 692452
->Cowley Road, Cambridge, CB4 0WZ                 http://www.csr.com/
->
->
->Member of the CSR plc group of companies. CSR plc registered in England and Wales, registered number
->4187346, registered office Churchill House, Cambridge Business Park, Cowley Road, Cambridge, CB4 0WZ,
->United Kingdom
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Regards
+Subbu
