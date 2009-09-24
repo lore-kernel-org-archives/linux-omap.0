@@ -1,70 +1,57 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH] OMAP: timekeeping: time should not stop during suspend
-Date: Thu, 24 Sep 2009 16:35:48 -0700
-Message-ID: <1253835348-12640-1-git-send-email-khilman@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 04/12] omap: Add missing mux pin for EHCI phy reset line
+Date: Thu, 24 Sep 2009 16:36:45 -0700
+Message-ID: <20090924233645.6065.90549.stgit@localhost>
+References: <20090924233027.6065.95725.stgit@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:26257 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606AbZIXXfr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 19:35:47 -0400
-Received: by qw-out-2122.google.com with SMTP id 5so779989qwd.37
-        for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2009 16:35:51 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49437 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202AbZIXXgp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 19:36:45 -0400
+In-Reply-To: <20090924233027.6065.95725.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>, linux-omap@vger.kernel.org
 
-During suspend, the kernel timekeeping subsystem is shut down.  Before
-suspend and upon resume, it uses a weak function
-read_persistent_clock() to determine the amount of time that elapsed
-during suspend.
+From: Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-This function was not implemented on OMAP, so from the timekeeping
-subsystem perspective (and thus userspace as well) it appeared that no
-time elapsed during suspend.
+GPIO135 is used as EHCI (port2) phy reset pin on Multi Media Daughter card
+connected to OMAP3EVM.
 
-This patch uses the 32k sync timer as a the persistent clock the 32k
-sync timer value converted to seconds.
-
-NOTE: This does *NOT* handle wrapping of the 32k sync timer, so
-      wrapping of the 32k sync timer during suspend may cause
-      problems.  Also, there are not interrupts when the 32k sync
-      timer wraps, so something else has to be done.
-
-Reported-by: Jon Hunter <jon-hunter@ti.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-Tested on OMAP3 using PM branch.
-If no issues, I will queue for 2.6.32-rc fixes
+ arch/arm/mach-omap2/mux.c             |    2 ++
+ arch/arm/plat-omap/include/mach/mux.h |    1 +
+ 2 files changed, 3 insertions(+), 0 deletions(-)
 
- arch/arm/plat-omap/common.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index b3f70e6..3e4325b 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -178,6 +178,21 @@ unsigned long long sched_clock(void)
- 	return ret;
- }
- 
-+/**
-+ * read_persistent_clock -  Return time in seconds from the persistent clock.
-+ */
-+unsigned long read_persistent_clock(void)
-+{
-+	unsigned long long ret;
-+	cycle_t cycles;
-+
-+	cycles = clocksource_32k.read(&clocksource_32k);
-+	ret = (cycles * clocksource_32k.mult_orig) >> clocksource_32k.shift;
-+	do_div(ret, NSEC_PER_SEC);
-+
-+	return (unsigned long)ret;
-+}
-+
- static int __init omap_init_clocksource_32k(void)
- {
- 	static char err[] __initdata = KERN_ERR
--- 
-1.6.4.3
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index 2daa595..339ba80 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -472,6 +472,8 @@ MUX_CFG_34XX("G25_34XX_GPIO86_OUT", 0x0fc,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AG4_34XX_GPIO134_OUT", 0x160,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
++MUX_CFG_34XX("AF4_34XX_GPIO135_OUT", 0x162,
++		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AE4_34XX_GPIO136_OUT", 0x164,
+ 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+ MUX_CFG_34XX("AF6_34XX_GPIO140_UP", 0x16c,
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+index 98dfab6..4bcf8a5 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -846,6 +846,7 @@ enum omap34xx_index {
+ 	L8_34XX_GPIO63,
+ 	G25_34XX_GPIO86_OUT,
+ 	AG4_34XX_GPIO134_OUT,
++	AF4_34XX_GPIO135_OUT,
+ 	AE4_34XX_GPIO136_OUT,
+ 	AF6_34XX_GPIO140_UP,
+ 	AE6_34XX_GPIO141,
 
