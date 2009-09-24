@@ -1,94 +1,110 @@
-From: Govindraj <govindraj.ti@gmail.com>
-Subject: Re: [PATCH 1/3] OMAP UART: Adding support for omap-serial driver.
-Date: Thu, 24 Sep 2009 12:47:16 +0530
-Message-ID: <d6a0f7aa0909240017o3b201848j87bafeebebd048c2@mail.gmail.com>
-References: <51076.192.168.10.88.1253639068.squirrel@dbdmail.itg.ti.com>
-	 <20090922180356.GJ14890@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [OMAP3] ALSA driver 'suspend/resume' handlers
+Date: Thu, 24 Sep 2009 12:54:15 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BACC566F@dbde02.ent.ti.com>
+References: <2183bec20909221938mf436e87y7620613e160ae6e2@mail.gmail.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702F9DAFC82@dbde02.ent.ti.com>
+	<2183bec20909222202u7ada82e1ycb1de4702822e171@mail.gmail.com>
+ <20090924094608.542909b7.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20090922180356.GJ14890@atomide.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43332 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751206AbZIXHYP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 03:24:15 -0400
+In-Reply-To: <20090924094608.542909b7.jhnikula@gmail.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jarkko Nikula <jhnikula@gmail.com>, hari n <hari.zoom@gmail.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Sep 22, 2009 at 11:33 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> * Govindraj.R <govindraj.raja@ti.com> [090922 10:06]:
->> From: Govindraj R <govindraj.raja@ti.com>
->>
->> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
->
-> Why do you have the same subject anad description is the same for all=
- of them?
->
->> --- a/drivers/serial/Kconfig
->> +++ b/drivers/serial/Kconfig
->> @@ -1359,6 +1359,98 @@ config SERIAL_OF_PLATFORM
->> =A0 =A0 =A0 =A0 Currently, only 8250 compatible ports are supported,=
- but
->> =A0 =A0 =A0 =A0 others can easily be added.
->>
->> +config SERIAL_OMAP
->> + =A0 =A0 bool "OMAP serial port support"
->> + =A0 =A0 depends on ARM && ARCH_OMAP
->> + =A0 =A0 select SERIAL_CORE
->> + =A0 =A0 help
->> + =A0 =A0 If you have a machine based on an Texas Instruments OMAP C=
-PU you
->> + =A0 =A0 can enable its onboard serial ports by enabling this optio=
-n.
->> +
->> +config SERIAL_OMAP_CONSOLE
->> + =A0 =A0 bool "Console on OMAP serial port"
->> + =A0 =A0 depends on SERIAL_OMAP
->> + =A0 =A0 select SERIAL_CORE_CONSOLE
->> + =A0 =A0 help
->> + =A0 =A0 If you have enabled the serial port on the Texas Instrumen=
-ts OMAP
->> + =A0 =A0 CPU you can make it the console by answering Y to this opt=
-ion.
->> +
->> + =A0 =A0 Even if you say Y here, the currently visible virtual cons=
-ole
->> + =A0 =A0 (/dev/tty0) will still be used as the system console by de=
-fault, but
->> + =A0 =A0 you can alter that using a kernel command line option such=
- as
->> + =A0 =A0 "console=3DttyS0". (Try "man bootparam" or see the documen=
-tation of
->> + =A0 =A0 your boot loader (lilo or loadlin) about how to pass optio=
-ns to the
->> + =A0 =A0 kernel at boot time.)
->> +
->> +config SERIAL_OMAP_DMA_UART1
->> + =A0 =A0 bool "UART1 DMA support"
->> + =A0 =A0 depends on SERIAL_OMAP
->> + =A0 =A0 help
->> + =A0 =A0 If you have enabled the serial port on the Texas Instrumen=
-ts OMAP
->> + =A0 =A0 CPU you can enable the DMA transfer on UART 1 by answering
->> + =A0 =A0 =A0to this option.
->> +
->
-> Didn't I already comment these options should be passed in platform_d=
-ata
-> from board-*.c files?
->
+Hari/Jarkko,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Jarkko Nikula
+> Sent: Thursday, September 24, 2009 12:16 PM
+> To: hari n
+> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
+> Subject: Re: [OMAP3] ALSA driver 'suspend/resume' handlers
+> 
+> On Wed, 23 Sep 2009 00:02:01 -0500
+> hari n <hari.zoom@gmail.com> wrote:
+> 
+> > >>It appears OMAP ALSA driver does not seem to disable and idle the SDMA
+> > >>channel on a 'suspend' call. The problem seems to be with the
+> > >>'omap_stop_dma()' call under 'SNDRV_PCM_TRIGGER_SUSPEND' in
+> > >>'omap_pcm_trigger()'. ALSA audio driver uses self linking and the
+> > >>function 'omap_stop_dma()', only unlinks the channels, but DOES NOT
+> > >>disable an active channel for linked channels.
+> > >>
+> Good finding, definitely I was expecting that it will stop the transfer.
+> 
+> I worder what's the background for current omap_stop_dma
+> implementation? I would expect that omap_stop_dma would just stop the
+> logical channel without touching the channel linking etc. as there is
+> own API for chained transfers and thus omap_stop_dma could be used for
+> non-chained transfers or 'hacking' with chained transfers.
 
-Will resend PATCH v1 incorporating SERIAL_OMAP_UARTx_RXDMA_BUFSIZE
-and SERIAL_OMAP_UARTx_RXDMA_BUFSIZE values into platform data and will
-clean up in Kconfig.
+> > >>This means after a return from the 'omap_stop_dma()', there can still
+> > >>be an active DMA transaction on the channel. Is this the intent Or a
+> > >>bug? I can think of situations, where in, we may want to complete the
+> > >>DMA transfer and then disable the channel. In such a case, we need to
+> > >>wait until the channel is inactive.
+> 
+> I don't know, probably there is no driver expecting that transfer will
+> complete after the omap_stop_dma is called or they explicitly do some
+> PIO based FIFO flush for their devices?
+> 
+> > >>The problem with the current implementation is that after the audio
+> > >>platform trigger (suspend) is called, SOC core calls the CPU DAI
+> > >>trigger (suspend) and this stops the McBSP. Depending on the current
+> > >>DMA pointer, this may leave the DMA channel in active state, since DMA
+> > >>is configured for DEST HW Synchronization and and the this never gets
+> > >>asserted after the McBSP is stopped..
+> > >
+> This is true. Then the question is will the operation recover after the
+> stream is resumed and after the low-level dma and mcbsp contexts are
+> restored and operation started again.
+> 
+> > >>I see two ways to resolve this issue:
+> > >>a) Wait after the 'omap_stop_dma()' in audio platform trigger(suspend)
+> > >>until the DMA channel is inactive (i.e buffer transfer complete). But,
+> > >>i believe 'trigger' is supposed to be an atomic operation, so we may
+> > >>need to wait in a worker thread. And we need to flag the McBSP stop
+> > >>based on DMA transfer completion.
+> > >>b) Explicitly disable the DMA channel in 'omap_stop_dma().
+> > >>
+> > >>Option 'b' above may mean losing some data on resume, if we hit 'OFF'
+> > >>state during suspend. This may not be a big deal for audio (loss of
+> > >>few secs audio), but for other drivers (ex: USB data file transfer?),
+> > >>this may not be acceptable. 'Option 'a' means more rework in audio
+> > >>driver, but no changes in DAM driver and no loss of data.
+> 
+> Yeah, trigger callback is atomic and can be called from the interrupt
+> context as well. Option 'a' doesn't help losing of audio samples since
+> the soc-core is first muting the codec.
+> 
+> > >>Current Audio driver also does not seem to support 'OFF' mode during
+> > >>suspend. It seems to assume that all DMA and McBSP configurations are
+> > >>retained in a suspend to resume transition.
+> > >>
+> It's true, this has not got so much attention. I think I was expecting
+> that low-level mcbsp and dma modules will take care of their context
+> back-up and restore and that's enough for audio as long as audio will
+> inform those modules with _start/_stop calls.
+> 
+> I don't see any problem if suspend and resume callbacks are added into
+> omap-pcm.c and omap-mcbsp.c calling e.g. omap_mcbsp_config if needed.
 
-Thanks for your review comments.
+omap_stop_dma() should be issued when we really want to stop the DMA transfer and issuing this with an outstanding transfer is a BUG in ALSA driver.
 
----
-Regards,
-Govindraj.R
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Having said that, there is also bug in the DMA driver which doesn't disable the channel in linking cases. Since we use always hardware synchronized method, hardware will take care of draining the buffer so no loss of data.
+
+So option B should be ok and USB case also would work as mentioned above.
+
+Regrads
+Santosh
+  
