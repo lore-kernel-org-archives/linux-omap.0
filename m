@@ -1,848 +1,88 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 02/19] OMAP: OMAPFB: split omapfb.h
-Date: Thu, 24 Sep 2009 14:56:07 +0300
-Message-ID: <1253793384-31158-3-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 04/19] OMAP: Add VRAM manager
+Date: Thu, 24 Sep 2009 14:56:09 +0300
+Message-ID: <1253793384-31158-5-git-send-email-tomi.valkeinen@nokia.com>
 References: <1253793384-31158-1-git-send-email-tomi.valkeinen@nokia.com>
  <1253793384-31158-2-git-send-email-tomi.valkeinen@nokia.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752513AbZIXL4s@vger.kernel.org>
-In-Reply-To: <1253793384-31158-2-git-send-email-tomi.valkeinen@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
+ <1253793384-31158-3-git-send-email-tomi.valkeinen@nokia.com>
+ <1253793384-31158-4-git-send-email-tomi.valkeinen@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:22779 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752428AbZIXL4k (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 07:56:40 -0400
+In-Reply-To: <1253793384-31158-4-git-send-email-tomi.valkeinen@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, Tomi Valkeinen <tomi.valkeinen@nokia.com>
-List-Id: linux-omap@vger.kernel.org
 
-Split arch/arm/plat-omap/include/mach/omapfb.h into two files:
+Add a Video RAM manager for OMAP 2 and 3 platforms. VRAM manager is used
+to allocate large continuous blocks of SDRAM or SRAM. The features VRAM
+manager has that are missing from dma_alloc_* functions are:
 
-include/linux/omapfb.h - ioctls etc for userspace and some kernel
-                         stuff for board files
-drivers/video/omap/omapfb.h - for omapfb internal use
+- Support for OMAP2's SRAM
+- Allocate without ioremapping
+- Allocate at defined physical addresses
+- Allows larger VRAM area and larger allocations
 
-This cleans up omapfb.h and also makes it easier for the upcoming new
-DSS driver to co-exist with the old driver.
+The upcoming DSS2 uses VRAM manager.
+
+VRAM area size can be defined in kernel config, board file or with
+kernel boot parameters. Board file definition overrides kernel config,
+and boot parameter overrides kernel config and board file.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-nokia770.c     |    2 +-
- arch/arm/mach-omap2/io.c                 |    2 +-
- arch/arm/plat-omap/fb.c                  |    2 +-
- arch/arm/plat-omap/include/mach/omapfb.h |  398 ------------------------------
- drivers/video/omap/blizzard.c            |    2 +-
- drivers/video/omap/dispc.c               |    2 +-
- drivers/video/omap/hwa742.c              |    2 +-
- drivers/video/omap/lcd_2430sdp.c         |    3 +-
- drivers/video/omap/lcd_ams_delta.c       |    3 +-
- drivers/video/omap/lcd_apollon.c         |    3 +-
- drivers/video/omap/lcd_h3.c              |    2 +-
- drivers/video/omap/lcd_h4.c              |    2 +-
- drivers/video/omap/lcd_inn1510.c         |    2 +-
- drivers/video/omap/lcd_inn1610.c         |    2 +-
- drivers/video/omap/lcd_ldp.c             |    3 +-
- drivers/video/omap/lcd_mipid.c           |    3 +-
- drivers/video/omap/lcd_omap2evm.c        |    3 +-
- drivers/video/omap/lcd_omap3beagle.c     |    3 +-
- drivers/video/omap/lcd_omap3evm.c        |    3 +-
- drivers/video/omap/lcd_osk.c             |    2 +-
- drivers/video/omap/lcd_overo.c           |    3 +-
- drivers/video/omap/lcd_palmte.c          |    2 +-
- drivers/video/omap/lcd_palmtt.c          |    2 +-
- drivers/video/omap/lcd_palmz71.c         |    2 +-
- drivers/video/omap/lcdc.c                |    3 +-
- drivers/video/omap/omapfb.h              |  227 +++++++++++++++++
- drivers/video/omap/omapfb_main.c         |    2 +-
- drivers/video/omap/rfbi.c                |    3 +-
- drivers/video/omap/sossi.c               |    2 +-
- include/linux/omapfb.h                   |  197 +++++++++++++++
- 30 files changed, 461 insertions(+), 426 deletions(-)
- delete mode 100644 arch/arm/plat-omap/include/mach/omapfb.h
- create mode 100644 drivers/video/omap/omapfb.h
- create mode 100644 include/linux/omapfb.h
+ arch/arm/mach-omap2/io.c               |    2 +
+ arch/arm/plat-omap/include/mach/vram.h |   63 +++
+ arch/arm/plat-omap/sram.c              |    8 +
+ drivers/video/Kconfig                  |    1 +
+ drivers/video/Makefile                 |    1 +
+ drivers/video/omap2/Kconfig            |    2 +
+ drivers/video/omap2/Makefile           |    1 +
+ drivers/video/omap2/vram.c             |  655 ++++++++++++++++++++++++++++++++
+ 8 files changed, 733 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/mach/vram.h
+ create mode 100644 drivers/video/omap2/Kconfig
+ create mode 100644 drivers/video/omap2/Makefile
+ create mode 100644 drivers/video/omap2/vram.c
 
-diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
-index ed2a48a..6fbde33 100644
---- a/arch/arm/mach-omap1/board-nokia770.c
-+++ b/arch/arm/mach-omap1/board-nokia770.c
-@@ -14,6 +14,7 @@
- #include <linux/platform_device.h>
- #include <linux/input.h>
- #include <linux/clk.h>
-+#include <linux/omapfb.h>
- 
- #include <linux/spi/spi.h>
- #include <linux/spi/ads7846.h>
-@@ -32,7 +33,6 @@
- #include <mach/keypad.h>
- #include <mach/common.h>
- #include <mach/dsp_common.h>
--#include <mach/omapfb.h>
- #include <mach/hwa742.h>
- #include <mach/lcd_mipid.h>
- #include <mach/mmc.h>
 diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index 7574b6f..4a08ad3 100644
+index 4a08ad3..e5dd736 100644
 --- a/arch/arm/mach-omap2/io.c
 +++ b/arch/arm/mach-omap2/io.c
-@@ -22,13 +22,13 @@
- #include <linux/init.h>
- #include <linux/io.h>
- #include <linux/clk.h>
-+#include <linux/omapfb.h>
- 
- #include <asm/tlb.h>
- 
- #include <asm/mach/map.h>
- 
- #include <mach/mux.h>
--#include <mach/omapfb.h>
- #include <mach/sram.h>
+@@ -33,6 +33,7 @@
  #include <mach/sdrc.h>
  #include <mach/gpmc.h>
-diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
-index 3746222..40615a6 100644
---- a/arch/arm/plat-omap/fb.c
-+++ b/arch/arm/plat-omap/fb.c
-@@ -28,13 +28,13 @@
- #include <linux/platform_device.h>
- #include <linux/bootmem.h>
- #include <linux/io.h>
-+#include <linux/omapfb.h>
+ #include <mach/serial.h>
++#include <mach/vram.h>
  
- #include <mach/hardware.h>
- #include <asm/mach/map.h>
+ #ifndef CONFIG_ARCH_OMAP4	/* FIXME: Remove this once clkdev is ready */
+ #include "clock.h"
+@@ -246,6 +247,7 @@ void __init omap2_map_common_io(void)
+ 	omap2_check_revision();
+ 	omap_sram_init();
+ 	omapfb_reserve_sdram();
++	omap_vram_reserve_sdram();
+ }
  
- #include <mach/board.h>
- #include <mach/sram.h>
--#include <mach/omapfb.h>
- 
- #if defined(CONFIG_FB_OMAP) || defined(CONFIG_FB_OMAP_MODULE)
- 
-diff --git a/arch/arm/plat-omap/include/mach/omapfb.h b/arch/arm/plat-omap/include/mach/omapfb.h
-deleted file mode 100644
-index b226bdf..0000000
---- a/arch/arm/plat-omap/include/mach/omapfb.h
-+++ /dev/null
-@@ -1,398 +0,0 @@
--/*
-- * File: arch/arm/plat-omap/include/mach/omapfb.h
-- *
-- * Framebuffer driver for TI OMAP boards
-- *
-- * Copyright (C) 2004 Nokia Corporation
-- * Author: Imre Deak <imre.deak@nokia.com>
-- *
-- * This program is free software; you can redistribute it and/or modify it
-- * under the terms of the GNU General Public License as published by the
-- * Free Software Foundation; either version 2 of the License, or (at your
-- * option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful, but
-- * WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-- * General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License along
-- * with this program; if not, write to the Free Software Foundation, Inc.,
-- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-- */
--
--#ifndef __OMAPFB_H
--#define __OMAPFB_H
--
--#include <asm/ioctl.h>
--#include <asm/types.h>
--
--/* IOCTL commands. */
--
--#define OMAP_IOW(num, dtype)	_IOW('O', num, dtype)
--#define OMAP_IOR(num, dtype)	_IOR('O', num, dtype)
--#define OMAP_IOWR(num, dtype)	_IOWR('O', num, dtype)
--#define OMAP_IO(num)		_IO('O', num)
--
--#define OMAPFB_MIRROR		OMAP_IOW(31, int)
--#define OMAPFB_SYNC_GFX		OMAP_IO(37)
--#define OMAPFB_VSYNC		OMAP_IO(38)
--#define OMAPFB_SET_UPDATE_MODE	OMAP_IOW(40, int)
--#define OMAPFB_GET_CAPS		OMAP_IOR(42, struct omapfb_caps)
--#define OMAPFB_GET_UPDATE_MODE	OMAP_IOW(43, int)
--#define OMAPFB_LCD_TEST		OMAP_IOW(45, int)
--#define OMAPFB_CTRL_TEST	OMAP_IOW(46, int)
--#define OMAPFB_UPDATE_WINDOW_OLD OMAP_IOW(47, struct omapfb_update_window_old)
--#define OMAPFB_SET_COLOR_KEY	OMAP_IOW(50, struct omapfb_color_key)
--#define OMAPFB_GET_COLOR_KEY	OMAP_IOW(51, struct omapfb_color_key)
--#define OMAPFB_SETUP_PLANE	OMAP_IOW(52, struct omapfb_plane_info)
--#define OMAPFB_QUERY_PLANE	OMAP_IOW(53, struct omapfb_plane_info)
--#define OMAPFB_UPDATE_WINDOW	OMAP_IOW(54, struct omapfb_update_window)
--#define OMAPFB_SETUP_MEM	OMAP_IOW(55, struct omapfb_mem_info)
--#define OMAPFB_QUERY_MEM	OMAP_IOW(56, struct omapfb_mem_info)
--
--#define OMAPFB_CAPS_GENERIC_MASK	0x00000fff
--#define OMAPFB_CAPS_LCDC_MASK		0x00fff000
--#define OMAPFB_CAPS_PANEL_MASK		0xff000000
--
--#define OMAPFB_CAPS_MANUAL_UPDATE	0x00001000
--#define OMAPFB_CAPS_TEARSYNC		0x00002000
--#define OMAPFB_CAPS_PLANE_RELOCATE_MEM	0x00004000
--#define OMAPFB_CAPS_PLANE_SCALE		0x00008000
--#define OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE	0x00010000
--#define OMAPFB_CAPS_WINDOW_SCALE	0x00020000
--#define OMAPFB_CAPS_WINDOW_OVERLAY	0x00040000
--#define OMAPFB_CAPS_WINDOW_ROTATE	0x00080000
--#define OMAPFB_CAPS_SET_BACKLIGHT	0x01000000
--
--/* Values from DSP must map to lower 16-bits */
--#define OMAPFB_FORMAT_MASK		0x00ff
--#define OMAPFB_FORMAT_FLAG_DOUBLE	0x0100
--#define OMAPFB_FORMAT_FLAG_TEARSYNC	0x0200
--#define OMAPFB_FORMAT_FLAG_FORCE_VSYNC	0x0400
--#define OMAPFB_FORMAT_FLAG_ENABLE_OVERLAY	0x0800
--#define OMAPFB_FORMAT_FLAG_DISABLE_OVERLAY	0x1000
--
--#define OMAPFB_EVENT_READY	1
--#define OMAPFB_EVENT_DISABLED	2
--
--#define OMAPFB_MEMTYPE_SDRAM		0
--#define OMAPFB_MEMTYPE_SRAM		1
--#define OMAPFB_MEMTYPE_MAX		1
--
--enum omapfb_color_format {
--	OMAPFB_COLOR_RGB565 = 0,
--	OMAPFB_COLOR_YUV422,
--	OMAPFB_COLOR_YUV420,
--	OMAPFB_COLOR_CLUT_8BPP,
--	OMAPFB_COLOR_CLUT_4BPP,
--	OMAPFB_COLOR_CLUT_2BPP,
--	OMAPFB_COLOR_CLUT_1BPP,
--	OMAPFB_COLOR_RGB444,
--	OMAPFB_COLOR_YUY422,
--};
--
--struct omapfb_update_window {
--	__u32 x, y;
--	__u32 width, height;
--	__u32 format;
--	__u32 out_x, out_y;
--	__u32 out_width, out_height;
--	__u32 reserved[8];
--};
--
--struct omapfb_update_window_old {
--	__u32 x, y;
--	__u32 width, height;
--	__u32 format;
--};
--
--enum omapfb_plane {
--	OMAPFB_PLANE_GFX = 0,
--	OMAPFB_PLANE_VID1,
--	OMAPFB_PLANE_VID2,
--};
--
--enum omapfb_channel_out {
--	OMAPFB_CHANNEL_OUT_LCD = 0,
--	OMAPFB_CHANNEL_OUT_DIGIT,
--};
--
--struct omapfb_plane_info {
--	__u32 pos_x;
--	__u32 pos_y;
--	__u8  enabled;
--	__u8  channel_out;
--	__u8  mirror;
--	__u8  reserved1;
--	__u32 out_width;
--	__u32 out_height;
--	__u32 reserved2[12];
--};
--
--struct omapfb_mem_info {
--	__u32 size;
--	__u8  type;
--	__u8  reserved[3];
--};
--
--struct omapfb_caps {
--	__u32 ctrl;
--	__u32 plane_color;
--	__u32 wnd_color;
--};
--
--enum omapfb_color_key_type {
--	OMAPFB_COLOR_KEY_DISABLED = 0,
--	OMAPFB_COLOR_KEY_GFX_DST,
--	OMAPFB_COLOR_KEY_VID_SRC,
--};
--
--struct omapfb_color_key {
--	__u8  channel_out;
--	__u32 background;
--	__u32 trans_key;
--	__u8  key_type;
--};
--
--enum omapfb_update_mode {
--	OMAPFB_UPDATE_DISABLED = 0,
--	OMAPFB_AUTO_UPDATE,
--	OMAPFB_MANUAL_UPDATE
--};
--
--#ifdef __KERNEL__
--
--#include <linux/completion.h>
--#include <linux/interrupt.h>
--#include <linux/fb.h>
--#include <linux/mutex.h>
--
--#include <mach/board.h>
--
--#define OMAP_LCDC_INV_VSYNC             0x0001
--#define OMAP_LCDC_INV_HSYNC             0x0002
--#define OMAP_LCDC_INV_PIX_CLOCK         0x0004
--#define OMAP_LCDC_INV_OUTPUT_EN         0x0008
--#define OMAP_LCDC_HSVS_RISING_EDGE      0x0010
--#define OMAP_LCDC_HSVS_OPPOSITE         0x0020
--
--#define OMAP_LCDC_SIGNAL_MASK		0x003f
--
--#define OMAP_LCDC_PANEL_TFT		0x0100
--
--#define OMAPFB_PLANE_XRES_MIN		8
--#define OMAPFB_PLANE_YRES_MIN		8
--
--#ifdef CONFIG_ARCH_OMAP1
--#define OMAPFB_PLANE_NUM		1
--#else
--#define OMAPFB_PLANE_NUM		3
--#endif
--
--struct omapfb_device;
--
--struct lcd_panel {
--	const char	*name;
--	int		config;		/* TFT/STN, signal inversion */
--	int		bpp;		/* Pixel format in fb mem */
--	int		data_lines;	/* Lines on LCD HW interface */
--
--	int		x_res, y_res;
--	int		pixel_clock;	/* In kHz */
--	int		hsw;		/* Horizontal synchronization
--					   pulse width */
--	int		hfp;		/* Horizontal front porch */
--	int		hbp;		/* Horizontal back porch */
--	int		vsw;		/* Vertical synchronization
--					   pulse width */
--	int		vfp;		/* Vertical front porch */
--	int		vbp;		/* Vertical back porch */
--	int		acb;		/* ac-bias pin frequency */
--	int		pcd;		/* pixel clock divider.
--					   Obsolete use pixel_clock instead */
--
--	int		(*init)		(struct lcd_panel *panel,
--					 struct omapfb_device *fbdev);
--	void		(*cleanup)	(struct lcd_panel *panel);
--	int		(*enable)	(struct lcd_panel *panel);
--	void		(*disable)	(struct lcd_panel *panel);
--	unsigned long	(*get_caps)	(struct lcd_panel *panel);
--	int		(*set_bklight_level)(struct lcd_panel *panel,
--					     unsigned int level);
--	unsigned int	(*get_bklight_level)(struct lcd_panel *panel);
--	unsigned int	(*get_bklight_max)  (struct lcd_panel *panel);
--	int		(*run_test)	(struct lcd_panel *panel, int test_num);
--};
--
--struct extif_timings {
--	int cs_on_time;
--	int cs_off_time;
--	int we_on_time;
--	int we_off_time;
--	int re_on_time;
--	int re_off_time;
--	int we_cycle_time;
--	int re_cycle_time;
--	int cs_pulse_width;
--	int access_time;
--
--	int clk_div;
--
--	u32 tim[5];		/* set by extif->convert_timings */
--
--	int converted;
--};
--
--struct lcd_ctrl_extif {
--	int  (*init)		(struct omapfb_device *fbdev);
--	void (*cleanup)		(void);
--	void (*get_clk_info)	(u32 *clk_period, u32 *max_clk_div);
--	unsigned long (*get_max_tx_rate)(void);
--	int  (*convert_timings)	(struct extif_timings *timings);
--	void (*set_timings)	(const struct extif_timings *timings);
--	void (*set_bits_per_cycle)(int bpc);
--	void (*write_command)	(const void *buf, unsigned int len);
--	void (*read_data)	(void *buf, unsigned int len);
--	void (*write_data)	(const void *buf, unsigned int len);
--	void (*transfer_area)	(int width, int height,
--				 void (callback)(void * data), void *data);
--	int  (*setup_tearsync)	(unsigned pin_cnt,
--				 unsigned hs_pulse_time, unsigned vs_pulse_time,
--				 int hs_pol_inv, int vs_pol_inv, int div);
--	int  (*enable_tearsync) (int enable, unsigned line);
--
--	unsigned long		max_transmit_size;
--};
--
--struct omapfb_notifier_block {
--	struct notifier_block	nb;
--	void			*data;
--	int			plane_idx;
--};
--
--typedef int (*omapfb_notifier_callback_t)(struct notifier_block *,
--					  unsigned long event,
--					  void *fbi);
--
--struct omapfb_mem_region {
--	u32		paddr;
--	void __iomem	*vaddr;
--	unsigned long	size;
--	u8		type;		/* OMAPFB_PLANE_MEM_* */
--	unsigned	alloc:1;	/* allocated by the driver */
--	unsigned	map:1;		/* kernel mapped by the driver */
--};
--
--struct omapfb_mem_desc {
--	int				region_cnt;
--	struct omapfb_mem_region	region[OMAPFB_PLANE_NUM];
--};
--
--struct lcd_ctrl {
--	const char	*name;
--	void		*data;
--
--	int		(*init)		  (struct omapfb_device *fbdev,
--					   int ext_mode,
--					   struct omapfb_mem_desc *req_md);
--	void		(*cleanup)	  (void);
--	void		(*bind_client)	  (struct omapfb_notifier_block *nb);
--	void		(*get_caps)	  (int plane, struct omapfb_caps *caps);
--	int		(*set_update_mode)(enum omapfb_update_mode mode);
--	enum omapfb_update_mode (*get_update_mode)(void);
--	int		(*setup_plane)	  (int plane, int channel_out,
--					   unsigned long offset,
--					   int screen_width,
--					   int pos_x, int pos_y, int width,
--					   int height, int color_mode);
--	int		(*set_rotate)	  (int angle);
--	int		(*setup_mem)	  (int plane, size_t size,
--					   int mem_type, unsigned long *paddr);
--	int		(*mmap)		  (struct fb_info *info,
--					   struct vm_area_struct *vma);
--	int		(*set_scale)	  (int plane,
--					   int orig_width, int orig_height,
--					   int out_width, int out_height);
--	int		(*enable_plane)	  (int plane, int enable);
--	int		(*update_window)  (struct fb_info *fbi,
--					   struct omapfb_update_window *win,
--					   void (*callback)(void *),
--					   void *callback_data);
--	void		(*sync)		  (void);
--	void		(*suspend)	  (void);
--	void		(*resume)	  (void);
--	int		(*run_test)	  (int test_num);
--	int		(*setcolreg)	  (u_int regno, u16 red, u16 green,
--					   u16 blue, u16 transp,
--					   int update_hw_mem);
--	int		(*set_color_key)  (struct omapfb_color_key *ck);
--	int		(*get_color_key)  (struct omapfb_color_key *ck);
--};
--
--enum omapfb_state {
--	OMAPFB_DISABLED	= 0,
--	OMAPFB_SUSPENDED= 99,
--	OMAPFB_ACTIVE	= 100
--};
--
--struct omapfb_plane_struct {
--	int				idx;
--	struct omapfb_plane_info	info;
--	enum omapfb_color_format	color_mode;
--	struct omapfb_device		*fbdev;
--};
--
--struct omapfb_device {
--	int			state;
--	int                     ext_lcdc;               /* Using external
--                                                           LCD controller */
--	struct mutex		rqueue_mutex;
--
--	int			palette_size;
--	u32			pseudo_palette[17];
--
--	struct lcd_panel	*panel;			/* LCD panel */
--	const struct lcd_ctrl	*ctrl;			/* LCD controller */
--	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
--	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
--							   interface */
--	struct device		*dev;
--	struct fb_var_screeninfo	new_var;	/* for mode changes */
--
--	struct omapfb_mem_desc		mem_desc;
--	struct fb_info			*fb_info[OMAPFB_PLANE_NUM];
--};
--
--struct omapfb_platform_data {
--	struct omap_lcd_config		lcd;
--	struct omapfb_mem_desc		mem_desc;
--	void				*ctrl_platform_data;
--};
--
--#ifdef CONFIG_ARCH_OMAP1
--extern struct lcd_ctrl omap1_lcd_ctrl;
--#else
--extern struct lcd_ctrl omap2_disp_ctrl;
--#endif
--
--extern void omapfb_reserve_sdram(void);
--extern void omapfb_register_panel(struct lcd_panel *panel);
--extern void omapfb_write_first_pixel(struct omapfb_device *fbdev, u16 pixval);
--extern void omapfb_notify_clients(struct omapfb_device *fbdev,
--				  unsigned long event);
--extern int  omapfb_register_client(struct omapfb_notifier_block *nb,
--				   omapfb_notifier_callback_t callback,
--				   void *callback_data);
--extern int  omapfb_unregister_client(struct omapfb_notifier_block *nb);
--extern int  omapfb_update_window_async(struct fb_info *fbi,
--				       struct omapfb_update_window *win,
--				       void (*callback)(void *),
--				       void *callback_data);
--
--/* in arch/arm/plat-omap/fb.c */
--extern void omapfb_set_ctrl_platform_data(void *pdata);
--
--#endif /* __KERNEL__ */
--
--#endif /* __OMAPFB_H */
-diff --git a/drivers/video/omap/blizzard.c b/drivers/video/omap/blizzard.c
-index d5e5955..f35a277 100644
---- a/drivers/video/omap/blizzard.c
-+++ b/drivers/video/omap/blizzard.c
-@@ -27,9 +27,9 @@
- #include <linux/clk.h>
- 
- #include <mach/dma.h>
--#include <mach/omapfb.h>
- #include <mach/blizzard.h>
- 
-+#include "omapfb.h"
- #include "dispc.h"
- 
- #define MODULE_NAME				"blizzard"
-diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-index 80a11d0..66e57df 100644
---- a/drivers/video/omap/dispc.c
-+++ b/drivers/video/omap/dispc.c
-@@ -26,9 +26,9 @@
- #include <linux/io.h>
- 
- #include <mach/sram.h>
--#include <mach/omapfb.h>
- #include <mach/board.h>
- 
-+#include "omapfb.h"
- #include "dispc.h"
- 
- #define MODULE_NAME			"dispc"
-diff --git a/drivers/video/omap/hwa742.c b/drivers/video/omap/hwa742.c
-index ca51583..b84fb7c 100644
---- a/drivers/video/omap/hwa742.c
-+++ b/drivers/video/omap/hwa742.c
-@@ -27,8 +27,8 @@
- #include <linux/clk.h>
- 
- #include <mach/dma.h>
--#include <mach/omapfb.h>
- #include <mach/hwa742.h>
-+#include "omapfb.h"
- 
- #define HWA742_REV_CODE_REG       0x0
- #define HWA742_CONFIG_REG         0x2
-diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
-index 393712b..7b7690a 100644
---- a/drivers/video/omap/lcd_2430sdp.c
-+++ b/drivers/video/omap/lcd_2430sdp.c
-@@ -28,9 +28,10 @@
- #include <linux/i2c/twl4030.h>
- 
- #include <mach/mux.h>
--#include <mach/omapfb.h>
- #include <asm/mach-types.h>
- 
-+#include "omapfb.h"
-+
- #define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
- #define SDP2430_LCD_PANEL_ENABLE_GPIO		154
- #define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	24
-diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
-index 1f74399..1d3fd13 100644
---- a/drivers/video/omap/lcd_ams_delta.c
-+++ b/drivers/video/omap/lcd_ams_delta.c
-@@ -27,7 +27,8 @@
- 
- #include <mach/board-ams-delta.h>
- #include <mach/hardware.h>
--#include <mach/omapfb.h>
-+
-+#include "omapfb.h"
- 
- #define AMS_DELTA_DEFAULT_CONTRAST	112
- 
-diff --git a/drivers/video/omap/lcd_apollon.c b/drivers/video/omap/lcd_apollon.c
-index 626ae3a..e099ad1 100644
---- a/drivers/video/omap/lcd_apollon.c
-+++ b/drivers/video/omap/lcd_apollon.c
-@@ -26,7 +26,8 @@
- 
- #include <mach/gpio.h>
- #include <mach/mux.h>
--#include <mach/omapfb.h>
-+
-+#include "omapfb.h"
- 
- /* #define USE_35INCH_LCD 1 */
- 
-diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
-index 417ae5e..8df6887 100644
---- a/drivers/video/omap/lcd_h3.c
-+++ b/drivers/video/omap/lcd_h3.c
-@@ -24,7 +24,7 @@
- #include <linux/i2c/tps65010.h>
- 
- #include <mach/gpio.h>
--#include <mach/omapfb.h>
-+#include "omapfb.h"
- 
- #define MODULE_NAME	"omapfb-lcd_h3"
- 
-diff --git a/drivers/video/omap/lcd_h4.c b/drivers/video/omap/lcd_h4.c
-index 0c398bd..03a06a9 100644
---- a/drivers/video/omap/lcd_h4.c
-+++ b/drivers/video/omap/lcd_h4.c
-@@ -22,7 +22,7 @@
- #include <linux/module.h>
- #include <linux/platform_device.h>
- 
--#include <mach/omapfb.h>
-+#include "omapfb.h"
- 
- static int h4_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
- {
-diff --git a/drivers/video/omap/lcd_inn1510.c b/drivers/video/omap/lcd_inn1510.c
-index cdbd8bb..18f1422 100644
---- a/drivers/video/omap/lcd_inn1510.c
-+++ b/drivers/video/omap/lcd_inn1510.c
-@@ -24,7 +24,7 @@
- #include <linux/io.h>
- 
- #include <mach/fpga.h>
--#include <mach/omapfb.h>
-+#include "omapfb.h"
- 
- static int innovator1510_panel_init(struct lcd_panel *panel,
- 				    struct omapfb_device *fbdev)
-diff --git a/drivers/video/omap/lcd_inn1610.c b/drivers/video/omap/lcd_inn1610.c
-index 268f7f8..9fff86f 100644
---- a/drivers/video/omap/lcd_inn1610.c
-+++ b/drivers/video/omap/lcd_inn1610.c
-@@ -23,7 +23,7 @@
- #include <linux/platform_device.h>
- 
- #include <mach/gpio.h>
--#include <mach/omapfb.h>
-+#include "omapfb.h"
- 
- #define MODULE_NAME	"omapfb-lcd_h3"
- 
-diff --git a/drivers/video/omap/lcd_ldp.c b/drivers/video/omap/lcd_ldp.c
-index dbfe897..44a43ea 100644
---- a/drivers/video/omap/lcd_ldp.c
-+++ b/drivers/video/omap/lcd_ldp.c
-@@ -28,9 +28,10 @@
- 
- #include <mach/gpio.h>
- #include <mach/mux.h>
--#include <mach/omapfb.h>
- #include <asm/mach-types.h>
- 
-+#include "omapfb.h"
-+
- #define LCD_PANEL_BACKLIGHT_GPIO	(15 + OMAP_MAX_GPIO_LINES)
- #define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
- 
-diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
-index 918ee89..62e1975 100644
---- a/drivers/video/omap/lcd_mipid.c
-+++ b/drivers/video/omap/lcd_mipid.c
-@@ -23,9 +23,10 @@
- #include <linux/workqueue.h>
- #include <linux/spi/spi.h>
- 
--#include <mach/omapfb.h>
- #include <mach/lcd_mipid.h>
- 
-+#include "omapfb.h"
-+
- #define MIPID_MODULE_NAME		"lcd_mipid"
- 
- #define MIPID_CMD_READ_DISP_ID		0x04
-diff --git a/drivers/video/omap/lcd_omap2evm.c b/drivers/video/omap/lcd_omap2evm.c
-index 7a2bbe2..c3be87c 100644
---- a/drivers/video/omap/lcd_omap2evm.c
-+++ b/drivers/video/omap/lcd_omap2evm.c
-@@ -27,9 +27,10 @@
- #include <linux/i2c/twl4030.h>
- 
- #include <mach/mux.h>
--#include <mach/omapfb.h>
- #include <asm/mach-types.h>
- 
-+#include "omapfb.h"
-+
- #define LCD_PANEL_ENABLE_GPIO	154
- #define LCD_PANEL_LR		128
- #define LCD_PANEL_UD		129
-diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
-index 4011910..0608a25 100644
---- a/drivers/video/omap/lcd_omap3beagle.c
-+++ b/drivers/video/omap/lcd_omap3beagle.c
-@@ -26,9 +26,10 @@
- #include <linux/i2c/twl4030.h>
- 
- #include <mach/mux.h>
--#include <mach/omapfb.h>
- #include <asm/mach-types.h>
- 
-+#include "omapfb.h"
-+
- #define LCD_PANEL_ENABLE_GPIO       170
- 
- static int omap3beagle_panel_init(struct lcd_panel *panel,
-diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
-index b6a4c2c..c204afb 100644
---- a/drivers/video/omap/lcd_omap3evm.c
-+++ b/drivers/video/omap/lcd_omap3evm.c
-@@ -26,9 +26,10 @@
- #include <linux/i2c/twl4030.h>
- 
- #include <mach/mux.h>
--#include <mach/omapfb.h>
- #include <asm/mach-types.h>
- 
-+#include "omapfb.h"
-+
- #define LCD_PANEL_ENABLE_GPIO       153
- #define LCD_PANEL_LR                2
- #define LCD_PANEL_UD                3
-diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
-index b3fa88b..5755b5c 100644
---- a/drivers/video/omap/lcd_osk.c
-+++ b/drivers/video/omap/lcd_osk.c
-@@ -25,7 +25,7 @@
- 
- #include <mach/gpio.h>
- #include <mach/mux.h>
--#include <mach/omapfb.h>
-+#include "omapfb.h"
- 
- static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
- {
-diff --git a/drivers/video/omap/lcd_overo.c b/drivers/video/omap/lcd_overo.c
-index 2bc5c92..63ebb1f 100644
---- a/drivers/video/omap/lcd_overo.c
-+++ b/drivers/video/omap/lcd_overo.c
-@@ -25,9 +25,10 @@
- 
- #include <mach/gpio.h>
- #include <mach/mux.h>
--#include <mach/omapfb.h>
- #include <asm/mach-types.h>
- 
-+#include "omapfb.h"
-+
- #define LCD_ENABLE       144
- 
- static int overo_panel_init(struct lcd_panel *panel,
-diff --git a/drivers/video/omap/lcd_palmte.c b/drivers/video/omap/lcd_palmte.c
-index 4bf3c79..7e11a75 100644
---- a/drivers/video/omap/lcd_palmte.c
-+++ b/drivers/video/omap/lcd_palmte.c
-@@ -24,7 +24,7 @@
- #include <linux/io.h>
- 
- #include <mach/fpga.h>
--#include <mach/omapfb.h>
-+#include "omapfb.h"
- 
- static int palmte_panel_init(struct lcd_panel *panel,
- 				struct omapfb_device *fbdev)
-diff --git a/drivers/video/omap/lcd_palmtt.c b/drivers/video/omap/lcd_palmtt.c
-index 48ea1f9..ff0e6d7 100644
---- a/drivers/video/omap/lcd_palmtt.c
-+++ b/drivers/video/omap/lcd_palmtt.c
-@@ -30,7 +30,7 @@ GPIO13 - screen blanking
- #include <linux/io.h>
- 
- #include <mach/gpio.h>
--#include <mach/omapfb.h>
-+#include "omapfb.h"
- 
- static int palmtt_panel_init(struct lcd_panel *panel,
- 	struct omapfb_device *fbdev)
-diff --git a/drivers/video/omap/lcd_palmz71.c b/drivers/video/omap/lcd_palmz71.c
-index 0697d29..2334e56 100644
---- a/drivers/video/omap/lcd_palmz71.c
-+++ b/drivers/video/omap/lcd_palmz71.c
-@@ -24,7 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- 
--#include <mach/omapfb.h>
-+#include "omapfb.h"
- 
- static int palmz71_panel_init(struct lcd_panel *panel,
- 			      struct omapfb_device *fbdev)
-diff --git a/drivers/video/omap/lcdc.c b/drivers/video/omap/lcdc.c
-index ab39492..520ed97 100644
---- a/drivers/video/omap/lcdc.c
-+++ b/drivers/video/omap/lcdc.c
-@@ -30,10 +30,11 @@
- #include <linux/clk.h>
- 
- #include <mach/dma.h>
--#include <mach/omapfb.h>
- 
- #include <asm/mach-types.h>
- 
-+#include "omapfb.h"
-+
- #include "lcdc.h"
- 
- #define MODULE_NAME			"lcdc"
-diff --git a/drivers/video/omap/omapfb.h b/drivers/video/omap/omapfb.h
+ /*
+diff --git a/arch/arm/plat-omap/include/mach/vram.h b/arch/arm/plat-omap/include/mach/vram.h
 new file mode 100644
-index 0000000..46e4714
+index 0000000..fe72f81
 --- /dev/null
-+++ b/drivers/video/omap/omapfb.h
-@@ -0,0 +1,227 @@
++++ b/arch/arm/plat-omap/include/mach/vram.h
+@@ -0,0 +1,63 @@
 +/*
-+ * File: drivers/video/omap/omapfb.h
++ * VRAM manager for OMAP
 + *
-+ * Framebuffer driver for TI OMAP boards
++ * Copyright (C) 2009 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
 + *
-+ * Copyright (C) 2004 Nokia Corporation
-+ * Author: Imre Deak <imre.deak@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
 + * This program is distributed in the hope that it will be useful, but
 + * WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -854,454 +94,775 @@ index 0000000..46e4714
 + * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
 +
-+#ifndef __OMAPFB_H
-+#define __OMAPFB_H
++#ifndef __OMAP_VRAM_H__
++#define __OMAP_VRAM_H__
 +
-+#include <linux/fb.h>
-+#include <linux/mutex.h>
-+#include <linux/omapfb.h>
-+
-+#define OMAPFB_EVENT_READY	1
-+#define OMAPFB_EVENT_DISABLED	2
-+
-+#define OMAP_LCDC_INV_VSYNC             0x0001
-+#define OMAP_LCDC_INV_HSYNC             0x0002
-+#define OMAP_LCDC_INV_PIX_CLOCK         0x0004
-+#define OMAP_LCDC_INV_OUTPUT_EN         0x0008
-+#define OMAP_LCDC_HSVS_RISING_EDGE      0x0010
-+#define OMAP_LCDC_HSVS_OPPOSITE         0x0020
-+
-+#define OMAP_LCDC_SIGNAL_MASK		0x003f
-+
-+#define OMAP_LCDC_PANEL_TFT		0x0100
-+
-+#define OMAPFB_PLANE_XRES_MIN		8
-+#define OMAPFB_PLANE_YRES_MIN		8
-+
-+struct omapfb_device;
-+
-+struct lcd_panel {
-+	const char	*name;
-+	int		config;		/* TFT/STN, signal inversion */
-+	int		bpp;		/* Pixel format in fb mem */
-+	int		data_lines;	/* Lines on LCD HW interface */
-+
-+	int		x_res, y_res;
-+	int		pixel_clock;	/* In kHz */
-+	int		hsw;		/* Horizontal synchronization
-+					   pulse width */
-+	int		hfp;		/* Horizontal front porch */
-+	int		hbp;		/* Horizontal back porch */
-+	int		vsw;		/* Vertical synchronization
-+					   pulse width */
-+	int		vfp;		/* Vertical front porch */
-+	int		vbp;		/* Vertical back porch */
-+	int		acb;		/* ac-bias pin frequency */
-+	int		pcd;		/* pixel clock divider.
-+					   Obsolete use pixel_clock instead */
-+
-+	int		(*init)		(struct lcd_panel *panel,
-+					 struct omapfb_device *fbdev);
-+	void		(*cleanup)	(struct lcd_panel *panel);
-+	int		(*enable)	(struct lcd_panel *panel);
-+	void		(*disable)	(struct lcd_panel *panel);
-+	unsigned long	(*get_caps)	(struct lcd_panel *panel);
-+	int		(*set_bklight_level)(struct lcd_panel *panel,
-+					     unsigned int level);
-+	unsigned int	(*get_bklight_level)(struct lcd_panel *panel);
-+	unsigned int	(*get_bklight_max)  (struct lcd_panel *panel);
-+	int		(*run_test)	(struct lcd_panel *panel, int test_num);
-+};
-+
-+struct extif_timings {
-+	int cs_on_time;
-+	int cs_off_time;
-+	int we_on_time;
-+	int we_off_time;
-+	int re_on_time;
-+	int re_off_time;
-+	int we_cycle_time;
-+	int re_cycle_time;
-+	int cs_pulse_width;
-+	int access_time;
-+
-+	int clk_div;
-+
-+	u32 tim[5];		/* set by extif->convert_timings */
-+
-+	int converted;
-+};
-+
-+struct lcd_ctrl_extif {
-+	int  (*init)		(struct omapfb_device *fbdev);
-+	void (*cleanup)		(void);
-+	void (*get_clk_info)	(u32 *clk_period, u32 *max_clk_div);
-+	unsigned long (*get_max_tx_rate)(void);
-+	int  (*convert_timings)	(struct extif_timings *timings);
-+	void (*set_timings)	(const struct extif_timings *timings);
-+	void (*set_bits_per_cycle)(int bpc);
-+	void (*write_command)	(const void *buf, unsigned int len);
-+	void (*read_data)	(void *buf, unsigned int len);
-+	void (*write_data)	(const void *buf, unsigned int len);
-+	void (*transfer_area)	(int width, int height,
-+				 void (callback)(void *data), void *data);
-+	int  (*setup_tearsync)	(unsigned pin_cnt,
-+				 unsigned hs_pulse_time, unsigned vs_pulse_time,
-+				 int hs_pol_inv, int vs_pol_inv, int div);
-+	int  (*enable_tearsync) (int enable, unsigned line);
-+
-+	unsigned long		max_transmit_size;
-+};
-+
-+struct omapfb_notifier_block {
-+	struct notifier_block	nb;
-+	void			*data;
-+	int			plane_idx;
-+};
-+
-+typedef int (*omapfb_notifier_callback_t)(struct notifier_block *,
-+					  unsigned long event,
-+					  void *fbi);
-+
-+struct lcd_ctrl {
-+	const char	*name;
-+	void		*data;
-+
-+	int		(*init)		  (struct omapfb_device *fbdev,
-+					   int ext_mode,
-+					   struct omapfb_mem_desc *req_md);
-+	void		(*cleanup)	  (void);
-+	void		(*bind_client)	  (struct omapfb_notifier_block *nb);
-+	void		(*get_caps)	  (int plane, struct omapfb_caps *caps);
-+	int		(*set_update_mode)(enum omapfb_update_mode mode);
-+	enum omapfb_update_mode (*get_update_mode)(void);
-+	int		(*setup_plane)	  (int plane, int channel_out,
-+					   unsigned long offset,
-+					   int screen_width,
-+					   int pos_x, int pos_y, int width,
-+					   int height, int color_mode);
-+	int		(*set_rotate)	  (int angle);
-+	int		(*setup_mem)	  (int plane, size_t size,
-+					   int mem_type, unsigned long *paddr);
-+	int		(*mmap)		  (struct fb_info *info,
-+					   struct vm_area_struct *vma);
-+	int		(*set_scale)	  (int plane,
-+					   int orig_width, int orig_height,
-+					   int out_width, int out_height);
-+	int		(*enable_plane)	  (int plane, int enable);
-+	int		(*update_window)  (struct fb_info *fbi,
-+					   struct omapfb_update_window *win,
-+					   void (*callback)(void *),
-+					   void *callback_data);
-+	void		(*sync)		  (void);
-+	void		(*suspend)	  (void);
-+	void		(*resume)	  (void);
-+	int		(*run_test)	  (int test_num);
-+	int		(*setcolreg)	  (u_int regno, u16 red, u16 green,
-+					   u16 blue, u16 transp,
-+					   int update_hw_mem);
-+	int		(*set_color_key)  (struct omapfb_color_key *ck);
-+	int		(*get_color_key)  (struct omapfb_color_key *ck);
-+};
-+
-+enum omapfb_state {
-+	OMAPFB_DISABLED		= 0,
-+	OMAPFB_SUSPENDED	= 99,
-+	OMAPFB_ACTIVE		= 100
-+};
-+
-+struct omapfb_plane_struct {
-+	int				idx;
-+	struct omapfb_plane_info	info;
-+	enum omapfb_color_format	color_mode;
-+	struct omapfb_device		*fbdev;
-+};
-+
-+struct omapfb_device {
-+	int			state;
-+	int                     ext_lcdc;		/* Using external
-+							   LCD controller */
-+	struct mutex		rqueue_mutex;
-+
-+	int			palette_size;
-+	u32			pseudo_palette[17];
-+
-+	struct lcd_panel	*panel;			/* LCD panel */
-+	const struct lcd_ctrl	*ctrl;			/* LCD controller */
-+	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
-+	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
-+							   interface */
-+	struct device		*dev;
-+	struct fb_var_screeninfo	new_var;	/* for mode changes */
-+
-+	struct omapfb_mem_desc		mem_desc;
-+	struct fb_info			*fb_info[OMAPFB_PLANE_NUM];
-+};
-+
-+#ifdef CONFIG_ARCH_OMAP1
-+extern struct lcd_ctrl omap1_lcd_ctrl;
-+#else
-+extern struct lcd_ctrl omap2_disp_ctrl;
-+#endif
-+
-+extern void omapfb_register_panel(struct lcd_panel *panel);
-+extern void omapfb_write_first_pixel(struct omapfb_device *fbdev, u16 pixval);
-+extern void omapfb_notify_clients(struct omapfb_device *fbdev,
-+				  unsigned long event);
-+extern int  omapfb_register_client(struct omapfb_notifier_block *nb,
-+				   omapfb_notifier_callback_t callback,
-+				   void *callback_data);
-+extern int  omapfb_unregister_client(struct omapfb_notifier_block *nb);
-+extern int  omapfb_update_window_async(struct fb_info *fbi,
-+				       struct omapfb_update_window *win,
-+				       void (*callback)(void *),
-+				       void *callback_data);
-+
-+#endif /* __OMAPFB_H */
-diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
-index 125e605..c1b075c 100644
---- a/drivers/video/omap/omapfb_main.c
-+++ b/drivers/video/omap/omapfb_main.c
-@@ -29,8 +29,8 @@
- #include <linux/uaccess.h>
- 
- #include <mach/dma.h>
--#include <mach/omapfb.h>
- 
-+#include "omapfb.h"
- #include "lcdc.h"
- #include "dispc.h"
- 
-diff --git a/drivers/video/omap/rfbi.c b/drivers/video/omap/rfbi.c
-index ee01e84..fed7b1b 100644
---- a/drivers/video/omap/rfbi.c
-+++ b/drivers/video/omap/rfbi.c
-@@ -27,8 +27,7 @@
- #include <linux/clk.h>
- #include <linux/io.h>
- 
--#include <mach/omapfb.h>
--
-+#include "omapfb.h"
- #include "dispc.h"
- 
- /* To work around an RFBI transfer rate limitation */
-diff --git a/drivers/video/omap/sossi.c b/drivers/video/omap/sossi.c
-index a769462..6853627 100644
---- a/drivers/video/omap/sossi.c
-+++ b/drivers/video/omap/sossi.c
-@@ -25,8 +25,8 @@
- #include <linux/io.h>
- 
- #include <mach/dma.h>
--#include <mach/omapfb.h>
- 
-+#include "omapfb.h"
- #include "lcdc.h"
- 
- #define MODULE_NAME		"omapfb-sossi"
-diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
-new file mode 100644
-index 0000000..a3611d3
---- /dev/null
-+++ b/include/linux/omapfb.h
-@@ -0,0 +1,197 @@
-+/*
-+ * File: include/linux/omapfb.h
-+ *
-+ * Framebuffer driver for TI OMAP boards
-+ *
-+ * Copyright (C) 2004 Nokia Corporation
-+ * Author: Imre Deak <imre.deak@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-+ */
-+
-+#ifndef __LINUX_OMAPFB_H__
-+#define __LINUX_OMAPFB_H__
-+
-+#include <linux/ioctl.h>
++#include <linux/autoconf.h>
 +#include <linux/types.h>
 +
-+/* IOCTL commands. */
++#define OMAP_VRAM_MEMTYPE_SDRAM		0
++#define OMAP_VRAM_MEMTYPE_SRAM		1
++#define OMAP_VRAM_MEMTYPE_MAX		1
 +
-+#define OMAP_IOW(num, dtype)	_IOW('O', num, dtype)
-+#define OMAP_IOR(num, dtype)	_IOR('O', num, dtype)
-+#define OMAP_IOWR(num, dtype)	_IOWR('O', num, dtype)
-+#define OMAP_IO(num)		_IO('O', num)
++extern int omap_vram_add_region(unsigned long paddr, size_t size);
++extern int omap_vram_free(unsigned long paddr, size_t size);
++extern int omap_vram_alloc(int mtype, size_t size, unsigned long *paddr);
++extern int omap_vram_reserve(unsigned long paddr, size_t size);
++extern void omap_vram_get_info(unsigned long *vram, unsigned long *free_vram,
++		unsigned long *largest_free_block);
 +
-+#define OMAPFB_MIRROR		OMAP_IOW(31, int)
-+#define OMAPFB_SYNC_GFX		OMAP_IO(37)
-+#define OMAPFB_VSYNC		OMAP_IO(38)
-+#define OMAPFB_SET_UPDATE_MODE	OMAP_IOW(40, int)
-+#define OMAPFB_GET_CAPS		OMAP_IOR(42, struct omapfb_caps)
-+#define OMAPFB_GET_UPDATE_MODE	OMAP_IOW(43, int)
-+#define OMAPFB_LCD_TEST		OMAP_IOW(45, int)
-+#define OMAPFB_CTRL_TEST	OMAP_IOW(46, int)
-+#define OMAPFB_UPDATE_WINDOW_OLD OMAP_IOW(47, struct omapfb_update_window_old)
-+#define OMAPFB_SET_COLOR_KEY	OMAP_IOW(50, struct omapfb_color_key)
-+#define OMAPFB_GET_COLOR_KEY	OMAP_IOW(51, struct omapfb_color_key)
-+#define OMAPFB_SETUP_PLANE	OMAP_IOW(52, struct omapfb_plane_info)
-+#define OMAPFB_QUERY_PLANE	OMAP_IOW(53, struct omapfb_plane_info)
-+#define OMAPFB_UPDATE_WINDOW	OMAP_IOW(54, struct omapfb_update_window)
-+#define OMAPFB_SETUP_MEM	OMAP_IOW(55, struct omapfb_mem_info)
-+#define OMAPFB_QUERY_MEM	OMAP_IOW(56, struct omapfb_mem_info)
++#ifdef CONFIG_OMAP2_VRAM
++extern void omap_vram_set_sdram_vram(u32 size, u32 start);
++extern void omap_vram_set_sram_vram(u32 size, u32 start);
 +
-+#define OMAPFB_CAPS_GENERIC_MASK	0x00000fff
-+#define OMAPFB_CAPS_LCDC_MASK		0x00fff000
-+#define OMAPFB_CAPS_PANEL_MASK		0xff000000
-+
-+#define OMAPFB_CAPS_MANUAL_UPDATE	0x00001000
-+#define OMAPFB_CAPS_TEARSYNC		0x00002000
-+#define OMAPFB_CAPS_PLANE_RELOCATE_MEM	0x00004000
-+#define OMAPFB_CAPS_PLANE_SCALE		0x00008000
-+#define OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE	0x00010000
-+#define OMAPFB_CAPS_WINDOW_SCALE	0x00020000
-+#define OMAPFB_CAPS_WINDOW_OVERLAY	0x00040000
-+#define OMAPFB_CAPS_WINDOW_ROTATE	0x00080000
-+#define OMAPFB_CAPS_SET_BACKLIGHT	0x01000000
-+
-+/* Values from DSP must map to lower 16-bits */
-+#define OMAPFB_FORMAT_MASK		0x00ff
-+#define OMAPFB_FORMAT_FLAG_DOUBLE	0x0100
-+#define OMAPFB_FORMAT_FLAG_TEARSYNC	0x0200
-+#define OMAPFB_FORMAT_FLAG_FORCE_VSYNC	0x0400
-+#define OMAPFB_FORMAT_FLAG_ENABLE_OVERLAY	0x0800
-+#define OMAPFB_FORMAT_FLAG_DISABLE_OVERLAY	0x1000
-+
-+#define OMAPFB_MEMTYPE_SDRAM		0
-+#define OMAPFB_MEMTYPE_SRAM		1
-+#define OMAPFB_MEMTYPE_MAX		1
-+
-+enum omapfb_color_format {
-+	OMAPFB_COLOR_RGB565 = 0,
-+	OMAPFB_COLOR_YUV422,
-+	OMAPFB_COLOR_YUV420,
-+	OMAPFB_COLOR_CLUT_8BPP,
-+	OMAPFB_COLOR_CLUT_4BPP,
-+	OMAPFB_COLOR_CLUT_2BPP,
-+	OMAPFB_COLOR_CLUT_1BPP,
-+	OMAPFB_COLOR_RGB444,
-+	OMAPFB_COLOR_YUY422,
-+};
-+
-+struct omapfb_update_window {
-+	__u32 x, y;
-+	__u32 width, height;
-+	__u32 format;
-+	__u32 out_x, out_y;
-+	__u32 out_width, out_height;
-+	__u32 reserved[8];
-+};
-+
-+struct omapfb_update_window_old {
-+	__u32 x, y;
-+	__u32 width, height;
-+	__u32 format;
-+};
-+
-+enum omapfb_plane {
-+	OMAPFB_PLANE_GFX = 0,
-+	OMAPFB_PLANE_VID1,
-+	OMAPFB_PLANE_VID2,
-+};
-+
-+enum omapfb_channel_out {
-+	OMAPFB_CHANNEL_OUT_LCD = 0,
-+	OMAPFB_CHANNEL_OUT_DIGIT,
-+};
-+
-+struct omapfb_plane_info {
-+	__u32 pos_x;
-+	__u32 pos_y;
-+	__u8  enabled;
-+	__u8  channel_out;
-+	__u8  mirror;
-+	__u8  reserved1;
-+	__u32 out_width;
-+	__u32 out_height;
-+	__u32 reserved2[12];
-+};
-+
-+struct omapfb_mem_info {
-+	__u32 size;
-+	__u8  type;
-+	__u8  reserved[3];
-+};
-+
-+struct omapfb_caps {
-+	__u32 ctrl;
-+	__u32 plane_color;
-+	__u32 wnd_color;
-+};
-+
-+enum omapfb_color_key_type {
-+	OMAPFB_COLOR_KEY_DISABLED = 0,
-+	OMAPFB_COLOR_KEY_GFX_DST,
-+	OMAPFB_COLOR_KEY_VID_SRC,
-+};
-+
-+struct omapfb_color_key {
-+	__u8  channel_out;
-+	__u32 background;
-+	__u32 trans_key;
-+	__u8  key_type;
-+};
-+
-+enum omapfb_update_mode {
-+	OMAPFB_UPDATE_DISABLED = 0,
-+	OMAPFB_AUTO_UPDATE,
-+	OMAPFB_MANUAL_UPDATE
-+};
-+
-+#ifdef __KERNEL__
-+
-+#include <mach/board.h>
-+
-+#ifdef CONFIG_ARCH_OMAP1
-+#define OMAPFB_PLANE_NUM		1
++extern void omap_vram_reserve_sdram(void);
++extern unsigned long omap_vram_reserve_sram(unsigned long sram_pstart,
++					    unsigned long sram_vstart,
++					    unsigned long sram_size,
++					    unsigned long pstart_avail,
++					    unsigned long size_avail);
 +#else
-+#define OMAPFB_PLANE_NUM		3
++static inline void omap_vram_set_sdram_vram(u32 size, u32 start) { }
++static inline void omap_vram_set_sram_vram(u32 size, u32 start) { }
++
++static inline void omap_vram_reserve_sdram(void) { }
++static inline unsigned long omap_vram_reserve_sram(unsigned long sram_pstart,
++					    unsigned long sram_vstart,
++					    unsigned long sram_size,
++					    unsigned long pstart_avail,
++					    unsigned long size_avail)
++{
++	return 0;
++}
 +#endif
 +
-+struct omapfb_mem_region {
-+	u32		paddr;
-+	void __iomem	*vaddr;
-+	unsigned long	size;
-+	u8		type;		/* OMAPFB_PLANE_MEM_* */
-+	unsigned	alloc:1;	/* allocated by the driver */
-+	unsigned	map:1;		/* kernel mapped by the driver */
-+};
++#endif
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 925f647..cda311b 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -28,6 +28,7 @@
+ #include <mach/sram.h>
+ #include <mach/board.h>
+ #include <mach/cpu.h>
++#include <mach/vram.h>
+ 
+ #include <mach/control.h>
+ 
+@@ -185,6 +186,13 @@ void __init omap_detect_sram(void)
+ 				       omap_sram_start + SRAM_BOOTLOADER_SZ,
+ 				       omap_sram_size - SRAM_BOOTLOADER_SZ);
+ 	omap_sram_size -= reserved;
 +
-+struct omapfb_mem_desc {
-+	int				region_cnt;
-+	struct omapfb_mem_region	region[OMAPFB_PLANE_NUM];
-+};
++	reserved = omap_vram_reserve_sram(omap_sram_start, omap_sram_base,
++			omap_sram_size,
++			omap_sram_start + SRAM_BOOTLOADER_SZ,
++			omap_sram_size - SRAM_BOOTLOADER_SZ);
++	omap_sram_size -= reserved;
 +
-+struct omapfb_platform_data {
-+	struct omap_lcd_config		lcd;
-+	struct omapfb_mem_desc		mem_desc;
-+	void				*ctrl_platform_data;
-+};
+ 	omap_sram_ceil = omap_sram_base + omap_sram_size;
+ }
+ 
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 9bbb285..af0448f 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -2161,6 +2161,7 @@ config FB_BROADSHEET
+ 	  a bridge adapter.
+ 
+ source "drivers/video/omap/Kconfig"
++source "drivers/video/omap2/Kconfig"
+ 
+ source "drivers/video/backlight/Kconfig"
+ source "drivers/video/display/Kconfig"
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index 80232e1..0f8da33 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -124,6 +124,7 @@ obj-$(CONFIG_FB_SM501)            += sm501fb.o
+ obj-$(CONFIG_FB_XILINX)           += xilinxfb.o
+ obj-$(CONFIG_FB_SH_MOBILE_LCDC)	  += sh_mobile_lcdcfb.o
+ obj-$(CONFIG_FB_OMAP)             += omap/
++obj-y                             += omap2/
+ obj-$(CONFIG_XEN_FBDEV_FRONTEND)  += xen-fbfront.o
+ obj-$(CONFIG_FB_CARMINE)          += carminefb.o
+ obj-$(CONFIG_FB_MB862XX)	  += mb862xx/
+diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
+new file mode 100644
+index 0000000..7a6c4c9
+--- /dev/null
++++ b/drivers/video/omap2/Kconfig
+@@ -0,0 +1,2 @@
++config OMAP2_VRAM
++	bool
+diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
+new file mode 100644
+index 0000000..7fdf7bd
+--- /dev/null
++++ b/drivers/video/omap2/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_OMAP2_VRAM) += vram.o
+diff --git a/drivers/video/omap2/vram.c b/drivers/video/omap2/vram.c
+new file mode 100644
+index 0000000..634ce23
+--- /dev/null
++++ b/drivers/video/omap2/vram.c
+@@ -0,0 +1,655 @@
++/*
++ * VRAM manager for OMAP
++ *
++ * Copyright (C) 2009 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
 +
-+/* in arch/arm/plat-omap/fb.c */
-+extern void omapfb_set_ctrl_platform_data(void *pdata);
-+extern void omapfb_reserve_sdram(void);
++/*#define DEBUG*/
 +
++#include <linux/kernel.h>
++#include <linux/mm.h>
++#include <linux/list.h>
++#include <linux/seq_file.h>
++#include <linux/bootmem.h>
++#include <linux/completion.h>
++#include <linux/debugfs.h>
++#include <linux/jiffies.h>
++#include <linux/module.h>
++
++#include <asm/setup.h>
++
++#include <mach/sram.h>
++#include <mach/vram.h>
++#include <mach/dma.h>
++
++#ifdef DEBUG
++#define DBG(format, ...) pr_debug("VRAM: " format, ## __VA_ARGS__)
++#else
++#define DBG(format, ...)
 +#endif
 +
-+#endif /* __OMAPFB_H */
++#define OMAP2_SRAM_START		0x40200000
++/* Maximum size, in reality this is smaller if SRAM is partially locked. */
++#define OMAP2_SRAM_SIZE			0xa0000		/* 640k */
++
++/* postponed regions are used to temporarily store region information at boot
++ * time when we cannot yet allocate the region list */
++#define MAX_POSTPONED_REGIONS 10
++
++static bool vram_initialized;
++static int postponed_cnt;
++static struct {
++	unsigned long paddr;
++	size_t size;
++} postponed_regions[MAX_POSTPONED_REGIONS];
++
++struct vram_alloc {
++	struct list_head list;
++	unsigned long paddr;
++	unsigned pages;
++};
++
++struct vram_region {
++	struct list_head list;
++	struct list_head alloc_list;
++	unsigned long paddr;
++	unsigned pages;
++};
++
++static DEFINE_MUTEX(region_mutex);
++static LIST_HEAD(region_list);
++
++static inline int region_mem_type(unsigned long paddr)
++{
++	if (paddr >= OMAP2_SRAM_START &&
++	    paddr < OMAP2_SRAM_START + OMAP2_SRAM_SIZE)
++		return OMAP_VRAM_MEMTYPE_SRAM;
++	else
++		return OMAP_VRAM_MEMTYPE_SDRAM;
++}
++
++static struct vram_region *omap_vram_create_region(unsigned long paddr,
++		unsigned pages)
++{
++	struct vram_region *rm;
++
++	rm = kzalloc(sizeof(*rm), GFP_KERNEL);
++
++	if (rm) {
++		INIT_LIST_HEAD(&rm->alloc_list);
++		rm->paddr = paddr;
++		rm->pages = pages;
++	}
++
++	return rm;
++}
++
++#if 0
++static void omap_vram_free_region(struct vram_region *vr)
++{
++	list_del(&vr->list);
++	kfree(vr);
++}
++#endif
++
++static struct vram_alloc *omap_vram_create_allocation(struct vram_region *vr,
++		unsigned long paddr, unsigned pages)
++{
++	struct vram_alloc *va;
++	struct vram_alloc *new;
++
++	new = kzalloc(sizeof(*va), GFP_KERNEL);
++
++	if (!new)
++		return NULL;
++
++	new->paddr = paddr;
++	new->pages = pages;
++
++	list_for_each_entry(va, &vr->alloc_list, list) {
++		if (va->paddr > new->paddr)
++			break;
++	}
++
++	list_add_tail(&new->list, &va->list);
++
++	return new;
++}
++
++static void omap_vram_free_allocation(struct vram_alloc *va)
++{
++	list_del(&va->list);
++	kfree(va);
++}
++
++int omap_vram_add_region(unsigned long paddr, size_t size)
++{
++	struct vram_region *rm;
++	unsigned pages;
++
++	if (vram_initialized) {
++		DBG("adding region paddr %08lx size %d\n",
++				paddr, size);
++
++		size &= PAGE_MASK;
++		pages = size >> PAGE_SHIFT;
++
++		rm = omap_vram_create_region(paddr, pages);
++		if (rm == NULL)
++			return -ENOMEM;
++
++		list_add(&rm->list, &region_list);
++	} else {
++		if (postponed_cnt == MAX_POSTPONED_REGIONS)
++			return -ENOMEM;
++
++		postponed_regions[postponed_cnt].paddr = paddr;
++		postponed_regions[postponed_cnt].size = size;
++
++		++postponed_cnt;
++	}
++	return 0;
++}
++
++int omap_vram_free(unsigned long paddr, size_t size)
++{
++	struct vram_region *rm;
++	struct vram_alloc *alloc;
++	unsigned start, end;
++
++	DBG("free mem paddr %08lx size %d\n", paddr, size);
++
++	size = PAGE_ALIGN(size);
++
++	mutex_lock(&region_mutex);
++
++	list_for_each_entry(rm, &region_list, list) {
++		list_for_each_entry(alloc, &rm->alloc_list, list) {
++			start = alloc->paddr;
++			end = alloc->paddr + (alloc->pages >> PAGE_SHIFT);
++
++			if (start >= paddr && end < paddr + size)
++				goto found;
++		}
++	}
++
++	mutex_unlock(&region_mutex);
++	return -EINVAL;
++
++found:
++	omap_vram_free_allocation(alloc);
++
++	mutex_unlock(&region_mutex);
++	return 0;
++}
++EXPORT_SYMBOL(omap_vram_free);
++
++static int _omap_vram_reserve(unsigned long paddr, unsigned pages)
++{
++	struct vram_region *rm;
++	struct vram_alloc *alloc;
++	size_t size;
++
++	size = pages << PAGE_SHIFT;
++
++	list_for_each_entry(rm, &region_list, list) {
++		unsigned long start, end;
++
++		DBG("checking region %lx %d\n", rm->paddr, rm->pages);
++
++		if (region_mem_type(rm->paddr) != region_mem_type(paddr))
++			continue;
++
++		start = rm->paddr;
++		end = start + (rm->pages << PAGE_SHIFT) - 1;
++		if (start > paddr || end < paddr + size - 1)
++			continue;
++
++		DBG("block ok, checking allocs\n");
++
++		list_for_each_entry(alloc, &rm->alloc_list, list) {
++			end = alloc->paddr - 1;
++
++			if (start <= paddr && end >= paddr + size - 1)
++				goto found;
++
++			start = alloc->paddr + (alloc->pages << PAGE_SHIFT);
++		}
++
++		end = rm->paddr + (rm->pages << PAGE_SHIFT) - 1;
++
++		if (!(start <= paddr && end >= paddr + size - 1))
++			continue;
++found:
++		DBG("found area start %lx, end %lx\n", start, end);
++
++		if (omap_vram_create_allocation(rm, paddr, pages) == NULL)
++			return -ENOMEM;
++
++		return 0;
++	}
++
++	return -ENOMEM;
++}
++
++int omap_vram_reserve(unsigned long paddr, size_t size)
++{
++	unsigned pages;
++	int r;
++
++	DBG("reserve mem paddr %08lx size %d\n", paddr, size);
++
++	size = PAGE_ALIGN(size);
++	pages = size >> PAGE_SHIFT;
++
++	mutex_lock(&region_mutex);
++
++	r = _omap_vram_reserve(paddr, pages);
++
++	mutex_unlock(&region_mutex);
++
++	return r;
++}
++EXPORT_SYMBOL(omap_vram_reserve);
++
++static void _omap_vram_dma_cb(int lch, u16 ch_status, void *data)
++{
++	struct completion *compl = data;
++	complete(compl);
++}
++
++static int _omap_vram_clear(u32 paddr, unsigned pages)
++{
++	struct completion compl;
++	unsigned elem_count;
++	unsigned frame_count;
++	int r;
++	int lch;
++
++	init_completion(&compl);
++
++	r = omap_request_dma(OMAP_DMA_NO_DEVICE, "VRAM DMA",
++			_omap_vram_dma_cb,
++			&compl, &lch);
++	if (r) {
++		pr_err("VRAM: request_dma failed for memory clear\n");
++		return -EBUSY;
++	}
++
++	elem_count = pages * PAGE_SIZE / 4;
++	frame_count = 1;
++
++	omap_set_dma_transfer_params(lch, OMAP_DMA_DATA_TYPE_S32,
++			elem_count, frame_count,
++			OMAP_DMA_SYNC_ELEMENT,
++			0, 0);
++
++	omap_set_dma_dest_params(lch, 0, OMAP_DMA_AMODE_POST_INC,
++			paddr, 0, 0);
++
++	omap_set_dma_color_mode(lch, OMAP_DMA_CONSTANT_FILL, 0x000000);
++
++	omap_start_dma(lch);
++
++	if (wait_for_completion_timeout(&compl, msecs_to_jiffies(1000)) == 0) {
++		omap_stop_dma(lch);
++		pr_err("VRAM: dma timeout while clearing memory\n");
++		r = -EIO;
++		goto err;
++	}
++
++	r = 0;
++err:
++	omap_free_dma(lch);
++
++	return r;
++}
++
++static int _omap_vram_alloc(int mtype, unsigned pages, unsigned long *paddr)
++{
++	struct vram_region *rm;
++	struct vram_alloc *alloc;
++
++	list_for_each_entry(rm, &region_list, list) {
++		unsigned long start, end;
++
++		DBG("checking region %lx %d\n", rm->paddr, rm->pages);
++
++		if (region_mem_type(rm->paddr) != mtype)
++			continue;
++
++		start = rm->paddr;
++
++		list_for_each_entry(alloc, &rm->alloc_list, list) {
++			end = alloc->paddr;
++
++			if (end - start >= pages << PAGE_SHIFT)
++				goto found;
++
++			start = alloc->paddr + (alloc->pages << PAGE_SHIFT);
++		}
++
++		end = rm->paddr + (rm->pages << PAGE_SHIFT);
++found:
++		if (end - start < pages << PAGE_SHIFT)
++			continue;
++
++		DBG("found %lx, end %lx\n", start, end);
++
++		alloc = omap_vram_create_allocation(rm, start, pages);
++		if (alloc == NULL)
++			return -ENOMEM;
++
++		*paddr = start;
++
++		_omap_vram_clear(start, pages);
++
++		return 0;
++	}
++
++	return -ENOMEM;
++}
++
++int omap_vram_alloc(int mtype, size_t size, unsigned long *paddr)
++{
++	unsigned pages;
++	int r;
++
++	BUG_ON(mtype > OMAP_VRAM_MEMTYPE_MAX || !size);
++
++	DBG("alloc mem type %d size %d\n", mtype, size);
++
++	size = PAGE_ALIGN(size);
++	pages = size >> PAGE_SHIFT;
++
++	mutex_lock(&region_mutex);
++
++	r = _omap_vram_alloc(mtype, pages, paddr);
++
++	mutex_unlock(&region_mutex);
++
++	return r;
++}
++EXPORT_SYMBOL(omap_vram_alloc);
++
++void omap_vram_get_info(unsigned long *vram,
++		unsigned long *free_vram,
++		unsigned long *largest_free_block)
++{
++	struct vram_region *vr;
++	struct vram_alloc *va;
++
++	*vram = 0;
++	*free_vram = 0;
++	*largest_free_block = 0;
++
++	mutex_lock(&region_mutex);
++
++	list_for_each_entry(vr, &region_list, list) {
++		unsigned free;
++		unsigned long pa;
++
++		pa = vr->paddr;
++		*vram += vr->pages << PAGE_SHIFT;
++
++		list_for_each_entry(va, &vr->alloc_list, list) {
++			free = va->paddr - pa;
++			*free_vram += free;
++			if (free > *largest_free_block)
++				*largest_free_block = free;
++			pa = va->paddr + (va->pages << PAGE_SHIFT);
++		}
++
++		free = vr->paddr + (vr->pages << PAGE_SHIFT) - pa;
++		*free_vram += free;
++		if (free > *largest_free_block)
++			*largest_free_block = free;
++	}
++
++	mutex_unlock(&region_mutex);
++}
++EXPORT_SYMBOL(omap_vram_get_info);
++
++#if defined(CONFIG_DEBUG_FS)
++static int vram_debug_show(struct seq_file *s, void *unused)
++{
++	struct vram_region *vr;
++	struct vram_alloc *va;
++	unsigned size;
++
++	mutex_lock(&region_mutex);
++
++	list_for_each_entry(vr, &region_list, list) {
++		size = vr->pages << PAGE_SHIFT;
++		seq_printf(s, "%08lx-%08lx (%d bytes)\n",
++				vr->paddr, vr->paddr + size - 1,
++				size);
++
++		list_for_each_entry(va, &vr->alloc_list, list) {
++			size = va->pages << PAGE_SHIFT;
++			seq_printf(s, "    %08lx-%08lx (%d bytes)\n",
++					va->paddr, va->paddr + size - 1,
++					size);
++		}
++	}
++
++	mutex_unlock(&region_mutex);
++
++	return 0;
++}
++
++static int vram_debug_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, vram_debug_show, inode->i_private);
++}
++
++static const struct file_operations vram_debug_fops = {
++	.open           = vram_debug_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
++static int __init omap_vram_create_debugfs(void)
++{
++	struct dentry *d;
++
++	d = debugfs_create_file("vram", S_IRUGO, NULL,
++			NULL, &vram_debug_fops);
++	if (IS_ERR(d))
++		return PTR_ERR(d);
++
++	return 0;
++}
++#endif
++
++static __init int omap_vram_init(void)
++{
++	int i;
++
++	vram_initialized = 1;
++
++	for (i = 0; i < postponed_cnt; i++)
++		omap_vram_add_region(postponed_regions[i].paddr,
++				postponed_regions[i].size);
++
++#ifdef CONFIG_DEBUG_FS
++	if (omap_vram_create_debugfs())
++		pr_err("VRAM: Failed to create debugfs file\n");
++#endif
++
++	return 0;
++}
++
++arch_initcall(omap_vram_init);
++
++/* boottime vram alloc stuff */
++
++/* set from board file */
++static u32 omap_vram_sram_start __initdata;
++static u32 omap_vram_sram_size __initdata;
++
++/* set from board file */
++static u32 omap_vram_sdram_start __initdata;
++static u32 omap_vram_sdram_size __initdata;
++
++/* set from kernel cmdline */
++static u32 omap_vram_def_sdram_size __initdata;
++static u32 omap_vram_def_sdram_start __initdata;
++
++static void __init omap_vram_early_vram(char **p)
++{
++	omap_vram_def_sdram_size = memparse(*p, p);
++	if (**p == ',')
++		omap_vram_def_sdram_start = simple_strtoul((*p) + 1, p, 16);
++}
++__early_param("vram=", omap_vram_early_vram);
++
++/*
++ * Called from map_io. We need to call to this early enough so that we
++ * can reserve the fixed SDRAM regions before VM could get hold of them.
++ */
++void __init omap_vram_reserve_sdram(void)
++{
++	struct bootmem_data	*bdata;
++	unsigned long		sdram_start, sdram_size;
++	u32 paddr;
++	u32 size = 0;
++
++	/* cmdline arg overrides the board file definition */
++	if (omap_vram_def_sdram_size) {
++		size = omap_vram_def_sdram_size;
++		paddr = omap_vram_def_sdram_start;
++	}
++
++	if (!size) {
++		size = omap_vram_sdram_size;
++		paddr = omap_vram_sdram_start;
++	}
++
++#ifdef CONFIG_OMAP2_VRAM_SIZE
++	if (!size) {
++		size = CONFIG_OMAP2_VRAM_SIZE * 1024 * 1024;
++		paddr = 0;
++	}
++#endif
++
++	if (!size)
++		return;
++
++	size = PAGE_ALIGN(size);
++
++	bdata = NODE_DATA(0)->bdata;
++	sdram_start = bdata->node_min_pfn << PAGE_SHIFT;
++	sdram_size = (bdata->node_low_pfn << PAGE_SHIFT) - sdram_start;
++
++	if (paddr) {
++		if ((paddr & ~PAGE_MASK) || paddr < sdram_start ||
++				paddr + size > sdram_start + sdram_size) {
++			pr_err("Illegal SDRAM region for VRAM\n");
++			return;
++		}
++
++		if (reserve_bootmem(paddr, size, BOOTMEM_EXCLUSIVE) < 0) {
++			pr_err("FB: failed to reserve VRAM\n");
++			return;
++		}
++	} else {
++		if (size > sdram_size) {
++			pr_err("Illegal SDRAM size for VRAM\n");
++			return;
++		}
++
++		paddr = virt_to_phys(alloc_bootmem_pages(size));
++		BUG_ON(paddr & ~PAGE_MASK);
++	}
++
++	omap_vram_add_region(paddr, size);
++
++	pr_info("Reserving %u bytes SDRAM for VRAM\n", size);
++}
++
++/*
++ * Called at sram init time, before anything is pushed to the SRAM stack.
++ * Because of the stack scheme, we will allocate everything from the
++ * start of the lowest address region to the end of SRAM. This will also
++ * include padding for page alignment and possible holes between regions.
++ *
++ * As opposed to the SDRAM case, we'll also do any dynamic allocations at
++ * this point, since the driver built as a module would have problem with
++ * freeing / reallocating the regions.
++ */
++unsigned long __init omap_vram_reserve_sram(unsigned long sram_pstart,
++				  unsigned long sram_vstart,
++				  unsigned long sram_size,
++				  unsigned long pstart_avail,
++				  unsigned long size_avail)
++{
++	unsigned long			pend_avail;
++	unsigned long			reserved;
++	u32 paddr;
++	u32 size;
++
++	paddr = omap_vram_sram_start;
++	size = omap_vram_sram_size;
++
++	if (!size)
++		return 0;
++
++	reserved = 0;
++	pend_avail = pstart_avail + size_avail;
++
++	if (!paddr) {
++		/* Dynamic allocation */
++		if ((size_avail & PAGE_MASK) < size) {
++			pr_err("Not enough SRAM for VRAM\n");
++			return 0;
++		}
++		size_avail = (size_avail - size) & PAGE_MASK;
++		paddr = pstart_avail + size_avail;
++	}
++
++	if (paddr < sram_pstart ||
++			paddr + size > sram_pstart + sram_size) {
++		pr_err("Illegal SRAM region for VRAM\n");
++		return 0;
++	}
++
++	/* Reserve everything above the start of the region. */
++	if (pend_avail - paddr > reserved)
++		reserved = pend_avail - paddr;
++	size_avail = pend_avail - reserved - pstart_avail;
++
++	omap_vram_add_region(paddr, size);
++
++	if (reserved)
++		pr_info("Reserving %lu bytes SRAM for VRAM\n", reserved);
++
++	return reserved;
++}
++
++void __init omap_vram_set_sdram_vram(u32 size, u32 start)
++{
++	omap_vram_sdram_start = start;
++	omap_vram_sdram_size = size;
++}
++
++void __init omap_vram_set_sram_vram(u32 size, u32 start)
++{
++	omap_vram_sram_start = start;
++	omap_vram_sram_size = size;
++}
 -- 
 1.6.4
+
