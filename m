@@ -1,48 +1,78 @@
 From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: Build break on mainline tree for 3430 SDP
-Date: Thu, 24 Sep 2009 16:37:49 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A1C58F1@dbde02.ent.ti.com>
+Subject: RE: [PATCH] ARM: OMAP: Add omap34xx revision detection for ES3.1.1
+Date: Thu, 24 Sep 2009 17:11:18 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A1C5923@dbde02.ent.ti.com>
+References: <1251288272-17209-1-git-send-email-gadiyar@ti.com>
+ <20090922213822.GE4919@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52087 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53190 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751282AbZIXLHu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 07:07:50 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8OB7rsq015134
-	for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2009 06:07:53 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8OB7qBO017946
-	for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2009 16:37:52 +0530 (IST)
+	id S1751693AbZIXLlW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 07:41:22 -0400
+In-Reply-To: <20090922213822.GE4919@atomide.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Build break compiling Linus' git tree for 3430 SDP.
+Tony Lindgren wrote:
+> * Anand Gadiyar <gadiyar@ti.com> [090826 05:04]:
+> > ARM: OMAP: Add omap34xx revision detection for ES3.1.1
+> > 
+> > - Add omap34xx revision detection for ES3.1.1 silicon.
+> > - Change default silicon to ES3.1.1
+> > 
+> > - Also minor bug-fix: ES2.0 rev field is 1, not 0.
+> >   - This means that ES2.0 silicon would have wrongly been
+> >     detected as unknown
+> > 
+> > Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+> > ---
+> > Let me know if this should be split into a bug-fix patch,
+> > and a separate patch for adding ES 3.1.1 revision info.
+> > I felt the change was too minor to split out, since
+> > ES2.0 silicon is rare.
+> > 
+> > This patch is against linus' tree - so the cpu.h
+> > change will apply with an offset
+> > 
+> >  arch/arm/mach-omap2/id.c              |    8 ++++++--
+> >  arch/arm/plat-omap/include/mach/cpu.h |    1 +
+> >  2 files changed, 7 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index a98201c..414c520 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -185,7 +185,7 @@ void __init omap34xx_check_revision(void)
+> >  
+> >  	if (hawkeye == 0xb7ae) {
+> >  		switch (rev) {
+> > -		case 0:
+> > +		case 1:
+> >  			omap_revision = OMAP3430_REV_ES2_0;
+> >  			rev_name = "ES2.0";
+> >  			break;
+> 
+> Are you sure about this change? Can you please check on real
+> ES2.0 hardware, I believe the TRM may have a typo.
+> 
+> Regards,
+> 
+> Tony
+> 
 
-I get this with the default SDP config. Haven't looked at the
-code yet to find a fix.
+No, I'm not sure. I only caught it when I looked at the TRM to get
+the ES3.1.1 ID.
 
-- Anand
+I'll have to dig up an ES2.0 board to really verify, but that
+won't happen for a couple of weeks at least.
 
-  CC      arch/arm/mach-omap2/board-3430sdp.o
-In file included from arch/arm/mach-omap2/board-3430sdp.c:41:
-arch/arm/plat-omap/include/mach/keypad.h:38:1: warning: "KEY" redefined
-In file included from include/linux/i2c/twl4030.h:29,
-                 from arch/arm/mach-omap2/board-3430sdp.c:22:
-include/linux/input/matrix_keypad.h:10:1: warning: this is the location of the previous definition
-In file included from arch/arm/mach-omap2/board-3430sdp.c:41:
-arch/arm/plat-omap/include/mach/keypad.h:39:1: warning: "PERSISTENT_KEY" redefined
-In file included from arch/arm/mach-omap2/board-3430sdp.c:22:
-include/linux/i2c/twl4030.h:356:1: warning: this is the location of the previous definition
-arch/arm/mach-omap2/board-3430sdp.c:94: error: unknown field 'keymap' specified in initializer
-arch/arm/mach-omap2/board-3430sdp.c:94: warning: the address of 'sdp3430_keymap' will always evaluate as 'true'
-arch/arm/mach-omap2/board-3430sdp.c:95: error: unknown field 'keymapsize' specified in initializer
-arch/arm/mach-omap2/board-3430sdp.c:95: warning: excess elements in struct initializer
-arch/arm/mach-omap2/board-3430sdp.c:95: warning: (near initialization for 'sdp3430_kp_data')
-make[1]: *** [arch/arm/mach-omap2/board-3430sdp.o] Error 1
-make: *** [arch/arm/mach-omap2] Error 2
+If someone has this board around, please test and report.
 
+Thanks,
+Anand
