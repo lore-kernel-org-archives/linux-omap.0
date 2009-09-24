@@ -1,77 +1,169 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCH] dspbridge: Remove duplicates
-Date: Thu, 24 Sep 2009 14:47:52 +0300
-Message-ID: <1253792872-32294-1-git-send-email-andy.shevchenko@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:25368 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693AbZIXLsL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 07:48:11 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: [PATCH 00/19] OMAP: DSS2: Intro
+Date: Thu, 24 Sep 2009 14:56:05 +0300
+Message-ID: <1253793384-31158-1-git-send-email-tomi.valkeinen@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752425AbZIXL4j@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: x0095840@ti.com, omar.ramirez@ti.com, hiroshi.doyu@nokia.com, Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
 
-From: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+This patch set implement new display subsystem driver (DSS2) and omapfb=
+ driver
+for OMAP2/3. The patches have been reviewed on linux-omap and linux-fbd=
+ev-devel
+mailing lists. The patches can also be found from
+http://gitorious.org/linux-omap-dss2/linux
 
-includecheck found few duplicates. So, clean up them.
+The patches include DSS documentation patch that includes more instruct=
+ions for
+module parameters, sysfs files etc.
 
-Signed-off-by: Andy Shevchenko <ext-andriy.shevchenko@nokia.com>
+The patches enable DSS2 for OMAP3430 SDP board and support for other bo=
+ards can
+be sent after the DSS2 has been merged. DSS2 is used in various boards,=
+ for
+example Nokia N900, Beagle Board and Overo.
+
+I don't currently have any OMAP2 board to test DSS2, but it has worked =
+on OMAP2
+and the possible fixes needed should be minimal.
+
+OMAP1 is not supported, and so the old DSS needs to be used on OMAP1 bo=
+ards.
+
+DSS2 is partly based on the old omapfb driver by Imre Deak, and Imre ha=
+s also
+contributed to DSS2 quite a bit. Ville Syrj=C3=A4l=C3=A4 has been contr=
+ibuting to scaling
+and tv-out work. Also some contributions have been made by Hardik Shah,=
+ Vaibhav
+Hiremath, and perhaps some others that I have forgotten =3D).
+
 ---
- drivers/dsp/bridge/rmgr/disp.c          |    1 -
- drivers/dsp/bridge/rmgr/drv_interface.c |    1 -
- drivers/dsp/bridge/rmgr/proc.c          |    1 -
- drivers/dsp/bridge/wmd/io_sm.c          |    1 -
- 4 files changed, 0 insertions(+), 4 deletions(-)
+Changes in v4:
+- Rebased on latest linux tree
+- Add maintainers
 
-diff --git a/drivers/dsp/bridge/rmgr/disp.c b/drivers/dsp/bridge/rmgr/disp.c
-index d6ddf6e..0645398 100644
---- a/drivers/dsp/bridge/rmgr/disp.c
-+++ b/drivers/dsp/bridge/rmgr/disp.c
-@@ -59,7 +59,6 @@
- #include <dspbridge/dbc.h>
- 
- /*  ----------------------------------- OS Adaptation Layer */
--#include <dspbridge/dev.h>
- #include <dspbridge/mem.h>
- #include <dspbridge/sync.h>
- 
-diff --git a/drivers/dsp/bridge/rmgr/drv_interface.c b/drivers/dsp/bridge/rmgr/drv_interface.c
-index f68978a..0f70257 100644
---- a/drivers/dsp/bridge/rmgr/drv_interface.c
-+++ b/drivers/dsp/bridge/rmgr/drv_interface.c
-@@ -93,7 +93,6 @@
- #include <dspbridge/resourcecleanup.h>
- #include <dspbridge/chnl.h>
- #include <dspbridge/proc.h>
--#include <dspbridge/cfg.h>
- #include <dspbridge/dev.h>
- #include <dspbridge/drvdefs.h>
- #include <dspbridge/drv.h>
-diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
-index c3add40..c720f79 100644
---- a/drivers/dsp/bridge/rmgr/proc.c
-+++ b/drivers/dsp/bridge/rmgr/proc.c
-@@ -138,7 +138,6 @@
- #include <dspbridge/dbdcd.h>
- #include <dspbridge/msg.h>
- #include <dspbridge/wmdioctl.h>
--#include <dspbridge/drv.h>
- 
- /*  ----------------------------------- This */
- #include <dspbridge/proc.h>
-diff --git a/drivers/dsp/bridge/wmd/io_sm.c b/drivers/dsp/bridge/wmd/io_sm.c
-index 1d478ad..fefa065 100644
---- a/drivers/dsp/bridge/wmd/io_sm.c
-+++ b/drivers/dsp/bridge/wmd/io_sm.c
-@@ -77,7 +77,6 @@
- #include <_tiomap.h>
- #include <tiomap_io.h>
- #include <_tiomap_pwr.h>
--#include <tiomap_io.h>
- 
- /*  ----------------------------------- Platform Manager */
- #include <dspbridge/cod.h>
--- 
-1.5.6.5
+Changes in v3:
+- Rebased on mainstream linux
+- Remove Beagle and Overo board changes
 
+Changes in v2:
+
+- Split the commits more to make them smaller
+- Print error if fclk is too low for scaling
+- Indent SDP, Beagle, Overo board files
+- DSI: return -EIO instead of -1
+- VRFB: Move to drivers/video/omap2/
+- VRAM: Move to drivers/video/omap2/
+- VRFB: use omap2_sms_write_*() functions instead of omap_writel
+- SDI: Remove custom pinmuxing. Will be added later properly.
+- VENC: indentation changes
+- Add Taal DSI panel driver
+
+---
+
+[PATCH 01/19] OMAP2: Add funcs for writing SMS_ROT_* registers
+[PATCH 02/19] OMAP: OMAPFB: split omapfb.h
+[PATCH 03/19] OMAP: OMAPFB: add omapdss device
+[PATCH 04/19] OMAP: Add VRAM manager
+[PATCH 05/19] OMAP: Add support for VRFB rotation engine
+[PATCH 06/19] OMAP: DSS2: Documentation for DSS2
+[PATCH 07/19] OMAP: DSS2: Display Subsystem Driver core
+[PATCH 08/19] OMAP: DSS2: Add more core files
+[PATCH 09/19] OMAP: DSS2: DISPC
+[PATCH 10/19] OMAP: DSS2: DPI driver
+[PATCH 11/19] OMAP: DSS2: Video encoder driver
+[PATCH 12/19] OMAP: DSS2: RFBI driver
+[PATCH 13/19] OMAP: DSS2: SDI driver
+[PATCH 14/19] OMAP: DSS2: DSI driver
+[PATCH 15/19] OMAP: DSS2: omapfb driver
+[PATCH 16/19] OMAP: DSS2: Add DPI panel drivers
+[PATCH 17/19] OMAP: DSS2: Taal DSI command mode panel driver
+[PATCH 18/19] OMAP: SDP: Enable DSS2 for OMAP3 SDP board
+[PATCH 19/19] MAINTAINERS: Add OMAP2/3 DSS and OMAPFB maintainer
+
+---
+
+ Documentation/arm/OMAP/DSS                         |  317 ++
+ MAINTAINERS                                        |   17 +
+ arch/arm/configs/omap_3430sdp_defconfig            |   29 +-
+ arch/arm/mach-omap1/board-nokia770.c               |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |  167 +-
+ arch/arm/mach-omap2/clock24xx.c                    |    8 +-
+ arch/arm/mach-omap2/clock34xx.c                    |   14 +-
+ arch/arm/mach-omap2/io.c                           |    4 +-
+ arch/arm/mach-omap2/sdrc.c                         |   16 +
+ arch/arm/plat-omap/fb.c                            |   41 +-
+ arch/arm/plat-omap/include/mach/display.h          |  540 +++
+ arch/arm/plat-omap/include/mach/omapfb.h           |  398 ---
+ arch/arm/plat-omap/include/mach/sdrc.h             |    9 +-
+ arch/arm/plat-omap/include/mach/vram.h             |   63 +
+ arch/arm/plat-omap/include/mach/vrfb.h             |   46 +
+ arch/arm/plat-omap/sram.c                          |    8 +
+ drivers/video/Kconfig                              |    1 +
+ drivers/video/Makefile                             |    1 +
+ drivers/video/omap/Kconfig                         |    5 +-
+ drivers/video/omap/blizzard.c                      |    2 +-
+ drivers/video/omap/dispc.c                         |   21 +-
+ drivers/video/omap/hwa742.c                        |    2 +-
+ drivers/video/omap/lcd_2430sdp.c                   |    3 +-
+ drivers/video/omap/lcd_ams_delta.c                 |    3 +-
+ drivers/video/omap/lcd_apollon.c                   |    3 +-
+ drivers/video/omap/lcd_h3.c                        |    2 +-
+ drivers/video/omap/lcd_h4.c                        |    2 +-
+ drivers/video/omap/lcd_inn1510.c                   |    2 +-
+ drivers/video/omap/lcd_inn1610.c                   |    2 +-
+ drivers/video/omap/lcd_ldp.c                       |    3 +-
+ drivers/video/omap/lcd_mipid.c                     |    3 +-
+ drivers/video/omap/lcd_omap2evm.c                  |    3 +-
+ drivers/video/omap/lcd_omap3beagle.c               |    3 +-
+ drivers/video/omap/lcd_omap3evm.c                  |    3 +-
+ drivers/video/omap/lcd_osk.c                       |    2 +-
+ drivers/video/omap/lcd_overo.c                     |    3 +-
+ drivers/video/omap/lcd_palmte.c                    |    2 +-
+ drivers/video/omap/lcd_palmtt.c                    |    2 +-
+ drivers/video/omap/lcd_palmz71.c                   |    2 +-
+ drivers/video/omap/lcdc.c                          |    3 +-
+ drivers/video/omap/omapfb.h                        |  227 ++
+ drivers/video/omap/omapfb_main.c                   |    2 +-
+ drivers/video/omap/rfbi.c                          |    3 +-
+ drivers/video/omap/sossi.c                         |    2 +-
+ drivers/video/omap2/Kconfig                        |    9 +
+ drivers/video/omap2/Makefile                       |    6 +
+ drivers/video/omap2/displays/Kconfig               |   28 +
+ drivers/video/omap2/displays/Makefile              |    5 +
+ drivers/video/omap2/displays/panel-generic.c       |  104 +
+ .../omap2/displays/panel-samsung-lte430wq-f0c.c    |  113 +
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  153 +
+ drivers/video/omap2/displays/panel-taal.c          |  900 +++++
+ drivers/video/omap2/dss/Kconfig                    |   89 +
+ drivers/video/omap2/dss/Makefile                   |    6 +
+ drivers/video/omap2/dss/core.c                     |  917 +++++
+ drivers/video/omap2/dss/dispc.c                    | 3182 ++++++++++++=
+++++++
+ drivers/video/omap2/dss/display.c                  |  658 ++++
+ drivers/video/omap2/dss/dpi.c                      |  388 +++
+ drivers/video/omap2/dss/dsi.c                      | 3509 ++++++++++++=
+++++++++
+ drivers/video/omap2/dss/dss.c                      |  347 ++
+ drivers/video/omap2/dss/dss.h                      |  356 ++
+ drivers/video/omap2/dss/manager.c                  | 1487 +++++++++
+ drivers/video/omap2/dss/overlay.c                  |  673 ++++
+ drivers/video/omap2/dss/rfbi.c                     | 1310 ++++++++
+ drivers/video/omap2/dss/sdi.c                      |  261 ++
+ drivers/video/omap2/dss/venc.c                     |  797 +++++
+ drivers/video/omap2/omapfb/Kconfig                 |   37 +
+ drivers/video/omap2/omapfb/Makefile                |    2 +
+ drivers/video/omap2/omapfb/omapfb-ioctl.c          |  727 ++++
+ drivers/video/omap2/omapfb/omapfb-main.c           | 2137 ++++++++++++
+ drivers/video/omap2/omapfb/omapfb-sysfs.c          |  507 +++
+ drivers/video/omap2/omapfb/omapfb.h                |  146 +
+ drivers/video/omap2/vram.c                         |  655 ++++
+ drivers/video/omap2/vrfb.c                         |  277 ++
+ include/linux/omapfb.h                             |  242 ++
+ 75 files changed, 21556 insertions(+), 463 deletions(-)
