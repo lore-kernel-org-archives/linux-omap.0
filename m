@@ -1,129 +1,39 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [OMAP3] ALSA driver 'suspend/resume' handlers
-Date: Thu, 24 Sep 2009 18:28:57 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9E7DA66@dbde02.ent.ti.com>
-References: <2183bec20909221938mf436e87y7620613e160ae6e2@mail.gmail.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F9DAFC82@dbde02.ent.ti.com>
-	<2183bec20909222202u7ada82e1ycb1de4702822e171@mail.gmail.com>
- <20090924094608.542909b7.jhnikula@gmail.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BACC566F@dbde02.ent.ti.com>
+From: Stefano Panella <stefano.panella@csr.com>
+Subject: Any Nokia N900 support planning?
+Date: Thu, 24 Sep 2009 14:22:30 +0100
+Message-ID: <4ABB7296.2060707@csr.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49793 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752222AbZIXM7E convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 08:59:04 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BACC566F@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from cluster-d.mailcontrol.com ([85.115.60.190]:43964 "EHLO
+	cluster-d.mailcontrol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018AbZIXNW3 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 09:22:29 -0400
+Received: from cameurexb01.EUROPE.ROOT.PRI ([193.128.72.68])
+	by rly02d.srv.mailcontrol.com (MailControl) with ESMTP id n8ODMUEa018773
+	for <linux-omap@vger.kernel.org>; Thu, 24 Sep 2009 14:22:31 +0100
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, hari n <hari.zoom@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+
+Hi guys,
+
+I would like to buy a N900 as it will became available.
+
+Is there any plan to support it with linux-omap?
+
+Is there someone already working on it?
+
+In case I would like to help :)
+
+Thanks,
+
+Stefano
+-- 
+Stefano Panella, Software Engineer, Drivers
+CSR, Churchill House, Cambridge Business Park,  Tel: +44 (0)1223 692452
+Cowley Road, Cambridge, CB4 0WZ                 http://www.csr.com/
 
 
-
->-----Original Message-----
->From: Shilimkar, Santosh
->Sent: Thursday, September 24, 2009 2:24 AM
->To: Jarkko Nikula; hari n
->Cc: Pandita, Vikram; linux-omap@vger.kernel.org
->Subject: RE: [OMAP3] ALSA driver 'suspend/resume' handlers
->
->Hari/Jarkko,
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Jarkko Nikula
->> Sent: Thursday, September 24, 2009 12:16 PM
->> To: hari n
->> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
->> Subject: Re: [OMAP3] ALSA driver 'suspend/resume' handlers
->>
->> On Wed, 23 Sep 2009 00:02:01 -0500
->> hari n <hari.zoom@gmail.com> wrote:
->>
->> > >>It appears OMAP ALSA driver does not seem to disable and idle the SDMA
->> > >>channel on a 'suspend' call. The problem seems to be with the
->> > >>'omap_stop_dma()' call under 'SNDRV_PCM_TRIGGER_SUSPEND' in
->> > >>'omap_pcm_trigger()'. ALSA audio driver uses self linking and the
->> > >>function 'omap_stop_dma()', only unlinks the channels, but DOES NOT
->> > >>disable an active channel for linked channels.
->> > >>
->> Good finding, definitely I was expecting that it will stop the transfer.
->>
->> I worder what's the background for current omap_stop_dma
->> implementation? I would expect that omap_stop_dma would just stop the
->> logical channel without touching the channel linking etc. as there is
->> own API for chained transfers and thus omap_stop_dma could be used for
->> non-chained transfers or 'hacking' with chained transfers.
->
->> > >>This means after a return from the 'omap_stop_dma()', there can still
->> > >>be an active DMA transaction on the channel. Is this the intent Or a
->> > >>bug? I can think of situations, where in, we may want to complete the
->> > >>DMA transfer and then disable the channel. In such a case, we need to
->> > >>wait until the channel is inactive.
->>
->> I don't know, probably there is no driver expecting that transfer will
->> complete after the omap_stop_dma is called or they explicitly do some
->> PIO based FIFO flush for their devices?
->>
->> > >>The problem with the current implementation is that after the audio
->> > >>platform trigger (suspend) is called, SOC core calls the CPU DAI
->> > >>trigger (suspend) and this stops the McBSP. Depending on the current
->> > >>DMA pointer, this may leave the DMA channel in active state, since DMA
->> > >>is configured for DEST HW Synchronization and and the this never gets
->> > >>asserted after the McBSP is stopped..
->> > >
->> This is true. Then the question is will the operation recover after the
->> stream is resumed and after the low-level dma and mcbsp contexts are
->> restored and operation started again.
->>
->> > >>I see two ways to resolve this issue:
->> > >>a) Wait after the 'omap_stop_dma()' in audio platform trigger(suspend)
->> > >>until the DMA channel is inactive (i.e buffer transfer complete). But,
->> > >>i believe 'trigger' is supposed to be an atomic operation, so we may
->> > >>need to wait in a worker thread. And we need to flag the McBSP stop
->> > >>based on DMA transfer completion.
->> > >>b) Explicitly disable the DMA channel in 'omap_stop_dma().
->> > >>
->> > >>Option 'b' above may mean losing some data on resume, if we hit 'OFF'
->> > >>state during suspend. This may not be a big deal for audio (loss of
->> > >>few secs audio), but for other drivers (ex: USB data file transfer?),
->> > >>this may not be acceptable. 'Option 'a' means more rework in audio
->> > >>driver, but no changes in DAM driver and no loss of data.
->>
->> Yeah, trigger callback is atomic and can be called from the interrupt
->> context as well. Option 'a' doesn't help losing of audio samples since
->> the soc-core is first muting the codec.
->>
->> > >>Current Audio driver also does not seem to support 'OFF' mode during
->> > >>suspend. It seems to assume that all DMA and McBSP configurations are
->> > >>retained in a suspend to resume transition.
->> > >>
->> It's true, this has not got so much attention. I think I was expecting
->> that low-level mcbsp and dma modules will take care of their context
->> back-up and restore and that's enough for audio as long as audio will
->> inform those modules with _start/_stop calls.
->>
->> I don't see any problem if suspend and resume callbacks are added into
->> omap-pcm.c and omap-mcbsp.c calling e.g. omap_mcbsp_config if needed.
->
->omap_stop_dma() should be issued when we really want to stop the DMA transfer and issuing this with
->an outstanding transfer is a BUG in ALSA driver.
->
->Having said that, there is also bug in the DMA driver which doesn't disable the channel in linking
->cases. Since we use always hardware synchronized method, hardware will take care of draining the
->buffer so no loss of data.
->
->So option B should be ok and USB case also would work as mentioned above.
-
-USB is not a valid use case to discuss here.
-Mentor OTG controller has its internal DMA and so does EHCI/OHCI host controller.
-USB on OMAP3 _does_not_ use system DMA.
-
-
->
->Regrads
->Santosh
->
+Member of the CSR plc group of companies. CSR plc registered in England and Wales, registered number 4187346, registered office Churchill House, Cambridge Business Park, Cowley Road, Cambridge, CB4 0WZ, United Kingdom
