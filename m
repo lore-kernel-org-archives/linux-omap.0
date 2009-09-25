@@ -1,72 +1,193 @@
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [Linux-fbdev-devel] [APPLIED] [PATCH] omapfb: Reorder	Register_framebuffer
- call
-Date: Fri, 25 Sep 2009 12:13:12 +0200
-Message-ID: <4ABC97B8.80206@gmx.de>
-References: <1252773249-24444-1-git-send-email-saaguirre@ti.com>	<notify-1253583118@atomide.com>	<4de7f8a60909220759g63b592eek85a2bca04b264d2e@mail.gmail.com>	<20090922162853.GC14890@atomide.com>	<A24693684029E5489D1D202277BE89444B781B4E@dlee02.ent.ti.com> <4de7f8a60909231003w7bb9fdb9p7cf6fa0b2bc7e3c@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] Runtime detection of OMAP35x devices
+Date: Fri, 25 Sep 2009 16:26:08 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDAB355E@dbde02.ent.ti.com>
+References: <1250612150-16345-1-git-send-email-premi@ti.com>
+ <20090922202835.GB4919@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:53668 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750740AbZIYKNc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 25 Sep 2009 06:13:32 -0400
-In-Reply-To: <4de7f8a60909231003w7bb9fdb9p7cf6fa0b2bc7e3c@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44849 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750914AbZIYK4M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Sep 2009 06:56:12 -0400
+In-Reply-To: <20090922202835.GB4919@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jan Blunck <jblunck@infradead.org>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Jan Blunck schrieb:
-> On Tue, Sep 22, 2009 at 6:57 PM, Aguirre Rodriguez, Sergio Alberto
-> <saaguirre@ti.com> wrote:
->> From: Tony Lindgren [tony@atomide.com]
->> Sent: Tuesday, September 22, 2009 11:28 AM
->>> * Jan Blunck <jblunck@infradead.org> [090922 07:59]:
->>>> On Tue, Sep 22, 2009 at 3:31 AM, Tony Lindgren <tony@atomide.com> wrote:
->>>>> This patch has been applied to the linux-omap
->>>>> by youw fwiendly patch wobot.
->>>>>
->>>>> Branch in linux-omap: omap-fixes
->>>>>
->>>>> Initial commit ID (Likely to change): 9aef1066fb5ca8506068eaab1c552ecca4c85475
->>>>>
->>>>> PatchWorks
->>>>> http://patchwork.kernel.org/patch/47089/
->>>>>
->>> Added back the original Cc's that were dropped from the linux-omap
->>> commit message.
->>>
->>>> Is it actually safe to do this? The framebuffer can be used directly
->>>> after it is registered. In this case it would mean it is used before
->>>> it is even fully initialized (set_fb_var(), set_fb_fix(), ... are
->>>> being called).
->>> Good point, dropping the patch.
->> Hmm, ok. I guess i'll rework this patch considering that..
->>
->> I ran some framebuffer tests with this patch applied, and they worked fine for me.
->>
->> The only thing is that i didn't saw Tux on bootup...
->>
->> Actually, nobody ever gave this kind of feedback, which was the initial idea.
->>
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com] 
+> Sent: Wednesday, September 23, 2009 1:59 AM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] Runtime detection of OMAP35x devices
 > 
-> Sorry, I didn't look into it earlier.
+
+[snip]---[snip]---[snip]
+
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 03b80f2..f041d3b 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -187,7 +187,6 @@ void __init omap3_check_revision(void)
+> >  	u32 cpuid, idcode;
+> >  	u16 hawkeye;
+> >  	u8 rev;
+> > -	char *rev_name = "ES1.0";
+> >  
+> >  	/*
+> >  	 * We cannot access revision registers on ES1.0.
+> > @@ -197,7 +196,7 @@ void __init omap3_check_revision(void)
+> >  	cpuid = read_cpuid(CPUID_ID);
+> >  	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) 
+> == 0x0)) {
+> >  		omap_revision = OMAP3430_REV_ES1_0;
+> > -		goto out;
+> > +		return;
+> >  	}
+> >  
+> >  	/*
 > 
-> BTW, I actually wonder if it's really necessary to initialize the
-> mutex in register_framebuffer() or why it couldn't be done during
-> allocation.
+> Looks like the above two changes break printing the ES1.0 rev
+> name during the boot.
+> 
 
-This small discussion between Linus and Krzysztof might explain it:
-http://marc.info/?l=linux-kernel&m=124703449332064&w=2
-or to summarize:
-It is done the way it is done to keep drivers working that use 
-statically declared fb_info.
+[sp] This change did not break the printing of ES1.0 as it relates
+     to postponing the print. However, I see that ES1.0 was not
+     being printed. (see below).
 
-Although I agree, that it would be cleaner the other way around.
+     Submitting a fresh patch with the fix.
+
+> 
+> 
+> > @@ -214,29 +213,21 @@ void __init omap3_check_revision(void)
+> >  		switch (rev) {
+> >  		case 0:
+> >  			omap_revision = OMAP3430_REV_ES2_0;
+> > -			rev_name = "ES2.0";
+> >  			break;
+> >  		case 2:
+> >  			omap_revision = OMAP3430_REV_ES2_1;
+> > -			rev_name = "ES2.1";
+> >  			break;
+> >  		case 3:
+> >  			omap_revision = OMAP3430_REV_ES3_0;
+> > -			rev_name = "ES3.0";
+> >  			break;
+> >  		case 4:
+> >  			omap_revision = OMAP3430_REV_ES3_1;
+> > -			rev_name = "ES3.1";
+> >  			break;
+> >  		default:
+> >  			/* Use the latest known revision as default */
+> >  			omap_revision = OMAP3430_REV_ES3_1;
+> > -			rev_name = "Unknown revision\n";
+> >  		}
+> >  	}
+
+[sp] Here the print for ES1.0 was missing.
+
+> > -
+> > -out:
+> > -	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
+> >  }
+> >  
+> >  #define OMAP3_SHOW_FEATURE(feat)		\
+> > @@ -248,6 +239,54 @@ out:
+> >  
+> >  void __init omap3_cpuinfo(void)
+> >  {
+> > +	u8 rev = GET_OMAP_REVISION();
+> > +	char cpu_name[16], cpu_rev[16];
+> > +
+> > +	/* OMAP3430 and OMAP3530 are assumed to be same.
+> > +	 *
+> > +	 * OMAP3525, OMAP3515 and OMAP3503 can be detected only based
+> > +	 * on available features. Upon detection, update the CPU id
+> > +	 * and CPU class bits.
+> > +	 */
+> > +	if (omap3_has_iva() && omap3_has_sgx()) {
+> > +		strcpy(cpu_name, "3430/3530");
+> > +	}
+> > +	else if (omap3_has_sgx()) {
+> > +		omap_revision = OMAP3525_REV (rev);
+> > +		strcpy(cpu_name, "3525");
+> > +	}
+> > +	else if (omap3_has_iva()) {
+> > +		omap_revision = OMAP3515_REV (rev);
+> > +		strcpy(cpu_name, "3515");
+> > +	}
+> > +	else {
+> > +		omap_revision = OMAP3503_REV (rev);
+> > +		strcpy(cpu_name, "3503");
+> > +	}
+> 
+> Please remove the spaces in the *_REV(rev) macro calls above.
+
+[sp] Will take care in follow-up patch.
+
+> 
+> 
+> > +
+> > +	switch (rev) {
+> > +	case 0x10:
+> > +		strcpy(cpu_rev, "2.0");
+> > +		break;
+> > +	case 0x20:
+> > +		strcpy(cpu_rev, "2.1");
+> > +		break;
+> > +	case 0x30:
+> > +		strcpy(cpu_rev, "3.0");
+> > +		break;
+> > +	case 0x40:
+> > +		strcpy(cpu_rev, "3.1");
+> > +		break;
+> > +	default:
+> > +		/* Use the latest known revision as default */
+> > +		strcpy(cpu_rev, "3.1");
+> > +	}
+> 
+> I believe the above should use the defines to avoid thing
+> breaking if renumbering the defines?
+> 
+> case 0x10 should be case CHIP_IS_OMAP3430ES2
+> case 0x20 should be case CHIP_IS_OMAP3430ES3
+> ...
+> 
+> But instead you're renaming the defined ES values so what we
+> have defined is different from your naming?
+
+[sp] The intent is to use omap_revision bits 15:8 alone.
+     If the concern was use of explicit values, I can
+     use #defines instead.
+
+> 
+> Can you please check that, and also boot on various boards
+> to confirm. I suspect the TI documentation is messed up for
+> the ES numbering..
+
+[sp] I do not have and ES 1.0 board. Other that that, I have
+     tested on all ES revisions. And found it to be workig fine.
+     Will do the test again before submitting the follow-up.
+
+> 
+> Other than that, let's plan on merging this too after
+> 2.6.32-rc1.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+
+Best regards,
+Sanjeev
+
+[snip]---[snip]---[snip]
 
 
-Regards,
-
-Florian Tobias Schandinat
+> 
