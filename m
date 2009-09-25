@@ -1,96 +1,67 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH][RFC] OMAP3630: Create architecture macros and config
-	entries.
-Date: Fri, 25 Sep 2009 22:19:06 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A2738E6@dbde02.ent.ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E9402534261B3@dbde02.ent.ti.com>
- <74583B8642AB8841B30447520659FCA9DD85B939@dnce01.ent.ti.com>
- <A24693684029E5489D1D202277BE89444C6864B8@dlee02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C861E2@dbde02.ent.ti.com>
- <87pr9jdnfu.fsf@deeprootsystems.com> <20090922175815.GI14890@atomide.com>
+From: John Sarman <johnsarman@gmail.com>
+Subject: Watchdog dump
+Date: Fri, 25 Sep 2009 16:27:07 -0400
+Message-ID: <bb2708720909251327w7107c192h145a68a3134e63c8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37656 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751166AbZIYQtN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Sep 2009 12:49:13 -0400
-In-Reply-To: <20090922175815.GI14890@atomide.com>
-Content-Language: en-US
+Received: from mail-yx0-f173.google.com ([209.85.210.173]:47724 "EHLO
+	mail-yx0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751591AbZIYU1E (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Sep 2009 16:27:04 -0400
+Received: by yxe3 with SMTP id 3so901269yxe.4
+        for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2009 13:27:07 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Raju, Veeramanikandan" <veera@ti.com>, "Bongale, Hariprasad" <hariprasad.bongale@ti.com>
+To: linux-davinci <linux-omap@vger.kernel.org>
 
-> > >> > OMAP3630 is "just" an OMAP3430 in disguise.
-> > >> > I don't think it deserves a new class. It should probably be handled like
-> > >> > it was done for 1610 and 1710.
-> > >> >
-> > >> > Theoretically, it should be considered as a 3430 ES4.0, because it is an
-> > >> > OMAP3430 ES3 + couple of bug fixes + couple of improvements.
-> > >> >
-> > >> > I think, that the proposal from Sanjeev to support 35xx
-> > >> > (http://marc.info/?l=linux-omap&m=125050987112798&w=2 ) might be leveraged
-> > >> > to handle 36xx as well.
-> > >> >
-> > >> 
-> > >> I respectfully tend to disagree with this, since there are some components
-> > >> inside the chip that aren't specifically fixes, so IMHO they need to start
-> > >> from scratch about silicon revisions because of that.
-> > >> 
-> > >> If there are many common points between 34xx/35xx/36xx, then rename the
-> > >> reused functions/defines to omap3, instead of omap34xx/omap35xx/omap36xx.
-> > >> 
-> > >> Regards,
-> > >> Sergio
-> > >> 
-> > >
-> > > I agree with Sergio.
-> > >
-> > > While it is definitely possible to write code treating the 3430
-> > > and the 3630 as the same, they are not the same animal. We will
-> > > need to distinguish between the two at more than a few locations
-> > > in code, and we might as well add the ability to do that now.
-> > >
-> > > I see a need to distinguish between 3430 and 3630 in several locations
-> > > - there are changes in hardware IPs that are not reflected in the IP
-> > > revision information (meaning we cannot always go by CPU_HAS_FEATURE() ),
-> > > and we will need some kind of a cpu_is_* check for sure.
-> > 
-> > And you're sure these HW IP changes require software changes?  Please
-> > provide examples.
+I got a watchdog dump and it said cut here so I did and I am pasting to get help
 
-Yes, I'm pretty sure some of them require software changes. No examples
-on the 3630 that I can disclose right now, but consider for instance the
-case of the TLL Save-and-Restore feature on 3430 - it's broken on ES3.0
-and below and works great after. Or extra register bits in UHH_HOSTCONFIG
-introduced in ES3.0. The HW IP versions are still the same across these
-revisions, but the SOC ES version has changed.
+eth0: link down
+Sending DHCP requests ..
+eth0: link up, 100Mbps, full-duplex, lpa 0x4DE1
+..
+------------[ cut here ]------------
+WARNING: at net/sched/sch_generic.c:246 dev_watchdog+0x18c/0x29c()
+NETDEV WATCHDOG: eth0 (dm9000): transmit queue 0 timed out
+Modules linked in:
+Backtrace:
+[<c002d784>] (dump_backtrace+0x0/0x114) from [<c02d0058>] (dump_stack+0x18/0x1c)
+ r7:c03b3e10 r6:c0256344 r5:c038ad99 r4:000000f6
+[<c02d0040>] (dump_stack+0x0/0x1c) from [<c003e000>] (warn_slowpath_common+0x50)
+[<c003dfb0>] (warn_slowpath_common+0x0/0x68) from [<c003e064>] (warn_slowpath_f)
+ r7:00000024 r6:c04043a0 r5:c48d7400 r4:00000000
+[<c003e034>] (warn_slowpath_fmt+0x0/0x38) from [<c0256344>] (dev_watchdog+0x18c)
+ r3:c48d7400 r2:c038adb1
+[<c02561b8>] (dev_watchdog+0x0/0x29c) from [<c0048304>] (run_timer_softirq+0x1b)
+[<c0048148>] (run_timer_softirq+0x0/0x280) from [<c00435ac>] (__do_softirq+0x98)
+[<c0043514>] (__do_softirq+0x0/0x12c) from [<c0043690>] (irq_exit+0x50/0xa4)
+[<c0043640>] (irq_exit+0x0/0xa4) from [<c0029074>] (_text+0x74/0x8c)
+[<c0029000>] (_text+0x0/0x8c) from [<c0029aac>] (__irq_svc+0x4c/0x90)
+Exception stack(0xc03b3f50 to 0xc03b3f98)
+3f40:                                     00000000 0005317f 0005217f 60000013
+3f60: c03b2000 c03de420 c0023e14 c03b6358 80022334 41069265 80022300 c03b3fa4
+3f80: 600000d3 c03b3f98 c002a9b0 c002a9bc 60000013 ffffffff
+ r5:fec48000 r4:ffffffff
+[<c002a988>] (default_idle+0x0/0x38) from [<c002af08>] (cpu_idle+0x78/0xe4)
+[<c002ae90>] (cpu_idle+0x0/0xe4) from [<c02cecf4>] (rest_init+0x70/0x84)
+ r5:c03de420 r4:c03f2af8
+[<c02cec84>] (rest_init+0x0/0x84) from [<c0008998>] (start_kernel+0x268/0x2c0)
+[<c0008730>] (start_kernel+0x0/0x2c0) from [<80008034>] (0x80008034)
+ r5:c03de4c4 r4:00053175
+---[ end trace 5b6c3710ca2a460a ]---
+., OK
+IP-Config: Got DHCP answer from 192.168.2.1, my address is 192.168.2.155
+IP-Config: Complete:
+     device=eth0, addr=192.168.2.155, mask=255.255.255.0, gw=192.168.2.1,
+     host=192.168.2.155, domain=, nis-domain=(none),
+     bootserver=192.168.2.1, rootserver=192.168.2.1, rootpath=
+kjournald starting.  Commit interval 5 seconds
 
-> > 
-> > So, TI is changing HW IP in a way that requires software changes and
-> > not providing a way for software to detect these changes?
-> > 
-> > IMHO, This is completely broken HW design.
 
-Agreed. I've already pinged some HW design folks to point this out.
+The kernel continued to boot and all is well but just curious if there
+is something that I can do to "pet the dog" or whatever to prevent
+this from outputting.
 
-> 
-> I agree, we should be able to detect various processors during the
-> init and then just set the necessary feature flags.
-
-I seem not to have understood the initially proposed solution when I
-made that comment. Consider the objection withdrawn.
-
-I agree - all we require is the ability to detect the chip version at init,
-and to set any flag that might be needed by code executing later.
-It is a better solution.
-
-I misunderstood the discussion to mean "the 3630 would not be detectable
-as a separate chip from the 3430 at all". It doesn't really matter where we
-make the distinction, as long as it is possible to add code to behave
-differently on the two chips (or other revisions of the OMAP3).
-
-Regards,
-Anand
+Thanks in Advance
+John Sarman
