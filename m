@@ -1,64 +1,72 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss
- clocks 	only when needed.
-Date: Fri, 25 Sep 2009 12:19:46 +0300
-Message-ID: <1253870386.21734.20.camel@tubuntu>
-References: <1253230586-931-1-git-send-email-mike@android.com>
-	 <1253262472.28956.10.camel@tubuntu>
-	 <8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
-	 <1253514408.4690.5.camel@tubuntu> <877hvrf2sj.fsf@deeprootsystems.com>
-	 <1253690451.14841.40.camel@tubuntu>  <87my4lbr86.fsf@deeprootsystems.com>
-	 <1253788763.17009.282.camel@tubuntu> <4ABB95A6.7000503@deeprootsystems.com>
-Reply-To: tomi.valkeinen@nokia.com
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [Linux-fbdev-devel] [APPLIED] [PATCH] omapfb: Reorder	Register_framebuffer
+ call
+Date: Fri, 25 Sep 2009 12:13:12 +0200
+Message-ID: <4ABC97B8.80206@gmx.de>
+References: <1252773249-24444-1-git-send-email-saaguirre@ti.com>	<notify-1253583118@atomide.com>	<4de7f8a60909220759g63b592eek85a2bca04b264d2e@mail.gmail.com>	<20090922162853.GC14890@atomide.com>	<A24693684029E5489D1D202277BE89444B781B4E@dlee02.ent.ti.com> <4de7f8a60909231003w7bb9fdb9p7cf6fa0b2bc7e3c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43107 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751134AbZIYJUF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Sep 2009 05:20:05 -0400
-In-Reply-To: <4ABB95A6.7000503@deeprootsystems.com>
+Received: from mail.gmx.net ([213.165.64.20]:53668 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750740AbZIYKNc (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 25 Sep 2009 06:13:32 -0400
+In-Reply-To: <4de7f8a60909231003w7bb9fdb9p7cf6fa0b2bc7e3c@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: ext Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jan Blunck <jblunck@infradead.org>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
 
-On Thu, 2009-09-24 at 17:52 +0200, ext Kevin Hilman wrote:
-> Tomi Valkeinen wrote:
-
-> > If it is not like that, and the driver initialization is included, how
-> > does the PM layer know how long it takes for the DSS driver to
-> > reconfigure the DSS hardware from OFF mode?
+Jan Blunck schrieb:
+> On Tue, Sep 22, 2009 at 6:57 PM, Aguirre Rodriguez, Sergio Alberto
+> <saaguirre@ti.com> wrote:
+>> From: Tony Lindgren [tony@atomide.com]
+>> Sent: Tuesday, September 22, 2009 11:28 AM
+>>> * Jan Blunck <jblunck@infradead.org> [090922 07:59]:
+>>>> On Tue, Sep 22, 2009 at 3:31 AM, Tony Lindgren <tony@atomide.com> wrote:
+>>>>> This patch has been applied to the linux-omap
+>>>>> by youw fwiendly patch wobot.
+>>>>>
+>>>>> Branch in linux-omap: omap-fixes
+>>>>>
+>>>>> Initial commit ID (Likely to change): 9aef1066fb5ca8506068eaab1c552ecca4c85475
+>>>>>
+>>>>> PatchWorks
+>>>>> http://patchwork.kernel.org/patch/47089/
+>>>>>
+>>> Added back the original Cc's that were dropped from the linux-omap
+>>> commit message.
+>>>
+>>>> Is it actually safe to do this? The framebuffer can be used directly
+>>>> after it is registered. In this case it would mean it is used before
+>>>> it is even fully initialized (set_fb_var(), set_fb_fix(), ... are
+>>>> being called).
+>>> Good point, dropping the patch.
+>> Hmm, ok. I guess i'll rework this patch considering that..
+>>
+>> I ran some framebuffer tests with this patch applied, and they worked fine for me.
+>>
+>> The only thing is that i didn't saw Tux on bootup...
+>>
+>> Actually, nobody ever gave this kind of feedback, which was the initial idea.
+>>
 > 
-> Currently it doesn't, but if you were measure it, we can use those 
-> numbers in the decision making process.
+> Sorry, I didn't look into it earlier.
+> 
+> BTW, I actually wonder if it's really necessary to initialize the
+> mutex in register_framebuffer() or why it couldn't be done during
+> allocation.
 
-Ok, now I see. However, I'm not sure if that will work. The problem is
-that the wakeup latency depends on many things. When using DPI/RFBI the
-wakeup is very fast. With SDI it's probably a bit slower and with DSI
-even slower.
+This small discussion between Linus and Krzysztof might explain it:
+http://marc.info/?l=linux-kernel&m=124703449332064&w=2
+or to summarize:
+It is done the way it is done to keep drivers working that use 
+statically declared fb_info.
 
-And at least with DSI PLL, the wakeup time depends on the frequencies
-used (according to TRM), and in some cases it can be optimized, in some
-cases not. So I don't think there's one single value that fits all.
-
-Also, I still think it would be better if the driver was also able to
-prevent OFF mode explicitely. Defining the max-wakeup-lat with a magic
-number sounds a bit prone to breaking up.
-
-But perhaps, as you said, when drivers work properly they don't have to
-care about OFF mode as such, but only about the wakeup latency, and thus
-the max-wakeup-lat is enough. I'm just not quite sure about that, as OFF
-mode may have side effects as the module is totally powered off, while
-with RET the side effects should be minimal.
-
-I don't have any concrete example about the side effects, but one
-particular thing I'm thinking about is DSI PLL. If DSS is in RET, I
-believe DSI PLL works normally. But if the DSS is reset via OFF mode, I
-believe DSI PLL is also reset. But I'm not sure if DSI PLL is ever
-needed while DSS would be off, so this may be theoretical =).
-
- Tomi
+Although I agree, that it would be cleaner the other way around.
 
 
+Regards,
+
+Florian Tobias Schandinat
