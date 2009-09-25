@@ -1,53 +1,79 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 12/12] omap: rng: Use resource_size instead of manual
-	calculation
-Date: Thu, 24 Sep 2009 16:47:04 -0700
-Message-ID: <20090924234704.6065.77419.stgit@localhost>
-References: <20090924233027.6065.95725.stgit@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Subject: [PATCH 1/1] DSPBRIDGE: protect cache operation with mmap read semaphore
+Date: Fri, 25 Sep 2009 10:09:41 +0300
+Message-ID: <1253862581-22173-1-git-send-email-Hiroshi.DOYU@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58166 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752837AbZIXXrF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 24 Sep 2009 19:47:05 -0400
-In-Reply-To: <20090924233027.6065.95725.stgit@localhost>
+Received: from smtp.nokia.com ([192.100.122.230]:49785 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751886AbZIYHKI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Sep 2009 03:10:08 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Tobias Klauser <tklauser@distanz.ch>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: x0095840@ti.com, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-From: Tobias Klauser <tklauser@distanz.ch>
+There was potential risk that VMA mapping can be changed before cache
+operation. To prevent this, we'll hold mmap read semaphore until cache
+operation finishes.
 
-Use the resource_size function instead of manually calculating the
-resource size. This reduces the chance of introducing off-by-one-errors.
+This case assumes that pages in this ranges have been populated by
+get_user_pages() and also marked as MLOCKED, which has to be ensured
+by userland application(dsp client), unfortunately.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+This patch may solve some kernel crashes at "v7_dma_cache_*()"
+functions.
+
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 ---
- drivers/char/hw_random/omap-rng.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/dsp/bridge/rmgr/proc.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/char/hw_random/omap-rng.c b/drivers/char/hw_random/omap-rng.c
-index 00dd3de..06aad08 100644
---- a/drivers/char/hw_random/omap-rng.c
-+++ b/drivers/char/hw_random/omap-rng.c
-@@ -116,7 +116,7 @@ static int __devinit omap_rng_probe(struct platform_device *pdev)
- 	if (!res)
- 		return -ENOENT;
+diff --git a/drivers/dsp/bridge/rmgr/proc.c b/drivers/dsp/bridge/rmgr/proc.c
+index a75b64a..45cd04b 100644
+--- a/drivers/dsp/bridge/rmgr/proc.c
++++ b/drivers/dsp/bridge/rmgr/proc.c
+@@ -690,8 +690,6 @@ static int memory_check_vma(unsigned long start, u32 len)
+ 	if (end <= start)
+ 		return -EINVAL;
  
--	mem = request_mem_region(res->start, res->end - res->start + 1,
-+	mem = request_mem_region(res->start, resource_size(res),
- 				 pdev->name);
- 	if (mem == NULL) {
- 		ret = -EBUSY;
-@@ -124,7 +124,7 @@ static int __devinit omap_rng_probe(struct platform_device *pdev)
+-	down_read(&current->mm->mmap_sem);
+-
+ 	while ((vma = find_vma(current->mm, start)) != NULL) {
+ 
+ 		if (vma->vm_start > start) {
+@@ -708,8 +706,6 @@ static int memory_check_vma(unsigned long start, u32 len)
+ 	if (!vma)
+ 		err = -EINVAL;
+ 
+-	up_read(&current->mm->mmap_sem);
+-
+ 	return err;
+ }
+ 
+@@ -734,18 +730,22 @@ static DSP_STATUS proc_memory_sync(DSP_HPROCESSOR hProcessor, void *pMpuAddr,
+ 		goto err_out;
  	}
  
- 	dev_set_drvdata(&pdev->dev, mem);
--	rng_base = ioremap(res->start, res->end - res->start + 1);
-+	rng_base = ioremap(res->start, resource_size(res));
- 	if (!rng_base) {
- 		ret = -ENOMEM;
- 		goto err_ioremap;
++	down_read(&current->mm->mmap_sem);
++
+ 	if (memory_check_vma((u32)pMpuAddr, ulSize)) {
+ 		GT_3trace(PROC_DebugMask, GT_7CLASS,
+ 			  "%s: InValid address parameters\n",
+ 			  __func__, pMpuAddr, ulSize);
+ 		status = DSP_EHANDLE;
+-		goto err_out;
++		goto err_mem_check;
+ 	}
+ 
+ 	(void)SYNC_EnterCS(hProcLock);
+ 	MEM_FlushCache(pMpuAddr, ulSize, FlushMemType);
+ 	(void)SYNC_LeaveCS(hProcLock);
+ 
++err_mem_check:
++	up_read(&current->mm->mmap_sem);
+ err_out:
+ 	GT_2trace(PROC_DebugMask, GT_ENTER,
+ 		  "Leaving %s [0x%x]", __func__, status);
+-- 
+1.6.0.4
 
