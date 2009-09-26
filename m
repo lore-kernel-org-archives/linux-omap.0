@@ -1,81 +1,88 @@
-From: vimal singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH-v3 0/3] OMAP: Adding flash support to SDP, ZOOM2 and LDP
-	boards
-Date: Fri, 25 Sep 2009 19:57:50 -0700
-Message-ID: <ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
-References: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCHv2 0/7] TWL6030 audio codec initial support
+Date: Sat, 26 Sep 2009 10:42:39 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BADABC75@dbde02.ent.ti.com>
+References: <67059DBF19D7214F9C66BB0EA91BA90E90A391DE@dlee04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.242]:15903 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753037AbZIZC6H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 25 Sep 2009 22:58:07 -0400
-Received: by an-out-0708.google.com with SMTP id d40so2437265and.1
-        for <linux-omap@vger.kernel.org>; Fri, 25 Sep 2009 19:58:10 -0700 (PDT)
-In-Reply-To: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:37764 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750722AbZIZFMq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Sep 2009 01:12:46 -0400
+In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90E90A391DE@dlee04.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: vimal singh <vimalsingh@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: "Lopez Cruz, Misael" <x0052729@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Tony,
+Misa,
 
-Can you please upstream these patches, or there is still something to f=
-ix?
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Lopez Cruz, Misael
+> Sent: Saturday, September 26, 2009 7:32 AM
+> To: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
+> Cc: Mark Brown
+> Subject: [PATCHv2 0/7] TWL6030 audio codec initial support
+> 
+> Following patch series adds initial support for TWL6030 codec
+> driver.
+> 
+> TWL6030 codec depends on TWL6030_CORE, which is not accepted yet.
+> The main intention then is to get comments, I'll repost the patches
+> of this series when TWL6030_CORE support gets accepted and rework
+> patches as needed.
+Looking at your series, you have based your patches on Balaji's 6030 PMIC series as you mentioned " TWL6030 codec depends on TWL6030_CORE".
 
---vimal
+While doing that series, we realized that there is a lot of code common between TWL5030 and TWL6030 apart from mainly interrupt handling and hence a common file approach is taken to avoid code duplication. The patch " [PATCHv2 3/7] ASoC: TWL6030: Add twl6030 codec driver" gives me an impression that there is opportunity to have a single file supporting both IC's. IC specific code can be handled using the runtime check depending on the revision.
+Can you explore this ? 
+You can find more information on above discussion at below thread.
 
-On Thu, Sep 10, 2009 at 4:31 AM, vimal singh <vimalsingh@ti.com> wrote:
-> This patch series adds flash support for NAND (in sdp, zoom2 and ldp)=
-,
-> OneNAND and NOR (in sdp)
->
-> Tested on Zoom2 by Vikram, On SDP by Vimal
->
-> =A0OMAP: Zoom2: Enable NAND and JFFS2 in defconfig
-> =A0OMAP2/3: Add support for flash on SDP boards
-> =A0OMAP3: Add support for NAND on ZOOM2/LDP boards
->
-> =A0arch/arm/omap_zoom2_defconfig | =A0241 +++++++++++++++++++++++++++=
-++++++++++--------------
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A04
-> =A0arm/mach-omap2/board-2430sdp.c =A0 =A0 =A0 =A0 =A0| =A0 =A02
-> =A0arch/arm/mach-omap2/board-3430sdp.c =A0 =A0 | =A0 =A02
-> =A0arch/arm/mach-omap2/board-sdp-flash.c =A0 | =A0327 +++++++++++++++=
-+++++++++++++++++++++++++++
-> =A0arch/arm/mach-omap2/board-sdp.h =A0 =A0 =A0 =A0 | =A0 15 +
-> =A0arch/arm/plat-omap/include/mach/gpmc.h =A0| =A0 =A02
-> =A0arch/arm/mach-omap2/board-ldp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-2
-> =A0arch/arm/mach-omap2/board-zoom-flash.c =A0 =A0 =A0 | =A0196 ++++++=
-++++++++++++++++++++++++++++++
-> =A0arch/arm/mach-omap2/board-zoom2.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-2
-> =A0arch/arm/plat-omap/include/mach/board-zoom.h | =A0 36 ++++++
-> =A0arch/arm/plat-omap/include/mach/nand.h =A0 =A0 =A0 | =A0 =A02
-> =A012 files changed, 767 insertions(+), 64 deletions(-)
-> =A0create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
-> =A0create mode 100644 arch/arm/mach-omap2/board-sdp.h
-> =A0create mode 100644 arch/arm/mach-omap2/board-zoom-flash.c
-> =A0create mode 100644 arch/arm/plat-omap/include/mach/board-zoom.h
->
->
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg15756.html
+
+
+>From 
+> Changes from v1:
+> - Renamed dai format for PDM as SND_SOC_DAIFMT_PDM
+> - CODEC driver registered as a platform driver
+> - AUDPWRON gpio line handled in the CODEC driver
+> - Handle scenario when no AUDPWRON gpio line is provided
+> - Corrected names of some widgets
+> - Avoid multiple calls to power functions in set_bias_level
+> 
+> Thanks,
+> -Misa
+> 
+> ---
+> 
+> Misael Lopez Cruz (7):
+>       OMAP4: PMIC: Add support for twl6030 codec
+>       ASoC: Add PDM DAI format definition
+>       ASoC: TWL6030: Add twl6030 codec driver
+>       ASoC: TWL6030: Manual power-up/down sequences
+>       ASoC: TWL6030: Add support for low-power mode
+>       ASoC: TWL6030: Enable audio interrupt
+>       ASoC: TWL6030: Power-up seq completion through audio interrupt
+> 
+>  drivers/mfd/twl-core.c     |   15 +
+>  include/linux/i2c/twl.h    |   11 +
+>  include/sound/soc-dai.h    |    1 +
+>  sound/soc/codecs/Kconfig   |    4 +
+>  sound/soc/codecs/Makefile  |    2 +
+>  sound/soc/codecs/twl6030.c | 1179
+> ++++++++++++++++++++++++++++++++++++++++++++
+>  sound/soc/codecs/twl6030.h |  137 +++++
+>  7 files changed, 1349 insertions(+), 0 deletions(-)
+>  create mode 100644 sound/soc/codecs/twl6030.c
+>  create mode 100644 sound/soc/codecs/twl6030.h
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-
---=20
 Regards,
-Vimal Singh
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Santosh
