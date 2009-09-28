@@ -1,39 +1,78 @@
-From: Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH 2/5] davinci: fb: remove duplicated #include
-Date: Sun, 27 Sep 2009 11:15:07 +0800
-Message-ID: <1254021307-3060-1-git-send-email-weiyi.huang@gmail.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f194.google.com ([209.85.216.194]:36981 "EHLO
-	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876AbZI0DPH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 26 Sep 2009 23:15:07 -0400
-Received: by pxi32 with SMTP id 32so2723922pxi.4
-        for <linux-omap@vger.kernel.org>; Sat, 26 Sep 2009 20:15:11 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+From: Amit Kucheria <amit.kucheria@canonical.com>
+Subject: Re: [PATCH 0/2] mfd: restoring twl4030 power-off and power-button
+ capabilities
+Date: Mon, 28 Sep 2009 05:45:41 +0300
+Message-ID: <20090928024541.GL32041@smtp.gmail.com>
+References: <52241.192.168.10.89.1251990701.squirrel@dbdmail.itg.ti.com>
+ <ce9ab5790909251949s71083c3brd625d36653387cc8@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752848AbZI1Cp4@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <ce9ab5790909251949s71083c3brd625d36653387cc8@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: vimal singh <vimal.newwork@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, vimal singh <vimalsingh@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: imre.deak@nokia.com
-Cc: linux-omap@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
 
-Remove duplicated #include('s) in
-  drivers/video/da8xx-fb.c
+Vimal,
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
----
- drivers/video/da8xx-fb.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+These patches should also be cc'ed to Samuel Ortiz who is the maintaine=
+r of
+the MFD subsystem where the twl4030 driver resides. It should go upstre=
+am
+through his tree.
 
-diff --git a/drivers/video/da8xx-fb.c b/drivers/video/da8xx-fb.c
-index 42e1005..d065894 100644
---- a/drivers/video/da8xx-fb.c
-+++ b/drivers/video/da8xx-fb.c
-@@ -26,7 +26,6 @@
- #include <linux/device.h>
- #include <linux/platform_device.h>
- #include <linux/uaccess.h>
--#include <linux/device.h>
- #include <linux/interrupt.h>
- #include <linux/clk.h>
- #include <video/da8xx-fb.h>
--- 
-1.6.1.3
+/Amit
 
+On 09 Sep 25, vimal singh wrote:
+> Hi Tony,
+>=20
+> Since there are no comments on these patches, can these go upstream?
+> Or, is there something to fix?
+>=20
+> --vimal
+>=20
+> On Thu, Sep 3, 2009 at 8:11 AM, vimal singh <vimalsingh@ti.com> wrote=
+:
+> > This patch series restores the TWL Power-button and Power-off capab=
+ilities.
+> > Which were removed in "REMOVE OMAP LEGACY CODE" patches.
+> >
+> > Patches are compile tested only.
+> >
+> > [PATCH 1/2]: twl4030: register twl4030-pwrbuttonas a child of twl40=
+30-core.c
+> > [PATCH 2/2]: twl4030: initialization of pm_power_off in twl4030-cor=
+e.c
+> >
+> > Both patches are based on Felipe Balbi's patches posted earlier.
+> > http://lkml.org/lkml/2009/2/28/88
+> > http://markmail.org/message/ts4if3553qnauket
+> >
+> > --
+> > Vimal
+> >
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.=
+html
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--=20
+-----------------------------------------------------------------------=
+--
+Amit Kucheria,				 Kernel Developer, Verdurent
+-----------------------------------------------------------------------=
+--
