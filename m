@@ -1,42 +1,62 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCHv2 1/7] OMAP4: PMIC: Add support for twl6030 codec
-Date: Mon, 28 Sep 2009 14:56:06 +0100
-Message-ID: <20090928135606.GI31899@rakim.wolfsonmicro.main>
-References: <67059DBF19D7214F9C66BB0EA91BA90E90A391DF@dlee04.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 13/12] omap: mailbox: Fix wrong condition check in while
+	loop
+Date: Mon, 28 Sep 2009 09:26:57 -0700
+Message-ID: <20090928162657.GC18957@atomide.com>
+References: <20090924233027.6065.95725.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="6c2NcOVqGQ03X4Wi"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:40412 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751443AbZI1N4E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 28 Sep 2009 09:56:04 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:56649 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752773AbZI1Q06 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Sep 2009 12:26:58 -0400
 Content-Disposition: inline
-In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90E90A391DF@dlee04.ent.ti.com>
+In-Reply-To: <20090924233027.6065.95725.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Lopez Cruz, Misael" <x0052729@ti.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 
-On Fri, Sep 25, 2009 at 09:02:32PM -0500, Lopez Cruz, Misael wrote:
 
-> +#if defined(CONFIG_SND_SOC_TWL6030)
-> +#define twl_has_codec()	true
-> +#else
-> +#define twl_has_codec()	false
-> +#endif
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-This ifdef won't match if the CODEC driver is modular.
+Here's one more fix for this series.
 
-> +
-> +	if (twl_has_codec() && pdata->codec) {
-> +		child = add_child(CODEC_SUB_CHIP_ID, "twl6030_codec",
-> +			pdata->codec, sizeof(*pdata->codec), false,
-> +			0, 0);
-> +		if (IS_ERR(child))
-> +			return PTR_ERR(child);
-> +	}
+Regards,
 
-I'd be inclined to print a warning here if no platform data is supplied,
-or have the CODEC handle missing platform data to make it easier for
-people to diagnose any problems with instantiating the device.
+Tony
+
+--6c2NcOVqGQ03X4Wi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename=out
+
+>From 540b5c02fb265349fd41bb9030ec350f24f4c2b9 Mon Sep 17 00:00:00 2001
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Date: Mon, 28 Sep 2009 09:21:26 -0700
+Subject: [PATCH] omap: mailbox: Fix wrong condition check in while loop
+
+It's worked fine so far since reset is done for the first time.
+
+Reported-by: Juha Leppanen <juha_motorsportcom@luukku.com>
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Juha Leppanen <juha_motorsportcom@luukku.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index f3fefca..c035ad3 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -93,7 +93,7 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
+ 		l = mbox_read_reg(MAILBOX_SYSSTATUS);
+ 		if (l & RESETDONE)
+ 			break;
+-	} while (time_after(jiffies, timeout));
++	} while (!time_after(jiffies, timeout));
+ 
+ 	if (!(l & RESETDONE)) {
+ 		pr_err("Can't take mmu out of reset\n");
+
+--6c2NcOVqGQ03X4Wi--
