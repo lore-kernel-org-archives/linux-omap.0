@@ -1,78 +1,60 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 13/12] omap: Fix wrong condition check in while loop
-	for mailbox and iommu2
-Date: Mon, 28 Sep 2009 09:39:08 -0700
-Message-ID: <20090928163908.GD18957@atomide.com>
-References: <20090924233027.6065.95725.stgit@localhost> <20090928162657.GC18957@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] arm: omap: iovmm: add missing mutex_unlock
+Date: Mon, 28 Sep 2009 09:51:05 -0700
+Message-ID: <87ws3j3tdy.fsf@deeprootsystems.com>
+References: <1254001039-27976-1-git-send-email-dwalker@fifo99.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Pd0ReVV5GZGQvF3a"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54649 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752744AbZI1QjI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Sep 2009 12:39:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20090928162657.GC18957@atomide.com>
+Received: from mail-pz0-f191.google.com ([209.85.222.191]:45014 "EHLO
+	mail-pz0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482AbZI1QvF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Sep 2009 12:51:05 -0400
+Received: by pzk29 with SMTP id 29so2530591pzk.33
+        for <linux-omap@vger.kernel.org>; Mon, 28 Sep 2009 09:51:08 -0700 (PDT)
+In-Reply-To: <1254001039-27976-1-git-send-email-dwalker@fifo99.com> (Daniel Walker's message of "Sat\, 26 Sep 2009 14\:37\:19 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org
+To: Daniel Walker <dwalker@fifo99.com>
+Cc: linux-omap@vger.kernel.org, Julia Lawall <julia@diku.dk>, Tony Lindgren <tony@atomide.com>
 
+Daniel Walker <dwalker@fifo99.com> writes:
 
---Pd0ReVV5GZGQvF3a
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> I was using Coccinelle with the mutex_unlock semantic patch, and it
+> unconvered this problem. It appears to be a valid missing unlock issue.
+> This change should correct it by moving the unlock below the label.
+>
+> This patch is against the mainline kernel.
+>
+> Cc: Julia Lawall <julia@diku.dk>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Signed-off-by: Daniel Walker <dwalker@fifo99.com>
 
-* Tony Lindgren <tony@atomide.com> [090928 09:28]:
-> Here's one more fix for this series.
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-Correction, there were two patches, one for mailbox and one
-for iommu2 with the same fix. Here are both of them merged
-into a single patch.
-
-Tony
-
---Pd0ReVV5GZGQvF3a
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline; filename=out
-
->From 055c49d285a151ccb91d63bac6d8621be3db5c93 Mon Sep 17 00:00:00 2001
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Date: Mon, 28 Sep 2009 09:21:26 -0700
-Subject: [PATCH] omap: Fix wrong condition check in while loop for mailbox and iommu2
-
-It's worked fine so far since reset is done for the first time.
-
-Reported-by: Juha Leppanen <juha_motorsportcom@luukku.com>
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Signed-off-by: Juha Leppanen <juha_motorsportcom@luukku.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/iommu2.c b/arch/arm/mach-omap2/iommu2.c
-index 2d9b5cc..4a0e1cd 100644
---- a/arch/arm/mach-omap2/iommu2.c
-+++ b/arch/arm/mach-omap2/iommu2.c
-@@ -79,7 +79,7 @@ static int omap2_iommu_enable(struct iommu *obj)
- 		l = iommu_read_reg(obj, MMU_SYSSTATUS);
- 		if (l & MMU_SYS_RESETDONE)
- 			break;
--	} while (time_after(jiffies, timeout));
-+	} while (!time_after(jiffies, timeout));
- 
- 	if (!(l & MMU_SYS_RESETDONE)) {
- 		dev_err(obj->dev, "can't take mmu out of reset\n");
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index f3fefca..c035ad3 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -93,7 +93,7 @@ static int omap2_mbox_startup(struct omap_mbox *mbox)
- 		l = mbox_read_reg(MAILBOX_SYSSTATUS);
- 		if (l & RESETDONE)
- 			break;
--	} while (time_after(jiffies, timeout));
-+	} while (!time_after(jiffies, timeout));
- 
- 	if (!(l & RESETDONE)) {
- 		pr_err("Can't take mmu out of reset\n");
-
---Pd0ReVV5GZGQvF3a--
+> ---
+>  arch/arm/plat-omap/iovmm.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+> index 57f7122..9b6cb90 100644
+> --- a/arch/arm/plat-omap/iovmm.c
+> +++ b/arch/arm/plat-omap/iovmm.c
+> @@ -363,8 +363,9 @@ void *da_to_va(struct iommu *obj, u32 da)
+>  		goto out;
+>  	}
+>  	va = area->va;
+> -	mutex_unlock(&obj->mmap_lock);
+>  out:
+> +	mutex_unlock(&obj->mmap_lock);
+> +
+>  	return va;
+>  }
+>  EXPORT_SYMBOL_GPL(da_to_va);
+> -- 
+> 1.6.0.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
