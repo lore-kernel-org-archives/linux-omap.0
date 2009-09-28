@@ -1,110 +1,69 @@
-From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: RE: [PATCHv2 0/7] TWL6030 audio codec initial support
-Date: Mon, 28 Sep 2009 12:13:58 -0500
-Message-ID: <67059DBF19D7214F9C66BB0EA91BA90E90A39748@dlee04.ent.ti.com>
-References: <67059DBF19D7214F9C66BB0EA91BA90E90A391DE@dlee04.ent.ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BADABC75@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: linux-omap git tree updated to v2.6.32-rc1, important changes,
+	please read
+Date: Mon, 28 Sep 2009 12:04:05 -0700
+Message-ID: <20090928190404.GE18957@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52629 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751694AbZI1RSy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Sep 2009 13:18:54 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BADABC75@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57395 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752358AbZI1TEF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Sep 2009 15:04:05 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MsLW4-0002yE-C5
+	for linux-omap@vger.kernel.org; Mon, 28 Sep 2009 19:04:08 +0000
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: linux-omap@vger.kernel.org
 
-Santosh,
+Hi all,
 
-Shilimkar, Santosh wrote:
-> Misa,
-> 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Lopez Cruz, Misael
->> Sent: Saturday, September 26, 2009 7:32 AM
->> To: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
->> Cc: Mark Brown
->> Subject: [PATCHv2 0/7] TWL6030 audio codec initial support
->> 
->> Following patch series adds initial support for TWL6030 codec driver.
->> 
->> TWL6030 codec depends on TWL6030_CORE, which is not accepted yet.
->> The main intention then is to get comments, I'll repost the patches
->> of this series when TWL6030_CORE support gets accepted and rework
->> patches as needed.
-> Looking at your series, you have based your patches on
-> Balaji's 6030 PMIC series as you mentioned " TWL6030 codec depends on
-> TWL6030_CORE". 
-> 
-> While doing that series, we realized that there is a lot of
-> code common between TWL5030 and TWL6030 apart from mainly
-> interrupt handling and hence a common file approach is taken
-> to avoid code duplication. The patch " [PATCHv2 3/7] ASoC:
-> TWL6030: Add twl6030 codec driver" gives me an impression
-> that there is opportunity to have a single file supporting
-> both IC's. IC specific code can be handled using the runtime
-> check depending on the revision.
-> Can you explore this ?
+I've updated our linux-omap tree to v2.6.32-rc1. I've also
+added a branch omap-2.6.31 for the old code.
 
-TWL6030 CODEC is very different from TWL4030/TWL5030, for example the
-digital audio interface of TWL6030 is a PDM-based propietary interface,
-and TWL4030/TWL5030 uses I2S/TDM + PCM interfaces.
-Audio components and their interconnections are very different as well,
-so I don't see any code reuse for audio codec.
+This time I also nuked the remaining omap legacy code we
+still had lurking around :) The commits at the end of this
+mail describe what I did first as commits, then I merged
+everything to be the same as the mainline v2.6.32-rc1.
 
-Thanks,
--Misa
+So currently the linux-omap master branch is:
 
-> You can find more information on above discussion at below thread.
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg15756.html
-> 
-> 
-> From
->> Changes from v1:
->> - Renamed dai format for PDM as SND_SOC_DAIFMT_PDM
->> - CODEC driver registered as a platform driver
->> - AUDPWRON gpio line handled in the CODEC driver
->> - Handle scenario when no AUDPWRON gpio line is provided
->> - Corrected names of some widgets
->> - Avoid multiple calls to power functions in set_bias_level
->> 
->> Thanks,
->> -Misa
->> 
->> ---
->> 
->> Misael Lopez Cruz (7):
->>       OMAP4: PMIC: Add support for twl6030 codec
->>       ASoC: Add PDM DAI format definition
->>       ASoC: TWL6030: Add twl6030 codec driver
->>       ASoC: TWL6030: Manual power-up/down sequences
->>       ASoC: TWL6030: Add support for low-power mode
->>       ASoC: TWL6030: Enable audio interrupt
->>       ASoC: TWL6030: Power-up seq completion through audio interrupt
->> 
->>  drivers/mfd/twl-core.c     |   15 +
->>  include/linux/i2c/twl.h    |   11 +
->>  include/sound/soc-dai.h    |    1 +
->>  sound/soc/codecs/Kconfig   |    4 +
->>  sound/soc/codecs/Makefile  |    2 +
->>  sound/soc/codecs/twl6030.c | 1179
->> ++++++++++++++++++++++++++++++++++++++++++++
->>  sound/soc/codecs/twl6030.h |  137 +++++
->>  7 files changed, 1349 insertions(+), 0 deletions(-)  create mode
->> 100644 sound/soc/codecs/twl6030.c  create mode 100644
->> sound/soc/codecs/twl6030.h --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap"
->> in the body of a message to majordomo@vger.kernel.org More majordomo
->> info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> Regards,
-> Santosh
+v2.6.32-rc1 + omap-fixes + ehci + cbus
+
+The new model is that I'll be resetting the linux-omap master
+branch to mainline at each -rc, then merge in our various
+upstream queues back in again.
+
+Please note that "Remove omap extra version in Makefile"
+commit means that you now need to set the ARCH and CROSS_COMPILE
+for your compiler.
+
+The good news is that now you can pull in the linux-omap master
+branch into any Linux kernel tree without messing up the other
+architectures.
+
+Also note that "Remove DEBUG_LL hack to printk" means that
+in order to get DEBUG_LL working, you need to patch printk.c
+yourself. You can find the patch in the omap-debug branch.
+
+As always, if something important got thrown out, please
+send patches against the mainline tree to patch back in
+the missing functionality!
+
+Regards,
+
+Tony
+
+
+f286f075db630e2266ddd011248f4533b55e8f85 REMOVE OMAP LEGACY CODE: Remove omap extra version in Makefile
+3dc42bd7663d0b40eeabb5d509f9ab6f969c9ede REMOVE OMAP LEGACY CODE: Remove old documentation
+e1483467f256833d406a386ef3ec97f7f5bb3642 REMOVE OMAP LEGACY CODE: Remove arch/arm hacks
+9f4eec944af394feb212b48e6a7c3947424edb16 REMOVE OMAP LEGACY CODE: Remove drivers/Makefile hacks
+b99dcece4468584eb08f8646477b7f0ca0c27f0f REMOVE OMAP LEGACY CODE: Remove DEBUG_LL hack to printk
+9275f8614fd98139ea465455335e06b4ac4de0c4 REMOVE OMAP LEGACY CODE: Remove hacks for booting P2
+dc3df234a0187c81ab9c0355ac6b659e25b11b33 REMOVE OMAP LEGACY CODE: Remove drivers/cbus
 
