@@ -1,120 +1,99 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
-	please read
-Date: Tue, 29 Sep 2009 11:26:40 -0700
-Message-ID: <20090929182639.GA16865@atomide.com>
-References: <20090928190404.GE18957@atomide.com> <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
+Subject: Re: Problem with git-fetch
+Date: Tue, 29 Sep 2009 11:52:25 -0700
+Message-ID: <20090929185225.GC16865@atomide.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DDAB4073@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54659 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752751AbZI2S0m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 14:26:42 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62786 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753188AbZI2SwY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 14:52:24 -0400
 Content-Disposition: inline
-In-Reply-To: <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDAB4073@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [090929 10:24]:
-> On Mon, Sep 28, 2009 at 10:04 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > Hi all,
-> >
-> > I've updated our linux-omap tree to v2.6.32-rc1. I've also
-> > added a branch omap-2.6.31 for the old code.
-> >
-> > This time I also nuked the remaining omap legacy code we
-> > still had lurking around :) The commits at the end of this
-> > mail describe what I did first as commits, then I merged
-> > everything to be the same as the mainline v2.6.32-rc1.
-> >
-> > So currently the linux-omap master branch is:
-> >
-> > v2.6.32-rc1 + omap-fixes + ehci + cbus
-> >
-> > The new model is that I'll be resetting the linux-omap master
-> > branch to mainline at each -rc, then merge in our various
-> > upstream queues back in again.
+Hi,
+
+* Premi, Sanjeev <premi@ti.com> [090929 08:03]:
+> Hi all,
 > 
-> Excellent! I was wondering why this wasn't being done. I certainly
-> hope linus' 2.6.32 will work on omap right away.
-
-Yeah, let's hope Tomi gets in the DSS2 code too.
- 
-> Anyway, I haven't been able to make 2.6.31 boot on beagleboard, and
-> other people report similar issues:
-> http://www.spinics.net/lists/linux-omap/msg17968.html
+> I did a git-pull today, but I am seeing inconsistency on the patches
+> being pulled on master.
 > 
-> Have you got 2.6.32-rc1 (+fixes) to boot?
+> When I browse the linux-omap tree in my browser, the history for
+> "arch/arm/plat-omap/include/mach/cpu.h at the URL shows as:
+> 
+> 2009-08-19 	Felipe Balbi   arch: arm: omap: terminate ifndef
+> 2009-08-18 	Tony Lindgren  OMAP: Fix incorrect 730 vs 850 detection
+> 2009-08-10 	Tony Lindgren  OMAP: Fix testing of cpu defines for mach-omap1
+> ...
+> URL : http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=history;f=arch/arm/plat-omap/include/mach/cpu.h;h=11e73d9e8928458adc5656add696d835cf330d7a;hb=d3505405a4b2d1659566db1b69ba2b554771efc6
+> 
+> But when I did git-pull, the history is:
+> 
+> #
+> # git-branch
+> * master
+> #
+> # git log --pretty=format:"%h : %s" arch/arm/plat-omap/include/mach/cpu.h
+> cd922049 : OMAP: Fix testing of cpu defines for mach-omap1
+> 8e25ad9 : OMAP2/3: Add omap_type() for determining GP/EMU/HS
+> ...
+> 
+> The top 2 commits are not visible!
+> 
+> Both the commits seem to be "present". I can view them via git-log.
+> 
+> Thinking it be be a problem with my local repo (though not sure what?);
+> I did a fresh clone of the repo:
+> 
+> # git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+> 
+> But, 2 hours later, it is still the same result!!
+> 
+> # git-branch
+> * master
+> #
+> # git log --pretty=format:"%h : %s"
+> d350540 : Fix compile for omap3evm because of ehci branch mismerge
+> dbf3f0a : Merge branch 'omap7xx-fortony-rc1' of git://robotfuzz.com/linwizard-ke
+> 6acfd68 : OMAP850: Fix zImage booting
+> 6efe82e : OMAP850: PM: Add an ARCH_OMAP850 check
+> 0a19200 : OMAP7XX: Clocks: Add ck_ref and armxor
+> #
+> #
+> # git log --pretty=format:"%h : %s" arch/arm/plat-omap/include/mach/cpu.h
+> cd922049 : OMAP: Fix testing of cpu defines for mach-omap1
+> 8e25ad9 : OMAP2/3: Add omap_type() for determining GP/EMU/HS
+> ...
+> 
+> Did anyone see this issue? OR can someone confirm that I am not alone?
 
-Hmm, looks like it's musb again. This is what I get on my
-overo after applying the DEBUG_LL hack from omap-debug branch:
+If you're missing something, maybe look for it in the omap-2.6.31 branch.
+Like I mentioned, I reset everything to mainline v2.6.32-rc1 with this:
 
-<3>musb_hdrc musb_hdrc: musb_init_controller failed with status -19             
-<1>Unable to handle kernel NULL pointer dereference at virtual address 00000000 
-<1>pgd = c0004000                                                               
-<1>[00000000] *pgd=00000000                                                     
-Internal error: Oops: 5 [#1]                                                    
-<d>Modules linked in:                                                           
-CPU: 0    Not tainted  (2.6.32-rc2-05967-gd350540-dirty #892)                   
-PC is at musb_free+0x68/0xb8                                                    
-LR is at musb_free+0x34/0xb8                                                    
-pc : [<c028a160>]    lr : [<c028a12c>]    psr: a0000013                         
-sp : c781fe50  ip : 00000064  fp : 00000000                                     
-r10: 00000000  r9 : 00000000  r8 : c0557bc0                                     
-r7 : c7811000  r6 : c78110e8  r5 : c78110e8  r4 : 00000000                      
-r3 : 00000000  r2 : 00000001  r1 : c04c95b6  r0 : ffffffed                      
-Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel             
-Control: 10c5387d  Table: 80004019  DAC: 00000017                               
-Process swapper (pid: 1, stack limit = 0xc781e2f0)                              
-Stack: (0xc781fe50 to 0xc7820000)
-fe40:                                     ffffffed 00000000 c78110e8 c001e8f8   
-fe60: c781fea4 c7804180 00000000 c7804184 c0533dc8 c0533dd0 0000005c d80ab000   
-fe80: c0533dac c7811190 00000000 c781fedc c0114ad8 c7806850 c0546248 c06d74e0   
-fea0: 00000000 c03cd5c8 00000000 c781ff00 c78b8de0 c0114cbc c78b8d80 c781ff00   
-fec0: c78b8de0 c0114864 c78b8d80 c781ff00 c78b8de0 c011493c c781ff00 c78b8de0   
-fee0: c78b8d80 00000000 c781ff00 c78b8de0 c787a210 00000001 00000000 c01157b4   
-ff00: c787a210 00000000 00000000 c0533dd0 c0533dd0 c055df04 c7873600 c0557bc0   
-ff20: 00000000 00000000 00000000 c0210b7c c0533dd0 c020fbd4 c0533dd0 c0533e04   
-ff40: c055df04 c7873600 c0557bc0 c020fce0 00000000 c020fc80 c055df04 c020f420   
-ff60: c7802d08 c787b240 c0026dd4 00000080 c055df04 c020ed38 c03f14f4 c03f14f4   
-ff80: c7820000 c0026dd4 c055def0 c055df04 00000000 00000000 00000000 c020ffb0   
-ffa0: c0026dd4 c055def0 c001dca0 00000000 00000000 c0210f70 c0026dd4 00000000   
-ffc0: c001dca0 c002d2b4 00000031 00000000 00000000 00000192 00000000 c0026dd4   
-ffe0: 00000000 00000000 00000000 c0008578 00000000 c002ee10 817fdf10 00bbff00
-[<c028a160>] (musb_free+0x68/0xb8) from [<c001e8f8>] (musb_probe+0xab8/0xbb4)   
-[<c001e8f8>] (musb_probe+0xab8/0xbb4) from [<c0210b7c>] (platform_drv_probe+0x1)
-[<c0210b7c>] (platform_drv_probe+0x18/0x1c) from [<c020fbd4>] (driver_probe_dev)
-[<c020fbd4>] (driver_probe_device+0xa0/0x14c) from [<c020fce0>] (__driver_attac)
-[<c020fce0>] (__driver_attach+0x60/0x84) from [<c020f420>] (bus_for_each_dev+0x)
-[<c020f420>] (bus_for_each_dev+0x44/0x74) from [<c020ed38>] (bus_add_driver+0xf)
-[<c020ed38>] (bus_add_driver+0xf4/0x278) from [<c020ffb0>] (driver_register+0xa)
-[<c020ffb0>] (driver_register+0xa8/0x130) from [<c0210f70>] (platform_driver_pr)
-[<c0210f70>] (platform_driver_probe+0x10/0x88) from [<c002d2b4>] (do_one_initca)
-[<c002d2b4>] (do_one_initcall+0x5c/0x1b4) from [<c0008578>] (kernel_init+0x90/0)
-[<c0008578>] (kernel_init+0x90/0x10c) from [<c002ee10>] (kernel_thread_exit+0x0)
-Code: e1a01005 ebf80722 e595309c e3a04000 (e5930000)
-<4>---[ end trace 1b75b31a2719ed1c ]---                                         
-<0>Kernel panic - not syncing: Attempted to kill init!
+$ git checkout -b omap-reset
+$ git reset --hard v2.6.32-rc1
+$ git merge -s ours master
+$ git checkout master
+$ git merge omap-reset
 
-After disabling musb, it boots further but can't mount root on the MMC:
+And after that I merged in omap-fixes, echi, cbus and the omap7xx
+branches.
 
-...
-<4>regulator_init_complete: incomplete constraints, leaving VUSB1V8 on          
-regulator_init_complete: incomplete constraints, leaving VUSB1V8 on             
-<4>regulator_init_complete: incomplete constraints, leaving VUSB1V5 on          
-regulator_init_complete: incomplete constraints, leaving VUSB1V5 on             
-<4>regulator_init_complete: incomplete constraints, leaving VMMC1 on            
-regulator_init_complete: incomplete constraints, leaving VMMC1 on               
-<6>twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:00:00 UTC (94)
-twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:00:00 UTC (94668)
-<6>Waiting for root device /dev/mmcblk0p2...                                    
-Waiting for root device /dev/mmcblk0p2...
+So basically we're now seeing the mainline history. All the history is
+there, but may not be visible unless you check out some earlier branch.
 
-What are you getting with DEBUG_LL enabled and the associated patch applied
-from omap-debug branch?
+I could not do git reset --hard v2.6.32-rc1 as the linux-omap tree would
+not stay pullable that way. And there's no git merge -s theirs any longer
+in git, so that's why the trickery above :)
+
+Hopefully this explains what you're seeing!
 
 Regards,
 
