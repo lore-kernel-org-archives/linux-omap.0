@@ -1,40 +1,40 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: Patch missing in 2.6.32-rc1
-Date: Tue, 29 Sep 2009 17:04:12 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDAB3F19@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DCD67D97@dbde02.ent.ti.com>
- <1250677938-27955-1-git-send-email-felipe.balbi@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DD1AD8FB@dbde02.ent.ti.com>
- <20090819131752.GC7629@atomide.com>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [PATCH] video/omap:  adding __init/__exit macros to various
+ drivers
+Date: Tue, 29 Sep 2009 14:07:48 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0909291401060.9280@wotan.suse.de>
+References: <200909290318.07309.PeterHuewe@gmx.de> <20090929091853.GC9536@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40801 "EHLO arroyo.ext.ti.com"
+Received: from cantor2.suse.de ([195.135.220.15]:56591 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752255AbZI2LeS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 07:34:18 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8TBYJvX023550
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2009 06:34:21 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8TBYIqK026523
-	for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2009 17:04:18 +0530 (IST)
-In-Reply-To: <20090819131752.GC7629@atomide.com>
-Content-Language: en-US
+	id S1753949AbZI2MHp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 29 Sep 2009 08:07:45 -0400
+In-Reply-To: <20090929091853.GC9536@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Imre Deak <imre.deak@nokia.com>
+Cc: ext Peter Huewe <PeterHuewe@gmx.de>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Krzysztof Helt <krzysztof.h1@wp.pl>, Jonathan McDowell <noodles@earth.li>, Arnaud Patard <arnaud.patard@rtp-net.org>, Mike Wege <ext-mike.wege@nokia.com>, "Doyu Hiroshi (Nokia-D/Helsinki)" <hiroshi.doyu@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi Tony,
+On Tue, 29 Sep 2009, Imre Deak wrote:
 
-Can you push this patch to 2.6.32-rc1?
+> > Trivial patch which adds the __init/__exit macros to the module_init/
+> > module_exit functions of the following drivers in media/omap:
+> > drivers/video/omap/lcd_ams_delta.c
+> > drivers/video/omap/lcd_mipid.c
+> > 
+> > Please have a look at the small patch and either pull it through
+> > your tree, or please ack' it so Jiri can pull it through the trivial tree.
+> > 
+> > linux version v2.6.32-rc1 - linus git tree, Di 29. Sep 01:10:18 CEST 2009
+> > 
+> > Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+> 
+> Acked-by: Imre Deak <imre.deak@nokia.com>
 
-7a8d53a0:  arch: arm: omap: terminate ifndef
+Applied, thanks.
 
-I was unable to refresh my patches against this baseline.
-OR, is it okay if I re-submit against the 'master'.
-
-Best regards,
-Sanjeev
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
