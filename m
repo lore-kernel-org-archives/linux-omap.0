@@ -1,53 +1,115 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
-	please read
-Date: Tue, 29 Sep 2009 20:24:51 +0300
-Message-ID: <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
-References: <20090928190404.GE18957@atomide.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [RFC][PATCH] omapfb: Condition mutex acquisition
+Date: Tue, 29 Sep 2009 23:56:28 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436C4483D@dbde02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE89444B781B6F@dlee02.ent.ti.com>
+	 ,<1254234160.23991.1.camel@tubuntu>
+	 <A24693684029E5489D1D202277BE89444B781B70@dlee02.ent.ti.com>,<1254236004.23991.17.camel@tubuntu>
+ <A24693684029E5489D1D202277BE89444B781B72@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:44912 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304AbZI2RYs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 13:24:48 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so1135602fge.1
-        for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2009 10:24:51 -0700 (PDT)
-In-Reply-To: <20090928190404.GE18957@atomide.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47320 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752686AbZI2S0e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 14:26:34 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE89444B781B72@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "Deak Imre (Nokia-D/Helsinki)" <imre.deak@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Sep 28, 2009 at 10:04 PM, Tony Lindgren <tony@atomide.com> wrote:
-> Hi all,
->
-> I've updated our linux-omap tree to v2.6.32-rc1. I've also
-> added a branch omap-2.6.31 for the old code.
->
-> This time I also nuked the remaining omap legacy code we
-> still had lurking around :) The commits at the end of this
-> mail describe what I did first as commits, then I merged
-> everything to be the same as the mainline v2.6.32-rc1.
->
-> So currently the linux-omap master branch is:
->
-> v2.6.32-rc1 + omap-fixes + ehci + cbus
->
-> The new model is that I'll be resetting the linux-omap master
-> branch to mainline at each -rc, then merge in our various
-> upstream queues back in again.
 
-Excellent! I was wondering why this wasn't being done. I certainly
-hope linus' 2.6.32 will work on omap right away.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio
+> Alberto
+> Sent: Tuesday, September 29, 2009 8:27 PM
+> To: tomi.valkeinen@nokia.com
+> Cc: Deak Imre (Nokia-D/Helsinki); linux-omap@vger.kernel.org
+> Subject: RE: [RFC][PATCH] omapfb: Condition mutex acquisition
+> 
+> From: Tomi Valkeinen [tomi.valkeinen@nokia.com]
+> Sent: Tuesday, September 29, 2009 9:53 AM
+> > On Tue, 2009-09-29 at 16:34 +0200, ext Aguirre Rodriguez, Sergio
+> Alberto
+> > wrote:
+> > > From: Tomi Valkeinen [tomi.valkeinen@nokia.com]
+> > > Sent: Tuesday, September 29, 2009 9:22 AM
+> > > > On Tue, 2009-09-29 at 16:14 +0200, ext Aguirre Rodriguez,
+> Sergio Alberto
+> > > > wrote:
+> > > > > From: Sergio Aguirre <saaguirre@ti.com>
+> > > > >
+> > > > > Acquiring mutex before framebuffer registration doesn't make
+> sense,
+> > > > > As there's no danger of external access to the memory
+> related fields.
+> > > >
+> > > > What problem does this patch solve? It makes the code more
+> complex.
+> > > >
+> > >
+> > > Tomi,
+> > >
+> > > Thanks for your time.
+> > >
+> > > The problem was that, during platform driver registration,
+> > > this sequence was executed:
+> > >
+> > > -> omapfb_probe
+> > >    -> omapfb_do_probe
+> > >       -> planes_init
+> > >          -> fbinfo_init
+> > >             -> set_fb_fix
+> > >       ...
+> > >       -> register_framebuffer
+> > >
+> > > And then, inside that function, an attempt of acquiring a
+> > > mutex failed, because it wasn't initialized before trying it:
+> > >
+> > > mutex_lock(&fbi->mm_lock);
+> > >
+> > > It is actually initialized later in omapfb_do_probe in
+> register_framebuffer call.
+> > >
+> > > So, how is the best to solve this then?
+> >
+> > Oh, I wasn't implying that there's something wrong with the fix, I
+> just
+> > didn't know what it was fixing =).
+> 
+> Ok, no prob :) Should I improve the patch description?
+> Any suggestion coming from an expert ;) ?
+> 
+> >
+> > Looks like a valid fix to me.
+> 
+> Great! :) Once you're ok with the description, I can add your
+> "Acked-by:" and
+> send to linux-fb-devel ML. Would that be ok?
+> 
+[Hiremath, Vaibhav] Hi Sergio,
 
-Anyway, I haven't been able to make 2.6.31 boot on beagleboard, and
-other people report similar issues:
-http://www.spinics.net/lists/linux-omap/msg17968.html
+I also think this is valid fix.
 
-Have you got 2.6.32-rc1 (+fixes) to boot?
+Tomi,
 
-Cheers.
+Don't you think we should also make use of mm_lock in new OMAP2 Fbdev driver, to be more specific and safer side?
 
--- 
-Felipe Contreras
+Thanks,
+Vaibhav
+
+> Regards,
+> Sergio
+> 
+> >
+> >  Tomi
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
