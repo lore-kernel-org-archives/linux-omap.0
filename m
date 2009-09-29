@@ -1,130 +1,118 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
-	please read
-Date: Tue, 29 Sep 2009 22:42:52 +0300
-Message-ID: <71a0d6ff0909291242w30cc879erbf6021324989abe3@mail.gmail.com>
-References: <20090928190404.GE18957@atomide.com>
-	 <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
-	 <20090929182639.GA16865@atomide.com>
-	 <71a0d6ff0909291220ve586b41s7c75ff580f34cb95@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89444B781B7C@dlee02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: Patch missing in 2.6.32-rc1
+Date: Tue, 29 Sep 2009 13:35:25 -0700
+Message-ID: <20090929203525.GF16865@atomide.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DCD67D97@dbde02.ent.ti.com> <1250677938-27955-1-git-send-email-felipe.balbi@nokia.com> <B85A65D85D7EB246BE421B3FB0FBB59301DD1AD8FB@dbde02.ent.ti.com> <20090819131752.GC7629@atomide.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDAB3F19@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed; boundary="ikeVEW9yuYc//A+q"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:49620 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753818AbZI2Tmt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 15:42:49 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so350747eyf.19
-        for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2009 12:42:52 -0700 (PDT)
-In-Reply-To: <A24693684029E5489D1D202277BE89444B781B7C@dlee02.ent.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55406 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919AbZI2UfY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 16:35:24 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDAB3F19@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-2009/9/29 Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com>:
-> From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.=
-org] On Behalf Of Alexander Shishkin [virtuoso@slind.org]
-> Sent: Tuesday, September 29, 2009 2:20 PM
->> 2009/9/29 Tony Lindgren <tony@atomide.com>:
->> > * Felipe Contreras <felipe.contreras@gmail.com> [090929 10:24]:
->> >> On Mon, Sep 28, 2009 at 10:04 PM, Tony Lindgren <tony@atomide.com=
-> wrote:
->> >> > Hi all,
->> >> >
->> >> > I've updated our linux-omap tree to v2.6.32-rc1. I've also
->> >> > added a branch omap-2.6.31 for the old code.
->> >> >
->> >> > This time I also nuked the remaining omap legacy code we
->> >> > still had lurking around :) The commits at the end of this
->> >> > mail describe what I did first as commits, then I merged
->> >> > everything to be the same as the mainline v2.6.32-rc1.
->> >> >
->> >> > So currently the linux-omap master branch is:
->> >> >
->> >> > v2.6.32-rc1 + omap-fixes + ehci + cbus
->> >> >
->> >> > The new model is that I'll be resetting the linux-omap master
->> >> > branch to mainline at each -rc, then merge in our various
->> >> > upstream queues back in again.
->> >>
->> >> Excellent! I was wondering why this wasn't being done. I certainl=
-y
->> >> hope linus' 2.6.32 will work on omap right away.
->> >
->> > Yeah, let's hope Tomi gets in the DSS2 code too.
->> >
->> >> Anyway, I haven't been able to make 2.6.31 boot on beagleboard, a=
-nd
->> >> other people report similar issues:
->> >> http://www.spinics.net/lists/linux-omap/msg17968.html
->> >>
->> >> Have you got 2.6.32-rc1 (+fixes) to boot?
->> >
->> > Hmm, looks like it's musb again. This is what I get on my
->> > overo after applying the DEBUG_LL hack from omap-debug branch:
->> >
->> > <3>musb_hdrc musb_hdrc: musb_init_controller failed with status -1=
-9
->> > <1>Unable to handle kernel NULL pointer dereference at virtual add=
-ress 00000000
->> > <1>pgd =3D c0004000
->> > <1>[00000000] *pgd=3D00000000
->> > Internal error: Oops: 5 [#1]
->> > <d>Modules linked in:
->> > CPU: 0 =C2=A0 =C2=A0Not tainted =C2=A0(2.6.32-rc2-05967-gd350540-d=
-irty #892)
->> > PC is at musb_free+0x68/0xb8
->> > LR is at musb_free+0x34/0xb8
->
-> <snip>
->
->> >
->> > After disabling musb, it boots further but can't mount root on the=
- MMC:
->> >
->> > ...
->> > <4>regulator_init_complete: incomplete constraints, leaving VUSB1V=
-8 on
->> > regulator_init_complete: incomplete constraints, leaving VUSB1V8 o=
-n
->> > <4>regulator_init_complete: incomplete constraints, leaving VUSB1V=
-5 on
->> > regulator_init_complete: incomplete constraints, leaving VUSB1V5 o=
-n
->> > <4>regulator_init_complete: incomplete constraints, leaving VMMC1 =
-on
->> > regulator_init_complete: incomplete constraints, leaving VMMC1 on
->> > <6>twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:=
-00:00 UTC (94)
->> > twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:00:=
-00 UTC (94668)
->> > <6>Waiting for root device /dev/mmcblk0p2...
->> > Waiting for root device /dev/mmcblk0p2...
->> >
->> > What are you getting with DEBUG_LL enabled and the associated patc=
-h applied
->> > from omap-debug branch?
->> MUSB enabled gives me the same backtrace. When I disable it, I get
->> (this is beagle B6):
->>
->> <1>Unable to handle kernel NULL pointer dereference at virtual addre=
-ss 00000000
->> <1>pgd =3D c0004000
->> <1>[00000000] *pgd=3D00000000
->
-> <snip>
->
-> Hi,
->
-> Can you please try attached patch?
 
-Yep, thanks! (provided it's actually the same patch that Toni referred =
-to).
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--ikeVEW9yuYc//A+q
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+* Premi, Sanjeev <premi@ti.com> [090929 04:34]:
+> Hi Tony,
+> 
+> Can you push this patch to 2.6.32-rc1?
+> 
+> 7a8d53a0:  arch: arm: omap: terminate ifndef
+> 
+> I was unable to refresh my patches against this baseline.
+> OR, is it okay if I re-submit against the 'master'.
+
+Sorry, I was meaning to look where the mismatch really came
+from but forgot.
+
+Looks like adding omap850 support added an #else without removing
+the #endif above it, and also removed another #endif in commit
+ae302f40061235f6bc58ae9ba02aa849d60223b5.
+
+I added some more comments to your original patch, see below.
+
+I did not notice earlier that adding omap850 also accidentally did
+both changes. So I was wondering where the second change came
+from..
+
+Can you please check that this patch is still OK?
+
+Regards,
+
+Tony
+
+--ikeVEW9yuYc//A+q
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="fix-cpu-omap850-endif.patch"
+
+>From 64fd0b5983e2b6f6bcf3ff66dc6b011b2c6d3c02 Mon Sep 17 00:00:00 2001
+From: Sanjeev Premi <premi@ti.com>
+Date: Tue, 29 Sep 2009 13:21:26 -0700
+Subject: [PATCH] omap: Fix mismatched ifdefs
+
+The #endif at end of the file was missing. However, an
+additional #else ... #endif was causing the compiler to
+keep going.
+
+The problem was found when compiler started reporting
+the newly added inline functions were being reported as
+redeclared by the compiler.
+
+This was caused by cd92204924fafbd5c7241dfd12ca3176d542e0c5
+that added support for omap850. However, the patch
+accidentally removed the wrong ifdef:
+
+ #  define cpu_is_omap730()		1
+ # endif
+ #endif
++#else
++# if defined(CONFIG_ARCH_OMAP850)
++#  undef  cpu_is_omap850
++#  define cpu_is_omap850()		1
++# endif
++#endif
+
+...
+
+ void omap2_check_revision(void);
+
+ #endif    /* defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) */
+-
+-#endif
+
+Instead of removing removing the #endif at the end of the file,
+the #endif before #else should have been removed.
+
+Signed-off-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index 11e73d9..1acc4ec 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -317,7 +317,6 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #  undef  cpu_is_omap730
+ #  define cpu_is_omap730()		1
+ # endif
+-#endif
+ #else
+ # if defined(CONFIG_ARCH_OMAP850)
+ #  undef  cpu_is_omap850
+@@ -433,3 +432,5 @@ IS_OMAP_TYPE(3430, 0x3430)
+ 
+ int omap_chip_is(struct omap_chip_id oci);
+ void omap2_check_revision(void);
++
++#endif
+
+--ikeVEW9yuYc//A+q--
