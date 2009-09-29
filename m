@@ -1,58 +1,53 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [OMAP3] ALSA driver 'suspend/resume' handlers
-Date: Tue, 29 Sep 2009 21:28:45 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BADAC2D9@dbde02.ent.ti.com>
-References: <2183bec20909221938mf436e87y7620613e160ae6e2@mail.gmail.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702F9DAFC82@dbde02.ent.ti.com>
-	<2183bec20909222202u7ada82e1ycb1de4702822e171@mail.gmail.com>
- <20090924094608.542909b7.jhnikula@gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
+	please read
+Date: Tue, 29 Sep 2009 20:24:51 +0300
+Message-ID: <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
+References: <20090928190404.GE18957@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36897 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752525AbZI2P6q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 11:58:46 -0400
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.157]:44912 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753304AbZI2RYs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 13:24:48 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so1135602fge.1
+        for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2009 10:24:51 -0700 (PDT)
+In-Reply-To: <20090928190404.GE18957@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, hari n <hari.zoom@gmail.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-Hari,
-> -----Original Message-----
-> From: Shilimkar, Santosh
-> Sent: Thursday, September 24, 2009 12:54 PM
-> To: 'Jarkko Nikula'; hari n
-> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> Subject: RE: [OMAP3] ALSA driver 'suspend/resume' handlers
-> 
-> Hari/Jarkko,
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Jarkko Nikula
-> > Sent: Thursday, September 24, 2009 12:16 PM
-> > To: hari n
-> > Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> > Subject: Re: [OMAP3] ALSA driver 'suspend/resume' handlers
-> >
-> > I don't see any problem if suspend and resume callbacks are added into
-> > omap-pcm.c and omap-mcbsp.c calling e.g. omap_mcbsp_config if needed.
-> 
-> omap_stop_dma() should be issued when we really want to stop the DMA
-> transfer and issuing this with an outstanding transfer is a BUG in ALSA
-> driver.
-> 
-> Having said that, there is also bug in the DMA driver which doesn't
-> disable the channel in linking cases. Since we use always hardware
-> synchronized method, hardware will take care of draining the buffer so no
-> loss of data.
-> 
-> So option B should be ok and USB case also would work as mentioned above.
+On Mon, Sep 28, 2009 at 10:04 PM, Tony Lindgren <tony@atomide.com> wrote:
+> Hi all,
+>
+> I've updated our linux-omap tree to v2.6.32-rc1. I've also
+> added a branch omap-2.6.31 for the old code.
+>
+> This time I also nuked the remaining omap legacy code we
+> still had lurking around :) The commits at the end of this
+> mail describe what I did first as commits, then I merged
+> everything to be the same as the mainline v2.6.32-rc1.
+>
+> So currently the linux-omap master branch is:
+>
+> v2.6.32-rc1 + omap-fixes + ehci + cbus
+>
+> The new model is that I'll be resetting the linux-omap master
+> branch to mainline at each -rc, then merge in our various
+> upstream queues back in again.
 
-Which option finally we converged on this issue? Shall we fix in the DMA driver or you want to do this in ALSA?
+Excellent! I was wondering why this wasn't being done. I certainly
+hope linus' 2.6.32 will work on omap right away.
 
+Anyway, I haven't been able to make 2.6.31 boot on beagleboard, and
+other people report similar issues:
+http://www.spinics.net/lists/linux-omap/msg17968.html
 
-Regards,
-Santosh
+Have you got 2.6.32-rc1 (+fixes) to boot?
+
+Cheers.
+
+-- 
+Felipe Contreras
