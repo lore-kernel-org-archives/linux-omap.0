@@ -1,85 +1,70 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for 2.6.32-rc1
-Date: Mon, 28 Sep 2009 16:58:31 -0700
-Message-ID: <20090928235831.GJ18957@atomide.com>
+From: Peter Huewe <PeterHuewe@gmx.de>
+Subject: [PATCH] video/omap:  adding __init/__exit macros to various drivers
+Date: Tue, 29 Sep 2009 03:18:06 +0200
+Message-ID: <200909290318.07309.PeterHuewe@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63720 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753539AbZI1X6j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 28 Sep 2009 19:58:39 -0400
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753923AbZI2BSK@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Kosina <trivial@kernel.org>
+Cc: kernel-janitors@vger.kernel.org, Imre Deak <imre.deak@nokia.com>, Tony Lindgren <tony@atomide.com>, Andrew Morton <akpm@linux-foundation.org>, Krzysztof Helt <krzysztof.h1@wp.pl>, Jonathan McDowell <noodles@earth.li>, Arnaud Patard <arnaud.patard@rtp-net.org>, Mike Wege <ext-mike.wege@nokia.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-fbdev-devel@lists.sourceforge.net, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-Linus,
+From: Peter Huewe <peterhuewe@gmx.de>
 
-Please pull the omap-fixes from:
+Trivial patch which adds the __init/__exit macros to the module_init/
+module_exit functions of the following drivers in media/omap:
+drivers/video/omap/lcd_ams_delta.c
+drivers/video/omap/lcd_mipid.c
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+Please have a look at the small patch and either pull it through
+your tree, or please ack' it so Jiri can pull it through the trivial tree.
 
-Regards,
+linux version v2.6.32-rc1 - linus git tree, Di 29. Sep 01:10:18 CEST 2009
 
-Tony
-
-
-
-The following changes since commit 94e0fb086fc5663c38bbc0fe86d698be8314f82f:
-  Linus Torvalds (1):
-        Merge branch 'drm-intel-next' of git://git.kernel.org/.../anholt/drm-intel
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Ajay Kumar Gupta (1):
-      omap: Add missing mux pin for EHCI phy reset line
-
-Angelo Arrifano (2):
-      omap: Fix wrong jtag_id for 850
-      omap: Fix a OMAP_MPUIO_VBASE typo for 850
-
-Hiroshi DOYU (3):
-      omap: mailbox: Execute softreset at startup
-      omap: mailbox: Flush posted write when acking mailbox irq
-      omap: Fix wrong condition check in while loop for mailbox and iommu2
-
-Jarkko Nikula (1):
-      omap: Fix MMC gpio_wp for BeagleBoard C2 and above
-
-Sanjeev Premi (1):
-      omap: iovmm: Fix compiler warning
-
-Tobias Klauser (1):
-      omap: rng: Use resource_size instead of manual calculation
-
-Tony Lindgren (4):
-      omap: Fix compile for arch/arm/mach-omap2
-      omap: Fix mcspi compile for 2420
-      omap: Fix 44xx compile
-      omap: Fix matrix_keymap_data usage
-
- arch/arm/mach-omap1/id.c                     |    2 +-
- arch/arm/mach-omap2/board-3430sdp.c          |   10 +++-
- arch/arm/mach-omap2/board-ldp.c              |   10 +++-
- arch/arm/mach-omap2/board-omap3beagle.c      |    7 ++-
- arch/arm/mach-omap2/board-omap3evm.c         |   10 +++-
- arch/arm/mach-omap2/board-omap3pandora.c     |   10 +++-
- arch/arm/mach-omap2/board-rx51-peripherals.c |   10 +++-
- arch/arm/mach-omap2/board-zoom2.c            |   10 +++-
- arch/arm/mach-omap2/cm4xxx.c                 |   17 +------
- arch/arm/mach-omap2/devices.c                |   65 +++++++++++++++++++-------
- arch/arm/mach-omap2/io.c                     |    4 +-
- arch/arm/mach-omap2/iommu2.c                 |    2 +-
- arch/arm/mach-omap2/mailbox.c                |   33 +++++++++++--
- arch/arm/mach-omap2/mux.c                    |    4 ++
- arch/arm/mach-omap2/serial.c                 |    6 +-
- arch/arm/plat-omap/gpio.c                    |    2 +-
- arch/arm/plat-omap/include/mach/keypad.h     |    5 +-
- arch/arm/plat-omap/include/mach/mux.h        |    2 +
- arch/arm/plat-omap/iovmm.c                   |    5 +-
- drivers/char/hw_random/omap-rng.c            |    4 +-
- 20 files changed, 147 insertions(+), 71 deletions(-)
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+---
+diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
+index 1f74399..319a9a2 100644
+--- a/drivers/video/omap/lcd_ams_delta.c
++++ b/drivers/video/omap/lcd_ams_delta.c
+@@ -123,12 +123,12 @@ struct platform_driver ams_delta_panel_driver = {
+ 	},
+ };
+ 
+-static int ams_delta_panel_drv_init(void)
++static int __init ams_delta_panel_drv_init(void)
+ {
+ 	return platform_driver_register(&ams_delta_panel_driver);
+ }
+ 
+-static void ams_delta_panel_drv_cleanup(void)
++static void __exit ams_delta_panel_drv_cleanup(void)
+ {
+ 	platform_driver_unregister(&ams_delta_panel_driver);
+ }
+diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
+index 918ee89..d88a792 100644
+--- a/drivers/video/omap/lcd_mipid.c
++++ b/drivers/video/omap/lcd_mipid.c
+@@ -607,7 +607,7 @@ static struct spi_driver mipid_spi_driver = {
+ 	.remove	= __devexit_p(mipid_spi_remove),
+ };
+ 
+-static int mipid_drv_init(void)
++static int __init mipid_drv_init(void)
+ {
+ 	spi_register_driver(&mipid_spi_driver);
+ 
+@@ -615,7 +615,7 @@ static int mipid_drv_init(void)
+ }
+ module_init(mipid_drv_init);
+ 
+-static void mipid_drv_cleanup(void)
++static void __exit mipid_drv_cleanup(void)
+ {
+ 	spi_unregister_driver(&mipid_spi_driver);
+ }
