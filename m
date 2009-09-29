@@ -1,172 +1,265 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: linux-omap git tree updated to v2.6.32-rc1, important changes,
- 	please read
-Date: Tue, 29 Sep 2009 14:26:21 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444B781B7C@dlee02.ent.ti.com>
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
+	please read
+Date: Tue, 29 Sep 2009 22:41:59 +0300
+Message-ID: <71a0d6ff0909291241p7c2a78dcy2ca0b153fc9d2ac9@mail.gmail.com>
 References: <20090928190404.GE18957@atomide.com>
 	 <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
-	 <20090929182639.GA16865@atomide.com>,<71a0d6ff0909291220ve586b41s7c75ff580f34cb95@mail.gmail.com>
+	 <20090929182639.GA16865@atomide.com>
+	 <71a0d6ff0909291220ve586b41s7c75ff580f34cb95@mail.gmail.com>
+	 <20090929193007.GD16865@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_A24693684029E5489D1D202277BE89444B781B7Cdlee02entticom_"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33553 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753899AbZI2Taa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 29 Sep 2009 15:30:30 -0400
-In-Reply-To: <71a0d6ff0909291220ve586b41s7c75ff580f34cb95@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-ew0-f211.google.com ([209.85.219.211]:39094 "EHLO
+	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753811AbZI2Tl5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 15:41:57 -0400
+Received: by ewy7 with SMTP id 7so5770756ewy.17
+        for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2009 12:42:00 -0700 (PDT)
+In-Reply-To: <20090929193007.GD16865@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Shishkin <virtuoso@slind.org>, Tony Lindgren <tony@atomide.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Contreras <felipe.contreras@gmail.com>, linux-omap@vger.kernel.org
 
---_002_A24693684029E5489D1D202277BE89444B781B7Cdlee02entticom_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+2009/9/29 Tony Lindgren <tony@atomide.com>:
+> * Alexander Shishkin <virtuoso@slind.org> [090929 12:20]:
+>> 2009/9/29 Tony Lindgren <tony@atomide.com>:
+>> > * Felipe Contreras <felipe.contreras@gmail.com> [090929 10:24]:
+>> >> On Mon, Sep 28, 2009 at 10:04 PM, Tony Lindgren <tony@atomide.com=
+> wrote:
+>> >> > Hi all,
+>> >> >
+>> >> > I've updated our linux-omap tree to v2.6.32-rc1. I've also
+>> >> > added a branch omap-2.6.31 for the old code.
+>> >> >
+>> >> > This time I also nuked the remaining omap legacy code we
+>> >> > still had lurking around :) The commits at the end of this
+>> >> > mail describe what I did first as commits, then I merged
+>> >> > everything to be the same as the mainline v2.6.32-rc1.
+>> >> >
+>> >> > So currently the linux-omap master branch is:
+>> >> >
+>> >> > v2.6.32-rc1 + omap-fixes + ehci + cbus
+>> >> >
+>> >> > The new model is that I'll be resetting the linux-omap master
+>> >> > branch to mainline at each -rc, then merge in our various
+>> >> > upstream queues back in again.
+>> >>
+>> >> Excellent! I was wondering why this wasn't being done. I certainl=
+y
+>> >> hope linus' 2.6.32 will work on omap right away.
+>> >
+>> > Yeah, let's hope Tomi gets in the DSS2 code too.
+>> >
+>> >> Anyway, I haven't been able to make 2.6.31 boot on beagleboard, a=
+nd
+>> >> other people report similar issues:
+>> >> http://www.spinics.net/lists/linux-omap/msg17968.html
+>> >>
+>> >> Have you got 2.6.32-rc1 (+fixes) to boot?
+>> >
+>> > Hmm, looks like it's musb again. This is what I get on my
+>> > overo after applying the DEBUG_LL hack from omap-debug branch:
+>> >
+>> > <3>musb_hdrc musb_hdrc: musb_init_controller failed with status -1=
+9
+>> > <1>Unable to handle kernel NULL pointer dereference at virtual add=
+ress 00000000
+>> > <1>pgd =3D c0004000
+>> > <1>[00000000] *pgd=3D00000000
+>> > Internal error: Oops: 5 [#1]
+>> > <d>Modules linked in:
+>> > CPU: 0 =C2=A0 =C2=A0Not tainted =C2=A0(2.6.32-rc2-05967-gd350540-d=
+irty #892)
+>> > PC is at musb_free+0x68/0xb8
+>> > LR is at musb_free+0x34/0xb8
+>> > pc : [<c028a160>] =C2=A0 =C2=A0lr : [<c028a12c>] =C2=A0 =C2=A0psr:=
+ a0000013
+>> > sp : c781fe50 =C2=A0ip : 00000064 =C2=A0fp : 00000000
+>> > r10: 00000000 =C2=A0r9 : 00000000 =C2=A0r8 : c0557bc0
+>> > r7 : c7811000 =C2=A0r6 : c78110e8 =C2=A0r5 : c78110e8 =C2=A0r4 : 0=
+0000000
+>> > r3 : 00000000 =C2=A0r2 : 00000001 =C2=A0r1 : c04c95b6 =C2=A0r0 : f=
+fffffed
+>> > Flags: NzCv =C2=A0IRQs on =C2=A0FIQs on =C2=A0Mode SVC_32 =C2=A0IS=
+A ARM =C2=A0Segment kernel
+>> > Control: 10c5387d =C2=A0Table: 80004019 =C2=A0DAC: 00000017
+>> > Process swapper (pid: 1, stack limit =3D 0xc781e2f0)
+>> > Stack: (0xc781fe50 to 0xc7820000)
+>> > fe40: =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ffffffe=
+d 00000000 c78110e8 c001e8f8
+>> > fe60: c781fea4 c7804180 00000000 c7804184 c0533dc8 c0533dd0 000000=
+5c d80ab000
+>> > fe80: c0533dac c7811190 00000000 c781fedc c0114ad8 c7806850 c05462=
+48 c06d74e0
+>> > fea0: 00000000 c03cd5c8 00000000 c781ff00 c78b8de0 c0114cbc c78b8d=
+80 c781ff00
+>> > fec0: c78b8de0 c0114864 c78b8d80 c781ff00 c78b8de0 c011493c c781ff=
+00 c78b8de0
+>> > fee0: c78b8d80 00000000 c781ff00 c78b8de0 c787a210 00000001 000000=
+00 c01157b4
+>> > ff00: c787a210 00000000 00000000 c0533dd0 c0533dd0 c055df04 c78736=
+00 c0557bc0
+>> > ff20: 00000000 00000000 00000000 c0210b7c c0533dd0 c020fbd4 c0533d=
+d0 c0533e04
+>> > ff40: c055df04 c7873600 c0557bc0 c020fce0 00000000 c020fc80 c055df=
+04 c020f420
+>> > ff60: c7802d08 c787b240 c0026dd4 00000080 c055df04 c020ed38 c03f14=
+f4 c03f14f4
+>> > ff80: c7820000 c0026dd4 c055def0 c055df04 00000000 00000000 000000=
+00 c020ffb0
+>> > ffa0: c0026dd4 c055def0 c001dca0 00000000 00000000 c0210f70 c0026d=
+d4 00000000
+>> > ffc0: c001dca0 c002d2b4 00000031 00000000 00000000 00000192 000000=
+00 c0026dd4
+>> > ffe0: 00000000 00000000 00000000 c0008578 00000000 c002ee10 817fdf=
+10 00bbff00
+>> > [<c028a160>] (musb_free+0x68/0xb8) from [<c001e8f8>] (musb_probe+0=
+xab8/0xbb4)
+>> > [<c001e8f8>] (musb_probe+0xab8/0xbb4) from [<c0210b7c>] (platform_=
+drv_probe+0x1)
+>> > [<c0210b7c>] (platform_drv_probe+0x18/0x1c) from [<c020fbd4>] (dri=
+ver_probe_dev)
+>> > [<c020fbd4>] (driver_probe_device+0xa0/0x14c) from [<c020fce0>] (_=
+_driver_attac)
+>> > [<c020fce0>] (__driver_attach+0x60/0x84) from [<c020f420>] (bus_fo=
+r_each_dev+0x)
+>> > [<c020f420>] (bus_for_each_dev+0x44/0x74) from [<c020ed38>] (bus_a=
+dd_driver+0xf)
+>> > [<c020ed38>] (bus_add_driver+0xf4/0x278) from [<c020ffb0>] (driver=
+_register+0xa)
+>> > [<c020ffb0>] (driver_register+0xa8/0x130) from [<c0210f70>] (platf=
+orm_driver_pr)
+>> > [<c0210f70>] (platform_driver_probe+0x10/0x88) from [<c002d2b4>] (=
+do_one_initca)
+>> > [<c002d2b4>] (do_one_initcall+0x5c/0x1b4) from [<c0008578>] (kerne=
+l_init+0x90/0)
+>> > [<c0008578>] (kernel_init+0x90/0x10c) from [<c002ee10>] (kernel_th=
+read_exit+0x0)
+>> > Code: e1a01005 ebf80722 e595309c e3a04000 (e5930000)
+>> > <4>---[ end trace 1b75b31a2719ed1c ]---
+>> > <0>Kernel panic - not syncing: Attempted to kill init!
+>> >
+>> > After disabling musb, it boots further but can't mount root on the=
+ MMC:
+>> >
+>> > ...
+>> > <4>regulator_init_complete: incomplete constraints, leaving VUSB1V=
+8 on
+>> > regulator_init_complete: incomplete constraints, leaving VUSB1V8 o=
+n
+>> > <4>regulator_init_complete: incomplete constraints, leaving VUSB1V=
+5 on
+>> > regulator_init_complete: incomplete constraints, leaving VUSB1V5 o=
+n
+>> > <4>regulator_init_complete: incomplete constraints, leaving VMMC1 =
+on
+>> > regulator_init_complete: incomplete constraints, leaving VMMC1 on
+>> > <6>twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:=
+00:00 UTC (94)
+>> > twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:00:=
+00 UTC (94668)
+>> > <6>Waiting for root device /dev/mmcblk0p2...
+>> > Waiting for root device /dev/mmcblk0p2...
+>> >
+>> > What are you getting with DEBUG_LL enabled and the associated patc=
+h applied
+>> > from omap-debug branch?
+>> MUSB enabled gives me the same backtrace. When I disable it, I get
+>> (this is beagle B6):
+>>
+>> <1>Unable to handle kernel NULL pointer dereference at virtual addre=
+ss 00000000
+>> <1>pgd =3D c0004000
+>> <1>[00000000] *pgd=3D00000000
+>> Internal error: Oops: 805 [#1]
+>> <d>Modules linked in:
+>> CPU: 0 =C2=A0 =C2=A0Tainted: G =C2=A0 =C2=A0 =C2=A0 =C2=A0W =C2=A0 (=
+2.6.32-rc2-05968-g11ddc16 #7)
+>> PC is at __mutex_lock_slowpath+0xe0/0x218
+>> LR is at __mutex_lock_slowpath+0xcc/0x218
+>> pc : [<c02967bc>] =C2=A0 =C2=A0lr : [<c02967a8>] =C2=A0 =C2=A0psr: 4=
+0000093
+>> sp : c7819e80 =C2=A0ip : 11111111 =C2=A0fp : c6d2e824
+>> r10: c6d2e800 =C2=A0r9 : c6d2e800 =C2=A0r8 : c7886c24
+>> r7 : c7817a40 =C2=A0r6 : 60000013 =C2=A0r5 : c7886c20 =C2=A0r4 : c78=
+86c20
+>> r3 : 00000000 =C2=A0r2 : c7818000 =C2=A0r1 : c7819e80 =C2=A0r0 : c78=
+86c20
+>> Flags: nZcv =C2=A0IRQs off =C2=A0FIQs on =C2=A0Mode SVC_32 =C2=A0ISA=
+ ARM =C2=A0Segment kernel
+>> Control: 10c5387d =C2=A0Table: 80004019 =C2=A0DAC: 00000017
+>> Process swapper (pid: 1, stack limit =3D 0xc78182e8)
+>> Stack: (0xc7819e80 to 0xc781a000)
+>> 9e80: c7886c24 00000000 11111111 c7819e80 c6d2fd00 c7886c20 c6d2e800=
+ 00000000
+>> 9ea0: c7886c20 c7886c00 c6d2e800 c6d2e800 c6d2e824 c0296900 c6d2e800=
+ c0197afc
+>> 9ec0: c7886c00 00000000 c7886e68 00000000 c6d2e800 c0198f90 c6d369c8=
+ 00000000
+>> 9ee0: c7819f00 c6d36968 c7810518 69000001 7265746e 006c616e 00000000=
+ 00000000
+>> 9f00: c7810518 c0387d50 c0387d50 c03a0504 c03a0504 c03a4800 00000000=
+ 00000000
+>> 9f20: 00000000 c019b37c c0387d50 c01c009c c03a0504 c01bf0d4 00000000=
+ c0387d50
+>> 9f40: c0387d84 c03a0504 c7819f60 c01bf204 00000000 c01bf1a4 c03a0504=
+ c01be954
+>> 9f60: c7803af8 c7845970 c03a4800 c0022890 c03a0504 c03a0504 c6d30cc0=
+ c01be1f8
+>> 9f80: c0315ab2 c00187a0 c6d30d40 c0022890 c0022948 c03a0504 00000000=
+ 00000000
+>> 9fa0: 00000000 c01bf508 c0022890 c0022948 c00187fc 00000000 00000000=
+ c00272b4
+>> 9fc0: 00000000 00000192 c038ba20 00000000 00000000 c0022890 c0022948=
+ 00000000
+>> 9fe0: 00000000 c0008584 00000000 00000000 00000000 c0028d80 853bee50=
+ 007b4fa4
+>> [<c02967bc>] (__mutex_lock_slowpath+0xe0/0x218) from [<c0296900>]
+>> (mutex_lock+0xc/0x1c)
+>> [<c0296900>] (mutex_lock+0xc/0x1c) from [<c0197afc>]
+>> (set_fb_fix+0x30/0xbc)
+>> [<c0197afc>] (set_fb_fix+0x30/0xbc) from [<c0198f90>]
+>> (omapfb_do_probe+0x404/0x858)
+>> [<c0198f90>] (omapfb_do_probe+0x404/0x858) from [<c019b37c>]
+>> (omap3beagle_panel_probe+0x10/0x20)
+>> [<c019b37c>] (omap3beagle_panel_probe+0x10/0x20) from [<c01c009c>]
+>> (platform_drv_probe+0x1c/0x24)
+>> [<c01c009c>] (platform_drv_probe+0x1c/0x24) from [<c01bf0d4>]
+>> (driver_probe_device+0xa4/0x174)
+>> [<c01bf0d4>] (driver_probe_device+0xa4/0x174) from [<c01bf204>]
+>> (__driver_attach+0x60/0x84)
+>> [<c01bf204>] (__driver_attach+0x60/0x84) from [<c01be954>]
+>> (bus_for_each_dev+0x4c/0x8c)
+>> [<c01be954>] (bus_for_each_dev+0x4c/0x8c) from [<c01be1f8>]
+>> (bus_add_driver+0xa0/0x218)
+>> [<c01be1f8>] (bus_add_driver+0xa0/0x218) from [<c01bf508>]
+>> (driver_register+0xbc/0x148)
+>> [<c01bf508>] (driver_register+0xbc/0x148) from [<c00272b4>]
+>> (do_one_initcall+0x5c/0x1bc)
+>> [<c00272b4>] (do_one_initcall+0x5c/0x1bc) from [<c0008584>]
+>> (kernel_init+0x94/0x110)
+>> [<c0008584>] (kernel_init+0x94/0x110) from [<c0028d80>]
+>> (kernel_thread_exit+0x0/0x8)
+>> Code: e2858004 e585d008 e58d8000 e58d3004 (e583d000)
+>> <4>---[ end trace da227214a82491b8 ]---
+>
+> Maybe try Sergio's "omapfb: Condition mutex acquisition" patch:
+>
+> http://patchwork.kernel.org/patch/50551/
+>
+> Does that help?
 
-From: linux-omap-owner@vger.kernel.org [linux-omap-owner@vger.kernel.org] O=
-n Behalf Of Alexander Shishkin [virtuoso@slind.org]
-Sent: Tuesday, September 29, 2009 2:20 PM
-> 2009/9/29 Tony Lindgren <tony@atomide.com>:
-> > * Felipe Contreras <felipe.contreras@gmail.com> [090929 10:24]:
-> >> On Mon, Sep 28, 2009 at 10:04 PM, Tony Lindgren <tony@atomide.com> wro=
-te:
-> >> > Hi all,
-> >> >
-> >> > I've updated our linux-omap tree to v2.6.32-rc1. I've also
-> >> > added a branch omap-2.6.31 for the old code.
-> >> >
-> >> > This time I also nuked the remaining omap legacy code we
-> >> > still had lurking around :) The commits at the end of this
-> >> > mail describe what I did first as commits, then I merged
-> >> > everything to be the same as the mainline v2.6.32-rc1.
-> >> >
-> >> > So currently the linux-omap master branch is:
-> >> >
-> >> > v2.6.32-rc1 + omap-fixes + ehci + cbus
-> >> >
-> >> > The new model is that I'll be resetting the linux-omap master
-> >> > branch to mainline at each -rc, then merge in our various
-> >> > upstream queues back in again.
-> >>
-> >> Excellent! I was wondering why this wasn't being done. I certainly
-> >> hope linus' 2.6.32 will work on omap right away.
-> >
-> > Yeah, let's hope Tomi gets in the DSS2 code too.
-> >
-> >> Anyway, I haven't been able to make 2.6.31 boot on beagleboard, and
-> >> other people report similar issues:
-> >> http://www.spinics.net/lists/linux-omap/msg17968.html
-> >>
-> >> Have you got 2.6.32-rc1 (+fixes) to boot?
-> >
-> > Hmm, looks like it's musb again. This is what I get on my
-> > overo after applying the DEBUG_LL hack from omap-debug branch:
-> >
-> > <3>musb_hdrc musb_hdrc: musb_init_controller failed with status -19
-> > <1>Unable to handle kernel NULL pointer dereference at virtual address =
-00000000
-> > <1>pgd =3D c0004000
-> > <1>[00000000] *pgd=3D00000000
-> > Internal error: Oops: 5 [#1]
-> > <d>Modules linked in:
-> > CPU: 0    Not tainted  (2.6.32-rc2-05967-gd350540-dirty #892)
-> > PC is at musb_free+0x68/0xb8
-> > LR is at musb_free+0x34/0xb8
-
-<snip>
-
-> >
-> > After disabling musb, it boots further but can't mount root on the MMC:
-> >
-> > ...
-> > <4>regulator_init_complete: incomplete constraints, leaving VUSB1V8 on
-> > regulator_init_complete: incomplete constraints, leaving VUSB1V8 on
-> > <4>regulator_init_complete: incomplete constraints, leaving VUSB1V5 on
-> > regulator_init_complete: incomplete constraints, leaving VUSB1V5 on
-> > <4>regulator_init_complete: incomplete constraints, leaving VMMC1 on
-> > regulator_init_complete: incomplete constraints, leaving VMMC1 on
-> > <6>twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:00:00=
- UTC (94)
-> > twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:00:00 UT=
-C (94668)
-> > <6>Waiting for root device /dev/mmcblk0p2...
-> > Waiting for root device /dev/mmcblk0p2...
-> >
-> > What are you getting with DEBUG_LL enabled and the associated patch app=
-lied
-> > from omap-debug branch?
-> MUSB enabled gives me the same backtrace. When I disable it, I get
-> (this is beagle B6):
->=20
-> <1>Unable to handle kernel NULL pointer dereference at virtual address 00=
-000000
-> <1>pgd =3D c0004000
-> <1>[00000000] *pgd=3D00000000
-
-<snip>
-
-Hi,
-
-Can you please try attached patch?
-
-Regards,
-Sergio=
-
---_002_A24693684029E5489D1D202277BE89444B781B7Cdlee02entticom_
-Content-Type: text/x-patch;
-	name="0001-omapfb-Condition-mutex-acquisition.patch"
-Content-Description: 0001-omapfb-Condition-mutex-acquisition.patch
-Content-Disposition: attachment;
-	filename="0001-omapfb-Condition-mutex-acquisition.patch"; size=2493;
-	creation-date="Tue, 29 Sep 2009 14:30:23 GMT";
-	modification-date="Tue, 29 Sep 2009 14:30:23 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSBiYmEyZDg5ZWE0NWVjMDM1OWRlYzZmZTIxYzE3NTZhZDM0MDZlMzQ3IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBTZXJnaW8gQWd1aXJyZSA8c2FhZ3VpcnJlQHRpLmNvbT4KRGF0
-ZTogVHVlLCAyOSBTZXAgMjAwOSAwNzo0NDoxOSAtMDUwMApTdWJqZWN0OiBbUEFUQ0hdIG9tYXBm
-YjogQ29uZGl0aW9uIG11dGV4IGFjcXVpc2l0aW9uCgpBY3F1aXJpbmcgbXV0ZXggYmVmb3JlIGZy
-YW1lYnVmZmVyIHJlZ2lzdHJhdGlvbiBkb2Vzbid0IG1ha2Ugc2Vuc2UsCkFzIHRoZXJlJ3Mgbm8g
-ZGFuZ2VyIG9mIGV4dGVybmFsIGFjY2VzcyB0byB0aGUgbWVtb3J5IHJlbGF0ZWQgZmllbGRzLgoK
-Tk9URTogUExFQVNFIFJFVklFVyEgSSdNIE5PVCBBTiBFWFBFUlQgT04gVEhJUy4KClNpZ25lZC1v
-ZmYtYnk6IFNlcmdpbyBBZ3VpcnJlIDxzYWFndWlycmVAdGkuY29tPgotLS0KIGRyaXZlcnMvdmlk
-ZW8vb21hcC9vbWFwZmJfbWFpbi5jIHwgICAyMiArKysrKysrKysrKysrKy0tLS0tLS0tCiAxIGZp
-bGVzIGNoYW5nZWQsIDE0IGluc2VydGlvbnMoKyksIDggZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
-IGEvZHJpdmVycy92aWRlby9vbWFwL29tYXBmYl9tYWluLmMgYi9kcml2ZXJzL3ZpZGVvL29tYXAv
-b21hcGZiX21haW4uYwppbmRleCAxMjVlNjA1Li4wZDBjOGM4IDEwMDY0NAotLS0gYS9kcml2ZXJz
-L3ZpZGVvL29tYXAvb21hcGZiX21haW4uYworKysgYi9kcml2ZXJzL3ZpZGVvL29tYXAvb21hcGZi
-X21haW4uYwpAQCAtMzkzLDcgKzM5Myw3IEBAIHN0YXRpYyB2b2lkIG9tYXBmYl9zeW5jKHN0cnVj
-dCBmYl9pbmZvICpmYmkpCiAgKiBTZXQgZmJfaW5mby5maXggZmllbGRzIGFuZCBhbHNvIHVwZGF0
-ZXMgZmJkZXYuCiAgKiBXaGVuIGNhbGxpbmcgdGhpcyBmYl9pbmZvLnZhciBtdXN0IGJlIHNldCB1
-cCBhbHJlYWR5LgogICovCi1zdGF0aWMgdm9pZCBzZXRfZmJfZml4KHN0cnVjdCBmYl9pbmZvICpm
-YmkpCitzdGF0aWMgdm9pZCBzZXRfZmJfZml4KHN0cnVjdCBmYl9pbmZvICpmYmksIGludCBmcm9t
-X2luaXQpCiB7CiAJc3RydWN0IGZiX2ZpeF9zY3JlZW5pbmZvICpmaXggPSAmZmJpLT5maXg7CiAJ
-c3RydWN0IGZiX3Zhcl9zY3JlZW5pbmZvICp2YXIgPSAmZmJpLT52YXI7CkBAIC00MDMsMTAgKzQw
-MywxNiBAQCBzdGF0aWMgdm9pZCBzZXRfZmJfZml4KHN0cnVjdCBmYl9pbmZvICpmYmkpCiAKIAly
-ZyA9ICZwbGFuZS0+ZmJkZXYtPm1lbV9kZXNjLnJlZ2lvbltwbGFuZS0+aWR4XTsKIAlmYmktPnNj
-cmVlbl9iYXNlCT0gcmctPnZhZGRyOwotCW11dGV4X2xvY2soJmZiaS0+bW1fbG9jayk7Ci0JZml4
-LT5zbWVtX3N0YXJ0CQk9IHJnLT5wYWRkcjsKLQlmaXgtPnNtZW1fbGVuCQk9IHJnLT5zaXplOwot
-CW11dGV4X3VubG9jaygmZmJpLT5tbV9sb2NrKTsKKworCWlmICghZnJvbV9pbml0KSB7CisJCW11
-dGV4X2xvY2soJmZiaS0+bW1fbG9jayk7CisJCWZpeC0+c21lbV9zdGFydAkJPSByZy0+cGFkZHI7
-CisJCWZpeC0+c21lbV9sZW4JCT0gcmctPnNpemU7CisJCW11dGV4X3VubG9jaygmZmJpLT5tbV9s
-b2NrKTsKKwl9IGVsc2UgeworCQlmaXgtPnNtZW1fc3RhcnQJCT0gcmctPnBhZGRyOworCQlmaXgt
-PnNtZW1fbGVuCQk9IHJnLT5zaXplOworCX0KIAogCWZpeC0+dHlwZSA9IEZCX1RZUEVfUEFDS0VE
-X1BJWEVMUzsKIAlicHAgPSB2YXItPmJpdHNfcGVyX3BpeGVsOwpAQCAtNzA0LDcgKzcxMCw3IEBA
-IHN0YXRpYyBpbnQgb21hcGZiX3NldF9wYXIoc3RydWN0IGZiX2luZm8gKmZiaSkKIAlpbnQgciA9
-IDA7CiAKIAlvbWFwZmJfcnF1ZXVlX2xvY2soZmJkZXYpOwotCXNldF9mYl9maXgoZmJpKTsKKwlz
-ZXRfZmJfZml4KGZiaSwgMCk7CiAJciA9IGN0cmxfY2hhbmdlX21vZGUoZmJpKTsKIAlvbWFwZmJf
-cnF1ZXVlX3VubG9jayhmYmRldik7CiAKQEAgLTkwNCw3ICs5MTAsNyBAQCBzdGF0aWMgaW50IG9t
-YXBmYl9zZXR1cF9tZW0oc3RydWN0IGZiX2luZm8gKmZiaSwgc3RydWN0IG9tYXBmYl9tZW1faW5m
-byAqbWkpCiAJCWlmIChvbGRfc2l6ZSAhPSBzaXplKSB7CiAJCQlpZiAoc2l6ZSkgewogCQkJCW1l
-bWNweSgmZmJpLT52YXIsIG5ld192YXIsIHNpemVvZihmYmktPnZhcikpOwotCQkJCXNldF9mYl9m
-aXgoZmJpKTsKKwkJCQlzZXRfZmJfZml4KGZiaSwgMCk7CiAJCQl9IGVsc2UgewogCQkJCS8qCiAJ
-CQkJICogU2V0IHRoZXNlIGV4cGxpY2l0bHkgdG8gaW5kaWNhdGUgdGhhdCB0aGUKQEAgLTE1MDQs
-NyArMTUxMCw3IEBAIHN0YXRpYyBpbnQgZmJpbmZvX2luaXQoc3RydWN0IG9tYXBmYl9kZXZpY2Ug
-KmZiZGV2LCBzdHJ1Y3QgZmJfaW5mbyAqaW5mbykKIAl2YXItPmJpdHNfcGVyX3BpeGVsID0gZmJk
-ZXYtPnBhbmVsLT5icHA7CiAKIAlzZXRfZmJfdmFyKGluZm8sIHZhcik7Ci0Jc2V0X2ZiX2ZpeChp
-bmZvKTsKKwlzZXRfZmJfZml4KGluZm8sIDEpOwogCiAJciA9IGZiX2FsbG9jX2NtYXAoJmluZm8t
-PmNtYXAsIDE2LCAwKTsKIAlpZiAociAhPSAwKQotLSAKMS42LjAuNAoK
-
---_002_A24693684029E5489D1D202277BE89444B781B7Cdlee02entticom_--
+Indeed it does. Now I'm seeing the same regulator stuff you quoted.
+Given that I'm not set up to mount rootfs from mmc, it just panics on
+not able to mount rootfs (since there's nothing to mount). I think
+I'll get myself some sort of an initramfs.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
