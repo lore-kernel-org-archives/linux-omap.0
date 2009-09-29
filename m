@@ -1,79 +1,80 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [RFC][PATCH] omapfb: Condition mutex acquisition
-Date: Tue, 29 Sep 2009 09:56:34 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444B781B72@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89444B781B6F@dlee02.ent.ti.com>
-	 ,<1254234160.23991.1.camel@tubuntu>
-	 <A24693684029E5489D1D202277BE89444B781B70@dlee02.ent.ti.com>,<1254236004.23991.17.camel@tubuntu>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: Problem with git-fetch
+Date: Tue, 29 Sep 2009 20:33:02 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDAB4073@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60772 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750698AbZI2PBJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 11:01:09 -0400
-In-Reply-To: <1254236004.23991.17.camel@tubuntu>
+Received: from bear.ext.ti.com ([192.94.94.41]:42091 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751481AbZI2PDC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 11:03:02 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n8TF33E4021961
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2009 10:03:06 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n8TF334D005927
+	for <linux-omap@vger.kernel.org>; Tue, 29 Sep 2009 20:33:03 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-Cc: "Deak Imre (Nokia-D/Helsinki)" <imre.deak@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Tomi Valkeinen [tomi.valkeinen@nokia.com]
-Sent: Tuesday, September 29, 2009 9:53 AM
-> On Tue, 2009-09-29 at 16:34 +0200, ext Aguirre Rodriguez, Sergio Alberto
-> wrote:
-> > From: Tomi Valkeinen [tomi.valkeinen@nokia.com]
-> > Sent: Tuesday, September 29, 2009 9:22 AM
-> > > On Tue, 2009-09-29 at 16:14 +0200, ext Aguirre Rodriguez, Sergio Alberto
-> > > wrote:
-> > > > From: Sergio Aguirre <saaguirre@ti.com>
-> > > >
-> > > > Acquiring mutex before framebuffer registration doesn't make sense,
-> > > > As there's no danger of external access to the memory related fields.
-> > >
-> > > What problem does this patch solve? It makes the code more complex.
-> > >
-> >
-> > Tomi,
-> >
-> > Thanks for your time.
-> >
-> > The problem was that, during platform driver registration,
-> > this sequence was executed:
-> >
-> > -> omapfb_probe
-> >    -> omapfb_do_probe
-> >       -> planes_init
-> >          -> fbinfo_init
-> >             -> set_fb_fix
-> >       ...
-> >       -> register_framebuffer
-> >
-> > And then, inside that function, an attempt of acquiring a
-> > mutex failed, because it wasn't initialized before trying it:
-> >
-> > mutex_lock(&fbi->mm_lock);
-> >
-> > It is actually initialized later in omapfb_do_probe in register_framebuffer call.
-> >
-> > So, how is the best to solve this then?
-> 
-> Oh, I wasn't implying that there's something wrong with the fix, I just
-> didn't know what it was fixing =).
+Hi all,
 
-Ok, no prob :) Should I improve the patch description?
-Any suggestion coming from an expert ;) ?
+I did a git-pull today, but I am seeing inconsistency on the patches
+being pulled on master.
 
-> 
-> Looks like a valid fix to me.
+When I browse the linux-omap tree in my browser, the history for
+"arch/arm/plat-omap/include/mach/cpu.h at the URL shows as:
 
-Great! :) Once you're ok with the description, I can add your "Acked-by:" and
-send to linux-fb-devel ML. Would that be ok?
+2009-08-19 	Felipe Balbi   arch: arm: omap: terminate ifndef
+2009-08-18 	Tony Lindgren  OMAP: Fix incorrect 730 vs 850 detection
+2009-08-10 	Tony Lindgren  OMAP: Fix testing of cpu defines for mach-omap1
+...
+URL : http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=history;f=arch/arm/plat-omap/include/mach/cpu.h;h=11e73d9e8928458adc5656add696d835cf330d7a;hb=d3505405a4b2d1659566db1b69ba2b554771efc6
 
-Regards,
-Sergio
+But when I did git-pull, the history is:
 
-> 
->  Tomi
+#
+# git-branch
+* master
+#
+# git log --pretty=format:"%h : %s" arch/arm/plat-omap/include/mach/cpu.h
+cd922049 : OMAP: Fix testing of cpu defines for mach-omap1
+8e25ad9 : OMAP2/3: Add omap_type() for determining GP/EMU/HS
+...
+
+The top 2 commits are not visible!
+
+Both the commits seem to be "present". I can view them via git-log.
+
+Thinking it be be a problem with my local repo (though not sure what?);
+I did a fresh clone of the repo:
+
+# git clone git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git
+
+But, 2 hours later, it is still the same result!!
+
+# git-branch
+* master
+#
+# git log --pretty=format:"%h : %s"
+d350540 : Fix compile for omap3evm because of ehci branch mismerge
+dbf3f0a : Merge branch 'omap7xx-fortony-rc1' of git://robotfuzz.com/linwizard-ke
+6acfd68 : OMAP850: Fix zImage booting
+6efe82e : OMAP850: PM: Add an ARCH_OMAP850 check
+0a19200 : OMAP7XX: Clocks: Add ck_ref and armxor
+#
+#
+# git log --pretty=format:"%h : %s" arch/arm/plat-omap/include/mach/cpu.h
+cd922049 : OMAP: Fix testing of cpu defines for mach-omap1
+8e25ad9 : OMAP2/3: Add omap_type() for determining GP/EMU/HS
+...
+
+Did anyone see this issue? OR can someone confirm that I am not alone?
+
+Best regards,
+Sanjeev
