@@ -1,72 +1,37 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
-	please read
-Date: Wed, 30 Sep 2009 20:02:44 +0300
-Message-ID: <71a0d6ff0909301002k7e56b7falfdc8d5e445487d29@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: linux-omap git tree updated to v2.6.32-rc1, important changes,
+ 	please read
+Date: Wed, 30 Sep 2009 22:34:59 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A2741E2@dbde02.ent.ti.com>
 References: <20090928190404.GE18957@atomide.com>
 	 <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
 	 <20090929182639.GA16865@atomide.com> <4AC37F0E.8010206@nokia.com>
+ <71a0d6ff0909301002k7e56b7falfdc8d5e445487d29@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f211.google.com ([209.85.219.211]:46616 "EHLO
-	mail-ew0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752708AbZI3RCm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 13:02:42 -0400
-Received: by ewy7 with SMTP id 7so6642370ewy.17
-        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 10:02:45 -0700 (PDT)
-In-Reply-To: <4AC37F0E.8010206@nokia.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45600 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753240AbZI3RFK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 30 Sep 2009 13:05:10 -0400
+In-Reply-To: <71a0d6ff0909301002k7e56b7falfdc8d5e445487d29@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roger Quadros <ext-roger.quadros@nokia.com>
+To: Alexander Shishkin <virtuoso@slind.org>, Roger Quadros <ext-roger.quadros@nokia.com>
 Cc: ext Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-2009/9/30 Roger Quadros <ext-roger.quadros@nokia.com>:
-> ext Tony Lindgren wrote:
->>
->> * Felipe Contreras <felipe.contreras@gmail.com> [090929 10:24]:
->>>
->>> On Mon, Sep 28, 2009 at 10:04 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>>
->>>> Hi all,
->>>>
->>>> I've updated our linux-omap tree to v2.6.32-rc1. I've also
->>>> added a branch omap-2.6.31 for the old code.
->>>>
->>>> This time I also nuked the remaining omap legacy code we
->>>> still had lurking around :) The commits at the end of this
->>>> mail describe what I did first as commits, then I merged
->>>> everything to be the same as the mainline v2.6.32-rc1.
->>>>
->>>> So currently the linux-omap master branch is:
->>>>
->>>> v2.6.32-rc1 + omap-fixes + ehci + cbus
->>>>
->>>> The new model is that I'll be resetting the linux-omap master
->>>> branch to mainline at each -rc, then merge in our various
->>>> upstream queues back in again.
->>>
->>> Excellent! I was wondering why this wasn't being done. I certainly
->>> hope linus' 2.6.32 will work on omap right away.
->>
->> Yeah, let's hope Tomi gets in the DSS2 code too.
->>
->>>
->>> Anyway, I haven't been able to make 2.6.31 boot on beagleboard, and
->>> other people report similar issues:
->>> http://www.spinics.net/lists/linux-omap/msg17968.html
->>>
->>> Have you got 2.6.32-rc1 (+fixes) to boot?
->>
->> Hmm, looks like it's musb again. This is what I get on my
->> overo after applying the DEBUG_LL hack from omap-debug branch:
->
-> i've just sent a fix for this musb problem. patch is labelled "twl4030: Fix
-> boot with twl4030 usb transceiver enabled"
-
-I can't quite locate it in linux-usb archives (or anywhere within
-google's reach). Could you sand it here or provide a link?
-
-Regards,
---
-Alex
+PiA+Pg0KPiA+Pj4NCj4gPj4+IEFueXdheSwgSSBoYXZlbid0IGJlZW4gYWJsZSB0byBtYWtlIDIu
+Ni4zMSBib290IG9uIGJlYWdsZWJvYXJkLCBhbmQNCj4gPj4+IG90aGVyIHBlb3BsZSByZXBvcnQg
+c2ltaWxhciBpc3N1ZXM6DQo+ID4+PiBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4
+LW9tYXAvbXNnMTc5NjguaHRtbA0KPiA+Pj4NCj4gPj4+IEhhdmUgeW91IGdvdCAyLjYuMzItcmMx
+ICgrZml4ZXMpIHRvIGJvb3Q/DQo+ID4+DQo+ID4+IEhtbSwgbG9va3MgbGlrZSBpdCdzIG11c2Ig
+YWdhaW4uIFRoaXMgaXMgd2hhdCBJIGdldCBvbiBteQ0KPiA+PiBvdmVybyBhZnRlciBhcHBseWlu
+ZyB0aGUgREVCVUdfTEwgaGFjayBmcm9tIG9tYXAtZGVidWcgYnJhbmNoOg0KPiA+DQo+ID4gaSd2
+ZSBqdXN0IHNlbnQgYSBmaXggZm9yIHRoaXMgbXVzYiBwcm9ibGVtLiBwYXRjaCBpcyBsYWJlbGxl
+ZCAidHdsNDAzMDogRml4DQo+ID4gYm9vdCB3aXRoIHR3bDQwMzAgdXNiIHRyYW5zY2VpdmVyIGVu
+YWJsZWQiDQo+IA0KPiBJIGNhbid0IHF1aXRlIGxvY2F0ZSBpdCBpbiBsaW51eC11c2IgYXJjaGl2
+ZXMgKG9yIGFueXdoZXJlIHdpdGhpbg0KPiBnb29nbGUncyByZWFjaCkuIENvdWxkIHlvdSBzYW5k
+IGl0IGhlcmUgb3IgcHJvdmlkZSBhIGxpbms/DQo+IA0KDQpIZXJlIHlvdSBnby4gUGF0Y2h3b3Jr
+IHJvY2tzIQ0KDQo8aHR0cDovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzUwNzIxLz4NCg0K
