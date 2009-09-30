@@ -1,124 +1,118 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
-	please read
-Date: Wed, 30 Sep 2009 10:55:06 -0700
-Message-ID: <20090930175506.GO16865@atomide.com>
-References: <20090928190404.GE18957@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BADAC1AD@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
+Date: Wed, 30 Sep 2009 11:06:14 -0700
+Message-ID: <636c5030909301106r60eb02c9t968408f06c62829d@mail.gmail.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A007938@dbde02.ent.ti.com>
+	 <87ljkpm67t.fsf@deeprootsystems.com>
+	 <200909091412.07748.jpihet@mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54068 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754894AbZI3RzG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 13:55:06 -0400
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BADAC1AD@dbde02.ent.ti.com>
+Received: from mail-px0-f194.google.com ([209.85.216.194]:34143 "EHLO
+	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755047AbZI3SGK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 14:06:10 -0400
+Received: by pxi32 with SMTP id 32so5680868pxi.4
+        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 11:06:14 -0700 (PDT)
+In-Reply-To: <200909091412.07748.jpihet@mvista.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <jpihet@mvista.com>
 
-Hi,
+Teerth,  ping.
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [090929 03:54]:
-
-<snip>
- 
-> Thanks for fixing the OMAP4 compilation issues. We need below patch to make the kernel boot on OMAP4430 on the latest LO master.
-
-No problem. In the future, let's make sure the omap4 patches are merged
-into l-o master branch for testing. This time the first three patches
-in the omap-fixes branch were build breakage caused by the omap4 patches
-directly or indirectly..
-
-Also, please everybody check that your patches don't break the build
-for other the omaps, and also boot test on some other omaps if someting
-looks risky.
-
-Few comments below.
- 
-> 
-> From d9a22d9f7b68b99aa9607bdab377d998dfe82acd Mon Sep 17 00:00:00 2001
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Date: Tue, 29 Sep 2009 16:10:46 +0530
-> Subject: [PATCH] ARM: OMAP4: Allow omap_serial_early_init() for OMAP4430 board
-> 
-> This patch enables omap_serial_early_init() function for OMAP4430
-> SDP. Without this the bootup would throw opps in omap_serial_init().
-
-The opps probably should be oops above :)
-
- 
-> Additionally the patch removed the merge issue for the UART4.
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> ---
->  arch/arm/mach-omap2/board-4430sdp.c |    4 ++--
->  arch/arm/mach-omap2/io.c            |    2 ++
->  arch/arm/mach-omap2/serial.c        |   10 ----------
->  3 files changed, 4 insertions(+), 12 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-> index eb37c40..609a5a4 100644
-> --- a/arch/arm/mach-omap2/board-4430sdp.c
-> +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> @@ -58,6 +58,8 @@ static void __init gic_init_irq(void)
->  
->  static void __init omap_4430sdp_init_irq(void)
->  {
-> +	omap_board_config = sdp4430_config;
-> +	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
->  	omap2_init_common_hw(NULL, NULL);
->  #ifdef CONFIG_OMAP_32K_TIMER
->  	omap2_gp_clockevent_set_gptimer(1);
-> @@ -70,8 +72,6 @@ static void __init omap_4430sdp_init_irq(void)
->  static void __init omap_4430sdp_init(void)
->  {
->  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
-> -	omap_board_config = sdp4430_config;
-> -	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
->  	omap_serial_init();
->  }
->  
-> diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-> index e3a3bad..56be87d 100644
-> --- a/arch/arm/mach-omap2/io.c
-> +++ b/arch/arm/mach-omap2/io.c
-> @@ -302,7 +302,9 @@ void __init omap2_init_common_hw(struct omap_sdrc_params *sdrc_cs0,
->  	pwrdm_init(powerdomains_omap);
->  	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
->  	omap2_clk_init();
-> +#endif
->  	omap_serial_early_init();
-> +#ifndef CONFIG_ARCH_OMAP4
->  	omap_hwmod_late_init();
->  	omap_pm_if_init();
->  	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index ae21868..54dfeb5 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -109,16 +109,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
->  		.regshift	= 2,
->  		.uartclk	= OMAP24XX_BASE_BAUD * 16,
->  	}, {
-> -#ifdef CONFIG_ARCH_OMAP4
-> -		.membase	= OMAP2_IO_ADDRESS(OMAP_UART4_BASE),
-> -		.mapbase	= OMAP_UART4_BASE,
-> -		.irq		= 70,
-> -		.flags		= UPF_BOOT_AUTOCONF,
-> -		.iotype		= UPIO_MEM,
-> -		.regshift	= 2,
-> -		.uartclk	= OMAP24XX_BASE_BAUD * 16,
-> -	}, {
-> -#endif
->  		.flags		= 0
->  	}
->  };
-
-Can't we fix the extra uart instead of removing it? We just added it!
-It's still there in omap4, right?
-
-Regards,
-
-Tony
+On Wed, Sep 9, 2009 at 5:12 AM, Jean Pihet <jpihet@mvista.com> wrote:
+> On Wednesday 09 September 2009 00:17:42 Kevin Hilman wrote:
+>> "Reddy, Teerth" <teerth@ti.com> writes:
+>> > This patch initializes the SDRC params for DVFS on Zoom2.
+>> >
+>> > Signed-off-by: Teerth Reddy <teerth@ti.com>
+>> > ---
+>> > =A0arch/arm/mach-omap2/board-zoom2.c | =A0 =A06 ++++--
+>> > =A01 files changed, 4 insertions(+), 2 deletions(-)
+>> >
+>> > Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+>> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>> > --- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom2.c
+>> > +++ linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+>> > @@ -23,6 +23,7 @@
+>> >
+>> > =A0#include "mmc-twl4030.h"
+>> > =A0#include "omap3-opp.h"
+>> > +#include "sdram-micron-mt46h32m32lf-6.h"
+>> >
+>> > =A0static struct omap_uart_config zoom2_uart_config __initdata =3D=
+ {
+>> > =A0 =A0 .enabled_uarts =A0=3D ((1 << 0) | (1 << 1) | (1 << 2)),
+>> > @@ -36,8 +37,9 @@ static void __init omap_zoom2_init_irq(v
+>> > =A0{
+>> > =A0 =A0 omap_board_config =3D zoom2_config;
+>> > =A0 =A0 omap_board_config_size =3D ARRAY_SIZE(zoom2_config);
+>> > - =A0 omap2_init_common_hw(NULL, NULL, omap3_mpu_rate_table,
+>> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_dsp_rate_ta=
+ble, omap3_l3_rate_table);
+>> > + =A0 omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
+>> > + =A0 =A0 =A0 =A0 =A0 omap3_mpu_rate_table, omap3_dsp_rate_table,
+>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 omap3_l3_rate_table);
+>>
+>> Not having looked at the Zoom2 schematics, are you sure this is only
+>> using a single chip select? =A0The other boards using the same part
+>> (beagle, overo) are interfacing to this part using both CSes.
+>>
+>> Have you tested DVFS on Zoom2 using the full 256Mb?
+> Good point!
+>
+> DVFS works fine using the two chip selects:
+> =A0 =A0 =A0 =A0omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mt46h32m32lf6=
+_sdrc_params,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_mpu_rat=
+e_table,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_dsp_rat=
+e_table,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_l3_rate=
+_table);
+>
+> One remark though: since the memory chips are popped on top of the OM=
+AP chip
+> the schematics are not showing the chip selects connections. In any c=
+ase
+> U-Boot is configuring the SDRC module to use the 2 chip selects, so I=
+ think
+> this change is needed.
+>
+> We need confirmation. Anyone from TI knows?
+>
+> Regards,
+> Jean
+>
+>>
+>> Kevin
+>>
+>> > =A0 =A0 omap_init_irq();
+>> > =A0 =A0 omap_gpio_init();
+>> > =A0}
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
