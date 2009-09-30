@@ -1,54 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] OMAP3: Lock DPLL5 at boot
-Date: Wed, 30 Sep 2009 11:38:17 -0700
-Message-ID: <20090930183817.GP16865@atomide.com>
-References: <1252418056-5994-1-git-send-email-gadiyar@ti.com> <alpine.DEB.2.00.0909090939420.8657@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB0309C861B1@dbde02.ent.ti.com> <5A47E75E594F054BAF48C5E4FC4B92AB030A2741E0@dbde02.ent.ti.com>
+Subject: [APPLIED] [PATCH] omap3: ehci: remove DPLL5 programming
+Date: Wed, 30 Sep 2009 14:39:47 -0400
+Message-ID: <notify-1254335989@atomide.com>
+References: <1254332221-29490-1-git-send-email-gadiyar@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:51885 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754480AbZI3SiQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 14:38:16 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52155 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752462AbZI3Sjr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 14:39:47 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1Mt45f-000EjW-Kt
+	for linux-omap@vger.kernel.org; Wed, 30 Sep 2009 18:39:51 +0000
+In-Reply-To: <1254332221-29490-1-git-send-email-gadiyar@ti.com>
 Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A2741E0@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Paul Walmsley <paul@pwsan.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>
+To: linux-omap@vger.kernel.org
 
-* Gadiyar, Anand <gadiyar@ti.com> [090930 09:59]:
-> > > > > > >Thanks for the changes, I will queue this in a for-next branch for .33.
-> > > > > >
-> > > > > > Is this for .33 or .32?
-> > > > >
-> > > > > I think it might be a little late for .32.  If there is some crash or
-> > > > > instability that this fixes, we could queue it up for .32-fixes ?
-> > > >
-> > > > Well, without this, there's no way the child clocks can be enabled correctly.
-> > > 
-> > > OK.  So is it the case that USBHOST/USBTLL/USIM won't work without this
-> > > fix?
-> > 
-> > Yup. Not sure about USIM - will check.
-> > 
-> > > 
-> > > If so then we'll queue it for .32-fixes.  Since .32 is already at -rc9, I
-> > > think it is too late for .32.
-> > > 
-> > 
-> > Would be nice. Thanks!
-> 
-> 
-> Paul,
-> 
-> Is this patch already queued up somewhere, or are you waiting for a clarification
-> from me on the USIM?
-> 
-> (I haven't had a chance to look yet, since this is not in the regular TRM)
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-I'll add this to omap-fixes-testing while we're waiting to put his fixes
-queue together. This way we can get rid of the remaining nasty stuff in
-the ehci branch.
+Branch in linux-omap: ehci
 
-Tony
+Initial commit ID (Likely to change): aafbdf52d20fec172379c50af334165815af6eff
+
+PatchWorks
+http://patchwork.kernel.org/patch/50730/
+
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=aafbdf52d20fec172379c50af334165815af6eff
+
+
