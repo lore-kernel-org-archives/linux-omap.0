@@ -1,134 +1,231 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
- please read
-Date: Wed, 30 Sep 2009 18:53:50 +0300
-Message-ID: <4AC37F0E.8010206@nokia.com>
-References: <20090928190404.GE18957@atomide.com> <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com> <20090929182639.GA16865@atomide.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in i2c
+Date: Wed, 30 Sep 2009 09:36:40 -0700
+Message-ID: <87bpkso0dj.fsf@deeprootsystems.com>
+References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
+	<1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:55373 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754702AbZI3Pym (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 11:54:42 -0400
-In-Reply-To: <20090929182639.GA16865@atomide.com>
+Received: from mail-pz0-f191.google.com ([209.85.222.191]:51955 "EHLO
+	mail-pz0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752802AbZI3Qgj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 12:36:39 -0400
+Received: by pzk29 with SMTP id 29so4542402pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 09:36:42 -0700 (PDT)
+In-Reply-To: <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Thu\, 17 Sep 2009 19\:28\:43 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Tony Lindgren <tony@atomide.com>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Cc: jhnikula@gmail.com, linux-omap@vger.kernel.org
 
-ext Tony Lindgren wrote:
-> * Felipe Contreras <felipe.contreras@gmail.com> [090929 10:24]:
->> On Mon, Sep 28, 2009 at 10:04 PM, Tony Lindgren <tony@atomide.com> wrote:
->>> Hi all,
->>>
->>> I've updated our linux-omap tree to v2.6.32-rc1. I've also
->>> added a branch omap-2.6.31 for the old code.
->>>
->>> This time I also nuked the remaining omap legacy code we
->>> still had lurking around :) The commits at the end of this
->>> mail describe what I did first as commits, then I merged
->>> everything to be the same as the mainline v2.6.32-rc1.
->>>
->>> So currently the linux-omap master branch is:
->>>
->>> v2.6.32-rc1 + omap-fixes + ehci + cbus
->>>
->>> The new model is that I'll be resetting the linux-omap master
->>> branch to mainline at each -rc, then merge in our various
->>> upstream queues back in again.
->> Excellent! I was wondering why this wasn't being done. I certainly
->> hope linus' 2.6.32 will work on omap right away.
-> 
-> Yeah, let's hope Tomi gets in the DSS2 code too.
+Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
+
+> While waiting for completion of the i2c transfer, the
+> MPU could hit OFF mode and cause several msecs of
+> delay that made i2c transfers fail more often. The
+> extra delays and subsequent re-trys cause i2c clocks
+> to be active more often. This has also an negative
+> effect on power consumption.
+>
+> Added a constraint that allows MPU to wake up in few
+> hundred usecs, which is roughly the average i2c wait
+> period.
+>
+> The constraint function is passed as platform data from
+> plat-omap/i2c.c and applied only on OMAP34XX devices.
+
+Seems like the latency value should also be (optionally) passed in
+pdata so this can be experimented with per-platform.
+
+Other than that looks ok to me.
+
+Do we have an official OMAP I2C maintainer who should signoff on this?
+
+Kevin
+
+
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+> ---
+>  arch/arm/plat-omap/i2c.c      |   49 +++++++++++++++++++++++++++++++----------
+>  drivers/i2c/busses/i2c-omap.c |   17 +++++++++++---
+>  include/linux/i2c-omap.h      |    9 +++++++
+>  3 files changed, 59 insertions(+), 16 deletions(-)
+>  create mode 100644 include/linux/i2c-omap.h
+>
+> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+> index 8b84839..d43d0ad 100644
+> --- a/arch/arm/plat-omap/i2c.c
+> +++ b/arch/arm/plat-omap/i2c.c
+> @@ -26,8 +26,10 @@
+>  #include <linux/kernel.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/i2c.h>
+> +#include <linux/i2c-omap.h>
+>  #include <mach/irqs.h>
+>  #include <mach/mux.h>
+> +#include <mach/omap-pm.h>
 >  
->> Anyway, I haven't been able to make 2.6.31 boot on beagleboard, and
->> other people report similar issues:
->> http://www.spinics.net/lists/linux-omap/msg17968.html
->>
->> Have you got 2.6.32-rc1 (+fixes) to boot?
-> 
-> Hmm, looks like it's musb again. This is what I get on my
-> overo after applying the DEBUG_LL hack from omap-debug branch:
-
-i've just sent a fix for this musb problem. patch is labelled "twl4030: Fix boot 
-with twl4030 usb transceiver enabled"
-
-cheers,
--roger
-
-> 
-> <3>musb_hdrc musb_hdrc: musb_init_controller failed with status -19             
-> <1>Unable to handle kernel NULL pointer dereference at virtual address 00000000 
-> <1>pgd = c0004000                                                               
-> <1>[00000000] *pgd=00000000                                                     
-> Internal error: Oops: 5 [#1]                                                    
-> <d>Modules linked in:                                                           
-> CPU: 0    Not tainted  (2.6.32-rc2-05967-gd350540-dirty #892)                   
-> PC is at musb_free+0x68/0xb8                                                    
-> LR is at musb_free+0x34/0xb8                                                    
-> pc : [<c028a160>]    lr : [<c028a12c>]    psr: a0000013                         
-> sp : c781fe50  ip : 00000064  fp : 00000000                                     
-> r10: 00000000  r9 : 00000000  r8 : c0557bc0                                     
-> r7 : c7811000  r6 : c78110e8  r5 : c78110e8  r4 : 00000000                      
-> r3 : 00000000  r2 : 00000001  r1 : c04c95b6  r0 : ffffffed                      
-> Flags: NzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel             
-> Control: 10c5387d  Table: 80004019  DAC: 00000017                               
-> Process swapper (pid: 1, stack limit = 0xc781e2f0)                              
-> Stack: (0xc781fe50 to 0xc7820000)
-> fe40:                                     ffffffed 00000000 c78110e8 c001e8f8   
-> fe60: c781fea4 c7804180 00000000 c7804184 c0533dc8 c0533dd0 0000005c d80ab000   
-> fe80: c0533dac c7811190 00000000 c781fedc c0114ad8 c7806850 c0546248 c06d74e0   
-> fea0: 00000000 c03cd5c8 00000000 c781ff00 c78b8de0 c0114cbc c78b8d80 c781ff00   
-> fec0: c78b8de0 c0114864 c78b8d80 c781ff00 c78b8de0 c011493c c781ff00 c78b8de0   
-> fee0: c78b8d80 00000000 c781ff00 c78b8de0 c787a210 00000001 00000000 c01157b4   
-> ff00: c787a210 00000000 00000000 c0533dd0 c0533dd0 c055df04 c7873600 c0557bc0   
-> ff20: 00000000 00000000 00000000 c0210b7c c0533dd0 c020fbd4 c0533dd0 c0533e04   
-> ff40: c055df04 c7873600 c0557bc0 c020fce0 00000000 c020fc80 c055df04 c020f420   
-> ff60: c7802d08 c787b240 c0026dd4 00000080 c055df04 c020ed38 c03f14f4 c03f14f4   
-> ff80: c7820000 c0026dd4 c055def0 c055df04 00000000 00000000 00000000 c020ffb0   
-> ffa0: c0026dd4 c055def0 c001dca0 00000000 00000000 c0210f70 c0026dd4 00000000   
-> ffc0: c001dca0 c002d2b4 00000031 00000000 00000000 00000192 00000000 c0026dd4   
-> ffe0: 00000000 00000000 00000000 c0008578 00000000 c002ee10 817fdf10 00bbff00
-> [<c028a160>] (musb_free+0x68/0xb8) from [<c001e8f8>] (musb_probe+0xab8/0xbb4)   
-> [<c001e8f8>] (musb_probe+0xab8/0xbb4) from [<c0210b7c>] (platform_drv_probe+0x1)
-> [<c0210b7c>] (platform_drv_probe+0x18/0x1c) from [<c020fbd4>] (driver_probe_dev)
-> [<c020fbd4>] (driver_probe_device+0xa0/0x14c) from [<c020fce0>] (__driver_attac)
-> [<c020fce0>] (__driver_attach+0x60/0x84) from [<c020f420>] (bus_for_each_dev+0x)
-> [<c020f420>] (bus_for_each_dev+0x44/0x74) from [<c020ed38>] (bus_add_driver+0xf)
-> [<c020ed38>] (bus_add_driver+0xf4/0x278) from [<c020ffb0>] (driver_register+0xa)
-> [<c020ffb0>] (driver_register+0xa8/0x130) from [<c0210f70>] (platform_driver_pr)
-> [<c0210f70>] (platform_driver_probe+0x10/0x88) from [<c002d2b4>] (do_one_initca)
-> [<c002d2b4>] (do_one_initcall+0x5c/0x1b4) from [<c0008578>] (kernel_init+0x90/0)
-> [<c0008578>] (kernel_init+0x90/0x10c) from [<c002ee10>] (kernel_thread_exit+0x0)
-> Code: e1a01005 ebf80722 e595309c e3a04000 (e5930000)
-> <4>---[ end trace 1b75b31a2719ed1c ]---                                         
-> <0>Kernel panic - not syncing: Attempted to kill init!
-> 
-> After disabling musb, it boots further but can't mount root on the MMC:
-> 
-> ...
-> <4>regulator_init_complete: incomplete constraints, leaving VUSB1V8 on          
-> regulator_init_complete: incomplete constraints, leaving VUSB1V8 on             
-> <4>regulator_init_complete: incomplete constraints, leaving VUSB1V5 on          
-> regulator_init_complete: incomplete constraints, leaving VUSB1V5 on             
-> <4>regulator_init_complete: incomplete constraints, leaving VMMC1 on            
-> regulator_init_complete: incomplete constraints, leaving VMMC1 on               
-> <6>twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:00:00 UTC (94)
-> twl4030_rtc twl4030_rtc: setting system clock to 2000-01-01 00:00:00 UTC (94668)
-> <6>Waiting for root device /dev/mmcblk0p2...                                    
-> Waiting for root device /dev/mmcblk0p2...
-> 
-> What are you getting with DEBUG_LL enabled and the associated patch applied
-> from omap-debug branch?
-> 
-> Regards,
-> 
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+>  #define OMAP_I2C_SIZE		0x3f
+>  #define OMAP1_I2C_BASE		0xfffb3800
+> @@ -69,14 +71,14 @@ static struct resource i2c_resources[][2] = {
+>  		},					\
+>  	}
+>  
+> -static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
+> +static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
+>  static struct platform_device omap_i2c_devices[] = {
+> -	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
+> +	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+>  #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+> -	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
+> +	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
+>  #endif
+>  #if	defined(CONFIG_ARCH_OMAP34XX)
+> -	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
+> +	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
+>  #endif
+>  };
+>  
+> @@ -100,6 +102,25 @@ static const int omap34xx_pins[][2] = {};
+>  
+>  #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+>  
+> +/**
+> + * omap_i2c_set_wfc_mpu_wkup_lat - sets mpu wake up constraint
+> + * @dev:	i2c bus device pointer
+> + * @set:	set or clear constraints
+> + *
+> + * When waiting for completion of a i2c transfer, we need to set a wake up
+> + * latency constraint for the MPU. This is to ensure quick enough wakeup
+> + * from idle, when transfer completes.
+> + */
+> +#ifdef CONFIG_ARCH_OMAP34XX
+> +static void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int set)
+> +{
+> +	omap_pm_set_max_mpu_wakeup_lat(dev, set ? 500 : -1);
+> +}
+> +#else
+> +static inline void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int set)
+> +{; }
+> +#endif
+> +
+>  static void __init omap_i2c_mux_pins(int bus)
+>  {
+>  	int scl, sda;
+> @@ -180,8 +201,8 @@ static int __init omap_i2c_bus_setup(char *str)
+>  	get_options(str, 3, ints);
+>  	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+>  		return 0;
+> -	i2c_rate[ints[1] - 1] = ints[2];
+> -	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
+> +	i2c_pdata[ints[1] - 1].clkrate = ints[2];
+> +	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
+>  
+>  	return 1;
+>  }
+> @@ -195,9 +216,11 @@ static int __init omap_register_i2c_bus_cmdline(void)
+>  {
+>  	int i, err = 0;
+>  
+> -	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
+> -		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
+> -			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
+> +	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
+> +		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
+> +			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+> +			i2c_pdata[i].set_mpu_wkup_lat =
+> +						omap_i2c_set_wfc_mpu_wkup_lat;
+>  			err = omap_i2c_add_bus(i + 1);
+>  			if (err)
+>  				goto out;
+> @@ -231,9 +254,11 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+>  			return err;
+>  	}
+>  
+> -	if (!i2c_rate[bus_id - 1])
+> -		i2c_rate[bus_id - 1] = clkrate;
+> -	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
+> +	if (!i2c_pdata[bus_id - 1].clkrate)
+> +		i2c_pdata[bus_id - 1].clkrate = clkrate;
+> +
+> +	i2c_pdata[bus_id - 1].set_mpu_wkup_lat = omap_i2c_set_wfc_mpu_wkup_lat;
+> +	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+>  
+>  	return omap_i2c_add_bus(bus_id);
+>  }
+> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+> index 75bf3ad..da6d276 100644
+> --- a/drivers/i2c/busses/i2c-omap.c
+> +++ b/drivers/i2c/busses/i2c-omap.c
+> @@ -37,6 +37,7 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/clk.h>
+>  #include <linux/io.h>
+> +#include <linux/i2c-omap.h>
+>  
+>  /* I2C controller revisions */
+>  #define OMAP_I2C_REV_2			0x20
+> @@ -165,6 +166,8 @@ struct omap_i2c_dev {
+>  	struct clk		*fclk;		/* Functional clock */
+>  	struct completion	cmd_complete;
+>  	struct resource		*ioarea;
+> +	void			(*set_mpu_wkup_lat)(struct device *dev,
+> +						    int set);
+>  	u32			speed;		/* Speed of bus in Khz */
+>  	u16			cmd_err;
+>  	u8			*buf;
+> @@ -526,8 +529,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+>  	 * REVISIT: We should abort the transfer on signals, but the bus goes
+>  	 * into arbitration and we're currently unable to recover from it.
+>  	 */
+> +	dev->set_mpu_wkup_lat(dev->dev, 1);
+>  	r = wait_for_completion_timeout(&dev->cmd_complete,
+>  					OMAP_I2C_TIMEOUT);
+> +	dev->set_mpu_wkup_lat(dev->dev, 0);
+>  	dev->buf_len = 0;
+>  	if (r < 0)
+>  		return r;
+> @@ -844,6 +849,7 @@ omap_i2c_probe(struct platform_device *pdev)
+>  	struct omap_i2c_dev	*dev;
+>  	struct i2c_adapter	*adap;
+>  	struct resource		*mem, *irq, *ioarea;
+> +	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+>  	irq_handler_t isr;
+>  	int r;
+>  	u32 speed = 0;
+> @@ -873,10 +879,13 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		goto err_release_region;
+>  	}
+>  
+> -	if (pdev->dev.platform_data != NULL)
+> -		speed = *(u32 *)pdev->dev.platform_data;
+> -	else
+> -		speed = 100;	/* Defualt speed */
+> +	if (pdata != NULL) {
+> +		speed = pdata->clkrate;
+> +		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
+> +	} else {
+> +		speed = 100;	/* Default speed */
+> +		dev->set_mpu_wkup_lat = NULL;
+> +	}
+>  
+>  	dev->speed = speed;
+>  	dev->idle = 1;
+> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+> new file mode 100644
+> index 0000000..1362fba
+> --- /dev/null
+> +++ b/include/linux/i2c-omap.h
+> @@ -0,0 +1,9 @@
+> +#ifndef __I2C_OMAP_H__
+> +#define __I2C_OMAP_H__
+> +
+> +struct omap_i2c_bus_platform_data {
+> +	u32		clkrate;
+> +	void		(*set_mpu_wkup_lat)(struct device *dev, int set);
+> +};
+> +
+> +#endif
+> -- 
+> 1.5.4.3
