@@ -1,193 +1,61 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 00/19] OMAP: DSS2: Intro
-Date: Wed, 30 Sep 2009 12:21:41 +0300
-Message-ID: <1254302501.23991.90.camel@tubuntu>
-References: <1253793384-31158-1-git-send-email-tomi.valkeinen@nokia.com>
-Reply-To: tomi.valkeinen@nokia.com
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCHv2 5/7] ASoC: TWL6030: Add support for
+ low-power mode
+Date: Wed, 30 Sep 2009 11:12:06 +0100
+Message-ID: <20090930101206.GA15721@rakim.wolfsonmicro.main>
+References: <67059DBF19D7214F9C66BB0EA91BA90E90A391E3@dlee04.ent.ti.com>
+	<20090928132800.GD31899@rakim.wolfsonmicro.main>
+	<67059DBF19D7214F9C66BB0EA91BA90E90AE80EC@dlee04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754113AbZI3JWB@vger.kernel.org>
-In-Reply-To: <1253793384-31158-1-git-send-email-tomi.valkeinen@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ext Andrew Morton <akpm@linux-foundation.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90E90AE80EC@dlee04.ent.ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-Hi,
+On Tue, Sep 29, 2009 at 10:02:49PM -0500, Lopez Cruz, Misael wrote:
 
-Andrew, do you have time to check out the DSS2 driver? Or suggestions
-how should I proceed.
+> I think I got confused with what to do in set_sysclk and set_pll. In my
+> current approach:
+> 
+> - set_sysclk takes care of setting corresponding clk source: lppll
+>   or hppll. But it also disables the pll not in use (i.e. if lppll is
+>   set, then disable hppll)
+> - set_pll takes care of setting pll div for lppll (which is meant to
+>   receive 32k clk) and configure hppll for any of the supported freq_in
+>   (12, 19.2, 26, 38.4 MHz). Because only after this point I know the
+>   value of sysclk, the constraints are set here. Is it fine?
+>   For lppll the sysclk is set to requested freq_out (if div value is
+>   in the valid range) and for hppll it's always 19.2 and it's the only
+>   clk rate support by that pll.
 
-I rebased DSS2 on top of today's linux-tree, and there were no
-conflicts, so the posted patches should apply. But the rebased tree is
-also available in master branch at
-git://gitorious.org/linux-omap-dss2/linux.git
+Hrm.  Is it actually worth having manual configuration of the PLL
+(beyond selection of the PLL to use), or could the driver figure out the
+required output frequency for lppll?  Either way is fine from an ASoC
+point of view, it's just that if the driver can figure the configuration
+out for itself that makes it a little easier to use.
 
- Tomi
+In any case...
 
-On Thu, 2009-09-24 at 13:56 +0200, Valkeinen Tomi (Nokia-D/Helsinki)
-wrote:
-> This patch set implement new display subsystem driver (DSS2) and omap=
-fb driver
-> for OMAP2/3. The patches have been reviewed on linux-omap and linux-f=
-bdev-devel
-> mailing lists. The patches can also be found from
-> http://gitorious.org/linux-omap-dss2/linux
->=20
-> The patches include DSS documentation patch that includes more instru=
-ctions for
-> module parameters, sysfs files etc.
->=20
-> The patches enable DSS2 for OMAP3430 SDP board and support for other =
-boards can
-> be sent after the DSS2 has been merged. DSS2 is used in various board=
-s, for
-> example Nokia N900, Beagle Board and Overo.
->=20
-> I don't currently have any OMAP2 board to test DSS2, but it has worke=
-d on OMAP2
-> and the possible fixes needed should be minimal.
->=20
-> OMAP1 is not supported, and so the old DSS needs to be used on OMAP1 =
-boards.
->=20
-> DSS2 is partly based on the old omapfb driver by Imre Deak, and Imre =
-has also
-> contributed to DSS2 quite a bit. Ville Syrj=E4l=E4 has been contribut=
-ing to scaling
-> and tv-out work. Also some contributions have been made by Hardik Sha=
-h, Vaibhav
-> Hiremath, and perhaps some others that I have forgotten =3D).
->=20
-> ---
-> Changes in v4:
-> - Rebased on latest linux tree
-> - Add maintainers
->=20
-> Changes in v3:
-> - Rebased on mainstream linux
-> - Remove Beagle and Overo board changes
->=20
-> Changes in v2:
->=20
-> - Split the commits more to make them smaller
-> - Print error if fclk is too low for scaling
-> - Indent SDP, Beagle, Overo board files
-> - DSI: return -EIO instead of -1
-> - VRFB: Move to drivers/video/omap2/
-> - VRAM: Move to drivers/video/omap2/
-> - VRFB: use omap2_sms_write_*() functions instead of omap_writel
-> - SDI: Remove custom pinmuxing. Will be added later properly.
-> - VENC: indentation changes
-> - Add Taal DSI panel driver
->=20
-> ---
->=20
-> [PATCH 01/19] OMAP2: Add funcs for writing SMS_ROT_* registers
-> [PATCH 02/19] OMAP: OMAPFB: split omapfb.h
-> [PATCH 03/19] OMAP: OMAPFB: add omapdss device
-> [PATCH 04/19] OMAP: Add VRAM manager
-> [PATCH 05/19] OMAP: Add support for VRFB rotation engine
-> [PATCH 06/19] OMAP: DSS2: Documentation for DSS2
-> [PATCH 07/19] OMAP: DSS2: Display Subsystem Driver core
-> [PATCH 08/19] OMAP: DSS2: Add more core files
-> [PATCH 09/19] OMAP: DSS2: DISPC
-> [PATCH 10/19] OMAP: DSS2: DPI driver
-> [PATCH 11/19] OMAP: DSS2: Video encoder driver
-> [PATCH 12/19] OMAP: DSS2: RFBI driver
-> [PATCH 13/19] OMAP: DSS2: SDI driver
-> [PATCH 14/19] OMAP: DSS2: DSI driver
-> [PATCH 15/19] OMAP: DSS2: omapfb driver
-> [PATCH 16/19] OMAP: DSS2: Add DPI panel drivers
-> [PATCH 17/19] OMAP: DSS2: Taal DSI command mode panel driver
-> [PATCH 18/19] OMAP: SDP: Enable DSS2 for OMAP3 SDP board
-> [PATCH 19/19] MAINTAINERS: Add OMAP2/3 DSS and OMAPFB maintainer
->=20
-> ---
->=20
->  Documentation/arm/OMAP/DSS                         |  317 ++
->  MAINTAINERS                                        |   17 +
->  arch/arm/configs/omap_3430sdp_defconfig            |   29 +-
->  arch/arm/mach-omap1/board-nokia770.c               |    2 +-
->  arch/arm/mach-omap2/board-3430sdp.c                |  167 +-
->  arch/arm/mach-omap2/clock24xx.c                    |    8 +-
->  arch/arm/mach-omap2/clock34xx.c                    |   14 +-
->  arch/arm/mach-omap2/io.c                           |    4 +-
->  arch/arm/mach-omap2/sdrc.c                         |   16 +
->  arch/arm/plat-omap/fb.c                            |   41 +-
->  arch/arm/plat-omap/include/mach/display.h          |  540 +++
->  arch/arm/plat-omap/include/mach/omapfb.h           |  398 ---
->  arch/arm/plat-omap/include/mach/sdrc.h             |    9 +-
->  arch/arm/plat-omap/include/mach/vram.h             |   63 +
->  arch/arm/plat-omap/include/mach/vrfb.h             |   46 +
->  arch/arm/plat-omap/sram.c                          |    8 +
->  drivers/video/Kconfig                              |    1 +
->  drivers/video/Makefile                             |    1 +
->  drivers/video/omap/Kconfig                         |    5 +-
->  drivers/video/omap/blizzard.c                      |    2 +-
->  drivers/video/omap/dispc.c                         |   21 +-
->  drivers/video/omap/hwa742.c                        |    2 +-
->  drivers/video/omap/lcd_2430sdp.c                   |    3 +-
->  drivers/video/omap/lcd_ams_delta.c                 |    3 +-
->  drivers/video/omap/lcd_apollon.c                   |    3 +-
->  drivers/video/omap/lcd_h3.c                        |    2 +-
->  drivers/video/omap/lcd_h4.c                        |    2 +-
->  drivers/video/omap/lcd_inn1510.c                   |    2 +-
->  drivers/video/omap/lcd_inn1610.c                   |    2 +-
->  drivers/video/omap/lcd_ldp.c                       |    3 +-
->  drivers/video/omap/lcd_mipid.c                     |    3 +-
->  drivers/video/omap/lcd_omap2evm.c                  |    3 +-
->  drivers/video/omap/lcd_omap3beagle.c               |    3 +-
->  drivers/video/omap/lcd_omap3evm.c                  |    3 +-
->  drivers/video/omap/lcd_osk.c                       |    2 +-
->  drivers/video/omap/lcd_overo.c                     |    3 +-
->  drivers/video/omap/lcd_palmte.c                    |    2 +-
->  drivers/video/omap/lcd_palmtt.c                    |    2 +-
->  drivers/video/omap/lcd_palmz71.c                   |    2 +-
->  drivers/video/omap/lcdc.c                          |    3 +-
->  drivers/video/omap/omapfb.h                        |  227 ++
->  drivers/video/omap/omapfb_main.c                   |    2 +-
->  drivers/video/omap/rfbi.c                          |    3 +-
->  drivers/video/omap/sossi.c                         |    2 +-
->  drivers/video/omap2/Kconfig                        |    9 +
->  drivers/video/omap2/Makefile                       |    6 +
->  drivers/video/omap2/displays/Kconfig               |   28 +
->  drivers/video/omap2/displays/Makefile              |    5 +
->  drivers/video/omap2/displays/panel-generic.c       |  104 +
->  .../omap2/displays/panel-samsung-lte430wq-f0c.c    |  113 +
->  .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  153 +
->  drivers/video/omap2/displays/panel-taal.c          |  900 +++++
->  drivers/video/omap2/dss/Kconfig                    |   89 +
->  drivers/video/omap2/dss/Makefile                   |    6 +
->  drivers/video/omap2/dss/core.c                     |  917 +++++
->  drivers/video/omap2/dss/dispc.c                    | 3182 ++++++++++=
-++++++++
->  drivers/video/omap2/dss/display.c                  |  658 ++++
->  drivers/video/omap2/dss/dpi.c                      |  388 +++
->  drivers/video/omap2/dss/dsi.c                      | 3509 ++++++++++=
-++++++++++
->  drivers/video/omap2/dss/dss.c                      |  347 ++
->  drivers/video/omap2/dss/dss.h                      |  356 ++
->  drivers/video/omap2/dss/manager.c                  | 1487 +++++++++
->  drivers/video/omap2/dss/overlay.c                  |  673 ++++
->  drivers/video/omap2/dss/rfbi.c                     | 1310 ++++++++
->  drivers/video/omap2/dss/sdi.c                      |  261 ++
->  drivers/video/omap2/dss/venc.c                     |  797 +++++
->  drivers/video/omap2/omapfb/Kconfig                 |   37 +
->  drivers/video/omap2/omapfb/Makefile                |    2 +
->  drivers/video/omap2/omapfb/omapfb-ioctl.c          |  727 ++++
->  drivers/video/omap2/omapfb/omapfb-main.c           | 2137 ++++++++++=
-++
->  drivers/video/omap2/omapfb/omapfb-sysfs.c          |  507 +++
->  drivers/video/omap2/omapfb/omapfb.h                |  146 +
->  drivers/video/omap2/vram.c                         |  655 ++++
->  drivers/video/omap2/vrfb.c                         |  277 ++
->  include/linux/omapfb.h                             |  242 ++
->  75 files changed, 21556 insertions(+), 463 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+> In contrast, in wm8988 the sysclk and contraints are set directly in
+> set_sysclk.
+
+Note that they're actually passed to ALSA when the substreams are opened
+- all that wm8988 is doing in set_sysclk() is recording the constraints
+that it will use next time that happens.  Up until the point where you
+tell ALSA about the constraints you can do pretty much whatever you like
+so long as it makes sense, so what you say above is probably fine.  For
+the wm8988 there's no PLL so once the input clock is known there's
+nothing more to do for it.
