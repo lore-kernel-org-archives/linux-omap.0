@@ -1,53 +1,201 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
-	please read
-Date: Wed, 30 Sep 2009 10:25:21 -0700
-Message-ID: <20090930172520.GL16865@atomide.com>
-References: <20090928190404.GE18957@atomide.com> <873a64r0fi.fsf@deeprootsystems.com>
+Subject: Re: [PATCH] twl4030: Fix boot with twl4030 usb transceiver enabled
+Date: Wed, 30 Sep 2009 10:30:41 -0700
+Message-ID: <20090930173040.GM16865@atomide.com>
+References: <1254325637-30749-1-git-send-email-ext-roger.quadros@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55600 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202AbZI3RZW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 13:25:22 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52003 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754344AbZI3Rak (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 13:30:40 -0400
 Content-Disposition: inline
-In-Reply-To: <873a64r0fi.fsf@deeprootsystems.com>
+In-Reply-To: <1254325637-30749-1-git-send-email-ext-roger.quadros@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: linux-omap@vger.kernel.org, dbrownell@users.sourceforge.net, jouni.hogander@nokia.com, sameo@linux.intel.com
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090930 07:07]:
-> Tony Lindgren <tony@atomide.com> writes:
+* Roger Quadros <ext-roger.quadros@nokia.com> [090930 08:48]:
+> The usb regulator supplies (usb1v5, usb1v8 & usb3v1) must be available
+> before adding the twl4030_usb child, else twl4030_usb_ldo_init() will
+> always fail thus causing boot lock-up.
 > 
-> > Hi all,
-> >
-> > I've updated our linux-omap tree to v2.6.32-rc1. I've also
-> > added a branch omap-2.6.31 for the old code.
-> >
-> > This time I also nuked the remaining omap legacy code we
-> > still had lurking around :) The commits at the end of this
-> > mail describe what I did first as commits, then I merged
-> > everything to be the same as the mainline v2.6.32-rc1.
-> >
-> > So currently the linux-omap master branch is:
-> >
-> > v2.6.32-rc1 + omap-fixes + ehci + cbus
-> >
-> > The new model is that I'll be resetting the linux-omap master
-> > branch to mainline at each -rc, then merge in our various
-> > upstream queues back in again.
-> >
-> > Please note that "Remove omap extra version in Makefile"
-> > commit means that you now need to set the ARCH and CROSS_COMPILE
-> > for your compiler.
-> 
-> FYI... As of 2.6.32, the kernel caches the ARCH and CROSS_COMPILE in
-> the build dir under include/generated/kernel.[arch,cross_compile], so
-> if you build using ARCH and CROSS_COMPILE once, it should remember
-> them until doing a clean build.
+> This patch fixes boot on OMAP systems using the twl4030 usb transceiver.
+> CONFIG_TWL4030_USB=y
 
-Nice, sounds like we removed that hack just at the right moment then!
+This fix should go to Samuel for integration:
+
+$ grep -a4 drivers/mfd MAINTAINERS 
+MULTIFUNCTION DEVICES (MFD)
+M:      Samuel Ortiz <sameo@linux.intel.com>
+T:      git git://git.kernel.org/pub/scm/linux/kernel/git/sameo/mfd-2.6.git
+S:      Supported
+F:      drivers/mfd/
+...
+
+Regards,
 
 Tony
+
+
+ 
+> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+> ---
+>  drivers/mfd/twl4030-core.c |  112 ++++++++++++++++++--------------------------
+>  1 files changed, 46 insertions(+), 66 deletions(-)
+> 
+> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> index e424cf6..dcd27be 100644
+> --- a/drivers/mfd/twl4030-core.c
+> +++ b/drivers/mfd/twl4030-core.c
+> @@ -480,7 +480,6 @@ static int
+>  add_children(struct twl4030_platform_data *pdata, unsigned long features)
+>  {
+>  	struct device	*child;
+> -	struct device	*usb_transceiver = NULL;
+>  
+>  	if (twl_has_bci() && pdata->bci && !(features & TPS_SUBSET)) {
+>  		child = add_child(3, "twl4030_bci",
+> @@ -532,16 +531,61 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
+>  	}
+>  
+>  	if (twl_has_usb() && pdata->usb) {
+> +
+> +		static struct regulator_consumer_supply usb1v5 = {
+> +			.supply =	"usb1v5",
+> +		};
+> +		static struct regulator_consumer_supply usb1v8 = {
+> +			.supply =	"usb1v8",
+> +		};
+> +		static struct regulator_consumer_supply usb3v1 = {
+> +			.supply =	"usb3v1",
+> +		};
+> +
+> +	/* First add the regulators so that they can be used by transceiver */
+> +		if (twl_has_regulator()) {
+> +			/* this is a template that gets copied */
+> +			struct regulator_init_data usb_fixed = {
+> +				.constraints.valid_modes_mask =
+> +					REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +				.constraints.valid_ops_mask =
+> +					REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +			};
+> +
+> +			child = add_regulator_linked(TWL4030_REG_VUSB1V5,
+> +						      &usb_fixed, &usb1v5, 1);
+> +			if (IS_ERR(child))
+> +				return PTR_ERR(child);
+> +
+> +			child = add_regulator_linked(TWL4030_REG_VUSB1V8,
+> +						      &usb_fixed, &usb1v8, 1);
+> +			if (IS_ERR(child))
+> +				return PTR_ERR(child);
+> +
+> +			child = add_regulator_linked(TWL4030_REG_VUSB3V1,
+> +						      &usb_fixed, &usb3v1, 1);
+> +			if (IS_ERR(child))
+> +				return PTR_ERR(child);
+> +
+> +		}
+> +
+>  		child = add_child(0, "twl4030_usb",
+>  				pdata->usb, sizeof(*pdata->usb),
+>  				true,
+>  				/* irq0 = USB_PRES, irq1 = USB */
+>  				pdata->irq_base + 8 + 2, pdata->irq_base + 4);
+> +
+>  		if (IS_ERR(child))
+>  			return PTR_ERR(child);
+>  
+>  		/* we need to connect regulators to this transceiver */
+> -		usb_transceiver = child;
+> +		if (twl_has_regulator() && child) {
+> +			usb1v5.dev = child;
+> +			usb1v8.dev = child;
+> +			usb3v1.dev = child;
+> +		}
+>  	}
+>  
+>  	if (twl_has_watchdog()) {
+> @@ -557,70 +601,6 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
+>  			return PTR_ERR(child);
+>  	}
+>  
+> -	if (twl_has_regulator()) {
+> -		/*
+> -		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
+> -		if (IS_ERR(child))
+> -			return PTR_ERR(child);
+> -		*/
+> -
+> -		child = add_regulator(TWL4030_REG_VMMC1, pdata->vmmc1);
+> -		if (IS_ERR(child))
+> -			return PTR_ERR(child);
+> -
+> -		child = add_regulator(TWL4030_REG_VDAC, pdata->vdac);
+> -		if (IS_ERR(child))
+> -			return PTR_ERR(child);
+> -
+> -		child = add_regulator((features & TWL4030_VAUX2)
+> -					? TWL4030_REG_VAUX2_4030
+> -					: TWL4030_REG_VAUX2,
+> -				pdata->vaux2);
+> -		if (IS_ERR(child))
+> -			return PTR_ERR(child);
+> -	}
+> -
+> -	if (twl_has_regulator() && usb_transceiver) {
+> -		static struct regulator_consumer_supply usb1v5 = {
+> -			.supply =	"usb1v5",
+> -		};
+> -		static struct regulator_consumer_supply usb1v8 = {
+> -			.supply =	"usb1v8",
+> -		};
+> -		static struct regulator_consumer_supply usb3v1 = {
+> -			.supply =	"usb3v1",
+> -		};
+> -
+> -		/* this is a template that gets copied */
+> -		struct regulator_init_data usb_fixed = {
+> -			.constraints.valid_modes_mask =
+> -				  REGULATOR_MODE_NORMAL
+> -				| REGULATOR_MODE_STANDBY,
+> -			.constraints.valid_ops_mask =
+> -				  REGULATOR_CHANGE_MODE
+> -				| REGULATOR_CHANGE_STATUS,
+> -		};
+> -
+> -		usb1v5.dev = usb_transceiver;
+> -		usb1v8.dev = usb_transceiver;
+> -		usb3v1.dev = usb_transceiver;
+> -
+> -		child = add_regulator_linked(TWL4030_REG_VUSB1V5, &usb_fixed,
+> -				&usb1v5, 1);
+> -		if (IS_ERR(child))
+> -			return PTR_ERR(child);
+> -
+> -		child = add_regulator_linked(TWL4030_REG_VUSB1V8, &usb_fixed,
+> -				&usb1v8, 1);
+> -		if (IS_ERR(child))
+> -			return PTR_ERR(child);
+> -
+> -		child = add_regulator_linked(TWL4030_REG_VUSB3V1, &usb_fixed,
+> -				&usb3v1, 1);
+> -		if (IS_ERR(child))
+> -			return PTR_ERR(child);
+> -	}
+> -
+>  	/* maybe add LDOs that are omitted on cost-reduced parts */
+>  	if (twl_has_regulator() && !(features & TPS_SUBSET)) {
+>  		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2);
+> -- 
+> 1.6.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
