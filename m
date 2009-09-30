@@ -1,51 +1,258 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [RFC][PATCH] omapfb: Condition mutex acquisition
-Date: Wed, 30 Sep 2009 08:34:43 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444C92BD1C@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89444B781B6F@dlee02.ent.ti.com>
- <A24693684029E5489D1D202277BE89444B781B70@dlee02.ent.ti.com>
- <1254236004.23991.17.camel@tubuntu> <20090930005310.GI16865@atomide.com>
- <20090930120821.GD25087@localhost>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/1] OMAP3: Common mechanism to identify cpu revision
+Date: Wed, 30 Sep 2009 07:02:19 -0700
+Message-ID: <87bpksr0no.fsf@deeprootsystems.com>
+References: <1253807481-19214-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58411 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754016AbZI3NfP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 09:35:15 -0400
-In-Reply-To: <20090930120821.GD25087@localhost>
-Content-Language: en-US
+Received: from mail-px0-f194.google.com ([209.85.216.194]:33741 "EHLO
+	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753649AbZI3OCT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 10:02:19 -0400
+Received: by pxi32 with SMTP id 32so5468253pxi.4
+        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 07:02:23 -0700 (PDT)
+In-Reply-To: <1253807481-19214-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Thu\, 24 Sep 2009 21\:21\:21 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Imre Deak <imre.deak@nokia.com>, ext Tony Lindgren <tony@atomide.com>
-Cc: "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Imre Deak wrote:
-> Hi,
-> 
-> On Wed, Sep 30, 2009 at 02:53:10AM +0200, ext Tony Lindgren wrote:
->> [...]
->> Tomi & Imre, do you want me to add this to the omap-fixes queue,
->> or are you planning to send other fixes too?
->> 
->> If you want me to add it, please reply with your ack.
->> 
->> I'll added it into omap-fixes-testing branch for now so we can
->> get the omaps booted.
-> 
-> Acked-by: Imre Deak <imre.deak@nokia.com>
-> 
-> There are no other patches for the DSS1 driver, so it'd be good if
-> you could just apply it to omap-fixes.
+Sanjeev Premi <premi@ti.com> writes:
 
-Tony,
+> There are multiple mechanisms to identify the cpu revisions.
+> Most common is use of omap_rev(). This, however, does a
+> absolute comparison of omap_revision - which includes
+> CPU id, CPU rev and CPU class. This comparison fails for
+> OMAP35x processors.
+>
+> This patch defines generic functions that use only the
+> CPU rev bits in omap_revision to identify the revision
+> information.
+>
+> Usage will change from (for example):
+> 	if (omap_rev() > OMAP3430_REV_ES2_0)
+> to:
+> 	if (cpu_is_omap34xx() && omap_rev_gt_2_0())
+>
+> Specific check for cpu_is_xxx() will not be needed for
+> files specific to silicon e.g. pm34xx.c, clock34xx.c, etc.
+>
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 
-Please take v2 of patch instead, has a richer description of the problem.
+Looks mostly good, some minor comments/questions below...
 
-Thanks in advance,
-Sergio
+> ---
+>  arch/arm/mach-omap2/clock34xx.c       |    4 +-
+>  arch/arm/mach-omap2/control.c         |    6 ++--
+>  arch/arm/mach-omap2/pm34xx.c          |   17 +++++-----
+>  arch/arm/plat-omap/include/mach/cpu.h |   55 +++++++++++++++++++++++++++++++++
+>  4 files changed, 69 insertions(+), 13 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index e0df0ce..074c593 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -815,7 +815,7 @@ static int omap3_dpll4_set_rate(struct clk *clk, unsigned long rate)
+>  	 * on 3430ES1 prevents us from changing DPLL multipliers or dividers
+>  	 * on DPLL4.
+>  	 */
+> -	if (omap_rev() == OMAP3430_REV_ES1_0) {
+> +	if (omap_rev_is_1_0()) {
+>  		printk(KERN_ERR "clock: DPLL4 cannot change rate due to "
+>  		       "silicon 'Limitation 2.5' on 3430ES1.\n");
+>  		return -EINVAL;
+> @@ -1157,7 +1157,7 @@ int __init omap2_clk_init(void)
+>  		 * Update this if there are further clock changes between ES2
+>  		 * and production parts
+>  		 */
+> -		if (omap_rev() == OMAP3430_REV_ES1_0) {
+> +		if (omap_rev_is_1_0()) {
+>  			/* No 3430ES1-only rates exist, so no RATE_IN_3430ES1 */
+>  			cpu_clkflg |= CK_3430ES1;
+>  		} else {
+> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+> index c9407c0..089e714 100644
+> --- a/arch/arm/mach-omap2/control.c
+> +++ b/arch/arm/mach-omap2/control.c
+> @@ -209,8 +209,8 @@ void omap3_save_scratchpad_contents(void)
+>  
+>  	/* Populate the Scratchpad contents */
+>  	scratchpad_contents.boot_config_ptr = 0x0;
+> -	if (omap_rev() != OMAP3430_REV_ES3_0 &&
+> -					omap_rev() != OMAP3430_REV_ES3_1)
+> +	if (cpu_is_omap34xx()
+> +		&& !omap_rev_is_3_0() && !omap_rev_is_3_1())
+>  		scratchpad_contents.public_restore_ptr =
+>  			virt_to_phys(get_restore_pointer());
+>  	else
+> @@ -271,7 +271,7 @@ void omap3_save_scratchpad_contents(void)
+>  	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
+>  	 */
+>  	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
+> -			&& (omap_rev() >= OMAP3430_REV_ES3_0))
+> +		&& cpu_is_omap34xx() && omap_rev_ge_3_0())
 
-> 
-> --Imre
+I don't think the cpu_is_... is needed here because of the OMAP3
+specific function.
 
+>  		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
+>  				~(SDRC_POWER_AUTOCOUNT_MASK|
+>  				SDRC_POWER_CLKCTRL_MASK)) |
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index c1d58a7..7a1eb95 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -28,6 +28,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/usb/musb.h>
+>  
+> +#include <mach/cpu.h>
+>  #include <mach/sram.h>
+>  #include <mach/prcm.h>
+>  #include <mach/clockdomain.h>
+> @@ -108,7 +109,7 @@ static void omap3_enable_io_chain(void)
+>  {
+>  	int timeout = 0;
+>  
+> -	if (omap_rev() >= OMAP3430_REV_ES3_1) {
+> +	if (omap_rev_ge_3_1()) {
+>  		prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN, WKUP_MOD, PM_WKEN);
+>  		/* Do a readback to assure write has been done */
+>  		prm_read_mod_reg(WKUP_MOD, PM_WKEN);
+> @@ -129,7 +130,7 @@ static void omap3_enable_io_chain(void)
+>  
+>  static void omap3_disable_io_chain(void)
+>  {
+> -	if (omap_rev() >= OMAP3430_REV_ES3_1)
+> +	if (omap_rev_ge_3_1())
+>  		prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN, WKUP_MOD, PM_WKEN);
+>  }
+>  
+> @@ -248,7 +249,7 @@ static int _prcm_int_handle_wakeup(void)
+>  	c = prcm_clear_mod_irqs(WKUP_MOD, 1);
+>  	c += prcm_clear_mod_irqs(CORE_MOD, 1);
+>  	c += prcm_clear_mod_irqs(OMAP3430_PER_MOD, 1);
+> -	if (omap_rev() > OMAP3430_REV_ES1_0) {
+> +	if (omap_rev_gt_1_0()) {
+>  		c += prcm_clear_mod_irqs(CORE_MOD, 3);
+>  		c += prcm_clear_mod_irqs(OMAP3430ES2_USBHOST_MOD, 1);
+>  	}
+> @@ -432,7 +433,7 @@ void omap_sram_idle(void)
+>  	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
+>  	* Hence store/restore the SDRC_POWER register here.
+>  	*/
+> -	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+> +	if (omap_rev_ge_3_0() &&
+>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+>  	    core_next_state == PWRDM_POWER_OFF)
+>  		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
+> @@ -449,7 +450,7 @@ void omap_sram_idle(void)
+>  	cpu_init();
+>  
+>  	/* Restore normal SDRC POWER settings */
+> -	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+> +	if (omap_rev_ge_3_0() &&
+>  	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+>  	    core_next_state == PWRDM_POWER_OFF)
+>  		sdrc_write_reg(sdrc_pwr, SDRC_POWER);
+> @@ -784,7 +785,7 @@ static void __init prcm_setup_regs(void)
+>  	prm_write_mod_reg(0, OMAP3430_NEON_MOD, PM_WKDEP);
+>  	prm_write_mod_reg(0, OMAP3430_CAM_MOD, PM_WKDEP);
+>  	prm_write_mod_reg(0, OMAP3430_PER_MOD, PM_WKDEP);
+> -	if (omap_rev() > OMAP3430_REV_ES1_0) {
+> +	if (omap_rev_gt_1_0()) {
+>  		prm_write_mod_reg(0, OMAP3430ES2_SGX_MOD, PM_WKDEP);
+>  		prm_write_mod_reg(0, OMAP3430ES2_USBHOST_MOD, PM_WKDEP);
+>  	} else
+> @@ -835,7 +836,7 @@ static void __init prcm_setup_regs(void)
+>  		OMAP3430_AUTO_DES1,
+>  		CORE_MOD, CM_AUTOIDLE2);
+>  
+> -	if (omap_rev() > OMAP3430_REV_ES1_0) {
+> +	if (omap_rev_gt_1_0()) {
+>  		cm_write_mod_reg(
+>  			OMAP3430_AUTO_MAD2D |
+>  			OMAP3430ES2_AUTO_USBTLL,
+> @@ -883,7 +884,7 @@ static void __init prcm_setup_regs(void)
+>  		OMAP3430_PER_MOD,
+>  		CM_AUTOIDLE);
+>  
+> -	if (omap_rev() > OMAP3430_REV_ES1_0) {
+> +	if (omap_rev_gt_1_0()) {
+>  		cm_write_mod_reg(
+>  			OMAP3430ES2_AUTO_USBHOST,
+>  			OMAP3430ES2_USBHOST_MOD,
+> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+> index b689013..522df64 100644
+> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> @@ -453,6 +453,61 @@ IS_OMAP_TYPE(3517, 0x3517)
+>  #define omap35xx_rev_mask()	(omap_rev() & 0x0000F000)
+>  
+>  /*
+> + * Silicon revisions
+> + */
+> +#define OMAP_ES_1_0		0x00
+> +#define OMAP_ES_2_0		0x10
+> +#define OMAP_ES_2_1		0x20
+> +#define OMAP_ES_3_0		0x30
+> +#define OMAP_ES_3_1		0x40
+
+Hmm, are these the same values on OMAP2? and OMAP4?
+
+> +#define OMAP_REV_MASK		0x0000ff00
+> +#define OMAP_REV_BITS		((omap_rev() & OMAP_REV_MASK) >> 8)
+> +
+> +#define OMAP_REV_IS(revid)					\
+> +static inline u8 omap_rev_is_ ##revid (void)			\
+
+Minor nit, but these should return bool.
+
+> +{								\
+> +	return (OMAP_REV_BITS == OMAP_ES_ ##revid) ? 1 : 0;	\
+> +}
+> +
+> +#define OMAP_REV_LT(revid)					\
+> +static inline u8 omap_rev_lt_ ##revid (void)			\
+> +{								\
+> +	return (OMAP_REV_BITS < OMAP_ES_ ##revid) ? 1 : 0;	\
+> +}
+> +
+> +#define OMAP_REV_LE(revid)					\
+> +static inline u8 omap_rev_le_ ##revid (void)			\
+> +{								\
+> +	return (OMAP_REV_BITS <= OMAP_ES_ ##revid) ? 1 : 0;	\
+> +}
+> +
+> +#define OMAP_REV_GT(revid)					\
+> +static inline u8 omap_rev_gt_ ##revid (void)			\
+> +{								\
+> +	return (OMAP_REV_BITS > OMAP_ES_ ##revid) ? 1 : 0;	\
+> +}
+> +
+> +#define OMAP_REV_GE(revid)					\
+> +static inline u8 omap_rev_ge_ ##revid (void)			\
+> +{								\
+> +	return (OMAP_REV_BITS >= OMAP_ES_ ##revid) ? 1 : 0;	\
+> +}
+> +
+> +#define OMAP_REV_FUNCTIONS(revid)	\
+> +	OMAP_REV_IS(revid)		\
+> +	OMAP_REV_LT(revid)		\
+> +	OMAP_REV_LE(revid)		\
+> +	OMAP_REV_GT(revid)		\
+> +	OMAP_REV_GE(revid)
+> +
+> +OMAP_REV_FUNCTIONS(1_0)
+> +OMAP_REV_FUNCTIONS(2_0)
+> +OMAP_REV_FUNCTIONS(2_1)
+> +OMAP_REV_FUNCTIONS(3_0)
+> +OMAP_REV_FUNCTIONS(3_1)
+> +
+> +/*
+>   * omap_chip bits
+>   *
+>   * CHIP_IS_OMAP{2420,2430,3430} indicate that a particular structure is
+
+Kevin
