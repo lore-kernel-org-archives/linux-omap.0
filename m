@@ -1,147 +1,66 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
 Subject: Re: [RFC] OMAP3 : PM : Handle variable length OPP tables
-Date: Wed, 30 Sep 2009 11:10:30 -0700
-Message-ID: <87ljjwmhgp.fsf@deeprootsystems.com>
+Date: Wed, 30 Sep 2009 11:13:39 -0700
+Message-ID: <636c5030909301113k2743c1dbpceafb07444e59fbf@mail.gmail.com>
 References: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com>
+	 <87ljjwmhgp.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f194.google.com ([209.85.216.194]:39704 "EHLO
+Received: from mail-px0-f194.google.com ([209.85.216.194]:33905 "EHLO
 	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754894AbZI3SK3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 14:10:29 -0400
-Received: by pxi32 with SMTP id 32so5684440pxi.4
-        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 11:10:33 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD6C43CA@dbde02.ent.ti.com> (Sanjeev Premi's message of "Mon\, 7 Sep 2009 20\:09\:34 +0530")
+	with ESMTP id S1752802AbZI3SNf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 14:13:35 -0400
+Received: by pxi32 with SMTP id 32so5686963pxi.4
+        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 11:13:39 -0700 (PDT)
+In-Reply-To: <87ljjwmhgp.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Premi, Sanjeev" <premi@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Premi, Sanjeev" <premi@ti.com> writes:
+On Wed, Sep 30, 2009 at 11:10 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> "Premi, Sanjeev" <premi@ti.com> writes:
+>
+>> Hi all,
+>>
+>> There is no generic function to translate an OPP to FREQ and vice ve=
+rsa.
+>> Came across the problem while trying to submit a follow-up to earlie=
+r
+>> patch for change in mpurate via bootargs.
+>>
+>> The function get_opp in resource34xx.c, but it is always called with=
+ an
+>> explicit addition of MAX_VDDn_OPP e.g.
+>>
+>> =A0 opp =3D get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
+>> =A0 opp =3D get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
+>>
+>> This is 'addition' is required as there is no encapsulation of the
+>> MIN and MAX VDDs associated to the table.
+>>
+>> The patch below fixes this issue; buy creating a 'table' object with
+>> necessary information. It can also help in getting rid of the
+>> empty {0, 0, 0} at index 0 of each OPP table.
+>>
+>> At the moment, it does not break any functionality in resource34xx.c=
+;
+>> migration to this encapsulation can be taken as next step.
+>>
+>> This code is bare 'git-diff' for early comments. Formal patch to fol=
+low...
+>
+> Looks ok. =A0Please send updated patch against current PM branch.
 
-> Hi all,
->
-> There is no generic function to translate an OPP to FREQ and vice versa.
-> Came across the problem while trying to submit a follow-up to earlier
-> patch for change in mpurate via bootargs. 
->
-> The function get_opp in resource34xx.c, but it is always called with an
-> explicit addition of MAX_VDDn_OPP e.g.
->
->   opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
->   opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
->
-> This is 'addition' is required as there is no encapsulation of the
-> MIN and MAX VDDs associated to the table.
->
-> The patch below fixes this issue; buy creating a 'table' object with
-> necessary information. It can also help in getting rid of the
-> empty {0, 0, 0} at index 0 of each OPP table.
->
-> At the moment, it does not break any functionality in resource34xx.c;
-> migration to this encapsulation can be taken as next step.
->
-> This code is bare 'git-diff' for early comments. Formal patch to follow...
-
-Looks ok.  Please send updated patch against current PM branch.
-
-Thanks,
+oops, please ignore.  I see you already posted a patch.  Will comment t=
+here.
 
 Kevin
-
-> Best regards,
-> Sanjeev
->
-> diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
-> index 583e540..2357784 100644
-> --- a/arch/arm/plat-omap/include/mach/omap-pm.h
-> +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-> @@ -33,6 +33,20 @@ struct omap_opp {
->         u16 vsel;
->  };
->  
-> +/* struct omap_opp_table - View OPP table as an object
-> + * @min: Minimum OPP id
-> + * @max: Maximim OPP id
-> + * @opps: Pointer to array defining the OPPs.
-> + *
-> + * An OPP table has varied length. Knowing minimum and maximum
-> + * OPP ids allow easy traversal.
-> + */
-> +struct omap_opp_table {
-> +       u8      min;
-> +       u8      max;
-> +       struct omap_opp* opps;
-> +};
-> +
->  extern struct omap_opp *mpu_opps;
->  extern struct omap_opp *dsp_opps;
->  extern struct omap_opp *l3_opps;
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index fec7d00..c90b1af 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -33,6 +33,7 @@
->  #include <mach/powerdomain.h>
->  #include <mach/resource.h>
->  #include <mach/omap34xx.h>
-> +#include <mach/omap-pm.h>
->  
->  #include "prm-regbits-34xx.h"
->  #include "pm.h"
-> @@ -281,3 +282,50 @@ static int __init omap_pm_init(void)
->         return error;
->  }
->  late_initcall(omap_pm_init);
-> +
-> +/*
-> + * Get frequency corresponding to an OPP
-> + */
-> +int opp_to_freq(unsigned int* freq, struct omap_opp_table* table, u8 opp)
-> +{
-> +        int i, found=0;
-> +
-> +        if (table && table->opps) {
-> +                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
-> +                        if (table->opps[i].opp_id == opp) {
-> +                                found = 1;
-> +                                break;
-> +                        }
-> +
-> +                if (found) {
-> +                        *freq = table->opps[i].rate;
-> +                        return 1;
-> +                }
-> +        }
-> +
-> +        return 0;
-> +}
-> +
-> +/*
-> + * Get OPP corresponding to a frequency
-> + */
-> +int freq_to_opp(u8* opp, struct omap_opp_table* table, unsigned long freq)
-> +{
-> +        int i, found=0;
-> +
-> +        if (table && table->opps) {
-> +                for (i=table->min;  table->opps[i].opp_id <= table->max; i++)
-> +                        if (table->opps[i].rate == freq) {
-> +                                found = 1;
-> +                                break;
-> +                        }
-> +
-> +                if (found) {
-> +                        *opp = table->opps[i].opp_id;
-> +                        return 1;
-> +                }
-> +        }
-> +
-> +        return 0;
-> +}
-> +
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
