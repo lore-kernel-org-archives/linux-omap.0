@@ -1,84 +1,150 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] omap: Fix incorrect 730 vs 850 detection, v2 (Re: Patch
-	missing in 2.6.32-rc1)
-Date: Wed, 30 Sep 2009 18:53:20 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDB70CF4@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DCD67D97@dbde02.ent.ti.com>
- <1250677938-27955-1-git-send-email-felipe.balbi@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DD1AD8FB@dbde02.ent.ti.com>
- <20090819131752.GC7629@atomide.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DDAB3F19@dbde02.ent.ti.com>
- <20090929203525.GF16865@atomide.com>
- <3d374d00909291652m3f52fbf6y1ea45ac7bec99018@mail.gmail.com>
- <20090930003218.GH16865@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Amit Kucheria <amit.kucheria@verdurent.com>
+Subject: [PATCH] input: fix rx51 board keymap
+Date: Wed, 30 Sep 2009 16:25:28 +0300
+Message-ID: <1254317128-13954-1-git-send-email-amit.kucheria@verdurent.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48906 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751730AbZI3NXX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 09:23:23 -0400
-In-Reply-To: <20090930003218.GH16865@atomide.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:42843 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751697AbZI3N0U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 09:26:20 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, Alistair Buxton <a.j.buxton@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: List Linux Kernel <linux-kernel@vger.kernel.org>, dtor@mail.ru, List Linux Omap <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>, Lauri Leukkunen <lauri.leukkunen@nokia.com>, Samuel Ortiz <sameo@linux.intel.com>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]=20
-> Sent: Wednesday, September 30, 2009 6:02 AM
-> To: Alistair Buxton
-> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
-> Subject: [PATCH] omap: Fix incorrect 730 vs 850 detection, v2=20
-> (Re: Patch missing in 2.6.32-rc1)
->=20
-> * Alistair Buxton <a.j.buxton@gmail.com> [090929 16:52]:
-> > 2009/9/29 Tony Lindgren <tony@atomide.com>:
-> > > * Premi, Sanjeev <premi@ti.com> [090929 04:34]:
-> > >> Hi Tony,
-> > >>
-> > >> Can you push this patch to 2.6.32-rc1?
-> > >>
-> > >> 7a8d53a0: =A0arch: arm: omap: terminate ifndef
-> > >>
-> > >> I was unable to refresh my patches against this baseline.
-> > >> OR, is it okay if I re-submit against the 'master'.
-> > >
-> > > Sorry, I was meaning to look where the mismatch really came
-> > > from but forgot.
-> > >
-> > > Looks like adding omap850 support added an #else without removing
-> > > the #endif above it, and also removed another #endif in commit
-> > > ae302f40061235f6bc58ae9ba02aa849d60223b5.
-> >=20
-> > The #else immediately after the removed #endif needs to go as well,
-> > because the block that the #endif(s) belongs to already has=20
-> an #else.
-> >=20
-> > That means the bug not only caused everything after the extra #endi=
-f
-> > to have no multiple inclusion protection (causing the=20
-> redefinitions),
-> > but the extra #else also caused cpu_is_omap850() to be true=20
-> only when
-> > cpu.h was included twice.
->=20
-> Ah, right! So we're back to http://patchwork.kernel.org/patch/42292/
-> and we also need to add back the missing #endif to the end of file
-> file.
->=20
-> Here's an updated version of 42292, hopefully this will do the trick.
+The original driver was written with the KEY() macro defined as (col, row)
+instead of (row, col) as defined by the matrix keypad infrastructure. So the
+keymap was defined accordingly.
 
-[sp] Tested working fine for me.
+Since the driver that was merged upstream uses the matrix keypad
+infrastructure, modify the keymap accordingly.
 
->=20
-> Regards,
->=20
-> Tony
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+While we are at it, fix the comments in twl4030.h and define PERSISTENT_KEY as
+(r,c) instead of (c, r)
+
+Tested on a RX51 (N900) device.
+
+Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   78 +++++++++++++-------------
+ include/linux/i2c/twl4030.h                  |    6 +-
+ 2 files changed, 42 insertions(+), 42 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index b45ad31..c1af532 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -38,49 +38,49 @@
+ 
+ static int board_keymap[] = {
+ 	KEY(0, 0, KEY_Q),
+-	KEY(0, 1, KEY_W),
+-	KEY(0, 2, KEY_E),
+-	KEY(0, 3, KEY_R),
+-	KEY(0, 4, KEY_T),
+-	KEY(0, 5, KEY_Y),
+-	KEY(0, 6, KEY_U),
+-	KEY(0, 7, KEY_I),
+-	KEY(1, 0, KEY_O),
++	KEY(0, 1, KEY_O),
++	KEY(0, 2, KEY_P),
++	KEY(0, 3, KEY_COMMA),
++	KEY(0, 4, KEY_BACKSPACE),
++	KEY(0, 6, KEY_A),
++	KEY(0, 7, KEY_S),
++	KEY(1, 0, KEY_W),
+ 	KEY(1, 1, KEY_D),
+-	KEY(1, 2, KEY_DOT),
+-	KEY(1, 3, KEY_V),
+-	KEY(1, 4, KEY_DOWN),
+-	KEY(2, 0, KEY_P),
+-	KEY(2, 1, KEY_F),
++	KEY(1, 2, KEY_F),
++	KEY(1, 3, KEY_G),
++	KEY(1, 4, KEY_H),
++	KEY(1, 5, KEY_J),
++	KEY(1, 6, KEY_K),
++	KEY(1, 7, KEY_L),
++	KEY(2, 0, KEY_E),
++	KEY(2, 1, KEY_DOT),
+ 	KEY(2, 2, KEY_UP),
+-	KEY(2, 3, KEY_B),
+-	KEY(2, 4, KEY_RIGHT),
+-	KEY(3, 0, KEY_COMMA),
+-	KEY(3, 1, KEY_G),
+-	KEY(3, 2, KEY_ENTER),
++	KEY(2, 3, KEY_ENTER),
++	KEY(2, 5, KEY_Z),
++	KEY(2, 6, KEY_X),
++	KEY(2, 7, KEY_C),
++	KEY(3, 0, KEY_R),
++	KEY(3, 1, KEY_V),
++	KEY(3, 2, KEY_B),
+ 	KEY(3, 3, KEY_N),
+-	KEY(4, 0, KEY_BACKSPACE),
+-	KEY(4, 1, KEY_H),
+-	KEY(4, 3, KEY_M),
++	KEY(3, 4, KEY_M),
++	KEY(3, 5, KEY_SPACE),
++	KEY(3, 6, KEY_SPACE),
++	KEY(3, 7, KEY_LEFT),
++	KEY(4, 0, KEY_T),
++	KEY(4, 1, KEY_DOWN),
++	KEY(4, 2, KEY_RIGHT),
+ 	KEY(4, 4, KEY_LEFTCTRL),
+-	KEY(5, 1, KEY_J),
+-	KEY(5, 2, KEY_Z),
+-	KEY(5, 3, KEY_SPACE),
+-	KEY(5, 4, KEY_LEFTSHIFT),
+-	KEY(6, 0, KEY_A),
+-	KEY(6, 1, KEY_K),
+-	KEY(6, 2, KEY_X),
+-	KEY(6, 3, KEY_SPACE),
+-	KEY(6, 4, KEY_FN),
+-	KEY(7, 0, KEY_S),
+-	KEY(7, 1, KEY_L),
+-	KEY(7, 2, KEY_C),
+-	KEY(7, 3, KEY_LEFT),
+-	KEY(0xff, 0, KEY_F6),
+-	KEY(0xff, 1, KEY_F7),
+-	KEY(0xff, 2, KEY_F8),
+-	KEY(0xff, 4, KEY_F9),
+-	KEY(0xff, 5, KEY_F10),
++	KEY(4, 5, KEY_RIGHTALT),
++	KEY(4, 6, KEY_LEFTSHIFT),
++	KEY(5, 0, KEY_Y),
++	KEY(6, 0, KEY_U),
++	KEY(7, 0, KEY_I),
++	KEY(7, 1, KEY_F7),
++	KEY(7, 2, KEY_F8),
++	KEY(0xff, 2, KEY_F9),
++	KEY(0xff, 4, KEY_F10),
++	KEY(0xff, 5, KEY_F11),
+ };
+ 
+ static struct matrix_keymap_data board_map_data = {
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 2d02dfd..508824e 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -349,11 +349,11 @@ struct twl4030_madc_platform_data {
+ 	int		irq_line;
+ };
+ 
+-/* Boards have uniqe mappings of {col, row} --> keycode.
+- * Column and row are 4 bits, but range only from 0..7.
++/* Boards have uniqe mappings of {row, col} --> keycode.
++ * Column and row are 8 bits each, but range only from 0..7.
+  * a PERSISTENT_KEY is "always on" and never reported.
+  */
+-#define PERSISTENT_KEY(c, r)	KEY((c), (r), KEY_RESERVED)
++#define PERSISTENT_KEY(r, c)	KEY((r), (c), KEY_RESERVED)
+ 
+ struct twl4030_keypad_data {
+ 	const struct matrix_keymap_data *keymap_data;
+-- 
+1.6.3.3
+
