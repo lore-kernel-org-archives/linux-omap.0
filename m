@@ -1,52 +1,103 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
-	please read
-Date: Wed, 30 Sep 2009 10:31:33 -0700
-Message-ID: <20090930173132.GN16865@atomide.com>
-References: <20090928190404.GE18957@atomide.com> <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com> <20090929182639.GA16865@atomide.com> <4AC37F0E.8010206@nokia.com> <71a0d6ff0909301002k7e56b7falfdc8d5e445487d29@mail.gmail.com> <5A47E75E594F054BAF48C5E4FC4B92AB030A2741E2@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Warnings: pm branch
+Date: Wed, 30 Sep 2009 10:32:48 -0700
+Message-ID: <636c5030909301032q4d39dd3ar7ee2fb522f009910@mail.gmail.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702F5989815@dbde02.ent.ti.com>
+	 <873a7y74mj.fsf@deeprootsystems.com>
+	 <03d301ca1b32$14f97d10$LocalHost@wipultra793>
+	 <7803.10.24.255.18.1250081698.squirrel@dbdmail.itg.ti.com>
+	 <87d4712k4h.fsf@deeprootsystems.com>
+	 <00a101ca1b58$4cdca100$LocalHost@wipultra793>
+	 <87d47114ir.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64024 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477AbZI3Rbf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 13:31:35 -0400
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A2741E2@dbde02.ent.ti.com>
+Received: from mail-pz0-f191.google.com ([209.85.222.191]:54808 "EHLO
+	mail-pz0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753240AbZI3Rco convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 13:32:44 -0400
+Received: by pzk29 with SMTP id 29so4589793pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 10:32:48 -0700 (PDT)
+In-Reply-To: <87d47114ir.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: Alexander Shishkin <virtuoso@slind.org>, Roger Quadros <ext-roger.quadros@nokia.com>, Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Hemanth V <hemanthv@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
 
-* Gadiyar, Anand <gadiyar@ti.com> [090930 10:05]:
-> > >>
-> > >>>
-> > >>> Anyway, I haven't been able to make 2.6.31 boot on beagleboard, and
-> > >>> other people report similar issues:
-> > >>> http://www.spinics.net/lists/linux-omap/msg17968.html
-> > >>>
-> > >>> Have you got 2.6.32-rc1 (+fixes) to boot?
-> > >>
-> > >> Hmm, looks like it's musb again. This is what I get on my
-> > >> overo after applying the DEBUG_LL hack from omap-debug branch:
-> > >
-> > > i've just sent a fix for this musb problem. patch is labelled "twl4030: Fix
-> > > boot with twl4030 usb transceiver enabled"
-> > 
-> > I can't quite locate it in linux-usb archives (or anywhere within
-> > google's reach). Could you sand it here or provide a link?
-> > 
-> 
-> Here you go. Patchwork rocks!
-> 
-> <http://patchwork.kernel.org/patch/50721/>
-> 
+On Wed, Aug 12, 2009 at 7:38 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> "Hemanth V" <hemanthv@ti.com> writes:
+>
+>> ----- Original Message -----
+>> From: "Kevin Hilman" <khilman@deeprootsystems.com>
+>>>> =A0/* enter the state and update stats */
+>>>> @@ -91,6 +93,12 @@ static void cpuidle_idle_call(void)
+>>>> =A0/* give the governor an opportunity to reflect on the outcome *=
+/
+>>>> =A0if (cpuidle_curr_governor->reflect)
+>>>> =A0cpuidle_curr_governor->reflect(dev);
+>>>> +
+>>>> + return;
+>>>> +
+>>>
+>>> ... I think you want to drop this return. =A0If it returns here, it
+>>> will still not enable IRQs. =A0I think it should just fall through
+>>> to the enable and return.
+>>
+>> Since omap3_enter_idle returns with interrupts enabled, I had
+>> added this return. We could remove it also for safety purposes.
+>
+> OK. =A0I think you should post to linux-pm for comment, and possibly
+> raise this as a question.
+>
+> You can add:
+>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 
-Great, thanks. Roger, please send your fix to Samuel for merging.
+Hemanth,
 
-Meanwhile, I'll apply it into fixes-testing while waiting for it
-to get to mainline via Samuel.
+I've reworked/simplified this patch slightly (see below) and will send
+to linux-pm shortly.
 
-Regards,
+Kevin
 
-Tony
+
+This one is against PM branch:
+
+commit 808854375b94017ba996a467a082a38730fff434
+Author: Kevin Hilman <khilman@deeprootsystems.com>
+Date:   Wed Sep 30 09:57:40 2009 -0700
+
+    CPUidle: always return with interrupts enabled
+
+    In the case where cpuidle_idle_call() returns before changing state
+    due to a need_resched(), it was returning with IRQs disabled.
+
+    This patche ensures IRQs are (re)enabled before returning.
+
+    Reported-by: Hemanth V <hemanthv@ti.com>
+    Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index 8504a21..910c49d 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -75,8 +75,11 @@ static void cpuidle_idle_call(void)
+ #endif
+ 	/* ask the governor for the next state */
+ 	next_state =3D cpuidle_curr_governor->select(dev);
+-	if (need_resched())
++	if (need_resched()) {
++		local_irq_enable();
+ 		return;
++	}
++
+ 	target_state =3D &dev->states[next_state];
+
+ 	/* enter the state and update stats */
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
