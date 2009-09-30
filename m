@@ -1,87 +1,50 @@
-From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Subject: [PATCH 2/2] twl4030: Enable low-power mode to 32KHz oscillator
-Date: Wed, 30 Sep 2009 18:11:55 +0300
-Message-ID: <1254323515-30866-2-git-send-email-ilkka.koskinen@nokia.com>
-References: <1254323515-30866-1-git-send-email-ilkka.koskinen@nokia.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754720AbZI3PLf@vger.kernel.org>
-In-Reply-To: <1254323515-30866-1-git-send-email-ilkka.koskinen@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, sameo@linux.intel.com
-Cc: linux-omap@vger.kernel.org, ilkka.koskinen@nokia.com
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC][PATCH] omapfb: Condition mutex acquisition
+Date: Wed, 30 Sep 2009 08:34:23 -0700
+Message-ID: <20090930153423.GK16865@atomide.com>
+References: <A24693684029E5489D1D202277BE89444B781B6F@dlee02.ent.ti.com> <A24693684029E5489D1D202277BE89444B781B70@dlee02.ent.ti.com> <1254236004.23991.17.camel@tubuntu> <20090930005310.GI16865@atomide.com> <20090930120821.GD25087@localhost> <A24693684029E5489D1D202277BE89444C92BD1C@dlee02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52501 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754702AbZI3PeW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 11:34:22 -0400
+Content-Disposition: inline
+In-Reply-To: <A24693684029E5489D1D202277BE89444C92BD1C@dlee02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: Imre Deak <imre.deak@nokia.com>, "Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Allows TWL's 32KHz oscillator to go in low-power mode when
-main battery voltage is running low.
+* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [090930 06:35]:
+> Imre Deak wrote:
+> > Hi,
+> > 
+> > On Wed, Sep 30, 2009 at 02:53:10AM +0200, ext Tony Lindgren wrote:
+> >> [...]
+> >> Tomi & Imre, do you want me to add this to the omap-fixes queue,
+> >> or are you planning to send other fixes too?
+> >> 
+> >> If you want me to add it, please reply with your ack.
+> >> 
+> >> I'll added it into omap-fixes-testing branch for now so we can
+> >> get the omaps booted.
+> > 
+> > Acked-by: Imre Deak <imre.deak@nokia.com>
+> > 
+> > There are no other patches for the DSS1 driver, so it'd be good if
+> > you could just apply it to omap-fixes.
+> 
+> Tony,
+> 
+> Please take v2 of patch instead, has a richer description of the problem.
+> 
+> Thanks in advance,
+> Sergio
 
-Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
----
- drivers/mfd/twl4030-core.c  |    9 +++++++--
- include/linux/i2c/twl4030.h |    5 +++++
- 2 files changed, 12 insertions(+), 2 deletions(-)
+OK, thanks, will queue it.
 
-diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-index 8cf0a02..5596bb4 100644
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -177,6 +177,7 @@
- #define HFCLK_FREQ_26_MHZ		(2 << 0)
- #define HFCLK_FREQ_38p4_MHZ		(3 << 0)
- #define HIGH_PERF_SQ			(1 << 3)
-+#define CK32K_LOWPWR_EN			(1 << 7)
- 
- 
- /* chip-specific feature flags, for i2c_device_id.driver_data */
-@@ -678,7 +679,8 @@ static inline int __init unprotect_pm_master(void)
- 	return e;
- }
- 
--static void clocks_init(struct device *dev)
-+static void clocks_init(struct device *dev,
-+			struct twl4030_clock_init_data *clock)
- {
- 	int e = 0;
- 	struct clk *osc;
-@@ -725,6 +727,9 @@ static void clocks_init(struct device *dev)
- 	}
- 
- 	ctrl |= HIGH_PERF_SQ;
-+	if (clock && clock->ck32k_lowpwr_enable)
-+		ctrl |= CK32K_LOWPWR_EN;
-+
- 	e |= unprotect_pm_master();
- 	/* effect->MADC+USB ck en */
- 	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
-@@ -805,7 +810,7 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	inuse = true;
- 
- 	/* setup clock framework */
--	clocks_init(&client->dev);
-+	clocks_init(&client->dev, pdata->clock);
- 
- 	/* load power event scripts */
- 	if (twl_has_power() && pdata->power)
-diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-index 2d02dfd..612d0b7 100644
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -312,6 +312,10 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- 
- /*----------------------------------------------------------------------*/
- 
-+struct twl4030_clock_init_data {
-+	int ck32k_lowpwr_enable;
-+};
-+
- struct twl4030_bci_platform_data {
- 	int *battery_tmp_tbl;
- 	unsigned int tblsize;
-@@ -403,6 +407,7 @@ extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
- 
- struct twl4030_platform_data {
- 	unsigned				irq_base, irq_end;
-+	struct twl4030_clock_init_data		*clock;
- 	struct twl4030_bci_platform_data	*bci;
- 	struct twl4030_gpio_platform_data	*gpio;
- 	struct twl4030_madc_platform_data	*madc;
--- 
-1.6.0.4
+Regards,
+
+Tony
