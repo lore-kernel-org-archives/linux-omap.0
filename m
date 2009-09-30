@@ -1,37 +1,53 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: linux-omap git tree updated to v2.6.32-rc1, important changes,
- 	please read
-Date: Wed, 30 Sep 2009 22:34:59 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A2741E2@dbde02.ent.ti.com>
-References: <20090928190404.GE18957@atomide.com>
-	 <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
-	 <20090929182639.GA16865@atomide.com> <4AC37F0E.8010206@nokia.com>
- <71a0d6ff0909301002k7e56b7falfdc8d5e445487d29@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
+	please read
+Date: Wed, 30 Sep 2009 10:25:21 -0700
+Message-ID: <20090930172520.GL16865@atomide.com>
+References: <20090928190404.GE18957@atomide.com> <873a64r0fi.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45600 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753240AbZI3RFK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 30 Sep 2009 13:05:10 -0400
-In-Reply-To: <71a0d6ff0909301002k7e56b7falfdc8d5e445487d29@mail.gmail.com>
-Content-Language: en-US
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55600 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754202AbZI3RZW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 13:25:22 -0400
+Content-Disposition: inline
+In-Reply-To: <873a64r0fi.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Shishkin <virtuoso@slind.org>, Roger Quadros <ext-roger.quadros@nokia.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-PiA+Pg0KPiA+Pj4NCj4gPj4+IEFueXdheSwgSSBoYXZlbid0IGJlZW4gYWJsZSB0byBtYWtlIDIu
-Ni4zMSBib290IG9uIGJlYWdsZWJvYXJkLCBhbmQNCj4gPj4+IG90aGVyIHBlb3BsZSByZXBvcnQg
-c2ltaWxhciBpc3N1ZXM6DQo+ID4+PiBodHRwOi8vd3d3LnNwaW5pY3MubmV0L2xpc3RzL2xpbnV4
-LW9tYXAvbXNnMTc5NjguaHRtbA0KPiA+Pj4NCj4gPj4+IEhhdmUgeW91IGdvdCAyLjYuMzItcmMx
-ICgrZml4ZXMpIHRvIGJvb3Q/DQo+ID4+DQo+ID4+IEhtbSwgbG9va3MgbGlrZSBpdCdzIG11c2Ig
-YWdhaW4uIFRoaXMgaXMgd2hhdCBJIGdldCBvbiBteQ0KPiA+PiBvdmVybyBhZnRlciBhcHBseWlu
-ZyB0aGUgREVCVUdfTEwgaGFjayBmcm9tIG9tYXAtZGVidWcgYnJhbmNoOg0KPiA+DQo+ID4gaSd2
-ZSBqdXN0IHNlbnQgYSBmaXggZm9yIHRoaXMgbXVzYiBwcm9ibGVtLiBwYXRjaCBpcyBsYWJlbGxl
-ZCAidHdsNDAzMDogRml4DQo+ID4gYm9vdCB3aXRoIHR3bDQwMzAgdXNiIHRyYW5zY2VpdmVyIGVu
-YWJsZWQiDQo+IA0KPiBJIGNhbid0IHF1aXRlIGxvY2F0ZSBpdCBpbiBsaW51eC11c2IgYXJjaGl2
-ZXMgKG9yIGFueXdoZXJlIHdpdGhpbg0KPiBnb29nbGUncyByZWFjaCkuIENvdWxkIHlvdSBzYW5k
-IGl0IGhlcmUgb3IgcHJvdmlkZSBhIGxpbms/DQo+IA0KDQpIZXJlIHlvdSBnby4gUGF0Y2h3b3Jr
-IHJvY2tzIQ0KDQo8aHR0cDovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzUwNzIxLz4NCg0K
+* Kevin Hilman <khilman@deeprootsystems.com> [090930 07:07]:
+> Tony Lindgren <tony@atomide.com> writes:
+> 
+> > Hi all,
+> >
+> > I've updated our linux-omap tree to v2.6.32-rc1. I've also
+> > added a branch omap-2.6.31 for the old code.
+> >
+> > This time I also nuked the remaining omap legacy code we
+> > still had lurking around :) The commits at the end of this
+> > mail describe what I did first as commits, then I merged
+> > everything to be the same as the mainline v2.6.32-rc1.
+> >
+> > So currently the linux-omap master branch is:
+> >
+> > v2.6.32-rc1 + omap-fixes + ehci + cbus
+> >
+> > The new model is that I'll be resetting the linux-omap master
+> > branch to mainline at each -rc, then merge in our various
+> > upstream queues back in again.
+> >
+> > Please note that "Remove omap extra version in Makefile"
+> > commit means that you now need to set the ARCH and CROSS_COMPILE
+> > for your compiler.
+> 
+> FYI... As of 2.6.32, the kernel caches the ARCH and CROSS_COMPILE in
+> the build dir under include/generated/kernel.[arch,cross_compile], so
+> if you build using ARCH and CROSS_COMPILE once, it should remember
+> them until doing a clean build.
+
+Nice, sounds like we removed that hack just at the right moment then!
+
+Tony
