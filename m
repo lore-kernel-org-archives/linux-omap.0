@@ -1,231 +1,80 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in i2c
-Date: Wed, 30 Sep 2009 09:36:40 -0700
-Message-ID: <87bpkso0dj.fsf@deeprootsystems.com>
-References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
-	<1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
+Subject: Re: [PATCH] omap: resource: Fix race in register_resource()
+Date: Wed, 30 Sep 2009 09:44:37 -0700
+Message-ID: <871vloo00a.fsf@deeprootsystems.com>
+References: <1253230331-701-1-git-send-email-mike@android.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f191.google.com ([209.85.222.191]:51955 "EHLO
-	mail-pz0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752802AbZI3Qgj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 12:36:39 -0400
-Received: by pzk29 with SMTP id 29so4542402pzk.33
-        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 09:36:42 -0700 (PDT)
-In-Reply-To: <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Thu\, 17 Sep 2009 19\:28\:43 +0300")
+Received: from mail-px0-f194.google.com ([209.85.216.194]:36244 "EHLO
+	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752678AbZI3Qoi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 12:44:38 -0400
+Received: by pxi32 with SMTP id 32so5613200pxi.4
+        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 09:44:42 -0700 (PDT)
+In-Reply-To: <1253230331-701-1-git-send-email-mike@android.com> (Mike Chan's message of "Thu\, 17 Sep 2009 16\:32\:11 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: jhnikula@gmail.com, linux-omap@vger.kernel.org
+To: Mike Chan <mike@android.com>
+Cc: linux-omap@vger.kernel.org
 
-Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
+Mike Chan <mike@android.com> writes:
 
-> While waiting for completion of the i2c transfer, the
-> MPU could hit OFF mode and cause several msecs of
-> delay that made i2c transfers fail more often. The
-> extra delays and subsequent re-trys cause i2c clocks
-> to be active more often. This has also an negative
-> effect on power consumption.
+> Checking if the resource is already registered and adding to the list
+> must be atomic or bad things can happen.
 >
-> Added a constraint that allows MPU to wake up in few
-> hundred usecs, which is roughly the average i2c wait
-> period.
->
-> The constraint function is passed as platform data from
-> plat-omap/i2c.c and applied only on OMAP34XX devices.
+> Signed-off-by: Mike Chan <mike@android.com>
 
-Seems like the latency value should also be (optionally) passed in
-pdata so this can be experimented with per-platform.
-
-Other than that looks ok to me.
-
-Do we have an official OMAP I2C maintainer who should signoff on this?
+Thanks, this one applies.  Pushing to PM branch and pm-2.6.29.
 
 Kevin
 
-
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 > ---
->  arch/arm/plat-omap/i2c.c      |   49 +++++++++++++++++++++++++++++++----------
->  drivers/i2c/busses/i2c-omap.c |   17 +++++++++++---
->  include/linux/i2c-omap.h      |    9 +++++++
->  3 files changed, 59 insertions(+), 16 deletions(-)
->  create mode 100644 include/linux/i2c-omap.h
+>  arch/arm/plat-omap/resource.c |   13 ++++++++-----
+>  1 files changed, 8 insertions(+), 5 deletions(-)
 >
-> diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-> index 8b84839..d43d0ad 100644
-> --- a/arch/arm/plat-omap/i2c.c
-> +++ b/arch/arm/plat-omap/i2c.c
-> @@ -26,8 +26,10 @@
->  #include <linux/kernel.h>
->  #include <linux/platform_device.h>
->  #include <linux/i2c.h>
-> +#include <linux/i2c-omap.h>
->  #include <mach/irqs.h>
->  #include <mach/mux.h>
-> +#include <mach/omap-pm.h>
->  
->  #define OMAP_I2C_SIZE		0x3f
->  #define OMAP1_I2C_BASE		0xfffb3800
-> @@ -69,14 +71,14 @@ static struct resource i2c_resources[][2] = {
->  		},					\
->  	}
->  
-> -static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
-> +static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
->  static struct platform_device omap_i2c_devices[] = {
-> -	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
-> +	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
->  #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-> -	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
-> +	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
->  #endif
->  #if	defined(CONFIG_ARCH_OMAP34XX)
-> -	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
-> +	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
->  #endif
->  };
->  
-> @@ -100,6 +102,25 @@ static const int omap34xx_pins[][2] = {};
->  
->  #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
->  
-> +/**
-> + * omap_i2c_set_wfc_mpu_wkup_lat - sets mpu wake up constraint
-> + * @dev:	i2c bus device pointer
-> + * @set:	set or clear constraints
-> + *
-> + * When waiting for completion of a i2c transfer, we need to set a wake up
-> + * latency constraint for the MPU. This is to ensure quick enough wakeup
-> + * from idle, when transfer completes.
-> + */
-> +#ifdef CONFIG_ARCH_OMAP34XX
-> +static void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int set)
-> +{
-> +	omap_pm_set_max_mpu_wakeup_lat(dev, set ? 500 : -1);
-> +}
-> +#else
-> +static inline void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int set)
-> +{; }
-> +#endif
-> +
->  static void __init omap_i2c_mux_pins(int bus)
+> diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
+> index 111020a..4631912 100644
+> --- a/arch/arm/plat-omap/resource.c
+> +++ b/arch/arm/plat-omap/resource.c
+> @@ -255,6 +255,7 @@ int resource_refresh(void)
+>   */
+>  int resource_register(struct shared_resource *resp)
 >  {
->  	int scl, sda;
-> @@ -180,8 +201,8 @@ static int __init omap_i2c_bus_setup(char *str)
->  	get_options(str, 3, ints);
->  	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
->  		return 0;
-> -	i2c_rate[ints[1] - 1] = ints[2];
-> -	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
-> +	i2c_pdata[ints[1] - 1].clkrate = ints[2];
-> +	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
+> +	int ret = 0;
+>  	if (!resp)
+>  		return -EINVAL;
 >  
->  	return 1;
+> @@ -262,12 +263,13 @@ int resource_register(struct shared_resource *resp)
+>  		return -EINVAL;
+>  
+>  	/* Verify that the resource is not already registered */
+> -	if (resource_lookup(resp->name))
+> -		return -EEXIST;
+> +	down(&res_mutex);
+> +	if (_resource_lookup(resp->name))
+> +		ret = -EEXIST;
+> +		goto out;
+>  
+>  	INIT_LIST_HEAD(&resp->users_list);
+>  
+> -	down(&res_mutex);
+>  	/* Add the resource to the resource list */
+>  	list_add(&resp->node, &res_list);
+>  
+> @@ -275,10 +277,11 @@ int resource_register(struct shared_resource *resp)
+>  	if (resp->ops->init)
+>  		resp->ops->init(resp);
+>  
+> -	up(&res_mutex);
+>  	pr_debug("resource: registered %s\n", resp->name);
+>  
+> -	return 0;
+> +out:
+> +	up(&res_mutex);
+> +	return ret;
 >  }
-> @@ -195,9 +216,11 @@ static int __init omap_register_i2c_bus_cmdline(void)
->  {
->  	int i, err = 0;
+>  EXPORT_SYMBOL(resource_register);
 >  
-> -	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
-> -		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
-> -			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
-> +	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
-> +		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
-> +			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
-> +			i2c_pdata[i].set_mpu_wkup_lat =
-> +						omap_i2c_set_wfc_mpu_wkup_lat;
->  			err = omap_i2c_add_bus(i + 1);
->  			if (err)
->  				goto out;
-> @@ -231,9 +254,11 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
->  			return err;
->  	}
->  
-> -	if (!i2c_rate[bus_id - 1])
-> -		i2c_rate[bus_id - 1] = clkrate;
-> -	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
-> +	if (!i2c_pdata[bus_id - 1].clkrate)
-> +		i2c_pdata[bus_id - 1].clkrate = clkrate;
-> +
-> +	i2c_pdata[bus_id - 1].set_mpu_wkup_lat = omap_i2c_set_wfc_mpu_wkup_lat;
-> +	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
->  
->  	return omap_i2c_add_bus(bus_id);
->  }
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 75bf3ad..da6d276 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -37,6 +37,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/clk.h>
->  #include <linux/io.h>
-> +#include <linux/i2c-omap.h>
->  
->  /* I2C controller revisions */
->  #define OMAP_I2C_REV_2			0x20
-> @@ -165,6 +166,8 @@ struct omap_i2c_dev {
->  	struct clk		*fclk;		/* Functional clock */
->  	struct completion	cmd_complete;
->  	struct resource		*ioarea;
-> +	void			(*set_mpu_wkup_lat)(struct device *dev,
-> +						    int set);
->  	u32			speed;		/* Speed of bus in Khz */
->  	u16			cmd_err;
->  	u8			*buf;
-> @@ -526,8 +529,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->  	 * REVISIT: We should abort the transfer on signals, but the bus goes
->  	 * into arbitration and we're currently unable to recover from it.
->  	 */
-> +	dev->set_mpu_wkup_lat(dev->dev, 1);
->  	r = wait_for_completion_timeout(&dev->cmd_complete,
->  					OMAP_I2C_TIMEOUT);
-> +	dev->set_mpu_wkup_lat(dev->dev, 0);
->  	dev->buf_len = 0;
->  	if (r < 0)
->  		return r;
-> @@ -844,6 +849,7 @@ omap_i2c_probe(struct platform_device *pdev)
->  	struct omap_i2c_dev	*dev;
->  	struct i2c_adapter	*adap;
->  	struct resource		*mem, *irq, *ioarea;
-> +	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
->  	irq_handler_t isr;
->  	int r;
->  	u32 speed = 0;
-> @@ -873,10 +879,13 @@ omap_i2c_probe(struct platform_device *pdev)
->  		goto err_release_region;
->  	}
->  
-> -	if (pdev->dev.platform_data != NULL)
-> -		speed = *(u32 *)pdev->dev.platform_data;
-> -	else
-> -		speed = 100;	/* Defualt speed */
-> +	if (pdata != NULL) {
-> +		speed = pdata->clkrate;
-> +		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-> +	} else {
-> +		speed = 100;	/* Default speed */
-> +		dev->set_mpu_wkup_lat = NULL;
-> +	}
->  
->  	dev->speed = speed;
->  	dev->idle = 1;
-> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-> new file mode 100644
-> index 0000000..1362fba
-> --- /dev/null
-> +++ b/include/linux/i2c-omap.h
-> @@ -0,0 +1,9 @@
-> +#ifndef __I2C_OMAP_H__
-> +#define __I2C_OMAP_H__
-> +
-> +struct omap_i2c_bus_platform_data {
-> +	u32		clkrate;
-> +	void		(*set_mpu_wkup_lat)(struct device *dev, int set);
-> +};
-> +
-> +#endif
 > -- 
-> 1.5.4.3
+> 1.5.4.5
