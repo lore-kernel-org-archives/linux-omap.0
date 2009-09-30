@@ -1,80 +1,57 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] omap: resource: Fix race in register_resource()
-Date: Wed, 30 Sep 2009 09:44:37 -0700
-Message-ID: <871vloo00a.fsf@deeprootsystems.com>
-References: <1253230331-701-1-git-send-email-mike@android.com>
+Subject: Re: [PATCH] OMAP3:PM: reject disabled OPP
+Date: Wed, 30 Sep 2009 09:46:37 -0700
+Message-ID: <87ws3gmlci.fsf@deeprootsystems.com>
+References: <1253920492-28628-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f194.google.com ([209.85.216.194]:36244 "EHLO
-	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678AbZI3Qoi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 12:44:38 -0400
-Received: by pxi32 with SMTP id 32so5613200pxi.4
-        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 09:44:42 -0700 (PDT)
-In-Reply-To: <1253230331-701-1-git-send-email-mike@android.com> (Mike Chan's message of "Thu\, 17 Sep 2009 16\:32\:11 -0700")
+Received: from mail-pz0-f191.google.com ([209.85.222.191]:36511 "EHLO
+	mail-pz0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754516AbZI3Qqs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 12:46:48 -0400
+Received: by pzk29 with SMTP id 29so4551110pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 09:46:52 -0700 (PDT)
+In-Reply-To: <1253920492-28628-1-git-send-email-nm@ti.com> (Nishanth Menon's message of "Fri\, 25 Sep 2009 18\:14\:52 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Chan <mike@android.com>
-Cc: linux-omap@vger.kernel.org
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-Mike Chan <mike@android.com> writes:
+Nishanth Menon <nm@ti.com> writes:
 
-> Checking if the resource is already registered and adding to the list
-> must be atomic or bad things can happen.
+> when the omap_opp structures are disabled by setting the
+> frequency as 0 as below (as an example)
+> {0, VDD2_OPP1, 0x1E},
+> program_opp attempts to set voltage even after frequency
+> setting fails. we can instead return if we see invalid
+> values for either frequency or voltage
 >
-> Signed-off-by: Mike Chan <mike@android.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
 
-Thanks, this one applies.  Pushing to PM branch and pm-2.6.29.
+Looks good, pushing to PM branch.
 
 Kevin
 
 > ---
->  arch/arm/plat-omap/resource.c |   13 ++++++++-----
->  1 files changed, 8 insertions(+), 5 deletions(-)
+>  arch/arm/mach-omap2/resource34xx.c |    5 +++++
+>  1 files changed, 5 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
-> index 111020a..4631912 100644
-> --- a/arch/arm/plat-omap/resource.c
-> +++ b/arch/arm/plat-omap/resource.c
-> @@ -255,6 +255,7 @@ int resource_refresh(void)
->   */
->  int resource_register(struct shared_resource *resp)
->  {
-> +	int ret = 0;
->  	if (!resp)
->  		return -EINVAL;
->  
-> @@ -262,12 +263,13 @@ int resource_register(struct shared_resource *resp)
->  		return -EINVAL;
->  
->  	/* Verify that the resource is not already registered */
-> -	if (resource_lookup(resp->name))
-> -		return -EEXIST;
-> +	down(&res_mutex);
-> +	if (_resource_lookup(resp->name))
-> +		ret = -EEXIST;
-> +		goto out;
->  
->  	INIT_LIST_HEAD(&resp->users_list);
->  
-> -	down(&res_mutex);
->  	/* Add the resource to the resource list */
->  	list_add(&resp->node, &res_list);
->  
-> @@ -275,10 +277,11 @@ int resource_register(struct shared_resource *resp)
->  	if (resp->ops->init)
->  		resp->ops->init(resp);
->  
-> -	up(&res_mutex);
->  	pr_debug("resource: registered %s\n", resp->name);
->  
-> -	return 0;
-> +out:
-> +	up(&res_mutex);
-> +	return ret;
->  }
->  EXPORT_SYMBOL(resource_register);
->  
+> diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+> index 1693e9b..491e1dc 100644
+> --- a/arch/arm/mach-omap2/resource34xx.c
+> +++ b/arch/arm/mach-omap2/resource34xx.c
+> @@ -282,6 +282,11 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
+>  	t_opp = ID_VDD(res) | ID_OPP_NO(opp[target_level].opp_id);
+>  	c_opp = ID_VDD(res) | ID_OPP_NO(opp[current_level].opp_id);
+>  #endif
+> +
+> +	/* Sanity check of the OPP params before attempting to set */
+> +	if (!opp[target_level].rate || !opp[target_level].vsel)
+> +		return -EINVAL;
+> +
+>  	if (target_level > current_level)
+>  		raise = 1;
+>  	else
 > -- 
-> 1.5.4.5
+> 1.6.0.4
