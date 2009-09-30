@@ -1,74 +1,35 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][PATCH] omapfb: Condition mutex acquisition
-Date: Tue, 29 Sep 2009 17:53:10 -0700
-Message-ID: <20090930005310.GI16865@atomide.com>
-References: <A24693684029E5489D1D202277BE89444B781B6F@dlee02.ent.ti.com> <A24693684029E5489D1D202277BE89444B781B70@dlee02.ent.ti.com> <1254236004.23991.17.camel@tubuntu>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] omap3: ehci: remove chargepump hack
+Date: Wed, 30 Sep 2009 06:49:46 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A273E01@dbde02.ent.ti.com>
+References: <1253794017-25552-1-git-send-email-gadiyar@ti.com>
+ <20090924121051.GG4186@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A1C5936@dbde02.ent.ti.com>
+ <20090924124506.GH4186@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:57306 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080AbZI3AxJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 20:53:09 -0400
-Content-Disposition: inline
-In-Reply-To: <1254236004.23991.17.camel@tubuntu>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58103 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752562AbZI3BUm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 29 Sep 2009 21:20:42 -0400
+In-Reply-To: <20090924124506.GH4186@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: "ext Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Deak Imre (Nokia-D/Helsinki)" <imre.deak@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Tomi Valkeinen <tomi.valkeinen@nokia.com> [090929 07:54]:
-> On Tue, 2009-09-29 at 16:34 +0200, ext Aguirre Rodriguez, Sergio Alberto
-> wrote:
-> > From: Tomi Valkeinen [tomi.valkeinen@nokia.com]
-> > Sent: Tuesday, September 29, 2009 9:22 AM
-> > > On Tue, 2009-09-29 at 16:14 +0200, ext Aguirre Rodriguez, Sergio Alberto
-> > > wrote:
-> > > > From: Sergio Aguirre <saaguirre@ti.com>
-> > > >
-> > > > Acquiring mutex before framebuffer registration doesn't make sense,
-> > > > As there's no danger of external access to the memory related fields.
-> > > 
-> > > What problem does this patch solve? It makes the code more complex.
-> > > 
-> > 
-> > Tomi,
-> > 
-> > Thanks for your time.
-> > 
-> > The problem was that, during platform driver registration,
-> > this sequence was executed:
-> > 
-> > -> omapfb_probe
-> >    -> omapfb_do_probe
-> >       -> planes_init
-> >          -> fbinfo_init
-> >             -> set_fb_fix
-> >       ...
-> >       -> register_framebuffer
-> > 
-> > And then, inside that function, an attempt of acquiring a
-> > mutex failed, because it wasn't initialized before trying it:
-> > 
-> > mutex_lock(&fbi->mm_lock);
-> > 
-> > It is actually initialized later in omapfb_do_probe in register_framebuffer call.
-> > 
-> > So, how is the best to solve this then?
+> good, so:
 > 
-> Oh, I wasn't implying that there's something wrong with the fix, I just
-> didn't know what it was fixing =).
+> Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 > 
-> Looks like a valid fix to me.
 
-Tomi & Imre, do you want me to add this to the omap-fixes queue,
-or are you planning to send other fixes too?
+Thanks!
 
-If you want me to add it, please reply with your ack.
+Tony, could you merge this into the ehci branch please?
 
-I'll added it into omap-fixes-testing branch for now so we can
-get the omaps booted.
+http://patchwork.kernel.org/patch/49837/
 
-Regards,
-
-Tony
+- Anand
