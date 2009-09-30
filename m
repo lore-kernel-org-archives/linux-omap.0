@@ -1,37 +1,40 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH v2] omapfb: Condition mutex acquisition
-Date: Wed, 30 Sep 2009 13:34:04 -0400
-Message-ID: <notify-1254332043@atomide.com>
-References: <A24693684029E5489D1D202277BE89444C92BC78@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50723 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754518AbZI3ReE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 13:34:04 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1Mt343-0009wb-6b
-	for linux-omap@vger.kernel.org; Wed, 30 Sep 2009 17:34:08 +0000
-In-Reply-To: <A24693684029E5489D1D202277BE89444C92BC78@dlee02.ent.ti.com>
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH] CPUidle: always return with interrupts enabled
+Date: Wed, 30 Sep 2009 10:35:53 -0700
+Message-ID: <1254332153-23493-1-git-send-email-khilman@deeprootsystems.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754845AbZI3Rfw@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-pm@lists.linux-foundation.org
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+In the case where cpuidle_idle_call() returns before changing state
+due to a need_resched(), it was returning with IRQs disabled.
 
-Branch in linux-omap: omap-fixes-testing
+This patch ensures IRQs are (re)enabled before returning.
 
-Initial commit ID (Likely to change): e91f6e0df91a89a52fe822762af6d08c9eb8ddc4
+Reported-by: Hemanth V <hemanthv@ti.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ drivers/cpuidle/cpuidle.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-PatchWorks
-http://patchwork.kernel.org/patch/50686/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=e91f6e0df91a89a52fe822762af6d08c9eb8ddc4
-
-
+diff --git a/drivers/cpuidle/cpuidle.c b/drivers/cpuidle/cpuidle.c
+index ad41f19..12fdd39 100644
+--- a/drivers/cpuidle/cpuidle.c
++++ b/drivers/cpuidle/cpuidle.c
+@@ -76,8 +76,11 @@ static void cpuidle_idle_call(void)
+ #endif
+ 	/* ask the governor for the next state */
+ 	next_state = cpuidle_curr_governor->select(dev);
+-	if (need_resched())
++	if (need_resched()) {
++		local_irq_enable();
+ 		return;
++	}
++
+ 	target_state = &dev->states[next_state];
+ 
+ 	/* enter the state and update stats */
+-- 
+1.6.4.3
