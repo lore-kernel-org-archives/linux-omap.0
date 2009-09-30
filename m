@@ -1,103 +1,165 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP: PM: Export functions from OMAP NOOP PM interface
-Date: Wed, 30 Sep 2009 11:46:06 -0700
-Message-ID: <87y6nwl18x.fsf@deeprootsystems.com>
-References: <1253634858-7883-1-git-send-email-ameya.palande@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] input: fix rx51 board keymap
+Date: Wed, 30 Sep 2009 11:48:44 -0700
+Message-ID: <20090930184843.GQ16865@atomide.com>
+References: <1254317128-13954-1-git-send-email-amit.kucheria@verdurent.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f194.google.com ([209.85.216.194]:55672 "EHLO
-	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751804AbZI3SqE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 14:46:04 -0400
-Received: by pxi32 with SMTP id 32so5712224pxi.4
-        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 11:46:08 -0700 (PDT)
-In-Reply-To: <1253634858-7883-1-git-send-email-ameya.palande@nokia.com> (Ameya Palande's message of "Tue\, 22 Sep 2009 18\:54\:18 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755024AbZI3Sst@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1254317128-13954-1-git-send-email-amit.kucheria@verdurent.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Amit Kucheria <amit.kucheria@verdurent.com>
+Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, dtor@mail.ru, List Linux Omap <linux-omap@vger.kernel.org>, Lauri Leukkunen <lauri.leukkunen@nokia.com>, Samuel Ortiz <sameo@linux.intel.com>
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <ameya.palande@nokia.com>
-Cc: linux-omap@vger.kernel.org, paul@pwsan.com
 
-Ameya Palande <ameya.palande@nokia.com> writes:
+* Amit Kucheria <amit.kucheria@verdurent.com> [090930 06:26]:
+> The original driver was written with the KEY() macro defined as (col, row)
+> instead of (row, col) as defined by the matrix keypad infrastructure. So the
+> keymap was defined accordingly.
+> 
+> Since the driver that was merged upstream uses the matrix keypad
+> infrastructure, modify the keymap accordingly.
+> 
+> While we are at it, fix the comments in twl4030.h and define PERSISTENT_KEY as
+> (r,c) instead of (c, r)
+> 
+> Tested on a RX51 (N900) device.
+> 
+> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Lauri Leukkunen <lauri.leukkunen@nokia.com>
+> Cc: Samuel Ortiz <sameo@linux.intel.com>
 
-> Without this patch, a driver which uses these symbols will break when user
-> selects NOOP PM interface.
->
-> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-Thanks, applying to PM branch.
+Dimitry, will you queue this one?
 
-Kevin
+I'll also add it into omap-fixes-testing while waiting for it
+to go to mainline.
+
+Regards,
+
+Tony
+
 
 > ---
->  arch/arm/plat-omap/omap-pm-noop.c |    8 +++++++-
->  1 files changed, 7 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-> index 3b075de..10463a4 100644
-> --- a/arch/arm/plat-omap/omap-pm-noop.c
-> +++ b/arch/arm/plat-omap/omap-pm-noop.c
-> @@ -157,6 +157,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
+>  arch/arm/mach-omap2/board-rx51-peripherals.c |   78 +++++++++++++-------------
+>  include/linux/i2c/twl4030.h                  |    6 +-
+>  2 files changed, 42 insertions(+), 42 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> index b45ad31..c1af532 100644
+> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
+> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+> @@ -38,49 +38,49 @@
 >  
->  	return NULL;
->  }
-> +EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
+>  static int board_keymap[] = {
+>  	KEY(0, 0, KEY_Q),
+> -	KEY(0, 1, KEY_W),
+> -	KEY(0, 2, KEY_E),
+> -	KEY(0, 3, KEY_R),
+> -	KEY(0, 4, KEY_T),
+> -	KEY(0, 5, KEY_Y),
+> -	KEY(0, 6, KEY_U),
+> -	KEY(0, 7, KEY_I),
+> -	KEY(1, 0, KEY_O),
+> +	KEY(0, 1, KEY_O),
+> +	KEY(0, 2, KEY_P),
+> +	KEY(0, 3, KEY_COMMA),
+> +	KEY(0, 4, KEY_BACKSPACE),
+> +	KEY(0, 6, KEY_A),
+> +	KEY(0, 7, KEY_S),
+> +	KEY(1, 0, KEY_W),
+>  	KEY(1, 1, KEY_D),
+> -	KEY(1, 2, KEY_DOT),
+> -	KEY(1, 3, KEY_V),
+> -	KEY(1, 4, KEY_DOWN),
+> -	KEY(2, 0, KEY_P),
+> -	KEY(2, 1, KEY_F),
+> +	KEY(1, 2, KEY_F),
+> +	KEY(1, 3, KEY_G),
+> +	KEY(1, 4, KEY_H),
+> +	KEY(1, 5, KEY_J),
+> +	KEY(1, 6, KEY_K),
+> +	KEY(1, 7, KEY_L),
+> +	KEY(2, 0, KEY_E),
+> +	KEY(2, 1, KEY_DOT),
+>  	KEY(2, 2, KEY_UP),
+> -	KEY(2, 3, KEY_B),
+> -	KEY(2, 4, KEY_RIGHT),
+> -	KEY(3, 0, KEY_COMMA),
+> -	KEY(3, 1, KEY_G),
+> -	KEY(3, 2, KEY_ENTER),
+> +	KEY(2, 3, KEY_ENTER),
+> +	KEY(2, 5, KEY_Z),
+> +	KEY(2, 6, KEY_X),
+> +	KEY(2, 7, KEY_C),
+> +	KEY(3, 0, KEY_R),
+> +	KEY(3, 1, KEY_V),
+> +	KEY(3, 2, KEY_B),
+>  	KEY(3, 3, KEY_N),
+> -	KEY(4, 0, KEY_BACKSPACE),
+> -	KEY(4, 1, KEY_H),
+> -	KEY(4, 3, KEY_M),
+> +	KEY(3, 4, KEY_M),
+> +	KEY(3, 5, KEY_SPACE),
+> +	KEY(3, 6, KEY_SPACE),
+> +	KEY(3, 7, KEY_LEFT),
+> +	KEY(4, 0, KEY_T),
+> +	KEY(4, 1, KEY_DOWN),
+> +	KEY(4, 2, KEY_RIGHT),
+>  	KEY(4, 4, KEY_LEFTCTRL),
+> -	KEY(5, 1, KEY_J),
+> -	KEY(5, 2, KEY_Z),
+> -	KEY(5, 3, KEY_SPACE),
+> -	KEY(5, 4, KEY_LEFTSHIFT),
+> -	KEY(6, 0, KEY_A),
+> -	KEY(6, 1, KEY_K),
+> -	KEY(6, 2, KEY_X),
+> -	KEY(6, 3, KEY_SPACE),
+> -	KEY(6, 4, KEY_FN),
+> -	KEY(7, 0, KEY_S),
+> -	KEY(7, 1, KEY_L),
+> -	KEY(7, 2, KEY_C),
+> -	KEY(7, 3, KEY_LEFT),
+> -	KEY(0xff, 0, KEY_F6),
+> -	KEY(0xff, 1, KEY_F7),
+> -	KEY(0xff, 2, KEY_F8),
+> -	KEY(0xff, 4, KEY_F9),
+> -	KEY(0xff, 5, KEY_F10),
+> +	KEY(4, 5, KEY_RIGHTALT),
+> +	KEY(4, 6, KEY_LEFTSHIFT),
+> +	KEY(5, 0, KEY_Y),
+> +	KEY(6, 0, KEY_U),
+> +	KEY(7, 0, KEY_I),
+> +	KEY(7, 1, KEY_F7),
+> +	KEY(7, 2, KEY_F8),
+> +	KEY(0xff, 2, KEY_F9),
+> +	KEY(0xff, 4, KEY_F10),
+> +	KEY(0xff, 5, KEY_F11),
+>  };
 >  
->  void omap_pm_dsp_set_min_opp(u8 opp_id)
->  {
-> @@ -181,7 +182,7 @@ void omap_pm_dsp_set_min_opp(u8 opp_id)
->  	 *
->  	 */
->  }
-> -
-> +EXPORT_SYMBOL(omap_pm_dsp_set_min_opp);
+>  static struct matrix_keymap_data board_map_data = {
+> diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+> index 2d02dfd..508824e 100644
+> --- a/include/linux/i2c/twl4030.h
+> +++ b/include/linux/i2c/twl4030.h
+> @@ -349,11 +349,11 @@ struct twl4030_madc_platform_data {
+>  	int		irq_line;
+>  };
 >  
->  u8 omap_pm_dsp_get_opp(void)
->  {
-> @@ -197,6 +198,7 @@ u8 omap_pm_dsp_get_opp(void)
+> -/* Boards have uniqe mappings of {col, row} --> keycode.
+> - * Column and row are 4 bits, but range only from 0..7.
+> +/* Boards have uniqe mappings of {row, col} --> keycode.
+> + * Column and row are 8 bits each, but range only from 0..7.
+>   * a PERSISTENT_KEY is "always on" and never reported.
+>   */
+> -#define PERSISTENT_KEY(c, r)	KEY((c), (r), KEY_RESERVED)
+> +#define PERSISTENT_KEY(r, c)	KEY((r), (c), KEY_RESERVED)
 >  
->  	return 0;
->  }
-> +EXPORT_SYMBOL(omap_pm_dsp_get_opp);
->  
->  u8 omap_pm_vdd1_get_opp(void)
->  {
-> @@ -208,6 +210,7 @@ u8 omap_pm_vdd1_get_opp(void)
->  
->  	return 0;
->  }
-> +EXPORT_SYMBOL(omap_pm_vdd1_get_opp);
->  
->  u8 omap_pm_vdd2_get_opp(void)
->  {
-> @@ -219,6 +222,7 @@ u8 omap_pm_vdd2_get_opp(void)
->  
->  	return 0;
->  }
-> +EXPORT_SYMBOL(omap_pm_vdd2_get_opp);
->  
->  /*
->   * CPUFreq-originated constraint
-> @@ -259,6 +263,7 @@ void omap_pm_cpu_set_freq(unsigned long f)
->  	 * CDP should just be able to set the VDD1 OPP clock rate here.
->  	 */
->  }
-> +EXPORT_SYMBOL(omap_pm_cpu_set_freq);
->  
->  unsigned long omap_pm_cpu_get_freq(void)
->  {
-> @@ -270,6 +275,7 @@ unsigned long omap_pm_cpu_get_freq(void)
->  
->  	return 0;
->  }
-> +EXPORT_SYMBOL(omap_pm_cpu_get_freq);
->  
->  /*
->   * Device context loss tracking
+>  struct twl4030_keypad_data {
+>  	const struct matrix_keymap_data *keymap_data;
 > -- 
-> 1.6.2.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.6.3.3
+> 
