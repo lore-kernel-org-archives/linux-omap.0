@@ -1,21 +1,22 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 06/28] OMAP3: PM: SCM context save/restore
-Date: Thu,  1 Oct 2009 16:58:36 -0700
-Message-ID: <1254441538-9257-7-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 07/28] OMAP3: PM: SRAM restore function
+Date: Thu,  1 Oct 2009 16:58:37 -0700
+Message-ID: <1254441538-9257-8-git-send-email-khilman@deeprootsystems.com>
 References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-2-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-3-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-4-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-5-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-6-git-send-email-khilman@deeprootsystems.com>
+ <1254441538-9257-7-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-px0-f179.google.com ([209.85.216.179]:51872 "EHLO
 	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753817AbZJAX7H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 19:59:07 -0400
+	with ESMTP id S1753844AbZJAX7I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 19:59:08 -0400
 Received: by mail-px0-f179.google.com with SMTP id 9so694314pxi.4
-        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 16:59:11 -0700 (PDT)
-In-Reply-To: <1254441538-9257-6-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 16:59:13 -0700 (PDT)
+In-Reply-To: <1254441538-9257-7-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -23,194 +24,82 @@ Cc: Rajendra Nayak <rnayak@ti.com>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-This patch adds the System control module context save/restore
-
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/mach-omap2/control.c             |  151 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/control.h |    2 +
- 2 files changed, 153 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c           |   10 +++++++---
+ arch/arm/plat-omap/include/mach/sram.h |    1 +
+ arch/arm/plat-omap/sram.c              |    6 +++---
+ 3 files changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 060fc19..58ba6ee 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -92,6 +92,46 @@ struct omap3_scratchpad_sdrc_block {
-  */
- u32 omap3_arm_context[128];
- 
-+struct omap3_control_regs {
-+	u32 sysconfig;
-+	u32 devconf0;
-+	u32 mem_dftrw0;
-+	u32 mem_dftrw1;
-+	u32 msuspendmux_0;
-+	u32 msuspendmux_1;
-+	u32 msuspendmux_2;
-+	u32 msuspendmux_3;
-+	u32 msuspendmux_4;
-+	u32 msuspendmux_5;
-+	u32 sec_ctrl;
-+	u32 devconf1;
-+	u32 csirxfe;
-+	u32 iva2_bootaddr;
-+	u32 iva2_bootmod;
-+	u32 debobs_0;
-+	u32 debobs_1;
-+	u32 debobs_2;
-+	u32 debobs_3;
-+	u32 debobs_4;
-+	u32 debobs_5;
-+	u32 debobs_6;
-+	u32 debobs_7;
-+	u32 debobs_8;
-+	u32 prog_io0;
-+	u32 prog_io1;
-+	u32 dss_dpll_spreading;
-+	u32 core_dpll_spreading;
-+	u32 per_dpll_spreading;
-+	u32 usbhost_dpll_spreading;
-+	u32 pbias_lite;
-+	u32 temp_sensor;
-+	u32 sramldo4;
-+	u32 sramldo5;
-+	u32 csi;
-+};
-+
-+static struct omap3_control_regs control_context;
-+
- #define OMAP_CTRL_REGADDR(reg)		(omap2_ctrl_base + (reg))
- 
- void __init omap2_set_globals_control(struct omap_globals *omap2_globals)
-@@ -264,4 +304,115 @@ void omap3_save_scratchpad_contents(void)
- 		sizeof(sdrc_block_contents), &arm_context_addr, 4);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 378c2f6..9dbb5a0 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -748,6 +748,12 @@ static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
+ 	return 0;
  }
  
-+void omap3_control_save_context(void)
++void omap_push_sram_idle(void)
 +{
-+	control_context.sysconfig = omap_ctrl_readl(OMAP2_CONTROL_SYSCONFIG);
-+	control_context.devconf0 = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
-+	control_context.mem_dftrw0 =
-+			omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW0);
-+	control_context.mem_dftrw1 =
-+			omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW1);
-+	control_context.msuspendmux_0 =
-+			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_0);
-+	control_context.msuspendmux_1 =
-+			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_1);
-+	control_context.msuspendmux_2 =
-+			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_2);
-+	control_context.msuspendmux_3 =
-+			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_3);
-+	control_context.msuspendmux_4 =
-+			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_4);
-+	control_context.msuspendmux_5 =
-+			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_5);
-+	control_context.sec_ctrl = omap_ctrl_readl(OMAP2_CONTROL_SEC_CTRL);
-+	control_context.devconf1 = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
-+	control_context.csirxfe = omap_ctrl_readl(OMAP343X_CONTROL_CSIRXFE);
-+	control_context.iva2_bootaddr =
-+			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTADDR);
-+	control_context.iva2_bootmod =
-+			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTMOD);
-+	control_context.debobs_0 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(0));
-+	control_context.debobs_1 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(1));
-+	control_context.debobs_2 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(2));
-+	control_context.debobs_3 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(3));
-+	control_context.debobs_4 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(4));
-+	control_context.debobs_5 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(5));
-+	control_context.debobs_6 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(6));
-+	control_context.debobs_7 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(7));
-+	control_context.debobs_8 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(8));
-+	control_context.prog_io0 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO0);
-+	control_context.prog_io1 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
-+	control_context.dss_dpll_spreading =
-+			omap_ctrl_readl(OMAP343X_CONTROL_DSS_DPLL_SPREADING);
-+	control_context.core_dpll_spreading =
-+			omap_ctrl_readl(OMAP343X_CONTROL_CORE_DPLL_SPREADING);
-+	control_context.per_dpll_spreading =
-+			omap_ctrl_readl(OMAP343X_CONTROL_PER_DPLL_SPREADING);
-+	control_context.usbhost_dpll_spreading =
-+		omap_ctrl_readl(OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
-+	control_context.pbias_lite =
-+			omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
-+	control_context.temp_sensor =
-+			omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
-+	control_context.sramldo4 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO4);
-+	control_context.sramldo5 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO5);
-+	control_context.csi = omap_ctrl_readl(OMAP343X_CONTROL_CSI);
-+	return;
++	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
++					omap34xx_cpu_suspend_sz);
 +}
 +
-+void omap3_control_restore_context(void)
-+{
-+	omap_ctrl_writel(control_context.sysconfig, OMAP2_CONTROL_SYSCONFIG);
-+	omap_ctrl_writel(control_context.devconf0, OMAP2_CONTROL_DEVCONF0);
-+	omap_ctrl_writel(control_context.mem_dftrw0,
-+					OMAP343X_CONTROL_MEM_DFTRW0);
-+	omap_ctrl_writel(control_context.mem_dftrw1,
-+					OMAP343X_CONTROL_MEM_DFTRW1);
-+	omap_ctrl_writel(control_context.msuspendmux_0,
-+					OMAP2_CONTROL_MSUSPENDMUX_0);
-+	omap_ctrl_writel(control_context.msuspendmux_1,
-+					OMAP2_CONTROL_MSUSPENDMUX_1);
-+	omap_ctrl_writel(control_context.msuspendmux_2,
-+					OMAP2_CONTROL_MSUSPENDMUX_2);
-+	omap_ctrl_writel(control_context.msuspendmux_3,
-+					OMAP2_CONTROL_MSUSPENDMUX_3);
-+	omap_ctrl_writel(control_context.msuspendmux_4,
-+					OMAP2_CONTROL_MSUSPENDMUX_4);
-+	omap_ctrl_writel(control_context.msuspendmux_5,
-+					OMAP2_CONTROL_MSUSPENDMUX_5);
-+	omap_ctrl_writel(control_context.sec_ctrl, OMAP2_CONTROL_SEC_CTRL);
-+	omap_ctrl_writel(control_context.devconf1, OMAP343X_CONTROL_DEVCONF1);
-+	omap_ctrl_writel(control_context.csirxfe, OMAP343X_CONTROL_CSIRXFE);
-+	omap_ctrl_writel(control_context.iva2_bootaddr,
-+					OMAP343X_CONTROL_IVA2_BOOTADDR);
-+	omap_ctrl_writel(control_context.iva2_bootmod,
-+					OMAP343X_CONTROL_IVA2_BOOTMOD);
-+	omap_ctrl_writel(control_context.debobs_0, OMAP343X_CONTROL_DEBOBS(0));
-+	omap_ctrl_writel(control_context.debobs_1, OMAP343X_CONTROL_DEBOBS(1));
-+	omap_ctrl_writel(control_context.debobs_2, OMAP343X_CONTROL_DEBOBS(2));
-+	omap_ctrl_writel(control_context.debobs_3, OMAP343X_CONTROL_DEBOBS(3));
-+	omap_ctrl_writel(control_context.debobs_4, OMAP343X_CONTROL_DEBOBS(4));
-+	omap_ctrl_writel(control_context.debobs_5, OMAP343X_CONTROL_DEBOBS(5));
-+	omap_ctrl_writel(control_context.debobs_6, OMAP343X_CONTROL_DEBOBS(6));
-+	omap_ctrl_writel(control_context.debobs_7, OMAP343X_CONTROL_DEBOBS(7));
-+	omap_ctrl_writel(control_context.debobs_8, OMAP343X_CONTROL_DEBOBS(8));
-+	omap_ctrl_writel(control_context.prog_io0, OMAP343X_CONTROL_PROG_IO0);
-+	omap_ctrl_writel(control_context.prog_io1, OMAP343X_CONTROL_PROG_IO1);
-+	omap_ctrl_writel(control_context.dss_dpll_spreading,
-+					OMAP343X_CONTROL_DSS_DPLL_SPREADING);
-+	omap_ctrl_writel(control_context.core_dpll_spreading,
-+					OMAP343X_CONTROL_CORE_DPLL_SPREADING);
-+	omap_ctrl_writel(control_context.per_dpll_spreading,
-+					OMAP343X_CONTROL_PER_DPLL_SPREADING);
-+	omap_ctrl_writel(control_context.usbhost_dpll_spreading,
-+				OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
-+	omap_ctrl_writel(control_context.pbias_lite,
-+					OMAP343X_CONTROL_PBIAS_LITE);
-+	omap_ctrl_writel(control_context.temp_sensor,
-+					OMAP343X_CONTROL_TEMP_SENSOR);
-+	omap_ctrl_writel(control_context.sramldo4, OMAP343X_CONTROL_SRAMLDO4);
-+	omap_ctrl_writel(control_context.sramldo5, OMAP343X_CONTROL_SRAMLDO5);
-+	omap_ctrl_writel(control_context.csi, OMAP343X_CONTROL_CSI);
-+	return;
-+}
- #endif /* CONFIG_ARCH_OMAP3 */
-diff --git a/arch/arm/plat-omap/include/mach/control.h b/arch/arm/plat-omap/include/mach/control.h
-index 5e78782..db53489 100644
---- a/arch/arm/plat-omap/include/mach/control.h
-+++ b/arch/arm/plat-omap/include/mach/control.h
-@@ -223,6 +223,8 @@ extern void omap3_save_scratchpad_contents(void);
- extern void omap3_clear_scratchpad_contents(void);
- extern u32 *get_restore_pointer(void);
- extern u32 omap3_arm_context[128];
-+extern void omap3_control_save_context(void);
-+extern void omap3_control_restore_context(void);
+ static int __init omap3_pm_init(void)
+ {
+ 	struct power_state *pwrst, *tmp;
+@@ -785,9 +791,7 @@ static int __init omap3_pm_init(void)
+ 		goto err2;
+ 	}
  
+-	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
+-					 omap34xx_cpu_suspend_sz);
+-
++	omap_push_sram_idle();
+ #ifdef CONFIG_SUSPEND
+ 	suspend_set_ops(&omap_pm_ops);
+ #endif /* CONFIG_SUSPEND */
+diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/include/mach/sram.h
+index 8974e3f..a943014 100644
+--- a/arch/arm/plat-omap/include/mach/sram.h
++++ b/arch/arm/plat-omap/include/mach/sram.h
+@@ -67,5 +67,6 @@ extern u32 omap3_sram_configure_core_dpll(
+ 			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
+ 			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
+ extern unsigned long omap3_sram_configure_core_dpll_sz;
++extern void omap_push_sram_idle(void);
+ 
+ #endif
+diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+index 925f647..4f064b2 100644
+--- a/arch/arm/plat-omap/sram.c
++++ b/arch/arm/plat-omap/sram.c
+@@ -395,14 +395,14 @@ u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
+ 			sdrc_actim_ctrl_b_1, sdrc_mr_1);
+ }
+ 
+-/* REVISIT: Should this be same as omap34xx_sram_init() after off-idle? */
+-void restore_sram_functions(void)
++void omap3_sram_restore_context(void)
+ {
+ 	omap_sram_ceil = omap_sram_base + omap_sram_size;
+ 
+ 	_omap3_sram_configure_core_dpll =
+ 		omap_sram_push(omap3_sram_configure_core_dpll,
+ 			       omap3_sram_configure_core_dpll_sz);
++	omap_push_sram_idle();
+ }
+ 
+ int __init omap34xx_sram_init(void)
+@@ -410,7 +410,7 @@ int __init omap34xx_sram_init(void)
+ 	_omap3_sram_configure_core_dpll =
+ 		omap_sram_push(omap3_sram_configure_core_dpll,
+ 			       omap3_sram_configure_core_dpll_sz);
+-
++	omap_push_sram_idle();
+ 	return 0;
+ }
  #else
- #define omap_ctrl_base_get()		0
 -- 
 1.6.4.3
 
