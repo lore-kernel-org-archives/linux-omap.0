@@ -1,48 +1,27 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v3 0/4] TWL6030 patch series
-Date: Thu, 01 Oct 2009 11:37:53 -0700
-Message-ID: <87ocorc64e.fsf@deeprootsystems.com>
-References: <19F8576C6E063C45BE387C64729E73940436CF8BFA@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH 0/2] twl4030 power support for 3430SDP
+Date: Thu,  1 Oct 2009 11:54:20 -0700
+Message-ID: <1254423262-25380-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:46969 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755926AbZJAShw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 14:37:52 -0400
-Received: by pxi9 with SMTP id 9so449905pxi.4
-        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 11:37:56 -0700 (PDT)
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940436CF8BFA@dbde02.ent.ti.com> (Balaji T. Krishnamoorthy's message of "Thu\, 1 Oct 2009 17\:52\:04 +0530")
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:64592 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752714AbZJASyZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 14:54:25 -0400
+Received: by pzk7 with SMTP id 7so351457pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 11:54:29 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "p_gortmaker@yahoo.com" <p_gortmaker@yahoo.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-"Krishnamoorthy, Balaji T" <balajitk@ti.com> writes:
+I've been carrying these in the PM branch, but now that twl4030 power
+support is in mainline, these can be queued for 2.6.33.
 
-> This patch series v3 incorporates comments received earlier[1].
->
-> The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
-> for OMAP3. This patch series adds support for TWL6030 irq framework, and 
-> driver support for RTC and regulator.
->
-> These patches has dependancy on TWL patch series[2]
-> 	[PATCH v3 01/04] OMAP4: PMIC: Add support for twl6030 irq framework
-> 	[PATCH v3 02/04] OMAP4: PMIC: Add support for twl6030 RTC
-> 	[PATCH v3 03/04] OMAP4: PMIC: Add support for twl6030 regulators
-> 	[PATCH v3 04/04] OMAP4: PMIC: Update TWL mfd driver to create twl6030 
-> 				Regulators
->
-> [1] http://marc.info/?l=linux-omap&m=125050037530307&w=2
-> [RFC][PATCH 0/4] TWL6030 patch series
->
-> [2] http://marc.info/?l=linux-omap&m=125439874001377&w=2
-> [PATCH v3 0/4] TWL patch series
+Kevin Hilman (1):
+  OMAP3: PM: 3430SDP: add initial twl4030 power scripts
 
-In the future, please report what platforms this was tested on and
-whether it was just compile tested, boot tested or actually
-functionally tested.
+Rajendra Nayak (1):
+  OMAP3: PM: 3430SDP: Update twl4030 power scripts and device groups
 
-Thanks,
+ arch/arm/mach-omap2/board-3430sdp.c |   93 ++++++++++++++++++++++++++++++++++-
+ 1 files changed, 91 insertions(+), 2 deletions(-)
 
-Kevin
