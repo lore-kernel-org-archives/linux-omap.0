@@ -1,106 +1,141 @@
-From: Mike Chan <mike@android.com>
-Subject: Re: [PATCH] omap: resource: Fix race in register_resource()
-Date: Wed, 30 Sep 2009 16:58:19 -0700
-Message-ID: <8bb80c380909301658v1155ba22ned015b2c59c519b@mail.gmail.com>
-References: <1253230331-701-1-git-send-email-mike@android.com>
-	 <874oqkj8mx.fsf@deeprootsystems.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: linux-omap git tree updated to v2.6.32-rc1, important changes,
+	please read
+Date: Thu, 1 Oct 2009 09:34:37 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BAEE8C41@dbde02.ent.ti.com>
+References: <20090928190404.GE18957@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BADAC1AD@dbde02.ent.ti.com>
+ <20090930175506.GO16865@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f194.google.com ([209.85.216.194]:62102 "EHLO
-	mail-px0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709AbZI3X6P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 30 Sep 2009 19:58:15 -0400
-Received: by pxi32 with SMTP id 32so5914093pxi.4
-        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 16:58:20 -0700 (PDT)
-In-Reply-To: <874oqkj8mx.fsf@deeprootsystems.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:46059 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750775AbZJAEEk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 00:04:40 -0400
+In-Reply-To: <20090930175506.GO16865@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Sep 30, 2009 at 4:49 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> Mike Chan <mike@android.com> writes:
->
->> Checking if the resource is already registered and adding to the lis=
-t
->> must be atomic or bad things can happen.
->>
->> Signed-off-by: Mike Chan <mike@android.com>
->> ---
->> =A0arch/arm/plat-omap/resource.c | =A0 13 ++++++++-----
->> =A01 files changed, 8 insertions(+), 5 deletions(-)
->>
->> diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/reso=
-urce.c
->> index 111020a..4631912 100644
->> --- a/arch/arm/plat-omap/resource.c
->> +++ b/arch/arm/plat-omap/resource.c
->> @@ -255,6 +255,7 @@ int resource_refresh(void)
->> =A0 */
->> =A0int resource_register(struct shared_resource *resp)
->> =A0{
->> + =A0 =A0 int ret =3D 0;
->> =A0 =A0 =A0 if (!resp)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->>
->> @@ -262,12 +263,13 @@ int resource_register(struct shared_resource *=
-resp)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
->>
->> =A0 =A0 =A0 /* Verify that the resource is not already registered */
->> - =A0 =A0 if (resource_lookup(resp->name))
->> - =A0 =A0 =A0 =A0 =A0 =A0 return -EEXIST;
->> + =A0 =A0 down(&res_mutex);
->> + =A0 =A0 if (_resource_lookup(resp->name))
->> + =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -EEXIST;
->> + =A0 =A0 =A0 =A0 =A0 =A0 goto out;
->
-> Ahem, you're rebased version has a little problem. =A0Missing {} bloc=
-k
-> mans this goto is always executed and no resources are ever added.
->
-> I'll fix this up manually before applying, but some more testing next
-> time would be helpful
->
 
-Opps, sorry about that :/ and thanks for cleaning it up.
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, September 30, 2009 11:25 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
+> please read
+> 
+> Hi,
+> 
+> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [090929 03:54]:
+> 
+> <snip>
+> 
+> > Thanks for fixing the OMAP4 compilation issues. We need below patch to
+> make the kernel boot on OMAP4430 on the latest LO master.
+> 
+> No problem. In the future, let's make sure the omap4 patches are merged
+> into l-o master branch for testing. This time the first three patches
+> in the omap-fixes branch were build breakage caused by the omap4 patches
+> directly or indirectly..
+Agree!! 
+> Also, please everybody check that your patches don't break the build
+> for other the omaps, and also boot test on some other omaps if someting
+> looks risky.
+> 
+> Few comments below.
+> 
+> >
+> > From d9a22d9f7b68b99aa9607bdab377d998dfe82acd Mon Sep 17 00:00:00 2001
+> > From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Date: Tue, 29 Sep 2009 16:10:46 +0530
+> > Subject: [PATCH] ARM: OMAP4: Allow omap_serial_early_init() for OMAP4430
+> board
+> >
+> > This patch enables omap_serial_early_init() function for OMAP4430
+> > SDP. Without this the bootup would throw opps in omap_serial_init().
+> 
+> The opps probably should be oops above :)
 
--- Mike
+YEP :)
 
-> Thanks,
->
-> Kevin
->
->
->> =A0 =A0 =A0 INIT_LIST_HEAD(&resp->users_list);
->>
->> - =A0 =A0 down(&res_mutex);
->> =A0 =A0 =A0 /* Add the resource to the resource list */
->> =A0 =A0 =A0 list_add(&resp->node, &res_list);
->>
->> @@ -275,10 +277,11 @@ int resource_register(struct shared_resource *=
-resp)
->> =A0 =A0 =A0 if (resp->ops->init)
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 resp->ops->init(resp);
->>
->> - =A0 =A0 up(&res_mutex);
->> =A0 =A0 =A0 pr_debug("resource: registered %s\n", resp->name);
->>
->> - =A0 =A0 return 0;
->> +out:
->> + =A0 =A0 up(&res_mutex);
->> + =A0 =A0 return ret;
->> =A0}
->> =A0EXPORT_SYMBOL(resource_register);
->>
->> --
->> 1.5.4.5
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Additionally the patch removed the merge issue for the UART4.
+> >
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-4430sdp.c |    4 ++--
+> >  arch/arm/mach-omap2/io.c            |    2 ++
+> >  arch/arm/mach-omap2/serial.c        |   10 ----------
+> >  3 files changed, 4 insertions(+), 12 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-
+> omap2/board-4430sdp.c
+> > index eb37c40..609a5a4 100644
+> > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > @@ -58,6 +58,8 @@ static void __init gic_init_irq(void)
+> >
+> >  static void __init omap_4430sdp_init_irq(void)
+> >  {
+> > +	omap_board_config = sdp4430_config;
+> > +	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
+> >  	omap2_init_common_hw(NULL, NULL);
+> >  #ifdef CONFIG_OMAP_32K_TIMER
+> >  	omap2_gp_clockevent_set_gptimer(1);
+> > @@ -70,8 +72,6 @@ static void __init omap_4430sdp_init_irq(void)
+> >  static void __init omap_4430sdp_init(void)
+> >  {
+> >  	platform_add_devices(sdp4430_devices, ARRAY_SIZE(sdp4430_devices));
+> > -	omap_board_config = sdp4430_config;
+> > -	omap_board_config_size = ARRAY_SIZE(sdp4430_config);
+> >  	omap_serial_init();
+> >  }
+> >
+> > diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+> > index e3a3bad..56be87d 100644
+> > --- a/arch/arm/mach-omap2/io.c
+> > +++ b/arch/arm/mach-omap2/io.c
+> > @@ -302,7 +302,9 @@ void __init omap2_init_common_hw(struct
+> omap_sdrc_params *sdrc_cs0,
+> >  	pwrdm_init(powerdomains_omap);
+> >  	clkdm_init(clockdomains_omap, clkdm_pwrdm_autodeps);
+> >  	omap2_clk_init();
+> > +#endif
+> >  	omap_serial_early_init();
+> > +#ifndef CONFIG_ARCH_OMAP4
+> >  	omap_hwmod_late_init();
+> >  	omap_pm_if_init();
+> >  	omap2_sdrc_init(sdrc_cs0, sdrc_cs1);
+> > diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> > index ae21868..54dfeb5 100644
+> > --- a/arch/arm/mach-omap2/serial.c
+> > +++ b/arch/arm/mach-omap2/serial.c
+> > @@ -109,16 +109,6 @@ static struct plat_serial8250_port
+> serial_platform_data2[] = {
+> >  		.regshift	= 2,
+> >  		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+> >  	}, {
+> > -#ifdef CONFIG_ARCH_OMAP4
+> > -		.membase	= OMAP2_IO_ADDRESS(OMAP_UART4_BASE),
+> > -		.mapbase	= OMAP_UART4_BASE,
+> > -		.irq		= 70,
+> > -		.flags		= UPF_BOOT_AUTOCONF,
+> > -		.iotype		= UPIO_MEM,
+> > -		.regshift	= 2,
+> > -		.uartclk	= OMAP24XX_BASE_BAUD * 16,
+> > -	}, {
+> > -#endif
+> >  		.flags		= 0
+> >  	}
+> >  };
+> 
+> Can't we fix the extra uart instead of removing it? We just added it!
+> It's still there in omap4, right?
+This is already fixed. Above piece is not necessary since there is a separate instance for UART4 (serial_platform_data3[])
+Regards,
+Santosh
