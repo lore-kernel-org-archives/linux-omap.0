@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 18/28] PM: Changed secure RAM storage size from 0x8000 to 0x803F
-Date: Thu,  1 Oct 2009 16:58:48 -0700
-Message-ID: <1254441538-9257-19-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 17/28] PM: Added three PLL registers to the PRCM context save
+Date: Thu,  1 Oct 2009 16:58:47 -0700
+Message-ID: <1254441538-9257-18-git-send-email-khilman@deeprootsystems.com>
 References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-2-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-3-git-send-email-khilman@deeprootsystems.com>
@@ -19,15 +19,14 @@ References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-15-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-16-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-17-git-send-email-khilman@deeprootsystems.com>
- <1254441538-9257-18-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:51872 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755060AbZJAX71 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 19:59:27 -0400
-Received: by mail-px0-f179.google.com with SMTP id 9so694314pxi.4
-        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 16:59:31 -0700 (PDT)
-In-Reply-To: <1254441538-9257-18-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:58920 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754909AbZJAX7Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 19:59:25 -0400
+Received: by mail-pz0-f177.google.com with SMTP id 7so574597pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 16:59:30 -0700 (PDT)
+In-Reply-To: <1254441538-9257-17-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -35,26 +34,60 @@ Cc: Tero Kristo <tero.kristo@nokia.com>
 
 From: Tero Kristo <tero.kristo@nokia.com>
 
-Without this, causes some random crashes related to memory management.
+These registers are now also saved:
+	CM_CLKSEL4
+	CM_CLKEN
+	CM_CLKEN2
 
 Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/prcm.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 5e24552..e58eebb 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -1027,7 +1027,7 @@ static int __init omap3_pm_init(void)
- 
- 	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
- 		omap3_secure_ram_storage =
--			kmalloc(0x8000, GFP_KERNEL);
-+			kmalloc(0x803F, GFP_KERNEL);
- 		if (!omap3_secure_ram_storage)
- 			printk(KERN_ERR "Memory allocation failed when"
- 					"allocating for secure sram context\n");
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 00abfb4..9322447 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -49,7 +49,10 @@ struct omap3_prcm_regs {
+ 	u32 emu_cm_clksel;
+ 	u32 emu_cm_clkstctrl;
+ 	u32 pll_cm_autoidle2;
++	u32 pll_cm_clksel4;
+ 	u32 pll_cm_clksel5;
++	u32 pll_cm_clken;
++	u32 pll_cm_clken2;
+ 	u32 cm_polctrl;
+ 	u32 iva2_cm_fclken;
+ 	u32 core_cm_fclken1;
+@@ -276,8 +279,14 @@ void omap3_prcm_save_context(void)
+ 			 cm_read_mod_reg(OMAP3430_EMU_MOD, CM_CLKSTCTRL);
+ 	prcm_context.pll_cm_autoidle2 =
+ 			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE2);
++	prcm_context.pll_cm_clksel4 =
++			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
+ 	prcm_context.pll_cm_clksel5 =
+ 			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
++	prcm_context.pll_cm_clken =
++			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
++	prcm_context.pll_cm_clken2 =
++			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+ 	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
+ 	prcm_context.iva2_cm_fclken =
+ 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_FCLKEN);
+@@ -423,8 +432,13 @@ void omap3_prcm_restore_context(void)
+ 					 CM_CLKSTCTRL);
+ 	cm_write_mod_reg(prcm_context.pll_cm_autoidle2, PLL_MOD,
+ 					 CM_AUTOIDLE2);
++	cm_write_mod_reg(prcm_context.pll_cm_clksel4, PLL_MOD,
++					OMAP3430ES2_CM_CLKSEL4);
+ 	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
+ 					 OMAP3430ES2_CM_CLKSEL5);
++	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
++	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
++					OMAP3430ES2_CM_CLKEN2);
+ 	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
+ 	cm_write_mod_reg(prcm_context.iva2_cm_fclken, OMAP3430_IVA2_MOD,
+ 					 CM_FCLKEN);
 -- 
 1.6.4.3
 
