@@ -1,157 +1,34 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss clocks 	only when needed.
-Date: Thu, 01 Oct 2009 09:19:22 -0700
-Message-ID: <87ab0bf5o5.fsf@deeprootsystems.com>
-References: <1253230586-931-1-git-send-email-mike@android.com>
-	<1253262472.28956.10.camel@tubuntu>
-	<8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
-	<1253514408.4690.5.camel@tubuntu> <877hvrf2sj.fsf@deeprootsystems.com>
-	<1253690451.14841.40.camel@tubuntu>
-	<87my4lbr86.fsf@deeprootsystems.com>
-	<1253788763.17009.282.camel@tubuntu>
-	<4ABB95A6.7000503@deeprootsystems.com>
-	<1253870386.21734.20.camel@tubuntu>
-	<636c5030909301131k3f6f7ca0v1f4327d07fd0f9b7@mail.gmail.com>
-	<1254408050.29174.24.camel@tubuntu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCHv3 0/1] Runtime detection of Si features
+Date: Thu,  1 Oct 2009 22:54:55 +0530
+Message-ID: <1254417895-3716-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:40165 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991AbZJAQTb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 12:19:31 -0400
-Received: by pzk7 with SMTP id 7so202179pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 09:19:34 -0700 (PDT)
-In-Reply-To: <1254408050.29174.24.camel@tubuntu> (Tomi Valkeinen's message of "Thu\, 01 Oct 2009 17\:40\:50 +0300")
+Received: from devils.ext.ti.com ([198.47.26.153]:49352 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215AbZJARY4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 13:24:56 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n91HOvw5006027
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 1 Oct 2009 12:24:59 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: ext Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
+This version is essentially same patch as [1]; but
+refreshed against the tip (2bf0f78). The change in
+text corresponding to the closing #endif in cpu.h
+required change in the last line of the patch.
 
-> On Wed, 2009-09-30 at 20:31 +0200, ext Kevin Hilman wrote:
->> On Fri, Sep 25, 2009 at 2:19 AM, Tomi Valkeinen
->> <tomi.valkeinen@nokia.com> wrote:
->> > On Thu, 2009-09-24 at 17:52 +0200, ext Kevin Hilman wrote:
->> >> Tomi Valkeinen wrote:
->> >
->> >> > If it is not like that, and the driver initialization is included, how
->> >> > does the PM layer know how long it takes for the DSS driver to
->> >> > reconfigure the DSS hardware from OFF mode?
->> >>
->> >> Currently it doesn't, but if you were measure it, we can use those
->> >> numbers in the decision making process.
->> >
->> > Ok, now I see. However, I'm not sure if that will work. The problem is
->> > that the wakeup latency depends on many things. When using DPI/RFBI the
->> > wakeup is very fast. With SDI it's probably a bit slower and with DSI
->> > even slower.
->> 
->> The varying latencies are not an issues.  When in the different modes,
->> just register a different latency requirement.
->
-> How does that help? The problem is not that there are different max
-> latency requirements in different modes, but that the actual wake-up
-> latency varies.
->
-> I found some latency values in resource34xx.h. If they are what I
-> presume they are, they define that waking DSS from OFF takes 70us. Let's
-> presume it's correct for DPI, so reconfiguring DSS for DPI use takes
-> ~70us.
->
-> But reconfiguring DSS for DSI use may take, say, 5000us. So if I set max
-> latency req to 100us, OFF mode will be "enabled", and it will work fine
-> for DPI. But for DSI we will get lantencies around 5000us.
->
-> So is there an API to change that value in resource34xx.h dynamically,
-> depending on what DSS block is in use? Or am I still missing something
-> here? =)
+  [1] http://patchwork.kernel.org/patch/41989/
 
-You're right, we currently do not have a way to dynamically update
-this table and we should for completeness.
+Sanjeev Premi (1):
+  Runtime detection of Si features
 
->> 
->> > And at least with DSI PLL, the wakeup time depends on the frequencies
->> > used (according to TRM), and in some cases it can be optimized, in some
->> > cases not. So I don't think there's one single value that fits all.
->> 
->> A single value isn't necessary.
->> 
->> > Also, I still think it would be better if the driver was also able to
->> > prevent OFF mode explicitely. Defining the max-wakeup-lat with a magic
->> > number sounds a bit prone to breaking up.
->> 
->> I disagree.  What is important is that the driver communicates *why*
->> it needs to prevent OFF mode (can't handle the latency etc.)  and
->> decision making up to the PM core.  The drivers should not embed
->> policy in them.
->> 
->> > But perhaps, as you said, when drivers work properly they don't have to
->> > care about OFF mode as such, but only about the wakeup latency, and thus
->> > the max-wakeup-lat is enough. I'm just not quite sure about that, as OFF
->> > mode may have side effects as the module is totally powered off, while
->> > with RET the side effects should be minimal.
->> >
->> > I don't have any concrete example about the side effects, but one
->> > particular thing I'm thinking about is DSI PLL. If DSS is in RET, I
->> > believe DSI PLL works normally. But if the DSS is reset via OFF mode, I
->> > believe DSI PLL is also reset. But I'm not sure if DSI PLL is ever
->> > needed while DSS would be off, so this may be theoretical =).
->> >
->> >  Tomi
->> 
->> This problem is not unique to DSS, and the other drivers are handling this.
->
-> So, how can that DSI PLL example be done? An example use case for the
-> above could be a DSI peripheral that requires continuous DSI clock
-> (generated by DSI PLL). OFF mode would kill that clock, while RET would
-> not. Here we are not interested in latencies, but only in that the DSS
-> block is not powered off.
+ arch/arm/mach-omap2/id.c                  |   52 +++++++++++++++++++++++++++--
+ arch/arm/mach-omap2/mmc-twl4030.c         |    1 +
+ arch/arm/plat-omap/include/mach/control.h |   34 +++++++++++++++++++
+ arch/arm/plat-omap/include/mach/cpu.h     |   23 +++++++++++++
+ 4 files changed, 107 insertions(+), 3 deletions(-)
 
-Excuse my ignorance of the DSS/DSI/etc., but if a DSI periperal is use
-that requires a continual DSI clock then shouldn't the driver always
-keep the DSI clock enabled (iow, it should never call clk_disable()).
-If a clock is left enabled, even if OFF-mode is targetted for that
-powerdomain, it will not reach OFF because the clockdomain is active.
-
-> Well, I have to say that this example may be a bit far fetched, I'm
-> not 100% sure how the HW works. It may be that it's enough to keep
-> the DSI power on to keep the DSI clock going. Or not. But the point
-> was that perhaps there are situations where OFF mode has side
-> effects, while RET doesn't. And in these cases the driver wants to
-> disable OFF mode, but doesn't care about the latencies.
-
-I think those specific cases should be explored rather than just
-trying to disable OFF mode at a high level.  As I said before, for
-good PM, we really want to have a good understanding of all the
-reasons for preventing off-mode, with well documented constraints.
-
-In the special cases or special modes that might have OFF-mode side
-effects where latency is not the cocern, then those should be handled
-by the driver by leaving the (sub)modules active/on or by leaving
-clocks enabled for those modes.
-
-So, getting back to the problem of how to prevent DSS OFF because of
-latency, the right API to use is
-
-   omap_pm_set_max_dev_wakeup_lat()
-
-The latency passed in is compared to the device-specific latencies in
-the table you found and that device's powerdomain state is set
-accordingly.
-
-BUT, this currently doesn't work. :(
-
-The problem is that while the omap_device infrastructure is now in
-mainline, this API will not work until an omap_device is implemented
-for the DSS module.
-
-After I finish pushing a new PM branch based on 2.6.32, I can have a
-look at the current DSS driver and make a proposal/patch for how to
-add an omap_device.  
-
-In the DSS git, the master branch seems to be based at 2.6.31-rc5.  Do
-you have an updated version against 2.6.32-rc1 or omap/master?
-
-Kevin
