@@ -1,17 +1,17 @@
 From: Roger Quadros <ext-roger.quadros@nokia.com>
 Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
  	please read
-Date: Thu, 01 Oct 2009 11:30:59 +0300
-Message-ID: <4AC468C3.9040302@nokia.com>
+Date: Thu, 01 Oct 2009 11:31:48 +0300
+Message-ID: <4AC468F4.1070406@nokia.com>
 References: <20090928190404.GE18957@atomide.com>	 <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>	 <20090929182639.GA16865@atomide.com> <4AC37F0E.8010206@nokia.com>	 <71a0d6ff0909301002k7e56b7falfdc8d5e445487d29@mail.gmail.com>	 <5A47E75E594F054BAF48C5E4FC4B92AB030A2741E2@dbde02.ent.ti.com>	 <20090930173132.GN16865@atomide.com> <4AC45A87.20605@nokia.com> <71a0d6ff0910010058m6f9f4fc0o70ef0d2020e170b3@mail.gmail.com> <4AC46302.20402@nokia.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060604000203080907080504"
+ boundary="------------000104020907040900030602"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:26268 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:26366 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932318AbZJAIbk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 04:31:40 -0400
+	with ESMTP id S932281AbZJAIc2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 04:32:28 -0400
 In-Reply-To: <4AC46302.20402@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,7 +19,7 @@ To: ext Alexander Shishkin <virtuoso@slind.org>
 Cc: ext Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------060604000203080907080504
+--------------000104020907040900030602
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 
@@ -78,7 +78,7 @@ modprobe g_file_storage file=/tmp/medium
 
 -roger
 
---------------060604000203080907080504
+--------------000104020907040900030602
 Content-Type: application/x-gzip;
  name="0001-twl4030-Fix-boot-with-twl4030-usb-transceiver-enabl.patch.gz"
 Content-Transfer-Encoding: base64
@@ -113,4 +113,4 @@ uPhr1GF1wFHcYW2+sDldKamSzR2FhGL3iRR7NknofJtyGVVtvqQPhqatGk9pUZu1Qwp2MX3Z
 gj5vLyvoS+4ytz4LvbNUQIezG9ztNzx10+oN8pZnG9i8IhfZLBiXsValjM3N8xIW7kYW7i9j
 Ia1qPYuZRT2fBQoJvmDJzhiRqa/eX6F7csmLriD4RpuOmBBY6vhyGaQc3/xomAd4PSYZtowy
 ly0y9IyXgacnFzK/6nafPGoyjuOG5G2Abptt0zIdXf8PKSfpC60QAAA=
---------------060604000203080907080504--
+--------------000104020907040900030602--
