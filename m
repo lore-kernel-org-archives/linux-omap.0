@@ -1,113 +1,39 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH] OMAP3 : PM : Functions to get freq from opp and
- vice-versa
-Date: Thu, 1 Oct 2009 18:01:13 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDB71326@dbde02.ent.ti.com>
-References: <1252495499-8455-1-git-send-email-premi@ti.com>
- <87fxa4mh4t.fsf@deeprootsystems.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH v3 01/04] ARM: OMAP: Rename twl4030* driver files to
+ enable re-use
+Date: Thu, 1 Oct 2009 13:38:20 +0100
+Message-ID: <20091001123819.GA21973@rakim.wolfsonmicro.main>
+References: <1254399409-3473-1-git-send-email-balajitk@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40860 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932171AbZJAMbP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:31:15 -0400
-In-Reply-To: <87fxa4mh4t.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33042 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755524AbZJAMiR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:38:17 -0400
+Content-Disposition: inline
+In-Reply-To: <1254399409-3473-1-git-send-email-balajitk@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: balajitk@ti.com
+Cc: linux-omap@vger.kernel.org, sameo@linux.intel.com, wim@iguana.be, timo.t.kokkonen@nokia.com, ben-linux@fluff.org, lrg@slimlogic.co.uk, p_gortmaker@yahoo.com, a.zummo@towertech.it, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, x0052729@ti.com
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
-> Sent: Wednesday, September 30, 2009 11:48 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH] OMAP3 : PM : Functions to get freq from 
-> opp and vice-versa
-> 
-> Sanjeev Premi <premi@ti.com> writes:
-> 
-> > There is no generic function to get OPP corresponding to frequency
-> > and vice versa.
-> >
-> > Function get_opp() - in resource34xx.c - is included only when
-> > CONFIG_OMAP_PM_SRF is enabled. Moreover, it is always called with
-> > an explicit addition of MAX_VDDn_OPP e.g.
-> >   opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
-> >   opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
-> >
-> > This is 'addition' is required as there is no encapsulation of
-> > MIN and MAX VDDs associated to the table.
-> >
-> > This patch fixes the issue by creating a 'table' object that
-> > encapsulates the MIN and MAX values and the existing rate table.
-> >
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> 
-> Looks ok, minor comment below...
+On Thu, Oct 01, 2009 at 05:46:49PM +0530, balajitk@ti.com wrote:
 
-[sp] Will take care of the comments in the next patch.
+> The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+> for OMAP3. The common modules like RTC, Regulator creates opportunity
+> to re-use the most of the code from twl4030.
 
-Best regards,
-Sanjeev
+> This patch renames few common drivers twl4030* files to twl* to enable
+> the code re-use.
 
-> 
-> [...]
-> 
-> > diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h 
-> b/arch/arm/plat-omap/include/mach/omap-pm.h
-> > index 583e540..cf910ef 100644
-> > --- a/arch/arm/plat-omap/include/mach/omap-pm.h
-> > +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-> > @@ -33,6 +33,20 @@ struct omap_opp {
-> >  	u16 vsel;
-> >  };
-> >  
-> > +/* struct omap_opp_table - View OPP table as an object
-> > + * @min: Minimum OPP id
-> > + * @max: Maximim OPP id
-> > + * @opps: Pointer to array defining the OPPs.
-> > + *
-> > + * An OPP table has varied length. Knowing minimum and maximum
-> > + * OPP ids allow easy traversal.
-> > + */
-> > +struct omap_opp_table {
-> > +	u8	min;
-> > +	u8	max;
-> > +	struct omap_opp* opps;
-> > +};
-> > +
-> >  extern struct omap_opp *mpu_opps;
-> >  extern struct omap_opp *dsp_opps;
-> >  extern struct omap_opp *l3_opps;
-> > @@ -49,6 +63,17 @@ extern struct omap_opp *l3_opps;
-> >  #define OCP_INITIATOR_AGENT		2
-> >  
-> >  /**
-> > + *
-> > + */
-> 
-> Either add a useful comment or remove the comment block 
-> (preferably the latter)
-> 
-> > +int opp_to_freq(unsigned long* freq, const struct 
-> omap_opp_table* table, u8 opp);
-> > +
-> > +/**
-> > + *
-> > + */
-> 
-> ditto
-> 
-> Kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+>  sound/soc/codecs/twl4030.c                         |    2 +-
+
+Nack on this part of the change.
+
+The TWL6030 audio architecture is noticably different to the TWL4030
+audio architecture, most of the digital functionality has been moved
+into the OMAP and the I2S/DSP DAIs replaced by PDM links.  Merging the
+two drivers was previously suggested in response to the TWL6030 CODEC
+driver postings but Misael Lopez Cruz (who is doing the driver) wasn't
+happy with the idea.
