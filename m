@@ -1,73 +1,151 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in
- i2c
-Date: Thu, 1 Oct 2009 09:10:40 +0300
-Message-ID: <20091001091040.dcc24d47.jhnikula@gmail.com>
-References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
-	<1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: [PATCH] OMAP3: PM: introduce a new powerdomain walk helper
+Date: Thu,  1 Oct 2009 10:01:55 +0300
+Message-ID: <1254380515-32175-1-git-send-email-dedekind1@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:64422 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271AbZJAGKY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 02:10:24 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so624038eyf.19
-        for <linux-omap@vger.kernel.org>; Wed, 30 Sep 2009 23:10:27 -0700 (PDT)
-In-Reply-To: <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:17523 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754185AbZJAHHE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 03:07:04 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: khilman@deeprootsystems.com, linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 
-Hi Kalle
+From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 
-Few minor comments below.
+The 'pwrdm_for_each()' function walks powerdomains with a spinlock
+locked, so the the callbacks cannot do anything which may sleep.
+This patch introduces a 'pwrdm_for_each_nolock()' helper which does
+the same, but without the spinlock locked. This fixes the following
+lockdep warning:
 
-On Thu, 17 Sep 2009 19:28:43 +0300
-Kalle Jokiniemi <kalle.jokiniemi@digia.com> wrote:
+[    0.000000] WARNING: at kernel/lockdep.c:2460 lockdep_trace_alloc+0xac/0xec()
+[    0.000000] Modules linked in:
+(unwind_backtrace+0x0/0xdc) from [<c0045464>] (warn_slowpath_common+0x48/0x60)
+(warn_slowpath_common+0x48/0x60) from [<c0067dd4>] (lockdep_trace_alloc+0xac/0xec)
+(lockdep_trace_alloc+0xac/0xec) from [<c009da14>] (kmem_cache_alloc+0x1c/0xd0)
+(kmem_cache_alloc+0x1c/0xd0) from [<c00b21d8>] (d_alloc+0x1c/0x1a4)
+(d_alloc+0x1c/0x1a4) from [<c00a887c>] (__lookup_hash+0xd8/0x118)
+(__lookup_hash+0xd8/0x118) from [<c00a9f20>] (lookup_one_len+0x84/0x94)
+(lookup_one_len+0x84/0x94) from [<c010d12c>] (debugfs_create_file+0x8c/0x20c)
+(debugfs_create_file+0x8c/0x20c) from [<c010d320>] (debugfs_create_dir+0x1c/0x20)
+(debugfs_create_dir+0x1c/0x20) from [<c000e8cc>] (pwrdms_setup+0x60/0x90)
+(pwrdms_setup+0x60/0x90) from [<c002e010>] (pwrdm_for_each+0x30/0x80)
+(pwrdm_for_each+0x30/0x80) from [<c000e79c>] (pm_dbg_init+0x7c/0x14c)
+(pm_dbg_init+0x7c/0x14c) from [<c00232b4>] (do_one_initcall+0x5c/0x1b8)
+(do_one_initcall+0x5c/0x1b8) from [<c00083f8>] (kernel_init+0x90/0x10c)
+(kernel_init+0x90/0x10c) from [<c00242c4>] (kernel_thread_exit+0x0/0x8)
 
-> -static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
-> +static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
->  static struct platform_device omap_i2c_devices[] = {
-> -	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
-> +	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
->  #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-> -	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
-> +	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
->  #endif
->  #if	defined(CONFIG_ARCH_OMAP34XX)
-> -	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
-> +	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
->  #endif
->  };
-This is good idea. IRCC, e.g. the I2C_SCL t_high and t_low timing values
-can be board dependent values so passing just the i2c_rate as a
-platform_data seems to be not enough in the future.
+Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+---
+ arch/arm/mach-omap2/pm-debug.c                |    4 +-
+ arch/arm/mach-omap2/powerdomain.c             |   39 +++++++++++++++++-------
+ arch/arm/plat-omap/include/mach/powerdomain.h |    2 +
+ 3 files changed, 31 insertions(+), 14 deletions(-)
 
-> @@ -526,8 +529,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
->  	 * REVISIT: We should abort the transfer on signals, but the bus goes
->  	 * into arbitration and we're currently unable to recover from it.
->  	 */
-> +	dev->set_mpu_wkup_lat(dev->dev, 1);
->  	r = wait_for_completion_timeout(&dev->cmd_complete,
->  					OMAP_I2C_TIMEOUT);
-> +	dev->set_mpu_wkup_lat(dev->dev, 0);
-
-These lines here and lines below in omap_i2c_probe looks suspicious. I
-would rather allow callback to be NULL (and then you would not need
-empty function in arch/arm/plat-omap/i2c.c) and just test it here
-before executing. Looks much more safe code then.
-
-> +	if (pdata != NULL) {
-> +		speed = pdata->clkrate;
-> +		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-> +	} else {
-> +		speed = 100;	/* Default speed */
-> +		dev->set_mpu_wkup_lat = NULL;
-> +	}
-
-
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 1b4c160..2fc4d6a 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -541,7 +541,7 @@ static int __init pm_dbg_init(void)
+ 		printk(KERN_ERR "%s: only OMAP3 supported\n", __func__);
+ 		return -ENODEV;
+ 	}
+-		
++
+ 	d = debugfs_create_dir("pm_debug", NULL);
+ 	if (IS_ERR(d))
+ 		return PTR_ERR(d);
+@@ -551,7 +551,7 @@ static int __init pm_dbg_init(void)
+ 	(void) debugfs_create_file("time", S_IRUGO,
+ 		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
+ 
+-	pwrdm_for_each(pwrdms_setup, (void *)d);
++	pwrdm_for_each_nolock(pwrdms_setup, (void *)d);
+ 
+ 	pm_dbg_dir = debugfs_create_dir("registers", d);
+ 	if (IS_ERR(pm_dbg_dir))
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index 2594cbf..f00289a 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -273,35 +273,50 @@ struct powerdomain *pwrdm_lookup(const char *name)
+ }
+ 
+ /**
+- * pwrdm_for_each - call function on each registered clockdomain
++ * pwrdm_for_each_nolock - call function on each registered clockdomain
+  * @fn: callback function *
+  *
+  * Call the supplied function for each registered powerdomain.  The
+  * callback function can return anything but 0 to bail out early from
+- * the iterator.  The callback function is called with the pwrdm_rwlock
+- * held for reading, so no powerdomain structure manipulation
+- * functions should be called from the callback, although hardware
+- * powerdomain control functions are fine.  Returns the last return
+- * value of the callback function, which should be 0 for success or
+- * anything else to indicate failure; or -EINVAL if the function
+- * pointer is null.
++ * the iterator.  Returns the last return value of the callback function, which
++ * should be 0 for success or anything else to indicate failure; or -EINVAL if
++ * the function pointer is null.
+  */
+-int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
+-			void *user)
++int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
++				void *user)
+ {
+ 	struct powerdomain *temp_pwrdm;
+-	unsigned long flags;
+ 	int ret = 0;
+ 
+ 	if (!fn)
+ 		return -EINVAL;
+ 
+-	read_lock_irqsave(&pwrdm_rwlock, flags);
+ 	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
+ 		ret = (*fn)(temp_pwrdm, user);
+ 		if (ret)
+ 			break;
+ 	}
++
++	return ret;
++}
++
++/**
++ * pwrdm_for_each - call function on each registered clockdomain
++ * @fn: callback function *
++ *
++ * This function is the same as 'pwrdm_for_each_nolock()', but keeps the
++ * &pwrdm_rwlock locked for reading, so no powerdomain structure manipulation
++ * functions should be called from the callback, although hardware powerdomain
++ * control functions are fine.
++ */
++int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
++			void *user)
++{
++	unsigned long flags;
++	int ret;
++
++	read_lock_irqsave(&pwrdm_rwlock, flags);
++	ret = pwrdm_for_each_nolock(fn, user);
+ 	read_unlock_irqrestore(&pwrdm_rwlock, flags);
+ 
+ 	return ret;
+diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
+index 6271d85..fa64614 100644
+--- a/arch/arm/plat-omap/include/mach/powerdomain.h
++++ b/arch/arm/plat-omap/include/mach/powerdomain.h
+@@ -135,6 +135,8 @@ struct powerdomain *pwrdm_lookup(const char *name);
+ 
+ int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
+ 			void *user);
++int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
++			void *user);
+ 
+ int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
+ int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
 -- 
-Jarkko
+1.6.2.5
+
