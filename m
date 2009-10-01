@@ -1,89 +1,46 @@
-From: Amit Kucheria <amit.kucheria@canonical.com>
-Subject: Re: [PATCH v3 02/04] ARM: OMAP: Rename all twl4030_i2c*.
-Date: Thu, 1 Oct 2009 15:48:17 +0300
-Message-ID: <20091001124817.GS32041@smtp.gmail.com>
-References: <1254399576-3645-1-git-send-email-balajitk@ti.com>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: RE: [PATCH v3 01/04] ARM: OMAP: Rename twl4030* driver files to
+ enable re-use
+Date: Thu, 1 Oct 2009 18:26:57 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436CF8C0C@dbde02.ent.ti.com>
+References: <1254399409-3473-1-git-send-email-balajitk@ti.com>
+ <20091001123819.GA21973@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:16194 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755345AbZJAMse (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:48:34 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so1728902fge.1
-        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 05:48:37 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1254399576-3645-1-git-send-email-balajitk@ti.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:42167 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755524AbZJAM5Z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:57:25 -0400
+In-Reply-To: <20091001123819.GA21973@rakim.wolfsonmicro.main>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: balajitk@ti.com
-Cc: linux-omap@vger.kernel.org, sameo@linux.intel.com, wim@iguana.be, timo.t.kokkonen@nokia.com, ben-linux@fluff.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, p_gortmaker@yahoo.com, a.zummo@towertech.it, Rajendra Nayak <rnayak@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "wim@iguana.be" <wim@iguana.be>, "timo.t.kokkonen@nokia.com" <timo.t.kokkonen@nokia.com>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>, "p_gortmaker@yahoo.com" <p_gortmaker@yahoo.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "Lopez Cruz, Misael" <x0052729@ti.com>
 
-On 09 Oct 01, balajitk@ti.com wrote:
-> From: Balaji T K <balajitk@ti.com>
+> On Thu, Oct 01, 2009 at 05:46:49PM +0530, balajitk@ti.com wrote:
 > 
->  This patch renames function names like twl4030_i2c_write_u8,
->  twl4030_i2c_read_u8 to twl_i2c_write_u8, twl_i2c_read_u8.
->  I2C address for modules(MADC, Battery Charger, Audio, RTC)
->  have changed between 4030 and 6030. Base address of these module register also
->  changed. Thus twl4030_map will be different for twl4030 and twl6030.
+> > The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+> > for OMAP3. The common modules like RTC, Regulator creates opportunity
+> > to re-use the most of the code from twl4030.
 > 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Balaji T K <balajitk@ti.com>
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-> ---
+> > This patch renames few common drivers twl4030* files to twl* to enable
+> > the code re-use.
+> 
+> >  sound/soc/codecs/twl4030.c                         |    2 +-
+> 
+> Nack on this part of the change.
+> 
+> The TWL6030 audio architecture is noticably different to the TWL4030
+> audio architecture, most of the digital functionality has been moved
+> into the OMAP and the I2S/DSP DAIs replaced by PDM links.  Merging the
+> two drivers was previously suggested in response to the TWL6030 CODEC
+> driver postings but Misael Lopez Cruz (who is doing the driver) wasn't
+> happy with the idea.
 
-<lots of snipping>
-
-> @@ -652,9 +661,9 @@ static inline int __init unprotect_pm_master(void)
->  {
->  	int e = 0;
->  
-> -	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, KEY_UNLOCK1,
-> +	e |= twl_i2c_write_u8(TWL_MODULE_PM_MASTER, KEY_UNLOCK1,
->  			R_PROTECT_KEY);
-> -	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, KEY_UNLOCK2,
-> +	e |= twl_i2c_write_u8(TWL_MODULE_PM_MASTER, KEY_UNLOCK2,
->  			R_PROTECT_KEY);
->  	return e;
->  }
-
-We should fix this code to return an error immediately, instead of OR'ing the
-return values. Perhaps as a separate patch.
-
-> @@ -673,7 +682,7 @@ static void clocks_init(struct device *dev)
->  		osc = clk_get(dev, "osc_sys_ck");
->  
->  	if (IS_ERR(osc)) {
-> -		printk(KERN_WARNING "Skipping twl4030 internal clock init and "
-> +		printk(KERN_WARNING "Skipping twl internal clock init and "
->  				"using bootloader value (unknown osc rate)\n");
->  		return;
->  	}
-> @@ -687,7 +696,7 @@ static void clocks_init(struct device *dev)
->  	 */
->  	osc = ERR_PTR(-EIO);
->  
-> -	printk(KERN_WARNING "Skipping twl4030 internal clock init and "
-> +	printk(KERN_WARNING "Skipping twl internal clock init and "
->  	       "using bootloader value (unknown osc rate)\n");
->  
->  	return;
-> @@ -708,7 +717,7 @@ static void clocks_init(struct device *dev)
->  	ctrl |= HIGH_PERF_SQ;
->  	e |= unprotect_pm_master();
->  	/* effect->MADC+USB ck en */
-> -	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
-> +	e |= twl_i2c_write_u8(TWL_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
->  	e |= protect_pm_master();
-
-And here.
-
-Regards,
-Amit
--- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
+I agree that TWL6030 codec will very different from TWL4030 codec and two 
+separate drivers will exist for twl4030 and twl6030.c
+The patch which is posted now will make both codec to use the same i2c read
+/write api like twl_i2c_write_u8, twl_i2c_read_u8 ...
