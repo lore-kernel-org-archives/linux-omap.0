@@ -1,167 +1,113 @@
-From: balajitk@ti.com
-Subject: [PATCH v3 04/04] OMAP4: PMIC: Update TWL mfd driver to create twl6030 regulators
-Date: Thu,  1 Oct 2009 17:54:49 +0530
-Message-ID: <1254399889-4074-1-git-send-email-balajitk@ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] OMAP3 : PM : Functions to get freq from opp and
+ vice-versa
+Date: Thu, 1 Oct 2009 18:01:13 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDB71326@dbde02.ent.ti.com>
+References: <1252495499-8455-1-git-send-email-premi@ti.com>
+ <87fxa4mh4t.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37569 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:40860 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932174AbZJAMZN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Oct 2009 08:25:13 -0400
+	id S932171AbZJAMbP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:31:15 -0400
+In-Reply-To: <87fxa4mh4t.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: sameo@linux.intel.com, wim@iguana.be, timo.t.kokkonen@nokia.com, ben-linux@fluff.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, p_gortmaker@yahoo.com, a.zummo@towertech.it, Rajendra Nayak <rnayak@ti.com>, Balaji T K <balajitk@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Rajendra Nayak <rnayak@ti.com>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Wednesday, September 30, 2009 11:48 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH] OMAP3 : PM : Functions to get freq from 
+> opp and vice-versa
+> 
+> Sanjeev Premi <premi@ti.com> writes:
+> 
+> > There is no generic function to get OPP corresponding to frequency
+> > and vice versa.
+> >
+> > Function get_opp() - in resource34xx.c - is included only when
+> > CONFIG_OMAP_PM_SRF is enabled. Moreover, it is always called with
+> > an explicit addition of MAX_VDDn_OPP e.g.
+> >   opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
+> >   opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
+> >
+> > This is 'addition' is required as there is no encapsulation of
+> > MIN and MAX VDDs associated to the table.
+> >
+> > This patch fixes the issue by creating a 'table' object that
+> > encapsulates the MIN and MAX values and the existing rate table.
+> >
+> > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> 
+> Looks ok, minor comment below...
 
-This version of patch series enables RUN TIME selection of TWL4030 or TWL6030.
+[sp] Will take care of the comments in the next patch.
 
-This patch adds initial support for creating twl6030 PMIC
-specific voltage regulators in the twl mfd driver.
+Best regards,
+Sanjeev
 
-Board specific regulator configurations will have to be passed from
-respective board files.
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-Signed-off-by: Balaji T K <balajitk@ti.com>
-Acked-by: Samuel Ortiz <sameo@linux.intel.com>
-Acked-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Reviewed-by: Tony Lindgren <tony@atomide.com>
----
- drivers/mfd/twl-core.c  |   56 +++++++++++++++++++++++++++++++++++++++++-----
- include/linux/i2c/twl.h |   17 ++++++++++----
- 2 files changed, 62 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index ea9bcba..9f73e32 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -77,9 +77,9 @@
- #define twl_has_gpio()	false
- #endif
- 
--#if defined(CONFIG_REGULATOR_TWL4030) \
--	|| defined(CONFIG_REGULATOR_TWL4030_MODULE)
--#define twl_has_regulator()	true
-+#if defined(CONFIG_REGULATOR_TWL) \
-+	|| defined(CONFIG_REGULATOR_TWL_MODULE)
-+#define twl_has_regulator() true
- #else
- #define twl_has_regulator()	false
- #endif
-@@ -628,7 +628,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_regulator()) {
-+	if (twl_has_regulator() && twl_class_is_4030()) {
- 		/*
- 		child = add_regulator(TWL4030_REG_VPLL1, pdata->vpll1);
- 		if (IS_ERR(child))
-@@ -651,7 +651,7 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
--	if (twl_has_regulator() && usb_transceiver) {
-+	if (twl_has_regulator() && twl_class_is_4030() && usb_transceiver) {
- 		static struct regulator_consumer_supply usb1v5 = {
- 			.supply =	"usb1v5",
- 		};
-@@ -693,7 +693,8 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 	}
- 
- 	/* maybe add LDOs that are omitted on cost-reduced parts */
--	if (twl_has_regulator() && !(features & TPS_SUBSET)) {
-+	if (twl_has_regulator() && twl_class_is_4030()
-+	  && !(features & TPS_SUBSET)) {
- 		child = add_regulator(TWL4030_REG_VPLL2, pdata->vpll2);
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
-@@ -719,6 +720,49 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 			return PTR_ERR(child);
- 	}
- 
-+	/* twl6030 regulators */
-+	if (twl_has_regulator() && twl_class_is_6030()) {
-+		child = add_regulator(TWL6030_REG_VMMC, pdata->vmmc);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VPP, pdata->vpp);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VUSIM, pdata->vusim);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VANA, pdata->vana);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VCXIO, pdata->vcxio);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VDAC, pdata->vdac);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VUSB, pdata->vusb);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX1_6030, pdata->vaux1);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX2_6030, pdata->vaux2);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+
-+		child = add_regulator(TWL6030_REG_VAUX3_6030, pdata->vaux3);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index 1f060db..97ec05b 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -431,18 +431,25 @@ struct twl_platform_data {
- 	struct twl_keypad_data		*keypad;
- 	struct twl_usb_data			*usb;
- 
--	/* LDO regulators */
-+	/* LDO regulators common to TWL4030/TWL6030 */
- 	struct regulator_init_data		*vdac;
-+	struct regulator_init_data		*vaux1;
-+	struct regulator_init_data		*vaux2;
-+	struct regulator_init_data		*vaux3;
-+	/* TWL4030 LDO regulators */
- 	struct regulator_init_data		*vpll1;
- 	struct regulator_init_data		*vpll2;
- 	struct regulator_init_data		*vmmc1;
- 	struct regulator_init_data		*vmmc2;
- 	struct regulator_init_data		*vsim;
--	struct regulator_init_data		*vaux1;
--	struct regulator_init_data		*vaux2;
--	struct regulator_init_data		*vaux3;
- 	struct regulator_init_data		*vaux4;
--
-+	/* TWL6030 LDO regulators */
-+	struct regulator_init_data              *vmmc;
-+	struct regulator_init_data              *vpp;
-+	struct regulator_init_data              *vusim;
-+	struct regulator_init_data              *vana;
-+	struct regulator_init_data              *vcxio;
-+	struct regulator_init_data              *vusb;
- 	/* REVISIT more to come ... _nothing_ should be hard-wired */
- };
- 
--- 
-1.5.4.7
-
+> 
+> [...]
+> 
+> > diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h 
+> b/arch/arm/plat-omap/include/mach/omap-pm.h
+> > index 583e540..cf910ef 100644
+> > --- a/arch/arm/plat-omap/include/mach/omap-pm.h
+> > +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
+> > @@ -33,6 +33,20 @@ struct omap_opp {
+> >  	u16 vsel;
+> >  };
+> >  
+> > +/* struct omap_opp_table - View OPP table as an object
+> > + * @min: Minimum OPP id
+> > + * @max: Maximim OPP id
+> > + * @opps: Pointer to array defining the OPPs.
+> > + *
+> > + * An OPP table has varied length. Knowing minimum and maximum
+> > + * OPP ids allow easy traversal.
+> > + */
+> > +struct omap_opp_table {
+> > +	u8	min;
+> > +	u8	max;
+> > +	struct omap_opp* opps;
+> > +};
+> > +
+> >  extern struct omap_opp *mpu_opps;
+> >  extern struct omap_opp *dsp_opps;
+> >  extern struct omap_opp *l3_opps;
+> > @@ -49,6 +63,17 @@ extern struct omap_opp *l3_opps;
+> >  #define OCP_INITIATOR_AGENT		2
+> >  
+> >  /**
+> > + *
+> > + */
+> 
+> Either add a useful comment or remove the comment block 
+> (preferably the latter)
+> 
+> > +int opp_to_freq(unsigned long* freq, const struct 
+> omap_opp_table* table, u8 opp);
+> > +
+> > +/**
+> > + *
+> > + */
+> 
+> ditto
+> 
+> Kevin
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
