@@ -1,37 +1,33 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in
- i2c
-Date: Thu, 01 Oct 2009 14:41:44 +0300
-Message-ID: <4AC49578.9090906@nokia.com>
-References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>	 <87bpkso0dj.fsf@deeprootsystems.com> <1254383040.22468.130.camel@ubuntu>
+From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
+Subject: [PATCH v3 0/4] TWL patch series
+Date: Thu, 1 Oct 2009 17:35:20 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436CF8BF5@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:18646 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756449AbZJALmF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 07:42:05 -0400
-In-Reply-To: <1254383040.22468.130.camel@ubuntu>
+Received: from bear.ext.ti.com ([192.94.94.41]:39553 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756510AbZJAMFa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:05:30 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "p_gortmaker@yahoo.com" <p_gortmaker@yahoo.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hello,
+This patch series v3 incorporates comments received earlier[1].
 
-Kalle Jokiniemi wrote:
-> On Wed, 2009-09-30 at 19:36 +0300, Kevin Hilman wrote:
->> Seems like the latency value should also be (optionally) passed in
->> pdata so this can be experimented with per-platform.
-> 
-> Well, it kind of is already, since we pass the function that sets the
-> latency from platform code. And that function has the latency
-> hard-coded.
+The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+for OMAP3. The common modules like RTC, Regulator creates opportunity
+to re-use the most of the code from twl4030.
 
-Paul Walmsley suggested earlier that the latency value should be
-calculated from bus specific parameters:
+	[PATCH v3 01/04] ARM: OMAP: Rename twl4030* driver files to enable re-use
+	[PATCH v3 02/04] ARM: OMAP: Rename all twl4030_i2c*.
+	[PATCH v3 03/04] ARM: OMAP: Rename twl4030_ in rtc-twl.c to make it 	
+				generic rtc
+	[PATCH v3 04/04] ARM: OMAP: Rename twl4030_ to twl_ in twl-regulator.c to 
+				make it generic reg
 
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12358.html
-
-A.
+[1] http://marc.info/?l=linux-omap&m=124757921417187&w=2
+  [PATCH 0/4] TWL patch series
