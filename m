@@ -1,36 +1,46 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [PATCH v2] twl4030: Fix boot with twl4030 usb transceiver enabled
-Date: Thu, 01 Oct 2009 11:41:04 +0300
-Message-ID: <4AC46B20.6020300@nokia.com>
-References: <1254385536-26912-1-git-send-email-ext-roger.quadros@nokia.com> <1254386189.32310.20.camel@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH] omap3: ehci build-fix
+Date: Thu,  1 Oct 2009 16:19:42 +0530
+Message-ID: <1254394182-29025-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56723 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750706AbZJAImP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 04:42:15 -0400
-In-Reply-To: <1254386189.32310.20.camel@localhost>
+Received: from devils.ext.ti.com ([198.47.26.153]:53925 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756216AbZJAKto (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 06:49:44 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n91Anjs7028781
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 1 Oct 2009 05:49:47 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "dedekind1@gmail.com" <dedekind1@gmail.com>
-Cc: "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Anand Gadiyar <gadiyar@ti.com>
 
-Artem Bityutskiy wrote:
-> On Thu, 2009-10-01 at 11:25 +0300, Roger Quadros wrote:
->>  	if (twl_has_bci() && pdata->bci && !(features & TPS_SUBSET)) {
->>  		child = add_child(3, "twl4030_bci",
->> @@ -532,16 +531,61 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
->>  	}
->>  
->>  	if (twl_has_usb() && pdata->usb) {
->> +
-> Why is this extra line?
-> 
->> +		static struct regulator_consumer_supply usb1v5 = {
->> +			.supply =	"usb1v5",
->> +		};
-> 
+omap3: ehci build-fix
 
-oops, my bad. and checkpatch didn't point it out ;)
+Commit b5d4fdd9 (omap: ehci: remove chargepump hack) by me
+introduced a build error.
+
+Fix this.
+
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+Apologies for introducing this. I'm prettuy sure I build
+tested on several platforms before sending it out, so I
+suppose I sent out the wrong patch. :(
+
+For what it's worth, current l-o master builds and boots
+great on 3430 SDP.
+
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 7efc2f5..45b8a7c 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -568,7 +568,6 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
+ 	omap->port_mode[0]		= pdata->port_mode[0];
+ 	omap->port_mode[1]		= pdata->port_mode[1];
+ 	omap->port_mode[2]		= pdata->port_mode[2];
+-	omap->chargepump		= pdata->chargepump;
+ 	omap->ehci		= hcd_to_ehci(hcd);
+ 	omap->ehci->sbrn	= 0x20;
+ 
