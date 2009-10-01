@@ -1,82 +1,71 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in
-	i2c
-Date: Thu, 1 Oct 2009 10:56:39 +0300
-Message-ID: <1254383799.22468.140.camel@ubuntu>
-References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
-	 <20091001091040.dcc24d47.jhnikula@gmail.com>
+From: Alexander Shishkin <virtuoso@slind.org>
+Subject: Re: linux-omap git tree updated to v2.6.32-rc1, important changes,
+	please read
+Date: Thu, 1 Oct 2009 10:58:12 +0300
+Message-ID: <71a0d6ff0910010058m6f9f4fc0o70ef0d2020e170b3@mail.gmail.com>
+References: <20090928190404.GE18957@atomide.com>
+	 <94a0d4530909291024kcac6b20m727b2908b2a76b88@mail.gmail.com>
+	 <20090929182639.GA16865@atomide.com> <4AC37F0E.8010206@nokia.com>
+	 <71a0d6ff0909301002k7e56b7falfdc8d5e445487d29@mail.gmail.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB030A2741E2@dbde02.ent.ti.com>
+	 <20090930173132.GN16865@atomide.com> <4AC45A87.20605@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:57887 "EHLO smtp1.digia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755711AbZJAH4K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 1 Oct 2009 03:56:10 -0400
-In-Reply-To: <20091001091040.dcc24d47.jhnikula@gmail.com>
+Received: from ey-out-2122.google.com ([74.125.78.26]:14905 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755679AbZJAH6J (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 03:58:09 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so637089eyf.19
+        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 00:58:12 -0700 (PDT)
+In-Reply-To: <4AC45A87.20605@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Roger Quadros <ext-roger.quadros@nokia.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, "Gadiyar, Anand" <gadiyar@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 2009-10-01 at 09:10 +0300, Jarkko Nikula wrote:
-> Hi Kalle
-> 
-> Few minor comments below.
-> 
-> On Thu, 17 Sep 2009 19:28:43 +0300
-> Kalle Jokiniemi <kalle.jokiniemi@digia.com> wrote:
-> 
-> > -static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
-> > +static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
-> >  static struct platform_device omap_i2c_devices[] = {
-> > -	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
-> > +	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
-> >  #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
-> > -	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
-> > +	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
-> >  #endif
-> >  #if	defined(CONFIG_ARCH_OMAP34XX)
-> > -	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
-> > +	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
-> >  #endif
-> >  };
-> This is good idea. IRCC, e.g. the I2C_SCL t_high and t_low timing values
-> can be board dependent values so passing just the i2c_rate as a
-> platform_data seems to be not enough in the future.
+2009/10/1 Roger Quadros <ext-roger.quadros@nokia.com>:
+> ext Tony Lindgren wrote:
+>>
+>> * Gadiyar, Anand <gadiyar@ti.com> [090930 10:05]:
+>>>>>>>
+>>>>>>> Anyway, I haven't been able to make 2.6.31 boot on beagleboard, and
+>>>>>>> other people report similar issues:
+>>>>>>> http://www.spinics.net/lists/linux-omap/msg17968.html
+>>>>>>>
+>>>>>>> Have you got 2.6.32-rc1 (+fixes) to boot?
+>>>>>>
+>>>>>> Hmm, looks like it's musb again. This is what I get on my
+>>>>>> overo after applying the DEBUG_LL hack from omap-debug branch:
+>>>>>
+>>>>> i've just sent a fix for this musb problem. patch is labelled "twl4030:
+>>>>> Fix
+>>>>> boot with twl4030 usb transceiver enabled"
+>>>>
+>>>> I can't quite locate it in linux-usb archives (or anywhere within
+>>>> google's reach). Could you sand it here or provide a link?
+>>>>
+>>> Here you go. Patchwork rocks!
+>>>
+>>> <http://patchwork.kernel.org/patch/50721/>
+>>>
+>>
+>> Great, thanks. Roger, please send your fix to Samuel for merging.
+>>
+>> Meanwhile, I'll apply it into fixes-testing while waiting for it
+>> to get to mainline via Samuel.
+>>
+>> Regards,
+>>
+>> Tony
+>
+> OK Tony, I'll do that.
 
-I gather that this t_high/t_low passing change can be added later ;)
+It doesn't crash any more, but I fail to get it to work either:
+/sys/devices/platform/musb_hdrc/mode always says b_idle no matter what
+I do and the host never attempts to enumerate it (I have a g_ether
+statically compiled in for a gadget). Hints greatly appreciated.
 
-
-> 
-> > @@ -526,8 +529,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
-> >  	 * REVISIT: We should abort the transfer on signals, but the bus goes
-> >  	 * into arbitration and we're currently unable to recover from it.
-> >  	 */
-> > +	dev->set_mpu_wkup_lat(dev->dev, 1);
-> >  	r = wait_for_completion_timeout(&dev->cmd_complete,
-> >  					OMAP_I2C_TIMEOUT);
-> > +	dev->set_mpu_wkup_lat(dev->dev, 0);
-> 
-> These lines here and lines below in omap_i2c_probe looks suspicious. I
-> would rather allow callback to be NULL (and then you would not need
-> empty function in arch/arm/plat-omap/i2c.c) and just test it here
-> before executing. Looks much more safe code then.
-
-Yes, this needs to be fixed. Otherwise we could get null pointer calls.
-Nice catch.
-
-- Kalle
-
-> 
-> > +	if (pdata != NULL) {
-> > +		speed = pdata->clkrate;
-> > +		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-> > +	} else {
-> > +		speed = 100;	/* Default speed */
-> > +		dev->set_mpu_wkup_lat = NULL;
-> > +	}
-> 
-> 
-
+Regards,
+--
+Alex
