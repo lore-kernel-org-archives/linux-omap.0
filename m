@@ -1,52 +1,37 @@
-From: Amit Kucheria <amit.kucheria@canonical.com>
-Subject: Re: [PATCH 0/2] twl4030 power support for 3430SDP
-Date: Thu, 1 Oct 2009 22:24:31 +0300
-Message-ID: <20091001192431.GW32041@smtp.gmail.com>
-References: <1254423262-25380-1-git-send-email-khilman@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] omap_hsmmc: Add missing probe handler hook to platform
+Date: Thu, 1 Oct 2009 16:08:58 -0400
+Message-ID: <notify-1254427738@atomide.com>
+References: <1254407953-25124-1-git-send-email-ext-roger.quadros@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:29353 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755494AbZJATYs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 15:24:48 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so193531fge.1
-        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 12:24:51 -0700 (PDT)
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53708 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756540AbZJAUI6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 16:08:58 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MtRxV-000F73-EU
+	for linux-omap@vger.kernel.org; Thu, 01 Oct 2009 20:09:01 +0000
+In-Reply-To: <1254407953-25124-1-git-send-email-ext-roger.quadros@nokia.com>
 Content-Disposition: inline
-In-Reply-To: <1254423262-25380-1-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On 09 Oct 01, Kevin Hilman wrote:
-> I've been carrying these in the PM branch, but now that twl4030 power
-> support is in mainline, these can be queued for 2.6.33.
-> 
-> Kevin Hilman (1):
->   OMAP3: PM: 3430SDP: add initial twl4030 power scripts
-> 
-> Rajendra Nayak (1):
->   OMAP3: PM: 3430SDP: Update twl4030 power scripts and device groups
-> 
->  arch/arm/mach-omap2/board-3430sdp.c |   93 ++++++++++++++++++++++++++++++++++-
->  1 files changed, 91 insertions(+), 2 deletions(-)
-> 
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-Hi Kevin,
+Branch in linux-omap: omap-fixes-testing
 
-Do you want to wait until I push patches that modify the way the scripts are
-loaded in memory? (they now allow overlapping scripts to work around space
-constraints)
+Initial commit ID (Likely to change): ff50faceca4c78184af7087e2368a5c869688755
 
-Also we now have very simplified scripts that use broadcast messages. These
-might still need to be tweaked for the various boards though. It works on the
-RX51.
+PatchWorks
+http://patchwork.kernel.org/patch/50970/
 
-Regards,
-Amit
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=ff50faceca4c78184af7087e2368a5c869688755
 
--- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
+
