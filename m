@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 10/28] OMAP3: PM: MPU off-mode support
-Date: Thu,  1 Oct 2009 16:58:40 -0700
-Message-ID: <1254441538-9257-11-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 13/28] OMAP: PM: off-mode support for DMA on EMU/HS devices
+Date: Thu,  1 Oct 2009 16:58:43 -0700
+Message-ID: <1254441538-9257-14-git-send-email-khilman@deeprootsystems.com>
 References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-2-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-3-git-send-email-khilman@deeprootsystems.com>
@@ -12,101 +12,82 @@ References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-8-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-9-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-10-git-send-email-khilman@deeprootsystems.com>
+ <1254441538-9257-11-git-send-email-khilman@deeprootsystems.com>
+ <1254441538-9257-12-git-send-email-khilman@deeprootsystems.com>
+ <1254441538-9257-13-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:51872 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753866AbZJAX7N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 19:59:13 -0400
-Received: by mail-px0-f179.google.com with SMTP id 9so694314pxi.4
-        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 16:59:17 -0700 (PDT)
-In-Reply-To: <1254441538-9257-10-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:58920 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753950AbZJAX7S (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 19:59:18 -0400
+Received: by mail-pz0-f177.google.com with SMTP id 7so574597pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 16:59:22 -0700 (PDT)
+In-Reply-To: <1254441538-9257-13-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Tero Kristo <tero.kristo@nokia.com>
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+- DMA interrupt disable routine added
+- Added DMA controller reset to DMA context restore
+
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/pm34xx.c    |   11 ++++++++++-
- arch/arm/mach-omap2/sleep34xx.S |   11 ++++-------
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ arch/arm/plat-omap/dma.c              |   15 +++++++++++++++
+ arch/arm/plat-omap/include/mach/dma.h |    2 ++
+ 2 files changed, 17 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 arch/arm/plat-omap/include/mach/dma.h
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index ee8a4a3..b0b2413 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -28,6 +28,7 @@
- #include <mach/powerdomain.h>
- #include <mach/control.h>
- #include <mach/serial.h>
-+#include <mach/sdrc.h>
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 160dff0..77e4ce2 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -2358,6 +2358,9 @@ EXPORT_SYMBOL(omap_dma_global_context_save);
  
- #include <asm/tlbflush.h>
+ void omap_dma_global_context_restore(void)
+ {
++	dma_write(0x2, OCP_SYSCONFIG);
++	while (!__raw_readl(omap_dma_base + OMAP_DMA4_SYSSTATUS))
++		;
+ 	dma_write(omap_dma_global_context.dma_gcr, GCR);
+ 	dma_write(omap_dma_global_context.dma_ocp_sysconfig,
+ 		OCP_SYSCONFIG);
+@@ -2366,6 +2369,18 @@ void omap_dma_global_context_restore(void)
+ }
+ EXPORT_SYMBOL(omap_dma_global_context_restore);
  
-@@ -221,6 +222,9 @@ static void omap_sram_idle(void)
- 		/* No need to save context */
- 		save_state = 0;
- 		break;
-+	case PWRDM_POWER_OFF:
-+		save_state = 3;
-+		break;
- 	default:
- 		/* Invalid state */
- 		printk(KERN_ERR "Invalid mpu state in sram_idle\n");
-@@ -246,7 +250,12 @@ static void omap_sram_idle(void)
- 		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
- 	}
++void omap_dma_disable_irq(int lch)
++{
++	u32 val;
++
++	if (cpu_class_is_omap2()) {
++		/* Disable interrupts */
++		val = dma_read(IRQENABLE_L0);
++		val &= ~(1 << lch);
++		dma_write(val, IRQENABLE_L0);
++	}
++}
++
+ /*----------------------------------------------------------------------------*/
  
--	_omap_sram_idle(NULL, save_state);
-+	/*
-+	 * omap3_arm_context is the location where ARM registers
-+	 * get saved. The restore path then reads from this
-+	 * location and restores them back.
-+	 */
-+	_omap_sram_idle(omap3_arm_context, save_state);
- 	cpu_init();
+ static int __init omap_init_dma(void)
+diff --git a/arch/arm/plat-omap/include/mach/dma.h b/arch/arm/plat-omap/include/mach/dma.h
+old mode 100644
+new mode 100755
+index 3f13331..1c017b2
+--- a/arch/arm/plat-omap/include/mach/dma.h
++++ b/arch/arm/plat-omap/include/mach/dma.h
+@@ -636,6 +636,8 @@ extern int omap_get_dma_index(int lch, int *ei, int *fi);
+ void omap_dma_global_context_save(void);
+ void omap_dma_global_context_restore(void);
  
- 	/* Restore table entry modified during MMU restoration */
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index e5e2553..5e761ec 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -36,12 +36,11 @@
- 				OMAP3430_PM_PREPWSTST)
- #define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
- 				OMAP3430_PM_PREPWSTST)
--#define PM_PWSTCTRL_MPU_P	OMAP34XX_PRM_REGADDR(MPU_MOD, PM_PWSTCTRL)
-+#define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + PM_PWSTCTRL
- #define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
- 				       * available */
--#define SCRATCHPAD_BASE_P	OMAP343X_CTRL_REGADDR(\
--				OMAP343X_CONTROL_MEM_WKUP +\
--				SCRATCHPAD_MEM_OFFS)
-+#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
-+						+ SCRATCHPAD_MEM_OFFS)
- #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
- 
- 	.text
-@@ -96,7 +95,7 @@ loop:
- 
- 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
- restore:
--	/* b restore*/ 	@ Enable to debug restore code
-+	/* b restore*/  @ Enable to debug restore code
-         /* Check what was the reason for mpu reset and store the reason in r9*/
-         /* 1 - Only L1 and logic lost */
-         /* 2 - Only L2 lost - In this case, we wont be here */
-@@ -416,8 +415,6 @@ scratchpad_base:
- 	.word	SCRATCHPAD_BASE_P
- sdrc_power:
- 	.word SDRC_POWER_V
--context_mem:
--	.word	0x803E3E14
- clk_stabilize_delay:
- 	.word 0x000001FF
- assoc_mask:
++extern void omap_dma_disable_irq(int lch);
++
+ /* Chaining APIs */
+ #ifndef CONFIG_ARCH_OMAP1
+ extern int omap_request_dma_chain(int dev_id, const char *dev_name,
 -- 
 1.6.4.3
 
