@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 23/28] OMAP: PM: Clear DMA channel state after a wakeup
-Date: Thu,  1 Oct 2009 16:58:53 -0700
-Message-ID: <1254441538-9257-24-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 24/28] OMAP: Store reboot mode in scratchpad on OMAP34xx
+Date: Thu,  1 Oct 2009 16:58:54 -0700
+Message-ID: <1254441538-9257-25-git-send-email-khilman@deeprootsystems.com>
 References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-2-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-3-git-send-email-khilman@deeprootsystems.com>
@@ -25,52 +25,59 @@ References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-21-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-22-git-send-email-khilman@deeprootsystems.com>
  <1254441538-9257-23-git-send-email-khilman@deeprootsystems.com>
+ <1254441538-9257-24-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:58920 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756159AbZJAX7f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 19:59:35 -0400
-Received: by mail-pz0-f177.google.com with SMTP id 7so574597pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 16:59:39 -0700 (PDT)
-In-Reply-To: <1254441538-9257-23-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-px0-f179.google.com ([209.85.216.179]:51872 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756201AbZJAX7g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 19:59:36 -0400
+Received: by mail-px0-f179.google.com with SMTP id 9so694314pxi.4
+        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 16:59:41 -0700 (PDT)
+In-Reply-To: <1254441538-9257-24-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Juha Yrjola <juha.yrjola@solidboot.com>, Tony Lindgren <tony@atomide.com>
 
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
+From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-Clear DMA channel states so that users can assume a known initial state.
+The reboot mode can be communicated to a bootloader (or the
+kernel itself) with a scratchpad register. This functionality
+is especially useful, if userspace is allowed to change
+the reboot mode.
 
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/dma.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/prcm.c |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index b3e1f77..f24d989 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2358,6 +2358,8 @@ EXPORT_SYMBOL(omap_dma_global_context_save);
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 99ff439..ce17eb1 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -134,9 +134,18 @@ void omap_prcm_arch_reset(char mode)
  
- void omap_dma_global_context_restore(void)
- {
-+	int ch;
+ 	if (cpu_is_omap24xx())
+ 		prcm_offs = WKUP_MOD;
+-	else if (cpu_is_omap34xx())
++	else if (cpu_is_omap34xx()) {
++		u32 l;
 +
- 	dma_write(omap_dma_global_context.dma_gcr, GCR);
- 	dma_write(omap_dma_global_context.dma_ocp_sysconfig,
- 		OCP_SYSCONFIG);
-@@ -2372,6 +2374,10 @@ void omap_dma_global_context_restore(void)
- 	 */
- 	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
- 		dma_write(0x3 , IRQSTATUS_L0);
-+
-+	for (ch = 0; ch < dma_chan_count; ch++)
-+		if (dma_chan[ch].dev_id != -1)
-+			omap_clear_dma(ch);
- }
- EXPORT_SYMBOL(omap_dma_global_context_restore);
+ 		prcm_offs = OMAP3430_GR_MOD;
+-	else
++		l = ('B' << 24) | ('M' << 16) | mode;
++		/* Reserve the first word in scratchpad for communicating
++		 * with the boot ROM. A pointer to a data structure
++		 * describing the boot process can be stored there,
++		 * cf. OMAP34xx TRM, Initialization / Software Booting
++		 * Configuration. */
++		omap_writel(l, OMAP343X_SCRATCHPAD + 4);
++	} else
+ 		WARN_ON(1);
  
+ 	prm_set_mod_reg_bits(OMAP_RST_DPLL3, prcm_offs, RM_RSTCTRL);
 -- 
 1.6.4.3
 
