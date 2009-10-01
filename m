@@ -1,33 +1,91 @@
-From: "Krishnamoorthy, Balaji T" <balajitk@ti.com>
-Subject: [PATCH v3 0/4] TWL patch series
-Date: Thu, 1 Oct 2009 17:35:20 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436CF8BF5@dbde02.ent.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH] omap3: ehci: remove DPLL5 programming
+Date: Thu, 1 Oct 2009 15:13:01 +0300
+Message-ID: <20091001121301.GJ15131@nokia.com>
+References: <1254332221-29490-1-git-send-email-gadiyar@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39553 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756510AbZJAMFa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:05:30 -0400
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:22330 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756510AbZJAMOU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:14:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1254332221-29490-1-git-send-email-gadiyar@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Krishnamoorthy, Balaji T" <balajitk@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>, "a.zummo@towertech.it" <a.zummo@towertech.it>, "p_gortmaker@yahoo.com" <p_gortmaker@yahoo.com>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "tony@atomide.com" <tony@atomide.com>
+To: ext Anand Gadiyar <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch series v3 incorporates comments received earlier[1].
+On Wed, Sep 30, 2009 at 07:37:01PM +0200, ext Anand Gadiyar wrote:
+> omap3: ehci: remove DPLL5 programming
+> 
+> DPLL5 programming should be taken care of by the clock framework.
+> The driver should not need to worry about programming this
+> explicitly.
+> 
+> Also, the DPLL5 m and n values used were valid only for a
+> specific value of the system clock. So they would not work
+> correctly for other input frequencies anyway.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 
-The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
-for OMAP3. The common modules like RTC, Regulator creates opportunity
-to re-use the most of the code from twl4030.
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-	[PATCH v3 01/04] ARM: OMAP: Rename twl4030* driver files to enable re-use
-	[PATCH v3 02/04] ARM: OMAP: Rename all twl4030_i2c*.
-	[PATCH v3 03/04] ARM: OMAP: Rename twl4030_ in rtc-twl.c to make it 	
-				generic rtc
-	[PATCH v3 04/04] ARM: OMAP: Rename twl4030_ to twl_ in twl-regulator.c to 
-				make it generic reg
+We really needed to remove that, thanks a lot Anand.
 
-[1] http://marc.info/?l=linux-omap&m=124757921417187&w=2
-  [PATCH 0/4] TWL patch series
+> ---
+> Needs http://patchwork.kernel.org/patch/46216/ to
+> ensure the DPLL is locked correctly.
+> 
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index f2771cf..7efc2f5 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -225,8 +225,6 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
+>  
+>  /*-------------------------------------------------------------------------*/
+>  
+> -#include "../../../arch/arm/mach-omap2/cm-regbits-34xx.h"
+> -
+>  /* omap_start_ehc
+>   *	- Start the TI USBHOST controller
+>   */
+> @@ -239,29 +237,6 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+>  
+>  	dev_dbg(omap->dev, "starting TI EHCI USB Controller\n");
+>  
+> -	/* Start DPLL5 Programming:
+> -	 * Clock Framework is not doing this now:
+> -	 * This will be done in clock framework later
+> -	 */
+> -	/* Enable DPLL 5 : Based on Input of 13Mhz*/
+> -	cm_write_mod_reg((12 << OMAP3430ES2_PERIPH2_DPLL_DIV_SHIFT)|
+> -			(120 << OMAP3430ES2_PERIPH2_DPLL_MULT_SHIFT),
+> -			PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
+> -
+> -	cm_write_mod_reg(1 << OMAP3430ES2_DIV_120M_SHIFT,
+> -			PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
+> -
+> -	cm_write_mod_reg((7 << OMAP3430ES2_PERIPH2_DPLL_FREQSEL_SHIFT) |
+> -			(7 << OMAP3430ES2_EN_PERIPH2_DPLL_SHIFT),
+> -			PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+> -
+> -	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
+> -				OMAP3430ES2_ST_PERIPH2_CLK_MASK))
+> -		dev_dbg(omap->dev, "idlest2 = 0x%x\n",
+> -			cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
+> -	/* End DPLL5 programming */
+> -
+> -
+>  	/* Enable Clocks for USBHOST */
+>  	omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
+>  	if (IS_ERR(omap->usbhost_ick)) {
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+balbi
