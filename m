@@ -1,91 +1,303 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH] omap3: ehci: remove DPLL5 programming
-Date: Thu, 1 Oct 2009 15:13:01 +0300
-Message-ID: <20091001121301.GJ15131@nokia.com>
-References: <1254332221-29490-1-git-send-email-gadiyar@ti.com>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: balajitk@ti.com
+Subject: [PATCH v3 01/04] ARM: OMAP: Rename twl4030* driver files to enable re-use
+Date: Thu,  1 Oct 2009 17:46:49 +0530
+Message-ID: <1254399409-3473-1-git-send-email-balajitk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:22330 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756510AbZJAMOU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 08:14:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1254332221-29490-1-git-send-email-gadiyar@ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37179 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756516AbZJAMRa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 1 Oct 2009 08:17:30 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Anand Gadiyar <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: sameo@linux.intel.com, wim@iguana.be, timo.t.kokkonen@nokia.com, ben-linux@fluff.org, lrg@slimlogic.co.uk, broonie@opensource.wolfsonmicro.com, p_gortmaker@yahoo.com, a.zummo@towertech.it, Santosh Shilimkar <santosh.shilimkar@ti.com>, Rajendra Nayak <rnayak@ti.com>, Balaji T K <balajitk@ti.com>
 
-On Wed, Sep 30, 2009 at 07:37:01PM +0200, ext Anand Gadiyar wrote:
-> omap3: ehci: remove DPLL5 programming
-> 
-> DPLL5 programming should be taken care of by the clock framework.
-> The driver should not need to worry about programming this
-> explicitly.
-> 
-> Also, the DPLL5 m and n values used were valid only for a
-> specific value of the system clock. So they would not work
-> correctly for other input frequencies anyway.
-> 
-> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
+The upcoming TWL6030 is companion chip for OMAP4 like the current TWL4030
+for OMAP3. The common modules like RTC, Regulator creates opportunity
+to re-use the most of the code from twl4030.
 
-We really needed to remove that, thanks a lot Anand.
+This patch renames few common drivers twl4030* files to twl* to enable
+the code re-use.
 
-> ---
-> Needs http://patchwork.kernel.org/patch/46216/ to
-> ensure the DPLL is locked correctly.
-> 
-> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-> index f2771cf..7efc2f5 100644
-> --- a/drivers/usb/host/ehci-omap.c
-> +++ b/drivers/usb/host/ehci-omap.c
-> @@ -225,8 +225,6 @@ static void omap_usb_utmi_init(struct ehci_hcd_omap *omap, u8 tll_channel_mask)
->  
->  /*-------------------------------------------------------------------------*/
->  
-> -#include "../../../arch/arm/mach-omap2/cm-regbits-34xx.h"
-> -
->  /* omap_start_ehc
->   *	- Start the TI USBHOST controller
->   */
-> @@ -239,29 +237,6 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
->  
->  	dev_dbg(omap->dev, "starting TI EHCI USB Controller\n");
->  
-> -	/* Start DPLL5 Programming:
-> -	 * Clock Framework is not doing this now:
-> -	 * This will be done in clock framework later
-> -	 */
-> -	/* Enable DPLL 5 : Based on Input of 13Mhz*/
-> -	cm_write_mod_reg((12 << OMAP3430ES2_PERIPH2_DPLL_DIV_SHIFT)|
-> -			(120 << OMAP3430ES2_PERIPH2_DPLL_MULT_SHIFT),
-> -			PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
-> -
-> -	cm_write_mod_reg(1 << OMAP3430ES2_DIV_120M_SHIFT,
-> -			PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
-> -
-> -	cm_write_mod_reg((7 << OMAP3430ES2_PERIPH2_DPLL_FREQSEL_SHIFT) |
-> -			(7 << OMAP3430ES2_EN_PERIPH2_DPLL_SHIFT),
-> -			PLL_MOD, OMAP3430ES2_CM_CLKEN2);
-> -
-> -	while (!(cm_read_mod_reg(PLL_MOD, CM_IDLEST2) &
-> -				OMAP3430ES2_ST_PERIPH2_CLK_MASK))
-> -		dev_dbg(omap->dev, "idlest2 = 0x%x\n",
-> -			cm_read_mod_reg(PLL_MOD, CM_IDLEST2));
-> -	/* End DPLL5 programming */
-> -
-> -
->  	/* Enable Clocks for USBHOST */
->  	omap->usbhost_ick = clk_get(omap->dev, "usbhost_ick");
->  	if (IS_ERR(omap->usbhost_ick)) {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Balaji T K <balajitk@ti.com>
+Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+---
+ arch/arm/mach-omap2/board-2430sdp.c                |    2 +-
+ arch/arm/mach-omap2/board-3430sdp.c                |    2 +-
+ arch/arm/mach-omap2/board-ldp.c                    |    2 +-
+ arch/arm/mach-omap2/board-omap3beagle.c            |    2 +-
+ arch/arm/mach-omap2/board-omap3pandora.c           |    2 +-
+ arch/arm/mach-omap2/board-overo.c                  |    2 +-
+ drivers/gpio/twl4030-gpio.c                        |    2 +-
+ drivers/input/misc/twl4030-pwrbutton.c             |    2 +-
+ drivers/mfd/Makefile                               |    2 +-
+ drivers/mfd/{twl4030-core.c => twl-core.c}         |    2 +-
+ drivers/mfd/twl4030-irq.c                          |    2 +-
+ drivers/regulator/Makefile                         |    2 +-
+ .../{twl4030-regulator.c => twl-regulator.c}       |    2 +-
+ drivers/rtc/Makefile                               |    2 +-
+ drivers/rtc/{rtc-twl4030.c => rtc-twl.c}           |    2 +-
+ drivers/usb/otg/twl4030-usb.c                      |    2 +-
+ drivers/watchdog/twl4030_wdt.c                     |    2 +-
+ include/linux/i2c/{twl4030.h => twl.h}             |    0 
+ sound/soc/codecs/twl4030.c                         |    2 +-
+ 19 files changed, 18 insertions(+), 18 deletions(-)
+ rename drivers/mfd/{twl4030-core.c => twl-core.c} (99%)
+ rename drivers/regulator/{twl4030-regulator.c => twl-regulator.c} (99%)
+ rename drivers/rtc/{rtc-twl4030.c => rtc-twl.c} (99%)
+ rename include/linux/i2c/{twl4030.h => twl.h} (100%)
 
+diff --git a/arch/arm/mach-omap2/board-2430sdp.c b/arch/arm/mach-omap2/board-2430sdp.c
+index 8ec2a13..bb68b10 100644
+--- a/arch/arm/mach-omap2/board-2430sdp.c
++++ b/arch/arm/mach-omap2/board-2430sdp.c
+@@ -19,7 +19,7 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/delay.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/err.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index ac262cd..2c86d50 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -19,7 +19,7 @@
+ #include <linux/input.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+diff --git a/arch/arm/mach-omap2/board-ldp.c b/arch/arm/mach-omap2/board-ldp.c
+index ea383f8..b0e11a6 100644
+--- a/arch/arm/mach-omap2/board-ldp.c
++++ b/arch/arm/mach-omap2/board-ldp.c
+@@ -23,7 +23,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ #include <linux/regulator/machine.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/io.h>
+ #include <linux/smsc911x.h>
+ 
+diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+index e00ba12..881b5ee 100644
+--- a/arch/arm/mach-omap2/board-omap3beagle.c
++++ b/arch/arm/mach-omap2/board-omap3beagle.c
+@@ -29,7 +29,7 @@
+ #include <linux/mtd/nand.h>
+ 
+ #include <linux/regulator/machine.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+index 864ee3d..db02b9e 100644
+--- a/arch/arm/mach-omap2/board-omap3pandora.c
++++ b/arch/arm/mach-omap2/board-omap3pandora.c
+@@ -24,7 +24,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+ #include <linux/regulator/machine.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/leds.h>
+ #include <linux/input.h>
+ #include <linux/gpio_keys.h>
+diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+index 6bce230..4bf200a 100644
+--- a/arch/arm/mach-omap2/board-overo.c
++++ b/arch/arm/mach-omap2/board-overo.c
+@@ -26,7 +26,7 @@
+ #include <linux/io.h>
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/regulator/machine.h>
+ 
+ #include <linux/mtd/mtd.h>
+diff --git a/drivers/gpio/twl4030-gpio.c b/drivers/gpio/twl4030-gpio.c
+index afad147..8446399 100644
+--- a/drivers/gpio/twl4030-gpio.c
++++ b/drivers/gpio/twl4030-gpio.c
+@@ -34,7 +34,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ 
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ 
+ /*
+diff --git a/drivers/input/misc/twl4030-pwrbutton.c b/drivers/input/misc/twl4030-pwrbutton.c
+index f5fc997..a73b889 100644
+--- a/drivers/input/misc/twl4030-pwrbutton.c
++++ b/drivers/input/misc/twl4030-pwrbutton.c
+@@ -27,7 +27,7 @@
+ #include <linux/input.h>
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #define PWR_PWRON_IRQ (1 << 0)
+ 
+diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+index 6f8a9a1..4e9d513 100644
+--- a/drivers/mfd/Makefile
++++ b/drivers/mfd/Makefile
+@@ -22,7 +22,7 @@ obj-$(CONFIG_MFD_WM8350_I2C)	+= wm8350-i2c.o
+ obj-$(CONFIG_TPS65010)		+= tps65010.o
+ obj-$(CONFIG_MENELAUS)		+= menelaus.o
+ 
+-obj-$(CONFIG_TWL4030_CORE)	+= twl4030-core.o twl4030-irq.o
++obj-$(CONFIG_TWL4030_CORE)	+= twl-core.o twl4030-irq.o
+ 
+ obj-$(CONFIG_MFD_CORE)		+= mfd-core.o
+ 
+diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl-core.c
+similarity index 99%
+rename from drivers/mfd/twl4030-core.c
+rename to drivers/mfd/twl-core.c
+index ca54996..04d28c7 100644
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl-core.c
+@@ -36,7 +36,7 @@
+ #include <linux/regulator/machine.h>
+ 
+ #include <linux/i2c.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3)
+ #include <mach/cpu.h>
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index 7d43083..f1e6e39 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -32,7 +32,7 @@
+ #include <linux/irq.h>
+ #include <linux/kthread.h>
+ 
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ 
+ /*
+diff --git a/drivers/regulator/Makefile b/drivers/regulator/Makefile
+index 4d762c4..0653ce8 100644
+--- a/drivers/regulator/Makefile
++++ b/drivers/regulator/Makefile
+@@ -11,7 +11,7 @@ obj-$(CONFIG_REGULATOR_USERSPACE_CONSUMER) += userspace-consumer.o
+ obj-$(CONFIG_REGULATOR_BQ24022) += bq24022.o
+ obj-$(CONFIG_REGULATOR_LP3971) += lp3971.o
+ obj-$(CONFIG_REGULATOR_MAX1586) += max1586.o
+-obj-$(CONFIG_REGULATOR_TWL4030) += twl4030-regulator.o
++obj-$(CONFIG_REGULATOR_TWL4030) += twl-regulator.o
+ obj-$(CONFIG_REGULATOR_WM8350) += wm8350-regulator.o
+ obj-$(CONFIG_REGULATOR_WM8400) += wm8400-regulator.o
+ obj-$(CONFIG_REGULATOR_DA903X)	+= da903x.o
+diff --git a/drivers/regulator/twl4030-regulator.c b/drivers/regulator/twl-regulator.c
+similarity index 99%
+rename from drivers/regulator/twl4030-regulator.c
+rename to drivers/regulator/twl-regulator.c
+index e2032fb..c8a6e58 100644
+--- a/drivers/regulator/twl4030-regulator.c
++++ b/drivers/regulator/twl-regulator.c
+@@ -15,7 +15,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/regulator/driver.h>
+ #include <linux/regulator/machine.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ 
+ /*
+diff --git a/drivers/rtc/Makefile b/drivers/rtc/Makefile
+index 3c0f2b2..e331b1c 100644
+--- a/drivers/rtc/Makefile
++++ b/drivers/rtc/Makefile
+@@ -70,7 +70,7 @@ obj-$(CONFIG_RTC_DRV_SA1100)	+= rtc-sa1100.o
+ obj-$(CONFIG_RTC_DRV_SH)	+= rtc-sh.o
+ obj-$(CONFIG_RTC_DRV_STK17TA8)	+= rtc-stk17ta8.o
+ obj-$(CONFIG_RTC_DRV_TEST)	+= rtc-test.o
+-obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl4030.o
++obj-$(CONFIG_RTC_DRV_TWL4030)	+= rtc-twl.o
+ obj-$(CONFIG_RTC_DRV_TX4939)	+= rtc-tx4939.o
+ obj-$(CONFIG_RTC_DRV_V3020)	+= rtc-v3020.o
+ obj-$(CONFIG_RTC_DRV_VR41XX)	+= rtc-vr41xx.o
+diff --git a/drivers/rtc/rtc-twl4030.c b/drivers/rtc/rtc-twl.c
+similarity index 99%
+rename from drivers/rtc/rtc-twl4030.c
+rename to drivers/rtc/rtc-twl.c
+index 9c8c70c..93565be 100644
+--- a/drivers/rtc/rtc-twl4030.c
++++ b/drivers/rtc/rtc-twl.c
+@@ -28,7 +28,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/interrupt.h>
+ 
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ 
+ /*
+diff --git a/drivers/usb/otg/twl4030-usb.c b/drivers/usb/otg/twl4030-usb.c
+index 9e3e7a5..591334d 100644
+--- a/drivers/usb/otg/twl4030-usb.c
++++ b/drivers/usb/otg/twl4030-usb.c
+@@ -33,7 +33,7 @@
+ #include <linux/io.h>
+ #include <linux/delay.h>
+ #include <linux/usb/otg.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/err.h>
+ 
+diff --git a/drivers/watchdog/twl4030_wdt.c b/drivers/watchdog/twl4030_wdt.c
+index cb46556..20968b2 100644
+--- a/drivers/watchdog/twl4030_wdt.c
++++ b/drivers/watchdog/twl4030_wdt.c
+@@ -26,7 +26,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/miscdevice.h>
+ #include <linux/uaccess.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ 
+ #define TWL4030_WATCHDOG_CFG_REG_OFFS	0x3
+ 
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl.h
+similarity index 100%
+rename from include/linux/i2c/twl4030.h
+rename to include/linux/i2c/twl.h
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index 4dbb853..2c47240 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -26,7 +26,7 @@
+ #include <linux/pm.h>
+ #include <linux/i2c.h>
+ #include <linux/platform_device.h>
+-#include <linux/i2c/twl4030.h>
++#include <linux/i2c/twl.h>
+ #include <sound/core.h>
+ #include <sound/pcm.h>
+ #include <sound/pcm_params.h>
 -- 
-balbi
+1.5.4.7
+
