@@ -1,47 +1,67 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC][PATCH 0/2] OMAP3:PM:SR Refactor
-Date: Thu, 1 Oct 2009 19:40:10 -0500
-Message-ID: <4AC54BEA.8080307@ti.com>
-References: <1254443465-13006-1-git-send-email-nm@ti.com>
+From: Amit Kucheria <amit.kucheria@verdurent.com>
+Subject: Re: [PATCH 0/2] twl4030 power support for 3430SDP
+Date: Fri, 2 Oct 2009 08:17:42 +0300
+Message-ID: <20091002051742.GZ32041@smtp.gmail.com>
+References: <1254423262-25380-1-git-send-email-khilman@deeprootsystems.com>
+ <20091001192431.GW32041@smtp.gmail.com>
+ <878wfubt2a.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43791 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752617AbZJBAkO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 1 Oct 2009 20:40:14 -0400
-In-Reply-To: <1254443465-13006-1-git-send-email-nm@ti.com>
+Received: from fg-out-1718.google.com ([72.14.220.158]:46026 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755870AbZJBFY2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 01:24:28 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so1997345fge.1
+        for <linux-omap@vger.kernel.org>; Thu, 01 Oct 2009 22:24:31 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <878wfubt2a.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Linux-omap <linux-omap@vger.kernel.org>
-Cc: Rajendra Nayak <rnayak@ti.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, Teerth Reddy <teerth@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, =?ISO-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, Imberton Guilhem <guilhem.imberton@motorola.com>, Mike Chan <mikechan@google.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org
 
-Menon, Nishanth had written, on 10/01/2009 07:31 PM, the following:
-> Hi,
-> Smart Reflex sequencing recommendation has improved
-> in recent times and presents an opportunity to refactor
-> the code to add in understanding that we have of the
-> system. The patch set replaces smartreflex.c with a
-> new revision.
+On 09 Oct 01, Kevin Hilman wrote:
+> Amit Kucheria <amit.kucheria@canonical.com> writes:
 > 
-> This revision is meant to be RFC due to the nature of
-> intrusive changes done
+> > On 09 Oct 01, Kevin Hilman wrote:
+> >> I've been carrying these in the PM branch, but now that twl4030 power
+> >> support is in mainline, these can be queued for 2.6.33.
+> >> 
+> >> Kevin Hilman (1):
+> >>   OMAP3: PM: 3430SDP: add initial twl4030 power scripts
+> >> 
+> >> Rajendra Nayak (1):
+> >>   OMAP3: PM: 3430SDP: Update twl4030 power scripts and device groups
+> >> 
+> >>  arch/arm/mach-omap2/board-3430sdp.c |   93 ++++++++++++++++++++++++++++++++++-
+> >>  1 files changed, 91 insertions(+), 2 deletions(-)
+> >> 
+> >
+> > Hi Kevin,
+> >
+> > Do you want to wait until I push patches that modify the way the scripts are
+> > loaded in memory? (they now allow overlapping scripts to work around space
+> > constraints)
+> >
+> > Also we now have very simplified scripts that use broadcast messages. These
+> > might still need to be tweaked for the various boards though. It works on the
+> > RX51.
 > 
-> Nishanth Menon (2):
->   OMAP3:PM:SR: prepare: remove old SR code
->   OMAP3:PM:SR: SmartReflex Refactor Rev2.0
+> Well, I don't *want* to wait because that means I would have to rework
+> these patches.  :)  
 > 
->  arch/arm/mach-omap2/resource34xx.c |    8 +-
->  arch/arm/mach-omap2/smartreflex.c  | 1899 +++++++++++++++++++++---------------
->  arch/arm/mach-omap2/smartreflex.h  |  241 +++---
->  arch/arm/plat-omap/Kconfig         |   18 +-
->  4 files changed, 1249 insertions(+), 917 deletions(-)
-Should have added that the patches are against commit ID 
-f3ba1f772ebf69fa8765aa2e4b2fbcd3e78c1081 on [1] pm branch
+> But it sounds waiting is the right thing.  How close are you to having
+> the new scripting stuff ready?  Should we put it into the PM branch in
+> the meantime so it can get some testing on other boards than RX51?
 
+I haven't started looking at it yet. It will have to wait until w42 though.
+
+I guess you can push your patches to the PM branch and revert them at a later
+time when I have the changes ready?
+
+/Amit
 -- 
-Regards,
-Nishanth Menon
-Ref:
-[1] git://git.kernel.org/pub/scm/linux/kernel/git/khilman/linux-omap-pm.git
+-------------------------------------------------------------------------
+Amit Kucheria,				 Kernel Developer, Verdurent
+-------------------------------------------------------------------------
