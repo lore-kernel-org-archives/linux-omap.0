@@ -1,64 +1,84 @@
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
-Subject: [PATCH 2/2] omap iovmm: fix incorrect spelling
-Date: Fri,  2 Oct 2009 10:47:37 +0300
-Message-ID: <1254469657-15086-2-git-send-email-Hiroshi.DOYU@nokia.com>
-References: <1254469657-15086-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss
+ clocks 	only when needed.
+Date: Fri, 02 Oct 2009 11:03:25 +0300
+Message-ID: <1254470605.29174.67.camel@tubuntu>
+References: <1253230586-931-1-git-send-email-mike@android.com>
+	 <1253262472.28956.10.camel@tubuntu>
+	 <8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
+	 <1253514408.4690.5.camel@tubuntu> <877hvrf2sj.fsf@deeprootsystems.com>
+	 <1253690451.14841.40.camel@tubuntu>	<87my4lbr86.fsf@deeprootsystems.com>
+	 <1253788763.17009.282.camel@tubuntu>	<4ABB95A6.7000503@deeprootsystems.com>
+	 <1253870386.21734.20.camel@tubuntu>
+	 <636c5030909301131k3f6f7ca0v1f4327d07fd0f9b7@mail.gmail.com>
+	 <1254408050.29174.24.camel@tubuntu>  <87ab0bf5o5.fsf@deeprootsystems.com>
+Reply-To: tomi.valkeinen@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:32777 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755554AbZJBHro (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 03:47:44 -0400
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n927lbU8001749
-	for <linux-omap@vger.kernel.org>; Fri, 2 Oct 2009 10:47:46 +0300
-Received: from oreo.research.nokia.com (esdhcp04130.research.nokia.com [172.21.41.30])
-	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n927lbfj032500
-	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 2 Oct 2009 10:47:38 +0300
-In-Reply-To: <1254469657-15086-1-git-send-email-Hiroshi.DOYU@nokia.com>
+Received: from smtp.nokia.com ([192.100.122.230]:56674 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756318AbZJBIDa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 04:03:30 -0400
+In-Reply-To: <87ab0bf5o5.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: ext Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+On Thu, 2009-10-01 at 18:19 +0200, ext Kevin Hilman wrote:
+> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
 
-Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
----
- arch/arm/plat-omap/iovmm.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+> > So is there an API to change that value in resource34xx.h dynamically,
+> > depending on what DSS block is in use? Or am I still missing something
+> > here? =)
+> 
+> You're right, we currently do not have a way to dynamically update
+> this table and we should for completeness.
 
-diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
-index d40f7c8..b1278ea 100644
---- a/arch/arm/plat-omap/iovmm.c
-+++ b/arch/arm/plat-omap/iovmm.c
-@@ -47,7 +47,7 @@
-  *	'va':	mpu virtual address
-  *
-  *	'c':	contiguous memory area
-- *	'd':	dicontiguous memory area
-+ *	'd':	discontiguous memory area
-  *	'a':	anonymous memory allocation
-  *	'()':	optional feature
-  *
-@@ -397,7 +397,7 @@ static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
- {
- 	/*
- 	 * Actually this is not necessary at all, just exists for
--	 * consistency of the code readibility.
-+	 * consistency of the code readability.
- 	 */
- 	BUG_ON(!sgt);
- }
-@@ -431,7 +431,7 @@ static inline void sgtable_drain_kmalloc(struct sg_table *sgt)
- {
- 	/*
- 	 * Actually this is not necessary at all, just exists for
--	 * consistency of the code readibility
-+	 * consistency of the code readability
- 	 */
- 	BUG_ON(!sgt);
- }
--- 
-1.6.0.4
+Ok. This was what I was after in the first place, but didn't know how to
+form the question properly =).
+
+> Excuse my ignorance of the DSS/DSI/etc., but if a DSI periperal is use
+> that requires a continual DSI clock then shouldn't the driver always
+> keep the DSI clock enabled (iow, it should never call clk_disable()).
+> If a clock is left enabled, even if OFF-mode is targetted for that
+> powerdomain, it will not reach OFF because the clockdomain is active.
+
+Well, this is quite theoretical, and I agree that let's just forget
+about this and worry it if such a case ever emerges. But here's what I
+was thinking:
+
+OMAP's DSI block can be clocked by OMAP's normal clocks (DPLL4, if I
+recall right), which are handled by clk_enable/disable. But the clock
+signal that goes over DSI bus to the peripheral is generated by the DSI
+PLL, which is a DSS internal PLL not handled by clk_enable/disable. DSI
+PLL usually gets its reference clock from sysclock.
+
+For example, we have these displays that have their own framebuffer, and
+they independently update the actual panel from their internal
+framebuffer, while OMAP can be totally sleeping. Currently these
+displays generate their own clock for this internal updating.
+
+There's an option in the OMAP DSI block to set the DSI clock output to
+always on (versus DSI clock output enabled automatically when there's
+data to transfer over DSI bus). And the reasoning for this option is
+that some peripherals may require continuous clock to operate. So we
+could have a display that uses DSI clock for staying alive, doing some
+internal work like refreshing the panel.
+
+> In the DSS git, the master branch seems to be based at 2.6.31-rc5.  Do
+> you have an updated version against 2.6.32-rc1 or omap/master?
+
+Which tree are you referring to? My gitorious tree contains the latest
+version that I've been pushing to mainstream.
+
+git://gitorious.org/linux-omap-dss2/linux.git (master branch)
+
+It's based on the mainstream tree, but I think it should apply to l-o
+easily. I can also make l-o based branch if the conflicts are bad.
+
+ Tomi
+
 
