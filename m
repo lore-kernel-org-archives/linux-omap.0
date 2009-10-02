@@ -1,44 +1,61 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver support.
-Date: Fri, 2 Oct 2009 23:41:25 +0100
-Message-ID: <20091002224124.GY1133@earth.li>
-References: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [PATCH 4/8] omap: iovmm: Fix incorrect spelling
+Date: Fri, 02 Oct 2009 15:41:33 -0700
+Message-ID: <20091002224133.11962.84509.stgit@localhost>
+References: <20091002223510.11962.21751.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from the.earth.li ([217.147.81.2]:37622 "EHLO the.earth.li"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754265AbZJBWlV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Oct 2009 18:41:21 -0400
-Content-Disposition: inline
-In-Reply-To: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54595 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755025AbZJBWlc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 18:41:32 -0400
+In-Reply-To: <20091002223510.11962.21751.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-kernel@vger.kernel.org
 
-On Thu, Sep 24, 2009 at 03:57:13PM +0530, Govindraj.R wrote:
-> From: Govindraj R <govindraj.raja@ti.com>
-> 
-> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
-> 
-> Signed-off-by:	Govindraj R <govindraj.raja@ti.com>
-> Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
-> Reviewed-by: Tony Lindgren <tony@atomide.com>
-> ---
- 
-> +config SERIAL_OMAP
-> +	bool "OMAP serial port support"
-> +	depends on ARM && ARCH_OMAP
-> +	select SERIAL_CORE
-> +	help
-> +	If you have a machine based on an Texas Instruments OMAP CPU you
-> +	can enable its onboard serial ports by enabling this option.
+From: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
 
-If it's OMAP3 hardware then should the "depends on" be ARCH_OMAP3 ||
-ARCH_OMAP4, rather than allowing it for OMAP1 + 2 as well?
+Fix incorrect spelling
 
-J.
+Signed-off-by: Hiroshi DOYU <Hiroshi.DOYU@nokia.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/plat-omap/iovmm.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
--- 
-Revd. Jonathan McDowell, ULC | If they can't take a joke....fuck 'em.
+diff --git a/arch/arm/plat-omap/iovmm.c b/arch/arm/plat-omap/iovmm.c
+index 57f7122..0e5573d 100644
+--- a/arch/arm/plat-omap/iovmm.c
++++ b/arch/arm/plat-omap/iovmm.c
+@@ -47,7 +47,7 @@
+  *	'va':	mpu virtual address
+  *
+  *	'c':	contiguous memory area
+- *	'd':	dicontiguous memory area
++ *	'd':	discontiguous memory area
+  *	'a':	anonymous memory allocation
+  *	'()':	optional feature
+  *
+@@ -398,7 +398,7 @@ static inline void sgtable_drain_vmalloc(struct sg_table *sgt)
+ {
+ 	/*
+ 	 * Actually this is not necessary at all, just exists for
+-	 * consistency of the code readibility.
++	 * consistency of the code readability.
+ 	 */
+ 	BUG_ON(!sgt);
+ }
+@@ -434,7 +434,7 @@ static inline void sgtable_drain_kmalloc(struct sg_table *sgt)
+ {
+ 	/*
+ 	 * Actually this is not necessary at all, just exists for
+-	 * consistency of the code readibility
++	 * consistency of the code readability
+ 	 */
+ 	BUG_ON(!sgt);
+ }
+
