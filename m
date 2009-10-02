@@ -1,62 +1,80 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in
-	i2c
-Date: Fri, 2 Oct 2009 13:59:21 +0300
-Message-ID: <1254481161.22468.179.camel@ubuntu>
-References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
-	 <87bpkso0dj.fsf@deeprootsystems.com> <1254383040.22468.130.camel@ubuntu>
-	 <4AC49578.9090906@nokia.com>
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: Re: [PATCH] omap_hsmmc: Add missing probe handler hook to platform
+ driver data
+Date: Fri, 02 Oct 2009 14:47:45 +0300
+Message-ID: <4AC5E861.2080102@nokia.com>
+References: <1254407953-25124-1-git-send-email-ext-roger.quadros@nokia.com> <200910011758.35779.rok@kanardia.eu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:22207 "EHLO smtp1.digia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757617AbZJBK6t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 2 Oct 2009 06:58:49 -0400
-In-Reply-To: <4AC49578.9090906@nokia.com>
+Received: from smtp.nokia.com ([192.100.105.134]:49557 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752785AbZJBLsm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 07:48:42 -0400
+In-Reply-To: <200910011758.35779.rok@kanardia.eu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: =?UTF-8?B?ZXh0IFJvayBNYXJrb3ZpxI0=?= <rok@kanardia.eu>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: madhu.cr@ti.com
 
-On Thu, 2009-10-01 at 14:41 +0300, Aaro Koskinen wrote:
-> Hello,
-> 
-> Kalle Jokiniemi wrote:
-> > On Wed, 2009-09-30 at 19:36 +0300, Kevin Hilman wrote:
-> >> Seems like the latency value should also be (optionally) passed in
-> >> pdata so this can be experimented with per-platform.
-> > 
-> > Well, it kind of is already, since we pass the function that sets the
-> > latency from platform code. And that function has the latency
-> > hard-coded.
-> 
-> Paul Walmsley suggested earlier that the latency value should be
-> calculated from bus specific parameters:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12358.html
+ext Rok Markovi=C4=8D wrote:
+> This is not the correct way to do it. There was some conflict during =
+merge in=20
+> init function. Correct patch should look like this:
+>=20
+> --- a/drivers/mmc/host/omap_hsmmc.c
+> +++ b/drivers/mmc/host/omap_hsmmc.c
+> @@ -2013,7 +2013,7 @@ static struct platform_driver omap_hsmmc_driver=
+ =3D {
+>  static int __init omap_hsmmc_init(void)
+>  {
+>         /* Register the MMC driver */
+> -       return platform_driver_register(&omap_hsmmc_driver);
+> +       return platform_driver_probe(&omap_hsmmc_driver, omap_hsmmc_p=
+robe);
+>  }
+>=20
+>  static void __exit omap_hsmmc_cleanup(void)
+>=20
+> Rok
+>=20
 
-Yes, this is a good idea in theory, but the reality of wake-up latencies
-kind-a kill this one. Wake-up from even C1 (MPU INA, CORE ON) takes
-~130us on fastest OPP. And when you add 70us of sleep transition into
-that, you get 200us at minimum.
+Oh yes. Since omap_hsmmc is not a hot-pluggable device.
+Will send a v2.
 
-So what it would require to actually get latencies that Paul calculated,
-is a new C-state that bypasses the idle loop completely. This would
-essentially keep cpu in busy loop while waiting for interrupt (or i2c
-completion in this case). In pm-sense, it seems unwise.
+Thanks Rok, for pointing this out.
 
-For us, the 500us constraint seems to work quite nicely. It removes the
-problems we had with i2c transfers timing out with off mode, and
-restores average transfer times (from clk_enable to clk_disable) to few
-hundred us (that were observed with retention).
+>=20
+>=20
+> Dne =C4=8Detrtek 1. oktobra 2009 ob 16:39:13 ste napisali:
+>> The missing probe handler hook will never probe the driver. Add it b=
+ack.
+>> Fixes broken MMC on OMAP.
+>>
+>> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+>> ---
+>>  drivers/mmc/host/omap_hsmmc.c |    1 +
+>>  1 files changed, 1 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_h=
+smmc.c
+>> index 4487cc0..26abe1e 100644
+>> --- a/drivers/mmc/host/omap_hsmmc.c
+>> +++ b/drivers/mmc/host/omap_hsmmc.c
+>> @@ -2001,6 +2001,7 @@ clk_en_err:
+>>  #endif
+>>
+>>  static struct platform_driver omap_hsmmc_driver =3D {
+>> +	.probe		=3D omap_hsmmc_probe,
+>>  	.remove		=3D omap_hsmmc_remove,
+>>  	.suspend	=3D omap_hsmmc_suspend,
+>>  	.resume		=3D omap_hsmmc_resume,
+>>
 
-But it's open software, people are free to experiment :)
-
-- Kalle
-
-> 
-> A.
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
