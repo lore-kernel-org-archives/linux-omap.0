@@ -1,70 +1,81 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 4/5] OMAP3: PM: USBHOST: clear wakeup events on both hosts
-Date: Fri,  2 Oct 2009 11:14:54 -0700
-Message-ID: <1254507295-11381-5-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 5/5] OMAP3: PM: Enable GPIO module-level wakeups
+Date: Fri,  2 Oct 2009 11:14:55 -0700
+Message-ID: <1254507295-11381-6-git-send-email-khilman@deeprootsystems.com>
 References: <1254507295-11381-1-git-send-email-khilman@deeprootsystems.com>
  <1254507295-11381-2-git-send-email-khilman@deeprootsystems.com>
  <1254507295-11381-3-git-send-email-khilman@deeprootsystems.com>
  <1254507295-11381-4-git-send-email-khilman@deeprootsystems.com>
+ <1254507295-11381-5-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-px0-f179.google.com ([209.85.216.179]:43925 "EHLO
 	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758020AbZJBSO6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 14:14:58 -0400
+	with ESMTP id S1758025AbZJBSPB (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 14:15:01 -0400
 Received: by mail-px0-f179.google.com with SMTP id 9so1347643pxi.4
-        for <linux-omap@vger.kernel.org>; Fri, 02 Oct 2009 11:15:03 -0700 (PDT)
-In-Reply-To: <1254507295-11381-4-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Fri, 02 Oct 2009 11:15:05 -0700 (PDT)
+In-Reply-To: <1254507295-11381-5-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Vikram Pandita <vikram.pandita@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Vikram Pandita <vikram.pandita@ti.com>
+Currently, only GPIOs in the wakeup domain (GPIOs in bank 0) are
+enabled as wakups.  This patch also enables GPIOs in the PER
+powerdomain (banks 2-6) to be used as possible wakeup sources.
 
-USBHOST module has 2 fclocks (for HOST1 and HOST2), only one iclock
-and only a single bit in the WKST register to indicate a wakeup event.
+In addition, this patch ensures that all GPIO wakeups can wakeup
+the MPU using the PM_MPUGRPSEL_<pwrdm> registers.
 
-Because of the single WKST bit, we cannot know whether a wakeup event
-was on HOST1 or HOST2, so enable both fclocks before clearing the
-wakeup event to ensure both hosts can properly clear the event.
+NOTE: this doesn't enable the individual GPIOs as wakeups, this simply
+enables the per-bank wakeups at the powerdomain level.
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+This problem was discovered by Mike Chan when preventing the CORE
+powerdomain from going into retention/off.  When CORE was allowed to
+hit retention, GPIO wakeups via IO pad were working fine, but when
+CORE remained on, GPIO module-level wakeups were not working properly.
+
+To test, prevent CORE from going inactive/retention/off, thus
+preventing the IO chain from being armed:
+
+  # echo 3 > /debug/pm_debug/core_pwrdm/suspend
+
+This ensures that GPIO wakeups happen via module-level wakeups and
+not via IO pad.
+
+Tested on 3430SDP using the touchscreen GPIO (gpio 2, in WKUP)
+Tested on Zoom2 using the QUART interrup GPIO  (gpio 102, in PER)
+
+Also, c.f. OMAP PM wiki for troubleshooting GPIO wakeup issues:
+http://elinux.org/OMAP_Power_Management
+
+Reported-by: Mike Chan <mikechan@google.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm34xx.c |   13 ++++++++++---
- 1 files changed, 10 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index d9440a1..cf6ea9f 100644
+index cf6ea9f..378c2f6 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -63,7 +63,7 @@ static struct powerdomain *mpu_pwrdm;
-  */
- static int prcm_clear_mod_irqs(s16 module, u8 regs)
- {
--	u32 wkst, fclk, iclk;
-+	u32 wkst, fclk, iclk, clken;
- 	u16 wkst_off = (regs == 3) ? OMAP3430ES2_PM_WKST3 : PM_WKST1;
- 	u16 fclk_off = (regs == 3) ? OMAP3430ES2_CM_FCLKEN3 : CM_FCLKEN1;
- 	u16 iclk_off = (regs == 3) ? CM_ICLKEN3 : CM_ICLKEN1;
-@@ -77,8 +77,15 @@ static int prcm_clear_mod_irqs(s16 module, u8 regs)
- 		iclk = cm_read_mod_reg(module, iclk_off);
- 		fclk = cm_read_mod_reg(module, fclk_off);
- 		while (wkst) {
--			cm_set_mod_reg_bits(wkst, module, iclk_off);
--			cm_set_mod_reg_bits(wkst, module, fclk_off);
-+			clken = wkst;
-+			cm_set_mod_reg_bits(clken, module, iclk_off);
-+			/*
-+			 * For USBHOST, we don't know whether HOST1 or
-+			 * HOST2 woke us up, so enable both f-clocks
-+			 */
-+			if (module == OMAP3430ES2_USBHOST_MOD)
-+				clken |= 1 << OMAP3430ES2_EN_USBHOST2_SHIFT;
-+			cm_set_mod_reg_bits(clken, module, fclk_off);
- 			prm_write_mod_reg(wkst, module, wkst_off);
- 			wkst = prm_read_mod_reg(module, wkst_off);
- 			c++;
+@@ -639,6 +639,16 @@ static void __init prcm_setup_regs(void)
+ 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
+ 			  OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
+ 
++	/* Enable GPIO wakeups in PER */
++	prm_write_mod_reg(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
++			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
++			  OMAP3430_EN_GPIO6, OMAP3430_PER_MOD, PM_WKEN);
++	/* and allow them to wake up MPU */
++	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
++			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
++			  OMAP3430_GRPSEL_GPIO6,
++			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
++
+ 	/* Don't attach IVA interrupts */
+ 	prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
+ 	prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
 -- 
 1.6.4.3
 
