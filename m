@@ -1,60 +1,114 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 0/8] Omap fixes for 2.6.32-rc2
-Date: Fri, 02 Oct 2009 15:36:23 -0700
-Message-ID: <20091002223510.11962.21751.stgit@localhost>
+Subject: [PATCH 1/8] omap: Fix incorrect 730 vs 850 detection
+Date: Fri, 02 Oct 2009 15:37:41 -0700
+Message-ID: <20091002223740.11962.89469.stgit@localhost>
+References: <20091002223510.11962.21751.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60390 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754524AbZJBWgV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 18:36:21 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52184 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756323AbZJBWhk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 18:37:40 -0400
+In-Reply-To: <20091002223510.11962.21751.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Sanjeev Premi <premi@ti.com>
 
-Hi all,
+Commit cd92204924fafbd5c7241dfd12ca3176d542e0c5 added
+support for omap850. However, the patch accidentally
+removed the wrong ifdef:
 
-Here are some more fixes for review.
+ #  define cpu_is_omap730()		1
+ # endif
+ #endif
++#else
++# if defined(CONFIG_ARCH_OMAP850)
++#  undef  cpu_is_omap850
++#  define cpu_is_omap850()		1
++# endif
++#endif
 
-Regards,
+...
 
-Tony
+ void omap2_check_revision(void);
 
+ #endif    /* defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) */
+-
+-#endif
+
+Instead of removing removing the #endif at the end of the file,
+the #endif before #else should have been removed.
+
+But we cannot have multiple #else statements as pointed out by
+Alistair Buxton <a.j.buxton@gmail.com>. So the fix is to:
+
+- remove the non-multi-omap special handling, as we need to
+  detect between omap730 and omap850 anyways.
+
+- add the missing #endif back to the end of the file
+
+Reported-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
-
-Daniel Walker (1):
-      omap: iovmm: Add missing mutex_unlock
-
-Hiroshi DOYU (1):
-      omap: iovmm: Fix incorrect spelling
-
-Rajendra Nayak (1):
-      omap: Lock DPLL5 at boot
-
-Sergio Aguirre (1):
-      omapfb: Condition mutex acquisition
-
-Tommi Rantala (2):
-      omapfb: Blizzard: constify register address tables
-      omapfb: Blizzard: fix pointer to be const
-
-Tony Lindgren (1):
-      omap: Fix incorrect 730 vs 850 detection
-
-ye janboe (1):
-      omap: SRAM: flush the right address after memcpy in omap_sram_push
-
-
- arch/arm/mach-omap2/clock34xx.c       |   35 +++++++++++++++++++++++++++++++
  arch/arm/plat-omap/include/mach/cpu.h |   37 ++++++++++++---------------------
- arch/arm/plat-omap/iovmm.c            |    9 ++++----
- arch/arm/plat-omap/sram.c             |    3 ++-
- drivers/video/omap/blizzard.c         |   10 ++++-----
- drivers/video/omap/omapfb_main.c      |   22 ++++++++++++--------
- 6 files changed, 75 insertions(+), 41 deletions(-)
+ 1 files changed, 14 insertions(+), 23 deletions(-)
 
--- 
-Signature
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index 11e73d9..f129efb 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -303,32 +303,21 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define cpu_is_omap2430()		0
+ #define cpu_is_omap3430()		0
+ 
+-#if defined(MULTI_OMAP1)
+-# if defined(CONFIG_ARCH_OMAP730)
+-#  undef  cpu_is_omap730
+-#  define cpu_is_omap730()		is_omap730()
+-# endif
+-# if defined(CONFIG_ARCH_OMAP850)
+-#  undef  cpu_is_omap850
+-#  define cpu_is_omap850()		is_omap850()
+-# endif
+-#else
+-# if defined(CONFIG_ARCH_OMAP730)
+-#  undef  cpu_is_omap730
+-#  define cpu_is_omap730()		1
+-# endif
+-#endif
+-#else
+-# if defined(CONFIG_ARCH_OMAP850)
+-#  undef  cpu_is_omap850
+-#  define cpu_is_omap850()		1
+-# endif
+-#endif
+-
+ /*
+  * Whether we have MULTI_OMAP1 or not, we still need to distinguish
+- * between 330 vs. 1510 and 1611B/5912 vs. 1710.
++ * between 730 vs 850, 330 vs. 1510 and 1611B/5912 vs. 1710.
+  */
++
++#if defined(CONFIG_ARCH_OMAP730)
++# undef  cpu_is_omap730
++# define cpu_is_omap730()		is_omap730()
++#endif
++
++#if defined(CONFIG_ARCH_OMAP850)
++# undef  cpu_is_omap850
++# define cpu_is_omap850()		is_omap850()
++#endif
++
+ #if defined(CONFIG_ARCH_OMAP15XX)
+ # undef  cpu_is_omap310
+ # undef  cpu_is_omap1510
+@@ -433,3 +422,5 @@ IS_OMAP_TYPE(3430, 0x3430)
+ 
+ int omap_chip_is(struct omap_chip_id oci);
+ void omap2_check_revision(void);
++
++#endif
+
