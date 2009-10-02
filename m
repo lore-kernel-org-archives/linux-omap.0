@@ -1,82 +1,226 @@
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-Subject: Re: [PATCH v2] omap_hsmmc: Add missing probe handler hook
-Date: Fri, 02 Oct 2009 15:26:46 +0300
-Message-ID: <4AC5F186.9010007@nokia.com>
-References: <1254486160-7117-1-git-send-email-ext-roger.quadros@nokia.com>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: [PATCH] OMAP: I2C: Add mpu wake up latency constraint in i2c
+Date: Fri, 2 Oct 2009 16:11:18 +0300
+Message-ID: <1254489078-21356-1-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060004050101090406010705"
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53060 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756164AbZJBM1d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 08:27:33 -0400
-In-Reply-To: <1254486160-7117-1-git-send-email-ext-roger.quadros@nokia.com>
+Received: from smtp1.digia.com ([82.118.214.156]:36924 "EHLO smtp1.digia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756226AbZJBNKp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Oct 2009 09:10:45 -0400
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "tony@atomide.com" <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: khilman@deeprootsystems.com, jhnikula@gmail.com
+Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-This is a multi-part message in MIME format.
---------------060004050101090406010705
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+While waiting for completion of the i2c transfer, the
+MPU could hit OFF mode and cause several msecs of
+delay that made i2c transfers fail more often. The
+extra delays and subsequent re-trys cause i2c clocks
+to be active more often. This has also an negative
+effect on power consumption.
 
-Quadros Roger (EXT-Teleca/Helsinki) wrote:
-> The missing probe handler hook will never probe the driver. Add it back.
-> Fixes broken MMC on OMAP.
-> 
-> We use platform_driver_probe() API since omap_hsmmc is not a hot-pluggable
-> device.
-> 
-> Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-> ---
->  drivers/mmc/host/omap_hsmmc.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-> index 4487cc0..0aecaae 100644
-> --- a/drivers/mmc/host/omap_hsmmc.c
-> +++ b/drivers/mmc/host/omap_hsmmc.c
-> @@ -2013,7 +2013,7 @@ static struct platform_driver omap_hsmmc_driver = {
->  static int __init omap_hsmmc_init(void)
->  {
->  	/* Register the MMC driver */
-> -	return platform_driver_register(&omap_hsmmc_driver);
-> +	return platform_driver_probe(&omap_hsmmc_driver, omap_hsmmc_probe);
->  }
->  
->  static void __exit omap_hsmmc_cleanup(void)
+Added a constraint that allows MPU to wake up in few
+hundred usecs, which is roughly the average i2c wait
+period.
 
-Tony,
+The constraint function is passed as platform data from
+plat-omap/i2c.c. Currently there is implementation for
+omap3 constraint. Future omap platforms should implement
+their own functions, and pass them instead.
 
-  Since you've already applied my earlier patch (v1), you may used the attached 
-version instead. The attached patch will apply on current head with commit id
+Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+---
+ arch/arm/plat-omap/i2c.c      |   54 +++++++++++++++++++++++++++++++---------
+ drivers/i2c/busses/i2c-omap.c |   19 +++++++++++---
+ include/linux/i2c-omap.h      |    9 +++++++
+ 3 files changed, 66 insertions(+), 16 deletions(-)
+ create mode 100644 include/linux/i2c-omap.h
 
-30e0c4a059d83886690381222e14f35540c7f017
+diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
+index 8b84839..4ab7a92 100644
+--- a/arch/arm/plat-omap/i2c.c
++++ b/arch/arm/plat-omap/i2c.c
+@@ -26,8 +26,10 @@
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ #include <linux/i2c.h>
++#include <linux/i2c-omap.h>
+ #include <mach/irqs.h>
+ #include <mach/mux.h>
++#include <mach/omap-pm.h>
+ 
+ #define OMAP_I2C_SIZE		0x3f
+ #define OMAP1_I2C_BASE		0xfffb3800
+@@ -69,14 +71,14 @@ static struct resource i2c_resources[][2] = {
+ 		},					\
+ 	}
+ 
+-static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
++static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
+ static struct platform_device omap_i2c_devices[] = {
+-	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
++	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
+ #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
+-	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
++	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
+ #endif
+ #if	defined(CONFIG_ARCH_OMAP34XX)
+-	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
++	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
+ #endif
+ };
+ 
+@@ -100,6 +102,31 @@ static const int omap34xx_pins[][2] = {};
+ 
+ #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
+ 
++/**
++ * omap3_i2c_set_wfc_mpu_wkup_lat - sets mpu wake up constraint
++ * @dev:	i2c bus device pointer
++ * @set:	set or clear constraints
++ *
++ * When waiting for completion of a i2c transfer, we need to set a wake up
++ * latency constraint for the MPU. This is to ensure quick enough wakeup from
++ * idle, when transfer completes. For OMAP3 platform.
++ */
++#ifdef CONFIG_ARCH_OMAP34XX
++static void omap3_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int set)
++{
++	omap_pm_set_max_mpu_wakeup_lat(dev, set ? 500 : -1);
++}
++#endif
++
++static void __init omap_set_i2c_constraint_func(
++				struct omap_i2c_bus_platform_data *pd)
++{
++	if (cpu_is_omap34xx())
++		pd->set_mpu_wkup_lat = omap3_i2c_set_wfc_mpu_wkup_lat;
++	else
++		pd->set_mpu_wkup_lat = NULL;
++}
++
+ static void __init omap_i2c_mux_pins(int bus)
+ {
+ 	int scl, sda;
+@@ -180,8 +207,8 @@ static int __init omap_i2c_bus_setup(char *str)
+ 	get_options(str, 3, ints);
+ 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
+ 		return 0;
+-	i2c_rate[ints[1] - 1] = ints[2];
+-	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
++	i2c_pdata[ints[1] - 1].clkrate = ints[2];
++	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
+ 
+ 	return 1;
+ }
+@@ -195,9 +222,10 @@ static int __init omap_register_i2c_bus_cmdline(void)
+ {
+ 	int i, err = 0;
+ 
+-	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
+-		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
+-			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
++	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
++		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
++			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
++			omap_set_i2c_constraint_func(&i2c_pdata[i]);
+ 			err = omap_i2c_add_bus(i + 1);
+ 			if (err)
+ 				goto out;
+@@ -231,9 +259,11 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
+ 			return err;
+ 	}
+ 
+-	if (!i2c_rate[bus_id - 1])
+-		i2c_rate[bus_id - 1] = clkrate;
+-	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
++	if (!i2c_pdata[bus_id - 1].clkrate)
++		i2c_pdata[bus_id - 1].clkrate = clkrate;
++
++	omap_set_i2c_constraint_func(&i2c_pdata[bus_id - 1]);
++	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
+ 
+ 	return omap_i2c_add_bus(bus_id);
+ }
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 75bf3ad..168623f 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -37,6 +37,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/clk.h>
+ #include <linux/io.h>
++#include <linux/i2c-omap.h>
+ 
+ /* I2C controller revisions */
+ #define OMAP_I2C_REV_2			0x20
+@@ -165,6 +166,8 @@ struct omap_i2c_dev {
+ 	struct clk		*fclk;		/* Functional clock */
+ 	struct completion	cmd_complete;
+ 	struct resource		*ioarea;
++	void			(*set_mpu_wkup_lat)(struct device *dev,
++						    int set);
+ 	u32			speed;		/* Speed of bus in Khz */
+ 	u16			cmd_err;
+ 	u8			*buf;
+@@ -526,8 +529,12 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
+ 	 * REVISIT: We should abort the transfer on signals, but the bus goes
+ 	 * into arbitration and we're currently unable to recover from it.
+ 	 */
++	if (dev->set_mpu_wkup_lat != NULL)
++		dev->set_mpu_wkup_lat(dev->dev, 1);
+ 	r = wait_for_completion_timeout(&dev->cmd_complete,
+ 					OMAP_I2C_TIMEOUT);
++	if (dev->set_mpu_wkup_lat != NULL)
++		dev->set_mpu_wkup_lat(dev->dev, 0);
+ 	dev->buf_len = 0;
+ 	if (r < 0)
+ 		return r;
+@@ -844,6 +851,7 @@ omap_i2c_probe(struct platform_device *pdev)
+ 	struct omap_i2c_dev	*dev;
+ 	struct i2c_adapter	*adap;
+ 	struct resource		*mem, *irq, *ioarea;
++	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
+ 	irq_handler_t isr;
+ 	int r;
+ 	u32 speed = 0;
+@@ -873,10 +881,13 @@ omap_i2c_probe(struct platform_device *pdev)
+ 		goto err_release_region;
+ 	}
+ 
+-	if (pdev->dev.platform_data != NULL)
+-		speed = *(u32 *)pdev->dev.platform_data;
+-	else
+-		speed = 100;	/* Defualt speed */
++	if (pdata != NULL) {
++		speed = pdata->clkrate;
++		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
++	} else {
++		speed = 100;	/* Default speed */
++		dev->set_mpu_wkup_lat = NULL;
++	}
+ 
+ 	dev->speed = speed;
+ 	dev->idle = 1;
+diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+new file mode 100644
+index 0000000..1362fba
+--- /dev/null
++++ b/include/linux/i2c-omap.h
+@@ -0,0 +1,9 @@
++#ifndef __I2C_OMAP_H__
++#define __I2C_OMAP_H__
++
++struct omap_i2c_bus_platform_data {
++	u32		clkrate;
++	void		(*set_mpu_wkup_lat)(struct device *dev, int set);
++};
++
++#endif
+-- 
+1.5.4.3
 
-cheers,
--roger
-
---------------060004050101090406010705
-Content-Type: application/x-gzip;
- name="0001-omap_hsmmc-Use-platform_driver_probe-instead-of-p.patch.gz"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename*0="0001-omap_hsmmc-Use-platform_driver_probe-instead-of-p.patch";
- filename*1=".gz"
-
-H4sICGjwxUoAAzAwMDEtb21hcF9oc21tYy1Vc2UtcGxhdGZvcm1fZHJpdmVyX3Byb2JlLWlu
-c3RlYWQtb2YtcC5wYXRjaACdU21v0zAQ/lz/ipOQULu81GnTtA0MDW2a+DIBG3xCKHKcS2qW
-2MV2qiHgv+OkrehWbRNEkax77vzcPXfnS60aKONFuVzwnEdI5/PZYhFxulgm04RPymU8mdIZ
-pcvpLIIrJeEG1xDNgdK0/2FCaUQuHU0K16pCDR9bVmhl4DXe2UB3UPh9C51JdStYyFXzhlww
-iylcauHDBN5z2/EsIZqlE5rGCXh0Sim5afNvyG0KXz68/XT+7iuohq2zlWkansJng7CumS2V
-brJCiw3qbK1VjsMRCGkssgJUeRSisRLOqYcjQm6E5HhACsKAVBYYrJQN1nVbVSyvEQrcCI4+
-CAsNu0UDjdIIBqVBYhW0T1Ti3PuMYFeOqncDk0Vv9mFk5cza9amrqJJYBKosg/zHv3U0CAKy
-ozdjJ2a8UsaO/4oLOfwC903B6yIjKEXtpHCXvMLCd4DrGmorlDRDb9TNpcAat3bgulWIsoQg
-qFwX2PjpRPnTfiJkgXcwSViOEYYhZcgZQ4goTeK4U/JcBuJ53rNZzs4g6NbTn4PXnwk4iNe3
-GcoMtU4JvEDpZBEgYCyzgrtDt24bH4zzYEf2yCn8JMEg7Ac4GJweRvSYT2AQamzU5qF7C/Z+
-05q1q+C+fwfuCEzbHBN0oL/TF8VbfdHUnQ76HyH7S0JayDIh3YgPAjt7uFGiGJEudjA+gevD
-nb66Ot/v9cnYNUWjbbV8/OW9PCpi9Ip4j13bvqTjO/5Ryx0L/D6YZVeyk4N39+XwGpls1ztF
-btdIFCYhDWNC/gBfwMDoDwUAAA==
---------------060004050101090406010705--
