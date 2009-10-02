@@ -1,84 +1,62 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss
- clocks 	only when needed.
-Date: Fri, 02 Oct 2009 11:03:25 +0300
-Message-ID: <1254470605.29174.67.camel@tubuntu>
-References: <1253230586-931-1-git-send-email-mike@android.com>
-	 <1253262472.28956.10.camel@tubuntu>
-	 <8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
-	 <1253514408.4690.5.camel@tubuntu> <877hvrf2sj.fsf@deeprootsystems.com>
-	 <1253690451.14841.40.camel@tubuntu>	<87my4lbr86.fsf@deeprootsystems.com>
-	 <1253788763.17009.282.camel@tubuntu>	<4ABB95A6.7000503@deeprootsystems.com>
-	 <1253870386.21734.20.camel@tubuntu>
-	 <636c5030909301131k3f6f7ca0v1f4327d07fd0f9b7@mail.gmail.com>
-	 <1254408050.29174.24.camel@tubuntu>  <87ab0bf5o5.fsf@deeprootsystems.com>
-Reply-To: tomi.valkeinen@nokia.com
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in
+	i2c
+Date: Fri, 2 Oct 2009 13:59:21 +0300
+Message-ID: <1254481161.22468.179.camel@ubuntu>
+References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
+	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
+	 <87bpkso0dj.fsf@deeprootsystems.com> <1254383040.22468.130.camel@ubuntu>
+	 <4AC49578.9090906@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56674 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756318AbZJBIDa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 04:03:30 -0400
-In-Reply-To: <87ab0bf5o5.fsf@deeprootsystems.com>
+Received: from smtp1.digia.com ([82.118.214.156]:22207 "EHLO smtp1.digia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757617AbZJBK6t (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 2 Oct 2009 06:58:49 -0400
+In-Reply-To: <4AC49578.9090906@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: ext Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, 2009-10-01 at 18:19 +0200, ext Kevin Hilman wrote:
-> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
-
-> > So is there an API to change that value in resource34xx.h dynamically,
-> > depending on what DSS block is in use? Or am I still missing something
-> > here? =)
+On Thu, 2009-10-01 at 14:41 +0300, Aaro Koskinen wrote:
+> Hello,
 > 
-> You're right, we currently do not have a way to dynamically update
-> this table and we should for completeness.
+> Kalle Jokiniemi wrote:
+> > On Wed, 2009-09-30 at 19:36 +0300, Kevin Hilman wrote:
+> >> Seems like the latency value should also be (optionally) passed in
+> >> pdata so this can be experimented with per-platform.
+> > 
+> > Well, it kind of is already, since we pass the function that sets the
+> > latency from platform code. And that function has the latency
+> > hard-coded.
+> 
+> Paul Walmsley suggested earlier that the latency value should be
+> calculated from bus specific parameters:
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg12358.html
 
-Ok. This was what I was after in the first place, but didn't know how to
-form the question properly =).
+Yes, this is a good idea in theory, but the reality of wake-up latencies
+kind-a kill this one. Wake-up from even C1 (MPU INA, CORE ON) takes
+~130us on fastest OPP. And when you add 70us of sleep transition into
+that, you get 200us at minimum.
 
-> Excuse my ignorance of the DSS/DSI/etc., but if a DSI periperal is use
-> that requires a continual DSI clock then shouldn't the driver always
-> keep the DSI clock enabled (iow, it should never call clk_disable()).
-> If a clock is left enabled, even if OFF-mode is targetted for that
-> powerdomain, it will not reach OFF because the clockdomain is active.
+So what it would require to actually get latencies that Paul calculated,
+is a new C-state that bypasses the idle loop completely. This would
+essentially keep cpu in busy loop while waiting for interrupt (or i2c
+completion in this case). In pm-sense, it seems unwise.
 
-Well, this is quite theoretical, and I agree that let's just forget
-about this and worry it if such a case ever emerges. But here's what I
-was thinking:
+For us, the 500us constraint seems to work quite nicely. It removes the
+problems we had with i2c transfers timing out with off mode, and
+restores average transfer times (from clk_enable to clk_disable) to few
+hundred us (that were observed with retention).
 
-OMAP's DSI block can be clocked by OMAP's normal clocks (DPLL4, if I
-recall right), which are handled by clk_enable/disable. But the clock
-signal that goes over DSI bus to the peripheral is generated by the DSI
-PLL, which is a DSS internal PLL not handled by clk_enable/disable. DSI
-PLL usually gets its reference clock from sysclock.
+But it's open software, people are free to experiment :)
 
-For example, we have these displays that have their own framebuffer, and
-they independently update the actual panel from their internal
-framebuffer, while OMAP can be totally sleeping. Currently these
-displays generate their own clock for this internal updating.
+- Kalle
 
-There's an option in the OMAP DSI block to set the DSI clock output to
-always on (versus DSI clock output enabled automatically when there's
-data to transfer over DSI bus). And the reasoning for this option is
-that some peripherals may require continuous clock to operate. So we
-could have a display that uses DSI clock for staying alive, doing some
-internal work like refreshing the panel.
-
-> In the DSS git, the master branch seems to be based at 2.6.31-rc5.  Do
-> you have an updated version against 2.6.32-rc1 or omap/master?
-
-Which tree are you referring to? My gitorious tree contains the latest
-version that I've been pushing to mainstream.
-
-git://gitorious.org/linux-omap-dss2/linux.git (master branch)
-
-It's based on the mainstream tree, but I think it should apply to l-o
-easily. I can also make l-o based branch if the conflicts are bad.
-
- Tomi
-
+> 
+> A.
 
