@@ -1,81 +1,54 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 5/5] OMAP3: PM: Enable GPIO module-level wakeups
-Date: Fri,  2 Oct 2009 11:14:55 -0700
-Message-ID: <1254507295-11381-6-git-send-email-khilman@deeprootsystems.com>
-References: <1254507295-11381-1-git-send-email-khilman@deeprootsystems.com>
- <1254507295-11381-2-git-send-email-khilman@deeprootsystems.com>
- <1254507295-11381-3-git-send-email-khilman@deeprootsystems.com>
- <1254507295-11381-4-git-send-email-khilman@deeprootsystems.com>
- <1254507295-11381-5-git-send-email-khilman@deeprootsystems.com>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: Any one is still using omap-kernel on N810???
+Date: Fri, 2 Oct 2009 14:06:01 -0500
+Message-ID: <20091002190601.GG10356@swansys>
+References: <A2AD06B24DC9F846B5C9B99602FA10E7030D647E@cameurexb01.EUROPE.ROOT.PRI> <87tyyx901j.fsf@litku.valot.fi> <A2AD06B24DC9F846B5C9B99602FA10E7FAEBEE@cameurexb01.EUROPE.ROOT.PRI> <87ljk98ql6.fsf@litku.valot.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="5UGlQXeG3ziZS81+"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:43925 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758025AbZJBSPB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 14:15:01 -0400
-Received: by mail-px0-f179.google.com with SMTP id 9so1347643pxi.4
-        for <linux-omap@vger.kernel.org>; Fri, 02 Oct 2009 11:15:05 -0700 (PDT)
-In-Reply-To: <1254507295-11381-5-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-qy0-f173.google.com ([209.85.221.173]:51370 "EHLO
+	mail-qy0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752682AbZJBTGO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 15:06:14 -0400
+Received: by qyk3 with SMTP id 3so1139601qyk.4
+        for <linux-omap@vger.kernel.org>; Fri, 02 Oct 2009 12:06:18 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <87ljk98ql6.fsf@litku.valot.fi>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
 
-Currently, only GPIOs in the wakeup domain (GPIOs in bank 0) are
-enabled as wakups.  This patch also enables GPIOs in the PER
-powerdomain (banks 2-6) to be used as possible wakeup sources.
 
-In addition, this patch ensures that all GPIO wakeups can wakeup
-the MPU using the PM_MPUGRPSEL_<pwrdm> registers.
+--5UGlQXeG3ziZS81+
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-NOTE: this doesn't enable the individual GPIOs as wakeups, this simply
-enables the per-bank wakeups at the powerdomain level.
+Kalle Valo wrote at 2009-09-20 12:37 -0500:
+> "Stefano Panella" <Stefano.Panella@csr.com> writes:
+> > but I am still having problems with the internal MMC card...
+>=20
+> Sorry, I know nothing about mmc and I currently don't have time to study
+> it. But if you find a solution, please post it here. I'm sure others are
+> also interested.
 
-This problem was discovered by Mike Chan when preventing the CORE
-powerdomain from going into retention/off.  When CORE was allowed to
-hit retention, GPIO wakeups via IO pad were working fine, but when
-CORE remained on, GPIO module-level wakeups were not working properly.
+I have had problems with internal MMC also.  I have not had time to work wi=
+th=20
+my N810 recently, but am interested in progress.
 
-To test, prevent CORE from going inactive/retention/off, thus
-preventing the IO chain from being armed:
+--5UGlQXeG3ziZS81+
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-  # echo 3 > /debug/pm_debug/core_pwrdm/suspend
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-This ensures that GPIO wakeups happen via module-level wakeups and
-not via IO pad.
+iEYEARECAAYFAkrGTxkACgkQ682C+dBP+oQVYwCgxm4IJ9OFEZ666n4vZi+zdT4w
+IU0Anj/sXjc9Y3qCnt5/XJ3n71tfD06H
+=lre3
+-----END PGP SIGNATURE-----
 
-Tested on 3430SDP using the touchscreen GPIO (gpio 2, in WKUP)
-Tested on Zoom2 using the QUART interrup GPIO  (gpio 102, in PER)
-
-Also, c.f. OMAP PM wiki for troubleshooting GPIO wakeup issues:
-http://elinux.org/OMAP_Power_Management
-
-Reported-by: Mike Chan <mikechan@google.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm34xx.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index cf6ea9f..378c2f6 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -639,6 +639,16 @@ static void __init prcm_setup_regs(void)
- 	prm_write_mod_reg(OMAP3430_IO_EN | OMAP3430_WKUP_EN,
- 			  OCP_MOD, OMAP3_PRM_IRQENABLE_MPU_OFFSET);
- 
-+	/* Enable GPIO wakeups in PER */
-+	prm_write_mod_reg(OMAP3430_EN_GPIO2 | OMAP3430_EN_GPIO3 |
-+			  OMAP3430_EN_GPIO4 | OMAP3430_EN_GPIO5 |
-+			  OMAP3430_EN_GPIO6, OMAP3430_PER_MOD, PM_WKEN);
-+	/* and allow them to wake up MPU */
-+	prm_write_mod_reg(OMAP3430_GRPSEL_GPIO2 | OMAP3430_EN_GPIO3 |
-+			  OMAP3430_GRPSEL_GPIO4 | OMAP3430_EN_GPIO5 |
-+			  OMAP3430_GRPSEL_GPIO6,
-+			  OMAP3430_PER_MOD, OMAP3430_PM_MPUGRPSEL);
-+
- 	/* Don't attach IVA interrupts */
- 	prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
- 	prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
--- 
-1.6.4.3
-
+--5UGlQXeG3ziZS81+--
