@@ -1,74 +1,110 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: [PATCH 0/2] twl4030 power support for 3430SDP
-Date: Fri, 2 Oct 2009 17:24:12 +0300
-Message-ID: <20091002142412.GE32041@smtp.gmail.com>
-References: <1254423262-25380-1-git-send-email-khilman@deeprootsystems.com>
- <20091001192431.GW32041@smtp.gmail.com>
- <878wfubt2a.fsf@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] video: omap2: dss: RET on idle, enable/disable dss clocks 	only when needed.
+Date: Fri, 02 Oct 2009 07:27:56 -0700
+Message-ID: <87eiplan0z.fsf@deeprootsystems.com>
+References: <1253230586-931-1-git-send-email-mike@android.com>
+	<1253262472.28956.10.camel@tubuntu>
+	<8bb80c380909181033s2fd5e3a1o16404f1667760b25@mail.gmail.com>
+	<1253514408.4690.5.camel@tubuntu> <877hvrf2sj.fsf@deeprootsystems.com>
+	<1253690451.14841.40.camel@tubuntu>
+	<87my4lbr86.fsf@deeprootsystems.com>
+	<1253788763.17009.282.camel@tubuntu>
+	<4ABB95A6.7000503@deeprootsystems.com>
+	<1253870386.21734.20.camel@tubuntu>
+	<636c5030909301131k3f6f7ca0v1f4327d07fd0f9b7@mail.gmail.com>
+	<1254408050.29174.24.camel@tubuntu>
+	<87ab0bf5o5.fsf@deeprootsystems.com>
+	<1254470605.29174.67.camel@tubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:49679 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899AbZJBOY3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 10:24:29 -0400
-Received: by fxm27 with SMTP id 27so1070615fxm.17
-        for <linux-omap@vger.kernel.org>; Fri, 02 Oct 2009 07:24:32 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <878wfubt2a.fsf@deeprootsystems.com>
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:34949 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754926AbZJBO1y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 10:27:54 -0400
+Received: by pzk7 with SMTP id 7so1040927pzk.33
+        for <linux-omap@vger.kernel.org>; Fri, 02 Oct 2009 07:27:58 -0700 (PDT)
+In-Reply-To: <1254470605.29174.67.camel@tubuntu> (Tomi Valkeinen's message of "Fri\, 02 Oct 2009 11\:03\:25 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
+To: tomi.valkeinen@nokia.com
+Cc: ext Mike Chan <mike@android.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 09 Oct 01, Kevin Hilman wrote:
-> Amit Kucheria <amit.kucheria@canonical.com> writes:
-> 
-> > On 09 Oct 01, Kevin Hilman wrote:
-> >> I've been carrying these in the PM branch, but now that twl4030 power
-> >> support is in mainline, these can be queued for 2.6.33.
-> >> 
-> >> Kevin Hilman (1):
-> >>   OMAP3: PM: 3430SDP: add initial twl4030 power scripts
-> >> 
-> >> Rajendra Nayak (1):
-> >>   OMAP3: PM: 3430SDP: Update twl4030 power scripts and device groups
-> >> 
-> >>  arch/arm/mach-omap2/board-3430sdp.c |   93 ++++++++++++++++++++++++++++++++++-
-> >>  1 files changed, 91 insertions(+), 2 deletions(-)
-> >> 
-> >
-> > Hi Kevin,
-> >
-> > Do you want to wait until I push patches that modify the way the scripts are
-> > loaded in memory? (they now allow overlapping scripts to work around space
-> > constraints)
-> >
-> > Also we now have very simplified scripts that use broadcast messages. These
-> > might still need to be tweaked for the various boards though. It works on the
-> > RX51.
-> 
-> Well, I don't *want* to wait because that means I would have to rework
-> these patches.  :)  
-> 
-> But it sounds waiting is the right thing.  How close are you to having
-> the new scripting stuff ready?  Should we put it into the PM branch in
-> the meantime so it can get some testing on other boards than RX51?
-> 
-> Kevin
+Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
 
-Kevin,
+> On Thu, 2009-10-01 at 18:19 +0200, ext Kevin Hilman wrote:
+>> Tomi Valkeinen <tomi.valkeinen@nokia.com> writes:
+>
+>> > So is there an API to change that value in resource34xx.h dynamically,
+>> > depending on what DSS block is in use? Or am I still missing something
+>> > here? =)
+>> 
+>> You're right, we currently do not have a way to dynamically update
+>> this table and we should for completeness.
+>
+> Ok. This was what I was after in the first place, but didn't know how to
+> form the question properly =).
+>
+>> Excuse my ignorance of the DSS/DSI/etc., but if a DSI periperal is use
+>> that requires a continual DSI clock then shouldn't the driver always
+>> keep the DSI clock enabled (iow, it should never call clk_disable()).
+>> If a clock is left enabled, even if OFF-mode is targetted for that
+>> powerdomain, it will not reach OFF because the clockdomain is active.
+>
+> Well, this is quite theoretical, and I agree that let's just forget
+> about this and worry it if such a case ever emerges. But here's what I
+> was thinking:
+>
+> OMAP's DSI block can be clocked by OMAP's normal clocks (DPLL4, if I
+> recall right), which are handled by clk_enable/disable. But the clock
+> signal that goes over DSI bus to the peripheral is generated by the DSI
+> PLL, which is a DSS internal PLL not handled by clk_enable/disable. DSI
+> PLL usually gets its reference clock from sysclock.
+>
+> For example, we have these displays that have their own framebuffer, and
+> they independently update the actual panel from their internal
+> framebuffer, while OMAP can be totally sleeping. Currently these
+> displays generate their own clock for this internal updating.
+>
+> There's an option in the OMAP DSI block to set the DSI clock output to
+> always on (versus DSI clock output enabled automatically when there's
+> data to transfer over DSI bus). And the reasoning for this option is
+> that some peripherals may require continuous clock to operate. So we
+> could have a display that uses DSI clock for staying alive, doing some
+> internal work like refreshing the panel.
 
-I take back my objections to these patches. On studying the current state of
-the scripts it looks like the feature allowing overlapping scripts to work
-around space constraints might no longer be necessary after the conversion of
-the scripts to use broadcast messages instead of the singular ones. <whew>
+OK, I understand the need to keep these clocks going in some cases.
 
-I'll push the optimised scripts shortly.
+Based on how some of the other HW modules work, I would assume that if
+DSI is active (generating clocks), it would never allow and idle
+transition so it wouldn't hit off mode.  I guess we'd need to dig into
+the DSS/DSI docs to see if that's true.
 
-Acked-by: Amit Kucheria <amit.kucheria@verdurent.com>
+But the basic model for going into RET or OFF is that the PRCM uses an
+idle protocol to ask each module if it can idle.  Here's a simplified
+summary: First, PRCM sends and idle request.  If the module is idle,
+it responsds with an idle ack and the PRCM is then free to disable its
+clocks etc.  But, if the module doesn't ack, clocks will not be cut and
+the module will stay active and prevent full-chip RET/OFF.
 
--- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
+So, following this model, I assume that the DSS would never idle ack if
+one of its sub-modules, in this case DSI, is active.  That would need
+to be verified in the docs.
+
+>> In the DSS git, the master branch seems to be based at 2.6.31-rc5.  Do
+>> you have an updated version against 2.6.32-rc1 or omap/master?
+>
+> Which tree are you referring to? My gitorious tree contains the latest
+> version that I've been pushing to mainstream.
+>
+> git://gitorious.org/linux-omap-dss2/linux.git (master branch)
+>
+> It's based on the mainstream tree, but I think it should apply to l-o
+> easily. I can also make l-o based branch if the conflicts are bad.
+
+Hmm, the git tree I was looking at was from bat.org.  I'll update to
+this one and have a look.
+
+Thanks,
+
+Kevin
