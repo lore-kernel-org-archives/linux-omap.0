@@ -1,72 +1,56 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 8/8] omapfb: Blizzard: constify register address tables
-Date: Fri, 02 Oct 2009 15:46:53 -0700
-Message-ID: <20091002224653.11962.4623.stgit@localhost>
-References: <20091002223510.11962.21751.stgit@localhost>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [PATCH 02/28] OMAP3: PM: GPIO context save/restore
+Date: Sat, 03 Oct 2009 09:53:19 -0500
+Message-ID: <4AC7655F.6080604@gmail.com>
+References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com> <1254441538-9257-2-git-send-email-khilman@deeprootsystems.com> <1254441538-9257-3-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52159 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754944AbZJBWqu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 2 Oct 2009 18:46:50 -0400
-In-Reply-To: <20091002223510.11962.21751.stgit@localhost>
+Received: from mail-yx0-f199.google.com ([209.85.210.199]:55233 "EHLO
+	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754602AbZJCOxw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 3 Oct 2009 10:53:52 -0400
+Received: by yxe37 with SMTP id 37so1917718yxe.33
+        for <linux-omap@vger.kernel.org>; Sat, 03 Oct 2009 07:53:15 -0700 (PDT)
+In-Reply-To: <1254441538-9257-3-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Imre Deak <imre.deak@nokia.com>, Tomi Valkeinen <tomi.valkeinen@nokia.com>, Tommi Rantala <tt.rantala@gmail.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
-From: Tommi Rantala <tt.rantala@gmail.com>
+Kevin Hilman said the following on 10/01/2009 06:58 PM:
+> From: Rajendra Nayak <rnayak@ti.com>
+>
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/plat-omap/gpio.c              |   92 ++++++++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/mach/gpio.h |    3 +-
+>  2 files changed, 94 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index b0c7361..9850ade 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> +
+> +/* restore the required registers of bank 2-6 */
+> +void omap3_gpio_restore_context(void)
+> +{
+> +	int i;
+> +	for (i = 1; i < gpio_bank_count; i++) {
+> +		struct gpio_bank *bank = &gpio_bank[i];
+> +		__raw_writel(gpio_context[i].sysconfig,
+> +				bank->base + OMAP24XX_GPIO_SYSCONFIG);
+> +		__raw_writel(gpio_context[i].irqenable1,
+> +				bank->base + OMAP24XX_GPIO_IRQENABLE1);
+> +		__raw_writel(gpio_context[i].irqenable2,
+> +				bank->base + OMAP24XX_GPIO_IRQENABLE2);
+>   
+do you want to write to the IRQENABLE register even before configuring
+the rest of the registers (such as data direction etc?
+usually my understanding was:
+configure the device,
+enable the irq..
 
-Constify register address tables
-
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Cc: Imre Deak <imre.deak@nokia.com>
-Signed-off-by: Tommi Rantala <tt.rantala@gmail.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- drivers/video/omap/blizzard.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/video/omap/blizzard.c b/drivers/video/omap/blizzard.c
-index ce28be6..70dadf9 100644
---- a/drivers/video/omap/blizzard.c
-+++ b/drivers/video/omap/blizzard.c
-@@ -93,7 +93,7 @@ struct blizzard_reg_list {
- };
- 
- /* These need to be saved / restored separately from the rest. */
--static struct blizzard_reg_list blizzard_pll_regs[] = {
-+static const struct blizzard_reg_list blizzard_pll_regs[] = {
- 	{
- 		.start	= 0x04,		/* Don't save PLL ctrl (0x0C) */
- 		.end	= 0x0a,
-@@ -104,7 +104,7 @@ static struct blizzard_reg_list blizzard_pll_regs[] = {
- 	},
- };
- 
--static struct blizzard_reg_list blizzard_gen_regs[] = {
-+static const struct blizzard_reg_list blizzard_gen_regs[] = {
- 	{
- 		.start	= 0x18,		/* SDRAM control */
- 		.end	= 0x20,
-@@ -1372,7 +1372,7 @@ static void blizzard_get_caps(int plane, struct omapfb_caps *caps)
- 			   (1 << OMAPFB_COLOR_YUV420);
- }
- 
--static void _save_regs(struct blizzard_reg_list *list, int cnt)
-+static void _save_regs(const struct blizzard_reg_list *list, int cnt)
- {
- 	int i;
- 
-@@ -1383,7 +1383,7 @@ static void _save_regs(struct blizzard_reg_list *list, int cnt)
- 	}
- }
- 
--static void _restore_regs(struct blizzard_reg_list *list, int cnt)
-+static void _restore_regs(const struct blizzard_reg_list *list, int cnt)
- {
- 	int i;
- 
-
+Regards,
+Nishanth Menon
