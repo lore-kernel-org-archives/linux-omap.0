@@ -1,22 +1,20 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
 Subject: [PATCH 1/3] [OMAP] htcherald: Add board support and LCD for HTC
 	Herald
-Date: Sun, 4 Oct 2009 10:33:48 -0700
-Message-ID: <6cb013310910041033m2c606d24g6db199326800ee14@mail.gmail.com>
+Date: Sun, 4 Oct 2009 09:42:46 -0700
+Message-ID: <6cb013310910040942o241097am36915b561f2e9805@mail.gmail.com>
 References: <6cb013310910032157p19438de3h672fb68a100f7f90@mail.gmail.com>
 	<6cb013310910040941k19f07c4fr831820aaeed93b6d@mail.gmail.com>
-	<6cb013310910040942o241097am36915b561f2e9805@mail.gmail.com>
-	<6cb013310910041032p2abbb4adycd2dfe6f79e4956f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f199.google.com ([209.85.210.199]:34875 "EHLO
+Received: from mail-yx0-f199.google.com ([209.85.210.199]:48475 "EHLO
 	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757440AbZJDReo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Oct 2009 13:34:44 -0400
-Received: by yxe37 with SMTP id 37so2439920yxe.33
-        for <linux-omap@vger.kernel.org>; Sun, 04 Oct 2009 10:34:08 -0700 (PDT)
-In-Reply-To: <6cb013310910041032p2abbb4adycd2dfe6f79e4956f@mail.gmail.com>
+	with ESMTP id S1752175AbZJDQnR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Oct 2009 12:43:17 -0400
+Received: by mail-yx0-f199.google.com with SMTP id 37so2420073yxe.33
+        for <linux-omap@vger.kernel.org>; Sun, 04 Oct 2009 09:43:06 -0700 (PDT)
+In-Reply-To: <6cb013310910040941k19f07c4fr831820aaeed93b6d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
@@ -36,7 +34,7 @@ Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 diff --git a/arch/arm/mach-omap1/board-htcherald.c
 b/arch/arm/mach-omap1/board-htcherald.c
 new file mode 100644
-index 0000000..93f8903
+index 0000000..d5174a7
 --- /dev/null
 +++ b/arch/arm/mach-omap1/board-htcherald.c
 @@ -0,0 +1,203 @@
@@ -206,8 +204,8 @@ index 0000000..93f8903
 +		 * disable a potentially running watchdog timer before
 +		 * it kills us.
 +		 */
-+		printk(KERN_WARNING "OMAP850 Watchdog seems to be activated,
-disabling it for now.\n");
++		printk(KERN_INFO "OMAP850 Watchdog seems to be activated, disabling
+it for now.\n");
 +		omap_writel(0xF5, OMAP_WDT_TIMER_MODE);
 +		omap_writel(0xA0, OMAP_WDT_TIMER_MODE);
 +	}
@@ -215,7 +213,7 @@ disabling it for now.\n");
 +
 +static void __init htcherald_init(void)
 +{
-+	printk(KERN_INFO "HTC Herald init.\n");
++	printk("HTC Herald init.\n");
 +
 +	omap_gpio_init();
 +
