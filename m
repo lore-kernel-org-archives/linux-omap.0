@@ -1,33 +1,32 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
 Subject: Re: [PATCH 1/3] [OMAP] htcherald: Add board support and LCD for HTC
 	Herald
-Date: Sun, 4 Oct 2009 09:41:44 -0700
-Message-ID: <6cb013310910040941k19f07c4fr831820aaeed93b6d@mail.gmail.com>
+Date: Sun, 4 Oct 2009 10:32:04 -0700
+Message-ID: <6cb013310910041032p2abbb4adycd2dfe6f79e4956f@mail.gmail.com>
 References: <6cb013310910032157p19438de3h672fb68a100f7f90@mail.gmail.com>
+	<6cb013310910040941k19f07c4fr831820aaeed93b6d@mail.gmail.com>
+	<6cb013310910040942o241097am36915b561f2e9805@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f199.google.com ([209.85.210.199]:48475 "EHLO
-	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757431AbZJDQmk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Oct 2009 12:42:40 -0400
-Received: by yxe37 with SMTP id 37so2420073yxe.33
-        for <linux-omap@vger.kernel.org>; Sun, 04 Oct 2009 09:42:04 -0700 (PDT)
-In-Reply-To: <6cb013310910032157p19438de3h672fb68a100f7f90@mail.gmail.com>
+Received: from mail-yw0-f176.google.com ([209.85.211.176]:56974 "EHLO
+	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757116AbZJDRdB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Oct 2009 13:33:01 -0400
+Received: by ywh6 with SMTP id 6so1928428ywh.4
+        for <linux-omap@vger.kernel.org>; Sun, 04 Oct 2009 10:32:24 -0700 (PDT)
+In-Reply-To: <6cb013310910040942o241097am36915b561f2e9805@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-I received some input from Juha Leppanen who suggested a better way to
-do the loop in lcd_htcherald.c which would allow us to know if the
-200th attempt was successful (instead of the error being printed even
-after 199 failed attempts and the last 200th attempt being
-successful).  I'm going to resubmit this patch with the corrections.
+Hrm, seems I missed some printk's and mislabeled one.  New patch to fol=
+low.
 
 - Cory
 
-On Sat, Oct 3, 2009 at 9:57 PM, Cory Maccarrone <darkstar6262@gmail.com=
+On Sun, Oct 4, 2009 at 9:42 AM, Cory Maccarrone <darkstar6262@gmail.com=
 > wrote:
 > This patch introduces support for the HTC Herald (T-Mobile
 > Wing, etc.) series of smart phones -- board support and LCD
@@ -37,9 +36,9 @@ On Sat, Oct 3, 2009 at 9:57 PM, Cory Maccarrone <darkstar6262@gmail.com=
 > ---
 > =A0arch/arm/mach-omap1/board-htcherald.c | =A0203 +++++++++++++++++++=
 ++++++++++++++
-> =A0drivers/video/omap/lcd_htcherald.c =A0 =A0| =A0166 +++++++++++++++=
-++++++++++++
-> =A02 files changed, 369 insertions(+), 0 deletions(-)
+> =A0drivers/video/omap/lcd_htcherald.c =A0 =A0| =A0164 +++++++++++++++=
++++++++++++
+> =A02 files changed, 367 insertions(+), 0 deletions(-)
 > =A0create mode 100644 arch/arm/mach-omap1/board-htcherald.c
 > =A0create mode 100644 drivers/video/omap/lcd_htcherald.c
 >
@@ -271,10 +270,10 @@ s to be activated, disabling
 > diff --git a/drivers/video/omap/lcd_htcherald.c
 > b/drivers/video/omap/lcd_htcherald.c
 > new file mode 100644
-> index 0000000..72e9f88
+> index 0000000..eb0dc2c
 > --- /dev/null
 > +++ b/drivers/video/omap/lcd_htcherald.c
-> @@ -0,0 +1,166 @@
+> @@ -0,0 +1,164 @@
 > +/*
 > + * File: drivers/video/omap/lcd-htcherald.c
 > + *
@@ -398,10 +397,8 @@ LOCK,
 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_writel(reg, OMAP_LCDC_CONTROL);
 > +
 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* wait for end of frame */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 do {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 --tries;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 } while (!(omap_readl(OMAP_LCDC_STATUS)=
- & OMAP_LCDC_STAT_DONE) && tries);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 while (!(omap_readl(OMAP_LCDC_STATUS) &=
+ OMAP_LCDC_STAT_DONE) && --tries);
 > +
 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!tries) {
 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_WARNING "lc=
