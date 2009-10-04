@@ -1,33 +1,43 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
 Subject: Re: [PATCH 1/3] [OMAP] htcherald: Add board support and LCD for HTC
 	Herald
-Date: Sun, 4 Oct 2009 10:32:04 -0700
-Message-ID: <6cb013310910041032p2abbb4adycd2dfe6f79e4956f@mail.gmail.com>
+Date: Sun, 4 Oct 2009 14:05:20 -0700
+Message-ID: <6cb013310910041405q6e3d52b6tbdc38a14c7314916@mail.gmail.com>
 References: <6cb013310910032157p19438de3h672fb68a100f7f90@mail.gmail.com>
 	<6cb013310910040941k19f07c4fr831820aaeed93b6d@mail.gmail.com>
 	<6cb013310910040942o241097am36915b561f2e9805@mail.gmail.com>
+	<6cb013310910041032p2abbb4adycd2dfe6f79e4956f@mail.gmail.com>
+	<6cb013310910041033m2c606d24g6db199326800ee14@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:56974 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757116AbZJDRdB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Oct 2009 13:33:01 -0400
-Received: by ywh6 with SMTP id 6so1928428ywh.4
-        for <linux-omap@vger.kernel.org>; Sun, 04 Oct 2009 10:32:24 -0700 (PDT)
-In-Reply-To: <6cb013310910040942o241097am36915b561f2e9805@mail.gmail.com>
+Received: from mail-yx0-f199.google.com ([209.85.210.199]:57052 "EHLO
+	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758041AbZJDVGT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 4 Oct 2009 17:06:19 -0400
+Received: by yxe37 with SMTP id 37so2519051yxe.33
+        for <linux-omap@vger.kernel.org>; Sun, 04 Oct 2009 14:05:41 -0700 (PDT)
+In-Reply-To: <6cb013310910041033m2c606d24g6db199326800ee14@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-Hrm, seems I missed some printk's and mislabeled one.  New patch to fol=
-low.
+After doing more testing, it seems that putting the LCD disable code
+in lcd_htcherald.c is too late in the bootup -- it only worked
+intermittently at best, failing to work most of the time.
+
+As such, I've moved that code back into the board file and call it
+just after omap1_map_common_io().  With this in place, the framebuffer
+is reliably enabled.
+
+This should hopefully be the last revision of this patch I make --
+sorry for all the patch spam.
 
 - Cory
 
-On Sun, Oct 4, 2009 at 9:42 AM, Cory Maccarrone <darkstar6262@gmail.com=
-> wrote:
+On Sun, Oct 4, 2009 at 10:33 AM, Cory Maccarrone <darkstar6262@gmail.co=
+m> wrote:
 > This patch introduces support for the HTC Herald (T-Mobile
 > Wing, etc.) series of smart phones -- board support and LCD
 > panel settings.
@@ -45,7 +55,7 @@ On Sun, Oct 4, 2009 at 9:42 AM, Cory Maccarrone <darkstar6262@gmail.com=
 > diff --git a/arch/arm/mach-omap1/board-htcherald.c
 > b/arch/arm/mach-omap1/board-htcherald.c
 > new file mode 100644
-> index 0000000..d5174a7
+> index 0000000..93f8903
 > --- /dev/null
 > +++ b/arch/arm/mach-omap1/board-htcherald.c
 > @@ -0,0 +1,203 @@
@@ -226,9 +236,9 @@ icense
 hdog timer before
 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* it kills us.
 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0*/
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_INFO "OMAP850 Watchdog seem=
-s to be activated, disabling
-> it for now.\n");
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_WARNING "OMAP850 Watchdog s=
+eems to be activated,
+> disabling it for now.\n");
 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_writel(0xF5, OMAP_WDT_TIMER_MODE);
 > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_writel(0xA0, OMAP_WDT_TIMER_MODE);
 > + =A0 =A0 =A0 }
@@ -236,7 +246,7 @@ s to be activated, disabling
 > +
 > +static void __init htcherald_init(void)
 > +{
-> + =A0 =A0 =A0 printk("HTC Herald init.\n");
+> + =A0 =A0 =A0 printk(KERN_INFO "HTC Herald init.\n");
 > +
 > + =A0 =A0 =A0 omap_gpio_init();
 > +
