@@ -1,146 +1,99 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/1] OMAP3: Common mechanism to identify cpu revision
-Date: Mon, 05 Oct 2009 09:49:00 -0700
-Message-ID: <87k4z923cz.fsf@deeprootsystems.com>
-References: <1253807481-19214-1-git-send-email-premi@ti.com>
-	<87bpksr0no.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08B48@dbde02.ent.ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08BD9@dbde02.ent.ti.com>
+Subject: Re: Question on OPP table handling
+Date: Mon, 05 Oct 2009 09:56:31 -0700
+Message-ID: <87ws39zsn4.fsf@deeprootsystems.com>
+References: <1254420194-4757-1-git-send-email-premi@ti.com>
+	<4AC76810.1040206@gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08B10@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:59632 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752664AbZJEQuO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 12:50:14 -0400
-Received: by pxi9 with SMTP id 9so3138393pxi.4
-        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 09:49:02 -0700 (PDT)
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDC08BD9@dbde02.ent.ti.com> (Sanjeev Premi's message of "Mon\, 5 Oct 2009 21\:05\:03 +0530")
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:48177 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753626AbZJEQ5U (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 12:57:20 -0400
+Received: by pzk26 with SMTP id 26so2916780pzk.4
+        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 09:56:33 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDC08B10@dbde02.ent.ti.com> (Sanjeev Premi's message of "Mon\, 5 Oct 2009 18\:39\:44 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "Premi, Sanjeev" <premi@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 "Premi, Sanjeev" <premi@ti.com> writes:
 
 >> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org 
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
->> Sent: Monday, October 05, 2009 7:18 PM
->> To: Kevin Hilman
+>> From: Nishanth Menon [mailto:menon.nishanth@gmail.com] 
+>> Sent: Saturday, October 03, 2009 8:35 PM
+>> To: Premi, Sanjeev
 >> Cc: linux-omap@vger.kernel.org
->> Subject: RE: [PATCH 1/1] OMAP3: Common mechanism to identify 
->> cpu revision
+>> Subject: Question on OPP table handling
 >> 
->> > -----Original Message-----
->> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->> > Sent: Wednesday, September 30, 2009 7:32 PM
->> > To: Premi, Sanjeev
->> > Cc: linux-omap@vger.kernel.org
->> > Subject: Re: [PATCH 1/1] OMAP3: Common mechanism to identify 
->> > cpu revision
->> > 
->> > Sanjeev Premi <premi@ti.com> writes:
->> > 
->> > > There are multiple mechanisms to identify the cpu revisions.
->> > > Most common is use of omap_rev(). This, however, does a
->> > > absolute comparison of omap_revision - which includes
->> > > CPU id, CPU rev and CPU class. This comparison fails for
->> > > OMAP35x processors.
->> > >
->> > > This patch defines generic functions that use only the
->> > > CPU rev bits in omap_revision to identify the revision
->> > > information.
->> > >
->> > > Usage will change from (for example):
->> > > 	if (omap_rev() > OMAP3430_REV_ES2_0)
->> > > to:
->> > > 	if (cpu_is_omap34xx() && omap_rev_gt_2_0())
->> > >
->> > > Specific check for cpu_is_xxx() will not be needed for
->> > > files specific to silicon e.g. pm34xx.c, clock34xx.c, etc.
->> > >
->> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
->> > 
->> > Looks mostly good, some minor comments/questions below...
->> > 
->> [snip]--[snip]
->> > 
->> > I don't think the cpu_is_... is needed here because of the OMAP3
->> > specific function.
->> 
->> [sp] Yes. This can be removed.
->> 
->> > >  /*
->> > > + * Silicon revisions
->> > > + */
->> > > +#define OMAP_ES_1_0		0x00
->> > > +#define OMAP_ES_2_0		0x10
->> > > +#define OMAP_ES_2_1		0x20
->> > > +#define OMAP_ES_3_0		0x30
->> > > +#define OMAP_ES_3_1		0x40
->> > 
->> > Hmm, are these the same values on OMAP2? and OMAP4?
->> > 
->> [sp] Based on the values defined for OMAP2420 and OMA2430,
->> these definitions are applicable. There aren't as many
->> Revisions though.
->> 
->> Not sure if it will hold good for OMAP4..
->> 
->> Do you think, we make these definitions silicon specific
->> now?
-
-Not necessarily, for OMAP4, we can use OMAP4_ prefix.  But
-you should add a comment that these are valid for OMAP2/3.
-
->> > > +#define OMAP_REV_MASK		0x0000ff00
->> > > +#define OMAP_REV_BITS		((omap_rev() & 
->> > OMAP_REV_MASK) >> 8)
->> > > +
->> > > +#define OMAP_REV_IS(revid)				
->> 	\
->> > > +static inline u8 omap_rev_is_ ##revid (void)		
->> > 	\
->> > 
->> > Minor nit, but these should return bool.
->> 
->> [sp] I will update.
+>> Sanjeev Premi said the following on 10/01/2009 01:03 PM:
+>> > +struct omap_opp omap3_mpu_rate_table[] = {
+>> > +	{0, 0, 0},
+>> > +	/*OPP1*/
+>> > +	{S125M, VDD1_OPP1, 0x1E},
+>> > +	/*OPP2*/
+>> > +	{S250M, VDD1_OPP2, 0x26},
+>> > +	/*OPP3*/
+>> > +	{S500M, VDD1_OPP3, 0x30},
+>> > +	/*OPP4*/
+>> > +	{S550M, VDD1_OPP4, 0x36},
+>> > +	/*OPP5*/
+>> > +	{S600M, VDD1_OPP5, 0x3C},
+>> > +};
+>> >   
+>> For those involved,
+>> if we wanted to convert omap3_mpu_table[] into 
+>> *omap3_mpu_table so that
+>> we dynamically initialize it based on cpu type - what would be the
+>> recommendations?
 >
-> Kevin, Tony,
+> Nishanth,
 >
-> The original patch was created against the pm branch.
+> Good idea! 
 >
-> While re-submitting, should I split in two - one against
-> master and delta for pm branch?
+> As a table, previous patch enables it (not as intent, but due to syntax):
+>
+>   >  +/* struct omap_opp_table - View OPP table as an object
+>   > + * @min: Minimum OPP id
+>   > + * @max: Maximim OPP id
+>   > + * @opps: Pointer to array defining the OPPs.
+>   > + *
+>   > + * An OPP table has varied length. Knowing minimum and maximum
+>   > + * OPP ids allow easy traversal.
+>   > + */
+>   > +struct omap_opp_table {
+>   > +       u8      min;
+>   > +       u8      max;
+>   > +       struct omap_opp* opps;
+>   > +};
+>
+> But now, I think it would be good to have an API that can fill an opp_table:
+>
+> int add_opp_definition(u8 id, u32 freq, u16 vsel);
+>
+> ...and, if an array is preferred, length can be set as:
+> int set_opp_table_length (u8 max);
 
-Yes.  The main part of this should go into l-o master.
+I'm all for dynamic OPP setting, but not as an array.  A list should
+probably be used.
+
+> If I were to extend the discussion from other thread on toggling the valid OPPs
+> based on "enable_off_mode", these could be handy.
+>
+> int set_opp_valid(bool flag);
+> bool is_opp_valid(void); 
+>
+
+Yes, we need a concept of a valid OPP, not just for OFF mode, but for
+OSWR and possibly for a full constraint framework as well.
 
 Kevin
 
-> Best regards,
-> Sanjeev
->
->> 
->> > 
->> > > +{							
->> 	\
->> > > +	return (OMAP_REV_BITS == OMAP_ES_ ##revid) ? 1 : 0;	\
->> > > +}
->> > > +
->> > > +#define OMAP_REV_LT(revid)				
->> 	\
->> > > +static inline u8 omap_rev_lt_ ##revid (void)		
->> > 	\
->> [snip]--[snip]
->> 
->> > 
->> > Kevin
->> > 
->> > --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
->> 
+
+>> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
