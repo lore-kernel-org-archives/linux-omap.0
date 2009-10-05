@@ -1,77 +1,146 @@
-From: Randy Dunlap <rdunlap@xenotime.net>
-Subject: Re: [PATCH v2] SDMA: Fixing bug in omap_dma_set_global_params()
-Date: Mon, 5 Oct 2009 09:41:02 -0700
-Message-ID: <20091005094102.1385b418.rdunlap@xenotime.net>
-References: <1254732163-3509-1-git-send-email-anuj.aggarwal@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 1/1] OMAP3: Common mechanism to identify cpu revision
+Date: Mon, 05 Oct 2009 09:49:00 -0700
+Message-ID: <87k4z923cz.fsf@deeprootsystems.com>
+References: <1253807481-19214-1-git-send-email-premi@ti.com>
+	<87bpksr0no.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08B48@dbde02.ent.ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08BD9@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:60664 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753082AbZJEQth (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Oct 2009 12:49:37 -0400
-Received: from chimera.site ([96.253.169.185]) by xenotime.net for <linux-omap@vger.kernel.org>; Mon, 5 Oct 2009 09:48:59 -0700
-In-Reply-To: <1254732163-3509-1-git-send-email-anuj.aggarwal@ti.com>
+Received: from mail-px0-f179.google.com ([209.85.216.179]:59632 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752664AbZJEQuO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 12:50:14 -0400
+Received: by pxi9 with SMTP id 9so3138393pxi.4
+        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 09:49:02 -0700 (PDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDC08BD9@dbde02.ent.ti.com> (Sanjeev Premi's message of "Mon\, 5 Oct 2009 21\:05\:03 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, svenkatr@ti.com, tony@atomide.com
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon,  5 Oct 2009 14:12:43 +0530 Anuj Aggarwal wrote:
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-> Argument tparams was not being used to program
-> global register GCR.HI_THREAD_RESERVED. This patch fixes the same.
-> 
-> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> ---
->  arch/arm/plat-omap/dma.c |   15 +++++++++------
->  1 files changed, 9 insertions(+), 6 deletions(-)
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
+>> Sent: Monday, October 05, 2009 7:18 PM
+>> To: Kevin Hilman
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: RE: [PATCH 1/1] OMAP3: Common mechanism to identify 
+>> cpu revision
+>> 
+>> > -----Original Message-----
+>> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>> > Sent: Wednesday, September 30, 2009 7:32 PM
+>> > To: Premi, Sanjeev
+>> > Cc: linux-omap@vger.kernel.org
+>> > Subject: Re: [PATCH 1/1] OMAP3: Common mechanism to identify 
+>> > cpu revision
+>> > 
+>> > Sanjeev Premi <premi@ti.com> writes:
+>> > 
+>> > > There are multiple mechanisms to identify the cpu revisions.
+>> > > Most common is use of omap_rev(). This, however, does a
+>> > > absolute comparison of omap_revision - which includes
+>> > > CPU id, CPU rev and CPU class. This comparison fails for
+>> > > OMAP35x processors.
+>> > >
+>> > > This patch defines generic functions that use only the
+>> > > CPU rev bits in omap_revision to identify the revision
+>> > > information.
+>> > >
+>> > > Usage will change from (for example):
+>> > > 	if (omap_rev() > OMAP3430_REV_ES2_0)
+>> > > to:
+>> > > 	if (cpu_is_omap34xx() && omap_rev_gt_2_0())
+>> > >
+>> > > Specific check for cpu_is_xxx() will not be needed for
+>> > > files specific to silicon e.g. pm34xx.c, clock34xx.c, etc.
+>> > >
+>> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
+>> > 
+>> > Looks mostly good, some minor comments/questions below...
+>> > 
+>> [snip]--[snip]
+>> > 
+>> > I don't think the cpu_is_... is needed here because of the OMAP3
+>> > specific function.
+>> 
+>> [sp] Yes. This can be removed.
+>> 
+>> > >  /*
+>> > > + * Silicon revisions
+>> > > + */
+>> > > +#define OMAP_ES_1_0		0x00
+>> > > +#define OMAP_ES_2_0		0x10
+>> > > +#define OMAP_ES_2_1		0x20
+>> > > +#define OMAP_ES_3_0		0x30
+>> > > +#define OMAP_ES_3_1		0x40
+>> > 
+>> > Hmm, are these the same values on OMAP2? and OMAP4?
+>> > 
+>> [sp] Based on the values defined for OMAP2420 and OMA2430,
+>> these definitions are applicable. There aren't as many
+>> Revisions though.
+>> 
+>> Not sure if it will hold good for OMAP4..
+>> 
+>> Do you think, we make these definitions silicon specific
+>> now?
 
+Not necessarily, for OMAP4, we can use OMAP4_ prefix.  But
+you should add a comment that these are valid for OMAP2/3.
 
-Hi,
-Someone please convert all of this source file to correct kernel-doc notation.
+>> > > +#define OMAP_REV_MASK		0x0000ff00
+>> > > +#define OMAP_REV_BITS		((omap_rev() & 
+>> > OMAP_REV_MASK) >> 8)
+>> > > +
+>> > > +#define OMAP_REV_IS(revid)				
+>> 	\
+>> > > +static inline u8 omap_rev_is_ ##revid (void)		
+>> > 	\
+>> > 
+>> > Minor nit, but these should return bool.
+>> 
+>> [sp] I will update.
+>
+> Kevin, Tony,
+>
+> The original patch was created against the pm branch.
+>
+> While re-submitting, should I split in two - one against
+> master and delta for pm branch?
 
-Thanks.
+Yes.  The main part of this should go into l-o master.
 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index fd3154a..0eb676d 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -829,10 +829,10 @@ EXPORT_SYMBOL(omap_free_dma);
->   *
->   * @param arb_rate
->   * @param max_fifo_depth
-> - * @param tparams - Number of thereads to reserve : DMA_THREAD_RESERVE_NORM
-> - * 						    DMA_THREAD_RESERVE_ONET
-> - * 						    DMA_THREAD_RESERVE_TWOT
-> - * 						    DMA_THREAD_RESERVE_THREET
-> + * @param tparams - Number of threads to reserve : DMA_THREAD_RESERVE_NORM
-> + * 						   DMA_THREAD_RESERVE_ONET
-> + * 						   DMA_THREAD_RESERVE_TWOT
-> + * 						   DMA_THREAD_RESERVE_THREET
->   */
->  void
->  omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
-> @@ -844,11 +844,14 @@ omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
->  		return;
->  	}
->  
-> +	if (max_fifo_depth == 0)
-> +		max_fifo_depth = 1;
->  	if (arb_rate == 0)
->  		arb_rate = 1;
->  
-> -	reg = (arb_rate & 0xff) << 16;
-> -	reg |= (0xff & max_fifo_depth);
-> +	reg = 0xff & max_fifo_depth;
-> +	reg |= (0x3 & tparams) << 12;
-> +	reg |= (arb_rate & 0xff) << 16;
->  
->  	dma_write(reg, GCR);
->  }
-> -- 
+Kevin
 
-
----
-~Randy
+> Best regards,
+> Sanjeev
+>
+>> 
+>> > 
+>> > > +{							
+>> 	\
+>> > > +	return (OMAP_REV_BITS == OMAP_ES_ ##revid) ? 1 : 0;	\
+>> > > +}
+>> > > +
+>> > > +#define OMAP_REV_LT(revid)				
+>> 	\
+>> > > +static inline u8 omap_rev_lt_ ##revid (void)		
+>> > 	\
+>> [snip]--[snip]
+>> 
+>> > 
+>> > Kevin
+>> > 
+>> > --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> 
