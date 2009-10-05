@@ -1,249 +1,134 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in i2c
-Date: Mon, 5 Oct 2009 22:38:24 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702F9F49663@dbde02.ent.ti.com>
-References: <> <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
- <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/28] OMAP3: PM: GPMC context save/restore
+Date: Mon, 05 Oct 2009 10:17:56 -0700
+Message-ID: <87eiphzrnf.fsf@deeprootsystems.com>
+References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
+	<1254441538-9257-2-git-send-email-khilman@deeprootsystems.com>
+	<4AC76454.20605@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52983 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753052AbZJERJN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 13:09:13 -0400
-In-Reply-To: <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
-Content-Language: en-US
+Received: from mail-px0-f179.google.com ([209.85.216.179]:52297 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753395AbZJERTL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 13:19:11 -0400
+Received: by pxi9 with SMTP id 9so3162686pxi.4
+        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 10:17:59 -0700 (PDT)
+In-Reply-To: <4AC76454.20605@gmail.com> (Nishanth Menon's message of "Sat\, 03 Oct 2009 09\:48\:52 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Sonasath, Moiz" <m-sonasath@ti.com>
-Cc: "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nishanth Menon <menon.nishanth@gmail.com>
+Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
 
-Jokiniemi
+Nishanth Menon <menon.nishanth@gmail.com> writes:
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kalle
->Jokiniemi
->Sent: Thursday, September 17, 2009 11:29 AM
->To: khilman@deeprootsystems.com
->Cc: jhnikula@gmail.com; linux-omap@vger.kernel.org; Kalle Jokiniemi
->Subject: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in i2c
->
->While waiting for completion of the i2c transfer, the
->MPU could hit OFF mode and cause several msecs of
->delay that made i2c transfers fail more often. The
+> Kevin Hilman said the following on 10/01/2009 06:58 PM:
+>> From: Rajendra Nayak <rnayak@ti.com>
+>>
+>> This patch adds the context save restore functions for GPMC
+>>
+>> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/gpmc.c             |   93 ++++++++++++++++++++++++++++++++
+>>  arch/arm/plat-omap/include/mach/gpmc.h |    3 +
+>>  2 files changed, 96 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+>> index 1587682..86ea936 100644
+>> --- a/arch/arm/mach-omap2/gpmc.c
+>> +++ b/arch/arm/mach-omap2/gpmc.c
+>> @@ -62,10 +62,38 @@
+>>  #define ENABLE_PREFETCH		(0x1 << 7)
+>>  #define DMA_MPU_MODE		2
+>>  
+>> +/* Structure to save gpmc cs context */
+>> +struct gpmc_cs_config {
+>> +	u32 config1;
+>> +	u32 config2;
+>> +	u32 config3;
+>> +	u32 config4;
+>> +	u32 config5;
+>> +	u32 config6;
+>> +	u32 config7;
+>> +	int is_valid;
+>> +};
+>> +
+>> +/*
+>> + * Structure to save/restore gpmc context
+>> + * to support core off on OMAP3
+>> + */
+>> +struct omap3_gpmc_regs {
+>> +	u32 sysconfig;
+>> +	u32 irqenable;
+>> +	u32 timeout_ctrl;
+>> +	u32 config;
+>> +	u32 prefetch_config1;
+>> +	u32 prefetch_config2;
+>> +	u32 prefetch_control;
+>> +	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
+>> +};
+>> +
+>>  static struct resource	gpmc_mem_root;
+>>  static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
+>>  static DEFINE_SPINLOCK(gpmc_mem_lock);
+>>  static unsigned		gpmc_cs_map;
+>> +static struct omap3_gpmc_regs gpmc_context;
+>>  
+>>  static void __iomem *gpmc_base;
+>>  
+>> @@ -516,3 +544,68 @@ void __init gpmc_init(void)
+>>  	gpmc_write_reg(GPMC_SYSCONFIG, l);
+>>  	gpmc_mem_init();
+>>  }
+>> +
+>> +#ifdef CONFIG_ARCH_OMAP3
+>>   
+> apologies if this is a dumb question - why is this under #ifdef -> if
+> the save save restore structures are not under #ifdef?
 
-How many bytes i2c read were you doing, that failed?
+Not a dumb question, good catch.  I'll move the struct inside
+this #ifdef.
 
-What OPP are you in when you observe these failures? 
-VDD1:OPP?
+Kevin
 
->extra delays and subsequent re-trys cause i2c clocks
->to be active more often. This has also an negative
->effect on power consumption.
+>> +void omap3_gpmc_save_context()
+>> +{
+>> +	int i;
+>> +	gpmc_context.sysconfig = gpmc_read_reg(GPMC_SYSCONFIG);
+>> +	gpmc_context.irqenable = gpmc_read_reg(GPMC_IRQENABLE);
+>> +	gpmc_context.timeout_ctrl = gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
+>> +	gpmc_context.config = gpmc_read_reg(GPMC_CONFIG);
+>> +	gpmc_context.prefetch_config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
+>> +	gpmc_context.prefetch_config2 = gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
+>> +	gpmc_context.prefetch_control = gpmc_read_reg(GPMC_PREFETCH_CONTROL);
+>> +	for (i = 0; i < GPMC_CS_NUM; i++) {
+>> +		gpmc_context.cs_context[i].is_valid =
+>> +				(gpmc_cs_read_reg(i, GPMC_CS_CONFIG7))
+>> +							& GPMC_CONFIG7_CSVALID;
+>> +		if (gpmc_context.cs_context[i].is_valid) {
+>> +			gpmc_context.cs_context[i].config1 =
+>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
+>> +			gpmc_context.cs_context[i].config2 =
+>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
+>> +			gpmc_context.cs_context[i].config3 =
+>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
+>> +			gpmc_context.cs_context[i].config4 =
+>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
+>> +			gpmc_context.cs_context[i].config5 =
+>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
+>> +			gpmc_context.cs_context[i].config6 =
+>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
+>> +			gpmc_context.cs_context[i].config7 =
+>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
+>> +		}
+>>   
+> here is a theoretical bug:
+> 1: GPMC, 1, 2, 3 4 5 configured 6 7 not configured.
+> 2. Save and restore 1: save and restore variables which are static will
+> contain 1-5 and not 6&7
+> 3. next I disable 2,3
+> 3. save will save 1,4,5 BUT my variable will contain 1,2,3,4,5 ->
+> restore will rename 2,3 (which I did not intend)..
 >
->Added a constraint that allows MPU to wake up in few
->hundred usecs, which is roughly the average i2c wait
->period.
-
-How did you arrive at the number 500us for the wakeup latency? 
-
-On Zoom2 with Synaptic touch screen controller on I2C-2,
-at vdd1:opp1 we need to put a wakeup latency of 400us else we see data corruption.
-
-Our case is doing a write of 1 byte followed by read of 16 bytes.
-
->
->The constraint function is passed as platform data from
->plat-omap/i2c.c and applied only on OMAP34XX devices.
->
->Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
->---
-> arch/arm/plat-omap/i2c.c      |   49 +++++++++++++++++++++++++++++++----------
-> drivers/i2c/busses/i2c-omap.c |   17 +++++++++++---
-> include/linux/i2c-omap.h      |    9 +++++++
-> 3 files changed, 59 insertions(+), 16 deletions(-)
-> create mode 100644 include/linux/i2c-omap.h
->
->diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
->index 8b84839..d43d0ad 100644
->--- a/arch/arm/plat-omap/i2c.c
->+++ b/arch/arm/plat-omap/i2c.c
->@@ -26,8 +26,10 @@
-> #include <linux/kernel.h>
-> #include <linux/platform_device.h>
-> #include <linux/i2c.h>
->+#include <linux/i2c-omap.h>
-> #include <mach/irqs.h>
-> #include <mach/mux.h>
->+#include <mach/omap-pm.h>
->
-> #define OMAP_I2C_SIZE		0x3f
-> #define OMAP1_I2C_BASE		0xfffb3800
->@@ -69,14 +71,14 @@ static struct resource i2c_resources[][2] = {
-> 		},					\
-> 	}
->
->-static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
->+static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
-> static struct platform_device omap_i2c_devices[] = {
->-	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
->+	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
-> #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
->-	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
->+	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
-> #endif
-> #if	defined(CONFIG_ARCH_OMAP34XX)
->-	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
->+	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
-> #endif
-> };
->
->@@ -100,6 +102,25 @@ static const int omap34xx_pins[][2] = {};
->
-> #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
->
->+/**
->+ * omap_i2c_set_wfc_mpu_wkup_lat - sets mpu wake up constraint
->+ * @dev:	i2c bus device pointer
->+ * @set:	set or clear constraints
->+ *
->+ * When waiting for completion of a i2c transfer, we need to set a wake up
->+ * latency constraint for the MPU. This is to ensure quick enough wakeup
->+ * from idle, when transfer completes.
->+ */
->+#ifdef CONFIG_ARCH_OMAP34XX
->+static void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int set)
->+{
->+	omap_pm_set_max_mpu_wakeup_lat(dev, set ? 500 : -1);
->+}
->+#else
->+static inline void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int set)
->+{; }
->+#endif
->+
-> static void __init omap_i2c_mux_pins(int bus)
-> {
-> 	int scl, sda;
->@@ -180,8 +201,8 @@ static int __init omap_i2c_bus_setup(char *str)
-> 	get_options(str, 3, ints);
-> 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
-> 		return 0;
->-	i2c_rate[ints[1] - 1] = ints[2];
->-	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
->+	i2c_pdata[ints[1] - 1].clkrate = ints[2];
->+	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
->
-> 	return 1;
-> }
->@@ -195,9 +216,11 @@ static int __init omap_register_i2c_bus_cmdline(void)
-> {
-> 	int i, err = 0;
->
->-	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
->-		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
->-			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
->+	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
->+		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
->+			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
->+			i2c_pdata[i].set_mpu_wkup_lat =
->+						omap_i2c_set_wfc_mpu_wkup_lat;
-> 			err = omap_i2c_add_bus(i + 1);
-> 			if (err)
-> 				goto out;
->@@ -231,9 +254,11 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
-> 			return err;
-> 	}
->
->-	if (!i2c_rate[bus_id - 1])
->-		i2c_rate[bus_id - 1] = clkrate;
->-	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
->+	if (!i2c_pdata[bus_id - 1].clkrate)
->+		i2c_pdata[bus_id - 1].clkrate = clkrate;
->+
->+	i2c_pdata[bus_id - 1].set_mpu_wkup_lat = omap_i2c_set_wfc_mpu_wkup_lat;
->+	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
->
-> 	return omap_i2c_add_bus(bus_id);
-> }
->diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
->index 75bf3ad..da6d276 100644
->--- a/drivers/i2c/busses/i2c-omap.c
->+++ b/drivers/i2c/busses/i2c-omap.c
->@@ -37,6 +37,7 @@
-> #include <linux/platform_device.h>
-> #include <linux/clk.h>
-> #include <linux/io.h>
->+#include <linux/i2c-omap.h>
->
-> /* I2C controller revisions */
-> #define OMAP_I2C_REV_2			0x20
->@@ -165,6 +166,8 @@ struct omap_i2c_dev {
-> 	struct clk		*fclk;		/* Functional clock */
-> 	struct completion	cmd_complete;
-> 	struct resource		*ioarea;
->+	void			(*set_mpu_wkup_lat)(struct device *dev,
->+						    int set);
-> 	u32			speed;		/* Speed of bus in Khz */
-> 	u16			cmd_err;
-> 	u8			*buf;
->@@ -526,8 +529,10 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
-> 	 * REVISIT: We should abort the transfer on signals, but the bus goes
-> 	 * into arbitration and we're currently unable to recover from it.
-> 	 */
->+	dev->set_mpu_wkup_lat(dev->dev, 1);
-> 	r = wait_for_completion_timeout(&dev->cmd_complete,
-> 					OMAP_I2C_TIMEOUT);
->+	dev->set_mpu_wkup_lat(dev->dev, 0);
-> 	dev->buf_len = 0;
-> 	if (r < 0)
-> 		return r;
->@@ -844,6 +849,7 @@ omap_i2c_probe(struct platform_device *pdev)
-> 	struct omap_i2c_dev	*dev;
-> 	struct i2c_adapter	*adap;
-> 	struct resource		*mem, *irq, *ioarea;
->+	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
-> 	irq_handler_t isr;
-> 	int r;
-> 	u32 speed = 0;
->@@ -873,10 +879,13 @@ omap_i2c_probe(struct platform_device *pdev)
-> 		goto err_release_region;
-> 	}
->
->-	if (pdev->dev.platform_data != NULL)
->-		speed = *(u32 *)pdev->dev.platform_data;
->-	else
->-		speed = 100;	/* Defualt speed */
->+	if (pdata != NULL) {
->+		speed = pdata->clkrate;
->+		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
->+	} else {
->+		speed = 100;	/* Default speed */
->+		dev->set_mpu_wkup_lat = NULL;
->+	}
->
-> 	dev->speed = speed;
-> 	dev->idle = 1;
->diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
->new file mode 100644
->index 0000000..1362fba
->--- /dev/null
->+++ b/include/linux/i2c-omap.h
->@@ -0,0 +1,9 @@
->+#ifndef __I2C_OMAP_H__
->+#define __I2C_OMAP_H__
->+
->+struct omap_i2c_bus_platform_data {
->+	u32		clkrate;
->+	void		(*set_mpu_wkup_lat)(struct device *dev, int set);
->+};
->+
->+#endif
->--
->1.5.4.3
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> Regards,
+> Nishanth Menon
