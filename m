@@ -1,190 +1,66 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/5] OMAP PM fixes for 2.6.32
-Date: Mon, 05 Oct 2009 10:57:10 -0700
-Message-ID: <877hv9yb9l.fsf@deeprootsystems.com>
-References: <1254507295-11381-1-git-send-email-khilman@deeprootsystems.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH 01/28] OMAP3: PM: GPMC context save/restore
+Date: Mon, 5 Oct 2009 12:58:04 -0500
+Message-ID: <4ACA33AC.4070704@ti.com>
+References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>	<1254441538-9257-2-git-send-email-khilman@deeprootsystems.com>	<4AC76454.20605@gmail.com> <87ws39yciw.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1254507295-11381-1-git-send-email-khilman@deeprootsystems.com>
-	(Kevin Hilman's message of "Fri\, 2 Oct 2009 11\:14\:50 -0700")
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:55662 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754293AbZJER6n (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 13:58:43 -0400
+In-Reply-To: <87ws39yciw.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Nishanth Menon <menon.nishanth@gmail.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Kevin Hilman had written, on 10/05/2009 12:29 PM, the following:
+> Nishanth Menon <menon.nishanth@gmail.com> writes:
 
-> These fixes are primarily for PRCM interrupt handler bugs
-> and GPIO wakeup support.
->
-> Jon Hunter (1):
->   OMAP3: PM: Prevent hang in prcm_interrupt_handler
->
-> Kevin Hilman (1):
->   OMAP3: PM: Enable GPIO module-level wakeups
->
-> Paul Walmsley (2):
->   OMAP3: PM: PRCM interrupt: check MPUGRPSEL register
->   OMAP3: PM: PRCM interrupt: only handle selected PRCM interrupts
->
-> Vikram Pandita (1):
->   OMAP3: PM: USBHOST: clear wakeup events on both hosts
->
+>>> +		gpmc_context.cs_context[i].is_valid =
+>>> +				(gpmc_cs_read_reg(i, GPMC_CS_CONFIG7))
+>>> +							& GPMC_CONFIG7_CSVALID;
+>>> +		if (gpmc_context.cs_context[i].is_valid) {
+>>> +			gpmc_context.cs_context[i].config1 =
+>>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
+>>> +			gpmc_context.cs_context[i].config2 =
+>>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
+>>> +			gpmc_context.cs_context[i].config3 =
+>>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
+>>> +			gpmc_context.cs_context[i].config4 =
+>>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
+>>> +			gpmc_context.cs_context[i].config5 =
+>>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
+>>> +			gpmc_context.cs_context[i].config6 =
+>>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
+>>> +			gpmc_context.cs_context[i].config7 =
+>>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
+>>> +		}
+>>>   
+>> here is a theoretical bug:
+>> 1: GPMC, 1, 2, 3 4 5 configured 6 7 not configured.
+>> 2. Save and restore 1: save and restore variables which are static will
+>> contain 1-5 and not 6&7
+>> 3. next I disable 2,3
+>> 3. save will save 1,4,5 BUT my variable will contain 1,2,3,4,5 ->
+>> restore will rename 2,3 (which I did not intend)..
+> 
+> Not sure I follow the problem here.  What do you mean by "rename".
+> The saved context will have values for 2 and 3, but the is_valid
+> flag will not be set, so they shouldn't be used.
+My bad.. s/rename/enable/ for 2,3 ->definitely not something I would 
+like to see.
 
-Here's one more for the PM fixes queue from Atrem.
+> 
+> Rajendra was the original author of these, so maybe I'm not fully
+> understanding here, but disabling a GPMC looks to me like it
+> will disable both the save and restore.
 
-Kevin
+Yes, anyone else has an opinion, please pop them here.
 
-
-
-
->From ee894b18e064447f86019af38a90ccb091880942 Mon Sep 17 00:00:00 2001
-From: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Date: Thu, 1 Oct 2009 10:01:55 +0300
-Subject: [PATCH 6/6] OMAP3: PM: introduce a new powerdomain walk helper
-
-The 'pwrdm_for_each()' function walks powerdomains with a spinlock
-locked, so the the callbacks cannot do anything which may sleep.
-This patch introduces a 'pwrdm_for_each_nolock()' helper which does
-the same, but without the spinlock locked. This fixes the following
-lockdep warning:
-
-[    0.000000] WARNING: at kernel/lockdep.c:2460 lockdep_trace_alloc+0xac/0xec()
-[    0.000000] Modules linked in:
-(unwind_backtrace+0x0/0xdc) from [<c0045464>] (warn_slowpath_common+0x48/0x60)
-(warn_slowpath_common+0x48/0x60) from [<c0067dd4>] (lockdep_trace_alloc+0xac/0xec)
-(lockdep_trace_alloc+0xac/0xec) from [<c009da14>] (kmem_cache_alloc+0x1c/0xd0)
-(kmem_cache_alloc+0x1c/0xd0) from [<c00b21d8>] (d_alloc+0x1c/0x1a4)
-(d_alloc+0x1c/0x1a4) from [<c00a887c>] (__lookup_hash+0xd8/0x118)
-(__lookup_hash+0xd8/0x118) from [<c00a9f20>] (lookup_one_len+0x84/0x94)
-(lookup_one_len+0x84/0x94) from [<c010d12c>] (debugfs_create_file+0x8c/0x20c)
-(debugfs_create_file+0x8c/0x20c) from [<c010d320>] (debugfs_create_dir+0x1c/0x20)
-(debugfs_create_dir+0x1c/0x20) from [<c000e8cc>] (pwrdms_setup+0x60/0x90)
-(pwrdms_setup+0x60/0x90) from [<c002e010>] (pwrdm_for_each+0x30/0x80)
-(pwrdm_for_each+0x30/0x80) from [<c000e79c>] (pm_dbg_init+0x7c/0x14c)
-(pm_dbg_init+0x7c/0x14c) from [<c00232b4>] (do_one_initcall+0x5c/0x1b8)
-(do_one_initcall+0x5c/0x1b8) from [<c00083f8>] (kernel_init+0x90/0x10c)
-(kernel_init+0x90/0x10c) from [<c00242c4>] (kernel_thread_exit+0x0/0x8)
-
-Signed-off-by: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/mach-omap2/pm-debug.c                |    4 +-
- arch/arm/mach-omap2/powerdomain.c             |   39 +++++++++++++++++-------
- arch/arm/plat-omap/include/mach/powerdomain.h |    2 +
- 3 files changed, 31 insertions(+), 14 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 1b4c160..2fc4d6a 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -541,7 +541,7 @@ static int __init pm_dbg_init(void)
- 		printk(KERN_ERR "%s: only OMAP3 supported\n", __func__);
- 		return -ENODEV;
- 	}
--		
-+
- 	d = debugfs_create_dir("pm_debug", NULL);
- 	if (IS_ERR(d))
- 		return PTR_ERR(d);
-@@ -551,7 +551,7 @@ static int __init pm_dbg_init(void)
- 	(void) debugfs_create_file("time", S_IRUGO,
- 		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
- 
--	pwrdm_for_each(pwrdms_setup, (void *)d);
-+	pwrdm_for_each_nolock(pwrdms_setup, (void *)d);
- 
- 	pm_dbg_dir = debugfs_create_dir("registers", d);
- 	if (IS_ERR(pm_dbg_dir))
-diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-index 2594cbf..f00289a 100644
---- a/arch/arm/mach-omap2/powerdomain.c
-+++ b/arch/arm/mach-omap2/powerdomain.c
-@@ -273,35 +273,50 @@ struct powerdomain *pwrdm_lookup(const char *name)
- }
- 
- /**
-- * pwrdm_for_each - call function on each registered clockdomain
-+ * pwrdm_for_each_nolock - call function on each registered clockdomain
-  * @fn: callback function *
-  *
-  * Call the supplied function for each registered powerdomain.  The
-  * callback function can return anything but 0 to bail out early from
-- * the iterator.  The callback function is called with the pwrdm_rwlock
-- * held for reading, so no powerdomain structure manipulation
-- * functions should be called from the callback, although hardware
-- * powerdomain control functions are fine.  Returns the last return
-- * value of the callback function, which should be 0 for success or
-- * anything else to indicate failure; or -EINVAL if the function
-- * pointer is null.
-+ * the iterator.  Returns the last return value of the callback function, which
-+ * should be 0 for success or anything else to indicate failure; or -EINVAL if
-+ * the function pointer is null.
-  */
--int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
--			void *user)
-+int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
-+				void *user)
- {
- 	struct powerdomain *temp_pwrdm;
--	unsigned long flags;
- 	int ret = 0;
- 
- 	if (!fn)
- 		return -EINVAL;
- 
--	read_lock_irqsave(&pwrdm_rwlock, flags);
- 	list_for_each_entry(temp_pwrdm, &pwrdm_list, node) {
- 		ret = (*fn)(temp_pwrdm, user);
- 		if (ret)
- 			break;
- 	}
-+
-+	return ret;
-+}
-+
-+/**
-+ * pwrdm_for_each - call function on each registered clockdomain
-+ * @fn: callback function *
-+ *
-+ * This function is the same as 'pwrdm_for_each_nolock()', but keeps the
-+ * &pwrdm_rwlock locked for reading, so no powerdomain structure manipulation
-+ * functions should be called from the callback, although hardware powerdomain
-+ * control functions are fine.
-+ */
-+int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
-+			void *user)
-+{
-+	unsigned long flags;
-+	int ret;
-+
-+	read_lock_irqsave(&pwrdm_rwlock, flags);
-+	ret = pwrdm_for_each_nolock(fn, user);
- 	read_unlock_irqrestore(&pwrdm_rwlock, flags);
- 
- 	return ret;
-diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
-index 6271d85..fa64614 100644
---- a/arch/arm/plat-omap/include/mach/powerdomain.h
-+++ b/arch/arm/plat-omap/include/mach/powerdomain.h
-@@ -135,6 +135,8 @@ struct powerdomain *pwrdm_lookup(const char *name);
- 
- int pwrdm_for_each(int (*fn)(struct powerdomain *pwrdm, void *user),
- 			void *user);
-+int pwrdm_for_each_nolock(int (*fn)(struct powerdomain *pwrdm, void *user),
-+			void *user);
- 
- int pwrdm_add_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
- int pwrdm_del_clkdm(struct powerdomain *pwrdm, struct clockdomain *clkdm);
 -- 
-1.6.4.3
+Regards,
+Nishanth Menon
