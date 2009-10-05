@@ -1,134 +1,97 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/28] OMAP3: PM: GPMC context save/restore
-Date: Mon, 05 Oct 2009 10:17:56 -0700
-Message-ID: <87eiphzrnf.fsf@deeprootsystems.com>
-References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>
-	<1254441538-9257-2-git-send-email-khilman@deeprootsystems.com>
-	<4AC76454.20605@gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Question on OPP table handling
+Date: Mon, 5 Oct 2009 12:19:02 -0500
+Message-ID: <4ACA2A86.7060300@ti.com>
+References: <1254420194-4757-1-git-send-email-premi@ti.com>	<4AC76810.1040206@gmail.com>	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08B10@dbde02.ent.ti.com> <87ws39zsn4.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:52297 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753395AbZJERTL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 13:19:11 -0400
-Received: by pxi9 with SMTP id 9so3162686pxi.4
-        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 10:17:59 -0700 (PDT)
-In-Reply-To: <4AC76454.20605@gmail.com> (Nishanth Menon's message of "Sat\, 03 Oct 2009 09\:48\:52 -0500")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59320 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753601AbZJERTl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Oct 2009 13:19:41 -0400
+In-Reply-To: <87ws39zsn4.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>
-Cc: linux-omap@vger.kernel.org, Rajendra Nayak <rnayak@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Premi, Sanjeev" <premi@ti.com>, Kevin H <khilman@deeprootsystems.com>
 
-Nishanth Menon <menon.nishanth@gmail.com> writes:
-
-> Kevin Hilman said the following on 10/01/2009 06:58 PM:
->> From: Rajendra Nayak <rnayak@ti.com>
+Kevin Hilman had written, on 10/05/2009 11:56 AM, the following:
+> "Premi, Sanjeev" <premi@ti.com> writes:
+> 
+>>> -----Original Message-----
+>>> From: Nishanth Menon [mailto:menon.nishanth@gmail.com] 
+>>> Sent: Saturday, October 03, 2009 8:35 PM
+>>> To: Premi, Sanjeev
+>>> Cc: linux-omap@vger.kernel.org
+>>> Subject: Question on OPP table handling
+>>>
+>>> Sanjeev Premi said the following on 10/01/2009 01:03 PM:
+>>>> +struct omap_opp omap3_mpu_rate_table[] = {
+>>>> +	{0, 0, 0},
+>>>> +	/*OPP1*/
+>>>> +	{S125M, VDD1_OPP1, 0x1E},
+>>>> +	/*OPP2*/
+>>>> +	{S250M, VDD1_OPP2, 0x26},
+>>>> +	/*OPP3*/
+>>>> +	{S500M, VDD1_OPP3, 0x30},
+>>>> +	/*OPP4*/
+>>>> +	{S550M, VDD1_OPP4, 0x36},
+>>>> +	/*OPP5*/
+>>>> +	{S600M, VDD1_OPP5, 0x3C},
+>>>> +};
+>>>>   
+>>> For those involved,
+>>> if we wanted to convert omap3_mpu_table[] into 
+>>> *omap3_mpu_table so that
+>>> we dynamically initialize it based on cpu type - what would be the
+>>> recommendations?
+>> Nishanth,
 >>
->> This patch adds the context save restore functions for GPMC
+>> Good idea! 
 >>
->> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
->> ---
->>  arch/arm/mach-omap2/gpmc.c             |   93 ++++++++++++++++++++++++++++++++
->>  arch/arm/plat-omap/include/mach/gpmc.h |    3 +
->>  2 files changed, 96 insertions(+), 0 deletions(-)
+>> As a table, previous patch enables it (not as intent, but due to syntax):
 >>
->> diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
->> index 1587682..86ea936 100644
->> --- a/arch/arm/mach-omap2/gpmc.c
->> +++ b/arch/arm/mach-omap2/gpmc.c
->> @@ -62,10 +62,38 @@
->>  #define ENABLE_PREFETCH		(0x1 << 7)
->>  #define DMA_MPU_MODE		2
->>  
->> +/* Structure to save gpmc cs context */
->> +struct gpmc_cs_config {
->> +	u32 config1;
->> +	u32 config2;
->> +	u32 config3;
->> +	u32 config4;
->> +	u32 config5;
->> +	u32 config6;
->> +	u32 config7;
->> +	int is_valid;
->> +};
->> +
->> +/*
->> + * Structure to save/restore gpmc context
->> + * to support core off on OMAP3
->> + */
->> +struct omap3_gpmc_regs {
->> +	u32 sysconfig;
->> +	u32 irqenable;
->> +	u32 timeout_ctrl;
->> +	u32 config;
->> +	u32 prefetch_config1;
->> +	u32 prefetch_config2;
->> +	u32 prefetch_control;
->> +	struct gpmc_cs_config cs_context[GPMC_CS_NUM];
->> +};
->> +
->>  static struct resource	gpmc_mem_root;
->>  static struct resource	gpmc_cs_mem[GPMC_CS_NUM];
->>  static DEFINE_SPINLOCK(gpmc_mem_lock);
->>  static unsigned		gpmc_cs_map;
->> +static struct omap3_gpmc_regs gpmc_context;
->>  
->>  static void __iomem *gpmc_base;
->>  
->> @@ -516,3 +544,68 @@ void __init gpmc_init(void)
->>  	gpmc_write_reg(GPMC_SYSCONFIG, l);
->>  	gpmc_mem_init();
->>  }
->> +
->> +#ifdef CONFIG_ARCH_OMAP3
->>   
-> apologies if this is a dumb question - why is this under #ifdef -> if
-> the save save restore structures are not under #ifdef?
+>>   >  +/* struct omap_opp_table - View OPP table as an object
+>>   > + * @min: Minimum OPP id
+>>   > + * @max: Maximim OPP id
+>>   > + * @opps: Pointer to array defining the OPPs.
+>>   > + *
+>>   > + * An OPP table has varied length. Knowing minimum and maximum
+>>   > + * OPP ids allow easy traversal.
+>>   > + */
+>>   > +struct omap_opp_table {
+>>   > +       u8      min;
+>>   > +       u8      max;
+>>   > +       struct omap_opp* opps;
+>>   > +};
+>>
+>> But now, I think it would be good to have an API that can fill an opp_table:
+>>
+>> int add_opp_definition(u8 id, u32 freq, u16 vsel);
+>>
+>> ...and, if an array is preferred, length can be set as:
+>> int set_opp_table_length (u8 max);
+> 
+> I'm all for dynamic OPP setting, but not as an array.  A list should
+> probably be used.
 
-Not a dumb question, good catch.  I'll move the struct inside
-this #ifdef.
+Won't a list implementation cause more than necessary overhead? I agree 
+that something like set_opp_table_length probably might be redundant in 
+that case.
 
-Kevin
 
->> +void omap3_gpmc_save_context()
->> +{
->> +	int i;
->> +	gpmc_context.sysconfig = gpmc_read_reg(GPMC_SYSCONFIG);
->> +	gpmc_context.irqenable = gpmc_read_reg(GPMC_IRQENABLE);
->> +	gpmc_context.timeout_ctrl = gpmc_read_reg(GPMC_TIMEOUT_CONTROL);
->> +	gpmc_context.config = gpmc_read_reg(GPMC_CONFIG);
->> +	gpmc_context.prefetch_config1 = gpmc_read_reg(GPMC_PREFETCH_CONFIG1);
->> +	gpmc_context.prefetch_config2 = gpmc_read_reg(GPMC_PREFETCH_CONFIG2);
->> +	gpmc_context.prefetch_control = gpmc_read_reg(GPMC_PREFETCH_CONTROL);
->> +	for (i = 0; i < GPMC_CS_NUM; i++) {
->> +		gpmc_context.cs_context[i].is_valid =
->> +				(gpmc_cs_read_reg(i, GPMC_CS_CONFIG7))
->> +							& GPMC_CONFIG7_CSVALID;
->> +		if (gpmc_context.cs_context[i].is_valid) {
->> +			gpmc_context.cs_context[i].config1 =
->> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG1);
->> +			gpmc_context.cs_context[i].config2 =
->> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG2);
->> +			gpmc_context.cs_context[i].config3 =
->> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG3);
->> +			gpmc_context.cs_context[i].config4 =
->> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG4);
->> +			gpmc_context.cs_context[i].config5 =
->> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG5);
->> +			gpmc_context.cs_context[i].config6 =
->> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG6);
->> +			gpmc_context.cs_context[i].config7 =
->> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
->> +		}
->>   
-> here is a theoretical bug:
-> 1: GPMC, 1, 2, 3 4 5 configured 6 7 not configured.
-> 2. Save and restore 1: save and restore variables which are static will
-> contain 1-5 and not 6&7
-> 3. next I disable 2,3
-> 3. save will save 1,4,5 BUT my variable will contain 1,2,3,4,5 ->
-> restore will rename 2,3 (which I did not intend)..
->
-> Regards,
-> Nishanth Menon
+>> If I were to extend the discussion from other thread on toggling the valid OPPs
+>> based on "enable_off_mode", these could be handy.
+>>
+>> int set_opp_valid(bool flag);
+>> bool is_opp_valid(void); 
+>>
+> 
+> Yes, we need a concept of a valid OPP, not just for OFF mode, but for
+> OSWR and possibly for a full constraint framework as well.
+Ack.
+-- 
+Regards,
+Nishanth Menon
