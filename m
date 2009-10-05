@@ -1,56 +1,71 @@
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH v2] SDMA: Fixing bug in omap_dma_set_global_params()
-Date: Mon,  5 Oct 2009 14:12:43 +0530
-Message-ID: <1254732163-3509-1-git-send-email-anuj.aggarwal@ti.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758679AbZJEIn2@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: svenkatr@ti.com, tony@atomide.com, Anuj Aggarwal <anuj.aggarwal@ti.com>
+From: Roger Quadros <ext-roger.quadros@nokia.com>
+Subject: Re: [PATCH] OMAP3: RX51: support sleep indicator LEDs
+Date: Mon, 05 Oct 2009 14:02:15 +0300
+Message-ID: <4AC9D237.6000309@nokia.com>
+References: <1254497755-1822-1-git-send-email-khilman@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:48153 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932598AbZJELEb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 07:04:31 -0400
+In-Reply-To: <1254497755-1822-1-git-send-email-khilman@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Argument tparams was not being used to program
-global register GCR.HI_THREAD_RESERVED. This patch fixes the same.
+ext Kevin Hilman wrote:
+> The sleep indicator LEDs can be enabled/disabled by toggling GPIO162.
+> Request this GPIO in RX51 board init, disable by default and expose
+> GPIO162 to userspace so LEDs can be toggled from userspace:
 
-Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
----
- arch/arm/plat-omap/dma.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+It would also make more sense to use gpio_export_link() to provide a named link 
+to userspace (e.g. sleep_ind, instead of GPIO162), as it is possible for gpio 
+number to change among board revisions and userspace shouldn't bother about that.
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index fd3154a..0eb676d 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -829,10 +829,10 @@ EXPORT_SYMBOL(omap_free_dma);
-  *
-  * @param arb_rate
-  * @param max_fifo_depth
-- * @param tparams - Number of thereads to reserve : DMA_THREAD_RESERVE_NORM
-- * 						    DMA_THREAD_RESERVE_ONET
-- * 						    DMA_THREAD_RESERVE_TWOT
-- * 						    DMA_THREAD_RESERVE_THREET
-+ * @param tparams - Number of threads to reserve : DMA_THREAD_RESERVE_NORM
-+ * 						   DMA_THREAD_RESERVE_ONET
-+ * 						   DMA_THREAD_RESERVE_TWOT
-+ * 						   DMA_THREAD_RESERVE_THREET
-  */
- void
- omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
-@@ -844,11 +844,14 @@ omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
- 		return;
- 	}
- 
-+	if (max_fifo_depth == 0)
-+		max_fifo_depth = 1;
- 	if (arb_rate == 0)
- 		arb_rate = 1;
- 
--	reg = (arb_rate & 0xff) << 16;
--	reg |= (0xff & max_fifo_depth);
-+	reg = 0xff & max_fifo_depth;
-+	reg |= (0x3 & tparams) << 12;
-+	reg |= (arb_rate & 0xff) << 16;
- 
- 	dma_write(reg, GCR);
- }
--- 
-1.6.2.4
+-roger
+
+> 
+> To enable:
+> 
+>   # echo 1 > /sys/class/gpio/gpio162/value
+> 
+> To disable:
+> 
+>   # echo 0 > /sys/class/gpio/gpio162/value
+> 
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+>  arch/arm/mach-omap2/board-rx51.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-rx51.c b/arch/arm/mach-omap2/board-rx51.c
+> index f9196c3..6ad44d8 100644
+> --- a/arch/arm/mach-omap2/board-rx51.c
+> +++ b/arch/arm/mach-omap2/board-rx51.c
+> @@ -31,6 +31,8 @@
+>  #include <mach/gpmc.h>
+>  #include <mach/usb.h>
+>  
+> +#define RX51_GPIO_SLEEP_IND 162
+> +
+>  static struct omap_lcd_config rx51_lcd_config = {
+>  	.ctrl_name	= "internal",
+>  };
+> @@ -74,6 +76,11 @@ static void __init rx51_init(void)
+>  	/* Ensure SDRC pins are mux'd for self-refresh */
+>  	omap_cfg_reg(H16_34XX_SDRC_CKE0);
+>  	omap_cfg_reg(H17_34XX_SDRC_CKE1);
+> +
+> +	if (!(gpio_request(RX51_GPIO_SLEEP_IND, "SLEEP_IND"))) {
+> +		gpio_direction_output(RX51_GPIO_SLEEP_IND, 0);
+> +		gpio_export(RX51_GPIO_SLEEP_IND, 1);
+> +	}
+>  }
+>  
+>  static void __init rx51_map_io(void)
+
+
