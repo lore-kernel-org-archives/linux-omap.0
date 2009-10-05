@@ -1,73 +1,136 @@
-From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH 1/4] [OMAP] Clocks: Add omap7xx-specific USB clock
-	configuration
-Date: Mon, 5 Oct 2009 07:49:49 -0700
-Message-ID: <6cb013310910050749n19c493day7d2fa2faba73a19e@mail.gmail.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH 1/1] OMAP3: Common mechanism to identify cpu revision
+Date: Mon, 5 Oct 2009 21:05:03 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDC08BD9@dbde02.ent.ti.com>
+References: <1253807481-19214-1-git-send-email-premi@ti.com>
+ <87bpksr0no.fsf@deeprootsystems.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DDC08B48@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f199.google.com ([209.85.210.199]:65482 "EHLO
-	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753161AbZJEOup (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 10:50:45 -0400
-Received: by yxe37 with SMTP id 37so3032397yxe.33
-        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 07:50:09 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:58845 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753219AbZJEPfr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 11:35:47 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDC08B48@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Premi, Sanjeev" <premi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The l3_ocpi_ck clock is needed on omap7xx processors for USB.
-Additionally, bit 8 of the SOFT_REQ_REG needs to be enabled for
-the usb_dc_ck on omap7xx, which is a different bit than that
-of the omap16xx-defined clock of the same name.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
+> Sent: Monday, October 05, 2009 7:18 PM
+> To: Kevin Hilman
+> Cc: linux-omap@vger.kernel.org
+> Subject: RE: [PATCH 1/1] OMAP3: Common mechanism to identify 
+> cpu revision
+> 
+> > -----Original Message-----
+> > From: Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+> > Sent: Wednesday, September 30, 2009 7:32 PM
+> > To: Premi, Sanjeev
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: Re: [PATCH 1/1] OMAP3: Common mechanism to identify 
+> > cpu revision
+> > 
+> > Sanjeev Premi <premi@ti.com> writes:
+> > 
+> > > There are multiple mechanisms to identify the cpu revisions.
+> > > Most common is use of omap_rev(). This, however, does a
+> > > absolute comparison of omap_revision - which includes
+> > > CPU id, CPU rev and CPU class. This comparison fails for
+> > > OMAP35x processors.
+> > >
+> > > This patch defines generic functions that use only the
+> > > CPU rev bits in omap_revision to identify the revision
+> > > information.
+> > >
+> > > Usage will change from (for example):
+> > > 	if (omap_rev() > OMAP3430_REV_ES2_0)
+> > > to:
+> > > 	if (cpu_is_omap34xx() && omap_rev_gt_2_0())
+> > >
+> > > Specific check for cpu_is_xxx() will not be needed for
+> > > files specific to silicon e.g. pm34xx.c, clock34xx.c, etc.
+> > >
+> > > Signed-off-by: Sanjeev Premi <premi@ti.com>
+> > 
+> > Looks mostly good, some minor comments/questions below...
+> > 
+> [snip]--[snip]
+> > 
+> > I don't think the cpu_is_... is needed here because of the OMAP3
+> > specific function.
+> 
+> [sp] Yes. This can be removed.
+> 
+> > >  /*
+> > > + * Silicon revisions
+> > > + */
+> > > +#define OMAP_ES_1_0		0x00
+> > > +#define OMAP_ES_2_0		0x10
+> > > +#define OMAP_ES_2_1		0x20
+> > > +#define OMAP_ES_3_0		0x30
+> > > +#define OMAP_ES_3_1		0x40
+> > 
+> > Hmm, are these the same values on OMAP2? and OMAP4?
+> > 
+> [sp] Based on the values defined for OMAP2420 and OMA2430,
+> these definitions are applicable. There aren't as many
+> Revisions though.
+> 
+> Not sure if it will hold good for OMAP4..
+> 
+> Do you think, we make these definitions silicon specific
+> now?
+> 
+> > > +#define OMAP_REV_MASK		0x0000ff00
+> > > +#define OMAP_REV_BITS		((omap_rev() & 
+> > OMAP_REV_MASK) >> 8)
+> > > +
+> > > +#define OMAP_REV_IS(revid)				
+> 	\
+> > > +static inline u8 omap_rev_is_ ##revid (void)		
+> > 	\
+> > 
+> > Minor nit, but these should return bool.
+> 
+> [sp] I will update.
 
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
----
- arch/arm/mach-omap1/clock.c |    3 ++-
- arch/arm/mach-omap1/clock.h |   10 ++++++++++
- 2 files changed, 12 insertions(+), 1 deletions(-)
+Kevin, Tony,
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 5f77b83..10c4a7a 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -99,7 +99,7 @@ static struct omap_clk omap_clks[] = {
- 	/* CK_GEN3 clocks */
- 	CLK(NULL,	"tc_ck",	&tc_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK(NULL,	"tipb_ck",	&tipb_ck,	CK_1510 | CK_310),
--	CLK(NULL,	"l3_ocpi_ck",	&l3_ocpi_ck,	CK_16XX),
-+	CLK(NULL,	"l3_ocpi_ck",	&l3_ocpi_ck,	CK_16XX | CK_7XX),
- 	CLK(NULL,	"tc1_ck",	&tc1_ck,	CK_16XX),
- 	CLK(NULL,	"tc2_ck",	&tc2_ck,	CK_16XX),
- 	CLK(NULL,	"dma_ck",	&dma_ck,	CK_16XX | CK_1510 | CK_310),
-@@ -120,6 +120,7 @@ static struct omap_clk omap_clks[] = {
- 	CLK(NULL,	"usb_hhc_ck",	&usb_hhc_ck1510, CK_1510 | CK_310),
- 	CLK(NULL,	"usb_hhc_ck",	&usb_hhc_ck16xx, CK_16XX),
- 	CLK(NULL,	"usb_dc_ck",	&usb_dc_ck,	CK_16XX),
-+	CLK(NULL,	"usb_dc_ck",	&usb_dc_ck7xx,	CK_7XX),
- 	CLK(NULL,	"mclk",		&mclk_1510,	CK_1510 | CK_310),
- 	CLK(NULL,	"mclk",		&mclk_16xx,	CK_16XX),
- 	CLK(NULL,	"bclk",		&bclk_1510,	CK_1510 | CK_310),
-diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-index 17f8742..584a764 100644
---- a/arch/arm/mach-omap1/clock.h
-+++ b/arch/arm/mach-omap1/clock.h
-@@ -574,6 +574,16 @@ static struct clk usb_dc_ck = {
- 	.enable_bit	= 4,
- };
+The original patch was created against the pm branch.
 
-+static struct clk usb_dc_ck7xx = {
-+	.name		= "usb_dc_ck",
-+	.ops		= &clkops_generic,
-+	/* Direct from ULPD, no parent */
-+	.rate		= 48000000,
-+	.flags		= RATE_FIXED,
-+	.enable_reg	= OMAP1_IO_ADDRESS(SOFT_REQ_REG),
-+	.enable_bit	= 8,
-+};
-+
- static struct clk mclk_1510 = {
- 	.name		= "mclk",
- 	.ops		= &clkops_generic,
--- 
-1.5.6.3
+While re-submitting, should I split in two - one against
+master and delta for pm branch?
+
+Best regards,
+Sanjeev
+
+> 
+> > 
+> > > +{							
+> 	\
+> > > +	return (OMAP_REV_BITS == OMAP_ES_ ##revid) ? 1 : 0;	\
+> > > +}
+> > > +
+> > > +#define OMAP_REV_LT(revid)				
+> 	\
+> > > +static inline u8 omap_rev_lt_ ##revid (void)		
+> > 	\
+> [snip]--[snip]
+> 
+> > 
+> > Kevin
+> > 
+> > --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
