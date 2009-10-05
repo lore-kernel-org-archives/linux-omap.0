@@ -1,43 +1,57 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH] Beagle: CONFIG_ISP1301_OMAP redefined in defconfig
-Date: Mon,  5 Oct 2009 21:21:40 +0530
-Message-ID: <1254757900-13397-1-git-send-email-premi@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP3: PM: introduce a new powerdomain walk helper
+Date: Mon, 05 Oct 2009 09:46:52 -0700
+Message-ID: <87r5th23gj.fsf@deeprootsystems.com>
+References: <1254380515-32175-1-git-send-email-dedekind1@gmail.com>
+	<4AC9D5F1.8080400@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53118 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752239AbZJEPwW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 5 Oct 2009 11:52:22 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n95FpgSh011442
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 5 Oct 2009 10:51:45 -0500
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:40074 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753626AbZJEQrc (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 12:47:32 -0400
+Received: by pzk26 with SMTP id 26so2908657pzk.4
+        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 09:46:55 -0700 (PDT)
+In-Reply-To: <4AC9D5F1.8080400@gmail.com> (Artem Bityutskiy's message of "Mon\, 05 Oct 2009 14\:18\:09 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Artem Bityutskiy <dedekind1@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
 
-The symbol CONFIG_ISP1301_OMAP was defined twice in the
-defconfig. This was causing the warning:
-arch/arm/configs/omap3_beagle_defconfig:972:warning:
- override: reassigning to symbol ISP1301_OMAP
+Artem Bityutskiy <dedekind1@gmail.com> writes:
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/configs/omap3_beagle_defconfig |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+> On 10/01/2009 10:01 AM, Artem Bityutskiy wrote:
+>> From: Artem Bityutskiy<Artem.Bityutskiy@nokia.com>
+>>
+>> The 'pwrdm_for_each()' function walks powerdomains with a spinlock
+>> locked, so the the callbacks cannot do anything which may sleep.
+>> This patch introduces a 'pwrdm_for_each_nolock()' helper which does
+>> the same, but without the spinlock locked. This fixes the following
+>> lockdep warning:
+>>
+>> [    0.000000] WARNING: at kernel/lockdep.c:2460 lockdep_trace_alloc+0xac/0xec()
+>> [    0.000000] Modules linked in:
+>> (unwind_backtrace+0x0/0xdc) from [<c0045464>] (warn_slowpath_common+0x48/0x60)
+>> (warn_slowpath_common+0x48/0x60) from [<c0067dd4>] (lockdep_trace_alloc+0xac/0xec)
+>> (lockdep_trace_alloc+0xac/0xec) from [<c009da14>] (kmem_cache_alloc+0x1c/0xd0)
+>> (kmem_cache_alloc+0x1c/0xd0) from [<c00b21d8>] (d_alloc+0x1c/0x1a4)
+>> (d_alloc+0x1c/0x1a4) from [<c00a887c>] (__lookup_hash+0xd8/0x118)
+>> (__lookup_hash+0xd8/0x118) from [<c00a9f20>] (lookup_one_len+0x84/0x94)
+>> (lookup_one_len+0x84/0x94) from [<c010d12c>] (debugfs_create_file+0x8c/0x20c)
+>> (debugfs_create_file+0x8c/0x20c) from [<c010d320>] (debugfs_create_dir+0x1c/0x20)
+>> (debugfs_create_dir+0x1c/0x20) from [<c000e8cc>] (pwrdms_setup+0x60/0x90)
+>> (pwrdms_setup+0x60/0x90) from [<c002e010>] (pwrdm_for_each+0x30/0x80)
+>> (pwrdm_for_each+0x30/0x80) from [<c000e79c>] (pm_dbg_init+0x7c/0x14c)
+>> (pm_dbg_init+0x7c/0x14c) from [<c00232b4>] (do_one_initcall+0x5c/0x1b8)
+>> (do_one_initcall+0x5c/0x1b8) from [<c00083f8>] (kernel_init+0x90/0x10c)
+>> (kernel_init+0x90/0x10c) from [<c00242c4>] (kernel_thread_exit+0x0/0x8)
+>>
+>> Signed-off-by: Artem Bityutskiy<Artem.Bityutskiy@nokia.com>
+>
+> I guess this patch was actually for Tony, as this warning is seen on l-o.
+> Tony, any plans to pick this up?
 
-diff --git a/arch/arm/configs/omap3_beagle_defconfig b/arch/arm/configs/omap3_beagle_defconfig
-index 357d402..b3c8cce 100644
---- a/arch/arm/configs/omap3_beagle_defconfig
-+++ b/arch/arm/configs/omap3_beagle_defconfig
-@@ -969,7 +969,6 @@ CONFIG_USB_ETH_RNDIS=y
- #
- CONFIG_USB_OTG_UTILS=y
- # CONFIG_USB_GPIO_VBUS is not set
--# CONFIG_ISP1301_OMAP is not set
- CONFIG_TWL4030_USB=y
- # CONFIG_NOP_USB_XCEIV is not set
- CONFIG_MMC=y
--- 
-1.6.2.2
+Actually, I'll queue this in my PM fixes queue for the -rc series.
 
+Kevin
