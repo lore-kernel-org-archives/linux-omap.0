@@ -1,50 +1,133 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 01/28] OMAP3: PM: GPMC context save/restore
-Date: Mon, 5 Oct 2009 13:32:37 -0500
-Message-ID: <4ACA3BC5.3060609@ti.com>
-References: <1254441538-9257-1-git-send-email-khilman@deeprootsystems.com>	<1254441538-9257-2-git-send-email-khilman@deeprootsystems.com>	<4AC76454.20605@gmail.com> <87ws39yciw.fsf@deeprootsystems.com>	<4ACA33AC.4070704@ti.com> <87fx9xwvvf.fsf@deeprootsystems.com>
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: RE: ISP OMAP3 camera support ov7690
+Date: Mon, 5 Oct 2009 17:23:21 -0500
+Message-ID: <A24693684029E5489D1D202277BE89444CB3A2CB@dlee02.ent.ti.com>
+References: <4AC7DAAD.2020203@panicking.kicks-ass.org>
+ <4AC8B764.2030101@gmail.com> <4AC93DC9.2080809@panicking.kicks-ass.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57678 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180AbZJESdP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 14:33:15 -0400
-In-Reply-To: <87fx9xwvvf.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <4AC93DC9.2080809@panicking.kicks-ass.org>
+Content-Language: en-US
+Sender: linux-media-owner@vger.kernel.org
+To: michael <michael@panicking.kicks-ass.org>, Nishanth Menon <menon.nishanth@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Nishanth Menon <menon.nishanth@gmail.com>, "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin Hilman had written, on 10/05/2009 01:15 PM, the following:
->>>>> +				gpmc_cs_read_reg(i, GPMC_CS_CONFIG7);
->>>>> +		}
->>>>>   
->>>> here is a theoretical bug:
->>>> 1: GPMC, 1, 2, 3 4 5 configured 6 7 not configured.
->>>> 2. Save and restore 1: save and restore variables which are static will
->>>> contain 1-5 and not 6&7
->>>> 3. next I disable 2,3
->>>> 3. save will save 1,4,5 BUT my variable will contain 1,2,3,4,5 ->
->>>> restore will rename 2,3 (which I did not intend)..
->>> Not sure I follow the problem here.  What do you mean by "rename".
->>> The saved context will have values for 2 and 3, but the is_valid
->>> flag will not be set, so they shouldn't be used.
->> My bad.. s/rename/enable/ for 2,3 ->definitely not something I would
->> like to see.
-> 
-> I must be missing something here.
-> 
-> I don't see how the restore will do anything if 2,3 have been disabled
-> (by gpmc_cs_free()).  AFAICT, the save hook will have cleared the
-> is_valid flag, so the restore will do nothing.
-> 
-> For clarity, I'm also going to modify this patch to set the is_valid
-> flag using gpmc_cs_mem_enabled() which make it more clear that
-> it's using the same check as gpmc_cs_[enable|disable]_mem()
-Got it. Thanks.
+Hi Michael, 
 
--- 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of michael
+> Sent: Sunday, October 04, 2009 7:29 PM
+> To: Nishanth Menon
+> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org
+> Subject: Re: ISP OMAP3 camera support ov7690
+> 
+> Hi,
+> 
+> cc: linux-media
+> 
+> Nishanth Menon wrote:
+> > michael said the following on 10/03/2009 06:13 PM:
+> >> I'm writing a driver to support the ov7690 camera and I have some
+> >> question about the meaning of:
+> >>
+> >> - datalane configuration
+> > CSI2 Data lanes - each CSI2 lane is a differential pair. 
+> And, at least 1
+> > clock and data lane is used in devices.
+> 
+> Sorry can you explain a little bit more. I have the camera 
+> connected to the
+> cam_hs and cam_vs and the data is 8Bit. I use the the isp init
+> structure. The sccb bus works great and I can send 
+> configuration to it,
+> but I don't receive any interrupt from the ics, seems that it 
+> doen't see
+> the transaction:
+> 
+> The ISPCCDC: ###CCDC SYN_MODE=0x31704 seems ok.
+> 
+> 
+> static struct isp_interface_config ov7690_if_config = {
+>         .ccdc_par_ser           = ISP_CSIA,
+>         .dataline_shift         = 0x0,
+>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
+
+Can you try with ISPCTRL_SYNC_DETECT_VSRISE ?
+
+>         .strobe                 = 0x0,
+>         .prestrobe              = 0x0,
+>         .shutter                = 0x0,
+>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+>         .wait_hs_vs             = 0x4,
+>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+>         .u.csi.crc              = 0x0,
+>         .u.csi.mode             = 0x0,
+>         .u.csi.edge             = 0x0,
+>         .u.csi.signalling       = 0x0,
+>         .u.csi.strobe_clock_inv = 0x0,
+>         .u.csi.vs_edge          = 0x0,
+>         .u.csi.channel          = 0x0,
+>         .u.csi.vpclk            = 0x1,
+>         .u.csi.data_start       = 0x0,
+>         .u.csi.data_size        = 0x0,
+>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
+> };
+> 
+> and I don't know the meaning of
+> 
+> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+> lanecfg.data[2].pol = 0;
+> lanecfg.data[2].pos = 0;
+> lanecfg.data[3].pol = 0;
+> lanecfg.data[3].pos = 0;
+> 
+
+This is the physical connection details:
+
+- The .pol field stands for the differntial pair polarity.
+  (i.e. the order in which the negative and positive connections
+  are pugged in to the CSI2 ComplexIO module)
+
+- The .pos field is for telling in which position of the 4
+  available physically you have your clock, or data lane located.
+
 Regards,
-Nishanth Menon
+Sergio
+
+> >> - phyconfiguration
+> > PHY - Physical timing configurations. btw, if it is camera 
+> specific you
+> > could get a lot of inputs from [1].
+> 
+> Ok I wil ask to them.
+> 
+> > 
+> > Regards,
+> > Nishanth Menon
+> > 
+> > Ref:
+> > [1] http://vger.kernel.org/vger-lists.html#linux-media
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+> Michael
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
