@@ -1,72 +1,92 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH 2/4] [OMAP] omap_udc: Updates for omap7xx IRQs and config
-Date: Mon, 5 Oct 2009 07:50:27 -0700
-Message-ID: <6cb013310910050750q183abe82qbfd60064d774fe62@mail.gmail.com>
+Subject: [PATCH 3/4] [OMAP] omap_udc: Add clocking and disable vbus sense for
+	omap7xx
+Date: Mon, 5 Oct 2009 07:51:03 -0700
+Message-ID: <6cb013310910050751n3dfad278r1b6fee6720271dd0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f173.google.com ([209.85.210.173]:65506 "EHLO
+Received: from mail-yx0-f173.google.com ([209.85.210.173]:43177 "EHLO
 	mail-yx0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082AbZJEOvY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 10:51:24 -0400
-Received: by yxe3 with SMTP id 3so2902509yxe.4
-        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 07:50:47 -0700 (PDT)
+	with ESMTP id S1751082AbZJEOv7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 10:51:59 -0400
+Received: by yxe3 with SMTP id 3so2902968yxe.4
+        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 07:51:23 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-There was a FIXME in usb.c:
-
-    /* FIXME patch IRQ numbers for omap730 */
-
-I replaced that with the correct resources for omap7xx CPUs.
-Additionally, I disabled USB_TRANSCEIVER_CTRL manipulations
-for omap7xx as this causes problems sending data to the
-host.
+I added a provision for the usb_dc_ck and l3_ocpi_ck clocks as
+dc_clk and hhc_clk, respectively, for omap7xx CPUs.  Additionally,
+I added a check in machine_without_vbus_sense for all omap7xx
+devices, as presently I know of no omap7xx-based devices that
+have vbus sense, and it made more sense to me to use a cpu check
+here than to spell out each machine one at a time.  Finally, DMA
+is disabled for omap7xx, as it causes problems with these chips.
 
 Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 ---
- arch/arm/plat-omap/usb.c |   20 ++++++++++++++------
- 1 files changed, 14 insertions(+), 6 deletions(-)
+ drivers/usb/gadget/omap_udc.c |   19 +++++++++++++++++--
+ 1 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/usb.c b/arch/arm/plat-omap/usb.c
-index 3c40b85..1ac252a 100644
---- a/arch/arm/plat-omap/usb.c
-+++ b/arch/arm/plat-omap/usb.c
-@@ -159,11 +159,14 @@ static u32 __init omap_usb0_init(unsigned
-nwires, unsigned is_device)
- 		 *  - OTG support on this port not yet written
- 		 */
+diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
+index a2db0e1..1762bd8 100644
+--- a/drivers/usb/gadget/omap_udc.c
++++ b/drivers/usb/gadget/omap_udc.c
+@@ -2098,6 +2098,7 @@ static inline int machine_without_vbus_sense(void)
+ 		|| machine_is_omap_h4()
+ #endif
+ 		|| machine_is_sx1()
++		|| cpu_is_omap7xx() /* No known omap7xx boards with vbus sense */
+ 		);
+ }
 
--		l = omap_readl(USB_TRANSCEIVER_CTRL);
--		l &= ~(7 << 4);
--		if (!is_device)
--			l |= (3 << 1);
--		omap_writel(l, USB_TRANSCEIVER_CTRL);
-+		/* Don't do this for omap7xx -- it causes USB to not work correctly */
-+		if (!cpu_is_omap7xx()) {
-+			l = omap_readl(USB_TRANSCEIVER_CTRL);
-+			l &= ~(7 << 4);
-+			if (!is_device)
-+				l |= (3 << 1);
-+			omap_writel(l, USB_TRANSCEIVER_CTRL);
-+		}
-
- 		return 3 << 16;
+@@ -2838,6 +2839,16 @@ static int __init omap_udc_probe(struct
+platform_device *pdev)
+ 		udelay(100);
  	}
-@@ -603,7 +606,12 @@ omap_otg_init(struct omap_usb_config *config)
- 	if (config->otg || config->register_dev) {
- 		syscon &= ~DEV_IDLE_EN;
- 		udc_device.dev.platform_data = config;
--		/* FIXME patch IRQ numbers for omap730 */
-+		/* IRQ numbers for omap7xx */
-+		if(cpu_is_omap7xx()) {
-+			udc_resources[1].start = INT_7XX_USB_GENI;
-+			udc_resources[2].start = INT_7XX_USB_NON_ISO;
-+			udc_resources[3].start = INT_7XX_USB_ISO;
-+		}
- 		status = platform_device_register(&udc_device);
- 		if (status)
- 			pr_debug("can't register UDC device, %d\n", status);
+
++	if (cpu_is_omap7xx()) {
++		dc_clk = clk_get(&pdev->dev, "usb_dc_ck");
++		hhc_clk = clk_get(&pdev->dev, "l3_ocpi_ck");
++		BUG_ON(IS_ERR(dc_clk) || IS_ERR(hhc_clk));
++		/* can't use omap_udc_enable_clock yet */
++		clk_enable(dc_clk);
++		clk_enable(hhc_clk);
++		udelay(100);
++	}
++
+ 	INFO("OMAP UDC rev %d.%d%s\n",
+ 		omap_readw(UDC_REV) >> 4, omap_readw(UDC_REV) & 0xf,
+ 		config->otg ? ", Mini-AB" : "");
+@@ -2970,7 +2981,7 @@ known:
+ 		goto cleanup3;
+ 	}
+ #endif
+-	if (cpu_is_omap16xx()) {
++	if (cpu_is_omap16xx() || cpu_is_omap7xx()) {
+ 		udc->dc_clk = dc_clk;
+ 		udc->hhc_clk = hhc_clk;
+ 		clk_disable(hhc_clk);
+@@ -3008,7 +3019,7 @@ cleanup0:
+ 	if (xceiv)
+ 		otg_put_transceiver(xceiv);
+
+-	if (cpu_is_omap16xx() || cpu_is_omap24xx()) {
++	if (cpu_is_omap16xx() || cpu_is_omap24xx() || cpu_is_omap7xx()) {
+ 		clk_disable(hhc_clk);
+ 		clk_disable(dc_clk);
+ 		clk_put(hhc_clk);
+@@ -3115,6 +3126,10 @@ static struct platform_driver udc_driver = {
+
+ static int __init udc_init(void)
+ {
++	/* Disable DMA for omap7xx -- it doesn't work right. */
++	if (cpu_is_omap7xx())
++		use_dma = 0;
++
+ 	INFO("%s, version: " DRIVER_VERSION
+ #ifdef	USE_ISO
+ 		" (iso)"
 -- 
 1.5.6.3
