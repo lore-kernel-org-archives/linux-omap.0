@@ -1,57 +1,77 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: introduce a new powerdomain walk helper
-Date: Mon, 05 Oct 2009 09:46:52 -0700
-Message-ID: <87r5th23gj.fsf@deeprootsystems.com>
-References: <1254380515-32175-1-git-send-email-dedekind1@gmail.com>
-	<4AC9D5F1.8080400@gmail.com>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: Re: [PATCH v2] SDMA: Fixing bug in omap_dma_set_global_params()
+Date: Mon, 5 Oct 2009 09:41:02 -0700
+Message-ID: <20091005094102.1385b418.rdunlap@xenotime.net>
+References: <1254732163-3509-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:40074 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753626AbZJEQrc (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 5 Oct 2009 12:47:32 -0400
-Received: by pzk26 with SMTP id 26so2908657pzk.4
-        for <linux-omap@vger.kernel.org>; Mon, 05 Oct 2009 09:46:55 -0700 (PDT)
-In-Reply-To: <4AC9D5F1.8080400@gmail.com> (Artem Bityutskiy's message of "Mon\, 05 Oct 2009 14\:18\:09 +0300")
+Received: from xenotime.net ([72.52.64.118]:60664 "HELO xenotime.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753082AbZJEQth (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 5 Oct 2009 12:49:37 -0400
+Received: from chimera.site ([96.253.169.185]) by xenotime.net for <linux-omap@vger.kernel.org>; Mon, 5 Oct 2009 09:48:59 -0700
+In-Reply-To: <1254732163-3509-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org, Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, svenkatr@ti.com, tony@atomide.com
 
-Artem Bityutskiy <dedekind1@gmail.com> writes:
+On Mon,  5 Oct 2009 14:12:43 +0530 Anuj Aggarwal wrote:
 
-> On 10/01/2009 10:01 AM, Artem Bityutskiy wrote:
->> From: Artem Bityutskiy<Artem.Bityutskiy@nokia.com>
->>
->> The 'pwrdm_for_each()' function walks powerdomains with a spinlock
->> locked, so the the callbacks cannot do anything which may sleep.
->> This patch introduces a 'pwrdm_for_each_nolock()' helper which does
->> the same, but without the spinlock locked. This fixes the following
->> lockdep warning:
->>
->> [    0.000000] WARNING: at kernel/lockdep.c:2460 lockdep_trace_alloc+0xac/0xec()
->> [    0.000000] Modules linked in:
->> (unwind_backtrace+0x0/0xdc) from [<c0045464>] (warn_slowpath_common+0x48/0x60)
->> (warn_slowpath_common+0x48/0x60) from [<c0067dd4>] (lockdep_trace_alloc+0xac/0xec)
->> (lockdep_trace_alloc+0xac/0xec) from [<c009da14>] (kmem_cache_alloc+0x1c/0xd0)
->> (kmem_cache_alloc+0x1c/0xd0) from [<c00b21d8>] (d_alloc+0x1c/0x1a4)
->> (d_alloc+0x1c/0x1a4) from [<c00a887c>] (__lookup_hash+0xd8/0x118)
->> (__lookup_hash+0xd8/0x118) from [<c00a9f20>] (lookup_one_len+0x84/0x94)
->> (lookup_one_len+0x84/0x94) from [<c010d12c>] (debugfs_create_file+0x8c/0x20c)
->> (debugfs_create_file+0x8c/0x20c) from [<c010d320>] (debugfs_create_dir+0x1c/0x20)
->> (debugfs_create_dir+0x1c/0x20) from [<c000e8cc>] (pwrdms_setup+0x60/0x90)
->> (pwrdms_setup+0x60/0x90) from [<c002e010>] (pwrdm_for_each+0x30/0x80)
->> (pwrdm_for_each+0x30/0x80) from [<c000e79c>] (pm_dbg_init+0x7c/0x14c)
->> (pm_dbg_init+0x7c/0x14c) from [<c00232b4>] (do_one_initcall+0x5c/0x1b8)
->> (do_one_initcall+0x5c/0x1b8) from [<c00083f8>] (kernel_init+0x90/0x10c)
->> (kernel_init+0x90/0x10c) from [<c00242c4>] (kernel_thread_exit+0x0/0x8)
->>
->> Signed-off-by: Artem Bityutskiy<Artem.Bityutskiy@nokia.com>
->
-> I guess this patch was actually for Tony, as this warning is seen on l-o.
-> Tony, any plans to pick this up?
+> Argument tparams was not being used to program
+> global register GCR.HI_THREAD_RESERVED. This patch fixes the same.
+> 
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> ---
+>  arch/arm/plat-omap/dma.c |   15 +++++++++------
+>  1 files changed, 9 insertions(+), 6 deletions(-)
 
-Actually, I'll queue this in my PM fixes queue for the -rc series.
 
-Kevin
+Hi,
+Someone please convert all of this source file to correct kernel-doc notation.
+
+Thanks.
+
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index fd3154a..0eb676d 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -829,10 +829,10 @@ EXPORT_SYMBOL(omap_free_dma);
+>   *
+>   * @param arb_rate
+>   * @param max_fifo_depth
+> - * @param tparams - Number of thereads to reserve : DMA_THREAD_RESERVE_NORM
+> - * 						    DMA_THREAD_RESERVE_ONET
+> - * 						    DMA_THREAD_RESERVE_TWOT
+> - * 						    DMA_THREAD_RESERVE_THREET
+> + * @param tparams - Number of threads to reserve : DMA_THREAD_RESERVE_NORM
+> + * 						   DMA_THREAD_RESERVE_ONET
+> + * 						   DMA_THREAD_RESERVE_TWOT
+> + * 						   DMA_THREAD_RESERVE_THREET
+>   */
+>  void
+>  omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
+> @@ -844,11 +844,14 @@ omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
+>  		return;
+>  	}
+>  
+> +	if (max_fifo_depth == 0)
+> +		max_fifo_depth = 1;
+>  	if (arb_rate == 0)
+>  		arb_rate = 1;
+>  
+> -	reg = (arb_rate & 0xff) << 16;
+> -	reg |= (0xff & max_fifo_depth);
+> +	reg = 0xff & max_fifo_depth;
+> +	reg |= (0x3 & tparams) << 12;
+> +	reg |= (arb_rate & 0xff) << 16;
+>  
+>  	dma_write(reg, GCR);
+>  }
+> -- 
+
+
+---
+~Randy
