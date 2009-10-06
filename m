@@ -1,157 +1,58 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
-Date: Tue, 06 Oct 2009 06:32:38 -0700
-Message-ID: <87my44sl55.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A007938@dbde02.ent.ti.com>
-	<87ljkpm67t.fsf@deeprootsystems.com>
-	<200909091412.07748.jpihet@mvista.com>
-	<636c5030909301106r60eb02c9t968408f06c62829d@mail.gmail.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030A332368@dbde02.ent.ti.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH] OMAP3: PM: Fix for Silicon bug on Context Restore on
+ OMAP3430
+Date: Tue, 6 Oct 2009 19:01:28 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A33246A@dbde02.ent.ti.com>
+References: <1254741761-31546-1-git-send-email-y>
+	<87ljjpzs9p.fsf@deeprootsystems.com> <4ACA2C83.9080400@ti.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030A3321EF@dbde02.ent.ti.com>
+ <87k4z8u0fh.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f187.google.com ([209.85.216.187]:34289 "EHLO
-	mail-px0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757260AbZJFNdW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 09:33:22 -0400
-Received: by pxi17 with SMTP id 17so5138032pxi.21
-        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 06:32:45 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A332368@dbde02.ent.ti.com> (Teerth Reddy's message of "Tue\, 6 Oct 2009 16\:04\:48 +0530")
+Received: from comal.ext.ti.com ([198.47.26.152]:37164 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757276AbZJFNc0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 09:32:26 -0400
+In-Reply-To: <87k4z8u0fh.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <jpihet@mvista.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gulati, Shweta" <shweta.gulati@ti.com>
 
-"Reddy, Teerth" <teerth@ti.com> writes:
 
-> Kevin,Jean
->
-> Sorry for the late reply.
-> I have tested DVFS on Zoom2 with 256Mb with this patch and it works f=
-ine.
-> In Zoom2 SDRC module uses 2 chip selects. Since u-boot is configuring=
- the SDRC module to use 2 chip selects do we need to configure it in th=
-e kernel as well?=20
-> If you think so then this change is needed.=20
 
-Teerth,
+>>-----Original Message-----
+>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>Sent: Tuesday, October 06, 2009 6:47 PM
+>>To: Gopinath, Thara
+>>Cc: Menon, Nishanth; linux-omap@vger.kernel.org; Gulati, Shweta
+>>Subject: Re: [PATCH] OMAP3: PM: Fix for Silicon bug on Context Restore on OMAP3430
+>>
+>>"Gopinath, Thara" <thara@ti.com> writes:
+>>
+>>> The problem here is not with the restore. If MPU reads the PADCONF_SAVEDONE bit very close
+>>> to the end of context save sequence for the pad conf registers, the last context is not
+>>> saved to the scratchpad memory. This is a h/w bug. The workaround proposed is to delay the
+>>> MPU access of SAVEDONE bit until the last context has been saved. 300 us delay is the current
+>>> safe delay proposed by TI. I believe investigations are going on to whether this delay can be
+>>> optimized. Also only the last context (ETK_D14) has the risk of not getting saved.
+>>
+>>All of this should've been in the original changelog.  These are the
+>>details that help others understand the problem trying to be solved
+>>and think about whether there might be other solutions.
+>>
+>>> We could add a defconfig option for this workaround and enable it on need basis till TI
+>>> comes out with proper optimized workaround sequence.
+>>
+>>No, Kconfig is not an option for this.
+>>
+>>I think Nishanth's proposal is a much better workaround for this
+>>problem, and doesn't introduce and additional 300 usec delay to
+>>*every* off-mode transistion.
 
-Please break this up into two patches.
-
-1) for linux-omap master: add the SDRC params for both CSes to init_com=
-mon_hw
-2) for PM branch: addition of rate tables for DVFS
-
-Thanks,
-
-> Regards
-> Teerth
->
->
->
-> -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]=20
-> Sent: Wednesday, September 30, 2009 11:36 PM
-> To: Reddy, Teerth
-> Cc: linux-omap@vger.kernel.org; Jean Pihet
-> Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoo=
-m2
->
-> Teerth,  ping.
->
-> On Wed, Sep 9, 2009 at 5:12 AM, Jean Pihet <jpihet@mvista.com> wrote:
->> On Wednesday 09 September 2009 00:17:42 Kevin Hilman wrote:
->>> "Reddy, Teerth" <teerth@ti.com> writes:
->>> > This patch initializes the SDRC params for DVFS on Zoom2.
->>> >
->>> > Signed-off-by: Teerth Reddy <teerth@ti.com>
->>> > ---
->>> > =A0arch/arm/mach-omap2/board-zoom2.c | =A0 =A06 ++++--
->>> > =A01 files changed, 4 insertions(+), 2 deletions(-)
->>> >
->>> > Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
->>> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->>> > --- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom2.c
->>> > +++ linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
->>> > @@ -23,6 +23,7 @@
->>> >
->>> > =A0#include "mmc-twl4030.h"
->>> > =A0#include "omap3-opp.h"
->>> > +#include "sdram-micron-mt46h32m32lf-6.h"
->>> >
->>> > =A0static struct omap_uart_config zoom2_uart_config __initdata =3D=
- {
->>> > =A0 =A0 .enabled_uarts =A0=3D ((1 << 0) | (1 << 1) | (1 << 2)),
->>> > @@ -36,8 +37,9 @@ static void __init omap_zoom2_init_irq(v
->>> > =A0{
->>> > =A0 =A0 omap_board_config =3D zoom2_config;
->>> > =A0 =A0 omap_board_config_size =3D ARRAY_SIZE(zoom2_config);
->>> > - =A0 omap2_init_common_hw(NULL, NULL, omap3_mpu_rate_table,
->>> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_dsp_rate_t=
-able, omap3_l3_rate_table);
->>> > + =A0 omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
->>> > + =A0 =A0 =A0 =A0 =A0 omap3_mpu_rate_table, omap3_dsp_rate_table,
->>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 omap3_l3_rate_table);
->>>
->>> Not having looked at the Zoom2 schematics, are you sure this is onl=
-y
->>> using a single chip select? =A0The other boards using the same part
->>> (beagle, overo) are interfacing to this part using both CSes.
->>>
->>> Have you tested DVFS on Zoom2 using the full 256Mb?
->> Good point!
+I am not very sure about this as it has the risk of glitch on the line. It is probably ok if the ball is not used. But if in use, the glitch could create issues. 
 >>
->> DVFS works fine using the two chip selects:
->> =A0 =A0 =A0 =A0omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mt46h32m32lf=
-6_sdrc_params,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_mpu_ra=
-te_table,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_dsp_ra=
-te_table,
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_l3_rat=
-e_table);
->>
->> One remark though: since the memory chips are popped on top of the O=
-MAP chip
->> the schematics are not showing the chip selects connections. In any =
-case
->> U-Boot is configuring the SDRC module to use the 2 chip selects, so =
-I think
->> this change is needed.
->>
->> We need confirmation. Anyone from TI knows?
->>
->> Regards,
->> Jean
->>
->>>
->>> Kevin
->>>
->>> > =A0 =A0 omap_init_irq();
->>> > =A0 =A0 omap_gpio_init();
->>> > =A0}
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>Kevin
