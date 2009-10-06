@@ -1,46 +1,28 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [ANNOUNCE] updated PM branch, based on 2.6.32-rc1
-Date: Tue, 06 Oct 2009 16:16:02 -0700
-Message-ID: <87eipgnmfh.fsf@deeprootsystems.com>
-References: <87iqezdmas.fsf@deeprootsystems.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RFC: omap3630 board definitions
+Date: Wed, 7 Oct 2009 05:05:45 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA023020@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:50237 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757747AbZJFXRS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 19:17:18 -0400
-Received: by pxi9 with SMTP id 9so4297772pxi.4
-        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 16:16:05 -0700 (PDT)
-In-Reply-To: <87iqezdmas.fsf@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 01 Oct 2009 11\:03\:07 -0700")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60396 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933418AbZJFXg3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 19:36:29 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-> Hello,
->
-> I've rebased/updated the PM branch based on current linux-omap master
-> branch (2.6.32-rc1 based.)
->
-> I've also updated the OMAP Power Management wiki, and the 'Current
-> version' section highlights the changes, supported platforms as well
-> as the features that have made it into mainline.
->
->      http://elinux.org/OMAP_Power_Management#Current_version
->
+Could you please review the 3630 board definitions added: 
 
-FYI... I just rebased the PM branch onto current omap/master.
+Zoom3:   http://www.arm.linux.org.uk/developer/machines/list.php?id=2464
 
-Some important user-visible changes: The /sys/power/* options are
-moving into debugfs.  For mainline, these primarily debug options need
-to move to debugfs so I've moved them there.  So, if you're missing
-some flag under /sys/power, it's now under /debug/pm_debug.
+SDP3630: http://www.arm.linux.org.uk/developer/machines/list.php?id=2465
 
-I've updated the 'Using the PM branch' seciont of PM wiki[1] with
-the new filenames.
 
-Kevin
+Regards,
+Vikram 
 
-[1] http://elinux.org/OMAP_Power_Management
