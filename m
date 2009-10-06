@@ -1,58 +1,63 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: Fix for Silicon bug on Context Restore on
- OMAP3430
-Date: Tue, 6 Oct 2009 19:01:28 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A33246A@dbde02.ent.ti.com>
-References: <1254741761-31546-1-git-send-email-y>
-	<87ljjpzs9p.fsf@deeprootsystems.com> <4ACA2C83.9080400@ti.com>
-	<5A47E75E594F054BAF48C5E4FC4B92AB030A3321EF@dbde02.ent.ti.com>
- <87k4z8u0fh.fsf@deeprootsystems.com>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: [PATCH] [OMAP1] mux: Add MMC mux pins for omap7xx
+Date: Tue, 6 Oct 2009 06:53:18 -0700
+Message-ID: <6cb013310910060653u4825da1cwf738a9acef5835b2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37164 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757276AbZJFNc0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 09:32:26 -0400
-In-Reply-To: <87k4z8u0fh.fsf@deeprootsystems.com>
-Content-Language: en-US
+Received: from mail-yx0-f199.google.com ([209.85.210.199]:38410 "EHLO
+	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932498AbZJFNyO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 09:54:14 -0400
+Received: by yxe37 with SMTP id 37so3932974yxe.33
+        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 06:53:38 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gulati, Shweta" <shweta.gulati@ti.com>
+To: linux-omap@vger.kernel.org
 
+There are three mux pins needed for omap7xx that differ
+from the other omap configurations.  This change adds the
+declarations into mux.c and mux.h.
 
+Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+---
+ arch/arm/mach-omap1/mux.c             |    5 +++++
+ arch/arm/plat-omap/include/mach/mux.h |    5 +++++
+ 2 files changed, 10 insertions(+), 0 deletions(-)
 
->>-----Original Message-----
->>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>Sent: Tuesday, October 06, 2009 6:47 PM
->>To: Gopinath, Thara
->>Cc: Menon, Nishanth; linux-omap@vger.kernel.org; Gulati, Shweta
->>Subject: Re: [PATCH] OMAP3: PM: Fix for Silicon bug on Context Restore on OMAP3430
->>
->>"Gopinath, Thara" <thara@ti.com> writes:
->>
->>> The problem here is not with the restore. If MPU reads the PADCONF_SAVEDONE bit very close
->>> to the end of context save sequence for the pad conf registers, the last context is not
->>> saved to the scratchpad memory. This is a h/w bug. The workaround proposed is to delay the
->>> MPU access of SAVEDONE bit until the last context has been saved. 300 us delay is the current
->>> safe delay proposed by TI. I believe investigations are going on to whether this delay can be
->>> optimized. Also only the last context (ETK_D14) has the risk of not getting saved.
->>
->>All of this should've been in the original changelog.  These are the
->>details that help others understand the problem trying to be solved
->>and think about whether there might be other solutions.
->>
->>> We could add a defconfig option for this workaround and enable it on need basis till TI
->>> comes out with proper optimized workaround sequence.
->>
->>No, Kconfig is not an option for this.
->>
->>I think Nishanth's proposal is a much better workaround for this
->>problem, and doesn't introduce and additional 300 usec delay to
->>*every* off-mode transistion.
+diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
+index d59899d..feb6d8c 100644
+--- a/arch/arm/mach-omap1/mux.c
++++ b/arch/arm/mach-omap1/mux.c
+@@ -51,6 +51,11 @@ MUX_CFG_7XX("E3_7XX_KBC4",        13,   25,    0,
+24,   1, 0)
+ MUX_CFG_7XX("AA17_7XX_USB_DM",     2,   21,    0,   20,   0, 0)
+ MUX_CFG_7XX("W16_7XX_USB_PU_EN",   2,   25,    0,   24,   0, 0)
+ MUX_CFG_7XX("W17_7XX_USB_VBUSI",   2,   29,    0,   28,   0, 0)
++
++/* MMC Pins */
++MUX_CFG_7XX("MMC_7XX_CMD",         2,    9,    0,    8,   1, 0)
++MUX_CFG_7XX("MMC_7XX_CLK",         2,   13,    0,   12,   1, 0)
++MUX_CFG_7XX("MMC_7XX_DAT0",        2,   17,    0,   16,   1, 0)
+ };
+ #define OMAP7XX_PINS_SZ		ARRAY_SIZE(omap7xx_pins)
+ #else
+diff --git a/arch/arm/plat-omap/include/mach/mux.h
+b/arch/arm/plat-omap/include/mach/mux.h
+index f3c1d8a..56e357e 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -219,6 +219,11 @@ enum omap7xx_index {
+ 	AA17_7XX_USB_DM,
+ 	W16_7XX_USB_PU_EN,
+ 	W17_7XX_USB_VBUSI,
++
++	/* MMC */
++	MMC_7XX_CMD,
++	MMC_7XX_CLK,
++	MMC_7XX_DAT0,
+ };
 
-I am not very sure about this as it has the risk of glitch on the line. It is probably ok if the ball is not used. But if in use, the glitch could create issues. 
->>
->>Kevin
+ enum omap1xxx_index {
+-- 
+1.5.6.3
