@@ -1,215 +1,123 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] OMAP3: DVFS: No sdrc AC timing changes during core dvfs
-Date: Tue,  6 Oct 2009 18:50:24 +0530
-Message-ID: <1254835224-19500-1-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Question on OPP table handling
+Date: Tue, 06 Oct 2009 06:29:03 -0700
+Message-ID: <87skdwslb4.fsf@deeprootsystems.com>
+References: <1254420194-4757-1-git-send-email-premi@ti.com>
+	<4AC76810.1040206@gmail.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08B10@dbde02.ent.ti.com>
+	<87ws39zsn4.fsf@deeprootsystems.com> <4ACA2A86.7060300@ti.com>
+	<74583B8642AB8841B30447520659FCA9DDAEF27A@dnce01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60212 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757267AbZJFNVE (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Oct 2009 09:21:04 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n96DKP0u024201
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 6 Oct 2009 08:20:27 -0500
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:54697 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932454AbZJFNaR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 09:30:17 -0400
+Received: by pzk7 with SMTP id 7so3906000pzk.33
+        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 06:29:05 -0700 (PDT)
+In-Reply-To: <74583B8642AB8841B30447520659FCA9DDAEF27A@dnce01.ent.ti.com> (Benoit Cousson's message of "Tue\, 6 Oct 2009 10\:42\:22 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Premi, Sanjeev" <premi@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-This patch removes the SDRC AC timings changes done during core dvfs.
-Updating AC timing CTRL values for SDRC during DVFS is seen to be a risk,
-while the RFR CTRL value is safe to be updated.
+"Cousson, Benoit" <b-cousson@ti.com> writes:
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/clock34xx.c        |   17 +++++++-----
- arch/arm/mach-omap2/sram34xx.S         |   44 +------------------------------
- arch/arm/plat-omap/include/mach/sram.h |    6 +---
- arch/arm/plat-omap/sram.c              |   18 ++++--------
- 4 files changed, 20 insertions(+), 65 deletions(-)
+> Hi Kevin,
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Nishanth Menon
+>> Sent: Monday, October 05, 2009 7:19 PM
+>> To: linux-omap@vger.kernel.org
+>> Cc: Premi, Sanjeev; Kevin H
+>> Subject: Re: Question on OPP table handling
+>> 
+>> Kevin Hilman had written, on 10/05/2009 11:56 AM, the following:
+>> > "Premi, Sanjeev" <premi@ti.com> writes:
+>> >
+>> >>> -----Original Message-----
+>> >>> From: Nishanth Menon [mailto:menon.nishanth@gmail.com]
+>> >>> Sent: Saturday, October 03, 2009 8:35 PM
+>> >>> To: Premi, Sanjeev
+>> >>> Cc: linux-omap@vger.kernel.org
+>> >>> Subject: Question on OPP table handling
+>> >>>
+>> >>> Sanjeev Premi said the following on 10/01/2009 01:03 PM:
+>> >>>> +struct omap_opp omap3_mpu_rate_table[] = {
+>> >>>> +	{0, 0, 0},
+>> >>>> +	/*OPP1*/
+>> >>>> +	{S125M, VDD1_OPP1, 0x1E},
+>> >>>> +	/*OPP2*/
+>> >>>> +	{S250M, VDD1_OPP2, 0x26},
+>> >>>> +	/*OPP3*/
+>> >>>> +	{S500M, VDD1_OPP3, 0x30},
+>> >>>> +	/*OPP4*/
+>> >>>> +	{S550M, VDD1_OPP4, 0x36},
+>> >>>> +	/*OPP5*/
+>> >>>> +	{S600M, VDD1_OPP5, 0x3C},
+>> >>>> +};
+>> >>>>
+>> >>> For those involved,
+>> >>> if we wanted to convert omap3_mpu_table[] into
+>> >>> *omap3_mpu_table so that
+>> >>> we dynamically initialize it based on cpu type - what would be the
+>> >>> recommendations?
+>> >> Nishanth,
+>> >>
+>> >> Good idea!
+>> >>
+>> >> As a table, previous patch enables it (not as intent, but due to
+>> syntax):
+>> >>
+>> >>   >  +/* struct omap_opp_table - View OPP table as an object
+>> >>   > + * @min: Minimum OPP id
+>> >>   > + * @max: Maximim OPP id
+>> >>   > + * @opps: Pointer to array defining the OPPs.
+>> >>   > + *
+>> >>   > + * An OPP table has varied length. Knowing minimum and maximum
+>> >>   > + * OPP ids allow easy traversal.
+>> >>   > + */
+>> >>   > +struct omap_opp_table {
+>> >>   > +       u8      min;
+>> >>   > +       u8      max;
+>> >>   > +       struct omap_opp* opps;
+>> >>   > +};
+>> >>
+>> >> But now, I think it would be good to have an API that can fill an
+>> opp_table:
+>> >>
+>> >> int add_opp_definition(u8 id, u32 freq, u16 vsel);
+>> >>
+>> >> ...and, if an array is preferred, length can be set as:
+>> >> int set_opp_table_length (u8 max);
+>> >
+>> > I'm all for dynamic OPP setting, but not as an array.  A list should
+>> > probably be used.
+>> 
+>> Won't a list implementation cause more than necessary overhead? I agree
+>> that something like set_opp_table_length probably might be redundant in
+>> that case.
+>
+> I'm aligned with Nishanth. I think a static table with the possibility to disable some entry is good enough to deal with most of the OPPs we have on OMAP3 and we will have to handle on OMAP4.
+>
+> OPPs are defined during silicon characterization, and should not be changed dynamically (in theory).
+>
+> Do you have something in mind that might justify a dynamic management?
+>
 
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index d6b7eb6..6210200 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -893,19 +893,22 @@ static int omap3_core_dpll_m2_set_rate(struct clk *clk, unsigned long rate)
- 		 sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
- 		 sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
- 
-+	/*
-+	 * Only the SDRC RFRCTRL value is seen to be safe to be
-+	 * changed during dvfs.
-+	 * The ACTiming values are left unchanged and should be
-+	 * the ones programmed by the bootloader for higher OPP.
-+	 */
- 	if (sdrc_cs1)
- 		omap3_configure_core_dpll(
- 				  new_div, unlock_dll, c, rate > clk->rate,
--				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
--				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
--				  sdrc_cs1->rfr_ctrl, sdrc_cs1->actim_ctrla,
--				  sdrc_cs1->actim_ctrlb, sdrc_cs1->mr);
-+				  sdrc_cs0->rfr_ctrl, sdrc_cs0->mr,
-+				  sdrc_cs1->rfr_ctrl, sdrc_cs1->mr);
- 	else
- 		omap3_configure_core_dpll(
- 				  new_div, unlock_dll, c, rate > clk->rate,
--				  sdrc_cs0->rfr_ctrl, sdrc_cs0->actim_ctrla,
--				  sdrc_cs0->actim_ctrlb, sdrc_cs0->mr,
--				  0, 0, 0, 0);
-+				  sdrc_cs0->rfr_ctrl, sdrc_cs0->mr,
-+				  0, 0);
- 
- 	return 0;
- }
-diff --git a/arch/arm/mach-omap2/sram34xx.S b/arch/arm/mach-omap2/sram34xx.S
-index 82aa4a3..fc84801 100644
---- a/arch/arm/mach-omap2/sram34xx.S
-+++ b/arch/arm/mach-omap2/sram34xx.S
-@@ -83,12 +83,8 @@
-  *  before use by the code in SRAM (SDRAM is not accessible during SDRC
-  *  reconfiguration):
-  *  new SDRC_RFR_CTRL_0 register contents
-- *  new SDRC_ACTIM_CTRL_A_0 register contents
-- *  new SDRC_ACTIM_CTRL_B_0 register contents
-  *  new SDRC_MR_0 register value
-  *  new SDRC_RFR_CTRL_1 register contents
-- *  new SDRC_ACTIM_CTRL_A_1 register contents
-- *  new SDRC_ACTIM_CTRL_B_1 register contents
-  *  new SDRC_MR_1 register value
-  *
-  * If the param SDRC_RFR_CTRL_1 is 0, the parameters
-@@ -102,20 +98,12 @@ ENTRY(omap3_sram_configure_core_dpll)
- 	ldr	r4, [sp, #52]
- 	str     r4, omap_sdrc_rfr_ctrl_0_val
- 	ldr	r4, [sp, #56]
--	str     r4, omap_sdrc_actim_ctrl_a_0_val
--	ldr	r4, [sp, #60]
--	str     r4, omap_sdrc_actim_ctrl_b_0_val
--	ldr	r4, [sp, #64]
- 	str     r4, omap_sdrc_mr_0_val
--	ldr	r4, [sp, #68]
-+	ldr	r4, [sp, #60]
- 	str     r4, omap_sdrc_rfr_ctrl_1_val
- 	cmp	r4, #0			@ if SDRC_RFR_CTRL_1 is 0,
- 	beq	skip_cs1_params		@  do not use cs1 params
--	ldr	r4, [sp, #72]
--	str     r4, omap_sdrc_actim_ctrl_a_1_val
--	ldr	r4, [sp, #76]
--	str     r4, omap_sdrc_actim_ctrl_b_1_val
--	ldr	r4, [sp, #80]
-+	ldr	r4, [sp, #64]
- 	str     r4, omap_sdrc_mr_1_val
- skip_cs1_params:
- 	dsb				@ flush buffered writes to interconnect
-@@ -219,12 +207,6 @@ configure_sdrc:
- 	ldr	r12, omap_sdrc_rfr_ctrl_0_val	@ fetch value from SRAM
- 	ldr	r11, omap3_sdrc_rfr_ctrl_0	@ fetch addr from SRAM
- 	str	r12, [r11]			@ store
--	ldr	r12, omap_sdrc_actim_ctrl_a_0_val
--	ldr	r11, omap3_sdrc_actim_ctrl_a_0
--	str	r12, [r11]
--	ldr	r12, omap_sdrc_actim_ctrl_b_0_val
--	ldr	r11, omap3_sdrc_actim_ctrl_b_0
--	str	r12, [r11]
- 	ldr	r12, omap_sdrc_mr_0_val
- 	ldr	r11, omap3_sdrc_mr_0
- 	str	r12, [r11]
-@@ -233,12 +215,6 @@ configure_sdrc:
- 	beq	skip_cs1_prog		@  do not program cs1 params
- 	ldr	r11, omap3_sdrc_rfr_ctrl_1
- 	str	r12, [r11]
--	ldr	r12, omap_sdrc_actim_ctrl_a_1_val
--	ldr	r11, omap3_sdrc_actim_ctrl_a_1
--	str	r12, [r11]
--	ldr	r12, omap_sdrc_actim_ctrl_b_1_val
--	ldr	r11, omap3_sdrc_actim_ctrl_b_1
--	str	r12, [r11]
- 	ldr	r12, omap_sdrc_mr_1_val
- 	ldr	r11, omap3_sdrc_mr_1
- 	str	r12, [r11]
-@@ -259,14 +235,6 @@ omap3_sdrc_rfr_ctrl_0:
- 	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_0)
- omap3_sdrc_rfr_ctrl_1:
- 	.word OMAP34XX_SDRC_REGADDR(SDRC_RFR_CTRL_1)
--omap3_sdrc_actim_ctrl_a_0:
--	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_0)
--omap3_sdrc_actim_ctrl_a_1:
--	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_A_1)
--omap3_sdrc_actim_ctrl_b_0:
--	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_0)
--omap3_sdrc_actim_ctrl_b_1:
--	.word OMAP34XX_SDRC_REGADDR(SDRC_ACTIM_CTRL_B_1)
- omap3_sdrc_mr_0:
- 	.word OMAP34XX_SDRC_REGADDR(SDRC_MR_0)
- omap3_sdrc_mr_1:
-@@ -275,14 +243,6 @@ omap_sdrc_rfr_ctrl_0_val:
- 	.word 0xDEADBEEF
- omap_sdrc_rfr_ctrl_1_val:
- 	.word 0xDEADBEEF
--omap_sdrc_actim_ctrl_a_0_val:
--	.word 0xDEADBEEF
--omap_sdrc_actim_ctrl_a_1_val:
--	.word 0xDEADBEEF
--omap_sdrc_actim_ctrl_b_0_val:
--	.word 0xDEADBEEF
--omap_sdrc_actim_ctrl_b_1_val:
--	.word 0xDEADBEEF
- omap_sdrc_mr_0_val:
- 	.word 0xDEADBEEF
- omap_sdrc_mr_1_val:
-diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/include/mach/sram.h
-index 16a1b45..52e3cec 100644
---- a/arch/arm/plat-omap/include/mach/sram.h
-+++ b/arch/arm/plat-omap/include/mach/sram.h
-@@ -23,10 +23,8 @@ extern u32 omap2_set_prcm(u32 dpll_ctrl_val, u32 sdrc_rfr_val, int bypass);
- 
- extern u32 omap3_configure_core_dpll(
- 			u32 m2, u32 unlock_dll, u32 f, u32 inc,
--			u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
--			u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
--			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
--			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
-+			u32 sdrc_rfr_ctrl_0, u32 sdrc_mr_0,
-+			u32 sdrc_rfr_ctrl_1, u32 sdrc_mr_1);
- extern void omap3_sram_restore_context(void);
- 
- /* Do not use these */
-diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
-index f2b0fa6..3705387 100644
---- a/arch/arm/plat-omap/sram.c
-+++ b/arch/arm/plat-omap/sram.c
-@@ -375,24 +375,18 @@ static inline int omap243x_sram_init(void)
- 
- static u32 (*_omap3_sram_configure_core_dpll)(
- 			u32 m2, u32 unlock_dll, u32 f, u32 inc,
--			u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
--			u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
--			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
--			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
-+			u32 sdrc_rfr_ctrl_0, u32 sdrc_mr_0,
-+			u32 sdrc_rfr_ctrl_1, u32 sdrc_mr_1);
- 
- u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
--			u32 sdrc_rfr_ctrl_0, u32 sdrc_actim_ctrl_a_0,
--			u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
--			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
--			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1)
-+			u32 sdrc_rfr_ctrl_0, u32 sdrc_mr_0,
-+			u32 sdrc_rfr_ctrl_1, u32 sdrc_mr_1)
- {
- 	BUG_ON(!_omap3_sram_configure_core_dpll);
- 	return _omap3_sram_configure_core_dpll(
- 			m2, unlock_dll, f, inc,
--			sdrc_rfr_ctrl_0, sdrc_actim_ctrl_a_0,
--			sdrc_actim_ctrl_b_0, sdrc_mr_0,
--			sdrc_rfr_ctrl_1, sdrc_actim_ctrl_a_1,
--			sdrc_actim_ctrl_b_1, sdrc_mr_1);
-+			sdrc_rfr_ctrl_0, sdrc_mr_0,
-+			sdrc_rfr_ctrl_1, sdrc_mr_1);
- }
- 
- #ifdef CONFIG_PM
--- 
-1.5.4.7
+Ultimately, I don't really care what the data structure used is.
 
+My primary concern is that at run-time (not just boot time) OPPs can
+be disabled/invalidated so that they are not available to DVFS.
+
+There are many reasons for this
+
+- chip bugs
+- CPUfreq policies can disable/enable certain OPPs
+- speed-rated silicon
+- thermal management
+- etc.
+
+Kevin
