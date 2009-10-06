@@ -1,107 +1,86 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] [OMAP1] mux: Add MMC mux pins for omap7xx
-Date: Tue, 06 Oct 2009 14:13:55 -0700
-Message-ID: <87hbucp6ng.fsf@deeprootsystems.com>
-References: <6cb013310910060653u4825da1cwf738a9acef5835b2@mail.gmail.com>
-	<4ACB7EC0.3010401@ti.com>
-	<6cb013310910061244q40b78c0ubad1932578e75bd3@mail.gmail.com>
+From: John Faith <jfaith7@gmail.com>
+Subject: Timeout after setting SD/MMC clock, bus width on 3530
+Date: Tue, 6 Oct 2009 14:18:42 -0700
+Message-ID: <e0727e900910061418g565c17d9te1277811e1be17e6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f217.google.com ([209.85.219.217]:54828 "EHLO
-	mail-ew0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754945AbZJFVOi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 17:14:38 -0400
-Received: by ewy17 with SMTP id 17so4384170ewy.39
-        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 14:14:00 -0700 (PDT)
-In-Reply-To: <6cb013310910061244q40b78c0ubad1932578e75bd3@mail.gmail.com> (Cory Maccarrone's message of "Tue\, 6 Oct 2009 12\:44\:21 -0700")
+Received: from mail-iw0-f178.google.com ([209.85.223.178]:39096 "EHLO
+	mail-iw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933204AbZJFVTT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 17:19:19 -0400
+Received: by iwn8 with SMTP id 8so2491754iwn.33
+        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 14:18:42 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Cory Maccarrone <darkstar6262@gmail.com> writes:
+Hi,
+I have a prototype board based on the 3530EVM which cannot read its
+microSD card.  I enabled CONFIG_MMC_DEBUG and other printks to the
+2.6.29rc3 kernel and can see that info like the transfer rate is
+coming back but after I reach mmc_set_clock() and setting the bus
+width, I just get timeouts (output below).
 
-> On Tue, Oct 6, 2009 at 10:30 AM, Nishanth Menon <nm@ti.com> wrote:
->> Cory Maccarrone had written, on 10/06/2009 08:53 AM, the following:
->>>
->>> There are three mux pins needed for omap7xx that differ
->>> from the other omap configurations. =A0This change adds the
->>> declarations into mux.c and mux.h.
->>>
->>> Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
->>> ---
->>> =A0arch/arm/mach-omap1/mux.c =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A05 +++=
-++
->>> =A0arch/arm/plat-omap/include/mach/mux.h | =A0 =A05 +++++
->>> =A02 files changed, 10 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
->>> index d59899d..feb6d8c 100644
->>> --- a/arch/arm/mach-omap1/mux.c
->>> +++ b/arch/arm/mach-omap1/mux.c
->>> @@ -51,6 +51,11 @@ MUX_CFG_7XX("E3_7XX_KBC4", =A0 =A0 =A0 =A013, =A0=
- 25, =A0 =A00,
->>> 24, =A0 1, 0)
->>> =A0MUX_CFG_7XX("AA17_7XX_USB_DM", =A0 =A0 2, =A0 21, =A0 =A00, =A0 =
-20, =A0 0, 0)
->>> =A0MUX_CFG_7XX("W16_7XX_USB_PU_EN", =A0 2, =A0 25, =A0 =A00, =A0 24=
-, =A0 0, 0)
->>> =A0MUX_CFG_7XX("W17_7XX_USB_VBUSI", =A0 2, =A0 29, =A0 =A00, =A0 28=
-, =A0 0, 0)
->>> +
->>> +/* MMC Pins */
->>> +MUX_CFG_7XX("MMC_7XX_CMD", =A0 =A0 =A0 =A0 2, =A0 =A09, =A0 =A00, =
-=A0 =A08, =A0 1, 0)
->>> +MUX_CFG_7XX("MMC_7XX_CLK", =A0 =A0 =A0 =A0 2, =A0 13, =A0 =A00, =A0=
- 12, =A0 1, 0)
->>> +MUX_CFG_7XX("MMC_7XX_DAT0", =A0 =A0 =A0 =A02, =A0 17, =A0 =A00, =A0=
- 16, =A0 1, 0)
->>> =A0};
->>> =A0#define OMAP7XX_PINS_SZ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ARRAY_SIZ=
-E(omap7xx_pins)
->>> =A0#else
->>> diff --git a/arch/arm/plat-omap/include/mach/mux.h
->>> b/arch/arm/plat-omap/include/mach/mux.h
->>> index f3c1d8a..56e357e 100644
->>> --- a/arch/arm/plat-omap/include/mach/mux.h
->>> +++ b/arch/arm/plat-omap/include/mach/mux.h
->>> @@ -219,6 +219,11 @@ enum omap7xx_index {
->>> =A0 =A0 =A0 =A0AA17_7XX_USB_DM,
->>> =A0 =A0 =A0 =A0W16_7XX_USB_PU_EN,
->>> =A0 =A0 =A0 =A0W17_7XX_USB_VBUSI,
->>> +
->>> + =A0 =A0 =A0 /* MMC */
->>> + =A0 =A0 =A0 MMC_7XX_CMD,
->>> + =A0 =A0 =A0 MMC_7XX_CLK,
->>> + =A0 =A0 =A0 MMC_7XX_DAT0,
->>
->> probably a dumb question -> but should'nt these go off to bootloader
->> perhaps?
->>
->> --
->> Regards,
->> Nishanth Menon
->>
->
-> Perhaps, although we use either EOL (for HTC Wizard) or Haret to boot=
+Looking at DAT0-3 on a scope, I see activity on DAT0, but the other
+lines just follow the MMC power, up for ~800ms then off.
+
+As an experiment, I tried commenting-out these 2 lines in
+drivers/mmc/host/omap_hsmmc.c:
+ mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED;
+...
+ mmc->caps |= MMC_CAP_4_BIT_DATA;
+
+in an attempt to use slow, 1-wire transfers, but that got me a panic
+in mmc_omap_irq().
+
+Assuming the hardware is functioning, is there a way to force the SD
+controller into its simplest/slowest mode to improve my chances of
+reading the card?
+
+Thanks!
 ,
-> and they don't set up the right mux configuration for our board.
->
-> This way though, we don't have to worry about the boot loader -- we
-> can set it up right regardless of who boots us.
+John
 
-I agree with Cory.
-
-I prefer that mux settings go into the kernel, even if they are setup
-in the bootloader already.  It's better to have redundancy than wonder
-what to do if changing boot loaders.
-
-Kevin
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+...
+mmc0: starting CMD9 arg 8fe40000 flags 00000007
+MMC: IRQ Status is 1
+drivers/mmc/core/sd.c 102 mmc_decode_csd() csd_struct=0
+ tacc_ns=0
+ tacc_clks=0
+ max_dtr=25000000
+ cmdclass=1461
+ capacity=7744512
+drivers/mmc/core/sd.c 67 mmc_decode_cid() manfid=3
+ prod_name=SU04G
+ card type=1
+ card state=8
+mmc0: starting CMD7 arg 8fe40000 flags 00000015
+MMC: IRQ Status is 1
+mmc0: starting CMD55 arg 8fe40000 flags 00000095
+MMC: IRQ Status is 1
+mmc0: starting CMD51 arg 00000000 flags 000000b5
+MMC: IRQ Status is 3
+drivers/mmc/core/sd.c 183 mmc_decode_scr()
+mmc0: starting CMD6 arg 00fffff1 flags 000000b5
+MMC: IRQ Status is 3
+drivers/mmc/core/sd.c 261 mmc_switch_hs()
+mmc0: starting CMD6 arg 80fffff1 flags 000000b5
+MMC: IRQ Status is 3
+card->csd.max_dtr=25000000
+mmc_card_highspeed true
+max_dtr=50000000
+drivers/mmc/core/core.c:443 mmc_set_clock()
+mmc_app_set_bus_width()
+mmc_app_set_bus_width MMC_BUS_WIDTH_4
+mmc0: starting CMD55 arg 8fe40000 flags 00000095
+MMC: IRQ Status is 18000
+mmc0: starting CMD55 arg 8fe40000 flags 00000095
+drivers/mmc/host/omap_hsmmc.c 535
+MMC: IRQ Status is 18000
+mmc0: starting CMD55 arg 8fe40000 flags 00000095
+MMC: IRQ Status is 18000
+mmc0: starting CMD55 arg 8fe40000 flags 00000095
+MMC: IRQ Status is 18000
+drivers/mmc/core/sd.c 559 mmc_app_set_bus_width failed
+mmc0: error -110 whilst initialising SD card
