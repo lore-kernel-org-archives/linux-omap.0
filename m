@@ -1,63 +1,61 @@
 From: Cory Maccarrone <darkstar6262@gmail.com>
-Subject: [PATCH] [OMAP1] mux: Add MMC mux pins for omap7xx
-Date: Tue, 6 Oct 2009 06:53:18 -0700
-Message-ID: <6cb013310910060653u4825da1cwf738a9acef5835b2@mail.gmail.com>
+Subject: [PATCH] [OMAP] mmc: Add mux configuration for omap7xx
+Date: Tue, 6 Oct 2009 06:54:06 -0700
+Message-ID: <6cb013310910060654i7b90d8f3gfaada2cfa50b6cb1@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-yx0-f199.google.com ([209.85.210.199]:38410 "EHLO
 	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932498AbZJFNyO (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 09:54:14 -0400
-Received: by yxe37 with SMTP id 37so3932974yxe.33
-        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 06:53:38 -0700 (PDT)
+	with ESMTP id S932543AbZJFNyg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 09:54:36 -0400
+Received: by mail-yx0-f199.google.com with SMTP id 37so3932974yxe.33
+        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 06:54:26 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-There are three mux pins needed for omap7xx that differ
-from the other omap configurations.  This change adds the
-declarations into mux.c and mux.h.
+The MMC mux pins normally used by omap chips in devices.c
+are different from what is needed by omap7xx chips.  This
+change adds a conditional around the mux setup code to
+enable the correct mux pins.
 
 Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 ---
- arch/arm/mach-omap1/mux.c             |    5 +++++
- arch/arm/plat-omap/include/mach/mux.h |    5 +++++
- 2 files changed, 10 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap1/devices.c |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
-index d59899d..feb6d8c 100644
---- a/arch/arm/mach-omap1/mux.c
-+++ b/arch/arm/mach-omap1/mux.c
-@@ -51,6 +51,11 @@ MUX_CFG_7XX("E3_7XX_KBC4",        13,   25,    0,
-24,   1, 0)
- MUX_CFG_7XX("AA17_7XX_USB_DM",     2,   21,    0,   20,   0, 0)
- MUX_CFG_7XX("W16_7XX_USB_PU_EN",   2,   25,    0,   24,   0, 0)
- MUX_CFG_7XX("W17_7XX_USB_VBUSI",   2,   29,    0,   28,   0, 0)
+diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
+index 0680843..54f18e8 100644
+--- a/arch/arm/mach-omap1/devices.c
++++ b/arch/arm/mach-omap1/devices.c
+@@ -108,15 +108,22 @@ static inline void omap1_mmc_mux(struct
+omap_mmc_platform_data *mmc_controller,
+ 			int controller_nr)
+ {
+ 	if (controller_nr == 0) {
+-		omap_cfg_reg(MMC_CMD);
+-		omap_cfg_reg(MMC_CLK);
+-		omap_cfg_reg(MMC_DAT0);
++		if (cpu_is_omap7xx()) {
++			omap_cfg_reg(MMC_7XX_CMD);
++			omap_cfg_reg(MMC_7XX_CLK);
++			omap_cfg_reg(MMC_7XX_DAT0);
++		} else {
++			omap_cfg_reg(MMC_CMD);
++			omap_cfg_reg(MMC_CLK);
++			omap_cfg_reg(MMC_DAT0);
++		}
 +
-+/* MMC Pins */
-+MUX_CFG_7XX("MMC_7XX_CMD",         2,    9,    0,    8,   1, 0)
-+MUX_CFG_7XX("MMC_7XX_CLK",         2,   13,    0,   12,   1, 0)
-+MUX_CFG_7XX("MMC_7XX_DAT0",        2,   17,    0,   16,   1, 0)
- };
- #define OMAP7XX_PINS_SZ		ARRAY_SIZE(omap7xx_pins)
- #else
-diff --git a/arch/arm/plat-omap/include/mach/mux.h
-b/arch/arm/plat-omap/include/mach/mux.h
-index f3c1d8a..56e357e 100644
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -219,6 +219,11 @@ enum omap7xx_index {
- 	AA17_7XX_USB_DM,
- 	W16_7XX_USB_PU_EN,
- 	W17_7XX_USB_VBUSI,
-+
-+	/* MMC */
-+	MMC_7XX_CMD,
-+	MMC_7XX_CLK,
-+	MMC_7XX_DAT0,
- };
-
- enum omap1xxx_index {
+ 		if (cpu_is_omap1710()) {
+ 			omap_cfg_reg(M15_1710_MMC_CLKI);
+ 			omap_cfg_reg(P19_1710_MMC_CMDDIR);
+ 			omap_cfg_reg(P20_1710_MMC_DATDIR0);
+ 		}
+-		if (mmc_controller->slots[0].wires == 4) {
++		if (mmc_controller->slots[0].wires == 4 && !cpu_is_omap7xx()) {
+ 			omap_cfg_reg(MMC_DAT1);
+ 			/* NOTE: DAT2 can be on W10 (here) or M15 */
+ 			if (!mmc_controller->slots[0].nomux)
 -- 
 1.5.6.3
