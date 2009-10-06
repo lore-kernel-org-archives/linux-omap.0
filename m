@@ -1,8 +1,8 @@
 From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: [PATCHv3 5/7] ASoC: TWL6030: Add restrictions for
- low-power playback mode
-Date: Tue, 6 Oct 2009 02:30:06 -0500
-Message-ID: <67059DBF19D7214F9C66BB0EA91BA90E90C2F64C@dlee04.ent.ti.com>
+Subject: [PATCHv3 3/7] ASoC: TWL6030: Manual power-up/down
+	sequences
+Date: Tue, 6 Oct 2009 02:29:55 -0500
+Message-ID: <67059DBF19D7214F9C66BB0EA91BA90E90C2F64A@dlee04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -21,155 +21,198 @@ To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vge
 Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
 
-Low-power playback mode is a special scenario where only headset path
-(headset DAC and driver) is active. Only in this mode the codec can
-support 44.1 and 48 kHz, low-power PLL should provide sysclk signal.
+TWL6030 codec device can be powered-up/down through a specific register
+writes sequence. These sequences can be used when no gpio line is
+provided for AUDPWRON.
 
-Currently, handsfree DAC and driver are the only components that can
-prevent codec to enter to low-power playback mode. Other components
-like earphone driver, vibrator driver or loopback (which are not yet
-supported in the driver) can cause the same effect.
-
-In order to detect conflicting paths, CODEC driver supervises
-non-low-power widgets powered by DAPM mechanism, just at the point
-pcm trigger callback gets called.
+When the codec is powered-up in this way, automatic power-down sequence
+(triggered by thermal shutdown) is not possible.
 
 Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
 ---
- sound/soc/codecs/twl6030.c |   79 +++++++++++++++++++++++++++++++++++++++----
- 1 files changed, 71 insertions(+), 8 deletions(-)
+ sound/soc/codecs/twl6030.c |  112 ++++++++++++++++++++++++++++++++++++++-----
+ sound/soc/codecs/twl6030.h |   16 ++++++
+ 2 files changed, 115 insertions(+), 13 deletions(-)
 
 diff --git a/sound/soc/codecs/twl6030.c b/sound/soc/codecs/twl6030.c
-index 9fc4795..8548442 100644
+index 3c6c540..f97dec2 100644
 --- a/sound/soc/codecs/twl6030.c
 +++ b/sound/soc/codecs/twl6030.c
-@@ -48,6 +48,7 @@ struct twl6030_data {
- 	int audpwron;
- 	int codec_powered;
- 	int pll;
-+	int non_lp;
- 	unsigned int sysclk;
- 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
- };
-@@ -352,6 +353,20 @@ static int headset_power_mode(struct snd_soc_codec *codec, int high_perf)
- 	return 0;
+@@ -244,6 +244,88 @@ static void twl6030_init_vdd_regs(struct snd_soc_codec *codec)
+ 	}
  }
  
-+static int twl6030_power_mode_event(struct snd_soc_dapm_widget *w,
-+			struct snd_kcontrol *kcontrol, int event)
++/* twl6030 codec manual power-up sequence */
++static void twl6030_power_up(struct snd_soc_codec *codec)
 +{
-+	struct snd_soc_codec *codec = w->codec;
-+	struct twl6030_data *priv = codec->private_data;
++	u8 ncpctl, ldoctl, lppllctl, accctl;
 +
-+	if (SND_SOC_DAPM_EVENT_ON(event))
-+		priv->non_lp++;
-+	else
-+		priv->non_lp--;
++	ncpctl = twl6030_read_reg_cache(codec, TWL6030_REG_NCPCTL);
++	ldoctl = twl6030_read_reg_cache(codec, TWL6030_REG_LDOCTL);
++	lppllctl = twl6030_read_reg_cache(codec, TWL6030_REG_LPPLLCTL);
++	accctl = twl6030_read_reg_cache(codec, TWL6030_REG_ACCCTL);
 +
-+	return 0;
++	/* enable reference system */
++	ldoctl |= TWL6030_REFENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	mdelay(10);
++	/* enable internal oscillator */
++	ldoctl |= TWL6030_OSCENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	udelay(10);
++	/* enable high-side ldo */
++	ldoctl |= TWL6030_HSLDOENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	udelay(244);
++	/* enable negative charge pump */
++	ncpctl |= TWL6030_NCPENA | TWL6030_NCPOPEN;
++	twl6030_write(codec, TWL6030_REG_NCPCTL, ncpctl);
++	udelay(488);
++	/* enable low-side ldo */
++	ldoctl |= TWL6030_LSLDOENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	udelay(244);
++	/* enable low-power pll */
++	lppllctl |= TWL6030_LPLLENA;
++	twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
++	/* reset state machine */
++	accctl |= TWL6030_RESETSPLIT;
++	twl6030_write(codec, TWL6030_REG_ACCCTL, accctl);
++	mdelay(5);
++	accctl &= ~TWL6030_RESETSPLIT;
++	twl6030_write(codec, TWL6030_REG_ACCCTL, accctl);
++	/* disable internal oscillator */
++	ldoctl &= ~TWL6030_OSCENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++}
++
++/* twl6030 codec manual power-down sequence */
++static void twl6030_power_down(struct snd_soc_codec *codec)
++{
++	u8 ncpctl, ldoctl, lppllctl, accctl;
++
++	ncpctl = twl6030_read_reg_cache(codec, TWL6030_REG_NCPCTL);
++	ldoctl = twl6030_read_reg_cache(codec, TWL6030_REG_LDOCTL);
++	lppllctl = twl6030_read_reg_cache(codec, TWL6030_REG_LPPLLCTL);
++	accctl = twl6030_read_reg_cache(codec, TWL6030_REG_ACCCTL);
++
++	/* enable internal oscillator */
++	ldoctl |= TWL6030_OSCENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	udelay(10);
++	/* disable low-power pll */
++	lppllctl &= ~TWL6030_LPLLENA;
++	twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
++	/* disable low-side ldo */
++	ldoctl &= ~TWL6030_LSLDOENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	udelay(244);
++	/* disable negative charge pump */
++	ncpctl &= ~(TWL6030_NCPENA | TWL6030_NCPOPEN);
++	twl6030_write(codec, TWL6030_REG_NCPCTL, ncpctl);
++	udelay(488);
++	/* disable high-side ldo */
++	ldoctl &= ~TWL6030_HSLDOENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	udelay(244);
++	/* disable internal oscillator */
++	ldoctl &= ~TWL6030_OSCENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	/* disable reference system */
++	ldoctl &= ~TWL6030_REFENA;
++	twl6030_write(codec, TWL6030_REG_LDOCTL, ldoctl);
++	mdelay(10);
 +}
 +
  /*
   * MICATT volume control:
   * from -6 to 0 dB in 6 dB steps
-@@ -485,10 +500,14 @@ static const struct snd_soc_dapm_widget twl6030_dapm_widgets[] = {
- 			TWL6030_REG_HSLCTL, 0, 0),
- 	SND_SOC_DAPM_DAC("HSDAC Right", "Headset Playback",
- 			TWL6030_REG_HSRCTL, 0, 0),
--	SND_SOC_DAPM_DAC("HFDAC Left", "Handsfree Playback",
--			TWL6030_REG_HFLCTL, 0, 0),
--	SND_SOC_DAPM_DAC("HFDAC Right", "Handsfree Playback",
--			TWL6030_REG_HFRCTL, 0, 0),
-+	SND_SOC_DAPM_DAC_E("HFDAC Left", "Handsfree Playback",
-+			TWL6030_REG_HFLCTL, 0, 0,
-+			twl6030_power_mode_event,
-+			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
-+	SND_SOC_DAPM_DAC_E("HFDAC Right", "Handsfree Playback",
-+			TWL6030_REG_HFRCTL, 0, 0,
-+			twl6030_power_mode_event,
-+			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
+@@ -480,12 +562,15 @@ static int twl6030_set_bias_level(struct snd_soc_codec *codec,
  
- 	/* Analog playback switches */
- 	SND_SOC_DAPM_SWITCH("HSDAC Left Playback",
-@@ -504,10 +523,14 @@ static const struct snd_soc_dapm_widget twl6030_dapm_widgets[] = {
- 			SND_SOC_NOPM, 0, 0, &hsl_driver_switch_controls),
- 	SND_SOC_DAPM_SWITCH("Headset Right Driver",
- 			SND_SOC_NOPM, 0, 0, &hsr_driver_switch_controls),
--	SND_SOC_DAPM_SWITCH("Handsfree Left Driver",
--			SND_SOC_NOPM, 0, 0, &hfl_driver_switch_controls),
--	SND_SOC_DAPM_SWITCH("Handsfree Right Driver",
--			SND_SOC_NOPM, 0, 0, &hfr_driver_switch_controls),
-+	SND_SOC_DAPM_SWITCH_E("Handsfree Left Driver",
-+			SND_SOC_NOPM, 0, 0, &hfl_driver_switch_controls,
-+			twl6030_power_mode_event,
-+			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
-+	SND_SOC_DAPM_SWITCH_E("Handsfree Right Driver",
-+			SND_SOC_NOPM, 0, 0, &hfr_driver_switch_controls,
-+			twl6030_power_mode_event,
-+			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
+ 			/* power-up sequence latency */
+ 			mdelay(16);
+-		}
  
- 	/* Analog playback PGAs */
- 	SND_SOC_DAPM_PGA("HFDAC Left PGA",
-@@ -668,6 +691,17 @@ static int twl6030_startup(struct snd_pcm_substream *substream,
- 		return -EINVAL;
+-		/* sync registers updated during power-up sequence */
+-		twl6030_read(codec, TWL6030_REG_NCPCTL);
+-		twl6030_read(codec, TWL6030_REG_LDOCTL);
+-		twl6030_read(codec, TWL6030_REG_LPPLLCTL);
++			/* sync registers updated during power-up sequence */
++			twl6030_read(codec, TWL6030_REG_NCPCTL);
++			twl6030_read(codec, TWL6030_REG_LDOCTL);
++			twl6030_read(codec, TWL6030_REG_LPPLLCTL);
++		} else {
++			/* use manual power-up sequence */
++			twl6030_power_up(codec);
++		}
+ 
+ 		/* initialize vdd/vss registers with reg_cache */
+ 		twl6030_init_vdd_regs(codec);
+@@ -502,12 +587,16 @@ static int twl6030_set_bias_level(struct snd_soc_codec *codec,
+ 
+ 			/* power-down sequence latency */
+ 			udelay(500);
+-		}
+ 
+-		/* sync registers updated during power-down sequence */
+-		twl6030_read(codec, TWL6030_REG_NCPCTL);
+-		twl6030_read(codec, TWL6030_REG_LDOCTL);
+-		twl6030_write_reg_cache(codec, TWL6030_REG_LPPLLCTL, 0x00);
++			/* sync registers updated during power-down sequence */
++			twl6030_read(codec, TWL6030_REG_NCPCTL);
++			twl6030_read(codec, TWL6030_REG_LDOCTL);
++			twl6030_write_reg_cache(codec, TWL6030_REG_LPPLLCTL,
++						0x00);
++		} else {
++			/* use manual power-down sequence */
++			twl6030_power_down(codec);
++		}
+ 
+ 		priv->codec_powered = 0;
+ 		break;
+@@ -723,9 +812,6 @@ static int __devinit twl6030_codec_probe(struct platform_device *pdev)
+ 			goto gpio2_err;
+ 
+ 		priv->codec_powered = 0;
+-	} else {
+-		/* if no gpio is provided, then assume its always on */
+-		priv->codec_powered = 1;
  	}
  
-+	/*
-+	 * capture is not supported at 17.64 MHz,
-+	 * it's reserved for headset low-power playback scenario
-+	 */
-+	if ((priv->sysclk == 17640000) && substream->stream) {
-+		dev_err(codec->dev,
-+			"capture mode is not supported at %dHz\n",
-+			priv->sysclk);
-+		return -EINVAL;
-+	}
-+
- 	snd_pcm_hw_constraint_list(substream->runtime, 0,
- 				SNDRV_PCM_HW_PARAM_RATE,
- 				priv->sysclk_constraints);
-@@ -712,6 +746,34 @@ static int twl6030_hw_params(struct snd_pcm_substream *substream,
- 	return 0;
- }
+ 	/* init vio registers */
+diff --git a/sound/soc/codecs/twl6030.h b/sound/soc/codecs/twl6030.h
+index d99d469..7375ae8 100644
+--- a/sound/soc/codecs/twl6030.h
++++ b/sound/soc/codecs/twl6030.h
+@@ -67,6 +67,18 @@
+ #define TWL6030_VIOREGNUM		18
+ #define TWL6030_VDDREGNUM		21
  
-+static int twl6030_trigger(struct snd_pcm_substream *substream,
-+			int cmd, struct snd_soc_dai *dai)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_device *socdev = rtd->socdev;
-+	struct snd_soc_codec *codec = socdev->card->codec;
-+	struct twl6030_data *priv = codec->private_data;
++/* NCPCTL (0x05) fields */
 +
-+	switch (cmd) {
-+	case SNDRV_PCM_TRIGGER_START:
-+		/*
-+		 * low-power playback mode is restricted
-+		 * for headset path only
-+		 */
-+		if ((priv->sysclk == 17640000) && priv->non_lp) {
-+			dev_err(codec->dev,
-+				"some enabled paths aren't supported at %dHz\n",
-+				priv->sysclk);
-+			return -EPERM;
-+		}
-+		break;
-+	default:
-+		break;
-+	}
++#define TWL6030_NCPENA			0x01
++#define TWL6030_NCPOPEN			0x40
 +
-+	return 0;
-+}
++/* LDOCTL (0x06) fields */
 +
- static int twl6030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
- 		int clk_id, unsigned int freq, int dir)
- {
-@@ -822,6 +884,7 @@ static int twl6030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
- static struct snd_soc_dai_ops twl6030_dai_ops = {
- 	.startup	= twl6030_startup,
- 	.hw_params	= twl6030_hw_params,
-+	.trigger	= twl6030_trigger,
- 	.set_sysclk	= twl6030_set_dai_sysclk,
- };
++#define TWL6030_LSLDOENA		0x01
++#define TWL6030_HSLDOENA		0x04
++#define TWL6030_REFENA			0x40
++#define TWL6030_OSCENA			0x80
++
+ /* HPPLLCTL (0x07) fields */
+ 
+ #define TWL6030_HPLLENA			0x01
+@@ -88,6 +100,10 @@
+ #define TWL6030_LPLLFIN			0x08
+ #define TWL6030_HPLLSEL			0x10
+ 
++/* ACCCTL (0x2D) fields */
++
++#define TWL6030_RESETSPLIT		0x04
++
+ extern struct snd_soc_dai twl6030_dai;
+ extern struct snd_soc_codec_device soc_codec_dev_twl6030;
  
 -- 
 1.5.4.3
