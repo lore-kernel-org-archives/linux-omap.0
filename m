@@ -1,8 +1,8 @@
 From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: [PATCHv3 1/7] OMAP4: PMIC: Add support for twl6030
-	codec
-Date: Tue, 6 Oct 2009 02:29:39 -0500
-Message-ID: <67059DBF19D7214F9C66BB0EA91BA90E90C2F648@dlee04.ent.ti.com>
+Subject: [PATCHv3 5/7] ASoC: TWL6030: Add restrictions for
+ low-power playback mode
+Date: Tue, 6 Oct 2009 02:30:06 -0500
+Message-ID: <67059DBF19D7214F9C66BB0EA91BA90E90C2F64C@dlee04.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -18,95 +18,158 @@ List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 Sender: alsa-devel-bounces@alsa-project.org
 Errors-To: alsa-devel-bounces@alsa-project.org
 To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "Krishnamoorthy,
-	Balaji T" <balajitk@ti.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
 
-In order to have TWL6030 CODEC driver as a platform driver, codec data
-should be passed through twl_platform_data structure.
+Low-power playback mode is a special scenario where only headset path
+(headset DAC and driver) is active. Only in this mode the codec can
+support 44.1 and 48 kHz, low-power PLL should provide sysclk signal.
 
-For twl6030 audio codec, the following data may be passed:
+Currently, handsfree DAC and driver are the only components that can
+prevent codec to enter to low-power playback mode. Other components
+like earphone driver, vibrator driver or loopback (which are not yet
+supported in the driver) can cause the same effect.
 
-- audpwron_gpio: gpio line used to power-up/down the codec. A low-to-high
-  transition powers codec up. Setting audpwron_gpio to a negative value
-  means that codec will use manual power sequence instead of automatic
-  sequence
-- naudint_irq: irq line for audio interrupt. twl6030 drives NAUDINT line
-  to low when an interrupt (codec ready, plug insertion/removal, etc) is
-  detected
-
-However, codec driver can operate if any or none of them are passed.
+In order to detect conflicting paths, CODEC driver supervises
+non-low-power widgets powered by DAPM mechanism, just at the point
+pcm trigger callback gets called.
 
 Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
 ---
- drivers/mfd/twl-core.c  |   15 +++++++++++++++
- include/linux/i2c/twl.h |    7 +++++++
- 2 files changed, 22 insertions(+), 0 deletions(-)
+ sound/soc/codecs/twl6030.c |   79 +++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 71 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
-index af4cf47..6432af1 100644
---- a/drivers/mfd/twl-core.c
-+++ b/drivers/mfd/twl-core.c
-@@ -108,6 +108,12 @@
- #define twl_has_mmc()   false
- #endif
+diff --git a/sound/soc/codecs/twl6030.c b/sound/soc/codecs/twl6030.c
+index 9fc4795..8548442 100644
+--- a/sound/soc/codecs/twl6030.c
++++ b/sound/soc/codecs/twl6030.c
+@@ -48,6 +48,7 @@ struct twl6030_data {
+ 	int audpwron;
+ 	int codec_powered;
+ 	int pll;
++	int non_lp;
+ 	unsigned int sysclk;
+ 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
+ };
+@@ -352,6 +353,20 @@ static int headset_power_mode(struct snd_soc_codec *codec, int high_perf)
+ 	return 0;
+ }
  
-+#if defined(CONFIG_SND_SOC_TWL6030) || defined(CONFIG_SND_SOC_TWL6030_MODULE)
-+#define twl_has_codec()	true
-+#else
-+#define twl_has_codec()	false
-+#endif
++static int twl6030_power_mode_event(struct snd_soc_dapm_widget *w,
++			struct snd_kcontrol *kcontrol, int event)
++{
++	struct snd_soc_codec *codec = w->codec;
++	struct twl6030_data *priv = codec->private_data;
 +
- #if defined(CONFIG_TWL4030_USB) || defined(CONFIG_TWL4030_USB_MODULE)
- #define twl_has_usb()	true
- #else
-@@ -190,6 +196,7 @@
- #define BCI_SUB_CHIP_ID		SUB_CHIP_ID1
- #define GPIO_SUB_CHIP_ID	0 /* NOT SUPPORTED IN TWL6030 */
- #define KEYPAD_SUB_CHIP_ID	0 /* ADDED FOR COMPILATION ONLY */
-+#define CODEC_SUB_CHIP_ID	SUB_CHIP_ID3
++	if (SND_SOC_DAPM_EVENT_ON(event))
++		priv->non_lp++;
++	else
++		priv->non_lp--;
++
++	return 0;
++}
++
+ /*
+  * MICATT volume control:
+  * from -6 to 0 dB in 6 dB steps
+@@ -485,10 +500,14 @@ static const struct snd_soc_dapm_widget twl6030_dapm_widgets[] = {
+ 			TWL6030_REG_HSLCTL, 0, 0),
+ 	SND_SOC_DAPM_DAC("HSDAC Right", "Headset Playback",
+ 			TWL6030_REG_HSRCTL, 0, 0),
+-	SND_SOC_DAPM_DAC("HFDAC Left", "Handsfree Playback",
+-			TWL6030_REG_HFLCTL, 0, 0),
+-	SND_SOC_DAPM_DAC("HFDAC Right", "Handsfree Playback",
+-			TWL6030_REG_HFRCTL, 0, 0),
++	SND_SOC_DAPM_DAC_E("HFDAC Left", "Handsfree Playback",
++			TWL6030_REG_HFLCTL, 0, 0,
++			twl6030_power_mode_event,
++			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
++	SND_SOC_DAPM_DAC_E("HFDAC Right", "Handsfree Playback",
++			TWL6030_REG_HFRCTL, 0, 0,
++			twl6030_power_mode_event,
++			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
  
- /* subchip/slave 0 0x48 - POWER */
- #define TWL6030_BASEADD_RTC		0x0000
-@@ -632,6 +639,14 @@ add_children(struct twl_platform_data *pdata, unsigned long features)
- 		if (IS_ERR(child))
- 			return PTR_ERR(child);
+ 	/* Analog playback switches */
+ 	SND_SOC_DAPM_SWITCH("HSDAC Left Playback",
+@@ -504,10 +523,14 @@ static const struct snd_soc_dapm_widget twl6030_dapm_widgets[] = {
+ 			SND_SOC_NOPM, 0, 0, &hsl_driver_switch_controls),
+ 	SND_SOC_DAPM_SWITCH("Headset Right Driver",
+ 			SND_SOC_NOPM, 0, 0, &hsr_driver_switch_controls),
+-	SND_SOC_DAPM_SWITCH("Handsfree Left Driver",
+-			SND_SOC_NOPM, 0, 0, &hfl_driver_switch_controls),
+-	SND_SOC_DAPM_SWITCH("Handsfree Right Driver",
+-			SND_SOC_NOPM, 0, 0, &hfr_driver_switch_controls),
++	SND_SOC_DAPM_SWITCH_E("Handsfree Left Driver",
++			SND_SOC_NOPM, 0, 0, &hfl_driver_switch_controls,
++			twl6030_power_mode_event,
++			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
++	SND_SOC_DAPM_SWITCH_E("Handsfree Right Driver",
++			SND_SOC_NOPM, 0, 0, &hfr_driver_switch_controls,
++			twl6030_power_mode_event,
++			SND_SOC_DAPM_POST_PMU | SND_SOC_DAPM_POST_PMD),
+ 
+ 	/* Analog playback PGAs */
+ 	SND_SOC_DAPM_PGA("HFDAC Left PGA",
+@@ -668,6 +691,17 @@ static int twl6030_startup(struct snd_pcm_substream *substream,
+ 		return -EINVAL;
  	}
-+
-+	if (twl_has_codec()) {
-+		child = add_child(CODEC_SUB_CHIP_ID, "twl6030_codec",
-+			pdata->codec, sizeof(*pdata->codec), false,
-+			0, 0);
-+		if (IS_ERR(child))
-+			return PTR_ERR(child);
-+	}
- #endif
  
- 	if (twl_has_usb() && pdata->usb) {
-diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
-index b687a8b..e76ca9b 100644
---- a/include/linux/i2c/twl.h
-+++ b/include/linux/i2c/twl.h
-@@ -472,6 +472,12 @@ struct twl_usb_data {
- 	enum twl_usb_mode	usb_mode;
++	/*
++	 * capture is not supported at 17.64 MHz,
++	 * it's reserved for headset low-power playback scenario
++	 */
++	if ((priv->sysclk == 17640000) && substream->stream) {
++		dev_err(codec->dev,
++			"capture mode is not supported at %dHz\n",
++			priv->sysclk);
++		return -EINVAL;
++	}
++
+ 	snd_pcm_hw_constraint_list(substream->runtime, 0,
+ 				SNDRV_PCM_HW_PARAM_RATE,
+ 				priv->sysclk_constraints);
+@@ -712,6 +746,34 @@ static int twl6030_hw_params(struct snd_pcm_substream *substream,
+ 	return 0;
+ }
+ 
++static int twl6030_trigger(struct snd_pcm_substream *substream,
++			int cmd, struct snd_soc_dai *dai)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_device *socdev = rtd->socdev;
++	struct snd_soc_codec *codec = socdev->card->codec;
++	struct twl6030_data *priv = codec->private_data;
++
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_START:
++		/*
++		 * low-power playback mode is restricted
++		 * for headset path only
++		 */
++		if ((priv->sysclk == 17640000) && priv->non_lp) {
++			dev_err(codec->dev,
++				"some enabled paths aren't supported at %dHz\n",
++				priv->sysclk);
++			return -EPERM;
++		}
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
+ static int twl6030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+ 		int clk_id, unsigned int freq, int dir)
+ {
+@@ -822,6 +884,7 @@ static int twl6030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+ static struct snd_soc_dai_ops twl6030_dai_ops = {
+ 	.startup	= twl6030_startup,
+ 	.hw_params	= twl6030_hw_params,
++	.trigger	= twl6030_trigger,
+ 	.set_sysclk	= twl6030_set_dai_sysclk,
  };
  
-+struct twl_codec_data {
-+	/* twl6030 */
-+	int audpwron_gpio;	/* audio power-on gpio */
-+	int naudint_irq;	/* audio interrupt */
-+};
-+
- struct twl_platform_data {
- 	unsigned				irq_base, irq_end;
- 	struct twl_bci_platform_data	*bci;
-@@ -479,6 +485,7 @@ struct twl_platform_data {
- 	struct twl_madc_platform_data	*madc;
- 	struct twl_keypad_data		*keypad;
- 	struct twl_usb_data			*usb;
-+	struct twl_codec_data		*codec;
- 
- 	/* LDO regulators common to TWL4030/TWL6030 */
- 	struct regulator_init_data		*vdac;
 -- 
 1.5.4.3
