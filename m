@@ -1,39 +1,40 @@
 From: "Premi, Sanjeev" <premi@ti.com>
 Subject: RE: Question on OPP table handling
-Date: Tue, 6 Oct 2009 14:14:07 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDC09122@dbde02.ent.ti.com>
+Date: Tue, 6 Oct 2009 14:22:09 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDC09146@dbde02.ent.ti.com>
 References: <1254420194-4757-1-git-send-email-premi@ti.com>
 	<4AC76810.1040206@gmail.com>
 	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08B10@dbde02.ent.ti.com>
  <87ws39zsn4.fsf@deeprootsystems.com> <4ACA2A86.7060300@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB055A1D@dbde02.ent.ti.com>
+ <74583B8642AB8841B30447520659FCA9DDAEF27A@dnce01.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43509 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43793 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755975AbZJFIou convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 04:44:50 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BB055A1D@dbde02.ent.ti.com>
+	id S1755697AbZJFIwv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 04:52:51 -0400
+In-Reply-To: <74583B8642AB8841B30447520659FCA9DDAEF27A@dnce01.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin H <khilman@deeprootsystems.com>
-
+To: "Cousson, Benoit" <b-cousson@ti.com>, Kevin H <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Menon, Nishanth" <nm@ti.com>
 
 > -----Original Message-----
-> From: Shilimkar, Santosh 
-> Sent: Tuesday, October 06, 2009 1:36 PM
-> To: Menon, Nishanth; linux-omap@vger.kernel.org
-> Cc: Premi, Sanjeev; Kevin H
+> From: Cousson, Benoit 
+> Sent: Tuesday, October 06, 2009 2:12 PM
+> To: Kevin H; linux-omap@vger.kernel.org
+> Cc: Premi, Sanjeev; Menon, Nishanth
 > Subject: RE: Question on OPP table handling
+> 
+> Hi Kevin,
 > 
 > > -----Original Message-----
 > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
 > > owner@vger.kernel.org] On Behalf Of Nishanth Menon
-> > Sent: Monday, October 05, 2009 10:49 PM
+> > Sent: Monday, October 05, 2009 7:19 PM
 > > To: linux-omap@vger.kernel.org
 > > Cc: Premi, Sanjeev; Kevin H
 > > Subject: Re: Question on OPP table handling
@@ -108,8 +109,39 @@ Cc: Kevin H <khilman@deeprootsystems.com>
 > > that something like set_opp_table_length probably might be 
 > redundant in
 > > that case.
-> > 
-> > 
+> 
+> I'm aligned with Nishanth. I think a static table with the 
+> possibility to disable some entry is good enough to deal with 
+> most of the OPPs we have on OMAP3 and we will have to handle on OMAP4.
+> 
+> OPPs are defined during silicon characterization, and should 
+> not be changed dynamically (in theory).
+
+[sp] The intent of 'dynamic' is not with respect to changing the
+     OPPs but manitaining OPPs in an array or a list.
+
+     This is to take care of possibility that an OPP is not
+     applicable for specific devices. E.g. OPP5 was earlier
+     considered 'overdrive'; and the code had a small 'hack'
+     to prevent this OPP being used during cpufreq.
+
+     Marking the OPP 'disabled/invalid' in the table would have
+     been a better solution.
+
+     In a 'list' implementation, the node corresponding to such
+     OPPs can be removed from the 'active' list.
+
+Best regards,
+Sanjeev
+
+> 
+> Do you have something in mind that might justify a dynamic management?
+> 
+
+
+> Regards,
+> Benoit
+>  
 > > >> If I were to extend the discussion from other thread on 
 > toggling the
 > > valid OPPs
@@ -123,17 +155,13 @@ Cc: Kevin H <khilman@deeprootsystems.com>
 > mode, but for
 > > > OSWR and possibly for a full constraint framework as well.
 > > Ack.
-> Even though above approach is possibly better a simple fix 
-> could be just adding a flag in the structure (OPP 
-> valid/invalid) and populating this flag run time using CPU type.
+> > --
+> > Regards,
+> > Nishanth Menon
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-
-[sp] This is exactly in the original patch.
-
-Best regards,
-Sanjeev
-
-> 
-> Regards,
-> Santosh
 > 
