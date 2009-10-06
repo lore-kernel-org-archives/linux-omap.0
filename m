@@ -1,141 +1,111 @@
-From: "Reddy, Teerth" <teerth@ti.com>
-Subject: RE: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
-Date: Tue, 6 Oct 2009 16:04:48 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A332368@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A007938@dbde02.ent.ti.com>
-	 <87ljkpm67t.fsf@deeprootsystems.com>
-	 <200909091412.07748.jpihet@mvista.com>
- <636c5030909301106r60eb02c9t968408f06c62829d@mail.gmail.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Question on OPP table handling
+Date: Tue, 6 Oct 2009 06:44:45 -0500
+Message-ID: <4ACB2DAD.1090200@ti.com>
+References: <1254420194-4757-1-git-send-email-premi@ti.com>	<4AC76810.1040206@gmail.com>	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08B10@dbde02.ent.ti.com> <87ws39zsn4.fsf@deeprootsystems.com> <4ACA2A86.7060300@ti.com> <74583B8642AB8841B30447520659FCA9DDAEF27A@dnce01.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDC09146@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43712 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756590AbZJFKgm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 06:36:42 -0400
-In-Reply-To: <636c5030909301106r60eb02c9t968408f06c62829d@mail.gmail.com>
-Content-Language: en-US
+Received: from bear.ext.ti.com ([192.94.94.41]:55711 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757129AbZJFLpX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 6 Oct 2009 07:45:23 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDC09146@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <jpihet@mvista.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Cousson, Benoit" <b-cousson@ti.com>, Kevin H <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kevin,Jean
-
-Sorry for the late reply.
-I have tested DVFS on Zoom2 with 256Mb with this patch and it works fin=
-e.
-In Zoom2 SDRC module uses 2 chip selects. Since u-boot is configuring t=
-he SDRC module to use 2 chip selects do we need to configure it in the =
-kernel as well?=20
-If you think so then this change is needed.=20
-
-Regards
-Teerth
-
-
-
------Original Message-----
-=46rom: Kevin Hilman [mailto:khilman@deeprootsystems.com]=20
-Sent: Wednesday, September 30, 2009 11:36 PM
-To: Reddy, Teerth
-Cc: linux-omap@vger.kernel.org; Jean Pihet
-Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
-
-Teerth,  ping.
-
-On Wed, Sep 9, 2009 at 5:12 AM, Jean Pihet <jpihet@mvista.com> wrote:
-> On Wednesday 09 September 2009 00:17:42 Kevin Hilman wrote:
->> "Reddy, Teerth" <teerth@ti.com> writes:
->> > This patch initializes the SDRC params for DVFS on Zoom2.
->> >
->> > Signed-off-by: Teerth Reddy <teerth@ti.com>
->> > ---
->> > =A0arch/arm/mach-omap2/board-zoom2.c | =A0 =A06 ++++--
->> > =A01 files changed, 4 insertions(+), 2 deletions(-)
->> >
->> > Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
->> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> > --- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom2.c
->> > +++ linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
->> > @@ -23,6 +23,7 @@
->> >
->> > =A0#include "mmc-twl4030.h"
->> > =A0#include "omap3-opp.h"
->> > +#include "sdram-micron-mt46h32m32lf-6.h"
->> >
->> > =A0static struct omap_uart_config zoom2_uart_config __initdata =3D=
- {
->> > =A0 =A0 .enabled_uarts =A0=3D ((1 << 0) | (1 << 1) | (1 << 2)),
->> > @@ -36,8 +37,9 @@ static void __init omap_zoom2_init_irq(v
->> > =A0{
->> > =A0 =A0 omap_board_config =3D zoom2_config;
->> > =A0 =A0 omap_board_config_size =3D ARRAY_SIZE(zoom2_config);
->> > - =A0 omap2_init_common_hw(NULL, NULL, omap3_mpu_rate_table,
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_dsp_rate_ta=
-ble, omap3_l3_rate_table);
->> > + =A0 omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
->> > + =A0 =A0 =A0 =A0 =A0 omap3_mpu_rate_table, omap3_dsp_rate_table,
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 omap3_l3_rate_table);
+Premi, Sanjeev had written, on 10/06/2009 03:52 AM, the following:
+>>>>>>> +	{0, 0, 0},
+>>>>>>> +	/*OPP1*/
+>>>>>>> +	{S125M, VDD1_OPP1, 0x1E},
+>>>>>>> +	/*OPP2*/
+>>>>>>> +	{S250M, VDD1_OPP2, 0x26},
+>>>>>>> +	/*OPP3*/
+>>>>>>> +	{S500M, VDD1_OPP3, 0x30},
+>>>>>>> +	/*OPP4*/
+>>>>>>> +	{S550M, VDD1_OPP4, 0x36},
+>>>>>>> +	/*OPP5*/
+>>>>>>> +	{S600M, VDD1_OPP5, 0x3C},
+>>>>>>> +};
+>>>>>>>
+>>>>>> For those involved,
+>>>>>> if we wanted to convert omap3_mpu_table[] into
+>>>>>> *omap3_mpu_table so that
+>>>>>> we dynamically initialize it based on cpu type - what 
+>> would be the
+>>>>>> recommendations?
+>>>>> Nishanth,
+>>>>>
+>>>>> Good idea!
+>>>>>
+>>>>> As a table, previous patch enables it (not as intent, but due to
+>>> syntax):
+>>>>>   >  +/* struct omap_opp_table - View OPP table as an object
+>>>>>   > + * @min: Minimum OPP id
+>>>>>   > + * @max: Maximim OPP id
+>>>>>   > + * @opps: Pointer to array defining the OPPs.
+>>>>>   > + *
+>>>>>   > + * An OPP table has varied length. Knowing minimum 
+>> and maximum
+>>>>>   > + * OPP ids allow easy traversal.
+>>>>>   > + */
+>>>>>   > +struct omap_opp_table {
+>>>>>   > +       u8      min;
+>>>>>   > +       u8      max;
+>>>>>   > +       struct omap_opp* opps;
+>>>>>   > +};
+>>>>>
+>>>>> But now, I think it would be good to have an API that can fill an
+>>> opp_table:
+>>>>> int add_opp_definition(u8 id, u32 freq, u16 vsel);
+>>>>>
+>>>>> ...and, if an array is preferred, length can be set as:
+>>>>> int set_opp_table_length (u8 max);
+>>>> I'm all for dynamic OPP setting, but not as an array.  A 
+>> list should
+>>>> probably be used.
+>>> Won't a list implementation cause more than necessary 
+>> overhead? I agree
+>>> that something like set_opp_table_length probably might be 
+>> redundant in
+>>> that case.
+>> I'm aligned with Nishanth. I think a static table with the 
+>> possibility to disable some entry is good enough to deal with 
+>> most of the OPPs we have on OMAP3 and we will have to handle on OMAP4.
 >>
->> Not having looked at the Zoom2 schematics, are you sure this is only
->> using a single chip select? =A0The other boards using the same part
->> (beagle, overo) are interfacing to this part using both CSes.
->>
->> Have you tested DVFS on Zoom2 using the full 256Mb?
-> Good point!
->
-> DVFS works fine using the two chip selects:
-> =A0 =A0 =A0 =A0omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mt46h32m32lf6=
-_sdrc_params,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_mpu_rat=
-e_table,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_dsp_rat=
-e_table,
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_l3_rate=
-_table);
->
-> One remark though: since the memory chips are popped on top of the OM=
-AP chip
-> the schematics are not showing the chip selects connections. In any c=
-ase
-> U-Boot is configuring the SDRC module to use the 2 chip selects, so I=
- think
-> this change is needed.
->
-> We need confirmation. Anyone from TI knows?
->
-> Regards,
-> Jean
->
->>
->> Kevin
->>
->> > =A0 =A0 omap_init_irq();
->> > =A0 =A0 omap_gpio_init();
->> > =A0}
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap=
-" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+>> OPPs are defined during silicon characterization, and should 
+>> not be changed dynamically (in theory).
+> 
+> [sp] The intent of 'dynamic' is not with respect to changing the
+>      OPPs but manitaining OPPs in an array or a list.
+> 
+>      This is to take care of possibility that an OPP is not
+>      applicable for specific devices. E.g. OPP5 was earlier
+>      considered 'overdrive'; and the code had a small 'hack'
+>      to prevent this OPP being used during cpufreq.
+> 
+>      Marking the OPP 'disabled/invalid' in the table would have
+>      been a better solution.
+> 
+>      In a 'list' implementation, the node corresponding to such
+>      OPPs can be removed from the 'active' list.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Couple of opinions on why a list with disabled/invalid marker might not 
+make sense as a grand unified OPP table:
+a) it is no better than a list implementation
+b) it is a waste of memory.
+c) search Algo overheads
+
+Recommendation a.k.a hybrid approach:
+* Each silicon has it's own static OPP table
+* Each table has a invalid marker which is disabled for silicon variants 
+which dont need specific OPPs
+* OPPs table be stored in a hash table a.k.a how do we optimize search 
+for OPP params?
+
+-- 
+Regards,
+Nishanth Menon
