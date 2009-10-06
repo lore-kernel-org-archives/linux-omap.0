@@ -1,358 +1,181 @@
 From: "Lopez Cruz, Misael" <x0052729@ti.com>
-Subject: [PATCHv3 4/7] ASoC: TWL6030: Add support for low-power
-	PLL
-Date: Tue, 6 Oct 2009 02:30:00 -0500
-Message-ID: <67059DBF19D7214F9C66BB0EA91BA90E90C2F64B@dlee04.ent.ti.com>
+Subject: [PATCHv3 7/7] ASoC: TWL6030: Detect power-up sequence completion
+Date: Tue, 6 Oct 2009 02:30:14 -0500
+Message-ID: <67059DBF19D7214F9C66BB0EA91BA90E90C2F64E@dlee04.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:45267 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755358AbZJFHaz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 03:30:55 -0400
 Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-List-Id: linux-omap@vger.kernel.org
 
-TWL6030 codec sysclk can be provided by: low-power or high
-performance PLL.
+When the codec is powered-up through external AUDPWRON line it starts
+its power-up sequence. The completion of the sequence is signaled
+through the audio interrupt, and then codec is operational.
 
-The low-power PLL takes a low-frequency input at 32,768 Hz and
-generates an approximate of 17.64 or 19.2 MHz.
+If NAUDINT irq is provided, CODEC driver starts a wait_for_completion
+just after AUDPWRON line transitions from low to high. It's signaled as
+complete when servicing READYINT interrupt.
 
-The high-performance PLL generates an exact 19.2 MHz clock signal
-from high-frequency input at 12/19.2/26/38.4 MHz.
-
-For the particular case of headset path, PLL being used defines the
-headset power mode: low-power, high-performance. Headset DAC and
-output driver should be configured according to the selected mode.
-17.64 MHz sysclk is recommended only for headset low-power playback
-mode.
+If AUDPWRON gpio line is provided but NAUDINT irq is not, then CODEC
+driver enables READYINT and polls on INTID register. If none of them are
+provided, then CODEC uses manual power sequences and disables all audio
+interrupts.
 
 Signed-off-by: Misael Lopez Cruz <x0052729@ti.com>
 ---
- sound/soc/codecs/twl6030.c |  232 +++++++++++++++++++++++++++++++++++++------
- sound/soc/codecs/twl6030.h |   16 +++
- 2 files changed, 215 insertions(+), 33 deletions(-)
+ sound/soc/codecs/twl6030.c |   61 +++++++++++++++++++++++++++++++++++++------
+ sound/soc/codecs/twl6030.h |    1 +
+ 2 files changed, 53 insertions(+), 9 deletions(-)
 
 diff --git a/sound/soc/codecs/twl6030.c b/sound/soc/codecs/twl6030.c
-index f97dec2..9fc4795 100644
+index 56fe136..3db7f1d 100644
 --- a/sound/soc/codecs/twl6030.c
 +++ b/sound/soc/codecs/twl6030.c
-@@ -39,7 +39,7 @@
- 
- #include "twl6030.h"
- 
--#define TWL6030_RATES	 (SNDRV_PCM_RATE_48000)
-+#define TWL6030_RATES	 (SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000)
- #define TWL6030_FORMATS	 (SNDRV_PCM_FMTBIT_S32_LE)
- 
- /* codec private data */
-@@ -47,6 +47,9 @@ struct twl6030_data {
- 	struct snd_soc_codec codec;
- 	int audpwron;
- 	int codec_powered;
-+	int pll;
-+	unsigned int sysclk;
-+	struct snd_pcm_hw_constraint_list *sysclk_constraints;
+@@ -52,6 +52,7 @@ struct twl6030_data {
+ 	int non_lp;
+ 	unsigned int sysclk;
+ 	struct snd_pcm_hw_constraint_list *sysclk_constraints;
++	struct completion ready;
  };
  
  /*
-@@ -326,6 +329,29 @@ static void twl6030_power_down(struct snd_soc_codec *codec)
- 	mdelay(10);
- }
- 
-+/* set headset dac and driver power mode */
-+static int headset_power_mode(struct snd_soc_codec *codec, int high_perf)
-+{
-+	int hslctl, hsrctl;
-+	int mask = TWL6030_HSDRVMODEL | TWL6030_HSDACMODEL;
-+
-+	hslctl = twl6030_read_reg_cache(codec, TWL6030_REG_HSLCTL);
-+	hsrctl = twl6030_read_reg_cache(codec, TWL6030_REG_HSRCTL);
-+
-+	if (high_perf) {
-+		hslctl &= ~mask;
-+		hsrctl &= ~mask;
-+	} else {
-+		hslctl |= mask;
-+		hsrctl |= mask;
-+	}
-+
-+	twl6030_write(codec, TWL6030_REG_HSLCTL, hslctl);
-+	twl6030_write(codec, TWL6030_REG_HSRCTL, hsrctl);
-+
-+	return 0;
-+}
-+
- /*
-  * MICATT volume control:
-  * from -6 to 0 dB in 6 dB steps
-@@ -607,55 +633,195 @@ static int twl6030_set_bias_level(struct snd_soc_codec *codec,
- 	return 0;
- }
- 
-+/* set of rates for each pll: low-power and high-performance */
-+
-+static unsigned int lp_rates[] = {
-+	44100,
-+	48000,
-+};
-+
-+static struct snd_pcm_hw_constraint_list lp_constraints = {
-+	.count	= ARRAY_SIZE(lp_rates),
-+	.list	= lp_rates,
-+};
-+
-+static unsigned int hp_rates[] = {
-+	48000,
-+};
-+
-+static struct snd_pcm_hw_constraint_list hp_constraints = {
-+	.count	= ARRAY_SIZE(hp_rates),
-+	.list	= hp_rates,
-+};
-+
-+static int twl6030_startup(struct snd_pcm_substream *substream,
-+			struct snd_soc_dai *dai)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_device *socdev = rtd->socdev;
-+	struct snd_soc_codec *codec = socdev->card->codec;
-+	struct twl6030_data *priv = codec->private_data;
-+
-+	if (!priv->sysclk) {
-+		dev_err(codec->dev,
-+			"no mclk configured, call set_sysclk() on init\n");
-+		return -EINVAL;
-+	}
-+
-+	snd_pcm_hw_constraint_list(substream->runtime, 0,
-+				SNDRV_PCM_HW_PARAM_RATE,
-+				priv->sysclk_constraints);
-+
-+	return 0;
-+}
-+
-+static int twl6030_hw_params(struct snd_pcm_substream *substream,
-+			struct snd_pcm_hw_params *params,
-+			struct snd_soc_dai *dai)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_device *socdev = rtd->socdev;
-+	struct snd_soc_codec *codec = socdev->card->codec;
-+	struct twl6030_data *priv = codec->private_data;
-+	u8 lppllctl;
-+	int rate;
-+
-+	/* nothing to do for high-perf pll, it supports only 48 kHz */
-+	if (priv->pll == TWL6030_HPPLL_ID)
-+		return 0;
-+
-+	lppllctl = twl6030_read_reg_cache(codec, TWL6030_REG_LPPLLCTL);
-+
-+	rate = params_rate(params);
-+	switch (rate) {
-+	case 44100:
-+		lppllctl |= TWL6030_LPLLFIN;
-+		priv->sysclk = 17640000;
-+		break;
-+	case 48000:
-+		lppllctl &= ~TWL6030_LPLLFIN;
-+		priv->sysclk = 19200000;
-+		break;
-+	default:
-+		dev_err(codec->dev, "unsupported rate %d\n", rate);
-+		return -EINVAL;
-+	}
-+
-+	twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
-+
-+	return 0;
-+}
-+
- static int twl6030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
- 		int clk_id, unsigned int freq, int dir)
+@@ -372,6 +373,7 @@ static int twl6030_power_mode_event(struct snd_soc_dapm_widget *w,
+ static irqreturn_t twl6030_naudint_handler(int irq, void *data)
  {
- 	struct snd_soc_codec *codec = codec_dai->codec;
+ 	struct snd_soc_codec *codec = data;
 +	struct twl6030_data *priv = codec->private_data;
- 	u8 hppllctl, lppllctl;
+ 	u8 intid;
  
- 	hppllctl = twl6030_read_reg_cache(codec, TWL6030_REG_HPPLLCTL);
--	hppllctl &= ~TWL6030_MCLK_MSK;
--
--	switch (freq) {
--	case 12000000:
--		/* mclk input, pll enabled */
--		hppllctl |= TWL6030_MCLK_12000KHZ |
--			    TWL6030_HPLLSQRBP |
--			    TWL6030_HPLLENA;
--		break;
--	case 19200000:
--		/* mclk input, pll disabled */
--		hppllctl |= TWL6030_MCLK_19200KHZ |
--			    TWL6030_HPLLSQRBP |
--			    TWL6030_HPLLBP;
--		break;
--	case 26000000:
--		/* mclk input, pll enabled */
--		hppllctl |= TWL6030_MCLK_26000KHZ |
--			    TWL6030_HPLLSQRBP |
--			    TWL6030_HPLLENA;
-+	lppllctl = twl6030_read_reg_cache(codec, TWL6030_REG_LPPLLCTL);
-+
-+	switch (clk_id) {
-+	case TWL6030_SYSCLK_SEL_LPPLL:
-+		switch (freq) {
-+		case 32768:
-+			/* headset dac and driver must be in low-power mode */
-+			headset_power_mode(codec, 0);
-+
-+			/* clk32k input requires low-power pll */
-+			lppllctl |= TWL6030_LPLLENA;
-+			twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
-+			mdelay(5);
-+			lppllctl &= ~TWL6030_HPLLSEL;
-+			twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
-+			hppllctl &= ~TWL6030_HPLLENA;
-+			twl6030_write(codec, TWL6030_REG_HPPLLCTL, hppllctl);
-+			break;
-+		default:
-+			dev_err(codec->dev, "unknown mclk freq %d\n", freq);
-+			return -EINVAL;
-+		}
-+
-+		/* lppll divider */
-+		switch (priv->sysclk) {
-+		case 17640000:
-+			lppllctl |= TWL6030_LPLLFIN;
-+			break;
-+		case 19200000:
-+			lppllctl &= ~TWL6030_LPLLFIN;
-+			break;
-+		default:
-+			/* sysclk not yet configured */
-+			lppllctl &= ~TWL6030_LPLLFIN;
-+			priv->sysclk = 19200000;
-+			break;
-+		}
-+
-+		twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
-+
-+		priv->pll = TWL6030_LPPLL_ID;
-+		priv->sysclk_constraints = &lp_constraints;
+ 	twl_i2c_read_u8(TWL6030_MODULE_AUDIO, &intid, TWL6030_REG_INTID);
+@@ -391,7 +393,7 @@ static irqreturn_t twl6030_naudint_handler(int irq, void *data)
+ 		dev_alert(codec->dev, "vib drivers over current detection\n");
  		break;
--	case 38400000:
--		/* clk slicer, pll disabled */
--		hppllctl |= TWL6030_MCLK_38400KHZ |
--			    TWL6030_HPLLSQRENA |
--			    TWL6030_HPLLBP;
-+	case TWL6030_SYSCLK_SEL_HPPLL:
-+		hppllctl &= ~TWL6030_MCLK_MSK;
-+
-+		switch (freq) {
-+		case 12000000:
-+			/* mclk input, pll enabled */
-+			hppllctl |= TWL6030_MCLK_12000KHZ |
-+				    TWL6030_HPLLSQRBP |
-+				    TWL6030_HPLLENA;
-+			break;
-+		case 19200000:
-+			/* mclk input, pll disabled */
-+			hppllctl |= TWL6030_MCLK_19200KHZ |
-+				    TWL6030_HPLLSQRBP |
-+				    TWL6030_HPLLBP;
-+			break;
-+		case 26000000:
-+			/* mclk input, pll enabled */
-+			hppllctl |= TWL6030_MCLK_26000KHZ |
-+				    TWL6030_HPLLSQRBP |
-+				    TWL6030_HPLLENA;
-+			break;
-+		case 38400000:
-+			/* clk slicer, pll disabled */
-+			hppllctl |= TWL6030_MCLK_38400KHZ |
-+				    TWL6030_HPLLSQRENA |
-+				    TWL6030_HPLLBP;
-+			break;
-+		default:
-+			dev_err(codec->dev, "unknown mclk freq %d\n", freq);
-+			return -EINVAL;
-+		}
-+
-+		/* headset dac and driver must be in high-performance mode */
-+		headset_power_mode(codec, 1);
-+
-+		twl6030_write(codec, TWL6030_REG_HPPLLCTL, hppllctl);
-+		udelay(500);
-+		lppllctl |= TWL6030_HPLLSEL;
-+		twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
-+		lppllctl &= ~TWL6030_LPLLENA;
-+		twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
-+
-+		/* high-performance pll can provide only 19.2 MHz */
-+		priv->pll = TWL6030_HPPLL_ID;
-+		priv->sysclk = 19200000;
-+		priv->sysclk_constraints = &hp_constraints;
+ 	case TWL6030_READYINT:
+-		dev_alert(codec->dev, "codec is ready\n");
++		complete(&priv->ready);
  		break;
  	default:
--		dev_err(codec->dev, "unknown sysclk freq %d\n", freq);
-+		dev_err(codec->dev, "unknown clk_id %d\n", clk_id);
- 		return -EINVAL;
- 	}
- 
--	twl6030_write(codec, TWL6030_REG_HPPLLCTL, hppllctl);
--
--	/* Disable LPPLL and select HPPLL */
--	lppllctl = TWL6030_HPLLSEL;
--	twl6030_write(codec, TWL6030_REG_LPPLLCTL, lppllctl);
--
+ 		dev_err(codec->dev, "unknown audio interrupt %d\n", intid);
+@@ -626,11 +628,45 @@ static int twl6030_add_widgets(struct snd_soc_codec *codec)
  	return 0;
  }
  
- static struct snd_soc_dai_ops twl6030_dai_ops = {
-+	.startup	= twl6030_startup,
-+	.hw_params	= twl6030_hw_params,
- 	.set_sysclk	= twl6030_set_dai_sysclk,
- };
++static int twl6030_power_up_completion(struct snd_soc_codec *codec,
++					int naudint)
++{
++	struct twl6030_data *priv = codec->private_data;
++	int time_left;
++	u8 intid;
++
++	if (naudint) {
++		/* wait for ready interrupt with 48 ms timeout */
++		time_left = wait_for_completion_timeout(&priv->ready,
++					msecs_to_jiffies(48));
++	} else {
++		/* retry 3 times only */
++		for (time_left = 3; time_left > 0; time_left--) {
++			mdelay(16);
++			twl_i2c_read_u8(TWL6030_MODULE_AUDIO, &intid,
++					TWL6030_REG_INTID);
++			if (intid & TWL6030_READYINT)
++				break;
++		}
++	}
++
++	if (!time_left) {
++		dev_err(codec->dev, "timeout waiting for READYINT\n");
++		return -ETIMEDOUT;
++	}
++
++	priv->codec_powered = 1;
++
++	return 0;
++}
++
+ static int twl6030_set_bias_level(struct snd_soc_codec *codec,
+ 				enum snd_soc_bias_level level)
+ {
+ 	struct twl6030_data *priv = codec->private_data;
+ 	int audpwron = priv->audpwron;
++	int naudint = priv->naudint;
++	int ret;
  
+ 	switch (level) {
+ 	case SND_SOC_BIAS_ON:
+@@ -643,8 +679,10 @@ static int twl6030_set_bias_level(struct snd_soc_codec *codec,
+ 			/* use AUDPWRON line */
+ 			gpio_set_value(audpwron, 1);
+ 
+-			/* power-up sequence latency */
+-			mdelay(16);
++			/* wait for power-up completion */
++			ret = twl6030_power_up_completion(codec, naudint);
++			if (ret)
++				return ret;
+ 
+ 			/* sync registers updated during power-up sequence */
+ 			twl6030_read(codec, TWL6030_REG_NCPCTL);
+@@ -653,12 +691,11 @@ static int twl6030_set_bias_level(struct snd_soc_codec *codec,
+ 		} else {
+ 			/* use manual power-up sequence */
+ 			twl6030_power_up(codec);
++			priv->codec_powered = 1;
+ 		}
+ 
+ 		/* initialize vdd/vss registers with reg_cache */
+ 		twl6030_init_vdd_regs(codec);
+-
+-		priv->codec_powered = 1;
+ 		break;
+ 	case SND_SOC_BIAS_OFF:
+ 		if (!priv->codec_powered)
+@@ -1068,6 +1105,7 @@ static int __devinit twl6030_codec_probe(struct platform_device *pdev)
+ 	mutex_init(&codec->mutex);
+ 	INIT_LIST_HEAD(&codec->dapm_widgets);
+ 	INIT_LIST_HEAD(&codec->dapm_paths);
++	init_completion(&priv->ready);
+ 
+ 	if (gpio_is_valid(audpwron)) {
+ 		ret = gpio_request(audpwron, "audpwron");
+@@ -1090,10 +1128,15 @@ static int __devinit twl6030_codec_probe(struct platform_device *pdev)
+ 		if (ret)
+ 			goto gpio2_err;
+ 	} else {
+-		dev_warn(codec->dev,
+-			"no naudint irq, audio interrupts disabled\n");
+-		twl6030_write_reg_cache(codec, TWL6030_REG_INTMR,
+-					TWL6030_ALLINT_MSK);
++		if (gpio_is_valid(audpwron)) {
++			/* enable only codec ready interrupt */
++			twl6030_write_reg_cache(codec, TWL6030_REG_INTMR,
++					~TWL6030_READYMSK & TWL6030_ALLINT_MSK);
++		} else {
++			/* no interrupts at all */
++			twl6030_write_reg_cache(codec, TWL6030_REG_INTMR,
++						TWL6030_ALLINT_MSK);
++		}
+ 	}
+ 
+ 	/* init vio registers */
 diff --git a/sound/soc/codecs/twl6030.h b/sound/soc/codecs/twl6030.h
-index 7375ae8..87f1e1e 100644
+index 786fd80..cdc3a3a 100644
 --- a/sound/soc/codecs/twl6030.h
 +++ b/sound/soc/codecs/twl6030.h
-@@ -100,10 +100,26 @@
- #define TWL6030_LPLLFIN			0x08
- #define TWL6030_HPLLSEL			0x10
+@@ -79,6 +79,7 @@
  
-+/* HSLCTL (0x10) fields */
-+
-+#define TWL6030_HSDACMODEL		0x02
-+#define TWL6030_HSDRVMODEL		0x08
-+
-+/* HSRCTL (0x11) fields */
-+
-+#define TWL6030_HSDACMODER		0x02
-+#define TWL6030_HSDRVMODER		0x08
-+
- /* ACCCTL (0x2D) fields */
+ /* INTMR (0x04) fields */
  
- #define TWL6030_RESETSPLIT		0x04
++#define TWL6030_READYMSK		0x40
+ #define TWL6030_ALLINT_MSK		0x7B
  
-+#define TWL6030_SYSCLK_SEL_LPPLL	1
-+#define TWL6030_SYSCLK_SEL_HPPLL	2
-+
-+#define TWL6030_HPPLL_ID		1
-+#define TWL6030_LPPLL_ID		2
-+
- extern struct snd_soc_dai twl6030_dai;
- extern struct snd_soc_codec_device soc_codec_dev_twl6030;
- 
+ /* NCPCTL (0x05) fields */
 -- 
 1.5.4.3
