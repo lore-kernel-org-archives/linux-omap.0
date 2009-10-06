@@ -1,264 +1,155 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] OMAP3: SRF: Fix latency resource target value computations
-Date: Tue,  6 Oct 2009 18:50:13 +0530
-Message-ID: <1254835213-19453-1-git-send-email-rnayak@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
+Date: Tue, 06 Oct 2009 06:19:59 -0700
+Message-ID: <87bpkku0ao.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A007938@dbde02.ent.ti.com>
+	<87ljkpm67t.fsf@deeprootsystems.com>
+	<200909091412.07748.jpihet@mvista.com>
+	<636c5030909301106r60eb02c9t968408f06c62829d@mail.gmail.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030A332368@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60198 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757225AbZJFNU5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 6 Oct 2009 09:20:57 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n96DKFNO023912
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 6 Oct 2009 08:20:18 -0500
+Received: from mail-px0-f179.google.com ([209.85.216.179]:59766 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756294AbZJFNUh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 6 Oct 2009 09:20:37 -0400
+Received: by pxi9 with SMTP id 9so3878893pxi.4
+        for <linux-omap@vger.kernel.org>; Tue, 06 Oct 2009 06:20:01 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A332368@dbde02.ent.ti.com> (Teerth Reddy's message of "Tue\, 6 Oct 2009 16\:04\:48 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jean Pihet <jpihet@mvista.com>
 
-The Shared resource framework currently considers the highest requested
-level for a resource as the target level to be set. This works for OPP
-and frequency resources as they are used to model performace based
-constraints. However for latency based constraints/resources the least requested
-level should be the one considered for the target level. This patch fixes
-the issue by having an additional flag to identify the different types
-of resources. Currently supported ones are Performace resources and
-latency resources.
+"Reddy, Teerth" <teerth@ti.com> writes:
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/mach-omap2/resource34xx.c         |    4 ++--
- arch/arm/mach-omap2/resource34xx.h         |   16 ++++++++++++++++
- arch/arm/plat-omap/include/mach/resource.h |    9 ++++++++-
- arch/arm/plat-omap/resource.c              |   20 ++++++++++++++------
- 4 files changed, 40 insertions(+), 9 deletions(-)
+> Kevin,Jean
+>
+> Sorry for the late reply.
+> I have tested DVFS on Zoom2 with 256Mb with this patch and it works f=
+ine.
+> In Zoom2 SDRC module uses 2 chip selects. Since u-boot is configuring=
+ the SDRC module to use 2 chip selects do we need to configure it in th=
+e kernel as well?=20
+> If you think so then this change is needed.=20
 
-diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
-index 491e1dc..e1a540e 100644
---- a/arch/arm/mach-omap2/resource34xx.c
-+++ b/arch/arm/mach-omap2/resource34xx.c
-@@ -41,7 +41,7 @@
- void init_latency(struct shared_resource *resp)
+Yes, otherwise the settings for the 2nd CS will not be modified during
+DVFS and DVFS will not work properly when using both CSes.
+
+Kevin
+
+
+
+>
+> Regards
+> Teerth
+>
+>
+>
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]=20
+> Sent: Wednesday, September 30, 2009 11:36 PM
+> To: Reddy, Teerth
+> Cc: linux-omap@vger.kernel.org; Jean Pihet
+> Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoo=
+m2
+>
+> Teerth,  ping.
+>
+> On Wed, Sep 9, 2009 at 5:12 AM, Jean Pihet <jpihet@mvista.com> wrote:
+>> On Wednesday 09 September 2009 00:17:42 Kevin Hilman wrote:
+>>> "Reddy, Teerth" <teerth@ti.com> writes:
+>>> > This patch initializes the SDRC params for DVFS on Zoom2.
+>>> >
+>>> > Signed-off-by: Teerth Reddy <teerth@ti.com>
+>>> > ---
+>>> > =A0arch/arm/mach-omap2/board-zoom2.c | =A0 =A06 ++++--
+>>> > =A01 files changed, 4 insertions(+), 2 deletions(-)
+>>> >
+>>> > Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+>>> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>>> > --- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom2.c
+>>> > +++ linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+>>> > @@ -23,6 +23,7 @@
+>>> >
+>>> > =A0#include "mmc-twl4030.h"
+>>> > =A0#include "omap3-opp.h"
+>>> > +#include "sdram-micron-mt46h32m32lf-6.h"
+>>> >
+>>> > =A0static struct omap_uart_config zoom2_uart_config __initdata =3D=
  {
- 	resp->no_of_users = 0;
--	resp->curr_level = RES_DEFAULTLEVEL;
-+	resp->curr_level = RES_LATENCY_DEFAULTLEVEL;
- 	*((u8 *)resp->resource_data) = 0;
- 	return;
- }
-@@ -65,7 +65,7 @@ int set_latency(struct shared_resource *resp, u32 latency)
- 		resp->curr_level = latency;
- 
- 	pm_qos_req_added = resp->resource_data;
--	if (latency == RES_DEFAULTLEVEL)
-+	if (latency == RES_LATENCY_DEFAULTLEVEL)
- 		/* No more users left, remove the pm_qos_req if present */
- 		if (*pm_qos_req_added) {
- 			pm_qos_remove_requirement(PM_QOS_CPU_DMA_LATENCY,
-diff --git a/arch/arm/mach-omap2/resource34xx.h b/arch/arm/mach-omap2/resource34xx.h
-index 3c70eef..918a76c 100644
---- a/arch/arm/mach-omap2/resource34xx.h
-+++ b/arch/arm/mach-omap2/resource34xx.h
-@@ -49,6 +49,7 @@ static struct shared_resource_ops lat_res_ops = {
- static struct shared_resource mpu_latency = {
- 	.name 		= "mpu_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data  = &mpu_qos_req_added,
- 	.ops 		= &lat_res_ops,
- };
-@@ -56,6 +57,7 @@ static struct shared_resource mpu_latency = {
- static struct shared_resource core_latency = {
- 	.name 		= "core_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data	= &core_qos_req_added,
- 	.ops 		= &lat_res_ops,
- };
-@@ -91,6 +93,7 @@ static struct shared_resource_ops pd_lat_res_ops = {
- static struct shared_resource core_pwrdm_latency = {
- 	.name		= "core_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data	= &core_qos_req_added,
- 	.ops		= &lat_res_ops,
- };
-@@ -106,6 +109,7 @@ static struct pd_latency_db iva2_pwrdm_lat_db = {
- static struct shared_resource iva2_pwrdm_latency = {
- 	.name		= "iva2_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data	= &iva2_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -129,6 +133,7 @@ static struct pd_latency_db sgx_pwrdm_lat_db = {
- static struct shared_resource gfx_pwrdm_latency = {
- 	.name		= "gfx_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430ES1),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data	= &gfx_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -136,6 +141,7 @@ static struct shared_resource gfx_pwrdm_latency = {
- static struct shared_resource sgx_pwrdm_latency = {
- 	.name 		= "sgx_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data  = &sgx_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -151,6 +157,7 @@ static struct pd_latency_db dss_pwrdm_lat_db = {
- static struct shared_resource dss_pwrdm_latency = {
- 	.name		= "dss_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data	= &dss_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -166,6 +173,7 @@ static struct pd_latency_db cam_pwrdm_lat_db = {
- static struct shared_resource cam_pwrdm_latency = {
- 	.name		= "cam_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data	= &cam_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -181,6 +189,7 @@ static struct pd_latency_db per_pwrdm_lat_db = {
- static struct shared_resource per_pwrdm_latency = {
- 	.name		= "per_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data	= &per_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -196,6 +205,7 @@ static struct pd_latency_db neon_pwrdm_lat_db = {
- static struct shared_resource neon_pwrdm_latency = {
- 	.name		= "neon_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data	= &neon_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -211,6 +221,7 @@ static struct pd_latency_db usbhost_pwrdm_lat_db = {
- static struct shared_resource usbhost_pwrdm_latency = {
- 	.name		= "usbhost_pwrdm_latency",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES2),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data  = &usbhost_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -226,6 +237,7 @@ static struct pd_latency_db emu_pwrdm_lat_db = {
- static struct shared_resource emu_pwrdm_latency = {
- 	.name           = "emu_pwrdm",
- 	.omap_chip	= OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_LATENCY,
- 	.resource_data  = &emu_pwrdm_lat_db,
- 	.ops		= &pd_lat_res_ops,
- };
-@@ -251,6 +263,7 @@ static struct shared_resource_ops opp_res_ops = {
- static struct shared_resource vdd1_opp = {
- 	.name           = "vdd1_opp",
- 	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags          = RES_TYPE_PERFORMANCE,
- 	.ops            = &opp_res_ops,
- };
- 
-@@ -264,6 +277,7 @@ static struct bus_throughput_db l3_throughput_db = {
- static struct shared_resource vdd2_opp = {
- 	.name           = "vdd2_opp",
- 	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags          = RES_TYPE_PERFORMANCE,
- 	.resource_data  = &l3_throughput_db,
- 	.ops            = &opp_res_ops,
- };
-@@ -279,6 +293,7 @@ static struct shared_resource_ops freq_res_ops = {
- static struct shared_resource mpu_freq = {
- 	.name           = "mpu_freq",
- 	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_PERFORMANCE,
- 	.resource_data  = &linked_res,
- 	.ops            = &freq_res_ops,
- };
-@@ -286,6 +301,7 @@ static struct shared_resource mpu_freq = {
- static struct shared_resource dsp_freq = {
- 	.name           = "dsp_freq",
- 	.omap_chip      = OMAP_CHIP_INIT(CHIP_IS_OMAP3430),
-+	.flags		= RES_TYPE_PERFORMANCE,
- 	.resource_data  = &linked_res,
- 	.ops            = &freq_res_ops,
- };
-diff --git a/arch/arm/plat-omap/include/mach/resource.h b/arch/arm/plat-omap/include/mach/resource.h
-index f91d8ce..46b942f 100644
---- a/arch/arm/plat-omap/include/mach/resource.h
-+++ b/arch/arm/plat-omap/include/mach/resource.h
-@@ -25,7 +25,12 @@
- #include <linux/device.h>
- #include <mach/cpu.h>
- 
--#define RES_DEFAULTLEVEL	0x0
-+#define RES_PERFORMANCE_DEFAULTLEVEL	0
-+#define RES_LATENCY_DEFAULTLEVEL	-1
-+
-+/* Types of resources */
-+#define RES_TYPE_PERFORMANCE	0x1
-+#define RES_TYPE_LATENCY	0x2
- 
- struct shared_resource_ops; /* forward declaration */
- 
-@@ -35,6 +40,8 @@ struct shared_resource {
- 	char *name;
- 	/* Used to represent the OMAP chip types containing this res */
- 	const struct omap_chip_id omap_chip;
-+	/* Resource type flags */
-+	const u8 flags;
- 	/* Total no of users at any point of this resource */
- 	u8 no_of_users;
- 	/* Current level of this resource */
-diff --git a/arch/arm/plat-omap/resource.c b/arch/arm/plat-omap/resource.c
-index dbbc763..ac19aa2 100644
---- a/arch/arm/plat-omap/resource.c
-+++ b/arch/arm/plat-omap/resource.c
-@@ -106,10 +106,20 @@ static int update_resource_level(struct shared_resource *resp)
- 	int ret;
- 
- 	/* Regenerate the target_value for the resource */
--	target_level = RES_DEFAULTLEVEL;
--	list_for_each_entry(user, &resp->users_list, node)
--		if (user->level > target_level)
--			target_level = user->level;
-+	if (resp->flags & RES_TYPE_PERFORMANCE) {
-+		target_level = RES_PERFORMANCE_DEFAULTLEVEL;
-+		list_for_each_entry(user, &resp->users_list, node)
-+			if (user->level > target_level)
-+				target_level = user->level;
-+	} else if (resp->flags & RES_TYPE_LATENCY) {
-+		target_level = RES_LATENCY_DEFAULTLEVEL;
-+		list_for_each_entry(user, &resp->users_list, node)
-+			if (user->level < target_level)
-+				target_level = user->level;
-+	} else {
-+		pr_debug("SRF: Unknown resource type\n");
-+		return -EINVAL;
-+	}
- 
- 	pr_debug("SRF: Changing Level for resource %s to %ld\n",
- 				resp->name, target_level);
-@@ -182,7 +192,6 @@ void free_user(struct users_list *user)
- 		kfree(user);
- 	} else {
- 		user->usage = UNUSED;
--		user->level = RES_DEFAULTLEVEL;
- 		user->dev = NULL;
- 	}
- }
-@@ -213,7 +222,6 @@ void resource_init(struct shared_resource **resources)
- 	for (ind = 0; ind < MAX_USERS; ind++) {
- 		usr_list[ind].usage = UNUSED;
- 		usr_list[ind].dev = NULL;
--		usr_list[ind].level = RES_DEFAULTLEVEL;
- 	}
- 
- 	if (resources)
--- 
-1.5.4.7
-
+>>> > =A0 =A0 .enabled_uarts =A0=3D ((1 << 0) | (1 << 1) | (1 << 2)),
+>>> > @@ -36,8 +37,9 @@ static void __init omap_zoom2_init_irq(v
+>>> > =A0{
+>>> > =A0 =A0 omap_board_config =3D zoom2_config;
+>>> > =A0 =A0 omap_board_config_size =3D ARRAY_SIZE(zoom2_config);
+>>> > - =A0 omap2_init_common_hw(NULL, NULL, omap3_mpu_rate_table,
+>>> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap3_dsp_rate_t=
+able, omap3_l3_rate_table);
+>>> > + =A0 omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL,
+>>> > + =A0 =A0 =A0 =A0 =A0 omap3_mpu_rate_table, omap3_dsp_rate_table,
+>>> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 omap3_l3_rate_table);
+>>>
+>>> Not having looked at the Zoom2 schematics, are you sure this is onl=
+y
+>>> using a single chip select? =A0The other boards using the same part
+>>> (beagle, overo) are interfacing to this part using both CSes.
+>>>
+>>> Have you tested DVFS on Zoom2 using the full 256Mb?
+>> Good point!
+>>
+>> DVFS works fine using the two chip selects:
+>> =A0 =A0 =A0 =A0omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 mt46h32m32lf=
+6_sdrc_params,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_mpu_ra=
+te_table,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_dsp_ra=
+te_table,
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap3_l3_rat=
+e_table);
+>>
+>> One remark though: since the memory chips are popped on top of the O=
+MAP chip
+>> the schematics are not showing the chip selects connections. In any =
+case
+>> U-Boot is configuring the SDRC module to use the 2 chip selects, so =
+I think
+>> this change is needed.
+>>
+>> We need confirmation. Anyone from TI knows?
+>>
+>> Regards,
+>> Jean
+>>
+>>>
+>>> Kevin
+>>>
+>>> > =A0 =A0 omap_init_irq();
+>>> > =A0 =A0 omap_gpio_init();
+>>> > =A0}
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-oma=
+p" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
