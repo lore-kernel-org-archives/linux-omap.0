@@ -1,51 +1,113 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in	i2c
-Date: Wed, 7 Oct 2009 13:52:09 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B0BD781@dlee02.ent.ti.com>
-References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
-	 <87bpkso0dj.fsf@deeprootsystems.com> <1254383040.22468.130.camel@ubuntu>
-	 <4AC49578.9090906@nokia.com> <1254481161.22468.179.camel@ubuntu>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: mux strategy (was RE: [PATCH] [OMAP1] mux: Add MMC mux pins for
+	omap7xx)
+Date: Wed, 7 Oct 2009 11:48:06 -0700
+Message-ID: <6cb013310910071148j57e5f463secc9a563f167f426@mail.gmail.com>
+References: <6cb013310910060653u4825da1cwf738a9acef5835b2@mail.gmail.com>
+	<4ACB7EC0.3010401@ti.com> <6cb013310910061244q40b78c0ubad1932578e75bd3@mail.gmail.com>
+	<87hbucp6ng.fsf@deeprootsystems.com> <7A436F7769CA33409C6B44B358BFFF0C012A67976D@dlee02.ent.ti.com>
+	<878wfop4rc.fsf@deeprootsystems.com> <20091007174750.GG7899@atomide.com>
+	<87fx9vjbow.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:39171 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753248AbZJGSwz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 14:52:55 -0400
-In-Reply-To: <1254481161.22468.179.camel@ubuntu>
-Content-Language: en-US
+Received: from mail-yw0-f196.google.com ([209.85.211.196]:64773 "EHLO
+	mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753322AbZJGS4p convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 14:56:45 -0400
+Received: by ywh34 with SMTP id 34so5215559ywh.1
+        for <linux-omap@vger.kernel.org>; Wed, 07 Oct 2009 11:56:09 -0700 (PDT)
+In-Reply-To: <87fx9vjbow.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Tony Lindgren <tony@atomide.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+On Wed, Oct 7, 2009 at 11:33 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> Tony Lindgren <tony@atomide.com> writes:
+>
+>> * Kevin Hilman <khilman@deeprootsystems.com> [091006 15:18]:
+>>> "Menon, Nishanth" <nm@ti.com> writes:
+>>>
+>>> >> -----Original Message-----
+>>> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>>> >> owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>>> >>
+>>> >> >>> =C2=A0 =C2=A0 =C2=A0 =C2=A0W17_7XX_USB_VBUSI,
+>>> >> >>> +
+>>> >> >>> + =C2=A0 =C2=A0 =C2=A0 /* MMC */
+>>> >> >>> + =C2=A0 =C2=A0 =C2=A0 MMC_7XX_CMD,
+>>> >> >>> + =C2=A0 =C2=A0 =C2=A0 MMC_7XX_CLK,
+>>> >> >>> + =C2=A0 =C2=A0 =C2=A0 MMC_7XX_DAT0,
+>>> >> >>
+>>> >> >> probably a dumb question -> but should'nt these go off to boo=
+tloader
+>>> >> >> perhaps?
+>>> >> >>
+>>> >> >
+>>> >> > Perhaps, although we use either EOL (for HTC Wizard) or Haret =
+to boot,
+>>> >> > and they don't set up the right mux configuration for our boar=
+d.
+>>> >> >
+>>> >> > This way though, we don't have to worry about the boot loader =
+-- we
+>>> >> > can set it up right regardless of who boots us.
+>>> >>
+>>> >> I agree with Cory.
+>>> >>
+>>> >> I prefer that mux settings go into the kernel, even if they are =
+setup
+>>> >> in the bootloader already. =C2=A0It's better to have redundancy =
+than wonder
+>>> >> what to do if changing boot loaders.
+>>> >>
+>>> > Probably opening up a can of worms.. Are the rules different for =
+OMAP3?
+>>> > Should'nt we have all mux done at kernel so that kernel is loader
+>>> > independent?
+>>>
+>>> Yes, we should. =C2=A0My preference is to always have muxing in the=
+ kernel.
+>>
+>> Agreed. We still should support bootloader only muxing too.
+>>
+>> BTW, I've been thinking about the following sets of patches for the =
+next
+>> merge window:
+>>
+>> 1. Do the include directories for mach-omap1 and mach-omap2 as sugge=
+sted
+>> =C2=A0 =C2=A0by Russell earlier
+>>
+>> 2. Move all mux code to only live under arch/arm/*omap*/ and make su=
+re
+>> =C2=A0 =C2=A0drivers don't call omap_cfg_reg() any longer
+>>
+>> 3. Remove the enumeration for the mux and require all the boards to
+>> =C2=A0 =C2=A0register the pins they'll use
+>>
+>> After these it should be trivial to improve the mux code further. Th=
+e
+>> steps 2 & 3 above will be most likely breaking things for some board=
+s,
+>> so help will be needed with testing.
+>
+> Sounds like a good start on a mux rework to me. :)
+>
+> Kevin
+>
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Kalle Jokiniemi
-> Sent: Friday, October 02, 2009 5:59 AM
+I agree, this sounds like a good approach.  Should make a lot of
+drivers much cleaner and easier to maintain, and we can do away with
+the 7xx versus all of the rest of omap1 mux nonsense we have right
+now.
 
-
-> Yes, this is a good idea in theory, but the reality of wake-up latencies
-> kind-a kill this one. Wake-up from even C1 (MPU INA, CORE ON) takes
-> ~130us on fastest OPP. And when you add 70us of sleep transition into
-> that, you get 200us at minimum.
-
-These values feel a bit on the high side.  Have you measured since tweaking your DPLL M/N values?
-
-Are you measuring just across WFI or adding in some part of the idle code path?
-
-> For us, the 500us constraint seems to work quite nicely. It removes the
-> problems we had with i2c transfers timing out with off mode, and
-> restores average transfer times (from clk_enable to clk_disable) to few
-> hundred us (that were observed with retention).
-
-Some of the historic I2C timeout issues were from the wakeup sources not being programmed properly.
-
-Your constraint in my understanding is more about saving power.  Today cpuidle doesn't predict interrupt events very well.  As such the huge timeout used with i2c will never gate an off mode attempt.  You will loose in context save and restore with out constraint.
-
-I floated some idea a while back on pm list to try and do something really simple with irqs.  ... take a timestamp on last irq, when cpuilde goes to sleep if current time since last irq is too near then choose safe sleep state.  Comments I got at that time was some didn't like extra overhead on irq path.  However, I don't know I agree with that.
-
-Regards,
-Richard W.
+Cory
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
