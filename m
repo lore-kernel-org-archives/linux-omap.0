@@ -1,40 +1,55 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [PATCH 00/19] OMAP: DSS2: Intro
-Date: Wed, 7 Oct 2009 11:57:27 +0300
-Message-ID: <94a0d4530910070157v2dd8062aheffc6345daff9e78@mail.gmail.com>
-References: <1253793384-31158-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <1254302501.23991.90.camel@tubuntu>
+From: "Reddy, Teerth" <teerth@ti.com>
+Subject: [PATCH]ZOOM2: Initialization of SDRC params on Zoom2
+Date: Wed, 7 Oct 2009 14:37:42 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A3327D9@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f210.google.com ([209.85.218.210]:40928 "EHLO
-	mail-bw0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932729AbZJGI6E (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 04:58:04 -0400
-In-Reply-To: <1254302501.23991.90.camel@tubuntu>
+Received: from bear.ext.ti.com ([192.94.94.41]:59882 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933841AbZJGJIX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 05:08:23 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9797hsL028689
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 7 Oct 2009 04:07:46 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9797hbD026190
+	for <linux-omap@vger.kernel.org>; Wed, 7 Oct 2009 14:37:43 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: ext Andrew Morton <akpm@linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, Sep 30, 2009 at 12:21 PM, Tomi Valkeinen
-<tomi.valkeinen@nokia.com> wrote:
-> Hi,
->
-> Andrew, do you have time to check out the DSS2 driver? Or suggestions
-> how should I proceed.
->
-> I rebased DSS2 on top of today's linux-tree, and there were no
-> conflicts, so the posted patches should apply. But the rebased tree is
-> also available in master branch at
-> git://gitorious.org/linux-omap-dss2/linux.git
+From: Teerth Reddy <teerth@ti.com>
 
-It's also worth noting that DSS2 is used basically on all linux-omap
-trees already, I've seen it working at least on N900 and beagleboard
-and it makes no sense to try to get some video output without it.
+This patch initializes the SDRC params for Zoom2
 
-P.S. I had to patch the beagleboard support from Tomi's
-'master-before-squash'... it would be nice to get it upstream already
+Signed-off-by: Teerth Reddy <teerth@ti.com>
+---
+ arch/arm/mach-omap2/board-zoom2.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletion(-)
 
--- 
-Felipe Contreras
+Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
+===================================================================
+--- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom2.c
++++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
+@@ -25,6 +25,7 @@
+ #include <mach/keypad.h>
+ 
+ #include "mmc-twl4030.h"
++#include "sdram-micron-mt46h32m32lf-6.h"
+ 
+ /* Zoom2 has Qwerty keyboard*/
+ static int board_keymap[] = {
+@@ -213,7 +214,8 @@ static void __init omap_zoom2_init_irq(v
+ {
+ 	omap_board_config = zoom2_config;
+ 	omap_board_config_size = ARRAY_SIZE(zoom2_config);
+-	omap2_init_common_hw(NULL, NULL);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
++				 mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+ 	omap_gpio_init();
+ }
