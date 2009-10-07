@@ -1,60 +1,101 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [OMAP3] ALSA driver 'suspend/resume' handlers
-Date: Wed, 7 Oct 2009 14:42:55 -0700
-Message-ID: <20091007214254.GA29320@atomide.com>
-References: <2183bec20909221938mf436e87y7620613e160ae6e2@mail.gmail.com> <FCCFB4CDC6E5564B9182F639FC35608702F9DAFC82@dbde02.ent.ti.com> <2183bec20909222202u7ada82e1ycb1de4702822e171@mail.gmail.com> <20090924094608.542909b7.jhnikula@gmail.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BACC566F@dbde02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC35608702F9E7DA66@dbde02.ent.ti.com>
+Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver support.
+Date: Wed, 7 Oct 2009 14:51:17 -0700
+Message-ID: <20091007215116.GB29320@atomide.com>
+References: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53325 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753400AbZJGVnk (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 17:43:40 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754525AbZJGVwG@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702F9E7DA66@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, hari n <hari.zoom@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Pandita, Vikram <vikram.pandita@ti.com> [090924 05:59]:
+* Govindraj.R <govindraj.raja@ti.com> [090924 03:29]:
+> From: Govindraj R <govindraj.raja@ti.com>
 > 
+> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
 > 
-> >-----Original Message-----
-> >From: Shilimkar, Santosh
-> >Sent: Thursday, September 24, 2009 2:24 AM
-> >To: Jarkko Nikula; hari n
-> >Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> >Subject: RE: [OMAP3] ALSA driver 'suspend/resume' handlers
-> >
-> >Hari/Jarkko,
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Jarkko Nikula
-> >> Sent: Thursday, September 24, 2009 12:16 PM
-> >> To: hari n
-> >> Cc: Pandita, Vikram; linux-omap@vger.kernel.org
-> >> Subject: Re: [OMAP3] ALSA driver 'suspend/resume' handlers
-> >>
-> >> On Wed, 23 Sep 2009 00:02:01 -0500
-> >> hari n <hari.zoom@gmail.com> wrote:
-> >>
+> Signed-off-by:	Govindraj R <govindraj.raja@ti.com>
+> Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+> Reviewed-by: Tony Lindgren <tony@atomide.com>
+
+You should only add Reviewed-by if Alan or me have replied with it.
+
+So far I've only replied with some comments that have not yet
+been fixed, so we're few more steps from being Reviewd-by.
 
 <snip>
 
-> >omap_stop_dma() should be issued when we really want to stop the DMA transfer and issuing this with
-> >an outstanding transfer is a BUG in ALSA driver.
-> >
-> >Having said that, there is also bug in the DMA driver which doesn't disable the channel in linking
-> >cases. Since we use always hardware synchronized method, hardware will take care of draining the
-> >buffer so no loss of data.
-> >
-> >So option B should be ok and USB case also would work as mentioned above.
+> diff --git a/drivers/serial/Kconfig b/drivers/serial/Kconfig
+> index 6553833..67a7129 100644
+> --- a/drivers/serial/Kconfig
+> +++ b/drivers/serial/Kconfig
+> @@ -1359,6 +1359,53 @@ config SERIAL_OF_PLATFORM
+>  	  Currently, only 8250 compatible ports are supported, but
+>  	  others can easily be added.
 > 
-> USB is not a valid use case to discuss here.
-> Mentor OTG controller has its internal DMA and so does EHCI/OHCI host controller.
-> USB on OMAP3 _does_not_ use system DMA.
+> +config SERIAL_OMAP
+> +	bool "OMAP serial port support"
+> +	depends on ARM && ARCH_OMAP
+> +	select SERIAL_CORE
+> +	help
+> +	If you have a machine based on an Texas Instruments OMAP CPU you
+> +	can enable its onboard serial ports by enabling this option.
+> +
+> +config SERIAL_OMAP_CONSOLE
+> +	bool "Console on OMAP serial port"
+> +	depends on SERIAL_OMAP
+> +	select SERIAL_CORE_CONSOLE
+> +	help
+> +	If you have enabled the serial port on the Texas Instruments OMAP
+> +	CPU you can make it the console by answering Y to this option.
+> +
+> +	Even if you say Y here, the currently visible virtual console
+> +	(/dev/tty0) will still be used as the system console by default, but
+> +	you can alter that using a kernel command line option such as
+> +	"console=ttyS0". (Try "man bootparam" or see the documentation of
+> +	your boot loader (lilo or loadlin) about how to pass options to the
+> +	kernel at boot time.)
+> +
+> +config SERIAL_OMAP_DMA_UART1
+> +	bool "UART1 DMA support"
+> +	depends on SERIAL_OMAP
+> +	help
+> +	If you have enabled the serial port on the Texas Instruments OMAP
+> +	CPU you can enable the DMA transfer on UART 1 by answering
+> +	to this option.
+> +
+> +config SERIAL_OMAP_DMA_UART2
+> +	bool "UART2 DMA support"
+> +	depends on SERIAL_OMAP
+> +	help
+> +	If you have enabled the serial port on the Texas Instruments OMAP
+> +	CPU you can enable the DMA transfer on UART 2 by answering
+> +	to this option.
+> +
+> +config SERIAL_OMAP_DMA_UART3
+> +	bool "UART3 DMA support"
+> +	depends on SERIAL_OMAP
+> +	help
+> +	If you have enabled the serial port on the Texas Instruments OMAP
+> +	CPU you can enable the DMA transfer on UART 3 by answering
+> +	to this option.
+> +
+>  config SERIAL_OF_PLATFORM_NWPSERIAL
+>  	tristate "NWP serial port driver"
+>  	depends on PPC_OF && PPC_DCR
 
-At least tusb6010 connected to 2420 on n800 and n810 uses the system DMA.
+There's absolutely no need for having Kconfig options for the DMA
+support. Please pass that in platform_data from the board-*.c files.
+
+This is the third time I'm commenting on the same issue!
+
+What's the point of posting these patches for review if the issues
+don't get solved?
+
+Regards,
 
 Tony
