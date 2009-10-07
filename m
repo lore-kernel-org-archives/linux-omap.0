@@ -1,55 +1,53 @@
 From: "Reddy, Teerth" <teerth@ti.com>
-Subject: [PATCH]ZOOM2: Initialization of SDRC params on Zoom2
-Date: Wed, 7 Oct 2009 14:37:42 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A3327D9@dbde02.ent.ti.com>
+Subject: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
+Date: Wed, 7 Oct 2009 14:27:27 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A3327C7@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59882 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:38027 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933841AbZJGJIX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 05:08:23 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9797hsL028689
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 7 Oct 2009 04:07:46 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9797hbD026190
-	for <linux-omap@vger.kernel.org>; Wed, 7 Oct 2009 14:37:43 +0530 (IST)
+	id S932927AbZJGI6K convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 04:58:10 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
+>From ba898041224fc496f6694b0ebca9afa77190abf0 Mon Sep 17 00:00:00 2001
 From: Teerth Reddy <teerth@ti.com>
+Date: Wed, 9 Sep 2009 10:38:30 +0530
+Subject: [PATCH] ARM: OMAP3: PM: Initialize SDRC params for DVFS for Zoom2
 
-This patch initializes the SDRC params for Zoom2
+This patch initializes the SDRC params for DVFS.
 
 Signed-off-by: Teerth Reddy <teerth@ti.com>
 ---
- arch/arm/mach-omap2/board-zoom2.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/board-zoom2.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
+Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
 ===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom2.c
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
-@@ -25,6 +25,7 @@
- #include <mach/keypad.h>
+--- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom2.c
++++ linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+@@ -26,6 +26,7 @@
  
  #include "mmc-twl4030.h"
+ #include "omap3-opp.h"
 +#include "sdram-micron-mt46h32m32lf-6.h"
  
  /* Zoom2 has Qwerty keyboard*/
  static int board_keymap[] = {
-@@ -213,7 +214,8 @@ static void __init omap_zoom2_init_irq(v
+@@ -214,8 +215,9 @@ static void __init omap_zoom2_init_irq(v
  {
  	omap_board_config = zoom2_config;
  	omap_board_config_size = ARRAY_SIZE(zoom2_config);
--	omap2_init_common_hw(NULL, NULL);
+-	omap2_init_common_hw(NULL, NULL, omap3_mpu_rate_table,
+-	                     omap3_dsp_rate_table, omap3_l3_rate_table);
 +	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-+				 mt46h32m32lf6_sdrc_params);
++				mt46h32m32lf6_sdrc_params, omap3_mpu_rate_table,
++				omap3_dsp_rate_table, omap3_l3_rate_table);
  	omap_init_irq();
  	omap_gpio_init();
  }
