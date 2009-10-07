@@ -1,173 +1,66 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: [PATCH] omap-pm: Fixes behaviour of some shared resource framework
- functions
-Date: Wed, 7 Oct 2009 18:11:50 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH]PM: Initialization of SDRC params for DVFS on Zoom2
+Date: Wed, 07 Oct 2009 06:13:03 -0700
+Message-ID: <878wfnny8w.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A3327C7@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47496 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758932AbZJGMme convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 08:42:34 -0400
-Content-Language: en-US
+Received: from mail-px0-f179.google.com ([209.85.216.179]:61738 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933353AbZJGNNo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 09:13:44 -0400
+Received: by pxi9 with SMTP id 9so4771384pxi.4
+        for <linux-omap@vger.kernel.org>; Wed, 07 Oct 2009 06:13:08 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A3327C7@dbde02.ent.ti.com> (Teerth Reddy's message of "Wed\, 7 Oct 2009 14\:27\:27 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin H <khilman@deeprootsystems.com>
+To: "Reddy, Teerth" <teerth@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-(Tested on Zoom2).
+"Reddy, Teerth" <teerth@ti.com> writes:
 
-'omap_pm_dsp_set_min_opp' & 'omap_pm_cpu_set_freq' were using their own
-struct device *. This is a problem because invoking these functions from
-different clients would result in setting of the resource level as requested by
-the last caller. Fixes this by introducing a struct device * to the parameter
-list for these functions.
-Signed-off-by: Romit Dasgupta <romit@ti.com>
----
+> From ba898041224fc496f6694b0ebca9afa77190abf0 Mon Sep 17 00:00:00 2001
+> From: Teerth Reddy <teerth@ti.com>
+> Date: Wed, 9 Sep 2009 10:38:30 +0530
+> Subject: [PATCH] ARM: OMAP3: PM: Initialize SDRC params for DVFS for Zoom2
+>
+> This patch initializes the SDRC params for DVFS.
+>
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
 
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index 8e67861..e9adc67 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -47,6 +47,7 @@ static struct cpufreq_frequency_table *freq_table;
- #define MPU_CLK		"virt_prcm_set"
- #endif
- 
-+DEFINE_PER_CPU(struct device , cpu_freq_dev);
- static struct clk *mpu_clk;
- 
- /* TODO: Add support for SDRAM timing changes */
-@@ -115,8 +116,9 @@ static int omap_target(struct cpufreq_policy *policy,
- 		int ind;
- 		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
- 			if (mpu_opps[ind].rate/1000 >= target_freq) {
--				omap_pm_cpu_set_freq
--					(mpu_opps[ind].rate);
-+				omap_pm_cpu_set_freq(
-+					&__get_cpu_var(cpu_freq_dev),
-+					mpu_opps[ind].rate);
- 				break;
- 			}
- 		}
-diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
-index 583e540..5b26ba1 100644
---- a/arch/arm/plat-omap/include/mach/omap-pm.h
-+++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-@@ -226,6 +226,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void);
- 
- /**
-  * omap_pm_dsp_set_min_opp - receive desired OPP target ID from DSP Bridge
-+ * @dev: Identifies the client that wants to set the VDD1 OPP.
-  * @opp_id: target DSP OPP ID
-  *
-  * Set a minimum OPP ID for the DSP.  This is intended to be called
-@@ -233,7 +234,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void);
-  * information that code receives from the DSP/BIOS load estimator is the
-  * target OPP ID; hence, this interface.  No return value.
-  */
--void omap_pm_dsp_set_min_opp(u8 opp_id);
-+void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id);
- 
- /**
-  * omap_pm_dsp_get_opp - report the current DSP OPP ID
-@@ -283,6 +284,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
- 
- /**
-  * omap_pm_cpu_set_freq - set the current minimum MPU frequency
-+ * @dev: Identifies the client that wants to set the frequency.
-  * @f: MPU frequency in Hz
-  *
-  * Set the current minimum CPU frequency.  The actual CPU frequency
-@@ -290,7 +292,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
-  * Intended to be called by plat-omap/cpu_omap.c:omap_target().  No
-  * return value.
-  */
--void omap_pm_cpu_set_freq(unsigned long f);
-+void omap_pm_cpu_set_freq(struct device *dev, unsigned long f);
- 
- /**
-  * omap_pm_cpu_get_freq - report the current CPU frequency
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index 10463a4..6546527 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -159,7 +159,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
- }
- EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
- 
--void omap_pm_dsp_set_min_opp(u8 opp_id)
-+void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id)
- {
- 	if (opp_id == 0) {
- 		WARN_ON(1);
-@@ -244,7 +244,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
- 	return NULL;
- }
- 
--void omap_pm_cpu_set_freq(unsigned long f)
-+void omap_pm_cpu_set_freq(struct device *dev, unsigned long f)
- {
- 	if (f == 0) {
- 		WARN_ON(1);
-diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
-index 4350650..aece740 100644
---- a/arch/arm/plat-omap/omap-pm-srf.c
-+++ b/arch/arm/plat-omap/omap-pm-srf.c
-@@ -169,8 +169,6 @@ void omap_pm_set_max_sdma_lat(struct device *dev, long t)
- 	}
- }
- 
--static struct device dummy_dsp_dev;
--
- /*
-  * DSP Bridge-specific constraints
-  */
-@@ -187,20 +185,15 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
- }
- EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
- 
--void omap_pm_dsp_set_min_opp(u8 opp_id)
-+void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id)
- {
--	if (opp_id == 0) {
-+	if (dev == NULL || opp_id == 0) {
- 		WARN_ON(1);
- 		return;
- 	}
- 
- 	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id);
--
--	/*
--	 * For now pass a dummy_dev struct for SRF to identify the caller.
--	 * Maybe its good to have DSP pass this as an argument
--	 */
--	resource_request("vdd1_opp", &dummy_dsp_dev, opp_id);
-+	resource_request("vdd1_opp", dev, opp_id);
- 	return;
- }
- EXPORT_SYMBOL(omap_pm_dsp_set_min_opp);
-@@ -246,19 +239,16 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
- 	return NULL;
- }
- 
--static struct device dummy_cpufreq_dev;
--
--void omap_pm_cpu_set_freq(unsigned long f)
-+void omap_pm_cpu_set_freq(struct device *dev, unsigned long f)
- {
--	if (f == 0) {
-+	if (dev == NULL || f == 0) {
- 		WARN_ON(1);
- 		return;
- 	}
- 
- 	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n",
- 		 f);
--
--	resource_request("mpu_freq", &dummy_cpufreq_dev, f);
-+	resource_request("mpu_freq", dev, f);
- 	return;
- }
- EXPORT_SYMBOL(omap_pm_cpu_set_freq);
+Teerth,
+
+Please resubmit this patch against linux-omap master.  This
+fix could go into 2.6.32 fixes.
+
+Kevin
+
+> ---
+>  arch/arm/mach-omap2/board-zoom2.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+>
+> Index: linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+> ===================================================================
+> --- linux-omap-pm.orig/arch/arm/mach-omap2/board-zoom2.c
+> +++ linux-omap-pm/arch/arm/mach-omap2/board-zoom2.c
+> @@ -26,6 +26,7 @@
+>  
+>  #include "mmc-twl4030.h"
+>  #include "omap3-opp.h"
+> +#include "sdram-micron-mt46h32m32lf-6.h"
+>  
+>  /* Zoom2 has Qwerty keyboard*/
+>  static int board_keymap[] = {
+> @@ -214,8 +215,9 @@ static void __init omap_zoom2_init_irq(v
+>  {
+>  	omap_board_config = zoom2_config;
+>  	omap_board_config_size = ARRAY_SIZE(zoom2_config);
+> -	omap2_init_common_hw(NULL, NULL, omap3_mpu_rate_table,
+> -	                     omap3_dsp_rate_table, omap3_l3_rate_table);
+> +	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+> +				mt46h32m32lf6_sdrc_params, omap3_mpu_rate_table,
+> +				omap3_dsp_rate_table, omap3_l3_rate_table);
+>  	omap_init_irq();
+>  	omap_gpio_init();
+>  }
