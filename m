@@ -1,44 +1,58 @@
-From: Nishanth Menon <menon.nishanth@gmail.com>
-Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in
- i2c
-Date: Wed, 07 Oct 2009 05:49:18 -0500
-Message-ID: <4ACC722E.5060707@gmail.com>
-References: <> <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>	 <FCCFB4CDC6E5564B9182F639FC35608702F9F49663@dbde02.ent.ti.com> <1254910234.22468.251.camel@ubuntu>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] OMAP3: PM: Update omap3_pm_defconfig
+Date: Wed, 7 Oct 2009 17:31:19 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A332920@dbde02.ent.ti.com>
+References: <1254898768-16495-1-git-send-email-rnayak@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f173.google.com ([209.85.210.173]:46405 "EHLO
-	mail-yx0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758907AbZJGKt5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 06:49:57 -0400
-Received: by yxe3 with SMTP id 3so4543097yxe.4
-        for <linux-omap@vger.kernel.org>; Wed, 07 Oct 2009 03:49:21 -0700 (PDT)
-In-Reply-To: <1254910234.22468.251.camel@ubuntu>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60469 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932830AbZJGMCC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 08:02:02 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n97C1MAS002147
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 7 Oct 2009 07:01:24 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n97C1MMi009148
+	for <linux-omap@vger.kernel.org>; Wed, 7 Oct 2009 17:31:22 +0530 (IST)
+In-Reply-To: <1254898768-16495-1-git-send-email-rnayak@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Sonasath, Moiz" <m-sonasath@ti.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Nayak, Rajendra" <rnayak@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Kalle Jokiniemi said the following on 10/07/2009 05:10 AM:
->>> extra delays and subsequent re-trys cause i2c clocks
->>> to be active more often. This has also an negative
->>> effect on power consumption.
->>>
->>> Added a constraint that allows MPU to wake up in few
->>> hundred usecs, which is roughly the average i2c wait
->>> period.
->>>       
->> How did you arrive at the number 500us for the wakeup latency?
->>     
->
-> This was about the average time that I observed i2c-transfers to be
-> (from clk_enable to clk_disable), when off mode was not enabled.
->   
-just a quick 2cents: I understand that the 500uSec might need to be
-board dependent - here is why:
-one theory we have regarding the timeout delay having to be modified on
-zoom2 was that if the delay was 500uSec, the touch screen controller
-timesout and pulls of the data in the middle of transfer.
-Regards,
-Nishanth Menon
+> Some of the sysfs deprecated entries, if not enabled cause
+> root filesystem mounts to fail at boot.
+> This is seen on both the 3430SDP as well as 3430zoom platforms.
+> 
+> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+> ---
+>  arch/arm/configs/omap3_pm_defconfig |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap3_pm_defconfig 
+> b/arch/arm/configs/omap3_pm_defconfig
+> index 9d54139..b1c42ed 100644
+> --- a/arch/arm/configs/omap3_pm_defconfig
+> +++ b/arch/arm/configs/omap3_pm_defconfig
+> @@ -58,7 +58,8 @@ CONFIG_FAIR_GROUP_SCHED=y
+>  CONFIG_USER_SCHED=y
+>  # CONFIG_CGROUP_SCHED is not set
+>  # CONFIG_CGROUPS is not set
+> -# CONFIG_SYSFS_DEPRECATED_V2 is not set
+> +CONFIG_SYSFS_DEPRECATED=y
+> +CONFIG_SYSFS_DEPRECATED_V2=y
+
+I think these were deliberately removed on  many OMAP3
+defconfigs by a recent patch from Vikram
+.
+Having these enabled makes it hard to boot on a newer
+busybox filesystem.
+
+It's easy to fix if you just upgrade busybox to a newer
+version.
+
+- Anand
