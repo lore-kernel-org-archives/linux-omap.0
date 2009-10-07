@@ -1,226 +1,44 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH V3] OMAP: I2C: Add mpu wake up latency constraint in i2c
-Date: Wed, 7 Oct 2009 13:49:29 +0300
-Message-ID: <1254912569-30089-1-git-send-email-kalle.jokiniemi@digia.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint in
+ i2c
+Date: Wed, 07 Oct 2009 05:49:18 -0500
+Message-ID: <4ACC722E.5060707@gmail.com>
+References: <> <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>	 <FCCFB4CDC6E5564B9182F639FC35608702F9F49663@dbde02.ent.ti.com> <1254910234.22468.251.camel@ubuntu>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:59247 "EHLO smtp1.digia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758842AbZJGKtW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 7 Oct 2009 06:49:22 -0400
-In-Reply-To: <>
-References: <>
+Received: from mail-yx0-f173.google.com ([209.85.210.173]:46405 "EHLO
+	mail-yx0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758907AbZJGKt5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 06:49:57 -0400
+Received: by yxe3 with SMTP id 3so4543097yxe.4
+        for <linux-omap@vger.kernel.org>; Wed, 07 Oct 2009 03:49:21 -0700 (PDT)
+In-Reply-To: <1254910234.22468.251.camel@ubuntu>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, jhnikula@gmail.com, vikram.pandita@ti.com, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "Sonasath, Moiz" <m-sonasath@ti.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-While waiting for completion of the i2c transfer, the
-MPU could hit OFF mode and cause several msecs of
-delay that made i2c transfers fail more often. The
-extra delays and subsequent re-trys cause i2c clocks
-to be active more often. This has also an negative
-effect on power consumption.
-
-Added a constraint that allows MPU to wake up in few
-hundred usecs, which is roughly the average i2c wait
-period.
-
-The constraint function is passed as platform data from
-plat-omap/i2c.c. Currently there is implementation for
-omap3 constraint. Future omap platforms should implement
-their own functions, and pass them instead.
-
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
----
- arch/arm/plat-omap/i2c.c      |   54 +++++++++++++++++++++++++++++++---------
- drivers/i2c/busses/i2c-omap.c |   19 +++++++++++---
- include/linux/i2c-omap.h      |    9 +++++++
- 3 files changed, 66 insertions(+), 16 deletions(-)
- create mode 100644 include/linux/i2c-omap.h
-
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 8b84839..e923db5 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -26,8 +26,10 @@
- #include <linux/kernel.h>
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-omap.h>
- #include <mach/irqs.h>
- #include <mach/mux.h>
-+#include <mach/omap-pm.h>
- 
- #define OMAP_I2C_SIZE		0x3f
- #define OMAP1_I2C_BASE		0xfffb3800
-@@ -69,14 +71,14 @@ static struct resource i2c_resources[][2] = {
- 		},					\
- 	}
- 
--static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
-+static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
- static struct platform_device omap_i2c_devices[] = {
--	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
-+	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
- #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
--	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
-+	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
- #endif
- #if	defined(CONFIG_ARCH_OMAP34XX)
--	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
-+	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
- #endif
- };
- 
-@@ -100,6 +102,31 @@ static const int omap34xx_pins[][2] = {};
- 
- #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
- 
-+/**
-+ * omap3_i2c_set_wfc_mpu_wkup_lat - sets mpu wake up constraint
-+ * @dev:	i2c bus device pointer
-+ * @set:	set or clear constraints
-+ *
-+ * When waiting for completion of a i2c transfer, we need to set a wake up
-+ * latency constraint for the MPU. This is to ensure quick enough wakeup from
-+ * idle, when transfer completes. For OMAP3 platform.
-+ */
-+#ifdef CONFIG_ARCH_OMAP34XX
-+static void omap3_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int set)
-+{
-+	omap_pm_set_max_mpu_wakeup_lat(dev, set ? 400 : -1);
-+}
-+#endif
-+
-+static void __init omap_set_i2c_constraint_func(
-+				struct omap_i2c_bus_platform_data *pd)
-+{
-+	if (cpu_is_omap34xx())
-+		pd->set_mpu_wkup_lat = omap3_i2c_set_wfc_mpu_wkup_lat;
-+	else
-+		pd->set_mpu_wkup_lat = NULL;
-+}
-+
- static void __init omap_i2c_mux_pins(int bus)
- {
- 	int scl, sda;
-@@ -180,8 +207,8 @@ static int __init omap_i2c_bus_setup(char *str)
- 	get_options(str, 3, ints);
- 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
- 		return 0;
--	i2c_rate[ints[1] - 1] = ints[2];
--	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
-+	i2c_pdata[ints[1] - 1].clkrate = ints[2];
-+	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
- 
- 	return 1;
- }
-@@ -195,9 +222,10 @@ static int __init omap_register_i2c_bus_cmdline(void)
- {
- 	int i, err = 0;
- 
--	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
--		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
--			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
-+	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
-+		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
-+			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
-+			omap_set_i2c_constraint_func(&i2c_pdata[i]);
- 			err = omap_i2c_add_bus(i + 1);
- 			if (err)
- 				goto out;
-@@ -231,9 +259,11 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
- 			return err;
- 	}
- 
--	if (!i2c_rate[bus_id - 1])
--		i2c_rate[bus_id - 1] = clkrate;
--	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
-+	if (!i2c_pdata[bus_id - 1].clkrate)
-+		i2c_pdata[bus_id - 1].clkrate = clkrate;
-+
-+	omap_set_i2c_constraint_func(&i2c_pdata[bus_id - 1]);
-+	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
- 
- 	return omap_i2c_add_bus(bus_id);
- }
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 75bf3ad..168623f 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -37,6 +37,7 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/i2c-omap.h>
- 
- /* I2C controller revisions */
- #define OMAP_I2C_REV_2			0x20
-@@ -165,6 +166,8 @@ struct omap_i2c_dev {
- 	struct clk		*fclk;		/* Functional clock */
- 	struct completion	cmd_complete;
- 	struct resource		*ioarea;
-+	void			(*set_mpu_wkup_lat)(struct device *dev,
-+						    int set);
- 	u32			speed;		/* Speed of bus in Khz */
- 	u16			cmd_err;
- 	u8			*buf;
-@@ -526,8 +529,12 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	 * REVISIT: We should abort the transfer on signals, but the bus goes
- 	 * into arbitration and we're currently unable to recover from it.
- 	 */
-+	if (dev->set_mpu_wkup_lat != NULL)
-+		dev->set_mpu_wkup_lat(dev->dev, 1);
- 	r = wait_for_completion_timeout(&dev->cmd_complete,
- 					OMAP_I2C_TIMEOUT);
-+	if (dev->set_mpu_wkup_lat != NULL)
-+		dev->set_mpu_wkup_lat(dev->dev, 0);
- 	dev->buf_len = 0;
- 	if (r < 0)
- 		return r;
-@@ -844,6 +851,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	struct omap_i2c_dev	*dev;
- 	struct i2c_adapter	*adap;
- 	struct resource		*mem, *irq, *ioarea;
-+	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
- 	irq_handler_t isr;
- 	int r;
- 	u32 speed = 0;
-@@ -873,10 +881,13 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_release_region;
- 	}
- 
--	if (pdev->dev.platform_data != NULL)
--		speed = *(u32 *)pdev->dev.platform_data;
--	else
--		speed = 100;	/* Defualt speed */
-+	if (pdata != NULL) {
-+		speed = pdata->clkrate;
-+		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-+	} else {
-+		speed = 100;	/* Default speed */
-+		dev->set_mpu_wkup_lat = NULL;
-+	}
- 
- 	dev->speed = speed;
- 	dev->idle = 1;
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-new file mode 100644
-index 0000000..1362fba
---- /dev/null
-+++ b/include/linux/i2c-omap.h
-@@ -0,0 +1,9 @@
-+#ifndef __I2C_OMAP_H__
-+#define __I2C_OMAP_H__
-+
-+struct omap_i2c_bus_platform_data {
-+	u32		clkrate;
-+	void		(*set_mpu_wkup_lat)(struct device *dev, int set);
-+};
-+
-+#endif
--- 
-1.5.4.3
-
+Kalle Jokiniemi said the following on 10/07/2009 05:10 AM:
+>>> extra delays and subsequent re-trys cause i2c clocks
+>>> to be active more often. This has also an negative
+>>> effect on power consumption.
+>>>
+>>> Added a constraint that allows MPU to wake up in few
+>>> hundred usecs, which is roughly the average i2c wait
+>>> period.
+>>>       
+>> How did you arrive at the number 500us for the wakeup latency?
+>>     
+>
+> This was about the average time that I observed i2c-transfers to be
+> (from clk_enable to clk_disable), when off mode was not enabled.
+>   
+just a quick 2cents: I understand that the 500uSec might need to be
+board dependent - here is why:
+one theory we have regarding the timeout delay having to be modified on
+zoom2 was that if the delay was 500uSec, the touch screen controller
+timesout and pulls of the data in the middle of transfer.
+Regards,
+Nishanth Menon
