@@ -1,44 +1,50 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH] OMAP3: PM: Update omap3_pm_defconfig
-Date: Wed,  7 Oct 2009 12:29:28 +0530
-Message-ID: <1254898768-16495-1-git-send-email-rnayak@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46404 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883AbZJGHAJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 03:00:09 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n976xUvK024141
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 7 Oct 2009 01:59:32 -0500
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCHv3 1/7] OMAP4: PMIC: Add support for twl6030
+	codec
+Date: Wed, 7 Oct 2009 10:32:36 +0300
+Message-ID: <200910071032.36999.peter.ujfalusi@nokia.com>
+References: <67059DBF19D7214F9C66BB0EA91BA90E90C2F648@dlee04.ent.ti.com>
+	<200910061146.05080.peter.ujfalusi@nokia.com>
+	<67059DBF19D7214F9C66BB0EA91BA90E90C2F931@dlee04.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <67059DBF19D7214F9C66BB0EA91BA90E90C2F931@dlee04.ent.ti.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "ext Lopez Cruz, Misael" <x0052729@ti.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Krishnamoorthy,
+	Balaji T" <balajitk@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Rajendra Nayak <rnayak@ti.com>
 
-Some of the sysfs deprecated entries, if not enabled cause
-root filesystem mounts to fail at boot.
-This is seen on both the 3430SDP as well as 3430zoom platforms.
+On Tuesday 06 October 2009 19:53:03 ext Lopez Cruz, Misael wrote:
+> Peter Ujfalusi wrote:
+> > How does the twl4030 series would fit with this modification?
+> > I have also added the twl4030 codec as a child for the twl
+> > MFD, but I have not finished the cleanup of the codec fully.
+> =
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
----
- arch/arm/configs/omap3_pm_defconfig |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+> twl6030 codec data won't conflict with twl4030's as it's dependent of
+> TWL6030_CORE. We can add parallely the required data for twl4030 codec.
 
-diff --git a/arch/arm/configs/omap3_pm_defconfig b/arch/arm/configs/omap3_pm_defconfig
-index 9d54139..b1c42ed 100644
---- a/arch/arm/configs/omap3_pm_defconfig
-+++ b/arch/arm/configs/omap3_pm_defconfig
-@@ -58,7 +58,8 @@ CONFIG_FAIR_GROUP_SCHED=y
- CONFIG_USER_SCHED=y
- # CONFIG_CGROUP_SCHED is not set
- # CONFIG_CGROUPS is not set
--# CONFIG_SYSFS_DEPRECATED_V2 is not set
-+CONFIG_SYSFS_DEPRECATED=y
-+CONFIG_SYSFS_DEPRECATED_V2=y
- # CONFIG_RELAY is not set
- # CONFIG_NAMESPACES is not set
- CONFIG_BLK_DEV_INITRD=y
--- 
-1.5.4.7
+I see. I think I'll wait till the twl6030 codec and it's dependencies are i=
+n =
 
+place, than I can start adding the needed code for the twl4030 codec as wel=
+l.
+
+Obviously this is needed for the clean up of twl4030 codec and get it to mo=
+re =
+
+sane form.
+
+Thanks,
+P=E9ter
