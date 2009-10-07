@@ -1,52 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] OMAP1: Massive clean up of omap730/omap850 code
-Date: Wed, 7 Oct 2009 10:54:11 -0700
-Message-ID: <20091007175410.GH7899@atomide.com>
-References: <3d374d00909192107t3e7d591dhf1a94ba43d0422e8@mail.gmail.com> <20090921231723.GD27699@atomide.com> <3d374d00909231126y442c41e1y558664b360205192@mail.gmail.com> <20090923222143.GM4919@atomide.com> <3d374d00909281419v1b4bf578sdb883371655492bb@mail.gmail.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: Linux omap blocked on boot
+Date: Wed, 7 Oct 2009 23:28:01 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A332A59@dbde02.ent.ti.com>
+References: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com>
+ <87ljjnl2ma.fsf@deeprootsystems.com> <4ACCB4EA.1020904@disca.upv.es>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57703 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759750AbZJGRy6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 13:54:58 -0400
-Content-Disposition: inline
-In-Reply-To: <3d374d00909281419v1b4bf578sdb883371655492bb@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:54068 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753833AbZJGR7j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 13:59:39 -0400
+In-Reply-To: <4ACCB4EA.1020904@disca.upv.es>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alistair Buxton <a.j.buxton@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Alberto J. Perez" <aperez@disca.upv.es>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Alistair Buxton <a.j.buxton@gmail.com> [090928 14:19]:
-> 2009/9/23 Tony Lindgren <tony@atomide.com>:
-> >
-> > Thanks, looks good to me.
-> >
-> > Can you please rebase against the mainline 2.6.32-rc1 once it gets
-> > tagged?
-> >
-> > Then please keep your branch around until it all gets merged into the
-> > mainline tree. There should not be any need for you to rebase it,
-> > but I may need to pull it several times as I rebase the various
-> > upstream queues after each -rc.
-> 
-> Done. ZMC has now reviewed it, and I've mirrored it to a proper hosted
-> server too:
-> 
-> git://robotfuzz.com/linwizard-kernel.git
-> branch: omap7xx-fortony-rc1
-> 
-> Confirmed booting to a shell with the addition of the patches in
-> branch omap7xx-test2 - but those patches aren't ready to go as we
-> still need workarounds for a serial bug in order to know that we have
-> booted.
+(Hit send too soon)
 
-Can you please rebase on v2.6.32-rc3 and let me know when you have
-your new branch ready? There's one merge conflict merging that branch
-from -rc1, I've kind of tweaked my scripts to work around that but
-it still needs manual merging ;)
+> Hi all!
+> 
+> I'm recompiling the linux-omap-2.6/origin/pm branch and every time I get 
+> the boot process stalled after kernel image decompression.
+> 
+> - With the linux-omap-2.6/origin/2.6.30 branch I have no problems.
+> - I've tried with 2008q3-72 & 2009q1-203 arm compilers.
+> 
+> I attach the .config I used.
+> 
+> Some one have or had the same problem?
+> 
+> Thanks in advance,
+> 
+> Alberto.
+> 
+
+Alberto,
+
+>From the .config you attached, it looks like this is the Gumstix
+Overo, right?
+
+Could you try enabling CONFIG_DEBUG_LL and patch kernel/printk.c
+and see if there is a crash at bootup? You can find the patch in the
+omap-debug branch (See [1] for the notification)
 
 Regards,
+Anand
 
-Tony
-
+[1] http://marc.info/?l=linux-omap&m=125416465315169&w=2
