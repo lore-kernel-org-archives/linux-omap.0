@@ -1,37 +1,37 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 3/5] ARM: OMAP2/3/4: Move SRAM map to claim more io space
-Date: Wed, 7 Oct 2009 18:22:30 -0400
-Message-ID: <notify-1254954106@atomide.com>
-References: <1251034495-10107-3-git-send-email-santosh.shilimkar@ti.com>
+Subject: Patches merged to split OMAP2_IO_ADDRESS
+Date: Wed, 7 Oct 2009 17:25:06 -0700
+Message-ID: <20091008002506.GF29320@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52079 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63264 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753074AbZJGWWa (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 18:22:30 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MvetI-000CHm-0Y
-	for linux-omap@vger.kernel.org; Wed, 07 Oct 2009 22:21:48 +0000
-In-Reply-To: <1251034495-10107-3-git-send-email-santosh.shilimkar@ti.com>
+	with ESMTP id S1754726AbZJHAZu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 20:25:50 -0400
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Paul Walmsley <paul@pwsan.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+Hi all,
 
-Branch in linux-omap: omap-headers
+I've pushed Santosh' patches to split OMAP2_IO_ADDRESS into *_L3_IO_ADDRESS
+and *_L4_IO_ADDRESS so we can claim more kernel address space and support
+over 512MB of memory instead of 256MB.
 
-Initial commit ID (Likely to change): 852d65020549b1c379dd6e0338de7b9ac8970fd0
+Of course, our goal is to convert everything except the .S files to
+use ioremap() instead, but that can now be done parallel and in smaller
+chunks.
 
-PatchWorks
-http://patchwork.kernel.org/patch/43500/
+Please everybody, please convert your code to use ioremap(), there are
+static mappings already in place so it should work out of the box.
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=852d65020549b1c379dd6e0338de7b9ac8970fd0
+I also had add two quick patches to keep things compiling,
+Paul can you take a look at them? I could not really test them as all
+the code is not there yet. Will post them as a reply to this thread.
 
+Regards,
 
+Tony
