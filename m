@@ -1,117 +1,158 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Query: EHCI clock management approach
-Date: Thu, 08 Oct 2009 16:32:44 -0700
-Message-ID: <877hv531ib.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A332A93@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v3] OMAP3: introduce OMAP3630
+Date: Thu,  8 Oct 2009 18:47:07 -0500
+Message-ID: <1255045627-23405-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:41819 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755092AbZJHXd6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 19:33:58 -0400
-Received: by pzk26 with SMTP id 26so5822900pzk.4
-        for <linux-omap@vger.kernel.org>; Thu, 08 Oct 2009 16:32:46 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A332A93@dbde02.ent.ti.com> (Anand Gadiyar's message of "Thu\, 8 Oct 2009 06\:51\:55 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34749 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756791AbZJHXrz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Oct 2009 19:47:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, Allen Pais <allen.pais@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
 
-"Gadiyar, Anand" <gadiyar@ti.com> writes:
+--- SNIP ME --
+Hi,
+A bit of history for this patchset
+V3 - Fixes from Sergio's comments + boot tested on SDP3430+3630.
+V2 - fixes of generic comments from Felipe Balbi+minor cleanups
+V1 - inital implementation of (a) approach
+V0 - original approach introducing a new silicon family
+--- END OF SNIP ME --
+Device intro:
+OMAP3630 is the latest in the family of OMAP3 devices
+and among the changes it introduces are:
 
-> I'd like to post a patch in a couple of days to refactor the EHCI
-> clock management code. This would be useful to do aggressive clock
-> management in the idle path.
->
-> A current implementation I have is to simply factor out the
-> clock_enable/disable calls out. Does it make sense to move this out
-> to mach-omap2/* and provide the function pointer through platform
-> data? Does the driver need to be aware of the clocks that it needs,
-> or is it sufficient for it to just call a platform-specific function
-> that turns on/off all the clocks needed by the driver?
->
-> The reason I ask is, in a future OMAP, we may need to enable a
-> different set of clocks, but we should be able to re-use the rest of
-> the code directly.
+New OPP levels for new voltage and frequency levels. a bunch of
+Bug fixes to various modules feature additions, notably with ISP,
+sDMA etc.
 
-I am so glad you asked...
+Details about the chip is available here:
+http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
 
-The short answer is: use omap_device.
+Strategy used:
+Strategy to introduce this device into Linux was discussed here:
+Ref: http://marc.info/?t=125343303400003&r=1&w=2
 
-Now that omap_hwmod + omap_device are in mainline (thanks to Paul
-Walmsley), all new drivers need to use this.
+Two approaches were available:
+a) Consider 3630 generation of devices as a new family of silicon
+b) Consider 3630 as an offshoot of 3430 family of devices
 
-Once an omap_hwmod and omap_device for EHCI are implemented, the
-driver calls would be abstracted just like you are looking for.
-Below[3], I extracted the comments dirctly from
-arch/arm/plat-omap/omap_device.c which describe how the drivers would
-use these.  You can also look at an example of a converted MMC
-driver[1] done by Paul.
+As a common consensus, (b) seems to be more valid for 3630 as:
+* There are changes which are easily handled by using "FEATURES"
+  infrastructure.
+  For details how to do this, see thread:
+  http://marc.info/?t=125050998500001&r=1&w=2
+* Most of existing 34xx infrastructure can be reused(almost 90%+)
+	- so no ugly if (cpu_is_omap34xx() || cpu_is_omap36xx())
+	  all over the place
+	- lesser chance of bugs due to reuse of proven code flow
+	- 36xx specific handling can still be done where required
+	  within the existing infrastructure
 
-Note that the abstraction via pdata to omap_device will be going away
-by the time we reach 2.6.33 (hopefully.)  By then the runtime PM
-framework[2] will be available for OMAP and, drivers will use runtime
-PM.  The runtime PM core for OMAP will then call the omap_device layer
-directly.
+NOTE:
+* If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+  added on top of the existing 3630 ones are renumbered
 
-Kevin
+This patch was tested on SDP3430, boot tested on 3630 platform using
+3430sdp defconfig
 
-[1] http://marc.info/?l=linux-omap&m=124419789124570&w=2
+Signed-off-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Allen Pais <allen.pais@ti.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/id.c              |   32 +++++++++++++++++++++++++++++---
+ arch/arm/plat-omap/include/mach/cpu.h |    6 ++++++
+ 2 files changed, 35 insertions(+), 3 deletions(-)
 
-[2] http://elinux.org/OMAP_Power_Management#future_directions
-
-[3] This is extracted directly from the header of
-    arch/arm/plat-omap/omap_device.c
-
-
-Guidelines for usage by driver authors:
-
-1. These functions are intended to be used by device drivers via
-function pointers in struct platform_data.  As an example,
-omap_device_enable() should be passed to the driver as
-
-struct foo_driver_platform_data {
-...
-     int (*device_enable)(struct platform_device *pdev);
-...
-}
-
-Note that the generic "device_enable" name is used, rather than
-"omap_device_enable".  This is so other architectures can pass in their
-own enable/disable functions here.
-
-This should be populated during device setup:
-
-...
-pdata->device_enable = omap_device_enable;
-...
-
-2. Drivers should first check to ensure the function pointer is not null
-before calling it, as in:
-
-if (pdata->device_enable)
-    pdata->device_enable(pdev);
-
-This allows other architectures that don't use similar device_enable()/
-device_shutdown() functions to execute normally.
-
-...
-
-Suggested usage by device drivers:
-
-During device initialization:
-device_enable()
-
-During device idle:
-(save remaining device context if necessary)
-device_idle();
-
-During device resume:
-device_enable();
-(restore context if necessary)
-
-During device shutdown:
-device_shutdown()
-(device must be reinitialized at this point to use it again)
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 03b80f2..2870d3b 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -186,6 +186,7 @@ void __init omap3_check_revision(void)
+ {
+ 	u32 cpuid, idcode;
+ 	u16 hawkeye;
++	u16 omap_type = 0;
+ 	u8 rev;
+ 	char *rev_name = "ES1.0";
+ 
+@@ -210,7 +211,9 @@ void __init omap3_check_revision(void)
+ 	hawkeye = (idcode >> 12) & 0xffff;
+ 	rev = (idcode >> 28) & 0xff;
+ 
+-	if (hawkeye == 0xb7ae) {
++	switch (hawkeye) {
++	case 0xb7ae:
++		/* Handle 34xx devices */
+ 		switch (rev) {
+ 		case 0:
+ 			omap_revision = OMAP3430_REV_ES2_0;
+@@ -231,12 +234,35 @@ void __init omap3_check_revision(void)
+ 		default:
+ 			/* Use the latest known revision as default */
+ 			omap_revision = OMAP3430_REV_ES3_1;
+-			rev_name = "Unknown revision\n";
++			rev_name = "Unknown 34xx revision\n";
+ 		}
++		break;
++	case 0xb891:
++		/* Handle 36xx devices
++		 * But, override for display purposes
++		 */
++		omap_type = 0x3630;
++		switch (rev) {
++		case 0:
++			omap_revision = OMAP3630_REV_ES1_0;
++			rev_name = "ES1.0";
++			break;
++		default:
++			/* Use the latest known revision as default */
++			omap_revision = OMAP3630_REV_ES1_0;
++			rev_name = "Unknown 36xx revision\n";
++		}
++		break;
++	default:
++		/* Unknown default to latest rev as default*/
++		omap_revision = OMAP3630_REV_ES1_0;
++		rev_name = "Unknown revision\n";
+ 	}
+ 
+ out:
+-	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
++	if (!omap_type)
++		omap_type = omap_rev() >> 16;
++	pr_info("OMAP%04x %s\n", omap_type, rev_name);
+ }
+ 
+ #define OMAP3_SHOW_FEATURE(feat)		\
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index 431fec4..af1080f 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define OMAP3430_REV_ES2_1	0x34302034
+ #define OMAP3430_REV_ES3_0	0x34303034
+ #define OMAP3430_REV_ES3_1	0x34304034
++/* NOTE: Add 36xx series below
++ * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
++ * added above the 3630 defines and series renumbered to ensure
++ * rev() > checks to work
++ */
++#define OMAP3630_REV_ES1_0	0x34305034
+ 
+ #define OMAP443X_CLASS		0x44300034
+ 
+-- 
+1.6.0.4
 
