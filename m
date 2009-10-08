@@ -1,13 +1,13 @@
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH 7/8] ASoC: tlv320aic3x: add initial usage of regulator framework to control avdd_dac
-Date: Thu,  8 Oct 2009 14:58:56 +0300
-Message-ID: <1255003137-1034-8-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCH 8/8] ASoC: tpa6130a2: Control vdd using regulator framework
+Date: Thu,  8 Oct 2009 14:58:57 +0300
+Message-ID: <1255003137-1034-9-git-send-email-eduardo.valentin@nokia.com>
 References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:45208 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757712AbZJHMBG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 08:01:06 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:55113 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757854AbZJHMBU (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 08:01:20 -0400
 In-Reply-To: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -16,78 +16,87 @@ Cc: "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eer
 
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-This patch adds initial usage of regulator framework to control avdd_dac
-inside tlv320aic3x ASoC codec driver.
+This patch adds regulator framework control over vdd for tpa6130a2 driver.
 
-The  refcount to avdd_dac is increased / decreased
-only during probe and remove. Here it is still needed to implement
-proper enable/disable regulator depending on chip usage. Now if driver
-can get regulator for avdd_dac, then it will just let it on on probe
-and then leave it off on remove.
+Vdd refcount is increased every time the device
+is power on and decreased when device is power off. If driver
+fails to get regulator for "vdd" supply, then it will assume
+its regulator is always on.
 
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- sound/soc/codecs/tlv320aic3x.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
+ sound/soc/codecs/tpa6130a2.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/codecs/tlv320aic3x.c b/sound/soc/codecs/tlv320aic3x.c
-index 3395cf9..82e0a64 100644
---- a/sound/soc/codecs/tlv320aic3x.c
-+++ b/sound/soc/codecs/tlv320aic3x.c
-@@ -38,6 +38,7 @@
- #include <linux/delay.h>
- #include <linux/pm.h>
+diff --git a/sound/soc/codecs/tpa6130a2.c b/sound/soc/codecs/tpa6130a2.c
+index d246aad..35720ce 100644
+--- a/sound/soc/codecs/tpa6130a2.c
++++ b/sound/soc/codecs/tpa6130a2.c
+@@ -26,6 +26,7 @@
+ #include <linux/device.h>
  #include <linux/i2c.h>
+ #include <linux/sysfs.h>
 +#include <linux/regulator/consumer.h>
- #include <linux/platform_device.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
-@@ -56,6 +57,7 @@ struct aic3x_priv {
- 	struct snd_soc_codec codec;
- 	unsigned int sysclk;
- 	int master;
+ #include <sound/tpa6130a2-plat.h>
+ #include <sound/soc.h>
+ #include <sound/soc-dapm.h>
+@@ -42,6 +43,7 @@ struct tpa6130a2_data {
+ 	unsigned char regs[TPA6130A2_CACHEREGNUM];
+ 	unsigned char power_state;
+ 	int (*set_power)(int state);
 +	struct regulator *regulator;
  };
  
- /*
-@@ -1286,6 +1288,11 @@ static int aic3x_unregister(struct aic3x_priv *aic3x)
- 	snd_soc_unregister_dai(&aic3x_dai);
- 	snd_soc_unregister_codec(&aic3x->codec);
+ static int tpa6130a2_i2c_read(int reg)
+@@ -121,6 +123,8 @@ void tpa6130a2_power(int power)
  
-+	if (aic3x->regulator) {
-+		regulator_disable(aic3x->regulator);
-+		regulator_put(aic3x->regulator);
+ 	mutex_lock(&data->mutex);
+ 	if (power) {
++		if (data->regulator)
++			regulator_enable(data->regulator);
+ 		/* Power on */
+ 		if (data->set_power) {
+ 			data->set_power(1);
+@@ -141,6 +145,8 @@ void tpa6130a2_power(int power)
+ 			data->set_power(0);
+ 			data->power_state = 0;
+ 		}
++		if (data->regulator)
++			regulator_disable(data->regulator);
+ 	}
+ 	mutex_unlock(&data->mutex);
+ }
+@@ -292,6 +298,12 @@ static int tpa6130a2_probe(struct i2c_client *client,
+ 	}
+ 
+ 	pdata = (struct tpa6130a2_platform_data *)client->dev.platform_data;
++	data->regulator = regulator_get(dev, "vdd");
++	if (IS_ERR(data->regulator)) {
++		dev_info(dev, "Could not get regulator for vdd. "
++					"Executing without regulator.\n");
++			data->regulator = NULL;
 +	}
-+
- 	kfree(aic3x);
- 	aic3x_codec = NULL;
+ 	/* Set default register values */
+ 	data->regs[TPA6130A2_REG_CONTROL] = TPA6130A2_SWS |
+ 					    TPA6130A2_HP_EN_R |
+@@ -326,6 +338,8 @@ static int tpa6130a2_probe(struct i2c_client *client,
+ 	return 0;
+ fail3:
+ 	tpa6130a2_power(0);
++	if (data->regulator)
++		regulator_put(data->regulator);
+ fail2:
+ 	kfree(data);
+ 	i2c_set_clientdata(tpa6130a2_client, NULL);
+@@ -340,6 +354,8 @@ static int tpa6130a2_remove(struct i2c_client *client)
+ 	struct tpa6130a2_data *data = i2c_get_clientdata(client);
  
-@@ -1320,6 +1327,25 @@ static int aic3x_i2c_probe(struct i2c_client *i2c,
- 	codec->control_data = i2c;
- 	codec->hw_write = (hw_write_t) i2c_master_send;
+ 	tpa6130a2_power(0);
++	if (data->regulator)
++		regulator_put(data->regulator);
+ 	kfree(data);
+ 	tpa6130a2_client = 0;
  
-+	aic3x->regulator = regulator_get(&i2c->dev, "avdd_dac");
-+	if (IS_ERR(aic3x->regulator)) {
-+		dev_warn(&i2c->dev, "No regulator to supply avdd_dac."
-+					" Assuming always on.\n");
-+		aic3x->regulator = NULL;
-+	}
-+
-+	/*
-+	 * REVISIT: Need to add proper code to put into sleep mode
-+	 * avdd_dac regulator. For now, just leave it on.
-+	 */
-+	if (aic3x->regulator) {
-+		int err;
-+
-+		err = regulator_enable(aic3x->regulator);
-+		if (err < 0)
-+			return err;
-+	}
-+
- 	i2c_set_clientdata(i2c, aic3x);
- 
- 	return aic3x_register(codec);
 -- 
 1.6.4.183.g04423
 
