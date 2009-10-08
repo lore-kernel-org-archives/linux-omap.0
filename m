@@ -1,67 +1,51 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH]  OMAP3: PM: Fix VDD2 OPP1 issue
-Date: Thu, 08 Oct 2009 06:50:59 -0700
-Message-ID: <878wfmhu4c.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 8/8] ASoC: tpa6130a2: Control vdd using
+ regulator framework
+Date: Thu, 8 Oct 2009 16:56:28 +0300
+Message-ID: <20091008135628.GA6616@esdhcp037198.research.nokia.com>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+	<1255003137-1034-9-git-send-email-eduardo.valentin@nokia.com>
+	<20091008134332.GI29176@rakim.wolfsonmicro.main>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:36658 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758163AbZJHNvj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 09:51:39 -0400
-Received: by pxi9 with SMTP id 9so5789611pxi.4
-        for <linux-omap@vger.kernel.org>; Thu, 08 Oct 2009 06:51:02 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com> (Teerth Reddy's message of "Thu\, 8 Oct 2009 14\:51\:20 +0530")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20091008134332.GI29176@rakim.wolfsonmicro.main>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Reddy, Teerth" <teerth@ti.com> writes:
-
-> From 144669d941a432875db37ae9431847f6753e566e Mon Sep 17 00:00:00 2001
-> From: Teerth Reddy <teerth@ti.com>
-> Date: Wed, 9 Sep 2009 11:01:04 +0530
-> Subject: [PATCH] ARM: OMAP3: PM: Fix VDD2 OPP1 issue
->
-> This patch fixes the VDD2 OPP1 issue. The patch has change
-> which does not allow VDD2 OPP setting to 1.VDD2 should not be put 
-> at OPP1 as this is not a supported OPP for VDD2
-
-Patch looks fine, but shortlog (subject) and changelog should be more
-clear.  These should be written for people who are not as familiar
-with the code.  For example, seeing this shortlog in a git history
-would not be helpful as the irst thing one would ask is "what OPP1
-issue?"
-
-How about something like this:
-
-Subject: OMAP3: PM: do not allow OPP1 allow for VDD2
-
-Since OPP1 is not a supported OPP for VDD2, do not allow it to be
-changed using the sysfs interface.
-
-Kevin
+On Thu, Oct 08, 2009 at 03:43:33PM +0200, Mark Brown wrote:
+> On Thu, Oct 08, 2009 at 02:58:57PM +0300, Eduardo Valentin wrote:
+> 
+> > +	data->regulator = regulator_get(dev, "vdd");
+> > +	if (IS_ERR(data->regulator)) {
+> > +		dev_info(dev, "Could not get regulator for vdd. "
+> > +					"Executing without regulator.\n");
+> > +			data->regulator = NULL;
+> > +	}
+> 
+> Similar comments to the previous patch apply to this driver - regulator
+> usage should be unconditional, error messages should not be split over
+> multiple lines and you should represent all the supplies separately (it
+> looks like there's both VDD and CPVSS required here, for example) to
+> avoid future surprises.
 
 
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
-> ---
->  arch/arm/mach-omap2/pm.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index fec7d00..d0e03c4 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -195,7 +195,7 @@ static ssize_t vdd_opp_store(struct kobject *kobj, struct kobj_attribute *attr,
->  		}
->  		resource_set_opp_level(VDD1_OPP, value, flags);
->  	} else if (attr == &vdd2_opp_attr) {
-> -		if (value < 1 || value > 3) {
-> +		if (value < 2 || value > 3) {
->  			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
->  			return -EINVAL;
->  		}
-> -- 
-> 1.5.4.7
+Yeah. The idea here was to keep driver running even if regulators
+are not properly set in board files. Maybe those in which the regulator
+is always on. That's why I wrote it with "nicely" message.
+
+-- 
+Eduardo Valentin
