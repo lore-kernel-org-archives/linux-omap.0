@@ -1,101 +1,168 @@
-From: virtuoso@slind.org
-Subject: [PATCH] [RFC] OMAP: eliminate OMAP_MAX_NR_PORTS
-Date: Thu,  8 Oct 2009 12:59:57 +0300
-Message-ID: <1254995997-26420-1-git-send-email-virtuoso@slind.org>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
+Date: Thu, 8 Oct 2009 15:43:28 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D1EF@dbde02.ent.ti.com>
+References: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
+ <1254977223-4236-1-git-send-email-nm@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:33365 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756442AbZJHKB7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 06:01:59 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:58932 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755941AbZJHKOO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 06:14:14 -0400
+In-Reply-To: <1254977223-4236-1-git-send-email-nm@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>
+To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
 
-From: Alexander Shishkin <virtuoso@slind.org>
+> -----Original Message-----
+> From: Menon, Nishanth
+> Sent: Thursday, October 08, 2009 10:17 AM
+> To: linux-omap
+> Cc: Menon, Nishanth; Chikkature Rajashekar, Madhusudhan; Pandita, Vikram;
+> Pais, Allen; Gadiyar, Anand; Cousson, Benoit; Kevin Hilman; Premi,
+> Sanjeev; Shilimkar, Santosh; Aguirre Rodriguez, Sergio Alberto; Tony
+> Lindgren
+> Subject: [RFC][PATCH] OMAP3: introduce OMAP3630
+> 
+> Device intro:
+> OMAP3630 is the latest in the family of OMAP3 devices
+> and among the changes it introduces are:
+> 
+> New OPP levels for new voltage and frequency levels. a bunch of
+> Bug fixes to various modules feature additions, notably with ISP,
+> sDMA etc.
+> 
+> Details about the chip is available here:
+> http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=61
+> 23&navigationId=12836&contentId=52606
+> 
+> Strategy used:
+> Strategy to introduce this device into Linux was discussed here:
+> Ref: http://marc.info/?t=125343303400003&r=1&w=2
+> 
+> Two approaches were available:
+> a) Consider 3630 generation of devices as a new family of silicon
+> b) Consider 3630 as an offshoot of 3430 family of devices
+> 
+> As a common consensus, (b) seems to be more valid for 3630 as:
+> * There are changes which are easily handled by looking at rev
+> * Most of existing 34xx infrastructure can be reused(almost 90%+)
+> 	- so no ugly if (cpu_is_omap34xx() || cpu_is_omap36xx())
+> 	  all over the place
+> 	- lesser chance of bugs due to reuse of proven code flow
+> 	- 36xx specific handling can still be done where required
+> 	  within the existing infrastructure
+> 
+> NOTE:
+> * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+>   added on top of the existing 3630 ones are renumbered
+> 
+> This patch was tested on SDP3430.
+> 
+> Signed-off-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> Cc: Allen Pais <allen.pais@ti.com>
+> Cc: Anand Gadiyar <gadiyar@ti.com>
+> Cc: Benoit Cousson <b-cousson@ti.com>
+> Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> Cc: Sanjeev Premi <premi@ti.com>
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/id.c              |   33
+> ++++++++++++++++++++++++++++++---
+>  arch/arm/plat-omap/include/mach/cpu.h |    6 ++++++
+>  2 files changed, 36 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 03b80f2..79193c6 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -186,6 +186,7 @@ void __init omap3_check_revision(void)
+>  {
+>  	u32 cpuid, idcode;
+>  	u16 hawkeye;
+> +	u16 omap_type;
+>  	u8 rev;
+>  	char *rev_name = "ES1.0";
+> 
+> @@ -210,7 +211,10 @@ void __init omap3_check_revision(void)
+>  	hawkeye = (idcode >> 12) & 0xffff;
+>  	rev = (idcode >> 28) & 0xff;
+> 
+> -	if (hawkeye == 0xb7ae) {
+> +	omap_type = omap_rev() >> 16;
+> +	switch (hawkeye) {
+> +	case 0xb7ae:
+> +		/* Handle 34xx devices */
+>  		switch (rev) {
+>  		case 0:
+>  			omap_revision = OMAP3430_REV_ES2_0;
+> @@ -231,12 +235,35 @@ void __init omap3_check_revision(void)
+>  		default:
+>  			/* Use the latest known revision as default */
+>  			omap_revision = OMAP3430_REV_ES3_1;
+> -			rev_name = "Unknown revision\n";
+> +			rev_name = "Unknown 34xx revision\n";
+> +			/* Fall through */
+>  		}
+> +		break;
+> +	case 0xb891:
+> +		/* Handle 36xx devices */
+> +		/* Over ride for display purposes */
+> +		omap_type = 0x3630;
+> +		switch (rev) {
+> +		case 0:
+> +			omap_revision = OMAP3630_REV_ES1_0;
+> +			rev_name = "ES1.0";
+> +			break;
+> +		default:
+> +			/* Use the latest known revision as default */
+> +			omap_revision = OMAP3630_REV_ES1_0;
+> +			rev_name = "Unknown 36xx revision\n";
+> +			/* Fall through */
+> +		}
+> +		break;
+> +	default:
+> +		/* Unknown default to latest rev as default*/
+> +		omap_revision = OMAP3630_REV_ES1_0;
+> +		rev_name = "Unknown revision\n";
+> +		/* Fall through */
+>  	}
+> 
+>  out:
+> -	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
+> +	pr_info("OMAP%04x %s\n", omap_type, rev_name);
+>  }
+> 
+>  #define OMAP3_SHOW_FEATURE(feat)		\
+> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
+> omap/include/mach/cpu.h
+> index 431fec4..af1080f 100644
+> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> @@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
+>  #define OMAP3430_REV_ES2_1	0x34302034
+>  #define OMAP3430_REV_ES3_0	0x34303034
+>  #define OMAP3430_REV_ES3_1	0x34304034
+> +/* NOTE: Add 36xx series below
+> + * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+> + * added above the 3630 defines and series renumbered to ensure
+> + * rev() > checks to work
+> + */
+> +#define OMAP3630_REV_ES1_0	0x34305034
+> 
+>  #define OMAP443X_CLASS		0x44300034
+Was expecting that this patch will add "cpu_is_omap36xx()" in cpu.h 
+apart from above. Is this handled in another patch ?
 
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
----
- arch/arm/mach-omap1/serial.c             |    2 +-
- arch/arm/mach-omap2/serial.c             |    6 +++---
- arch/arm/plat-omap/include/mach/serial.h |    4 ----
- 3 files changed, 4 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index ed07af1..a86de7c 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -123,7 +123,7 @@ void __init omap_serial_init(void)
- 		serial_platform_data[2].uartclk = OMAP1510_BASE_BAUD * 16;
- 	}
- 
--	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+	for (i = 0; i < ARRAY_SIZE(serial_platform_data); i++) {
- 		unsigned char reg;
- 
- 		switch (i) {
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index ae21868..c5bef44 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -549,7 +549,7 @@ static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
- #define DEV_CREATE_FILE(dev, attr)
- #endif /* CONFIG_PM */
- 
--static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS] = {
-+static struct omap_uart_state omap_uart[] = {
- 	{
- 		.pdev = {
- 			.name			= "serial8250",
-@@ -599,7 +599,7 @@ void __init omap_serial_early_init(void)
- 	 * if not needed.
- 	 */
- 
--	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
- 		struct omap_uart_state *uart = &omap_uart[i];
- 		struct platform_device *pdev = &uart->pdev;
- 		struct device *dev = &pdev->dev;
-@@ -641,7 +641,7 @@ void __init omap_serial_init(void)
- {
- 	int i;
- 
--	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
- 		struct omap_uart_state *uart = &omap_uart[i];
- 		struct platform_device *pdev = &uart->pdev;
- 		struct device *dev = &pdev->dev;
-diff --git a/arch/arm/plat-omap/include/mach/serial.h b/arch/arm/plat-omap/include/mach/serial.h
-index e249186..9951345 100644
---- a/arch/arm/plat-omap/include/mach/serial.h
-+++ b/arch/arm/plat-omap/include/mach/serial.h
-@@ -20,26 +20,22 @@
- #define OMAP_UART1_BASE		0xfffb0000
- #define OMAP_UART2_BASE		0xfffb0800
- #define OMAP_UART3_BASE		0xfffb9800
--#define OMAP_MAX_NR_PORTS	3
- #elif defined(CONFIG_ARCH_OMAP2)
- /* OMAP2 serial ports */
- #define OMAP_UART1_BASE		0x4806a000
- #define OMAP_UART2_BASE		0x4806c000
- #define OMAP_UART3_BASE		0x4806e000
--#define OMAP_MAX_NR_PORTS	3
- #elif defined(CONFIG_ARCH_OMAP3)
- /* OMAP3 serial ports */
- #define OMAP_UART1_BASE		0x4806a000
- #define OMAP_UART2_BASE		0x4806c000
- #define OMAP_UART3_BASE		0x49020000
--#define OMAP_MAX_NR_PORTS	3
- #elif defined(CONFIG_ARCH_OMAP4)
- /* OMAP4 serial ports */
- #define OMAP_UART1_BASE		0x4806a000
- #define OMAP_UART2_BASE		0x4806c000
- #define OMAP_UART3_BASE		0x48020000
- #define OMAP_UART4_BASE		0x4806e000
--#define OMAP_MAX_NR_PORTS	4
- #endif
- 
- #define OMAP1510_BASE_BAUD	(12000000/16)
--- 
-1.6.3.3
-
+Regards,
+Santosh
