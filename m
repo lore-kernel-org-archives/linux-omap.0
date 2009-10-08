@@ -1,85 +1,117 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
-Date: Thu, 8 Oct 2009 16:26:03 -0700
-Message-ID: <20091008232603.GB25892@atomide.com>
-References: <20091007185112.GJ7899@atomide.com>
-	<94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
-	<20091008214140.GJ7417@atomide.com>
-	<94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
-	<94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: Query: EHCI clock management approach
+Date: Thu, 08 Oct 2009 16:32:44 -0700
+Message-ID: <877hv531ib.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A332A93@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: linux-kernel@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:41819 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755092AbZJHXd6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 19:33:58 -0400
+Received: by pzk26 with SMTP id 26so5822900pzk.4
+        for <linux-omap@vger.kernel.org>; Thu, 08 Oct 2009 16:32:46 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A332A93@dbde02.ent.ti.com> (Anand Gadiyar's message of "Thu\, 8 Oct 2009 06\:51\:55 +0530")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [091008 15:20]:
-> On Fri, Oct 9, 2009 at 1:13 AM, Felipe Contreras
-> <felipe.contreras@gmail.com> wrote:
-> > On Fri, Oct 9, 2009 at 12:41 AM, Tony Lindgren <tony@atomide.com> wrote:
-> >> * Felipe Contreras <felipe.contreras@gmail.com> [091008 14:29]:
-> >>> On Wed, Oct 7, 2009 at 9:51 PM, Tony Lindgren <tony@atomide.com> wrot=
-e:
-> >>>
+"Gadiyar, Anand" <gadiyar@ti.com> writes:
 
-<snip snip>
+> I'd like to post a patch in a couple of days to refactor the EHCI
+> clock management code. This would be useful to do aggressive clock
+> management in the idle path.
+>
+> A current implementation I have is to simply factor out the
+> clock_enable/disable calls out. Does it make sense to move this out
+> to mach-omap2/* and provide the function pointer through platform
+> data? Does the driver need to be aware of the clocks that it needs,
+> or is it sufficient for it to just call a platform-specific function
+> that turns on/off all the clocks needed by the driver?
+>
+> The reason I ask is, in a future OMAP, we may need to enable a
+> different set of clocks, but we should be able to re-use the rest of
+> the code directly.
 
-> >>> The beagleboard is still not booting for me with this branch, I need
-> >>> to add these two patches:
-> >>>
-> >>> * http://patchwork.kernel.org/patch/50721/
-> >>>
-> >>
-> >> This should go to the mainline kernel via Samuel as it's
-> >> drivers/mfd related.
-> >>
-> >>> This one is needed because the defconfig has:
-> >>> CONFIG_TWL4030_USB=3Dy
-> >>>
-> >>> * http://patchwork.kernel.org/patch/50970/
-> >>>
-> >>> This is needed because most people boot from an MMC.
-> >>
-> >> And this should go in via the mmc list.
-> >
-> > Should it?
-> >
-> > Here you can see Uwe Kleine-K=F6nig sending the original patch without
-> > even CC'ing the mmc list:
-> > http://marc.info/?l=3Dlinux-kernel&m=3D124820861213849&w=3D2
-> >
-> > And it was unintentionally broken by this one:
-> > http://marc.info/?l=3Dlinux-mmc&m=3D125249763422227&w=3D2
-> =
+I am so glad you asked...
 
-> Er, actually that one was ok, the problem was introduced only in the
-> final version:
-> http://marc.info/?l=3Dlinux-mmc&m=3D125366315417006&w=3D2
+The short answer is: use omap_device.
 
-Right, looks like Roger forgot to Cc linux-mmc.
- =
+Now that omap_hwmod + omap_device are in mainline (thanks to Paul
+Walmsley), all new drivers need to use this.
 
-> > I don't see what we are waiting for, the code is clearly broken, even
-> > the compiler warns that nobody is using omap_hsmmc_probe().
+Once an omap_hwmod and omap_device for EHCI are implemented, the
+driver calls would be abstracted just like you are looking for.
+Below[3], I extracted the comments dirctly from
+arch/arm/plat-omap/omap_device.c which describe how the drivers would
+use these.  You can also look at an example of a converted MMC
+driver[1] done by Paul.
 
-I've sent Roger's patch to Andrew & linux-mmc so hopefully it will get
-merged soon:
+Note that the abstraction via pdata to omap_device will be going away
+by the time we reach 2.6.33 (hopefully.)  By then the runtime PM
+framework[2] will be available for OMAP and, drivers will use runtime
+PM.  The runtime PM core for OMAP will then call the omap_device layer
+directly.
 
-http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg00539.html
+Kevin
 
-Regards,
+[1] http://marc.info/?l=linux-omap&m=124419789124570&w=2
 
-Tony
+[2] http://elinux.org/OMAP_Power_Management#future_directions
+
+[3] This is extracted directly from the header of
+    arch/arm/plat-omap/omap_device.c
+
+
+Guidelines for usage by driver authors:
+
+1. These functions are intended to be used by device drivers via
+function pointers in struct platform_data.  As an example,
+omap_device_enable() should be passed to the driver as
+
+struct foo_driver_platform_data {
+...
+     int (*device_enable)(struct platform_device *pdev);
+...
+}
+
+Note that the generic "device_enable" name is used, rather than
+"omap_device_enable".  This is so other architectures can pass in their
+own enable/disable functions here.
+
+This should be populated during device setup:
+
+...
+pdata->device_enable = omap_device_enable;
+...
+
+2. Drivers should first check to ensure the function pointer is not null
+before calling it, as in:
+
+if (pdata->device_enable)
+    pdata->device_enable(pdev);
+
+This allows other architectures that don't use similar device_enable()/
+device_shutdown() functions to execute normally.
+
+...
+
+Suggested usage by device drivers:
+
+During device initialization:
+device_enable()
+
+During device idle:
+(save remaining device context if necessary)
+device_idle();
+
+During device resume:
+device_enable();
+(restore context if necessary)
+
+During device shutdown:
+device_shutdown()
+(device must be reinitialized at this point to use it again)
+
