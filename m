@@ -1,56 +1,46 @@
 From: "Reddy, Teerth" <teerth@ti.com>
-Subject: [PATCH]ZOOM2: Initialization of SDRC params on Zoom2
-Date: Thu, 8 Oct 2009 13:56:02 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D05E3@dbde02.ent.ti.com>
+Subject: [PATCH]  OMAP3: PM: Fix VDD2 OPP1 issue
+Date: Thu, 8 Oct 2009 14:51:20 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:37064 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755278AbZJHI0n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 04:26:43 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n988Q4Cr031975
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 8 Oct 2009 03:26:06 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n988Q3ZK006058
-	for <linux-omap@vger.kernel.org>; Thu, 8 Oct 2009 13:56:03 +0530 (IST)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41788 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753902AbZJHJWD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 05:22:03 -0400
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
+>From 144669d941a432875db37ae9431847f6753e566e Mon Sep 17 00:00:00 2001
 From: Teerth Reddy <teerth@ti.com>
+Date: Wed, 9 Sep 2009 11:01:04 +0530
+Subject: [PATCH] ARM: OMAP3: PM: Fix VDD2 OPP1 issue
 
-This patch initializes the correct SDRC settings required 
-for DVFS on Zoom2.
+This patch fixes the VDD2 OPP1 issue. The patch has change
+which does not allow VDD2 OPP setting to 1.VDD2 should not be put 
+at OPP1 as this is not a supported OPP for VDD2
 
 Signed-off-by: Teerth Reddy <teerth@ti.com>
 ---
- arch/arm/mach-omap2/board-zoom2.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletion(-)
+ arch/arm/mach-omap2/pm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
-===================================================================
---- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom2.c
-+++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
-@@ -25,6 +25,7 @@
- #include <mach/keypad.h>
- 
- #include "mmc-twl4030.h"
-+#include "sdram-micron-mt46h32m32lf-6.h"
- 
- /* Zoom2 has Qwerty keyboard*/
- static int board_keymap[] = {
-@@ -213,7 +214,8 @@ static void __init omap_zoom2_init_irq(v
- {
- 	omap_board_config = zoom2_config;
- 	omap_board_config_size = ARRAY_SIZE(zoom2_config);
--	omap2_init_common_hw(NULL, NULL);
-+	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-+				 mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
+diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+index fec7d00..d0e03c4 100644
+--- a/arch/arm/mach-omap2/pm.c
++++ b/arch/arm/mach-omap2/pm.c
+@@ -195,7 +195,7 @@ static ssize_t vdd_opp_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 		}
+ 		resource_set_opp_level(VDD1_OPP, value, flags);
+ 	} else if (attr == &vdd2_opp_attr) {
+-		if (value < 1 || value > 3) {
++		if (value < 2 || value > 3) {
+ 			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
+ 			return -EINVAL;
+ 		}
+-- 
+1.5.4.7
