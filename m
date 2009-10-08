@@ -1,55 +1,92 @@
-From: Adam Machalek <adam.machalek@astc-design.com>
-Subject: Re: X-loader / U-Boot query
-Date: Thu, 08 Oct 2009 09:46:42 -0500
-Message-ID: <4ACDFB52.2080100@astc-design.com>
-References: <4ACDE1DF.1010303@mlbassoc.com>
+From: "Pais, Allen" <allen.pais@ti.com>
+Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
+Date: Thu, 8 Oct 2009 20:34:10 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940253426291@dbde02.ent.ti.com>
+References: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
+ <1254977223-4236-1-git-send-email-nm@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D1EF@dbde02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA02389D@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DDD75DAE@dbde02.ent.ti.com>,<4ACDF9E3.4010701@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from 75-150-230-173-Illinois.hfc.comcastbusiness.net ([75.150.230.173]:46658
-	"HELO us2.astc-design.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with SMTP id S1751567AbZJHPFj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 11:05:39 -0400
-In-Reply-To: <4ACDE1DF.1010303@mlbassoc.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:58936 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758308AbZJHPFX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 11:05:23 -0400
+In-Reply-To: <4ACDF9E3.4010701@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Menon, Nishanth" <nm@ti.com>, "Premi, Sanjeev" <premi@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
 
-The problem is located in u-boot/cpu/arm_cortexa8/omap3/mem.c
+Nishanth,
 
-Function do_sdrc_init()
+ Would there be CONFIG_ARCH_OMAP3630?
 
-There is an assumption that the RAM size on each CS is maximum of 128M.  
-See this line:
+- Allen
 
-writel(RASWIDTH_13BITS | CASWIDTH_10BITS | ADDRMUXLEGACY |
-      RAMSIZE_128 | BANKALLOCATION | B32NOT16 | B32NOT16 |
-      DEEPPD | DDR_SDRAM, &sdrc_base->cs[cs].mcfg);
+________________________________________
+From: Menon, Nishanth
+Sent: Thursday, October 08, 2009 9:40 AM
+To: Premi, Sanjeev
+Cc: Pandita, Vikram; Shilimkar, Santosh; linux-omap; Chikkature Rajashekar, Madhusudhan; Pais, Allen; Gadiyar, Anand; Cousson, Benoit; Kevin Hilman; Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
+Subject: Re: [RFC][PATCH] OMAP3: introduce OMAP3630
 
-
-Adam
-
-Gary Thomas wrote:
-> I have a new board - OMAP 3530 with 512MB DRAM & NAND
-> I've build X-loader and U-Boot for it and it mostly comes
-> up.  The sources I used (based on recommendations from the
-> BeagleBoard pages) were:
->   http://git.gitorious.org/x-load-omap3/mainline.git
->   git://git.denx.de/u-boot.git
+Premi, Sanjeev had written, on 10/08/2009 09:23 AM, the following:
+>> -----Original Message-----
+>> From: Pandita, Vikram
+>> Sent: Thursday, October 08, 2009 7:01 PM
+>> To: Shilimkar, Santosh; Menon, Nishanth; linux-omap
+>> Cc: Chikkature Rajashekar, Madhusudhan; Pais, Allen; Gadiyar,
+>> Anand; Cousson, Benoit; Kevin Hilman; Premi, Sanjeev; Aguirre
+>> Rodriguez, Sergio Alberto; Tony Lindgren
+>> Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
+>>
+>>
+>>
+>>> -----Original Message-----
+>>> From: Shilimkar, Santosh
+>>>> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
+>>>> omap/include/mach/cpu.h
+>>>> index 431fec4..af1080f 100644
+>>>> --- a/arch/arm/plat-omap/include/mach/cpu.h
+>>>> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+>>>> @@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
+>>>>  #define OMAP3430_REV_ES2_1        0x34302034
+>>>>  #define OMAP3430_REV_ES3_0        0x34303034
+>>>>  #define OMAP3430_REV_ES3_1        0x34304034
+>>>> +/* NOTE: Add 36xx series below
+>>>> + * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+>>>> + * added above the 3630 defines and series renumbered to ensure
+>>>> + * rev() > checks to work
+>>>> + */
+>>>> +#define OMAP3630_REV_ES1_0        0x34305034
+>>>>
+>>>>  #define OMAP443X_CLASS            0x44300034
+>>> Was expecting that this patch will add "cpu_is_omap36xx()" in cpu.h
+>>> apart from above. Is this handled in another patch ?
+>> Idea is to re-use all 34xx code for 36xx, as per the mail
+>> thread on list, and given in reference.
+>> Hence at run time, the check could be:
+>>
+>> if (omap_rev() == OMAP3630_REV_ES1_0)
+>>      xxxxx
+>>
+>> cpu_is_omap34xx() will be true for 36xx as well.
 >
-> I had to make a small change to get it to recognize the
-> larger NAND FLASH device.
+> [sp] This case seems quite similar to the OMAP35x.
+>      Can you look at this thread:
 >
-> The problem I have now is that it's only seeing 1/2 (256MB)
-> of the available DRAM.
+>      http://marc.info/?l=linux-omap&m=125372581804902&w=2
 >
-> * Does anyone know how to get it to see all 512MB?
-> * Is there a better place to ask/discuss these questions?
->   A cursory look around did not point to anything fresh (most
->   of the web pages & Wikis I looked are are _years_ old)
->
-> Thanks for any help/pointers
->
+>      It applies equally well here as well...
+>      I will be submitting updated patch tomorrow.
+yes, any specifics should be  feature based IMHO. we will need to extend
+the feature list.
 
+--
+Regards,
+Nishanth Menon
