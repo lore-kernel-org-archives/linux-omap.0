@@ -1,90 +1,79 @@
-From: Juha Kuikka <juha.kuikka@gmail.com>
-Subject: Re: [ANNOUNCE] updated PM branch, based on 2.6.32-rc1
-Date: Thu, 8 Oct 2009 15:09:40 -0700
-Message-ID: <a46a26fd0910081509u426b0f9fraa24ea8c99a5717e@mail.gmail.com>
-References: <87iqezdmas.fsf@deeprootsystems.com>
-	 <87eipgnmfh.fsf@deeprootsystems.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
+Date: Fri, 9 Oct 2009 01:13:01 +0300
+Message-ID: <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
+References: <20091007185112.GJ7899@atomide.com>
+	<94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
+	<20091008214140.GJ7417@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-qy0-f172.google.com ([209.85.221.172]:35672 "EHLO
-	mail-qy0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757433AbZJHWKR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 18:10:17 -0400
-Received: by qyk2 with SMTP id 2so6041934qyk.21
-        for <linux-omap@vger.kernel.org>; Thu, 08 Oct 2009 15:09:40 -0700 (PDT)
-In-Reply-To: <87eipgnmfh.fsf@deeprootsystems.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20091008214140.GJ7417@atomide.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-kernel@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org
 
-On Tue, Oct 6, 2009 at 4:16 PM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
->
-> Kevin Hilman <khilman@deeprootsystems.com> writes:
->
-> > Hello,
-> >
-> > I've rebased/updated the PM branch based on current linux-omap mast=
-er
-> > branch (2.6.32-rc1 based.)
-> >
-> > I've also updated the OMAP Power Management wiki, and the 'Current
-> > version' section highlights the changes, supported platforms as wel=
-l
-> > as the features that have made it into mainline.
-> >
-> > =A0 =A0 =A0http://elinux.org/OMAP_Power_Management#Current_version
-> >
->
-> FYI... I just rebased the PM branch onto current omap/master.
->
-> Some important user-visible changes: The /sys/power/* options are
-> moving into debugfs. =A0For mainline, these primarily debug options n=
-eed
-> to move to debugfs so I've moved them there. =A0So, if you're missing
-> some flag under /sys/power, it's now under /debug/pm_debug.
->
-> I've updated the 'Using the PM branch' seciont of PM wiki[1] with
-> the new filenames.
->
-> Kevin
->
-> [1] http://elinux.org/OMAP_Power_Management
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
-
-Hi,
-
-I build and tried this latest on Beagleboard (C2). Booting from MMC
-using ramdisk image. I changed the LL console to the 3rd UART.
-
-The issue I have is that after the system boots up it works for as
-long as I keep actively using it but if I leave it idle for a short
-time (~5s) it stops responding. I have tried waking it up using both
-UART and "USER" button on the board. This is with the default PM
-configuration.
-
-If I put the board into suspend (retention) it wakes up without any iss=
-ues.
-
-Also, if I enable "/debug/pm_debug/sleep_while_idle" board wakes up
-without issues. Well the first couple characers on the console seem to
-go missing but I guess without CTS/RTS that is expected?
-
-Any pointers would be appreciated.
-
- - Juha
-
---
-Madness takes it's toll. Please have exact change.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+T24gRnJpLCBPY3QgOSwgMjAwOSBhdCAxMjo0MSBBTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9t
+aWRlLmNvbT4gd3JvdGU6Cj4gKiBGZWxpcGUgQ29udHJlcmFzIDxmZWxpcGUuY29udHJlcmFzQGdt
+YWlsLmNvbT4gWzA5MTAwOCAxNDoyOV06Cj4+IE9uIFdlZCwgT2N0IDcsIDIwMDkgYXQgOTo1MSBQ
+TSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gd3JvdGU6Cj4+ID4gTGludXMsCj4+
+ID4KPj4gPiBQbGVhc2UgcHVsbCBvbWFwIGZpeGVzIGZyb206Cj4+ID4KPj4gPiBnaXQ6Ly9naXQu
+a2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG1saW5kL2xpbnV4LW9tYXAtMi42
+LmdpdCBvbWFwLWZpeGVzLWZvci1saW51cwo+PiA+Cj4+ID4gUmVnYXJkcywKPj4gPgo+PiA+IFRv
+bnkKPj4gPgo+PiA+Cj4+ID4gVGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCAzNzQ1
+NzZhOGI2Zjg2NTAyMmMwZmQxY2E2MjM5Njg4OWIyM2Q2NmRkOgo+PiA+IMKgTGludXMgVG9ydmFs
+ZHMgKDEpOgo+PiA+IMKgIMKgIMKgIMKgTGludXggMi42LjMyLXJjMwo+PiA+Cj4+ID4gYXJlIGF2
+YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6Cj4+ID4KPj4gPiDCoGdpdDovL2dpdC5r
+ZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQvbGludXgtb21hcC0yLjYu
+Z2l0IG9tYXAtZml4ZXMtZm9yLWxpbnVzCj4+ID4KPj4gPiBBcnRlbSBCaXR5dXRza2l5ICgxKToK
+Pj4gPiDCoCDCoCDCoE9NQVAzOiBQTTogaW50cm9kdWNlIGEgbmV3IHBvd2VyZG9tYWluIHdhbGsg
+aGVscGVyCj4+ID4KPj4gPiBEYW5pZWwgV2Fsa2VyICgxKToKPj4gPiDCoCDCoCDCoG9tYXA6IGlv
+dm1tOiBBZGQgbWlzc2luZyBtdXRleF91bmxvY2sKPj4gPgo+PiA+IEhpcm9zaGkgRE9ZVSAoMSk6
+Cj4+ID4gwqAgwqAgwqBvbWFwOiBpb3ZtbTogRml4IGluY29ycmVjdCBzcGVsbGluZwo+PiA+Cj4+
+ID4gSm9uIEh1bnRlciAoMSk6Cj4+ID4gwqAgwqAgwqBPTUFQMzogUE06IFByZXZlbnQgaGFuZyBp
+biBwcmNtX2ludGVycnVwdF9oYW5kbGVyCj4+ID4KPj4gPiBLZXZpbiBIaWxtYW4gKDEpOgo+PiA+
+IMKgIMKgIMKgT01BUDM6IFBNOiBFbmFibGUgR1BJTyBtb2R1bGUtbGV2ZWwgd2FrZXVwcwo+PiA+
+Cj4+ID4gUGF1bCBXYWxtc2xleSAoMik6Cj4+ID4gwqAgwqAgwqBPTUFQMzogUE06IFBSQ00gaW50
+ZXJydXB0OiBjaGVjayBNUFVHUlBTRUwgcmVnaXN0ZXIKPj4gPiDCoCDCoCDCoE9NQVAzOiBQTTog
+UFJDTSBpbnRlcnJ1cHQ6IG9ubHkgaGFuZGxlIHNlbGVjdGVkIFBSQ00gaW50ZXJydXB0cwo+PiA+
+Cj4+ID4gUmFqZW5kcmEgTmF5YWsgKDEpOgo+PiA+IMKgIMKgIMKgb21hcDogTG9jayBEUExMNSBh
+dCBib290Cj4+ID4KPj4gPiBTZXJnaW8gQWd1aXJyZSAoMSk6Cj4+ID4gwqAgwqAgwqBvbWFwZmI6
+IENvbmRpdGlvbiBtdXRleCBhY3F1aXNpdGlvbgo+PiA+Cj4+ID4gVG9tbWkgUmFudGFsYSAoMik6
+Cj4+ID4gwqAgwqAgwqBvbWFwZmI6IEJsaXp6YXJkOiBmaXggcG9pbnRlciB0byBiZSBjb25zdAo+
+PiA+IMKgIMKgIMKgb21hcGZiOiBCbGl6emFyZDogY29uc3RpZnkgcmVnaXN0ZXIgYWRkcmVzcyB0
+YWJsZXMKPj4gPgo+PiA+IFRvbnkgTGluZGdyZW4gKDIpOgo+PiA+IMKgIMKgIMKgb21hcDogRml4
+IGluY29ycmVjdCA3MzAgdnMgODUwIGRldGVjdGlvbgo+PiA+IMKgIMKgIMKgTWVyZ2UgYnJhbmNo
+ICdwbS1maXhlcy0zMicgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvLi4uL2toaWxtYW4vbGludXgt
+b21hcC1wbSBpbnRvIG9tYXAtZml4ZXMtZm9yLWxpbnVzCj4+ID4KPj4gPiBWaWtyYW0gUGFuZGl0
+YSAoMSk6Cj4+ID4gwqAgwqAgwqBPTUFQMzogUE06IFVTQkhPU1Q6IGNsZWFyIHdha2V1cCBldmVu
+dHMgb24gYm90aCBob3N0cwo+PiA+Cj4+ID4geWUgamFuYm9lICgxKToKPj4gPiDCoCDCoCDCoG9t
+YXA6IFNSQU06IGZsdXNoIHRoZSByaWdodCBhZGRyZXNzIGFmdGVyIG1lbWNweSBpbiBvbWFwX3Ny
+YW1fcHVzaAo+Pgo+PiBUaGUgYmVhZ2xlYm9hcmQgaXMgc3RpbGwgbm90IGJvb3RpbmcgZm9yIG1l
+IHdpdGggdGhpcyBicmFuY2gsIEkgbmVlZAo+PiB0byBhZGQgdGhlc2UgdHdvIHBhdGNoZXM6Cj4+
+Cj4+ICogaHR0cDovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzUwNzIxLwo+Pgo+Cj4gVGhp
+cyBzaG91bGQgZ28gdG8gdGhlIG1haW5saW5lIGtlcm5lbCB2aWEgU2FtdWVsIGFzIGl0J3MKPiBk
+cml2ZXJzL21mZCByZWxhdGVkLgo+Cj4+IFRoaXMgb25lIGlzIG5lZWRlZCBiZWNhdXNlIHRoZSBk
+ZWZjb25maWcgaGFzOgo+PiBDT05GSUdfVFdMNDAzMF9VU0I9eQo+Pgo+PiAqIGh0dHA6Ly9wYXRj
+aHdvcmsua2VybmVsLm9yZy9wYXRjaC81MDk3MC8KPj4KPj4gVGhpcyBpcyBuZWVkZWQgYmVjYXVz
+ZSBtb3N0IHBlb3BsZSBib290IGZyb20gYW4gTU1DLgo+Cj4gQW5kIHRoaXMgc2hvdWxkIGdvIGlu
+IHZpYSB0aGUgbW1jIGxpc3QuCgpTaG91bGQgaXQ/CgpIZXJlIHlvdSBjYW4gc2VlIFV3ZSBLbGVp
+bmUtS8O2bmlnIHNlbmRpbmcgdGhlIG9yaWdpbmFsIHBhdGNoIHdpdGhvdXQKZXZlbiBDQydpbmcg
+dGhlIG1tYyBsaXN0OgpodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyNDgyMDg2
+MTIxMzg0OSZ3PTIKCkFuZCBpdCB3YXMgdW5pbnRlbnRpb25hbGx5IGJyb2tlbiBieSB0aGlzIG9u
+ZToKaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1tbWMmbT0xMjUyNDk3NjM0MjIyMjcmdz0yCgpJ
+IGRvbid0IHNlZSB3aGF0IHdlIGFyZSB3YWl0aW5nIGZvciwgdGhlIGNvZGUgaXMgY2xlYXJseSBi
+cm9rZW4sIGV2ZW4KdGhlIGNvbXBpbGVyIHdhcm5zIHRoYXQgbm9ib2R5IGlzIHVzaW5nIG9tYXBf
+aHNtbWNfcHJvYmUoKS4KCi0tIApGZWxpcGUgQ29udHJlcmFzCgpfX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlz
+dApsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJh
+ZGVhZC5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
