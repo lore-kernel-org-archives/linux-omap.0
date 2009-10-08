@@ -1,76 +1,34 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] omap: Use ioremap for omap_hwmod instead of
-	OMAP2_IO_ADDRESS
-Date: Wed, 7 Oct 2009 17:26:59 -0700
-Message-ID: <20091008002659.GG29320@atomide.com>
-References: <20091008002506.GF29320@atomide.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Query: EHCI clock management approach
+Date: Thu, 8 Oct 2009 06:51:55 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A332A93@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63938 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755101AbZJHA1o (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 20:27:44 -0400
-Content-Disposition: inline
-In-Reply-To: <20091008002506.GF29320@atomide.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49940 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755279AbZJHBWk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 7 Oct 2009 21:22:40 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Paul Walmsley <paul@pwsan.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>, Kevin Hilman <khilman@deeprootsystems.com>
 
->From f05ba4e3427bc0dc216f2fca32a9b1e8f0e38695 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Wed, 7 Oct 2009 17:10:18 -0700
-Subject: [PATCH] omap: Use ioremap for omap_hwmod instead of OMAP2_IO_ADDRESS
+Hi all,
 
-Otherwise we cannot get rid of OMAP2_IO_ADDRESS.
+I'd like to post a patch in a couple of days to refactor the EHCI clock
+management code. This would be useful to do aggressive clock
+management in the idle path.
 
-Signed-off-by: Tony Lindgren <tony@atomide.com>
+A current implementation I have is to simply factor out the clock_enable/disable
+calls out. Does it make sense to move this out to mach-omap2/* and provide
+the function pointer through platform data? Does the driver need to be aware
+of the clocks that it needs, or is it sufficient for it to just call a platform-specific
+function that turns on/off all the clocks needed by the driver?
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod.c b/arch/arm/mach-omap2/omap_hwmod.c
-index d2e0f1c..8ac8798 100644
---- a/arch/arm/mach-omap2/omap_hwmod.c
-+++ b/arch/arm/mach-omap2/omap_hwmod.c
-@@ -496,6 +496,7 @@ static void __iomem *_find_mpu_rt_base(struct omap_hwmod *oh, u8 index)
- 	struct omap_hwmod_addr_space *mem;
- 	int i;
- 	int found = 0;
-+	void __iomem *va_start;
- 
- 	if (!oh || oh->slaves_cnt == 0)
- 		return NULL;
-@@ -509,16 +510,20 @@ static void __iomem *_find_mpu_rt_base(struct omap_hwmod *oh, u8 index)
- 		}
- 	}
- 
--	/* XXX use ioremap() instead? */
--
--	if (found)
-+	if (found) {
-+		va_start = ioremap(mem->pa_start, mem->pa_end - mem->pa_start);
-+		if (!va_start) {
-+			pr_err("omap_hwmod: %s: Could not ioremap\n", oh->name);
-+			return NULL;
-+		}
- 		pr_debug("omap_hwmod: %s: MPU register target at va %p\n",
--			 oh->name, OMAP2_IO_ADDRESS(mem->pa_start));
--	else
-+			 oh->name, va_start);
-+	} else {
- 		pr_debug("omap_hwmod: %s: no MPU register target found\n",
- 			 oh->name);
-+	}
- 
--	return (found) ? OMAP2_IO_ADDRESS(mem->pa_start) : NULL;
-+	return (found) ? va_start : NULL;
- }
- 
- /**
-@@ -1148,6 +1153,7 @@ int omap_hwmod_unregister(struct omap_hwmod *oh)
- 	pr_debug("omap_hwmod: %s: unregistering\n", oh->name);
- 
- 	mutex_lock(&omap_hwmod_mutex);
-+	iounmap(oh->_rt_va);
- 	list_del(&oh->node);
- 	mutex_unlock(&omap_hwmod_mutex);
- 
+The reason I ask is, in a future OMAP, we may need to enable a different set of
+clocks, but we should be able to re-use the rest of the code directly.
+
+
+- Anand
