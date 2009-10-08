@@ -1,51 +1,54 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 8/8] ASoC: tpa6130a2: Control vdd using
- regulator framework
-Date: Thu, 8 Oct 2009 16:56:28 +0300
-Message-ID: <20091008135628.GA6616@esdhcp037198.research.nokia.com>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<1255003137-1034-9-git-send-email-eduardo.valentin@nokia.com>
-	<20091008134332.GI29176@rakim.wolfsonmicro.main>
-Reply-To: eduardo.valentin@nokia.com
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH]  OMAP3: PM: Fix VDD2 OPP1 issue
+Date: Thu, 8 Oct 2009 09:20:35 -0500
+Message-ID: <4ACDF533.30205@ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20091008134332.GI29176@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55941 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754389AbZJHOVO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Oct 2009 10:21:14 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Thu, Oct 08, 2009 at 03:43:33PM +0200, Mark Brown wrote:
-> On Thu, Oct 08, 2009 at 02:58:57PM +0300, Eduardo Valentin wrote:
+Reddy, Teerth had written, on 10/08/2009 04:21 AM, the following:
+> From 144669d941a432875db37ae9431847f6753e566e Mon Sep 17 00:00:00 2001
+> From: Teerth Reddy <teerth@ti.com>
+> Date: Wed, 9 Sep 2009 11:01:04 +0530
+> Subject: [PATCH] ARM: OMAP3: PM: Fix VDD2 OPP1 issue
 > 
-> > +	data->regulator = regulator_get(dev, "vdd");
-> > +	if (IS_ERR(data->regulator)) {
-> > +		dev_info(dev, "Could not get regulator for vdd. "
-> > +					"Executing without regulator.\n");
-> > +			data->regulator = NULL;
-> > +	}
+> This patch fixes the VDD2 OPP1 issue. The patch has change
+> which does not allow VDD2 OPP setting to 1.VDD2 should not be put 
+> at OPP1 as this is not a supported OPP for VDD2
 > 
-> Similar comments to the previous patch apply to this driver - regulator
-> usage should be unconditional, error messages should not be split over
-> multiple lines and you should represent all the supplies separately (it
-> looks like there's both VDD and CPVSS required here, for example) to
-> avoid future surprises.
-
-
-Yeah. The idea here was to keep driver running even if regulators
-are not properly set in board files. Maybe those in which the regulator
-is always on. That's why I wrote it with "nicely" message.
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index fec7d00..d0e03c4 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -195,7 +195,7 @@ static ssize_t vdd_opp_store(struct kobject *kobj, struct kobj_attribute *attr,
+>  		}
+>  		resource_set_opp_level(VDD1_OPP, value, flags);
+>  	} else if (attr == &vdd2_opp_attr) {
+> -		if (value < 1 || value > 3) {
+> +		if (value < 2 || value > 3) {
+>  			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
+>  			return -EINVAL;
+>  		}
+this is not scalable. we should be able to disable OPPs for each OPP 
+from the OPP array. with different silicons, we could have the same OPP 
+enabled/disabled. NAK -> need to handle based on mpu_opps[vale].rate ==0
 
 -- 
-Eduardo Valentin
+Regards,
+Nishanth Menon
