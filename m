@@ -1,90 +1,74 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
-Date: Thu, 8 Oct 2009 09:31:23 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444CBE44DF@dlee02.ent.ti.com>
-References: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
- <1254977223-4236-1-git-send-email-nm@ti.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [RFC][PATCH] OMAP3: introduce OMAP3630
+Date: Thu, 8 Oct 2009 09:40:35 -0500
+Message-ID: <4ACDF9E3.4010701@ti.com>
+References: <[PATCH][RFC] OMAP3630: Create architecture macros and config> <1254977223-4236-1-git-send-email-nm@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D1EF@dbde02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC35608702FA02389D@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDD75DAE@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37691 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:46181 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754273AbZJHOcH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 10:32:07 -0400
-In-Reply-To: <1254977223-4236-1-git-send-email-nm@ti.com>
-Content-Language: en-US
+	id S932366AbZJHOlP (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Oct 2009 10:41:15 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDD75DAE@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Nishanth, 
-
-> -----Original Message-----
-> From: Menon, Nishanth 
-> Sent: Wednesday, October 07, 2009 11:47 PM
-> To: linux-omap
-> Cc: Menon, Nishanth; Chikkature Rajashekar, Madhusudhan; 
-> Pandita, Vikram; Pais, Allen; Gadiyar, Anand; Cousson, 
-> Benoit; Kevin Hilman; Premi, Sanjeev; Shilimkar, Santosh; 
-> Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
-> Subject: [RFC][PATCH] OMAP3: introduce OMAP3630
+Premi, Sanjeev had written, on 10/08/2009 09:23 AM, the following:
+>> -----Original Message-----
+>> From: Pandita, Vikram 
+>> Sent: Thursday, October 08, 2009 7:01 PM
+>> To: Shilimkar, Santosh; Menon, Nishanth; linux-omap
+>> Cc: Chikkature Rajashekar, Madhusudhan; Pais, Allen; Gadiyar, 
+>> Anand; Cousson, Benoit; Kevin Hilman; Premi, Sanjeev; Aguirre 
+>> Rodriguez, Sergio Alberto; Tony Lindgren
+>> Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
+>>
+>>
+>>
+>>> -----Original Message-----
+>>> From: Shilimkar, Santosh
+>>>> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
+>>>> omap/include/mach/cpu.h
+>>>> index 431fec4..af1080f 100644
+>>>> --- a/arch/arm/plat-omap/include/mach/cpu.h
+>>>> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+>>>> @@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
+>>>>  #define OMAP3430_REV_ES2_1	0x34302034
+>>>>  #define OMAP3430_REV_ES3_0	0x34303034
+>>>>  #define OMAP3430_REV_ES3_1	0x34304034
+>>>> +/* NOTE: Add 36xx series below
+>>>> + * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+>>>> + * added above the 3630 defines and series renumbered to ensure
+>>>> + * rev() > checks to work
+>>>> + */
+>>>> +#define OMAP3630_REV_ES1_0	0x34305034
+>>>>
+>>>>  #define OMAP443X_CLASS		0x44300034
+>>> Was expecting that this patch will add "cpu_is_omap36xx()" in cpu.h
+>>> apart from above. Is this handled in another patch ?
+>> Idea is to re-use all 34xx code for 36xx, as per the mail 
+>> thread on list, and given in reference.
+>> Hence at run time, the check could be:
+>>
+>> if (omap_rev() == OMAP3630_REV_ES1_0)
+>> 	xxxxx
+>>
+>> cpu_is_omap34xx() will be true for 36xx as well.
 > 
-> Device intro:
-> OMAP3630 is the latest in the family of OMAP3 devices
-> and among the changes it introduces are:
+> [sp] This case seems quite similar to the OMAP35x.
+>      Can you look at this thread:
 > 
-> New OPP levels for new voltage and frequency levels. a bunch of
-> Bug fixes to various modules feature additions, notably with ISP,
-> sDMA etc.
+>      http://marc.info/?l=linux-omap&m=125372581804902&w=2
 > 
-> Details about the chip is available here:
-> http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?t
-> emplateId=6123&navigationId=12836&contentId=52606
-> 
-> Strategy used:
-> Strategy to introduce this device into Linux was discussed here:
-> Ref: http://marc.info/?t=125343303400003&r=1&w=2
-> 
-> Two approaches were available:
-> a) Consider 3630 generation of devices as a new family of silicon
-> b) Consider 3630 as an offshoot of 3430 family of devices
-> 
-> As a common consensus, (b) seems to be more valid for 3630 as:
-> * There are changes which are easily handled by looking at rev
-> * Most of existing 34xx infrastructure can be reused(almost 90%+)
-> 	- so no ugly if (cpu_is_omap34xx() || cpu_is_omap36xx())
-> 	  all over the place
+>      It applies equally well here as well...
+>      I will be submitting updated patch tomorrow.
+yes, any specifics should be  feature based IMHO. we will need to extend 
+the feature list.
 
-And how about cpu_is_omap3() ?
-
-That would be valid across 34xx (zoom2, n900), 35xx (beagle, pandora), and 36xx (zoom3).
-
-IMO, returning positive in a 3630/3530 to cpu_is_omap34xx() could make the code
-quite unreadable.
-
-1. If you need to do something 34xx specific, then use cpu_is_34xx()
-2. If your code is valid for all 34xx, 35xx, 36xx, then why not using cpu_is_omap3() ?
-
-What do you think?
-
-> 	- lesser chance of bugs due to reuse of proven code flow
-> 	- 36xx specific handling can still be done where required
-> 	  within the existing infrastructure
-> 
-> NOTE:
-> * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
->   added on top of the existing 3630 ones are renumbered
-> 
-> This patch was tested on SDP3430.
-
-Maybe this should say:
-
-This patch didn't broke SDP3430.
-
-XD
-
+-- 
 Regards,
-Sergio
-
+Nishanth Menon
