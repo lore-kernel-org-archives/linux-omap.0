@@ -1,86 +1,103 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
-Date: Fri, 9 Oct 2009 01:20:50 +0300
-Message-ID: <94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com>
-References: <20091007185112.GJ7899@atomide.com>
-	<94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
-	<20091008214140.GJ7417@atomide.com>
-	<94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [ANNOUNCE] updated PM branch, based on 2.6.32-rc1
+Date: Thu, 08 Oct 2009 15:32:48 -0700
+Message-ID: <87ab014iun.fsf@deeprootsystems.com>
+References: <87iqezdmas.fsf@deeprootsystems.com>
+	<87eipgnmfh.fsf@deeprootsystems.com>
+	<a46a26fd0910081509u426b0f9fraa24ea8c99a5717e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-kernel@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:42555 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756417AbZJHWd0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 18:33:26 -0400
+Received: by pzk26 with SMTP id 26so5788424pzk.4
+        for <linux-omap@vger.kernel.org>; Thu, 08 Oct 2009 15:32:50 -0700 (PDT)
+In-Reply-To: <a46a26fd0910081509u426b0f9fraa24ea8c99a5717e@mail.gmail.com> (Juha Kuikka's message of "Thu\, 8 Oct 2009 15\:09\:40 -0700")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Juha Kuikka <juha.kuikka@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-T24gRnJpLCBPY3QgOSwgMjAwOSBhdCAxOjEzIEFNLCBGZWxpcGUgQ29udHJlcmFzCjxmZWxpcGUu
-Y29udHJlcmFzQGdtYWlsLmNvbT4gd3JvdGU6Cj4gT24gRnJpLCBPY3QgOSwgMjAwOSBhdCAxMjo0
-MSBBTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gd3JvdGU6Cj4+ICogRmVsaXBl
-IENvbnRyZXJhcyA8ZmVsaXBlLmNvbnRyZXJhc0BnbWFpbC5jb20+IFswOTEwMDggMTQ6MjldOgo+
-Pj4gT24gV2VkLCBPY3QgNywgMjAwOSBhdCA5OjUxIFBNLCBUb255IExpbmRncmVuIDx0b255QGF0
-b21pZGUuY29tPiB3cm90ZToKPj4+ID4gTGludXMsCj4+PiA+Cj4+PiA+IFBsZWFzZSBwdWxsIG9t
-YXAgZml4ZXMgZnJvbToKPj4+ID4KPj4+ID4gZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9s
-aW51eC9rZXJuZWwvZ2l0L3RtbGluZC9saW51eC1vbWFwLTIuNi5naXQgb21hcC1maXhlcy1mb3It
-bGludXMKPj4+ID4KPj4+ID4gUmVnYXJkcywKPj4+ID4KPj4+ID4gVG9ueQo+Pj4gPgo+Pj4gPgo+
-Pj4gPiBUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IDM3NDU3NmE4YjZmODY1MDIy
-YzBmZDFjYTYyMzk2ODg5YjIzZDY2ZGQ6Cj4+PiA+IMKgTGludXMgVG9ydmFsZHMgKDEpOgo+Pj4g
-PiDCoCDCoCDCoCDCoExpbnV4IDIuNi4zMi1yYzMKPj4+ID4KPj4+ID4gYXJlIGF2YWlsYWJsZSBp
-biB0aGUgZ2l0IHJlcG9zaXRvcnkgYXQ6Cj4+PiA+Cj4+PiA+IMKgZ2l0Oi8vZ2l0Lmtlcm5lbC5v
-cmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L3RtbGluZC9saW51eC1vbWFwLTIuNi5naXQgb21h
-cC1maXhlcy1mb3ItbGludXMKPj4+ID4KPj4+ID4gQXJ0ZW0gQml0eXV0c2tpeSAoMSk6Cj4+PiA+
-IMKgIMKgIMKgT01BUDM6IFBNOiBpbnRyb2R1Y2UgYSBuZXcgcG93ZXJkb21haW4gd2FsayBoZWxw
-ZXIKPj4+ID4KPj4+ID4gRGFuaWVsIFdhbGtlciAoMSk6Cj4+PiA+IMKgIMKgIMKgb21hcDogaW92
-bW06IEFkZCBtaXNzaW5nIG11dGV4X3VubG9jawo+Pj4gPgo+Pj4gPiBIaXJvc2hpIERPWVUgKDEp
-Ogo+Pj4gPiDCoCDCoCDCoG9tYXA6IGlvdm1tOiBGaXggaW5jb3JyZWN0IHNwZWxsaW5nCj4+PiA+
-Cj4+PiA+IEpvbiBIdW50ZXIgKDEpOgo+Pj4gPiDCoCDCoCDCoE9NQVAzOiBQTTogUHJldmVudCBo
-YW5nIGluIHByY21faW50ZXJydXB0X2hhbmRsZXIKPj4+ID4KPj4+ID4gS2V2aW4gSGlsbWFuICgx
-KToKPj4+ID4gwqAgwqAgwqBPTUFQMzogUE06IEVuYWJsZSBHUElPIG1vZHVsZS1sZXZlbCB3YWtl
-dXBzCj4+PiA+Cj4+PiA+IFBhdWwgV2FsbXNsZXkgKDIpOgo+Pj4gPiDCoCDCoCDCoE9NQVAzOiBQ
-TTogUFJDTSBpbnRlcnJ1cHQ6IGNoZWNrIE1QVUdSUFNFTCByZWdpc3Rlcgo+Pj4gPiDCoCDCoCDC
-oE9NQVAzOiBQTTogUFJDTSBpbnRlcnJ1cHQ6IG9ubHkgaGFuZGxlIHNlbGVjdGVkIFBSQ00gaW50
-ZXJydXB0cwo+Pj4gPgo+Pj4gPiBSYWplbmRyYSBOYXlhayAoMSk6Cj4+PiA+IMKgIMKgIMKgb21h
-cDogTG9jayBEUExMNSBhdCBib290Cj4+PiA+Cj4+PiA+IFNlcmdpbyBBZ3VpcnJlICgxKToKPj4+
-ID4gwqAgwqAgwqBvbWFwZmI6IENvbmRpdGlvbiBtdXRleCBhY3F1aXNpdGlvbgo+Pj4gPgo+Pj4g
-PiBUb21taSBSYW50YWxhICgyKToKPj4+ID4gwqAgwqAgwqBvbWFwZmI6IEJsaXp6YXJkOiBmaXgg
-cG9pbnRlciB0byBiZSBjb25zdAo+Pj4gPiDCoCDCoCDCoG9tYXBmYjogQmxpenphcmQ6IGNvbnN0
-aWZ5IHJlZ2lzdGVyIGFkZHJlc3MgdGFibGVzCj4+PiA+Cj4+PiA+IFRvbnkgTGluZGdyZW4gKDIp
-Ogo+Pj4gPiDCoCDCoCDCoG9tYXA6IEZpeCBpbmNvcnJlY3QgNzMwIHZzIDg1MCBkZXRlY3Rpb24K
-Pj4+ID4gwqAgwqAgwqBNZXJnZSBicmFuY2ggJ3BtLWZpeGVzLTMyJyBvZiBnaXQ6Ly9naXQua2Vy
-bmVsLm9yZy8uLi4va2hpbG1hbi9saW51eC1vbWFwLXBtIGludG8gb21hcC1maXhlcy1mb3ItbGlu
-dXMKPj4+ID4KPj4+ID4gVmlrcmFtIFBhbmRpdGEgKDEpOgo+Pj4gPiDCoCDCoCDCoE9NQVAzOiBQ
-TTogVVNCSE9TVDogY2xlYXIgd2FrZXVwIGV2ZW50cyBvbiBib3RoIGhvc3RzCj4+PiA+Cj4+PiA+
-IHllIGphbmJvZSAoMSk6Cj4+PiA+IMKgIMKgIMKgb21hcDogU1JBTTogZmx1c2ggdGhlIHJpZ2h0
-IGFkZHJlc3MgYWZ0ZXIgbWVtY3B5IGluIG9tYXBfc3JhbV9wdXNoCj4+Pgo+Pj4gVGhlIGJlYWds
-ZWJvYXJkIGlzIHN0aWxsIG5vdCBib290aW5nIGZvciBtZSB3aXRoIHRoaXMgYnJhbmNoLCBJIG5l
-ZWQKPj4+IHRvIGFkZCB0aGVzZSB0d28gcGF0Y2hlczoKPj4+Cj4+PiAqIGh0dHA6Ly9wYXRjaHdv
-cmsua2VybmVsLm9yZy9wYXRjaC81MDcyMS8KPj4+Cj4+Cj4+IFRoaXMgc2hvdWxkIGdvIHRvIHRo
-ZSBtYWlubGluZSBrZXJuZWwgdmlhIFNhbXVlbCBhcyBpdCdzCj4+IGRyaXZlcnMvbWZkIHJlbGF0
-ZWQuCj4+Cj4+PiBUaGlzIG9uZSBpcyBuZWVkZWQgYmVjYXVzZSB0aGUgZGVmY29uZmlnIGhhczoK
-Pj4+IENPTkZJR19UV0w0MDMwX1VTQj15Cj4+Pgo+Pj4gKiBodHRwOi8vcGF0Y2h3b3JrLmtlcm5l
-bC5vcmcvcGF0Y2gvNTA5NzAvCj4+Pgo+Pj4gVGhpcyBpcyBuZWVkZWQgYmVjYXVzZSBtb3N0IHBl
-b3BsZSBib290IGZyb20gYW4gTU1DLgo+Pgo+PiBBbmQgdGhpcyBzaG91bGQgZ28gaW4gdmlhIHRo
-ZSBtbWMgbGlzdC4KPgo+IFNob3VsZCBpdD8KPgo+IEhlcmUgeW91IGNhbiBzZWUgVXdlIEtsZWlu
-ZS1Lw7ZuaWcgc2VuZGluZyB0aGUgb3JpZ2luYWwgcGF0Y2ggd2l0aG91dAo+IGV2ZW4gQ0MnaW5n
-IHRoZSBtbWMgbGlzdDoKPiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LWtlcm5lbCZtPTEyNDgy
-MDg2MTIxMzg0OSZ3PTIKPgo+IEFuZCBpdCB3YXMgdW5pbnRlbnRpb25hbGx5IGJyb2tlbiBieSB0
-aGlzIG9uZToKPiBodHRwOi8vbWFyYy5pbmZvLz9sPWxpbnV4LW1tYyZtPTEyNTI0OTc2MzQyMjIy
-NyZ3PTIKCkVyLCBhY3R1YWxseSB0aGF0IG9uZSB3YXMgb2ssIHRoZSBwcm9ibGVtIHdhcyBpbnRy
-b2R1Y2VkIG9ubHkgaW4gdGhlCmZpbmFsIHZlcnNpb246Cmh0dHA6Ly9tYXJjLmluZm8vP2w9bGlu
-dXgtbW1jJm09MTI1MzY2MzE1NDE3MDA2Jnc9MgoKPiBJIGRvbid0IHNlZSB3aGF0IHdlIGFyZSB3
-YWl0aW5nIGZvciwgdGhlIGNvZGUgaXMgY2xlYXJseSBicm9rZW4sIGV2ZW4KPiB0aGUgY29tcGls
-ZXIgd2FybnMgdGhhdCBub2JvZHkgaXMgdXNpbmcgb21hcF9oc21tY19wcm9iZSgpLgoKLS0gCkZl
-bGlwZSBDb250cmVyYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL2xpbnV4LWFybS1rZXJuZWwK
+Juha Kuikka <juha.kuikka@gmail.com> writes:
+
+> On Tue, Oct 6, 2009 at 4:16 PM, Kevin Hilman
+> <khilman@deeprootsystems.com> wrote:
+>>
+>> Kevin Hilman <khilman@deeprootsystems.com> writes:
+>>
+>> > Hello,
+>> >
+>> > I've rebased/updated the PM branch based on current linux-omap mas=
+ter
+>> > branch (2.6.32-rc1 based.)
+>> >
+>> > I've also updated the OMAP Power Management wiki, and the 'Current
+>> > version' section highlights the changes, supported platforms as we=
+ll
+>> > as the features that have made it into mainline.
+>> >
+>> > =A0 =A0 =A0http://elinux.org/OMAP_Power_Management#Current_version
+>> >
+>>
+>> FYI... I just rebased the PM branch onto current omap/master.
+>>
+>> Some important user-visible changes: The /sys/power/* options are
+>> moving into debugfs. =A0For mainline, these primarily debug options =
+need
+>> to move to debugfs so I've moved them there. =A0So, if you're missin=
+g
+>> some flag under /sys/power, it's now under /debug/pm_debug.
+>>
+>> I've updated the 'Using the PM branch' seciont of PM wiki[1] with
+>> the new filenames.
+>>
+>> Kevin
+>>
+>> [1] http://elinux.org/OMAP_Power_Management
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap=
+" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+> Hi,
+
+Hi Juha,
+
+> I build and tried this latest on Beagleboard (C2). Booting from MMC
+> using ramdisk image. I changed the LL console to the 3rd UART.
+>
+> The issue I have is that after the system boots up it works for as
+> long as I keep actively using it but if I leave it idle for a short
+> time (~5s) it stops responding. I have tried waking it up using both
+> UART and "USER" button on the board. This is with the default PM
+> configuration.
+
+Thanks for testing, and reporting your problem.  I have noticed
+exactly the same problem and am still investigating it.
+
+> If I put the board into suspend (retention) it wakes up without any i=
+ssues.
+>
+> Also, if I enable "/debug/pm_debug/sleep_while_idle" board wakes up
+> without issues. Well the first couple characers on the console seem t=
+o
+> go missing but I guess without CTS/RTS that is expected?
+
+Yes, the loss of the first character is expected.
+
+> Any pointers would be appreciated.
+
+I also noticed that it works when 'sleep_while_idle' is enabled, and
+this has led me to suspect a bug in that serial timout path, but I
+have yet to debug further.
+
+Kevin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
