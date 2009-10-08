@@ -1,45 +1,48 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: X-loader / U-Boot query
-Date: Thu, 8 Oct 2009 10:14:20 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012A6FC720@dlee02.ent.ti.com>
-References: <4ACDE1DF.1010303@mlbassoc.com>
- <4ACDFB52.2080100@astc-design.com>
+Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
+Date: Thu, 8 Oct 2009 10:13:29 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012A6FC71C@dlee02.ent.ti.com>
+References: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
+ <1254977223-4236-1-git-send-email-nm@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D1EF@dbde02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA02389D@dbde02.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DDD75DAE@dbde02.ent.ti.com>,<4ACDF9E3.4010701@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E940253426291@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42126 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49859 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932634AbZJHPPC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 11:15:02 -0400
-In-Reply-To: <4ACDFB52.2080100@astc-design.com>
+	id S932626AbZJHPOL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 11:14:11 -0400
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253426291@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Adam Machalek <adam.machalek@astc-design.com>, Gary Thomas <gary@mlbassoc.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Pais, Allen" <allen.pais@ti.com>, "Premi, Sanjeev" <premi@ti.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Adam Machalek
-> Sent: Thursday, October 08, 2009 9:47 AM
-> To: Gary Thomas
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: X-loader / U-Boot query
+> From: Pais, Allen
+> Sent: Thursday, October 08, 2009 10:04 AM
+> To: Menon, Nishanth; Premi, Sanjeev
 > 
-> The problem is located in u-boot/cpu/arm_cortexa8/omap3/mem.c
+> Nishanth,
 > 
-> Function do_sdrc_init()
+>  Would there be CONFIG_ARCH_OMAP3630?
+There is no need for it.
 > 
-> There is an assumption that the RAM size on each CS is maximum of 128M.
-> See this line:
-> 
-> writel(RASWIDTH_13BITS | CASWIDTH_10BITS | ADDRMUXLEGACY |
->       RAMSIZE_128 | BANKALLOCATION | B32NOT16 | B32NOT16 |
->       DEEPPD | DDR_SDRAM, &sdrc_base->cs[cs].mcfg);
-> 
-This discussion should really be taken to u-boot mailing list. Yes, any additional patches would be good to have..
+> ________________________________________
+> From: Menon, Nishanth
+> Sent: Thursday, October 08, 2009 9:40 AM
+> To: Premi, Sanjeev
+> Cc: Pandita, Vikram; Shilimkar, Santosh; linux-omap; Chikkature Rajashekar,
+> Madhusudhan; Pais, Allen; Gadiyar, Anand; Cousson, Benoit; Kevin Hilman;
+> Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
+> Subject: Re: [RFC][PATCH] OMAP3: introduce OMAP3630
+
+Stop top posting please.
 
 Regards,
 Nishanth Menon
-
