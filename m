@@ -1,54 +1,83 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH]  OMAP3: PM: Fix VDD2 OPP1 issue
-Date: Thu, 8 Oct 2009 09:20:35 -0500
-Message-ID: <4ACDF533.30205@ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
+Date: Thu, 8 Oct 2009 19:53:08 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDD75DAE@dbde02.ent.ti.com>
+References: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
+ <1254977223-4236-1-git-send-email-nm@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D1EF@dbde02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA02389D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55941 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:37167 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754389AbZJHOVO (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Oct 2009 10:21:14 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com>
+	id S932212AbZJHOXw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 10:23:52 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA02389D@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Reddy, Teerth had written, on 10/08/2009 04:21 AM, the following:
-> From 144669d941a432875db37ae9431847f6753e566e Mon Sep 17 00:00:00 2001
-> From: Teerth Reddy <teerth@ti.com>
-> Date: Wed, 9 Sep 2009 11:01:04 +0530
-> Subject: [PATCH] ARM: OMAP3: PM: Fix VDD2 OPP1 issue
+> -----Original Message-----
+> From: Pandita, Vikram 
+> Sent: Thursday, October 08, 2009 7:01 PM
+> To: Shilimkar, Santosh; Menon, Nishanth; linux-omap
+> Cc: Chikkature Rajashekar, Madhusudhan; Pais, Allen; Gadiyar, 
+> Anand; Cousson, Benoit; Kevin Hilman; Premi, Sanjeev; Aguirre 
+> Rodriguez, Sergio Alberto; Tony Lindgren
+> Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
 > 
-> This patch fixes the VDD2 OPP1 issue. The patch has change
-> which does not allow VDD2 OPP setting to 1.VDD2 should not be put 
-> at OPP1 as this is not a supported OPP for VDD2
 > 
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
-> ---
->  arch/arm/mach-omap2/pm.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index fec7d00..d0e03c4 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -195,7 +195,7 @@ static ssize_t vdd_opp_store(struct kobject *kobj, struct kobj_attribute *attr,
->  		}
->  		resource_set_opp_level(VDD1_OPP, value, flags);
->  	} else if (attr == &vdd2_opp_attr) {
-> -		if (value < 1 || value > 3) {
-> +		if (value < 2 || value > 3) {
->  			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
->  			return -EINVAL;
->  		}
-this is not scalable. we should be able to disable OPPs for each OPP 
-from the OPP array. with different silicons, we could have the same OPP 
-enabled/disabled. NAK -> need to handle based on mpu_opps[vale].rate ==0
+> >-----Original Message-----
+> >From: Shilimkar, Santosh
+> >>
+> >> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
+> >> omap/include/mach/cpu.h
+> >> index 431fec4..af1080f 100644
+> >> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> >> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> >> @@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >>  #define OMAP3430_REV_ES2_1	0x34302034
+> >>  #define OMAP3430_REV_ES3_0	0x34303034
+> >>  #define OMAP3430_REV_ES3_1	0x34304034
+> >> +/* NOTE: Add 36xx series below
+> >> + * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+> >> + * added above the 3630 defines and series renumbered to ensure
+> >> + * rev() > checks to work
+> >> + */
+> >> +#define OMAP3630_REV_ES1_0	0x34305034
+> >>
+> >>  #define OMAP443X_CLASS		0x44300034
+> >Was expecting that this patch will add "cpu_is_omap36xx()" in cpu.h
+> >apart from above. Is this handled in another patch ?
+> 
+> Idea is to re-use all 34xx code for 36xx, as per the mail 
+> thread on list, and given in reference.
+> Hence at run time, the check could be:
+> 
+> if (omap_rev() == OMAP3630_REV_ES1_0)
+> 	xxxxx
+> 
+> cpu_is_omap34xx() will be true for 36xx as well.
 
--- 
-Regards,
-Nishanth Menon
+[sp] This case seems quite similar to the OMAP35x.
+     Can you look at this thread:
+
+     http://marc.info/?l=linux-omap&m=125372581804902&w=2
+
+     It applies equally well here as well...
+     I will be submitting updated patch tomorrow.
+
+Best regards,
+Sanjeev
+
+> 
+> >
+> >
+> >Regards,
+> >Santosh
+> 
