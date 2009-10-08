@@ -1,82 +1,66 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] omap_hsmmc: Add missing probe handler hook
-Date: Thu, 8 Oct 2009 15:54:28 -0700
-Message-ID: <20091008225428.GA25892@atomide.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: Patches merged to split OMAP2_IO_ADDRESS
+Date: Thu, 8 Oct 2009 18:19:09 -0500
+Message-ID: <4ACE736D.6060504@ti.com>
+References: <20091008002506.GF29320@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D268@dbde02.ent.ti.com> <20091008180801.GI7417@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="5I6of5zJg18YgZEa"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63469 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933165AbZJHWzR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 18:55:17 -0400
-Content-Disposition: inline
+Received: from bear.ext.ti.com ([192.94.94.41]:44426 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755994AbZJHXTs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Oct 2009 19:19:48 -0400
+In-Reply-To: <20091008180801.GI7417@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan Chikkature <madhu.cr@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Adrian Hunter <adrian.hunter@nokia.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>, Denis Karpov <ext-denis.2.karpov@nokia.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-
---5I6of5zJg18YgZEa
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-
-Andrew,
-
-Here's a fix from Roger Quadros that was accidentally not posted
-to linux-mmc as pointed out by Felipe Contreras on LKML.
-
-Can you please pick it up?
-
-For reference, this is the issue Uwe Kleine-König mentioned at:
-http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg00528.html
-
-Felipe Contreras summarized how things broke at:
-http://lkml.org/lkml/2009/10/8/334
-
+Tony Lindgren had written, on 10/08/2009 01:08 PM, the following:
+> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [091008 03:59]:
+>> Tony,
+>>
+>>> -----Original Message-----
+>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>>> owner@vger.kernel.org] On Behalf Of Tony Lindgren
+>>> Sent: Thursday, October 08, 2009 5:55 AM
+>>> To: linux-omap@vger.kernel.org
+>>> Cc: Paul Walmsley
+>>> Subject: Patches merged to split OMAP2_IO_ADDRESS
+>>>
+>>> Hi all,
+>>>
+>>> I've pushed Santosh' patches to split OMAP2_IO_ADDRESS into
+>>> *_L3_IO_ADDRESS
+>>> and *_L4_IO_ADDRESS so we can claim more kernel address space and support
+>>> over 512MB of memory instead of 256MB.
+>>>
+>>> Of course, our goal is to convert everything except the .S files to
+>>> use ioremap() instead, but that can now be done parallel and in smaller
+>>> chunks.
+>>>
+>>> Please everybody, please convert your code to use ioremap(), there are
+>>> static mappings already in place so it should work out of the box.
+>>>
+>>> I also had add two quick patches to keep things compiling,
+>>> Paul can you take a look at them? I could not really test them as all
+>>> the code is not there yet. Will post them as a reply to this thread.
+>> Thanks for the merge!!
+>>
+>> I have boot tested below platforms with latest LO master.
+>>  
+>> 1. OMAP3430 SDP board - BOOT OK
+>> 2. OMAP3 BEAGLE 	- BOOT OK
+>> 3. OMAP 4430 SDP - BOOT OK with variation of patch: http://patchwork.kernel.org/patch/50531/
+> 
+> Great. I guess we still have some issues on 24xx with the hwmod,
+> but hopefully we'll get that working again soon.
+> 
+> Can somebody with 512MB memory on a board try the current l-o master
+> and make sure things work?
+http://pastebin.mozilla.org/675489
+3630 board with SDPdefconfig +8250 hack (with 3430 OPP values + wrong 
+GPIOs) -> boots up mostly fine..
 Regards,
-
-Tony
-
---5I6of5zJg18YgZEa
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="v2-omap_hsmmc-Add-missing-probe-handler-hook.patch"
-
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: [v2] omap_hsmmc: Add missing probe handler hook
-Date: Fri, 02 Oct 2009 12:22:40 -0000
-From: Roger Quadros <ext-roger.quadros@nokia.com>
-X-Patchwork-Id: 51344
-
-The missing probe handler hook will never probe the driver. Add it back.
-Fixes broken MMC on OMAP.
-
-We use platform_driver_probe() API since omap_hsmmc is not a hot-pluggable
-device.
-
-Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
-Tested-by: Felipe Contreras <felipe.contreras@gmail.com>
-Tested-by: Tony Lindgren <tony@atomide.com>
-
----
-drivers/mmc/host/omap_hsmmc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 4487cc0..0aecaae 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -2013,7 +2013,7 @@ static struct platform_driver omap_hsmmc_driver = {
- static int __init omap_hsmmc_init(void)
- {
- 	/* Register the MMC driver */
--	return platform_driver_register(&omap_hsmmc_driver);
-+	return platform_driver_probe(&omap_hsmmc_driver, omap_hsmmc_probe);
- }
- 
- static void __exit omap_hsmmc_cleanup(void)
-
---5I6of5zJg18YgZEa--
+Nishanth Menon
