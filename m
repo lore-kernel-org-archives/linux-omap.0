@@ -1,40 +1,45 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 8/8] ASoC: tpa6130a2: Control vdd using
- regulator framework
-Date: Thu, 8 Oct 2009 14:43:33 +0100
-Message-ID: <20091008134332.GI29176@rakim.wolfsonmicro.main>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<1255003137-1034-9-git-send-email-eduardo.valentin@nokia.com>
+From: shankarGanesh <shankarganeshk@gmail.com>
+Subject: Re: X-loader / U-Boot query
+Date: Thu, 08 Oct 2009 19:22:10 +0530
+Message-ID: <4ACDEE8A.2010807@gmail.com>
+References: <4ACDE1DF.1010303@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1255003137-1034-9-git-send-email-eduardo.valentin@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:38664 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758222AbZJHNwz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 09:52:55 -0400
+Received: by fxm27 with SMTP id 27so5529340fxm.17
+        for <linux-omap@vger.kernel.org>; Thu, 08 Oct 2009 06:52:18 -0700 (PDT)
+In-Reply-To: <4ACDE1DF.1010303@mlbassoc.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 08, 2009 at 02:58:57PM +0300, Eduardo Valentin wrote:
 
-> +	data->regulator = regulator_get(dev, "vdd");
-> +	if (IS_ERR(data->regulator)) {
-> +		dev_info(dev, "Could not get regulator for vdd. "
-> +					"Executing without regulator.\n");
-> +			data->regulator = NULL;
-> +	}
+> 
+> The problem I have now is that it's only seeing 1/2 (256MB)
+> of the available DRAM.
 
-Similar comments to the previous patch apply to this driver - regulator
-usage should be unconditional, error messages should not be split over
-multiple lines and you should represent all the supplies separately (it
-looks like there's both VDD and CPVSS required here, for example) to
-avoid future surprises.
+Please refer sdrc_init() in  u-boot/board/omap3530beagle/mem.c . 
+SDRC_MCFG register has definition for SIZE and CS settings.
+Refer [1] for details about SDRC configurations.
+
+
+[1]http://focus.ti.com/pdfs/wtbu/SWPU114Q_PrelimFinal_EPDF_03_05_2009.pdf
+
+Regards,
+Shankar
+
+> 
+> * Does anyone know how to get it to see all 512MB?
+> * Is there a better place to ask/discuss these questions?
+>   A cursory look around did not point to anything fresh (most
+>   of the web pages & Wikis I looked are are _years_ old)
+> 
+> Thanks for any help/pointers
+> 
+
