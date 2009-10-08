@@ -1,65 +1,53 @@
-From: "Syed Mohammed, Khasim" <khasim@ti.com>
-Subject: RE: X-loader / U-Boot query
-Date: Thu, 8 Oct 2009 21:24:41 +0530
-Message-ID: <0680EC522D0CC943BC586913CF3768C0037D15A4DC@dbde02.ent.ti.com>
-References: <4ACDE1DF.1010303@mlbassoc.com>
- <4ACDFB52.2080100@astc-design.com>
- <7A436F7769CA33409C6B44B358BFFF0C012A6FC720@dlee02.ent.ti.com>
- <4ACE0271.2060402@mlbassoc.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 7/8] ASoC: tlv320aic3x: add initial usage of regulator framework to control avdd_dac
+Date: Thu, 8 Oct 2009 17:01:04 +0100
+Message-ID: <1C729A43-F9F2-4FF6-A07E-5450E595982B@opensource.wolfsonmicro.com>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com> <1255003137-1034-8-git-send-email-eduardo.valentin@nokia.com> <1255004227.30157.159.camel@eenurkka-desktop>,<20091008134046.GH29176@rakim.wolfsonmicro.main> <1FFEF31EBAA4F64B80D33027D42977600E85F0CC91@NOK-EUMSG-02.mgdnok.nokia.com> (sfid-20091008_164425_486507_1ADB55B0)
+Mime-Version: 1.0 (iPhone Mail 7C144)
+Content-Type: text/plain;
+	charset=us-ascii;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35848 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753089AbZJHPz0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 11:55:26 -0400
-In-Reply-To: <4ACE0271.2060402@mlbassoc.com>
-Content-Language: en-US
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:53310 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753955AbZJHQBr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 12:01:47 -0400
+In-Reply-To: <1FFEF31EBAA4F64B80D33027D42977600E85F0CC91@NOK-EUMSG-02.mgdnok.nokia.com> (sfid-20091008_164425_486507_1ADB55B0)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Gary Thomas <gary@mlbassoc.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: Adam Machalek <adam.machalek@astc-design.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "<ext-Eero.Nurkkala@nokia.com>" <ext-Eero.Nurkkala@nokia.com>
+Cc: "<eduardo.valentin@nokia.com>" <eduardo.valentin@nokia.com>, "<tony@atomide.com>" <tony@atomide.com>, "<peter.ujfalusi@nokia.com>" <peter.ujfalusi@nokia.com>, "<jhnikula@gmail.com>" <jhnikula@gmail.com>, "<linux-omap@vger.kernel.org>" <linux-omap@vger.kernel.org>, "<alsa-devel@vger.kernel.org>" <alsa-devel@vger.kernel.org>
 
+On 8 Oct 2009, at 16:44, <ext-Eero.Nurkkala@nokia.com> wrote:
 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Gary Thomas
-> Sent: Thursday, October 08, 2009 10:17 AM
-> To: Menon, Nishanth
-> Cc: Adam Machalek; linux-omap@vger.kernel.org
-> Subject: Re: X-loader / U-Boot query
-> 
-> On 10/08/2009 09:14 AM, Menon, Nishanth wrote:
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Adam Machalek
-> >> Sent: Thursday, October 08, 2009 9:47 AM
-> >> To: Gary Thomas
-> >> Cc: linux-omap@vger.kernel.org
-> >> Subject: Re: X-loader / U-Boot query
-> >>
-> >> The problem is located in u-boot/cpu/arm_cortexa8/omap3/mem.c
-> >>
-> >> Function do_sdrc_init()
-> >>
-> >> There is an assumption that the RAM size on each CS is maximum of 128M.
-> >> See this line:
-> >>
-> >> writel(RASWIDTH_13BITS | CASWIDTH_10BITS | ADDRMUXLEGACY |
-> >>        RAMSIZE_128 | BANKALLOCATION | B32NOT16 | B32NOT16 |
-> >>        DEEPPD | DDR_SDRAM,&sdrc_base->cs[cs].mcfg);
-> >>
-> > This discussion should really be taken to u-boot mailing list. Yes, any
-> additional patches would be good to have..
-> 
-> Where is that list??  I did ask this question in the original
-> email...
+> Mark Brown wrote:
+>>
+>>>                                         Also, this is regulator  
+>>> thing
+>>> is highly platform dependent, not aic3x related really at all, so is
+>>> this the correct place... Just a thought, dont take it too  
+>>> seriously ;)
+>>
+>> I'm not sure what you mean by this?
 >
-Sorry, I have not seen all the thread. Are you using x-loader? Then your DDR configuration happens in x-loader and not in u-boot as it skips it. In that case your question should be on x-loader and this is the right list to discuss the same. 
+> You may power the aic3x from a fixed source, or from multiple  
+> sources, with
+> and without any regulator in between. It's up to the HW and HW design.
 
-If you use u-boot for RAM configuration then you should be on NOR flash.
+The regulator API can cope with all this pretty transparently - if  
+multiple supplies come from the same regulator the API will hide that  
+from the consumer. There is a fixed voltage regulator driver which can  
+be used to represent supplies with no soft control.
 
-Regards,
-Khasim
+> Moreover, you don't _power off_ (turn the regulator off) the analog  
+> voltages
+> of aic3x; things won't work. So it's not like a switch everybody may  
+> use. Or
+> nothing prevent you from experiencing that...
+
+I'd expect the usage would be that after the audio subsystem has been  
+idle for some configurable period of time the core would bring the  
+audio subsystem down to bias off, at which point supplies could also  
+be switched off.
