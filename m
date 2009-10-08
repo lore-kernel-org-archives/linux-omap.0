@@ -1,63 +1,123 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
+From: Tony Lindgren <tony@atomide.com>
 Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
-Date: Fri, 9 Oct 2009 00:29:52 +0300
-Message-ID: <94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
-References: <20091007185112.GJ7899@atomide.com>
+Date: Thu, 8 Oct 2009 14:41:41 -0700
+Message-ID: <20091008214140.GJ7417@atomide.com>
+References: <20091007185112.GJ7899@atomide.com> <94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20091007185112.GJ7899@atomide.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59923 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756023AbZJHVm2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 17:42:28 -0400
+Content-Disposition: inline
+In-Reply-To: <94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org
 
-T24gV2VkLCBPY3QgNywgMjAwOSBhdCA5OjUxIFBNLCBUb255IExpbmRncmVuIDx0b255QGF0b21p
-ZGUuY29tPiB3cm90ZToKPiBMaW51cywKPgo+IFBsZWFzZSBwdWxsIG9tYXAgZml4ZXMgZnJvbToK
-Pgo+IGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC90bWxpbmQv
-bGludXgtb21hcC0yLjYuZ2l0IG9tYXAtZml4ZXMtZm9yLWxpbnVzCj4KPiBSZWdhcmRzLAo+Cj4g
-VG9ueQo+Cj4KPiBUaGUgZm9sbG93aW5nIGNoYW5nZXMgc2luY2UgY29tbWl0IDM3NDU3NmE4YjZm
-ODY1MDIyYzBmZDFjYTYyMzk2ODg5YjIzZDY2ZGQ6Cj4gwqBMaW51cyBUb3J2YWxkcyAoMSk6Cj4g
-wqAgwqAgwqAgwqBMaW51eCAyLjYuMzItcmMzCj4KPiBhcmUgYXZhaWxhYmxlIGluIHRoZSBnaXQg
-cmVwb3NpdG9yeSBhdDoKPgo+IMKgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9r
-ZXJuZWwvZ2l0L3RtbGluZC9saW51eC1vbWFwLTIuNi5naXQgb21hcC1maXhlcy1mb3ItbGludXMK
-Pgo+IEFydGVtIEJpdHl1dHNraXkgKDEpOgo+IMKgIMKgIMKgT01BUDM6IFBNOiBpbnRyb2R1Y2Ug
-YSBuZXcgcG93ZXJkb21haW4gd2FsayBoZWxwZXIKPgo+IERhbmllbCBXYWxrZXIgKDEpOgo+IMKg
-IMKgIMKgb21hcDogaW92bW06IEFkZCBtaXNzaW5nIG11dGV4X3VubG9jawo+Cj4gSGlyb3NoaSBE
-T1lVICgxKToKPiDCoCDCoCDCoG9tYXA6IGlvdm1tOiBGaXggaW5jb3JyZWN0IHNwZWxsaW5nCj4K
-PiBKb24gSHVudGVyICgxKToKPiDCoCDCoCDCoE9NQVAzOiBQTTogUHJldmVudCBoYW5nIGluIHBy
-Y21faW50ZXJydXB0X2hhbmRsZXIKPgo+IEtldmluIEhpbG1hbiAoMSk6Cj4gwqAgwqAgwqBPTUFQ
-MzogUE06IEVuYWJsZSBHUElPIG1vZHVsZS1sZXZlbCB3YWtldXBzCj4KPiBQYXVsIFdhbG1zbGV5
-ICgyKToKPiDCoCDCoCDCoE9NQVAzOiBQTTogUFJDTSBpbnRlcnJ1cHQ6IGNoZWNrIE1QVUdSUFNF
-TCByZWdpc3Rlcgo+IMKgIMKgIMKgT01BUDM6IFBNOiBQUkNNIGludGVycnVwdDogb25seSBoYW5k
-bGUgc2VsZWN0ZWQgUFJDTSBpbnRlcnJ1cHRzCj4KPiBSYWplbmRyYSBOYXlhayAoMSk6Cj4gwqAg
-wqAgwqBvbWFwOiBMb2NrIERQTEw1IGF0IGJvb3QKPgo+IFNlcmdpbyBBZ3VpcnJlICgxKToKPiDC
-oCDCoCDCoG9tYXBmYjogQ29uZGl0aW9uIG11dGV4IGFjcXVpc2l0aW9uCj4KPiBUb21taSBSYW50
-YWxhICgyKToKPiDCoCDCoCDCoG9tYXBmYjogQmxpenphcmQ6IGZpeCBwb2ludGVyIHRvIGJlIGNv
-bnN0Cj4gwqAgwqAgwqBvbWFwZmI6IEJsaXp6YXJkOiBjb25zdGlmeSByZWdpc3RlciBhZGRyZXNz
-IHRhYmxlcwo+Cj4gVG9ueSBMaW5kZ3JlbiAoMik6Cj4gwqAgwqAgwqBvbWFwOiBGaXggaW5jb3Jy
-ZWN0IDczMCB2cyA4NTAgZGV0ZWN0aW9uCj4gwqAgwqAgwqBNZXJnZSBicmFuY2ggJ3BtLWZpeGVz
-LTMyJyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy8uLi4va2hpbG1hbi9saW51eC1vbWFwLXBtIGlu
-dG8gb21hcC1maXhlcy1mb3ItbGludXMKPgo+IFZpa3JhbSBQYW5kaXRhICgxKToKPiDCoCDCoCDC
-oE9NQVAzOiBQTTogVVNCSE9TVDogY2xlYXIgd2FrZXVwIGV2ZW50cyBvbiBib3RoIGhvc3RzCj4K
-PiB5ZSBqYW5ib2UgKDEpOgo+IMKgIMKgIMKgb21hcDogU1JBTTogZmx1c2ggdGhlIHJpZ2h0IGFk
-ZHJlc3MgYWZ0ZXIgbWVtY3B5IGluIG9tYXBfc3JhbV9wdXNoCgpUaGUgYmVhZ2xlYm9hcmQgaXMg
-c3RpbGwgbm90IGJvb3RpbmcgZm9yIG1lIHdpdGggdGhpcyBicmFuY2gsIEkgbmVlZAp0byBhZGQg
-dGhlc2UgdHdvIHBhdGNoZXM6CgoqIGh0dHA6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC81
-MDcyMS8KClRoaXMgb25lIGlzIG5lZWRlZCBiZWNhdXNlIHRoZSBkZWZjb25maWcgaGFzOgpDT05G
-SUdfVFdMNDAzMF9VU0I9eQoKKiBodHRwOi8vcGF0Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvNTA5
-NzAvCgpUaGlzIGlzIG5lZWRlZCBiZWNhdXNlIG1vc3QgcGVvcGxlIGJvb3QgZnJvbSBhbiBNTUMu
-CgpZb3UgY2FuIGFkZCBteSAndGVzdGVkLWJ5JyBsaW5lIGlmIHlvdSB3YW50LgoKQ2hlZXJzLgoK
-LS0gCkZlbGlwZSBDb250cmVyYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJu
-ZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFu
-L2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+* Felipe Contreras <felipe.contreras@gmail.com> [091008 14:29]:
+> On Wed, Oct 7, 2009 at 9:51 PM, Tony Lindgren <tony@atomide.com> wrot=
+e:
+> > Linus,
+> >
+> > Please pull omap fixes from:
+> >
+> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6=
+=2Egit omap-fixes-for-linus
+> >
+> > Regards,
+> >
+> > Tony
+> >
+> >
+> > The following changes since commit 374576a8b6f865022c0fd1ca62396889=
+b23d66dd:
+> > =A0Linus Torvalds (1):
+> > =A0 =A0 =A0 =A0Linux 2.6.32-rc3
+> >
+> > are available in the git repository at:
+> >
+> > =A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-=
+2.6.git omap-fixes-for-linus
+> >
+> > Artem Bityutskiy (1):
+> > =A0 =A0 =A0OMAP3: PM: introduce a new powerdomain walk helper
+> >
+> > Daniel Walker (1):
+> > =A0 =A0 =A0omap: iovmm: Add missing mutex_unlock
+> >
+> > Hiroshi DOYU (1):
+> > =A0 =A0 =A0omap: iovmm: Fix incorrect spelling
+> >
+> > Jon Hunter (1):
+> > =A0 =A0 =A0OMAP3: PM: Prevent hang in prcm_interrupt_handler
+> >
+> > Kevin Hilman (1):
+> > =A0 =A0 =A0OMAP3: PM: Enable GPIO module-level wakeups
+> >
+> > Paul Walmsley (2):
+> > =A0 =A0 =A0OMAP3: PM: PRCM interrupt: check MPUGRPSEL register
+> > =A0 =A0 =A0OMAP3: PM: PRCM interrupt: only handle selected PRCM int=
+errupts
+> >
+> > Rajendra Nayak (1):
+> > =A0 =A0 =A0omap: Lock DPLL5 at boot
+> >
+> > Sergio Aguirre (1):
+> > =A0 =A0 =A0omapfb: Condition mutex acquisition
+> >
+> > Tommi Rantala (2):
+> > =A0 =A0 =A0omapfb: Blizzard: fix pointer to be const
+> > =A0 =A0 =A0omapfb: Blizzard: constify register address tables
+> >
+> > Tony Lindgren (2):
+> > =A0 =A0 =A0omap: Fix incorrect 730 vs 850 detection
+> > =A0 =A0 =A0Merge branch 'pm-fixes-32' of git://git.kernel.org/.../k=
+hilman/linux-omap-pm into omap-fixes-for-linus
+> >
+> > Vikram Pandita (1):
+> > =A0 =A0 =A0OMAP3: PM: USBHOST: clear wakeup events on both hosts
+> >
+> > ye janboe (1):
+> > =A0 =A0 =A0omap: SRAM: flush the right address after memcpy in omap=
+_sram_push
+>=20
+> The beagleboard is still not booting for me with this branch, I need
+> to add these two patches:
+>=20
+> * http://patchwork.kernel.org/patch/50721/
+>=20
+
+This should go to the mainline kernel via Samuel as it's
+drivers/mfd related.
+
+> This one is needed because the defconfig has:
+> CONFIG_TWL4030_USB=3Dy
+>=20
+> * http://patchwork.kernel.org/patch/50970/
+>=20
+> This is needed because most people boot from an MMC.
+
+And this should go in via the mmc list.
+
+So little more patience is still needed :)
+
+Cheers,
+
+Tony
+
+>=20
+> You can add my 'tested-by' line if you want.
+>=20
+> Cheers.
+>=20
+> --=20
+> Felipe Contreras
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
