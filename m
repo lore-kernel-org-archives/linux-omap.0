@@ -1,97 +1,67 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/8] ASoC: TPA6130A2 amplifier driver
-Date: Thu, 8 Oct 2009 14:53:42 +0100
-Message-ID: <20091008135342.GJ29176@rakim.wolfsonmicro.main>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
- <1255003137-1034-2-git-send-email-eduardo.valentin@nokia.com>
- <20091008125213.GA29176@rakim.wolfsonmicro.main>
- <200910081638.24229.peter.ujfalusi@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH]  OMAP3: PM: Fix VDD2 OPP1 issue
+Date: Thu, 08 Oct 2009 06:50:59 -0700
+Message-ID: <878wfmhu4c.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38846 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1758294AbZJHNyU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 09:54:20 -0400
-Content-Disposition: inline
-In-Reply-To: <200910081638.24229.peter.ujfalusi@nokia.com>
+Received: from mail-px0-f179.google.com ([209.85.216.179]:36658 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758163AbZJHNvj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 09:51:39 -0400
+Received: by pxi9 with SMTP id 9so5789611pxi.4
+        for <linux-omap@vger.kernel.org>; Thu, 08 Oct 2009 06:51:02 -0700 (PDT)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D062B@dbde02.ent.ti.com> (Teerth Reddy's message of "Thu\, 8 Oct 2009 14\:51\:20 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Jarkko Nikula <jhnikula@GMAIL.COM>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+To: "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 08, 2009 at 04:38:24PM +0300, Peter Ujfalusi wrote:
-> On Thursday 08 October 2009 15:52:13 ext Mark Brown wrote:
-> > On Thu, Oct 08, 2009 at 02:58:50PM +0300, Eduardo Valentin wrote:
-> > > +struct tpa6130a2_platform_data {
-> > > +	int (*set_power)(int state);
-> > > +};
+"Reddy, Teerth" <teerth@ti.com> writes:
 
-> > Why is this a callback and not just a GPIO number?  That'd seem simpler
-> > for users.
+> From 144669d941a432875db37ae9431847f6753e566e Mon Sep 17 00:00:00 2001
+> From: Teerth Reddy <teerth@ti.com>
+> Date: Wed, 9 Sep 2009 11:01:04 +0530
+> Subject: [PATCH] ARM: OMAP3: PM: Fix VDD2 OPP1 issue
+>
+> This patch fixes the VDD2 OPP1 issue. The patch has change
+> which does not allow VDD2 OPP setting to 1.VDD2 should not be put 
+> at OPP1 as this is not a supported OPP for VDD2
 
-> Well, same amount of code, but in different place if the power is enabled 
+Patch looks fine, but shortlog (subject) and changelog should be more
+clear.  These should be written for people who are not as familiar
+with the code.  For example, seeing this shortlog in a git history
+would not be helpful as the irst thing one would ask is "what OPP1
+issue?"
 
-Until someone adds a second board, at which point they need to copy the
-code to acquire and release the GPIO.
+How about something like this:
 
-> through a GPIO. But if the power is controlled via different means (nothing 
-> comes to mind, but there are exotic systems out there), in this way it is simple 
-> to handle
+Subject: OMAP3: PM: do not allow OPP1 allow for VDD2
 
-I suspect we can deal with that adequately when it crops up, for example
-by having the driver set up a default callback function if a GPIO is
-specified instead of a callback.
+Since OPP1 is not a supported OPP for VDD2, do not allow it to be
+changed using the sysfs interface.
 
-> > > +	pdata = (struct tpa6130a2_platform_data *)client->dev.platform_data;
-> > > +	/* Set default register values */
-> > > +	data->regs[TPA6130A2_REG_CONTROL] = TPA6130A2_SWS |
-> > > +					    TPA6130A2_HP_EN_R |
-> > > +					    TPA6130A2_HP_EN_L;
+Kevin
 
-> > This looks like you could implement stereo paths with individual power
-> > control?
 
-> Can we put something in between DAPM_OUTPUT and DAPM_HP to handle the stereo 
-> path correctly?
-
-Yes.
-
-> We could have two paths from codec to the "TPA6130A2 Headphone", which is needed 
-> to actually control the power of the amplifier.
-
-Or make "TPA6130A2 Headphone" be a SND_SOC_DAPM_SUPPLY() connected to
-the individual channels for the headphone outputs, which should do the
-right thing.
-
-> At the end we are not really gaining much, but one more level of switch on the 
-> path.
-> We could have simple mute alsa controls in tpa6130a2_controls for the amplifier 
-> itself...
-
-It'd mean that mono outputs would only need to enable one of the
-channels.  Depending on the hardware feeding the amp this may behave
-better - there may be some noise or leakage on the idle channel which
-it'd be better to avoid amplifying - and it should certainly use a
-little less power.
-
-> > > +	err = tpa6130a2_i2c_read(TPA6130A2_REG_VERSION) &
-> > > +				 TPA6130A2_VERSION_MASK;
-> > > +	if ((err != 1) && (err != 2)) {
-> > > +		dev_err(dev, "Unexpected headphone amplifier chip version "
-> > > +		       "of 0x%02x, was expecting 0x01 or 0x02\n", err);
-> > > +		err = -ENODEV;
-
-> > This seems a bit excessive - is it really likely that the register map
-> > would be changed incompatibly in a future version?
-
-> Hmm, we have only seen these versions of the chip, and we know that the driver 
-> works with these. Also we don't have any information on different versions, but 
-> I would think that the register map is not changing (the reset values for some 
-> registers are different)
-
-It's fairly common to see some incompatible changes in early silicon
-revisions but once things get properly launched it's fairly unusual.
-I'd be more inclined to print a warning here rather than fail - chances
-are that the driver will work fine with any new revisions that are
-produced.
+> Signed-off-by: Teerth Reddy <teerth@ti.com>
+> ---
+>  arch/arm/mach-omap2/pm.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
+> index fec7d00..d0e03c4 100644
+> --- a/arch/arm/mach-omap2/pm.c
+> +++ b/arch/arm/mach-omap2/pm.c
+> @@ -195,7 +195,7 @@ static ssize_t vdd_opp_store(struct kobject *kobj, struct kobj_attribute *attr,
+>  		}
+>  		resource_set_opp_level(VDD1_OPP, value, flags);
+>  	} else if (attr == &vdd2_opp_attr) {
+> -		if (value < 1 || value > 3) {
+> +		if (value < 2 || value > 3) {
+>  			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
+>  			return -EINVAL;
+>  		}
+> -- 
+> 1.5.4.7
