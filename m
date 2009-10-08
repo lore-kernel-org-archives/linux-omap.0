@@ -1,148 +1,150 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: [RFC][PATCH] OMAP3: introduce OMAP3630
-Date: Wed,  7 Oct 2009 23:47:03 -0500
-Message-ID: <1254977223-4236-1-git-send-email-nm@ti.com>
-References: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver support.
+Date: Thu, 8 Oct 2009 11:44:15 +0530
+Message-ID: <d6a0f7aa0910072314h77383e31r2330725b614ba472@mail.gmail.com>
+References: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com>
+	 <20091007215116.GB29320@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54902 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656AbZJHErr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 00:47:47 -0400
-In-Reply-To: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
+Received: from qw-out-2122.google.com ([74.125.92.26]:65083 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790AbZJHGPW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 02:15:22 -0400
+In-Reply-To: <20091007215116.GB29320@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, Allen Pais <allen.pais@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "Govindraj.R" <govindraj.raja@ti.com>, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org
 
-Device intro:
-OMAP3630 is the latest in the family of OMAP3 devices
-and among the changes it introduces are:
+On Thu, Oct 8, 2009 at 3:21 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Govindraj.R <govindraj.raja@ti.com> [090924 03:29]:
+>> From: Govindraj R <govindraj.raja@ti.com>
+>>
+>> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
+>>
+>> Signed-off-by: =A0 =A0 =A0 =A0Govindraj R <govindraj.raja@ti.com>
+>> Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+>> Reviewed-by: Tony Lindgren <tony@atomide.com>
+>
+> You should only add Reviewed-by if Alan or me have replied with it.
+>
+> So far I've only replied with some comments that have not yet
+> been fixed, so we're few more steps from being Reviewd-by.
+>
+> <snip>
+>
+>> diff --git a/drivers/serial/Kconfig b/drivers/serial/Kconfig
+>> index 6553833..67a7129 100644
+>> --- a/drivers/serial/Kconfig
+>> +++ b/drivers/serial/Kconfig
+>> @@ -1359,6 +1359,53 @@ config SERIAL_OF_PLATFORM
+>> =A0 =A0 =A0 =A0 Currently, only 8250 compatible ports are supported,=
+ but
+>> =A0 =A0 =A0 =A0 others can easily be added.
+>>
+>> +config SERIAL_OMAP
+>> + =A0 =A0 bool "OMAP serial port support"
+>> + =A0 =A0 depends on ARM && ARCH_OMAP
+>> + =A0 =A0 select SERIAL_CORE
+>> + =A0 =A0 help
+>> + =A0 =A0 If you have a machine based on an Texas Instruments OMAP C=
+PU you
+>> + =A0 =A0 can enable its onboard serial ports by enabling this optio=
+n.
+>> +
+>> +config SERIAL_OMAP_CONSOLE
+>> + =A0 =A0 bool "Console on OMAP serial port"
+>> + =A0 =A0 depends on SERIAL_OMAP
+>> + =A0 =A0 select SERIAL_CORE_CONSOLE
+>> + =A0 =A0 help
+>> + =A0 =A0 If you have enabled the serial port on the Texas Instrumen=
+ts OMAP
+>> + =A0 =A0 CPU you can make it the console by answering Y to this opt=
+ion.
+>> +
+>> + =A0 =A0 Even if you say Y here, the currently visible virtual cons=
+ole
+>> + =A0 =A0 (/dev/tty0) will still be used as the system console by de=
+fault, but
+>> + =A0 =A0 you can alter that using a kernel command line option such=
+ as
+>> + =A0 =A0 "console=3DttyS0". (Try "man bootparam" or see the documen=
+tation of
+>> + =A0 =A0 your boot loader (lilo or loadlin) about how to pass optio=
+ns to the
+>> + =A0 =A0 kernel at boot time.)
+>> +
+>> +config SERIAL_OMAP_DMA_UART1
+>> + =A0 =A0 bool "UART1 DMA support"
+>> + =A0 =A0 depends on SERIAL_OMAP
+>> + =A0 =A0 help
+>> + =A0 =A0 If you have enabled the serial port on the Texas Instrumen=
+ts OMAP
+>> + =A0 =A0 CPU you can enable the DMA transfer on UART 1 by answering
+>> + =A0 =A0 to this option.
+>> +
+>> +config SERIAL_OMAP_DMA_UART2
+>> + =A0 =A0 bool "UART2 DMA support"
+>> + =A0 =A0 depends on SERIAL_OMAP
+>> + =A0 =A0 help
+>> + =A0 =A0 If you have enabled the serial port on the Texas Instrumen=
+ts OMAP
+>> + =A0 =A0 CPU you can enable the DMA transfer on UART 2 by answering
+>> + =A0 =A0 to this option.
+>> +
+>> +config SERIAL_OMAP_DMA_UART3
+>> + =A0 =A0 bool "UART3 DMA support"
+>> + =A0 =A0 depends on SERIAL_OMAP
+>> + =A0 =A0 help
+>> + =A0 =A0 If you have enabled the serial port on the Texas Instrumen=
+ts OMAP
+>> + =A0 =A0 CPU you can enable the DMA transfer on UART 3 by answering
+>> + =A0 =A0 to this option.
+>> +
+>> =A0config SERIAL_OF_PLATFORM_NWPSERIAL
+>> =A0 =A0 =A0 tristate "NWP serial port driver"
+>> =A0 =A0 =A0 depends on PPC_OF && PPC_DCR
+>
+> There's absolutely no need for having Kconfig options for the DMA
+> support. Please pass that in platform_data from the board-*.c files.
+>
+> This is the third time I'm commenting on the same issue!
+>
+> What's the point of posting these patches for review if the issues
+> don't get solved?
 
-New OPP levels for new voltage and frequency levels. a bunch of
-Bug fixes to various modules feature additions, notably with ISP,
-sDMA etc.
 
-Details about the chip is available here:
-http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
+The omap-serial uart driver is designed to work either in interrupt
+mode or in DMA mode,
+We have provided this option so that one can select interrupt mode or
+DMA mode based on the uart usage, if somebody is using uart as console
+then interrupt mode will do, else if used with bluetooth which does
+huge data transfer then DMA mode can be selected.
 
-Strategy used:
-Strategy to introduce this device into Linux was discussed here:
-Ref: http://marc.info/?t=125343303400003&r=1&w=2
+Don't you think this should be a configurable option using kconfig
+rather than passing as platform data?
 
-Two approaches were available:
-a) Consider 3630 generation of devices as a new family of silicon
-b) Consider 3630 as an offshoot of 3430 family of devices
+if used as platform data then one has to modify platform data to
+switch between the interrupt and DMA mode.
 
-As a common consensus, (b) seems to be more valid for 3630 as:
-* There are changes which are easily handled by looking at rev
-* Most of existing 34xx infrastructure can be reused(almost 90%+)
-	- so no ugly if (cpu_is_omap34xx() || cpu_is_omap36xx())
-	  all over the place
-	- lesser chance of bugs due to reuse of proven code flow
-	- 36xx specific handling can still be done where required
-	  within the existing infrastructure
+Regards,
+Govindraj.R
 
-NOTE:
-* If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
-  added on top of the existing 3630 ones are renumbered
 
-This patch was tested on SDP3430.
-
-Signed-off-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Cc: Allen Pais <allen.pais@ti.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Sanjeev Premi <premi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/id.c              |   33 ++++++++++++++++++++++++++++++---
- arch/arm/plat-omap/include/mach/cpu.h |    6 ++++++
- 2 files changed, 36 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 03b80f2..79193c6 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -186,6 +186,7 @@ void __init omap3_check_revision(void)
- {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
-+	u16 omap_type;
- 	u8 rev;
- 	char *rev_name = "ES1.0";
- 
-@@ -210,7 +211,10 @@ void __init omap3_check_revision(void)
- 	hawkeye = (idcode >> 12) & 0xffff;
- 	rev = (idcode >> 28) & 0xff;
- 
--	if (hawkeye == 0xb7ae) {
-+	omap_type = omap_rev() >> 16;
-+	switch (hawkeye) {
-+	case 0xb7ae:
-+		/* Handle 34xx devices */
- 		switch (rev) {
- 		case 0:
- 			omap_revision = OMAP3430_REV_ES2_0;
-@@ -231,12 +235,35 @@ void __init omap3_check_revision(void)
- 		default:
- 			/* Use the latest known revision as default */
- 			omap_revision = OMAP3430_REV_ES3_1;
--			rev_name = "Unknown revision\n";
-+			rev_name = "Unknown 34xx revision\n";
-+			/* Fall through */
- 		}
-+		break;
-+	case 0xb891:
-+		/* Handle 36xx devices */
-+		/* Over ride for display purposes */
-+		omap_type = 0x3630;
-+		switch (rev) {
-+		case 0:
-+			omap_revision = OMAP3630_REV_ES1_0;
-+			rev_name = "ES1.0";
-+			break;
-+		default:
-+			/* Use the latest known revision as default */
-+			omap_revision = OMAP3630_REV_ES1_0;
-+			rev_name = "Unknown 36xx revision\n";
-+			/* Fall through */
-+		}
-+		break;
-+	default:
-+		/* Unknown default to latest rev as default*/
-+		omap_revision = OMAP3630_REV_ES1_0;
-+		rev_name = "Unknown revision\n";
-+		/* Fall through */
- 	}
- 
- out:
--	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
-+	pr_info("OMAP%04x %s\n", omap_type, rev_name);
- }
- 
- #define OMAP3_SHOW_FEATURE(feat)		\
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index 431fec4..af1080f 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP3430_REV_ES2_1	0x34302034
- #define OMAP3430_REV_ES3_0	0x34303034
- #define OMAP3430_REV_ES3_1	0x34304034
-+/* NOTE: Add 36xx series below
-+ * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
-+ * added above the 3630 defines and series renumbered to ensure
-+ * rev() > checks to work
-+ */
-+#define OMAP3630_REV_ES1_0	0x34305034
- 
- #define OMAP443X_CLASS		0x44300034
- 
--- 
-1.6.0.4
-
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-seria=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
