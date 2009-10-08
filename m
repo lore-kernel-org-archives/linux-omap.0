@@ -1,42 +1,64 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 8/8] ASoC: tpa6130a2: Control vdd using regulator
-	framework
-Date: Thu, 8 Oct 2009 15:41:40 +0100
-Message-ID: <20091008144139.GA7830@opensource.wolfsonmicro.com>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com> <1255003137-1034-9-git-send-email-eduardo.valentin@nokia.com> <20091008134332.GI29176@rakim.wolfsonmicro.main> <20091008135628.GA6616@esdhcp037198.research.nokia.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: X-loader / U-Boot query
+Date: Thu, 08 Oct 2009 08:48:22 -0600
+Message-ID: <4ACDFBB6.1080101@mlbassoc.com>
+References: <4ACDE1DF.1010303@mlbassoc.com> <4ACDFB52.2080100@astc-design.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:49782 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757499AbZJHOmR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 10:42:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20091008135628.GA6616@esdhcp037198.research.nokia.com>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:56688 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758222AbZJHOtC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 10:49:02 -0400
+In-Reply-To: <4ACDFB52.2080100@astc-design.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+To: Adam Machalek <adam.machalek@astc-design.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Oct 08, 2009 at 04:56:28PM +0300, Eduardo Valentin wrote:
-> On Thu, Oct 08, 2009 at 03:43:33PM +0200, Mark Brown wrote:
+On 10/08/2009 08:46 AM, Adam Machalek wrote:
+> The problem is located in u-boot/cpu/arm_cortexa8/omap3/mem.c
+>
+> Function do_sdrc_init()
+>
+> There is an assumption that the RAM size on each CS is maximum of 128M.
+> See this line:
+>
+> writel(RASWIDTH_13BITS | CASWIDTH_10BITS | ADDRMUXLEGACY |
+> RAMSIZE_128 | BANKALLOCATION | B32NOT16 | B32NOT16 |
+> DEEPPD | DDR_SDRAM, &sdrc_base->cs[cs].mcfg);
 
-> > Similar comments to the previous patch apply to this driver - regulator
-> > usage should be unconditional, error messages should not be split over
-> > multiple lines and you should represent all the supplies separately (it
-> > looks like there's both VDD and CPVSS required here, for example) to
-> > avoid future surprises.
+Thanks, I had already found this.  What I was _hoping_ was that
+someone had already fixed this for the larger devices...
 
-> Yeah. The idea here was to keep driver running even if regulators
-> are not properly set in board files. Maybe those in which the regulator
-> is always on. That's why I wrote it with "nicely" message.
+When I get it figured out, how/where do I pass the info so the
+next guy doesn't get stuck here as well??
 
-The issue is that this doesn't actually end up increasing the system
-robustness since in some systems the regulator control will be required
-and the failures can be non-obvious, such as having a shared regulator
-powered off at run time due to other system activity.  A misconfigured
-regulator supply that stops probe is relatively easy to diagnose and fix
-compared to potential silent interactions with other subsystems.
+> Gary Thomas wrote:
+>> I have a new board - OMAP 3530 with 512MB DRAM & NAND
+>> I've build X-loader and U-Boot for it and it mostly comes
+>> up. The sources I used (based on recommendations from the
+>> BeagleBoard pages) were:
+>> http://git.gitorious.org/x-load-omap3/mainline.git
+>> git://git.denx.de/u-boot.git
+>>
+>> I had to make a small change to get it to recognize the
+>> larger NAND FLASH device.
+>>
+>> The problem I have now is that it's only seeing 1/2 (256MB)
+>> of the available DRAM.
+>>
+>> * Does anyone know how to get it to see all 512MB?
+>> * Is there a better place to ask/discuss these questions?
+>> A cursory look around did not point to anything fresh (most
+>> of the web pages & Wikis I looked are are _years_ old)
+>>
+>> Thanks for any help/pointers
+>>
 
-It's simple enough to set up a fixed voltage regulator in the board for
-any supplies that don't have soft regulators.
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
