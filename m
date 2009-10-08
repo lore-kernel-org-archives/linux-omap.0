@@ -1,122 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 1/8] ASoC: TPA6130A2 amplifier driver
-Date: Thu, 8 Oct 2009 16:38:24 +0300
-Message-ID: <200910081638.24229.peter.ujfalusi@nokia.com>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com> <1255003137-1034-2-git-send-email-eduardo.valentin@nokia.com> <20091008125213.GA29176@rakim.wolfsonmicro.main>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 7/8] ASoC: tlv320aic3x: add initial usage of regulator
+ framework to control avdd_dac
+Date: Thu, 8 Oct 2009 14:38:43 +0100
+Message-ID: <20091008133843.GG29176@rakim.wolfsonmicro.main>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+ <1255003137-1034-8-git-send-email-eduardo.valentin@nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:53589 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756677AbZJHNkF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 09:40:05 -0400
-In-Reply-To: <20091008125213.GA29176@rakim.wolfsonmicro.main>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:51009 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755749AbZJHNjV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 8 Oct 2009 09:39:21 -0400
+Content-Disposition: inline
+In-Reply-To: <1255003137-1034-8-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 
-On Thursday 08 October 2009 15:52:13 ext Mark Brown wrote:
-> On Thu, Oct 08, 2009 at 02:58:50PM +0300, Eduardo Valentin wrote:
-> > +struct tpa6130a2_platform_data {
-> > +	int (*set_power)(int state);
-> > +};
->=20
-> Why is this a callback and not just a GPIO number?  That'd seem simpl=
-er
-> for users.
+On Thu, Oct 08, 2009 at 02:58:56PM +0300, Eduardo Valentin wrote:
 
-Well, same amount of code, but in different place if the power is enabl=
-ed=20
-through a GPIO. But if the power is controlled via different means (not=
-hing=20
-comes to mind, but there are exotic systems out there), in this way it =
-is simple=20
-to handle
+> This patch adds initial usage of regulator framework to control avdd_dac
+> inside tlv320aic3x ASoC codec driver.
 
->=20
-> > +int tpa6130a2_add_controls(struct snd_soc_codec *codec)
-> > +{
-> > +	snd_soc_dapm_new_controls(codec, tpa6130a2_dapm_widgets,
-> > +				ARRAY_SIZE(tpa6130a2_dapm_widgets));
-> > +
-> > +	return snd_soc_add_controls(codec, tpa6130a2_controls,
-> > +				ARRAY_SIZE(tpa6130a2_controls));
-> > +
-> > +}
-> > +EXPORT_SYMBOL(tpa6130a2_add_controls);
->=20
-> All the ASoC APIs are EXPORT_SYMBOL_GPL().
+If you're going to do this you should add support for all the supplies
+of the device, not just one of them.  The extra effort required is low
+and it avoids compatibility problems when someone wants to set up other
+supplies, causing existing boards to need to specify them.
 
-Right.
+> +	aic3x->regulator = regulator_get(&i2c->dev, "avdd_dac");
+> +	if (IS_ERR(aic3x->regulator)) {
+> +		dev_warn(&i2c->dev, "No regulator to supply avdd_dac."
+> +					" Assuming always on.\n");
 
->=20
-> > +	pdata =3D (struct tpa6130a2_platform_data *)client->dev.platform_=
-data;
-> > +	/* Set default register values */
-> > +	data->regs[TPA6130A2_REG_CONTROL] =3D TPA6130A2_SWS |
-> > +					    TPA6130A2_HP_EN_R |
-> > +					    TPA6130A2_HP_EN_L;
->=20
-> This looks like you could implement stereo paths with individual powe=
-r
-> control?
+You shouldn't split error messages over multiple lines like this, it
+breaks grepping to try to find where the message came from. 
 
-Can we put something in between DAPM_OUTPUT and DAPM_HP to handle the s=
-tereo=20
-path correctly?
-We could have two paths from codec to the "TPA6130A2 Headphone", which =
-is needed=20
-to actually control the power of the amplifier.
-At the end we are not really gaining much, but one more level of switch=
- on the=20
-path.
-We could have simple mute alsa controls in tpa6130a2_controls for the a=
-mplifier=20
-itself...
+I'd also rather see failure to get the regulator treated as a hard
+error.  When the regulator API compiled out it is stubbed so that for
+simple get/enable/disable/put usage it will return success but do
+nothing.  If the regulator API is compiled in and we're not able to
+acquire regulators there's a good chance that things will break (eg, due
+to supplies being turned off because they appear to be unused) so
+flagging the error immediately is less likely to result in runtime
+fragility.
 
->=20
-> > +	data->regs[TPA6130A2_REG_VOL_MUTE] =3D TPA6130A2_VOLUME(20);
->=20
-> The standard thing is to use hardware defaults and leave decisions li=
-ke
-> this up to user space.
+> +	/*
+> +	 * REVISIT: Need to add proper code to put into sleep mode
+> +	 * avdd_dac regulator. For now, just leave it on.
+> +	 */
+> +	if (aic3x->regulator) {
+> +		int err;
+> +
+> +		err = regulator_enable(aic3x->regulator);
+> +		if (err < 0)
+> +			return err;
+> +	}
 
-OK, The reset value is 0 (-59.5 dB)
-
->=20
-> > +	data->set_power =3D pdata->set_power;
-> > +	if (!pdata->set_power) {
-> > +		data->power_state =3D 1;
-> > +		tpa6130a2_initialize();
-> > +	}
-> > +	tpa6130a2_power(1);
-> > +
-> > +	/* Read version */
-> > +	err =3D tpa6130a2_i2c_read(TPA6130A2_REG_VERSION) &
-> > +				 TPA6130A2_VERSION_MASK;
-> > +	if ((err !=3D 1) && (err !=3D 2)) {
-> > +		dev_err(dev, "Unexpected headphone amplifier chip version "
-> > +		       "of 0x%02x, was expecting 0x01 or 0x02\n", err);
-> > +		err =3D -ENODEV;
->=20
-> This seems a bit excessive - is it really likely that the register ma=
-p
-> would be changed incompatibly in a future version?
-
-Hmm, we have only seen these versions of the chip, and we know that the=
- driver=20
-works with these. Also we don't have any information on different versi=
-ons, but=20
-I would think that the register map is not changing (the reset values f=
-or some=20
-registers are different)
-
---=20
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The best way to handle this is to push the enable/disable into the bias
+level configuration so that the regulators are enabled when the chip
+goes off->standby and disabled during standby->off.  This will have the
+same effect for the moment but will mean that we'll be able to add core
+support for fully powering down the audio subsystem at runtime in the
+future.
