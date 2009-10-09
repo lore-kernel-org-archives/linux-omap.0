@@ -1,46 +1,61 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/8] ASoC: TPA6130A2 amplifier driver
-Date: Fri, 9 Oct 2009 11:36:42 +0100
-Message-ID: <20091009103642.GA5082@sirena.org.uk>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<200910081638.24229.peter.ujfalusi@nokia.com>
-	<20091008135342.GJ29176@rakim.wolfsonmicro.main>
-	<200910090953.21066.peter.ujfalusi@nokia.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: FEATURES prints
+Date: Fri, 9 Oct 2009 16:16:41 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDD763EB@dbde02.ent.ti.com>
+References: <4ACE39CC.1070906@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <200910090953.21066.peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: alsa-devel@alsa-project.org, ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60557 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759662AbZJIKr3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 06:47:29 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n99AkoRE001717
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 05:46:52 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n99AknWH007874
+	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 16:16:49 +0530 (IST)
+In-Reply-To: <4ACE39CC.1070906@ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Oct 09, 2009 at 09:53:21AM +0300, Peter Ujfalusi wrote:
-> On Thursday 08 October 2009 16:53:42 ext Mark Brown wrote:
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Friday, October 09, 2009 12:43 AM
+> To: Premi, Sanjeev; linux-omap@vger.kernel.org
+> Subject: FEATURES prints
+> 
+> Folks,
+> 
+> With the addition of FEATURES in l-o, the following prints:
+>   - l2cache : Y
+>   - iva : Y
+>   - sgx : Y
+>   - neon : Y
+>   - isp : Y
+> 
+> comes up on SDP3430 -> now that we will introduce half a 
+> dozen features 
 
-> Adding a widget with actual alsa control seams to be problematic, since those 
-> are working with the codec's registers, so adding such a widget would require to 
-> implement a new set of .info .get  and .set functions for the TPA alone.
+[sp] The intention here is to print the features that help in
+     identifying the processor. Not really the board/EVM.
+     Even if there are more features, we decide which ones to
+     show.
 
-Yes, chips like this are the major reason for needing to support having
-more than one CODEC device in the core.
+> here and there, we will soon clutter this up. we should introduce a 
+> sysfs entry + remove the above noise..
 
-> Or should I add individual HP for the two channels:
-> HP("TPA6130A2 Headphone Left")
-> HP("TPA6130A2 Headphone Right")
+[sp] I believe the sysfs would be good for board level features.
 
-> Than in machine driver just connect (for example rx51):
-> {"TPA6130A2 Left", NULL, "LLOUT"},
-> {"TPA6130A2 Right", NULL, "RLOUT"},
-
-That's what I was thinking of, yes.
+> 
+> any comments?
+> 
+> -- 
+> Regards,
+> Nishanth Menon
+> 
