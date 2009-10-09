@@ -1,80 +1,49 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: RE: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint
-	in	i2c
-Date: Fri, 9 Oct 2009 07:50:32 +0300
-Message-ID: <1255063832.22468.340.camel@ubuntu>
-References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
-	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
-	 <87bpkso0dj.fsf@deeprootsystems.com> <1254383040.22468.130.camel@ubuntu>
-	 <4AC49578.9090906@nokia.com> <1254481161.22468.179.camel@ubuntu>
-	 <13B9B4C6EF24D648824FF11BE8967162039B0BD781@dlee02.ent.ti.com>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: Re: [PATCH 3/8] McBSP: OMAP3: Add Sidetone feature
+Date: Fri, 09 Oct 2009 08:09:27 +0300
+Message-ID: <1255064967.30157.178.camel@eenurkka-desktop>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+	<1255003137-1034-4-git-send-email-eduardo.valentin@nokia.com>
+	<20091008131702.GC29176@rakim.wolfsonmicro.main>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:48439 "EHLO smtp1.digia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751505AbZJIEuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Oct 2009 00:50:19 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B0BD781@dlee02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091008131702.GC29176@rakim.wolfsonmicro.main>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org
+Cc: ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Wed, 2009-10-07 at 21:52 +0300, Woodruff, Richard wrote:
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Kalle Jokiniemi
-> > Sent: Friday, October 02, 2009 5:59 AM
+On Thu, 2009-10-08 at 15:17 +0200, ext Mark Brown wrote:
+> On Thu, Oct 08, 2009 at 02:58:52PM +0300, Eduardo Valentin wrote:
 > 
+> > +static const struct attribute *sidetone_attrs[] = {
+> > +	&dev_attr_st_enable.attr,
+> > +	&dev_attr_st_taps.attr,
+> > +	&dev_attr_st_ch0gain.attr,
+> > +	&dev_attr_st_ch1gain.attr,
+> > +	NULL,
+> > +};
 > 
-> > Yes, this is a good idea in theory, but the reality of wake-up latencies
-> > kind-a kill this one. Wake-up from even C1 (MPU INA, CORE ON) takes
-> > ~130us on fastest OPP. And when you add 70us of sleep transition into
-> > that, you get 200us at minimum.
-> 
-> These values feel a bit on the high side.  Have you measured since tweaking your DPLL M/N values?
-> 
-> Are you measuring just across WFI or adding in some part of the idle code path?
+> This stuff, particularly the enable, probably wants to be pushed out via
+> an ALSA API rather than via random sysfs stuff.  It'd be better to
+> publish a control API here and then use that from within ALSA.
 
-For the numbers I mentioned, the path from start of omap_sram_idle to
-end of omap_sram_idle was included. And one can't really not include it,
-since it is run with interrupts disabled.
+Hmm. What would be the way to transfer 128 x s16 words; is there an ALSA
+control for something like that already ? IIRC correctly, the max
+bytesize per control is (or used to be) something like 256 bytes or so.
+So that gets right at it. (that's the sidetone 128 tap FIR in question)
 
-> 
-> > For us, the 500us constraint seems to work quite nicely. It removes the
-> > problems we had with i2c transfers timing out with off mode, and
-> > restores average transfer times (from clk_enable to clk_disable) to few
-> > hundred us (that were observed with retention).
-> 
-> Some of the historic I2C timeout issues were from the wakeup sources
-> not being programmed properly.
+- Eero
 
-There could be such issues, I have not investigated for other reasons
-causing the time-outs. 
-
-
-> 
-> Your constraint in my understanding is more about saving power.  
-
-True.
-
-> Today cpuidle doesn't predict interrupt events very well.  As such the
-> huge timeout used with i2c will never gate an off mode attempt.  You
-> will loose in context save and restore with out constraint.
-
-True, that is why the constraint is needed on latency basis.
-
-- Kalle
-
-> 
-> I floated some idea a while back on pm list to try and do something
-> really simple with irqs.  ... take a timestamp on last irq, when
-> cpuilde goes to sleep if current time since last irq is too near then
-> choose safe sleep state.  Comments I got at that time was some didn't
-> like extra overhead on irq path.  However, I don't know I agree with
-> that.
-> 
-> Regards,
-> Richard W.
 
