@@ -1,51 +1,43 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [PATCH 2/8] ASoC: OMAP: RX-51 Machine driver and AIC34b_dummy
- driver
-Date: Fri, 9 Oct 2009 08:44:00 +0300
-Message-ID: <20091009084400.34df690a.jhnikula@gmail.com>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<1255003137-1034-3-git-send-email-eduardo.valentin@nokia.com>
-	<20091008131116.GB29176@rakim.wolfsonmicro.main>
+From: "Reddy, Teerth" <teerth@ti.com>
+Subject: [PATCH]  OMAP3: PM: Do not allow OPP1 for VDD2
+Date: Fri, 9 Oct 2009 11:38:43 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D093D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:45845 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572AbZJIFoF (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 01:44:05 -0400
-In-Reply-To: <20091008131116.GB29176@rakim.wolfsonmicro.main>
+Received: from devils.ext.ti.com ([198.47.26.153]:52493 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755819AbZJIGJ0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 02:09:26 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Thu, 8 Oct 2009 14:11:16 +0100
-Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
+>From 144669d941a432875db37ae9431847f6753e566e Mon Sep 17 00:00:00 2001
+From: Teerth Reddy <teerth@ti.com>
+Date: Wed, 9 Sep 2009 11:01:04 +0530
+Subject: OMAP3: PM: Do not allow OPP1 for VDD2
 
-> What is an "AIC34b_dummy (block B)"?  You probably want to split it out
-> into a separate patch.
-> 
-I think this is the reason why Eduardo mentioned my name in the commit
-log :-)
+Since OPP1 is not a supported OPP for VDD2, do not allow it to
+be changed using the sysfs interface.
 
-Yep, dummy driver is for block B of AIC34 which is basically dual AIC33
-in a same package.
+Signed-off-by: Teerth Reddy <teerth@ti.com>
+---
+ arch/arm/mach-omap2/pm.c |    2 +-
+ 1 files changed, 1 insertion(+), 1 deletion(-)
 
-> > + * TODO:
-> > + * - Get rid of this driver, at least when ASoC v2 is merged and when
-> > + *   we can support multiple codec instances in tlv320aic3x.c driver.
-> > + *   This driver is hacked only for Nokia RX51 HW.
-> 
-> Could you please explain what the issue here is?  A description of the
-> hardware would go a long way here.
-> 
-Eduardo, please correct me if I remember wrong  but block B of AIC34 is
-not used as an codec as such but more like an amplifier and analogic
-mixer with digital parts unused. So with this dummy driver the HW
-features were easier to support than to develop multiple intance
-support for codec drivers.
-
-
--- 
-Jarkko
+Index: linux-omap-pm/arch/arm/mach-omap2/pm.c
+===================================================================
+--- linux-omap-pm.orig/arch/arm/mach-omap2/pm.c
++++ linux-omap-pm/arch/arm/mach-omap2/pm.c
+@@ -144,7 +144,7 @@ static ssize_t vdd_opp_store(struct kobj
+ 		}
+ 		resource_set_opp_level(VDD1_OPP, value, flags);
+ 	} else if (attr == &vdd2_opp_attr) {
+-		if (value < 1 || value > 3) {
++		if (value < 2 || value > 3) {
+ 			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
+ 			return -EINVAL;
+ 		}
