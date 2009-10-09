@@ -1,67 +1,41 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH]ZOOM2: Initialization of SDRC params on Zoom2
-Date: Fri, 09 Oct 2009 09:32:51 -0700
-Message-ID: <87pr8wwmrw.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D05E3@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH v2] OMAP: RX-51: Drop I2C-1 speed to 2200
+Date: Fri,  9 Oct 2009 19:40:37 +0300
+Message-ID: <1255106437-13202-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:44329 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933963AbZJIQeH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 12:34:07 -0400
-Received: by pzk7 with SMTP id 7so2197814pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 09 Oct 2009 09:32:53 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D05E3@dbde02.ent.ti.com> (Teerth Reddy's message of "Thu\, 8 Oct 2009 13\:56\:02 +0530")
+Received: from smtp.nokia.com ([192.100.122.230]:52092 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750832AbZJIQmN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 12:42:13 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com, linux-omap@vger.kernel.org
 
-"Reddy, Teerth" <teerth@ti.com> writes:
+The I2C-1 bus frequency on RX-51 should be 2.2 MHz. The speed is limited
+by TWL5030/GAIA; a higher speed could lead to errors on the interface. The
+maximum speed depends on the system clock for GAIA: 2.2 MHz (if 19.2 MHz),
+2.4 MHz (26 MHz) or 2.9 MHz (38.4 MHz).
 
-> From: Teerth Reddy <teerth@ti.com>
->
-> This patch initializes the correct SDRC settings required 
-> for DVFS on Zoom2.
->
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+v2: Describe the reason for the change.
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Tony, this could get queued in -fixes too.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index c1af532..2b0eb1b 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -444,7 +444,7 @@ static int __init rx51_i2c_init(void)
+ 		rx51_twldata.vaux3 = &rx51_vaux3_cam;
+ 		rx51_twldata.vmmc2 = &rx51_vmmc2;
+ 	}
+-	omap_register_i2c_bus(1, 2600, rx51_peripherals_i2c_board_info_1,
++	omap_register_i2c_bus(1, 2200, rx51_peripherals_i2c_board_info_1,
+ 			ARRAY_SIZE(rx51_peripherals_i2c_board_info_1));
+ 	omap_register_i2c_bus(2, 100, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+-- 
+1.6.0.4
 
-Thanks,
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/board-zoom2.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletion(-)
->
-> Index: linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
-> ===================================================================
-> --- linux-omap-2.6.orig/arch/arm/mach-omap2/board-zoom2.c
-> +++ linux-omap-2.6/arch/arm/mach-omap2/board-zoom2.c
-> @@ -25,6 +25,7 @@
->  #include <mach/keypad.h>
->  
->  #include "mmc-twl4030.h"
-> +#include "sdram-micron-mt46h32m32lf-6.h"
->  
->  /* Zoom2 has Qwerty keyboard*/
->  static int board_keymap[] = {
-> @@ -213,7 +214,8 @@ static void __init omap_zoom2_init_irq(v
->  {
->  	omap_board_config = zoom2_config;
->  	omap_board_config_size = ARRAY_SIZE(zoom2_config);
-> -	omap2_init_common_hw(NULL, NULL);
-> +	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
-> +				 mt46h32m32lf6_sdrc_params);
->  	omap_init_irq();
->  	omap_gpio_init();
->  }
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
