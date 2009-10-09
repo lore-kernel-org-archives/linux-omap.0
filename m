@@ -1,289 +1,145 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2 1/1] OMAP3: PM: Functions to get freq from opp and vice-versa
-Date: Fri, 09 Oct 2009 08:19:15 -0700
-Message-ID: <87vdiowq6k.fsf@deeprootsystems.com>
-References: <1254420194-4757-1-git-send-email-premi@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v4] OMAP3: introduce OMAP3630
+Date: Fri,  9 Oct 2009 10:56:26 -0500
+Message-ID: <1255103786-22324-1-git-send-email-nm@ti.com>
+References: <[PATCH v3] OMAP3: introduce OMAP3630>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:62615 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933144AbZJIPTz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 11:19:55 -0400
-Received: by pxi9 with SMTP id 9so6803119pxi.4
-        for <linux-omap@vger.kernel.org>; Fri, 09 Oct 2009 08:19:17 -0700 (PDT)
-In-Reply-To: <1254420194-4757-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Thu\,  1 Oct 2009 23\:33\:14 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:50754 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757494AbZJIP5O (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 11:57:14 -0400
+In-Reply-To: <[PATCH v3] OMAP3: introduce OMAP3630>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, Allen Pais <allen.pais@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
 
-Sanjeev Premi <premi@ti.com> writes:
+**--- SNIP ME --
+Hi,
+A bit of history for this patchset
+V4 - Sergio's improvement to the handling of rev decision as we just
+     change the define to 3630 and remove crapy override logic in
+     omap3_check_revision from v3 patch
+V3 - Fixes from Sergio's comments + boot tested on SDP3430+3630.
+V2 - fixes of generic comments from Felipe Balbi+minor cleanups
+V1 - inital implementation of (a) approach
+V0 - original approach introducing a new silicon family
+**--- END OF SNIP ME --
+Device intro:
+OMAP3630 is the latest in the family of OMAP3 devices
+and among the changes it introduces are:
 
-> There is no generic function to get OPP corresponding to frequency
-> and vice versa.
->
-> Function get_opp() - in resource34xx.c - is included only when
-> CONFIG_OMAP_PM_SRF is enabled. Moreover, it is always called with
-> an explicit addition of MAX_VDDn_OPP e.g.
->   opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
->   opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
->
-> This is 'addition' is required as there is no encapsulation of
-> MIN and MAX VDDs associated to the table.
->
-> This patch fixes the issue by creating a 'table' object that
-> encapsulates the MIN and MAX values and the existing rate table.
->
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
+New OPP levels for new voltage and frequency levels. a bunch of
+Bug fixes to various modules feature additions, notably with ISP,
+sDMA etc.
 
-Thanks, pulling into PM branch.
+Details about the chip is available here:
+http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
 
-Kevin
+Strategy used:
+Strategy to introduce this device into Linux was discussed here:
+Ref: http://marc.info/?t=125343303400003&r=1&w=2
 
-> ---
->  arch/arm/mach-omap2/omap3-opp.h           |   42 +++------------------
->  arch/arm/mach-omap2/pm.c                  |   49 +++++++++++++++++++++++++
->  arch/arm/mach-omap2/pm34xx.c              |   57 +++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/omap-pm.h |   22 +++++++++++
->  4 files changed, 134 insertions(+), 36 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/omap3-opp.h b/arch/arm/mach-omap2/omap3-opp.h
-> index 3c9a582..52deb4a 100644
-> --- a/arch/arm/mach-omap2/omap3-opp.h
-> +++ b/arch/arm/mach-omap2/omap3-opp.h
-> @@ -21,42 +21,12 @@
->  #define S83M    83000000
->  #define S166M   166000000
->  
-> -static struct omap_opp omap3_mpu_rate_table[] = {
-> -	{0, 0, 0},
-> -	/*OPP1*/
-> -	{S125M, VDD1_OPP1, 0x1E},
-> -	/*OPP2*/
-> -	{S250M, VDD1_OPP2, 0x26},
-> -	/*OPP3*/
-> -	{S500M, VDD1_OPP3, 0x30},
-> -	/*OPP4*/
-> -	{S550M, VDD1_OPP4, 0x36},
-> -	/*OPP5*/
-> -	{S600M, VDD1_OPP5, 0x3C},
-> -};
-> +extern struct omap_opp omap3_mpu_rate_table[];
-> +extern struct omap_opp omap3_dsp_rate_table[];
-> +extern struct omap_opp omap3_l3_rate_table[];
->  
-> -static struct omap_opp omap3_l3_rate_table[] = {
-> -	{0, 0, 0},
-> -	/*OPP1*/
-> -	{0, VDD2_OPP1, 0x1E},
-> -	/*OPP2*/
-> -	{S83M, VDD2_OPP2, 0x24},
-> -	/*OPP3*/
-> -	{S166M, VDD2_OPP3, 0x2C},
-> -};
-> -
-> -static struct omap_opp omap3_dsp_rate_table[] = {
-> -	{0, 0, 0},
-> -	/*OPP1*/
-> -	{S90M, VDD1_OPP1, 0x1E},
-> -	/*OPP2*/
-> -	{S180M, VDD1_OPP2, 0x26},
-> -	/*OPP3*/
-> -	{S360M, VDD1_OPP3, 0x30},
-> -	/*OPP4*/
-> -	{S400M, VDD1_OPP4, 0x36},
-> -	/*OPP5*/
-> -	{S430M, VDD1_OPP5, 0x3C},
-> -};
-> +extern const struct omap_opp_table omap3_mpu_opp_table;
-> +extern const struct omap_opp_table omap3_dsp_opp_table;
-> +extern const struct omap_opp_table omap3_l3_opp_table;
->  
->  #endif
-> diff --git a/arch/arm/mach-omap2/pm.c b/arch/arm/mach-omap2/pm.c
-> index fec7d00..2bbe63f 100644
-> --- a/arch/arm/mach-omap2/pm.c
-> +++ b/arch/arm/mach-omap2/pm.c
-> @@ -33,6 +33,7 @@
->  #include <mach/powerdomain.h>
->  #include <mach/resource.h>
->  #include <mach/omap34xx.h>
-> +#include <mach/omap-pm.h>
->  
->  #include "prm-regbits-34xx.h"
->  #include "pm.h"
-> @@ -281,3 +282,51 @@ static int __init omap_pm_init(void)
->  	return error;
->  }
->  late_initcall(omap_pm_init);
-> +
-> +/*
-> + * Get frequency corresponding to an OPP
-> + */
-> +int opp_to_freq(unsigned long* freq, const struct omap_opp_table* table, u8 opp)
-> +{
-> +        int i, found=0;
-> +
-> +        if (table && table->opps) {
-> +		for (i = table->min; i <= table->max; i++) {
-> +			if (table->opps[i].opp_id == opp) {
-> +				found = 1;
-> +				break;
-> +			}
-> +		}
-> +
-> +		if (found) {
-> +			*freq = table->opps[i].rate;
-> +			return 1;
-> +		}
-> +	}
-> +
-> +        return 0;
-> +}
-> +
-> +/*
-> + * Get OPP corresponding to a frequency
-> + */
-> +int freq_to_opp(u8* opp, const struct omap_opp_table* table, unsigned long freq)
-> +{
-> +        int i, found=0;
-> +
-> +        if (table && table->opps) {
-> +		for (i = table->min; i <= table->max; i++) {
-> +			if (table->opps[i].rate == freq) {
-> +				found = 1;
-> +				break;
-> +			}
-> +		}
-> +
-> +		if (found) {
-> +			*opp = table->opps[i].opp_id;
-> +			return 1;
-> +		}
-> +	}
-> +
-> +        return 0;
-> +}
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index a9eda25..dc966ae 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -50,6 +50,7 @@
->  #include "prm.h"
->  #include "pm.h"
->  #include "sdrc.h"
-> +#include "omap3-opp.h"
->  
->  static int regset_save_on_suspend;
->  
-> @@ -93,6 +94,62 @@ static struct prm_setup_vc prm_setup = {
->  	.vdd1_off = 0x00,	/* 0.6v */
->  };
->  
-> +struct omap_opp omap3_mpu_rate_table[] = {
-> +	{0, 0, 0},
-> +	/*OPP1*/
-> +	{S125M, VDD1_OPP1, 0x1E},
-> +	/*OPP2*/
-> +	{S250M, VDD1_OPP2, 0x26},
-> +	/*OPP3*/
-> +	{S500M, VDD1_OPP3, 0x30},
-> +	/*OPP4*/
-> +	{S550M, VDD1_OPP4, 0x36},
-> +	/*OPP5*/
-> +	{S600M, VDD1_OPP5, 0x3C},
-> +};
-> +
-> +struct omap_opp omap3_l3_rate_table[] = {
-> +	{0, 0, 0},
-> +	/*OPP1*/
-> +	{0, VDD2_OPP1, 0x1E},
-> +	/*OPP2*/
-> +	{S83M, VDD2_OPP2, 0x24},
-> +	/*OPP3*/
-> +	{S166M, VDD2_OPP3, 0x2C},
-> +};
-> +
-> +struct omap_opp omap3_dsp_rate_table[] = {
-> +	{0, 0, 0},
-> +	/*OPP1*/
-> +	{S90M, VDD1_OPP1, 0x1E},
-> +	/*OPP2*/
-> +	{S180M, VDD1_OPP2, 0x26},
-> +	/*OPP3*/
-> +	{S360M, VDD1_OPP3, 0x30},
-> +	/*OPP4*/
-> +	{S400M, VDD1_OPP4, 0x36},
-> +	/*OPP5*/
-> +	{S430M, VDD1_OPP5, 0x3C},
-> +};
-> +
-> +const struct omap_opp_table omap3_mpu_opp_table = {
-> +	VDD1_OPP1,
-> +	VDD1_OPP5,
-> +	omap3_mpu_rate_table
-> +};
-> +
-> +const struct omap_opp_table omap3_dsp_opp_table = {
-> +        VDD1_OPP1,
-> +        VDD1_OPP5,
-> +        omap3_dsp_rate_table
-> +};
-> +
-> +const struct omap_opp_table omap3_l3_opp_table = {
-> +        VDD2_OPP1,
-> +        VDD2_OPP3,
-> +        omap3_l3_rate_table
-> +};
-> +
->  static inline void omap3_per_save_context(void)
->  {
->  	omap3_gpio_save_context();
-> diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
-> index 583e540..51216cf 100644
-> --- a/arch/arm/plat-omap/include/mach/omap-pm.h
-> +++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-> @@ -33,6 +33,20 @@ struct omap_opp {
->  	u16 vsel;
->  };
->  
-> +/* struct omap_opp_table - View OPP table as an object
-> + * @min: Minimum OPP id
-> + * @max: Maximim OPP id
-> + * @opps: Pointer to array defining the OPPs.
-> + *
-> + * An OPP table has varied length. Knowing minimum and maximum
-> + * OPP ids allow easy traversal.
-> + */
-> +struct omap_opp_table {
-> +	u8	min;
-> +	u8	max;
-> +	struct omap_opp* opps;
-> +};
-> +
->  extern struct omap_opp *mpu_opps;
->  extern struct omap_opp *dsp_opps;
->  extern struct omap_opp *l3_opps;
-> @@ -48,6 +62,14 @@ extern struct omap_opp *l3_opps;
->  #define OCP_TARGET_AGENT		1
->  #define OCP_INITIATOR_AGENT		2
->  
-> +int opp_to_freq(unsigned long* freq,
-> +		const struct omap_opp_table* table,
-> +		u8 opp);
-> +
-> +int freq_to_opp(u8* opp,
-> +		const struct omap_opp_table* table,
-> +		unsigned long freq);
-> +
->  /**
->   * omap_pm_if_early_init - OMAP PM init code called before clock fw init
->   * @mpu_opp_table: array ptr to struct omap_opp for MPU
-> -- 
-> 1.6.2.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Two approaches were available:
+a) Consider 3630 generation of devices as a new family of silicon
+b) Consider 3630 as an offshoot of 3430 family of devices
+
+As a common consensus, (b) seems to be more valid for 3630 as:
+* There are changes which are easily handled by using "FEATURES"
+  infrastructure.
+  For details how to do this, see thread:
+  http://marc.info/?t=125050998500001&r=1&w=2
+* Most of existing 34xx infrastructure can be reused(almost 90%+)
+	- so no ugly if (cpu_is_omap34xx() || cpu_is_omap36xx())
+	  all over the place
+	- lesser chance of bugs due to reuse of proven code flow
+	- 36xx specific handling can still be done where required
+	  within the existing infrastructure
+
+NOTE:
+* If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+  added on top of the existing 3630 ones are renumbered
+
+This patch was tested on SDP3430, boot tested on 3630 platform using
+3430sdp defconfig
+
+Signed-off-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Allen Pais <allen.pais@ti.com>
+Cc: Anand Gadiyar <gadiyar@ti.com>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+ arch/arm/mach-omap2/id.c              |   24 ++++++++++++++++++++++--
+ arch/arm/plat-omap/include/mach/cpu.h |    6 ++++++
+ 2 files changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 03b80f2..ee3bb69 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -210,7 +210,9 @@ void __init omap3_check_revision(void)
+ 	hawkeye = (idcode >> 12) & 0xffff;
+ 	rev = (idcode >> 28) & 0xff;
+ 
+-	if (hawkeye == 0xb7ae) {
++	switch (hawkeye) {
++	case 0xb7ae:
++		/* Handle 34xx devices */
+ 		switch (rev) {
+ 		case 0:
+ 			omap_revision = OMAP3430_REV_ES2_0;
+@@ -231,8 +233,26 @@ void __init omap3_check_revision(void)
+ 		default:
+ 			/* Use the latest known revision as default */
+ 			omap_revision = OMAP3430_REV_ES3_1;
+-			rev_name = "Unknown revision\n";
++			rev_name = "Unknown 34xx revision\n";
+ 		}
++		break;
++	case 0xb891:
++		/* Handle 36xx devices */
++		switch (rev) {
++		case 0:
++			omap_revision = OMAP3630_REV_ES1_0;
++			rev_name = "ES1.0";
++			break;
++		default:
++			/* Use the latest known revision as default */
++			omap_revision = OMAP3630_REV_ES1_0;
++			rev_name = "Unknown 36xx revision\n";
++		}
++		break;
++	default:
++		/* Unknown default to latest rev as default*/
++		omap_revision = OMAP3630_REV_ES1_0;
++		rev_name = "Unknown revision\n";
+ 	}
+ 
+ out:
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index 431fec4..65f1882 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define OMAP3430_REV_ES2_1	0x34302034
+ #define OMAP3430_REV_ES3_0	0x34303034
+ #define OMAP3430_REV_ES3_1	0x34304034
++/* NOTE: Add 36xx series below
++ * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
++ * added above the 3630 defines and series renumbered to ensure
++ * rev() > checks to work
++ */
++#define OMAP3630_REV_ES1_0	0x36301034
+ 
+ #define OMAP443X_CLASS		0x44300034
+ 
+-- 
+1.6.0.4
+
