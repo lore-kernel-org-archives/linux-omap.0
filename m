@@ -1,65 +1,59 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC][PATCH] OMAP3: introduce OMAP3630
-Date: Fri, 9 Oct 2009 09:09:39 -0500
-Message-ID: <4ACF4423.5080307@ti.com>
-References: <[PATCH][RFC] OMAP3630: Create architecture macros and config> <1254977223-4236-1-git-send-email-nm@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D1EF@dbde02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC35608702FA02389D@dbde02.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDD75DAE@dbde02.ent.ti.com> <4ACDF9E3.4010701@ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D57B@dbde02.ent.ti.com>
+Subject: Re: FEATURES prints
+Date: Fri, 9 Oct 2009 09:15:08 -0500
+Message-ID: <4ACF456C.8080109@ti.com>
+References: <4ACE39CC.1070906@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDD763EB@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36253 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:53457 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932377AbZJIOKW (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Oct 2009 10:10:22 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D57B@dbde02.ent.ti.com>
+	id S1760889AbZJIOPu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Oct 2009 10:15:50 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n99EF9VV020470
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 09:15:09 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n99EF9Ee027458
+	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 09:15:09 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n99EF9jH021948
+	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 09:15:09 -0500 (CDT)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDD763EB@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-Cc: "Premi, Sanjeev" <premi@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Shilimkar, Santosh had written, on 10/08/2009 11:29 PM, the following:
+Premi, Sanjeev had written, on 10/09/2009 05:46 AM, the following:
 >> -----Original Message-----
->> From: Menon, Nishanth
->> Sent: Thursday, October 08, 2009 8:11 PM
->> To: Premi, Sanjeev
->> Cc: Pandita, Vikram; Shilimkar, Santosh; linux-omap; Chikkature Rajashekar,
->> Madhusudhan; Pais, Allen; Gadiyar, Anand; Cousson, Benoit; Kevin Hilman;
->> Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
->> Subject: Re: [RFC][PATCH] OMAP3: introduce OMAP3630
+>> From: Menon, Nishanth 
+>> Sent: Friday, October 09, 2009 12:43 AM
+>> To: Premi, Sanjeev; linux-omap@vger.kernel.org
+>> Subject: FEATURES prints
 >>
-[...]
->>>>>> +#define OMAP3630_REV_ES1_0	0x34305034
->>>>>>
->>>>>>  #define OMAP443X_CLASS		0x44300034
->>>>> Was expecting that this patch will add "cpu_is_omap36xx()" in cpu.h
->>>>> apart from above. Is this handled in another patch ?
->>>> Idea is to re-use all 34xx code for 36xx, as per the mail
->>>> thread on list, and given in reference.
->>>> Hence at run time, the check could be:
->>>>
->>>> if (omap_rev() == OMAP3630_REV_ES1_0)
->>>> 	xxxxx
->>>>
->>>> cpu_is_omap34xx() will be true for 36xx as well.
->>> [sp] This case seems quite similar to the OMAP35x.
->>>      Can you look at this thread:
->>>
->>>      http://marc.info/?l=linux-omap&m=125372581804902&w=2
->>>
->>>      It applies equally well here as well...
->>>      I will be submitting updated patch tomorrow.
->> yes, any specifics should be  feature based IMHO. we will need to extend
->> the feature list.
+>> Folks,
+>>
+>> With the addition of FEATURES in l-o, the following prints:
+>>   - l2cache : Y
+>>   - iva : Y
+>>   - sgx : Y
+>>   - neon : Y
+>>   - isp : Y
+>>
+>> comes up on SDP3430 -> now that we will introduce half a 
+>> dozen features 
 > 
-> If we are going to handle the delta 3630 changes w.r.t 3430 with feature based approach, its probably is the best thing.
-yes. i guess I can take this as an ACK ;)
-> 
-> But in case delat code will be added like below then having a cpu_is_omap36xx() makes more sense. 
->>> if (omap_rev() == OMAP3630_REV_ES1_0)
->>>> 	xxxxx
-> There is no harm having both cpu_is_omap36xx() and cpu_is_omap34xx() true for 3630
-what is the need for this? if feature settings can handle the deltas.
-give me specific example where this will be needed. if needed, we can 
-add this at a later point.
+> [sp] The intention here is to print the features that help in
+>      identifying the processor. Not really the board/EVM.
+>      Even if there are more features, we decide which ones to
+>      show.
+this still a bunch of noise which is unusable for applications -> e.g. 
+if an app wanted to use ISP, how would it do it?
 
+
+-- 
 Regards,
 Nishanth Menon
