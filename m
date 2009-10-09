@@ -1,171 +1,267 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH v4] OMAP3: introduce OMAP3630
-Date: Fri, 9 Oct 2009 10:59:06 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444CC6C7FF@dlee02.ent.ti.com>
-References: <[PATCH v3] OMAP3: introduce OMAP3630>
- <1255103786-22324-1-git-send-email-nm@ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH v2] twl4030: Fix boot with twl4030 usb transceiver
+ enabled
+Date: Fri, 9 Oct 2009 18:14:09 +0200
+Message-ID: <20091009161408.GC7523@sortiz.org>
+References: <1254385536-26912-1-git-send-email-ext-roger.quadros@nokia.com>
+ <b90c0690910090532y60cced09j2c805a5a04dbcbb7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50904 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754748AbZJIP7w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 11:59:52 -0400
-In-Reply-To: <1255103786-22324-1-git-send-email-nm@ti.com>
-Content-Language: en-US
+Received: from mga09.intel.com ([134.134.136.24]:63985 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933772AbZJIQNe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Oct 2009 12:13:34 -0400
+Content-Disposition: inline
+In-Reply-To: <b90c0690910090532y60cced09j2c805a5a04dbcbb7@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
-Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Roger Quadros <quadros.roger@gmail.com>
+Cc: tony@atomide.com, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, felipe.balbi@nokia.com
 
- 
+Hi Roger,
 
-> -----Original Message-----
-> From: Menon, Nishanth 
-> Sent: Friday, October 09, 2009 10:56 AM
-> To: linux-omap
-> Cc: Menon, Nishanth; Chikkature Rajashekar, Madhusudhan; 
-> Pandita, Vikram; Pais, Allen; Gadiyar, Anand; Cousson, 
-> Benoit; Felipe Balbi; Kevin Hilman; Premi, Sanjeev; 
-> Shilimkar, Santosh; Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
-> Subject: [PATCH v4] OMAP3: introduce OMAP3630
-> 
-> **--- SNIP ME --
-> Hi,
-> A bit of history for this patchset
-> V4 - Sergio's improvement to the handling of rev decision as we just
->      change the define to 3630 and remove crapy override logic in
->      omap3_check_revision from v3 patch
+On Fri, Oct 09, 2009 at 03:32:12PM +0300, Roger Quadros wrote:
+> Hi Samuel,
+>=20
+> What is the status of this patch?
+> Without this patch we are unable to boot on systems using musb usb co=
+ntroller.
+I'm applying that patch to my for-next branch. And I will also try to h=
+ave
+Linus pulling it too, as it seems to prevent your machines from booting=
+=2E
 
-Now looks much better ;)
+Cheers,
+Samuel.
 
-> V3 - Fixes from Sergio's comments + boot tested on SDP3430+3630.
-> V2 - fixes of generic comments from Felipe Balbi+minor cleanups
-> V1 - inital implementation of (a) approach
-> V0 - original approach introducing a new silicon family
-> **--- END OF SNIP ME --
-> Device intro:
-> OMAP3630 is the latest in the family of OMAP3 devices
-> and among the changes it introduces are:
-> 
-> New OPP levels for new voltage and frequency levels. a bunch of
-> Bug fixes to various modules feature additions, notably with ISP,
-> sDMA etc.
-> 
-> Details about the chip is available here:
-> http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?t
-> emplateId=6123&navigationId=12836&contentId=52606
-> 
-> Strategy used:
-> Strategy to introduce this device into Linux was discussed here:
-> Ref: http://marc.info/?t=125343303400003&r=1&w=2
-> 
-> Two approaches were available:
-> a) Consider 3630 generation of devices as a new family of silicon
-> b) Consider 3630 as an offshoot of 3430 family of devices
-> 
-> As a common consensus, (b) seems to be more valid for 3630 as:
-> * There are changes which are easily handled by using "FEATURES"
->   infrastructure.
->   For details how to do this, see thread:
->   http://marc.info/?t=125050998500001&r=1&w=2
-> * Most of existing 34xx infrastructure can be reused(almost 90%+)
-> 	- so no ugly if (cpu_is_omap34xx() || cpu_is_omap36xx())
-> 	  all over the place
-> 	- lesser chance of bugs due to reuse of proven code flow
-> 	- 36xx specific handling can still be done where required
-> 	  within the existing infrastructure
-> 
-> NOTE:
-> * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
->   added on top of the existing 3630 ones are renumbered
-> 
-> This patch was tested on SDP3430, boot tested on 3630 platform using
-> 3430sdp defconfig
-> 
-> Signed-off-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-> Signed-off-by: Nishanth Menon <nm@ti.com>
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> Cc: Allen Pais <allen.pais@ti.com>
-> Cc: Anand Gadiyar <gadiyar@ti.com>
-> Cc: Benoit Cousson <b-cousson@ti.com>
-> Cc: Felipe Balbi <felipe.balbi@nokia.com>
-> Cc: Kevin Hilman <khilman@deeprootsystems.com>
-> Cc: Sanjeev Premi <premi@ti.com>
-> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
 
-Acked-by: Sergio Aguirre <saaguirre@ti.com>
+> cheers,
+> -roger.
+>=20
+> On Thu, Oct 1, 2009 at 11:25 AM, Roger Quadros
+> <ext-roger.quadros@nokia.com> wrote:
+> > The usb regulator supplies (usb1v5, usb1v8 & usb3v1) must be availa=
+ble
+> > before adding the twl4030_usb child, else twl4030_usb_ldo_init() wi=
+ll
+> > always fail thus causing boot lock-up.
+> >
+> > This patch fixes boot on OMAP systems using the twl4030 usb transce=
+iver.
+> > CONFIG_TWL4030_USB=3Dy
+> >
+> > Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
+> > ---
+> > =A0drivers/mfd/twl4030-core.c | =A0 89 ++++++++++++++++++++++------=
+---------------
+> > =A01 files changed, 46 insertions(+), 43 deletions(-)
+> >
+> > diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.=
+c
+> > index e424cf6..e832e97 100644
+> > --- a/drivers/mfd/twl4030-core.c
+> > +++ b/drivers/mfd/twl4030-core.c
+> > @@ -480,7 +480,6 @@ static int
+> > =A0add_children(struct twl4030_platform_data *pdata, unsigned long =
+features)
+> > =A0{
+> > =A0 =A0 =A0 =A0struct device =A0 *child;
+> > - =A0 =A0 =A0 struct device =A0 *usb_transceiver =3D NULL;
+> >
+> > =A0 =A0 =A0 =A0if (twl_has_bci() && pdata->bci && !(features & TPS_=
+SUBSET)) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0child =3D add_child(3, "twl4030_bci"=
+,
+> > @@ -532,16 +531,61 @@ add_children(struct twl4030_platform_data *pd=
+ata, unsigned long features)
+> > =A0 =A0 =A0 =A0}
+> >
+> > =A0 =A0 =A0 =A0if (twl_has_usb() && pdata->usb) {
+> > +
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 static struct regulator_consumer_supp=
+ly usb1v5 =3D {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D =A0 =A0 =A0=
+ "usb1v5",
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 static struct regulator_consumer_supp=
+ly usb1v8 =3D {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D =A0 =A0 =A0=
+ "usb1v8",
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 static struct regulator_consumer_supp=
+ly usb3v1 =3D {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D =A0 =A0 =A0=
+ "usb3v1",
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > +
+> > + =A0 =A0 =A0 /* First add the regulators so that they can be used =
+by transceiver */
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (twl_has_regulator()) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* this is a template=
+ that gets copied */
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct regulator_init=
+_data usb_fixed =3D {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .cons=
+traints.valid_modes_mask =3D
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 REGULATOR_MODE_NORMAL
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | REGULATOR_MODE_STANDBY,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .cons=
+traints.valid_ops_mask =3D
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 REGULATOR_CHANGE_MODE
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | REGULATOR_CHANGE_STATUS,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > +
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 child =3D add_regulat=
+or_linked(TWL4030_REG_VUSB1V5,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &usb_fixed, &usb1v5, 1);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(child))
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 retur=
+n PTR_ERR(child);
+> > +
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 child =3D add_regulat=
+or_linked(TWL4030_REG_VUSB1V8,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &usb_fixed, &usb1v8, 1);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(child))
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 retur=
+n PTR_ERR(child);
+> > +
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 child =3D add_regulat=
+or_linked(TWL4030_REG_VUSB3V1,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &usb_fixed, &usb3v1, 1);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(child))
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 retur=
+n PTR_ERR(child);
+> > +
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> > +
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0child =3D add_child(0, "twl4030_usb"=
+,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdat=
+a->usb, sizeof(*pdata->usb),
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0true=
+,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* i=
+rq0 =3D USB_PRES, irq1 =3D USB */
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdat=
+a->irq_base + 8 + 2, pdata->irq_base + 4);
+> > +
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (IS_ERR(child))
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return PTR_ERR(child=
+);
+> >
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* we need to connect regulators to =
+this transceiver */
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 usb_transceiver =3D child;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (twl_has_regulator() && child) {
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 usb1v5.dev =3D child;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 usb1v8.dev =3D child;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 usb3v1.dev =3D child;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> > =A0 =A0 =A0 =A0}
+> >
+> > =A0 =A0 =A0 =A0if (twl_has_watchdog()) {
+> > @@ -580,47 +624,6 @@ add_children(struct twl4030_platform_data *pda=
+ta, unsigned long features)
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return PTR_ERR(child=
+);
+> > =A0 =A0 =A0 =A0}
+> >
+> > - =A0 =A0 =A0 if (twl_has_regulator() && usb_transceiver) {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 static struct regulator_consumer_supp=
+ly usb1v5 =3D {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D =A0 =A0 =A0=
+ "usb1v5",
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 static struct regulator_consumer_supp=
+ly usb1v8 =3D {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D =A0 =A0 =A0=
+ "usb1v8",
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 static struct regulator_consumer_supp=
+ly usb3v1 =3D {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D =A0 =A0 =A0=
+ "usb3v1",
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > -
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* this is a template that gets copie=
+d */
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct regulator_init_data usb_fixed =
+=3D {
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .constraints.valid_mo=
+des_mask =3D
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 R=
+EGULATOR_MODE_NORMAL
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | REG=
+ULATOR_MODE_STANDBY,
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .constraints.valid_op=
+s_mask =3D
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 R=
+EGULATOR_CHANGE_MODE
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | REG=
+ULATOR_CHANGE_STATUS,
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 };
+> > -
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 usb1v5.dev =3D usb_transceiver;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 usb1v8.dev =3D usb_transceiver;
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 usb3v1.dev =3D usb_transceiver;
+> > -
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 child =3D add_regulator_linked(TWL403=
+0_REG_VUSB1V5, &usb_fixed,
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &usb1=
+v5, 1);
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(child))
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(child)=
+;
+> > -
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 child =3D add_regulator_linked(TWL403=
+0_REG_VUSB1V8, &usb_fixed,
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &usb1=
+v8, 1);
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(child))
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(child)=
+;
+> > -
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 child =3D add_regulator_linked(TWL403=
+0_REG_VUSB3V1, &usb_fixed,
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &usb3=
+v1, 1);
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (IS_ERR(child))
+> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return PTR_ERR(child)=
+;
+> > - =A0 =A0 =A0 }
+> > -
+> > =A0 =A0 =A0 =A0/* maybe add LDOs that are omitted on cost-reduced p=
+arts */
+> > =A0 =A0 =A0 =A0if (twl_has_regulator() && !(features & TPS_SUBSET))=
+ {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0child =3D add_regulator(TWL4030_REG_=
+VPLL2, pdata->vpll2);
+> > --
+> > 1.6.0.4
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-ker=
+nel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+> > Please read the FAQ at =A0http://www.tux.org/lkml/
+> >
 
-> ---
->  arch/arm/mach-omap2/id.c              |   24 ++++++++++++++++++++++--
->  arch/arm/plat-omap/include/mach/cpu.h |    6 ++++++
->  2 files changed, 28 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 03b80f2..ee3bb69 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -210,7 +210,9 @@ void __init omap3_check_revision(void)
->  	hawkeye = (idcode >> 12) & 0xffff;
->  	rev = (idcode >> 28) & 0xff;
->  
-> -	if (hawkeye == 0xb7ae) {
-> +	switch (hawkeye) {
-> +	case 0xb7ae:
-> +		/* Handle 34xx devices */
->  		switch (rev) {
->  		case 0:
->  			omap_revision = OMAP3430_REV_ES2_0;
-> @@ -231,8 +233,26 @@ void __init omap3_check_revision(void)
->  		default:
->  			/* Use the latest known revision as default */
->  			omap_revision = OMAP3430_REV_ES3_1;
-> -			rev_name = "Unknown revision\n";
-> +			rev_name = "Unknown 34xx revision\n";
->  		}
-> +		break;
-> +	case 0xb891:
-> +		/* Handle 36xx devices */
-> +		switch (rev) {
-> +		case 0:
-> +			omap_revision = OMAP3630_REV_ES1_0;
-> +			rev_name = "ES1.0";
-> +			break;
-> +		default:
-> +			/* Use the latest known revision as default */
-> +			omap_revision = OMAP3630_REV_ES1_0;
-> +			rev_name = "Unknown 36xx revision\n";
-> +		}
-> +		break;
-> +	default:
-> +		/* Unknown default to latest rev as default*/
-> +		omap_revision = OMAP3630_REV_ES1_0;
-> +		rev_name = "Unknown revision\n";
->  	}
->  
->  out:
-> diff --git a/arch/arm/plat-omap/include/mach/cpu.h 
-> b/arch/arm/plat-omap/include/mach/cpu.h
-> index 431fec4..65f1882 100644
-> --- a/arch/arm/plat-omap/include/mach/cpu.h
-> +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> @@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
->  #define OMAP3430_REV_ES2_1	0x34302034
->  #define OMAP3430_REV_ES3_0	0x34303034
->  #define OMAP3430_REV_ES3_1	0x34304034
-> +/* NOTE: Add 36xx series below
-> + * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
-> + * added above the 3630 defines and series renumbered to ensure
-> + * rev() > checks to work
-> + */
-> +#define OMAP3630_REV_ES1_0	0x36301034
->  
->  #define OMAP443X_CLASS		0x44300034
->  
-> -- 
-> 1.6.0.4
-> 
-> 
+--=20
+Intel Open Source Technology Centre
+http://oss.intel.com/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
