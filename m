@@ -1,60 +1,52 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH v3] OMAP3: introduce OMAP3630
-Date: Fri, 9 Oct 2009 10:53:15 -0700
-Message-ID: <20091009175314.GI25892@atomide.com>
-References: <1255045627-23405-1-git-send-email-nm@ti.com> <A24693684029E5489D1D202277BE89444CC6C59E@dlee02.ent.ti.com>
+Subject: Re: How to add suport for new ARM board IGEP0020
+Date: Fri, 9 Oct 2009 10:57:10 -0700
+Message-ID: <20091009175710.GJ25892@atomide.com>
+References: <70c9a9110910090756i17a116b1l2c62a67fc49cab1e@mail.gmail.com> <4ACF53B6.4040008@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63380 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760531AbZJIRyB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 13:54:01 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61789 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753436AbZJIR54 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 13:57:56 -0400
 Content-Disposition: inline
-In-Reply-To: <A24693684029E5489D1D202277BE89444CC6C59E@dlee02.ent.ti.com>
+In-Reply-To: <4ACF53B6.4040008@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: Enric =?iso-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [091009 06:55]:
-> Nishanth, 
-> 
-> From: Menon, Nishanth 
-> Sent: Thursday, October 08, 2009 6:47 PM
-> 
-> <snip>
-> 
-> > diff --git a/arch/arm/plat-omap/include/mach/cpu.h 
-> > b/arch/arm/plat-omap/include/mach/cpu.h
-> > index 431fec4..af1080f 100644
-> > --- a/arch/arm/plat-omap/include/mach/cpu.h
-> > +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> > @@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
-> >  #define OMAP3430_REV_ES2_1	0x34302034
-> >  #define OMAP3430_REV_ES3_0	0x34303034
-> >  #define OMAP3430_REV_ES3_1	0x34304034
-> > +/* NOTE: Add 36xx series below
-> > + * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
-> > + * added above the 3630 defines and series renumbered to ensure
-> > + * rev() > checks to work
-> > + */
-> > +#define OMAP3630_REV_ES1_0	0x34305034
-> 
-> Just for the sake of curiosity...
-> 
-> Why not defining 3630 like this?
-> 
-> #define OMAP3630_REV_ES1_0	0x36301034
-> 
-> Sorry if i'm asking something dumb.
+* Nishanth Menon <nm@ti.com> [091009 08:36]:
+> Enric Balletb=F2 i Serra had written, on 10/09/2009 09:56 AM, the fol=
+lowing:
+>> Hi all,
+>>
+>>       I'm a newbie and I have some questions. What is the procedure =
+to
+>> publish our patches to add support for a new OMAP3 based board ? Can=
+ I
+>> send the patches to this list ?
+> yes, rebased to latest linux-omap please..
 
-Because it's still considered 34xx class chip with
-some extra features. It compiles with the same settings,
-and uses the same kernel code. So from kernel point of
-view we can treat it as 34xx.
+Currently pretty much all the core omap code is in mainline Linux, exce=
+pt
+for the PM code.
+
+So please base all the patches against latest mainline tag unless
+there are some dependencies to code that's not merged into mainline
+kernel yet.
+
+If there are dependencies to other patches, please mention them in the
+patch too! And if possible separate out the patches with dependencies
+so we can merge them early to keep cross dependencies to minimum.
 
 Regards,
 
-Tony
-
+Tony=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
