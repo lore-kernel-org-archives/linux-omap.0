@@ -1,158 +1,47 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH v3] OMAP3: introduce OMAP3630
-Date: Thu,  8 Oct 2009 18:47:07 -0500
-Message-ID: <1255045627-23405-1-git-send-email-nm@ti.com>
+Subject: Re: Question on OPP table handling
+Date: Thu, 8 Oct 2009 19:41:32 -0500
+Message-ID: <4ACE86BC.70009@ti.com>
+References: <1254420194-4757-1-git-send-email-premi@ti.com>	<4AC76810.1040206@gmail.com>	<B85A65D85D7EB246BE421B3FB0FBB59301DDC08B10@dbde02.ent.ti.com> <87ws39zsn4.fsf@deeprootsystems.com> <4ACA2A86.7060300@ti.com> <74583B8642AB8841B30447520659FCA9DDAEF27A@dnce01.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDC09146@dbde02.ent.ti.com> <4ACB2DAD.1090200@ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDC0936B@dbde02.ent.ti.com> <4ACB3243.409@ti.com> <74583B8642AB8841B30447520659FCA9DDAEF4D6@dnce01.ent.ti.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDC09388@dbde02.ent.ti.com> <74583B8642AB8841B30447520659FCA9DDAEF565@dnce01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34749 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36909 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756791AbZJHXrz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 8 Oct 2009 19:47:55 -0400
+	id S1756855AbZJIAmK (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 8 Oct 2009 20:42:10 -0400
+In-Reply-To: <74583B8642AB8841B30447520659FCA9DDAEF565@dnce01.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap <linux-omap@vger.kernel.org>
-Cc: Nishanth Menon <nm@ti.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, Allen Pais <allen.pais@ti.com>, Anand Gadiyar <gadiyar@ti.com>, Benoit Cousson <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+Cc: "Dasgupta, Romit" <romit@ti.com>, "Premi, Sanjeev" <premi@ti.com>, Kevin H <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
---- SNIP ME --
-Hi,
-A bit of history for this patchset
-V3 - Fixes from Sergio's comments + boot tested on SDP3430+3630.
-V2 - fixes of generic comments from Felipe Balbi+minor cleanups
-V1 - inital implementation of (a) approach
-V0 - original approach introducing a new silicon family
---- END OF SNIP ME --
-Device intro:
-OMAP3630 is the latest in the family of OMAP3 devices
-and among the changes it introduces are:
+Sanjeev, All,
+Cousson, Benoit had written, on 10/06/2009 07:52 AM, the following:
+> Yes, it is true but you might have to disable dynamically some OPP (l=
+ike OPP5 and OPP4) for thermal management reason. The way the resource =
+is handled today, you cannot force the reduction of the frequency in ca=
+se of thermal issue.
+> I agree that there might be more elegant way to deal with that, but w=
+e can take advantage of disabling dynamically any OPP to do it.
+I would like to introduce OPP tables for 3630, but I will be dependent=20
+on  http://marc.info/?l=3Dlinux-omap&m=3D125442020209267&w=3D2
 
-New OPP levels for new voltage and frequency levels. a bunch of
-Bug fixes to various modules feature additions, notably with ISP,
-sDMA etc.
+Let me know how I can introduce the following into l-o + l-o pm. ( I=20
+suppose l-o first=85):
+http://dev.omapzoom.org/?p=3Dintegration/kernel-omap3.git;a=3Dblob;f=3D=
+arch/arm/mach-omap2/omap3-opp.h;h=3Dac3ae6f219b37760de00e8e469ae3911d02=
+f0304;hb=3Drefs/heads/sync_wake-up3630#l74
 
-Details about the chip is available here:
-http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
+Not sure of the status and plan on this. Could we sync on this?
 
-Strategy used:
-Strategy to introduce this device into Linux was discussed here:
-Ref: http://marc.info/?t=125343303400003&r=1&w=2
-
-Two approaches were available:
-a) Consider 3630 generation of devices as a new family of silicon
-b) Consider 3630 as an offshoot of 3430 family of devices
-
-As a common consensus, (b) seems to be more valid for 3630 as:
-* There are changes which are easily handled by using "FEATURES"
-  infrastructure.
-  For details how to do this, see thread:
-  http://marc.info/?t=125050998500001&r=1&w=2
-* Most of existing 34xx infrastructure can be reused(almost 90%+)
-	- so no ugly if (cpu_is_omap34xx() || cpu_is_omap36xx())
-	  all over the place
-	- lesser chance of bugs due to reuse of proven code flow
-	- 36xx specific handling can still be done where required
-	  within the existing infrastructure
-
-NOTE:
-* If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
-  added on top of the existing 3630 ones are renumbered
-
-This patch was tested on SDP3430, boot tested on 3630 platform using
-3430sdp defconfig
-
-Signed-off-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Cc: Allen Pais <allen.pais@ti.com>
-Cc: Anand Gadiyar <gadiyar@ti.com>
-Cc: Benoit Cousson <b-cousson@ti.com>
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Sanjeev Premi <premi@ti.com>
-Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/id.c              |   32 +++++++++++++++++++++++++++++---
- arch/arm/plat-omap/include/mach/cpu.h |    6 ++++++
- 2 files changed, 35 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 03b80f2..2870d3b 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -186,6 +186,7 @@ void __init omap3_check_revision(void)
- {
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
-+	u16 omap_type = 0;
- 	u8 rev;
- 	char *rev_name = "ES1.0";
- 
-@@ -210,7 +211,9 @@ void __init omap3_check_revision(void)
- 	hawkeye = (idcode >> 12) & 0xffff;
- 	rev = (idcode >> 28) & 0xff;
- 
--	if (hawkeye == 0xb7ae) {
-+	switch (hawkeye) {
-+	case 0xb7ae:
-+		/* Handle 34xx devices */
- 		switch (rev) {
- 		case 0:
- 			omap_revision = OMAP3430_REV_ES2_0;
-@@ -231,12 +234,35 @@ void __init omap3_check_revision(void)
- 		default:
- 			/* Use the latest known revision as default */
- 			omap_revision = OMAP3430_REV_ES3_1;
--			rev_name = "Unknown revision\n";
-+			rev_name = "Unknown 34xx revision\n";
- 		}
-+		break;
-+	case 0xb891:
-+		/* Handle 36xx devices
-+		 * But, override for display purposes
-+		 */
-+		omap_type = 0x3630;
-+		switch (rev) {
-+		case 0:
-+			omap_revision = OMAP3630_REV_ES1_0;
-+			rev_name = "ES1.0";
-+			break;
-+		default:
-+			/* Use the latest known revision as default */
-+			omap_revision = OMAP3630_REV_ES1_0;
-+			rev_name = "Unknown 36xx revision\n";
-+		}
-+		break;
-+	default:
-+		/* Unknown default to latest rev as default*/
-+		omap_revision = OMAP3630_REV_ES1_0;
-+		rev_name = "Unknown revision\n";
- 	}
- 
- out:
--	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
-+	if (!omap_type)
-+		omap_type = omap_rev() >> 16;
-+	pr_info("OMAP%04x %s\n", omap_type, rev_name);
- }
- 
- #define OMAP3_SHOW_FEATURE(feat)		\
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index 431fec4..af1080f 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP3430_REV_ES2_1	0x34302034
- #define OMAP3430_REV_ES3_0	0x34303034
- #define OMAP3430_REV_ES3_1	0x34304034
-+/* NOTE: Add 36xx series below
-+ * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
-+ * added above the 3630 defines and series renumbered to ensure
-+ * rev() > checks to work
-+ */
-+#define OMAP3630_REV_ES1_0	0x34305034
- 
- #define OMAP443X_CLASS		0x44300034
- 
--- 
-1.6.0.4
-
+--=20
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
