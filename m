@@ -1,67 +1,53 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
-Date: Fri, 9 Oct 2009 15:08:00 +0300
-Message-ID: <94a0d4530910090508o1e3d19cew881d2eb348199674@mail.gmail.com>
-References: <20091007185112.GJ7899@atomide.com>
-	 <94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
-	 <20091008214140.GJ7417@atomide.com>
-	 <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
-	 <94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com>
-	 <20091008232603.GB25892@atomide.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 2/8] ASoC: OMAP: RX-51 Machine driver and
+ AIC34b_dummy driver
+Date: Fri, 9 Oct 2009 13:19:55 +0100
+Message-ID: <20091009121955.GF5082@sirena.org.uk>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+	<1255003137-1034-3-git-send-email-eduardo.valentin@nokia.com>
+	<20091008131116.GB29176@rakim.wolfsonmicro.main>
+	<20091009084400.34df690a.jhnikula@gmail.com>
+	<20091009063720.GC6616@esdhcp037198.research.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760332AbZJIMJv@vger.kernel.org>
-In-Reply-To: <20091008232603.GB25892@atomide.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>, Greg Kroah-Hartman <gregkh@suse.de>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <20091009063720.GC6616@esdhcp037198.research.nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: alsa-devel@alsa-project.org, ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
-On Fri, Oct 9, 2009 at 2:26 AM, Tony Lindgren <tony@atomide.com> wrote:
-> * Felipe Contreras <felipe.contreras@gmail.com> [091008 15:20]:
+On Fri, Oct 09, 2009 at 09:37:20AM +0300, Eduardo Valentin wrote:
+> On Fri, Oct 09, 2009 at 07:44:00AM +0200, Jarkko Nikula wrote:
 
-<snip/>
+> > Yep, dummy driver is for block B of AIC34 which is basically dual AIC33
+> > in a same package.
 
->> > Here you can see Uwe Kleine-K=C3=B6nig sending the original patch =
-without
->> > even CC'ing the mmc list:
->> > http://marc.info/?l=3Dlinux-kernel&m=3D124820861213849&w=3D2
->> >
->> > And it was unintentionally broken by this one:
->> > http://marc.info/?l=3Dlinux-mmc&m=3D125249763422227&w=3D2
->>
->> Er, actually that one was ok, the problem was introduced only in the
->> final version:
->> http://marc.info/?l=3Dlinux-mmc&m=3D125366315417006&w=3D2
->
-> Right, looks like Roger forgot to Cc linux-mmc.
->
->> > I don't see what we are waiting for, the code is clearly broken, e=
-ven
->> > the compiler warns that nobody is using omap_hsmmc_probe().
->
-> I've sent Roger's patch to Andrew & linux-mmc so hopefully it will ge=
-t
-> merged soon:
->
-> http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg00539.html
+> Yes. This is correct.
 
-I don't see what's specific about mmc in that patch, nor omap. It's
-just a fix for an obvious mistake that must be picked ASAP and can't
-possibly be NAK'ed.
+So to software it just looks like two devices at separate I2C addresses
+so once multi CODEC support is present there will be no need to have
+specific support for it at all?
 
-There's a tree for trivial fixes:
-git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial
+> > Eduardo, please correct me if I remember wrong  but block B of AIC34 is
+> > not used as an codec as such but more like an amplifier and analogic
+> > mixer with digital parts unused. So with this dummy driver the HW
+> > features were easier to support than to develop multiple intance
+> > support for codec drivers.
 
-And one for includecheck:
-git://git.kernel.org/pub/scm/linux/kernel/git/jaswinder/linux-2.6
+> Yes. This is also correct. It is more like an amplifier / mixer.
+> I think that's why you named it dummy :-).
 
-What's the procedure for obvious fixes? I'm CC'ing Greg KH and Andrew
-Morton because I think they might interested in fixing these kinds of
-issues quickly in the future.
+> But I think I should add this info as a comment inside the code.
 
-Cheers.
-
---=20
-=46elipe Contreras
+Some words or ASCII art in the machine driver would help a lot, I think.
