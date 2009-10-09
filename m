@@ -1,52 +1,182 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: How to add suport for new ARM board IGEP0020
-Date: Fri, 9 Oct 2009 10:57:10 -0700
-Message-ID: <20091009175710.GJ25892@atomide.com>
-References: <70c9a9110910090756i17a116b1l2c62a67fc49cab1e@mail.gmail.com> <4ACF53B6.4040008@ti.com>
+Subject: Re: [PATCH v4] OMAP3: introduce OMAP3630
+Date: Fri, 9 Oct 2009 11:03:18 -0700
+Message-ID: <20091009180317.GK25892@atomide.com>
+References: <1255103786-22324-1-git-send-email-nm@ti.com> <A24693684029E5489D1D202277BE89444CC6C7FF@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61789 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51818 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753436AbZJIR54 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 13:57:56 -0400
+	with ESMTP id S1761250AbZJISED (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 14:04:03 -0400
 Content-Disposition: inline
-In-Reply-To: <4ACF53B6.4040008@ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89444CC6C7FF@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: Enric =?iso-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-* Nishanth Menon <nm@ti.com> [091009 08:36]:
-> Enric Balletb=F2 i Serra had written, on 10/09/2009 09:56 AM, the fol=
-lowing:
->> Hi all,
->>
->>       I'm a newbie and I have some questions. What is the procedure =
-to
->> publish our patches to add support for a new OMAP3 based board ? Can=
- I
->> send the patches to this list ?
-> yes, rebased to latest linux-omap please..
+* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [091009 08:59]:
+>  
+> 
+> > -----Original Message-----
+> > From: Menon, Nishanth 
+> > Sent: Friday, October 09, 2009 10:56 AM
+> > To: linux-omap
+> > Cc: Menon, Nishanth; Chikkature Rajashekar, Madhusudhan; 
+> > Pandita, Vikram; Pais, Allen; Gadiyar, Anand; Cousson, 
+> > Benoit; Felipe Balbi; Kevin Hilman; Premi, Sanjeev; 
+> > Shilimkar, Santosh; Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
+> > Subject: [PATCH v4] OMAP3: introduce OMAP3630
+> > 
+> > **--- SNIP ME --
+> > Hi,
+> > A bit of history for this patchset
+> > V4 - Sergio's improvement to the handling of rev decision as we just
+> >      change the define to 3630 and remove crapy override logic in
+> >      omap3_check_revision from v3 patch
+> 
+> Now looks much better ;)
+> 
+> > V3 - Fixes from Sergio's comments + boot tested on SDP3430+3630.
+> > V2 - fixes of generic comments from Felipe Balbi+minor cleanups
+> > V1 - inital implementation of (a) approach
+> > V0 - original approach introducing a new silicon family
+> > **--- END OF SNIP ME --
+> > Device intro:
+> > OMAP3630 is the latest in the family of OMAP3 devices
+> > and among the changes it introduces are:
+> > 
+> > New OPP levels for new voltage and frequency levels. a bunch of
+> > Bug fixes to various modules feature additions, notably with ISP,
+> > sDMA etc.
+> > 
+> > Details about the chip is available here:
+> > http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?t
+> > emplateId=6123&navigationId=12836&contentId=52606
+> > 
+> > Strategy used:
+> > Strategy to introduce this device into Linux was discussed here:
+> > Ref: http://marc.info/?t=125343303400003&r=1&w=2
+> > 
+> > Two approaches were available:
+> > a) Consider 3630 generation of devices as a new family of silicon
+> > b) Consider 3630 as an offshoot of 3430 family of devices
+> > 
+> > As a common consensus, (b) seems to be more valid for 3630 as:
+> > * There are changes which are easily handled by using "FEATURES"
+> >   infrastructure.
+> >   For details how to do this, see thread:
+> >   http://marc.info/?t=125050998500001&r=1&w=2
+> > * Most of existing 34xx infrastructure can be reused(almost 90%+)
+> > 	- so no ugly if (cpu_is_omap34xx() || cpu_is_omap36xx())
+> > 	  all over the place
+> > 	- lesser chance of bugs due to reuse of proven code flow
+> > 	- 36xx specific handling can still be done where required
+> > 	  within the existing infrastructure
+> > 
+> > NOTE:
+> > * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+> >   added on top of the existing 3630 ones are renumbered
+> > 
+> > This patch was tested on SDP3430, boot tested on 3630 platform using
+> > 3430sdp defconfig
+> > 
+> > Signed-off-by: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+> > Signed-off-by: Nishanth Menon <nm@ti.com>
+> > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> > Cc: Allen Pais <allen.pais@ti.com>
+> > Cc: Anand Gadiyar <gadiyar@ti.com>
+> > Cc: Benoit Cousson <b-cousson@ti.com>
+> > Cc: Felipe Balbi <felipe.balbi@nokia.com>
+> > Cc: Kevin Hilman <khilman@deeprootsystems.com>
+> > Cc: Sanjeev Premi <premi@ti.com>
+> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+> > Cc: Tony Lindgren <tony@atomide.com>
+> 
+> Acked-by: Sergio Aguirre <saaguirre@ti.com>
+> 
+> > ---
+> >  arch/arm/mach-omap2/id.c              |   24 ++++++++++++++++++++++--
+> >  arch/arm/plat-omap/include/mach/cpu.h |    6 ++++++
+> >  2 files changed, 28 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> > index 03b80f2..ee3bb69 100644
+> > --- a/arch/arm/mach-omap2/id.c
+> > +++ b/arch/arm/mach-omap2/id.c
+> > @@ -210,7 +210,9 @@ void __init omap3_check_revision(void)
+> >  	hawkeye = (idcode >> 12) & 0xffff;
+> >  	rev = (idcode >> 28) & 0xff;
+> >  
+> > -	if (hawkeye == 0xb7ae) {
+> > +	switch (hawkeye) {
+> > +	case 0xb7ae:
+> > +		/* Handle 34xx devices */
+> >  		switch (rev) {
+> >  		case 0:
+> >  			omap_revision = OMAP3430_REV_ES2_0;
+> > @@ -231,8 +233,26 @@ void __init omap3_check_revision(void)
+> >  		default:
+> >  			/* Use the latest known revision as default */
+> >  			omap_revision = OMAP3430_REV_ES3_1;
+> > -			rev_name = "Unknown revision\n";
+> > +			rev_name = "Unknown 34xx revision\n";
+> >  		}
+> > +		break;
+> > +	case 0xb891:
+> > +		/* Handle 36xx devices */
+> > +		switch (rev) {
+> > +		case 0:
+> > +			omap_revision = OMAP3630_REV_ES1_0;
+> > +			rev_name = "ES1.0";
+> > +			break;
+> > +		default:
+> > +			/* Use the latest known revision as default */
+> > +			omap_revision = OMAP3630_REV_ES1_0;
+> > +			rev_name = "Unknown 36xx revision\n";
+> > +		}
+> > +		break;
+> > +	default:
+> > +		/* Unknown default to latest rev as default*/
+> > +		omap_revision = OMAP3630_REV_ES1_0;
+> > +		rev_name = "Unknown revision\n";
+> >  	}
+> >  
+> >  out:
+> > diff --git a/arch/arm/plat-omap/include/mach/cpu.h 
+> > b/arch/arm/plat-omap/include/mach/cpu.h
+> > index 431fec4..65f1882 100644
+> > --- a/arch/arm/plat-omap/include/mach/cpu.h
+> > +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> > @@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >  #define OMAP3430_REV_ES2_1	0x34302034
+> >  #define OMAP3430_REV_ES3_0	0x34303034
+> >  #define OMAP3430_REV_ES3_1	0x34304034
+> > +/* NOTE: Add 36xx series below
+> > + * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
+> > + * added above the 3630 defines and series renumbered to ensure
+> > + * rev() > checks to work
+> > + */
+> > +#define OMAP3630_REV_ES1_0	0x36301034
 
-Currently pretty much all the core omap code is in mainline Linux, exce=
-pt
-for the PM code.
+Hmm, to me it looks that this breaks cpu_is_omap34xx() for 36xx, right?
 
-So please base all the patches against latest mainline tag unless
-there are some dependencies to code that's not merged into mainline
-kernel yet.
-
-If there are dependencies to other patches, please mention them in the
-patch too! And if possible separate out the patches with dependencies
-so we can merge them early to keep cross dependencies to minimum.
+How about build a kernel that boots both on 3430sdp and on some
+36xx board and make sure things get detected properly by adding
+some debug printk statements?
 
 Regards,
 
-Tony=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+
+
+> >  
+> >  #define OMAP443X_CLASS		0x44300034
+> >  
+> > -- 
+> > 1.6.0.4
+> > 
+> > 
