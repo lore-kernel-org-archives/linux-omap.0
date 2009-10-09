@@ -1,94 +1,80 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
-Date: Fri, 9 Oct 2009 09:59:35 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D57B@dbde02.ent.ti.com>
-References: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
- <1254977223-4236-1-git-send-email-nm@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D1EF@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA02389D@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DDD75DAE@dbde02.ent.ti.com>
- <4ACDF9E3.4010701@ti.com>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: RE: [PATCH 1/1] OMAP: I2C: Add mpu wake up latency constraint
+	in	i2c
+Date: Fri, 9 Oct 2009 07:50:32 +0300
+Message-ID: <1255063832.22468.340.camel@ubuntu>
+References: <1253204923-21916-1-git-send-email-kalle.jokiniemi@digia.com>
+	 <1253204923-21916-2-git-send-email-kalle.jokiniemi@digia.com>
+	 <87bpkso0dj.fsf@deeprootsystems.com> <1254383040.22468.130.camel@ubuntu>
+	 <4AC49578.9090906@nokia.com> <1254481161.22468.179.camel@ubuntu>
+	 <13B9B4C6EF24D648824FF11BE8967162039B0BD781@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39584 "EHLO comal.ext.ti.com"
+Received: from smtp1.digia.com ([82.118.214.156]:48439 "EHLO smtp1.digia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751831AbZJIEaU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 00:30:20 -0400
-In-Reply-To: <4ACDF9E3.4010701@ti.com>
-Content-Language: en-US
+	id S1751505AbZJIEuT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Oct 2009 00:50:19 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B0BD781@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "Premi, Sanjeev" <premi@ti.com>
-Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "jhnikula@gmail.com" <jhnikula@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Thursday, October 08, 2009 8:11 PM
-> To: Premi, Sanjeev
-> Cc: Pandita, Vikram; Shilimkar, Santosh; linux-omap; Chikkature Rajashekar,
-> Madhusudhan; Pais, Allen; Gadiyar, Anand; Cousson, Benoit; Kevin Hilman;
-> Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
-> Subject: Re: [RFC][PATCH] OMAP3: introduce OMAP3630
+On Wed, 2009-10-07 at 21:52 +0300, Woodruff, Richard wrote:
+> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > owner@vger.kernel.org] On Behalf Of Kalle Jokiniemi
+> > Sent: Friday, October 02, 2009 5:59 AM
 > 
-> Premi, Sanjeev had written, on 10/08/2009 09:23 AM, the following:
-> >> -----Original Message-----
-> >> From: Pandita, Vikram
-> >> Sent: Thursday, October 08, 2009 7:01 PM
-> >> To: Shilimkar, Santosh; Menon, Nishanth; linux-omap
-> >> Cc: Chikkature Rajashekar, Madhusudhan; Pais, Allen; Gadiyar,
-> >> Anand; Cousson, Benoit; Kevin Hilman; Premi, Sanjeev; Aguirre
-> >> Rodriguez, Sergio Alberto; Tony Lindgren
-> >> Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
-> >>
-> >>
-> >>
-> >>> -----Original Message-----
-> >>> From: Shilimkar, Santosh
-> >>>> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
-> >>>> omap/include/mach/cpu.h
-> >>>> index 431fec4..af1080f 100644
-> >>>> --- a/arch/arm/plat-omap/include/mach/cpu.h
-> >>>> +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> >>>> @@ -383,6 +383,12 @@ IS_OMAP_TYPE(3430, 0x3430)
-> >>>>  #define OMAP3430_REV_ES2_1	0x34302034
-> >>>>  #define OMAP3430_REV_ES3_0	0x34303034
-> >>>>  #define OMAP3430_REV_ES3_1	0x34304034
-> >>>> +/* NOTE: Add 36xx series below
-> >>>> + * If additional 34xx series are added, OMAP3430_REV_ESXXXX can be
-> >>>> + * added above the 3630 defines and series renumbered to ensure
-> >>>> + * rev() > checks to work
-> >>>> + */
-> >>>> +#define OMAP3630_REV_ES1_0	0x34305034
-> >>>>
-> >>>>  #define OMAP443X_CLASS		0x44300034
-> >>> Was expecting that this patch will add "cpu_is_omap36xx()" in cpu.h
-> >>> apart from above. Is this handled in another patch ?
-> >> Idea is to re-use all 34xx code for 36xx, as per the mail
-> >> thread on list, and given in reference.
-> >> Hence at run time, the check could be:
-> >>
-> >> if (omap_rev() == OMAP3630_REV_ES1_0)
-> >> 	xxxxx
-> >>
-> >> cpu_is_omap34xx() will be true for 36xx as well.
-> >
-> > [sp] This case seems quite similar to the OMAP35x.
-> >      Can you look at this thread:
-> >
-> >      http://marc.info/?l=linux-omap&m=125372581804902&w=2
-> >
-> >      It applies equally well here as well...
-> >      I will be submitting updated patch tomorrow.
-> yes, any specifics should be  feature based IMHO. we will need to extend
-> the feature list.
+> 
+> > Yes, this is a good idea in theory, but the reality of wake-up latencies
+> > kind-a kill this one. Wake-up from even C1 (MPU INA, CORE ON) takes
+> > ~130us on fastest OPP. And when you add 70us of sleep transition into
+> > that, you get 200us at minimum.
+> 
+> These values feel a bit on the high side.  Have you measured since tweaking your DPLL M/N values?
+> 
+> Are you measuring just across WFI or adding in some part of the idle code path?
 
-If we are going to handle the delta 3630 changes w.r.t 3430 with feature based approach, its probably is the best thing.
+For the numbers I mentioned, the path from start of omap_sram_idle to
+end of omap_sram_idle was included. And one can't really not include it,
+since it is run with interrupts disabled.
 
-But in case delat code will be added like below then having a cpu_is_omap36xx() makes more sense. 
->> if (omap_rev() == OMAP3630_REV_ES1_0)
-> >> 	xxxxx
-There is no harm having both cpu_is_omap36xx() and cpu_is_omap34xx() true for 3630
-Regards,
-Santosh
+> 
+> > For us, the 500us constraint seems to work quite nicely. It removes the
+> > problems we had with i2c transfers timing out with off mode, and
+> > restores average transfer times (from clk_enable to clk_disable) to few
+> > hundred us (that were observed with retention).
+> 
+> Some of the historic I2C timeout issues were from the wakeup sources
+> not being programmed properly.
+
+There could be such issues, I have not investigated for other reasons
+causing the time-outs. 
+
+
+> 
+> Your constraint in my understanding is more about saving power.  
+
+True.
+
+> Today cpuidle doesn't predict interrupt events very well.  As such the
+> huge timeout used with i2c will never gate an off mode attempt.  You
+> will loose in context save and restore with out constraint.
+
+True, that is why the constraint is needed on latency basis.
+
+- Kalle
+
+> 
+> I floated some idea a while back on pm list to try and do something
+> really simple with irqs.  ... take a timestamp on last irq, when
+> cpuilde goes to sleep if current time since last irq is too near then
+> choose safe sleep state.  Comments I got at that time was some didn't
+> like extra overhead on irq path.  However, I don't know I agree with
+> that.
+> 
+> Regards,
+> Richard W.
+
