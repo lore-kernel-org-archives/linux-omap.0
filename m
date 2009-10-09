@@ -1,97 +1,179 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
-Date: Fri, 9 Oct 2009 20:29:24 +0300
-Message-ID: <94a0d4530910091029p12f8c28fve91e95db533e78e5@mail.gmail.com>
-References: <20091007185112.GJ7899@atomide.com>
-	 <94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
-	 <20091008214140.GJ7417@atomide.com>
-	 <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
-	 <94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com>
-	 <20091008232603.GB25892@atomide.com>
-	 <94a0d4530910090508o1e3d19cew881d2eb348199674@mail.gmail.com>
-	 <20091009144840.GA9561@suse.de>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver support.
+Date: Fri, 9 Oct 2009 10:46:36 -0700
+Message-ID: <20091009174635.GH25892@atomide.com>
+References: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com> <20091007215116.GB29320@atomide.com> <d6a0f7aa0910072314h77383e31r2330725b614ba472@mail.gmail.com> <E0D41E29EB0DAC4E9F3FF173962E9E940253C6C560@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933569AbZJIRbR@vger.kernel.org>
-In-Reply-To: <20091009144840.GA9561@suse.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Tony Lindgren <tony@atomide.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, Uwe Kleine-K??nig <u.kleine-koenig@pengutronix.de>, Andrew Morton <akpm@linux-foundation.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:54624 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933772AbZJIRrW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 13:47:22 -0400
+Content-Disposition: inline
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253C6C560@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Cc: Govindraj <govindraj.ti@gmail.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
 
-On Fri, Oct 9, 2009 at 5:48 PM, Greg KH <gregkh@suse.de> wrote:
-> On Fri, Oct 09, 2009 at 03:08:00PM +0300, Felipe Contreras wrote:
->> On Fri, Oct 9, 2009 at 2:26 AM, Tony Lindgren <tony@atomide.com> wro=
-te:
->> > * Felipe Contreras <felipe.contreras@gmail.com> [091008 15:20]:
->>
->> <snip/>
->>
->> >> > Here you can see Uwe Kleine-K??nig sending the original patch w=
-ithout
->> >> > even CC'ing the mmc list:
->> >> > http://marc.info/?l=3Dlinux-kernel&m=3D124820861213849&w=3D2
->> >> >
->> >> > And it was unintentionally broken by this one:
->> >> > http://marc.info/?l=3Dlinux-mmc&m=3D125249763422227&w=3D2
->> >>
->> >> Er, actually that one was ok, the problem was introduced only in =
-the
->> >> final version:
->> >> http://marc.info/?l=3Dlinux-mmc&m=3D125366315417006&w=3D2
->> >
->> > Right, looks like Roger forgot to Cc linux-mmc.
->> >
->> >> > I don't see what we are waiting for, the code is clearly broken=
-, even
->> >> > the compiler warns that nobody is using omap_hsmmc_probe().
->> >
->> > I've sent Roger's patch to Andrew & linux-mmc so hopefully it will=
- get
->> > merged soon:
->> >
->> > http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg00539.htm=
-l
->>
->> I don't see what's specific about mmc in that patch, nor omap. It's
->> just a fix for an obvious mistake that must be picked ASAP and can't
->> possibly be NAK'ed.
->>
->> There's a tree for trivial fixes:
->> git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial
->>
->> And one for includecheck:
->> git://git.kernel.org/pub/scm/linux/kernel/git/jaswinder/linux-2.6
->>
->> What's the procedure for obvious fixes? I'm CC'ing Greg KH and Andre=
-w
->> Morton because I think they might interested in fixing these kinds o=
-f
->> issues quickly in the future.
+* G, Manjunath Kondaiah <manjugk@ti.com> [091008 00:41]:
+>=20
+> Govind,
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org=20
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Govindraj
+> > Sent: Thursday, October 08, 2009 11:44 AM
+> > To: Tony Lindgren
+> > Cc: Raja, Govindraj; linux-omap@vger.kernel.org;=20
+> > linux-kernel@vger.kernel.org; linux-serial@vger.kernel.org
+> > Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver suppo=
+rt.
+> >=20
+> > On Thu, Oct 8, 2009 at 3:21 AM, Tony Lindgren=20
+> > <tony@atomide.com> wrote:
+> > > * Govindraj.R <govindraj.raja@ti.com> [090924 03:29]:
+> > >> From: Govindraj R <govindraj.raja@ti.com>
+> > >>
+> > >> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
+> > >>
+> > >> Signed-off-by: =A0 =A0 =A0 =A0Govindraj R <govindraj.raja@ti.com=
 >
-> What kind of issues? =C2=A0Why would I be interested, where is the pr=
-oblem?
+> > >> Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+> > >> Reviewed-by: Tony Lindgren <tony@atomide.com>
+> > >
+> > > You should only add Reviewed-by if Alan or me have replied with i=
+t.
+> > >
+> > > So far I've only replied with some comments that have not yet
+> > > been fixed, so we're few more steps from being Reviewd-by.
+> > >
+> > > <snip>
+> > >
+> > >> diff --git a/drivers/serial/Kconfig b/drivers/serial/Kconfig
+> > >> index 6553833..67a7129 100644
+> > >> --- a/drivers/serial/Kconfig
+> > >> +++ b/drivers/serial/Kconfig
+> > >> @@ -1359,6 +1359,53 @@ config SERIAL_OF_PLATFORM
+> > >> =A0 =A0 =A0 =A0 Currently, only 8250 compatible ports are suppor=
+ted, but
+> > >> =A0 =A0 =A0 =A0 others can easily be added.
+> > >>
+> > >> +config SERIAL_OMAP
+> > >> + =A0 =A0 bool "OMAP serial port support"
+> > >> + =A0 =A0 depends on ARM && ARCH_OMAP
+> > >> + =A0 =A0 select SERIAL_CORE
+> > >> + =A0 =A0 help
+> > >> + =A0 =A0 If you have a machine based on an Texas Instruments=20
+> > OMAP CPU you
+> > >> + =A0 =A0 can enable its onboard serial ports by enabling this o=
+ption.
+> > >> +
+> > >> +config SERIAL_OMAP_CONSOLE
+> > >> + =A0 =A0 bool "Console on OMAP serial port"
+> > >> + =A0 =A0 depends on SERIAL_OMAP
+> > >> + =A0 =A0 select SERIAL_CORE_CONSOLE
+> > >> + =A0 =A0 help
+> > >> + =A0 =A0 If you have enabled the serial port on the Texas=20
+> > Instruments OMAP
+> > >> + =A0 =A0 CPU you can make it the console by answering Y to=20
+> > this option.
+> > >> +
+> > >> + =A0 =A0 Even if you say Y here, the currently visible virtual =
+console
+> > >> + =A0 =A0 (/dev/tty0) will still be used as the system console=20
+> > by default, but
+> > >> + =A0 =A0 you can alter that using a kernel command line option =
+such as
+> > >> + =A0 =A0 "console=3DttyS0". (Try "man bootparam" or see the=20
+> > documentation of
+> > >> + =A0 =A0 your boot loader (lilo or loadlin) about how to pass=20
+> > options to the
+> > >> + =A0 =A0 kernel at boot time.)
+> > >> +
+> > >> +config SERIAL_OMAP_DMA_UART1
+> > >> + =A0 =A0 bool "UART1 DMA support"
+> > >> + =A0 =A0 depends on SERIAL_OMAP
+> > >> + =A0 =A0 help
+> > >> + =A0 =A0 If you have enabled the serial port on the Texas=20
+> > Instruments OMAP
+> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 1 by answe=
+ring
+> > >> + =A0 =A0 to this option.
+> > >> +
+> > >> +config SERIAL_OMAP_DMA_UART2
+> > >> + =A0 =A0 bool "UART2 DMA support"
+> > >> + =A0 =A0 depends on SERIAL_OMAP
+> > >> + =A0 =A0 help
+> > >> + =A0 =A0 If you have enabled the serial port on the Texas=20
+> > Instruments OMAP
+> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 2 by answe=
+ring
+> > >> + =A0 =A0 to this option.
+> > >> +
+> > >> +config SERIAL_OMAP_DMA_UART3
+> > >> + =A0 =A0 bool "UART3 DMA support"
+> > >> + =A0 =A0 depends on SERIAL_OMAP
+> > >> + =A0 =A0 help
+> > >> + =A0 =A0 If you have enabled the serial port on the Texas=20
+> > Instruments OMAP
+> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 3 by answe=
+ring
+> > >> + =A0 =A0 to this option.
+> > >> +
+> > >> =A0config SERIAL_OF_PLATFORM_NWPSERIAL
+> > >> =A0 =A0 =A0 tristate "NWP serial port driver"
+> > >> =A0 =A0 =A0 depends on PPC_OF && PPC_DCR
+> > >
+> > > There's absolutely no need for having Kconfig options for the DMA
+> > > support. Please pass that in platform_data from the board-*.c fil=
+es.
+> > >
+> > > This is the third time I'm commenting on the same issue!
+> > >
+> > > What's the point of posting these patches for review if the issue=
+s
+> > > don't get solved?
+> >=20
+> >=20
+> > The omap-serial uart driver is designed to work either in interrupt
+> > mode or in DMA mode,
+> > We have provided this option so that one can select interrupt mode =
+or
+> > DMA mode based on the uart usage, if somebody is using uart as cons=
+ole
+> > then interrupt mode will do, else if used with bluetooth which does
+> > huge data transfer then DMA mode can be selected.
+> >=20
+> > Don't you think this should be a configurable option using kconfig
+> > rather than passing as platform data?
 
-The obvious-brain-dead-duh kind of issues, like this one.
+Nope. I think it should be platform_data and should be possible to over=
+ride
+vith a kernel cmdline option. That's because we support compiling in an=
+d
+booting many boards the same kernel binary.
 
-The problem is that OMAP devices (like beagleboard) are not booting
-correctly right now because of a wrong merge. It has been identified,
-tested, and acked, but nobody has picked it up for a pull request, so
-it's not clear it will be on -rc4.
+> > if used as platform data then one has to modify platform data to
+> > switch between the interrupt and DMA mode.
 
-To me it's not clear who should push the patch, it seems it doesn't
-belong on linux-omap, so Tony is pushing it through linux-mmc, which I
-don't think is the right place. They should be handling mmc-related
-issues, not obvious breakage.
+How about set some kernel cmdline options if you want to override the
+default settings?
 
-In order to keep the engines oiled I think there must be a process to
-flag obvious generic breakage so it's immediately picked; maybe an
-'obvious-fixes' tree, or a 'simple-fixes' that has 'trivial',
-'includecheck', and similar, or maybe nothing needs to be done. Up to
-you to decide.
+> Usage of UART is board dependent. It's usage will not change dynamica=
+lly for
+> a given board. This can be removed from Kconfig and move it to respec=
+tive=20
+> board file-> board-*.c
 
-Cheers.
+Or can be changed from kernel cmdline if necessary.
 
---=20
-=46elipe Contreras
+Regards,
+
+Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
