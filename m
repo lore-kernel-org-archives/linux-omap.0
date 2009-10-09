@@ -1,43 +1,73 @@
-From: "Reddy, Teerth" <teerth@ti.com>
-Subject: [PATCH]  OMAP3: PM: Do not allow OPP1 for VDD2
-Date: Fri, 9 Oct 2009 11:38:43 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D093D@dbde02.ent.ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 2/8] ASoC: OMAP: RX-51 Machine driver and AIC34b_dummy
+ driver
+Date: Fri, 9 Oct 2009 09:37:20 +0300
+Message-ID: <20091009063720.GC6616@esdhcp037198.research.nokia.com>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+ <1255003137-1034-3-git-send-email-eduardo.valentin@nokia.com>
+ <20091008131116.GB29176@rakim.wolfsonmicro.main>
+ <20091009084400.34df690a.jhnikula@gmail.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52493 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755819AbZJIGJ0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 02:09:26 -0400
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:55605 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756791AbZJIGi4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 02:38:56 -0400
+Content-Disposition: inline
+In-Reply-To: <20091009084400.34df690a.jhnikula@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 
->From 144669d941a432875db37ae9431847f6753e566e Mon Sep 17 00:00:00 2001
-From: Teerth Reddy <teerth@ti.com>
-Date: Wed, 9 Sep 2009 11:01:04 +0530
-Subject: OMAP3: PM: Do not allow OPP1 for VDD2
+On Fri, Oct 09, 2009 at 07:44:00AM +0200, Jarkko Nikula wrote:
+> On Thu, 8 Oct 2009 14:11:16 +0100
+> Mark Brown <broonie@opensource.wolfsonmicro.com> wrote:
+> 
+> > What is an "AIC34b_dummy (block B)"?  You probably want to split it out
+> > into a separate patch.
+> > 
+> I think this is the reason why Eduardo mentioned my name in the commit
+> log :-)
 
-Since OPP1 is not a supported OPP for VDD2, do not allow it to
-be changed using the sysfs interface.
+Yeah, I mentioned Jarkko because he was the person who initially wrote those drivers :-).
 
-Signed-off-by: Teerth Reddy <teerth@ti.com>
----
- arch/arm/mach-omap2/pm.c |    2 +-
- 1 files changed, 1 insertion(+), 1 deletion(-)
+But I can split then if you prefer. No problem.
 
-Index: linux-omap-pm/arch/arm/mach-omap2/pm.c
-===================================================================
---- linux-omap-pm.orig/arch/arm/mach-omap2/pm.c
-+++ linux-omap-pm/arch/arm/mach-omap2/pm.c
-@@ -144,7 +144,7 @@ static ssize_t vdd_opp_store(struct kobj
- 		}
- 		resource_set_opp_level(VDD1_OPP, value, flags);
- 	} else if (attr == &vdd2_opp_attr) {
--		if (value < 1 || value > 3) {
-+		if (value < 2 || value > 3) {
- 			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
- 			return -EINVAL;
- 		}
+> 
+> Yep, dummy driver is for block B of AIC34 which is basically dual AIC33
+> in a same package.
+
+Yes. This is correct.
+
+> 
+> > > + * TODO:
+> > > + * - Get rid of this driver, at least when ASoC v2 is merged and when
+> > > + *   we can support multiple codec instances in tlv320aic3x.c driver.
+> > > + *   This driver is hacked only for Nokia RX51 HW.
+> > 
+> > Could you please explain what the issue here is?  A description of the
+> > hardware would go a long way here.
+> > 
+> Eduardo, please correct me if I remember wrong  but block B of AIC34 is
+> not used as an codec as such but more like an amplifier and analogic
+> mixer with digital parts unused. So with this dummy driver the HW
+> features were easier to support than to develop multiple intance
+> support for codec drivers.
+
+
+Yes. This is also correct. It is more like an amplifier / mixer.
+I think that's why you named it dummy :-).
+
+But I think I should add this info as a comment inside the code.
+
+
+> 
+> 
+> -- 
+> Jarkko
+
+-- 
+Eduardo Valentin
