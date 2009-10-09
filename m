@@ -1,160 +1,138 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 1/8] ASoC: TPA6130A2 amplifier driver
-Date: Fri, 9 Oct 2009 09:53:21 +0300
-Message-ID: <200910090953.21066.peter.ujfalusi@nokia.com>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com> <200910081638.24229.peter.ujfalusi@nokia.com> <20091008135342.GJ29176@rakim.wolfsonmicro.main>
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
+Date: Fri, 9 Oct 2009 10:02:01 +0200
+Message-ID: <20091009080201.GB28096@pengutronix.de>
+References: <20091007185112.GJ7899@atomide.com>
+	<94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
+	<20091008214140.GJ7417@atomide.com>
+	<94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51279 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932783AbZJIGzY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 02:55:24 -0400
-In-Reply-To: <20091008135342.GJ29176@rakim.wolfsonmicro.main>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 
-On Thursday 08 October 2009 16:53:42 ext Mark Brown wrote:
-> On Thu, Oct 08, 2009 at 04:38:24PM +0300, Peter Ujfalusi wrote:
-> > On Thursday 08 October 2009 15:52:13 ext Mark Brown wrote:
-> > > On Thu, Oct 08, 2009 at 02:58:50PM +0300, Eduardo Valentin wrote:
-> > > > +struct tpa6130a2_platform_data {
-> > > > +	int (*set_power)(int state);
-> > > > +};
-> > >
-> > > Why is this a callback and not just a GPIO number?  That'd seem s=
-impler
-> > > for users.
+Hello,
+
+On Fri, Oct 09, 2009 at 01:13:01AM +0300, Felipe Contreras wrote:
+> On Fri, Oct 9, 2009 at 12:41 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Felipe Contreras <felipe.contreras@gmail.com> [091008 14:29]:
+> >> On Wed, Oct 7, 2009 at 9:51 PM, Tony Lindgren <tony@atomide.com> wrote:
+> >> > Linus,
+> >> >
+> >> > Please pull omap fixes from:
+> >> >
+> >> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.=
+git omap-fixes-for-linus
+> >> >
+> >> > Regards,
+> >> >
+> >> > Tony
+> >> >
+> >> >
+> >> > The following changes since commit 374576a8b6f865022c0fd1ca62396889b=
+23d66dd:
+> >> > =A0Linus Torvalds (1):
+> >> > =A0 =A0 =A0 =A0Linux 2.6.32-rc3
+> >> >
+> >> > are available in the git repository at:
+> >> >
+> >> > =A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2=
+.6.git omap-fixes-for-linus
+> >> >
+> >> > Artem Bityutskiy (1):
+> >> > =A0 =A0 =A0OMAP3: PM: introduce a new powerdomain walk helper
+> >> >
+> >> > Daniel Walker (1):
+> >> > =A0 =A0 =A0omap: iovmm: Add missing mutex_unlock
+> >> >
+> >> > Hiroshi DOYU (1):
+> >> > =A0 =A0 =A0omap: iovmm: Fix incorrect spelling
+> >> >
+> >> > Jon Hunter (1):
+> >> > =A0 =A0 =A0OMAP3: PM: Prevent hang in prcm_interrupt_handler
+> >> >
+> >> > Kevin Hilman (1):
+> >> > =A0 =A0 =A0OMAP3: PM: Enable GPIO module-level wakeups
+> >> >
+> >> > Paul Walmsley (2):
+> >> > =A0 =A0 =A0OMAP3: PM: PRCM interrupt: check MPUGRPSEL register
+> >> > =A0 =A0 =A0OMAP3: PM: PRCM interrupt: only handle selected PRCM inte=
+rrupts
+> >> >
+> >> > Rajendra Nayak (1):
+> >> > =A0 =A0 =A0omap: Lock DPLL5 at boot
+> >> >
+> >> > Sergio Aguirre (1):
+> >> > =A0 =A0 =A0omapfb: Condition mutex acquisition
+> >> >
+> >> > Tommi Rantala (2):
+> >> > =A0 =A0 =A0omapfb: Blizzard: fix pointer to be const
+> >> > =A0 =A0 =A0omapfb: Blizzard: constify register address tables
+> >> >
+> >> > Tony Lindgren (2):
+> >> > =A0 =A0 =A0omap: Fix incorrect 730 vs 850 detection
+> >> > =A0 =A0 =A0Merge branch 'pm-fixes-32' of git://git.kernel.org/.../kh=
+ilman/linux-omap-pm into omap-fixes-for-linus
+> >> >
+> >> > Vikram Pandita (1):
+> >> > =A0 =A0 =A0OMAP3: PM: USBHOST: clear wakeup events on both hosts
+> >> >
+> >> > ye janboe (1):
+> >> > =A0 =A0 =A0omap: SRAM: flush the right address after memcpy in omap_=
+sram_push
+> >>
+> >> The beagleboard is still not booting for me with this branch, I need
+> >> to add these two patches:
+> >>
+> >> * http://patchwork.kernel.org/patch/50721/
+> >>
 > >
-> > Well, same amount of code, but in different place if the power is e=
-nabled
->=20
-> Until someone adds a second board, at which point they need to copy t=
-he
-> code to acquire and release the GPIO.
->=20
-> > through a GPIO. But if the power is controlled via different means
-> > (nothing comes to mind, but there are exotic systems out there), in=
- this
-> > way it is simple to handle
->=20
-> I suspect we can deal with that adequately when it crops up, for exam=
-ple
-> by having the driver set up a default callback function if a GPIO is
-> specified instead of a callback.
-
-Good point.
-I'll replace the .set_power with power_gpio.
-
->=20
-> > > > +	pdata =3D (struct tpa6130a2_platform_data
-> > > > *)client->dev.platform_data; +	/* Set default register values *=
-/
-> > > > +	data->regs[TPA6130A2_REG_CONTROL] =3D TPA6130A2_SWS |
-> > > > +					    TPA6130A2_HP_EN_R |
-> > > > +					    TPA6130A2_HP_EN_L;
-> > >
-> > > This looks like you could implement stereo paths with individual =
-power
-> > > control?
+> > This should go to the mainline kernel via Samuel as it's
+> > drivers/mfd related.
 > >
-> > Can we put something in between DAPM_OUTPUT and DAPM_HP to handle t=
-he
-> > stereo path correctly?
->=20
-> Yes.
-
-Great. I can add one SND_SOC_DAPM_PGA_E per channel, which enables/disa=
-bles the=20
-channel.
-Adding a widget with actual alsa control seams to be problematic, since=
- those=20
-are working with the codec's registers, so adding such a widget would r=
-equire to=20
-implement a new set of .info .get  and .set functions for the TPA alone=
-=2E
-
->=20
-> > We could have two paths from codec to the "TPA6130A2 Headphone", wh=
-ich is
-> > needed to actually control the power of the amplifier.
->=20
-> Or make "TPA6130A2 Headphone" be a SND_SOC_DAPM_SUPPLY() connected to
-> the individual channels for the headphone outputs, which should do th=
-e
-> right thing.
-
-I see, using the event/event_flags with the DAPM_SUPPLY should do it.
-So is it OK if I modify the tpa6130a2 DAPM path to be like this:
-PGA_E("TPA6130A2 Left")  -> SUPPLY("TPA6130A2 power") -> HP("TPA6130A2=20
-Headphone")
-
-PGA_E("TPA6130A2 Right") -> SUPPLY("TPA6130A2 power") -> HP("TPA6130A2=20
-Headphone")
-
-Or should I add individual HP for the two channels:
-HP("TPA6130A2 Headphone Left")
-HP("TPA6130A2 Headphone Right")
-
-Than in machine driver just connect (for example rx51):
-{"TPA6130A2 Left", NULL, "LLOUT"},
-{"TPA6130A2 Right", NULL, "RLOUT"},
-
-
->=20
-> > At the end we are not really gaining much, but one more level of sw=
-itch
-> > on the path.
-> > We could have simple mute alsa controls in tpa6130a2_controls for t=
-he
-> > amplifier itself...
->=20
-> It'd mean that mono outputs would only need to enable one of the
-> channels.  Depending on the hardware feeding the amp this may behave
-> better - there may be some noise or leakage on the idle channel which
-> it'd be better to avoid amplifying - and it should certainly use a
-> little less power.
-
-OK, Does my proposal above feasible?
-
->=20
-> > > > +	err =3D tpa6130a2_i2c_read(TPA6130A2_REG_VERSION) &
-> > > > +				 TPA6130A2_VERSION_MASK;
-> > > > +	if ((err !=3D 1) && (err !=3D 2)) {
-> > > > +		dev_err(dev, "Unexpected headphone amplifier chip version "
-> > > > +		       "of 0x%02x, was expecting 0x01 or 0x02\n", err);
-> > > > +		err =3D -ENODEV;
-> > >
-> > > This seems a bit excessive - is it really likely that the registe=
-r map
-> > > would be changed incompatibly in a future version?
+> >> This one is needed because the defconfig has:
+> >> CONFIG_TWL4030_USB=3Dy
+> >>
+> >> * http://patchwork.kernel.org/patch/50970/
+> >>
+> >> This is needed because most people boot from an MMC.
 > >
-> > Hmm, we have only seen these versions of the chip, and we know that=
- the
-> > driver works with these. Also we don't have any information on diff=
-erent
-> > versions, but I would think that the register map is not changing (=
-the
-> > reset values for some registers are different)
->=20
-> It's fairly common to see some incompatible changes in early silicon
-> revisions but once things get properly launched it's fairly unusual.
-> I'd be more inclined to print a warning here rather than fail - chanc=
-es
-> are that the driver will work fine with any new revisions that are
-> produced.
+> > And this should go in via the mmc list.
+> =
 
-Right, going to be warning (with text change).
+> Should it?
+> =
 
->=20
+> Here you can see Uwe Kleine-K=F6nig sending the original patch without
+> even CC'ing the mmc list:
+> http://marc.info/?l=3Dlinux-kernel&m=3D124820861213849&w=3D2
+Note these are different patches.  Mine fixes a section problem as the
+probe function used to live in .init.text but was still used with
+platform_driver_register.
 
-Thanks,
-P=E9ter
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Other than that you can add my Acked-by: for "omap_hsmmc: Add missing
+probe handler hook to platform driver data".
+
+Best regards
+Uwe
+
+-- =
+
+Pengutronix e.K.                              | Uwe Kleine-K=F6nig         =
+   |
+Industrial Linux Solutions                    | http://www.pengutronix.de/ =
+ |
