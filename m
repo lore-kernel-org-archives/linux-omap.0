@@ -1,61 +1,43 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: FEATURES prints
-Date: Fri, 9 Oct 2009 16:16:41 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDD763EB@dbde02.ent.ti.com>
-References: <4ACE39CC.1070906@ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [alsa-devel] [PATCH 3/8] McBSP: OMAP3: Add Sidetone feature
+Date: Fri, 9 Oct 2009 11:44:59 +0100
+Message-ID: <20091009104458.GB5082@sirena.org.uk>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+ <1255003137-1034-4-git-send-email-eduardo.valentin@nokia.com>
+ <20091008131702.GC29176@rakim.wolfsonmicro.main>
+ <1255064967.30157.178.camel@eenurkka-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60557 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759662AbZJIKr3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 06:47:29 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n99AkoRE001717
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 05:46:52 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n99AknWH007874
-	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 16:16:49 +0530 (IST)
-In-Reply-To: <4ACE39CC.1070906@ti.com>
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:54363 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760535AbZJIKpk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 06:45:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1255064967.30157.178.camel@eenurkka-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Cc: alsa-devel@alsa-project.org, ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 
-> -----Original Message-----
-> From: Menon, Nishanth 
-> Sent: Friday, October 09, 2009 12:43 AM
-> To: Premi, Sanjeev; linux-omap@vger.kernel.org
-> Subject: FEATURES prints
-> 
-> Folks,
-> 
-> With the addition of FEATURES in l-o, the following prints:
->   - l2cache : Y
->   - iva : Y
->   - sgx : Y
->   - neon : Y
->   - isp : Y
-> 
-> comes up on SDP3430 -> now that we will introduce half a 
-> dozen features 
+On Fri, Oct 09, 2009 at 08:09:27AM +0300, Eero Nurkkala wrote:
+> On Thu, 2009-10-08 at 15:17 +0200, ext Mark Brown wrote:
 
-[sp] The intention here is to print the features that help in
-     identifying the processor. Not really the board/EVM.
-     Even if there are more features, we decide which ones to
-     show.
+> > This stuff, particularly the enable, probably wants to be pushed out via
+> > an ALSA API rather than via random sysfs stuff.  It'd be better to
+> > publish a control API here and then use that from within ALSA.
 
-> here and there, we will soon clutter this up. we should introduce a 
-> sysfs entry + remove the above noise..
+> Hmm. What would be the way to transfer 128 x s16 words; is there an ALSA
+> control for something like that already ? IIRC correctly, the max
+> bytesize per control is (or used to be) something like 256 bytes or so.
+> So that gets right at it. (that's the sidetone 128 tap FIR in question)
 
-[sp] I believe the sysfs would be good for board level features.
+For things like the FIR you probably don't want to expose the entire
+table directly to user space.  Depending on the typical usage it may be
+that platform data is the appropriate mechanism, with some simpler thing
+presented to applications allowing switching between a limited set of
+settings.  sysfs may end up being the best option for the FIR setup.
 
-> 
-> any comments?
-> 
-> -- 
-> Regards,
-> Nishanth Menon
-> 
+My main concern here is that the control goes into the ALSA domain so
+that the audio drivers know what's going on with these sidetone paths,
+particular in terms of the routing.
