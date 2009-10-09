@@ -1,68 +1,37 @@
-From: "Madhusudhan" <madhu.cr@ti.com>
-Subject: RE: [GIT PULL] omap fixes for v2.6.32-rc3
-Date: Fri, 9 Oct 2009 17:32:40 -0500
-Message-ID: <008801ca4930$6969a6f0$544ff780@am.dhcp.ti.com>
-References: <20091007185112.GJ7899@atomide.com> <94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com> <20091008214140.GJ7417@atomide.com> <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com> <94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com> <20091008232603.GB25892@atomide.com> <94a0d4530910090508o1e3d19cew881d2eb348199674@mail.gmail.com> <20091009144840.GA9561@suse.de> <94a0d4530910091029p12f8c28fve91e95db533e78e5@mail.gmail.com> <20091009192642.GB32084@suse.de> <alpine.LRH.2.00.0910092336280.12171@twin.jikos.cz>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH v2] OMAP: RX-51: Drop I2C-1 speed to 2200
+Date: Fri, 9 Oct 2009 18:44:12 -0400
+Message-ID: <notify-1255128208@atomide.com>
+References: <1255106437-13202-1-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43386 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934479AbZJIWdq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 18:33:46 -0400
-In-Reply-To: <alpine.LRH.2.00.0910092336280.12171@twin.jikos.cz>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62597 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754942AbZJIWoM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 18:44:12 -0400
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1MwOBO-000AUy-NF
+	for linux-omap@vger.kernel.org; Fri, 09 Oct 2009 22:43:30 +0000
+In-Reply-To: <1255106437-13202-1-git-send-email-aaro.koskinen@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Jiri Kosina' <jkosina@suse.cz>, 'Greg KH' <gregkh@suse.de>
-Cc: 'Felipe Contreras' <felipe.contreras@gmail.com>, 'Tony Lindgren' <tony@atomide.com>, 'Linus Torvalds' <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, 'Denis Karpov' <ext-denis.2.karpov@nokia.com>, 'Uwe Kleine-K??nig' <u.kleine-koenig@pengutronix.de>, 'Andrew Morton' <akpm@linux-foundation.org>
+To: linux-omap@vger.kernel.org
 
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
+Branch in linux-omap: omap-fixes
 
-> -----Original Message-----
-> From: Jiri Kosina [mailto:jkosina@suse.cz]
-> Sent: Friday, October 09, 2009 4:42 PM
-> To: Greg KH
-> Cc: Felipe Contreras; Tony Lindgren; Linus Torvalds; linux-
-> kernel@vger.kernel.org; linux-omap@vger.kernel.org; Denis Karpov; Uwe
-> Kleine-K??nig; Andrew Morton; Madhusudhan Chikkature
-> Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
-> 
-> On Fri, 9 Oct 2009, Greg KH wrote:
-> 
-> > > >> There's a tree for trivial fixes:
-> > > >> git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial
-> 
-> Well, as this is quite a high-priority functional fix, I'd suggest using
-> other channels that trivial tree, as this one is primarily intended for
-> simple fixes that are not really urgent.
-> 
-> > > The problem is that OMAP devices (like beagleboard) are not booting
-> > > correctly right now because of a wrong merge. It has been identified,
-> > > tested, and acked, but nobody has picked it up for a pull request, so
-> > > it's not clear it will be on -rc4.
-> > Has the patches been sent from the maintainer to Linus?
-> > Who is the maintainer?  Who normally sends this stuff?
-> 
-> The problem is that MMC now doesn't have proper maintainer, since Pierre
-> stepped down from maintaining this stuff.
-> 
-> Still, for the fix mentioned on
-> 
-> 	http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg00539.html
-> 
-> the most appropriate contact would probably be Madhusudhan Chikkature.
-> Adding him to CC of this thread.
-> 
-Since this fix was posted in Linux-omap, Tony pointed this out to Andrew so
-that the fix will go upstream. That should this fix this mmc issue.
+Initial commit ID (Likely to change): a40c93b5ff45519e1a20837ebfdbb52805f2506d
 
-Regards,
-Madhu
+PatchWorks
+http://patchwork.kernel.org/patch/52760/
 
-> --
-> Jiri Kosina
-> SUSE Labs, Novell Inc.
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=a40c93b5ff45519e1a20837ebfdbb52805f2506d
 
 
