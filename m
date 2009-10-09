@@ -1,49 +1,81 @@
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Subject: Re: [PATCH 3/8] McBSP: OMAP3: Add Sidetone feature
-Date: Fri, 09 Oct 2009 08:09:27 +0300
-Message-ID: <1255064967.30157.178.camel@eenurkka-desktop>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<1255003137-1034-4-git-send-email-eduardo.valentin@nokia.com>
-	<20091008131702.GC29176@rakim.wolfsonmicro.main>
-Reply-To: ext-eero.nurkkala@nokia.com
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: Patches merged to split OMAP2_IO_ADDRESS
+Date: Fri, 9 Oct 2009 10:50:55 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D5F2@dbde02.ent.ti.com>
+References: <20091008002506.GF29320@atomide.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D268@dbde02.ent.ti.com>
+ <20091008180801.GI7417@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20091008131702.GC29176@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:50856 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751220AbZJIFVj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 01:21:39 -0400
+In-Reply-To: <20091008180801.GI7417@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
 
-On Thu, 2009-10-08 at 15:17 +0200, ext Mark Brown wrote:
-> On Thu, Oct 08, 2009 at 02:58:52PM +0300, Eduardo Valentin wrote:
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Thursday, October 08, 2009 11:38 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org; Paul Walmsley
+> Subject: Re: Patches merged to split OMAP2_IO_ADDRESS
 > 
-> > +static const struct attribute *sidetone_attrs[] = {
-> > +	&dev_attr_st_enable.attr,
-> > +	&dev_attr_st_taps.attr,
-> > +	&dev_attr_st_ch0gain.attr,
-> > +	&dev_attr_st_ch1gain.attr,
-> > +	NULL,
-> > +};
+> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [091008 03:59]:
+> > Tony,
+> >
+> > > -----Original Message-----
+> > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> > > Sent: Thursday, October 08, 2009 5:55 AM
+> > > To: linux-omap@vger.kernel.org
+> > > Cc: Paul Walmsley
+> > > Subject: Patches merged to split OMAP2_IO_ADDRESS
+> > >
+> > > Hi all,
+> > >
+> > > I've pushed Santosh' patches to split OMAP2_IO_ADDRESS into
+> > > *_L3_IO_ADDRESS
+> > > and *_L4_IO_ADDRESS so we can claim more kernel address space and
+> support
+> > > over 512MB of memory instead of 256MB.
+> > >
+> > > Of course, our goal is to convert everything except the .S files to
+> > > use ioremap() instead, but that can now be done parallel and in
+> smaller
+> > > chunks.
+> > >
+> > > Please everybody, please convert your code to use ioremap(), there are
+> > > static mappings already in place so it should work out of the box.
+> > >
+> > > I also had add two quick patches to keep things compiling,
+> > > Paul can you take a look at them? I could not really test them as all
+> > > the code is not there yet. Will post them as a reply to this thread.
+> > Thanks for the merge!!
+> >
+> > I have boot tested below platforms with latest LO master.
+> >
+> > 1. OMAP3430 SDP board - BOOT OK
+> > 2. OMAP3 BEAGLE 	- BOOT OK
+> > 3. OMAP 4430 SDP - BOOT OK with variation of patch:
+> http://patchwork.kernel.org/patch/50531/
 > 
-> This stuff, particularly the enable, probably wants to be pushed out via
-> an ALSA API rather than via random sysfs stuff.  It'd be better to
-> publish a control API here and then use that from within ALSA.
+> Great. I guess we still have some issues on 24xx with the hwmod,
+> but hopefully we'll get that working again soon.
+> 
+> Can somebody with 512MB memory on a board try the current l-o master
+> and make sure things work?
+> 
+> Please check the dmesg for no overlaps in virtual address space,
+> then run some memory test like memtester.
 
-Hmm. What would be the way to transfer 128 x s16 words; is there an ALSA
-control for something like that already ? IIRC correctly, the max
-bytesize per control is (or used to be) something like 256 bytes or so.
-So that gets right at it. (that's the sidetone 128 tap FIR in question)
+Boot tested on OMAP4430 with 512MB and dmesg don't show any overlaps. Will run some memory test tomorrow.
 
-- Eero
-
-
+Regrads
+Santosh
