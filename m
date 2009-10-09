@@ -1,57 +1,36 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 5/8] board-rx51-peripherals: split vaux3
- and vmmc2 supplies
-Date: Fri, 9 Oct 2009 12:03:47 +0100
-Message-ID: <20091009110346.GC5082@sirena.org.uk>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<1255003137-1034-6-git-send-email-eduardo.valentin@nokia.com>
-	<20091008132109.GD29176@rakim.wolfsonmicro.main>
-	<20091009064529.GD6616@esdhcp037198.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20091009064529.GD6616@esdhcp037198.research.nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Cc: alsa-devel@alsa-project.org, ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH] OMAP: RX-51: Drop I2C-1 speed to 2200
+Date: Fri,  9 Oct 2009 14:42:44 +0300
+Message-ID: <1255088564-7861-1-git-send-email-aaro.koskinen@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:31128 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751789AbZJILof (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 07:44:35 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
 
-On Fri, Oct 09, 2009 at 09:45:29AM +0300, Eduardo Valentin wrote:
-> On Thu, Oct 08, 2009 at 03:21:10PM +0200, Mark Brown wrote:
-> > On Thu, Oct 08, 2009 at 02:58:54PM +0300, Eduardo Valentin wrote:
+The I2C-1 bus frequency on RX-51 should be 2.2 MHz.
 
-> > I may have missed it but I don't see rx51_vmmc2_supply added back
-> > anywhere in the patch?
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> yes. That's because this patch is just to split then. As you can see
-> in current code, this structure, rx51_vmmc2_supply, is actually used
-> by rx51_vaux3_mmc and rx51_vmmc2. So the idea is to have separated
-> supplies for each one. This patch just splits then. Patch 0006 of this
-> series adds usage of rx51_vmmc2_supply.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index c1af532..2b0eb1b 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -444,7 +444,7 @@ static int __init rx51_i2c_init(void)
+ 		rx51_twldata.vaux3 = &rx51_vaux3_cam;
+ 		rx51_twldata.vmmc2 = &rx51_vmmc2;
+ 	}
+-	omap_register_i2c_bus(1, 2600, rx51_peripherals_i2c_board_info_1,
++	omap_register_i2c_bus(1, 2200, rx51_peripherals_i2c_board_info_1,
+ 			ARRAY_SIZE(rx51_peripherals_i2c_board_info_1));
+ 	omap_register_i2c_bus(2, 100, NULL, 0);
+ 	omap_register_i2c_bus(3, 400, NULL, 0);
+-- 
+1.6.0.4
 
-Might be an idea to change the description to something like "add a
-separate structure for...", it wasn't 100% clear what was going on
-(probably because the diff doesn't include sufficient context to make it
-clear).
-
-> > ...using dev_name rather than dev should avoid the need to do this at
-> > runtime.
-
-> I see your point. As mentioned above, this patch is just a split.
-> I just added rx51_vaux3_supply to be owned by rx51_vaux3_mmc. And
-> let the code behavior as it was before.
-
-> Maybe your proposal must be sent into a separated patch/patch series (?).
-
-Yes, it's definately a separate patch - might be good to put it into the
-series before this one.
