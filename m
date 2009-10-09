@@ -1,53 +1,73 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH]  OMAP3: PM: Do not allow OPP1 for VDD2
-Date: Fri, 09 Oct 2009 07:43:31 -0700
-Message-ID: <87iqeoy6ek.fsf@deeprootsystems.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D093D@dbde02.ent.ti.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: FEATURES prints
+Date: Fri, 9 Oct 2009 20:21:40 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDD7655C@dbde02.ent.ti.com>
+References: <4ACE39CC.1070906@ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DDD763EB@dbde02.ent.ti.com>
+ <4ACF456C.8080109@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:64722 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756828AbZJIOoJ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 10:44:09 -0400
-Received: by pzk7 with SMTP id 7so2104994pzk.33
-        for <linux-omap@vger.kernel.org>; Fri, 09 Oct 2009 07:43:33 -0700 (PDT)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A3D093D@dbde02.ent.ti.com> (Teerth Reddy's message of "Fri\, 9 Oct 2009 11\:38\:43 +0530")
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42674 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761032AbZJIOwa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 10:52:30 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n99Eponx012304
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 09:51:53 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n99EpnFf008153
+	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 20:21:49 +0530 (IST)
+In-Reply-To: <4ACF456C.8080109@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Reddy, Teerth" <teerth@ti.com>
+To: "Menon, Nishanth" <nm@ti.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-"Reddy, Teerth" <teerth@ti.com> writes:
+> -----Original Message-----
+> From: Menon, Nishanth 
+> Sent: Friday, October 09, 2009 7:45 PM
+> To: Premi, Sanjeev
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: FEATURES prints
+> 
+> Premi, Sanjeev had written, on 10/09/2009 05:46 AM, the following:
+> >> -----Original Message-----
+> >> From: Menon, Nishanth 
+> >> Sent: Friday, October 09, 2009 12:43 AM
+> >> To: Premi, Sanjeev; linux-omap@vger.kernel.org
+> >> Subject: FEATURES prints
+> >>
+> >> Folks,
+> >>
+> >> With the addition of FEATURES in l-o, the following prints:
+> >>   - l2cache : Y
+> >>   - iva : Y
+> >>   - sgx : Y
+> >>   - neon : Y
+> >>   - isp : Y
+> >>
+> >> comes up on SDP3430 -> now that we will introduce half a 
+> >> dozen features 
+> > 
+> > [sp] The intention here is to print the features that help in
+> >      identifying the processor. Not really the board/EVM.
+> >      Even if there are more features, we decide which ones to
+> >      show.
+> this still a bunch of noise which is unusable for 
+> applications -> e.g. 
+> if an app wanted to use ISP, how would it do it?
 
-> From 144669d941a432875db37ae9431847f6753e566e Mon Sep 17 00:00:00 2001
-> From: Teerth Reddy <teerth@ti.com>
-> Date: Wed, 9 Sep 2009 11:01:04 +0530
-> Subject: OMAP3: PM: Do not allow OPP1 for VDD2
->
-> Since OPP1 is not a supported OPP for VDD2, do not allow it to
-> be changed using the sysfs interface.
->
-> Signed-off-by: Teerth Reddy <teerth@ti.com>
+[sp] At this stage, they help in identifying the variants in the OMAP35x family.
 
-Thanks, pulling into PM branch.
+~sanjeev
 
-Kevin
-
-> ---
->  arch/arm/mach-omap2/pm.c |    2 +-
->  1 files changed, 1 insertion(+), 1 deletion(-)
->
-> Index: linux-omap-pm/arch/arm/mach-omap2/pm.c
-> ===================================================================
-> --- linux-omap-pm.orig/arch/arm/mach-omap2/pm.c
-> +++ linux-omap-pm/arch/arm/mach-omap2/pm.c
-> @@ -144,7 +144,7 @@ static ssize_t vdd_opp_store(struct kobj
->  		}
->  		resource_set_opp_level(VDD1_OPP, value, flags);
->  	} else if (attr == &vdd2_opp_attr) {
-> -		if (value < 1 || value > 3) {
-> +		if (value < 2 || value > 3) {
->  			printk(KERN_ERR "vdd_opp_store: Invalid value\n");
->  			return -EINVAL;
->  		}
+> 
+> 
+> -- 
+> Regards,
+> Nishanth Menon
+> 
