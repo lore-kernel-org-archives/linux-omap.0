@@ -1,94 +1,65 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [RFC][PATCH] OMAP3: introduce OMAP3630
-Date: Fri, 9 Oct 2009 20:10:52 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB13DA05@dbde02.ent.ti.com>
-References: <[PATCH][RFC] OMAP3630: Create architecture macros and config>
- <1254977223-4236-1-git-send-email-nm@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D1EF@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA02389D@dbde02.ent.ti.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DDD75DAE@dbde02.ent.ti.com>
- <4ACDF9E3.4010701@ti.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D57B@dbde02.ent.ti.com>
- <4ACF4423.5080307@ti.com>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
+Date: Fri, 9 Oct 2009 07:48:40 -0700
+Message-ID: <20091009144840.GA9561@suse.de>
+References: <20091007185112.GJ7899@atomide.com> <94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com> <20091008214140.GJ7417@atomide.com> <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com> <94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com> <20091008232603.GB25892@atomide.com> <94a0d4530910090508o1e3d19cew881d2eb348199674@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55030 "EHLO bear.ext.ti.com"
+Received: from cantor.suse.de ([195.135.220.2]:45597 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933339AbZJIOlh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 10:41:37 -0400
-In-Reply-To: <4ACF4423.5080307@ti.com>
-Content-Language: en-US
+	id S1760824AbZJIOt1 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Oct 2009 10:49:27 -0400
+Content-Disposition: inline
+In-Reply-To: <94a0d4530910090508o1e3d19cew881d2eb348199674@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Felipe Contreras <felipe.contreras@gmail.com>
+Cc: Tony Lindgren <tony@atomide.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, Uwe Kleine-K??nig <u.kleine-koenig@pengutronix.de>, Andrew Morton <akpm@linux-foundation.org>
 
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Nishanth Menon
-> Sent: Friday, October 09, 2009 7:40 PM
-> Cc: Premi, Sanjeev; Pandita, Vikram; linux-omap; Chikkature Rajashekar,
-> Madhusudhan; Pais, Allen; Gadiyar, Anand; Cousson, Benoit; Kevin Hilman;
-> Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
-> Subject: Re: [RFC][PATCH] OMAP3: introduce OMAP3630
+On Fri, Oct 09, 2009 at 03:08:00PM +0300, Felipe Contreras wrote:
+> On Fri, Oct 9, 2009 at 2:26 AM, Tony Lindgren <tony@atomide.com> wrote:
+> > * Felipe Contreras <felipe.contreras@gmail.com> [091008 15:20]:
 > 
-> Shilimkar, Santosh had written, on 10/08/2009 11:29 PM, the following:
-> >> -----Original Message-----
-> >> From: Menon, Nishanth
-> >> Sent: Thursday, October 08, 2009 8:11 PM
-> >> To: Premi, Sanjeev
-> >> Cc: Pandita, Vikram; Shilimkar, Santosh; linux-omap; Chikkature
-> Rajashekar,
-> >> Madhusudhan; Pais, Allen; Gadiyar, Anand; Cousson, Benoit; Kevin
-> Hilman;
-> >> Aguirre Rodriguez, Sergio Alberto; Tony Lindgren
-> >> Subject: Re: [RFC][PATCH] OMAP3: introduce OMAP3630
+> <snip/>
+> 
+> >> > Here you can see Uwe Kleine-K??nig sending the original patch without
+> >> > even CC'ing the mmc list:
+> >> > http://marc.info/?l=linux-kernel&m=124820861213849&w=2
+> >> >
+> >> > And it was unintentionally broken by this one:
+> >> > http://marc.info/?l=linux-mmc&m=125249763422227&w=2
 > >>
-> [...]
-> >>>>>> +#define OMAP3630_REV_ES1_0	0x34305034
-> >>>>>>
-> >>>>>>  #define OMAP443X_CLASS		0x44300034
-> >>>>> Was expecting that this patch will add "cpu_is_omap36xx()" in cpu.h
-> >>>>> apart from above. Is this handled in another patch ?
-> >>>> Idea is to re-use all 34xx code for 36xx, as per the mail
-> >>>> thread on list, and given in reference.
-> >>>> Hence at run time, the check could be:
-> >>>>
-> >>>> if (omap_rev() == OMAP3630_REV_ES1_0)
-> >>>> 	xxxxx
-> >>>>
-> >>>> cpu_is_omap34xx() will be true for 36xx as well.
-> >>> [sp] This case seems quite similar to the OMAP35x.
-> >>>      Can you look at this thread:
-> >>>
-> >>>      http://marc.info/?l=linux-omap&m=125372581804902&w=2
-> >>>
-> >>>      It applies equally well here as well...
-> >>>      I will be submitting updated patch tomorrow.
-> >> yes, any specifics should be  feature based IMHO. we will need to
-> extend
-> >> the feature list.
+> >> Er, actually that one was ok, the problem was introduced only in the
+> >> final version:
+> >> http://marc.info/?l=linux-mmc&m=125366315417006&w=2
 > >
-> > If we are going to handle the delta 3630 changes w.r.t 3430 with feature
-> based approach, its probably is the best thing.
-> yes. i guess I can take this as an ACK ;)
+> > Right, looks like Roger forgot to Cc linux-mmc.
 > >
-> > But in case delat code will be added like below then having a
-> cpu_is_omap36xx() makes more sense.
-> >>> if (omap_rev() == OMAP3630_REV_ES1_0)
-> >>>> 	xxxxx
-> > There is no harm having both cpu_is_omap36xx() and cpu_is_omap34xx()
-> true for 3630
-> what is the need for this? if feature settings can handle the deltas.
-> give me specific example where this will be needed. if needed, we can
-> add this at a later point.
-No need if you follow the feature based approach. 
+> >> > I don't see what we are waiting for, the code is clearly broken, even
+> >> > the compiler warns that nobody is using omap_hsmmc_probe().
+> >
+> > I've sent Roger's patch to Andrew & linux-mmc so hopefully it will get
+> > merged soon:
+> >
+> > http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg00539.html
+> 
+> I don't see what's specific about mmc in that patch, nor omap. It's
+> just a fix for an obvious mistake that must be picked ASAP and can't
+> possibly be NAK'ed.
+> 
+> There's a tree for trivial fixes:
+> git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial
+> 
+> And one for includecheck:
+> git://git.kernel.org/pub/scm/linux/kernel/git/jaswinder/linux-2.6
+> 
+> What's the procedure for obvious fixes? I'm CC'ing Greg KH and Andrew
+> Morton because I think they might interested in fixing these kinds of
+> issues quickly in the future.
 
-" But in case delta code will be added like ....... So there was a IF condition :)
+What kind of issues?  Why would I be interested, where is the problem?
 
+confused,
 
-Regards,
-Santosh
+greg k-h
