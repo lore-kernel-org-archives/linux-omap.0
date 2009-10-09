@@ -1,48 +1,141 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
-Date: Fri, 9 Oct 2009 23:42:27 +0200 (CEST)
-Message-ID: <alpine.LRH.2.00.0910092336280.12171@twin.jikos.cz>
-References: <20091007185112.GJ7899@atomide.com> <94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com> <20091008214140.GJ7417@atomide.com> <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com> <94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com>
- <20091008232603.GB25892@atomide.com> <94a0d4530910090508o1e3d19cew881d2eb348199674@mail.gmail.com> <20091009144840.GA9561@suse.de> <94a0d4530910091029p12f8c28fve91e95db533e78e5@mail.gmail.com> <20091009192642.GB32084@suse.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH v2] OMAP3:PM: introduce enabled flag to omap_opp
+Date: Fri,  9 Oct 2009 16:34:38 -0500
+Message-ID: <1255124078-12792-1-git-send-email-nm@ti.com>
+References: <[PATCH] OMAP3:PM: introduce enabled flag to omap_opp>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:35190 "EHLO mx2.suse.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36296 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761453AbZJIVnF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Oct 2009 17:43:05 -0400
-In-Reply-To: <20091009192642.GB32084@suse.de>
+	id S1754144AbZJIVfV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 9 Oct 2009 17:35:21 -0400
+In-Reply-To: <[PATCH] OMAP3:PM: introduce enabled flag to omap_opp>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <gregkh@suse.de>
-Cc: Felipe Contreras <felipe.contreras@gmail.com>, Tony Lindgren <tony@atomide.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, Uwe Kleine-K??nig <u.kleine-koenig@pengutronix.de>, Andrew Morton <akpm@linux-foundation.org>, Madhusudhan Chikkature <madhu.cr@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>, Sanjeev Premi <premi@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
 
-On Fri, 9 Oct 2009, Greg KH wrote:
+**-- SNIP HERE --
+Hi,
+V2 - fixes from patch hand edition removed
+     + Fix a bit of commit message.
+V1 - initial patch
+**-- END OF SNIP --
 
-> > >> There's a tree for trivial fixes:
-> > >> git://git.kernel.org/pub/scm/linux/kernel/git/jikos/trivial
+We used to enable and disable OPPs based on
+rate being set to 0, this has been confusing in
+general. So, we now allow specific OPPs to be now
+enabled/disabled by an explicit enabled flag
+instead of re-using rate flag itself.
 
-Well, as this is quite a high-priority functional fix, I'd suggest using 
-other channels that trivial tree, as this one is primarily intended for 
-simple fixes that are not really urgent.
+Tested on: SDP3430
 
-> > The problem is that OMAP devices (like beagleboard) are not booting 
-> > correctly right now because of a wrong merge. It has been identified, 
-> > tested, and acked, but nobody has picked it up for a pull request, so 
-> > it's not clear it will be on -rc4.
-> Has the patches been sent from the maintainer to Linus?
-> Who is the maintainer?  Who normally sends this stuff?
+Cc: Sanjeev Premi <premi@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>
+Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c              |   32 ++++++++++++++--------------
+ arch/arm/mach-omap2/resource34xx.c        |    3 ++
+ arch/arm/plat-omap/include/mach/omap-pm.h |    2 +
+ 3 files changed, 21 insertions(+), 16 deletions(-)
 
-The problem is that MMC now doesn't have proper maintainer, since Pierre 
-stepped down from maintaining this stuff.
-
-Still, for the fix mentioned on
-
-	http://www.mail-archive.com/linux-mmc@vger.kernel.org/msg00539.html
-
-the most appropriate contact would probably be Madhusudhan Chikkature. 
-Adding him to CC of this thread.
-
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index cea3bca..fd9fa99 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -100,41 +100,41 @@ static struct prm_setup_vc prm_setup = {
+ };
+ 
+ struct omap_opp omap3_mpu_rate_table[] = {
+-	{0, 0, 0},
++	{0, 0, 0, 0},
+ 	/*OPP1*/
+-	{S125M, VDD1_OPP1, 0x1E},
++	{true, S125M, VDD1_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S250M, VDD1_OPP2, 0x26},
++	{true, S250M, VDD1_OPP2, 0x26},
+ 	/*OPP3*/
+-	{S500M, VDD1_OPP3, 0x30},
++	{true, S500M, VDD1_OPP3, 0x30},
+ 	/*OPP4*/
+-	{S550M, VDD1_OPP4, 0x36},
++	{true, S550M, VDD1_OPP4, 0x36},
+ 	/*OPP5*/
+-	{S600M, VDD1_OPP5, 0x3C},
++	{true, S600M, VDD1_OPP5, 0x3C},
+ };
+ 
+ struct omap_opp omap3_l3_rate_table[] = {
+-	{0, 0, 0},
++	{0, 0, 0, 0},
+ 	/*OPP1*/
+-	{0, VDD2_OPP1, 0x1E},
++	{false, 0, VDD2_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S83M, VDD2_OPP2, 0x24},
++	{true, S83M, VDD2_OPP2, 0x24},
+ 	/*OPP3*/
+-	{S166M, VDD2_OPP3, 0x2C},
++	{true, S166M, VDD2_OPP3, 0x2C},
+ };
+ 
+ struct omap_opp omap3_dsp_rate_table[] = {
+-	{0, 0, 0},
++	{0, 0, 0, 0},
+ 	/*OPP1*/
+-	{S90M, VDD1_OPP1, 0x1E},
++	{true, S90M, VDD1_OPP1, 0x1E},
+ 	/*OPP2*/
+-	{S180M, VDD1_OPP2, 0x26},
++	{true, S180M, VDD1_OPP2, 0x26},
+ 	/*OPP3*/
+-	{S360M, VDD1_OPP3, 0x30},
++	{true, S360M, VDD1_OPP3, 0x30},
+ 	/*OPP4*/
+-	{S400M, VDD1_OPP4, 0x36},
++	{true, S400M, VDD1_OPP4, 0x36},
+ 	/*OPP5*/
+-	{S430M, VDD1_OPP5, 0x3C},
++	{true, S430M, VDD1_OPP5, 0x3C},
+ };
+ 
+ const struct omap_opp_table omap3_mpu_opp_table = {
+diff --git a/arch/arm/mach-omap2/resource34xx.c b/arch/arm/mach-omap2/resource34xx.c
+index 491e1dc..12de2c6 100644
+--- a/arch/arm/mach-omap2/resource34xx.c
++++ b/arch/arm/mach-omap2/resource34xx.c
+@@ -282,6 +282,9 @@ static int program_opp(int res, struct omap_opp *opp, int target_level,
+ 	t_opp = ID_VDD(res) | ID_OPP_NO(opp[target_level].opp_id);
+ 	c_opp = ID_VDD(res) | ID_OPP_NO(opp[current_level].opp_id);
+ #endif
++	/* only allow enabled OPPs */
++	if (!opp[target_level].enabled)
++		return -EINVAL;
+ 
+ 	/* Sanity check of the OPP params before attempting to set */
+ 	if (!opp[target_level].rate || !opp[target_level].vsel)
+diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
+index 51216cf..33e1a3e 100644
+--- a/arch/arm/plat-omap/include/mach/omap-pm.h
++++ b/arch/arm/plat-omap/include/mach/omap-pm.h
+@@ -21,6 +21,7 @@
+ 
+ /**
+  * struct omap_opp - clock frequency-to-OPP ID table for DSP, MPU
++ * @enabled: enabled if true, disabled if false
+  * @rate: target clock rate
+  * @opp_id: OPP ID
+  * @min_vdd: minimum VDD1 voltage (in millivolts) for this OPP
+@@ -28,6 +29,7 @@
+  * Operating performance point data.  Can vary by OMAP chip and board.
+  */
+ struct omap_opp {
++	bool enabled;
+ 	unsigned long rate;
+ 	u8 opp_id;
+ 	u16 vsel;
 -- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+1.6.0.4
+
