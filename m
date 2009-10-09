@@ -1,210 +1,99 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCHv2 1/1] Runtime detection of OMAP35x devices
-Date: Sat, 10 Oct 2009 01:17:48 +0530
-Message-ID: <1255117668-28109-1-git-send-email-premi@ti.com>
+From: Nishanth Menon <menon.nishanth@gmail.com>
+Subject: Re: [PATCHv2 1/1] Runtime detection of OMAP35x devices
+Date: Fri, 9 Oct 2009 15:02:53 -0500
+Message-ID: <782515bb0910091302k25b162cdk1fce6d4d98287c29@mail.gmail.com>
+References: <1255117668-28109-1-git-send-email-premi@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:46482 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754251AbZJITs3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Oct 2009 15:48:29 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n99JlnHg024149
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 9 Oct 2009 14:47:52 -0500
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:51885 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761314AbZJIUDb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 9 Oct 2009 16:03:31 -0400
+Received: by fxm27 with SMTP id 27so6720232fxm.17
+        for <linux-omap@vger.kernel.org>; Fri, 09 Oct 2009 13:02:53 -0700 (PDT)
+In-Reply-To: <1255117668-28109-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Sanjeev Premi <premi@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-Add runtime check for these OMAP35x variations
-based on the detected Si features:
-  OMAP3503, OMAP3515, OMAP3525 and OMA3530.
+Sanjeev,
 
-Also, delayed the call to pr_info() into actual
-variant is detected in omap3_cpuinfo()
+On Fri, Oct 9, 2009 at 2:47 PM, Sanjeev Premi <premi@ti.com> wrote:
+> Add runtime check for these OMAP35x variations
+> based on the detected Si features:
+> =A0OMAP3503, OMAP3515, OMAP3525 and OMA3530.
+[sni[]
+> =A0 =A0 =A0 =A0if (hawkeye =3D=3D 0xb7ae) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0switch (rev) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 case 0:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case 0: /* Take care of early samples *=
+/
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case 1:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP=
+3430_REV_ES2_0;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rev_name =3D "ES2.0";
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0case 2:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP=
+3430_REV_ES2_1;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rev_name =3D "ES2.1";
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0case 3:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP=
+3430_REV_ES3_0;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rev_name =3D "ES3.0";
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0case 4:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP=
+3430_REV_ES3_1;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rev_name =3D "ES3.1";
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0break;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0default:
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Use the latest know=
+n revision as default */
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_revision =3D OMAP=
+3430_REV_ES3_1;
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rev_name =3D "Unknown r=
+evision\n";
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+> =A0 =A0 =A0 =A0}
+> -
+> -out:
+> - =A0 =A0 =A0 pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
+> =A0}
+>
+> =A0#define OMAP3_SHOW_FEATURE(feat) =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
+> @@ -248,6 +240,57 @@ out:
+>
+> =A0void __init omap3_cpuinfo(void)
+> =A0{
+> + =A0 =A0 =A0 u8 rev =3D GET_OMAP_REVISION();
+> + =A0 =A0 =A0 char cpu_name[16], cpu_rev[16];
+> +
+> + =A0 =A0 =A0 /* OMAP3430 and OMAP3530 are assumed to be same.
+> + =A0 =A0 =A0 =A0*
+> + =A0 =A0 =A0 =A0* OMAP3525, OMAP3515 and OMAP3503 can be detected on=
+ly based
+> + =A0 =A0 =A0 =A0* on available features. Upon detection, update the =
+CPU id
+> + =A0 =A0 =A0 =A0* and CPU class bits.
+> + =A0 =A0 =A0 =A0*/
+> + =A0 =A0 =A0 if (omap3_has_iva() && omap3_has_sgx()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 strcpy(cpu_name, "3430/3530");
+> + =A0 =A0 =A0 }
+> + =A0 =A0 =A0 else if (omap3_has_sgx()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 omap_revision =3D OMAP3525_REV(rev);
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/id.c              |   65 +++++++++++++++++++++++++++------
- arch/arm/plat-omap/include/mach/cpu.h |   37 +++++++++++++++++++
- 2 files changed, 91 insertions(+), 11 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 03b80f2..d4d563b 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -187,7 +187,6 @@ void __init omap3_check_revision(void)
- 	u32 cpuid, idcode;
- 	u16 hawkeye;
- 	u8 rev;
--	char *rev_name = "ES1.0";
- 
- 	/*
- 	 * We cannot access revision registers on ES1.0.
-@@ -197,7 +196,7 @@ void __init omap3_check_revision(void)
- 	cpuid = read_cpuid(CPUID_ID);
- 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
- 		omap_revision = OMAP3430_REV_ES1_0;
--		goto out;
-+		return;
- 	}
- 
- 	/*
-@@ -212,31 +211,24 @@ void __init omap3_check_revision(void)
- 
- 	if (hawkeye == 0xb7ae) {
- 		switch (rev) {
--		case 0:
-+		case 0: /* Take care of early samples */
-+		case 1:
- 			omap_revision = OMAP3430_REV_ES2_0;
--			rev_name = "ES2.0";
- 			break;
- 		case 2:
- 			omap_revision = OMAP3430_REV_ES2_1;
--			rev_name = "ES2.1";
- 			break;
- 		case 3:
- 			omap_revision = OMAP3430_REV_ES3_0;
--			rev_name = "ES3.0";
- 			break;
- 		case 4:
- 			omap_revision = OMAP3430_REV_ES3_1;
--			rev_name = "ES3.1";
- 			break;
- 		default:
- 			/* Use the latest known revision as default */
- 			omap_revision = OMAP3430_REV_ES3_1;
--			rev_name = "Unknown revision\n";
- 		}
- 	}
--
--out:
--	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
- }
- 
- #define OMAP3_SHOW_FEATURE(feat)		\
-@@ -248,6 +240,57 @@ out:
- 
- void __init omap3_cpuinfo(void)
- {
-+	u8 rev = GET_OMAP_REVISION();
-+	char cpu_name[16], cpu_rev[16];
-+
-+	/* OMAP3430 and OMAP3530 are assumed to be same.
-+	 *
-+	 * OMAP3525, OMAP3515 and OMAP3503 can be detected only based
-+	 * on available features. Upon detection, update the CPU id
-+	 * and CPU class bits.
-+	 */
-+	if (omap3_has_iva() && omap3_has_sgx()) {
-+		strcpy(cpu_name, "3430/3530");
-+	}
-+	else if (omap3_has_sgx()) {
-+		omap_revision = OMAP3525_REV(rev);
-+		strcpy(cpu_name, "3525");
-+	}
-+	else if (omap3_has_iva()) {
-+		omap_revision = OMAP3515_REV(rev);
-+		strcpy(cpu_name, "3515");
-+	}
-+	else {
-+		omap_revision = OMAP3503_REV(rev);
-+		strcpy(cpu_name, "3503");
-+	}
-+
-+	switch (rev) {
-+	case OMAP_REVBITS_00:
-+		strcpy(cpu_rev, "1.0");
-+		break;
-+	case OMAP_REVBITS_10:
-+		strcpy(cpu_rev, "2.0");
-+		break;
-+	case OMAP_REVBITS_20:
-+		strcpy(cpu_rev, "2.1");
-+		break;
-+	case OMAP_REVBITS_30:
-+		strcpy(cpu_rev, "3.0");
-+		break;
-+	case OMAP_REVBITS_40:
-+		strcpy(cpu_rev, "3.1");
-+		break;
-+	default:
-+		/* Use the latest known revision as default */
-+		strcpy(cpu_rev, "3.1");
-+	}
-+
-+	/*
-+	 * Print verbose information
-+	 */
-+	pr_info("OMAP%s ES%s\n", cpu_name, cpu_rev);
-+
- 	OMAP3_SHOW_FEATURE(l2cache);
- 	OMAP3_SHOW_FEATURE(iva);
- 	OMAP3_SHOW_FEATURE(sgx);
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index 431fec4..8d0841b 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -59,6 +59,23 @@ struct omap_chip_id {
- unsigned int omap_rev(void);
- 
- /*
-+ * Define CPU revision bits
-+ *
-+ * Verbose meaning of the revision bits may be different for a silicon
-+ * family. This difference can be handled separately.
-+ */
-+#define OMAP_REVBITS_00		0x00
-+#define OMAP_REVBITS_10		0x10
-+#define OMAP_REVBITS_20		0x20
-+#define OMAP_REVBITS_30		0x30
-+#define OMAP_REVBITS_40		0x40
-+
-+/*
-+ * Get the CPU revision for OMAP devices
-+ */
-+#define GET_OMAP_REVISION()	((omap_rev() >> 8) & 0xff)
-+
-+/*
-  * Test if multicore OMAP support is needed
-  */
- #undef MULTI_OMAP1
-@@ -353,7 +370,21 @@ IS_OMAP_TYPE(3430, 0x3430)
- 
- #if defined(CONFIG_ARCH_OMAP34XX)
- # undef cpu_is_omap3430
-+# undef cpu_is_omap3503
-+# undef cpu_is_omap3515
-+# undef cpu_is_omap3525
-+# undef cpu_is_omap3530
- # define cpu_is_omap3430()		is_omap3430()
-+# define cpu_is_omap3503		(cpu_is_omap3430() &		\
-+						(!omap3_has_iva()) &	\
-+						(!omap3_has_sgx()))
-+# define cpu_is_omap3515		(cpu_is_omap3430() &		\
-+						(omap3_has_iva()) &	\
-+						(!omap3_has_sgx()))
-+# define cpu_is_omap3525		(cpu_is_omap3430() &		\
-+						(omap3_has_sgx()) &	\
-+						(!omap3_has_iva()))
-+# define cpu_is_omap3530		(cpu_is_omap3430())
- #endif
- 
- # if defined(CONFIG_ARCH_OMAP4)
-@@ -384,6 +415,12 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP3430_REV_ES3_0	0x34303034
- #define OMAP3430_REV_ES3_1	0x34304034
- 
-+#define OMAP35XX_CLASS		0x35000034
-+#define OMAP3503_REV(v)		(OMAP35XX_CLASS | (0x3503 << 16) | (v << 12))
-+#define OMAP3515_REV(v)		(OMAP35XX_CLASS | (0x3515 << 16) | (v << 12))
-+#define OMAP3525_REV(v)		(OMAP35XX_CLASS | (0x3525 << 16) | (v << 12))
-+#define OMAP3530_REV(v)		(OMAP35XX_CLASS | (0x3530 << 16) | (v << 12))
-+
- #define OMAP443X_CLASS		0x44300034
- 
- /*
--- 
-1.6.2.2
-
+your patch conflicts with mine unfortunately. could you introduce 36xx
+on top of the aligned version for 36xx?
+see http://marc.info/?t=3D125510410600006&r=3D1&w=3D2
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
