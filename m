@@ -1,17 +1,17 @@
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?= <u.kleine-koenig@pengutronix.de>
+From: Felipe Contreras <felipe.contreras@gmail.com>
 Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
-Date: Fri, 9 Oct 2009 10:02:01 +0200
-Message-ID: <20091009080201.GB28096@pengutronix.de>
+Date: Fri, 9 Oct 2009 11:25:47 +0300
+Message-ID: <94a0d4530910090125l751ff92buc3ebafe049b1a55c@mail.gmail.com>
 References: <20091007185112.GJ7899@atomide.com>
 	<94a0d4530910081429m7ad88b43q38245109f3252078@mail.gmail.com>
 	<20091008214140.GJ7417@atomide.com>
 	<94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
+	<20091009080201.GB28096@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
+In-Reply-To: <20091009080201.GB28096@pengutronix.de>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,118 +21,71 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Felipe Contreras <felipe.contreras@gmail.com>
+To: =?UTF-8?Q?Uwe_Kleine=2DK=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
 Cc: Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, linux-omap@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-Hello,
-
-On Fri, Oct 09, 2009 at 01:13:01AM +0300, Felipe Contreras wrote:
-> On Fri, Oct 9, 2009 at 12:41 AM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Felipe Contreras <felipe.contreras@gmail.com> [091008 14:29]:
-> >> On Wed, Oct 7, 2009 at 9:51 PM, Tony Lindgren <tony@atomide.com> wrote:
-> >> > Linus,
-> >> >
-> >> > Please pull omap fixes from:
-> >> >
-> >> > git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.=
-git omap-fixes-for-linus
-> >> >
-> >> > Regards,
-> >> >
-> >> > Tony
-> >> >
-> >> >
-> >> > The following changes since commit 374576a8b6f865022c0fd1ca62396889b=
-23d66dd:
-> >> > =A0Linus Torvalds (1):
-> >> > =A0 =A0 =A0 =A0Linux 2.6.32-rc3
-> >> >
-> >> > are available in the git repository at:
-> >> >
-> >> > =A0git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2=
-.6.git omap-fixes-for-linus
-> >> >
-> >> > Artem Bityutskiy (1):
-> >> > =A0 =A0 =A0OMAP3: PM: introduce a new powerdomain walk helper
-> >> >
-> >> > Daniel Walker (1):
-> >> > =A0 =A0 =A0omap: iovmm: Add missing mutex_unlock
-> >> >
-> >> > Hiroshi DOYU (1):
-> >> > =A0 =A0 =A0omap: iovmm: Fix incorrect spelling
-> >> >
-> >> > Jon Hunter (1):
-> >> > =A0 =A0 =A0OMAP3: PM: Prevent hang in prcm_interrupt_handler
-> >> >
-> >> > Kevin Hilman (1):
-> >> > =A0 =A0 =A0OMAP3: PM: Enable GPIO module-level wakeups
-> >> >
-> >> > Paul Walmsley (2):
-> >> > =A0 =A0 =A0OMAP3: PM: PRCM interrupt: check MPUGRPSEL register
-> >> > =A0 =A0 =A0OMAP3: PM: PRCM interrupt: only handle selected PRCM inte=
-rrupts
-> >> >
-> >> > Rajendra Nayak (1):
-> >> > =A0 =A0 =A0omap: Lock DPLL5 at boot
-> >> >
-> >> > Sergio Aguirre (1):
-> >> > =A0 =A0 =A0omapfb: Condition mutex acquisition
-> >> >
-> >> > Tommi Rantala (2):
-> >> > =A0 =A0 =A0omapfb: Blizzard: fix pointer to be const
-> >> > =A0 =A0 =A0omapfb: Blizzard: constify register address tables
-> >> >
-> >> > Tony Lindgren (2):
-> >> > =A0 =A0 =A0omap: Fix incorrect 730 vs 850 detection
-> >> > =A0 =A0 =A0Merge branch 'pm-fixes-32' of git://git.kernel.org/.../kh=
-ilman/linux-omap-pm into omap-fixes-for-linus
-> >> >
-> >> > Vikram Pandita (1):
-> >> > =A0 =A0 =A0OMAP3: PM: USBHOST: clear wakeup events on both hosts
-> >> >
-> >> > ye janboe (1):
-> >> > =A0 =A0 =A0omap: SRAM: flush the right address after memcpy in omap_=
-sram_push
-> >>
-> >> The beagleboard is still not booting for me with this branch, I need
-> >> to add these two patches:
-> >>
-> >> * http://patchwork.kernel.org/patch/50721/
-> >>
-> >
-> > This should go to the mainline kernel via Samuel as it's
-> > drivers/mfd related.
-> >
-> >> This one is needed because the defconfig has:
-> >> CONFIG_TWL4030_USB=3Dy
-> >>
-> >> * http://patchwork.kernel.org/patch/50970/
-> >>
-> >> This is needed because most people boot from an MMC.
-> >
-> > And this should go in via the mmc list.
-> =
-
-> Should it?
-> =
-
-> Here you can see Uwe Kleine-K=F6nig sending the original patch without
-> even CC'ing the mmc list:
-> http://marc.info/?l=3Dlinux-kernel&m=3D124820861213849&w=3D2
-Note these are different patches.  Mine fixes a section problem as the
-probe function used to live in .init.text but was still used with
-platform_driver_register.
-
-Other than that you can add my Acked-by: for "omap_hsmmc: Add missing
-probe handler hook to platform driver data".
-
-Best regards
-Uwe
-
--- =
-
-Pengutronix e.K.                              | Uwe Kleine-K=F6nig         =
-   |
-Industrial Linux Solutions                    | http://www.pengutronix.de/ =
- |
+MjAwOS8xMC85IFV3ZSBLbGVpbmUtS8O2bmlnIDx1LmtsZWluZS1rb2VuaWdAcGVuZ3V0cm9uaXgu
+ZGU+Ogo+IEhlbGxvLAo+Cj4gT24gRnJpLCBPY3QgMDksIDIwMDkgYXQgMDE6MTM6MDFBTSArMDMw
+MCwgRmVsaXBlIENvbnRyZXJhcyB3cm90ZToKPj4gT24gRnJpLCBPY3QgOSwgMjAwOSBhdCAxMjo0
+MSBBTSwgVG9ueSBMaW5kZ3JlbiA8dG9ueUBhdG9taWRlLmNvbT4gd3JvdGU6Cj4+ID4gKiBGZWxp
+cGUgQ29udHJlcmFzIDxmZWxpcGUuY29udHJlcmFzQGdtYWlsLmNvbT4gWzA5MTAwOCAxNDoyOV06
+Cj4+ID4+IE9uIFdlZCwgT2N0IDcsIDIwMDkgYXQgOTo1MSBQTSwgVG9ueSBMaW5kZ3JlbiA8dG9u
+eUBhdG9taWRlLmNvbT4gd3JvdGU6Cj4+ID4+ID4gTGludXMsCj4+ID4+ID4KPj4gPj4gPiBQbGVh
+c2UgcHVsbCBvbWFwIGZpeGVzIGZyb206Cj4+ID4+ID4KPj4gPj4gPiBnaXQ6Ly9naXQua2VybmVs
+Lm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvdG1saW5kL2xpbnV4LW9tYXAtMi42LmdpdCBv
+bWFwLWZpeGVzLWZvci1saW51cwo+PiA+PiA+Cj4+ID4+ID4gUmVnYXJkcywKPj4gPj4gPgo+PiA+
+PiA+IFRvbnkKPj4gPj4gPgo+PiA+PiA+Cj4+ID4+ID4gVGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNp
+bmNlIGNvbW1pdCAzNzQ1NzZhOGI2Zjg2NTAyMmMwZmQxY2E2MjM5Njg4OWIyM2Q2NmRkOgo+PiA+
+PiA+IMKgTGludXMgVG9ydmFsZHMgKDEpOgo+PiA+PiA+IMKgIMKgIMKgIMKgTGludXggMi42LjMy
+LXJjMwo+PiA+PiA+Cj4+ID4+ID4gYXJlIGF2YWlsYWJsZSBpbiB0aGUgZ2l0IHJlcG9zaXRvcnkg
+YXQ6Cj4+ID4+ID4KPj4gPj4gPiDCoGdpdDovL2dpdC5rZXJuZWwub3JnL3B1Yi9zY20vbGludXgv
+a2VybmVsL2dpdC90bWxpbmQvbGludXgtb21hcC0yLjYuZ2l0IG9tYXAtZml4ZXMtZm9yLWxpbnVz
+Cj4+ID4+ID4KPj4gPj4gPiBBcnRlbSBCaXR5dXRza2l5ICgxKToKPj4gPj4gPiDCoCDCoCDCoE9N
+QVAzOiBQTTogaW50cm9kdWNlIGEgbmV3IHBvd2VyZG9tYWluIHdhbGsgaGVscGVyCj4+ID4+ID4K
+Pj4gPj4gPiBEYW5pZWwgV2Fsa2VyICgxKToKPj4gPj4gPiDCoCDCoCDCoG9tYXA6IGlvdm1tOiBB
+ZGQgbWlzc2luZyBtdXRleF91bmxvY2sKPj4gPj4gPgo+PiA+PiA+IEhpcm9zaGkgRE9ZVSAoMSk6
+Cj4+ID4+ID4gwqAgwqAgwqBvbWFwOiBpb3ZtbTogRml4IGluY29ycmVjdCBzcGVsbGluZwo+PiA+
+PiA+Cj4+ID4+ID4gSm9uIEh1bnRlciAoMSk6Cj4+ID4+ID4gwqAgwqAgwqBPTUFQMzogUE06IFBy
+ZXZlbnQgaGFuZyBpbiBwcmNtX2ludGVycnVwdF9oYW5kbGVyCj4+ID4+ID4KPj4gPj4gPiBLZXZp
+biBIaWxtYW4gKDEpOgo+PiA+PiA+IMKgIMKgIMKgT01BUDM6IFBNOiBFbmFibGUgR1BJTyBtb2R1
+bGUtbGV2ZWwgd2FrZXVwcwo+PiA+PiA+Cj4+ID4+ID4gUGF1bCBXYWxtc2xleSAoMik6Cj4+ID4+
+ID4gwqAgwqAgwqBPTUFQMzogUE06IFBSQ00gaW50ZXJydXB0OiBjaGVjayBNUFVHUlBTRUwgcmVn
+aXN0ZXIKPj4gPj4gPiDCoCDCoCDCoE9NQVAzOiBQTTogUFJDTSBpbnRlcnJ1cHQ6IG9ubHkgaGFu
+ZGxlIHNlbGVjdGVkIFBSQ00gaW50ZXJydXB0cwo+PiA+PiA+Cj4+ID4+ID4gUmFqZW5kcmEgTmF5
+YWsgKDEpOgo+PiA+PiA+IMKgIMKgIMKgb21hcDogTG9jayBEUExMNSBhdCBib290Cj4+ID4+ID4K
+Pj4gPj4gPiBTZXJnaW8gQWd1aXJyZSAoMSk6Cj4+ID4+ID4gwqAgwqAgwqBvbWFwZmI6IENvbmRp
+dGlvbiBtdXRleCBhY3F1aXNpdGlvbgo+PiA+PiA+Cj4+ID4+ID4gVG9tbWkgUmFudGFsYSAoMik6
+Cj4+ID4+ID4gwqAgwqAgwqBvbWFwZmI6IEJsaXp6YXJkOiBmaXggcG9pbnRlciB0byBiZSBjb25z
+dAo+PiA+PiA+IMKgIMKgIMKgb21hcGZiOiBCbGl6emFyZDogY29uc3RpZnkgcmVnaXN0ZXIgYWRk
+cmVzcyB0YWJsZXMKPj4gPj4gPgo+PiA+PiA+IFRvbnkgTGluZGdyZW4gKDIpOgo+PiA+PiA+IMKg
+IMKgIMKgb21hcDogRml4IGluY29ycmVjdCA3MzAgdnMgODUwIGRldGVjdGlvbgo+PiA+PiA+IMKg
+IMKgIMKgTWVyZ2UgYnJhbmNoICdwbS1maXhlcy0zMicgb2YgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcv
+Li4uL2toaWxtYW4vbGludXgtb21hcC1wbSBpbnRvIG9tYXAtZml4ZXMtZm9yLWxpbnVzCj4+ID4+
+ID4KPj4gPj4gPiBWaWtyYW0gUGFuZGl0YSAoMSk6Cj4+ID4+ID4gwqAgwqAgwqBPTUFQMzogUE06
+IFVTQkhPU1Q6IGNsZWFyIHdha2V1cCBldmVudHMgb24gYm90aCBob3N0cwo+PiA+PiA+Cj4+ID4+
+ID4geWUgamFuYm9lICgxKToKPj4gPj4gPiDCoCDCoCDCoG9tYXA6IFNSQU06IGZsdXNoIHRoZSBy
+aWdodCBhZGRyZXNzIGFmdGVyIG1lbWNweSBpbiBvbWFwX3NyYW1fcHVzaAo+PiA+Pgo+PiA+PiBU
+aGUgYmVhZ2xlYm9hcmQgaXMgc3RpbGwgbm90IGJvb3RpbmcgZm9yIG1lIHdpdGggdGhpcyBicmFu
+Y2gsIEkgbmVlZAo+PiA+PiB0byBhZGQgdGhlc2UgdHdvIHBhdGNoZXM6Cj4+ID4+Cj4+ID4+ICog
+aHR0cDovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzUwNzIxLwo+PiA+Pgo+PiA+Cj4+ID4g
+VGhpcyBzaG91bGQgZ28gdG8gdGhlIG1haW5saW5lIGtlcm5lbCB2aWEgU2FtdWVsIGFzIGl0J3MK
+Pj4gPiBkcml2ZXJzL21mZCByZWxhdGVkLgo+PiA+Cj4+ID4+IFRoaXMgb25lIGlzIG5lZWRlZCBi
+ZWNhdXNlIHRoZSBkZWZjb25maWcgaGFzOgo+PiA+PiBDT05GSUdfVFdMNDAzMF9VU0I9eQo+PiA+
+Pgo+PiA+PiAqIGh0dHA6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wYXRjaC81MDk3MC8KPj4gPj4K
+Pj4gPj4gVGhpcyBpcyBuZWVkZWQgYmVjYXVzZSBtb3N0IHBlb3BsZSBib290IGZyb20gYW4gTU1D
+Lgo+PiA+Cj4+ID4gQW5kIHRoaXMgc2hvdWxkIGdvIGluIHZpYSB0aGUgbW1jIGxpc3QuCj4+Cj4+
+IFNob3VsZCBpdD8KPj4KPj4gSGVyZSB5b3UgY2FuIHNlZSBVd2UgS2xlaW5lLUvDtm5pZyBzZW5k
+aW5nIHRoZSBvcmlnaW5hbCBwYXRjaCB3aXRob3V0Cj4+IGV2ZW4gQ0MnaW5nIHRoZSBtbWMgbGlz
+dDoKPj4gaHR0cDovL21hcmMuaW5mby8/bD1saW51eC1rZXJuZWwmbT0xMjQ4MjA4NjEyMTM4NDkm
+dz0yCj4gTm90ZSB0aGVzZSBhcmUgZGlmZmVyZW50IHBhdGNoZXMuIMKgTWluZSBmaXhlcyBhIHNl
+Y3Rpb24gcHJvYmxlbSBhcyB0aGUKPiBwcm9iZSBmdW5jdGlvbiB1c2VkIHRvIGxpdmUgaW4gLmlu
+aXQudGV4dCBidXQgd2FzIHN0aWxsIHVzZWQgd2l0aAo+IHBsYXRmb3JtX2RyaXZlcl9yZWdpc3Rl
+ci4KCk1heWJlIHlvdSBsb29rZWQgYXQgdGhlIHdyb25nIGRpZmYuIFRoaXMgaXMgdGhlIHBhdGNo
+IHRoYXQgaXMgZ29pbmcgdG8KYmUgcHVzaGVkIGV2ZW50dWFsbHk6Cmh0dHA6Ly9tYXJjLmluZm8v
+P2w9bGludXgtbW1jJm09MTI1NTA0Mjg3NjMyMDcwJnc9MgoKQXMgeW91IGNhbiBzZWUgaXQncyBy
+ZXN0b3JpbmcgYmFjayB3aGF0IHlvdSBpbnRlbmRlZCBpbiB0aGUgb3JpZ2luYWwgcGF0Y2guCgot
+LSAKRmVsaXBlIENvbnRyZXJhcwoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5nIGxpc3QKbGludXgtYXJtLWtlcm5l
+bEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5pbmZyYWRlYWQub3JnL21haWxtYW4v
+bGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
