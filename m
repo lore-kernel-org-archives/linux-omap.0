@@ -1,155 +1,85 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH] ARM: OMAP3: Add support for the IGEP v2 board (rev B)
-Date: Fri, 9 Oct 2009 20:46:10 -0500
-Message-ID: <4ACFE762.1020708@ti.com>
-References: <70c9a9110910090859h9b1d50fh928e34909f2b1e46@mail.gmail.com>
+From: Felipe Contreras <felipe.contreras@gmail.com>
+Subject: Re: [GIT PULL] omap fixes for v2.6.32-rc3
+Date: Sat, 10 Oct 2009 13:38:39 +0300
+Message-ID: <94a0d4530910100338s6fb32d0dwb898d31053a423f5@mail.gmail.com>
+References: <20091007185112.GJ7899@atomide.com>
+	 <20091008214140.GJ7417@atomide.com>
+	 <94a0d4530910081513w1a919dc2s50eca41966a2261d@mail.gmail.com>
+	 <94a0d4530910081520t66ce7567xe142979a35b1245@mail.gmail.com>
+	 <20091008232603.GB25892@atomide.com>
+	 <94a0d4530910090508o1e3d19cew881d2eb348199674@mail.gmail.com>
+	 <20091009144840.GA9561@suse.de>
+	 <94a0d4530910091029p12f8c28fve91e95db533e78e5@mail.gmail.com>
+	 <20091009192642.GB32084@suse.de>
+	 <20091009143327.783b33c3.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43523 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933898AbZJJBqs (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 9 Oct 2009 21:46:48 -0400
-In-Reply-To: <70c9a9110910090859h9b1d50fh928e34909f2b1e46@mail.gmail.com>
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:46486 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752413AbZJJKjR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 10 Oct 2009 06:39:17 -0400
+In-Reply-To: <20091009143327.783b33c3.akpm@linux-foundation.org>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: =?UTF-8?B?RW5yaWMgQmFsbGV0YsOyIGkgU2VycmE=?= <eballetbo@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Greg KH <gregkh@suse.de>, Tony Lindgren <tony@atomide.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, Denis Karpov <ext-denis.2.karpov@nokia.com>, Uwe Kleine-K??nig <u.kleine-koenig@pengutronix.de>
 
-Hi,
-Thanks for the patch.. a few minor comments follow from a read through.=
-=2E
+On Sat, Oct 10, 2009 at 12:33 AM, Andrew Morton
+<akpm@linux-foundation.org> wrote:
+> On Fri, 9 Oct 2009 12:26:42 -0700
+> Greg KH <gregkh@suse.de> wrote:
+>
+>> > >
+>> > > What kind of issues? __Why would I be interested, where is the p=
+roblem?
+>> >
+>> > The obvious-brain-dead-duh kind of issues, like this one.
+>> >
+>> > The problem is that OMAP devices (like beagleboard) are not bootin=
+g
+>> > correctly right now because of a wrong merge. It has been identifi=
+ed,
+>> > tested, and acked, but nobody has picked it up for a pull request,=
+ so
+>> > it's not clear it will be on -rc4.
+>>
+>> Has the patches been sent from the maintainer to Linus?
+>>
+>> Who is the maintainer? =C2=A0Who normally sends this stuff?
+>>
+>> > To me it's not clear who should push the patch, it seems it doesn'=
+t
+>> > belong on linux-omap, so Tony is pushing it through linux-mmc, whi=
+ch I
+>> > don't think is the right place. They should be handling mmc-relate=
+d
+>> > issues, not obvious breakage.
+>>
+>> Well, mmc related breakage is fine to handle :)
+>>
+>> > In order to keep the engines oiled I think there must be a process=
+ to
+>> > flag obvious generic breakage so it's immediately picked; maybe an
+>> > 'obvious-fixes' tree, or a 'simple-fixes' that has 'trivial',
+>> > 'includecheck', and similar, or maybe nothing needs to be done. Up=
+ to
+>> > you to decide.
+>>
+>> Andrew usually sends stuff like this at times.
+>
+> yeah, when in doubt, send it to me. =C2=A0When not in doubt send it t=
+o me
+> anyway ;)
+>
+> I'll take care of bugging the appropriate maintainer or merging it di=
+rectly.
 
-Enric Balletb=C3=B2 i Serra had written, on 10/09/2009 10:59 AM, the fo=
-llowing:
->   This patch adds minimal IGEP v2 support.
+Ah, that's exactly what I wanted to know, thanks :)
 
-could you add more details on where do we get more data on this platfor=
-m?
-
->=20
-> Signed-off-by: Enric Balletbo i Serra <eballetbo@iseebcn.com>
-> ---
->  arch/arm/configs/igep0020_defconfig  | 1443 ++++++++++++++++++++++++=
-++++++++++
->  arch/arm/mach-omap2/Kconfig          |    4 +
->  arch/arm/mach-omap2/Makefile         |    2 +
->  arch/arm/mach-omap2/board-igep0020.c |  239 ++++++
->  4 files changed, 1688 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/configs/igep0020_defconfig
->  create mode 100644 arch/arm/mach-omap2/board-igep0020.c
-[...]
->=20
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-igep0020.c
-> @@ -0,0 +1,239 @@
-> +/*
-[..]
-
-> +static inline void __init igep2_init_smsc911x(void)
-> +{
-> +       unsigned long cs_mem_base;
-> +
-> +       if (gpmc_cs_request(IGEP2_SMSC911X_CS, SZ_16M, &cs_mem_base) =
-< 0) {
-> +               printk(KERN_ERR "Failed request for GPMC mem for smsc=
-911x\n");
-> +               return;
-> +       }
-> +
-> +       igep2_smsc911x_resources[0].start =3D cs_mem_base + 0x0;
-> +       igep2_smsc911x_resources[0].end   =3D cs_mem_base + 0xff;
-> +
-> +       if ((gpio_request(IGEP2_SMSC911X_GPIO, "SMSC911X IRQ") =3D=3D=
- 0) &&
-> +           (gpio_direction_input(IGEP2_SMSC911X_GPIO) =3D=3D 0)) {
-> +               gpio_export(IGEP2_SMSC911X_GPIO, 0);
-> +       } else {
-could you run scripts/checkpatch --strict ../patchName after generating=
-=20
-the patch with git format-patch -s -M -o .. -1 ? one liners dont usuall=
-y=20
-need a {} also there are few warning inducing code below..
-> +               printk(KERN_ERR "could not obtain gpio for SMSC911X I=
-RQ\n");
-probably dumb question: should'nt we be moving to pr_err and family=20
-instead of printks?
-
-further, if this does not work.. are'nt you supposed to release the cs?=
-=20
-gpmc_cs_free perhaps?
-
-> +               return;
-> +       }
-> +
-> +       igep2_smsc911x_resources[1].start =3D OMAP_GPIO_IRQ(IGEP2_SMS=
-C911X_GPIO);
-> +       igep2_smsc911x_resources[1].end   =3D 0;
-> +
-> +       platform_device_register(&igep2_smsc911x_device);
-> +}
-> +
-> +#else
-> +
-> +static inline void __init igep2_init_smsc911x(void) { }
-> +
-> +#endif
-> +
-[..]
-> +               .flags          =3D I2C_CLIENT_WAKE,
-> +               .irq            =3D INT_34XX_SYS_NIRQ,
-> +               .platform_data  =3D &igep2_twldata,
-> +       },
-> +};
-> +
-> +static int __init igep2_i2c_init(void)
-> +{
-> +       omap_register_i2c_bus(1, 2600, igep2_i2c_boardinfo,
-> +                       ARRAY_SIZE(igep2_i2c_boardinfo));
-you may want to step down to 2400=20
-http://marc.info/?l=3Dlinux-omap&m=3D125510664919890&w=3D2 if you are u=
-sing=20
-26Mhz.. if you are using twl5030..
-> +       omap_register_i2c_bus(3, 400, NULL, 0);
-> +       return 0;
-> +}
-> +
-> +static void __init igep2_init(void)
-> +{
-> +       igep2_i2c_init();
-> +       omap_serial_init();
-> +       usb_musb_init();
-> +
-> +       igep2_init_smsc911x();
-> +
-> +       /* GPIO userspace leds */
-> +       if ((gpio_request(IGEP2_GPIO_LED_0_RED, "GPIO_LED_0_RED") =3D=
-=3D 0) &&
-> (gpio_direction_output(IGEP2_GPIO_LED_0_RED, 1) =3D=3D 0)) {
-> +               gpio_export(IGEP2_GPIO_LED_0_RED, 1);
-> +       } else {
-> +               printk(KERN_ERR "could not obtain gpio for " "GPIO_LE=
-D_0_RED\n");
-do you really want to flag a an error for a led glow?
-> +       }
-> +       if ((gpio_request(IGEP2_GPIO_LED_0_GREEN, "GPIO_LED_0_GREEN")=
- =3D=3D 0)
-> && (gpio_direction_output(IGEP2_GPIO_LED_0_GREEN, 1) =3D=3D 0)) {
-> +               gpio_export(IGEP2_GPIO_LED_0_GREEN, 1);
-> +       } else {
-> +               printk(KERN_ERR "could not obtain gpio for " "GPIO_LE=
-D_0_GREEN\n");
-> +       }
-> +       if ((gpio_request(IGEP2_GPIO_LED_1_RED, "GPIO_LED_1_RED") =3D=
-=3D 0) &&
-> (gpio_direction_output(IGEP2_GPIO_LED_1_RED, 1) =3D=3D 0)) {
-here is a an long line?
-[...]
 --=20
-Regards,
-Nishanth Menon
+=46elipe Contreras
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
