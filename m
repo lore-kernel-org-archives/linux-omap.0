@@ -1,95 +1,42 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: Patches merged to split OMAP2_IO_ADDRESS
-Date: Sun, 11 Oct 2009 14:00:52 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB13DB6B@dbde02.ent.ti.com>
-References: <20091008002506.GF29320@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D268@dbde02.ent.ti.com>
- <20091008180801.GI7417@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D5F2@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: [PATCH] ARM: OMAP: McBSP: Fix incorrect receiver stop in omap_mcbsp_stop
+Date: Sun, 11 Oct 2009 18:22:26 +0300
+Message-ID: <1255274546-29747-1-git-send-email-jhnikula@gmail.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38367 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbZJKIbi convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Oct 2009 04:31:38 -0400
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BB13D5F2@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:46250 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108AbZJKPW2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 11 Oct 2009 11:22:28 -0400
+Received: by ewy4 with SMTP id 4so1861903ewy.37
+        for <linux-omap@vger.kernel.org>; Sun, 11 Oct 2009 08:21:50 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Paul Walmsley <paul@pwsan.com>
+To: linux-omap@vger.kernel.org
+Cc: Jarkko Nikula <jhnikula@gmail.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
-> Sent: Friday, October 09, 2009 10:51 AM
-> To: Tony Lindgren
-> Cc: linux-omap@vger.kernel.org; Paul Walmsley
-> Subject: RE: Patches merged to split OMAP2_IO_ADDRESS
-> 
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Thursday, October 08, 2009 11:38 PM
-> > To: Shilimkar, Santosh
-> > Cc: linux-omap@vger.kernel.org; Paul Walmsley
-> > Subject: Re: Patches merged to split OMAP2_IO_ADDRESS
-> >
-> > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [091008 03:59]:
-> > > Tony,
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > > owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> > > > Sent: Thursday, October 08, 2009 5:55 AM
-> > > > To: linux-omap@vger.kernel.org
-> > > > Cc: Paul Walmsley
-> > > > Subject: Patches merged to split OMAP2_IO_ADDRESS
-> > > >
-> > > > Hi all,
-> > > >
-> > > > I've pushed Santosh' patches to split OMAP2_IO_ADDRESS into
-> > > > *_L3_IO_ADDRESS
-> > > > and *_L4_IO_ADDRESS so we can claim more kernel address space and
-> > support
-> > > > over 512MB of memory instead of 256MB.
-> > > >
-> > > > Of course, our goal is to convert everything except the .S files to
-> > > > use ioremap() instead, but that can now be done parallel and in
-> > smaller
-> > > > chunks.
-> > > >
-> > > > Please everybody, please convert your code to use ioremap(), there
-> are
-> > > > static mappings already in place so it should work out of the box.
-> > > >
-> > > > I also had add two quick patches to keep things compiling,
-> > > > Paul can you take a look at them? I could not really test them as
-> all
-> > > > the code is not there yet. Will post them as a reply to this thread.
-> > > Thanks for the merge!!
-> > >
-> > > I have boot tested below platforms with latest LO master.
-> > >
-> > > 1. OMAP3430 SDP board - BOOT OK
-> > > 2. OMAP3 BEAGLE 	- BOOT OK
-> > > 3. OMAP 4430 SDP - BOOT OK with variation of patch:
-> > http://patchwork.kernel.org/patch/50531/
-> >
-> > Great. I guess we still have some issues on 24xx with the hwmod,
-> > but hopefully we'll get that working again soon.
-> >
-> > Can somebody with 512MB memory on a board try the current l-o master
-> > and make sure things work?
-> >
-> > Please check the dmesg for no overlaps in virtual address space,
-> > then run some memory test like memtester.
-> 
-> Boot tested on OMAP4430 with 512MB and dmesg don't show any overlaps. Will
-> run some memory test tomorrow.
-> 
-Run the memmark benchmark on OMAP4430 and not seen any issue.
+This small typo written by author causes that McBSP receiver is disabled on
+OMAP2430 and OMAP3430 even if only transmitter is stopped. This was noted
+with ALSA SoC where simultaneous recording halted if playback was stopped
+first.
 
-Regards,
-Santosh
+Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+---
+ arch/arm/plat-omap/mcbsp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index 88ac976..e664b91 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -595,7 +595,7 @@ void omap_mcbsp_stop(unsigned int id, int tx, int rx)
+ 	rx &= 1;
+ 	if (cpu_is_omap2430() || cpu_is_omap34xx()) {
+ 		w = OMAP_MCBSP_READ(io_base, RCCR);
+-		w |= (tx ? RDISABLE : 0);
++		w |= (rx ? RDISABLE : 0);
+ 		OMAP_MCBSP_WRITE(io_base, RCCR, w);
+ 	}
+ 	w = OMAP_MCBSP_READ(io_base, SPCR1);
+-- 
+1.6.3.3
+
