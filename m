@@ -1,53 +1,65 @@
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-Subject: [PATCH RESEND] I2C: OMAP: Add missing wakeup events
-Date: Mon, 12 Oct 2009 13:21:25 +0300
-Message-ID: <1255342885-15786-1-git-send-email-aaro.koskinen@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:54564 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754640AbZJLKXC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 06:23:02 -0400
-Sender: linux-omap-owner@vger.kernel.org
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: Re: [PATCH 3/8] McBSP: OMAP3: Add Sidetone feature
+Date: Mon, 12 Oct 2009 13:28:48 +0300
+Message-ID: <1255343328.30157.261.camel@eenurkka-desktop>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+	<1255003137-1034-4-git-send-email-eduardo.valentin@nokia.com>
+	<20091008131702.GC29176@rakim.wolfsonmicro.main>
+	<1255064967.30157.178.camel@eenurkka-desktop>
+	<20091009104458.GB5082@sirena.org.uk>
+	<1255328261.30157.227.camel@eenurkka-desktop>
+	<20091012091234.GB3308@rakim.wolfsonmicro.main>
+	<1255339705.30157.241.camel@eenurkka-desktop>
+	<20091012093235.GE3308@rakim.wolfsonmicro.main>
+Reply-To: ext-eero.nurkkala@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091012093235.GE3308@rakim.wolfsonmicro.main>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: ben-linux@fluff.org, linux-i2c@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, j-pakaravoor@ti.com
 
-From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+On Mon, 2009-10-12 at 11:32 +0200, ext Mark Brown wrote:
+> On Mon, Oct 12, 2009 at 12:28:25PM +0300, Eero Nurkkala wrote:
+> 
+> > As mentioned, in some (or most) cases the absolute sinetone level (dB)
+> > is expected constant. Even a volume change should not effect the
+> > sidetone level. Thus, if there's a change in volume, the sidetone gains
+> > should be readjusted. If that can happen automatically, that would
+> > be just nice =)
+> 
+> That's what you said, but could you please go into a bit more detail
+> about why you beleive that this should be the case?  Is there some
+> hardware limitation here?
 
-Include wake up events for receiver overflow and transmitter
-underflow in OMAP_I2C_WE_REG configuration. Also fix a small
-typo.
+No HW limits here... it's all about the hmm, "friendliness" of
+sidetones.
 
-Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
----
- drivers/i2c/busses/i2c-omap.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+"The more intense the side-tone, the less intensely the speaker talks."
+(June 12, 1948) [REF]
 
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 827da08..34ea9ed 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -92,8 +92,10 @@
- #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
- 
- /* I2C WE wakeup enable register */
--#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
-+#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakeup */
- #define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
-+#define OMAP_I2C_WE_ROVR_WE	(1 << 11)	/* RX overflow wakeup */
-+#define OMAP_I2C_WE_XUDF_WE	(1 << 10)	/* TX underflow wakeup */
- #define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
- #define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
- #define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
-@@ -104,6 +106,7 @@
- #define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
- 
- #define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
-+				OMAP_I2C_WE_ROVR_WE | OMAP_I2C_WE_XUDF_WE | \
- 				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
- 				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
- 				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
--- 
-1.6.0.4
+So changing the headset volume should not make the speaker talk
+more/less intensely? Of course it all depends... this is just one
+aspect to this.
 
+
+[REF]
+
+LOUDNESS OF SPEAKING: THE EFFECT OF THE INTENSITY
+OF SIDE-TONE UPON THE INTENSITY OF THE SPEAKER
+Kenyon College 
+Acoustic Laboratory
+Gambier, Ohio 
+School of Aviation Medicine and Research
+N.A.S., Pensacola, Florida
