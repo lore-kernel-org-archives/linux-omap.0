@@ -1,77 +1,53 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: Memory performance / Cache problem
-Date: Mon, 12 Oct 2009 15:21:58 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDE1FF8F@dbde02.ent.ti.com>
-References: <20091012083806.323990@gmx.net>
- <B85A65D85D7EB246BE421B3FB0FBB59301DDE1FF1D@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH RESEND] I2C: OMAP: Add missing wakeup events
+Date: Mon, 12 Oct 2009 13:21:25 +0300
+Message-ID: <1255342885-15786-1-git-send-email-aaro.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40982 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754762AbZJLJwl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 05:52:41 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDE1FF1D@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:54564 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754640AbZJLKXC (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 06:23:02 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "epsi@gmx.de" <epsi@gmx.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: ben-linux@fluff.org, linux-i2c@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, j-pakaravoor@ti.com
 
-I am sorry, the code mentioned is from the Android Public Git tree not LO PM. Sorry for the confusion. 
+From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
 
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->owner@vger.kernel.org] On Behalf Of Dasgupta, Romit
->Sent: Monday, October 12, 2009 2:38 PM
->To: epsi@gmx.de; linux-omap@vger.kernel.org
->Subject: RE: Memory performance / Cache problem
->
->Please update to the latest HEAD on the linux-omap pm branch. In the gitweb it
->shows
->b7ecc865c5f0885fae4c4401fa78a24084f45c40
->
->Thanks,
->-Romit
->
->
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>owner@vger.kernel.org] On Behalf Of epsi@gmx.de
->>Sent: Monday, October 12, 2009 2:08 PM
->>To: linux-omap@vger.kernel.org
->>Subject: RE: Memory performance / Cache problem
->>
->>Linux version 2.6.31 (star@localhost) (gcc version 4.3.3 (Sourcery G++ Lite
->2009q1-
->>203) ) #1 Mon Oct 12 08:30:58 CEST 2009
->>CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c53c7f
->>CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
->>Machine: OMAP3 EVM
->>Memory policy: ECC disabled, Data cache writeback
->>OMAP3430 ES2.1
->>SRAM: Mapped pa 0x40200000 to va 0xe3000000 size: 0x100000
->>Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 32512
->>
->>I see, you get the message about L2 Cache, which I don't have
->>Do you know how to enable this?
->>Shoudn't the kernel configure all this things - not rely on bootloader?
->>I am using the U-Boot 2008.10 (TIs PSP)
->>The old 22 kernel is independet from the uboot in this issue.
->>
->>Thanks
->>Steffen
->>--
->>Jetzt kostenlos herunterladen: Internet Explorer 8 und Mozilla Firefox 3.5 -
->>sicherer, schneller und einfacher! http://portal.gmx.net/de/go/atbrowser
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Include wake up events for receiver overflow and transmitter
+underflow in OMAP_I2C_WE_REG configuration. Also fix a small
+typo.
+
+Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
+ drivers/i2c/busses/i2c-omap.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
+index 827da08..34ea9ed 100644
+--- a/drivers/i2c/busses/i2c-omap.c
++++ b/drivers/i2c/busses/i2c-omap.c
+@@ -92,8 +92,10 @@
+ #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
+ 
+ /* I2C WE wakeup enable register */
+-#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
++#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakeup */
+ #define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
++#define OMAP_I2C_WE_ROVR_WE	(1 << 11)	/* RX overflow wakeup */
++#define OMAP_I2C_WE_XUDF_WE	(1 << 10)	/* TX underflow wakeup */
+ #define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
+ #define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
+ #define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
+@@ -104,6 +106,7 @@
+ #define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
+ 
+ #define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE | OMAP_I2C_WE_RDR_WE | \
++				OMAP_I2C_WE_ROVR_WE | OMAP_I2C_WE_XUDF_WE | \
+ 				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
+ 				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
+ 				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
+-- 
+1.6.0.4
 
