@@ -1,86 +1,69 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH 1/1] OMAP: DSS2: RFBI driver update
-Date: Mon, 12 Oct 2009 17:17:27 +0300
-Message-ID: <1255357047.27268.4.camel@tubuntu>
-References: <1255122529-1721-1-git-send-email-mlc@ti.com>
-	 <1255335927.4624.26.camel@tubuntu>
-	 <E49DAF743FB3E9469ED423C0D3DB5F1CCEF3F692@dnce01.ent.ti.com>
-Reply-To: tomi.valkeinen@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
+Subject: [PATCH] OMAP3 PM Add sysfs entry for EFuse values
+Date: Mon, 12 Oct 2009 17:48:10 +0300
+Message-ID: <1255358890-9434-1-git-send-email-peter.de-schrijver@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:29668 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756810AbZJLOTM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 10:19:12 -0400
-In-Reply-To: <E49DAF743FB3E9469ED423C0D3DB5F1CCEF3F692@dnce01.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:23010 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932363AbZJLOtz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 10:49:55 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9CEm19x016067
+	for <linux-omap@vger.kernel.org>; Mon, 12 Oct 2009 17:48:25 +0300
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Christensen, Mikkel" <mlc@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-On Mon, 2009-10-12 at 16:03 +0200, ext Christensen, Mikkel wrote:
-> On Mon, Oct 12, 2009 at 03:25:27, Tomi Valkeinen wrote:
-> > Subject: Re: [PATCH 1/1] OMAP: DSS2: RFBI driver update
-> > 
-> > On Fri, 2009-10-09 at 23:08 +0200, ext Mikkel Christensen wrote:
-> > > This patch adds suspend / resume functionality to the RFBI
-> > driver along with missing callback functions needed by OMAP Frame 
-> > buffer.
-> > > 
-> > > Signed-off-by: Mikkel Christensen <mlc@ti.com>
-> > > ---
-> > >  drivers/video/omap2/dss/rfbi.c |   76 
-> > ++++++++++++++++++++++++++++++++++++++++
-> > >  1 files changed, 76 insertions(+), 0 deletions(-)
-> > > 
+This patch exports the smartreflex efuse values for all 5 OPPs via
+sysfs. This can be useful to track down silicon specific problems.
 
-snip
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+---
+ arch/arm/mach-omap2/smartreflex.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-> > > +static int rfbi_display_suspend(struct omap_dss_device *dssdev) {
-> > > +	unsigned long l;
-> > > +
-> > > +	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-> > > +		return -EINVAL;
-> > > +
-> > > +	DSSDBG("rfbi_display_suspend\n");
-> > > +
-> > > +	if (dssdev->driver->suspend)
-> > > +		dssdev->driver->suspend(dssdev);
-> > > +
-> > > +	dispc_enable_lcd_out(0);
-> > 
-> > I don't think this is needed. DSS hardware disables lcd_out when the 
-> > transfer has finished. Although for correct operation suspend() should 
-> > wait until the last transfer has been done before disabling clocks, 
-> > which is something it currently doesn't.
-> 
-> This was done with reference to the DPI and SDI files that do the same thing. It can be removed if not necessary.  
-
-DPI and SDI work quite differently than RFBI, you can't just copy their
-functionality =).
-
-It is more correct without disable/enable_lcd_out, but it's not correct
-as there may be a transfer ongoing when suspend call comes. That's why
-there should be some mechanism to wait until the transfer has been done.
-DSI tries to do this (and hopefully correctly does =).
-
-> 
-> > > +
-> > > +	/* Force idle */
-> > > +	rfbi_enable_clocks(1);
-> > > +	l = rfbi_read_reg(RFBI_SYSCONFIG);
-> > > +	l &= ~(0x03 << 3);
-> > > +	rfbi_write_reg(RFBI_SYSCONFIG, l);
-> > > +	rfbi_enable_clocks(0);
-> > 
-> > Why force idle?
-> 
-> The RFBI module must be forced to idle on suspend to allow for the DSS module to idle.  The CM_CLKSTST_DSS[CLKACTIVITY_DSS] bit does not change if the RFBI module was configured to autoidle, preventing DSS from entering retention or off.
-
-Why must it? Is there a hardware bug (what errata number?)?
-
- Tomi
-
+diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
+index 9fa033d..3c506d1 100644
+--- a/arch/arm/mach-omap2/smartreflex.c
++++ b/arch/arm/mach-omap2/smartreflex.c
+@@ -759,7 +759,24 @@ static struct kobj_attribute sr_vdd2_autocomp = {
+ 	.store = omap_sr_vdd2_autocomp_store,
+ };
+ 
++static ssize_t omap_sr_opp1_efuse_show(struct kobject *kobj,
++					struct kobj_attribute *attr,
++					char *buf)
++{
++	return sprintf(buf, "%08x\n%08x\n%08x\n%08x\n%08x\n", sr1.opp1_nvalue,
++							sr1.opp2_nvalue,
++							sr1.opp3_nvalue,
++							sr1.opp4_nvalue,
++							sr1.opp5_nvalue);
++}
+ 
++static struct kobj_attribute sr_efuse = {
++	.attr = {
++	.name = "Efuse",
++	.mode = 0444,
++	},
++	.show = omap_sr_opp1_efuse_show,
++};
+ 
+ static int __init omap3_sr_init(void)
+ {
+@@ -807,6 +824,11 @@ static int __init omap3_sr_init(void)
+ 	if (ret)
+ 		printk(KERN_ERR "sysfs_create_file failed: %d\n", ret);
+ 
++	ret = sysfs_create_file(power_kobj, &sr_efuse.attr);
++	if (ret)
++		printk(KERN_ERR "sysfs_create_file failed for OPP data: %d\n",
++			ret);
++
+ 	return 0;
+ }
+ 
+-- 
+1.6.2.4
 
