@@ -1,82 +1,105 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: [PATCH] OMAP3 PM restore observability settings after off mode
-Date: Mon, 12 Oct 2009 18:03:10 +0300
-Message-ID: <1255359790-10407-1-git-send-email-peter.de-schrijver@nokia.com>
+From: "Christensen, Mikkel" <mlc@ti.com>
+Subject: RE: [PATCH 1/1] OMAP: DSS2: RFBI driver update
+Date: Mon, 12 Oct 2009 17:25:27 +0200
+Message-ID: <E49DAF743FB3E9469ED423C0D3DB5F1CCEF3F75A@dnce01.ent.ti.com>
+References: <1255122529-1721-1-git-send-email-mlc@ti.com>
+	 <1255335927.4624.26.camel@tubuntu>
+	 <E49DAF743FB3E9469ED423C0D3DB5F1CCEF3F692@dnce01.ent.ti.com>
+ <1255357047.27268.4.camel@tubuntu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31049 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932533AbZJLPEq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 11:04:46 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9CF32e0005933
-	for <linux-omap@vger.kernel.org>; Mon, 12 Oct 2009 10:03:18 -0500
+Received: from bear.ext.ti.com ([192.94.94.41]:49526 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750745AbZJLP0M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 11:26:12 -0400
+In-Reply-To: <1255357047.27268.4.camel@tubuntu>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch restores the observability settings after resuming from off mode.
+On Mon, Oct 12, 2009 at 09:17:27, Tomi Valkeinen wrote:
+> Subject: RE: [PATCH 1/1] OMAP: DSS2: RFBI driver update
+> 
+> On Mon, 2009-10-12 at 16:03 +0200, ext Christensen, Mikkel wrote:
+> > On Mon, Oct 12, 2009 at 03:25:27, Tomi Valkeinen wrote:
+> > > Subject: Re: [PATCH 1/1] OMAP: DSS2: RFBI driver update
+> > > 
+> > > On Fri, 2009-10-09 at 23:08 +0200, ext Mikkel Christensen wrote:
+> > > > This patch adds suspend / resume functionality to the RFBI
+> > > driver along with missing callback functions needed by OMAP Frame 
+> > > buffer.
+> > > > 
+> > > > Signed-off-by: Mikkel Christensen <mlc@ti.com>
+> > > > ---
+> > > >  drivers/video/omap2/dss/rfbi.c |   76 
+> > > ++++++++++++++++++++++++++++++++++++++++
+> > > >  1 files changed, 76 insertions(+), 0 deletions(-)
+> > > > 
+> 
+> snip
+> 
+> > > > +static int rfbi_display_suspend(struct omap_dss_device
+> *dssdev) {
+> > > > +	unsigned long l;
+> > > > +
+> > > > +	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
+> > > > +		return -EINVAL;
+> > > > +
+> > > > +	DSSDBG("rfbi_display_suspend\n");
+> > > > +
+> > > > +	if (dssdev->driver->suspend)
+> > > > +		dssdev->driver->suspend(dssdev);
+> > > > +
+> > > > +	dispc_enable_lcd_out(0);
+> > > 
+> > > I don't think this is needed. DSS hardware disables
+> lcd_out when the
+> > > transfer has finished. Although for correct operation suspend() 
+> > > should wait until the last transfer has been done before
+> disabling
+> > > clocks, which is something it currently doesn't.
+> > 
+> > This was done with reference to the DPI and SDI files that
+> do the same thing. It can be removed if not necessary.  
+> 
+> DPI and SDI work quite differently than RFBI, you can't just copy 
+> their functionality =).
+> 
+> It is more correct without disable/enable_lcd_out, but it's not 
+> correct as there may be a transfer ongoing when suspend call comes. 
+> That's why there should be some mechanism to wait until the transfer 
+> has been done.
+> DSI tries to do this (and hopefully correctly does =).
 
-Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
----
- arch/arm/mach-omap2/debobs.c             |    9 +++++++++
- arch/arm/mach-omap2/pm34xx.c             |    4 ++++
- arch/arm/plat-omap/include/mach/debobs.h |    1 +
- 3 files changed, 14 insertions(+), 0 deletions(-)
+OK. Thanks I will try to incorporate this. Where in the DSI driver is this mechanism implemented?
 
-diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
-index 4fbabef..d25b9a2 100644
---- a/arch/arm/mach-omap2/debobs.c
-+++ b/arch/arm/mach-omap2/debobs.c
-@@ -190,6 +190,15 @@ static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
  
- /* Public functions */
- 
-+void debobs_restore(void)
-+{
-+	struct debobs_pad *p = &debobs_pads[0];
-+	int i;
-+
-+	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++, p++)
-+		debobs_set(&p->core_obs, p->core_obs.value);
-+}
-+
- void debug_gpio_set(unsigned gpio, int value)
- {
- 	if (!debobs_initialized)
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 553fe02..20c7ea2 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -42,6 +42,7 @@
- #include <mach/dma.h>
- #include <mach/gpmc.h>
- #include <mach/dma.h>
-+#include <mach/debobs.h>
- #include <asm/tlbflush.h>
- 
- #include "cm.h"
-@@ -124,6 +125,9 @@ static void omap3_core_restore_context(void)
- 	/* Restore the interrupt controller context */
- 	omap3_intc_restore_context();
- 	omap_dma_global_context_restore();
-+	/* restore debobs context */
-+	debobs_restore();
-+
- }
- 
- static void omap3_save_secure_ram_context(u32 target_mpu_state)
-diff --git a/arch/arm/plat-omap/include/mach/debobs.h b/arch/arm/plat-omap/include/mach/debobs.h
-index 67f765d..1e04bcd 100644
---- a/arch/arm/plat-omap/include/mach/debobs.h
-+++ b/arch/arm/plat-omap/include/mach/debobs.h
-@@ -3,5 +3,6 @@
- 
- void debug_gpio_set(unsigned gpio, int value);
- int debug_gpio_get(unsigned gpio);
-+void debobs_restore(void);
- 
- #endif
--- 
-1.6.2.4
+> > 
+> > > > +
+> > > > +	/* Force idle */
+> > > > +	rfbi_enable_clocks(1);
+> > > > +	l = rfbi_read_reg(RFBI_SYSCONFIG);
+> > > > +	l &= ~(0x03 << 3);
+> > > > +	rfbi_write_reg(RFBI_SYSCONFIG, l);
+> > > > +	rfbi_enable_clocks(0);
+> > > 
+> > > Why force idle?
+> > 
+> > The RFBI module must be forced to idle on suspend to allow
+> for the DSS module to idle.  The
+> CM_CLKSTST_DSS[CLKACTIVITY_DSS] bit does not change if the RFBI module 
+> was configured to autoidle, preventing DSS from entering retention or 
+> off.
+> 
+> Why must it? Is there a hardware bug (what errata number?)?
+> 
+>  Tomi
+> 
+> 
+> 
+> 
 
