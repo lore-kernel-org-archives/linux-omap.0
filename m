@@ -1,42 +1,67 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 3/8] McBSP: OMAP3: Add Sidetone feature
-Date: Mon, 12 Oct 2009 11:33:00 +0100
-Message-ID: <20091012103300.GD22233@sirena.org.uk>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<1255003137-1034-4-git-send-email-eduardo.valentin@nokia.com>
-	<20091008131702.GC29176@rakim.wolfsonmicro.main>
-	<1255064967.30157.178.camel@eenurkka-desktop>
-	<20091009104458.GB5082@sirena.org.uk>
-	<1255328261.30157.227.camel@eenurkka-desktop>
-	<20091012091234.GB3308@rakim.wolfsonmicro.main>
-	<1255339705.30157.241.camel@eenurkka-desktop>
-	<20091012093235.GE3308@rakim.wolfsonmicro.main>
-	<1255343328.30157.261.camel@eenurkka-desktop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1255343328.30157.261.camel@eenurkka-desktop>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+From: manjugk@ti.com
+Subject: [PATCH] OMAP3 : Fix McSPI RX Timeout
+Date: Mon, 12 Oct 2009 16:34:28 +0530
+Message-ID: <1255345468-21806-1-git-send-email-manjugk@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43442 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750978AbZJLLFY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Oct 2009 07:05:24 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: spi-devel-general@lists.sourceforge.net
+Cc: dbrownell@users.sourceforge.net, linux-omap@vger.kernel.org, Manjunatha GK <manjugk@ti.com>
 
-On Mon, Oct 12, 2009 at 01:28:48PM +0300, Eero Nurkkala wrote:
+Resending this patch to SPI mailing list as well.
 
-> No HW limits here... it's all about the hmm, "friendliness" of
-> sidetones.
+McSPI RX timeout issues are reported on some of the OMAP3 custom boards.
 
-This is an application level issue.  We've no way of determining within
-the drivers if a given path is actually being used as a real sidetone or
-if it is being used for some other purpose.  As far as the drivers are
-concerned these are unrelated controls.
+After verifying configuration sequence in TRM, there seems to be issue with 
+McSPI configuration sequence.
+
+The steps to be followed for both TX and RX:
+1. Configure OMAP2_MCSPI_CHCONF0 register with required settings such as
+TX/RX mode, word length, force chip select(if required).
+2. Set MS bit to 0 in OMAP2_MCSPI_CHCTRL0 register to provide the clock.
+3. Enable SPI channel in OMAP2_MCSPI_MODULCTRL
+
+But, the sequence used in current code seems to be wrong. Here it is:
+1. Set MS bit to 0 in OMAP2_MCSPI_CHCTRL0 register to provide the clock
+(This is done during bootup)
+2. Enable SPI channel in OMAP2_MCSPI_MODULCTRL
+3. Configure OMAP2_MCSPI_CHCONF0 register with required settings such as
+TX/RX mode, word length, force chip select(if required).
+
+After correcting configuration sequence, the timeout seems to be not
+reproducible anymore.
+
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
+---
+ drivers/spi/omap2_mcspi.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
+index ba1a872..846485c 100644
+--- a/drivers/spi/omap2_mcspi.c
++++ b/drivers/spi/omap2_mcspi.c
+@@ -802,7 +802,6 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 		spi = m->spi;
+ 		cs = spi->controller_state;
+ 
+-		omap2_mcspi_set_enable(spi, 1);
+ 		list_for_each_entry(t, &m->transfers, transfer_list) {
+ 			if (t->tx_buf == NULL && t->rx_buf == NULL && t->len) {
+ 				status = -EINVAL;
+@@ -830,6 +829,9 @@ static void omap2_mcspi_work(struct work_struct *work)
+ 				chconf |= OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
+ 			mcspi_write_chconf0(spi, chconf);
+ 
++			omap2_mcspi_set_master_mode(mcspi->master);
++
++			omap2_mcspi_set_enable(spi, 1);
+ 			if (t->len) {
+ 				unsigned	count;
+ 
+-- 
+1.6.0.4
+
