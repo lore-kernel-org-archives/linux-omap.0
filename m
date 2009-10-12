@@ -1,67 +1,32 @@
-From: manjugk@ti.com
-Subject: [PATCH] OMAP3 : Fix McSPI RX Timeout
-Date: Mon, 12 Oct 2009 16:34:28 +0530
-Message-ID: <1255345468-21806-1-git-send-email-manjugk@ti.com>
+From: Russell King <rmk@arm.linux.org.uk>
+Subject: Re: [PATCH 0/10] omap mailbox: Adding OMAP4 support v2
+Date: Mon, 12 Oct 2009 13:22:09 +0100
+Message-ID: <20091012122209.GA30155@flint.arm.linux.org.uk>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921D7@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43442 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750978AbZJLLFY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 12 Oct 2009 07:05:24 -0400
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46191 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755400AbZJLMW5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 08:22:57 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921D7@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: spi-devel-general@lists.sourceforge.net
-Cc: dbrownell@users.sourceforge.net, linux-omap@vger.kernel.org, Manjunatha GK <manjugk@ti.com>
+To: "C.A, Subramaniam" <subramaniam.ca@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Gupta, Ramesh" <grgupta@ti.com>, "tony@atomide.com" <tony@atomide.com>
 
-Resending this patch to SPI mailing list as well.
+On Tue, Sep 22, 2009 at 07:58:46PM +0530, C.A, Subramaniam wrote:
+> Hi All,
+> Following is the second version of patches for mailbox driver. 
+> The comments provided by Hiroshi and Russell King have been in-corporated.
+> Resending the entire series of patches, below is the summary of changes.
 
-McSPI RX timeout issues are reported on some of the OMAP3 custom boards.
+Please don't use my rmk@ addresses for ARM patches - patches sent there
+tend to get buried.  Use my linux@ address instead.
 
-After verifying configuration sequence in TRM, there seems to be issue with 
-McSPI configuration sequence.
-
-The steps to be followed for both TX and RX:
-1. Configure OMAP2_MCSPI_CHCONF0 register with required settings such as
-TX/RX mode, word length, force chip select(if required).
-2. Set MS bit to 0 in OMAP2_MCSPI_CHCTRL0 register to provide the clock.
-3. Enable SPI channel in OMAP2_MCSPI_MODULCTRL
-
-But, the sequence used in current code seems to be wrong. Here it is:
-1. Set MS bit to 0 in OMAP2_MCSPI_CHCTRL0 register to provide the clock
-(This is done during bootup)
-2. Enable SPI channel in OMAP2_MCSPI_MODULCTRL
-3. Configure OMAP2_MCSPI_CHCONF0 register with required settings such as
-TX/RX mode, word length, force chip select(if required).
-
-After correcting configuration sequence, the timeout seems to be not
-reproducible anymore.
-
-Signed-off-by: Manjunatha GK <manjugk@ti.com>
----
- drivers/spi/omap2_mcspi.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/spi/omap2_mcspi.c b/drivers/spi/omap2_mcspi.c
-index ba1a872..846485c 100644
---- a/drivers/spi/omap2_mcspi.c
-+++ b/drivers/spi/omap2_mcspi.c
-@@ -802,7 +802,6 @@ static void omap2_mcspi_work(struct work_struct *work)
- 		spi = m->spi;
- 		cs = spi->controller_state;
- 
--		omap2_mcspi_set_enable(spi, 1);
- 		list_for_each_entry(t, &m->transfers, transfer_list) {
- 			if (t->tx_buf == NULL && t->rx_buf == NULL && t->len) {
- 				status = -EINVAL;
-@@ -830,6 +829,9 @@ static void omap2_mcspi_work(struct work_struct *work)
- 				chconf |= OMAP2_MCSPI_CHCONF_TRM_TX_ONLY;
- 			mcspi_write_chconf0(spi, chconf);
- 
-+			omap2_mcspi_set_master_mode(mcspi->master);
-+
-+			omap2_mcspi_set_enable(spi, 1);
- 			if (t->len) {
- 				unsigned	count;
- 
 -- 
-1.6.0.4
-
+Russell King
+ Linux kernel    2.6 ARM Linux   - http://www.arm.linux.org.uk/
+ maintainer of:
