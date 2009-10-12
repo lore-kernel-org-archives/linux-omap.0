@@ -1,67 +1,58 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Memory performance / Cache problem
-Date: Mon, 12 Oct 2009 14:42:33 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDE1FF2C@dbde02.ent.ti.com>
-References: <20091012083806.323990@gmx.net>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 6/8] RX-51: Audio: Add usage of regulator framework to
+ control VMMC2
+Date: Mon, 12 Oct 2009 12:04:55 +0300
+Message-ID: <20091012090455.GC13234@esdhcp037198.research.nokia.com>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+ <1255003137-1034-7-git-send-email-eduardo.valentin@nokia.com>
+ <20091008132619.GE29176@rakim.wolfsonmicro.main>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44566 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754982AbZJLJNU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 05:13:20 -0400
-In-Reply-To: <20091012083806.323990@gmx.net>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.233]:39057 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755157AbZJLJGb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 05:06:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20091008132619.GE29176@rakim.wolfsonmicro.main>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "epsi@gmx.de" <epsi@gmx.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of epsi@gmx.de
-> Sent: Monday, October 12, 2009 2:08 PM
-> To: linux-omap@vger.kernel.org
-> Subject: RE: Memory performance / Cache problem
+On Thu, Oct 08, 2009 at 03:26:19PM +0200, Mark Brown wrote:
+> On Thu, Oct 08, 2009 at 02:58:55PM +0300, Eduardo Valentin wrote:
 > 
-> Linux version 2.6.31 (star@localhost) (gcc version 4.3.3 
-> (Sourcery G++ Lite 2009q1-203) ) #1 Mon Oct 12 08:30:58 CEST 2009
-> CPU: ARMv7 Processor [411fc082] revision 2 (ARMv7), cr=10c53c7f
-> CPU: VIPT nonaliasing data cache, VIPT nonaliasing instruction cache
-> Machine: OMAP3 EVM
-> Memory policy: ECC disabled, Data cache writeback
-> OMAP3430 ES2.1
-> SRAM: Mapped pa 0x40200000 to va 0xe3000000 size: 0x100000
-> Built 1 zonelists in Zone order, mobility grouping on.  Total 
-> pages: 32512                                                  
->                                              
+> > +static struct regulator_consumer_supply rx51_vmmc2_supplies[] = {
+> > +	REGULATOR_SUPPLY("avdd_dac", "2-0018"), /* tlv320aic3x */
+> > +	REGULATOR_SUPPLY("vdd", "2-0060"), /* tpa6130a2*/
+> >  };
 > 
-> I see, you get the message about L2 Cache, which I don't have
-> Do you know how to enable this?
-> Shoudn't the kernel configure all this things - not rely on 
-> bootloader?
-> I am using the U-Boot 2008.10 (TIs PSP)
-> The old 22 kernel is independet from the uboot in this issue.
+> avdd_dac is the only supply added for the tlv320aic3x but, for example,
+> the tlv320aic34 has something like 8 supplies from a quick scan of the
+> datasheet.  It'd be better to set up all of the supplies, even if only
+> with a fixed voltage regulator supplying them, since when regulator
+> support is added to the CODEC driver it should be requesting all the
+> supplies it needs and therefore fail to instatiate if some are missing.
 
-Can you upgrade to a newer u-boot? Either from the PSP release
-OR u-boot tree hosted at git.denx.de (atleast 2009.03)?
+Right. Should we add 4 instances of drvdd and 2 of iovdd? So, naming those would be like:
 
-Also, it will be good to see the sample program you are using.
+	REGULATOR_SUPPLY("drvdd0", "2-0018"), /* tlv320aic3x */
+	REGULATOR_SUPPLY("drvdd1", "2-0018"), /* tlv320aic3x */
+	REGULATOR_SUPPLY("drvdd2", "2-0018"), /* tlv320aic3x */
+	REGULATOR_SUPPLY("drvdd3", "2-0018"), /* tlv320aic3x */
 
-~sanjeev
+or even better:
 
-> 
-> Thanks
-> Steffen
-> -- 
-> Jetzt kostenlos herunterladen: Internet Explorer 8 und 
-> Mozilla Firefox 3.5 -
-> sicherer, schneller und einfacher! 
-> http://portal.gmx.net/de/go/atbrowser
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+	REGULATOR_SUPPLY("drvdd_b4", "2-0018"), /* tlv320aic3x */
+	REGULATOR_SUPPLY("drvdd_a4", "2-0018"), /* tlv320aic3x */
+	REGULATOR_SUPPLY("drvdd_b9", "2-0018"), /* tlv320aic3x */
+	REGULATOR_SUPPLY("drvdd_a9", "2-0018"), /* tlv320aic3x */
+
+what do you think?
+
+BR
+
+-- 
+Eduardo Valentin
