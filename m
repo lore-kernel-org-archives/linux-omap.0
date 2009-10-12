@@ -1,80 +1,38 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: RE: [PATCH RESEND] I2C: OMAP: Add missing wakeup events
-Date: Mon, 12 Oct 2009 11:35:13 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F2029E37200E@dlee06.ent.ti.com>
-References: <1255342885-15786-1-git-send-email-aaro.koskinen@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: omap3: ehci: trivial fix of a debug print
+Date: Mon, 12 Oct 2009 22:50:20 +0530
+Message-ID: <1255368020-23659-1-git-send-email-gadiyar@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47864 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756906AbZJLQgI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 12:36:08 -0400
-In-Reply-To: <1255342885-15786-1-git-send-email-aaro.koskinen@nokia.com>
-Content-Language: en-US
+Received: from comal.ext.ti.com ([198.47.26.152]:41514 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757149AbZJLRVC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 12 Oct 2009 13:21:02 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9CHKN9k001372
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 12 Oct 2009 12:20:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>, "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Anand Gadiyar <gadiyar@ti.com>
 
-Hello Aaro!
+omap3: ehci: trivial fix of a debug print
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Aaro Koskinen
-> Sent: Monday, October 12, 2009 5:21 AM
-> To: ben-linux@fluff.org; linux-i2c@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org; j-pakaravoor@ti.com
-> Subject: [PATCH RESEND] I2C: OMAP: Add missing wakeup events
-> 
-> From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> 
-> Include wake up events for receiver overflow and transmitter
-> underflow in OMAP_I2C_WE_REG configuration. Also fix a small
-> typo.
-> 
-> Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> ---
->  drivers/i2c/busses/i2c-omap.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-> index 827da08..34ea9ed 100644
-> --- a/drivers/i2c/busses/i2c-omap.c
-> +++ b/drivers/i2c/busses/i2c-omap.c
-> @@ -92,8 +92,10 @@
->  #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
-> 
->  /* I2C WE wakeup enable register */
-> -#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
-> +#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakeup */
->  #define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
-> +#define OMAP_I2C_WE_ROVR_WE	(1 << 11)	/* RX overflow wakeup */
-> +#define OMAP_I2C_WE_XUDF_WE	(1 << 10)	/* TX underflow wakeup */
+We're interested in uhh_hostconfig, not uhh_base. While we
+are actually printing the former, we're calling it the latter.
 
-These bits are not documented in OMAP3430, they are reserved. How can they be used?
-
->  #define OMAP_I2C_WE_AAS_WE	(1 << 9)	/* Address as slave wakeup*/
->  #define OMAP_I2C_WE_BF_WE	(1 << 8)	/* Bus free wakeup */
->  #define OMAP_I2C_WE_STC_WE	(1 << 6)	/* Start condition wakeup */
-> @@ -104,6 +106,7 @@
->  #define OMAP_I2C_WE_AL_WE	(1 << 0)	/* Arbitration lost wakeup */
-> 
->  #define OMAP_I2C_WE_ALL		(OMAP_I2C_WE_XDR_WE |
-> OMAP_I2C_WE_RDR_WE | \
-> +				OMAP_I2C_WE_ROVR_WE | OMAP_I2C_WE_XUDF_WE | \
->  				OMAP_I2C_WE_AAS_WE | OMAP_I2C_WE_BF_WE | \
->  				OMAP_I2C_WE_STC_WE | OMAP_I2C_WE_GC_WE | \
->  				OMAP_I2C_WE_DRDY_WE | OMAP_I2C_WE_ARDY_WE | \
-> --
-> 1.6.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Regards
-Moiz Sonasath
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+---
+diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+index 45b8a7c..73f0b3b 100644
+--- a/drivers/usb/host/ehci-omap.c
++++ b/drivers/usb/host/ehci-omap.c
+@@ -363,7 +363,7 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+ 
+ 	}
+ 	ehci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
+-	dev_dbg(omap->dev, "UHH setup done, uhh_base=%x\n", reg);
++	dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
+ 
+ 
+ 	if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_TLL) ||
