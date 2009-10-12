@@ -1,65 +1,69 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH v1 1/2] arm: a driver for on-chip ETM and ETB
-Date: Sun, 11 Oct 2009 21:53:45 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B1C0F5F@dlee02.ent.ti.com>
-References: <1255279286-8904-1-git-send-email-virtuoso@slind.org>
-	<63386a3d0910111507r681e69c4ka843cac9ad0e8b40@mail.gmail.com>
-	<20091011222938.GA13244@n2100.arm.linux.org.uk>
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: Re: [PATCH 3/8] McBSP: OMAP3: Add Sidetone feature
+Date: Mon, 12 Oct 2009 09:17:41 +0300
+Message-ID: <1255328261.30157.227.camel@eenurkka-desktop>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+	<1255003137-1034-4-git-send-email-eduardo.valentin@nokia.com>
+	<20091008131702.GC29176@rakim.wolfsonmicro.main>
+	<1255064967.30157.178.camel@eenurkka-desktop>
+	<20091009104458.GB5082@sirena.org.uk>
+Reply-To: ext-eero.nurkkala@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20091011222938.GA13244@n2100.arm.linux.org.uk>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Linus Walleij <linus.ml.walleij@gmail.com>
-Cc: Alexander Shishkin <virtuoso@slind.org>, Juha Leppanen <juha_motorsportcom@luukku.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091009104458.GB5082@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, ext Tony Lindgren <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
 
+On Fri, 2009-10-09 at 12:44 +0200, ext Mark Brown wrote:
+> On Fri, Oct 09, 2009 at 08:09:27AM +0300, Eero Nurkkala wrote:
+> > On Thu, 2009-10-08 at 15:17 +0200, ext Mark Brown wrote:
+> 
+> > > This stuff, particularly the enable, probably wants to be pushed out via
+> > > an ALSA API rather than via random sysfs stuff.  It'd be better to
+> > > publish a control API here and then use that from within ALSA.
+> 
+> > Hmm. What would be the way to transfer 128 x s16 words; is there an ALSA
+> > control for something like that already ? IIRC correctly, the max
+> > bytesize per control is (or used to be) something like 256 bytes or so.
+> > So that gets right at it. (that's the sidetone 128 tap FIR in question)
+> 
+> For things like the FIR you probably don't want to expose the entire
+> table directly to user space.  Depending on the typical usage it may be
+> that platform data is the appropriate mechanism, with some simpler thing
+> presented to applications allowing switching between a limited set of
+> settings.  sysfs may end up being the best option for the FIR setup.
+> 
+> My main concern here is that the control goes into the ALSA domain so
+> that the audio drivers know what's going on with these sidetone paths,
+> particular in terms of the routing.
 
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Russell King - ARM Linux
-> Sent: Sunday, October 11, 2009 5:30 PM
+Indeed. If I'm not totally wrong, the sidetone engineering is such,
+that the sinetones should be of constant volume (this may depend on
+the usecase). So, let's say we have the TPA6130 codec's volume used
+along with a sidetone:
 
-> > > +       clk = clk_get(&pdev->dev, "emu_core_alwon_ck");
-> > > +       clk_enable(clk);
-> > > +
-> > > +       clk = clk_get(&pdev->dev, "emu_per_alwon_ck");
-> > > +       clk_enable(clk);
-> > > +
-> > > +       clk = clk_get(&pdev->dev, "emu_mpu_alwon_ck");
-> > > +       clk_enable(clk);
-> > > +
-> > > +       clk = clk_get(&pdev->dev, "emu_src_ck");
-> > > +       clk_enable(clk);
-> >
-> > Are these clocks really generic? It looks a lot like OMAP-specific
-> > stuff. Is it possible to hide these behind a single clock inside the
-> > platform? like "etbclock" or so that increase refcount of the others
-> > by 1?
+1. A change in TPA6130 volume should lead to a change in
+   the sidetone's gain (if it's enabled). The change of gain
+   is directly related to the change in the TPA's volume.
 
-More than ETM/ETB could be using those omap generated clocks.  Any one of the above can also source the trace clocks.
+That said, if the sidetone's gain is of the domain [-2,2], how
+could it translate into the TPA's nonlinear dB domain?. If
+that may be resolved somehow feasibly, this sounds like a very
+useful relation? Ideas?
 
->From the above clocks, 3 are real clock sources (core, per, mpu) and 'emu_src' is a virtual clock which can be set to be feed from the above (or an always on sys_clk not listed). The emu_src_clk is close to what you were commenting on for etbclock.
+This is all assumed that the FIR itself doesn't cause any gains
+to the signal level at the desired frequency domain(s).
 
-> ATCLK - ATB interface clock
-> CLK - main clock
-> PCLKDBG - Debug APB clock or PCLK - APB clock
->
-> I'm not sure why OMAP seems to have four clocks when the ETM has only
-> three clocks itself.
-
-The ALTCLK & PCLKDBG will be derived from one of the above clocks (emu_per, emu_mpu, emu_core, emu_sys) based on routing.  Which one is used is selected by CM_CLKSEL1_EMU.CLKSEL_ATCLK.  The main CLK comes from MPU DPLL tree.
-
-A big chuck of ETM/ETB is generic coresight.  There is SOC specific emulation logic which surrounds it.
-
-Regards,
-Richard W.
+- Eero
