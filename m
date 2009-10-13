@@ -1,77 +1,98 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH] omap: Fix cpu_is_omap35xx default defines (Re: [PATCH]
-	[RFC] omap: 3630: default cpu_is_omap3630 to zero)
-Date: Tue, 13 Oct 2009 10:43:31 -0700
-Message-ID: <20091013174330.GW12700@atomide.com>
-References: <1255380685-26765-1-git-send-email-vikram.pandita@ti.com> <7A436F7769CA33409C6B44B358BFFF0C012A856FA5@dlee02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC35608702FA0D37E8@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB254E67@dbde02.ent.ti.com> <4AD452F1.7000309@gmail.com> <20091013171511.GS12700@atomide.com>
+Subject: [PATCH] omap: Fix 35xx detection (Re: [PATCH] [RFC] omap: 3630:
+	default cpu_is_omap3630 to zero)
+Date: Tue, 13 Oct 2009 10:32:34 -0700
+Message-ID: <20091013173233.GU12700@atomide.com>
+References: <1255380685-26765-1-git-send-email-vikram.pandita@ti.com> <20091013171814.GT12700@atomide.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="WhfpMioaduB5tiZL"
+Content-Type: multipart/mixed; boundary="gBBFr7Ir9EOA20Yy"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56849 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54963 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760299AbZJMRoQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 13:44:16 -0400
+	with ESMTP id S1753100AbZJMRdT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 13:33:19 -0400
 Content-Disposition: inline
-In-Reply-To: <20091013171511.GS12700@atomide.com>
+In-Reply-To: <20091013171814.GT12700@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sanjeev Premi <premi@ti.com>
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: nm@ti.com, linux-omap@vger.kernel.org
 
 
---WhfpMioaduB5tiZL
+--gBBFr7Ir9EOA20Yy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
-* Tony Lindgren <tony@atomide.com> [091013 10:15]:
-> * Nishanth Menon <menon.nishanth@gmail.com> [091013 03:44]:
-> > Shilimkar, Santosh said the following on 10/13/2009 05:03 AM:
-> > > Has anybody tried building latest linux-omap master ? The build is breaking for other OMAP processors.
-> > >
-> > > CC      arch/arm/mach-omap2/id.o
-> > > arch/arm/mach-omap2/id.c: In function 'omap3_cpuinfo':
-> > > arch/arm/mach-omap2/id.c:269: error: implicit declaration of function 'cpu_is_omap3630'
-> > > make[1]: *** [arch/arm/mach-omap2/id.o] Error 1
-> > > make: *** [arch/arm/mach-omap2] Error 2
-> > >
-> > > This is because of " 0a9b95f21995aa3cdda82ebc6e77b0b2ab401861"
-> > > 	omap: Introduce OMAP3630
-> > >
-> > > Below patch from Vikram fixes the build break.
-> > >   
-> > ouch.. my bad.. thanks for answering my question. I am guessing we need
-> > this coz of is_omap3630() translation..
-> > Ack for the patch from me.
+* Tony Lindgren <tony@atomide.com> [091013 10:18]:
+> * Vikram Pandita <vikram.pandita@ti.com> [091012 14:31]:
+> > make default cpu_is_omap3630() return zero
+> > 
+> > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> > ---
+> >  arch/arm/plat-omap/include/mach/cpu.h |    2 ++
+> >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+> > index da9e8f8..940946e 100644
+> > --- a/arch/arm/plat-omap/include/mach/cpu.h
+> > +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> > @@ -322,6 +322,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >  #define cpu_is_omap2423()		0
+> >  #define cpu_is_omap2430()		0
+> >  #define cpu_is_omap3430()		0
+> > +#define cpu_is_omap3630()		0
+> >  
+> >  /*
+> >   * Whether we have MULTI_OMAP1 or not, we still need to distinguish
+> > @@ -386,6 +387,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >  						(omap3_has_sgx()) &	\
+> >  						(!omap3_has_iva()))
+> >  # define cpu_is_omap3530		(cpu_is_omap3430())
+> > +# undef cpu_is_omap3630()
+> >  # define cpu_is_omap3630()		is_omap363x()
+> >  #endif
 > 
-> To me it looks like all the 35x defines need the same treatment.
+> This undef should be just undef cpu_is_omap3630 instead of
+> cpu_is_omap3630().
 
-And here's the patch to do that.
+Also looking at the 35xx detection code, should it not be like this?
 
---WhfpMioaduB5tiZL
+
+
+--gBBFr7Ir9EOA20Yy
 Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="35xx-default-defines.patch"
+Content-Disposition: inline; filename="35xx-detect-fix.patch"
 
-omap: Fix cpu_is_omap35xx default defines
+omap: Fix 35xx detection
 
-Otherwise compilation on other processors
-will fail if these are used in the code.
+Should use && instead of &
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 
 diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index a67a95c..770cb60 100644
+index 111f29a..a67a95c 100644
 --- a/arch/arm/plat-omap/include/mach/cpu.h
 +++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -322,6 +322,10 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define cpu_is_omap2423()		0
- #define cpu_is_omap2430()		0
- #define cpu_is_omap3430()		0
-+#define cpu_is_omap3503()		0
-+#define cpu_is_omap3515()		0
-+#define cpu_is_omap3525()		0
-+#define cpu_is_omap3530()		0
- #define cpu_is_omap3630()		0
- 
- /*
+@@ -377,14 +377,14 @@ IS_OMAP_TYPE(3430, 0x3430)
+ # undef cpu_is_omap3525
+ # undef cpu_is_omap3530
+ # define cpu_is_omap3430()		is_omap3430()
+-# define cpu_is_omap3503		(cpu_is_omap3430() &		\
+-						(!omap3_has_iva()) &	\
++# define cpu_is_omap3503		(cpu_is_omap3430() &&		\
++						(!omap3_has_iva()) &&	\
+ 						(!omap3_has_sgx()))
+-# define cpu_is_omap3515		(cpu_is_omap3430() &		\
+-						(omap3_has_iva()) &	\
++# define cpu_is_omap3515		(cpu_is_omap3430() &&		\
++						(omap3_has_iva()) &&	\
+ 						(!omap3_has_sgx()))
+-# define cpu_is_omap3525		(cpu_is_omap3430() &		\
+-						(omap3_has_sgx()) &	\
++# define cpu_is_omap3525		(cpu_is_omap3430() &&		\
++						(omap3_has_sgx()) &&	\
+ 						(!omap3_has_iva()))
+ # define cpu_is_omap3530		(cpu_is_omap3430())
+ # undef cpu_is_omap3630
 
---WhfpMioaduB5tiZL--
+--gBBFr7Ir9EOA20Yy--
