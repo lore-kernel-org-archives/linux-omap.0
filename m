@@ -1,41 +1,35 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] [RFC] omap: 3630: default cpu_is_omap3630 to zero
-Date: Tue, 13 Oct 2009 10:15:11 -0700
-Message-ID: <20091013171511.GS12700@atomide.com>
-References: <1255380685-26765-1-git-send-email-vikram.pandita@ti.com> <7A436F7769CA33409C6B44B358BFFF0C012A856FA5@dlee02.ent.ti.com> <FCCFB4CDC6E5564B9182F639FC35608702FA0D37E8@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB254E67@dbde02.ent.ti.com> <4AD452F1.7000309@gmail.com>
+Subject: Re: [PATCH] ARM: OMAP3: Add support for the IGEP v2 board (rev B)
+Date: Tue, 13 Oct 2009 10:37:43 -0700
+Message-ID: <20091013173743.GV12700@atomide.com>
+References: <70c9a9110910090859h9b1d50fh928e34909f2b1e46@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59557 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760654AbZJMRP6 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 13:15:58 -0400
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:55607 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760736AbZJMRi1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 13:38:27 -0400
 Content-Disposition: inline
-In-Reply-To: <4AD452F1.7000309@gmail.com>
+In-Reply-To: <70c9a9110910090859h9b1d50fh928e34909f2b1e46@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <menon.nishanth@gmail.com>
-Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Sanjeev Premi <premi@ti.com>
+To: Enric =?iso-8859-1?Q?Balletb=F2?= i Serra <eballetbo@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-* Nishanth Menon <menon.nishanth@gmail.com> [091013 03:44]:
-> Shilimkar, Santosh said the following on 10/13/2009 05:03 AM:
-> > Has anybody tried building latest linux-omap master ? The build is breaking for other OMAP processors.
-> >
-> > CC      arch/arm/mach-omap2/id.o
-> > arch/arm/mach-omap2/id.c: In function 'omap3_cpuinfo':
-> > arch/arm/mach-omap2/id.c:269: error: implicit declaration of function 'cpu_is_omap3630'
-> > make[1]: *** [arch/arm/mach-omap2/id.o] Error 1
-> > make: *** [arch/arm/mach-omap2] Error 2
-> >
-> > This is because of " 0a9b95f21995aa3cdda82ebc6e77b0b2ab401861"
-> > 	omap: Introduce OMAP3630
-> >
-> > Below patch from Vikram fixes the build break.
-> >   
-> ouch.. my bad.. thanks for answering my question. I am guessing we need
-> this coz of is_omap3630() translation..
-> Ack for the patch from me.
+* Enric Balletb=F2 i Serra <eballetbo@gmail.com> [091009 09:18]:
+>   This patch adds minimal IGEP v2 support.
 
-To me it looks like all the 35x defines need the same treatment.
+Can you please move the defconfig into a separate patch
+when you resubmit? It makes it easier for people to read
+the patch.
+
+Regards,
 
 Tony
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
