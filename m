@@ -1,40 +1,53 @@
-From: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: DSS2 frame buffer problem
-Date: Tue, 13 Oct 2009 07:27:58 -0600
-Message-ID: <4AD4805E.10808@mlbassoc.com>
-References: <4AD478CB.2040302@mlbassoc.com> <1255438791.27268.42.camel@tubuntu>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: Broken cpuidle on PM branch?
+Date: Tue, 13 Oct 2009 16:31:51 +0300
+Message-ID: <20091013133151.GA8028@esdhcp037198.research.nokia.com>
+References: <20091012192347.GI32041@smtp.gmail.com>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([76.76.67.137]:54337 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119AbZJMN2f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 09:28:35 -0400
-In-Reply-To: <1255438791.27268.42.camel@tubuntu>
+Received: from smtp.nokia.com ([192.100.122.233]:58153 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752247AbZJMNdY (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 09:33:24 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9DDVqnf003315
+	for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 16:31:54 +0300
+Content-Disposition: inline
+In-Reply-To: <20091012192347.GI32041@smtp.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tomi.valkeinen@nokia.com
-Cc: OMAP Linux discussion <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-On 10/13/2009 06:59 AM, Tomi Valkeinen wrote:
-> On Tue, 2009-10-13 at 14:55 +0200, ext Gary Thomas wrote:
->> I have a new board that I'd like to run a frame buffer 800x600x24
->> When I boot, I get this error:
->>     omapfb: failed to allocate framebuffer
->>
->> This board is derived from a board I'm already running DSS2 at
->> 800x600x16 on.
->>
->> What do I need to change to get this to work?
->
-> Most likely you need to allocate more VRAM with vram boot option, in
-> board file or kernel config option (CONFIG_OMAP2_VRAM_SIZE).
+Hello Amit,
 
-Thanks, that was it.
+On Mon, Oct 12, 2009 at 09:23:47PM +0200, ext Amit Kucheria wrote:
+> Hi,
+> 
+> I am testing twl4030 script optimisations on the current PM branch. But I am
+> seeing the board (RX51) freeze when CPU_IDLE is enabled in the config.
+> 
+> Is it known to work on other boards?
+
+I'm actually seeing this same behavior. But the board actually does not
+freeze. If you keep a key pressed of send a sysrq through serial line
+then you eventually get it back.
+
+It seams to be something related to serial driver and wakeup ?
+
+
+> 
+> Regards,
+> Amit
+> -- 
+> -------------------------------------------------------------------------
+> Amit Kucheria,				 Kernel Developer, Verdurent
+> -------------------------------------------------------------------------
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+Eduardo Valentin
