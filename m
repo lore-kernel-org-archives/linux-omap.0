@@ -1,86 +1,80 @@
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH 1/1] OMAP3: PM: SmartReflex: Fix scheduled while atomic problem
-Date: Tue, 13 Oct 2009 11:39:45 +0300
-Message-ID: <1255423185-30568-1-git-send-email-eduardo.valentin@nokia.com>
+From: epsi@gmx.de
+Subject: Re: Memory performance  / Cache problem
+Date: Tue, 13 Oct 2009 11:13:33 +0200
+Message-ID: <20091013091333.141260@gmx.net>
+References: <20091012075409.186580@gmx.net>
+ <200910121135.15191.siarhei.siamashka@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:57749 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756071AbZJMIld (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 04:41:33 -0400
+Received: from mail.gmx.net ([213.165.64.20]:38925 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753952AbZJMJOe (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Oct 2009 05:14:34 -0400
+In-Reply-To: <200910121135.15191.siarhei.siamashka@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Linux-OMAP <linux-omap@vger.kernel.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, Quadros Roger <ext-roger.quadros@nokia.com>
+To: Siarhei Siamashka <siarhei.siamashka@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-This patch moves clock lookup from get_vdd[1,2]_opp to
-initialization procedure. Also adds a field in omap_sr
-structure to store these clocks for later usage.
+The L2 cache is set and running.
+I don't know - can it be configured or misconfigured somehow?
 
-Calling clk_get inside get_vdd[1,2]_opp would cause
-a scheduled while atomic problem while entering in idle
-state (interrupts disabled).
+I just checked the output of 2.6.22 kernel and get these lines (which I don't have in newer kernels):
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- arch/arm/mach-omap2/smartreflex.c |   19 +++++++++----------
- 1 files changed, 9 insertions(+), 10 deletions(-)
+CPU0: D VIPT write-through cache
+CPU0: cache: 768 bytes, associativity 1, 8 byte lines, 64 sets
+Built 1 zonelists.  Total pages: 32512
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index 8660863..8946e7c 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -43,6 +43,7 @@ struct omap_sr {
- 	int		is_sr_reset;
- 	int		is_autocomp_active;
- 	struct clk	*clk;
-+	struct clk	*vdd_opp_clk;
- 	u32		clk_length;
- 	u32		req_opp_no;
- 	u32		opp1_nvalue, opp2_nvalue, opp3_nvalue, opp4_nvalue;
-@@ -170,28 +171,24 @@ static u16 get_opp(struct omap_opp *opp_freq_table,
- static u16 get_vdd1_opp(void)
- {
- 	u16 opp;
--	struct clk *clk;
- 
--	clk = clk_get(NULL, "dpll1_ck");
--
--	if (clk == NULL || IS_ERR(clk) || mpu_opps == NULL)
-+	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk) ||
-+							mpu_opps == NULL)
- 		return 0;
- 
--	opp = get_opp(mpu_opps + MAX_VDD1_OPP, clk->rate);
-+	opp = get_opp(mpu_opps + MAX_VDD1_OPP, sr1.vdd_opp_clk->rate);
- 	return opp;
- }
- 
- static u16 get_vdd2_opp(void)
- {
- 	u16 opp;
--	struct clk *clk;
--
--	clk = clk_get(NULL, "l3_ick");
- 
--	if (clk == NULL || IS_ERR(clk) || l3_opps == NULL)
-+	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk) ||
-+							l3_opps == NULL)
- 		return 0;
- 
--	opp = get_opp(l3_opps + MAX_VDD2_OPP, clk->rate);
-+	opp = get_opp(l3_opps + MAX_VDD2_OPP, sr2.vdd_opp_clk->rate);
- 	return opp;
- }
- 
-@@ -999,6 +996,8 @@ static int __init omap3_sr_init(void)
- 		sr1.clk = clk_get(NULL, "sr1_fck");
- 		sr2.clk = clk_get(NULL, "sr2_fck");
- 	}
-+	sr1.vdd_opp_clk = clk_get(NULL, "dpll1_ck");
-+	sr2.vdd_opp_clk = clk_get(NULL, "l3_ick");
- 	sr_set_clk_length(&sr1);
- 	sr_set_clk_length(&sr2);
- 
+I am wondering what is this? First thought was L1 cache, but it's to small. 
+
+The benchmark is running on same hardware, same uboot, same rootfs, just the kernel is different.
+
+
+> On Monday 12 October 2009 10:54:09 ext epsi@gmx.de wrote:
+> > I found the memory performance of newer kernels are quit poor on an
+> > EVM-Omap3 board. It works with 2-6 times performance on the old 2.6.22
+> > kernel from TI's PSP.
+> >
+> > Possible reasons:
+> > - problem in config the kernel (did omap3_evm_defconfig)
+> > - problem in kernel
+> > - kernel expects some settings from uboot, which are not done there
+> >
+> > I have tried the 2.6.29rc3 (from TI's PSP) and the 2.6.31 from git-tree.
+> > Both behave quite simular:
+> >
+> > Transport in MByte:
+> >   memcpy =   204.073, loop4 =   183.212, loop1 =    81.693, rand =
+> > 4.534
+> >
+> > while the 22 kernel:
+> >  memcpy =   453.932, loop4 =   469.934, loop1 =   125.031, rand =
+> > 29.631
+> >
+> > Can someone give me help or can at least confirm that?
+> 
+> The numbers from 2.6.22 kernel look much better than anything I have ever
+> seen with OMAP3.
+> 
+> How are you doing benchmarking? Is source buffer properly initialized?
+> 
+> The point is that if you just happen to allocate a large buffer without
+> initializing it, it may end up having all the memory pages referencing to
+> a
+> single zero page in physical memory. In this case reading from this buffer
+> will in fact be perfectly cached in L1 cache and memcpy would look fast.
+> 
+> If it is not the case, investigating how to boost memory performance in
+> the
+> latest kernels is very interesting for sure.
+> 
+> -- 
+> Best regards,
+> Siarhei Siamashka
+
+
 -- 
-1.6.4.183.g04423
-
+Neu: GMX DSL bis 50.000 kBit/s und 200,- Euro Startguthaben!
+http://portal.gmx.net/de/go/dsl02
