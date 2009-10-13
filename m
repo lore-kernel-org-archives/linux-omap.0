@@ -1,194 +1,304 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: FW: [PATCH] omap-pm: Fixes behaviour of some shared resource
- framework functions
-Date: Tue, 13 Oct 2009 11:28:52 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDE2057D@dbde02.ent.ti.com>
+From: Gregoire Gentil <gregoire-cO8BdTktXKTQT0dZR+AlfA@public.gmane.org>
+Subject: Re: New project announcement: gst-dsp, with beagleboard
+ demo image
+Date: Mon, 12 Oct 2009 23:26:13 -0700
+Message-ID: <1255415173.27277.15.camel@gregoire-laptop>
+References: <94a0d4530910121431r4f0e6d3dw2b87d22adc393842@mail.gmail.com>
+Reply-To: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:48888 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755744AbZJMF7e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 01:59:34 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9D5wtjM000914
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 00:58:58 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9D5wsMj015841
-	for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 11:28:55 +0530 (IST)
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Return-path: <grbounce-mhDLDAUAAACCWz0gcxlWH96hoF08oTo0=gchbu-beagleboard=m.gmane.org-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+In-Reply-To: <94a0d4530910121431r4f0e6d3dw2b87d22adc393842-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+List-Post: <mailto:beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <mailto:beagleboard+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://googlegroups.com/group/beagleboard/subscribe>,
+	<mailto:beagleboard+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: Felipe Contreras <felipe.contreras-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: gstreamer-openmax-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, gstreamer-embedded-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, maemo-developers-41UWDLvetLrYtjvyW6yDsg@public.gmane.org, beagleboard-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, openmax-devel-8+VKa2cMCdNg9hUCZPvPmw@public.gmane.org, Eray =?ISO-8859-1?Q?=D6zt=FCrk?= <erayozturk1-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Paul Kang <paulchainkang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Hilman, Kevin" <khilman@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-Hello Kevin,
-                       Are there any comments on this patch? If not, will it be queued?
-
-Thanks,
--Romit
 
 
------Original Message-----
-From: Dasgupta, Romit 
-Sent: Wednesday, October 07, 2009 6:12 PM
-To: Kevin H
-Cc: linux-omap@vger.kernel.org
-Subject: [PATCH] omap-pm: Fixes behaviour of some shared resource framework functions
+It definitely seems to be a very nice effort that will be very useful to
+many projects. I will integrate on the Touch Book. Thanks,
 
-(Tested on Zoom2).
+Gr=C3=A9goire
 
-'omap_pm_dsp_set_min_opp' & 'omap_pm_cpu_set_freq' were using their own
-struct device *. This is a problem because invoking these functions from
-different clients would result in setting of the resource level as requested by
-the last caller. Fixes this by introducing a struct device * to the parameter
-list for these functions.
-Signed-off-by: Romit Dasgupta <romit@ti.com>
----
-
-diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
-index 8e67861..e9adc67 100644
---- a/arch/arm/plat-omap/cpu-omap.c
-+++ b/arch/arm/plat-omap/cpu-omap.c
-@@ -47,6 +47,7 @@ static struct cpufreq_frequency_table *freq_table;
- #define MPU_CLK		"virt_prcm_set"
- #endif
- 
-+DEFINE_PER_CPU(struct device , cpu_freq_dev);
- static struct clk *mpu_clk;
- 
- /* TODO: Add support for SDRAM timing changes */
-@@ -115,8 +116,9 @@ static int omap_target(struct cpufreq_policy *policy,
- 		int ind;
- 		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
- 			if (mpu_opps[ind].rate/1000 >= target_freq) {
--				omap_pm_cpu_set_freq
--					(mpu_opps[ind].rate);
-+				omap_pm_cpu_set_freq(
-+					&__get_cpu_var(cpu_freq_dev),
-+					mpu_opps[ind].rate);
- 				break;
- 			}
- 		}
-diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
-index 583e540..5b26ba1 100644
---- a/arch/arm/plat-omap/include/mach/omap-pm.h
-+++ b/arch/arm/plat-omap/include/mach/omap-pm.h
-@@ -226,6 +226,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void);
- 
- /**
-  * omap_pm_dsp_set_min_opp - receive desired OPP target ID from DSP Bridge
-+ * @dev: Identifies the client that wants to set the VDD1 OPP.
-  * @opp_id: target DSP OPP ID
-  *
-  * Set a minimum OPP ID for the DSP.  This is intended to be called
-@@ -233,7 +234,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void);
-  * information that code receives from the DSP/BIOS load estimator is the
-  * target OPP ID; hence, this interface.  No return value.
-  */
--void omap_pm_dsp_set_min_opp(u8 opp_id);
-+void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id);
- 
- /**
-  * omap_pm_dsp_get_opp - report the current DSP OPP ID
-@@ -283,6 +284,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
- 
- /**
-  * omap_pm_cpu_set_freq - set the current minimum MPU frequency
-+ * @dev: Identifies the client that wants to set the frequency.
-  * @f: MPU frequency in Hz
-  *
-  * Set the current minimum CPU frequency.  The actual CPU frequency
-@@ -290,7 +292,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
-  * Intended to be called by plat-omap/cpu_omap.c:omap_target().  No
-  * return value.
-  */
--void omap_pm_cpu_set_freq(unsigned long f);
-+void omap_pm_cpu_set_freq(struct device *dev, unsigned long f);
- 
- /**
-  * omap_pm_cpu_get_freq - report the current CPU frequency
-diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
-index 10463a4..6546527 100644
---- a/arch/arm/plat-omap/omap-pm-noop.c
-+++ b/arch/arm/plat-omap/omap-pm-noop.c
-@@ -159,7 +159,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
- }
- EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
- 
--void omap_pm_dsp_set_min_opp(u8 opp_id)
-+void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id)
- {
- 	if (opp_id == 0) {
- 		WARN_ON(1);
-@@ -244,7 +244,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
- 	return NULL;
- }
- 
--void omap_pm_cpu_set_freq(unsigned long f)
-+void omap_pm_cpu_set_freq(struct device *dev, unsigned long f)
- {
- 	if (f == 0) {
- 		WARN_ON(1);
-diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
-index 4350650..aece740 100644
---- a/arch/arm/plat-omap/omap-pm-srf.c
-+++ b/arch/arm/plat-omap/omap-pm-srf.c
-@@ -169,8 +169,6 @@ void omap_pm_set_max_sdma_lat(struct device *dev, long t)
- 	}
- }
- 
--static struct device dummy_dsp_dev;
--
- /*
-  * DSP Bridge-specific constraints
-  */
-@@ -187,20 +185,15 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
- }
- EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
- 
--void omap_pm_dsp_set_min_opp(u8 opp_id)
-+void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id)
- {
--	if (opp_id == 0) {
-+	if (dev == NULL || opp_id == 0) {
- 		WARN_ON(1);
- 		return;
- 	}
- 
- 	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id);
--
--	/*
--	 * For now pass a dummy_dev struct for SRF to identify the caller.
--	 * Maybe its good to have DSP pass this as an argument
--	 */
--	resource_request("vdd1_opp", &dummy_dsp_dev, opp_id);
-+	resource_request("vdd1_opp", dev, opp_id);
- 	return;
- }
- EXPORT_SYMBOL(omap_pm_dsp_set_min_opp);
-@@ -246,19 +239,16 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
- 	return NULL;
- }
- 
--static struct device dummy_cpufreq_dev;
--
--void omap_pm_cpu_set_freq(unsigned long f)
-+void omap_pm_cpu_set_freq(struct device *dev, unsigned long f)
- {
--	if (f == 0) {
-+	if (dev == NULL || f == 0) {
- 		WARN_ON(1);
- 		return;
- 	}
- 
- 	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n",
- 		 f);
--
--	resource_request("mpu_freq", &dummy_cpufreq_dev, f);
-+	resource_request("mpu_freq", dev, f);
- 	return;
- }
- EXPORT_SYMBOL(omap_pm_cpu_set_freq);
+On Tue, 2009-10-13 at 00:31 +0300, Felipe Contreras wrote:
+> Hi,
+>=20
+> This is the first public release of gst-dsp; a native GStreamer plug-in t=
+o
+> access Texas Instruments' DSP algorithms for OMAP3 platforms.
+>=20
+> The code came originally from a series of TI projects: tiopenmax[1], and
+> libbridge[2]. gst-dsp replaces these two layers and talks directly to the=
+ DSP
+> bridge driver.
+>=20
+> The main advantages are code simplification (5k vs 50k), and better perfo=
+rmance
+> (at least 4 times less CPU usage). However, not all of the codecs have be=
+en
+> implemented, only MPEG-4 and H.263 video encoders and decoders, the JPEG
+> encoder, and H.264 is partially supported.
+>=20
+> Currently it's used in the Nokia N900.
+>=20
+> In order to make it easier for people to try it out, I created a demo ima=
+ge for
+> the beagleboard with all the required components: GStreamer, gst-dsp, DSP
+> public binaries, and a kernel with DSS2 and DSP bridge driver.
+>=20
+> The linux kernel (DSS2 + dspbridge) is at the v2.6.32-felipec1 tag in:
+> http://gitorious.org/~felipec/linux-omap/felipec
+>=20
+> The DSP algorithms are public, and come from tiopenmax:
+> https://gforge.ti.com/gf/download/frsrelease/170/1399/tiopenmax-0.3.5.tar=
+.gz
+>=20
+> Here's the demo rootfs with the kernel image and instructions:
+> http://people.freedesktop.org/~felipec/beagle-2.6.32-rc3/
+>=20
+> And here's the video showing it on action for both playback and recording=
+:
+> http://www.youtube.com/watch?v=3DSN-Nw_yDQUs
+>=20
+> The main repository is hosted on github:
+> http://github.com/felipec/gst-dsp
+>=20
+> And there's also one specific for maemo:
+> http://maemo.gitorious.org/maemo-multimedia/gst-dsp
+>=20
+> This code wouldn't have been possible without all the contributions and
+> specially thanks to TI for making their code open source.
+>=20
+> Here's the shortlog for 0.6.0:
+>=20
+> Andriy Shevchenko (1):
+>       base: fix a crash on send codec data
+>=20
+> Felipe Contreras (180):
+>       Initial commit
+>       Register dsp node
+>       Add README
+>       Fix and update copyrights
+>       Add ALLOCATE_HEAP and ALLOCATE_SN to dsp_bridge
+>       Add handy dsp_send_message
+>       dummy: use dsp_send_message
+>       Rename gstdsp.* to plugin.*
+>       Makefile: cleanup
+>       dummy: trivial clanups
+>       Add log utility
+>       Use log utility
+>       dmm_buffer: size_t improvements
+>       dmm_buffer: always unmap when freeing
+>       dmm_buffer: use getpagesize()
+>       dmm_buffer: alignment improvements
+>       dmm_buffer: add user_data field
+>       Add MPEG-4 video decoder
+>       README: update
+>       mp4vdec: trivial cleanup
+>       mp4vdec: send signal to output_loop
+>       mp4vdec: flush output buffers too
+>       mp4vdec: reset output port
+>       mp4vdec: extra check for null buffer
+>       mp4vdec: use atomic operations for status
+>       mp4vdec: use more atomic operations for status
+>       mp4vdec: send stop signal before
+>       mp4vdec: re-use comm buffers
+>       dmm_buffer: reorganize a bit
+>       dmm_buffer: add dmm_buffer_reserve
+>       dmm_buffer: allow to re-reserve memory
+>       dmm_buffer: allow re-mapping
+>       mp4vdec: trivial cleanup
+>       dmm_buffer: unmap before unreserving
+>       mp4vdec: re-use mappings for output buffers
+>       mp4vdec: convert flush condition to semaphore
+>       Remove cond.h
+>       Rename mp4vdec to vdec
+>       vdec: trivial cleanup
+>       vdec: trivial reorganization
+>       vdec: prepare for multiple algos
+>       vdec: move create_node to dsp_start
+>       vdec: start dsp node after getting the caps
+>       vdec: initial support for H.264
+>       vdec: add Juha to authors list
+>       README: update
+>       vdec: cleanup
+>       vdec: make dsp_thread static
+>       vdec: reorganize a bit
+>       New base class
+>       Add new video encoder
+>       base: handle more commands
+>       base: reorganize got_message a bit
+>       venc: improve jpeg args
+>       venc: send jpeg dynamic params
+>       base: cleanup setup_output_buffers
+>       base: remove unused buffer_count
+>       base: reorganize a bit
+>       base: add use_pad_alloc option
+>       base: free mapped buffers on dsp_stop()
+>       base: be more verbose on get_slot()
+>       README: update
+>       Makefile: check for missing symbols
+>       New utility gstdsp_register()
+>       base: detect dsp errors
+>       base: properly handle dsp errors
+>       base: post error in the bus
+>       base: extra check for status in outout_loop()
+>       base: free events array
+>       base: reinitialize state on NULL->READY
+>       base: use circular buffer for timestamps
+>       base: increase ts_array
+>       base: increase mapping cache
+>       dummy: reorganize map_buffer
+>       dummy: input buffers don't need alignment
+>       dummy: cleanup
+>       dummy: don't map buffers
+>       venc: increase framesize limit for jpeg
+>       base: add gstdsp_post_error()
+>       venc: allocate a buffer when framesize is unaligned
+>       base: decrease wait for events timeout
+>       base: more error messages
+>       base: re-initialize on READY->PAUSED
+>       base: don't panic on wrong status
+>       base: destroy node at the right time
+>       base: catch playback completed message
+>       base: possible memleak fixes
+>       vdec: send codec data for MPEG-4
+>       base: make map cache optional
+>       plugin: set more proper ranks
+>       vdec: add framerate workaround
+>       vdec: remove gstdsp_send_buffer()
+>       base: add create_node() vmethod
+>       base: add parsing facilities
+>       Add h263 parser
+>       parse: update framesize only when unset
+>       Random cleanups
+>       base: add support for stream params
+>       venc: add H.263
+>       venc: use h263 by default
+>       Reorganize encoders
+>       base: send codec data for all the codecs
+>       base: keep trying if parse func fails
+>       base: trivial cleanup
+>       Trivial cleanups
+>       log: don't display info level
+>       log: decrease log level for buffer allocs
+>       log: add pr_test
+>       base: rename array to cache
+>       base: rename 'buffer' to 'comm'
+>       base: event cleanup
+>       base: reorganize a bit
+>       base: assume output buffer is always there
+>       base: remove out_buffer, use port buffer
+>       base: store input buffer
+>       base: trivial cleanup
+>       base: flush ports on stop
+>       base: plug some possible leaks
+>       base: make map_buffer() more conservative
+>       base: trigger semaphore after buffer modifications
+>       base: re-use input buffer
+>       base: add port index field
+>       Add async queue
+>       base: allow multiple buffers
+>       base: allow child elements to configure the ports
+>       vdec: increase the number of buffers to 2
+>       venc: trivial fixes
+>       log: add missing include
+>       base: re-enable queues properly
+>       venc: decrease input buffer size
+>       base: wait for eos
+>       base: possible fix
+>       Initial MPEG-4 video encoder support
+>       gstdspvenc.h: preemptively add H.264 to the list
+>       base: add send_codec_data() helper
+>       vdec: use send_codec_data()
+>       vdec: extra checks
+>       Add skip hack
+>       Revert "venc: forcing mpeg4 I frame each i_frame_interval"
+>       venc: reorganize stream/dynamic params
+>       base: trivial cleanup
+>       base: properly set param virt addr
+>       Add param argument to buffer callbacks
+>       Add buffer argument to buffer callbacks
+>       base: add buffer recv_cb
+>       base: add check for end addr alignment
+>       vdec: fix extra unref for codec-data
+>       base: trivial cleanups
+>       Rename dmm_buffer_flush() to dmm_buffer_clean()
+>       base: fix memory read
+>       dmm_buffer: clean instead of flush
+>       dmm_buffer: add cache 'flush' function back
+>       Use more proper cache functions
+>       base: handle bad node termination
+>       base: make EOS alignment an option
+>       jpegenc: enable eos align
+>       venc: improve integer framerate calculation
+>       venc: fix bitrate calculation
+>       venc: cleanup bitrate calculation
+>       venc: remove jpeg from bitrate calculation
+>       venc: tweak bitrate calculation
+>       venc: trivial cleanups
+>       venc: add 'quality' field
+>       venc: calculate smaller buffer sizes
+>       Fix some static analysis warnings
+>       log: avoid pr_info when gst debugging is off
+>       base: remove use_map_cache
+>       Trivial cleanups
+>       Cleanup type registrations
+>       base: improve some compiler hints
+>       dmm-buffer: check cache flush size
+>       base: properly free node resources
+>       Create custom dsp_node_t
+>       dsp-bridge: store node heap ourselves
+>       dsp-bridge: store node msgbuf ourselves
+>       dsp-bridge: cleanup node_free
+>       base: copy buffers when appropriate
+>       base: remove unnecessary cache flushing
+>       venc: set rate-control to variable
+>       base: post critical error mesages to the bus
+>=20
+> Hoseok Chang (1):
+>       venc: tune mp4v parms for better performance
+>=20
+> Juha Alanen (5):
+>       vdec: set profile based on the frame size
+>       vdec: improve H.263 args
+>       vdec: initial support for WMV9
+>       venc: set profile correctly for H.263 and MPEG4
+>       venc: disable single scan output for JPEG encoder
+>=20
+> Marco Ballesio (8):
+>       vdec: fix srcpad setup
+>       venc: rename mp4venc_stream_params
+>       venc: add mp4venc_out_stream_params
+>       base: use proper buffer length
+>       venc: forcing mpeg4 I frame each i_frame_interval
+>       venc: reordered mp4venc_args initialization
+>       venc: added bitrate computation formula
+>       venc: propagate keyframes properly
+>=20
+> Mark Nauwelaerts (2):
+>       base: safer buffer allocation and freeing
+>       base: fix element ref leak
+>=20
+> Miguel Verdu (2):
+>       venc: tune MPEG-4 parameters
+>       venc: tune MPEG-4 parameters for quality
+>=20
+> Ren=C3=A9 Stadler (3):
+>       base: fix thread leak
+>       base: advance timestamp pointer for empty output buffers
+>       base: don't use DSP flushing
+>=20
+> Tim-Philipp M=C3=BCller (1):
+>       base: unref unused output buffer when skipping output
+>=20
+> Cheers.
+>=20
+> [1] https://gforge.ti.com/gf/project/openmax/
+> [2] https://gforge.ti.com/gf/project/omapbridge/
+>=20
