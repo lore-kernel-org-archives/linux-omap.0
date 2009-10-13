@@ -1,76 +1,194 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [ANNOUNCE] updated PM branch, based on 2.6.32-rc1
-Date: Mon, 12 Oct 2009 14:27:22 -0700
-Message-ID: <87ws30qp51.fsf@deeprootsystems.com>
-References: <87iqezdmas.fsf@deeprootsystems.com>
-	<87eipgnmfh.fsf@deeprootsystems.com>
-	<a46a26fd0910081509u426b0f9fraa24ea8c99a5717e@mail.gmail.com>
-	<87ab014iun.fsf@deeprootsystems.com>
-	<87bpkgwk3t.fsf@deeprootsystems.com>
-	<87bpkgut1u.fsf@deeprootsystems.com>
-	<87zl80te9t.fsf@deeprootsystems.com>
-	<a46a26fd0910121137j6d86dfjf1df52612dcb88f1@mail.gmail.com>
-	<4AD395E1.9060105@deeprootsystems.com>
-	<a46a26fd0910121357t314d186aw63d31ac3e5ca3990@mail.gmail.com>
+From: "Dasgupta, Romit" <romit@ti.com>
+Subject: FW: [PATCH] omap-pm: Fixes behaviour of some shared resource
+ framework functions
+Date: Tue, 13 Oct 2009 11:28:52 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDE2057D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f187.google.com ([209.85.216.187]:59857 "EHLO
-	mail-px0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757294AbZJLV2I convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 12 Oct 2009 17:28:08 -0400
-Received: by pxi17 with SMTP id 17so11464468pxi.21
-        for <linux-omap@vger.kernel.org>; Mon, 12 Oct 2009 14:27:32 -0700 (PDT)
-In-Reply-To: <a46a26fd0910121357t314d186aw63d31ac3e5ca3990@mail.gmail.com> (Juha Kuikka's message of "Mon\, 12 Oct 2009 13\:57\:13 -0700")
+Received: from comal.ext.ti.com ([198.47.26.152]:48888 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755744AbZJMF7e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 01:59:34 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9D5wtjM000914
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 00:58:58 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9D5wsMj015841
+	for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 11:28:55 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Juha Kuikka <juha.kuikka@gmail.com>
+To: "Hilman, Kevin" <khilman@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+Hello Kevin,
+                       Are there any comments on this patch? If not, will it be queued?
+
+Thanks,
+-Romit
+
+
+-----Original Message-----
+From: Dasgupta, Romit 
+Sent: Wednesday, October 07, 2009 6:12 PM
+To: Kevin H
 Cc: linux-omap@vger.kernel.org
+Subject: [PATCH] omap-pm: Fixes behaviour of some shared resource framework functions
 
-Juha Kuikka <juha.kuikka@gmail.com> writes:
+(Tested on Zoom2).
 
-> On Mon, Oct 12, 2009 at 1:47 PM, Kevin Hilman
-> <khilman@deeprootsystems.com> wrote:
->> Juha Kuikka wrote:
->> [...]
->>
->>>
->>> I updated both x-loader and u-boot. And I also pulled the latest
->>> omap-pm and did a fresh build. I noticed there is a commit that sho=
-uld
->>> fix the serial port issue.
->>>
->>> Unfortunately I am still plagued by it.
->>>
->>> X-Loader 1.41
->>> U-Boot 2009.08 (Oct 09 2009 - 15:59:45)
->>> Latest omap-om git pull (b7ecc865c5f0885fae4c4401fa78a24084f45c40).
->>>
->>
->> That's the latest commit.
->>
->> But I haven't (intentionally) pushed anything to fix that serial iss=
-ue yet.
->> =A0Which commit are you referring to that should fix the issue?
->>
-> This one:
-> http://git.kernel.org/?p=3Dlinux/kernel/git/khilman/linux-omap-pm.git=
-;a=3Dcommit;h=3D6ef4035c4a04bab8d94d8b80fcb90ea7230b8126
->
-> Committed 5 days ago. It looked like it might have something to do wi=
-th this.
+'omap_pm_dsp_set_min_opp' & 'omap_pm_cpu_set_freq' were using their own
+struct device *. This is a problem because invoking these functions from
+different clients would result in setting of the resource level as requested by
+the last caller. Fixes this by introducing a struct device * to the parameter
+list for these functions.
+Signed-off-by: Romit Dasgupta <romit@ti.com>
+---
 
-Yeah, commited 5 days ago due to me rebasing, but if you look at the
-author date it's from a while back.
-
-> My bad. Please ignore the noise.
-
-No worries.
-
-Kevin
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/plat-omap/cpu-omap.c b/arch/arm/plat-omap/cpu-omap.c
+index 8e67861..e9adc67 100644
+--- a/arch/arm/plat-omap/cpu-omap.c
++++ b/arch/arm/plat-omap/cpu-omap.c
+@@ -47,6 +47,7 @@ static struct cpufreq_frequency_table *freq_table;
+ #define MPU_CLK		"virt_prcm_set"
+ #endif
+ 
++DEFINE_PER_CPU(struct device , cpu_freq_dev);
+ static struct clk *mpu_clk;
+ 
+ /* TODO: Add support for SDRAM timing changes */
+@@ -115,8 +116,9 @@ static int omap_target(struct cpufreq_policy *policy,
+ 		int ind;
+ 		for (ind = 1; ind <= MAX_VDD1_OPP; ind++) {
+ 			if (mpu_opps[ind].rate/1000 >= target_freq) {
+-				omap_pm_cpu_set_freq
+-					(mpu_opps[ind].rate);
++				omap_pm_cpu_set_freq(
++					&__get_cpu_var(cpu_freq_dev),
++					mpu_opps[ind].rate);
+ 				break;
+ 			}
+ 		}
+diff --git a/arch/arm/plat-omap/include/mach/omap-pm.h b/arch/arm/plat-omap/include/mach/omap-pm.h
+index 583e540..5b26ba1 100644
+--- a/arch/arm/plat-omap/include/mach/omap-pm.h
++++ b/arch/arm/plat-omap/include/mach/omap-pm.h
+@@ -226,6 +226,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void);
+ 
+ /**
+  * omap_pm_dsp_set_min_opp - receive desired OPP target ID from DSP Bridge
++ * @dev: Identifies the client that wants to set the VDD1 OPP.
+  * @opp_id: target DSP OPP ID
+  *
+  * Set a minimum OPP ID for the DSP.  This is intended to be called
+@@ -233,7 +234,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void);
+  * information that code receives from the DSP/BIOS load estimator is the
+  * target OPP ID; hence, this interface.  No return value.
+  */
+-void omap_pm_dsp_set_min_opp(u8 opp_id);
++void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id);
+ 
+ /**
+  * omap_pm_dsp_get_opp - report the current DSP OPP ID
+@@ -283,6 +284,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
+ 
+ /**
+  * omap_pm_cpu_set_freq - set the current minimum MPU frequency
++ * @dev: Identifies the client that wants to set the frequency.
+  * @f: MPU frequency in Hz
+  *
+  * Set the current minimum CPU frequency.  The actual CPU frequency
+@@ -290,7 +292,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void);
+  * Intended to be called by plat-omap/cpu_omap.c:omap_target().  No
+  * return value.
+  */
+-void omap_pm_cpu_set_freq(unsigned long f);
++void omap_pm_cpu_set_freq(struct device *dev, unsigned long f);
+ 
+ /**
+  * omap_pm_cpu_get_freq - report the current CPU frequency
+diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+index 10463a4..6546527 100644
+--- a/arch/arm/plat-omap/omap-pm-noop.c
++++ b/arch/arm/plat-omap/omap-pm-noop.c
+@@ -159,7 +159,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
+ }
+ EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
+ 
+-void omap_pm_dsp_set_min_opp(u8 opp_id)
++void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id)
+ {
+ 	if (opp_id == 0) {
+ 		WARN_ON(1);
+@@ -244,7 +244,7 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
+ 	return NULL;
+ }
+ 
+-void omap_pm_cpu_set_freq(unsigned long f)
++void omap_pm_cpu_set_freq(struct device *dev, unsigned long f)
+ {
+ 	if (f == 0) {
+ 		WARN_ON(1);
+diff --git a/arch/arm/plat-omap/omap-pm-srf.c b/arch/arm/plat-omap/omap-pm-srf.c
+index 4350650..aece740 100644
+--- a/arch/arm/plat-omap/omap-pm-srf.c
++++ b/arch/arm/plat-omap/omap-pm-srf.c
+@@ -169,8 +169,6 @@ void omap_pm_set_max_sdma_lat(struct device *dev, long t)
+ 	}
+ }
+ 
+-static struct device dummy_dsp_dev;
+-
+ /*
+  * DSP Bridge-specific constraints
+  */
+@@ -187,20 +185,15 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
+ }
+ EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
+ 
+-void omap_pm_dsp_set_min_opp(u8 opp_id)
++void omap_pm_dsp_set_min_opp(struct device *dev, u8 opp_id)
+ {
+-	if (opp_id == 0) {
++	if (dev == NULL || opp_id == 0) {
+ 		WARN_ON(1);
+ 		return;
+ 	}
+ 
+ 	pr_debug("OMAP PM: DSP requests minimum VDD1 OPP to be %d\n", opp_id);
+-
+-	/*
+-	 * For now pass a dummy_dev struct for SRF to identify the caller.
+-	 * Maybe its good to have DSP pass this as an argument
+-	 */
+-	resource_request("vdd1_opp", &dummy_dsp_dev, opp_id);
++	resource_request("vdd1_opp", dev, opp_id);
+ 	return;
+ }
+ EXPORT_SYMBOL(omap_pm_dsp_set_min_opp);
+@@ -246,19 +239,16 @@ struct cpufreq_frequency_table **omap_pm_cpu_get_freq_table(void)
+ 	return NULL;
+ }
+ 
+-static struct device dummy_cpufreq_dev;
+-
+-void omap_pm_cpu_set_freq(unsigned long f)
++void omap_pm_cpu_set_freq(struct device *dev, unsigned long f)
+ {
+-	if (f == 0) {
++	if (dev == NULL || f == 0) {
+ 		WARN_ON(1);
+ 		return;
+ 	}
+ 
+ 	pr_debug("OMAP PM: CPUFreq requests CPU frequency to be set to %lu\n",
+ 		 f);
+-
+-	resource_request("mpu_freq", &dummy_cpufreq_dev, f);
++	resource_request("mpu_freq", dev, f);
+ 	return;
+ }
+ EXPORT_SYMBOL(omap_pm_cpu_set_freq);
