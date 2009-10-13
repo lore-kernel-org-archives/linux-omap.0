@@ -1,71 +1,104 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3 PM restore observability settings after off mode
-Date: Tue, 13 Oct 2009 14:08:39 -0700
-Message-ID: <877huzhui0.fsf@deeprootsystems.com>
-References: <1255359790-10407-1-git-send-email-peter.de-schrijver@nokia.com>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: Discussion: OMAP: PM: opp table handling
+Date: Wed, 14 Oct 2009 02:38:28 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDE20C1B@dbde02.ent.ti.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702FA0D3D0D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f180.google.com ([209.85.216.180]:53138 "EHLO
-	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760528AbZJMVJR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 17:09:17 -0400
-Received: by pxi10 with SMTP id 10so243877pxi.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 14:08:41 -0700 (PDT)
-In-Reply-To: <1255359790-10407-1-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Mon\, 12 Oct 2009 18\:03\:10 +0300")
+Received: from devils.ext.ti.com ([198.47.26.153]:60211 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753129AbZJMVJK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 17:09:10 -0400
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA0D3D0D@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "Nataraju, Kiran" <knataraju@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Joshi, Rhishi" <rhishi@ti.com>, "Giles, Rick" <rgiles@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
-"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
+> -----Original Message-----
+> From: Pandita, Vikram 
+> Sent: Wednesday, October 14, 2009 1:53 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Kevin Hilman; Menon, Nishanth; Nataraju, Kiran; Premi, 
+> Sanjeev; Shilimkar, Santosh; Chikkature Rajashekar, 
+> Madhusudhan; Tony Lindgren; Sawant, Anand; Joshi, Rhishi; 
+> Giles, Rick; Sripathy, Vishwanath; Paul Walmsley; Cousson, 
+> Benoit; Nayak, Rajendra
+> Subject: Discussion: OMAP: PM: opp table handling
+> 
+> 
+> Proposals for OPP table handling for OMAP34xx/35xx/36xx/44xx
+> 
+> Thanks to all the community members for taking time for this 
+> discussion. 
+> This will aid upsteaming of 35xx/36xx/44xx in coming future.
+> 
+> Attendees: Kevin Hilman, Paul, Nishant M, Santosh, Madhu, 
+> Benoit, Rajendra, Benoit, Vikram
+[sp] Adding myself to attendees
+~sanjeev
 
-> This patch restores the observability settings after resuming from off mode.
->
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-
-I decided not to pull this one into PM branch, because...
-
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 553fe02..20c7ea2 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -42,6 +42,7 @@
->  #include <mach/dma.h>
->  #include <mach/gpmc.h>
->  #include <mach/dma.h>
-> +#include <mach/debobs.h>
->  #include <asm/tlbflush.h>
->  
->  #include "cm.h"
-> @@ -124,6 +125,9 @@ static void omap3_core_restore_context(void)
->  	/* Restore the interrupt controller context */
->  	omap3_intc_restore_context();
->  	omap_dma_global_context_restore();
-> +	/* restore debobs context */
-> +	debobs_restore();
-> +
-
-of compile failure when CONFIG_PM_DEBOBS is not enabled.
-
-And, debobs should now go upstream indepenent of PM branch.
-
-When I posted my PM debug series for the last merge window, I
-originally included the debobs series.  It recieved some comments on
-the list that need to be addressed before this can go upstream.
-
-Now that the main PM debug stuff is in mainline, this series has no
-more dependencies on the PM branch.  I think you should address the
-the comments/questions raised on the list[1,2] and resubmit as a
-series against mainline.
-
-A quick test shows that the current set of 3 debobs patches currently
-in the PM branch rebase easily against omap/master so should be easy
-to rework for upstream acceptance.
-
-Thanks,
-
-Kevin
-
-[1] http://marc.info/?l=linux-omap&m=125049645823777&w=2
-[2] http://marc.info/?l=linux-omap&m=125049651623911&w=2
+> 
+> Problem Statement:
+> 	OMAP34xx has certain opp requirements (3420/3430/3440)
+> 	OMAP35xx reuses the opp's from 34xx
+> 	OMAP36xx has a totally new set of opps
+> 	OMAP44xx has a totally new set of opps
+> 
+> Solution: 
+> 	Align on a common approach to take for the Opp table 
+> definitions.
+> 
+> Define Separate Tables for each family as follows:
+> Step 1: Go with this approach:
+> 	3420(65nm) 		: new arrays [defer for now]
+> 	3430/35xx(65nm) 	: new arrays **
+> 	3440(65nm) 		: new arrays [defer for now]
+> 	3630(45nm) 		: new arrays
+> 	Omap4(45nm)		: new arrays
+> 
+> 	* new arrays = (mpu, dsp, l3)
+> 	** Check this valid flag. Kevin can take this base on comments
+> 		http://marc.info/?l=linux-omap&m=125512448216071&w=2
+> 		between 3430/35xx, opp's can be managed with a 
+> flag and same table re-used
+> 		35xx has requirement for 720Mhz opp
+> 
+> Step 2:
+> Kevin suggestion:
+> Define accessor APIs get the OPPs
+> Check Users of accessor API
+> 	DVFS
+> 	constraints
+> 	sysfs debug
+> 	Define accessor api's eg:
+> 		index = get_opp(VDD1_OPP1);
+> 		num = get_max_opp(VDD1);
+> 		set_opp(index);
+> 
+> Step 3: 
+> 	Paul suggestion:
+> 	VSEL values in opp table should be in terms of voltage
+> 	Non TWL IC's need this
+> 
+> Step4:
+> 	Paul suggestion:
+> 	VDD1 VDD2 dependencies for different chips
+> 	Inter-connect load predictor is absent on omap3 and 
+> hence VDD1-vdd2 dependency
+> 	OMAP4
+> 		interconnect loading can be measured from registers
+> 		Multi-cores dependency
+> 
+> Step 5:
+> 	Paul suggestion:
+> 	Board files adding OPPs, Modifying OPPs
+> 	Eg: Pendora passing its own opp 
+> 
+> 
+> Regards,
+> Vikram 
+> 
