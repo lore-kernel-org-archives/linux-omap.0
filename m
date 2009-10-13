@@ -1,37 +1,39 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] omap3: ehci: trivial fix of a debug print
-Date: Tue, 13 Oct 2009 14:20:25 -0400
-Message-ID: <notify-1255457980@atomide.com>
-References: <1255368020-23659-1-git-send-email-gadiyar@ti.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: [PATCH] rx51: add wl1251 wlan driver support
+Date: Tue, 13 Oct 2009 21:16:57 +0300
+Message-ID: <87ljjfnopy.fsf@purkki.valot.fi>
+References: <20091013165812.1623.66247.stgit@tikku>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59870 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189AbZJMSUZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 14:20:25 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1MxlyJ-0002v0-6s
-	for linux-omap@vger.kernel.org; Tue, 13 Oct 2009 18:19:43 +0000
-In-Reply-To: <1255368020-23659-1-git-send-email-gadiyar@ti.com>
-Content-Disposition: inline
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:35991 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752468AbZJMSRg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 14:17:36 -0400
+In-Reply-To: <20091013165812.1623.66247.stgit@tikku> (Kalle Valo's message of "Tue\, 13 Oct 2009 19\:58\:13 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: linux-wireless@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+Kalle Valo <kalle.valo@iki.fi> writes:
 
-Branch in linux-omap: ehci
+> From: Kalle Valo <kalle.valo@nokia.com>
+>
+> wl1251 is connected to the SPI bus in rx51, add support for this.
+>
+> Signed-off-by: Kalle Valo <kalle.valo@nokia.com>
 
-Initial commit ID (Likely to change): 8499e54cb25e8d9d16e97e17b0da145d8ed32577
+This is intended for 2.6.33. Also to really work it needs this patch:
 
-PatchWorks
-http://patchwork.kernel.org/patch/53179/
+wl1251: rename spi device to wl1251
+http://www.spinics.net/lists/linux-wireless/msg40740.html
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=8499e54cb25e8d9d16e97e17b0da145d8ed32577
+The patch should be in wireless-testing within next few days and
+finally it will go to 2.6.33.
 
+(Please note that the two patches have no compile time dependency so
+they can go to mainline via separate trees.)
 
+-- 
+Kalle Valo
