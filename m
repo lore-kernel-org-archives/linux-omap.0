@@ -1,93 +1,61 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP35x: Add support for 720MHz part
-Date: Tue, 13 Oct 2009 12:14:20 -0700
-Message-ID: <874oq3ksxf.fsf@deeprootsystems.com>
-References: <1255351453-9023-1-git-send-email-premi@ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] omap: Fix 35xx detection (Re: [PATCH] [RFC] omap:
+	3630: default cpu_is_omap3630 to zero)
+Date: Tue, 13 Oct 2009 12:09:34 -0700
+Message-ID: <20091013190934.GX12700@atomide.com>
+References: <1255380685-26765-1-git-send-email-vikram.pandita@ti.com> <20091013171814.GT12700@atomide.com> <20091013173233.GU12700@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f180.google.com ([209.85.216.180]:47296 "EHLO
-	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761049AbZJMTPe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 15:15:34 -0400
-Received: by pxi10 with SMTP id 10so162618pxi.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 12:14:22 -0700 (PDT)
-In-Reply-To: <1255351453-9023-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Mon\, 12 Oct 2009 18\:14\:09 +0530")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56209 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760514AbZJMTKT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 15:10:19 -0400
+Content-Disposition: inline
+In-Reply-To: <20091013173233.GU12700@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Vikram Pandita <vikram.pandita@ti.com>
+Cc: nm@ti.com, linux-omap@vger.kernel.org
 
-Sanjeev Premi <premi@ti.com> writes:
+* Tony Lindgren <tony@atomide.com> [091013 11:01]:
+> * Tony Lindgren <tony@atomide.com> [091013 10:18]:
+> > * Vikram Pandita <vikram.pandita@ti.com> [091012 14:31]:
+> > > make default cpu_is_omap3630() return zero
+> > > 
+> > > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+> > > ---
+> > >  arch/arm/plat-omap/include/mach/cpu.h |    2 ++
+> > >  1 files changed, 2 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+> > > index da9e8f8..940946e 100644
+> > > --- a/arch/arm/plat-omap/include/mach/cpu.h
+> > > +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> > > @@ -322,6 +322,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+> > >  #define cpu_is_omap2423()		0
+> > >  #define cpu_is_omap2430()		0
+> > >  #define cpu_is_omap3430()		0
+> > > +#define cpu_is_omap3630()		0
+> > >  
+> > >  /*
+> > >   * Whether we have MULTI_OMAP1 or not, we still need to distinguish
+> > > @@ -386,6 +387,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+> > >  						(omap3_has_sgx()) &	\
+> > >  						(!omap3_has_iva()))
+> > >  # define cpu_is_omap3530		(cpu_is_omap3430())
+> > > +# undef cpu_is_omap3630()
+> > >  # define cpu_is_omap3630()		is_omap363x()
+> > >  #endif
+> > 
+> > This undef should be just undef cpu_is_omap3630 instead of
+> > cpu_is_omap3630().
+> 
+> Also looking at the 35xx detection code, should it not be like this?
 
-> This patch adds support for ARM running at 720MHz part.
->
-> The 720MHz capability can be probed run-time by reading the
-> PRODID.SKUID[3:0] at 0x4830A20C.
->
->   [1] http://focus.ti.com/lit/ug/spruff1d/spruff1d.pdf
->
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
->
-> ---
->  arch/arm/mach-omap2/clock34xx.c           |    6 ++++++
->  arch/arm/mach-omap2/id.c                  |   11 +++++++++++
->  arch/arm/plat-omap/include/mach/control.h |    7 +++++++
->  arch/arm/plat-omap/include/mach/cpu.h     |    2 ++
->  4 files changed, 26 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-> index 489556e..9b56af3 100644
-> --- a/arch/arm/mach-omap2/clock34xx.c
-> +++ b/arch/arm/mach-omap2/clock34xx.c
-> @@ -1096,6 +1096,12 @@ static int __init omap2_clk_arch_init(void)
->  	if (!mpurate)
->  		return -EINVAL;
->  
-> +	if ((mpurate == 720000000) && !omap3_has_720mhz()) {
-> +		printk(KERN_ERR "*** Silicon doesn't support 720MHz\n");
-> +
-> +		mpurate = 600000000;  /* Set to highest supported */
-> +	}
-> +
+I've merged all these fixes into the 35xx and 36xx detection patches
+in omap for-next branch, can you guys please check?
 
-This is very platform specific check here.  We're not checking for any
-other valid mpurate values here. I think we should leave it to the
-(forthcoming) OPP layer to to validate the frequency etc. 
+Regards,
 
-I recommend just dropping the clock34xx.c changes and posting a patch
-which just adds the new speed as a feature.
-
->  	/* REVISIT: not yet ready for 343x */
->  	if (clk_set_rate(&dpll1_ck, mpurate))
->  		printk(KERN_ERR "*** Unable to set MPU rate\n");
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index d4d563b..e0b427a 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -79,6 +79,7 @@ EXPORT_SYMBOL(omap_type);
->  #define OMAP_TAP_DIE_ID_2	0x0220
->  #define OMAP_TAP_DIE_ID_3	0x0224
->  
-> +
-
-stray whitespace change
-
->  #define read_tap_reg(reg)	__raw_readl(tap_base  + (reg))
->  
->  struct omap_id {
-> @@ -180,6 +181,15 @@ void __init omap3_check_features(void)
->  	 * TODO: Get additional info (where applicable)
->  	 *       e.g. Size of L2 cache.
->  	 */
-> +
-> +	/*
-> +	 * Does it support 720MHz?
-> +	 */
-> +	status = (OMAP3_SKUID_MASK & read_tap_reg(OMAP3_PRODID));
-> +
-
-Some comment here that the runtime detection of this feature is only
-available on 35xx parts would be useful too.
-
-Kevin
+Tony
