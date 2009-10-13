@@ -1,104 +1,95 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: Discussion: OMAP: PM: opp table handling
-Date: Wed, 14 Oct 2009 02:38:28 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DDE20C1B@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA0D3D0D@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: FEATURES prints
+Date: Tue, 13 Oct 2009 14:46:47 -0700
+Message-ID: <87ws2zge60.fsf@deeprootsystems.com>
+References: <4ACE39CC.1070906@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60211 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753129AbZJMVJK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 17:09:10 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA0D3D0D@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:63432 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291AbZJMVsA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 17:48:00 -0400
+Received: by pzk26 with SMTP id 26so9372734pzk.4
+        for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 14:46:49 -0700 (PDT)
+In-Reply-To: <4ACE39CC.1070906@ti.com> (Nishanth Menon's message of "Thu\, 8 Oct 2009 14\:13\:16 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "Nataraju, Kiran" <knataraju@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Joshi, Rhishi" <rhishi@ti.com>, "Giles, Rick" <rgiles@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, "Cousson, Benoit" <b-cousson@ti.com>, "Nayak, Rajendra" <rnayak@ti.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Pandita, Vikram 
-> Sent: Wednesday, October 14, 2009 1:53 AM
-> To: linux-omap@vger.kernel.org
-> Cc: Kevin Hilman; Menon, Nishanth; Nataraju, Kiran; Premi, 
-> Sanjeev; Shilimkar, Santosh; Chikkature Rajashekar, 
-> Madhusudhan; Tony Lindgren; Sawant, Anand; Joshi, Rhishi; 
-> Giles, Rick; Sripathy, Vishwanath; Paul Walmsley; Cousson, 
-> Benoit; Nayak, Rajendra
-> Subject: Discussion: OMAP: PM: opp table handling
-> 
-> 
-> Proposals for OPP table handling for OMAP34xx/35xx/36xx/44xx
-> 
-> Thanks to all the community members for taking time for this 
-> discussion. 
-> This will aid upsteaming of 35xx/36xx/44xx in coming future.
-> 
-> Attendees: Kevin Hilman, Paul, Nishant M, Santosh, Madhu, 
-> Benoit, Rajendra, Benoit, Vikram
-[sp] Adding myself to attendees
-~sanjeev
+Nishanth Menon <nm@ti.com> writes:
 
-> 
-> Problem Statement:
-> 	OMAP34xx has certain opp requirements (3420/3430/3440)
-> 	OMAP35xx reuses the opp's from 34xx
-> 	OMAP36xx has a totally new set of opps
-> 	OMAP44xx has a totally new set of opps
-> 
-> Solution: 
-> 	Align on a common approach to take for the Opp table 
-> definitions.
-> 
-> Define Separate Tables for each family as follows:
-> Step 1: Go with this approach:
-> 	3420(65nm) 		: new arrays [defer for now]
-> 	3430/35xx(65nm) 	: new arrays **
-> 	3440(65nm) 		: new arrays [defer for now]
-> 	3630(45nm) 		: new arrays
-> 	Omap4(45nm)		: new arrays
-> 
-> 	* new arrays = (mpu, dsp, l3)
-> 	** Check this valid flag. Kevin can take this base on comments
-> 		http://marc.info/?l=linux-omap&m=125512448216071&w=2
-> 		between 3430/35xx, opp's can be managed with a 
-> flag and same table re-used
-> 		35xx has requirement for 720Mhz opp
-> 
-> Step 2:
-> Kevin suggestion:
-> Define accessor APIs get the OPPs
-> Check Users of accessor API
-> 	DVFS
-> 	constraints
-> 	sysfs debug
-> 	Define accessor api's eg:
-> 		index = get_opp(VDD1_OPP1);
-> 		num = get_max_opp(VDD1);
-> 		set_opp(index);
-> 
-> Step 3: 
-> 	Paul suggestion:
-> 	VSEL values in opp table should be in terms of voltage
-> 	Non TWL IC's need this
-> 
-> Step4:
-> 	Paul suggestion:
-> 	VDD1 VDD2 dependencies for different chips
-> 	Inter-connect load predictor is absent on omap3 and 
-> hence VDD1-vdd2 dependency
-> 	OMAP4
-> 		interconnect loading can be measured from registers
-> 		Multi-cores dependency
-> 
-> Step 5:
-> 	Paul suggestion:
-> 	Board files adding OPPs, Modifying OPPs
-> 	Eg: Pendora passing its own opp 
-> 
-> 
-> Regards,
-> Vikram 
-> 
+> Folks,
+>
+> With the addition of FEATURES in l-o, the following prints:
+>  - l2cache : Y
+>  - iva : Y
+>  - sgx : Y
+>  - neon : Y
+>  - isp : Y
+>
+> comes up on SDP3430 -> now that we will introduce half a dozen
+> features here and there, we will soon clutter this up. we should
+> introduce a sysfs entry + remove the above noise..
+>
+
+Like Nishanth, I don't like the multi-line noise here.  The patch
+below results in a single line output like this instead
+
+OMAP3430/3530 ES3.0 (l2cache iva sgx neon isp )
+
+Not sure why we need to dump features that are not there, but if that
+s considered important, maybe prefixing each feature with a '+' or '-'
+would still allow this to be collapsed into a single line.
+
+Even with this, I think adding the display of these features into an
+OMAP-specific section of /proc/cpuinfo would be even better.
+
+Comments?
+
+Kevin
+
+
+commit 24f7422bad970cea2ed71d71e3994eeed70f175f
+Author: Kevin Hilman <khilman@deeprootsystems.com>
+Date:   Tue Oct 13 14:42:00 2009 -0700
+
+    OMAP3: collapse chip feature prints to single line
+    
+    Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 71d5568..b90fcf1 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -249,11 +249,8 @@ void __init omap3_check_revision(void)
+ }
+ 
+ #define OMAP3_SHOW_FEATURE(feat)		\
+-	if (omap3_has_ ##feat()) {		\
+-		pr_info (" - "#feat" : Y");	\
+-	} else {				\
+-		pr_info (" - "#feat" : N");	\
+-	}
++	if (omap3_has_ ##feat())		\
++		printk (#feat" ");      	\
+ 
+ void __init omap3_cpuinfo(void)
+ {
+@@ -307,13 +304,14 @@ void __init omap3_cpuinfo(void)
+ 	/*
+ 	 * Print verbose information
+ 	 */
+-	pr_info("OMAP%s ES%s\n", cpu_name, cpu_rev);
++	pr_info("OMAP%s ES%s (", cpu_name, cpu_rev);
+ 
+ 	OMAP3_SHOW_FEATURE(l2cache);
+ 	OMAP3_SHOW_FEATURE(iva);
+ 	OMAP3_SHOW_FEATURE(sgx);
+ 	OMAP3_SHOW_FEATURE(neon);
+ 	OMAP3_SHOW_FEATURE(isp);
++	printk(")\n");
+ }
+ 
+ /*
