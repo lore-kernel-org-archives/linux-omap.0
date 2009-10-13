@@ -1,90 +1,48 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: RE: [PATCH 1/1] OMAP: DSS2: RFBI driver update
-Date: Tue, 13 Oct 2009 10:56:14 +0300
-Message-ID: <1255420574.27268.11.camel@tubuntu>
-References: <1255122529-1721-1-git-send-email-mlc@ti.com>
-	 <1255335927.4624.26.camel@tubuntu>
-	 <E49DAF743FB3E9469ED423C0D3DB5F1CCEF3F692@dnce01.ent.ti.com>
-	 <1255357047.27268.4.camel@tubuntu>
-	 <E49DAF743FB3E9469ED423C0D3DB5F1CCEF3F75A@dnce01.ent.ti.com>
-Reply-To: tomi.valkeinen@nokia.com
+From: epsi@gmx.de
+Subject: Re: RE: Memory performance / Cache problem
+Date: Tue, 13 Oct 2009 10:16:51 +0200
+Message-ID: <20091013081651.300080@gmx.net>
+References: <20091012083806.323990@gmx.net>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DDE1FF2C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:35228 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780AbZJMH6H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 03:58:07 -0400
-In-Reply-To: <E49DAF743FB3E9469ED423C0D3DB5F1CCEF3F75A@dnce01.ent.ti.com>
+Received: from mail.gmx.net ([213.165.64.20]:43883 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S933642AbZJMIRk (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 13 Oct 2009 04:17:40 -0400
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDE1FF2C@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Christensen, Mikkel" <mlc@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>, linux-omap@vger.kernel.org
 
-On Mon, 2009-10-12 at 17:25 +0200, ext Christensen, Mikkel wrote:
-> On Mon, Oct 12, 2009 at 09:17:27, Tomi Valkeinen wrote:
-> > Subject: RE: [PATCH 1/1] OMAP: DSS2: RFBI driver update
-> > 
-> > On Mon, 2009-10-12 at 16:03 +0200, ext Christensen, Mikkel wrote:
-> > > On Mon, Oct 12, 2009 at 03:25:27, Tomi Valkeinen wrote:
-> > > > Subject: Re: [PATCH 1/1] OMAP: DSS2: RFBI driver update
-> > > > 
-> > > > On Fri, 2009-10-09 at 23:08 +0200, ext Mikkel Christensen wrote:
-> > > > > This patch adds suspend / resume functionality to the RFBI
-> > > > driver along with missing callback functions needed by OMAP Frame 
-> > > > buffer.
-> > > > > 
-> > > > > Signed-off-by: Mikkel Christensen <mlc@ti.com>
-> > > > > ---
-> > > > >  drivers/video/omap2/dss/rfbi.c |   76 
-> > > > ++++++++++++++++++++++++++++++++++++++++
-> > > > >  1 files changed, 76 insertions(+), 0 deletions(-)
-> > > > > 
-> > 
-> > snip
-> > 
-> > > > > +static int rfbi_display_suspend(struct omap_dss_device
-> > *dssdev) {
-> > > > > +	unsigned long l;
-> > > > > +
-> > > > > +	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
-> > > > > +		return -EINVAL;
-> > > > > +
-> > > > > +	DSSDBG("rfbi_display_suspend\n");
-> > > > > +
-> > > > > +	if (dssdev->driver->suspend)
-> > > > > +		dssdev->driver->suspend(dssdev);
-> > > > > +
-> > > > > +	dispc_enable_lcd_out(0);
-> > > > 
-> > > > I don't think this is needed. DSS hardware disables
-> > lcd_out when the
-> > > > transfer has finished. Although for correct operation suspend() 
-> > > > should wait until the last transfer has been done before
-> > disabling
-> > > > clocks, which is something it currently doesn't.
-> > > 
-> > > This was done with reference to the DPI and SDI files that
-> > do the same thing. It can be removed if not necessary.  
-> > 
-> > DPI and SDI work quite differently than RFBI, you can't just copy 
-> > their functionality =).
-> > 
-> > It is more correct without disable/enable_lcd_out, but it's not 
-> > correct as there may be a transfer ongoing when suspend call comes. 
-> > That's why there should be some mechanism to wait until the transfer 
-> > has been done.
-> > DSI tries to do this (and hopefully correctly does =).
-> 
-> OK. Thanks I will try to incorporate this. Where in the DSI driver is this mechanism implemented?
+>=20
+> Can you upgrade to a newer u-boot? Either from the PSP release
+> OR u-boot tree hosted at git.denx.de (atleast 2009.03)?
+>=20
+> Also, it will be good to see the sample program you are using.
+>=20
+> ~sanjeev
+>=20
 
-It's the dsi_bus_lock mechanism. But it doesn't work as such for RFBI,
-because the DSI uses a bit different mechanism for updates. But somehow
-the suspend function needs to wait until the transfer has been
-completed, and suspend only after that (and also make sure that no new
-transfer starts before the suspend).
+There is no newer u-boot from TI available. There is a SDK 02.01.03.11
+but it contains the same uboot 2008.10 with the only addition of the se=
+cond generation of EVM boards with another network chip.
 
- Tomi
+So I checked the uboot from git, but this doesn't support Microns NAND =
+=46lash anymore. It is just working with ONENAND.
 
+I found a patch which shows the L2 Cache status while kernel boot and i=
+mplemented it : L2 Cache seems to be already enabled - so this is not t=
+he reason.
 
+So any other ideas?=20
+--=20
+GRATIS f=FCr alle GMX-Mitglieder: Die maxdome Movie-FLAT!
+Jetzt freischalten unter http://portal.gmx.net/de/go/maxdome01
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
