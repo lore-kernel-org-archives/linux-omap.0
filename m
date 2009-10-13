@@ -1,68 +1,145 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: Broken cpuidle on PM branch?
-Date: Tue, 13 Oct 2009 09:25:17 -0700
-Message-ID: <87r5t7mfbm.fsf@deeprootsystems.com>
-References: <20091012192347.GI32041@smtp.gmail.com>
-	<20091013133151.GA8028@esdhcp037198.research.nokia.com>
+From: Kalle Valo <kalle.valo-X3B1VOXEql0@public.gmane.org>
+Subject: [PATCH] rx51: add wl1251 wlan driver support
+Date: Tue, 13 Oct 2009 19:58:13 +0300
+Message-ID: <20091013165812.1623.66247.stgit@tikku>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:52789 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757588AbZJMQ0b (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 12:26:31 -0400
-Received: by pzk26 with SMTP id 26so9113483pzk.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 09:25:19 -0700 (PDT)
-In-Reply-To: <20091013133151.GA8028@esdhcp037198.research.nokia.com> (Eduardo Valentin's message of "Tue\, 13 Oct 2009 16\:31\:51 +0300")
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: eduardo.valentin@nokia.com
-Cc: linux-omap@vger.kernel.org
 
-Eduardo Valentin <eduardo.valentin@nokia.com> writes:
+From: Kalle Valo <kalle.valo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
 
-> Hello Amit,
->
-> On Mon, Oct 12, 2009 at 09:23:47PM +0200, ext Amit Kucheria wrote:
->> Hi,
->> 
->> I am testing twl4030 script optimisations on the current PM branch. But I am
->> seeing the board (RX51) freeze when CPU_IDLE is enabled in the config.
->> 
->> Is it known to work on other boards?
->
-> I'm actually seeing this same behavior. But the board actually does not
-> freeze. If you keep a key pressed of send a sysrq through serial line
-> then you eventually get it back.
->
-> It seams to be something related to serial driver and wakeup ?
->
+wl1251 is connected to the SPI bus in rx51, add support for this.
 
-Do you see this problem after doing
+Signed-off-by: Kalle Valo <kalle.valo-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+---
 
-  # echo 1 > /debug/pm_debug/sleep_while_idle
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   85 ++++++++++++++++++++++++++
+ 1 files changed, 85 insertions(+), 0 deletions(-)
 
-?  There is a known problem with the UART inactivity timer that I'm
-debugging currently.
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index c1af532..ccb8656 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -13,6 +13,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+ #include <linux/spi/spi.h>
++#include <linux/spi/wl12xx.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/twl4030.h>
+ #include <linux/clk.h>
+@@ -36,6 +37,37 @@
+ #define SYSTEM_REV_B_USES_VAUX3	0x1699
+ #define SYSTEM_REV_S_USES_VAUX3 0x8
+ 
++#define RX51_WL1251_POWER_GPIO		87
++#define RX51_WL1251_IRQ_GPIO		42
++
++static void rx51_wl1251_set_power(bool enable);
++
++static struct wl12xx_platform_data wl1251_pdata = {
++	.set_power = rx51_wl1251_set_power,
++};
++
++static struct omap2_mcspi_device_config wl1251_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,
++};
++
++/* list all spi devices here */
++enum {
++	RX51_SPI_WL1251,
++};
++
++static struct spi_board_info rx51_peripherals_spi_board_info[] = {
++	[RX51_SPI_WL1251] = {
++		.modalias		= "wl1251",
++		.bus_num		= 4,
++		.chip_select		= 0,
++		.max_speed_hz   	= 48000000,
++		.mode                   = SPI_MODE_2,
++		.controller_data	= &wl1251_mcspi_config,
++		.platform_data		= &wl1251_pdata,
++	},
++};
++
+ static int board_keymap[] = {
+ 	KEY(0, 0, KEY_Q),
+ 	KEY(0, 1, KEY_O),
+@@ -257,6 +289,55 @@ static struct regulator_init_data rx51_vdac = {
+ 	},
+ };
+ 
++static void rx51_wl1251_set_power(bool enable)
++{
++	gpio_set_value(RX51_WL1251_POWER_GPIO, enable);
++}
++
++static void __init rx51_init_wl1251(void)
++{
++	int irq, ret;
++
++	ret = gpio_request(RX51_WL1251_POWER_GPIO, "wl1251 power");
++	if (ret < 0)
++		goto error;
++
++	ret = gpio_direction_output(RX51_WL1251_POWER_GPIO, 0);
++	if (ret < 0)
++		goto err_power;
++
++	ret = gpio_request(RX51_WL1251_IRQ_GPIO, "wl1251 irq");
++	if (ret < 0)
++		goto err_power;
++
++	ret = gpio_direction_input(RX51_WL1251_IRQ_GPIO);
++	if (ret < 0)
++		goto err_irq;
++
++	irq = gpio_to_irq(RX51_WL1251_IRQ_GPIO);
++	if (irq < 0)
++		goto err_irq;
++
++	rx51_peripherals_spi_board_info[RX51_SPI_WL1251].irq = irq;
++
++	return;
++
++err_irq:
++	gpio_free(RX51_WL1251_IRQ_GPIO);
++
++err_power:
++	gpio_free(RX51_WL1251_POWER_GPIO);
++
++error:
++	printk(KERN_ERR "wl1251 board initialisation failed\n");
++	wl1251_pdata.set_power = NULL;
++
++	/*
++	 * Now rx51_peripherals_spi_board_info[1].irq is zero and
++	 * set_power is null, and wl1251_probe() will fail.
++	 */
++}
++
+ static int rx51_twlgpio_setup(struct device *dev, unsigned gpio, unsigned n)
+ {
+ 	/* FIXME this gpio setup is just a placeholder for now */
+@@ -538,6 +619,10 @@ static inline void board_smc91x_init(void)
+ 
+ void __init rx51_peripherals_init(void)
+ {
++	rx51_init_wl1251();
++
++	spi_register_board_info(rx51_peripherals_spi_board_info,
++				ARRAY_SIZE(rx51_peripherals_spi_board_info));
+ 	rx51_i2c_init();
+ 	board_onenand_init();
+ 	board_smc91x_init();
 
-Kevin
-
-
->> 
->> Regards,
->> Amit
->> -- 
->> -------------------------------------------------------------------------
->> Amit Kucheria,				 Kernel Developer, Verdurent
->> -------------------------------------------------------------------------
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> -- 
-> Eduardo Valentin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
