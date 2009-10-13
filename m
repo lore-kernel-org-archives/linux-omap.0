@@ -1,404 +1,263 @@
-From: Christopher Friedt <chrisfriedt@gmail.com>
-Subject: patch: add omap730 / omap850 rtc support
-Date: Tue, 13 Oct 2009 13:33:26 +0200
-Message-ID: <3ea34a000910130433i36a3ac7esc6b8e7c6588185f4@mail.gmail.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: ARM: SMP: BUG with PREEMPT enabled
+Date: Tue, 13 Oct 2009 17:33:19 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-yx0-f188.google.com ([209.85.210.188]:49518 "EHLO
-	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759233AbZJMLeD (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 07:34:03 -0400
-Received: by yxe26 with SMTP id 26so4224659yxe.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 04:33:26 -0700 (PDT)
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: multipart/mixed;
+	boundary="_002_EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8Ddbde02enttico_"
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-Christopher Friedt <chrisfriedt@gmail.com>
-20091013: Add support for the OMAP730 and OMAP850 RTC.
-==============================================================================
-diff --git a/drivers/rtc/rtc-omap.c b/drivers/rtc/rtc-omap.c
-index 0587d53..5163d67 100644
---- a/drivers/rtc/rtc-omap.c
-+++ b/drivers/rtc/rtc-omap.c
-@@ -22,6 +22,7 @@
- #include <linux/platform_device.h>
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8Ddbde02enttico_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
- #include <asm/io.h>
-+#include <mach/cpu.h>
+Russell,
+
+On the latest ARM kernel(v2.6.32-rc4),I have observed a BUG() dump when PRE=
+EMPT is enabled.
+Attached is the detailed log for your reference.
+
+<snip>
+**********************************************************
+BUG: using smp_processor_id() in preemptible [00000000] code: init/1
+caller is flush_tlb_mm+0x44/0x70
+Backtrace:=20
+[<c00225c4>] (dump_backtrace+0x0/0x110) from [<c01713a0>] (dump_stack+0x18/=
+0x1c)
+ r7:00000000 r6:c00234f0 r5:00000001 r4:c7828000
+[<c0171388>] (dump_stack+0x0/0x1c) from [<c0135364>] (debug_smp_processor_i=
+d+0xc0/0xf0)
+[<c01352a4>] (debug_smp_processor_id+0x0/0xf0) from [<c00234f0>] (flush_tlb=
+_mm+0x44/0x70)
+ r7:00000000 r6:c60b41a0 r5:c60b4154 r4:00000001
+[<c00234ac>] (flush_tlb_mm+0x0/0x70) from [<c0039568>] (dup_mm+0x304/0x38c)
+ r5:c1f09058 r4:00000000
+[<c0039264>] (dup_mm+0x0/0x38c) from [<c0039de4>] (copy_process+0x7b8/0xeb0=
+)
+[<c003962c>] (copy_process+0x0/0xeb0) from [<c003a638>] (do_fork+0x15c/0x29=
+c)
+[<c003a4dc>] (do_fork+0x0/0x29c) from [<c0021df0>] (sys_clone+0x34/0x3c)
+[<c0021dbc>] (sys_clone+0x0/0x3c) from [<c001efa0>] (ret_fast_syscall+0x0/0=
+x2c)
+**************************************************************
+
+As evident from the log " smp_processor_id " is used in preemptible code. T=
+his gets triggered from=20
+flush_tlb_mm() -->
+	local_flush_tlb_mm()
+	{
+		if (cpu_isset(smp_processor_id(), vma->vm_mm->cpu_vm_mask)) ^^
+	}
+
+This can be guuarded using "get_cpu/put_cpu" pair which can make it preempt=
+ion safe but I am not sure whether that is the right fix.
+
+Let me know your remarks !!
+
+Regards,
+Santosh
 
 
- /* The OMAP1 RTC is a year/month/day/hours/minutes/seconds BCD clock
-@@ -39,29 +40,80 @@
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8Ddbde02enttico_
+Content-Type: application/octet-stream; name="preempt.log"
+Content-Description: preempt.log
+Content-Disposition: attachment; filename="preempt.log"; size=9633;
+	creation-date="Tue, 13 Oct 2009 17:13:02 GMT";
+	modification-date="Tue, 13 Oct 2009 17:13:02 GMT"
+Content-Transfer-Encoding: base64
 
- #define OMAP_RTC_BASE			0xfffb4800
+UkFNRElTSzogZXh0MiBmaWxlc3lzdGVtIGZvdW5kIGF0IGJsb2NrIDANClJBTURJU0s6IExvYWRp
+bmcgMTYzODRLaUIgWzEgZGlza10gaW50byByYW0gZGlzay4uLiANCkVYVDItZnMgd2FybmluZzog
+bW91bnRpbmcgdW5jaGVja2VkIGZzLCBydW5uaW5nIGUyZnNjayBpcyByZWNvbW1lbmRlZA0KVkZT
+OiBNb3VudGVkIHJvb3QgKGV4dDIgZmlsZXN5c3RlbSkgb24gZGV2aWNlIDE6MC4NCkZyZWVpbmcg
+aW5pdCBtZW1vcnk6IDg4Sw0KQlVHOiB1c2luZyBzbXBfcHJvY2Vzc29yX2lkKCkgaW4gcHJlZW1w
+dGlibGUgWzAwMDAwMDAwXSBjb2RlOiBpbml0LzENCmNhbGxlciBpcyBmbHVzaF90bGJfbW0rMHg0
+NC8weDcwDQpCYWNrdHJhY2U6IA0KWzxjMDAyMjVjND5dIChkdW1wX2JhY2t0cmFjZSsweDAvMHgx
+MTApIGZyb20gWzxjMDE3MTNhMD5dIChkdW1wX3N0YWNrKzB4MTgvMHgxYykNCiByNzowMDAwMDAw
+MCByNjpjMDAyMzRmMCByNTowMDAwMDAwMSByNDpjNzgyODAwMA0KWzxjMDE3MTM4OD5dIChkdW1w
+X3N0YWNrKzB4MC8weDFjKSBmcm9tIFs8YzAxMzUzNjQ+XSAoZGVidWdfc21wX3Byb2Nlc3Nvcl9p
+ZCsweGMwLzB4ZjApDQpbPGMwMTM1MmE0Pl0gKGRlYnVnX3NtcF9wcm9jZXNzb3JfaWQrMHgwLzB4
+ZjApIGZyb20gWzxjMDAyMzRmMD5dIChmbHVzaF90bGJfbW0rMHg0NC8weDcwKQ0KIHI3OjAwMDAw
+MDAwIHI2OmM2MGI0MWEwIHI1OmM2MGI0MTU0IHI0OjAwMDAwMDAxDQpbPGMwMDIzNGFjPl0gKGZs
+dXNoX3RsYl9tbSsweDAvMHg3MCkgZnJvbSBbPGMwMDM5NTY4Pl0gKGR1cF9tbSsweDMwNC8weDM4
+YykNCiByNTpjMWYwOTA1OCByNDowMDAwMDAwMA0KWzxjMDAzOTI2ND5dIChkdXBfbW0rMHgwLzB4
+MzhjKSBmcm9tIFs8YzAwMzlkZTQ+XSAoY29weV9wcm9jZXNzKzB4N2I4LzB4ZWIwKQ0KWzxjMDAz
+OTYyYz5dIChjb3B5X3Byb2Nlc3MrMHgwLzB4ZWIwKSBmcm9tIFs8YzAwM2E2Mzg+XSAoZG9fZm9y
+aysweDE1Yy8weDI5YykNCls8YzAwM2E0ZGM+XSAoZG9fZm9yaysweDAvMHgyOWMpIGZyb20gWzxj
+MDAyMWRmMD5dIChzeXNfY2xvbmUrMHgzNC8weDNjKQ0KWzxjMDAyMWRiYz5dIChzeXNfY2xvbmUr
+MHgwLzB4M2MpIGZyb20gWzxjMDAxZWZhMD5dIChyZXRfZmFzdF9zeXNjYWxsKzB4MC8weDJjKQ0K
+QlVHOiB1c2luZyBzbXBfcHJvY2Vzc29yX2lkKCkgaW4gcHJlZW1wdGlibGUgWzAwMDAwMDAwXSBj
+b2RlOiBpbml0LzMxOQ0KY2FsbGVyIGlzIGZsdXNoX3RsYl9tbSsweDQ0LzB4NzANCkJhY2t0cmFj
+ZTogDQpbPGMwMDIyNWM0Pl0gKGR1bXBfYmFja3RyYWNlKzB4MC8weDExMCkgZnJvbSBbPGMwMTcx
+M2EwPl0gKGR1bXBfc3RhY2srMHgxOC8weDFjKQ0KIHI3OjAwMDAwMDAwIHI2OmMwMDIzNGYwIHI1
+OjAwMDAwMDAwIHI0OmM3ODk0MDAwDQpbPGMwMTcxMzg4Pl0gKGR1bXBfc3RhY2srMHgwLzB4MWMp
+IGZyb20gWzxjMDEzNTM2ND5dIChkZWJ1Z19zbXBfcHJvY2Vzc29yX2lkKzB4YzAvMHhmMCkNCls8
+YzAxMzUyYTQ+XSAoZGVidWdfc21wX3Byb2Nlc3Nvcl9pZCsweDAvMHhmMCkgZnJvbSBbPGMwMDIz
+NGYwPl0gKGZsdXNoX3RsYl9tbSsweDQ0LzB4NzApDQogcjc6MDAwMDAwMDAgcjY6YzYwY2MwMDAg
+cjU6YzYwYjQyZjQgcjQ6MDAwMDAwMDINCls8YzAwMjM0YWM+XSAoZmx1c2hfdGxiX21tKzB4MC8w
+eDcwKSBmcm9tIFs8YzAwMzk1Njg+XSAoZHVwX21tKzB4MzA0LzB4MzhjKQ0KIHI1OmM2MGM0N2U4
+IHI0OjAwMDAwMDAwDQpbPGMwMDM5MjY0Pl0gKGR1cF9tbSsweDAvMHgzOGMpIGZyb20gWzxjMDAz
+OWRlND5dIChjb3B5X3Byb2Nlc3MrMHg3YjgvMHhlYjApDQpbPGMwMDM5NjJjPl0gKGNvcHlfcHJv
+Y2VzcysweDAvMHhlYjApIGZyb20gWzxjMDAzYTYzOD5dIChkb19mb3JrKzB4MTVjLzB4MjljKQ0K
+WzxjMDAzYTRkYz5dIChkb19mb3JrKzB4MC8weDI5YykgZnJvbSBbPGMwMDIxZGYwPl0gKHN5c19j
+bG9uZSsweDM0LzB4M2MpDQpbPGMwMDIxZGJjPl0gKHN5c19jbG9uZSsweDAvMHgzYykgZnJvbSBb
+PGMwMDFlZmEwPl0gKHJldF9mYXN0X3N5c2NhbGwrMHgwLzB4MmMpDQpCVUc6IHVzaW5nIHNtcF9w
+cm9jZXNzb3JfaWQoKSBpbiBwcmVlbXB0aWJsZSBbMDAwMDAwMDBdIGNvZGU6IHJjUy8zMjANCmNh
+bGxlciBpcyBmbHVzaF90bGJfbW0rMHg0NC8weDcwDQpCYWNrdHJhY2U6IA0KWzxjMDAyMjVjND5d
+IChkdW1wX2JhY2t0cmFjZSsweDAvMHgxMTApIGZyb20gWzxjMDE3MTNhMD5dIChkdW1wX3N0YWNr
+KzB4MTgvMHgxYykNCiByNzowMDAwMDAwMCByNjpjMDAyMzRmMCByNTowMDAwMDAwMSByNDpjNjBj
+YTAwMA0KWzxjMDE3MTM4OD5dIChkdW1wX3N0YWNrKzB4MC8weDFjKSBmcm9tIFs8YzAxMzUzNjQ+
+XSAoZGVidWdfc21wX3Byb2Nlc3Nvcl9pZCsweGMwLzB4ZjApDQpbPGMwMTM1MmE0Pl0gKGRlYnVn
+X3NtcF9wcm9jZXNzb3JfaWQrMHgwLzB4ZjApIGZyb20gWzxjMDAyMzRmMD5dIChmbHVzaF90bGJf
+bW0rMHg0NC8weDcwKQ0KIHI3OjAwMDAwMDAwIHI2OmM2MGI0NGUwIHI1OmM2MGI0NDk0IHI0OjAw
+MDAwMDA0DQpbPGMwMDIzNGFjPl0gKGZsdXNoX3RsYl9tbSsweDAvMHg3MCkgZnJvbSBbPGMwMDM5
+NTY4Pl0gKGR1cF9tbSsweDMwNC8weDM4YykNCiByNTpjMWU3YzEwOCByNDowMDAwMDAwMA0KWzxj
+MDAzOTI2ND5dIChkdXBfbW0rMHgwLzB4MzhjKSBmcm9tIFs8YzAwMzlkZTQ+XSAoY29weV9wcm9j
+ZXNzKzB4N2I4LzB4ZWIwKQ0KWzxjMDAzOTYyYz5dIChjb3B5X3Byb2Nlc3MrMHgwLzB4ZWIwKSBm
+cm9tIFs8YzAwM2E2Mzg+XSAoZG9fZm9yaysweDE1Yy8weDI5YykNCls8YzAwM2E0ZGM+XSAoZG9f
+Zm9yaysweDAvMHgyOWMpIGZyb20gWzxjMDAyMWRmMD5dIChzeXNfY2xvbmUrMHgzNC8weDNjKQ0K
+WzxjMDAyMWRiYz5dIChzeXNfY2xvbmUrMHgwLzB4M2MpIGZyb20gWzxjMDAxZWZhMD5dIChyZXRf
+ZmFzdF9zeXNjYWxsKzB4MC8weDJjKQ0KQlVHOiB1c2luZyBzbXBfcHJvY2Vzc29yX2lkKCkgaW4g
+cHJlZW1wdGlibGUgWzAwMDAwMDAwXSBjb2RlOiByY1MvMzIwDQpjYWxsZXIgaXMgZmx1c2hfdGxi
+X21tKzB4NDQvMHg3MA0KQmFja3RyYWNlOiANCls8YzAwMjI1YzQ+XSAoZHVtcF9iYWNrdHJhY2Ur
+MHgwLzB4MTEwKSBmcm9tIFs8YzAxNzEzYTA+XSAoZHVtcF9zdGFjaysweDE4LzB4MWMpDQogcjc6
+MDAwMDAwMDAgcjY6YzAwMjM0ZjAgcjU6MDAwMDAwMDEgcjQ6YzYwY2EwMDANCls8YzAxNzEzODg+
+XSAoZHVtcF9zdGFjaysweDAvMHgxYykgZnJvbSBbPGMwMTM1MzY0Pl0gKGRlYnVnX3NtcF9wcm9j
+ZXNzb3JfaWQrMHhjMC8weGYwKQ0KWzxjMDEzNTJhND5dIChkZWJ1Z19zbXBfcHJvY2Vzc29yX2lk
+KzB4MC8weGYwKSBmcm9tIFs8YzAwMjM0ZjA+XSAoZmx1c2hfdGxiX21tKzB4NDQvMHg3MCkNCiBy
+NzowMDAwMDAwMCByNjpjNjBiNDY4MCByNTpjNjBiNDQ5NCByNDowMDAwMDAwNA0KWzxjMDAyMzRh
+Yz5dIChmbHVzaF90bGJfbW0rMHgwLzB4NzApIGZyb20gWzxjMDAzOTU2OD5dIChkdXBfbW0rMHgz
+MDQvMHgzOGMpDQogcjU6YzFlN2M5NDggcjQ6MDAwMDAwMDANCls8YzAwMzkyNjQ+XSAoZHVwX21t
+KzB4MC8weDM4YykgZnJvbSBbPGMwMDM5ZGU0Pl0gKGNvcHlfcHJvY2VzcysweDdiOC8weGViMCkN
+Cls8YzAwMzk2MmM+XSAoY29weV9wcm9jZXNzKzB4MC8weGViMCkgZnJvbSBbPGMwMDNhNjM4Pl0g
+KGRvX2ZvcmsrMHgxNWMvMHgyOWMpDQpbPGMwMDNhNGRjPl0gKGRvX2ZvcmsrMHgwLzB4MjljKSBm
+cm9tIFs8YzAwMjFkZjA+XSAoc3lzX2Nsb25lKzB4MzQvMHgzYykNCls8YzAwMjFkYmM+XSAoc3lz
+X2Nsb25lKzB4MC8weDNjKSBmcm9tIFs8YzAwMWVmYTA+XSAocmV0X2Zhc3Rfc3lzY2FsbCsweDAv
+MHgyYykNCkJVRzogdXNpbmcgc21wX3Byb2Nlc3Nvcl9pZCgpIGluIHByZWVtcHRpYmxlIFswMDAw
+MDAwMF0gY29kZTogcmNTLzMyMA0KY2FsbGVyIGlzIGZsdXNoX3RsYl9tbSsweDQ0LzB4NzANCkJh
+Y2t0cmFjZTogDQpbPGMwMDIyNWM0Pl0gKGR1bXBfYmFja3RyYWNlKzB4MC8weDExMCkgZnJvbSBb
+PGMwMTcxM2EwPl0gKGR1bXBfc3RhY2srMHgxOC8weDFjKQ0KIHI3OjAwMDAwMDAwIHI2OmMwMDIz
+NGYwIHI1OjAwMDAwMDAxIHI0OmM2MGNhMDAwDQpbPGMwMTcxMzg4Pl0gKGR1bXBfc3RhY2srMHgw
+LzB4MWMpIGZyb20gWzxjMDEzNTM2ND5dIChkZWJ1Z19zbXBfcHJvY2Vzc29yX2lkKzB4YzAvMHhm
+MCkNCls8YzAxMzUyYTQ+XSAoZGVidWdfc21wX3Byb2Nlc3Nvcl9pZCsweDAvMHhmMCkgZnJvbSBb
+PGMwMDIzNGYwPl0gKGZsdXNoX3RsYl9tbSsweDQ0LzB4NzApDQogcjc6MDAwMDAwMDAgcjY6YzYw
+YjQ4MjAgcjU6YzYwYjQ0OTQgcjQ6MDAwMDAwMDQNCls8YzAwMjM0YWM+XSAoZmx1c2hfdGxiX21t
+KzB4MC8weDcwKSBmcm9tIFs8YzAwMzk1Njg+XSAoZHVwX21tKzB4MzA0LzB4MzhjKQ0KIHI1OmMx
+ZjA5ZjIwIHI0OjAwMDAwMDAwDQpbPGMwMDM5MjY0Pl0gKGR1cF9tbSsweDAvMHgzOGMpIGZyb20g
+WzxjMDAzOWRlND5dIChjb3B5X3Byb2Nlc3MrMHg3YjgvMHhlYjApDQpbPGMwMDM5NjJjPl0gKGNv
+cHlfcHJvY2VzcysweDAvMHhlYjApIGZyb20gWzxjMDAzYTYzOD5dIChkb19mb3JrKzB4MTVjLzB4
+MjljKQ0KWzxjMDAzYTRkYz5dIChkb19mb3JrKzB4MC8weDI5YykgZnJvbSBbPGMwMDIxZGYwPl0g
+KHN5c19jbG9uZSsweDM0LzB4M2MpDQpbPGMwMDIxZGJjPl0gKHN5c19jbG9uZSsweDAvMHgzYykg
+ZnJvbSBbPGMwMDFlZmEwPl0gKHJldF9mYXN0X3N5c2NhbGwrMHgwLzB4MmMpDQpCVUc6IHVzaW5n
+IHNtcF9wcm9jZXNzb3JfaWQoKSBpbiBwcmVlbXB0aWJsZSBbMDAwMDAwMDBdIGNvZGU6IHJjUy8z
+MjANCmNhbGxlciBpcyBmbHVzaF90bGJfbW0rMHg0NC8weDcwDQpCYWNrdHJhY2U6IA0KWzxjMDAy
+MjVjND5dIChkdW1wX2JhY2t0cmFjZSsweDAvMHgxMTApIGZyb20gWzxjMDE3MTNhMD5dIChkdW1w
+X3N0YWNrKzB4MTgvMHgxYykNCiByNzowMDAwMDAwMCByNjpjMDAyMzRmMCByNTowMDAwMDAwMSBy
+NDpjNjBjYTAwMA0KWzxjMDE3MTM4OD5dIChkdW1wX3N0YWNrKzB4MC8weDFjKSBmcm9tIFs8YzAx
+MzUzNjQ+XSAoZGVidWdfc21wX3Byb2Nlc3Nvcl9pZCsweGMwLzB4ZjApDQpbPGMwMTM1MmE0Pl0g
+KGRlYnVnX3NtcF9wcm9jZXNzb3JfaWQrMHgwLzB4ZjApIGZyb20gWzxjMDAyMzRmMD5dIChmbHVz
+aF90bGJfbW0rMHg0NC8weDcwKQ0KIHI3OjAwMDAwMDAwIHI2OmM2MGI0OWMwIHI1OmM2MGI0NDk0
+IHI0OjAwMDAwMDA0DQpbPGMwMDIzNGFjPl0gKGZsdXNoX3RsYl9tbSsweDAvMHg3MCkgZnJvbSBb
+PGMwMDM5NTY4Pl0gKGR1cF9tbSsweDMwNC8weDM4YykNCiByNTpjMWUzNjEwOCByNDowMDAwMDAw
+MA0KWzxjMDAzOTI2ND5dIChkdXBfbW0rMHgwLzB4MzhjKSBmcm9tIFs8YzAwMzlkZTQ+XSAoY29w
+eV9wcm9jZXNzKzB4N2I4LzB4ZWIwKQ0KWzxjMDAzOTYyYz5dIChjb3B5X3Byb2Nlc3MrMHgwLzB4
+ZWIwKSBmcm9tIFs8YzAwM2E2Mzg+XSAoZG9fZm9yaysweDE1Yy8weDI5YykNCls8YzAwM2E0ZGM+
+XSAoZG9fZm9yaysweDAvMHgyOWMpIGZyb20gWzxjMDAyMWRmMD5dIChzeXNfY2xvbmUrMHgzNC8w
+eDNjKQ0KWzxjMDAyMWRiYz5dIChzeXNfY2xvbmUrMHgwLzB4M2MpIGZyb20gWzxjMDAxZWZhMD5d
+IChyZXRfZmFzdF9zeXNjYWxsKzB4MC8weDJjKQ0KQlVHOiB1c2luZyBzbXBfcHJvY2Vzc29yX2lk
+KCkgaW4gcHJlZW1wdGlibGUgWzAwMDAwMDAwXSBjb2RlOiByY1MvMzIwDQpjYWxsZXIgaXMgZmx1
+c2hfdGxiX21tKzB4NDQvMHg3MA0KQmFja3RyYWNlOiANCls8YzAwMjI1YzQ+XSAoZHVtcF9iYWNr
+dHJhY2UrMHgwLzB4MTEwKSBmcm9tIFs8YzAxNzEzYTA+XSAoZHVtcF9zdGFjaysweDE4LzB4MWMp
+DQogcjc6MDAwMDAwMDAgcjY6YzAwMjM0ZjAgcjU6MDAwMDAwMDEgcjQ6YzYwY2EwMDANCls8YzAx
+NzEzODg+XSAoZHVtcF9zdGFjaysweDAvMHgxYykgZnJvbSBbPGMwMTM1MzY0Pl0gKGRlYnVnX3Nt
+cF9wcm9jZXNzb3JfaWQrMHhjMC8weGYwKQ0KWzxjMDEzNTJhND5dIChkZWJ1Z19zbXBfcHJvY2Vz
+c29yX2lkKzB4MC8weGYwKSBmcm9tIFs8YzAwMjM0ZjA+XSAoZmx1c2hfdGxiX21tKzB4NDQvMHg3
+MCkNCiByNzowMDAwMDAwMCByNjpjNjBiNGI2MCByNTpjNjBiNDQ5NCByNDowMDAwMDAwNA0KWzxj
+MDAyMzRhYz5dIChmbHVzaF90bGJfbW0rMHgwLzB4NzApIGZyb20gWzxjMDAzOTU2OD5dIChkdXBf
+bW0rMHgzMDQvMHgzOGMpDQogcjU6YzFlMzY5NDggcjQ6MDAwMDAwMDANCls8YzAwMzkyNjQ+XSAo
+ZHVwX21tKzB4MC8weDM4YykgZnJvbSBbPGMwMDM5ZGU0Pl0gKGNvcHlfcHJvY2VzcysweDdiOC8w
+eGViMCkNCls8YzAwMzk2MmM+XSAoY29weV9wcm9jZXNzKzB4MC8weGViMCkgZnJvbSBbPGMwMDNh
+NjM4Pl0gKGRvX2ZvcmsrMHgxNWMvMHgyOWMpDQpbPGMwMDNhNGRjPl0gKGRvX2ZvcmsrMHgwLzB4
+MjljKSBmcm9tIFs8YzAwMjFkZjA+XSAoc3lzX2Nsb25lKzB4MzQvMHgzYykNCls8YzAwMjFkYmM+
+XSAoc3lzX2Nsb25lKzB4MC8weDNjKSBmcm9tIFs8YzAwMWVmYTA+XSAocmV0X2Zhc3Rfc3lzY2Fs
+bCsweDAvMHgyYykNCkJVRzogdXNpbmcgc21wX3Byb2Nlc3Nvcl9pZCgpIGluIHByZWVtcHRpYmxl
+IFswMDAwMDAwMF0gY29kZTogcmNTLzMyMA0KY2FsbGVyIGlzIGZsdXNoX3RsYl9tbSsweDQ0LzB4
+NzANCkJhY2t0cmFjZTogDQpbPGMwMDIyNWM0Pl0gKGR1bXBfYmFja3RyYWNlKzB4MC8weDExMCkg
+ZnJvbSBbPGMwMTcxM2EwPl0gKGR1bXBfc3RhY2srMHgxOC8weDFjKQ0KIHI3OjAwMDAwMDAwIHI2
+OmMwMDIzNGYwIHI1OjAwMDAwMDAxIHI0OmM2MGNhMDAwDQpbPGMwMTcxMzg4Pl0gKGR1bXBfc3Rh
+Y2srMHgwLzB4MWMpIGZyb20gWzxjMDEzNTM2ND5dIChkZWJ1Z19zbXBfcHJvY2Vzc29yX2lkKzB4
+YzAvMHhmMCkNCls8YzAxMzUyYTQ+XSAoZGVidWdfc21wX3Byb2Nlc3Nvcl9pZCsweDAvMHhmMCkg
+ZnJvbSBbPGMwMDIzNGYwPl0gKGZsdXNoX3RsYl9tbSsweDQ0LzB4NzApDQogcjc6MDAwMDAwMDAg
+cjY6YzYwYjRkMDAgcjU6YzYwYjQ0OTQgcjQ6MDAwMDAwMDQNCls8YzAwMjM0YWM+XSAoZmx1c2hf
+dGxiX21tKzB4MC8weDcwKSBmcm9tIFs8YzAwMzk1Njg+XSAoZHVwX21tKzB4MzA0LzB4MzhjKQ0K
+IHI1OmMxZjA5ZjIwIHI0OjAwMDAwMDAwDQpbPGMwMDM5MjY0Pl0gKGR1cF9tbSsweDAvMHgzOGMp
+IGZyb20gWzxjMDAzOWRlND5dIChjb3B5X3Byb2Nlc3MrMHg3YjgvMHhlYjApDQpbPGMwMDM5NjJj
+Pl0gKGNvcHlfcHJvY2VzcysweDAvMHhlYjApIGZyb20gWzxjMDAzYTYzOD5dIChkb19mb3JrKzB4
+MTVjLzB4MjljKQ0KWzxjMDAzYTRkYz5dIChkb19mb3JrKzB4MC8weDI5YykgZnJvbSBbPGMwMDIx
+ZGYwPl0gKHN5c19jbG9uZSsweDM0LzB4M2MpDQpbPGMwMDIxZGJjPl0gKHN5c19jbG9uZSsweDAv
+MHgzYykgZnJvbSBbPGMwMDFlZmEwPl0gKHJldF9mYXN0X3N5c2NhbGwrMHgwLzB4MmMpDQpCVUc6
+IHVzaW5nIHNtcF9wcm9jZXNzb3JfaWQoKSBpbiBwcmVlbXB0aWJsZSBbMDAwMDAwMDBdIGNvZGU6
+IHJjUy8zMjANCmNhbGxlciBpcyBmbHVzaF90bGJfbW0rMHg0NC8weDcwDQpCYWNrdHJhY2U6IA0K
+WzxjMDAyMjVjND5dIChkdW1wX2JhY2t0cmFjZSsweDAvMHgxMTApIGZyb20gWzxjMDE3MTNhMD5d
+IChkdW1wX3N0YWNrKzB4MTgvMHgxYykNCiByNzowMDAwMDAwMCByNjpjMDAyMzRmMCByNTowMDAw
+MDAwMSByNDpjNjBjYTAwMA0KWzxjMDE3MTM4OD5dIChkdW1wX3N0YWNrKzB4MC8weDFjKSBmcm9t
+IFs8YzAxMzUzNjQ+XSAoZGVidWdfc21wX3Byb2Nlc3Nvcl9pZCsweGMwLzB4ZjApDQpbPGMwMTM1
+MmE0Pl0gKGRlYnVnX3NtcF9wcm9jZXNzb3JfaWQrMHgwLzB4ZjApIGZyb20gWzxjMDAyMzRmMD5d
+IChmbHVzaF90bGJfbW0rMHg0NC8weDcwKQ0KIHI3OjAwMDAwMDAwIHI2OmM2MGI0ZWEwIHI1OmM2
+MGI0NDk0IHI0OjAwMDAwMDA0DQpbPGMwMDIzNGFjPl0gKGZsdXNoX3RsYl9tbSsweDAvMHg3MCkg
+ZnJvbSBbPGMwMDM5NTY4Pl0gKGR1cF9tbSsweDMwNC8weDM4YykNCiByNTpjMWE1MjEwOCByNDow
+MDAwMDAwMA0KWzxjMDAzOTI2ND5dIChkdXBfbW0rMHgwLzB4MzhjKSBmcm9tIFs8YzAwMzlkZTQ+
+XSAoY29weV9wcm9jZXNzKzB4N2I4LzB4ZWIwKQ0KWzxjMDAzOTYyYz5dIChjb3B5X3Byb2Nlc3Mr
+MHgwLzB4ZWIwKSBmcm9tIFs8YzAwM2E2Mzg+XSAoZG9fZm9yaysweDE1Yy8weDI5YykNCls8YzAw
+M2E0ZGM+XSAoZG9fZm9yaysweDAvMHgyOWMpIGZyb20gWzxjMDAyMWRmMD5dIChzeXNfY2xvbmUr
+MHgzNC8weDNjKQ0KWzxjMDAyMWRiYz5dIChzeXNfY2xvbmUrMHgwLzB4M2MpIGZyb20gWzxjMDAx
+ZWZhMD5dIChyZXRfZmFzdF9zeXNjYWxsKzB4MC8weDJjKQ0KQlVHOiB1c2luZyBzbXBfcHJvY2Vz
+c29yX2lkKCkgaW4gcHJlZW1wdGlibGUgWzAwMDAwMDAwXSBjb2RlOiByY1MvMzIwDQpjYWxsZXIg
+aXMgZmx1c2hfdGxiX21tKzB4NDQvMHg3MA0KQmFja3RyYWNlOiANCls8YzAwMjI1YzQ+XSAoZHVt
+cF9iYWNrdHJhY2UrMHgwLzB4MTEwKSBmcm9tIFs8YzAxNzEzYTA+XSAoZHVtcF9zdGFjaysweDE4
+LzB4MWMpDQogcjc6MDAwMDAwMDAgcjY6YzAwMjM0ZjAgcjU6MDAwMDAwMDEgcjQ6YzYwY2EwMDAN
+Cls8YzAxNzEzODg+XSAoZHVtcF9zdGFjaysweDAvMHgxYykgZnJvbSBbPGMwMTM1MzY0Pl0gKGRl
+YnVnX3NtcF9wcm9jZXNzb3JfaWQrMHhjMC8weGYwKQ0KWzxjMDEzNTJhND5dIChkZWJ1Z19zbXBf
+cHJvY2Vzc29yX2lkKzB4MC8weGYwKSBmcm9tIFs8YzAwMjM0ZjA+XSAoZmx1c2hfdGxiX21tKzB4
+NDQvMHg3MCkNCiByNzowMDAwMDAwMCByNjpjNjBiNTA0MCByNTpjNjBiNDQ5NCByNDowMDAwMDAw
+NA0KWzxjMDAyMzRhYz5dIChmbHVzaF90bGJfbW0rMHgwLzB4NzApIGZyb20gWzxjMDAzOTU2OD5d
+IChkdXBfbW0rMHgzMDQvMHgzOGMpDQogcjU6YzFhNTI5NDggcjQ6MDAwMDAwMDANCls8YzAwMzky
+NjQ+XSAoZHVwX21tKzB4MC8weDM4YykgZnJvbSBbPGMwMDM5ZGU0Pl0gKGNvcHlfcHJvY2Vzcysw
+eDdiOC8weGViMCkNCls8YzAwMzk2MmM+XSAoY29weV9wcm9jZXNzKzB4MC8weGViMCkgZnJvbSBb
+PGMwMDNhNjM4Pl0gKGRvX2ZvcmsrMHgxNWMvMHgyOWMpDQpbPGMwMDNhNGRjPl0gKGRvX2Zvcmsr
+MHgwLzB4MjljKSBmcm9tIFs8YzAwMjFkZjA+XSAoc3lzX2Nsb25lKzB4MzQvMHgzYykNCls8YzAw
+MjFkYmM+XSAoc3lzX2Nsb25lKzB4MC8weDNjKSBmcm9tIFs8YzAwMWVmYTA+XSAocmV0X2Zhc3Rf
+c3lzY2FsbCsweDAvMHgyYykNCg0KKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqDQpTdGFydGluZyBTeXN0ZW0gSW5pdCBmb3IgMzQzMFNEUC0zNDMwDQpSZWxlYXNlOiAx
+Mi4xNw0KKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqDQpTYXZpbmcg
+a2VybmVsIHJpbmcgYnVmZmVyIDogT0sNCk1vdW50aW5nIGRldnB0cyA6IE9LDQpTdGFydGluZyBz
+eXNsb2dkIDogT0sNClN0YXJ0aW5nIGtsb2dkIDogT0sNCk1vdW50aW5nIGZpbGVzeXN0ZW1zIDog
+T0sNCg0KUGxlYXNlIHByZXNzIEVudGVyIHRvIGFjdGl2YXRlIHRoaXMgY29uc29sZS4gDQoNCg0K
+QnVzeUJveCB2MS42LjEgKDIwMDgtMDUtMjIgMTM6NDg6MzIgSVNUKSBCdWlsdC1pbiBzaGVsbCAo
+YXNoKQ0KRW50ZXIgJ2hlbHAnIGZvciBhIGxpc3Qgb2YgYnVpbHQtaW4gY29tbWFuZHMuDQoNCiMg
 
--/* RTC registers */
--#define OMAP_RTC_SECONDS_REG		0x00
--#define OMAP_RTC_MINUTES_REG		0x04
--#define OMAP_RTC_HOURS_REG		0x08
--#define OMAP_RTC_DAYS_REG		0x0C
--#define OMAP_RTC_MONTHS_REG		0x10
--#define OMAP_RTC_YEARS_REG		0x14
--#define OMAP_RTC_WEEKS_REG		0x18
--
--#define OMAP_RTC_ALARM_SECONDS_REG	0x20
--#define OMAP_RTC_ALARM_MINUTES_REG	0x24
--#define OMAP_RTC_ALARM_HOURS_REG	0x28
--#define OMAP_RTC_ALARM_DAYS_REG		0x2c
--#define OMAP_RTC_ALARM_MONTHS_REG	0x30
--#define OMAP_RTC_ALARM_YEARS_REG	0x34
--
--#define OMAP_RTC_CTRL_REG		0x40
--#define OMAP_RTC_STATUS_REG		0x44
--#define OMAP_RTC_INTERRUPTS_REG		0x48
--
--#define OMAP_RTC_COMP_LSB_REG		0x4c
--#define OMAP_RTC_COMP_MSB_REG		0x50
--#define OMAP_RTC_OSC_REG		0x54
-+enum omap_rtc_regs {
-+	SECONDS_REG = 0,
-+	MINUTES_REG,
-+	HOURS_REG,
-+	DAYS_REG,
-+	MONTHS_REG,
-+	YEARS_REG,
-+	WEEKS_REG,
-+	ALARM_SECONDS_REG,
-+	ALARM_MINUTES_REG,
-+	ALARM_HOURS_REG,
-+	ALARM_DAYS_REG,
-+	ALARM_MONTHS_REG,
-+	ALARM_YEARS_REG,
-+	CTRL_REG,
-+	STATUS_REG,
-+	INTERRUPTS_REG,
-+	COMP_LSB_REG,
-+	COMP_MSB_REG,
-+};
-+#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-+static u8 omap_8bit_rtc_offsets[] = {
-+	[SECONDS_REG] 		= 0x00,
-+	[MINUTES_REG] 		= 0x01,
-+	[HOURS_REG] 		= 0x02,
-+	[DAYS_REG] 			= 0x03,
-+	[MONTHS_REG] 		= 0x04,
-+	[YEARS_REG] 		= 0x05,
-+	[WEEKS_REG] 		= 0x06,
-+	/* 0x07 reserved */
-+	[ALARM_SECONDS_REG] = 0x08,
-+	[ALARM_MINUTES_REG] = 0x09,
-+	[ALARM_HOURS_REG] 	= 0x0a,
-+	[ALARM_DAYS_REG] 	= 0x0b,
-+	[ALARM_MONTHS_REG] 	= 0x0c,
-+	[ALARM_YEARS_REG] 	= 0x0d,
-+	/* 0x0e reserved */
-+	/* 0x0f reserved */
-+	[CTRL_REG] 			= 0x10,
-+	[STATUS_REG] 		= 0x11,
-+	[INTERRUPTS_REG] 	= 0x12,
-+	[COMP_LSB_REG] 		= 0x13,
-+	[COMP_MSB_REG] 		= 0x14,
-+};
-+#else
-+#define omap_8bit_rtc_offsets NULL
-+#endif
-+#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX)
-+static u8 omap_32bit_rtc_offsets[] = {
-+	[SECONDS_REG] 		= 0x00,
-+	[MINUTES_REG] 		= 0x04,
-+	[HOURS_REG] 		= 0x08,
-+	[DAYS_REG] 			= 0x0c,
-+	[MONTHS_REG] 		= 0x10,
-+	[YEARS_REG] 		= 0x14,
-+	[WEEKS_REG] 		= 0x18,
-+	[ALARM_SECONDS_REG] = 0x20,
-+	[ALARM_MINUTES_REG] = 0x24,
-+	[ALARM_HOURS_REG] 	= 0x28,
-+	[ALARM_DAYS_REG] 	= 0x2c,
-+	[ALARM_MONTHS_REG] 	= 0x30,
-+	[ALARM_YEARS_REG] 	= 0x34,
-+	[CTRL_REG] 			= 0x40,
-+	[STATUS_REG] 		= 0x44,
-+	[INTERRUPTS_REG] 	= 0x48,
-+	[COMP_LSB_REG] 		= 0x4c,
-+	[COMP_MSB_REG] 		= 0x50,
-+};
-+#else
-+#define omap_32bit_rtc_offsets NULL
-+#endif
-+
-+// set to 32bit or 8bit rtc offsets by omap_rtc_probe()
-+static u8 *rtc_offsets;
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8Ddbde02enttico_
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
- /* OMAP_RTC_CTRL_REG bit fields: */
- #define OMAP_RTC_CTRL_SPLIT		(1<<7)
-@@ -87,10 +139,8 @@
- #define OMAP_RTC_INTERRUPTS_IT_ALARM    (1<<3)
- #define OMAP_RTC_INTERRUPTS_IT_TIMER    (1<<2)
+_______________________________________________
+linux-arm-kernel mailing list
+linux-arm-kernel@lists.infradead.org
+http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
--
--#define rtc_read(addr)		omap_readb(OMAP_RTC_BASE + (addr))
--#define rtc_write(val, addr)	omap_writeb(val, OMAP_RTC_BASE + (addr))
--
-+#define rtc_read(reg)		omap_readb(OMAP_RTC_BASE + rtc_offsets[reg])
-+#define rtc_write(val, reg)	omap_writeb(val, OMAP_RTC_BASE + rtc_offsets[reg])
-
- /* we rely on the rtc framework to handle locking (rtc->ops_lock),
-  * so the only other requirement is that register accesses which
-@@ -103,7 +153,7 @@ static void rtc_wait_not_busy(void)
-
- 	/* BUSY may stay active for 1/32768 second (~30 usec) */
- 	for (count = 0; count < 50; count++) {
--		status = rtc_read(OMAP_RTC_STATUS_REG);
-+		status = rtc_read(STATUS_REG);
- 		if ((status & (u8)OMAP_RTC_STATUS_BUSY) == 0)
- 			break;
- 		udelay(1);
-@@ -116,11 +166,11 @@ static irqreturn_t rtc_irq(int irq, void *rtc)
- 	unsigned long		events = 0;
- 	u8			irq_data;
-
--	irq_data = rtc_read(OMAP_RTC_STATUS_REG);
-+	irq_data = rtc_read(STATUS_REG);
-
- 	/* alarm irq? */
- 	if (irq_data & OMAP_RTC_STATUS_ALARM) {
--		rtc_write(OMAP_RTC_STATUS_ALARM, OMAP_RTC_STATUS_REG);
-+		rtc_write(OMAP_RTC_STATUS_ALARM, STATUS_REG);
- 		events |= RTC_IRQF | RTC_AF;
- 	}
-
-@@ -152,7 +202,7 @@ omap_rtc_ioctl(struct device *dev, unsigned int
-cmd, unsigned long arg)
-
- 	local_irq_disable();
- 	rtc_wait_not_busy();
--	reg = rtc_read(OMAP_RTC_INTERRUPTS_REG);
-+	reg = rtc_read(INTERRUPTS_REG);
- 	switch (cmd) {
- 	/* AIE = Alarm Interrupt Enable */
- 	case RTC_AIE_OFF:
-@@ -170,7 +220,7 @@ omap_rtc_ioctl(struct device *dev, unsigned int
-cmd, unsigned long arg)
- 		break;
- 	}
- 	rtc_wait_not_busy();
--	rtc_write(reg, OMAP_RTC_INTERRUPTS_REG);
-+	rtc_write(reg, INTERRUPTS_REG);
- 	local_irq_enable();
-
- 	return 0;
-@@ -219,12 +269,12 @@ static int omap_rtc_read_time(struct device
-*dev, struct rtc_time *tm)
- 	local_irq_disable();
- 	rtc_wait_not_busy();
-
--	tm->tm_sec = rtc_read(OMAP_RTC_SECONDS_REG);
--	tm->tm_min = rtc_read(OMAP_RTC_MINUTES_REG);
--	tm->tm_hour = rtc_read(OMAP_RTC_HOURS_REG);
--	tm->tm_mday = rtc_read(OMAP_RTC_DAYS_REG);
--	tm->tm_mon = rtc_read(OMAP_RTC_MONTHS_REG);
--	tm->tm_year = rtc_read(OMAP_RTC_YEARS_REG);
-+	tm->tm_sec = rtc_read(SECONDS_REG);
-+	tm->tm_min = rtc_read(MINUTES_REG);
-+	tm->tm_hour = rtc_read(HOURS_REG);
-+	tm->tm_mday = rtc_read(DAYS_REG);
-+	tm->tm_mon = rtc_read(MONTHS_REG);
-+	tm->tm_year = rtc_read(YEARS_REG);
-
- 	local_irq_enable();
-
-@@ -239,12 +289,12 @@ static int omap_rtc_set_time(struct device *dev,
-struct rtc_time *tm)
- 	local_irq_disable();
- 	rtc_wait_not_busy();
-
--	rtc_write(tm->tm_year, OMAP_RTC_YEARS_REG);
--	rtc_write(tm->tm_mon, OMAP_RTC_MONTHS_REG);
--	rtc_write(tm->tm_mday, OMAP_RTC_DAYS_REG);
--	rtc_write(tm->tm_hour, OMAP_RTC_HOURS_REG);
--	rtc_write(tm->tm_min, OMAP_RTC_MINUTES_REG);
--	rtc_write(tm->tm_sec, OMAP_RTC_SECONDS_REG);
-+	rtc_write(tm->tm_year, YEARS_REG);
-+	rtc_write(tm->tm_mon, MONTHS_REG);
-+	rtc_write(tm->tm_mday, DAYS_REG);
-+	rtc_write(tm->tm_hour, HOURS_REG);
-+	rtc_write(tm->tm_min, MINUTES_REG);
-+	rtc_write(tm->tm_sec, SECONDS_REG);
-
- 	local_irq_enable();
-
-@@ -256,17 +306,17 @@ static int omap_rtc_read_alarm(struct device
-*dev, struct rtc_wkalrm *alm)
- 	local_irq_disable();
- 	rtc_wait_not_busy();
-
--	alm->time.tm_sec = rtc_read(OMAP_RTC_ALARM_SECONDS_REG);
--	alm->time.tm_min = rtc_read(OMAP_RTC_ALARM_MINUTES_REG);
--	alm->time.tm_hour = rtc_read(OMAP_RTC_ALARM_HOURS_REG);
--	alm->time.tm_mday = rtc_read(OMAP_RTC_ALARM_DAYS_REG);
--	alm->time.tm_mon = rtc_read(OMAP_RTC_ALARM_MONTHS_REG);
--	alm->time.tm_year = rtc_read(OMAP_RTC_ALARM_YEARS_REG);
-+	alm->time.tm_sec = rtc_read(ALARM_SECONDS_REG);
-+	alm->time.tm_min = rtc_read(ALARM_MINUTES_REG);
-+	alm->time.tm_hour = rtc_read(ALARM_HOURS_REG);
-+	alm->time.tm_mday = rtc_read(ALARM_DAYS_REG);
-+	alm->time.tm_mon = rtc_read(ALARM_MONTHS_REG);
-+	alm->time.tm_year = rtc_read(ALARM_YEARS_REG);
-
- 	local_irq_enable();
-
- 	bcd2tm(&alm->time);
--	alm->enabled = !!(rtc_read(OMAP_RTC_INTERRUPTS_REG)
-+	alm->enabled = !!(rtc_read(INTERRUPTS_REG)
- 			& OMAP_RTC_INTERRUPTS_IT_ALARM);
-
- 	return 0;
-@@ -282,19 +332,19 @@ static int omap_rtc_set_alarm(struct device
-*dev, struct rtc_wkalrm *alm)
- 	local_irq_disable();
- 	rtc_wait_not_busy();
-
--	rtc_write(alm->time.tm_year, OMAP_RTC_ALARM_YEARS_REG);
--	rtc_write(alm->time.tm_mon, OMAP_RTC_ALARM_MONTHS_REG);
--	rtc_write(alm->time.tm_mday, OMAP_RTC_ALARM_DAYS_REG);
--	rtc_write(alm->time.tm_hour, OMAP_RTC_ALARM_HOURS_REG);
--	rtc_write(alm->time.tm_min, OMAP_RTC_ALARM_MINUTES_REG);
--	rtc_write(alm->time.tm_sec, OMAP_RTC_ALARM_SECONDS_REG);
-+	rtc_write(alm->time.tm_year, ALARM_YEARS_REG);
-+	rtc_write(alm->time.tm_mon, ALARM_MONTHS_REG);
-+	rtc_write(alm->time.tm_mday, ALARM_DAYS_REG);
-+	rtc_write(alm->time.tm_hour, ALARM_HOURS_REG);
-+	rtc_write(alm->time.tm_min, ALARM_MINUTES_REG);
-+	rtc_write(alm->time.tm_sec, ALARM_SECONDS_REG);
-
--	reg = rtc_read(OMAP_RTC_INTERRUPTS_REG);
-+	reg = rtc_read(INTERRUPTS_REG);
- 	if (alm->enabled)
- 		reg |= OMAP_RTC_INTERRUPTS_IT_ALARM;
- 	else
- 		reg &= ~OMAP_RTC_INTERRUPTS_IT_ALARM;
--	rtc_write(reg, OMAP_RTC_INTERRUPTS_REG);
-+	rtc_write(reg, INTERRUPTS_REG);
-
- 	local_irq_enable();
-
-@@ -318,6 +368,12 @@ static int __init omap_rtc_probe(struct
-platform_device *pdev)
- 	struct rtc_device	*rtc;
- 	u8			reg, new_ctrl;
-
-+
-+	if ( cpu_is_omap7xx() )
-+		rtc_offsets = omap_8bit_rtc_offsets;
-+	else
-+		rtc_offsets = omap_32bit_rtc_offsets;
-+
- 	omap_rtc_timer = platform_get_irq(pdev, 0);
- 	if (omap_rtc_timer <= 0) {
- 		pr_debug("%s: no update irq?\n", pdev->name);
-@@ -363,17 +419,17 @@ static int __init omap_rtc_probe(struct
-platform_device *pdev)
- 	/* clear pending irqs, and set 1/second periodic,
- 	 * which we'll use instead of update irqs
- 	 */
--	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
-+	rtc_write(0, INTERRUPTS_REG);
-
- 	/* clear old status */
--	reg = rtc_read(OMAP_RTC_STATUS_REG);
-+	reg = rtc_read(STATUS_REG);
- 	if (reg & (u8) OMAP_RTC_STATUS_POWER_UP) {
- 		pr_info("%s: RTC power up reset detected\n",
- 			pdev->name);
--		rtc_write(OMAP_RTC_STATUS_POWER_UP, OMAP_RTC_STATUS_REG);
-+		rtc_write(OMAP_RTC_STATUS_POWER_UP, STATUS_REG);
- 	}
- 	if (reg & (u8) OMAP_RTC_STATUS_ALARM)
--		rtc_write(OMAP_RTC_STATUS_ALARM, OMAP_RTC_STATUS_REG);
-+		rtc_write(OMAP_RTC_STATUS_ALARM, STATUS_REG);
-
- 	/* handle periodic and alarm irqs */
- 	if (request_irq(omap_rtc_timer, rtc_irq, IRQF_DISABLED,
-@@ -390,7 +446,7 @@ static int __init omap_rtc_probe(struct
-platform_device *pdev)
- 	}
-
- 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
--	reg = rtc_read(OMAP_RTC_CTRL_REG);
-+	reg = rtc_read(CTRL_REG);
- 	if (reg & (u8) OMAP_RTC_CTRL_STOP)
- 		pr_info("%s: already running\n", pdev->name);
-
-@@ -415,7 +471,7 @@ static int __init omap_rtc_probe(struct
-platform_device *pdev)
- 		pr_info("%s: split power mode\n", pdev->name);
-
- 	if (reg != new_ctrl)
--		rtc_write(new_ctrl, OMAP_RTC_CTRL_REG);
-+		rtc_write(new_ctrl, CTRL_REG);
-
- 	return 0;
-
-@@ -435,7 +491,7 @@ static int __exit omap_rtc_remove(struct
-platform_device *pdev)
- 	device_init_wakeup(&pdev->dev, 0);
-
- 	/* leave rtc running, but disable irqs */
--	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
-+	rtc_write(0, INTERRUPTS_REG);
-
- 	free_irq(omap_rtc_timer, rtc);
- 	free_irq(omap_rtc_alarm, rtc);
-@@ -451,7 +507,7 @@ static u8 irqstat;
-
- static int omap_rtc_suspend(struct platform_device *pdev, pm_message_t state)
- {
--	irqstat = rtc_read(OMAP_RTC_INTERRUPTS_REG);
-+	irqstat = rtc_read(INTERRUPTS_REG);
-
- 	/* FIXME the RTC alarm is not currently acting as a wakeup event
- 	 * source, and in fact this enable() call is just saving a flag
-@@ -460,7 +516,7 @@ static int omap_rtc_suspend(struct platform_device
-*pdev, pm_message_t state)
- 	if (device_may_wakeup(&pdev->dev))
- 		enable_irq_wake(omap_rtc_alarm);
- 	else
--		rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
-+		rtc_write(0, INTERRUPTS_REG);
-
- 	return 0;
- }
-@@ -470,7 +526,7 @@ static int omap_rtc_resume(struct platform_device *pdev)
- 	if (device_may_wakeup(&pdev->dev))
- 		disable_irq_wake(omap_rtc_alarm);
- 	else
--		rtc_write(irqstat, OMAP_RTC_INTERRUPTS_REG);
-+		rtc_write(irqstat, INTERRUPTS_REG);
- 	return 0;
- }
-
-@@ -481,7 +537,7 @@ static int omap_rtc_resume(struct platform_device *pdev)
-
- static void omap_rtc_shutdown(struct platform_device *pdev)
- {
--	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
-+	rtc_write(0, INTERRUPTS_REG);
- }
-
- MODULE_ALIAS("platform:omap_rtc");
-diff --git a/drivers/rtc/Kconfig b/drivers/rtc/Kconfig
-index 3c20dae..9023316 100644
---- a/drivers/rtc/Kconfig
-+++ b/drivers/rtc/Kconfig
-@@ -578,7 +578,7 @@ comment "on-CPU RTC drivers"
-
- config RTC_DRV_OMAP
- 	tristate "TI OMAP1"
--	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730
-+	depends on ARCH_OMAP15XX || ARCH_OMAP16XX || ARCH_OMAP730 || ARCH_OMAP850
- 	help
- 	  Say "yes" here to support the real time clock on TI OMAP1 chips.
- 	  This driver can also be built as a module called rtc-omap.
+--_002_EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8Ddbde02enttico_--
