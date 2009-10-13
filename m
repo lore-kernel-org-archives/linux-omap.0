@@ -1,73 +1,54 @@
-From: "Sonasath, Moiz" <m-sonasath@ti.com>
-Subject: RE: [PATCH RESEND] I2C: OMAP: Add missing wakeup events
-Date: Tue, 13 Oct 2009 17:12:31 -0500
-Message-ID: <CD8CC2B65FEE304DA95744A5472698F2029E37245F@dlee06.ent.ti.com>
-References: <1255342885-15786-1-git-send-email-aaro.koskinen@nokia.com>
- <CD8CC2B65FEE304DA95744A5472698F2029E37200E@dlee06.ent.ti.com>
- <4AD44DD0.7000708@nokia.com>
+From: "Mark A. Greer" <mgreer-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2] rtc: make rtc-omap driver ioremap its register space
+Date: Tue, 13 Oct 2009 16:00:23 -0700
+Message-ID: <20091013230023.GA24116@mag.az.mvista.com>
+References: <20090917000458.GA6119@mag.az.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48672 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753823AbZJMWN2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 18:13:28 -0400
-In-Reply-To: <4AD44DD0.7000708@nokia.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20090917000458.GA6119-S3yzRvi4kHRa+ipTMWa7OQC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://linux.omap.com/pipermail/davinci-linux-open-source>
+List-Post: <mailto:davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org>
+List-Help: <mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=help>
+List-Subscribe: <http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source>,
+	<mailto:davinci-linux-open-source-request-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org?subject=subscribe>
+Sender: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+Errors-To: davinci-linux-open-source-bounces-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org
+To: rtc-linux-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Davinci-linux-open-source-VycZQUHpC/PFrsHnngEfi1aTQe2KTcn/@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hello Aaro!
-
-> -----Original Message-----
-> From: Aaro Koskinen [mailto:aaro.koskinen@nokia.com]
-> Sent: Tuesday, October 13, 2009 4:52 AM
-> To: Sonasath, Moiz
-> Cc: ben-linux@fluff.org; linux-i2c@vger.kernel.org; linux-
-> omap@vger.kernel.org
-> Subject: Re: [PATCH RESEND] I2C: OMAP: Add missing wakeup events
+On Wed, Sep 16, 2009 at 05:04:58PM -0700, Mark A. Greer wrote:
+> From: Mark A. Greer <mgreer-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
 > 
-> Hello,
+> The rtc-omap driver currently assumes that the rtc's
+> registers are at a fixed address and already mapped
+> into virtual memory space.  Remove those assumptions
+> so the same driver can be used for similar devices
+> that reside at different physical addresses (e.g.,
+> TI's DA8xx/OMAP-L13x SoC's).
 > 
-> Sonasath, Moiz wrote:
-> >> From: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> >>
-> >> Include wake up events for receiver overflow and transmitter
-> >> underflow in OMAP_I2C_WE_REG configuration. Also fix a small
-> >> typo.
-> >>
-> >> Signed-off-by: Jagadeesh Bhaskar Pakaravoor <j-pakaravoor@ti.com>
-> >> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-> >> ---
-> >>  drivers/i2c/busses/i2c-omap.c |    5 ++++-
-> >>  1 files changed, 4 insertions(+), 1 deletions(-)
-> >>
-> >> diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-
-> omap.c
-> >> index 827da08..34ea9ed 100644
-> >> --- a/drivers/i2c/busses/i2c-omap.c
-> >> +++ b/drivers/i2c/busses/i2c-omap.c
-> >> @@ -92,8 +92,10 @@
-> >>  #define OMAP_I2C_STAT_AL	(1 << 0)	/* Arbitration lost int ena */
-> >>
-> >>  /* I2C WE wakeup enable register */
-> >> -#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakup */
-> >> +#define OMAP_I2C_WE_XDR_WE	(1 << 14)	/* TX drain wakeup */
-> >>  #define OMAP_I2C_WE_RDR_WE	(1 << 13)	/* RX drain wakeup */
-> >> +#define OMAP_I2C_WE_ROVR_WE	(1 << 11)	/* RX overflow wakeup */
-> >> +#define OMAP_I2C_WE_XUDF_WE	(1 << 10)	/* TX underflow wakeup */
-> >
-> > These bits are not documented in OMAP3430, they are reserved. How can
-> they be used?
+> Also allow the possibility for the timer and alarm
+> interrupts to use the same IRQ.
 > 
-> Hmm, that's a valid point. I will have to check if I can find more info on
-> the background of this patch.
+> Signed-off-by: Mark A. Greer <mgreer-Igf4POYTYCDQT0dZR+AlfA@public.gmane.org>
+> CC: David Brownell <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+> ---
 
-AFAIK, these bits have been introduced in OMAP3630 as it has a new IP block for I2C. But these bits are reserved bits for OMAP3430.
+Ping?
 
-> 
-> A.
+Just wondering if this patch was noticed.
 
+FYI, the following were added by subsequent emails:
+
+	Acked-by: David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+	Acked-by: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+	Acked-by: Tony Lindgren <tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org>
+
+Thanks,
+
+Mark
+--
