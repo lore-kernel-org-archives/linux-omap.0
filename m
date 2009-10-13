@@ -1,198 +1,51 @@
-From: kishore kadiyala <kishorek.kadiyala@gmail.com>
-Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver support.
-Date: Tue, 13 Oct 2009 12:24:06 +0530
-Message-ID: <7f9d1ffb0910122354o64b5aa01l3fe33ab78dfb5f23@mail.gmail.com>
-References: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com>
-	 <20091007215116.GB29320@atomide.com>
-	 <d6a0f7aa0910072314h77383e31r2330725b614ba472@mail.gmail.com>
-	 <E0D41E29EB0DAC4E9F3FF173962E9E940253C6C560@dbde02.ent.ti.com>
-	 <20091009174635.GH25892@atomide.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: omap3: ehci: trivial fix of a debug print
+Date: Tue, 13 Oct 2009 10:32:04 +0300
+Message-ID: <20091013073204.GE24738@nokia.com>
+References: <1255368020-23659-1-git-send-email-gadiyar@ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-serial-owner@vger.kernel.org>
-In-Reply-To: <20091009174635.GH25892@atomide.com>
-Sender: linux-serial-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, Govindraj <govindraj.ti@gmail.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:37097 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933697AbZJMHgK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 03:36:10 -0400
+Content-Disposition: inline
+In-Reply-To: <1255368020-23659-1-git-send-email-gadiyar@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Anand Gadiyar <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tony,
+On Mon, Oct 12, 2009 at 07:20:20PM +0200, ext Anand Gadiyar wrote:
+> omap3: ehci: trivial fix of a debug print
+> 
+> We're interested in uhh_hostconfig, not uhh_base. While we
+> are actually printing the former, we're calling it the latter.
+> 
+> Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
 
-On Fri, Oct 9, 2009 at 11:16 PM, Tony Lindgren <tony@atomide.com> wrote=
-:
-> * G, Manjunath Kondaiah <manjugk@ti.com> [091008 00:41]:
->>
->> Govind,
->> > -----Original Message-----
->> > From: linux-omap-owner@vger.kernel.org
->> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Govindraj
->> > Sent: Thursday, October 08, 2009 11:44 AM
->> > To: Tony Lindgren
->> > Cc: Raja, Govindraj; linux-omap@vger.kernel.org;
->> > linux-kernel@vger.kernel.org; linux-serial@vger.kernel.org
->> > Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver supp=
-ort.
->> >
->> > On Thu, Oct 8, 2009 at 3:21 AM, Tony Lindgren
->> > <tony@atomide.com> wrote:
->> > > * Govindraj.R <govindraj.raja@ti.com> [090924 03:29]:
->> > >> From: Govindraj R <govindraj.raja@ti.com>
->> > >>
->> > >> This patch adds support for OMAP3430-HIGH SPEED UART Controller=
-=2E
->> > >>
->> > >> Signed-off-by: =A0 =A0 =A0 =A0Govindraj R <govindraj.raja@ti.co=
-m>
->> > >> Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
->> > >> Reviewed-by: Tony Lindgren <tony@atomide.com>
->> > >
->> > > You should only add Reviewed-by if Alan or me have replied with =
-it.
->> > >
->> > > So far I've only replied with some comments that have not yet
->> > > been fixed, so we're few more steps from being Reviewd-by.
->> > >
->> > > <snip>
->> > >
->> > >> diff --git a/drivers/serial/Kconfig b/drivers/serial/Kconfig
->> > >> index 6553833..67a7129 100644
->> > >> --- a/drivers/serial/Kconfig
->> > >> +++ b/drivers/serial/Kconfig
->> > >> @@ -1359,6 +1359,53 @@ config SERIAL_OF_PLATFORM
->> > >> =A0 =A0 =A0 =A0 Currently, only 8250 compatible ports are suppo=
-rted, but
->> > >> =A0 =A0 =A0 =A0 others can easily be added.
->> > >>
->> > >> +config SERIAL_OMAP
->> > >> + =A0 =A0 bool "OMAP serial port support"
->> > >> + =A0 =A0 depends on ARM && ARCH_OMAP
->> > >> + =A0 =A0 select SERIAL_CORE
->> > >> + =A0 =A0 help
->> > >> + =A0 =A0 If you have a machine based on an Texas Instruments
->> > OMAP CPU you
->> > >> + =A0 =A0 can enable its onboard serial ports by enabling this =
-option.
->> > >> +
->> > >> +config SERIAL_OMAP_CONSOLE
->> > >> + =A0 =A0 bool "Console on OMAP serial port"
->> > >> + =A0 =A0 depends on SERIAL_OMAP
->> > >> + =A0 =A0 select SERIAL_CORE_CONSOLE
->> > >> + =A0 =A0 help
->> > >> + =A0 =A0 If you have enabled the serial port on the Texas
->> > Instruments OMAP
->> > >> + =A0 =A0 CPU you can make it the console by answering Y to
->> > this option.
->> > >> +
->> > >> + =A0 =A0 Even if you say Y here, the currently visible virtual=
- console
->> > >> + =A0 =A0 (/dev/tty0) will still be used as the system console
->> > by default, but
->> > >> + =A0 =A0 you can alter that using a kernel command line option=
- such as
->> > >> + =A0 =A0 "console=3DttyS0". (Try "man bootparam" or see the
->> > documentation of
->> > >> + =A0 =A0 your boot loader (lilo or loadlin) about how to pass
->> > options to the
->> > >> + =A0 =A0 kernel at boot time.)
->> > >> +
->> > >> +config SERIAL_OMAP_DMA_UART1
->> > >> + =A0 =A0 bool "UART1 DMA support"
->> > >> + =A0 =A0 depends on SERIAL_OMAP
->> > >> + =A0 =A0 help
->> > >> + =A0 =A0 If you have enabled the serial port on the Texas
->> > Instruments OMAP
->> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 1 by answ=
-ering
->> > >> + =A0 =A0 to this option.
->> > >> +
->> > >> +config SERIAL_OMAP_DMA_UART2
->> > >> + =A0 =A0 bool "UART2 DMA support"
->> > >> + =A0 =A0 depends on SERIAL_OMAP
->> > >> + =A0 =A0 help
->> > >> + =A0 =A0 If you have enabled the serial port on the Texas
->> > Instruments OMAP
->> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 2 by answ=
-ering
->> > >> + =A0 =A0 to this option.
->> > >> +
->> > >> +config SERIAL_OMAP_DMA_UART3
->> > >> + =A0 =A0 bool "UART3 DMA support"
->> > >> + =A0 =A0 depends on SERIAL_OMAP
->> > >> + =A0 =A0 help
->> > >> + =A0 =A0 If you have enabled the serial port on the Texas
->> > Instruments OMAP
->> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 3 by answ=
-ering
->> > >> + =A0 =A0 to this option.
->> > >> +
->> > >> =A0config SERIAL_OF_PLATFORM_NWPSERIAL
->> > >> =A0 =A0 =A0 tristate "NWP serial port driver"
->> > >> =A0 =A0 =A0 depends on PPC_OF && PPC_DCR
->> > >
->> > > There's absolutely no need for having Kconfig options for the DM=
-A
->> > > support. Please pass that in platform_data from the board-*.c fi=
-les.
->> > >
->> > > This is the third time I'm commenting on the same issue!
->> > >
->> > > What's the point of posting these patches for review if the issu=
-es
->> > > don't get solved?
->> >
->> >
->> > The omap-serial uart driver is designed to work either in interrup=
-t
->> > mode or in DMA mode,
->> > We have provided this option so that one can select interrupt mode=
- or
->> > DMA mode based on the uart usage, if somebody is using uart as con=
-sole
->> > then interrupt mode will do, else if used with bluetooth which doe=
-s
->> > huge data transfer then DMA mode can be selected.
->> >
->> > Don't you think this should be a configurable option using kconfig
->> > rather than passing as platform data?
->
-> Nope. I think it should be platform_data and should be possible to ov=
-erride
-> vith a kernel cmdline option. That's because we support compiling in =
-and
-> booting many boards the same kernel binary.
->
->> > if used as platform data then one has to modify platform data to
->> > switch between the interrupt and DMA mode.
->
-> How about set some kernel cmdline options if you want to override the
-> default settings?
+Acked-by: Felipe Balbi <felipe.balbi@nokia.com>
 
-   Using cmdline options, will make specific UART switch  dynamically
-   between Non-DMA and DMA mode which is not handled in the driver.
-
-   how abt using bootargs to share this Mode info ?
-
->
->> Usage of UART is board dependent. It's usage will not change dynamic=
-ally for
->> a given board. This can be removed from Kconfig and move it to respe=
-ctive
->> board file-> board-*.c
->
-> Or can be changed from kernel cmdline if necessary.
->
-> Regards,
->
-> Tony
+> ---
+> diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
+> index 45b8a7c..73f0b3b 100644
+> --- a/drivers/usb/host/ehci-omap.c
+> +++ b/drivers/usb/host/ehci-omap.c
+> @@ -363,7 +363,7 @@ static int omap_start_ehc(struct ehci_hcd_omap *omap, struct usb_hcd *hcd)
+>  
+>  	}
+>  	ehci_omap_writel(omap->uhh_base, OMAP_UHH_HOSTCONFIG, reg);
+> -	dev_dbg(omap->dev, "UHH setup done, uhh_base=%x\n", reg);
+> +	dev_dbg(omap->dev, "UHH setup done, uhh_hostconfig=%x\n", reg);
+>  
+>  
+>  	if ((omap->port_mode[0] == EHCI_HCD_OMAP_MODE_TLL) ||
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-serial"=
- in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+balbi
