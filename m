@@ -1,96 +1,47 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3 PM restore observability settings after off mode
-Date: Tue, 13 Oct 2009 12:23:36 -0700
-Message-ID: <87skdnjdxj.fsf@deeprootsystems.com>
-References: <1255359790-10407-1-git-send-email-peter.de-schrijver@nokia.com>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH] OMAP3 PM Add sysfs entry for EFuse values
+Date: Tue, 13 Oct 2009 14:38:32 -0500
+Message-ID: <782515bb0910131238r31a00aa7ub0b576d798d6e761@mail.gmail.com>
+References: <1255358890-9434-1-git-send-email-peter.de-schrijver@nokia.com>
+	 <87ws2zkubi.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f180.google.com ([209.85.216.180]:58188 "EHLO
-	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934114AbZJMTYP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 15:24:15 -0400
-Received: by pxi10 with SMTP id 10so169478pxi.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 12:23:38 -0700 (PDT)
-In-Reply-To: <1255359790-10407-1-git-send-email-peter.de-schrijver@nokia.com> (Peter De Schrijver's message of "Mon\, 12 Oct 2009 18\:03\:10 +0300")
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:35763 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934097AbZJMTio convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 13 Oct 2009 15:38:44 -0400
+Received: by mail-fx0-f227.google.com with SMTP id 27so10618629fxm.17
+        for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 12:38:33 -0700 (PDT)
+In-Reply-To: <87ws2zkubi.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>, linux-omap@vger.kernel.org
 
-"Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
-
-> This patch restores the observability settings after resuming from off mode.
+On Tue, Oct 13, 2009 at 1:44 PM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
 >
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-
-Thanks, pulling this into PM branch.
-
-Kevin
-
-> ---
->  arch/arm/mach-omap2/debobs.c             |    9 +++++++++
->  arch/arm/mach-omap2/pm34xx.c             |    4 ++++
->  arch/arm/plat-omap/include/mach/debobs.h |    1 +
->  3 files changed, 14 insertions(+), 0 deletions(-)
+>> This patch exports the smartreflex efuse values for all 5 OPPs via
+>> sysfs. This can be useful to track down silicon specific problems.
+>>
+>> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com=
 >
-> diff --git a/arch/arm/mach-omap2/debobs.c b/arch/arm/mach-omap2/debobs.c
-> index 4fbabef..d25b9a2 100644
-> --- a/arch/arm/mach-omap2/debobs.c
-> +++ b/arch/arm/mach-omap2/debobs.c
-> @@ -190,6 +190,15 @@ static inline int __init _new_debobs_pad(struct debobs_pad *pad, char *name,
->  
->  /* Public functions */
->  
-> +void debobs_restore(void)
-> +{
-> +	struct debobs_pad *p = &debobs_pads[0];
-> +	int i;
-> +
-> +	for (i = 0; i < NUM_OF_DEBOBS_PADS; i++, p++)
-> +		debobs_set(&p->core_obs, p->core_obs.value);
-> +}
-> +
->  void debug_gpio_set(unsigned gpio, int value)
->  {
->  	if (!debobs_initialized)
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 553fe02..20c7ea2 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -42,6 +42,7 @@
->  #include <mach/dma.h>
->  #include <mach/gpmc.h>
->  #include <mach/dma.h>
-> +#include <mach/debobs.h>
->  #include <asm/tlbflush.h>
->  
->  #include "cm.h"
-> @@ -124,6 +125,9 @@ static void omap3_core_restore_context(void)
->  	/* Restore the interrupt controller context */
->  	omap3_intc_restore_context();
->  	omap_dma_global_context_restore();
-> +	/* restore debobs context */
-> +	debobs_restore();
-> +
->  }
->  
->  static void omap3_save_secure_ram_context(u32 target_mpu_state)
-> diff --git a/arch/arm/plat-omap/include/mach/debobs.h b/arch/arm/plat-omap/include/mach/debobs.h
-> index 67f765d..1e04bcd 100644
-> --- a/arch/arm/plat-omap/include/mach/debobs.h
-> +++ b/arch/arm/plat-omap/include/mach/debobs.h
-> @@ -3,5 +3,6 @@
->  
->  void debug_gpio_set(unsigned gpio, int value);
->  int debug_gpio_get(unsigned gpio);
-> +void debobs_restore(void);
->  
->  #endif
-> -- 
-> 1.6.2.4
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> These should be exported via debugfs instead of sysfs.
+>
+> Also, the SR rewrite is underway and will be merged shortly, so I
+> recommend waiting until that is in place before we add this. =A0Unles=
+s
+> Nishanth wants to add it sooner.
+>
+I can add it as part of my v3 patchset.
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
