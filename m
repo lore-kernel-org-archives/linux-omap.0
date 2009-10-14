@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/6] omap: SDMA: Fixing bug in omap_dma_set_global_params()
-Date: Tue, 13 Oct 2009 17:14:18 -0700
-Message-ID: <20091014001418.6116.82370.stgit@localhost>
+Subject: [PATCH 5/6] omap: Initialization of SDRC params on Zoom2
+Date: Tue, 13 Oct 2009 17:14:41 -0700
+Message-ID: <20091014001441.6116.80963.stgit@localhost>
 References: <20091014001233.6116.84749.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,53 +18,40 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Anuj Aggarwal <anuj.aggarwal@ti.com>, linux-omap@vger.kernel.org
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Teerth Reddy <teerth@ti.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
+From: Teerth Reddy <teerth@ti.com>
 
-Argument tparams was not being used to program
-global register GCR.HI_THREAD_RESERVED. This patch fixes the same.
+This patch initializes the correct SDRC settings required
+for DVFS on Zoom2.
 
-Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Signed-off-by: Teerth Reddy <teerth@ti.com>
+Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/dma.c |   15 +++++++++------
- 1 files changed, 9 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/board-zoom2.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index fd3154a..0eb676d 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -829,10 +829,10 @@ EXPORT_SYMBOL(omap_free_dma);
-  *
-  * @param arb_rate
-  * @param max_fifo_depth
-- * @param tparams - Number of thereads to reserve : DMA_THREAD_RESERVE_NORM
-- * 						    DMA_THREAD_RESERVE_ONET
-- * 						    DMA_THREAD_RESERVE_TWOT
-- * 						    DMA_THREAD_RESERVE_THREET
-+ * @param tparams - Number of threads to reserve : DMA_THREAD_RESERVE_NORM
-+ * 						   DMA_THREAD_RESERVE_ONET
-+ * 						   DMA_THREAD_RESERVE_TWOT
-+ * 						   DMA_THREAD_RESERVE_THREET
-  */
- void
- omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
-@@ -844,11 +844,14 @@ omap_dma_set_global_params(int arb_rate, int max_fifo_depth, int tparams)
- 		return;
- 	}
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index b7b3220..fd3369d 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -25,6 +25,7 @@
+ #include <mach/keypad.h>
  
-+	if (max_fifo_depth == 0)
-+		max_fifo_depth = 1;
- 	if (arb_rate == 0)
- 		arb_rate = 1;
+ #include "mmc-twl4030.h"
++#include "sdram-micron-mt46h32m32lf-6.h"
  
--	reg = (arb_rate & 0xff) << 16;
--	reg |= (0xff & max_fifo_depth);
-+	reg = 0xff & max_fifo_depth;
-+	reg |= (0x3 & tparams) << 12;
-+	reg |= (arb_rate & 0xff) << 16;
- 
- 	dma_write(reg, GCR);
+ /* Zoom2 has Qwerty keyboard*/
+ static int board_keymap[] = {
+@@ -213,7 +214,8 @@ static void __init omap_zoom2_init_irq(void)
+ {
+ 	omap_board_config = zoom2_config;
+ 	omap_board_config_size = ARRAY_SIZE(zoom2_config);
+-	omap2_init_common_hw(NULL, NULL);
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
++				 mt46h32m32lf6_sdrc_params);
+ 	omap_init_irq();
+ 	omap_gpio_init();
  }
