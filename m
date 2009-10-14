@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 23/27] OMAP3: PM: Fix INTC context save/restore
-Date: Wed, 14 Oct 2009 14:58:06 -0700
-Message-ID: <1255557490-16787-24-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 21/27] OMAP: Store reboot mode in scratchpad on OMAP34xx
+Date: Wed, 14 Oct 2009 14:58:04 -0700
+Message-ID: <1255557490-16787-22-git-send-email-khilman@deeprootsystems.com>
 References: <1255557490-16787-1-git-send-email-khilman@deeprootsystems.com>
  <1255557490-16787-2-git-send-email-khilman@deeprootsystems.com>
  <1255557490-16787-3-git-send-email-khilman@deeprootsystems.com>
@@ -23,53 +23,59 @@ References: <1255557490-16787-1-git-send-email-khilman@deeprootsystems.com>
  <1255557490-16787-19-git-send-email-khilman@deeprootsystems.com>
  <1255557490-16787-20-git-send-email-khilman@deeprootsystems.com>
  <1255557490-16787-21-git-send-email-khilman@deeprootsystems.com>
- <1255557490-16787-22-git-send-email-khilman@deeprootsystems.com>
- <1255557490-16787-23-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f180.google.com ([209.85.216.180]:34396 "EHLO
-	mail-px0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761028AbZJNV71 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 17:59:27 -0400
-Received: by pxi10 with SMTP id 10so23320pxi.4
-        for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2009 14:58:51 -0700 (PDT)
-In-Reply-To: <1255557490-16787-23-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:61533 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761279AbZJNV7Y (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 17:59:24 -0400
+Received: by pzk26 with SMTP id 26so195893pzk.4
+        for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2009 14:58:48 -0700 (PDT)
+In-Reply-To: <1255557490-16787-21-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Cc: linux-arm-kernel@lists.infradead.org, Juha Yrjola <juha.yrjola@solidboot.com>, Tony Lindgren <tony@atomide.com>
 
-From: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+From: Juha Yrjola <juha.yrjola@solidboot.com>
 
-Wrong index was used for ILR.
+The reboot mode can be communicated to a bootloader (or the
+kernel itself) with a scratchpad register. This functionality
+is especially useful, if userspace is allowed to change
+the reboot mode.
 
-Signed-off-by: Aaro Koskinen <Aaro.Koskinen@nokia.com>
+Signed-off-by: Juha Yrjola <juha.yrjola@solidboot.com>
+Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
+Signed-off-by: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/irq.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/prcm.c |   13 +++++++++++--
+ 1 files changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index fa2524d..aceedd8 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -233,7 +233,7 @@ void omap3_intc_save_context(void)
- 			intc_bank_read_reg(bank, INTC_THRESHOLD);
- 		for (i = 0; i < INTCPS_NR_IRQS; i++)
- 			intc_context[ind].ilr[i] =
--				intc_bank_read_reg(bank, (0x100 + 0x4*ind));
-+				intc_bank_read_reg(bank, (0x100 + 0x4*i));
- 		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
- 			intc_context[ind].mir[i] =
- 				intc_bank_read_reg(&irq_banks[0], INTC_MIR0 +
-@@ -259,7 +259,7 @@ void omap3_intc_restore_context(void)
- 					bank, INTC_THRESHOLD);
- 		for (i = 0; i < INTCPS_NR_IRQS; i++)
- 			intc_bank_write_reg(intc_context[ind].ilr[i],
--				bank, (0x100 + 0x4*ind));
-+				bank, (0x100 + 0x4*i));
- 		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
- 			intc_bank_write_reg(intc_context[ind].mir[i],
- 				 &irq_banks[0], INTC_MIR0 + (0x20 * i));
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 99ff439..ce17eb1 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -134,9 +134,18 @@ void omap_prcm_arch_reset(char mode)
+ 
+ 	if (cpu_is_omap24xx())
+ 		prcm_offs = WKUP_MOD;
+-	else if (cpu_is_omap34xx())
++	else if (cpu_is_omap34xx()) {
++		u32 l;
++
+ 		prcm_offs = OMAP3430_GR_MOD;
+-	else
++		l = ('B' << 24) | ('M' << 16) | mode;
++		/* Reserve the first word in scratchpad for communicating
++		 * with the boot ROM. A pointer to a data structure
++		 * describing the boot process can be stored there,
++		 * cf. OMAP34xx TRM, Initialization / Software Booting
++		 * Configuration. */
++		omap_writel(l, OMAP343X_SCRATCHPAD + 4);
++	} else
+ 		WARN_ON(1);
+ 
+ 	prm_set_mod_reg_bits(OMAP_RST_DPLL3, prcm_offs, RM_RSTCTRL);
 -- 
 1.6.4.3
 
