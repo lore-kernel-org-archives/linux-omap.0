@@ -1,8 +1,8 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 3/6] omap: headers: Split entry-macro.S for mach-omap1 and
+Subject: [PATCH 2/6] omap: headers: Split debug-macro.S for mach-omap1 and
 	mach-omap2
-Date: Wed, 14 Oct 2009 14:49:20 -0700
-Message-ID: <20091014214920.30227.10280.stgit@kaulin.muru.com>
+Date: Wed, 14 Oct 2009 14:49:04 -0700
+Message-ID: <20091014214904.30227.69687.stgit@kaulin.muru.com>
 References: <20091014213748.30227.71513.stgit@kaulin.muru.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,148 +22,103 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Split entry-macro.S for mach-omap1 and mach-omap2
+This also creates the include/mach subdirectories under
+mach-omap1 and mach-omap2.
+
+REVISIT: Remove "OMAP-730 only" parts in mach-omap2 version
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
 
- arch/arm/mach-omap1/include/mach/entry-macro.S |   58 ++++++++
- arch/arm/mach-omap2/include/mach/entry-macro.S |  122 +++++++++++++++++
- arch/arm/plat-omap/include/mach/entry-macro.S  |  172 ------------------------
- 3 files changed, 180 insertions(+), 172 deletions(-)
- create mode 100644 arch/arm/mach-omap1/include/mach/entry-macro.S
- create mode 100644 arch/arm/mach-omap2/include/mach/entry-macro.S
- delete mode 100644 arch/arm/plat-omap/include/mach/entry-macro.S
+ arch/arm/mach-omap1/include/mach/debug-macro.S |   45 +++++++++++++++
+ arch/arm/mach-omap2/include/mach/debug-macro.S |   59 ++++++++++++++++++++
+ arch/arm/plat-omap/include/mach/debug-macro.S  |   70 ------------------------
+ 3 files changed, 104 insertions(+), 70 deletions(-)
+ create mode 100644 arch/arm/mach-omap1/include/mach/debug-macro.S
+ create mode 100644 arch/arm/mach-omap2/include/mach/debug-macro.S
+ delete mode 100644 arch/arm/plat-omap/include/mach/debug-macro.S
 
-diff --git a/arch/arm/mach-omap1/include/mach/entry-macro.S b/arch/arm/mach-omap1/include/mach/entry-macro.S
+diff --git a/arch/arm/mach-omap1/include/mach/debug-macro.S b/arch/arm/mach-omap1/include/mach/debug-macro.S
 new file mode 100644
-index 0000000..2e98f86
+index 0000000..aedb746
 --- /dev/null
-+++ b/arch/arm/mach-omap1/include/mach/entry-macro.S
-@@ -0,0 +1,58 @@
-+/*
-+ * arch/arm/mach-omap1/include/mach/entry-macro.S
++++ b/arch/arm/mach-omap1/include/mach/debug-macro.S
+@@ -0,0 +1,45 @@
++/* arch/arm/mach-omap1/include/mach/debug-macro.S
 + *
-+ * Low-level IRQ helper macros for OMAP-based platforms
++ * Debugging macro include header
 + *
-+ * Copyright (C) 2009 Texas Instruments
++ *  Copyright (C) 1994-1999 Russell King
++ *  Moved from linux/arch/arm/kernel/debug.S by Ben Dooks
 + *
-+ * This file is licensed under  the terms of the GNU General Public
-+ * License version 2. This program is licensed "as is" without any
-+ * warranty of any kind, whether express or implied.
-+ */
-+#include <mach/hardware.h>
-+#include <mach/io.h>
-+#include <mach/irqs.h>
-+#include <asm/hardware/gic.h>
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++*/
 +
-+#if (defined(CONFIG_ARCH_OMAP730)||defined(CONFIG_ARCH_OMAP850)) && \
-+	(defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX))
-+#error "FIXME: OMAP730 doesn't support multiple-OMAP"
-+#elif defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-+#define INT_IH2_IRQ		INT_730_IH2_IRQ
-+#elif defined(CONFIG_ARCH_OMAP15XX)
-+#define INT_IH2_IRQ		INT_1510_IH2_IRQ
-+#elif defined(CONFIG_ARCH_OMAP16XX)
-+#define INT_IH2_IRQ		INT_1610_IH2_IRQ
-+#else
-+#warning "IH2 IRQ defaulted"
-+#define INT_IH2_IRQ		INT_1510_IH2_IRQ
++		.macro	addruart,rx
++		mrc	p15, 0, \rx, c1, c0
++		tst	\rx, #1			@ MMU enabled?
++		moveq	\rx, #0xff000000	@ physical base address
++		movne	\rx, #0xfe000000	@ virtual base
++		orr	\rx, \rx, #0x00fb0000
++#ifdef CONFIG_OMAP_LL_DEBUG_UART3
++		orr	\rx, \rx, #0x00009000	@ UART 3
 +#endif
-+
-+ 		.macro	disable_fiq
++#if defined(CONFIG_OMAP_LL_DEBUG_UART2) || defined(CONFIG_OMAP_LL_DEBUG_UART3)
++		orr	\rx, \rx, #0x00000800	@ UART 2 & 3
++#endif
 +		.endm
 +
-+		.macro  get_irqnr_preamble, base, tmp
++		.macro	senduart,rd,rx
++		strb	\rd, [\rx]
 +		.endm
 +
-+		.macro  arch_ret_to_user, tmp1, tmp2
++		.macro	busyuart,rd,rx
++1001:		ldrb	\rd, [\rx, #(0x5 << 2)]	@ OMAP-1510 and friends
++		and	\rd, \rd, #0x60
++		teq	\rd, #0x60
++		beq	1002f
++		ldrb	\rd, [\rx, #(0x5 << 0)]	@ OMAP-730 only
++		and	\rd, \rd, #0x60
++		teq	\rd, #0x60
++		bne	1001b
++1002:
 +		.endm
 +
-+		.macro	get_irqnr_and_base, irqnr, irqstat, base, tmp
-+		ldr	\base, =OMAP1_IO_ADDRESS(OMAP_IH1_BASE)
-+		ldr	\irqnr, [\base, #IRQ_ITR_REG_OFFSET]
-+		ldr	\tmp, [\base, #IRQ_MIR_REG_OFFSET]
-+		mov	\irqstat, #0xffffffff
-+		bic	\tmp, \irqstat, \tmp
-+		tst	\irqnr, \tmp
-+		beq	1510f
-+
-+		ldr	\irqnr, [\base, #IRQ_SIR_FIQ_REG_OFFSET]
-+		cmp	\irqnr, #0
-+		ldreq	\irqnr, [\base, #IRQ_SIR_IRQ_REG_OFFSET]
-+		cmpeq	\irqnr, #INT_IH2_IRQ
-+		ldreq	\base, =OMAP1_IO_ADDRESS(OMAP_IH2_BASE)
-+		ldreq	\irqnr, [\base, #IRQ_SIR_IRQ_REG_OFFSET]
-+		addeqs	\irqnr, \irqnr, #32
-+1510:
++		.macro	waituart,rd,rx
 +		.endm
-+
-diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/mach-omap2/include/mach/entry-macro.S
-similarity index 73%
-rename from arch/arm/plat-omap/include/mach/entry-macro.S
-rename to arch/arm/mach-omap2/include/mach/entry-macro.S
-index a559299..aafa0f6 100644
---- a/arch/arm/plat-omap/include/mach/entry-macro.S
-+++ b/arch/arm/mach-omap2/include/mach/entry-macro.S
-@@ -15,54 +15,6 @@
- #include <mach/irqs.h>
- #include <asm/hardware/gic.h>
- 
--#if defined(CONFIG_ARCH_OMAP1)
--
--#if defined(CONFIG_ARCH_OMAP730) && \
--	(defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX))
--#error "FIXME: OMAP730 doesn't support multiple-OMAP"
--#elif defined(CONFIG_ARCH_OMAP730)
--#define INT_IH2_IRQ		INT_730_IH2_IRQ
--#elif defined(CONFIG_ARCH_OMAP15XX)
--#define INT_IH2_IRQ		INT_1510_IH2_IRQ
--#elif defined(CONFIG_ARCH_OMAP16XX)
--#define INT_IH2_IRQ		INT_1610_IH2_IRQ
--#else
--#warning "IH2 IRQ defaulted"
--#define INT_IH2_IRQ		INT_1510_IH2_IRQ
+diff --git a/arch/arm/plat-omap/include/mach/debug-macro.S b/arch/arm/mach-omap2/include/mach/debug-macro.S
+similarity index 76%
+rename from arch/arm/plat-omap/include/mach/debug-macro.S
+rename to arch/arm/mach-omap2/include/mach/debug-macro.S
+index ac24050..271b9d8 100644
+--- a/arch/arm/plat-omap/include/mach/debug-macro.S
++++ b/arch/arm/mach-omap2/include/mach/debug-macro.S
+@@ -1,4 +1,4 @@
+-/* arch/arm/plat-omap/include/mach/debug-macro.S
++/* arch/arm/mach-omap2/include/mach/debug-macro.S
+  *
+  * Debugging macro include header
+  *
+@@ -14,18 +14,7 @@
+ 		.macro	addruart,rx
+ 		mrc	p15, 0, \rx, c1, c0
+ 		tst	\rx, #1			@ MMU enabled?
+-#ifdef CONFIG_ARCH_OMAP1
+-		moveq	\rx, #0xff000000	@ physical base address
+-		movne	\rx, #0xfe000000	@ virtual base
+-		orr	\rx, \rx, #0x00fb0000
+-#ifdef CONFIG_OMAP_LL_DEBUG_UART3
+-		orr	\rx, \rx, #0x00009000	@ UART 3
+-#endif
+-#if defined(CONFIG_OMAP_LL_DEBUG_UART2) || defined(CONFIG_OMAP_LL_DEBUG_UART3)
+-		orr	\rx, \rx, #0x00000800	@ UART 2 & 3
 -#endif
 -
-- 		.macro	disable_fiq
--		.endm
--
--		.macro  get_irqnr_preamble, base, tmp
--		.endm
--
--		.macro  arch_ret_to_user, tmp1, tmp2
--		.endm
--
--		.macro	get_irqnr_and_base, irqnr, irqstat, base, tmp
--		ldr	\base, =OMAP1_IO_ADDRESS(OMAP_IH1_BASE)
--		ldr	\irqnr, [\base, #IRQ_ITR_REG_OFFSET]
--		ldr	\tmp, [\base, #IRQ_MIR_REG_OFFSET]
--		mov	\irqstat, #0xffffffff
--		bic	\tmp, \irqstat, \tmp
--		tst	\irqnr, \tmp
--		beq	1510f
--
--		ldr	\irqnr, [\base, #IRQ_SIR_FIQ_REG_OFFSET]
--		cmp	\irqnr, #0
--		ldreq	\irqnr, [\base, #IRQ_SIR_IRQ_REG_OFFSET]
--		cmpeq	\irqnr, #INT_IH2_IRQ
--		ldreq	\base, =OMAP1_IO_ADDRESS(OMAP_IH2_BASE)
--		ldreq	\irqnr, [\base, #IRQ_SIR_IRQ_REG_OFFSET]
--		addeqs	\irqnr, \irqnr, #32
--1510:
--		.endm
--
--#endif
--#if defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX) || \
--			defined(CONFIG_ARCH_OMAP4)
--
- #include <mach/omap24xx.h>
- #include <mach/omap34xx.h>
- 
-@@ -168,5 +120,3 @@
- 
- 		.macro	irq_prio_table
- 		.endm
--
--#endif
+-#elif  CONFIG_ARCH_OMAP2
++#ifdef  CONFIG_ARCH_OMAP2
+ 		moveq	\rx, #0x48000000	@ physical base address
+ 		movne	\rx, #0xd8000000	@ virtual base
+ 		orr	\rx, \rx, #0x0006a000
