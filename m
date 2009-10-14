@@ -1,164 +1,107 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/27] OMAP3: PM: handle PER/NEON/CORE in idle
-Date: Wed, 14 Oct 2009 15:18:53 -0700
-Message-ID: <20091014221852.GP12700@atomide.com>
-References: <1255557490-16787-1-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-2-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-3-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-4-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-5-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-6-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-7-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-8-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-9-git-send-email-khilman@deeprootsystems.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: PM: Export functions from OMAP NOOP PM interface
+Date: Wed, 14 Oct 2009 15:16:47 -0700
+Message-ID: <87tyy1ei40.fsf@deeprootsystems.com>
+References: <1253634858-7883-1-git-send-email-ameya.palande@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1255557490-16787-9-git-send-email-khilman@deeprootsystems.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:33458 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759548AbZJNWR0 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 18:17:26 -0400
+Received: by pwj1 with SMTP id 1so102094pwj.21
+        for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2009 15:16:50 -0700 (PDT)
+In-Reply-To: <1253634858-7883-1-git-send-email-ameya.palande@nokia.com> (Ameya Palande's message of "Tue\, 22 Sep 2009 18\:54\:18 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Ameya Palande <ameya.palande@nokia.com>
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com
 
-* Kevin Hilman <khilman@deeprootsystems.com> [091014 15:15]:
-> From: Rajendra Nayak <rnayak@ti.com>
+Ameya Palande <ameya.palande@nokia.com> writes:
 
-Might be worth checking the descriptions in the whole series :)
- 
-> Signed-off-by: Rajendra Nayak <rnayak@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Without this patch, a driver which uses these symbols will break when user
+> selects NOOP PM interface.
+>
+> Signed-off-by: Ameya Palande <ameya.palande@nokia.com>
+
+I initially pulled this into the PM branch but will now be dropping
+it.
+
+Drivers should not be calling these functions directly, but rather using
+hooks in pdata as described in Documentation/arm/OMAP/omap_pm.
+
+Kevin
+
 > ---
->  arch/arm/mach-omap2/pm34xx.c |   64 +++++++++++++++++++++++++++++++++++------
->  1 files changed, 54 insertions(+), 10 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 9dbb5a0..7eab539 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -49,7 +49,10 @@ static LIST_HEAD(pwrst_list);
+>  arch/arm/plat-omap/omap-pm-noop.c |    8 +++++++-
+>  1 files changed, 7 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/omap-pm-noop.c b/arch/arm/plat-omap/omap-pm-noop.c
+> index 3b075de..10463a4 100644
+> --- a/arch/arm/plat-omap/omap-pm-noop.c
+> +++ b/arch/arm/plat-omap/omap-pm-noop.c
+> @@ -157,6 +157,7 @@ const struct omap_opp *omap_pm_dsp_get_opp_table(void)
 >  
->  static void (*_omap_sram_idle)(u32 *addr, int save_state);
+>  	return NULL;
+>  }
+> +EXPORT_SYMBOL(omap_pm_dsp_get_opp_table);
 >  
-> -static struct powerdomain *mpu_pwrdm;
-> +static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
-> +static struct powerdomain *core_pwrdm, *per_pwrdm;
-> +
-> +static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+>  void omap_pm_dsp_set_min_opp(u8 opp_id)
+>  {
+> @@ -181,7 +182,7 @@ void omap_pm_dsp_set_min_opp(u8 opp_id)
+>  	 *
+>  	 */
+>  }
+> -
+> +EXPORT_SYMBOL(omap_pm_dsp_set_min_opp);
+>  
+>  u8 omap_pm_dsp_get_opp(void)
+>  {
+> @@ -197,6 +198,7 @@ u8 omap_pm_dsp_get_opp(void)
+>  
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL(omap_pm_dsp_get_opp);
+>  
+>  u8 omap_pm_vdd1_get_opp(void)
+>  {
+> @@ -208,6 +210,7 @@ u8 omap_pm_vdd1_get_opp(void)
+>  
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL(omap_pm_vdd1_get_opp);
+>  
+>  u8 omap_pm_vdd2_get_opp(void)
+>  {
+> @@ -219,6 +222,7 @@ u8 omap_pm_vdd2_get_opp(void)
+>  
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL(omap_pm_vdd2_get_opp);
 >  
 >  /*
->   * PRCM Interrupt Handler Helper Function
-> @@ -169,13 +172,22 @@ static void omap_sram_idle(void)
->  	/* save_state = 1 => Only L1 and logic lost */
->  	/* save_state = 2 => Only L2 lost */
->  	/* save_state = 3 => L1, L2 and logic lost */
-> -	int save_state = 0, mpu_next_state;
-> +	int save_state = 0;
-> +	int mpu_next_state = PWRDM_POWER_ON;
-> +	int per_next_state = PWRDM_POWER_ON;
-> +	int core_next_state = PWRDM_POWER_ON;
+>   * CPUFreq-originated constraint
+> @@ -259,6 +263,7 @@ void omap_pm_cpu_set_freq(unsigned long f)
+>  	 * CDP should just be able to set the VDD1 OPP clock rate here.
+>  	 */
+>  }
+> +EXPORT_SYMBOL(omap_pm_cpu_set_freq);
 >  
->  	if (!_omap_sram_idle)
->  		return;
+>  unsigned long omap_pm_cpu_get_freq(void)
+>  {
+> @@ -270,6 +275,7 @@ unsigned long omap_pm_cpu_get_freq(void)
 >  
-> +	pwrdm_clear_all_prev_pwrst(mpu_pwrdm);
-> +	pwrdm_clear_all_prev_pwrst(neon_pwrdm);
-> +	pwrdm_clear_all_prev_pwrst(core_pwrdm);
-> +	pwrdm_clear_all_prev_pwrst(per_pwrdm);
-> +
->  	mpu_next_state = pwrdm_read_next_pwrst(mpu_pwrdm);
->  	switch (mpu_next_state) {
-> +	case PWRDM_POWER_ON:
->  	case PWRDM_POWER_RET:
->  		/* No need to save context */
->  		save_state = 0;
-> @@ -187,18 +199,37 @@ static void omap_sram_idle(void)
->  	}
->  	pwrdm_pre_transition();
+>  	return 0;
+>  }
+> +EXPORT_SYMBOL(omap_pm_cpu_get_freq);
 >  
-> -	omap2_gpio_prepare_for_retention();
-> -	omap_uart_prepare_idle(0);
-> -	omap_uart_prepare_idle(1);
-> -	omap_uart_prepare_idle(2);
-> +	/* NEON control */
-> +	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
-> +		set_pwrdm_state(neon_pwrdm, mpu_next_state);
-> +
-> +	/* CORE & PER */
-> +	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-> +	if (core_next_state < PWRDM_POWER_ON) {
-> +		omap2_gpio_prepare_for_retention();
-> +		omap_uart_prepare_idle(0);
-> +		omap_uart_prepare_idle(1);
-> +		/* PER changes only with core */
-> +		per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
-> +		if (per_next_state < PWRDM_POWER_ON)
-> +			omap_uart_prepare_idle(2);
-> +		/* Enable IO-PAD wakeup */
-> +		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-> +	}
->  
->  	_omap_sram_idle(NULL, save_state);
->  	cpu_init();
->  
-> -	omap_uart_resume_idle(2);
-> -	omap_uart_resume_idle(1);
-> -	omap_uart_resume_idle(0);
-> -	omap2_gpio_resume_after_retention();
-> +	if (core_next_state < PWRDM_POWER_ON) {
-> +		if (per_next_state < PWRDM_POWER_ON)
-> +			omap_uart_resume_idle(2);
-> +		omap_uart_resume_idle(1);
-> +		omap_uart_resume_idle(0);
-> +
-> +		/* Disable IO-PAD wakeup */
-> +		prm_clear_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-> +		omap2_gpio_resume_after_retention();
-> +	}
->  
->  	pwrdm_post_transition();
->  
-> @@ -791,6 +822,10 @@ static int __init omap3_pm_init(void)
->  		goto err2;
->  	}
->  
-> +	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
-> +	per_pwrdm = pwrdm_lookup("per_pwrdm");
-> +	core_pwrdm = pwrdm_lookup("core_pwrdm");
-> +
->  	omap_push_sram_idle();
->  #ifdef CONFIG_SUSPEND
->  	suspend_set_ops(&omap_pm_ops);
-> @@ -798,6 +833,15 @@ static int __init omap3_pm_init(void)
->  
->  	pm_idle = omap3_pm_idle;
->  
-> +	pwrdm_add_wkdep(neon_pwrdm, mpu_pwrdm);
-> +	/*
-> +	 * REVISIT: This wkdep is only necessary when GPIO2-6 are enabled for
-> +	 * IO-pad wakeup.  Otherwise it will unnecessarily waste power
-> +	 * waking up PER with every CORE wakeup - see
-> +	 * http://marc.info/?l=linux-omap&m=121852150710062&w=2
-> +	*/
-> +	pwrdm_add_wkdep(per_pwrdm, core_pwrdm);
-> +
->  err1:
->  	return ret;
->  err2:
+>  /*
+>   * Device context loss tracking
 > -- 
-> 1.6.4.3
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 1.6.2.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
