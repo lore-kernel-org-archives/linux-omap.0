@@ -1,49 +1,60 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH 2/2] OMAP2xxx clock: set up clockdomain pointer in struct clk
-Date: Wed, 14 Oct 2009 16:31:45 -0600
-Message-ID: <20091014223140.5545.77829.stgit@localhost.localdomain>
-References: <20091014222609.5545.7736.stgit@localhost.localdomain>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/6] omap: headers: Add mach patch to include files
+Date: Wed, 14 Oct 2009 15:54:56 -0700
+Message-ID: <20091014225455.GA14531@atomide.com>
+References: <20091014213748.30227.71513.stgit@kaulin.muru.com>
+	<20091014214845.30227.51419.stgit@kaulin.muru.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:51798 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756937AbZJNWeS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 18:34:18 -0400
-In-Reply-To: <20091014222609.5545.7736.stgit@localhost.localdomain>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20091014214845.30227.51419.stgit@kaulin.muru.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Stefano Panella <Stefano.Panella@csr.com>, Carlos Aguiar <carlos.aguiar@indt.org.br>, linux-arm-kernel@lists.arm.linux.org.uk
 
-clock24xx.c is missing a omap2_init_clk_clkdm() in its
-omap2_clk_init() function.  Among other bad effects, this causes the
-OMAP hwmod layer to oops on boot.
+* Tony Lindgren <tony@atomide.com> [091014 14:55]:
+> This is to prepare for moving hardware.h to live under plat
+> instead of mach.
 
-Thanks to Carlos Aguiar <carlos.aguiar@indt.org.br> and Stefano
-Panella <Stefano.Panella@csr.com> for reporting this bug.  Thanks to Tony
-Lindgren <tony@atomide.com> for N800 booting advice.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
-Cc: Carlos Aguiar <carlos.aguiar@indt.org.br>
-Cc: Stefano Panella <Stefano.Panella@csr.com>
-Cc: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/clock24xx.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index bc5d3ac..e2dbedd 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -769,6 +769,7 @@ int __init omap2_clk_init(void)
- 		if (c->cpu & cpu_mask) {
- 			clkdev_add(&c->lk);
- 			clk_register(c->lk.clk);
-+			omap2_init_clk_clkdm(c->lk.clk);
- 		}
+The subject should say "add mach path" instead of "add mach patch"..
  
- 	/* Check the MPU rate set by bootloader */
-
-
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+> 
+>  arch/arm/plat-omap/include/mach/hardware.h |   12 ++++++------
+>  1 files changed, 6 insertions(+), 6 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/include/mach/hardware.h b/arch/arm/plat-omap/include/mach/hardware.h
+> index 26c1fbf..f746c9d 100644
+> --- a/arch/arm/plat-omap/include/mach/hardware.h
+> +++ b/arch/arm/plat-omap/include/mach/hardware.h
+> @@ -280,11 +280,11 @@
+>   * ---------------------------------------------------------------------------
+>   */
+>  
+> -#include "omap730.h"
+> -#include "omap1510.h"
+> -#include "omap16xx.h"
+> -#include "omap24xx.h"
+> -#include "omap34xx.h"
+> -#include "omap44xx.h"
+> +#include <mach/omap730.h>
+> +#include <mach/omap1510.h>
+> +#include <mach/omap16xx.h>
+> +#include <mach/omap24xx.h>
+> +#include <mach/omap34xx.h>
+> +#include <mach/omap44xx.h>
+>  
+>  #endif	/* __ASM_ARCH_OMAP_HARDWARE_H */
+> 
