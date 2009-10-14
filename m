@@ -1,51 +1,62 @@
-From: "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com>
-Subject: Re: [PATCH] OMAP3 PM export chip IDCODE, Production ID and Die ID
-Date: Wed, 14 Oct 2009 12:44:07 +0300
-Message-ID: <20091014094407.GA7471@codecarver.research.nokia.com>
-References: <1255359069-9621-1-git-send-email-peter.de-schrijver@nokia.com> <87r5t7ku90.fsf@deeprootsystems.com> <20091013194808.GB12700@atomide.com> <636c5030910131251p14057abdobab3ba5bfb0d67f2@mail.gmail.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: patch: add omap730 / omap850 rtc support
+Date: Wed, 14 Oct 2009 15:22:33 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF6EE@dbde02.ent.ti.com>
+References: <3ea34a000910130433i36a3ac7esc6b8e7c6588185f4@mail.gmail.com>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF600@dbde02.ent.ti.com>
+ <3ea34a000910140126p3352a5aej50300a39521f1128@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:34874 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755892AbZJNJpq (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 05:45:46 -0400
-Content-Disposition: inline
-In-Reply-To: <636c5030910131251p14057abdobab3ba5bfb0d67f2@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:48961 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932248AbZJNJxO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 05:53:14 -0400
+In-Reply-To: <3ea34a000910140126p3352a5aej50300a39521f1128@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Christopher Friedt <chrisfriedt@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Oct 13, 2009 at 09:51:30PM +0200, ext Kevin Hilman wrote:
-> On Tue, Oct 13, 2009 at 12:48 PM, Tony Lindgren <tony@atomide.com> wrote:
-> > * Kevin Hilman <khilman@deeprootsystems.com> [091013 12:09]:
-> >> "Peter 'p2' De Schrijver" <peter.de-schrijver@nokia.com> writes:
-> >>
-> >> > From: De-Schrijver Peter (Nokia-D/Helsinki) <Peter.De-Schrijver@nokia.com>
-> >> >
-> >> > This patch exports the OMAP3 IDCODE, Production ID and Die ID to userspace via
-> >> > sysfs. This can be used to track down silicon specific issues. The info is
-> >> > exported via sysfs because it should be possible to include this in corematic
-> >> > dumps.
-> >> >
-> >> > Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-> >>
-> >> Please export these via debugfs.
-> >
-> > I don't think we want to export unique chip identifiers by default.
-> >
+> On Wed, Oct 14, 2009 at 9:11 AM, G, Manjunath Kondaiah 
+> <manjugk@ti.com> wrote:
 > 
-> Right, which is why I suggested using debugfs, which is something that
-> probably wouldn't be enabled/exported on default production kernels.
+> > Any advantage of using both enum and register offsets?
+> > You can have only register offset macros instead of enum.
+> 
+> This was the appproach proposed by Tony in response to Alistair's
+> original query. Tony originally cited something from Russel for the
+> reason.
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14918.html
+> 
+> If static #define's were used, then it would probably be impossible to
+> support multiple omap1 cpu's with the same binary driver / binary
+> kernel. Having a run-time cpu check (referencing static offset arrays)
+> makes this possible and in the worst case scenario, it adds ~20 bytes.
+> I guess if you really wanted to save those 20 bytes, then you could
+> check #ifdef OMAP1_MULTI or something like that.
 > 
 
-Which is why I do not want it in debugfs as we log this info in
-crash reports on devices which might not have debugfs enabled.
+You can acheive the same using only enum with following:
 
-Cheers,
+#define OMAP_RTC_REGISTER_SIZE (cpu_is_omap7xx()?1:4)
+#define rtc_read(reg)
+	omap_readb(OMAP_RTC_BASE + (reg * OMAP_RTC_REGISTER_SIZE))
 
-Peter.
+#define rtc_write(val, reg)	
+	omap_writeb(val, OMAP_RTC_BASE + (reg * OMAP_RTC_REGISTER_SIZE))
 
--- 
-goa is a state of mind
+Russel point is different compared to your scenario. 
+
+> > Why 50? Count can be decreased from 50 to 30/35 which will 
+> increase rtc performance.
+> 
+> No idea, I didn't write the driver, I just patched it, and that is
+> completely irrelevent to my patch, but feel free to test 30/35 and
+> submit the changes back :)
+>
+ 
+This should be tested and optimized before pushing upstream.
+
