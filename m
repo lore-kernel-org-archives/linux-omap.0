@@ -1,443 +1,101 @@
-From: <ilkka.koskinen@nokia.com>
-Subject: RE: [PATCH] twl4030: Initial support for twl5031
-Date: Wed, 14 Oct 2009 16:38:27 +0200
-Message-ID: <F80267346F10C541946CBE8909F1C39E1217048332@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1253807628-20632-1-git-send-email-ilkka.koskinen@nokia.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF765@dbde02.ent.ti.com>
+From: epsi@gmx.de
+Subject: Re: RE: RE: Memory performance / Cache problem
+Date: Wed, 14 Oct 2009 16:48:39 +0200
+Message-ID: <20091014144839.115530@gmx.net>
+References: <20091012083806.323990@gmx.net>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DDE1FF2C@dbde02.ent.ti.com>
+ <20091013081651.300080@gmx.net>
+ <13B9B4C6EF24D648824FF11BE8967162039B235D5C@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37107 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933405AbZJNOkT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 10:40:19 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF765@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail.gmx.net ([213.165.64.20]:33068 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S933969AbZJNOt3 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 14 Oct 2009 10:49:29 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B235D5C@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: manjugk@ti.com, linux-kernel@vger.kernel.org, sameo@linux.intel.com
-Cc: linux-omap@vger.kernel.org, felipe.balbi@nokia.com, dbrownell@users.sourceforge.net
+To: "Woodruff, Richard" <r-woodruff2@ti.com>, linux-omap@vger.kernel.org, premi@ti.com
 
- 
-Hi,
+Mem clock is both times 166MHz. I don't know whether are differences in cycle access and timing, but memclock is fine.
 
->From: ext G, Manjunath Kondaiah [mailto:manjugk@ti.com] 
->Sent: 14 October, 2009 13:51
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org 
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ilkka Koskinen
->> Sent: Thursday, September 24, 2009 9:24 PM
->> To: linux-kernel@vger.kernel.org; sameo@linux.intel.com
->> Cc: linux-omap@vger.kernel.org; felipe.balbi@nokia.com; 
->> dbrownell@users.sourceforge.net; ilkka.koskinen@nokia.com
->> Subject: [PATCH] twl4030: Initial support for twl5031
->> 
->> TWL5031 introduces two new interrupts in PIH. Moreover, BCI
->> has changed remarkably and, thus, it's disabled when TWL5031
->> is in use.
->> 
->> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
->> ---
->>  drivers/mfd/twl4030-core.c  |   15 +++++-
->>  drivers/mfd/twl4030-irq.c   |  126 
->> ++++++++++++++++++++++++++++++++++++++++--
->>  include/linux/i2c/twl4030.h |   47 ++++++++++++++--
->>  3 files changed, 175 insertions(+), 13 deletions(-)
->> 
->> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
->> index cd1008c..952bea5 100644
->> --- a/drivers/mfd/twl4030-core.c
->> +++ b/drivers/mfd/twl4030-core.c
->> @@ -134,6 +134,9 @@
->>  #define TWL4030_BASEADD_PWMB		0x00F1
->>  #define TWL4030_BASEADD_KEYPAD		0x00D2
->>  
->> +#define TWL5031_BASEADD_ACCESSORY	0x0074 /* Replaces Main 
->> Charge */
->> +#define TWL5031_BASEADD_INTERRUPTS	0x00B9 /* Different to 
->> TWL4030's one */
->> +
->>  /* subchip/slave 3 - POWER ID */
->>  #define TWL4030_BASEADD_BACKUP		0x0014
->>  #define TWL4030_BASEADD_INT		0x002E
->> @@ -164,6 +167,7 @@
->>  /* chip-specific feature flags, for i2c_device_id.driver_data */
->>  #define TWL4030_VAUX2		BIT(0)	/* pre-5030 
->> voltage ranges */
->>  #define TPS_SUBSET		BIT(1)	/* tps659[23]0 have 
->> fewer LDOs */
->> +#define TWL5031			BIT(2)  /* twl5031 has 
->> different registers */
->>  
->>  
->> /*------------------------------------------------------------
->> ----------*/
->>  
->> @@ -216,6 +220,8 @@ static struct twl4030mapping 
->> twl4030_map[TWL4030_MODULE_LAST + 1] = {
->>  	{ 2, TWL4030_BASEADD_PWM1 },
->>  	{ 2, TWL4030_BASEADD_PWMA },
->>  	{ 2, TWL4030_BASEADD_PWMB },
->> +	{ 2, TWL5031_BASEADD_ACCESSORY },
->> +	{ 2, TWL5031_BASEADD_INTERRUPTS },
->>  
->>  	{ 3, TWL4030_BASEADD_BACKUP },
->>  	{ 3, TWL4030_BASEADD_INT },
->> @@ -464,7 +470,8 @@ add_children(struct twl4030_platform_data 
->> *pdata, unsigned long features)
->>  	struct device	*child;
->>  	struct device	*usb_transceiver = NULL;
->>  
->> -	if (twl_has_bci() && pdata->bci && !(features & TPS_SUBSET)) {
->> +	if (twl_has_bci() && pdata->bci &&
->> +	    !((features & TPS_SUBSET) || (features & TWL5031))) {
->>  		child = add_child(3, "twl4030_bci",
->>  				pdata->bci, sizeof(*pdata->bci),
->>  				false,
->> @@ -707,6 +714,7 @@ static void clocks_init(struct device *dev)
->>  
->>  int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end);
->>  int twl_exit_irq(void);
->> +int twl_init_chip_irq(const char *chip);
->>  
->>  static int twl4030_remove(struct i2c_client *client)
->>  {
->> @@ -780,6 +788,10 @@ twl4030_probe(struct i2c_client *client, 
->> const struct i2c_device_id *id)
->>  	if (client->irq
->>  			&& pdata->irq_base
->>  			&& pdata->irq_end > pdata->irq_base) {
->> +		status = twl_init_chip_irq(id->name);
->> +		if (status < 0)
->> +			goto fail;
->
->No need to check since status is always zero.
+Following Siarhei hints of initialize the buffers (around 1.2 MByte each)
+I get different results in 22kernel for use of
+malloc alone
+memcpy =   473.764, loop4 =   448.430, loop1 =   102.770, rand =    29.641
+calloc alone
+memcpy =   405.947, loop4 =   361.550, loop1 =    95.441, rand =    21.853
+malloc+memset:
+memcpy =   239.294, loop4 =   188.617, loop1 =    80.871, rand =     4.726
 
-Right, I'll remove the check.
+In 31kernel all 3 measures are about the same (unfortunatly low) level of malloc+memset in 22.
 
->> +
->>  		status = twl_init_irq(client->irq, 
->> pdata->irq_base, pdata->irq_end);
->>  		if (status < 0)
->>  			goto fail;
->> @@ -795,6 +807,7 @@ fail:
->>  static const struct i2c_device_id twl4030_ids[] = {
->>  	{ "twl4030", TWL4030_VAUX2 },	/* "Triton 2" */
->>  	{ "twl5030", 0 },		/* T2 updated */
->> +	{ "twl5031", TWL5031 },		/* TWL5030 updated */
->>  	{ "tps65950", 0 },		/* catalog version of twl5030 */
->>  	{ "tps65930", TPS_SUBSET },	/* fewer LDOs and DACs; 
->> no charger */
->>  	{ "tps65920", TPS_SUBSET },	/* fewer LDOs; no codec 
->> or charger */
->> diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
->> index aca2670..d781788 100644
->> --- a/drivers/mfd/twl4030-irq.c
->> +++ b/drivers/mfd/twl4030-irq.c
->> @@ -61,6 +61,7 @@
->>  
->>  /* Linux could (eventually) use either IRQ line */
->>  static int irq_line;
->> +static int chip_is_twl5031;
->>  
->>  struct sih {
->>  	char	name[8];
->> @@ -82,6 +83,9 @@ struct sih {
->>  	/* + 2 bytes padding */
->>  };
->>  
->> +static const struct sih *sih_modules;
->> +static int nr_sih_modules;
->> +
->>  #define SIH_INITIALIZER(modname, nbits) \
->>  	.module		= TWL4030_MODULE_ ## modname, \
->>  	.control_offset = TWL4030_ ## modname ## _SIH_CTRL, \
->> @@ -107,7 +111,7 @@ struct sih {
->>  /* Order in this table matches order in PIH_ISR.  That is,
->>   * BIT(n) in PIH_ISR is sih_modules[n].
->>   */
->> -static const struct sih sih_modules[6] = {
->> +static const struct sih sih_modules_twl4030[6] = {
->>  	[0] = {
->>  		.name		= "gpio",
->>  		.module		= TWL4030_MODULE_GPIO,
->> @@ -164,6 +168,84 @@ static const struct sih sih_modules[6] = {
->>  		/* there are no SIH modules #6 or #7 ... */
->>  };
->> 
+First of all: What performance can be expected?
+Does 22 make failures if it is so much faster?
+Can the later kernels get a boost in memory handling?
+
+I used a standard memcpy (think this is glib and hence not neonbased)? 
+To be neonbased I guess it has to be recompiled?
+
+How can I find out that neon and cache settings are ok?
+Using a Omap3530 on EVM board
+
+Unfortunatly I don't have a Lauterbach, just a Spectrum Digital which works only until Linux kernel is booting.
+
+Best regards
+Steffen
+
+
+-------- Original-Nachricht --------
+> Datum: Wed, 14 Oct 2009 08:59:05 -0500
+> Von: "Woodruff, Richard" <r-woodruff2@ti.com>
+> An: "epsi@gmx.de" <epsi@gmx.de>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+> Betreff: RE: RE: Memory performance / Cache problem
+
+> > There is no newer u-boot from TI available. There is a SDK 02.01.03.11
+> > but it contains the same uboot 2008.10 with the only addition of the
+> second
+> > generation of EVM boards with another network chip.
+> >
+> > So I checked the uboot from git, but this doesn't support Microns NAND
+> Flash
+> > anymore. It is just working with ONENAND.
+> >
+> > I found a patch which shows the L2 Cache status while kernel boot and
+> > implemented it : L2 Cache seems to be already enabled - so this is not
+> the
+> > reason.
+> >
+> > So any other ideas?
 > 
->Can you add comment saying sih_modules_twl4030 is for both twl4030
->and twl5030 chips? 
+> Are you confident your memory bus isn't running at 1/2 speed?
+> 
+> I recall there was a couple day window during wtbu kernel upgrades where
+> memory bus speed with pm was running 1/2 speed after kernel started up. 
+> This was somewhat a side effect of constraints frame work and a regression in
+> forward porting. It seems unlikely psp kernel would have shipped with this
+> bug but its something to check. This would match your results.
+> 
+> If your memcpy() is neon based then I might be worried about
+> l1neon-caching effects along with factors of (exlcusive-l1-l2-read-allocate cache + pld
+> not being effective on l1 only l2).
+> 
+> Which memcpy test are you using? Something in lmbench or just one you
+> wrote.  Generally results are a little hard to interpret with exclusive cache
+> behavior in 3430's r1px core.  3630's r3p2 core gives more traditional
+> results as exclusive feature has been removed by arm.
+> 
+> If you have the ability using Lauterbach + per file will allow internal
+> space dump which will show all critical parameters during test.  It's a 1
+> minute check for someone who has done it before to ensure the few parameters
+> needed are in line.  I can send an example off line of how to do capture.  I
+> won't have time to expand on all relevant parameters.
+> 
+> Regards,
+> Richard W.
 
-Sure, I'll do that.
-
->> +static const struct sih sih_modules_twl5031[8] = {
->> +	[0] = {
->> +		.name		= "gpio",
->> +		.module		= TWL4030_MODULE_GPIO,
->> +		.control_offset	= REG_GPIO_SIH_CTRL,
->> +		.set_cor	= true,
->> +		.bits		= TWL4030_GPIO_MAX,
->> +		.bytes_ixr	= 3,
->> +		/* Note: *all* of these IRQs default to no-trigger */
->> +		.edr_offset	= REG_GPIO_EDR1,
->> +		.bytes_edr	= 5,
->> +		.mask = { {
->> +			.isr_offset	= REG_GPIO_ISR1A,
->> +			.imr_offset	= REG_GPIO_IMR1A,
->> +		}, {
->> +			.isr_offset	= REG_GPIO_ISR1B,
->> +			.imr_offset	= REG_GPIO_IMR1B,
->> +		}, },
->> +	},
->> +	[1] = {
->> +		.name		= "keypad",
->> +		.set_cor	= true,
->> +		SIH_INITIALIZER(KEYPAD_KEYP, 4)
->> +	},
->> +	[2] = {
->> +		.name		= "bci",
->> +		.module		= TWL5031_MODULE_INTERRUPTS,
->> +		.control_offset	= TWL5031_INTERRUPTS_BCISIHCTRL,
->> +		.bits		= 7,
->> +		.bytes_ixr	= 1,
->> +		.edr_offset	= TWL5031_INTERRUPTS_BCIEDR1,
->> +		/* Note: most of these IRQs default to no-trigger */
->> +		.bytes_edr	= 2,
->> +		.mask = { {
->> +			.isr_offset	= TWL5031_INTERRUPTS_BCIISR1,
->> +			.imr_offset	= TWL5031_INTERRUPTS_BCIIMR1,
->> +		}, {
->> +			.isr_offset	= TWL5031_INTERRUPTS_BCIISR2,
->> +			.imr_offset	= TWL5031_INTERRUPTS_BCIIMR2,
->> +		}, },
->> +	},
->> +	[3] = {
->> +		.name		= "madc",
->> +		SIH_INITIALIZER(MADC, 4)
->> +	},
->> +	[4] = {
->> +		/* USB doesn't use the same SIH organization */
->> +		.name		= "usb",
->> +	},
->> +	[5] = {
->> +		.name		= "power",
->> +		.set_cor	= true,
->> +		SIH_INITIALIZER(INT_PWR, 8)
->> +	},
->> +	[6] = {
->> +		/* ECI/DBI/BSI (ACI) does not have SIH */
->> +		.name		= "aci",
->> +	},
->
->If there is no SIH, How do you determine source of interrupt 
->in PIH? I see
->you are masking ACI interrupts during init. If you unmask 
->these interrupts,
->How do you handle these interrupts? 
-
-You're correct, the comment is wrong.
-How about if I use similar comment as is in usb block:
-
-	/* ACI doesn't use the same SIH organization */
-
-Cheers, Ilkka
-
-
->> +	[7] = {
->> +		/* Accessory */
->> +		.name		= "acc",
->> +		.module		= TWL5031_MODULE_ACCESSORY,
->> +		.control_offset	= TWL5031_ACCSIHCTRL,
->> +		.bits		= 2,
->> +		.bytes_ixr	= 1,
->> +		.edr_offset	= TWL5031_ACCEDR1,
->> +		/* Note: most of these IRQs default to no-trigger */
->> +		.bytes_edr	= 1,
->> +		.mask = { {
->> +			.isr_offset	= TWL5031_ACCISR1,
->> +			.imr_offset	= TWL5031_ACCIMR1,
->> +		}, {
->> +			.isr_offset	= TWL5031_ACCISR2,
->> +			.imr_offset	= TWL5031_ACCIMR2,
->> +		}, },
->> +	},
->> +};
->> +
->>  #undef TWL4030_MODULE_KEYPAD_KEYP
->>  #undef TWL4030_MODULE_INT_PWR
->>  #undef TWL4030_INT_PWR_EDR
->> @@ -301,11 +383,20 @@ static int 
->> twl4030_init_sih_modules(unsigned line)
->>  	/* disable all interrupts on our line */
->>  	memset(buf, 0xff, sizeof buf);
->>  	sih = sih_modules;
->> -	for (i = 0; i < ARRAY_SIZE(sih_modules); i++, sih++) {
->> +	for (i = 0; i < nr_sih_modules; i++, sih++) {
->>  
->>  		/* skip USB -- it's funky */
->> -		if (!sih->bytes_ixr)
->> +		/* But don't skip TWL5031's ACI */
->> +		if (!sih->bytes_ixr) {
->> +			if (chip_is_twl5031 && 
->> !strcmp(sih->name, "aci")) {
->> +				
->> twl4030_i2c_write(TWL5031_MODULE_ACCESSORY,
->> +						  buf, 
->> TWL5031_ACIIMR_LSB, 1);
->> +				
->> twl4030_i2c_write(TWL5031_MODULE_ACCESSORY,
->> +						  buf, 
->> TWL5031_ACIIMR_MSB, 1);
->> +			}
->> +
->>  			continue;
->> +		}
->>  
->>  		status = twl4030_i2c_write(sih->module, buf,
->>  				sih->mask[line].imr_offset, 
->> sih->bytes_ixr);
->> @@ -331,13 +422,22 @@ static int 
->> twl4030_init_sih_modules(unsigned line)
->>  	}
->>  
->>  	sih = sih_modules;
->> -	for (i = 0; i < ARRAY_SIZE(sih_modules); i++, sih++) {
->> +	for (i = 0; i < nr_sih_modules; i++, sih++) {
->>  		u8 rxbuf[4];
->>  		int j;
->>  
->>  		/* skip USB */
->> -		if (!sih->bytes_ixr)
->> +		/* But don't skip TWL5031's ACI */
->> +		if (!sih->bytes_ixr) {
->> +			if (chip_is_twl5031 && 
->> !strcmp(sih->name, "aci")) {
->> +			
->
->Regards,
->Manjunath	
->> twl4030_i2c_write(TWL5031_MODULE_ACCESSORY,
->> +						  buf, 
->> TWL5031_ACIIDR_LSB, 1);
->> +				
->> twl4030_i2c_write(TWL5031_MODULE_ACCESSORY,
->> +						  buf, 
->> TWL5031_ACIIDR_MSB, 1);
->> +			}
->> +
->>  			continue;
->> +		}
->>  
->>  		/* Clear pending interrupt status.  Either the read was
->>  		 * enough, or we need to write those bits.  Repeat, in
->> @@ -628,7 +728,7 @@ int twl4030_sih_setup(int module)
->>  
->>  	/* only support modules with standard clear-on-read for now */
->>  	for (sih_mod = 0, sih = sih_modules;
->> -			sih_mod < ARRAY_SIZE(sih_modules);
->> +			sih_mod < nr_sih_modules;
->>  			sih_mod++, sih++) {
->>  		if (sih->module == module && sih->set_cor) {
->>  			if (!WARN((irq_base + sih->bits) > NR_IRQS,
->> @@ -763,3 +863,17 @@ int twl_exit_irq(void)
->>  	}
->>  	return 0;
->>  }
->> +
->> +int twl_init_chip_irq(const char *chip)
->> +{
->> +	if (!strcmp(chip, "twl5031")) {
->> +		chip_is_twl5031 = 1;
->> +		sih_modules = sih_modules_twl5031;
->> +		nr_sih_modules = ARRAY_SIZE(sih_modules_twl5031);
->> +	} else {
->> +		sih_modules = sih_modules_twl4030;
->> +		nr_sih_modules = ARRAY_SIZE(sih_modules_twl4030);
->> +	}
->> +
->> +	return 0;
->> +}
->> diff --git a/include/linux/i2c/twl4030.h 
->b/include/linux/i2c/twl4030.h
->> index 0dc80ef..838916f 100644
->> --- a/include/linux/i2c/twl4030.h
->> +++ b/include/linux/i2c/twl4030.h
->> @@ -58,13 +58,16 @@
->>  #define TWL4030_MODULE_PWMA		0x0E
->>  #define TWL4030_MODULE_PWMB		0x0F
->>  
->> +#define TWL5031_MODULE_ACCESSORY	0x10
->> +#define TWL5031_MODULE_INTERRUPTS	0x11
->> +
->>  /* Slave 3 (i2c address 0x4b) */
->> -#define TWL4030_MODULE_BACKUP		0x10
->> -#define TWL4030_MODULE_INT		0x11
->> -#define TWL4030_MODULE_PM_MASTER	0x12
->> -#define TWL4030_MODULE_PM_RECEIVER	0x13
->> -#define TWL4030_MODULE_RTC		0x14
->> -#define TWL4030_MODULE_SECURED_REG	0x15
->> +#define TWL4030_MODULE_BACKUP		0x12
->> +#define TWL4030_MODULE_INT		0x13
->> +#define TWL4030_MODULE_PM_MASTER	0x14
->> +#define TWL4030_MODULE_PM_RECEIVER	0x15
->> +#define TWL4030_MODULE_RTC		0x16
->> +#define TWL4030_MODULE_SECURED_REG	0x17
->>  
->>  /*
->>   * Read and write single 8-bit registers
->> @@ -218,6 +221,38 @@ int twl4030_i2c_read(u8 mod_no, u8 
->> *value, u8 reg, unsigned num_bytes);
->>  
->>  
->> /*------------------------------------------------------------
->> ----------*/
->>  
->> +/*
->> + * Accessory Interrupts
->> + */
->> +#define TWL5031_ACIIMR_LSB		0x05
->> +#define TWL5031_ACIIMR_MSB		0x06
->> +#define TWL5031_ACIIDR_LSB		0x07
->> +#define TWL5031_ACIIDR_MSB		0x08
->> +#define TWL5031_ACCISR1			0x0F
->> +#define TWL5031_ACCIMR1			0x10
->> +#define TWL5031_ACCISR2			0x11
->> +#define TWL5031_ACCIMR2			0x12
->> +#define TWL5031_ACCSIR			0x13
->> +#define TWL5031_ACCEDR1			0x14
->> +#define TWL5031_ACCSIHCTRL		0x15
->> +
->> +/*-----------------------------------------------------------
->> -----------*/
->> +
->> +/*
->> + * Battery Charger Controller
->> + */
->> +
->> +#define TWL5031_INTERRUPTS_BCIISR1	0x0
->> +#define TWL5031_INTERRUPTS_BCIIMR1	0x1
->> +#define TWL5031_INTERRUPTS_BCIISR2	0x2
->> +#define TWL5031_INTERRUPTS_BCIIMR2	0x3
->> +#define TWL5031_INTERRUPTS_BCISIR	0x4
->> +#define TWL5031_INTERRUPTS_BCIEDR1	0x5
->> +#define TWL5031_INTERRUPTS_BCIEDR2	0x6
->> +#define TWL5031_INTERRUPTS_BCISIHCTRL	0x7
->> +
->> +/*-----------------------------------------------------------
->> -----------*/
->> +
->>  /* Power bus message definitions */
->>  
->>  #define DEV_GRP_NULL		0x0
->> -- 
->> 1.6.0.4
->> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> 
->> 
+-- 
+Neu: GMX DSL bis 50.000 kBit/s und 200,- Euro Startguthaben!
+http://portal.gmx.net/de/go/dsl02
