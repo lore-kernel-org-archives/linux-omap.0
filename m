@@ -1,7 +1,7 @@
 From: Alistair Buxton <a.j.buxton@gmail.com>
-Subject: [PATCH 09/17] OMAP7XX: McBSP: Add omap850 support
-Date: Wed, 14 Oct 2009 20:51:16 +0100
-Message-ID: <3d374d00910141251j322d7042nf045d1da4002cbd2@mail.gmail.com>
+Subject: [PATCH 10/17] OMAP7XX: Create omap7xx.h
+Date: Wed, 14 Oct 2009 20:51:20 +0100
+Message-ID: <3d374d00910141251n31d80b91odbad69833bce5bd7@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,64 +19,129 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch is part of a series which unifies all duplicated code between
-omap730 and omap850. All cpu checks are converted to cpu_is_omap7xx() and
-CONFIG_ARCH_OMAP850 is added to all CONFIG_ARCH_OMAP730 checks.
+This patch is part of a series which removes references to omap730 in code
+which is shared with omap850, replacing them with references to omap7xx.
+
+This include file is intended to replace omap730.h and omap850.h
+All values defined herein are identical to those in both the old files.
 
 Signed-off-by: Alistair Buxton <a.j.buxton@gmail.com>
 Reviewed-by: Zebediah C. McClure <zmc@lurian.net>
 ---
- arch/arm/mach-omap1/mcbsp.c             |    6 +++---
- arch/arm/plat-omap/include/mach/mcbsp.h |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/include/mach/omap7xx.h |  104 +++++++++++++++++++++++++++++
+ 1 files changed, 104 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/mach/omap7xx.h
 
-diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
-index 505d98c..06f380b 100644
---- a/arch/arm/mach-omap1/mcbsp.c
-+++ b/arch/arm/mach-omap1/mcbsp.c
-@@ -79,7 +79,7 @@ static struct omap_mcbsp_ops omap1_mcbsp_ops = {
- 	.free		= omap1_mcbsp_free,
- };
-
--#ifdef CONFIG_ARCH_OMAP730
-+#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
- static struct omap_mcbsp_platform_data omap730_mcbsp_pdata[] = {
- 	{
- 		.phys_base	= OMAP730_MCBSP1_BASE,
-@@ -172,7 +172,7 @@ static struct omap_mcbsp_platform_data
-omap16xx_mcbsp_pdata[] = {
-
- int __init omap1_mcbsp_init(void)
- {
--	if (cpu_is_omap730())
-+	if (cpu_is_omap7xx())
- 		omap_mcbsp_count = OMAP730_MCBSP_PDATA_SZ;
- 	if (cpu_is_omap15xx())
- 		omap_mcbsp_count = OMAP15XX_MCBSP_PDATA_SZ;
-@@ -184,7 +184,7 @@ int __init omap1_mcbsp_init(void)
- 	if (!mcbsp_ptr)
- 		return -ENOMEM;
-
--	if (cpu_is_omap730())
-+	if (cpu_is_omap7xx())
- 		omap_mcbsp_register_board_cfg(omap730_mcbsp_pdata,
- 						OMAP730_MCBSP_PDATA_SZ);
-
-diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h
-b/arch/arm/plat-omap/include/mach/mcbsp.h
-index e0d6eca..0b476b9 100644
---- a/arch/arm/plat-omap/include/mach/mcbsp.h
-+++ b/arch/arm/plat-omap/include/mach/mcbsp.h
-@@ -58,7 +58,7 @@
- #define OMAP44XX_MCBSP3_BASE	0x49026000
- #define OMAP44XX_MCBSP4_BASE	0x48074000
-
--#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) ||
-defined(CONFIG_ARCH_OMAP730)
-+#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) ||
-defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
-
- #define OMAP_MCBSP_REG_DRR2	0x00
- #define OMAP_MCBSP_REG_DRR1	0x02
+diff --git a/arch/arm/plat-omap/include/mach/omap7xx.h
+b/arch/arm/plat-omap/include/mach/omap7xx.h
+new file mode 100644
+index 0000000..53f5241
+--- /dev/null
++++ b/arch/arm/plat-omap/include/mach/omap7xx.h
+@@ -0,0 +1,104 @@
++/* arch/arm/plat-omap/include/mach/omap7xx.h
++ *
++ * Hardware definitions for TI OMAP7XX processor.
++ *
++ * Cleanup for Linux-2.6 by Dirk Behme <dirk.behme@de.bosch.com>
++ * Adapted for omap850 by Zebediah C. McClure <zmc@lurian.net>
++ * Adapted for omap7xx by Alistair Buxton <a.j.buxton@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
++ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
++ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
++ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
++ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
++ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
++ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
++ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ *
++ * You should have received a copy of the  GNU General Public License along
++ * with this program; if not, write  to the Free Software Foundation, Inc.,
++ * 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef __ASM_ARCH_OMAP7XX_H
++#define __ASM_ARCH_OMAP7XX_H
++
++/*
++ * ----------------------------------------------------------------------------
++ * Base addresses
++ * ----------------------------------------------------------------------------
++ */
++
++/* Syntax: XX_BASE = Virtual base address, XX_START = Physical base address */
++
++#define OMAP7XX_DSP_BASE	0xE0000000
++#define OMAP7XX_DSP_SIZE	0x50000
++#define OMAP7XX_DSP_START	0xE0000000
++
++#define OMAP7XX_DSPREG_BASE	0xE1000000
++#define OMAP7XX_DSPREG_SIZE	SZ_128K
++#define OMAP7XX_DSPREG_START	0xE1000000
++
++/*
++ * ----------------------------------------------------------------------------
++ * OMAP7XX specific configuration registers
++ * ----------------------------------------------------------------------------
++ */
++#define OMAP7XX_CONFIG_BASE	0xfffe1000
++#define OMAP7XX_IO_CONF_0	0xfffe1070
++#define OMAP7XX_IO_CONF_1	0xfffe1074
++#define OMAP7XX_IO_CONF_2	0xfffe1078
++#define OMAP7XX_IO_CONF_3	0xfffe107c
++#define OMAP7XX_IO_CONF_4	0xfffe1080
++#define OMAP7XX_IO_CONF_5	0xfffe1084
++#define OMAP7XX_IO_CONF_6	0xfffe1088
++#define OMAP7XX_IO_CONF_7	0xfffe108c
++#define OMAP7XX_IO_CONF_8	0xfffe1090
++#define OMAP7XX_IO_CONF_9	0xfffe1094
++#define OMAP7XX_IO_CONF_10	0xfffe1098
++#define OMAP7XX_IO_CONF_11	0xfffe109c
++#define OMAP7XX_IO_CONF_12	0xfffe10a0
++#define OMAP7XX_IO_CONF_13	0xfffe10a4
++
++#define OMAP7XX_MODE_1		0xfffe1010
++#define OMAP7XX_MODE_2		0xfffe1014
++
++/* CSMI specials: in terms of base + offset */
++#define OMAP7XX_MODE2_OFFSET	0x14
++
++/*
++ * ----------------------------------------------------------------------------
++ * OMAP7XX traffic controller configuration registers
++ * ----------------------------------------------------------------------------
++ */
++#define OMAP7XX_FLASH_CFG_0	0xfffecc10
++#define OMAP7XX_FLASH_ACFG_0	0xfffecc50
++#define OMAP7XX_FLASH_CFG_1	0xfffecc14
++#define OMAP7XX_FLASH_ACFG_1	0xfffecc54
++
++/*
++ * ----------------------------------------------------------------------------
++ * OMAP7XX DSP control registers
++ * ----------------------------------------------------------------------------
++ */
++#define OMAP7XX_ICR_BASE	0xfffbb800
++#define OMAP7XX_DSP_M_CTL	0xfffbb804
++#define OMAP7XX_DSP_MMU_BASE	0xfffed200
++
++/*
++ * ----------------------------------------------------------------------------
++ * OMAP7XX PCC_UPLD configuration registers
++ * ----------------------------------------------------------------------------
++ */
++#define OMAP7XX_PCC_UPLD_CTRL_BASE	(0xfffe0900)
++#define OMAP7XX_PCC_UPLD_CTRL		(OMAP7XX_PCC_UPLD_CTRL_BASE + 0x00)
++
++#endif /*  __ASM_ARCH_OMAP7XX_H */
++
 -- 
 1.6.5
