@@ -1,420 +1,83 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH] twl4030: Initial support for twl5031
-Date: Wed, 14 Oct 2009 16:21:21 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF765@dbde02.ent.ti.com>
-References: <1253807628-20632-1-git-send-email-ilkka.koskinen@nokia.com>
+From: "Varadarajan, Charu Latha" <charu@ti.com>
+Subject: RE: [PATCH] OMAP3: Fix McBSP poll read and write for 32bit reg
+ access
+Date: Wed, 14 Oct 2009 16:31:34 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA31ADB5@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF770@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758466AbZJNKwX@vger.kernel.org>
-In-Reply-To: <1253807628-20632-1-git-send-email-ilkka.koskinen@nokia.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:54726 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755260AbZJNLDu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 07:03:50 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9EB3B6V029090
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2009 06:03:13 -0500
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF770@dbde02.ent.ti.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ilkka Koskinen <ilkka.koskinen@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "dbrownell@users.sourceforge.net" <dbrownell@users.sourceforge.net>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-
-Koskinen,
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
 
 > -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ilkka Koskinen
-> Sent: Thursday, September 24, 2009 9:24 PM
-> To: linux-kernel@vger.kernel.org; sameo@linux.intel.com
-> Cc: linux-omap@vger.kernel.org; felipe.balbi@nokia.com; 
-> dbrownell@users.sourceforge.net; ilkka.koskinen@nokia.com
-> Subject: [PATCH] twl4030: Initial support for twl5031
-> 
-> TWL5031 introduces two new interrupts in PIH. Moreover, BCI
-> has changed remarkably and, thus, it's disabled when TWL5031
-> is in use.
-> 
-> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-> ---
->  drivers/mfd/twl4030-core.c  |   15 +++++-
->  drivers/mfd/twl4030-irq.c   |  126 
-> ++++++++++++++++++++++++++++++++++++++++--
->  include/linux/i2c/twl4030.h |   47 ++++++++++++++--
->  3 files changed, 175 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-> index cd1008c..952bea5 100644
-> --- a/drivers/mfd/twl4030-core.c
-> +++ b/drivers/mfd/twl4030-core.c
-> @@ -134,6 +134,9 @@
->  #define TWL4030_BASEADD_PWMB		0x00F1
->  #define TWL4030_BASEADD_KEYPAD		0x00D2
->  
-> +#define TWL5031_BASEADD_ACCESSORY	0x0074 /* Replaces Main 
-> Charge */
-> +#define TWL5031_BASEADD_INTERRUPTS	0x00B9 /* Different to 
-> TWL4030's one */
-> +
->  /* subchip/slave 3 - POWER ID */
->  #define TWL4030_BASEADD_BACKUP		0x0014
->  #define TWL4030_BASEADD_INT		0x002E
-> @@ -164,6 +167,7 @@
->  /* chip-specific feature flags, for i2c_device_id.driver_data */
->  #define TWL4030_VAUX2		BIT(0)	/* pre-5030 
-> voltage ranges */
->  #define TPS_SUBSET		BIT(1)	/* tps659[23]0 have 
-> fewer LDOs */
-> +#define TWL5031			BIT(2)  /* twl5031 has 
-> different registers */
->  
->  
-> /*------------------------------------------------------------
-> ----------*/
->  
-> @@ -216,6 +220,8 @@ static struct twl4030mapping 
-> twl4030_map[TWL4030_MODULE_LAST + 1] = {
->  	{ 2, TWL4030_BASEADD_PWM1 },
->  	{ 2, TWL4030_BASEADD_PWMA },
->  	{ 2, TWL4030_BASEADD_PWMB },
-> +	{ 2, TWL5031_BASEADD_ACCESSORY },
-> +	{ 2, TWL5031_BASEADD_INTERRUPTS },
->  
->  	{ 3, TWL4030_BASEADD_BACKUP },
->  	{ 3, TWL4030_BASEADD_INT },
-> @@ -464,7 +470,8 @@ add_children(struct twl4030_platform_data 
-> *pdata, unsigned long features)
->  	struct device	*child;
->  	struct device	*usb_transceiver = NULL;
->  
-> -	if (twl_has_bci() && pdata->bci && !(features & TPS_SUBSET)) {
-> +	if (twl_has_bci() && pdata->bci &&
-> +	    !((features & TPS_SUBSET) || (features & TWL5031))) {
->  		child = add_child(3, "twl4030_bci",
->  				pdata->bci, sizeof(*pdata->bci),
->  				false,
-> @@ -707,6 +714,7 @@ static void clocks_init(struct device *dev)
->  
->  int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end);
->  int twl_exit_irq(void);
-> +int twl_init_chip_irq(const char *chip);
->  
->  static int twl4030_remove(struct i2c_client *client)
->  {
-> @@ -780,6 +788,10 @@ twl4030_probe(struct i2c_client *client, 
-> const struct i2c_device_id *id)
->  	if (client->irq
->  			&& pdata->irq_base
->  			&& pdata->irq_end > pdata->irq_base) {
-> +		status = twl_init_chip_irq(id->name);
-> +		if (status < 0)
-> +			goto fail;
-
-No need to check since status is always zero.
-
-> +
->  		status = twl_init_irq(client->irq, 
-> pdata->irq_base, pdata->irq_end);
->  		if (status < 0)
->  			goto fail;
-> @@ -795,6 +807,7 @@ fail:
->  static const struct i2c_device_id twl4030_ids[] = {
->  	{ "twl4030", TWL4030_VAUX2 },	/* "Triton 2" */
->  	{ "twl5030", 0 },		/* T2 updated */
-> +	{ "twl5031", TWL5031 },		/* TWL5030 updated */
->  	{ "tps65950", 0 },		/* catalog version of twl5030 */
->  	{ "tps65930", TPS_SUBSET },	/* fewer LDOs and DACs; 
-> no charger */
->  	{ "tps65920", TPS_SUBSET },	/* fewer LDOs; no codec 
-> or charger */
-> diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
-> index aca2670..d781788 100644
-> --- a/drivers/mfd/twl4030-irq.c
-> +++ b/drivers/mfd/twl4030-irq.c
-> @@ -61,6 +61,7 @@
->  
->  /* Linux could (eventually) use either IRQ line */
->  static int irq_line;
-> +static int chip_is_twl5031;
->  
->  struct sih {
->  	char	name[8];
-> @@ -82,6 +83,9 @@ struct sih {
->  	/* + 2 bytes padding */
->  };
->  
-> +static const struct sih *sih_modules;
-> +static int nr_sih_modules;
-> +
->  #define SIH_INITIALIZER(modname, nbits) \
->  	.module		= TWL4030_MODULE_ ## modname, \
->  	.control_offset = TWL4030_ ## modname ## _SIH_CTRL, \
-> @@ -107,7 +111,7 @@ struct sih {
->  /* Order in this table matches order in PIH_ISR.  That is,
->   * BIT(n) in PIH_ISR is sih_modules[n].
->   */
-> -static const struct sih sih_modules[6] = {
-> +static const struct sih sih_modules_twl4030[6] = {
->  	[0] = {
->  		.name		= "gpio",
->  		.module		= TWL4030_MODULE_GPIO,
-> @@ -164,6 +168,84 @@ static const struct sih sih_modules[6] = {
->  		/* there are no SIH modules #6 or #7 ... */
->  };
-> 
- 
-Can you add comment saying sih_modules_twl4030 is for both twl4030
-and twl5030 chips? 
-
-> +static const struct sih sih_modules_twl5031[8] = {
-> +	[0] = {
-> +		.name		= "gpio",
-> +		.module		= TWL4030_MODULE_GPIO,
-> +		.control_offset	= REG_GPIO_SIH_CTRL,
-> +		.set_cor	= true,
-> +		.bits		= TWL4030_GPIO_MAX,
-> +		.bytes_ixr	= 3,
-> +		/* Note: *all* of these IRQs default to no-trigger */
-> +		.edr_offset	= REG_GPIO_EDR1,
-> +		.bytes_edr	= 5,
-> +		.mask = { {
-> +			.isr_offset	= REG_GPIO_ISR1A,
-> +			.imr_offset	= REG_GPIO_IMR1A,
-> +		}, {
-> +			.isr_offset	= REG_GPIO_ISR1B,
-> +			.imr_offset	= REG_GPIO_IMR1B,
-> +		}, },
-> +	},
-> +	[1] = {
-> +		.name		= "keypad",
-> +		.set_cor	= true,
-> +		SIH_INITIALIZER(KEYPAD_KEYP, 4)
-> +	},
-> +	[2] = {
-> +		.name		= "bci",
-> +		.module		= TWL5031_MODULE_INTERRUPTS,
-> +		.control_offset	= TWL5031_INTERRUPTS_BCISIHCTRL,
-> +		.bits		= 7,
-> +		.bytes_ixr	= 1,
-> +		.edr_offset	= TWL5031_INTERRUPTS_BCIEDR1,
-> +		/* Note: most of these IRQs default to no-trigger */
-> +		.bytes_edr	= 2,
-> +		.mask = { {
-> +			.isr_offset	= TWL5031_INTERRUPTS_BCIISR1,
-> +			.imr_offset	= TWL5031_INTERRUPTS_BCIIMR1,
-> +		}, {
-> +			.isr_offset	= TWL5031_INTERRUPTS_BCIISR2,
-> +			.imr_offset	= TWL5031_INTERRUPTS_BCIIMR2,
-> +		}, },
-> +	},
-> +	[3] = {
-> +		.name		= "madc",
-> +		SIH_INITIALIZER(MADC, 4)
-> +	},
-> +	[4] = {
-> +		/* USB doesn't use the same SIH organization */
-> +		.name		= "usb",
-> +	},
-> +	[5] = {
-> +		.name		= "power",
-> +		.set_cor	= true,
-> +		SIH_INITIALIZER(INT_PWR, 8)
-> +	},
-> +	[6] = {
-> +		/* ECI/DBI/BSI (ACI) does not have SIH */
-> +		.name		= "aci",
-> +	},
-
-If there is no SIH, How do you determine source of interrupt in PIH? I see
-you are masking ACI interrupts during init. If you unmask these interrupts,
-How do you handle these interrupts? 
-
-> +	[7] = {
-> +		/* Accessory */
-> +		.name		= "acc",
-> +		.module		= TWL5031_MODULE_ACCESSORY,
-> +		.control_offset	= TWL5031_ACCSIHCTRL,
-> +		.bits		= 2,
-> +		.bytes_ixr	= 1,
-> +		.edr_offset	= TWL5031_ACCEDR1,
-> +		/* Note: most of these IRQs default to no-trigger */
-> +		.bytes_edr	= 1,
-> +		.mask = { {
-> +			.isr_offset	= TWL5031_ACCISR1,
-> +			.imr_offset	= TWL5031_ACCIMR1,
-> +		}, {
-> +			.isr_offset	= TWL5031_ACCISR2,
-> +			.imr_offset	= TWL5031_ACCIMR2,
-> +		}, },
-> +	},
-> +};
-> +
->  #undef TWL4030_MODULE_KEYPAD_KEYP
->  #undef TWL4030_MODULE_INT_PWR
->  #undef TWL4030_INT_PWR_EDR
-> @@ -301,11 +383,20 @@ static int 
-> twl4030_init_sih_modules(unsigned line)
->  	/* disable all interrupts on our line */
->  	memset(buf, 0xff, sizeof buf);
->  	sih = sih_modules;
-> -	for (i = 0; i < ARRAY_SIZE(sih_modules); i++, sih++) {
-> +	for (i = 0; i < nr_sih_modules; i++, sih++) {
->  
->  		/* skip USB -- it's funky */
-> -		if (!sih->bytes_ixr)
-> +		/* But don't skip TWL5031's ACI */
-> +		if (!sih->bytes_ixr) {
-> +			if (chip_is_twl5031 && 
-> !strcmp(sih->name, "aci")) {
-> +				
-> twl4030_i2c_write(TWL5031_MODULE_ACCESSORY,
-> +						  buf, 
-> TWL5031_ACIIMR_LSB, 1);
-> +				
-> twl4030_i2c_write(TWL5031_MODULE_ACCESSORY,
-> +						  buf, 
-> TWL5031_ACIIMR_MSB, 1);
-> +			}
-> +
->  			continue;
-> +		}
->  
->  		status = twl4030_i2c_write(sih->module, buf,
->  				sih->mask[line].imr_offset, 
-> sih->bytes_ixr);
-> @@ -331,13 +422,22 @@ static int 
-> twl4030_init_sih_modules(unsigned line)
->  	}
->  
->  	sih = sih_modules;
-> -	for (i = 0; i < ARRAY_SIZE(sih_modules); i++, sih++) {
-> +	for (i = 0; i < nr_sih_modules; i++, sih++) {
->  		u8 rxbuf[4];
->  		int j;
->  
->  		/* skip USB */
-> -		if (!sih->bytes_ixr)
-> +		/* But don't skip TWL5031's ACI */
-> +		if (!sih->bytes_ixr) {
-> +			if (chip_is_twl5031 && 
-> !strcmp(sih->name, "aci")) {
-> +			
-
-Regards,
-Manjunath	
-> twl4030_i2c_write(TWL5031_MODULE_ACCESSORY,
-> +						  buf, 
-> TWL5031_ACIIDR_LSB, 1);
-> +				
-> twl4030_i2c_write(TWL5031_MODULE_ACCESSORY,
-> +						  buf, 
-> TWL5031_ACIIDR_MSB, 1);
-> +			}
-> +
->  			continue;
-> +		}
->  
->  		/* Clear pending interrupt status.  Either the read was
->  		 * enough, or we need to write those bits.  Repeat, in
-> @@ -628,7 +728,7 @@ int twl4030_sih_setup(int module)
->  
->  	/* only support modules with standard clear-on-read for now */
->  	for (sih_mod = 0, sih = sih_modules;
-> -			sih_mod < ARRAY_SIZE(sih_modules);
-> +			sih_mod < nr_sih_modules;
->  			sih_mod++, sih++) {
->  		if (sih->module == module && sih->set_cor) {
->  			if (!WARN((irq_base + sih->bits) > NR_IRQS,
-> @@ -763,3 +863,17 @@ int twl_exit_irq(void)
->  	}
->  	return 0;
->  }
-> +
-> +int twl_init_chip_irq(const char *chip)
-> +{
-> +	if (!strcmp(chip, "twl5031")) {
-> +		chip_is_twl5031 = 1;
-> +		sih_modules = sih_modules_twl5031;
-> +		nr_sih_modules = ARRAY_SIZE(sih_modules_twl5031);
-> +	} else {
-> +		sih_modules = sih_modules_twl4030;
-> +		nr_sih_modules = ARRAY_SIZE(sih_modules_twl4030);
-> +	}
-> +
-> +	return 0;
-> +}
-> diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-> index 0dc80ef..838916f 100644
-> --- a/include/linux/i2c/twl4030.h
-> +++ b/include/linux/i2c/twl4030.h
-> @@ -58,13 +58,16 @@
->  #define TWL4030_MODULE_PWMA		0x0E
->  #define TWL4030_MODULE_PWMB		0x0F
->  
-> +#define TWL5031_MODULE_ACCESSORY	0x10
-> +#define TWL5031_MODULE_INTERRUPTS	0x11
-> +
->  /* Slave 3 (i2c address 0x4b) */
-> -#define TWL4030_MODULE_BACKUP		0x10
-> -#define TWL4030_MODULE_INT		0x11
-> -#define TWL4030_MODULE_PM_MASTER	0x12
-> -#define TWL4030_MODULE_PM_RECEIVER	0x13
-> -#define TWL4030_MODULE_RTC		0x14
-> -#define TWL4030_MODULE_SECURED_REG	0x15
-> +#define TWL4030_MODULE_BACKUP		0x12
-> +#define TWL4030_MODULE_INT		0x13
-> +#define TWL4030_MODULE_PM_MASTER	0x14
-> +#define TWL4030_MODULE_PM_RECEIVER	0x15
-> +#define TWL4030_MODULE_RTC		0x16
-> +#define TWL4030_MODULE_SECURED_REG	0x17
->  
->  /*
->   * Read and write single 8-bit registers
-> @@ -218,6 +221,38 @@ int twl4030_i2c_read(u8 mod_no, u8 
-> *value, u8 reg, unsigned num_bytes);
->  
->  
-> /*------------------------------------------------------------
-> ----------*/
->  
-> +/*
-> + * Accessory Interrupts
-> + */
-> +#define TWL5031_ACIIMR_LSB		0x05
-> +#define TWL5031_ACIIMR_MSB		0x06
-> +#define TWL5031_ACIIDR_LSB		0x07
-> +#define TWL5031_ACIIDR_MSB		0x08
-> +#define TWL5031_ACCISR1			0x0F
-> +#define TWL5031_ACCIMR1			0x10
-> +#define TWL5031_ACCISR2			0x11
-> +#define TWL5031_ACCIMR2			0x12
-> +#define TWL5031_ACCSIR			0x13
-> +#define TWL5031_ACCEDR1			0x14
-> +#define TWL5031_ACCSIHCTRL		0x15
-> +
-> +/*-----------------------------------------------------------
-> -----------*/
-> +
-> +/*
-> + * Battery Charger Controller
-> + */
-> +
-> +#define TWL5031_INTERRUPTS_BCIISR1	0x0
-> +#define TWL5031_INTERRUPTS_BCIIMR1	0x1
-> +#define TWL5031_INTERRUPTS_BCIISR2	0x2
-> +#define TWL5031_INTERRUPTS_BCIIMR2	0x3
-> +#define TWL5031_INTERRUPTS_BCISIR	0x4
-> +#define TWL5031_INTERRUPTS_BCIEDR1	0x5
-> +#define TWL5031_INTERRUPTS_BCIEDR2	0x6
-> +#define TWL5031_INTERRUPTS_BCISIHCTRL	0x7
-> +
-> +/*-----------------------------------------------------------
-> -----------*/
-> +
->  /* Power bus message definitions */
->  
->  #define DEV_GRP_NULL		0x0
-> -- 
-> 1.6.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> From: G, Manjunath Kondaiah
+> Sent: Wednesday, October 14, 2009 4:01 PM
+> To: 'vimal singh'; Varadarajan, Charu Latha
+> Cc: linux-omap@vger.kernel.org; Syed, Rafiuddin
+> Subject: RE: [PATCH] OMAP3: Fix McBSP poll read and write for
+> 32bit reg access
+>
+>
+>
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of vimal singh
+> > Sent: Wednesday, October 14, 2009 3:23 PM
+> > To: Varadarajan, Charu Latha
+> > Cc: linux-omap@vger.kernel.org; Syed, Rafiuddin
+> > Subject: Re: [PATCH] OMAP3: Fix McBSP poll read and write for
+> > 32bit reg access
+>
+> > >
+> > >        base = mcbsp->io_base;
+> > >        /* if frame sync error - clear the error */
+> > > -       if (readw(base + OMAP_MCBSP_REG_SPCR1) & RSYNC_ERR) {
+> > > +       if (OMAP_MCBSP_READ(base, SPCR1) & RSYNC_ERR) {
+> > >                /* clear error */
+> > > -               writew(readw(base + OMAP_MCBSP_REG_SPCR1) &
+> > (~RSYNC_ERR),
+> > > -                      base + OMAP_MCBSP_REG_SPCR1);
+> > > +               OMAP_MCBSP_WRITE(base, SPCR1,
+> > OMAP_MCBSP_READ(base, SPCR1)
+> > > +                                       & (~RSYNC_ERR));
+> > >                /* resend */
+> > >                return -1;
+>
+> Return value can be a meaningful macro with proper value?
+>
+> > >        } else {
+> > >                /* wait for recieve confirmation */
+> > >                int attemps = 0;
+> > > -               while (!(readw(base + OMAP_MCBSP_REG_SPCR1)
+> > & RRDY)) {
+> > > -                       if (attemps++ > 1000) {
+> > > -                               writew(readw(base +
+> > OMAP_MCBSP_REG_SPCR1) &
+> > > -                                      (~RRST),
+> > > -                                      base +
+> OMAP_MCBSP_REG_SPCR1);
+> > > +               while (!(OMAP_MCBSP_READ(base, SPCR1) & RRDY)) {
+> > > +                       if (attemps++ > 10000) {
+> > > +                               OMAP_MCBSP_WRITE(base, SPCR1,
+> > > +
+>
+> Why attemps changed from 1000 to 10000?
+Ooops.. That's a typo, but critical error. Will do the needful.
+>
+> -Manjunath
+>
+>
