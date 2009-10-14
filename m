@@ -1,7 +1,7 @@
 From: Alistair Buxton <a.j.buxton@gmail.com>
-Subject: [PATCH 08/17] OMAP7XX: Clocks: Add omap850 support
-Date: Wed, 14 Oct 2009 20:51:10 +0100
-Message-ID: <3d374d00910141251j7cd18b62ua6304259f23cffe9@mail.gmail.com>
+Subject: [PATCH 09/17] OMAP7XX: McBSP: Add omap850 support
+Date: Wed, 14 Oct 2009 20:51:16 +0100
+Message-ID: <3d374d00910141251j322d7042nf045d1da4002cbd2@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -23,64 +23,60 @@ This patch is part of a series which unifies all duplicated code between
 omap730 and omap850. All cpu checks are converted to cpu_is_omap7xx() and
 CONFIG_ARCH_OMAP850 is added to all CONFIG_ARCH_OMAP730 checks.
 
-This file had no omap850 specific code. Initial clock support was done in
-the Linwizard tree by Zebediah C. McClure.
-
 Signed-off-by: Alistair Buxton <a.j.buxton@gmail.com>
 Reviewed-by: Zebediah C. McClure <zmc@lurian.net>
 ---
- arch/arm/mach-omap1/clock.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap1/mcbsp.c             |    6 +++---
+ arch/arm/plat-omap/include/mach/mcbsp.h |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 436eed2..fcbea61 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -398,7 +398,7 @@ static int omap1_select_table_rate(struct clk *
-clk, unsigned long rate)
- 	 * Reprogramming the DPLL is tricky, it must be done from SRAM.
- 	 * (on 730, bit 13 must always be 1)
- 	 */
--	if (cpu_is_omap730())
-+	if (cpu_is_omap7xx())
- 		omap_sram_reprogram_clock(ptr->dpllctl_val, ptr->ckctl_val | 0x2000);
- 	else
- 		omap_sram_reprogram_clock(ptr->dpllctl_val, ptr->ckctl_val);
-@@ -783,7 +783,7 @@ int __init omap1_clk_init(void)
- 		cpu_mask |= CK_16XX;
- 	if (cpu_is_omap1510())
- 		cpu_mask |= CK_1510;
--	if (cpu_is_omap730())
-+	if (cpu_is_omap7xx())
- 		cpu_mask |= CK_730;
- 	if (cpu_is_omap310())
- 		cpu_mask |= CK_310;
-@@ -800,7 +800,7 @@ int __init omap1_clk_init(void)
- 			crystal_type = info->system_clock_type;
- 	}
+diff --git a/arch/arm/mach-omap1/mcbsp.c b/arch/arm/mach-omap1/mcbsp.c
+index 505d98c..06f380b 100644
+--- a/arch/arm/mach-omap1/mcbsp.c
++++ b/arch/arm/mach-omap1/mcbsp.c
+@@ -79,7 +79,7 @@ static struct omap_mcbsp_ops omap1_mcbsp_ops = {
+ 	.free		= omap1_mcbsp_free,
+ };
 
--#if defined(CONFIG_ARCH_OMAP730)
+-#ifdef CONFIG_ARCH_OMAP730
 +#if defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
- 	ck_ref.rate = 13000000;
- #elif defined(CONFIG_ARCH_OMAP16XX)
- 	if (crystal_type == 2)
-@@ -847,7 +847,7 @@ int __init omap1_clk_init(void)
- 		printk(KERN_ERR "System frequencies not set. Check your config.\n");
- 		/* Guess sane values (60MHz) */
- 		omap_writew(0x2290, DPLL_CTL);
--		omap_writew(cpu_is_omap730() ? 0x3005 : 0x1005, ARM_CKCTL);
-+		omap_writew(cpu_is_omap7xx() ? 0x3005 : 0x1005, ARM_CKCTL);
- 		ck_dpll1.rate = 60000000;
- 	}
- #endif
-@@ -873,7 +873,7 @@ int __init omap1_clk_init(void)
+ static struct omap_mcbsp_platform_data omap730_mcbsp_pdata[] = {
+ 	{
+ 		.phys_base	= OMAP730_MCBSP1_BASE,
+@@ -172,7 +172,7 @@ static struct omap_mcbsp_platform_data
+omap16xx_mcbsp_pdata[] = {
 
- 	/* Turn off DSP and ARM_TIMXO. Make sure ARM_INTHCK is not divided */
- 	/* (on 730, bit 13 must not be cleared) */
+ int __init omap1_mcbsp_init(void)
+ {
 -	if (cpu_is_omap730())
 +	if (cpu_is_omap7xx())
- 		omap_writew(omap_readw(ARM_CKCTL) & 0x2fff, ARM_CKCTL);
- 	else
- 		omap_writew(omap_readw(ARM_CKCTL) & 0x0fff, ARM_CKCTL);
+ 		omap_mcbsp_count = OMAP730_MCBSP_PDATA_SZ;
+ 	if (cpu_is_omap15xx())
+ 		omap_mcbsp_count = OMAP15XX_MCBSP_PDATA_SZ;
+@@ -184,7 +184,7 @@ int __init omap1_mcbsp_init(void)
+ 	if (!mcbsp_ptr)
+ 		return -ENOMEM;
+
+-	if (cpu_is_omap730())
++	if (cpu_is_omap7xx())
+ 		omap_mcbsp_register_board_cfg(omap730_mcbsp_pdata,
+ 						OMAP730_MCBSP_PDATA_SZ);
+
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h
+b/arch/arm/plat-omap/include/mach/mcbsp.h
+index e0d6eca..0b476b9 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -58,7 +58,7 @@
+ #define OMAP44XX_MCBSP3_BASE	0x49026000
+ #define OMAP44XX_MCBSP4_BASE	0x48074000
+
+-#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) ||
+defined(CONFIG_ARCH_OMAP730)
++#if defined(CONFIG_ARCH_OMAP15XX) || defined(CONFIG_ARCH_OMAP16XX) ||
+defined(CONFIG_ARCH_OMAP730) || defined(CONFIG_ARCH_OMAP850)
+
+ #define OMAP_MCBSP_REG_DRR2	0x00
+ #define OMAP_MCBSP_REG_DRR1	0x02
 -- 
 1.6.5
