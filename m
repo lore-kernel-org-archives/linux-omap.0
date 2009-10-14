@@ -1,46 +1,46 @@
 From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH RESEND] I2C: OMAP: Add missing wakeup events
-Date: Wed, 14 Oct 2009 08:25:42 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B235CF9@dlee02.ent.ti.com>
-References: <1255342885-15786-1-git-send-email-aaro.koskinen@nokia.com>
- <CD8CC2B65FEE304DA95744A5472698F2029E37200E@dlee06.ent.ti.com>
- <4AD44DD0.7000708@nokia.com>
- <CD8CC2B65FEE304DA95744A5472698F2029E37245F@dlee06.ent.ti.com>
+Subject: RE: RE: Memory performance / Cache problem
+Date: Wed, 14 Oct 2009 08:59:05 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B235D5C@dlee02.ent.ti.com>
+References: <20091012083806.323990@gmx.net>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DDE1FF2C@dbde02.ent.ti.com>
+ <20091013081651.300080@gmx.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58827 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:60920 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756521AbZJNN0e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 09:26:34 -0400
-In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F2029E37245F@dlee06.ent.ti.com>
+	id S1753464AbZJNN7o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 09:59:44 -0400
+In-Reply-To: <20091013081651.300080@gmx.net>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sonasath, Moiz" <m-sonasath@ti.com>, Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: "ben-linux@fluff.org" <ben-linux@fluff.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "epsi@gmx.de" <epsi@gmx.de>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> > >>  /* I2C WE wakeup enable register */
-> > >> -#define OMAP_I2C_WE_XDR_WE      (1 << 14)       /* TX drain wakup */
-> > >> +#define OMAP_I2C_WE_XDR_WE      (1 << 14)       /* TX drain wakeup */
-> > >>  #define OMAP_I2C_WE_RDR_WE      (1 << 13)       /* RX drain wakeup */
-> > >> +#define OMAP_I2C_WE_ROVR_WE     (1 << 11)       /* RX overflow wakeup */
-> > >> +#define OMAP_I2C_WE_XUDF_WE     (1 << 10)       /* TX underflow wakeup */
-> > >
-> > > These bits are not documented in OMAP3430, they are reserved. How can
-> > they be used?
-> >
-> > Hmm, that's a valid point. I will have to check if I can find more info on
-> > the background of this patch.
+> There is no newer u-boot from TI available. There is a SDK 02.01.03.11
+> but it contains the same uboot 2008.10 with the only addition of the second
+> generation of EVM boards with another network chip.
 >
-> AFAIK, these bits have been introduced in OMAP3630 as it has a new IP block
-> for I2C. But these bits are reserved bits for OMAP3430.
+> So I checked the uboot from git, but this doesn't support Microns NAND Flash
+> anymore. It is just working with ONENAND.
+>
+> I found a patch which shows the L2 Cache status while kernel boot and
+> implemented it : L2 Cache seems to be already enabled - so this is not the
+> reason.
+>
+> So any other ideas?
 
-Couple notes:
-        - IP block is updated but it is not new.  These should just be some reserved bits converted.  New bits expand wakeup capability and enhance FIFO operation with DMA.
+Are you confident your memory bus isn't running at 1/2 speed?
 
-        - Driver for a while supported OMAP1/2420 style I2C and OMAP2430/3/4 style I2C.  Definitions between broad class drivers are different.  The interrupt handler is easiest to see this.  This is not so relevant to above bits but is good to keep in mind.
+I recall there was a couple day window during wtbu kernel upgrades where memory bus speed with pm was running 1/2 speed after kernel started up.  This was somewhat a side effect of constraints frame work and a regression in forward porting. It seems unlikely psp kernel would have shipped with this bug but its something to check. This would match your results.
+
+If your memcpy() is neon based then I might be worried about l1neon-caching effects along with factors of (exlcusive-l1-l2-read-allocate cache + pld not being effective on l1 only l2).
+
+Which memcpy test are you using? Something in lmbench or just one you wrote.  Generally results are a little hard to interpret with exclusive cache behavior in 3430's r1px core.  3630's r3p2 core gives more traditional results as exclusive feature has been removed by arm.
+
+If you have the ability using Lauterbach + per file will allow internal space dump which will show all critical parameters during test.  It's a 1 minute check for someone who has done it before to ensure the few parameters needed are in line.  I can send an example off line of how to do capture.  I won't have time to expand on all relevant parameters.
 
 Regards,
 Richard W.
