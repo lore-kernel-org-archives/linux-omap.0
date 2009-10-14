@@ -1,87 +1,45 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH] ARM: OMAP3: cm-t35: add EHCI support
-Date: Wed, 14 Oct 2009 10:15:03 +0200
-Message-ID: <4AD58887.9010004@compulab.co.il>
+From: Christopher Friedt <chrisfriedt@gmail.com>
+Subject: Re: patch: add omap730 / omap850 rtc support
+Date: Wed, 14 Oct 2009 10:26:00 +0200
+Message-ID: <3ea34a000910140126p3352a5aej50300a39521f1128@mail.gmail.com>
+References: <3ea34a000910130433i36a3ac7esc6b8e7c6588185f4@mail.gmail.com>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF600@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:33024 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755698AbZJNIPm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Oct 2009 04:15:42 -0400
-Received: from [62.90.235.247] (helo=zimbra-mta.compulab.co.il)
-	by compulab.site5.com with esmtp (Exim 4.69)
-	(envelope-from <mike@compulab.co.il>)
-	id 1Mxz0j-0003Jj-2r
-	for linux-omap@vger.kernel.org; Wed, 14 Oct 2009 03:15:05 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id 3B1849A034C
-	for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2009 10:15:04 +0200 (IST)
-Received: from zimbra-mta.compulab.co.il ([127.0.0.1])
-	by localhost (zimbra-mta.compulab.co.il [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id T0NvImkZyNJn for <linux-omap@vger.kernel.org>;
-	Wed, 14 Oct 2009 10:15:04 +0200 (IST)
-Received: from [10.1.1.95] (mike-pc.compulab.local [10.1.1.95])
-	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id 1D4ED9A0343
-	for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2009 10:15:04 +0200 (IST)
+Received: from mail-gx0-f212.google.com ([209.85.217.212]:64155 "EHLO
+	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754149AbZJNI0h (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 04:26:37 -0400
+Received: by gxk4 with SMTP id 4so11733258gxk.8
+        for <linux-omap@vger.kernel.org>; Wed, 14 Oct 2009 01:26:00 -0700 (PDT)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF600@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-This patch adds support for EHCI on CM-T35.
-It depends on basic CM-T35 board support ([1]) and EHCI updates
-in the linux-omap tree.
+On Wed, Oct 14, 2009 at 9:11 AM, G, Manjunath Kondaiah <manjugk@ti.com> wrote:
 
-[1] http://thread.gmane.org/gmane.linux.ports.arm.omap/24938
----
+> Any advantage of using both enum and register offsets?
+> You can have only register offset macros instead of enum.
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
----
- arch/arm/mach-omap2/board-cm-t35.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+This was the appproach proposed by Tony in response to Alistair's
+original query. Tony originally cited something from Russel for the
+reason.
 
-diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-index 94c1f35..1465892 100644
---- a/arch/arm/mach-omap2/board-cm-t35.c
-+++ b/arch/arm/mach-omap2/board-cm-t35.c
-@@ -352,6 +352,17 @@ static struct twl4030_hsmmc_info mmc[] = {
- 	{}	/* Terminator */
- };
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg14918.html
 
-+static struct ehci_hcd_omap_platform_data ehci_pdata = {
-+	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+
-+	.phy_reset  = true,
-+	.reset_gpio_port[0]  = -EINVAL,
-+	.reset_gpio_port[1]  = -EINVAL,
-+	.reset_gpio_port[2]  = -EINVAL
-+};
-+
- static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
- 				 unsigned ngpio)
- {
-@@ -377,6 +388,12 @@ static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
- 	cm_t35_vmmc1_supply.dev = mmc[0].dev;
- 	cm_t35_vsim_supply.dev = mmc[0].dev;
+If static #define's were used, then it would probably be impossible to
+support multiple omap1 cpu's with the same binary driver / binary
+kernel. Having a run-time cpu check (referencing static offset arrays)
+makes this possible and in the worst case scenario, it adds ~20 bytes.
+I guess if you really wanted to save those 20 bytes, then you could
+check #ifdef OMAP1_MULTI or something like that.
 
-+	/* setup USB with proper PHY reset GPIOs */
-+	ehci_pdata.reset_gpio_port[0] = gpio + 6;
-+	ehci_pdata.reset_gpio_port[1] = gpio + 7;
-+
-+	usb_ehci_init(&ehci_pdata);
-+
- 	return 0;
- }
+> Why 50? Count can be decreased from 50 to 30/35 which will increase rtc performance.
 
--- 
-1.6.0.6
+No idea, I didn't write the driver, I just patched it, and that is
+completely irrelevent to my patch, but feel free to test 30/35 and
+submit the changes back :)
 
-
--- 
-Sincerely yours,
-Mike.
-
-
+C
