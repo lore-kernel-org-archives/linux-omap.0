@@ -1,53 +1,32 @@
-From: Janosch Machowinski <scotch@tzi.de>
-Subject: Re: stable kernel version
-Date: Wed, 14 Oct 2009 22:00:29 +0200
-Message-ID: <4AD62DDD.6090403@tzi.de>
-References: <4AD58D69.2080303@tzi.de> <20091014172656.GJ12700@atomide.com> <4AD60CEE.8000204@tzi.de> <20091014193324.GK12700@atomide.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: SMP: BUG with PREEMPT enabled
+Date: Wed, 14 Oct 2009 21:14:23 +0100
+Message-ID: <20091014201423.GC28948@n2100.arm.linux.org.uk>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8D@dbde02.ent.ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02BB2555BF@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mailhost.informatik.uni-bremen.de ([134.102.201.18]:47022 "EHLO
-	informatik.uni-bremen.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932592AbZJNUBb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 14 Oct 2009 16:01:31 -0400
-In-Reply-To: <20091014193324.GK12700@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BB2555BF@dbde02.ent.ti.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
 
-Tony Lindgren schrieb:
->> Hi Tony,
->>
->> the 2.6.30 head booted fine until the point where it
->> waited for the SD-Card to get ready. There it just hung
->> forever.
->>     
->
-> Hmm, 2.6.30 may not have all the core stuff in it yet.
->
->   
->> the 2.6.31 head crashed instantly after the uncompression
->> of the kernel image.
->>     
->
-> There are few patches still pending to get to mainline
-> via other mailing lists, you can see them in omap-testing
-> branch.
->
->   
->> I will try out the 2.6.31 mainline kernel tommorw.
->>     
->
-> OK, also I just pushed updated omap-debug branch that
-> I forgot to rebase on top of current linux-omap master
-> branch (Thanks Paul for letting me know!).
->
-> Tony
->
->   
-I just realized, that I made myself not clear about the kernels I tested.
-I used omap-2.6.30 head and omap-2.6.31 head.
-    Janosch
+On Wed, Oct 14, 2009 at 04:56:18PM +0530, Shilimkar, Santosh wrote:
+> Here is the patch I used to fix this BUG.
+
+Patch is good.  Could you send it to the patch system.  Please note that
+the patch system now almost accepts standard patch submissions (in other
+words, it no longer requires the "PATCH FOLLOWS" tag.)  However, it still
+requires the "KernelVersion:" tag to appear somewhere before the patch.
