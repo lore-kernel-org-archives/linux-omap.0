@@ -1,17 +1,21 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 03/27] OMAP3: PM: INTC context save/restore
-Date: Wed, 14 Oct 2009 15:15:13 -0700
-Message-ID: <20091014221512.GN12700@atomide.com>
+Subject: Re: [PATCH 07/27] OMAP3: PM: SRAM restore function
+Date: Wed, 14 Oct 2009 15:17:55 -0700
+Message-ID: <20091014221754.GO12700@atomide.com>
 References: <1255557490-16787-1-git-send-email-khilman@deeprootsystems.com>
 	<1255557490-16787-2-git-send-email-khilman@deeprootsystems.com>
 	<1255557490-16787-3-git-send-email-khilman@deeprootsystems.com>
 	<1255557490-16787-4-git-send-email-khilman@deeprootsystems.com>
+	<1255557490-16787-5-git-send-email-khilman@deeprootsystems.com>
+	<1255557490-16787-6-git-send-email-khilman@deeprootsystems.com>
+	<1255557490-16787-7-git-send-email-khilman@deeprootsystems.com>
+	<1255557490-16787-8-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1255557490-16787-4-git-send-email-khilman@deeprootsystems.com>
+In-Reply-To: <1255557490-16787-8-git-send-email-khilman@deeprootsystems.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -25,127 +29,88 @@ To: Kevin Hilman <khilman@deeprootsystems.com>
 Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
 List-Id: linux-omap@vger.kernel.org
 
-* Kevin Hilman <khilman@deeprootsystems.com> [091014 15:10]:
+* Kevin Hilman <khilman@deeprootsystems.com> [091014 15:09]:
 > From: Rajendra Nayak <rnayak@ti.com>
-> 
+
+Description missing here.
+ 
 > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 > Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 > ---
->  arch/arm/mach-omap2/irq.c              |   66 ++++++++++++++++++++++++++++++++
->  arch/arm/plat-omap/include/mach/irqs.h |    5 ++
->  2 files changed, 71 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/pm34xx.c           |   10 +++++++---
+>  arch/arm/plat-omap/include/mach/sram.h |    1 +
+>  arch/arm/plat-omap/sram.c              |    6 +++---
+>  3 files changed, 11 insertions(+), 6 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-> index 8db0e3a..fa2524d 100644
-> --- a/arch/arm/mach-omap2/irq.c
-> +++ b/arch/arm/mach-omap2/irq.c
-> @@ -25,6 +25,10 @@
->  #define INTC_SYSSTATUS		0x0014
->  #define INTC_SIR		0x0040
->  #define INTC_CONTROL		0x0048
-> +#define INTC_PROTECTION		0x004C
-> +#define INTC_IDLE		0x0050
-> +#define INTC_THRESHOLD		0x0068
-> +#define INTC_MIR0		0x0084
->  #define INTC_MIR_CLEAR0		0x0088
->  #define INTC_MIR_SET0		0x008c
->  #define INTC_PENDING_IRQ0	0x0098
-> @@ -48,6 +52,18 @@ static struct omap_irq_bank {
->  	},
->  };
->  
-> +/* Structure to save interrupt controller context */
-> +struct omap3_intc_regs {
-> +	u32 sysconfig;
-> +	u32 protection;
-> +	u32 idle;
-> +	u32 threshold;
-> +	u32 ilr[INTCPS_NR_IRQS];
-> +	u32 mir[INTCPS_NR_MIR_REGS];
-> +};
-> +
-> +static struct omap3_intc_regs intc_context[ARRAY_SIZE(irq_banks)];
-> +
->  /* INTC bank register get/set */
->  
->  static void intc_bank_write_reg(u32 val, struct omap_irq_bank *bank, u16 reg)
-> @@ -201,3 +217,53 @@ void __init omap_init_irq(void)
->  	}
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 378c2f6..9dbb5a0 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -748,6 +748,12 @@ static int __init clkdms_setup(struct clockdomain *clkdm, void *unused)
+>  	return 0;
 >  }
 >  
-> +#ifdef CONFIG_ARCH_OMAP3
-> +void omap3_intc_save_context(void)
+> +void omap_push_sram_idle(void)
 > +{
-> +	int ind = 0, i = 0;
-> +	for (ind = 0; ind < ARRAY_SIZE(irq_banks); ind++) {
-> +		struct omap_irq_bank *bank = irq_banks + ind;
-> +		intc_context[ind].sysconfig =
-> +			intc_bank_read_reg(bank, INTC_SYSCONFIG);
-> +		intc_context[ind].protection =
-> +			intc_bank_read_reg(bank, INTC_PROTECTION);
-> +		intc_context[ind].idle =
-> +			intc_bank_read_reg(bank, INTC_IDLE);
-> +		intc_context[ind].threshold =
-> +			intc_bank_read_reg(bank, INTC_THRESHOLD);
-> +		for (i = 0; i < INTCPS_NR_IRQS; i++)
-> +			intc_context[ind].ilr[i] =
-> +				intc_bank_read_reg(bank, (0x100 + 0x4*ind));
-> +		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
-> +			intc_context[ind].mir[i] =
-> +				intc_bank_read_reg(&irq_banks[0], INTC_MIR0 +
-> +				(0x20 * i));
-> +	}
+> +	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
+> +					omap34xx_cpu_suspend_sz);
 > +}
 > +
-
-These too look like they should work on 24xx and 34xx?
-
-
-> +void omap3_intc_restore_context(void)
-> +{
-> +	int ind = 0, i = 0;
-> +
-> +	for (ind = 0; ind < ARRAY_SIZE(irq_banks); ind++) {
-> +		struct omap_irq_bank *bank = irq_banks + ind;
-> +		intc_bank_write_reg(intc_context[ind].sysconfig,
-> +					bank, INTC_SYSCONFIG);
-> +		intc_bank_write_reg(intc_context[ind].sysconfig,
-> +					bank, INTC_SYSCONFIG);
-> +		intc_bank_write_reg(intc_context[ind].protection,
-> +					bank, INTC_PROTECTION);
-> +		intc_bank_write_reg(intc_context[ind].idle,
-> +					bank, INTC_IDLE);
-> +		intc_bank_write_reg(intc_context[ind].threshold,
-> +					bank, INTC_THRESHOLD);
-> +		for (i = 0; i < INTCPS_NR_IRQS; i++)
-> +			intc_bank_write_reg(intc_context[ind].ilr[i],
-> +				bank, (0x100 + 0x4*ind));
-> +		for (i = 0; i < INTCPS_NR_MIR_REGS; i++)
-> +			intc_bank_write_reg(intc_context[ind].mir[i],
-> +				 &irq_banks[0], INTC_MIR0 + (0x20 * i));
-> +	}
-> +	/* MIRs are saved and restore with other PRCM registers */
-> +}
-> +#endif /* CONFIG_ARCH_OMAP3 */
-> diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-> index 6a6d028..2473910 100644
-> --- a/arch/arm/plat-omap/include/mach/irqs.h
-> +++ b/arch/arm/plat-omap/include/mach/irqs.h
-> @@ -477,9 +477,14 @@
+>  static int __init omap3_pm_init(void)
+>  {
+>  	struct power_state *pwrst, *tmp;
+> @@ -785,9 +791,7 @@ static int __init omap3_pm_init(void)
+>  		goto err2;
+>  	}
 >  
->  #define OMAP_IRQ_BIT(irq)	(1 << ((irq) % 32))
+> -	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
+> -					 omap34xx_cpu_suspend_sz);
+> -
+> +	omap_push_sram_idle();
+>  #ifdef CONFIG_SUSPEND
+>  	suspend_set_ops(&omap_pm_ops);
+>  #endif /* CONFIG_SUSPEND */
+> diff --git a/arch/arm/plat-omap/include/mach/sram.h b/arch/arm/plat-omap/include/mach/sram.h
+> index 8974e3f..a943014 100644
+> --- a/arch/arm/plat-omap/include/mach/sram.h
+> +++ b/arch/arm/plat-omap/include/mach/sram.h
+> @@ -67,5 +67,6 @@ extern u32 omap3_sram_configure_core_dpll(
+>  			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
+>  			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
+>  extern unsigned long omap3_sram_configure_core_dpll_sz;
+> +extern void omap_push_sram_idle(void);
 >  
-> +#define INTCPS_NR_MIR_REGS	3
-> +#define INTCPS_NR_IRQS		96
-> +
->  #ifndef __ASSEMBLY__
->  extern void omap_init_irq(void);
->  extern int omap_irq_pending(void);
-> +void omap3_intc_save_context(void);
-> +void omap3_intc_restore_context(void);
 >  #endif
+> diff --git a/arch/arm/plat-omap/sram.c b/arch/arm/plat-omap/sram.c
+> index 4144f81..b20ec87 100644
+> --- a/arch/arm/plat-omap/sram.c
+> +++ b/arch/arm/plat-omap/sram.c
+> @@ -396,14 +396,14 @@ u32 omap3_configure_core_dpll(u32 m2, u32 unlock_dll, u32 f, u32 inc,
+>  			sdrc_actim_ctrl_b_1, sdrc_mr_1);
+>  }
 >  
->  #include <mach/hardware.h>
+> -/* REVISIT: Should this be same as omap34xx_sram_init() after off-idle? */
+> -void restore_sram_functions(void)
+> +void omap3_sram_restore_context(void)
+>  {
+>  	omap_sram_ceil = omap_sram_base + omap_sram_size;
+>  
+>  	_omap3_sram_configure_core_dpll =
+>  		omap_sram_push(omap3_sram_configure_core_dpll,
+>  			       omap3_sram_configure_core_dpll_sz);
+> +	omap_push_sram_idle();
+>  }
+>  
+>  int __init omap34xx_sram_init(void)
+> @@ -411,7 +411,7 @@ int __init omap34xx_sram_init(void)
+>  	_omap3_sram_configure_core_dpll =
+>  		omap_sram_push(omap3_sram_configure_core_dpll,
+>  			       omap3_sram_configure_core_dpll_sz);
+> -
+> +	omap_push_sram_idle();
+>  	return 0;
+>  }
+>  #else
 > -- 
 > 1.6.4.3
 > 
