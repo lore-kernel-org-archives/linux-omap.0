@@ -1,71 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] ARM: OMAP: SDMA: Fix omap_stop_dma() API for channel
-	linking
-Date: Wed, 14 Oct 2009 10:06:26 -0700
-Message-ID: <20091014170625.GH12700@atomide.com>
-References: <1255500862-29847-1-git-send-email-santosh.shilimkar@ti.com>
+Subject: Re: [PATCH 5/8] board-rx51-peripherals: split
+	vaux3	and vmmc2 supplies
+Date: Wed, 14 Oct 2009 10:15:48 -0700
+Message-ID: <20091014171548.GI12700@atomide.com>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+	<1255003137-1034-6-git-send-email-eduardo.valentin@nokia.com>
+	<20091008132109.GD29176@rakim.wolfsonmicro.main>
+	<20091009064529.GD6616@esdhcp037198.research.nokia.com>
+	<20091009110346.GC5082@sirena.org.uk>
+	<20091012080858.GB13234@esdhcp037198.research.nokia.com>
+	<20091012091820.GC3308@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61655 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822AbZJNRHK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 13:07:10 -0400
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <1255500862-29847-1-git-send-email-santosh.shilimkar@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20091012091820.GC3308@rakim.wolfsonmicro.main>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Cc: linux-omap@vger.kernel.org, Venkatraman S <svenkatr@ti.com>, Hari n <hari.zoom@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-* Santosh Shilimkar <santosh.shilimkar@ti.com> [091013 23:14]:
-> OMAP sDMA driver API omap_stop_dma() doesn't really stop the dma when used
-> in linking scenario. This patch fixes the same.
+* Mark Brown <broonie@opensource.wolfsonmicro.com> [091012 02:18]:
+> On Mon, Oct 12, 2009 at 11:08:58AM +0300, Eduardo Valentin wrote:
+> 
+> > I'm afraid using dev_name is not that easy. The mmc driver generates device
+> > name at runtime. That's why this board file setups .dev at runtime as well.
+> 
+> > rx51_twlgpio_setup -> twl4030_mmc_init -> omap2_init_mmc
+> 
+> > So, changing this supply to something static using .dev_name it is not
+> > possible with current code. That would need refactoring the whole mmc and
+> > hsmmc setup. And the device naming procedure is dependent on cpu as well.
+> > Check arch/arm/mach-omap2/device.c:omap2_init_mmc.
+> 
+> Oh, dear - that sounds broken for hardware that's fixed on the board.
+> That said, the code there looks like it's supposed to come out with the
+> same answer each time it's run?  How does this work with the clock API?
 
-To me it looks like this will break things for omap1 as the DMA channel
-interrupt is not disabled first. I guess the fix is to move the 
-"Disable all interrupts on the channel" part above clearing the
-link mappings.
+The clocks are matched using clkdev. Basically the driver just requests
+functional clock (fck) and interface clock (ick):
 
-This fix should be tested in linux-omap before we send this to mainline.
+$ grep mmci arch/arm/*omap*/clock*.c
+arch/arm/mach-omap1/clock.c:	CLK("mmci-omap.0", "fck",	&mmc1_ck,	CK_16XX | CK_1510 | CK_310),
+arch/arm/mach-omap1/clock.c:	CLK("mmci-omap.0", "ick",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310),
+arch/arm/mach-omap1/clock.c:	CLK("mmci-omap.1", "fck",	&mmc2_ck,	CK_16XX),
+arch/arm/mach-omap1/clock.c:	CLK("mmci-omap.1", "ick",	&armper_ck.clk,	CK_16XX),
+arch/arm/mach-omap2/clock24xx.c:	CLK("mmci-omap.0", "ick",	&mmc_ick,	CK_242X),
+arch/arm/mach-omap2/clock24xx.c:	CLK("mmci-omap.0", "fck",	&mmc_fck,	CK_242X),
+arch/arm/mach-omap2/clock24xx.c:	CLK("mmci-omap-hs.0", "ick",	&mmchs1_ick,	CK_243X),
+arch/arm/mach-omap2/clock24xx.c:	CLK("mmci-omap-hs.0", "fck",	&mmchs1_fck,	CK_243X),
+arch/arm/mach-omap2/clock24xx.c:	CLK("mmci-omap-hs.1", "ick",	&mmchs2_ick,	CK_243X),
+arch/arm/mach-omap2/clock24xx.c:	CLK("mmci-omap-hs.1", "fck",	&mmchs2_fck,	CK_243X),
+arch/arm/mach-omap2/clock24xx.c:	CLK("mmci-omap-hs.0", "mmchsdb_fck",	&mmchsdb1_fck,	CK_243X),
+arch/arm/mach-omap2/clock24xx.c:	CLK("mmci-omap-hs.1", "mmchsdb_fck", 	&mmchsdb2_fck,	CK_243X),
+arch/arm/mach-omap2/clock34xx.c:	CLK("mmci-omap-hs.2",	"fck",	&mmchs3_fck,	CK_3430ES2),
+arch/arm/mach-omap2/clock34xx.c:	CLK("mmci-omap-hs.1",	"fck",	&mmchs2_fck,	CK_343X),
+arch/arm/mach-omap2/clock34xx.c:	CLK("mmci-omap-hs.0",	"fck",	&mmchs1_fck,	CK_343X),
+arch/arm/mach-omap2/clock34xx.c:	CLK("mmci-omap-hs.2",	"ick",	&mmchs3_ick,	CK_3430ES2),
+arch/arm/mach-omap2/clock34xx.c:	CLK("mmci-omap-hs.1",	"ick",	&mmchs2_ick,	CK_343X),
+arch/arm/mach-omap2/clock34xx.c:	CLK("mmci-omap-hs.0",	"ick",	&mmchs1_ick,	CK_343X),
+
+Regards,
 
 Tony
- 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> CC: Hari n <hari.zoom@gmail.com>
-> CC: Jarkko Nikula <jhnikula@gmail.com>
-> ---
->  arch/arm/plat-omap/dma.c |    9 +++++----
->  1 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index fd3154a..633c123 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -975,6 +975,11 @@ void omap_stop_dma(int lch)
->  {
->  	u32 l;
->  
-> +	/* Disable the DMA channel */
-> +	l = dma_read(CCR(lch));
-> +	l &= ~OMAP_DMA_CCR_EN;
-> +	dma_write(l, CCR(lch));
-> +
->  	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
->  		int next_lch, cur_lch = lch;
->  		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
-> @@ -1000,10 +1005,6 @@ void omap_stop_dma(int lch)
->  	if (cpu_class_is_omap1())
->  		dma_write(0, CICR(lch));
->  
-> -	l = dma_read(CCR(lch));
-> -	l &= ~OMAP_DMA_CCR_EN;
-> -	dma_write(l, CCR(lch));
-> -
->  	dma_chan[lch].flags &= ~OMAP_DMA_ACTIVE;
->  }
->  EXPORT_SYMBOL(omap_stop_dma);
-> -- 
-> 1.5.4.7
-> 
