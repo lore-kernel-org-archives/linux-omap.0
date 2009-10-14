@@ -1,95 +1,59 @@
-From: "Cousson, Benoit" <b-cousson@ti.com>
-Subject: RE: Discussion: OMAP: PM: opp table handling
-Date: Wed, 14 Oct 2009 18:05:36 +0200
-Message-ID: <74583B8642AB8841B30447520659FCA9DDC3EB01@dnce01.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA0D3D0D@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/6] omap: Fix Unlikely(x) < y
+Date: Wed, 14 Oct 2009 09:55:35 -0700
+Message-ID: <20091014165535.GG12700@atomide.com>
+References: <20091014001233.6116.84749.stgit@localhost>
+	<20091014001341.6116.47622.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41738 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934789AbZJNQGV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 12:06:21 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA0D3D0D@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20091014001341.6116.47622.stgit@localhost>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Roel Kluin <roel.kluin@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Menon, Nishanth" <nm@ti.com>, "Nataraju, Kiran" <knataraju@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, Tony Lindgren <tony@atomide.com>, "Sawant, Anand" <sawant@ti.com>, "Joshi, Rhishi" <rhishi@ti.com>, "Giles, Rick" <rgiles@ti.com>, "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>
 
->From: Pandita, Vikram
->
->
->Proposals for OPP table handling for OMAP34xx/35xx/36xx/44xx
->
->Thanks to all the community members for taking time for this discussion.
->This will aid upsteaming of 35xx/36xx/44xx in coming future.
->
->Attendees: Kevin Hilman, Paul, Nishant M, Santosh, Madhu, Benoit, Rajendra,
->Benoit, Vikram
->
->Problem Statement:
->	OMAP34xx has certain opp requirements (3420/3430/3440)
->	OMAP35xx reuses the opp's from 34xx
->	OMAP36xx has a totally new set of opps
->	OMAP44xx has a totally new set of opps
->
->Solution:
->	Align on a common approach to take for the Opp table definitions.
->
->Define Separate Tables for each family as follows:
->Step 1: Go with this approach:
->	3420(65nm) 		: new arrays [defer for now]
->	3430/35xx(65nm) 	: new arrays **
->	3440(65nm) 		: new arrays [defer for now]
->	3630(45nm) 		: new arrays
->	Omap4(45nm)		: new arrays
->
->	* new arrays = (mpu, dsp, l3)
->	** Check this valid flag. Kevin can take this base on comments
->		http://marc.info/?l=linux-omap&m=125512448216071&w=2
->		between 3430/35xx, opp's can be managed with a flag and same
->table re-used
->		35xx has requirement for 720Mhz opp
->
->Step 2:
->Kevin suggestion:
->Define accessor APIs get the OPPs
->Check Users of accessor API
->	DVFS
->	constraints
->	sysfs debug
->	Define accessor api's eg:
->		index = get_opp(VDD1_OPP1);
->		num = get_max_opp(VDD1);
->		set_opp(index);
+* Tony Lindgren <tony@atomide.com> [091013 17:21]:
+> From: Roel Kluin <roel.kluin@gmail.com>
+> 
+> The closing parenthesis was not on the right location.
 
-I think we should as well change the naming and use the less confusing naming we are using on OMAP3630/4430. 
-OPPs are now named using the performance delta from the nominal frequency.
-OPP25, OPP50, OPP80, OPP100, OPP120... 
+Looks like this one is in the -mm now, so dropping from
+mine.
 
-Regards,
-Benoit
-
->Step 3:
->	Paul suggestion:
->	VSEL values in opp table should be in terms of voltage
->	Non TWL IC's need this
->
->Step4:
->	Paul suggestion:
->	VDD1 VDD2 dependencies for different chips
->	Inter-connect load predictor is absent on omap3 and hence VDD1-vdd2
->dependency
->	OMAP4
->		interconnect loading can be measured from registers
->		Multi-cores dependency
->
->Step 5:
->	Paul suggestion:
->	Board files adding OPPs, Modifying OPPs
->	Eg: Pendora passing its own opp
-
-
-
+Tony
+ 
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/plat-omap/gpio.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> index 71ebd7f..7c345b7 100644
+> --- a/arch/arm/plat-omap/gpio.c
+> +++ b/arch/arm/plat-omap/gpio.c
+> @@ -373,7 +373,7 @@ static inline int gpio_valid(int gpio)
+>  
+>  static int check_gpio(int gpio)
+>  {
+> -	if (unlikely(gpio_valid(gpio)) < 0) {
+> +	if (unlikely(gpio_valid(gpio) < 0)) {
+>  		printk(KERN_ERR "omap-gpio: invalid GPIO %d\n", gpio);
+>  		dump_stack();
+>  		return -1;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
