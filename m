@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 20/27] OMAP: PM: Clear DMA channel state after a wakeup
-Date: Wed, 14 Oct 2009 14:58:03 -0700
-Message-ID: <1255557490-16787-21-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 19/27] OMAP3: PM: Fix PLL_MOD CLKEN offset in scratchpad
+Date: Wed, 14 Oct 2009 14:58:02 -0700
+Message-ID: <1255557490-16787-20-git-send-email-khilman@deeprootsystems.com>
 References: <1255557490-16787-1-git-send-email-khilman@deeprootsystems.com>
 	<1255557490-16787-2-git-send-email-khilman@deeprootsystems.com>
 	<1255557490-16787-3-git-send-email-khilman@deeprootsystems.com>
@@ -21,12 +21,11 @@ References: <1255557490-16787-1-git-send-email-khilman@deeprootsystems.com>
 	<1255557490-16787-17-git-send-email-khilman@deeprootsystems.com>
 	<1255557490-16787-18-git-send-email-khilman@deeprootsystems.com>
 	<1255557490-16787-19-git-send-email-khilman@deeprootsystems.com>
-	<1255557490-16787-20-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1255557490-16787-20-git-send-email-khilman@deeprootsystems.com>
+In-Reply-To: <1255557490-16787-19-git-send-email-khilman@deeprootsystems.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
 	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -37,42 +36,33 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Aaro Koskinen <aaro.koskinen@nokia.com>
-
-Clear DMA channel states so that users can assume a known initial state.
-
-Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
----
- arch/arm/plat-omap/dma.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index f911bfd..ee9c02a 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -2358,6 +2358,8 @@ EXPORT_SYMBOL(omap_dma_global_context_save);
- 
- void omap_dma_global_context_restore(void)
- {
-+	int ch;
-+
- 	dma_write(omap_dma_global_context.dma_gcr, GCR);
- 	dma_write(omap_dma_global_context.dma_ocp_sysconfig,
- 		OCP_SYSCONFIG);
-@@ -2372,6 +2374,10 @@ void omap_dma_global_context_restore(void)
- 	 */
- 	if (cpu_is_omap34xx() && (omap_type() != OMAP2_DEVICE_TYPE_GP))
- 		dma_write(0x3 , IRQSTATUS_L0);
-+
-+	for (ch = 0; ch < dma_chan_count; ch++)
-+		if (dma_chan[ch].dev_id != -1)
-+			omap_clear_dma(ch);
- }
- EXPORT_SYMBOL(omap_dma_global_context_restore);
- 
--- 
-1.6.4.3
+RnJvbTogS2FsbGUgSm9raW5pZW1pIDxrYWxsZS5qb2tpbmllbWlAZGlnaWEuY29tPgoKVGhlIENN
+X0NMS0VOX1BMTCByZWdpc3RlciBzYXZlZCBpbiBzY3JhdGNocGFkIG1lbW9yeQp3YXMgd3Jvbmds
+eSB1c2luZyBvZmZzZXQgb2YgMHgwMDA0IGluc3RlYWQgb2YgMHgwMDAwLgoKVGhlIGVmZmVjdCBv
+ZiB0aGlzIHdhcyB0aGF0IGJvb3QgUk9NIGNvZGUgd291bGQKcmVzdG9yZSB0aGUgd3JvbmcgdmFs
+dWUgd2hlbiB3YWtpbmcgdXAgZnJvbSBvZmYgbW9kZS4KVGhpcyB3cm9uZyB2YWx1ZSwgaG93ZXZl
+ciwgd2lsbCBiZSBvdmVyd3JpdHRlbiBieQpwcmNtIGNvbnRleHQgcmVzdG9yZS4gU3RpbGwsIGEg
+c2hvcnQgcGVyaW9kIG9mIHdyb25nCmNsb2NrIHNldHRpbmdzIGluIENNX0NMS0VOX1BMTCByZW1h
+aW5lZCBiZXR3ZWVuIFJPTQpjb2RlIGFuZCBwcmNtIGNvbnRleHQgcmVzdG9yZS4gVGhpcyBpcyBm
+aXhlZCBieSB0aGUKcGF0Y2guCgpQcm9ibGVtIHJlcG9ydGVkIGJ5OiBKb3VuaSBIw7ZnYW5kZXIg
+PGpvdW5pLmhvZ2FuZGVyQG5va2lhLmNvbT4KClNpZ25lZC1vZmYtYnk6IEthbGxlIEpva2luaWVt
+aSA8a2FsbGUuam9raW5pZW1pQGRpZ2lhLmNvbT4KU2lnbmVkLW9mZi1ieTogS2V2aW4gSGlsbWFu
+IDxraGlsbWFuQGRlZXByb290c3lzdGVtcy5jb20+Ci0tLQogYXJjaC9hcm0vbWFjaC1vbWFwMi9j
+b250cm9sLmMgfCAgICAyICstCiAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMSBk
+ZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9hcmNoL2FybS9tYWNoLW9tYXAyL2NvbnRyb2wuYyBi
+L2FyY2gvYXJtL21hY2gtb21hcDIvY29udHJvbC5jCmluZGV4IDZjNDYyYzcuLjUwYjNhZmMgMTAw
+NjQ0Ci0tLSBhL2FyY2gvYXJtL21hY2gtb21hcDIvY29udHJvbC5jCisrKyBiL2FyY2gvYXJtL21h
+Y2gtb21hcDIvY29udHJvbC5jCkBAIC0yMjgsNyArMjI4LDcgQEAgdm9pZCBvbWFwM19zYXZlX3Nj
+cmF0Y2hwYWRfY29udGVudHModm9pZCkKIAlwcmNtX2Jsb2NrX2NvbnRlbnRzLmNtX2Nsa3NlbF93
+a3VwID0KIAkJCWNtX3JlYWRfbW9kX3JlZyhXS1VQX01PRCwgQ01fQ0xLU0VMKTsKIAlwcmNtX2Js
+b2NrX2NvbnRlbnRzLmNtX2Nsa2VuX3BsbCA9Ci0JCQljbV9yZWFkX21vZF9yZWcoUExMX01PRCwg
+T01BUDM0MzBfQ01fQ0xLRU5fUExMKTsKKwkJCWNtX3JlYWRfbW9kX3JlZyhQTExfTU9ELCBDTV9D
+TEtFTik7CiAJcHJjbV9ibG9ja19jb250ZW50cy5jbV9hdXRvaWRsZV9wbGwgPQogCQkJY21fcmVh
+ZF9tb2RfcmVnKFBMTF9NT0QsIE9NQVAzNDMwX0NNX0FVVE9JRExFX1BMTCk7CiAJcHJjbV9ibG9j
+a19jb250ZW50cy5jbV9jbGtzZWwxX3BsbCA9Ci0tIAoxLjYuNC4zCgoKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWlsaW5n
+IGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0cy5p
+bmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
