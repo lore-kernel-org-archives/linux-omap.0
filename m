@@ -1,55 +1,85 @@
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Subject: [PATCH] ARM: OMAP: SDMA: Fix omap_stop_dma() API for channel linking
-Date: Wed, 14 Oct 2009 11:44:20 +0530
-Message-ID: <1255500862-29847-1-git-send-email-santosh.shilimkar@ti.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: Broken cpuidle on PM branch?
+Date: Wed, 14 Oct 2009 09:48:22 +0300
+Message-ID: <20091014064822.GA1000@esdhcp037198.research.nokia.com>
+References: <20091012192347.GI32041@smtp.gmail.com>
+ <20091013133151.GA8028@esdhcp037198.research.nokia.com>
+ <87r5t7mfbm.fsf@deeprootsystems.com>
+Reply-To: eduardo.valentin@nokia.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55278 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167AbZJNGPH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 02:15:07 -0400
+Received: from smtp.nokia.com ([192.100.122.230]:27297 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754588AbZJNGt6 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 02:49:58 -0400
+Content-Disposition: inline
+In-Reply-To: <87r5t7mfbm.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>, Venkatraman S <svenkatr@ti.com>, Hari n <hari.zoom@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>
+To: ext Kevin Hilman <khilman@deeprootsystems.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-OMAP sDMA driver API omap_stop_dma() doesn't really stop the dma when used
-in linking scenario. This patch fixes the same.
+On Tue, Oct 13, 2009 at 06:25:17PM +0200, ext Kevin Hilman wrote:
+> Eduardo Valentin <eduardo.valentin@nokia.com> writes:
+> 
+> > Hello Amit,
+> >
+> > On Mon, Oct 12, 2009 at 09:23:47PM +0200, ext Amit Kucheria wrote:
+> >> Hi,
+> >> 
+> >> I am testing twl4030 script optimisations on the current PM branch. But I am
+> >> seeing the board (RX51) freeze when CPU_IDLE is enabled in the config.
+> >> 
+> >> Is it known to work on other boards?
+> >
+> > I'm actually seeing this same behavior. But the board actually does not
+> > freeze. If you keep a key pressed of send a sysrq through serial line
+> > then you eventually get it back.
+> >
+> > It seams to be something related to serial driver and wakeup ?
+> >
+> 
+> Do you see this problem after doing
+> 
+>   # echo 1 > /debug/pm_debug/sleep_while_idle
+> 
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Venkatraman S <svenkatr@ti.com>
-CC: Hari n <hari.zoom@gmail.com>
-CC: Jarkko Nikula <jhnikula@gmail.com>
----
- arch/arm/plat-omap/dma.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+No I don't. The problem is gone it seams.
 
-diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-index fd3154a..633c123 100644
---- a/arch/arm/plat-omap/dma.c
-+++ b/arch/arm/plat-omap/dma.c
-@@ -975,6 +975,11 @@ void omap_stop_dma(int lch)
- {
- 	u32 l;
- 
-+	/* Disable the DMA channel */
-+	l = dma_read(CCR(lch));
-+	l &= ~OMAP_DMA_CCR_EN;
-+	dma_write(l, CCR(lch));
-+
- 	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
- 		int next_lch, cur_lch = lch;
- 		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
-@@ -1000,10 +1005,6 @@ void omap_stop_dma(int lch)
- 	if (cpu_class_is_omap1())
- 		dma_write(0, CICR(lch));
- 
--	l = dma_read(CCR(lch));
--	l &= ~OMAP_DMA_CCR_EN;
--	dma_write(l, CCR(lch));
--
- 	dma_chan[lch].flags &= ~OMAP_DMA_ACTIVE;
- }
- EXPORT_SYMBOL(omap_stop_dma);
+similar effect happens if we
+
+# echo 0 > /sys/devices/platform/serial8250.2/sleep_timeout
+
+Of course, this would prevent device go to sleep I guess.
+
+> ?  There is a known problem with the UART inactivity timer that I'm
+> debugging currently.
+
+Ok. 
+
+> 
+> Kevin
+> 
+> 
+> >> 
+> >> Regards,
+> >> Amit
+> >> -- 
+> >> -------------------------------------------------------------------------
+> >> Amit Kucheria,				 Kernel Developer, Verdurent
+> >> -------------------------------------------------------------------------
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> > -- 
+> > Eduardo Valentin
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-1.5.4.7
-
+Eduardo Valentin
