@@ -1,61 +1,59 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: stable kernel version
-Date: Wed, 14 Oct 2009 12:33:24 -0700
-Message-ID: <20091014193324.GK12700@atomide.com>
-References: <4AD58D69.2080303@tzi.de> <20091014172656.GJ12700@atomide.com> <4AD60CEE.8000204@tzi.de>
+From: Alistair Buxton <a.j.buxton@gmail.com>
+Subject: [PATCH 01/17] OMAP7XX: Serial: Remove duplicate omap850 code
+Date: Wed, 14 Oct 2009 20:50:13 +0100
+Message-ID: <3d374d00910141250y6db4c880x9c0a4a84775547f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61642 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753455AbZJNTeL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 15:34:11 -0400
-Content-Disposition: inline
-In-Reply-To: <4AD60CEE.8000204@tzi.de>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-To: Janosch Machowinski <scotch@tzi.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-* Janosch Machowinski <scotch@tzi.de> [091014 10:40]:
-> Tony Lindgren schrieb:
->> * Janosch Machowinski <scotch@tzi.de> [091014 01:48]:
->>   
->>> Hi,
->>> I'm looking for an stable omap kernel,
->>> for an gumstix board. I tried the 2.6.30
->>> and 2.6.31 git heads, but they both
->>> resulted in an unbootable system.
->>> Any advices, on which version to take ?
->>>     
->>
->> Starting with 2.6.31, the stable omap kernel latest released
->> kernel from Linus. So 2.6.31 in this case.
->>
->> Of course you may still need to patch in some things you need,
->> like PM, EHCI and dspbridge.
->>
->> What do you get when booting? Overo boots just fine for me.
->
-> Hi Tony,
->
-> the 2.6.30 head booted fine until the point where it
-> waited for the SD-Card to get ready. There it just hung
-> forever.
+This patch is part of a series which unifies all duplicated code between
+omap730 and omap850. All cpu checks are converted to cpu_is_omap7xx() and
+CONFIG_ARCH_OMAP850 is added to all CONFIG_ARCH_OMAP730 checks.
 
-Hmm, 2.6.30 may not have all the core stuff in it yet.
+Signed-off-by: Alistair Buxton <a.j.buxton@gmail.com>
+Reviewed-by: Zebediah C. McClure <zmc@lurian.net>
+---
+ arch/arm/mach-omap1/serial.c |    9 +--------
+ 1 files changed, 1 insertions(+), 8 deletions(-)
 
-> the 2.6.31 head crashed instantly after the uncompression
-> of the kernel image.
+diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
+index d496e50..49381e2 100644
+--- a/arch/arm/mach-omap1/serial.c
++++ b/arch/arm/mach-omap1/serial.c
+@@ -110,20 +110,13 @@ void __init omap_serial_init(void)
+ {
+ 	int i;
 
-There are few patches still pending to get to mainline
-via other mailing lists, you can see them in omap-testing
-branch.
+-	if (cpu_is_omap730()) {
++	if (cpu_is_omap7xx()) {
+ 		serial_platform_data[0].regshift = 0;
+ 		serial_platform_data[1].regshift = 0;
+ 		serial_platform_data[0].irq = INT_730_UART_MODEM_1;
+ 		serial_platform_data[1].irq = INT_730_UART_MODEM_IRDA_2;
+ 	}
 
-> I will try out the 2.6.31 mainline kernel tommorw.
-
-OK, also I just pushed updated omap-debug branch that
-I forgot to rebase on top of current linux-omap master
-branch (Thanks Paul for letting me know!).
-
-Tony
+-	if (cpu_is_omap850()) {
+-		serial_platform_data[0].regshift = 0;
+-		serial_platform_data[1].regshift = 0;
+-		serial_platform_data[0].irq = INT_850_UART_MODEM_1;
+-		serial_platform_data[1].irq = INT_850_UART_MODEM_IRDA_2;
+-	}
+-
+ 	if (cpu_is_omap15xx()) {
+ 		serial_platform_data[0].uartclk = OMAP1510_BASE_BAUD * 16;
+ 		serial_platform_data[1].uartclk = OMAP1510_BASE_BAUD * 16;
+-- 
+1.6.5
