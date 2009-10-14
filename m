@@ -1,7 +1,7 @@
 From: Alistair Buxton <a.j.buxton@gmail.com>
-Subject: [PATCH 10/17] OMAP7XX: Create omap7xx.h
-Date: Wed, 14 Oct 2009 20:51:20 +0100
-Message-ID: <3d374d00910141251n31d80b91odbad69833bce5bd7@mail.gmail.com>
+Subject: [PATCH 15/17] OMAP7XX: Clocks: Add ck_ref and armxor
+Date: Wed, 14 Oct 2009 20:51:47 +0100
+Message-ID: <3d374d00910141251p61d83d0fjbecd18bf16f05510@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,129 +19,36 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This patch is part of a series which removes references to omap730 in code
-which is shared with omap850, replacing them with references to omap7xx.
+These clocks are required for booting.
 
-This include file is intended to replace omap730.h and omap850.h
-All values defined herein are identical to those in both the old files.
-
+Signed-off-by: Angelo Arrifano <miknix@gmail.com>
 Signed-off-by: Alistair Buxton <a.j.buxton@gmail.com>
 Reviewed-by: Zebediah C. McClure <zmc@lurian.net>
 ---
- arch/arm/plat-omap/include/mach/omap7xx.h |  104 +++++++++++++++++++++++++++++
- 1 files changed, 104 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-omap/include/mach/omap7xx.h
+ arch/arm/mach-omap1/clock.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/mach/omap7xx.h
-b/arch/arm/plat-omap/include/mach/omap7xx.h
-new file mode 100644
-index 0000000..53f5241
---- /dev/null
-+++ b/arch/arm/plat-omap/include/mach/omap7xx.h
-@@ -0,0 +1,104 @@
-+/* arch/arm/plat-omap/include/mach/omap7xx.h
-+ *
-+ * Hardware definitions for TI OMAP7XX processor.
-+ *
-+ * Cleanup for Linux-2.6 by Dirk Behme <dirk.behme@de.bosch.com>
-+ * Adapted for omap850 by Zebediah C. McClure <zmc@lurian.net>
-+ * Adapted for omap7xx by Alistair Buxton <a.j.buxton@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version.
-+ *
-+ * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
-+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
-+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
-+ * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
-+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-+ * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
-+ * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-+ * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-+ *
-+ * You should have received a copy of the  GNU General Public License along
-+ * with this program; if not, write  to the Free Software Foundation, Inc.,
-+ * 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef __ASM_ARCH_OMAP7XX_H
-+#define __ASM_ARCH_OMAP7XX_H
-+
-+/*
-+ * ----------------------------------------------------------------------------
-+ * Base addresses
-+ * ----------------------------------------------------------------------------
-+ */
-+
-+/* Syntax: XX_BASE = Virtual base address, XX_START = Physical base address */
-+
-+#define OMAP7XX_DSP_BASE	0xE0000000
-+#define OMAP7XX_DSP_SIZE	0x50000
-+#define OMAP7XX_DSP_START	0xE0000000
-+
-+#define OMAP7XX_DSPREG_BASE	0xE1000000
-+#define OMAP7XX_DSPREG_SIZE	SZ_128K
-+#define OMAP7XX_DSPREG_START	0xE1000000
-+
-+/*
-+ * ----------------------------------------------------------------------------
-+ * OMAP7XX specific configuration registers
-+ * ----------------------------------------------------------------------------
-+ */
-+#define OMAP7XX_CONFIG_BASE	0xfffe1000
-+#define OMAP7XX_IO_CONF_0	0xfffe1070
-+#define OMAP7XX_IO_CONF_1	0xfffe1074
-+#define OMAP7XX_IO_CONF_2	0xfffe1078
-+#define OMAP7XX_IO_CONF_3	0xfffe107c
-+#define OMAP7XX_IO_CONF_4	0xfffe1080
-+#define OMAP7XX_IO_CONF_5	0xfffe1084
-+#define OMAP7XX_IO_CONF_6	0xfffe1088
-+#define OMAP7XX_IO_CONF_7	0xfffe108c
-+#define OMAP7XX_IO_CONF_8	0xfffe1090
-+#define OMAP7XX_IO_CONF_9	0xfffe1094
-+#define OMAP7XX_IO_CONF_10	0xfffe1098
-+#define OMAP7XX_IO_CONF_11	0xfffe109c
-+#define OMAP7XX_IO_CONF_12	0xfffe10a0
-+#define OMAP7XX_IO_CONF_13	0xfffe10a4
-+
-+#define OMAP7XX_MODE_1		0xfffe1010
-+#define OMAP7XX_MODE_2		0xfffe1014
-+
-+/* CSMI specials: in terms of base + offset */
-+#define OMAP7XX_MODE2_OFFSET	0x14
-+
-+/*
-+ * ----------------------------------------------------------------------------
-+ * OMAP7XX traffic controller configuration registers
-+ * ----------------------------------------------------------------------------
-+ */
-+#define OMAP7XX_FLASH_CFG_0	0xfffecc10
-+#define OMAP7XX_FLASH_ACFG_0	0xfffecc50
-+#define OMAP7XX_FLASH_CFG_1	0xfffecc14
-+#define OMAP7XX_FLASH_ACFG_1	0xfffecc54
-+
-+/*
-+ * ----------------------------------------------------------------------------
-+ * OMAP7XX DSP control registers
-+ * ----------------------------------------------------------------------------
-+ */
-+#define OMAP7XX_ICR_BASE	0xfffbb800
-+#define OMAP7XX_DSP_M_CTL	0xfffbb804
-+#define OMAP7XX_DSP_MMU_BASE	0xfffed200
-+
-+/*
-+ * ----------------------------------------------------------------------------
-+ * OMAP7XX PCC_UPLD configuration registers
-+ * ----------------------------------------------------------------------------
-+ */
-+#define OMAP7XX_PCC_UPLD_CTRL_BASE	(0xfffe0900)
-+#define OMAP7XX_PCC_UPLD_CTRL		(OMAP7XX_PCC_UPLD_CTRL_BASE + 0x00)
-+
-+#endif /*  __ASM_ARCH_OMAP7XX_H */
-+
+diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
+index d2b00a5..5f77b83 100644
+--- a/arch/arm/mach-omap1/clock.c
++++ b/arch/arm/mach-omap1/clock.c
+@@ -75,7 +75,7 @@ struct omap_clk {
+
+ static struct omap_clk omap_clks[] = {
+ 	/* non-ULPD clocks */
+-	CLK(NULL,	"ck_ref",	&ck_ref,	CK_16XX | CK_1510 | CK_310),
++	CLK(NULL,	"ck_ref",	&ck_ref,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
+ 	CLK(NULL,	"ck_dpll1",	&ck_dpll1,	CK_16XX | CK_1510 | CK_310),
+ 	/* CK_GEN1 clocks */
+ 	CLK(NULL,	"ck_dpll1out",	&ck_dpll1out.clk, CK_16XX),
+@@ -83,7 +83,7 @@ static struct omap_clk omap_clks[] = {
+ 	CLK(NULL,	"arm_ck",	&arm_ck,	CK_16XX | CK_1510 | CK_310),
+ 	CLK(NULL,	"armper_ck",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310),
+ 	CLK(NULL,	"arm_gpio_ck",	&arm_gpio_ck,	CK_1510 | CK_310),
+-	CLK(NULL,	"armxor_ck",	&armxor_ck.clk,	CK_16XX | CK_1510 | CK_310),
++	CLK(NULL,	"armxor_ck",	&armxor_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
+ 	CLK(NULL,	"armtim_ck",	&armtim_ck.clk,	CK_16XX | CK_1510 | CK_310),
+ 	CLK("omap_wdt",	"fck",		&armwdt_ck.clk,	CK_16XX | CK_1510 | CK_310),
+ 	CLK("omap_wdt",	"ick",		&armper_ck.clk,	CK_16XX),
 -- 
 1.6.5
