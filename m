@@ -1,7 +1,7 @@
 From: Alistair Buxton <a.j.buxton@gmail.com>
-Subject: [PATCH 14/17] OMAP7XX: omap_uwire.c: Convert to omap7xx.h
-Date: Wed, 14 Oct 2009 20:51:42 +0100
-Message-ID: <3d374d00910141251j1a80c39au55c19378c4e3665d@mail.gmail.com>
+Subject: [PATCH 17/17] OMAP850: Fix zImage booting
+Date: Wed, 14 Oct 2009 20:51:58 +0100
+Message-ID: <3d374d00910141251p5fd98da6yfc43fb2ccf76d6fb@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -19,46 +19,36 @@ To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-This also replaces CPU checks with cpu_is_omap7xx()
+This adds the OMAP850 JTAG ID to the IDs checked by OMAP uncompress.h putc.
+Without this putc hangs up trying to check the uarts and zImage crashes.
 
 Signed-off-by: Alistair Buxton <a.j.buxton@gmail.com>
-Reviewed-by: Zebediah C. McClure <zmc@lurian.net>
 ---
- drivers/spi/omap_uwire.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/plat-omap/include/mach/uncompress.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/spi/omap_uwire.c b/drivers/spi/omap_uwire.c
-index e75ba9b..7bcf409 100644
---- a/drivers/spi/omap_uwire.c
-+++ b/drivers/spi/omap_uwire.c
-@@ -52,7 +52,7 @@
- #include <asm/mach-types.h>
+diff --git a/arch/arm/plat-omap/include/mach/uncompress.h
+b/arch/arm/plat-omap/include/mach/uncompress.h
+index 0814c5f..ddf7b88 100644
+--- a/arch/arm/plat-omap/include/mach/uncompress.h
++++ b/arch/arm/plat-omap/include/mach/uncompress.h
+@@ -25,6 +25,7 @@ unsigned int system_rev;
 
- #include <mach/mux.h>
--#include <mach/omap730.h>	/* OMAP730_IO_CONF registers */
-+#include <mach/omap7xx.h>	/* OMAP7XX_IO_CONF registers */
+ #define UART_OMAP_MDR1		0x08	/* mode definition register */
+ #define OMAP_ID_730		0x355F
++#define OMAP_ID_850		0x362C
+ #define ID_MASK			0x7fff
+ #define check_port(base, shift) ((base[UART_OMAP_MDR1 << shift] & 7) == 0)
+ #define omap_get_id() ((*(volatile unsigned int *)(0xfffed404)) >>
+12) & ID_MASK
+@@ -53,7 +54,7 @@ static void putc(int c)
+ 		/* MMU is not on, so cpu_is_omapXXXX() won't work here */
+ 		unsigned int omap_id = omap_get_id();
 
+-		if (omap_id == OMAP_ID_730)
++		if (omap_id == OMAP_ID_730 || omap_id == OMAP_ID_850)
+ 			shift = 0;
 
- /* FIXME address is now a platform device resource,
-@@ -504,7 +504,7 @@ static int __init uwire_probe(struct platform_device *pdev)
- 	}
- 	clk_enable(uwire->ck);
-
--	if (cpu_is_omap730())
-+	if (cpu_is_omap7xx())
- 		uwire_idx_shift = 1;
- 	else
- 		uwire_idx_shift = 2;
-@@ -573,8 +573,8 @@ static int __init omap_uwire_init(void)
- 	}
- 	if (machine_is_omap_perseus2()) {
- 		/* configure pins: MPU_UW_nSCS1, MPU_UW_SDO, MPU_UW_SCLK */
--		int val = omap_readl(OMAP730_IO_CONF_9) & ~0x00EEE000;
--		omap_writel(val | 0x00AAA000, OMAP730_IO_CONF_9);
-+		int val = omap_readl(OMAP7XX_IO_CONF_9) & ~0x00EEE000;
-+		omap_writel(val | 0x00AAA000, OMAP7XX_IO_CONF_9);
- 	}
-
- 	return platform_driver_probe(&uwire_driver, uwire_probe);
+ 		if (check_port(uart, shift))
 -- 
 1.6.5
