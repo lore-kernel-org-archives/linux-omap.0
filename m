@@ -1,76 +1,46 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: FEATURES prints
-Date: Tue, 13 Oct 2009 21:48:58 -0700
-Message-ID: <4AD5583A.9000307@deeprootsystems.com>
-References: <4ACE39CC.1070906@ti.com> <87ws2zge60.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301DDE20C25@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB2551EA@dbde02.ent.ti.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: patches rebased on 2.6.32-rc4
+Date: Wed, 14 Oct 2009 11:37:13 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB255301@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:38051 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751456AbZJNEuL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 00:50:11 -0400
-Received: by pzk26 with SMTP id 26so9638666pzk.4
-        for <linux-omap@vger.kernel.org>; Tue, 13 Oct 2009 21:49:00 -0700 (PDT)
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BB2551EA@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44434 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753361AbZJNGH5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 02:07:57 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "Premi, Sanjeev" <premi@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Shilimkar, Santosh wrote:
-> Sanjeev,
-> 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Premi, Sanjeev
->> Sent: Wednesday, October 14, 2009 3:26 AM
->> To: Kevin Hilman; Menon, Nishanth
->> Cc: linux-omap@vger.kernel.org
->> Subject: RE: FEATURES prints
->>
->>
->>> -----Original Message-----
->>> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->>> Sent: Wednesday, October 14, 2009 3:17 AM
->>> To: Menon, Nishanth
->>> Cc: Premi, Sanjeev; linux-omap@vger.kernel.org
->>> Subject: Re: FEATURES prints
->>>
->>> Nishanth Menon <nm@ti.com> writes:
->>>
->>>> Folks,
->>>>
->>>> With the addition of FEATURES in l-o, the following prints:
->>>>  - l2cache : Y
->>>>  - iva : Y
->>>>  - sgx : Y
->>>>  - neon : Y
->>>>  - isp : Y
->>>>
->>>> comes up on SDP3430 -> now that we will introduce half a dozen
->>>> features here and there, we will soon clutter this up. we should
->>>> introduce a sysfs entry + remove the above noise..
->>>>
->>> Like Nishanth, I don't like the multi-line noise here.  The patch
->>> below results in a single line output like this instead
->>>
->>> OMAP3430/3530 ES3.0 (l2cache iva sgx neon isp )
->>>
->>> Not sure why we need to dump features that are not there, but if that
->>> s considered important, maybe prefixing each feature with a '+' or '-'
->>> would still allow this to be collapsed into a single line.
->>>
->>> Even with this, I think adding the display of these features into an
->>> OMAP-specific section of /proc/cpuinfo would be even better.
->>>
->> [sp] Single line prints look good. We can also add details in cpuinfo.
-> 
-> If you are ok with proc entry then we don't even need this noise at all in the boot. It's just that adding proc entries is discouraged to some extent.
+Tony,
 
-FWIW, I was not thinking adding a new proc entry.  I was thinking of 
-extending  /proc/cpuinfo with some platform specific entries.
+I am re-sending three patches rebased on the 2.6.32-rc4 mainline for the merge. You have already seen these on linux-omap mailing list. Second patch is spilt because it has two independent fixes.
 
-Kevin
+These patches are boot tested on 
+	- OMAP3430 SDP
+	- OMAP3 beagle
+	- OMAP4430 platform
+
+Santosh Shilimkar (3):
+      ARM: OMAP: SDMA: Fix omap_stop_dma() API for channel linking
+      ARM: OMAP4: Allow omap_serial_early_init() for OMAP4430 board
+      ARM: OMAP4: Fix UART4 platform data
+
+ arch/arm/mach-omap2/board-4430sdp.c |    4 ++--
+ arch/arm/mach-omap2/io.c            |    2 ++
+ arch/arm/mach-omap2/serial.c        |   10 ----------
+ arch/arm/plat-omap/dma.c            |    9 +++++----
+ 4 files changed, 9 insertions(+), 16 deletions(-)
+
+Please see if they are fine with you.
+
+If it helps you for merge, these patches can also be pulled from:
+git://dev.omapzoom.org/pub/scm/santosh/kernel-omap4-base.git omap4_upstream
+
+Regards,
+Santosh
 
