@@ -1,59 +1,107 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 5/8] board-rx51-peripherals: split vaux3
- and vmmc2 supplies
-Date: Thu, 15 Oct 2009 10:01:24 +0100
-Message-ID: <20091015090124.GA29371@rakim.wolfsonmicro.main>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<1255003137-1034-6-git-send-email-eduardo.valentin@nokia.com>
-	<20091008132109.GD29176@rakim.wolfsonmicro.main>
-	<20091009064529.GD6616@esdhcp037198.research.nokia.com>
-	<20091009110346.GC5082@sirena.org.uk>
-	<20091012080858.GB13234@esdhcp037198.research.nokia.com>
-	<20091012091820.GC3308@rakim.wolfsonmicro.main>
-	<20091014171548.GI12700@atomide.com>
+From: "Pais, Allen" <allen.pais@ti.com>
+Subject: RE: [PATCH v2] OMAP3: introduce OMAP3630
+Date: Thu, 15 Oct 2009 14:55:57 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAFCA8@dbde02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE89444CC6C0EE@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20091014171548.GI12700@atomide.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:38583 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762537AbZJOJWH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Oct 2009 05:22:07 -0400
+In-Reply-To: <A24693684029E5489D1D202277BE89444CC6C0EE@dlee02.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
 
-On Wed, Oct 14, 2009 at 10:15:48AM -0700, Tony Lindgren wrote:
-> * Mark Brown <broonie@opensource.wolfsonmicro.com> [091012 02:18]:
-> > On Mon, Oct 12, 2009 at 11:08:58AM +0300, Eduardo Valentin wrote:
+Muxes for OMAP 3630.
 
-> > > I'm afraid using dev_name is not that easy. The mmc driver generates device
-> > > name at runtime. That's why this board file setups .dev at runtime as well.
-
-...
-
-> > > So, changing this supply to something static using .dev_name it is not
-> > > possible with current code. That would need refactoring the whole mmc and
-> > > hsmmc setup. And the device naming procedure is dependent on cpu as well.
-> > > Check arch/arm/mach-omap2/device.c:omap2_init_mmc.
-
-> > same answer each time it's run?  How does this work with the clock API?
-
-> The clocks are matched using clkdev. Basically the driver just requests
-> functional clock (fck) and interface clock (ick):
-
-> $ grep mmci arch/arm/*omap*/clock*.c
-> arch/arm/mach-omap1/clock.c:	CLK("mmci-omap.0", "fck",	&mmc1_ck,	CK_16XX | CK_1510 | CK_310),
-> arch/arm/mach-omap1/clock.c:	CLK("mmci-omap.0", "ick",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310),
-
-So this is using the standard dev_name based clkdev matching which
-Eduardo said was impossible for the regulators.  Is it just that this
-will actually work fine for the regulators or is there some other magic
-in the OMAP code that joins things up?
+Signed-off-by: Allen Pais <allen.pais@ti.com>
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index b5fac32..93abb74 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -551,6 +551,42 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
+ MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
+ 		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
+ 		OMAP34XX_MUX_MODE0)
++
++/*Muxes for 3630 */
++MUX_CFG_34XX("H26_3630_DSS_DATA18", 0x100,
++		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("H25_3630_DSS_DATA19", 0x102,
++		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("E28_3630_DSS_DATA20", 0x104,
++		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("J26_3630_DSS_DATA21", 0x106,
++		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AC27_3630_DSS_DATA22", 0x108,
++		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AC28_3630_DSS_DATA23", 0x10A,
++		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
++
++MUX_CFG_34XX("AF9_3630_ETKD8", 0x5EC,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AG9_3630_ETKD9", 0x5EE,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AG7_3630_ETKD12", 0x5F0,
++		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN)
++
++MUX_CFG_34XX("AA25_3630_UART2_TX", 0x178,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AD25_3630_UART2_RX", 0x17A,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AB25_3630_UART2_RTS", 0x176,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("AB26_3630_UART2_CTS", 0x174,
++		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
++
++MUX_CFG_34XX("H20_UART3_RX_IRRX", 0x19E,
++		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
++MUX_CFG_34XX("H21_UART3_TX_IRTX", 0x1A0,
++		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
++
+ };
+ 
+ #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+index 0f49d2d..8d8cbe1 100644
+--- a/arch/arm/plat-omap/include/mach/mux.h
++++ b/arch/arm/plat-omap/include/mach/mux.h
+@@ -890,6 +890,32 @@ enum omap34xx_index {
+ 
+ 	/* SYS_NIRQ T2 INT1 */
+ 	AF26_34XX_SYS_NIRQ,
++
++	/*Muxes for 3630*/
++	K28_3630_CAM_D6,
++	L28_3630_CAM_D7,
++	K27_3630_CAM_D8,
++	L27_3630_CAM_D9,
++
++	H26_3630_DSS_DATA18,
++	H25_3630_DSS_DATA19,
++	E28_3630_DSS_DATA20,
++	J26_3630_DSS_DATA21,
++	AC27_3630_DSS_DATA22,
++	AC28_3630_DSS_DATA23,
++
++	AF9_3630_ETKD8,
++	AG9_3630_ETKD9,
++	AG7_3630_ETK12,
++
++	AA25_3630_UART2_TX,
++	AD25_3630_UART2_RX,
++	AB25_3630_UART2_RTS,
++	AB26_3630_UART2_CTS,
++
++	H20_UART3_RX_IRRX,
++	H21_UART3_TX_IRTX,
++
+ };
+ 
+ struct omap_mux_cfg {
