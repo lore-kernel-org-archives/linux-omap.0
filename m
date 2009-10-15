@@ -1,73 +1,86 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap fixes for v2.6.32-rc4
-Date: Wed, 14 Oct 2009 17:33:42 -0700
-Message-ID: <20091015003341.GG14531@atomide.com>
+From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Subject: RE: [PATCH] ARM: OMAP: SDMA: Fix omap_stop_dma() API for channel
+	linking
+Date: Thu, 15 Oct 2009 10:10:26 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB37CC9F@dbde02.ent.ti.com>
+References: <1255500862-29847-1-git-send-email-santosh.shilimkar@ti.com>
+ <20091014170625.GH12700@atomide.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:41020 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751291AbZJOElL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Oct 2009 00:41:11 -0400
+In-Reply-To: <20091014170625.GH12700@atomide.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "S, Venkatraman" <svenkatr@ti.com>, Hari n <hari.zoom@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>
 
-Linus,
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, October 14, 2009 10:36 PM
+> To: Shilimkar, Santosh
+> Cc: linux-omap@vger.kernel.org; S, Venkatraman; Hari n; Jarkko Nikula
+> Subject: Re: [PATCH] ARM: OMAP: SDMA: Fix omap_stop_dma() API for channel
+> linking
+> 
+> * Santosh Shilimkar <santosh.shilimkar@ti.com> [091013 23:14]:
+> > OMAP sDMA driver API omap_stop_dma() doesn't really stop the dma when
+> used
+> > in linking scenario. This patch fixes the same.
+> 
+> To me it looks like this will break things for omap1 as the DMA channel
+> interrupt is not disabled first. I guess the fix is to move the
+> "Disable all interrupts on the channel" part above clearing the
+> link mappings.
+Indeed it will break OMAP1. Initially I thought of putting this change at this place so that it takes care of both normal and linking scenario. 
 
-Please pull omap fixes from:
+I will rework this and send v2.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
+> This fix should be tested in linux-omap before we send this to mainline.
+Yes ofcourse. That what I meant by merge.
 
+> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> > CC: Hari n <hari.zoom@gmail.com>
+> > CC: Jarkko Nikula <jhnikula@gmail.com>
+> > ---
+> >  arch/arm/plat-omap/dma.c |    9 +++++----
+> >  1 files changed, 5 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> > index fd3154a..633c123 100644
+> > --- a/arch/arm/plat-omap/dma.c
+> > +++ b/arch/arm/plat-omap/dma.c
+> > @@ -975,6 +975,11 @@ void omap_stop_dma(int lch)
+> >  {
+> >  	u32 l;
+> >
+> > +	/* Disable the DMA channel */
+> > +	l = dma_read(CCR(lch));
+> > +	l &= ~OMAP_DMA_CCR_EN;
+> > +	dma_write(l, CCR(lch));
+> > +
+> >  	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
+> >  		int next_lch, cur_lch = lch;
+> >  		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
+> > @@ -1000,10 +1005,6 @@ void omap_stop_dma(int lch)
+> >  	if (cpu_class_is_omap1())
+> >  		dma_write(0, CICR(lch));
+> >
+> > -	l = dma_read(CCR(lch));
+> > -	l &= ~OMAP_DMA_CCR_EN;
+> > -	dma_write(l, CCR(lch));
+> > -
+> >  	dma_chan[lch].flags &= ~OMAP_DMA_ACTIVE;
+> >  }
+> >  EXPORT_SYMBOL(omap_stop_dma);
+> > --
+> > 1.5.4.7
+> >
 Regards,
-
-Tony
-
-
-The following changes since commit 161291396e76e0832c08f617eb9bd364d1648148:
-  Linus Torvalds (1):
-        Linux 2.6.32-rc4
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Aaro Koskinen (1):
-      omap: RX-51: Drop I2C-1 speed to 2200
-
-Anuj Aggarwal (1):
-      omap: SDMA: Fixing bug in omap_dma_set_global_params()
-
-Jarkko Nikula (1):
-      omap: McBSP: Fix incorrect receiver stop in omap_mcbsp_stop
-
-Kalle Jokiniemi (1):
-      OMAP: Fix race condition with autodeps
-
-Paul Walmsley (1):
-      OMAP2xxx clock: set up clockdomain pointer in struct clk
-
-Sanjeev Premi (1):
-      omap: CONFIG_ISP1301_OMAP redefined in Beagle defconfig
-
-Teerth Reddy (1):
-      omap: Initialization of SDRC params on Zoom2
-
-Tony Lindgren (1):
-      Merge branch '2_6_32rc4_fixes' of git://git.pwsan.com/linux-2.6 into omap-fixes-for-linus
-
- arch/arm/configs/omap3_beagle_defconfig      |    1 -
- arch/arm/mach-omap2/board-rx51-peripherals.c |    2 +-
- arch/arm/mach-omap2/board-zoom2.c            |    4 +-
- arch/arm/mach-omap2/clock24xx.c              |    1 +
- arch/arm/mach-omap2/clockdomain.c            |   74 +++++++++++++++----------
- arch/arm/plat-omap/dma.c                     |   15 +++--
- arch/arm/plat-omap/mcbsp.c                   |    2 +-
- 7 files changed, 59 insertions(+), 40 deletions(-)
+Santosh
