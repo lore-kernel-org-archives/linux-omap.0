@@ -1,122 +1,77 @@
-From: "Hemanth V" <hemanthv@ti.com>
-Subject: RE: [PATCH v2] OMAP3: introduce OMAP3630
-Date: Thu, 15 Oct 2009 15:38:06 +0530 (IST)
-Message-ID: <34399.192.168.10.88.1255601286.squirrel@dbdmail.itg.ti.com>
-References: <A24693684029E5489D1D202277BE89444CC6C0EE@dlee02.ent.ti.com>
-    <E0D41E29EB0DAC4E9F3FF173962E9E940253DAFCA8@dbde02.ent.ti.com>
+From: epsi@gmx.de
+Subject: Re: Memory performance / Cache problem
+Date: Thu, 15 Oct 2009 12:20:29 +0200
+Message-ID: <20091015102029.77750@gmx.net>
+References: <20091012083806.323990@gmx.net>
+ <13B9B4C6EF24D648824FF11BE8967162039B235D5C@dlee02.ent.ti.com>
+ <20091014144839.115530@gmx.net>
+ <200910142037.15063.siarhei.siamashka@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36308 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752894AbZJOKIx (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Oct 2009 06:08:53 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAFCA8@dbde02.ent.ti.com>
+Received: from mail.gmx.net ([213.165.64.20]:39742 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756903AbZJOKVT (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 15 Oct 2009 06:21:19 -0400
+In-Reply-To: <200910142037.15063.siarhei.siamashka@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pais, Allen" <allen.pais@ti.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
-
-> Muxes for OMAP 3630.
-
-What is the plan to add omap_cfg_reg calls for these new pins, which actually
-configures these pin muxes.
-
-Thanks
-Hemanth
-
->
-> Signed-off-by: Allen Pais <allen.pais@ti.com>
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index b5fac32..93abb74 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -551,6 +551,42 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
->  MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
->  		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
->  		OMAP34XX_MUX_MODE0)
-> +
-> +/*Muxes for 3630 */
-> +MUX_CFG_34XX("H26_3630_DSS_DATA18", 0x100,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("H25_3630_DSS_DATA19", 0x102,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("E28_3630_DSS_DATA20", 0x104,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("J26_3630_DSS_DATA21", 0x106,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AC27_3630_DSS_DATA22", 0x108,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AC28_3630_DSS_DATA23", 0x10A,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
-> +MUX_CFG_34XX("AF9_3630_ETKD8", 0x5EC,
-> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AG9_3630_ETKD9", 0x5EE,
-> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AG7_3630_ETKD12", 0x5F0,
-> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
-> +MUX_CFG_34XX("AA25_3630_UART2_TX", 0x178,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AD25_3630_UART2_RX", 0x17A,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AB25_3630_UART2_RTS", 0x176,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("AB26_3630_UART2_CTS", 0x174,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
-> +MUX_CFG_34XX("H20_UART3_RX_IRRX", 0x19E,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +MUX_CFG_34XX("H21_UART3_TX_IRTX", 0x1A0,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
->  };
->
->  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-> diff --git a/arch/arm/plat-omap/include/mach/mux.h
-> b/arch/arm/plat-omap/include/mach/mux.h
-> index 0f49d2d..8d8cbe1 100644
-> --- a/arch/arm/plat-omap/include/mach/mux.h
-> +++ b/arch/arm/plat-omap/include/mach/mux.h
-> @@ -890,6 +890,32 @@ enum omap34xx_index {
->
->  	/* SYS_NIRQ T2 INT1 */
->  	AF26_34XX_SYS_NIRQ,
-> +
-> +	/*Muxes for 3630*/
-> +	K28_3630_CAM_D6,
-> +	L28_3630_CAM_D7,
-> +	K27_3630_CAM_D8,
-> +	L27_3630_CAM_D9,
-> +
-> +	H26_3630_DSS_DATA18,
-> +	H25_3630_DSS_DATA19,
-> +	E28_3630_DSS_DATA20,
-> +	J26_3630_DSS_DATA21,
-> +	AC27_3630_DSS_DATA22,
-> +	AC28_3630_DSS_DATA23,
-> +
-> +	AF9_3630_ETKD8,
-> +	AG9_3630_ETKD9,
-> +	AG7_3630_ETK12,
-> +
-> +	AA25_3630_UART2_TX,
-> +	AD25_3630_UART2_RX,
-> +	AB25_3630_UART2_RTS,
-> +	AB26_3630_UART2_CTS,
-> +
-> +	H20_UART3_RX_IRRX,
-> +	H21_UART3_TX_IRTX,
-> +
->  };
->
->  struct omap_mux_cfg {--
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+To: Siarhei Siamashka <siarhei.siamashka@nokia.com>
+Cc: premi@ti.com, linux-omap@vger.kernel.org, r-woodruff2@ti.com
 
 
+> On Wednesday 14 October 2009 17:48:39 ext epsi@gmx.de wrote:
+> > Mem clock is both times 166MHz. I don't know whether are differences in
+> > cycle access and timing, but memclock is fine.
+> >
+> > Following Siarhei hints of initialize the buffers (around 1.2 MByte
+> each)
+> > I get different results in 22kernel for use of
+> > malloc alone
+> > memcpy =   473.764, loop4 =   448.430, loop1 =   102.770, rand =   
+> 29.641
+> > calloc alone
+> > memcpy =   405.947, loop4 =   361.550, loop1 =    95.441, rand =   
+> 21.853
+> > malloc+memset:
+> > memcpy =   239.294, loop4 =   188.617, loop1 =    80.871, rand =    
+> 4.726
+> >
+> > In 31kernel all 3 measures are about the same (unfortunatly low) level
+> of
+> > malloc+memset in 22.
+> >
+> > First of all: What performance can be expected?
+> > Does 22 make failures if it is so much faster?
+> > Can the later kernels get a boost in memory handling?
+> 
+> What you see is just a (fake) performance boost because you have a single
+> physical page shared between all the virtual pages in the source buffer.
+> So
+> you get no cache misses on read operations and everything seems fast.
+> 
+> This is unlikely to happen on real use, and it does not reflect real
+> memory
+> performance. So the benchmark is inadequate.
+
+> 
+> You can get some basic information here:
+> http://en.wikipedia.org/wiki/Copy-on-write
+> 
+> Regarding the difference in behavior between .22 and recent kernels. It
+> may be
+> some regression in copy-on-write implementation, or just some change done
+> on
+> purpose. That is assuming that the userspace stuff was identical in both
+> tests.
+> 
+
+Ok, understand the difference if the memory is uninitialised.
+But why there is the difference in "malloc + memset" and "calloc"?
+In both cases the memory will be cleared.
+
+
+-- 
+Jetzt kostenlos herunterladen: Internet Explorer 8 und Mozilla Firefox 3.5 -
+sicherer, schneller und einfacher! http://portal.gmx.net/de/go/atbrowser
