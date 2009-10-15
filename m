@@ -1,157 +1,80 @@
-From: Rajendra Nayak <rnayak@ti.com>
-Subject: [PATCH v2 2/2] OMAP3: PM: Configure CPUidle latencies/thresholds from board file
-Date: Thu, 15 Oct 2009 20:18:50 +0530
-Message-ID: <1255618130-14005-2-git-send-email-rnayak@ti.com>
-References: <1255618130-14005-1-git-send-email-rnayak@ti.com>
+From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Subject: [PATCH] OMAP3: PM: Removing redundant and potentially dangerous
+ PRCM configration
+Date: Thu, 15 Oct 2009 20:29:51 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA174864@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56023 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:57436 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762196AbZJOOte (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 15 Oct 2009 10:49:34 -0400
-In-Reply-To: <1255618130-14005-1-git-send-email-rnayak@ti.com>
+	id S1762356AbZJOPAs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Oct 2009 11:00:48 -0400
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: khilman@deeprootsystems.com, Rajendra Nayak <rnayak@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-The CPUidle C state latencies and thresholds are dependent
-on various board specific details.
-This patch makes it possible to configure these values from the
-respective board files.
+As part of Core domain context restoration while coming out of off mode
+there are some registers being restored which are not required to be restored.
+ROM code should have restored them already. Overwriting some of them can have
+potential side effect. Eg: CM_CLKEN_PLL register should not be written while dpll is locked.
 
-omap3_pm_init_cpuidle() can now be optionally called from board
-files to pass board specific cpuidle parameters.
-If the board files do not use this function to pass the params
-default values are used which might cause higher consumption
-dur to wrong state selection by the governor.
-
-This patch only updates the 3430sdp board files to use
-omap3_pm_init_cpuidle().
-
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 ---
- arch/arm/mach-omap2/board-3430sdp.c |   19 +++++++++++++++
- arch/arm/mach-omap2/cpuidle34xx.c   |   42 +++++++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h            |    8 ++++++
- 3 files changed, 69 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 0f1975c..d2b2f8f 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -73,6 +73,24 @@ static struct prm_setup_vc omap3_setuptime_table = {
- 	.vdd1_off = 0x00,
- };
- 
-+/* FIXME: These values need to be updated based on more profiling on 3430sdp*/
-+static struct cpuidle_params omap3_cpuidle_params_table[] = {
-+	/* C1 */
-+	{2, 2, 5},
-+	/* C2 */
-+	{10, 10, 30},
-+	/* C3 */
-+	{50, 50, 300},
-+	/* C4 */
-+	{1500, 1800, 4000},
-+	/* C5 */
-+	{2500, 7500, 12000},
-+	/* C6 */
-+	{3000, 8500, 15000},
-+	/* C7 */
-+	{10000, 30000, 300000},
-+};
-+
- static int board_keymap[] = {
- 	KEY(0, 0, KEY_LEFT),
- 	KEY(0, 1, KEY_RIGHT),
-@@ -203,6 +221,7 @@ static void __init omap_3430sdp_init_irq(void)
- 	omap_board_config = sdp3430_config;
- 	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
- 	omap3_pm_init_vc(&omap3_setuptime_table);
-+	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
- 	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL, omap3_mpu_rate_table,
- 			     omap3_dsp_rate_table, omap3_l3_rate_table);
- 	omap_init_irq();
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index c44a942..f5d8f55 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -60,6 +60,30 @@ struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
- struct omap3_processor_cx current_cx_state;
- struct powerdomain *mpu_pd, *core_pd, *per_pd;
- 
-+/*
-+ * The latencies/thresholds for various C states have
-+ * to be configured from the respective board files.
-+ * These are some default values (which might not provide
-+ * the best power savings) used on boards which do not
-+ * pass these details from the board file.
-+ */
-+static struct cpuidle_params cpuidle_params_table[] = {
-+	/* C1 */
-+	{2, 2, 5},
-+	/* C2 */
-+	{10, 10, 30},
-+	/* C3 */
-+	{50, 50, 300},
-+	/* C4 */
-+	{1500, 1800, 4000},
-+	/* C5 */
-+	{2500, 7500, 12000},
-+	/* C6 */
-+	{3000, 8500, 15000},
-+	/* C7 */
-+	{10000, 30000, 300000},
-+};
-+
- static int omap3_idle_bm_check(void)
- {
- 	if (!omap3_can_sleep())
-@@ -165,6 +189,24 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
- 
- DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
- 
-+void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
-+{
-+	int i;
-+
-+	if (!cpuidle_board_params)
-+		return;
-+
-+	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-+		cpuidle_params_table[i].sleep_latency =
-+			cpuidle_board_params[i].sleep_latency;
-+		cpuidle_params_table[i].wake_latency =
-+			cpuidle_board_params[i].wake_latency;
-+		cpuidle_params_table[i].threshold =
-+			cpuidle_board_params[i].threshold;
-+	}
-+	return;
-+}
-+
- /* omap3_init_power_states - Initialises the OMAP3 specific C states.
-  *
-  * Below is the desciption of each C state.
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index ca673c5..0b814ab 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -41,7 +41,15 @@ struct prm_setup_vc {
- 	u16 vdd1_ret;
- 	u16 vdd1_off;
- };
-+
-+struct cpuidle_params {
-+	u32 sleep_latency;
-+	u32 wake_latency;
-+	u32 threshold;
-+};
-+
- extern void omap3_pm_init_vc(struct prm_setup_vc *setup_vc);
-+extern void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params);
- 
- extern int resource_set_opp_level(int res, u32 target_level, int flags);
- extern int resource_access_opp_lock(int res, int delta);
--- 
-1.5.4.7
-
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index fb864cc..da16804 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -279,7 +279,6 @@ void omap3_prcm_save_context(void)
+ 	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
+ 	prcm_context.sgx_cm_clksel =
+ 			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
+-	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
+ 	prcm_context.dss_cm_clksel =
+ 			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
+ 	prcm_context.cam_cm_clksel =
+@@ -296,8 +295,6 @@ void omap3_prcm_save_context(void)
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
+ 	prcm_context.pll_cm_clksel5 =
+ 			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
+-	prcm_context.pll_cm_clken =
+-			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+ 	prcm_context.pll_cm_clken2 =
+ 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+ 	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
+@@ -343,8 +340,6 @@ void omap3_prcm_save_context(void)
+ 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
+ 	prcm_context.mpu_cm_autoidle2 =
+ 			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
+-	prcm_context.pll_cm_autoidle =
+-			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+ 	prcm_context.iva2_cm_clkstctrl =
+ 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
+ 	prcm_context.mpu_cm_clkstctrl =
+@@ -436,7 +431,6 @@ void omap3_prcm_restore_context(void)
+ 	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
+ 	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
+ 					 CM_CLKSEL);
+-	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
+ 	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
+ 					 CM_CLKSEL);
+ 	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
+@@ -453,7 +447,6 @@ void omap3_prcm_restore_context(void)
+ 					OMAP3430ES2_CM_CLKSEL4);
+ 	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
+ 					 OMAP3430ES2_CM_CLKSEL5);
+-	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
+ 	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
+ 					OMAP3430ES2_CM_CLKEN2);
+ 	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
+@@ -492,7 +485,6 @@ void omap3_prcm_restore_context(void)
+ 	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
+ 					CM_AUTOIDLE2);
+ 	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
+-	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
+ 	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
+ 					CM_CLKSTCTRL);
+ 	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
