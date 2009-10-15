@@ -1,40 +1,67 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 00/17] Massive OMAP730/OMAP850 cleanup
-Date: Wed, 14 Oct 2009 17:19:53 -0700
-Message-ID: <20091015001953.GE14531@atomide.com>
-References: <3d374d00910141250h22e18bccpa6792d2a323b61f8@mail.gmail.com> <20091014211206.GL12700@atomide.com> <3d374d00910141712o6db73c8ejf2e49e4a65b758d6@mail.gmail.com>
+Subject: Re: [PATCH 0/2] OMAP clock and clockdomain fixes for 2.6.29-rc5
+Date: Wed, 14 Oct 2009 17:24:24 -0700
+Message-ID: <20091015002423.GF14531@atomide.com>
+References: <20091014222609.5545.7736.stgit@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58084 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758427AbZJOAUj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 20:20:39 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57127 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756809AbZJOAZN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 14 Oct 2009 20:25:13 -0400
 Content-Disposition: inline
-In-Reply-To: <3d374d00910141712o6db73c8ejf2e49e4a65b758d6@mail.gmail.com>
+In-Reply-To: <20091014222609.5545.7736.stgit@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alistair Buxton <a.j.buxton@gmail.com>
-Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.arm.linux.org.uk
 
-* Alistair Buxton <a.j.buxton@gmail.com> [091014 17:13]:
-> 2009/10/14 Tony Lindgren <tony@atomide.com>:
-> > * Alistair Buxton <a.j.buxton@gmail.com> [091014 13:03]:
-> >> Reposting the full series for review. Assuming this is all OK would it
-> >> be a good idea to merge the config variables into a single
-> >> CONFIG_ARCH_OMAP7XX? There doesn't seem to be any reason to have both.
-> >> Original description follows.
-> >
-> > Yeah, those should be merged too. Let's do that as a separate patch.
+* Paul Walmsley <paul@pwsan.com> [091014 15:36]:
+> Hello,
 > 
-> On a related note, the omap850.h and omap730.h should go away too,
-> when everyone is happy with the new omap7xx.h. Perhaps we should add a
-> #warning to them so people know they will be removed at some point?
+> This series contains:
+> 
+> - one OMAP2 clock fix that allows N800 to boot further (there are unrelated
+>   problems with both the current linux-omap head and omap-fixes branch that
+>   cause booting to fail due to other reasons), and
+> 
+> - one OMAP2/3 clockdomain fix that can cause clockdomain transitions to be
+>   missed by the clockdomain code -- this mostly affects OMAP3 OFF mode.
+> 
+> These patches are also available as a git branch (based on Tony's omap-fixes
+> branch) from
+> 
+>   git://git.pwsan.com/linux-2.6 2_6_32rc4_fixes
 
-OK, let's do that, but let's first get all the recently posted patches
-merged into the omap for-next branch. After that we can have some
-static commit on which to create more patches.
+I've pulled these on top of the fixes I posted yesterday.
 
 Regards,
 
 Tony
+ 
+> 
+> - Paul
+> 
+> ---
+> 
+> Kalle Jokiniemi (1):
+>       OMAP: Fix race condition with autodeps
+> 
+> Paul Walmsley (1):
+>       OMAP2xxx clock: set up clockdomain pointer in struct clk
+> 
+> 
+>  arch/arm/mach-omap2/clock24xx.c   |    1 +
+>  arch/arm/mach-omap2/clockdomain.c |   74 ++++++++++++++++++++++---------------
+>  2 files changed, 45 insertions(+), 30 deletions(-)
+> 
+> size:
+>    text	   data	    bss	    dec	    hex	filename
+> 3588474	 198624	 105152	3892250	 3b641a	vmlinux.omap3beagle.orig
+> 3588562	 198624	 105152	3892338	 3b6472	vmlinux.omap3beagle.patched
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
