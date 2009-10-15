@@ -1,38 +1,85 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: SMP: BUG with PREEMPT enabled
-Date: Thu, 15 Oct 2009 12:40:32 +0100
-Message-ID: <20091015114032.GB14817@n2100.arm.linux.org.uk>
-References: <EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8D@dbde02.ent.ti.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB2555BF@dbde02.ent.ti.com>
+From: "Varadarajan, Charu Latha" <charu@ti.com>
+Subject: RE: [PATCH] OMAP3: Fix McBSP poll read and write for 32bit reg
+ access
+Date: Thu, 15 Oct 2009 17:27:10 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA31ADBB@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAF74A@dbde02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BA31ADB9@dbde02.ent.ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BB37CDA1@dbde02.ent.ti.com>
+ <200910151025.30493.peter.ujfalusi@nokia.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BB37CE36@dbde02.ent.ti.com>,<5A47E75E594F054BAF48C5E4FC4B92AB030A46D070@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:59900 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932659AbZJOLlQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Oct 2009 07:41:16 -0400
-Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BB2555BF@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40193 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757499AbZJOL5v convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Oct 2009 07:57:51 -0400
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A46D070@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "peter.ujfalusi@nokia.com" <peter.ujfalusi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Syed, Rafiuddin" <rafiuddin.syed@ti.com>
 
-On Wed, Oct 14, 2009 at 04:56:18PM +0530, Shilimkar, Santosh wrote:
-> > On the latest ARM kernel(v2.6.32-rc4),I have observed a BUG() dump when
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Shilimkar, Santosh
+Sent: Thursday, October 15, 2009 1:01 PM
+To: Peter Ujfalusi
+Cc: Varadarajan, Charu Latha; linux-omap@vger.kernel.org; Syed, Rafiuddin
+Subject: RE: [PATCH] OMAP3: Fix McBSP poll read and write for 32bit reg access
 
-Umm...
+Peter/ Santosh,
+> > -----Original Message-----
+> > From: Peter Ujfalusi [mailto:peter.ujfalusi@nokia.com]
+> > Sent: Thursday, October 15, 2009 12:56 PM
+> > To: Shilimkar, Santosh
+> > Cc: Varadarajan, Charu Latha; linux-omap@vger.kernel.org; Syed, Rafiuddin
+> > Subject: Re: [PATCH] OMAP3: Fix McBSP poll read and write for 32bit reg
+> > access
+> >
+> > On Thursday 15 October 2009 09:10:54 ext Shilimkar, Santosh wrote:
+> > > > > > > > -   writew(buf, base + OMAP_MCBSP_REG_DXR1);
+> > > > > > > > +   OMAP_MCBSP_WRITE(base, DXR, buf);
+> > > > > > >
+> > > > > > > Why do you need this? Is writew()/readw() not doing 16 bit
+> > > > > > > operations  ?
+> > > > > >
+> > > > > > The intension is to use 32 bit access and not 16 bit access
+> > > > >
+> > > > > Use readl() / writel() then.
+> > > >
+> > > > Yes,  OMAP_MCBSP_WRITE macro makes use of readl() / writel() for OMAP3
+> > >
+> > > Good!! Then get rid of this macro and directly use kernel standard
+> > >  API-       readl() / writel() --
+> >
+> Well, OMAP1 and OMAP2 still has 16 bit registers in McBSP.
+> Please look at this comment from Peter. So please reconsider your patch and decision of changing the signature of the API since it breaks OMAP1 and OMAP2.
+OMAP_MCBSP_READ and  OMAP_MCBSP_WRITE macros takes care of the same. 
+Please find below the code snippet from mcbsp kernel code. It checks for
+the cpu version and accordingly calls raw_writew/raw_writel.
+------------- Code snippet from arch/arm/plat-omap/mcbsp.c-------------------------------
+void omap_mcbsp_write(void __iomem *io_base, u16 reg, u32 val)
+{
+        if (cpu_class_is_omap1() || cpu_is_omap2420())
+                __raw_writew((u16)val, io_base + reg);
+        else
+                __raw_writel(val, io_base + reg);
+}
 
-> @@ -350,7 +350,7 @@ static inline void local_flush_tlb_mm(struct mm_struct *mm)
->  	if (tlb_flag(TLB_WB))
->  		dsb();
->  
-> -	if (cpu_isset(smp_processor_id(), mm->cpu_vm_mask)) {
-> +	if (cpu_isset(get_cpu(), mm->cpu_vm_mask)) {
+int omap_mcbsp_read(void __iomem *io_base, u16 reg)
+{
+        if (cpu_class_is_omap1() || cpu_is_omap2420())
+                return __raw_readw(io_base + reg);
+        else
+                return __raw_readl(io_base + reg);
+}
 
-This isn't 2.6.32-rc4 code - which actually is:
-
-        if (cpumask_test_cpu(smp_processor_id(), mm_cpumask(mm))) {
-
-so what kernel version are you working with?
-
-The result is this patch won't apply to 2.6.32-rc4.
+#define OMAP_MCBSP_READ(base, reg) \
+                        omap_mcbsp_read(base, OMAP_MCBSP_REG_##reg)
+#define OMAP_MCBSP_WRITE(base, reg, val) \
+                        omap_mcbsp_write(base, OMAP_MCBSP_REG_##reg, val)
+---------------- End of Code snippet from arch/arm/plat-omap/mcbsp.c-------------------------
+-Charulatha
