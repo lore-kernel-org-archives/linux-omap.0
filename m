@@ -1,86 +1,47 @@
 From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH] ARM: OMAP: SDMA: Fix omap_stop_dma() API for channel
-	linking
-Date: Thu, 15 Oct 2009 10:10:26 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB37CC9F@dbde02.ent.ti.com>
-References: <1255500862-29847-1-git-send-email-santosh.shilimkar@ti.com>
- <20091014170625.GH12700@atomide.com>
+Subject: RE: SMP: BUG with PREEMPT enabled
+Date: Thu, 15 Oct 2009 10:16:00 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB37CCB2@dbde02.ent.ti.com>
+References: <EAF47CD23C76F840A9E7FCE10091EFAB02BB254F8D@dbde02.ent.ti.com>
+	<EAF47CD23C76F840A9E7FCE10091EFAB02BB2555BF@dbde02.ent.ti.com>
+	<20091014201423.GC28948@n2100.arm.linux.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41020 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751291AbZJOElL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 15 Oct 2009 00:41:11 -0400
-In-Reply-To: <20091014170625.GH12700@atomide.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20091014201423.GC28948@n2100.arm.linux.org.uk>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "S, Venkatraman" <svenkatr@ti.com>, Hari n <hari.zoom@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>
+
 
 > -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Wednesday, October 14, 2009 10:36 PM
+> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
+> Sent: Thursday, October 15, 2009 1:44 AM
 > To: Shilimkar, Santosh
-> Cc: linux-omap@vger.kernel.org; S, Venkatraman; Hari n; Jarkko Nikula
-> Subject: Re: [PATCH] ARM: OMAP: SDMA: Fix omap_stop_dma() API for channel
-> linking
+> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org
+> Subject: Re: SMP: BUG with PREEMPT enabled
 > 
-> * Santosh Shilimkar <santosh.shilimkar@ti.com> [091013 23:14]:
-> > OMAP sDMA driver API omap_stop_dma() doesn't really stop the dma when
-> used
-> > in linking scenario. This patch fixes the same.
+> On Wed, Oct 14, 2009 at 04:56:18PM +0530, Shilimkar, Santosh wrote:
+> > Here is the patch I used to fix this BUG.
 > 
-> To me it looks like this will break things for omap1 as the DMA channel
-> interrupt is not disabled first. I guess the fix is to move the
-> "Disable all interrupts on the channel" part above clearing the
-> link mappings.
-Indeed it will break OMAP1. Initially I thought of putting this change at this place so that it takes care of both normal and linking scenario. 
+> Patch is good.  Could you send it to the patch system.  Please note that
+> the patch system now almost accepts standard patch submissions (in other
+> words, it no longer requires the "PATCH FOLLOWS" tag.)  However, it still
+> requires the "KernelVersion:" tag to appear somewhere before the patch.
 
-I will rework this and send v2.
 
-> This fix should be tested in linux-omap before we send this to mainline.
-Yes ofcourse. That what I meant by merge.
+Sure !!
 
-> > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Signed-off-by: Venkatraman S <svenkatr@ti.com>
-> > CC: Hari n <hari.zoom@gmail.com>
-> > CC: Jarkko Nikula <jhnikula@gmail.com>
-> > ---
-> >  arch/arm/plat-omap/dma.c |    9 +++++----
-> >  1 files changed, 5 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> > index fd3154a..633c123 100644
-> > --- a/arch/arm/plat-omap/dma.c
-> > +++ b/arch/arm/plat-omap/dma.c
-> > @@ -975,6 +975,11 @@ void omap_stop_dma(int lch)
-> >  {
-> >  	u32 l;
-> >
-> > +	/* Disable the DMA channel */
-> > +	l = dma_read(CCR(lch));
-> > +	l &= ~OMAP_DMA_CCR_EN;
-> > +	dma_write(l, CCR(lch));
-> > +
-> >  	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1) {
-> >  		int next_lch, cur_lch = lch;
-> >  		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
-> > @@ -1000,10 +1005,6 @@ void omap_stop_dma(int lch)
-> >  	if (cpu_class_is_omap1())
-> >  		dma_write(0, CICR(lch));
-> >
-> > -	l = dma_read(CCR(lch));
-> > -	l &= ~OMAP_DMA_CCR_EN;
-> > -	dma_write(l, CCR(lch));
-> > -
-> >  	dma_chan[lch].flags &= ~OMAP_DMA_ACTIVE;
-> >  }
-> >  EXPORT_SYMBOL(omap_stop_dma);
-> > --
-> > 1.5.4.7
-> >
 Regards,
 Santosh
