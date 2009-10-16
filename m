@@ -1,37 +1,51 @@
-From: "WEBMAILUPGRADE" <upgradecentre@consultant.com>
-Subject: Dear Webmail User
-Date: Fri, 16 Oct 2009 22:42:19 +0800 (SE Asia Standard Time)
-Message-ID: <b4bd9ee3cea9a24551737e23a69e95d4.squirrel@mail.camau.gov.vn>
-Reply-To: upgradecenter@8u8.com
+From: Janosch Machowinski <scotch@tzi.de>
+Subject: Re: stable kernel version
+Date: Fri, 16 Oct 2009 16:47:23 +0200
+Message-ID: <4AD8877B.3050105@tzi.de>
+References: <4AD58D69.2080303@tzi.de> <20091014172656.GJ12700@atomide.com> <4AD60CEE.8000204@tzi.de> <20091014193324.GK12700@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from localhost ([123.30.75.2]:5031 "EHLO mail.camau.gov.vn"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1758431AbZJPOnD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Oct 2009 10:43:03 -0400
+Received: from mailhost.informatik.uni-bremen.de ([134.102.201.18]:41366 "EHLO
+	informatik.uni-bremen.de" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759312AbZJPOsk (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Oct 2009 10:48:40 -0400
+In-Reply-To: <20091014193324.GK12700@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
+>
+>> I will try out the 2.6.31 mainline kernel tommorw.
+>>     
+I just tried 2.6.31.4 kernel from kernel.org
+same result as with the 2.6.31-omap head:
+2271096 bytes read
+Booting from mmc ...
+## Booting kernel from Legacy Image at 82000000 ...
+   Image Name:   Linux-2.6.31.4
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    2271032 Bytes =  2.2 MB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+   Loading Kernel Image ... OK
+OK
 
+Starting kernel ...
 
+Uncompressing 
+Linux................................................................................................................................................ 
+done, booting the kernel.
 
-Dear Webmail User,
-We are really sorry for the inconvenience we are making you pass
-through,we are having problem with our database due to our recent upgrade
-and we can not find your data. Please we need to rectify this problem
-before the next 24-hours if not, you may not be able to send or receive
-email with your  e-mail address.
-Please provide your account details below so we can rectify this problem
-as soon as possible:
-USER NAME:
-PASSWORD:
-COUNTRY:
-NOTE: Your data and information will not be tampered or interfered with,
-We'll just record your data back into our database and send you a new
-confirmation alphanumerical password that will only be valid during this
-period and can be changed after this process.
-Please respond to this notice to enable us provide you better online
-services.
+-- after this message it stops doing anything
+
+Any ideas, what's wrong, or how to debug this ?
+
+Regards
+    Janosch
+
 
