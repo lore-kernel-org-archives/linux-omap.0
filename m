@@ -1,75 +1,47 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: RE: [PATCH] omapfb: Wrong test on unsigned?
-Date: Fri, 16 Oct 2009 15:56:57 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444CEFEAF5@dlee02.ent.ti.com>
-References: <4AD8BA2F.9090307@gmail.com>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH] CPUidle: always return with interrupts
+	enabled
+Date: Fri, 16 Oct 2009 14:11:04 -0700
+Message-ID: <20091016141104.d794f2c4.akpm@linux-foundation.org>
+References: <1254332153-23493-1-git-send-email-khilman@deeprootsystems.com>
+	<200909302321.33088.rjw@sisk.pl>
+	<20091006133456.5177a32a.akpm@linux-foundation.org>
+	<20091016162504.GC1391@deprecation.cyrius.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56286 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750825AbZJPU5P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 16:57:15 -0400
-In-Reply-To: <4AD8BA2F.9090307@gmail.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-bounces@lists.linux-foundation.org>
+In-Reply-To: <20091016162504.GC1391@deprecation.cyrius.com>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/linux-pm>
+List-Post: <mailto:linux-pm@lists.linux-foundation.org>
+List-Help: <mailto:linux-pm-request@lists.linux-foundation.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/linux-pm>,
+	<mailto:linux-pm-request@lists.linux-foundation.org?subject=subscribe>
+Sender: linux-pm-bounces@lists.linux-foundation.org
+Errors-To: linux-pm-bounces@lists.linux-foundation.org
+To: Martin Michlmayr <tbm@cyrius.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@lists.linux-foundation.org, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Roel Kluin <roel.kluin@gmail.com>, Imre Deak <imre.deak@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, linux-omap@vger.kernel.org
 
- 
+On Fri, 16 Oct 2009 17:25:04 +0100
+Martin Michlmayr <tbm@cyrius.com> wrote:
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org 
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Roel Kluin
-> Sent: Friday, October 16, 2009 1:24 PM
-> To: Imre Deak; linux-fbdev-devel@lists.sourceforge.net; 
-> linux-omap@vger.kernel.org; Andrew Morton
-> Subject: [PATCH] omapfb: Wrong test on unsigned?
+> * Andrew Morton <akpm@linux-foundation.org> [2009-10-06 13:34]:
+> > Rigor mortis is setting in on this one.
 > 
-> Only if the test is signed negative values can be spotted.
+> > The patch seems correct to me.
 > 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> ---
-> Is this correct? please review.
+> Can someone put this patch in now?  The problem has also been reported
+> on Marvell's Kirkwood platform (ARM) by a number of users and the
+> patch fixes it.
 > 
-> diff --git a/drivers/video/omap/omapfb_main.c 
-> b/drivers/video/omap/omapfb_main.c
-> index 0d0c8c8..cc7dd93 100644
-> --- a/drivers/video/omap/omapfb_main.c
-> +++ b/drivers/video/omap/omapfb_main.c
-> @@ -286,7 +286,7 @@ static int _setcolreg(struct fb_info 
-> *info, u_int regno, u_int red, u_int green,
->  		if (r != 0)
->  			break;
->  
-> -		if (regno < 0) {
-> +		if ((int)regno < 0) {
+> Tested-by: Martin Michlmayr <tbm@cyrius.com>
 
-Hmm...
+I have it in my for-2.6.32 queue.
 
-Isn't regno unsigned integer from the start?
+> Please CC stable when you commit the patch since it also needs to go
+> in for 2.6.31.
 
-2 things here:
-
-- regno will never be negative.
-- Casting won't make a difference in the meaning., it'll make a negative only when:
-
-	regno > ((2^32) / 2)
-
-Which doesn't make any sense IMHO.
-
-Isn't it?
-
-Regards,
-Sergio
->  			r = -EINVAL;
->  			break;
->  		}
-> --
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+hm, I didn't know that.  So noted, thanks.
