@@ -1,7 +1,7 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 15/17] OMAP3: PM: Added support for L2 aux ctrl register save and restore
-Date: Fri, 16 Oct 2009 13:49:08 +0300
-Message-ID: <1255690150-16853-16-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 11/17] Make USBHOST powerdomain go to sleep after warm reset.
+Date: Fri, 16 Oct 2009 13:49:04 +0300
+Message-ID: <1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
  <1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
@@ -14,142 +14,81 @@ References: <>
  <1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
  <1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
  <1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-13-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-14-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-15-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19653 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:19602 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758543AbZJPLEt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 07:04:49 -0400
-Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GB3L2D010020
-	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 06:03:22 -0500
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GB2fa9022261
-	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 14:03:00 +0300
-In-Reply-To: <1255690150-16853-15-git-send-email-tero.kristo@nokia.com>
+	with ESMTP id S1758339AbZJPLEb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 07:04:31 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GB33U7009629
+	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 06:03:04 -0500
+In-Reply-To: <1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Peter De-Schrijver <peter.de-schrijver@nokia.com>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+From: Peter De-Schrijver <peter.de-schrijver@nokia.com>
 
-This patch adds a save and restore mechanism for ARM L2 auxiliary control
-register. This feature is enabled via Kconfig option
-OMAP3_L2_AUX_SECURE_SAVE_RESTORE and the service ID for PPA can be provided
-via option OMAP3_L2_AUX_SECURE_SERVICE_SET_ID. If bootloader does not modify
-L2 aux register, using this save and restore logic for it is not needed.
+This patch makes sure the USBHOST and SGX powerdomains can go to any sleep
+state after a warm reset.
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 ---
- arch/arm/mach-omap2/control.c   |    1 +
- arch/arm/mach-omap2/sleep34xx.S |   31 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/Kconfig      |   17 +++++++++++++++++
- 3 files changed, 49 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/cm-regbits-34xx.h |    1 +
+ arch/arm/mach-omap2/pm34xx.c          |   18 ++++++++++++++++++
+ 2 files changed, 19 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 730fc53..82d8f1a 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -95,6 +95,7 @@ void *omap3_secure_ram_storage;
-  */
- u32 omap3_arm_context[128];
- u32 omap3_aux_ctrl[2] = { 0x1, 0x0 };
-+u32 omap3_l2_aux_ctrl[2] = { 0x1, 0x0 };
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 6923deb..3152553 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -680,6 +680,7 @@
+ #define OMAP3430_CLKSEL_GPT2_SHIFT			0
  
- struct omap3_control_regs {
- 	u32 sysconfig;
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 0b03bf9..e291d6d 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -288,11 +288,30 @@ restore:
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
- 	.word	0xE1600071		@ call SMI monitor (smi #1)
+ /* CM_SLEEPDEP_PER specific bits */
++#define OMAP3430_CM_SLEEPDEP_PER_EN_MPU			(1 << 1)
+ #define OMAP3430_CM_SLEEPDEP_PER_EN_IVA2		(1 << 2)
  
-+#ifdef CONFIG_OMAP3_L2_AUX_SECURE_SAVE_RESTORE
-+	/* Restore L2 aux control register */
-+	@ set service ID for PPA
-+	mov	r0, #CONFIG_OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
-+	mov	r12, r0		@ copy service ID in r12
-+	mov	r1, #0		@ set task ID for ROM code in r1
-+	mov	r2, #4		@ set some flags in r2, r6
-+	mov	r6, #0xff
-+	ldr	r3, write_l2_aux_control_params	@ r3 points to parameters
-+	ldr	r4, phys_offset
-+	adds	r3, r3, r4
-+	ldr	r4, page_offset
-+	subs	r3, r3, r4
-+	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
-+	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
-+	.word	0xE1600071		@ call SMI monitor (smi #1)
-+#endif
- 	b	logic_l1_restore
- l2_inv_api_params:
- 	.word   0x1, 0x00
- write_aux_control_params:
- 	.word	omap3_aux_ctrl
-+write_l2_aux_control_params:
-+	.word	omap3_l2_aux_ctrl
- l2_inv_gp:
- 	/* Execute smi to invalidate L2 cache */
- 	mov r12, #0x1                         @ set up to invalide L2
-@@ -306,6 +325,15 @@ smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
- 	ldr	r0, [r1, #4]
- 	mov	r12, #0x3
- 	.word 0xE1600070	@ Call SMI monitor (smieq)
-+	/* Restore L2 AUX control register */
-+	ldr	r1, write_l2_aux_control_params
-+	ldr	r0, phys_offset
-+	adds	r1, r1, r0
-+	ldr	r0, page_offset
-+	subs	r1, r1, r0
-+	ldr	r0, [r1, #4]
-+	mov	r12, #0x2
-+	.word 0xE1600070	@ Call SMI monitor (smieq)
- logic_l1_restore:
- 	mov	r1, #0
- 	/* Invalidate all instruction caches to PoU
-@@ -433,6 +461,9 @@ save_context_wfi:
- 	mrc	p15, 0, r4, c1, c0, 1	@ Read Auxiliary Control Register
- 	ldr	r5, write_aux_control_params
- 	str	r4, [r5, #4]
-+	mrc	p15, 1, r4, c9, c0, 2	@ Read L2 AUX ctrl register
-+	ldr	r5, write_l2_aux_control_params
-+	str	r4, [r5, #4]
-         /* Check what that target sleep state is:stored in r1*/
-         /* 1 - Only L1 and logic lost */
-         /* 2 - Only L2 lost */
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 2143db5..3ff1a5f 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -185,6 +185,23 @@ config OMAP3_DEBOBS
- 	help
- 	  Use ETK pads for debug observability
+ /* CM_CLKSTCTRL_PER */
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 47f5738..1fa778f 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -26,6 +26,7 @@
+ #include <linux/err.h>
+ #include <linux/gpio.h>
+ #include <linux/clk.h>
++#include <linux/delay.h>
  
-+config OMAP3_L2_AUX_SECURE_SAVE_RESTORE
-+	bool "OMAP3 HS/EMU save and restore for L2 AUX control register"
-+	depends on ARCH_OMAP3 && PM
-+	default n
-+	help
-+	  Without this option, L2 Auxiliary control register contents are
-+	  lost during off-mode entry on HS/EMU devices. This feature
-+	  requires support from PPA / boot-loader in HS/EMU devices, which
-+	  currently does not exist by default.
+ #include <mach/sram.h>
+ #include <mach/prcm.h>
+@@ -934,6 +935,24 @@ static void __init prcm_setup_regs(void)
+ 	prm_write_mod_reg(0, OMAP3430_CAM_MOD, PM_WKDEP);
+ 	prm_write_mod_reg(0, OMAP3430_PER_MOD, PM_WKDEP);
+ 	if (omap_rev() > OMAP3430_REV_ES1_0) {
 +
-+config OMAP3_L2_AUX_SECURE_SERVICE_SET_ID
-+	int "Service ID for the support routine to set L2 AUX control"
-+	depends on OMAP3_L2_AUX_SECURE_SAVE_RESTORE
-+	default 43
-+	help
-+	  PPA routine service ID for setting L2 auxiliary control register.
++		/*
++		 * This workaround is needed to prevent SGX and USBHOST from
++		 * failing to transition to RET/OFF after a warm reset in OFF
++		 * mode. Workaround sets a sleepdep of each of these domains
++		 * with MPU, waits for a min 2 sysclk cycles and clears the
++		 * sleepdep.
++		 */
++		cm_write_mod_reg(OMAP3430_CM_SLEEPDEP_PER_EN_MPU,
++				OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
++		cm_write_mod_reg(OMAP3430_CM_SLEEPDEP_PER_EN_MPU,
++				OMAP3430ES2_SGX_MOD, OMAP3430_CM_SLEEPDEP);
++		udelay(100);
++		cm_write_mod_reg(0, OMAP3430ES2_USBHOST_MOD,
++				OMAP3430_CM_SLEEPDEP);
++		cm_write_mod_reg(0, OMAP3430ES2_SGX_MOD,
++				OMAP3430_CM_SLEEPDEP);
 +
- config OMAP_32K_TIMER_HZ
-        int "Kernel internal timer frequency for 32KHz timer"
-        range 32 1024
+ 		prm_write_mod_reg(0, OMAP3430ES2_SGX_MOD, PM_WKDEP);
+ 		prm_write_mod_reg(0, OMAP3430ES2_USBHOST_MOD, PM_WKDEP);
+ 	} else
 -- 
 1.5.4.3
 
