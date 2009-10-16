@@ -1,65 +1,116 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [RFC][Patch V1] OMAP3: Mux Changes.
-Date: Fri, 16 Oct 2009 10:03:56 -0500
-Message-ID: <4AD88B5C.3020609@ti.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAFFA9@dbde02.ent.ti.com> 	<4AD7FC40.406@ti.com> <6cb013310910160715qb8a93b5y1c34781ee565dc32@mail.gmail.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: RE: [PATCH 03/17] PM: Block CORE off when DSS is active
+Date: Fri, 16 Oct 2009 17:27:18 +0200
+Message-ID: <74583B8642AB8841B30447520659FCA9DDCA9A26@dnce01.ent.ti.com>
+References: <> <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48942 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50311 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759378AbZJPPEq (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 16 Oct 2009 11:04:46 -0400
-In-Reply-To: <6cb013310910160715qb8a93b5y1c34781ee565dc32@mail.gmail.com>
+	id S1751194AbZJPP2H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 11:28:07 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Cory Maccarrone <darkstar6262@gmail.com>
-Cc: "Pais, Allen" <allen.pais@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, Tony Lindgren <tony@atomide.com>
+To: Tero Kristo <tero.kristo@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-Cory Maccarrone had written, on 10/16/2009 09:15 AM, the following:
-> On Thu, Oct 15, 2009 at 9:53 PM, Nishanth Menon <nm@ti.com 
-> <mailto:nm@ti.com>> wrote:
-> 
->     Pais, Allen had written, on 10/15/2009 11:53 PM, the following:
-> 
->         a) A simple comment to all my comments: why cant we have these
->         in bootloader and just simply leave the mux file alone?
->         [Allen] Yes Nishanth, this would be a much cleaner approach.
->         Even Santosh had suggested
->         The same, if we can conclude on a approach here, I can go ahead
->         and do the Mux Change it accordingly.
-> 
->     Then lets please fix the bootloader and drop this patch.
-> 
-> 
-[...]
-> Maybe I'm missing something, but why is it more desirable to add the mux 
-> code to the bootloader instead of the kernel?  Wouldn't adding it to the 
-> kernel guarantee it works regardless of the bootloader?
-adding mux in kernel guarentees that it is independent of the bootloader 
-- yes - no questions on that. There are two strategies that can be taken:
+Hi Tero,
 
-A) Ensure that kernel is independent from bootloader variances
-   - this is desirable and would adhere to the rules of an entity uses 
-the resources(muxes) ONLY what it is required for itself to work -> e.g. 
-bootloader would use the minimal set that is required for itself to 
-function.
+>
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
 
-B) Divide the load -> always assume that kernel and bootloaders work 
-together.
-    - Do all the static muxes in u-boot -> since the u-boot dies off 
-once the kernel starts up, the memory is completely freed up.
-    - Only the dynamic muxes (e.g. pins being used in two modes by two 
-drivers) are handled by the kernel.
+-----Original Message-----
 
-The current strategy that is implemented for OMAP3 is (B), but once the 
-kernel infrastructure for mux handling improves we should be able to 
-arrive at a compromise between A and B as far as execution latencies Vs 
-memory usage Vs independence issues are concerned. we are not there yet 
-unfortunately.
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>owner@vger.kernel.org] On Behalf Of Tero Kristo
+>Sent: Friday, October 16, 2009 12:49 PM
+>To: linux-omap@vger.kernel.org
+>Cc: Kalle Jokiniemi
+>Subject: [PATCH 03/17] PM: Block CORE off when DSS is active
+>
+>From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+>
+>If CORE power domain is allowed to reach off state
+>while display is active, the display will go blank.
+>Fixed by adding a check in idle loop.
 
+What is root cause? I guess it is due to extra latency required to wakeup from OFF?
+In that case, it should be better to use the omap_pm_set_max_dev_wakeup_lat() function and set a latency constraint to the CORE.
 
--- 
+On the other hand, I remember a discussion between Kevin and Tomi saying that this API might not be fully functional yet.
+
 Regards,
-Nishanth Menon
+Benoit
+
+
+>Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+>Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+>---
+> arch/arm/mach-omap2/pm34xx.c |    9 ++++++++-
+> 1 files changed, 8 insertions(+), 1 deletions(-)
+>
+>diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>index e8704a6..52a3f2b 100644
+>--- a/arch/arm/mach-omap2/pm34xx.c
+>+++ b/arch/arm/mach-omap2/pm34xx.c
+>@@ -103,7 +103,7 @@ static int (*_omap_save_secure_sram)(u32 *addr);
+>
+> static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+> static struct powerdomain *core_pwrdm, *per_pwrdm;
+>-static struct powerdomain *cam_pwrdm, *iva2_pwrdm;
+>+static struct powerdomain *cam_pwrdm, *iva2_pwrdm, *dss_pwrdm;
+>
+> static struct prm_setup_vc prm_setup = {
+>       .clksetup = 0xff,
+>@@ -427,6 +427,7 @@ void omap_sram_idle(void)
+>       int mpu_next_state = PWRDM_POWER_ON;
+>       int per_next_state = PWRDM_POWER_ON;
+>       int core_next_state = PWRDM_POWER_ON;
+>+      int dss_state = PWRDM_POWER_ON;
+>       int core_prev_state, per_prev_state;
+>       u32 sdrc_pwr = 0;
+>       int per_state_modified = 0;
+>@@ -469,6 +470,7 @@ void omap_sram_idle(void)
+>        * save / restore.
+>        */
+>       core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+>+      dss_state = pwrdm_read_pwrst(dss_pwrdm);
+>       if (core_next_state < PWRDM_POWER_ON) {
+>               core_saved_state = core_next_state;
+>               if ((cm_read_mod_reg(CORE_MOD, CM_IDLEST1) & CORE_IDLEST1_ALL)
+>@@ -479,6 +481,10 @@ void omap_sram_idle(void)
+>                               CORE_IDLEST3_ALL) != CORE_IDLEST3_ALL) {
+>                       core_next_state = PWRDM_POWER_ON;
+>                       pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
+>+              } else if (core_next_state == PWRDM_POWER_OFF &&
+>+                               dss_state == PWRDM_POWER_ON) {
+>+                      core_next_state = PWRDM_POWER_RET;
+>+                      pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+>               }
+>       }
+>
+>@@ -1234,6 +1240,7 @@ static int __init omap3_pm_init(void)
+>       core_pwrdm = pwrdm_lookup("core_pwrdm");
+>       cam_pwrdm = pwrdm_lookup("cam_pwrdm");
+>       iva2_pwrdm = pwrdm_lookup("iva2_pwrdm");
+>+      dss_pwrdm = pwrdm_lookup("dss_pwrdm");
+>
+>       omap_push_sram_idle();
+> #ifdef CONFIG_SUSPEND
+>--
+>1.5.4.3
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
