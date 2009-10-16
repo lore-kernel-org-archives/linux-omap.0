@@ -1,96 +1,90 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: Removing redundant and potentially dangerous
- PRCM configration
-Date: Fri, 16 Oct 2009 16:46:17 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A46D3C2@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA1748E0@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH] OMAP3: GPIO: Added dynamic control logic for pad wakeups
+Date: Fri, 16 Oct 2009 15:23:44 +0300
+Message-ID: <1255695824-17523-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59048 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752659AbZJPLQg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 07:16:36 -0400
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA1748E0@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:27657 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbZJPMit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 08:38:49 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GCbEIH023287
+	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 07:37:22 -0500
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GCbG8w032526
+	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 15:37:17 +0300
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
 
+From: Tero Kristo <tero.kristo@nokia.com>
 
+Pad wakeups are now enabled if the corresponding GPIO interrupt is enabled.
 
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->>Sripathy, Vishwanath
->>Sent: Friday, October 16, 2009 4:45 AM
->>To: Sripathy, Vishwanath; linux-omap@vger.kernel.org; Kevin Hilman
->>Subject: [PATCH] OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
->>
->>As part of Core domain context restoration while coming out of off mode
->>there are some registers being restored which are not required to be restored.
->>ROM code should have restored them already. Overwriting some of them can have
->>potential side effect. Eg: CM_CLKEN_PLL register should not be written while dpll is locked.
->>
->>Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
->>---
->>
->>diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
->>index fb864cc..da16804 100644
->>--- a/arch/arm/mach-omap2/prcm.c
->>+++ b/arch/arm/mach-omap2/prcm.c
->>@@ -279,7 +279,6 @@ void omap3_prcm_save_context(void)
->> 	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
->> 	prcm_context.sgx_cm_clksel =
->> 			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
->>-	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
->> 	prcm_context.dss_cm_clksel =
->> 			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
->> 	prcm_context.cam_cm_clksel =
->>@@ -296,8 +295,6 @@ void omap3_prcm_save_context(void)
->> 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
->> 	prcm_context.pll_cm_clksel5 =
->> 			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
->>-	prcm_context.pll_cm_clken =
->>-			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
->> 	prcm_context.pll_cm_clken2 =
->> 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
->> 	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
->>@@ -343,8 +340,6 @@ void omap3_prcm_save_context(void)
->> 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
->> 	prcm_context.mpu_cm_autoidle2 =
->> 			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
->>-	prcm_context.pll_cm_autoidle =
->>-			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
->> 	prcm_context.iva2_cm_clkstctrl =
->> 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
->> 	prcm_context.mpu_cm_clkstctrl =
->>@@ -436,7 +431,6 @@ void omap3_prcm_restore_context(void)
->> 	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
->> 	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
->> 					 CM_CLKSEL);
->>-	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
->> 	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
->> 					 CM_CLKSEL);
->> 	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
->>@@ -453,7 +447,6 @@ void omap3_prcm_restore_context(void)
->> 					OMAP3430ES2_CM_CLKSEL4);
->> 	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
->> 					 OMAP3430ES2_CM_CLKSEL5);
->>-	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
->> 	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
->> 					OMAP3430ES2_CM_CLKEN2);
->> 	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
->>@@ -492,7 +485,6 @@ void omap3_prcm_restore_context(void)
->> 	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
->> 					CM_AUTOIDLE2);
->> 	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
->>-	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
->> 	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
->> 					CM_CLKSTCTRL);
->> 	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
+Applies on top of PM branch.
 
-Why not remove these unwanted variables wkup_cm_clksel, pll_cm_clken, pll_cm_autoidle from the structure omap3_prcm_regs also?
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/plat-omap/gpio.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
-Regards
-Thara
+diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+index e242112..fa79db2 100644
+--- a/arch/arm/plat-omap/gpio.c
++++ b/arch/arm/plat-omap/gpio.c
+@@ -267,6 +267,7 @@ static struct gpio_bank gpio_bank_34xx[6] = {
+ #define OMAP34XX_PAD_SAFE_MODE 0x7
+ #define OMAP34XX_PAD_IN_PU_GPIO 0x11c
+ #define OMAP34XX_PAD_IN_PD_GPIO 0x10c
++#define OMAP34XX_PAD_WAKE_EN (1 << 14)
+ 
+ struct omap3_gpio_regs {
+ 	u32 sysconfig;
+@@ -713,6 +714,8 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ {
+ 	void __iomem *base = bank->base;
+ 	u32 gpio_bit = 1 << gpio;
++	struct gpio_pad *pad;
++	int gpio_num;
+ 	u32 val;
+ 
+ 	if (cpu_is_omap44xx()) {
+@@ -750,6 +753,23 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
+ 			 * GPIO wakeup request can only be generated on edge
+ 			 * transitions
+ 			 */
++			pad = gpio_pads;
++
++			gpio_num = bank->virtual_irq_start - IH_GPIO_BASE +
++				gpio;
++			/* Find the pad corresponding the GPIO */
++			while (pad->gpio >= 0 && pad->gpio != gpio_num)
++				pad++;
++			/* Enable / disable pad wakeup */
++			if (pad->gpio == gpio_num) {
++				val = omap_ctrl_readw(pad->offset);
++				if (trigger & IRQ_TYPE_EDGE_BOTH)
++					val |= OMAP34XX_PAD_WAKE_EN;
++				else
++					val &= ~(u16)OMAP34XX_PAD_WAKE_EN;
++				omap_ctrl_writew(val, pad->offset);
++			}
++
+ 			if (trigger & IRQ_TYPE_EDGE_BOTH)
+ 				__raw_writel(1 << gpio, bank->base
+ 					+ OMAP24XX_GPIO_SETWKUENA);
+@@ -1654,7 +1674,7 @@ static int __init omap3_gpio_pads_init(void)
+ 	gpio_pads[gpio_amt].gpio = -1;
+ 	return 0;
+ }
+-late_initcall(omap3_gpio_pads_init);
++early_initcall(omap3_gpio_pads_init);
+ #endif
+ 
+ /* This lock class tells lockdep that GPIO irqs are in a different
+-- 
+1.5.4.3
+
