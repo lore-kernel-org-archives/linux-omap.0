@@ -1,107 +1,151 @@
 From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [PATCH] OMAP3: PM: Removing redundant and potentially dangerous
- PRCM configration
-Date: Fri, 16 Oct 2009 18:28:04 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA174C22@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA1748E0@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A46D3C2@dbde02.ent.ti.com>
+Subject: RE: [PATCH 06/17] OMAP3: PM: Added next state check for IVA2, USB
+ and PER into idle loop
+Date: Fri, 16 Oct 2009 18:46:05 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA174C28@dbde02.ent.ti.com>
+References: <> <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34827 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45950 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759194AbZJPM6s convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 08:58:48 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A46D3C2@dbde02.ent.ti.com>
+	id S1759109AbZJPNQx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 09:16:53 -0400
+In-Reply-To: <1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Kevin Hilman <khilman@deeprootsystems.com>
-
-Yes it can be removed. I will repost the patch with them removed.
-
-Vishwa
-
------Original Message-----
-From: Gopinath, Thara 
-Sent: Friday, October 16, 2009 6:16 AM
-To: Sripathy, Vishwanath; linux-omap@vger.kernel.org; Kevin Hilman
-Subject: RE: [PATCH] OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
+To: Tero Kristo <tero.kristo@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
+ >
+ >-----Original Message-----
+ >From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tero Kristo
+ >Sent: Friday, October 16, 2009 5:49 AM
+ >To: linux-omap@vger.kernel.org
+ >Subject: [PATCH 06/17] OMAP3: PM: Added next state check for IVA2, USB and PER into idle loop
+ >
+ >From: Tero Kristo <tero.kristo@nokia.com>
+ >
+ >This is needed to prevent core from entering off mode if one of the IVA2,
+ >USB or PER powerdomains are going to stay at least in retention state.
+ >If this is not done, a powerdomain waking from RET may access core
+ >domain which has just been reset.
+ >
+>From PRCM HW point of view, if any of non core domains do not enter OFF mode, then Core cannot enter off mode. So I do not understand why you want to do this change.
 
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->>Sripathy, Vishwanath
->>Sent: Friday, October 16, 2009 4:45 AM
->>To: Sripathy, Vishwanath; linux-omap@vger.kernel.org; Kevin Hilman
->>Subject: [PATCH] OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
->>
->>As part of Core domain context restoration while coming out of off mode
->>there are some registers being restored which are not required to be restored.
->>ROM code should have restored them already. Overwriting some of them can have
->>potential side effect. Eg: CM_CLKEN_PLL register should not be written while dpll is locked.
->>
->>Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
->>---
->>
->>diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
->>index fb864cc..da16804 100644
->>--- a/arch/arm/mach-omap2/prcm.c
->>+++ b/arch/arm/mach-omap2/prcm.c
->>@@ -279,7 +279,6 @@ void omap3_prcm_save_context(void)
->> 	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
->> 	prcm_context.sgx_cm_clksel =
->> 			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
->>-	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
->> 	prcm_context.dss_cm_clksel =
->> 			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
->> 	prcm_context.cam_cm_clksel =
->>@@ -296,8 +295,6 @@ void omap3_prcm_save_context(void)
->> 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
->> 	prcm_context.pll_cm_clksel5 =
->> 			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
->>-	prcm_context.pll_cm_clken =
->>-			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
->> 	prcm_context.pll_cm_clken2 =
->> 			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
->> 	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
->>@@ -343,8 +340,6 @@ void omap3_prcm_save_context(void)
->> 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
->> 	prcm_context.mpu_cm_autoidle2 =
->> 			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
->>-	prcm_context.pll_cm_autoidle =
->>-			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
->> 	prcm_context.iva2_cm_clkstctrl =
->> 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
->> 	prcm_context.mpu_cm_clkstctrl =
->>@@ -436,7 +431,6 @@ void omap3_prcm_restore_context(void)
->> 	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
->> 	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
->> 					 CM_CLKSEL);
->>-	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
->> 	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
->> 					 CM_CLKSEL);
->> 	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
->>@@ -453,7 +447,6 @@ void omap3_prcm_restore_context(void)
->> 					OMAP3430ES2_CM_CLKSEL4);
->> 	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
->> 					 OMAP3430ES2_CM_CLKSEL5);
->>-	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
->> 	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
->> 					OMAP3430ES2_CM_CLKEN2);
->> 	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
->>@@ -492,7 +485,6 @@ void omap3_prcm_restore_context(void)
->> 	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
->> 					CM_AUTOIDLE2);
->> 	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
->>-	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
->> 	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
->> 					CM_CLKSTCTRL);
->> 	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
-
-Why not remove these unwanted variables wkup_cm_clksel, pll_cm_clken, pll_cm_autoidle from the structure omap3_prcm_regs also?
-
-Regards
-Thara
+ >Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+ >---
+ > arch/arm/mach-omap2/pm34xx.c |   36 +++++++++++++++++++++++++++++++-----
+ > 1 files changed, 31 insertions(+), 5 deletions(-)
+ >
+ >diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+ >index 588ab79..3e5ae14 100644
+ >--- a/arch/arm/mach-omap2/pm34xx.c
+ >+++ b/arch/arm/mach-omap2/pm34xx.c
+ >@@ -85,6 +85,13 @@ u32 voltage_off_while_idle;
+ > 		OMAP3430_ST_DES1_MASK)
+ > #define CORE_IDLEST3_ALL		(\
+ > 		OMAP3430ES2_ST_USBTLL_MASK|OMAP3430ES2_ST_CPEFUSE_MASK)
+ >+#define PER_IDLEST_ALL			(\
+ >+		OMAP3430_ST_WDT3_MASK|OMAP3430_ST_MCBSP4_MASK|\
+ >+		OMAP3430_ST_MCBSP3_MASK|OMAP3430_ST_MCBSP2_MASK|\
+ >+		OMAP3430_ST_GPT9_MASK|OMAP3430_ST_GPT8_MASK|\
+ >+		OMAP3430_ST_GPT7_MASK|OMAP3430_ST_GPT6_MASK|\
+ >+		OMAP3430_ST_GPT5_MASK|OMAP3430_ST_GPT4_MASK|\
+ >+		OMAP3430_ST_GPT3_MASK|OMAP3430_ST_GPT2_MASK)
+ > 
+ > struct power_state {
+ > 	struct powerdomain *pwrdm;
+ >@@ -103,7 +110,7 @@ static int (*_omap_save_secure_sram)(u32 *addr);
+ > 
+ > static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+ > static struct powerdomain *core_pwrdm, *per_pwrdm;
+ >-static struct powerdomain *cam_pwrdm, *iva2_pwrdm, *dss_pwrdm;
+ >+static struct powerdomain *cam_pwrdm, *iva2_pwrdm, *dss_pwrdm, *usb_pwrdm;
+ > 
+ > static struct prm_setup_vc prm_setup = {
+ > 	.clksetup = 0xff,
+ >@@ -428,6 +435,8 @@ void omap_sram_idle(void)
+ > 	int per_next_state = PWRDM_POWER_ON;
+ > 	int core_next_state = PWRDM_POWER_ON;
+ > 	int dss_state = PWRDM_POWER_ON;
+ >+	int iva2_state = PWRDM_POWER_ON;
+ >+	int usb_state = PWRDM_POWER_ON;
+ > 	int core_prev_state, per_prev_state;
+ > 	u32 sdrc_pwr = 0;
+ > 	int per_state_modified = 0;
+ >@@ -463,14 +472,28 @@ void omap_sram_idle(void)
+ > 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
+ > 		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
+ > 
+ >+	/* Get powerdomain state data */
+ >+	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+ >+	dss_state = pwrdm_read_pwrst(dss_pwrdm);
+ >+	iva2_state = pwrdm_read_pwrst(iva2_pwrdm);
+ >+	usb_state = pwrdm_read_pwrst(usb_pwrdm);
+ >+	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+ >+
+ >+	/* Check if PER domain can enter OFF or not */
+ >+	if (per_next_state == PWRDM_POWER_OFF) {
+ >+		if ((cm_read_mod_reg(OMAP3430_PER_MOD, CM_IDLEST) &
+ >+				PER_IDLEST_ALL) != PER_IDLEST_ALL) {
+ >+			per_next_state = PWRDM_POWER_RET;
+ >+			pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
+ >+			per_state_modified = 1;
+ >+		}
+ >+	}
+ > 	/*
+ > 	 * Check whether core will enter idle or not. This is needed
+ > 	 * because I/O pad wakeup will fail if core stays on and PER
+ > 	 * enters off. This will also prevent unnecessary core context
+ > 	 * save / restore.
+ > 	 */
+ >-	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+ >-	dss_state = pwrdm_read_pwrst(dss_pwrdm);
+ > 	if (core_next_state < PWRDM_POWER_ON) {
+ > 		core_saved_state = core_next_state;
+ > 		if ((cm_read_mod_reg(CORE_MOD, CM_IDLEST1) & CORE_IDLEST1_ALL)
+ >@@ -482,14 +505,16 @@ void omap_sram_idle(void)
+ > 			core_next_state = PWRDM_POWER_ON;
+ > 			pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
+ > 		} else if (core_next_state == PWRDM_POWER_OFF &&
+ >-				 dss_state == PWRDM_POWER_ON) {
+ >+				 (dss_state == PWRDM_POWER_ON ||
+ >+				  iva2_state >= PWRDM_POWER_RET ||
+ >+				  usb_state >= PWRDM_POWER_RET ||
+ >+				  per_next_state >= PWRDM_POWER_RET)) {
+ > 			core_next_state = PWRDM_POWER_RET;
+ > 			pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+ > 		}
+ > 	}
+ > 
+ > 	/* PER */
+ >-	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+ > 	if (per_next_state < PWRDM_POWER_ON) {
+ > 		omap_uart_prepare_idle(2);
+ > 		omap2_gpio_prepare_for_idle(per_next_state);
+ >@@ -1240,6 +1265,7 @@ static int __init omap3_pm_init(void)
+ > 	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
+ > 	iva2_pwrdm = pwrdm_lookup("iva2_pwrdm");
+ > 	dss_pwrdm = pwrdm_lookup("dss_pwrdm");
+ >+	usb_pwrdm = pwrdm_lookup("usbhost_pwrdm");
+ > 
+ > 	omap_push_sram_idle();
+ > #ifdef CONFIG_SUSPEND
+ >-- 
+ >1.5.4.3
+ >
+ >--
+ >To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+ >the body of a message to majordomo@vger.kernel.org
+ >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ >
+ >
