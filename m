@@ -1,160 +1,106 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH V2] OMAP3: PM: Fix for MPU power domain MEM BANK
- position
-Date: Fri, 16 Oct 2009 02:21:29 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0910160214200.32618@utopia.booyaka.com>
-References: <A24693684029E5489D1D202277BE89444BE28394@dlee02.ent.ti.com> <1251444297-13577-1-git-send-email-thara@ti.com> <alpine.DEB.2.00.0910141536210.23283@utopia.booyaka.com> <5A47E75E594F054BAF48C5E4FC4B92AB030A46CFE7@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH 16/17] OMAP3: PM: Write voltage and clock setup times dynamically in idle loop
+Date: Fri, 16 Oct 2009 13:49:09 +0300
+Message-ID: <1255690150-16853-17-git-send-email-tero.kristo@nokia.com>
+References: <>
+ <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-8-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-13-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-14-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-15-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-16-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:33254 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164AbZJPIWG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 04:22:06 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A46CFE7@dbde02.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.105.134]:19665 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758584AbZJPLEx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 07:04:53 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GB3L2L010020
+	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 06:03:26 -0500
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GB2faA022261
+	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 14:03:01 +0300
+In-Reply-To: <1255690150-16853-16-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: linux-omap@vger.kernel.org
 
-Hi Thara,
+From: Tero Kristo <tero.kristo@nokia.com>
 
-On Thu, 15 Oct 2009, Gopinath, Thara wrote:
+It is suggested by TI (SWPA152 February 2009) to write clksetup,
+voltsetup_time1, voltsetup_time2, voltsetup2 dynamically in idle loop.
 
-> Thanks Paul. The bit positions are goofed up only in PWRSTS and 
-> PREPWRSTS not in PWSTCTRL register. As per the approach you have 
-> suggested below, if we change the mem bank number from 0 to 1 , we will 
-> have to change the logic for read/write into PWSTCTRL for mpu pwr 
-> domain.
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   36 +++++++++++++++++++++++++-----------
+ 1 files changed, 25 insertions(+), 11 deletions(-)
 
-Okay.  Here's what I'd propose: rather than testing for the 
-powerdomain name in the function, or testing for the MPU PRCM module 
-offset, let's add a new powerdomain flag into powerdomain.h,
-
-#define PWRDM_OMAP3_MPU_QUIRK	 (1 << 1) /* MPU bit pos quirk */
-
-or something similar.  Then let's set that for the mpu_pwrdm in 
-powerdomains34xx.h and test for that flag in powerdomain.c.
-
-I prefer this since RMK has previously NAK'ed strcmp()s for this sort of 
-thing, for good reason, and testing the PRCM internal module offset has 
-many of the same problems.
-
-Sound reasonable?
-
-
-- Paul
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index f492142..ae83121 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -575,6 +575,30 @@ void omap_sram_idle(void)
+ 	if (regset_save_on_suspend)
+ 		pm_dbg_regset_save(1);
  
++	/* Write voltage setup times which are changed dynamically */
++	if (core_next_state == PWRDM_POWER_OFF) {
++		prm_write_mod_reg(0, OMAP3430_GR_MOD,
++				OMAP3_PRM_VOLTSETUP1_OFFSET);
++		prm_write_mod_reg(prm_setup.voltsetup2, OMAP3430_GR_MOD,
++				OMAP3_PRM_VOLTSETUP2_OFFSET);
++		prm_write_mod_reg(prm_setup.clksetup, OMAP3430_GR_MOD,
++				OMAP3_PRM_CLKSETUP_OFFSET);
++	} else {
++		prm_write_mod_reg((prm_setup.voltsetup_time2 <<
++				OMAP3430_SETUP_TIME2_SHIFT) |
++				(prm_setup.voltsetup_time1 <<
++				OMAP3430_SETUP_TIME1_SHIFT),
++				OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
++		prm_write_mod_reg(0, OMAP3430_GR_MOD,
++				OMAP3_PRM_VOLTSETUP2_OFFSET);
++		/*
++		 * Use static 1 as only HF_CLKOUT is turned off.
++		 * Value taken from application note SWPA152
++		 */
++		prm_write_mod_reg(0x1, OMAP3430_GR_MOD,
++				OMAP3_PRM_CLKSETUP_OFFSET);
++	}
++
+ 	/*
+ 	 * omap3_arm_context is the location where ARM registers
+ 	 * get saved. The restore path then reads from this
+@@ -1379,19 +1403,9 @@ static void __init configure_vc(void)
+ 			  OMAP3430_GR_MOD,
+ 			  OMAP3_PRM_VC_I2C_CFG_OFFSET);
+ 
+-	/* Write setup times */
+-	prm_write_mod_reg(prm_setup.clksetup, OMAP3430_GR_MOD,
+-			OMAP3_PRM_CLKSETUP_OFFSET);
+-	prm_write_mod_reg((prm_setup.voltsetup_time2 <<
+-			OMAP3430_SETUP_TIME2_SHIFT) |
+-			(prm_setup.voltsetup_time1 <<
+-			OMAP3430_SETUP_TIME1_SHIFT),
+-			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
+-
++	/* Write static setup times */
+ 	prm_write_mod_reg(prm_setup.voltoffset, OMAP3430_GR_MOD,
+ 			OMAP3_PRM_VOLTOFFSET_OFFSET);
+-	prm_write_mod_reg(prm_setup.voltsetup2, OMAP3430_GR_MOD,
+-			OMAP3_PRM_VOLTSETUP2_OFFSET);
+ 
+ 	pm_dbg_regset_init(1);
+ 	pm_dbg_regset_init(2);
+-- 
+1.5.4.3
 
-> 
-> Regards
-> Thara
-> 
-> >>-----Original Message-----
-> >>From: Paul Walmsley [mailto:paul@pwsan.com]
-> >>Sent: Thursday, October 15, 2009 4:51 AM
-> >>To: Gopinath, Thara
-> >>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com
-> >>Subject: Re: [PATCH V2] OMAP3: PM: Fix for MPU power domain MEM BANK position
-> >>
-> >>Hi Thara,
-> >>
-> >>I regret the delay.  A comment:
-> >>
-> >>On Fri, 28 Aug 2009, Thara Gopinath wrote:
-> >>
-> >>> MPU power domain bank 0 bits are displayed in position of bank 1
-> >>> in PWRSTS and PREPWRSTS registers. So read them from correct
-> >>> position
-> >>
-> >>Indeed.  What do you think about a slightly different approach: changing
-> >>powerdomains34xx.h to be correct?  In other words, instead of
-> >>
-> >>	.pwrsts_mem_ret	  = {
-> >>		[0] = PWRSTS_OFF_RET,
-> >>	},
-> >>	.pwrsts_mem_on	  = {
-> >>		[0] = PWRSTS_OFF_ON,
-> >>	},
-> >>
-> >>we would use:
-> >>
-> >>	.pwrsts_mem_ret	  = {
-> >>		[1] = PWRSTS_OFF_RET,
-> >>	},
-> >>	.pwrsts_mem_on	  = {
-> >>		[1] = PWRSTS_OFF_ON,
-> >>	},
-> >>
-> >>We have to deal with the bank count field in struct powerdomain - we could
-> >>just convert it into a bitmap representing available banks.  So instead
-> >>of:
-> >>
-> >>        .banks = 1,
-> >>
-> >>use maybe:
-> >>
-> >>	.banks = PWRDM_BANK_1,  /* | PWRDM_BANK_0, etc */
-> >>
-> >>
-> >>Can you foresee any problems with the above approach?
-> >>
-> >>- Paul
-> >>
-> >>> Patch refresh issue.
-> >>>
-> >>>  arch/arm/mach-omap2/powerdomain.c |   19 +++++++++++++++++++
-> >>>  1 files changed, 19 insertions(+), 0 deletions(-)
-> >>>
-> >>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> >>> index 2594cbf..6c5fee9 100644
-> >>> --- a/arch/arm/mach-omap2/powerdomain.c
-> >>> +++ b/arch/arm/mach-omap2/powerdomain.c
-> >>> @@ -971,6 +971,16 @@ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
-> >>>  		return -EEXIST;
-> >>>
-> >>>  	/*
-> >>> +	 * In 3430, for MPU domain bank 0 status bits
-> >>> +	 * are displayed in the position of bank1 status bits
-> >>> +	 * in PWST  . So the hack. Think of a cleaner
-> >>> +	 * way of doing this
-> >>> +	 */
-> >>> +	if (cpu_is_omap34xx())
-> >>> +		if (!strcmp("mpu_pwrdm", pwrdm->name))
-> >>> +			bank = 1;
-> >>> +
-> >>> +	/*
-> >>>  	 * The register bit names below may not correspond to the
-> >>>  	 * actual names of the bits in each powerdomain's register,
-> >>>  	 * but the type of value returned is the same for each
-> >>> @@ -1018,6 +1028,15 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
-> >>>  		return -EEXIST;
-> >>>
-> >>>  	/*
-> >>> +	 * In 3430, for MPU domain bank 0 status bits
-> >>> +	 * are displayed in the position of bank1 status bits
-> >>> +	 * in PREPWST  . So the hack. Think of a cleaner
-> >>> +	 * way of doing this
-> >>> +	 */
-> >>> +	if (cpu_is_omap34xx())
-> >>> +		if (!strcmp("mpu_pwrdm", pwrdm->name))
-> >>> +			bank = 1;
-> >>> +	/*
-> >>>  	 * The register bit names below may not correspond to the
-> >>>  	 * actual names of the bits in each powerdomain's register,
-> >>>  	 * but the type of value returned is the same for each
-> >>> --
-> >>> 1.5.4.7
-> >>>
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> >>> the body of a message to majordomo@vger.kernel.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>
-> >>
-> >>
-> >>- Paul
-> 
-
-
-- Paul
