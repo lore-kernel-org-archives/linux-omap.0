@@ -1,136 +1,179 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 06/17] OMAP3: PM: Added next state check for IVA2, USB and PER into idle loop
-Date: Fri, 16 Oct 2009 13:48:59 +0300
-Message-ID: <1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH V2] OMAP3: PM: Fix for MPU power domain MEM BANK position
+Date: Fri, 16 Oct 2009 16:33:15 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A46D3B4@dbde02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE89444BE28394@dlee02.ent.ti.com>
+ <1251444297-13577-1-git-send-email-thara@ti.com>
+ <alpine.DEB.2.00.0910141536210.23283@utopia.booyaka.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A46CFE7@dbde02.ent.ti.com>
+ <alpine.DEB.2.00.0910160214200.32618@utopia.booyaka.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:32267 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756091AbZJPLEW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 07:04:22 -0400
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GB2f4Y011809
-	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 14:02:54 +0300
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-sa02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GB2fa0022261
-	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 14:02:49 +0300
-In-Reply-To: <1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36719 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753291AbZJPLDi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 07:03:38 -0400
+In-Reply-To: <alpine.DEB.2.00.0910160214200.32618@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+Yes sounds definitely reasonable :-). I agree,we should try to do away with the strcmp if possible.
+I will implement the same and repost this fix.
 
-This is needed to prevent core from entering off mode if one of the IVA2,
-USB or PER powerdomains are going to stay at least in retention state.
-If this is not done, a powerdomain waking from RET may access core
-domain which has just been reset.
+Regards
+Thara
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |   36 +++++++++++++++++++++++++++++++-----
- 1 files changed, 31 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 588ab79..3e5ae14 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -85,6 +85,13 @@ u32 voltage_off_while_idle;
- 		OMAP3430_ST_DES1_MASK)
- #define CORE_IDLEST3_ALL		(\
- 		OMAP3430ES2_ST_USBTLL_MASK|OMAP3430ES2_ST_CPEFUSE_MASK)
-+#define PER_IDLEST_ALL			(\
-+		OMAP3430_ST_WDT3_MASK|OMAP3430_ST_MCBSP4_MASK|\
-+		OMAP3430_ST_MCBSP3_MASK|OMAP3430_ST_MCBSP2_MASK|\
-+		OMAP3430_ST_GPT9_MASK|OMAP3430_ST_GPT8_MASK|\
-+		OMAP3430_ST_GPT7_MASK|OMAP3430_ST_GPT6_MASK|\
-+		OMAP3430_ST_GPT5_MASK|OMAP3430_ST_GPT4_MASK|\
-+		OMAP3430_ST_GPT3_MASK|OMAP3430_ST_GPT2_MASK)
- 
- struct power_state {
- 	struct powerdomain *pwrdm;
-@@ -103,7 +110,7 @@ static int (*_omap_save_secure_sram)(u32 *addr);
- 
- static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
--static struct powerdomain *cam_pwrdm, *iva2_pwrdm, *dss_pwrdm;
-+static struct powerdomain *cam_pwrdm, *iva2_pwrdm, *dss_pwrdm, *usb_pwrdm;
- 
- static struct prm_setup_vc prm_setup = {
- 	.clksetup = 0xff,
-@@ -428,6 +435,8 @@ void omap_sram_idle(void)
- 	int per_next_state = PWRDM_POWER_ON;
- 	int core_next_state = PWRDM_POWER_ON;
- 	int dss_state = PWRDM_POWER_ON;
-+	int iva2_state = PWRDM_POWER_ON;
-+	int usb_state = PWRDM_POWER_ON;
- 	int core_prev_state, per_prev_state;
- 	u32 sdrc_pwr = 0;
- 	int per_state_modified = 0;
-@@ -463,14 +472,28 @@ void omap_sram_idle(void)
- 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
- 		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
- 
-+	/* Get powerdomain state data */
-+	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-+	dss_state = pwrdm_read_pwrst(dss_pwrdm);
-+	iva2_state = pwrdm_read_pwrst(iva2_pwrdm);
-+	usb_state = pwrdm_read_pwrst(usb_pwrdm);
-+	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
-+
-+	/* Check if PER domain can enter OFF or not */
-+	if (per_next_state == PWRDM_POWER_OFF) {
-+		if ((cm_read_mod_reg(OMAP3430_PER_MOD, CM_IDLEST) &
-+				PER_IDLEST_ALL) != PER_IDLEST_ALL) {
-+			per_next_state = PWRDM_POWER_RET;
-+			pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
-+			per_state_modified = 1;
-+		}
-+	}
- 	/*
- 	 * Check whether core will enter idle or not. This is needed
- 	 * because I/O pad wakeup will fail if core stays on and PER
- 	 * enters off. This will also prevent unnecessary core context
- 	 * save / restore.
- 	 */
--	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
--	dss_state = pwrdm_read_pwrst(dss_pwrdm);
- 	if (core_next_state < PWRDM_POWER_ON) {
- 		core_saved_state = core_next_state;
- 		if ((cm_read_mod_reg(CORE_MOD, CM_IDLEST1) & CORE_IDLEST1_ALL)
-@@ -482,14 +505,16 @@ void omap_sram_idle(void)
- 			core_next_state = PWRDM_POWER_ON;
- 			pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
- 		} else if (core_next_state == PWRDM_POWER_OFF &&
--				 dss_state == PWRDM_POWER_ON) {
-+				 (dss_state == PWRDM_POWER_ON ||
-+				  iva2_state >= PWRDM_POWER_RET ||
-+				  usb_state >= PWRDM_POWER_RET ||
-+				  per_next_state >= PWRDM_POWER_RET)) {
- 			core_next_state = PWRDM_POWER_RET;
- 			pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
- 		}
- 	}
- 
- 	/* PER */
--	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
- 	if (per_next_state < PWRDM_POWER_ON) {
- 		omap_uart_prepare_idle(2);
- 		omap2_gpio_prepare_for_idle(per_next_state);
-@@ -1240,6 +1265,7 @@ static int __init omap3_pm_init(void)
- 	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
- 	iva2_pwrdm = pwrdm_lookup("iva2_pwrdm");
- 	dss_pwrdm = pwrdm_lookup("dss_pwrdm");
-+	usb_pwrdm = pwrdm_lookup("usbhost_pwrdm");
- 
- 	omap_push_sram_idle();
- #ifdef CONFIG_SUSPEND
--- 
-1.5.4.3
+>>-----Original Message-----
+>>From: Paul Walmsley [mailto:paul@pwsan.com]
+>>Sent: Friday, October 16, 2009 1:51 PM
+>>To: Gopinath, Thara
+>>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com
+>>Subject: RE: [PATCH V2] OMAP3: PM: Fix for MPU power domain MEM BANK position
+>>
+>>Hi Thara,
+>>
+>>On Thu, 15 Oct 2009, Gopinath, Thara wrote:
+>>
+>>> Thanks Paul. The bit positions are goofed up only in PWRSTS and
+>>> PREPWRSTS not in PWSTCTRL register. As per the approach you have
+>>> suggested below, if we change the mem bank number from 0 to 1 , we will
+>>> have to change the logic for read/write into PWSTCTRL for mpu pwr
+>>> domain.
+>>
+>>Okay.  Here's what I'd propose: rather than testing for the
+>>powerdomain name in the function, or testing for the MPU PRCM module
+>>offset, let's add a new powerdomain flag into powerdomain.h,
+>>
+>>#define PWRDM_OMAP3_MPU_QUIRK	 (1 << 1) /* MPU bit pos quirk */
+>>
+>>or something similar.  Then let's set that for the mpu_pwrdm in
+>>powerdomains34xx.h and test for that flag in powerdomain.c.
+>>
+>>I prefer this since RMK has previously NAK'ed strcmp()s for this sort of
+>>thing, for good reason, and testing the PRCM internal module offset has
+>>many of the same problems.
+>>
+>>Sound reasonable?
+>>
+>>
+>>- Paul
+>>
+>>
+>>>
+>>> Regards
+>>> Thara
+>>>
+>>> >>-----Original Message-----
+>>> >>From: Paul Walmsley [mailto:paul@pwsan.com]
+>>> >>Sent: Thursday, October 15, 2009 4:51 AM
+>>> >>To: Gopinath, Thara
+>>> >>Cc: linux-omap@vger.kernel.org; khilman@deeprootsystems.com
+>>> >>Subject: Re: [PATCH V2] OMAP3: PM: Fix for MPU power domain MEM BANK position
+>>> >>
+>>> >>Hi Thara,
+>>> >>
+>>> >>I regret the delay.  A comment:
+>>> >>
+>>> >>On Fri, 28 Aug 2009, Thara Gopinath wrote:
+>>> >>
+>>> >>> MPU power domain bank 0 bits are displayed in position of bank 1
+>>> >>> in PWRSTS and PREPWRSTS registers. So read them from correct
+>>> >>> position
+>>> >>
+>>> >>Indeed.  What do you think about a slightly different approach: changing
+>>> >>powerdomains34xx.h to be correct?  In other words, instead of
+>>> >>
+>>> >>	.pwrsts_mem_ret	  = {
+>>> >>		[0] = PWRSTS_OFF_RET,
+>>> >>	},
+>>> >>	.pwrsts_mem_on	  = {
+>>> >>		[0] = PWRSTS_OFF_ON,
+>>> >>	},
+>>> >>
+>>> >>we would use:
+>>> >>
+>>> >>	.pwrsts_mem_ret	  = {
+>>> >>		[1] = PWRSTS_OFF_RET,
+>>> >>	},
+>>> >>	.pwrsts_mem_on	  = {
+>>> >>		[1] = PWRSTS_OFF_ON,
+>>> >>	},
+>>> >>
+>>> >>We have to deal with the bank count field in struct powerdomain - we could
+>>> >>just convert it into a bitmap representing available banks.  So instead
+>>> >>of:
+>>> >>
+>>> >>        .banks = 1,
+>>> >>
+>>> >>use maybe:
+>>> >>
+>>> >>	.banks = PWRDM_BANK_1,  /* | PWRDM_BANK_0, etc */
+>>> >>
+>>> >>
+>>> >>Can you foresee any problems with the above approach?
+>>> >>
+>>> >>- Paul
+>>> >>
+>>> >>> Patch refresh issue.
+>>> >>>
+>>> >>>  arch/arm/mach-omap2/powerdomain.c |   19 +++++++++++++++++++
+>>> >>>  1 files changed, 19 insertions(+), 0 deletions(-)
+>>> >>>
+>>> >>> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+>>> >>> index 2594cbf..6c5fee9 100644
+>>> >>> --- a/arch/arm/mach-omap2/powerdomain.c
+>>> >>> +++ b/arch/arm/mach-omap2/powerdomain.c
+>>> >>> @@ -971,6 +971,16 @@ int pwrdm_read_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+>>> >>>  		return -EEXIST;
+>>> >>>
+>>> >>>  	/*
+>>> >>> +	 * In 3430, for MPU domain bank 0 status bits
+>>> >>> +	 * are displayed in the position of bank1 status bits
+>>> >>> +	 * in PWST  . So the hack. Think of a cleaner
+>>> >>> +	 * way of doing this
+>>> >>> +	 */
+>>> >>> +	if (cpu_is_omap34xx())
+>>> >>> +		if (!strcmp("mpu_pwrdm", pwrdm->name))
+>>> >>> +			bank = 1;
+>>> >>> +
+>>> >>> +	/*
+>>> >>>  	 * The register bit names below may not correspond to the
+>>> >>>  	 * actual names of the bits in each powerdomain's register,
+>>> >>>  	 * but the type of value returned is the same for each
+>>> >>> @@ -1018,6 +1028,15 @@ int pwrdm_read_prev_mem_pwrst(struct powerdomain *pwrdm, u8 bank)
+>>> >>>  		return -EEXIST;
+>>> >>>
+>>> >>>  	/*
+>>> >>> +	 * In 3430, for MPU domain bank 0 status bits
+>>> >>> +	 * are displayed in the position of bank1 status bits
+>>> >>> +	 * in PREPWST  . So the hack. Think of a cleaner
+>>> >>> +	 * way of doing this
+>>> >>> +	 */
+>>> >>> +	if (cpu_is_omap34xx())
+>>> >>> +		if (!strcmp("mpu_pwrdm", pwrdm->name))
+>>> >>> +			bank = 1;
+>>> >>> +	/*
+>>> >>>  	 * The register bit names below may not correspond to the
+>>> >>>  	 * actual names of the bits in each powerdomain's register,
+>>> >>>  	 * but the type of value returned is the same for each
+>>> >>> --
+>>> >>> 1.5.4.7
+>>> >>>
+>>> >>> --
+>>> >>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> >>> the body of a message to majordomo@vger.kernel.org
+>>> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> >>>
+>>> >>
+>>> >>
+>>> >>- Paul
+>>>
+>>
+>>
+>>- Paul
 
