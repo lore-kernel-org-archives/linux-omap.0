@@ -1,90 +1,267 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH] OMAP3: GPIO: Added dynamic control logic for pad wakeups
-Date: Fri, 16 Oct 2009 15:23:44 +0300
-Message-ID: <1255695824-17523-1-git-send-email-tero.kristo@nokia.com>
+From: Rajendra Nayak <rnayak@ti.com>
+Subject: [PATCH v3 2/2] OMAP3: PM: Configure CPUidle latencies/thresholds from board file
+Date: Fri, 16 Oct 2009 18:28:55 +0530
+Message-ID: <1255697935-3521-1-git-send-email-rnayak@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:27657 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248AbZJPMit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 08:38:49 -0400
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GCbEIH023287
-	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 07:37:22 -0500
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9GCbG8w032526
-	for <linux-omap@vger.kernel.org>; Fri, 16 Oct 2009 15:37:17 +0300
-In-Reply-To: <>
-References: <>
+Received: from comal.ext.ti.com ([198.47.26.152]:45026 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751827AbZJPM7i (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Oct 2009 08:59:38 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, Rajendra Nayak <rnayak@ti.com>
 
-From: Tero Kristo <tero.kristo@nokia.com>
+The CPUidle C state latencies and thresholds are dependent
+on various board specific details.
+This patch makes it possible to configure these values from the
+respective board files.
 
-Pad wakeups are now enabled if the corresponding GPIO interrupt is enabled.
+omap3_pm_init_cpuidle() can now be optionally called from board
+files to pass board specific cpuidle parameters.
+If the board files do not use this function to pass the params
+default values are used which might cause higher consumption
+dur to wrong state selection by the governor.
 
-Applies on top of PM branch.
+This patch only updates the 3430sdp board files to use
+omap3_pm_init_cpuidle().
 
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 ---
- arch/arm/plat-omap/gpio.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/board-3430sdp.c |   19 ++++++
+ arch/arm/mach-omap2/cpuidle34xx.c   |  105 ++++++++++++++++++++++++++++-------
+ arch/arm/mach-omap2/pm.h            |    8 +++
+ 3 files changed, 111 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index e242112..fa79db2 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -267,6 +267,7 @@ static struct gpio_bank gpio_bank_34xx[6] = {
- #define OMAP34XX_PAD_SAFE_MODE 0x7
- #define OMAP34XX_PAD_IN_PU_GPIO 0x11c
- #define OMAP34XX_PAD_IN_PD_GPIO 0x10c
-+#define OMAP34XX_PAD_WAKE_EN (1 << 14)
+diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+index 0f1975c..d2b2f8f 100644
+--- a/arch/arm/mach-omap2/board-3430sdp.c
++++ b/arch/arm/mach-omap2/board-3430sdp.c
+@@ -73,6 +73,24 @@ static struct prm_setup_vc omap3_setuptime_table = {
+ 	.vdd1_off = 0x00,
+ };
  
- struct omap3_gpio_regs {
- 	u32 sysconfig;
-@@ -713,6 +714,8 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
++/* FIXME: These values need to be updated based on more profiling on 3430sdp*/
++static struct cpuidle_params omap3_cpuidle_params_table[] = {
++	/* C1 */
++	{2, 2, 5},
++	/* C2 */
++	{10, 10, 30},
++	/* C3 */
++	{50, 50, 300},
++	/* C4 */
++	{1500, 1800, 4000},
++	/* C5 */
++	{2500, 7500, 12000},
++	/* C6 */
++	{3000, 8500, 15000},
++	/* C7 */
++	{10000, 30000, 300000},
++};
++
+ static int board_keymap[] = {
+ 	KEY(0, 0, KEY_LEFT),
+ 	KEY(0, 1, KEY_RIGHT),
+@@ -203,6 +221,7 @@ static void __init omap_3430sdp_init_irq(void)
+ 	omap_board_config = sdp3430_config;
+ 	omap_board_config_size = ARRAY_SIZE(sdp3430_config);
+ 	omap3_pm_init_vc(&omap3_setuptime_table);
++	omap3_pm_init_cpuidle(omap3_cpuidle_params_table);
+ 	omap2_init_common_hw(hyb18m512160af6_sdrc_params, NULL, omap3_mpu_rate_table,
+ 			     omap3_dsp_rate_table, omap3_l3_rate_table);
+ 	omap_init_irq();
+diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+index c44a942..f1ae474 100644
+--- a/arch/arm/mach-omap2/cpuidle34xx.c
++++ b/arch/arm/mach-omap2/cpuidle34xx.c
+@@ -60,6 +60,30 @@ struct omap3_processor_cx omap3_power_states[OMAP3_MAX_STATES];
+ struct omap3_processor_cx current_cx_state;
+ struct powerdomain *mpu_pd, *core_pd, *per_pd;
+ 
++/*
++ * The latencies/thresholds for various C states have
++ * to be configured from the respective board files.
++ * These are some default values (which might not provide
++ * the best power savings) used on boards which do not
++ * pass these details from the board file.
++ */
++static struct cpuidle_params cpuidle_params_table[] = {
++	/* C1 */
++	{2, 2, 5},
++	/* C2 */
++	{10, 10, 30},
++	/* C3 */
++	{50, 50, 300},
++	/* C4 */
++	{1500, 1800, 4000},
++	/* C5 */
++	{2500, 7500, 12000},
++	/* C6 */
++	{3000, 8500, 15000},
++	/* C7 */
++	{10000, 30000, 300000},
++};
++
+ static int omap3_idle_bm_check(void)
  {
- 	void __iomem *base = bank->base;
- 	u32 gpio_bit = 1 << gpio;
-+	struct gpio_pad *pad;
-+	int gpio_num;
- 	u32 val;
+ 	if (!omap3_can_sleep())
+@@ -165,6 +189,24 @@ static int omap3_enter_idle_bm(struct cpuidle_device *dev,
  
- 	if (cpu_is_omap44xx()) {
-@@ -750,6 +753,23 @@ static inline void set_24xx_gpio_triggering(struct gpio_bank *bank, int gpio,
- 			 * GPIO wakeup request can only be generated on edge
- 			 * transitions
- 			 */
-+			pad = gpio_pads;
-+
-+			gpio_num = bank->virtual_irq_start - IH_GPIO_BASE +
-+				gpio;
-+			/* Find the pad corresponding the GPIO */
-+			while (pad->gpio >= 0 && pad->gpio != gpio_num)
-+				pad++;
-+			/* Enable / disable pad wakeup */
-+			if (pad->gpio == gpio_num) {
-+				val = omap_ctrl_readw(pad->offset);
-+				if (trigger & IRQ_TYPE_EDGE_BOTH)
-+					val |= OMAP34XX_PAD_WAKE_EN;
-+				else
-+					val &= ~(u16)OMAP34XX_PAD_WAKE_EN;
-+				omap_ctrl_writew(val, pad->offset);
-+			}
-+
- 			if (trigger & IRQ_TYPE_EDGE_BOTH)
- 				__raw_writel(1 << gpio, bank->base
- 					+ OMAP24XX_GPIO_SETWKUENA);
-@@ -1654,7 +1674,7 @@ static int __init omap3_gpio_pads_init(void)
- 	gpio_pads[gpio_amt].gpio = -1;
- 	return 0;
- }
--late_initcall(omap3_gpio_pads_init);
-+early_initcall(omap3_gpio_pads_init);
- #endif
+ DEFINE_PER_CPU(struct cpuidle_device, omap3_idle_dev);
  
- /* This lock class tells lockdep that GPIO irqs are in a different
++void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
++{
++	int i;
++
++	if (!cpuidle_board_params)
++		return;
++
++	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
++		cpuidle_params_table[i].sleep_latency =
++			cpuidle_board_params[i].sleep_latency;
++		cpuidle_params_table[i].wake_latency =
++			cpuidle_board_params[i].wake_latency;
++		cpuidle_params_table[i].threshold =
++			cpuidle_board_params[i].threshold;
++	}
++	return;
++}
++
+ /* omap3_init_power_states - Initialises the OMAP3 specific C states.
+  *
+  * Below is the desciption of each C state.
+@@ -181,9 +223,12 @@ void omap_init_power_states(void)
+ 	/* C1 . MPU WFI + Core active */
+ 	omap3_power_states[OMAP3_STATE_C1].valid = 1;
+ 	omap3_power_states[OMAP3_STATE_C1].type = OMAP3_STATE_C1;
+-	omap3_power_states[OMAP3_STATE_C1].sleep_latency = 2;
+-	omap3_power_states[OMAP3_STATE_C1].wakeup_latency = 2;
+-	omap3_power_states[OMAP3_STATE_C1].threshold = 5;
++	omap3_power_states[OMAP3_STATE_C1].sleep_latency =
++			cpuidle_params_table[OMAP3_STATE_C1].sleep_latency;
++	omap3_power_states[OMAP3_STATE_C1].wakeup_latency =
++			cpuidle_params_table[OMAP3_STATE_C1].wake_latency;
++	omap3_power_states[OMAP3_STATE_C1].threshold =
++			cpuidle_params_table[OMAP3_STATE_C1].threshold;
+ 	omap3_power_states[OMAP3_STATE_C1].mpu_state = PWRDM_POWER_ON;
+ 	omap3_power_states[OMAP3_STATE_C1].core_state = PWRDM_POWER_ON;
+ 	omap3_power_states[OMAP3_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID;
+@@ -191,9 +236,12 @@ void omap_init_power_states(void)
+ 	/* C2 . MPU WFI + Core inactive */
+ 	omap3_power_states[OMAP3_STATE_C2].valid = 1;
+ 	omap3_power_states[OMAP3_STATE_C2].type = OMAP3_STATE_C2;
+-	omap3_power_states[OMAP3_STATE_C2].sleep_latency = 10;
+-	omap3_power_states[OMAP3_STATE_C2].wakeup_latency = 10;
+-	omap3_power_states[OMAP3_STATE_C2].threshold = 30;
++	omap3_power_states[OMAP3_STATE_C2].sleep_latency =
++			cpuidle_params_table[OMAP3_STATE_C2].sleep_latency;
++	omap3_power_states[OMAP3_STATE_C2].wakeup_latency =
++			cpuidle_params_table[OMAP3_STATE_C2].wake_latency;
++	omap3_power_states[OMAP3_STATE_C2].threshold =
++			cpuidle_params_table[OMAP3_STATE_C2].threshold;
+ 	omap3_power_states[OMAP3_STATE_C2].mpu_state = PWRDM_POWER_ON;
+ 	omap3_power_states[OMAP3_STATE_C2].core_state = PWRDM_POWER_ON;
+ 	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID;
+@@ -201,9 +249,12 @@ void omap_init_power_states(void)
+ 	/* C3 . MPU CSWR + Core inactive */
+ 	omap3_power_states[OMAP3_STATE_C3].valid = 1;
+ 	omap3_power_states[OMAP3_STATE_C3].type = OMAP3_STATE_C3;
+-	omap3_power_states[OMAP3_STATE_C3].sleep_latency = 50;
+-	omap3_power_states[OMAP3_STATE_C3].wakeup_latency = 50;
+-	omap3_power_states[OMAP3_STATE_C3].threshold = 300;
++	omap3_power_states[OMAP3_STATE_C3].sleep_latency =
++			cpuidle_params_table[OMAP3_STATE_C3].sleep_latency;
++	omap3_power_states[OMAP3_STATE_C3].wakeup_latency =
++			cpuidle_params_table[OMAP3_STATE_C3].wake_latency;
++	omap3_power_states[OMAP3_STATE_C3].threshold =
++			cpuidle_params_table[OMAP3_STATE_C3].threshold;
+ 	omap3_power_states[OMAP3_STATE_C3].mpu_state = PWRDM_POWER_RET;
+ 	omap3_power_states[OMAP3_STATE_C3].core_state = PWRDM_POWER_ON;
+ 	omap3_power_states[OMAP3_STATE_C3].flags = CPUIDLE_FLAG_TIME_VALID |
+@@ -212,9 +263,12 @@ void omap_init_power_states(void)
+ 	/* C4 . MPU OFF + Core inactive */
+ 	omap3_power_states[OMAP3_STATE_C4].valid = 1;
+ 	omap3_power_states[OMAP3_STATE_C4].type = OMAP3_STATE_C4;
+-	omap3_power_states[OMAP3_STATE_C4].sleep_latency = 1500;
+-	omap3_power_states[OMAP3_STATE_C4].wakeup_latency = 1800;
+-	omap3_power_states[OMAP3_STATE_C4].threshold = 4000;
++	omap3_power_states[OMAP3_STATE_C4].sleep_latency =
++			cpuidle_params_table[OMAP3_STATE_C4].sleep_latency;
++	omap3_power_states[OMAP3_STATE_C4].wakeup_latency =
++			cpuidle_params_table[OMAP3_STATE_C4].wake_latency;
++	omap3_power_states[OMAP3_STATE_C4].threshold =
++			cpuidle_params_table[OMAP3_STATE_C4].threshold;
+ 	omap3_power_states[OMAP3_STATE_C4].mpu_state = PWRDM_POWER_OFF;
+ 	omap3_power_states[OMAP3_STATE_C4].core_state = PWRDM_POWER_ON;
+ 	omap3_power_states[OMAP3_STATE_C4].flags = CPUIDLE_FLAG_TIME_VALID |
+@@ -223,9 +277,12 @@ void omap_init_power_states(void)
+ 	/* C5 . MPU CSWR + Core CSWR*/
+ 	omap3_power_states[OMAP3_STATE_C5].valid = 1;
+ 	omap3_power_states[OMAP3_STATE_C5].type = OMAP3_STATE_C5;
+-	omap3_power_states[OMAP3_STATE_C5].sleep_latency = 2500;
+-	omap3_power_states[OMAP3_STATE_C5].wakeup_latency = 7500;
+-	omap3_power_states[OMAP3_STATE_C5].threshold = 12000;
++	omap3_power_states[OMAP3_STATE_C5].sleep_latency =
++			cpuidle_params_table[OMAP3_STATE_C5].sleep_latency;
++	omap3_power_states[OMAP3_STATE_C5].wakeup_latency =
++			cpuidle_params_table[OMAP3_STATE_C5].wake_latency;
++	omap3_power_states[OMAP3_STATE_C5].threshold =
++			cpuidle_params_table[OMAP3_STATE_C5].threshold;
+ 	omap3_power_states[OMAP3_STATE_C5].mpu_state = PWRDM_POWER_RET;
+ 	omap3_power_states[OMAP3_STATE_C5].core_state = PWRDM_POWER_RET;
+ 	omap3_power_states[OMAP3_STATE_C5].flags = CPUIDLE_FLAG_TIME_VALID |
+@@ -234,9 +291,12 @@ void omap_init_power_states(void)
+ 	/* C6 . MPU OFF + Core CSWR */
+ 	omap3_power_states[OMAP3_STATE_C6].valid = 1;
+ 	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
+-	omap3_power_states[OMAP3_STATE_C6].sleep_latency = 3000;
+-	omap3_power_states[OMAP3_STATE_C6].wakeup_latency = 8500;
+-	omap3_power_states[OMAP3_STATE_C6].threshold = 15000;
++	omap3_power_states[OMAP3_STATE_C6].sleep_latency =
++			cpuidle_params_table[OMAP3_STATE_C6].sleep_latency;
++	omap3_power_states[OMAP3_STATE_C6].wakeup_latency =
++			cpuidle_params_table[OMAP3_STATE_C6].wake_latency;
++	omap3_power_states[OMAP3_STATE_C6].threshold =
++			cpuidle_params_table[OMAP3_STATE_C6].threshold;
+ 	omap3_power_states[OMAP3_STATE_C6].mpu_state = PWRDM_POWER_OFF;
+ 	omap3_power_states[OMAP3_STATE_C6].core_state = PWRDM_POWER_RET;
+ 	omap3_power_states[OMAP3_STATE_C6].flags = CPUIDLE_FLAG_TIME_VALID |
+@@ -245,9 +305,12 @@ void omap_init_power_states(void)
+ 	/* C7 . MPU OFF + Core OFF */
+ 	omap3_power_states[OMAP3_STATE_C7].valid = 1;
+ 	omap3_power_states[OMAP3_STATE_C7].type = OMAP3_STATE_C7;
+-	omap3_power_states[OMAP3_STATE_C7].sleep_latency = 10000;
+-	omap3_power_states[OMAP3_STATE_C7].wakeup_latency = 30000;
+-	omap3_power_states[OMAP3_STATE_C7].threshold = 300000;
++	omap3_power_states[OMAP3_STATE_C7].sleep_latency =
++			cpuidle_params_table[OMAP3_STATE_C7].sleep_latency;
++	omap3_power_states[OMAP3_STATE_C7].wakeup_latency =
++			cpuidle_params_table[OMAP3_STATE_C7].wake_latency;
++	omap3_power_states[OMAP3_STATE_C7].threshold =
++			cpuidle_params_table[OMAP3_STATE_C7].threshold;
+ 	omap3_power_states[OMAP3_STATE_C7].mpu_state = PWRDM_POWER_OFF;
+ 	omap3_power_states[OMAP3_STATE_C7].core_state = PWRDM_POWER_OFF;
+ 	omap3_power_states[OMAP3_STATE_C7].flags = CPUIDLE_FLAG_TIME_VALID |
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index ca673c5..0b814ab 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -41,7 +41,15 @@ struct prm_setup_vc {
+ 	u16 vdd1_ret;
+ 	u16 vdd1_off;
+ };
++
++struct cpuidle_params {
++	u32 sleep_latency;
++	u32 wake_latency;
++	u32 threshold;
++};
++
+ extern void omap3_pm_init_vc(struct prm_setup_vc *setup_vc);
++extern void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params);
+ 
+ extern int resource_set_opp_level(int res, u32 target_level, int flags);
+ extern int resource_access_opp_lock(int res, int delta);
 -- 
-1.5.4.3
+1.5.4.7
 
