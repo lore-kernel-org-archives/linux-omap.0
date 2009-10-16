@@ -1,192 +1,141 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
-Date: Fri, 16 Oct 2009 21:28:25 +0200
-Message-ID: <4AD8C959.1000004@googlemail.com>
-References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>    <4AD81DC2.4080607@googlemail.com> <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com>
+From: Peter Barada <peterb@logicpd.com>
+Subject: hrtimer_nanosleep() weirdness...
+Date: Fri, 16 Oct 2009 15:37:47 -0400
+Message-ID: <1255721867.19793.311.camel@blitz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: linux-mmc@vger.kernel.org, John Rigby <jcrigby@gmail.com>, linux-omap@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail.logicpd.com ([66.162.60.3]:43345 "EHLO smtp.logicpd.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751414AbZJPTc4 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 16 Oct 2009 15:32:56 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
 
-Madhusudhan Chikkature wrote:
-> Hi Dirk,
-> 
-> I am inlining the patch so that it helps review.
-...
-> @@ -1165,8 +1178,15 @@ static void omap_hsmmc_set_ios(struct mm
->  		break;
->  	case MMC_BUS_WIDTH_4:
->  		OMAP_HSMMC_WRITE(host->base, CON, con & ~DW8);
-> -		OMAP_HSMMC_WRITE(host->base, HCTL,
-> -			OMAP_HSMMC_READ(host->base, HCTL) | FOUR_BIT);
-> +		if (mmc_card_sdio(host->mmc->card)) {
-> 
-> I wish it could be moved to "enable_sdio_irq" so that we can avoid inclusion of
-> card.h and checking the type of card in the host controller driver. 
+I'm using an hrtimer in my tsc2004 touch driver to sleep between samples
+for 7.5mSec.  Here's the essence of the inner loop that grabs samples:
 
-Yes, this would be the real clean way. But ...
+for (;;) {
+	// Get a point, pass it to input_report_abs...
+	pen_is_down = tsc2004_get_point(d);
 
-> But the
-> dependancy on 4-bit seems to be a problem here.
+	// If pen is up up, then break out
+	if (!pen_is_down || signal_pending(tsk))
+	break;
 
-... most probably we have to find a workaround until (if ever?) above 
-clean implementation is available.
+	{
+		struct timespec timeout;
+		// sleep for 7.5 mSec (giving max 133 touch/sec)
+		timeout = ns_to_timespec(75 * 100 * 1000);
+		hrtimer_nanosleep(&timeout, NULL, HRTIMER_MODE_REL, CLOCK_MONOTONIC);
+	}
+}
 
-What we need is after SDIO mode and bus width is known, and before the 
-first interrupt comes, to set IBG.
+What's really strange is when I use ts_test to measure sample rate, I
+see:
+OMAP-Torpedo# export TSLIB_TSDEVICE=/dev/input/event0
+OMAP-Torpedo# export TSLIB_CONSOLEDEVICE=none
+OMAP-Torpedo# ts_test
+717.804687:    176    161    234
+717.813446:    176    161    234
+717.822265:    176    160    234
+717.993255:    178    159    234
+718.002014:    179    158    234
+718.188537:    180    158    234
+719.015441:    181    157    234
+719.165100:    181    157    234
+719.360412:    182    157    234
+719.369079:    182    157    234
+719.438537:    182    156    234
+719.555725:    182    156    234
+719.564392:    182    156    234
+719.751037:    180    155    234
+719.768432:    179    155    234
+719.777099:    178    154    234
+719.946350:    174    150    234
+720.000976:    175    144    234
+720.141662:    184    140    234
+720.336975:    189    138    234
+720.490722:    195    137    234
+720.499420:    198    138    234
+720.858123:    198    139    234
+720.922912:    198    139    234
+721.126922:    198    139    234
+721.135620:    198    139    234
+721.144317:    198    139    234
+721.152984:    198    139    234
+721.161682:    198    139    234
+721.313537:    198    139    234
+721.438537:    198    138      0
 
-> On the problems being discussed on testing is the interrupt source geting
-> cleared at the SDIO card level upon genaration of the CIRQ? If not it remains
-> asserted.
+Which shows over 3.63 seconds 33 samples, or only 9.08 samples/second,
+including a max delay of .827 seconds (719.015441 - 718.188537).  
 
-Yes, this seems to be exactly the problem John reports in his follow 
-up mail.
+But if I "ifup eth0" to bring the networking up (and nothing else is
+running), I get:
 
-Any hint how to clear SDIO interrupt?
+OMAP-Torpedo# ifup eth0
+[sleeping 5s]...net eth0: SMSC911x/921x identified at 0xc8858000, IRQ:
+289
+eth0: link down
+eth0: link up, 100Mbps, full-duplex
+udhcpc (v1.15.1) started
+Sending discover...
+Sending select for 192.168.3.151...
+Lease of 192.168.3.151 obtained, lease time 86400
+deleting routers
+route: SIOCDELRT: No such process
+adding dns 192.168.3.1
+OMAP-Torpedo# ts_test
+735.615905:    263    140    234
+735.615905:    263    140    234
+735.625152:    261    141    234
+735.634277:    260    141    234
+735.643463:    260    141    234
+735.652648:    260    142    234
+735.661865:    261    142    234
+735.671081:    262    141    234
+735.680267:    263    141    234
+735.689453:    264    140    234
+735.698669:    265    139    234
+735.707885:    266    139    234
+735.717102:    267    138    234
+735.726318:    268    138    234
+735.735534:    268    138    234
+735.744751:    269    137    234
+735.762725:    269    137    234
+735.771942:    270    137    234
+735.790344:    270    136    234
+735.799560:    270    136    234
+735.808746:    270    136    234
+735.817962:    270    136    234
+735.845611:    270    136    234
+735.910217:    270    136    234
+735.919403:    270    136    234
+735.928588:    271    136    234
+735.937866:    271    136    234
+735.947082:    271    136    234
+735.955871:    271    136    234
+735.974334:    271    136    234
+735.983551:    270    136    234
+736.001220:    270    136    234
+736.010467:    270    136    234
+736.047302:    270    136    234
+736.056488:    270    136    234
+736.074951:    270    137    234
+736.093383:    269    137    234
+736.102600:    269    137      0
 
-Many thanks
+Or 36 samples in 0.486695  seconds -> ~74 samples per second with an
+average/deviation that is much more acceptable.
 
-Dirk
+This is completely reproducible.
 
-> +			OMAP_HSMMC_WRITE(host->base, HCTL,
-> +					 OMAP_HSMMC_READ(host->base, HCTL)
-> +					 | IBG | FOUR_BIT);
-> +		} else {
-> +			OMAP_HSMMC_WRITE(host->base, HCTL,
-> +					 OMAP_HSMMC_READ(host->base, HCTL)
-> +					 | FOUR_BIT);
-> +		}
->  		break;
->  	case MMC_BUS_WIDTH_1:
->  		OMAP_HSMMC_WRITE(host->base, CON, con & ~DW8);
-> @@ -1512,6 +1532,24 @@ static int omap_hsmmc_disable_fclk(struc
->  	return 0;
->  }
-> 
-> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
-> +{
-> +	struct omap_hsmmc_host *host = mmc_priv(mmc);
-> +	u32 ie, ise;
-> +
-> +	ise = OMAP_HSMMC_READ(host->base, ISE);
-> +	ie  = OMAP_HSMMC_READ(host->base, IE);
-> +
-> +	if (enable) {
-> +		OMAP_HSMMC_WRITE(host->base, ISE, ise | CIRQ_ENABLE);
-> +		OMAP_HSMMC_WRITE(host->base, IE,  ie  | CIRQ_ENABLE);
-> +	} else {
-> +		OMAP_HSMMC_WRITE(host->base, ISE, ise & ~CIRQ_ENABLE);
-> +		OMAP_HSMMC_WRITE(host->base, IE,  ie  & ~CIRQ_ENABLE);
-> +	}
-> +
-> +}
-> +
->  static const struct mmc_host_ops omap_hsmmc_ops = {
->  	.enable = omap_hsmmc_enable_fclk,
->  	.disable = omap_hsmmc_disable_fclk,
-> @@ -1519,7 +1557,7 @@ static const struct mmc_host_ops omap_hs
->  	.set_ios = omap_hsmmc_set_ios,
->  	.get_cd = omap_hsmmc_get_cd,
->  	.get_ro = omap_hsmmc_get_ro,
-> -	/* NYET -- enable_sdio_irq */
-> +	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->  };
-> 
->  static const struct mmc_host_ops omap_hsmmc_ps_ops = {
-> @@ -1529,7 +1567,7 @@ static const struct mmc_host_ops omap_hs
->  	.set_ios = omap_hsmmc_set_ios,
->  	.get_cd = omap_hsmmc_get_cd,
->  	.get_ro = omap_hsmmc_get_ro,
-> -	/* NYET -- enable_sdio_irq */
-> +	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
->  };
-> 
->  #ifdef CONFIG_DEBUG_FS
-> @@ -1734,7 +1772,7 @@ static int __init omap_hsmmc_probe(struc
->  	mmc->max_seg_size = mmc->max_req_size;
-> 
->  	mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
-> -		     MMC_CAP_WAIT_WHILE_BUSY;
-> +		     MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_SDIO_IRQ;
-> 
->  	if (mmc_slot(host).wires >= 8)
->  		mmc->caps |= MMC_CAP_8_BIT_DATA;
-> 
-> 
-> 
-> 
-> 
->> John Rigby wrote:
->>> I have seen several discussions about lack of sdio irq support in the
->>> hsmmc driver but no patches.  Has anyone on this list implemented this
->>> and/or can anyone point me to patches?
->> What a coincidence ;)
->>
->> I'm currently working on this. See attachment what I currently have.
->> It is compile tested only against recent omap linux head. I don't have
->> a board using SDIO at the moment, so no real testing possible :(
->>
->> Some background, maybe it helps people to step in:
->>
->> Gumstix OMAP3 based Overo air board connects Marvell 88W8686 wifi by
->> MMC port 2 in 4 bit configuration [1]. The wifi performance is quite
->> bad (~100kB/s). There is some rumor that this might be SDIO irq
->> related [2]. There was an attempt to fix this [3] already, but this
->> doesn't work [4]. Having this, I started to look into it.
->>
->> I used [3], the TI Davinci driver [5] (supporting SDIO irq), the SDIO
->> Simplified Specification [6] and the OMAP35x TRM [7] as starting points.
->>
->> Unfortunately, the Davinci MMC registers and irqs are different
->> (Davinci has a dedicated SDIO irq). But combining [3] and [5] helps to
->> get an idea what has to be done.
->>
->> I think the main issues of [3] were that it doesn't enable IBG for 4
->> bit mode ([6] chapter 8.1.2) and that mmc_omap_irq() doesn't reset the
->> irq bits.
->>
->> Topics I still open:
->>
->> - Is it always necessary to deal with IE _and_ ISE register? I'm not
->> totally clear what the difference between these two registers are ;)
->> And in which order they have to be set.
->>
->> - Davinci driver [5] in line 1115 checks for data line to call
->> mmc_signal_sdio_irq() for irq enable.
->>
->> - Davinci driver deals with SDIO in xfer_done() (line 873)
->>
->> - Davinci driver sets block size to 64 if SDIO in line 701
->>
->> It would be quite nice if anybody likes to comment on attachment and
->> help testing.
->>
->> Many thanks and best regards
->>
->> Dirk
->>
->> [1] http://gumstix.net/wiki/index.php?title=Overo_Wifi
->>
->> [2] http://groups.google.com/group/beagleboard/msg/14e822778c5eeb56
->>
->> [3] http://groups.google.com/group/beagleboard/msg/d0eb69f4c20673be
->>
->> [4] http://groups.google.com/group/beagleboard/msg/5cdfe2a319531937
->>
->> [5]
->> http://arago-project.org/git/projects/?p=linux-davinci.git;a=blob;f=drivers/mmc/host/davinci_mmc.c;h=1bf0587250614c6d8abfe02028b96e0e47148ac8;hb=HEAD
->>
->> [6] http://www.sdcard.org/developers/tech/sdio/sd_bluetooth_spec/
->>
->> [7] http://focus.ti.com/lit/ug/spruf98c/spruf98c.pdf
->>
->>
-> 
-> 
-> 
+Any ideas why firing up the SMSC911x driver would cause
+hrtimer_nanosleep() to be much more predictable?
 
+-- 
+Peter Barada <peterb@logicpd.com>
+Logic Product Development, Inc.
