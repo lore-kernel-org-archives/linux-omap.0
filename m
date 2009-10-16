@@ -1,146 +1,185 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 07/14] omap: Use getnstimeofday for omap_device
-Date: Fri, 16 Oct 2009 16:41:27 -0700
-Message-ID: <20091016234126.2463.85187.stgit@localhost>
+Subject: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
+Date: Fri, 16 Oct 2009 16:41:38 -0700
+Message-ID: <20091016234138.2463.38350.stgit@localhost>
 References: <20091016233624.2463.26653.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60661 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751400AbZJPXlX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 19:41:23 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:50818 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750966AbZJPXlf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 19:41:35 -0400
 In-Reply-To: <20091016233624.2463.26653.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Paul Walmsley <paul@pwsan.com>, linux-omap@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-Use getnstimeofday for omap_device
+Use ioremap for omap4 L4 code
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/plat-omap/omap_device.c |   50 ++++++++++++++------------------------
- 1 files changed, 19 insertions(+), 31 deletions(-)
+ arch/arm/mach-omap2/board-4430sdp.c           |   13 ++++++++++--
+ arch/arm/mach-omap2/omap-smp.c                |   28 ++++++++++++++++++++-----
+ arch/arm/mach-omap2/timer-gp.c                |    3 ++-
+ arch/arm/plat-omap/include/mach/entry-macro.S |    2 ++
+ arch/arm/plat-omap/include/mach/omap44xx.h    |    5 ----
+ 5 files changed, 37 insertions(+), 14 deletions(-)
 
-diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
-index 2c409fc..12513f4 100644
---- a/arch/arm/plat-omap/omap_device.c
-+++ b/arch/arm/plat-omap/omap_device.c
-@@ -103,21 +103,6 @@
- /* Private functions */
+diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+index eb37c40..2a7b901 100644
+--- a/arch/arm/mach-omap2/board-4430sdp.c
++++ b/arch/arm/mach-omap2/board-4430sdp.c
+@@ -52,8 +52,17 @@ static struct omap_board_config_kernel sdp4430_config[] __initdata = {
  
- /**
-- * _read_32ksynct - read the OMAP 32K sync timer
-- *
-- * Returns the current value of the 32KiHz synchronization counter.
-- * XXX this should be generalized to simply read the system clocksource.
-- * XXX this should be moved to a separate synctimer32k.c file
-- */
--static u32 _read_32ksynct(void)
--{
--	if (!cpu_class_is_omap2())
--		BUG();
--
--	return __raw_readl(OMAP2_IO_ADDRESS(OMAP_32KSYNCT_BASE + 0x010));
--}
--
--/**
-  * _omap_device_activate - increase device readiness
-  * @od: struct omap_device *
-  * @ignore_lat: increase to latency target (0) or full readiness (1)?
-@@ -133,13 +118,13 @@ static u32 _read_32ksynct(void)
-  */
- static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+ static void __init gic_init_irq(void)
  {
--	u32 a, b;
-+	struct timespec a, b, c;
+-	gic_dist_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_DIST_BASE), 29);
+-	gic_cpu_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
++	void __iomem *base;
++
++	/* Static mapping, never released */
++	base = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
++	BUG_ON(!base);
++	gic_dist_init(0, base, 29);
++
++	/* Static mapping, never released */
++	base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
++	BUG_ON(!base);
++	gic_cpu_init(0, OMAP44XX_GIC_CPU_BASE);
+ }
  
- 	pr_debug("omap_device: %s: activating\n", od->pdev.name);
+ static void __init omap_4430sdp_init_irq(void)
+diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+index 48ee295..a1b618c 100644
+--- a/arch/arm/mach-omap2/omap-smp.c
++++ b/arch/arm/mach-omap2/omap-smp.c
+@@ -26,11 +26,11 @@
+ #include <mach/hardware.h>
  
- 	while (od->pm_lat_level > 0) {
- 		struct omap_device_pm_latency *odpl;
--		int act_lat = 0;
-+		unsigned long long act_lat = 0;
+ /* Registers used for communicating startup information */
+-#define OMAP4_AUXCOREBOOT_REG0		(OMAP44XX_VA_WKUPGEN_BASE + 0x800)
+-#define OMAP4_AUXCOREBOOT_REG1		(OMAP44XX_VA_WKUPGEN_BASE + 0x804)
++static void __iomem *omap4_auxcoreboot_reg0;
++static void __iomem *omap4_auxcoreboot_reg1;
  
- 		od->pm_lat_level--;
+ /* SCU base address */
+-static void __iomem *scu_base = OMAP44XX_VA_SCU_BASE;
++static void __iomem *scu_base;
  
-@@ -149,20 +134,22 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
- 		    (od->dev_wakeup_lat <= od->_dev_wakeup_lat_limit))
- 			break;
+ /*
+  * Use SCU config register to count number of cores
+@@ -46,6 +46,8 @@ static DEFINE_SPINLOCK(boot_lock);
  
--		a = _read_32ksynct();
-+		getnstimeofday(&a);
- 
- 		/* XXX check return code */
- 		odpl->activate_func(od);
- 
--		b = _read_32ksynct();
-+		getnstimeofday(&b);
- 
--		act_lat = (b - a) >> 15; /* 32KiHz cycles to microseconds */
-+		c = timespec_sub(b, a);
-+		act_lat = timespec_to_ns(&c) * NSEC_PER_USEC;
- 
- 		pr_debug("omap_device: %s: pm_lat %d: activate: elapsed time "
--			 "%d usec\n", od->pdev.name, od->pm_lat_level, act_lat);
-+			 "%llu usec\n", od->pdev.name, od->pm_lat_level,
-+			 act_lat);
- 
- 		WARN(act_lat > odpl->activate_lat, "omap_device: %s.%d: "
--		     "activate step %d took longer than expected (%d > %d)\n",
-+		     "activate step %d took longer than expected (%llu > %d)\n",
- 		     od->pdev.name, od->pdev.id, od->pm_lat_level,
- 		     act_lat, odpl->activate_lat);
- 
-@@ -188,13 +175,13 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
-  */
- static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+ void __cpuinit platform_secondary_init(unsigned int cpu)
  {
--	u32 a, b;
-+	struct timespec a, b, c;
++	void __iomem *gic_cpu_base;
++
+ 	trace_hardirqs_off();
  
- 	pr_debug("omap_device: %s: deactivating\n", od->pdev.name);
+ 	/*
+@@ -54,7 +56,10 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
+ 	 * for us: do so
+ 	 */
  
- 	while (od->pm_lat_level < od->pm_lats_cnt) {
- 		struct omap_device_pm_latency *odpl;
--		int deact_lat = 0;
-+		unsigned long long deact_lat = 0;
+-	gic_cpu_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
++	/* Static mapping, never released */
++	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
++	BUG_ON(!gic_cpu_base);
++	gic_cpu_init(0, gic_cpu_base);
  
- 		odpl = od->pm_lats + od->pm_lat_level;
+ 	/*
+ 	 * Synchronise with the boot thread.
+@@ -79,7 +84,7 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+ 	 * the AuxCoreBoot1 register is updated with cpu state
+ 	 * A barrier is added to ensure that write buffer is drained
+ 	 */
+-	__raw_writel(cpu, OMAP4_AUXCOREBOOT_REG1);
++	__raw_writel(cpu, omap4_auxcoreboot_reg1);
+ 	smp_wmb();
  
-@@ -203,23 +190,24 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
- 		     od->_dev_wakeup_lat_limit))
- 			break;
+ 	timeout = jiffies + (1 * HZ);
+@@ -104,7 +109,7 @@ static void __init wakeup_secondary(void)
+ 	 * A barrier is added to ensure that write buffer is drained
+ 	 */
+ 	__raw_writel(virt_to_phys(omap_secondary_startup),	   \
+-					OMAP4_AUXCOREBOOT_REG0);
++					omap4_auxcoreboot_reg0);
+ 	smp_wmb();
  
--		a = _read_32ksynct();
-+		getnstimeofday(&a);
+ 	/*
+@@ -130,6 +135,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+ {
+ 	unsigned int ncores = get_core_count();
+ 	unsigned int cpu = smp_processor_id();
++	void __iomem *omap4_wkupgen_base;
+ 	int i;
  
- 		/* XXX check return code */
- 		odpl->deactivate_func(od);
+ 	/* sanity check */
+@@ -161,6 +167,16 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+ 	for (i = 0; i < max_cpus; i++)
+ 		set_cpu_present(i, true);
  
--		b = _read_32ksynct();
-+		getnstimeofday(&b);
++	/* Never released */
++	omap4_wkupgen_base = ioremap(OMAP44XX_WKUPGEN_BASE, SZ_4K);
++	BUG_ON(!omap4_wkupgen_base);
++	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x800;
++	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x804;
++
++	/* Never released */
++	scu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
++	BUG_ON(!scu_base);
++
+ 	if (max_cpus > 1) {
+ 		/*
+ 		 * Enable the local timer or broadcast device for the
+diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+index e2338c0..cd72970 100644
+--- a/arch/arm/mach-omap2/timer-gp.c
++++ b/arch/arm/mach-omap2/timer-gp.c
+@@ -231,7 +231,8 @@ static void __init omap2_gp_clocksource_init(void)
+ static void __init omap2_gp_timer_init(void)
+ {
+ #ifdef CONFIG_LOCAL_TIMERS
+-	twd_base = OMAP2_IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE);
++	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
++	BUG_ON(!twd_base);
+ #endif
+ 	omap_dm_timer_init();
  
--		deact_lat = (b - a) >> 15; /* 32KiHz cycles to microseconds */
-+		c = timespec_sub(b, a);
-+		deact_lat = timespec_to_ns(&c) * NSEC_PER_USEC;
+diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/plat-omap/include/mach/entry-macro.S
+index abe0864..3bad928 100644
+--- a/arch/arm/plat-omap/include/mach/entry-macro.S
++++ b/arch/arm/plat-omap/include/mach/entry-macro.S
+@@ -104,6 +104,8 @@
  
- 		pr_debug("omap_device: %s: pm_lat %d: deactivate: elapsed time "
--			 "%d usec\n", od->pdev.name, od->pm_lat_level,
-+			 "%llu usec\n", od->pdev.name, od->pm_lat_level,
- 			 deact_lat);
+ 		.endm
+ #else
++#define OMAP44XX_VA_GIC_CPU_BASE	OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
++
+ 		/*
+ 		 * The interrupt numbering scheme is defined in the
+ 		 * interrupt controller spec.  To wit:
+diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h b/arch/arm/plat-omap/include/mach/omap44xx.h
+index b3ba5ac..8b4a578 100644
+--- a/arch/arm/plat-omap/include/mach/omap44xx.h
++++ b/arch/arm/plat-omap/include/mach/omap44xx.h
+@@ -33,14 +33,9 @@
+ #define IRQ_SIR_IRQ			0x0040
+ #define OMAP44XX_GIC_DIST_BASE		0x48241000
+ #define OMAP44XX_GIC_CPU_BASE		0x48240100
+-#define OMAP44XX_VA_GIC_CPU_BASE	OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
+ #define OMAP44XX_SCU_BASE		0x48240000
+-#define OMAP44XX_VA_SCU_BASE		OMAP2_IO_ADDRESS(OMAP44XX_SCU_BASE)
+ #define OMAP44XX_LOCAL_TWD_BASE		0x48240600
+-#define OMAP44XX_VA_LOCAL_TWD_BASE	OMAP2_IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE)
+-#define OMAP44XX_LOCAL_TWD_SIZE		0x00000100
+ #define OMAP44XX_WKUPGEN_BASE		0x48281000
+-#define OMAP44XX_VA_WKUPGEN_BASE	OMAP2_IO_ADDRESS(OMAP44XX_WKUPGEN_BASE)
  
- 		WARN(deact_lat > odpl->deactivate_lat, "omap_device: %s.%d: "
--		     "deactivate step %d took longer than expected (%d > %d)\n",
--		     od->pdev.name, od->pdev.id, od->pm_lat_level,
--		     deact_lat, odpl->deactivate_lat);
-+		     "deactivate step %d took longer than expected "
-+		     "(%llu > %d)\n", od->pdev.name, od->pdev.id,
-+		     od->pm_lat_level, deact_lat, odpl->deactivate_lat);
- 
- 		od->dev_wakeup_lat += odpl->activate_lat;
+ #endif /* __ASM_ARCH_OMAP44XX_H */
  
 
