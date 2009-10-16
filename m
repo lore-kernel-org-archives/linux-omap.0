@@ -1,71 +1,165 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/8] board-rx51-peripherals: split
-	vaux3	and vmmc2 supplies
-Date: Fri, 16 Oct 2009 09:14:41 -0700
-Message-ID: <20091016161441.GG12576@atomide.com>
-References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
-	<1255003137-1034-6-git-send-email-eduardo.valentin@nokia.com>
-	<20091008132109.GD29176@rakim.wolfsonmicro.main>
-	<20091009064529.GD6616@esdhcp037198.research.nokia.com>
-	<20091009110346.GC5082@sirena.org.uk>
-	<20091012080858.GB13234@esdhcp037198.research.nokia.com>
-	<20091012091820.GC3308@rakim.wolfsonmicro.main>
-	<20091014171548.GI12700@atomide.com>
-	<20091015090124.GA29371@rakim.wolfsonmicro.main>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH] omap: Use getnstimeofday for omap_device
+Date: Fri, 16 Oct 2009 10:42:18 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0910161041490.2061@utopia.booyaka.com>
+References: <20091008002506.GF29320@atomide.com> <20091008002659.GG29320@atomide.com> <20091008002814.GH29320@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <20091015090124.GA29371@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Eduardo Valentin <eduardo.valentin@nokia.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from utopia.booyaka.com ([72.9.107.138]:60835 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161AbZJPQmO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 12:42:14 -0400
+In-Reply-To: <20091008002814.GH29320@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [091015 02:01]:
-> On Wed, Oct 14, 2009 at 10:15:48AM -0700, Tony Lindgren wrote:
-> > * Mark Brown <broonie@opensource.wolfsonmicro.com> [091012 02:18]:
-> > > On Mon, Oct 12, 2009 at 11:08:58AM +0300, Eduardo Valentin wrote:
-> 
-> > > > I'm afraid using dev_name is not that easy. The mmc driver generates device
-> > > > name at runtime. That's why this board file setups .dev at runtime as well.
-> 
-> ...
-> 
-> > > > So, changing this supply to something static using .dev_name it is not
-> > > > possible with current code. That would need refactoring the whole mmc and
-> > > > hsmmc setup. And the device naming procedure is dependent on cpu as well.
-> > > > Check arch/arm/mach-omap2/device.c:omap2_init_mmc.
-> 
-> > > same answer each time it's run?  How does this work with the clock API?
-> 
-> > The clocks are matched using clkdev. Basically the driver just requests
-> > functional clock (fck) and interface clock (ick):
-> 
-> > $ grep mmci arch/arm/*omap*/clock*.c
-> > arch/arm/mach-omap1/clock.c:	CLK("mmci-omap.0", "fck",	&mmc1_ck,	CK_16XX | CK_1510 | CK_310),
-> > arch/arm/mach-omap1/clock.c:	CLK("mmci-omap.0", "ick",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310),
-> 
-> So this is using the standard dev_name based clkdev matching which
-> Eduardo said was impossible for the regulators.  Is it just that this
-> will actually work fine for the regulators or is there some other magic
-> in the OMAP code that joins things up?
+On Wed, 7 Oct 2009, Tony Lindgren wrote:
 
-Well the mmc regulators are just passed from board-*.c files to
-mmc-twl4030.c which does all the low-level init needed. No other
-special magic going on.
+> Don't know if this generic solution is accurate enough?
 
-Eduardro, care to check the dev_name issue one more time?
+Looks fine to me.  Thanks -
 
-Regards,
+Acked-by: Paul Walmsley <paul@pwsan.com>
 
-Tony
+> 
+> Tony
+> 
+> 
+> >From 4b059c50262954ae4ce466983b5cf088851eab19 Mon Sep 17 00:00:00 2001
+> From: Tony Lindgren <tony@atomide.com>
+> Date: Wed, 7 Oct 2009 17:10:18 -0700
+> Subject: [PATCH] omap: Use getnstimeofday for omap_device
+> 
+> Otherwise we cannot remove OMAP2_IO_ADDRESS.
+> 
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> 
+> diff --git a/arch/arm/plat-omap/omap_device.c b/arch/arm/plat-omap/omap_device.c
+> index 2c409fc..12513f4 100644
+> --- a/arch/arm/plat-omap/omap_device.c
+> +++ b/arch/arm/plat-omap/omap_device.c
+> @@ -103,21 +103,6 @@
+>  /* Private functions */
+>  
+>  /**
+> - * _read_32ksynct - read the OMAP 32K sync timer
+> - *
+> - * Returns the current value of the 32KiHz synchronization counter.
+> - * XXX this should be generalized to simply read the system clocksource.
+> - * XXX this should be moved to a separate synctimer32k.c file
+> - */
+> -static u32 _read_32ksynct(void)
+> -{
+> -	if (!cpu_class_is_omap2())
+> -		BUG();
+> -
+> -	return __raw_readl(OMAP2_IO_ADDRESS(OMAP_32KSYNCT_BASE + 0x010));
+> -}
+> -
+> -/**
+>   * _omap_device_activate - increase device readiness
+>   * @od: struct omap_device *
+>   * @ignore_lat: increase to latency target (0) or full readiness (1)?
+> @@ -133,13 +118,13 @@ static u32 _read_32ksynct(void)
+>   */
+>  static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+>  {
+> -	u32 a, b;
+> +	struct timespec a, b, c;
+>  
+>  	pr_debug("omap_device: %s: activating\n", od->pdev.name);
+>  
+>  	while (od->pm_lat_level > 0) {
+>  		struct omap_device_pm_latency *odpl;
+> -		int act_lat = 0;
+> +		unsigned long long act_lat = 0;
+>  
+>  		od->pm_lat_level--;
+>  
+> @@ -149,20 +134,22 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+>  		    (od->dev_wakeup_lat <= od->_dev_wakeup_lat_limit))
+>  			break;
+>  
+> -		a = _read_32ksynct();
+> +		getnstimeofday(&a);
+>  
+>  		/* XXX check return code */
+>  		odpl->activate_func(od);
+>  
+> -		b = _read_32ksynct();
+> +		getnstimeofday(&b);
+>  
+> -		act_lat = (b - a) >> 15; /* 32KiHz cycles to microseconds */
+> +		c = timespec_sub(b, a);
+> +		act_lat = timespec_to_ns(&c) * NSEC_PER_USEC;
+>  
+>  		pr_debug("omap_device: %s: pm_lat %d: activate: elapsed time "
+> -			 "%d usec\n", od->pdev.name, od->pm_lat_level, act_lat);
+> +			 "%llu usec\n", od->pdev.name, od->pm_lat_level,
+> +			 act_lat);
+>  
+>  		WARN(act_lat > odpl->activate_lat, "omap_device: %s.%d: "
+> -		     "activate step %d took longer than expected (%d > %d)\n",
+> +		     "activate step %d took longer than expected (%llu > %d)\n",
+>  		     od->pdev.name, od->pdev.id, od->pm_lat_level,
+>  		     act_lat, odpl->activate_lat);
+>  
+> @@ -188,13 +175,13 @@ static int _omap_device_activate(struct omap_device *od, u8 ignore_lat)
+>   */
+>  static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+>  {
+> -	u32 a, b;
+> +	struct timespec a, b, c;
+>  
+>  	pr_debug("omap_device: %s: deactivating\n", od->pdev.name);
+>  
+>  	while (od->pm_lat_level < od->pm_lats_cnt) {
+>  		struct omap_device_pm_latency *odpl;
+> -		int deact_lat = 0;
+> +		unsigned long long deact_lat = 0;
+>  
+>  		odpl = od->pm_lats + od->pm_lat_level;
+>  
+> @@ -203,23 +190,24 @@ static int _omap_device_deactivate(struct omap_device *od, u8 ignore_lat)
+>  		     od->_dev_wakeup_lat_limit))
+>  			break;
+>  
+> -		a = _read_32ksynct();
+> +		getnstimeofday(&a);
+>  
+>  		/* XXX check return code */
+>  		odpl->deactivate_func(od);
+>  
+> -		b = _read_32ksynct();
+> +		getnstimeofday(&b);
+>  
+> -		deact_lat = (b - a) >> 15; /* 32KiHz cycles to microseconds */
+> +		c = timespec_sub(b, a);
+> +		deact_lat = timespec_to_ns(&c) * NSEC_PER_USEC;
+>  
+>  		pr_debug("omap_device: %s: pm_lat %d: deactivate: elapsed time "
+> -			 "%d usec\n", od->pdev.name, od->pm_lat_level,
+> +			 "%llu usec\n", od->pdev.name, od->pm_lat_level,
+>  			 deact_lat);
+>  
+>  		WARN(deact_lat > odpl->deactivate_lat, "omap_device: %s.%d: "
+> -		     "deactivate step %d took longer than expected (%d > %d)\n",
+> -		     od->pdev.name, od->pdev.id, od->pm_lat_level,
+> -		     deact_lat, odpl->deactivate_lat);
+> +		     "deactivate step %d took longer than expected "
+> +		     "(%llu > %d)\n", od->pdev.name, od->pdev.id,
+> +		     od->pm_lat_level, deact_lat, odpl->deactivate_lat);
+>  
+>  		od->dev_wakeup_lat += odpl->activate_lat;
+>  
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
