@@ -1,132 +1,54 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/14] omap: Change low-level serial init to use ioremap
-Date: Fri, 16 Oct 2009 16:40:17 -0700
-Message-ID: <20091016234017.2463.89842.stgit@localhost>
+Subject: [PATCH 02/14] omap: Use ioremap in irq.c
+Date: Fri, 16 Oct 2009 16:40:30 -0700
+Message-ID: <20091016234030.2463.74004.stgit@localhost>
 References: <20091016233624.2463.26653.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59633 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774AbZJPXkQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 19:40:16 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49982 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750809AbZJPXk1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 19:40:27 -0400
 In-Reply-To: <20091016233624.2463.26653.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org
 
-Change low-level serial init to use ioremap
+Use ioremap in irq.c
 
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/serial.c |   11 ++++++++---
- arch/arm/mach-omap2/serial.c |   15 ++++++++++-----
- 2 files changed, 18 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/irq.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index ed07af1..cab4171 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -64,7 +64,6 @@ static void __init omap_serial_reset(struct plat_serial8250_port *p)
+diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+index b828638..1db121f 100644
+--- a/arch/arm/mach-omap2/irq.c
++++ b/arch/arm/mach-omap2/irq.c
+@@ -178,12 +178,20 @@ void __init omap_init_irq(void)
+ 	int i;
  
- static struct plat_serial8250_port serial_platform_data[] = {
- 	{
--		.membase	= OMAP1_IO_ADDRESS(OMAP_UART1_BASE),
- 		.mapbase	= OMAP_UART1_BASE,
- 		.irq		= INT_UART1,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -73,7 +72,6 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.uartclk	= OMAP16XX_BASE_BAUD * 16,
- 	},
- 	{
--		.membase	= OMAP1_IO_ADDRESS(OMAP_UART2_BASE),
- 		.mapbase	= OMAP_UART2_BASE,
- 		.irq		= INT_UART2,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -82,7 +80,6 @@ static struct plat_serial8250_port serial_platform_data[] = {
- 		.uartclk	= OMAP16XX_BASE_BAUD * 16,
- 	},
- 	{
--		.membase	= OMAP1_IO_ADDRESS(OMAP_UART3_BASE),
- 		.mapbase	= OMAP_UART3_BASE,
- 		.irq		= INT_UART3,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -126,6 +123,14 @@ void __init omap_serial_init(void)
- 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
- 		unsigned char reg;
+ 	for (i = 0; i < ARRAY_SIZE(irq_banks); i++) {
++		unsigned long base;
+ 		struct omap_irq_bank *bank = irq_banks + i;
  
+ 		if (cpu_is_omap24xx())
+-			bank->base_reg = OMAP2_IO_ADDRESS(OMAP24XX_IC_BASE);
++			base = OMAP24XX_IC_BASE;
+ 		else if (cpu_is_omap34xx())
+-			bank->base_reg = OMAP2_IO_ADDRESS(OMAP34XX_IC_BASE);
++			base = OMAP34XX_IC_BASE;
++
 +		/* Static mapping, never released */
-+		serial_platform_data[i].membase =
-+			ioremap(serial_platform_data[i].mapbase, SZ_2K);
-+		if (!serial_platform_data[i].membase) {
-+			printk(KERN_ERR "Could not ioremap uart%i\n", i);
++		bank->base_reg = ioremap(base, SZ_4K);
++		if (!bank->base_reg) {
++			printk(KERN_ERR "Could not ioremap irq bank%i\n", i);
 +			continue;
 +		}
-+
- 		switch (i) {
- 		case 0:
- 			uart1_ck = clk_get(NULL, "uart1_ck");
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index ae21868..9b6c403 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -73,7 +73,6 @@ static LIST_HEAD(uart_list);
  
- static struct plat_serial8250_port serial_platform_data0[] = {
- 	{
--		.membase	= OMAP2_IO_ADDRESS(OMAP_UART1_BASE),
- 		.mapbase	= OMAP_UART1_BASE,
- 		.irq		= 72,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -87,7 +86,6 @@ static struct plat_serial8250_port serial_platform_data0[] = {
+ 		omap_irq_bank_init_one(bank);
  
- static struct plat_serial8250_port serial_platform_data1[] = {
- 	{
--		.membase	= OMAP2_IO_ADDRESS(OMAP_UART2_BASE),
- 		.mapbase	= OMAP_UART2_BASE,
- 		.irq		= 73,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -101,7 +99,6 @@ static struct plat_serial8250_port serial_platform_data1[] = {
- 
- static struct plat_serial8250_port serial_platform_data2[] = {
- 	{
--		.membase	= OMAP2_IO_ADDRESS(OMAP_UART3_BASE),
- 		.mapbase	= OMAP_UART3_BASE,
- 		.irq		= 74,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -110,7 +107,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
- 		.uartclk	= OMAP24XX_BASE_BAUD * 16,
- 	}, {
- #ifdef CONFIG_ARCH_OMAP4
--		.membase	= OMAP2_IO_ADDRESS(OMAP_UART4_BASE),
- 		.mapbase	= OMAP_UART4_BASE,
- 		.irq		= 70,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -126,7 +122,6 @@ static struct plat_serial8250_port serial_platform_data2[] = {
- #ifdef CONFIG_ARCH_OMAP4
- static struct plat_serial8250_port serial_platform_data3[] = {
- 	{
--		.membase	= OMAP2_IO_ADDRESS(OMAP_UART4_BASE),
- 		.mapbase	= OMAP_UART4_BASE,
- 		.irq		= 70,
- 		.flags		= UPF_BOOT_AUTOCONF,
-@@ -605,6 +600,16 @@ void __init omap_serial_early_init(void)
- 		struct device *dev = &pdev->dev;
- 		struct plat_serial8250_port *p = dev->platform_data;
- 
-+		/*
-+		 * Module 4KB + L4 interconnect 4KB
-+		 * Static mapping, never released
-+		 */
-+		p->membase = ioremap(p->mapbase, SZ_8K);
-+		if (!p->membase) {
-+			printk(KERN_ERR "ioremap failed for uart%i\n", i + 1);
-+			continue;
-+		}
-+
- 		sprintf(name, "uart%d_ick", i+1);
- 		uart->ick = clk_get(NULL, name);
- 		if (IS_ERR(uart->ick)) {
 
