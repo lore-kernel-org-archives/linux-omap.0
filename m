@@ -1,155 +1,199 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 14/14] omap: Add OMAP4 L3 and L4 peripherals.
-Date: Fri, 16 Oct 2009 16:42:48 -0700
-Message-ID: <20091016234247.2463.16684.stgit@localhost>
-References: <20091016233624.2463.26653.stgit@localhost>
+Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
+Date: Fri, 16 Oct 2009 16:46:22 -0700
+Message-ID: <20091016234622.GH12576@atomide.com>
+References: <20091016233624.2463.26653.stgit@localhost> <20091016234138.2463.38350.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51489 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750918AbZJPXmo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 19:42:44 -0400
-In-Reply-To: <20091016233624.2463.26653.stgit@localhost>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:50601 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035AbZJPXqV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 19:46:21 -0400
+Content-Disposition: inline
+In-Reply-To: <20091016234138.2463.38350.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
+* Tony Lindgren <tony@atomide.com> [091016 16:42]:
+> Use ioremap for omap4 L4 code
 
-This patch adds few necessary peripherals for OMAP4.
+Santosh, can you please check and ack this patch?
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/io.c                   |   18 +++++++++++++++++
- arch/arm/plat-omap/include/mach/io.h       |   29 +++++++++++++++++++++++++---
- arch/arm/plat-omap/include/mach/omap44xx.h |    3 +++
- arch/arm/plat-omap/io.c                    |    8 ++++++++
- 4 files changed, 55 insertions(+), 3 deletions(-)
+Especially some of the ioremap sizes may be wrong. Also, this one
+I cannot boot test, so it's just compile tested.
 
-diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
-index e3a3bad..fc62953 100644
---- a/arch/arm/mach-omap2/io.c
-+++ b/arch/arm/mach-omap2/io.c
-@@ -203,6 +203,24 @@ static struct map_desc omap44xx_io_desc[] __initdata = {
- 		.type		= MT_DEVICE,
- 	},
- 	{
-+		.virtual	= OMAP44XX_EMIF1_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP44XX_EMIF1_PHYS),
-+		.length		= OMAP44XX_EMIF1_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
-+		.virtual	= OMAP44XX_EMIF2_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP44XX_EMIF2_PHYS),
-+		.length		= OMAP44XX_EMIF2_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
-+		.virtual	= OMAP44XX_DMM_VIRT,
-+		.pfn		= __phys_to_pfn(OMAP44XX_DMM_PHYS),
-+		.length		= OMAP44XX_DMM_SIZE,
-+		.type		= MT_DEVICE,
-+	},
-+	{
- 		.virtual	= L4_PER_44XX_VIRT,
- 		.pfn		= __phys_to_pfn(L4_PER_44XX_PHYS),
- 		.length		= L4_PER_44XX_SIZE,
-diff --git a/arch/arm/plat-omap/include/mach/io.h b/arch/arm/plat-omap/include/mach/io.h
-index a8f931a..7e5319f 100644
---- a/arch/arm/plat-omap/include/mach/io.h
-+++ b/arch/arm/plat-omap/include/mach/io.h
-@@ -66,15 +66,19 @@
- #define OMAP2_L3_IO_OFFSET	0x90000000
- #define OMAP2_L3_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L3_IO_OFFSET) /* L3 */
- 
-+
-+#define OMAP2_L4_IO_OFFSET	0xb2000000
-+#define OMAP2_L4_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L4_IO_OFFSET) /* L4 */
-+
- #define OMAP4_L3_IO_OFFSET	0xb4000000
- #define OMAP4_L3_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_L3_IO_OFFSET) /* L3 */
- 
-+#define OMAP4_L3_PER_IO_OFFSET	0xb1100000
-+#define OMAP4_L3_PER_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_L3_PER_IO_OFFSET)
-+
- #define OMAP4_GPMC_IO_OFFSET		0xa9000000
- #define OMAP4_GPMC_IO_ADDRESS(pa)	IOMEM((pa) + OMAP4_GPMC_IO_OFFSET)
- 
--#define OMAP2_L4_IO_OFFSET	0xb2000000
--#define OMAP2_L4_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_L4_IO_OFFSET) /* L4 */
--
- #define OMAP2_EMU_IO_OFFSET		0xaa800000	/* Emulation */
- #define OMAP2_EMU_IO_ADDRESS(pa)	IOMEM((pa) + OMAP2_EMU_IO_OFFSET)
- 
-@@ -214,6 +218,11 @@
- #define L4_PER_44XX_VIRT	(L4_PER_44XX_PHYS + OMAP2_L4_IO_OFFSET)
- #define L4_PER_44XX_SIZE	SZ_4M
- 
-+#define L4_ABE_44XX_PHYS	L4_ABE_44XX_BASE
-+						/* 0x49000000 --> 0xfb000000 */
-+#define L4_ABE_44XX_VIRT	(L4_ABE_44XX_PHYS + OMAP2_L4_IO_OFFSET)
-+#define L4_ABE_44XX_SIZE	SZ_1M
-+
- #define L4_EMU_44XX_PHYS	L4_EMU_44XX_BASE
- 						/* 0x54000000 --> 0xfe800000 */
- #define L4_EMU_44XX_VIRT	(L4_EMU_44XX_PHYS + OMAP2_EMU_IO_OFFSET)
-@@ -225,6 +234,20 @@
- #define OMAP44XX_GPMC_SIZE	SZ_1M
- 
- 
-+#define OMAP44XX_EMIF1_PHYS	OMAP44XX_EMIF1_BASE
-+						/* 0x4c000000 --> 0xfd100000 */
-+#define OMAP44XX_EMIF1_VIRT	(OMAP44XX_EMIF1_PHYS + OMAP4_L3_PER_IO_OFFSET)
-+#define OMAP44XX_EMIF1_SIZE	SZ_1M
-+
-+#define OMAP44XX_EMIF2_PHYS	OMAP44XX_EMIF2_BASE
-+						/* 0x4d000000 --> 0xfd200000 */
-+#define OMAP44XX_EMIF2_VIRT	(OMAP44XX_EMIF2_PHYS + OMAP4_L3_PER_IO_OFFSET)
-+#define OMAP44XX_EMIF2_SIZE	SZ_1M
-+
-+#define OMAP44XX_DMM_PHYS	OMAP44XX_DMM_BASE
-+						/* 0x4e000000 --> 0xfd300000 */
-+#define OMAP44XX_DMM_VIRT	(OMAP44XX_DMM_PHYS + OMAP4_L3_PER_IO_OFFSET)
-+#define OMAP44XX_DMM_SIZE	SZ_1M
- /*
-  * ----------------------------------------------------------------------------
-  * Omap specific register access
-diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h b/arch/arm/plat-omap/include/mach/omap44xx.h
-index 8b4a578..3361897 100644
---- a/arch/arm/plat-omap/include/mach/omap44xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap44xx.h
-@@ -22,6 +22,9 @@
- #define L4_PER_44XX_BASE		0x48000000
- #define L4_EMU_44XX_BASE		0x54000000
- #define L3_44XX_BASE			0x44000000
-+#define OMAP44XX_EMIF1_BASE		0x4c000000
-+#define OMAP44XX_EMIF2_BASE		0x4d000000
-+#define OMAP44XX_DMM_BASE		0x4e000000
- #define OMAP4430_32KSYNCT_BASE		0x4a304000
- #define OMAP4430_CM_BASE		0x4a004000
- #define OMAP4430_PRM_BASE		0x48306000
-diff --git a/arch/arm/plat-omap/io.c b/arch/arm/plat-omap/io.c
-index eb74ab2..93c1d53 100644
---- a/arch/arm/plat-omap/io.c
-+++ b/arch/arm/plat-omap/io.c
-@@ -114,6 +114,14 @@ void __iomem *omap_ioremap(unsigned long p, size_t size, unsigned int type)
- 			return XLATE(p, L4_WK_44XX_PHYS, L4_WK_44XX_VIRT);
- 		if (BETWEEN(p, OMAP44XX_GPMC_PHYS, OMAP44XX_GPMC_SIZE))
- 			return XLATE(p, OMAP44XX_GPMC_PHYS, OMAP44XX_GPMC_VIRT);
-+		if (BETWEEN(p, OMAP44XX_EMIF1_PHYS, OMAP44XX_EMIF1_SIZE))
-+			return XLATE(p, OMAP44XX_EMIF1_PHYS,		\
-+							OMAP44XX_EMIF1_VIRT);
-+		if (BETWEEN(p, OMAP44XX_EMIF2_PHYS, OMAP44XX_EMIF2_SIZE))
-+			return XLATE(p, OMAP44XX_EMIF2_PHYS,		\
-+							OMAP44XX_EMIF2_VIRT);
-+		if (BETWEEN(p, OMAP44XX_DMM_PHYS, OMAP44XX_DMM_SIZE))
-+			return XLATE(p, OMAP44XX_DMM_PHYS, OMAP44XX_DMM_VIRT);
- 		if (BETWEEN(p, L4_PER_44XX_PHYS, L4_PER_44XX_SIZE))
- 			return XLATE(p, L4_PER_44XX_PHYS, L4_PER_44XX_VIRT);
- 		if (BETWEEN(p, L4_EMU_44XX_PHYS, L4_EMU_44XX_SIZE))
+Regards,
 
+Tony
+ 
+> Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/mach-omap2/board-4430sdp.c           |   13 ++++++++++--
+>  arch/arm/mach-omap2/omap-smp.c                |   28 ++++++++++++++++++++-----
+>  arch/arm/mach-omap2/timer-gp.c                |    3 ++-
+>  arch/arm/plat-omap/include/mach/entry-macro.S |    2 ++
+>  arch/arm/plat-omap/include/mach/omap44xx.h    |    5 ----
+>  5 files changed, 37 insertions(+), 14 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> index eb37c40..2a7b901 100644
+> --- a/arch/arm/mach-omap2/board-4430sdp.c
+> +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> @@ -52,8 +52,17 @@ static struct omap_board_config_kernel sdp4430_config[] __initdata = {
+>  
+>  static void __init gic_init_irq(void)
+>  {
+> -	gic_dist_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_DIST_BASE), 29);
+> -	gic_cpu_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
+> +	void __iomem *base;
+> +
+> +	/* Static mapping, never released */
+> +	base = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
+> +	BUG_ON(!base);
+> +	gic_dist_init(0, base, 29);
+> +
+> +	/* Static mapping, never released */
+> +	base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
+> +	BUG_ON(!base);
+> +	gic_cpu_init(0, OMAP44XX_GIC_CPU_BASE);
+>  }
+>  
+>  static void __init omap_4430sdp_init_irq(void)
+> diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
+> index 48ee295..a1b618c 100644
+> --- a/arch/arm/mach-omap2/omap-smp.c
+> +++ b/arch/arm/mach-omap2/omap-smp.c
+> @@ -26,11 +26,11 @@
+>  #include <mach/hardware.h>
+>  
+>  /* Registers used for communicating startup information */
+> -#define OMAP4_AUXCOREBOOT_REG0		(OMAP44XX_VA_WKUPGEN_BASE + 0x800)
+> -#define OMAP4_AUXCOREBOOT_REG1		(OMAP44XX_VA_WKUPGEN_BASE + 0x804)
+> +static void __iomem *omap4_auxcoreboot_reg0;
+> +static void __iomem *omap4_auxcoreboot_reg1;
+>  
+>  /* SCU base address */
+> -static void __iomem *scu_base = OMAP44XX_VA_SCU_BASE;
+> +static void __iomem *scu_base;
+>  
+>  /*
+>   * Use SCU config register to count number of cores
+> @@ -46,6 +46,8 @@ static DEFINE_SPINLOCK(boot_lock);
+>  
+>  void __cpuinit platform_secondary_init(unsigned int cpu)
+>  {
+> +	void __iomem *gic_cpu_base;
+> +
+>  	trace_hardirqs_off();
+>  
+>  	/*
+> @@ -54,7 +56,10 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
+>  	 * for us: do so
+>  	 */
+>  
+> -	gic_cpu_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
+> +	/* Static mapping, never released */
+> +	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
+> +	BUG_ON(!gic_cpu_base);
+> +	gic_cpu_init(0, gic_cpu_base);
+>  
+>  	/*
+>  	 * Synchronise with the boot thread.
+> @@ -79,7 +84,7 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
+>  	 * the AuxCoreBoot1 register is updated with cpu state
+>  	 * A barrier is added to ensure that write buffer is drained
+>  	 */
+> -	__raw_writel(cpu, OMAP4_AUXCOREBOOT_REG1);
+> +	__raw_writel(cpu, omap4_auxcoreboot_reg1);
+>  	smp_wmb();
+>  
+>  	timeout = jiffies + (1 * HZ);
+> @@ -104,7 +109,7 @@ static void __init wakeup_secondary(void)
+>  	 * A barrier is added to ensure that write buffer is drained
+>  	 */
+>  	__raw_writel(virt_to_phys(omap_secondary_startup),	   \
+> -					OMAP4_AUXCOREBOOT_REG0);
+> +					omap4_auxcoreboot_reg0);
+>  	smp_wmb();
+>  
+>  	/*
+> @@ -130,6 +135,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+>  {
+>  	unsigned int ncores = get_core_count();
+>  	unsigned int cpu = smp_processor_id();
+> +	void __iomem *omap4_wkupgen_base;
+>  	int i;
+>  
+>  	/* sanity check */
+> @@ -161,6 +167,16 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+>  	for (i = 0; i < max_cpus; i++)
+>  		set_cpu_present(i, true);
+>  
+> +	/* Never released */
+> +	omap4_wkupgen_base = ioremap(OMAP44XX_WKUPGEN_BASE, SZ_4K);
+> +	BUG_ON(!omap4_wkupgen_base);
+> +	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x800;
+> +	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x804;
+> +
+> +	/* Never released */
+> +	scu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
+> +	BUG_ON(!scu_base);
+> +
+>  	if (max_cpus > 1) {
+>  		/*
+>  		 * Enable the local timer or broadcast device for the
+> diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
+> index e2338c0..cd72970 100644
+> --- a/arch/arm/mach-omap2/timer-gp.c
+> +++ b/arch/arm/mach-omap2/timer-gp.c
+> @@ -231,7 +231,8 @@ static void __init omap2_gp_clocksource_init(void)
+>  static void __init omap2_gp_timer_init(void)
+>  {
+>  #ifdef CONFIG_LOCAL_TIMERS
+> -	twd_base = OMAP2_IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE);
+> +	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
+> +	BUG_ON(!twd_base);
+>  #endif
+>  	omap_dm_timer_init();
+>  
+> diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/plat-omap/include/mach/entry-macro.S
+> index abe0864..3bad928 100644
+> --- a/arch/arm/plat-omap/include/mach/entry-macro.S
+> +++ b/arch/arm/plat-omap/include/mach/entry-macro.S
+> @@ -104,6 +104,8 @@
+>  
+>  		.endm
+>  #else
+> +#define OMAP44XX_VA_GIC_CPU_BASE	OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
+> +
+>  		/*
+>  		 * The interrupt numbering scheme is defined in the
+>  		 * interrupt controller spec.  To wit:
+> diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h b/arch/arm/plat-omap/include/mach/omap44xx.h
+> index b3ba5ac..8b4a578 100644
+> --- a/arch/arm/plat-omap/include/mach/omap44xx.h
+> +++ b/arch/arm/plat-omap/include/mach/omap44xx.h
+> @@ -33,14 +33,9 @@
+>  #define IRQ_SIR_IRQ			0x0040
+>  #define OMAP44XX_GIC_DIST_BASE		0x48241000
+>  #define OMAP44XX_GIC_CPU_BASE		0x48240100
+> -#define OMAP44XX_VA_GIC_CPU_BASE	OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
+>  #define OMAP44XX_SCU_BASE		0x48240000
+> -#define OMAP44XX_VA_SCU_BASE		OMAP2_IO_ADDRESS(OMAP44XX_SCU_BASE)
+>  #define OMAP44XX_LOCAL_TWD_BASE		0x48240600
+> -#define OMAP44XX_VA_LOCAL_TWD_BASE	OMAP2_IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE)
+> -#define OMAP44XX_LOCAL_TWD_SIZE		0x00000100
+>  #define OMAP44XX_WKUPGEN_BASE		0x48281000
+> -#define OMAP44XX_VA_WKUPGEN_BASE	OMAP2_IO_ADDRESS(OMAP44XX_WKUPGEN_BASE)
+>  
+>  #endif /* __ASM_ARCH_OMAP44XX_H */
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
