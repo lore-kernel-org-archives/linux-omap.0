@@ -1,358 +1,363 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-Date: Sat, 17 Oct 2009 16:18:55 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB37D7AA@dbde02.ent.ti.com>
-References: <20091016233624.2463.26653.stgit@localhost>
- <20091016234138.2463.38350.stgit@localhost>
- <20091016234622.GH12576@atomide.com>
+From: John Rigby <jcrigby@gmail.com>
+Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+Date: Sat, 17 Oct 2009 09:12:14 -0600
+Message-ID: <4b73d43f0910170812of187c94oc4931cd3330b88c0@mail.gmail.com>
+References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>
+	 <4AD81DC2.4080607@googlemail.com>
+	 <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com>
+	 <4AD8C959.1000004@googlemail.com>
+	 <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com>
+	 <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>
+	 <4AD9647F.3010505@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46732 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751805AbZJQKtH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 17 Oct 2009 06:49:07 -0400
-In-Reply-To: <20091016234622.GH12576@atomide.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4AD9647F.3010505@googlemail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Dirk Behme <dirk.behme@googlemail.com>
+Cc: Madhusudhan <madhu.cr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Thanks Tony for this ioremap series!!
+=46irst, answers to your questions:
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Saturday, October 17, 2009 5:16 AM
-> To: linux-arm-kernel@lists.infradead.org
-> Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh
-> Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-> 
-> * Tony Lindgren <tony@atomide.com> [091016 16:42]:
-> > Use ioremap for omap4 L4 code
-> 
-> Santosh, can you please check and ack this patch?
-> 
-> Especially some of the ioremap sizes may be wrong. Also, this one
-> I cannot boot test, so it's just compile tested.
+The CIRQ bit in the STAT register is on if the CIRQ is enabled in the
+IE register and clear when disabled in the IE.  That is to say that
+the IE register appears to be working.
 
-I have checked the patch and it looks all right except few typo. Also the scu_base is needed bit earlier. 
-> 
-> > Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> > Signed-off-by: Tony Lindgren <tony@atomide.com>
-> > ---
-> >  arch/arm/mach-omap2/board-4430sdp.c           |   13 ++++++++++--
-> >  arch/arm/mach-omap2/omap-smp.c                |   28
-> ++++++++++++++++++++-----
-> >  arch/arm/mach-omap2/timer-gp.c                |    3 ++-
-> >  arch/arm/plat-omap/include/mach/entry-macro.S |    2 ++
-> >  arch/arm/plat-omap/include/mach/omap44xx.h    |    5 ----
-> >  5 files changed, 37 insertions(+), 14 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-
-> omap2/board-4430sdp.c
-> > index eb37c40..2a7b901 100644
-> > --- a/arch/arm/mach-omap2/board-4430sdp.c
-> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
-> > @@ -52,8 +52,17 @@ static struct omap_board_config_kernel
-> sdp4430_config[] __initdata = {
-> >
-> >  static void __init gic_init_irq(void)
-> >  {
-> > -	gic_dist_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_DIST_BASE), 29);
-> > -	gic_cpu_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
-> > +	void __iomem *base;
-> > +
-> > +	/* Static mapping, never released */
-> > +	base = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
-> > +	BUG_ON(!base);
-> > +	gic_dist_init(0, base, 29);
-> > +
-> > +	/* Static mapping, never released */
-> > +	base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
-Should be "SZ_512"
-> > +	BUG_ON(!base);
-> > +	gic_cpu_init(0, OMAP44XX_GIC_CPU_BASE);
-This should be gic_cpu_init(0, base);
-> >  }
-> >
-> >  static void __init omap_4430sdp_init_irq(void)
-> > diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-
-> smp.c
-> > index 48ee295..a1b618c 100644
-> > --- a/arch/arm/mach-omap2/omap-smp.c
-> > +++ b/arch/arm/mach-omap2/omap-smp.c
-> > @@ -26,11 +26,11 @@
-> >  #include <mach/hardware.h>
-> >
-> >  /* Registers used for communicating startup information */
-> > -#define OMAP4_AUXCOREBOOT_REG0		(OMAP44XX_VA_WKUPGEN_BASE +
-> 0x800)
-> > -#define OMAP4_AUXCOREBOOT_REG1		(OMAP44XX_VA_WKUPGEN_BASE +
-> 0x804)
-> > +static void __iomem *omap4_auxcoreboot_reg0;
-> > +static void __iomem *omap4_auxcoreboot_reg1;
-> >
-> >  /* SCU base address */
-> > -static void __iomem *scu_base = OMAP44XX_VA_SCU_BASE;
-> > +static void __iomem *scu_base;
-> >
-> >  /*
-> >   * Use SCU config register to count number of cores
-> > @@ -46,6 +46,8 @@ static DEFINE_SPINLOCK(boot_lock);
-> >
-> >  void __cpuinit platform_secondary_init(unsigned int cpu)
-> >  {
-> > +	void __iomem *gic_cpu_base;
-> > +
-> >  	trace_hardirqs_off();
-> >
-> >  	/*
-> > @@ -54,7 +56,10 @@ void __cpuinit platform_secondary_init(unsigned int
-> cpu)
-> >  	 * for us: do so
-> >  	 */
-> >
-> > -	gic_cpu_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
-> > +	/* Static mapping, never released */
-> > +	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
-Although underneath static mapping will take care of not doing dual mapping, we can map this ones in gic_init_irq() and use the same variable here. 
-> > +	BUG_ON(!gic_cpu_base);
-> > +	gic_cpu_init(0, gic_cpu_base);
-> >
-> >  	/*
-> >  	 * Synchronise with the boot thread.
-> > @@ -79,7 +84,7 @@ int __cpuinit boot_secondary(unsigned int cpu, struct
-> task_struct *idle)
-> >  	 * the AuxCoreBoot1 register is updated with cpu state
-> >  	 * A barrier is added to ensure that write buffer is drained
-> >  	 */
-> > -	__raw_writel(cpu, OMAP4_AUXCOREBOOT_REG1);
-> > +	__raw_writel(cpu, omap4_auxcoreboot_reg1);
-> >  	smp_wmb();
-> >
-> >  	timeout = jiffies + (1 * HZ);
-> > @@ -104,7 +109,7 @@ static void __init wakeup_secondary(void)
-> >  	 * A barrier is added to ensure that write buffer is drained
-> >  	 */
-> >  	__raw_writel(virt_to_phys(omap_secondary_startup),	   \
-> > -					OMAP4_AUXCOREBOOT_REG0);
-> > +					omap4_auxcoreboot_reg0);
-> >  	smp_wmb();
-> >
-> >  	/*
-> > @@ -130,6 +135,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
-> >  {
-> >  	unsigned int ncores = get_core_count();
-This call will not give correct count. Also there is one more call earlier and hence scu_base ioremaps needs to be done earlier.
-> >  	unsigned int cpu = smp_processor_id();
-> > +	void __iomem *omap4_wkupgen_base;
-> >  	int i;
-> >
-> >  	/* sanity check */
-> > @@ -161,6 +167,16 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
-> >  	for (i = 0; i < max_cpus; i++)
-> >  		set_cpu_present(i, true);
-> >
-> > +	/* Never released */
-> > +	omap4_wkupgen_base = ioremap(OMAP44XX_WKUPGEN_BASE, SZ_4K);
-> > +	BUG_ON(!omap4_wkupgen_base);
-> > +	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x800;
-> > +	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x804;
-Should be "omap4_auxcoreboot_reg1 = omap4_wkupgen_base + 0x804;"
-> > +
-> > +	/* Never released */
-> > +	scu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
-> > +	BUG_ON(!scu_base);
-> > +
-> >  	if (max_cpus > 1) {
-> >  		/*
-> >  		 * Enable the local timer or broadcast device for the
-> > diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-
-> gp.c
-> > index e2338c0..cd72970 100644
-> > --- a/arch/arm/mach-omap2/timer-gp.c
-> > +++ b/arch/arm/mach-omap2/timer-gp.c
-> > @@ -231,7 +231,8 @@ static void __init omap2_gp_clocksource_init(void)
-> >  static void __init omap2_gp_timer_init(void)
-> >  {
-> >  #ifdef CONFIG_LOCAL_TIMERS
-> > -	twd_base = OMAP2_IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE);
-> > +	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
-> > +	BUG_ON(!twd_base);
-> >  #endif
-> >  	omap_dm_timer_init();
-> >
-> > diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S
-> b/arch/arm/plat-omap/include/mach/entry-macro.S
-> > index abe0864..3bad928 100644
-> > --- a/arch/arm/plat-omap/include/mach/entry-macro.S
-> > +++ b/arch/arm/plat-omap/include/mach/entry-macro.S
-> > @@ -104,6 +104,8 @@
-> >
-> >  		.endm
-> >  #else
-> > +#define OMAP44XX_VA_GIC_CPU_BASE
-> 	OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
-> > +
-> >  		/*
-> >  		 * The interrupt numbering scheme is defined in the
-> >  		 * interrupt controller spec.  To wit:
-> > diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h b/arch/arm/plat-
-> omap/include/mach/omap44xx.h
-> > index b3ba5ac..8b4a578 100644
-> > --- a/arch/arm/plat-omap/include/mach/omap44xx.h
-> > +++ b/arch/arm/plat-omap/include/mach/omap44xx.h
-> > @@ -33,14 +33,9 @@
-> >  #define IRQ_SIR_IRQ			0x0040
-> >  #define OMAP44XX_GIC_DIST_BASE		0x48241000
-> >  #define OMAP44XX_GIC_CPU_BASE		0x48240100
-> > -#define OMAP44XX_VA_GIC_CPU_BASE
-> 	OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
-> >  #define OMAP44XX_SCU_BASE		0x48240000
-> > -#define OMAP44XX_VA_SCU_BASE
-> 	OMAP2_IO_ADDRESS(OMAP44XX_SCU_BASE)
-> >  #define OMAP44XX_LOCAL_TWD_BASE		0x48240600
-> > -#define OMAP44XX_VA_LOCAL_TWD_BASE
-> 	OMAP2_IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE)
-> > -#define OMAP44XX_LOCAL_TWD_SIZE		0x00000100
-> >  #define OMAP44XX_WKUPGEN_BASE		0x48281000
-> > -#define OMAP44XX_VA_WKUPGEN_BASE
-> 	OMAP2_IO_ADDRESS(OMAP44XX_WKUPGEN_BASE)
-> >
-> >  #endif /* __ASM_ARCH_OMAP44XX_H */
+Yes the card has no pending irqs.
 
-Here is the patch on top of ioremap series which should fix above mentioned things. With below patch + two serial related patches the kernel boots on OMAP4430.
+IBG is set really early when the card is discovered.  First interrupt
+does not occur until much later when the libertas driver asks for
+interrupts.
 
->From c7db626e320b73c02ce7578e81b8b8c65c41c955 Mon Sep 17 00:00:00 2001
-From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Date: Sat, 17 Oct 2009 15:25:00 +0530
-Subject: [PATCH] omap: ioremap fixes for omap4
+The lines have pull ups.
 
-This patch fixes the below ioremap for omap4 patch.
+Now a thought.
 
-http://patchwork.kernel.org/patch/54457/
+Do we  need to set DDIR in the CMD reg for CIRQ to work correctly?
+Right now it is set at the beginning of data read commands, cleared on
+data write commands and otherwise untouched.  If DDIR is used
+unconditionally to set the direction of the data line buffers then it
+would make sense that we need to set the direction to in in order to
+monitor the DAT1 line.  I will try this Monday when I get back to
+work.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/mach-omap2/board-4430sdp.c      |    4 ++--
- arch/arm/mach-omap2/omap-smp.c           |   23 ++++++++++-------------
- arch/arm/plat-omap/common.c              |    3 +++
- arch/arm/plat-omap/include/mach/common.h |    3 +++
- 4 files changed, 18 insertions(+), 15 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index 50a62f2..4b644a9 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -60,9 +60,9 @@ static void __init gic_init_irq(void)
- 	gic_dist_init(0, base, 29);
- 
- 	/* Static mapping, never released */
--	base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
-+	gic_cpu_base_addr = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
- 	BUG_ON(!base);
--	gic_cpu_init(0, OMAP44XX_GIC_CPU_BASE);
-+	gic_cpu_init(0, gic_cpu_base_addr);
- }
- 
- static void __init omap_4430sdp_init_irq(void)
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index a1b618c..8813ac2 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -24,6 +24,7 @@
- #include <asm/localtimer.h>
- #include <asm/smp_scu.h>
- #include <mach/hardware.h>
-+#include <mach/common.h>
- 
- /* Registers used for communicating startup information */
- static void __iomem *omap4_auxcoreboot_reg0;
-@@ -46,8 +47,6 @@ static DEFINE_SPINLOCK(boot_lock);
- 
- void __cpuinit platform_secondary_init(unsigned int cpu)
- {
--	void __iomem *gic_cpu_base;
--
- 	trace_hardirqs_off();
- 
- 	/*
-@@ -55,11 +54,7 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
- 	 * core (e.g. timer irq), then they will not have been enabled
- 	 * for us: do so
- 	 */
--
--	/* Static mapping, never released */
--	gic_cpu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
--	BUG_ON(!gic_cpu_base);
--	gic_cpu_init(0, gic_cpu_base);
-+	gic_cpu_init(0, gic_cpu_base_addr);
- 
- 	/*
- 	 * Synchronise with the boot thread.
-@@ -125,7 +120,13 @@ static void __init wakeup_secondary(void)
-  */
- void __init smp_init_cpus(void)
- {
--	unsigned int i, ncores = get_core_count();
-+	unsigned int i, ncores;
-+
-+	/* Never released */
-+	scu_base = ioremap(OMAP44XX_SCU_BASE, SZ_256);
-+	BUG_ON(!scu_base);
-+
-+	ncores = get_core_count();
- 
- 	for (i = 0; i < ncores; i++)
- 		set_cpu_possible(i, true);
-@@ -171,11 +172,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
- 	omap4_wkupgen_base = ioremap(OMAP44XX_WKUPGEN_BASE, SZ_4K);
- 	BUG_ON(!omap4_wkupgen_base);
- 	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x800;
--	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x804;
--
--	/* Never released */
--	scu_base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
--	BUG_ON(!scu_base);
-+	omap4_auxcoreboot_reg1 = omap4_wkupgen_base + 0x804;
- 
- 	if (max_cpus > 1) {
- 		/*
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 1aa58d2..8b3ef17 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -49,6 +49,9 @@ int omap_bootloader_tag_len;
- struct omap_board_config_kernel *omap_board_config;
- int omap_board_config_size;
- 
-+/* used by omap-smp.c and board-4430sdp.c */
-+void __iomem *gic_cpu_base_addr;
-+
- static const void *get_config(u16 tag, size_t len, int skip, size_t *len_out)
- {
- 	struct omap_board_config_kernel *kinfo = NULL;
-diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
-index fdeab42..064f173 100644
---- a/arch/arm/plat-omap/include/mach/common.h
-+++ b/arch/arm/plat-omap/include/mach/common.h
-@@ -31,6 +31,9 @@
- 
- struct sys_timer;
- 
-+/* used by omap-smp.c and board-4430sdp.c */
-+extern void __iomem *gic_cpu_base_addr;
-+
- extern void omap_map_common_io(void);
- extern struct sys_timer omap_timer;
- #if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
--- 
-1.5.4.7
+John
 
 
 
-Regards,
-Santosh
+On Sat, Oct 17, 2009 at 12:30 AM, Dirk Behme <dirk.behme@googlemail.com=
+> wrote:
+> John Rigby wrote:
+>>
+>> It appears to never get cleared in the status register.
+>
+> In the OMAP status register, correct? (just to get the correct
+> understanding)
+>
+>> I added some printks to sdio_irq.c to print the pending interrupts i=
+n
+>> the SDIO_CCCR_INTx register for the card and there are no pending
+>> interrupts so I don't think it is a card driver or card issue.
+>
+> Ok, in other words, this does mean that the card has no interrupt ass=
+erted
+> any more (i.e. it is acknowledged by upper layers, e.g. libertas driv=
+er),
+> but OMAP thinks there is still an interrupt. Right? This would mean i=
+t is an
+> OMAP/omap_hsmmc.c issue. Right?
+>
+>> It would be funny if the TRM was wrong and the CIRQ bit is really
+>> cleared by writing 1 to it. =A0I'll try that.
+>
+> Have you checked if
+>
+> - IBG (and 4 bit mode) is correctly set before the first interrupt is=
+ fired
+> (just to make sure that we don't have a function calling order issue)=
+?
+>
+> - your HW design has a pull up on DAT1 line (as required by the SD ph=
+ysical
+> spec)?
+>
+> Best regards
+>
+> Dirk
+>
+>> On Fri, Oct 16, 2009 at 3:14 PM, Madhusudhan <madhu.cr@ti.com> wrote=
+:
+>>>
+>>>> -----Original Message-----
+>>>> From: Dirk Behme [mailto:dirk.behme@googlemail.com]
+>>>> Sent: Friday, October 16, 2009 2:28 PM
+>>>> To: Madhusudhan Chikkature
+>>>> Cc: linux-mmc@vger.kernel.org; John Rigby; linux-omap@vger.kernel.=
+org;
+>>>> Steve Sakoman
+>>>> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+>>>>
+>>>> Madhusudhan Chikkature wrote:
+>>>>>
+>>>>> Hi Dirk,
+>>>>>
+>>>>> I am inlining the patch so that it helps review.
+>>>>
+>>>> ...
+>>>>>
+>>>>> @@ -1165,8 +1178,15 @@ static void omap_hsmmc_set_ios(struct mm
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0break;
+>>>>> =A0 =A0case MMC_BUS_WIDTH_4:
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, CON, con & ~D=
+W8);
+>>>>> - =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_WRITE(host->base, HCTL,
+>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_READ(host->base,=
+ HCTL) | FOUR_BIT);
+>>>>> + =A0 =A0 =A0 =A0 =A0 if (mmc_card_sdio(host->mmc->card)) {
+>>>>>
+>>>>> I wish it could be moved to "enable_sdio_irq" so that we can avoi=
+d
+>>>>
+>>>> inclusion of
+>>>>>
+>>>>> card.h and checking the type of card in the host controller drive=
+r.
+>>>>
+>>>> Yes, this would be the real clean way. But ...
+>>>>
+>>>>> But the
+>>>>> dependancy on 4-bit seems to be a problem here.
+>>>>
+>>>> ... most probably we have to find a workaround until (if ever?) ab=
+ove
+>>>> clean implementation is available.
+>>>>
+>>>> What we need is after SDIO mode and bus width is known, and before=
+ the
+>>>> first interrupt comes, to set IBG.
+>>>>
+>>>>> On the problems being discussed on testing is the interrupt sourc=
+e
+>>>>
+>>>> geting
+>>>>>
+>>>>> cleared at the SDIO card level upon genaration of the CIRQ? If no=
+t it
+>>>>
+>>>> remains
+>>>>>
+>>>>> asserted.
+>>>>
+>>>> Yes, this seems to be exactly the problem John reports in his foll=
+ow
+>>>> up mail.
+>>>>
+>>>> Any hint how to clear SDIO interrupt?
+>>>>
+>>> On the controller side I guess it is cleared when you pass "disable=
+" in
+>>> the
+>>> enable_sdio_irq" fn. This happens when you call mmc_signal_sdio_irq=
+=2E
+>>>
+>>> I am not too sure about how it gets disabled from the card side. I =
+see
+>>> that
+>>> SDIO core has a function "sdio_release_irq" which is used by the sd=
+io
+>>> uart
+>>> driver. The usage of this could give a clue.
+>>>
+>>> Regards,
+>>> Madhu
+>>>
+>>>> Many thanks
+>>>>
+>>>> Dirk
+>>>>
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_WRITE(host->base=
+, HCTL,
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0OMAP_HSMMC_READ(host->base, HCTL)
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0| IBG | FOUR_BIT);
+>>>>> + =A0 =A0 =A0 =A0 =A0 } else {
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_WRITE(host->base=
+, HCTL,
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0OMAP_HSMMC_READ(host->base, HCTL)
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0| FOUR_BIT);
+>>>>> + =A0 =A0 =A0 =A0 =A0 }
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0break;
+>>>>> =A0 =A0case MMC_BUS_WIDTH_1:
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, CON, con & ~D=
+W8);
+>>>>> @@ -1512,6 +1532,24 @@ static int omap_hsmmc_disable_fclk(struc
+>>>>> =A0 =A0return 0;
+>>>>> =A0}
+>>>>>
+>>>>> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int
+>>>>
+>>>> enable)
+>>>>>
+>>>>> +{
+>>>>> + =A0 struct omap_hsmmc_host *host =3D mmc_priv(mmc);
+>>>>> + =A0 u32 ie, ise;
+>>>>> +
+>>>>> + =A0 ise =3D OMAP_HSMMC_READ(host->base, ISE);
+>>>>> + =A0 ie =A0=3D OMAP_HSMMC_READ(host->base, IE);
+>>>>> +
+>>>>> + =A0 if (enable) {
+>>>>> + =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_WRITE(host->base, ISE, ise | CIR=
+Q_ENABLE);
+>>>>> + =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_WRITE(host->base, IE, =A0ie =A0|=
+ CIRQ_ENABLE);
+>>>>> + =A0 } else {
+>>>>> + =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_WRITE(host->base, ISE, ise & ~CI=
+RQ_ENABLE);
+>>>>> + =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_WRITE(host->base, IE, =A0ie =A0&=
+ ~CIRQ_ENABLE);
+>>>>> + =A0 }
+>>>>> +
+>>>>> +}
+>>>>> +
+>>>>> =A0static const struct mmc_host_ops omap_hsmmc_ops =3D {
+>>>>> =A0 =A0.enable =3D omap_hsmmc_enable_fclk,
+>>>>> =A0 =A0.disable =3D omap_hsmmc_disable_fclk,
+>>>>> @@ -1519,7 +1557,7 @@ static const struct mmc_host_ops omap_hs
+>>>>> =A0 =A0.set_ios =3D omap_hsmmc_set_ios,
+>>>>> =A0 =A0.get_cd =3D omap_hsmmc_get_cd,
+>>>>> =A0 =A0.get_ro =3D omap_hsmmc_get_ro,
+>>>>> - =A0 /* NYET -- enable_sdio_irq */
+>>>>> + =A0 .enable_sdio_irq =3D omap_hsmmc_enable_sdio_irq,
+>>>>> =A0};
+>>>>>
+>>>>> =A0static const struct mmc_host_ops omap_hsmmc_ps_ops =3D {
+>>>>> @@ -1529,7 +1567,7 @@ static const struct mmc_host_ops omap_hs
+>>>>> =A0 =A0.set_ios =3D omap_hsmmc_set_ios,
+>>>>> =A0 =A0.get_cd =3D omap_hsmmc_get_cd,
+>>>>> =A0 =A0.get_ro =3D omap_hsmmc_get_ro,
+>>>>> - =A0 /* NYET -- enable_sdio_irq */
+>>>>> + =A0 .enable_sdio_irq =3D omap_hsmmc_enable_sdio_irq,
+>>>>> =A0};
+>>>>>
+>>>>> =A0#ifdef CONFIG_DEBUG_FS
+>>>>> @@ -1734,7 +1772,7 @@ static int __init omap_hsmmc_probe(struc
+>>>>> =A0 =A0mmc->max_seg_size =3D mmc->max_req_size;
+>>>>>
+>>>>> =A0 =A0mmc->caps |=3D MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEE=
+D |
+>>>>> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMC_CAP_WAIT_WHILE_BUSY;
+>>>>> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MMC_CAP_WAIT_WHILE_BUSY | MMC_CA=
+P_SDIO_IRQ;
+>>>>>
+>>>>> =A0 =A0if (mmc_slot(host).wires >=3D 8)
+>>>>> =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_8_BIT_DATA;
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>> John Rigby wrote:
+>>>>>>>
+>>>>>>> I have seen several discussions about lack of sdio irq support =
+in the
+>>>>>>> hsmmc driver but no patches. =A0Has anyone on this list impleme=
+nted
+>>>>>>> this
+>>>>>>> and/or can anyone point me to patches?
+>>>>>>
+>>>>>> What a coincidence ;)
+>>>>>>
+>>>>>> I'm currently working on this. See attachment what I currently h=
+ave.
+>>>>>> It is compile tested only against recent omap linux head. I don'=
+t have
+>>>>>> a board using SDIO at the moment, so no real testing possible :(
+>>>>>>
+>>>>>> Some background, maybe it helps people to step in:
+>>>>>>
+>>>>>> Gumstix OMAP3 based Overo air board connects Marvell 88W8686 wif=
+i by
+>>>>>> MMC port 2 in 4 bit configuration [1]. The wifi performance is q=
+uite
+>>>>>> bad (~100kB/s). There is some rumor that this might be SDIO irq
+>>>>>> related [2]. There was an attempt to fix this [3] already, but t=
+his
+>>>>>> doesn't work [4]. Having this, I started to look into it.
+>>>>>>
+>>>>>> I used [3], the TI Davinci driver [5] (supporting SDIO irq), the=
+ SDIO
+>>>>>> Simplified Specification [6] and the OMAP35x TRM [7] as starting
+>>>>
+>>>> points.
+>>>>>>
+>>>>>> Unfortunately, the Davinci MMC registers and irqs are different
+>>>>>> (Davinci has a dedicated SDIO irq). But combining [3] and [5] he=
+lps to
+>>>>>> get an idea what has to be done.
+>>>>>>
+>>>>>> I think the main issues of [3] were that it doesn't enable IBG f=
+or 4
+>>>>>> bit mode ([6] chapter 8.1.2) and that mmc_omap_irq() doesn't res=
+et the
+>>>>>> irq bits.
+>>>>>>
+>>>>>> Topics I still open:
+>>>>>>
+>>>>>> - Is it always necessary to deal with IE _and_ ISE register? I'm=
+ not
+>>>>>> totally clear what the difference between these two registers ar=
+e ;)
+>>>>>> And in which order they have to be set.
+>>>>>>
+>>>>>> - Davinci driver [5] in line 1115 checks for data line to call
+>>>>>> mmc_signal_sdio_irq() for irq enable.
+>>>>>>
+>>>>>> - Davinci driver deals with SDIO in xfer_done() (line 873)
+>>>>>>
+>>>>>> - Davinci driver sets block size to 64 if SDIO in line 701
+>>>>>>
+>>>>>> It would be quite nice if anybody likes to comment on attachment=
+ and
+>>>>>> help testing.
+>>>>>>
+>>>>>> Many thanks and best regards
+>>>>>>
+>>>>>> Dirk
+>>>>>>
+>>>>>> [1] http://gumstix.net/wiki/index.php?title=3DOvero_Wifi
+>>>>>>
+>>>>>> [2] http://groups.google.com/group/beagleboard/msg/14e822778c5ee=
+b56
+>>>>>>
+>>>>>> [3] http://groups.google.com/group/beagleboard/msg/d0eb69f4c2067=
+3be
+>>>>>>
+>>>>>> [4] http://groups.google.com/group/beagleboard/msg/5cdfe2a319531=
+937
+>>>>>>
+>>>>>> [5]
+>>>>>> http://arago-project.org/git/projects/?p=3Dlinux-
+>>>>
+>>>>
+>>>> davinci.git;a=3Dblob;f=3Ddrivers/mmc/host/davinci_mmc.c;h=3D1bf058=
+7250614c6d8abf
+>>>> e02028b96e0e47148ac8;hb=3DHEAD
+>>>>>>
+>>>>>> [6] http://www.sdcard.org/developers/tech/sdio/sd_bluetooth_spec=
+/
+>>>>>>
+>>>>>> [7] http://focus.ti.com/lit/ug/spruf98c/spruf98c.pdf
+>>>>>>
+>>>>>>
+>>>>>
+>>>>>
+>>>
+>>>
+>>
+>
+>
