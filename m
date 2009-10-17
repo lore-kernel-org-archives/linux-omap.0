@@ -1,75 +1,247 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 24xx/n8x0 booting again, linux-omap updated to -rc5
-Date: Fri, 16 Oct 2009 17:18:21 -0700
-Message-ID: <20091017001821.GI12576@atomide.com>
-References: <20091016012747.GA12576@atomide.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+Date: Sat, 17 Oct 2009 08:30:23 +0200
+Message-ID: <4AD9647F.3010505@googlemail.com>
+References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>	 <4AD81DC2.4080607@googlemail.com>	 <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com>	 <4AD8C959.1000004@googlemail.com>	 <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com> <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58671 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750771AbZJQASS (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 16 Oct 2009 20:18:18 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1Myx02-0000ZG-Qa
-	for linux-omap@vger.kernel.org; Sat, 17 Oct 2009 00:18:23 +0000
-Content-Disposition: inline
-In-Reply-To: <20091016012747.GA12576@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: John Rigby <jcrigby@gmail.com>
+Cc: Madhusudhan <madhu.cr@ti.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-* Tony Lindgren <tony@atomide.com> [091015 18:34]:
-> Hi all,
-> 
-> Thanks to Paul's "OMAP2xxx clock: set up clockdomain pointer in struct clk"
-> patch, we got 24xx booting again both in mainline and in linux-omap.
-> 
-> The following patch is also needed to change the n8x0 serial console CMDLINE
-> from ttyS0 to ttyS2 as the port numbering now matches the physical ports.
-> The patch is already in linux-omap, but not yet in mainline.
-> 
-> Also, I've rebuilt linux-omap again on top of -rc5. Will merge in the plat
-> header patches tomorrow.
+John Rigby wrote:
+> It appears to never get cleared in the status register.
 
-Well I did not quite get all that stuff integrated yet as I ended up doing
-some more ioremap changes under split l3/l4 patches.
+In the OMAP status register, correct? (just to get the correct 
+understanding)
 
-Also fixed the mach-omap1/serial.c that got broken with the earlier
-"Eliminate OMAP_MAX_NR_PORTS" patch.
+> I added some printks to sdio_irq.c to print the pending interrupts in
+> the SDIO_CCCR_INTx register for the card and there are no pending
+> interrupts so I don't think it is a card driver or card issue.
 
-Omap1 still had the old unused null terminator in the
-serial_platform_data array that had to be removed to keep things
-booting.
- 
-> Cheers,
-> 
-> Tony
+Ok, in other words, this does mean that the card has no interrupt 
+asserted any more (i.e. it is acknowledged by upper layers, e.g. 
+libertas driver), but OMAP thinks there is still an interrupt. Right? 
+This would mean it is an OMAP/omap_hsmmc.c issue. Right?
 
-> From 71d3bff80f77cdd286303f19308058c6c844458f Mon Sep 17 00:00:00 2001
-> From: Tony Lindgren <tony@atomide.com>
-> Date: Thu, 15 Oct 2009 18:13:28 -0700
-> Subject: [PATCH] omap: Fix console serial port number for n8x0
+> It would be funny if the TRM was wrong and the CIRQ bit is really
+> cleared by writing 1 to it.  I'll try that.
+
+Have you checked if
+
+- IBG (and 4 bit mode) is correctly set before the first interrupt is 
+fired (just to make sure that we don't have a function calling order 
+issue)?
+
+- your HW design has a pull up on DAT1 line (as required by the SD 
+physical spec)?
+
+Best regards
+
+Dirk
+
+> On Fri, Oct 16, 2009 at 3:14 PM, Madhusudhan <madhu.cr@ti.com> wrote:
+>>
+>>> -----Original Message-----
+>>> From: Dirk Behme [mailto:dirk.behme@googlemail.com]
+>>> Sent: Friday, October 16, 2009 2:28 PM
+>>> To: Madhusudhan Chikkature
+>>> Cc: linux-mmc@vger.kernel.org; John Rigby; linux-omap@vger.kernel.org;
+>>> Steve Sakoman
+>>> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+>>>
+>>> Madhusudhan Chikkature wrote:
+>>>> Hi Dirk,
+>>>>
+>>>> I am inlining the patch so that it helps review.
+>>> ...
+>>>> @@ -1165,8 +1178,15 @@ static void omap_hsmmc_set_ios(struct mm
+>>>>             break;
+>>>>     case MMC_BUS_WIDTH_4:
+>>>>             OMAP_HSMMC_WRITE(host->base, CON, con & ~DW8);
+>>>> -           OMAP_HSMMC_WRITE(host->base, HCTL,
+>>>> -                   OMAP_HSMMC_READ(host->base, HCTL) | FOUR_BIT);
+>>>> +           if (mmc_card_sdio(host->mmc->card)) {
+>>>>
+>>>> I wish it could be moved to "enable_sdio_irq" so that we can avoid
+>>> inclusion of
+>>>> card.h and checking the type of card in the host controller driver.
+>>> Yes, this would be the real clean way. But ...
+>>>
+>>>> But the
+>>>> dependancy on 4-bit seems to be a problem here.
+>>> ... most probably we have to find a workaround until (if ever?) above
+>>> clean implementation is available.
+>>>
+>>> What we need is after SDIO mode and bus width is known, and before the
+>>> first interrupt comes, to set IBG.
+>>>
+>>>> On the problems being discussed on testing is the interrupt source
+>>> geting
+>>>> cleared at the SDIO card level upon genaration of the CIRQ? If not it
+>>> remains
+>>>> asserted.
+>>> Yes, this seems to be exactly the problem John reports in his follow
+>>> up mail.
+>>>
+>>> Any hint how to clear SDIO interrupt?
+>>>
+>> On the controller side I guess it is cleared when you pass "disable" in the
+>> enable_sdio_irq" fn. This happens when you call mmc_signal_sdio_irq.
+>>
+>> I am not too sure about how it gets disabled from the card side. I see that
+>> SDIO core has a function "sdio_release_irq" which is used by the sdio uart
+>> driver. The usage of this could give a clue.
+>>
+>> Regards,
+>> Madhu
+>>
+>>> Many thanks
+>>>
+>>> Dirk
+>>>
+>>>> +                   OMAP_HSMMC_WRITE(host->base, HCTL,
+>>>> +                                    OMAP_HSMMC_READ(host->base, HCTL)
+>>>> +                                    | IBG | FOUR_BIT);
+>>>> +           } else {
+>>>> +                   OMAP_HSMMC_WRITE(host->base, HCTL,
+>>>> +                                    OMAP_HSMMC_READ(host->base, HCTL)
+>>>> +                                    | FOUR_BIT);
+>>>> +           }
+>>>>             break;
+>>>>     case MMC_BUS_WIDTH_1:
+>>>>             OMAP_HSMMC_WRITE(host->base, CON, con & ~DW8);
+>>>> @@ -1512,6 +1532,24 @@ static int omap_hsmmc_disable_fclk(struc
+>>>>     return 0;
+>>>>  }
+>>>>
+>>>> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int
+>>> enable)
+>>>> +{
+>>>> +   struct omap_hsmmc_host *host = mmc_priv(mmc);
+>>>> +   u32 ie, ise;
+>>>> +
+>>>> +   ise = OMAP_HSMMC_READ(host->base, ISE);
+>>>> +   ie  = OMAP_HSMMC_READ(host->base, IE);
+>>>> +
+>>>> +   if (enable) {
+>>>> +           OMAP_HSMMC_WRITE(host->base, ISE, ise | CIRQ_ENABLE);
+>>>> +           OMAP_HSMMC_WRITE(host->base, IE,  ie  | CIRQ_ENABLE);
+>>>> +   } else {
+>>>> +           OMAP_HSMMC_WRITE(host->base, ISE, ise & ~CIRQ_ENABLE);
+>>>> +           OMAP_HSMMC_WRITE(host->base, IE,  ie  & ~CIRQ_ENABLE);
+>>>> +   }
+>>>> +
+>>>> +}
+>>>> +
+>>>>  static const struct mmc_host_ops omap_hsmmc_ops = {
+>>>>     .enable = omap_hsmmc_enable_fclk,
+>>>>     .disable = omap_hsmmc_disable_fclk,
+>>>> @@ -1519,7 +1557,7 @@ static const struct mmc_host_ops omap_hs
+>>>>     .set_ios = omap_hsmmc_set_ios,
+>>>>     .get_cd = omap_hsmmc_get_cd,
+>>>>     .get_ro = omap_hsmmc_get_ro,
+>>>> -   /* NYET -- enable_sdio_irq */
+>>>> +   .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
+>>>>  };
+>>>>
+>>>>  static const struct mmc_host_ops omap_hsmmc_ps_ops = {
+>>>> @@ -1529,7 +1567,7 @@ static const struct mmc_host_ops omap_hs
+>>>>     .set_ios = omap_hsmmc_set_ios,
+>>>>     .get_cd = omap_hsmmc_get_cd,
+>>>>     .get_ro = omap_hsmmc_get_ro,
+>>>> -   /* NYET -- enable_sdio_irq */
+>>>> +   .enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
+>>>>  };
+>>>>
+>>>>  #ifdef CONFIG_DEBUG_FS
+>>>> @@ -1734,7 +1772,7 @@ static int __init omap_hsmmc_probe(struc
+>>>>     mmc->max_seg_size = mmc->max_req_size;
+>>>>
+>>>>     mmc->caps |= MMC_CAP_MMC_HIGHSPEED | MMC_CAP_SD_HIGHSPEED |
+>>>> -                MMC_CAP_WAIT_WHILE_BUSY;
+>>>> +                MMC_CAP_WAIT_WHILE_BUSY | MMC_CAP_SDIO_IRQ;
+>>>>
+>>>>     if (mmc_slot(host).wires >= 8)
+>>>>             mmc->caps |= MMC_CAP_8_BIT_DATA;
+>>>>
+>>>>
+>>>>
+>>>>
+>>>>
+>>>>> John Rigby wrote:
+>>>>>> I have seen several discussions about lack of sdio irq support in the
+>>>>>> hsmmc driver but no patches.  Has anyone on this list implemented this
+>>>>>> and/or can anyone point me to patches?
+>>>>> What a coincidence ;)
+>>>>>
+>>>>> I'm currently working on this. See attachment what I currently have.
+>>>>> It is compile tested only against recent omap linux head. I don't have
+>>>>> a board using SDIO at the moment, so no real testing possible :(
+>>>>>
+>>>>> Some background, maybe it helps people to step in:
+>>>>>
+>>>>> Gumstix OMAP3 based Overo air board connects Marvell 88W8686 wifi by
+>>>>> MMC port 2 in 4 bit configuration [1]. The wifi performance is quite
+>>>>> bad (~100kB/s). There is some rumor that this might be SDIO irq
+>>>>> related [2]. There was an attempt to fix this [3] already, but this
+>>>>> doesn't work [4]. Having this, I started to look into it.
+>>>>>
+>>>>> I used [3], the TI Davinci driver [5] (supporting SDIO irq), the SDIO
+>>>>> Simplified Specification [6] and the OMAP35x TRM [7] as starting
+>>> points.
+>>>>> Unfortunately, the Davinci MMC registers and irqs are different
+>>>>> (Davinci has a dedicated SDIO irq). But combining [3] and [5] helps to
+>>>>> get an idea what has to be done.
+>>>>>
+>>>>> I think the main issues of [3] were that it doesn't enable IBG for 4
+>>>>> bit mode ([6] chapter 8.1.2) and that mmc_omap_irq() doesn't reset the
+>>>>> irq bits.
+>>>>>
+>>>>> Topics I still open:
+>>>>>
+>>>>> - Is it always necessary to deal with IE _and_ ISE register? I'm not
+>>>>> totally clear what the difference between these two registers are ;)
+>>>>> And in which order they have to be set.
+>>>>>
+>>>>> - Davinci driver [5] in line 1115 checks for data line to call
+>>>>> mmc_signal_sdio_irq() for irq enable.
+>>>>>
+>>>>> - Davinci driver deals with SDIO in xfer_done() (line 873)
+>>>>>
+>>>>> - Davinci driver sets block size to 64 if SDIO in line 701
+>>>>>
+>>>>> It would be quite nice if anybody likes to comment on attachment and
+>>>>> help testing.
+>>>>>
+>>>>> Many thanks and best regards
+>>>>>
+>>>>> Dirk
+>>>>>
+>>>>> [1] http://gumstix.net/wiki/index.php?title=Overo_Wifi
+>>>>>
+>>>>> [2] http://groups.google.com/group/beagleboard/msg/14e822778c5eeb56
+>>>>>
+>>>>> [3] http://groups.google.com/group/beagleboard/msg/d0eb69f4c20673be
+>>>>>
+>>>>> [4] http://groups.google.com/group/beagleboard/msg/5cdfe2a319531937
+>>>>>
+>>>>> [5]
+>>>>> http://arago-project.org/git/projects/?p=linux-
+>>> davinci.git;a=blob;f=drivers/mmc/host/davinci_mmc.c;h=1bf0587250614c6d8abf
+>>> e02028b96e0e47148ac8;hb=HEAD
+>>>>> [6] http://www.sdcard.org/developers/tech/sdio/sd_bluetooth_spec/
+>>>>>
+>>>>> [7] http://focus.ti.com/lit/ug/spruf98c/spruf98c.pdf
+>>>>>
+>>>>>
+>>>>
+>>>>
+>>
+>>
 > 
-> With the recent changes omap serial ports match the physical
-> numbering like they should. Fix the kernel CMDLINE accordingly
-> so console works.
-> 
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> 
-> diff --git a/arch/arm/configs/n8x0_defconfig b/arch/arm/configs/n8x0_defconfig
-> index 8da75de..264f52b 100644
-> --- a/arch/arm/configs/n8x0_defconfig
-> +++ b/arch/arm/configs/n8x0_defconfig
-> @@ -304,7 +304,7 @@ CONFIG_ALIGNMENT_TRAP=y
->  CONFIG_ZBOOT_ROM_TEXT=0x10C08000
->  CONFIG_ZBOOT_ROM_BSS=0x10200000
->  # CONFIG_ZBOOT_ROM is not set
-> -CONFIG_CMDLINE="root=1f03 rootfstype=jffs2 console=ttyS0,115200n8"
-> +CONFIG_CMDLINE="root=1f03 rootfstype=jffs2 console=ttyS2,115200n8"
->  # CONFIG_XIP_KERNEL is not set
->  # CONFIG_KEXEC is not set
->  
 
