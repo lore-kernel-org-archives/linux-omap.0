@@ -1,7 +1,7 @@
 From: Dirk Behme <dirk.behme@googlemail.com>
 Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
-Date: Sat, 17 Oct 2009 19:36:46 +0200
-Message-ID: <4ADA00AE.7020508@googlemail.com>
+Date: Sat, 17 Oct 2009 20:08:46 +0200
+Message-ID: <4ADA082E.8060304@googlemail.com>
 References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>	 <4AD81DC2.4080607@googlemail.com>	 <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com>	 <4AD8C959.1000004@googlemail.com>	 <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com>	 <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>	 <4AD9647F.3010505@googlemail.com> <4b73d43f0910170812of187c94oc4931cd3330b88c0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -9,9 +9,24 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-mmc-owner@vger.kernel.org>
 In-Reply-To: <4b73d43f0910170812of187c94oc4931cd3330b88c0@mail.gmail.com>
 Sender: linux-mmc-owner@vger.kernel.org
-To: John Rigby <jcrigby@gmail.com>, Madhusudhan <madhu.cr@ti.com>
-Cc: linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>
+To: linux-omap@vger.kernel.org
+Cc: John Rigby <jcrigby@gmail.com>, Madhusudhan <madhu.cr@ti.com>, linux-mmc@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>, "Thompson, Bernard" <bthompson@ti.com>
 List-Id: linux-omap@vger.kernel.org
+
+
+Does anybody have access to omap_hsmmc driver of "the SDK 1.0.2 
+kernel"? Or has any hint where to get it from?
+
+https://community.ti.com/forums/p/6290/23867.aspx#23873
+
+talks about
+
+"For the SDIO solution, the SDK 1.0.2 kernel supports SDIO out of the 
+box ..."
+
+Thanks
+
+Dirk
 
 John Rigby wrote:
 > First, answers to your questions:
@@ -27,9 +42,7 @@ John Rigby wrote:
 > interrupts.
 > 
 > The lines have pull ups.
-
-Ok. This all sounds fine. Thanks for testing/checking all this!
-
+> 
 > Now a thought.
 > 
 > Do we  need to set DDIR in the CMD reg for CIRQ to work correctly?
@@ -39,19 +52,11 @@ Ok. This all sounds fine. Thanks for testing/checking all this!
 > would make sense that we need to set the direction to in in order to
 > monitor the DAT1 line.  I will try this Monday when I get back to
 > work.
-
-Sounds like it's time to re-read TRM again.
-
-If somebody has additionally ideas, this would be really helpful!
-
-Madhu: Do you think it would be possible to check inside TI if 
-somebody has SDIO working on OMAP3 and maybe can provide some example 
-code?
-
-Many thanks and best regards
-
-Dirk
-
+> 
+> John
+> 
+> 
+> 
 > On Sat, Oct 17, 2009 at 12:30 AM, Dirk Behme <dirk.behme@googlemail.com> wrote:
 >> John Rigby wrote:
 >>> It appears to never get cleared in the status register.
