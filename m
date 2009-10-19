@@ -1,42 +1,36 @@
-From: Andrejs Cainikovs <AndrejsC@GlobalAutomationSystems.com>
-Subject: Re: OMAP2420-HS flashing question
-Date: Mon, 19 Oct 2009 23:27:26 +0300
-Message-ID: <4ADCCBAE.4030702@GlobalAutomationSystems.com>
-References: <4ADCA2BF.3020105@globalautomationsystems.com> <13B9B4C6EF24D648824FF11BE8967162039B318B04@dlee02.ent.ti.com>
+From: Linus Walleij <linus.ml.walleij@gmail.com>
+Subject: Re: [PATCH v2 1/2] arm: a driver for on-chip ETM and ETB
+Date: Mon, 19 Oct 2009 22:32:47 +0200
+Message-ID: <63386a3d0910191332y7162d4c4vec625bcda24a8dcb@mail.gmail.com>
+References: <1255453611-16119-1-git-send-email-virtuoso@slind.org>
+	 <20091013174413.GA1134@n2100.arm.linux.org.uk>
+	 <71a0d6ff0910190557q25cb1da2o1bcd6bdd5348c881@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from b124.csc.lv ([193.138.189.124]:56375 "EHLO
-	mail.globalautomationsystems.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752118AbZJSU2A (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Oct 2009 16:28:00 -0400
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B318B04@dlee02.ent.ti.com>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:35068 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932287AbZJSUco (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 16:32:44 -0400
+Received: by fxm18 with SMTP id 18so5547377fxm.37
+        for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 13:32:48 -0700 (PDT)
+In-Reply-To: <71a0d6ff0910190557q25cb1da2o1bcd6bdd5348c881@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Alexander Shishkin <virtuoso@slind.org>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Woodruff, Richard wrote:
->> I've googled that OMAP HS are checking some kind of signature (applications
->> should be signed with the special tool (OST Tools)) so the developer must own
->> the keys for particular CPU? It is possible to turn off the HS option so I'll
->> be able to work with non-signed binaries?
->> The problem is that I want to get kernel running on custom OMAP2420-HS board
->> but have no keys.
->>     
->
-> With out keys it's mostly impossible to introduce new boot code into the system.
->
-> There isn't a practical way to 'turn off HS' with out destroying the omap chip itself.
->
-> The way to add code would be through what ever mechanism the OEM has left to add code into the system (if any).  From there depending on software some kind of KEXEC could be attempted.
->
-> Regards,
-> Richard W.
->   
-Thanks Richard, unfortunately this is what I've expected to hear.
+2009/10/19 Alexander Shishkin <virtuoso@slind.org>:
 
-Regards,
-Andrejs Cainikovs.
+> That said, I'm personally not overly concerned about the support for
+> earlier versions of those macrocells and if you maintain that those
+> are better off implemented as AMBA drivers, I've not problem doing
+> that.
+
+If people are using older versions, they can hardcode the peripheral
+ID when they define the AMBA device in their board setup. This
+effectively deactivates the probe for device ID:s.
+
+So it's safe to use the AMBA PrimeCell abstraction anyway.
+
+Linus Walleij
