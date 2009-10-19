@@ -1,39 +1,73 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: MMC_CAP_SDIO_IRQ for omap 3430
-Date: Mon, 19 Oct 2009 10:29:11 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B318894@dlee02.ent.ti.com>
-References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>
-	 <4AD81DC2.4080607@googlemail.com>
-	 <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com>
-	 <4AD8C959.1000004@googlemail.com>
-	 <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com>
- <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>
- <4ADB4604.2090704@googlemail.com>
- <13B9B4C6EF24D648824FF11BE8967162039B3184F0@dlee02.ent.ti.com>
- <4ADC7D2A.5090507@googlemail.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 1/2] twl4030: Do not dereference null pointer in error
+ path
+Date: Mon, 19 Oct 2009 17:52:31 +0200
+Message-ID: <20091019155230.GF3885@sortiz.org>
+References: <1254323515-30866-1-git-send-email-ilkka.koskinen@nokia.com>
+ <F80267346F10C541946CBE8909F1C39E12170A3880@NOK-EUMSG-02.mgdnok.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4ADC7D2A.5090507@googlemail.com>
-Content-Language: en-US
-Sender: linux-mmc-owner@vger.kernel.org
-To: Dirk Behme <dirk.behme@googlemail.com>
-Cc: John Rigby <jcrigby@gmail.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "linux-mmc@vger.kernel.org" <linux-mmc@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Steve Sakoman <sakoman@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.21]:13650 "EHLO
+	orsmga101.jf.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932205AbZJSPuu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 11:50:50 -0400
+Content-Disposition: inline
+In-Reply-To: <F80267346F10C541946CBE8909F1C39E12170A3880@NOK-EUMSG-02.mgdnok.nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ilkka.koskinen@nokia.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
+
+Hi Ilkka,
+
+On Fri, Oct 16, 2009 at 04:21:41PM +0200, ilkka.koskinen@nokia.com wrote:
+> 
+> Hi Samuel,
+> 
+> What is the status of this patch and the other one:
+> [PATCH 2/2] twl4030: Enable low-power mode to 32KHz oscillator
+I'm sorry but it seems I havent received those 2 patches. Could you please
+re-send them ?
+
+Cheers,
+Samuel.
 
 
-> From: Dirk Behme [mailto:dirk.behme@googlemail.com]
-> Sent: Monday, October 19, 2009 9:52 AM
-> To: Woodruff, Richard
+> Cheers, Ilkka
+> 
+> >-----Original Message-----
+> >From: Koskinen Ilkka (Nokia-D/Tampere) 
+> >Sent: 30 September, 2009 18:12
+> >To: linux-kernel@vger.kernel.org; sameo@linux.intel.com
+> >Cc: linux-omap@vger.kernel.org; Koskinen Ilkka (Nokia-D/Tampere)
+> >Subject: [PATCH 1/2] twl4030: Do not dereference null pointer 
+> >in error path
+> >
+> >Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+> >---
+> > drivers/mfd/twl4030-core.c |    2 +-
+> > 1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> >diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+> >index e424cf6..8cf0a02 100644
+> >--- a/drivers/mfd/twl4030-core.c
+> >+++ b/drivers/mfd/twl4030-core.c
+> >@@ -792,7 +792,7 @@ twl4030_probe(struct i2c_client *client, 
+> >const struct i2c_device_id *id)
+> > 			twl->client = i2c_new_dummy(client->adapter,
+> > 					twl->address);
+> > 			if (!twl->client) {
+> >-				dev_err(&twl->client->dev,
+> >+				dev_err(&client->dev,
+> > 					"can't attach client %d\n", i);
+> > 				status = -ENOMEM;
+> > 				goto fail;
+> >-- 
+> >1.6.0.4
+> >
+> >
 
-> Do you have any idea about MMCHS_HCTL.IBG?
-
-Not off the top of my head.
-
-I was working with someone who hit issues so I did a quick spec read and came up with previous list.
-
-For what its worth when I get a chance I'll take a peek.
-
-Regards,
-Richard W.
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
