@@ -1,67 +1,205 @@
 From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: [PATCH 1/5] mfd: twl4030-power: Rename DEVGROUP to DEV_GRP
-Date: Mon, 19 Oct 2009 15:10:44 +0300
-Message-ID: <1255954244-28873-1-git-send-email-amit.kucheria@verdurent.com>
+Subject: [PATCH 3/5] mfd: twl4030-power: Move power-related data closer together in the header file
+Date: Mon, 19 Oct 2009 15:10:52 +0300
+Message-ID: <1255954252-29017-1-git-send-email-amit.kucheria@verdurent.com>
 References: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755493AbZJSMKv@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:49883 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755710AbZJSMLS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 08:11:18 -0400
 In-Reply-To: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: List Linux Kernel <linux-kernel@vger.kernel.org>
 Cc: sameo@linux.intel.com, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
 
-Stick to the names used in the reference manual
+Bring together all the TWL power-related data in the header file
 
 Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
 Cc: sameo@linux.intel.com
 Cc: linux-omap@vger.kernel.org
 ---
- drivers/mfd/twl4030-power.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ include/linux/i2c/twl4030.h |  154 ++++++++++++++++++++++---------------------
+ 1 files changed, 78 insertions(+), 76 deletions(-)
 
-diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index d423e0c..82e3bcb 100644
---- a/drivers/mfd/twl4030-power.c
-+++ b/drivers/mfd/twl4030-power.c
-@@ -69,12 +69,12 @@ static u8 twl4030_start_script_address = 0x2b;
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 508824e..4bc2836 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -221,13 +221,89 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
  
- /* resource configuration registers */
+ /*----------------------------------------------------------------------*/
  
--#define DEVGROUP_OFFSET		0
-+#define DEV_GRP_OFFSET		0
- #define TYPE_OFFSET		1
++struct twl4030_bci_platform_data {
++	int *battery_tmp_tbl;
++	unsigned int tblsize;
++};
++
++/* TWL4030_GPIO_MAX (18) GPIOs, with interrupts */
++struct twl4030_gpio_platform_data {
++	int		gpio_base;
++	unsigned	irq_base, irq_end;
++
++	/* package the two LED signals as output-only GPIOs? */
++	bool		use_leds;
++
++	/* gpio-n should control VMMC(n+1) if BIT(n) in mmc_cd is set */
++	u8		mmc_cd;
++
++	/* if BIT(N) is set, or VMMC(n+1) is linked, debounce GPIO-N */
++	u32		debounce;
++
++	/* For gpio-N, bit (1 << N) in "pullups" is set if that pullup
++	 * should be enabled.  Else, if that bit is set in "pulldowns",
++	 * that pulldown is enabled.  Don't waste power by letting any
++	 * digital inputs float...
++	 */
++	u32		pullups;
++	u32		pulldowns;
++
++	int		(*setup)(struct device *dev,
++				unsigned gpio, unsigned ngpio);
++	int		(*teardown)(struct device *dev,
++				unsigned gpio, unsigned ngpio);
++};
++
++struct twl4030_madc_platform_data {
++	int		irq_line;
++};
++
++/* Boards have uniqe mappings of {row, col} --> keycode.
++ * Column and row are 8 bits each, but range only from 0..7.
++ * a PERSISTENT_KEY is "always on" and never reported.
++ */
++#define PERSISTENT_KEY(r, c)	KEY((r), (c), KEY_RESERVED)
++
++struct twl4030_keypad_data {
++	const struct matrix_keymap_data *keymap_data;
++	unsigned rows;
++	unsigned cols;
++	bool rep;
++};
++
++enum twl4030_usb_mode {
++	T2_USB_MODE_ULPI = 1,
++	T2_USB_MODE_CEA2011_3PIN = 2,
++};
++
++struct twl4030_usb_data {
++	enum twl4030_usb_mode	usb_mode;
++};
++
++struct twl4030_ins {
++	u16 pmb_message;
++	u8 delay;
++};
++
++struct twl4030_script {
++	struct twl4030_ins *script;
++	unsigned size;
++	u8 flags;
++#define TWL4030_WRST_SCRIPT	(1<<0)
++#define TWL4030_WAKEUP12_SCRIPT	(1<<1)
++#define TWL4030_WAKEUP3_SCRIPT	(1<<2)
++#define TWL4030_SLEEP_SCRIPT	(1<<3)
++};
++
++/*----------------------------------------------------------------------*/
++
+ /* Power bus message definitions */
  
--/* Bit positions */
--#define DEVGROUP_SHIFT		5
--#define DEVGROUP_MASK		(7 << DEVGROUP_SHIFT)
-+/* Bit positions in the registers */
-+#define DEV_GRP_SHIFT		5
-+#define DEV_GRP_MASK		(7 << DEV_GRP_SHIFT)
- #define TYPE_SHIFT		0
- #define TYPE_MASK		(7 << TYPE_SHIFT)
- #define TYPE2_SHIFT		3
-@@ -328,7 +328,7 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+ /* The TWL4030/5030 splits its power-management resources (the various
+  * regulators, clock and reset lines) into 3 processor groups - P1, P2 and
+  * P3. These groups can then be configured to transition between sleep, wait-on
+- * and active states by sending messages to the power bus.  See Section 5.4.2
+- * Power Resources of TWL4030 TRM
++ * (OFF) and active states by sending messages to the power bus.  See Section
++ * 5.4.2 Power Resources of TWL4030 TRM
+  */
  
- 	/* Set resource group */
- 	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
--				rconfig_addr + DEVGROUP_OFFSET);
-+				rconfig_addr + DEV_GRP_OFFSET);
- 	if (err) {
- 		pr_err("TWL4030 Resource %d group could not be read\n",
- 			rconfig->resource);
-@@ -336,10 +336,10 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- 	}
+ /* Processor groups */
+@@ -312,80 +388,6 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
  
- 	if (rconfig->devgroup >= 0) {
--		grp &= ~DEVGROUP_MASK;
--		grp |= rconfig->devgroup << DEVGROUP_SHIFT;
-+		grp &= ~DEV_GRP_MASK;
-+		grp |= rconfig->devgroup << DEV_GRP_SHIFT;
- 		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
--					grp, rconfig_addr + DEVGROUP_OFFSET);
-+					grp, rconfig_addr + DEV_GRP_OFFSET);
- 		if (err < 0) {
- 			pr_err("TWL4030 failed to program devgroup\n");
- 			return err;
+ /*----------------------------------------------------------------------*/
+ 
+-struct twl4030_bci_platform_data {
+-	int *battery_tmp_tbl;
+-	unsigned int tblsize;
+-};
+-
+-/* TWL4030_GPIO_MAX (18) GPIOs, with interrupts */
+-struct twl4030_gpio_platform_data {
+-	int		gpio_base;
+-	unsigned	irq_base, irq_end;
+-
+-	/* package the two LED signals as output-only GPIOs? */
+-	bool		use_leds;
+-
+-	/* gpio-n should control VMMC(n+1) if BIT(n) in mmc_cd is set */
+-	u8		mmc_cd;
+-
+-	/* if BIT(N) is set, or VMMC(n+1) is linked, debounce GPIO-N */
+-	u32		debounce;
+-
+-	/* For gpio-N, bit (1 << N) in "pullups" is set if that pullup
+-	 * should be enabled.  Else, if that bit is set in "pulldowns",
+-	 * that pulldown is enabled.  Don't waste power by letting any
+-	 * digital inputs float...
+-	 */
+-	u32		pullups;
+-	u32		pulldowns;
+-
+-	int		(*setup)(struct device *dev,
+-				unsigned gpio, unsigned ngpio);
+-	int		(*teardown)(struct device *dev,
+-				unsigned gpio, unsigned ngpio);
+-};
+-
+-struct twl4030_madc_platform_data {
+-	int		irq_line;
+-};
+-
+-/* Boards have uniqe mappings of {row, col} --> keycode.
+- * Column and row are 8 bits each, but range only from 0..7.
+- * a PERSISTENT_KEY is "always on" and never reported.
+- */
+-#define PERSISTENT_KEY(r, c)	KEY((r), (c), KEY_RESERVED)
+-
+-struct twl4030_keypad_data {
+-	const struct matrix_keymap_data *keymap_data;
+-	unsigned rows;
+-	unsigned cols;
+-	bool rep;
+-};
+-
+-enum twl4030_usb_mode {
+-	T2_USB_MODE_ULPI = 1,
+-	T2_USB_MODE_CEA2011_3PIN = 2,
+-};
+-
+-struct twl4030_usb_data {
+-	enum twl4030_usb_mode	usb_mode;
+-};
+-
+-struct twl4030_ins {
+-	u16 pmb_message;
+-	u8 delay;
+-};
+-
+-struct twl4030_script {
+-	struct twl4030_ins *script;
+-	unsigned size;
+-	u8 flags;
+-#define TWL4030_WRST_SCRIPT	(1<<0)
+-#define TWL4030_WAKEUP12_SCRIPT	(1<<1)
+-#define TWL4030_WAKEUP3_SCRIPT	(1<<2)
+-#define TWL4030_SLEEP_SCRIPT	(1<<3)
+-};
+-
+ struct twl4030_resconfig {
+ 	u8 resource;
+ 	u8 devgroup;	/* Processor group that Power resource belongs to */
 -- 
 1.6.3.3
+
