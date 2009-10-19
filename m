@@ -1,207 +1,88 @@
 From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 5/5] mfd: twl4030-power: Optimised power scripts for
- the rx51
-Date: Mon, 19 Oct 2009 21:15:37 +0200
-Message-ID: <20091019191536.GB30203@sortiz.org>
+Subject: Re: [PATCH 1/5] mfd: twl4030-power: Rename DEVGROUP to DEV_GRP
+Date: Mon, 19 Oct 2009 21:26:46 +0200
+Message-ID: <20091019192646.GC30203@sortiz.org>
 References: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com>
- <1255954268-29162-1-git-send-email-amit.kucheria@verdurent.com>
+ <1255954244-28873-1-git-send-email-amit.kucheria@verdurent.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757320AbZJSTOq@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mga10.intel.com ([192.55.52.92]:10406 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755745AbZJSTZm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 15:25:42 -0400
 Content-Disposition: inline
-In-Reply-To: <1255954268-29162-1-git-send-email-amit.kucheria@verdurent.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
+In-Reply-To: <1255954244-28873-1-git-send-email-amit.kucheria@verdurent.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Amit Kucheria <amit.kucheria@verdurent.com>
+Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
 
 Hi Amit,
 
-On Mon, Oct 19, 2009 at 03:11:08PM +0300, Amit Kucheria wrote:
-> The power scripts optimisation was mainly done by:
-> Tero Kristo <tero.kristo@nokia.com> and
-> Arnaud Mandy <ext-arnaud.2.mandy@nokia.com>
-> 
-> I'm only refactoring and testing it against the mainline kernel.
-Fine with me but if you want me to carry this patch, I'd like to get an ACK
-from Tony or one of the 2 above mentioned Nokia developers.
+I've applied patches 1,2 and 3 to my for-next branch.
+I dont think patch 4 is really useful, and I'll wait for an ACK from Tony or
+Nokia before pushing patch 5.
+
+Thanks for your work.
 
 Cheers,
 Samuel.
 
-
+On Mon, Oct 19, 2009 at 03:10:44PM +0300, Amit Kucheria wrote:
+> Stick to the names used in the reference manual
+> 
 > Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> Cc: Samuel Ortiz <sameo@linux.intel.com>
-> Cc: Tero Kristo <tero.kristo@nokia.com>
+> Cc: sameo@linux.intel.com
 > Cc: linux-omap@vger.kernel.org
 > ---
->  arch/arm/mach-omap2/board-rx51-peripherals.c |  118 ++++++++++++++++++--------
->  1 files changed, 82 insertions(+), 36 deletions(-)
+>  drivers/mfd/twl4030-power.c |   16 ++++++++--------
+>  1 files changed, 8 insertions(+), 8 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> index c1af532..d933050 100644
-> --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> @@ -292,15 +292,9 @@ static struct twl4030_usb_data rx51_usb_data = {
+> diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+> index d423e0c..82e3bcb 100644
+> --- a/drivers/mfd/twl4030-power.c
+> +++ b/drivers/mfd/twl4030-power.c
+> @@ -69,12 +69,12 @@ static u8 twl4030_start_script_address = 0x2b;
 >  
->  static struct twl4030_ins sleep_on_seq[] __initdata = {
->  /*
-> - * Turn off VDD1 and VDD2.
-> + * Turn off everything
->   */
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-> -/*
-> - * And also turn off the OMAP3 PLLs and the sysclk output.
-> - */
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_OFF), 3},
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 1, 0, RES_STATE_SLEEP), 2},
->  };
+>  /* resource configuration registers */
 >  
->  static struct twl4030_script sleep_on_script __initdata = {
-> @@ -311,14 +305,9 @@ static struct twl4030_script sleep_on_script __initdata = {
+> -#define DEVGROUP_OFFSET		0
+> +#define DEV_GRP_OFFSET		0
+>  #define TYPE_OFFSET		1
 >  
->  static struct twl4030_ins wakeup_seq[] __initdata = {
->  /*
-> - * Reenable the OMAP3 PLLs.
-> - * Wakeup VDD1 and VDD2.
-> - * Reenable sysclk output.
-> + * Reenable everything
->   */
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 1, 0, RES_STATE_ACTIVE), 2},
->  };
+> -/* Bit positions */
+> -#define DEVGROUP_SHIFT		5
+> -#define DEVGROUP_MASK		(7 << DEVGROUP_SHIFT)
+> +/* Bit positions in the registers */
+> +#define DEV_GRP_SHIFT		5
+> +#define DEV_GRP_MASK		(7 << DEV_GRP_SHIFT)
+>  #define TYPE_SHIFT		0
+>  #define TYPE_MASK		(7 << TYPE_SHIFT)
+>  #define TYPE2_SHIFT		3
+> @@ -328,7 +328,7 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
 >  
->  static struct twl4030_script wakeup_script __initdata = {
-> @@ -329,10 +318,9 @@ static struct twl4030_script wakeup_script __initdata = {
+>  	/* Set resource group */
+>  	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
+> -				rconfig_addr + DEVGROUP_OFFSET);
+> +				rconfig_addr + DEV_GRP_OFFSET);
+>  	if (err) {
+>  		pr_err("TWL4030 Resource %d group could not be read\n",
+>  			rconfig->resource);
+> @@ -336,10 +336,10 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
+>  	}
 >  
->  static struct twl4030_ins wakeup_p3_seq[] __initdata = {
->  /*
-> - * Wakeup VDD1 (dummy to be able to insert a delay)
-> - * Enable CLKEN
-> + * Reenable everything
->   */
-> -	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_ACTIVE), 3},
-> +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 1, 0, RES_STATE_ACTIVE), 2},
->  };
->  
->  static struct twl4030_script wakeup_p3_script __initdata = {
-> @@ -353,12 +341,11 @@ static struct twl4030_ins wrst_seq[] __initdata = {
->  	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
->  	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
->  		0x13},
-> -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 2, RES_STATE_WRST), 0x13},
->  	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF), 0x13},
->  	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
->  	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
->  	{MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
-> -	{MSG_SINGULAR(DEV_GRP_P1, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
-> +	{MSG_SINGULAR(DEV_GRP_P3, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
->  	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
->  };
->  
-> @@ -380,22 +367,81 @@ static struct twl4030_script *twl4030_scripts[] __initdata = {
->  };
->  
->  static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
-> -	{ .resource = RES_VINTANA1, .devgroup = -1, .type = -1, .type2 = 1 },
-> -	{ .resource = RES_VINTANA2, .devgroup = -1, .type = -1, .type2 = 1 },
-> -	{ .resource = RES_VINTDIG, .devgroup = -1, .type = -1, .type2 = 1 },
-> -	{ .resource = RES_VMMC1, .devgroup = -1, .type = -1, .type2 = 3},
-> -	{ .resource = RES_VMMC2, .devgroup = DEV_GRP_NULL, .type = -1,
-> -	  .type2 = 3},
-> -	{ .resource = RES_VAUX1, .devgroup = -1, .type = -1, .type2 = 3},
-> -	{ .resource = RES_VAUX2, .devgroup = -1, .type = -1, .type2 = 3},
-> -	{ .resource = RES_VAUX3, .devgroup = -1, .type = -1, .type2 = 3},
-> -	{ .resource = RES_VAUX4, .devgroup = -1, .type = -1, .type2 = 3},
-> -	{ .resource = RES_VPLL2, .devgroup = -1, .type = -1, .type2 = 3},
-> -	{ .resource = RES_VDAC, .devgroup = -1, .type = -1, .type2 = 3},
-> -	{ .resource = RES_VSIM, .devgroup = DEV_GRP_NULL, .type = -1,
-> -	  .type2 = 3},
-> -	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P3, .type = -1,
-> -		.type2 = 1 },
-> +	{ .resource = RES_VDD1, .devgroup = -1,
-> +	  .type = 1, .type2 = -1, .remap_off = RES_STATE_OFF,
-> +	  .remap_sleep = RES_STATE_OFF
-> +	},
-> +	{ .resource = RES_VDD2, .devgroup = -1,
-> +	  .type = 1, .type2 = -1, .remap_off = RES_STATE_OFF,
-> +	  .remap_sleep = RES_STATE_OFF
-> +	},
-> +	{ .resource = RES_VPLL1, .devgroup = -1,
-> +	  .type = 1, .type2 = -1, .remap_off = RES_STATE_OFF,
-> +	  .remap_sleep = RES_STATE_OFF
-> +	},
-> +	{ .resource = RES_VPLL2, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VAUX1, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VAUX2, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VAUX3, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VAUX4, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VMMC1, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VMMC2, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VDAC, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VSIM, .devgroup = -1,
-> +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +	  .type = -1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +	  .type = -1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_VIO, .devgroup = DEV_GRP_P3,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +	  .type = 1, .type2 = -1 , .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_REGEN, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_32KCLKOUT, .devgroup = -1,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_RESET, .devgroup = -1,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
-> +	{ .resource = RES_Main_Ref, .devgroup = -1,
-> +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> +	},
->  	{ 0, 0},
->  };
->  
+>  	if (rconfig->devgroup >= 0) {
+> -		grp &= ~DEVGROUP_MASK;
+> -		grp |= rconfig->devgroup << DEVGROUP_SHIFT;
+> +		grp &= ~DEV_GRP_MASK;
+> +		grp |= rconfig->devgroup << DEV_GRP_SHIFT;
+>  		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+> -					grp, rconfig_addr + DEVGROUP_OFFSET);
+> +					grp, rconfig_addr + DEV_GRP_OFFSET);
+>  		if (err < 0) {
+>  			pr_err("TWL4030 failed to program devgroup\n");
+>  			return err;
 > -- 
 > 1.6.3.3
 > 
