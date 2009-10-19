@@ -1,115 +1,53 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 12/17] OMAP2/3: Do not enable AUTOIDLE in interrupt
- controller
-Date: Mon, 19 Oct 2009 12:18:34 +0200
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A210F69EEFFB@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <> <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-8-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
- <1255690150-16853-13-git-send-email-tero.kristo@nokia.com>
- <13B9B4C6EF24D648824FF11BE8967162039B2A021C@dlee02.ent.ti.com>
- <004f01ca4e88$be2a6a50$3d1018ac@am.dhcp.ti.com>
- <13B9B4C6EF24D648824FF11BE8967162039B317F66@dlee02.ent.ti.com>
- <005001ca4e8b$ea107c10$3d1018ac@am.dhcp.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27899 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754732AbZJSKSu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 06:18:50 -0400
-In-Reply-To: <005001ca4e8b$ea107c10$3d1018ac@am.dhcp.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Amit Kucheria <amit.kucheria@verdurent.com>
+Subject: [PATCH 2/5] mfd: twl4030-power: Add comments for the register and bit layout
+Date: Mon, 19 Oct 2009 15:10:48 +0300
+Message-ID: <1255954248-28945-1-git-send-email-amit.kucheria@verdurent.com>
+References: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755827AbZJSMKw@vger.kernel.org>
+In-Reply-To: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: List Linux Kernel <linux-kernel@vger.kernel.org>
+Cc: sameo@linux.intel.com, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: girishsg@ti.com, r-woodruff2@ti.com, linux-omap@vger.kernel.org
-Cc: jouni.hogander@nokia.com
 
+Describe how the resource registers are laid out and the various bit-fields in
+them.
+
+Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
+Cc: sameo@linux.intel.com
+Cc: linux-omap@vger.kernel.org
+---
+ drivers/mfd/twl4030-power.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
+index 82e3bcb..2c38ac1 100644
+--- a/drivers/mfd/twl4030-power.c
++++ b/drivers/mfd/twl4030-power.c
+@@ -67,14 +67,22 @@ static u8 twl4030_start_script_address = 0x2b;
+ #define R_KEY_1			0xC0
+ #define R_KEY_2			0x0C
  
-
->-----Original Message-----
->From: ext Girish S G [mailto:girishsg@ti.com] 
->Sent: 16 October, 2009 21:10
->To: 'Woodruff, Richard'; Kristo Tero (Nokia-D/Tampere); 
->linux-omap@vger.kernel.org
->Cc: Hogander Jouni (Nokia-D/Tampere)
->Subject: RE: [PATCH 12/17] OMAP2/3: Do not enable AUTOIDLE in 
->interrupt controller
->
->
->
->> -----Original Message-----
->> From: Woodruff, Richard [mailto:r-woodruff2@ti.com]
->> Sent: Friday, October 16, 2009 1:04 PM
->> To: Ghongdemath, Girish; 'Tero Kristo'; linux-omap@vger.kernel.org
->> Cc: 'Jouni Hogander'
->> Subject: RE: [PATCH 12/17] OMAP2/3: Do not enable AUTOIDLE 
->in interrupt controller
->
->
->> 
->> There was one report from a custom board when it made a 
->difference.  I've not tried to double check
->> this data.  I don't have the reporters setup so there is no 
->guarantee I could reproduce anyway.  In
->> general optimization seemed to make sense.
->
->I second it.
->
->
->Regards,
->Girish
->
->
-
-Is there errata number available for this issue by the way? I could attach this to the patch.
-
-Anyway, I guess the optimization would look something like this:
-
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 210a806..7a98321 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -93,6 +93,8 @@ u32 voltage_off_while_idle;
-                OMAP3430_ST_GPT5_MASK|OMAP3430_ST_GPT4_MASK|\
-                OMAP3430_ST_GPT3_MASK|OMAP3430_ST_GPT2_MASK)
-
-+#define INTC_SYSCONFIG                 0x10
+-/* resource configuration registers */
+-
++/* resource configuration registers
++   <RESOURCE>_DEV_GRP   at address 'n+0'
++   <RESOURCE>_TYPE      at address 'n+1'
++   <RESOURCE>_REMAP     at address 'n+2'
++   <RESOURCE>_DEDICATED at address 'n+3'
++*/
+ #define DEV_GRP_OFFSET		0
+ #define TYPE_OFFSET		1
+ 
+ /* Bit positions in the registers */
 +
- struct power_state {
-        struct powerdomain *pwrdm;
-        u32 next_state;
-@@ -505,6 +507,12 @@ void omap_sram_idle(void)
-                prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-                omap3_enable_io_chain();
-        }
-+       /*
-+        * Disable INTC autoidle as it can cause interrupt controller
-+        * to enter unknown state with right combination of sleep / wakeup
-+        * transitions
-+        */
-+       omap_writel(0x0, OMAP34XX_IC_BASE + INTC_SYSCONFIG);
-
-        /*
-        * On EMU/HS devices ROM code restores a SRDC value
-@@ -561,6 +569,8 @@ void omap_sram_idle(void)
-                                                OMAP3430_GR_MOD,
-                                                OMAP3_PRM_VOLTCTRL_OFFSET);
-        }
-+       /* Re-enable interrupt controller autoidle */
-+       omap_writel(OMAP3430_AUTOIDLE, OMAP34XX_IC_BASE + INTC_SYSCONFIG);
-
-        /*
-         * Enable smartreflex after WFI. Only needed if we
---
-1.5.4.3
++/* <RESOURCE>_DEV_GRP */
+ #define DEV_GRP_SHIFT		5
+ #define DEV_GRP_MASK		(7 << DEV_GRP_SHIFT)
++
++/* <RESOURCE>_TYPE */
+ #define TYPE_SHIFT		0
+ #define TYPE_MASK		(7 << TYPE_SHIFT)
+ #define TYPE2_SHIFT		3
+-- 
+1.6.3.3
