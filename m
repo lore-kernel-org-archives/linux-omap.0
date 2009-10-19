@@ -1,71 +1,45 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-Date: Mon, 19 Oct 2009 12:57:50 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB37D82D@dbde02.ent.ti.com>
-References: <20091016233624.2463.26653.stgit@localhost>
- <20091016234138.2463.38350.stgit@localhost>
- <20091016234622.GH12576@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB37D7AA@dbde02.ent.ti.com>
- <20091017161947.GK12576@atomide.com> <20091019002416.GM12576@atomide.com>
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 6/8] RX-51: Audio: Add usage of regulator framework to
+ control VMMC2
+Date: Mon, 19 Oct 2009 12:13:00 +0300
+Message-ID: <20091019091300.GA17452@esdhcp037198.research.nokia.com>
+References: <1255003137-1034-1-git-send-email-eduardo.valentin@nokia.com>
+ <1255003137-1034-7-git-send-email-eduardo.valentin@nokia.com>
+ <20091008132619.GE29176@rakim.wolfsonmicro.main>
+ <20091012090455.GC13234@esdhcp037198.research.nokia.com>
+ <20091012092104.GD3308@rakim.wolfsonmicro.main>
+Reply-To: eduardo.valentin@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45514 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753503AbZJSH2A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 03:28:00 -0400
-In-Reply-To: <20091019002416.GM12576@atomide.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.122.230]:53083 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750912AbZJSJMm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 05:12:42 -0400
+Content-Disposition: inline
+In-Reply-To: <20091012092104.GD3308@rakim.wolfsonmicro.main>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, ext Tony Lindgren <tony@atomide.com>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, Jarkko Nikula <jhnikula@gmail.com>, Linux-OMAP <linux-omap@vger.kernel.org>, ALSA-Devel <alsa-devel@vger.kernel.org>
 
-Tony,
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Monday, October 19, 2009 5:54 AM
-> To: Shilimkar, Santosh
-> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-> 
-> * Tony Lindgren <tony@atomide.com> [091017 09:19]:
-> > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [091017 03:49]:
-> > > Thanks Tony for this ioremap series!!
-> > >
-> > > > -----Original Message-----
-> > > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > > Sent: Saturday, October 17, 2009 5:16 AM
-> > > > To: linux-arm-kernel@lists.infradead.org
-> > > > Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh
-> > > > Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-> > > >
-> > > > * Tony Lindgren <tony@atomide.com> [091016 16:42]:
-> > > > > Use ioremap for omap4 L4 code
-> > > >
-> > > > Santosh, can you please check and ack this patch?
-> > > >
-> > > > Especially some of the ioremap sizes may be wrong. Also, this one
-> > > > I cannot boot test, so it's just compile tested.
-> > >
-> > > I have checked the patch and it looks all right except few typo. Also
-> the scu_base is needed bit earlier.
-> 
-> <snip>
-> 
-> > > Here is the patch on top of ioremap series which should fix above
-> mentioned things. With below patch + two serial related patches the kernel
-> boots on OMAP4430.
-> >
-> > Great, will update. Thanks for taking the time to fix it!
-> 
-> Here's this one updated with Santosh's fix merged in.
-V2 has one typo which I think I also missed in my patch.
->+	/* Static mapping, never released */
->+	gic_cpu_base_addr = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
->+	BUG_ON(!base);
-Should be BUG_ON(!gic_cpu_base_addr);
+Hi,
 
-Regards,
-Santosh
+On Mon, Oct 12, 2009 at 11:21:04AM +0200, Mark Brown wrote:
+> On Mon, Oct 12, 2009 at 12:04:55PM +0300, Eduardo Valentin wrote:
+> 
+> > Right. Should we add 4 instances of drvdd and 2 of iovdd? So, naming those would be like:
+> 
+> No, if there's multiple pins for the supply then there's no need to
+> represent those individually - they're required to be wired together in
+> hardware.
+
+Might be a stupid question probably because of my lack of knowledge of regulator framework,
+but if the driver code must be written in such a way that it requires all regulators
+for its supplies, then what happens with those which are grounded? How do you provide the
+regulator_init_data in this case (where the supply is actually grounded) ?
+
+BR,
+
+-- 
+Eduardo Valentin
