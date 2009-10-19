@@ -1,222 +1,80 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 5/5] mfd: twl4030-power: Optimised power scripts for
-	the rx51
-Date: Mon, 19 Oct 2009 16:22:39 -0700
-Message-ID: <20091019232238.GX12576@atomide.com>
-References: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com> <1255954268-29162-1-git-send-email-amit.kucheria@verdurent.com> <20091019191536.GB30203@sortiz.org>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH] omap: 3630: update is_chip variable
+Date: Mon, 19 Oct 2009 18:47:23 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AA1F60C@dlee02.ent.ti.com>
+References: <1255989491-27088-1-git-send-email-vikram.pandita@ti.com>
+ <13B9B4C6EF24D648824FF11BE8967162039B318E7E@dlee02.ent.ti.com>
+ <FCCFB4CDC6E5564B9182F639FC35608702FA174E4A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52407 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932384AbZJSXWj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 19:22:39 -0400
-Content-Disposition: inline
-In-Reply-To: <20091019191536.GB30203@sortiz.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:43583 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754793AbZJSXrU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 19:47:20 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9JNlP2S019850
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 18:47:25 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n9JNlOxl001404
+	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 18:47:24 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9JNlOvb015309
+	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 18:47:24 -0500 (CDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA174E4A@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Amit Kucheria <amit.kucheria@verdurent.com>, List Linux Kernel <linux-kernel@vger.kernel.org>, Tero Kristo <tero.kristo@nokia.com>, linux-omap@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Samuel Ortiz <sameo@linux.intel.com> [091019 12:15]:
-> Hi Amit,
+> -----Original Message-----
+> From: Pandita, Vikram
+> Sent: Monday, October 19, 2009 5:25 PM
+> To: Woodruff, Richard; linux-omap@vger.kernel.org
 > 
-> On Mon, Oct 19, 2009 at 03:11:08PM +0300, Amit Kucheria wrote:
-> > The power scripts optimisation was mainly done by:
-> > Tero Kristo <tero.kristo@nokia.com> and
-> > Arnaud Mandy <ext-arnaud.2.mandy@nokia.com>
-> > 
-> > I'm only refactoring and testing it against the mainline kernel.
-> Fine with me but if you want me to carry this patch, I'd like to get an ACK
-> from Tony or one of the 2 above mentioned Nokia developers.
+> >From: Woodruff, Richard
+> >
+> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >> owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+> >
+> >> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
+> >> omap/include/mach/cpu.h
+> >> index 7cb0556..05a0a33 100644
+> >> --- a/arch/arm/plat-omap/include/mach/cpu.h
+> >> +++ b/arch/arm/plat-omap/include/mach/cpu.h
+> >> @@ -454,6 +454,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+> >>  #define CHIP_IS_OMAP3430ES2		(1 << 4)
+> >>  #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
+> >>  #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
+> >
+> >Should we add a little space for 3430 to grow? Current TRM already
+> defines a 3.1.2. For this version
+> >changes are transparent to software.  IIRC mostly internal cell tweaks to
+> allow for expanded
+> >operating range.
+> >
+> >The CONTROL.CONTROL_IDCODE value is 0x0B6D 602F for OMAP34xx ES1.0.
+> >The CONTROL.CONTROL_IDCODE value is 0x1B7A E02F for OMAP34xx ES2.0.
+> >The CONTROL.CONTROL_IDCODE value is 0x2B7A E02F for OMAP34xx ES2.1.
+> >The CONTROL.CONTROL_IDCODE value is 0x3B7A E02F for OMAP34xx ES3.0.
+> >The CONTROL.CONTROL_IDCODE value is 0x4B7A E02F for OMAP34xx ES3.1.
+> >The CONTROL.CONTROL_IDCODE value is 0x7B7A E02F for OMAP34xx ES3.1.2.
+> >
+> >> +#define CHIP_IS_OMAP3630ES1		(1 << 7)
+> 
+> In that case we have to be careful.
+> "arch/arm/plat-omap/include/mach/cpu.h"
+> struct omap_chip_id {
+>         u8 oc;
+>         u8 type;
+> };
+> 
+> Type is u8 and we already are using the 8th bit now (1<<7)
+> So a type u8 -> u16 will also be needed.
+> 
+Requesting a u32 to try future proofing?
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> Cheers,
-> Samuel.
-> 
-> 
-> > Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> > Cc: Samuel Ortiz <sameo@linux.intel.com>
-> > Cc: Tero Kristo <tero.kristo@nokia.com>
-> > Cc: linux-omap@vger.kernel.org
-> > ---
-> >  arch/arm/mach-omap2/board-rx51-peripherals.c |  118 ++++++++++++++++++--------
-> >  1 files changed, 82 insertions(+), 36 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> > index c1af532..d933050 100644
-> > --- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-> > +++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-> > @@ -292,15 +292,9 @@ static struct twl4030_usb_data rx51_usb_data = {
-> >  
-> >  static struct twl4030_ins sleep_on_seq[] __initdata = {
-> >  /*
-> > - * Turn off VDD1 and VDD2.
-> > + * Turn off everything
-> >   */
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-> > -/*
-> > - * And also turn off the OMAP3 PLLs and the sysclk output.
-> > - */
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_OFF), 3},
-> > +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 1, 0, RES_STATE_SLEEP), 2},
-> >  };
-> >  
-> >  static struct twl4030_script sleep_on_script __initdata = {
-> > @@ -311,14 +305,9 @@ static struct twl4030_script sleep_on_script __initdata = {
-> >  
-> >  static struct twl4030_ins wakeup_seq[] __initdata = {
-> >  /*
-> > - * Reenable the OMAP3 PLLs.
-> > - * Wakeup VDD1 and VDD2.
-> > - * Reenable sysclk output.
-> > + * Reenable everything
-> >   */
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
-> > +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 1, 0, RES_STATE_ACTIVE), 2},
-> >  };
-> >  
-> >  static struct twl4030_script wakeup_script __initdata = {
-> > @@ -329,10 +318,9 @@ static struct twl4030_script wakeup_script __initdata = {
-> >  
-> >  static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-> >  /*
-> > - * Wakeup VDD1 (dummy to be able to insert a delay)
-> > - * Enable CLKEN
-> > + * Reenable everything
-> >   */
-> > -	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_ACTIVE), 3},
-> > +	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 1, 0, RES_STATE_ACTIVE), 2},
-> >  };
-> >  
-> >  static struct twl4030_script wakeup_p3_script __initdata = {
-> > @@ -353,12 +341,11 @@ static struct twl4030_ins wrst_seq[] __initdata = {
-> >  	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-> >  	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
-> >  		0x13},
-> > -	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 2, RES_STATE_WRST), 0x13},
-> >  	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF), 0x13},
-> >  	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
-> >  	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
-> >  	{MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
-> > -	{MSG_SINGULAR(DEV_GRP_P1, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
-> > +	{MSG_SINGULAR(DEV_GRP_P3, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
-> >  	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-> >  };
-> >  
-> > @@ -380,22 +367,81 @@ static struct twl4030_script *twl4030_scripts[] __initdata = {
-> >  };
-> >  
-> >  static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
-> > -	{ .resource = RES_VINTANA1, .devgroup = -1, .type = -1, .type2 = 1 },
-> > -	{ .resource = RES_VINTANA2, .devgroup = -1, .type = -1, .type2 = 1 },
-> > -	{ .resource = RES_VINTDIG, .devgroup = -1, .type = -1, .type2 = 1 },
-> > -	{ .resource = RES_VMMC1, .devgroup = -1, .type = -1, .type2 = 3},
-> > -	{ .resource = RES_VMMC2, .devgroup = DEV_GRP_NULL, .type = -1,
-> > -	  .type2 = 3},
-> > -	{ .resource = RES_VAUX1, .devgroup = -1, .type = -1, .type2 = 3},
-> > -	{ .resource = RES_VAUX2, .devgroup = -1, .type = -1, .type2 = 3},
-> > -	{ .resource = RES_VAUX3, .devgroup = -1, .type = -1, .type2 = 3},
-> > -	{ .resource = RES_VAUX4, .devgroup = -1, .type = -1, .type2 = 3},
-> > -	{ .resource = RES_VPLL2, .devgroup = -1, .type = -1, .type2 = 3},
-> > -	{ .resource = RES_VDAC, .devgroup = -1, .type = -1, .type2 = 3},
-> > -	{ .resource = RES_VSIM, .devgroup = DEV_GRP_NULL, .type = -1,
-> > -	  .type2 = 3},
-> > -	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P3, .type = -1,
-> > -		.type2 = 1 },
-> > +	{ .resource = RES_VDD1, .devgroup = -1,
-> > +	  .type = 1, .type2 = -1, .remap_off = RES_STATE_OFF,
-> > +	  .remap_sleep = RES_STATE_OFF
-> > +	},
-> > +	{ .resource = RES_VDD2, .devgroup = -1,
-> > +	  .type = 1, .type2 = -1, .remap_off = RES_STATE_OFF,
-> > +	  .remap_sleep = RES_STATE_OFF
-> > +	},
-> > +	{ .resource = RES_VPLL1, .devgroup = -1,
-> > +	  .type = 1, .type2 = -1, .remap_off = RES_STATE_OFF,
-> > +	  .remap_sleep = RES_STATE_OFF
-> > +	},
-> > +	{ .resource = RES_VPLL2, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VAUX1, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VAUX2, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VAUX3, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VAUX4, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VMMC1, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VMMC2, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VDAC, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VSIM, .devgroup = -1,
-> > +	  .type = -1, .type2 = 3, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VINTANA1, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> > +	  .type = -1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VINTANA2, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VINTDIG, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> > +	  .type = -1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_VIO, .devgroup = DEV_GRP_P3,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> > +	  .type = 1, .type2 = -1 , .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_REGEN, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_NRES_PWRON, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_SYSEN, .devgroup = DEV_GRP_P1 | DEV_GRP_P3,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_HFCLKOUT, .devgroup = DEV_GRP_P3,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_32KCLKOUT, .devgroup = -1,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_RESET, .devgroup = -1,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> > +	{ .resource = RES_Main_Ref, .devgroup = -1,
-> > +	  .type = 1, .type2 = -1, .remap_off = -1, .remap_sleep = -1
-> > +	},
-> >  	{ 0, 0},
-> >  };
-> >  
-> > -- 
-> > 1.6.3.3
-> > 
-> 
-> -- 
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Regards,
+Nishanth Menon
