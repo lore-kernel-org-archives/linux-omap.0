@@ -1,133 +1,539 @@
-From: "Maldonado Zambrano, Ivan" <ivan.maldonado@ti.com>
-Subject: RE: stable kernel version
-Date: Mon, 19 Oct 2009 12:40:36 -0500
-Message-ID: <A24693684029E5489D1D202277BE89444CFD93C8@dlee02.ent.ti.com>
-References: <4AD58D69.2080303@tzi.de> <20091014172656.GJ12700@atomide.com>
-	 <4AD60CEE.8000204@tzi.de> <20091014193324.GK12700@atomide.com>
-	 <4AD88BBD.9010602@tzi.de> <20091016154051.GE12576@atomide.com>
-	 <4ADC7476.9090208@tzi.de>
-	 <FCCFB4CDC6E5564B9182F639FC35608702FA174DCE@dbde02.ent.ti.com>
-	 <4ADC9470.4080403@tzi.de>
-	 <A24693684029E5489D1D202277BE89444CFD937C@dlee02.ent.ti.com>
- <269694c00910191028x7e9499cas6e6f51b75fa15710@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/2] ARM: OMAP3: add CompuLab CM-T35 module
+Date: Mon, 19 Oct 2009 10:58:47 -0700
+Message-ID: <20091019175847.GT12576@atomide.com>
+References: <cover.1255505874.git.mike@compulab.co.il> <df67071db39ec22fb9aee1fbb3b415ee69c30431.1255505874.git.mike@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53922 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756422AbZJSRkw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 13:40:52 -0400
-In-Reply-To: <269694c00910191028x7e9499cas6e6f51b75fa15710@mail.gmail.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49617 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205AbZJSR6p (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 13:58:45 -0400
+Content-Disposition: inline
+In-Reply-To: <df67071db39ec22fb9aee1fbb3b415ee69c30431.1255505874.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ameya Palande <2ameya@gmail.com>
-Cc: Janosch Machowinski <scotch@tzi.de>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Mike Rapoport <mike@compulab.co.il>
+Cc: linux-omap@vger.kernel.org
 
-Hi Ameya,
+* Mike Rapoport <mike@compulab.co.il> [091014 01:14]:
+> This patch adds basic support for CompuLab CM-T35 module.
+> 
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> ---
+>  arch/arm/mach-omap2/Kconfig        |    4 +
+>  arch/arm/mach-omap2/Makefile       |    2 +
+>  arch/arm/mach-omap2/board-cm-t35.c |  459 ++++++++++++++++++++++++++++++++++++
+>  3 files changed, 465 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-cm-t35.c
+> 
+> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+> index 75b1c7e..f80439e 100644
+> --- a/arch/arm/mach-omap2/Kconfig
+> +++ b/arch/arm/mach-omap2/Kconfig
+> @@ -85,6 +85,10 @@ config MACH_OMAP_ZOOM2
+>  	bool "OMAP3 Zoom2 board"
+>  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+>  
+> +config MACH_CM_T35
+> +	bool "CompuLab CM-T35 module"
+> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+> +
+>  config MACH_OMAP_4430SDP
+>  	bool "OMAP 4430 SDP board"
+>  	depends on ARCH_OMAP4
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 8cb1677..7468505 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -74,6 +74,8 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+>  obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+>  					   mmc-twl4030.o \
+>  					   board-zoom-debugboard.o
+> +obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+> +					   mmc-twl4030.o
+>  
+>  obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
+>  
+> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+> new file mode 100644
+> index 0000000..94c1f35
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+> @@ -0,0 +1,459 @@
+> +/*
+> + * board-cm-t35.c (CompuLab CM-T35 module)
+> + *
+> + * Copyright (C) 2009 CompuLab, Ltd.
+> + * Author: Mike Rapoport <mike@compulab.co.il>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
+> + */
+> +
+> +#include <linux/kernel.h>
+> +#include <linux/init.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/input.h>
+> +#include <linux/delay.h>
+> +
+> +#include <linux/i2c/at24.h>
+> +#include <linux/i2c/twl4030.h>
+> +#include <linux/regulator/machine.h>
+> +
+> +#include <asm/mach-types.h>
+> +#include <asm/mach/arch.h>
+> +#include <asm/mach/map.h>
+> +
+> +#include <mach/board.h>
+> +#include <mach/common.h>
+> +#include <mach/hardware.h>
+> +#include <mach/gpio.h>
 
-The issue that I'm talking about is:
-
-<3>HS USB OTG: no transceiver configured
-<3>musb_hdrc musb_hdrc: musb_init_controller failed with status -19
-
-Actually I'm running usb tests. At the moment of boot my zoom3 I had th=
-is issue. Taking the suggestion of Vikram the issue was solved.
-
-Regards
-Maldonado Zambrano, Ivan=20
-x0109876@ti.com
-Project L23x3630.
+This should be linux/gpio.h.
 
 
------Original Message-----
-=46rom: Ameya Palande [mailto:2ameya@gmail.com]=20
-Sent: Monday, October 19, 2009 12:29 PM
-To: Maldonado Zambrano, Ivan
-Cc: Janosch Machowinski; linux-omap@vger.kernel.org
-Subject: Re: stable kernel version
+> +#include <mach/mux.h>
+> +#include <mach/nand.h>
+> +#include <mach/keypad.h>
+> +#include <mach/gpmc.h>
+> +#include <mach/usb.h>
+> +
+> +#include "sdram-micron-mt46h32m32lf-6.h"
+> +#include "mmc-twl4030.h"
+> +
+> +#define CM_T35_GPIO_PENDOWN	57
+> +
+> +#define CM_T35_SMSC911X_CS	5
+> +#define CM_T35_SMSC911X_GPIO	163
+> +
+> +#define NAND_BLOCK_SIZE		SZ_128K
+> +#define GPMC_CS0_BASE		0x60
+> +#define GPMC_CS0_BASE_ADDR	(OMAP34XX_GPMC_VIRT + GPMC_CS0_BASE)
+> +
+> +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+> +#include <linux/smsc911x.h>
+> +
+> +static struct resource cm_t35_smsc911x_resources[] = {
+> +	{
+> +		.name	= "smsc911x-memory",
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	{
+> +		.start	= OMAP_GPIO_IRQ(CM_T35_SMSC911X_GPIO),
+> +		.end	= OMAP_GPIO_IRQ(CM_T35_SMSC911X_GPIO),
+> +		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
+> +	},
+> +};
+> +
+> +static struct smsc911x_platform_config cm_t35_smsc911x_config = {
+> +	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
+> +	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
+> +	.flags		= SMSC911X_USE_32BIT | SMSC911X_SAVE_MAC_ADDRESS,
+> +	.phy_interface	= PHY_INTERFACE_MODE_MII,
+> +};
+> +
+> +static struct platform_device cm_t35_smsc911x_device = {
+> +	.name		= "smsc911x",
+> +	.id		= 0,
+> +	.num_resources	= ARRAY_SIZE(cm_t35_smsc911x_resources),
+> +	.resource	= cm_t35_smsc911x_resources,
+> +	.dev		= {
+> +		.platform_data = &cm_t35_smsc911x_config,
+> +	},
+> +};
+> +
+> +static void __init cm_t35_init_smsc911x(void)
+> +{
+> +	unsigned long cs_mem_base;
+> +
+> +	if (gpmc_cs_request(CM_T35_SMSC911X_CS, SZ_16M, &cs_mem_base) < 0) {
+> +		pr_err("CM-T35: Failed request for GPMC mem for smsc911x\n");
+> +		return;
+> +	}
+> +
+> +	cm_t35_smsc911x_resources[0].start = cs_mem_base + 0x0;
+> +	cm_t35_smsc911x_resources[0].end   = cs_mem_base + 0xff;
+> +
+> +	if ((gpio_request(CM_T35_SMSC911X_GPIO, "CM ETH IRQ") == 0) &&
+> +	    (gpio_direction_input(CM_T35_SMSC911X_GPIO) == 0)) {
+> +		gpio_export(CM_T35_SMSC911X_GPIO, 0);
+> +	} else {
+> +		pr_err("CM-T35: could not obtain gpio for SMSC911X IRQ\n");
+> +		return;
+> +	}
+> +
+> +	platform_device_register(&cm_t35_smsc911x_device);
+> +}
+> +#else
+> +static inline void __init cm_t35_init_smsc911x(void) { return; }
+> +#endif
+> +
+> +#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
+> +#include <linux/leds.h>
+> +
+> +static struct gpio_led cm_t35_leds[] = {
+> +	[0] = {
+> +		.gpio = 186,
+> +		.name = "cm-t35:green",
+> +		.default_trigger = "heartbeat",
+> +		.active_low = 1,
+> +	},
+> +};
+> +
+> +static struct gpio_led_platform_data cm_t35_led_pdata = {
+> +	.num_leds = ARRAY_SIZE(cm_t35_leds),
+> +	.leds = cm_t35_leds,
+> +};
 
-Hi,
+While at it, maybe align these two above with tabs before
+the equal signs?
 
-Does this commit fixes the issue?
 
-[v2] usb: musb: Warn and check for OTG transceiver misconfiguration
-
-Warn if OTG is selected in Kconfig but not initialized by platform code=
-=2E
-Add checks to prevent NULL pointer exception in case the
-OTG transceiver has not been initialized. i.e. musb->xceiv =3D=3D NULL
-
-Signed-off-by: Roger Quadros <ext-roger.quadros@nokia.com>
----
- drivers/usb/musb/musb_core.c |    7 ++++++-
- drivers/usb/musb/omap2430.c  |    3 ++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
-
-Link: http://patchwork.kernel.org/patch/32914/
-
-Cheers,
-Ameya.
-
-On Mon, Oct 19, 2009 at 8:19 PM, Maldonado Zambrano, Ivan
-<ivan.maldonado@ti.com> wrote:
-> Hi Machowinski,
->
-> Enabling TWL4030 USB Transceiver Driver on your menuconfig the issue =
-that you mentioned on a log file attached on previous mails is correcte=
-d. I had the same problem. Like an introduction, my name is Ivan Maldon=
-ado Zambrano and I'm working on USB tests for zoom3 and sdp. Attached m=
-y log file, if you compare with yours is the same problem.
->
-> Regards
-> Maldonado Zambrano, Ivan
-> x0109876@ti.com
-> Project L23x3630.
->
->
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
-kernel.org] On Behalf Of Janosch Machowinski
-> Sent: Monday, October 19, 2009 11:32 AM
-> To: linux-omap@vger.kernel.org
-> Subject: Re: stable kernel version
->
-> Pandita, Vikram schrieb:
->> Here's the problem:
->> <3>HS USB OTG: no transceiver configured
->> <3>musb_hdrc musb_hdrc: musb_init_controller failed with status -19
->>
->> Depending on your board, you will have to define the transceiver for=
- MUSB.
->> It could be TWL4030 or NO-transceiver...
->>
-> I got an Gumstix Overo Earth so which one would it be then ?
->
-> I tried one kernel, with only NOOP,
-> and one with all three options enabled,
-> same result any time (crash).
->> Drivers -> USB -> (last options) *** OTG and related infrastructure =
-***
->>
->> Or do u want to disable USB to start with !!
->>
-> Actually USB is the feature why I started compiling a new kernel
-> in the fist place ;-)
->
->
-> Regards
-> =A0 =A0Janosch
+> +
+> +static struct platform_device cm_t35_led_device = {
+> +	.name		= "leds-gpio",
+> +	.id		= -1,
+> +	.dev		= {
+> +		.platform_data	= &cm_t35_led_pdata,
+> +	},
+> +};
+> +
+> +static void __init cm_t35_init_led(void)
+> +{
+> +	platform_device_register(&cm_t35_led_device);
+> +}
+> +#else
+> +static inline void cm_t35_init_led(void) {}
+> +#endif
+> +
+> +#if defined(CONFIG_MTD_NAND_OMAP2) || defined(CONFIG_MTD_NAND_OMAP2_MODULE)
+> +#include <linux/mtd/mtd.h>
+> +#include <linux/mtd/nand.h>
+> +#include <linux/mtd/partitions.h>
+> +
+> +static struct mtd_partition cm_t35_nand_partitions[] = {
+> +	{
+> +		.name           = "xloader",
+> +		.offset         = 0,			/* Offset = 0x00000 */
+> +		.size           = 4 * NAND_BLOCK_SIZE,
+> +		.mask_flags     = MTD_WRITEABLE
+> +	},
+> +	{
+> +		.name           = "uboot",
+> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+> +		.size           = 15 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name           = "uboot environment",
+> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
+> +		.size           = 2 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name           = "linux",
+> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
+> +		.size           = 32 * NAND_BLOCK_SIZE,
+> +	},
+> +	{
+> +		.name           = "rootfs",
+> +		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
+> +		.size           = MTDPART_SIZ_FULL,
+> +	},
+> +};
+> +
+> +static struct omap_nand_platform_data cm_t35_nand_data = {
+> +	.parts			= cm_t35_nand_partitions,
+> +	.nr_parts		= ARRAY_SIZE(cm_t35_nand_partitions),
+> +	.dma_channel		= -1,	/* disable DMA in OMAP NAND driver */
+> +	.cs			= 0,
+> +	.gpmc_cs_baseaddr	= (void __iomem *)GPMC_CS0_BASE_ADDR,
+> +	.gpmc_baseaddr		= (void __iomem *)OMAP34XX_GPMC_VIRT,
+> +
+> +};
+> +
+> +static struct resource cm_t35_nand_resource = {
+> +	.flags		= IORESOURCE_MEM,
+> +};
+> +
+> +static struct platform_device cm_t35_nand_device = {
+> +	.name		= "omap2-nand",
+> +	.id		= -1,
+> +	.num_resources	= 1,
+> +	.resource	= &cm_t35_nand_resource,
+> +	.dev		= {
+> +		.platform_data	= &cm_t35_nand_data,
+> +	},
+> +};
+> +
+> +static void __init cm_t35_init_nand(void)
+> +{
+> +	if (platform_device_register(&cm_t35_nand_device) < 0)
+> +		pr_err("CM-T35: Unable to register NAND device\n");
+> +}
+> +#else
+> +static inline void cm_t35_init_nand(void) {}
+> +#endif
+> +
+> +#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
+> +	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
+> +#include <linux/spi/spi.h>
+> +#include <linux/spi/ads7846.h>
+> +#include <linux/spi/tdo24m.h>
+> +
+> +#include <mach/mcspi.h>
+> +
+> +static struct omap2_mcspi_device_config ads7846_mcspi_config = {
+> +	.turbo_mode	= 0,
+> +	.single_channel	= 1,	/* 0: slave, 1: master */
+> +};
+> +
+> +static int ads7846_get_pendown_state(void)
+> +{
+> +	return !gpio_get_value(CM_T35_GPIO_PENDOWN);
+> +}
+> +
+> +static struct ads7846_platform_data ads7846_config = {
+> +	.x_max			= 0x0fff,
+> +	.y_max			= 0x0fff,
+> +	.x_plate_ohms		= 180,
+> +	.pressure_max		= 255,
+> +	.debounce_max		= 10,
+> +	.debounce_tol		= 3,
+> +	.debounce_rep		= 1,
+> +	.get_pendown_state	= ads7846_get_pendown_state,
+> +	.keep_vref_on		= 1,
+> +};
+> +
+> +static struct spi_board_info cm_t35_spi_board_info[] __initdata = {
+> +	{
+> +		.modalias		= "ads7846",
+> +		.bus_num		= 1,
+> +		.chip_select		= 0,
+> +		.max_speed_hz		= 1500000,
+> +		.controller_data	= &ads7846_mcspi_config,
+> +		.irq			= OMAP_GPIO_IRQ(CM_T35_GPIO_PENDOWN),
+> +		.platform_data		= &ads7846_config,
+> +	},
+> +};
+> +
+> +static void __init cm_t35_init_ads7846(void)
+> +{
+> +	if ((gpio_request(CM_T35_GPIO_PENDOWN, "ADS7846_PENDOWN") == 0) &&
+> +	    (gpio_direction_input(CM_T35_GPIO_PENDOWN) == 0)) {
+> +		gpio_export(CM_T35_GPIO_PENDOWN, 0);
+> +	} else {
+> +		pr_err("CM-T35: could not obtain gpio for ADS7846_PENDOWN\n");
+> +		return;
+> +	}
+> +
+> +	spi_register_board_info(cm_t35_spi_board_info,
+> +				ARRAY_SIZE(cm_t35_spi_board_info));
+> +}
+> +#else
+> +static inline void cm_t35_init_ads7846(void) {}
+> +#endif
+> +
+> +static struct regulator_consumer_supply cm_t35_vmmc1_supply = {
+> +	.supply			= "vmmc",
+> +};
+> +
+> +static struct regulator_consumer_supply cm_t35_vsim_supply = {
+> +	.supply			= "vmmc_aux",
+> +};
+> +
+> +/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+> +static struct regulator_init_data cm_t35_vmmc1 = {
+> +	.constraints = {
+> +		.min_uV			= 1850000,
+> +		.max_uV			= 3150000,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+> +					| REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &cm_t35_vmmc1_supply,
+> +};
+> +
+> +/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+> +static struct regulator_init_data cm_t35_vsim = {
+> +	.constraints = {
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 3000000,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+> +					| REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &cm_t35_vsim_supply,
+> +};
+> +
+> +static struct twl4030_usb_data cm_t35_usb_data = {
+> +	.usb_mode	= T2_USB_MODE_ULPI,
+> +};
+> +
+> +static int cm_t35_keymap[] = {
+> +	KEY(0, 0, KEY_A),	KEY(0, 1, KEY_B),	KEY(0, 2, KEY_LEFT),
+> +	KEY(1, 0, KEY_UP),	KEY(1, 1, KEY_ENTER),	KEY(1, 2, KEY_DOWN),
+> +	KEY(2, 0, KEY_RIGHT),	KEY(2, 1, KEY_C),	KEY(2, 2, KEY_D),
+> +};
+> +
+> +static struct matrix_keymap_data cm_t35_keymap_data = {
+> +	.keymap			= cm_t35_keymap,
+> +	.keymap_size		= ARRAY_SIZE(cm_t35_keymap),
+> +};
+> +
+> +static struct twl4030_keypad_data cm_t35_kp_data = {
+> +	.keymap_data	= &cm_t35_keymap_data,
+> +	.rows		= 3,
+> +	.cols		= 3,
+> +	.rep		= 1,
+> +};
+> +
+> +static struct twl4030_hsmmc_info mmc[] = {
+> +	{
+> +		.mmc		= 1,
+> +		.wires		= 4,
+> +		.gpio_cd	= -EINVAL,
+> +		.gpio_wp	= -EINVAL,
+> +
+> +	},
+> +	{
+> +		.mmc		= 2,
+> +		.wires		= 4,
+> +		.transceiver	= 1,
+> +		.gpio_cd	= -EINVAL,
+> +		.gpio_wp	= -EINVAL,
+> +		.ocr_mask	= 0x00100000,	/* 3.3V */
+> +	},
+> +	{}	/* Terminator */
+> +};
+> +
+> +static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
+> +				 unsigned ngpio)
+> +{
+> +	int wlan_rst = gpio + 2;
+> +
+> +	if ((gpio_request(wlan_rst, "WLAN RST") == 0) &&
+> +	    (gpio_direction_output(wlan_rst, 1) == 0)) {
+> +		gpio_export(wlan_rst, 0);
+> +
+> +		udelay(10);
+> +		gpio_set_value(wlan_rst, 0);
+> +		udelay(10);
+> +		gpio_set_value(wlan_rst, 1);
+> +	} else {
+> +		pr_err("CM-T35: could not obtain gpio for WiFi reset\n");
+> +	}
+> +
+> +	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
+> +	mmc[0].gpio_cd = gpio + 0;
+> +	twl4030_mmc_init(mmc);
+> +
+> +	/* link regulators to MMC adapters */
+> +	cm_t35_vmmc1_supply.dev = mmc[0].dev;
+> +	cm_t35_vsim_supply.dev = mmc[0].dev;
+> +
+> +	return 0;
+> +}
+> +
+> +static struct twl4030_gpio_platform_data cm_t35_gpio_data = {
+> +	.gpio_base	= OMAP_MAX_GPIO_LINES,
+> +	.irq_base	= TWL4030_GPIO_IRQ_BASE,
+> +	.irq_end	= TWL4030_GPIO_IRQ_END,
+> +	.setup          = cm_t35_twl_gpio_setup,
+> +};
+> +
+> +static struct twl4030_platform_data cm_t35_twldata = {
+> +	.irq_base	= TWL4030_IRQ_BASE,
+> +	.irq_end	= TWL4030_IRQ_END,
+> +
+> +	/* platform_data for children goes here */
+> +	.keypad		= &cm_t35_kp_data,
+> +	.usb		= &cm_t35_usb_data,
+> +	.gpio		= &cm_t35_gpio_data,
+> +	.vmmc1		= &cm_t35_vmmc1,
+> +	.vsim		= &cm_t35_vsim,
+> +};
+> +
+> +static struct i2c_board_info __initdata cm_t35_i2c_boardinfo[] = {
+> +	{
+> +		I2C_BOARD_INFO("tps65930", 0x48),
+> +		.flags = I2C_CLIENT_WAKE,
+> +		.irq = INT_34XX_SYS_NIRQ,
+> +		.platform_data = &cm_t35_twldata,
+> +	},
+> +};
+> +
+> +static void __init cm_t35_init_i2c(void)
+> +{
+> +	omap_register_i2c_bus(1, 2600, cm_t35_i2c_boardinfo,
+> +			      ARRAY_SIZE(cm_t35_i2c_boardinfo));
+> +}
+> +
+> +static struct omap_board_config_kernel cm_t35_config[] __initdata = {
+> +};
+> +
+> +static void __init cm_t35_init_irq(void)
+> +{
+> +	omap_board_config = cm_t35_config;
+> +	omap_board_config_size = ARRAY_SIZE(cm_t35_config);
+> +
+> +	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
+> +			     mt46h32m32lf6_sdrc_params);
+> +	omap_init_irq();
+> +	omap_gpio_init();
+> +}
+> +
+> +static void __init cm_t35_map_io(void)
+> +{
+> +	omap2_set_globals_343x();
+> +	omap2_map_common_io();
+> +}
+> +
+> +static void __init cm_t35_init(void)
+> +{
+> +	omap_serial_init();
+> +	cm_t35_init_i2c();
+> +	cm_t35_init_nand();
+> +	cm_t35_init_ads7846();
+> +	cm_t35_init_smsc911x();
+> +	cm_t35_init_led();
+> +
+> +	usb_musb_init();
+> +
+> +	omap_cfg_reg(AF26_34XX_SYS_NIRQ);
+> +}
+> +
+> +MACHINE_START(CM_T35, "Compulab CM-T35")
+> +	.phys_io	= 0x48000000,
+> +	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
+> +	.boot_params	= 0x80000100,
+> +	.map_io		= cm_t35_map_io,
+> +	.init_irq	= cm_t35_init_irq,
+> +	.init_machine	= cm_t35_init,
+> +	.timer		= &omap_timer,
+> +MACHINE_END
+> -- 
+> 1.6.0.6
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
