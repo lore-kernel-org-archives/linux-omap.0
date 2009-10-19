@@ -1,122 +1,67 @@
 From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: [PATCH 4/5] mfd: twl4030-power: Add support for remapping power states
-Date: Mon, 19 Oct 2009 15:11:00 +0300
-Message-ID: <1255954260-29043-1-git-send-email-amit.kucheria@verdurent.com>
+Subject: [PATCH 1/5] mfd: twl4030-power: Rename DEVGROUP to DEV_GRP
+Date: Mon, 19 Oct 2009 15:10:44 +0300
+Message-ID: <1255954244-28873-1-git-send-email-amit.kucheria@verdurent.com>
 References: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:51183 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755900AbZJSMLB (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 08:11:01 -0400
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755493AbZJSMKv@vger.kernel.org>
 In-Reply-To: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: List Linux Kernel <linux-kernel@vger.kernel.org>
 Cc: sameo@linux.intel.com, linux-omap@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 
-The <RESOURCE>_REMAP register allows configuration of the <RESOURCE> in case
-of a sleep or off transition.
-
-Allow this property of resources to be configured (through twl4030_resconfig)
-and add code to parse these values to program the registers accordingly.
+Stick to the names used in the reference manual
 
 Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
 Cc: sameo@linux.intel.com
 Cc: linux-omap@vger.kernel.org
 ---
- drivers/mfd/twl4030-power.c |   36 ++++++++++++++++++++++++++++++++++++
- include/linux/i2c/twl4030.h |    3 +++
- 2 files changed, 39 insertions(+), 0 deletions(-)
+ drivers/mfd/twl4030-power.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/mfd/twl4030-power.c b/drivers/mfd/twl4030-power.c
-index 2c38ac1..3e41e0c 100644
+index d423e0c..82e3bcb 100644
 --- a/drivers/mfd/twl4030-power.c
 +++ b/drivers/mfd/twl4030-power.c
-@@ -75,6 +75,8 @@ static u8 twl4030_start_script_address = 0x2b;
- */
- #define DEV_GRP_OFFSET		0
+@@ -69,12 +69,12 @@ static u8 twl4030_start_script_address = 0x2b;
+ 
+ /* resource configuration registers */
+ 
+-#define DEVGROUP_OFFSET		0
++#define DEV_GRP_OFFSET		0
  #define TYPE_OFFSET		1
-+#define REMAP_OFFSET		2
-+#define DEDICATED_OFFSET	3
  
- /* Bit positions in the registers */
- 
-@@ -88,6 +90,12 @@ static u8 twl4030_start_script_address = 0x2b;
+-/* Bit positions */
+-#define DEVGROUP_SHIFT		5
+-#define DEVGROUP_MASK		(7 << DEVGROUP_SHIFT)
++/* Bit positions in the registers */
++#define DEV_GRP_SHIFT		5
++#define DEV_GRP_MASK		(7 << DEV_GRP_SHIFT)
+ #define TYPE_SHIFT		0
+ #define TYPE_MASK		(7 << TYPE_SHIFT)
  #define TYPE2_SHIFT		3
- #define TYPE2_MASK		(3 << TYPE2_SHIFT)
+@@ -328,7 +328,7 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
  
-+/* <RESOURCE>_REMAP */
-+#define SLEEP_STATE_SHIFT	0
-+#define SLEEP_STATE_MASK	(0xf << SLEEP_STATE_SHIFT)
-+#define OFF_STATE_SHIFT		4
-+#define OFF_STATE_MASK		(0xf << OFF_STATE_SHIFT)
-+
- static u8 res_config_addrs[] = {
- 	[RES_VAUX1]	= 0x17,
- 	[RES_VAUX2]	= 0x1b,
-@@ -325,6 +333,7 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- 	int err;
- 	u8 type;
- 	u8 grp;
-+	u8 remap;
- 
- 	if (rconfig->resource > TOTAL_RESOURCES) {
- 		pr_err("TWL4030 Resource %d does not exist\n",
-@@ -380,6 +389,33 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
- 		return err;
+ 	/* Set resource group */
+ 	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &grp,
+-				rconfig_addr + DEVGROUP_OFFSET);
++				rconfig_addr + DEV_GRP_OFFSET);
+ 	if (err) {
+ 		pr_err("TWL4030 Resource %d group could not be read\n",
+ 			rconfig->resource);
+@@ -336,10 +336,10 @@ static int __init twl4030_configure_resource(struct twl4030_resconfig *rconfig)
  	}
  
-+	/* Set remap states */
-+	err = twl4030_i2c_read_u8(TWL4030_MODULE_PM_RECEIVER, &remap,
-+				rconfig_addr + REMAP_OFFSET);
-+	if (err < 0) {
-+		pr_err("TWL4030 Resource %d remap could not be read\n",
-+			rconfig->resource);
-+		return err;
-+	}
-+
-+	if (rconfig->remap_off >= 0) {
-+		remap &= ~OFF_STATE_MASK;
-+		remap |= rconfig->remap_off << OFF_STATE_SHIFT;
-+	}
-+
-+	if (rconfig->remap_sleep >= 0) {
-+		remap &= ~SLEEP_STATE_MASK;
-+		remap |= rconfig->remap_off << SLEEP_STATE_SHIFT;
-+	}
-+
-+	err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
-+				remap,
-+				rconfig_addr + REMAP_OFFSET);
-+	if (err < 0) {
-+		pr_err("TWL4030 failed to program remap\n");
-+		return err;
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-index 4bc2836..ef21575 100644
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -326,6 +326,7 @@ struct twl4030_script {
- 
- #define RES_TYPE_ALL		0x7
- 
-+/* Resource states */
- #define RES_STATE_WRST		0xF
- #define RES_STATE_ACTIVE	0xE
- #define RES_STATE_SLEEP		0x8
-@@ -393,6 +394,8 @@ struct twl4030_resconfig {
- 	u8 devgroup;	/* Processor group that Power resource belongs to */
- 	u8 type;	/* Power resource addressed, 6 / broadcast message */
- 	u8 type2;	/* Power resource addressed, 3 / broadcast message */
-+	u8 remap_off;	/* off state remapping */
-+	u8 remap_sleep;	/* sleep state remapping */
- };
- 
- struct twl4030_power_data {
+ 	if (rconfig->devgroup >= 0) {
+-		grp &= ~DEVGROUP_MASK;
+-		grp |= rconfig->devgroup << DEVGROUP_SHIFT;
++		grp &= ~DEV_GRP_MASK;
++		grp |= rconfig->devgroup << DEV_GRP_SHIFT;
+ 		err = twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
+-					grp, rconfig_addr + DEVGROUP_OFFSET);
++					grp, rconfig_addr + DEV_GRP_OFFSET);
+ 		if (err < 0) {
+ 			pr_err("TWL4030 failed to program devgroup\n");
+ 			return err;
 -- 
 1.6.3.3
-
