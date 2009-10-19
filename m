@@ -1,32 +1,42 @@
-From: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 3/5] mfd: twl4030-power: Move power-related data closer
-  together in the header file
-Date: Mon, 19 Oct 2009 21:33:48 +0200
-Message-ID: <20091019213348.28e93f29@hyperion.delvare>
-References: <1255954211-28496-1-git-send-email-amit.kucheria@verdurent.com>
-	<1255954252-29017-1-git-send-email-amit.kucheria@verdurent.com>
-	<20091019191232.GA30203@sortiz.org>
+From: Andrejs Cainikovs <AndrejsC@GlobalAutomationSystems.com>
+Subject: Re: OMAP2420-HS flashing question
+Date: Mon, 19 Oct 2009 23:27:26 +0300
+Message-ID: <4ADCCBAE.4030702@GlobalAutomationSystems.com>
+References: <4ADCA2BF.3020105@globalautomationsystems.com> <13B9B4C6EF24D648824FF11BE8967162039B318B04@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757359AbZJSTds@vger.kernel.org>
-In-Reply-To: <20091019191232.GA30203@sortiz.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Amit Kucheria <amit.kucheria@verdurent.com>, List Linux Kernel <linux-kernel@vger.kernel.org>, linux-omap@vger.kernel.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from b124.csc.lv ([193.138.189.124]:56375 "EHLO
+	mail.globalautomationsystems.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752118AbZJSU2A (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Oct 2009 16:28:00 -0400
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B318B04@dlee02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, 19 Oct 2009 21:12:33 +0200, Samuel Ortiz wrote:
-> Hi Amit,
-> 
-> On Mon, Oct 19, 2009 at 03:10:52PM +0300, Amit Kucheria wrote:
-> > Bring together all the TWL power-related data in the header file
-> I dont really see the point of doing this, as you're not really gathering
-> scattered structures but rather moving a group of definitions up in the header
-> file.
-> If you dont mind I'll drop this one, unless Jean wants to take it.
+Woodruff, Richard wrote:
+>> I've googled that OMAP HS are checking some kind of signature (applications
+>> should be signed with the special tool (OST Tools)) so the developer must own
+>> the keys for particular CPU? It is possible to turn off the HS option so I'll
+>> be able to work with non-signed binaries?
+>> The problem is that I want to get kernel running on custom OMAP2420-HS board
+>> but have no keys.
+>>     
+>
+> With out keys it's mostly impossible to introduce new boot code into the system.
+>
+> There isn't a practical way to 'turn off HS' with out destroying the omap chip itself.
+>
+> The way to add code would be through what ever mechanism the OEM has left to add code into the system (if any).  From there depending on software some kind of KEXEC could be attempted.
+>
+> Regards,
+> Richard W.
+>   
+Thanks Richard, unfortunately this is what I've expected to hear.
 
-No, I don't care about this at all ;)
-
--- 
-Jean Delvare
+Regards,
+Andrejs Cainikovs.
