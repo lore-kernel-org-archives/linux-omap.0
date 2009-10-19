@@ -1,80 +1,30 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH] omap: 3630: update is_chip variable
-Date: Mon, 19 Oct 2009 16:58:11 -0500
-Message-ID: <1255989491-27088-1-git-send-email-vikram.pandita@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 0/1] dying serial console in PM branch
+Date: Mon, 19 Oct 2009 15:14:41 -0700
+Message-ID: <1255990482-16201-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38707 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755747AbZJSWAV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Oct 2009 18:00:21 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9JM0Ph9012719
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 17:00:25 -0500
+Received: from mail-px0-f171.google.com ([209.85.216.171]:41757 "EHLO
+	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753410AbZJSWOj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 18:14:39 -0400
+Received: by pxi1 with SMTP id 1so734958pxi.33
+        for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 15:14:44 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: nm@ti.com, Vikram Pandita <vikram.pandita@ti.com>
 
-3630 is getting treated like next rev of 3430
-omap_chip.oc variable has to be updated for 3630 version
+This patch fixes the problems in the PM branch where the serial
+console on UART3 was not able to wakeup after the inactivity timer.
 
-Otherwise the Core power domain is not getting registered.
+This fix has been pushed to the PM branch already, but should also
+be queued as a fix upstream.
 
-This gets used in the registration of power domains in:
-"arch/arm/mach-omap2/powerdomains34xx.h"
-core_34xx_es3_1_pwrdm
-OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1)
+Tony, this is available in my pm-upstream/pm-fixes-32 branch based at
+v2.6.32-rc5.  I shouldn't have any more PM fixes coming for 2.6.32.
 
-Core power doman will get registered for 3630 only when .oc is pouplated
-correctly.
+Kevin Hilman (1):
+  OMAP3: PM: enable UART3 module wakeups
 
-Tested on Zoom3(3630) board
-
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
----
- arch/arm/mach-omap2/id.c              |    2 ++
- arch/arm/plat-omap/include/mach/cpu.h |    7 +++++--
- 2 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 71d5568..ebf3654 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -359,6 +359,8 @@ void __init omap2_check_revision(void)
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
- 		else if (omap_rev() == OMAP3430_REV_ES3_1)
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
-+		else if (omap_rev() == OMAP3630_REV_ES1_0)
-+			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
- 	} else {
- 		pr_err("Uninitialized omap_chip, please fix!\n");
- 	}
-diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
-index 7cb0556..05a0a33 100644
---- a/arch/arm/plat-omap/include/mach/cpu.h
-+++ b/arch/arm/plat-omap/include/mach/cpu.h
-@@ -454,6 +454,7 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define CHIP_IS_OMAP3430ES2		(1 << 4)
- #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
- #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
-+#define CHIP_IS_OMAP3630ES1		(1 << 7)
- 
- #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
- 
-@@ -465,8 +466,10 @@ IS_OMAP_TYPE(3430, 0x3430)
-  */
- #define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
- 					 CHIP_IS_OMAP3430ES3_0 | \
--					 CHIP_IS_OMAP3430ES3_1)
--#define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1)
-+					 CHIP_IS_OMAP3430ES3_1 | \
-+					 CHIP_IS_OMAP3630ES1)
-+#define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1 | \
-+					 CHIP_IS_OMAP3630ES1)
- 
- 
- int omap_chip_is(struct omap_chip_id oci);
--- 
-1.6.5.rc1.19.g8426
+ arch/arm/mach-omap2/pm34xx.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
