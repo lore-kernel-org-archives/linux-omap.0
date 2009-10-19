@@ -1,57 +1,80 @@
-From: "Jerry Johns" <Jerry.Johns@nuvation.com>
-Subject: OMAP3 <-> FPGA boot-delay
-Date: Mon, 19 Oct 2009 13:44:12 -0700
-Message-ID: <274F7B50569A1B4C9D7BCAB17A9C7BE101D00272@mailguy3.skynet.nuvation.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH] omap: 3630: update is_chip variable
+Date: Mon, 19 Oct 2009 16:58:11 -0500
+Message-ID: <1255989491-27088-1-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail.nuvation.com ([68.65.78.147]:13988 "EHLO
-	mailguy3.skynet.nuvation.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757411AbZJSUoI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 19 Oct 2009 16:44:08 -0400
-Content-class: urn:content-classes:message
+Received: from comal.ext.ti.com ([198.47.26.152]:38707 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755747AbZJSWAV (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 19 Oct 2009 18:00:21 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9JM0Ph9012719
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 17:00:25 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: nm@ti.com, Vikram Pandita <vikram.pandita@ti.com>
 
-Hello all,
-=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 I'm not exactly sure where to ask thi=
-s, but I figured it would be on a mailing list that is linux specific, =
-with a slight bias towards the OMAP:
+3630 is getting treated like next rev of 3430
+omap_chip.oc variable has to be updated for 3630 version
 
-I have an OMAP3530 mated to an FPGA over the GPMC interface found on th=
-at chip. I have an interrupt controller on the FPGA (and mapped into vi=
-rtual IRQs in Linux through irqchip and chained handlers) and a few UAR=
-Ts in it as well - the UART is specifically chosen to be 16550 compatib=
-le so that it can directly be mapped as a platform device into the 8250=
- serial platform driver. This way, I avoid having to write a serial dri=
-ver, and it is directly compatible with that in Linux.
+Otherwise the Core power domain is not getting registered.
 
-The FPGA currently is programmed by a separate device on boot, and that=
- process can take up to 20 seconds - hence, the interrupt layer and ser=
-ial driver in Linux cannot really be loaded until the FPGA has complete=
-d boot. At the same time, I do not want to hold-off booting Linux till =
-the FPGA is alive.
+This gets used in the registration of power domains in:
+"arch/arm/mach-omap2/powerdomains34xx.h"
+core_34xx_es3_1_pwrdm
+OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1)
 
-What is the correct solution to this? Should I just load the interrupt =
-and serial drivers anyways (and not use them till the FPGA is up) or sh=
-ould I defer loading them? If the latter is a better idea, how do I do =
-a deferred hotplug-style serial device connection? Can platform_device_=
-register happen much later in the boot lifecycle?
+Core power doman will get registered for 3630 only when .oc is pouplated
+correctly.
 
-Any ideas are much appreciated!
+Tested on Zoom3(3630) board
 
-Thanks,
-Jerry Johns
-Design Engineer
-Nuvation Research Corp - Canada
-Tel: (519) 746-2304 ext. 221
-www.nuvation.com
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ arch/arm/mach-omap2/id.c              |    2 ++
+ arch/arm/plat-omap/include/mach/cpu.h |    7 +++++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 71d5568..ebf3654 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -359,6 +359,8 @@ void __init omap2_check_revision(void)
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
+ 		else if (omap_rev() == OMAP3430_REV_ES3_1)
+ 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
++		else if (omap_rev() == OMAP3630_REV_ES1_0)
++			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
+ 	} else {
+ 		pr_err("Uninitialized omap_chip, please fix!\n");
+ 	}
+diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-omap/include/mach/cpu.h
+index 7cb0556..05a0a33 100644
+--- a/arch/arm/plat-omap/include/mach/cpu.h
++++ b/arch/arm/plat-omap/include/mach/cpu.h
+@@ -454,6 +454,7 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define CHIP_IS_OMAP3430ES2		(1 << 4)
+ #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
+ #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
++#define CHIP_IS_OMAP3630ES1		(1 << 7)
+ 
+ #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
+ 
+@@ -465,8 +466,10 @@ IS_OMAP_TYPE(3430, 0x3430)
+  */
+ #define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
+ 					 CHIP_IS_OMAP3430ES3_0 | \
+-					 CHIP_IS_OMAP3430ES3_1)
+-#define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1)
++					 CHIP_IS_OMAP3430ES3_1 | \
++					 CHIP_IS_OMAP3630ES1)
++#define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1 | \
++					 CHIP_IS_OMAP3630ES1)
+ 
+ 
+ int omap_chip_is(struct omap_chip_id oci);
+-- 
+1.6.5.rc1.19.g8426
+
