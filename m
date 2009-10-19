@@ -1,274 +1,59 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-Date: Mon, 19 Oct 2009 10:12:04 -0700
-Message-ID: <20091019171204.GP12576@atomide.com>
-References: <20091016233624.2463.26653.stgit@localhost> <20091016234138.2463.38350.stgit@localhost> <20091016234622.GH12576@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB37D7AA@dbde02.ent.ti.com> <20091017161947.GK12576@atomide.com> <20091019002416.GM12576@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB37D82D@dbde02.ent.ti.com>
+Subject: Re: Bug on "omap: ioremap fixes for omap4"
+Date: Mon, 19 Oct 2009 10:12:59 -0700
+Message-ID: <20091019171259.GQ12576@atomide.com>
+References: <A24693684029E5489D1D202277BE89444CEFF1AE@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="6Nae48J/T25AfBN4"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59511 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757110AbZJSRMH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 13:12:07 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60941 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751648AbZJSRM5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 13:12:57 -0400
 Content-Disposition: inline
-In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BB37D82D@dbde02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89444CEFF1AE@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [091019 08:54]:
+> Tony, Santosh,
+> 
+> I think there's a missing fix in this commit:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=041b80d9a00ab741ce50db92c84b6bed554fc3b6
+> 
+> Here:
+> 
+> > diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
+> > index 50a62f2..4b644a9 100644
+> > --- a/arch/arm/mach-omap2/board-4430sdp.c
+> > +++ b/arch/arm/mach-omap2/board-4430sdp.c
+> > @@ -60,9 +60,9 @@ static void __init gic_init_irq(void)
+> >  	gic_dist_init(0, base, 29);
+> >  
+> >  	/* Static mapping, never released */
+> > -	base = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_256);
+> > +	gic_cpu_base_addr = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
+> >  	BUG_ON(!base);
+> 
+> Shouldn't it be:
+> 
+> 	BUG_ON(!gic_cpu_base_addr);
+> 
+> Instead?
+> 
+> > -	gic_cpu_init(0, OMAP44XX_GIC_CPU_BASE);
+> > +	gic_cpu_init(0, gic_cpu_base_addr);
+> >  }
+> >  
+> >  static void __init omap_4430sdp_init_irq(void)
 
---6Nae48J/T25AfBN4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Yeah thanks, I've posted a refreshed patch for that
+and pushed the fix to linux-omap master and for-next
+branches.
 
-* Shilimkar, Santosh <santosh.shilimkar@ti.com> [091019 00:27]:
-> Tony,
-> > -----Original Message-----
-> > From: Tony Lindgren [mailto:tony@atomide.com]
-> > Sent: Monday, October 19, 2009 5:54 AM
-> > To: Shilimkar, Santosh
-> > Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-> > 
-> > * Tony Lindgren <tony@atomide.com> [091017 09:19]:
-> > > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [091017 03:49]:
-> > > > Thanks Tony for this ioremap series!!
-> > > >
-> > > > > -----Original Message-----
-> > > > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > > > Sent: Saturday, October 17, 2009 5:16 AM
-> > > > > To: linux-arm-kernel@lists.infradead.org
-> > > > > Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh
-> > > > > Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-> > > > >
-> > > > > * Tony Lindgren <tony@atomide.com> [091016 16:42]:
-> > > > > > Use ioremap for omap4 L4 code
-> > > > >
-> > > > > Santosh, can you please check and ack this patch?
-> > > > >
-> > > > > Especially some of the ioremap sizes may be wrong. Also, this one
-> > > > > I cannot boot test, so it's just compile tested.
-> > > >
-> > > > I have checked the patch and it looks all right except few typo. Also
-> > the scu_base is needed bit earlier.
-> > 
-> > <snip>
-> > 
-> > > > Here is the patch on top of ioremap series which should fix above
-> > mentioned things. With below patch + two serial related patches the kernel
-> > boots on OMAP4430.
-> > >
-> > > Great, will update. Thanks for taking the time to fix it!
-> > 
-> > Here's this one updated with Santosh's fix merged in.
-> V2 has one typo which I think I also missed in my patch.
-> >+	/* Static mapping, never released */
-> >+	gic_cpu_base_addr = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
-> >+	BUG_ON(!base);
-> Should be BUG_ON(!gic_cpu_base_addr);
-
-OK, here's V3 of the patch.
+Regards,
 
 Tony
-
---6Nae48J/T25AfBN4
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="iosplit-omap4-ioremap-v3.patch"
-
->From c2d346c679692e5f2d87e118739a81195dbeacda Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Sun, 18 Oct 2009 17:19:30 -0700
-Subject: [PATCH] omap: Use ioremap for omap4 L4 code
-
-Use ioremap for omap4 L4 code
-
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap2/board-4430sdp.c b/arch/arm/mach-omap2/board-4430sdp.c
-index eb37c40..1035b22 100644
---- a/arch/arm/mach-omap2/board-4430sdp.c
-+++ b/arch/arm/mach-omap2/board-4430sdp.c
-@@ -52,8 +52,17 @@ static struct omap_board_config_kernel sdp4430_config[] __initdata = {
- 
- static void __init gic_init_irq(void)
- {
--	gic_dist_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_DIST_BASE), 29);
--	gic_cpu_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
-+	void __iomem *base;
-+
-+	/* Static mapping, never released */
-+	base = ioremap(OMAP44XX_GIC_DIST_BASE, SZ_4K);
-+	BUG_ON(!base);
-+	gic_dist_init(0, base, 29);
-+
-+	/* Static mapping, never released */
-+	gic_cpu_base_addr = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
-+	BUG_ON(!gic_cpu_base_addr);
-+	gic_cpu_init(0, gic_cpu_base_addr);
- }
- 
- static void __init omap_4430sdp_init_irq(void)
-diff --git a/arch/arm/mach-omap2/omap-smp.c b/arch/arm/mach-omap2/omap-smp.c
-index 48ee295..8813ac2 100644
---- a/arch/arm/mach-omap2/omap-smp.c
-+++ b/arch/arm/mach-omap2/omap-smp.c
-@@ -24,13 +24,14 @@
- #include <asm/localtimer.h>
- #include <asm/smp_scu.h>
- #include <mach/hardware.h>
-+#include <mach/common.h>
- 
- /* Registers used for communicating startup information */
--#define OMAP4_AUXCOREBOOT_REG0		(OMAP44XX_VA_WKUPGEN_BASE + 0x800)
--#define OMAP4_AUXCOREBOOT_REG1		(OMAP44XX_VA_WKUPGEN_BASE + 0x804)
-+static void __iomem *omap4_auxcoreboot_reg0;
-+static void __iomem *omap4_auxcoreboot_reg1;
- 
- /* SCU base address */
--static void __iomem *scu_base = OMAP44XX_VA_SCU_BASE;
-+static void __iomem *scu_base;
- 
- /*
-  * Use SCU config register to count number of cores
-@@ -53,8 +54,7 @@ void __cpuinit platform_secondary_init(unsigned int cpu)
- 	 * core (e.g. timer irq), then they will not have been enabled
- 	 * for us: do so
- 	 */
--
--	gic_cpu_init(0, OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE));
-+	gic_cpu_init(0, gic_cpu_base_addr);
- 
- 	/*
- 	 * Synchronise with the boot thread.
-@@ -79,7 +79,7 @@ int __cpuinit boot_secondary(unsigned int cpu, struct task_struct *idle)
- 	 * the AuxCoreBoot1 register is updated with cpu state
- 	 * A barrier is added to ensure that write buffer is drained
- 	 */
--	__raw_writel(cpu, OMAP4_AUXCOREBOOT_REG1);
-+	__raw_writel(cpu, omap4_auxcoreboot_reg1);
- 	smp_wmb();
- 
- 	timeout = jiffies + (1 * HZ);
-@@ -104,7 +104,7 @@ static void __init wakeup_secondary(void)
- 	 * A barrier is added to ensure that write buffer is drained
- 	 */
- 	__raw_writel(virt_to_phys(omap_secondary_startup),	   \
--					OMAP4_AUXCOREBOOT_REG0);
-+					omap4_auxcoreboot_reg0);
- 	smp_wmb();
- 
- 	/*
-@@ -120,7 +120,13 @@ static void __init wakeup_secondary(void)
-  */
- void __init smp_init_cpus(void)
- {
--	unsigned int i, ncores = get_core_count();
-+	unsigned int i, ncores;
-+
-+	/* Never released */
-+	scu_base = ioremap(OMAP44XX_SCU_BASE, SZ_256);
-+	BUG_ON(!scu_base);
-+
-+	ncores = get_core_count();
- 
- 	for (i = 0; i < ncores; i++)
- 		set_cpu_possible(i, true);
-@@ -130,6 +136,7 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
- {
- 	unsigned int ncores = get_core_count();
- 	unsigned int cpu = smp_processor_id();
-+	void __iomem *omap4_wkupgen_base;
- 	int i;
- 
- 	/* sanity check */
-@@ -161,6 +168,12 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
- 	for (i = 0; i < max_cpus; i++)
- 		set_cpu_present(i, true);
- 
-+	/* Never released */
-+	omap4_wkupgen_base = ioremap(OMAP44XX_WKUPGEN_BASE, SZ_4K);
-+	BUG_ON(!omap4_wkupgen_base);
-+	omap4_auxcoreboot_reg0 = omap4_wkupgen_base + 0x800;
-+	omap4_auxcoreboot_reg1 = omap4_wkupgen_base + 0x804;
-+
- 	if (max_cpus > 1) {
- 		/*
- 		 * Enable the local timer or broadcast device for the
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index e2338c0..cd72970 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -231,7 +231,8 @@ static void __init omap2_gp_clocksource_init(void)
- static void __init omap2_gp_timer_init(void)
- {
- #ifdef CONFIG_LOCAL_TIMERS
--	twd_base = OMAP2_IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE);
-+	twd_base = ioremap(OMAP44XX_LOCAL_TWD_BASE, SZ_256);
-+	BUG_ON(!twd_base);
- #endif
- 	omap_dm_timer_init();
- 
-diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-index 3a4768d..fdcb1cf 100644
---- a/arch/arm/plat-omap/common.c
-+++ b/arch/arm/plat-omap/common.c
-@@ -49,6 +49,9 @@ int omap_bootloader_tag_len;
- struct omap_board_config_kernel *omap_board_config;
- int omap_board_config_size;
- 
-+/* used by omap-smp.c and board-4430sdp.c */
-+void __iomem *gic_cpu_base_addr;
-+
- static const void *get_config(u16 tag, size_t len, int skip, size_t *len_out)
- {
- 	struct omap_board_config_kernel *kinfo = NULL;
-diff --git a/arch/arm/plat-omap/include/mach/common.h b/arch/arm/plat-omap/include/mach/common.h
-index fdeab42..064f173 100644
---- a/arch/arm/plat-omap/include/mach/common.h
-+++ b/arch/arm/plat-omap/include/mach/common.h
-@@ -31,6 +31,9 @@
- 
- struct sys_timer;
- 
-+/* used by omap-smp.c and board-4430sdp.c */
-+extern void __iomem *gic_cpu_base_addr;
-+
- extern void omap_map_common_io(void);
- extern struct sys_timer omap_timer;
- #if defined(CONFIG_I2C_OMAP) || defined(CONFIG_I2C_OMAP_MODULE)
-diff --git a/arch/arm/plat-omap/include/mach/entry-macro.S b/arch/arm/plat-omap/include/mach/entry-macro.S
-index abe0864..3bad928 100644
---- a/arch/arm/plat-omap/include/mach/entry-macro.S
-+++ b/arch/arm/plat-omap/include/mach/entry-macro.S
-@@ -104,6 +104,8 @@
- 
- 		.endm
- #else
-+#define OMAP44XX_VA_GIC_CPU_BASE	OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
-+
- 		/*
- 		 * The interrupt numbering scheme is defined in the
- 		 * interrupt controller spec.  To wit:
-diff --git a/arch/arm/plat-omap/include/mach/omap44xx.h b/arch/arm/plat-omap/include/mach/omap44xx.h
-index b3ba5ac..8b4a578 100644
---- a/arch/arm/plat-omap/include/mach/omap44xx.h
-+++ b/arch/arm/plat-omap/include/mach/omap44xx.h
-@@ -33,14 +33,9 @@
- #define IRQ_SIR_IRQ			0x0040
- #define OMAP44XX_GIC_DIST_BASE		0x48241000
- #define OMAP44XX_GIC_CPU_BASE		0x48240100
--#define OMAP44XX_VA_GIC_CPU_BASE	OMAP2_IO_ADDRESS(OMAP44XX_GIC_CPU_BASE)
- #define OMAP44XX_SCU_BASE		0x48240000
--#define OMAP44XX_VA_SCU_BASE		OMAP2_IO_ADDRESS(OMAP44XX_SCU_BASE)
- #define OMAP44XX_LOCAL_TWD_BASE		0x48240600
--#define OMAP44XX_VA_LOCAL_TWD_BASE	OMAP2_IO_ADDRESS(OMAP44XX_LOCAL_TWD_BASE)
--#define OMAP44XX_LOCAL_TWD_SIZE		0x00000100
- #define OMAP44XX_WKUPGEN_BASE		0x48281000
--#define OMAP44XX_VA_WKUPGEN_BASE	OMAP2_IO_ADDRESS(OMAP44XX_WKUPGEN_BASE)
- 
- #endif /* __ASM_ARCH_OMAP44XX_H */
- 
-
---6Nae48J/T25AfBN4--
