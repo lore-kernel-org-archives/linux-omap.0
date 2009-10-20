@@ -1,37 +1,129 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH 1/2] omap iovmm: remove cache flush operation
-Date: Tue, 20 Oct 2009 15:28:51 -0400
-Message-ID: <notify-1256066934@atomide.com>
-References: <1254469657-15086-1-git-send-email-Hiroshi.DOYU@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCHV2] OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
+Date: Tue, 20 Oct 2009 12:35:14 -0700
+Message-ID: <87ws2pq2od.fsf@deeprootsystems.com>
+References: <FCCFB4CDC6E5564B9182F639FC35608702FA1748E0@dbde02.ent.ti.com>
+	<FCCFB4CDC6E5564B9182F639FC35608702FA174C6D@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52504 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752814AbZJTT2v (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 15:28:51 -0400
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1N0KO7-000Ghd-Cd
-	for linux-omap@vger.kernel.org; Tue, 20 Oct 2009 19:28:55 +0000
-In-Reply-To: <1254469657-15086-1-git-send-email-Hiroshi.DOYU@nokia.com>
-Content-Disposition: inline
+Received: from mail-px0-f171.google.com ([209.85.216.171]:37279 "EHLO
+	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695AbZJTTfM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 15:35:12 -0400
+Received: by pxi1 with SMTP id 1so1632959pxi.33
+        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 12:35:16 -0700 (PDT)
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA174C6D@dbde02.ent.ti.com> (Vishwanath Sripathy's message of "Fri\, 16 Oct 2009 21\:26\:37 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+"Sripathy, Vishwanath" <vishwanath.bs@ti.com> writes:
 
-Branch in linux-omap: for-next
+> As part of Core domain context restoration while coming out of off mode
+> there are some registers being restored which are not required to be restored.
+> ROM code should have restored them already. 
 
-Initial commit ID (Likely to change): 19f7972b1bf80abbadeacddba0c93f508bcba608
+Saying "should have restored" is not very convincing.  :)
 
-PatchWorks
-http://patchwork.kernel.org/patch/51305/
+I'm hoping that you mean ROM code *has* restored them already.  In
+which case, the changelog should read something like
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=19f7972b1bf80abbadeacddba0c93f508bcba608
+...not required to be restored because ROM code will have already
+restored them.
 
+> Overwriting some of them can have potential side effect. Eg:
+> CM_CLKEN_PLL register should not be written while dpll is locked.
+>
+> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
 
+While updating the changelog, can you report how OFF-mode was tested
+(suspend, off-while-idle, etc.)  and on which platforms.
+
+Otherwise, patch looks fine.
+
+Thanks,
+
+Kevin
+
+> ---
+>
+> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+> index fb864cc..88182a8 100644
+> --- a/arch/arm/mach-omap2/prcm.c
+> +++ b/arch/arm/mach-omap2/prcm.c
+> @@ -43,7 +43,6 @@ struct omap3_prcm_regs {
+>  	u32 iva2_cm_clksel2;
+>  	u32 cm_sysconfig;
+>  	u32 sgx_cm_clksel;
+> -	u32 wkup_cm_clksel;
+>  	u32 dss_cm_clksel;
+>  	u32 cam_cm_clksel;
+>  	u32 per_cm_clksel;
+> @@ -52,7 +51,6 @@ struct omap3_prcm_regs {
+>  	u32 pll_cm_autoidle2;
+>  	u32 pll_cm_clksel4;
+>  	u32 pll_cm_clksel5;
+> -	u32 pll_cm_clken;
+>  	u32 pll_cm_clken2;
+>  	u32 cm_polctrl;
+>  	u32 iva2_cm_fclken;
+> @@ -76,7 +74,6 @@ struct omap3_prcm_regs {
+>  	u32 usbhost_cm_iclken;
+>  	u32 iva2_cm_autiidle2;
+>  	u32 mpu_cm_autoidle2;
+> -	u32 pll_cm_autoidle;
+>  	u32 iva2_cm_clkstctrl;
+>  	u32 mpu_cm_clkstctrl;
+>  	u32 core_cm_clkstctrl;
+> @@ -279,7 +276,6 @@ void omap3_prcm_save_context(void)
+>  	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
+>  	prcm_context.sgx_cm_clksel =
+>  			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
+> -	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
+>  	prcm_context.dss_cm_clksel =
+>  			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
+>  	prcm_context.cam_cm_clksel =
+> @@ -296,8 +292,6 @@ void omap3_prcm_save_context(void)
+>  			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
+>  	prcm_context.pll_cm_clksel5 =
+>  			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
+> -	prcm_context.pll_cm_clken =
+> -			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
+>  	prcm_context.pll_cm_clken2 =
+>  			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
+>  	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
+> @@ -343,8 +337,6 @@ void omap3_prcm_save_context(void)
+>  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
+>  	prcm_context.mpu_cm_autoidle2 =
+>  			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
+> -	prcm_context.pll_cm_autoidle =
+> -			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
+>  	prcm_context.iva2_cm_clkstctrl =
+>  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
+>  	prcm_context.mpu_cm_clkstctrl =
+> @@ -436,7 +428,6 @@ void omap3_prcm_restore_context(void)
+>  	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
+>  	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
+>  					 CM_CLKSEL);
+> -	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
+>  	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
+>  					 CM_CLKSEL);
+>  	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
+> @@ -453,7 +444,6 @@ void omap3_prcm_restore_context(void)
+>  					OMAP3430ES2_CM_CLKSEL4);
+>  	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
+>  					 OMAP3430ES2_CM_CLKSEL5);
+> -	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
+>  	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
+>  					OMAP3430ES2_CM_CLKEN2);
+>  	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
+> @@ -492,7 +482,6 @@ void omap3_prcm_restore_context(void)
+>  	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
+>  					CM_AUTOIDLE2);
+>  	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
+> -	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
+>  	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
+>  					CM_CLKSTCTRL);
+>  	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
