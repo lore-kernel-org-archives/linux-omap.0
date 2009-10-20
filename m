@@ -1,202 +1,67 @@
-From: Steve Sakoman <sakoman@gmail.com>
-Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
-Date: Tue, 20 Oct 2009 11:55:49 -0700
-Message-ID: <5e088bd90910201155p63996ea3i821beb09a7b7ba15@mail.gmail.com>
-References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>
-	 <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>
-	 <4ADB4604.2090704@googlemail.com>
-	 <13B9B4C6EF24D648824FF11BE8967162039B3184F0@dlee02.ent.ti.com>
-	 <4b73d43f0910181717i9623184mc2b8c7d6ca0fb435@mail.gmail.com>
-	 <4b73d43f0910181724q11d40851wb2aed801d7ae85f6@mail.gmail.com>
-	 <005101ca50e1$11ef2770$544ff780@am.dhcp.ti.com>
-	 <4b73d43f0910191439o30fd1de6odab8ccd5e5430760@mail.gmail.com>
-	 <4ADD40EA.9020200@googlemail.com>
-	 <4b73d43f0910201145q388837adr2b790e3dc1ef5e52@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: 24xx/n8x0 booting again, linux-omap updated to -rc5
+Date: Tue, 20 Oct 2009 11:56:27 -0700
+Message-ID: <20091020185627.GJ12576@atomide.com>
+References: <20091016012747.GA12576@atomide.com> <20091020163102.GB22912@swansys>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:15237 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307AbZJTSzp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 14:55:45 -0400
-In-Reply-To: <4b73d43f0910201145q388837adr2b790e3dc1ef5e52@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49684 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751733AbZJTS4Z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 14:56:25 -0400
+Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1N0Jsj-0009QN-GU
+	for linux-omap@vger.kernel.org; Tue, 20 Oct 2009 18:56:29 +0000
+Content-Disposition: inline
+In-Reply-To: <20091020163102.GB22912@swansys>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: John Rigby <jcrigby@gmail.com>
-Cc: Dirk Behme <dirk.behme@googlemail.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Madhusudhan <madhu.cr@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>
+To: linux-omap@vger.kernel.org
 
-On Tue, Oct 20, 2009 at 11:45 AM, John Rigby <jcrigby@gmail.com> wrote:
-> It is still a work in progress because I have hacked the sdio_irq
-> thread to poll all the time. =A0I won't get a chance to do a proper f=
-ix
-> for a couple of days at least.
->
-> The main part of the fix was just turning on the cptl in the same
-> place you turn on the cirq bit.
->
-> Send me a reminder If you get no offers of testing help from anyone
-> else and I'll try to use my beagle board and wifi card with a modern
-> kernel.
+* green <greenfreedom10@gmail.com> [091020 09:31]:
+> Tony Lindgren wrote at 2009-10-15 20:27 -0500:
+> > Thanks to Paul's "OMAP2xxx clock: set up clockdomain pointer in struct clk"
+> > patch, we got 24xx booting again both in mainline and in linux-omap.
+> 
+> That's excellent news!
+> 
+> That is commit f856f168bcbc5f49253dd12a4d8452857a785f1c ?
 
-I'm happy to test on Overo.
+Yeah, that's it.
+ 
+> But I must be missing something somewhere... I have not yet been able to get 
+> the N810 to boot.  I see only the Nokia splash.  Note that I just want to see 
+> the framebuffer console at this point: I expect a panic due to no root fs.
+> 
+> Attached is the config I'm using, which is based on n8x0_defconfig.
 
-Steve
+Looks like your config ends up waiting for root on the mmc. But we're missing
+what was board-n800-mmc.c, so that needs to be updated for mainline.
+You can find the old code in the omap-2.6.30 branch under arch/arm/mach-omap2
+if you have the cycles to update it.
 
-> John
->
-> On Mon, Oct 19, 2009 at 10:47 PM, Dirk Behme <dirk.behme@googlemail.c=
-om> wrote:
->> John Rigby wrote:
->>>
->>> All,
->>>
->>> Sorry for the delay, I have been without internet access until just=
- now.
->>>
->>> I added the cptl bit and I don't get continuous cirqs anymore.
->>>
->>> Right now I have a hacked driver that still does timed polling in
->>> sdio_irq.c
->>> and also wakes up on cirq. =A0With this config the libertas works w=
-ell. =A0A
->>> flood ping of 1000 packets loses 2. =A0Previously it was dropping a=
-bout 30%
->>> of
->>> the packets from a flood ping.
->>
->> Great!! :)
->>
->>> Without the polling in sdio_irq.c I get timeouts in libertas driver=
- so I
->>> suspect that we may need to add checks of the DAT1 line in other pl=
-aces
->>> like
->>> the davinci driver does. =A0As I said before, my kernel is a few mo=
-nths old
->>> so
->>> my issues may not be the same as current head of tree.
->>
->> Do you like to send your changes anyway? Just for reference...
->>
->>> Thanks to all who helped on this.
->>
->> Now, the job will be to do this with recent kernel, make it stable a=
-nd in
->> the mid term get it applied.
->>
->> Anybody likes to help with this?
->>
->> Many thanks and best regards
->>
->> Dirk
->>
->>> On Mon, Oct 19, 2009 at 11:24 AM, Madhusudhan <madhu.cr@ti.com> wro=
-te:
->>>
->>>> =A0Hi John,
->>>>
->>>>
->>>>
->>>> So does the SDIO card interrupt mode work fine now?
->>>>
->>>>
->>>>
->>>> Regards,
->>>>
->>>> Madhu
->>>>
->>>>
->>>> =A0------------------------------
->>>>
->>>> *From:* John Rigby [mailto:jcrigby@gmail.com]
->>>> *Sent:* Sunday, October 18, 2009 7:24 PM
->>>> *To:* Woodruff, Richard
->>>> *Cc:* Dirk Behme; Chikkature Rajashekar, Madhusudhan;
->>>> linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Steve Sakom=
-an
->>>> *Subject:* Re: MMC_CAP_SDIO_IRQ for omap 3430
->>>>
->>>>
->>>>
->>>> Ok I was going to ask where you found that but I just rechecked th=
-e TRM
->>>> and
->>>> there it is in plain site:
->>>>
->>>> =A0When this bit is set to 1, the host controller automatically di=
-sables
->>>> all
->>>> the input buffers except the buffer of mmci_dat[1] outside of a
->>>> transaction
->>>> in order to detect asynchronous card interrupt on mmci_dat[1] line=
- and
->>>> minimize the leakage current of the buffers.
->>>>
->>>>
->>>> In my defence, I did search the TRM for every occurance of dat1 bu=
-t not
->>>> dat[1]. =A0Oh well live and learn and forget and repeat.
->>>>
->>>> John
->>>>
->>>> On Sun, Oct 18, 2009 at 6:17 PM, John Rigby <jcrigby@gmail.com> wr=
-ote:
->>>>>
->>>>> Richard,
->>>>>
->>>>> MMCHS_CON.CPTL =3D 1 =A0< Don't disable input buffer on DAT1 afte=
-r
->>>>> completion to allow seeing SDIO interrupt>
->>>>>
->>>>> Sounds exactly like what we need.
->>>>>
->>>>> Thanks
->>>>> John
->>>>>
->>>>> On Sun, Oct 18, 2009 at 5:12 PM, Woodruff, Richard <r-woodruff2@t=
-i.com>
->>>>
->>>> wrote:
->>>>>>>
->>>>>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>>>>>> owner@vger.kernel.org] On Behalf Of Dirk Behme
->>>>>>> Sent: Sunday, October 18, 2009 11:45 AM
->>>>>>>>
->>>>>>>> It would be funny if the TRM was wrong and the CIRQ bit is rea=
-lly
->>>>>>>> cleared by writing 1 to it. =A0I'll try that.
->>>>>>
->>>>>> A while back I hunted down a few of the bits for this. =A0Maybe =
-this will
->>>>
->>>> help some.
->>>>>>
->>>>>> SYSCONFIG.ENAWAKEUP =3D 1 < allow ocp wrapper to generate an int=
-errupt to
->>>>
->>>> prcm>
->>>>>>
->>>>>> MMCHS_HCTL.IWE =3D 1 < route wake up to module ocp wrapper>
->>>>>> MMCHS_CON.CPTL =3D 1 =A0< Don't disable input buffer on DAT1 aft=
-er
->>>>
->>>> completion to allow seeing SDIO interrupt>
->>>>>>
->>>>>> MMCHS_HCTL.IWE
->>>>>> MMCHS_ISE.CIRQ_ENABLE <bit to write to enable interrupt at pin>
->>>>>> MMCHS_STAT<bit to write for clear of SDIO interrupt>
->>>>>> CCCCR - IRQ_ENABLE (think host stack will do this)
->>>>>>
->>>>>> Regards,
->>>>>> Richard W.
->>>>>>
->>>
->>
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also, the drivers/cbus needs to be updated to get the GPIO pins from
+board-*.c files, otherwise the retu watchdog will power down the system
+in 30 seconds.
+ 
+> I am using the arm-linux-gnueabi cross-compiler from emdebian, v4.2.  What 
+> version is recommended, preferably available from emdebian (4.1, 4.2, 4.3, 
+> 4.4)?
+
+Those should be just fine.
+ 
+> > The following patch is also needed to change the n8x0 serial console CMDLINE
+> > from ttyS0 to ttyS2 as the port numbering now matches the physical ports.
+> > The patch is already in linux-omap, but not yet in mainline.
+> 
+> If that is only for the serial console, I should need no console= option, 
+> right?  I've tried it both ways...
+
+Yeah, that's needed only for the serial console.
+
+Regards,
+
+Tony
