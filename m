@@ -1,52 +1,51 @@
-From: Andrejs Cainikovs <andrejsc@globalautomationsystems.com>
-Subject: Re: OMAP2420-HS flashing question
-Date: Tue, 20 Oct 2009 17:28:45 +0300
-Message-ID: <4ADDC91D.3010400@globalautomationsystems.com>
-References: <4ADCA2BF.3020105@globalautomationsystems.com> <e1a3109c0910200043n119316d4v60e28f7a7231d172@mail.gmail.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 2/2] OMAP3:clk: introduce DPLL4 jtype support
+Date: Tue, 20 Oct 2009 09:47:48 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B3CE7F2@dlee02.ent.ti.com>
+References: <1256035738-17571-1-git-send-email-nm@ti.com>
+ <1256035738-17571-2-git-send-email-nm@ti.com>
+ <1256035738-17571-3-git-send-email-nm@ti.com>
+ <A24693684029E5489D1D202277BE89444CFD9B75@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from b124.csc.lv ([193.138.189.124]:56654 "EHLO
-	mail.globalautomationsystems.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751863AbZJTO2m (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Oct 2009 10:28:42 -0400
-In-Reply-To: <e1a3109c0910200043n119316d4v60e28f7a7231d172@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:33824 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751149AbZJTOro convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 10:47:44 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9KElnNT031779
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 09:47:49 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n9KElm0e028025
+	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 09:47:48 -0500 (CDT)
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9KElmDM009963
+	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 09:47:48 -0500 (CDT)
+In-Reply-To: <A24693684029E5489D1D202277BE89444CFD9B75@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Shankar Ganesh <shankarganeshk@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "Sonasath, Moiz" <m-sonasath@ti.com>
 
-Shankar Ganesh wrote:
-> On Mon, Oct 19, 2009 at 1:32 PM, Andrejs Cainikovs 
-> <andrejsc@globalautomationsystems.com 
-> <mailto:andrejsc@globalautomationsystems.com>> wrote:
->
->     Dear all,
->
->     I've googled that OMAP HS are checking some kind of signature
->     (applications should be signed with the special tool (OST Tools))
->     so the developer must own the keys for particular CPU? It is
->     possible to turn off the HS option so I'll be able to work with
->     non-signed binaries?
->     The problem is that I want to get kernel running on custom
->     OMAP2420-HS board but have no keys.
->
->
->
-> Try CSST [1] for 2430 , having signing support for 24xx. There are 
-> default keys available with the release. You may go through quick 
-> start guide  (available with binary) for further info.
->
-> [1] 
-> http://focus.ti.com/general/docs/wtbu/wtbugencontent.tsp?templateId=6123&navigationId=12013&contentId=4581 
-> <http://focus.ti.com/general/docs/wtbu/wtbugencontent.tsp?templateId=6123&navigationId=12013&contentId=4581>  
->
-Thanks Shankar,
 
-This custom board is the part of dead Nokia phone, I really doubt it 
-will work with default keys. Anyway, it is worth a try...
+> From: Aguirre Rodriguez, Sergio Alberto
+> Sent: Tuesday, October 20, 2009 9:16 AM
+
+> > + * lookup_dco_sddiv -j-type DPLL4 compensation variables
+>
+> Put a space before the j-type, and add better description.
+> Doesn't clarify what it really does IMHO:
+>
+> Something like:
+> "* lookup_dco_sddiv - Set j-type DPLL4 compensation variables"
+
+For 45nm it was necessary to use a different DPLL IP for DPLL4 (dpllj).  The other DPLLs are same which was used in 65nm (dpllm).  The register interface is slightly different.
+
+Code could have said is type A or B, but simple choice was to follow internal name convention.
 
 Regards,
-Andrejs Cainikovs.
+Richard W.
