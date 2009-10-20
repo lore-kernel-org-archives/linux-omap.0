@@ -1,80 +1,175 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH] omap: 3630: update is_chip variable
-Date: Mon, 19 Oct 2009 18:47:23 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AA1F60C@dlee02.ent.ti.com>
-References: <1255989491-27088-1-git-send-email-vikram.pandita@ti.com>
- <13B9B4C6EF24D648824FF11BE8967162039B318E7E@dlee02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA174E4A@dbde02.ent.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 11/14] omap: Remap L3, L4 to get more kernel io address
+	space
+Date: Mon, 19 Oct 2009 17:20:59 -0700
+Message-ID: <20091020002059.GZ12576@atomide.com>
+References: <20091016233624.2463.26653.stgit@localhost> <20091016234213.2463.61298.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/mixed; boundary="twz1s1Hj1O0rHoT0"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43583 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754793AbZJSXrU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 19:47:20 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9JNlP2S019850
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 18:47:25 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n9JNlOxl001404
-	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 18:47:24 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9JNlOvb015309
-	for <linux-omap@vger.kernel.org>; Mon, 19 Oct 2009 18:47:24 -0500 (CDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA174E4A@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51131 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758017AbZJTAU7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 20:20:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20091016234213.2463.61298.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
-> -----Original Message-----
-> From: Pandita, Vikram
-> Sent: Monday, October 19, 2009 5:25 PM
-> To: Woodruff, Richard; linux-omap@vger.kernel.org
+
+--twz1s1Hj1O0rHoT0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+* Tony Lindgren <tony@atomide.com> [091016 16:42]:
+> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
 > 
-> >From: Woodruff, Richard
-> >
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Pandita, Vikram
-> >
-> >> diff --git a/arch/arm/plat-omap/include/mach/cpu.h b/arch/arm/plat-
-> >> omap/include/mach/cpu.h
-> >> index 7cb0556..05a0a33 100644
-> >> --- a/arch/arm/plat-omap/include/mach/cpu.h
-> >> +++ b/arch/arm/plat-omap/include/mach/cpu.h
-> >> @@ -454,6 +454,7 @@ IS_OMAP_TYPE(3430, 0x3430)
-> >>  #define CHIP_IS_OMAP3430ES2		(1 << 4)
-> >>  #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
-> >>  #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
-> >
-> >Should we add a little space for 3430 to grow? Current TRM already
-> defines a 3.1.2. For this version
-> >changes are transparent to software.  IIRC mostly internal cell tweaks to
-> allow for expanded
-> >operating range.
-> >
-> >The CONTROL.CONTROL_IDCODE value is 0x0B6D 602F for OMAP34xx ES1.0.
-> >The CONTROL.CONTROL_IDCODE value is 0x1B7A E02F for OMAP34xx ES2.0.
-> >The CONTROL.CONTROL_IDCODE value is 0x2B7A E02F for OMAP34xx ES2.1.
-> >The CONTROL.CONTROL_IDCODE value is 0x3B7A E02F for OMAP34xx ES3.0.
-> >The CONTROL.CONTROL_IDCODE value is 0x4B7A E02F for OMAP34xx ES3.1.
-> >The CONTROL.CONTROL_IDCODE value is 0x7B7A E02F for OMAP34xx ES3.1.2.
-> >
-> >> +#define CHIP_IS_OMAP3630ES1		(1 << 7)
+> This patch remap L3 and L4 io space to get more kernel address space.
+> With this patch, 512 MB of IO space is reclaimed.
+> Some more combinations are possible but to make it uniform across
+> OMAP24XX, OMAP34XX and OMAP4430, these io combinations are chosen
 > 
-> In that case we have to be careful.
-> "arch/arm/plat-omap/include/mach/cpu.h"
-> struct omap_chip_id {
->         u8 oc;
->         u8 type;
-> };
+> Once this is reviewed and tested sufficiently, a documentation entry can
+> be created to ease up reading and debugging.
+> Like "Documentation/arm/omap/io_map.txt"
 > 
-> Type is u8 and we already are using the 8th bit now (1<<7)
-> So a type u8 -> u16 will also be needed.
+> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> Signed-off-by: Tony Lindgren <tony@atomide.com>
+> ---
+>  arch/arm/plat-omap/include/mach/io.h      |   97 ++++++++++++++++++-----------
+>  arch/arm/plat-omap/include/mach/vmalloc.h |    2 -
+>  2 files changed, 60 insertions(+), 39 deletions(-)
 > 
-Requesting a u32 to try future proofing?
+
+<snip>  
+  
+> diff --git a/arch/arm/plat-omap/include/mach/vmalloc.h b/arch/arm/plat-omap/include/mach/vmalloc.h
+> index b97dfaf..9eebf62 100644
+> --- a/arch/arm/plat-omap/include/mach/vmalloc.h
+> +++ b/arch/arm/plat-omap/include/mach/vmalloc.h
+> @@ -17,5 +17,5 @@
+>   * along with this program; if not, write to the Free Software
+>   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+>   */
+> -#define VMALLOC_END	  (PAGE_OFFSET + 0x18000000)
+> +#define VMALLOC_END	  (PAGE_OFFSET + 0x38000000)
+
+This vmalloc.h change causes issues on omap1. I'll update the series
+to ifdef this define.
+
+Then I'll split the file in the later patches into separate
+vmalloc.h for mach-omap1 and mach-omap2, see below.
 
 Regards,
-Nishanth Menon
+
+Tony
+
+--twz1s1Hj1O0rHoT0
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: inline; filename="vmalloc-fix.patch"
+
+>From 4155da6fc9ac453636bbc505311b105a64da81f8 Mon Sep 17 00:00:00 2001
+From: Tony Lindgren <tony@atomide.com>
+Date: Mon, 19 Oct 2009 17:11:27 -0700
+Subject: [PATCH] omap: Split vmalloc.h for mach-omap1 and mach-omap2
+
+Earlier patch "omap: Remap L3, L4 to get more kernel io address space"
+changed the VMALLOC_END.
+
+However, this change causes problems on mach-omap1:
+
+BUG: mapping for 0xe0000000 at 0xe0000000 overlaps vmalloc space
+BUG: mapping for 0xe1000000 at 0xe1000000 overlaps vmalloc space
+
+Fix this by creating separate vmalloc.h files for mach-omap1
+and mach-omap2.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+
+diff --git a/arch/arm/mach-omap1/include/mach/vmalloc.h b/arch/arm/mach-omap1/include/mach/vmalloc.h
+index 085a18a..1b2af14 100644
+--- a/arch/arm/mach-omap1/include/mach/vmalloc.h
++++ b/arch/arm/mach-omap1/include/mach/vmalloc.h
+@@ -1,5 +1,20 @@
+ /*
+- * arch/arm/mach-omap1/include/mach/vmalloc.h
++ *  arch/arm/mach-omap1/include/mach/vmalloc.h
++ *
++ *  Copyright (C) 2000 Russell King.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+-
+-#include <plat/vmalloc.h>
++#define VMALLOC_END	(PAGE_OFFSET + 0x18000000)
+diff --git a/arch/arm/mach-omap2/include/mach/vmalloc.h b/arch/arm/mach-omap2/include/mach/vmalloc.h
+index 1423223..9ce9b6e 100644
+--- a/arch/arm/mach-omap2/include/mach/vmalloc.h
++++ b/arch/arm/mach-omap2/include/mach/vmalloc.h
+@@ -1,5 +1,20 @@
+ /*
+- * arch/arm/mach-omap2/include/mach/vmalloc.h
++ *  arch/arm/plat-omap/include/mach/vmalloc.h
++ *
++ *  Copyright (C) 2000 Russell King.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+-
+-#include <plat/vmalloc.h>
++#define VMALLOC_END	  (PAGE_OFFSET + 0x38000000)
+diff --git a/arch/arm/plat-omap/include/plat/vmalloc.h b/arch/arm/plat-omap/include/plat/vmalloc.h
+deleted file mode 100644
+index 9eebf62..0000000
+--- a/arch/arm/plat-omap/include/plat/vmalloc.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- *  arch/arm/plat-omap/include/mach/vmalloc.h
+- *
+- *  Copyright (C) 2000 Russell King.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+- */
+-#define VMALLOC_END	  (PAGE_OFFSET + 0x38000000)
+-
+
+--twz1s1Hj1O0rHoT0--
