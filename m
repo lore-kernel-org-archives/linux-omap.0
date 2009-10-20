@@ -1,107 +1,123 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 11/17] Make USBHOST powerdomain go to sleep after warm reset.
-Date: Tue, 20 Oct 2009 10:39:54 -0700
-Message-ID: <87ljj6j76d.fsf@deeprootsystems.com>
-References: <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-8-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 3b/6] omap: Split vmalloc.h for mach-omap1 and
+	mach-omap2
+Date: Tue, 20 Oct 2009 10:42:23 -0700
+Message-ID: <20091020174223.GH12576@atomide.com>
+References: <20091014213748.30227.71513.stgit@kaulin.muru.com> <20091014214920.30227.10280.stgit@kaulin.muru.com> <20091020165714.GC12576@atomide.com> <A24693684029E5489D1D202277BE89444CFD9E9C@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:33565 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751823AbZJTRjw (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 13:39:52 -0400
-Received: by pwj1 with SMTP id 1so772091pwj.21
-        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 10:39:56 -0700 (PDT)
-In-Reply-To: <1255690150-16853-12-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 16 Oct 2009 13\:49\:04 +0300")
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:49629 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751539AbZJTRmW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 13:42:22 -0400
+Content-Disposition: inline
+In-Reply-To: <A24693684029E5489D1D202277BE89444CFD9E9C@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org, Peter De-Schrijver <peter.de-schrijver@nokia.com>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [091020 10:15]:
+> Tony, 
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony Lindgren
+> > Sent: Tuesday, October 20, 2009 11:57 AM
+> > To: linux-arm-kernel@lists.infradead.org
+> > Cc: linux-omap@vger.kernel.org
+> > Subject: [PATCH 3b/6] omap: Split vmalloc.h for mach-omap1 
+> > and mach-omap2
+> > 
+> > I've added a patch to split vmalloc.h into this series to allow
+> > different VMALLOC_END on omap1 and omap2.
+> > 
+> > Regards,
+> > 
+> > Tony
+> > 
+> > From 72464dbae2749dd57bc2b3cd57d4fc6ba7abca37 Mon Sep 17 00:00:00 2001
+> > From: Tony Lindgren <tony@atomide.com>
+> > Date: Mon, 19 Oct 2009 17:26:29 -0700
+> > Subject: [PATCH] omap: Split vmalloc.h for mach-omap1 and mach-omap2
+> > 
+> > Earlier patch "omap: Remap L3, L4 to get more kernel io address space"
+> > changed the VMALLOC_END.
+> > 
+> > However, this change causes problems on mach-omap1:
+> > 
+> > BUG: mapping for 0xe0000000 at 0xe0000000 overlaps vmalloc space
+> > BUG: mapping for 0xe1000000 at 0xe1000000 overlaps vmalloc space
+> > 
+> > Fix this by creating separate vmalloc.h files for mach-omap1
+> > and mach-omap2.
+> > 
+> > Signed-off-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > diff --git a/arch/arm/plat-omap/include/mach/vmalloc.h 
+> > b/arch/arm/mach-omap1/include/mach/vmalloc.h
+> > similarity index 86%
+> > copy from arch/arm/plat-omap/include/mach/vmalloc.h
+> > copy to arch/arm/mach-omap1/include/mach/vmalloc.h
+> > index fc338a5..1b2af14 100644
+> > --- a/arch/arm/plat-omap/include/mach/vmalloc.h
+> > +++ b/arch/arm/mach-omap1/include/mach/vmalloc.h
+> > @@ -1,5 +1,5 @@
+> >  /*
+> > - *  arch/arm/plat-omap/include/mach/vmalloc.h
+> > + *  arch/arm/mach-omap1/include/mach/vmalloc.h
+> 
+> I thought that keeping file paths was discouraged...
+> 
+> Why not getting rid of it to avoid changing it every time?
 
-> From: Peter De-Schrijver <peter.de-schrijver@nokia.com>
->
-> This patch makes sure the USBHOST and SGX powerdomains can go to any sleep
-> state after a warm reset.
+Well mostly to keep things consistent with existing files.
+If we want to, we can do a separate series to remove the
+paths for all the files later on.
 
-Workaround looks ok, but the changelog should describe the cause of
-problem.  IOW, why weren't these domains transitioning after a warm
-reset?
+Regards,
 
-Kevin
-
-> Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
-> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
-> ---
->  arch/arm/mach-omap2/cm-regbits-34xx.h |    1 +
->  arch/arm/mach-omap2/pm34xx.c          |   18 ++++++++++++++++++
->  2 files changed, 19 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> index 6923deb..3152553 100644
-> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
-> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
-> @@ -680,6 +680,7 @@
->  #define OMAP3430_CLKSEL_GPT2_SHIFT			0
->  
->  /* CM_SLEEPDEP_PER specific bits */
-> +#define OMAP3430_CM_SLEEPDEP_PER_EN_MPU			(1 << 1)
->  #define OMAP3430_CM_SLEEPDEP_PER_EN_IVA2		(1 << 2)
->  
->  /* CM_CLKSTCTRL_PER */
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 47f5738..1fa778f 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -26,6 +26,7 @@
->  #include <linux/err.h>
->  #include <linux/gpio.h>
->  #include <linux/clk.h>
-> +#include <linux/delay.h>
->  
->  #include <mach/sram.h>
->  #include <mach/prcm.h>
-> @@ -934,6 +935,24 @@ static void __init prcm_setup_regs(void)
->  	prm_write_mod_reg(0, OMAP3430_CAM_MOD, PM_WKDEP);
->  	prm_write_mod_reg(0, OMAP3430_PER_MOD, PM_WKDEP);
->  	if (omap_rev() > OMAP3430_REV_ES1_0) {
-> +
-> +		/*
-> +		 * This workaround is needed to prevent SGX and USBHOST from
-> +		 * failing to transition to RET/OFF after a warm reset in OFF
-> +		 * mode. Workaround sets a sleepdep of each of these domains
-> +		 * with MPU, waits for a min 2 sysclk cycles and clears the
-> +		 * sleepdep.
-> +		 */
-> +		cm_write_mod_reg(OMAP3430_CM_SLEEPDEP_PER_EN_MPU,
-> +				OMAP3430ES2_USBHOST_MOD, OMAP3430_CM_SLEEPDEP);
-> +		cm_write_mod_reg(OMAP3430_CM_SLEEPDEP_PER_EN_MPU,
-> +				OMAP3430ES2_SGX_MOD, OMAP3430_CM_SLEEPDEP);
-> +		udelay(100);
-> +		cm_write_mod_reg(0, OMAP3430ES2_USBHOST_MOD,
-> +				OMAP3430_CM_SLEEPDEP);
-> +		cm_write_mod_reg(0, OMAP3430ES2_SGX_MOD,
-> +				OMAP3430_CM_SLEEPDEP);
-> +
->  		prm_write_mod_reg(0, OMAP3430ES2_SGX_MOD, PM_WKDEP);
->  		prm_write_mod_reg(0, OMAP3430ES2_USBHOST_MOD, PM_WKDEP);
->  	} else
-> -- 
-> 1.5.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
+ 
+> Regards,
+> Sergio
+> >   *
+> >   *  Copyright (C) 2000 Russell King.
+> >   *
+> > @@ -17,8 +17,4 @@
+> >   * along with this program; if not, write to the Free Software
+> >   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
+> > 02111-1307 USA
+> >   */
+> > -#ifdef CONFIG_ARCH_OMAP1
+> >  #define VMALLOC_END	(PAGE_OFFSET + 0x18000000)
+> > -#else
+> > -#define VMALLOC_END	(PAGE_OFFSET + 0x38000000)
+> > -#endif
+> > diff --git a/arch/arm/plat-omap/include/mach/vmalloc.h 
+> > b/arch/arm/mach-omap2/include/mach/vmalloc.h
+> > similarity index 85%
+> > rename from arch/arm/plat-omap/include/mach/vmalloc.h
+> > rename to arch/arm/mach-omap2/include/mach/vmalloc.h
+> > index fc338a5..9ce9b6e 100644
+> > --- a/arch/arm/plat-omap/include/mach/vmalloc.h
+> > +++ b/arch/arm/mach-omap2/include/mach/vmalloc.h
+> > @@ -17,8 +17,4 @@
+> >   * along with this program; if not, write to the Free Software
+> >   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 
+> > 02111-1307 USA
+> >   */
+> > -#ifdef CONFIG_ARCH_OMAP1
+> > -#define VMALLOC_END	(PAGE_OFFSET + 0x18000000)
+> > -#else
+> > -#define VMALLOC_END	(PAGE_OFFSET + 0x38000000)
+> > -#endif
+> > +#define VMALLOC_END	  (PAGE_OFFSET + 0x38000000)
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> > linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
