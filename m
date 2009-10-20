@@ -1,52 +1,74 @@
-From: Brett Graham <graham@rowland.harvard.edu>
-Subject: mmap /dev/mem in python
-Date: Tue, 20 Oct 2009 18:06:31 -0400
-Message-ID: <47b23c40910201506u381ee2b4ye3867d3559443bdb@mail.gmail.com>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: 24xx/n8x0 booting again, linux-omap updated to -rc5
+Date: Tue, 20 Oct 2009 17:08:49 -0500
+Message-ID: <20091020220849.GC22912@swansys>
+References: <20091016012747.GA12576@atomide.com> <20091020163102.GB22912@swansys> <20091020185627.GJ12576@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="hxkXGo8AKqTJ+9QI"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:60210 "EHLO
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:65442 "EHLO
 	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914AbZJTWGr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 18:06:47 -0400
-Received: by ewy3 with SMTP id 3so5357321ewy.17
-        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 15:06:51 -0700 (PDT)
+	with ESMTP id S1751182AbZJTWIx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 18:08:53 -0400
+Received: by ewy3 with SMTP id 3so5359243ewy.17
+        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 15:08:57 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20091020185627.GJ12576@atomide.com>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-I'm trying to mmap /dev/mem in python to access various registers on a
-gumstix overo (with an omap 3530 processor). Here is the code I'm
-using (as a minimal example):
-----------------------------
-import os, mmap
-MAP_MASK = mmap.PAGESIZE - 1
-addr = (see below)
 
-f = os.open("/dev/mem", os.O_RDWR | os.O_SYNC)
-m = mmap.mmap(f, mmap.PAGESIZE, mmap.MAP_SHARED, mmap.PROT_WRITE |
-mmap.PROT_READ, offset=addr & ~MAP_MASK)
-m.seek(addr & MAP_MASK)
-c = m.read_byte()
-print c
-m.close()
-os.close(f)
-----------------------------
+--hxkXGo8AKqTJ+9QI
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-If I use: addr = 0x48002178 everything works swimmingly. However, if I
-use: addr = 0x48088024 (or all the addresses I've tried > 0x48044000)
-I get the following error
+Tony Lindgren wrote at 2009-10-20 13:56 -0500:
+> * green <greenfreedom10@gmail.com> [091020 09:31]:
+> > But I must be missing something somewhere... I have not yet been able t=
+o get=20
+> > the N810 to boot.  I see only the Nokia splash.  Note that I just want =
+to see=20
+> > the framebuffer console at this point: I expect a panic due to no root =
+fs.
+> >=20
+> > Attached is the config I'm using, which is based on n8x0_defconfig.
+>=20
+> Looks like your config ends up waiting for root on the mmc. But we're mis=
+sing
+> what was board-n800-mmc.c, so that needs to be updated for mainline.
+> You can find the old code in the omap-2.6.30 branch under arch/arm/mach-o=
+map2
+> if you have the cycles to update it.
 
-Unhandled fault: external abort on non-linefetch (0x1018) at 0x40020024
-Bus error
+I did not expect it to boot, even if mmc was available (no rootfs exists on=
+=20
+either mmc).  But the framebuffer does not seem to be working.  I would lik=
+e to=20
+see a console.  Any idea about that?
 
-and python crashes. I'm basing the mmap flags and options off of
-devmem2.c. If I remove the O_SYNC flag from the os.open command, I can
-read and write to registers fine, but randomly I will get the
-Unhandled fault error and things will not work correctly.
+> Also, the drivers/cbus needs to be updated to get the GPIO pins from
+> board-*.c files, otherwise the retu watchdog will power down the system
+> in 30 seconds.
 
-Am I using the right command to write to the omap registers? should I
-be using the O_SYNC flag? Any ideas where these errors are coming
-from?
+Yeah, I see the Nokia splash for roughly 30 seconds before the device power=
+s=20
+off.
 
-Thanks in advance for your help.
+--hxkXGo8AKqTJ+9QI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkreNO8ACgkQ682C+dBP+oTe3QCdGfRfsq/Ol+F8jcg4wVz0uUHn
+d/wAoM208tPqHIoeom3MyR34gMvjGVoN
+=a2VL
+-----END PGP SIGNATURE-----
+
+--hxkXGo8AKqTJ+9QI--
