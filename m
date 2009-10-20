@@ -1,129 +1,203 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHV2] OMAP3: PM: Removing redundant and potentially dangerous PRCM configration
-Date: Tue, 20 Oct 2009 12:35:14 -0700
-Message-ID: <87ws2pq2od.fsf@deeprootsystems.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA1748E0@dbde02.ent.ti.com>
-	<FCCFB4CDC6E5564B9182F639FC35608702FA174C6D@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 2/2 v2] OMAP3:clk - introduce DPLL4 jtype support
+Date: Tue, 20 Oct 2009 15:02:48 -0500
+Message-ID: <1256068968-16564-1-git-send-email-nm@ti.com>
+References: <[PATCH 2/2] OMAP3:clk: introduce DPLL4 jtype support>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f171.google.com ([209.85.216.171]:37279 "EHLO
-	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695AbZJTTfM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 15:35:12 -0400
-Received: by pxi1 with SMTP id 1so1632959pxi.33
-        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 12:35:16 -0700 (PDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA174C6D@dbde02.ent.ti.com> (Vishwanath Sripathy's message of "Fri\, 16 Oct 2009 21\:26\:37 +0530")
+Received: from devils.ext.ti.com ([198.47.26.153]:49255 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752612AbZJTUCs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 16:02:48 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9KK2rsn023530
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 15:02:53 -0500
+In-Reply-To: <[PATCH 2/2] OMAP3:clk: introduce DPLL4 jtype support>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Richard Woodruff <r-woodruff2@ti.com>, Vikram Pandita <vikram.pandita@ti.com>, "Sonasath, Moiz Sonasath" <m-sonasath@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Nishanth Menon <nm@ti.com>
 
-"Sripathy, Vishwanath" <vishwanath.bs@ti.com> writes:
+From: Richard Woodruff <r-woodruff2@ti.com>
 
-> As part of Core domain context restoration while coming out of off mode
-> there are some registers being restored which are not required to be restored.
-> ROM code should have restored them already. 
+**---
+V2 - patch with comments from Sergio cleanups in general
+	+  static used instead of a global function
+V1 - original patch
+**---
+DPLL4 for 3630 introduces a changed block requiring
+special divisor bits and additional reg fields
 
-Saying "should have restored" is not very convincing.  :)
+To allow for silicons to use this, this is introduced
+as a omap3_has_jtype_dpll4() and is enabled for 3630
+silicon
 
-I'm hoping that you mean ROM code *has* restored them already.  In
-which case, the changelog should read something like
+Tested with SDP3430, SDP3630
 
-...not required to be restored because ROM code will have already
-restored them.
+Cc: Vikram Pandita <vikram.pandita@ti.com>
+Cc: Sonasath, Moiz Sonasath <m-sonasath@ti.com>
+Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/clock34xx.c         |   46 ++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/cm-regbits-34xx.h   |    6 +++-
+ arch/arm/mach-omap2/id.c                |    3 ++
+ arch/arm/plat-omap/include/plat/clock.h |    3 ++
+ arch/arm/plat-omap/include/plat/cpu.h   |    2 +
+ 5 files changed, 58 insertions(+), 2 deletions(-)
 
-> Overwriting some of them can have potential side effect. Eg:
-> CM_CLKEN_PLL register should not be written while dpll is locked.
->
-> Signed-off-by: Vishwanath BS <vishwanath.bs@ti.com>
+diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+index c258f87..2ebddb7 100644
+--- a/arch/arm/mach-omap2/clock34xx.c
++++ b/arch/arm/mach-omap2/clock34xx.c
+@@ -675,6 +675,41 @@ static void omap3_noncore_dpll_disable(struct clk *clk)
+ 	_omap3_noncore_dpll_stop(clk);
+ }
+ 
++/**
++ * lookup_dco_sddiv -  Set j-type DPLL4 compensation variables
++ * @clk: pointer to a DPLL struct clk
++ * @dco: digital control oscillator selector
++ * @sd_div: target sigma-delta divider
++ * @m: DPLL multiplier to set
++ * @n: DPLL divider to set
++ */
++static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m, u8 n)
++{
++	unsigned long fint, clkinp, sd; /* watch out for overflow */
++	int mod1, mod2;
++
++	n++; /* always n+1 below */
++	clkinp = clk->parent->rate;
++	fint = (clkinp / n) * m;
++
++	if (fint < 1000000000)
++		*dco = 2;
++	else
++		*dco = 4;
++	/*
++	 * target sigma-delta to near 250MHz
++	 * sd = ceil[(m/(n+1)) * (clkinp_MHz / 250)]
++	 */
++	clkinp /= 100000; /* shift from MHz to 10*Hz for 38.4 and 19.2*/
++	mod1 = (clkinp * m) % (250 * n);
++	sd = (clkinp * m) / (250 * n);
++	mod2 = sd % 10;
++	sd /= 10;
++
++	if (mod1 + mod2)
++		sd++;
++	*sd_div = sd;
++}
+ 
+ /* Non-CORE DPLL rate set code */
+ 
+@@ -707,6 +742,13 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+ 	v &= ~(dd->mult_mask | dd->div1_mask);
+ 	v |= m << __ffs(dd->mult_mask);
+ 	v |= (n - 1) << __ffs(dd->div1_mask);
++	if (dd->jtype) {
++		u8 dco, sd_div;
++		lookup_dco_sddiv(clk, &dco, &sd_div, m, n);
++		v &= ~(dd->dco_sel_mask | dd->sd_div_mask);
++		v |=  dco << __ffs(dd->dco_sel_mask);
++		v |=  sd_div << __ffs(dd->sd_div_mask);
++	}
+ 	__raw_writel(v, dd->mult_div1_reg);
+ 
+ 	/* We let the clock framework set the other output dividers later */
+@@ -1022,7 +1064,7 @@ static unsigned long omap3_clkoutx2_recalc(struct clk *clk)
+ 
+ 	v = __raw_readl(dd->control_reg) & dd->enable_mask;
+ 	v >>= __ffs(dd->enable_mask);
+-	if (v != OMAP3XXX_EN_DPLL_LOCKED)
++	if (v != OMAP3XXX_EN_DPLL_LOCKED && (!dd->jtype))
+ 		rate = clk->parent->rate;
+ 	else
+ 		rate = clk->parent->rate * 2;
+@@ -1135,6 +1177,8 @@ int __init omap2_clk_init(void)
+ 			cpu_mask |= RATE_IN_3430ES2;
+ 			cpu_clkflg |= CK_3430ES2;
+ 		}
++		if (omap3_has_jtype_dpll4())
++			dpll4_ck.dpll_data->jtype = 1;
+ 	}
+ 
+ 	clk_init(&omap2_clk_functions);
+diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+index 6923deb..6f2802b 100644
+--- a/arch/arm/mach-omap2/cm-regbits-34xx.h
++++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+@@ -516,9 +516,13 @@
+ 
+ /* CM_CLKSEL2_PLL */
+ #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
+-#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0x7ff << 8)
++#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0xfff << 8)
+ #define OMAP3430_PERIPH_DPLL_DIV_SHIFT			0
+ #define OMAP3430_PERIPH_DPLL_DIV_MASK			(0x7f << 0)
++#define OMAP3630_PERIPH_DPLL_DCO_SEL_SHIFT		21
++#define OMAP3630_PERIPH_DPLL_DCO_SEL_MASK		(0x7 << 21)
++#define OMAP3630_PERIPH_DPLL_SD_DIV_SHIFT		24
++#define OMAP3630_PERIPH_DPLL_SD_DIV_MASK		(0xff << 24)
+ 
+ /* CM_CLKSEL3_PLL */
+ #define OMAP3430_DIV_96M_SHIFT				0
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 702d3b4..9cddddc 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -176,6 +176,8 @@ void __init omap3_check_features(void)
+ 	OMAP3_CHECK_FEATURE(status, NEON);
+ 	OMAP3_CHECK_FEATURE(status, ISP);
+ 
++	if (cpu_is_omap3630())
++		omap3_features |= OMAP3_HAS_JTYPE_DPLL4;
+ 	/*
+ 	 * TODO: Get additional info (where applicable)
+ 	 *       e.g. Size of L2 cache.
+@@ -314,6 +316,7 @@ void __init omap3_cpuinfo(void)
+ 	OMAP3_SHOW_FEATURE(sgx);
+ 	OMAP3_SHOW_FEATURE(neon);
+ 	OMAP3_SHOW_FEATURE(isp);
++	OMAP3_SHOW_FEATURE(jtype_dpll4);
+ }
+ 
+ /*
+diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+index 4b8b0d6..66648d4 100644
+--- a/arch/arm/plat-omap/include/plat/clock.h
++++ b/arch/arm/plat-omap/include/plat/clock.h
+@@ -60,6 +60,9 @@ struct dpll_data {
+ 	void __iomem		*idlest_reg;
+ 	u32			autoidle_mask;
+ 	u32			freqsel_mask;
++	u32			dco_sel_mask;
++	u32			sd_div_mask;
++	u8			jtype;
+ 	u32			idlest_mask;
+ 	u8			auto_recal_bit;
+ 	u8			recal_en_bit;
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index 7cb0556..6201a2e 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -482,6 +482,7 @@ extern u32 omap3_features;
+ #define OMAP3_HAS_SGX			BIT(2)
+ #define OMAP3_HAS_NEON			BIT(3)
+ #define OMAP3_HAS_ISP			BIT(4)
++#define OMAP3_HAS_JTYPE_DPLL4		BIT(5)
+ 
+ #define OMAP3_HAS_FEATURE(feat,flag)			\
+ static inline unsigned int omap3_has_ ##feat(void)	\
+@@ -494,5 +495,6 @@ OMAP3_HAS_FEATURE(sgx, SGX)
+ OMAP3_HAS_FEATURE(iva, IVA)
+ OMAP3_HAS_FEATURE(neon, NEON)
+ OMAP3_HAS_FEATURE(isp, ISP)
++OMAP3_HAS_FEATURE(jtype_dpll4, JTYPE_DPLL4)
+ 
+ #endif
+-- 
+1.6.3.3
 
-While updating the changelog, can you report how OFF-mode was tested
-(suspend, off-while-idle, etc.)  and on which platforms.
-
-Otherwise, patch looks fine.
-
-Thanks,
-
-Kevin
-
-> ---
->
-> diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
-> index fb864cc..88182a8 100644
-> --- a/arch/arm/mach-omap2/prcm.c
-> +++ b/arch/arm/mach-omap2/prcm.c
-> @@ -43,7 +43,6 @@ struct omap3_prcm_regs {
->  	u32 iva2_cm_clksel2;
->  	u32 cm_sysconfig;
->  	u32 sgx_cm_clksel;
-> -	u32 wkup_cm_clksel;
->  	u32 dss_cm_clksel;
->  	u32 cam_cm_clksel;
->  	u32 per_cm_clksel;
-> @@ -52,7 +51,6 @@ struct omap3_prcm_regs {
->  	u32 pll_cm_autoidle2;
->  	u32 pll_cm_clksel4;
->  	u32 pll_cm_clksel5;
-> -	u32 pll_cm_clken;
->  	u32 pll_cm_clken2;
->  	u32 cm_polctrl;
->  	u32 iva2_cm_fclken;
-> @@ -76,7 +74,6 @@ struct omap3_prcm_regs {
->  	u32 usbhost_cm_iclken;
->  	u32 iva2_cm_autiidle2;
->  	u32 mpu_cm_autoidle2;
-> -	u32 pll_cm_autoidle;
->  	u32 iva2_cm_clkstctrl;
->  	u32 mpu_cm_clkstctrl;
->  	u32 core_cm_clkstctrl;
-> @@ -279,7 +276,6 @@ void omap3_prcm_save_context(void)
->  	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
->  	prcm_context.sgx_cm_clksel =
->  			 cm_read_mod_reg(OMAP3430ES2_SGX_MOD, CM_CLKSEL);
-> -	prcm_context.wkup_cm_clksel = cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
->  	prcm_context.dss_cm_clksel =
->  			 cm_read_mod_reg(OMAP3430_DSS_MOD, CM_CLKSEL);
->  	prcm_context.cam_cm_clksel =
-> @@ -296,8 +292,6 @@ void omap3_prcm_save_context(void)
->  			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL4);
->  	prcm_context.pll_cm_clksel5 =
->  			 cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKSEL5);
-> -	prcm_context.pll_cm_clken =
-> -			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
->  	prcm_context.pll_cm_clken2 =
->  			cm_read_mod_reg(PLL_MOD, OMAP3430ES2_CM_CLKEN2);
->  	prcm_context.cm_polctrl = __raw_readl(OMAP3430_CM_POLCTRL);
-> @@ -343,8 +337,6 @@ void omap3_prcm_save_context(void)
->  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_AUTOIDLE2);
->  	prcm_context.mpu_cm_autoidle2 =
->  			 cm_read_mod_reg(MPU_MOD, CM_AUTOIDLE2);
-> -	prcm_context.pll_cm_autoidle =
-> -			 cm_read_mod_reg(PLL_MOD, CM_AUTOIDLE);
->  	prcm_context.iva2_cm_clkstctrl =
->  			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSTCTRL);
->  	prcm_context.mpu_cm_clkstctrl =
-> @@ -436,7 +428,6 @@ void omap3_prcm_restore_context(void)
->  	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
->  	cm_write_mod_reg(prcm_context.sgx_cm_clksel, OMAP3430ES2_SGX_MOD,
->  					 CM_CLKSEL);
-> -	cm_write_mod_reg(prcm_context.wkup_cm_clksel, WKUP_MOD, CM_CLKSEL);
->  	cm_write_mod_reg(prcm_context.dss_cm_clksel, OMAP3430_DSS_MOD,
->  					 CM_CLKSEL);
->  	cm_write_mod_reg(prcm_context.cam_cm_clksel, OMAP3430_CAM_MOD,
-> @@ -453,7 +444,6 @@ void omap3_prcm_restore_context(void)
->  					OMAP3430ES2_CM_CLKSEL4);
->  	cm_write_mod_reg(prcm_context.pll_cm_clksel5, PLL_MOD,
->  					 OMAP3430ES2_CM_CLKSEL5);
-> -	cm_write_mod_reg(prcm_context.pll_cm_clken, PLL_MOD, CM_CLKEN);
->  	cm_write_mod_reg(prcm_context.pll_cm_clken2, PLL_MOD,
->  					OMAP3430ES2_CM_CLKEN2);
->  	__raw_writel(prcm_context.cm_polctrl, OMAP3430_CM_POLCTRL);
-> @@ -492,7 +482,6 @@ void omap3_prcm_restore_context(void)
->  	cm_write_mod_reg(prcm_context.iva2_cm_autiidle2, OMAP3430_IVA2_MOD,
->  					CM_AUTOIDLE2);
->  	cm_write_mod_reg(prcm_context.mpu_cm_autoidle2, MPU_MOD, CM_AUTOIDLE2);
-> -	cm_write_mod_reg(prcm_context.pll_cm_autoidle, PLL_MOD, CM_AUTOIDLE);
->  	cm_write_mod_reg(prcm_context.iva2_cm_clkstctrl, OMAP3430_IVA2_MOD,
->  					CM_CLKSTCTRL);
->  	cm_write_mod_reg(prcm_context.mpu_cm_clkstctrl, MPU_MOD, CM_CLKSTCTRL);
