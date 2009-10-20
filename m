@@ -1,52 +1,116 @@
-From: "Girish S G" <girishsg@ti.com>
-Subject: RE: [RFC][Patch] OMAP3 PM: sysfs vdd_opp change  to use ConstraintFramework
-Date: Tue, 20 Oct 2009 12:54:21 -0500
-Message-ID: <020701ca51ae$5aad0bd0$841018ac@am.dhcp.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA174C98@dbde02.ent.ti.com> <87vdianjww.fsf@deeprootsystems.com> <20091020170219.GE12576@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH v2] ARM: OMAP: SDMA: Fix omap_stop_dma() API for channel
+	linking
+Date: Tue, 20 Oct 2009 11:14:06 -0700
+Message-ID: <20091020181406.GI12576@atomide.com>
+References: <1255590416-11550-1-git-send-email-santosh.shilimkar@ti.com> <20091019172339.GR12576@atomide.com> <EAF47CD23C76F840A9E7FCE10091EFAB02BB37DB76@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41235 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752814AbZJTRyV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 13:54:21 -0400
-In-Reply-To: <20091020170219.GE12576@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62428 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078AbZJTSOE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 14:14:04 -0400
+Content-Disposition: inline
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BB37DB76@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: 'Tony Lindgren' <tony@atomide.com>, 'Kevin Hilman' <khilman@deeprootsystems.com>
-Cc: "'Sripathy, Vishwanath'" <vishwanath.bs@ti.com>, linux-omap@vger.kernel.org
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "S, Venkatraman" <svenkatr@ti.com>, Hari n <hari.zoom@gmail.com>, Jarkko Nikula <jhnikula@gmail.com>
 
+* Shilimkar, Santosh <santosh.shilimkar@ti.com> [091019 23:29]:
+> Tony,
+> > -----Original Message-----
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > Sent: Monday, October 19, 2009 10:54 PM
+> > To: Shilimkar, Santosh
+> > Cc: linux-omap@vger.kernel.org; S, Venkatraman; Hari n; Jarkko
+> > Nikula
+> > Subject: Re: [PATCH v2] ARM: OMAP: SDMA: Fix omap_stop_dma() API for
+> > channel linking
+> > 
+> > * Santosh Shilimkar <santosh.shilimkar@ti.com> [091015 00:07]:
+> > > OMAP sDMA driver API omap_stop_dma() doesn't really stop the dma
+> > when used
+> > > in linking scenario. This patch fixes the same.
+> > >
+> > > Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
+> > > Signed-off-by: Venkatraman S <svenkatr@ti.com>
+> > > Reviewed-By: Tony Lindgren <tony@atomide.com>
+> > > CC: Hari n <hari.zoom@gmail.com>
+> > > CC: Jarkko Nikula <jhnikula@gmail.com>
+> > > ---
+> > >  arch/arm/plat-omap/dma.c |    5 +++++
+> > >  1 files changed, 5 insertions(+), 0 deletions(-)
+> > >
+> > > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> > > index fd3154a..1c933b4 100644
+> > > --- a/arch/arm/plat-omap/dma.c
+> > > +++ b/arch/arm/plat-omap/dma.c
+> > > @@ -987,6 +987,11 @@ void omap_stop_dma(int lch)
+> > >  			/* Mark the current channel */
+> > >  			dma_chan_link_map[cur_lch] = 1;
+> > >
+> > > +			/* Disable the DMA channel */
+> > > +			l = dma_read(CCR(lch));
+> > > +			l &= ~OMAP_DMA_CCR_EN;
+> > > +			dma_write(l, CCR(lch));
+> > > +
+> > >  			disable_lnk(cur_lch);
+> > >
+> > >  			next_lch = dma_chan[cur_lch].next_lch;
+> > 
+> > Hmm, I'm thinking it should be like this instead to also clear
+> > the dma_chan[lch].flags instead of returning before that.
+> > 
+> > Can you try this with your testcase?
+> This works too. OMAP1 doesn't support channel linking so this is fine. In case it was, then it would have been an issue.
 
+OK, I've updated your original patch with these changes, and
+will add it to omap-fixes.
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tony
-> Lindgren
-> Sent: Tuesday, October 20, 2009 12:02 PM
-> To: Kevin Hilman
-> Cc: Sripathy, Vishwanath; linux-omap@vger.kernel.org
-> Subject: Re: [RFC][Patch] OMAP3 PM: sysfs vdd_opp change to use ConstraintFramework
+Regards,
+
+Tony
+
 > 
-> * Kevin Hilman <khilman@deeprootsystems.com> [091020 08:51]:
-> > "Sripathy, Vishwanath" <vishwanath.bs@ti.com> writes:
-> >
-> > > Sysfs entry vdd_opp currently does not use constraint framework.
-> > > Because of this, even if you set the opp via this entry, it has no effect
-> > > since it can be overridden by on demand governor any time.
-> > > This patch has changes to make vdd_opp to use constraint framework.
-> > > vdd_lock variable has to be used when application wants to disable DVFS
-> > > altogether. This will override any other constraints and will lock the
-> > > OPP to given value.
-> > Since we can do the equivalent with CPUFreq using the userspace
-> > governor, I don't see the point of having an additional interface.
-> >
-> > Comments?
+> > diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> > index 0eb676d..b53125f 100644
+> > --- a/arch/arm/plat-omap/dma.c
+> > +++ b/arch/arm/plat-omap/dma.c
+> > @@ -978,6 +978,14 @@ void omap_stop_dma(int lch)
+> >  {
+> >  	u32 l;
+> > 
+> > +	/* Disable all interrupts on the channel */
+> > +	if (cpu_class_is_omap1())
+> > +		dma_write(0, CICR(lch));
+> > +
+> > +	l = dma_read(CCR(lch));
+> > +	l &= ~OMAP_DMA_CCR_EN;
+> > +	dma_write(l, CCR(lch));
+> > +
+> >  	if (!omap_dma_in_1510_mode() && dma_chan[lch].next_lch != -1)
+> > {
+> >  		int next_lch, cur_lch = lch;
+> >  		char dma_chan_link_map[OMAP_DMA4_LOGICAL_DMA_CH_COUNT];
+> > @@ -995,18 +1003,8 @@ void omap_stop_dma(int lch)
+> >  			next_lch = dma_chan[cur_lch].next_lch;
+> >  			cur_lch = next_lch;
+> >  		} while (next_lch != -1);
+> > -
+> > -		return;
+> >  	}
+> > 
+> > -	/* Disable all interrupts on the channel */
+> > -	if (cpu_class_is_omap1())
+> > -		dma_write(0, CICR(lch));
+> > -
+> > -	l = dma_read(CCR(lch));
+> > -	l &= ~OMAP_DMA_CCR_EN;
+> > -	dma_write(l, CCR(lch));
+> > -
+> >  	dma_chan[lch].flags &= ~OMAP_DMA_ACTIVE;
+> >  }
+> >  EXPORT_SYMBOL(omap_stop_dma);
 > 
-> Total ack from me!
-
-Only thing what I think of is, L3 rate.
-
--Girish
-
-
