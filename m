@@ -1,175 +1,118 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 11/14] omap: Remap L3, L4 to get more kernel io address
-	space
-Date: Mon, 19 Oct 2009 17:20:59 -0700
-Message-ID: <20091020002059.GZ12576@atomide.com>
-References: <20091016233624.2463.26653.stgit@localhost> <20091016234213.2463.61298.stgit@localhost>
+From: John Rigby <jcrigby@gmail.com>
+Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+Date: Mon, 19 Oct 2009 19:13:07 -0600
+Message-ID: <4b73d43f0910191813j6089f4a4q3a4768d99cc82e30@mail.gmail.com>
+References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>
+	 <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com>
+	 <4AD8C959.1000004@googlemail.com>
+	 <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com>
+	 <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>
+	 <4ADB4604.2090704@googlemail.com>
+	 <13B9B4C6EF24D648824FF11BE8967162039B3184F0@dlee02.ent.ti.com>
+	 <4b73d43f0910181717i9623184mc2b8c7d6ca0fb435@mail.gmail.com>
+	 <4b73d43f0910181724q11d40851wb2aed801d7ae85f6@mail.gmail.com>
+	 <005101ca50e1$11ef2770$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="twz1s1Hj1O0rHoT0"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51131 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758017AbZJTAU7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 19 Oct 2009 20:20:59 -0400
-Content-Disposition: inline
-In-Reply-To: <20091016234213.2463.61298.stgit@localhost>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <005101ca50e1$11ef2770$544ff780@am.dhcp.ti.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: "Woodruff, Richard" <r-woodruff2@ti.com>, Dirk Behme <dirk.behme@googlemail.com>, linux-mmc@vger.kernel.org, linux-omap@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Santosh Shilimkar <santosh.shilimkar@ti.com>
 
+All,
 
---twz1s1Hj1O0rHoT0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I have sdio working mostly.  With a flood ping of 1000 packets I have
+2 dropped.  Before I was seeing 300+ packets dropped.
 
-* Tony Lindgren <tony@atomide.com> [091016 16:42]:
-> From: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> 
-> This patch remap L3 and L4 io space to get more kernel address space.
-> With this patch, 512 MB of IO space is reclaimed.
-> Some more combinations are possible but to make it uniform across
-> OMAP24XX, OMAP34XX and OMAP4430, these io combinations are chosen
-> 
-> Once this is reviewed and tested sufficiently, a documentation entry can
-> be created to ease up reading and debugging.
-> Like "Documentation/arm/omap/io_map.txt"
-> 
-> Signed-off-by: Santosh Shilimkar <santosh.shilimkar@ti.com>
-> Signed-off-by: Tony Lindgren <tony@atomide.com>
-> ---
->  arch/arm/plat-omap/include/mach/io.h      |   97 ++++++++++++++++++-----------
->  arch/arm/plat-omap/include/mach/vmalloc.h |    2 -
->  2 files changed, 60 insertions(+), 39 deletions(-)
-> 
+It is not perfect yet,  I am still polling in sdio_irq.c because
+sometimes the card irq does get dropped.  I suspect that is why the
+davinci driver had extra checks and calls in various places.
 
-<snip>  
-  
-> diff --git a/arch/arm/plat-omap/include/mach/vmalloc.h b/arch/arm/plat-omap/include/mach/vmalloc.h
-> index b97dfaf..9eebf62 100644
-> --- a/arch/arm/plat-omap/include/mach/vmalloc.h
-> +++ b/arch/arm/plat-omap/include/mach/vmalloc.h
-> @@ -17,5 +17,5 @@
->   * along with this program; if not, write to the Free Software
->   * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
->   */
-> -#define VMALLOC_END	  (PAGE_OFFSET + 0x18000000)
-> +#define VMALLOC_END	  (PAGE_OFFSET + 0x38000000)
+Also apologies for this redundant reply, the last one was rejected by
+the vger because of embedded html.
 
-This vmalloc.h change causes issues on omap1. I'll update the series
-to ifdef this define.
+John
 
-Then I'll split the file in the later patches into separate
-vmalloc.h for mach-omap1 and mach-omap2, see below.
-
-Regards,
-
-Tony
-
---twz1s1Hj1O0rHoT0
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: inline; filename="vmalloc-fix.patch"
-
->From 4155da6fc9ac453636bbc505311b105a64da81f8 Mon Sep 17 00:00:00 2001
-From: Tony Lindgren <tony@atomide.com>
-Date: Mon, 19 Oct 2009 17:11:27 -0700
-Subject: [PATCH] omap: Split vmalloc.h for mach-omap1 and mach-omap2
-
-Earlier patch "omap: Remap L3, L4 to get more kernel io address space"
-changed the VMALLOC_END.
-
-However, this change causes problems on mach-omap1:
-
-BUG: mapping for 0xe0000000 at 0xe0000000 overlaps vmalloc space
-BUG: mapping for 0xe1000000 at 0xe1000000 overlaps vmalloc space
-
-Fix this by creating separate vmalloc.h files for mach-omap1
-and mach-omap2.
-
-Signed-off-by: Tony Lindgren <tony@atomide.com>
-
-diff --git a/arch/arm/mach-omap1/include/mach/vmalloc.h b/arch/arm/mach-omap1/include/mach/vmalloc.h
-index 085a18a..1b2af14 100644
---- a/arch/arm/mach-omap1/include/mach/vmalloc.h
-+++ b/arch/arm/mach-omap1/include/mach/vmalloc.h
-@@ -1,5 +1,20 @@
- /*
-- * arch/arm/mach-omap1/include/mach/vmalloc.h
-+ *  arch/arm/mach-omap1/include/mach/vmalloc.h
-+ *
-+ *  Copyright (C) 2000 Russell King.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-  */
--
--#include <plat/vmalloc.h>
-+#define VMALLOC_END	(PAGE_OFFSET + 0x18000000)
-diff --git a/arch/arm/mach-omap2/include/mach/vmalloc.h b/arch/arm/mach-omap2/include/mach/vmalloc.h
-index 1423223..9ce9b6e 100644
---- a/arch/arm/mach-omap2/include/mach/vmalloc.h
-+++ b/arch/arm/mach-omap2/include/mach/vmalloc.h
-@@ -1,5 +1,20 @@
- /*
-- * arch/arm/mach-omap2/include/mach/vmalloc.h
-+ *  arch/arm/plat-omap/include/mach/vmalloc.h
-+ *
-+ *  Copyright (C) 2000 Russell King.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-  */
--
--#include <plat/vmalloc.h>
-+#define VMALLOC_END	  (PAGE_OFFSET + 0x38000000)
-diff --git a/arch/arm/plat-omap/include/plat/vmalloc.h b/arch/arm/plat-omap/include/plat/vmalloc.h
-deleted file mode 100644
-index 9eebf62..0000000
---- a/arch/arm/plat-omap/include/plat/vmalloc.h
-+++ /dev/null
-@@ -1,21 +0,0 @@
--/*
-- *  arch/arm/plat-omap/include/mach/vmalloc.h
-- *
-- *  Copyright (C) 2000 Russell King.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-- */
--#define VMALLOC_END	  (PAGE_OFFSET + 0x38000000)
--
-
---twz1s1Hj1O0rHoT0--
+On Mon, Oct 19, 2009 at 11:24 AM, Madhusudhan <madhu.cr@ti.com> wrote:
+>
+> Hi John,
+>
+>
+>
+> So does the SDIO card interrupt mode work fine now?
+>
+>
+>
+> Regards,
+>
+> Madhu
+>
+>
+>
+> ________________________________
+>
+> From: John Rigby [mailto:jcrigby@gmail.com]
+> Sent: Sunday, October 18, 2009 7:24 PM
+> To: Woodruff, Richard
+> Cc: Dirk Behme; Chikkature Rajashekar, Madhusudhan; linux-mmc@vger.ke=
+rnel.org; linux-omap@vger.kernel.org; Steve Sakoman
+> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+>
+>
+>
+> Ok I was going to ask where you found that but I just rechecked the T=
+RM and there it is in plain site:
+>
+> When this bit is set to 1, the host controller automatically disables=
+ all the input buffers except the buffer of mmci_dat[1] outside of a tr=
+ansaction in order to detect asynchronous card interrupt on mmci_dat[1]=
+ line and minimize the leakage current of the buffers.
+>
+> In my defence, I did search the TRM for every occurance of dat1 but n=
+ot dat[1].=A0 Oh well live and learn and forget and repeat.
+>
+> John
+>
+> On Sun, Oct 18, 2009 at 6:17 PM, John Rigby <jcrigby@gmail.com> wrote=
+:
+> > Richard,
+> >
+> > MMCHS_CON.CPTL =3D 1 =A0< Don't disable input buffer on DAT1 after
+> > completion to allow seeing SDIO interrupt>
+> >
+> > Sounds exactly like what we need.
+> >
+> > Thanks
+> > John
+> >
+> > On Sun, Oct 18, 2009 at 5:12 PM, Woodruff, Richard <r-woodruff2@ti.=
+com> wrote:
+> >>
+> >>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >>> owner@vger.kernel.org] On Behalf Of Dirk Behme
+> >>> Sent: Sunday, October 18, 2009 11:45 AM
+> >>
+> >>> > It would be funny if the TRM was wrong and the CIRQ bit is real=
+ly
+> >>> > cleared by writing 1 to it. =A0I'll try that.
+> >>
+> >> A while back I hunted down a few of the bits for this. =A0Maybe th=
+is will help some.
+> >>
+> >> SYSCONFIG.ENAWAKEUP =3D 1 < allow ocp wrapper to generate an inter=
+rupt to prcm>
+> >> MMCHS_HCTL.IWE =3D 1 < route wake up to module ocp wrapper>
+> >> MMCHS_CON.CPTL =3D 1 =A0< Don't disable input buffer on DAT1 after=
+ completion to allow seeing SDIO interrupt>
+> >> MMCHS_HCTL.IWE
+> >> MMCHS_ISE.CIRQ_ENABLE <bit to write to enable interrupt at pin>
+> >> MMCHS_STAT<bit to write for clear of SDIO interrupt>
+> >> CCCCR - IRQ_ENABLE (think host stack will do this)
+> >>
+> >> Regards,
+> >> Richard W.
+> >>
+> >
