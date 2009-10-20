@@ -1,212 +1,161 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/4] OMAP: Platform support for
-	twl4030_codec MFD
-Date: Tue, 20 Oct 2009 12:01:39 -0700
-Message-ID: <20091020190138.GK12576@atomide.com>
-References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com>
-	<1255956140-4829-3-git-send-email-peter.ujfalusi@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 06/17] OMAP3: PM: Added next state check for IVA2, USB and PER into idle loop
+Date: Tue, 20 Oct 2009 12:04:32 -0700
+Message-ID: <87r5sxrinz.fsf@deeprootsystems.com>
+References: <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <1255956140-4829-3-git-send-email-peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, sameo@linux.intel.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:65498 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751025AbZJTTEe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 15:04:34 -0400
+Received: by ewy3 with SMTP id 3so5163704ewy.17
+        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 12:04:37 -0700 (PDT)
+In-Reply-To: <1255690150-16853-7-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 16 Oct 2009 13\:48\:59 +0300")
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-* Peter Ujfalusi <peter.ujfalusi@nokia.com> [091019 05:42]:
-> Add needed platform data for the twl4030_codec MFD on boards,
-> where the audio part of the twl4030 codec is used.
-> 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Tero Kristo <tero.kristo@nokia.com> writes:
 
-This looks safe to merge with the twl/audio patches to keep
-them together. So not adding to my queue.
+> From: Tero Kristo <tero.kristo@nokia.com>
+>
+> This is needed to prevent core from entering off mode if one of the IVA2,
+> USB or PER powerdomains are going to stay at least in retention state.
+> If this is not done, a powerdomain waking from RET may access core
+> domain which has just been reset.
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-Acked-by: Tony Lindgren <tony@atomide.com>
+The problem I have with this one is simalar to patches 2 and 3.
 
+It think all this state changing should be part of the CPUidle "bus
+master" checking.  If any of the conditions are met, then a different
+C-state should be picked.  With the current approach, the manual
+prevention of CORE-off of will never be accounted for in CPUidle
+stats.
 
+Also, intead of all the manual checking of IDLEST bits, this should be
+pushed into the powerdomain layer.  Maybe we need a function like
+pwrdm_is_idle() which can check the per-pwrdm IDLEST bits.
+
+Then the BM check could simply call pwrdm_is_idle() on each of DSS,
+IVA2, USB and PER for the C-states where CORE is going OFF. If any are
+not idle, then a C-state with CORE=RET will be picked and the CPUidle
+accounting will properly reflect the choice.
+
+Kevin
 
 > ---
->  arch/arm/mach-omap2/board-3430sdp.c      |    9 +++++++++
->  arch/arm/mach-omap2/board-omap3beagle.c  |    9 +++++++++
->  arch/arm/mach-omap2/board-omap3evm.c     |    9 +++++++++
->  arch/arm/mach-omap2/board-omap3pandora.c |    9 +++++++++
->  arch/arm/mach-omap2/board-overo.c        |    9 +++++++++
->  arch/arm/mach-omap2/board-zoom2.c        |    9 +++++++++
->  6 files changed, 54 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-> index efaf053..4f91f7a 100644
-> --- a/arch/arm/mach-omap2/board-3430sdp.c
-> +++ b/arch/arm/mach-omap2/board-3430sdp.c
-> @@ -410,6 +410,14 @@ static struct regulator_init_data sdp3430_vpll2 = {
->  	.consumer_supplies	= &sdp3430_vdvi_supply,
->  };
+>  arch/arm/mach-omap2/pm34xx.c |   36 +++++++++++++++++++++++++++++++-----
+>  1 files changed, 31 insertions(+), 5 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 588ab79..3e5ae14 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -85,6 +85,13 @@ u32 voltage_off_while_idle;
+>  		OMAP3430_ST_DES1_MASK)
+>  #define CORE_IDLEST3_ALL		(\
+>  		OMAP3430ES2_ST_USBTLL_MASK|OMAP3430ES2_ST_CPEFUSE_MASK)
+> +#define PER_IDLEST_ALL			(\
+> +		OMAP3430_ST_WDT3_MASK|OMAP3430_ST_MCBSP4_MASK|\
+> +		OMAP3430_ST_MCBSP3_MASK|OMAP3430_ST_MCBSP2_MASK|\
+> +		OMAP3430_ST_GPT9_MASK|OMAP3430_ST_GPT8_MASK|\
+> +		OMAP3430_ST_GPT7_MASK|OMAP3430_ST_GPT6_MASK|\
+> +		OMAP3430_ST_GPT5_MASK|OMAP3430_ST_GPT4_MASK|\
+> +		OMAP3430_ST_GPT3_MASK|OMAP3430_ST_GPT2_MASK)
 >  
-> +static struct twl4030_codec_audio_data sdp3430_audio = {
-> +	.audio_mclk = 26000000,
-> +};
-> +
-> +static struct twl4030_codec_data sdp3430_codec = {
-> +	.audio = &sdp3430_audio,
-> +};
-> +
->  static struct twl4030_platform_data sdp3430_twldata = {
->  	.irq_base	= TWL4030_IRQ_BASE,
->  	.irq_end	= TWL4030_IRQ_END,
-> @@ -420,6 +428,7 @@ static struct twl4030_platform_data sdp3430_twldata = {
->  	.madc		= &sdp3430_madc_data,
->  	.keypad		= &sdp3430_kp_data,
->  	.usb		= &sdp3430_usb_data,
-> +	.codec		= &sdp3430_codec,
+>  struct power_state {
+>  	struct powerdomain *pwrdm;
+> @@ -103,7 +110,7 @@ static int (*_omap_save_secure_sram)(u32 *addr);
 >  
->  	.vaux1		= &sdp3430_vaux1,
->  	.vaux2		= &sdp3430_vaux2,
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-> index 70df6b4..2161d85 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -254,6 +254,14 @@ static struct twl4030_usb_data beagle_usb_data = {
->  	.usb_mode	= T2_USB_MODE_ULPI,
->  };
+>  static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+>  static struct powerdomain *core_pwrdm, *per_pwrdm;
+> -static struct powerdomain *cam_pwrdm, *iva2_pwrdm, *dss_pwrdm;
+> +static struct powerdomain *cam_pwrdm, *iva2_pwrdm, *dss_pwrdm, *usb_pwrdm;
 >  
-> +static struct twl4030_codec_audio_data beagle_audio_data = {
-> +	.audio_mclk = 26000000,
-> +};
-> +
-> +static struct twl4030_codec_data beagle_codec_data = {
-> +	.audio = &beagle_audio_data,
-> +};
-> +
->  static struct twl4030_platform_data beagle_twldata = {
->  	.irq_base	= TWL4030_IRQ_BASE,
->  	.irq_end	= TWL4030_IRQ_END,
-> @@ -261,6 +269,7 @@ static struct twl4030_platform_data beagle_twldata = {
->  	/* platform_data for children goes here */
->  	.usb		= &beagle_usb_data,
->  	.gpio		= &beagle_gpio_data,
-> +	.codec		= &beagle_codec_data,
->  	.vmmc1		= &beagle_vmmc1,
->  	.vsim		= &beagle_vsim,
->  	.vdac		= &beagle_vdac,
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> index e4ec0c5..d9a6103 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -194,6 +194,14 @@ static struct twl4030_madc_platform_data omap3evm_madc_data = {
->  	.irq_line	= 1,
->  };
+>  static struct prm_setup_vc prm_setup = {
+>  	.clksetup = 0xff,
+> @@ -428,6 +435,8 @@ void omap_sram_idle(void)
+>  	int per_next_state = PWRDM_POWER_ON;
+>  	int core_next_state = PWRDM_POWER_ON;
+>  	int dss_state = PWRDM_POWER_ON;
+> +	int iva2_state = PWRDM_POWER_ON;
+> +	int usb_state = PWRDM_POWER_ON;
+>  	int core_prev_state, per_prev_state;
+>  	u32 sdrc_pwr = 0;
+>  	int per_state_modified = 0;
+> @@ -463,14 +472,28 @@ void omap_sram_idle(void)
+>  	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
+>  		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
 >  
-> +static struct twl4030_codec_audio_data omap3evm_audio_data = {
-> +	.audio_mclk = 26000000,
-> +};
+> +	/* Get powerdomain state data */
+> +	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+> +	dss_state = pwrdm_read_pwrst(dss_pwrdm);
+> +	iva2_state = pwrdm_read_pwrst(iva2_pwrdm);
+> +	usb_state = pwrdm_read_pwrst(usb_pwrdm);
+> +	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
 > +
-> +static struct twl4030_codec_data omap3evm_codec_data = {
-> +	.audio = &omap3evm_audio_data,
-> +};
-> +
->  static struct twl4030_platform_data omap3evm_twldata = {
->  	.irq_base	= TWL4030_IRQ_BASE,
->  	.irq_end	= TWL4030_IRQ_END,
-> @@ -203,6 +211,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
->  	.madc		= &omap3evm_madc_data,
->  	.usb		= &omap3evm_usb_data,
->  	.gpio		= &omap3evm_gpio_data,
-> +	.codec		= &omap3evm_codec_data,
->  };
+> +	/* Check if PER domain can enter OFF or not */
+> +	if (per_next_state == PWRDM_POWER_OFF) {
+> +		if ((cm_read_mod_reg(OMAP3430_PER_MOD, CM_IDLEST) &
+> +				PER_IDLEST_ALL) != PER_IDLEST_ALL) {
+> +			per_next_state = PWRDM_POWER_RET;
+> +			pwrdm_set_next_pwrst(per_pwrdm, per_next_state);
+> +			per_state_modified = 1;
+> +		}
+> +	}
+>  	/*
+>  	 * Check whether core will enter idle or not. This is needed
+>  	 * because I/O pad wakeup will fail if core stays on and PER
+>  	 * enters off. This will also prevent unnecessary core context
+>  	 * save / restore.
+>  	 */
+> -	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+> -	dss_state = pwrdm_read_pwrst(dss_pwrdm);
+>  	if (core_next_state < PWRDM_POWER_ON) {
+>  		core_saved_state = core_next_state;
+>  		if ((cm_read_mod_reg(CORE_MOD, CM_IDLEST1) & CORE_IDLEST1_ALL)
+> @@ -482,14 +505,16 @@ void omap_sram_idle(void)
+>  			core_next_state = PWRDM_POWER_ON;
+>  			pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_ON);
+>  		} else if (core_next_state == PWRDM_POWER_OFF &&
+> -				 dss_state == PWRDM_POWER_ON) {
+> +				 (dss_state == PWRDM_POWER_ON ||
+> +				  iva2_state >= PWRDM_POWER_RET ||
+> +				  usb_state >= PWRDM_POWER_RET ||
+> +				  per_next_state >= PWRDM_POWER_RET)) {
+>  			core_next_state = PWRDM_POWER_RET;
+>  			pwrdm_set_next_pwrst(core_pwrdm, PWRDM_POWER_RET);
+>  		}
+>  	}
 >  
->  static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
-> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
-> index 7f6bf87..5036b56 100644
-> --- a/arch/arm/mach-omap2/board-omap3pandora.c
-> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
-> @@ -281,11 +281,20 @@ static struct twl4030_usb_data omap3pandora_usb_data = {
->  	.usb_mode	= T2_USB_MODE_ULPI,
->  };
+>  	/* PER */
+> -	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+>  	if (per_next_state < PWRDM_POWER_ON) {
+>  		omap_uart_prepare_idle(2);
+>  		omap2_gpio_prepare_for_idle(per_next_state);
+> @@ -1240,6 +1265,7 @@ static int __init omap3_pm_init(void)
+>  	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
+>  	iva2_pwrdm = pwrdm_lookup("iva2_pwrdm");
+>  	dss_pwrdm = pwrdm_lookup("dss_pwrdm");
+> +	usb_pwrdm = pwrdm_lookup("usbhost_pwrdm");
 >  
-> +static struct twl4030_codec_audio_data omap3pandora_audio_data = {
-> +	.audio_mclk = 26000000,
-> +};
-> +
-> +static struct twl4030_codec_data omap3pandora_codec_data = {
-> +	.audio = &omap3pandora_audio_data,
-> +};
-> +
->  static struct twl4030_platform_data omap3pandora_twldata = {
->  	.irq_base	= TWL4030_IRQ_BASE,
->  	.irq_end	= TWL4030_IRQ_END,
->  	.gpio		= &omap3pandora_gpio_data,
->  	.usb		= &omap3pandora_usb_data,
-> +	.codec		= &omap3pandora_codec_data,
->  	.vmmc1		= &pandora_vmmc1,
->  	.vmmc2		= &pandora_vmmc2,
->  	.keypad		= &pandora_kp_data,
-> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
-> index 9917d2f..dc55008 100644
-> --- a/arch/arm/mach-omap2/board-overo.c
-> +++ b/arch/arm/mach-omap2/board-overo.c
-> @@ -329,6 +329,14 @@ static struct regulator_init_data overo_vmmc1 = {
->  	.consumer_supplies	= &overo_vmmc1_supply,
->  };
->  
-> +static struct twl4030_codec_audio_data overo_audio_data = {
-> +	.audio_mclk = 26000000,
-> +};
-> +
-> +static struct twl4030_codec_data overo_codec_data = {
-> +	.audio = &overo_audio_data,
-> +};
-> +
->  /* mmc2 (WLAN) and Bluetooth don't use twl4030 regulators */
->  
->  static struct twl4030_platform_data overo_twldata = {
-> @@ -336,6 +344,7 @@ static struct twl4030_platform_data overo_twldata = {
->  	.irq_end	= TWL4030_IRQ_END,
->  	.gpio		= &overo_gpio_data,
->  	.usb		= &overo_usb_data,
-> +	.codec		= &overo_codec_data,
->  	.vmmc1		= &overo_vmmc1,
->  };
->  
-> diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-> index b7b3220..f1b4e7c 100644
-> --- a/arch/arm/mach-omap2/board-zoom2.c
-> +++ b/arch/arm/mach-omap2/board-zoom2.c
-> @@ -229,6 +229,14 @@ static struct twl4030_madc_platform_data zoom2_madc_data = {
->  	.irq_line	= 1,
->  };
->  
-> +static struct twl4030_codec_audio_data zoom2_audio_data = {
-> +	.audio_mclk = 26000000,
-> +};
-> +
-> +static struct twl4030_codec_data zoom2_codec_data = {
-> +	.audio = &zoom2_audio_data,
-> +};
-> +
->  static struct twl4030_platform_data zoom2_twldata = {
->  	.irq_base	= TWL4030_IRQ_BASE,
->  	.irq_end	= TWL4030_IRQ_END,
-> @@ -239,6 +247,7 @@ static struct twl4030_platform_data zoom2_twldata = {
->  	.usb		= &zoom2_usb_data,
->  	.gpio		= &zoom2_gpio_data,
->  	.keypad		= &zoom2_kp_twl4030_data,
-> +	.codec		= &zoom2_codec_data,
->  	.vmmc1          = &zoom2_vmmc1,
->  	.vmmc2          = &zoom2_vmmc2,
->  	.vsim           = &zoom2_vsim,
+>  	omap_push_sram_idle();
+>  #ifdef CONFIG_SUSPEND
 > -- 
-> 1.6.5.1
-> 
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
