@@ -1,85 +1,119 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v2 2/2] omap: 3630: update is_chip variable
-Date: Tue, 20 Oct 2009 17:26:26 -0500
-Message-ID: <1256077586-11636-2-git-send-email-vikram.pandita@ti.com>
-References: <1256077586-11636-1-git-send-email-vikram.pandita@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:56950 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751898AbZJTW2d (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 18:28:33 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9KMScfX010997
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 17:28:38 -0500
-In-Reply-To: <1256077586-11636-1-git-send-email-vikram.pandita@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: MMC_CAP_SDIO_IRQ for omap 3430
+Date: Tue, 20 Oct 2009 17:47:05 -0500
+Message-ID: <00cb01ca51d7$3fafe130$544ff780@am.dhcp.ti.com>
+References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com> <4AD81DC2.4080607@googlemail.com> <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com> <4AD8C959.1000004@googlemail.com> <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com> <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com> <4ADB4604.2090704@googlemail.com> <13B9B4C6EF24D648824FF11BE8967162039B3184F0@dlee02.ent.ti.com> <4b73d43f0910181717i9623184mc2b8c7d6ca0fb435@mail.gmail.com> <4b73d43f0910181724q11d40851wb2aed801d7ae85f6@mail.gmail.com> <005101ca50e1$11ef2770$544ff780@am.dhcp.ti.com> <4ADCAD0F.9010107@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <4ADCAD0F.9010107@googlemail.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: 'Dirk Behme' <dirk.behme@googlemail.com>, linux-omap@vger.kernel.org
+Cc: 'John Rigby' <jcrigby@gmail.com>, "'Woodruff, Richard'" <r-woodruff2@ti.com>, linux-mmc@vger.kernel.org, 'Steve Sakoman' <sakoman@gmail.com>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: r-woodruff2@ti.com, Vikram Pandita <vikram.pandita@ti.com>, "Menon, Nishanth" <nm@ti.com>
 
-3630 is getting treated like next rev of 3430
-omap_chip.oc variable has to be updated for 3630 version
-Provide space for 3430 future ES rev (bit7 to bit9)
 
-Otherwise the Core power domain is not getting registered.
 
-This gets used in the registration of power domains in:
-"arch/arm/mach-omap2/powerdomains34xx.h"
-core_34xx_es3_1_pwrdm
-OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1)
+> -----Original Message-----
+> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
+> owner@vger.kernel.org] On Behalf Of Dirk Behme
+> Sent: Monday, October 19, 2009 1:17 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Madhusudhan; 'John Rigby'; 'Woodruff, Richard'; linux-
+> mmc@vger.kernel.org; 'Steve Sakoman'
+> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+> 
+> Madhusudhan wrote:
+> > Hi John,
+> >
+> > So does the SDIO card interrupt mode work fine now?
+> 
+> (wrong attachment in previous mail :( sorry)
+> 
+> If somebody likes to test, my updated patch v2 in attachment. Compile
+> tested only, testing and comments are welcome.
+> 
 
-Core power doman will get registered for 3630 only when .oc is pouplated
-correctly.
+Can you inline the v2 patch please? It helps review. I wonder in the version
+that John tested was the CTPL bit set in "set_ios" or "enable_sdio_irq"?
 
-Tested on Zoom3(3630) board
+Regards,
+Madhu
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Menon, Nishanth <nm@ti.com>
----
- arch/arm/mach-omap2/id.c              |    2 ++
- arch/arm/plat-omap/include/plat/cpu.h |    8 ++++++--
- 2 files changed, 8 insertions(+), 2 deletions(-)
+> Cheers
+> 
+> Dirk
+> 
+> >   _____
+> >
+> > From: John Rigby [mailto:jcrigby@gmail.com]
+> > Sent: Sunday, October 18, 2009 7:24 PM
+> > To: Woodruff, Richard
+> > Cc: Dirk Behme; Chikkature Rajashekar, Madhusudhan;
+> > linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Steve Sakoman
+> > Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+> >
+> >
+> >
+> > Ok I was going to ask where you found that but I just rechecked the TRM
+> and
+> > there it is in plain site:
+> >
+> >
+> >
+> > When this bit is set to 1, the host controller automatically disables
+> all
+> > the input buffers except the buffer of mmci_dat[1] outside of a
+> transaction
+> > in order to detect asynchronous card interrupt on mmci_dat[1] line and
+> > minimize the leakage current of the buffers.
+> >
+> >
+> > In my defence, I did search the TRM for every occurance of dat1 but not
+> > dat[1].  Oh well live and learn and forget and repeat.
+> >
+> > John
+> >
+> > On Sun, Oct 18, 2009 at 6:17 PM, John Rigby <jcrigby@gmail.com> wrote:
+> >> Richard,
+> >>
+> >> MMCHS_CON.CPTL = 1  < Don't disable input buffer on DAT1 after
+> >> completion to allow seeing SDIO interrupt>
+> >>
+> >> Sounds exactly like what we need.
+> >>
+> >> Thanks
+> >> John
+> >>
+> >> On Sun, Oct 18, 2009 at 5:12 PM, Woodruff, Richard <r-woodruff2@ti.com>
+> > wrote:
+> >>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >>>> owner@vger.kernel.org] On Behalf Of Dirk Behme
+> >>>> Sent: Sunday, October 18, 2009 11:45 AM
+> >>>>> It would be funny if the TRM was wrong and the CIRQ bit is really
+> >>>>> cleared by writing 1 to it.  I'll try that.
+> >>> A while back I hunted down a few of the bits for this.  Maybe this
+> will
+> > help some.
+> >>> SYSCONFIG.ENAWAKEUP = 1 < allow ocp wrapper to generate an interrupt
+> to
+> > prcm>
+> >>> MMCHS_HCTL.IWE = 1 < route wake up to module ocp wrapper>
+> >>> MMCHS_CON.CPTL = 1  < Don't disable input buffer on DAT1 after
+> completion
+> > to allow seeing SDIO interrupt>
+> >>> MMCHS_HCTL.IWE
+> >>> MMCHS_ISE.CIRQ_ENABLE <bit to write to enable interrupt at pin>
+> >>> MMCHS_STAT<bit to write for clear of SDIO interrupt>
+> >>> CCCCR - IRQ_ENABLE (think host stack will do this)
+> >>>
+> >>> Regards,
+> >>> Richard W.
+> >>>
+> >
+> >
+> 
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 1c15112..189cf7a 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -359,6 +359,8 @@ void __init omap2_check_revision(void)
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_0;
- 		else if (omap_rev() == OMAP3430_REV_ES3_1)
- 			omap_chip.oc |= CHIP_IS_OMAP3430ES3_1;
-+		else if (omap_rev() == OMAP3630_REV_ES1_0)
-+			omap_chip.oc |= CHIP_IS_OMAP3630ES1;
- 	} else {
- 		pr_err("Uninitialized omap_chip, please fix!\n");
- 	}
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 922bf1c..5c95e4b 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -454,6 +454,8 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define CHIP_IS_OMAP3430ES2		(1 << 4)
- #define CHIP_IS_OMAP3430ES3_0		(1 << 5)
- #define CHIP_IS_OMAP3430ES3_1		(1 << 6)
-+/* Space for future revisions of 3430: bit7 to bit9 */
-+#define CHIP_IS_OMAP3630ES1		(1 << 10)
- 
- #define CHIP_IS_OMAP24XX		(CHIP_IS_OMAP2420 | CHIP_IS_OMAP2430)
- 
-@@ -465,8 +467,10 @@ IS_OMAP_TYPE(3430, 0x3430)
-  */
- #define CHIP_GE_OMAP3430ES2		(CHIP_IS_OMAP3430ES2 | \
- 					 CHIP_IS_OMAP3430ES3_0 | \
--					 CHIP_IS_OMAP3430ES3_1)
--#define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1)
-+					 CHIP_IS_OMAP3430ES3_1 | \
-+					 CHIP_IS_OMAP3630ES1)
-+#define CHIP_GE_OMAP3430ES3_1		(CHIP_IS_OMAP3430ES3_1 | \
-+					 CHIP_IS_OMAP3630ES1)
- 
- 
- int omap_chip_is(struct omap_chip_id oci);
--- 
-1.6.5.rc1.19.g8426
 
