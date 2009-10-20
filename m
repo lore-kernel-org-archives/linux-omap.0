@@ -1,43 +1,44 @@
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/4] MFD: twl4030: add twl4030_codec MFD as
-	a new child	to the core
-Date: Tue, 20 Oct 2009 11:03:34 +0100
-Message-ID: <20091020100334.GA28592@opensource.wolfsonmicro.com>
-References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 4/4] ASoC: TWL4030: Driver registration via
+	twl4030_codec MFD
+Date: Tue, 20 Oct 2009 11:25:40 +0100
+Message-ID: <20091020102540.GB28592@opensource.wolfsonmicro.com>
+References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com> <1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com> <1255956140-4829-3-git-send-email-peter.ujfalusi@nokia.com> <1255956140-4829-4-git-send-email-peter.ujfalusi@nokia.com> <1255956140-4829-5-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751615AbZJTKZi@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
+In-Reply-To: <1255956140-4829-5-git-send-email-peter.ujfalusi@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: tony@atomide.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, sameo@linux.intel.com
+Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
 
-On Mon, Oct 19, 2009 at 03:42:17PM +0300, Peter Ujfalusi wrote:
-> New MFD child to twl4030 MFD device.
-> This MFD device will be used by the drivers, which needs resources
-> from the twl4030 codec like audio and vibra.
+On Mon, Oct 19, 2009 at 03:42:20PM +0300, Peter Ujfalusi wrote:
+> TWL4030 codec is now using the device registration via
+> tlw4030_codec MFD device.
 
-> The platform specific configuration data is passed along to the
-> child drivers (audio, vibra).
+This looks pretty good but obviously depends on the MFD changes.  The
+major thing that jumps out at me is the removal of the register
+definitions from the ASoC headers - it might be nice to have that done
+as part of the MFD patch, or as a separate patch.
 
-> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+You've also got the bias being brought up when the ASoC system comes up
+rather than when the driver comes up.  To be honest it doesn't really
+make any difference either way, it's just slightly different to other
+drivers.  What is useful with things like twl4030 which take a little
+while to come up is if you can do the bias bringup out of line from
+device probe, avoiding blocking system startup on CODEC bringup.  That's
+definitely a separate patch, I'm just mentioning it for interest here.
 
-> +config TWL4030_CODEC
-> +	bool "Support codec part of the TWL4030 family chips"
+There's also a couple of debug prints (like in the remove function) and
 
-This seems like something that users shouldn't really have to worry
-about selecting explicitly - might it be better to have it selected by
-the drivers that use it instead?  It feels like it's an implementation
-detail of the driver.
+> +MODULE_ALIAS("platform:twl4030_codec:audio");
+
+Is that second colon right given...
+
+> +	.driver		= {
+> +		.name	= "twl4030_codec_audio",
+> +		.owner	= THIS_MODULE,
+
+this.
