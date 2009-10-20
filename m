@@ -1,97 +1,130 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 01/17] PM: fix suspend control for IVA2
-Date: Tue, 20 Oct 2009 09:10:41 -0700
-Message-ID: <87fx9enj0e.fsf@deeprootsystems.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH 12/17] OMAP2/3: Do not enable AUTOIDLE in interrupt
+ controller
+Date: Tue, 20 Oct 2009 18:15:06 +0200
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A210F6A57C90@NOK-EUMSG-02.mgdnok.nokia.com>
 References: <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
 	<1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
-	<004e01ca4e84$5d0aa9f0$3d1018ac@am.dhcp.ti.com>
-	<1F18D6510CF0474A8C9500565A7E41A210F69EEF6F@NOK-EUMSG-02.mgdnok.nokia.com>
+	<1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-8-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-13-git-send-email-tero.kristo@nokia.com>
+	<13B9B4C6EF24D648824FF11BE8967162039B2A021C@dlee02.ent.ti.com>
+	<004f01ca4e88$be2a6a50$3d1018ac@am.dhcp.ti.com>
+	<13B9B4C6EF24D648824FF11BE8967162039B317F66@dlee02.ent.ti.com>
+	<005001ca4e8b$ea107c10$3d1018ac@am.dhcp.ti.com>
+	<1F18D6510CF0474A8C9500565A7E41A210F69EEFFB@NOK-EUMSG-02.mgdnok.nokia.com>
+ <87oco2njfh.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f171.google.com ([209.85.216.171]:53892 "EHLO
-	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751067AbZJTQKi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 12:10:38 -0400
-Received: by pxi1 with SMTP id 1so1490541pxi.33
-        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 09:10:43 -0700 (PDT)
-In-Reply-To: <1F18D6510CF0474A8C9500565A7E41A210F69EEF6F@NOK-EUMSG-02.mgdnok.nokia.com> (Tero Kristo's message of "Mon\, 19 Oct 2009 11\:22\:49 +0200")
+Received: from smtp.nokia.com ([192.100.122.233]:63395 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136AbZJTQPR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 12:15:17 -0400
+In-Reply-To: <87oco2njfh.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero.Kristo@nokia.com
-Cc: girishsg@ti.com, linux-omap@vger.kernel.org
+To: khilman@deeprootsystems.com
+Cc: girishsg@ti.com, r-woodruff2@ti.com, linux-omap@vger.kernel.org, jouni.hogander@nokia.com
 
-<Tero.Kristo@nokia.com> writes:
+ 
 
->>-----Original Message-----
->>From: ext Girish S G [mailto:girishsg@ti.com] 
->>Sent: 16 October, 2009 20:16
->>To: Kristo Tero (Nokia-D/Tampere); linux-omap@vger.kernel.org
->>Subject: RE: [PATCH 01/17] PM: fix suspend control for IVA2
->>
->>
->>
->>> -----Original Message-----
->>> From: linux-omap-owner@vger.kernel.org 
->>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tero
->>> Kristo
->>> 
->>> From: Tero Kristo <tero.kristo@nokia.com>
->>> 
->>> IVA2 controls its target power state individually, thus 
->>suspend should not
->>> touch IVA2. Without this patch DSP suspend always fails.
->>> 
->>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->>> Acked-by: Ameya Palande <ameya.palande@nokia.com>
->>> ---
->>>  arch/arm/mach-omap2/pm34xx.c |    9 ++++++++-
->>>  1 files changed, 8 insertions(+), 1 deletions(-)
->>> 
->>>  static struct prm_setup_vc prm_setup = {
->>>  	.clksetup = 0xff,
->>> @@ -676,6 +676,12 @@ static int omap3_pm_suspend(void)
->>>  		pwrst->saved_state = 
->>pwrdm_read_next_pwrst(pwrst->pwrdm);
->>>  	/* Set ones wanted by suspend */
->>>  	list_for_each_entry(pwrst, &pwrst_list, node) {
->>> +		/* Special handling for IVA2, just use current 
->>sleep state */
->>> +		if (pwrst->pwrdm == iva2_pwrdm) {
->>> +			state = pwrdm_read_pwrst(pwrst->pwrdm);
->>> +			if (state < PWRDM_POWER_ON)
->>> +				pwrst->next_state = state;
->>> +		}
->>
->>Agree, IVA2 pwrdm is handled autonomously by bridge. I think 
->>this needs some additional change to remove all the redundant
->>configuration of iva pwdm. There are some inconsistencies like, 
->>	- Say enable_off_mode is disabled. Before doing system 
->>wide suspend if DSP hibernates then IVA2 will be put to OFF. In that
->>case we have IVA2 going to OFF and other domains in RET. This 
->>might not be an issue, but it's bad from sytem PM framework integrity
->>perspective.
+>-----Original Message-----
+>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: 20 October, 2009 19:02
+>To: Kristo Tero (Nokia-D/Tampere)
+>Cc: girishsg@ti.com; r-woodruff2@ti.com; 
+>linux-omap@vger.kernel.org; Hogander Jouni (Nokia-D/Tampere)
+>Subject: Re: [PATCH 12/17] OMAP2/3: Do not enable AUTOIDLE in 
+>interrupt controller
 >
-> This is an issue with bridge driver, and I am not sure how this should be fixed. Currently bridge driver does not care whether off mode is enabled or not.
+><Tero.Kristo@nokia.com> writes:
 >
->>	- enable_off_mode->omap3_pm_off_mode_enable will also 
->>touch IVA2 power domain next state. This we don't want to do if dsp
->>bridge is already taking care of IVA2.
+>>>> 
+>>>> There was one report from a custom board when it made a 
+>>>difference.  I've not tried to double check
+>>>> this data.  I don't have the reporters setup so there is no 
+>>>guarantee I could reproduce anyway.  In
+>>>> general optimization seemed to make sense.
+>>>
+>>>I second it.
+>>>
+>>>
+>>>Regards,
+>>>Girish
+>>>
+>>>
 >>
->>IMO, we need to have some mechanism wherein if bridge PM takes 
->>care of IVA then PM framework should not configure the IVA
->>powerstate. It should only do if bridge PM is disabled.
+>> Is there errata number available for this issue by the way? 
+>I could attach this to the patch.
+>>
+>> Anyway, I guess the optimization would look something like this:
+>>
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c 
+>b/arch/arm/mach-omap2/pm34xx.c
+>> index 210a806..7a98321 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -93,6 +93,8 @@ u32 voltage_off_while_idle;
+>>                 OMAP3430_ST_GPT5_MASK|OMAP3430_ST_GPT4_MASK|\
+>>                 OMAP3430_ST_GPT3_MASK|OMAP3430_ST_GPT2_MASK)
+>>
+>> +#define INTC_SYSCONFIG                 0x10
+>> +
+>>  struct power_state {
+>>         struct powerdomain *pwrdm;
+>>         u32 next_state;
+>> @@ -505,6 +507,12 @@ void omap_sram_idle(void)
+>>                 prm_set_mod_reg_bits(OMAP3430_EN_IO, 
+>WKUP_MOD, PM_WKEN);
+>>                 omap3_enable_io_chain();
+>>         }
+>> +       /*
+>> +        * Disable INTC autoidle as it can cause interrupt controller
+>> +        * to enter unknown state with right combination of 
+>sleep / wakeup
+>> +        * transitions
+>> +        */
+>> +       omap_writel(0x0, OMAP34XX_IC_BASE + INTC_SYSCONFIG);
 >
-> Should we have a Kconfig option for this? Like CONFIG_OMAP3_BRIDGE_PM, and disable all iva2 controls from pm34xx.c if it is enabled? Otherwise control IVA2 as currently done.
+>Except omap_write* functions are deprecated.
+
+I see, will use __raw_writel here then.
+
 >
+>I'd rather see a call into the interrupt code.  Something like
+>omap_intc_prepare_idle()
 
-Rather than Kconfig, this should be run-time.
+Can do these changes to add the interface yes. Though name would be omap3_intc_prepare_idle() / ...resume_idle() as this is only needed for OMAP3.
 
-There should be some sort of flag for indpendent IVA2 control and a
-register function that bridge (or any other DSP controller) could
-register for and take over control of IVA2.
+>
+>Also, isn't this only needed if CORE != ON?
 
-This way, if no bridge is loaded, IVA2 can still properly be suspended.
+I understood from the problem description that this is needed always when we are entering WFI, because we might have L3/L4 sleep/run transitions there even if CORE is on.
 
-Kevin
+>
+>>         /*
+>>         * On EMU/HS devices ROM code restores a SRDC value
+>> @@ -561,6 +569,8 @@ void omap_sram_idle(void)
+>>                                                 OMAP3430_GR_MOD,
+>>                                                 
+>OMAP3_PRM_VOLTCTRL_OFFSET);
+>>         }
+>> +       /* Re-enable interrupt controller autoidle */
+>> +       omap_writel(OMAP3430_AUTOIDLE, OMAP34XX_IC_BASE + 
+>INTC_SYSCONFIG);
+>
+>and omap_intc_resume_idle()
 
+
+-Tero
