@@ -1,74 +1,104 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Re: 24xx/n8x0 booting again, linux-omap updated to -rc5
-Date: Tue, 20 Oct 2009 17:08:49 -0500
-Message-ID: <20091020220849.GC22912@swansys>
-References: <20091016012747.GA12576@atomide.com> <20091020163102.GB22912@swansys> <20091020185627.GJ12576@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [APPLIED] [PATCH] [RFC] OMAP: eliminate OMAP_MAX_NR_PORTS
+Date: Tue, 20 Oct 2009 15:15:44 -0700
+Message-ID: <20091020221543.GL12576@atomide.com>
+References: <1254995997-26420-1-git-send-email-virtuoso@slind.org> <notify-1255128339@atomide.com> <20091020233115.GA7363@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hxkXGo8AKqTJ+9QI"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:65442 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182AbZJTWIx (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 18:08:53 -0400
-Received: by ewy3 with SMTP id 3so5359243ewy.17
-        for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 15:08:57 -0700 (PDT)
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57986 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751419AbZJTWPo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 18:15:44 -0400
 Content-Disposition: inline
-In-Reply-To: <20091020185627.GJ12576@atomide.com>
-Content-Language: en
+In-Reply-To: <20091020233115.GA7363@localhost.localdomain>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
+* Ladislav.Michl@seznam.cz <Ladislav.Michl@seznam.cz> [091020 14:53]:
+> On Fri, Oct 09, 2009 at 06:46:23PM -0400, Tony Lindgren wrote:
+> > This patch has been applied to the linux-omap
+> > by youw fwiendly patch wobot.
+> > 
+> > Branch in linux-omap: omap2-upstream
+> > 
+> > Initial commit ID (Likely to change): 439d2c69335a28ffdb5a9795ff384b6755ca0f7f
+> > 
+> > PatchWorks
+> > http://patchwork.kernel.org/patch/52477/
+> > 
+> > Git (Likely to change, and takes a while to get mirrored)
+> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=439d2c69335a28ffdb5a9795ff384b6755ca0f7f
+> 
+> This patch broke all OMAP1 boards. NULL terminator entry for omap1
+> serial_platform_data cannot be removed just because serial driver uses
+> is as last entry marker. Without it we end this way:
+> Unable to handle kernel NULL pointer dereference at virtual address 00000028
+> pgd = c0004000
+> [00000028] *pgd=00000000
+> Internal error: Oops: 80000005 [#1]
+> last sysfs file:
+> Modules linked in:
+> CPU: 0    Not tainted  (2.6.32-rc5-06314-g4155da6-dirty #12)
+> PC is at 0x28
+> LR is at serial8250_config_port+0x184/0xc34
+> (...etc...)
+> 
+> Please consider following fix (and while there fix OMAP2 too as patch broke
+> it as well (untested))
 
---hxkXGo8AKqTJ+9QI
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks, I already refreshed the original patch with the same fix few
+days ago :) It should be there in for-next branch and master branch.
 
-Tony Lindgren wrote at 2009-10-20 13:56 -0500:
-> * green <greenfreedom10@gmail.com> [091020 09:31]:
-> > But I must be missing something somewhere... I have not yet been able t=
-o get=20
-> > the N810 to boot.  I see only the Nokia splash.  Note that I just want =
-to see=20
-> > the framebuffer console at this point: I expect a panic due to no root =
-fs.
-> >=20
-> > Attached is the config I'm using, which is based on n8x0_defconfig.
->=20
-> Looks like your config ends up waiting for root on the mmc. But we're mis=
-sing
-> what was board-n800-mmc.c, so that needs to be updated for mainline.
-> You can find the old code in the omap-2.6.30 branch under arch/arm/mach-o=
-map2
-> if you have the cycles to update it.
-
-I did not expect it to boot, even if mmc was available (no rootfs exists on=
-=20
-either mmc).  But the framebuffer does not seem to be working.  I would lik=
-e to=20
-see a console.  Any idea about that?
-
-> Also, the drivers/cbus needs to be updated to get the GPIO pins from
-> board-*.c files, otherwise the retu watchdog will power down the system
-> in 30 seconds.
-
-Yeah, I see the Nokia splash for roughly 30 seconds before the device power=
-s=20
-off.
-
---hxkXGo8AKqTJ+9QI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkreNO8ACgkQ682C+dBP+oTe3QCdGfRfsq/Ol+F8jcg4wVz0uUHn
-d/wAoM208tPqHIoeom3MyR34gMvjGVoN
-=a2VL
------END PGP SIGNATURE-----
-
---hxkXGo8AKqTJ+9QI--
+Tony
+ 
+> Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> 
+> diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
+> index 9c59332..0392ff5 100644
+> --- a/arch/arm/mach-omap1/serial.c
+> +++ b/arch/arm/mach-omap1/serial.c
+> @@ -86,7 +86,9 @@ static struct plat_serial8250_port serial_platform_data[] = {
+>  		.iotype		= UPIO_MEM,
+>  		.regshift	= 2,
+>  		.uartclk	= OMAP16XX_BASE_BAUD * 16,
+> -	},
+> +	}, {
+> +	}
+> +
+>  };
+>  
+>  static struct platform_device serial_device = {
+> @@ -119,7 +121,7 @@ void __init omap_serial_init(void)
+>  		serial_platform_data[2].uartclk = OMAP1510_BASE_BAUD * 16;
+>  	}
+>  
+> -	for (i = 0; i < ARRAY_SIZE(serial_platform_data); i++) {
+> +	for (i = 0; i < ARRAY_SIZE(serial_platform_data) - 1; i++) {
+>  		unsigned char reg;
+>  
+>  		/* Static mapping, never released */
+> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> index dabc089..ca69ffa 100644
+> --- a/arch/arm/mach-omap2/serial.c
+> +++ b/arch/arm/mach-omap2/serial.c
+> @@ -585,7 +585,7 @@ void __init omap_serial_early_init(void)
+>  	 * if not needed.
+>  	 */
+>  
+> -	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> +	for (i = 0; i < ARRAY_SIZE(omap_uart) - 1; i++) {
+>  		struct omap_uart_state *uart = &omap_uart[i];
+>  		struct platform_device *pdev = &uart->pdev;
+>  		struct device *dev = &pdev->dev;
+> @@ -637,7 +637,7 @@ void __init omap_serial_init(void)
+>  {
+>  	int i;
+>  
+> -	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> +	for (i = 0; i < ARRAY_SIZE(omap_uart) - 1; i++) {
+>  		struct omap_uart_state *uart = &omap_uart[i];
+>  		struct platform_device *pdev = &uart->pdev;
+>  		struct device *dev = &pdev->dev;
