@@ -1,162 +1,113 @@
-From: John Rigby <jcrigby@gmail.com>
-Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
-Date: Tue, 20 Oct 2009 16:59:10 -0600
-Message-ID: <4b73d43f0910201559w86ef320q60823077ef0172af@mail.gmail.com>
-References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>
-	 <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com>
-	 <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>
-	 <4ADB4604.2090704@googlemail.com>
-	 <13B9B4C6EF24D648824FF11BE8967162039B3184F0@dlee02.ent.ti.com>
-	 <4b73d43f0910181717i9623184mc2b8c7d6ca0fb435@mail.gmail.com>
-	 <4b73d43f0910181724q11d40851wb2aed801d7ae85f6@mail.gmail.com>
-	 <005101ca50e1$11ef2770$544ff780@am.dhcp.ti.com>
-	 <4ADCAD0F.9010107@googlemail.com>
-	 <00cb01ca51d7$3fafe130$544ff780@am.dhcp.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [APPLIED] [PATCH] [RFC] OMAP: eliminate OMAP_MAX_NR_PORTS
+Date: Tue, 20 Oct 2009 16:01:31 -0700
+Message-ID: <20091020230131.GB16230@atomide.com>
+References: <1254995997-26420-1-git-send-email-virtuoso@slind.org> <notify-1255128339@atomide.com> <20091020233115.GA7363@localhost.localdomain> <20091020221543.GL12576@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f171.google.com ([209.85.216.171]:63934 "EHLO
-	mail-px0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284AbZJTW7G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 18:59:06 -0400
-In-Reply-To: <00cb01ca51d7$3fafe130$544ff780@am.dhcp.ti.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61467 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751640AbZJTXBb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 19:01:31 -0400
+Content-Disposition: inline
+In-Reply-To: <20091020221543.GL12576@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Dirk Behme <dirk.behme@googlemail.com>, linux-omap@vger.kernel.org, "Woodruff, Richard" <r-woodruff2@ti.com>, linux-mmc@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-In enable_sdio_irq
-if enable
-  set ctpl
-else
-  clear ctpl
+* Tony Lindgren <tony@atomide.com> [091020 15:15]:
+> * Ladislav.Michl@seznam.cz <Ladislav.Michl@seznam.cz> [091020 14:53]:
+> > On Fri, Oct 09, 2009 at 06:46:23PM -0400, Tony Lindgren wrote:
+> > > This patch has been applied to the linux-omap
+> > > by youw fwiendly patch wobot.
+> > > 
+> > > Branch in linux-omap: omap2-upstream
+> > > 
+> > > Initial commit ID (Likely to change): 439d2c69335a28ffdb5a9795ff384b6755ca0f7f
+> > > 
+> > > PatchWorks
+> > > http://patchwork.kernel.org/patch/52477/
+> > > 
+> > > Git (Likely to change, and takes a while to get mirrored)
+> > > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=439d2c69335a28ffdb5a9795ff384b6755ca0f7f
+> > 
+> > This patch broke all OMAP1 boards. NULL terminator entry for omap1
+> > serial_platform_data cannot be removed just because serial driver uses
+> > is as last entry marker. Without it we end this way:
+> > Unable to handle kernel NULL pointer dereference at virtual address 00000028
+> > pgd = c0004000
+> > [00000028] *pgd=00000000
+> > Internal error: Oops: 80000005 [#1]
+> > last sysfs file:
+> > Modules linked in:
+> > CPU: 0    Not tainted  (2.6.32-rc5-06314-g4155da6-dirty #12)
+> > PC is at 0x28
+> > LR is at serial8250_config_port+0x184/0xc34
+> > (...etc...)
+> > 
+> > Please consider following fix (and while there fix OMAP2 too as patch broke
+> > it as well (untested))
+> 
+> Thanks, I already refreshed the original patch with the same fix few
+> days ago :) It should be there in for-next branch and master branch.
 
-Again my version is halt baked.  I was just happy that enabling ctpl
-prevents the infinitie cirq issue.
-
-On Tue, Oct 20, 2009 at 4:47 PM, Madhusudhan <madhu.cr@ti.com> wrote:
->
->
->> -----Original Message-----
->> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
->> owner@vger.kernel.org] On Behalf Of Dirk Behme
->> Sent: Monday, October 19, 2009 1:17 PM
->> To: linux-omap@vger.kernel.org
->> Cc: Madhusudhan; 'John Rigby'; 'Woodruff, Richard'; linux-
->> mmc@vger.kernel.org; 'Steve Sakoman'
->> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
->>
->> Madhusudhan wrote:
->> > Hi John,
->> >
->> > So does the SDIO card interrupt mode work fine now?
->>
->> (wrong attachment in previous mail :( sorry)
->>
->> If somebody likes to test, my updated patch v2 in attachment. Compil=
-e
->> tested only, testing and comments are welcome.
->>
->
-> Can you inline the v2 patch please? It helps review. I wonder in the =
-version
-> that John tested was the CTPL bit set in "set_ios" or "enable_sdio_ir=
-q"?
->
-> Regards,
-> Madhu
->
->> Cheers
->>
->> Dirk
->>
->> > =A0 _____
->> >
->> > From: John Rigby [mailto:jcrigby@gmail.com]
->> > Sent: Sunday, October 18, 2009 7:24 PM
->> > To: Woodruff, Richard
->> > Cc: Dirk Behme; Chikkature Rajashekar, Madhusudhan;
->> > linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Steve Sakom=
-an
->> > Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
->> >
->> >
->> >
->> > Ok I was going to ask where you found that but I just rechecked th=
-e TRM
->> and
->> > there it is in plain site:
->> >
->> >
->> >
->> > When this bit is set to 1, the host controller automatically disab=
-les
->> all
->> > the input buffers except the buffer of mmci_dat[1] outside of a
->> transaction
->> > in order to detect asynchronous card interrupt on mmci_dat[1] line=
- and
->> > minimize the leakage current of the buffers.
->> >
->> >
->> > In my defence, I did search the TRM for every occurance of dat1 bu=
-t not
->> > dat[1]. =A0Oh well live and learn and forget and repeat.
->> >
->> > John
->> >
->> > On Sun, Oct 18, 2009 at 6:17 PM, John Rigby <jcrigby@gmail.com> wr=
-ote:
->> >> Richard,
->> >>
->> >> MMCHS_CON.CPTL =3D 1 =A0< Don't disable input buffer on DAT1 afte=
-r
->> >> completion to allow seeing SDIO interrupt>
->> >>
->> >> Sounds exactly like what we need.
->> >>
->> >> Thanks
->> >> John
->> >>
->> >> On Sun, Oct 18, 2009 at 5:12 PM, Woodruff, Richard <r-woodruff2@t=
-i.com>
->> > wrote:
->> >>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> >>>> owner@vger.kernel.org] On Behalf Of Dirk Behme
->> >>>> Sent: Sunday, October 18, 2009 11:45 AM
->> >>>>> It would be funny if the TRM was wrong and the CIRQ bit is rea=
-lly
->> >>>>> cleared by writing 1 to it. =A0I'll try that.
->> >>> A while back I hunted down a few of the bits for this. =A0Maybe =
-this
->> will
->> > help some.
->> >>> SYSCONFIG.ENAWAKEUP =3D 1 < allow ocp wrapper to generate an int=
-errupt
->> to
->> > prcm>
->> >>> MMCHS_HCTL.IWE =3D 1 < route wake up to module ocp wrapper>
->> >>> MMCHS_CON.CPTL =3D 1 =A0< Don't disable input buffer on DAT1 aft=
-er
->> completion
->> > to allow seeing SDIO interrupt>
->> >>> MMCHS_HCTL.IWE
->> >>> MMCHS_ISE.CIRQ_ENABLE <bit to write to enable interrupt at pin>
->> >>> MMCHS_STAT<bit to write for clear of SDIO interrupt>
->> >>> CCCCR - IRQ_ENABLE (think host stack will do this)
->> >>>
->> >>> Regards,
->> >>> Richard W.
->> >>>
->> >
->> >
->>
->
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Correction, sorry looks like I did not really read your patch. It seems
+to be the right solution for mach-omap1, but not needed for mach-omap2
+because the array is not plat_serial8250_port on mach-omap2.
+ 
+> Tony
+>  
+> > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> > 
+> > diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
+> > index 9c59332..0392ff5 100644
+> > --- a/arch/arm/mach-omap1/serial.c
+> > +++ b/arch/arm/mach-omap1/serial.c
+> > @@ -86,7 +86,9 @@ static struct plat_serial8250_port serial_platform_data[] = {
+> >  		.iotype		= UPIO_MEM,
+> >  		.regshift	= 2,
+> >  		.uartclk	= OMAP16XX_BASE_BAUD * 16,
+> > -	},
+> > +	}, {
+> > +	}
+> > +
+> >  };
+> >  
+> >  static struct platform_device serial_device = {
+> > @@ -119,7 +121,7 @@ void __init omap_serial_init(void)
+> >  		serial_platform_data[2].uartclk = OMAP1510_BASE_BAUD * 16;
+> >  	}
+> >  
+> > -	for (i = 0; i < ARRAY_SIZE(serial_platform_data); i++) {
+> > +	for (i = 0; i < ARRAY_SIZE(serial_platform_data) - 1; i++) {
+> >  		unsigned char reg;
+> >  
+> >  		/* Static mapping, never released */
+> > diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> > index dabc089..ca69ffa 100644
+> > --- a/arch/arm/mach-omap2/serial.c
+> > +++ b/arch/arm/mach-omap2/serial.c
+> > @@ -585,7 +585,7 @@ void __init omap_serial_early_init(void)
+> >  	 * if not needed.
+> >  	 */
+> >  
+> > -	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> > +	for (i = 0; i < ARRAY_SIZE(omap_uart) - 1; i++) {
+> >  		struct omap_uart_state *uart = &omap_uart[i];
+> >  		struct platform_device *pdev = &uart->pdev;
+> >  		struct device *dev = &pdev->dev;
+> > @@ -637,7 +637,7 @@ void __init omap_serial_init(void)
+> >  {
+> >  	int i;
+> >  
+> > -	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> > +	for (i = 0; i < ARRAY_SIZE(omap_uart) - 1; i++) {
+> >  		struct omap_uart_state *uart = &omap_uart[i];
+> >  		struct platform_device *pdev = &uart->pdev;
+> >  		struct device *dev = &pdev->dev;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
