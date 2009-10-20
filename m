@@ -1,44 +1,46 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 4/4] ASoC: TWL4030: Driver registration via
-	twl4030_codec MFD
-Date: Tue, 20 Oct 2009 11:25:40 +0100
-Message-ID: <20091020102540.GB28592@opensource.wolfsonmicro.com>
-References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com> <1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com> <1255956140-4829-3-git-send-email-peter.ujfalusi@nokia.com> <1255956140-4829-4-git-send-email-peter.ujfalusi@nokia.com> <1255956140-4829-5-git-send-email-peter.ujfalusi@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751615AbZJTKZi@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1255956140-4829-5-git-send-email-peter.ujfalusi@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, tony@atomide.com
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 1/2] OMAP3: move check_revision above check_features
+Date: Tue, 20 Oct 2009 05:48:57 -0500
+Message-ID: <1256035738-17571-2-git-send-email-nm@ti.com>
+References: <1256035738-17571-1-git-send-email-nm@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:47304 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751696AbZJTKs5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Oct 2009 06:48:57 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9KAn1UY007750
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 05:49:01 -0500
+In-Reply-To: <1256035738-17571-1-git-send-email-nm@ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>
 
-On Mon, Oct 19, 2009 at 03:42:20PM +0300, Peter Ujfalusi wrote:
-> TWL4030 codec is now using the device registration via
-> tlw4030_codec MFD device.
+omap3_check_revision() does not depend on omap3_check_features()
+move this above so that we can add logic based on revision
+detected in check_features.
 
-This looks pretty good but obviously depends on the MFD changes.  The
-major thing that jumps out at me is the removal of the register
-definitions from the ASoC headers - it might be nice to have that done
-as part of the MFD patch, or as a separate patch.
+Signed-off-by: Nishanth Menon <nm@ti.com>
+---
+ arch/arm/mach-omap2/id.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-You've also got the bias being brought up when the ASoC system comes up
-rather than when the driver comes up.  To be honest it doesn't really
-make any difference either way, it's just slightly different to other
-drivers.  What is useful with things like twl4030 which take a little
-while to come up is if you can do the bias bringup out of line from
-device probe, avoiding blocking system startup on CODEC bringup.  That's
-definitely a separate patch, I'm just mentioning it for interest here.
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 1c15112..702d3b4 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -328,8 +328,8 @@ void __init omap2_check_revision(void)
+ 	if (cpu_is_omap24xx())
+ 		omap24xx_check_revision();
+ 	else if (cpu_is_omap34xx()) {
+-		omap3_check_features();
+ 		omap3_check_revision();
++		omap3_check_features();
+ 		omap3_cpuinfo();
+ 	}
+ 	else if (cpu_is_omap44xx()) {
+-- 
+1.6.3.3
 
-There's also a couple of debug prints (like in the remove function) and
-
-> +MODULE_ALIAS("platform:twl4030_codec:audio");
-
-Is that second colon right given...
-
-> +	.driver		= {
-> +		.name	= "twl4030_codec_audio",
-> +		.owner	= THIS_MODULE,
-
-this.
