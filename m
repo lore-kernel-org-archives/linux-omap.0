@@ -1,54 +1,80 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 4/4] ASoC: TWL4030: Driver registration via
-	twl4030_codec MFD
-Date: Tue, 20 Oct 2009 15:01:28 +0300
-Message-ID: <200910201501.28160.peter.ujfalusi@nokia.com>
-References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
-	<200910201430.49223.peter.ujfalusi@nokia.com>
-	<20091020115106.GB2909@rakim.wolfsonmicro.main>
+From: <ilkka.koskinen@nokia.com>
+Subject: RE: [PATCH 1/2] twl4030: Do not dereference null pointer in error
+ path
+Date: Tue, 20 Oct 2009 15:19:20 +0200
+Message-ID: <F80267346F10C541946CBE8909F1C39E121710C56C@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1254323515-30866-1-git-send-email-ilkka.koskinen@nokia.com>
+ <F80267346F10C541946CBE8909F1C39E12170A3880@NOK-EUMSG-02.mgdnok.nokia.com>
+ <20091019155230.GF3885@sortiz.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20091020115106.GB2909@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:23256 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351AbZJTNTl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 09:19:41 -0400
+In-Reply-To: <20091019155230.GF3885@sortiz.org>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sameo@linux.intel.com
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday 20 October 2009 14:51:06 ext Mark Brown wrote:
-> Sure, though I suspect patch 3 could just be split in two happily with
-> an include.  I don't really mind either way.  If you are going to keep
-> them as one patch it'd be good to call out the move in the changelog.
+ 
+Hi Samuel,
 
-I'll split the soc codec patch to two, one is changing the header the other=
- is =
+>From: ext Samuel Ortiz [mailto:sameo@linux.intel.com] 
+>Sent: 19 October, 2009 18:53
+>On Fri, Oct 16, 2009 at 04:21:41PM +0200, 
+>ilkka.koskinen@nokia.com wrote:
+>> 
+>> Hi Samuel,
+>> 
+>> What is the status of this patch and the other one:
+>> [PATCH 2/2] twl4030: Enable low-power mode to 32KHz oscillator
+>I'm sorry but it seems I havent received those 2 patches. 
+>Could you please
+>re-send them ?
 
-for the change in the codec driver.
+Sorry, my mistake. I already forgot that the patches never
+reached you. I'll resend them right away.
 
-> That's a good enough reason to leave things as they are, though really
-> if you're building SND_SOC_ALL_CODECs in a production system you're
-> being a bit strange.
+Cheers, Ilkka
 
-Fair enough.
-
-> >
-> >  +MODULE_ALIAS("platform:twl4030_codec_audio");
-> =
-
-> Yes.  The aliasing makes no reference to the parents of the device, it
-> only cares about the device name - for the purposes of module loading
-> and driver matching it's identical to any other platform device.
-
-Good to know, I'll change this as well.
-
-Thanks,
-P=E9ter
+>> >-----Original Message-----
+>> >From: Koskinen Ilkka (Nokia-D/Tampere) 
+>> >Sent: 30 September, 2009 18:12
+>> >To: linux-kernel@vger.kernel.org; sameo@linux.intel.com
+>> >Cc: linux-omap@vger.kernel.org; Koskinen Ilkka (Nokia-D/Tampere)
+>> >Subject: [PATCH 1/2] twl4030: Do not dereference null pointer 
+>> >in error path
+>> >
+>> >Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+>> >---
+>> > drivers/mfd/twl4030-core.c |    2 +-
+>> > 1 files changed, 1 insertions(+), 1 deletions(-)
+>> >
+>> >diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+>> >index e424cf6..8cf0a02 100644
+>> >--- a/drivers/mfd/twl4030-core.c
+>> >+++ b/drivers/mfd/twl4030-core.c
+>> >@@ -792,7 +792,7 @@ twl4030_probe(struct i2c_client *client, 
+>> >const struct i2c_device_id *id)
+>> > 			twl->client = i2c_new_dummy(client->adapter,
+>> > 					twl->address);
+>> > 			if (!twl->client) {
+>> >-				dev_err(&twl->client->dev,
+>> >+				dev_err(&client->dev,
+>> > 					"can't attach client %d\n", i);
+>> > 				status = -ENOMEM;
+>> > 				goto fail;
+>> >-- 
+>> >1.6.0.4
+>> >
+>> >
+>
+>-- 
+>Intel Open Source Technology Centre
+>http://oss.intel.com/
+>
