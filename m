@@ -1,67 +1,212 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: 24xx/n8x0 booting again, linux-omap updated to -rc5
-Date: Tue, 20 Oct 2009 11:56:27 -0700
-Message-ID: <20091020185627.GJ12576@atomide.com>
-References: <20091016012747.GA12576@atomide.com> <20091020163102.GB22912@swansys>
+Subject: Re: [PATCH 2/4] OMAP: Platform support for
+	twl4030_codec MFD
+Date: Tue, 20 Oct 2009 12:01:39 -0700
+Message-ID: <20091020190138.GK12576@atomide.com>
+References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com>
+	<1255956140-4829-3-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:49684 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733AbZJTS4Z (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 14:56:25 -0400
-Received: from muru.com ([72.249.23.125] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1N0Jsj-0009QN-GU
-	for linux-omap@vger.kernel.org; Tue, 20 Oct 2009 18:56:29 +0000
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-In-Reply-To: <20091020163102.GB22912@swansys>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <1255956140-4829-3-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org, sameo@linux.intel.com
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
 
-* green <greenfreedom10@gmail.com> [091020 09:31]:
-> Tony Lindgren wrote at 2009-10-15 20:27 -0500:
-> > Thanks to Paul's "OMAP2xxx clock: set up clockdomain pointer in struct clk"
-> > patch, we got 24xx booting again both in mainline and in linux-omap.
+* Peter Ujfalusi <peter.ujfalusi@nokia.com> [091019 05:42]:
+> Add needed platform data for the twl4030_codec MFD on boards,
+> where the audio part of the twl4030 codec is used.
 > 
-> That's excellent news!
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+
+This looks safe to merge with the twl/audio patches to keep
+them together. So not adding to my queue.
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+
+
+> ---
+>  arch/arm/mach-omap2/board-3430sdp.c      |    9 +++++++++
+>  arch/arm/mach-omap2/board-omap3beagle.c  |    9 +++++++++
+>  arch/arm/mach-omap2/board-omap3evm.c     |    9 +++++++++
+>  arch/arm/mach-omap2/board-omap3pandora.c |    9 +++++++++
+>  arch/arm/mach-omap2/board-overo.c        |    9 +++++++++
+>  arch/arm/mach-omap2/board-zoom2.c        |    9 +++++++++
+>  6 files changed, 54 insertions(+), 0 deletions(-)
 > 
-> That is commit f856f168bcbc5f49253dd12a4d8452857a785f1c ?
-
-Yeah, that's it.
- 
-> But I must be missing something somewhere... I have not yet been able to get 
-> the N810 to boot.  I see only the Nokia splash.  Note that I just want to see 
-> the framebuffer console at this point: I expect a panic due to no root fs.
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
+> index efaf053..4f91f7a 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -410,6 +410,14 @@ static struct regulator_init_data sdp3430_vpll2 = {
+>  	.consumer_supplies	= &sdp3430_vdvi_supply,
+>  };
+>  
+> +static struct twl4030_codec_audio_data sdp3430_audio = {
+> +	.audio_mclk = 26000000,
+> +};
+> +
+> +static struct twl4030_codec_data sdp3430_codec = {
+> +	.audio = &sdp3430_audio,
+> +};
+> +
+>  static struct twl4030_platform_data sdp3430_twldata = {
+>  	.irq_base	= TWL4030_IRQ_BASE,
+>  	.irq_end	= TWL4030_IRQ_END,
+> @@ -420,6 +428,7 @@ static struct twl4030_platform_data sdp3430_twldata = {
+>  	.madc		= &sdp3430_madc_data,
+>  	.keypad		= &sdp3430_kp_data,
+>  	.usb		= &sdp3430_usb_data,
+> +	.codec		= &sdp3430_codec,
+>  
+>  	.vaux1		= &sdp3430_vaux1,
+>  	.vaux2		= &sdp3430_vaux2,
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
+> index 70df6b4..2161d85 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -254,6 +254,14 @@ static struct twl4030_usb_data beagle_usb_data = {
+>  	.usb_mode	= T2_USB_MODE_ULPI,
+>  };
+>  
+> +static struct twl4030_codec_audio_data beagle_audio_data = {
+> +	.audio_mclk = 26000000,
+> +};
+> +
+> +static struct twl4030_codec_data beagle_codec_data = {
+> +	.audio = &beagle_audio_data,
+> +};
+> +
+>  static struct twl4030_platform_data beagle_twldata = {
+>  	.irq_base	= TWL4030_IRQ_BASE,
+>  	.irq_end	= TWL4030_IRQ_END,
+> @@ -261,6 +269,7 @@ static struct twl4030_platform_data beagle_twldata = {
+>  	/* platform_data for children goes here */
+>  	.usb		= &beagle_usb_data,
+>  	.gpio		= &beagle_gpio_data,
+> +	.codec		= &beagle_codec_data,
+>  	.vmmc1		= &beagle_vmmc1,
+>  	.vsim		= &beagle_vsim,
+>  	.vdac		= &beagle_vdac,
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+> index e4ec0c5..d9a6103 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -194,6 +194,14 @@ static struct twl4030_madc_platform_data omap3evm_madc_data = {
+>  	.irq_line	= 1,
+>  };
+>  
+> +static struct twl4030_codec_audio_data omap3evm_audio_data = {
+> +	.audio_mclk = 26000000,
+> +};
+> +
+> +static struct twl4030_codec_data omap3evm_codec_data = {
+> +	.audio = &omap3evm_audio_data,
+> +};
+> +
+>  static struct twl4030_platform_data omap3evm_twldata = {
+>  	.irq_base	= TWL4030_IRQ_BASE,
+>  	.irq_end	= TWL4030_IRQ_END,
+> @@ -203,6 +211,7 @@ static struct twl4030_platform_data omap3evm_twldata = {
+>  	.madc		= &omap3evm_madc_data,
+>  	.usb		= &omap3evm_usb_data,
+>  	.gpio		= &omap3evm_gpio_data,
+> +	.codec		= &omap3evm_codec_data,
+>  };
+>  
+>  static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+> diff --git a/arch/arm/mach-omap2/board-omap3pandora.c b/arch/arm/mach-omap2/board-omap3pandora.c
+> index 7f6bf87..5036b56 100644
+> --- a/arch/arm/mach-omap2/board-omap3pandora.c
+> +++ b/arch/arm/mach-omap2/board-omap3pandora.c
+> @@ -281,11 +281,20 @@ static struct twl4030_usb_data omap3pandora_usb_data = {
+>  	.usb_mode	= T2_USB_MODE_ULPI,
+>  };
+>  
+> +static struct twl4030_codec_audio_data omap3pandora_audio_data = {
+> +	.audio_mclk = 26000000,
+> +};
+> +
+> +static struct twl4030_codec_data omap3pandora_codec_data = {
+> +	.audio = &omap3pandora_audio_data,
+> +};
+> +
+>  static struct twl4030_platform_data omap3pandora_twldata = {
+>  	.irq_base	= TWL4030_IRQ_BASE,
+>  	.irq_end	= TWL4030_IRQ_END,
+>  	.gpio		= &omap3pandora_gpio_data,
+>  	.usb		= &omap3pandora_usb_data,
+> +	.codec		= &omap3pandora_codec_data,
+>  	.vmmc1		= &pandora_vmmc1,
+>  	.vmmc2		= &pandora_vmmc2,
+>  	.keypad		= &pandora_kp_data,
+> diff --git a/arch/arm/mach-omap2/board-overo.c b/arch/arm/mach-omap2/board-overo.c
+> index 9917d2f..dc55008 100644
+> --- a/arch/arm/mach-omap2/board-overo.c
+> +++ b/arch/arm/mach-omap2/board-overo.c
+> @@ -329,6 +329,14 @@ static struct regulator_init_data overo_vmmc1 = {
+>  	.consumer_supplies	= &overo_vmmc1_supply,
+>  };
+>  
+> +static struct twl4030_codec_audio_data overo_audio_data = {
+> +	.audio_mclk = 26000000,
+> +};
+> +
+> +static struct twl4030_codec_data overo_codec_data = {
+> +	.audio = &overo_audio_data,
+> +};
+> +
+>  /* mmc2 (WLAN) and Bluetooth don't use twl4030 regulators */
+>  
+>  static struct twl4030_platform_data overo_twldata = {
+> @@ -336,6 +344,7 @@ static struct twl4030_platform_data overo_twldata = {
+>  	.irq_end	= TWL4030_IRQ_END,
+>  	.gpio		= &overo_gpio_data,
+>  	.usb		= &overo_usb_data,
+> +	.codec		= &overo_codec_data,
+>  	.vmmc1		= &overo_vmmc1,
+>  };
+>  
+> diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+> index b7b3220..f1b4e7c 100644
+> --- a/arch/arm/mach-omap2/board-zoom2.c
+> +++ b/arch/arm/mach-omap2/board-zoom2.c
+> @@ -229,6 +229,14 @@ static struct twl4030_madc_platform_data zoom2_madc_data = {
+>  	.irq_line	= 1,
+>  };
+>  
+> +static struct twl4030_codec_audio_data zoom2_audio_data = {
+> +	.audio_mclk = 26000000,
+> +};
+> +
+> +static struct twl4030_codec_data zoom2_codec_data = {
+> +	.audio = &zoom2_audio_data,
+> +};
+> +
+>  static struct twl4030_platform_data zoom2_twldata = {
+>  	.irq_base	= TWL4030_IRQ_BASE,
+>  	.irq_end	= TWL4030_IRQ_END,
+> @@ -239,6 +247,7 @@ static struct twl4030_platform_data zoom2_twldata = {
+>  	.usb		= &zoom2_usb_data,
+>  	.gpio		= &zoom2_gpio_data,
+>  	.keypad		= &zoom2_kp_twl4030_data,
+> +	.codec		= &zoom2_codec_data,
+>  	.vmmc1          = &zoom2_vmmc1,
+>  	.vmmc2          = &zoom2_vmmc2,
+>  	.vsim           = &zoom2_vsim,
+> -- 
+> 1.6.5.1
 > 
-> Attached is the config I'm using, which is based on n8x0_defconfig.
-
-Looks like your config ends up waiting for root on the mmc. But we're missing
-what was board-n800-mmc.c, so that needs to be updated for mainline.
-You can find the old code in the omap-2.6.30 branch under arch/arm/mach-omap2
-if you have the cycles to update it.
-
-Also, the drivers/cbus needs to be updated to get the GPIO pins from
-board-*.c files, otherwise the retu watchdog will power down the system
-in 30 seconds.
- 
-> I am using the arm-linux-gnueabi cross-compiler from emdebian, v4.2.  What 
-> version is recommended, preferably available from emdebian (4.1, 4.2, 4.3, 
-> 4.4)?
-
-Those should be just fine.
- 
-> > The following patch is also needed to change the n8x0 serial console CMDLINE
-> > from ttyS0 to ttyS2 as the port numbering now matches the physical ports.
-> > The patch is already in linux-omap, but not yet in mainline.
-> 
-> If that is only for the serial console, I should need no console= option, 
-> right?  I've tried it both ways...
-
-Yeah, that's needed only for the serial console.
-
-Regards,
-
-Tony
