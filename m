@@ -1,92 +1,164 @@
-From: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
-Subject: RE: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-Date: Tue, 20 Oct 2009 12:04:25 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB37DB8F@dbde02.ent.ti.com>
-References: <20091016233624.2463.26653.stgit@localhost>
- <20091016234138.2463.38350.stgit@localhost>
- <20091016234622.GH12576@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB37D7AA@dbde02.ent.ti.com>
- <20091017161947.GK12576@atomide.com> <20091019002416.GM12576@atomide.com>
- <EAF47CD23C76F840A9E7FCE10091EFAB02BB37D82D@dbde02.ent.ti.com>
- <20091019171204.GP12576@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: charu@ti.com
+Subject: [PATCH V2] FIX OMAP3:McBSP poll read and write for OMAP3
+Date: Tue, 20 Oct 2009 12:11:00 +0530
+Message-ID: <1256020860-1108-1-git-send-email-charu@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34058 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35061 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771AbZJTGed convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 02:34:33 -0400
-In-Reply-To: <20091019171204.GP12576@atomide.com>
-Content-Language: en-US
+	id S1750781AbZJTGlB (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Oct 2009 02:41:01 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9K6f3Sc000512
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 01:41:05 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: Charulatha V <charu@ti.com>, Syed Rafiuddin <rafiuddin.syed@ti.com>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Tony Lindgren
-> Sent: Monday, October 19, 2009 10:42 PM
-> To: Shilimkar, Santosh
-> Cc: linux-arm-kernel@lists.infradead.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-> 
-> * Shilimkar, Santosh <santosh.shilimkar@ti.com> [091019 00:27]:
-> > Tony,
-> > > -----Original Message-----
-> > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > Sent: Monday, October 19, 2009 5:54 AM
-> > > To: Shilimkar, Santosh
-> > > Cc: linux-arm-kernel@lists.infradead.org; linux-
-> omap@vger.kernel.org
-> > > Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4 code
-> > >
-> > > * Tony Lindgren <tony@atomide.com> [091017 09:19]:
-> > > > * Shilimkar, Santosh <santosh.shilimkar@ti.com> [091017
-> 03:49]:
-> > > > > Thanks Tony for this ioremap series!!
-> > > > >
-> > > > > > -----Original Message-----
-> > > > > > From: Tony Lindgren [mailto:tony@atomide.com]
-> > > > > > Sent: Saturday, October 17, 2009 5:16 AM
-> > > > > > To: linux-arm-kernel@lists.infradead.org
-> > > > > > Cc: linux-omap@vger.kernel.org; Shilimkar, Santosh
-> > > > > > Subject: Re: [PATCH 08/14] omap: Use ioremap for omap4 L4
-> code
-> > > > > >
-> > > > > > * Tony Lindgren <tony@atomide.com> [091016 16:42]:
-> > > > > > > Use ioremap for omap4 L4 code
-> > > > > >
-> > > > > > Santosh, can you please check and ack this patch?
-> > > > > >
-> > > > > > Especially some of the ioremap sizes may be wrong. Also,
-> this one
-> > > > > > I cannot boot test, so it's just compile tested.
-> > > > >
-> > > > > I have checked the patch and it looks all right except few
-> typo. Also
-> > > the scu_base is needed bit earlier.
-> > >
-> > > <snip>
-> > >
-> > > > > Here is the patch on top of ioremap series which should fix
-> above
-> > > mentioned things. With below patch + two serial related patches
-> the kernel
-> > > boots on OMAP4430.
-> > > >
-> > > > Great, will update. Thanks for taking the time to fix it!
-> > >
-> > > Here's this one updated with Santosh's fix merged in.
-> > V2 has one typo which I think I also missed in my patch.
-> > >+	/* Static mapping, never released */
-> > >+	gic_cpu_base_addr = ioremap(OMAP44XX_GIC_CPU_BASE, SZ_512);
-> > >+	BUG_ON(!base);
-> > Should be BUG_ON(!gic_cpu_base_addr);
-> 
-> OK, here's V3 of the patch.
-It's complete now :)
+omap_mcbsp_pollwrite and omap_mcbsp_pollread functions access
+McBSP registers as 16-bit registers.
 
-Regards,
-Santosh
+In OMAP3, McBSP registers (DRR_REG and DXR_REG) are limited to
+32-bit data accesses (L4 Interconnect). 16-bit and 8-bit is
+not allowed and can corrupt register content.
+
+This patch adds omap3_mcbsp_pollwrite and
+omap3_mcbsp_pollread functions for OMAP3 cpu, inorder to
+perform 32 bit access of above mentioned McBSP registers.
+
+Signed-off-by: Charulatha V <charu@ti.com>
+Signed-off-by: Syed Rafiuddin <rafiuddin.syed@ti.com>
+---
+ arch/arm/plat-omap/include/mach/mcbsp.h |    4 +
+ arch/arm/plat-omap/mcbsp.c              |   92 ++++++++++++++++++++++++++++++-
+ 2 files changed, 95 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/plat-omap/include/mach/mcbsp.h b/arch/arm/plat-omap/include/mach/mcbsp.h
+index 0c5f937..b0f9260 100644
+--- a/arch/arm/plat-omap/include/mach/mcbsp.h
++++ b/arch/arm/plat-omap/include/mach/mcbsp.h
+@@ -406,6 +406,10 @@ void omap_mcbsp_set_spi_mode(unsigned int id, const struct omap_mcbsp_spi_cfg *
+ /* Polled read/write functions */
+ int omap_mcbsp_pollread(unsigned int id, u16 * buf);
+ int omap_mcbsp_pollwrite(unsigned int id, u16 buf);
++
++int omap3_mcbsp_pollread(unsigned int id, u32 *buf);
++int omap3_mcbsp_pollwrite(unsigned int id, u32 buf);
++
+ int omap_mcbsp_set_io_type(unsigned int id, omap_mcbsp_io_type_t io_type);
+ 
+ #endif
+diff --git a/arch/arm/plat-omap/mcbsp.c b/arch/arm/plat-omap/mcbsp.c
+index b6b520d..1212d11 100644
+--- a/arch/arm/plat-omap/mcbsp.c
++++ b/arch/arm/plat-omap/mcbsp.c
+@@ -425,7 +425,7 @@ void omap_mcbsp_stop(unsigned int id)
+ }
+ EXPORT_SYMBOL(omap_mcbsp_stop);
+ 
+-/* polled mcbsp i/o operations */
++/* polled mcbsp i/o operations for omap1 and omap2420 */
+ int omap_mcbsp_pollwrite(unsigned int id, u16 buf)
+ {
+ 	struct omap_mcbsp *mcbsp;
+@@ -515,6 +515,96 @@ int omap_mcbsp_pollread(unsigned int id, u16 *buf)
+ }
+ EXPORT_SYMBOL(omap_mcbsp_pollread);
+ 
++/* polled mcbsp i/o operations for omap3 */
++int omap3_mcbsp_pollwrite(unsigned int id, u32 buf)
++{
++	struct omap_mcbsp *mcbsp;
++	void __iomem *base;
++
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++
++	mcbsp = id_to_mcbsp_ptr(id);
++	base = mcbsp->io_base;
++
++	OMAP_MCBSP_WRITE(base, DXR, buf);
++	/* if frame sync error - clear the error */
++	if (OMAP_MCBSP_READ(base, SPCR2) & XSYNC_ERR) {
++		/* clear error */
++		OMAP_MCBSP_WRITE(base, SPCR2, OMAP_MCBSP_READ(base, SPCR2)
++					& (~XSYNC_ERR));
++		/* resend */
++		return -EPERM;
++	} else {
++		/* wait for transmit confirmation */
++		int attemps = 0;
++		while (!(OMAP_MCBSP_READ(base, SPCR2) & XRDY)) {
++			if (attemps++ > 1000) {
++				OMAP_MCBSP_WRITE(base, SPCR2,
++					OMAP_MCBSP_READ(base, SPCR2) &
++					(~XRST));
++				udelay(10);
++				OMAP_MCBSP_WRITE(base, SPCR2,
++					OMAP_MCBSP_READ(base, SPCR2) |
++					(XRST));
++				udelay(10);
++				dev_err(mcbsp->dev, "Could not write to"
++					" McBSP%d Register\n", mcbsp->id);
++				return -ENOENT;
++			}
++		}
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(omap3_mcbsp_pollwrite);
++
++int omap3_mcbsp_pollread(unsigned int id, u32 *buf)
++{
++	struct omap_mcbsp *mcbsp;
++	void __iomem *base;
++
++	if (!omap_mcbsp_check_valid_id(id)) {
++		printk(KERN_ERR "%s: Invalid id (%d)\n", __func__, id + 1);
++		return -ENODEV;
++	}
++	mcbsp = id_to_mcbsp_ptr(id);
++
++	base = mcbsp->io_base;
++	/* if frame sync error - clear the error */
++	if (OMAP_MCBSP_READ(base, SPCR1) & RSYNC_ERR) {
++		/* clear error */
++		OMAP_MCBSP_WRITE(base, SPCR1, OMAP_MCBSP_READ(base, SPCR1)
++					& (~RSYNC_ERR));
++		/* resend */
++		return -EPERM;
++	} else {
++		/* wait for recieve confirmation */
++		int attemps = 0;
++		while (!(OMAP_MCBSP_READ(base, SPCR1) & RRDY)) {
++			if (attemps++ > 1000) {
++				OMAP_MCBSP_WRITE(base, SPCR1,
++					OMAP_MCBSP_READ(base, SPCR1) &
++					(~RRST));
++				udelay(10);
++				OMAP_MCBSP_WRITE(base, SPCR1,
++					OMAP_MCBSP_READ(base, SPCR1) |
++					(RRST));
++				udelay(10);
++				dev_err(mcbsp->dev, "Could not read from"
++					" McBSP%d Register\n", mcbsp->id);
++				return -ENOENT;
++			}
++		}
++	}
++	*buf = OMAP_MCBSP_READ(base, DRR);
++
++	return 0;
++}
++EXPORT_SYMBOL(omap3_mcbsp_pollread);
++
+ /*
+  * IRQ based word transmission.
+  */
+-- 
+1.6.0.4
+
