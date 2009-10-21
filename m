@@ -1,60 +1,64 @@
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH] OMAP: Fix broken omap-keypad
-Date: Wed, 21 Oct 2009 16:20:29 +0200
-Message-ID: <200910211620.30538.jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] Re: Calling omap_pcm_prepare() results in
+	BUG() on OMAP1
+Date: Wed, 21 Oct 2009 16:36:49 +0200
+Message-ID: <200910211636.51258.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:57356 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753346AbZJUOVH (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Oct 2009 10:21:07 -0400
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Mark Brown <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
 
-Hi,
-Commit 4f5433324d1e29cf234d5b1b14782c0fc2948298 had made machines that use new 
-matrix_keypad based drivers happy while breaking those that still use old
-omap-keypad driver. The patch fixes omap-keypad device for my Amstrad Delta
-(tested) and probably 11 more OMAP1 based machines. It leaves a potential
-similiar problem on OMAP2 H4 machine not addressed.
-
-I would say that those new, matrix_keypad based drivers should be corrected to
-simply not include arch/arm/plat-omap/include/mach/keypad.h, which should keep
-serving omap-keypad based machines until they are all upgraded to use 
-matrix_keypad.
-
-Created against linux-2.6.32-rc5
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-
----
---- linux-2.6.32-rc5/arch/arm/plat-omap/include/mach/keypad.h.orig	2009-10-16 02:41:50.000000000 +0200
-+++ linux-2.6.32-rc5/arch/arm/plat-omap/include/mach/keypad.h	2009-10-21 15:32:37.000000000 +0200
-@@ -10,7 +10,9 @@
- #ifndef ASMARM_ARCH_KEYPAD_H
- #define ASMARM_ARCH_KEYPAD_H
- 
-+#ifndef CONFIG_ARCH_OMAP1
- #include <linux/input/matrix_keypad.h>
-+#endif
- 
- struct omap_kp_platform_data {
- 	int rows;
-@@ -38,5 +40,11 @@ struct omap_kp_platform_data {
- #define KEY_PERSISTENT		0x00800000
- #define KEYNUM_MASK		0x00EFFFFF
- 
-+#ifdef CONFIG_ARCH_OMAP1
-+#define KEY(col, row, val) (((col) << 28) | ((row) << 24) | (val))
-+#define PERSISTENT_KEY(col, row) (((col) << 28) | ((row) << 24) | \
-+						KEY_PERSISTENT)
-+#endif
-+
- #endif
- 
+SSdtIHJlc2VuZGluZywgdGhpcyB0aW1lIENDaW5nIE1hcmsgYXMgSSBzaG91bGQuCgpKYW51c3oK
+Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCldlZG5lc2RheSAyMSBPY3RvYmVyIDIwMDkgMDk6MTY6
+MzcgSmFya2tvIE5pa3VsYSBuYXBpc2HFgihhKToKPiBIaQo+Cj4gT24gV2VkLCAyMSBPY3QgMjAw
+OSAwNToxMTowNiArMDIwMAo+Cj4gSmFudXN6IEtyenlzenRvZmlrIDxqa3J6eXN6dEB0aXMuaWNu
+ZXQucGw+IHdyb3RlOgo+ID4gSGksCj4gPiBBZnRlciBETUEgYnVyc3QgbW9kZSBoYXMgYmVlbiBp
+bnRyb2R1Y2VkIGluIHNvdW5kL3NvYy9vbWFwL29tYXAtcGNtLmMsCj4gPiBvbWFwX3BjbV9wcmVw
+YXJlKCkgdW5jb25kaXRpb25hbGx5IGNhbGxzOgo+ID4KPiA+IAlvbWFwX3NldF9kbWFfc3JjX2J1
+cnN0X21vZGUocHJ0ZC0+ZG1hX2NoLCBPTUFQX0RNQV9EQVRBX0JVUlNUXzE2KTsKPiA+IAlvbWFw
+X3NldF9kbWFfZGVzdF9idXJzdF9tb2RlKHBydGQtPmRtYV9jaCwgT01BUF9ETUFfREFUQV9CVVJT
+VF8xNik7Cj4gPgo+ID4gQUZBSUNTLCBjdXJyZW50IGltcGxlbWVudGF0aW9uIG9mIHRob3NlIHR3
+byBmdW5jdGlvbnMgZm91bmQgaW4KPiA+IGFyY2gvYXJtL3BsYXQtb21wYS9kbWEuYyBkb2Vzbid0
+IHN1cHBvcnQgT01BUF9ETUFfREFUQV9CVVJTVF8xNiBvbiBPTUFQMQo+ID4gYXQgYWxsLCBzbyB0
+aGV5IGJvdGggZW5kIHdpdGggQlVHKCkgb24gdGhhdCBtYWNoaW5lLiBUaGF0IHNlZW1zIHRvIHJl
+c3VsdAo+ID4gaW4gQVNvQyBiZWluZyBjb21wbGV0ZWx5IHVudXNhYmxlLCBhdCBsZWFzdCBvbiBt
+eSBPTUFQNTkxMCBiYXNlZCBBbXN0cmFkCj4gPiBEZWx0YS4KPgo+IFRoYW5rcyBmb3IgcmVwb3J0
+aW5nIHRoZSBpc3N1ZS4gTm9ib2R5IGRpZG4ndCByZWFsaXplIHdoZW4gdGhvc2UgY2FsbHMKPiB3
+ZXJlIGFkZGVkIHRoYXQgaW5kZWVkIHRoZXkgd2lsbCBlbmQgdXAgdG8gQlVHKCkgaW4KPiBhcmNo
+L2FybS9wbGF0LW9tYXAvZG1hLmMgb24gT01BUDEuCj4KPiA+IElzIGNhbGxpbmcgQlVHKCkgZm9y
+IE9NQVAxIGZyb20gdGhvc2UgZnVuY3Rpb25zIGludGVudGlvbmFsPwo+ID4KPiA+IElmIG5vdCBp
+bnRlbnRpb25hbCwgY2FuIHRob3NlIGJlIGNvcnJlY3RlZCBieSBzaW1wbHkgcHV0dGluZyBicmVh
+azsKPiA+IGJlZm9yZSBkZWZhbHV0Oj8KPgo+IEknZCBsZXQgaXQgb24gYXMgaXQgaXMgYXMgaXQg
+d2lsbCBwb2ludCBvdXQgaW1tZWRpYXRlbHkgaW52YWxpZAo+IGFyZ3VtZW50IGZvciBPTUFQMSBh
+bmQgdGhvc2UgZnVuY3Rpb25zIGRvIG5vdCBoYXZlIHJldHVybiB2YWx1ZS4KPgo+ID4gSWYgaW50
+ZW50aW9uYWwsIGNhbiB0aG9zZSBmdW5jdGlvbiBjYWxscyBiZSBjb25kaXRpb25hbGx5IG9taXRl
+ZCwgYXQKPiA+IGxlYXN0IGZvciBPTUFQMTUxMCwgaW4gc291bmQvc29jL29tYXAvb21hcC1wY20u
+Yz8KPgo+IFllcCwganVzdCBwdXQgY3B1X2NsYXNzX2lzX29tYXAxKCkgdGVzdCBpbiBzb3VuZC9z
+b2Mvb21hcC9vbWFwLXBjbS5jCj4gc2luY2Ugd2Ugc2hvdWxkIG5vdCB0cnkgdG8gc2V0IHVuc3Vw
+cG9ydGVkIGJ1cnN0IHNpemUgZm9yIE9NQVAxLgoKSGVyZSB5b3UgYXJlLgoKU2lnbmVkLW9mZi1i
+eTogSmFudXN6IEtyenlzenRvZmlrIDxqa3J6eXN6dEB0aXMuaWNuZXQucGw+CgotLS0KLS0tIGxp
+bnV4LTIuNi4zMi1yYzUvc291bmQvc29jL29tYXAvb21hcC1wY20uYy5vcmlnCTIwMDktMTAtMTYg
+CjAyOjQxOjUwLjAwMDAwMDAwMCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS9zb3VuZC9zb2Mv
+b21hcC9vbWFwLXBjbS5jCTIwMDktMTAtMjEgMTI6MzM6NDUuMDAwMDAwMDAwIAorMDIwMApAQCAt
+MTk1LDYgKzE5NSw5IEBAIHN0YXRpYyBpbnQgb21hcF9wY21fcHJlcGFyZShzdHJ1Y3Qgc25kX3AK
+IAllbHNlCiAJCW9tYXBfZW5hYmxlX2RtYV9pcnEocHJ0ZC0+ZG1hX2NoLCBPTUFQX0RNQV9GUkFN
+RV9JUlEpOwogCisJaWYgKGNwdV9jbGFzc19pc19vbWFwMSgpKQorCQlyZXR1cm4gMDsKKwogCW9t
+YXBfc2V0X2RtYV9zcmNfYnVyc3RfbW9kZShwcnRkLT5kbWFfY2gsIE9NQVBfRE1BX0RBVEFfQlVS
+U1RfMTYpOwogCW9tYXBfc2V0X2RtYV9kZXN0X2J1cnN0X21vZGUocHJ0ZC0+ZG1hX2NoLCBPTUFQ
+X0RNQV9EQVRBX0JVUlNUXzE2KTsKIAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX18KQWxzYS1kZXZlbCBtYWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXBy
+b2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFsc2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5m
+by9hbHNhLWRldmVsCg==
