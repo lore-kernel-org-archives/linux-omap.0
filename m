@@ -1,247 +1,189 @@
 From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint in i2c
-Date: Wed, 21 Oct 2009 14:51:21 +0300
-Message-ID: <1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
+Subject: [PATCH 1/3] OMAP3: Only update pm-counters when needed
+Date: Wed, 21 Oct 2009 14:51:19 +0300
+Message-ID: <1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
 References: <>
  <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
- <1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
- <1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:10270 "EHLO smtp1.digia.com"
+Received: from smtp1.digia.com ([82.118.214.156]:10265 "EHLO smtp1.digia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753309AbZJULvC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	id S1753367AbZJULvC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
 	Wed, 21 Oct 2009 07:51:02 -0400
-In-Reply-To: <1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
+In-Reply-To: <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <kalle.jokiniemi@digia.com>, Moiz Sonasath <m-sonasath@ti.com>, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, Nishanth Menon <nm@ti.com>
+Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-While waiting for completion of the i2c transfer, the
-MPU could hit OFF mode and cause several msecs of
-delay that made i2c transfers fail more often. The
-extra delays and subsequent re-trys cause i2c clocks
-to be active more often. This has also an negative
-effect on power consumption.
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-Created a mechanism for passing and using the
-constraint setting function in driver code. The used
-mpu wake up latency constraints are now set individually
-per bus, and they are calculated based on clock rate
-and fifo size.
+The biggest source of latency in idle loop (omap_sram_idle
+function) comes from updating the state counters for each
+power domain. The two purposes of these counters are to
+provide debug data in debugfs, and to keep track of context
+losses occurring during idle transitions (off mode counters).
 
-Thanks to Jarkko Nikula, Moiz Sonasath, Paul Walmsley,
-and Nishanth Menon for tuning out the details of
-this patch.
+I created new debugfs interface "enable_count" for
+enabling the "count" interface, which exposes the debug
+part of these counters. The counters are not updated
+anymore for CORE ON idle transitions, when the count
+interface is disabled. For deeper CORE states, counters
+are still updated to preserve context loss tracking.
 
-Cc: Moiz Sonasath <m-sonasath@ti.com>
-Cc: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Nishanth Menon <nm@ti.com>
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+This change decreases C1/C2 state latency over 100us at
+OPP2.
+
+Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 ---
- arch/arm/plat-omap/i2c.c      |   54 +++++++++++++++++++++++++++++++---------
- drivers/i2c/busses/i2c-omap.c |   25 ++++++++++++++++---
- include/linux/i2c-omap.h      |    9 +++++++
- 3 files changed, 72 insertions(+), 16 deletions(-)
- create mode 100644 include/linux/i2c-omap.h
+ arch/arm/mach-omap2/pm-debug.c |   51 ++++++++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/pm.h       |    2 +
+ arch/arm/mach-omap2/pm34xx.c   |   12 +++++----
+ 3 files changed, 58 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/i2c.c b/arch/arm/plat-omap/i2c.c
-index 8b84839..3c122cd 100644
---- a/arch/arm/plat-omap/i2c.c
-+++ b/arch/arm/plat-omap/i2c.c
-@@ -26,8 +26,10 @@
- #include <linux/kernel.h>
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
-+#include <linux/i2c-omap.h>
- #include <mach/irqs.h>
- #include <mach/mux.h>
-+#include <mach/omap-pm.h>
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 5aac64f..76c2696 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -37,6 +37,9 @@
+ #include "prm-regbits-34xx.h"
  
- #define OMAP_I2C_SIZE		0x3f
- #define OMAP1_I2C_BASE		0xfffb3800
-@@ -69,14 +71,14 @@ static struct resource i2c_resources[][2] = {
- 		},					\
- 	}
+ int omap2_pm_debug;
++static int pm_dbg_count_active;
++static struct dentry *de_pm_debug_count;
++static struct dentry *de_pm_debug;
  
--static u32 i2c_rate[ARRAY_SIZE(i2c_resources)];
-+static struct omap_i2c_bus_platform_data i2c_pdata[ARRAY_SIZE(i2c_resources)];
- static struct platform_device omap_i2c_devices[] = {
--	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_rate[0]),
-+	I2C_DEV_BUILDER(1, i2c_resources[0], &i2c_pdata[0]),
- #if	defined(CONFIG_ARCH_OMAP24XX) || defined(CONFIG_ARCH_OMAP34XX)
--	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_rate[1]),
-+	I2C_DEV_BUILDER(2, i2c_resources[1], &i2c_pdata[1]),
- #endif
- #if	defined(CONFIG_ARCH_OMAP34XX)
--	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_rate[2]),
-+	I2C_DEV_BUILDER(3, i2c_resources[2], &i2c_pdata[2]),
- #endif
+ #define DUMP_PRM_MOD_REG(mod, reg)    \
+ 	regs[reg_count].name = #mod "." #reg; \
+@@ -327,6 +330,11 @@ int pm_dbg_regset_save(int reg_set)
+ 	return 0;
+ }
+ 
++int pm_dbg_count_is_active(void)
++{
++	return pm_dbg_count_active;
++}
++
+ static const char pwrdm_state_names[][4] = {
+ 	"OFF",
+ 	"RET",
+@@ -460,6 +468,40 @@ static const struct file_operations debug_reg_fops = {
+ 	.release        = single_release,
  };
  
-@@ -100,6 +102,31 @@ static const int omap34xx_pins[][2] = {};
- 
- #define OMAP_I2C_CMDLINE_SETUP	(BIT(31))
- 
-+#ifdef CONFIG_ARCH_OMAP34XX
-+/*
-+ * omap_i2c_set_wfc_mpu_wkup_lat - sets mpu wake up constraint
-+ * @dev:	i2c bus device pointer
-+ * @val:	latency constraint to set, -1 to disable constraint
-+ *
-+ * When waiting for completion of a i2c transfer, we need to set a wake up
-+ * latency constraint for the MPU. This is to ensure quick enough wakeup from
-+ * idle, when transfer completes.
-+ */
-+static void omap_i2c_set_wfc_mpu_wkup_lat(struct device *dev, int val)
++static int pm_dbg_count_enable_get(void *data, u64 *val)
 +{
-+	omap_pm_set_max_mpu_wakeup_lat(dev, val);
-+}
-+#endif
-+
-+static void __init omap_set_i2c_constraint_func(
-+				struct omap_i2c_bus_platform_data *pd)
-+{
-+	if (cpu_is_omap34xx())
-+		pd->set_mpu_wkup_lat = omap_i2c_set_wfc_mpu_wkup_lat;
-+	else
-+		pd->set_mpu_wkup_lat = NULL;
++	*val = pm_dbg_count_active;
++	return 0;
 +}
 +
- static void __init omap_i2c_mux_pins(int bus)
- {
- 	int scl, sda;
-@@ -180,8 +207,8 @@ static int __init omap_i2c_bus_setup(char *str)
- 	get_options(str, 3, ints);
- 	if (ints[0] < 2 || ints[1] < 1 || ints[1] > ports)
- 		return 0;
--	i2c_rate[ints[1] - 1] = ints[2];
--	i2c_rate[ints[1] - 1] |= OMAP_I2C_CMDLINE_SETUP;
-+	i2c_pdata[ints[1] - 1].clkrate = ints[2];
-+	i2c_pdata[ints[1] - 1].clkrate |= OMAP_I2C_CMDLINE_SETUP;
- 
- 	return 1;
- }
-@@ -195,9 +222,10 @@ static int __init omap_register_i2c_bus_cmdline(void)
- {
- 	int i, err = 0;
- 
--	for (i = 0; i < ARRAY_SIZE(i2c_rate); i++)
--		if (i2c_rate[i] & OMAP_I2C_CMDLINE_SETUP) {
--			i2c_rate[i] &= ~OMAP_I2C_CMDLINE_SETUP;
-+	for (i = 0; i < ARRAY_SIZE(i2c_pdata); i++)
-+		if (i2c_pdata[i].clkrate & OMAP_I2C_CMDLINE_SETUP) {
-+			i2c_pdata[i].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
-+			omap_set_i2c_constraint_func(&i2c_pdata[i]);
- 			err = omap_i2c_add_bus(i + 1);
- 			if (err)
- 				goto out;
-@@ -231,9 +259,11 @@ int __init omap_register_i2c_bus(int bus_id, u32 clkrate,
- 			return err;
- 	}
- 
--	if (!i2c_rate[bus_id - 1])
--		i2c_rate[bus_id - 1] = clkrate;
--	i2c_rate[bus_id - 1] &= ~OMAP_I2C_CMDLINE_SETUP;
-+	if (!i2c_pdata[bus_id - 1].clkrate)
-+		i2c_pdata[bus_id - 1].clkrate = clkrate;
-+
-+	omap_set_i2c_constraint_func(&i2c_pdata[bus_id - 1]);
-+	i2c_pdata[bus_id - 1].clkrate &= ~OMAP_I2C_CMDLINE_SETUP;
- 
- 	return omap_i2c_add_bus(bus_id);
- }
-diff --git a/drivers/i2c/busses/i2c-omap.c b/drivers/i2c/busses/i2c-omap.c
-index 75bf3ad..bbea8a0 100644
---- a/drivers/i2c/busses/i2c-omap.c
-+++ b/drivers/i2c/busses/i2c-omap.c
-@@ -37,6 +37,7 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/i2c-omap.h>
- 
- /* I2C controller revisions */
- #define OMAP_I2C_REV_2			0x20
-@@ -165,6 +166,9 @@ struct omap_i2c_dev {
- 	struct clk		*fclk;		/* Functional clock */
- 	struct completion	cmd_complete;
- 	struct resource		*ioarea;
-+	u32			latency;	/* maximum mpu wkup latency */
-+	void			(*set_mpu_wkup_lat)(struct device *dev,
-+						    int latency);
- 	u32			speed;		/* Speed of bus in Khz */
- 	u16			cmd_err;
- 	u8			*buf;
-@@ -526,8 +530,12 @@ static int omap_i2c_xfer_msg(struct i2c_adapter *adap,
- 	 * REVISIT: We should abort the transfer on signals, but the bus goes
- 	 * into arbitration and we're currently unable to recover from it.
- 	 */
-+	if (dev->set_mpu_wkup_lat != NULL)
-+		dev->set_mpu_wkup_lat(dev->dev, dev->latency);
- 	r = wait_for_completion_timeout(&dev->cmd_complete,
- 					OMAP_I2C_TIMEOUT);
-+	if (dev->set_mpu_wkup_lat != NULL)
-+		dev->set_mpu_wkup_lat(dev->dev, -1);
- 	dev->buf_len = 0;
- 	if (r < 0)
- 		return r;
-@@ -844,6 +852,7 @@ omap_i2c_probe(struct platform_device *pdev)
- 	struct omap_i2c_dev	*dev;
- 	struct i2c_adapter	*adap;
- 	struct resource		*mem, *irq, *ioarea;
-+	struct omap_i2c_bus_platform_data *pdata = pdev->dev.platform_data;
- 	irq_handler_t isr;
- 	int r;
- 	u32 speed = 0;
-@@ -873,10 +882,13 @@ omap_i2c_probe(struct platform_device *pdev)
- 		goto err_release_region;
- 	}
- 
--	if (pdev->dev.platform_data != NULL)
--		speed = *(u32 *)pdev->dev.platform_data;
--	else
--		speed = 100;	/* Defualt speed */
-+	if (pdata != NULL) {
-+		speed = pdata->clkrate;
-+		dev->set_mpu_wkup_lat = pdata->set_mpu_wkup_lat;
-+	} else {
-+		speed = 100;	/* Default speed */
-+		dev->set_mpu_wkup_lat = NULL;
++static int pm_dbg_count_enable_set(void *data, u64 val)
++{
++	if (val > 1) {
++		printk(KERN_ERR "Invalid value! 1 to enable, 0 to disable\n");
++		return -EINVAL;
 +	}
- 
- 	dev->speed = speed;
- 	dev->idle = 1;
-@@ -911,6 +923,11 @@ omap_i2c_probe(struct platform_device *pdev)
- 		 */
- 		dev->fifo_size = (dev->fifo_size / 2);
- 		dev->b_hw = 1; /* Enable hardware fixes */
 +
-+		/* calculate wakeup latency constraint for MPU */
-+		if (dev->set_mpu_wkup_lat != NULL)
-+			dev->latency = (1000000 * dev->fifo_size) /
-+				       (1000 * speed / 8);
++	if (val == 1 && !pm_dbg_count_active) {
++		de_pm_debug_count = debugfs_create_file("count", S_IRUGO,
++			de_pm_debug, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
++
++		if (de_pm_debug_count == NULL) {
++			printk(KERN_ERR "Error: could not create debugfs "
++					"entry\n");
++			return -ENOMEM;
++		}
++		pm_dbg_count_active = 1;
++	} else if (val == 0 && pm_dbg_count_active) {
++		debugfs_remove(de_pm_debug_count);
++		de_pm_debug_count = NULL;
++		pm_dbg_count_active = 0;
++	}
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(enable_count_fops, pm_dbg_count_enable_get,
++				pm_dbg_count_enable_set, "%llu\n");
++
+ int pm_dbg_regset_init(int reg_set)
+ {
+ 	char name[2];
+@@ -576,12 +618,17 @@ static int __init pm_dbg_init(void)
+ 		return -ENODEV;
  	}
  
- 	/* reset ASAP, clearing any IRQs */
-diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
-new file mode 100644
-index 0000000..1362fba
---- /dev/null
-+++ b/include/linux/i2c-omap.h
-@@ -0,0 +1,9 @@
-+#ifndef __I2C_OMAP_H__
-+#define __I2C_OMAP_H__
++	pm_dbg_count_active = 0;
 +
-+struct omap_i2c_bus_platform_data {
-+	u32		clkrate;
-+	void		(*set_mpu_wkup_lat)(struct device *dev, int set);
-+};
+ 	d = debugfs_create_dir("pm_debug", NULL);
+ 	if (IS_ERR(d))
+ 		return PTR_ERR(d);
++	de_pm_debug = d;
 +
-+#endif
++	(void) debugfs_create_file("enable_count", S_IRUGO |
++				S_IWUGO, d, &pm_dbg_count_active,
++				&enable_count_fops);
+ 
+-	(void) debugfs_create_file("count", S_IRUGO,
+-		d, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
+ 	(void) debugfs_create_file("time", S_IRUGO,
+ 		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
+ 
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index f8d11a2..3f0202b 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -63,12 +63,14 @@ extern int omap2_pm_debug;
+ extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+ extern int pm_dbg_regset_save(int reg_set);
+ extern int pm_dbg_regset_init(int reg_set);
++extern int pm_dbg_count_is_active(void);
+ #else
+ #define omap2_pm_dump(mode, resume, us)		do {} while (0);
+ #define omap2_pm_debug				0
+ #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
+ #define pm_dbg_regset_save(reg_set) do {} while (0);
+ #define pm_dbg_regset_init(reg_set) do {} while (0);
++#define pm_dbg_count_is_active()		0
+ #endif /* CONFIG_PM_DEBUG */
+ 
+ extern void omap24xx_idle_loop_suspend(void);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 01260ec..237c819 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -378,15 +378,17 @@ void omap_sram_idle(void)
+ 		return;
+ 	}
+ 
+-	pwrdm_pre_transition();
++	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
++	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
++
++	if (pm_dbg_count_is_active() || (core_next_state != PWRDM_POWER_ON))
++		pwrdm_pre_transition();
+ 
+ 	/* NEON control */
+ 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
+ 		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
+ 
+ 	/* PER */
+-	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+-	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		omap_uart_prepare_idle(2);
+ 		omap2_gpio_prepare_for_idle(per_next_state);
+@@ -505,8 +507,8 @@ void omap_sram_idle(void)
+ 		omap3_disable_io_chain();
+ 	}
+ 
+-
+-	pwrdm_post_transition();
++	if (pm_dbg_count_is_active() || (core_next_state != PWRDM_POWER_ON))
++		pwrdm_post_transition();
+ 
+ 	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+ }
 -- 
 1.5.4.3
 
