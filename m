@@ -1,174 +1,131 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH] OMAP1: fix redundant UARTs pin muxing that can
-	break other hardware support
-Date: Wed, 21 Oct 2009 18:27:53 +0200
-Message-ID: <200910211827.54733.jkrzyszt@tis.icnet.pl>
-References: <200910210239.55194.jkrzyszt@tis.icnet.pl>
-	<20091021005134.GE16230@atomide.com>
-Reply-To: Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+Date: Wed, 21 Oct 2009 19:44:40 +0200
+Message-ID: <4ADF4888.9060305@googlemail.com>
+References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com> <4AD81DC2.4080607@googlemail.com> <42153.192.168.10.89.1255715021.squirrel@dbdmail.itg.ti.com> <4AD8C959.1000004@googlemail.com> <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com> <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com> <4ADB4604.2090704@googlemail.com> <13B9B4C6EF24D648824FF11BE8967162039B3184F0@dlee02.ent.ti.com> <4b73d43f0910181717i9623184mc2b8c7d6ca0fb435@mail.gmail.com> <4b73d43f0910181724q11d40851wb2aed801d7ae85f6@mail.gmail.com> <005101ca50e1$11ef2770$544ff780@am.dhcp.ti.com> <4ADCAD0F.9010107@googlemail.com> <00cb01ca51d7$3fafe130$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <e3-hacking-bounces@earth.li>
-In-Reply-To: <20091021005134.GE16230@atomide.com>
-Content-Disposition: inline
-List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
-List-Archive: <http://www.earth.li/pipermail/e3-hacking>
-List-Post: <mailto:e3-hacking@earth.li>
-List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
-List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
-	<mailto:e3-hacking-request@earth.li?subject=subscribe>
-Sender: e3-hacking-bounces@earth.li
-Errors-To: e3-hacking-bounces@earth.li
-To: Tony Lindgren <tony@atomide.com>
-Cc: e3-hacking@earth.li, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.153]:18186 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754402AbZJURpo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 13:45:44 -0400
+In-Reply-To: <00cb01ca51d7$3fafe130$544ff780@am.dhcp.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: linux-omap@vger.kernel.org, 'John Rigby' <jcrigby@gmail.com>, "'Woodruff, Richard'" <r-woodruff2@ti.com>, linux-mmc@vger.kernel.org, 'Steve Sakoman' <sakoman@gmail.com>
 
-V2VkbmVzZGF5IDIxIE9jdG9iZXIgMjAwOSAwMjo1MTozNSBUb255IExpbmRncmVuIG5hcGlzYcWC
-KGEpOgo+Cj4gTGV0J3MganVzdCByZW1vdmUgdGhlIG9tYXBfY2ZnX3JlZygpIGNhbGxzIGZyb20g
-bWFjaC1vbWFwMS9zZXJpYWwuYywgYW5kCj4gYWRkIHRoZW0gdG8gdGhlIGJvYXJkLSouYyBmaWxl
-cyBsaWtlIHlvdSBzdWdnZXN0IGFib3ZlLiBXZSBzaG91bGQgYmUgYWJsZQo+IHRvIGZpbmQgd2hp
-Y2ggcG9ydHMgdG8gbXV4IGJ5IGxvb2tpbmcgYXQgdGhlIGVuYWJsZWRfdWFydHMgbWFzayBpbiB0
-aGUKPiBjb21taXQgbWVudGlvbmVkIGFib3ZlLgoKSGVyZSB5b3UgYXJlIChib2FyZC0qLmMgY2hh
-bmdlcyBsaW1pdGVkIHRvIHRob3NlIE9NQVAxNTEwIGJhc2VkKS4KQ3JlYXRlZCBhZ2FpbnN0IGxp
-bnV4LTIuNi4zMi1yYzUuClRlc3RlZCBvbiBBbXNkdHJhZCBEZWx0YSBvbmx5LgoKU2lnbmVkLW9m
-Zi1ieTogSmFudXN6IEtyenlzenRvZmlrIDxqa3J6eXN6dEB0aXMuaWNuZXQucGw+CgotLS0KZGlm
-ZiAtdXByIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWFt
-cy1kZWx0YS5jIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2Fy
-ZC1hbXMtZGVsdGEuYwotLS0gbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gvYXJtL21hY2gtb21h
-cDEvYm9hcmQtYW1zLWRlbHRhLmMJMjAwOS0xMC0xNiAwMjo0MTo1MC4wMDAwMDAwMDAgKzAyMDAK
-KysrIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1hbXMt
-ZGVsdGEuYwkyMDA5LTEwLTIxIDE3OjQxOjI5LjAwMDAwMDAwMCArMDIwMApAQCAtMjE5LDYgKzIx
-OSwxMCBAQCBzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSAqYW1zX2RlbHRhCiAKIHN0YXRp
-YyB2b2lkIF9faW5pdCBhbXNfZGVsdGFfaW5pdCh2b2lkKQogeworCS8qIHNldHVwIG11eCBwaW5z
-IGZvciB1YXJ0cywgcmVtb3ZlZCBmcm9tIHNlcmlhbC5jICovCisJb21hcF9jZmdfcmVnKFVBUlQx
-X1RYKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDFfUlRTKTsKKwogCWlvdGFibGVfaW5pdChhbXNfZGVs
-dGFfaW9fZGVzYywgQVJSQVlfU0laRShhbXNfZGVsdGFfaW9fZGVzYykpOwogCiAJb21hcF9ib2Fy
-ZF9jb25maWcgPSBhbXNfZGVsdGFfY29uZmlnOwpkaWZmIC11cHIgbGludXgtMi42LjMyLXJjNS5v
-cmlnL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtZ2VuZXJpYy5jIGxpbnV4LTIuNi4zMi1yYzUu
-Zml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1nZW5lcmljLmMKLS0tIGxpbnV4LTIuNi4z
-Mi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWdlbmVyaWMuYwkyMDA5LTEwLTE2
-IDAyOjQxOjUwLjAwMDAwMDAwMCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNo
-L2FybS9tYWNoLW9tYXAxL2JvYXJkLWdlbmVyaWMuYwkyMDA5LTEwLTIxIDE4OjE1OjM3LjAwMDAw
-MDAwMCArMDIwMApAQCAtNjQsNiArNjQsMTQgQEAgc3RhdGljIHZvaWQgX19pbml0IG9tYXBfZ2Vu
-ZXJpY19pbml0KHZvaQogewogI2lmZGVmIENPTkZJR19BUkNIX09NQVAxNVhYCiAJaWYgKGNwdV9p
-c19vbWFwMTV4eCgpKSB7CisJCS8qIHNldHVwIG11eCBwaW5zIGZvciB1YXJ0cywgcmVtb3ZlZCBm
-cm9tIHNlcmlhbC5jICovCisJCW9tYXBfY2ZnX3JlZyhVQVJUMV9UWCk7CisJCW9tYXBfY2ZnX3Jl
-ZyhVQVJUMV9SVFMpOworCQlvbWFwX2NmZ19yZWcoVUFSVDJfVFgpOworCQlvbWFwX2NmZ19yZWco
-VUFSVDJfUlRTKTsKKwkJb21hcF9jZmdfcmVnKFVBUlQzX1RYKTsKKwkJb21hcF9jZmdfcmVnKFVB
-UlQzX1JYKTsKKwogCQlvbWFwX3VzYl9pbml0KCZnZW5lcmljMTUxMF91c2JfY29uZmlnKTsKIAl9
-CiAjZW5kaWYKZGlmZiAtdXByIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9t
-YXAxL2JvYXJkLWlubm92YXRvci5jIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFj
-aC1vbWFwMS9ib2FyZC1pbm5vdmF0b3IuYwotLS0gbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gv
-YXJtL21hY2gtb21hcDEvYm9hcmQtaW5ub3ZhdG9yLmMJMjAwOS0xMC0xNiAwMjo0MTo1MC4wMDAw
-MDAwMDAgKzAyMDAKKysrIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFw
-MS9ib2FyZC1pbm5vdmF0b3IuYwkyMDA5LTEwLTIxIDE4OjE2OjU5LjAwMDAwMDAwMCArMDIwMApA
-QCAtMzc2LDYgKzM3NiwyNCBAQCBzdGF0aWMgdm9pZCBfX2luaXQgaW5ub3ZhdG9yX2luaXQodm9p
-ZCkKIHsKICNpZmRlZiBDT05GSUdfQVJDSF9PTUFQMTVYWAogCWlmIChjcHVfaXNfb21hcDE1MTAo
-KSkgeworCQkvKiBzZXR1cCBtdXggcGlucyBmb3IgdWFydHMsIHJlbW92ZWQgZnJvbSBzZXJpYWwu
-YyAqLworCQlvbWFwX2NmZ19yZWcoVUFSVDFfVFgpOworCQlvbWFwX2NmZ19yZWcoVUFSVDFfUlRT
-KTsKKwkJb21hcF9jZmdfcmVnKFVBUlQyX1RYKTsKKwkJb21hcF9jZmdfcmVnKFVBUlQyX1JUUyk7
-CisJCW9tYXBfY2ZnX3JlZyhVQVJUM19UWCk7CisJCW9tYXBfY2ZnX3JlZyhVQVJUM19SWCk7CisK
-KwkJcmVnID0gZnBnYV9yZWFkKE9NQVAxNTEwX0ZQR0FfUE9XRVIpOworCQlyZWcgfD0gT01BUDE1
-MTBfRlBHQV9QQ1JfQ09NMV9FTjsKKwkJZnBnYV93cml0ZShyZWcsIE9NQVAxNTEwX0ZQR0FfUE9X
-RVIpOworCQl1ZGVsYXkoMTApOworCisJCXJlZyA9IGZwZ2FfcmVhZChPTUFQMTUxMF9GUEdBX1BP
-V0VSKTsKKwkJcmVnIHw9IE9NQVAxNTEwX0ZQR0FfUENSX0NPTTJfRU47CisJCWZwZ2Ffd3JpdGUo
-cmVnLCBPTUFQMTUxMF9GUEdBX1BPV0VSKTsKKwkJdWRlbGF5KDEwKTsKKwogCQlwbGF0Zm9ybV9h
-ZGRfZGV2aWNlcyhpbm5vdmF0b3IxNTEwX2RldmljZXMsIEFSUkFZX1NJWkUoaW5ub3ZhdG9yMTUx
-MF9kZXZpY2VzKSk7CiAJCXNwaV9yZWdpc3Rlcl9ib2FyZF9pbmZvKGlubm92YXRvcjE1MTBfYm9h
-cmRpbmZvLAogCQkJCUFSUkFZX1NJWkUoaW5ub3ZhdG9yMTUxMF9ib2FyZGluZm8pKTsKZGlmZiAt
-dXByIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBhbG10
-ZS5jIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1wYWxt
-dGUuYwotLS0gbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQt
-cGFsbXRlLmMJMjAwOS0xMC0xNiAwMjo0MTo1MC4wMDAwMDAwMDAgKzAyMDAKKysrIGxpbnV4LTIu
-Ni4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1wYWxtdGUuYwkyMDA5LTEw
-LTIxIDE3OjM4OjU5LjAwMDAwMDAwMCArMDIwMApAQCAtMzQyLDYgKzM0MiwxNCBAQCBzdGF0aWMg
-dm9pZCBfX2luaXQgcGFsbXRlX21pc2NfZ3Bpb19zZXR1CiAKIHN0YXRpYyB2b2lkIF9faW5pdCBv
-bWFwX3BhbG10ZV9pbml0KHZvaWQpCiB7CisJLyogc2V0dXAgbXV4IHBpbnMgZm9yIHVhcnRzLCBy
-ZW1vdmVkIGZyb20gc2VyaWFsLmMgKi8KKwlvbWFwX2NmZ19yZWcoVUFSVDFfVFgpOworCW9tYXBf
-Y2ZnX3JlZyhVQVJUMV9SVFMpOworCW9tYXBfY2ZnX3JlZyhVQVJUMl9UWCk7CisJb21hcF9jZmdf
-cmVnKFVBUlQyX1JUUyk7CisJb21hcF9jZmdfcmVnKFVBUlQzX1RYKTsKKwlvbWFwX2NmZ19yZWco
-VUFSVDNfUlgpOworCiAJb21hcF9ib2FyZF9jb25maWcgPSBwYWxtdGVfY29uZmlnOwogCW9tYXBf
-Ym9hcmRfY29uZmlnX3NpemUgPSBBUlJBWV9TSVpFKHBhbG10ZV9jb25maWcpOwogCmRpZmYgLXVw
-ciBsaW51eC0yLjYuMzItcmM1Lm9yaWcvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1wYWxtdHQu
-YyBsaW51eC0yLjYuMzItcmM1LmZpeGVkL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtcGFsbXR0
-LmMKLS0tIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBh
-bG10dC5jCTIwMDktMTAtMTYgMDI6NDE6NTAuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC0yLjYu
-MzItcmM1LmZpeGVkL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtcGFsbXR0LmMJMjAwOS0xMC0y
-MSAxNzozOToxOS4wMDAwMDAwMDAgKzAyMDAKQEAgLTI4OSw2ICsyODksMTQgQEAgc3RhdGljIHZv
-aWQgX19pbml0IG9tYXBfbXB1X3dkdF9tb2RlKGludAogCiBzdGF0aWMgdm9pZCBfX2luaXQgb21h
-cF9wYWxtdHRfaW5pdCh2b2lkKQogeworCS8qIHNldHVwIG11eCBwaW5zIGZvciB1YXJ0cywgcmVt
-b3ZlZCBmcm9tIHNlcmlhbC5jICovCisJb21hcF9jZmdfcmVnKFVBUlQxX1RYKTsKKwlvbWFwX2Nm
-Z19yZWcoVUFSVDFfUlRTKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDJfVFgpOworCW9tYXBfY2ZnX3Jl
-ZyhVQVJUMl9SVFMpOworCW9tYXBfY2ZnX3JlZyhVQVJUM19UWCk7CisJb21hcF9jZmdfcmVnKFVB
-UlQzX1JYKTsKKwogCW9tYXBfbXB1X3dkdF9tb2RlKDApOwogCiAJb21hcF9ib2FyZF9jb25maWcg
-PSBwYWxtdHRfY29uZmlnOwpkaWZmIC11cHIgbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gvYXJt
-L21hY2gtb21hcDEvYm9hcmQtcGFsbXo3MS5jIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9h
-cm0vbWFjaC1vbWFwMS9ib2FyZC1wYWxtejcxLmMKLS0tIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9h
-cmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBhbG16NzEuYwkyMDA5LTEwLTE2IDAyOjQxOjUwLjAw
-MDAwMDAwMCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNoL2FybS9tYWNoLW9t
-YXAxL2JvYXJkLXBhbG16NzEuYwkyMDA5LTEwLTIxIDE3OjM5OjM0LjAwMDAwMDAwMCArMDIwMApA
-QCAtMzA3LDYgKzMwNywxNCBAQCBwYWxtejcxX2dwaW9fc2V0dXAoaW50IGVhcmx5KQogc3RhdGlj
-IHZvaWQgX19pbml0CiBvbWFwX3BhbG16NzFfaW5pdCh2b2lkKQogeworCS8qIHNldHVwIG11eCBw
-aW5zIGZvciB1YXJ0cywgcmVtb3ZlZCBmcm9tIHNlcmlhbC5jICovCisJb21hcF9jZmdfcmVnKFVB
-UlQxX1RYKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDFfUlRTKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDJf
-VFgpOworCW9tYXBfY2ZnX3JlZyhVQVJUMl9SVFMpOworCW9tYXBfY2ZnX3JlZyhVQVJUM19UWCk7
-CisJb21hcF9jZmdfcmVnKFVBUlQzX1JYKTsKKwogCXBhbG16NzFfZ3Bpb19zZXR1cCgxKTsKIAlv
-bWFwX21wdV93ZHRfbW9kZSgwKTsKIApkaWZmIC11cHIgbGludXgtMi42LjMyLXJjNS5vcmlnL2Fy
-Y2gvYXJtL21hY2gtb21hcDEvYm9hcmQtc3gxLmMgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNo
-L2FybS9tYWNoLW9tYXAxL2JvYXJkLXN4MS5jCi0tLSBsaW51eC0yLjYuMzItcmM1Lm9yaWcvYXJj
-aC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1zeDEuYwkyMDA5LTEwLTE2IDAyOjQxOjUwLjAwMDAwMDAw
-MCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNoL2FybS9tYWNoLW9tYXAxL2Jv
-YXJkLXN4MS5jCTIwMDktMTAtMjEgMTc6NDA6MjAuMDAwMDAwMDAwICswMjAwCkBAIC0zNzcsNiAr
-Mzc3LDE0IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIHMKIAogc3Rh
-dGljIHZvaWQgX19pbml0IG9tYXBfc3gxX2luaXQodm9pZCkKIHsKKwkvKiBzZXR1cCBtdXggcGlu
-cyBmb3IgdWFydHMsIHJlbW92ZWQgZnJvbSBzZXJpYWwuYyAqLworCW9tYXBfY2ZnX3JlZyhVQVJU
-MV9UWCk7CisJb21hcF9jZmdfcmVnKFVBUlQxX1JUUyk7CisJb21hcF9jZmdfcmVnKFVBUlQyX1RY
-KTsKKwlvbWFwX2NmZ19yZWcoVUFSVDJfUlRTKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDNfVFgpOwor
-CW9tYXBfY2ZnX3JlZyhVQVJUM19SWCk7CisKIAlwbGF0Zm9ybV9hZGRfZGV2aWNlcyhzeDFfZGV2
-aWNlcywgQVJSQVlfU0laRShzeDFfZGV2aWNlcykpOwogCiAJb21hcF9ib2FyZF9jb25maWcgPSBz
-eDFfY29uZmlnOwpkaWZmIC11cHIgbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gvYXJtL21hY2gt
-b21hcDEvYm9hcmQtdm9pY2VibHVlLmMgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNoL2FybS9t
-YWNoLW9tYXAxL2JvYXJkLXZvaWNlYmx1ZS5jCi0tLSBsaW51eC0yLjYuMzItcmM1Lm9yaWcvYXJj
-aC9hcm0vbWFjaC1vbWFwMS9ib2FyZC12b2ljZWJsdWUuYwkyMDA5LTEwLTE2IDAyOjQxOjUwLjAw
-MDAwMDAwMCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNoL2FybS9tYWNoLW9t
-YXAxL2JvYXJkLXZvaWNlYmx1ZS5jCTIwMDktMTAtMjEgMTc6NDA6NTcuMDAwMDAwMDAwICswMjAw
-CkBAIC0xNTIsNiArMTUyLDE0IEBAIHN0YXRpYyB2b2lkIF9faW5pdCB2b2ljZWJsdWVfaW5pdF9p
-cnEodm8KIAogc3RhdGljIHZvaWQgX19pbml0IHZvaWNlYmx1ZV9pbml0KHZvaWQpCiB7CisJLyog
-c2V0dXAgbXV4IHBpbnMgZm9yIHVhcnRzLCByZW1vdmVkIGZyb20gc2VyaWFsLmMgKi8KKwlvbWFw
-X2NmZ19yZWcoVUFSVDFfVFgpOworCW9tYXBfY2ZnX3JlZyhVQVJUMV9SVFMpOworCW9tYXBfY2Zn
-X3JlZyhVQVJUMl9UWCk7CisJb21hcF9jZmdfcmVnKFVBUlQyX1JUUyk7CisJb21hcF9jZmdfcmVn
-KFVBUlQzX1RYKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDNfUlgpOworCiAJLyogV2F0Y2hkb2cgKi8K
-IAlncGlvX3JlcXVlc3QoMCwgIldhdGNoZG9nIik7CiAJLyogc21jOTF4IHJlc2V0ICovCmRpZmYg
-LXVwciBsaW51eC0yLjYuMzItcmM1Lm9yaWcvYXJjaC9hcm0vbWFjaC1vbWFwMS9zZXJpYWwuYyBs
-aW51eC0yLjYuMzItcmM1LmZpeGVkL2FyY2gvYXJtL21hY2gtb21hcDEvc2VyaWFsLmMKLS0tIGxp
-bnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL3NlcmlhbC5jCTIwMDktMTAt
-MTYgMDI6NDE6NTAuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC0yLjYuMzItcmM1LmZpeGVkL2Fy
-Y2gvYXJtL21hY2gtb21hcDEvc2VyaWFsLmMJMjAwOS0xMC0yMSAxNzo1Mzo0OS4wMDAwMDAwMDAg
-KzAyMDAKQEAgLTE0MywxNiArMTQzLDYgQEAgdm9pZCBfX2luaXQgb21hcF9zZXJpYWxfaW5pdCh2
-b2lkKQogCQkJCWlmIChjcHVfaXNfb21hcDE1eHgoKSkKIAkJCQkJY2xrX3NldF9yYXRlKHVhcnQx
-X2NrLCAxMjAwMDAwMCk7CiAJCQl9Ci0JCQlpZiAoY3B1X2lzX29tYXAxNXh4KCkpIHsKLQkJCQlv
-bWFwX2NmZ19yZWcoVUFSVDFfVFgpOwotCQkJCW9tYXBfY2ZnX3JlZyhVQVJUMV9SVFMpOwotCQkJ
-CWlmIChtYWNoaW5lX2lzX29tYXBfaW5ub3ZhdG9yKCkpIHsKLQkJCQkJcmVnID0gZnBnYV9yZWFk
-KE9NQVAxNTEwX0ZQR0FfUE9XRVIpOwotCQkJCQlyZWcgfD0gT01BUDE1MTBfRlBHQV9QQ1JfQ09N
-MV9FTjsKLQkJCQkJZnBnYV93cml0ZShyZWcsIE9NQVAxNTEwX0ZQR0FfUE9XRVIpOwotCQkJCQl1
-ZGVsYXkoMTApOwotCQkJCX0KLQkJCX0KIAkJCWJyZWFrOwogCQljYXNlIDE6CiAJCQl1YXJ0Ml9j
-ayA9IGNsa19nZXQoTlVMTCwgInVhcnQyX2NrIik7CkBAIC0xNjUsMTYgKzE1NSw2IEBAIHZvaWQg
-X19pbml0IG9tYXBfc2VyaWFsX2luaXQodm9pZCkKIAkJCQllbHNlCiAJCQkJCWNsa19zZXRfcmF0
-ZSh1YXJ0Ml9jaywgNDgwMDAwMDApOwogCQkJfQotCQkJaWYgKGNwdV9pc19vbWFwMTV4eCgpKSB7
-Ci0JCQkJb21hcF9jZmdfcmVnKFVBUlQyX1RYKTsKLQkJCQlvbWFwX2NmZ19yZWcoVUFSVDJfUlRT
-KTsKLQkJCQlpZiAobWFjaGluZV9pc19vbWFwX2lubm92YXRvcigpKSB7Ci0JCQkJCXJlZyA9IGZw
-Z2FfcmVhZChPTUFQMTUxMF9GUEdBX1BPV0VSKTsKLQkJCQkJcmVnIHw9IE9NQVAxNTEwX0ZQR0Ff
-UENSX0NPTTJfRU47Ci0JCQkJCWZwZ2Ffd3JpdGUocmVnLCBPTUFQMTUxMF9GUEdBX1BPV0VSKTsK
-LQkJCQkJdWRlbGF5KDEwKTsKLQkJCQl9Ci0JCQl9CiAJCQlicmVhazsKIAkJY2FzZSAyOgogCQkJ
-dWFydDNfY2sgPSBjbGtfZ2V0KE5VTEwsICJ1YXJ0M19jayIpOwpAQCAtMTg1LDEwICsxNjUsNiBA
-QCB2b2lkIF9faW5pdCBvbWFwX3NlcmlhbF9pbml0KHZvaWQpCiAJCQkJaWYgKGNwdV9pc19vbWFw
-MTV4eCgpKQogCQkJCQljbGtfc2V0X3JhdGUodWFydDNfY2ssIDEyMDAwMDAwKTsKIAkJCX0KLQkJ
-CWlmIChjcHVfaXNfb21hcDE1eHgoKSkgewotCQkJCW9tYXBfY2ZnX3JlZyhVQVJUM19UWCk7Ci0J
-CQkJb21hcF9jZmdfcmVnKFVBUlQzX1JYKTsKLQkJCX0KIAkJCWJyZWFrOwogCQl9CiAJCW9tYXBf
-c2VyaWFsX3Jlc2V0KCZzZXJpYWxfcGxhdGZvcm1fZGF0YVtpXSk7CgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwplMy1oYWNraW5nIG1haWxpbmcgbGlzdApl
-My1oYWNraW5nQGVhcnRoLmxpCmh0dHA6Ly93d3cuZWFydGgubGkvY2dpLWJpbi9tYWlsbWFuL2xp
-c3RpbmZvL2UzLWhhY2tpbmcK
+Madhusudhan wrote:
+> 
+>> -----Original Message-----
+>> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
+>> owner@vger.kernel.org] On Behalf Of Dirk Behme
+>> Sent: Monday, October 19, 2009 1:17 PM
+>> To: linux-omap@vger.kernel.org
+>> Cc: Madhusudhan; 'John Rigby'; 'Woodruff, Richard'; linux-
+>> mmc@vger.kernel.org; 'Steve Sakoman'
+>> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+>>
+>> Madhusudhan wrote:
+>>> Hi John,
+>>>
+>>> So does the SDIO card interrupt mode work fine now?
+>> (wrong attachment in previous mail :( sorry)
+>>
+>> If somebody likes to test, my updated patch v2 in attachment. Compile
+>> tested only, testing and comments are welcome.
+>>
+> 
+> Can you inline the v2 patch please? It helps review. 
+
+I don't think it is already ready for review. We are still in the 
+"find out how to get sdio irq working" phase. Once we have found out 
+what's needed for this, sure, I will send a patch for review inlined.
+
+Best regards
+
+Dirk
+
+> I wonder in the version
+> that John tested was the CTPL bit set in "set_ios" or "enable_sdio_irq"?
+> 
+> Regards,
+> Madhu
+> 
+>> Cheers
+>>
+>> Dirk
+>>
+>>>   _____
+>>>
+>>> From: John Rigby [mailto:jcrigby@gmail.com]
+>>> Sent: Sunday, October 18, 2009 7:24 PM
+>>> To: Woodruff, Richard
+>>> Cc: Dirk Behme; Chikkature Rajashekar, Madhusudhan;
+>>> linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Steve Sakoman
+>>> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
+>>>
+>>>
+>>>
+>>> Ok I was going to ask where you found that but I just rechecked the TRM
+>> and
+>>> there it is in plain site:
+>>>
+>>>
+>>>
+>>> When this bit is set to 1, the host controller automatically disables
+>> all
+>>> the input buffers except the buffer of mmci_dat[1] outside of a
+>> transaction
+>>> in order to detect asynchronous card interrupt on mmci_dat[1] line and
+>>> minimize the leakage current of the buffers.
+>>>
+>>>
+>>> In my defence, I did search the TRM for every occurance of dat1 but not
+>>> dat[1].  Oh well live and learn and forget and repeat.
+>>>
+>>> John
+>>>
+>>> On Sun, Oct 18, 2009 at 6:17 PM, John Rigby <jcrigby@gmail.com> wrote:
+>>>> Richard,
+>>>>
+>>>> MMCHS_CON.CPTL = 1  < Don't disable input buffer on DAT1 after
+>>>> completion to allow seeing SDIO interrupt>
+>>>>
+>>>> Sounds exactly like what we need.
+>>>>
+>>>> Thanks
+>>>> John
+>>>>
+>>>> On Sun, Oct 18, 2009 at 5:12 PM, Woodruff, Richard <r-woodruff2@ti.com>
+>>> wrote:
+>>>>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>>>>>> owner@vger.kernel.org] On Behalf Of Dirk Behme
+>>>>>> Sent: Sunday, October 18, 2009 11:45 AM
+>>>>>>> It would be funny if the TRM was wrong and the CIRQ bit is really
+>>>>>>> cleared by writing 1 to it.  I'll try that.
+>>>>> A while back I hunted down a few of the bits for this.  Maybe this
+>> will
+>>> help some.
+>>>>> SYSCONFIG.ENAWAKEUP = 1 < allow ocp wrapper to generate an interrupt
+>> to
+>>> prcm>
+>>>>> MMCHS_HCTL.IWE = 1 < route wake up to module ocp wrapper>
+>>>>> MMCHS_CON.CPTL = 1  < Don't disable input buffer on DAT1 after
+>> completion
+>>> to allow seeing SDIO interrupt>
+>>>>> MMCHS_HCTL.IWE
+>>>>> MMCHS_ISE.CIRQ_ENABLE <bit to write to enable interrupt at pin>
+>>>>> MMCHS_STAT<bit to write for clear of SDIO interrupt>
+>>>>> CCCCR - IRQ_ENABLE (think host stack will do this)
+>>>>>
+>>>>> Regards,
+>>>>> Richard W.
+>>>>>
+>>>
+> 
+> 
+> 
+
