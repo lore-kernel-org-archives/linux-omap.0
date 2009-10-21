@@ -1,155 +1,529 @@
-From: "Gulati, Shweta" <shweta.gulati@ti.com>
-Subject: FW: [PATCH V2] OMAP3:PM:Fix for Silicon bug on Context restore on
- OMAP3430
-Date: Wed, 21 Oct 2009 10:28:29 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA23E5A7@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: [PATCH 1/2] ARM: OMAP3: add CompuLab CM-T35 module
+Date: Wed, 21 Oct 2009 08:28:41 +0200
+Message-ID: <b5a5fa835de0f20d4077d4b832d5c85afe6f5560.1256106054.git.mike@compulab.co.il>
+References: <cover.1256106054.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51042 "EHLO comal.ext.ti.com"
+Received: from compulab.co.il ([67.18.134.219]:56291 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751026AbZJUE6a convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 00:58:30 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9L4wVgI012093
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 23:58:33 -0500
-Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9L4wUJV009491
-	for <linux-omap@vger.kernel.org>; Wed, 21 Oct 2009 10:28:31 +0530 (IST)
-Content-Language: en-US
+	id S1752118AbZJUG2l (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Oct 2009 02:28:41 -0400
+Received: from [62.90.235.247] (helo=zimbra-mta.compulab.co.il)
+	by compulab.site5.com with esmtp (Exim 4.69)
+	(envelope-from <mike@compulab.co.il>)
+	id 1N0Ugf-0006yC-Ah
+	for linux-omap@vger.kernel.org; Wed, 21 Oct 2009 01:28:46 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id 7E20F9A0358
+	for <linux-omap@vger.kernel.org>; Wed, 21 Oct 2009 08:28:44 +0200 (IST)
+In-Reply-To: <cover.1256106054.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-
-Any comments would be taken in.
-Thanks
-Regards
-Shweta
-
------Original Message-----
-From: Gulati, Shweta 
-Sent: Tuesday, October 13, 2009 3:56 PM
 To: linux-omap@vger.kernel.org
-Cc: Gulati, Shweta; Gopinath, Thara
-Subject: [PATCH V2] OMAP3:PM:Fix for Silicon bug on Context restore on OMAP3430
+Cc: Mike Rapoport <mike@compulab.co.il>
 
-From: Shweta Gulati <shweta.gulati@ti.com>
+This patch adds basic support for CompuLab CM-T35 module.
 
-(Resending the patch with the subject line and some minor fixes)
-
-According to Silicon Bug on context restore it is  found that the pad
-configuration register for GPIO_28/GPIO_29(ETKD14/15) is corrupted after
-returning from Core OFF mode. This happens if the MPU reads the
-PADCONF_SAVEDONE bit very close to the end of context save sequence
-for the pad conf registers, resulting in last context not being saved to the
-scratchpad  memory. This is a h/w bug. The workaround is to delay the
-MPU access of SAVEDONE bit until the last context has been saved.
-
-This patch adds a configuration option to allow 300 us delay in
-save path as recommended by TI. The other option is to let the
-bug occur but store the value of pad configuration register explicitly
-and write it back in resume path. But this option should be chosen
-only if the ETKD14/15 pads are not in use as this workaround can
-lead to glitch in the pin.
-
-Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
-Signed-off-by: Thara Gopinath<thara@ti.com>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 ---
- arch/arm/mach-omap2/pm34xx.c |   25 +++++++++++++++++++++++++
- arch/arm/plat-omap/Kconfig   |   17 +++++++++++++++++
- 2 files changed, 42 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Kconfig        |    4 +
+ arch/arm/mach-omap2/Makefile       |    2 +
+ arch/arm/mach-omap2/board-cm-t35.c |  458 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 464 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-cm-t35.c
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index cea3bca..4f9671a 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -26,6 +26,7 @@
- #include <linux/err.h>
- #include <linux/gpio.h>
- #include <linux/clk.h>
-+#include <linux/delay.h>
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 75b1c7e..f80439e 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -85,6 +85,10 @@ config MACH_OMAP_ZOOM2
+ 	bool "OMAP3 Zoom2 board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
  
- #include <mach/sram.h>
- #include <mach/prcm.h>
-@@ -54,10 +55,19 @@
++config MACH_CM_T35
++	bool "CompuLab CM-T35 module"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++
+ config MACH_OMAP_4430SDP
+ 	bool "OMAP 4430 SDP board"
+ 	depends on ARCH_OMAP4
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 8cb1677..7468505 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -74,6 +74,8 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
+ 					   mmc-twl4030.o \
+ 					   board-zoom-debugboard.o
++obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
++					   mmc-twl4030.o
  
- static int regset_save_on_suspend;
+ obj-$(CONFIG_MACH_OMAP_4430SDP)		+= board-4430sdp.o
  
-+/* A extra variable to store value of pad_config register if
-+ * delay is not to be inserted and value is explicitly restored
-+ * in resume path.
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+new file mode 100644
+index 0000000..ec9cf47
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -0,0 +1,458 @@
++/*
++ * board-cm-t35.c (CompuLab CM-T35 module)
++ *
++ * Copyright (C) 2009 CompuLab, Ltd.
++ * Author: Mike Rapoport <mike@compulab.co.il>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
 + */
-+#ifndef CONFIG_DELAY_IN_PADCONF_SAVE
-+static u32 store_pad_config;
-+#endif
 +
- /* Scratchpad offsets */
- #define OMAP343X_TABLE_ADDRESS_OFFSET	   0x31
- #define OMAP343X_TABLE_VALUE_OFFSET	   0x30
- #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0x32
-+#define CONTROL_PADCONF_ETK_D14			0x480025F8
- 
- u32 enable_off_mode;
- u32 sleep_while_idle;
-@@ -202,6 +212,17 @@ static void omap3_core_save_context(void)
- 	omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_OFF);
- 	control_padconf_off |= START_PADCONF_SAVE;
- 	omap_ctrl_writel(control_padconf_off, OMAP343X_CONTROL_PADCONF_OFF);
-+#ifndef CONFIG_DELAY_IN_PADCONF_SAVE
-+	store_pad_config = omap_readl(CONTROL_PADCONF_ETK_D14);
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/input.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++
++#include <linux/i2c/at24.h>
++#include <linux/i2c/twl4030.h>
++#include <linux/regulator/machine.h>
++
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++#include <asm/mach/map.h>
++
++#include <mach/board.h>
++#include <mach/common.h>
++#include <mach/hardware.h>
++#include <mach/mux.h>
++#include <mach/nand.h>
++#include <mach/keypad.h>
++#include <mach/gpmc.h>
++#include <mach/usb.h>
++
++#include "sdram-micron-mt46h32m32lf-6.h"
++#include "mmc-twl4030.h"
++
++#define CM_T35_GPIO_PENDOWN	57
++
++#define CM_T35_SMSC911X_CS	5
++#define CM_T35_SMSC911X_GPIO	163
++
++#define NAND_BLOCK_SIZE		SZ_128K
++#define GPMC_CS0_BASE		0x60
++#define GPMC_CS0_BASE_ADDR	(OMAP34XX_GPMC_VIRT + GPMC_CS0_BASE)
++
++#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
++#include <linux/smsc911x.h>
++
++static struct resource cm_t35_smsc911x_resources[] = {
++	{
++		.name	= "smsc911x-memory",
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= OMAP_GPIO_IRQ(CM_T35_SMSC911X_GPIO),
++		.end	= OMAP_GPIO_IRQ(CM_T35_SMSC911X_GPIO),
++		.flags	= IORESOURCE_IRQ | IORESOURCE_IRQ_LOWLEVEL,
++	},
++};
++
++static struct smsc911x_platform_config cm_t35_smsc911x_config = {
++	.irq_polarity	= SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
++	.irq_type	= SMSC911X_IRQ_TYPE_OPEN_DRAIN,
++	.flags		= SMSC911X_USE_32BIT | SMSC911X_SAVE_MAC_ADDRESS,
++	.phy_interface	= PHY_INTERFACE_MODE_MII,
++};
++
++static struct platform_device cm_t35_smsc911x_device = {
++	.name		= "smsc911x",
++	.id		= 0,
++	.num_resources	= ARRAY_SIZE(cm_t35_smsc911x_resources),
++	.resource	= cm_t35_smsc911x_resources,
++	.dev		= {
++		.platform_data = &cm_t35_smsc911x_config,
++	},
++};
++
++static void __init cm_t35_init_smsc911x(void)
++{
++	unsigned long cs_mem_base;
++
++	if (gpmc_cs_request(CM_T35_SMSC911X_CS, SZ_16M, &cs_mem_base) < 0) {
++		pr_err("CM-T35: Failed request for GPMC mem for smsc911x\n");
++		return;
++	}
++
++	cm_t35_smsc911x_resources[0].start = cs_mem_base + 0x0;
++	cm_t35_smsc911x_resources[0].end   = cs_mem_base + 0xff;
++
++	if ((gpio_request(CM_T35_SMSC911X_GPIO, "CM ETH IRQ") == 0) &&
++	    (gpio_direction_input(CM_T35_SMSC911X_GPIO) == 0)) {
++		gpio_export(CM_T35_SMSC911X_GPIO, 0);
++	} else {
++		pr_err("CM-T35: could not obtain gpio for SMSC911X IRQ\n");
++		return;
++	}
++
++	platform_device_register(&cm_t35_smsc911x_device);
++}
 +#else
-+	/* Due to Silicon Bug on context restore it is found
-+	 * that the CONTROL_PAD_CONF_ETK14 register is not saved into
-+	 * scratch pad memory sometimes. To rectify it delay acess by Mpu
-+	 * for 300us for scm to finish saving task
-+	 */
-+	udelay(300);
++static inline void __init cm_t35_init_smsc911x(void) { return; }
 +#endif
 +
- 	/* wait for the save to complete */
- 	while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
- 			& PADCONF_SAVE_DONE)
-@@ -217,6 +238,10 @@ static void omap3_core_save_context(void)
- 
- static void omap3_core_restore_context(void)
- {
-+	/* Restore the last padconf value if needed */
-+#ifndef CONFIG_DELAY_IN_PADCONF_SAVE
-+	omap_writel(store_pad_config, CONTROL_PADCONF_ETK_D14);
++#if defined(CONFIG_LEDS_GPIO) || defined(CONFIG_LEDS_GPIO_MODULE)
++#include <linux/leds.h>
++
++static struct gpio_led cm_t35_leds[] = {
++	[0] = {
++		.gpio			= 186,
++		.name			= "cm-t35:green",
++		.default_trigger	= "heartbeat",
++		.active_low		= 1,
++	},
++};
++
++static struct gpio_led_platform_data cm_t35_led_pdata = {
++	.num_leds	= ARRAY_SIZE(cm_t35_leds),
++	.leds		= cm_t35_leds,
++};
++
++static struct platform_device cm_t35_led_device = {
++	.name		= "leds-gpio",
++	.id		= -1,
++	.dev		= {
++		.platform_data	= &cm_t35_led_pdata,
++	},
++};
++
++static void __init cm_t35_init_led(void)
++{
++	platform_device_register(&cm_t35_led_device);
++}
++#else
++static inline void cm_t35_init_led(void) {}
 +#endif
- 	/* Restore the control module context, padconf restored by h/w */
- 	omap3_control_restore_context();
- 	/* Restore the GPMC context */
-diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
-index 2143db5..737d0aa 100644
---- a/arch/arm/plat-omap/Kconfig
-+++ b/arch/arm/plat-omap/Kconfig
-@@ -242,6 +242,23 @@ config OMAP_PM_SRF
- 
- endchoice
- 
-+config DELAY_IN_PADCONF_SAVE
-+	bool "Insert 300 us delay after the start of padconf saving"
-+	depends on ARCH_OMAP3 && PM
-+	help
-+	 If this option is selected  a  300 us delay is inserted in the
-+	 suspend path after writing into START_PADCONF_SAVE bit to ensure
-+	 that pad configuration register is stored properly.If mpu tries to
-+	 access SAVE_DOME bit before the entire save is over, there is a
-+	 possibility that the last padconf register is not saved properly.
-+	 The delay ensures that mpu does not acess SAVE_DONE bit before the
-+	 save is complete.
 +
-+	 If this option is not selected the bug is let
-+	 to happen and last pad configuration register
-+	 is explicitly saved in SDRAM and written back
-+	 in resume path.
++#if defined(CONFIG_MTD_NAND_OMAP2) || defined(CONFIG_MTD_NAND_OMAP2_MODULE)
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/nand.h>
++#include <linux/mtd/partitions.h>
 +
- endmenu
- 
- endif
++static struct mtd_partition cm_t35_nand_partitions[] = {
++	{
++		.name           = "xloader",
++		.offset         = 0,			/* Offset = 0x00000 */
++		.size           = 4 * NAND_BLOCK_SIZE,
++		.mask_flags     = MTD_WRITEABLE
++	},
++	{
++		.name           = "uboot",
++		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
++		.size           = 15 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name           = "uboot environment",
++		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x260000 */
++		.size           = 2 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name           = "linux",
++		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
++		.size           = 32 * NAND_BLOCK_SIZE,
++	},
++	{
++		.name           = "rootfs",
++		.offset         = MTDPART_OFS_APPEND,	/* Offset = 0x680000 */
++		.size           = MTDPART_SIZ_FULL,
++	},
++};
++
++static struct omap_nand_platform_data cm_t35_nand_data = {
++	.parts			= cm_t35_nand_partitions,
++	.nr_parts		= ARRAY_SIZE(cm_t35_nand_partitions),
++	.dma_channel		= -1,	/* disable DMA in OMAP NAND driver */
++	.cs			= 0,
++	.gpmc_cs_baseaddr	= (void __iomem *)GPMC_CS0_BASE_ADDR,
++	.gpmc_baseaddr		= (void __iomem *)OMAP34XX_GPMC_VIRT,
++
++};
++
++static struct resource cm_t35_nand_resource = {
++	.flags		= IORESOURCE_MEM,
++};
++
++static struct platform_device cm_t35_nand_device = {
++	.name		= "omap2-nand",
++	.id		= -1,
++	.num_resources	= 1,
++	.resource	= &cm_t35_nand_resource,
++	.dev		= {
++		.platform_data	= &cm_t35_nand_data,
++	},
++};
++
++static void __init cm_t35_init_nand(void)
++{
++	if (platform_device_register(&cm_t35_nand_device) < 0)
++		pr_err("CM-T35: Unable to register NAND device\n");
++}
++#else
++static inline void cm_t35_init_nand(void) {}
++#endif
++
++#if defined(CONFIG_TOUCHSCREEN_ADS7846) || \
++	defined(CONFIG_TOUCHSCREEN_ADS7846_MODULE)
++#include <linux/spi/spi.h>
++#include <linux/spi/ads7846.h>
++
++#include <mach/mcspi.h>
++
++static struct omap2_mcspi_device_config ads7846_mcspi_config = {
++	.turbo_mode	= 0,
++	.single_channel	= 1,	/* 0: slave, 1: master */
++};
++
++static int ads7846_get_pendown_state(void)
++{
++	return !gpio_get_value(CM_T35_GPIO_PENDOWN);
++}
++
++static struct ads7846_platform_data ads7846_config = {
++	.x_max			= 0x0fff,
++	.y_max			= 0x0fff,
++	.x_plate_ohms		= 180,
++	.pressure_max		= 255,
++	.debounce_max		= 10,
++	.debounce_tol		= 3,
++	.debounce_rep		= 1,
++	.get_pendown_state	= ads7846_get_pendown_state,
++	.keep_vref_on		= 1,
++};
++
++static struct spi_board_info cm_t35_spi_board_info[] __initdata = {
++	{
++		.modalias		= "ads7846",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.max_speed_hz		= 1500000,
++		.controller_data	= &ads7846_mcspi_config,
++		.irq			= OMAP_GPIO_IRQ(CM_T35_GPIO_PENDOWN),
++		.platform_data		= &ads7846_config,
++	},
++};
++
++static void __init cm_t35_init_ads7846(void)
++{
++	if ((gpio_request(CM_T35_GPIO_PENDOWN, "ADS7846_PENDOWN") == 0) &&
++	    (gpio_direction_input(CM_T35_GPIO_PENDOWN) == 0)) {
++		gpio_export(CM_T35_GPIO_PENDOWN, 0);
++	} else {
++		pr_err("CM-T35: could not obtain gpio for ADS7846_PENDOWN\n");
++		return;
++	}
++
++	spi_register_board_info(cm_t35_spi_board_info,
++				ARRAY_SIZE(cm_t35_spi_board_info));
++}
++#else
++static inline void cm_t35_init_ads7846(void) {}
++#endif
++
++static struct regulator_consumer_supply cm_t35_vmmc1_supply = {
++	.supply			= "vmmc",
++};
++
++static struct regulator_consumer_supply cm_t35_vsim_supply = {
++	.supply			= "vmmc_aux",
++};
++
++/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
++static struct regulator_init_data cm_t35_vmmc1 = {
++	.constraints = {
++		.min_uV			= 1850000,
++		.max_uV			= 3150000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &cm_t35_vmmc1_supply,
++};
++
++/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
++static struct regulator_init_data cm_t35_vsim = {
++	.constraints = {
++		.min_uV			= 1800000,
++		.max_uV			= 3000000,
++		.valid_modes_mask	= REGULATOR_MODE_NORMAL
++					| REGULATOR_MODE_STANDBY,
++		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
++					| REGULATOR_CHANGE_MODE
++					| REGULATOR_CHANGE_STATUS,
++	},
++	.num_consumer_supplies	= 1,
++	.consumer_supplies	= &cm_t35_vsim_supply,
++};
++
++static struct twl4030_usb_data cm_t35_usb_data = {
++	.usb_mode	= T2_USB_MODE_ULPI,
++};
++
++static int cm_t35_keymap[] = {
++	KEY(0, 0, KEY_A),	KEY(0, 1, KEY_B),	KEY(0, 2, KEY_LEFT),
++	KEY(1, 0, KEY_UP),	KEY(1, 1, KEY_ENTER),	KEY(1, 2, KEY_DOWN),
++	KEY(2, 0, KEY_RIGHT),	KEY(2, 1, KEY_C),	KEY(2, 2, KEY_D),
++};
++
++static struct matrix_keymap_data cm_t35_keymap_data = {
++	.keymap			= cm_t35_keymap,
++	.keymap_size		= ARRAY_SIZE(cm_t35_keymap),
++};
++
++static struct twl4030_keypad_data cm_t35_kp_data = {
++	.keymap_data	= &cm_t35_keymap_data,
++	.rows		= 3,
++	.cols		= 3,
++	.rep		= 1,
++};
++
++static struct twl4030_hsmmc_info mmc[] = {
++	{
++		.mmc		= 1,
++		.wires		= 4,
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
++
++	},
++	{
++		.mmc		= 2,
++		.wires		= 4,
++		.transceiver	= 1,
++		.gpio_cd	= -EINVAL,
++		.gpio_wp	= -EINVAL,
++		.ocr_mask	= 0x00100000,	/* 3.3V */
++	},
++	{}	/* Terminator */
++};
++
++static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
++				 unsigned ngpio)
++{
++	int wlan_rst = gpio + 2;
++
++	if ((gpio_request(wlan_rst, "WLAN RST") == 0) &&
++	    (gpio_direction_output(wlan_rst, 1) == 0)) {
++		gpio_export(wlan_rst, 0);
++
++		udelay(10);
++		gpio_set_value(wlan_rst, 0);
++		udelay(10);
++		gpio_set_value(wlan_rst, 1);
++	} else {
++		pr_err("CM-T35: could not obtain gpio for WiFi reset\n");
++	}
++
++	/* gpio + 0 is "mmc0_cd" (input/IRQ) */
++	mmc[0].gpio_cd = gpio + 0;
++	twl4030_mmc_init(mmc);
++
++	/* link regulators to MMC adapters */
++	cm_t35_vmmc1_supply.dev = mmc[0].dev;
++	cm_t35_vsim_supply.dev = mmc[0].dev;
++
++	return 0;
++}
++
++static struct twl4030_gpio_platform_data cm_t35_gpio_data = {
++	.gpio_base	= OMAP_MAX_GPIO_LINES,
++	.irq_base	= TWL4030_GPIO_IRQ_BASE,
++	.irq_end	= TWL4030_GPIO_IRQ_END,
++	.setup          = cm_t35_twl_gpio_setup,
++};
++
++static struct twl4030_platform_data cm_t35_twldata = {
++	.irq_base	= TWL4030_IRQ_BASE,
++	.irq_end	= TWL4030_IRQ_END,
++
++	/* platform_data for children goes here */
++	.keypad		= &cm_t35_kp_data,
++	.usb		= &cm_t35_usb_data,
++	.gpio		= &cm_t35_gpio_data,
++	.vmmc1		= &cm_t35_vmmc1,
++	.vsim		= &cm_t35_vsim,
++};
++
++static struct i2c_board_info __initdata cm_t35_i2c_boardinfo[] = {
++	{
++		I2C_BOARD_INFO("tps65930", 0x48),
++		.flags		= I2C_CLIENT_WAKE,
++		.irq		= INT_34XX_SYS_NIRQ,
++		.platform_data	= &cm_t35_twldata,
++	},
++};
++
++static void __init cm_t35_init_i2c(void)
++{
++	omap_register_i2c_bus(1, 2600, cm_t35_i2c_boardinfo,
++			      ARRAY_SIZE(cm_t35_i2c_boardinfo));
++}
++
++static struct omap_board_config_kernel cm_t35_config[] __initdata = {
++};
++
++static void __init cm_t35_init_irq(void)
++{
++	omap_board_config = cm_t35_config;
++	omap_board_config_size = ARRAY_SIZE(cm_t35_config);
++
++	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
++			     mt46h32m32lf6_sdrc_params);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++static void __init cm_t35_map_io(void)
++{
++	omap2_set_globals_343x();
++	omap2_map_common_io();
++}
++
++static void __init cm_t35_init(void)
++{
++	omap_serial_init();
++	cm_t35_init_i2c();
++	cm_t35_init_nand();
++	cm_t35_init_ads7846();
++	cm_t35_init_smsc911x();
++	cm_t35_init_led();
++
++	usb_musb_init();
++
++	omap_cfg_reg(AF26_34XX_SYS_NIRQ);
++}
++
++MACHINE_START(CM_T35, "Compulab CM-T35")
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xd8000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= cm_t35_map_io,
++	.init_irq	= cm_t35_init_irq,
++	.init_machine	= cm_t35_init,
++	.timer		= &omap_timer,
++MACHINE_END
 -- 
-1.5.4.7
+1.6.0.6
 
