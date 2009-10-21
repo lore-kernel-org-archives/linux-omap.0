@@ -1,52 +1,53 @@
-From: Ladislav.Michl@seznam.cz
-Subject: Re: [APPLIED] [PATCH] [RFC] OMAP: eliminate OMAP_MAX_NR_PORTS
-Date: Wed, 21 Oct 2009 11:48:19 +0200
-Message-ID: <20091021094819.GA2111@localhost.localdomain>
-References: <1254995997-26420-1-git-send-email-virtuoso@slind.org> <notify-1255128339@atomide.com> <20091020233115.GA7363@localhost.localdomain> <20091020221543.GL12576@atomide.com> <20091020230131.GB16230@atomide.com> <20091021004016.GD16230@atomide.com>
-Reply-To: Ladislav Michl <ladis@linux-mips.org>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 0/4] twl4030 codec as MFD device
+Date: Wed, 21 Oct 2009 11:56:33 +0300
+Message-ID: <200910211156.33505.peter.ujfalusi@nokia.com>
+References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:44348 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753047AbZJUHsN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Oct 2009 03:48:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20091021004016.GD16230@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "sameo@linux.intel.com" <sameo@linux.intel.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Tue, Oct 20, 2009 at 05:40:17PM -0700, Tony Lindgren wrote:
-> > > > Unable to handle kernel NULL pointer dereference at virtual address 00000028
-> > > > pgd = c0004000
-> > > > [00000028] *pgd=00000000
-> > > > Internal error: Oops: 80000005 [#1]
-> > > > last sysfs file:
-> > > > Modules linked in:
-> > > > CPU: 0    Not tainted  (2.6.32-rc5-06314-g4155da6-dirty #12)
-> > > > PC is at 0x28
-> > > > LR is at serial8250_config_port+0x184/0xc34
-> > > > (...etc...)
-> > > > 
-> > > > Please consider following fix (and while there fix OMAP2 too as patch broke
-> > > > it as well (untested))
-> > > 
-> > > Thanks, I already refreshed the original patch with the same fix few
-> > > days ago :) It should be there in for-next branch and master branch.
-> > 
-> > Correction, sorry looks like I did not really read your patch. It seems
-> > to be the right solution for mach-omap1, but not needed for mach-omap2
-> > because the array is not plat_serial8250_port on mach-omap2.
+Hello Samuel,
 
-Ach, sorry. Now it was me who didn't read code carefully.
+On Monday 19 October 2009 15:42:16 Ujfalusi Peter (Nokia-D/Tampere) wrote:
+> Hello,
+> =
 
-> I've refreshed the original serial.c patch in for-next branch by leaving
-> out the mach-omap2 changes. Also updated in the master branch, can you
-> please check?
+> The following series adds new MFD device on top of the twl4030 MFD device
+>  for the codec part of the chip, and also converts the soc audio driver to
+>  use the correct probing (device model).
+> =
 
-Just pulled master branch and succesfully booted on OMAP5910 board.
+> Reason for the twl4030_codec MFD: the vibra control is actually in the
+>  codec part of the twl4030. If both the vibra and the audio functionality
+>  is needed from the twl4030 at the same time, than they need to control t=
+he
+>  codec power and APLL at the same time without breaking the other driver.
+> Also these two has to be able to work without the need for the other
+>  driver.
+
+Have you had time to look at the series?
+I have made all the modification suggested by Mark Brown, and I'm holding b=
+ack =
+
+the second series (to have the comments from you for the initial series), s=
+o I =
+
+can address those in the same round.
 
 Thank you,
-	ladis
+P=E9ter
