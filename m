@@ -1,53 +1,127 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: Fwd: mmap /dev/mem in python
-Date: Tue, 20 Oct 2009 18:27:45 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0910201817100.22645@utopia.booyaka.com>
-References: <47b23c40910201506u381ee2b4ye3867d3559443bdb@mail.gmail.com>  <20091020221701.GM12576@atomide.com> <47b23c40910201615l1b1ab25ewd1dcae6b27728397@mail.gmail.com>  <47b23c40910201616l2d5d454cs77948f7a7f167a14@mail.gmail.com>
- <alpine.DEB.2.00.0910201723480.22645@utopia.booyaka.com> <47b23c40910201701k20f712aesd6795709535c48b2@mail.gmail.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [APPLIED] [PATCH] [RFC] OMAP: eliminate OMAP_MAX_NR_PORTS
+Date: Tue, 20 Oct 2009 17:40:17 -0700
+Message-ID: <20091021004016.GD16230@atomide.com>
+References: <1254995997-26420-1-git-send-email-virtuoso@slind.org> <notify-1255128339@atomide.com> <20091020233115.GA7363@localhost.localdomain> <20091020221543.GL12576@atomide.com> <20091020230131.GB16230@atomide.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57225 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417AbZJUA1l (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 20:27:41 -0400
-In-Reply-To: <47b23c40910201701k20f712aesd6795709535c48b2@mail.gmail.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63561 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752341AbZJUAkS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 20:40:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20091020230131.GB16230@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Brett Graham <graham@rowland.harvard.edu>
-Cc: linux-omap@vger.kernel.org
+To: Ladislav Michl <ladis@linux-mips.org>
+Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-On Tue, 20 Oct 2009, Brett Graham wrote:
+* Tony Lindgren <tony@atomide.com> [091020 16:01]:
+> * Tony Lindgren <tony@atomide.com> [091020 15:15]:
+> > * Ladislav.Michl@seznam.cz <Ladislav.Michl@seznam.cz> [091020 14:53]:
+> > > On Fri, Oct 09, 2009 at 06:46:23PM -0400, Tony Lindgren wrote:
+> > > > This patch has been applied to the linux-omap
+> > > > by youw fwiendly patch wobot.
+> > > > 
+> > > > Branch in linux-omap: omap2-upstream
+> > > > 
+> > > > Initial commit ID (Likely to change): 439d2c69335a28ffdb5a9795ff384b6755ca0f7f
+> > > > 
+> > > > PatchWorks
+> > > > http://patchwork.kernel.org/patch/52477/
+> > > > 
+> > > > Git (Likely to change, and takes a while to get mirrored)
+> > > > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=439d2c69335a28ffdb5a9795ff384b6755ca0f7f
+> > > 
+> > > This patch broke all OMAP1 boards. NULL terminator entry for omap1
+> > > serial_platform_data cannot be removed just because serial driver uses
+> > > is as last entry marker. Without it we end this way:
+> > > Unable to handle kernel NULL pointer dereference at virtual address 00000028
+> > > pgd = c0004000
+> > > [00000028] *pgd=00000000
+> > > Internal error: Oops: 80000005 [#1]
+> > > last sysfs file:
+> > > Modules linked in:
+> > > CPU: 0    Not tainted  (2.6.32-rc5-06314-g4155da6-dirty #12)
+> > > PC is at 0x28
+> > > LR is at serial8250_config_port+0x184/0xc34
+> > > (...etc...)
+> > > 
+> > > Please consider following fix (and while there fix OMAP2 too as patch broke
+> > > it as well (untested))
+> > 
+> > Thanks, I already refreshed the original patch with the same fix few
+> > days ago :) It should be there in for-next branch and master branch.
+> 
+> Correction, sorry looks like I did not really read your patch. It seems
+> to be the right solution for mach-omap1, but not needed for mach-omap2
+> because the array is not plat_serial8250_port on mach-omap2.
 
-> --minimal python example--
-> open("/dev/mem", O_RDWR|O_SYNC|O_LARGEFILE) = 3
-> fstat64(3, {st_mode=S_IFCHR|0640, st_rdev=makedev(1, 1), ...}) = 0
-> dup(3)                                  = 4
-> mmap2(NULL, 4096, PROT_READ|PROT_WRITE, MAP_SHARED, 3, 0x48088) = 0x40020000
-> --- SIGBUS (Bus error) @ 0 (0) ---
-> +++ killed by SIGBUS +++
-> Process 1633 detached
+I've refreshed the original serial.c patch in for-next branch by leaving
+out the mach-omap2 changes. Also updated in the master branch, can you
+please check?
 
-Your script:
+Thanks,
 
->> m = mmap.mmap(f, mmap.PAGESIZE, mmap.MAP_SHARED, mmap.PROT_WRITE |
->> mmap.PROT_READ, offset=addr & ~MAP_MASK)
->> m.seek(addr & MAP_MASK)
+Tony
 
-So the mmap() is working fine, based on the output above...
-
->> c = m.read_byte()
-
-... but the above line is going to fail.  GPTIMER registers need 16- 
-or 32-bit accesses[1].
-
-
-- Paul
-
-1. OMAP34xx TRM 16.3.2:
-
-"CAUTION 
-The GP timer registers are limited to 32-bit and 16-bit data accesses; 
-8-bit access is not allowed and can corrupt the register content."
-
-
+>  
+> > Tony
+> >  
+> > > Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+> > > 
+> > > diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
+> > > index 9c59332..0392ff5 100644
+> > > --- a/arch/arm/mach-omap1/serial.c
+> > > +++ b/arch/arm/mach-omap1/serial.c
+> > > @@ -86,7 +86,9 @@ static struct plat_serial8250_port serial_platform_data[] = {
+> > >  		.iotype		= UPIO_MEM,
+> > >  		.regshift	= 2,
+> > >  		.uartclk	= OMAP16XX_BASE_BAUD * 16,
+> > > -	},
+> > > +	}, {
+> > > +	}
+> > > +
+> > >  };
+> > >  
+> > >  static struct platform_device serial_device = {
+> > > @@ -119,7 +121,7 @@ void __init omap_serial_init(void)
+> > >  		serial_platform_data[2].uartclk = OMAP1510_BASE_BAUD * 16;
+> > >  	}
+> > >  
+> > > -	for (i = 0; i < ARRAY_SIZE(serial_platform_data); i++) {
+> > > +	for (i = 0; i < ARRAY_SIZE(serial_platform_data) - 1; i++) {
+> > >  		unsigned char reg;
+> > >  
+> > >  		/* Static mapping, never released */
+> > > diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+> > > index dabc089..ca69ffa 100644
+> > > --- a/arch/arm/mach-omap2/serial.c
+> > > +++ b/arch/arm/mach-omap2/serial.c
+> > > @@ -585,7 +585,7 @@ void __init omap_serial_early_init(void)
+> > >  	 * if not needed.
+> > >  	 */
+> > >  
+> > > -	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> > > +	for (i = 0; i < ARRAY_SIZE(omap_uart) - 1; i++) {
+> > >  		struct omap_uart_state *uart = &omap_uart[i];
+> > >  		struct platform_device *pdev = &uart->pdev;
+> > >  		struct device *dev = &pdev->dev;
+> > > @@ -637,7 +637,7 @@ void __init omap_serial_init(void)
+> > >  {
+> > >  	int i;
+> > >  
+> > > -	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
+> > > +	for (i = 0; i < ARRAY_SIZE(omap_uart) - 1; i++) {
+> > >  		struct omap_uart_state *uart = &omap_uart[i];
+> > >  		struct platform_device *pdev = &uart->pdev;
+> > >  		struct device *dev = &pdev->dev;
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
