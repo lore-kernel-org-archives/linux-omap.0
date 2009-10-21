@@ -1,51 +1,40 @@
-From: Ladislav.Michl@seznam.cz
-Subject: [PATCH] mmci-omap: remove bogus check for host->iclk
-Date: Wed, 21 Oct 2009 14:52:17 +0200
-Message-ID: <20091021125217.GB8525@localhost.localdomain>
-Reply-To: Ladislav Michl <ladis@linux-mips.org>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] Fix broken NAND on Amstrad Delta
+Date: Wed, 21 Oct 2009 12:53:50 +0200
+Message-ID: <200910211253.51518.jkrzyszt@tis.icnet.pl>
+References: <200910210239.55194.jkrzyszt@tis.icnet.pl> <20091021005134.GE16230@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:33458 "EHLO smtp.seznam.cz"
+Received: from d1.icnet.pl ([212.160.220.21]:48180 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753163AbZJUKwM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 21 Oct 2009 06:52:12 -0400
+	id S1753285AbZJUKyQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Oct 2009 06:54:16 -0400
+In-Reply-To: <20091021005134.GE16230@atomide.com>
 Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
 
-Remove check for host->iclk being NULL from error path since we already know
-it is non-null and use return value from clk_get.
+Wednesday 21 October 2009 02:51:35 Tony Lindgren wrote:
+>
+> Let's just remove the omap_cfg_reg() calls from mach-omap1/serial.c, and
+> add them to the board-*.c files like you suggest above. We should be able
+> to find which ports to mux by looking at the enabled_uarts mask in the
+> commit mentioned above.
 
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+Tony,
+I can prepare a patch if you haven't started working on it yet, but please do 
+me a favour and give your comments on another, old but still not answered 
+subject:
 
-diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
-index 5d773b8..c6d7e8e 100644
---- a/drivers/mmc/host/omap.c
-+++ b/drivers/mmc/host/omap.c
-@@ -1459,8 +1459,10 @@ static int __init mmc_omap_probe(struct platform_device *pdev)
- 		goto err_ioremap;
- 
- 	host->iclk = clk_get(&pdev->dev, "ick");
--	if (IS_ERR(host->iclk))
-+	if (IS_ERR(host->iclk)) {
-+		ret = PTR_ERR(host->iclk);
- 		goto err_free_mmc_host;
-+	}
- 	clk_enable(host->iclk);
- 
- 	host->fclk = clk_get(&pdev->dev, "fck");
-@@ -1500,10 +1502,8 @@ err_free_irq:
- err_free_fclk:
- 	clk_put(host->fclk);
- err_free_iclk:
--	if (host->iclk != NULL) {
--		clk_disable(host->iclk);
--		clk_put(host->iclk);
--	}
-+	clk_disable(host->iclk);
-+	clk_put(host->iclk);
- err_free_mmc_host:
- 	iounmap(host->virt_base);
- err_ioremap:
+http://www.spinics.net/lists/linux-omap/msg17692.html
+I have just checked that temporary solution still applies cleanly on top of 
+2.6.32-rc5 and corrects the problem of otherwise unusable ASoC over McBSP1 on 
+my Amstrad Delta.
+
+Thanks,
+Janusz
