@@ -1,53 +1,146 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 0/4] twl4030 codec as MFD device
-Date: Wed, 21 Oct 2009 11:56:33 +0300
-Message-ID: <200910211156.33505.peter.ujfalusi@nokia.com>
-References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH 16/17] OMAP3: PM: Write voltage and clock setup times
+ dynamically in idle loop
+Date: Wed, 21 Oct 2009 11:55:42 +0200
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A210F6A58235@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-8-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-13-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-14-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-15-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-16-git-send-email-tero.kristo@nokia.com>
+	<1255690150-16853-17-git-send-email-tero.kristo@nokia.com>
+ <87aazmj6t3.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "sameo@linux.intel.com" <sameo@linux.intel.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:46440 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753223AbZJUJ4D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 05:56:03 -0400
+In-Reply-To: <87aazmj6t3.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org
 
-Hello Samuel,
+ 
 
-On Monday 19 October 2009 15:42:16 Ujfalusi Peter (Nokia-D/Tampere) wrote:
-> Hello,
-> =
+>-----Original Message-----
+>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: 20 October, 2009 20:48
+>To: Kristo Tero (Nokia-D/Tampere)
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH 16/17] OMAP3: PM: Write voltage and clock 
+>setup times dynamically in idle loop
+>
+>Tero Kristo <tero.kristo@nokia.com> writes:
+>
+>> From: Tero Kristo <tero.kristo@nokia.com>
+>>
+>> It is suggested by TI (SWPA152 February 2009) to write clksetup,
+>> voltsetup_time1, voltsetup_time2, voltsetup2 dynamically in 
+>idle loop.
+>
+>Can you summarize the reasons why?
 
-> The following series adds new MFD device on top of the twl4030 MFD device
->  for the codec part of the chip, and also converts the soc audio driver to
->  use the correct probing (device model).
-> =
+Basically this optimizes the clksetup / voltsetup times according to the sleep mode. Currently the settings are too high in both retention and off-mode, because the hardware appears to use for example VOLTSETUP2 even if we are not in off-mode, adding extra delay to wakeup. Also, CLKSETUP is too high for retention mode because oscillator is not actually shut-off here.
 
-> Reason for the twl4030_codec MFD: the vibra control is actually in the
->  codec part of the twl4030. If both the vibra and the audio functionality
->  is needed from the twl4030 at the same time, than they need to control t=
-he
->  codec power and APLL at the same time without breaking the other driver.
-> Also these two has to be able to work without the need for the other
->  driver.
+However, now that I think about it, it might be better to change this in a way that it is user configurable whether we want to change the settings or not, maybe add new items in to the prm_setup struct for alternate settings for ret / off and only use these if available. Some boards might actually switch oscillator off in retention mode which would require higher setup time.
 
-Have you had time to look at the series?
-I have made all the modification suggested by Mark Brown, and I'm holding b=
-ack =
+>
+>> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+>> ---
+>>  arch/arm/mach-omap2/pm34xx.c |   36 
+>+++++++++++++++++++++++++-----------
+>>  1 files changed, 25 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-omap2/pm34xx.c 
+>b/arch/arm/mach-omap2/pm34xx.c
+>> index f492142..ae83121 100644
+>> --- a/arch/arm/mach-omap2/pm34xx.c
+>> +++ b/arch/arm/mach-omap2/pm34xx.c
+>> @@ -575,6 +575,30 @@ void omap_sram_idle(void)
+>>  	if (regset_save_on_suspend)
+>>  		pm_dbg_regset_save(1);
+>>  
+>> +	/* Write voltage setup times which are changed dynamically */
+>
+>AFAICT, we only set these values at init time and they are never
+>changed.  Are there some forthcoming patches that change these
+>dynamically?
 
-the second series (to have the comments from you for the initial series), s=
-o I =
+Following bit of the code actually changes them dynamically, you can see that e.g. CLKSETUP time is either prm_setup.clksetup or 0x1 depending on the sleep mode. But as previously said, I think these should probably be added as new items to the prm_setup struct.
 
-can address those in the same round.
-
-Thank you,
-P=E9ter
+>
+>Kevin
+>
+>> +	if (core_next_state == PWRDM_POWER_OFF) {
+>> +		prm_write_mod_reg(0, OMAP3430_GR_MOD,
+>> +				OMAP3_PRM_VOLTSETUP1_OFFSET);
+>> +		prm_write_mod_reg(prm_setup.voltsetup2, OMAP3430_GR_MOD,
+>> +				OMAP3_PRM_VOLTSETUP2_OFFSET);
+>> +		prm_write_mod_reg(prm_setup.clksetup, OMAP3430_GR_MOD,
+>> +				OMAP3_PRM_CLKSETUP_OFFSET);
+>> +	} else {
+>> +		prm_write_mod_reg((prm_setup.voltsetup_time2 <<
+>> +				OMAP3430_SETUP_TIME2_SHIFT) |
+>> +				(prm_setup.voltsetup_time1 <<
+>> +				OMAP3430_SETUP_TIME1_SHIFT),
+>> +				OMAP3430_GR_MOD, 
+>OMAP3_PRM_VOLTSETUP1_OFFSET);
+>> +		prm_write_mod_reg(0, OMAP3430_GR_MOD,
+>> +				OMAP3_PRM_VOLTSETUP2_OFFSET);
+>> +		/*
+>> +		 * Use static 1 as only HF_CLKOUT is turned off.
+>> +		 * Value taken from application note SWPA152
+>> +		 */
+>> +		prm_write_mod_reg(0x1, OMAP3430_GR_MOD,
+>> +				OMAP3_PRM_CLKSETUP_OFFSET);
+>> +	}
+>> +
+>>  	/*
+>>  	 * omap3_arm_context is the location where ARM registers
+>>  	 * get saved. The restore path then reads from this
+>> @@ -1379,19 +1403,9 @@ static void __init configure_vc(void)
+>>  			  OMAP3430_GR_MOD,
+>>  			  OMAP3_PRM_VC_I2C_CFG_OFFSET);
+>>  
+>> -	/* Write setup times */
+>> -	prm_write_mod_reg(prm_setup.clksetup, OMAP3430_GR_MOD,
+>> -			OMAP3_PRM_CLKSETUP_OFFSET);
+>> -	prm_write_mod_reg((prm_setup.voltsetup_time2 <<
+>> -			OMAP3430_SETUP_TIME2_SHIFT) |
+>> -			(prm_setup.voltsetup_time1 <<
+>> -			OMAP3430_SETUP_TIME1_SHIFT),
+>> -			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
+>> -
+>> +	/* Write static setup times */
+>>  	prm_write_mod_reg(prm_setup.voltoffset, OMAP3430_GR_MOD,
+>>  			OMAP3_PRM_VOLTOFFSET_OFFSET);
+>> -	prm_write_mod_reg(prm_setup.voltsetup2, OMAP3430_GR_MOD,
+>> -			OMAP3_PRM_VOLTSETUP2_OFFSET);
+>>  
+>>  	pm_dbg_regset_init(1);
+>>  	pm_dbg_regset_init(2);
+>> -- 
+>> 1.5.4.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe 
+>linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
