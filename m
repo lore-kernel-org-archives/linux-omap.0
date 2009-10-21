@@ -1,129 +1,92 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
-Date: Wed, 21 Oct 2009 19:46:23 +0200
-Message-ID: <4ADF48EF.8010606@googlemail.com>
-References: <4b73d43f0910151330q6c5cae7sa2a5948b586cc215@mail.gmail.com>	 <004701ca4ea5$aeacefe0$544ff780@am.dhcp.ti.com>	 <4b73d43f0910161426l7600f424w5b8345d16790dd21@mail.gmail.com>	 <4ADB4604.2090704@googlemail.com>	 <13B9B4C6EF24D648824FF11BE8967162039B3184F0@dlee02.ent.ti.com>	 <4b73d43f0910181717i9623184mc2b8c7d6ca0fb435@mail.gmail.com>	 <4b73d43f0910181724q11d40851wb2aed801d7ae85f6@mail.gmail.com>	 <005101ca50e1$11ef2770$544ff780@am.dhcp.ti.com>	 <4ADCAD0F.9010107@googlemail.com>	 <00cb01ca51d7$3fafe130$544ff780@am.dhcp.ti.com> <4b73d43f0910201559w86ef320q60823077ef0172af@mail.gmail.com>
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH v2 1/2] omap: add bits for future 3430/3630 ES revisions
+Date: Wed, 21 Oct 2009 23:18:45 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA23E99D@dbde02.ent.ti.com>
+References: <1256077586-11636-1-git-send-email-vikram.pandita@ti.com>
+ <alpine.DEB.2.00.0910201649060.22645@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-mmc-owner@vger.kernel.org>
-In-Reply-To: <4b73d43f0910201559w86ef320q60823077ef0172af@mail.gmail.com>
-Sender: linux-mmc-owner@vger.kernel.org
-To: John Rigby <jcrigby@gmail.com>
-Cc: Madhusudhan <madhu.cr@ti.com>, linux-omap@vger.kernel.org, "Woodruff, Richard" <r-woodruff2@ti.com>, linux-mmc@vger.kernel.org, Steve Sakoman <sakoman@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from comal.ext.ti.com ([198.47.26.152]:36696 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754638AbZJURsq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 13:48:46 -0400
+In-Reply-To: <alpine.DEB.2.00.0910201649060.22645@utopia.booyaka.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Paul Walmsley <paul@pwsan.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-John Rigby wrote:
-> In enable_sdio_irq
-> if enable
->   set ctpl
-> else
->   clear ctpl
 
-It would really help avoiding mails like this if you just would send 
-your changes. We know that they are for an old kernel and just a dirty 
-hack.
 
-Dirk
+>-----Original Message-----
+>From: Paul Walmsley [mailto:paul@pwsan.com]
+>Sent: Tuesday, October 20, 2009 6:15 PM
+>To: Pandita, Vikram; Woodruff, Richard; Menon, Nishanth
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH v2 1/2] omap: add bits for future 3430/3630 ES revisions
+>
+>Hi Vikram, Nishanth, Richard,
+>
+>a few comments on this:
+>
+>On Tue, 20 Oct 2009, Vikram Pandita wrote:
+>
+>> Add bits for future expansion of omap_chip_id type field.
+>> This is needed to accomodate 3630ES1 chip id which is bit10
+>
+>...
+>
+>> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+>> index 7cb0556..922bf1c 100644
+>> --- a/arch/arm/plat-omap/include/plat/cpu.h
+>> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+>> @@ -45,7 +45,7 @@ int omap_type(void);
+>>
+>>  struct omap_chip_id {
+>>  	u8 oc;
+>> -	u8 type;
+>> +	u32 type;
+>>  };
+>
+>Just wanted to understand the motivation for using the u32.
+>
+>Earlier in the life of these patches, two comments were mentioned: the
+>desire to 'futureproof' and the desire to reserve space for other
+>34xx-family parts.
+>
+>Regarding 'futureproofing:' that's part of the reason that a separate
+>struct was defined for this: to prevent code that uses it from depending
+>on the size of the type.  (Originally it was a typedef, but Linus hates
+>typedefs...)  So it shouldn't matter how big or small the type is here, as
+>long as it can handle all of the bits allocated for it.
+>
+>Also mentioned was the idea of reserving space for other 34xx-family
+>chips.  I'd suggest simply renumbering the bits when and if those versions
+>appear.  Code that uses the omap_chip_id system should always use the
+>macros (e.g. CHIP_IS_OMAP3430) and not encode separate bit shift values,
+>so renumbering should be completely safe and transparent for core code.
+>Module code shouldn't be using the omap_chip code, it's for core usage
+>only.
+>
+>So, since only one bit is being added, why not continue the use of the u8?
+>Then when the next bits need to be added, the type can be expanded at that
+>point, and the bits renumbered if necessary.  This should be a completely
+>transparent operation for code that uses it.  Vikram's original patch:
+>
+>    http://patchwork.kernel.org/patch/54847/
 
-> On Tue, Oct 20, 2009 at 4:47 PM, Madhusudhan <madhu.cr@ti.com> wrote:
->>
->>> -----Original Message-----
->>> From: linux-mmc-owner@vger.kernel.org [mailto:linux-mmc-
->>> owner@vger.kernel.org] On Behalf Of Dirk Behme
->>> Sent: Monday, October 19, 2009 1:17 PM
->>> To: linux-omap@vger.kernel.org
->>> Cc: Madhusudhan; 'John Rigby'; 'Woodruff, Richard'; linux-
->>> mmc@vger.kernel.org; 'Steve Sakoman'
->>> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
->>>
->>> Madhusudhan wrote:
->>>> Hi John,
->>>>
->>>> So does the SDIO card interrupt mode work fine now?
->>> (wrong attachment in previous mail :( sorry)
->>>
->>> If somebody likes to test, my updated patch v2 in attachment. Compile
->>> tested only, testing and comments are welcome.
->>>
->> Can you inline the v2 patch please? It helps review. I wonder in the version
->> that John tested was the CTPL bit set in "set_ios" or "enable_sdio_irq"?
->>
->> Regards,
->> Madhu
->>
->>> Cheers
->>>
->>> Dirk
->>>
->>>>   _____
->>>>
->>>> From: John Rigby [mailto:jcrigby@gmail.com]
->>>> Sent: Sunday, October 18, 2009 7:24 PM
->>>> To: Woodruff, Richard
->>>> Cc: Dirk Behme; Chikkature Rajashekar, Madhusudhan;
->>>> linux-mmc@vger.kernel.org; linux-omap@vger.kernel.org; Steve Sakoman
->>>> Subject: Re: MMC_CAP_SDIO_IRQ for omap 3430
->>>>
->>>>
->>>>
->>>> Ok I was going to ask where you found that but I just rechecked the TRM
->>> and
->>>> there it is in plain site:
->>>>
->>>>
->>>>
->>>> When this bit is set to 1, the host controller automatically disables
->>> all
->>>> the input buffers except the buffer of mmci_dat[1] outside of a
->>> transaction
->>>> in order to detect asynchronous card interrupt on mmci_dat[1] line and
->>>> minimize the leakage current of the buffers.
->>>>
->>>>
->>>> In my defence, I did search the TRM for every occurance of dat1 but not
->>>> dat[1].  Oh well live and learn and forget and repeat.
->>>>
->>>> John
->>>>
->>>> On Sun, Oct 18, 2009 at 6:17 PM, John Rigby <jcrigby@gmail.com> wrote:
->>>>> Richard,
->>>>>
->>>>> MMCHS_CON.CPTL = 1  < Don't disable input buffer on DAT1 after
->>>>> completion to allow seeing SDIO interrupt>
->>>>>
->>>>> Sounds exactly like what we need.
->>>>>
->>>>> Thanks
->>>>> John
->>>>>
->>>>> On Sun, Oct 18, 2009 at 5:12 PM, Woodruff, Richard <r-woodruff2@ti.com>
->>>> wrote:
->>>>>>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->>>>>>> owner@vger.kernel.org] On Behalf Of Dirk Behme
->>>>>>> Sent: Sunday, October 18, 2009 11:45 AM
->>>>>>>> It would be funny if the TRM was wrong and the CIRQ bit is really
->>>>>>>> cleared by writing 1 to it.  I'll try that.
->>>>>> A while back I hunted down a few of the bits for this.  Maybe this
->>> will
->>>> help some.
->>>>>> SYSCONFIG.ENAWAKEUP = 1 < allow ocp wrapper to generate an interrupt
->>> to
->>>> prcm>
->>>>>> MMCHS_HCTL.IWE = 1 < route wake up to module ocp wrapper>
->>>>>> MMCHS_CON.CPTL = 1  < Don't disable input buffer on DAT1 after
->>> completion
->>>> to allow seeing SDIO interrupt>
->>>>>> MMCHS_HCTL.IWE
->>>>>> MMCHS_ISE.CIRQ_ENABLE <bit to write to enable interrupt at pin>
->>>>>> MMCHS_STAT<bit to write for clear of SDIO interrupt>
->>>>>> CCCCR - IRQ_ENABLE (think host stack will do this)
->>>>>>
->>>>>> Regards,
->>>>>> Richard W.
->>>>>>
->>>>
->>
->>
-> 
+My preference is to go with version one patch.
+As and when required, should we add the bits.
+
+
+>
+>should be fine.
+>
+>Or am I missing something?
+>
+>
+>- Paul
 
