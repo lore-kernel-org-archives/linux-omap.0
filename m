@@ -1,40 +1,47 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Calling omap_pcm_prepare() results in BUG() on OMAP1
-Date: Wed, 21 Oct 2009 05:11:06 +0200
-Message-ID: <200910210511.08263.jkrzyszt@tis.icnet.pl>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] OMAP3: DVFS: No sdrc AC timing changes during core dvfs
+Date: Tue, 20 Oct 2009 23:07:48 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com>
+References: <1254835224-19500-1-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:37370 "EHLO d1.icnet.pl"
+Received: from comal.ext.ti.com ([198.47.26.152]:49224 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751438AbZJUDLb (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 20 Oct 2009 23:11:31 -0400
-Content-Disposition: inline
+	id S1750738AbZJUEHr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 00:07:47 -0400
+In-Reply-To: <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
-After DMA burst mode has been introduced in sound/soc/omap/omap-pcm.c, 
-omap_pcm_prepare() unconditionally calls:
 
-	omap_set_dma_src_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-	omap_set_dma_dest_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Tuesday, October 20, 2009 8:21 PM
 
-AFAICS, current implementation of those two functions found in 
-arch/arm/plat-ompa/dma.c doesn't support OMAP_DMA_DATA_BURST_16 on OMAP1 at 
-all, so they both end with BUG() on that machine. That seems to result in 
-ASoC being completely unusable, at least on my OMAP5910 based Amstrad Delta.
+> > This patch removes the SDRC AC timings changes done during core dvfs.
+> > Updating AC timing CTRL values for SDRC during DVFS is seen to be a risk,
+> > while the RFR CTRL value is safe to be updated.
+> >
+> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>
+> just wanted to let you know, I haven't forgotten about this one. Am trying
+> to get an answer from others as to whether AC timing register changes are
+> completely unsafe, in which case your patch is probably the best way to
+> move forward; or whether we can make the changes when no initiators are
+> touching SDRAM.
 
-Is calling BUG() for OMAP1 from those functions intentional?
+It is not guaranteed safe to write actim registers on the fly to an active part.  It is safe to do RFR as it is buffered and sent out at a safe time.
 
-If not intentional, can those be corrected by simply putting break; before 
-defalut:?
+A few years back before omap3 as part of omap2 lessons learned this issue was highlighted but design was not able to change.  Recently implementation review at rtl provided the above points.
 
-If intentional, can those function calls be conditionally omited, at least for 
-OMAP1510, in sound/soc/omap/omap-pcm.c?
+I'm not aware of anyone seeing a crash but recommendation for safety is to not.
 
-Thanks,
-Janusz
+Regards,
+Richard W.
+
