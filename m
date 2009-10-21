@@ -1,138 +1,155 @@
-From: "Gopinath, Thara" <thara@ti.com>
-Subject: RE: [PATCH 12/17] OMAP2/3: Do not enable AUTOIDLE in interrupt
- controller
-Date: Wed, 21 Oct 2009 10:07:24 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A46D9B6@dbde02.ent.ti.com>
-References: <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-8-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-13-git-send-email-tero.kristo@nokia.com>
-	<13B9B4C6EF24D648824FF11BE8967162039B2A021C@dlee02.ent.ti.com>
-	<004f01ca4e88$be2a6a50$3d1018ac@am.dhcp.ti.com>
-	<13B9B4C6EF24D648824FF11BE8967162039B317F66@dlee02.ent.ti.com>
-	<005001ca4e8b$ea107c10$3d1018ac@am.dhcp.ti.com>
-	<1F18D6510CF0474A8C9500565A7E41A210F69EEFFB@NOK-EUMSG-02.mgdnok.nokia.com>
-	<87oco2njfh.fsf@deeprootsystems.com>
-	<1F18D6510CF0474A8C9500565A7E41A210F6A57C90@NOK-EUMSG-02.mgdnok.nokia.com>
- <87oco2m3fq.fsf@deeprootsystems.com>
+From: "Gulati, Shweta" <shweta.gulati@ti.com>
+Subject: FW: [PATCH V2] OMAP3:PM:Fix for Silicon bug on Context restore on
+ OMAP3430
+Date: Wed, 21 Oct 2009 10:28:29 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA23E5A7@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50657 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:51042 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751026AbZJUEha convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 00:37:30 -0400
-In-Reply-To: <87oco2m3fq.fsf@deeprootsystems.com>
+	id S1751026AbZJUE6a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 00:58:30 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9L4wVgI012093
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 20 Oct 2009 23:58:33 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9L4wUJV009491
+	for <linux-omap@vger.kernel.org>; Wed, 21 Oct 2009 10:28:31 +0530 (IST)
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Tero.Kristo@nokia.com" <Tero.Kristo@nokia.com>
-Cc: "Ghongdemath, Girish" <girishsg@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "jouni.hogander@nokia.com" <jouni.hogander@nokia.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Treo,
-
->>@@ -505,6 +507,12 @@ void omap_sram_idle(void)
->>                prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
->>                omap3_enable_io_chain();
->>        }
->>+       /*
->>+        * Disable INTC autoidle as it can cause interrupt controller
->>+        * to enter unknown state with right combination of sleep / wakeup
->>+        * transitions
->>+        */
->>+       omap_writel(0x0, OMAP34XX_IC_BASE + INTC_SYSCONFIG);
->>
->>        /*
->>        * On EMU/HS devices ROM code restores a SRDC value
->>@@ -561,6 +569,8 @@ void omap_sram_idle(void)
->>                                                OMAP3430_GR_MOD,
->>                                                OMAP3_PRM_VOLTCTRL_OFFSET);
->>        }
->>+       /* Re-enable interrupt controller autoidle */
->>+       omap_writel(OMAP3430_AUTOIDLE, OMAP34XX_IC_BASE + INTC_SYSCONFIG);
-
-Autoidle is being enabled inside the  if (core_next_state < PWRDM_POWER_ON). This is a bug because it is disabled irrespective of core pwr domain state. So if Core domain is on , this code will end up not enabling INTC autoidle during resume.
-
+Any comments would be taken in.
+Thanks
 Regards
-Thara
+Shweta
 
->>-----Original Message-----
->>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
->>Hilman
->>Sent: Tuesday, October 20, 2009 10:02 PM
->>To: Tero.Kristo@nokia.com
->>Cc: Ghongdemath, Girish; Woodruff, Richard; linux-omap@vger.kernel.org; jouni.hogander@nokia.com
->>Subject: Re: [PATCH 12/17] OMAP2/3: Do not enable AUTOIDLE in interrupt controller
->>
->><Tero.Kristo@nokia.com> writes:
->>
->>[...]
->>
->>>>>
->>>>> Anyway, I guess the optimization would look something like this:
->>>>>
->>>>> diff --git a/arch/arm/mach-omap2/pm34xx.c
->>>>b/arch/arm/mach-omap2/pm34xx.c
->>>>> index 210a806..7a98321 100644
->>>>> --- a/arch/arm/mach-omap2/pm34xx.c
->>>>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>>>> @@ -93,6 +93,8 @@ u32 voltage_off_while_idle;
->>>>>                 OMAP3430_ST_GPT5_MASK|OMAP3430_ST_GPT4_MASK|\
->>>>>                 OMAP3430_ST_GPT3_MASK|OMAP3430_ST_GPT2_MASK)
->>>>>
->>>>> +#define INTC_SYSCONFIG                 0x10
->>>>> +
->>>>>  struct power_state {
->>>>>         struct powerdomain *pwrdm;
->>>>>         u32 next_state;
->>>>> @@ -505,6 +507,12 @@ void omap_sram_idle(void)
->>>>>                 prm_set_mod_reg_bits(OMAP3430_EN_IO,
->>>>WKUP_MOD, PM_WKEN);
->>>>>                 omap3_enable_io_chain();
->>>>>         }
->>>>> +       /*
->>>>> +        * Disable INTC autoidle as it can cause interrupt controller
->>>>> +        * to enter unknown state with right combination of
->>>>sleep / wakeup
->>>>> +        * transitions
->>>>> +        */
->>>>> +       omap_writel(0x0, OMAP34XX_IC_BASE + INTC_SYSCONFIG);
->>>>
->>>>Except omap_write* functions are deprecated.
->>>
->>> I see, will use __raw_writel here then.
->>>
->>>>
->>>>I'd rather see a call into the interrupt code.  Something like
->>>>omap_intc_prepare_idle()
->>>
->>> Can do these changes to add the interface yes. Though name would be omap3_intc_prepare_idle() /
->>...resume_idle() as this is only needed for OMAP3.
->>
->>OK.
->>
->>>>
->>>>Also, isn't this only needed if CORE != ON?
->>>
->>> I understood from the problem description that this is needed always when we are entering WFI,
->>because we might have L3/L4 sleep/run transitions there even if CORE is on.
->>>
->>
->>OK.
->>
->>Kevin
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-----Original Message-----
+From: Gulati, Shweta 
+Sent: Tuesday, October 13, 2009 3:56 PM
+To: linux-omap@vger.kernel.org
+Cc: Gulati, Shweta; Gopinath, Thara
+Subject: [PATCH V2] OMAP3:PM:Fix for Silicon bug on Context restore on OMAP3430
+
+From: Shweta Gulati <shweta.gulati@ti.com>
+
+(Resending the patch with the subject line and some minor fixes)
+
+According to Silicon Bug on context restore it is  found that the pad
+configuration register for GPIO_28/GPIO_29(ETKD14/15) is corrupted after
+returning from Core OFF mode. This happens if the MPU reads the
+PADCONF_SAVEDONE bit very close to the end of context save sequence
+for the pad conf registers, resulting in last context not being saved to the
+scratchpad  memory. This is a h/w bug. The workaround is to delay the
+MPU access of SAVEDONE bit until the last context has been saved.
+
+This patch adds a configuration option to allow 300 us delay in
+save path as recommended by TI. The other option is to let the
+bug occur but store the value of pad configuration register explicitly
+and write it back in resume path. But this option should be chosen
+only if the ETKD14/15 pads are not in use as this workaround can
+lead to glitch in the pin.
+
+Signed-off-by: Shweta Gulati <shweta.gulati@ti.com>
+Signed-off-by: Thara Gopinath<thara@ti.com>
+---
+ arch/arm/mach-omap2/pm34xx.c |   25 +++++++++++++++++++++++++
+ arch/arm/plat-omap/Kconfig   |   17 +++++++++++++++++
+ 2 files changed, 42 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index cea3bca..4f9671a 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -26,6 +26,7 @@
+ #include <linux/err.h>
+ #include <linux/gpio.h>
+ #include <linux/clk.h>
++#include <linux/delay.h>
+ 
+ #include <mach/sram.h>
+ #include <mach/prcm.h>
+@@ -54,10 +55,19 @@
+ 
+ static int regset_save_on_suspend;
+ 
++/* A extra variable to store value of pad_config register if
++ * delay is not to be inserted and value is explicitly restored
++ * in resume path.
++ */
++#ifndef CONFIG_DELAY_IN_PADCONF_SAVE
++static u32 store_pad_config;
++#endif
++
+ /* Scratchpad offsets */
+ #define OMAP343X_TABLE_ADDRESS_OFFSET	   0x31
+ #define OMAP343X_TABLE_VALUE_OFFSET	   0x30
+ #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0x32
++#define CONTROL_PADCONF_ETK_D14			0x480025F8
+ 
+ u32 enable_off_mode;
+ u32 sleep_while_idle;
+@@ -202,6 +212,17 @@ static void omap3_core_save_context(void)
+ 	omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_OFF);
+ 	control_padconf_off |= START_PADCONF_SAVE;
+ 	omap_ctrl_writel(control_padconf_off, OMAP343X_CONTROL_PADCONF_OFF);
++#ifndef CONFIG_DELAY_IN_PADCONF_SAVE
++	store_pad_config = omap_readl(CONTROL_PADCONF_ETK_D14);
++#else
++	/* Due to Silicon Bug on context restore it is found
++	 * that the CONTROL_PAD_CONF_ETK14 register is not saved into
++	 * scratch pad memory sometimes. To rectify it delay acess by Mpu
++	 * for 300us for scm to finish saving task
++	 */
++	udelay(300);
++#endif
++
+ 	/* wait for the save to complete */
+ 	while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
+ 			& PADCONF_SAVE_DONE)
+@@ -217,6 +238,10 @@ static void omap3_core_save_context(void)
+ 
+ static void omap3_core_restore_context(void)
+ {
++	/* Restore the last padconf value if needed */
++#ifndef CONFIG_DELAY_IN_PADCONF_SAVE
++	omap_writel(store_pad_config, CONTROL_PADCONF_ETK_D14);
++#endif
+ 	/* Restore the control module context, padconf restored by h/w */
+ 	omap3_control_restore_context();
+ 	/* Restore the GPMC context */
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 2143db5..737d0aa 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -242,6 +242,23 @@ config OMAP_PM_SRF
+ 
+ endchoice
+ 
++config DELAY_IN_PADCONF_SAVE
++	bool "Insert 300 us delay after the start of padconf saving"
++	depends on ARCH_OMAP3 && PM
++	help
++	 If this option is selected  a  300 us delay is inserted in the
++	 suspend path after writing into START_PADCONF_SAVE bit to ensure
++	 that pad configuration register is stored properly.If mpu tries to
++	 access SAVE_DOME bit before the entire save is over, there is a
++	 possibility that the last padconf register is not saved properly.
++	 The delay ensures that mpu does not acess SAVE_DONE bit before the
++	 save is complete.
++
++	 If this option is not selected the bug is let
++	 to happen and last pad configuration register
++	 is explicitly saved in SDRAM and written back
++	 in resume path.
++
+ endmenu
+ 
+ endif
+-- 
+1.5.4.7
 
