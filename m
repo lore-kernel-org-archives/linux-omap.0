@@ -1,161 +1,174 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 09/17] OMAP3: PM: Ack pending interrupts before entering
- suspend
-Date: Wed, 21 Oct 2009 18:01:46 +0200
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A210F6A585C7@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-8-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
-	<871vkykm5y.fsf@deeprootsystems.com>
-	<1F18D6510CF0474A8C9500565A7E41A210F6A5824E@NOK-EUMSG-02.mgdnok.nokia.com>
- <87hbtsomma.fsf@deeprootsystems.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] OMAP1: fix redundant UARTs pin muxing that can
+	break other hardware support
+Date: Wed, 21 Oct 2009 18:27:53 +0200
+Message-ID: <200910211827.54733.jkrzyszt@tis.icnet.pl>
+References: <200910210239.55194.jkrzyszt@tis.icnet.pl>
+	<20091021005134.GE16230@atomide.com>
+Reply-To: Discussion of the Amstrad E3 emailer hardware/software
+	<e3-hacking@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:31136 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754172AbZJUQCJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 12:02:09 -0400
-In-Reply-To: <87hbtsomma.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <e3-hacking-bounces@earth.li>
+In-Reply-To: <20091021005134.GE16230@atomide.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://www.earth.li/cgi-bin/mailman/options/e3-hacking>,
+	<mailto:e3-hacking-request@earth.li?subject=unsubscribe>
+List-Archive: <http://www.earth.li/pipermail/e3-hacking>
+List-Post: <mailto:e3-hacking@earth.li>
+List-Help: <mailto:e3-hacking-request@earth.li?subject=help>
+List-Subscribe: <http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking>,
+	<mailto:e3-hacking-request@earth.li?subject=subscribe>
+Sender: e3-hacking-bounces@earth.li
+Errors-To: e3-hacking-bounces@earth.li
+To: Tony Lindgren <tony@atomide.com>
+Cc: e3-hacking@earth.li, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
 
- 
-
->-----Original Message-----
->From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: 21 October, 2009 17:20
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH 09/17] OMAP3: PM: Ack pending interrupts 
->before entering suspend
->
-><Tero.Kristo@nokia.com> writes:
->
->>>-----Original Message-----
->>>From: linux-omap-owner@vger.kernel.org 
->>>[mailto:linux-omap-owner@vger.kernel.org] On Behalf Of ext 
->Kevin Hilman
->>>Sent: 20 October, 2009 20:31
->>>To: Kristo Tero (Nokia-D/Tampere)
->>>Cc: linux-omap@vger.kernel.org
->>>Subject: Re: [PATCH 09/17] OMAP3: PM: Ack pending interrupts 
->>>before entering suspend
->>>
->>>Tero Kristo <tero.kristo@nokia.com> writes:
->>>
->>>> From: Tero Kristo <tero.kristo@nokia.com>
->>>>
->>>> Suspending drivers may still generate interrupts just before 
->>>their suspend is
->>>> completed. Any pending interrupts here will prevent sleep.
->>>>
->>>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->>>
->>>This could also be done in omap3_intc_prepare_idle() hook.
->>
->> I thought it is better to do this in suspend path only, because in
->> normal sleep case we most likely don't want to miss any
->> interrupts. 
->
->Agreed, then I'd suggest doing this in omap3_intc_[suspend|resume]()
->hooks.
->
->> In suspend case, we usually want to enter the suspend no
->> matter what, and this is used here only to clean up the mess left by
->> some of the drivers. The GPT case is one of the main things we try
->> to fix here.
->
->So is this still needed with the GPTIMER fix in PATCH 8/17?
-
-Yeah, it is not enough to ack the interrupt at module level, we still have the pending IRQ in the interrupt controller itself.
-
->
->If there are other drivers having delayed interrupt triggering, it
->sounds like the drivers need to be fixed instead of this brute force
->approach.
-
-I think any system device can have similar issue if they receive an interrupt while we are entering suspend. The main problem is the sequence executed during suspend: interrupts are disabled before we suspend the system devices (e.g. clock source) and it is very possible for the devices to receive interrupts during this window. GPT is a special case because it also has internal buffering for the register writes, so it continues to tick a while after it is stopped. GPT is also special in a sense that it can trigger an interrupt at arbitrary points of time.
-
-I don't know if similar issue exists on other platforms so changing the suspend sequence itself is probably not an option. And.. acking all interrupts at every suspending device is probably neither.
-
--Tero
-
->
->>
->>>
->>>> ---
->>>>  arch/arm/mach-omap2/irq.c              |    2 +-
->>>>  arch/arm/mach-omap2/pm34xx.c           |    2 ++
->>>>  arch/arm/plat-omap/include/mach/irqs.h |    1 +
->>>>  3 files changed, 4 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
->>>> index aceedd8..4ed05e9 100644
->>>> --- a/arch/arm/mach-omap2/irq.c
->>>> +++ b/arch/arm/mach-omap2/irq.c
->>>> @@ -101,7 +101,7 @@ static int 
->omap_check_spurious(unsigned int irq)
->>>>  }
->>>>  
->>>>  /* XXX: FIQ and additional INTC support (only MPU at the 
->moment) */
->>>> -static void omap_ack_irq(unsigned int irq)
->>>> +void omap_ack_irq(unsigned int irq)
->>>>  {
->>>>  	intc_bank_write_reg(0x1, &irq_banks[0], INTC_CONTROL);
->>>>  }
->>>> diff --git a/arch/arm/mach-omap2/pm34xx.c 
->>>b/arch/arm/mach-omap2/pm34xx.c
->>>> index 5854fa7..6a41811 100644
->>>> --- a/arch/arm/mach-omap2/pm34xx.c
->>>> +++ b/arch/arm/mach-omap2/pm34xx.c
->>>> @@ -778,6 +778,8 @@ static int omap3_pm_suspend(void)
->>>>  
->>>>  	omap_uart_prepare_suspend();
->>>>  
->>>> +	/* Ack pending IRQs, as a pending IRQ will cause the 
->>>suspend to fail */
->>>> +	omap_ack_irq(0);
->>>>  	regset_save_on_suspend = 1;
->>>>  	omap_sram_idle();
->>>>  	regset_save_on_suspend = 0;
->>>> diff --git a/arch/arm/plat-omap/include/mach/irqs.h 
->>>b/arch/arm/plat-omap/include/mach/irqs.h
->>>> index 2473910..d56be1c 100644
->>>> --- a/arch/arm/plat-omap/include/mach/irqs.h
->>>> +++ b/arch/arm/plat-omap/include/mach/irqs.h
->>>> @@ -483,6 +483,7 @@
->>>>  #ifndef __ASSEMBLY__
->>>>  extern void omap_init_irq(void);
->>>>  extern int omap_irq_pending(void);
->>>> +extern void omap_ack_irq(unsigned int irq);
->>>>  void omap3_intc_save_context(void);
->>>>  void omap3_intc_restore_context(void);
->>>>  #endif
->>>> -- 
->>>> 1.5.4.3
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe 
->>>linux-omap" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>--
->>>To unsubscribe from this list: send the line "unsubscribe 
->>>linux-omap" in
->>>the body of a message to majordomo@vger.kernel.org
->>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->
+V2VkbmVzZGF5IDIxIE9jdG9iZXIgMjAwOSAwMjo1MTozNSBUb255IExpbmRncmVuIG5hcGlzYcWC
+KGEpOgo+Cj4gTGV0J3MganVzdCByZW1vdmUgdGhlIG9tYXBfY2ZnX3JlZygpIGNhbGxzIGZyb20g
+bWFjaC1vbWFwMS9zZXJpYWwuYywgYW5kCj4gYWRkIHRoZW0gdG8gdGhlIGJvYXJkLSouYyBmaWxl
+cyBsaWtlIHlvdSBzdWdnZXN0IGFib3ZlLiBXZSBzaG91bGQgYmUgYWJsZQo+IHRvIGZpbmQgd2hp
+Y2ggcG9ydHMgdG8gbXV4IGJ5IGxvb2tpbmcgYXQgdGhlIGVuYWJsZWRfdWFydHMgbWFzayBpbiB0
+aGUKPiBjb21taXQgbWVudGlvbmVkIGFib3ZlLgoKSGVyZSB5b3UgYXJlIChib2FyZC0qLmMgY2hh
+bmdlcyBsaW1pdGVkIHRvIHRob3NlIE9NQVAxNTEwIGJhc2VkKS4KQ3JlYXRlZCBhZ2FpbnN0IGxp
+bnV4LTIuNi4zMi1yYzUuClRlc3RlZCBvbiBBbXNkdHJhZCBEZWx0YSBvbmx5LgoKU2lnbmVkLW9m
+Zi1ieTogSmFudXN6IEtyenlzenRvZmlrIDxqa3J6eXN6dEB0aXMuaWNuZXQucGw+CgotLS0KZGlm
+ZiAtdXByIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWFt
+cy1kZWx0YS5jIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2Fy
+ZC1hbXMtZGVsdGEuYwotLS0gbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gvYXJtL21hY2gtb21h
+cDEvYm9hcmQtYW1zLWRlbHRhLmMJMjAwOS0xMC0xNiAwMjo0MTo1MC4wMDAwMDAwMDAgKzAyMDAK
+KysrIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1hbXMt
+ZGVsdGEuYwkyMDA5LTEwLTIxIDE3OjQxOjI5LjAwMDAwMDAwMCArMDIwMApAQCAtMjE5LDYgKzIx
+OSwxMCBAQCBzdGF0aWMgc3RydWN0IHBsYXRmb3JtX2RldmljZSAqYW1zX2RlbHRhCiAKIHN0YXRp
+YyB2b2lkIF9faW5pdCBhbXNfZGVsdGFfaW5pdCh2b2lkKQogeworCS8qIHNldHVwIG11eCBwaW5z
+IGZvciB1YXJ0cywgcmVtb3ZlZCBmcm9tIHNlcmlhbC5jICovCisJb21hcF9jZmdfcmVnKFVBUlQx
+X1RYKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDFfUlRTKTsKKwogCWlvdGFibGVfaW5pdChhbXNfZGVs
+dGFfaW9fZGVzYywgQVJSQVlfU0laRShhbXNfZGVsdGFfaW9fZGVzYykpOwogCiAJb21hcF9ib2Fy
+ZF9jb25maWcgPSBhbXNfZGVsdGFfY29uZmlnOwpkaWZmIC11cHIgbGludXgtMi42LjMyLXJjNS5v
+cmlnL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtZ2VuZXJpYy5jIGxpbnV4LTIuNi4zMi1yYzUu
+Zml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1nZW5lcmljLmMKLS0tIGxpbnV4LTIuNi4z
+Mi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLWdlbmVyaWMuYwkyMDA5LTEwLTE2
+IDAyOjQxOjUwLjAwMDAwMDAwMCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNo
+L2FybS9tYWNoLW9tYXAxL2JvYXJkLWdlbmVyaWMuYwkyMDA5LTEwLTIxIDE4OjE1OjM3LjAwMDAw
+MDAwMCArMDIwMApAQCAtNjQsNiArNjQsMTQgQEAgc3RhdGljIHZvaWQgX19pbml0IG9tYXBfZ2Vu
+ZXJpY19pbml0KHZvaQogewogI2lmZGVmIENPTkZJR19BUkNIX09NQVAxNVhYCiAJaWYgKGNwdV9p
+c19vbWFwMTV4eCgpKSB7CisJCS8qIHNldHVwIG11eCBwaW5zIGZvciB1YXJ0cywgcmVtb3ZlZCBm
+cm9tIHNlcmlhbC5jICovCisJCW9tYXBfY2ZnX3JlZyhVQVJUMV9UWCk7CisJCW9tYXBfY2ZnX3Jl
+ZyhVQVJUMV9SVFMpOworCQlvbWFwX2NmZ19yZWcoVUFSVDJfVFgpOworCQlvbWFwX2NmZ19yZWco
+VUFSVDJfUlRTKTsKKwkJb21hcF9jZmdfcmVnKFVBUlQzX1RYKTsKKwkJb21hcF9jZmdfcmVnKFVB
+UlQzX1JYKTsKKwogCQlvbWFwX3VzYl9pbml0KCZnZW5lcmljMTUxMF91c2JfY29uZmlnKTsKIAl9
+CiAjZW5kaWYKZGlmZiAtdXByIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9t
+YXAxL2JvYXJkLWlubm92YXRvci5jIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFj
+aC1vbWFwMS9ib2FyZC1pbm5vdmF0b3IuYwotLS0gbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gv
+YXJtL21hY2gtb21hcDEvYm9hcmQtaW5ub3ZhdG9yLmMJMjAwOS0xMC0xNiAwMjo0MTo1MC4wMDAw
+MDAwMDAgKzAyMDAKKysrIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFw
+MS9ib2FyZC1pbm5vdmF0b3IuYwkyMDA5LTEwLTIxIDE4OjE2OjU5LjAwMDAwMDAwMCArMDIwMApA
+QCAtMzc2LDYgKzM3NiwyNCBAQCBzdGF0aWMgdm9pZCBfX2luaXQgaW5ub3ZhdG9yX2luaXQodm9p
+ZCkKIHsKICNpZmRlZiBDT05GSUdfQVJDSF9PTUFQMTVYWAogCWlmIChjcHVfaXNfb21hcDE1MTAo
+KSkgeworCQkvKiBzZXR1cCBtdXggcGlucyBmb3IgdWFydHMsIHJlbW92ZWQgZnJvbSBzZXJpYWwu
+YyAqLworCQlvbWFwX2NmZ19yZWcoVUFSVDFfVFgpOworCQlvbWFwX2NmZ19yZWcoVUFSVDFfUlRT
+KTsKKwkJb21hcF9jZmdfcmVnKFVBUlQyX1RYKTsKKwkJb21hcF9jZmdfcmVnKFVBUlQyX1JUUyk7
+CisJCW9tYXBfY2ZnX3JlZyhVQVJUM19UWCk7CisJCW9tYXBfY2ZnX3JlZyhVQVJUM19SWCk7CisK
+KwkJcmVnID0gZnBnYV9yZWFkKE9NQVAxNTEwX0ZQR0FfUE9XRVIpOworCQlyZWcgfD0gT01BUDE1
+MTBfRlBHQV9QQ1JfQ09NMV9FTjsKKwkJZnBnYV93cml0ZShyZWcsIE9NQVAxNTEwX0ZQR0FfUE9X
+RVIpOworCQl1ZGVsYXkoMTApOworCisJCXJlZyA9IGZwZ2FfcmVhZChPTUFQMTUxMF9GUEdBX1BP
+V0VSKTsKKwkJcmVnIHw9IE9NQVAxNTEwX0ZQR0FfUENSX0NPTTJfRU47CisJCWZwZ2Ffd3JpdGUo
+cmVnLCBPTUFQMTUxMF9GUEdBX1BPV0VSKTsKKwkJdWRlbGF5KDEwKTsKKwogCQlwbGF0Zm9ybV9h
+ZGRfZGV2aWNlcyhpbm5vdmF0b3IxNTEwX2RldmljZXMsIEFSUkFZX1NJWkUoaW5ub3ZhdG9yMTUx
+MF9kZXZpY2VzKSk7CiAJCXNwaV9yZWdpc3Rlcl9ib2FyZF9pbmZvKGlubm92YXRvcjE1MTBfYm9h
+cmRpbmZvLAogCQkJCUFSUkFZX1NJWkUoaW5ub3ZhdG9yMTUxMF9ib2FyZGluZm8pKTsKZGlmZiAt
+dXByIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBhbG10
+ZS5jIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1wYWxt
+dGUuYwotLS0gbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQt
+cGFsbXRlLmMJMjAwOS0xMC0xNiAwMjo0MTo1MC4wMDAwMDAwMDAgKzAyMDAKKysrIGxpbnV4LTIu
+Ni4zMi1yYzUuZml4ZWQvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1wYWxtdGUuYwkyMDA5LTEw
+LTIxIDE3OjM4OjU5LjAwMDAwMDAwMCArMDIwMApAQCAtMzQyLDYgKzM0MiwxNCBAQCBzdGF0aWMg
+dm9pZCBfX2luaXQgcGFsbXRlX21pc2NfZ3Bpb19zZXR1CiAKIHN0YXRpYyB2b2lkIF9faW5pdCBv
+bWFwX3BhbG10ZV9pbml0KHZvaWQpCiB7CisJLyogc2V0dXAgbXV4IHBpbnMgZm9yIHVhcnRzLCBy
+ZW1vdmVkIGZyb20gc2VyaWFsLmMgKi8KKwlvbWFwX2NmZ19yZWcoVUFSVDFfVFgpOworCW9tYXBf
+Y2ZnX3JlZyhVQVJUMV9SVFMpOworCW9tYXBfY2ZnX3JlZyhVQVJUMl9UWCk7CisJb21hcF9jZmdf
+cmVnKFVBUlQyX1JUUyk7CisJb21hcF9jZmdfcmVnKFVBUlQzX1RYKTsKKwlvbWFwX2NmZ19yZWco
+VUFSVDNfUlgpOworCiAJb21hcF9ib2FyZF9jb25maWcgPSBwYWxtdGVfY29uZmlnOwogCW9tYXBf
+Ym9hcmRfY29uZmlnX3NpemUgPSBBUlJBWV9TSVpFKHBhbG10ZV9jb25maWcpOwogCmRpZmYgLXVw
+ciBsaW51eC0yLjYuMzItcmM1Lm9yaWcvYXJjaC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1wYWxtdHQu
+YyBsaW51eC0yLjYuMzItcmM1LmZpeGVkL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtcGFsbXR0
+LmMKLS0tIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBh
+bG10dC5jCTIwMDktMTAtMTYgMDI6NDE6NTAuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC0yLjYu
+MzItcmM1LmZpeGVkL2FyY2gvYXJtL21hY2gtb21hcDEvYm9hcmQtcGFsbXR0LmMJMjAwOS0xMC0y
+MSAxNzozOToxOS4wMDAwMDAwMDAgKzAyMDAKQEAgLTI4OSw2ICsyODksMTQgQEAgc3RhdGljIHZv
+aWQgX19pbml0IG9tYXBfbXB1X3dkdF9tb2RlKGludAogCiBzdGF0aWMgdm9pZCBfX2luaXQgb21h
+cF9wYWxtdHRfaW5pdCh2b2lkKQogeworCS8qIHNldHVwIG11eCBwaW5zIGZvciB1YXJ0cywgcmVt
+b3ZlZCBmcm9tIHNlcmlhbC5jICovCisJb21hcF9jZmdfcmVnKFVBUlQxX1RYKTsKKwlvbWFwX2Nm
+Z19yZWcoVUFSVDFfUlRTKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDJfVFgpOworCW9tYXBfY2ZnX3Jl
+ZyhVQVJUMl9SVFMpOworCW9tYXBfY2ZnX3JlZyhVQVJUM19UWCk7CisJb21hcF9jZmdfcmVnKFVB
+UlQzX1JYKTsKKwogCW9tYXBfbXB1X3dkdF9tb2RlKDApOwogCiAJb21hcF9ib2FyZF9jb25maWcg
+PSBwYWxtdHRfY29uZmlnOwpkaWZmIC11cHIgbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gvYXJt
+L21hY2gtb21hcDEvYm9hcmQtcGFsbXo3MS5jIGxpbnV4LTIuNi4zMi1yYzUuZml4ZWQvYXJjaC9h
+cm0vbWFjaC1vbWFwMS9ib2FyZC1wYWxtejcxLmMKLS0tIGxpbnV4LTIuNi4zMi1yYzUub3JpZy9h
+cmNoL2FybS9tYWNoLW9tYXAxL2JvYXJkLXBhbG16NzEuYwkyMDA5LTEwLTE2IDAyOjQxOjUwLjAw
+MDAwMDAwMCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNoL2FybS9tYWNoLW9t
+YXAxL2JvYXJkLXBhbG16NzEuYwkyMDA5LTEwLTIxIDE3OjM5OjM0LjAwMDAwMDAwMCArMDIwMApA
+QCAtMzA3LDYgKzMwNywxNCBAQCBwYWxtejcxX2dwaW9fc2V0dXAoaW50IGVhcmx5KQogc3RhdGlj
+IHZvaWQgX19pbml0CiBvbWFwX3BhbG16NzFfaW5pdCh2b2lkKQogeworCS8qIHNldHVwIG11eCBw
+aW5zIGZvciB1YXJ0cywgcmVtb3ZlZCBmcm9tIHNlcmlhbC5jICovCisJb21hcF9jZmdfcmVnKFVB
+UlQxX1RYKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDFfUlRTKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDJf
+VFgpOworCW9tYXBfY2ZnX3JlZyhVQVJUMl9SVFMpOworCW9tYXBfY2ZnX3JlZyhVQVJUM19UWCk7
+CisJb21hcF9jZmdfcmVnKFVBUlQzX1JYKTsKKwogCXBhbG16NzFfZ3Bpb19zZXR1cCgxKTsKIAlv
+bWFwX21wdV93ZHRfbW9kZSgwKTsKIApkaWZmIC11cHIgbGludXgtMi42LjMyLXJjNS5vcmlnL2Fy
+Y2gvYXJtL21hY2gtb21hcDEvYm9hcmQtc3gxLmMgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNo
+L2FybS9tYWNoLW9tYXAxL2JvYXJkLXN4MS5jCi0tLSBsaW51eC0yLjYuMzItcmM1Lm9yaWcvYXJj
+aC9hcm0vbWFjaC1vbWFwMS9ib2FyZC1zeDEuYwkyMDA5LTEwLTE2IDAyOjQxOjUwLjAwMDAwMDAw
+MCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNoL2FybS9tYWNoLW9tYXAxL2Jv
+YXJkLXN4MS5jCTIwMDktMTAtMjEgMTc6NDA6MjAuMDAwMDAwMDAwICswMjAwCkBAIC0zNzcsNiAr
+Mzc3LDE0IEBAIHN0YXRpYyBzdHJ1Y3Qgb21hcF9ib2FyZF9jb25maWdfa2VybmVsIHMKIAogc3Rh
+dGljIHZvaWQgX19pbml0IG9tYXBfc3gxX2luaXQodm9pZCkKIHsKKwkvKiBzZXR1cCBtdXggcGlu
+cyBmb3IgdWFydHMsIHJlbW92ZWQgZnJvbSBzZXJpYWwuYyAqLworCW9tYXBfY2ZnX3JlZyhVQVJU
+MV9UWCk7CisJb21hcF9jZmdfcmVnKFVBUlQxX1JUUyk7CisJb21hcF9jZmdfcmVnKFVBUlQyX1RY
+KTsKKwlvbWFwX2NmZ19yZWcoVUFSVDJfUlRTKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDNfVFgpOwor
+CW9tYXBfY2ZnX3JlZyhVQVJUM19SWCk7CisKIAlwbGF0Zm9ybV9hZGRfZGV2aWNlcyhzeDFfZGV2
+aWNlcywgQVJSQVlfU0laRShzeDFfZGV2aWNlcykpOwogCiAJb21hcF9ib2FyZF9jb25maWcgPSBz
+eDFfY29uZmlnOwpkaWZmIC11cHIgbGludXgtMi42LjMyLXJjNS5vcmlnL2FyY2gvYXJtL21hY2gt
+b21hcDEvYm9hcmQtdm9pY2VibHVlLmMgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNoL2FybS9t
+YWNoLW9tYXAxL2JvYXJkLXZvaWNlYmx1ZS5jCi0tLSBsaW51eC0yLjYuMzItcmM1Lm9yaWcvYXJj
+aC9hcm0vbWFjaC1vbWFwMS9ib2FyZC12b2ljZWJsdWUuYwkyMDA5LTEwLTE2IDAyOjQxOjUwLjAw
+MDAwMDAwMCArMDIwMAorKysgbGludXgtMi42LjMyLXJjNS5maXhlZC9hcmNoL2FybS9tYWNoLW9t
+YXAxL2JvYXJkLXZvaWNlYmx1ZS5jCTIwMDktMTAtMjEgMTc6NDA6NTcuMDAwMDAwMDAwICswMjAw
+CkBAIC0xNTIsNiArMTUyLDE0IEBAIHN0YXRpYyB2b2lkIF9faW5pdCB2b2ljZWJsdWVfaW5pdF9p
+cnEodm8KIAogc3RhdGljIHZvaWQgX19pbml0IHZvaWNlYmx1ZV9pbml0KHZvaWQpCiB7CisJLyog
+c2V0dXAgbXV4IHBpbnMgZm9yIHVhcnRzLCByZW1vdmVkIGZyb20gc2VyaWFsLmMgKi8KKwlvbWFw
+X2NmZ19yZWcoVUFSVDFfVFgpOworCW9tYXBfY2ZnX3JlZyhVQVJUMV9SVFMpOworCW9tYXBfY2Zn
+X3JlZyhVQVJUMl9UWCk7CisJb21hcF9jZmdfcmVnKFVBUlQyX1JUUyk7CisJb21hcF9jZmdfcmVn
+KFVBUlQzX1RYKTsKKwlvbWFwX2NmZ19yZWcoVUFSVDNfUlgpOworCiAJLyogV2F0Y2hkb2cgKi8K
+IAlncGlvX3JlcXVlc3QoMCwgIldhdGNoZG9nIik7CiAJLyogc21jOTF4IHJlc2V0ICovCmRpZmYg
+LXVwciBsaW51eC0yLjYuMzItcmM1Lm9yaWcvYXJjaC9hcm0vbWFjaC1vbWFwMS9zZXJpYWwuYyBs
+aW51eC0yLjYuMzItcmM1LmZpeGVkL2FyY2gvYXJtL21hY2gtb21hcDEvc2VyaWFsLmMKLS0tIGxp
+bnV4LTIuNi4zMi1yYzUub3JpZy9hcmNoL2FybS9tYWNoLW9tYXAxL3NlcmlhbC5jCTIwMDktMTAt
+MTYgMDI6NDE6NTAuMDAwMDAwMDAwICswMjAwCisrKyBsaW51eC0yLjYuMzItcmM1LmZpeGVkL2Fy
+Y2gvYXJtL21hY2gtb21hcDEvc2VyaWFsLmMJMjAwOS0xMC0yMSAxNzo1Mzo0OS4wMDAwMDAwMDAg
+KzAyMDAKQEAgLTE0MywxNiArMTQzLDYgQEAgdm9pZCBfX2luaXQgb21hcF9zZXJpYWxfaW5pdCh2
+b2lkKQogCQkJCWlmIChjcHVfaXNfb21hcDE1eHgoKSkKIAkJCQkJY2xrX3NldF9yYXRlKHVhcnQx
+X2NrLCAxMjAwMDAwMCk7CiAJCQl9Ci0JCQlpZiAoY3B1X2lzX29tYXAxNXh4KCkpIHsKLQkJCQlv
+bWFwX2NmZ19yZWcoVUFSVDFfVFgpOwotCQkJCW9tYXBfY2ZnX3JlZyhVQVJUMV9SVFMpOwotCQkJ
+CWlmIChtYWNoaW5lX2lzX29tYXBfaW5ub3ZhdG9yKCkpIHsKLQkJCQkJcmVnID0gZnBnYV9yZWFk
+KE9NQVAxNTEwX0ZQR0FfUE9XRVIpOwotCQkJCQlyZWcgfD0gT01BUDE1MTBfRlBHQV9QQ1JfQ09N
+MV9FTjsKLQkJCQkJZnBnYV93cml0ZShyZWcsIE9NQVAxNTEwX0ZQR0FfUE9XRVIpOwotCQkJCQl1
+ZGVsYXkoMTApOwotCQkJCX0KLQkJCX0KIAkJCWJyZWFrOwogCQljYXNlIDE6CiAJCQl1YXJ0Ml9j
+ayA9IGNsa19nZXQoTlVMTCwgInVhcnQyX2NrIik7CkBAIC0xNjUsMTYgKzE1NSw2IEBAIHZvaWQg
+X19pbml0IG9tYXBfc2VyaWFsX2luaXQodm9pZCkKIAkJCQllbHNlCiAJCQkJCWNsa19zZXRfcmF0
+ZSh1YXJ0Ml9jaywgNDgwMDAwMDApOwogCQkJfQotCQkJaWYgKGNwdV9pc19vbWFwMTV4eCgpKSB7
+Ci0JCQkJb21hcF9jZmdfcmVnKFVBUlQyX1RYKTsKLQkJCQlvbWFwX2NmZ19yZWcoVUFSVDJfUlRT
+KTsKLQkJCQlpZiAobWFjaGluZV9pc19vbWFwX2lubm92YXRvcigpKSB7Ci0JCQkJCXJlZyA9IGZw
+Z2FfcmVhZChPTUFQMTUxMF9GUEdBX1BPV0VSKTsKLQkJCQkJcmVnIHw9IE9NQVAxNTEwX0ZQR0Ff
+UENSX0NPTTJfRU47Ci0JCQkJCWZwZ2Ffd3JpdGUocmVnLCBPTUFQMTUxMF9GUEdBX1BPV0VSKTsK
+LQkJCQkJdWRlbGF5KDEwKTsKLQkJCQl9Ci0JCQl9CiAJCQlicmVhazsKIAkJY2FzZSAyOgogCQkJ
+dWFydDNfY2sgPSBjbGtfZ2V0KE5VTEwsICJ1YXJ0M19jayIpOwpAQCAtMTg1LDEwICsxNjUsNiBA
+QCB2b2lkIF9faW5pdCBvbWFwX3NlcmlhbF9pbml0KHZvaWQpCiAJCQkJaWYgKGNwdV9pc19vbWFw
+MTV4eCgpKQogCQkJCQljbGtfc2V0X3JhdGUodWFydDNfY2ssIDEyMDAwMDAwKTsKIAkJCX0KLQkJ
+CWlmIChjcHVfaXNfb21hcDE1eHgoKSkgewotCQkJCW9tYXBfY2ZnX3JlZyhVQVJUM19UWCk7Ci0J
+CQkJb21hcF9jZmdfcmVnKFVBUlQzX1JYKTsKLQkJCX0KIAkJCWJyZWFrOwogCQl9CiAJCW9tYXBf
+c2VyaWFsX3Jlc2V0KCZzZXJpYWxfcGxhdGZvcm1fZGF0YVtpXSk7CgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwplMy1oYWNraW5nIG1haWxpbmcgbGlzdApl
+My1oYWNraW5nQGVhcnRoLmxpCmh0dHA6Ly93d3cuZWFydGgubGkvY2dpLWJpbi9tYWlsbWFuL2xp
+c3RpbmZvL2UzLWhhY2tpbmcK
