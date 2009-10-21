@@ -1,148 +1,65 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 17/17] OMAP3: PM: Force disable OTG autoidle
-Date: Wed, 21 Oct 2009 12:21:57 +0200
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A210F6A58292@NOK-EUMSG-02.mgdnok.nokia.com>
-References: <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-3-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-4-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-5-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-6-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-7-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-8-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-9-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-10-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-11-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-12-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-13-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-14-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-15-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-16-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-17-git-send-email-tero.kristo@nokia.com>
-	<1255690150-16853-18-git-send-email-tero.kristo@nokia.com>
- <87eioxsy5w.fsf@deeprootsystems.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] Re: Calling omap_pcm_prepare() results in
+	BUG() on OMAP1
+Date: Wed, 21 Oct 2009 12:38:40 +0200
+Message-ID: <200910211238.41870.jkrzyszt@tis.icnet.pl>
+References: <200910210511.08263.jkrzyszt@tis.icnet.pl>
+	<20091021101637.e8167edb.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:51428 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751896AbZJUKWR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 06:22:17 -0400
-In-Reply-To: <87eioxsy5w.fsf@deeprootsystems.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091021101637.e8167edb.jhnikula@gmail.com>
+Content-Disposition: inline
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
 
- 
-
->-----Original Message-----
->From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
->Sent: 20 October, 2009 21:44
->To: Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH 17/17] OMAP3: PM: Force disable OTG autoidle
->
->Tero Kristo <tero.kristo@nokia.com> writes:
->
->> From: Tero Kristo <tero.kristo@nokia.com>
->>
->> OMAP3 sleep can be prevented in some cases where OTG 
->autoidle is enabled.
->> This patch force disables autoidle during boot and after 
->wakeup from off-mode.
->> See omap erratas 1.164 and 1.165.
->
->The init-at-boot step isn't needed as this is already done in 
->PM branch (see usb-muxb.c:usb_musb_pm_init()).
-
-True, that reset part actually does this, which is also part of the errata.
-
->
->> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->> ---
->>  arch/arm/mach-omap2/pm34xx.c |   14 ++++++++++++++
->>  1 files changed, 14 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/pm34xx.c 
->b/arch/arm/mach-omap2/pm34xx.c
->> index ae83121..5f351f2 100644
->> --- a/arch/arm/mach-omap2/pm34xx.c
->> +++ b/arch/arm/mach-omap2/pm34xx.c
->> @@ -94,6 +94,8 @@ u32 voltage_off_while_idle;
->>  		OMAP3430_ST_GPT5_MASK|OMAP3430_ST_GPT4_MASK|\
->>  		OMAP3430_ST_GPT3_MASK|OMAP3430_ST_GPT2_MASK)
->>  
->> +#define OTG_SYSCONFIG	(OMAP34XX_HSUSB_OTG_BASE + 0x404)
->> +
->>  struct power_state {
->>  	struct powerdomain *pwrdm;
->>  	u32 next_state;
->> @@ -423,6 +425,16 @@ static void restore_table_entry(void)
->>  	restore_control_register(control_reg_value);
->>  }
->>  
->> +static inline void disable_otg_autoidle(void)
->> +{
->> +	/*
->> +	 * OTG autoidle can prevent core domain sleep in some 
->cases, thus
->> +	 * disable it. See omap erratas 1.164 and 1.165.
->> +	 */
->> +	cm_set_mod_reg_bits(OMAP3430_EN_HSOTGUSB, CORE_MOD, CM_ICLKEN1);
->
->Is the ICLK enable required as part of the fix too?  I don't see
->mention of enabling the iclk as part of the workaround for either of
->these errata.
->
->If the iclk needs to be enabled, it should be done at init using
->the clk API.
-
-ICLK enable part is here because we will crash unless ICLK is active. It does not really need to be on, but it was rather simpler to do it this way. I can try to look if adding this into USB code would make sense.
-
->
->> +	omap_writel(0x0, OTG_SYSCONFIG);
->
->omap_writel() deprecated.  
-
-Again...
-
->
->> +}
->> +
->
->For readability, this should be a function in the USB core code
->(either usb-musb.c or a static inline in <mach/usb.h>)
->
->Kevin
->
->>  void omap_sram_idle(void)
->>  {
->>  	/* Variable to tell what needs to be saved and restored
->> @@ -628,6 +640,7 @@ void omap_sram_idle(void)
->>  			omap3_prcm_restore_context();
->>  			omap3_sram_restore_context();
->>  			omap2_sms_restore_context();
->> +			disable_otg_autoidle();
->>  		}
->>  		omap_uart_resume_idle(0);
->>  		omap_uart_resume_idle(1);
->> @@ -1417,6 +1430,7 @@ static int __init omap3_pm_early_init(void)
->>  				OMAP3_PRM_POLCTRL_OFFSET);
->>  
->>  	configure_vc();
->> +	disable_otg_autoidle();
->>  
->>  	return 0;
->>  }
->> -- 
->> 1.5.4.3
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe 
->linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+V2VkbmVzZGF5IDIxIE9jdG9iZXIgMjAwOSAwOToxNjozNyBKYXJra28gTmlrdWxhIG5hcGlzYcWC
+KGEpOgo+IEhpCj4KPiBPbiBXZWQsIDIxIE9jdCAyMDA5IDA1OjExOjA2ICswMjAwCj4KPiBKYW51
+c3ogS3J6eXN6dG9maWsgPGprcnp5c3p0QHRpcy5pY25ldC5wbD4gd3JvdGU6Cj4gPiBIaSwKPiA+
+IEFmdGVyIERNQSBidXJzdCBtb2RlIGhhcyBiZWVuIGludHJvZHVjZWQgaW4gc291bmQvc29jL29t
+YXAvb21hcC1wY20uYywKPiA+IG9tYXBfcGNtX3ByZXBhcmUoKSB1bmNvbmRpdGlvbmFsbHkgY2Fs
+bHM6Cj4gPgo+ID4gCW9tYXBfc2V0X2RtYV9zcmNfYnVyc3RfbW9kZShwcnRkLT5kbWFfY2gsIE9N
+QVBfRE1BX0RBVEFfQlVSU1RfMTYpOwo+ID4gCW9tYXBfc2V0X2RtYV9kZXN0X2J1cnN0X21vZGUo
+cHJ0ZC0+ZG1hX2NoLCBPTUFQX0RNQV9EQVRBX0JVUlNUXzE2KTsKPiA+Cj4gPiBBRkFJQ1MsIGN1
+cnJlbnQgaW1wbGVtZW50YXRpb24gb2YgdGhvc2UgdHdvIGZ1bmN0aW9ucyBmb3VuZCBpbgo+ID4g
+YXJjaC9hcm0vcGxhdC1vbXBhL2RtYS5jIGRvZXNuJ3Qgc3VwcG9ydCBPTUFQX0RNQV9EQVRBX0JV
+UlNUXzE2IG9uIE9NQVAxCj4gPiBhdCBhbGwsIHNvIHRoZXkgYm90aCBlbmQgd2l0aCBCVUcoKSBv
+biB0aGF0IG1hY2hpbmUuIFRoYXQgc2VlbXMgdG8gcmVzdWx0Cj4gPiBpbiBBU29DIGJlaW5nIGNv
+bXBsZXRlbHkgdW51c2FibGUsIGF0IGxlYXN0IG9uIG15IE9NQVA1OTEwIGJhc2VkIEFtc3RyYWQK
+PiA+IERlbHRhLgo+Cj4gVGhhbmtzIGZvciByZXBvcnRpbmcgdGhlIGlzc3VlLiBOb2JvZHkgZGlk
+bid0IHJlYWxpemUgd2hlbiB0aG9zZSBjYWxscwo+IHdlcmUgYWRkZWQgdGhhdCBpbmRlZWQgdGhl
+eSB3aWxsIGVuZCB1cCB0byBCVUcoKSBpbgo+IGFyY2gvYXJtL3BsYXQtb21hcC9kbWEuYyBvbiBP
+TUFQMS4KPgo+ID4gSXMgY2FsbGluZyBCVUcoKSBmb3IgT01BUDEgZnJvbSB0aG9zZSBmdW5jdGlv
+bnMgaW50ZW50aW9uYWw/Cj4gPgo+ID4gSWYgbm90IGludGVudGlvbmFsLCBjYW4gdGhvc2UgYmUg
+Y29ycmVjdGVkIGJ5IHNpbXBseSBwdXR0aW5nIGJyZWFrOwo+ID4gYmVmb3JlIGRlZmFsdXQ6Pwo+
+Cj4gSSdkIGxldCBpdCBvbiBhcyBpdCBpcyBhcyBpdCB3aWxsIHBvaW50IG91dCBpbW1lZGlhdGVs
+eSBpbnZhbGlkCj4gYXJndW1lbnQgZm9yIE9NQVAxIGFuZCB0aG9zZSBmdW5jdGlvbnMgZG8gbm90
+IGhhdmUgcmV0dXJuIHZhbHVlLgo+Cj4gPiBJZiBpbnRlbnRpb25hbCwgY2FuIHRob3NlIGZ1bmN0
+aW9uIGNhbGxzIGJlIGNvbmRpdGlvbmFsbHkgb21pdGVkLCBhdAo+ID4gbGVhc3QgZm9yIE9NQVAx
+NTEwLCBpbiBzb3VuZC9zb2Mvb21hcC9vbWFwLXBjbS5jPwo+Cj4gWWVwLCBqdXN0IHB1dCBjcHVf
+Y2xhc3NfaXNfb21hcDEoKSB0ZXN0IGluIHNvdW5kL3NvYy9vbWFwL29tYXAtcGNtLmMKPiBzaW5j
+ZSB3ZSBzaG91bGQgbm90IHRyeSB0byBzZXQgdW5zdXBwb3J0ZWQgYnVyc3Qgc2l6ZSBmb3IgT01B
+UDEuCgpIZXJlIHlvdSBhcmUuCgpTaWduZWQtb2ZmLWJ5OiBKYW51c3ogS3J6eXN6dG9maWsgPGpr
+cnp5c3p0QHRpcy5pY25ldC5wbD4KCi0tLQotLS0gbGludXgtMi42LjMyLXJjNS9zb3VuZC9zb2Mv
+b21hcC9vbWFwLXBjbS5jLm9yaWcJMjAwOS0xMC0xNiAwMjo0MTo1MC4wMDAwMDAwMDAgKzAyMDAK
+KysrIGxpbnV4LTIuNi4zMi1yYzUvc291bmQvc29jL29tYXAvb21hcC1wY20uYwkyMDA5LTEwLTIx
+IDEyOjMzOjQ1LjAwMDAwMDAwMCArMDIwMApAQCAtMTk1LDYgKzE5NSw5IEBAIHN0YXRpYyBpbnQg
+b21hcF9wY21fcHJlcGFyZShzdHJ1Y3Qgc25kX3AKIAllbHNlCiAJCW9tYXBfZW5hYmxlX2RtYV9p
+cnEocHJ0ZC0+ZG1hX2NoLCBPTUFQX0RNQV9GUkFNRV9JUlEpOwogCisJaWYgKGNwdV9jbGFzc19p
+c19vbWFwMSgpKQorCQlyZXR1cm4gMDsKKwogCW9tYXBfc2V0X2RtYV9zcmNfYnVyc3RfbW9kZShw
+cnRkLT5kbWFfY2gsIE9NQVBfRE1BX0RBVEFfQlVSU1RfMTYpOwogCW9tYXBfc2V0X2RtYV9kZXN0
+X2J1cnN0X21vZGUocHJ0ZC0+ZG1hX2NoLCBPTUFQX0RNQV9EQVRBX0JVUlNUXzE2KTsKIAoKX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBt
+YWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFs
+c2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
