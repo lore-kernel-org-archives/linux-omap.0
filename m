@@ -1,87 +1,110 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] Fix broken NAND on Amstrad Delta
-Date: Tue, 20 Oct 2009 17:51:35 -0700
-Message-ID: <20091021005134.GE16230@atomide.com>
-References: <200910210239.55194.jkrzyszt@tis.icnet.pl>
+From: Nishanth Menon <nm@ti.com>
+Subject: Re: [PATCH v2 1/2] omap: add bits for future 3430/3630 ES revisions
+Date: Tue, 20 Oct 2009 20:07:48 -0500
+Message-ID: <4ADE5EE4.2030901@ti.com>
+References: <1256077586-11636-1-git-send-email-vikram.pandita@ti.com> <alpine.DEB.2.00.0910201649060.22645@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62933 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341AbZJUAve (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 20 Oct 2009 20:51:34 -0400
-Content-Disposition: inline
-In-Reply-To: <200910210239.55194.jkrzyszt@tis.icnet.pl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37357 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753140AbZJUBHp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 20 Oct 2009 21:07:45 -0400
+In-Reply-To: <alpine.DEB.2.00.0910201649060.22645@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "Pandita, Vikram" <vikram.pandita@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091020 17:42]:
-> Hi,
-> I found that with commit 15ac408ee5a509053a765b816e9179515329369f, "OMAP:
-> UART: drop OMAP_TAG_UART, enable all UARTs, auto-disabled on idle", NAND got
-> not accessible on Amstrad Delta (E3). That seems to be caused by unnecessary
-> omap_cfg_reg() calls for UART ports 2 and 3, that were never used on that
-> machine before and now are initilalized and supposed to be auto-disabled.
+Paul Walmsley had written, on 10/20/2009 06:14 PM, the following:
+> Hi Vikram, Nishanth, Richard,
 > 
-> I can suspect that similiar problems may exist for other OMAP1510 based
-> boards. Furthermore, since mux code is going to be reorganized, the right
-> solution would probably be to remove those cpu_is_omap1510() specific bits
-> completely from arch/arm/mach-omap1/serial.c and push them into board specific
-> files where applicable. However, not being familiar with any OMAP hardware
-> other that my amsdelta, I provide a patch that solves the problem for that
-> machine only. I have locked out the bits for UART1 as well as those look not
-> really required, as far as I can understand
-> http://focus.ti.com/lit/ds/symlink/omap5910.pdf.
+> a few comments on this:
+> 
+> On Tue, 20 Oct 2009, Vikram Pandita wrote:
+> 
+>> Add bits for future expansion of omap_chip_id type field.
+>> This is needed to accomodate 3630ES1 chip id which is bit10
+> 
+> ...
+> 
+>> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+>> index 7cb0556..922bf1c 100644
+>> --- a/arch/arm/plat-omap/include/plat/cpu.h
+>> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+>> @@ -45,7 +45,7 @@ int omap_type(void);
+>>  
+>>  struct omap_chip_id {
+>>  	u8 oc;
+>> -	u8 type;
+>> +	u32 type;
+>>  };
+> 
+> Just wanted to understand the motivation for using the u32.  
+> 
+> Earlier in the life of these patches, two comments were mentioned: the 
+> desire to 'futureproof' and the desire to reserve space for other 
+> 34xx-family parts.
+> 
+> Regarding 'futureproofing:' that's part of the reason that a separate 
+> struct was defined for this: to prevent code that uses it from depending 
+> on the size of the type.  (Originally it was a typedef, but Linus hates 
+> typedefs...)  So it shouldn't matter how big or small the type is here, as 
+> long as it can handle all of the bits allocated for it.
+> 
+> Also mentioned was the idea of reserving space for other 34xx-family 
+> chips.  I'd suggest simply renumbering the bits when and if those versions 
+> appear.  Code that uses the omap_chip_id system should always use the 
+> macros (e.g. CHIP_IS_OMAP3430) and not encode separate bit shift values, 
+> so renumbering should be completely safe and transparent for core code.  
+> Module code shouldn't be using the omap_chip code, it's for core usage 
+> only.
+> 
+> So, since only one bit is being added, why not continue the use of the u8?  
+> Then when the next bits need to be added, the type can be expanded at that 
+> point, and the bits renumbered if necessary.  This should be a completely 
+> transparent operation for code that uses it.  Vikram's original patch:
+> 
+>     http://patchwork.kernel.org/patch/54847/
+> 
+> should be fine.
 
-Oops. That happened as a nasty side effect when we removed the OMAP_TAG_UART
-in commit 15ac408ee5a509053a765b816e9179515329369f.
+Assumptions:
+a) omap_chip_id is supposedly constant for all devices within the same 
+family. 3630, 3430 rev x will belong to the same family.
+b) we prefer bitops to using cpu_is_blahblah() for reasons of 
+performance (if it could be argued so)..
 
-Let's just remove the omap_cfg_reg() calls from mach-omap1/serial.c, and
-add them to the board-*.c files like you suggest above. We should be able
-to find which ports to mux by looking at the enabled_uarts mask in the
-commit mentioned above.
+Issues with the strategy of restricting to the current 8 bits:
+a) Why extrabits now:
+we have 8 bits now and we would have used all 8 bits with 3630 with the 
+mentioned patch. What do we do with the next revision of 3430? Do we 
+want to increase the size once it comes along? OR Do we want to do it 
+right now? Why wait till we get additional silicons to go figure how to 
+add those bits as Richard pointed out, when there could be one more in 
+the pipeline?
 
+b) How much extra bits should we add?
+It does not matter when you pull in extra bits - u'd have to go u16 for 
+next rev of 3430, it is gonna be a single entry, what if we end up (god 
+forbid) further revisions of 3630 or even a new gen of omap3 family - 
+call it 3XYZ devices?
+Further how expensive is it to add the u16 Vs u32 size from a memory 
+usage perspective?
+
+Either way, we could choose:
+a) We can choose to stick with u8 and take the next rev of 3430 ES 
+revision when the time is right
+b) we can choose to stick with u16 for the known future (+allowing for 5 
+more revisions of silicons) of OMAP3.
+c) We can choose to say - no one really knows how many ES/variants of a 
+silicon family could happen for OMAP3/OMAP4/5/6/7 etc.. and choose u32 
+giving us a limit beyond which we might choose to rearchitect things.
+
+The choice is upto this community to make.. options are very easy to 
+implement ;).
+
+-- 
 Regards,
-
-Tony
-
- 
-> Created and tested against linux-2.6.32-r5.
-> 
-> Thanks,
-> Janusz
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> 
-> ---
-> --- linux-2.6.32-rc5/arch/arm/mach-omap1/serial.c.orig	2009-10-20 22:38:38.000000000 +0200
-> +++ linux-2.6.32-rc5/arch/arm/mach-omap1/serial.c	2009-10-21 01:26:51.000000000 +0200
-> @@ -143,7 +143,7 @@ void __init omap_serial_init(void)
->  				if (cpu_is_omap15xx())
->  					clk_set_rate(uart1_ck, 12000000);
->  			}
-> -			if (cpu_is_omap15xx()) {
-> +			if (cpu_is_omap15xx() && !(machine_is_ams_delta())) {
->  				omap_cfg_reg(UART1_TX);
->  				omap_cfg_reg(UART1_RTS);
->  				if (machine_is_omap_innovator()) {
-> @@ -165,7 +165,7 @@ void __init omap_serial_init(void)
->  				else
->  					clk_set_rate(uart2_ck, 48000000);
->  			}
-> -			if (cpu_is_omap15xx()) {
-> +			if (cpu_is_omap15xx() && !(machine_is_ams_delta())) {
->  				omap_cfg_reg(UART2_TX);
->  				omap_cfg_reg(UART2_RTS);
->  				if (machine_is_omap_innovator()) {
-> @@ -185,7 +185,7 @@ void __init omap_serial_init(void)
->  				if (cpu_is_omap15xx())
->  					clk_set_rate(uart3_ck, 12000000);
->  			}
-> -			if (cpu_is_omap15xx()) {
-> +			if (cpu_is_omap15xx() && !(machine_is_ams_delta())) {
->  				omap_cfg_reg(UART3_TX);
->  				omap_cfg_reg(UART3_RX);
->  			}
+Nishanth Menon
