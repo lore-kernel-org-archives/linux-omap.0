@@ -1,60 +1,52 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [alsa-devel] Calling omap_pcm_prepare() results in BUG() on
- OMAP1
-Date: Wed, 21 Oct 2009 10:16:37 +0300
-Message-ID: <20091021101637.e8167edb.jhnikula@gmail.com>
-References: <200910210511.08263.jkrzyszt@tis.icnet.pl>
+From: Ladislav.Michl@seznam.cz
+Subject: Re: [APPLIED] [PATCH] [RFC] OMAP: eliminate OMAP_MAX_NR_PORTS
+Date: Wed, 21 Oct 2009 11:48:19 +0200
+Message-ID: <20091021094819.GA2111@localhost.localdomain>
+References: <1254995997-26420-1-git-send-email-virtuoso@slind.org> <notify-1255128339@atomide.com> <20091020233115.GA7363@localhost.localdomain> <20091020221543.GL12576@atomide.com> <20091020230131.GB16230@atomide.com> <20091021004016.GD16230@atomide.com>
+Reply-To: Ladislav Michl <ladis@linux-mips.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:36937 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750844AbZJUHPt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 03:15:49 -0400
-Received: by ewy3 with SMTP id 3so5701341ewy.17
-        for <linux-omap@vger.kernel.org>; Wed, 21 Oct 2009 00:15:53 -0700 (PDT)
-In-Reply-To: <200910210511.08263.jkrzyszt@tis.icnet.pl>
+Received: from smtp.seznam.cz ([77.75.72.43]:44348 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753047AbZJUHsN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Oct 2009 03:48:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20091021004016.GD16230@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, Alexander Shishkin <virtuoso@slind.org>, Kevin Hilman <khilman@deeprootsystems.com>
 
-Hi
+On Tue, Oct 20, 2009 at 05:40:17PM -0700, Tony Lindgren wrote:
+> > > > Unable to handle kernel NULL pointer dereference at virtual address 00000028
+> > > > pgd = c0004000
+> > > > [00000028] *pgd=00000000
+> > > > Internal error: Oops: 80000005 [#1]
+> > > > last sysfs file:
+> > > > Modules linked in:
+> > > > CPU: 0    Not tainted  (2.6.32-rc5-06314-g4155da6-dirty #12)
+> > > > PC is at 0x28
+> > > > LR is at serial8250_config_port+0x184/0xc34
+> > > > (...etc...)
+> > > > 
+> > > > Please consider following fix (and while there fix OMAP2 too as patch broke
+> > > > it as well (untested))
+> > > 
+> > > Thanks, I already refreshed the original patch with the same fix few
+> > > days ago :) It should be there in for-next branch and master branch.
+> > 
+> > Correction, sorry looks like I did not really read your patch. It seems
+> > to be the right solution for mach-omap1, but not needed for mach-omap2
+> > because the array is not plat_serial8250_port on mach-omap2.
 
-On Wed, 21 Oct 2009 05:11:06 +0200
-Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> wrote:
+Ach, sorry. Now it was me who didn't read code carefully.
 
-> Hi,
-> After DMA burst mode has been introduced in sound/soc/omap/omap-pcm.c, 
-> omap_pcm_prepare() unconditionally calls:
-> 
-> 	omap_set_dma_src_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-> 	omap_set_dma_dest_burst_mode(prtd->dma_ch, OMAP_DMA_DATA_BURST_16);
-> 
-> AFAICS, current implementation of those two functions found in 
-> arch/arm/plat-ompa/dma.c doesn't support OMAP_DMA_DATA_BURST_16 on OMAP1 at 
-> all, so they both end with BUG() on that machine. That seems to result in 
-> ASoC being completely unusable, at least on my OMAP5910 based Amstrad Delta.
-> 
-Thanks for reporting the issue. Nobody didn't realize when those calls
-were added that indeed they will end up to BUG() in
-arch/arm/plat-omap/dma.c on OMAP1.
+> I've refreshed the original serial.c patch in for-next branch by leaving
+> out the mach-omap2 changes. Also updated in the master branch, can you
+> please check?
 
-> Is calling BUG() for OMAP1 from those functions intentional?
-> 
-> If not intentional, can those be corrected by simply putting break; before 
-> defalut:?
-> 
-I'd let it on as it is as it will point out immediately invalid
-argument for OMAP1 and those functions do not have return value.
+Just pulled master branch and succesfully booted on OMAP5910 board.
 
-> If intentional, can those function calls be conditionally omited, at least for 
-> OMAP1510, in sound/soc/omap/omap-pcm.c?
-> 
-Yep, just put cpu_class_is_omap1() test in sound/soc/omap/omap-pcm.c
-since we should not try to set unsupported burst size for OMAP1.
-
-
--- 
-Jarkko
+Thank you,
+	ladis
