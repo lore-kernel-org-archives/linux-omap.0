@@ -1,65 +1,33 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH] Re: Calling omap_pcm_prepare() results in
-	BUG() on OMAP1
-Date: Wed, 21 Oct 2009 12:38:40 +0200
-Message-ID: <200910211238.41870.jkrzyszt@tis.icnet.pl>
-References: <200910210511.08263.jkrzyszt@tis.icnet.pl>
-	<20091021101637.e8167edb.jhnikula@gmail.com>
+From: Ladislav.Michl@seznam.cz
+Subject: [PATCH] mmci-omap: free irq resource
+Date: Wed, 21 Oct 2009 14:43:20 +0200
+Message-ID: <20091021124320.GA8525@localhost.localdomain>
+Reply-To: Ladislav Michl <ladis@linux-mips.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20091021101637.e8167edb.jhnikula@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.seznam.cz ([77.75.72.43]:60986 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753223AbZJUKnM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Oct 2009 06:43:12 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Jarkko Nikula <jhnikula@gmail.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-V2VkbmVzZGF5IDIxIE9jdG9iZXIgMjAwOSAwOToxNjozNyBKYXJra28gTmlrdWxhIG5hcGlzYcWC
-KGEpOgo+IEhpCj4KPiBPbiBXZWQsIDIxIE9jdCAyMDA5IDA1OjExOjA2ICswMjAwCj4KPiBKYW51
-c3ogS3J6eXN6dG9maWsgPGprcnp5c3p0QHRpcy5pY25ldC5wbD4gd3JvdGU6Cj4gPiBIaSwKPiA+
-IEFmdGVyIERNQSBidXJzdCBtb2RlIGhhcyBiZWVuIGludHJvZHVjZWQgaW4gc291bmQvc29jL29t
-YXAvb21hcC1wY20uYywKPiA+IG9tYXBfcGNtX3ByZXBhcmUoKSB1bmNvbmRpdGlvbmFsbHkgY2Fs
-bHM6Cj4gPgo+ID4gCW9tYXBfc2V0X2RtYV9zcmNfYnVyc3RfbW9kZShwcnRkLT5kbWFfY2gsIE9N
-QVBfRE1BX0RBVEFfQlVSU1RfMTYpOwo+ID4gCW9tYXBfc2V0X2RtYV9kZXN0X2J1cnN0X21vZGUo
-cHJ0ZC0+ZG1hX2NoLCBPTUFQX0RNQV9EQVRBX0JVUlNUXzE2KTsKPiA+Cj4gPiBBRkFJQ1MsIGN1
-cnJlbnQgaW1wbGVtZW50YXRpb24gb2YgdGhvc2UgdHdvIGZ1bmN0aW9ucyBmb3VuZCBpbgo+ID4g
-YXJjaC9hcm0vcGxhdC1vbXBhL2RtYS5jIGRvZXNuJ3Qgc3VwcG9ydCBPTUFQX0RNQV9EQVRBX0JV
-UlNUXzE2IG9uIE9NQVAxCj4gPiBhdCBhbGwsIHNvIHRoZXkgYm90aCBlbmQgd2l0aCBCVUcoKSBv
-biB0aGF0IG1hY2hpbmUuIFRoYXQgc2VlbXMgdG8gcmVzdWx0Cj4gPiBpbiBBU29DIGJlaW5nIGNv
-bXBsZXRlbHkgdW51c2FibGUsIGF0IGxlYXN0IG9uIG15IE9NQVA1OTEwIGJhc2VkIEFtc3RyYWQK
-PiA+IERlbHRhLgo+Cj4gVGhhbmtzIGZvciByZXBvcnRpbmcgdGhlIGlzc3VlLiBOb2JvZHkgZGlk
-bid0IHJlYWxpemUgd2hlbiB0aG9zZSBjYWxscwo+IHdlcmUgYWRkZWQgdGhhdCBpbmRlZWQgdGhl
-eSB3aWxsIGVuZCB1cCB0byBCVUcoKSBpbgo+IGFyY2gvYXJtL3BsYXQtb21hcC9kbWEuYyBvbiBP
-TUFQMS4KPgo+ID4gSXMgY2FsbGluZyBCVUcoKSBmb3IgT01BUDEgZnJvbSB0aG9zZSBmdW5jdGlv
-bnMgaW50ZW50aW9uYWw/Cj4gPgo+ID4gSWYgbm90IGludGVudGlvbmFsLCBjYW4gdGhvc2UgYmUg
-Y29ycmVjdGVkIGJ5IHNpbXBseSBwdXR0aW5nIGJyZWFrOwo+ID4gYmVmb3JlIGRlZmFsdXQ6Pwo+
-Cj4gSSdkIGxldCBpdCBvbiBhcyBpdCBpcyBhcyBpdCB3aWxsIHBvaW50IG91dCBpbW1lZGlhdGVs
-eSBpbnZhbGlkCj4gYXJndW1lbnQgZm9yIE9NQVAxIGFuZCB0aG9zZSBmdW5jdGlvbnMgZG8gbm90
-IGhhdmUgcmV0dXJuIHZhbHVlLgo+Cj4gPiBJZiBpbnRlbnRpb25hbCwgY2FuIHRob3NlIGZ1bmN0
-aW9uIGNhbGxzIGJlIGNvbmRpdGlvbmFsbHkgb21pdGVkLCBhdAo+ID4gbGVhc3QgZm9yIE9NQVAx
-NTEwLCBpbiBzb3VuZC9zb2Mvb21hcC9vbWFwLXBjbS5jPwo+Cj4gWWVwLCBqdXN0IHB1dCBjcHVf
-Y2xhc3NfaXNfb21hcDEoKSB0ZXN0IGluIHNvdW5kL3NvYy9vbWFwL29tYXAtcGNtLmMKPiBzaW5j
-ZSB3ZSBzaG91bGQgbm90IHRyeSB0byBzZXQgdW5zdXBwb3J0ZWQgYnVyc3Qgc2l6ZSBmb3IgT01B
-UDEuCgpIZXJlIHlvdSBhcmUuCgpTaWduZWQtb2ZmLWJ5OiBKYW51c3ogS3J6eXN6dG9maWsgPGpr
-cnp5c3p0QHRpcy5pY25ldC5wbD4KCi0tLQotLS0gbGludXgtMi42LjMyLXJjNS9zb3VuZC9zb2Mv
-b21hcC9vbWFwLXBjbS5jLm9yaWcJMjAwOS0xMC0xNiAwMjo0MTo1MC4wMDAwMDAwMDAgKzAyMDAK
-KysrIGxpbnV4LTIuNi4zMi1yYzUvc291bmQvc29jL29tYXAvb21hcC1wY20uYwkyMDA5LTEwLTIx
-IDEyOjMzOjQ1LjAwMDAwMDAwMCArMDIwMApAQCAtMTk1LDYgKzE5NSw5IEBAIHN0YXRpYyBpbnQg
-b21hcF9wY21fcHJlcGFyZShzdHJ1Y3Qgc25kX3AKIAllbHNlCiAJCW9tYXBfZW5hYmxlX2RtYV9p
-cnEocHJ0ZC0+ZG1hX2NoLCBPTUFQX0RNQV9GUkFNRV9JUlEpOwogCisJaWYgKGNwdV9jbGFzc19p
-c19vbWFwMSgpKQorCQlyZXR1cm4gMDsKKwogCW9tYXBfc2V0X2RtYV9zcmNfYnVyc3RfbW9kZShw
-cnRkLT5kbWFfY2gsIE9NQVBfRE1BX0RBVEFfQlVSU1RfMTYpOwogCW9tYXBfc2V0X2RtYV9kZXN0
-X2J1cnN0X21vZGUocHJ0ZC0+ZG1hX2NoLCBPTUFQX0RNQV9EQVRBX0JVUlNUXzE2KTsKIAoKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KQWxzYS1kZXZlbCBt
-YWlsaW5nIGxpc3QKQWxzYS1kZXZlbEBhbHNhLXByb2plY3Qub3JnCmh0dHA6Ly9tYWlsbWFuLmFs
-c2EtcHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbHNhLWRldmVsCg==
+Free IRQ on remove.
+
+Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+
+diff --git a/drivers/mmc/host/omap.c b/drivers/mmc/host/omap.c
+index 5d773b8..5f970e2 100644
+--- a/drivers/mmc/host/omap.c
++++ b/drivers/mmc/host/omap.c
+@@ -1529,6 +1529,7 @@ static int mmc_omap_remove(struct platform_device *pdev)
+ 		host->pdata->cleanup(&pdev->dev);
+ 
+ 	mmc_omap_fclk_enable(host, 0);
++	free_irq(host->irq, host);
+ 	clk_put(host->fclk);
+ 	clk_disable(host->iclk);
+ 	clk_put(host->iclk);
