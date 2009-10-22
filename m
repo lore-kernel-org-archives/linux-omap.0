@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 31/32] OMAP3: PM: Enable IO-CHAIN wakeup
-Date: Thu, 22 Oct 2009 16:09:52 -0700
-Message-ID: <1256252993-24328-32-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 32/32] OMAP3: PM: Program SDRC to send self refresh on timeout of AUTO_CNT
+Date: Thu, 22 Oct 2009 16:09:53 -0700
+Message-ID: <1256252993-24328-33-git-send-email-khilman@deeprootsystems.com>
 References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-2-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-3-git-send-email-khilman@deeprootsystems.com>
@@ -33,118 +33,141 @@ References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-29-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-30-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-31-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-32-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:3282 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755635AbZJVXLp (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:11:45 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so1260502qwb.37
-        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:11:50 -0700 (PDT)
-In-Reply-To: <1256252993-24328-31-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:37878 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755635AbZJVXLt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:11:49 -0400
+Received: by mail-qy0-f194.google.com with SMTP id 32so5544712qyk.4
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:11:54 -0700 (PDT)
+In-Reply-To: <1256252993-24328-32-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+From: Rajendra Nayak <rnayak@ti.com>
 
-OMAP 3430 ES3.1 chips have a separate bit for IO daisy-chain
-wake up enabling. It needs to be enabled when entering
-retention or off state, otherwise waking up might not work
-in all situations.
+Due to an OMAP3 errata (1.142), on HS/EMU devices SDRC should be
+programed to issue automatic self refresh on timeout
+of AUTO_CNT = 1 prior to any transition to OFF mode.
+This is needed only on sil rev's ES3.0 and above.
 
+This patch enables the above needed WA in the SDRC power register
+value stored in scratchpad, so that ROM code restores this value
+in SDRC POWER on the wakeup path.
+The original SDRC POWER register value is stored and restored back
+in omap_sram_idle() function.
+
+This fixes some random crashes observed while stressing suspend
+on HS/EMU devices.
+
+Signed-off-by: Rajendra Nayak <rnayak@ti.com>
 Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm34xx.c           |   38 +++++++++++++++++++++++++++++--
- arch/arm/mach-omap2/prm-regbits-34xx.h |    2 +
- 2 files changed, 37 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/control.c          |   16 +++++++++++++++-
+ arch/arm/mach-omap2/pm34xx.c           |   24 +++++++-----------------
+ arch/arm/plat-omap/include/plat/sdrc.h |    6 ++++++
+ 3 files changed, 28 insertions(+), 18 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 2ff8d7c..cdd1f35 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -265,7 +265,21 @@ void omap3_save_scratchpad_contents(void)
+ 			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
+ 	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
+ 	sdrc_block_contents.dll_b_ctrl = 0x0;
+-	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
++	/*
++	 * Due to a OMAP3 errata (1.142), on EMU/HS devices SRDC should
++	 * be programed to issue automatic self refresh on timeout
++	 * of AUTO_CNT = 1 prior to any transition to OFF mode.
++	 */
++	if ((omap_type() != OMAP2_DEVICE_TYPE_GP)
++			&& (omap_rev() >= OMAP3430_REV_ES3_0))
++		sdrc_block_contents.power = (sdrc_read_reg(SDRC_POWER) &
++				~(SDRC_POWER_AUTOCOUNT_MASK|
++				SDRC_POWER_CLKCTRL_MASK)) |
++				(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
++				SDRC_SELF_REFRESH_ON_AUTOCOUNT;
++	else
++		sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
++
+ 	sdrc_block_contents.cs_0 = 0x0;
+ 	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
+ 	sdrc_block_contents.mr_0 = (sdrc_read_reg(SDRC_MR_0) & 0xFFFF);
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 7623eda..511a57d 100644
+index 511a57d..01b95ea 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -94,6 +94,35 @@ static inline void omap3_per_restore_context(void)
- 	omap_gpio_restore_context();
- }
+@@ -48,12 +48,6 @@
+ #include "pm.h"
+ #include "sdrc.h"
  
-+static void omap3_enable_io_chain(void)
-+{
-+	int timeout = 0;
-+
-+	if (omap_rev() >= OMAP3430_REV_ES3_1) {
-+		prm_set_mod_reg_bits(OMAP3430_EN_IO_CHAIN, WKUP_MOD, PM_WKEN);
-+		/* Do a readback to assure write has been done */
-+		prm_read_mod_reg(WKUP_MOD, PM_WKEN);
-+
-+		while (!(prm_read_mod_reg(WKUP_MOD, PM_WKST) &
-+			 OMAP3430_ST_IO_CHAIN)) {
-+			timeout++;
-+			if (timeout > 1000) {
-+				printk(KERN_ERR "Wake up daisy chain "
-+				       "activation failed.\n");
-+				return;
-+			}
-+			prm_set_mod_reg_bits(OMAP3430_ST_IO_CHAIN,
-+					     WKUP_MOD, PM_WKST);
-+		}
-+	}
-+}
-+
-+static void omap3_disable_io_chain(void)
-+{
-+	if (omap_rev() >= OMAP3430_REV_ES3_1)
-+		prm_clear_mod_reg_bits(OMAP3430_EN_IO_CHAIN, WKUP_MOD, PM_WKEN);
-+}
-+
- static void omap3_core_save_context(void)
- {
- 	u32 control_padconf_off;
-@@ -367,8 +396,9 @@ static void omap_sram_idle(void)
- 			omap3_core_save_context();
- 			omap3_prcm_save_context();
- 		}
--		/* Enable IO-PAD wakeup */
-+		/* Enable IO-PAD and IO-CHAIN wakeups */
- 		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-+		omap3_enable_io_chain();
+-#define SDRC_POWER_AUTOCOUNT_SHIFT 8
+-#define SDRC_POWER_AUTOCOUNT_MASK (0xffff << SDRC_POWER_AUTOCOUNT_SHIFT)
+-#define SDRC_POWER_CLKCTRL_SHIFT 4
+-#define SDRC_POWER_CLKCTRL_MASK (0x3 << SDRC_POWER_CLKCTRL_SHIFT)
+-#define SDRC_SELF_REFRESH_ON_AUTOCOUNT (0x2 << SDRC_POWER_CLKCTRL_SHIFT)
+-
+ /* Scratchpad offsets */
+ #define OMAP343X_TABLE_ADDRESS_OFFSET	   0x31
+ #define OMAP343X_TABLE_VALUE_OFFSET	   0x30
+@@ -402,19 +396,15 @@ static void omap_sram_idle(void)
  	}
  
  	/*
-@@ -432,9 +462,11 @@ static void omap_sram_idle(void)
- 			pwrdm_set_next_pwrst(per_pwrdm, PWRDM_POWER_OFF);
- 	}
+-	 * Force SDRAM controller to self-refresh mode after timeout on
+-	 * autocount. This is needed on ES3.0 to avoid SDRAM controller
+-	 * hang-ups.
+-	 */
++	* On EMU/HS devices ROM code restores a SRDC value
++	* from scratchpad which has automatic self refresh on timeout
++	* of AUTO_CNT = 1 enabled. This takes care of errata 1.142.
++	* Hence store/restore the SDRC_POWER register here.
++	*/
+ 	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+ 	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+-	    core_next_state == PWRDM_POWER_OFF) {
++	    core_next_state == PWRDM_POWER_OFF)
+ 		sdrc_pwr = sdrc_read_reg(SDRC_POWER);
+-		sdrc_write_reg((sdrc_pwr &
+-			~(SDRC_POWER_AUTOCOUNT_MASK|SDRC_POWER_CLKCTRL_MASK)) |
+-			(1 << SDRC_POWER_AUTOCOUNT_SHIFT) |
+-			SDRC_SELF_REFRESH_ON_AUTOCOUNT, SDRC_POWER);
+-	}
  
--	/* Disable IO-PAD wakeup */
--	if (core_next_state < PWRDM_POWER_ON)
-+	/* Disable IO-PAD and IO-CHAIN wakeup */
-+	if (core_next_state < PWRDM_POWER_ON) {
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-+		omap3_disable_io_chain();
-+	}
+ 	/*
+ 	 * omap3_arm_context is the location where ARM registers
+@@ -424,7 +414,7 @@ static void omap_sram_idle(void)
+ 	_omap_sram_idle(omap3_arm_context, save_state);
+ 	cpu_init();
  
- 	pwrdm_post_transition();
+-	/* Restore normal SDRAM settings */
++	/* Restore normal SDRC POWER settings */
+ 	if (omap_rev() >= OMAP3430_REV_ES3_0 &&
+ 	    omap_type() != OMAP2_DEVICE_TYPE_GP &&
+ 	    core_next_state == PWRDM_POWER_OFF)
+diff --git a/arch/arm/plat-omap/include/plat/sdrc.h b/arch/arm/plat-omap/include/plat/sdrc.h
+index 772b71e..f704030 100644
+--- a/arch/arm/plat-omap/include/plat/sdrc.h
++++ b/arch/arm/plat-omap/include/plat/sdrc.h
+@@ -44,6 +44,12 @@
+ #define SDRC_RFR_CTRL_1		0x0D4
+ #define SDRC_MANUAL_1		0x0D8
  
-diff --git a/arch/arm/mach-omap2/prm-regbits-34xx.h b/arch/arm/mach-omap2/prm-regbits-34xx.h
-index 9fd03a2..8f21bae 100644
---- a/arch/arm/mach-omap2/prm-regbits-34xx.h
-+++ b/arch/arm/mach-omap2/prm-regbits-34xx.h
-@@ -365,6 +365,7 @@
- /* PM_PREPWSTST_GFX specific bits */
- 
- /* PM_WKEN_WKUP specific bits */
-+#define OMAP3430_EN_IO_CHAIN				(1 << 16)
- #define OMAP3430_EN_IO					(1 << 8)
- #define OMAP3430_EN_GPIO1				(1 << 3)
- 
-@@ -373,6 +374,7 @@
- /* PM_IVA2GRPSEL_WKUP specific bits */
- 
- /* PM_WKST_WKUP specific bits */
-+#define OMAP3430_ST_IO_CHAIN				(1 << 16)
- #define OMAP3430_ST_IO					(1 << 8)
- 
- /* PRM_CLKSEL */
++#define SDRC_POWER_AUTOCOUNT_SHIFT	8
++#define SDRC_POWER_AUTOCOUNT_MASK	(0xffff << SDRC_POWER_AUTOCOUNT_SHIFT)
++#define SDRC_POWER_CLKCTRL_SHIFT	4
++#define SDRC_POWER_CLKCTRL_MASK		(0x3 << SDRC_POWER_CLKCTRL_SHIFT)
++#define SDRC_SELF_REFRESH_ON_AUTOCOUNT	(0x2 << SDRC_POWER_CLKCTRL_SHIFT)
++
+ /*
+  * These values represent the number of memory clock cycles between
+  * autorefresh initiation.  They assume 1 refresh per 64 ms (JEDEC), 8192
 -- 
 1.6.4.3
 
