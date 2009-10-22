@@ -1,56 +1,71 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 1/4] MFD: twl4030: add twl4030_codec MFD as a new child
- to the core
-Date: Thu, 22 Oct 2009 09:57:49 +0200
-Message-ID: <20091022075748.GA8105@sortiz.org>
-References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
- <1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com>
- <20091021231311.GF17796@sortiz.org>
- <200910220904.32676.peter.ujfalusi@nokia.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: DSS2 clocking
+Date: Thu, 22 Oct 2009 11:29:49 +0300
+Message-ID: <1256200189.3767.4.camel@tubuntu.research.nokia.com>
+References: <4ADF01C1.3020602@mlbassoc.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752997AbZJVILO@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <200910220904.32676.peter.ujfalusi@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:40736 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752318AbZJVIaV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 04:30:21 -0400
+In-Reply-To: <4ADF01C1.3020602@mlbassoc.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Gary Thomas <gary@mlbassoc.com>
+Cc: OMAP Linux discussion <linux-omap@vger.kernel.org>
 
-On Thu, Oct 22, 2009 at 09:04:32AM +0300, Peter Ujfalusi wrote:
-> I'll check, if the MFD patch applies to mfd-2.6:for-next also, but to=
- have the=20
-> soc codec changes the MFD patch should go to the sound-2.6 tree as we=
-ll to make=20
-> sure it is not braking things.
->=20
-> All-in-all, how these things can be handled?
-The OMAP patch has been acked by Tony. Then we I'm fine with the mfd on=
-e and
-Mark is also ok with the remaining asoc one, all 3 patches have to go t=
-hrough
-one single tree.
+Hi,
 
-It seems to me that this patchset is mostly an asoc one, even though al=
-l of
-those patches depend on the MFD one. So I'd perfectly fine if they'd al=
-l go
-through Mark's tree, and then I'd have to make sure I'm sending my 2.6.=
-33
-merge window pull request _after_ Mark's code is in Linus tree. Once it=
-'s
-there, I can work on merging conflicts with the few twl4030-core pendin=
-g
-patches from my tree. Mark, what do you think ?
+On Wed, 2009-10-21 at 14:42 +0200, ext Gary Thomas wrote:
+> I'm using DSS2, currently just with a frame buffer to a
+> [VGA/RGB] monitor.
+> 
+> I'm trying to understand how to set the timing parameters
+> for my device.  The simple 'omapfb.mode=1024x768-24@75'
+> doesn't quite cut it for some of the devices I need to
+> use.
+> 
+> Questions:
+>   * How can I get different pixel clocks?  I seem to always
+>     end up with 61714285:
 
-Cheers,
-Samuel.
+The pixel clock is calculated based on the given resolution and refresh
+rate. You can adjust it via sysfs. But you don't have very fine graded
+control when using the normal pixel clock source. When using DSI PLL to
+generate the DISPC functional clock, you can get much more exact pixel
+clock. But DSI PLL support is quite experimental.
 
-=20
-> Thanks,=20
-> P=E9ter
+>       # cat /tmp/dbg/omapdss/clk
+>       - dss -
+>       internal clk count      2
+>       dss_ick         83000000        1
+>       dss1_alwon_fck  123428570       1
+>       dss2_alwon_fck  13000000        0
+>       dss_tv_fck      54000000        0
+>       dss_96m_fck     96000000        0
+>       - dispc -
+>       dispc fclk source = dss1_alwon_fclk
+>       pixel clk = 123428570 / 1 / 2 = 61714285
+>   * How can I control the waveform?  In particular, the
+>     size and shape of the "porches"?  My display seems to
+>     need these settings:
+>       61714,1024/26/162/136,768/3/29/6
+>     I'd like to get this behaviour, either from the boot line
+>     or ideally by default.
 
---=20
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Currently you cannot set these via kernel arguments, only via sysfs or
+in the panel driver.
+
+>   * The display also seems to want the sync pulses to be
+>     asserted low (inverted?).  Currently, I have this "hard-wired"
+>     into my display device, but I'd also like this to be adjustable.
+
+These cannot currently be changed at all, they can only be defined in
+the panel driver.
+
+ Tomi
+
+
