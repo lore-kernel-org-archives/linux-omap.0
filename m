@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 27/32] PM debug: allow configurable wakeup from suspend on OMAP GPtimer
-Date: Thu, 22 Oct 2009 16:09:48 -0700
-Message-ID: <1256252993-24328-28-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 26/32] OMAP3: PM debug: allow runtime toggle of PM features
+Date: Thu, 22 Oct 2009 16:09:47 -0700
+Message-ID: <1256252993-24328-27-git-send-email-khilman@deeprootsystems.com>
 References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-2-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-3-git-send-email-khilman@deeprootsystems.com>
@@ -28,135 +28,172 @@ References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-24-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-25-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-26-git-send-email-khilman@deeprootsystems.com>
- <1256252993-24328-27-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-qy0-f194.google.com ([209.85.221.194]:37878 "EHLO
 	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755559AbZJVXLb (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:11:31 -0400
+	with ESMTP id S1755266AbZJVXL2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:11:28 -0400
 Received: by mail-qy0-f194.google.com with SMTP id 32so5544712qyk.4
-        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:11:36 -0700 (PDT)
-In-Reply-To: <1256252993-24328-27-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:11:33 -0700 (PDT)
+In-Reply-To: <1256252993-24328-26-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org
 
-Using debugfs, export a configurable wakeup timer to be used to
-wakeup system from suspend.
+Allow enable/disable of low-power states during idle.  To
+enable low-power idle:
 
-If a non-zero value is written to
-/debug/pm_debug/wakeup_timer_seconds, A timer wakeup event will wake
-the system and resume after the configured number of seconds.
+   echo 1 > /debug/pm_debug/sleep_while_idle
+
+ to disable:
+
+   echo 0 > /debug/pm_debug/sleep_while_idle
+
+Also allow enable/disable of OFF-mode.  To enable:
+
+   echo 1 > /debug/pm_debug/enable_off_mode
+
+ to disable:
+
+   echo 0 > /debug/pm_debug/enable_off_mode
 
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm-debug.c |    2 ++
- arch/arm/mach-omap2/pm.h       |    3 +++
- arch/arm/mach-omap2/pm34xx.c   |   21 +++++++++++++++++++++
- arch/arm/mach-omap2/timer-gp.c |    2 ++
- 4 files changed, 28 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/pm-debug.c |   27 +++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h       |    4 ++++
+ arch/arm/mach-omap2/pm34xx.c   |   22 ++++++++++++++++++++++
+ arch/arm/mach-omap2/serial.c   |    2 --
+ 4 files changed, 53 insertions(+), 2 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 1725da3..8baa30d 100644
+index 7eb2c12..1725da3 100644
 --- a/arch/arm/mach-omap2/pm-debug.c
 +++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -596,6 +596,8 @@ static int __init pm_dbg_init(void)
- 				   &enable_off_mode, &pm_dbg_option_fops);
- 	(void) debugfs_create_file("sleep_while_idle", S_IRUGO | S_IWUGO, d,
- 				   &sleep_while_idle, &pm_dbg_option_fops);
-+	(void) debugfs_create_file("wakeup_timer_seconds", S_IRUGO | S_IWUGO, d,
-+				   &wakeup_timer_seconds, &pm_dbg_option_fops);
+@@ -527,6 +527,29 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
+ 	return 0;
+ }
+ 
++static int option_get(void *data, u64 *val)
++{
++	u32 *option = data;
++
++	*val = *option;
++
++	return 0;
++}
++
++static int option_set(void *data, u64 val)
++{
++	u32 *option = data;
++
++	*option = val;
++
++	if (option == &enable_off_mode)
++		omap3_pm_off_mode_enable(val);
++
++	return 0;
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(pm_dbg_option_fops, option_get, option_set, "%llu\n");
++
+ static int __init pm_dbg_init(void)
+ {
+ 	int i;
+@@ -569,6 +592,10 @@ static int __init pm_dbg_init(void)
+ 
+ 		}
+ 
++	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUGO, d,
++				   &enable_off_mode, &pm_dbg_option_fops);
++	(void) debugfs_create_file("sleep_while_idle", S_IRUGO | S_IWUGO, d,
++				   &sleep_while_idle, &pm_dbg_option_fops);
  	pm_dbg_init_done = 1;
  
  	return 0;
 diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 9582793..7eb769f 100644
+index 45cafac..9582793 100644
 --- a/arch/arm/mach-omap2/pm.h
 +++ b/arch/arm/mach-omap2/pm.h
-@@ -22,6 +22,9 @@ extern void omap3_pm_off_mode_enable(int);
+@@ -13,7 +13,11 @@
+ 
+ #include <plat/powerdomain.h>
+ 
++extern u32 enable_off_mode;
++extern u32 sleep_while_idle;
++
+ extern void *omap3_secure_ram_storage;
++extern void omap3_pm_off_mode_enable(int);
+ 
  extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
  extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
- 
-+extern u32 wakeup_timer_seconds;
-+extern struct omap_dm_timer *gptimer_wakeup;
-+
- #ifdef CONFIG_PM_DEBUG
- extern void omap2_pm_dump(int mode, int resume, unsigned int us);
- extern int omap2_pm_debug;
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index ade2e4a..ff818aa 100644
+index 90d1dc5..ade2e4a 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -36,6 +36,7 @@
- #include <plat/prcm.h>
- #include <plat/gpmc.h>
- #include <plat/dma.h>
-+#include <plat/dmtimer.h>
+@@ -25,6 +25,7 @@
+ #include <linux/list.h>
+ #include <linux/err.h>
+ #include <linux/gpio.h>
++#include <linux/clk.h>
  
- #include <asm/tlbflush.h>
+ #include <plat/sram.h>
+ #include <plat/clockdomain.h>
+@@ -57,6 +58,9 @@
+ #define OMAP343X_TABLE_VALUE_OFFSET	   0x30
+ #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0x32
  
-@@ -60,6 +61,7 @@
- 
- u32 enable_off_mode;
- u32 sleep_while_idle;
-+u32 wakeup_timer_seconds;
- 
++u32 enable_off_mode;
++u32 sleep_while_idle;
++
  struct power_state {
  	struct powerdomain *pwrdm;
-@@ -535,6 +537,22 @@ out:
- #ifdef CONFIG_SUSPEND
- static suspend_state_t suspend_state;
+ 	u32 next_state;
+@@ -456,6 +460,8 @@ static int omap3_fclks_active(void)
  
-+static void omap2_pm_wakeup_on_timer(u32 seconds)
+ static int omap3_can_sleep(void)
+ {
++	if (!sleep_while_idle)
++		return 0;
+ 	if (!omap_uart_can_sleep())
+ 		return 0;
+ 	if (omap3_fclks_active())
+@@ -900,6 +906,22 @@ static void __init prcm_setup_regs(void)
+ 	omap3_d2d_idle();
+ }
+ 
++void omap3_pm_off_mode_enable(int enable)
 +{
-+	u32 tick_rate, cycles;
++	struct power_state *pwrst;
++	u32 state;
 +
-+	if (!seconds)
-+		return;
++	if (enable)
++		state = PWRDM_POWER_OFF;
++	else
++		state = PWRDM_POWER_RET;
 +
-+	tick_rate = clk_get_rate(omap_dm_timer_get_fclk(gptimer_wakeup));
-+	cycles = tick_rate * seconds;
-+	omap_dm_timer_stop(gptimer_wakeup);
-+	omap_dm_timer_set_load_start(gptimer_wakeup, 0, 0xffffffff - cycles);
-+
-+	pr_info("PM: Resume timer in %d secs (%d ticks at %d ticks/sec.)\n",
-+		seconds, cycles, tick_rate);
++	list_for_each_entry(pwrst, &pwrst_list, node) {
++		pwrst->next_state = state;
++		set_pwrdm_state(pwrst->pwrdm, state);
++	}
 +}
 +
- static int omap3_pm_prepare(void)
+ int omap3_pm_get_suspend_state(struct powerdomain *pwrdm)
  {
- 	disable_hlt();
-@@ -546,6 +564,9 @@ static int omap3_pm_suspend(void)
  	struct power_state *pwrst;
- 	int state, ret = 0;
+diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
+index dabc089..2e17b57 100644
+--- a/arch/arm/mach-omap2/serial.c
++++ b/arch/arm/mach-omap2/serial.c
+@@ -155,8 +155,6 @@ static inline void __init omap_uart_reset(struct omap_uart_state *uart)
  
-+	if (wakeup_timer_seconds)
-+		omap2_pm_wakeup_on_timer(wakeup_timer_seconds);
-+
- 	/* Read current next_pwrsts */
- 	list_for_each_entry(pwrst, &pwrst_list, node)
- 		pwrst->saved_state = pwrdm_read_next_pwrst(pwrst->pwrdm);
-diff --git a/arch/arm/mach-omap2/timer-gp.c b/arch/arm/mach-omap2/timer-gp.c
-index df2b709..cd04dea 100644
---- a/arch/arm/mach-omap2/timer-gp.c
-+++ b/arch/arm/mach-omap2/timer-gp.c
-@@ -47,6 +47,7 @@ static struct omap_dm_timer *gptimer;
- static struct clock_event_device clockevent_gpt;
- static u8 __initdata gptimer_id = 1;
- static u8 __initdata inited;
-+struct omap_dm_timer *gptimer_wakeup;
+ #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
  
- static irqreturn_t omap2_gp_timer_interrupt(int irq, void *dev_id)
+-static int enable_off_mode; /* to be removed by full off-mode patches */
+-
+ static void omap_uart_save_context(struct omap_uart_state *uart)
  {
-@@ -134,6 +135,7 @@ static void __init omap2_gp_clockevent_init(void)
- 
- 	gptimer = omap_dm_timer_request_specific(gptimer_id);
- 	BUG_ON(gptimer == NULL);
-+	gptimer_wakeup = gptimer;
- 
- #if defined(CONFIG_OMAP_32K_TIMER)
- 	src = OMAP_TIMER_SRC_32_KHZ;
+ 	u16 lcr = 0;
 -- 
 1.6.4.3
 
