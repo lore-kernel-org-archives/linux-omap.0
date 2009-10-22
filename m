@@ -1,71 +1,74 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: DSS2 clocking
-Date: Thu, 22 Oct 2009 11:29:49 +0300
-Message-ID: <1256200189.3767.4.camel@tubuntu.research.nokia.com>
-References: <4ADF01C1.3020602@mlbassoc.com>
+From: "Cousson, Benoit" <b-cousson@ti.com>
+Subject: RE: [PATCH] OMAP3: DVFS: No sdrc AC timing changes during core dvfs
+Date: Thu, 22 Oct 2009 10:58:49 +0200
+Message-ID: <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com>
+References: <1254835224-19500-1-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com>
+ <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:40736 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752318AbZJVIaV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 04:30:21 -0400
-In-Reply-To: <4ADF01C1.3020602@mlbassoc.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:55147 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754225AbZJVI6t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 04:58:49 -0400
+Content-Class: urn:content-classes:message
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Gary Thomas <gary@mlbassoc.com>
-Cc: OMAP Linux discussion <linux-omap@vger.kernel.org>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+Hi Richard,
 
-On Wed, 2009-10-21 at 14:42 +0200, ext Gary Thomas wrote:
-> I'm using DSS2, currently just with a frame buffer to a
-> [VGA/RGB] monitor.
-> 
-> I'm trying to understand how to set the timing parameters
-> for my device.  The simple 'omapfb.mode=1024x768-24@75'
-> doesn't quite cut it for some of the devices I need to
-> use.
-> 
-> Questions:
->   * How can I get different pixel clocks?  I seem to always
->     end up with 61714285:
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>owner@vger.kernel.org] On Behalf Of Woodruff, Richard
+>
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+>> Sent: Tuesday, October 20, 2009 8:21 PM
+>
+>> > This patch removes the SDRC AC timings changes done during core dvfs.
+>> > Updating AC timing CTRL values for SDRC during DVFS is seen to be a
+>risk,
+>> > while the RFR CTRL value is safe to be updated.
+>> >
+>> > Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+>>
+>> just wanted to let you know, I haven't forgotten about this one. Am
+>trying
+>> to get an answer from others as to whether AC timing register changes are
+>> completely unsafe, in which case your patch is probably the best way to
+>> move forward; or whether we can make the changes when no initiators are
+>> touching SDRAM.
+>
+>It is not guaranteed safe to write actim registers on the fly to an active
+>part.  It is safe to do RFR as it is buffered and sent out at a safe time.
 
-The pixel clock is calculated based on the given resolution and refresh
-rate. You can adjust it via sysfs. But you don't have very fine graded
-control when using the normal pixel clock source. When using DSI PLL to
-generate the DISPC functional clock, you can get much more exact pixel
-clock. But DSI PLL support is quite experimental.
+I think that what Paul is suggesting is to change the ACTIM after ensuring that the DDR is in self-refresh. In that case it is perfectly valid; it is just tricky to ensure that all initiators are in mute before doing that.
 
->       # cat /tmp/dbg/omapdss/clk
->       - dss -
->       internal clk count      2
->       dss_ick         83000000        1
->       dss1_alwon_fck  123428570       1
->       dss2_alwon_fck  13000000        0
->       dss_tv_fck      54000000        0
->       dss_96m_fck     96000000        0
->       - dispc -
->       dispc fclk source = dss1_alwon_fclk
->       pixel clk = 123428570 / 1 / 2 = 61714285
->   * How can I control the waveform?  In particular, the
->     size and shape of the "porches"?  My display seems to
->     need these settings:
->       61714,1024/26/162/136,768/3/29/6
->     I'd like to get this behaviour, either from the boot line
->     or ideally by default.
+Regards,
+Benoit
 
-Currently you cannot set these via kernel arguments, only via sysfs or
-in the panel driver.
+>A few years back before omap3 as part of omap2 lessons learned this issue
+>was highlighted but design was not able to change.  Recently implementation
+>review at rtl provided the above points.
+>
+>I'm not aware of anyone seeing a crash but recommendation for safety is to
+>not.
+>
+>Regards,
+>Richard W.
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
->   * The display also seems to want the sync pulses to be
->     asserted low (inverted?).  Currently, I have this "hard-wired"
->     into my display device, but I'd also like this to be adjustable.
 
-These cannot currently be changed at all, they can only be defined in
-the panel driver.
+Texas Instruments France SA, 821 Avenue Jack Kilby, 06270 Villeneuve Loubet. 036 420 040 R.C.S Antibes. Capital de EUR 753.920
 
- Tomi
 
 
