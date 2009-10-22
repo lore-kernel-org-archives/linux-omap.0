@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 11/32] OMAP3: PM: CORE domain off-mode support
-Date: Thu, 22 Oct 2009 16:09:32 -0700
-Message-ID: <1256252993-24328-12-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 12/32] OMAP: PM: DMA context save/restore for off-mode support
+Date: Thu, 22 Oct 2009 16:09:33 -0700
+Message-ID: <1256252993-24328-13-git-send-email-khilman@deeprootsystems.com>
 References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-2-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-3-git-send-email-khilman@deeprootsystems.com>
@@ -13,177 +13,141 @@ References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-9-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-10-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-11-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-12-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:3282 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410AbZJVXKe (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:10:34 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so1260502qwb.37
-        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:10:39 -0700 (PDT)
-In-Reply-To: <1256252993-24328-11-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:37878 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754774AbZJVXKh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:10:37 -0400
+Received: by mail-qy0-f194.google.com with SMTP id 32so5544712qyk.4
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:10:42 -0700 (PDT)
+In-Reply-To: <1256252993-24328-12-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tero Kristo <tero.kristo@nokia.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Tero Kristo <tero.kristo@nokia.com>
 
-Add context save and restore for CORE powerdomain resources in order
-to support off-mode.
+For HS/EMU devices, these additional features are also used:
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+- DMA interrupt disable routine added
+- Added DMA controller reset to DMA context restore
+
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm34xx.c           |   73 +++++++++++++++++++++++++++++++-
- arch/arm/plat-omap/include/plat/sram.h |    1 +
- 2 files changed, 73 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c          |    3 ++
+ arch/arm/plat-omap/dma.c              |   41 +++++++++++++++++++++++++++++++++
+ arch/arm/plat-omap/include/plat/dma.h |    5 ++++
+ 3 files changed, 49 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 arch/arm/plat-omap/include/plat/dma.h
 
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 9fb0876..bab9b48 100644
+index bab9b48..54fea79 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -5,6 +5,9 @@
-  * Tony Lindgren <tony@atomide.com>
-  * Jouni Hogander
-  *
-+ * Copyright (C) 2007 Texas Instruments, Inc.
-+ * Rajendra Nayak <rnayak@ti.com>
-+ *
-  * Copyright (C) 2005 Texas Instruments, Inc.
-  * Richard Woodruff <r-woodruff2@ti.com>
-  *
-@@ -29,6 +32,8 @@
- #include <plat/control.h>
- #include <plat/serial.h>
+@@ -34,6 +34,7 @@
  #include <plat/sdrc.h>
-+#include <plat/prcm.h>
-+#include <plat/gpmc.h>
+ #include <plat/prcm.h>
+ #include <plat/gpmc.h>
++#include <plat/dma.h>
  
  #include <asm/tlbflush.h>
  
-@@ -39,6 +44,11 @@
- #include "prm.h"
- #include "pm.h"
+@@ -95,6 +96,7 @@ static void omap3_core_save_context(void)
+ 	omap3_gpmc_save_context();
+ 	/* Save the system control module context, padconf already save above*/
+ 	omap3_control_save_context();
++	omap_dma_global_context_save();
+ }
  
-+/* Scratchpad offsets */
-+#define OMAP343X_TABLE_ADDRESS_OFFSET	   0x31
-+#define OMAP343X_TABLE_VALUE_OFFSET	   0x30
-+#define OMAP343X_CONTROL_REG_VALUE_OFFSET  0x32
-+
- struct power_state {
- 	struct powerdomain *pwrdm;
- 	u32 next_state;
-@@ -57,6 +67,46 @@ static struct powerdomain *core_pwrdm, *per_pwrdm;
+ static void omap3_core_restore_context(void)
+@@ -105,6 +107,7 @@ static void omap3_core_restore_context(void)
+ 	omap3_gpmc_restore_context();
+ 	/* Restore the interrupt controller context */
+ 	omap_intc_restore_context();
++	omap_dma_global_context_restore();
+ }
  
- static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- 
-+static inline void omap3_per_save_context(void)
-+{
-+	omap_gpio_save_context();
-+}
-+
-+static inline void omap3_per_restore_context(void)
-+{
-+	omap_gpio_restore_context();
-+}
-+
-+static void omap3_core_save_context(void)
-+{
-+	u32 control_padconf_off;
-+
-+	/* Save the padconf registers */
-+	control_padconf_off = omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_OFF);
-+	control_padconf_off |= START_PADCONF_SAVE;
-+	omap_ctrl_writel(control_padconf_off, OMAP343X_CONTROL_PADCONF_OFF);
-+	/* wait for the save to complete */
-+	while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
-+			& PADCONF_SAVE_DONE)
-+		;
-+	/* Save the Interrupt controller context */
-+	omap_intc_save_context();
-+	/* Save the GPMC context */
-+	omap3_gpmc_save_context();
-+	/* Save the system control module context, padconf already save above*/
-+	omap3_control_save_context();
-+}
-+
-+static void omap3_core_restore_context(void)
-+{
-+	/* Restore the control module context, padconf restored by h/w */
-+	omap3_control_restore_context();
-+	/* Restore the GPMC context */
-+	omap3_gpmc_restore_context();
-+	/* Restore the interrupt controller context */
-+	omap_intc_restore_context();
-+}
-+
  /*
-  * PRCM Interrupt Handler Helper Function
-  *
-@@ -208,6 +258,7 @@ static void omap_sram_idle(void)
- 	int mpu_next_state = PWRDM_POWER_ON;
- 	int per_next_state = PWRDM_POWER_ON;
- 	int core_next_state = PWRDM_POWER_ON;
-+	int core_prev_state, per_prev_state;
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index 3edffde..c0a6060 100644
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -54,6 +54,12 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
  
- 	if (!_omap_sram_idle)
- 		return;
-@@ -246,8 +297,15 @@ static void omap_sram_idle(void)
- 		omap_uart_prepare_idle(1);
- 		/* PER changes only with core */
- 		per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
--		if (per_next_state < PWRDM_POWER_ON)
-+		if (per_next_state < PWRDM_POWER_ON) {
- 			omap_uart_prepare_idle(2);
-+			if (per_next_state == PWRDM_POWER_OFF)
-+				omap3_per_save_context();
-+		}
-+		if (core_next_state == PWRDM_POWER_OFF) {
-+			omap3_core_save_context();
-+			omap3_prcm_save_context();
-+		}
- 		/* Enable IO-PAD wakeup */
- 		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
- 	}
-@@ -272,6 +330,18 @@ static void omap_sram_idle(void)
+ static int enable_1510_mode;
  
- 		/* Disable IO-PAD wakeup */
- 		prm_clear_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
-+		core_prev_state = pwrdm_read_prev_pwrst(core_pwrdm);
-+		if (core_prev_state == PWRDM_POWER_OFF) {
-+			omap3_core_restore_context();
-+			omap3_prcm_restore_context();
-+			omap3_sram_restore_context();
-+		}
-+		if (per_next_state < PWRDM_POWER_ON) {
-+			per_prev_state =
-+				pwrdm_read_prev_pwrst(per_pwrdm);
-+			if (per_prev_state == PWRDM_POWER_OFF)
-+				omap3_per_restore_context();
-+		}
- 		omap2_gpio_resume_after_retention();
- 	}
++static struct omap_dma_global_context_registers {
++	u32 dma_irqenable_l0;
++	u32 dma_ocp_sysconfig;
++	u32 dma_gcr;
++} omap_dma_global_context;
++
+ struct omap_dma_lch {
+ 	int next_lch;
+ 	int dev_id;
+@@ -2341,6 +2347,41 @@ void omap_stop_lcd_dma(void)
+ }
+ EXPORT_SYMBOL(omap_stop_lcd_dma);
  
-@@ -843,6 +913,7 @@ static int __init omap3_pm_init(void)
- 	/* XXX prcm_setup_regs needs to be before enabling hw
- 	 * supervised mode for powerdomains */
- 	prcm_setup_regs();
-+	omap3_save_scratchpad_contents();
++void omap_dma_global_context_save(void)
++{
++	omap_dma_global_context.dma_irqenable_l0 =
++		dma_read(IRQENABLE_L0);
++	omap_dma_global_context.dma_ocp_sysconfig =
++		dma_read(OCP_SYSCONFIG);
++	omap_dma_global_context.dma_gcr = dma_read(GCR);
++}
++EXPORT_SYMBOL(omap_dma_global_context_save);
++
++void omap_dma_global_context_restore(void)
++{
++	dma_write(0x2, OCP_SYSCONFIG);
++	while (!__raw_readl(omap_dma_base + OMAP_DMA4_SYSSTATUS))
++		;
++	dma_write(omap_dma_global_context.dma_gcr, GCR);
++	dma_write(omap_dma_global_context.dma_ocp_sysconfig,
++		OCP_SYSCONFIG);
++	dma_write(omap_dma_global_context.dma_irqenable_l0,
++		IRQENABLE_L0);
++}
++EXPORT_SYMBOL(omap_dma_global_context_restore);
++
++void omap_dma_disable_irq(int lch)
++{
++	u32 val;
++
++	if (cpu_class_is_omap2()) {
++		/* Disable interrupts */
++		val = dma_read(IRQENABLE_L0);
++		val &= ~(1 << lch);
++		dma_write(val, IRQENABLE_L0);
++	}
++}
++
+ /*----------------------------------------------------------------------------*/
  
- 	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
- 			  (irq_handler_t)prcm_interrupt_handler,
-diff --git a/arch/arm/plat-omap/include/plat/sram.h b/arch/arm/plat-omap/include/plat/sram.h
-index 77799d5..16a1b45 100644
---- a/arch/arm/plat-omap/include/plat/sram.h
-+++ b/arch/arm/plat-omap/include/plat/sram.h
-@@ -27,6 +27,7 @@ extern u32 omap3_configure_core_dpll(
- 			u32 sdrc_actim_ctrl_b_0, u32 sdrc_mr_0,
- 			u32 sdrc_rfr_ctrl_1, u32 sdrc_actim_ctrl_a_1,
- 			u32 sdrc_actim_ctrl_b_1, u32 sdrc_mr_1);
-+extern void omap3_sram_restore_context(void);
+ static int __init omap_init_dma(void)
+diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-omap/include/plat/dma.h
+old mode 100644
+new mode 100755
+index 72f680b..1c017b2
+--- a/arch/arm/plat-omap/include/plat/dma.h
++++ b/arch/arm/plat-omap/include/plat/dma.h
+@@ -633,6 +633,11 @@ extern void omap_set_dma_dst_endian_type(int lch, enum end_type etype);
+ extern void omap_set_dma_src_endian_type(int lch, enum end_type etype);
+ extern int omap_get_dma_index(int lch, int *ei, int *fi);
  
- /* Do not use these */
- extern void omap1_sram_reprogram_clock(u32 ckctl, u32 dpllctl);
++void omap_dma_global_context_save(void);
++void omap_dma_global_context_restore(void);
++
++extern void omap_dma_disable_irq(int lch);
++
+ /* Chaining APIs */
+ #ifndef CONFIG_ARCH_OMAP1
+ extern int omap_request_dma_chain(int dev_id, const char *dev_name,
 -- 
 1.6.4.3
 
