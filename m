@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 26/32] OMAP3: PM debug: allow runtime toggle of PM features
-Date: Thu, 22 Oct 2009 16:09:47 -0700
-Message-ID: <1256252993-24328-27-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 30/32] OMAP3: PM: MPU and CORE should stay awake if there is CAM domain ACTIVE
+Date: Thu, 22 Oct 2009 16:09:51 -0700
+Message-ID: <1256252993-24328-31-git-send-email-khilman@deeprootsystems.com>
 References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-2-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-3-git-send-email-khilman@deeprootsystems.com>
@@ -28,172 +28,75 @@ References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-24-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-25-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-26-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-27-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-28-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-29-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-30-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-qy0-f194.google.com ([209.85.221.194]:37878 "EHLO
 	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755266AbZJVXL2 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:11:28 -0400
+	with ESMTP id S1755215AbZJVXLm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:11:42 -0400
 Received: by mail-qy0-f194.google.com with SMTP id 32so5544712qyk.4
-        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:11:33 -0700 (PDT)
-In-Reply-To: <1256252993-24328-26-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:11:47 -0700 (PDT)
+In-Reply-To: <1256252993-24328-30-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-arm-kernel@lists.infradead.org, Tero Kristo <tero.kristo@nokia.com>, Jouni Hogander <jouni.hogander@nokia.com>
 
-Allow enable/disable of low-power states during idle.  To
-enable low-power idle:
+From: Tero Kristo <tero.kristo@nokia.com>
 
-   echo 1 > /debug/pm_debug/sleep_while_idle
+MPU and CORE should stay awake if there is CAM domain ACTIVE. This is
+because that module doesn't have wake-up capability.
 
- to disable:
+This should replace the patch that is currently in the PM branch.
 
-   echo 0 > /debug/pm_debug/sleep_while_idle
-
-Also allow enable/disable of OFF-mode.  To enable:
-
-   echo 1 > /debug/pm_debug/enable_off_mode
-
- to disable:
-
-   echo 0 > /debug/pm_debug/enable_off_mode
-
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm-debug.c |   27 +++++++++++++++++++++++++++
- arch/arm/mach-omap2/pm.h       |    4 ++++
- arch/arm/mach-omap2/pm34xx.c   |   22 ++++++++++++++++++++++
- arch/arm/mach-omap2/serial.c   |    2 --
- 4 files changed, 53 insertions(+), 2 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-index 7eb2c12..1725da3 100644
---- a/arch/arm/mach-omap2/pm-debug.c
-+++ b/arch/arm/mach-omap2/pm-debug.c
-@@ -527,6 +527,29 @@ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *dir)
- 	return 0;
- }
- 
-+static int option_get(void *data, u64 *val)
-+{
-+	u32 *option = data;
-+
-+	*val = *option;
-+
-+	return 0;
-+}
-+
-+static int option_set(void *data, u64 val)
-+{
-+	u32 *option = data;
-+
-+	*option = val;
-+
-+	if (option == &enable_off_mode)
-+		omap3_pm_off_mode_enable(val);
-+
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(pm_dbg_option_fops, option_get, option_set, "%llu\n");
-+
- static int __init pm_dbg_init(void)
- {
- 	int i;
-@@ -569,6 +592,10 @@ static int __init pm_dbg_init(void)
- 
- 		}
- 
-+	(void) debugfs_create_file("enable_off_mode", S_IRUGO | S_IWUGO, d,
-+				   &enable_off_mode, &pm_dbg_option_fops);
-+	(void) debugfs_create_file("sleep_while_idle", S_IRUGO | S_IWUGO, d,
-+				   &sleep_while_idle, &pm_dbg_option_fops);
- 	pm_dbg_init_done = 1;
- 
- 	return 0;
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index 45cafac..9582793 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -13,7 +13,11 @@
- 
- #include <plat/powerdomain.h>
- 
-+extern u32 enable_off_mode;
-+extern u32 sleep_while_idle;
-+
- extern void *omap3_secure_ram_storage;
-+extern void omap3_pm_off_mode_enable(int);
- 
- extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
- extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 90d1dc5..ade2e4a 100644
+index 55567bf..7623eda 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -25,6 +25,7 @@
- #include <linux/list.h>
- #include <linux/err.h>
- #include <linux/gpio.h>
-+#include <linux/clk.h>
+@@ -80,6 +80,7 @@ static int (*_omap_save_secure_sram)(u32 *addr);
  
- #include <plat/sram.h>
- #include <plat/clockdomain.h>
-@@ -57,6 +58,9 @@
- #define OMAP343X_TABLE_VALUE_OFFSET	   0x30
- #define OMAP343X_CONTROL_REG_VALUE_OFFSET  0x32
+ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+ static struct powerdomain *core_pwrdm, *per_pwrdm;
++static struct powerdomain *cam_pwrdm;
  
-+u32 enable_off_mode;
-+u32 sleep_while_idle;
+ static int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ 
+@@ -355,6 +356,9 @@ static void omap_sram_idle(void)
+ 		}
+ 	}
+ 
++	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
++		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
 +
- struct power_state {
- 	struct powerdomain *pwrdm;
- 	u32 next_state;
-@@ -456,6 +460,8 @@ static int omap3_fclks_active(void)
+ 	/* CORE */
+ 	if (core_next_state < PWRDM_POWER_ON) {
+ 		omap_uart_prepare_idle(0);
+@@ -434,6 +438,7 @@ static void omap_sram_idle(void)
  
- static int omap3_can_sleep(void)
- {
-+	if (!sleep_while_idle)
-+		return 0;
- 	if (!omap_uart_can_sleep())
- 		return 0;
- 	if (omap3_fclks_active())
-@@ -900,6 +906,22 @@ static void __init prcm_setup_regs(void)
- 	omap3_d2d_idle();
+ 	pwrdm_post_transition();
+ 
++	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
  }
  
-+void omap3_pm_off_mode_enable(int enable)
-+{
-+	struct power_state *pwrst;
-+	u32 state;
-+
-+	if (enable)
-+		state = PWRDM_POWER_OFF;
-+	else
-+		state = PWRDM_POWER_RET;
-+
-+	list_for_each_entry(pwrst, &pwrst_list, node) {
-+		pwrst->next_state = state;
-+		set_pwrdm_state(pwrst->pwrdm, state);
-+	}
-+}
-+
- int omap3_pm_get_suspend_state(struct powerdomain *pwrdm)
- {
- 	struct power_state *pwrst;
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index dabc089..2e17b57 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -155,8 +155,6 @@ static inline void __init omap_uart_reset(struct omap_uart_state *uart)
+ /*
+@@ -1067,6 +1072,7 @@ static int __init omap3_pm_init(void)
+ 	neon_pwrdm = pwrdm_lookup("neon_pwrdm");
+ 	per_pwrdm = pwrdm_lookup("per_pwrdm");
+ 	core_pwrdm = pwrdm_lookup("core_pwrdm");
++	cam_pwrdm = pwrdm_lookup("cam_pwrdm");
  
- #if defined(CONFIG_PM) && defined(CONFIG_ARCH_OMAP3)
- 
--static int enable_off_mode; /* to be removed by full off-mode patches */
--
- static void omap_uart_save_context(struct omap_uart_state *uart)
- {
- 	u16 lcr = 0;
+ 	omap_push_sram_idle();
+ #ifdef CONFIG_SUSPEND
 -- 
 1.6.4.3
 
