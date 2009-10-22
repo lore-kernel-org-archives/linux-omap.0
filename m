@@ -1,62 +1,61 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH] OMAP3: DVFS: No sdrc AC timing changes during core dvfs
-Date: Thu, 22 Oct 2009 07:20:19 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B459718@dlee02.ent.ti.com>
-References: <1254835224-19500-1-git-send-email-rnayak@ti.com>
- <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com>
- <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com>
- <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH resend] OMAP1: AMS_DELTA: Fix DSP public peripherals support
+Date: Thu, 22 Oct 2009 14:21:31 +0200
+Message-ID: <200910221421.33875.jkrzyszt@tis.icnet.pl>
+References: <200910220222.55900.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=Windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54703 "EHLO arroyo.ext.ti.com"
+Received: from d1.icnet.pl ([212.160.220.21]:38899 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754773AbZJVMVU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 08:21:20 -0400
-In-Reply-To: <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com>
-Content-Language: en-US
+	id S1754812AbZJVMWI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 22 Oct 2009 08:22:08 -0400
+In-Reply-To: <200910220222.55900.jkrzyszt@tis.icnet.pl>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Jonathan McDowell <noodles@earth.li>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
 
-Hi Beonit,
+DSP public peripherals used to work on OMAP1510 based (or all OMAP1 class?)
+machines as long as old dspgateway code were present in the l-o tree. For
+several months it is no longer included, breaking support for McBSP1 based
+audio on Amstrad Delta, for example.
 
-> From: Cousson, Benoit
-> Sent: Thursday, October 22, 2009 3:59 AM
-> To: Woodruff, Richard; Paul Walmsley; Nayak, Rajendra
+This patch, derived from the old dspgateway code, corrects the problem for the
+board by simply taking the DSP out of reset state, I guess. That way, things
+should not break when a new dsp code is added to the tree, and the change can
+be reverted then.
 
-> >It is not guaranteed safe to write actim registers on the fly to an =
-active
-> >part.  It is safe to do RFR as it is buffered and sent out at a safe=
- time.
->
-> I think that what Paul is suggesting is to change the ACTIM after ens=
-uring
-> that the DDR is in self-refresh. In that case it is perfectly valid; =
-it is
-> just tricky to ensure that all initiators are in mute before doing th=
-at.
+If there are any reports on McBSP1 or other DSP public peripherals not working
+for other OMAP1 machines (I've not heard of any for now), I can prepare a more
+general patch providing an extra include file with a helper function defined.
 
-Yes that is true, however, ...
+Created and tested against linux-2.6.32-rc5
 
-That is not the way the code is setup and it=92s a long way from that. =
- Run time pause of drivers is a minefield.
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-With out a broad notifier they best you would hope for is some opportun=
-istic change time (against full system).  You wouldn't have a guarantee=
-d way to speed them up again where you need them most at high opp.
+---
+Thursday 22 October 2009 02:22:53 Janusz Krzysztofik wrote:
+> --- linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-10-22 
+> 00:55:49.000000000 +0200
+> +++ linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c	2009-10-22 
+> 01:46:39.000000000 +0200
 
-Some minimal kernel not using dma and the like could do it but that is =
-probably more misleading to put in the tree than something useful for m=
-ost.
+Tony,
+The above lines has been mangled by my mailer, that's why I resend for your
+convenience.
 
-Regards,
-Richard W.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-10-22 00:55:49.000000000 +0200
++++ linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c	2009-10-22 01:46:39.000000000 +0200
+@@ -235,6 +235,8 @@ static void __init ams_delta_init(void)
+ 
+ 	omap_usb_init(&ams_delta_usb_config);
+ 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
++
++	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
+ }
+ 
+ static struct plat_serial8250_port ams_delta_modem_ports[] = {
