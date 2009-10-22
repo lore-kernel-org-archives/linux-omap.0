@@ -1,53 +1,85 @@
-From: Ilkka Koskinen <ikoskine@nokia.com>
-Subject: Re: [Resend PATCH 2/2] twl4030: Enable low-power mode to 32kHz
- oscillator
-Date: Thu, 22 Oct 2009 14:05:32 +0300 (EEST)
-Message-ID: <alpine.DEB.2.00.0910221346030.3792@tumpelo.ntc.nokia.com>
-References: <1256044973-14548-1-git-send-email-ilkka.koskinen@nokia.com> <1256044973-14548-2-git-send-email-ilkka.koskinen@nokia.com> <20091021221718.GB17796@sortiz.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754724AbZJVLGc@vger.kernel.org>
-In-Reply-To: <20091021221718.GB17796@sortiz.org>
+From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Subject: [PATCH v2] twl4030: Enable low-power mode to 32kHz oscillator
+Date: Thu, 22 Oct 2009 14:14:09 +0300
+Message-ID: <1256210049-4567-1-git-send-email-ilkka.koskinen@nokia.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754866AbZJVLPL@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+To: sameo@linux.intel.com, linux-kernel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
+Allows TWL's 32kHz oscillator to go in low-power mode when
+main battery voltage is running low.
 
-Hi Samuel,
+Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+---
+ drivers/mfd/twl4030-core.c  |    9 +++++++--
+ include/linux/i2c/twl4030.h |    5 +++++
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-On Thu, 22 Oct 2009, ext Samuel Ortiz wrote:
-> On Tue, Oct 20, 2009 at 04:22:53PM +0300, Ilkka Koskinen wrote:
->> +struct twl4030_clock_init_data {
->> +     int ck32k_lowpwr_enable;
-> I guess you could use a bool here ?
-
-Good point. I'll change it.
-
-Cheers, Ilkka
-
->> +};
->> +
->>  struct twl4030_bci_platform_data {
->>       int *battery_tmp_tbl;
->>       unsigned int tblsize;
->> @@ -403,6 +407,7 @@ extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
->>
->>  struct twl4030_platform_data {
->>       unsigned                                irq_base, irq_end;
->> +     struct twl4030_clock_init_data          *clock;
->>       struct twl4030_bci_platform_data        *bci;
->>       struct twl4030_gpio_platform_data       *gpio;
->>       struct twl4030_madc_platform_data       *madc;
->> --
->> 1.6.0.4
->>
->
-> --
-> Intel Open Source Technology Centre
-> http://oss.intel.com/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+index eee5af8..004a8be 100644
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -177,6 +177,7 @@
+ #define HFCLK_FREQ_26_MHZ		(2 << 0)
+ #define HFCLK_FREQ_38p4_MHZ		(3 << 0)
+ #define HIGH_PERF_SQ			(1 << 3)
++#define CK32K_LOWPWR_EN			(1 << 7)
+ 
+ 
+ /* chip-specific feature flags, for i2c_device_id.driver_data */
+@@ -681,7 +682,8 @@ static inline int __init unprotect_pm_master(void)
+ 	return e;
+ }
+ 
+-static void clocks_init(struct device *dev)
++static void clocks_init(struct device *dev,
++			struct twl4030_clock_init_data *clock)
+ {
+ 	int e = 0;
+ 	struct clk *osc;
+@@ -728,6 +730,9 @@ static void clocks_init(struct device *dev)
+ 	}
+ 
+ 	ctrl |= HIGH_PERF_SQ;
++	if (clock && clock->ck32k_lowpwr_enable)
++		ctrl |= CK32K_LOWPWR_EN;
++
+ 	e |= unprotect_pm_master();
+ 	/* effect->MADC+USB ck en */
+ 	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
+@@ -806,7 +811,7 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	inuse = true;
+ 
+ 	/* setup clock framework */
+-	clocks_init(&client->dev);
++	clocks_init(&client->dev, pdata->clock);
+ 
+ 	/* load power event scripts */
+ 	if (twl_has_power() && pdata->power)
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 4a2fb27..10e68cb 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -313,6 +313,10 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
+ 
+ /*----------------------------------------------------------------------*/
+ 
++struct twl4030_clock_init_data {
++	bool ck32k_lowpwr_enable;
++};
++
+ struct twl4030_bci_platform_data {
+ 	int *battery_tmp_tbl;
+ 	unsigned int tblsize;
+@@ -407,6 +411,7 @@ extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
+ 
+ struct twl4030_platform_data {
+ 	unsigned				irq_base, irq_end;
++	struct twl4030_clock_init_data		*clock;
+ 	struct twl4030_bci_platform_data	*bci;
+ 	struct twl4030_gpio_platform_data	*gpio;
+ 	struct twl4030_madc_platform_data	*madc;
+-- 
+1.6.0.4
