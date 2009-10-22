@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 19/32] OMAP3: PM: Fix PLL_MOD CLKEN offset in scratchpad
-Date: Thu, 22 Oct 2009 16:09:40 -0700
-Message-ID: <1256252993-24328-20-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 16/32] OMAP3: PM: Save and restore also CM_CLKSEL1_PLL_IVA2
+Date: Thu, 22 Oct 2009 16:09:37 -0700
+Message-ID: <1256252993-24328-17-git-send-email-khilman@deeprootsystems.com>
 References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-2-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-3-git-send-email-khilman@deeprootsystems.com>
@@ -18,56 +18,60 @@ References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-14-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-15-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-16-git-send-email-khilman@deeprootsystems.com>
- <1256252993-24328-17-git-send-email-khilman@deeprootsystems.com>
- <1256252993-24328-18-git-send-email-khilman@deeprootsystems.com>
- <1256252993-24328-19-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-qy0-f194.google.com ([209.85.221.194]:37878 "EHLO
 	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755526AbZJVXLC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:11:02 -0400
+	with ESMTP id S1755213AbZJVXKw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:10:52 -0400
 Received: by mail-qy0-f194.google.com with SMTP id 32so5544712qyk.4
-        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:11:07 -0700 (PDT)
-In-Reply-To: <1256252993-24328-19-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:10:57 -0700 (PDT)
+In-Reply-To: <1256252993-24328-16-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Cc: linux-arm-kernel@lists.infradead.org, Jouni Hogander <jouni.hogander@nokia.com>
 
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+From: Jouni Hogander <jouni.hogander@nokia.com>
 
-The CM_CLKEN_PLL register saved in scratchpad memory
-was wrongly using offset of 0x0004 instead of 0x0000.
+CM_CLKSEL1_PLL_IVA2 is not saved/restored currently. This patch is
+adding save and restore for it.
 
-The effect of this was that boot ROM code would
-restore the wrong value when waking up from off mode.
-This wrong value, however, will be overwritten by
-prcm context restore. Still, a short period of wrong
-clock settings in CM_CLKEN_PLL remained between ROM
-code and prcm context restore. This is fixed by the
-patch.
-
-Problem reported by: Jouni Hogander <jouni.hogander@nokia.com>
-
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/control.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/prcm.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index b84cff7..c41565e 100644
---- a/arch/arm/mach-omap2/control.c
-+++ b/arch/arm/mach-omap2/control.c
-@@ -230,7 +230,7 @@ void omap3_save_scratchpad_contents(void)
- 	prcm_block_contents.cm_clksel_wkup =
- 			cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
- 	prcm_block_contents.cm_clken_pll =
--			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKEN_PLL);
-+			cm_read_mod_reg(PLL_MOD, CM_CLKEN);
- 	prcm_block_contents.cm_autoidle_pll =
- 			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_AUTOIDLE_PLL);
- 	prcm_block_contents.cm_clksel1_pll =
+diff --git a/arch/arm/mach-omap2/prcm.c b/arch/arm/mach-omap2/prcm.c
+index 56f77df..221eed1 100644
+--- a/arch/arm/mach-omap2/prcm.c
++++ b/arch/arm/mach-omap2/prcm.c
+@@ -39,6 +39,7 @@ static void __iomem *cm_base;
+ 
+ struct omap3_prcm_regs {
+ 	u32 control_padconf_sys_nirq;
++	u32 iva2_cm_clksel1;
+ 	u32 iva2_cm_clksel2;
+ 	u32 cm_sysconfig;
+ 	u32 sgx_cm_clksel;
+@@ -262,6 +263,8 @@ void omap3_prcm_save_context(void)
+ {
+ 	prcm_context.control_padconf_sys_nirq =
+ 			 omap_ctrl_readl(OMAP343X_CONTROL_PADCONF_SYSNIRQ);
++	prcm_context.iva2_cm_clksel1 =
++			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL1);
+ 	prcm_context.iva2_cm_clksel2 =
+ 			 cm_read_mod_reg(OMAP3430_IVA2_MOD, CM_CLKSEL2);
+ 	prcm_context.cm_sysconfig = __raw_readl(OMAP3430_CM_SYSCONFIG);
+@@ -417,6 +420,8 @@ void omap3_prcm_restore_context(void)
+ {
+ 	omap_ctrl_writel(prcm_context.control_padconf_sys_nirq,
+ 					 OMAP343X_CONTROL_PADCONF_SYSNIRQ);
++	cm_write_mod_reg(prcm_context.iva2_cm_clksel1, OMAP3430_IVA2_MOD,
++					 CM_CLKSEL1);
+ 	cm_write_mod_reg(prcm_context.iva2_cm_clksel2, OMAP3430_IVA2_MOD,
+ 					 CM_CLKSEL2);
+ 	__raw_writel(prcm_context.cm_sysconfig, OMAP3430_CM_SYSCONFIG);
 -- 
 1.6.4.3
 
