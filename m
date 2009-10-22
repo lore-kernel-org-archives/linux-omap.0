@@ -1,88 +1,70 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: [PATCH]Omap HSMMC2 8-bit mux configuration
-Date: Thu, 22 Oct 2009 23:13:04 +0530 (IST)
-Message-ID: <65111.192.168.10.89.1256233384.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH]Omap3630: Add hsmmc related checks
+Date: Thu, 22 Oct 2009 10:44:08 -0700
+Message-ID: <20091022174408.GO16230@atomide.com>
+References: <62121.192.168.10.89.1256233132.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56952 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753714AbZJVRnC (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Oct 2009 13:43:02 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57805 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755880AbZJVRoG (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 13:44:06 -0400
+Content-Disposition: inline
+In-Reply-To: <62121.192.168.10.89.1256233132.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
+To: Madhusudhan Chikkature <madhu.cr@ti.com>
+Cc: linux-omap@vger.kernel.org
 
->From c6eb46e918044739ba21ec31a9bd09ebcfa9fb53 Mon Sep 17 00:00:00 2001
-From: Madhu <madhu.cr@ti.com>
-Date: Wed, 21 Oct 2009 16:49:24 -0400
-Subject: [PATCH] Omap HSMMC2 8-bit mux configuration.
+* Madhusudhan Chikkature <madhu.cr@ti.com> [091022 10:38]:
+> From 661b13474a7af62c54f7df7a33a818c5e782cc59 Mon Sep 17 00:00:00 2001
+> From: Madhu <madhu.cr@ti.com>
+> Date: Wed, 21 Oct 2009 16:16:31 -0400
+> Subject: [PATCH] Omap3630: Add HSMMC related checks.
+> 
+> Add omap3630 conditional checks to devices.c to allow HSMMC3 addition and
+> mux configuration for HSMMC1/2.
+> 
+> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> ---
+>  arch/arm/mach-omap2/devices.c |    5 +++--
+>  1 files changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+> index 7d4513b..1fdfc7f 100644
+> --- a/arch/arm/mach-omap2/devices.c
+> +++ b/arch/arm/mach-omap2/devices.c
+> @@ -575,7 +575,7 @@ static inline void omap2_mmc_mux(struct
+> omap_mmc_platform_data *mmc_controller,
+>  		}
+>  	}
+> 
+> -	if (cpu_is_omap3430()) {
+> +	if (cpu_is_omap3430() || cpu_is_omap3630()) {
+>  		if (controller_nr == 0) {
+>  			omap_cfg_reg(N28_3430_MMC1_CLK);
+>  			omap_cfg_reg(M27_3430_MMC1_CMD);
 
-Add support for omap hsmmc2 8-bit mux configuration.
+How about using cpu_is_omap34xx() here instead? It's more future proof.
 
-Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
----
- arch/arm/mach-omap2/devices.c         |    6 ++++++
- arch/arm/mach-omap2/mux.c             |    8 ++++++++
- arch/arm/plat-omap/include/plat/mux.h |    4 ++++
- 3 files changed, 18 insertions(+), 0 deletions(-)
+Regards,
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 1fdfc7f..2ca415a 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -609,6 +609,12 @@ static inline void omap2_mmc_mux(struct
-omap_mmc_platform_data *mmc_controller,
- 				omap_cfg_reg(AG4_3430_MMC2_DAT2);
- 				omap_cfg_reg(AF4_3430_MMC2_DAT3);
- 			}
-+			if (mmc_controller->slots[0].wires == 8) {
-+				omap_cfg_reg(AE4_3430_MMC2_DAT4);
-+				omap_cfg_reg(AH3_3430_MMC2_DAT5);
-+				omap_cfg_reg(AF3_3430_MMC2_DAT6);
-+				omap_cfg_reg(AE3_3430_MMC2_DAT7);
-+			}
- 		}
+Tony
 
- 		/*
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 32c953e..83256d3 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -532,6 +532,14 @@ MUX_CFG_34XX("AG4_3430_MMC2_DAT2", 0x160,
- 		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
- MUX_CFG_34XX("AF4_3430_MMC2_DAT3", 0x162,
- 		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AE4_3430_MMC2_DAT4", 0x164,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AH3_3430_MMC2_DAT5", 0x166,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF3_3430_MMC2_DAT6", 0x168,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AE3_3430_MMC2_DAT7", 0x16A,
-+		OMAP34XX_MUX_MODE0 | OMAP34XX_PIN_INPUT_PULLUP)
-
- /* MMC3 */
- MUX_CFG_34XX("AF10_3430_MMC3_CLK", 0x5d8,
-diff --git a/arch/arm/plat-omap/include/plat/mux.h
-b/arch/arm/plat-omap/include/plat/mux.h
-index f3c1d8a..df38e16 100644
---- a/arch/arm/plat-omap/include/plat/mux.h
-+++ b/arch/arm/plat-omap/include/plat/mux.h
-@@ -829,6 +829,10 @@ enum omap34xx_index {
- 	AH4_3430_MMC2_DAT1,
- 	AG4_3430_MMC2_DAT2,
- 	AF4_3430_MMC2_DAT3,
-+	AE4_3430_MMC2_DAT4,
-+	AH3_3430_MMC2_DAT5,
-+	AF3_3430_MMC2_DAT6,
-+	AE3_3430_MMC2_DAT7,
-
- 	/* MMC3 */
- 	AF10_3430_MMC3_CLK,
--- 
-1.6.0.4
-
-
-
+> @@ -642,7 +642,8 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data
+> **mmc_data,
+>  			irq = INT_24XX_MMC2_IRQ;
+>  			break;
+>  		case 2:
+> -			if (!cpu_is_omap44xx() && !cpu_is_omap34xx())
+> +			if (!cpu_is_omap44xx() && !cpu_is_omap34xx()
+> +				&& !cpu_is_omap3630())
+>  				return;
+>  			base = OMAP3_MMC3_BASE;
+>  			irq = INT_34XX_MMC3_IRQ;
+> -- 
+> 1.6.0.4
+> 
+> 
+> 
