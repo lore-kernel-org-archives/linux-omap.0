@@ -1,285 +1,294 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 05/32] OMAP3: PM: Populate scratchpad contents
-Date: Thu, 22 Oct 2009 16:09:26 -0700
-Message-ID: <1256252993-24328-6-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 06/32] OMAP3: PM: SCM context save/restore
+Date: Thu, 22 Oct 2009 16:09:27 -0700
+Message-ID: <1256252993-24328-7-git-send-email-khilman@deeprootsystems.com>
 References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-2-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-3-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-4-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-5-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-6-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from mail-qy0-f194.google.com ([209.85.221.194]:37878 "EHLO
 	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754099AbZJVXKL (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:10:11 -0400
+	with ESMTP id S1754275AbZJVXKP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:10:15 -0400
 Received: by mail-qy0-f194.google.com with SMTP id 32so5544712qyk.4
-        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:10:16 -0700 (PDT)
-In-Reply-To: <1256252993-24328-5-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:10:20 -0700 (PDT)
+In-Reply-To: <1256252993-24328-6-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
 From: Rajendra Nayak <rnayak@ti.com>
 
-This patch populates the scratchpad contents as expected by the
-bootROM code.
+Add context save and restore for the System Control Module to suport
+off-mode.
+
+ETK and debobs definitions added by Peter De Schrijver.
 
 Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/control.c             |  203 +++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/control.h |    9 ++
- 2 files changed, 212 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/control.c             |  157 ++++++++++++++++++++++++++++-
+ arch/arm/plat-omap/include/plat/control.h |   49 +++++++++-
+ 2 files changed, 202 insertions(+), 4 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
-index 6adb360..03e1bce 100644
+index 03e1bce..3ea417d 100644
 --- a/arch/arm/mach-omap2/control.c
 +++ b/arch/arm/mach-omap2/control.c
-@@ -17,9 +17,81 @@
- 
- #include <plat/common.h>
- #include <plat/control.h>
-+#include <plat/sdrc.h>
-+#include "cm-regbits-34xx.h"
-+#include "prm-regbits-34xx.h"
-+#include "cm.h"
-+#include "prm.h"
-+#include "sdrc.h"
+@@ -26,6 +26,7 @@
  
  static void __iomem *omap2_ctrl_base;
  
-+struct omap3_scratchpad {
-+	u32 boot_config_ptr;
-+	u32 public_restore_ptr;
-+	u32 secure_ram_restore_ptr;
-+	u32 sdrc_module_semaphore;
-+	u32 prcm_block_offset;
-+	u32 sdrc_block_offset;
++#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+ struct omap3_scratchpad {
+ 	u32 boot_config_ptr;
+ 	u32 public_restore_ptr;
+@@ -92,6 +93,47 @@ struct omap3_scratchpad_sdrc_block {
+  */
+ u32 omap3_arm_context[128];
+ 
++struct omap3_control_regs {
++	u32 sysconfig;
++	u32 devconf0;
++	u32 mem_dftrw0;
++	u32 mem_dftrw1;
++	u32 msuspendmux_0;
++	u32 msuspendmux_1;
++	u32 msuspendmux_2;
++	u32 msuspendmux_3;
++	u32 msuspendmux_4;
++	u32 msuspendmux_5;
++	u32 sec_ctrl;
++	u32 devconf1;
++	u32 csirxfe;
++	u32 iva2_bootaddr;
++	u32 iva2_bootmod;
++	u32 debobs_0;
++	u32 debobs_1;
++	u32 debobs_2;
++	u32 debobs_3;
++	u32 debobs_4;
++	u32 debobs_5;
++	u32 debobs_6;
++	u32 debobs_7;
++	u32 debobs_8;
++	u32 prog_io0;
++	u32 prog_io1;
++	u32 dss_dpll_spreading;
++	u32 core_dpll_spreading;
++	u32 per_dpll_spreading;
++	u32 usbhost_dpll_spreading;
++	u32 pbias_lite;
++	u32 temp_sensor;
++	u32 sramldo4;
++	u32 sramldo5;
++	u32 csi;
 +};
 +
-+struct omap3_scratchpad_prcm_block {
-+	u32 prm_clksrc_ctrl;
-+	u32 prm_clksel;
-+	u32 cm_clksel_core;
-+	u32 cm_clksel_wkup;
-+	u32 cm_clken_pll;
-+	u32 cm_autoidle_pll;
-+	u32 cm_clksel1_pll;
-+	u32 cm_clksel2_pll;
-+	u32 cm_clksel3_pll;
-+	u32 cm_clken_pll_mpu;
-+	u32 cm_autoidle_pll_mpu;
-+	u32 cm_clksel1_pll_mpu;
-+	u32 cm_clksel2_pll_mpu;
-+	u32 prcm_block_size;
-+};
-+
-+struct omap3_scratchpad_sdrc_block {
-+	u16 sysconfig;
-+	u16 cs_cfg;
-+	u16 sharing;
-+	u16 err_type;
-+	u32 dll_a_ctrl;
-+	u32 dll_b_ctrl;
-+	u32 power;
-+	u32 cs_0;
-+	u32 mcfg_0;
-+	u16 mr_0;
-+	u16 emr_1_0;
-+	u16 emr_2_0;
-+	u16 emr_3_0;
-+	u32 actim_ctrla_0;
-+	u32 actim_ctrlb_0;
-+	u32 rfr_ctrl_0;
-+	u32 cs_1;
-+	u32 mcfg_1;
-+	u16 mr_1;
-+	u16 emr_1_1;
-+	u16 emr_2_1;
-+	u16 emr_3_1;
-+	u32 actim_ctrla_1;
-+	u32 actim_ctrlb_1;
-+	u32 rfr_ctrl_1;
-+	u16 dcdl_1_ctrl;
-+	u16 dcdl_2_ctrl;
-+	u32 flags;
-+	u32 block_size;
-+};
-+
-+/*
-+ * This is used to store ARM registers in SDRAM before attempting
-+ * an MPU OFF. The save and restore happens from the SRAM sleep code.
-+ * The address is stored in scratchpad, so that it can be used
-+ * during the restore path.
-+ */
-+u32 omap3_arm_context[128];
++static struct omap3_control_regs control_context;
++#endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
 +
  #define OMAP_CTRL_REGADDR(reg)		(omap2_ctrl_base + (reg))
  
  void __init omap2_set_globals_control(struct omap_globals *omap2_globals)
-@@ -62,3 +134,134 @@ void omap_ctrl_writel(u32 val, u16 offset)
+@@ -134,7 +176,7 @@ void omap_ctrl_writel(u32 val, u16 offset)
  	__raw_writel(val, OMAP_CTRL_REGADDR(offset));
  }
  
-+#ifdef CONFIG_ARCH_OMAP3
-+/*
-+ * Clears the scratchpad contents in case of cold boot-
-+ * called during bootup
-+ */
-+void omap3_clear_scratchpad_contents(void)
+-#ifdef CONFIG_ARCH_OMAP3
++#if defined(CONFIG_ARCH_OMAP3) && defined(CONFIG_PM)
+ /*
+  * Clears the scratchpad contents in case of cold boot-
+  * called during bootup
+@@ -264,4 +306,115 @@ void omap3_save_scratchpad_contents(void)
+ 		sizeof(sdrc_block_contents), &arm_context_addr, 4);
+ }
+ 
+-#endif /* CONFIG_ARCH_OMAP3 */
++void omap3_control_save_context(void)
 +{
-+	u32 max_offset = OMAP343X_SCRATCHPAD_ROM_OFFSET;
-+	u32 *v_addr;
-+	u32 offset = 0;
-+	v_addr = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD_ROM);
-+	if (prm_read_mod_reg(OMAP3430_GR_MOD, OMAP3_PRM_RSTST_OFFSET) &
-+		OMAP3430_GLOBAL_COLD_RST) {
-+		for ( ; offset <= max_offset; offset += 0x4)
-+			__raw_writel(0x0, (v_addr + offset));
-+		prm_set_mod_reg_bits(OMAP3430_GLOBAL_COLD_RST, OMAP3430_GR_MOD,
-+			OMAP3_PRM_RSTST_OFFSET);
-+	}
++	control_context.sysconfig = omap_ctrl_readl(OMAP2_CONTROL_SYSCONFIG);
++	control_context.devconf0 = omap_ctrl_readl(OMAP2_CONTROL_DEVCONF0);
++	control_context.mem_dftrw0 =
++			omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW0);
++	control_context.mem_dftrw1 =
++			omap_ctrl_readl(OMAP343X_CONTROL_MEM_DFTRW1);
++	control_context.msuspendmux_0 =
++			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_0);
++	control_context.msuspendmux_1 =
++			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_1);
++	control_context.msuspendmux_2 =
++			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_2);
++	control_context.msuspendmux_3 =
++			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_3);
++	control_context.msuspendmux_4 =
++			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_4);
++	control_context.msuspendmux_5 =
++			omap_ctrl_readl(OMAP2_CONTROL_MSUSPENDMUX_5);
++	control_context.sec_ctrl = omap_ctrl_readl(OMAP2_CONTROL_SEC_CTRL);
++	control_context.devconf1 = omap_ctrl_readl(OMAP343X_CONTROL_DEVCONF1);
++	control_context.csirxfe = omap_ctrl_readl(OMAP343X_CONTROL_CSIRXFE);
++	control_context.iva2_bootaddr =
++			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTADDR);
++	control_context.iva2_bootmod =
++			omap_ctrl_readl(OMAP343X_CONTROL_IVA2_BOOTMOD);
++	control_context.debobs_0 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(0));
++	control_context.debobs_1 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(1));
++	control_context.debobs_2 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(2));
++	control_context.debobs_3 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(3));
++	control_context.debobs_4 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(4));
++	control_context.debobs_5 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(5));
++	control_context.debobs_6 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(6));
++	control_context.debobs_7 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(7));
++	control_context.debobs_8 = omap_ctrl_readl(OMAP343X_CONTROL_DEBOBS(8));
++	control_context.prog_io0 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO0);
++	control_context.prog_io1 = omap_ctrl_readl(OMAP343X_CONTROL_PROG_IO1);
++	control_context.dss_dpll_spreading =
++			omap_ctrl_readl(OMAP343X_CONTROL_DSS_DPLL_SPREADING);
++	control_context.core_dpll_spreading =
++			omap_ctrl_readl(OMAP343X_CONTROL_CORE_DPLL_SPREADING);
++	control_context.per_dpll_spreading =
++			omap_ctrl_readl(OMAP343X_CONTROL_PER_DPLL_SPREADING);
++	control_context.usbhost_dpll_spreading =
++		omap_ctrl_readl(OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
++	control_context.pbias_lite =
++			omap_ctrl_readl(OMAP343X_CONTROL_PBIAS_LITE);
++	control_context.temp_sensor =
++			omap_ctrl_readl(OMAP343X_CONTROL_TEMP_SENSOR);
++	control_context.sramldo4 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO4);
++	control_context.sramldo5 = omap_ctrl_readl(OMAP343X_CONTROL_SRAMLDO5);
++	control_context.csi = omap_ctrl_readl(OMAP343X_CONTROL_CSI);
++	return;
 +}
 +
-+/* Populate the scratchpad structure with restore structure */
-+void omap3_save_scratchpad_contents(void)
++void omap3_control_restore_context(void)
 +{
-+	void * __iomem scratchpad_address;
-+	u32 arm_context_addr;
-+	struct omap3_scratchpad scratchpad_contents;
-+	struct omap3_scratchpad_prcm_block prcm_block_contents;
-+	struct omap3_scratchpad_sdrc_block sdrc_block_contents;
-+
-+	/* Populate the Scratchpad contents */
-+	scratchpad_contents.boot_config_ptr = 0x0;
-+	scratchpad_contents.public_restore_ptr =
-+			 virt_to_phys(get_restore_pointer());
-+	scratchpad_contents.secure_ram_restore_ptr = 0x0;
-+	scratchpad_contents.sdrc_module_semaphore = 0x0;
-+	scratchpad_contents.prcm_block_offset = 0x2C;
-+	scratchpad_contents.sdrc_block_offset = 0x64;
-+
-+	/* Populate the PRCM block contents */
-+	prcm_block_contents.prm_clksrc_ctrl = prm_read_mod_reg(OMAP3430_GR_MOD,
-+			OMAP3_PRM_CLKSRC_CTRL_OFFSET);
-+	prcm_block_contents.prm_clksel = prm_read_mod_reg(OMAP3430_CCR_MOD,
-+			OMAP3_PRM_CLKSEL_OFFSET);
-+	prcm_block_contents.cm_clksel_core =
-+			cm_read_mod_reg(CORE_MOD, CM_CLKSEL);
-+	prcm_block_contents.cm_clksel_wkup =
-+			cm_read_mod_reg(WKUP_MOD, CM_CLKSEL);
-+	prcm_block_contents.cm_clken_pll =
-+			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKEN_PLL);
-+	prcm_block_contents.cm_autoidle_pll =
-+			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_AUTOIDLE_PLL);
-+	prcm_block_contents.cm_clksel1_pll =
-+			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL1_PLL);
-+	prcm_block_contents.cm_clksel2_pll =
-+			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL2_PLL);
-+	prcm_block_contents.cm_clksel3_pll =
-+			cm_read_mod_reg(PLL_MOD, OMAP3430_CM_CLKSEL3);
-+	prcm_block_contents.cm_clken_pll_mpu =
-+			cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKEN_PLL);
-+	prcm_block_contents.cm_autoidle_pll_mpu =
-+			cm_read_mod_reg(MPU_MOD, OMAP3430_CM_AUTOIDLE_PLL);
-+	prcm_block_contents.cm_clksel1_pll_mpu =
-+			cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKSEL1_PLL);
-+	prcm_block_contents.cm_clksel2_pll_mpu =
-+			cm_read_mod_reg(MPU_MOD, OMAP3430_CM_CLKSEL2_PLL);
-+	prcm_block_contents.prcm_block_size = 0x0;
-+
-+	/* Populate the SDRC block contents */
-+	sdrc_block_contents.sysconfig =
-+			(sdrc_read_reg(SDRC_SYSCONFIG) & 0xFFFF);
-+	sdrc_block_contents.cs_cfg =
-+			(sdrc_read_reg(SDRC_CS_CFG) & 0xFFFF);
-+	sdrc_block_contents.sharing =
-+			(sdrc_read_reg(SDRC_SHARING) & 0xFFFF);
-+	sdrc_block_contents.err_type =
-+			(sdrc_read_reg(SDRC_ERR_TYPE) & 0xFFFF);
-+	sdrc_block_contents.dll_a_ctrl = sdrc_read_reg(SDRC_DLLA_CTRL);
-+	sdrc_block_contents.dll_b_ctrl = 0x0;
-+	sdrc_block_contents.power = sdrc_read_reg(SDRC_POWER);
-+	sdrc_block_contents.cs_0 = 0x0;
-+	sdrc_block_contents.mcfg_0 = sdrc_read_reg(SDRC_MCFG_0);
-+	sdrc_block_contents.mr_0 = (sdrc_read_reg(SDRC_MR_0) & 0xFFFF);
-+	sdrc_block_contents.emr_1_0 = 0x0;
-+	sdrc_block_contents.emr_2_0 = 0x0;
-+	sdrc_block_contents.emr_3_0 = 0x0;
-+	sdrc_block_contents.actim_ctrla_0 =
-+			sdrc_read_reg(SDRC_ACTIM_CTRL_A_0);
-+	sdrc_block_contents.actim_ctrlb_0 =
-+			sdrc_read_reg(SDRC_ACTIM_CTRL_B_0);
-+	sdrc_block_contents.rfr_ctrl_0 =
-+			sdrc_read_reg(SDRC_RFR_CTRL_0);
-+	sdrc_block_contents.cs_1 = 0x0;
-+	sdrc_block_contents.mcfg_1 = sdrc_read_reg(SDRC_MCFG_1);
-+	sdrc_block_contents.mr_1 = sdrc_read_reg(SDRC_MR_1) & 0xFFFF;
-+	sdrc_block_contents.emr_1_1 = 0x0;
-+	sdrc_block_contents.emr_2_1 = 0x0;
-+	sdrc_block_contents.emr_3_1 = 0x0;
-+	sdrc_block_contents.actim_ctrla_1 =
-+			sdrc_read_reg(SDRC_ACTIM_CTRL_A_1);
-+	sdrc_block_contents.actim_ctrlb_1 =
-+			sdrc_read_reg(SDRC_ACTIM_CTRL_B_1);
-+	sdrc_block_contents.rfr_ctrl_1 =
-+			sdrc_read_reg(SDRC_RFR_CTRL_1);
-+	sdrc_block_contents.dcdl_1_ctrl = 0x0;
-+	sdrc_block_contents.dcdl_2_ctrl = 0x0;
-+	sdrc_block_contents.flags = 0x0;
-+	sdrc_block_contents.block_size = 0x0;
-+
-+	arm_context_addr = virt_to_phys(omap3_arm_context);
-+
-+	/* Copy all the contents to the scratchpad location */
-+	scratchpad_address = OMAP2_L4_IO_ADDRESS(OMAP343X_SCRATCHPAD);
-+	memcpy_toio(scratchpad_address, &scratchpad_contents,
-+		 sizeof(scratchpad_contents));
-+	/* Scratchpad contents being 32 bits, a divide by 4 done here */
-+	memcpy_toio(scratchpad_address +
-+		scratchpad_contents.prcm_block_offset,
-+		&prcm_block_contents, sizeof(prcm_block_contents));
-+	memcpy_toio(scratchpad_address +
-+		scratchpad_contents.sdrc_block_offset,
-+		&sdrc_block_contents, sizeof(sdrc_block_contents));
-+	/*
-+	 * Copies the address of the location in SDRAM where ARM
-+	 * registers get saved during a MPU OFF transition.
-+	 */
-+	memcpy_toio(scratchpad_address +
-+		scratchpad_contents.sdrc_block_offset +
-+		sizeof(sdrc_block_contents), &arm_context_addr, 4);
++	omap_ctrl_writel(control_context.sysconfig, OMAP2_CONTROL_SYSCONFIG);
++	omap_ctrl_writel(control_context.devconf0, OMAP2_CONTROL_DEVCONF0);
++	omap_ctrl_writel(control_context.mem_dftrw0,
++					OMAP343X_CONTROL_MEM_DFTRW0);
++	omap_ctrl_writel(control_context.mem_dftrw1,
++					OMAP343X_CONTROL_MEM_DFTRW1);
++	omap_ctrl_writel(control_context.msuspendmux_0,
++					OMAP2_CONTROL_MSUSPENDMUX_0);
++	omap_ctrl_writel(control_context.msuspendmux_1,
++					OMAP2_CONTROL_MSUSPENDMUX_1);
++	omap_ctrl_writel(control_context.msuspendmux_2,
++					OMAP2_CONTROL_MSUSPENDMUX_2);
++	omap_ctrl_writel(control_context.msuspendmux_3,
++					OMAP2_CONTROL_MSUSPENDMUX_3);
++	omap_ctrl_writel(control_context.msuspendmux_4,
++					OMAP2_CONTROL_MSUSPENDMUX_4);
++	omap_ctrl_writel(control_context.msuspendmux_5,
++					OMAP2_CONTROL_MSUSPENDMUX_5);
++	omap_ctrl_writel(control_context.sec_ctrl, OMAP2_CONTROL_SEC_CTRL);
++	omap_ctrl_writel(control_context.devconf1, OMAP343X_CONTROL_DEVCONF1);
++	omap_ctrl_writel(control_context.csirxfe, OMAP343X_CONTROL_CSIRXFE);
++	omap_ctrl_writel(control_context.iva2_bootaddr,
++					OMAP343X_CONTROL_IVA2_BOOTADDR);
++	omap_ctrl_writel(control_context.iva2_bootmod,
++					OMAP343X_CONTROL_IVA2_BOOTMOD);
++	omap_ctrl_writel(control_context.debobs_0, OMAP343X_CONTROL_DEBOBS(0));
++	omap_ctrl_writel(control_context.debobs_1, OMAP343X_CONTROL_DEBOBS(1));
++	omap_ctrl_writel(control_context.debobs_2, OMAP343X_CONTROL_DEBOBS(2));
++	omap_ctrl_writel(control_context.debobs_3, OMAP343X_CONTROL_DEBOBS(3));
++	omap_ctrl_writel(control_context.debobs_4, OMAP343X_CONTROL_DEBOBS(4));
++	omap_ctrl_writel(control_context.debobs_5, OMAP343X_CONTROL_DEBOBS(5));
++	omap_ctrl_writel(control_context.debobs_6, OMAP343X_CONTROL_DEBOBS(6));
++	omap_ctrl_writel(control_context.debobs_7, OMAP343X_CONTROL_DEBOBS(7));
++	omap_ctrl_writel(control_context.debobs_8, OMAP343X_CONTROL_DEBOBS(8));
++	omap_ctrl_writel(control_context.prog_io0, OMAP343X_CONTROL_PROG_IO0);
++	omap_ctrl_writel(control_context.prog_io1, OMAP343X_CONTROL_PROG_IO1);
++	omap_ctrl_writel(control_context.dss_dpll_spreading,
++					OMAP343X_CONTROL_DSS_DPLL_SPREADING);
++	omap_ctrl_writel(control_context.core_dpll_spreading,
++					OMAP343X_CONTROL_CORE_DPLL_SPREADING);
++	omap_ctrl_writel(control_context.per_dpll_spreading,
++					OMAP343X_CONTROL_PER_DPLL_SPREADING);
++	omap_ctrl_writel(control_context.usbhost_dpll_spreading,
++				OMAP343X_CONTROL_USBHOST_DPLL_SPREADING);
++	omap_ctrl_writel(control_context.pbias_lite,
++					OMAP343X_CONTROL_PBIAS_LITE);
++	omap_ctrl_writel(control_context.temp_sensor,
++					OMAP343X_CONTROL_TEMP_SENSOR);
++	omap_ctrl_writel(control_context.sramldo4, OMAP343X_CONTROL_SRAMLDO4);
++	omap_ctrl_writel(control_context.sramldo5, OMAP343X_CONTROL_SRAMLDO5);
++	omap_ctrl_writel(control_context.csi, OMAP343X_CONTROL_CSI);
++	return;
 +}
-+
-+#endif /* CONFIG_ARCH_OMAP3 */
++#endif /* CONFIG_ARCH_OMAP3 && CONFIG_PM */
 diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index 3cdfe31..7297829 100644
+index 7297829..0308e3f 100644
 --- a/arch/arm/plat-omap/include/plat/control.h
 +++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -240,6 +240,9 @@
- #define		FEAT_NEON		0
- #define		FEAT_NEON_NONE		1
- 
-+#define OMAP343X_SCRATCHPAD_ROM		(OMAP343X_CTRL_BASE + 0x860)
-+#define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
-+#define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
- 
- #ifndef __ASSEMBLY__
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
-@@ -251,6 +254,12 @@ extern u32 omap_ctrl_readl(u16 offset);
- extern void omap_ctrl_writeb(u8 val, u16 offset);
- extern void omap_ctrl_writew(u16 val, u16 offset);
- extern void omap_ctrl_writel(u32 val, u16 offset);
+@@ -146,8 +146,51 @@
+ #define OMAP343X_CONTROL_TEST_KEY_13	(OMAP2_CONTROL_GENERAL + 0x00fc)
+ #define OMAP343X_CONTROL_IVA2_BOOTADDR	(OMAP2_CONTROL_GENERAL + 0x0190)
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
+-#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02b0)
+-#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
++#define OMAP343X_CONTROL_DEBOBS(i)	(OMAP2_CONTROL_GENERAL + 0x01B0 \
++					+ ((i) >> 1) * 4 + (!(i) & 1) * 2)
++#define OMAP343X_CONTROL_PROG_IO0	(OMAP2_CONTROL_GENERAL + 0x01D4)
++#define OMAP343X_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
++#define OMAP343X_CONTROL_DSS_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E0)
++#define OMAP343X_CONTROL_CORE_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E4)
++#define OMAP343X_CONTROL_PER_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01E8)
++#define OMAP343X_CONTROL_USBHOST_DPLL_SPREADING	(OMAP2_CONTROL_GENERAL + 0x01EC)
++#define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02B0)
++#define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02B4)
++#define OMAP343X_CONTROL_SRAMLDO4	(OMAP2_CONTROL_GENERAL + 0x02B8)
++#define OMAP343X_CONTROL_SRAMLDO5	(OMAP2_CONTROL_GENERAL + 0x02C0)
++#define OMAP343X_CONTROL_CSI		(OMAP2_CONTROL_GENERAL + 0x02C4)
 +
-+extern void omap3_save_scratchpad_contents(void);
-+extern void omap3_clear_scratchpad_contents(void);
-+extern u32 *get_restore_pointer(void);
-+extern u32 omap3_arm_context[128];
 +
++/* 34xx PADCONF register offsets */
++#define OMAP343X_PADCONF_ETK(i)		(OMAP2_CONTROL_PADCONFS + 0x5a8 + \
++						(i)*2)
++#define OMAP343X_PADCONF_ETK_CLK	OMAP343X_PADCONF_ETK(0)
++#define OMAP343X_PADCONF_ETK_CTL	OMAP343X_PADCONF_ETK(1)
++#define OMAP343X_PADCONF_ETK_D0		OMAP343X_PADCONF_ETK(2)
++#define OMAP343X_PADCONF_ETK_D1		OMAP343X_PADCONF_ETK(3)
++#define OMAP343X_PADCONF_ETK_D2		OMAP343X_PADCONF_ETK(4)
++#define OMAP343X_PADCONF_ETK_D3		OMAP343X_PADCONF_ETK(5)
++#define OMAP343X_PADCONF_ETK_D4		OMAP343X_PADCONF_ETK(6)
++#define OMAP343X_PADCONF_ETK_D5		OMAP343X_PADCONF_ETK(7)
++#define OMAP343X_PADCONF_ETK_D6		OMAP343X_PADCONF_ETK(8)
++#define OMAP343X_PADCONF_ETK_D7		OMAP343X_PADCONF_ETK(9)
++#define OMAP343X_PADCONF_ETK_D8		OMAP343X_PADCONF_ETK(10)
++#define OMAP343X_PADCONF_ETK_D9		OMAP343X_PADCONF_ETK(11)
++#define OMAP343X_PADCONF_ETK_D10	OMAP343X_PADCONF_ETK(12)
++#define OMAP343X_PADCONF_ETK_D11	OMAP343X_PADCONF_ETK(13)
++#define OMAP343X_PADCONF_ETK_D12	OMAP343X_PADCONF_ETK(14)
++#define OMAP343X_PADCONF_ETK_D13	OMAP343X_PADCONF_ETK(15)
++#define OMAP343X_PADCONF_ETK_D14	OMAP343X_PADCONF_ETK(16)
++#define OMAP343X_PADCONF_ETK_D15	OMAP343X_PADCONF_ETK(17)
++
++/* 34xx GENERAL_WKUP regist offsets */
++#define OMAP343X_CONTROL_WKUP_DEBOBSMUX(i) (OMAP343X_CONTROL_GENERAL_WKUP + \
++						0x008 + (i))
++#define OMAP343X_CONTROL_WKUP_DEBOBS0 (OMAP343X_CONTROL_GENERAL_WKUP + 0x008)
++#define OMAP343X_CONTROL_WKUP_DEBOBS1 (OMAP343X_CONTROL_GENERAL_WKUP + 0x00C)
++#define OMAP343X_CONTROL_WKUP_DEBOBS2 (OMAP343X_CONTROL_GENERAL_WKUP + 0x010)
++#define OMAP343X_CONTROL_WKUP_DEBOBS3 (OMAP343X_CONTROL_GENERAL_WKUP + 0x014)
++#define OMAP343X_CONTROL_WKUP_DEBOBS4 (OMAP343X_CONTROL_GENERAL_WKUP + 0x018)
+ 
+ /* 34xx D2D idle-related pins, handled by PM core */
+ #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
+@@ -259,6 +302,8 @@ extern void omap3_save_scratchpad_contents(void);
+ extern void omap3_clear_scratchpad_contents(void);
+ extern u32 *get_restore_pointer(void);
+ extern u32 omap3_arm_context[128];
++extern void omap3_control_save_context(void);
++extern void omap3_control_restore_context(void);
+ 
  #else
  #define omap_ctrl_base_get()		0
- #define omap_ctrl_readb(x)		0
 -- 
 1.6.4.3
 
