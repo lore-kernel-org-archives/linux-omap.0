@@ -1,265 +1,60 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/10] omap1: Fix redundant UARTs pin muxing that can break
-	other hardware support
-Date: Thu, 22 Oct 2009 15:12:01 -0700
-Message-ID: <20091022221201.27408.65141.stgit@localhost>
+Subject: [PATCH 05/10] omap1: Fix DSP public peripherals support for ams-delta
+Date: Thu, 22 Oct 2009 15:12:16 -0700
+Message-ID: <20091022221216.27408.39863.stgit@localhost>
 References: <20091022221013.27408.443.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757114AbZJVWMG@vger.kernel.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20091022221013.27408.443.stgit@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
 Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 List-Id: linux-omap@vger.kernel.org
 
 From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 
-Commit 15ac408ee5a509053a765b816e9179515329369f removed enabled_uart
-and OMAP_TAG_UART. This works for mach-omap2, but causes issues on
-mach-omap1 for some boards as the mach-omap1 serial.c was muxing
-pins based on the enabled_uart flag for 15xx.
+DSP public peripherals used to work on OMAP1510 based (or all OMAP1 class?)
+machines as long as old dspgateway code were present in the l-o tree. For
+several months it is no longer included, breaking support for McBSP1 based
+audio on Amstrad Delta, for example.
 
-Fix this by muxing pins in board-*.c files for the 15xx boards for
-the uart ports that had enabled_uart flag set before the commit
-above.
+This patch, derived from the old dspgateway code, corrects the problem for the
+board by simply taking the DSP out of reset state, I guess. That way, things
+should not break when a new dsp code is added to the tree, and the change can
+be reverted then.
 
-Tested on Amsdtrad Delta only.
+If there are any reports on McBSP1 or other DSP public peripherals not working
+for other OMAP1 machines (I've not heard of any for now), I can prepare a more
+general patch providing an extra include file with a helper function defined.
 
-Note that in the future we should add support for powering down
-the uarts with a timer like mach-omap2/serial.c does. Otherwise
-the enabled uarts will be blocking retention-while-idle.
+Created and tested against linux-2.6.32-rc5
 
 Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c |    4 ++++
- arch/arm/mach-omap1/board-generic.c   |    8 ++++++++
- arch/arm/mach-omap1/board-innovator.c |   20 ++++++++++++++++++++
- arch/arm/mach-omap1/board-palmte.c    |    8 ++++++++
- arch/arm/mach-omap1/board-palmtt.c    |    8 ++++++++
- arch/arm/mach-omap1/board-palmz71.c   |    8 ++++++++
- arch/arm/mach-omap1/board-sx1.c       |    8 ++++++++
- arch/arm/mach-omap1/board-voiceblue.c |    8 ++++++++
- arch/arm/mach-omap1/serial.c          |   26 --------------------------
- 9 files changed, 72 insertions(+), 26 deletions(-)
+ arch/arm/mach-omap1/board-ams-delta.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 42920f9..972499e 100644
+index 972499e..8ad5cc3 100644
 --- a/arch/arm/mach-omap1/board-ams-delta.c
 +++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -219,6 +219,10 @@ static struct platform_device *ams_delta_devices[] __initdata = {
+@@ -235,6 +235,8 @@ static void __init ams_delta_init(void)
  
- static void __init ams_delta_init(void)
- {
-+	/* mux pins for uarts */
-+	omap_cfg_reg(UART1_TX);
-+	omap_cfg_reg(UART1_RTS);
+ 	omap_usb_init(&ams_delta_usb_config);
+ 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
 +
- 	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
++	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
+ }
  
- 	omap_board_config = ams_delta_config;
-diff --git a/arch/arm/mach-omap1/board-generic.c b/arch/arm/mach-omap1/board-generic.c
-index fb47239..6c8a41f 100644
---- a/arch/arm/mach-omap1/board-generic.c
-+++ b/arch/arm/mach-omap1/board-generic.c
-@@ -64,6 +64,14 @@ static void __init omap_generic_init(void)
- {
- #ifdef CONFIG_ARCH_OMAP15XX
- 	if (cpu_is_omap15xx()) {
-+		/* mux pins for uarts */
-+		omap_cfg_reg(UART1_TX);
-+		omap_cfg_reg(UART1_RTS);
-+		omap_cfg_reg(UART2_TX);
-+		omap_cfg_reg(UART2_RTS);
-+		omap_cfg_reg(UART3_TX);
-+		omap_cfg_reg(UART3_RX);
-+
- 		omap_usb_init(&generic1510_usb_config);
- 	}
- #endif
-diff --git a/arch/arm/mach-omap1/board-innovator.c b/arch/arm/mach-omap1/board-innovator.c
-index cc2abbb..cd6c395 100644
---- a/arch/arm/mach-omap1/board-innovator.c
-+++ b/arch/arm/mach-omap1/board-innovator.c
-@@ -376,6 +376,26 @@ static void __init innovator_init(void)
- {
- #ifdef CONFIG_ARCH_OMAP15XX
- 	if (cpu_is_omap1510()) {
-+		unsigned char reg;
-+
-+		/* mux pins for uarts */
-+		omap_cfg_reg(UART1_TX);
-+		omap_cfg_reg(UART1_RTS);
-+		omap_cfg_reg(UART2_TX);
-+		omap_cfg_reg(UART2_RTS);
-+		omap_cfg_reg(UART3_TX);
-+		omap_cfg_reg(UART3_RX);
-+
-+		reg = fpga_read(OMAP1510_FPGA_POWER);
-+		reg |= OMAP1510_FPGA_PCR_COM1_EN;
-+		fpga_write(reg, OMAP1510_FPGA_POWER);
-+		udelay(10);
-+
-+		reg = fpga_read(OMAP1510_FPGA_POWER);
-+		reg |= OMAP1510_FPGA_PCR_COM2_EN;
-+		fpga_write(reg, OMAP1510_FPGA_POWER);
-+		udelay(10);
-+
- 		platform_add_devices(innovator1510_devices, ARRAY_SIZE(innovator1510_devices));
- 		spi_register_board_info(innovator1510_boardinfo,
- 				ARRAY_SIZE(innovator1510_boardinfo));
-diff --git a/arch/arm/mach-omap1/board-palmte.c b/arch/arm/mach-omap1/board-palmte.c
-index 90dd043..4de2584 100644
---- a/arch/arm/mach-omap1/board-palmte.c
-+++ b/arch/arm/mach-omap1/board-palmte.c
-@@ -342,6 +342,14 @@ static void __init palmte_misc_gpio_setup(void)
- 
- static void __init omap_palmte_init(void)
- {
-+	/* mux pins for uarts */
-+	omap_cfg_reg(UART1_TX);
-+	omap_cfg_reg(UART1_RTS);
-+	omap_cfg_reg(UART2_TX);
-+	omap_cfg_reg(UART2_RTS);
-+	omap_cfg_reg(UART3_TX);
-+	omap_cfg_reg(UART3_RX);
-+
- 	omap_board_config = palmte_config;
- 	omap_board_config_size = ARRAY_SIZE(palmte_config);
- 
-diff --git a/arch/arm/mach-omap1/board-palmtt.c b/arch/arm/mach-omap1/board-palmtt.c
-index 8256139..d972cf9 100644
---- a/arch/arm/mach-omap1/board-palmtt.c
-+++ b/arch/arm/mach-omap1/board-palmtt.c
-@@ -289,6 +289,14 @@ static void __init omap_mpu_wdt_mode(int mode) {
- 
- static void __init omap_palmtt_init(void)
- {
-+	/* mux pins for uarts */
-+	omap_cfg_reg(UART1_TX);
-+	omap_cfg_reg(UART1_RTS);
-+	omap_cfg_reg(UART2_TX);
-+	omap_cfg_reg(UART2_RTS);
-+	omap_cfg_reg(UART3_TX);
-+	omap_cfg_reg(UART3_RX);
-+
- 	omap_mpu_wdt_mode(0);
- 
- 	omap_board_config = palmtt_config;
-diff --git a/arch/arm/mach-omap1/board-palmz71.c b/arch/arm/mach-omap1/board-palmz71.c
-index 81b6bde..986bd4d 100644
---- a/arch/arm/mach-omap1/board-palmz71.c
-+++ b/arch/arm/mach-omap1/board-palmz71.c
-@@ -307,6 +307,14 @@ palmz71_gpio_setup(int early)
- static void __init
- omap_palmz71_init(void)
- {
-+	/* mux pins for uarts */
-+	omap_cfg_reg(UART1_TX);
-+	omap_cfg_reg(UART1_RTS);
-+	omap_cfg_reg(UART2_TX);
-+	omap_cfg_reg(UART2_RTS);
-+	omap_cfg_reg(UART3_TX);
-+	omap_cfg_reg(UART3_RX);
-+
- 	palmz71_gpio_setup(1);
- 	omap_mpu_wdt_mode(0);
- 
-diff --git a/arch/arm/mach-omap1/board-sx1.c b/arch/arm/mach-omap1/board-sx1.c
-index 02c85ca..056ae64 100644
---- a/arch/arm/mach-omap1/board-sx1.c
-+++ b/arch/arm/mach-omap1/board-sx1.c
-@@ -377,6 +377,14 @@ static struct omap_board_config_kernel sx1_config[] __initdata = {
- 
- static void __init omap_sx1_init(void)
- {
-+	/* mux pins for uarts */
-+	omap_cfg_reg(UART1_TX);
-+	omap_cfg_reg(UART1_RTS);
-+	omap_cfg_reg(UART2_TX);
-+	omap_cfg_reg(UART2_RTS);
-+	omap_cfg_reg(UART3_TX);
-+	omap_cfg_reg(UART3_RX);
-+
- 	platform_add_devices(sx1_devices, ARRAY_SIZE(sx1_devices));
- 
- 	omap_board_config = sx1_config;
-diff --git a/arch/arm/mach-omap1/board-voiceblue.c b/arch/arm/mach-omap1/board-voiceblue.c
-index c06e7a5..07b0752 100644
---- a/arch/arm/mach-omap1/board-voiceblue.c
-+++ b/arch/arm/mach-omap1/board-voiceblue.c
-@@ -152,6 +152,14 @@ static void __init voiceblue_init_irq(void)
- 
- static void __init voiceblue_init(void)
- {
-+	/* mux pins for uarts */
-+	omap_cfg_reg(UART1_TX);
-+	omap_cfg_reg(UART1_RTS);
-+	omap_cfg_reg(UART2_TX);
-+	omap_cfg_reg(UART2_RTS);
-+	omap_cfg_reg(UART3_TX);
-+	omap_cfg_reg(UART3_RX);
-+
- 	/* Watchdog */
- 	gpio_request(0, "Watchdog");
- 	/* smc91x reset */
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index d496e50..d23979b 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -131,8 +131,6 @@ void __init omap_serial_init(void)
- 	}
- 
- 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
--		unsigned char reg;
--
- 		switch (i) {
- 		case 0:
- 			uart1_ck = clk_get(NULL, "uart1_ck");
-@@ -143,16 +141,6 @@ void __init omap_serial_init(void)
- 				if (cpu_is_omap15xx())
- 					clk_set_rate(uart1_ck, 12000000);
- 			}
--			if (cpu_is_omap15xx()) {
--				omap_cfg_reg(UART1_TX);
--				omap_cfg_reg(UART1_RTS);
--				if (machine_is_omap_innovator()) {
--					reg = fpga_read(OMAP1510_FPGA_POWER);
--					reg |= OMAP1510_FPGA_PCR_COM1_EN;
--					fpga_write(reg, OMAP1510_FPGA_POWER);
--					udelay(10);
--				}
--			}
- 			break;
- 		case 1:
- 			uart2_ck = clk_get(NULL, "uart2_ck");
-@@ -165,16 +153,6 @@ void __init omap_serial_init(void)
- 				else
- 					clk_set_rate(uart2_ck, 48000000);
- 			}
--			if (cpu_is_omap15xx()) {
--				omap_cfg_reg(UART2_TX);
--				omap_cfg_reg(UART2_RTS);
--				if (machine_is_omap_innovator()) {
--					reg = fpga_read(OMAP1510_FPGA_POWER);
--					reg |= OMAP1510_FPGA_PCR_COM2_EN;
--					fpga_write(reg, OMAP1510_FPGA_POWER);
--					udelay(10);
--				}
--			}
- 			break;
- 		case 2:
- 			uart3_ck = clk_get(NULL, "uart3_ck");
-@@ -185,10 +163,6 @@ void __init omap_serial_init(void)
- 				if (cpu_is_omap15xx())
- 					clk_set_rate(uart3_ck, 12000000);
- 			}
--			if (cpu_is_omap15xx()) {
--				omap_cfg_reg(UART3_TX);
--				omap_cfg_reg(UART3_RX);
--			}
- 			break;
- 		}
- 		omap_serial_reset(&serial_platform_data[i]);
+ static struct plat_serial8250_port ams_delta_modem_ports[] = {
