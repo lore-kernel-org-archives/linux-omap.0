@@ -1,85 +1,62 @@
-From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Subject: [PATCH v2] twl4030: Enable low-power mode to 32kHz oscillator
-Date: Thu, 22 Oct 2009 14:14:09 +0300
-Message-ID: <1256210049-4567-1-git-send-email-ilkka.koskinen@nokia.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754866AbZJVLPL@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: sameo@linux.intel.com, linux-kernel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH] OMAP3: DVFS: No sdrc AC timing changes during core dvfs
+Date: Thu, 22 Oct 2009 07:20:19 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B459718@dlee02.ent.ti.com>
+References: <1254835224-19500-1-git-send-email-rnayak@ti.com>
+ <alpine.DEB.2.00.0910201918230.22645@utopia.booyaka.com>
+ <13B9B4C6EF24D648824FF11BE8967162039B3CF012@dlee02.ent.ti.com>
+ <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=Windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54703 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754773AbZJVMVU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 08:21:20 -0400
+In-Reply-To: <74583B8642AB8841B30447520659FCA9DDD9D7E9@dnce01.ent.ti.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "Cousson, Benoit" <b-cousson@ti.com>, Paul Walmsley <paul@pwsan.com>, "Nayak, Rajendra" <rnayak@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Allows TWL's 32kHz oscillator to go in low-power mode when
-main battery voltage is running low.
+Hi Beonit,
 
-Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
----
- drivers/mfd/twl4030-core.c  |    9 +++++++--
- include/linux/i2c/twl4030.h |    5 +++++
- 2 files changed, 12 insertions(+), 2 deletions(-)
+> From: Cousson, Benoit
+> Sent: Thursday, October 22, 2009 3:59 AM
+> To: Woodruff, Richard; Paul Walmsley; Nayak, Rajendra
 
-diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-index eee5af8..004a8be 100644
---- a/drivers/mfd/twl4030-core.c
-+++ b/drivers/mfd/twl4030-core.c
-@@ -177,6 +177,7 @@
- #define HFCLK_FREQ_26_MHZ		(2 << 0)
- #define HFCLK_FREQ_38p4_MHZ		(3 << 0)
- #define HIGH_PERF_SQ			(1 << 3)
-+#define CK32K_LOWPWR_EN			(1 << 7)
- 
- 
- /* chip-specific feature flags, for i2c_device_id.driver_data */
-@@ -681,7 +682,8 @@ static inline int __init unprotect_pm_master(void)
- 	return e;
- }
- 
--static void clocks_init(struct device *dev)
-+static void clocks_init(struct device *dev,
-+			struct twl4030_clock_init_data *clock)
- {
- 	int e = 0;
- 	struct clk *osc;
-@@ -728,6 +730,9 @@ static void clocks_init(struct device *dev)
- 	}
- 
- 	ctrl |= HIGH_PERF_SQ;
-+	if (clock && clock->ck32k_lowpwr_enable)
-+		ctrl |= CK32K_LOWPWR_EN;
-+
- 	e |= unprotect_pm_master();
- 	/* effect->MADC+USB ck en */
- 	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
-@@ -806,7 +811,7 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	inuse = true;
- 
- 	/* setup clock framework */
--	clocks_init(&client->dev);
-+	clocks_init(&client->dev, pdata->clock);
- 
- 	/* load power event scripts */
- 	if (twl_has_power() && pdata->power)
-diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-index 4a2fb27..10e68cb 100644
---- a/include/linux/i2c/twl4030.h
-+++ b/include/linux/i2c/twl4030.h
-@@ -313,6 +313,10 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
- 
- /*----------------------------------------------------------------------*/
- 
-+struct twl4030_clock_init_data {
-+	bool ck32k_lowpwr_enable;
-+};
-+
- struct twl4030_bci_platform_data {
- 	int *battery_tmp_tbl;
- 	unsigned int tblsize;
-@@ -407,6 +411,7 @@ extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
- 
- struct twl4030_platform_data {
- 	unsigned				irq_base, irq_end;
-+	struct twl4030_clock_init_data		*clock;
- 	struct twl4030_bci_platform_data	*bci;
- 	struct twl4030_gpio_platform_data	*gpio;
- 	struct twl4030_madc_platform_data	*madc;
--- 
-1.6.0.4
+> >It is not guaranteed safe to write actim registers on the fly to an =
+active
+> >part.  It is safe to do RFR as it is buffered and sent out at a safe=
+ time.
+>
+> I think that what Paul is suggesting is to change the ACTIM after ens=
+uring
+> that the DDR is in self-refresh. In that case it is perfectly valid; =
+it is
+> just tricky to ensure that all initiators are in mute before doing th=
+at.
+
+Yes that is true, however, ...
+
+That is not the way the code is setup and it=92s a long way from that. =
+ Run time pause of drivers is a minefield.
+
+With out a broad notifier they best you would hope for is some opportun=
+istic change time (against full system).  You wouldn't have a guarantee=
+d way to speed them up again where you need them most at high opp.
+
+Some minimal kernel not using dma and the like could do it but that is =
+probably more misleading to put in the tree than something useful for m=
+ost.
+
+Regards,
+Richard W.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
