@@ -1,33 +1,28 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH V2] OMAP3:PM:Fix for Silicon bug on Context restore on
- OMAP3430
-Date: Thu, 22 Oct 2009 02:39:03 -0500
-Message-ID: <4AE00C17.3090900@ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA23E5A7@dbde02.ent.ti.com> <87y6n4onxq.fsf@deeprootsystems.com> <5A47E75E594F054BAF48C5E4FC4B92AB030A511127@dbde02.ent.ti.com>
+From: Belisko Marek <marek.belisko@gmail.com>
+Subject: omap eac.c file
+Date: Thu, 22 Oct 2009 09:40:47 +0200
+Message-ID: <e7c6a05e0910220040l388cc549ia360db220ee4a9bf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46505 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752600AbZJVHi7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 03:38:59 -0400
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A511127@dbde02.ent.ti.com>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:56517 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007AbZJVHkp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 03:40:45 -0400
+Received: by fxm18 with SMTP id 18so8807890fxm.37
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 00:40:49 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gopinath, Thara" <thara@ti.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Gulati, Shweta" <shweta.gulati@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
 
-Gopinath, Thara had written, on 10/22/2009 01:49 AM, the following:
->>>>
->>>> +config DELAY_IN_PADCONF_SAVE
->>>> +	bool "Insert 300 us delay after the start of padconf saving"
->>>> +	depends on ARCH_OMAP3 && PM
->>>> +	help
+Hi,
 
-Apologies, one last tiny little comment :).. does this impact ALL OMAP3 
-variants such as 35xx,36xx as well as 34xx??
+I'm trying to figure out where are omap2420 eac codec code.
+In 2.6.25 there was for N800 written in sound/arm/eac.c but in latest
+tree there
+is no such file. I'm trying to get some clue because I would like to write
+similar for omap850.
 
--- 
-Regards,
-Nishanth Menon
+Thanks,
+
+Marek
