@@ -1,107 +1,79 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH 1/4] MFD: twl4030: add twl4030_codec MFD as a new child
- to the core
-Date: Thu, 22 Oct 2009 01:13:11 +0200
-Message-ID: <20091021231311.GF17796@sortiz.org>
-References: <1255956140-4829-1-git-send-email-peter.ujfalusi@nokia.com>
- <1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] OMAP: timekeeping: time should not stop during suspend
+Date: Wed, 21 Oct 2009 17:19:12 -0700
+Message-ID: <87eiowmgan.fsf@deeprootsystems.com>
+References: <1253835348-12640-1-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.89]:46771 "EHLO
-	fmsmga101.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755078AbZJUXLt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 19:11:49 -0400
-Content-Disposition: inline
-In-Reply-To: <1255956140-4829-2-git-send-email-peter.ujfalusi@nokia.com>
+Received: from mail-px0-f179.google.com ([209.85.216.179]:55090 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750894AbZJVATK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 20:19:10 -0400
+Received: by pxi9 with SMTP id 9so3001400pxi.4
+        for <linux-omap@vger.kernel.org>; Wed, 21 Oct 2009 17:19:14 -0700 (PDT)
+In-Reply-To: <1253835348-12640-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 24 Sep 2009 16\:35\:48 -0700")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: alsa-devel@alsa-project.org, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, tony@atomide.com, broonie@opensource.wolfsonmicro.com
+To: linux-omap@vger.kernel.org
 
-Hi Peter,
+Kevin Hilman <khilman@deeprootsystems.com> writes:
 
-On Mon, Oct 19, 2009 at 03:42:17PM +0300, Peter Ujfalusi wrote:
-> New MFD child to twl4030 MFD device.
-> This MFD device will be used by the drivers, which needs resources
-> from the twl4030 codec like audio and vibra.
-> 
-> The platform specific configuration data is passed along to the
-> child drivers (audio, vibra).
-Some comments on your code:
+> During suspend, the kernel timekeeping subsystem is shut down.  Before
+> suspend and upon resume, it uses a weak function
+> read_persistent_clock() to determine the amount of time that elapsed
+> during suspend.
+>
+> This function was not implemented on OMAP, so from the timekeeping
+> subsystem perspective (and thus userspace as well) it appeared that no
+> time elapsed during suspend.
+>
+> This patch uses the 32k sync timer as a the persistent clock the 32k
+> sync timer value converted to seconds.
+>
+> NOTE: This does *NOT* handle wrapping of the 32k sync timer, so
+>       wrapping of the 32k sync timer during suspend may cause
+>       problems.  Also, there are not interrupts when the 32k sync
+>       timer wraps, so something else has to be done.
+>
+> Reported-by: Jon Hunter <jon-hunter@ti.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> ---
+> Tested on OMAP3 using PM branch.
+> If no issues, I will queue for 2.6.32-rc fixes
 
-> +config TWL4030_CODEC
-> +	bool "Support codec part of the TWL4030 family chips"
-> +	depends on TWL4030_CORE
-> +	help
-> +	  Say yes here if you want to use the codec resources on the
-> +	  TWL4030 family chips. The codec in TWL4030 provides the audio
-> +	  functionality and also has the vibrator controls.
-> +
-> +	  This driver provides MFD device to be used for drivers, which needs
-> +	  access to the codec part, the board-specific data is passed from this
-> +	  driver to the childs as platform data with the board specific
-> +	  configuration.
-> +
-As Mark noticed already, you dont really want users to explicitely select this
-obscure mfd driver to get their audio and vibre driver selectable. It should
-be the other way around, and I think you already agreed with that.
+oops, forgot about this one.  Will queue in PM branch fixes.
 
+Kevin
 
-> +static struct device *
-> +twl4030_codec_new_child(const char *name, void *pdata, unsigned pdata_len)
+>  arch/arm/plat-omap/common.c |   15 +++++++++++++++
+>  1 files changed, 15 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
+> index b3f70e6..3e4325b 100644
+> --- a/arch/arm/plat-omap/common.c
+> +++ b/arch/arm/plat-omap/common.c
+> @@ -178,6 +178,21 @@ unsigned long long sched_clock(void)
+>  	return ret;
+>  }
+>  
+> +/**
+> + * read_persistent_clock -  Return time in seconds from the persistent clock.
+> + */
+> +unsigned long read_persistent_clock(void)
 > +{
-> +	struct platform_device	*pdev;
-> +	int			status = 0;
+> +	unsigned long long ret;
+> +	cycle_t cycles;
 > +
-> +	pdev = platform_device_alloc(name, -1);
-> +	if (!pdev) {
-> +		dev_dbg(&twl4030_codec_dev->dev, "can't alloc dev (%s)\n",
-> +									name);
-> +		return ERR_PTR(-ENOMEM);
-> +	}
-> +	pdev->dev.parent = &twl4030_codec_dev->dev;
+> +	cycles = clocksource_32k.read(&clocksource_32k);
+> +	ret = (cycles * clocksource_32k.mult_orig) >> clocksource_32k.shift;
+> +	do_div(ret, NSEC_PER_SEC);
 > +
-> +	if (pdata) {
-> +		status = platform_device_add_data(pdev, pdata, pdata_len);
-> +		if (status < 0) {
-> +			dev_dbg(&pdev->dev, "can't add platform_data\n");
-> +			goto err;
-> +		}
-> +	}
-> +	status = platform_device_add(pdev);
-> +	if (status < 0) {
-> +		dev_dbg(&pdev->dev, "Adding platform device failed\n");
-> +		goto err;
-> +	}
-> +
-> +	return &pdev->dev;
-> +err:
-> +	platform_device_put(pdev);
-> +	dev_err(&twl4030_codec_dev->dev, "can't add %s dev\n", name);
-> +	return ERR_PTR(status);
+> +	return (unsigned long)ret;
 > +}
-This could really use the mfd-core API, and avoid duplicating code.
-You just would have to define a couple cells, and call mfd_add_devices on
-them.
-
-
-> +static int __devexit twl4030_codec_remove(struct platform_device *pdev)
-> +{
-> +	struct twl4030_codec *codec = platform_get_drvdata(pdev);
 > +
-> +	platform_set_drvdata(pdev, NULL);
-> +	kfree(codec);
-> +	twl4030_codec_dev = NULL;
-> +
-> +	return 0;
-> +}
-I think you're missing a platform_device_unregister() here (or an
-mfd_remove_devices() if you're going to switch to the mfd-core API)
-
-Cheers,
-Samuel.
-
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+>  static int __init omap_init_clocksource_32k(void)
+>  {
+>  	static char err[] __initdata = KERN_ERR
+> -- 
+> 1.6.4.3
