@@ -1,7 +1,7 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/10] omap1: Fix DSP public peripherals support for ams-delta
-Date: Thu, 22 Oct 2009 15:12:16 -0700
-Message-ID: <20091022221216.27408.39863.stgit@localhost>
+Subject: [PATCH 06/10] omap: Fix detection of n8x0
+Date: Thu, 22 Oct 2009 15:12:28 -0700
+Message-ID: <20091022221228.27408.66649.stgit@localhost>
 References: <20091022221013.27408.443.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,43 +18,39 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: linux-arm-kernel-bounces@lists.infradead.org
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Otherwise the machine_is_nokia_n8*() does not work.
 
-DSP public peripherals used to work on OMAP1510 based (or all OMAP1 class?)
-machines as long as old dspgateway code were present in the l-o tree. For
-several months it is no longer included, breaking support for McBSP1 based
-audio on Amstrad Delta, for example.
-
-This patch, derived from the old dspgateway code, corrects the problem for the
-board by simply taking the DSP out of reset state, I guess. That way, things
-should not break when a new dsp code is added to the tree, and the change can
-be reverted then.
-
-If there are any reports on McBSP1 or other DSP public peripherals not working
-for other OMAP1 machines (I've not heard of any for now), I can prepare a more
-general patch providing an extra include file with a helper function defined.
-
-Created and tested against linux-2.6.32-rc5
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/Kconfig |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/board-ams-delta.c b/arch/arm/mach-omap1/board-ams-delta.c
-index 972499e..8ad5cc3 100644
---- a/arch/arm/mach-omap1/board-ams-delta.c
-+++ b/arch/arm/mach-omap1/board-ams-delta.c
-@@ -235,6 +235,8 @@ static void __init ams_delta_init(void)
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 75b1c7e..aad194f 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -73,9 +73,21 @@ config MACH_OMAP_3430SDP
+ 	bool "OMAP 3430 SDP board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
  
- 	omap_usb_init(&ams_delta_usb_config);
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
++config MACH_NOKIA_N800
++       bool
 +
-+	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
- }
++config MACH_NOKIA_N810
++       bool
++
++config MACH_NOKIA_N810_WIMAX
++       bool
++
+ config MACH_NOKIA_N8X0
+ 	bool "Nokia N800/N810"
+ 	depends on ARCH_OMAP2420
++	select MACH_NOKIA_N800
++	select MACH_NOKIA_N810
++	select MACH_NOKIA_N810_WIMAX
  
- static struct plat_serial8250_port ams_delta_modem_ports[] = {
+ config MACH_NOKIA_RX51
+ 	bool "Nokia RX-51 board"
