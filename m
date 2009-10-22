@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH v2 10/32] OMAP3: PM: MPU off-mode support
-Date: Thu, 22 Oct 2009 16:09:31 -0700
-Message-ID: <1256252993-24328-11-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH v2 13/32] OMAP3 PM: off-mode support for HS/EMU devices
+Date: Thu, 22 Oct 2009 16:09:34 -0700
+Message-ID: <1256252993-24328-14-git-send-email-khilman@deeprootsystems.com>
 References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-2-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-3-git-send-email-khilman@deeprootsystems.com>
@@ -12,105 +12,281 @@ References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-8-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-9-git-send-email-khilman@deeprootsystems.com>
  <1256252993-24328-10-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-11-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-12-git-send-email-khilman@deeprootsystems.com>
+ <1256252993-24328-13-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
 Received: from qw-out-2122.google.com ([74.125.92.25]:3282 "EHLO
 	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754624AbZJVXK3 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:10:29 -0400
+	with ESMTP id S1754938AbZJVXKl (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 19:10:41 -0400
 Received: by qw-out-2122.google.com with SMTP id 9so1260502qwb.37
-        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:10:34 -0700 (PDT)
-In-Reply-To: <1256252993-24328-10-git-send-email-khilman@deeprootsystems.com>
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 16:10:46 -0700 (PDT)
+In-Reply-To: <1256252993-24328-13-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Rajendra Nayak <rnayak@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org, Tero Kristo <tero.kristo@nokia.com>
 
-From: Rajendra Nayak <rnayak@ti.com>
+From: Tero Kristo <tero.kristo@nokia.com>
 
-Adds a 'save_state' option when calling into SRAM idle function
-and adds some minor cleanups of SRAM asm code.
+For HS/EMU devices, some additional resources need to be
+saved/restored for off-mode support.  Namely, saving the secure RAM
+and a pointer to it in the scratchpad.
 
-Signed-off-by: Rajendra Nayak <rnayak@ti.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/pm34xx.c    |   11 ++++++++++-
- arch/arm/mach-omap2/sleep34xx.S |   11 ++++-------
- 2 files changed, 14 insertions(+), 8 deletions(-)
+ arch/arm/mach-omap2/control.c   |    8 ++++-
+ arch/arm/mach-omap2/pm.h        |    3 ++
+ arch/arm/mach-omap2/pm34xx.c    |   43 ++++++++++++++++++++++-
+ arch/arm/mach-omap2/sleep34xx.S |   75 ++++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 126 insertions(+), 3 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+index 3ea417d..b84cff7 100644
+--- a/arch/arm/mach-omap2/control.c
++++ b/arch/arm/mach-omap2/control.c
+@@ -85,6 +85,8 @@ struct omap3_scratchpad_sdrc_block {
+ 	u32 block_size;
+ };
+ 
++void *omap3_secure_ram_storage;
++
+ /*
+  * This is used to store ARM registers in SDRAM before attempting
+  * an MPU OFF. The save and restore happens from the SRAM sleep code.
+@@ -209,7 +211,11 @@ void omap3_save_scratchpad_contents(void)
+ 	scratchpad_contents.boot_config_ptr = 0x0;
+ 	scratchpad_contents.public_restore_ptr =
+ 			 virt_to_phys(get_restore_pointer());
+-	scratchpad_contents.secure_ram_restore_ptr = 0x0;
++	if (omap_type() == OMAP2_DEVICE_TYPE_GP)
++		scratchpad_contents.secure_ram_restore_ptr = 0x0;
++	else
++		scratchpad_contents.secure_ram_restore_ptr =
++			(u32) __pa(omap3_secure_ram_storage);
+ 	scratchpad_contents.sdrc_module_semaphore = 0x0;
+ 	scratchpad_contents.prcm_block_offset = 0x2C;
+ 	scratchpad_contents.sdrc_block_offset = 0x64;
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index 85b6fac..45cafac 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -13,6 +13,8 @@
+ 
+ #include <plat/powerdomain.h>
+ 
++extern void *omap3_secure_ram_storage;
++
+ extern int omap3_pm_get_suspend_state(struct powerdomain *pwrdm);
+ extern int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state);
+ 
+@@ -36,6 +38,7 @@ extern void omap24xx_cpu_suspend(u32 dll_ctrl, void __iomem *sdrc_dlla_ctrl,
+ 					void __iomem *sdrc_power);
+ extern void omap34xx_cpu_suspend(u32 *addr, int save_state);
+ extern void save_secure_ram_context(u32 *addr);
++extern void omap3_save_scratchpad_contents(void);
+ 
+ extern unsigned int omap24xx_idle_loop_suspend_sz;
+ extern unsigned int omap34xx_suspend_sz;
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 8b5bf91..9fb0876 100644
+index 54fea79..ebb88f3 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -28,6 +28,7 @@
- #include <plat/powerdomain.h>
- #include <plat/control.h>
- #include <plat/serial.h>
-+#include <plat/sdrc.h>
+@@ -63,6 +63,8 @@ static LIST_HEAD(pwrst_list);
  
- #include <asm/tlbflush.h>
+ static void (*_omap_sram_idle)(u32 *addr, int save_state);
  
-@@ -223,6 +224,9 @@ static void omap_sram_idle(void)
- 		/* No need to save context */
- 		save_state = 0;
- 		break;
-+	case PWRDM_POWER_OFF:
-+		save_state = 3;
-+		break;
- 	default:
- 		/* Invalid state */
- 		printk(KERN_ERR "Invalid mpu state in sram_idle\n");
-@@ -248,7 +252,12 @@ static void omap_sram_idle(void)
++static int (*_omap_save_secure_sram)(u32 *addr);
++
+ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+ static struct powerdomain *core_pwrdm, *per_pwrdm;
+ 
+@@ -110,6 +112,33 @@ static void omap3_core_restore_context(void)
+ 	omap_dma_global_context_restore();
+ }
+ 
++static void omap3_save_secure_ram_context(u32 target_mpu_state)
++{
++	u32 ret;
++
++	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
++		/* Disable dma irq before calling secure rom code API */
++		omap_dma_disable_irq(0);
++		omap_dma_disable_irq(1);
++		/*
++		 * MPU next state must be set to POWER_ON temporarily,
++		 * otherwise the WFI executed inside the ROM code
++		 * will hang the system.
++		 */
++		pwrdm_set_next_pwrst(mpu_pwrdm, PWRDM_POWER_ON);
++		ret = _omap_save_secure_sram((u32 *)
++				__pa(omap3_secure_ram_storage));
++		pwrdm_set_next_pwrst(mpu_pwrdm, target_mpu_state);
++		/* Following is for error tracking, it should not happen */
++		if (ret) {
++			printk(KERN_ERR "save_secure_sram() returns %08x\n",
++				ret);
++			while (1)
++				;
++		}
++	}
++}
++
+ /*
+  * PRCM Interrupt Handler Helper Function
+  *
+@@ -308,6 +337,7 @@ static void omap_sram_idle(void)
+ 		if (core_next_state == PWRDM_POWER_OFF) {
+ 			omap3_core_save_context();
+ 			omap3_prcm_save_context();
++			omap3_save_secure_ram_context(mpu_next_state);
+ 		}
+ 		/* Enable IO-PAD wakeup */
  		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
- 	}
+@@ -901,6 +931,9 @@ void omap_push_sram_idle(void)
+ {
+ 	_omap_sram_idle = omap_sram_push(omap34xx_cpu_suspend,
+ 					omap34xx_cpu_suspend_sz);
++	if (omap_type() != OMAP2_DEVICE_TYPE_GP)
++		_omap_save_secure_sram = omap_sram_push(save_secure_ram_context,
++				save_secure_ram_context_sz);
+ }
  
--	_omap_sram_idle(NULL, save_state);
-+	/*
-+	 * omap3_arm_context is the location where ARM registers
-+	 * get saved. The restore path then reads from this
-+	 * location and restores them back.
-+	 */
-+	_omap_sram_idle(omap3_arm_context, save_state);
- 	cpu_init();
+ static int __init omap3_pm_init(void)
+@@ -916,7 +949,6 @@ static int __init omap3_pm_init(void)
+ 	/* XXX prcm_setup_regs needs to be before enabling hw
+ 	 * supervised mode for powerdomains */
+ 	prcm_setup_regs();
+-	omap3_save_scratchpad_contents();
  
- 	/* Restore table entry modified during MMU restoration */
+ 	ret = request_irq(INT_34XX_PRCM_MPU_IRQ,
+ 			  (irq_handler_t)prcm_interrupt_handler,
+@@ -961,6 +993,15 @@ static int __init omap3_pm_init(void)
+ 	*/
+ 	pwrdm_add_wkdep(per_pwrdm, core_pwrdm);
+ 
++	if (omap_type() != OMAP2_DEVICE_TYPE_GP) {
++		omap3_secure_ram_storage =
++			kmalloc(0x803F, GFP_KERNEL);
++		if (!omap3_secure_ram_storage)
++			printk(KERN_ERR "Memory allocation failed when"
++					"allocating for secure sram context\n");
++	}
++	omap3_save_scratchpad_contents();
++
+ err1:
+ 	return ret;
+ err2:
 diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 6a749f2..f8d3834 100644
+index f8d3834..db75167 100644
 --- a/arch/arm/mach-omap2/sleep34xx.S
 +++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -36,12 +36,11 @@
- 				OMAP3430_PM_PREPWSTST)
+@@ -37,6 +37,8 @@
  #define PM_PREPWSTST_MPU_V	OMAP34XX_PRM_REGADDR(MPU_MOD, \
  				OMAP3430_PM_PREPWSTST)
--#define PM_PWSTCTRL_MPU_P	OMAP34XX_PRM_REGADDR(MPU_MOD, PM_PWSTCTRL)
-+#define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + PM_PWSTCTRL
+ #define PM_PWSTCTRL_MPU_P	OMAP3430_PRM_BASE + MPU_MOD + PM_PWSTCTRL
++#define SRAM_BASE_P		0x40200000
++#define CONTROL_STAT		0x480022F0
  #define SCRATCHPAD_MEM_OFFS	0x310 /* Move this as correct place is
  				       * available */
--#define SCRATCHPAD_BASE_P	OMAP343X_CTRL_REGADDR(\
--				OMAP343X_CONTROL_MEM_WKUP +\
--				SCRATCHPAD_MEM_OFFS)
-+#define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
-+						+ SCRATCHPAD_MEM_OFFS)
- #define SDRC_POWER_V		OMAP34XX_SDRC_REGADDR(SDRC_POWER)
- 
- 	.text
-@@ -96,7 +95,7 @@ loop:
- 
- 	ldmfd	sp!, {r0-r12, pc}		@ restore regs and return
- restore:
--	/* b restore*/ 	@ Enable to debug restore code
-+	/* b restore*/  @ Enable to debug restore code
-         /* Check what was the reason for mpu reset and store the reason in r9*/
-         /* 1 - Only L1 and logic lost */
-         /* 2 - Only L2 lost - In this case, we wont be here */
-@@ -416,8 +415,6 @@ scratchpad_base:
- 	.word	SCRATCHPAD_BASE_P
- sdrc_power:
- 	.word SDRC_POWER_V
--context_mem:
--	.word	0x803E3E14
- clk_stabilize_delay:
- 	.word 0x000001FF
- assoc_mask:
+ #define SCRATCHPAD_BASE_P	(OMAP343X_CTRL_BASE + OMAP343X_CONTROL_MEM_WKUP\
+@@ -51,6 +53,40 @@ ENTRY(get_restore_pointer)
+         ldmfd   sp!, {pc}     @ restore regs and return
+ ENTRY(get_restore_pointer_sz)
+         .word   . - get_restore_pointer_sz
++
++/* Function to call rom code to save secure ram context */
++ENTRY(save_secure_ram_context)
++	stmfd	sp!, {r1-r12, lr}	@ save registers on stack
++save_secure_ram_debug:
++	/* b save_secure_ram_debug */	@ enable to debug save code
++	adr	r3, api_params		@ r3 points to parameters
++	str	r0, [r3,#0x4]		@ r0 has sdram address
++	ldr	r12, high_mask
++	and	r3, r3, r12
++	ldr	r12, sram_phy_addr_mask
++	orr	r3, r3, r12
++	mov	r0, #25			@ set service ID for PPA
++	mov	r12, r0			@ copy secure service ID in r12
++	mov	r1, #0			@ set task id for ROM code in r1
++	mov	r2, #7			@ set some flags in r2, r6
++	mov	r6, #0xff
++	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
++	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
++	.word	0xE1600071		@ call SMI monitor (smi #1)
++	nop
++	nop
++	nop
++	nop
++	ldmfd	sp!, {r1-r12, pc}
++sram_phy_addr_mask:
++	.word	SRAM_BASE_P
++high_mask:
++	.word	0xffff
++api_params:
++	.word	0x4, 0x0, 0x0, 0x1, 0x1
++ENTRY(save_secure_ram_context_sz)
++	.word	. - save_secure_ram_context
++
+ /*
+  * Forces OMAP into idle state
+  *
+@@ -107,9 +143,44 @@ restore:
+         moveq   r9, #0x3        @ MPU OFF => L1 and L2 lost
+ 	movne	r9, #0x1	@ Only L1 and L2 lost => avoid L2 invalidation
+ 	bne	logic_l1_restore
++	ldr	r0, control_stat
++	ldr	r1, [r0]
++	and	r1, #0x700
++	cmp	r1, #0x300
++	beq	l2_inv_gp
++	mov	r0, #40		@ set service ID for PPA
++	mov	r12, r0		@ copy secure Service ID in r12
++	mov	r1, #0		@ set task id for ROM code in r1
++	mov	r2, #4		@ set some flags in r2, r6
++	mov	r6, #0xff
++	adr	r3, l2_inv_api_params	@ r3 points to dummy parameters
++	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
++	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
++	.word	0xE1600071		@ call SMI monitor (smi #1)
++	/* Write to Aux control register to set some bits */
++	mov	r0, #42		@ set service ID for PPA
++	mov	r12, r0		@ copy secure Service ID in r12
++	mov	r1, #0		@ set task id for ROM code in r1
++	mov	r2, #4		@ set some flags in r2, r6
++	mov	r6, #0xff
++	adr	r3, write_aux_control_params	@ r3 points to parameters
++	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
++	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
++	.word	0xE1600071		@ call SMI monitor (smi #1)
++
++	b	logic_l1_restore
++l2_inv_api_params:
++	.word   0x1, 0x00
++write_aux_control_params:
++	.word   0x1, 0x72
++l2_inv_gp:
+ 	/* Execute smi to invalidate L2 cache */
+ 	mov r12, #0x1                         @ set up to invalide L2
+-smi:    .word 0xE1600070                @ Call SMI monitor (smieq)
++smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
++	/* Write to Aux control register to set some bits */
++	mov	r0, #0x72
++	mov	r12, #0x3
++	.word 0xE1600070	@ Call SMI monitor (smieq)
+ logic_l1_restore:
+ 	mov	r1, #0
+ 	/* Invalidate all instruction caches to PoU
+@@ -429,5 +500,7 @@ table_entry:
+ 	.word	0x00000C02
+ cache_pred_disable_mask:
+ 	.word	0xFFFFE7FB
++control_stat:
++	.word	CONTROL_STAT
+ ENTRY(omap34xx_cpu_suspend_sz)
+ 	.word	. - omap34xx_cpu_suspend
 -- 
 1.6.4.3
 
