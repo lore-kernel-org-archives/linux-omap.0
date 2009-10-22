@@ -1,69 +1,131 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH resend] OMAP1: AMS_DELTA: Fix DSP public peripherals
-	support
-Date: Thu, 22 Oct 2009 11:06:59 -0700
-Message-ID: <20091022180659.GP16230@atomide.com>
-References: <200910220222.55900.jkrzyszt@tis.icnet.pl> <200910221421.33875.jkrzyszt@tis.icnet.pl>
+Subject: Re: [PATCH] omapfb: Wrong test on unsigned?
+Date: Thu, 22 Oct 2009 11:22:37 -0700
+Message-ID: <20091022182236.GQ16230@atomide.com>
+References: <4AD8BA2F.9090307@gmail.com> <A24693684029E5489D1D202277BE89444CEFEAF5@dlee02.ent.ti.com> <4ADF2C30.3030401@gmail.com> <A24693684029E5489D1D202277BE89444D06EB0E@dlee02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59855 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752255AbZJVSHE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 14:07:04 -0400
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:63019 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755906AbZJVSWn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 14:22:43 -0400
 Content-Disposition: inline
-In-Reply-To: <200910221421.33875.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <A24693684029E5489D1D202277BE89444D06EB0E@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jonathan McDowell <noodles@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Cc: Roel Kluin <roel.kluin@gmail.com>, Imre Deak <imre.deak@nokia.com>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091022 05:22]:
-> DSP public peripherals used to work on OMAP1510 based (or all OMAP1 class?)
-> machines as long as old dspgateway code were present in the l-o tree. For
-> several months it is no longer included, breaking support for McBSP1 based
-> audio on Amstrad Delta, for example.
-> 
-> This patch, derived from the old dspgateway code, corrects the problem for the
-> board by simply taking the DSP out of reset state, I guess. That way, things
-> should not break when a new dsp code is added to the tree, and the change can
-> be reverted then.
-> 
-> If there are any reports on McBSP1 or other DSP public peripherals not working
-> for other OMAP1 machines (I've not heard of any for now), I can prepare a more
-> general patch providing an extra include file with a helper function defined.
-
-Seems like a good fix. Of course it would be nice to also idle the DSP for
-some power savings, but maybe we can add something for that this coming merge
-window.
-
-Regards,
-
-Tony
- 
-> Created and tested against linux-2.6.32-rc5
-> 
-> Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> 
-> ---
-> Thursday 22 October 2009 02:22:53 Janusz Krzysztofik wrote:
-> > --- linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-10-22 
-> > 00:55:49.000000000 +0200
-> > +++ linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c	2009-10-22 
-> > 01:46:39.000000000 +0200
-> 
-> Tony,
-> The above lines has been mangled by my mailer, that's why I resend for your
-> convenience.
-> 
-> --- linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-10-22 00:55:49.000000000 +0200
-> +++ linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c	2009-10-22 01:46:39.000000000 +0200
-> @@ -235,6 +235,8 @@ static void __init ams_delta_init(void)
+* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [091021 08:41]:
 >  
->  	omap_usb_init(&ams_delta_usb_config);
->  	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
-> +
-> +	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
->  }
->  
->  static struct plat_serial8250_port ams_delta_modem_ports[] = {
+> 
+> > -----Original Message-----
+> > From: linux-omap-owner@vger.kernel.org 
+> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Roel Kluin
+> > Sent: Wednesday, October 21, 2009 10:44 AM
+> > To: Aguirre Rodriguez, Sergio Alberto
+> > Cc: Imre Deak; linux-fbdev-devel@lists.sourceforge.net; 
+> > linux-omap@vger.kernel.org; Andrew Morton
+> > Subject: Re: [PATCH] omapfb: Wrong test on unsigned?
+> > 
+> > regno is unsigned so the test didn't work. If regno
+> > can't be used return an error.
+> > 
+> > Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> > ---
+> > >> Is this correct? please review.
+> > >>
+> > >> diff --git a/drivers/video/omap/omapfb_main.c 
+> > >> b/drivers/video/omap/omapfb_main.c
+> > >> index 0d0c8c8..cc7dd93 100644
+> > >> --- a/drivers/video/omap/omapfb_main.c
+> > >> +++ b/drivers/video/omap/omapfb_main.c
+> > >> @@ -286,7 +286,7 @@ static int _setcolreg(struct fb_info 
+> > >> *info, u_int regno, u_int red, u_int green,
+> > >>  		if (r != 0)
+> > >>  			break;
+> > >>  
+> > >> -		if (regno < 0) {
+> > >> +		if ((int)regno < 0) {
+> > > 
+> > > Hmm...
+> > > 
+> > > Isn't regno unsigned integer from the start?
+> > 
+> > yes
+> > 
+> > > 2 things here:
+> > > 
+> > > - regno will never be negative.
+> > > - Casting won't make a difference in the meaning., it'll 
+> > make a negative only when:
+> > > 
+> > > 	regno > ((2^32) / 2)
+> > > 
+> > > Which doesn't make any sense IMHO.
+> > 
+> > I think it is strange that _setcolreg() accepts a regno that 
+> > is invalid,
+> > ignores it and just returns as if all was OK. If you agree 
+> > then you may
+> > like the patch below.
+> 
+> Yep. Looks nicer to me ;)
+> 
+> Acked-by: Sergio Aguirre <saaguirre@ti.com>
+
+Looks good to me too.
+
+Acked-by: Tony Lindgren <tony@atomide.com>
+
+> 
+> Regards,
+> Sergio
+> > 
+> > > Regards,
+> > > Sergio
+> > 
+> > Thanks,
+> > 
+> > Roel
+> > 
+> > diff --git a/drivers/video/omap/omapfb_main.c 
+> > b/drivers/video/omap/omapfb_main.c
+> > index 0d0c8c8..4da94d0 100644
+> > --- a/drivers/video/omap/omapfb_main.c
+> > +++ b/drivers/video/omap/omapfb_main.c
+> > @@ -285,12 +285,6 @@ static int _setcolreg(struct fb_info 
+> > *info, u_int regno, u_int red, u_int green,
+> >  	case OMAPFB_COLOR_RGB444:
+> >  		if (r != 0)
+> >  			break;
+> > -
+> > -		if (regno < 0) {
+> > -			r = -EINVAL;
+> > -			break;
+> > -		}
+> > -
+> >  		if (regno < 16) {
+> >  			u16 pal;
+> >  			pal = ((red >> (16 - var->red.length)) <<
+> > @@ -299,6 +293,8 @@ static int _setcolreg(struct fb_info 
+> > *info, u_int regno, u_int red, u_int green,
+> >  					var->green.offset) |
+> >  			      (blue >> (16 - var->blue.length));
+> >  			((u32 *)(info->pseudo_palette))[regno] = pal;
+> > +		} else {
+> > +			r = -EINVAL;
+> >  		}
+> >  		break;
+> >  	default:
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe 
+> > linux-omap" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
