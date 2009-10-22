@@ -1,79 +1,51 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP: timekeeping: time should not stop during suspend
-Date: Wed, 21 Oct 2009 17:19:12 -0700
-Message-ID: <87eiowmgan.fsf@deeprootsystems.com>
-References: <1253835348-12640-1-git-send-email-khilman@deeprootsystems.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] OMAP1: AMS_DELTA: Fix DSP public peripherals support
+Date: Thu, 22 Oct 2009 02:22:53 +0200
+Message-ID: <200910220222.55900.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:55090 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894AbZJVATK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 21 Oct 2009 20:19:10 -0400
-Received: by pxi9 with SMTP id 9so3001400pxi.4
-        for <linux-omap@vger.kernel.org>; Wed, 21 Oct 2009 17:19:14 -0700 (PDT)
-In-Reply-To: <1253835348-12640-1-git-send-email-khilman@deeprootsystems.com> (Kevin Hilman's message of "Thu\, 24 Sep 2009 16\:35\:48 -0700")
+Received: from d1.icnet.pl ([212.160.220.21]:54424 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750919AbZJVAXn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 21 Oct 2009 20:23:43 -0400
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Jonathan McDowell <noodles@earth.li>
+Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+DSP public peripherals used to work on OMAP1510 based (or all OMAP1 class?)
+machines as long as old dspgateway code were present in the l-o tree. For
+several months it is no longer included, breaking support for McBSP1 based
+audio on Amstrad Delta, for example.
 
-> During suspend, the kernel timekeeping subsystem is shut down.  Before
-> suspend and upon resume, it uses a weak function
-> read_persistent_clock() to determine the amount of time that elapsed
-> during suspend.
->
-> This function was not implemented on OMAP, so from the timekeeping
-> subsystem perspective (and thus userspace as well) it appeared that no
-> time elapsed during suspend.
->
-> This patch uses the 32k sync timer as a the persistent clock the 32k
-> sync timer value converted to seconds.
->
-> NOTE: This does *NOT* handle wrapping of the 32k sync timer, so
->       wrapping of the 32k sync timer during suspend may cause
->       problems.  Also, there are not interrupts when the 32k sync
->       timer wraps, so something else has to be done.
->
-> Reported-by: Jon Hunter <jon-hunter@ti.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> Tested on OMAP3 using PM branch.
-> If no issues, I will queue for 2.6.32-rc fixes
+This patch, derived from the old dspgateway code, corrects the problem for the
+board by simply taking the DSP out of reset state, I guess. That way, things
+should not break when a new dsp code is added to the tree, and the change can
+be reverted then.
 
-oops, forgot about this one.  Will queue in PM branch fixes.
+If there are any reports on McBSP1 or other DSP public peripherals not working
+for other OMAP1 machines (I've not heard of any for now), I can prepare a more
+general patch providing an extra include file with a helper function defined.
 
-Kevin
+Created and tested against linux-2.6.32-rc5
 
->  arch/arm/plat-omap/common.c |   15 +++++++++++++++
->  1 files changed, 15 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/common.c b/arch/arm/plat-omap/common.c
-> index b3f70e6..3e4325b 100644
-> --- a/arch/arm/plat-omap/common.c
-> +++ b/arch/arm/plat-omap/common.c
-> @@ -178,6 +178,21 @@ unsigned long long sched_clock(void)
->  	return ret;
->  }
->  
-> +/**
-> + * read_persistent_clock -  Return time in seconds from the persistent clock.
-> + */
-> +unsigned long read_persistent_clock(void)
-> +{
-> +	unsigned long long ret;
-> +	cycle_t cycles;
-> +
-> +	cycles = clocksource_32k.read(&clocksource_32k);
-> +	ret = (cycles * clocksource_32k.mult_orig) >> clocksource_32k.shift;
-> +	do_div(ret, NSEC_PER_SEC);
-> +
-> +	return (unsigned long)ret;
-> +}
-> +
->  static int __init omap_init_clocksource_32k(void)
->  {
->  	static char err[] __initdata = KERN_ERR
-> -- 
-> 1.6.4.3
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+
+---
+--- linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-10-22 
+00:55:49.000000000 +0200
++++ linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c	2009-10-22 
+01:46:39.000000000 +0200
+@@ -235,6 +235,8 @@ static void __init ams_delta_init(void)
+ 
+ 	omap_usb_init(&ams_delta_usb_config);
+ 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
++
++	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
+ }
+ 
+ static struct plat_serial8250_port ams_delta_modem_ports[] = {
