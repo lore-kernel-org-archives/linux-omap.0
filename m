@@ -1,60 +1,90 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH resend] OMAP1: AMS_DELTA: Fix DSP public peripherals
-	support
-Date: Thu, 22 Oct 2009 12:22:26 -0700
-Message-ID: <20091022192225.GT16230@atomide.com>
-References: <200910220222.55900.jkrzyszt@tis.icnet.pl> <200910221421.33875.jkrzyszt@tis.icnet.pl> <20091022180659.GP16230@atomide.com> <200910222115.27719.jkrzyszt@tis.icnet.pl>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH]Omap3630: Add hsmmc related checks
+Date: Thu, 22 Oct 2009 14:36:38 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AB9224C@dlee02.ent.ti.com>
+References: <62121.192.168.10.89.1256233132.squirrel@dbdmail.itg.ti.com>
+ <20091022174408.GO16230@atomide.com>
+ <001001ca534b$a55bcd30$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62368 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756662AbZJVTW0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 15:22:26 -0400
-Content-Disposition: inline
-In-Reply-To: <200910222115.27719.jkrzyszt@tis.icnet.pl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50970 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756627AbZJVTgm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 15:36:42 -0400
+In-Reply-To: <001001ca534b$a55bcd30$544ff780@am.dhcp.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Jonathan McDowell <noodles@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
+To: "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, 'Tony Lindgren' <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091022 12:15]:
-> Thursday 22 October 2009 20:06:59 Tony Lindgren napisa=C5=82(a):
-> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091022 05:22]:
-> > > DSP public peripherals used to work on OMAP1510 based (or all OMA=
-P1 class?)
-> > > machines as long as old dspgateway code were present in the l-o t=
-ree. For
-> > > several months it is no longer included, breaking support for McB=
-SP1 based
-> > > audio on Amstrad Delta, for example.
-> > >=20
-> > > This patch, derived from the old dspgateway code, corrects the pr=
-oblem for the
-> > > board by simply taking the DSP out of reset state, I guess. That =
-way, things
-> > > should not break when a new dsp code is added to the tree, and th=
-e change can
-> > > be reverted then.
-> >=20
-> > Seems like a good fix.
->=20
-> Tony,
-> Does it mean that you can push it as a fix for 2.6.32? That would be =
-great if my successfull efforts on getting audio support for Amstrad De=
-lta included in the mainline tree would result in a fully functional so=
-lution!
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Chikkature Rajashekar, Madhusudhan
+> Sent: Thursday, October 22, 2009 2:13 PM
+> 
+> > From: Tony Lindgren [mailto:tony@atomide.com]
+> > Sent: Thursday, October 22, 2009 12:44 PM
+> >
+> > * Madhusudhan Chikkature <madhu.cr@ti.com> [091022 10:38]:
+> > > From 661b13474a7af62c54f7df7a33a818c5e782cc59 Mon Sep 17 00:00:00 2001
+> > > From: Madhu <madhu.cr@ti.com>
+> > > Date: Wed, 21 Oct 2009 16:16:31 -0400
+> > > Subject: [PATCH] Omap3630: Add HSMMC related checks.
+> > >
+> > > Add omap3630 conditional checks to devices.c to allow HSMMC3 addition
+> > and
+> > > mux configuration for HSMMC1/2.
+> > >
+> > > Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+> > > ---
+> > >  arch/arm/mach-omap2/devices.c |    5 +++--
+> > >  1 files changed, 3 insertions(+), 2 deletions(-)
+> > >
+> > > diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-
+> > omap2/devices.c
+> > > index 7d4513b..1fdfc7f 100644
+> > > --- a/arch/arm/mach-omap2/devices.c
+> > > +++ b/arch/arm/mach-omap2/devices.c
+> > > @@ -575,7 +575,7 @@ static inline void omap2_mmc_mux(struct
+> > > omap_mmc_platform_data *mmc_controller,
+> > >  		}
+> > >  	}
+> > >
+> > > -	if (cpu_is_omap3430()) {
+> > > +	if (cpu_is_omap3430() || cpu_is_omap3630()) {
+> > >  		if (controller_nr == 0) {
+> > >  			omap_cfg_reg(N28_3430_MMC1_CLK);
+> > >  			omap_cfg_reg(M27_3430_MMC1_CMD);
+> >
+> > How about using cpu_is_omap34xx() here instead? It's more future proof.
+> >
+> > Regards,
+> >
+> > Tony
+> >
+> Yes. That makes sense. I will submit V2.
+> 
+> Regards,
+> Madhu
+> 
+> > > @@ -642,7 +642,8 @@ void __init omap2_init_mmc(struct
+> > omap_mmc_platform_data
+> > > **mmc_data,
+> > >  			irq = INT_24XX_MMC2_IRQ;
+> > >  			break;
+> > >  		case 2:
+> > > -			if (!cpu_is_omap44xx() && !cpu_is_omap34xx())
+> > > +			if (!cpu_is_omap44xx() && !cpu_is_omap34xx()
+> > > +				&& !cpu_is_omap3630())
+!cpu_is_omap3630() is redundant here.. please consider for your v2.
 
-Yeah we should be able to merge those as fixes.
-=20
-> I start preparing a new ams_delta_defconfig then.
+> > >  				return;
+> > >  			base = OMAP3_MMC3_BASE;
+> > >  			irq = INT_34XX_MMC3_IRQ;
+> > > --
 
-Cool :)
+Regards,
+Nishanth Menon
 
-Tony
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
