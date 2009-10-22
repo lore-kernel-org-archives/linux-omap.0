@@ -1,70 +1,47 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH]Omap3630: Add hsmmc related checks
-Date: Thu, 22 Oct 2009 10:44:08 -0700
-Message-ID: <20091022174408.GO16230@atomide.com>
-References: <62121.192.168.10.89.1256233132.squirrel@dbdmail.itg.ti.com>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH]Zoom2: Setup HSMMC2 8-bit capability
+Date: Thu, 22 Oct 2009 23:14:50 +0530 (IST)
+Message-ID: <33443.192.168.10.89.1256233490.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57805 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755880AbZJVRoG (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 13:44:06 -0400
-Content-Disposition: inline
-In-Reply-To: <62121.192.168.10.89.1256233132.squirrel@dbdmail.itg.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:53299 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754917AbZJVRor (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 13:44:47 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan Chikkature <madhu.cr@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: tony@atomide.com, linux-omap@vger.kernel.org
 
-* Madhusudhan Chikkature <madhu.cr@ti.com> [091022 10:38]:
-> From 661b13474a7af62c54f7df7a33a818c5e782cc59 Mon Sep 17 00:00:00 2001
-> From: Madhu <madhu.cr@ti.com>
-> Date: Wed, 21 Oct 2009 16:16:31 -0400
-> Subject: [PATCH] Omap3630: Add HSMMC related checks.
-> 
-> Add omap3630 conditional checks to devices.c to allow HSMMC3 addition and
-> mux configuration for HSMMC1/2.
-> 
-> Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
-> ---
->  arch/arm/mach-omap2/devices.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index 7d4513b..1fdfc7f 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -575,7 +575,7 @@ static inline void omap2_mmc_mux(struct
-> omap_mmc_platform_data *mmc_controller,
->  		}
->  	}
-> 
-> -	if (cpu_is_omap3430()) {
-> +	if (cpu_is_omap3430() || cpu_is_omap3630()) {
->  		if (controller_nr == 0) {
->  			omap_cfg_reg(N28_3430_MMC1_CLK);
->  			omap_cfg_reg(M27_3430_MMC1_CMD);
+>From 2369a08e238186bf66b677ead62b23786e5b9ac7 Mon Sep 17 00:00:00 2001
+From: Madhu <madhu.cr@ti.com>
+Date: Wed, 21 Oct 2009 16:55:27 -0400
+Subject: [PATCH] Zoom2: Setup HSMMC2 8-bit capability.
 
-How about using cpu_is_omap34xx() here instead? It's more future proof.
+Zoom2 can support 8-bit operations on HSMMC2.Setup the board file
+capability accordingly.
 
-Regards,
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+---
+ arch/arm/mach-omap2/board-zoom2.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Tony
+diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
+index 56f9d84..ad022ac 100644
+--- a/arch/arm/mach-omap2/board-zoom2.c
++++ b/arch/arm/mach-omap2/board-zoom2.c
+@@ -163,7 +163,7 @@ static struct twl4030_hsmmc_info mmc[] __initdata = {
+ 	},
+ 	{
+ 		.mmc		= 2,
+-		.wires		= 4,
++		.wires		= 8,
+ 		.gpio_wp	= -EINVAL,
+ 	},
+ 	{}      /* Terminator */
+-- 
+1.6.0.4
 
-> @@ -642,7 +642,8 @@ void __init omap2_init_mmc(struct omap_mmc_platform_data
-> **mmc_data,
->  			irq = INT_24XX_MMC2_IRQ;
->  			break;
->  		case 2:
-> -			if (!cpu_is_omap44xx() && !cpu_is_omap34xx())
-> +			if (!cpu_is_omap44xx() && !cpu_is_omap34xx()
-> +				&& !cpu_is_omap3630())
->  				return;
->  			base = OMAP3_MMC3_BASE;
->  			irq = INT_34XX_MMC3_IRQ;
-> -- 
-> 1.6.0.4
-> 
-> 
-> 
+
+
