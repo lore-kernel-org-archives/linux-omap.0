@@ -1,128 +1,60 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH] updated mach-types file
-Date: Fri, 23 Oct 2009 02:50:59 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA23EF12@dbde02.ent.ti.com>
-References: <1256173554-20196-1-git-send-email-vikram.pandita@ti.com>
- <20091022205405.GU16230@atomide.com>
+From: "Woodruff, Richard" <r-woodruff2@ti.com>
+Subject: RE: [PATCH 01/17] PM: fix suspend control for IVA2
+Date: Thu, 22 Oct 2009 16:21:57 -0500
+Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B459EE8@dlee02.ent.ti.com>
+References: <> <1255690150-16853-1-git-send-email-tero.kristo@nokia.com>
+ <1255690150-16853-2-git-send-email-tero.kristo@nokia.com>
+ <alpine.DEB.2.00.0910220419550.17644@utopia.booyaka.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36997 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:37048 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494AbZJVVVG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 17:21:06 -0400
-In-Reply-To: <20091022205405.GU16230@atomide.com>
+	with ESMTP id S1755201AbZJVVWA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 17:22:00 -0400
+In-Reply-To: <alpine.DEB.2.00.0910220419550.17644@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Paul Walmsley <paul@pwsan.com>, Tero Kristo <tero.kristo@nokia.com>, Ameya Palande <ameya.palande@nokia.com>, "Ghongdemath, Girish" <girishsg@ti.com>, "hiroshi.doyu@nokia.com" <hiros>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
 
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Thursday, October 22, 2009 5:24 AM
 
->-----Original Message-----
->From: Tony Lindgren [mailto:tony@atomide.com]
->Sent: Thursday, October 22, 2009 3:54 PM
->To: Pandita, Vikram
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH] updated mach-types file
+> > IVA2 controls its target power state individually, thus suspend should not
+> > touch IVA2. Without this patch DSP suspend always fails.
 >
->* Vikram Pandita <vikram.pandita@ti.com> [091021 18:07]:
->> this patch updates the auto-generated mach-types file
->> to enable addition of 3630 boards:
->> 1) zoom3
->> 2) sdp3630
->>
->> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
->> ---
->> Tony:
->> Could you Temporarily host this patch on linux-omap tree till
->> rmk pulls in mach-types.
->> This would allow us to add 3630 board files
+> We don't allow other device drivers to touch PRCM bits, so we should
+> probably should remove all PRCM register accesses from the DSPBridge code,
+> so all power control should go through the ARM.
 >
->How about only add the lines needed? I can put it into omap-testing
->branch then.
+> Is there a reason why the ARM code can't handle the DSP powerdomain?
 
-Yes that is fine too. Sending that patch now.
-I will add two lines for sdp3630 and zoom3 only.
+Sharing with DSP is something which probably could use some improvement.
 
->
->Tony
->
->>  arch/arm/tools/mach-types |   54 ++++++++++++++++++++++++++++++++++++++++++++-
->>  1 files changed, 53 insertions(+), 1 deletions(-)
->>
->> diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
->> index 94be7bb..0160378 100644
->> --- a/arch/arm/tools/mach-types
->> +++ b/arch/arm/tools/mach-types
->> @@ -12,7 +12,7 @@
->>  #
->>  #   http://www.arm.linux.org.uk/developer/machines/?action=new
->>  #
->> -# Last update: Fri Sep 18 21:42:00 2009
->> +# Last update: Wed Oct 21 15:33:08 2009
->>  #
->>  # machine_is_xxx	CONFIG_xxxx		MACH_TYPE_xxx		number
->>  #
->> @@ -2421,3 +2421,55 @@ liberty			MACH_LIBERTY		LIBERTY			2434
->>  mh355			MACH_MH355		MH355			2435
->>  pc7802			MACH_PC7802		PC7802			2436
->>  gnet_sgc		MACH_GNET_SGC		GNET_SGC		2437
->> +einstein15		MACH_EINSTEIN15		EINSTEIN15		2438
->> +cmpd			MACH_CMPD		CMPD			2439
->> +davinci_hase1		MACH_DAVINCI_HASE1	DAVINCI_HASE1		2440
->> +lgeincitephone		MACH_LGEINCITEPHONE	LGEINCITEPHONE		2441
->> +ea313x			MACH_EA313X		EA313X			2442
->> +fwbd_39064		MACH_FWBD_39064		FWBD_39064		2443
->> +fwbd_390128		MACH_FWBD_390128	FWBD_390128		2444
->> +pelco_moe		MACH_PELCO_MOE		PELCO_MOE		2445
->> +minimix27		MACH_MINIMIX27		MINIMIX27		2446
->> +omap3_thunder		MACH_OMAP3_THUNDER	OMAP3_THUNDER		2447
->> +passionc		MACH_PASSIONC		PASSIONC		2448
->> +mx27amata		MACH_MX27AMATA		MX27AMATA		2449
->> +bgat1			MACH_BGAT1		BGAT1			2450
->> +buzz			MACH_BUZZ		BUZZ			2451
->> +mb9g20			MACH_MB9G20		MB9G20			2452
->> +yushan			MACH_YUSHAN		YUSHAN			2453
->> +lizard			MACH_LIZARD		LIZARD			2454
->> +omap3polycom		MACH_OMAP3POLYCOM	OMAP3POLYCOM		2455
->> +smdkv210		MACH_SMDKV210		SMDKV210		2456
->> +bravo			MACH_BRAVO		BRAVO			2457
->> +siogentoo1		MACH_SIOGENTOO1		SIOGENTOO1		2458
->> +siogentoo2		MACH_SIOGENTOO2		SIOGENTOO2		2459
->> +sm3k			MACH_SM3K		SM3K			2460
->> +acer_tempo_f900		MACH_ACER_TEMPO_F900	ACER_TEMPO_F900		2461
->> +sst61vc010_dev		MACH_SST61VC010_DEV	SST61VC010_DEV		2462
->> +glittertind		MACH_GLITTERTIND	GLITTERTIND		2463
->> +omap_zoom3		MACH_OMAP_ZOOM3		OMAP_ZOOM3		2464
->> +omap_3630sdp		MACH_OMAP_3630SDP	OMAP_3630SDP		2465
->> +cybook2440		MACH_CYBOOK2440		CYBOOK2440		2466
->> +torino_s		MACH_TORINO_S		TORINO_S		2467
->> +havana			MACH_HAVANA		HAVANA			2468
->> +beaumont_11		MACH_BEAUMONT_11	BEAUMONT_11		2469
->> +vanguard		MACH_VANGUARD		VANGUARD		2470
->> +s5pc110_draco		MACH_S5PC110_DRACO	S5PC110_DRACO		2471
->> +cartesio_two		MACH_CARTESIO_TWO	CARTESIO_TWO		2472
->> +aster			MACH_ASTER		ASTER			2473
->> +voguesv210		MACH_VOGUESV210		VOGUESV210		2474
->> +acm500x			MACH_ACM500X		ACM500X			2475
->> +km9260			MACH_KM9260		KM9260			2476
->> +nideflexg1		MACH_NIDEFLEXG1		NIDEFLEXG1		2477
->> +ctera_plug_io		MACH_CTERA_PLUG_IO	CTERA_PLUG_IO		2478
->> +smartq7			MACH_SMARTQ7		SMARTQ7			2479
->> +at91sam9g10ek2		MACH_AT91SAM9G10EK2	AT91SAM9G10EK2		2480
->> +asusp527		MACH_ASUSP527		ASUSP527		2481
->> +at91sam9g20mpm2		MACH_AT91SAM9G20MPM2	AT91SAM9G20MPM2		2482
->> +topasa900		MACH_TOPASA900		TOPASA900		2483
->> +electrum_100		MACH_ELECTRUM_100	ELECTRUM_100		2484
->> +mx51grb			MACH_MX51GRB		MX51GRB			2485
->> +xea300			MACH_XEA300		XEA300			2486
->> +htcstartrek		MACH_HTCSTARTREK	HTCSTARTREK		2487
->> +lima			MACH_LIMA		LIMA			2488
->> +csb740			MACH_CSB740		CSB740			2489
->> --
->> 1.6.5.rc1.19.g8426
->>
+Today DSP self-manages its domain.  Its (bios) micro-kernel makes decisions to optimize its domain. The ARM can't really micro-manage the DSP as he doesn't even want to know at the detail level what the DSP is up to at every instant.
+
+- During idle time cpuidle should just be checking dsp status to see if its current state gets in the way of a low c-state.
+
+- bridge does register with suspend frame work so he should do the right thing when in the system.
+
+* problem is when bridge isn't there what to do.  This is especially after an unload of the bridge.
+
+What has been proposed in the past is like what Kevin inputted in related thread about having maintenance hand off.  But for some reason it never quite to the top of the list.
+
+- bridge does request thought clock frame work clocks especially of those which are public peripherals.
+
+- bridge could request everything but it was not projected as power efficient waking up the big arm core for something the dsp could do itself and has all control over.  This is especially true if you have dsp doing the rendering for something like mp3.  it gets the wake ups and streaming and only every great while wakes the arm to give it a pile more data.  Waking the arm every time it runs its equivalent of cpuidle was discourged.
+
+- main other sharing conflict was with irq routing between arm and bridge.  Right now its kind of init mode setup.  I guess this is ok for todays usage.
+
+...... so after context current code is not requesting through pm code purposefully.  The hardware has been evolving from omap1,2,3,4 to make for more of a distributed model.  After all the details/constraints are understood with silicon there is some time to re-evaluate if its paying back or not.
+
+Regards,
+Richard W.
+
 
