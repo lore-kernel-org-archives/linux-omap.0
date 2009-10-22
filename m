@@ -1,61 +1,39 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH resend] OMAP1: AMS_DELTA: Fix DSP public peripherals support
-Date: Thu, 22 Oct 2009 14:21:31 +0200
-Message-ID: <200910221421.33875.jkrzyszt@tis.icnet.pl>
-References: <200910220222.55900.jkrzyszt@tis.icnet.pl>
+From: Cory Maccarrone <darkstar6262@gmail.com>
+Subject: Re: htc elf (omap850 based device)
+Date: Thu, 22 Oct 2009 08:13:19 -0700
+Message-ID: <6cb013310910220813y319f45c1q3a1a81e510f265bc@mail.gmail.com>
+References: <1499e5520910220205u6af9ea09md13da21aa309eb3d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:38899 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754812AbZJVMWI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 22 Oct 2009 08:22:08 -0400
-In-Reply-To: <200910220222.55900.jkrzyszt@tis.icnet.pl>
-Content-Disposition: inline
+Received: from mail-px0-f179.google.com ([209.85.216.179]:57458 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755413AbZJVPNe (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 11:13:34 -0400
+Received: by pxi9 with SMTP id 9so46061pxi.4
+        for <linux-omap@vger.kernel.org>; Thu, 22 Oct 2009 08:13:39 -0700 (PDT)
+In-Reply-To: <1499e5520910220205u6af9ea09md13da21aa309eb3d@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan McDowell <noodles@earth.li>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, e3-hacking@earth.li
+To: Alexander Kaidalov <alexanderkaidalov@spbstu.ru>
+Cc: linux-omap@vger.kernel.org
 
-DSP public peripherals used to work on OMAP1510 based (or all OMAP1 class?)
-machines as long as old dspgateway code were present in the l-o tree. For
-several months it is no longer included, breaking support for McBSP1 based
-audio on Amstrad Delta, for example.
+On Thu, Oct 22, 2009 at 2:05 AM, Alexander Kaidalov
+<alexanderkaidalov@spbstu.ru> wrote:
+>
+> Hi everyone!
+>
+> I've run wing-linux on my phone few days ago and found that it's core
+> quite old. Few devices are not supported or working wrong. I'd like to
+> help to improve support for this phone but I don't know current state
+> of affairs. Is there anyone working with it now?
+>
+> --
+> Alexander Kaidalov
 
-This patch, derived from the old dspgateway code, corrects the problem for the
-board by simply taking the DSP out of reset state, I guess. That way, things
-should not break when a new dsp code is added to the tree, and the change can
-be reverted then.
+I've been working on getting HTC Herald support (also from wing-linux)
+into the kernel, though it's dependent on patches by Alistair Buxton
+of linwizard getting in.  I submitted them to this list a while ago
+and haven't heard anything about them.
 
-If there are any reports on McBSP1 or other DSP public peripherals not working
-for other OMAP1 machines (I've not heard of any for now), I can prepare a more
-general patch providing an extra include file with a helper function defined.
-
-Created and tested against linux-2.6.32-rc5
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-
----
-Thursday 22 October 2009 02:22:53 Janusz Krzysztofik wrote:
-> --- linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-10-22 
-> 00:55:49.000000000 +0200
-> +++ linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c	2009-10-22 
-> 01:46:39.000000000 +0200
-
-Tony,
-The above lines has been mangled by my mailer, that's why I resend for your
-convenience.
-
---- linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c.orig	2009-10-22 00:55:49.000000000 +0200
-+++ linux-2.6.32-rc5/arch/arm/mach-omap1/board-ams-delta.c	2009-10-22 01:46:39.000000000 +0200
-@@ -235,6 +235,8 @@ static void __init ams_delta_init(void)
- 
- 	omap_usb_init(&ams_delta_usb_config);
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
-+
-+	omap_writew(omap_readw(ARM_RSTCT1) | 0x0004, ARM_RSTCT1);
- }
- 
- static struct plat_serial8250_port ams_delta_modem_ports[] = {
+- Cory
