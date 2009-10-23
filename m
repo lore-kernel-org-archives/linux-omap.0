@@ -1,181 +1,97 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH v2 12/32] OMAP: PM: DMA context save/restore for off-mode
-	support
-Date: Fri, 23 Oct 2009 11:32:26 +0300
-Message-ID: <6ed0b2680910230132o3a193659g5526f8c9c479680f@mail.gmail.com>
-References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-5-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-6-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-7-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-8-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-9-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-10-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-11-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-12-git-send-email-khilman@deeprootsystems.com>
-	 <1256252993-24328-13-git-send-email-khilman@deeprootsystems.com>
+From: "Imberton Guilhem-gimb01" <guilhem.imberton@motorola.com>
+Subject: RE: [PATCH 2/2 v2] OMAP3:PM:SR: SmartReflex Refactor Rev3.0
+Date: Fri, 23 Oct 2009 11:12:58 +0100
+Message-ID: <6A943D54E5EAED4BA437305D3EF62FB30326E9DC@zuk35exm61.ds.mot.com>
+References: <1256232481-30636-1-git-send-email-nm@ti.com> <1256232481-30636-2-git-send-email-nm@ti.com> <1256232481-30636-3-git-send-email-nm@ti.com> <6A943D54E5EAED4BA437305D3EF62FB30326E922@zuk35exm61.ds.mot.com> <4AE1178E.5060302@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:47770 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbZJWIcX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 04:32:23 -0400
-Received: by ewy4 with SMTP id 4so1405079ewy.37
-        for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 01:32:27 -0700 (PDT)
-In-Reply-To: <1256252993-24328-13-git-send-email-khilman@deeprootsystems.com>
+Received: from mail128.messagelabs.com ([216.82.250.131]:48798 "EHLO
+	mail128.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351AbZJWKNT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 06:13:19 -0400
+Received: from il06exr04.mot.com (il06exr04.mot.com [129.188.137.134])
+	by motgate8.mot.com (8.14.3/8.14.3) with ESMTP id n9NADM2Y028058
+	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 03:13:22 -0700 (MST)
+Received: from il06vts02.mot.com (il06vts02.mot.com [129.188.137.142])
+	by il06exr04.mot.com (8.13.1/Vontu) with SMTP id n9NADMSu009595
+	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 05:13:22 -0500 (CDT)
+Received: from zuk35exm61.ds.mot.com (zuk35exm61.ea.mot.com [10.178.4.19])
+	by il06exr04.mot.com (8.13.1/8.13.0) with ESMTP id n9NADLOn009592
+	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 05:13:22 -0500 (CDT)
+Content-class: urn:content-classes:message
+In-Reply-To: <4AE1178E.5060302@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <tero.kristo@nokia.com>
+To: Nishanth Menon <nm@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Reddy, Teerth" <teerth@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, Mike Chan <mikechan@google.com>
 
-On Fri, Oct 23, 2009 at 2:09 AM, Kevin Hilman
-<khilman@deeprootsystems.com> wrote:
-> From: Tero Kristo <tero.kristo@nokia.com>
->
-> For HS/EMU devices, these additional features are also used:
->
-> - DMA interrupt disable routine added
-> - Added DMA controller reset to DMA context restore
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
-> ---
-> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0| =A0 =A03 ++
-> =A0arch/arm/plat-omap/dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 41 +++++=
-++++++++++++++++++++++++++++
-> =A0arch/arm/plat-omap/include/plat/dma.h | =A0 =A05 ++++
-> =A03 files changed, 49 insertions(+), 0 deletions(-)
-> =A0mode change 100644 =3D> 100755 arch/arm/plat-omap/include/plat/dma=
-=2Eh
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
-x.c
-> index bab9b48..54fea79 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -34,6 +34,7 @@
-> =A0#include <plat/sdrc.h>
-> =A0#include <plat/prcm.h>
-> =A0#include <plat/gpmc.h>
-> +#include <plat/dma.h>
->
-> =A0#include <asm/tlbflush.h>
->
-> @@ -95,6 +96,7 @@ static void omap3_core_save_context(void)
-> =A0 =A0 =A0 =A0omap3_gpmc_save_context();
-> =A0 =A0 =A0 =A0/* Save the system control module context, padconf alr=
-eady save above*/
-> =A0 =A0 =A0 =A0omap3_control_save_context();
-> + =A0 =A0 =A0 omap_dma_global_context_save();
-> =A0}
->
-> =A0static void omap3_core_restore_context(void)
-> @@ -105,6 +107,7 @@ static void omap3_core_restore_context(void)
-> =A0 =A0 =A0 =A0omap3_gpmc_restore_context();
-> =A0 =A0 =A0 =A0/* Restore the interrupt controller context */
-> =A0 =A0 =A0 =A0omap_intc_restore_context();
-> + =A0 =A0 =A0 omap_dma_global_context_restore();
-> =A0}
->
-> =A0/*
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index 3edffde..c0a6060 100644
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -54,6 +54,12 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
->
-> =A0static int enable_1510_mode;
->
-> +static struct omap_dma_global_context_registers {
-> + =A0 =A0 =A0 u32 dma_irqenable_l0;
-> + =A0 =A0 =A0 u32 dma_ocp_sysconfig;
-> + =A0 =A0 =A0 u32 dma_gcr;
-> +} omap_dma_global_context;
-> +
-> =A0struct omap_dma_lch {
-> =A0 =A0 =A0 =A0int next_lch;
-> =A0 =A0 =A0 =A0int dev_id;
-> @@ -2341,6 +2347,41 @@ void omap_stop_lcd_dma(void)
-> =A0}
-> =A0EXPORT_SYMBOL(omap_stop_lcd_dma);
->
-> +void omap_dma_global_context_save(void)
-> +{
-> + =A0 =A0 =A0 omap_dma_global_context.dma_irqenable_l0 =3D
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_read(IRQENABLE_L0);
-> + =A0 =A0 =A0 omap_dma_global_context.dma_ocp_sysconfig =3D
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_read(OCP_SYSCONFIG);
-> + =A0 =A0 =A0 omap_dma_global_context.dma_gcr =3D dma_read(GCR);
-> +}
-> +EXPORT_SYMBOL(omap_dma_global_context_save);
-> +
-> +void omap_dma_global_context_restore(void)
-> +{
-> + =A0 =A0 =A0 dma_write(0x2, OCP_SYSCONFIG);
-> + =A0 =A0 =A0 while (!__raw_readl(omap_dma_base + OMAP_DMA4_SYSSTATUS=
-))
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ;
-> + =A0 =A0 =A0 dma_write(omap_dma_global_context.dma_gcr, GCR);
-> + =A0 =A0 =A0 dma_write(omap_dma_global_context.dma_ocp_sysconfig,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 OCP_SYSCONFIG);
-> + =A0 =A0 =A0 dma_write(omap_dma_global_context.dma_irqenable_l0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 IRQENABLE_L0);
-> +}
-> +EXPORT_SYMBOL(omap_dma_global_context_restore);
-> +
-> +void omap_dma_disable_irq(int lch)
-> +{
-> + =A0 =A0 =A0 u32 val;
-> +
-> + =A0 =A0 =A0 if (cpu_class_is_omap2()) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Disable interrupts */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D dma_read(IRQENABLE_L0);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 val &=3D ~(1 << lch);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_write(val, IRQENABLE_L0);
-> + =A0 =A0 =A0 }
-> +}
-> +
-> =A0/*----------------------------------------------------------------=
-------------*/
->
-> =A0static int __init omap_init_dma(void)
-> diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-om=
-ap/include/plat/dma.h
-> old mode 100644
-> new mode 100755
+ 
 
-^^ whoops?
+> -----Original Message-----
+> From: Nishanth Menon [mailto:nm@ti.com] 
+> Sent: Friday, October 23, 2009 4:40 AM
+> Imberton Guilhem-gimb01 had written, on 10/22/2009 04:04 PM, 
+> the following:
+> >  I have one small comment on the actual implementation
+> >> +     do {
+> >> +             value = prm_read_mod_reg(OMAP3430_GR_MOD,
+> >> +                                      
+> OMAP3_PRM_VC_BYPASS_VAL_OFFSET)
+> >> +                 & OMAP3430_VALID;
+> >> +             /* should i wait? */
+> >> +             if (value && (count % 50))
+> >> +                     udelay(10);
+> >> +             count--;
+> >> +             *timeout_us -= 5;
+> >> +     } while (value && count);
+> > 
+> > Why are you removing 5us every read ?
+> Thanks for catching this. Yep, I have got my counters mixed 
+> up :(.. will 
+> add it as part of v2 for tomorrow evening with other 
+> potential comments 
+> if any.
+> 
+> > If 50 iteration is 1us and we delay every loop by 10us we 
+> should remove 11us
+> > 
+> > Shouldn't it be:
+> > 
+> > +       do {
+> > +               value = prm_read_mod_reg(OMAP3430_GR_MOD,
+> > +                                        
+> OMAP3_PRM_VC_BYPASS_VAL_OFFSET)
+> > +                   & OMAP3430_VALID;
+> > +               /* should i wait? */
+> > +               if (value && (count % 50)) {
+> > +                       udelay(10);
+> > +                     *timeout_us -= 11;
+> > +           }
+> > +               count--;
+> > +       } while (value && count);
+> > 
+> here is a problem with the above logic:
+> a) I dont know for sure if 50 iterations == 1 uSec.
+> b) count = timeout*5
+>    ==> if function is called with timeout = 10 uSec, count = 50, and 
+> udelay(10) will be called once. now *timeout -=11 will make it a 
+> negative value, which is not helpeful.
+> 
+> so, the decrement has to be by 10 OR i can pad timeout_us .. 
+> not exactly 
+> useful either..
 
-> index 72f680b..1c017b2
-> --- a/arch/arm/plat-omap/include/plat/dma.h
-> +++ b/arch/arm/plat-omap/include/plat/dma.h
-> @@ -633,6 +633,11 @@ extern void omap_set_dma_dst_endian_type(int lch=
-, enum end_type etype);
-> =A0extern void omap_set_dma_src_endian_type(int lch, enum end_type et=
-ype);
-> =A0extern int omap_get_dma_index(int lch, int *ei, int *fi);
+Your right negative value wont be good
+Let's use 10uSec (50 registers reading remains realy small amount of time)
+And it will anyway give us a good idea of the time spent here
+
+> -- 
+> Regards,
+> Nishanth Menon
 >
-> +void omap_dma_global_context_save(void);
-> +void omap_dma_global_context_restore(void);
-> +
-> +extern void omap_dma_disable_irq(int lch);
-> +
-> =A0/* Chaining APIs */
-> =A0#ifndef CONFIG_ARCH_OMAP1
-> =A0extern int omap_request_dma_chain(int dev_id, const char *dev_name=
-,
-> --
-> 1.6.4.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Regards,
+
+Guilhem 
