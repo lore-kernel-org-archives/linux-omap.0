@@ -1,231 +1,51 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 10/11] OMAP3: PM: Write voltage and clock setup times dynamically in idle loop
-Date: Fri, 23 Oct 2009 19:03:54 +0300
-Message-ID: <1256313835-2391-11-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 05/11] OMAP3: PM: Enable system control module autoidle
+Date: Fri, 23 Oct 2009 19:03:49 +0300
+Message-ID: <1256313835-2391-6-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
  <1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
  <1256313835-2391-3-git-send-email-tero.kristo@nokia.com>
  <1256313835-2391-4-git-send-email-tero.kristo@nokia.com>
  <1256313835-2391-5-git-send-email-tero.kristo@nokia.com>
- <1256313835-2391-6-git-send-email-tero.kristo@nokia.com>
- <1256313835-2391-7-git-send-email-tero.kristo@nokia.com>
- <1256313835-2391-8-git-send-email-tero.kristo@nokia.com>
- <1256313835-2391-9-git-send-email-tero.kristo@nokia.com>
- <1256313835-2391-10-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:21525 "EHLO
+Received: from smtp.nokia.com ([192.100.122.230]:21518 "EHLO
 	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532AbZJWQSu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 12:18:50 -0400
+	with ESMTP id S1752519AbZJWQSr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 12:18:47 -0400
 Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIc90001696
-	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 19:18:53 +0300
+	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIc8s001696
+	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 19:18:49 +0300
 Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIPiE022176
-	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 19:18:36 +0300
-In-Reply-To: <1256313835-2391-10-git-send-email-tero.kristo@nokia.com>
+	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIPi9022176
+	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 19:18:31 +0300
+In-Reply-To: <1256313835-2391-5-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Tero Kristo <tero.kristo@nokia.com>
 
-It is suggested by TI (SWPA152 February 2009) to write clksetup,
-voltsetup_time1, voltsetup_time2, voltsetup2 dynamically in idle loop.
+This saves some power.
 
-This allows us to optimize the voltage + clock setup times according to the
-used power save mode.
-
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Mika Westerberg <ext-mika.1.westerberg@nokia.com>
 ---
- arch/arm/mach-omap2/pm.h     |   10 ++++-
- arch/arm/mach-omap2/pm34xx.c |   86 ++++++++++++++++++++++++------------------
- 2 files changed, 57 insertions(+), 39 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index f8d11a2..b384eb1 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -24,12 +24,18 @@ extern int omap3_can_sleep(void);
- extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
- extern int omap3_idle_init(void);
- 
--struct prm_setup_vc {
-+struct prm_setup_times_vc {
- 	u16 clksetup;
- 	u16 voltsetup_time1;
- 	u16 voltsetup_time2;
--	u16 voltoffset;
- 	u16 voltsetup2;
-+	u16 voltsetup1;
-+};
-+
-+struct prm_setup_vc {
-+	struct prm_setup_times_vc *setup_times;
-+	struct prm_setup_times_vc *setup_times_off;
-+	u16 voltoffset;
- /* PRM_VC_CMD_VAL_0 specific bits */
- 	u16 vdd0_on;
- 	u16 vdd0_onlp;
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 154cd31..5eb7321 100644
+index 53544d3..492458e 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -82,12 +82,17 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
- static struct powerdomain *core_pwrdm, *per_pwrdm;
- static struct powerdomain *cam_pwrdm;
+@@ -900,6 +900,8 @@ static void __init prcm_setup_regs(void)
+ 			CM_AUTOIDLE);
+ 	}
  
--static struct prm_setup_vc prm_setup = {
-+static struct prm_setup_times_vc prm_setup_times_default = {
- 	.clksetup = 0xff,
- 	.voltsetup_time1 = 0xfff,
- 	.voltsetup_time2 = 0xfff,
--	.voltoffset = 0xff,
- 	.voltsetup2 = 0xff,
-+};
++	omap_ctrl_writel(OMAP3430_AUTOIDLE, OMAP2_CONTROL_SYSCONFIG);
 +
-+static struct prm_setup_vc prm_setup_default = {
-+	.setup_times = &prm_setup_times_default,
-+	.setup_times_off = NULL,
-+	.voltoffset = 0xff,
- 	.vdd0_on = 0x30,	/* 1.2v */
- 	.vdd0_onlp = 0x20,	/* 1.0v */
- 	.vdd0_ret = 0x1e,	/* 0.975v */
-@@ -98,6 +103,8 @@ static struct prm_setup_vc prm_setup = {
- 	.vdd1_off = 0x00,	/* 0.6v */
- };
- 
-+static struct prm_setup_vc *prm_setup = &prm_setup_default;
-+
- static inline void omap3_per_save_context(void)
- {
- 	omap3_gpio_save_context();
-@@ -338,6 +345,16 @@ static void restore_table_entry(void)
- 	restore_control_register(control_reg_value);
- }
- 
-+static void prm_program_setup_times(struct prm_setup_times_vc *times)
-+{
-+	prm_write_mod_reg(times->voltsetup1, OMAP3430_GR_MOD,
-+			OMAP3_PRM_VOLTSETUP1_OFFSET);
-+	prm_write_mod_reg(times->voltsetup2, OMAP3430_GR_MOD,
-+			OMAP3_PRM_VOLTSETUP2_OFFSET);
-+	prm_write_mod_reg(times->clksetup, OMAP3430_GR_MOD,
-+			OMAP3_PRM_CLKSETUP_OFFSET);
-+}
-+
- void omap_sram_idle(void)
- {
- 	/* Variable to tell what needs to be saved and restored
-@@ -422,6 +439,9 @@ void omap_sram_idle(void)
- 					     OMAP3_PRM_VOLTCTRL_OFFSET);
- 			omap3_core_save_context();
- 			omap3_prcm_save_context();
-+			if (prm_setup->setup_times_off != NULL)
-+				prm_program_setup_times(prm_setup->
-+					setup_times_off);
- 		} else if (core_next_state == PWRDM_POWER_RET) {
- 			prm_set_mod_reg_bits(OMAP3430_AUTO_RET,
- 						OMAP3430_GR_MOD,
-@@ -479,11 +499,13 @@ void omap_sram_idle(void)
- 		}
- 		omap_uart_resume_idle(0);
- 		omap_uart_resume_idle(1);
--		if (core_next_state == PWRDM_POWER_OFF)
-+		if (core_next_state == PWRDM_POWER_OFF) {
- 			prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF,
- 					       OMAP3430_GR_MOD,
- 					       OMAP3_PRM_VOLTCTRL_OFFSET);
--		else if (core_next_state == PWRDM_POWER_RET)
-+			if (prm_setup->setup_times_off != NULL)
-+				prm_program_setup_times(prm_setup->setup_times);
-+		} else if (core_next_state == PWRDM_POWER_RET)
- 			prm_clear_mod_reg_bits(OMAP3430_AUTO_RET,
- 						OMAP3430_GR_MOD,
- 						OMAP3_PRM_VOLTCTRL_OFFSET);
-@@ -1043,21 +1065,19 @@ int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
- 	return -EINVAL;
- }
- 
-+static void omap3_init_prm_setup_times(struct prm_setup_times_vc *conf)
-+{
-+	if (conf == NULL)
-+		return;
-+
-+	conf->voltsetup1 =
-+		(conf->voltsetup_time2 << OMAP3430_SETUP_TIME2_SHIFT) |
-+		(conf->voltsetup_time1 << OMAP3430_SETUP_TIME1_SHIFT);
-+}
-+
- void omap3_set_prm_setup_vc(struct prm_setup_vc *setup_vc)
- {
--	prm_setup.clksetup = setup_vc->clksetup;
--	prm_setup.voltsetup_time1 = setup_vc->voltsetup_time1;
--	prm_setup.voltsetup_time2 = setup_vc->voltsetup_time2;
--	prm_setup.voltoffset = setup_vc->voltoffset;
--	prm_setup.voltsetup2 = setup_vc->voltsetup2;
--	prm_setup.vdd0_on = setup_vc->vdd0_on;
--	prm_setup.vdd0_onlp = setup_vc->vdd0_onlp;
--	prm_setup.vdd0_ret = setup_vc->vdd0_ret;
--	prm_setup.vdd0_off = setup_vc->vdd0_off;
--	prm_setup.vdd1_on = setup_vc->vdd1_on;
--	prm_setup.vdd1_onlp = setup_vc->vdd1_onlp;
--	prm_setup.vdd1_ret = setup_vc->vdd1_ret;
--	prm_setup.vdd1_off = setup_vc->vdd1_off;
-+	prm_setup = setup_vc;
- }
- 
- static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
-@@ -1204,16 +1224,16 @@ static void __init configure_vc(void)
- 			  (R_VDD1_SR_CONTROL << OMAP3430_VOLRA0_SHIFT),
- 			  OMAP3430_GR_MOD, OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET);
- 
--	prm_write_mod_reg((prm_setup.vdd0_on << OMAP3430_VC_CMD_ON_SHIFT) |
--		(prm_setup.vdd0_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
--		(prm_setup.vdd0_ret << OMAP3430_VC_CMD_RET_SHIFT) |
--		(prm_setup.vdd0_off << OMAP3430_VC_CMD_OFF_SHIFT),
-+	prm_write_mod_reg((prm_setup->vdd0_on << OMAP3430_VC_CMD_ON_SHIFT) |
-+		(prm_setup->vdd0_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
-+		(prm_setup->vdd0_ret << OMAP3430_VC_CMD_RET_SHIFT) |
-+		(prm_setup->vdd0_off << OMAP3430_VC_CMD_OFF_SHIFT),
- 		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
- 
--	prm_write_mod_reg((prm_setup.vdd1_on << OMAP3430_VC_CMD_ON_SHIFT) |
--		(prm_setup.vdd1_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
--		(prm_setup.vdd1_ret << OMAP3430_VC_CMD_RET_SHIFT) |
--		(prm_setup.vdd1_off << OMAP3430_VC_CMD_OFF_SHIFT),
-+	prm_write_mod_reg((prm_setup->vdd1_on << OMAP3430_VC_CMD_ON_SHIFT) |
-+		(prm_setup->vdd1_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
-+		(prm_setup->vdd1_ret << OMAP3430_VC_CMD_RET_SHIFT) |
-+		(prm_setup->vdd1_off << OMAP3430_VC_CMD_OFF_SHIFT),
- 		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_1_OFFSET);
- 
- 	prm_write_mod_reg(OMAP3430_CMD1 | OMAP3430_RAV1, OMAP3430_GR_MOD,
-@@ -1224,19 +1244,11 @@ static void __init configure_vc(void)
- 			  OMAP3_PRM_VC_I2C_CFG_OFFSET);
- 
- 	/* Write setup times */
--	prm_write_mod_reg(prm_setup.clksetup, OMAP3430_GR_MOD,
--			OMAP3_PRM_CLKSETUP_OFFSET);
--	prm_write_mod_reg((prm_setup.voltsetup_time2 <<
--			OMAP3430_SETUP_TIME2_SHIFT) |
--			(prm_setup.voltsetup_time1 <<
--			OMAP3430_SETUP_TIME1_SHIFT),
--			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
--
--	prm_write_mod_reg(prm_setup.voltoffset, OMAP3430_GR_MOD,
-+	omap3_init_prm_setup_times(prm_setup->setup_times);
-+	omap3_init_prm_setup_times(prm_setup->setup_times_off);
-+	prm_program_setup_times(prm_setup->setup_times);
-+	prm_write_mod_reg(prm_setup->voltoffset, OMAP3430_GR_MOD,
- 			OMAP3_PRM_VOLTOFFSET_OFFSET);
--	prm_write_mod_reg(prm_setup.voltsetup2, OMAP3430_GR_MOD,
--			OMAP3_PRM_VOLTSETUP2_OFFSET);
--
- 	pm_dbg_regset_init(1);
- 	pm_dbg_regset_init(2);
- }
+ 	/*
+ 	 * Set all plls to autoidle. This is needed until autoidle is
+ 	 * enabled by clockfw
 -- 
 1.5.4.3
 
