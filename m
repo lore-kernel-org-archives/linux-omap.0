@@ -1,7 +1,7 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: [PATCH 08/10] OMAP3: PM: Use pwrdm_set_next_pwrst instead of set_pwrdm_state in idle loop
-Date: Fri, 23 Oct 2009 09:59:06 -0700
-Message-ID: <1256317148-25506-9-git-send-email-khilman@deeprootsystems.com>
+Subject: [PATCH 09/10] OMAP3: PM: idle: Remove fclk check for idle loop
+Date: Fri, 23 Oct 2009 09:59:07 -0700
+Message-ID: <1256317148-25506-10-git-send-email-khilman@deeprootsystems.com>
 References: <1256317148-25506-1-git-send-email-khilman@deeprootsystems.com>
  <1256317148-25506-2-git-send-email-khilman@deeprootsystems.com>
  <1256317148-25506-3-git-send-email-khilman@deeprootsystems.com>
@@ -10,60 +10,91 @@ References: <1256317148-25506-1-git-send-email-khilman@deeprootsystems.com>
  <1256317148-25506-6-git-send-email-khilman@deeprootsystems.com>
  <1256317148-25506-7-git-send-email-khilman@deeprootsystems.com>
  <1256317148-25506-8-git-send-email-khilman@deeprootsystems.com>
+ <1256317148-25506-9-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:11746 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752724AbZJWQ7f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 12:59:35 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so1391355qwb.37
-        for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 09:59:40 -0700 (PDT)
-In-Reply-To: <1256317148-25506-8-git-send-email-khilman@deeprootsystems.com>
+Received: from mail-qy0-f174.google.com ([209.85.221.174]:33893 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752731AbZJWQ7j (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 12:59:39 -0400
+Received: by mail-qy0-f174.google.com with SMTP id 4so6802363qyk.33
+        for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 09:59:43 -0700 (PDT)
+In-Reply-To: <1256317148-25506-9-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Jouni Hogander <jouni.hogander@nokia.com>
+Cc: linux-arm-kernel@lists.infradead.org, Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-From: Jouni Hogander <jouni.hogander@nokia.com>
+From: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 
-It is more efficient to use pwrdm_set_next_pwrst for mpu, core and neon
-instead of set_pwrdm_state in idle loop. It is anyway known that those are
-active in idle loop. So no need to use set_pwrdm_state.
+This patch removes the check to see if some functional clocks are
+still enabled before entering sleep.  This is no longer needed when
+using safe state (C1) that keeps CORE active.
 
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+Signed-off-by: Peter 'p2' De Schrijver <peter.de-schrijver@nokia.com>
 Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 ---
- arch/arm/mach-omap2/cpuidle34xx.c |    4 ++--
- arch/arm/mach-omap2/pm34xx.c      |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/pm34xx.c |   42 ------------------------------------------
+ 1 files changed, 0 insertions(+), 42 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index 5128b8c..1d10c4a 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -110,8 +110,8 @@ static int omap3_enter_idle(struct cpuidle_device *dev,
- 			core_state = PWRDM_POWER_RET;
- 	}
- 
--	set_pwrdm_state(mpu_pd, mpu_state);
--	set_pwrdm_state(core_pd, core_state);
-+	pwrdm_set_next_pwrst(mpu_pd, mpu_state);
-+	pwrdm_set_next_pwrst(core_pd, core_state);
- 
- 	if (omap_irq_pending())
- 		goto return_sleep_time;
 diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index a6624a1..35c917e 100644
+index 35c917e..40cbba4 100644
 --- a/arch/arm/mach-omap2/pm34xx.c
 +++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -359,7 +359,7 @@ void omap_sram_idle(void)
+@@ -461,54 +461,12 @@ void omap_sram_idle(void)
+ 	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+ }
  
- 	/* NEON control */
- 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
--		set_pwrdm_state(neon_pwrdm, mpu_next_state);
-+		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
+-/*
+- * Check if functional clocks are enabled before entering
+- * sleep. This function could be behind CONFIG_PM_DEBUG
+- * when all drivers are configuring their sysconfig registers
+- * properly and using their clocks properly.
+- */
+-static int omap3_fclks_active(void)
+-{
+-	u32 fck_core1 = 0, fck_core3 = 0, fck_sgx = 0, fck_dss = 0,
+-		fck_cam = 0, fck_per = 0, fck_usbhost = 0;
+-
+-	fck_core1 = cm_read_mod_reg(CORE_MOD,
+-				    CM_FCLKEN1);
+-	if (omap_rev() > OMAP3430_REV_ES1_0) {
+-		fck_core3 = cm_read_mod_reg(CORE_MOD,
+-					    OMAP3430ES2_CM_FCLKEN3);
+-		fck_sgx = cm_read_mod_reg(OMAP3430ES2_SGX_MOD,
+-					  CM_FCLKEN);
+-		fck_usbhost = cm_read_mod_reg(OMAP3430ES2_USBHOST_MOD,
+-					      CM_FCLKEN);
+-	} else
+-		fck_sgx = cm_read_mod_reg(GFX_MOD,
+-					  OMAP3430ES2_CM_FCLKEN3);
+-	fck_dss = cm_read_mod_reg(OMAP3430_DSS_MOD,
+-				  CM_FCLKEN);
+-	fck_cam = cm_read_mod_reg(OMAP3430_CAM_MOD,
+-				  CM_FCLKEN);
+-	fck_per = cm_read_mod_reg(OMAP3430_PER_MOD,
+-				  CM_FCLKEN);
+-
+-	/* Ignore UART clocks.  These are handled by UART core (serial.c) */
+-	fck_core1 &= ~(OMAP3430_EN_UART1 | OMAP3430_EN_UART2);
+-	fck_per &= ~OMAP3430_EN_UART3;
+-
+-	if (fck_core1 | fck_core3 | fck_sgx | fck_dss |
+-	    fck_cam | fck_per | fck_usbhost)
+-		return 1;
+-	return 0;
+-}
+-
+ int omap3_can_sleep(void)
+ {
+ 	if (!sleep_while_idle)
+ 		return 0;
+ 	if (!omap_uart_can_sleep())
+ 		return 0;
+-	if (omap3_fclks_active())
+-		return 0;
+ 	return 1;
+ }
  
- 	/* PER */
- 	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
 -- 
 1.6.4.3
 
