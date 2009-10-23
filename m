@@ -1,49 +1,61 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 01/11] OMAP3: PM: Fixed padconf save done check
-Date: Fri, 23 Oct 2009 19:03:45 +0300
-Message-ID: <1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: [PATCH 00/10] OMAP3: PM: add CPUidle support
+Date: Fri, 23 Oct 2009 09:58:58 -0700
+Message-ID: <1256317148-25506-1-git-send-email-khilman@deeprootsystems.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:21528 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752528AbZJWQSv (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 12:18:51 -0400
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIc92001696
-	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 19:18:54 +0300
-In-Reply-To: <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
+Received: from mail-qy0-f174.google.com ([209.85.221.174]:33893 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752480AbZJWQ7I (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 12:59:08 -0400
+Received: by qyk4 with SMTP id 4so6802363qyk.33
+        for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 09:59:12 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Carlos Chinea <carlos.chinea@nokia.com>
+Cc: linux-arm-kernel@lists.infradead.org
 
-From: Carlos Chinea <carlos.chinea@nokia.com>
+This series adds CPUidle support for OMAP3.  This includes power
+states for full-chip retention and full-chip OFF during idle.
 
-Previously the operator precedence dictated that the delay loop was exited
-immediately, potentially causing off-mode to be entered too soon.
+This series is based on top of Tony's for-next branch plus
+the recently posted off-mode series.
 
-Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
-Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
----
- arch/arm/mach-omap2/pm34xx.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+  [PATCH v2 00/32] OMAP3: PM: base off-mode support
 
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 01260ec..8353764 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -146,8 +146,8 @@ static void omap3_core_save_context(void)
- 	control_padconf_off |= START_PADCONF_SAVE;
- 	omap_ctrl_writel(control_padconf_off, OMAP343X_CONTROL_PADCONF_OFF);
- 	/* wait for the save to complete */
--	while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
--			& PADCONF_SAVE_DONE)
-+	while (!(omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
-+			& PADCONF_SAVE_DONE))
- 		;
- 	/* Save the Interrupt controller context */
- 	omap3_intc_save_context();
--- 
-1.5.4.3
+This series is also available in my linux-omap-pm repo[1]
+as a branch named pm-upstream/pm-cpuidle.
+
+Kevin
+
+Jouni Hogander (1):
+  OMAP3: PM: Use pwrdm_set_next_pwrst instead of set_pwrdm_state in
+    idle loop
+
+Kalle Jokiniemi (1):
+  OMAP3: PM: CPUidle: fix init sequencing
+
+Kevin Hilman (2):
+  OMAP3: PM: CPUidle: obey enable_off_mode flag
+  OMAP3: PM: CPUidle: check activity for C2, C3, correct accounting
+
+Peter 'p2' De Schrijver (2):
+  OMAP3: PM: CPUidle: Add new lower-latency C1 state
+  OMAP3: PM: idle: Remove fclk check for idle loop
+
+Rajendra Nayak (2):
+  OMAP3: PM: CPUidle: base driver and support for C1-C2
+  OMAP3: PM: CPUidle: support retention and off-mode C-states
+
+Sanjeev Premi (1):
+  OMAP3: PM: CPUidle: Start C-state definitions from base 0
+
+Tero Kristo (1):
+  OMAP3: PM: Added resched check into idle calls
+
+ arch/arm/mach-omap2/Makefile      |    2 +-
+ arch/arm/mach-omap2/cpuidle34xx.c |  318 +++++++++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h          |    4 +
+ arch/arm/mach-omap2/pm34xx.c      |   55 +------
+ 4 files changed, 329 insertions(+), 50 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/cpuidle34xx.c
 
