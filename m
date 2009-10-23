@@ -1,80 +1,60 @@
 From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 04/11] OMAP3: PM: Ack pending interrupts before entering suspend
-Date: Fri, 23 Oct 2009 19:03:48 +0300
-Message-ID: <1256313835-2391-5-git-send-email-tero.kristo@nokia.com>
+Subject: [PATCH 03/11] OMAP2/3: DMTIMER: Clear pending interrupts when stopping a timer
+Date: Fri, 23 Oct 2009 19:03:47 +0300
+Message-ID: <1256313835-2391-4-git-send-email-tero.kristo@nokia.com>
 References: <>
  <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
  <1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
  <1256313835-2391-3-git-send-email-tero.kristo@nokia.com>
- <1256313835-2391-4-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:21473 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbZJWQSb (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:19346 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752485AbZJWQSb (ORCPT
 	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 12:18:31 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIXnP001657
-	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 19:18:33 +0300
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIQ7u027784
+	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 11:18:35 -0500
 Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIPi8022176
-	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 19:18:30 +0300
-In-Reply-To: <1256313835-2391-4-git-send-email-tero.kristo@nokia.com>
+	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9NGIPi7022176
+	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 19:18:29 +0300
+In-Reply-To: <1256313835-2391-3-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
 From: Tero Kristo <tero.kristo@nokia.com>
 
-Suspending drivers may still generate interrupts just before their suspend is
-completed. Any pending interrupts here will prevent sleep.
+OMAP GP timers keep running for a few cycles after they are stopped,
+which can cause the timer to expire and generate an interrupt. The pending
+interrupt will prevent e.g. OMAP from entering suspend, thus we ack it
+manually.
 
 Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/irq.c              |    6 ++++++
- arch/arm/mach-omap2/pm34xx.c           |    2 +-
- arch/arm/plat-omap/include/mach/irqs.h |    1 +
- 3 files changed, 8 insertions(+), 1 deletions(-)
+ arch/arm/plat-omap/dmtimer.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
-index aceedd8..ee8c68a 100644
---- a/arch/arm/mach-omap2/irq.c
-+++ b/arch/arm/mach-omap2/irq.c
-@@ -266,4 +266,10 @@ void omap3_intc_restore_context(void)
+diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+index 830b072..09a623d 100644
+--- a/arch/arm/plat-omap/dmtimer.c
++++ b/arch/arm/plat-omap/dmtimer.c
+@@ -551,6 +551,16 @@ void omap_dm_timer_stop(struct omap_dm_timer *timer)
+ 	if (l & OMAP_TIMER_CTRL_ST) {
+ 		l &= ~0x1;
+ 		omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
++		/* Readback to make sure write has completed */
++		omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
++		 /*
++		  * Wait for functional clock period x 3.5 to make sure that
++		  * timer is stopped
++		  */
++		udelay(3500000 / clk_get_rate(timer->fclk) + 1);
++		/* Ack possibly pending interrupt */
++		omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG,
++				OMAP_TIMER_INT_OVERFLOW);
  	}
- 	/* MIRs are saved and restore with other PRCM registers */
  }
-+
-+void omap3_intc_suspend(void)
-+{
-+	/* A pending interrupt would prevent OMAP from entering suspend */
-+	omap_ack_irq(0);
-+}
- #endif /* CONFIG_ARCH_OMAP3 */
-diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-index 6782792..53544d3 100644
---- a/arch/arm/mach-omap2/pm34xx.c
-+++ b/arch/arm/mach-omap2/pm34xx.c
-@@ -640,7 +640,7 @@ static int omap3_pm_suspend(void)
- 	}
- 
- 	omap_uart_prepare_suspend();
--
-+	omap3_intc_suspend();
- 	regset_save_on_suspend = 1;
- 	omap_sram_idle();
- 	regset_save_on_suspend = 0;
-diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
-index 2473910..ff1faa8 100644
---- a/arch/arm/plat-omap/include/mach/irqs.h
-+++ b/arch/arm/plat-omap/include/mach/irqs.h
-@@ -485,6 +485,7 @@ extern void omap_init_irq(void);
- extern int omap_irq_pending(void);
- void omap3_intc_save_context(void);
- void omap3_intc_restore_context(void);
-+void omap3_intc_suspend(void);
- #endif
- 
- #include <mach/hardware.h>
+ EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
 -- 
 1.5.4.3
 
