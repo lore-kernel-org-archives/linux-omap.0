@@ -1,89 +1,181 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] ARM: OMAP3: cm-t35: add EHCI support
-Date: Fri, 23 Oct 2009 12:56:39 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A5114B8@dbde02.ent.ti.com>
-References: <4AD58887.9010004@compulab.co.il>
+From: Grazvydas Ignotas <notasas@gmail.com>
+Subject: Re: [PATCH v2 12/32] OMAP: PM: DMA context save/restore for off-mode
+	support
+Date: Fri, 23 Oct 2009 11:32:26 +0300
+Message-ID: <6ed0b2680910230132o3a193659g5526f8c9c479680f@mail.gmail.com>
+References: <1256252993-24328-1-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-5-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-6-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-7-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-8-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-9-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-10-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-11-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-12-git-send-email-khilman@deeprootsystems.com>
+	 <1256252993-24328-13-git-send-email-khilman@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33998 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbZJWH0l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 03:26:41 -0400
-In-Reply-To: <4AD58887.9010004@compulab.co.il>
-Content-Language: en-US
+Received: from mail-ew0-f208.google.com ([209.85.219.208]:47770 "EHLO
+	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751214AbZJWIcX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 04:32:23 -0400
+Received: by ewy4 with SMTP id 4so1405079ewy.37
+        for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 01:32:27 -0700 (PDT)
+In-Reply-To: <1256252993-24328-13-git-send-email-khilman@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Tero Kristo <tero.kristo@nokia.com>
 
-> This patch adds support for EHCI on CM-T35.
-> It depends on basic CM-T35 board support ([1]) and EHCI updates
-> in the linux-omap tree.
-> 
-> [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/24938
+On Fri, Oct 23, 2009 at 2:09 AM, Kevin Hilman
+<khilman@deeprootsystems.com> wrote:
+> From: Tero Kristo <tero.kristo@nokia.com>
+>
+> For HS/EMU devices, these additional features are also used:
+>
+> - DMA interrupt disable routine added
+> - Added DMA controller reset to DMA context restore
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+> Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
 > ---
-> 
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> ---
->  arch/arm/mach-omap2/board-cm-t35.c |   17 +++++++++++++++++
->  1 files changed, 17 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
-> index 94c1f35..1465892 100644
-> --- a/arch/arm/mach-omap2/board-cm-t35.c
-> +++ b/arch/arm/mach-omap2/board-cm-t35.c
-> @@ -352,6 +352,17 @@ static struct twl4030_hsmmc_info mmc[] = {
->  	{}	/* Terminator */
->  };
-> 
-> +static struct ehci_hcd_omap_platform_data ehci_pdata = {
-> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> =A0arch/arm/mach-omap2/pm34xx.c =A0 =A0 =A0 =A0 =A0| =A0 =A03 ++
+> =A0arch/arm/plat-omap/dma.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 41 +++++=
+++++++++++++++++++++++++++++
+> =A0arch/arm/plat-omap/include/plat/dma.h | =A0 =A05 ++++
+> =A03 files changed, 49 insertions(+), 0 deletions(-)
+> =A0mode change 100644 =3D> 100755 arch/arm/plat-omap/include/plat/dma=
+=2Eh
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34x=
+x.c
+> index bab9b48..54fea79 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -34,6 +34,7 @@
+> =A0#include <plat/sdrc.h>
+> =A0#include <plat/prcm.h>
+> =A0#include <plat/gpmc.h>
+> +#include <plat/dma.h>
+>
+> =A0#include <asm/tlbflush.h>
+>
+> @@ -95,6 +96,7 @@ static void omap3_core_save_context(void)
+> =A0 =A0 =A0 =A0omap3_gpmc_save_context();
+> =A0 =A0 =A0 =A0/* Save the system control module context, padconf alr=
+eady save above*/
+> =A0 =A0 =A0 =A0omap3_control_save_context();
+> + =A0 =A0 =A0 omap_dma_global_context_save();
+> =A0}
+>
+> =A0static void omap3_core_restore_context(void)
+> @@ -105,6 +107,7 @@ static void omap3_core_restore_context(void)
+> =A0 =A0 =A0 =A0omap3_gpmc_restore_context();
+> =A0 =A0 =A0 =A0/* Restore the interrupt controller context */
+> =A0 =A0 =A0 =A0omap_intc_restore_context();
+> + =A0 =A0 =A0 omap_dma_global_context_restore();
+> =A0}
+>
+> =A0/*
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index 3edffde..c0a6060 100644
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -54,6 +54,12 @@ enum { DMA_CHAIN_STARTED, DMA_CHAIN_NOTSTARTED };
+>
+> =A0static int enable_1510_mode;
+>
+> +static struct omap_dma_global_context_registers {
+> + =A0 =A0 =A0 u32 dma_irqenable_l0;
+> + =A0 =A0 =A0 u32 dma_ocp_sysconfig;
+> + =A0 =A0 =A0 u32 dma_gcr;
+> +} omap_dma_global_context;
 > +
-
-I haven't been following l-o for a while - I just got back.
-Is there a link to some documentation for this board (I'm just
-curious about the EHCI connections)?
-
-Are you using Port1 and Port2 both? What PHY is connected to
-the ports?
-
-> +	.phy_reset  = true,
-> +	.reset_gpio_port[0]  = -EINVAL,
-> +	.reset_gpio_port[1]  = -EINVAL,
-> +	.reset_gpio_port[2]  = -EINVAL
-
-You set these reset gpios below.
-I guess you don't need to initialize them here.
-
-- Anand
-
-> +};
+> =A0struct omap_dma_lch {
+> =A0 =A0 =A0 =A0int next_lch;
+> =A0 =A0 =A0 =A0int dev_id;
+> @@ -2341,6 +2347,41 @@ void omap_stop_lcd_dma(void)
+> =A0}
+> =A0EXPORT_SYMBOL(omap_stop_lcd_dma);
+>
+> +void omap_dma_global_context_save(void)
+> +{
+> + =A0 =A0 =A0 omap_dma_global_context.dma_irqenable_l0 =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_read(IRQENABLE_L0);
+> + =A0 =A0 =A0 omap_dma_global_context.dma_ocp_sysconfig =3D
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_read(OCP_SYSCONFIG);
+> + =A0 =A0 =A0 omap_dma_global_context.dma_gcr =3D dma_read(GCR);
+> +}
+> +EXPORT_SYMBOL(omap_dma_global_context_save);
 > +
->  static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
->  				 unsigned ngpio)
->  {
-> @@ -377,6 +388,12 @@ static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
->  	cm_t35_vmmc1_supply.dev = mmc[0].dev;
->  	cm_t35_vsim_supply.dev = mmc[0].dev;
-> 
-> +	/* setup USB with proper PHY reset GPIOs */
-> +	ehci_pdata.reset_gpio_port[0] = gpio + 6;
-> +	ehci_pdata.reset_gpio_port[1] = gpio + 7;
+> +void omap_dma_global_context_restore(void)
+> +{
+> + =A0 =A0 =A0 dma_write(0x2, OCP_SYSCONFIG);
+> + =A0 =A0 =A0 while (!__raw_readl(omap_dma_base + OMAP_DMA4_SYSSTATUS=
+))
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 ;
+> + =A0 =A0 =A0 dma_write(omap_dma_global_context.dma_gcr, GCR);
+> + =A0 =A0 =A0 dma_write(omap_dma_global_context.dma_ocp_sysconfig,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 OCP_SYSCONFIG);
+> + =A0 =A0 =A0 dma_write(omap_dma_global_context.dma_irqenable_l0,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 IRQENABLE_L0);
+> +}
+> +EXPORT_SYMBOL(omap_dma_global_context_restore);
 > +
-> +	usb_ehci_init(&ehci_pdata);
+> +void omap_dma_disable_irq(int lch)
+> +{
+> + =A0 =A0 =A0 u32 val;
 > +
->  	return 0;
->  }
-> 
-> -- 
-> 1.6.0.6
-> 
-> 
-> -- 
-> Sincerely yours,
-> Mike.
-> 
-> 
+> + =A0 =A0 =A0 if (cpu_class_is_omap2()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Disable interrupts */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D dma_read(IRQENABLE_L0);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 val &=3D ~(1 << lch);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_write(val, IRQENABLE_L0);
+> + =A0 =A0 =A0 }
+> +}
+> +
+> =A0/*----------------------------------------------------------------=
+------------*/
+>
+> =A0static int __init omap_init_dma(void)
+> diff --git a/arch/arm/plat-omap/include/plat/dma.h b/arch/arm/plat-om=
+ap/include/plat/dma.h
+> old mode 100644
+> new mode 100755
+
+^^ whoops?
+
+> index 72f680b..1c017b2
+> --- a/arch/arm/plat-omap/include/plat/dma.h
+> +++ b/arch/arm/plat-omap/include/plat/dma.h
+> @@ -633,6 +633,11 @@ extern void omap_set_dma_dst_endian_type(int lch=
+, enum end_type etype);
+> =A0extern void omap_set_dma_src_endian_type(int lch, enum end_type et=
+ype);
+> =A0extern int omap_get_dma_index(int lch, int *ei, int *fi);
+>
+> +void omap_dma_global_context_save(void);
+> +void omap_dma_global_context_restore(void);
+> +
+> +extern void omap_dma_disable_irq(int lch);
+> +
+> =A0/* Chaining APIs */
+> =A0#ifndef CONFIG_ARCH_OMAP1
+> =A0extern int omap_request_dma_chain(int dev_id, const char *dev_name=
+,
+> --
+> 1.6.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
