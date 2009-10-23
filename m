@@ -1,45 +1,39 @@
-From: Jon Hunter <jon-hunter@ti.com>
-Subject: Re: [PATCH 05/10] omap1: Fix DSP public peripherals support for ams-delta
-Date: Thu, 22 Oct 2009 18:22:32 -0500
-Message-ID: <4AE0E938.7080305@ti.com>
-References: <20091022221013.27408.443.stgit@localhost> <20091022221216.27408.39863.stgit@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751256AbZJVXXN@vger.kernel.org>
-In-Reply-To: <20091022221216.27408.39863.stgit@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+From: y@vip-tid.localdomain
+Subject: [PATCH] update mach-types
+Date: Thu, 22 Oct 2009 19:01:12 -0500
+Message-ID: <4252.03066920421$1256256203@news.gmane.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:43525 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbZJWADH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 22 Oct 2009 20:03:07 -0400
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: tony@atomide.com
+Cc: linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>
 
+From: Vikram Pandita <vikram.pandita@ti.com>
 
-Tony Lindgren wrote:
-> From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-> 
-> DSP public peripherals used to work on OMAP1510 based (or all OMAP1 class?)
-> machines as long as old dspgateway code were present in the l-o tree. For
-> several months it is no longer included, breaking support for McBSP1 based
-> audio on Amstrad Delta, for example.
-> 
-> This patch, derived from the old dspgateway code, corrects the problem for the
-> board by simply taking the DSP out of reset state, I guess. That way, things
-> should not break when a new dsp code is added to the tree, and the change can
-> be reverted then.
+Added zoom3 and sdp3630 board support
 
-A minor comment/correction here. Although this bit is called "DSP_RST" 
-this does not actually release the DSP from reset. This bit actually 
-releases the reset for the "priority registers (TIPB module), EMIF 
-configuration registers, and the MPUI control logic (partially) in the 
-DSP", thus allowing you to access the DSP peripherals via the MPUI. Bit 
-1 of the same register, called "DSP_EN", actually releases the DSP reset.
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+Tony: Please host this patch temporarily on l-o till rmk pulls in
+the mach-types updates
 
-> If there are any reports on McBSP1 or other DSP public peripherals not working
-> for other OMAP1 machines (I've not heard of any for now), I can prepare a more
-> general patch providing an extra include file with a helper function defined.
+ arch/arm/tools/mach-types |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-This would be necessary for all OMAP15xx based devices that use McBSP1 
-(or McBSP3 for that matter). However, I am not sure if it is common for 
-other boards to use McBSP1 for audio.
+diff --git a/arch/arm/tools/mach-types b/arch/arm/tools/mach-types
+index 94be7bb..d61277b 100644
+--- a/arch/arm/tools/mach-types
++++ b/arch/arm/tools/mach-types
+@@ -2421,3 +2421,5 @@ liberty			MACH_LIBERTY		LIBERTY			2434
+ mh355			MACH_MH355		MH355			2435
+ pc7802			MACH_PC7802		PC7802			2436
+ gnet_sgc		MACH_GNET_SGC		GNET_SGC		2437
++omap_zoom3		MACH_OMAP_ZOOM3		OMAP_ZOOM3		2464
++omap_3630sdp		MACH_OMAP_3630SDP	OMAP_3630SDP		2465
+-- 
+1.6.5.rc1.19.g8426
 
-Jon
