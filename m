@@ -1,54 +1,42 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 05/10] omap1: Fix DSP public peripherals support for
-	ams-delta
-Date: Fri, 23 Oct 2009 12:19:40 -0700
-Message-ID: <20091023191939.GJ16230@atomide.com>
-References: <20091022221013.27408.443.stgit@localhost> <20091022221216.27408.39863.stgit@localhost> <4AE0E938.7080305@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753072AbZJWTTm@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4AE0E938.7080305@ti.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Hunter <jon-hunter@ti.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH 0/3] Introduce Zoom3 board
+Date: Fri, 23 Oct 2009 14:23:23 -0500
+Message-ID: <1256325806-14400-1-git-send-email-vikram.pandita@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:44249 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751978AbZJWTZQ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 23 Oct 2009 15:25:16 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9NJPKAf027060
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 14:25:20 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-* Jon Hunter <jon-hunter@ti.com> [091022 16:22]:
->
-> Tony Lindgren wrote:
->> From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
->>
->> DSP public peripherals used to work on OMAP1510 based (or all OMAP1 class?)
->> machines as long as old dspgateway code were present in the l-o tree. For
->> several months it is no longer included, breaking support for McBSP1 based
->> audio on Amstrad Delta, for example.
->>
->> This patch, derived from the old dspgateway code, corrects the problem for the
->> board by simply taking the DSP out of reset state, I guess. That way, things
->> should not break when a new dsp code is added to the tree, and the change can
->> be reverted then.
->
-> A minor comment/correction here. Although this bit is called "DSP_RST"  
-> this does not actually release the DSP from reset. This bit actually  
-> releases the reset for the "priority registers (TIPB module), EMIF  
-> configuration registers, and the MPUI control logic (partially) in the  
-> DSP", thus allowing you to access the DSP peripherals via the MPUI. Bit  
-> 1 of the same register, called "DSP_EN", actually releases the DSP reset.
+Zoom3 is the next versoin of Zoom2 board.
+There has been a silicon update from zoom2 to zoom3.
 
-Thanks for clarifying that.
+Zoom2 has OMAP34xx
+Zoom3 has OMAP3630
 
->> If there are any reports on McBSP1 or other DSP public peripherals not working
->> for other OMAP1 machines (I've not heard of any for now), I can prepare a more
->> general patch providing an extra include file with a helper function defined.
->
-> This would be necessary for all OMAP15xx based devices that use McBSP1  
-> (or McBSP3 for that matter). However, I am not sure if it is common for  
-> other boards to use McBSP1 for audio.
+Zoom3 = OMAP3630 SOM board + same zoom2 main board + same debugboard
 
-Yeah, I guess currently only board-ams-delta.c needs this for audio.
-But that could of course change once there are more 15xx boards using ASoC.
+We want to reuse the zoom2 files as much for zoom3, as at board level, 
+there is no change at all.
 
-Regards,
+Vikram Pandita (3):
+  omap: zoom: reuse zoom2 board file for zoom3
+  omap: zoom2: update makefile for boardfile name change
+  omap: zoom3: add zoom3 board support
 
-Tony
+ arch/arm/mach-omap2/Kconfig             |    4 +
+ arch/arm/mach-omap2/Makefile            |    5 +-
+ arch/arm/mach-omap2/board-zoom2-zoom3.c |  296 +++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-zoom2.c       |  292 ------------------------------
+ 4 files changed, 304 insertions(+), 293 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-zoom2-zoom3.c
+ delete mode 100644 arch/arm/mach-omap2/board-zoom2.c
+
