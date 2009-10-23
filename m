@@ -1,97 +1,247 @@
-From: "Imberton Guilhem-gimb01" <guilhem.imberton@motorola.com>
-Subject: RE: [PATCH 2/2 v2] OMAP3:PM:SR: SmartReflex Refactor Rev3.0
-Date: Fri, 23 Oct 2009 11:12:58 +0100
-Message-ID: <6A943D54E5EAED4BA437305D3EF62FB30326E9DC@zuk35exm61.ds.mot.com>
-References: <1256232481-30636-1-git-send-email-nm@ti.com> <1256232481-30636-2-git-send-email-nm@ti.com> <1256232481-30636-3-git-send-email-nm@ti.com> <6A943D54E5EAED4BA437305D3EF62FB30326E922@zuk35exm61.ds.mot.com> <4AE1178E.5060302@ti.com>
+From: Govindraj <govindraj.ti@gmail.com>
+Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver support.
+Date: Fri, 23 Oct 2009 17:52:18 +0530
+Message-ID: <d6a0f7aa0910230522y7cf8ec13w498378bf1fa9e5d6@mail.gmail.com>
+References: <65168.192.168.10.89.1253788033.squirrel@dbdmail.itg.ti.com>
+	 <20091007215116.GB29320@atomide.com>
+	 <d6a0f7aa0910072314h77383e31r2330725b614ba472@mail.gmail.com>
+	 <E0D41E29EB0DAC4E9F3FF173962E9E940253C6C560@dbde02.ent.ti.com>
+	 <20091009174635.GH25892@atomide.com>
+	 <7f9d1ffb0910122354o64b5aa01l3fe33ab78dfb5f23@mail.gmail.com>
+	 <20091013205657.GD12700@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail128.messagelabs.com ([216.82.250.131]:48798 "EHLO
-	mail128.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351AbZJWKNT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 06:13:19 -0400
-Received: from il06exr04.mot.com (il06exr04.mot.com [129.188.137.134])
-	by motgate8.mot.com (8.14.3/8.14.3) with ESMTP id n9NADM2Y028058
-	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 03:13:22 -0700 (MST)
-Received: from il06vts02.mot.com (il06vts02.mot.com [129.188.137.142])
-	by il06exr04.mot.com (8.13.1/Vontu) with SMTP id n9NADMSu009595
-	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 05:13:22 -0500 (CDT)
-Received: from zuk35exm61.ds.mot.com (zuk35exm61.ea.mot.com [10.178.4.19])
-	by il06exr04.mot.com (8.13.1/8.13.0) with ESMTP id n9NADLOn009592
-	for <linux-omap@vger.kernel.org>; Fri, 23 Oct 2009 05:13:22 -0500 (CDT)
-Content-class: urn:content-classes:message
-In-Reply-To: <4AE1178E.5060302@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751751AbZJWMWQ@vger.kernel.org>
+In-Reply-To: <20091013205657.GD12700@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: kishore kadiyala <kishorek.kadiyala@gmail.com>, "G, Manjunath Kondaiah" <manjugk@ti.com>, "Raja, Govindraj" <govindraj.raja@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Nayak, Rajendra" <rnayak@ti.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Reddy, Teerth" <teerth@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, =?iso-8859-1?Q?H=F6gander_Jouni?= <jouni.hogander@nokia.com>, Mike Chan <mikechan@google.com>
 
- 
-
-> -----Original Message-----
-> From: Nishanth Menon [mailto:nm@ti.com] 
-> Sent: Friday, October 23, 2009 4:40 AM
-> Imberton Guilhem-gimb01 had written, on 10/22/2009 04:04 PM, 
-> the following:
-> >  I have one small comment on the actual implementation
-> >> +     do {
-> >> +             value = prm_read_mod_reg(OMAP3430_GR_MOD,
-> >> +                                      
-> OMAP3_PRM_VC_BYPASS_VAL_OFFSET)
-> >> +                 & OMAP3430_VALID;
-> >> +             /* should i wait? */
-> >> +             if (value && (count % 50))
-> >> +                     udelay(10);
-> >> +             count--;
-> >> +             *timeout_us -= 5;
-> >> +     } while (value && count);
-> > 
-> > Why are you removing 5us every read ?
-> Thanks for catching this. Yep, I have got my counters mixed 
-> up :(.. will 
-> add it as part of v2 for tomorrow evening with other 
-> potential comments 
-> if any.
-> 
-> > If 50 iteration is 1us and we delay every loop by 10us we 
-> should remove 11us
-> > 
-> > Shouldn't it be:
-> > 
-> > +       do {
-> > +               value = prm_read_mod_reg(OMAP3430_GR_MOD,
-> > +                                        
-> OMAP3_PRM_VC_BYPASS_VAL_OFFSET)
-> > +                   & OMAP3430_VALID;
-> > +               /* should i wait? */
-> > +               if (value && (count % 50)) {
-> > +                       udelay(10);
-> > +                     *timeout_us -= 11;
-> > +           }
-> > +               count--;
-> > +       } while (value && count);
-> > 
-> here is a problem with the above logic:
-> a) I dont know for sure if 50 iterations == 1 uSec.
-> b) count = timeout*5
->    ==> if function is called with timeout = 10 uSec, count = 50, and 
-> udelay(10) will be called once. now *timeout -=11 will make it a 
-> negative value, which is not helpeful.
-> 
-> so, the decrement has to be by 10 OR i can pad timeout_us .. 
-> not exactly 
-> useful either..
-
-Your right negative value wont be good
-Let's use 10uSec (50 registers reading remains realy small amount of time)
-And it will anyway give us a good idea of the time spent here
-
-> -- 
-> Regards,
-> Nishanth Menon
+On Wed, Oct 14, 2009 at 2:26 AM, Tony Lindgren <tony@atomide.com> wrote=
+:
+> * kishore kadiyala <kishorek.kadiyala@gmail.com> [091012 23:54]:
+>> Tony,
+>>
+>> On Fri, Oct 9, 2009 at 11:16 PM, Tony Lindgren <tony@atomide.com> wr=
+ote:
+>> > * G, Manjunath Kondaiah <manjugk@ti.com> [091008 00:41]:
+>> >>
+>> >> Govind,
+>> >> > -----Original Message-----
+>> >> > From: linux-omap-owner@vger.kernel.org
+>> >> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Govindra=
+j
+>> >> > Sent: Thursday, October 08, 2009 11:44 AM
+>> >> > To: Tony Lindgren
+>> >> > Cc: Raja, Govindraj; linux-omap@vger.kernel.org;
+>> >> > linux-kernel@vger.kernel.org; linux-serial@vger.kernel.org
+>> >> > Subject: Re: [PATCHv1 1/3] OMAP UART: Adds omap-serial driver s=
+upport.
+>> >> >
+>> >> > On Thu, Oct 8, 2009 at 3:21 AM, Tony Lindgren
+>> >> > <tony@atomide.com> wrote:
+>> >> > > * Govindraj.R <govindraj.raja@ti.com> [090924 03:29]:
+>> >> > >> From: Govindraj R <govindraj.raja@ti.com>
+>> >> > >>
+>> >> > >> This patch adds support for OMAP3430-HIGH SPEED UART Control=
+ler.
+>> >> > >>
+>> >> > >> Signed-off-by: =A0 =A0 =A0 =A0Govindraj R <govindraj.raja@ti=
+=2Ecom>
+>> >> > >> Reviewed-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+>> >> > >> Reviewed-by: Tony Lindgren <tony@atomide.com>
+>> >> > >
+>> >> > > You should only add Reviewed-by if Alan or me have replied wi=
+th it.
+>> >> > >
+>> >> > > So far I've only replied with some comments that have not yet
+>> >> > > been fixed, so we're few more steps from being Reviewd-by.
+>> >> > >
+>> >> > > <snip>
+>> >> > >
+>> >> > >> diff --git a/drivers/serial/Kconfig b/drivers/serial/Kconfig
+>> >> > >> index 6553833..67a7129 100644
+>> >> > >> --- a/drivers/serial/Kconfig
+>> >> > >> +++ b/drivers/serial/Kconfig
+>> >> > >> @@ -1359,6 +1359,53 @@ config SERIAL_OF_PLATFORM
+>> >> > >> =A0 =A0 =A0 =A0 Currently, only 8250 compatible ports are su=
+pported, but
+>> >> > >> =A0 =A0 =A0 =A0 others can easily be added.
+>> >> > >>
+>> >> > >> +config SERIAL_OMAP
+>> >> > >> + =A0 =A0 bool "OMAP serial port support"
+>> >> > >> + =A0 =A0 depends on ARM && ARCH_OMAP
+>> >> > >> + =A0 =A0 select SERIAL_CORE
+>> >> > >> + =A0 =A0 help
+>> >> > >> + =A0 =A0 If you have a machine based on an Texas Instrument=
+s
+>> >> > OMAP CPU you
+>> >> > >> + =A0 =A0 can enable its onboard serial ports by enabling th=
+is option.
+>> >> > >> +
+>> >> > >> +config SERIAL_OMAP_CONSOLE
+>> >> > >> + =A0 =A0 bool "Console on OMAP serial port"
+>> >> > >> + =A0 =A0 depends on SERIAL_OMAP
+>> >> > >> + =A0 =A0 select SERIAL_CORE_CONSOLE
+>> >> > >> + =A0 =A0 help
+>> >> > >> + =A0 =A0 If you have enabled the serial port on the Texas
+>> >> > Instruments OMAP
+>> >> > >> + =A0 =A0 CPU you can make it the console by answering Y to
+>> >> > this option.
+>> >> > >> +
+>> >> > >> + =A0 =A0 Even if you say Y here, the currently visible virt=
+ual console
+>> >> > >> + =A0 =A0 (/dev/tty0) will still be used as the system conso=
+le
+>> >> > by default, but
+>> >> > >> + =A0 =A0 you can alter that using a kernel command line opt=
+ion such as
+>> >> > >> + =A0 =A0 "console=3DttyS0". (Try "man bootparam" or see the
+>> >> > documentation of
+>> >> > >> + =A0 =A0 your boot loader (lilo or loadlin) about how to pa=
+ss
+>> >> > options to the
+>> >> > >> + =A0 =A0 kernel at boot time.)
+>> >> > >> +
+>> >> > >> +config SERIAL_OMAP_DMA_UART1
+>> >> > >> + =A0 =A0 bool "UART1 DMA support"
+>> >> > >> + =A0 =A0 depends on SERIAL_OMAP
+>> >> > >> + =A0 =A0 help
+>> >> > >> + =A0 =A0 If you have enabled the serial port on the Texas
+>> >> > Instruments OMAP
+>> >> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 1 by a=
+nswering
+>> >> > >> + =A0 =A0 to this option.
+>> >> > >> +
+>> >> > >> +config SERIAL_OMAP_DMA_UART2
+>> >> > >> + =A0 =A0 bool "UART2 DMA support"
+>> >> > >> + =A0 =A0 depends on SERIAL_OMAP
+>> >> > >> + =A0 =A0 help
+>> >> > >> + =A0 =A0 If you have enabled the serial port on the Texas
+>> >> > Instruments OMAP
+>> >> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 2 by a=
+nswering
+>> >> > >> + =A0 =A0 to this option.
+>> >> > >> +
+>> >> > >> +config SERIAL_OMAP_DMA_UART3
+>> >> > >> + =A0 =A0 bool "UART3 DMA support"
+>> >> > >> + =A0 =A0 depends on SERIAL_OMAP
+>> >> > >> + =A0 =A0 help
+>> >> > >> + =A0 =A0 If you have enabled the serial port on the Texas
+>> >> > Instruments OMAP
+>> >> > >> + =A0 =A0 CPU you can enable the DMA transfer on UART 3 by a=
+nswering
+>> >> > >> + =A0 =A0 to this option.
+>> >> > >> +
+>> >> > >> =A0config SERIAL_OF_PLATFORM_NWPSERIAL
+>> >> > >> =A0 =A0 =A0 tristate "NWP serial port driver"
+>> >> > >> =A0 =A0 =A0 depends on PPC_OF && PPC_DCR
+>> >> > >
+>> >> > > There's absolutely no need for having Kconfig options for the=
+ DMA
+>> >> > > support. Please pass that in platform_data from the board-*.c=
+ files.
+>> >> > >
+>> >> > > This is the third time I'm commenting on the same issue!
+>> >> > >
+>> >> > > What's the point of posting these patches for review if the i=
+ssues
+>> >> > > don't get solved?
+>> >> >
+>> >> >
+>> >> > The omap-serial uart driver is designed to work either in inter=
+rupt
+>> >> > mode or in DMA mode,
+>> >> > We have provided this option so that one can select interrupt m=
+ode or
+>> >> > DMA mode based on the uart usage, if somebody is using uart as =
+console
+>> >> > then interrupt mode will do, else if used with bluetooth which =
+does
+>> >> > huge data transfer then DMA mode can be selected.
+>> >> >
+>> >> > Don't you think this should be a configurable option using kcon=
+fig
+>> >> > rather than passing as platform data?
+>> >
+>> > Nope. I think it should be platform_data and should be possible to=
+ override
+>> > vith a kernel cmdline option. That's because we support compiling =
+in and
+>> > booting many boards the same kernel binary.
+>> >
+>> >> > if used as platform data then one has to modify platform data t=
+o
+>> >> > switch between the interrupt and DMA mode.
+>> >
+>> > How about set some kernel cmdline options if you want to override =
+the
+>> > default settings?
+>>
+>> =A0 =A0Using cmdline options, will make specific UART switch =A0dyna=
+mically
+>> =A0 =A0between Non-DMA and DMA mode which is not handled in the driv=
+er.
 >
+> Switching between dma transfers and pio should be easy to do, we're
+> already doing that in various omap drivers like mmc, musb/tusb
+> and onenand.
 
+I am planning to remove kconfig options, and add static mode values in =
+platform
+data for uart port dma mode usage for an given uart port.
+
+Any given uart port can be configured to work in DMA or non dma
+mode based on the board configuration, and decision has to be made by
+developer itself (based on performance etc..) and should not rely on us=
+er.
+
+What do you say?
+
+
+> So I would recommend making that change, it is quite trivial
+> to do and will make the code much cleaner. And also gets rid
+> of the issue with Kconfig settings breaking booting for other
+> boards.
+>
+>> =A0 =A0how abt using bootargs to share this Mode info ?
+>
+> The bootargs should override what is passed from platform_data.
+
+Providing bootarg option is easy, I'll add support if insisted.
+
+IMHO static setting in platform data will do.
+
+---
 Regards,
+Govindraj.R
 
-Guilhem 
+
+
+> Regards,
+>
+> Tony
+>
+>>
+>> >
+>> >> Usage of UART is board dependent. It's usage will not change dyna=
+mically for
+>> >> a given board. This can be removed from Kconfig and move it to re=
+spective
+>> >> board file-> board-*.c
+>> >
+>> > Or can be changed from kernel cmdline if necessary.
+>> >
+>> > Regards,
+>> >
+>> > Tony
+>> > --
+>> > To unsubscribe from this list: send the line "unsubscribe linux-om=
+ap" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>> >
+>
