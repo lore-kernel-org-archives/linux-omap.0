@@ -1,60 +1,89 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 4/4 v2] ASoC: TWL4030: Driver registration
-	via twl4030_codec MFD
-Date: Fri, 23 Oct 2009 08:27:55 +0300
-Message-ID: <200910230827.55141.peter.ujfalusi@nokia.com>
-References: <1256207208-25010-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1256207208-25010-5-git-send-email-peter.ujfalusi@nokia.com>
-	<20091022165643.GA28051@rakim.wolfsonmicro.main>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH] ARM: OMAP3: cm-t35: add EHCI support
+Date: Fri, 23 Oct 2009 12:56:39 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A5114B8@dbde02.ent.ti.com>
+References: <4AD58887.9010004@compulab.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20091022165643.GA28051@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:33998 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038AbZJWH0l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 03:26:41 -0400
+In-Reply-To: <4AD58887.9010004@compulab.co.il>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Mike Rapoport <mike@compulab.co.il>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thursday 22 October 2009 19:56:44 ext Mark Brown wrote:
-> On Thu, Oct 22, 2009 at 01:26:48PM +0300, Peter Ujfalusi wrote:
-> > Change the way how the twl4030 soc codec driver is
-> > loaded/probed.
-> > Use the device probing via tlw4030_codec MFD device.
-> =
+> This patch adds support for EHCI on CM-T35.
+> It depends on basic CM-T35 board support ([1]) and EHCI updates
+> in the linux-omap tree.
+> 
+> [1] http://thread.gmane.org/gmane.linux.ports.arm.omap/24938
+> ---
+> 
+> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+> ---
+>  arch/arm/mach-omap2/board-cm-t35.c |   17 +++++++++++++++++
+>  1 files changed, 17 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+> index 94c1f35..1465892 100644
+> --- a/arch/arm/mach-omap2/board-cm-t35.c
+> +++ b/arch/arm/mach-omap2/board-cm-t35.c
+> @@ -352,6 +352,17 @@ static struct twl4030_hsmmc_info mmc[] = {
+>  	{}	/* Terminator */
+>  };
+> 
+> +static struct ehci_hcd_omap_platform_data ehci_pdata = {
+> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
+> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
+> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+> +
 
-> I'm OK with the series but:
-> > @@ -147,6 +147,7 @@ config SND_SOC_TLV320DAC33
-> >  	tristate
-> >
-> >  config SND_SOC_TWL4030
-> > +	select TWL4030_CODEC
-> >  	tristate
-> =
+I haven't been following l-o for a while - I just got back.
+Is there a link to some documentation for this board (I'm just
+curious about the EHCI connections)?
 
-> due to Kconfig ignoring dependencies all the individual machine drivers
-> are going to need to select this, and SND_SOC_ALL_CODECS will need to
-> select it if the MFD core is enabled.  I should be able to fix this up
-> myself so no need to repost for that alone.
+Are you using Port1 and Port2 both? What PHY is connected to
+the ports?
 
-Hmm, what do you mean by that?
-I have checked it, and selecting the machine driver will enables the MFD_CO=
-RE =
+> +	.phy_reset  = true,
+> +	.reset_gpio_port[0]  = -EINVAL,
+> +	.reset_gpio_port[1]  = -EINVAL,
+> +	.reset_gpio_port[2]  = -EINVAL
 
-and TWL4030_CODEC in .config, also disabling the machine driver will also =
+You set these reset gpios below.
+I guess you don't need to initialize them here.
 
-disable the MFD_CORE and the TWL4030_CODEC.
+- Anand
 
-Can you go into details?
-
--- =
-
-P=E9ter
+> +};
+> +
+>  static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
+>  				 unsigned ngpio)
+>  {
+> @@ -377,6 +388,12 @@ static int cm_t35_twl_gpio_setup(struct device *dev, unsigned gpio,
+>  	cm_t35_vmmc1_supply.dev = mmc[0].dev;
+>  	cm_t35_vsim_supply.dev = mmc[0].dev;
+> 
+> +	/* setup USB with proper PHY reset GPIOs */
+> +	ehci_pdata.reset_gpio_port[0] = gpio + 6;
+> +	ehci_pdata.reset_gpio_port[1] = gpio + 7;
+> +
+> +	usb_ehci_init(&ehci_pdata);
+> +
+>  	return 0;
+>  }
+> 
+> -- 
+> 1.6.0.6
+> 
+> 
+> -- 
+> Sincerely yours,
+> Mike.
+> 
+> 
