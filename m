@@ -1,103 +1,120 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: Re: [PATCH v2] twl4030: Enable low-power mode to 32kHz oscillator
-Date: Fri, 23 Oct 2009 16:13:11 +0200
-Message-ID: <20091023141310.GB3718@sortiz.org>
-References: <1256210049-4567-1-git-send-email-ilkka.koskinen@nokia.com>
+From: "Sonasath, Moiz" <m-sonasath@ti.com>
+Subject: RE: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint in
+ i2c
+Date: Fri, 23 Oct 2009 10:53:34 -0500
+Message-ID: <CD8CC2B65FEE304DA95744A5472698F2029E427B04@dlee06.ent.ti.com>
+References: <> <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
+ <1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
+ <1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
+ <1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752064AbZJWOLQ@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1256210049-4567-1-git-send-email-ilkka.koskinen@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:58635 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752156AbZJWPxg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 23 Oct 2009 11:53:36 -0400
+In-Reply-To: <1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Jarkko Nikula <jhnikula@gmail.com>, Paul Walmsley <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>
 
-Hi Ilkka,
+Hello Jokiniemi!
 
-On Thu, Oct 22, 2009 at 02:14:09PM +0300, Ilkka Koskinen wrote:
-> Allows TWL's 32kHz oscillator to go in low-power mode when
-> main battery voltage is running low.
-Patch applied, thanks a lot.
-
-Cheers,
-Samuel.
-
-
-> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-> ---
->  drivers/mfd/twl4030-core.c  |    9 +++++++--
->  include/linux/i2c/twl4030.h |    5 +++++
->  2 files changed, 12 insertions(+), 2 deletions(-)
+> -----Original Message-----
+> From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com]
+> Sent: Wednesday, October 21, 2009 6:51 AM
+> To: khilman@deeprootsystems.com
+> Cc: linux-omap@vger.kernel.org; Kalle Jokiniemi; Sonasath, Moiz; Jarkko
+> Nikula; Paul Walmsley; Menon, Nishanth
+> Subject: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint in
+> i2c
 > 
-> diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
-> index eee5af8..004a8be 100644
-> --- a/drivers/mfd/twl4030-core.c
-> +++ b/drivers/mfd/twl4030-core.c
-> @@ -177,6 +177,7 @@
->  #define HFCLK_FREQ_26_MHZ		(2 << 0)
->  #define HFCLK_FREQ_38p4_MHZ		(3 << 0)
->  #define HIGH_PERF_SQ			(1 << 3)
-> +#define CK32K_LOWPWR_EN			(1 << 7)
->  
->  
->  /* chip-specific feature flags, for i2c_device_id.driver_data */
-> @@ -681,7 +682,8 @@ static inline int __init unprotect_pm_master(void)
->  	return e;
->  }
->  
-> -static void clocks_init(struct device *dev)
-> +static void clocks_init(struct device *dev,
-> +			struct twl4030_clock_init_data *clock)
->  {
->  	int e = 0;
->  	struct clk *osc;
-> @@ -728,6 +730,9 @@ static void clocks_init(struct device *dev)
->  	}
->  
->  	ctrl |= HIGH_PERF_SQ;
-> +	if (clock && clock->ck32k_lowpwr_enable)
-> +		ctrl |= CK32K_LOWPWR_EN;
+> While waiting for completion of the i2c transfer, the
+> MPU could hit OFF mode and cause several msecs of
+> delay that made i2c transfers fail more often. The
+> extra delays and subsequent re-trys cause i2c clocks
+> to be active more often. This has also an negative
+> effect on power consumption.
+> 
+> Created a mechanism for passing and using the
+> constraint setting function in driver code. The used
+> mpu wake up latency constraints are now set individually
+> per bus, and they are calculated based on clock rate
+> and fifo size.
+> 
+> Thanks to Jarkko Nikula, Moiz Sonasath, Paul Walmsley,
+> and Nishanth Menon for tuning out the details of
+> this patch.
+> 
+> Cc: Moiz Sonasath <m-sonasath@ti.com>
+> Cc: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Paul Walmsley <paul@pwsan.com>
+> Cc: Nishanth Menon <nm@ti.com>
+> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+> ---
+> 
+
+
+>  	dev->speed = speed;
+>  	dev->idle = 1;
+> @@ -911,6 +923,11 @@ omap_i2c_probe(struct platform_device *pdev)
+>  		 */
+>  		dev->fifo_size = (dev->fifo_size / 2);
+>  		dev->b_hw = 1; /* Enable hardware fixes */
 > +
->  	e |= unprotect_pm_master();
->  	/* effect->MADC+USB ck en */
->  	e |= twl4030_i2c_write_u8(TWL4030_MODULE_PM_MASTER, ctrl, R_CFG_BOOT);
-> @@ -806,7 +811,7 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  	inuse = true;
->  
->  	/* setup clock framework */
-> -	clocks_init(&client->dev);
-> +	clocks_init(&client->dev, pdata->clock);
->  
->  	/* load power event scripts */
->  	if (twl_has_power() && pdata->power)
-> diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
-> index 4a2fb27..10e68cb 100644
-> --- a/include/linux/i2c/twl4030.h
-> +++ b/include/linux/i2c/twl4030.h
-> @@ -313,6 +313,10 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
->  
->  /*----------------------------------------------------------------------*/
->  
-> +struct twl4030_clock_init_data {
-> +	bool ck32k_lowpwr_enable;
+> +		/* calculate wakeup latency constraint for MPU */
+> +		if (dev->set_mpu_wkup_lat != NULL)
+> +			dev->latency = (1000000 * dev->fifo_size) /
+> +				       (1000 * speed / 8);
+>  	}
+
+IMHO, here instead of using 'dev->fifo_size' for calculating the 
+'dev->latency', we need to use:
+
+1. For RX case, to avoid Reciver overrun:
+	if (msg->flags & I2C_M_RD)
+		Use [(FIFO Depth)bytes - (FIFO THRSH)bytes] in calculating 
+		dev->latency
+
+Because conceptually, RDR/RRDY interrupts are generated when RTRSH is reached, so we want the MPU to be wake up within the time it takes to fill the FIFO from RTRSH to FIFO Depth (FIFO full).  
+
+2. For TX case, to avoid Transmitter Underflow:
+	if (!(msg->flags & I2C_M_RD))
+		Use (FIFO THRSH)bytes in calculating dev->latency
+
+Because conceptually, XDR/XRDY interrupts are generated when XTRSH is reached, so we want the MPU to be wake up within the time it takes to drain the FIFO from XTRSH to Zero (FIFO empty).  
+
+Using, dev->fifo_size instead, works in the present code because we have a RTRSH/XTRSH = dev->fifo_size/2 = 4 bytes
+And therefore,
+(FIFO Depth)bytes - (FIFO THRSH)bytes
+= 8 - 4 = 4 bytes
+
+But, to make it more generic in future and to make it independent of any changes in the RTRSH/XTRSH values or FIFO depths in future, we should use a generic code here.  
+
+> 
+>  	/* reset ASAP, clearing any IRQs */
+> diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+> new file mode 100644
+> index 0000000..1362fba
+> --- /dev/null
+> +++ b/include/linux/i2c-omap.h
+> @@ -0,0 +1,9 @@
+> +#ifndef __I2C_OMAP_H__
+> +#define __I2C_OMAP_H__
+> +
+> +struct omap_i2c_bus_platform_data {
+> +	u32		clkrate;
+> +	void		(*set_mpu_wkup_lat)(struct device *dev, int set);
 > +};
 > +
->  struct twl4030_bci_platform_data {
->  	int *battery_tmp_tbl;
->  	unsigned int tblsize;
-> @@ -407,6 +411,7 @@ extern void twl4030_power_init(struct twl4030_power_data *triton2_scripts);
->  
->  struct twl4030_platform_data {
->  	unsigned				irq_base, irq_end;
-> +	struct twl4030_clock_init_data		*clock;
->  	struct twl4030_bci_platform_data	*bci;
->  	struct twl4030_gpio_platform_data	*gpio;
->  	struct twl4030_madc_platform_data	*madc;
-> -- 
-> 1.6.0.4
-> 
+> +#endif
+> --
+> 1.5.4.3
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Regards
+Moiz Sonasath
+
