@@ -1,41 +1,46 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: [PATCH] omap3: beagle: Fix USB host port power control
-Date: Sat, 24 Oct 2009 10:59:54 +0300
-Message-ID: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
+From: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Subject: [PATCH 0/1] input: lm8323: setting correct value to size_y
+Date: Sat, 24 Oct 2009 16:18:21 -0400
+Message-ID: <4AE3610D.9060102@indt.org.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f208.google.com ([209.85.219.208]:52920 "EHLO
-	mail-ew0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558AbZJXH7R (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Oct 2009 03:59:17 -0400
-Received: by ewy4 with SMTP id 4so2261471ewy.37
-        for <linux-omap@vger.kernel.org>; Sat, 24 Oct 2009 00:59:21 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.105.134]:59549 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098AbZJXUS2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 24 Oct 2009 16:18:28 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9OKIVEs025773
+	for <linux-omap@vger.kernel.org>; Sat, 24 Oct 2009 15:18:32 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Jarkko Nikula <jhnikula@gmail.com>, Steve Sakoman <steve@sakoman.com>
+To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The host port power is enabled by driving the nEN_USB_PWR low as stated in
-the comment. This fix is originally from Steve Sakoman <steve@sakoman.com>.
+Hi Balbi and folks,
 
-Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-Cc: Steve Sakoman <steve@sakoman.com>
----
- arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Regarding the N810 keyboard problem on 2.6.29-omap1 discussed some
+months ago [1], I was checking it out and as mentioned by Luke, platform
+parameter size_y must be set to 12 (instead of 8).
 
-diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach-omap2/board-omap3beagle.c
-index 6cb99f6..7ad9846 100644
---- a/arch/arm/mach-omap2/board-omap3beagle.c
-+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-@@ -162,7 +162,7 @@ static int beagle_twl_gpio_setup(struct device *dev,
- 
- 	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low) */
- 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
--	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
-+	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
- 
- 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
- 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+Therefore, there's no need of changing calculation of keysize on lm8323
+driver.
+
+This patch must be applied against linux-omap tree v2.6.29-omap1 (commit
+58cf2f1425abfd3a449f9fe985e48be2d2555022). It boots N810 fine and
+keyboard works properly.
+
+BR,
+
+Carlos.
+
+[1] http://marc.info/?t=124432522800002&r=1&w=2
+
 -- 
-1.6.3.3
+Carlos Eduardo Aguiar
+Software Developer
+Mobile Linux Software
+Nokia Institute of Technology - INdT
+E-mail: carlos.aguiar@indt.org.br
 
