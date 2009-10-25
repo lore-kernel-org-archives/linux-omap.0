@@ -1,36 +1,40 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Please advise on modifying defconfig for Amstrad Delta
-Date: Sun, 25 Oct 2009 04:40:32 +0200
-Message-ID: <200910250340.34046.jkrzyszt@tis.icnet.pl>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/4 v2] MFD: twl4030: add twl4030_codec MFD
+ as a new child to the core
+Date: Sun, 25 Oct 2009 17:18:39 +0000
+Message-ID: <20091025171838.GA5141@sirena.org.uk>
+References: <1256207208-25010-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1256207208-25010-2-git-send-email-peter.ujfalusi@nokia.com>
+	<20091023140703.GA3718@sortiz.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:59956 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752322AbZJYClh (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Sat, 24 Oct 2009 22:41:37 -0400
+Return-path: <alsa-devel-bounces@alsa-project.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20091023140703.GA3718@sortiz.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: tony@atomide.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
+On Fri, Oct 23, 2009 at 04:07:05PM +0200, Samuel Ortiz wrote:
 
-I'm just working on a new, updated version of ams_delta_defconfig. Starting from the current version, created over 2 years ago for 2.6.22, I turned on a few device drivers that was added recently, turned on thumb instructions support, turned on EABI, kept old ABI compatibility and NWFPE, and got a resulting kernel that is ~170kB too large to be successfully booted using tools available at http://the.earth.li/pub/e3/.
+> As agreed, Mark is taking this one. So:
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
-Of course, I am able to trim that down, even adding a few more drivers for add-on hardware that I am using, and get a kernel that works perfectly for me, but since I have never prepared a default config, I'd like to get your advice on what I can remove and what should rather be kept untouched.
+Applied all, if there's a merge problem with the MFD code then there's a
+twl4030-mfd branch at
 
-Instead of pasting sixteen hundred lines here, I'd rather ask about the simplest change I can see:
+  git://git.kernel.org/pub/scm/linux/kernel/git/broonie/sound-2.6.git
 
--# CONFIG_EMBEDDED is not set
--CONFIG_KALLSYMS=y
-+CONFIG_EMBEDDED=y
-+# CONFIG_KALLSYMS is not set
-
-That would give me a kernel that is small enough, but since only a few of arm defconfigs have CONFIG_KALLSYMS not set, I am not sure if it is generally acceptable.
-
-Thanks,
-Janusz
+which I'm happy for you to merge if it makes life easier.  Due to other
+changes the patches end up depending on (just textually I think) there's
+a big raft of other stuff in there too, sadly.
