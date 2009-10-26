@@ -1,65 +1,70 @@
-From: "Pais, Allen" <allen.pais@ti.com>
-Subject: [PATCH 2/2] Accomodate the board file change in Kconfig
-Date: Mon, 26 Oct 2009 13:13:24 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFDFA7@dbde02.ent.ti.com>
+From: "Varadarajan, Charu Latha" <charu@ti.com>
+Subject: RE: [PATCH] [OMAP] GPIO Module disable if all pins inactive
+Date: Mon, 26 Oct 2009 14:37:03 +0530
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BA31ADE6@dbde02.ent.ti.com>
+References: <1256313317-24653-1-git-send-email-charu@ti.com>,<4AE24BD7.2040506@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BA31ADE5@dbde02.ent.ti.com>,<4AE29527.3050402@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43929 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48567 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754776AbZJZHio convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 03:38:44 -0400
+	id S1755294AbZJZJHE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 05:07:04 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9Q7ckMQ020721
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9Q976AG009168
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 02:38:49 -0500
+	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 04:07:08 -0500
 Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9Q7ckpO015401
-	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 13:08:46 +0530 (IST)
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9Q975pt009975
+	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 14:37:05 +0530 (IST)
+In-Reply-To: <4AE29527.3050402@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
->From 0599ed35fde00cd84681e5d8f9a57a797fae1270 Mon Sep 17 00:00:00 2001
-From: Allen Pais <allen.pais@ti.com>
-Date: Mon, 26 Oct 2009 12:51:02 +0530
-Subject: [PATCH 2/2] Accomodate the board file change in Kconfig
+>>>>  #endif
+>>>> +     if (cpu_is_omap24xx() || cpu_is_omap34xx() || cpu_is_omap44xx()) {
+>>>> +             if (!bank->>gpio_status) {
+>>>> +                     ctrl = __raw_readl(bank->>base + OMAP24XX_GPIO_CTRL);
+>>>> +                     /* Module is enabled, clocks are not gated */
+>>>> +                     ctrl &= 0xFFFFFFFE;
+>>>> +                     __raw_writel(ctrl, bank->>base + OMAP24XX_GPIO_CTRL);
+>>>> +             }
+>>>> +             bank->>gpio_status |= 1 << offset;
+>>>> +     }
+>>> why do this every time a gpio is enabled? why not do this iff gpio was
+>>> never used before.. how about the following:
+>> The module is enabled only when gpio_status indicates that no GPIO
+>> in that  module is currently active and the GPIO being requested is the 1st one
+>> to be active in that module.
+>> Each module would be disabled in free() API when all GPIOs in a particular module
+>> becomes inactive. The module is re-enabled in request() API when a GPIO is
+>> requested from the module that was previously disabled.
+>Thanks.
+Welcome
+>>> if (!bank->>gpio_status && (cpu_is_omap24xx() || cpu_is_omap34xx() ||
+>>> cpu_is_omap44xx())) {
+>>>        u32 ctrl = __raw_readl(bank->>base + OMAP24XX_GPIO_CTRL);
+>>>        /* Module is enabled, clocks are not gated */
+>>>        ctrl &= 0xFFFFFFFE;
+>>>        __raw_writel(ctrl, bank->>base + OMAP24XX_GPIO_CTRL);
+>>> }
+>>> bank->>gpio_status |= 1 << offset;
+>> Why to touch gpio_status if not used (for other than 34xx/24xx/44xx cases)?
+>either the gpio_status should be under a #ifdef for 34xx when defining
+>or it should be usable by all. what it does now is do both.
+ gpio_status is not used under  #ifdef for 34xx. It is used only with cpu_is_omap
+(34xx/24xx/44xx). Should we use both #ifdef and cpu_is_omap together? Why? 
+But I don't see that approach in LO. For eg., usage of dbck_enable_mask is 
+used only with cpu_is_omap and is not declared under  #ifdef.
 
-
-Signed-off-by: Allen Pais <allen.pais@ti.com>
----
- arch/arm/mach-omap2/Kconfig  |    4 ++++
- arch/arm/mach-omap2/Makefile |    1 +
- 2 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index aad194f..f555c18 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -73,6 +73,10 @@ config MACH_OMAP_3430SDP
- 	bool "OMAP 3430 SDP board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
- 
-+config MACH_OMAP_3630SDP
-+	bool "OMAP 3630 SDP board"
-+	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+
- config MACH_NOKIA_N800
-        bool
- 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 6b7702f..d6afc01 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -67,6 +67,7 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
- 					   mmc-twl4030.o
-+obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-peripherals.o \
--- 
-1.5.4.3
+>my proposal is to allow gpio_status to be usable by ALL OMAPs -> maybe
+>OMAP1 also could also use it.. I cannot comment - but it does look to
+>have scope of usage beyond omap2/3/4 series?
+Even though OMAP1 supports the same feature, I am not including it as I
+cannot test it and I am not sure about it in OMAP1. For 24xx, 34xx & 44xx, 
+the registers used and offsets are all the same. So the same code is reused. 
