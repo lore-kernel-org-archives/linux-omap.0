@@ -1,31 +1,40 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 0/2] OMAP3: Cpuidle fixes
-Date: Mon, 26 Oct 2009 15:10:38 +0200
-Message-ID: <1256562640-15242-1-git-send-email-tero.kristo@nokia.com>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH 1/2] Added board-3630.c file.
+Date: Mon, 26 Oct 2009 20:18:35 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE2F7@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFDFA6@dbde02.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:45560 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754721AbZJZN0f (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 09:26:35 -0400
-Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9QDQOB9031245
-	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 08:26:39 -0500
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9QDPWI1028570
-	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 15:25:32 +0200
-In-Reply-To: <>
-References: <>
+Received: from comal.ext.ti.com ([198.47.26.152]:42119 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751827AbZJZOsf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 10:48:35 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9QEmbGR002143
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 09:48:39 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9QEmaCK026361
+	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 20:18:36 +0530 (IST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFDFA6@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-
-From: Tero Kristo <tero.kristo@nokia.com>
-
-Following patches apply on top of PM branch. They implement a couple of
-small fixes for cpuidle. Timer resolution patch probably does not change
-anything until kernel cpuidle is fixed to support longer timers (there are
-some pending patches for this.)
-
--Tero
+To: "Pais, Allen" <allen.pais@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
+> +static int __init omap_i2c_init(void)
+> +{
+> +	omap_register_i2c_bus(1, 2600, sdp3630_i2c_boardinfo,
+> +			ARRAY_SIZE(sdp3630_i2c_boardinfo));
+> +	omap_register_i2c_bus(2, 400, NULL, 0);
+> +	omap_register_i2c_bus(3, 400, NULL, 0);
+> +	return 0;
+> +}
+
+If sdp3630 board is using TWL5030/GAIA, then you need to reduce I2C speed.
+http://patchwork.kernel.org/patch/52760/
+
+-Manjunath
