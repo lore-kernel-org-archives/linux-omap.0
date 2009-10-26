@@ -1,65 +1,83 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: Re: [PATCH 2/2 v3] OMAP3: PM: SR: SmartReflex Refactor Rev4.0
-Date: Mon, 26 Oct 2009 10:13:19 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C01292B33C8@dlee02.ent.ti.com>
+From: green <greenfreedom10@gmail.com>
+Subject: Re: 24xx/n8x0 booting again, linux-omap updated to -rc5
+Date: Mon, 26 Oct 2009 10:08:40 -0600
+Message-ID: <20091026160840.GP22912@swansys>
+References: <20091016012747.GA12576@atomide.com> <20091020163102.GB22912@swansys> <20091020185627.GJ12576@atomide.com> <20091020220849.GC22912@swansys> <20091021184047.GK16230@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="FilwpOHBrTVNlmJ3"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44094 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752599AbZJZPNY (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 26 Oct 2009 11:13:24 -0400
-Content-Language: en-US
+Received: from fg-out-1718.google.com ([72.14.220.156]:55849 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753108AbZJZQIo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 12:08:44 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so4917662fgg.1
+        for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 09:08:48 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20091021184047.GK16230@atomide.com>
+Content-Language: en
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
-Cc: "'guilhem.imberton@motorola.com'" <guilhem.imberton@motorola.com>, "'mikechan@google.com'" <mikechan@google.com>, "Nayak, Rajendra" <rnayak@ti.com>, "'ext-roger.quadros@nokia.com'" <ext-roger.quadros@nokia.com>, "'ext-kalle.jokiniemi@nokia.com'" <ext-kalle.jokiniemi@nokia.com>, "Reddy, Teerth" <teerth@ti.com>, "'khilman@deeprootsystems.com'" <khilman@deeprootsystems.com>, "'paul@pwsan.com'" <paul@pwsan.com>, "'jouni.hogander@nokia.com'" <jouni.hogander@nokia.com>
+To: linux-omap@vger.kernel.org
 
-VHJ5aW5nIG5vdCB0byB0b3AgcG9zdC4uIEFwb2xvZ2llcyBiZWZvcmUgaGFuZCBvbiBteSBjbGll
-bnQgcmVzdHJpY3Rpb25zLiBBbnl3YXlzLi4NCg0KTWFuanVuYXRoLA0KWWVzLCB0aGUgY2FsbCBz
-ZXF1ZW5jZXMgYXJlIGNvbW1vbi4gV2UgbWF5IGNvbnNpZGVyIHVzaW5nIGNwdV9yZWxheCgpIGlu
-IHRoZSBjb250ZXh0IG9mIGR2ZnMgY2FsbHMuLiBFeGNlcHQgaXQgY291bGQgcmVzdWx0IGluIHJh
-Y2UgY29ubmRpdGlvbnMgbm90IGluIGludHJlc3QuDQoNCkRvIG1lIGEgZmF2b3IgYW5kIGZsYWcg
-dGhlIHVkZWxheXMgdSdkIGxpa2UgdG8gY29udmVydCBhbmQgc2VuZCBhIHBhdGNoIGZvciBmaXgg
-cGxzLg0KDQpSZWdhcmRzLA0KTmlzaGFudGggTWVub24NCg0KLS0tLS0gT3JpZ2luYWwgTWVzc2Fn
-ZSAtLS0tLQ0KRnJvbTogRywgTWFuanVuYXRoIEtvbmRhaWFoDQpUbzogTWVub24sIE5pc2hhbnRo
-OyBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9yZyA8bGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmc+
-DQpDYzogSW1iZXJ0b24gR3VpbGhlbSA8Z3VpbGhlbS5pbWJlcnRvbkBtb3Rvcm9sYS5jb20+OyBN
-aWtlIENoYW4gPG1pa2VjaGFuQGdvb2dsZS5jb20+OyBOYXlhaywgUmFqZW5kcmE7IFJvZ2VyIFF1
-YWRyb3MgPGV4dC1yb2dlci5xdWFkcm9zQG5va2lhLmNvbT47IEthbGxlIEpva2luaWVtaSA8ZXh0
-LWthbGxlLmpva2luaWVtaUBub2tpYS5jb20+OyBSZWRkeSwgVGVlcnRoOyBLZXZpbiBIaWxtYW4g
-PGtoaWxtYW5AZGVlcHJvb3RzeXN0ZW1zLmNvbT47IFBhdWwgV2FsbXNsZXkgPHBhdWxAcHdzYW4u
-Y29tPjsgSG9nYW5kZXIgSm91bmkgPGpvdW5pLmhvZ2FuZGVyQG5va2lhLmNvbT4NClNlbnQ6IE1v
-biBPY3QgMjYgMTA6MDk6MDcgMjAwOQpTdWJqZWN0OiBSRTogW1BBVENIIDIvMiB2M10gT01BUDM6
-IFBNOiBTUjogU21hcnRSZWZsZXggUmVmYWN0b3IgUmV2NC4wDQoNCg0KPiAtLS0tLU9yaWdpbmFs
-IE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBNZW5vbiwgTmlzaGFudGggDQo+IFNlbnQ6IE1vbmRheSwg
-T2N0b2JlciAyNiwgMjAwOSAzOjQ4IFBNDQo+IFRvOiBHLCBNYW5qdW5hdGggS29uZGFpYWg7IGxp
-bnV4LW9tYXBAdmdlci5rZXJuZWwub3JnDQo+IENjOiBJbWJlcnRvbiBHdWlsaGVtOyBNaWtlIENo
-YW47IE5heWFrLCBSYWplbmRyYTsgUm9nZXIgDQo+IFF1YWRyb3M7IEthbGxlIEpva2luaWVtaTsg
-UmVkZHksIFRlZXJ0aDsgS2V2aW4gSGlsbWFuOyBQYXVsIA0KPiBXYWxtc2xleTsgSG9nYW5kZXIg
-Sm91bmkNCj4gU3ViamVjdDogUkU6IFtQQVRDSCAyLzIgdjNdIE9NQVAzOiBQTTogU1I6IFNtYXJ0
-UmVmbGV4IFJlZmFjdG9yIFJldjQuMA0KPiANCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQ0KPiA+IEZyb206IEcsIE1hbmp1bmF0aCBLb25kYWlhaA0KPiA+IFNlbnQ6IE1vbmRheSwgT2N0
-b2JlciAyNiwgMjAwOSAzOjQwIEFNDQo+ID4gVG86IE1lbm9uLCBOaXNoYW50aDsgbGludXgtb21h
-cEB2Z2VyLmtlcm5lbC5vcmcNCj4gPiBDYzogSW1iZXJ0b24gR3VpbGhlbTsgTWlrZSBDaGFuOyBO
-YXlhaywgUmFqZW5kcmE7IFJvZ2VyIA0KPiBRdWFkcm9zOyBLYWxsZQ0KPiA+IEpva2luaWVtaTsg
-UmVkZHksIFRlZXJ0aDsgS2V2aW4gSGlsbWFuOyBQYXVsIFdhbG1zbGV5OyANCj4gSG9nYW5kZXIg
-Sm91bmkNCj4gPiBTdWJqZWN0OiBSRTogW1BBVENIIDIvMiB2M10gT01BUDM6IFBNOiBTUjogU21h
-cnRSZWZsZXggDQo+IFJlZmFjdG9yIFJldjQuMA0KPiA+IA0KPiA+IA0KPiA+IEFzIHBlciB5b3Vy
-IGNvbW1lbnRzIGZvciBvdGhlciBwYXRjaGVzIHdoZW4gZXZlciB0aGVyZSBpcyANCj4gdWRlbGF5
-IHVzYWdlLA0KPiA+IGNwdV9yZWxheCBpcyB0aGUgYmV0dGVyIG9wdGlvbi4gSSBzZWUgdGhlcmUg
-YXJlIGxvdCBvZiANCj4gdWRlbGF5KC4uLikgY2FsbHMNCj4gPiB1c2VkIGluIHRoaXMgcGF0Y2gu
-IFdoeSBjYW4ndCB5b3UgdXNlIGNwdV9yZWxheCgpIG9yIHNjaGVkdWxlKCkuDQo+ID4gQW55IHNw
-ZWNpZmljIHJlYXNvbj8NCj4gPiANCj4gRG9u4oCZdCByZWFsbHkgd2FudCB0byBkbyBjcHVfcmVs
-YXggaW4gaXJxX2xvY2tlZCBjb250ZXh0Li4gaWYgDQo+IHlvdSBsb29rIGF0IHRoZSBjb2RlIGZs
-b3csIHRoZSBjYWxsIGZyb20gY3B1X2lkbGUgaXMgaW4gDQo+IGlycV9sb2NrZWQuLiBGdXJ0aGVy
-IHRoaXMgZGVsYXkgaXMgcGFydCBvZiBicmluZyB1cCBmb3JtIA0KPiBzYXZlZCBjb250ZXh0IHdo
-ZXJlIHRoZXJlIGlzIG5vdGhpbmcgZWxzZSBzY2hlZHVsZWQgKyB3ZSANCj4gZG9u4oCZdCB3YW50
-IGFueXRoaW5nIGVsc2Ugc2NoZWR1bGVkIChhbmQgY2F1c2luZyBhIGNoYW5nZSBpbiANCj4gc2No
-ZWR1bGluZyBkZWNpc2lvbikuIFNvIHVuZm9ydHVuYXRlbHksIHVubGlrZSBzdGFuZGFyZCANCj4g
-ZHJpdmVycywgdGhpcyBjYW5ub3QgdXNlIHRoZSBzYW1lIHJlYXNvbmluZy4NCj4gDQoNCk5BSy4g
-TXkgdW5kZXJzdGFuZGluZyBpcyB0aGF0LCBTUiBmdW5jdGlvbnMgd2lsbCBiZSBjYWxsZWQgZHVy
-aW5nIHZvbHRhZ2UgDQpzY2FsaW5nIGFsc28uIFZvbHRhZ2Ugc2NhbGluZyB3aWxsIGhhcHBlbiBp
-biBub24gSVJRIGxvY2tlZCBjb250ZXh0Lg0KDQpQbGVhc2UgY2xhcmlmeSBpZiBJIGFtIHdyb25n
-Lg0KDQotTWFuanVuYXRoDQo=
+
+--FilwpOHBrTVNlmJ3
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Tony Lindgren wrote at 2009-10-21 12:40 -0600:
+> Well I got took a quick look at it last night to get the LCD working agai=
+n..
+>=20
+> I just pushed one fix into omap-fixes, fixed the drivers/cbus compile, up=
+dated
+> the board-n8x0.c for LCD. And then still needed one more hack to skip the=
+ LCD
+> detection.. The current linux-omap master should work with the two attach=
+ed
+> patches and the Kconfig I used. Only tested on n810, no idea if the LCD d=
+etection
+> hack also works on n800.
+>=20
+> Anyways, hopefully that will get you going, I don't know when I'll have
+> a chance to play with that sfuff again :)
+
+It does boot now, using the config you sent.
+
+When it boots, and is waiting for the root device (which doesn't exist), I =
+see=20
+messages about every 5 seconds like this:
+
+lcd_mipid spi1.1: performing LCD ESD recovery
+
+> I also pushed the earlier changes for retu wdt to the cbus branch so the
+> boards keep running by default.
+
+Excellent.
+
+
+I appreciate your work (and others here).  I am hoping to run Debian, with=
+=20
+mainline Linux, on the n810 someday and wish I was able to contribute more=
+=20
+myself, though that isn't possible now with almost no knowledge of C and no=
+t=20
+enough time to learn.  So for now I just try to keep up with it somewhat an=
+d=20
+note here when things don't work in case someone who can fix it is unaware.
+
+--FilwpOHBrTVNlmJ3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkrlyYgACgkQ682C+dBP+oTpeACgt3ynXdRdINFnG+Sbhe4QM4La
+zG4AoKkn9LwBC7EwrRhdjPC3Lt99Ckks
+=pZBt
+-----END PGP SIGNATURE-----
+
+--FilwpOHBrTVNlmJ3--
