@@ -1,43 +1,118 @@
 From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 2/2 v3] OMAP3: PM: SR: SmartReflex Refactor Rev4.0
-Date: Mon, 26 Oct 2009 05:18:21 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AC22837@dlee02.ent.ti.com>
-References: <OMAP3:PM:SR: SmartReflex Refactor Rev3.0>
- <1256361352-9968-1-git-send-email-nm@ti.com>
- <1256361352-9968-2-git-send-email-nm@ti.com>
- <1256361352-9968-3-git-send-email-nm@ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE01B@dbde02.ent.ti.com>
+Subject: RE: [PATCH] [OMAP] GPIO Module is reset during initialization
+Date: Mon, 26 Oct 2009 05:22:36 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AC22838@dlee02.ent.ti.com>
+References: <1256313329-24996-1-git-send-email-charu@ti.com>
+ <20091023225639.GA13020@gandalf>,<4AE24C60.6040302@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02BA31ADE8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47548 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:47764 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755484AbZJZKSX (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 06:18:23 -0400
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE01B@dbde02.ent.ti.com>
+	with ESMTP id S1755330AbZJZKWg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 06:22:36 -0400
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02BA31ADE8@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Imberton Guilhem <guilhem.imberton@motorola.com>, Mike Chan <mikechan@google.com>, "Nayak, Rajendra" <rnayak@ti.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Reddy, Teerth" <teerth@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Hogander Jouni <jouni.hogander@nokia.com>
+To: "Varadarajan, Charu Latha" <charu@ti.com>, "me@felipebalbi.com" <me@felipebalbi.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBHLCBNYW5qdW5hdGggS29uZGFp
-YWgNCj4gU2VudDogTW9uZGF5LCBPY3RvYmVyIDI2LCAyMDA5IDM6NDAgQU0NCj4gVG86IE1lbm9u
-LCBOaXNoYW50aDsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj4gQ2M6IEltYmVydG9uIEd1
-aWxoZW07IE1pa2UgQ2hhbjsgTmF5YWssIFJhamVuZHJhOyBSb2dlciBRdWFkcm9zOyBLYWxsZQ0K
-PiBKb2tpbmllbWk7IFJlZGR5LCBUZWVydGg7IEtldmluIEhpbG1hbjsgUGF1bCBXYWxtc2xleTsg
-SG9nYW5kZXIgSm91bmkNCj4gU3ViamVjdDogUkU6IFtQQVRDSCAyLzIgdjNdIE9NQVAzOiBQTTog
-U1I6IFNtYXJ0UmVmbGV4IFJlZmFjdG9yIFJldjQuMA0KPiANCj4gDQo+IEFzIHBlciB5b3VyIGNv
-bW1lbnRzIGZvciBvdGhlciBwYXRjaGVzIHdoZW4gZXZlciB0aGVyZSBpcyB1ZGVsYXkgdXNhZ2Us
-DQo+IGNwdV9yZWxheCBpcyB0aGUgYmV0dGVyIG9wdGlvbi4gSSBzZWUgdGhlcmUgYXJlIGxvdCBv
-ZiB1ZGVsYXkoLi4uKSBjYWxscw0KPiB1c2VkIGluIHRoaXMgcGF0Y2guIFdoeSBjYW4ndCB5b3Ug
-dXNlIGNwdV9yZWxheCgpIG9yIHNjaGVkdWxlKCkuDQo+IEFueSBzcGVjaWZpYyByZWFzb24/DQo+
-IA0KRG9u4oCZdCByZWFsbHkgd2FudCB0byBkbyBjcHVfcmVsYXggaW4gaXJxX2xvY2tlZCBjb250
-ZXh0Li4gaWYgeW91IGxvb2sgYXQgdGhlIGNvZGUgZmxvdywgdGhlIGNhbGwgZnJvbSBjcHVfaWRs
-ZSBpcyBpbiBpcnFfbG9ja2VkLi4gRnVydGhlciB0aGlzIGRlbGF5IGlzIHBhcnQgb2YgYnJpbmcg
-dXAgZm9ybSBzYXZlZCBjb250ZXh0IHdoZXJlIHRoZXJlIGlzIG5vdGhpbmcgZWxzZSBzY2hlZHVs
-ZWQgKyB3ZSBkb27igJl0IHdhbnQgYW55dGhpbmcgZWxzZSBzY2hlZHVsZWQgKGFuZCBjYXVzaW5n
-IGEgY2hhbmdlIGluIHNjaGVkdWxpbmcgZGVjaXNpb24pLiBTbyB1bmZvcnR1bmF0ZWx5LCB1bmxp
-a2Ugc3RhbmRhcmQgZHJpdmVycywgdGhpcyBjYW5ub3QgdXNlIHRoZSBzYW1lIHJlYXNvbmluZy4N
-Cg0KUmVnYXJkcywNCk5pc2hhbnRoIE1lbm9uDQo=
+> From: Varadarajan, Charu Latha
+> Sent: Monday, October 26, 2009 4:26 AM
+> To: Menon, Nishanth; me@felipebalbi.com
+> 
+> >Felipe Balbi had written, on 10/23/2009 05:56 PM, the following:
+> >> On Fri, Oct 23, 2009 at 09:25:29PM +0530, charu@ti.com wrote:
+> >>> From: Charulatha V <charu@ti.com>
+> >>>
+> >>> During initialization, GPIO module is reset using soft reset bit
+> >>> of SYSCONFIG register
+> >>>
+> >>> Signed-off-by: Charulatha V <charu@ti.com>
+> >>> ---
+> >>>  arch/arm/plat-omap/gpio.c |   12 +++++++++++-
+> >>>  1 files changed, 11 insertions(+), 1 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
+> >>> index 2304a5d..4579650 100644
+> >>> --- a/arch/arm/plat-omap/gpio.c
+> >>> +++ b/arch/arm/plat-omap/gpio.c
+> >>> @@ -21,6 +21,7 @@
+> >>>  #include <linux/err.h>
+> >>>  #include <linux/clk.h>
+> >>>  #include <linux/io.h>
+> >>> +#include <linux/delay.h>
+> >>>
+> >>>  #include <mach/hardware.h>
+> >>>  #include <asm/irq.h>
+> >>> @@ -1670,7 +1671,7 @@ static int __init _omap_gpio_init(void)
+> >>>      }
+> >>>  #endif
+> >>>      for (i = 0; i < gpio_bank_count; i++) {
+> >>> -            int j, gpio_count = 16;
+> >>> +            int j, gpio_count = 16, attempt = 0;
+> >>
+> >> decrementing is better, so:
+> Okay
+> >>
+> >> attempt = 1000
+> >please move attempt out of here to the {} for 3430.. Warning for OMAP1.
+> Okay
+> >>
+> >>>
+> >>>              bank = &gpio_bank[i];
+> >>>              spin_lock_init(&bank->lock);
+> >>> @@ -1698,6 +1699,15 @@ static int __init _omap_gpio_init(void)
+> >>>                      static const u32 non_wakeup_gpios[] = {
+> >>>                              0xe203ffc0, 0x08700040
+> >>>                      };
+> >>> +
+> >>> +            /* Software Reset of GPIO module */
+> >>> +            __raw_writel(0x0002, bank->base +
+> OMAP24XX_GPIO_SYSCONFIG);
+> >>> +            while (((__raw_readl(bank->base +
+> OMAP24XX_GPIO_SYSSTATUS)
+> >>> +                                    & 0x1) == 0) && attempt < 5) {
+> >>
+> >> && attemp)
+> >>
+> >>> +                    udelay(1);
+> >>
+> >> i guess cpu_relax() is better here.
+> I guess cpu_relax is not required because this part of code is called only
+> from
+> board file during boot-up. Hence this would be the only code to be
+> executed.
+> >>
+> >>> +                    attempt++;
+> >>>
+> >>> attempt--;
+> >>>
+> >>cant we improve this code as following:
+> >{
+> >        u8 attempts = 25;
+> >        /* Software Reset of GPIO module */
+> >        __raw_writel(0x0002, bank->base
+> >                                + OMAP24XX_GPIO_SYSCONFIG);
+> >        /* wait for reset to be done */
+> >        while (((__raw_readl(bank->base +
+> >                        OMAP24XX_GPIO_SYSSTATUS) & 0x1) == 0)
+> >                        && attempts) {
+> >                cpu_relax();
+> >                if (attempts % 5)
+> >                        udelay(1);
+> >                attempts--;
+> >        }
+> >
+> >allows the kernel to do somethin else while we also ensure we have a 5
+> >usec guarenteed delay before giving up..
+> Doesn't modulo operation cost more in terms of performance?  Any specific
+> reason for specific 5 microseconds? 
+You could replace it with >> operator if you like and use 2^x multiples.. I am just sticking 5 us there based on your original code.. so the same logic over here I suppose.. unless I missed something?
+
+Regards,
+Nishanth Menon
+
