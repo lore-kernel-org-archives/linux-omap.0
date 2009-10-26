@@ -1,83 +1,193 @@
-From: green <greenfreedom10@gmail.com>
-Subject: Re: 24xx/n8x0 booting again, linux-omap updated to -rc5
-Date: Mon, 26 Oct 2009 10:08:40 -0600
-Message-ID: <20091026160840.GP22912@swansys>
-References: <20091016012747.GA12576@atomide.com> <20091020163102.GB22912@swansys> <20091020185627.GJ12576@atomide.com> <20091020220849.GC22912@swansys> <20091021184047.GK16230@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="FilwpOHBrTVNlmJ3"
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH 1/4] RX51: Add SDRAM configs for different OPPs
+Date: Mon, 26 Oct 2009 18:15:23 +0200
+Message-ID: <1256573726-29800-2-git-send-email-tero.kristo@nokia.com>
+References: <>
+ <1256573726-29800-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:55849 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753108AbZJZQIo (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 12:08:44 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so4917662fgg.1
-        for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 09:08:48 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20091021184047.GK16230@atomide.com>
-Content-Language: en
+Received: from smtp.nokia.com ([192.100.122.230]:32962 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751670AbZJZQak (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 26 Oct 2009 12:30:40 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9QGUPRl018879
+	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 18:30:43 +0200
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9QGUKla018261
+	for <linux-omap@vger.kernel.org>; Mon, 26 Oct 2009 18:30:21 +0200
+In-Reply-To: <1256573726-29800-1-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
+From: Tero Kristo <tero.kristo@nokia.com>
 
---FilwpOHBrTVNlmJ3
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This modification is needed by DVFS.
 
-Tony Lindgren wrote at 2009-10-21 12:40 -0600:
-> Well I got took a quick look at it last night to get the LCD working agai=
-n..
->=20
-> I just pushed one fix into omap-fixes, fixed the drivers/cbus compile, up=
-dated
-> the board-n8x0.c for LCD. And then still needed one more hack to skip the=
- LCD
-> detection.. The current linux-omap master should work with the two attach=
-ed
-> patches and the Kconfig I used. Only tested on n810, no idea if the LCD d=
-etection
-> hack also works on n800.
->=20
-> Anyways, hopefully that will get you going, I don't know when I'll have
-> a chance to play with that sfuff again :)
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+---
+ arch/arm/mach-omap2/board-rx51-sdram.c |   84 ++++++++++++++++++--------------
+ 1 files changed, 47 insertions(+), 37 deletions(-)
 
-It does boot now, using the config you sent.
+diff --git a/arch/arm/mach-omap2/board-rx51-sdram.c b/arch/arm/mach-omap2/board-rx51-sdram.c
+index 6f1f33c..78cd5ed 100644
+--- a/arch/arm/mach-omap2/board-rx51-sdram.c
++++ b/arch/arm/mach-omap2/board-rx51-sdram.c
+@@ -44,7 +44,7 @@ struct sdram_info {
+ };
+ 
+ 
+-struct omap_sdrc_params rx51_sdrc_params[2];
++struct omap_sdrc_params rx51_sdrc_params[4];
+ 
+ static const struct sdram_timings rx51_timings[] = {
+ 	{
+@@ -118,30 +118,28 @@ static unsigned long get_l3_rate(void)
+ 	return get_core_rate() / (l & 0x03);
+ }
+ 
+-
+-
+-static unsigned long sdrc_get_fclk_period(void)
++static unsigned long sdrc_get_fclk_period(long rate)
+ {
+ 	/* In picoseconds */
+-	return 1000000000 / get_l3_rate();
++	return 1000000000 / rate;
+ }
+ 
+-static unsigned int sdrc_ps_to_ticks(unsigned int time_ps)
++static unsigned int sdrc_ps_to_ticks(unsigned int time_ps, long rate)
+ {
+ 	unsigned long tick_ps;
+ 
+ 	/* Calculate in picosecs to yield more exact results */
+-	tick_ps = sdrc_get_fclk_period();
++	tick_ps = sdrc_get_fclk_period(rate);
+ 
+ 	return (time_ps + tick_ps - 1) / tick_ps;
+ }
+ #undef DEBUG
+ #ifdef DEBUG
+ static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
+-			       int time, const char *name)
++			       int time, long rate, const char *name)
+ #else
+ static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
+-			       int time)
++			       int time, long rate)
+ #endif
+ {
+ 	int ticks, mask, nr_bits;
+@@ -149,7 +147,7 @@ static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
+ 	if (time == 0)
+ 		ticks = 0;
+ 	else
+-		ticks = sdrc_ps_to_ticks(time);
++		ticks = sdrc_ps_to_ticks(time, rate);
+ 	nr_bits = end_bit - st_bit + 1;
+ 	if (ticks >= 1 << nr_bits)
+ 		return -1;
+@@ -158,42 +156,46 @@ static int set_sdrc_timing_regval(u32 *regval, int st_bit, int end_bit,
+ 	*regval |= ticks << st_bit;
+ #ifdef DEBUG
+ 	printk("SDRC %s: %i ticks %i ns\n", name, ticks,
+-			(unsigned int)sdrc_get_fclk_period() * ticks / 1000);
++			(unsigned int)sdrc_get_fclk_period(rate) * ticks /
++			1000);
+ #endif
+ 
+ 	return 0;
+ }
+ 
+ #ifdef DEBUG
+-#define SDRC_SET_ONE(reg, st, end, field) \
+-	if (set_sdrc_timing_regval((reg), (st), (end), rx51_timings->field, #field) < 0) \
+-		err = -1
++#define SDRC_SET_ONE(reg, st, end, field, rate) \
++	if (set_sdrc_timing_regval((reg), (st), (end), \
++				rx51_timings->field, (rate), #field) < 0) \
++		err = -1;
+ #else
+-#define SDRC_SET_ONE(reg, st, end, field) \
+-	if (set_sdrc_timing_regval((reg), (st), (end), rx51_timings->field) < 0) \
+-		err = -1
++#define SDRC_SET_ONE(reg, st, end, field, rate) \
++	if (set_sdrc_timing_regval((reg), (st), (end), \
++				rx51_timings->field, (rate)) < 0) \
++		err = -1;
+ #endif
+ 
+-struct omap_sdrc_params *rx51_get_sdram_timings(void)
++static int sdrc_timings(int id, long rate)
+ {
+ 	u32 ticks_per_ms;
+ 	u32 rfr, l;
+-	u32 actim_ctrla, actim_ctrlb;
++	u32 actim_ctrla = 0, actim_ctrlb = 0;
+ 	u32 rfr_ctrl;
+ 	int err = 0;
++	long l3_rate = rate / 1000;
+ 
+-	SDRC_SET_ONE(&actim_ctrla,  0,  4, tDAL);
+-	SDRC_SET_ONE(&actim_ctrla,  6,  8, tDPL);
+-	SDRC_SET_ONE(&actim_ctrla,  9, 11, tRRD);
+-	SDRC_SET_ONE(&actim_ctrla, 12, 14, tRCD);
+-	SDRC_SET_ONE(&actim_ctrla, 15, 17, tRP);
+-	SDRC_SET_ONE(&actim_ctrla, 18, 21, tRAS);
+-	SDRC_SET_ONE(&actim_ctrla, 22, 26, tRC);
+-	SDRC_SET_ONE(&actim_ctrla, 27, 31, tRFC);
++	SDRC_SET_ONE(&actim_ctrla,  0,  4, tDAL, l3_rate);
++	SDRC_SET_ONE(&actim_ctrla,  6,  8, tDPL, l3_rate);
++	SDRC_SET_ONE(&actim_ctrla,  9, 11, tRRD, l3_rate);
++	SDRC_SET_ONE(&actim_ctrla, 12, 14, tRCD, l3_rate);
++	SDRC_SET_ONE(&actim_ctrla, 15, 17, tRP, l3_rate);
++	SDRC_SET_ONE(&actim_ctrla, 18, 21, tRAS, l3_rate);
++	SDRC_SET_ONE(&actim_ctrla, 22, 26, tRC, l3_rate);
++	SDRC_SET_ONE(&actim_ctrla, 27, 31, tRFC, l3_rate);
+ 
+-	SDRC_SET_ONE(&actim_ctrlb,  0,  7, tXSR);
++	SDRC_SET_ONE(&actim_ctrlb,  0,  7, tXSR, l3_rate);
+ 
+-	ticks_per_ms = sdrc_ps_to_ticks(1000000000);
++	ticks_per_ms = sdrc_ps_to_ticks(1000000000, l3_rate);
+ 	rfr = rx51_timings[0].tREF * ticks_per_ms / (1 << rx51_info.row_lines);
+ 	if (rfr > 65535 + 50)
+ 		rfr = 65535;
+@@ -203,16 +205,24 @@ struct omap_sdrc_params *rx51_get_sdram_timings(void)
+ 	l = rfr << 8;
+ 	rfr_ctrl = l | 0x3; /* autorefresh, reload counter with 8xARCV */
+ 
+-	rx51_sdrc_params[0].rate = 133333333;
+-	rx51_sdrc_params[0].actim_ctrla = actim_ctrla;
+-	rx51_sdrc_params[0].actim_ctrlb = actim_ctrlb;
+-	rx51_sdrc_params[0].rfr_ctrl = rfr_ctrl;
+-	rx51_sdrc_params[0].mr = 0x32;
++	rx51_sdrc_params[id].rate = rate;
++	rx51_sdrc_params[id].actim_ctrla = actim_ctrla;
++	rx51_sdrc_params[id].actim_ctrlb = actim_ctrlb;
++	rx51_sdrc_params[id].rfr_ctrl = rfr_ctrl;
++	rx51_sdrc_params[id].mr = 0x32;
++
++	rx51_sdrc_params[id + 1].rate = 0;
+ 
+-	rx51_sdrc_params[1].rate = 0;
++	return err;
++}
++
++struct omap_sdrc_params *rx51_get_sdram_timings(void)
++{
++	int err;
+ 
+-	if (err < 0)
+-		return NULL;
++	err = sdrc_timings(0, 41500000);
++	err = sdrc_timings(1, 83000000);
++	err |= sdrc_timings(2, 166000000);
+ 
+ 	return &rx51_sdrc_params[0];
+ }
+-- 
+1.5.4.3
 
-When it boots, and is waiting for the root device (which doesn't exist), I =
-see=20
-messages about every 5 seconds like this:
-
-lcd_mipid spi1.1: performing LCD ESD recovery
-
-> I also pushed the earlier changes for retu wdt to the cbus branch so the
-> boards keep running by default.
-
-Excellent.
-
-
-I appreciate your work (and others here).  I am hoping to run Debian, with=
-=20
-mainline Linux, on the n810 someday and wish I was able to contribute more=
-=20
-myself, though that isn't possible now with almost no knowledge of C and no=
-t=20
-enough time to learn.  So for now I just try to keep up with it somewhat an=
-d=20
-note here when things don't work in case someone who can fix it is unaware.
-
---FilwpOHBrTVNlmJ3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkrlyYgACgkQ682C+dBP+oTpeACgt3ynXdRdINFnG+Sbhe4QM4La
-zG4AoKkn9LwBC7EwrRhdjPC3Lt99Ckks
-=pZBt
------END PGP SIGNATURE-----
-
---FilwpOHBrTVNlmJ3--
