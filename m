@@ -1,44 +1,99 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 2/2] AM35xx: Define the AM3517EVM board
-Date: Tue, 27 Oct 2009 19:32:40 +0530
-Message-ID: <1256652160-5746-1-git-send-email-premi@ti.com>
+From: "Dasgupta, Romit" <romit@ti.com>
+Subject: RE: [linux-pm] [PATCH] PM: Fixes warning on suspend errors
+Date: Tue, 27 Oct 2009 20:00:51 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE0DCA79@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE0DC96A@dbde02.ent.ti.com>
+ <Pine.LNX.4.44L0.0910270936450.2882-100000@iolanthe.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59134 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754885AbZJ0OCj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 10:02:39 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9RE2fgP029766
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2009 09:02:43 -0500
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57595 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755188AbZJ0OcH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 10:32:07 -0400
+In-Reply-To: <Pine.LNX.4.44L0.0910270936450.2882-100000@iolanthe.rowland.org>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Hilman, Kevin" <khilman@ti.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Add support for the AM3517 EVM board. This EVM
-supports AM3505 and AM3517 devices.
+Ok. Then the following is the refined and probably more appropriate one.
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
+
+
+This fixes the point where we need to complete the power transition when 
+device suspend fails.
+
+Signed-off-by: Romit Dasgupta <romit@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 8685df5..c904580 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -65,6 +65,10 @@ config MACH_OMAP3EVM
- 	bool "OMAP 3530 EVM board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
+diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+index e0dc407..3d0b26a 100644
+--- a/drivers/base/power/main.c
++++ b/drivers/base/power/main.c
+@@ -444,6 +444,7 @@ static void dpm_resume(pm_message_t state)
  
-+config MACH_OMAP3517EVM
-+	bool "OMAP3517/ AM3517 EVM board"
-+	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+
- config MACH_OMAP3_PANDORA
- 	bool "OMAP3 Pandora"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
--- 
-1.6.2.2
+ 	INIT_LIST_HEAD(&list);
+ 	mutex_lock(&dpm_list_mtx);
++	transition_started = false;
+ 	while (!list_empty(&dpm_list)) {
+ 		struct device *dev = to_device(dpm_list.next);
+
+
+
+
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Alan Stern
+> Sent: Tuesday, October 27, 2009 7:08 PM
+> To: Dasgupta, Romit
+> Cc: Hilman, Kevin; rjw@sisk.pl; linux-pm@lists.linux-foundation.org; linux-
+> omap@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: Re: [linux-pm] [PATCH] PM: Fixes warning on suspend errors
+> 
+> On Tue, 27 Oct 2009, Dasgupta, Romit wrote:
+> 
+> > Hi,
+> >      I get the following errors when I choose devices in /sys/power/pm_test. It
+> also shows that if 'dpm_suspend_start' fails somewhere down the line then
+> the kernel does not reset the 'transition_started' variable and we can get
+> warning similar to below. IMHO 'dpm_resume_noirq' is not the right place for
+> setting this variable. Please see the patch below which fixes the issue.
+> 
+> > Fixes the location where we decide that our power transition is complete.
+> > Signed-off-by: Romit Dasgupta <romit@ti.com>
+> > ---
+> > diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
+> > index e0dc407..6b9e991 100644
+> > --- a/drivers/base/power/main.c
+> > +++ b/drivers/base/power/main.c
+> > @@ -365,7 +365,6 @@ void dpm_resume_noirq(pm_message_t state)
+> >  	struct device *dev;
+> >
+> >  	mutex_lock(&dpm_list_mtx);
+> > -	transition_started = false;
+> >  	list_for_each_entry(dev, &dpm_list, power.entry)
+> >  		if (dev->power.status > DPM_OFF) {
+> >  			int error;
+> > @@ -529,6 +528,7 @@ static void dpm_complete(pm_message_t state)
+> >  		put_device(dev);
+> >  	}
+> >  	list_splice(&list, &dpm_list);
+> > +	transition_started = false;
+> >  	mutex_unlock(&dpm_list_mtx);
+> >  }
+> 
+> The second hunk is okay, but the first hunk isn't.  We want to set
+> transition_started to false as soon as devices start resuming, because
+> once a resume has begun it's okay to add new devices.
+> 
+> Alan Stern
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
