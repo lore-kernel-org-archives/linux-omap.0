@@ -1,100 +1,42 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 1/2] AM35xx: Runtime detection of the device
-Date: Tue, 27 Oct 2009 23:38:22 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE0DCB84@dbde02.ent.ti.com>
-References: <1256652150-5710-1-git-send-email-premi@ti.com>
- <20091027161115.GA16494@nokia.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [ANNOUNCE] updated dspbridge on linux-omap
+Date: Tue, 27 Oct 2009 13:16:20 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0910271309540.10228@utopia.booyaka.com>
+References: <20091013201408.GC12700@atomide.com> <27F9C60D11D683428E133F85D2BB4A53042676A3B5@dlee03.ent.ti.com> <20091020010306.GA12576@atomide.com> <20091020.083446.39167794.Hiroshi.DOYU@nokia.com>
+ <27F9C60D11D683428E133F85D2BB4A53042681C230@dlee03.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52722 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756541AbZJ0SI2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 14:08:28 -0400
-In-Reply-To: <20091027161115.GA16494@nokia.com>
-Content-Language: en-US
+Received: from utopia.booyaka.com ([72.9.107.138]:48338 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756619AbZJ0TQQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 15:16:16 -0400
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A53042681C230@dlee03.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
+Cc: Linux OMAP <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "ameya.palande@nokia.com" <ameya.palande@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Shah, Bhavin" <bshah@ti.com>, "Guzman Lugo, Fernando" <x0095840@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>, "Pasam, Vijay" <vpasam@ti.com>, "Premi, Sanjeev" <premi@ti.com>, rnayak@ti.com, "Pandita, Vikram" <vikram.pandita@ti.com>, "sakari.poussa@nokia.com" <sakari.poussa@nokia.com>
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:felipe.balbi@nokia.com] 
-> Sent: Tuesday, October 27, 2009 9:41 PM
-> To: Premi, Sanjeev
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 1/2] AM35xx: Runtime detection of the device
-> 
-> Hi,
-> 
-> On Tue, Oct 27, 2009 at 03:02:30PM +0100, ext Sanjeev Premi wrote:
-> > Add support to detect AM3505/AM3517 devices at runtime.
-> > Also updates the CPU names printed during boot.
-> > 
-> > Signed-off-by: Sanjeev Premi <premi@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/id.c              |   43 
-> ++++++++++++++++++++++++++++----
-> >  arch/arm/plat-omap/include/plat/cpu.h |   12 +++++++++
-> >  2 files changed, 49 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > index 1c15112..87efb73 100644
-> > --- a/arch/arm/mach-omap2/id.c
-> > +++ b/arch/arm/mach-omap2/id.c
-> > @@ -242,6 +242,21 @@ void __init omap3_check_revision(void)
-> >  			omap_revision = OMAP3630_REV_ES1_0;
-> >  		}
-> >  		break;
-> > +	case 0xb868:
-> > +		/* Handle OMAP35xx/AM35xx devices
-> > +		 *
-> > +		 * Set the device to be OMAP3517 here. Actual device
-> > +		 * is identified later based on the features.
-> > +		 */
-> > +		switch (rev) {
-> > +		case 0:
-> > +			omap_revision = OMAP3505_REV(rev);
-> > +			break;
-> > +		default:
-> > +			/* Use the latest known revision as default */
-> > +			omap_revision = OMAP3505_REV(rev);
-> 
-> if both are the same, what's the point of having this switch ?
+On Tue, 20 Oct 2009, Ramirez Luna, Omar wrote:
 
-[sp] I was just following the style for 3630, while re-basing
-     this patch :(
-> 
-> > +		}
-> > +		break;
-> >  	default:
-> >  		/* Unknown default to latest silicon rev as default*/
-> >  		omap_revision = OMAP3630_REV_ES1_0;
-> > @@ -267,20 +282,36 @@ void __init omap3_cpuinfo(void)
-> >  	 * and CPU class bits.
-> >  	 */
-> >  	if (cpu_is_omap3630())
-> > -		strcpy(cpu_name, "3630");
-> > +		strcpy(cpu_name, "OMAP3630");
-> > +	else if (omap_rev() && OMAP35XX_CLASS) {
-> > +		/*
-> > +		 * AM3517, AM3505 devices
-> > +		 */
-> > +		if (omap3_has_sgx()) {
-> > +			omap_revision = OMAP3517_REV(rev);
-> > +			strcpy(cpu_name, "AM3517");
-> > +		}
-> > +		else {
-> 
-> according to CodingStyle this should be:
-> 
-> 		} else {
+> Also, DVFS Bridge feature won't compile if rebasing onto PM branch 
+> because it is missing clk notifier functions.
 
-[sp] Yes. Missed it.
+This should not break compilation.  The DSPBridge code must use 
+platform_data function pointers to call clock notifier functions.  
 
-> 
-> -- 
-> balbi
-> 
-> 
+Also, on a related note, I see that EXPORT_SYMBOL() entries have been 
+added for many OPP-related functions in plat-omap/omap-pm-*.c.  This is 
+not the right way to do it.  These also should be called via platform_data 
+function pointers.
+
+Then your code will compile no matter whether the OMAP clock notifier or 
+OMAP PM patches are present or not.  The point here is to keep the device 
+drivers completely separate from architecture-level code, so you could, 
+for example, use DSPBridge on a DaVinci platform.
+
+I will post a patch to remove the EXPORT_SYMBOL() entries from the OMAP PM 
+code.
+
+
+- Paul
