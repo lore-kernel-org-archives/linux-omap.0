@@ -1,165 +1,44 @@
 From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 1/2] AM35xx: Runtime detection of the device
-Date: Tue, 27 Oct 2009 19:32:30 +0530
-Message-ID: <1256652150-5710-1-git-send-email-premi@ti.com>
+Subject: [PATCH 2/2] AM35xx: Define the AM3517EVM board
+Date: Tue, 27 Oct 2009 19:32:40 +0530
+Message-ID: <1256652160-5746-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55750 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754954AbZJ0OCa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Oct 2009 10:02:30 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:59134 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754885AbZJ0OCj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 10:02:39 -0400
 Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9RE2VMV007899
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9RE2fgP029766
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2009 09:02:34 -0500
+	for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2009 09:02:43 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Sanjeev Premi <premi@ti.com>
 
-Add support to detect AM3505/AM3517 devices at runtime.
-Also updates the CPU names printed during boot.
+Add support for the AM3517 EVM board. This EVM
+supports AM3505 and AM3517 devices.
 
 Signed-off-by: Sanjeev Premi <premi@ti.com>
 ---
- arch/arm/mach-omap2/id.c              |   43 ++++++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/cpu.h |   12 +++++++++
- 2 files changed, 49 insertions(+), 6 deletions(-)
+ arch/arm/mach-omap2/Kconfig |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 1c15112..87efb73 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -242,6 +242,21 @@ void __init omap3_check_revision(void)
- 			omap_revision = OMAP3630_REV_ES1_0;
- 		}
- 		break;
-+	case 0xb868:
-+		/* Handle OMAP35xx/AM35xx devices
-+		 *
-+		 * Set the device to be OMAP3517 here. Actual device
-+		 * is identified later based on the features.
-+		 */
-+		switch (rev) {
-+		case 0:
-+			omap_revision = OMAP3505_REV(rev);
-+			break;
-+		default:
-+			/* Use the latest known revision as default */
-+			omap_revision = OMAP3505_REV(rev);
-+		}
-+		break;
- 	default:
- 		/* Unknown default to latest silicon rev as default*/
- 		omap_revision = OMAP3630_REV_ES1_0;
-@@ -267,20 +282,36 @@ void __init omap3_cpuinfo(void)
- 	 * and CPU class bits.
- 	 */
- 	if (cpu_is_omap3630())
--		strcpy(cpu_name, "3630");
-+		strcpy(cpu_name, "OMAP3630");
-+	else if (omap_rev() && OMAP35XX_CLASS) {
-+		/*
-+		 * AM3517, AM3505 devices
-+		 */
-+		if (omap3_has_sgx()) {
-+			omap_revision = OMAP3517_REV(rev);
-+			strcpy(cpu_name, "AM3517");
-+		}
-+		else {
-+			/* Already set in omap3_check_revision() */
-+			strcpy(cpu_name, "AM3505");
-+		}
-+	}
-+	/*
-+	 * OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices
-+	 */
- 	else if (omap3_has_iva() && omap3_has_sgx())
--		strcpy(cpu_name, "3430/3530");
-+		strcpy(cpu_name, "OMAP3430/3530");
- 	else if (omap3_has_sgx()) {
- 		omap_revision = OMAP3525_REV(rev);
--		strcpy(cpu_name, "3525");
-+		strcpy(cpu_name, "OMAP3525");
- 	}
- 	else if (omap3_has_iva()) {
- 		omap_revision = OMAP3515_REV(rev);
--		strcpy(cpu_name, "3515");
-+		strcpy(cpu_name, "OMAP3515");
- 	}
- 	else {
- 		omap_revision = OMAP3503_REV(rev);
--		strcpy(cpu_name, "3503");
-+		strcpy(cpu_name, "OMAP3503");
- 	}
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 8685df5..c904580 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -65,6 +65,10 @@ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
  
- 	switch (rev) {
-@@ -307,7 +338,7 @@ void __init omap3_cpuinfo(void)
- 	/*
- 	 * Print verbose information
- 	 */
--	pr_info("OMAP%s ES%s\n", cpu_name, cpu_rev);
-+	pr_info("%s ES%s\n", cpu_name, cpu_rev);
- 
- 	OMAP3_SHOW_FEATURE(l2cache);
- 	OMAP3_SHOW_FEATURE(iva);
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 7cb0556..f1cc913 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -284,6 +284,8 @@ IS_OMAP_SUBCLASS(363x, 0x363)
-  * cpu_is_omap2423():	True for OMAP2423
-  * cpu_is_omap2430():	True for OMAP2430
-  * cpu_is_omap3430():	True for OMAP3430
-+ * cpu_is_omap3505():	True for OMAP3505
-+ * cpu_is_omap3517():	True for OMAP3517
-  */
- #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
- 
-@@ -307,6 +309,8 @@ IS_OMAP_TYPE(2422, 0x2422)
- IS_OMAP_TYPE(2423, 0x2423)
- IS_OMAP_TYPE(2430, 0x2430)
- IS_OMAP_TYPE(3430, 0x3430)
-+IS_OMAP_TYPE(3505, 0x3505)
-+IS_OMAP_TYPE(3517, 0x3517)
- 
- #define cpu_is_omap310()		0
- #define cpu_is_omap730()		0
-@@ -325,6 +329,8 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define cpu_is_omap3515()		0
- #define cpu_is_omap3525()		0
- #define cpu_is_omap3530()		0
-+#define cpu_is_omap3505()		0
-+#define cpu_is_omap3517()		0
- #define cpu_is_omap3430()		0
- #define cpu_is_omap3630()		0
- 
-@@ -380,6 +386,8 @@ IS_OMAP_TYPE(3430, 0x3430)
- # undef cpu_is_omap3515
- # undef cpu_is_omap3525
- # undef cpu_is_omap3530
-+# undef cpu_is_omap3505
-+# undef cpu_is_omap3517
- # define cpu_is_omap3430()		is_omap3430()
- # define cpu_is_omap3503		(cpu_is_omap3430() &&		\
- 						(!omap3_has_iva()) &&	\
-@@ -391,6 +399,8 @@ IS_OMAP_TYPE(3430, 0x3430)
- 						(omap3_has_sgx()) &&	\
- 						(!omap3_has_iva()))
- # define cpu_is_omap3530		(cpu_is_omap3430())
-+# define cpu_is_omap3505		is_omap3505()
-+# define cpu_is_omap3517		is_omap3517()
- # undef cpu_is_omap3630
- # define cpu_is_omap3630()		is_omap363x()
- #endif
-@@ -430,6 +440,8 @@ IS_OMAP_TYPE(3430, 0x3430)
- #define OMAP3515_REV(v)		(OMAP35XX_CLASS | (0x3515 << 16) | (v << 12))
- #define OMAP3525_REV(v)		(OMAP35XX_CLASS | (0x3525 << 16) | (v << 12))
- #define OMAP3530_REV(v)		(OMAP35XX_CLASS | (0x3530 << 16) | (v << 12))
-+#define OMAP3505_REV(v)		(OMAP35XX_CLASS | (0x3505 << 16) | (v << 12))
-+#define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v << 12))
- 
- #define OMAP443X_CLASS		0x44300034
- 
++config MACH_OMAP3517EVM
++	bool "OMAP3517/ AM3517 EVM board"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
 -- 
 1.6.2.2
 
