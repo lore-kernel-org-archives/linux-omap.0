@@ -1,88 +1,71 @@
-From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
-Subject: [PATCH]Set omap3630 MMC1 I/O speed to 52Mhz
-Date: Wed, 28 Oct 2009 04:52:05 +0530 (IST)
-Message-ID: <36146.192.168.10.89.1256685725.squirrel@dbdmail.itg.ti.com>
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 2/2 v3] OMAP3: PM: SR: SmartReflex Refactor Rev4.0
+Date: Tue, 27 Oct 2009 17:36:40 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0910261123360.26141@utopia.booyaka.com>
+References: <OMAP3:PM:SR: SmartReflex Refactor Rev3.0> <1256361352-9968-1-git-send-email-nm@ti.com> <1256361352-9968-2-git-send-email-nm@ti.com> <1256361352-9968-3-git-send-email-nm@ti.com> <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE01B@dbde02.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C012AC22837@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-219178673-1256578457=:26141"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45038 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755442AbZJ0XWD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 27 Oct 2009 19:22:03 -0400
+Received: from utopia.booyaka.com ([72.9.107.138]:53852 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756810AbZJ0Xgg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 19:36:36 -0400
+In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C012AC22837@dlee02.ent.ti.com>
+Content-ID: <alpine.DEB.2.00.0910270833001.16729@utopia.booyaka.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: tony@atomide.com, linux-omap@vger.kernel.org
+To: "Menon, Nishanth" <nm@ti.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imberton Guilhem <guilhem.imberton@motorola.com>, Mike Chan <mikechan@google.com>, "Nayak, Rajendra" <rnayak@ti.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Reddy, Teerth" <teerth@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Hogander Jouni <jouni.hogander@nokia.com>
 
->From 43454c1812043ca6b21d2594e63c93b6250a9882 Mon Sep 17 00:00:00 2001
-From: Madhu <madhu.cr@ti.com>
-Date: Tue, 27 Oct 2009 17:44:09 -0400
-Subject: [PATCH]Set omap3630 MMC1 I/O speed to 52Mhz
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-The speed ctrl bit for MMC I/O is part of CONTROL_PROG_IO1 register
-in omap3630.This patch sets it up accordingly.
+--155748971-219178673-1256578457=:26141
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-7
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <alpine.DEB.2.00.0910270833002.16729@utopia.booyaka.com>
 
-Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
----
- arch/arm/mach-omap2/mmc-twl4030.c         |   11 +++++++++--
- arch/arm/plat-omap/include/plat/control.h |    4 ++++
- 2 files changed, 13 insertions(+), 2 deletions(-)
+Hello Nishanth, Manjunath,=20
 
-diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
-index 7bef170..1940591 100644
---- a/arch/arm/mach-omap2/mmc-twl4030.c
-+++ b/arch/arm/mach-omap2/mmc-twl4030.c
-@@ -213,7 +213,7 @@ static int twl4030_mmc_get_context_loss(struct device *dev)
- static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
- 				int vdd)
- {
--	u32 reg;
-+	u32 reg, prog_io;
- 	int ret = 0;
- 	struct twl_mmc_controller *c = &hsmmc[0];
- 	struct omap_mmc_platform_data *mmc = dev->platform_data;
-@@ -245,7 +245,14 @@ static int twl_mmc1_set_power(struct device *dev, int
-slot, int power_on,
- 		}
+a comment on cpu_relax() and udelay().
 
- 		reg = omap_ctrl_readl(control_pbias_offset);
--		reg |= OMAP2_PBIASSPEEDCTRL0;
-+		if (cpu_is_omap3630()) {
-+			/* Set MMC I/O to 52Mhz */
-+			prog_io = omap_ctrl_readl(OMAP34XX_CONTROL_PROG_IO1);
-+			prog_io |= OMAP3630_PRG_SDMMC1_SPEEDCTRL;
-+			omap_ctrl_writel(prog_io, OMAP34XX_CONTROL_PROG_IO1);
-+		} else {
-+			reg |= OMAP2_PBIASSPEEDCTRL0;
-+		}
- 		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
- 		omap_ctrl_writel(reg, control_pbias_offset);
+On Mon, 26 Oct 2009, Menon, Nishanth wrote:
 
-diff --git a/arch/arm/plat-omap/include/plat/control.h
-b/arch/arm/plat-omap/include/plat/control.h
-index fdb6300..47368bc 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -146,6 +146,7 @@
- #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
- #define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02b0)
- #define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
-+#define OMAP34XX_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
+> > -----Original Message-----
+> > From: G, Manjunath Kondaiah
+> >=20
+> > As per your comments for other patches when ever there is udelay usage,
+> > cpu_relax is the better option. I see there are lot of udelay(...) call=
+s
+> > used in this patch. Why can't you use cpu_relax() or schedule().
+> > Any specific reason?
+> >=20
+> Don=A2t really want to do cpu_relax in irq_locked context..
 
- /* 34xx D2D idle-related pins, handled by PM core */
- #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
-@@ -196,6 +197,9 @@
- #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
- #define OMAP2_PBIASLITEVMODE0		(1 << 0)
+There are no restrictions on the calling context for cpu_relax(). =20
+[ schedule(), of course, does have restrictions. ]
 
-+/* CONTROL_PROG_IO1 bits */
-+#define OMAP3630_PRG_SDMMC1_SPEEDCTRL	(1 << 20)
-+
- /* CONTROL_IVA2_BOOTMOD bits */
- #define OMAP3_IVA2_BOOTMOD_SHIFT	0
- #define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
--- 
-1.6.0.4
+I don't understand the use of the udelay(10).  Could you please explain=20
+this further?  Is it the case that if the register bit doesn't change=20
+within 50 reads, that it is then not likely to change for 10 microseconds?
+
+If that isn't how the device works, then using udelay(10) will just waste=
+=20
+power busy-looping in the CPU.  I would rather see this code using=20
+udelay(1) between each register read if you want to ensure that you read=20
+the register for at least 50 microseconds.  This would also simplify your=
+=20
+timeout loops considerably, which seem unnecessarily complicated.
+
+But if the scenario above is how the device is expected to respond, then=20
+these loops should have some comments to explain why the extra complexity=
+=20
+and power consumption of a 10 microsecond busy-loop after every 50 reads=20
+is the right thing to do.
 
 
+regards,
 
+- Paul
+--155748971-219178673-1256578457=:26141--
