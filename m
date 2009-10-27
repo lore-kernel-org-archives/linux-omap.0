@@ -1,60 +1,55 @@
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Subject: Re: [PATCH] OMAP: McBSP: Do not use extensive spin
- locks for dma_op_mode
-Date: Tue, 27 Oct 2009 14:04:06 +0200
-Message-ID: <1256645046.30157.344.camel@eenurkka-desktop>
-References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1256641643.30157.339.camel@eenurkka-desktop>
-	<200910271317.52638.peter.ujfalusi@nokia.com>
-	<20091027120009.GA19323@rakim.wolfsonmicro.main>
-Reply-To: ext-eero.nurkkala@nokia.com
+From: <Tero.Kristo@nokia.com>
+Subject: RE: [PATCH 0/4] RX51: SDRAM settings changes
+Date: Tue, 27 Oct 2009 13:48:29 +0100
+Message-ID: <1F18D6510CF0474A8C9500565A7E41A2236CEA822A@NOK-EUMSG-02.mgdnok.nokia.com>
+References: <1256573726-29800-1-git-send-email-tero.kristo@nokia.com>
+ <871vkqc7mv.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20091027120009.GA19323@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:19504 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754034AbZJ0Msy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 08:48:54 -0400
+In-Reply-To: <871vkqc7mv.fsf@deeprootsystems.com>
+Content-Language: en-US
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org
 
-On Tue, 2009-10-27 at 13:00 +0100, ext Mark Brown wrote:
-> On Tue, Oct 27, 2009 at 01:17:52PM +0200, Peter Ujfalusi wrote:
-> > On Tuesday 27 October 2009 13:07:23 Nurkkala Eero.An (EXT-Offcode/Oulu) wrote:
-> 
-> > > You may wish to double read the message above, as it's quite
-> > > confusing =)
-> 
-> > Yes it is ;)
-> > I have left one spinlock around the dma_op_mode, when it also protects the 
-> > mcbsp->active, so that is why that last sentence.
-> 
-> I have to confess that I'm still not entirely clear what the lock is
-> supposed to be doing or why it's OK to drop it.  I gather that it's just
-> that dmap_on_mode() doesn't need a lock at all?
-
-Mostly thinko's with this locking:
-
--       spin_lock_irq(&mcbsp->lock);
-         dma_op_mode = mcbsp->dma_op_mode;
--       spin_unlock_irq(&mcbsp->lock);
  
-         return dma_op_mode;
 
+>-----Original Message-----
+>From: ext Kevin Hilman [mailto:khilman@deeprootsystems.com] 
+>Sent: 26 October, 2009 20:50
+>To: Kristo Tero (Nokia-D/Tampere)
+>Cc: linux-omap@vger.kernel.org
+>Subject: Re: [PATCH 0/4] RX51: SDRAM settings changes
+>
+>Tero Kristo <tero.kristo@nokia.com> writes:
+>
+>> From: Tero Kristo <tero.kristo@nokia.com>
+>>
+>> Following patch set fixes a few issues with current RX51 
+>board SDRAM settings.
+>> Applies on top of PM branch.
+>>
+>
+>Tero,
+>
+>Can you resend this series against the master branch?  There 
+>is no reason
+>this should be carried in the PM branch anymore.
+>
+>You'll have to add to your series the patch to add the
+>board-rx51-sdram.c file, which I currently carry in the PM branch.
+>
+>Then, for the PM branch, we just need a small patch to add the various
+>rate tables in the call to init_common_hw until DVFS stuff is
+>upstream.
 
---> same as 
-	return mcbsp->dma_op_mode;
+Ok, I have now done this. I also combined the series into one patch as it will generate a new file and I don't see any need to clutter git-log with several patches to currently non-existent file. Sending out now.
 
-and worst, it's called from pcm_trigger() ->
-so irqs are enabled -> lockdep isn't happy ->
-so currently things are pretty much "broken".
-
-- Eero
+-Tero
