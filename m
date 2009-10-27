@@ -1,43 +1,40 @@
-From: Jarkko Nikula <jhnikula@gmail.com>
-Subject: Re: [alsa-devel] [PATCH] OMAP: McBSP: Do not use extensive spin
- locks for dma_op_mode
-Date: Tue, 27 Oct 2009 16:00:00 +0200
-Message-ID: <20091027160000.f276e706.jhnikula@gmail.com>
-References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1256641643.30157.339.camel@eenurkka-desktop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH 0/2] Introduce support for AM35xx
+Date: Tue, 27 Oct 2009 19:32:18 +0530
+Message-ID: <1256652138-5669-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:57828 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752162AbZJ0N7N (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 09:59:13 -0400
-Received: by bwz19 with SMTP id 19so221393bwz.28
-        for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2009 06:59:17 -0700 (PDT)
-In-Reply-To: <1256641643.30157.339.camel@eenurkka-desktop>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55740 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754345AbZJ0OCS (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Oct 2009 10:02:18 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9RE2KKj007886
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2009 09:02:22 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext-eero.nurkkala@nokia.com
-Cc: "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
+To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-On Tue, 27 Oct 2009 13:07:23 +0200
-Eero Nurkkala <ext-eero.nurkkala@nokia.com> wrote:
+This patch adds support for the recently announced
+AM3505 and AM3517 devices from Texas Instruments.
 
-> Otherwise, that spinlocking is highly unnecessary and things are
-> far better without than with it. The only case it could be useful
-> is in SMPs, but OMAPs are not such quite yet - and when they
-> are, things will need to be re-though anyway.
-> 
-Following commit is suggesting that mcbsp code *must* be SMP safe
-already now:
+It also defines the AM3517 EVM board. Detailed
+support will follow in subsequent patches.
 
-commit a5b92cc348299c20be215b9f4b50853ecfbf3864
-Author: Syed Rafiuddin <rafiuddin.syed@ti.com>
-Date:   Tue Jul 28 18:57:10 2009 +0530
+  [1] http://www.ti.com/sitara 
+  [2] http://www.ti.com/arm 
+  [3] http://tiexpressdsp.com/index.php?title=Applications_Processors_Crossreference 
+  [4] http://marc.info/?l=linux-omap&m=125615009412281&w=2
+  
+The patches have been created against omap-next branch.
 
-    ARM: OMAP4: Add McBSP support
+Sanjeev Premi (2):
+  AM35xx: Runtime detection of the device
+  AM35xx: Define the AM3517EVM board
 
+ arch/arm/mach-omap2/Kconfig           |    4 +++
+ arch/arm/mach-omap2/id.c              |   43 ++++++++++++++++++++++++++++----
+ arch/arm/plat-omap/include/plat/cpu.h |   12 +++++++++
+ 3 files changed, 53 insertions(+), 6 deletions(-)
 
--- 
-Jarkko
