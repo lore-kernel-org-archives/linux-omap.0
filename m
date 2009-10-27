@@ -1,66 +1,88 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 3/3] omap: zoom3: add zoom3 board support
-Date: Wed, 28 Oct 2009 03:06:03 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA2DBF1E@dbde02.ent.ti.com>
-References: <1256325806-14400-1-git-send-email-vikram.pandita@ti.com>
- <1256325806-14400-2-git-send-email-vikram.pandita@ti.com>
- <1256325806-14400-3-git-send-email-vikram.pandita@ti.com>
- <1256325806-14400-4-git-send-email-vikram.pandita@ti.com>
- <20091023230348.GC13020@gandalf>
+From: "Madhusudhan Chikkature" <madhu.cr@ti.com>
+Subject: [PATCH]Set omap3630 MMC1 I/O speed to 52Mhz
+Date: Wed, 28 Oct 2009 04:52:05 +0530 (IST)
+Message-ID: <36146.192.168.10.89.1256685725.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56824 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45038 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932469AbZJ0Vh2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 17:37:28 -0400
-In-Reply-To: <20091023230348.GC13020@gandalf>
-Content-Language: en-US
+	id S1755442AbZJ0XWD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 27 Oct 2009 19:22:03 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "me@felipebalbi.com" <me@felipebalbi.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: tony@atomide.com, linux-omap@vger.kernel.org
+
+>From 43454c1812043ca6b21d2594e63c93b6250a9882 Mon Sep 17 00:00:00 2001
+From: Madhu <madhu.cr@ti.com>
+Date: Tue, 27 Oct 2009 17:44:09 -0400
+Subject: [PATCH]Set omap3630 MMC1 I/O speed to 52Mhz
+
+The speed ctrl bit for MMC I/O is part of CONTROL_PROG_IO1 register
+in omap3630.This patch sets it up accordingly.
+
+Signed-off-by: Madhusudhan Chikkature <madhu.cr@ti.com>
+---
+ arch/arm/mach-omap2/mmc-twl4030.c         |   11 +++++++++--
+ arch/arm/plat-omap/include/plat/control.h |    4 ++++
+ 2 files changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 7bef170..1940591 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -213,7 +213,7 @@ static int twl4030_mmc_get_context_loss(struct device *dev)
+ static int twl_mmc1_set_power(struct device *dev, int slot, int power_on,
+ 				int vdd)
+ {
+-	u32 reg;
++	u32 reg, prog_io;
+ 	int ret = 0;
+ 	struct twl_mmc_controller *c = &hsmmc[0];
+ 	struct omap_mmc_platform_data *mmc = dev->platform_data;
+@@ -245,7 +245,14 @@ static int twl_mmc1_set_power(struct device *dev, int
+slot, int power_on,
+ 		}
+
+ 		reg = omap_ctrl_readl(control_pbias_offset);
+-		reg |= OMAP2_PBIASSPEEDCTRL0;
++		if (cpu_is_omap3630()) {
++			/* Set MMC I/O to 52Mhz */
++			prog_io = omap_ctrl_readl(OMAP34XX_CONTROL_PROG_IO1);
++			prog_io |= OMAP3630_PRG_SDMMC1_SPEEDCTRL;
++			omap_ctrl_writel(prog_io, OMAP34XX_CONTROL_PROG_IO1);
++		} else {
++			reg |= OMAP2_PBIASSPEEDCTRL0;
++		}
+ 		reg &= ~OMAP2_PBIASLITEPWRDNZ0;
+ 		omap_ctrl_writel(reg, control_pbias_offset);
+
+diff --git a/arch/arm/plat-omap/include/plat/control.h
+b/arch/arm/plat-omap/include/plat/control.h
+index fdb6300..47368bc 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -146,6 +146,7 @@
+ #define OMAP343X_CONTROL_IVA2_BOOTMOD	(OMAP2_CONTROL_GENERAL + 0x0194)
+ #define OMAP343X_CONTROL_PBIAS_LITE	(OMAP2_CONTROL_GENERAL + 0x02b0)
+ #define OMAP343X_CONTROL_TEMP_SENSOR	(OMAP2_CONTROL_GENERAL + 0x02b4)
++#define OMAP34XX_CONTROL_PROG_IO1	(OMAP2_CONTROL_GENERAL + 0x01D8)
+
+ /* 34xx D2D idle-related pins, handled by PM core */
+ #define OMAP3_PADCONF_SAD2D_MSTANDBY   0x250
+@@ -196,6 +197,9 @@
+ #define OMAP2_PBIASLITEPWRDNZ0		(1 << 1)
+ #define OMAP2_PBIASLITEVMODE0		(1 << 0)
+
++/* CONTROL_PROG_IO1 bits */
++#define OMAP3630_PRG_SDMMC1_SPEEDCTRL	(1 << 20)
++
+ /* CONTROL_IVA2_BOOTMOD bits */
+ #define OMAP3_IVA2_BOOTMOD_SHIFT	0
+ #define OMAP3_IVA2_BOOTMOD_MASK		(0xf << 0)
+-- 
+1.6.0.4
 
 
-
->-----Original Message-----
->From: Felipe Balbi [mailto:me@felipebalbi.com]
->Sent: Friday, October 23, 2009 6:04 PM
->To: Pandita, Vikram
->Cc: linux-omap@vger.kernel.org
->Subject: Re: [PATCH 3/3] omap: zoom3: add zoom3 board support
->
->Hi,
->
->On Fri, Oct 23, 2009 at 02:23:26PM -0500, Vikram Pandita wrote:
->> diff --git a/arch/arm/mach-omap2/board-zoom2-zoom3.c b/arch/arm/mach-omap2/board-zoom2-zoom3.c
->> index 4ad9b94..d806dbf 100644
->> --- a/arch/arm/mach-omap2/board-zoom2-zoom3.c
->> +++ b/arch/arm/mach-omap2/board-zoom2-zoom3.c
->> @@ -281,7 +281,11 @@ static void __init omap_zoom2_map_io(void)
->>  	omap2_map_common_io();
->>  }
->>
->> +#ifdef CONFIG_MACH_OMAP_ZOOM3
->> +MACHINE_START(OMAP_ZOOM3, "OMAP ZOOM3 board")
->> +#else
->>  MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
->> +#endif
->
->what happens if you want to build a kernel for both boards ?
->
->how about just adding a new MACHINE_START() declaration without
->ifdeferry ?
->
->Take a look at arch/arm/mach-omap2/board-n8x0.c for an example ;-)
-
-Yes I will have a look at this. Thanks for all the comments.
-My zoom3 board has gone bad and so could not look into this yet.
-
-Will keep posted.
-
->
->--
->balbi
 
