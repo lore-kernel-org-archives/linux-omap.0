@@ -1,52 +1,43 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [linux-pm] [PATCH] PM: Fixes warning on suspend errors
-Date: Tue, 27 Oct 2009 09:38:26 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.0910270936450.2882-100000@iolanthe.rowland.org>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE0DC96A@dbde02.ent.ti.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [alsa-devel] [PATCH] OMAP: McBSP: Do not use extensive spin
+ locks for dma_op_mode
+Date: Tue, 27 Oct 2009 16:00:00 +0200
+Message-ID: <20091027160000.f276e706.jhnikula@gmail.com>
+References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1256641643.30157.339.camel@eenurkka-desktop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:45315 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754484AbZJ0NiW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 09:38:22 -0400
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE0DC96A@dbde02.ent.ti.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:57828 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752162AbZJ0N7N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 27 Oct 2009 09:59:13 -0400
+Received: by bwz19 with SMTP id 19so221393bwz.28
+        for <linux-omap@vger.kernel.org>; Tue, 27 Oct 2009 06:59:17 -0700 (PDT)
+In-Reply-To: <1256641643.30157.339.camel@eenurkka-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dasgupta, Romit" <romit@ti.com>
-Cc: "Hilman, Kevin" <khilman@ti.com>, "rjw@sisk.pl" <rjw@sisk.pl>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: ext-eero.nurkkala@nokia.com
+Cc: "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-On Tue, 27 Oct 2009, Dasgupta, Romit wrote:
+On Tue, 27 Oct 2009 13:07:23 +0200
+Eero Nurkkala <ext-eero.nurkkala@nokia.com> wrote:
 
-> Hi,
->      I get the following errors when I choose devices in /sys/power/pm_test. It also shows that if 'dpm_suspend_start' fails somewhere down the line then the kernel does not reset the 'transition_started' variable and we can get warning similar to below. IMHO 'dpm_resume_noirq' is not the right place for setting this variable. Please see the patch below which fixes the issue.
+> Otherwise, that spinlocking is highly unnecessary and things are
+> far better without than with it. The only case it could be useful
+> is in SMPs, but OMAPs are not such quite yet - and when they
+> are, things will need to be re-though anyway.
+> 
+Following commit is suggesting that mcbsp code *must* be SMP safe
+already now:
 
-> Fixes the location where we decide that our power transition is complete.
-> Signed-off-by: Romit Dasgupta <romit@ti.com>
-> ---
-> diff --git a/drivers/base/power/main.c b/drivers/base/power/main.c
-> index e0dc407..6b9e991 100644
-> --- a/drivers/base/power/main.c
-> +++ b/drivers/base/power/main.c
-> @@ -365,7 +365,6 @@ void dpm_resume_noirq(pm_message_t state)
->  	struct device *dev;
->  
->  	mutex_lock(&dpm_list_mtx);
-> -	transition_started = false;
->  	list_for_each_entry(dev, &dpm_list, power.entry)
->  		if (dev->power.status > DPM_OFF) {
->  			int error;
-> @@ -529,6 +528,7 @@ static void dpm_complete(pm_message_t state)
->  		put_device(dev);
->  	}
->  	list_splice(&list, &dpm_list);
-> +	transition_started = false;
->  	mutex_unlock(&dpm_list_mtx);
->  }
+commit a5b92cc348299c20be215b9f4b50853ecfbf3864
+Author: Syed Rafiuddin <rafiuddin.syed@ti.com>
+Date:   Tue Jul 28 18:57:10 2009 +0530
 
-The second hunk is okay, but the first hunk isn't.  We want to set 
-transition_started to false as soon as devices start resuming, because 
-once a resume has begun it's okay to add new devices.
+    ARM: OMAP4: Add McBSP support
 
-Alan Stern
 
+-- 
+Jarkko
