@@ -1,80 +1,39 @@
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Subject: Re: [PATCH] OMAP: McBSP: Do not use extensive spin
- locks for dma_op_mode
-Date: Wed, 28 Oct 2009 08:53:34 +0200
-Message-ID: <1256712814.30157.388.camel@eenurkka-desktop>
-References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1256641643.30157.339.camel@eenurkka-desktop>
-	<20091027160000.f276e706.jhnikula@gmail.com>
-	<200910280752.23859.peter.ujfalusi@nokia.com>
-Reply-To: ext-eero.nurkkala@nokia.com
+From: Phaneendra Kumar Alapati <phani@embwise.com>
+Subject: MMC_CAP_SDIO IRQ for OMAP35xx
+Date: Wed, 28 Oct 2009 12:32:59 +0530
+Message-ID: <54d94f230910280002j5a4f710frd76a640f3d15aa01@mail.gmail.com>
+References: <54d94f230910272337n150d4ec0kfa382d774479f10e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <200910280752.23859.peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail10.myhsphere.biz ([64.71.235.184]:42171 "EHLO
+	mail10.myhsphere.biz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757449AbZJ1HJz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 03:09:55 -0400
+Received: by pwj9 with SMTP id 9so631013pwj.21
+        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 00:03:19 -0700 (PDT)
+In-Reply-To: <54d94f230910272337n150d4ec0kfa382d774479f10e@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-On Wed, 2009-10-28 at 06:52 +0100, Ujfalusi Peter (Nokia-D/Tampere)
-wrote:
-> On Tuesday 27 October 2009 16:00:00 ext Jarkko Nikula wrote:
-> > On Tue, 27 Oct 2009 13:07:23 +0200
-> > 
-> > Eero Nurkkala <ext-eero.nurkkala@nokia.com> wrote:
-> > > Otherwise, that spinlocking is highly unnecessary and things are
-> > > far better without than with it. The only case it could be useful
-> > > is in SMPs, but OMAPs are not such quite yet - and when they
-> > > are, things will need to be re-though anyway.
-> > 
-> > Following commit is suggesting that mcbsp code *must* be SMP safe
-> > already now:
-> > 
-> > commit a5b92cc348299c20be215b9f4b50853ecfbf3864
-> > Author: Syed Rafiuddin <rafiuddin.syed@ti.com>
-> > Date:   Tue Jul 28 18:57:10 2009 +0530
-> > 
-> >     ARM: OMAP4: Add McBSP support
-> 
-> Yeah, but I think this locking issue has nothing to do with SMP safe or not.
-> On playback start in omap_mcbsp_request the mcbsp->free is cleared.
-> Further modification to the dma_op_mode in dma_op_mode_store is not allowed if 
-> the mcbsp port is in use, thus the dma_op_mode is protected against change while 
-> the port is in use (ensuring that the mode is same in omap34xx_mcbsp_request and 
-> omap_mcbsp_get_dma_op_mode functions). This alone makes the use of spinlock 
-> around the dma_op_mode unnecessary.
-> 
+All,
 
-Yeah, maybe I took the SMP safeness into play without looking any code,
-my bad =) I was remembering a different version of this McBSP thing, now
-that I looked into it, it looked different.
+I have not seen any further discussion on the MMC_CAP_SDIO IRQ for
+OMAP3430 topic.
 
-Right, I reviewed the code, and it was first looking really bad at
-sound/soc/omap/omap-mcbsp.c, where it calls omap_mcbsp_get_dma_op_mode()
-from different places. However, it's not an issue because in:
-arch/arm/plat-omap/mcbsp.c : dma_op_mode_store(),
-the dma_op_mode is written only if the mcbsp is unoccupied. So it is SMP
-safe.
+I have a working solution for sdio irq support on omap35xx. I have
+verified and tested the functionality on omap3530evm with Marvell
+88W8686 WLAN cards with linux kernel 2.6.31.rc7=A0 The wifi performance
+was 12Mbps for downlink and 10Mbps for uplink. The performance results
+and stability are greatly improved compared to the sdio polling. I
+will be posting the patch soon.
 
-..and a single read is always atomic, so this is buggy code:
-
-301         spin_lock_irq(&mcbsp->lock);
-302         dma_op_mode = mcbsp->dma_op_mode;
-303         spin_unlock_irq(&mcbsp->lock);
-304 
-305         return dma_op_mode;
-
-The spinlocks are unnecessary. In the above example, you get the same
-with just "return mcbsp->dma_op_mode;"
-
--> Peter's patch is a good cleanup.
+Regards,
+Phani
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
