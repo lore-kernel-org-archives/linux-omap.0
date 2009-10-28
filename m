@@ -1,158 +1,158 @@
-From: Phaneendra Kumar Alapati <phani@embwise.com>
-Subject: [PATCH] OMAP35xx: Added SDIO IRQ support
-Date: Wed, 28 Oct 2009 18:48:38 +0530
-Message-ID: <54d94f230910280618l1b770505lfc88af7592777763@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Sanjeev Premi <premi@ti.com>
+Subject: [PATCH v2] AM35xx: Runtime detection of the device
+Date: Wed, 28 Oct 2009 19:08:52 +0530
+Message-ID: <1256737132-17429-1-git-send-email-premi@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail10.myhsphere.biz ([64.71.235.184]:44375 "EHLO
-	mail10.myhsphere.biz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751762AbZJ1NS4 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 09:18:56 -0400
-Received: by pzk26 with SMTP id 26so553537pzk.4
-        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 06:18:58 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43432 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753600AbZJ1Niw (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Oct 2009 09:38:52 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9SDcsMn003123
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 08:38:56 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Sanjeev Premi <premi@ti.com>
 
-This patch adds SDIO IRQ support for omap hsmmc driver.
+Add support to detect AM3505/AM3517 devices at runtime.
+Also updates the CPU names printed during boot.
 
-Signed-off-by: Phaneendra Kumar Alapati <phani@embwise.com>
+Signed-off-by: Sanjeev Premi <premi@ti.com>
 ---
- drivers/mmc/host/omap_hsmmc.c |    62 ++--
- 1 files changed, 55 insertions(+), 7 deletions(-)
+ arch/arm/mach-omap2/id.c              |   36 +++++++++++++++++++++++++++-----
+ arch/arm/plat-omap/include/plat/cpu.h |   12 +++++++++++
+ 2 files changed, 42 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
-index 1cf9cfb..a540626 100644
---- a/drivers/mmc/host/omap_hsmmc.c
-+++ b/drivers/mmc/host/omap_hsmmc.c
-@@ -92,6 +92,10 @@
- #define DUAL_VOLT_OCR_BIT	7
- #define SRC			(1 << 25)
- #define SRD			(1 << 26)
-+#define OMAP_HSMMC_CARD_INT	BIT(8)
-+#define SDIO_INT_EN		BIT(8)
-+#define CTPL			BIT(11)
-+#define CLKEXTFREE		BIT(16)
-
- /*
-  * FIXME: Most likely all the data using these _DEVID defines should come
-@@ -149,6 +153,7 @@ struct mmc_omap_host {
- 	int			slot_id;
- 	int			dbclk_enabled;
- 	int			response_busy;
-+	int			sdio_int;
- 	struct	omap_mmc_platform_data	*pdata;
- };
-
-@@ -240,8 +245,13 @@ mmc_omap_start_command(struct mmc_omap_host
-*host, struct mmc_command *cmd,
- 	 * Clear status bits and enable interrupts
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index 1c15112..f77dba1 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -242,6 +242,14 @@ void __init omap3_check_revision(void)
+ 			omap_revision = OMAP3630_REV_ES1_0;
+ 		}
+ 		break;
++	case 0xb868:
++		/* Handle OMAP35xx/AM35xx devices
++		 *
++		 * Set the device to be OMAP3505 here. Actual device
++		 * is identified later based on the features.
++		 */
++		omap_revision = OMAP3505_REV(rev);
++		break;
+ 	default:
+ 		/* Unknown default to latest silicon rev as default*/
+ 		omap_revision = OMAP3630_REV_ES1_0;
+@@ -267,20 +275,36 @@ void __init omap3_cpuinfo(void)
+ 	 * and CPU class bits.
  	 */
- 	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
--	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
--	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-+	if (host->sdio_int) {
-+		OMAP_HSMMC_WRITE(host->base, ISE, (INT_EN_MASK | SDIO_INT_EN));
-+		OMAP_HSMMC_WRITE(host->base, IE, (INT_EN_MASK | SDIO_INT_EN));
-+	} else {
-+		OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
-+		OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
-+	}
-
- 	host->response_busy = 0;
- 	if (cmd->flags & MMC_RSP_PRESENT) {
-@@ -430,17 +440,27 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
- 	struct mmc_data *data;
- 	int end_cmd = 0, end_trans = 0, status;
-
-+	data = host->data;
-+	status = OMAP_HSMMC_READ(host->base, STAT);
-+	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
-+
-+	if (host->mmc->caps & MMC_CAP_SDIO_IRQ) {
-+		if (status & OMAP_HSMMC_CARD_INT) {
-+			dev_dbg(mmc_dev(host->mmc),
-+					" SDIO CARD interrupt status %x\n",
-+					status);
-+			mmc_signal_sdio_irq(host->mmc);
+ 	if (cpu_is_omap3630())
+-		strcpy(cpu_name, "3630");
++		strcpy(cpu_name, "OMAP3630");
++	else if (cpu_is_omap3505()) {
++		/*
++		 * AM35xx devices
++		 */
++		if (omap3_has_sgx()) {
++			omap_revision = OMAP3517_REV(rev);
++			strcpy(cpu_name, "AM3517");
++		}
++		else {
++			/* Already set in omap3_check_revision() */
++			strcpy(cpu_name, "AM3505");
 +		}
 +	}
-+
- 	if (host->mrq == NULL) {
- 		OMAP_HSMMC_WRITE(host->base, STAT,
--			OMAP_HSMMC_READ(host->base, STAT));
-+				OMAP_HSMMC_READ(host->base, STAT));
- 		/* Flush posted write */
- 		OMAP_HSMMC_READ(host->base, STAT);
- 		return IRQ_HANDLED;
++	/*
++	 * OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices
++	 */
+ 	else if (omap3_has_iva() && omap3_has_sgx())
+-		strcpy(cpu_name, "3430/3530");
++		strcpy(cpu_name, "OMAP3430/3530");
+ 	else if (omap3_has_sgx()) {
+ 		omap_revision = OMAP3525_REV(rev);
+-		strcpy(cpu_name, "3525");
++		strcpy(cpu_name, "OMAP3525");
  	}
+ 	else if (omap3_has_iva()) {
+ 		omap_revision = OMAP3515_REV(rev);
+-		strcpy(cpu_name, "3515");
++		strcpy(cpu_name, "OMAP3515");
+ 	}
+ 	else {
+ 		omap_revision = OMAP3503_REV(rev);
+-		strcpy(cpu_name, "3503");
++		strcpy(cpu_name, "OMAP3503");
+ 	}
+ 
+ 	switch (rev) {
+@@ -307,7 +331,7 @@ void __init omap3_cpuinfo(void)
+ 	/*
+ 	 * Print verbose information
+ 	 */
+-	pr_info("OMAP%s ES%s\n", cpu_name, cpu_rev);
++	pr_info("%s ES%s\n", cpu_name, cpu_rev);
+ 
+ 	OMAP3_SHOW_FEATURE(l2cache);
+ 	OMAP3_SHOW_FEATURE(iva);
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index f4f7a2f..13f74e6 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -284,6 +284,8 @@ IS_OMAP_SUBCLASS(363x, 0x363)
+  * cpu_is_omap2423():	True for OMAP2423
+  * cpu_is_omap2430():	True for OMAP2430
+  * cpu_is_omap3430():	True for OMAP3430
++ * cpu_is_omap3505():	True for OMAP3505
++ * cpu_is_omap3517():	True for OMAP3517
+  */
+ #define GET_OMAP_TYPE	((omap_rev() >> 16) & 0xffff)
+ 
+@@ -307,6 +309,8 @@ IS_OMAP_TYPE(2422, 0x2422)
+ IS_OMAP_TYPE(2423, 0x2423)
+ IS_OMAP_TYPE(2430, 0x2430)
+ IS_OMAP_TYPE(3430, 0x3430)
++IS_OMAP_TYPE(3505, 0x3505)
++IS_OMAP_TYPE(3517, 0x3517)
+ 
+ #define cpu_is_omap310()		0
+ #define cpu_is_omap730()		0
+@@ -325,6 +329,8 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define cpu_is_omap3515()		0
+ #define cpu_is_omap3525()		0
+ #define cpu_is_omap3530()		0
++#define cpu_is_omap3505()		0
++#define cpu_is_omap3517()		0
+ #define cpu_is_omap3430()		0
+ #define cpu_is_omap3630()		0
+ 
+@@ -380,6 +386,8 @@ IS_OMAP_TYPE(3430, 0x3430)
+ # undef cpu_is_omap3515
+ # undef cpu_is_omap3525
+ # undef cpu_is_omap3530
++# undef cpu_is_omap3505
++# undef cpu_is_omap3517
+ # define cpu_is_omap3430()		is_omap3430()
+ # define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
+ 						(!omap3_has_iva()) &&	\
+@@ -391,6 +399,8 @@ IS_OMAP_TYPE(3430, 0x3430)
+ 						(omap3_has_sgx()) &&	\
+ 						(!omap3_has_iva()))
+ # define cpu_is_omap3530()		(cpu_is_omap3430())
++# define cpu_is_omap3505()		is_omap3505()
++# define cpu_is_omap3517()		is_omap3517()
+ # undef cpu_is_omap3630
+ # define cpu_is_omap3630()		is_omap363x()
+ #endif
+@@ -430,6 +440,8 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define OMAP3515_REV(v)		(OMAP35XX_CLASS | (0x3515 << 16) | (v << 12))
+ #define OMAP3525_REV(v)		(OMAP35XX_CLASS | (0x3525 << 16) | (v << 12))
+ #define OMAP3530_REV(v)		(OMAP35XX_CLASS | (0x3530 << 16) | (v << 12))
++#define OMAP3505_REV(v)		(OMAP35XX_CLASS | (0x3505 << 16) | (v << 12))
++#define OMAP3517_REV(v)		(OMAP35XX_CLASS | (0x3517 << 16) | (v << 12))
+ 
+ #define OMAP443X_CLASS		0x44300034
+ 
+-- 
+1.6.2.2
 
--	data = host->data;
--	status = OMAP_HSMMC_READ(host->base, STAT);
--	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
-
- 	if (status & ERR) {
- #ifdef CONFIG_MMC_DEBUG
-@@ -932,6 +952,29 @@ static int omap_hsmmc_get_ro(struct mmc_host *mmc)
- 	return pdata->slots[0].get_ro(host->dev, 0);
- }
-
-+static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
-+{
-+	struct mmc_omap_host *host = mmc_priv(mmc);
-+
-+	host->sdio_int = enable;
-+	if (enable) {
-+		OMAP_HSMMC_WRITE(host->base, ISE,
-+				(OMAP_HSMMC_READ(host->base, ISE) |
-+				 OMAP_HSMMC_CARD_INT));
-+		OMAP_HSMMC_WRITE(host->base, IE,
-+				(OMAP_HSMMC_READ(host->base, IE) |
-+				 OMAP_HSMMC_CARD_INT));
-+	} else {
-+		OMAP_HSMMC_WRITE(host->base, IE,
-+				(OMAP_HSMMC_READ(host->base, IE) &
-+				 (~OMAP_HSMMC_CARD_INT)));
-+		OMAP_HSMMC_WRITE(host->base, ISE,
-+				(OMAP_HSMMC_READ(host->base, ISE) &
-+				 (~OMAP_HSMMC_CARD_INT)));
-+	}
-+
-+}
-+
- static void omap_hsmmc_init(struct mmc_omap_host *host)
- {
- 	u32 hctl, capa, value;
-@@ -964,7 +1007,7 @@ static struct mmc_host_ops mmc_omap_ops = {
- 	.set_ios = omap_mmc_set_ios,
- 	.get_cd = omap_hsmmc_get_cd,
- 	.get_ro = omap_hsmmc_get_ro,
--	/* NYET -- enable_sdio_irq */
-+	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
- };
-
- static int __init omap_mmc_probe(struct platform_device *pdev)
-@@ -1011,6 +1054,7 @@ static int __init omap_mmc_probe(struct
-platform_device *pdev)
- 	host->irq	= irq;
- 	host->id	= pdev->id;
- 	host->slot_id	= 0;
-+	host->sdio_int 	= 0;
- 	host->mapbase	= res->start;
- 	host->base	= ioremap(host->mapbase, SZ_4K);
-
-@@ -1080,6 +1124,10 @@ static int __init omap_mmc_probe(struct
-platform_device *pdev)
- 	else if (pdata->slots[host->slot_id].wires >= 4)
- 		mmc->caps |= MMC_CAP_4_BIT_DATA;
-
-+	mmc->caps |= MMC_CAP_SDIO_IRQ;
-+	OMAP_HSMMC_WRITE(host->base, CON,
-+			OMAP_HSMMC_READ(host->base, CON) | (CTPL | CLKEXTFREE));
-+
- 	omap_hsmmc_init(host);
-
- 	/* Select DMA lines */
---
-1.6.0.4
