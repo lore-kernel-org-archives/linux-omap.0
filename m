@@ -1,197 +1,84 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 1/2] AM35xx: Runtime detection of the device
-Date: Wed, 28 Oct 2009 18:10:04 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE0DD1D0@dbde02.ent.ti.com>
-References: <1256652150-5710-1-git-send-email-premi@ti.com>
- <20091027161115.GA16494@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE0DCB84@dbde02.ent.ti.com>
- <20091027210853.GA17061@nokia.com>
+From: "Kauppi Ari (EXT-Ixonos/Oulu)" <ext-ari.kauppi@nokia.com>
+Subject: Re: [PATCHv2 1/3] OMAP UART: Add omap-serial driver support.
+Date: Wed, 28 Oct 2009 14:56:16 +0200
+Message-ID: <1256734576.31092.23.camel@kauppi-desktop>
+References: <35817.192.168.10.88.1256713979.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50289 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbZJ1MkN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 08:40:13 -0400
-In-Reply-To: <20091027210853.GA17061@nokia.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:27650 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269AbZJ1M4T (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 08:56:19 -0400
+Received: from esebh106.NOE.Nokia.com (esebh106.ntc.nokia.com [172.21.138.213])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9SCuLnm028850
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 07:56:24 -0500
+Received: from [172.23.119.51] (ouped11951.nmp.nokia.com [172.23.119.51])
+	by mgw-sa01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9SCuGtx032667
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 14:56:17 +0200
+In-Reply-To: <35817.192.168.10.88.1256713979.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:felipe.balbi@nokia.com] 
-> Sent: Wednesday, October 28, 2009 2:39 AM
-> To: Premi, Sanjeev
-> Cc: Balbi Felipe (Nokia-D/Helsinki); 
-> linux-omap@vger.kernel.org; tony@atomide.com
-> Subject: Re: [PATCH 1/2] AM35xx: Runtime detection of the device
+On Wed, 2009-10-28 at 08:12 +0100, ext Govindraj.R wrote:
+> From a3f0e5a13c1bc5046110cae513878183df2215c6 Mon Sep 17 00:00:00 2001
+> From: Govindraj R <govindraj.raja@ti.com>
+> Date: Wed, 28 Oct 2009 12:21:03 +0530
+> Subject: [PATCHv2 1/3] OMAP UART: Add omap-serial driver support.
 > 
-> Hi,
-> 
-> On Tue, Oct 27, 2009 at 07:08:22PM +0100, ext Premi, Sanjeev wrote:
-> > > > diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> > > > index 1c15112..87efb73 100644
-> > > > --- a/arch/arm/mach-omap2/id.c
-> > > > +++ b/arch/arm/mach-omap2/id.c
-> > > > @@ -242,6 +242,21 @@ void __init omap3_check_revision(void)
-> > > >  			omap_revision = OMAP3630_REV_ES1_0;
-> > > >  		}
-> > > >  		break;
-> > > > +	case 0xb868:
-> > > > +		/* Handle OMAP35xx/AM35xx devices
-> > > > +		 *
-> > > > +		 * Set the device to be OMAP3517 here. 
-> Actual device
-> > > > +		 * is identified later based on the features.
-> > > > +		 */
-> > > > +		switch (rev) {
-> > > > +		case 0:
-> > > > +			omap_revision = OMAP3505_REV(rev);
-> > > > +			break;
-> > > > +		default:
-> > > > +			/* Use the latest known 
-> revision as default */
-> > > > +			omap_revision = OMAP3505_REV(rev);
-> > > 
-> > > if both are the same, what's the point of having this switch ?
-> > 
-> > [sp] I was just following the style for 3630, while re-basing
-> >      this patch :(
-> 
-> I see, but that's clearly bogus (in a sense), then if you come up with
-> another version of the chip, there will be two place to be 
-> fixed. Tony,
-> what do you think about applying the following cleanup patch to id.c ?
-> 
-> From: Felipe Balbi <felipe.balbi@nokia.com>
-> Subject: [PATCH] arm: omap: code cleanup to id.c
-> 
-> Cleanup the coding style in id.c while avoiding unneeded switch()
-> statements.
-> 
-> Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
-> ---
-> 
-> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-> index 1c15112..dbdeb09 100644
-> --- a/arch/arm/mach-omap2/id.c
-> +++ b/arch/arm/mach-omap2/id.c
-> @@ -53,11 +53,11 @@ int omap_type(void)
->  {
->  	u32 val = 0;
->  
-> -	if (cpu_is_omap24xx())
-> +	if (cpu_is_omap24xx()) {
->  		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
-> -	else if (cpu_is_omap34xx())
-> +	} else if (cpu_is_omap34xx()) {
->  		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
-> -	else {
-> +	} else {
->  		pr_err("Cannot detect omap type!\n");
->  		goto out;
->  	}
-> @@ -224,24 +224,14 @@ void __init omap3_check_revision(void)
->  			omap_revision = OMAP3430_REV_ES3_0;
->  			break;
->  		case 4:
-> -			omap_revision = OMAP3430_REV_ES3_1;
-> -			break;
-> +		/* FALLTHROUGH */
->  		default:
->  			/* Use the latest known revision as default */
->  			omap_revision = OMAP3430_REV_ES3_1;
->  		}
->  		break;
->  	case 0xb891:
-> -		/* Handle 36xx devices */
-> -		switch (rev) {
-> -		case 0:
-> -			omap_revision = OMAP3630_REV_ES1_0;
-> -			break;
-> -		default:
-> -			/* Use the latest known revision as default */
-> -			omap_revision = OMAP3630_REV_ES1_0;
-> -		}
-> -		break;
-> +	/* FALLTHROUGH */
->  	default:
->  		/* Unknown default to latest silicon rev as default*/
->  		omap_revision = OMAP3630_REV_ES1_0;
+> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
 
-[sp] Haven't applied the patch. But, if FALLTHROUGH will make the device
-     detected as OMAP3630, then it may not be right. The fall through
-     should be on most common device. OMAP3430 ES21./3.1 should be ideal.
+On OMAP3630 a patch is needed for proper operation. Most probably this
+does not break compatibility, at least similar fix to 8250.c worked fine
+on OMAP3430 ES3.1.
 
-     Thoughts?
+-- clip --
+>From f6d31ecfd74e0369c9162bdbcfb40b56aedd2a2b Mon Sep 17 00:00:00 2001
+From: Ari Kauppi <Ext-Ari.Kauppi@nokia.com>
+Date: Wed, 28 Oct 2009 12:02:47 +0200
+Subject: [PATCH] omap-serial: Do not read UART_RX if UART_LSR_DR is not
+set.
 
-~sanjeev
+Causes external abort on non-linefetch with 3630 if the bit is not
+checked.
+---
+ drivers/serial/omap-serial.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-> @@ -266,19 +256,17 @@ void __init omap3_cpuinfo(void)
->  	 * on available features. Upon detection, update the CPU id
->  	 * and CPU class bits.
->  	 */
-> -	if (cpu_is_omap3630())
-> +	if (cpu_is_omap3630()) {
->  		strcpy(cpu_name, "3630");
-> -	else if (omap3_has_iva() && omap3_has_sgx())
-> +	} else if (omap3_has_iva() && omap3_has_sgx()) {
->  		strcpy(cpu_name, "3430/3530");
-> -	else if (omap3_has_sgx()) {
-> +	} else if (omap3_has_sgx()) {
->  		omap_revision = OMAP3525_REV(rev);
->  		strcpy(cpu_name, "3525");
-> -	}
-> -	else if (omap3_has_iva()) {
-> +	} else if (omap3_has_iva()) {
->  		omap_revision = OMAP3515_REV(rev);
->  		strcpy(cpu_name, "3515");
-> -	}
-> -	else {
-> +	} else {
->  		omap_revision = OMAP3503_REV(rev);
->  		strcpy(cpu_name, "3503");
->  	}
-> @@ -297,8 +285,7 @@ void __init omap3_cpuinfo(void)
->  		strcpy(cpu_rev, "3.0");
->  		break;
->  	case OMAP_REVBITS_40:
-> -		strcpy(cpu_rev, "3.1");
-> -		break;
-> +	/* FALLTHROUGH */
->  	default:
->  		/* Use the latest known revision as default */
->  		strcpy(cpu_rev, "3.1");
-> @@ -325,18 +312,18 @@ void __init omap2_check_revision(void)
->  	 * At this point we have an idea about the processor 
-> revision set
->  	 * earlier with omap2_set_globals_tap().
->  	 */
-> -	if (cpu_is_omap24xx())
-> +	if (cpu_is_omap24xx()) {
->  		omap24xx_check_revision();
-> -	else if (cpu_is_omap34xx()) {
-> +	} else if (cpu_is_omap34xx()) {
->  		omap3_check_features();
->  		omap3_check_revision();
->  		omap3_cpuinfo();
-> -	}
-> -	else if (cpu_is_omap44xx()) {
-> +	} else if (cpu_is_omap44xx()) {
->  		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
->  		return;
-> -	} else
-> +	} else {
->  		pr_err("OMAP revision unknown, please fix!\n");
-> +	}
->  
->  	/*
->  	 * OK, now we know the exact revision. Initialize omap_chip bits
-> 
-> -- 
-> balbi
-> 
-> 
+diff --git a/drivers/serial/omap-serial.c b/drivers/serial/omap-serial.c
+index 0239209..2a65a36 100644
+--- a/drivers/serial/omap-serial.c
++++ b/drivers/serial/omap-serial.c
+@@ -483,8 +483,8 @@ static int serial_omap_startup(struct uart_port
+*port)
+ 	/*
+ 	 * Clear the interrupt registers.
+ 	 */
+-	(void) serial_in(up, UART_LSR);
+-	(void) serial_in(up, UART_RX);
++	if (serial_in(up, UART_LSR) & UART_LSR_DR)
++		(void) serial_in(up, UART_RX);
+ 	(void) serial_in(up, UART_IIR);
+ 	(void) serial_in(up, UART_MSR);
+ 
+@@ -570,7 +570,8 @@ static void serial_omap_shutdown(struct uart_port
+*port)
+ 	/*
+ 	 * Read data port to reset things, and then free the irq
+ 	 */
+-	(void) serial_in(up, UART_RX);
++	if (serial_in(up, UART_LSR) & UART_LSR_DR)
++		(void) serial_in(up, UART_RX);
+ 	if (up->use_dma) {
+ 		int tmp;
+ 		if (up->is_buf_dma_alloced) {
+-- 
+1.6.4.2
+
+-- clip --
+
+--
+Ari
+
