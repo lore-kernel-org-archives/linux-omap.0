@@ -1,16 +1,16 @@
 From: Paul Walmsley <paul@pwsan.com>
 Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource framework
  functions
-Date: Wed, 28 Oct 2009 12:29:56 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0910281228470.19865@utopia.booyaka.com>
+Date: Wed, 28 Oct 2009 12:38:22 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com>
 References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com> <87iqejktan.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:57011 "EHLO
+Received: from utopia.booyaka.com ([72.9.107.138]:37542 "EHLO
 	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189AbZJ1S3w (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 14:29:52 -0400
+	with ESMTP id S1755377AbZJ1SiS (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 14:38:18 -0400
 In-Reply-To: <87iqejktan.fsf@deeprootsystems.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -35,7 +35,15 @@ On Tue, 13 Oct 2009, Kevin Hilman wrote:
 > 
 > Paul, any comments?
 
-Acked-by: Paul Walmsley <paul@pwsan.com>
+
+Wait a minute, I am retracting my ack.
+
+
+Romit, the only caller of omap_pm_dsp_set_min_opp() should be DSPBridge 
+and the only caller of omap_pm_cpu_set_freq() should be CPUFreq.  So the 
+struct device * pointer is not necessary, unless I am missing something.  
+Can you please explain what you're trying to do?
+
 
 
 - Paul
