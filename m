@@ -1,59 +1,83 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/2] AM35xx: Runtime detection of the device
-Date: Wed, 28 Oct 2009 18:59:18 +0200
-Message-ID: <20091028165918.GD8820@nokia.com>
-References: <1256652150-5710-1-git-send-email-premi@ti.com>
- <20091027161115.GA16494@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE0DCB84@dbde02.ent.ti.com>
- <20091027210853.GA17061@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE0DD1D0@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Pandita, Vikram" <vikram.pandita@ti.com>
+Subject: RE: [PATCH 1/2] Added board-3630.c file.
+Date: Wed, 28 Oct 2009 22:43:55 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA36ED28@dbde02.ent.ti.com>
+References: <7A436F7769CA33409C6B44B358BFFF0C012AC22851@dlee02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE1C8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:27080 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754398AbZJ1Q7j (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 12:59:39 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE0DD1D0@dbde02.ent.ti.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44320 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752972AbZJ1ROA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 13:14:00 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9SHE2uS008532
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 12:14:04 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9SHE2Te026448
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 22:44:02 +0530 (IST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE1C8@dbde02.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Premi, Sanjeev" <premi@ti.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "Pais, Allen" <allen.pais@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
 
-On Wed, Oct 28, 2009 at 01:40:04PM +0100, ext Premi, Sanjeev wrote:
-> >  	case 0xb891:
-> > -		/* Handle 36xx devices */
-> > -		switch (rev) {
-> > -		case 0:
-> > -			omap_revision = OMAP3630_REV_ES1_0;
-> > -			break;
-> > -		default:
-> > -			/* Use the latest known revision as default */
-> > -			omap_revision = OMAP3630_REV_ES1_0;
-> > -		}
-> > -		break;
-> > +	/* FALLTHROUGH */
-> >  	default:
-> >  		/* Unknown default to latest silicon rev as default*/
-> >  		omap_revision = OMAP3630_REV_ES1_0;
-> 
-> [sp] Haven't applied the patch. But, if FALLTHROUGH will make the device
->      detected as OMAP3630, then it may not be right. The fall through
->      should be on most common device. OMAP3430 ES21./3.1 should be ideal.
-> 
->      Thoughts?
 
-see that I didn't change the default clause. It was already
-OMAP3630_REV_ES1_0. If it has to be anything else, the default should be
-changed and the case 0xb891: should do:
+>-----Original Message-----
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Pais,
+>Sent: Monday, October 26, 2009 4:40 PM
+>To: Pais, Allen; linux-omap@vger.kernel.org
+>Subject: RE: [PATCH 1/2] Added board-3630.c file.
 
-case 0xb891:
-	omap_revision = OMAP3630_REV_ES1_0;
-	break;
+>> Signed-off-by: Allen Pais <allen.pais@ti.com>
+>> ---
+>>  arch/arm/mach-omap2/board-3630sdp.c |  188
+>> +++++++++++++++++++++++++++++++++++
+>>  1 files changed, 188 insertions(+), 0 deletions(-)  create mode
+>> 100644 arch/arm/mach-omap2/board-3630sdp.c
+>>
+>> diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-
+>> omap2/board-3630sdp.c new file mode 100644 index 0000000..d3ddbd1
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/board-3630sdp.c
+>> @@ -0,0 +1,188 @@
+>> +/*
+>> +
+>
+>NAK. Could we follow the same issue with zoom2 -> break the keypad into a Separate one and use it
+>instead? Same for all reused zoom2 components..
+>
+>[Allen] Yes, we should do that. Not only for keypad but also
+>For display panel and touch screen so that sdp3630, zoom3 and
+>Zoom2 could use the same code, without having to duplicate
+>Code.
 
--- 
-balbi
+We just got the same image for zoom3 boot on SDP3630 (after mach-type change)
+The peripheral set is almost >90% same: same keypad, same display, same RAM, same NAND.
+
+I see a good amount of re-use possible here. 
+Here is how we could do it:
+
+Board-zoom2.c 
+Split into:
+	Board-zoom2.c
+	Board-zoom-peripheral.c [reuse]
+
+3630 zoom3 uses:
+	Board-zoom3.c
+	Board-zoom-peripheral.c [reuse]
+
+3630 SDP uses:
+	Board-3630sdp.c
+	Board-zoom-peripheral.c [reuse]
+
+
+Will give a first pass at this split up and post patches.
+
+>
+>> +
+>> +static struct matrix_keymap_data board_map_data = {
