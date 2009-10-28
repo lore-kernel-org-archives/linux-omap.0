@@ -1,72 +1,80 @@
 From: "Menon, Nishanth" <nm@ti.com>
 Subject: RE: [PATCH 2/2 v3] OMAP3: PM: SR: SmartReflex Refactor Rev4.0
-Date: Wed, 28 Oct 2009 00:05:50 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AD6CFA3@dlee02.ent.ti.com>
+Date: Wed, 28 Oct 2009 00:17:47 -0500
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AD6CFAA@dlee02.ent.ti.com>
 References: <OMAP3:PM:SR: SmartReflex Refactor Rev3.0>
-	 <1256361352-9968-1-git-send-email-nm@ti.com>
-	 <1256361352-9968-2-git-send-email-nm@ti.com>
-	 <1256361352-9968-3-git-send-email-nm@ti.com>
- <1256656433.31764.15.camel@ubuntu>
+ <1256361352-9968-1-git-send-email-nm@ti.com>
+ <1256361352-9968-2-git-send-email-nm@ti.com>
+ <1256361352-9968-3-git-send-email-nm@ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE01B@dbde02.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C012AC22837@dlee02.ent.ti.com>
+ <alpine.DEB.2.00.0910261123360.26141@utopia.booyaka.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-7
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55933 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755557AbZJ1FF7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 01:05:59 -0400
-In-Reply-To: <1256656433.31764.15.camel@ubuntu>
+Received: from comal.ext.ti.com ([198.47.26.152]:33705 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757330AbZJ1FRx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 01:17:53 -0400
+In-Reply-To: <alpine.DEB.2.00.0910261123360.26141@utopia.booyaka.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imberton Guilhem <guilhem.imberton@motorola.com>, Mike Chan <mikechan@google.com>, "Nayak, Rajendra" <rnayak@ti.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Reddy, Teerth" <teerth@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Paul Walmsley <paul@pwsan.com>, Hogander Jouni <jouni.hogander@nokia.com>
+To: Paul Walmsley <paul@pwsan.com>
+Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imberton Guilhem <guilhem.imberton@motorola.com>, Mike Chan <mikechan@google.com>, "Nayak, Rajendra" <rnayak@ti.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Reddy, Teerth" <teerth@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Hogander Jouni <jouni.hogander@nokia.com>
 
-PiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBLYWxsZSBKb2tpbmllbWkNCj4g
-U2VudDogVHVlc2RheSwgT2N0b2JlciAyNywgMjAwOSA1OjE0IFBNDQo+IA0KPiBIaSBOaXNoYW50
-aCwNCj4gDQo+IEZvdW5kIHNvbWUgZGVhZCBjb2RlLCBzZWUgYmVsb3c6DQpbLi4uXQ0KPiA+ICsv
-KiBUMiBTTUFSVCBSRUZMRVggKi8NCj4gPiArI2RlZmluZSBSX1NSSTJDX1NMQVZFX0FERFIgICAg
-ICAgICAgICAgMHgxMg0KPiA+ICsjZGVmaW5lIFJfVkREMV9TUl9DT05UUk9MICAgICAgICAgICAg
-ICAweDAwDQo+ID4gKyNkZWZpbmUgUl9WREQyX1NSX0NPTlRST0wgICAgICAgICAgICAgIDB4MDEN
-Cj4gPiArDQo+ID4gKy8qIFZERHMqLw0KPiA+ICsjZGVmaW5lIFBSQ01fVkREMSAgICAgIDENCj4g
-PiArI2RlZmluZSBQUkNNX1ZERDIgICAgICAyDQo+ID4gKw0KPiANCj4gVGhpcyBjb21tZW50IGJl
-bG93IGNhbiBiZSByZW1vdmVkLCBwcm92aWRlZCB0aGF0IHlvdSBhcHBseSBteSBvdGhlcg0KPiBj
-b21tZW50cy4NCj4gDQo+ID4gKy8qDQo+ID4gKyAqIFhYWDogVGhlc2Ugc2hvdWxkIGJlIHJlbW92
-ZWQvbW92ZWQgZnJvbSBoZXJlIG9uY2Ugd2UgaGF2ZSBhIHdvcmtpbmcNCj4gRFZGUw0KPiA+ICsg
-KiBpbXBsZW1lbnRhdGlvbiBpbiBwbGFjZQ0KPiA+ICsgKi8NCj4gPiArI2RlZmluZSBQSFlfVE9f
-T0ZGX1BNX01BU1RFUihwKSAgICAgICAgICAgICAgICAocCAtIDB4MzYpDQo+IA0KPiBObyBuZWVk
-IGZvciBQSFlfVE9fT0ZGX1BNX01BU1RFUiBkZWZpbml0aW9uLiBSZW1vdmUgdGhhdC4NCj4gDQo+
-IA0KPiA+ICsjZGVmaW5lIFBIWV9UT19PRkZfUE1fUkVDSUVWRVIocCkgICAgICAocCAtIDB4NWIp
-DQo+ID4gKyNkZWZpbmUgUEhZX1RPX09GRl9QTV9JTlQocCkgICAgICAgICAgIChwIC0gMHgyZSkN
-Cj4gDQo+IE5vIG5lZWQgZm9yIFBIWV9UT19PRkZfUE1fSU5UIGRlZi4gUmVtb3ZlLg0KPiANCj4g
-PiArDQo+ID4gKy8qIFZtb2RlIGNvbnRyb2wgKi8NCj4gPiArI2RlZmluZSBSX0RDRENfR0xPQkFM
-X0NGRyAgICAgICAgICAgICAgUEhZX1RPX09GRl9QTV9SRUNJRVZFUigweDYxKQ0KPiA+ICsvKiBS
-X0RDRENfR0xPQkFMX0NGRyByZWdpc3RlciwgU01BUlRSRUZMRVhfRU5BQkxFIHZhbHVlcyAqLw0K
-PiA+ICsjZGVmaW5lIERDRENfR0xPQkFMX0NGR19FTkFCTEVfU1JGTFggICAweDA4DQo+IA0KPiAN
-Cj4gQXMgd2Ugbm93IGhhdmUgb3RoZXIgd2F5cyBvZiBkZXRlcm1pbmluZyBvcHAsIHJlbW92ZSBj
-b2RlIGZyb20gaGVyZS4uLg0KPiANCj4gPiArDQo+ID4gKy8qIERFVklDRSBJRC9EUExMIElEL0NM
-T0NLIElEOiBiaXRzIDI4LTMxIGZvciBPTUFQIHR5cGUgKi8NCj4gPiArI2RlZmluZSBPTUFQX1RZ
-UEVfU0hJRlQgICAgICAgICAgICAgICAgMjgNCj4gPiArI2RlZmluZSBPTUFQX1RZUEVfTUFTSyAg
-ICAgICAgIDB4Rg0KPiA+ICsvKiBPUFAgSUQ6IGJpdHM6IDAtNCBmb3IgT1BQIG51bWJlciAqLw0K
-PiA+ICsjZGVmaW5lIE9QUF9OT19QT1MgICAgICAgICAgICAgMA0KPiA+ICsjZGVmaW5lIE9QUF9O
-T19NQVNLICAgICAgICAgICAgMHgxRg0KPiA+ICsvKiBPUFAgSUQ6IGJpdHM6IDUtNiBmb3IgVkRE
-ICovDQo+ID4gKyNkZWZpbmUgVkREX05PX1BPUyAgICAgICAgICAgICA1DQo+ID4gKyNkZWZpbmUg
-VkREX05PX01BU0sgICAgICAgICAgICAweDMNCj4gPiArLyogT3RoZXIgSURzOiBiaXRzIDIwLTI3
-IGZvciBJRCB0eXBlICovDQo+ID4gKy8qIFRoZXNlIElEcyBoYXZlIGJpdHMgMjUsMjYsMjcgYXMg
-MSAqLw0KPiA+ICsjZGVmaW5lIE9USEVSX0lEX1RZUEVfU0hJRlQgICAgICAgICAgICAyMA0KPiA+
-ICsjZGVmaW5lIE9USEVSX0lEX1RZUEVfTUFTSyAgICAgICAgICAgICAweEZGDQo+ID4gKw0KPiA+
-ICsjZGVmaW5lIE9USEVSX0lEX1RZUEUoWCkgKChYICYgT1RIRVJfSURfVFlQRV9NQVNLKSA8PA0K
-PiBPVEhFUl9JRF9UWVBFX1NISUZUKQ0KPiA+ICsjZGVmaW5lIElEX09QUF9OTyhYKSAgICAoKFgg
-JiBPUFBfTk9fTUFTSykgPDwgT1BQX05PX1BPUykNCj4gPiArI2RlZmluZSBJRF9WREQoWCkgICAg
-ICAgKChYICYgVkREX05PX01BU0spIDw8IFZERF9OT19QT1MpDQo+ID4gKyNkZWZpbmUgT01BUChY
-KSAgICAgICAgICAgICAgICAgKChYID4+IE9NQVBfVFlQRV9TSElGVCkgJg0KPiBPTUFQX1RZUEVf
-TUFTSykNCj4gPiArI2RlZmluZSBnZXRfb3BwX25vKFgpICAgKChYID4+IE9QUF9OT19QT1MpICYg
-T1BQX05PX01BU0spDQo+ID4gKyNkZWZpbmUgZ2V0X3ZkZChYKSAgICAgICgoWCA+PiBWRERfTk9f
-UE9TKSAmIFZERF9OT19NQVNLKQ0KPiA+ICsNCj4gPiArLyogWFhYOiBlbmQgcmVtb3ZlL21vdmUg
-Ki8NCj4gPiArDQo+ID4gKy8qIFhYWDogZmluZCBtb3JlIGFwcHJvcHJpYXRlIHBsYWNlIGZvciB0
-aGVzZSBvbmNlIERWRlMgaXMgaW4gcGxhY2UgKi8NCj4gPiArZXh0ZXJuIHUzMiBjdXJyZW50X3Zk
-ZDFfb3BwOw0KPiA+ICtleHRlcm4gdTMyIGN1cnJlbnRfdmRkMl9vcHA7DQo+IA0KPiAuLi50byBo
-ZXJlLg0KPiANCj4gQXQgbGVhc3Qgd2l0aCBhIHF1aWNrIGdsYW5jZSwgaXQgc2VlbXMgdGhlIGFi
-b3ZlIGRlZnMgYXJlIG5vdCBpbiB1c2UuDQo+IFlvdXIgY29tcGlsZXIgc2hvdWxkIHRlbGwgaWYg
-SSBtaXNzZWQgc29tZXRoaW5nIDspDQpUaGFua3MuLi4gd2lsbCBmaXggaW4gbXkgcmV2IDUuDQoN
-ClJlZ2FyZHMsDQpOaXNoYW50aCBNZW5vbg0K
+> -----Original Message-----
+> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> Sent: Wednesday, October 28, 2009 1:37 AM
+>=20
+[..]
+> a comment on cpu_relax() and udelay().
+>=20
+> On Mon, 26 Oct 2009, Menon, Nishanth wrote:
+>=20
+> > > -----Original Message-----
+> > > From: G, Manjunath Kondaiah
+> > >
+> > > As per your comments for other patches when ever there is udelay =
+usage,
+> > > cpu_relax is the better option. I see there are lot of udelay(...=
+)
+> calls
+> > > used in this patch. Why can't you use cpu_relax() or schedule().
+> > > Any specific reason?
+> > >
+> > Don=A2t really want to do cpu_relax in irq_locked context..
+>=20
+> There are no restrictions on the calling context for cpu_relax().
+> [ schedule(), of course, does have restrictions. ]
+Thanks..
+>=20
+> I don't understand the use of the udelay(10).  Could you please expla=
+in
+> this further?  Is it the case that if the register bit doesn't change
+> within 50 reads, that it is then not likely to change for 10 microsec=
+onds?
+The delay of 10 used is in vcbypass command -> the loop actually waits =
+for the i2c command to get thru.. depending on the speed of the bus con=
+figured and cpu speed, 50 iterations might not be enough, but yes, a ud=
+elay(1) loop in addition to cpu_relax might be better..
+
+>=20
+> If that isn't how the device works, then using udelay(10) will just w=
+aste
+> power busy-looping in the CPU.  I would rather see this code using
+> udelay(1) between each register read if you want to ensure that you r=
+ead
+> the register for at least 50 microseconds.  This would also simplify =
+your
+> timeout loops considerably, which seem unnecessarily complicated.
+Ack.
+
+Regards,
+Nishanth Menon
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
