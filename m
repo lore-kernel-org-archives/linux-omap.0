@@ -1,188 +1,439 @@
-From: hvaibhav@ti.com
-Subject: [PATCH 2/2] OMAP: DSS2: Add Sharp LQ043T1DG01 panel drivers
-Date: Wed, 28 Oct 2009 15:33:52 +0530
-Message-ID: <1256724232-22994-1-git-send-email-hvaibhav@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/2] OMAP3: Enable DSS2 for OMAP3EVM board
+Date: Wed, 28 Oct 2009 15:36:24 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436EEAD77@dbde02.ent.ti.com>
 References: <hvaibhav@ti.com>
+ <1256724210-20581-1-git-send-email-hvaibhav@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44840 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47168 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751543AbZJ1KDu (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Oct 2009 06:03:50 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9SA3r5u019991
+	id S1751243AbZJ1KGZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 06:06:25 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9SA6RSD020489
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 05:03:55 -0500
-In-Reply-To: <hvaibhav@ti.com>
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 05:06:29 -0500
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9SA6Q4k018350
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 15:36:26 +0530 (IST)
+In-Reply-To: <1256724210-20581-1-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vaibhav Hiremath <hvaibhav@ti.com>
-
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/video/omap2/displays/Kconfig               |    6 +
- drivers/video/omap2/displays/Makefile              |    1 +
- .../video/omap2/displays/panel-sharp-lq043t1dg01.c |  120 ++++++++++++++++++++
- 3 files changed, 127 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
+> -----Original Message-----
+> From: Hiremath, Vaibhav
+> Sent: Wednesday, October 28, 2009 3:34 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Hiremath, Vaibhav
+> Subject: [PATCH 1/2] OMAP3: Enable DSS2 for OMAP3EVM board
+> 
+[Hiremath, Vaibhav] Tony,
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 79d2861..4229a28 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -19,6 +19,12 @@ config PANEL_SHARP_LS037V7DW01
-         help
-           LCD Panel used in TI's SDP3430 and EVM boards
- 
-+config PANEL_SHARP_LQ043T1DG01
-+        tristate "Sharp LQ043T1DG01 LCD Panel"
-+        depends on OMAP2_DSS
-+        help
-+          LCD Panel used in TI's OMAP3517 EVM boards
-+
- config PANEL_TAAL
-         tristate "Taal DSI Panel"
-         depends on OMAP2_DSS_DSI
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index d44e765..9317445 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -1,5 +1,6 @@
- obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
- obj-$(CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C) += panel-samsung-lte430wq-f0c.o
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
-+obj-$(CONFIG_PANEL_SHARP_LQ043T1DG01) += panel-sharp-lq043t1dg01.o
- 
- obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
-diff --git a/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c b/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
-new file mode 100644
-index 0000000..0c1fd46
---- /dev/null
-+++ b/drivers/video/omap2/displays/panel-sharp-lq043t1dg01.c
-@@ -0,0 +1,120 @@
-+/*
-+ * LCD panel driver for Sharp LQ043T1DG01
-+ *
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ * Author: Vaibhav Hiremath <hvaibhav@ti.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/err.h>
-+
-+#include <mach/display.h>
-+
-+static struct omap_video_timings sharp_lq_timings = {
-+	.x_res = 480,
-+	.y_res = 272,
-+
-+	.pixel_clock	= 9000,
-+
-+	.hsw		= 42,
-+	.hfp		= 3,
-+	.hbp		= 2,
-+
-+	.vsw		= 11,
-+	.vfp		= 3,
-+	.vbp		= 2,
-+};
-+
-+static int sharp_lq_panel_probe(struct omap_dss_device *dssdev)
-+{
-+
-+	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
-+		OMAP_DSS_LCD_IHS | OMAP_DSS_LCD_IEO;
-+	dssdev->panel.acb = 0x0;
-+	dssdev->panel.timings = sharp_lq_timings;
-+
-+	return 0;
-+}
-+
-+static void sharp_lq_panel_remove(struct omap_dss_device *dssdev)
-+{
-+}
-+
-+static int sharp_lq_panel_enable(struct omap_dss_device *dssdev)
-+{
-+	int r = 0;
-+
-+
-+	/* wait couple of vsyncs until enabling the LCD */
-+	msleep(50);
-+
-+	if (dssdev->platform_enable)
-+		r = dssdev->platform_enable(dssdev);
-+
-+	return r;
-+}
-+
-+static void sharp_lq_panel_disable(struct omap_dss_device *dssdev)
-+{
-+
-+	if (dssdev->platform_disable)
-+		dssdev->platform_disable(dssdev);
-+
-+	/* wait at least 5 vsyncs after disabling the LCD */
-+
-+	msleep(100);
-+}
-+
-+static int sharp_lq_panel_suspend(struct omap_dss_device *dssdev)
-+{
-+	sharp_lq_panel_disable(dssdev);
-+	return 0;
-+}
-+
-+static int sharp_lq_panel_resume(struct omap_dss_device *dssdev)
-+{
-+	return sharp_lq_panel_enable(dssdev);
-+}
-+
-+static struct omap_dss_driver sharp_lq_driver = {
-+	.probe		= sharp_lq_panel_probe,
-+	.remove		= sharp_lq_panel_remove,
-+
-+	.enable		= sharp_lq_panel_enable,
-+	.disable	= sharp_lq_panel_disable,
-+	.suspend	= sharp_lq_panel_suspend,
-+	.resume		= sharp_lq_panel_resume,
-+
-+	.driver         = {
-+		.name   = "sharp_lq_panel",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+static int __init sharp_lq_panel_drv_init(void)
-+{
-+	return omap_dss_register_driver(&sharp_lq_driver);
-+}
-+
-+static void __exit sharp_lq_panel_drv_exit(void)
-+{
-+	omap_dss_unregister_driver(&sharp_lq_driver);
-+}
-+
-+module_init(sharp_lq_panel_drv_init);
-+module_exit(sharp_lq_panel_drv_exit);
-+MODULE_LICENSE("GPL");
--- 
-1.6.2.4
+Can you merge these 2 patches to "dss2" branch (if they do not have any comments)? So that they will also be get merged along with DSS2.
+
+Thanks,
+Vaibhav
+
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  arch/arm/configs/omap3_evm_defconfig |   51 +++++++-
+>  arch/arm/mach-omap2/board-omap3evm.c |  238
+> ++++++++++++++++++++++++++++++++--
+>  2 files changed, 277 insertions(+), 12 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap3_evm_defconfig
+> b/arch/arm/configs/omap3_evm_defconfig
+> index d5ff477..ba395a2 100644
+> --- a/arch/arm/configs/omap3_evm_defconfig
+> +++ b/arch/arm/configs/omap3_evm_defconfig
+> @@ -903,7 +903,56 @@ CONFIG_DAB=y
+>  #
+>  # CONFIG_VGASTATE is not set
+>  CONFIG_VIDEO_OUTPUT_CONTROL=m
+> -# CONFIG_FB is not set
+> +CONFIG_FB=y
+> +# CONFIG_FIRMWARE_EDID is not set
+> +# CONFIG_FB_DDC is not set
+> +# CONFIG_FB_BOOT_VESA_SUPPORT is not set
+> +CONFIG_FB_CFB_FILLRECT=y
+> +CONFIG_FB_CFB_COPYAREA=y
+> +CONFIG_FB_CFB_IMAGEBLIT=y
+> +# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+> +# CONFIG_FB_SYS_FILLRECT is not set
+> +# CONFIG_FB_SYS_COPYAREA is not set
+> +# CONFIG_FB_SYS_IMAGEBLIT is not set
+> +# CONFIG_FB_FOREIGN_ENDIAN is not set
+> +# CONFIG_FB_SYS_FOPS is not set
+> +# CONFIG_FB_SVGALIB is not set
+> +# CONFIG_FB_MACMODES is not set
+> +# CONFIG_FB_BACKLIGHT is not set
+> +# CONFIG_FB_MODE_HELPERS is not set
+> +# CONFIG_FB_TILEBLITTING is not set
+> +
+> +#
+> +# Frame buffer hardware drivers
+> +#
+> +# CONFIG_FB_S1D13XXX is not set
+> +# CONFIG_FB_VIRTUAL is not set
+> +# CONFIG_FB_METRONOME is not set
+> +# CONFIG_FB_MB862XX is not set
+> +# CONFIG_FB_BROADSHEET is not set
+> +# CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
+> +CONFIG_OMAP2_VRAM=y
+> +CONFIG_OMAP2_VRFB=y
+> +CONFIG_OMAP2_DSS=y
+> +CONFIG_OMAP2_VRAM_SIZE=4
+> +# CONFIG_OMAP2_DSS_DEBUG_SUPPORT is not set
+> +# CONFIG_OMAP2_DSS_RFBI is not set
+> +CONFIG_OMAP2_DSS_VENC=y
+> +# CONFIG_OMAP2_DSS_SDI is not set
+> +# CONFIG_OMAP2_DSS_DSI is not set
+> +# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
+> +CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
+> +CONFIG_FB_OMAP2=y
+> +# CONFIG_FB_OMAP2_DEBUG_SUPPORT is not set
+> +# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
+> +CONFIG_FB_OMAP2_NUM_FBS=3
+> +
+> +#
+> +# OMAP2/3 Display Device Drivers
+> +#
+> +CONFIG_PANEL_GENERIC=y
+> +# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
+> +CONFIG_PANEL_SHARP_LS037V7DW01=y
+>  # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
+> 
+>  #
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> index e4ec0c5..f2c4979 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/input.h>
+>  #include <linux/leds.h>
+> 
+> +#include <linux/regulator/machine.h>
+>  #include <linux/spi/spi.h>
+>  #include <linux/spi/ads7846.h>
+>  #include <linux/i2c/twl4030.h>
+> @@ -38,6 +39,7 @@
+>  #include <mach/common.h>
+>  #include <mach/mcspi.h>
+>  #include <mach/keypad.h>
+> +#include <mach/display.h>
+> 
+>  #include "sdram-micron-mt46h32m32lf-6.h"
+>  #include "mmc-twl4030.h"
+> @@ -91,6 +93,178 @@ static inline void __init
+> omap3evm_init_smc911x(void)
+> 
+>  	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
+>  }
+> +/*
+> + * OMAP3EVM LCD Panel control signals
+> + */
+> +#define OMAP3EVM_LCD_PANEL_LR		2
+> +#define OMAP3EVM_LCD_PANEL_UD		3
+> +#define OMAP3EVM_LCD_PANEL_INI		152
+> +#define OMAP3EVM_LCD_PANEL_ENVDD	153
+> +#define OMAP3EVM_LCD_PANEL_QVGA		154
+> +#define OMAP3EVM_LCD_PANEL_RESB		155
+> +#define OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO	210
+> +#define OMAP3EVM_DVI_PANEL_EN_GPIO	199
+> +
+> +static int lcd_enabled;
+> +static int dvi_enabled;
+> +
+> +static void __init omap3_evm_display_init(void)
+> +{
+> +	int r;
+> +
+> +	r = gpio_request(OMAP3EVM_LCD_PANEL_RESB, "lcd_panel_resb");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_panel_resb\n");
+> +		return;
+> +	}
+> +	gpio_direction_output(OMAP3EVM_LCD_PANEL_RESB, 1);
+> +
+> +	r = gpio_request(OMAP3EVM_LCD_PANEL_INI, "lcd_panel_ini");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_panel_ini\n");
+> +		goto err_1;
+> +	}
+> +	gpio_direction_output(OMAP3EVM_LCD_PANEL_INI, 1);
+> +
+> +	r = gpio_request(OMAP3EVM_LCD_PANEL_QVGA, "lcd_panel_qvga");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_panel_qvga\n");
+> +		goto err_2;
+> +	}
+> +	gpio_direction_output(OMAP3EVM_LCD_PANEL_QVGA, 0);
+> +
+> +	r = gpio_request(OMAP3EVM_LCD_PANEL_LR, "lcd_panel_lr");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_panel_lr\n");
+> +		goto err_3;
+> +	}
+> +	gpio_direction_output(OMAP3EVM_LCD_PANEL_LR, 1);
+> +
+> +	r = gpio_request(OMAP3EVM_LCD_PANEL_UD, "lcd_panel_ud");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_panel_ud\n");
+> +		goto err_4;
+> +	}
+> +	gpio_direction_output(OMAP3EVM_LCD_PANEL_UD, 1);
+> +
+> +	r = gpio_request(OMAP3EVM_LCD_PANEL_ENVDD, "lcd_panel_envdd");
+> +	if (r) {
+> +		printk(KERN_ERR "failed to get lcd_panel_envdd\n");
+> +		goto err_5;
+> +	}
+> +
+> +	return;
+> +
+> +err_5:
+> +	gpio_free(OMAP3EVM_LCD_PANEL_UD);
+> +err_4:
+> +	gpio_free(OMAP3EVM_LCD_PANEL_LR);
+> +err_3:
+> +	gpio_free(OMAP3EVM_LCD_PANEL_QVGA);
+> +err_2:
+> +	gpio_free(OMAP3EVM_LCD_PANEL_INI);
+> +err_1:
+> +	gpio_free(OMAP3EVM_LCD_PANEL_RESB);
+> +
+> +}
+> +
+> +static int omap3_evm_enable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	if (dvi_enabled) {
+> +		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	gpio_set_value(OMAP3EVM_LCD_PANEL_ENVDD, 0);
+> +	gpio_set_value(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 1);
+> +
+> +	lcd_enabled = 1;
+> +	return 0;
+> +}
+> +
+> +static void omap3_evm_disable_lcd(struct omap_dss_device *dssdev)
+> +{
+> +	gpio_set_value(OMAP3EVM_LCD_PANEL_ENVDD, 1);
+> +	gpio_set_value(OMAP3EVM_LCD_PANEL_BKLIGHT_GPIO, 0);
+> +
+> +	lcd_enabled = 0;
+> +}
+> +
+> +static struct omap_dss_device omap3_evm_lcd_device = {
+> +	.name			= "lcd",
+> +	.driver_name		= "sharp_ls_panel",
+> +	.type			= OMAP_DISPLAY_TYPE_DPI,
+> +	.phy.dpi.data_lines	= 18,
+> +	.platform_enable	= omap3_evm_enable_lcd,
+> +	.platform_disable	= omap3_evm_disable_lcd,
+> +};
+> +
+> +static int omap3_evm_enable_tv(struct omap_dss_device *dssdev)
+> +{
+> +	return 0;
+> +}
+> +
+> +static void omap3_evm_disable_tv(struct omap_dss_device *dssdev)
+> +{
+> +}
+> +
+> +static struct omap_dss_device omap3_evm_tv_device = {
+> +	.name			= "tv",
+> +	.driver_name		= "venc",
+> +	.type			= OMAP_DISPLAY_TYPE_VENC,
+> +	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
+> +	.platform_enable	= omap3_evm_enable_tv,
+> +	.platform_disable	= omap3_evm_disable_tv,
+> +};
+> +
+> +static int omap3_evm_enable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	if (lcd_enabled) {
+> +		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	gpio_set_value(OMAP3EVM_DVI_PANEL_EN_GPIO, 1);
+> +
+> +	dvi_enabled = 1;
+> +	return 0;
+> +}
+> +
+> +static void omap3_evm_disable_dvi(struct omap_dss_device *dssdev)
+> +{
+> +	gpio_set_value(OMAP3EVM_DVI_PANEL_EN_GPIO, 0);
+> +
+> +	dvi_enabled = 0;
+> +}
+> +
+> +static struct omap_dss_device omap3_evm_dvi_device = {
+> +	.name			= "dvi",
+> +	.driver_name		= "generic_panel",
+> +	.type			= OMAP_DISPLAY_TYPE_DPI,
+> +	.phy.dpi.data_lines	= 24,
+> +	.platform_enable	= omap3_evm_enable_dvi,
+> +	.platform_disable	= omap3_evm_disable_dvi,
+> +};
+> +
+> +static struct omap_dss_device *omap3_evm_dss_devices[] = {
+> +	&omap3_evm_lcd_device,
+> +	&omap3_evm_tv_device,
+> +	&omap3_evm_dvi_device,
+> +};
+> +
+> +static struct omap_dss_board_info omap3_evm_dss_data = {
+> +	.num_devices	= ARRAY_SIZE(omap3_evm_dss_devices),
+> +	.devices	= omap3_evm_dss_devices,
+> +	.default_device	= &omap3_evm_lcd_device,
+> +};
+> +
+> +static struct platform_device omap3_evm_dss_device = {
+> +	.name		= "omapdss",
+> +	.id		= -1,
+> +	.dev		= {
+> +		.platform_data = &omap3_evm_dss_data,
+> +	},
+> +};
+> 
+>  static struct twl4030_hsmmc_info mmc[] = {
+>  	{
+> @@ -139,6 +313,14 @@ static int omap3evm_twl_gpio_setup(struct
+> device *dev,
+>  	 * the P2 connector; notably LEDA for the LCD backlight.
+>  	 */
+> 
+> +	/* TWL4030_GPIO_MAX + 0 == ledA, LCD Backlight control */
+> +	gpio_request(gpio + TWL4030_GPIO_MAX, "EN_LCD_BKL");
+> +	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+> +
+> +	/* gpio + 7 == DVI Enable */
+> +	gpio_request(gpio + 7, "EN_DVI");
+> +	gpio_direction_output(gpio + 7, 0);
+> +
+>  	/* TWL4030_GPIO_MAX + 1 == ledB (out, active low LED) */
+>  	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+> 
+> @@ -194,6 +376,47 @@ static struct twl4030_madc_platform_data
+> omap3evm_madc_data = {
+>  	.irq_line	= 1,
+>  };
+> 
+> +static struct regulator_consumer_supply omap3_evm_vdda_dac_supply =
+> {
+> +	.supply		= "vdda_dac",
+> +	.dev		= &omap3_evm_dss_device.dev,
+> +};
+> +
+> +/* VDAC for DSS driving S-Video */
+> +static struct regulator_init_data omap3_evm_vdac = {
+> +	.constraints = {
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 1800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &omap3_evm_vdda_dac_supply,
+> +};
+> +
+> +/* VPLL2 for digital video outputs */
+> +static struct regulator_consumer_supply omap3_evm_vpll2_supply = {
+> +	.supply		= "vdvi",
+> +	.dev		= &omap3_evm_lcd_device.dev,
+> +};
+> +
+> +static struct regulator_init_data omap3_evm_vpll2 = {
+> +	.constraints = {
+> +		.name			= "VDVI",
+> +		.min_uV			= 1800000,
+> +		.max_uV			= 1800000,
+> +		.apply_uV		= true,
+> +		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+> +					| REGULATOR_MODE_STANDBY,
+> +		.valid_ops_mask		= REGULATOR_CHANGE_MODE
+> +					| REGULATOR_CHANGE_STATUS,
+> +	},
+> +	.num_consumer_supplies	= 1,
+> +	.consumer_supplies	= &omap3_evm_vpll2_supply,
+> +};
+> +
+>  static struct twl4030_platform_data omap3evm_twldata = {
+>  	.irq_base	= TWL4030_IRQ_BASE,
+>  	.irq_end	= TWL4030_IRQ_END,
+> @@ -203,6 +426,8 @@ static struct twl4030_platform_data
+> omap3evm_twldata = {
+>  	.madc		= &omap3evm_madc_data,
+>  	.usb		= &omap3evm_usb_data,
+>  	.gpio		= &omap3evm_gpio_data,
+> +	.vdac		= &omap3_evm_vdac,
+> +	.vpll2		= &omap3_evm_vpll2,
+>  };
+> 
+>  static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] =
+> {
+> @@ -223,15 +448,6 @@ static int __init omap3_evm_i2c_init(void)
+>  	return 0;
+>  }
+> 
+> -static struct platform_device omap3_evm_lcd_device = {
+> -	.name		= "omap3evm_lcd",
+> -	.id		= -1,
+> -};
+> -
+> -static struct omap_lcd_config omap3_evm_lcd_config __initdata = {
+> -	.ctrl_name	= "internal",
+> -};
+> -
+>  static void ads7846_dev_init(void)
+>  {
+>  	if (gpio_request(OMAP3_EVM_TS_GPIO, "ADS7846 pendown") < 0)
+> @@ -279,7 +495,6 @@ struct spi_board_info omap3evm_spi_board_info[]
+> = {
+>  };
+> 
+>  static struct omap_board_config_kernel omap3_evm_config[]
+> __initdata = {
+> -	{ OMAP_TAG_LCD,		&omap3_evm_lcd_config },
+>  };
+> 
+>  static void __init omap3_evm_init_irq(void)
+> @@ -293,7 +508,7 @@ static void __init omap3_evm_init_irq(void)
+>  }
+> 
+>  static struct platform_device *omap3_evm_devices[] __initdata = {
+> -	&omap3_evm_lcd_device,
+> +	&omap3_evm_dss_device,
+>  	&omap3evm_smc911x_device,
+>  };
+> 
+> @@ -313,6 +528,7 @@ static void __init omap3_evm_init(void)
+>  #endif
+>  	usb_musb_init();
+>  	ads7846_dev_init();
+> +	omap3_evm_display_init();
+>  }
+> 
+>  static void __init omap3_evm_map_io(void)
+> --
+> 1.6.2.4
 
