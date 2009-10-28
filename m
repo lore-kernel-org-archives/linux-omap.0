@@ -1,45 +1,87 @@
-From: Dirk Behme <dirk.behme@googlemail.com>
-Subject: Re: MMC_CAP_SDIO IRQ for OMAP35xx
-Date: Wed, 28 Oct 2009 08:30:51 +0100
-Message-ID: <4AE7F32B.6070007@googlemail.com>
-References: <54d94f230910272337n150d4ec0kfa382d774479f10e@mail.gmail.com> <54d94f230910280002j5a4f710frd76a640f3d15aa01@mail.gmail.com>
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Subject: Re: OMAP DSS2 - bpp problem
+Date: Wed, 28 Oct 2009 11:10:27 +0200
+Message-ID: <1256721027.24999.11.camel@tubuntu.research.nokia.com>
+References: <4AE80892.3090106@cioinfoindus.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:31204 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932505AbZJ1Hav (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 03:30:51 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so1857301fga.1
-        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 00:30:55 -0700 (PDT)
-In-Reply-To: <54d94f230910280002j5a4f710frd76a640f3d15aa01@mail.gmail.com>
+Received: from smtp.nokia.com ([192.100.105.134]:56152 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932757AbZJ1JKp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 05:10:45 -0400
+In-Reply-To: <4AE80892.3090106@cioinfoindus.fr>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Phaneendra Kumar Alapati <phani@embwise.com>
-Cc: linux-omap@vger.kernel.org
+To: ext Laurent Epinat <laurent.epinat@cioinfoindus.fr>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Phaneendra Kumar Alapati wrote:
-> All,
+Hi,
+
+You can define default modes in board file, using platform data for
+omapfb.
+
+See omapfb.h:
+
+struct omapfb_platform_data
+struct omapfb_mem_desc
+struct omapfb_mem_region
+omapfb_set_platform_data(). 
+
+If you need to do it dynamically in boot scripts, you can change the
+mode via the normal fb interface. You don't need to expose
+recommended_bpp.
+
+ Tomi
+
+Ps. Please also cc linux-omap mailing list, so other people will see the
+answers also.
+
+
+On Wed, 2009-10-28 at 10:02 +0100, ext Laurent Epinat wrote:
+> Hello Tomi,
 > 
-> I have not seen any further discussion on the MMC_CAP_SDIO IRQ for
-> OMAP3430 topic.
-
-As nobody stepped (until now ;) ) into this discussion again, there 
-was nothing to discuss. I'm still working in the background at this 
-issue. I'm currently waiting for a test environment ;)
-
-> I have a working solution for sdio irq support on omap35xx. I have
-> verified and tested the functionality on omap3530evm with Marvell
-> 88W8686 WLAN cards with linux kernel 2.6.31.rc7  The wifi performance
-> was 12Mbps for downlink and 10Mbps for uplink. The performance results
-> and stability are greatly improved compared to the sdio polling. I
-> will be posting the patch soon.
-
-Great! Yes please do so!
-
-Best regards
-
-Dirk
-
+> I would like to know your opinion.
+> 
+> We had own board with 2 differents configuration
+> First with VGA/DVI display and the other with LCD panel (Prime view)
+> for each configuration we need to used 2 differents color depth (24 bpp, 
+> 16 bpp).
+> 
+> For the vga I can override the parameters with the module args 
+> (mode=dvi:1024x768-16@60)
+> but for the lcd panel is not working, I seen in the display.c
+> than the get_recommended_bpp() return the data_lines of the panel (own 
+> panel has 18 physical lines but connected like 24 lines)
+> 
+> I decided to expose the variable panel.recommended_bpp in the sysfs for 
+> forcing the value, it works but I think it's really dirty
+> cause in one case I'm using
+> 
+> 	modprobe omapdss def_disp=lcd
+> 	modprobe panel_primeview_pm070wt3
+> 	if [ x${OGLES} = x"yes" ]; then
+>   		echo "16" > /sys/devices/omapdss/display0/recommended_bpp
+>      	fi
+>      	modprobe omapfb vram=0:4M,1:4M,2:4M
+> 
+> 
+> and the other case :
+> 
+> 	modprobe omapdss def_disp=dvi
+> 	modprobe panel_generic
+> 	if [ x${OGLES} = x"yes" ]; then
+> 		SCREEN_MODE="mode=dvi:1024x768-16@60"
+> 	else
+> 		SCREEN_MODE="mode=dvi:1024x768-24@60"
+> 	fi
+> 	modprobe omapfb vram=0:4M,1:4M,2:4M :${SCREEN_MODE}
+> 
+> 
+> Have you any ideas to do it better?
+> 
+> 
+> sorry for my english
+> 
 
