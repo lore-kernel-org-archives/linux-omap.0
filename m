@@ -1,55 +1,1740 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH] omap3: Fix macro definitions
-Date: Wed, 28 Oct 2009 18:39:42 +0530
-Message-ID: <1256735382-18709-1-git-send-email-premi@ti.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: [PATCH 3/3] omap2: mux: implement encoded mux configuration
+Date: Wed, 28 Oct 2009 15:07:45 +0200
+Message-ID: <f84e5d2c1d2921af0132e89b95656a8412b1eed9.1256734115.git.mike@compulab.co.il>
+References: <cover.1256734115.git.mike@compulab.co.il>
+ <afa6b6ded8db35578a200c71938174a61eaa4ef9.1256734115.git.mike@compulab.co.il>
+ <6acc1e45771b767fb89947455837ffcdbde01b95.1256734115.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53845 "EHLO bear.ext.ti.com"
+Received: from compulab.co.il ([67.18.134.219]:55721 "EHLO compulab.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753447AbZJ1NJl (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Oct 2009 09:09:41 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9SD9hbs030085
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 08:09:46 -0500
+	id S1752511AbZJ1NRg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Oct 2009 09:17:36 -0400
+Received: from mail.linux-boards.com ([192.114.83.142] helo=zimbra-mta.compulab.co.il)
+	by compulab.site5.com with esmtp (Exim 4.69)
+	(envelope-from <mike@compulab.co.il>)
+	id 1N38PE-0007Rt-23
+	for linux-omap@vger.kernel.org; Wed, 28 Oct 2009 08:17:41 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id E5A909A0359
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 15:17:38 +0200 (IST)
+In-Reply-To: <6acc1e45771b767fb89947455837ffcdbde01b95.1256734115.git.mike@compulab.co.il>
+In-Reply-To: <cover.1256734115.git.mike@compulab.co.il>
+References: <cover.1256734115.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
+Cc: Mike Rapoport <mike@compulab.co.il>
 
-This fix avoids the compile errors in
-specific cases. Found the problem while
-creating the v2 patch for AM35xx.
-
-Signed-off-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
 ---
- arch/arm/plat-omap/include/plat/cpu.h |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/include/mach/mux.h     |  452 +++++++++++++++
+ arch/arm/mach-omap2/include/mach/mux24xx.h |  128 ++++
+ arch/arm/mach-omap2/include/mach/mux34xx.h |  862 ++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mux.c                  |  133 +++++
+ arch/arm/plat-omap/include/plat/mux.h      |   59 --
+ 5 files changed, 1575 insertions(+), 59 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/include/mach/mux.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/mux24xx.h
+ create mode 100644 arch/arm/mach-omap2/include/mach/mux34xx.h
 
-diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index 7cb0556..f4f7a2f 100644
---- a/arch/arm/plat-omap/include/plat/cpu.h
-+++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -381,16 +381,16 @@ IS_OMAP_TYPE(3430, 0x3430)
- # undef cpu_is_omap3525
- # undef cpu_is_omap3530
- # define cpu_is_omap3430()		is_omap3430()
--# define cpu_is_omap3503		(cpu_is_omap3430() &&		\
-+# define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
- 						(!omap3_has_iva()) &&	\
- 						(!omap3_has_sgx()))
--# define cpu_is_omap3515		(cpu_is_omap3430() &&		\
-+# define cpu_is_omap3515()		(cpu_is_omap3430() &&		\
- 						(omap3_has_iva()) &&	\
- 						(!omap3_has_sgx()))
--# define cpu_is_omap3525		(cpu_is_omap3430() &&		\
-+# define cpu_is_omap3525()		(cpu_is_omap3430() &&		\
- 						(omap3_has_sgx()) &&	\
- 						(!omap3_has_iva()))
--# define cpu_is_omap3530		(cpu_is_omap3430())
-+# define cpu_is_omap3530()		(cpu_is_omap3430())
- # undef cpu_is_omap3630
- # define cpu_is_omap3630()		is_omap363x()
+diff --git a/arch/arm/mach-omap2/include/mach/mux.h b/arch/arm/mach-omap2/include/mach/mux.h
+new file mode 100644
+index 0000000..c8f8be6
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/mux.h
+@@ -0,0 +1,452 @@
++/*
++ * arch/arm/mach-omap2/include/mach/mux.h
++ *
++ * Copyright (C) 2009 CompuLab, Ltd.
++ * Author: Mike Rapoport <mike@compulab.co.il>
++ *
++ * Based on PXA MFP code
++ * Copyright (C) 2007 Marvell International Ltd.
++ * Author: eric miao <eric.miao@marvell.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ */
++
++#ifndef __MACH_OMAP2_MUX_H
++#define __MACH_OMAP2_MUX_H
++
++/*
++ * list of all the configurable pins for omap2 and omap3 processors
++ * FIXME: add missing omap2 pins
++ */
++enum {
++	/* OMAP3 configurable pins */
++	MUX_PIN_INVALID = -1,
++	MUX_PIN_GPMC_A1 = 0,
++	MUX_PIN_GPMC_A2,
++	MUX_PIN_GPMC_A3,
++	MUX_PIN_GPMC_A4,
++	MUX_PIN_GPMC_A5,
++	MUX_PIN_GPMC_A6,
++	MUX_PIN_GPMC_A7,
++	MUX_PIN_GPMC_A8,
++	MUX_PIN_GPMC_A9,
++	MUX_PIN_GPMC_A10,
++	MUX_PIN_GPMC_D0,
++	MUX_PIN_GPMC_D1,
++	MUX_PIN_GPMC_D2,
++	MUX_PIN_GPMC_D3,
++	MUX_PIN_GPMC_D4,
++	MUX_PIN_GPMC_D5,
++	MUX_PIN_GPMC_D6,
++	MUX_PIN_GPMC_D7,
++	MUX_PIN_GPMC_D8,
++	MUX_PIN_GPMC_D9,
++	MUX_PIN_GPMC_D10,
++	MUX_PIN_GPMC_D11,
++	MUX_PIN_GPMC_D12,
++	MUX_PIN_GPMC_D13,
++	MUX_PIN_GPMC_D14,
++	MUX_PIN_GPMC_D15,
++	MUX_PIN_GPMC_NCS0,
++	MUX_PIN_GPMC_NCS1,
++	MUX_PIN_GPMC_NCS2,
++	MUX_PIN_GPMC_NCS3,
++	MUX_PIN_GPMC_NCS4,
++	MUX_PIN_GPMC_NCS5,
++	MUX_PIN_GPMC_NCS6,
++	MUX_PIN_GPMC_NCS7,
++	MUX_PIN_GPMC_CLK,
++	MUX_PIN_GPMC_NADV_ALE,
++	MUX_PIN_GPMC_NOE,
++	MUX_PIN_GPMC_NWE,
++	MUX_PIN_GPMC_NBE0_CLE,
++	MUX_PIN_GPMC_NBE1,
++	MUX_PIN_GPMC_NWP,
++	MUX_PIN_GPMC_WAIT0,
++	MUX_PIN_GPMC_WAIT1,
++	MUX_PIN_GPMC_WAIT2,
++	MUX_PIN_GPMC_WAIT3,
++	MUX_PIN_DSS_PCLK,
++	MUX_PIN_DSS_HSYNC,
++	MUX_PIN_DSS_VSYNC,
++	MUX_PIN_DSS_ACBIAS,
++	MUX_PIN_DSS_DATA0,
++	MUX_PIN_DSS_DATA1,
++	MUX_PIN_DSS_DATA2,
++	MUX_PIN_DSS_DATA3,
++	MUX_PIN_DSS_DATA4,
++	MUX_PIN_DSS_DATA5,
++	MUX_PIN_DSS_DATA6,
++	MUX_PIN_DSS_DATA7,
++	MUX_PIN_DSS_DATA8,
++	MUX_PIN_DSS_DATA9,
++	MUX_PIN_DSS_DATA10,
++	MUX_PIN_DSS_DATA11,
++	MUX_PIN_DSS_DATA12,
++	MUX_PIN_DSS_DATA13,
++	MUX_PIN_DSS_DATA14,
++	MUX_PIN_DSS_DATA15,
++	MUX_PIN_DSS_DATA16,
++	MUX_PIN_DSS_DATA17,
++	MUX_PIN_DSS_DATA18,
++	MUX_PIN_DSS_DATA19,
++	MUX_PIN_DSS_DATA20,
++	MUX_PIN_DSS_DATA21,
++	MUX_PIN_DSS_DATA22,
++	MUX_PIN_DSS_DATA23,
++	MUX_PIN_CAM_HS,
++	MUX_PIN_CAM_VS,
++	MUX_PIN_CAM_XCLKA,
++	MUX_PIN_CAM_PCLK,
++	MUX_PIN_CAM_FLD,
++	MUX_PIN_CAM_D0,
++	MUX_PIN_CAM_D1,
++	MUX_PIN_CAM_D2,
++	MUX_PIN_CAM_D3,
++	MUX_PIN_CAM_D4,
++	MUX_PIN_CAM_D5,
++	MUX_PIN_CAM_D6,
++	MUX_PIN_CAM_D7,
++	MUX_PIN_CAM_D8,
++	MUX_PIN_CAM_D9,
++	MUX_PIN_CAM_D10,
++	MUX_PIN_CAM_D11,
++	MUX_PIN_CAM_XCLKB,
++	MUX_PIN_CAM_WEN,
++	MUX_PIN_CAM_STROBE,
++	MUX_PIN_CSI2_DX0,
++	MUX_PIN_CSI2_DY0,
++	MUX_PIN_CSI2_DX1,
++	MUX_PIN_CSI2_DY1,
++	MUX_PIN_MCBSP2_FSX,
++	MUX_PIN_MCBSP2_CLKX,
++	MUX_PIN_MCBSP2_DR,
++	MUX_PIN_MCBSP2_DX,
++	MUX_PIN_MMC1_CLK,
++	MUX_PIN_MMC1_CMD,
++	MUX_PIN_MMC1_DAT0,
++	MUX_PIN_MMC1_DAT1,
++	MUX_PIN_MMC1_DAT2,
++	MUX_PIN_MMC1_DAT3,
++	MUX_PIN_MMC1_DAT4,
++	MUX_PIN_MMC1_DAT5,
++	MUX_PIN_MMC1_DAT6,
++	MUX_PIN_MMC1_DAT7,
++	MUX_PIN_MMC2_CLK,
++	MUX_PIN_MMC2_CMD,
++	MUX_PIN_MMC2_DAT0,
++	MUX_PIN_MMC2_DAT1,
++	MUX_PIN_MMC2_DAT2,
++	MUX_PIN_MMC2_DAT3,
++	MUX_PIN_MMC2_DAT4,
++	MUX_PIN_MMC2_DAT5,
++	MUX_PIN_MMC2_DAT6,
++	MUX_PIN_MMC2_DAT7,
++	MUX_PIN_MCBSP3_DX,
++	MUX_PIN_MCBSP3_DR,
++	MUX_PIN_MCBSP3_CLKX,
++	MUX_PIN_MCBSP3_FSX,
++	MUX_PIN_UART2_CTS,
++	MUX_PIN_UART2_RTS,
++	MUX_PIN_UART2_TX,
++	MUX_PIN_UART2_RX,
++	MUX_PIN_UART1_TX,
++	MUX_PIN_UART1_RTS,
++	MUX_PIN_UART1_CTS,
++	MUX_PIN_UART1_RX,
++	MUX_PIN_MCBSP4_CLKX,
++	MUX_PIN_MCBSP4_DR,
++	MUX_PIN_MCBSP4_DX,
++	MUX_PIN_MCBSP4_FSX,
++	MUX_PIN_MCBSP1_CLKR,
++	MUX_PIN_MCBSP1_FSR,
++	MUX_PIN_MCBSP1_DX,
++	MUX_PIN_MCBSP1_DR,
++	MUX_PIN_MCBSP_CLKS,
++	MUX_PIN_MCBSP1_FSX,
++	MUX_PIN_MCBSP1_CLKX,
++	MUX_PIN_UART3_CTS_RCTX,
++	MUX_PIN_UART3_RTS_SD,
++	MUX_PIN_UART3_RX,
++	MUX_PIN_UART3_TX,
++	MUX_PIN_HSUSB0_CLK,
++	MUX_PIN_HSUSB0_STP,
++	MUX_PIN_HSUSB0_DIR,
++	MUX_PIN_HSUSB0_NXT,
++	MUX_PIN_HSUSB0_DATA0,
++	MUX_PIN_HSUSB0_DATA1,
++	MUX_PIN_HSUSB0_DATA2,
++	MUX_PIN_HSUSB0_DATA3,
++	MUX_PIN_HSUSB0_DATA4,
++	MUX_PIN_HSUSB0_DATA5,
++	MUX_PIN_HSUSB0_DATA6,
++	MUX_PIN_HSUSB0_DATA7,
++	MUX_PIN_I2C1_SCL,
++	MUX_PIN_I2C1_SDA,
++	MUX_PIN_I2C2_SCL,
++	MUX_PIN_I2C2_SDA,
++	MUX_PIN_I2C3_SCL,
++	MUX_PIN_I2C3_SDA,
++	MUX_PIN_HDQ_SIO,
++	MUX_PIN_MCSPI1_CLK,
++	MUX_PIN_MCSPI1_SIMO,
++	MUX_PIN_MCSPI1_SOMI,
++	MUX_PIN_MCSPI1_CS0,
++	MUX_PIN_MCSPI1_CS1,
++	MUX_PIN_MCSPI1_CS2,
++	MUX_PIN_MCSPI1_CS3,
++	MUX_PIN_MCSPI2_CLK,
++	MUX_PIN_MCSPI2_SIMO,
++	MUX_PIN_MCSPI2_SOMI,
++	MUX_PIN_MCSPI2_CS0,
++	MUX_PIN_MCSPI2_CS1,
++	MUX_PIN_SYS_NIRQ,
++	MUX_PIN_SYS_CLKOUT2,
++	MUX_PIN_SAD2D_MCAD0,
++	MUX_PIN_SAD2D_MCAD1,
++	MUX_PIN_SAD2D_MCAD2,
++	MUX_PIN_SAD2D_MCAD3,
++	MUX_PIN_SAD2D_MCAD4,
++	MUX_PIN_SAD2D_MCAD5,
++	MUX_PIN_SAD2D_MCAD6,
++	MUX_PIN_SAD2D_MCAD7,
++	MUX_PIN_SAD2D_MCAD8,
++	MUX_PIN_SAD2D_MCAD9,
++	MUX_PIN_SAD2D_MCAD10,
++	MUX_PIN_SAD2D_MCAD11,
++	MUX_PIN_SAD2D_MCAD12,
++	MUX_PIN_SAD2D_MCAD13,
++	MUX_PIN_SAD2D_MCAD14,
++	MUX_PIN_SAD2D_MCAD15,
++	MUX_PIN_SAD2D_MCAD16,
++	MUX_PIN_SAD2D_MCAD17,
++	MUX_PIN_SAD2D_MCAD18,
++	MUX_PIN_SAD2D_MCAD19,
++	MUX_PIN_SAD2D_MCAD20,
++	MUX_PIN_SAD2D_MCAD21,
++	MUX_PIN_SAD2D_MCAD22,
++	MUX_PIN_SAD2D_MCAD23,
++	MUX_PIN_SAD2D_MCAD24,
++	MUX_PIN_SAD2D_MCAD25,
++	MUX_PIN_SAD2D_MCAD26,
++	MUX_PIN_SAD2D_MCAD27,
++	MUX_PIN_SAD2D_MCAD28,
++	MUX_PIN_SAD2D_MCAD29,
++	MUX_PIN_SAD2D_MCAD30,
++	MUX_PIN_SAD2D_MCAD31,
++	MUX_PIN_SAD2D_MCAD32,
++	MUX_PIN_SAD2D_MCAD33,
++	MUX_PIN_SAD2D_MCAD34,
++	MUX_PIN_SAD2D_MCAD35,
++	MUX_PIN_SAD2D_MCAD36,
++	MUX_PIN_SAD2D_CLK26MI,
++	MUX_PIN_SAD2D_NRESPWRON,
++	MUX_PIN_SAD2D_NRESWARM,
++	MUX_PIN_SAD2D_ARMNIRQ,
++	MUX_PIN_SAD2D_UMAFIQ,
++	MUX_PIN_SAD2D_SPINT,
++	MUX_PIN_SAD2D_FRINT,
++	MUX_PIN_SAD2D_DMAREQ0,
++	MUX_PIN_SAD2D_DMAREQ1,
++	MUX_PIN_SAD2D_DMAREQ2,
++	MUX_PIN_SAD2D_DMAREQ3,
++	MUX_PIN_SAD2D_NTRST,
++	MUX_PIN_SAD2D_TDI,
++	MUX_PIN_SAD2D_TDO,
++	MUX_PIN_SAD2D_TMS,
++	MUX_PIN_SAD2D_TCK,
++	MUX_PIN_SAD2D_RTCK,
++	MUX_PIN_SAD2D_MSTDBY,
++	MUX_PIN_SAD2D_IDLEREQ,
++	MUX_PIN_SAD2D_IDLEACK,
++	MUX_PIN_SAD2D_MWRITE,
++	MUX_PIN_SAD2D_SWRITE,
++	MUX_PIN_SAD2D_MREAD,
++	MUX_PIN_SAD2D_SREAD,
++	MUX_PIN_SAD2D_MBUSFLAG,
++	MUX_PIN_ETK_CLK,
++	MUX_PIN_ETK_CTL,
++	MUX_PIN_ETK_D0,
++	MUX_PIN_ETK_D1,
++	MUX_PIN_ETK_D2,
++	MUX_PIN_ETK_D3,
++	MUX_PIN_ETK_D4,
++	MUX_PIN_ETK_D5,
++	MUX_PIN_ETK_D6,
++	MUX_PIN_ETK_D7,
++	MUX_PIN_ETK_D8,
++	MUX_PIN_ETK_D9,
++	MUX_PIN_ETK_D10,
++	MUX_PIN_ETK_D11,
++	MUX_PIN_ETK_D12,
++	MUX_PIN_ETK_D13,
++	MUX_PIN_ETK_D14,
++	MUX_PIN_ETK_D15,
++	MUX_PIN_I2C4_SCL,
++	MUX_PIN_I2C4_SDA,
++	MUX_PIN_SYS_32K,
++	MUX_PIN_SYS_CLKREQ,
++	MUX_PIN_SYS_NRESWARM,
++	MUX_PIN_SYS_BOOT0,
++	MUX_PIN_SYS_BOOT1,
++	MUX_PIN_SYS_BOOT2,
++	MUX_PIN_SYS_BOOT3,
++	MUX_PIN_SYS_BOOT4,
++	MUX_PIN_SYS_BOOT5,
++	MUX_PIN_SYS_BOOT6,
++	MUX_PIN_SYS_OFF_MODE,
++	MUX_PIN_SYS_CLKOUT1,
++	MUX_PIN_JTAG_NTRST,
++	MUX_PIN_JTAG_TCK,
++	MUX_PIN_JTAG_TMS_TMSC,
++	MUX_PIN_JTAG_TDI,
++	MUX_PIN_JTAG_EMU0,
++	MUX_PIN_JTAG_EMU1,
++	MUX_PIN_SAD2D_SWAKEUP,
++	MUX_PIN_JTAG_RTCK,
++	MUX_PIN_JTAG_TDO,
++
++	/*
++	 * OMAP2 pins that do not have OMAP3 equivalents
++	 * (extracted from mux.c)
++	 */
++	MUX_PIN_SYS_CLKOUT,
++	MUX_PIN_DMAREQ4,
++	MUX_PIN_DMAREQ5,
++	MUX_PIN_KBR0,
++	MUX_PIN_KBR1,
++	MUX_PIN_KBR2,
++	MUX_PIN_KBR3,
++	MUX_PIN_KBR4,
++	MUX_PIN_KBR5,
++	MUX_PIN_KBC0,
++	MUX_PIN_KBC1,
++	MUX_PIN_KBC2,
++	MUX_PIN_KBC3,
++	MUX_PIN_KBC4,
++	MUX_PIN_KBC5,
++	MUX_PIN_KBC6,
++	MUX_PIN_MCBSP5_CLKX,
++	MUX_PIN_MCBSP5_FSX,
++	MUX_PIN_MCBSP5_DX,
++	MUX_PIN_MCBSP5_DR,
++	MUX_PIN_MMC_CLKO,
++	MUX_PIN_MMC_CLKI,
++	MUX_PIN_USB0_PUEN,
++	MUX_PIN_USB0_DAT,
++	MUX_PIN_MCBSP2_FSX_OFF,
++	MUX_PIN_MCBSP2_CLX_OFF,
++	MUX_PIN_MCBSP2_DX_OFF,
++	MUX_PIN_MCBSP2_DR_OFF,
++
++	MUX_PIN_MAX,
++};
++
++/*
++ * possible pin mux configuration is encoded into 32-bit integer
++ *
++ * for now very simplistic encoding is implemented:
++ * bits  0.. 9 - pin number (up to 1024 pins)
++ * bits 10..31 - PADCONF register value
++ *
++ * Currently only simple MUX_PIN and MUX_VAL accessors are defined.
++ */
++
++#define MUX_PIN(x)	((x) & 0x3ff)
++#define MUX_VAL(x)	((x) >> 10)
++
++struct omap_mux_addr_map {
++	unsigned int	start;
++	unsigned int	end;
++	unsigned long	offset;
++};
++
++#define MUX_ADDR_X(start, end, offset) \
++	{ MUX_PIN_##start, MUX_PIN_##end, offset }
++
++#define MUX_ADDR(pin, offset) \
++	{ MUX_PIN_##pin, -1, offset }
++
++#define MUX_ADDR_END	{ MUX_PIN_INVALID, 0 }
++
++/* 24xx/34xx mux bit defines */
++#define OMAP2_PULL_ENA		(1 << 3)
++#define OMAP2_PULL_UP		(1 << 4)
++#define OMAP2_ALTELECTRICALSEL	(1 << 5)
++
++/* 34xx specific mux bit defines */
++#define OMAP3_INPUT_EN		(1 << 8)
++#define OMAP3_OFF_EN		(1 << 9)
++#define OMAP3_OFFOUT_EN		(1 << 10)
++#define OMAP3_OFFOUT_VAL	(1 << 11)
++#define OMAP3_OFF_PULL_EN	(1 << 12)
++#define OMAP3_OFF_PULL_UP	(1 << 13)
++#define OMAP3_WAKEUP_EN		(1 << 14)
++
++/* 34xx mux mode options for each pin. See TRM for options */
++#define	OMAP34XX_MUX_MODE0	0
++#define	OMAP34XX_MUX_MODE1	1
++#define	OMAP34XX_MUX_MODE2	2
++#define	OMAP34XX_MUX_MODE3	3
++#define	OMAP34XX_MUX_MODE4	4
++#define	OMAP34XX_MUX_MODE5	5
++#define	OMAP34XX_MUX_MODE6	6
++#define	OMAP34XX_MUX_MODE7	7
++
++/* 34xx active pin states */
++#define OMAP34XX_PIN_OUTPUT		0
++#define OMAP34XX_PIN_INPUT		OMAP3_INPUT_EN
++#define OMAP34XX_PIN_INPUT_PULLUP	(OMAP2_PULL_ENA | OMAP3_INPUT_EN \
++						| OMAP2_PULL_UP)
++#define OMAP34XX_PIN_INPUT_PULLDOWN	(OMAP2_PULL_ENA | OMAP3_INPUT_EN)
++
++/* 34xx off mode states */
++#define OMAP34XX_PIN_OFF_NONE           0
++#define OMAP34XX_PIN_OFF_OUTPUT_HIGH	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN \
++						| OMAP3_OFFOUT_VAL)
++#define OMAP34XX_PIN_OFF_OUTPUT_LOW	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN)
++#define OMAP34XX_PIN_OFF_INPUT_PULLUP	(OMAP3_OFF_EN | OMAP3_OFF_PULL_EN \
++						| OMAP3_OFF_PULL_UP)
++#define OMAP34XX_PIN_OFF_INPUT_PULLDOWN	(OMAP3_OFF_EN | OMAP3_OFF_PULL_EN)
++#define OMAP34XX_PIN_OFF_WAKEUPENABLE	OMAP3_WAKEUP_EN
++
++#define MUX_CFG_24XX(desc, reg_offset, mode,			\
++				pull_en, pull_mode, dbg)	\
++{								\
++	.name		= desc,					\
++	.debug		= dbg,					\
++	.mux_reg	= reg_offset,				\
++	.mask		= mode,					\
++	.pull_val	= pull_en,				\
++	.pu_pd_val	= pull_mode,				\
++},
++
++#define MUX_CFG_34XX(desc, reg_offset, mux_value) {		\
++	.name		= desc,					\
++	.debug		= 0,					\
++	.mux_reg	= reg_offset,				\
++	.mux_val	= mux_value				\
++},
++
++#ifdef CONFIG_ARCH_OMAP24XX
++#include <mach/mux24xx.h>
++#endif
++
++#ifdef CONFIG_ARCH_OMAP34XX
++#include <mach/mux34xx.h>
++#endif
++
++#endif
+diff --git a/arch/arm/mach-omap2/include/mach/mux24xx.h b/arch/arm/mach-omap2/include/mach/mux24xx.h
+new file mode 100644
+index 0000000..c6c8e00
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/mux24xx.h
+@@ -0,0 +1,128 @@
++/*
++ * arch/arm/mach-omap2/include/mach/mux34xx.h
++ *
++ * Copyright (C) 2009 CompuLab, Ltd.
++ * Author: Mike Rapoport <mike@compulab.co.il>
++ *
++ * Based on PXA MFP code
++ * Copyright (C) 2007 Marvell International Ltd.
++ * Author: eric miao <eric.miao@marvell.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ */
++
++#ifndef __MACH_OMAP2_MUX24XX_H
++#define __MACH_OMAP2_MUX24XX_H
++
++/*
++ * Mux options encodings for OMAP2
++ */
++/* mux mode options */
++#define	OMAP2_MUX_MODE0	(0 << 10)
++#define	OMAP2_MUX_MODE1	(1 << 10)
++#define	OMAP2_MUX_MODE2	(2 << 10)
++#define	OMAP2_MUX_MODE3	(3 << 10)
++#define	OMAP2_MUX_MODE4	(4 << 10)
++
++/* pull up/down selection */
++#define OMAP2_PIN_PULLDOWN	(OMAP2_PULL_ENA << 10)
++#define OMAP2_PIN_PULLUP	(OMAP2_PULL_UP << 10)
++#define OMAP2_PIN_PULLUP_EN	((OMAP2_PULL_ENA | OMAP2_PULL_UP) << 10)
++
++#define OMAP2_PIN(pin, mode) \
++	((MUX_PIN(MUX_PIN_##pin)) | (OMAP2_MUX_##mode))
++#define OMAP2_PIN_PD(pin, mode) \
++	(OMAP2_PIN(pin, mode) | OMAP2_PIN_PULLDOWN)
++#define OMAP2_PIN_PU(pin, mode) \
++	(OMAP2_PIN(pin, mode) | OMAP2_PIN_PULLUP)
++#define OMAP2_PIN_PU_EN(pin, mode) \
++	(OMAP2_PIN(pin, mode) | OMAP2_PIN_PULLUP_EN)
++
++/*
++ * Mux option encodings for possible pin configurations.
++ * Each encoding named by MODE0 pin function with addition of
++ * particular mode function.
++ *
++ * FIXME: currently encodings defined for MODE0 only as they can be
++ * extrated from omap24xx_pins table. We need to add encodings for
++ * missing pins and encodings for modes other than 0.
++ */
++#define OMAP2_I2C1_SCL		OMAP2_PIN(I2C1_SCL, MODE0)
++#define OMAP2_I2C1_SDA		OMAP2_PIN(I2C1_SDA, MODE0)
++#define OMAP2_I2C2_SCL		OMAP2_PIN_PU(I2C2_SCL, MODE0)
++#define OMAP2_I2C2_SDA		OMAP2_PIN(I2C2_SDA, MODE0)
++#define OMAP2_SYS_NIRQ		OMAP2_PIN_PU_EN(SYS_NIRQ, MODE0)
++#define OMAP2_SYS_CLKOUT	OMAP2_PIN_PU_EN(SYS_CLKOUT, MODE0)
++#define OMAP2_GPMC_NCS2		OMAP2_PIN_PU_EN(GPMC_NCS2, MODE0)
++#define OMAP2_GPMC_NCS7		OMAP2_PIN_PU_EN(GPMC_NCS7, MODE0)
++#define OMAP2_GPMC_WAIT0	OMAP2_PIN_PU_EN(GPMC_WAIT0, MODE0)
++#define OMAP2_GPMC_WAIT1	OMAP2_PIN_PU_EN(GPMC_WAIT1, MODE0)
++#define OMAP2_GPMC_WAIT2	OMAP2_PIN_PU_EN(GPMC_WAIT2, MODE0)
++#define OMAP2_GPMC_WAIT3	OMAP2_PIN_PU_EN(GPMC_WAIT3, MODE0)
++#define OMAP2_UART3_TX		OMAP2_PIN(UART3_TX, MODE0)
++#define OMAP2_UART3_RX		OMAP2_PIN(UART3_RX, MODE0)
++#define OMAP2_MMC_CLKO		OMAP2_PIN(MMC_CLKO, MODE0)
++#define OMAP2_MMC_CMD		OMAP2_PIN(MMC_CMD, MODE0)
++#define OMAP2_MMC_DAT0		OMAP2_PIN(MMC_DAT0, MODE0)
++#define OMAP2_MMC_DAT1		OMAP2_PIN(MMC_DAT1, MODE0)
++#define OMAP2_MMC_DAT2		OMAP2_PIN(MMC_DAT2, MODE0)
++#define OMAP2_MMC_DAT3		OMAP2_PIN(MMC_DAT3, MODE0)
++#define OMAP2_MMC_DAT_DIR0	OMAP2_PIN(MMC_DAT_DIR0, MODE0)
++#define OMAP2_MMC_DAT_DIR1	OMAP2_PIN(MMC_DAT_DIR1, MODE0)
++#define OMAP2_MMC_DAT_DIR2	OMAP2_PIN(MMC_DAT_DIR2, MODE0)
++#define OMAP2_MMC_DAT_DIR3	OMAP2_PIN(MMC_DAT_DIR3, MODE0)
++#define OMAP2_MMC_CMD_DIR	OMAP2_PIN(MMC_CMD_DIR, MODE0)
++#define OMAP2_MMC_CLKI		OMAP2_PIN(MMC_CLKI, MODE0)
++#define OMAP2_USB0_PUEN		OMAP2_PIN(USB0_PUEN, MODE0)
++#define OMAP2_USB0_VP		OMAP2_PIN(USB0_VP, MODE0)
++#define OMAP2_USB0_VM		OMAP2_PIN(USB0_VM, MODE0)
++#define OMAP2_USB0_RCV		OMAP2_PIN(USB0_RCV, MODE0)
++#define OMAP2_USB0_TXEN		OMAP2_PIN(USB0_TXEN, MODE0)
++#define OMAP2_USB0_SE0		OMAP2_PIN(USB0_SE0, MODE0)
++#define OMAP2_USB0_DAT		OMAP2_PIN(USB0_DAT, MODE0)
++#define OMAP2_USB0HS_DATA3	OMAP2_PIN(USB0HS_DATA3, MODE0)
++#define OMAP2_USB0HS_DATA4	OMAP2_PIN(USB0HS_DATA4, MODE0)
++#define OMAP2_USB0HS_DATA5	OMAP2_PIN(USB0HS_DATA5, MODE0)
++#define OMAP2_USB0HS_DATA6	OMAP2_PIN(USB0HS_DATA6, MODE0)
++#define OMAP2_USB0HS_DATA2	OMAP2_PIN(USB0HS_DATA2, MODE0)
++#define OMAP2_USB0HS_DATA0	OMAP2_PIN(USB0HS_DATA0, MODE0)
++#define OMAP2_USB0HS_DATA1	OMAP2_PIN(USB0HS_DATA1, MODE0)
++#define OMAP2_USB0HS_CLK	OMAP2_PIN(USB0HS_CLK, MODE0)
++#define OMAP2_USB0HS_DIR	OMAP2_PIN(USB0HS_DIR, MODE0)
++#define OMAP2_USB0HS_STP	OMAP2_PIN_PU_EN(USB0HS_STP, MODE0)
++#define OMAP2_USB0HS_NXT	OMAP2_PIN(USB0HS_NXT, MODE0)
++#define OMAP2_USB0HS_DATA7	OMAP2_PIN(USB0HS_DATA7, MODE0)
++#define OMAP2_MCBSP_CLKS	OMAP2_PIN(MCBSP_CLKS, MODE0)
++#define OMAP2_MCBSP1_CLKR	OMAP2_PIN(MCBSP1_CLKR, MODE0)
++#define OMAP2_MCBSP1_FSR	OMAP2_PIN(MCBSP1_FSR, MODE0)
++#define OMAP2_MCBSP1_DX		OMAP2_PIN(MCBSP1_DX, MODE0)
++#define OMAP2_MCBSP1_DR		OMAP2_PIN(MCBSP1_DR, MODE0)
++#define OMAP2_MCBSP1_FSX	OMAP2_PIN(MCBSP1_FSX, MODE0)
++#define OMAP2_MCBSP1_CLKX	OMAP2_PIN(MCBSP1_CLKX, MODE0)
++#define OMAP2_MCBSP2_FSX_OFF	OMAP2_PIN(MCBSP2_FSX_OFF, MODE0)
++#define OMAP2_MCBSP2_CLX_OFF	OMAP2_PIN(MCBSP2_CLX_OFF, MODE0)
++#define OMAP2_MCBSP2_DX_OFF	OMAP2_PIN(MCBSP2_DX_OFF, MODE0)
++#define OMAP2_MCBSP2_DR_OFF	OMAP2_PIN(MCBSP2_DR_OFF, MODE0)
++#define OMAP2_MCBSP3_CLKX	OMAP2_PIN(MCBSP3_CLKX, MODE0)
++#define OMAP2_MCBSP3_FSX	OMAP2_PIN(MCBSP3_FSX, MODE0)
++#define OMAP2_MCBSP3_DR		OMAP2_PIN(MCBSP3_DR, MODE0)
++#define OMAP2_MCBSP3_DX		OMAP2_PIN(MCBSP3_DX, MODE0)
++#define OMAP2_MCSPI1_CLK	OMAP2_PIN(MCSPI1_CLK, MODE0)
++#define OMAP2_MCSPI1_SIMO	OMAP2_PIN(MCSPI1_SIMO, MODE0)
++#define OMAP2_MCSPI1_SOMI	OMAP2_PIN(MCSPI1_SOMI, MODE0)
++#define OMAP2_MCSPI1_CS0	OMAP2_PIN(MCSPI1_CS0, MODE0)
++
++#endif
+diff --git a/arch/arm/mach-omap2/include/mach/mux34xx.h b/arch/arm/mach-omap2/include/mach/mux34xx.h
+new file mode 100644
+index 0000000..10a8a06
+--- /dev/null
++++ b/arch/arm/mach-omap2/include/mach/mux34xx.h
+@@ -0,0 +1,862 @@
++/*
++ * arch/arm/mach-omap2/include/mach/mux34xx.h
++ *
++ * Copyright (C) 2009 CompuLab, Ltd.
++ * Author: Mike Rapoport <mike@compulab.co.il>
++ *
++ * Based on PXA MFP code
++ * Copyright (C) 2007 Marvell International Ltd.
++ * Author: eric miao <eric.miao@marvell.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ */
++
++#ifndef __MACH_OMAP2_MUX34XX_H
++#define __MACH_OMAP2_MUX34XX_H
++
++/*
++ * Mux options encodings for OMAP3
++ */
++/* mux mode options */
++#define	OMAP3_MUX_MODE0	(OMAP34XX_MUX_MODE0 << 10)
++#define	OMAP3_MUX_MODE1	(OMAP34XX_MUX_MODE1 << 10)
++#define	OMAP3_MUX_MODE2	(OMAP34XX_MUX_MODE2 << 10)
++#define	OMAP3_MUX_MODE3	(OMAP34XX_MUX_MODE3 << 10)
++#define	OMAP3_MUX_MODE4	(OMAP34XX_MUX_MODE4 << 10)
++#define	OMAP3_MUX_MODE5	(OMAP34XX_MUX_MODE5 << 10)
++#define	OMAP3_MUX_MODE6	(OMAP34XX_MUX_MODE6 << 10)
++#define	OMAP3_MUX_MODE7	(OMAP34XX_MUX_MODE7 << 10)
++
++/* 34xx active pin states */
++#define OMAP3_PIN_OUTPUT		(0 << 10)
++#define OMAP3_PIN_INPUT			(OMAP34XX_PIN_INPUT << 10)
++#define OMAP3_PIN_INPUT_PULLUP		(OMAP34XX_PIN_INPUT_PULLUP << 10)
++#define OMAP3_PIN_INPUT_PULLDOWN	(OMAP34XX_PIN_INPUT_PULLDOWN << 10)
++
++/* 34xx off mode states */
++#define OMAP3_PIN_OFF_NONE		(0 << 10)
++#define OMAP3_PIN_OFF_OUTPUT_HIGH	(OMAP34XX_PIN_OFF_OUTPUT_HIGH << 10)
++#define OMAP3_PIN_OFF_OUTPUT_LOW	(OMAP34XX_PIN_OFF_OUTPUT_LOW << 10)
++#define OMAP3_PIN_OFF_INPUT_PULLUP	(OMAP34XX_PIN_OFF_INPUT_PULLUP << 10)
++#define OMAP3_PIN_OFF_INPUT_PULLDOWN	(OMAP3_PIN_OFF_INPUT_PULLDOWN << 10)
++#define OMAP3_PIN_OFF_WAKEUPENABLE	(OMAP3_WAKEUP_EN << 10)
++
++#define OMAP3_PIN(pin, mode) \
++	((MUX_PIN(MUX_PIN_##pin)) | (OMAP3_MUX_##mode))
++#define OMAP3_PIN_IN(pin, mode)	\
++	(OMAP3_PIN(pin, mode) | OMAP3_PIN_INPUT)
++#define OMAP3_PIN_IN_PU(pin, mode) \
++	(OMAP3_PIN(pin, mode) | OMAP3_PIN_INPUT_PULLUP)
++#define OMAP3_PIN_IN_PD(pin, mode) \
++	(OMAP3_PIN(pin, mode) | OMAP3_PIN_INPUT_PULLDOWN)
++
++/*
++ * Mux option encodings for all possible pin configurations.
++ * Each encoding named by MODE0 pin function with addition of
++ * particular mode function.
++ * E.g. pin OMAP3_UART1_RX encoding for MODE2 will be called
++ * OMAP3_UART1_RX_MCBSP1_CLKR
++ *
++ * FIXME: add input and pull{up,down} enables where necessary
++ */
++#define OMAP3_GPMC_A1		OMAP3_PIN(GPMC_A1, MODE0)
++#define OMAP3_GPMC_A2		OMAP3_PIN(GPMC_A2, MODE0)
++#define OMAP3_GPMC_A3		OMAP3_PIN(GPMC_A3, MODE0)
++#define OMAP3_GPMC_A4		OMAP3_PIN(GPMC_A4, MODE0)
++#define OMAP3_GPMC_A5		OMAP3_PIN(GPMC_A5, MODE0)
++#define OMAP3_GPMC_A6		OMAP3_PIN(GPMC_A6, MODE0)
++#define OMAP3_GPMC_A7		OMAP3_PIN(GPMC_A7, MODE0)
++#define OMAP3_GPMC_A8		OMAP3_PIN(GPMC_A8, MODE0)
++#define OMAP3_GPMC_A9		OMAP3_PIN(GPMC_A9, MODE0)
++#define OMAP3_GPMC_A10		OMAP3_PIN(GPMC_A10, MODE0)
++#define OMAP3_GPMC_D0		OMAP3_PIN(GPMC_D0, MODE0)
++#define OMAP3_GPMC_D1		OMAP3_PIN(GPMC_D1, MODE0)
++#define OMAP3_GPMC_D2		OMAP3_PIN(GPMC_D2, MODE0)
++#define OMAP3_GPMC_D3		OMAP3_PIN(GPMC_D3, MODE0)
++#define OMAP3_GPMC_D4		OMAP3_PIN(GPMC_D4, MODE0)
++#define OMAP3_GPMC_D5		OMAP3_PIN(GPMC_D5, MODE0)
++#define OMAP3_GPMC_D6		OMAP3_PIN(GPMC_D6, MODE0)
++#define OMAP3_GPMC_D7		OMAP3_PIN(GPMC_D7, MODE0)
++#define OMAP3_GPMC_D8		OMAP3_PIN(GPMC_D8, MODE0)
++#define OMAP3_GPMC_D9		OMAP3_PIN(GPMC_D9, MODE0)
++#define OMAP3_GPMC_D10		OMAP3_PIN(GPMC_D10, MODE0)
++#define OMAP3_GPMC_D11		OMAP3_PIN(GPMC_D11, MODE0)
++#define OMAP3_GPMC_D12		OMAP3_PIN(GPMC_D12, MODE0)
++#define OMAP3_GPMC_D13		OMAP3_PIN(GPMC_D13, MODE0)
++#define OMAP3_GPMC_D14		OMAP3_PIN(GPMC_D14, MODE0)
++#define OMAP3_GPMC_D15		OMAP3_PIN(GPMC_D15, MODE0)
++#define OMAP3_GPMC_NCS0		OMAP3_PIN(GPMC_NCS0, MODE0)
++#define OMAP3_GPMC_NCS1		OMAP3_PIN(GPMC_NCS1, MODE0)
++#define OMAP3_GPMC_NCS2		OMAP3_PIN(GPMC_NCS2, MODE0)
++#define OMAP3_GPMC_NCS3		OMAP3_PIN(GPMC_NCS3, MODE0)
++#define OMAP3_GPMC_NCS4		OMAP3_PIN(GPMC_NCS4, MODE0)
++#define OMAP3_GPMC_NCS5		OMAP3_PIN(GPMC_NCS5, MODE0)
++#define OMAP3_GPMC_NCS6		OMAP3_PIN(GPMC_NCS6, MODE0)
++#define OMAP3_GPMC_NCS7		OMAP3_PIN(GPMC_NCS7, MODE0)
++#define OMAP3_GPMC_CLK		OMAP3_PIN(GPMC_CLK, MODE0)
++#define OMAP3_GPMC_NADV_ALE	OMAP3_PIN(GPMC_NADV_ALE, MODE0)
++#define OMAP3_GPMC_NOE		OMAP3_PIN(GPMC_NOE, MODE0)
++#define OMAP3_GPMC_NWE		OMAP3_PIN(GPMC_NWE, MODE0)
++#define OMAP3_GPMC_NBE0_CLE	OMAP3_PIN(GPMC_NBE0_CLE, MODE0)
++#define OMAP3_GPMC_NBE1		OMAP3_PIN(GPMC_NBE1, MODE0)
++#define OMAP3_GPMC_NWP		OMAP3_PIN(GPMC_NWP, MODE0)
++#define OMAP3_GPMC_WAIT0	OMAP3_PIN(GPMC_WAIT0, MODE0)
++#define OMAP3_GPMC_WAIT1	OMAP3_PIN(GPMC_WAIT1, MODE0)
++#define OMAP3_GPMC_WAIT2	OMAP3_PIN(GPMC_WAIT2, MODE0)
++#define OMAP3_GPMC_WAIT3	OMAP3_PIN(GPMC_WAIT3, MODE0)
++#define OMAP3_DSS_PCLK		OMAP3_PIN(DSS_PCLK, MODE0)
++#define OMAP3_DSS_HSYNC		OMAP3_PIN(DSS_HSYNC, MODE0)
++#define OMAP3_DSS_VSYNC		OMAP3_PIN(DSS_VSYNC, MODE0)
++#define OMAP3_DSS_ACBIAS	OMAP3_PIN(DSS_ACBIAS, MODE0)
++#define OMAP3_DSS_DATA0		OMAP3_PIN(DSS_DATA0, MODE0)
++#define OMAP3_DSS_DATA1		OMAP3_PIN(DSS_DATA1, MODE0)
++#define OMAP3_DSS_DATA2		OMAP3_PIN(DSS_DATA2, MODE0)
++#define OMAP3_DSS_DATA3		OMAP3_PIN(DSS_DATA3, MODE0)
++#define OMAP3_DSS_DATA4		OMAP3_PIN(DSS_DATA4, MODE0)
++#define OMAP3_DSS_DATA5		OMAP3_PIN(DSS_DATA5, MODE0)
++#define OMAP3_DSS_DATA6		OMAP3_PIN(DSS_DATA6, MODE0)
++#define OMAP3_DSS_DATA7		OMAP3_PIN(DSS_DATA7, MODE0)
++#define OMAP3_DSS_DATA8		OMAP3_PIN(DSS_DATA8, MODE0)
++#define OMAP3_DSS_DATA9		OMAP3_PIN(DSS_DATA9, MODE0)
++#define OMAP3_DSS_DATA10	OMAP3_PIN(DSS_DATA10, MODE0)
++#define OMAP3_DSS_DATA11	OMAP3_PIN(DSS_DATA11, MODE0)
++#define OMAP3_DSS_DATA12	OMAP3_PIN(DSS_DATA12, MODE0)
++#define OMAP3_DSS_DATA13	OMAP3_PIN(DSS_DATA13, MODE0)
++#define OMAP3_DSS_DATA14	OMAP3_PIN(DSS_DATA14, MODE0)
++#define OMAP3_DSS_DATA15	OMAP3_PIN(DSS_DATA15, MODE0)
++#define OMAP3_DSS_DATA16	OMAP3_PIN(DSS_DATA16, MODE0)
++#define OMAP3_DSS_DATA17	OMAP3_PIN(DSS_DATA17, MODE0)
++#define OMAP3_DSS_DATA18	OMAP3_PIN(DSS_DATA18, MODE0)
++#define OMAP3_DSS_DATA19	OMAP3_PIN(DSS_DATA19, MODE0)
++#define OMAP3_DSS_DATA20	OMAP3_PIN(DSS_DATA20, MODE0)
++#define OMAP3_DSS_DATA21	OMAP3_PIN(DSS_DATA21, MODE0)
++#define OMAP3_DSS_DATA22	OMAP3_PIN(DSS_DATA22, MODE0)
++#define OMAP3_DSS_DATA23	OMAP3_PIN(DSS_DATA23, MODE0)
++#define OMAP3_CAM_HS		OMAP3_PIN(CAM_HS, MODE0)
++#define OMAP3_CAM_VS		OMAP3_PIN(CAM_VS, MODE0)
++#define OMAP3_CAM_XCLKA		OMAP3_PIN(CAM_XCLKA, MODE0)
++#define OMAP3_CAM_PCLK		OMAP3_PIN(CAM_PCLK, MODE0)
++#define OMAP3_CAM_FLD		OMAP3_PIN(CAM_FLD, MODE0)
++#define OMAP3_CAM_D0		OMAP3_PIN(CAM_D0, MODE0)
++#define OMAP3_CAM_D1		OMAP3_PIN(CAM_D1, MODE0)
++#define OMAP3_CAM_D2		OMAP3_PIN(CAM_D2, MODE0)
++#define OMAP3_CAM_D3		OMAP3_PIN(CAM_D3, MODE0)
++#define OMAP3_CAM_D4		OMAP3_PIN(CAM_D4, MODE0)
++#define OMAP3_CAM_D5		OMAP3_PIN(CAM_D5, MODE0)
++#define OMAP3_CAM_D6		OMAP3_PIN(CAM_D6, MODE0)
++#define OMAP3_CAM_D7		OMAP3_PIN(CAM_D7, MODE0)
++#define OMAP3_CAM_D8		OMAP3_PIN(CAM_D8, MODE0)
++#define OMAP3_CAM_D9		OMAP3_PIN(CAM_D9, MODE0)
++#define OMAP3_CAM_D10		OMAP3_PIN(CAM_D10, MODE0)
++#define OMAP3_CAM_D11		OMAP3_PIN(CAM_D11, MODE0)
++#define OMAP3_CAM_XCLKB		OMAP3_PIN(CAM_XCLKB, MODE0)
++#define OMAP3_CAM_WEN		OMAP3_PIN(CAM_WEN, MODE0)
++#define OMAP3_CAM_STROBE	OMAP3_PIN(CAM_STROBE, MODE0)
++#define OMAP3_CSI2_DX0		OMAP3_PIN(CSI2_DX0, MODE0)
++#define OMAP3_CSI2_DY0		OMAP3_PIN(CSI2_DY0, MODE0)
++#define OMAP3_CSI2_DX1		OMAP3_PIN(CSI2_DX1, MODE0)
++#define OMAP3_CSI2_DY1		OMAP3_PIN(CSI2_DY1, MODE0)
++#define OMAP3_MCBSP2_FSX	OMAP3_PIN(MCBSP2_FSX, MODE0)
++#define OMAP3_MCBSP2_CLKX	OMAP3_PIN(MCBSP2_CLKX, MODE0)
++#define OMAP3_MCBSP2_DR		OMAP3_PIN(MCBSP2_DR, MODE0)
++#define OMAP3_MCBSP2_DX		OMAP3_PIN(MCBSP2_DX, MODE0)
++#define OMAP3_MMC1_CLK		OMAP3_PIN(MMC1_CLK, MODE0)
++#define OMAP3_MMC1_CMD		OMAP3_PIN(MMC1_CMD, MODE0)
++#define OMAP3_MMC1_DAT0		OMAP3_PIN(MMC1_DAT0, MODE0)
++#define OMAP3_MMC1_DAT1		OMAP3_PIN(MMC1_DAT1, MODE0)
++#define OMAP3_MMC1_DAT2		OMAP3_PIN(MMC1_DAT2, MODE0)
++#define OMAP3_MMC1_DAT3		OMAP3_PIN(MMC1_DAT3, MODE0)
++#define OMAP3_MMC1_DAT4		OMAP3_PIN(MMC1_DAT4, MODE0)
++#define OMAP3_MMC1_DAT5		OMAP3_PIN(MMC1_DAT5, MODE0)
++#define OMAP3_MMC1_DAT6		OMAP3_PIN(MMC1_DAT6, MODE0)
++#define OMAP3_MMC1_DAT7		OMAP3_PIN(MMC1_DAT7, MODE0)
++#define OMAP3_MMC2_CLK		OMAP3_PIN(MMC2_CLK, MODE0)
++#define OMAP3_MMC2_CMD		OMAP3_PIN(MMC2_CMD, MODE0)
++#define OMAP3_MMC2_DAT0		OMAP3_PIN(MMC2_DAT0, MODE0)
++#define OMAP3_MMC2_DAT1		OMAP3_PIN(MMC2_DAT1, MODE0)
++#define OMAP3_MMC2_DAT2		OMAP3_PIN(MMC2_DAT2, MODE0)
++#define OMAP3_MMC2_DAT3		OMAP3_PIN(MMC2_DAT3, MODE0)
++#define OMAP3_MMC2_DAT4		OMAP3_PIN(MMC2_DAT4, MODE0)
++#define OMAP3_MMC2_DAT5		OMAP3_PIN(MMC2_DAT5, MODE0)
++#define OMAP3_MMC2_DAT6		OMAP3_PIN(MMC2_DAT6, MODE0)
++#define OMAP3_MMC2_DAT7		OMAP3_PIN(MMC2_DAT7, MODE0)
++#define OMAP3_MCBSP3_DX		OMAP3_PIN(MCBSP3_DX, MODE0)
++#define OMAP3_MCBSP3_DR		OMAP3_PIN(MCBSP3_DR, MODE0)
++#define OMAP3_MCBSP3_CLKX	OMAP3_PIN(MCBSP3_CLKX, MODE0)
++#define OMAP3_MCBSP3_FSX	OMAP3_PIN(MCBSP3_FSX, MODE0)
++#define OMAP3_UART2_CTS		OMAP3_PIN(UART2_CTS, MODE0)
++#define OMAP3_UART2_RTS		OMAP3_PIN(UART2_RTS, MODE0)
++#define OMAP3_UART2_TX		OMAP3_PIN(UART2_TX, MODE0)
++#define OMAP3_UART2_RX		OMAP3_PIN(UART2_RX, MODE0)
++#define OMAP3_UART1_TX		OMAP3_PIN(UART1_TX, MODE0)
++#define OMAP3_UART1_RTS		OMAP3_PIN(UART1_RTS, MODE0)
++#define OMAP3_UART1_CTS		OMAP3_PIN(UART1_CTS, MODE0)
++#define OMAP3_UART1_RX		OMAP3_PIN(UART1_RX, MODE0)
++#define OMAP3_MCBSP4_CLKX	OMAP3_PIN(MCBSP4_CLKX, MODE0)
++#define OMAP3_MCBSP4_DR		OMAP3_PIN(MCBSP4_DR, MODE0)
++#define OMAP3_MCBSP4_DX		OMAP3_PIN(MCBSP4_DX, MODE0)
++#define OMAP3_MCBSP4_FSX	OMAP3_PIN(MCBSP4_FSX, MODE0)
++#define OMAP3_MCBSP1_CLKR	OMAP3_PIN(MCBSP1_CLKR, MODE0)
++#define OMAP3_MCBSP1_FSR	OMAP3_PIN(MCBSP1_FSR, MODE0)
++#define OMAP3_MCBSP1_DX		OMAP3_PIN(MCBSP1_DX, MODE0)
++#define OMAP3_MCBSP1_DR		OMAP3_PIN(MCBSP1_DR, MODE0)
++#define OMAP3_MCBSP_CLKS	OMAP3_PIN(MCBSP_CLKS, MODE0)
++#define OMAP3_MCBSP1_FSX	OMAP3_PIN(MCBSP1_FSX, MODE0)
++#define OMAP3_MCBSP1_CLKX	OMAP3_PIN(MCBSP1_CLKX, MODE0)
++#define OMAP3_UART3_CTS_RCTX	OMAP3_PIN(UART3_CTS_RCTX, MODE0)
++#define OMAP3_UART3_RTS_SD	OMAP3_PIN(UART3_RTS_SD, MODE0)
++#define OMAP3_UART3_RX_IRRX	OMAP3_PIN(UART3_RX, MODE0)
++#define OMAP3_UART3_TX_IRTX	OMAP3_PIN(UART3_TX, MODE0)
++#define OMAP3_HSUSB0_CLK	OMAP3_PIN(HSUSB0_CLK, MODE0)
++#define OMAP3_HSUSB0_STP	OMAP3_PIN(HSUSB0_STP, MODE0)
++#define OMAP3_HSUSB0_DIR	OMAP3_PIN(HSUSB0_DIR, MODE0)
++#define OMAP3_HSUSB0_NXT	OMAP3_PIN(HSUSB0_NXT, MODE0)
++#define OMAP3_HSUSB0_DATA0	OMAP3_PIN(HSUSB0_DATA0, MODE0)
++#define OMAP3_HSUSB0_DATA1	OMAP3_PIN(HSUSB0_DATA1, MODE0)
++#define OMAP3_HSUSB0_DATA2	OMAP3_PIN(HSUSB0_DATA2, MODE0)
++#define OMAP3_HSUSB0_DATA3	OMAP3_PIN(HSUSB0_DATA3, MODE0)
++#define OMAP3_HSUSB0_DATA4	OMAP3_PIN(HSUSB0_DATA4, MODE0)
++#define OMAP3_HSUSB0_DATA5	OMAP3_PIN(HSUSB0_DATA5, MODE0)
++#define OMAP3_HSUSB0_DATA6	OMAP3_PIN(HSUSB0_DATA6, MODE0)
++#define OMAP3_HSUSB0_DATA7	OMAP3_PIN(HSUSB0_DATA7, MODE0)
++#define OMAP3_I2C1_SCL		OMAP3_PIN(I2C1_SCL, MODE0)
++#define OMAP3_I2C1_SDA		OMAP3_PIN(I2C1_SDA, MODE0)
++#define OMAP3_I2C2_SCL		OMAP3_PIN(I2C2_SCL, MODE0)
++#define OMAP3_I2C2_SDA		OMAP3_PIN(I2C2_SDA, MODE0)
++#define OMAP3_I2C3_SCL		OMAP3_PIN(I2C3_SCL, MODE0)
++#define OMAP3_I2C3_SDA		OMAP3_PIN(I2C3_SDA, MODE0)
++#define OMAP3_HDQ_SIO		OMAP3_PIN(HDQ_SIO, MODE0)
++#define OMAP3_MCSPI1_CLK	OMAP3_PIN(MCSPI1_CLK, MODE0)
++#define OMAP3_MCSPI1_SIMO	OMAP3_PIN(MCSPI1_SIMO, MODE0)
++#define OMAP3_MCSPI1_SOMI	OMAP3_PIN(MCSPI1_SOMI, MODE0)
++#define OMAP3_MCSPI1_CS0	OMAP3_PIN(MCSPI1_CS0, MODE0)
++#define OMAP3_MCSPI1_CS1	OMAP3_PIN(MCSPI1_CS1, MODE0)
++#define OMAP3_MCSPI1_CS2	OMAP3_PIN(MCSPI1_CS2, MODE0)
++#define OMAP3_MCSPI1_CS3	OMAP3_PIN(MCSPI1_CS3, MODE0)
++#define OMAP3_MCSPI2_CLK	OMAP3_PIN(MCSPI2_CLK, MODE0)
++#define OMAP3_MCSPI2_SIMO	OMAP3_PIN(MCSPI2_SIMO, MODE0)
++#define OMAP3_MCSPI2_SOMI	OMAP3_PIN(MCSPI2_SOMI, MODE0)
++#define OMAP3_MCSPI2_CS0	OMAP3_PIN(MCSPI2_CS0, MODE0)
++#define OMAP3_MCSPI2_CS1	OMAP3_PIN(MCSPI2_CS1, MODE0)
++#define OMAP3_SYS_NIRQ		OMAP3_PIN(SYS_NIRQ, MODE0)
++#define OMAP3_SYS_CLKOUT2	OMAP3_PIN(SYS_CLKOUT2, MODE0)
++#define OMAP3_ETK_CLK		OMAP3_PIN(ETK_CLK, MODE0)
++#define OMAP3_ETK_CTL		OMAP3_PIN(ETK_CTL, MODE0)
++#define OMAP3_ETK_D0		OMAP3_PIN(ETK_D0, MODE0)
++#define OMAP3_ETK_D1		OMAP3_PIN(ETK_D1, MODE0)
++#define OMAP3_ETK_D2		OMAP3_PIN(ETK_D2, MODE0)
++#define OMAP3_ETK_D3		OMAP3_PIN(ETK_D3, MODE0)
++#define OMAP3_ETK_D4		OMAP3_PIN(ETK_D4, MODE0)
++#define OMAP3_ETK_D5		OMAP3_PIN(ETK_D5, MODE0)
++#define OMAP3_ETK_D6		OMAP3_PIN(ETK_D6, MODE0)
++#define OMAP3_ETK_D7		OMAP3_PIN(ETK_D7, MODE0)
++#define OMAP3_ETK_D8		OMAP3_PIN(ETK_D8, MODE0)
++#define OMAP3_ETK_D9		OMAP3_PIN(ETK_D9, MODE0)
++#define OMAP3_ETK_D10		OMAP3_PIN(ETK_D10, MODE0)
++#define OMAP3_ETK_D11		OMAP3_PIN(ETK_D11, MODE0)
++#define OMAP3_ETK_D12		OMAP3_PIN(ETK_D12, MODE0)
++#define OMAP3_ETK_D13		OMAP3_PIN(ETK_D13, MODE0)
++#define OMAP3_ETK_D14		OMAP3_PIN(ETK_D14, MODE0)
++#define OMAP3_ETK_D15		OMAP3_PIN(ETK_D15, MODE0)
++#define OMAP3_SAD2D_MCAD0	OMAP3_PIN(SAD2D_MCAD0, MODE0)
++#define OMAP3_SAD2D_MCAD1	OMAP3_PIN(SAD2D_MCAD1, MODE0)
++#define OMAP3_SAD2D_MCAD2	OMAP3_PIN(SAD2D_MCAD2, MODE0)
++#define OMAP3_SAD2D_MCAD3	OMAP3_PIN(SAD2D_MCAD3, MODE0)
++#define OMAP3_SAD2D_MCAD4	OMAP3_PIN(SAD2D_MCAD4, MODE0)
++#define OMAP3_SAD2D_MCAD5	OMAP3_PIN(SAD2D_MCAD5, MODE0)
++#define OMAP3_SAD2D_MCAD6	OMAP3_PIN(SAD2D_MCAD6, MODE0)
++#define OMAP3_SAD2D_MCAD7	OMAP3_PIN(SAD2D_MCAD7, MODE0)
++#define OMAP3_SAD2D_MCAD8	OMAP3_PIN(SAD2D_MCAD8, MODE0)
++#define OMAP3_SAD2D_MCAD9	OMAP3_PIN(SAD2D_MCAD9, MODE0)
++#define OMAP3_SAD2D_MCAD10	OMAP3_PIN(SAD2D_MCAD10, MODE0)
++#define OMAP3_SAD2D_MCAD11	OMAP3_PIN(SAD2D_MCAD11, MODE0)
++#define OMAP3_SAD2D_MCAD12	OMAP3_PIN(SAD2D_MCAD12, MODE0)
++#define OMAP3_SAD2D_MCAD13	OMAP3_PIN(SAD2D_MCAD13, MODE0)
++#define OMAP3_SAD2D_MCAD14	OMAP3_PIN(SAD2D_MCAD14, MODE0)
++#define OMAP3_SAD2D_MCAD15	OMAP3_PIN(SAD2D_MCAD15, MODE0)
++#define OMAP3_SAD2D_MCAD16	OMAP3_PIN(SAD2D_MCAD16, MODE0)
++#define OMAP3_SAD2D_MCAD17	OMAP3_PIN(SAD2D_MCAD17, MODE0)
++#define OMAP3_SAD2D_MCAD18	OMAP3_PIN(SAD2D_MCAD18, MODE0)
++#define OMAP3_SAD2D_MCAD19	OMAP3_PIN(SAD2D_MCAD19, MODE0)
++#define OMAP3_SAD2D_MCAD20	OMAP3_PIN(SAD2D_MCAD20, MODE0)
++#define OMAP3_SAD2D_MCAD21	OMAP3_PIN(SAD2D_MCAD21, MODE0)
++#define OMAP3_SAD2D_MCAD22	OMAP3_PIN(SAD2D_MCAD22, MODE0)
++#define OMAP3_SAD2D_MCAD23	OMAP3_PIN(SAD2D_MCAD23, MODE0)
++#define OMAP3_SAD2D_MCAD24	OMAP3_PIN(SAD2D_MCAD24, MODE0)
++#define OMAP3_SAD2D_MCAD25	OMAP3_PIN(SAD2D_MCAD25, MODE0)
++#define OMAP3_SAD2D_MCAD26	OMAP3_PIN(SAD2D_MCAD26, MODE0)
++#define OMAP3_SAD2D_MCAD27	OMAP3_PIN(SAD2D_MCAD27, MODE0)
++#define OMAP3_SAD2D_MCAD28	OMAP3_PIN(SAD2D_MCAD28, MODE0)
++#define OMAP3_SAD2D_MCAD29	OMAP3_PIN(SAD2D_MCAD29, MODE0)
++#define OMAP3_SAD2D_MCAD30	OMAP3_PIN(SAD2D_MCAD30, MODE0)
++#define OMAP3_SAD2D_MCAD31	OMAP3_PIN(SAD2D_MCAD31, MODE0)
++#define OMAP3_SAD2D_MCAD32	OMAP3_PIN(SAD2D_MCAD32, MODE0)
++#define OMAP3_SAD2D_MCAD33	OMAP3_PIN(SAD2D_MCAD33, MODE0)
++#define OMAP3_SAD2D_MCAD34	OMAP3_PIN(SAD2D_MCAD34, MODE0)
++#define OMAP3_SAD2D_MCAD35	OMAP3_PIN(SAD2D_MCAD35, MODE0)
++#define OMAP3_SAD2D_MCAD36	OMAP3_PIN(SAD2D_MCAD36, MODE0)
++#define OMAP3_SAD2D_CLK26MI	OMAP3_PIN(SAD2D_CLK26MI, MODE0)
++#define OMAP3_SAD2D_NRESPWRON	OMAP3_PIN(SAD2D_NRESPWRON, MODE0)
++#define OMAP3_SAD2D_NRESWARM	OMAP3_PIN(SAD2D_NRESWARM, MODE0)
++#define OMAP3_SAD2D_ARMNIRQ	OMAP3_PIN(SAD2D_ARMNIRQ, MODE0)
++#define OMAP3_SAD2D_UMAFIQ	OMAP3_PIN(SAD2D_UMAFIQ, MODE0)
++#define OMAP3_SAD2D_SPINT	OMAP3_PIN(SAD2D_SPINT, MODE0)
++#define OMAP3_SAD2D_FRINT	OMAP3_PIN(SAD2D_FRINT, MODE0)
++#define OMAP3_SAD2D_DMAREQ0	OMAP3_PIN(SAD2D_DMAREQ0, MODE0)
++#define OMAP3_SAD2D_DMAREQ1	OMAP3_PIN(SAD2D_DMAREQ1, MODE0)
++#define OMAP3_SAD2D_DMAREQ2	OMAP3_PIN(SAD2D_DMAREQ2, MODE0)
++#define OMAP3_SAD2D_DMAREQ3	OMAP3_PIN(SAD2D_DMAREQ3, MODE0)
++#define OMAP3_SAD2D_NTRST	OMAP3_PIN(SAD2D_NTRST, MODE0)
++#define OMAP3_SAD2D_TDI		OMAP3_PIN(SAD2D_TDI, MODE0)
++#define OMAP3_SAD2D_TDO		OMAP3_PIN(SAD2D_TDO, MODE0)
++#define OMAP3_SAD2D_TMS		OMAP3_PIN(SAD2D_TMS, MODE0)
++#define OMAP3_SAD2D_TCK		OMAP3_PIN(SAD2D_TCK, MODE0)
++#define OMAP3_SAD2D_RTCK	OMAP3_PIN(SAD2D_RTCK, MODE0)
++#define OMAP3_SAD2D_MSTDBY	OMAP3_PIN(SAD2D_MSTDBY, MODE0)
++#define OMAP3_SAD2D_IDLEREQ	OMAP3_PIN(SAD2D_IDLEREQ, MODE0)
++#define OMAP3_SAD2D_IDLEACK	OMAP3_PIN(SAD2D_IDLEACK, MODE0)
++#define OMAP3_SAD2D_MWRITE	OMAP3_PIN(SAD2D_MWRITE, MODE0)
++#define OMAP3_SAD2D_SWRITE	OMAP3_PIN(SAD2D_SWRITE, MODE0)
++#define OMAP3_SAD2D_MREAD	OMAP3_PIN(SAD2D_MREAD, MODE0)
++#define OMAP3_SAD2D_SREAD	OMAP3_PIN(SAD2D_SREAD, MODE0)
++#define OMAP3_SAD2D_MBUSFLAG	OMAP3_PIN(SAD2D_MBUSFLAG, MODE0)
++#define OMAP3_SAD2D_SBUSFLAG	OMAP3_PIN(SAD2D_SBUSFLAG, MODE0)
++#define OMAP3_I2C4_SCL		OMAP3_PIN(I2C4_SCL, MODE0)
++#define OMAP3_I2C4_SDA		OMAP3_PIN(I2C4_SDA, MODE0)
++#define OMAP3_SYS_32K		OMAP3_PIN(SYS_32K, MODE0)
++#define OMAP3_SYS_CLKREQ	OMAP3_PIN(SYS_CLKREQ, MODE0)
++#define OMAP3_SYS_NRESWARM	OMAP3_PIN(SYS_NRESWARM, MODE0)
++#define OMAP3_SYS_BOOT0		OMAP3_PIN(SYS_BOOT0, MODE0)
++#define OMAP3_SYS_BOOT1		OMAP3_PIN(SYS_BOOT1, MODE0)
++#define OMAP3_SYS_BOOT2		OMAP3_PIN(SYS_BOOT2, MODE0)
++#define OMAP3_SYS_BOOT3		OMAP3_PIN(SYS_BOOT3, MODE0)
++#define OMAP3_SYS_BOOT4		OMAP3_PIN(SYS_BOOT4, MODE0)
++#define OMAP3_SYS_BOOT5		OMAP3_PIN(SYS_BOOT5, MODE0)
++#define OMAP3_SYS_BOOT6		OMAP3_PIN(SYS_BOOT6, MODE0)
++#define OMAP3_SYS_OFF_MODE	OMAP3_PIN(SYS_OFF_MODE, MODE0)
++#define OMAP3_SYS_CLKOUT1	OMAP3_PIN(SYS_CLKOUT1, MODE0)
++#define OMAP3_JTAG_NTRST	OMAP3_PIN(JTAG_NTRST, MODE0)
++#define OMAP3_JTAG_TCK		OMAP3_PIN(JTAG_TCK, MODE0)
++#define OMAP3_JTAG_TMS_TMSC	OMAP3_PIN(JTAG_TMS_TMSC, MODE0)
++#define OMAP3_JTAG_TDI		OMAP3_PIN(JTAG_TDI, MODE0)
++#define OMAP3_JTAG_EMU0		OMAP3_PIN(JTAG_EMU0, MODE0)
++#define OMAP3_JTAG_EMU1		OMAP3_PIN(JTAG_EMU1, MODE0)
++#define OMAP3_SAD2D_SWAKEUP	OMAP3_PIN(SAD2D_SWAKEUP, MODE0)
++#define OMAP3_JTAG_RTCK		OMAP3_PIN(JTAG_RTCK, MODE0)
++#define OMAP3_JTAG_TDO		OMAP3_PIN(JTAG_TDO, MODE0)
++
++#define OMAP3_GPMC_A9_SYS_NDMAREQ2		OMAP3_PIN(GPMC_A9, MODE1)
++#define OMAP3_GPMC_A10_SYS_NDMAREQ3		OMAP3_PIN(GPMC_A10, MODE1)
++#define OMAP3_GPMC_NCS3_SYS_NDMAREQ0		OMAP3_PIN(GPMC_NCS3, MODE1)
++#define OMAP3_GPMC_NCS4_SYS_NDMAREQ1		OMAP3_PIN(GPMC_NCS4, MODE1)
++#define OMAP3_GPMC_NCS5_SYS_NDMAREQ2		OMAP3_PIN(GPMC_NCS5, MODE1)
++#define OMAP3_GPMC_NCS6_SYS_NDMAREQ3		OMAP3_PIN(GPMC_NCS6, MODE1)
++#define OMAP3_GPMC_NCS7_GPMC_IO_DIR		OMAP3_PIN(GPMC_NCS7, MODE1)
++#define OMAP3_GPMC_WAIT3_SYS_NDMAREQ1		OMAP3_PIN(GPMC_WAIT3, MODE1)
++#define OMAP3_DSS_DATA0_DSI_DX0			OMAP3_PIN(DSS_DATA0, MODE1)
++#define OMAP3_DSS_DATA1_DSI_DY0			OMAP3_PIN(DSS_DATA1, MODE1)
++#define OMAP3_DSS_DATA2_DSI_DX1			OMAP3_PIN(DSS_DATA2, MODE1)
++#define OMAP3_DSS_DATA3_DSI_DY1			OMAP3_PIN(DSS_DATA3, MODE1)
++#define OMAP3_DSS_DATA4_DSI_DX2			OMAP3_PIN(DSS_DATA4, MODE1)
++#define OMAP3_DSS_DATA5_DSI_DY2			OMAP3_PIN(DSS_DATA5, MODE1)
++#define OMAP3_DSS_DATA10_SDI_DAT1N		OMAP3_PIN(DSS_DATA10, MODE1)
++#define OMAP3_DSS_DATA11_SDI_DAT1P		OMAP3_PIN(DSS_DATA11, MODE1)
++#define OMAP3_DSS_DATA12_SDI_DAT2N		OMAP3_PIN(DSS_DATA12, MODE1)
++#define OMAP3_DSS_DATA13_SDI_DAT2P		OMAP3_PIN(DSS_DATA13, MODE1)
++#define OMAP3_DSS_DATA14_SDI_DAT3N		OMAP3_PIN(DSS_DATA14, MODE1)
++#define OMAP3_DSS_DATA15_SDI_DAT3P		OMAP3_PIN(DSS_DATA15, MODE1)
++#define OMAP3_DSS_DATA18_SDI_VSYNC		OMAP3_PIN(DSS_DATA18, MODE1)
++#define OMAP3_DSS_DATA19_SDI_HSYNC		OMAP3_PIN(DSS_DATA19, MODE1)
++#define OMAP3_DSS_DATA20_SDI_DEN		OMAP3_PIN(DSS_DATA20, MODE1)
++#define OMAP3_DSS_DATA21_SDI_STP		OMAP3_PIN(DSS_DATA21, MODE1)
++#define OMAP3_DSS_DATA22_SDI_CLKP		OMAP3_PIN(DSS_DATA22, MODE1)
++#define OMAP3_DSS_DATA23_SDI_CLKN		OMAP3_PIN(DSS_DATA23, MODE1)
++#define OMAP3_MMC1_CLK_MS_CLK			OMAP3_PIN(MMC1_CLK, MODE1)
++#define OMAP3_MMC1_CMD_MS_BS			OMAP3_PIN(MMC1_CMD, MODE1)
++#define OMAP3_MMC1_DAT0_MS_DAT0			OMAP3_PIN(MMC1_DAT0, MODE1)
++#define OMAP3_MMC1_DAT1_MS_DAT1			OMAP3_PIN(MMC1_DAT1, MODE1)
++#define OMAP3_MMC1_DAT2_MS_DAT2			OMAP3_PIN(MMC1_DAT2, MODE1)
++#define OMAP3_MMC1_DAT3_MS_DAT3			OMAP3_PIN(MMC1_DAT3, MODE1)
++#define OMAP3_MMC2_CLK_MCSPI3_CLK		OMAP3_PIN(MMC2_CLK, MODE1)
++#define OMAP3_MMC2_CMD_MCSPI3_SIMO		OMAP3_PIN(MMC2_CMD, MODE1)
++#define OMAP3_MMC2_DAT0_MCSPI3_SOMI		OMAP3_PIN(MMC2_DAT0, MODE1)
++#define OMAP3_MMC2_DAT2_MCSPI3_CS1		OMAP3_PIN(MMC2_DAT2, MODE1)
++#define OMAP3_MMC2_DAT3_MCSPI3_CS0		OMAP3_PIN(MMC2_DAT3, MODE1)
++#define OMAP3_MMC2_DAT4_MMC2_DIR_DAT0		OMAP3_PIN(MMC2_DAT4, MODE1)
++#define OMAP3_MMC2_DAT5_MMC2_DIR_DAT1		OMAP3_PIN(MMC2_DAT5, MODE1)
++#define OMAP3_MMC2_DAT6_MMC2_DIR_CMD		OMAP3_PIN(MMC2_DAT6, MODE1)
++#define OMAP3_MMC2_DAT7_MMC2_CLKIN		OMAP3_PIN(MMC2_DAT7, MODE1)
++#define OMAP3_MCBSP3_DX_UART2_CTS		OMAP3_PIN(MCBSP3_DX, MODE1)
++#define OMAP3_MCBSP3_DR_UART2_RTS		OMAP3_PIN(MCBSP3_DR, MODE1)
++#define OMAP3_MCBSP3_CLKX_UART2_TX		OMAP3_PIN(MCBSP3_CLKX, MODE1)
++#define OMAP3_MCBSP3_FSX_UART2_RX		OMAP3_PIN(MCBSP3_FSX, MODE1)
++#define OMAP3_UART2_CTS_MCBSP3_DX		OMAP3_PIN(UART2_CTS, MODE1)
++#define OMAP3_UART2_RTS_MCBSP3_DR		OMAP3_PIN(UART2_RTS, MODE1)
++#define OMAP3_UART2_TX_MCBSP3_CLKX		OMAP3_PIN(UART2_TX, MODE1)
++#define OMAP3_UART2_RX_MCBSP3_FSX		OMAP3_PIN(UART2_RX, MODE1)
++#define OMAP3_MCBSP1_CLKR_MCSPI4_CLK		OMAP3_PIN(MCBSP1_CLKR, MODE1)
++#define OMAP3_MCBSP1_DX_MCSPI4_SIMO		OMAP3_PIN(MCBSP1_DX, MODE1)
++#define OMAP3_MCBSP1_DR_MCSPI4_SOMI		OMAP3_PIN(MCBSP1_DR, MODE1)
++#define OMAP3_MCBSP1_FSX_MCSPI4_CS0		OMAP3_PIN(MCBSP1_FSX, MODE1)
++#define OMAP3_HDQ_SIO_SYS_ALTCLK		OMAP3_PIN(HDQ_SIO, MODE1)
++#define OMAP3_MCSPI1_CLK_MMC2_DAT4		OMAP3_PIN(MCSPI1_CLK, MODE1)
++#define OMAP3_MCSPI1_SIMO_MMC2_DAT5		OMAP3_PIN(MCSPI1_SIMO, MODE1)
++#define OMAP3_MCSPI1_SOMI_MMC2_DAT6		OMAP3_PIN(MCSPI1_SOMI, MODE1)
++#define OMAP3_MCSPI1_CS0_MMC2_DAT7		OMAP3_PIN(MCSPI1_CS0, MODE1)
++#define OMAP3_MCSPI2_SIMO_GPT9_PWM_EVT		OMAP3_PIN(MCSPI2_SIMO, MODE1)
++#define OMAP3_MCSPI2_SOMI_GPT10_PWM_EVT		OMAP3_PIN(MCSPI2_SOMI, MODE1)
++#define OMAP3_MCSPI2_CS0_GPT11_PWM_EVT		OMAP3_PIN(MCSPI2_CS0, MODE1)
++#define OMAP3_MCSPI2_CS1_GPT18_PWM_EVT		OMAP3_PIN(MCSPI2_CS1, MODE1)
++#define OMAP3_ETK_CLK_MCBSP5_CLKX		OMAP3_PIN(ETK_CLK, MODE1)
++#define OMAP3_ETK_D0_MCSPI3_SIMO		OMAP3_PIN(ETK_D0, MODE1)
++#define OMAP3_ETK_D1_MCSPI3_SOMI		OMAP3_PIN(ETK_D1, MODE1)
++#define OMAP3_ETK_D2_MCSPI3_CS0			OMAP3_PIN(ETK_D2, MODE1)
++#define OMAP3_ETK_D3_MCSPI3_CLK			OMAP3_PIN(ETK_D3, MODE1)
++#define OMAP3_ETK_D4_MCBSP5_DR			OMAP3_PIN(ETK_D4, MODE1)
++#define OMAP3_ETK_D5_MCBSP5_FSX			OMAP3_PIN(ETK_D5, MODE1)
++#define OMAP3_ETK_D6_MCBSP5_DX			OMAP3_PIN(ETK_D6, MODE1)
++#define OMAP3_ETK_D7_MCSPI3_CS1			OMAP3_PIN(ETK_D7, MODE1)
++#define OMAP3_ETK_D8_SYS_DRM_MSECURE		OMAP3_PIN(ETK_D8, MODE1)
++#define OMAP3_ETK_D9_SYS_SEC_IND		OMAP3_PIN(ETK_D9, MODE1)
++#define OMAP3_SAD2D_MCAD0_MAD2D_MCAD0		OMAP3_PIN(SAD2D_MCAD0, MODE1)
++#define OMAP3_SAD2D_MCAD1_MAD2D_MCAD1		OMAP3_PIN(SAD2D_MCAD1, MODE1)
++#define OMAP3_SAD2D_MCAD2_MAD2D_MCAD2		OMAP3_PIN(SAD2D_MCAD2, MODE1)
++#define OMAP3_SAD2D_MCAD3_MAD2D_MCAD3		OMAP3_PIN(SAD2D_MCAD3, MODE1)
++#define OMAP3_SAD2D_MCAD4_MAD2D_MCAD4		OMAP3_PIN(SAD2D_MCAD4, MODE1)
++#define OMAP3_SAD2D_MCAD5_MAD2D_MCAD5		OMAP3_PIN(SAD2D_MCAD5, MODE1)
++#define OMAP3_SAD2D_MCAD6_MAD2D_MCAD6		OMAP3_PIN(SAD2D_MCAD6, MODE1)
++#define OMAP3_SAD2D_MCAD7_MAD2D_MCAD7		OMAP3_PIN(SAD2D_MCAD7, MODE1)
++#define OMAP3_SAD2D_MCAD8_MAD2D_MCAD8		OMAP3_PIN(SAD2D_MCAD8, MODE1)
++#define OMAP3_SAD2D_MCAD9_MAD2D_MCAD9		OMAP3_PIN(SAD2D_MCAD9, MODE1)
++#define OMAP3_SAD2D_MCAD10_MAD2D_MCAD10		OMAP3_PIN(SAD2D_MCAD10, MODE1)
++#define OMAP3_SAD2D_MCAD11_MAD2D_MCAD11		OMAP3_PIN(SAD2D_MCAD11, MODE1)
++#define OMAP3_SAD2D_MCAD12_MAD2D_MCAD12		OMAP3_PIN(SAD2D_MCAD12, MODE1)
++#define OMAP3_SAD2D_MCAD13_MAD2D_MCAD13		OMAP3_PIN(SAD2D_MCAD13, MODE1)
++#define OMAP3_SAD2D_MCAD14_MAD2D_MCAD14		OMAP3_PIN(SAD2D_MCAD14, MODE1)
++#define OMAP3_SAD2D_MCAD15_MAD2D_MCAD15		OMAP3_PIN(SAD2D_MCAD15, MODE1)
++#define OMAP3_SAD2D_MCAD16_MAD2D_MCAD16		OMAP3_PIN(SAD2D_MCAD16, MODE1)
++#define OMAP3_SAD2D_MCAD17_MAD2D_MCAD17		OMAP3_PIN(SAD2D_MCAD17, MODE1)
++#define OMAP3_SAD2D_MCAD18_MAD2D_MCAD18		OMAP3_PIN(SAD2D_MCAD18, MODE1)
++#define OMAP3_SAD2D_MCAD19_MAD2D_MCAD19		OMAP3_PIN(SAD2D_MCAD19, MODE1)
++#define OMAP3_SAD2D_MCAD20_MAD2D_MCAD20		OMAP3_PIN(SAD2D_MCAD20, MODE1)
++#define OMAP3_SAD2D_MCAD21_MAD2D_MCAD21		OMAP3_PIN(SAD2D_MCAD21, MODE1)
++#define OMAP3_SAD2D_MCAD22_MAD2D_MCAD22		OMAP3_PIN(SAD2D_MCAD22, MODE1)
++#define OMAP3_SAD2D_MCAD23_MAD2D_MCAD23		OMAP3_PIN(SAD2D_MCAD23, MODE1)
++#define OMAP3_SAD2D_MCAD24_MAD2D_MCAD24		OMAP3_PIN(SAD2D_MCAD24, MODE1)
++#define OMAP3_SAD2D_MCAD25_MAD2D_MCAD25		OMAP3_PIN(SAD2D_MCAD25, MODE1)
++#define OMAP3_SAD2D_MCAD26_MAD2D_MCAD26		OMAP3_PIN(SAD2D_MCAD26, MODE1)
++#define OMAP3_SAD2D_MCAD27_MAD2D_MCAD27		OMAP3_PIN(SAD2D_MCAD27, MODE1)
++#define OMAP3_SAD2D_MCAD28_MAD2D_MCAD28		OMAP3_PIN(SAD2D_MCAD28, MODE1)
++#define OMAP3_SAD2D_MCAD29_MAD2D_MCAD29		OMAP3_PIN(SAD2D_MCAD29, MODE1)
++#define OMAP3_SAD2D_MCAD30_MAD2D_MCAD30		OMAP3_PIN(SAD2D_MCAD30, MODE1)
++#define OMAP3_SAD2D_MCAD31_MAD2D_MCAD31		OMAP3_PIN(SAD2D_MCAD31, MODE1)
++#define OMAP3_SAD2D_MCAD32_MAD2D_MCAD32		OMAP3_PIN(SAD2D_MCAD32, MODE1)
++#define OMAP3_SAD2D_MCAD33_MAD2D_MCAD33		OMAP3_PIN(SAD2D_MCAD33, MODE1)
++#define OMAP3_SAD2D_MCAD34_MAD2D_MCAD34		OMAP3_PIN(SAD2D_MCAD34, MODE1)
++#define OMAP3_SAD2D_MCAD35_MAD2D_MCAD35		OMAP3_PIN(SAD2D_MCAD35, MODE1)
++#define OMAP3_SAD2D_MCAD36_MAD2D_MCAD36		OMAP3_PIN(SAD2D_MCAD36, MODE1)
++#define OMAP3_SAD2D_DMAREQ2_UART1_DMA_TX	OMAP3_PIN(SAD2D_DMAREQ2, MODE1)
++#define OMAP3_SAD2D_DMAREQ3_UART1_DMA_RX	OMAP3_PIN(SAD2D_DMAREQ3, MODE1)
++#define OMAP3_SAD2D_MWRITE_MAD2D_SWRITE		OMAP3_PIN(SAD2D_MWRITE, MODE1)
++#define OMAP3_SAD2D_SWRITE_MAD2D_MWRITE		OMAP3_PIN(SAD2D_SWRITE, MODE1)
++#define OMAP3_SAD2D_MREAD_MAD2D_SREAD		OMAP3_PIN(SAD2D_MREAD, MODE1)
++#define OMAP3_SAD2D_SREAD_MAD2D_MREAD		OMAP3_PIN(SAD2D_SREAD, MODE1)
++#define OMAP3_SAD2D_MBUSFLAG_MAD2D_SBUSFLAG	OMAP3_PIN(SAD2D_MBUSFLAG, MODE1)
++#define OMAP3_SAD2D_SBUSFLAG_MAD2D_MBUSFLAG	OMAP3_PIN(SAD2D_SBUSFLAG, MODE1)
++#define OMAP3_I2C4_SCL_SYS_NVMODE1		OMAP3_PIN(I2C4_SCL, MODE1)
++#define OMAP3_I2C4_SDA_SYS_NVMODE2		OMAP3_PIN(I2C4_SDA, MODE1)
++#define OMAP3_SYS_BOOT4_MMC2_DIR_DAT2		OMAP3_PIN(SYS_BOOT4, MODE1)
++#define OMAP3_SYS_BOOT5_MMC2_DIR_DAT3		OMAP3_PIN(SYS_BOOT5, MODE1)
++
++#define OMAP3_GPMC_NCS4_MCBSP4_CLKX		OMAP3_PIN(GPMC_NCS4, MODE2)
++#define OMAP3_GPMC_NCS5_MCBSP4_DR		OMAP3_PIN(GPMC_NCS5, MODE2)
++#define OMAP3_GPMC_NCS6_MCBSP4_DX		OMAP3_PIN(GPMC_NCS6, MODE2)
++#define OMAP3_GPMC_NCS7_MCBSP4_FSX		OMAP3_PIN(GPMC_NCS7, MODE2)
++#define OMAP3_DSS_DATA0_UART1_CTS		OMAP3_PIN(DSS_DATA0, MODE2)
++#define OMAP3_DSS_DATA1_UART1_RTS		OMAP3_PIN(DSS_DATA1, MODE2)
++#define OMAP3_DSS_DATA4_UART3_RX_IRRX		OMAP3_PIN(DSS_DATA4, MODE2)
++#define OMAP3_DSS_DATA5_UART3_RX_IRTX		OMAP3_PIN(DSS_DATA5, MODE2)
++#define OMAP3_DSS_DATA6_UART1_TX		OMAP3_PIN(DSS_DATA6, MODE2)
++#define OMAP3_DSS_DATA7_UART1_RX		OMAP3_PIN(DSS_DATA7, MODE2)
++#define OMAP3_DSS_DATA18_MCSPI3_CLK		OMAP3_PIN(DSS_DATA18, MODE2)
++#define OMAP3_DSS_DATA19_MCSPI3_SIMO		OMAP3_PIN(DSS_DATA19, MODE2)
++#define OMAP3_DSS_DATA20_MCSPI3_SOMI		OMAP3_PIN(DSS_DATA20, MODE2)
++#define OMAP3_DSS_DATA21_MCSPI3_CS0		OMAP3_PIN(DSS_DATA21, MODE2)
++#define OMAP3_DSS_DATA22_MCSPI3_CS1		OMAP3_PIN(DSS_DATA22, MODE2)
++#define OMAP3_CAM_FLD_CAM_GLOBAL_RST		OMAP3_PIN(CAM_FLD, MODE2)
++#define OMAP3_CAM_D0_CSI2_DX2			OMAP3_PIN(CAM_D0, MODE2)
++#define OMAP3_CAM_D1_CSI2_DY2			OMAP3_PIN(CAM_D1, MODE2)
++#define OMAP3_CAM_WEN_CAM_SHUTTER		OMAP3_PIN(CAM_WEN, MODE2)
++#define OMAP3_MMC1_DAT4_SIM_IO			OMAP3_PIN(MMC1_DAT4, MODE2)
++#define OMAP3_MMC1_DAT5_SIM_CLK			OMAP3_PIN(MMC1_DAT5, MODE2)
++#define OMAP3_MMC1_DAT6_SIM_PWRCTRL		OMAP3_PIN(MMC1_DAT6, MODE2)
++#define OMAP3_MMC1_DAT7_SIM_RST			OMAP3_PIN(MMC1_DAT7, MODE2)
++#define OMAP3_MMC2_DAT5_CAM_GLOBAL_RST		OMAP3_PIN(MMC2_DAT5, MODE2)
++#define OMAP3_MMC2_DAT6_CAM_SHUTTER		OMAP3_PIN(MMC2_DAT6, MODE2)
++#define OMAP3_UART2_CTS_GPT9_PWM_EVT		OMAP3_PIN(UART2_CTS, MODE2)
++#define OMAP3_UART2_RTS_GPT10_PWM_EVT		OMAP3_PIN(UART2_RTS, MODE2)
++#define OMAP3_UART2_TX_GPT11_PWM_EVT		OMAP3_PIN(UART2_TX, MODE2)
++#define OMAP3_UART2_RX_GPT12_PWM_EVT		OMAP3_PIN(UART2_RX, MODE2)
++#define OMAP3_UART1_RX_MCBSP1_CLKR		OMAP3_PIN(UART1_RX, MODE2)
++#define OMAP3_MCBSP1_CLKR_SIM_CD		OMAP3_PIN(MCBSP1_CLKR, MODE2)
++#define OMAP3_MCBSP1_FSR_CAM_GLOBAL_RST		OMAP3_PIN(MCBSP1_FSR, MODE2)
++#define OMAP3_MCBSP1_DX_MCBSP3_DX		OMAP3_PIN(MCBSP1_DX, MODE2)
++#define OMAP3_MCBSP1_DR_MCBSP3_DR		OMAP3_PIN(MCBSP1_DR, MODE2)
++#define OMAP3_MCBSP_CLKS_CAM_SHUTTER		OMAP3_PIN(MCBSP_CLKS, MODE2)
++#define OMAP3_MCBSP1_FSX_MCBSP3_FSX		OMAP3_PIN(MCBSP1_FSX, MODE2)
++#define OMAP3_MCBSP1_CLKX_MCBSP3_CLKX		OMAP3_PIN(MCBSP1_CLKX, MODE2)
++#define OMAP3_HSUSB0_DATA0_UART3_TX_IRTX	OMAP3_PIN(HSUSB0_DATA0, MODE2)
++#define OMAP3_HSUSB0_DATA1_UART3_RX_IRRX	OMAP3_PIN(HSUSB0_DATA1, MODE2)
++#define OMAP3_HSUSB0_DATA2_UART3_RTS_SD		OMAP3_PIN(HSUSB0_DATA2, MODE2)
++#define OMAP3_HSUSB0_DATA3_UART3_CTS_RCTX	OMAP3_PIN(HSUSB0_DATA3, MODE2)
++#define OMAP3_HDQ_SIO_I2C2_SCCBE		OMAP3_PIN(HDQ_SIO, MODE2)
++#define OMAP3_MCSPI1_CS1_MMC3_CMD		OMAP3_PIN(MCSPI1_CS1, MODE2)
++#define OMAP3_MCSPI1_CS2_MMC3_CLK		OMAP3_PIN(MCSPI1_CS2, MODE2)
++#define OMAP3_MCSPI1_CS3_HSUSB2_TLL_DATA2	OMAP3_PIN(MCSPI1_CS3, MODE2)
++#define OMAP3_MCSPI2_CLK_HSUSB2_TLL_DATA7	OMAP3_PIN(MCSPI2_CLK, MODE2)
++#define OMAP3_MCSPI2_SIMO_HSUSB2_TLL_DATA4	OMAP3_PIN(MCSPI2_SIMO, MODE2)
++#define OMAP3_MCSPI2_SOMI_HSUSB2_TLL_DATA5	OMAP3_PIN(MCSPI2_SOMI, MODE2)
++#define OMAP3_MCSPI2_CS0_HSUSB2_TLL_DATA6	OMAP3_PIN(MCSPI2_CS0, MODE2)
++#define OMAP3_MCSPI2_CS1_HSUSB2_TLL_DATA3	OMAP3_PIN(MCSPI2_CS1, MODE2)
++#define OMAP3_ETK_CLK_MMC3_CLK			OMAP3_PIN(ETK_CLK, MODE2)
++#define OMAP3_ETK_CTL_MMC3_CMD			OMAP3_PIN(ETK_CTL, MODE2)
++#define OMAP3_ETK_D0_MMC3_DAT4			OMAP3_PIN(ETK_D0, MODE2)
++#define OMAP3_ETK_D3_MMC3_DAT3			OMAP3_PIN(ETK_D3, MODE2)
++#define OMAP3_ETK_D4_MMC3_DAT0			OMAP3_PIN(ETK_D4, MODE2)
++#define OMAP3_ETK_D5_MMC3_DAT1			OMAP3_PIN(ETK_D5, MODE2)
++#define OMAP3_ETK_D6_MMC3_DAT2			OMAP3_PIN(ETK_D6, MODE2)
++#define OMAP3_ETK_D7_MMC3_DAT7			OMAP3_PIN(ETK_D7, MODE2)
++#define OMAP3_ETK_D8_MMC3_DAT6			OMAP3_PIN(ETK_D8, MODE2)
++#define OMAP3_ETK_D9_MMC3_DAT5			OMAP3_PIN(ETK_D9, MODE2)
++#define OMAP3_ETK_D10_UART1_RX			OMAP3_PIN(ETK_D10, MODE2)
++#define OMAP3_SAD2D_DMAREQ0_UART2_DMA_TX	OMAP3_PIN(SAD2D_DMAREQ0, MODE2)
++#define OMAP3_SAD2D_DMAREQ1_UART2_DMA_RX	OMAP3_PIN(SAD2D_DMAREQ1, MODE2)
++
++#define OMAP3_GPMC_NCS4_GPT9_PWM_EVT		OMAP3_PIN(GPMC_NCS4, MODE3)
++#define OMAP3_GPMC_NCS5_GPT10_PWM_EVT		OMAP3_PIN(GPMC_NCS5, MODE3)
++#define OMAP3_GPMC_NCS6_GPT11_PWM_EVT		OMAP3_PIN(GPMC_NCS6, MODE3)
++#define OMAP3_GPMC_NCS7_GPT18_PWM_EVT		OMAP3_PIN(GPMC_NCS7, MODE3)
++#define OMAP3_DSS_DATA18_DSS_DATA0		OMAP3_PIN(DSS_DATA18, MODE3)
++#define OMAP3_DSS_DATA19_DSS_DATA1		OMAP3_PIN(DSS_DATA19, MODE3)
++#define OMAP3_DSS_DATA20_DSS_DATA2		OMAP3_PIN(DSS_DATA20, MODE3)
++#define OMAP3_DSS_DATA21_DSS_DATA3		OMAP3_PIN(DSS_DATA21, MODE3)
++#define OMAP3_DSS_DATA22_DSS_DATA4		OMAP3_PIN(DSS_DATA22, MODE3)
++#define OMAP3_DSS_DATA23_DSS_DATA5		OMAP3_PIN(DSS_DATA23, MODE3)
++#define OMAP3_MMC2_DAT4_MMC3_DAT0		OMAP3_PIN(MMC2_DAT4, MODE3)
++#define OMAP3_MMC2_DAT5_MMC3_DAT1		OMAP3_PIN(MMC2_DAT5, MODE3)
++#define OMAP3_MMC2_DAT6_MMC3_DAT2		OMAP3_PIN(MMC2_DAT6, MODE3)
++#define OMAP3_MMC2_DAT7_MMC3_DAT3		OMAP3_PIN(MMC2_DAT7, MODE3)
++#define OMAP3_UART1_RX_MCSPI4_CLK		OMAP3_PIN(UART1_RX, MODE3)
++#define OMAP3_HDQ_SIO_I2C3_SCCBE		OMAP3_PIN(HDQ_SIO, MODE3)
++#define OMAP3_MCSPI1_CS3_HSUSB2_DATA2		OMAP3_PIN(MCSPI1_CS3, MODE3)
++#define OMAP3_MCSPI2_CLK_HSUSB2_DATA7		OMAP3_PIN(MCSPI2_CLK, MODE3)
++#define OMAP3_MCSPI2_SIMO_HSUSB2_DATA4		OMAP3_PIN(MCSPI2_SIMO, MODE3)
++#define OMAP3_MCSPI2_SOMI_HSUSB2_DATA5		OMAP3_PIN(MCSPI2_SOMI, MODE3)
++#define OMAP3_MCSPI2_CS0_HSUSB2_DATA6		OMAP3_PIN(MCSPI2_CS0, MODE3)
++#define OMAP3_MCSPI2_CS1_HSUSB2_DATA3		OMAP3_PIN(MCSPI2_CS1, MODE3)
++#define OMAP3_ETK_CLK_HSUSB1_STP		OMAP3_PIN(ETK_CLK, MODE3)
++#define OMAP3_ETK_CTL_HSUSB1_CLK		OMAP3_PIN(ETK_CTL, MODE3)
++#define OMAP3_ETK_D0_HSUSB1_DATA0		OMAP3_PIN(ETK_D0, MODE3)
++#define OMAP3_ETK_D1_HSUSB1_DATA1		OMAP3_PIN(ETK_D1, MODE3)
++#define OMAP3_ETK_D2_HSUSB1_DATA2		OMAP3_PIN(ETK_D2, MODE3)
++#define OMAP3_ETK_D3_HSUSB1_DATA7		OMAP3_PIN(ETK_D3, MODE3)
++#define OMAP3_ETK_D4_HSUSB1_DATA4		OMAP3_PIN(ETK_D4, MODE3)
++#define OMAP3_ETK_D5_HSUSB1_DATA5		OMAP3_PIN(ETK_D5, MODE3)
++#define OMAP3_ETK_D6_HSUSB1_DATA6		OMAP3_PIN(ETK_D6, MODE3)
++#define OMAP3_ETK_D7_HSUSB1_DATA3		OMAP3_PIN(ETK_D7, MODE3)
++#define OMAP3_ETK_D8_HSUSB1_DIR			OMAP3_PIN(ETK_D8, MODE3)
++#define OMAP3_ETK_D9_HSUSB1_NXT			OMAP3_PIN(ETK_D9, MODE3)
++#define OMAP3_ETK_D10_HSUSB2_CLK		OMAP3_PIN(ETK_D10, MODE3)
++#define OMAP3_ETK_D11_HSUSB2_STP		OMAP3_PIN(ETK_D11, MODE3)
++#define OMAP3_ETK_D12_HSUSB2_DIR		OMAP3_PIN(ETK_D12, MODE3)
++#define OMAP3_ETK_D13_HSUSB2_NXT		OMAP3_PIN(ETK_D13, MODE3)
++#define OMAP3_ETK_D14_HSUSB2_DATA0		OMAP3_PIN(ETK_D14, MODE3)
++#define OMAP3_ETK_D15_HSUSB2_DATA1		OMAP3_PIN(ETK_D15, MODE3)
++#define OMAP3_SAD2D_DMAREQ0_MMC1_DMA_TX		OMAP3_PIN(SAD2D_DMAREQ0, MODE3)
++#define OMAP3_SAD2D_DMAREQ1_MMC1_DMA_RX		OMAP3_PIN(SAD2D_DMAREQ1, MODE3)
++#define OMAP3_SAD2D_DMAREQ2_UART3_DMA_TX	OMAP3_PIN(SAD2D_DMAREQ2, MODE3)
++#define OMAP3_SAD2D_DMAREQ3_UART3_DMA_RX	OMAP3_PIN(SAD2D_DMAREQ3, MODE3)
++
++#define OMAP3_GPMC_A1_GPIO_34		OMAP3_PIN(GPMC_A1, MODE4)
++#define OMAP3_GPMC_A2_GPIO_35		OMAP3_PIN(GPMC_A2, MODE4)
++#define OMAP3_GPMC_A3_GPIO_36		OMAP3_PIN(GPMC_A3, MODE4)
++#define OMAP3_GPMC_A4_GPIO_37		OMAP3_PIN(GPMC_A4, MODE4)
++#define OMAP3_GPMC_A5_GPIO_38		OMAP3_PIN(GPMC_A5, MODE4)
++#define OMAP3_GPMC_A6_GPIO_39		OMAP3_PIN(GPMC_A6, MODE4)
++#define OMAP3_GPMC_A7_GPIO_40		OMAP3_PIN(GPMC_A7, MODE4)
++#define OMAP3_GPMC_A8_GPIO_41		OMAP3_PIN(GPMC_A8, MODE4)
++#define OMAP3_GPMC_A9_GPIO_42		OMAP3_PIN(GPMC_A9, MODE4)
++#define OMAP3_GPMC_A10_GPIO_43		OMAP3_PIN(GPMC_A10, MODE4)
++#define OMAP3_GPMC_D8_GPIO_44		OMAP3_PIN(GPMC_D8, MODE4)
++#define OMAP3_GPMC_D9_GPIO_45		OMAP3_PIN(GPMC_D9, MODE4)
++#define OMAP3_GPMC_D10_GPIO_46		OMAP3_PIN(GPMC_D10, MODE4)
++#define OMAP3_GPMC_D11_GPIO_47		OMAP3_PIN(GPMC_D11, MODE4)
++#define OMAP3_GPMC_D12_GPIO_48		OMAP3_PIN(GPMC_D12, MODE4)
++#define OMAP3_GPMC_D13_GPIO_49		OMAP3_PIN(GPMC_D13, MODE4)
++#define OMAP3_GPMC_D14_GPIO_50		OMAP3_PIN(GPMC_D14, MODE4)
++#define OMAP3_GPMC_D15_GPIO_51		OMAP3_PIN(GPMC_D15, MODE4)
++#define OMAP3_GPMC_NCS1_GPIO_52		OMAP3_PIN(GPMC_NCS1, MODE4)
++#define OMAP3_GPMC_NCS2_GPIO_53		OMAP3_PIN(GPMC_NCS2, MODE4)
++#define OMAP3_GPMC_NCS3_GPIO_54		OMAP3_PIN(GPMC_NCS3, MODE4)
++#define OMAP3_GPMC_NCS4_GPIO_55		OMAP3_PIN(GPMC_NCS4, MODE4)
++#define OMAP3_GPMC_NCS5_GPIO_56		OMAP3_PIN(GPMC_NCS5, MODE4)
++#define OMAP3_GPMC_NCS6_GPIO_57		OMAP3_PIN(GPMC_NCS6, MODE4)
++#define OMAP3_GPMC_NCS7_GPIO_58		OMAP3_PIN(GPMC_NCS7, MODE4)
++#define OMAP3_GPMC_CLK_GPIO_59		OMAP3_PIN(GPMC_CLK, MODE4)
++#define OMAP3_GPMC_NBE0_CLE_GPIO_60	OMAP3_PIN(GPMC_NBE0_CLE, MODE4)
++#define OMAP3_GPMC_NBE1_GPIO_61		OMAP3_PIN(GPMC_NBE1, MODE4)
++#define OMAP3_GPMC_NWP_GPIO_62		OMAP3_PIN(GPMC_NWP, MODE4)
++#define OMAP3_GPMC_WAIT1_GPIO_63	OMAP3_PIN(GPMC_WAIT1, MODE4)
++#define OMAP3_GPMC_WAIT2_GPIO_64	OMAP3_PIN(GPMC_WAIT2, MODE4)
++#define OMAP3_GPMC_WAIT3_GPIO_65	OMAP3_PIN(GPMC_WAIT3, MODE4)
++#define OMAP3_DSS_PCLK_GPIO_66		OMAP3_PIN(DSS_PCLK, MODE4)
++#define OMAP3_DSS_HSYNC_GPIO_67		OMAP3_PIN(DSS_HSYNC, MODE4)
++#define OMAP3_DSS_VSYNC_GPIO_68		OMAP3_PIN(DSS_VSYNC, MODE4)
++#define OMAP3_DSS_ACBIAS_GPIO_69	OMAP3_PIN(DSS_ACBIAS, MODE4)
++#define OMAP3_DSS_DATA0_GPIO_70		OMAP3_PIN(DSS_DATA0, MODE4)
++#define OMAP3_DSS_DATA1_GPIO_71		OMAP3_PIN(DSS_DATA1, MODE4)
++#define OMAP3_DSS_DATA2_GPIO_72		OMAP3_PIN(DSS_DATA2, MODE4)
++#define OMAP3_DSS_DATA3_GPIO_73		OMAP3_PIN(DSS_DATA3, MODE4)
++#define OMAP3_DSS_DATA4_GPIO_74		OMAP3_PIN(DSS_DATA4, MODE4)
++#define OMAP3_DSS_DATA5_GPIO_75		OMAP3_PIN(DSS_DATA5, MODE4)
++#define OMAP3_DSS_DATA6_GPIO_76		OMAP3_PIN(DSS_DATA6, MODE4)
++#define OMAP3_DSS_DATA7_GPIO_77		OMAP3_PIN(DSS_DATA7, MODE4)
++#define OMAP3_DSS_DATA8_GPIO_78		OMAP3_PIN(DSS_DATA8, MODE4)
++#define OMAP3_DSS_DATA9_GPIO_79		OMAP3_PIN(DSS_DATA9, MODE4)
++#define OMAP3_DSS_DATA10_GPIO_80	OMAP3_PIN(DSS_DATA10, MODE4)
++#define OMAP3_DSS_DATA11_GPIO_81	OMAP3_PIN(DSS_DATA11, MODE4)
++#define OMAP3_DSS_DATA12_GPIO_82	OMAP3_PIN(DSS_DATA12, MODE4)
++#define OMAP3_DSS_DATA13_GPIO_83	OMAP3_PIN(DSS_DATA13, MODE4)
++#define OMAP3_DSS_DATA14_GPIO_84	OMAP3_PIN(DSS_DATA14, MODE4)
++#define OMAP3_DSS_DATA15_GPIO_85	OMAP3_PIN(DSS_DATA15, MODE4)
++#define OMAP3_DSS_DATA16_GPIO_86	OMAP3_PIN(DSS_DATA16, MODE4)
++#define OMAP3_DSS_DATA17_GPIO_87	OMAP3_PIN(DSS_DATA17, MODE4)
++#define OMAP3_DSS_DATA18_GPIO_88	OMAP3_PIN(DSS_DATA18, MODE4)
++#define OMAP3_DSS_DATA19_GPIO_89	OMAP3_PIN(DSS_DATA19, MODE4)
++#define OMAP3_DSS_DATA20_GPIO_90	OMAP3_PIN(DSS_DATA20, MODE4)
++#define OMAP3_DSS_DATA21_GPIO_91	OMAP3_PIN(DSS_DATA21, MODE4)
++#define OMAP3_DSS_DATA22_GPIO_92	OMAP3_PIN(DSS_DATA22, MODE4)
++#define OMAP3_DSS_DATA23_GPIO_93	OMAP3_PIN(DSS_DATA23, MODE4)
++#define OMAP3_CAM_HS_GPIO_94		OMAP3_PIN(CAM_HS, MODE4)
++#define OMAP3_CAM_VS_GPIO_95		OMAP3_PIN(CAM_VS, MODE4)
++#define OMAP3_CAM_XCLKA_GPIO_96		OMAP3_PIN(CAM_XCLKA, MODE4)
++#define OMAP3_CAM_PCLK_GPIO_97		OMAP3_PIN(CAM_PCLK, MODE4)
++#define OMAP3_CAM_FLD_GPIO_98		OMAP3_PIN(CAM_FLD, MODE4)
++#define OMAP3_CAM_D0_GPIO_99		OMAP3_PIN(CAM_D0, MODE4)
++#define OMAP3_CAM_D1_GPIO_100		OMAP3_PIN(CAM_D1, MODE4)
++#define OMAP3_CAM_D2_GPIO_101		OMAP3_PIN(CAM_D2, MODE4)
++#define OMAP3_CAM_D3_GPIO_102		OMAP3_PIN(CAM_D3, MODE4)
++#define OMAP3_CAM_D4_GPIO_103		OMAP3_PIN(CAM_D4, MODE4)
++#define OMAP3_CAM_D5_GPIO_104		OMAP3_PIN(CAM_D5, MODE4)
++#define OMAP3_CAM_D6_GPIO_105		OMAP3_PIN(CAM_D6, MODE4)
++#define OMAP3_CAM_D7_GPIO_106		OMAP3_PIN(CAM_D7, MODE4)
++#define OMAP3_CAM_D8_GPIO_107		OMAP3_PIN(CAM_D8, MODE4)
++#define OMAP3_CAM_D9_GPIO_108		OMAP3_PIN(CAM_D9, MODE4)
++#define OMAP3_CAM_D10_GPIO_109		OMAP3_PIN(CAM_D10, MODE4)
++#define OMAP3_CAM_D11_GPIO_110		OMAP3_PIN(CAM_D11, MODE4)
++#define OMAP3_CAM_XCLKB_GPIO_111	OMAP3_PIN(CAM_XCLKB, MODE4)
++#define OMAP3_CAM_WEN_GPIO_167		OMAP3_PIN(CAM_WEN, MODE4)
++#define OMAP3_CAM_STROBE_GPIO_126	OMAP3_PIN(CAM_STROBE, MODE4)
++#define OMAP3_CSI2_DX0_GPIO_112		OMAP3_PIN(CSI2_DX0, MODE4)
++#define OMAP3_CSI2_DY0_GPIO_113		OMAP3_PIN(CSI2_DY0, MODE4)
++#define OMAP3_CSI2_DX1_GPIO_114		OMAP3_PIN(CSI2_DX1, MODE4)
++#define OMAP3_CSI2_DY1_GPIO_115		OMAP3_PIN(CSI2_DY1, MODE4)
++#define OMAP3_MCBSP2_FSX_GPIO_116	OMAP3_PIN(MCBSP2_FSX, MODE4)
++#define OMAP3_MCBSP2_CLKX_GPIO_117	OMAP3_PIN(MCBSP2_CLKX, MODE4)
++#define OMAP3_MCBSP2_DR_GPIO_118	OMAP3_PIN(MCBSP2_DR, MODE4)
++#define OMAP3_MCBSP2_DX_GPIO_119	OMAP3_PIN(MCBSP2_DX, MODE4)
++#define OMAP3_MMC1_CLK_GPIO_120		OMAP3_PIN(MMC1_CLK, MODE4)
++#define OMAP3_MMC1_CMD_GPIO_121		OMAP3_PIN(MMC1_CMD, MODE4)
++#define OMAP3_MMC1_DAT0_GPIO_122	OMAP3_PIN(MMC1_DAT0, MODE4)
++#define OMAP3_MMC1_DAT1_GPIO_123	OMAP3_PIN(MMC1_DAT1, MODE4)
++#define OMAP3_MMC1_DAT2_GPIO_124	OMAP3_PIN(MMC1_DAT2, MODE4)
++#define OMAP3_MMC1_DAT3_GPIO_125	OMAP3_PIN(MMC1_DAT3, MODE4)
++#define OMAP3_MMC1_DAT4_GPIO_126	OMAP3_PIN(MMC1_DAT4, MODE4)
++#define OMAP3_MMC1_DAT5_GPIO_127	OMAP3_PIN(MMC1_DAT5, MODE4)
++#define OMAP3_MMC1_DAT6_GPIO_128	OMAP3_PIN(MMC1_DAT6, MODE4)
++#define OMAP3_MMC1_DAT7_GPIO_129	OMAP3_PIN(MMC1_DAT7, MODE4)
++#define OMAP3_MMC2_CLK_GPIO_130		OMAP3_PIN(MMC2_CLK, MODE4)
++#define OMAP3_MMC2_CMD_GPIO_131		OMAP3_PIN(MMC2_CMD, MODE4)
++#define OMAP3_MMC2_DAT0_GPIO_132	OMAP3_PIN(MMC2_DAT0, MODE4)
++#define OMAP3_MMC2_DAT1_GPIO_133	OMAP3_PIN(MMC2_DAT1, MODE4)
++#define OMAP3_MMC2_DAT2_GPIO_134	OMAP3_PIN(MMC2_DAT2, MODE4)
++#define OMAP3_MMC2_DAT3_GPIO_135	OMAP3_PIN(MMC2_DAT3, MODE4)
++#define OMAP3_MMC2_DAT4_GPIO_136	OMAP3_PIN(MMC2_DAT4, MODE4)
++#define OMAP3_MMC2_DAT5_GPIO_137	OMAP3_PIN(MMC2_DAT5, MODE4)
++#define OMAP3_MMC2_DAT6_GPIO_138	OMAP3_PIN(MMC2_DAT6, MODE4)
++#define OMAP3_MMC2_DAT7_GPIO_139	OMAP3_PIN(MMC2_DAT7, MODE4)
++#define OMAP3_MCBSP3_DX_GPIO_140	OMAP3_PIN(MCBSP3_DX, MODE4)
++#define OMAP3_MCBSP3_DR_GPIO_141	OMAP3_PIN(MCBSP3_DR, MODE4)
++#define OMAP3_MCBSP3_CLKX_GPIO_142	OMAP3_PIN(MCBSP3_CLKX, MODE4)
++#define OMAP3_MCBSP3_FSX_GPIO_143	OMAP3_PIN(MCBSP3_FSX, MODE4)
++#define OMAP3_UART2_CTS_GPIO_144	OMAP3_PIN(UART2_CTS, MODE4)
++#define OMAP3_UART2_RTS_GPIO_145	OMAP3_PIN(UART2_RTS, MODE4)
++#define OMAP3_UART2_TX_GPIO_146		OMAP3_PIN(UART2_TX, MODE4)
++#define OMAP3_UART2_RX_GPIO_147		OMAP3_PIN(UART2_RX, MODE4)
++#define OMAP3_UART1_TX_GPIO_148		OMAP3_PIN(UART1_TX, MODE4)
++#define OMAP3_UART1_RTS_GPIO_149	OMAP3_PIN(UART1_RTS, MODE4)
++#define OMAP3_UART1_CTS_GPIO_150	OMAP3_PIN(UART1_CTS, MODE4)
++#define OMAP3_UART1_RX_GPIO_151		OMAP3_PIN(UART1_RX, MODE4)
++#define OMAP3_MCBSP4_CLKX_GPIO_152	OMAP3_PIN(MCBSP4_CLKX, MODE4)
++#define OMAP3_MCBSP4_DR_GPIO_153	OMAP3_PIN(MCBSP4_DR, MODE4)
++#define OMAP3_MCBSP4_DX_GPIO_154	OMAP3_PIN(MCBSP4_DX, MODE4)
++#define OMAP3_MCBSP4_FSX_GPIO_155	OMAP3_PIN(MCBSP4_FSX, MODE4)
++#define OMAP3_MCBSP1_CLKR_GPIO_156	OMAP3_PIN(MCBSP1_CLKR, MODE4)
++#define OMAP3_MCBSP1_FSR_GPIO_157	OMAP3_PIN(MCBSP1_FSR, MODE4)
++#define OMAP3_MCBSP1_DX_GPIO_158	OMAP3_PIN(MCBSP1_DX, MODE4)
++#define OMAP3_MCBSP1_DR_GPIO_159	OMAP3_PIN(MCBSP1_DR, MODE4)
++#define OMAP3_MCBSP_CLKS_GPIO_160	OMAP3_PIN(MCBSP_CLKS, MODE4)
++#define OMAP3_MCBSP1_FSX_GPIO_161	OMAP3_PIN(MCBSP1_FSX, MODE4)
++#define OMAP3_MCBSP1_CLKX_GPIO_162	OMAP3_PIN(MCBSP1_CLKX, MODE4)
++#define OMAP3_UART3_CTS_RCTX_GPIO_163	OMAP3_PIN(UART3_CTS_RCTX, MODE4)
++#define OMAP3_UART3_RTS_SD_GPIO_164	OMAP3_PIN(UART3_RTS_SD, MODE4)
++#define OMAP3_UART3_RX_IRRX_GPIO_165	OMAP3_PIN(UART3_RX, MODE4)
++#define OMAP3_UART3_TX_IRTX_GPIO_166	OMAP3_PIN(UART3_TX, MODE4)
++#define OMAP3_HSUSB0_CLK_GPIO_120	OMAP3_PIN(HSUSB0_CLK, MODE4)
++#define OMAP3_HSUSB0_STP_GPIO_121	OMAP3_PIN(HSUSB0_STP, MODE4)
++#define OMAP3_HSUSB0_DIR_GPIO_122	OMAP3_PIN(HSUSB0_DIR, MODE4)
++#define OMAP3_HSUSB0_NXT_GPIO_124	OMAP3_PIN(HSUSB0_NXT, MODE4)
++#define OMAP3_HSUSB0_DATA0_GPIO_125	OMAP3_PIN(HSUSB0_DATA0, MODE4)
++#define OMAP3_HSUSB0_DATA1_GPIO_130	OMAP3_PIN(HSUSB0_DATA1, MODE4)
++#define OMAP3_HSUSB0_DATA2_GPIO_131	OMAP3_PIN(HSUSB0_DATA2, MODE4)
++#define OMAP3_HSUSB0_DATA3_GPIO_169	OMAP3_PIN(HSUSB0_DATA3, MODE4)
++#define OMAP3_HSUSB0_DATA4_GPIO_188	OMAP3_PIN(HSUSB0_DATA4, MODE4)
++#define OMAP3_HSUSB0_DATA5_GPIO_189	OMAP3_PIN(HSUSB0_DATA5, MODE4)
++#define OMAP3_HSUSB0_DATA6_GPIO_190	OMAP3_PIN(HSUSB0_DATA6, MODE4)
++#define OMAP3_HSUSB0_DATA7_GPIO_191	OMAP3_PIN(HSUSB0_DATA7, MODE4)
++#define OMAP3_I2C2_SCL_GPIO_168		OMAP3_PIN(I2C2_SCL, MODE4)
++#define OMAP3_I2C2_SDA_GPIO_183		OMAP3_PIN(I2C2_SDA, MODE4)
++#define OMAP3_I2C3_SCL_GPIO_184		OMAP3_PIN(I2C3_SCL, MODE4)
++#define OMAP3_I2C3_SDA_GPIO_185		OMAP3_PIN(I2C3_SDA, MODE4)
++#define OMAP3_HDQ_SIO_GPIO_170		OMAP3_PIN(HDQ_SIO, MODE4)
++#define OMAP3_MCSPI1_CLK_GPIO_171	OMAP3_PIN(MCSPI1_CLK, MODE4)
++#define OMAP3_MCSPI1_SIMO_GPIO_172	OMAP3_PIN(MCSPI1_SIMO, MODE4)
++#define OMAP3_MCSPI1_SOMI_GPIO_173	OMAP3_PIN(MCSPI1_SOMI, MODE4)
++#define OMAP3_MCSPI1_CS0_GPIO_174	OMAP3_PIN(MCSPI1_CS0, MODE4)
++#define OMAP3_MCSPI1_CS1_GPIO_175	OMAP3_PIN(MCSPI1_CS1, MODE4)
++#define OMAP3_MCSPI1_CS2_GPIO_176	OMAP3_PIN(MCSPI1_CS2, MODE4)
++#define OMAP3_MCSPI1_CS3_GPIO_177	OMAP3_PIN(MCSPI1_CS3, MODE4)
++#define OMAP3_MCSPI2_CLK_GPIO_178	OMAP3_PIN(MCSPI2_CLK, MODE4)
++#define OMAP3_MCSPI2_SIMO_GPIO_179	OMAP3_PIN(MCSPI2_SIMO, MODE4)
++#define OMAP3_MCSPI2_SOMI_GPIO_180	OMAP3_PIN(MCSPI2_SOMI, MODE4)
++#define OMAP3_MCSPI2_CS0_GPIO_181	OMAP3_PIN(MCSPI2_CS0, MODE4)
++#define OMAP3_MCSPI2_CS1_GPIO_182	OMAP3_PIN(MCSPI2_CS1, MODE4)
++#define OMAP3_SYS_NIRQ_GPIO_0		OMAP3_PIN(SYS_NIRQ, MODE4)
++#define OMAP3_SYS_CLKOUT2_GPIO_186	OMAP3_PIN(SYS_CLKOUT2, MODE4)
++#define OMAP3_ETK_CLK_GPIO_12		OMAP3_PIN(ETK_CLK, MODE4)
++#define OMAP3_ETK_CTL_GPIO_13		OMAP3_PIN(ETK_CTL, MODE4)
++#define OMAP3_ETK_D0_GPIO_14		OMAP3_PIN(ETK_D0, MODE4)
++#define OMAP3_ETK_D1_GPIO_15		OMAP3_PIN(ETK_D1, MODE4)
++#define OMAP3_ETK_D2_GPIO_16		OMAP3_PIN(ETK_D2, MODE4)
++#define OMAP3_ETK_D3_GPIO_17		OMAP3_PIN(ETK_D3, MODE4)
++#define OMAP3_ETK_D4_GPIO_18		OMAP3_PIN(ETK_D4, MODE4)
++#define OMAP3_ETK_D5_GPIO_19		OMAP3_PIN(ETK_D5, MODE4)
++#define OMAP3_ETK_D6_GPIO_20		OMAP3_PIN(ETK_D6, MODE4)
++#define OMAP3_ETK_D7_GPIO_21		OMAP3_PIN(ETK_D7, MODE4)
++#define OMAP3_ETK_D8_GPIO_22		OMAP3_PIN(ETK_D8, MODE4)
++#define OMAP3_ETK_D9_GPIO_23		OMAP3_PIN(ETK_D9, MODE4)
++#define OMAP3_ETK_D10_GPIO_24		OMAP3_PIN(ETK_D10, MODE4)
++#define OMAP3_ETK_D11_GPIO_25		OMAP3_PIN(ETK_D11, MODE4)
++#define OMAP3_ETK_D12_GPIO_26		OMAP3_PIN(ETK_D12, MODE4)
++#define OMAP3_ETK_D13_GPIO_27		OMAP3_PIN(ETK_D13, MODE4)
++#define OMAP3_ETK_D14_GPIO_28		OMAP3_PIN(ETK_D14, MODE4)
++#define OMAP3_ETK_D15_GPIO_29		OMAP3_PIN(ETK_D15, MODE4)
++#define OMAP3_SAD2D_SPINT_GPIO_187	OMAP3_PIN(SAD2D_SPINT, MODE4)
++#define OMAP3_SAD2D_FRINT_GPIO_32	OMAP3_PIN(SAD2D_FRINT, MODE4)
++#define OMAP3_SYS_CLKREQ_GPIO_1		OMAP3_PIN(SYS_CLKREQ, MODE4)
++#define OMAP3_SYS_NRESWARM_GPIO_30	OMAP3_PIN(SYS_NRESWARM, MODE4)
++#define OMAP3_SYS_BOOT0_GPIO_2		OMAP3_PIN(SYS_BOOT0, MODE4)
++#define OMAP3_SYS_BOOT1_GPIO_3		OMAP3_PIN(SYS_BOOT1, MODE4)
++#define OMAP3_SYS_BOOT2_GPIO_4		OMAP3_PIN(SYS_BOOT2, MODE4)
++#define OMAP3_SYS_BOOT3_GPIO_5		OMAP3_PIN(SYS_BOOT3, MODE4)
++#define OMAP3_SYS_BOOT4_GPIO_6		OMAP3_PIN(SYS_BOOT4, MODE4)
++#define OMAP3_SYS_BOOT5_GPIO_7		OMAP3_PIN(SYS_BOOT5, MODE4)
++#define OMAP3_SYS_BOOT6_GPIO_8		OMAP3_PIN(SYS_BOOT6, MODE4)
++#define OMAP3_SYS_OFF_MODE_GPIO_9	OMAP3_PIN(SYS_OFF_MODE, MODE4)
++#define OMAP3_SYS_CLKOUT1_GPIO_10	OMAP3_PIN(SYS_CLKOUT1, MODE4)
++#define OMAP3_JTAG_EMU0_GPIO_11		OMAP3_PIN(JTAG_EMU0, MODE4)
++#define OMAP3_JTAG_EMU1_GPIO_31		OMAP3_PIN(JTAG_EMU1, MODE4)
++
++#define OMAP3_DSS_PCLK_HW_DBG12			OMAP3_PIN(DSS_PCLK, MODE5)
++#define OMAP3_DSS_HSYNC_HW_DBG13		OMAP3_PIN(DSS_HSYNC, MODE5)
++#define OMAP3_DSS_DATA6_HW_DBG14		OMAP3_PIN(DSS_DATA6, MODE5)
++#define OMAP3_DSS_DATA7_HW_DBG15		OMAP3_PIN(DSS_DATA7, MODE5)
++#define OMAP3_DSS_DATA8_HW_DBG16		OMAP3_PIN(DSS_DATA8, MODE5)
++#define OMAP3_DSS_DATA9_HW_DBG17		OMAP3_PIN(DSS_DATA9, MODE5)
++#define OMAP3_CAM_HS_HW_DBG0			OMAP3_PIN(CAM_HS, MODE5)
++#define OMAP3_CAM_VS_HW_DBG1			OMAP3_PIN(CAM_VS, MODE5)
++#define OMAP3_CAM_PCLK_HW_DBG2			OMAP3_PIN(CAM_PCLK, MODE5)
++#define OMAP3_CAM_FLD_HW_DBG3			OMAP3_PIN(CAM_FLD, MODE5)
++#define OMAP3_CAM_D2_HW_DBG4			OMAP3_PIN(CAM_D2, MODE5)
++#define OMAP3_CAM_D3_HW_DBG5			OMAP3_PIN(CAM_D3, MODE5)
++#define OMAP3_CAM_D4_HW_DBG6			OMAP3_PIN(CAM_D4, MODE5)
++#define OMAP3_CAM_D5_HW_DBG7			OMAP3_PIN(CAM_D5, MODE5)
++#define OMAP3_CAM_D10_HW_DBG8			OMAP3_PIN(CAM_D10, MODE5)
++#define OMAP3_CAM_D11_HW_DBG9			OMAP3_PIN(CAM_D11, MODE5)
++#define OMAP3_CAM_WEN_HW_DBG10			OMAP3_PIN(CAM_WEN, MODE5)
++#define OMAP3_CAM_STROBE_HW_DBG11		OMAP3_PIN(CAM_STROBE, MODE5)
++#define OMAP3_MMC2_DAT5_HSUSB3_TLL_STP		OMAP3_PIN(MMC2_DAT5, MODE5)
++#define OMAP3_MMC2_DAT6_HSUSB3_TLL_DIR		OMAP3_PIN(MMC2_DAT6, MODE5)
++#define OMAP3_MMC2_DAT7_HSUSB3_TLL_NXT		OMAP3_PIN(MMC2_DAT7, MODE5)
++#define OMAP3_MCBSP3_DX_HSUSB3_TLL_DATA4	OMAP3_PIN(MCBSP3_DX, MODE5)
++#define OMAP3_MCBSP3_DR_HSUSB3_TLL_DATA5	OMAP3_PIN(MCBSP3_DR, MODE5)
++#define OMAP3_MCBSP3_CLKX_HSUSB3_TLL_DATA6	OMAP3_PIN(MCBSP3_CLKX, MODE5)
++#define OMAP3_MCBSP3_FSX_HSUSB3_TLL_DATA7	OMAP3_PIN(MCBSP3_FSX, MODE5)
++#define OMAP3_UART1_CTS_HSUSB3_TLL_CLK		OMAP3_PIN(UART1_CTS, MODE5)
++#define OMAP3_MCBSP4_CLKX_HSUSB3_TLL_DATA1	OMAP3_PIN(MCBSP4_CLKX, MODE5)
++#define OMAP3_MCBSP4_DR_HSUSB3_TLL_DATA0	OMAP3_PIN(MCBSP4_DR, MODE5)
++#define OMAP3_MCBSP4_DX_HSUSB3_TLL_DATA2	OMAP3_PIN(MCBSP4_DX, MODE5)
++#define OMAP3_MCBSP4_FSX_HSUSB3_TLL_DATA3	OMAP3_PIN(MCBSP4_FSX, MODE5)
++#define OMAP3_MCBSP_CLKS_UART1_CTS		OMAP3_PIN(MCBSP_CLKS, MODE5)
++#define OMAP3_MCSPI1_CS3_MM2_TXDAT		OMAP3_PIN(MCSPI1_CS3, MODE5)
++#define OMAP3_MCSPI2_CS1_MM2_TXEN_N		OMAP3_PIN(MCSPI2_CS1, MODE5)
++#define OMAP3_ETK_CLK_MM1_RXDP			OMAP3_PIN(ETK_CLK, MODE5)
++#define OMAP3_ETK_D0_MM1_RXRCV			OMAP3_PIN(ETK_D0, MODE5)
++#define OMAP3_ETK_D1_MM1_TXSE0			OMAP3_PIN(ETK_D1, MODE5)
++#define OMAP3_ETK_D2_MM1_TXDAT			OMAP3_PIN(ETK_D2, MODE5)
++#define OMAP3_ETK_D7_MM1_TXEN_N			OMAP3_PIN(ETK_D7, MODE5)
++#define OMAP3_ETK_D9_MM1_RXDM			OMAP3_PIN(ETK_D9, MODE5)
++#define OMAP3_ETK_D11_MM2_RXDP			OMAP3_PIN(ETK_D11, MODE5)
++#define OMAP3_ETK_D13_MM2_RXDM			OMAP3_PIN(ETK_D13, MODE5)
++#define OMAP3_ETK_D14_MM2_RXRCV			OMAP3_PIN(ETK_D14, MODE5)
++#define OMAP3_ETK_D15_MM2_TXSE0			OMAP3_PIN(ETK_D15, MODE5)
++
++#define OMAP3_MMC2_DAT5_MM3_RXDP	OMAP3_PIN(MMC2_DAT5, MODE6)
++#define OMAP3_MMC2_DAT7_MM3_RXDM	OMAP3_PIN(MMC2_DAT7, MODE6)
++#define OMAP3_MCBSP4_CLKX_MM3_TXSE0	OMAP3_PIN(MCBSP4_CLKX, MODE6)
++#define OMAP3_MCBSP4_DR_MM3_RXRCV	OMAP3_PIN(MCBSP4_DR, MODE6)
++#define OMAP3_MCBSP4_DX_MM3_TXDAT	OMAP3_PIN(MCBSP4_DX, MODE6)
++#define OMAP3_MCBSP4_FSX_MM3_TXEN_N	OMAP3_PIN(MCBSP4_FSX, MODE6)
++#define OMAP3_ETK_CLK_HSUSB1_TLL_STP	OMAP3_PIN(ETK_CLK, MODE6)
++#define OMAP3_ETK_CTL_HSUSB1_TLL_CLK	OMAP3_PIN(ETK_CTL, MODE6)
++#define OMAP3_ETK_D0_HSUSB1_TLL_DATA0	OMAP3_PIN(ETK_D0, MODE6)
++#define OMAP3_ETK_D1_HSUSB1_TLL_DATA1	OMAP3_PIN(ETK_D1, MODE6)
++#define OMAP3_ETK_D2_HSUSB1_TLL_DATA2	OMAP3_PIN(ETK_D2, MODE6)
++#define OMAP3_ETK_D3_HSUSB1_TLL_DATA7	OMAP3_PIN(ETK_D3, MODE6)
++#define OMAP3_ETK_D4_HSUSB1_TLL_DATA4	OMAP3_PIN(ETK_D4, MODE6)
++#define OMAP3_ETK_D5_HSUSB1_TLL_DATA5	OMAP3_PIN(ETK_D5, MODE6)
++#define OMAP3_ETK_D6_HSUSB1_TLL_DATA6	OMAP3_PIN(ETK_D6, MODE6)
++#define OMAP3_ETK_D7_HSUSB1_TLL_DATA3	OMAP3_PIN(ETK_D7, MODE6)
++#define OMAP3_ETK_D8_HSUSB1_TLL_DIR	OMAP3_PIN(ETK_D8, MODE6)
++#define OMAP3_ETK_D9_HSUSB1_TLL_NXT	OMAP3_PIN(ETK_D9, MODE6)
++#define OMAP3_ETK_D10_HSUSB2_TLL_CLK	OMAP3_PIN(ETK_D10, MODE6)
++#define OMAP3_ETK_D11_HSUSB2_TLL_STP	OMAP3_PIN(ETK_D11, MODE6)
++#define OMAP3_ETK_D12_HSUSB2_TLL_DIR	OMAP3_PIN(ETK_D12, MODE6)
++#define OMAP3_ETK_D13_HSUSB2_TLL_NXT	OMAP3_PIN(ETK_D13, MODE6)
++#define OMAP3_ETK_D14_HSUSB2_TLL_DATA0	OMAP3_PIN(ETK_D14, MODE6)
++#define OMAP3_ETK_D15_HSUSB2_TLL_DATA1	OMAP3_PIN(ETK_D15, MODE6)
++
++#endif
+diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
+index eb6e202..466df36 100644
+--- a/arch/arm/mach-omap2/mux.c
++++ b/arch/arm/mach-omap2/mux.c
+@@ -33,10 +33,21 @@
+ #include <plat/control.h>
+ #include <plat/mux.h>
+ 
++#include <mach/mux.h>
++
+ #ifdef CONFIG_OMAP_MUX
+ 
+ static struct omap_mux_cfg arch_mux_cfg;
+ 
++struct mux_pin {
++	unsigned long offset;
++	unsigned long config;
++};
++
++static struct mux_pin mux_table[MUX_PIN_MAX];
++
++#define mux_configured(p)	((p)->config != -1)
++
+ static inline u16 omap_mux_read(u16 reg)
+ {
+ 	if (cpu_is_omap24xx())
+@@ -640,18 +651,140 @@ static int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
+ #define omap34xx_cfg_reg	NULL
  #endif
+ 
++static int __init_or_module omap2_cfg_pin(unsigned long pin_cfg)
++{
++	static DEFINE_SPINLOCK(mux_spin_lock);
++	unsigned long flags;
++
++	int pin;
++	int cfg;
++	int reg;
++
++	pin = MUX_PIN(pin_cfg);
++	BUG_ON(pin >= MUX_PIN_MAX);
++	cfg = MUX_VAL(pin_cfg);
++
++	if (!mux_configured(&mux_table[pin]))
++		return -EINVAL;
++
++	reg = mux_table[pin].offset;
++
++	spin_lock_irqsave(&mux_spin_lock, flags);
++	omap_mux_write(cfg, reg);
++	mux_table[pin].config = cfg;
++	spin_unlock_irqrestore(&mux_spin_lock, flags);
++
++	return 0;
++}
++
++void __init omap2_mux_init_addr(struct omap_mux_addr_map *map, int reg_size)
++{
++	static DEFINE_SPINLOCK(mux_spin_lock);
++	unsigned long offset, flags;
++
++	struct omap_mux_addr_map *p;
++	int i;
++
++	spin_lock_irqsave(&mux_spin_lock, flags);
++
++	for (p = map; p->start != MUX_PIN_INVALID; p++) {
++		offset = p->offset;
++		i = p->start;
++
++		do {
++			mux_table[i].offset = offset;
++			mux_table[i].config = 0;
++			offset += reg_size; i++;
++		} while ((i <= p->end) && (p->end != -1));
++	}
++
++	spin_unlock_irqrestore(&mux_spin_lock, flags);
++}
++
++/* FIXME: add missing definitions for mux registers */
++static struct omap_mux_addr_map __initdata omap24xx_mux_addr_map[] = {
++	MUX_ADDR_X(GPMC_WAIT0,	GPMC_WAIT3,	0x09a),
++	MUX_ADDR_X(MMC_CLKO,	MMC_CLKI,	0x0f3),
++	MUX_ADDR_X(I2C1_SCL,	I2C2_SDA,	0x111),
++	MUX_ADDR_X(UART3_TX,	UART3_RX,	0x118),
++	MUX_ADDR_X(USB0_PUEN,	USB0_DAT,	0x11d),
++
++	MUX_ADDR(GPMC_NCS2,	0x08e),
++	MUX_ADDR(GPMC_NCS7,	0x093),
++	MUX_ADDR(SYS_NIRQ,	0x12c),
++	MUX_ADDR(SYS_CLKOUT,	0x137),
++
++	MUX_ADDR_END
++};
++
++static struct omap_mux_addr_map __initdata omap2430_mux_addr_map[] = {
++	MUX_ADDR_X(MCBSP1_CLKR,	MCBSP1_CLKX,	0x011A),
++
++	MUX_ADDR(HSUSB0_DATA3,		0x133),
++	MUX_ADDR(HSUSB0_DATA4,		0x134),
++	MUX_ADDR(HSUSB0_DATA5,		0x135),
++	MUX_ADDR(HSUSB0_DATA6,		0x136),
++	MUX_ADDR(HSUSB0_DATA2,		0x137),
++	MUX_ADDR(HSUSB0_DATA0,		0x138),
++	MUX_ADDR(HSUSB0_DATA1,		0x139),
++	MUX_ADDR(HSUSB0_CLK,		0x13A),
++	MUX_ADDR(HSUSB0_DIR,		0x13B),
++	MUX_ADDR(HSUSB0_STP,		0x13c),
++	MUX_ADDR(HSUSB0_NXT,		0x13D),
++	MUX_ADDR(HSUSB0_DATA7,		0x13E),
++
++	MUX_ADDR(MCBSP2_FSX_OFF,	0x012E),
++	MUX_ADDR(MCBSP2_CLX_OFF,	0x012F),
++	MUX_ADDR(MCBSP2_DX_OFF,		0x0130),
++	MUX_ADDR(MCBSP2_DR_OFF,		0x0131),
++	MUX_ADDR(MCBSP3_CLKX,		0x0103),
++	MUX_ADDR(MCBSP3_FSX,		0x0104),
++	MUX_ADDR(MCBSP3_DR,		0x0105),
++	MUX_ADDR(MCBSP3_DX,		0x0106),
++
++	MUX_ADDR(MCSPI1_CLK,		0x010F),
++	MUX_ADDR(MCSPI1_SIMO,		0x0110),
++	MUX_ADDR(MCSPI1_SOMI,		0x0111),
++	MUX_ADDR(MCSPI1_CS0,		0x0112),
++
++	MUX_ADDR_END
++};
++
++static struct omap_mux_addr_map __initdata omap34xx_mux_addr_map[] = {
++	MUX_ADDR_X(GPMC_A1,		SAD2D_MBUSFLAG,	0x07a),
++	MUX_ADDR_X(ETK_CLK,		ETK_D15,	0x5d8),
++	MUX_ADDR_X(I2C4_SCL,		JTAG_EMU1,	0xa00),
++	MUX_ADDR_X(SAD2D_SWAKEUP,	JTAG_TDO,	0xa4c),
++
++	MUX_ADDR_END
++};
++
+ int __init omap2_mux_init(void)
+ {
++	int i;
++
++	/* reset mux_table to INVALID state */
++	for (i = 0; i < ARRAY_SIZE(mux_table); i++)
++		mux_table[i].config = -1;
++
+ 	if (cpu_is_omap24xx()) {
++		omap2_mux_init_addr(omap24xx_mux_addr_map, 1);
++		if (cpu_is_omap2430())
++			omap2_mux_init_addr(omap2430_mux_addr_map, 1);
++
+ 		arch_mux_cfg.pins	= omap24xx_pins;
+ 		arch_mux_cfg.size	= OMAP24XX_PINS_SZ;
+ 		arch_mux_cfg.cfg_reg	= omap24xx_cfg_reg;
+ 	} else if (cpu_is_omap34xx()) {
++		omap2_mux_init_addr(omap34xx_mux_addr_map, 2);
++
+ 		arch_mux_cfg.pins	= omap34xx_pins;
+ 		arch_mux_cfg.size	= OMAP34XX_PINS_SZ;
+ 		arch_mux_cfg.cfg_reg	= omap34xx_cfg_reg;
+ 	}
+ 
++	arch_mux_cfg.cfg_pin = omap2_cfg_pin;
++
+ 	return omap_mux_register(&arch_mux_cfg);
+ }
+ 
+diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
+index edc3ff9..d6314af 100644
+--- a/arch/arm/plat-omap/include/plat/mux.h
++++ b/arch/arm/plat-omap/include/plat/mux.h
+@@ -114,65 +114,6 @@
+ 	PU_PD_REG(NA, 0)		\
+ },
+ 
+-#define MUX_CFG_24XX(desc, reg_offset, mode,			\
+-				pull_en, pull_mode, dbg)	\
+-{								\
+-	.name		= desc,					\
+-	.debug		= dbg,					\
+-	.mux_reg	= reg_offset,				\
+-	.mask		= mode,					\
+-	.pull_val	= pull_en,				\
+-	.pu_pd_val	= pull_mode,				\
+-},
+-
+-/* 24xx/34xx mux bit defines */
+-#define OMAP2_PULL_ENA		(1 << 3)
+-#define OMAP2_PULL_UP		(1 << 4)
+-#define OMAP2_ALTELECTRICALSEL	(1 << 5)
+-
+-/* 34xx specific mux bit defines */
+-#define OMAP3_INPUT_EN		(1 << 8)
+-#define OMAP3_OFF_EN		(1 << 9)
+-#define OMAP3_OFFOUT_EN		(1 << 10)
+-#define OMAP3_OFFOUT_VAL	(1 << 11)
+-#define OMAP3_OFF_PULL_EN	(1 << 12)
+-#define OMAP3_OFF_PULL_UP	(1 << 13)
+-#define OMAP3_WAKEUP_EN		(1 << 14)
+-
+-/* 34xx mux mode options for each pin. See TRM for options */
+-#define	OMAP34XX_MUX_MODE0	0
+-#define	OMAP34XX_MUX_MODE1	1
+-#define	OMAP34XX_MUX_MODE2	2
+-#define	OMAP34XX_MUX_MODE3	3
+-#define	OMAP34XX_MUX_MODE4	4
+-#define	OMAP34XX_MUX_MODE5	5
+-#define	OMAP34XX_MUX_MODE6	6
+-#define	OMAP34XX_MUX_MODE7	7
+-
+-/* 34xx active pin states */
+-#define OMAP34XX_PIN_OUTPUT		0
+-#define OMAP34XX_PIN_INPUT		OMAP3_INPUT_EN
+-#define OMAP34XX_PIN_INPUT_PULLUP	(OMAP2_PULL_ENA | OMAP3_INPUT_EN \
+-						| OMAP2_PULL_UP)
+-#define OMAP34XX_PIN_INPUT_PULLDOWN	(OMAP2_PULL_ENA | OMAP3_INPUT_EN)
+-
+-/* 34xx off mode states */
+-#define OMAP34XX_PIN_OFF_NONE           0
+-#define OMAP34XX_PIN_OFF_OUTPUT_HIGH	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN \
+-						| OMAP3_OFFOUT_VAL)
+-#define OMAP34XX_PIN_OFF_OUTPUT_LOW	(OMAP3_OFF_EN | OMAP3_OFFOUT_EN)
+-#define OMAP34XX_PIN_OFF_INPUT_PULLUP	(OMAP3_OFF_EN | OMAP3_OFF_PULL_EN \
+-						| OMAP3_OFF_PULL_UP)
+-#define OMAP34XX_PIN_OFF_INPUT_PULLDOWN	(OMAP3_OFF_EN | OMAP3_OFF_PULL_EN)
+-#define OMAP34XX_PIN_OFF_WAKEUPENABLE	OMAP3_WAKEUP_EN
+-
+-#define MUX_CFG_34XX(desc, reg_offset, mux_value) {		\
+-	.name		= desc,					\
+-	.debug		= 0,					\
+-	.mux_reg	= reg_offset,				\
+-	.mux_val	= mux_value				\
+-},
+-
+ struct pin_config {
+ 	char 			*name;
+ 	const unsigned int 	mux_reg;
 -- 
-1.6.2.2
+1.6.0.6
 
