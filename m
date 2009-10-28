@@ -1,39 +1,48 @@
-From: Phaneendra Kumar Alapati <phani@embwise.com>
-Subject: MMC_CAP_SDIO IRQ for OMAP35xx
-Date: Wed, 28 Oct 2009 12:32:59 +0530
-Message-ID: <54d94f230910280002j5a4f710frd76a640f3d15aa01@mail.gmail.com>
-References: <54d94f230910272337n150d4ec0kfa382d774479f10e@mail.gmail.com>
+From: "Govindraj.R" <govindraj.raja@ti.com>
+Subject: [PATCHv2 0/3] OMAP UART: Adding support for omap-serial driver.
+Date: Wed, 28 Oct 2009 12:42:32 +0530 (IST)
+Message-ID: <35552.192.168.10.88.1256713952.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail10.myhsphere.biz ([64.71.235.184]:42171 "EHLO
-	mail10.myhsphere.biz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757449AbZJ1HJz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 03:09:55 -0400
-Received: by pwj9 with SMTP id 9so631013pwj.21
-        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 00:03:19 -0700 (PDT)
-In-Reply-To: <54d94f230910272337n150d4ec0kfa382d774479f10e@mail.gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:33423 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757492AbZJ1HM2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 03:12:28 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9S7CW65028041
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 02:12:33 -0500
+Received: from webmail.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9S7CUQ8018026
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 02:12:31 -0500 (CDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-All,
+>From 8f743a2fcb704b2bef35b314426209a9c4197aa4 Mon Sep 17 00:00:00 2001
+From: Govindraj R <govindraj.raja@ti.com>
+Date: Wed, 28 Oct 2009 12:27:42 +0530
+Subject: [PATCHv2 0/3] OMAP UART: Adding support for omap-serial driver.
 
-I have not seen any further discussion on the MMC_CAP_SDIO IRQ for
-OMAP3430 topic.
+The Following series of patch adds support for OMAP3430-HIGH SPEED UART Controller.
 
-I have a working solution for sdio irq support on omap35xx. I have
-verified and tested the functionality on omap3530evm with Marvell
-88W8686 WLAN cards with linux kernel 2.6.31.rc7=A0 The wifi performance
-was 12Mbps for downlink and 10Mbps for uplink. The performance results
-and stability are greatly improved compared to the sdio polling. I
-will be posting the patch soon.
+Govindraj R (3):
+  OMAP UART: Add omap-serial driver support.
+  OMAP UART: Add platform data for omap-serial driver.
+  OMAP UART: Add omap-serial driver support in omap_3430sdp_defconfig
 
-Regards,
-Phani
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ arch/arm/configs/omap_3430sdp_defconfig       |    1 +
+ arch/arm/mach-omap2/serial.c                  |  166 +++
+ arch/arm/plat-omap/include/plat/omap-serial.h |  155 +++
+ drivers/serial/Kconfig                        |   23 +
+ drivers/serial/Makefile                       |    1 +
+ drivers/serial/omap-serial.c                  | 1778 +++++++++++++++++++++++++
+ include/linux/serial_core.h                   |    3 +
+ 7 files changed, 2127 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-omap/include/plat/omap-serial.h
+ create mode 100644 drivers/serial/omap-serial.c
+
+
+
