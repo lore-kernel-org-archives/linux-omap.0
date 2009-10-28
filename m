@@ -1,88 +1,69 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource framework functions
-Date: Wed, 28 Oct 2009 15:45:19 -0700
-Message-ID: <87hbtj3zpc.fsf@deeprootsystems.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com>
-	<87iqejktan.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com>
-	<003201ca581b$256863c0$544ff780@am.dhcp.ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 1/2] AM35xx: Runtime detection of the device
+Date: Wed, 28 Oct 2009 22:17:27 +0200
+Message-ID: <20091028201727.GA3773@nokia.com>
+References: <1256652150-5710-1-git-send-email-premi@ti.com>
+ <20091027161115.GA16494@nokia.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DE0DCB84@dbde02.ent.ti.com>
+ <20091027210853.GA17061@nokia.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DE0DD1D0@dbde02.ent.ti.com>
+ <20091028165918.GD8820@nokia.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DE16EA15@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:53938 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753990AbZJ1WpQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 18:45:16 -0400
-Received: by pzk26 with SMTP id 26so876834pzk.4
-        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 15:45:21 -0700 (PDT)
-In-Reply-To: <003201ca581b$256863c0$544ff780@am.dhcp.ti.com> (Madhusudhan's message of "Wed\, 28 Oct 2009 17\:08\:14 -0500")
+Received: from smtp.nokia.com ([192.100.122.233]:35367 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755021AbZJ2APN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 20:15:13 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE16EA15@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: 'Paul Walmsley' <paul@pwsan.com>, "'Dasgupta, Romit'" <romit@ti.com>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
+To: "ext Premi, Sanjeev" <premi@ti.com>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
 
-"Madhusudhan" <madhu.cr@ti.com> writes:
+Hi,
 
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of Paul Walmsley
->> Sent: Wednesday, October 28, 2009 1:38 PM
->> To: Kevin Hilman
->> Cc: Dasgupta\, Romit; linux-omap\@vger.kernel.org
->> Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
->> framework functions
->> 
->> On Tue, 13 Oct 2009, Kevin Hilman wrote:
->> 
->> > "Dasgupta, Romit" <romit@ti.com> writes:
->> >
->> > > (Tested on Zoom2).
->> > >
->> > > 'omap_pm_dsp_set_min_opp' & 'omap_pm_cpu_set_freq' were using their
->> own
->> > > struct device *. This is a problem because invoking these functions
->> from
->> > > different clients would result in setting of the resource level as
->> requested by
->> > > the last caller. Fixes this by introducing a struct device * to the
->> parameter
->> > > list for these functions.
->> > > Signed-off-by: Romit Dasgupta <romit@ti.com>
->> >
->> >
->> > This looks like the right fix to me.
->> >
->> > Paul, any comments?
->> 
->> 
->> Wait a minute, I am retracting my ack.
->> 
->> 
->> Romit, the only caller of omap_pm_dsp_set_min_opp() should be DSPBridge
->> and the only caller of omap_pm_cpu_set_freq() should be CPUFreq.  So the
->> struct device * pointer is not necessary, unless I am missing something.
->> Can you please explain what you're trying to do?
->> 
-> I believe that omap_pm_cpu_set_freq() can be called by drivers to setup the
-> optimal vdd1 opp, right? For example MMC works at opp1 but the performance
-> is certainly better at opp3.When ondemand is enabled drivers need to put
-> certain constraints on vdd1 opp otherwise performance will be hurt. So, if
-> the API takes care of device level calls then drivers can call this fn.
+On Wed, Oct 28, 2009 at 07:42:07PM +0100, ext Premi, Sanjeev wrote:
+> > On Wed, Oct 28, 2009 at 01:40:04PM +0100, ext Premi, Sanjeev wrote:
+> > > >  	case 0xb891:
+> > > > -		/* Handle 36xx devices */
+> > > > -		switch (rev) {
+> > > > -		case 0:
+> > > > -			omap_revision = OMAP3630_REV_ES1_0;
+> > > > -			break;
+> > > > -		default:
+> > > > -			/* Use the latest known revision as default */
+> > > > -			omap_revision = OMAP3630_REV_ES1_0;
+> > > > -		}
+> > > > -		break;
+> > > > +	/* FALLTHROUGH */
+> > > >  	default:
+> > > >  		/* Unknown default to latest silicon rev as default*/
+> > > >  		omap_revision = OMAP3630_REV_ES1_0;
+> > > 
+> > > [sp] Haven't applied the patch. But, if FALLTHROUGH will 
+> > make the device
+> > >      detected as OMAP3630, then it may not be right. The 
+> > fall through
+> > >      should be on most common device. OMAP3430 ES21./3.1 
+> > should be ideal.
+> > > 
+> > >      Thoughts?
+> > 
+> > see that I didn't change the default clause. It was already
+> > OMAP3630_REV_ES1_0. If it has to be anything else, the 
+> > default should be
+> > changed and the case 0xb891: should do:
+> 
+> I did see that. But since you were already proposing a change
+> thought it would be good idea.
 
-So, the root use case is a power vs. performance policy decision.  And
-using the proposed solution, a single driver gets to make a system
-wide policy decision.  I don't like this.
+if Tony says it's ok, I can change the patch, for sure :-)
 
-For your MMC usecase, I think we need some clarifications.
+but I believe he will want that as a separate patch for bisectability.
 
-What exactly does "better" performance mean.  Is it better throughput
-that is needed?  or is it really the MPU side that is not
-running/responding fast enough.
-
-If it's throughput, then omap_pm_set_min_bus_tput() should be used.
-
-If it's the MPU, what exactly is the problem with ondemand.  Is it
-that it doesn't respond fast enough?  Or that it never switches to a
-higher OPP.
-
-Kevin
+-- 
+balbi
