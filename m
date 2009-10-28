@@ -1,55 +1,45 @@
-From: "Govindraj.R" <govindraj.raja@ti.com>
-Subject: [PATCHv2 3/3] OMAP UART: Add omap-serial driver support in
-     omap_3430sdp_defconfig
-Date: Wed, 28 Oct 2009 12:44:04 +0530 (IST)
-Message-ID: <36486.192.168.10.88.1256714044.squirrel@dbdmail.itg.ti.com>
+From: Dirk Behme <dirk.behme@googlemail.com>
+Subject: Re: MMC_CAP_SDIO IRQ for OMAP35xx
+Date: Wed, 28 Oct 2009 08:30:51 +0100
+Message-ID: <4AE7F32B.6070007@googlemail.com>
+References: <54d94f230910272337n150d4ec0kfa382d774479f10e@mail.gmail.com> <54d94f230910280002j5a4f710frd76a640f3d15aa01@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53090 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757329AbZJ1HOA (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Oct 2009 03:14:00 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9S7E4rc004888
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 02:14:04 -0500
-Received: from webmail.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9S7E2Yx018363
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 02:14:03 -0500 (CDT)
+Received: from fg-out-1718.google.com ([72.14.220.158]:31204 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932505AbZJ1Hav (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 03:30:51 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so1857301fga.1
+        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 00:30:55 -0700 (PDT)
+In-Reply-To: <54d94f230910280002j5a4f710frd76a640f3d15aa01@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Phaneendra Kumar Alapati <phani@embwise.com>
+Cc: linux-omap@vger.kernel.org
 
->From 8f743a2fcb704b2bef35b314426209a9c4197aa4 Mon Sep 17 00:00:00 2001
-From: Govindraj R <govindraj.raja@ti.com>
-Date: Wed, 28 Oct 2009 12:24:26 +0530
-Subject: [PATCHv2 3/3] OMAP UART: Add omap-serial driver support in omap_3430sdp_defconfig
+Phaneendra Kumar Alapati wrote:
+> All,
+> 
+> I have not seen any further discussion on the MMC_CAP_SDIO IRQ for
+> OMAP3430 topic.
 
-This patch adds omap-serial driver support for 3430SDP defconfig.
+As nobody stepped (until now ;) ) into this discussion again, there 
+was nothing to discuss. I'm still working in the background at this 
+issue. I'm currently waiting for a test environment ;)
 
-Signed-off-by: Govindraj R <govindraj.raja@ti.com>
----
- arch/arm/configs/omap_3430sdp_defconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+> I have a working solution for sdio irq support on omap35xx. I have
+> verified and tested the functionality on omap3530evm with Marvell
+> 88W8686 WLAN cards with linux kernel 2.6.31.rc7  The wifi performance
+> was 12Mbps for downlink and 10Mbps for uplink. The performance results
+> and stability are greatly improved compared to the sdio polling. I
+> will be posting the patch soon.
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 8a4a7e2..787d52e 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -880,6 +880,7 @@ CONFIG_SERIAL_8250_RSA=y
- #
- CONFIG_SERIAL_CORE=y
- CONFIG_SERIAL_CORE_CONSOLE=y
-+# CONFIG_SERIAL_OMAP is not set
- CONFIG_UNIX98_PTYS=y
- # CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
- # CONFIG_LEGACY_PTYS is not set
--- 
-1.5.5
+Great! Yes please do so!
 
+Best regards
 
-
+Dirk
 
 
