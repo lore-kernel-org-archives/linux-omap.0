@@ -1,73 +1,88 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 1/2] Added board-3630.c file.
-Date: Wed, 28 Oct 2009 17:10:36 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AD6DA01@dlee02.ent.ti.com>
-References: <7A436F7769CA33409C6B44B358BFFF0C012AC22851@dlee02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE1C8@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA36ED28@dbde02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012AD6D92C@dlee02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA36ED5A@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource framework functions
+Date: Wed, 28 Oct 2009 15:45:19 -0700
+Message-ID: <87hbtj3zpc.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com>
+	<87iqejktan.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com>
+	<003201ca581b$256863c0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:37763 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752875AbZJ1WKe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 18:10:34 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9SMAcH8013546
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 17:10:38 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id n9SMAcqT006839
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 17:10:38 -0500 (CDT)
-Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9SMAc6w008299
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 17:10:38 -0500 (CDT)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA36ED5A@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:53938 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753990AbZJ1WpQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 18:45:16 -0400
+Received: by pzk26 with SMTP id 26so876834pzk.4
+        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 15:45:21 -0700 (PDT)
+In-Reply-To: <003201ca581b$256863c0$544ff780@am.dhcp.ti.com> (Madhusudhan's message of "Wed\, 28 Oct 2009 17\:08\:14 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Taliaferro, Steve" <staliaferro@ti.com>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Paul Walmsley' <paul@pwsan.com>, "'Dasgupta, Romit'" <romit@ti.com>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>
 
+"Madhusudhan" <madhu.cr@ti.com> writes:
 
-> From: Pandita, Vikram
-> Sent: Wednesday, October 28, 2009 11:39 PM
-[...]
-> I was making that list already. Good to see you thinking on same lines.
-> However your list does not match with mine and I tried to confirm the
-> changes looking at h/w.
-Thanks for correcting my list.. it was mostly off the top of my head list..
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+>> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+>> Sent: Wednesday, October 28, 2009 1:38 PM
+>> To: Kevin Hilman
+>> Cc: Dasgupta\, Romit; linux-omap\@vger.kernel.org
+>> Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
+>> framework functions
+>> 
+>> On Tue, 13 Oct 2009, Kevin Hilman wrote:
+>> 
+>> > "Dasgupta, Romit" <romit@ti.com> writes:
+>> >
+>> > > (Tested on Zoom2).
+>> > >
+>> > > 'omap_pm_dsp_set_min_opp' & 'omap_pm_cpu_set_freq' were using their
+>> own
+>> > > struct device *. This is a problem because invoking these functions
+>> from
+>> > > different clients would result in setting of the resource level as
+>> requested by
+>> > > the last caller. Fixes this by introducing a struct device * to the
+>> parameter
+>> > > list for these functions.
+>> > > Signed-off-by: Romit Dasgupta <romit@ti.com>
+>> >
+>> >
+>> > This looks like the right fix to me.
+>> >
+>> > Paul, any comments?
+>> 
+>> 
+>> Wait a minute, I am retracting my ack.
+>> 
+>> 
+>> Romit, the only caller of omap_pm_dsp_set_min_opp() should be DSPBridge
+>> and the only caller of omap_pm_cpu_set_freq() should be CPUFreq.  So the
+>> struct device * pointer is not necessary, unless I am missing something.
+>> Can you please explain what you're trying to do?
+>> 
+> I believe that omap_pm_cpu_set_freq() can be called by drivers to setup the
+> optimal vdd1 opp, right? For example MMC works at opp1 but the performance
+> is certainly better at opp3.When ondemand is enabled drivers need to put
+> certain constraints on vdd1 opp otherwise performance will be hurt. So, if
+> the API takes care of device level calls then drivers can call this fn.
 
-> Here is the list, in the order of impact:
-> 
-> 
-> Peripheral    zoom2    zoom3    sdp3630
-> Ethernet	  A		A	  B **(may not be same)
-> NOR		  n/a	     n/a	  B ** different
-> Onenand	  n/a	     n/a	  B ** diffferent
-> HDMI          A         A       B **(Need to verify: not there on i2c3)
-> NAND          A         A       A (same nand)
-> SDRAM         A         A       A (same sdram)
-Correction      A         B       B (sdram is now 512Meg)
+So, the root use case is a power vs. performance policy decision.  And
+using the proposed solution, a single driver gets to make a system
+wide policy decision.  I don't like this.
 
-> Keypad        A         A       A (same twl)
-> Camera        A         A       A (same sensor can be mounted: can check
-> further)
-> LCD Display   A         A       A (same wvga display)
-> Power         A         A       A (same chip level)
-> Audio         A         A       A (its the same)
-> Voltage resources??			(not sure what you mean?)
-Vaux resources etc... mostly deltas in terms of which twl resource drives what device.. are the maps exactly the same? Are the power scripts for suspend/resume/reset etc the same?
+For your MMC usecase, I think we need some clarifications.
 
-> LEDs          A         A       B (LEDs are board specific, can reside in
-> separate board file)
-> OPPs          A         A       A (same chip feature)
-> 
-> 
-[...]
+What exactly does "better" performance mean.  Is it better throughput
+that is needed?  or is it really the MPU side that is not
+running/responding fast enough.
 
+If it's throughput, then omap_pm_set_min_bus_tput() should be used.
 
-Regards,
-Nishanth Menon
+If it's the MPU, what exactly is the problem with ondemand.  Is it
+that it doesn't respond fast enough?  Or that it never switches to a
+higher OPP.
+
+Kevin
