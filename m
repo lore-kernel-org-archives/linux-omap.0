@@ -1,68 +1,96 @@
 From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 1/3] omap3evm: ehci: Add EHCI padconfig for board Rev >= E
-Date: Wed, 28 Oct 2009 20:42:36 +0530
-Message-ID: <1256742758-32702-1-git-send-email-ajay.gupta@ti.com>
+Subject: [PATCH 2/3] omap3evm: ehci: Update EHCI support on OMAP3EVM (Rev >= E)
+Date: Wed, 28 Oct 2009 20:42:37 +0530
+Message-ID: <1256742758-32702-2-git-send-email-ajay.gupta@ti.com>
+References: <1256742758-32702-1-git-send-email-ajay.gupta@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49813 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:34275 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752142AbZJ1PMm (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Oct 2009 11:12:42 -0400
+	id S1754201AbZJ1PMp (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 28 Oct 2009 11:12:45 -0400
+In-Reply-To: <1256742758-32702-1-git-send-email-ajay.gupta@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: felipe.balbi@nokia.com, tony@atomide.com, Ajay Kumar Gupta <ajay.gupta@ti.com>
 
-OMAP3EVM (Rev >= E) has EHCI port on main board itself. Apart from this
-there is a slot to connect Mistral Daughter Card (MDC) to it which also
-has one EHCI port. Only one EHCI port can be used at a time and we can
-choose the port using GPIO61.
+Added runtime programming for the differences in EHCI interface between
+OMAP3EVM revisions (Rev >= E) and (Rev < E).
 
-These are the new GPIO lines used for different purpose on EHCI interface.
-	- GPIO21 - EHCI phy reset
-	- GPIO22 - EHCI VBUS enable
-	- GPIO61 - Selects EHCI port either on main board or on Mistral
-	  Daughter Card (MDC).
+Changes:
+	- EHCI PHY reset GPIO pin is 21 on Rev >= E while Rev < E
+	  uses GPIO pin 135.
+	- Rev >= E uses EHCI Vbus enable GPIO22 line.
+	- Rev >= E uses GPIO61 to select EHCI port either on main board or
+	  on Mistral Daughter Card (MDC). OMAP3EVM Rev < E doesn't have
+	  EHCI port on main board.
+	- Currently GPIO61 it programmed to enable EHCI port on main
+	  board only.
 
 Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
 ---
- arch/arm/mach-omap2/mux.c             |    7 +++++++
- arch/arm/plat-omap/include/plat/mux.h |    5 +++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+This patch is dependent on below patch,
+[PATCH] omap3evm: Add board revision function
 
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 32c953e..00ad592 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -551,6 +551,13 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
- MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
- 		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
- 		OMAP34XX_MUX_MODE0)
-+/* EHCI GPIO's on OMAP3EVM (Rev >= E) */
-+MUX_CFG_34XX("AH14_34XX_GPIO21", 0x5ea,
-+	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("AF9_34XX_GPIO22", 0x5ec,
-+	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-+MUX_CFG_34XX("U3_34XX_GPIO61", 0x0c8,
-+	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
+ arch/arm/mach-omap2/board-omap3evm.c |   29 ++++++++++++++++++++++++++---
+ 1 files changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 0595ce8..a919f33 100644
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -45,6 +45,8 @@
+ #include "mmc-twl4030.h"
+ 
+ #define OMAP3_EVM_TS_GPIO	175
++#define OMAP3_EVM_EHCI_VBUS	22
++#define OMAP3_EVM_EHCI_SELECT	61
+ 
+ #define OMAP3EVM_ETHR_START	0x2c000000
+ #define OMAP3EVM_ETHR_SIZE	1024
+@@ -381,8 +383,9 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
+ 	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
+ 
+ 	.phy_reset  = true,
++	/* PHY reset GPIO will be runtime programmed based on EVM version */
+ 	.reset_gpio_port[0]  = -EINVAL,
+-	.reset_gpio_port[1]  = 135,
++	.reset_gpio_port[1]  = -EINVAL,
+ 	.reset_gpio_port[2]  = -EINVAL
  };
  
- #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
-index f3c1d8a..8316d4f 100644
---- a/arch/arm/plat-omap/include/plat/mux.h
-+++ b/arch/arm/plat-omap/include/plat/mux.h
-@@ -840,6 +840,11 @@ enum omap34xx_index {
- 
- 	/* SYS_NIRQ T2 INT1 */
- 	AF26_34XX_SYS_NIRQ,
+@@ -402,9 +405,29 @@ static void __init omap3_evm_init(void)
+ 	/* OMAP3EVM uses ISP1504 phy and so register nop transceiver */
+ 	usb_nop_xceiv_register();
+ #endif
++	if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2) {
++		/* enable EHCI VBUS using GPIO22 */
++		omap_cfg_reg(AF9_34XX_GPIO22);
++		gpio_request(OMAP3_EVM_EHCI_VBUS, "enable EHCI VBUS");
++		gpio_direction_output(OMAP3_EVM_EHCI_VBUS, 0);
++		gpio_set_value(OMAP3_EVM_EHCI_VBUS, 1);
 +
-+	/* EHCI GPIO's for OMAP3EVM (Rev >= E) */
-+	AH14_34XX_GPIO21,
-+	AF9_34XX_GPIO22,
-+	U3_34XX_GPIO61,
- };
- 
- struct omap_mux_cfg {
++		/* Select EHCI port on main board */
++		omap_cfg_reg(U3_34XX_GPIO61);
++		gpio_request(OMAP3_EVM_EHCI_SELECT, "select EHCI port");
++		gpio_direction_output(OMAP3_EVM_EHCI_SELECT, 0);
++		gpio_set_value(OMAP3_EVM_EHCI_SELECT, 0);
++
++		/* setup EHCI phy reset config */
++		omap_cfg_reg(AH14_34XX_GPIO21);
++		ehci_pdata.reset_gpio_port[1] = 21;
++
++	} else {
++		/* setup EHCI phy reset on MDC */
++		omap_cfg_reg(AF4_34XX_GPIO135_OUT);
++		ehci_pdata.reset_gpio_port[1] = 135;
++	}
+ 	usb_musb_init();
+-	/* Setup EHCI phy reset padconfig */
+-	omap_cfg_reg(AF4_34XX_GPIO135_OUT);
+ 	usb_ehci_init(&ehci_pdata);
+ 	ads7846_dev_init();
+ }
 -- 
 1.6.2.4
 
