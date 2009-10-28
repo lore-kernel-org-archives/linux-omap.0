@@ -1,254 +1,210 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCHv2 2/3] OMAP UART: Add platform data for omap-serial driver.
-Date: Wed, 28 Oct 2009 09:35:22 -0700
-Message-ID: <87ljiv5ved.fsf@deeprootsystems.com>
-References: <36298.192.168.10.88.1256714022.squirrel@dbdmail.itg.ti.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [RFC PATCH 0/3] mux framework rework
+Date: Wed, 28 Oct 2009 09:53:32 -0700
+Message-ID: <20091028165332.GD7180@atomide.com>
+References: <cover.1256734115.git.mike@compulab.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:53879 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754887AbZJ1QfU (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 12:35:20 -0400
-Received: by pwj9 with SMTP id 9so884011pwj.21
-        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 09:35:25 -0700 (PDT)
-In-Reply-To: <36298.192.168.10.88.1256714022.squirrel@dbdmail.itg.ti.com> (Govindraj R.'s message of "Wed\, 28 Oct 2009 12\:43\:42 +0530 \(IST\)")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:60678 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269AbZJ1Qxb (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 12:53:31 -0400
+Content-Disposition: inline
+In-Reply-To: <cover.1256734115.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Govindraj.R" <govindraj.raja@ti.com>
+To: Mike Rapoport <mike@compulab.co.il>
 Cc: linux-omap@vger.kernel.org
 
-"Govindraj.R" <govindraj.raja@ti.com> writes:
+* Mike Rapoport <mike@compulab.co.il> [091028 06:17]:
+> This is an attempt to start rework of the mux framework keeping as
+> much backward compatibility as possible.
+> The patch serie introduces a new mux configuration interface that
+> follows the ideas of PXA MFP implementation ([1] and [2]).
+> The mux configuration interface is implemented for OMAP3 and partially
+> for OMAP2 processors.
+> The OMAP2 implementation is far from being complete. Unfortunately I
+> do not have OMAP2 docs, so I've added only configration for pins
+> defined in omap24xx_pins table.
+> 
+> The older opam_cfg_reg interface is still present and can be used to
+> avoid too many broken things in steps 2 & 3 as of Tony's plans ([3]).
 
-> From 0f017ffac2990876331a2378e7845d91b2e0088c Mon Sep 17 00:00:00 2001
-> From: Govindraj R <govindraj.raja@ti.com>
-> Date: Wed, 28 Oct 2009 12:23:02 +0530
-> Subject: [PATCHv2 2/3] OMAP UART: Add platform data for omap-serial driver.
->
-> This patch adds platform data support for omap-serial driver.
->
-> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
-> ---
->  arch/arm/mach-omap2/serial.c |  166 ++++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 166 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-> index dabc089..aa3a282 100644
-> --- a/arch/arm/mach-omap2/serial.c
-> +++ b/arch/arm/mach-omap2/serial.c
-> @@ -13,6 +13,9 @@
->   * Copyright (C) 2009 Texas Instruments
->   * Added OMAP4 support - Santosh Shilimkar <santosh.shilimkar@ti.com
->   *
-> + * Copyright (C) 2009 Texas Instruments
-> + * Added support for Omap-Serial driver - Govindraj R <govindraj.raja@ti.com>
-> + *
->   * This file is subject to the terms and conditions of the GNU General Public
->   * License. See the file "COPYING" in the main directory of this archive
->   * for more details.
-> @@ -29,6 +32,10 @@
->  #include <plat/clock.h>
->  #include <plat/control.h>
->
-> +#ifdef CONFIG_SERIAL_OMAP
-> +#include <plat/dma.h>
-> +#include <plat/omap-serial.h>
-> +#endif
->  #include "prm.h"
->  #include "pm.h"
->  #include "prm-regbits-34xx.h"
-> @@ -37,6 +44,7 @@
->
->  #define DEFAULT_TIMEOUT (5 * HZ)
->
-> +#ifdef CONFIG_SERIAL_8250
->  struct omap_uart_state {
->  	int num;
->  	int can_sleep;
-> @@ -654,3 +662,161 @@ void __init omap_serial_init(void)
->  		}
->  	}
->  }
-> +#endif
-> +
-> +#ifdef CONFIG_SERIAL_OMAP
+Cool! I too have been working on this for past several days, but luckily
+I've been working on the new mux data layout instead so far with some
+help from Paul and Benoit.
 
-Can you do this without the #ifdefs?
+So this should all come together quite nicely. I'll try to post some
+patches as soon as the new mux data is working. I'll also take a close
+look at your patches, it seems like they already separate the
+mach-omap2 mux code nicely from what's needed for mach-omap1
+(well, at least for 15xx).
 
-Instead, we should drop the 8250 specifics from omap_uart_state.
+The reason I think we need to redo all the mux data is because the new
+setup has several shortcomings:
 
-At first glance, the plat_serial8250_port pointer is passed around
-mainly so it can be passed to serial_read|write_reg().  If you changed
-that function to take an omap_uart_state instead, and add the base and
-regshift values to omap_uart_state you could get rid of the 8250
-pointer from omap_uart_state.
+- All the mux registers on the newer omaps are in a single register
+  for each signal instead of being scattered across multiple registers
+  like on 15xx. So the enumeration is not needed, and we don't need
+  to specify each signal.
 
-Looks like omap_uart_state should also grow an irq field so
-omap_uart_idle_init() could work for both drivers.
+- We badly need mux register to GPIO mapping for runtime muxing of GPIO
+  pins for the idle modes
 
-> +static struct uart_port_info uart1_port_info = {
-> +		.dma_enabled	= 0,
-> +		.uartclk	= OMAP24XX_BASE_BAUD * 16
-> +};
-> +
-> +static struct uart_port_info uart2_port_info = {
-> +		.dma_enabled	= 1,
-> +		.uartclk	= OMAP24XX_BASE_BAUD * 16
-> +};
-> +
-> +static struct uart_port_info uart3_port_info = {
-> +		.dma_enabled	= 0,
-> +		.uartclk	= OMAP24XX_BASE_BAUD * 16
-> +};
-> +
-> +static struct resource omap2_uart1_resources[] = {
-> +	{
-> +		.start          = OMAP_UART1_BASE,
-> +		.end            = OMAP_UART1_BASE + 0x3ff,
-> +		.flags          = IORESOURCE_MEM,
-> +	}, {
-> +		/* UART1 IRQ - 72*/
-> +		.start          = INT_24XX_UART1_IRQ,
-> +		.flags          = IORESOURCE_IRQ,
-> +	}, {
-> +		/* UART1 TX DMA CHANNEL -S_DMA_48- */
-> +		.start		= OMAP24XX_DMA_UART1_TX,
-> +		.flags		= IORESOURCE_DMA,
-> +	}, {
-> +		/* UART1 RX DMA CHANNEL -S_DMA_49- */
-> +		.start		= OMAP24XX_DMA_UART1_RX,
-> +		.flags		= IORESOURCE_DMA,
-> +	}
-> +};
-> +
-> +static struct resource omap2_uart2_resources[] = {
-> +	{
-> +		.start          = OMAP_UART2_BASE,
-> +		.end            = OMAP_UART2_BASE + 0x3ff,
-> +		.flags          = IORESOURCE_MEM,
-> +	}, {
-> +		/* UART2 IRQ - 73*/
-> +		.start          = INT_24XX_UART2_IRQ,
-> +		.flags          = IORESOURCE_IRQ,
-> +	}, {
-> +		/* UART2 TX DMA CHANNEL -S_DMA_50- */
-> +		.start		= OMAP24XX_DMA_UART2_TX,
-> +		.flags		= IORESOURCE_DMA,
-> +	}, {
-> +		/* UART2 RX DMA CHANNEL -S_DMA_51- */
-> +		.start		= OMAP24XX_DMA_UART2_RX,
-> +		.flags		= IORESOURCE_DMA,
-> +	}
-> +};
-> +
-> +static struct resource omap2_uart3_resources[] = {
-> +	{
-> +		.start          = OMAP_UART3_BASE,
-> +		.end            = OMAP_UART3_BASE + 0x3ff,
-> +		.flags          = IORESOURCE_MEM,
-> +	}, {
-> +		/* UART3 IRQ - 74*/
-> +		.start          = INT_24XX_UART3_IRQ,
-> +		.flags          = IORESOURCE_IRQ,
-> +	}, {
-> +		/* UART3 TX DMA CHANNEL -S_DMA_52- */
-> +		.start		= OMAP24XX_DMA_UART3_TX,
-> +		.flags		= IORESOURCE_DMA,
-> +	}, {
-> +		/* UART3 RX DMA CHANNEL -S_DMA_53- */
-> +		.start		= OMAP24XX_DMA_UART3_RX,
-> +		.flags		= IORESOURCE_DMA,
-> +	}
-> +};
-> +
-> +/* OMAP UART platform structure */
-> +static struct platform_device uart1_device = {
-> +	.name			= "omap-uart",
-> +	.id			= 1,
-> +	.num_resources		= ARRAY_SIZE(omap2_uart1_resources),
-> +	.resource		= omap2_uart1_resources,
-> +	.dev			= {
-> +		.platform_data  = &uart1_port_info
-> +	},
-> +};
-> +static struct platform_device uart2_device = {
-> +	.name			= "omap-uart",
-> +	.id			= 2,
-> +	.num_resources		= ARRAY_SIZE(omap2_uart2_resources),
-> +	.resource		= omap2_uart2_resources,
-> +	.dev			= {
-> +		.platform_data  = &uart2_port_info,
-> +	},
-> +};
-> +static struct platform_device uart3_device = {
-> +	.name			= "omap-uart",
-> +	.id			= 3,
-> +	.num_resources		= ARRAY_SIZE(omap2_uart3_resources),
-> +	.resource		= omap2_uart3_resources,
-> +	.dev			= {
-> +		.platform_data  = &uart3_port_info,
-> +	},
-> +};
-> +
-> +static struct platform_device *uart_devices[] = {
-> +	&uart1_device,
-> +	&uart2_device,
-> +	&uart3_device,
-> +};
+- For debugging, we need to see the pin status if CONFIG_DEBUG_FS
+  is set
 
-NAK.  Now that we have omap_device upstream, we need to use
-omap_device for the creation of these platform devices.  omap_device
-building will use a UART hwmod to build the resources and
-platform_devices automatically.
+- For adding custom hardware on boards such as Beagle, we need to
+  be able to override pins via /debugfs or via cmdline
 
-> +void omap_serial_hsuart_wakeup_source_init(int num)
-> +{
-> +	struct omap_hsuart_state *uart = &omap_hsuart[num];
-> +
-> +	if (cpu_is_omap34xx()) {
-> +		u32 mod = (uart->num == 2) ? OMAP3430_PER_MOD : CORE_MOD;
-> +		u32 wk_mask = 0;
-> +		u32 padconf = 0;
-> +
-> +		uart->wk_en = OMAP34XX_PRM_REGADDR(mod, PM_WKEN1);
-> +		uart->wk_st = OMAP34XX_PRM_REGADDR(mod, PM_WKST1);
-> +		switch (uart->num) {
-> +		case 0:
-> +			wk_mask = OMAP3430_ST_UART1_MASK;
-> +			padconf = 0x182;
-> +			break;
-> +		case 1:
-> +			wk_mask = OMAP3430_ST_UART2_MASK;
-> +			padconf = 0x17a;
-> +			break;
-> +		case 2:
-> +			wk_mask = OMAP3430_ST_UART3_MASK;
-> +			padconf = 0x19e;
-> +			break;
-> +		}
-> +		uart->wk_mask = wk_mask;
-> +		uart->padconf = padconf;
+- Grepping the code for the signal + ball + mux register combination
+  is currently impossible
 
-??? this looks like an exact copy of what's in omap_uart_idle_init()
+So I suggest we get rid of defining each mux mode separately, and
+just define the register offsets from the mux base.
 
-> +	} else {
-> +		uart->wk_en = 0;
-> +		uart->wk_st = 0;
-> +		uart->wk_mask = 0;
-> +		uart->padconf = 0;
-> +	}
-> +}
-> +
-> +void __init omap_serial_init(void)
-> +{
-> +	int ret = 0, i;
-> +	for (i = 0; i < ARRAY_SIZE(uart_devices); i++)
-> +		omap_hsuart_idle_init(i);
-> +
-> +	ret = platform_add_devices(uart_devices, ARRAY_SIZE(uart_devices));
-> +}
-> +#endif /* CONFIG_SERIAL_OMAP */
-> -- 
-> 1.5.5
+Then for the new omap_set_mux(), we should pass the register offset,
+the desired value, and optional flags.
 
-Kevin
+For the new mux data, I currently have something like the below just
+to give an idea what I was thinking, maybe take a quick look at
+that and see how that fits into what you had in mind?
+
+arch/arm/mach-omap2/mux.h:
+
+/**
+ * struct omap_mux - data for omap mux register offset and it's value
+ * @reg_offset:	mux register offset from the mux base
+ * @gpio:	GPIO number
+ * @muxnames:	available signal modes for a ball
+ */
+struct omap_mux {
+	u16	reg_offset;
+	u16	gpio;
+#ifdef CONFIG_DEBUG_FS
+	char	*muxnames[8];
+	char	*balls[2];
+#endif
+};
+...
+
+
+arch/arm/mach-omap2/mux34xx.h:
+
+/* 
+ * OMAP3 CONTROL_PADCONF* register offsets for pin-muxing
+ *
+ * Extracted from the TRM.  Add 0x48002030 to these values to get the
+ * absolute addresses.  The name in the macro is the mode-0 name of
+ * the pin.  NOTE: These registers are 16-bits wide.
+ */ 
+#define OMAP3_CONTROL_PADCONF_SDRC_D0_OFFSET			0x000
+#define OMAP3_CONTROL_PADCONF_SDRC_D1_OFFSET			0x002
+#define OMAP3_CONTROL_PADCONF_SDRC_D2_OFFSET			0x004
+#define OMAP3_CONTROL_PADCONF_SDRC_D3_OFFSET			0x006
+#define OMAP3_CONTROL_PADCONF_SDRC_D4_OFFSET			0x008
+...
+
+
+arch/arm/mach-omap2/mux34xx.h:
+
+#ifdef CONFIG_DEBUG_FS
+
+#define _OMAP3_MUXENTRY(M0, g, m0, m1, m2, m3, m4, m5, m6, m7)		\
+{									\
+	.reg_offset	= (OMAP3_CONTROL_PADCONF_##M0##_OFFSET),	\
+	.gpio		= (g),						\
+	.muxnames	= { m0, m1, m2, m3, m4, m5, m6, m7 },		\
+}
+
+#else
+
+#define _OMAP3_MUXENTRY(M0, g, m0, m1, m2, m3, m4, m5, m6, m7)		\
+{									\
+	.reg_offset	= (OMAP3_CONTROL_PADCONF_##M0##_OFFSET),	\
+	.gpio		= (g),						\
+}
+
+#endif
+
+/* 
+ * OMAP3 CONTROL_PADCONF* register offsets for pin-muxing
+ *
+ * Extracted from the TRM.  Add 0x48002030 to these values to get the
+ * absolute addresses.  The name in the macro is the mode-0 name of
+ * the pin.  NOTE: These registers are 16-bits wide.
+ */ 
+#define OMAP3_CONTROL_PADCONF_SDRC_D0_OFFSET			0x000
+#define OMAP3_CONTROL_PADCONF_SDRC_D1_OFFSET			0x002
+#define OMAP3_CONTROL_PADCONF_SDRC_D2_OFFSET			0x004
+#define OMAP3_CONTROL_PADCONF_SDRC_D3_OFFSET			0x006
+#define OMAP3_CONTROL_PADCONF_SDRC_D4_OFFSET			0x008
+...
+
+/*
+ * Superset of all mux modes, same as the CBC package
+ */
+struct omap_mux omap3_muxmodes[] = {
+	_OMAP3_MUXENTRY(CAM_D0, 99,
+		"cam_d0", NULL, NULL, NULL,
+		"gpio_99", NULL, NULL, "safe_mode"),
+	_OMAP3_MUXENTRY(CAM_D10, 109,
+		"cam_d10", NULL, NULL, NULL,
+		"gpio_109", "hw_dbg8", NULL, "safe_mode"),
+	_OMAP3_MUXENTRY(CAM_D11, 110,
+		"cam_d11", NULL, NULL, NULL,
+		"gpio_110", "hw_dbg9", NULL, "safe_mode"),
+	_OMAP3_MUXENTRY(CAM_D1, 100,
+		"cam_d1", NULL, NULL, NULL,
+		"gpio_100", NULL, NULL, "safe_mode"),
+	_OMAP3_MUXENTRY(CAM_D2, 101,
+		"cam_d2", NULL, NULL, NULL,
+		"gpio_101", "hw_dbg4", NULL, "safe_mode"),
+...
+	{ .reg_offset = OMAP_MUX_TERMINATOR },
+};
+...
+
+
+And this is what I was thinking for the new mux function:
+
+int omap_set_mux(u16 val, u16 offset, int flags);
+
+And then also have a function to initialize a whole struct omap_mux
+array from each board-*.c files.
+
+Regards,
+
+Tony
+
+
+ 
+> [1] Documentation/arm/pxa/mfp.txt
+> [2] http://elinux.org/OMAP_wishlist#References
+> [3] http://elinux.org/OMAP_wishlist#Initial_plans_.28from_Tony.2C_for_next_merge_window.29
+> 
+> Changes since commit 0bbf5337f2f2957775051a3caf60b66d3306c815
+>   Tony Lindgren
+>   	Fix compile for 1510 innovator
+> 
+> Mike Rapoport (3):
+>   omap2: mux: intoduce omap_mux_{read,write}
+>   omap: mux: add interface for encoded mux configration
+>   omap2: mux: implement encoded mux configuration
+> 
+>  arch/arm/mach-omap2/include/mach/mux.h     |  452 +++++++++++++++
+>  arch/arm/mach-omap2/include/mach/mux24xx.h |  128 ++++
+>  arch/arm/mach-omap2/include/mach/mux34xx.h |  862 ++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/mux.c                  |  158 +++++-
+>  arch/arm/plat-omap/include/plat/mux.h      |   62 +--
+>  arch/arm/plat-omap/mux.c                   |   17 +
+>  6 files changed, 1614 insertions(+), 65 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/include/mach/mux.h
+>  create mode 100644 arch/arm/mach-omap2/include/mach/mux24xx.h
+>  create mode 100644 arch/arm/mach-omap2/include/mach/mux34xx.h
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
