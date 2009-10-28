@@ -1,91 +1,158 @@
-From: Mike Rapoport <mike@compulab.co.il>
-Subject: [PATCH 2/3] omap: mux: add interface for encoded mux configration
-Date: Wed, 28 Oct 2009 15:07:44 +0200
-Message-ID: <6acc1e45771b767fb89947455837ffcdbde01b95.1256734115.git.mike@compulab.co.il>
-References: <cover.1256734115.git.mike@compulab.co.il>
- <afa6b6ded8db35578a200c71938174a61eaa4ef9.1256734115.git.mike@compulab.co.il>
+From: Phaneendra Kumar Alapati <phani@embwise.com>
+Subject: [PATCH] OMAP35xx: Added SDIO IRQ support
+Date: Wed, 28 Oct 2009 18:48:38 +0530
+Message-ID: <54d94f230910280618l1b770505lfc88af7592777763@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from compulab.co.il ([67.18.134.219]:55717 "EHLO compulab.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751553AbZJ1NRf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Oct 2009 09:17:35 -0400
-Received: from mail.linux-boards.com ([192.114.83.142] helo=zimbra-mta.compulab.co.il)
-	by compulab.site5.com with esmtp (Exim 4.69)
-	(envelope-from <mike@compulab.co.il>)
-	id 1N38PD-0007Rr-Hr
-	for linux-omap@vger.kernel.org; Wed, 28 Oct 2009 08:17:39 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id 705C39A0366
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 15:17:38 +0200 (IST)
-In-Reply-To: <afa6b6ded8db35578a200c71938174a61eaa4ef9.1256734115.git.mike@compulab.co.il>
-In-Reply-To: <cover.1256734115.git.mike@compulab.co.il>
-References: <cover.1256734115.git.mike@compulab.co.il>
+Received: from mail10.myhsphere.biz ([64.71.235.184]:44375 "EHLO
+	mail10.myhsphere.biz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751762AbZJ1NS4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 09:18:56 -0400
+Received: by pzk26 with SMTP id 26so553537pzk.4
+        for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 06:18:58 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Mike Rapoport <mike@compulab.co.il>
 
-Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+This patch adds SDIO IRQ support for omap hsmmc driver.
+
+Signed-off-by: Phaneendra Kumar Alapati <phani@embwise.com>
 ---
- arch/arm/plat-omap/include/plat/mux.h |    3 +++
- arch/arm/plat-omap/mux.c              |   17 +++++++++++++++++
- 2 files changed, 20 insertions(+), 0 deletions(-)
+ drivers/mmc/host/omap_hsmmc.c |    62 ++--
+ 1 files changed, 55 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
-index f3c1d8a..edc3ff9 100644
---- a/arch/arm/plat-omap/include/plat/mux.h
-+++ b/arch/arm/plat-omap/include/plat/mux.h
-@@ -846,6 +846,7 @@ struct omap_mux_cfg {
- 	struct pin_config	*pins;
- 	unsigned long		size;
- 	int			(*cfg_reg)(const struct pin_config *cfg);
-+	int			(*cfg_pin)(unsigned long pin_config);
+diff --git a/drivers/mmc/host/omap_hsmmc.c b/drivers/mmc/host/omap_hsmmc.c
+index 1cf9cfb..a540626 100644
+--- a/drivers/mmc/host/omap_hsmmc.c
++++ b/drivers/mmc/host/omap_hsmmc.c
+@@ -92,6 +92,10 @@
+ #define DUAL_VOLT_OCR_BIT	7
+ #define SRC			(1 << 25)
+ #define SRD			(1 << 26)
++#define OMAP_HSMMC_CARD_INT	BIT(8)
++#define SDIO_INT_EN		BIT(8)
++#define CTPL			BIT(11)
++#define CLKEXTFREE		BIT(16)
+
+ /*
+  * FIXME: Most likely all the data using these _DEVID defines should come
+@@ -149,6 +153,7 @@ struct mmc_omap_host {
+ 	int			slot_id;
+ 	int			dbclk_enabled;
+ 	int			response_busy;
++	int			sdio_int;
+ 	struct	omap_mmc_platform_data	*pdata;
  };
- 
- #ifdef	CONFIG_OMAP_MUX
-@@ -854,11 +855,13 @@ extern int omap1_mux_init(void);
- extern int omap2_mux_init(void);
- extern int omap_mux_register(struct omap_mux_cfg *);
- extern int omap_cfg_reg(unsigned long reg_cfg);
-+extern int omap_cfg_pin(unsigned long pin_config);
- #else
- /* boot loader does it all (no warnings from CONFIG_OMAP_MUX_WARNINGS) */
- static inline int omap1_mux_init(void) { return 0; }
- static inline int omap2_mux_init(void) { return 0; }
- static inline int omap_cfg_reg(unsigned long reg_cfg) { return 0; }
-+static inline int omap_cfg_pin(unsigned long pin_config) { return 0; }
- #endif
- 
- #endif
-diff --git a/arch/arm/plat-omap/mux.c b/arch/arm/plat-omap/mux.c
-index 05aebca..94b37c1 100644
---- a/arch/arm/plat-omap/mux.c
-+++ b/arch/arm/plat-omap/mux.c
-@@ -77,7 +77,24 @@ int __init_or_module omap_cfg_reg(const unsigned long index)
- 	return mux_cfg->cfg_reg(reg);
- }
- EXPORT_SYMBOL(omap_cfg_reg);
-+
-+int __init_or_module omap_cfg_pin(unsigned long pin_config)
-+{
-+	if (mux_cfg == NULL) {
-+		printk(KERN_ERR "MUX: pin mux table not initialized\n");
-+		return -ENODEV;
-+	}
-+
-+	if (!mux_cfg->cfg_pin) {
-+		printk(KERN_ERR "MUX: cfg_pin interface is not supported\n");
-+		return -ENODEV;
-+	}
-+
-+	return mux_cfg->cfg_pin(pin_config);
-+}
-+EXPORT_SYMBOL(omap_cfg_pin);
- #else
- #define omap_mux_init() do {} while(0)
- #define omap_cfg_reg(x)	do {} while(0)
-+#define omap_cfg_pin(x)	do {} while(0)
- #endif	/* CONFIG_OMAP_MUX */
--- 
-1.6.0.6
 
+@@ -240,8 +245,13 @@ mmc_omap_start_command(struct mmc_omap_host
+*host, struct mmc_command *cmd,
+ 	 * Clear status bits and enable interrupts
+ 	 */
+ 	OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
+-	OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
+-	OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
++	if (host->sdio_int) {
++		OMAP_HSMMC_WRITE(host->base, ISE, (INT_EN_MASK | SDIO_INT_EN));
++		OMAP_HSMMC_WRITE(host->base, IE, (INT_EN_MASK | SDIO_INT_EN));
++	} else {
++		OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
++		OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
++	}
+
+ 	host->response_busy = 0;
+ 	if (cmd->flags & MMC_RSP_PRESENT) {
+@@ -430,17 +440,27 @@ static irqreturn_t mmc_omap_irq(int irq, void *dev_id)
+ 	struct mmc_data *data;
+ 	int end_cmd = 0, end_trans = 0, status;
+
++	data = host->data;
++	status = OMAP_HSMMC_READ(host->base, STAT);
++	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
++
++	if (host->mmc->caps & MMC_CAP_SDIO_IRQ) {
++		if (status & OMAP_HSMMC_CARD_INT) {
++			dev_dbg(mmc_dev(host->mmc),
++					" SDIO CARD interrupt status %x\n",
++					status);
++			mmc_signal_sdio_irq(host->mmc);
++		}
++	}
++
+ 	if (host->mrq == NULL) {
+ 		OMAP_HSMMC_WRITE(host->base, STAT,
+-			OMAP_HSMMC_READ(host->base, STAT));
++				OMAP_HSMMC_READ(host->base, STAT));
+ 		/* Flush posted write */
+ 		OMAP_HSMMC_READ(host->base, STAT);
+ 		return IRQ_HANDLED;
+ 	}
+
+-	data = host->data;
+-	status = OMAP_HSMMC_READ(host->base, STAT);
+-	dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
+
+ 	if (status & ERR) {
+ #ifdef CONFIG_MMC_DEBUG
+@@ -932,6 +952,29 @@ static int omap_hsmmc_get_ro(struct mmc_host *mmc)
+ 	return pdata->slots[0].get_ro(host->dev, 0);
+ }
+
++static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int enable)
++{
++	struct mmc_omap_host *host = mmc_priv(mmc);
++
++	host->sdio_int = enable;
++	if (enable) {
++		OMAP_HSMMC_WRITE(host->base, ISE,
++				(OMAP_HSMMC_READ(host->base, ISE) |
++				 OMAP_HSMMC_CARD_INT));
++		OMAP_HSMMC_WRITE(host->base, IE,
++				(OMAP_HSMMC_READ(host->base, IE) |
++				 OMAP_HSMMC_CARD_INT));
++	} else {
++		OMAP_HSMMC_WRITE(host->base, IE,
++				(OMAP_HSMMC_READ(host->base, IE) &
++				 (~OMAP_HSMMC_CARD_INT)));
++		OMAP_HSMMC_WRITE(host->base, ISE,
++				(OMAP_HSMMC_READ(host->base, ISE) &
++				 (~OMAP_HSMMC_CARD_INT)));
++	}
++
++}
++
+ static void omap_hsmmc_init(struct mmc_omap_host *host)
+ {
+ 	u32 hctl, capa, value;
+@@ -964,7 +1007,7 @@ static struct mmc_host_ops mmc_omap_ops = {
+ 	.set_ios = omap_mmc_set_ios,
+ 	.get_cd = omap_hsmmc_get_cd,
+ 	.get_ro = omap_hsmmc_get_ro,
+-	/* NYET -- enable_sdio_irq */
++	.enable_sdio_irq = omap_hsmmc_enable_sdio_irq,
+ };
+
+ static int __init omap_mmc_probe(struct platform_device *pdev)
+@@ -1011,6 +1054,7 @@ static int __init omap_mmc_probe(struct
+platform_device *pdev)
+ 	host->irq	= irq;
+ 	host->id	= pdev->id;
+ 	host->slot_id	= 0;
++	host->sdio_int 	= 0;
+ 	host->mapbase	= res->start;
+ 	host->base	= ioremap(host->mapbase, SZ_4K);
+
+@@ -1080,6 +1124,10 @@ static int __init omap_mmc_probe(struct
+platform_device *pdev)
+ 	else if (pdata->slots[host->slot_id].wires >= 4)
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+
++	mmc->caps |= MMC_CAP_SDIO_IRQ;
++	OMAP_HSMMC_WRITE(host->base, CON,
++			OMAP_HSMMC_READ(host->base, CON) | (CTPL | CLKEXTFREE));
++
+ 	omap_hsmmc_init(host);
+
+ 	/* Select DMA lines */
+--
+1.6.0.4
