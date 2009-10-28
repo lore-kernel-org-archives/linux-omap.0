@@ -1,119 +1,51 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH] omap3evm: Add board revision function
-Date: Wed, 28 Oct 2009 17:08:45 +0530
-Message-ID: <1256729925-28650-1-git-send-email-ajay.gupta@ti.com>
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH] OMAP3: Clock: Fixed dpll3_m2x2 rate calculation
+Date: Wed, 28 Oct 2009 13:38:10 +0200
+Message-ID: <1256729890-21920-1-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37194 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751737AbZJ1Lis (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 28 Oct 2009 07:38:48 -0400
+Received: from smtp.nokia.com ([192.100.105.134]:22264 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737AbZJ1Lxw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 07:53:52 -0400
+Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
+	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9SBrjTn005783
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 06:53:56 -0500
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n9SBrII9025324
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 13:53:19 +0200
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: tony@atomide.com, srk@ti.com, Ajay Kumar Gupta <ajay.gupta@ti.com>, Vaibhav Hiremath <hvaibhav@ti.com>, Sanjeev Premi <premi@ti.com>
 
-Added function to differentiate between the OMAP3EVM revisions. The
-chip-id of the ethernet PHY is being used for this purpose.
+From: Tero Kristo <tero.kristo@nokia.com>
 
-Rev A to D : 0x01150000
-Rev >= E   : 0x92200000
+Current calculation does not take into account any changes to M2 divisor, and
+thus when we change VDD2 OPP, dpll3_m2x2 rate does not change. Fixed by
+re-routing dpll3_m2x2 parent to dpll3_m2.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Signed-off-by: Sanjeev Premi <premi@ti.com>
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c    |   33 +++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/plat/board.h |   18 ++++++++++++++++
- 2 files changed, 51 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/clock34xx.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b9b0f4c..0595ce8 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -48,9 +48,40 @@
+diff --git a/arch/arm/mach-omap2/clock34xx.h b/arch/arm/mach-omap2/clock34xx.h
+index a1b3de7..8fe1bcb 100644
+--- a/arch/arm/mach-omap2/clock34xx.h
++++ b/arch/arm/mach-omap2/clock34xx.h
+@@ -489,9 +489,9 @@ static struct clk core_ck = {
+ static struct clk dpll3_m2x2_ck = {
+ 	.name		= "dpll3_m2x2_ck",
+ 	.ops		= &clkops_null,
+-	.parent		= &dpll3_x2_ck,
++	.parent		= &dpll3_m2_ck,
+ 	.clkdm_name	= "dpll3_clkdm",
+-	.recalc		= &followparent_recalc,
++	.recalc		= &omap3_clkoutx2_recalc,
+ };
  
- #define OMAP3EVM_ETHR_START	0x2c000000
- #define OMAP3EVM_ETHR_SIZE	1024
-+#define OMAP3EVM_ETHR_ID_REV	0x50	
- #define OMAP3EVM_ETHR_GPIO_IRQ	176
- #define OMAP3EVM_SMC911X_CS	5
- 
-+static u8 omap3_evm_version;
-+
-+u8 get_omap3_evm_rev(void)
-+{
-+	return omap3_evm_version;
-+}
-+EXPORT_SYMBOL(get_omap3_evm_rev);
-+
-+static void __init omap3_evm_get_revision(void)
-+{
-+	void __iomem *ioaddr;
-+	unsigned int smsc_id;
-+
-+	/* Ethernet PHY ID is stored at ID_REV register */
-+	ioaddr = ioremap_nocache(OMAP3EVM_ETHR_START, SZ_1K);
-+	smsc_id = readl(ioaddr + OMAP3EVM_ETHR_ID_REV) & 0xFFFF0000;
-+	iounmap(ioaddr);
-+
-+	switch (smsc_id) {
-+	/*SMSC9115 chipset*/
-+	case 0x01150000:
-+		omap3_evm_version = OMAP3EVM_BOARD_GEN_1;
-+		break;
-+	/*SMSC 9220 chipset*/
-+	case 0x92200000:
-+	default:
-+		omap3_evm_version = OMAP3EVM_BOARD_GEN_2;
-+	}
-+}
-+
- static struct resource omap3evm_smc911x_resources[] = {
- 	[0] =	{
- 		.start	= OMAP3EVM_ETHR_START,
-@@ -357,6 +388,8 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 
- static void __init omap3_evm_init(void)
- {
-+	omap3_evm_get_revision();
-+
- 	omap3_evm_i2c_init();
- 
- 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
-diff --git a/arch/arm/plat-omap/include/plat/board.h b/arch/arm/plat-omap/include/plat/board.h
-index c4fc69f..abb17b6 100644
---- a/arch/arm/plat-omap/include/plat/board.h
-+++ b/arch/arm/plat-omap/include/plat/board.h
-@@ -14,6 +14,18 @@
- 
- #include <plat/gpio-switch.h>
- 
-+/*
-+ * OMAP35x EVM revision
-+ * Run time detection of EVM revision is done by reading Ethernet
-+ * PHY ID -
-+ *	GEN_1	= 0x01150000
-+ *	GEN_2	= 0x92200000
-+ */
-+enum {
-+	OMAP3EVM_BOARD_GEN_1 = 0,	/* EVM Rev between  A - D */
-+	OMAP3EVM_BOARD_GEN_2,		/* EVM Rev >= Rev E */
-+};
-+
- /* Different peripheral ids */
- #define OMAP_TAG_CLOCK		0x4f01
- #define OMAP_TAG_LCD		0x4f05
-@@ -157,4 +169,10 @@ extern int omap_board_config_size;
- /* for TI reference platforms sharing the same debug card */
- extern int debug_card_init(u32 addr, unsigned gpio);
- 
-+/* OMAP3EVM revision */
-+#if defined(CONFIG_MACH_OMAP3EVM)
-+u8 get_omap3_evm_rev(void);
-+#else
-+#define get_omap3_evm_rev() (-EINVAL)
-+#endif
- #endif
+ /* The PWRDN bit is apparently only available on 3430ES2 and above */
 -- 
-1.6.2.4
+1.5.4.3
 
