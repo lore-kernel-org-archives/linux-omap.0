@@ -1,83 +1,57 @@
 From: "Pandita, Vikram" <vikram.pandita@ti.com>
 Subject: RE: [PATCH 1/2] Added board-3630.c file.
-Date: Wed, 28 Oct 2009 22:43:55 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA36ED28@dbde02.ent.ti.com>
-References: <7A436F7769CA33409C6B44B358BFFF0C012AC22851@dlee02.ent.ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE1C8@dbde02.ent.ti.com>
+Date: Wed, 28 Oct 2009 22:45:10 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA36ED29@dbde02.ent.ti.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFDFA6@dbde02.ent.ti.com>
+ <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE2F7@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44320 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752972AbZJ1ROA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 13:14:00 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33139 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751012AbZJ1RPT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 13:15:19 -0400
 Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9SHE2uS008532
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9SHFG17015793
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 12:14:04 -0500
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 12:15:23 -0500
 Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9SHE2Te026448
-	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 22:44:02 +0530 (IST)
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE1C8@dbde02.ent.ti.com>
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id n9SHFG1N026615
+	for <linux-omap@vger.kernel.org>; Wed, 28 Oct 2009 22:45:16 +0530 (IST)
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE2F7@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pais, Allen" <allen.pais@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "Pais, Allen" <allen.pais@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 
 
 >-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Pais,
->Sent: Monday, October 26, 2009 4:40 PM
+>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of G,
+>Manjunath Kondaiah
+>Sent: Monday, October 26, 2009 9:49 AM
 >To: Pais, Allen; linux-omap@vger.kernel.org
 >Subject: RE: [PATCH 1/2] Added board-3630.c file.
-
->> Signed-off-by: Allen Pais <allen.pais@ti.com>
->> ---
->>  arch/arm/mach-omap2/board-3630sdp.c |  188
->> +++++++++++++++++++++++++++++++++++
->>  1 files changed, 188 insertions(+), 0 deletions(-)  create mode
->> 100644 arch/arm/mach-omap2/board-3630sdp.c
->>
->> diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-
->> omap2/board-3630sdp.c new file mode 100644 index 0000000..d3ddbd1
->> --- /dev/null
->> +++ b/arch/arm/mach-omap2/board-3630sdp.c
->> @@ -0,0 +1,188 @@
->> +/*
->> +
 >
->NAK. Could we follow the same issue with zoom2 -> break the keypad into a Separate one and use it
->instead? Same for all reused zoom2 components..
 >
->[Allen] Yes, we should do that. Not only for keypad but also
->For display panel and touch screen so that sdp3630, zoom3 and
->Zoom2 could use the same code, without having to duplicate
->Code.
+>> +static int __init omap_i2c_init(void)
+>> +{
+>> +	omap_register_i2c_bus(1, 2600, sdp3630_i2c_boardinfo,
+>> +			ARRAY_SIZE(sdp3630_i2c_boardinfo));
+>> +	omap_register_i2c_bus(2, 400, NULL, 0);
+>> +	omap_register_i2c_bus(3, 400, NULL, 0);
+>> +	return 0;
+>> +}
+>
+>If sdp3630 board is using TWL5030/GAIA, then you need to reduce I2C speed.
+>http://patchwork.kernel.org/patch/52760/
 
-We just got the same image for zoom3 boot on SDP3630 (after mach-type change)
-The peripheral set is almost >90% same: same keypad, same display, same RAM, same NAND.
-
-I see a good amount of re-use possible here. 
-Here is how we could do it:
-
-Board-zoom2.c 
-Split into:
-	Board-zoom2.c
-	Board-zoom-peripheral.c [reuse]
-
-3630 zoom3 uses:
-	Board-zoom3.c
-	Board-zoom-peripheral.c [reuse]
-
-3630 SDP uses:
-	Board-3630sdp.c
-	Board-zoom-peripheral.c [reuse]
-
-
-Will give a first pass at this split up and post patches.
+Very valid point.
 
 >
->> +
->> +static struct matrix_keymap_data board_map_data = {
+>-Manjunath--
+>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
