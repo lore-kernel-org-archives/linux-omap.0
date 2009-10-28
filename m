@@ -1,80 +1,66 @@
-From: "Menon, Nishanth" <nm@ti.com>
-Subject: RE: [PATCH 2/2 v3] OMAP3: PM: SR: SmartReflex Refactor Rev4.0
-Date: Wed, 28 Oct 2009 00:17:47 -0500
-Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AD6CFAA@dlee02.ent.ti.com>
-References: <OMAP3:PM:SR: SmartReflex Refactor Rev3.0>
- <1256361352-9968-1-git-send-email-nm@ti.com>
- <1256361352-9968-2-git-send-email-nm@ti.com>
- <1256361352-9968-3-git-send-email-nm@ti.com>
- <E0D41E29EB0DAC4E9F3FF173962E9E940253EFE01B@dbde02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012AC22837@dlee02.ent.ti.com>
- <alpine.DEB.2.00.0910261123360.26141@utopia.booyaka.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH] OMAP: McBSP: Do not use extensive spin
+	locks for dma_op_mode
+Date: Wed, 28 Oct 2009 07:52:23 +0200
+Message-ID: <200910280752.23859.peter.ujfalusi@nokia.com>
+References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1256641643.30157.339.camel@eenurkka-desktop>
+	<20091027160000.f276e706.jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-7
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33705 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757330AbZJ1FRx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 01:17:53 -0400
-In-Reply-To: <alpine.DEB.2.00.0910261123360.26141@utopia.booyaka.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091027160000.f276e706.jhnikula@gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Imberton Guilhem <guilhem.imberton@motorola.com>, Mike Chan <mikechan@google.com>, "Nayak, Rajendra" <rnayak@ti.com>, Roger Quadros <ext-roger.quadros@nokia.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>, "Reddy, Teerth" <teerth@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Hogander Jouni <jouni.hogander@nokia.com>
 
-> -----Original Message-----
-> owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> Sent: Wednesday, October 28, 2009 1:37 AM
->=20
-[..]
-> a comment on cpu_relax() and udelay().
->=20
-> On Mon, 26 Oct 2009, Menon, Nishanth wrote:
->=20
-> > > -----Original Message-----
-> > > From: G, Manjunath Kondaiah
-> > >
-> > > As per your comments for other patches when ever there is udelay =
-usage,
-> > > cpu_relax is the better option. I see there are lot of udelay(...=
-)
-> calls
-> > > used in this patch. Why can't you use cpu_relax() or schedule().
-> > > Any specific reason?
-> > >
-> > Don=A2t really want to do cpu_relax in irq_locked context..
->=20
-> There are no restrictions on the calling context for cpu_relax().
-> [ schedule(), of course, does have restrictions. ]
-Thanks..
->=20
-> I don't understand the use of the udelay(10).  Could you please expla=
-in
-> this further?  Is it the case that if the register bit doesn't change
-> within 50 reads, that it is then not likely to change for 10 microsec=
-onds?
-The delay of 10 used is in vcbypass command -> the loop actually waits =
-for the i2c command to get thru.. depending on the speed of the bus con=
-figured and cpu speed, 50 iterations might not be enough, but yes, a ud=
-elay(1) loop in addition to cpu_relax might be better..
+On Tuesday 27 October 2009 16:00:00 ext Jarkko Nikula wrote:
+> On Tue, 27 Oct 2009 13:07:23 +0200
+> =
 
->=20
-> If that isn't how the device works, then using udelay(10) will just w=
-aste
-> power busy-looping in the CPU.  I would rather see this code using
-> udelay(1) between each register read if you want to ensure that you r=
-ead
-> the register for at least 50 microseconds.  This would also simplify =
-your
-> timeout loops considerably, which seem unnecessarily complicated.
-Ack.
+> Eero Nurkkala <ext-eero.nurkkala@nokia.com> wrote:
+> > Otherwise, that spinlocking is highly unnecessary and things are
+> > far better without than with it. The only case it could be useful
+> > is in SMPs, but OMAPs are not such quite yet - and when they
+> > are, things will need to be re-though anyway.
+> =
 
-Regards,
-Nishanth Menon
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Following commit is suggesting that mcbsp code *must* be SMP safe
+> already now:
+> =
+
+> commit a5b92cc348299c20be215b9f4b50853ecfbf3864
+> Author: Syed Rafiuddin <rafiuddin.syed@ti.com>
+> Date:   Tue Jul 28 18:57:10 2009 +0530
+> =
+
+>     ARM: OMAP4: Add McBSP support
+
+Yeah, but I think this locking issue has nothing to do with SMP safe or not.
+On playback start in omap_mcbsp_request the mcbsp->free is cleared.
+Further modification to the dma_op_mode in dma_op_mode_store is not allowed=
+ if =
+
+the mcbsp port is in use, thus the dma_op_mode is protected against change =
+while =
+
+the port is in use (ensuring that the mode is same in omap34xx_mcbsp_reques=
+t and =
+
+omap_mcbsp_get_dma_op_mode functions). This alone makes the use of spinlock =
+
+around the dma_op_mode unnecessary.
+
+-- =
+
+P=E9ter
