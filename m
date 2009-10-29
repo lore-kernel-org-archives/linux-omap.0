@@ -1,175 +1,149 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/5] New mux code for 34xx
-Date: Thu, 29 Oct 2009 14:59:38 -0700
-Message-ID: <20091029215937.GQ7180@atomide.com>
-References: <20091029203124.11843.89983.stgit@localhost> <f870da180910291419l1ed0f663xb3c6042a07dec55d@mail.gmail.com>
+From: "Madhusudhan" <madhu.cr@ti.com>
+Subject: RE: [PATCH] omap-pm: Fixes behaviour of some shared resource framework functions
+Date: Thu, 29 Oct 2009 17:22:28 -0500
+Message-ID: <00d601ca58e6$4c8f42e0$544ff780@am.dhcp.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com>	<87iqejktan.fsf@deeprootsystems.com>	<alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com>	<003201ca581b$256863c0$544ff780@am.dhcp.ti.com>	<87hbtj3zpc.fsf@deeprootsystems.com>	<B85A65D85D7EB246BE421B3FB0FBB59301DE16EE0D@dbde02.ent.ti.com>	<74583B8642AB8841B30447520659FCA9DDEF056E@dnce01.ent.ti.com>	<B85A65D85D7EB246BE421B3FB0FBB59301DE16F1FC@dbde02.ent.ti.com> <87zl7a1a0t.fsf@deeprootsystems.com> <4AEA0B37.5070604@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56589 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753030AbZJ2V7g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 17:59:36 -0400
-Content-Disposition: inline
-In-Reply-To: <f870da180910291419l1ed0f663xb3c6042a07dec55d@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:47642 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756742AbZJ2WW2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Oct 2009 18:22:28 -0400
+In-Reply-To: <4AEA0B37.5070604@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike.rapoport@gmail.com>
-Cc: linux-omap@vger.kernel.org
+To: 'Mike Turquette' <mturquette@ti.com>, 'Kevin Hilman' <khilman@deeprootsystems.com>
+Cc: "'Dasgupta, Romit'" <romit@ti.com>, "'Cousson, Benoit'" <b-cousson@ti.com>, 'Paul Walmsley' <paul@pwsan.com>, linux-omap@vger.kernel.org, "'Titiano, Patrick'" <p-titiano@ti.com>
 
-* Mike Rapoport <mike.rapoport@gmail.com> [091029 14:19]:
-> Hi Tony,
->=20
-> On Thu, Oct 29, 2009 at 10:35 PM, Tony Lindgren <tony@atomide.com> wr=
-ote:
-> > Hi all,
+
+
+> -----Original Message-----
+> From: Mike Turquette [mailto:mturquette@ti.com]
+> Sent: Thursday, October 29, 2009 4:38 PM
+> To: Kevin Hilman
+> Cc: Dasgupta, Romit; Cousson, Benoit; Chikkature Rajashekar, Madhusudhan;
+> 'Paul Walmsley'; linux-omap@vger.kernel.org; Titiano, Patrick
+> Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
+> framework functions
+> 
+> Kevin Hilman wrote:
+> > "Dasgupta, Romit" <romit@ti.com> writes:
 > >
-> > Here's an initial version of the new mux code to play with.
-> > Big thanks to Paul & Benoit for the 34xx mux data!
+> >> Hello Benoit,
+> >>                         One comment below:
+> >>> In fact, this is Mike who started that analysis. We discussed that
+> internally and
+> >>> our point is that if the CPUFreq ondemand or conservative heuristic is
+> not able
+> >>> to increase quickly enough the CPU need to handle correctly the UI, we
+> have
+> >>> to somehow improve or modify the governor in order to provide it a
+> extra
+> >>> information in term of constraint maybe in order to increase
+> immediately the
+> >>> frequency.
+> >> The information as you mention needs to be supplied by the
+> >> driver. The governor would then act on behalf of the driver!  This
+> >> begs for a new governor API or a signature change to an existing
+> >> governor API.
+> >>
+> >>> This should not be done in the low level omap_pm code; this is not
+> >>> the right level to do that. The issue is in the ondemand and must
+> >>> be fixed there.
+> >> At the end of the day it would still be the driver making the
+> >> decision!
 > >
-> > To try out the new code, compile a kernel with CONFIG_OMAP_MUX
-> > and CONFIG_DEBUG_FS and these patches. The series is also
-> > availabe in the l-o git in mux branch.
->=20
-> Great work! I'm too sleepy now to make proper review, and I'm trying
-> not to take work home, so I'll pull and test your patches only next
-> week.
+> > No.  The drivers can give hints about their requirements, but the
+> > drivers don't make decisions that are system wide.  The govenor acts
+> > on behalf of the entire system based on multiple inputs, not any one
+> > driver.
+> >
+> > Benoit's point (and I agree with) is that this is a *system wide*
+> > problem that needs a *system wide* solution.  I agree that tweaked or
+> > new governor is the right approach to solving this for the long term,
+> 
+> An assumption in this thread is that ondemand/conservative can't scale
+> fast enough, but that is not true.  The Android UI sluggishness
+> mentioned by Benoit was solved by lowering the cpufreq
+> transition_latency time from 10 million ns to 300,000ns.  I have not
+> gotten the exact worst case time that it takes for voltage to scale up
+> and down from the hardware guys, but through some email exchanges it was
+> agreed that this value is safe.
+> 
+> I've pushed the patch that fixed transition_latency to the list.  Please
+> see thread "decrease cpufreq transition latency".  This should hopefully
+> cure a lot of performance/user experience pain and help us remove policy
+> from drivers.
+> 
+Hi Kevin, Mike,
 
-OK, I guess what we now need to figure out if can we just convert
-all omap_cfg_reg() straight to omap_mux_set().
+Let us consider the MMC scenario. Below are the throughput numbers with
+different governors.
 
-> And, still, I'm missing PXA-style defines for particular pin
-> configuration :) I really like
->        OMAP3_CAM_D0_GPIO_99,
-> more than
->        OMAP3_MUX(CAM_D0, OMAP_PIN_OUTPUT | OMAP_PIN_OFF_NONE |
-> OMAP_MUX_MODE4, 0),
-> :)
+Performance:
+Write: 5.47MB/Sec
+Read: 15.3MB/Sec
 
-Yeah too many options.. Maybe we could have some macro like
-OMAP_MUX_GPIO_OUT(99)? We should be able to find it now with
-the gpio number during init, don't know if we want to keep
-all the gpio to mux mappings in memory except for active gpio
-pins.
+Ondemand:
+Write: 4.2 MB/Sec
+Read: 9.8 MB/Sec
+
+Conservative:
+Write: 4.9MB/Sec
+Read: 12.16MB/Sec
+
+These numbers show that "conservative" is better than ondemand but the
+throughput numbers are still less than "performance". 
+
+Instead, if the driver holds the vdd1 opp to opp3 the throughput numbers
+were relatively close to "performance" governor. The logic I am talking
+about is that the drivers should be intelligent enough to hold the opp at
+Opp3 only when there is an active transfer. Once the transfer is done
+release it back to opp1. Does this make sense? 
+
+Otherwise, do you guys think there is room to improve conservative governor
+further?
 
 Regards,
+Madhu
 
-Tony
 
->=20
-> > To see the mux configuration on your board:
+> > In the mean time, I have a couple ideas for experimentation.
 > >
-> > # mount -t debugfs debugfs /sys/kernel/debug
-> > # cat /sys/kernel/debug/omap_mux | less
-> > OMAP3_MUX(CAM_D0, OMAP_PIN_INPUT | OMAP_PIN_OFF_NONE | OMAP_PIN_OFF=
-_WAKEUPENABLE
-> > =A0| OMAP_MUX_MODE4, 0),
-> > padconf: cam_d0 signal: gpio_99: =A0 =A0 =A0 =A0offset: 0x0e6 =A0 v=
-alue: 0x4104
-> > m0: cam_d0 =A0 =A0 =A0m1: =A0 =A0 =A0 =A0 =A0 =A0 m2: =A0 =A0 =A0 =A0=
- =A0 =A0 m3:
-> > m4: gpio_99 =A0 =A0 m5: =A0 =A0 =A0 =A0 =A0 =A0 m6: =A0 =A0 =A0 =A0=
- =A0 =A0 m7: safe_mode
-> > phys: 0x48002116 =A0 =A0 =A0 =A0ball bottom: ag17 =A0 =A0 =A0 =A0ba=
-ll top:
+> > Ultimately, we're still talking about a power vs. perfomance tradeoff,
+> > which is a system wide choice that should be left to the system
+> > integrator (or maybe even end user.)  If performance is desired over
+> > power (like maybe when the UI is active), there are couple things that
+> > could be done
 > >
-> > OMAP3_MUX(CAM_D10, OMAP_PIN_OUTPUT | OMAP_PIN_OFF_NONE | OMAP_MUX_M=
-ODE7, 0),
-> > padconf: cam_d10 =A0 =A0 =A0 =A0signal: safe_mode: =A0 =A0 =A0offse=
-t: 0x0fa =A0 value: 0x0007
-> > m0: cam_d10 =A0 =A0 m1: =A0 =A0 =A0 =A0 =A0 =A0 m2: =A0 =A0 =A0 =A0=
- =A0 =A0 m3:
-> > m4: gpio_109 =A0 =A0m5: =A0 =A0 =A0 =A0 =A0 =A0 m6: =A0 =A0 =A0 =A0=
- =A0 =A0 m7: safe_mode
-> > phys: 0x4800212a =A0 =A0 =A0 =A0ball bottom: b25 =A0 =A0 =A0 =A0 ba=
-ll top:
-> > ...
+> > 1) Switch to performance governor,
 > >
-> > Then to produce a list of board mux entries from a working
-> > system, do:
+> > 2) or better, keep ondemand but use with CPUfreq policy changes
 > >
-> > # cat /sys/kernel/debug/omap_mux | grep OMAP3_MUX
-> > OMAP3_MUX(CAM_D0, OMAP_PIN_INPUT | OMAP_PIN_OFF_NONE | OMAP_PIN_OFF=
-_WAKEUPENABLE
-> > =A0| OMAP_MUX_MODE4, 0),
-> > OMAP3_MUX(CAM_D10, OMAP_PIN_OUTPUT | OMAP_PIN_OFF_NONE | OMAP_MUX_M=
-ODE7, 0),
-> > OMAP3_MUX(CAM_D11, OMAP_PIN_INPUT | OMAP_PIN_OFF_NONE | OMAP_PIN_OF=
-=46_WAKEUPENABL
-> > E | OMAP_MUX_MODE4, 0),
-> > OMAP3_MUX(CAM_D1, OMAP_PIN_INPUT | OMAP_PIN_INPUT_PULLUP | OMAP_PIN=
-_OFF_NONE | O
-> > MAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4, 0),
-> > ...
+> > With CPUfreq policies, you can change which OPPs are available to the
+> > system.
 > >
-> > Currenly no write support to tweak the pins via debugfs,
-> > but I'll add that soon with command line support too.
+> > To see the currently available OPPs and the min/max settings:
 > >
-> > I have not really verified the data yet, but it mostly looks
-> > right. Adding support for 3630 and omap4 should be easy
-> > after generating the data. It's currently implemented only
-> > for 34xx.
+> > /sys/devices/system/cpu/cpu0/cpufreq # cat scaling_available_frequencies
+> > 600000 550000 500000 250000 125000
+> > /sys/devices/system/cpu/cpu0/cpufreq # cat scaling_max_freq
+> > 600000
+> > /sys/devices/system/cpu/cpu0/cpufreq # cat scaling_min_freq
+> > 125000
 > >
-> > I guess the next step would be to convert all omap3 calls
-> > to omap_cfg_reg() to use omap_mux_set() instead with the
-> > new data and make sure things work. Then we can remove the
-> > old data for 34xx.
+> > To make OPP3 the minimum OPP, all that's needed is:
 > >
-> > Comments welcome as always.
+> > /sys/devices/system/cpu/cpu0/cpufreq # echo 500000 > scaling_min_freq
 > >
-> > Regards,
+> > Changing the min freq is what you are trying to do from the MMC
+> > driver.  The difference here is that since this is a system wide
+> > policy decision, it should be done a system wide level.
 > >
-> > Tony
+> > Kevin
 > >
-> >
-> > ---
-> >
-> > Mike Rapoport (1):
-> > =A0 =A0 =A0omap2: mux: intoduce omap_mux_{read,write}
-> >
-> > Tony Lindgren (4):
-> > =A0 =A0 =A0omap: mux: Add debugfs support for new mux code
-> > =A0 =A0 =A0omap: mux: Add new style init functions to omap3 board-*=
-=2Ec files
-> > =A0 =A0 =A0omap: mux: Add new style pin multiplexing data for 34xx
-> > =A0 =A0 =A0omap: mux: Add new style pin multiplexing code for omap3
-> >
-> >
-> > =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 | =A0 =A04
-> > =A0arch/arm/mach-omap2/board-3430sdp.c =A0 =A0 =A0| =A0 =A09
-> > =A0arch/arm/mach-omap2/board-cm-t35.c =A0 =A0 =A0 | =A0 =A09
-> > =A0arch/arm/mach-omap2/board-ldp.c =A0 =A0 =A0 =A0 =A0| =A0 =A09
-> > =A0arch/arm/mach-omap2/board-omap3beagle.c =A0| =A0 =A09
-> > =A0arch/arm/mach-omap2/board-omap3evm.c =A0 =A0 | =A0 =A09
-> > =A0arch/arm/mach-omap2/board-omap3pandora.c | =A0 =A09
-> > =A0arch/arm/mach-omap2/board-overo.c =A0 =A0 =A0 =A0| =A0 =A08
-> > =A0arch/arm/mach-omap2/board-rx51.c =A0 =A0 =A0 =A0 | =A0 10
-> > =A0arch/arm/mach-omap2/board-zoom2.c =A0 =A0 =A0 =A0| =A0 =A08
-> > =A0arch/arm/mach-omap2/mux.c =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A042=
-4 ++++++++
-> > =A0arch/arm/mach-omap2/mux.h =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A012=
-7 ++
-> > =A0arch/arm/mach-omap2/mux34xx.c =A0 =A0 =A0 =A0 =A0 =A0| 1552 ++++=
-++++++++++++++++++++++++++
-> > =A0arch/arm/mach-omap2/mux34xx.h =A0 =A0 =A0 =A0 =A0 =A0| =A0352 ++=
-+++++
-> > =A014 files changed, 2533 insertions(+), 6 deletions(-)
-> > =A0create mode 100644 arch/arm/mach-omap2/mux.h
-> > =A0create mode 100644 arch/arm/mach-omap2/mux34xx.c
-> > =A0create mode 100644 arch/arm/mach-omap2/mux34xx.h
-> >
-> > --
-> > Signature
-> >
->=20
->=20
->=20
-> --=20
-> 	Sincerely Yours,
-> 		Mike.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
