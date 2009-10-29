@@ -1,395 +1,248 @@
-From: Phaneendra Kumar Alapati <phani@embwise.com>
-Subject: Re: [PATCH] OMAP35xx: Added SDIO IRQ support
-Date: Thu, 29 Oct 2009 14:57:49 +0530
-Message-ID: <54d94f230910290227o6c56e921rb91558bdac462d65@mail.gmail.com>
-References: <54d94f230910280618l1b770505lfc88af7592777763@mail.gmail.com>
-	<000001ca57e8$e4108ec0$544ff780@am.dhcp.ti.com> <4AE89FEC.9000309@googlemail.com>
-	<002d01ca5810$96534100$544ff780@am.dhcp.ti.com>
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: Re: [RFC PATCH 0/3] mux framework rework
+Date: Thu, 29 Oct 2009 11:46:02 +0200
+Message-ID: <4AE9645A.2090809@compulab.co.il>
+References: <cover.1256734115.git.mike@compulab.co.il> <20091028165332.GD7180@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail10.myhsphere.biz ([64.71.235.184]:49478 "EHLO
-	mail10.myhsphere.biz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752229AbZJ2J2L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 05:28:11 -0400
-Received: by pxi9 with SMTP id 9so1066870pxi.4
-        for <linux-omap@vger.kernel.org>; Thu, 29 Oct 2009 02:28:09 -0700 (PDT)
-In-Reply-To: <002d01ca5810$96534100$544ff780@am.dhcp.ti.com>
+Received: from compulab.co.il ([67.18.134.219]:34417 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753208AbZJ2JqD (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Oct 2009 05:46:03 -0400
+In-Reply-To: <20091028165332.GD7180@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Madhusudhan <madhu.cr@ti.com>
-Cc: Dirk Behme <dirk.behme@googlemail.com>, linux-omap@vger.kernel.org
-
-Dirk and Madhu, Thanks for the review/comments. I have explained below
-the reasons behind certain changes i made esp the interrupt enabling
-and irq routine changes.
-
-On Thu, Oct 29, 2009 at 2:22 AM, Madhusudhan <madhu.cr@ti.com> wrote:
->
->
->> -----Original Message-----
->> From: Dirk Behme [mailto:dirk.behme@googlemail.com]
->> Sent: Wednesday, October 28, 2009 2:48 PM
->> To: Madhusudhan; 'Phaneendra Kumar Alapati'
->> Cc: linux-omap@vger.kernel.org
->> Subject: Re: [PATCH] OMAP35xx: Added SDIO IRQ support
->>
->> Madhusudhan wrote:
->> >
->> >> -----Original Message-----
->> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> >> owner@vger.kernel.org] On Behalf Of Phaneendra Kumar Alapati
->> >> Sent: Wednesday, October 28, 2009 8:19 AM
->> >> To: linux-omap@vger.kernel.org
->> >> Subject: [PATCH] OMAP35xx: Added SDIO IRQ support
->> >>
->> >> This patch adds SDIO IRQ support for omap hsmmc driver.
->> >>
->> >> Signed-off-by: Phaneendra Kumar Alapati <phani@embwise.com>
->> >> ---
->> >> =A0drivers/mmc/host/omap_hsmmc.c | =A0 =A062 ++--
->> >> =A01 files changed, 55 insertions(+), 7 deletions(-)
->> >>
->> >> diff --git a/drivers/mmc/host/omap_hsmmc.c
->> b/drivers/mmc/host/omap_hsmmc.c
->> >> index 1cf9cfb..a540626 100644
->> >> --- a/drivers/mmc/host/omap_hsmmc.c
->> >> +++ b/drivers/mmc/host/omap_hsmmc.c
->> >> @@ -92,6 +92,10 @@
->> >> =A0#define DUAL_VOLT_OCR_BIT 7
->> >> =A0#define SRC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 << =
-25)
->> >> =A0#define SRD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (1 << =
-26)
->> >> +#define OMAP_HSMMC_CARD_INT =A0 =A0 =A0 BIT(8)
->> >> +#define SDIO_INT_EN =A0 =A0 =A0 =A0 =A0 =A0 =A0 BIT(8)
->> > Why multiple defines of the same? One of them should be enough.
->>
->> What I think meant here is
->>
->> #define CIRQ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(1 << 8)
->> #define CIRQ_ENABLE =A0 =A0 =A0 =A0 =A0 (1 << 8)
->>
->> One is for the status register, the other is for the interrupt enabl=
-e
->> registers. To be compatible with the TRM, I would use both in this w=
-ay.
->>
->> >> +#define CTPL =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(11)
->> >> +#define CLKEXTFREE =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0BIT(16)
->> > Can we define them in the same way as other defines to maintain
->> uniformity?
->>
->> Yes, ack.
->>
-
-I have kept separate macros in reference to the TRM as they are for
-different registers. To keep the code simpler they can be merged
-
->> >> =A0/*
->> >> =A0 * FIXME: Most likely all the data using these _DEVID defines =
-should
->> come
->> >> @@ -149,6 +153,7 @@ struct mmc_omap_host {
->> >> =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 slot_id;
->> >> =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 dbclk_enabled;
->> >> =A0 =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 response_busy;
->> >> + =A0int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sdio_int;
->> >
->> > What purpose does this serve? IMHO, this is not needed.
->>
->> Hmm. This is set to !=3D 0 in omap_hsmmc_enable_sdio_irq() when IRQs=
- are
->> enabled. Then in mmc_omap_start_command() these interrupts are enabl=
-ed
->> again if sdio_int is !=3D 0. Yes, looks unneeded, indeed. But maybe
->> there is some trick ;)
->>
->> >> =A0 =A0struct =A0omap_mmc_platform_data =A0*pdata;
->> >> =A0};
->> >>
->> >> @@ -240,8 +245,13 @@ mmc_omap_start_command(struct mmc_omap_host
->> >> *host, struct mmc_command *cmd,
->>
->> Patch is line wrapped by mailer.
->>
->> >> =A0 =A0 * Clear status bits and enable interrupts
->> >> =A0 =A0 */
->> >> =A0 =A0OMAP_HSMMC_WRITE(host->base, STAT, STAT_CLEAR);
->> >> - =A0OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MASK);
->> >> - =A0OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK);
->> >> + =A0if (host->sdio_int) {
->> >> + =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, ISE, (INT_EN_MA=
-SK |
->> >> SDIO_INT_EN));
->> >> + =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, IE, (INT_EN_MAS=
-K |
->> > SDIO_INT_EN));
->> > Why? It is being taken care in "enable_sdio_irq".
->>
->> Yes, why?
->>
-
-Once sdio interrupts are enabled through enable_sdio_irq, commands
-which are sent further disable the sdio interrupts by directly over
-writing to the IE and ISE without preserving currently enabled
-interrupts.
-
-Best option is to read+modify+write the IE and ISE register as i did
-in enable_sdio_irq. But the IE and ISE register seem to be modified in
-other places too, so i made use of sdio_int flag to keep track of sdio
-interrupt enabling/disabling.
-
->> >> + =A0} else {
->> >> + =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, ISE, INT_EN_MAS=
-K);
->> >> + =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, IE, INT_EN_MASK=
-);
->> >> + =A0}
->> >>
->> >> =A0 =A0host->response_busy =3D 0;
->> >> =A0 =A0if (cmd->flags & MMC_RSP_PRESENT) {
->> >> @@ -430,17 +440,27 @@ static irqreturn_t mmc_omap_irq(int irq, vo=
-id
->> >> *dev_id)
->> >> =A0 =A0struct mmc_data *data;
->> >> =A0 =A0int end_cmd =3D 0, end_trans =3D 0, status;
->> >>
->> >> + =A0data =3D host->data;
->> >> + =A0status =3D OMAP_HSMMC_READ(host->base, STAT);
->> >> + =A0dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
->> > Why are these moved up?
->>
->> Yes, why? Why not move the block below down instead?
->>
->> >> +
->> >> + =A0if (host->mmc->caps & MMC_CAP_SDIO_IRQ) {
->> >> + =A0 =A0 =A0 =A0 =A0if (status & OMAP_HSMMC_CARD_INT) {
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dev_dbg(mmc_dev(host->mmc),
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0" SDIO CARD interrupt status %x\n",
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0status);
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mmc_signal_sdio_irq(host->mm=
-c);
->> >> + =A0 =A0 =A0 =A0 =A0}
->> >> + =A0}
->>
->> - It makes no sense to print status in dev_dbg here again, as it is
->> already printed some lines above. Something like
->>
->> dev_dbg(mmc_dev(host->mmc), "SDIO interrupt\n");
->>
->> would be sufficient here.
->>
->> - Why isn't IRQ acknowledged here? I.e. why not doing something like
->>
->> OMAP_HSMMC_WRITE(host->base, IE, OMAP_HSMMC_READ(host->base, IE) &
->> ~(CIRQ_ENABLE));
->>
->> here?
->>
-
-SDIO interrupts are generated asynchronously from the sdio card even
-though when there are no mmc requests<mrq>. With out the changes in
-the patch we will be returning from the interrupt routine in case of
-mmc requests being NULL, there by SDIO interrupts will not be handled.
-
-Hence i have moved status register read and sdio interrupt checking
-code up in the irq routine to handle the sdio interrupts properly.
-
-There is always scope for getting SDIO as well as controller
-interrupts at the same instance. Hence i check for controller
-interrupts after handling SDIO interrupts without returning from irq
-handler.
-
-Yeah.. as said by Dirk, the dev_dbg need not print the status.
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org
 
 
-> That is not needed because of the below implementation:
->
-> static inline void mmc_signal_sdio_irq(struct mmc_host *host)
-> {
-> =A0 =A0 =A0 =A0host->ops->enable_sdio_irq(host, 0);
-> =A0 =A0 =A0 =A0wake_up_process(host->sdio_irq_thread);
+
+Tony Lindgren wrote:
+> * Mike Rapoport <mike@compulab.co.il> [091028 06:17]:
+>> This is an attempt to start rework of the mux framework keeping as
+>> much backward compatibility as possible.
+>> The patch serie introduces a new mux configuration interface that
+>> follows the ideas of PXA MFP implementation ([1] and [2]).
+>> The mux configuration interface is implemented for OMAP3 and partially
+>> for OMAP2 processors.
+>> The OMAP2 implementation is far from being complete. Unfortunately I
+>> do not have OMAP2 docs, so I've added only configration for pins
+>> defined in omap24xx_pins table.
+>>
+>> The older opam_cfg_reg interface is still present and can be used to
+>> avoid too many broken things in steps 2 & 3 as of Tony's plans ([3]).
+> 
+> Cool! I too have been working on this for past several days, but luckily
+> I've been working on the new mux data layout instead so far with some
+> help from Paul and Benoit.
+> 
+> So this should all come together quite nicely. I'll try to post some
+> patches as soon as the new mux data is working. I'll also take a close
+> look at your patches, it seems like they already separate the
+> mach-omap2 mux code nicely from what's needed for mach-omap1
+> (well, at least for 15xx).
+
+I'd be glad to get those patches even before the new mux data is working :)
+
+> The reason I think we need to redo all the mux data is because the new
+> setup has several shortcomings:
+> 
+> - All the mux registers on the newer omaps are in a single register
+>   for each signal instead of being scattered across multiple registers
+>   like on 15xx. So the enumeration is not needed, and we don't need
+>   to specify each signal.
+> 
+> - We badly need mux register to GPIO mapping for runtime muxing of GPIO
+>   pins for the idle modes
+> 
+> - For debugging, we need to see the pin status if CONFIG_DEBUG_FS
+>   is set
+> 
+> - For adding custom hardware on boards such as Beagle, we need to
+>   be able to override pins via /debugfs or via cmdline
+> 
+> - Grepping the code for the signal + ball + mux register combination
+>   is currently impossible
+
+Is it really necessary to have ball information? OMAP35x packages differ, so
+having ball information may be misleading.
+
+> So I suggest we get rid of defining each mux mode separately, and
+> just define the register offsets from the mux base.
+> 
+> Then for the new omap_set_mux(), we should pass the register offset,
+> the desired value, and optional flags.
+> 
+> For the new mux data, I currently have something like the below just
+> to give an idea what I was thinking, maybe take a quick look at
+> that and see how that fits into what you had in mind?
+> 
+> arch/arm/mach-omap2/mux.h:
+> 
+> /**
+>  * struct omap_mux - data for omap mux register offset and it's value
+>  * @reg_offset:	mux register offset from the mux base
+>  * @gpio:	GPIO number
+>  * @muxnames:	available signal modes for a ball
+>  */
+> struct omap_mux {
+> 	u16	reg_offset;
+> 	u16	gpio;
+> #ifdef CONFIG_DEBUG_FS
+> 	char	*muxnames[8];
+> 	char	*balls[2];
+
+Again, I do not quite understand what do we need the ball names for?
+
+> #endif
+> };
+> ...
+> 
+> arch/arm/mach-omap2/mux34xx.h:
+> 
+> #ifdef CONFIG_DEBUG_FS
+> 
+> #define _OMAP3_MUXENTRY(M0, g, m0, m1, m2, m3, m4, m5, m6, m7)		\
+> {									\
+> 	.reg_offset	= (OMAP3_CONTROL_PADCONF_##M0##_OFFSET),	\
+> 	.gpio		= (g),						\
+> 	.muxnames	= { m0, m1, m2, m3, m4, m5, m6, m7 },		\
 > }
+> 
+> #else
+> 
+> #define _OMAP3_MUXENTRY(M0, g, m0, m1, m2, m3, m4, m5, m6, m7)		\
+> {									\
+> 	.reg_offset	= (OMAP3_CONTROL_PADCONF_##M0##_OFFSET),	\
+> 	.gpio		= (g),						\
+> }
+> 
+> #endif
+> 
+> /* 
+>  * OMAP3 CONTROL_PADCONF* register offsets for pin-muxing
+>  *
+>  * Extracted from the TRM.  Add 0x48002030 to these values to get the
+>  * absolute addresses.  The name in the macro is the mode-0 name of
+>  * the pin.  NOTE: These registers are 16-bits wide.
+>  */ 
+> #define OMAP3_CONTROL_PADCONF_SDRC_D0_OFFSET			0x000
+> #define OMAP3_CONTROL_PADCONF_SDRC_D1_OFFSET			0x002
+> #define OMAP3_CONTROL_PADCONF_SDRC_D2_OFFSET			0x004
+> #define OMAP3_CONTROL_PADCONF_SDRC_D3_OFFSET			0x006
+> #define OMAP3_CONTROL_PADCONF_SDRC_D4_OFFSET			0x008
+> ...
+> 
+> /*
+>  * Superset of all mux modes, same as the CBC package
+>  */
+> struct omap_mux omap3_muxmodes[] = {
+> 	_OMAP3_MUXENTRY(CAM_D0, 99,
+> 		"cam_d0", NULL, NULL, NULL,
+> 		"gpio_99", NULL, NULL, "safe_mode"),
+[ snip ]
+> ...
+> 	{ .reg_offset = OMAP_MUX_TERMINATOR },
+> };
+> ...
 >
-> The host is asked to disable the irq inherently.
->
-> Regards,
-> Madhu
->
->> - No return IRQ_HANDLED; here? Mmm, maybe this makes sense.
->>
->> >> =A0 =A0if (host->mrq =3D=3D NULL) {
->> >> =A0 =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, STAT,
->> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_READ(host->base, =
-STAT));
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_R=
-EAD(host->base, STAT));
->> > This just adds a tab space. Not needed.
->>
->> Ack.
->>
->> >> =A0 =A0 =A0 =A0 =A0 =A0/* Flush posted write */
->> >> =A0 =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_READ(host->base, STAT);
->> >> =A0 =A0 =A0 =A0 =A0 =A0return IRQ_HANDLED;
->> >> =A0 =A0}
->> >>
->> >> - =A0data =3D host->data;
->> >> - =A0status =3D OMAP_HSMMC_READ(host->base, STAT);
->> >> - =A0dev_dbg(mmc_dev(host->mmc), "IRQ Status is %x\n", status);
->> > Check my comment above.
->>
->> Yes, from theory it looks better to move the new code below this, in=
-stead.
->>
->> >> =A0 =A0if (status & ERR) {
->> >> =A0#ifdef CONFIG_MMC_DEBUG
->> >> @@ -932,6 +952,29 @@ static int omap_hsmmc_get_ro(struct mmc_host=
- *mmc)
->> >> =A0 =A0return pdata->slots[0].get_ro(host->dev, 0);
->> >> =A0}
->> >>
->> >> +static void omap_hsmmc_enable_sdio_irq(struct mmc_host *mmc, int
->> enable)
->> >> +{
->> >> + =A0struct mmc_omap_host *host =3D mmc_priv(mmc);
->> >> +
->> >> + =A0host->sdio_int =3D enable;
->> >> + =A0if (enable) {
->> >> + =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, ISE,
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(OMAP_HSMMC_=
-READ(host->base, ISE) |
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_=
-CARD_INT));
->> >> + =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, IE,
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(OMAP_HSMMC_=
-READ(host->base, IE) |
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OMAP_HSMMC_=
-CARD_INT));
->> >> + =A0} else {
->> >> + =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, IE,
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(OMAP_HSMMC_=
-READ(host->base, IE) &
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (~OMAP_HSMM=
-C_CARD_INT)));
->> >> + =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_WRITE(host->base, ISE,
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0(OMAP_HSMMC_=
-READ(host->base, ISE) &
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (~OMAP_HSMM=
-C_CARD_INT)));
->> >> + =A0}
->> >> +
->> >> +}
->> >> +
->> >> =A0static void omap_hsmmc_init(struct mmc_omap_host *host)
->> >> =A0{
->> >> =A0 =A0u32 hctl, capa, value;
->> >> @@ -964,7 +1007,7 @@ static struct mmc_host_ops mmc_omap_ops =3D =
+> 
+> And this is what I was thinking for the new mux function:
+> 
+> int omap_set_mux(u16 val, u16 offset, int flags);
+
+I have slightly different approach in mind. My idea was to have a table that
+provides some mapping between pin and it's PADCONF offset. That table
+initialization is CPU variant specific, so mapping for OMAP24XX will be
+different from the mapping for OMAP2430 and OMAP35x. The mapping table is
+indexed with enumeration that lists all configurable pins for all processor and
+package variants.
+Next, there are macros that encode the index and PADCONF value for each possible
+pin configuration into u32, e.g.
+
+#define OMAP3_CAM_D0		OMAP3_PIN(CAM_D0, MODE0)
+#define OMAP3_CAM_D0_CSI2_DX2	OMAP3_PIN(CAM_D0, MODE2)
+#define OMAP3_CAM_D0_GPIO_99	OMAP3_PIN(CAM_D0, MODE4)
+
+And omap_cfg_pin (my name for omap_cfg_mux) takes the encoded mux configuration,
+extracts from there the index into the mapping table and PADCONF value and
+updates the PADCONF register.
+
+My approach allows reusing the same code for setting mux configuration for OMAP2
+ and OMAP3 (and probably OMAP4), and , apparently would use less memory that
+your proposal. Another advantage of using encoded mux configuration is a
+simplification of board-specific code. You can use an array with all pins
+configured there and pass this array to, say, omap_cfg_pins:
+
+unsigned long board_pins[] = {
+	OMAP3_CAM_D0_GPIO_99,
+	OMAP3_GPMC_WAIT3_GPIO_65,
+
+	OMAP3_MCBSP2_FSX,
+	OMAP3_MCBSP2_CLKX,
+	OMAP3_MCBSP2_DR,
+	OMAP3_MCBSP2_DX,
+...
+};
+
+static void __init some_board_init(void)
 {
->> >> =A0 =A0.set_ios =3D omap_mmc_set_ios,
->> >> =A0 =A0.get_cd =3D omap_hsmmc_get_cd,
->> >> =A0 =A0.get_ro =3D omap_hsmmc_get_ro,
->> >> - =A0/* NYET -- enable_sdio_irq */
->> >> + =A0.enable_sdio_irq =3D omap_hsmmc_enable_sdio_irq,
->> >> =A0};
->> >>
->> >> =A0static int __init omap_mmc_probe(struct platform_device *pdev)
->> >> @@ -1011,6 +1054,7 @@ static int __init omap_mmc_probe(struct
->> >> platform_device *pdev)
->>
->> Greetings from the mailer again.
->>
->> >> =A0 =A0host->irq =A0 =A0 =A0 =3D irq;
->> >> =A0 =A0host->id =A0 =A0 =A0 =A0=3D pdev->id;
->> >> =A0 =A0host->slot_id =A0 =3D 0;
->> >> + =A0host->sdio_int =A0=3D 0;
->> > Not needed.
->> >
->> >> =A0 =A0host->mapbase =A0 =3D res->start;
->> >> =A0 =A0host->base =A0 =A0 =A0=3D ioremap(host->mapbase, SZ_4K);
->> >>
->> >> @@ -1080,6 +1124,10 @@ static int __init omap_mmc_probe(struct
->> >> platform_device *pdev)
->> >> =A0 =A0else if (pdata->slots[host->slot_id].wires >=3D 4)
->> >> =A0 =A0 =A0 =A0 =A0 =A0mmc->caps |=3D MMC_CAP_4_BIT_DATA;
->> >>
->> >> + =A0mmc->caps |=3D MMC_CAP_SDIO_IRQ;
->> >> + =A0OMAP_HSMMC_WRITE(host->base, CON,
->> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0OMAP_HSMMC_READ(host->base, =
-CON) | (CTPL |
->> > CLKEXTFREE));
->> > How about moving this to "enable_sdio_irq" so that these are done =
-for
->> SDIO
->> > alone? Also can be disabled in the same fn.
->>
->> Ack. But I think that mmc->caps |=3D MMC_CAP_SDIO_IRQ has to stay he=
-re.
->> Else "enable_sdio_irq" will never be called (?)
->>
+...
+	omap_cfg_pins(board_pins, ARRAY_SIZE(board_pins));
+...
+}
 
-As pointed out by Dirk, enable_sdio_irq wont be called if mmc->caps is
-not set with MMC_CAP_SDIO_IRQ. So that should be kept separate.
+The drawbacks of using encoded mux configuration are
+- limit maximal number of configurable pins by bitfield size in the encoding
+- absence of pin <-> gpio mapping
+- absence of nice debug strings :)
 
-I do not see any advantage (Any extra power saving ! ;)) in modifying
-the CON register bits(CTPL and CLKEXTFREE) every time along with SDIO
-interrupts. Also the extra read and write might add some overhead.
+So, if you think that large "struct omap_mux omap_xxx_muxmodes" tables are
+acceptable, I'd propose to go with "struct omap_mux" as you described it and add
+some macros to allow simple interface for board-* files like the one above.
 
->> All in all, I wonder why IBG bit isn't used in this patch. Is this
->> tested with 1 or 4 bit (wire) SDIO?
+> And then also have a function to initialize a whole struct omap_mux
+> array from each board-*.c files.
+> 
+> Regards,
+> 
+> Tony
+> 
+> 
+>  
+>> [1] Documentation/arm/pxa/mfp.txt
+>> [2] http://elinux.org/OMAP_wishlist#References
+>> [3] http://elinux.org/OMAP_wishlist#Initial_plans_.28from_Tony.2C_for_next_merge_window.29
 >>
-
-I have not yet verified the functionality with 1bit SDIO.
-
---- Regards,
-Phani
-
->> Just for reference the slightly modified version of this patch for
->> testing in attachment (based on pure theory ;) ). I will come back
->> with testing results.
+>> Changes since commit 0bbf5337f2f2957775051a3caf60b66d3306c815
+>>   Tony Lindgren
+>>   	Fix compile for 1510 innovator
 >>
->> Best regards
+>> Mike Rapoport (3):
+>>   omap2: mux: intoduce omap_mux_{read,write}
+>>   omap: mux: add interface for encoded mux configration
+>>   omap2: mux: implement encoded mux configuration
 >>
->> Dirk
+>>  arch/arm/mach-omap2/include/mach/mux.h     |  452 +++++++++++++++
+>>  arch/arm/mach-omap2/include/mach/mux24xx.h |  128 ++++
+>>  arch/arm/mach-omap2/include/mach/mux34xx.h |  862 ++++++++++++++++++++++++++++
+>>  arch/arm/mach-omap2/mux.c                  |  158 +++++-
+>>  arch/arm/plat-omap/include/plat/mux.h      |   62 +--
+>>  arch/arm/plat-omap/mux.c                   |   17 +
+>>  6 files changed, 1614 insertions(+), 65 deletions(-)
+>>  create mode 100644 arch/arm/mach-omap2/include/mach/mux.h
+>>  create mode 100644 arch/arm/mach-omap2/include/mach/mux24xx.h
+>>  create mode 100644 arch/arm/mach-omap2/include/mach/mux34xx.h
 >>
->> > Regards,
->> > Madhusudhan
->> >> +
->> >> =A0 =A0omap_hsmmc_init(host);
->> >>
->> >> =A0 =A0/* Select DMA lines */
->> >> --
->> >> 1.6.0.4
->> >> --
->> >> To unsubscribe from this list: send the line "unsubscribe linux-o=
-map"
->> in
->> >> the body of a message to majordomo@vger.kernel.org
->> >> More majordomo info at =A0http://vger.kernel.org/majordomo-info.h=
-tml
->> >
->> >
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-om=
-ap" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
->> >
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+-- 
+Sincerely yours,
+Mike.
+
