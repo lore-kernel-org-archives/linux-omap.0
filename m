@@ -1,66 +1,64 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 2/4] Audio: Modifying Kconfig/Makefile for AM3517 EVM
-Date: Fri, 30 Oct 2009 00:22:39 +0530
-Message-ID: <1256842359-30409-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [PATCH 3/4] Audio: Modifying board-evm file for audio codec
+Date: Fri, 30 Oct 2009 00:22:51 +0530
+Message-ID: <1256842371-30447-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34256 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755285AbZJ2Swm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 14:52:42 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:36049 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755805AbZJ2Swz (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Oct 2009 14:52:55 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 Cc: broonie@opensource.wolfsonmicro.com, tony@atomide.com, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-Modifying the Kconfig and Makefile in sound/soc/omap folder
-to add support for OMAP3517 / AM3517 EVM in Alsa SoC.
+Adding I2C bus registration code in board-evm file for OMAP3517 /
+AM3517 EVM for AIC23 audio codec.
 
 Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 ---
- sound/soc/omap/Kconfig  |    9 +++++++++
- sound/soc/omap/Makefile |    2 ++
- 2 files changed, 11 insertions(+), 0 deletions(-)
+ arch/arm/mach-omap2/board-am3517evm.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 2dee983..6344456 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -55,6 +55,15 @@ config SND_OMAP_SOC_OMAP3EVM
- 	help
- 	  Say Y if you want to add support for SoC audio on the omap3evm board.
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index 23cf949..5f5f3ee 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -30,6 +30,25 @@
+ #include <plat/common.h>
  
-+config SND_OMAP_SOC_AM3517EVM
-+	tristate "SoC Audio support for OMAP3517 / AM3517 EVM"
-+	depends on SND_OMAP_SOC && MACH_OMAP3517EVM && I2C
-+	select SND_OMAP_SOC_MCBSP
-+	select SND_SOC_TLV320AIC23
-+	help
-+	  Say Y if you want to add support for SoC audio on the OMAP3517 / AM3517
-+	  EVM.
+ /*
++ * I2C
++ */
++static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
++	{
++	I2C_BOARD_INFO("tlv320aic23", 0x1A),
++	},
++};
 +
- config SND_OMAP_SOC_SDP3430
- 	tristate "SoC Audio support for Texas Instruments SDP3430"
- 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_3430SDP
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index 02d6947..0c78ae4 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -12,6 +12,7 @@ snd-soc-osk5912-objs := osk5912.o
- snd-soc-overo-objs := overo.o
- snd-soc-omap2evm-objs := omap2evm.o
- snd-soc-omap3evm-objs := omap3evm.o
-+snd-soc-am3517evm-objs := am3517evm.o
- snd-soc-sdp3430-objs := sdp3430.o
- snd-soc-omap3pandora-objs := omap3pandora.o
- snd-soc-omap3beagle-objs := omap3beagle.o
-@@ -23,6 +24,7 @@ obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
- obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
- obj-$(CONFIG_MACH_OMAP2EVM) += snd-soc-omap2evm.o
- obj-$(CONFIG_MACH_OMAP3EVM) += snd-soc-omap3evm.o
-+obj-$(CONFIG_MACH_OMAP3517EVM) += snd-soc-am3517evm.o
- obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
++static int __init am3517_evm_i2c_init(void)
++{
++	omap_register_i2c_bus(1, 400, NULL, 0);
++	omap_register_i2c_bus(2, 400, am3517evm_i2c_boardinfo,
++			ARRAY_SIZE(am3517evm_i2c_boardinfo));
++	omap_register_i2c_bus(3, 400, NULL, 0);
++
++	return 0;
++}
++
++/*
+  * Board initialization
+  */
+ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
+@@ -50,6 +69,8 @@ static void __init am3517_evm_init_irq(void)
+ 
+ static void __init am3517_evm_init(void)
+ {
++	am3517_evm_i2c_init();
++
+ 	platform_add_devices(am3517_evm_devices,
+ 				ARRAY_SIZE(am3517_evm_devices));
+ 
 -- 
 1.6.2.4
 
