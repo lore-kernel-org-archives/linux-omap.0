@@ -1,193 +1,316 @@
 From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: [PATCH 2/3] OMAP3: Add valid field into C-state parameter passing
-Date: Thu, 29 Oct 2009 10:30:19 +0200
-Message-ID: <1256805020-7402-3-git-send-email-kalle.jokiniemi@digia.com>
-References: <>
- <1256805020-7402-1-git-send-email-kalle.jokiniemi@digia.com>
- <1256805020-7402-2-git-send-email-kalle.jokiniemi@digia.com>
+Subject: RE: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency constraint
+	in i2c
+Date: Thu, 29 Oct 2009 10:55:23 +0200
+Message-ID: <1256806523.31764.57.camel@ubuntu>
+References: <> <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
+	 <1256125881-12441-4-git-send-email-kalle.jokiniemi@digia.com>
+	 <CD8CC2B65FEE304DA95744A5472698F2029E427B04@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/mixed; boundary="=-q0PQMQzUfwhPdI8smzbv"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:12145 "EHLO smtp1.digia.com"
+Received: from smtp1.digia.com ([82.118.214.156]:60410 "EHLO smtp1.digia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753209AbZJ2IaI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Oct 2009 04:30:08 -0400
-In-Reply-To: <1256805020-7402-2-git-send-email-kalle.jokiniemi@digia.com>
+	id S1752525AbZJ2IzJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 29 Oct 2009 04:55:09 -0400
+In-Reply-To: <CD8CC2B65FEE304DA95744A5472698F2029E427B04@dlee06.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, jouni.hogander@nokia.com, Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+To: "Sonasath, Moiz" <m-sonasath@ti.com>
+Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Different boards benefit differently from the available
-seven C-states for cpu idle. In most cases, only few,
-properly spaced (in terms of consumption and latency)
-C-states are required to make the power management
-optimal. Hence we need a possibility to pass which
-C-states are actually used for each board.
+--=-q0PQMQzUfwhPdI8smzbv
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-So added the valid field to cpuidle_params and added
-support to 3430sdp, which uses the paramenter passing.
+OK, let's try this once more, since my mail did not seem to go to
+linux-omap.
 
-Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
----
- arch/arm/mach-omap2/board-3430sdp.c |   14 ++++++------
- arch/arm/mach-omap2/cpuidle34xx.c   |   37 +++++++++++++++++++++-------------
- arch/arm/mach-omap2/pm.h            |    1 +
- 3 files changed, 31 insertions(+), 21 deletions(-)
+Sorry for the spam.
 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 11f0dc5..74c20ee 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -76,19 +76,19 @@ static struct prm_setup_vc omap3_setuptime_table = {
- /* FIXME: These values need to be updated based on more profiling on 3430sdp*/
- static struct cpuidle_params omap3_cpuidle_params_table[] = {
- 	/* C1 */
--	{2, 2, 5},
-+	{1, 2, 2, 5},
- 	/* C2 */
--	{10, 10, 30},
-+	{1, 10, 10, 30},
- 	/* C3 */
--	{50, 50, 300},
-+	{1, 50, 50, 300},
- 	/* C4 */
--	{1500, 1800, 4000},
-+	{1, 1500, 1800, 4000},
- 	/* C5 */
--	{2500, 7500, 12000},
-+	{1, 2500, 7500, 12000},
- 	/* C6 */
--	{3000, 8500, 15000},
-+	{1, 3000, 8500, 15000},
- 	/* C7 */
--	{10000, 30000, 300000},
-+	{1, 10000, 30000, 300000},
- };
- 
- static int board_keymap[] = {
-diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
-index fdfa1d5..9c9474a 100644
---- a/arch/arm/mach-omap2/cpuidle34xx.c
-+++ b/arch/arm/mach-omap2/cpuidle34xx.c
-@@ -69,19 +69,19 @@ struct powerdomain *mpu_pd, *core_pd;
-  */
- static struct cpuidle_params cpuidle_params_table[] = {
- 	/* C1 */
--	{2, 2, 5},
-+	{1, 2, 2, 5},
- 	/* C2 */
--	{10, 10, 30},
-+	{1, 10, 10, 30},
- 	/* C3 */
--	{50, 50, 300},
-+	{1, 50, 50, 300},
- 	/* C4 */
--	{1500, 1800, 4000},
-+	{1, 1500, 1800, 4000},
- 	/* C5 */
--	{2500, 7500, 12000},
-+	{1, 2500, 7500, 12000},
- 	/* C6 */
--	{3000, 8500, 15000},
-+	{1, 3000, 8500, 15000},
- 	/* C7 */
--	{10000, 30000, 300000},
-+	{1, 10000, 30000, 300000},
- };
- 
- static int omap3_idle_bm_check(void)
-@@ -197,6 +197,8 @@ void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
- 		return;
- 
- 	for (i = OMAP3_STATE_C1; i < OMAP3_MAX_STATES; i++) {
-+		cpuidle_params_table[i].valid =
-+			cpuidle_board_params[i].valid;
- 		cpuidle_params_table[i].sleep_latency =
- 			cpuidle_board_params[i].sleep_latency;
- 		cpuidle_params_table[i].wake_latency =
-@@ -221,7 +223,8 @@ void omap3_pm_init_cpuidle(struct cpuidle_params *cpuidle_board_params)
- void omap_init_power_states(void)
- {
- 	/* C1 . MPU WFI + Core active */
--	omap3_power_states[OMAP3_STATE_C1].valid = 1;
-+	omap3_power_states[OMAP3_STATE_C1].valid =
-+			cpuidle_params_table[OMAP3_STATE_C1].valid;
- 	omap3_power_states[OMAP3_STATE_C1].type = OMAP3_STATE_C1;
- 	omap3_power_states[OMAP3_STATE_C1].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C1].sleep_latency;
-@@ -234,7 +237,8 @@ void omap_init_power_states(void)
- 	omap3_power_states[OMAP3_STATE_C1].flags = CPUIDLE_FLAG_TIME_VALID;
- 
- 	/* C2 . MPU WFI + Core inactive */
--	omap3_power_states[OMAP3_STATE_C2].valid = 1;
-+	omap3_power_states[OMAP3_STATE_C2].valid =
-+			cpuidle_params_table[OMAP3_STATE_C2].valid;
- 	omap3_power_states[OMAP3_STATE_C2].type = OMAP3_STATE_C2;
- 	omap3_power_states[OMAP3_STATE_C2].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C2].sleep_latency;
-@@ -247,7 +251,8 @@ void omap_init_power_states(void)
- 	omap3_power_states[OMAP3_STATE_C2].flags = CPUIDLE_FLAG_TIME_VALID;
- 
- 	/* C3 . MPU CSWR + Core inactive */
--	omap3_power_states[OMAP3_STATE_C3].valid = 1;
-+	omap3_power_states[OMAP3_STATE_C3].valid =
-+			cpuidle_params_table[OMAP3_STATE_C3].valid;
- 	omap3_power_states[OMAP3_STATE_C3].type = OMAP3_STATE_C3;
- 	omap3_power_states[OMAP3_STATE_C3].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C3].sleep_latency;
-@@ -261,7 +266,8 @@ void omap_init_power_states(void)
- 				CPUIDLE_FLAG_CHECK_BM;
- 
- 	/* C4 . MPU OFF + Core inactive */
--	omap3_power_states[OMAP3_STATE_C4].valid = 1;
-+	omap3_power_states[OMAP3_STATE_C4].valid =
-+			cpuidle_params_table[OMAP3_STATE_C4].valid;
- 	omap3_power_states[OMAP3_STATE_C4].type = OMAP3_STATE_C4;
- 	omap3_power_states[OMAP3_STATE_C4].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C4].sleep_latency;
-@@ -275,7 +281,8 @@ void omap_init_power_states(void)
- 				CPUIDLE_FLAG_CHECK_BM;
- 
- 	/* C5 . MPU CSWR + Core CSWR*/
--	omap3_power_states[OMAP3_STATE_C5].valid = 1;
-+	omap3_power_states[OMAP3_STATE_C5].valid =
-+			cpuidle_params_table[OMAP3_STATE_C5].valid;
- 	omap3_power_states[OMAP3_STATE_C5].type = OMAP3_STATE_C5;
- 	omap3_power_states[OMAP3_STATE_C5].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C5].sleep_latency;
-@@ -289,7 +296,8 @@ void omap_init_power_states(void)
- 				CPUIDLE_FLAG_CHECK_BM;
- 
- 	/* C6 . MPU OFF + Core CSWR */
--	omap3_power_states[OMAP3_STATE_C6].valid = 1;
-+	omap3_power_states[OMAP3_STATE_C6].valid =
-+			cpuidle_params_table[OMAP3_STATE_C6].valid;
- 	omap3_power_states[OMAP3_STATE_C6].type = OMAP3_STATE_C6;
- 	omap3_power_states[OMAP3_STATE_C6].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C6].sleep_latency;
-@@ -303,7 +311,8 @@ void omap_init_power_states(void)
- 				CPUIDLE_FLAG_CHECK_BM;
- 
- 	/* C7 . MPU OFF + Core OFF */
--	omap3_power_states[OMAP3_STATE_C7].valid = 1;
-+	omap3_power_states[OMAP3_STATE_C7].valid =
-+			cpuidle_params_table[OMAP3_STATE_C7].valid;
- 	omap3_power_states[OMAP3_STATE_C7].type = OMAP3_STATE_C7;
- 	omap3_power_states[OMAP3_STATE_C7].sleep_latency =
- 			cpuidle_params_table[OMAP3_STATE_C7].sleep_latency;
-diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-index b9421e8..c195b14 100644
---- a/arch/arm/mach-omap2/pm.h
-+++ b/arch/arm/mach-omap2/pm.h
-@@ -43,6 +43,7 @@ struct prm_setup_vc {
- };
- 
- struct cpuidle_params {
-+	u8  valid;
- 	u32 sleep_latency;
- 	u32 wake_latency;
- 	u32 threshold;
--- 
-1.5.4.3
+See my comments below:
 
+On Fri, 2009-10-23 at 18:53 +0300, Sonasath, Moiz wrote:
+> Hello Jokiniemi!
+> 
+> > -----Original Message-----
+> > From: Kalle Jokiniemi [mailto:kalle.jokiniemi@digia.com]
+> > Sent: Wednesday, October 21, 2009 6:51 AM
+> > To: khilman@deeprootsystems.com
+> > Cc: linux-omap@vger.kernel.org; Kalle Jokiniemi; Sonasath, Moiz;
+> Jarkko
+> > Nikula; Paul Walmsley; Menon, Nishanth
+> > Subject: [PATCH V4 3/3] OMAP: I2C: Add mpu wake up latency
+> constraint in
+> > i2c
+> > 
+> > While waiting for completion of the i2c transfer, the
+> > MPU could hit OFF mode and cause several msecs of
+> > delay that made i2c transfers fail more often. The
+> > extra delays and subsequent re-trys cause i2c clocks
+> > to be active more often. This has also an negative
+> > effect on power consumption.
+> > 
+> > Created a mechanism for passing and using the
+> > constraint setting function in driver code. The used
+> > mpu wake up latency constraints are now set individually
+> > per bus, and they are calculated based on clock rate
+> > and fifo size.
+> > 
+> > Thanks to Jarkko Nikula, Moiz Sonasath, Paul Walmsley,
+> > and Nishanth Menon for tuning out the details of
+> > this patch.
+> > 
+> > Cc: Moiz Sonasath <m-sonasath@ti.com>
+> > Cc: Jarkko Nikula <jhnikula@gmail.com>
+> > Cc: Paul Walmsley <paul@pwsan.com>
+> > Cc: Nishanth Menon <nm@ti.com>
+> > Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+> > ---
+> > 
+> 
+> 
+> >  	dev->speed = speed;
+> >  	dev->idle = 1;
+> > @@ -911,6 +923,11 @@ omap_i2c_probe(struct platform_device *pdev)
+> >  		 */
+> >  		dev->fifo_size = (dev->fifo_size / 2);
+> >  		dev->b_hw = 1; /* Enable hardware fixes */
+> > +
+> > +		/* calculate wakeup latency constraint for MPU */
+> > +		if (dev->set_mpu_wkup_lat != NULL)
+> > +			dev->latency = (1000000 * dev->fifo_size) /
+> > +				       (1000 * speed / 8);
+> >  	}
+> 
+> IMHO, here instead of using 'dev->fifo_size' for calculating the 
+> 'dev->latency', we need to use:
+> 
+> 1. For RX case, to avoid Reciver overrun:
+> 	if (msg->flags & I2C_M_RD)
+> 		Use [(FIFO Depth)bytes - (FIFO THRSH)bytes] in calculating 
+> 		dev->latency
+> 
+> Because conceptually, RDR/RRDY interrupts are generated when RTRSH is
+> reached, so we want the MPU to be wake up within the time it takes to
+> fill the FIFO from RTRSH to FIFO Depth (FIFO full).  
+> 
+> 2. For TX case, to avoid Transmitter Underflow:
+> 	if (!(msg->flags & I2C_M_RD))
+> 		Use (FIFO THRSH)bytes in calculating dev->latency
+> 
+> Because conceptually, XDR/XRDY interrupts are generated when XTRSH is
+> reached, so we want the MPU to be wake up within the time it takes to
+> drain the FIFO from XTRSH to Zero (FIFO empty).  
+> 
+> Using, dev->fifo_size instead, works in the present code because we
+> have a RTRSH/XTRSH = dev->fifo_size/2 = 4 bytes
+> And therefore,
+> (FIFO Depth)bytes - (FIFO THRSH)bytes
+> = 8 - 4 = 4 bytes
+> 
+> But, to make it more generic in future and to make it independent of
+> any changes in the RTRSH/XTRSH values or FIFO depths in future, we
+> should use a generic code here.
+
+Well, I don't completely agree with the necessity of preparing for
+different rx/tx thresholds. For this to make sense, the i2c-omap driver
+should first separate in it's code the use of rx and tx thresholds. If
+someone is planning to do that, he/she should anyway update the usage of
+fifo_size throughout the code, including the wake up latency setting.
+
+Anyways, attached a patch that separates the mpu wake up latencies for
+rx and tx. In case that is needed. Though I'm not for it, since it adds
+unneeded complexity.
+
+- Kalle
+
+> 
+> > 
+> >  	/* reset ASAP, clearing any IRQs */
+> > diff --git a/include/linux/i2c-omap.h b/include/linux/i2c-omap.h
+> > new file mode 100644
+> > index 0000000..1362fba
+> > --- /dev/null
+> > +++ b/include/linux/i2c-omap.h
+> > @@ -0,0 +1,9 @@
+> > +#ifndef __I2C_OMAP_H__
+> > +#define __I2C_OMAP_H__
+> > +
+> > +struct omap_i2c_bus_platform_data {
+> > +	u32		clkrate;
+> > +	void		(*set_mpu_wkup_lat)(struct device *dev, int set);
+> > +};
+> > +
+> > +#endif
+> > --
+> > 1.5.4.3
+> 
+> Regards
+> Moiz Sonasath
+> 
+
+--=-q0PQMQzUfwhPdI8smzbv
+Content-Type: application/mbox;
+	name="0001-OMAP-I2C-Add-mpu-wake-up-latency-constraint-in-i2c.patch"
+Content-Description: 0001-OMAP-I2C-Add-mpu-wake-up-latency-constraint-in-i2c.patch
+Content-Disposition: attachment;
+	filename="0001-OMAP-I2C-Add-mpu-wake-up-latency-constraint-in-i2c.patch";
+	size=8613; creation-date="Tue, 27 Oct 2009 14:01:55 GMT";
+	modification-date="Tue, 27 Oct 2009 14:01:55 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbSBlMjA3YjdjZGRmOWU4NzRhZGIxNTBmNTA2NTU3YWYyMDA2MzRhNjUwIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQ0KRnJvbTogS2FsbGUgSm9raW5pZW1pIDxrYWxsZS5qb2tpbmllbWlAZGln
+aWEuY29tPg0KRGF0ZTogVHVlLCAyNyBPY3QgMjAwOSAxMzo1OToxOSArMDIwMA0KU3ViamVjdDog
+W1BBVENIXSBPTUFQOiBJMkM6IEFkZCBtcHUgd2FrZSB1cCBsYXRlbmN5IGNvbnN0cmFpbnQgaW4g
+aTJjDQoNCldoaWxlIHdhaXRpbmcgZm9yIGNvbXBsZXRpb24gb2YgdGhlIGkyYyB0cmFuc2Zlciwg
+dGhlDQpNUFUgY291bGQgaGl0IE9GRiBtb2RlIGFuZCBjYXVzZSBzZXZlcmFsIG1zZWNzIG9mDQpk
+ZWxheSB0aGF0IG1hZGUgaTJjIHRyYW5zZmVycyBmYWlsIG1vcmUgb2Z0ZW4uIFRoZQ0KZXh0cmEg
+ZGVsYXlzIGFuZCBzdWJzZXF1ZW50IHJlLXRyeXMgY2F1c2UgaTJjIGNsb2Nrcw0KdG8gYmUgYWN0
+aXZlIG1vcmUgb2Z0ZW4uIFRoaXMgaGFzIGFsc28gYW4gbmVnYXRpdmUNCmVmZmVjdCBvbiBwb3dl
+ciBjb25zdW1wdGlvbi4NCg0KQ3JlYXRlZCBhIG1lY2hhbmlzbSBmb3IgcGFzc2luZyBhbmQgdXNp
+bmcgdGhlDQpjb25zdHJhaW50IHNldHRpbmcgZnVuY3Rpb24gaW4gZHJpdmVyIGNvZGUuIFRoZSB1
+c2VkDQptcHUgd2FrZSB1cCBsYXRlbmN5IGNvbnN0cmFpbnRzIGFyZSBub3cgc2V0IGluZGl2aWR1
+YWxseQ0KcGVyIGJ1cywgYW5kIHRoZXkgYXJlIGNhbGN1bGF0ZWQgYmFzZWQgb24gY2xvY2sgcmF0
+ZQ0KYW5kIGZpZm8gc2l6ZSBmb3IgcnggYW5kIHR4IHRyYW5zZmVycy4NCg0KVGhhbmtzIHRvIEph
+cmtrbyBOaWt1bGEsIE1vaXogU29uYXNhdGgsIFBhdWwgV2FsbXNsZXksDQphbmQgTmlzaGFudGgg
+TWVub24gZm9yIHR1bmluZyBvdXQgdGhlIGRldGFpbHMgb2YNCnRoaXMgcGF0Y2guDQoNCkNjOiBN
+b2l6IFNvbmFzYXRoIDxtLXNvbmFzYXRoQHRpLmNvbT4NCkNjOiBKYXJra28gTmlrdWxhIDxqaG5p
+a3VsYUBnbWFpbC5jb20+DQpDYzogUGF1bCBXYWxtc2xleSA8cGF1bEBwd3Nhbi5jb20+DQpDYzog
+TmlzaGFudGggTWVub24gPG5tQHRpLmNvbT4NClNpZ25lZC1vZmYtYnk6IEthbGxlIEpva2luaWVt
+aSA8a2FsbGUuam9raW5pZW1pQGRpZ2lhLmNvbT4NCi0tLQ0KIGFyY2gvYXJtL3BsYXQtb21hcC9p
+MmMuYyAgICAgIHwgICA1NCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0t
+DQogZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMgfCAgIDM4ICsrKysrKysrKysrKysrKysr
+KysrKysrKy0tLS0NCiBpbmNsdWRlL2xpbnV4L2kyYy1vbWFwLmggICAgICB8ICAgIDkgKysrKysr
+Kw0KIDMgZmlsZXMgY2hhbmdlZCwgODMgaW5zZXJ0aW9ucygrKSwgMTggZGVsZXRpb25zKC0pDQog
+Y3JlYXRlIG1vZGUgMTAwNjQ0IGluY2x1ZGUvbGludXgvaTJjLW9tYXAuaA0KDQpkaWZmIC0tZ2l0
+IGEvYXJjaC9hcm0vcGxhdC1vbWFwL2kyYy5jIGIvYXJjaC9hcm0vcGxhdC1vbWFwL2kyYy5jDQpp
+bmRleCA4Yjg0ODM5Li4zYzEyMmNkIDEwMDY0NA0KLS0tIGEvYXJjaC9hcm0vcGxhdC1vbWFwL2ky
+Yy5jDQorKysgYi9hcmNoL2FybS9wbGF0LW9tYXAvaTJjLmMNCkBAIC0yNiw4ICsyNiwxMCBAQA0K
+ICNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4NCiAjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2
+aWNlLmg+DQogI2luY2x1ZGUgPGxpbnV4L2kyYy5oPg0KKyNpbmNsdWRlIDxsaW51eC9pMmMtb21h
+cC5oPg0KICNpbmNsdWRlIDxtYWNoL2lycXMuaD4NCiAjaW5jbHVkZSA8bWFjaC9tdXguaD4NCisj
+aW5jbHVkZSA8bWFjaC9vbWFwLXBtLmg+DQogDQogI2RlZmluZSBPTUFQX0kyQ19TSVpFCQkweDNm
+DQogI2RlZmluZSBPTUFQMV9JMkNfQkFTRQkJMHhmZmZiMzgwMA0KQEAgLTY5LDE0ICs3MSwxNCBA
+QCBzdGF0aWMgc3RydWN0IHJlc291cmNlIGkyY19yZXNvdXJjZXNbXVsyXSA9IHsNCiAJCX0sCQkJ
+CQlcDQogCX0NCiANCi1zdGF0aWMgdTMyIGkyY19yYXRlW0FSUkFZX1NJWkUoaTJjX3Jlc291cmNl
+cyldOw0KK3N0YXRpYyBzdHJ1Y3Qgb21hcF9pMmNfYnVzX3BsYXRmb3JtX2RhdGEgaTJjX3BkYXRh
+W0FSUkFZX1NJWkUoaTJjX3Jlc291cmNlcyldOw0KIHN0YXRpYyBzdHJ1Y3QgcGxhdGZvcm1fZGV2
+aWNlIG9tYXBfaTJjX2RldmljZXNbXSA9IHsNCi0JSTJDX0RFVl9CVUlMREVSKDEsIGkyY19yZXNv
+dXJjZXNbMF0sICZpMmNfcmF0ZVswXSksDQorCUkyQ19ERVZfQlVJTERFUigxLCBpMmNfcmVzb3Vy
+Y2VzWzBdLCAmaTJjX3BkYXRhWzBdKSwNCiAjaWYJZGVmaW5lZChDT05GSUdfQVJDSF9PTUFQMjRY
+WCkgfHwgZGVmaW5lZChDT05GSUdfQVJDSF9PTUFQMzRYWCkNCi0JSTJDX0RFVl9CVUlMREVSKDIs
+IGkyY19yZXNvdXJjZXNbMV0sICZpMmNfcmF0ZVsxXSksDQorCUkyQ19ERVZfQlVJTERFUigyLCBp
+MmNfcmVzb3VyY2VzWzFdLCAmaTJjX3BkYXRhWzFdKSwNCiAjZW5kaWYNCiAjaWYJZGVmaW5lZChD
+T05GSUdfQVJDSF9PTUFQMzRYWCkNCi0JSTJDX0RFVl9CVUlMREVSKDMsIGkyY19yZXNvdXJjZXNb
+Ml0sICZpMmNfcmF0ZVsyXSksDQorCUkyQ19ERVZfQlVJTERFUigzLCBpMmNfcmVzb3VyY2VzWzJd
+LCAmaTJjX3BkYXRhWzJdKSwNCiAjZW5kaWYNCiB9Ow0KIA0KQEAgLTEwMCw2ICsxMDIsMzEgQEAg
+c3RhdGljIGNvbnN0IGludCBvbWFwMzR4eF9waW5zW11bMl0gPSB7fTsNCiANCiAjZGVmaW5lIE9N
+QVBfSTJDX0NNRExJTkVfU0VUVVAJKEJJVCgzMSkpDQogDQorI2lmZGVmIENPTkZJR19BUkNIX09N
+QVAzNFhYDQorLyoNCisgKiBvbWFwX2kyY19zZXRfd2ZjX21wdV93a3VwX2xhdCAtIHNldHMgbXB1
+IHdha2UgdXAgY29uc3RyYWludA0KKyAqIEBkZXY6CWkyYyBidXMgZGV2aWNlIHBvaW50ZXINCisg
+KiBAdmFsOglsYXRlbmN5IGNvbnN0cmFpbnQgdG8gc2V0LCAtMSB0byBkaXNhYmxlIGNvbnN0cmFp
+bnQNCisgKg0KKyAqIFdoZW4gd2FpdGluZyBmb3IgY29tcGxldGlvbiBvZiBhIGkyYyB0cmFuc2Zl
+ciwgd2UgbmVlZCB0byBzZXQgYSB3YWtlIHVwDQorICogbGF0ZW5jeSBjb25zdHJhaW50IGZvciB0
+aGUgTVBVLiBUaGlzIGlzIHRvIGVuc3VyZSBxdWljayBlbm91Z2ggd2FrZXVwIGZyb20NCisgKiBp
+ZGxlLCB3aGVuIHRyYW5zZmVyIGNvbXBsZXRlcy4NCisgKi8NCitzdGF0aWMgdm9pZCBvbWFwX2ky
+Y19zZXRfd2ZjX21wdV93a3VwX2xhdChzdHJ1Y3QgZGV2aWNlICpkZXYsIGludCB2YWwpDQorew0K
+KwlvbWFwX3BtX3NldF9tYXhfbXB1X3dha2V1cF9sYXQoZGV2LCB2YWwpOw0KK30NCisjZW5kaWYN
+CisNCitzdGF0aWMgdm9pZCBfX2luaXQgb21hcF9zZXRfaTJjX2NvbnN0cmFpbnRfZnVuYygNCisJ
+CQkJc3RydWN0IG9tYXBfaTJjX2J1c19wbGF0Zm9ybV9kYXRhICpwZCkNCit7DQorCWlmIChjcHVf
+aXNfb21hcDM0eHgoKSkNCisJCXBkLT5zZXRfbXB1X3drdXBfbGF0ID0gb21hcF9pMmNfc2V0X3dm
+Y19tcHVfd2t1cF9sYXQ7DQorCWVsc2UNCisJCXBkLT5zZXRfbXB1X3drdXBfbGF0ID0gTlVMTDsN
+Cit9DQorDQogc3RhdGljIHZvaWQgX19pbml0IG9tYXBfaTJjX211eF9waW5zKGludCBidXMpDQog
+ew0KIAlpbnQgc2NsLCBzZGE7DQpAQCAtMTgwLDggKzIwNyw4IEBAIHN0YXRpYyBpbnQgX19pbml0
+IG9tYXBfaTJjX2J1c19zZXR1cChjaGFyICpzdHIpDQogCWdldF9vcHRpb25zKHN0ciwgMywgaW50
+cyk7DQogCWlmIChpbnRzWzBdIDwgMiB8fCBpbnRzWzFdIDwgMSB8fCBpbnRzWzFdID4gcG9ydHMp
+DQogCQlyZXR1cm4gMDsNCi0JaTJjX3JhdGVbaW50c1sxXSAtIDFdID0gaW50c1syXTsNCi0JaTJj
+X3JhdGVbaW50c1sxXSAtIDFdIHw9IE9NQVBfSTJDX0NNRExJTkVfU0VUVVA7DQorCWkyY19wZGF0
+YVtpbnRzWzFdIC0gMV0uY2xrcmF0ZSA9IGludHNbMl07DQorCWkyY19wZGF0YVtpbnRzWzFdIC0g
+MV0uY2xrcmF0ZSB8PSBPTUFQX0kyQ19DTURMSU5FX1NFVFVQOw0KIA0KIAlyZXR1cm4gMTsNCiB9
+DQpAQCAtMTk1LDkgKzIyMiwxMCBAQCBzdGF0aWMgaW50IF9faW5pdCBvbWFwX3JlZ2lzdGVyX2ky
+Y19idXNfY21kbGluZSh2b2lkKQ0KIHsNCiAJaW50IGksIGVyciA9IDA7DQogDQotCWZvciAoaSA9
+IDA7IGkgPCBBUlJBWV9TSVpFKGkyY19yYXRlKTsgaSsrKQ0KLQkJaWYgKGkyY19yYXRlW2ldICYg
+T01BUF9JMkNfQ01ETElORV9TRVRVUCkgew0KLQkJCWkyY19yYXRlW2ldICY9IH5PTUFQX0kyQ19D
+TURMSU5FX1NFVFVQOw0KKwlmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShpMmNfcGRhdGEpOyBp
+KyspDQorCQlpZiAoaTJjX3BkYXRhW2ldLmNsa3JhdGUgJiBPTUFQX0kyQ19DTURMSU5FX1NFVFVQ
+KSB7DQorCQkJaTJjX3BkYXRhW2ldLmNsa3JhdGUgJj0gfk9NQVBfSTJDX0NNRExJTkVfU0VUVVA7
+DQorCQkJb21hcF9zZXRfaTJjX2NvbnN0cmFpbnRfZnVuYygmaTJjX3BkYXRhW2ldKTsNCiAJCQll
+cnIgPSBvbWFwX2kyY19hZGRfYnVzKGkgKyAxKTsNCiAJCQlpZiAoZXJyKQ0KIAkJCQlnb3RvIG91
+dDsNCkBAIC0yMzEsOSArMjU5LDExIEBAIGludCBfX2luaXQgb21hcF9yZWdpc3Rlcl9pMmNfYnVz
+KGludCBidXNfaWQsIHUzMiBjbGtyYXRlLA0KIAkJCXJldHVybiBlcnI7DQogCX0NCiANCi0JaWYg
+KCFpMmNfcmF0ZVtidXNfaWQgLSAxXSkNCi0JCWkyY19yYXRlW2J1c19pZCAtIDFdID0gY2xrcmF0
+ZTsNCi0JaTJjX3JhdGVbYnVzX2lkIC0gMV0gJj0gfk9NQVBfSTJDX0NNRExJTkVfU0VUVVA7DQor
+CWlmICghaTJjX3BkYXRhW2J1c19pZCAtIDFdLmNsa3JhdGUpDQorCQlpMmNfcGRhdGFbYnVzX2lk
+IC0gMV0uY2xrcmF0ZSA9IGNsa3JhdGU7DQorDQorCW9tYXBfc2V0X2kyY19jb25zdHJhaW50X2Z1
+bmMoJmkyY19wZGF0YVtidXNfaWQgLSAxXSk7DQorCWkyY19wZGF0YVtidXNfaWQgLSAxXS5jbGty
+YXRlICY9IH5PTUFQX0kyQ19DTURMSU5FX1NFVFVQOw0KIA0KIAlyZXR1cm4gb21hcF9pMmNfYWRk
+X2J1cyhidXNfaWQpOw0KIH0NCmRpZmYgLS1naXQgYS9kcml2ZXJzL2kyYy9idXNzZXMvaTJjLW9t
+YXAuYyBiL2RyaXZlcnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5jDQppbmRleCA3NWJmM2FkLi5lMTdj
+MDc5IDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pMmMvYnVzc2VzL2kyYy1vbWFwLmMNCisrKyBiL2Ry
+aXZlcnMvaTJjL2J1c3Nlcy9pMmMtb21hcC5jDQpAQCAtMzcsNiArMzcsNyBAQA0KICNpbmNsdWRl
+IDxsaW51eC9wbGF0Zm9ybV9kZXZpY2UuaD4NCiAjaW5jbHVkZSA8bGludXgvY2xrLmg+DQogI2lu
+Y2x1ZGUgPGxpbnV4L2lvLmg+DQorI2luY2x1ZGUgPGxpbnV4L2kyYy1vbWFwLmg+DQogDQogLyog
+STJDIGNvbnRyb2xsZXIgcmV2aXNpb25zICovDQogI2RlZmluZSBPTUFQX0kyQ19SRVZfMgkJCTB4
+MjANCkBAIC0xNjUsNiArMTY2LDEwIEBAIHN0cnVjdCBvbWFwX2kyY19kZXYgew0KIAlzdHJ1Y3Qg
+Y2xrCQkqZmNsazsJCS8qIEZ1bmN0aW9uYWwgY2xvY2sgKi8NCiAJc3RydWN0IGNvbXBsZXRpb24J
+Y21kX2NvbXBsZXRlOw0KIAlzdHJ1Y3QgcmVzb3VyY2UJCSppb2FyZWE7DQorCXUzMgkJCXR4X2xh
+dGVuY3k7CS8qIHR4IG1heCBtcHUgd2t1cCBsYXRlbmN5ICovDQorCXUzMgkJCXJ4X2xhdGVuY3k7
+CS8qIHJ4IG1heCBtcHUgd2t1cCBsYXRlbmN5ICovDQorCXZvaWQJCQkoKnNldF9tcHVfd2t1cF9s
+YXQpKHN0cnVjdCBkZXZpY2UgKmRldiwNCisJCQkJCQkgICAgaW50IGxhdGVuY3kpOw0KIAl1MzIJ
+CQlzcGVlZDsJCS8qIFNwZWVkIG9mIGJ1cyBpbiBLaHogKi8NCiAJdTE2CQkJY21kX2VycjsNCiAJ
+dTgJCQkqYnVmOw0KQEAgLTUyNiw4ICs1MzEsMTYgQEAgc3RhdGljIGludCBvbWFwX2kyY194ZmVy
+X21zZyhzdHJ1Y3QgaTJjX2FkYXB0ZXIgKmFkYXAsDQogCSAqIFJFVklTSVQ6IFdlIHNob3VsZCBh
+Ym9ydCB0aGUgdHJhbnNmZXIgb24gc2lnbmFscywgYnV0IHRoZSBidXMgZ29lcw0KIAkgKiBpbnRv
+IGFyYml0cmF0aW9uIGFuZCB3ZSdyZSBjdXJyZW50bHkgdW5hYmxlIHRvIHJlY292ZXIgZnJvbSBp
+dC4NCiAJICovDQorCWlmIChkZXYtPnNldF9tcHVfd2t1cF9sYXQgIT0gTlVMTCkgew0KKwkJaWYg
+KG1zZy0+ZmxhZ3MgJiBJMkNfTV9SRCkNCisJCQlkZXYtPnNldF9tcHVfd2t1cF9sYXQoZGV2LT5k
+ZXYsIGRldi0+cnhfbGF0ZW5jeSk7DQorCQllbHNlDQorCQkJZGV2LT5zZXRfbXB1X3drdXBfbGF0
+KGRldi0+ZGV2LCBkZXYtPnR4X2xhdGVuY3kpOw0KKwl9DQogCXIgPSB3YWl0X2Zvcl9jb21wbGV0
+aW9uX3RpbWVvdXQoJmRldi0+Y21kX2NvbXBsZXRlLA0KIAkJCQkJT01BUF9JMkNfVElNRU9VVCk7
+DQorCWlmIChkZXYtPnNldF9tcHVfd2t1cF9sYXQgIT0gTlVMTCkNCisJCWRldi0+c2V0X21wdV93
+a3VwX2xhdChkZXYtPmRldiwgLTEpOw0KIAlkZXYtPmJ1Zl9sZW4gPSAwOw0KIAlpZiAociA8IDAp
+DQogCQlyZXR1cm4gcjsNCkBAIC04NDQsOSArODU3LDExIEBAIG9tYXBfaTJjX3Byb2JlKHN0cnVj
+dCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpDQogCXN0cnVjdCBvbWFwX2kyY19kZXYJKmRldjsNCiAJ
+c3RydWN0IGkyY19hZGFwdGVyCSphZGFwOw0KIAlzdHJ1Y3QgcmVzb3VyY2UJCSptZW0sICppcnEs
+ICppb2FyZWE7DQorCXN0cnVjdCBvbWFwX2kyY19idXNfcGxhdGZvcm1fZGF0YSAqcGRhdGEgPSBw
+ZGV2LT5kZXYucGxhdGZvcm1fZGF0YTsNCiAJaXJxX2hhbmRsZXJfdCBpc3I7DQogCWludCByOw0K
+IAl1MzIgc3BlZWQgPSAwOw0KKwl1MTYgZmlmb19mdWxsX3NpemU7DQogDQogCS8qIE5PVEU6IGRy
+aXZlciB1c2VzIHRoZSBzdGF0aWMgcmVnaXN0ZXIgbWFwcGluZyAqLw0KIAltZW0gPSBwbGF0Zm9y
+bV9nZXRfcmVzb3VyY2UocGRldiwgSU9SRVNPVVJDRV9NRU0sIDApOw0KQEAgLTg3MywxMCArODg4
+LDEzIEBAIG9tYXBfaTJjX3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgKnBkZXYpDQogCQln
+b3RvIGVycl9yZWxlYXNlX3JlZ2lvbjsNCiAJfQ0KIA0KLQlpZiAocGRldi0+ZGV2LnBsYXRmb3Jt
+X2RhdGEgIT0gTlVMTCkNCi0JCXNwZWVkID0gKih1MzIgKilwZGV2LT5kZXYucGxhdGZvcm1fZGF0
+YTsNCi0JZWxzZQ0KLQkJc3BlZWQgPSAxMDA7CS8qIERlZnVhbHQgc3BlZWQgKi8NCisJaWYgKHBk
+YXRhICE9IE5VTEwpIHsNCisJCXNwZWVkID0gcGRhdGEtPmNsa3JhdGU7DQorCQlkZXYtPnNldF9t
+cHVfd2t1cF9sYXQgPSBwZGF0YS0+c2V0X21wdV93a3VwX2xhdDsNCisJfSBlbHNlIHsNCisJCXNw
+ZWVkID0gMTAwOwkvKiBEZWZhdWx0IHNwZWVkICovDQorCQlkZXYtPnNldF9tcHVfd2t1cF9sYXQg
+PSBOVUxMOw0KKwl9DQogDQogCWRldi0+c3BlZWQgPSBzcGVlZDsNCiAJZGV2LT5pZGxlID0gMTsN
+CkBAIC05MDIsMTcgKzkyMCwyNSBAQCBvbWFwX2kyY19wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2
+aWNlICpwZGV2KQ0KIA0KIAkJLyogU2V0IHVwIHRoZSBmaWZvIHNpemUgLSBHZXQgdG90YWwgc2l6
+ZSAqLw0KIAkJcyA9IChvbWFwX2kyY19yZWFkX3JlZyhkZXYsIE9NQVBfSTJDX0JVRlNUQVRfUkVH
+KSA+PiAxNCkgJiAweDM7DQotCQlkZXYtPmZpZm9fc2l6ZSA9IDB4OCA8PCBzOw0KKwkJZmlmb19m
+dWxsX3NpemUgPSAweDggPDwgczsNCiANCiAJCS8qDQogCQkgKiBTZXQgdXAgbm90aWZpY2F0aW9u
+IHRocmVzaG9sZCBhcyBoYWxmIHRoZSB0b3RhbCBhdmFpbGFibGUNCiAJCSAqIHNpemUuIFRoaXMg
+aXMgdG8gZW5zdXJlIHRoYXQgd2UgY2FuIGhhbmRsZSB0aGUgc3RhdHVzIG9uIGludA0KIAkJICog
+Y2FsbCBiYWNrIGxhdGVuY2llcy4NCiAJCSAqLw0KLQkJZGV2LT5maWZvX3NpemUgPSAoZGV2LT5m
+aWZvX3NpemUgLyAyKTsNCisJCWRldi0+Zmlmb19zaXplID0gKGZpZm9fZnVsbF9zaXplIC8gMik7
+DQogCQlkZXYtPmJfaHcgPSAxOyAvKiBFbmFibGUgaGFyZHdhcmUgZml4ZXMgKi8NCiAJfQ0KIA0K
+KwkvKiBjYWxjdWxhdGUgcnggYW5kIHR4IHdha2V1cCBsYXRlbmN5IGNvbnN0cmFpbnRzIGZvciBN
+UFUgKi8NCisJaWYgKGRldi0+c2V0X21wdV93a3VwX2xhdCAhPSBOVUxMKSB7DQorCQlkZXYtPnR4
+X2xhdGVuY3kgPSAoZGV2LT5maWZvX3NpemUgKiAxMDAwMDAwKSAvDQorCQkJCSAgKDEwMDAgKiBk
+ZXYtPnNwZWVkIC8gOCk7DQorCQlkZXYtPnJ4X2xhdGVuY3kgPSAoKGZpZm9fZnVsbF9zaXplIC0g
+ZGV2LT5maWZvX3NpemUpICoNCisJCQkJICAxMDAwMDAwKSAvICgxMDAwICogZGV2LT5zcGVlZCAv
+IDgpOw0KKwl9DQorDQogCS8qIHJlc2V0IEFTQVAsIGNsZWFyaW5nIGFueSBJUlFzICovDQogCW9t
+YXBfaTJjX2luaXQoZGV2KTsNCiANCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2kyYy1vbWFw
+LmggYi9pbmNsdWRlL2xpbnV4L2kyYy1vbWFwLmgNCm5ldyBmaWxlIG1vZGUgMTAwNjQ0DQppbmRl
+eCAwMDAwMDAwLi4xMzYyZmJhDQotLS0gL2Rldi9udWxsDQorKysgYi9pbmNsdWRlL2xpbnV4L2ky
+Yy1vbWFwLmgNCkBAIC0wLDAgKzEsOSBAQA0KKyNpZm5kZWYgX19JMkNfT01BUF9IX18NCisjZGVm
+aW5lIF9fSTJDX09NQVBfSF9fDQorDQorc3RydWN0IG9tYXBfaTJjX2J1c19wbGF0Zm9ybV9kYXRh
+IHsNCisJdTMyCQljbGtyYXRlOw0KKwl2b2lkCQkoKnNldF9tcHVfd2t1cF9sYXQpKHN0cnVjdCBk
+ZXZpY2UgKmRldiwgaW50IHNldCk7DQorfTsNCisNCisjZW5kaWYNCi0tIA0KMS41LjQuMw0KDQo=
+
+--=-q0PQMQzUfwhPdI8smzbv--
