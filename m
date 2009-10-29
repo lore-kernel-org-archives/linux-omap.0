@@ -1,69 +1,233 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/2] AM35xx: Runtime detection of the device
-Date: Wed, 28 Oct 2009 22:17:27 +0200
-Message-ID: <20091028201727.GA3773@nokia.com>
-References: <1256652150-5710-1-git-send-email-premi@ti.com>
- <20091027161115.GA16494@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE0DCB84@dbde02.ent.ti.com>
- <20091027210853.GA17061@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE0DD1D0@dbde02.ent.ti.com>
- <20091028165918.GD8820@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE16EA15@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: Re: [PATCH 2/2 v2] OMAP3:clk - introduce DPLL4 jtype support
+Date: Wed, 28 Oct 2009 20:39:16 -0600 (MDT)
+Message-ID: <alpine.DEB.2.00.0910282032550.19865@utopia.booyaka.com>
+References: <[PATCH 2/2] OMAP3:clk: introduce DPLL4 jtype support> <1256068968-16564-1-git-send-email-nm@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:35367 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755021AbZJ2APN (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 20:15:13 -0400
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE16EA15@dbde02.ent.ti.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:55386 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751764AbZJ2CjM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 28 Oct 2009 22:39:12 -0400
+In-Reply-To: <1256068968-16564-1-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Premi, Sanjeev" <premi@ti.com>
-Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: Nishanth Menon <nm@ti.com>, Richard Woodruff <r-woodruff2@ti.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>, Vikram Pandita <vikram.pandita@ti.com>, "Sonasath, Moiz Sonasath" <m-sonasath@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
 
-Hi,
+Hi Richard, Nishanth,
 
-On Wed, Oct 28, 2009 at 07:42:07PM +0100, ext Premi, Sanjeev wrote:
-> > On Wed, Oct 28, 2009 at 01:40:04PM +0100, ext Premi, Sanjeev wrote:
-> > > >  	case 0xb891:
-> > > > -		/* Handle 36xx devices */
-> > > > -		switch (rev) {
-> > > > -		case 0:
-> > > > -			omap_revision = OMAP3630_REV_ES1_0;
-> > > > -			break;
-> > > > -		default:
-> > > > -			/* Use the latest known revision as default */
-> > > > -			omap_revision = OMAP3630_REV_ES1_0;
-> > > > -		}
-> > > > -		break;
-> > > > +	/* FALLTHROUGH */
-> > > >  	default:
-> > > >  		/* Unknown default to latest silicon rev as default*/
-> > > >  		omap_revision = OMAP3630_REV_ES1_0;
-> > > 
-> > > [sp] Haven't applied the patch. But, if FALLTHROUGH will 
-> > make the device
-> > >      detected as OMAP3630, then it may not be right. The 
-> > fall through
-> > >      should be on most common device. OMAP3430 ES21./3.1 
-> > should be ideal.
-> > > 
-> > >      Thoughts?
-> > 
-> > see that I didn't change the default clause. It was already
-> > OMAP3630_REV_ES1_0. If it has to be anything else, the 
-> > default should be
-> > changed and the case 0xb891: should do:
+one quick question on this patch:
+
+On Tue, 20 Oct 2009, Nishanth Menon wrote:
+
+> From: Richard Woodruff <r-woodruff2@ti.com>
 > 
-> I did see that. But since you were already proposing a change
-> thought it would be good idea.
+> **---
+> V2 - patch with comments from Sergio cleanups in general
+> 	+  static used instead of a global function
+> V1 - original patch
+> **---
+> DPLL4 for 3630 introduces a changed block requiring
+> special divisor bits and additional reg fields
+> 
+> To allow for silicons to use this, this is introduced
+> as a omap3_has_jtype_dpll4() and is enabled for 3630
+> silicon
+> 
+> Tested with SDP3430, SDP3630
+> 
+> Cc: Vikram Pandita <vikram.pandita@ti.com>
+> Cc: Sonasath, Moiz Sonasath <m-sonasath@ti.com>
+> Cc: Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>
+> Signed-off-by: Richard Woodruff <r-woodruff2@ti.com>
+> Signed-off-by: Nishanth Menon <nm@ti.com>
+> ---
+>  arch/arm/mach-omap2/clock34xx.c         |   46 ++++++++++++++++++++++++++++++-
+>  arch/arm/mach-omap2/cm-regbits-34xx.h   |    6 +++-
+>  arch/arm/mach-omap2/id.c                |    3 ++
+>  arch/arm/plat-omap/include/plat/clock.h |    3 ++
+>  arch/arm/plat-omap/include/plat/cpu.h   |    2 +
+>  5 files changed, 58 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
+> index c258f87..2ebddb7 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -675,6 +675,41 @@ static void omap3_noncore_dpll_disable(struct clk *clk)
+>  	_omap3_noncore_dpll_stop(clk);
+>  }
+>  
+> +/**
+> + * lookup_dco_sddiv -  Set j-type DPLL4 compensation variables
+> + * @clk: pointer to a DPLL struct clk
+> + * @dco: digital control oscillator selector
+> + * @sd_div: target sigma-delta divider
+> + * @m: DPLL multiplier to set
+> + * @n: DPLL divider to set
+> + */
+> +static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m, u8 n)
+> +{
+> +	unsigned long fint, clkinp, sd; /* watch out for overflow */
+> +	int mod1, mod2;
+> +
+> +	n++; /* always n+1 below */
 
-if Tony says it's ok, I can change the patch, for sure :-)
+The N that's passed into lookup_dco_sddiv() is the real N -- that is, it's 
+the register bitfield plus one.  That can be seen below in this line:
 
-but I believe he will want that as a separate patch for bisectability.
+>  	v |= (n - 1) << __ffs(dd->div1_mask);
 
--- 
-balbi
+Given this, is the "n++;" above correct?
+
+The rest of the code looks fine.  (Of course, I can't review the 
+technical basis of the code since I don't have the 3630 docs yet, but I'm 
+fine with taking it in the meantime.)  
+
+I might change the 'u8 jtype;' field below into 'u8 flags;'; please let me 
+know if you foresee a problem with that.
+
+
+- Paul
+
+> +	clkinp = clk->parent->rate;
+> +	fint = (clkinp / n) * m;
+> +
+> +	if (fint < 1000000000)
+> +		*dco = 2;
+> +	else
+> +		*dco = 4;
+> +	/*
+> +	 * target sigma-delta to near 250MHz
+> +	 * sd = ceil[(m/(n+1)) * (clkinp_MHz / 250)]
+> +	 */
+> +	clkinp /= 100000; /* shift from MHz to 10*Hz for 38.4 and 19.2*/
+> +	mod1 = (clkinp * m) % (250 * n);
+> +	sd = (clkinp * m) / (250 * n);
+> +	mod2 = sd % 10;
+> +	sd /= 10;
+> +
+> +	if (mod1 + mod2)
+> +		sd++;
+> +	*sd_div = sd;
+> +}
+>  
+>  /* Non-CORE DPLL rate set code */
+>  
+> @@ -707,6 +742,13 @@ static int omap3_noncore_dpll_program(struct clk *clk, u16 m, u8 n, u16 freqsel)
+>  	v &= ~(dd->mult_mask | dd->div1_mask);
+>  	v |= m << __ffs(dd->mult_mask);
+>  	v |= (n - 1) << __ffs(dd->div1_mask);
+> +	if (dd->jtype) {
+> +		u8 dco, sd_div;
+> +		lookup_dco_sddiv(clk, &dco, &sd_div, m, n);
+> +		v &= ~(dd->dco_sel_mask | dd->sd_div_mask);
+> +		v |=  dco << __ffs(dd->dco_sel_mask);
+> +		v |=  sd_div << __ffs(dd->sd_div_mask);
+> +	}
+>  	__raw_writel(v, dd->mult_div1_reg);
+>  
+>  	/* We let the clock framework set the other output dividers later */
+> @@ -1022,7 +1064,7 @@ static unsigned long omap3_clkoutx2_recalc(struct clk *clk)
+>  
+>  	v = __raw_readl(dd->control_reg) & dd->enable_mask;
+>  	v >>= __ffs(dd->enable_mask);
+> -	if (v != OMAP3XXX_EN_DPLL_LOCKED)
+> +	if (v != OMAP3XXX_EN_DPLL_LOCKED && (!dd->jtype))
+>  		rate = clk->parent->rate;
+>  	else
+>  		rate = clk->parent->rate * 2;
+> @@ -1135,6 +1177,8 @@ int __init omap2_clk_init(void)
+>  			cpu_mask |= RATE_IN_3430ES2;
+>  			cpu_clkflg |= CK_3430ES2;
+>  		}
+> +		if (omap3_has_jtype_dpll4())
+> +			dpll4_ck.dpll_data->jtype = 1;
+>  	}
+>  
+>  	clk_init(&omap2_clk_functions);
+> diff --git a/arch/arm/mach-omap2/cm-regbits-34xx.h b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> index 6923deb..6f2802b 100644
+> --- a/arch/arm/mach-omap2/cm-regbits-34xx.h
+> +++ b/arch/arm/mach-omap2/cm-regbits-34xx.h
+> @@ -516,9 +516,13 @@
+>  
+>  /* CM_CLKSEL2_PLL */
+>  #define OMAP3430_PERIPH_DPLL_MULT_SHIFT			8
+> -#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0x7ff << 8)
+> +#define OMAP3430_PERIPH_DPLL_MULT_MASK			(0xfff << 8)
+>  #define OMAP3430_PERIPH_DPLL_DIV_SHIFT			0
+>  #define OMAP3430_PERIPH_DPLL_DIV_MASK			(0x7f << 0)
+> +#define OMAP3630_PERIPH_DPLL_DCO_SEL_SHIFT		21
+> +#define OMAP3630_PERIPH_DPLL_DCO_SEL_MASK		(0x7 << 21)
+> +#define OMAP3630_PERIPH_DPLL_SD_DIV_SHIFT		24
+> +#define OMAP3630_PERIPH_DPLL_SD_DIV_MASK		(0xff << 24)
+>  
+>  /* CM_CLKSEL3_PLL */
+>  #define OMAP3430_DIV_96M_SHIFT				0
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 702d3b4..9cddddc 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -176,6 +176,8 @@ void __init omap3_check_features(void)
+>  	OMAP3_CHECK_FEATURE(status, NEON);
+>  	OMAP3_CHECK_FEATURE(status, ISP);
+>  
+> +	if (cpu_is_omap3630())
+> +		omap3_features |= OMAP3_HAS_JTYPE_DPLL4;
+>  	/*
+>  	 * TODO: Get additional info (where applicable)
+>  	 *       e.g. Size of L2 cache.
+> @@ -314,6 +316,7 @@ void __init omap3_cpuinfo(void)
+>  	OMAP3_SHOW_FEATURE(sgx);
+>  	OMAP3_SHOW_FEATURE(neon);
+>  	OMAP3_SHOW_FEATURE(isp);
+> +	OMAP3_SHOW_FEATURE(jtype_dpll4);
+>  }
+>  
+>  /*
+> diff --git a/arch/arm/plat-omap/include/plat/clock.h b/arch/arm/plat-omap/include/plat/clock.h
+> index 4b8b0d6..66648d4 100644
+> --- a/arch/arm/plat-omap/include/plat/clock.h
+> +++ b/arch/arm/plat-omap/include/plat/clock.h
+> @@ -60,6 +60,9 @@ struct dpll_data {
+>  	void __iomem		*idlest_reg;
+>  	u32			autoidle_mask;
+>  	u32			freqsel_mask;
+> +	u32			dco_sel_mask;
+> +	u32			sd_div_mask;
+> +	u8			jtype;
+>  	u32			idlest_mask;
+>  	u8			auto_recal_bit;
+>  	u8			recal_en_bit;
+> diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+> index 7cb0556..6201a2e 100644
+> --- a/arch/arm/plat-omap/include/plat/cpu.h
+> +++ b/arch/arm/plat-omap/include/plat/cpu.h
+> @@ -482,6 +482,7 @@ extern u32 omap3_features;
+>  #define OMAP3_HAS_SGX			BIT(2)
+>  #define OMAP3_HAS_NEON			BIT(3)
+>  #define OMAP3_HAS_ISP			BIT(4)
+> +#define OMAP3_HAS_JTYPE_DPLL4		BIT(5)
+>  
+>  #define OMAP3_HAS_FEATURE(feat,flag)			\
+>  static inline unsigned int omap3_has_ ##feat(void)	\
+> @@ -494,5 +495,6 @@ OMAP3_HAS_FEATURE(sgx, SGX)
+>  OMAP3_HAS_FEATURE(iva, IVA)
+>  OMAP3_HAS_FEATURE(neon, NEON)
+>  OMAP3_HAS_FEATURE(isp, ISP)
+> +OMAP3_HAS_FEATURE(jtype_dpll4, JTYPE_DPLL4)
+>  
+>  #endif
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+- Paul
