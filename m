@@ -1,233 +1,66 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 1/4] Audio: Adding OMAP3517 / AM3517 EVM support in ASOC
-Date: Fri, 30 Oct 2009 00:22:30 +0530
-Message-ID: <1256842350-30373-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [PATCH 2/4] Audio: Modifying Kconfig/Makefile for AM3517 EVM
+Date: Fri, 30 Oct 2009 00:22:39 +0530
+Message-ID: <1256842359-30409-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46990 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755683AbZJ2Swf (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 29 Oct 2009 14:52:35 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:34256 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755285AbZJ2Swm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 14:52:42 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
 Cc: broonie@opensource.wolfsonmicro.com, tony@atomide.com, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-Adding support for OMAP3517 / AM3517 EVM in Alsa SoC.
+Modifying the Kconfig and Makefile in sound/soc/omap folder
+to add support for OMAP3517 / AM3517 EVM in Alsa SoC.
 
 Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 ---
- sound/soc/omap/am3517evm.c |  202 ++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 202 insertions(+), 0 deletions(-)
- create mode 100644 sound/soc/omap/am3517evm.c
+ sound/soc/omap/Kconfig  |    9 +++++++++
+ sound/soc/omap/Makefile |    2 ++
+ 2 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/omap/am3517evm.c b/sound/soc/omap/am3517evm.c
-new file mode 100644
-index 0000000..135901b
---- /dev/null
-+++ b/sound/soc/omap/am3517evm.c
-@@ -0,0 +1,202 @@
-+/*
-+ * am3517evm.c  -- ALSA SoC support for OMAP3517 / AM3517 EVM
-+ *
-+ * Author: Anuj Aggarwal <anuj.aggarwal@ti.com>
-+ *
-+ * Based on sound/soc/omap/beagle.c by Steve Sakoman
-+ *
-+ * Copyright (C) 2009 Texas Instruments Incorporated
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-+ * General Public License for more details.
-+ */
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 2dee983..6344456 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -55,6 +55,15 @@ config SND_OMAP_SOC_OMAP3EVM
+ 	help
+ 	  Say Y if you want to add support for SoC audio on the omap3evm board.
+ 
++config SND_OMAP_SOC_AM3517EVM
++	tristate "SoC Audio support for OMAP3517 / AM3517 EVM"
++	depends on SND_OMAP_SOC && MACH_OMAP3517EVM && I2C
++	select SND_OMAP_SOC_MCBSP
++	select SND_SOC_TLV320AIC23
++	help
++	  Say Y if you want to add support for SoC audio on the OMAP3517 / AM3517
++	  EVM.
 +
-+#include <linux/clk.h>
-+#include <linux/platform_device.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/soc.h>
-+#include <sound/soc-dapm.h>
-+
-+#include <asm/mach-types.h>
-+#include <mach/hardware.h>
-+#include <mach/gpio.h>
-+#include <plat/mcbsp.h>
-+
-+#include "omap-mcbsp.h"
-+#include "omap-pcm.h"
-+
-+#include "../codecs/tlv320aic23.h"
-+
-+#define CODEC_CLOCK 	12000000
-+
-+static int am3517evm_hw_params(struct snd_pcm_substream *substream,
-+	struct snd_pcm_hw_params *params)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
-+	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-+	int ret;
-+
-+	/* Set codec DAI configuration */
-+	ret = snd_soc_dai_set_fmt(codec_dai,
-+				  SND_SOC_DAIFMT_DSP_B |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set codec DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set cpu DAI configuration */
-+	ret = snd_soc_dai_set_fmt(cpu_dai,
-+				  SND_SOC_DAIFMT_DSP_B |
-+				  SND_SOC_DAIFMT_NB_NF |
-+				  SND_SOC_DAIFMT_CBM_CFM);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set cpu DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set the codec system clock for DAC and ADC */
-+	ret = snd_soc_dai_set_sysclk(codec_dai, 0,
-+			CODEC_CLOCK, SND_SOC_CLOCK_IN);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set codec system clock\n");
-+		return ret;
-+	}
-+
-+	ret = snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_CLKR_SRC_CLKX, 0,
-+				SND_SOC_CLOCK_IN);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set CPU system clock OMAP_MCBSP_CLKR_SRC_CLKX\n");
-+		return ret;
-+	}
-+
-+	snd_soc_dai_set_sysclk(cpu_dai, OMAP_MCBSP_FSR_SRC_FSX, 0,
-+				SND_SOC_CLOCK_IN);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set CPU system clock OMAP_MCBSP_FSR_SRC_FSX\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct snd_soc_ops am3517evm_ops = {
-+	.hw_params = am3517evm_hw_params,
-+};
-+
-+/* am3517evm machine dapm widgets */
-+static const struct snd_soc_dapm_widget tlv320aic23_dapm_widgets[] = {
-+	SND_SOC_DAPM_HP("Line Out", NULL),
-+	SND_SOC_DAPM_LINE("Line In", NULL),
-+	SND_SOC_DAPM_MIC("Mic In", NULL),
-+};
-+
-+static const struct snd_soc_dapm_route audio_map[] = {
-+	/* Line Out connected to LLOUT, RLOUT */
-+	{"Line Out", NULL, "LOUT"},
-+	{"Line Out", NULL, "ROUT"},
-+
-+	{"LLINEIN", NULL, "Line In"},
-+	{"RLINEIN", NULL, "Line In"},
-+
-+	{"MICIN", NULL, "Mic In"},
-+};
-+
-+static int am3517evm_aic23_init(struct snd_soc_codec *codec)
-+{
-+	/* Add am3517-evm specific widgets */
-+	snd_soc_dapm_new_controls(codec, tlv320aic23_dapm_widgets,
-+				  ARRAY_SIZE(tlv320aic23_dapm_widgets));
-+
-+	/* Set up davinci-evm specific audio path audio_map */
-+	snd_soc_dapm_add_routes(codec, audio_map, ARRAY_SIZE(audio_map));
-+
-+	/* always connected */
-+	snd_soc_dapm_enable_pin(codec, "Line Out");
-+	snd_soc_dapm_enable_pin(codec, "Line In");
-+	snd_soc_dapm_enable_pin(codec, "Mic In");
-+
-+	snd_soc_dapm_sync(codec);
-+
-+	return 0;
-+}
-+
-+/* Digital audio interface glue - connects codec <--> CPU */
-+static struct snd_soc_dai_link am3517evm_dai = {
-+	.name = "TLV320AIC23",
-+	.stream_name = "AIC23",
-+	.cpu_dai = &omap_mcbsp_dai[0],
-+	.codec_dai = &tlv320aic23_dai,
-+	.init = am3517evm_aic23_init,
-+	.ops = &am3517evm_ops,
-+};
-+
-+/* Audio machine driver */
-+static struct snd_soc_card snd_soc_am3517evm = {
-+	.name = "am3517evm",
-+	.platform = &omap_soc_platform,
-+	.dai_link = &am3517evm_dai,
-+	.num_links = 1,
-+};
-+
-+/* Audio subsystem */
-+static struct snd_soc_device am3517evm_snd_devdata = {
-+	.card = &snd_soc_am3517evm,
-+	.codec_dev = &soc_codec_dev_tlv320aic23,
-+};
-+
-+static struct platform_device *am3517evm_snd_device;
-+
-+static int __init am3517evm_soc_init(void)
-+{
-+	int ret;
-+
-+	if (!machine_is_omap3517evm()) {
-+		pr_err("Not OMAP3517 / AM3517 EVM!\n");
-+		return -ENODEV;
-+	}
-+	pr_info("OMAP3517 / AM3517 EVM SoC init\n");
-+
-+	am3517evm_snd_device = platform_device_alloc("soc-audio", -1);
-+	if (!am3517evm_snd_device) {
-+		printk(KERN_ERR "Platform device allocation failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	platform_set_drvdata(am3517evm_snd_device, &am3517evm_snd_devdata);
-+	am3517evm_snd_devdata.dev = &am3517evm_snd_device->dev;
-+	*(unsigned int *)am3517evm_dai.cpu_dai->private_data = 0; /* McBSP1 */
-+
-+	ret = platform_device_add(am3517evm_snd_device);
-+	if (ret)
-+		goto err1;
-+
-+	return 0;
-+
-+err1:
-+	printk(KERN_ERR "Unable to add platform device\n");
-+	platform_device_put(am3517evm_snd_device);
-+
-+	return ret;
-+}
-+
-+static void __exit am3517evm_soc_exit(void)
-+{
-+	platform_device_unregister(am3517evm_snd_device);
-+}
-+
-+module_init(am3517evm_soc_init);
-+module_exit(am3517evm_soc_exit);
-+
-+MODULE_AUTHOR("Anuj Aggarwal <anuj.aggarwal@ti.com>");
-+MODULE_DESCRIPTION("ALSA SoC OMAP3517 / AM3517 EVM");
-+MODULE_LICENSE("GPL v2");
+ config SND_OMAP_SOC_SDP3430
+ 	tristate "SoC Audio support for Texas Instruments SDP3430"
+ 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_3430SDP
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index 02d6947..0c78ae4 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -12,6 +12,7 @@ snd-soc-osk5912-objs := osk5912.o
+ snd-soc-overo-objs := overo.o
+ snd-soc-omap2evm-objs := omap2evm.o
+ snd-soc-omap3evm-objs := omap3evm.o
++snd-soc-am3517evm-objs := am3517evm.o
+ snd-soc-sdp3430-objs := sdp3430.o
+ snd-soc-omap3pandora-objs := omap3pandora.o
+ snd-soc-omap3beagle-objs := omap3beagle.o
+@@ -23,6 +24,7 @@ obj-$(CONFIG_SND_OMAP_SOC_OSK5912) += snd-soc-osk5912.o
+ obj-$(CONFIG_SND_OMAP_SOC_OVERO) += snd-soc-overo.o
+ obj-$(CONFIG_MACH_OMAP2EVM) += snd-soc-omap2evm.o
+ obj-$(CONFIG_MACH_OMAP3EVM) += snd-soc-omap3evm.o
++obj-$(CONFIG_MACH_OMAP3517EVM) += snd-soc-am3517evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
 -- 
 1.6.2.4
 
