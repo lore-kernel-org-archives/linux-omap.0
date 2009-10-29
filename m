@@ -1,125 +1,301 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] omap2: mux: intoduce omap_mux_{read,write}
-Date: Thu, 29 Oct 2009 08:50:11 -0700
-Message-ID: <20091029155010.GI7180@atomide.com>
-References: <cover.1256734115.git.mike@compulab.co.il> <afa6b6ded8db35578a200c71938174a61eaa4ef9.1256734115.git.mike@compulab.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sriramakrishnan <srk@ti.com>
+Subject: [PATCH] am3517evm : add nand support
+Date: Thu, 29 Oct 2009 21:34:58 +0530
+Message-ID: <1256832298-14266-1-git-send-email-srk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:52500 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754927AbZJ2PuK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 11:50:10 -0400
-Content-Disposition: inline
-In-Reply-To: <afa6b6ded8db35578a200c71938174a61eaa4ef9.1256734115.git.mike@compulab.co.il>
+Received: from devils.ext.ti.com ([198.47.26.153]:52810 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752351AbZJ2QE7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 12:04:59 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n9TG512q022226
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 29 Oct 2009 11:05:03 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike@compulab.co.il>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Sriramakrishnan <srk@ti.com>
 
-* Mike Rapoport <mike@compulab.co.il> [091028 06:17]:
-> Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> ---
->  arch/arm/mach-omap2/mux.c |   25 +++++++++++++++++++------
->  1 files changed, 19 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index 32c953e..eb6e202 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -37,6 +37,22 @@
->  
->  static struct omap_mux_cfg arch_mux_cfg;
->  
-> +static inline u16 omap_mux_read(u16 reg)
-> +{
-> +	if (cpu_is_omap24xx())
-> +		return omap_ctrl_readb(reg);
-> +	else
-> +		return omap_ctrl_readw(reg);
-> +}
-> +
-> +static inline void omap_mux_write(u16 val, u16 reg)
-> +{
-> +	if (cpu_is_omap24xx())
-> +		return omap_ctrl_writeb(val, reg);
-> +	else
-> +		return omap_ctrl_writew(val, reg);
-> +}
-> +
+Enable Nand support on am3517evm
 
-The void function should not return any values above..
+Signed-off-by: Sriramakrishnan <srk@ti.com>
+---
+This patch builds on the am3517evm board support patch submitted earlier.
+http://marc.info/?l=linux-omap&m=125673923227266&w=2
 
-I suggest we standardize on:
+ arch/arm/configs/am3517_evm_defconfig |  103 ++++++++++++++++++++++++++++++++-
+ arch/arm/mach-omap2/board-am3517evm.c |  104 ++++++++++++++++++++++++++++++++-
+ 2 files changed, 204 insertions(+), 3 deletions(-)
+ mode change 100644 => 100755 arch/arm/mach-omap2/board-am3517evm.c
 
-static void __iomem *mux_base;
+diff --git a/arch/arm/configs/am3517_evm_defconfig b/arch/arm/configs/am3517_evm_defconfig
+index 787f295..aa9ea34 100644
+--- a/arch/arm/configs/am3517_evm_defconfig
++++ b/arch/arm/configs/am3517_evm_defconfig
+@@ -1,7 +1,7 @@
+ #
+ # Automatically generated make config: don't edit
+ # Linux kernel version: 2.6.32-rc5
+-# Wed Oct 28 15:47:47 2009
++# Thu Oct 29 20:50:11 2009
+ #
+ CONFIG_ARM=y
+ CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+@@ -457,7 +457,90 @@ CONFIG_PREVENT_FIRMWARE_BUILD=y
+ # CONFIG_DEBUG_DEVRES is not set
+ # CONFIG_SYS_HYPERVISOR is not set
+ # CONFIG_CONNECTOR is not set
+-# CONFIG_MTD is not set
++CONFIG_MTD=y
++# CONFIG_MTD_DEBUG is not set
++# CONFIG_MTD_TESTS is not set
++CONFIG_MTD_CONCAT=y
++CONFIG_MTD_PARTITIONS=y
++# CONFIG_MTD_REDBOOT_PARTS is not set
++CONFIG_MTD_CMDLINE_PARTS=y
++# CONFIG_MTD_AFS_PARTS is not set
++# CONFIG_MTD_AR7_PARTS is not set
++
++#
++# User Modules And Translation Layers
++#
++CONFIG_MTD_CHAR=y
++CONFIG_MTD_BLKDEVS=y
++CONFIG_MTD_BLOCK=y
++# CONFIG_FTL is not set
++# CONFIG_NFTL is not set
++# CONFIG_INFTL is not set
++# CONFIG_RFD_FTL is not set
++# CONFIG_SSFDC is not set
++# CONFIG_MTD_OOPS is not set
++
++#
++# RAM/ROM/Flash chip drivers
++#
++# CONFIG_MTD_CFI is not set
++# CONFIG_MTD_JEDECPROBE is not set
++CONFIG_MTD_MAP_BANK_WIDTH_1=y
++CONFIG_MTD_MAP_BANK_WIDTH_2=y
++CONFIG_MTD_MAP_BANK_WIDTH_4=y
++# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
++# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
++CONFIG_MTD_CFI_I1=y
++CONFIG_MTD_CFI_I2=y
++# CONFIG_MTD_CFI_I4 is not set
++# CONFIG_MTD_CFI_I8 is not set
++# CONFIG_MTD_RAM is not set
++# CONFIG_MTD_ROM is not set
++# CONFIG_MTD_ABSENT is not set
++
++#
++# Mapping drivers for chip access
++#
++# CONFIG_MTD_COMPLEX_MAPPINGS is not set
++# CONFIG_MTD_PLATRAM is not set
++
++#
++# Self-contained MTD device drivers
++#
++# CONFIG_MTD_SLRAM is not set
++# CONFIG_MTD_PHRAM is not set
++# CONFIG_MTD_MTDRAM is not set
++# CONFIG_MTD_BLOCK2MTD is not set
++
++#
++# Disk-On-Chip Device Drivers
++#
++# CONFIG_MTD_DOC2000 is not set
++# CONFIG_MTD_DOC2001 is not set
++# CONFIG_MTD_DOC2001PLUS is not set
++CONFIG_MTD_NAND=y
++# CONFIG_MTD_NAND_VERIFY_WRITE is not set
++# CONFIG_MTD_NAND_ECC_SMC is not set
++# CONFIG_MTD_NAND_MUSEUM_IDS is not set
++# CONFIG_MTD_NAND_GPIO is not set
++CONFIG_MTD_NAND_OMAP2=y
++# CONFIG_MTD_NAND_OMAP_PREFETCH is not set
++CONFIG_MTD_NAND_IDS=y
++# CONFIG_MTD_NAND_DISKONCHIP is not set
++# CONFIG_MTD_NAND_NANDSIM is not set
++# CONFIG_MTD_NAND_PLATFORM is not set
++# CONFIG_MTD_ONENAND is not set
++
++#
++# LPDDR flash memory drivers
++#
++# CONFIG_MTD_LPDDR is not set
++
++#
++# UBI - Unsorted block images
++#
++# CONFIG_MTD_UBI is not set
+ # CONFIG_PARPORT is not set
+ CONFIG_BLK_DEV=y
+ # CONFIG_BLK_DEV_COW_COMMON is not set
+@@ -759,6 +842,21 @@ CONFIG_MISC_FILESYSTEMS=y
+ # CONFIG_BEFS_FS is not set
+ # CONFIG_BFS_FS is not set
+ # CONFIG_EFS_FS is not set
++CONFIG_JFFS2_FS=y
++CONFIG_JFFS2_FS_DEBUG=0
++CONFIG_JFFS2_FS_WRITEBUFFER=y
++# CONFIG_JFFS2_FS_WBUF_VERIFY is not set
++# CONFIG_JFFS2_SUMMARY is not set
++# CONFIG_JFFS2_FS_XATTR is not set
++CONFIG_JFFS2_COMPRESSION_OPTIONS=y
++CONFIG_JFFS2_ZLIB=y
++# CONFIG_JFFS2_LZO is not set
++CONFIG_JFFS2_RTIME=y
++# CONFIG_JFFS2_RUBIN is not set
++# CONFIG_JFFS2_CMODE_NONE is not set
++CONFIG_JFFS2_CMODE_PRIORITY=y
++# CONFIG_JFFS2_CMODE_SIZE is not set
++# CONFIG_JFFS2_CMODE_FAVOURLZO is not set
+ # CONFIG_CRAMFS is not set
+ # CONFIG_SQUASHFS is not set
+ # CONFIG_VXFS_FS is not set
+@@ -1051,6 +1149,7 @@ CONFIG_CRC32=y
+ # CONFIG_CRC7 is not set
+ CONFIG_LIBCRC32C=y
+ CONFIG_ZLIB_INFLATE=y
++CONFIG_ZLIB_DEFLATE=y
+ CONFIG_DECOMPRESS_GZIP=y
+ CONFIG_HAS_IOMEM=y
+ CONFIG_HAS_IOPORT=y
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+old mode 100644
+new mode 100755
+index 23cf949..c326f12
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -21,16 +21,117 @@
+ #include <linux/platform_device.h>
+ #include <linux/gpio.h>
+ 
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/partitions.h>
++#include <linux/mtd/nand.h>
++
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+ 
+ #include <plat/board.h>
++#include <plat/gpmc.h>
++#include <plat/nand.h>
+ #include <plat/common.h>
+ 
++#define GPMC_CS0_BASE  0x60
++#define GPMC_CS_SIZE   0x30
++
++#define NAND_BLOCK_SIZE        SZ_128K
++
++static struct mtd_partition am3517evm_nand_partitions[] = {
++/* All the partition sizes are listed in terms of NAND block size */
++{
++	.name           = "xloader-nand",
++	.offset         = 0,
++	.size           = 4*(SZ_128K),
++	.mask_flags     = MTD_WRITEABLE
++},
++{
++	.name           = "uboot-nand",
++	.offset         = MTDPART_OFS_APPEND,
++	.size           = 14*(SZ_128K),
++	.mask_flags     = MTD_WRITEABLE
++},
++{
++	.name           = "params-nand",
++	.offset         = MTDPART_OFS_APPEND,
++	.size           = 2*(SZ_128K)
++},
++{
++	.name           = "linux-nand",
++	.offset         = MTDPART_OFS_APPEND,
++	.size           = 40*(SZ_128K)
++},
++{
++	.name           = "jffs2-nand",
++	.size           = MTDPART_SIZ_FULL,
++	.offset         = MTDPART_OFS_APPEND,
++},
++};
++
++static struct omap_nand_platform_data am3517evm_nand_data = {
++	.parts          = am3517evm_nand_partitions,
++	.nr_parts       = ARRAY_SIZE(am3517evm_nand_partitions),
++	.nand_setup     = NULL,
++	.dma_channel    = -1,           /* disable DMA in OMAP NAND driver */
++	.dev_ready      = NULL,
++};
++
++static struct resource am3517evm_nand_resource = {
++	.flags          = IORESOURCE_MEM,
++};
++
++static struct platform_device am3517evm_nand_device = {
++	.name           = "omap2-nand",
++	.id             = 0,
++	.dev            = {
++			.platform_data  = &am3517evm_nand_data,
++	},
++	.num_resources  = 1,
++	.resource       = &am3517evm_nand_resource,
++};
++
++void __init am3517evm_flash_init(void)
++{
++	u8 cs = 0;
++	u8 nandcs = GPMC_CS_NUM + 1;
++	u32 gpmc_base_add = OMAP34XX_GPMC_VIRT;
++
++	while (cs < GPMC_CS_NUM) {
++		u32 ret = 0;
++		ret = gpmc_cs_read_reg(cs, GPMC_CS_CONFIG1);
++
++		if ((ret & 0xC00) == 0x800) {
++			/* Found it!! */
++			if (nandcs > GPMC_CS_NUM)
++				nandcs = cs;
++		}
++		cs++;
++	}
++	if (nandcs > GPMC_CS_NUM) {
++		printk(KERN_INFO "NAND: Unable to find configuration "
++			" in GPMC\n ");
++		return;
++	}
++
++	if (nandcs < GPMC_CS_NUM) {
++		am3517evm_nand_data.cs   = nandcs;
++		am3517evm_nand_data.gpmc_cs_baseaddr = (void *)(gpmc_base_add +
++					GPMC_CS0_BASE + nandcs*GPMC_CS_SIZE);
++		am3517evm_nand_data.gpmc_baseaddr   = (void *) (gpmc_base_add);
++
++		if (platform_device_register(&am3517evm_nand_device) < 0)
++			printk(KERN_ERR "Unable to register NAND device\n");
++
++	}
++}
++
++
++
+ /*
+- * Board initialization
++ *  initialization
+  */
+ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
+ };
+@@ -54,6 +155,7 @@ static void __init am3517_evm_init(void)
+ 				ARRAY_SIZE(am3517_evm_devices));
+ 
+ 	omap_serial_init();
++	am3517evm_flash_init();
+ }
+ 
+ static void __init am3517_evm_map_io(void)
+-- 
+1.6.2.4
 
-static inline u16 omap_mux_read(u16 reg)
-{
-       if (cpu_is_omap24xx())
-               return __raw_readb(mux_base + reg);
-       else
-               return __raw_readw(mux_base + reg);
-}
-
-static inline void _omap_mux_write(u16 val, u16 reg)
-{
-       if (cpu_is_omap24xx())
-               __raw_writeb(val, mux_base + reg);
-       else
-               __raw_writew(val, mux_base + reg);
-}
-
-And then ioremap the mux_base during init. We should
-also specifiy the mux base as the start of the mux
-registers, 0x48002030 for omap3 instead of the ctrl
-base at 0x48002000.
-
-This means that we should deduct 0x30 from the
-existing offset values to make conversion to new
-data less error prone..
-
->  /* NOTE: See mux.h for the enumeration */
->  
->  #ifdef CONFIG_ARCH_OMAP24XX
-> @@ -566,10 +582,7 @@ static void __init_or_module omap2_cfg_debug(const struct pin_config *cfg, u16 r
->  	u16 orig;
->  	u8 warn = 0, debug = 0;
->  
-> -	if (cpu_is_omap24xx())
-> -		orig = omap_ctrl_readb(cfg->mux_reg);
-> -	else
-> -		orig = omap_ctrl_readw(cfg->mux_reg);
-> +	orig = omap_mux_read(cfg->mux_reg);
->  
->  #ifdef	CONFIG_OMAP_MUX_DEBUG
->  	debug = cfg->debug;
-
-Or maybe use orig = omap_mux_read(cfg->mux_reg - 0x30);
-here instead for the old mux data?
-
-> @@ -599,7 +612,7 @@ static int __init_or_module omap24xx_cfg_reg(const struct pin_config *cfg)
->  	if (cfg->pu_pd_val)
->  		reg |= OMAP2_PULL_UP;
->  	omap2_cfg_debug(cfg, reg);
-> -	omap_ctrl_writeb(reg, cfg->mux_reg);
-> +	omap_mux_write(reg, cfg->mux_reg);
->  	spin_unlock_irqrestore(&mux_spin_lock, flags);
->  
->  	return 0;
-> @@ -618,7 +631,7 @@ static int __init_or_module omap34xx_cfg_reg(const struct pin_config *cfg)
->  	spin_lock_irqsave(&mux_spin_lock, flags);
->  	reg |= cfg->mux_val;
->  	omap2_cfg_debug(cfg, reg);
-> -	omap_ctrl_writew(reg, cfg->mux_reg);
-> +	omap_mux_write(reg, cfg->mux_reg);
->  	spin_unlock_irqrestore(&mux_spin_lock, flags);
->  
->  	return 0;
-> -- 
-> 1.6.0.6
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
