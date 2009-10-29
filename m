@@ -1,118 +1,68 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: [PATCH] omap-pm: Fixes behaviour of some shared resource
- framework functions
-Date: Thu, 29 Oct 2009 13:09:25 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE16EE0D@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com>
-	<87iqejktan.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com>
-	<003201ca581b$256863c0$544ff780@am.dhcp.ti.com>
- <87hbtj3zpc.fsf@deeprootsystems.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: RE: [PATCH] ASoC: OMAP3EVM: Use the twl4030_setup_data for headset
+ pop-removal
+Date: Thu, 29 Oct 2009 13:30:41 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A5B3835@dbde02.ent.ti.com>
+References: <1253689831-2996-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57670 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751091AbZJ2Hj1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 03:39:27 -0400
-In-Reply-To: <87hbtj3zpc.fsf@deeprootsystems.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:56486 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750779AbZJ2IAq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 04:00:46 -0400
+In-Reply-To: <1253689831-2996-1-git-send-email-anuj.aggarwal@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kevin Hilman <khilman@deeprootsystems.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
-Cc: 'Paul Walmsley' <paul@pwsan.com>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>, "Titiano, Patrick" <p-titiano@ti.com>
+To: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Paul/Kevin,
-                      As Madhu explained it looks like there are instances where we forcibly need to bump up to a higher CPU + L3 frequencies (VDD1 + VDD2 scaling). I understand that this should be done by cpufreq governors but here is reason that I think the current cpufreq governors won't be able to handle.
+I rebased my both audio and l-o trees but could not find this patch
+there. Is there a problem in this which I have to fix and re-submit?
 
-Large latency response:
-      
-     The sampling intervals for the cpufreq governors are quite large and thus the latency for the frequency change to occur is large. This was seen in Android UI responsiveness. The initial response of the UI seems to be quite sluggish until after a while when the cpufreq governors would catch up to the required MIPS.  I know that Patrick (Cc'd) did some experiments with conservative governor but my understanding is that it still has this basic problem.
-
-Tied to the above is necessity for high MIPS for short duration:
-
-I also presume that there might be situations where we need very high MIPS but for a very very short interval of time. This would never bump up the frequency as it would more or less be ignored by the cpufreq governors.
-
-Please let me know what you think.
-Thanks,
--Romit
+Regards,
+Anuj Aggarwal
 
 
 > -----Original Message-----
-> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> Sent: Thursday, October 29, 2009 4:15 AM
-> To: Chikkature Rajashekar, Madhusudhan
-> Cc: 'Paul Walmsley'; Dasgupta, Romit; 'linux-omap@vger.kernel.org'
-> Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
-> framework functions
+> From: Aggarwal, Anuj
+> Sent: Wednesday, September 23, 2009 12:41 PM
+> To: alsa-devel@alsa-project.org; linux-omap@vger.kernel.org
+> Cc: Aggarwal, Anuj
+> Subject: [PATCH] ASoC: OMAP3EVM: Use the twl4030_setup_data for headset
+> pop-removal
 > 
-> "Madhusudhan" <madhu.cr@ti.com> writes:
+> The pop-removal specific values are configured for TWL4030 codec
+> for OMAP3EVM through this patch.
 > 
-> >> -----Original Message-----
-> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> >> owner@vger.kernel.org] On Behalf Of Paul Walmsley
-> >> Sent: Wednesday, October 28, 2009 1:38 PM
-> >> To: Kevin Hilman
-> >> Cc: Dasgupta\, Romit; linux-omap\@vger.kernel.org
-> >> Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
-> >> framework functions
-> >>
-> >> On Tue, 13 Oct 2009, Kevin Hilman wrote:
-> >>
-> >> > "Dasgupta, Romit" <romit@ti.com> writes:
-> >> >
-> >> > > (Tested on Zoom2).
-> >> > >
-> >> > > 'omap_pm_dsp_set_min_opp' & 'omap_pm_cpu_set_freq' were using
-> their
-> >> own
-> >> > > struct device *. This is a problem because invoking these functions
-> >> from
-> >> > > different clients would result in setting of the resource level as
-> >> requested by
-> >> > > the last caller. Fixes this by introducing a struct device * to the
-> >> parameter
-> >> > > list for these functions.
-> >> > > Signed-off-by: Romit Dasgupta <romit@ti.com>
-> >> >
-> >> >
-> >> > This looks like the right fix to me.
-> >> >
-> >> > Paul, any comments?
-> >>
-> >>
-> >> Wait a minute, I am retracting my ack.
-> >>
-> >>
-> >> Romit, the only caller of omap_pm_dsp_set_min_opp() should be
-> DSPBridge
-> >> and the only caller of omap_pm_cpu_set_freq() should be CPUFreq.  So the
-> >> struct device * pointer is not necessary, unless I am missing something.
-> >> Can you please explain what you're trying to do?
-> >>
-> > I believe that omap_pm_cpu_set_freq() can be called by drivers to setup the
-> > optimal vdd1 opp, right? For example MMC works at opp1 but the
-> performance
-> > is certainly better at opp3.When ondemand is enabled drivers need to put
-> > certain constraints on vdd1 opp otherwise performance will be hurt. So, if
-> > the API takes care of device level calls then drivers can call this fn.
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> ---
+>  sound/soc/omap/omap3evm.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
 > 
-> So, the root use case is a power vs. performance policy decision.  And
-> using the proposed solution, a single driver gets to make a system
-> wide policy decision.  I don't like this.
+> diff --git a/sound/soc/omap/omap3evm.c b/sound/soc/omap/omap3evm.c
+> index 9114c26..8deb59b 100644
+> --- a/sound/soc/omap/omap3evm.c
+> +++ b/sound/soc/omap/omap3evm.c
+> @@ -93,10 +93,17 @@ static struct snd_soc_card snd_soc_omap3evm = {
+>  	.num_links = 1,
+>  };
 > 
-> For your MMC usecase, I think we need some clarifications.
+> +/* twl4030 setup */
+> +static struct twl4030_setup_data twl4030_setup = {
+> +	.ramp_delay_value = 4,
+> +	.sysclk = 26000,
+> +};
+> +
+>  /* Audio subsystem */
+>  static struct snd_soc_device omap3evm_snd_devdata = {
+>  	.card = &snd_soc_omap3evm,
+>  	.codec_dev = &soc_codec_dev_twl4030,
+> +	.codec_data = &twl4030_setup,
+>  };
 > 
-> What exactly does "better" performance mean.  Is it better throughput
-> that is needed?  or is it really the MPU side that is not
-> running/responding fast enough.
-> 
-> If it's throughput, then omap_pm_set_min_bus_tput() should be used.
-> 
-> If it's the MPU, what exactly is the problem with ondemand.  Is it
-> that it doesn't respond fast enough?  Or that it never switches to a
-> higher OPP.
-> 
-> Kevin
+>  static struct platform_device *omap3evm_snd_device;
+> --
+> 1.6.2.4
 
