@@ -1,63 +1,110 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH] OMAP: McBSP: Do not use extensive spin
-	locks for dma_op_mode
-Date: Thu, 29 Oct 2009 08:35:51 +0200
-Message-ID: <200910290835.51475.peter.ujfalusi@nokia.com>
-References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
-	<200910280752.23859.peter.ujfalusi@nokia.com>
-	<1256712814.30157.388.camel@eenurkka-desktop>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: [PATCH 3/3] omap3evm: musb: Update power capability for
+ OMAP3EVM (Rev >= E)
+Date: Thu, 29 Oct 2009 08:58:38 +0200
+Message-ID: <20091029065838.GA27534@nokia.com>
+References: <1256742758-32702-1-git-send-email-ajay.gupta@ti.com>
+ <1256742758-32702-2-git-send-email-ajay.gupta@ti.com>
+ <1256742758-32702-3-git-send-email-ajay.gupta@ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C012AD6D86F@dlee02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0309C8627C@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E73940436EEAF1F@dbde02.ent.ti.com>
+ <7A436F7769CA33409C6B44B358BFFF0C012AD6DBEA@dlee02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E73940436EEAF59@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1256712814.30157.388.camel@eenurkka-desktop>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:36277 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756493AbZJ2G64 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 02:58:56 -0400
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436EEAF59@dbde02.ent.ti.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "Menon, Nishanth" <nm@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>
 
-On Wednesday 28 October 2009 08:53:34 Nurkkala Eero.An (EXT-Offcode/Oulu) w=
-rote:
-> Yeah, maybe I took the SMP safeness into play without looking any code,
-> my bad =3D) I was remembering a different version of this McBSP thing, now
-> that I looked into it, it looked different.
-> =
+Hi,
 
-> Right, I reviewed the code, and it was first looking really bad at
-> sound/soc/omap/omap-mcbsp.c, where it calls omap_mcbsp_get_dma_op_mode()
-> from different places. However, it's not an issue because in:
-> arch/arm/plat-omap/mcbsp.c : dma_op_mode_store(),
-> the dma_op_mode is written only if the mcbsp is unoccupied. So it is SMP
-> safe.
-> =
+On Thu, Oct 29, 2009 at 06:56:03AM +0100, ext Gupta, Ajay Kumar wrote:
+> Felipe,
+> > -----Original Message-----
+> > From: Menon, Nishanth
+> > Sent: Thursday, October 29, 2009 11:06 AM
+> > To: Gupta, Ajay Kumar; Gadiyar, Anand; linux-omap@vger.kernel.org
+> > Cc: felipe.balbi@nokia.com; tony@atomide.com
+> > Subject: RE: [PATCH 3/3] omap3evm: musb: Update power capability for
+> > OMAP3EVM (Rev >= E)
+> > 
+> > > From: Gupta, Ajay Kumar
+> > > Sent: Thursday, October 29, 2009 7:10 AM
+> > > >
+> > > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > > > > owner@vger.kernel.org] On Behalf Of Gupta, Ajay Kumar
+> > > > > > Sent: Wednesday, October 28, 2009 5:13 PM
+> > > > > >
+> > > > > [...]
+> > > > > > diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-
+> > > omap2/usb-
+> > > > > > musb.c
+> > > > > > index a80441d..529e2b1 100644
+> > > > > > --- a/arch/arm/mach-omap2/usb-musb.c
+> > > > > > +++ b/arch/arm/mach-omap2/usb-musb.c
+> > > > > > @@ -148,10 +148,14 @@ static struct platform_device musb_device =
+> > {
+> > > > > >
+> > > > > >  void __init usb_musb_init(void)
+> > > > > >  {
+> > > > > > -     if (cpu_is_omap243x())
+> > > > > > +     if (cpu_is_omap243x()) {
+> > > > > >               musb_resources[0].start = OMAP243X_HS_BASE;
+> > > > > > -     else
+> > > > > > +     } else {
+> > > > > Do you need {} for a one liner? Checkpatch should have warned you I
+> > > > think..
+> > > > >
+> > > >
+> > > > Er, CodingStyle says you need to do this, if the else clause
+> > > > has brackets.
+> > >
+> > > Correct and also checkpatch didn't give any warning for this.
+> > Thanks..
+> > 
+> > >
+> > > >
+> > > > > >               musb_resources[0].start = OMAP34XX_HSUSB_OTG_BASE;
+> > > > > > +             /* OMAP3EVM Rev >= E can source 500mA */
+> > > > > > +             if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
+> > > > > > +                     musb_plat.power = 250;
+> > > > > > +     }
+> 
+> Felipe,
+> 
+> How about moving the platform specific data (musb_hdrc_platform_data) moved to board-x.c file from usb-musb.c (same as ehci). This would avoid using omap3evm specific check in usb-musb.c files.
 
-> ..and a single read is always atomic, so this is buggy code:
-> =
+I was thinking on adding a musb_hdrc_board_data which would group
+board-specific data such as this one.
 
-> 301         spin_lock_irq(&mcbsp->lock);
-> 302         dma_op_mode =3D mcbsp->dma_op_mode;
-> 303         spin_unlock_irq(&mcbsp->lock);
-> 304
-> 305         return dma_op_mode;
-> =
+Musb's init phase is quite messy as of today so we would need to clean
+that up. Anyways, the main idea is:
 
-> The spinlocks are unnecessary. In the above example, you get the same
-> with just "return mcbsp->dma_op_mode;"
-> =
+board will call usb_musb_init() with a musb_hdrc_board_data * as
+parameter. usb-musb would still hold a static struct
+musb_hdrc_platform_data for the (in our case) OMAP-specific init, those
+would be passed down to driver and init phase would be done as
+following:
 
-> -> Peter's patch is a good cleanup.
+musb_init()
+	-> musb_platform_init()
+		-> musb_board_init()
 
-Jarkko: are we going to take this?
+we could also have board_ops and platform_ops structures for the
+function pointers to be passed to musb_core.c Then all init could be
+done there.
 
+What do you say ???
 
--- =
-
-P=E9ter
+-- 
+balbi
