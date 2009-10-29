@@ -1,77 +1,118 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: [PATCH] OMAP3: drop all IVA-related address base definitions
-Date: Thu, 29 Oct 2009 01:33:38 -0600 (MDT)
-Message-ID: <alpine.DEB.2.00.0910290132130.19865@utopia.booyaka.com>
+From: "Dasgupta, Romit" <romit@ti.com>
+Subject: RE: [PATCH] omap-pm: Fixes behaviour of some shared resource
+ framework functions
+Date: Thu, 29 Oct 2009 13:09:25 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE16EE0D@dbde02.ent.ti.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com>
+	<87iqejktan.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com>
+	<003201ca581b$256863c0$544ff780@am.dhcp.ti.com>
+ <87hbtj3zpc.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:35113 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756679AbZJ2Hdd (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 03:33:33 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:57670 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751091AbZJ2Hj1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 03:39:27 -0400
+In-Reply-To: <87hbtj3zpc.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>
+Cc: 'Paul Walmsley' <paul@pwsan.com>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>, "Titiano, Patrick" <p-titiano@ti.com>
+
+Paul/Kevin,
+                      As Madhu explained it looks like there are instances where we forcibly need to bump up to a higher CPU + L3 frequencies (VDD1 + VDD2 scaling). I understand that this should be done by cpufreq governors but here is reason that I think the current cpufreq governors won't be able to handle.
+
+Large latency response:
+      
+     The sampling intervals for the cpufreq governors are quite large and thus the latency for the frequency change to occur is large. This was seen in Android UI responsiveness. The initial response of the UI seems to be quite sluggish until after a while when the cpufreq governors would catch up to the required MIPS.  I know that Patrick (Cc'd) did some experiments with conservative governor but my understanding is that it still has this basic problem.
+
+Tied to the above is necessity for high MIPS for short duration:
+
+I also presume that there might be situations where we need very high MIPS but for a very very short interval of time. This would never bump up the frequency as it would more or less be ignored by the cpufreq governors.
+
+Please let me know what you think.
+Thanks,
+-Romit
 
 
-All of the OMAP3 IVA physical address macros in
-plat-omap/include/plat/omap34xx.h are wrong[1]:
-
-OMAP34XX_IVA_INTC_BASE: The IVA interrupt controller does not appear
-to be accessible from the L3 interconnect, and in any case is
-definitely not at 0x40000000; the latter address appears to be the
-internal IVA physical address base for the OMAP2420's interrupt control[2].
-
-OMAP34XX_DSP_BASE: The section of L3 physical address space mapped to
-the IVA starts at 0x5c000000, not 0x58000000.
-
-OMAP34XX_DSP_MEM_BASE: It's not clear what this refers to, but it's not
-in the L3 IVA address space.
-
-OMAP34XX_DSP_IPI_BASE: The Intrusive Port Interface is a relic from
-the OMAP2420 days and no longer applies to OMAP3.
-
-OMAP34XX_DSP_MMU_BASE: The DSP MMU is mapped at 0x5d000000, not 0x5a000000.
-
-
-Nothing that uses these can possibly be working, so drop them.  When
-future code needs these, correct versions can be added in.
-
-1. OMAP34xx Multimedia Device Silicon Revision 3.1.x Rev. W, Table 2-8:
-   "L3 Interconnect View of the IVA2.2 Subsystem Memory Space."  p. 229.
-
-2. OMAP2420 Multimedia Processor Silicon Revision 2.1.1, 2.2 (Rev. Q),
-   section 2.2.4.1, "IVA Memory Space Seen by L3", p. 132.
-
-3. ibid., section 4.3.11, "DSP IPI Overview", p. 200.
-
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/plat-omap/include/plat/omap34xx.h |    5 -----
- 1 files changed, 0 insertions(+), 5 deletions(-)
-
-diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
-index ab20599..ed59979 100644
---- a/arch/arm/plat-omap/include/plat/omap34xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap34xx.h
-@@ -97,7 +97,6 @@
- #define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
- #define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
- 
--#define OMAP34XX_IVA_INTC_BASE	0x40000000
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
- #define OMAP34XX_UHH_CONFIG_BASE	(L4_34XX_BASE + 0x64000)
-@@ -108,9 +107,5 @@
- 
- #define OMAP34XX_MAILBOX_BASE		(L4_34XX_BASE + 0x94000)
- 
--#define OMAP34XX_DSP_BASE	0x58000000
--#define OMAP34XX_DSP_MEM_BASE	(OMAP34XX_DSP_BASE + 0x0)
--#define OMAP34XX_DSP_IPI_BASE	(OMAP34XX_DSP_BASE + 0x1000000)
--#define OMAP34XX_DSP_MMU_BASE	(OMAP34XX_DSP_BASE + 0x2000000)
- #endif /* __ASM_ARCH_OMAP34XX_H */
- 
--- 
-1.6.5.GIT
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Thursday, October 29, 2009 4:15 AM
+> To: Chikkature Rajashekar, Madhusudhan
+> Cc: 'Paul Walmsley'; Dasgupta, Romit; 'linux-omap@vger.kernel.org'
+> Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
+> framework functions
+> 
+> "Madhusudhan" <madhu.cr@ti.com> writes:
+> 
+> >> -----Original Message-----
+> >> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> >> owner@vger.kernel.org] On Behalf Of Paul Walmsley
+> >> Sent: Wednesday, October 28, 2009 1:38 PM
+> >> To: Kevin Hilman
+> >> Cc: Dasgupta\, Romit; linux-omap\@vger.kernel.org
+> >> Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
+> >> framework functions
+> >>
+> >> On Tue, 13 Oct 2009, Kevin Hilman wrote:
+> >>
+> >> > "Dasgupta, Romit" <romit@ti.com> writes:
+> >> >
+> >> > > (Tested on Zoom2).
+> >> > >
+> >> > > 'omap_pm_dsp_set_min_opp' & 'omap_pm_cpu_set_freq' were using
+> their
+> >> own
+> >> > > struct device *. This is a problem because invoking these functions
+> >> from
+> >> > > different clients would result in setting of the resource level as
+> >> requested by
+> >> > > the last caller. Fixes this by introducing a struct device * to the
+> >> parameter
+> >> > > list for these functions.
+> >> > > Signed-off-by: Romit Dasgupta <romit@ti.com>
+> >> >
+> >> >
+> >> > This looks like the right fix to me.
+> >> >
+> >> > Paul, any comments?
+> >>
+> >>
+> >> Wait a minute, I am retracting my ack.
+> >>
+> >>
+> >> Romit, the only caller of omap_pm_dsp_set_min_opp() should be
+> DSPBridge
+> >> and the only caller of omap_pm_cpu_set_freq() should be CPUFreq.  So the
+> >> struct device * pointer is not necessary, unless I am missing something.
+> >> Can you please explain what you're trying to do?
+> >>
+> > I believe that omap_pm_cpu_set_freq() can be called by drivers to setup the
+> > optimal vdd1 opp, right? For example MMC works at opp1 but the
+> performance
+> > is certainly better at opp3.When ondemand is enabled drivers need to put
+> > certain constraints on vdd1 opp otherwise performance will be hurt. So, if
+> > the API takes care of device level calls then drivers can call this fn.
+> 
+> So, the root use case is a power vs. performance policy decision.  And
+> using the proposed solution, a single driver gets to make a system
+> wide policy decision.  I don't like this.
+> 
+> For your MMC usecase, I think we need some clarifications.
+> 
+> What exactly does "better" performance mean.  Is it better throughput
+> that is needed?  or is it really the MPU side that is not
+> running/responding fast enough.
+> 
+> If it's throughput, then omap_pm_set_min_bus_tput() should be used.
+> 
+> If it's the MPU, what exactly is the problem with ondemand.  Is it
+> that it doesn't respond fast enough?  Or that it never switches to a
+> higher OPP.
+> 
+> Kevin
 
