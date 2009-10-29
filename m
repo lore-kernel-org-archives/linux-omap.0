@@ -1,131 +1,69 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 3/3] omap3evm: musb: Update power capability for
- OMAP3EVM (Rev >= E)
-Date: Thu, 29 Oct 2009 12:33:21 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436EEAFAA@dbde02.ent.ti.com>
-References: <1256742758-32702-1-git-send-email-ajay.gupta@ti.com>
- <1256742758-32702-2-git-send-email-ajay.gupta@ti.com>
- <1256742758-32702-3-git-send-email-ajay.gupta@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012AD6D86F@dlee02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C8627C@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940436EEAF1F@dbde02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012AD6DBEA@dlee02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940436EEAF59@dbde02.ent.ti.com>
- <20091029065838.GA27534@nokia.com>
+From: Jarkko Nikula <jhnikula@gmail.com>
+Subject: Re: [alsa-devel] [PATCH] OMAP: McBSP: Do not use extensive spin
+ locks for dma_op_mode
+Date: Thu, 29 Oct 2009 09:13:42 +0200
+Message-ID: <20091029091342.2a9a3fd6.jhnikula@gmail.com>
+References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1256641643.30157.339.camel@eenurkka-desktop>
+	<20091027160000.f276e706.jhnikula@gmail.com>
+	<200910280752.23859.peter.ujfalusi@nokia.com>
+	<1256712814.30157.388.camel@eenurkka-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56168 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756506AbZJ2HDZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 03:03:25 -0400
-In-Reply-To: <20091029065838.GA27534@nokia.com>
-Content-Language: en-US
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:33434 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756567AbZJ2HMw (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 03:12:52 -0400
+Received: by bwz27 with SMTP id 27so1921033bwz.21
+        for <linux-omap@vger.kernel.org>; Thu, 29 Oct 2009 00:12:56 -0700 (PDT)
+In-Reply-To: <1256712814.30157.388.camel@eenurkka-desktop>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>
+To: ext-eero.nurkkala@nokia.com
+Cc: "Ujfalusi Peter (Nokia-D/Tampere)" <peter.ujfalusi@nokia.com>, "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:felipe.balbi@nokia.com]
-> Sent: Thursday, October 29, 2009 12:29 PM
-> To: Gupta, Ajay Kumar
-> Cc: linux-omap@vger.kernel.org; Balbi Felipe (Nokia-D/Helsinki); Menon,
-> Nishanth; Gadiyar, Anand
-> Subject: Re: [PATCH 3/3] omap3evm: musb: Update power capability for
-> OMAP3EVM (Rev >= E)
-> 
-> Hi,
-> 
-> On Thu, Oct 29, 2009 at 06:56:03AM +0100, ext Gupta, Ajay Kumar wrote:
-> > Felipe,
-> > > -----Original Message-----
-> > > From: Menon, Nishanth
-> > > Sent: Thursday, October 29, 2009 11:06 AM
-> > > To: Gupta, Ajay Kumar; Gadiyar, Anand; linux-omap@vger.kernel.org
-> > > Cc: felipe.balbi@nokia.com; tony@atomide.com
-> > > Subject: RE: [PATCH 3/3] omap3evm: musb: Update power capability for
-> > > OMAP3EVM (Rev >= E)
-> > >
-> > > > From: Gupta, Ajay Kumar
-> > > > Sent: Thursday, October 29, 2009 7:10 AM
-> > > > >
-> > > > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > > > > > owner@vger.kernel.org] On Behalf Of Gupta, Ajay Kumar
-> > > > > > > Sent: Wednesday, October 28, 2009 5:13 PM
-> > > > > > >
-> > > > > > [...]
-> > > > > > > diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-
-> > > > omap2/usb-
-> > > > > > > musb.c
-> > > > > > > index a80441d..529e2b1 100644
-> > > > > > > --- a/arch/arm/mach-omap2/usb-musb.c
-> > > > > > > +++ b/arch/arm/mach-omap2/usb-musb.c
-> > > > > > > @@ -148,10 +148,14 @@ static struct platform_device
-> musb_device =
-> > > {
-> > > > > > >
-> > > > > > >  void __init usb_musb_init(void)
-> > > > > > >  {
-> > > > > > > -     if (cpu_is_omap243x())
-> > > > > > > +     if (cpu_is_omap243x()) {
-> > > > > > >               musb_resources[0].start = OMAP243X_HS_BASE;
-> > > > > > > -     else
-> > > > > > > +     } else {
-> > > > > > Do you need {} for a one liner? Checkpatch should have warned
-> you I
-> > > > > think..
-> > > > > >
-> > > > >
-> > > > > Er, CodingStyle says you need to do this, if the else clause
-> > > > > has brackets.
-> > > >
-> > > > Correct and also checkpatch didn't give any warning for this.
-> > > Thanks..
-> > >
-> > > >
-> > > > >
-> > > > > > >               musb_resources[0].start =
-> OMAP34XX_HSUSB_OTG_BASE;
-> > > > > > > +             /* OMAP3EVM Rev >= E can source 500mA */
-> > > > > > > +             if (get_omap3_evm_rev() >= OMAP3EVM_BOARD_GEN_2)
-> > > > > > > +                     musb_plat.power = 250;
-> > > > > > > +     }
-> >
-> > Felipe,
-> >
-> > How about moving the platform specific data (musb_hdrc_platform_data)
-> moved to board-x.c file from usb-musb.c (same as ehci). This would avoid
-> using omap3evm specific check in usb-musb.c files.
-> 
-> I was thinking on adding a musb_hdrc_board_data which would group
-> board-specific data such as this one.
-> 
-> Musb's init phase is quite messy as of today so we would need to clean
-> that up. Anyways, the main idea is:
-> 
-> board will call usb_musb_init() with a musb_hdrc_board_data * as
-> parameter. usb-musb would still hold a static struct
-> musb_hdrc_platform_data for the (in our case) OMAP-specific init, those
-> would be passed down to driver and init phase would be done as
-> following:
-> 
-> musb_init()
-> 	-> musb_platform_init()
-> 		-> musb_board_init()
-> 
-> we could also have board_ops and platform_ops structures for the
-> function pointers to be passed to musb_core.c Then all init could be
-> done there.
-> 
-> What do you say ???
+On Wed, 28 Oct 2009 08:53:34 +0200
+Eero Nurkkala <ext-eero.nurkkala@nokia.com> wrote:
 
-This looks really good to isolate board specific settings. Do you have any
-ready patch on this ?
-
--Ajay
+> On Wed, 2009-10-28 at 06:52 +0100, Ujfalusi Peter (Nokia-D/Tampere)
+> > Yeah, but I think this locking issue has nothing to do with SMP safe or not.
+> > On playback start in omap_mcbsp_request the mcbsp->free is cleared.
+> > Further modification to the dma_op_mode in dma_op_mode_store is not allowed if 
+> > the mcbsp port is in use, thus the dma_op_mode is protected against change while 
+> > the port is in use (ensuring that the mode is same in omap34xx_mcbsp_request and 
+> > omap_mcbsp_get_dma_op_mode functions). This alone makes the use of spinlock 
+> > around the dma_op_mode unnecessary.
+> > 
 > 
-> --
-> balbi
+...
+> Right, I reviewed the code, and it was first looking really bad at
+> sound/soc/omap/omap-mcbsp.c, where it calls omap_mcbsp_get_dma_op_mode()
+> from different places. However, it's not an issue because in:
+> arch/arm/plat-omap/mcbsp.c : dma_op_mode_store(),
+> the dma_op_mode is written only if the mcbsp is unoccupied. So it is SMP
+> safe.
+> 
+... 
+> The spinlocks are unnecessary. In the above example, you get the same
+> with just "return mcbsp->dma_op_mode;"
+> 
+> -> Peter's patch is a good cleanup.
+> 
+Yeah, agree, only now I looked the patch itself :-)
 
+Sorry that I didn't express it clearly that my comment was a side note
+for general awareness that SMP's are becoming reality for ARMs as well
+than nak for Peter's patch.
+
+According to defconfigs the OMAP4 will be the first commercial ARM SMP
+having mainline support (I count realview as development device):
+
+grep 'CONFIG_SMP=y' -r arch/arm/configs/ 
+arch/arm/configs/realview-smp_defconfig:CONFIG_SMP=y
+arch/arm/configs/omap_4430sdp_defconfig:CONFIG_SMP=y
+
+
+-- 
+Jarkko
