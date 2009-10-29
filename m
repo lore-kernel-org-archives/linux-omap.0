@@ -1,56 +1,63 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 1/3] omap3evm: ehci: Add EHCI padconfig for board Rev >=
- E
-Date: Thu, 29 Oct 2009 11:41:28 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436EEAF68@dbde02.ent.ti.com>
-References: <1256742758-32702-1-git-send-email-ajay.gupta@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012AD6D875@dlee02.ent.ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH] OMAP: McBSP: Do not use extensive spin
+	locks for dma_op_mode
+Date: Thu, 29 Oct 2009 08:35:51 +0200
+Message-ID: <200910290835.51475.peter.ujfalusi@nokia.com>
+References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
+	<200910280752.23859.peter.ujfalusi@nokia.com>
+	<1256712814.30157.388.camel@eenurkka-desktop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56691 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751884AbZJ2GLc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 02:11:32 -0400
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C012AD6D875@dlee02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1256712814.30157.388.camel@eenurkka-desktop>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "tony@atomide.com" <tony@atomide.com>
 
-Nishanth,
-> > Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/mux.c             |    7 +++++++
-> >  arch/arm/plat-omap/include/plat/mux.h |    5 +++++
-> >  2 files changed, 12 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> > index 32c953e..00ad592 100644
-> > --- a/arch/arm/mach-omap2/mux.c
-> > +++ b/arch/arm/mach-omap2/mux.c
-> > @@ -551,6 +551,13 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
-> >  MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
-> >  		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
-> >  		OMAP34XX_MUX_MODE0)
-> > +/* EHCI GPIO's on OMAP3EVM (Rev >= E) */
-> > +MUX_CFG_34XX("AH14_34XX_GPIO21", 0x5ea,
-> > +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> > +MUX_CFG_34XX("AF9_34XX_GPIO22", 0x5ec,
-> > +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> > +MUX_CFG_34XX("U3_34XX_GPIO61", 0x0c8,
-> > +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> Apologies, but cant the bootloader handle this? do we want to wait for
-> cleanup of mux system before doing this?
+On Wednesday 28 October 2009 08:53:34 Nurkkala Eero.An (EXT-Offcode/Oulu) w=
+rote:
+> Yeah, maybe I took the SMP safeness into play without looking any code,
+> my bad =3D) I was remembering a different version of this McBSP thing, now
+> that I looked into it, it looked different.
+> =
 
-Bootloader can take care of this but I wanted to remove dependency on uboot.
-I will wait for others' comment and then revise the patch.
+> Right, I reviewed the code, and it was first looking really bad at
+> sound/soc/omap/omap-mcbsp.c, where it calls omap_mcbsp_get_dma_op_mode()
+> from different places. However, it's not an issue because in:
+> arch/arm/plat-omap/mcbsp.c : dma_op_mode_store(),
+> the dma_op_mode is written only if the mcbsp is unoccupied. So it is SMP
+> safe.
+> =
 
-Thanks,
-ajay
+> ..and a single read is always atomic, so this is buggy code:
+> =
 
-> 
-> Regards,
-> Nishanth Menon
+> 301         spin_lock_irq(&mcbsp->lock);
+> 302         dma_op_mode =3D mcbsp->dma_op_mode;
+> 303         spin_unlock_irq(&mcbsp->lock);
+> 304
+> 305         return dma_op_mode;
+> =
+
+> The spinlocks are unnecessary. In the above example, you get the same
+> with just "return mcbsp->dma_op_mode;"
+> =
+
+> -> Peter's patch is a good cleanup.
+
+Jarkko: are we going to take this?
+
+
+-- =
+
+P=E9ter
