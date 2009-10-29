@@ -1,91 +1,110 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 1/3] omap2: mux: intoduce omap_mux_{read,write}, v2
-Date: Thu, 29 Oct 2009 13:30:14 -0700
-Message-ID: <20091029203013.GP7180@atomide.com>
-References: <cover.1256734115.git.mike@compulab.co.il> <afa6b6ded8db35578a200c71938174a61eaa4ef9.1256734115.git.mike@compulab.co.il> <20091029155010.GI7180@atomide.com> <20091029165119.GM7180@atomide.com> <f870da180910291328t60f96895v3b760e6172748a3e@mail.gmail.com>
+Subject: [PATCH 0/5] New mux code for 34xx
+Date: Thu, 29 Oct 2009 13:35:54 -0700
+Message-ID: <20091029203124.11843.89983.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:51451 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57902 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753591AbZJ2Ua1 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 16:30:27 -0400
-Content-Disposition: inline
-In-Reply-To: <f870da180910291328t60f96895v3b760e6172748a3e@mail.gmail.com>
+	with ESMTP id S1753872AbZJ2Ufv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 16:35:51 -0400
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike.rapoport@gmail.com>
-Cc: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: mike.rapoport@gmail.com
 
-* Mike Rapoport <mike.rapoport@gmail.com> [091029 13:28]:
-> On Thu, Oct 29, 2009 at 6:51 PM, Tony Lindgren <tony@atomide.com> wro=
-te:
-> > * Tony Lindgren <tony@atomide.com> [091029 08:50]:
-> >> * Mike Rapoport <mike@compulab.co.il> [091028 06:17]:
-> >> > Signed-off-by: Mike Rapoport <mike@compulab.co.il>
-> >> > ---
-> >> > =A0arch/arm/mach-omap2/mux.c | =A0 25 +++++++++++++++++++------
-> >> > =A01 files changed, 19 insertions(+), 6 deletions(-)
-> >> >
-> >> > +static inline void omap_mux_write(u16 val, u16 reg)
-> >> > +{
-> >> > + =A0 if (cpu_is_omap24xx())
-> >> > + =A0 =A0 =A0 =A0 =A0 return omap_ctrl_writeb(val, reg);
-> >> > + =A0 else
-> >> > + =A0 =A0 =A0 =A0 =A0 return omap_ctrl_writew(val, reg);
-> >> > +}
-> >> > +
-> >>
-> >> The void function should not return any values above..
->=20
-> damn copy-paset :)
->=20
-> >> I suggest we standardize on:
-> >
-> > Here's an updated version of your patch, what do you think?
->=20
-> I'm fine with ioremap and the offsets. Just one thing below:
->=20
-> > @@ -627,8 +644,27 @@ static int __init_or_module omap34xx_cfg_reg(c=
-onst struct pin_config *cfg)
-> >  #define omap34xx_cfg_reg	NULL
-> >  #endif
-> >
-> > +#define OMAP2
-> > +#define OMAP2_CONTROL_PADCONF_MUX_PBASE	0x48002030LU
-> > +#define OMAP3_CONTROL_PADCONF_MUX_PBASE	0x48002030LU
->=20
-> what are these for?
+Hi all,
 
-Oops, more copy-patse :) Removed now. Will send you my patches
-now for you to check them out.
+Here's an initial version of the new mux code to play with.
+Big thanks to Paul & Benoit for the 34xx mux data!
+
+To try out the new code, compile a kernel with CONFIG_OMAP_MUX
+and CONFIG_DEBUG_FS and these patches. The series is also
+availabe in the l-o git in mux branch.
+
+To see the mux configuration on your board:
+
+# mount -t debugfs debugfs /sys/kernel/debug
+# cat /sys/kernel/debug/omap_mux | less
+OMAP3_MUX(CAM_D0, OMAP_PIN_INPUT | OMAP_PIN_OFF_NONE | OMAP_PIN_OFF_WAKEUPENABLE
+ | OMAP_MUX_MODE4, 0),                                                          
+padconf: cam_d0 signal: gpio_99:        offset: 0x0e6   value: 0x4104           
+m0: cam_d0      m1:             m2:             m3:                             
+m4: gpio_99     m5:             m6:             m7: safe_mode                   
+phys: 0x48002116        ball bottom: ag17        ball top:                      
+                                                                                
+OMAP3_MUX(CAM_D10, OMAP_PIN_OUTPUT | OMAP_PIN_OFF_NONE | OMAP_MUX_MODE7, 0),    
+padconf: cam_d10        signal: safe_mode:      offset: 0x0fa   value: 0x0007   
+m0: cam_d10     m1:             m2:             m3:                             
+m4: gpio_109    m5:             m6:             m7: safe_mode                   
+phys: 0x4800212a        ball bottom: b25         ball top:
+...
+
+Then to produce a list of board mux entries from a working
+system, do:
+
+# cat /sys/kernel/debug/omap_mux | grep OMAP3_MUX
+OMAP3_MUX(CAM_D0, OMAP_PIN_INPUT | OMAP_PIN_OFF_NONE | OMAP_PIN_OFF_WAKEUPENABLE
+ | OMAP_MUX_MODE4, 0),                                                          
+OMAP3_MUX(CAM_D10, OMAP_PIN_OUTPUT | OMAP_PIN_OFF_NONE | OMAP_MUX_MODE7, 0),    
+OMAP3_MUX(CAM_D11, OMAP_PIN_INPUT | OMAP_PIN_OFF_NONE | OMAP_PIN_OFF_WAKEUPENABL
+E | OMAP_MUX_MODE4, 0),                                                         
+OMAP3_MUX(CAM_D1, OMAP_PIN_INPUT | OMAP_PIN_INPUT_PULLUP | OMAP_PIN_OFF_NONE | O
+MAP_PIN_OFF_WAKEUPENABLE | OMAP_MUX_MODE4, 0),
+...
+
+Currenly no write support to tweak the pins via debugfs,
+but I'll add that soon with command line support too.
+
+I have not really verified the data yet, but it mostly looks
+right. Adding support for 3630 and omap4 should be easy
+after generating the data. It's currently implemented only
+for 34xx.
+
+I guess the next step would be to convert all omap3 calls
+to omap_cfg_reg() to use omap_mux_set() instead with the
+new data and make sure things work. Then we can remove the
+old data for 34xx.
+
+Comments welcome as always.
+
+Regards,
 
 Tony
-=20
-> >  int __init omap2_mux_init(void)
-> >  {
-> > +	u32 mux_pbase;
-> > +
-> > +	if (cpu_is_omap2420())
-> > +		mux_pbase =3D OMAP2420_CTRL_BASE + OMAP_MUX_BASE_OFFSET;
-> > +	else if (cpu_is_omap2430())
-> > +		mux_pbase =3D OMAP243X_CTRL_BASE + OMAP_MUX_BASE_OFFSET;
-> > +	else if (cpu_is_omap34xx())
-> > +		mux_pbase =3D OMAP343X_CTRL_BASE + OMAP_MUX_BASE_OFFSET;
-> > +
->=20
->=20
-> > Tony
-> >
->=20
->=20
->=20
-> --=20
-> 	Sincerely Yours,
-> 		Mike.
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+---
+
+Mike Rapoport (1):
+      omap2: mux: intoduce omap_mux_{read,write}
+
+Tony Lindgren (4):
+      omap: mux: Add debugfs support for new mux code
+      omap: mux: Add new style init functions to omap3 board-*.c files
+      omap: mux: Add new style pin multiplexing data for 34xx
+      omap: mux: Add new style pin multiplexing code for omap3
+
+
+ arch/arm/mach-omap2/Makefile             |    4 
+ arch/arm/mach-omap2/board-3430sdp.c      |    9 
+ arch/arm/mach-omap2/board-cm-t35.c       |    9 
+ arch/arm/mach-omap2/board-ldp.c          |    9 
+ arch/arm/mach-omap2/board-omap3beagle.c  |    9 
+ arch/arm/mach-omap2/board-omap3evm.c     |    9 
+ arch/arm/mach-omap2/board-omap3pandora.c |    9 
+ arch/arm/mach-omap2/board-overo.c        |    8 
+ arch/arm/mach-omap2/board-rx51.c         |   10 
+ arch/arm/mach-omap2/board-zoom2.c        |    8 
+ arch/arm/mach-omap2/mux.c                |  424 ++++++++
+ arch/arm/mach-omap2/mux.h                |  127 ++
+ arch/arm/mach-omap2/mux34xx.c            | 1552 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/mux34xx.h            |  352 +++++++
+ 14 files changed, 2533 insertions(+), 6 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/mux.h
+ create mode 100644 arch/arm/mach-omap2/mux34xx.c
+ create mode 100644 arch/arm/mach-omap2/mux34xx.h
+
+-- 
+Signature
