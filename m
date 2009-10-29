@@ -1,224 +1,171 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 1/3] OMAP3: Only update pm-counters when needed
-Date: Thu, 29 Oct 2009 16:07:43 -0700
-Message-ID: <87k4ydx0hs.fsf@deeprootsystems.com>
-References: <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
-	<1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
+Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource framework functions
+Date: Thu, 29 Oct 2009 16:32:36 -0700
+Message-ID: <87bpjpvkrv.fsf@deeprootsystems.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com>
+	<87iqejktan.fsf@deeprootsystems.com>
+	<alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com>
+	<003201ca581b$256863c0$544ff780@am.dhcp.ti.com>
+	<87hbtj3zpc.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DE16EE0D@dbde02.ent.ti.com>
+	<74583B8642AB8841B30447520659FCA9DDEF056E@dnce01.ent.ti.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DE16F1FC@dbde02.ent.ti.com>
+	<87zl7a1a0t.fsf@deeprootsystems.com> <4AEA0B37.5070604@ti.com>
+	<00d601ca58e6$4c8f42e0$544ff780@am.dhcp.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:51827 "EHLO
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:50715 "EHLO
 	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754823AbZJ2XHl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 19:07:41 -0400
-Received: by pwj9 with SMTP id 9so333964pwj.21
-        for <linux-omap@vger.kernel.org>; Thu, 29 Oct 2009 16:07:46 -0700 (PDT)
-In-Reply-To: <1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Wed\, 21 Oct 2009 14\:51\:19 +0300")
+	with ESMTP id S1754740AbZJ2Xcd (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 19:32:33 -0400
+Received: by pwj9 with SMTP id 9so342922pwj.21
+        for <linux-omap@vger.kernel.org>; Thu, 29 Oct 2009 16:32:38 -0700 (PDT)
+In-Reply-To: <00d601ca58e6$4c8f42e0$544ff780@am.dhcp.ti.com> (Madhusudhan's message of "Thu\, 29 Oct 2009 17\:22\:28 -0500")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>, Paul Walmsley <paul@pwsan.com>
-Cc: linux-omap@vger.kernel.org, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: Madhusudhan <madhu.cr@ti.com>
+Cc: 'Mike Turquette' <mturquette@ti.com>, "'Dasgupta, Romit'" <romit@ti.com>, "'Cousson, Benoit'" <b-cousson@ti.com>, 'Paul Walmsley' <paul@pwsan.com>, linux-omap@vger.kernel.org, "'Titiano, Patrick'" <p-titiano@ti.com>
 
-Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
+"Madhusudhan" <madhu.cr@ti.com> writes:
 
-> From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+>> -----Original Message-----
+>> From: Mike Turquette [mailto:mturquette@ti.com]
+>> Sent: Thursday, October 29, 2009 4:38 PM
+>> To: Kevin Hilman
+>> Cc: Dasgupta, Romit; Cousson, Benoit; Chikkature Rajashekar, Madhusudhan;
+>> 'Paul Walmsley'; linux-omap@vger.kernel.org; Titiano, Patrick
+>> Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
+>> framework functions
+>> 
+>> Kevin Hilman wrote:
+>> > "Dasgupta, Romit" <romit@ti.com> writes:
+>> >
+>> >> Hello Benoit,
+>> >>                         One comment below:
+>> >>> In fact, this is Mike who started that analysis. We discussed that
+>> internally and
+>> >>> our point is that if the CPUFreq ondemand or conservative heuristic is
+>> not able
+>> >>> to increase quickly enough the CPU need to handle correctly the UI, we
+>> have
+>> >>> to somehow improve or modify the governor in order to provide it a
+>> extra
+>> >>> information in term of constraint maybe in order to increase
+>> immediately the
+>> >>> frequency.
+>> >> The information as you mention needs to be supplied by the
+>> >> driver. The governor would then act on behalf of the driver!  This
+>> >> begs for a new governor API or a signature change to an existing
+>> >> governor API.
+>> >>
+>> >>> This should not be done in the low level omap_pm code; this is not
+>> >>> the right level to do that. The issue is in the ondemand and must
+>> >>> be fixed there.
+>> >> At the end of the day it would still be the driver making the
+>> >> decision!
+>> >
+>> > No.  The drivers can give hints about their requirements, but the
+>> > drivers don't make decisions that are system wide.  The govenor acts
+>> > on behalf of the entire system based on multiple inputs, not any one
+>> > driver.
+>> >
+>> > Benoit's point (and I agree with) is that this is a *system wide*
+>> > problem that needs a *system wide* solution.  I agree that tweaked or
+>> > new governor is the right approach to solving this for the long term,
+>> 
+>> An assumption in this thread is that ondemand/conservative can't scale
+>> fast enough, but that is not true.  The Android UI sluggishness
+>> mentioned by Benoit was solved by lowering the cpufreq
+>> transition_latency time from 10 million ns to 300,000ns.  I have not
+>> gotten the exact worst case time that it takes for voltage to scale up
+>> and down from the hardware guys, but through some email exchanges it was
+>> agreed that this value is safe.
+>> 
+>> I've pushed the patch that fixed transition_latency to the list.  Please
+>> see thread "decrease cpufreq transition latency".  This should hopefully
+>> cure a lot of performance/user experience pain and help us remove policy
+>> from drivers.
+>> 
+> Hi Kevin, Mike,
 >
-> The biggest source of latency in idle loop (omap_sram_idle
-> function) comes from updating the state counters for each
-> power domain. The two purposes of these counters are to
-> provide debug data in debugfs, and to keep track of context
-> losses occurring during idle transitions (off mode counters).
+> Let us consider the MMC scenario. Below are the throughput numbers with
+> different governors.
 >
-> I created new debugfs interface "enable_count" for
-> enabling the "count" interface, which exposes the debug
-> part of these counters. The counters are not updated
-> anymore for CORE ON idle transitions, when the count
-> interface is disabled. For deeper CORE states, counters
-> are still updated to preserve context loss tracking.
+> Performance:
+> Write: 5.47MB/Sec
+> Read: 15.3MB/Sec
 >
-> This change decreases C1/C2 state latency over 100us at
-> OPP2.
+> Ondemand:
+> Write: 4.2 MB/Sec
+> Read: 9.8 MB/Sec
 >
-> Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-
-I'm not opposed to this patch in principle, but I wonder if we might
-be able to get rid of most of this delay with some optimizations in
-the powerdomain code.
-
-I'm guessing it's the reads from the PRCM that are causing such a
-delay since otherwise, that should be a pretty fast codepath.  In this
-case there are reads of PWRSTST and reads and writes of PREPWRSTST for
-each powerdomain.
-
-Paul has mentioned a few times the idea of having some powerdomain
-enhancements that cache a copy of some of these registers so they
-don't have to always be read/written from the PRCM, although I'm not
-sure without digging some more if that makes sense for the PWRST and
-PREPWRST registers.
-
-I think we could also be a bit smarter about doing the transition
-counters for every powerdomain.  During most of the transitions, we
-don't actually expect a transition for many of the powerdomains
-because a transition hasn't been programmed.  Maybe we can skip the
-PRM reads in those cases.
-
-Anyways, some comments on the actual patch below...
-
-
-> ---
->  arch/arm/mach-omap2/pm-debug.c |   51 ++++++++++++++++++++++++++++++++++++++-
->  arch/arm/mach-omap2/pm.h       |    2 +
->  arch/arm/mach-omap2/pm34xx.c   |   12 +++++----
->  3 files changed, 58 insertions(+), 7 deletions(-)
+> Conservative:
+> Write: 4.9MB/Sec
+> Read: 12.16MB/Sec
 >
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 5aac64f..76c2696 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -37,6 +37,9 @@
->  #include "prm-regbits-34xx.h"
->  
->  int omap2_pm_debug;
-> +static int pm_dbg_count_active;
-> +static struct dentry *de_pm_debug_count;
-> +static struct dentry *de_pm_debug;
->  
->  #define DUMP_PRM_MOD_REG(mod, reg)    \
->  	regs[reg_count].name = #mod "." #reg; \
-> @@ -327,6 +330,11 @@ int pm_dbg_regset_save(int reg_set)
->  	return 0;
->  }
->  
-> +int pm_dbg_count_is_active(void)
-> +{
-> +	return pm_dbg_count_active;
-> +}
-> +
->  static const char pwrdm_state_names[][4] = {
->  	"OFF",
->  	"RET",
-> @@ -460,6 +468,40 @@ static const struct file_operations debug_reg_fops = {
->  	.release        = single_release,
->  };
->  
-> +static int pm_dbg_count_enable_get(void *data, u64 *val)
-> +{
-> +	*val = pm_dbg_count_active;
-> +	return 0;
-> +}
-> +
-> +static int pm_dbg_count_enable_set(void *data, u64 val)
-> +{
-> +	if (val > 1) {
-> +		printk(KERN_ERR "Invalid value! 1 to enable, 0 to disable\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (val == 1 && !pm_dbg_count_active) {
-> +		de_pm_debug_count = debugfs_create_file("count", S_IRUGO,
-> +			de_pm_debug, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
-> +
-> +		if (de_pm_debug_count == NULL) {
-> +			printk(KERN_ERR "Error: could not create debugfs "
-> +					"entry\n");
-> +			return -ENOMEM;
-> +		}
-> +		pm_dbg_count_active = 1;
-> +	} else if (val == 0 && pm_dbg_count_active) {
-> +		debugfs_remove(de_pm_debug_count);
-> +		de_pm_debug_count = NULL;
-> +		pm_dbg_count_active = 0;
-> +	}
-> +	return 0;
-> +}
-> +
-> +DEFINE_SIMPLE_ATTRIBUTE(enable_count_fops, pm_dbg_count_enable_get,
-> +				pm_dbg_count_enable_set, "%llu\n");
-> +
->  int pm_dbg_regset_init(int reg_set)
->  {
->  	char name[2];
-> @@ -576,12 +618,17 @@ static int __init pm_dbg_init(void)
->  		return -ENODEV;
->  	}
->  
-> +	pm_dbg_count_active = 0;
-> +
->  	d = debugfs_create_dir("pm_debug", NULL);
->  	if (IS_ERR(d))
->  		return PTR_ERR(d);
-> +	de_pm_debug = d;
-> +
-> +	(void) debugfs_create_file("enable_count", S_IRUGO |
-> +				S_IWUGO, d, &pm_dbg_count_active,
-> +				&enable_count_fops);
->  
-> -	(void) debugfs_create_file("count", S_IRUGO,
-> -		d, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
->  	(void) debugfs_create_file("time", S_IRUGO,
->  		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
->  
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index f8d11a2..3f0202b 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -63,12 +63,14 @@ extern int omap2_pm_debug;
->  extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
->  extern int pm_dbg_regset_save(int reg_set);
->  extern int pm_dbg_regset_init(int reg_set);
-> +extern int pm_dbg_count_is_active(void);
->  #else
->  #define omap2_pm_dump(mode, resume, us)		do {} while (0);
->  #define omap2_pm_debug				0
->  #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
->  #define pm_dbg_regset_save(reg_set) do {} while (0);
->  #define pm_dbg_regset_init(reg_set) do {} while (0);
-> +#define pm_dbg_count_is_active()		0
->  #endif /* CONFIG_PM_DEBUG */
->  
->  extern void omap24xx_idle_loop_suspend(void);
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 01260ec..237c819 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -378,15 +378,17 @@ void omap_sram_idle(void)
->  		return;
->  	}
->  
-> -	pwrdm_pre_transition();
-> +	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
-> +	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-> +
-> +	if (pm_dbg_count_is_active() || (core_next_state != PWRDM_POWER_ON))
-> +		pwrdm_pre_transition();
+> These numbers show that "conservative" is better than ondemand but the
+> throughput numbers are still less than "performance". 
 
-I'm getting concerned abou tall the special case checking etc. that
-we're doing inside omap_sram_idle().  It's starting to feel a bit
-cluttered.
+No surprises there.
 
-I think I'd rather see this checking moved into the powerdomain code
-itself.
+> Instead, if the driver holds the vdd1 opp to opp3 the throughput numbers
+> were relatively close to "performance" governor. The logic I am talking
+> about is that the drivers should be intelligent enough to hold the opp at
+> Opp3 only when there is an active transfer. Once the transfer is done
+> release it back to opp1. Does this make sense? 
 
->  	/* NEON control */
->  	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
->  		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
->  
->  	/* PER */
-> -	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
-> -	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
->  	if (per_next_state < PWRDM_POWER_ON) {
->  		omap_uart_prepare_idle(2);
->  		omap2_gpio_prepare_for_idle(per_next_state);
-> @@ -505,8 +507,8 @@ void omap_sram_idle(void)
->  		omap3_disable_io_chain();
->  	}
->  
-> -
-> -	pwrdm_post_transition();
-> +	if (pm_dbg_count_is_active() || (core_next_state != PWRDM_POWER_ON))
-> +		pwrdm_post_transition();
->  
->  	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
->  }
-> -- 
-> 1.5.4.3
+I think you're missing my point.
+
+What you're trying to do is to allow a driver to make a power
+vs. performance policy decision.  You're assuming that the user (or
+system integrator) will always choose performance over power.  What if
+the user is willing to accept a slightly slower system if it extends
+battery life?
+
+The point I'm trying to make is that these kinds of policy decisions
+simply do not belong in drivers.
+
+Kevin
+
+> Otherwise, do you guys think there is room to improve conservative governor
+> further?
+>
+> Regards,
+> Madhu
+>
+>
+>> > In the mean time, I have a couple ideas for experimentation.
+>> >
+>> > Ultimately, we're still talking about a power vs. perfomance tradeoff,
+>> > which is a system wide choice that should be left to the system
+>> > integrator (or maybe even end user.)  If performance is desired over
+>> > power (like maybe when the UI is active), there are couple things that
+>> > could be done
+>> >
+>> > 1) Switch to performance governor,
+>> >
+>> > 2) or better, keep ondemand but use with CPUfreq policy changes
+>> >
+>> > With CPUfreq policies, you can change which OPPs are available to the
+>> > system.
+>> >
+>> > To see the currently available OPPs and the min/max settings:
+>> >
+>> > /sys/devices/system/cpu/cpu0/cpufreq # cat scaling_available_frequencies
+>> > 600000 550000 500000 250000 125000
+>> > /sys/devices/system/cpu/cpu0/cpufreq # cat scaling_max_freq
+>> > 600000
+>> > /sys/devices/system/cpu/cpu0/cpufreq # cat scaling_min_freq
+>> > 125000
+>> >
+>> > To make OPP3 the minimum OPP, all that's needed is:
+>> >
+>> > /sys/devices/system/cpu/cpu0/cpufreq # echo 500000 > scaling_min_freq
+>> >
+>> > Changing the min freq is what you are trying to do from the MMC
+>> > driver.  The difference here is that since this is a system wide
+>> > policy decision, it should be done a system wide level.
+>> >
+>> > Kevin
+>> >
