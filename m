@@ -1,71 +1,48 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: [PATCH 3/3] omap3evm: musb: Update power capability for
- OMAP3EVM (Rev >= E)
-Date: Thu, 29 Oct 2009 15:59:39 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436EEB054@dbde02.ent.ti.com>
-References: <1256742758-32702-1-git-send-email-ajay.gupta@ti.com>
- <1256742758-32702-2-git-send-email-ajay.gupta@ti.com>
- <1256742758-32702-3-git-send-email-ajay.gupta@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012AD6D86F@dlee02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C8627C@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940436EEAF1F@dbde02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012AD6DBEA@dlee02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940436EEAF59@dbde02.ent.ti.com>
- <20091029065838.GA27534@nokia.com>
- <19F8576C6E063C45BE387C64729E73940436EEAFAA@dbde02.ent.ti.com>
- <20091029092331.GB31472@nokia.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH] omap-pm: Fixes behaviour of some shared resource
+	framework functions
+Date: Thu, 29 Oct 2009 11:16:32 +0000
+Message-ID: <20091029111632.GC15559@sirena.org.uk>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com> <87iqejktan.fsf@deeprootsystems.com> <alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com> <003201ca581b$256863c0$544ff780@am.dhcp.ti.com> <87hbtj3zpc.fsf@deeprootsystems.com> <B85A65D85D7EB246BE421B3FB0FBB59301DE16EE0D@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:39059 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752330AbZJ2K3l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 06:29:41 -0400
-In-Reply-To: <20091029092331.GB31472@nokia.com>
-Content-Language: en-US
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:53341 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752676AbZJ2LQa (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 07:16:30 -0400
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE16EE0D@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Menon, Nishanth" <nm@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>
+To: "Dasgupta, Romit" <romit@ti.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, 'Paul Walmsley' <paul@pwsan.com>, "'linux-omap@vger.kernel.org'" <linux-omap@vger.kernel.org>, "Titiano, Patrick" <p-titiano@ti.com>
 
-Hi,
-> On Thu, Oct 29, 2009 at 08:03:21AM +0100, ext Gupta, Ajay Kumar wrote:
-> > > I was thinking on adding a musb_hdrc_board_data which would group
-> > > board-specific data such as this one.
-> > >
-> > > Musb's init phase is quite messy as of today so we would need to clean
-> > > that up. Anyways, the main idea is:
-> > >
-> > > board will call usb_musb_init() with a musb_hdrc_board_data * as
-> > > parameter. usb-musb would still hold a static struct
-> > > musb_hdrc_platform_data for the (in our case) OMAP-specific init,
-> those
-> > > would be passed down to driver and init phase would be done as
-> > > following:
-> > >
-> > > musb_init()
-> > > 	-> musb_platform_init()
-> > > 		-> musb_board_init()
-> > >
-> > > we could also have board_ops and platform_ops structures for the
-> > > function pointers to be passed to musb_core.c Then all init could be
-> > > done there.
-> > >
-> > > What do you say ???
-> >
-> > This looks really good to isolate board specific settings. Do you have
-> any
-> > ready patch on this ?
-> 
-> no, currently I'm working on refactoring the otg support. I could work
-> on this after I finish otg refactoring unless you want to take this task
-> :-)
+On Thu, Oct 29, 2009 at 01:09:25PM +0530, Dasgupta, Romit wrote:
 
-Sure, I will submit the first cut very soon.
+[Reflowed into 80 columns - you might want to look at your MUA setup.]
 
--Ajay
-> 
-> --
-> balbi
+>      The sampling intervals for the cpufreq governors are quite large
+>      and thus the latency for the frequency change to occur is large.
+>      This was seen in Android UI responsiveness. The initial response
+>      of the UI seems to be quite sluggish until after a while when the
+>      cpufreq governors would catch up to the required MIPS.  I know
+>      that Patrick (Cc'd) did some experiments with conservative
+>      governor but my understanding is that it still has this basic
+>      problem.
 
+This appears to be a general problem with cpufreq on faster embedded
+systems, not just OMAP.  I suspect that what we really need here is
+either tuning of the existing governors or new governors better adapted
+to embedded systems.  
+
+I seem to remember from the last time I looked at this that I had a
+suspicion that the relatively high transition latencies embedded systems
+often have due to I2C PMICs really weren't helping here since the
+governors all tend to base their polling intervals on a multiple of
+those, resulting in poll times of the order of a second which are far
+too long for raising the frequency.  Something like capping the latency
+used when raising the frequency or scaling the poll time based on the
+distance from the maximum frequency looked like a useful approach -
+certainly, claiming a very low transition latency avoids the UI-visible
+issue.
