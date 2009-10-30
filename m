@@ -1,38 +1,39 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: [PATCH] omap-pm: Fixes behaviour of some shared resource
- framework functions
-Date: Fri, 30 Oct 2009 13:28:31 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE16F61A@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DDCE4650@dbde02.ent.ti.com>
-	<87iqejktan.fsf@deeprootsystems.com>
-	<alpine.DEB.2.00.0910281236270.19865@utopia.booyaka.com>
-	<003201ca581b$256863c0$544ff780@am.dhcp.ti.com>
-	<87hbtj3zpc.fsf@deeprootsystems.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301DE16EE0D@dbde02.ent.ti.com>
-	<74583B8642AB8841B30447520659FCA9DDEF056E@dnce01.ent.ti.com>
-	<B85A65D85D7EB246BE421B3FB0FBB59301DE16F1FC@dbde02.ent.ti.com>
- <87zl7a1a0t.fsf@deeprootsystems.com> <4AEA0B37.5070604@ti.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH 0/3] NAND: OMAP: Fix and clean NAND driver
+Date: Fri, 30 Oct 2009 14:12:11 +0530
+Message-ID: <ce9ab5790910300142q6062c47p935ae967955f89f@mail.gmail.com>
+References: <ce9ab5790910292320x2eef0550pdc3fde5d616ea361@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50449 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754097AbZJ3H6e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 03:58:34 -0400
-In-Reply-To: <4AEA0B37.5070604@ti.com>
-Content-Language: en-US
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:53316 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756351AbZJ3Im1 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 04:42:27 -0400
+Received: by bwz27 with SMTP id 27so3265936bwz.21
+        for <linux-omap@vger.kernel.org>; Fri, 30 Oct 2009 01:42:31 -0700 (PDT)
+In-Reply-To: <ce9ab5790910292320x2eef0550pdc3fde5d616ea361@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Turquette, Mike" <mturquette@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>
-Cc: "Cousson, Benoit" <b-cousson@ti.com>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, 'Paul Walmsley' <paul@pwsan.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Titiano, Patrick" <p-titiano@ti.com>
+To: Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
 
-> An assumption in this thread is that ondemand/conservative can't scale
-> fast enough, but that is not true.  The Android UI sluggishness
-> mentioned by Benoit was solved by lowering the cpufreq
-> transition_latency time from 10 million ns to 300,000ns.  I have not
-> gotten the exact worst case time that it takes for voltage to scale up
-> and down from the hardware guys, but through some email exchanges it was
-> agreed that this value is safe.
-> 
-This has the effect of arming the timers more frequently and hence more power consumption! But I guess as Kevin says, if the user wants to sacrifice power for performance this might be ok. 
+Looping Linux-omap mailing list.
+
+
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Fri, 30 Oct 2009 11:34:14 +0530
+Subject: [PATCH 0/3] NAND: OMAP: Fix and clean NAND driver
+
+This patch series addresses some of the issues in omap nand driver.
+
+Vimal Singh (3):
+ Fixing compilation warning for 'nand/omap2.c'
+ NAND: OMAP: Fixing omap nand driver, compiled as module
+ NAND: OMAP: Simplifying HWECC and removing unnecessary macros
+
+ drivers/mtd/nand/omap2.c |  315 ++++++++++++++++------------------------------
+ 1 files changed, 108 insertions(+), 207 deletions(-)
+
+--
+Regards,
+Vimal Singh
