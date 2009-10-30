@@ -1,665 +1,228 @@
-From: Sebastien Jan <s-jan@ti.com>
-Subject: [RFC PATCH 9/9] HSI: SSI device support and integration on 3430SDP platform
-Date: Fri, 30 Oct 2009 11:00:08 +0100
-Message-ID: <1256896808-20152-10-git-send-email-s-jan@ti.com>
-References: <1256896808-20152-1-git-send-email-s-jan@ti.com>
+From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Subject: [PATCH V2] OMAP3: Only update pm-counters when needed
+Date: Fri, 30 Oct 2009 13:26:14 +0200
+Message-ID: <1256901974-29145-1-git-send-email-kalle.jokiniemi@digia.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55352 "EHLO arroyo.ext.ti.com"
+Received: from smtp1.digia.com ([82.118.214.156]:2943 "EHLO smtp1.digia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756794AbZJ3J7K (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Oct 2009 05:59:10 -0400
-In-Reply-To: <1256896808-20152-1-git-send-email-s-jan@ti.com>
+	id S1756045AbZJ3LZ7 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 30 Oct 2009 07:25:59 -0400
+In-Reply-To: <>
+References: <>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sebastien Jan <s-jan@ti.com>, Carlos Chinea <carlos.chinea@nokia.com>
+To: khilman@deeprootsystems.com
+Cc: linux-omap@vger.kernel.org, paul@pwsan.com, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-SSI device definition
-Integration on 3430 SDP (pin muxing, platform init)
+From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 
-Signed-off-by: Sebastien Jan <s-jan@ti.com>
-Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+The biggest source of latency in idle loop (omap_sram_idle
+function) comes from updating the state counters for each
+power domain. The two purposes of these counters are to
+provide debug data in debugfs, and to keep track of context
+losses occurring during idle transitions (off mode counters).
+
+I created new debugfs interface "enable_count" for
+enabling the "count" interface, which exposes the debug
+part of these counters. The counters are not updated
+anymore for CORE ON idle transitions, when the count
+interface is disabled. For deeper CORE states, counters
+are still updated to preserve context loss tracking.
+
+This change decreases C1/C2 state latency over 100us at
+OPP2.
+
+Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
 ---
- arch/arm/mach-omap2/Makefile          |    1 +
- arch/arm/mach-omap2/board-3430sdp.c   |   12 +
- arch/arm/mach-omap2/mux.c             |   17 +
- arch/arm/mach-omap2/ssi.c             |  530 +++++++++++++++++++++++++++++++++
- arch/arm/plat-omap/include/mach/mux.h |   10 +
- 5 files changed, 570 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/ssi.c
+ arch/arm/mach-omap2/pm-debug.c                |   51 ++++++++++++++++++++++++-
+ arch/arm/mach-omap2/pm.h                      |    2 +
+ arch/arm/mach-omap2/pm34xx.c                  |   10 ++--
+ arch/arm/mach-omap2/powerdomain.c             |   10 +++--
+ arch/arm/plat-omap/include/mach/powerdomain.h |    4 +-
+ 5 files changed, 64 insertions(+), 13 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 3de1c20..34d3e7f 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -87,4 +87,5 @@ obj-y					+= $(onenand-m) $(onenand-y)
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 5aac64f..76c2696 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -37,6 +37,9 @@
+ #include "prm-regbits-34xx.h"
  
- smc91x-$(CONFIG_SMC91X)			:= gpmc-smc91x.o
- obj-y					+= $(smc91x-m) $(smc91x-y)
-+obj-$(CONFIG_OMAP_SSI_DEVICE)		+= ssi.o
- obj-$(CONFIG_OMAP_HSI_DEVICE)		+= hsi.o
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 2dfab17..f982fd1 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -40,6 +40,7 @@
- #include <mach/control.h>
- #include <mach/keypad.h>
- #include <mach/gpmc-smc91x.h>
-+#include <mach/hsi.h>
+ int omap2_pm_debug;
++static int pm_dbg_count_active;
++static struct dentry *de_pm_debug_count;
++static struct dentry *de_pm_debug;
  
- #include "sdram-qimonda-hyb18m512160af-6.h"
- #include "mmc-twl4030.h"
-@@ -496,6 +497,13 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 	.reset_gpio_port[2]  = -EINVAL
- };
- 
-+#ifdef CONFIG_OMAP_SSI_DEVICE
-+static struct omap_ssi_board_config ssi_board_config = {
-+	.num_ports = 1,
-+	.cawake_gpio = { 151 },
-+};
-+#endif
-+
- static void __init omap_3430sdp_init(void)
- {
- 	omap3430_i2c_init();
-@@ -513,6 +521,10 @@ static void __init omap_3430sdp_init(void)
- 	board_smc91x_init();
- 	enable_board_wakeup_source();
- 	usb_ehci_init(&ehci_pdata);
-+
-+#ifdef CONFIG_OMAP_SSI_DEVICE
-+	omap_ssi_config(&ssi_board_config);
-+#endif
+ #define DUMP_PRM_MOD_REG(mod, reg)    \
+ 	regs[reg_count].name = #mod "." #reg; \
+@@ -327,6 +330,11 @@ int pm_dbg_regset_save(int reg_set)
+ 	return 0;
  }
  
- static void __init omap_3430sdp_map_io(void)
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index b5fac32..8464034 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -451,6 +451,23 @@ MUX_CFG_34XX("AD2_3430_USB3FS_PHY_MM3_TXDAT", 0x188,
- MUX_CFG_34XX("AC1_3430_USB3FS_PHY_MM3_TXEN_N", 0x18a,
- 		OMAP34XX_MUX_MODE6 | OMAP34XX_PIN_OUTPUT)
++int pm_dbg_count_is_active(void)
++{
++	return pm_dbg_count_active;
++}
++
+ static const char pwrdm_state_names[][4] = {
+ 	"OFF",
+ 	"RET",
+@@ -460,6 +468,40 @@ static const struct file_operations debug_reg_fops = {
+ 	.release        = single_release,
+ };
  
-+/* SSI support */
-+MUX_CFG_34XX("AA8_3430_SSI1_DAT_TX", 0x17c,
-+		OMAP34XX_MUX_MODE1) /* AC Data */
-+MUX_CFG_34XX("AA9_3430_SSI1_FLAG_TX", 0x17e,
-+		OMAP34XX_MUX_MODE1) /* AC Flag */
-+MUX_CFG_34XX("W8_3430_SSI1_RDY_TX", 0x180,
-+		OMAP34XX_MUX_MODE1 | OMAP3_INPUT_EN) /* CA Ready */
-+MUX_CFG_34XX("Y8_3430_GPIO_151", 0x182,
-+		OMAP34XX_MUX_MODE4 | OMAP3_INPUT_EN) /* CA Wake */
-+MUX_CFG_34XX("AE1_3430_SSI1_DAT_RX", 0x184,
-+		OMAP34XX_MUX_MODE1 | OMAP3_INPUT_EN) /* CA Data */
-+MUX_CFG_34XX("AD1_3430_SSI1_FLAG_RX", 0x186,
-+		OMAP34XX_MUX_MODE1 | OMAP3_INPUT_EN) /* CA Flag */
-+MUX_CFG_34XX("AD2_3430_SSI1_RDY_RX", 0x188,
-+		OMAP34XX_MUX_MODE1) /* AC Ready */
-+MUX_CFG_34XX("AC1_3430_SSI1_WAKE", 0x18a,
-+		OMAP34XX_MUX_MODE1) /* AC Wake */
- 
- /* 34XX GPIO - bidirectional, unless the name has an "_OUT" suffix.
-  * (Always specify PIN_INPUT, except for names suffixed by "_OUT".)
-diff --git a/arch/arm/mach-omap2/ssi.c b/arch/arm/mach-omap2/ssi.c
-new file mode 100644
-index 0000000..676254a
---- /dev/null
-+++ b/arch/arm/mach-omap2/ssi.c
-@@ -0,0 +1,530 @@
-+/*
-+ * arch/arm/mach-omap2/ssi.c
-+ *
-+ * SSI device definition
-+ *
-+ * Copyright (C) 2007-2008 Nokia Corporation. All rights reserved.
-+ * Copyright (C) 2009 Texas Instruments, Inc.
-+ *
-+ * Author: Carlos Chinea <carlos.chinea@nokia.com>
-+ * Author: Sebastien JAN <s-jan@ti.com>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+#include <linux/platform_device.h>
-+#include <linux/err.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+#include <linux/gpio.h>
-+#include <linux/irq.h>
-+#include <linux/jiffies.h>
-+#include <linux/notifier.h>
-+#include <mach/clock.h>
-+#include <mach/hsi.h>
-+#include <linux/hsi_driver_if.h>
-+#include "clock.h"
-+#include <asm/clkdev.h>
-+#include <mach/mux.h>
-+
-+#define	hsi_inl(p)	inl((unsigned long) p)
-+#define	hsi_outl(v, p)	outl(v, (unsigned long) p)
-+
-+/**
-+ *	struct ssi_internal_clk - Generic virtual ssi clock
-+ *	@clk: clock data
-+ *	@nb: notfier block for the DVFS notification chain
-+ *	@childs: Array of SSI FCK and ICK clocks
-+ *	@n_childs: Number of clocks in childs array
-+ *	@rate_change: Tracks if we are in the middle of a clock rate change
-+ *	@pdev: Reference to the SSI platform device associated to the clock
-+ *	@drv_nb: Reference to driver nb, use to propagate the DVFS notification
-+ */
-+struct ssi_internal_clk {
-+	struct clk clk;
-+	struct notifier_block nb;
-+
-+	struct clk **childs;
-+	int n_childs;
-+
-+	unsigned int rate_change:1;
-+
-+	struct platform_device *pdev;
-+	struct notifier_block *drv_nb;
-+};
-+
-+static void ssi_set_mode(struct platform_device *pdev, u32 mode)
++static int pm_dbg_count_enable_get(void *data, u64 *val)
 +{
-+	struct hsi_platform_data *pdata = pdev->dev.platform_data;
-+	void __iomem *base = OMAP2_IO_ADDRESS(pdev->resource[0].start);
-+	int port;
-+
-+	for (port = 1; port <= pdata->num_ports; port++) {
-+		outl(mode, (unsigned int) base + HSI_HST_MODE_REG(port));
-+		outl(mode, (unsigned int) base + HSI_HSR_MODE_REG(port));
-+	}
++	*val = pm_dbg_count_active;
++	return 0;
 +}
 +
-+static void ssi_save_mode(struct platform_device *pdev)
++static int pm_dbg_count_enable_set(void *data, u64 val)
 +{
-+	struct hsi_platform_data *pdata = pdev->dev.platform_data;
-+	void __iomem *base = OMAP2_IO_ADDRESS(pdev->resource[0].start);
-+	struct port_ctx *p;
-+	int port;
-+
-+	for (port = 1; port <= pdata->num_ports; port++) {
-+		p = &pdata->ctx.pctx[port - 1];
-+		p->hst.mode = hsi_inl(base + HSI_HST_MODE_REG(port));
-+		p->hsr.mode = hsi_inl(base + HSI_HSR_MODE_REG(port));
-+	}
-+}
-+
-+static void ssi_restore_mode(struct platform_device *pdev)
-+{
-+	struct hsi_platform_data *pdata = pdev->dev.platform_data;
-+	void __iomem *base = OMAP2_IO_ADDRESS(pdev->resource[0].start);
-+	struct port_ctx *p;
-+	int port;
-+
-+	for (port = 1; port <= pdata->num_ports; port++) {
-+		p = &pdata->ctx.pctx[port - 1];
-+		hsi_outl(p->hst.mode, base + HSI_HST_MODE_REG(port));
-+		hsi_outl(p->hsr.mode, base + HSI_HSR_MODE_REG(port));
-+	}
-+}
-+
-+static int ssi_clk_event(struct notifier_block *nb, unsigned long event,
-+								void *data)
-+{
-+/* TODO: implement clock change support
-+	struct ssi_internal_clk *ssi_clk =
-+				container_of(nb, struct ssi_internal_clk, nb);
-+	switch (event) {
-+	case CLK_PRE_RATE_CHANGE:
-+		ssi_clk->drv_nb->notifier_call(ssi_clk->drv_nb, event, data);
-+		ssi_clk->rate_change = 1;
-+		if (ssi_clk->clk.usecount > 0) {
-+			ssi_save_mode(ssi_clk->pdev);
-+			ssi_set_mode(ssi_clk->pdev, HSI_MODE_SLEEP);
-+		}
-+		break;
-+	case CLK_ABORT_RATE_CHANGE:
-+	case CLK_POST_RATE_CHANGE:
-+		if ((ssi_clk->clk.usecount > 0) && (ssi_clk->rate_change))
-+			ssi_restore_mode(ssi_clk->pdev);
-+
-+		ssi_clk->rate_change = 0;
-+		ssi_clk->drv_nb->notifier_call(ssi_clk->drv_nb, event, data);
-+		break;
-+	default:
-+		break;
-+	}
-+*/
-+
-+	return NOTIFY_DONE;
-+}
-+
-+static int ssi_clk_notifier_register(struct clk *clk, struct notifier_block *nb)
-+{
-+	struct ssi_internal_clk *ssi_clk;
-+
-+	if (!clk || !nb)
++	if (val > 1) {
++		printk(KERN_ERR "Invalid value! 1 to enable, 0 to disable\n");
 +		return -EINVAL;
-+
-+	ssi_clk = container_of(clk, struct ssi_internal_clk, clk);
-+	ssi_clk->drv_nb = nb;
-+	ssi_clk->nb.priority = nb->priority;
-+	/* NOTE: We only want notifications from the functional clock */
-+/* TODO: implement clock change support
-+	return clk_notifier_register(ssi_clk->childs[1], &ssi_clk->nb);
-+*/
-+	pr_debug("%s called\n", __func__);
-+	return 0;
-+}
-+
-+static int ssi_clk_notifier_unregister(struct clk *clk,
-+						struct notifier_block *nb)
-+{
-+	struct ssi_internal_clk *ssi_clk;
-+
-+	if (!clk || !nb)
-+		return -EINVAL;
-+
-+	ssi_clk = container_of(clk, struct ssi_internal_clk, clk);
-+	ssi_clk->drv_nb = NULL;
-+/* TODO: implement clock change support
-+	return clk_notifier_unregister(ssi_clk->childs[1], &ssi_clk->nb);
-+*/
-+	pr_debug(KERN_DEBUG "%s called", __func__);
-+	return 0;
-+}
-+
-+static void ssi_save_ctx(struct platform_device *pdev)
-+{
-+	struct hsi_platform_data *pdata = pdev->dev.platform_data;
-+	void __iomem *base = OMAP2_IO_ADDRESS(pdev->resource[0].start);
-+	struct port_ctx *p;
-+	int port;
-+
-+/* TODO: update support for omap_pm_get_dev_context_loss_count
-+	pdata->ctx.loss_count =
-+			omap_pm_get_dev_context_loss_count(&pdev->dev);
-+*/
-+	pdata->ctx.sysconfig = hsi_inl(base + HSI_SYS_SYSCONFIG_REG);
-+	pdata->ctx.gdd_gcr = hsi_inl(base + HSI_GDD_GCR_REG);
-+	for (port = 1; port <= pdata->num_ports; port++) {
-+		p = &pdata->ctx.pctx[port - 1];
-+		p->sys_mpu_enable[0] = hsi_inl(base +
-+					HSI_SYS_MPU_ENABLE_REG(port, 0));
-+		p->sys_mpu_enable[1] = hsi_inl(base +
-+					HSI_SYS_MPU_ENABLE_REG(port, 1));
-+		p->hst.frame_size = hsi_inl(base +
-+						HSI_HST_FRAMESIZE_REG(port));
-+		p->hst.divisor = hsi_inl(base + HSI_HST_DIVISOR_REG(port));
-+		p->hst.channels = hsi_inl(base + HSI_HST_CHANNELS_REG(port));
-+		p->hst.arb_mode = hsi_inl(base + HSI_HST_ARBMODE_REG(port));
-+		p->hsr.frame_size = hsi_inl(base +
-+						HSI_HSR_FRAMESIZE_REG(port));
-+		p->hsr.timeout = hsi_inl(base + HSI_HSR_COUNTERS_REG(port));
-+		p->hsr.channels = hsi_inl(base + HSI_HSR_CHANNELS_REG(port));
-+	}
-+}
-+
-+static void ssi_restore_ctx(struct platform_device *pdev)
-+{
-+	struct hsi_platform_data *pdata = pdev->dev.platform_data;
-+	void __iomem *base = OMAP2_IO_ADDRESS(pdev->resource[0].start);
-+	struct port_ctx *p;
-+	int port;
-+/* TODO: update support for omap_pm_get_dev_context_loss_count
-+	int loss_count;
-+
-+	loss_count = omap_pm_get_dev_context_loss_count(&pdev->dev);
-+	if (loss_count == pdata->ctx.loss_count)
-+		return;
-+*/
-+	hsi_outl(pdata->ctx.sysconfig, base + HSI_SYS_SYSCONFIG_REG);
-+	hsi_outl(pdata->ctx.gdd_gcr, base + HSI_GDD_GCR_REG);
-+	for (port = 1; port <= pdata->num_ports; port++) {
-+		p = &pdata->ctx.pctx[port - 1];
-+		hsi_outl(p->sys_mpu_enable[0], base +
-+					HSI_SYS_MPU_ENABLE_REG(port, 0));
-+		hsi_outl(p->sys_mpu_enable[1], base +
-+					HSI_SYS_MPU_ENABLE_REG(port, 1));
-+		hsi_outl(p->hst.frame_size, base +
-+						HSI_HST_FRAMESIZE_REG(port));
-+		hsi_outl(p->hst.divisor, base + HSI_HST_DIVISOR_REG(port));
-+		hsi_outl(p->hst.channels, base + HSI_HST_CHANNELS_REG(port));
-+		hsi_outl(p->hst.arb_mode, base + HSI_HST_ARBMODE_REG(port));
-+		hsi_outl(p->hsr.frame_size, base +
-+						HSI_HSR_FRAMESIZE_REG(port));
-+		hsi_outl(p->hsr.timeout, base + HSI_HSR_COUNTERS_REG(port));
-+		hsi_outl(p->hsr.channels, base + HSI_HSR_CHANNELS_REG(port));
-+	}
-+}
-+
-+static void ssi_pdev_release(struct device *dev)
-+{
-+}
-+
-+/*
-+ * NOTE: We abuse a little bit the struct port_ctx to use it also for
-+ * initialization.
-+ */
-+static struct port_ctx ssi_port_ctx[] = {
-+	[0] = {
-+		.hst.mode = HSI_MODE_FRAME,
-+		.hst.flow = 0, /* not supported on SSI */
-+		.hst.frame_size = HSI_FRAMESIZE_DEFAULT,
-+		.hst.divisor = 1,
-+		.hst.channels = HSI_CHANNELS_DEFAULT,
-+		.hst.arb_mode = HSI_ARBMODE_ROUNDROBIN,
-+		.hsr.mode = HSI_MODE_FRAME,
-+		.hsr.flow = 0, /* not supported on SSI */
-+		.hsr.frame_size = HSI_FRAMESIZE_DEFAULT,
-+		.hsr.channels = HSI_CHANNELS_DEFAULT,
-+		.hsr.divisor = 0, /* not supported  on SSI */
-+		.hsr.timeout = HSI_TIMEOUT_DEFAULT,
-+		},
-+};
-+
-+static struct hsi_platform_data ssi_pdata = {
-+	.num_ports = ARRAY_SIZE(ssi_port_ctx),
-+	.ctx.pctx = ssi_port_ctx,
-+	.clk_notifier_register = ssi_clk_notifier_register,
-+	.clk_notifier_unregister = ssi_clk_notifier_unregister,
-+};
-+
-+static struct resource ssi_resources[] = {
-+	[0] =	{
-+		.start = 0x48058000,
-+		.end = 0x4805bbff,
-+		.name = "omap_ssi_iomem",
-+		.flags = IORESOURCE_MEM,
-+		},
-+	[1] =	{
-+		.start = 67,
-+		.end = 67,
-+		.name = "ssi_p1_mpu_irq0",
-+		.flags = IORESOURCE_IRQ,
-+		},
-+	[2] =	{
-+		.start = 69,
-+		.end = 69,
-+		.name = "ssi_p1_mpu_irq1",
-+		.flags = IORESOURCE_IRQ,
-+		},
-+	[3] =	{
-+		.start = 68,
-+		.end = 68,
-+		.name = "ssi_p2_mpu_irq0",
-+		.flags = IORESOURCE_IRQ,
-+		},
-+	[4] =	{
-+		.start = 70,
-+		.end = 70,
-+		.name = "ssi_p2_mpu_irq1",
-+		.flags = IORESOURCE_IRQ,
-+		},
-+	[5] =	{
-+		.start = 71,
-+		.end = 71,
-+		.name = "ssi_gdd",
-+		.flags = IORESOURCE_IRQ,
-+		},
-+	[6] =	{
-+		.start = 151,
-+		.end = 0,
-+		.name = "ssi_p1_cawake_gpio",
-+		.flags = IORESOURCE_IRQ | IORESOURCE_UNSET,
-+		},
-+	[7] =	{
-+		.start = 0,
-+		.end = 0,
-+		.name = "ssi_p2_cawake_gpio",
-+		.flags = IORESOURCE_IRQ | IORESOURCE_UNSET,
-+		},
-+	[8] =	{
-+		.start = 8, /* DMA channels available */
-+		.end = 8,
-+		.name = "hsi_gdd_chan_count",
-+		.flags = IORESOURCE_DMA,
-+		},
-+};
-+
-+static struct platform_device ssi_pdev = {
-+	.name = "omap_ssi",
-+	.id = -1,
-+	.num_resources = ARRAY_SIZE(ssi_resources),
-+	.resource = ssi_resources,
-+	.dev =	{
-+		.release = ssi_pdev_release,
-+		.platform_data = &ssi_pdata,
-+		},
-+};
-+
-+#if 0 /* TODO: check if following code can be removed when testing with PM */
-+#define __HSI_CLK_FIX__
-+#ifdef __HSI_CLK_FIX__
-+/*
-+ * FIXME: TO BE REMOVED.
-+ * This hack allows us to ensure that clocks are stable before accessing
-+ * SSI controller registers. To be removed when PM functionalty is in place.
-+ */
-+static int check_ssi_active(void)
-+{
-+	u32 reg;
-+	unsigned long dl = jiffies + msecs_to_jiffies(500);
-+	void __iomem *cm_idlest1 = OMAP2_IO_ADDRESS(0x48004a20);
-+
-+	reg = inl(cm_idlest1);
-+	while ((!(reg & 0x01)) && (time_before(jiffies, dl)))
-+		reg = inl(cm_idlest1);
-+
-+	if (!(reg & 0x01)) { /* ST_SSI */
-+		pr_err("SSI is still in STANDBY ! (BUG !?)\n");
-+		return -1;
 +	}
 +
-+	return 0;
-+}
-+#endif /* __HSI_CLK_FIX__ */
-+#endif
++	if (val == 1 && !pm_dbg_count_active) {
++		de_pm_debug_count = debugfs_create_file("count", S_IRUGO,
++			de_pm_debug, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
 +
-+static int ssi_clk_init(struct ssi_internal_clk *ssi_clk)
-+{
-+	const char *clk_names[] =
-+		{ "ssi_ssr_fck", "ssi_sst_fck", "ssi_l4_ick", "ssi_ick" };
-+	int i;
-+	int j;
-+
-+	ssi_clk->n_childs = ARRAY_SIZE(clk_names);
-+	ssi_clk->childs = kzalloc(ssi_clk->n_childs * sizeof(*ssi_clk->childs),
-+								GFP_KERNEL);
-+	if (!ssi_clk->childs)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < ssi_clk->n_childs; i++) {
-+		ssi_clk->childs[i] = clk_get(&ssi_clk->pdev->dev, clk_names[i]);
-+		if (IS_ERR(ssi_clk->childs[i])) {
-+			pr_err("Unable to get SSI clock: %s\n", clk_names[i]);
-+			for (j = i - 1; j >= 0; j--)
-+				clk_put(ssi_clk->childs[j]);
-+			return -ENODEV;
++		if (de_pm_debug_count == NULL) {
++			printk(KERN_ERR "Error: could not create debugfs "
++					"entry\n");
++			return -ENOMEM;
 +		}
++		pm_dbg_count_active = 1;
++	} else if (val == 0 && pm_dbg_count_active) {
++		debugfs_remove(de_pm_debug_count);
++		de_pm_debug_count = NULL;
++		pm_dbg_count_active = 0;
 +	}
-+
 +	return 0;
 +}
 +
-+static int ssi_clk_enable(struct clk *clk)
-+{
-+	struct ssi_internal_clk *ssi_clk =
-+				container_of(clk, struct ssi_internal_clk, clk);
-+	int err;
-+	int i;
++DEFINE_SIMPLE_ATTRIBUTE(enable_count_fops, pm_dbg_count_enable_get,
++				pm_dbg_count_enable_set, "%llu\n");
 +
-+	for (i = 0; i < ssi_clk->n_childs; i++) {
-+		err = omap2_clk_enable(ssi_clk->childs[i]);
-+		if (unlikely(err < 0))
-+			goto rollback;
-+	}
-+#ifdef __HSI_CLK_FIX__
-+	/*
-+	 * FIXME: To be removed
-+	 * Wait until the SSI controller has the clocks stable
-+	 */
-+	check_ssi_active();
-+#endif
-+	ssi_restore_ctx(ssi_clk->pdev);
-+	if (!ssi_clk->rate_change)
-+		ssi_restore_mode(ssi_clk->pdev);
-+
-+	return 0;
-+rollback:
-+	pr_err("Error on SSI clk child %d\n", i);
-+	for (i = i - 1; i >= 0; i--)
-+		omap2_clk_disable(ssi_clk->childs[i]);
-+
-+	return err;
-+}
-+
-+static void ssi_clk_disable(struct clk *clk)
-+{
-+	struct ssi_internal_clk *ssi_clk =
-+				container_of(clk, struct ssi_internal_clk, clk);
-+	int i;
-+
-+	if (!ssi_clk->rate_change) {
-+		ssi_save_mode(ssi_clk->pdev);
-+		ssi_set_mode(ssi_clk->pdev, HSI_MODE_SLEEP);
-+	}
-+	/* Save ctx in all ports */
-+	ssi_save_ctx(ssi_clk->pdev);
-+
-+	for (i = 0; i < ssi_clk->n_childs; i++)
-+		omap2_clk_disable(ssi_clk->childs[i]);
-+}
-+
-+int omap_ssi_config(struct omap_ssi_board_config *ssi_config)
-+{
-+	int port;
-+	int cawake_gpio;
-+
-+	ssi_pdata.num_ports = ssi_config->num_ports;
-+	for (port = 0; port < ssi_config->num_ports; port++) {
-+		cawake_gpio = ssi_config->cawake_gpio[port];
-+		if (cawake_gpio < 0)
-+			continue;	/* Nothing to do */
-+
-+		if (gpio_request(cawake_gpio, "CAWAKE") < 0) {
-+			dev_err(&ssi_pdev.dev, "FAILED to request CAWAKE"
-+						" GPIO %d\n", cawake_gpio);
-+			return -EBUSY;
-+		}
-+
-+		gpio_direction_input(cawake_gpio);
-+		ssi_resources[6 + port].start = gpio_to_irq(cawake_gpio);
-+		ssi_resources[6 + port].flags &= ~IORESOURCE_UNSET;
-+		ssi_resources[6 + port].flags |= IORESOURCE_IRQ_HIGHEDGE |
-+							IORESOURCE_IRQ_LOWEDGE;
-+	}
-+
-+	pr_debug("GPIO for SSI is now configured\n");
-+	return 0;
-+}
-+
-+static const int omap34xx_ssi_pins[] = {
-+	AA8_3430_SSI1_DAT_TX,
-+	AA9_3430_SSI1_FLAG_TX,
-+	W8_3430_SSI1_RDY_TX,
-+	Y8_3430_GPIO_151,
-+	AE1_3430_SSI1_DAT_RX,
-+	AD1_3430_SSI1_FLAG_RX,
-+	AD2_3430_SSI1_RDY_RX,
-+	AC1_3430_SSI1_WAKE,
-+};
-+
-+/* Mux settings for OMAP3430 */
-+void omap_ssi_mux_setup(void)
-+{
-+	int i;
-+	for (i = 0; i < ARRAY_SIZE(omap34xx_ssi_pins); i++)
-+		omap_cfg_reg(omap34xx_ssi_pins[i]);
-+	pr_debug("Pin muxing for SSI support (disables UART1 and McBsp4)\n");
-+}
-+
-+static const struct clkops clkops_ssi = {
-+	.enable		= ssi_clk_enable,
-+	.disable	= ssi_clk_disable,
-+};
-+
-+static struct ssi_internal_clk ssi_clock = {
-+	.clk = {
-+		.name = "hsi_clk",
-+		.id = -1,
-+		.clkdm_name = "core_l4_clkdm",
-+		.ops = &clkops_ssi,
-+	},
-+	.nb = {
-+		.notifier_call = ssi_clk_event,
-+		.priority = INT_MAX,
-+	},
-+	.pdev = &ssi_pdev,
-+};
-+
-+static struct clk_lookup hsi_lk = {
-+	.dev_id = NULL,
-+	.con_id = "hsi_clk",
-+	.clk = &ssi_clock.clk,
-+};
-+
-+static int __init omap_ssi_init(void)
-+{
-+	int err;
-+	struct clk *hsi_clk = &ssi_clock.clk;
-+
-+	ssi_clk_init(&ssi_clock);
-+	clk_preinit(hsi_clk);
-+	clkdev_add(&hsi_lk);
-+	clk_register(hsi_clk);
-+	omap2_init_clk_clkdm(hsi_clk);
-+
-+	err = platform_device_register(&ssi_pdev);
-+	if (err < 0) {
-+		pr_err("Unable to register SSI platform device: %d\n", err);
-+		return err;
-+	}
-+
-+	omap_ssi_mux_setup();
-+
-+	pr_info("SSI: device registered\n");
-+
-+	return 0;
-+}
-+subsys_initcall(omap_ssi_init);
-diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-index f3c1d8a..4d2d9e4 100644
---- a/arch/arm/plat-omap/include/mach/mux.h
-+++ b/arch/arm/plat-omap/include/mach/mux.h
-@@ -782,6 +782,16 @@ enum omap34xx_index {
- 	AD2_3430_USB3FS_PHY_MM3_TXDAT,
- 	AC1_3430_USB3FS_PHY_MM3_TXEN_N,
+ int pm_dbg_regset_init(int reg_set)
+ {
+ 	char name[2];
+@@ -576,12 +618,17 @@ static int __init pm_dbg_init(void)
+ 		return -ENODEV;
+ 	}
  
-+	/* SSI support */
-+	AA8_3430_SSI1_DAT_TX,
-+	AA9_3430_SSI1_FLAG_TX,
-+	W8_3430_SSI1_RDY_TX,
-+	Y8_3430_GPIO_151,
-+	AE1_3430_SSI1_DAT_RX,
-+	AD1_3430_SSI1_FLAG_RX,
-+	AD2_3430_SSI1_RDY_RX,
-+	AC1_3430_SSI1_WAKE,
++	pm_dbg_count_active = 0;
 +
- 	/* 34xx GPIO
- 	 *  - normally these are bidirectional, no internal pullup/pulldown
- 	 *  - "_UP" suffix (GPIO3_UP) if internal pullup is configured
+ 	d = debugfs_create_dir("pm_debug", NULL);
+ 	if (IS_ERR(d))
+ 		return PTR_ERR(d);
++	de_pm_debug = d;
++
++	(void) debugfs_create_file("enable_count", S_IRUGO |
++				S_IWUGO, d, &pm_dbg_count_active,
++				&enable_count_fops);
+ 
+-	(void) debugfs_create_file("count", S_IRUGO,
+-		d, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
+ 	(void) debugfs_create_file("time", S_IRUGO,
+ 		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
+ 
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index f8d11a2..3f0202b 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -63,12 +63,14 @@ extern int omap2_pm_debug;
+ extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
+ extern int pm_dbg_regset_save(int reg_set);
+ extern int pm_dbg_regset_init(int reg_set);
++extern int pm_dbg_count_is_active(void);
+ #else
+ #define omap2_pm_dump(mode, resume, us)		do {} while (0);
+ #define omap2_pm_debug				0
+ #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
+ #define pm_dbg_regset_save(reg_set) do {} while (0);
+ #define pm_dbg_regset_init(reg_set) do {} while (0);
++#define pm_dbg_count_is_active()		0
+ #endif /* CONFIG_PM_DEBUG */
+ 
+ extern void omap24xx_idle_loop_suspend(void);
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 01260ec..1e3041e 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -378,15 +378,16 @@ void omap_sram_idle(void)
+ 		return;
+ 	}
+ 
+-	pwrdm_pre_transition();
++	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
++	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
++
++	pwrdm_pre_transition(core_next_state != PWRDM_POWER_ON);
+ 
+ 	/* NEON control */
+ 	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
+ 		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
+ 
+ 	/* PER */
+-	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
+-	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
+ 	if (per_next_state < PWRDM_POWER_ON) {
+ 		omap_uart_prepare_idle(2);
+ 		omap2_gpio_prepare_for_idle(per_next_state);
+@@ -505,8 +506,7 @@ void omap_sram_idle(void)
+ 		omap3_disable_io_chain();
+ 	}
+ 
+-
+-	pwrdm_post_transition();
++	pwrdm_post_transition(core_next_state != PWRDM_POWER_ON);
+ 
+ 	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
+ }
+diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
+index f00289a..71af2b8 100644
+--- a/arch/arm/mach-omap2/powerdomain.c
++++ b/arch/arm/mach-omap2/powerdomain.c
+@@ -1216,15 +1216,17 @@ int pwrdm_clk_state_switch(struct clk *clk)
+ 	return -EINVAL;
+ }
+ 
+-int pwrdm_pre_transition(void)
++int pwrdm_pre_transition(int force_update)
+ {
+-	pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
++	if (pm_dbg_count_is_active() || force_update)
++		pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
+ 	return 0;
+ }
+ 
+-int pwrdm_post_transition(void)
++int pwrdm_post_transition(int force_update)
+ {
+-	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
++	if (pm_dbg_count_is_active() || force_update)
++		pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
+ 	return 0;
+ }
+ 
+diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
+index fa64614..cb93272 100644
+--- a/arch/arm/plat-omap/include/mach/powerdomain.h
++++ b/arch/arm/plat-omap/include/mach/powerdomain.h
+@@ -176,7 +176,7 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm);
+ 
+ int pwrdm_state_switch(struct powerdomain *pwrdm);
+ int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
+-int pwrdm_pre_transition(void);
+-int pwrdm_post_transition(void);
++int pwrdm_pre_transition(int force_update);
++int pwrdm_post_transition(int force_update);
+ 
+ #endif
 -- 
-1.6.0.4
+1.5.4.3
 
