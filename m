@@ -1,246 +1,371 @@
-From: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Subject: Re: [PATCH V2] OMAP3: Only update pm-counters when needed
-Date: Fri, 30 Oct 2009 13:38:33 +0200
-Message-ID: <1256902713.31764.141.camel@ubuntu>
-References: <> <1256901974-29145-1-git-send-email-kalle.jokiniemi@digia.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH 3/3] NAND: OMAP: Simplifying HWECC and removing
+	unnecessary macros
+Date: Fri, 30 Oct 2009 17:45:39 +0530
+Message-ID: <ce9ab5790910300515v2eae9bbar7789e1701f99dc59@mail.gmail.com>
+References: <ce9ab5790910292321g4eba8becrf6dc81b071698059@mail.gmail.com>
+	<ce9ab5790910300142k66a00c7ctebdbaa157ddd2ac1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp1.digia.com ([82.118.214.156]:49913 "EHLO smtp1.digia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756353AbZJ3LiR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Oct 2009 07:38:17 -0400
-In-Reply-To: <1256901974-29145-1-git-send-email-kalle.jokiniemi@digia.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:63542 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755275AbZJ3MPz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 08:15:55 -0400
+Received: by bwz27 with SMTP id 27so3484584bwz.21
+        for <linux-omap@vger.kernel.org>; Fri, 30 Oct 2009 05:15:59 -0700 (PDT)
+In-Reply-To: <ce9ab5790910300142k66a00c7ctebdbaa157ddd2ac1@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "paul@pwsan.com" <paul@pwsan.com>, Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
+To: Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
 
-On Fri, 2009-10-30 at 13:26 +0200, Kalle Jokiniemi wrote:
-> From: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-> 
-> The biggest source of latency in idle loop (omap_sram_idle
-> function) comes from updating the state counters for each
-> power domain. The two purposes of these counters are to
-> provide debug data in debugfs, and to keep track of context
-> losses occurring during idle transitions (off mode counters).
-> 
-> I created new debugfs interface "enable_count" for
-> enabling the "count" interface, which exposes the debug
-> part of these counters. The counters are not updated
-> anymore for CORE ON idle transitions, when the count
-> interface is disabled. For deeper CORE states, counters
-> are still updated to preserve context loss tracking.
-> 
-> This change decreases C1/C2 state latency over 100us at
-> OPP2.
-> 
-> Signed-off-by: Kalle Jokiniemi <ext-kalle.jokiniemi@nokia.com>
-> ---
->  arch/arm/mach-omap2/pm-debug.c                |   51 ++++++++++++++++++++++++-
->  arch/arm/mach-omap2/pm.h                      |    2 +
->  arch/arm/mach-omap2/pm34xx.c                  |   10 ++--
->  arch/arm/mach-omap2/powerdomain.c             |   10 +++--
->  arch/arm/plat-omap/include/mach/powerdomain.h |    4 +-
->  5 files changed, 64 insertions(+), 13 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
-> index 5aac64f..76c2696 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -37,6 +37,9 @@
->  #include "prm-regbits-34xx.h"
->  
->  int omap2_pm_debug;
-> +static int pm_dbg_count_active;
-> +static struct dentry *de_pm_debug_count;
-> +static struct dentry *de_pm_debug;
->  
->  #define DUMP_PRM_MOD_REG(mod, reg)    \
->  	regs[reg_count].name = #mod "." #reg; \
-> @@ -327,6 +330,11 @@ int pm_dbg_regset_save(int reg_set)
->  	return 0;
->  }
->  
-> +int pm_dbg_count_is_active(void)
-> +{
-> +	return pm_dbg_count_active;
-> +}
-> +
->  static const char pwrdm_state_names[][4] = {
->  	"OFF",
->  	"RET",
-> @@ -460,6 +468,40 @@ static const struct file_operations debug_reg_fops = {
->  	.release        = single_release,
->  };
->  
-> +static int pm_dbg_count_enable_get(void *data, u64 *val)
-> +{
-> +	*val = pm_dbg_count_active;
-> +	return 0;
-> +}
-> +
-> +static int pm_dbg_count_enable_set(void *data, u64 val)
-> +{
-> +	if (val > 1) {
-> +		printk(KERN_ERR "Invalid value! 1 to enable, 0 to disable\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (val == 1 && !pm_dbg_count_active) {
-> +		de_pm_debug_count = debugfs_create_file("count", S_IRUGO,
-> +			de_pm_debug, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
-> +
-> +		if (de_pm_debug_count == NULL) {
-> +			printk(KERN_ERR "Error: could not create debugfs "
-> +					"entry\n");
-> +			return -ENOMEM;
-> +		}
-> +		pm_dbg_count_active = 1;
-> +	} else if (val == 0 && pm_dbg_count_active) {
-> +		debugfs_remove(de_pm_debug_count);
-> +		de_pm_debug_count = NULL;
-> +		pm_dbg_count_active = 0;
-> +	}
-> +	return 0;
-> +}
-> +
-> +DEFINE_SIMPLE_ATTRIBUTE(enable_count_fops, pm_dbg_count_enable_get,
-> +				pm_dbg_count_enable_set, "%llu\n");
-> +
->  int pm_dbg_regset_init(int reg_set)
->  {
->  	char name[2];
-> @@ -576,12 +618,17 @@ static int __init pm_dbg_init(void)
->  		return -ENODEV;
->  	}
->  
-> +	pm_dbg_count_active = 0;
-> +
->  	d = debugfs_create_dir("pm_debug", NULL);
->  	if (IS_ERR(d))
->  		return PTR_ERR(d);
-> +	de_pm_debug = d;
-> +
-> +	(void) debugfs_create_file("enable_count", S_IRUGO |
-> +				S_IWUGO, d, &pm_dbg_count_active,
-> +				&enable_count_fops);
->  
-> -	(void) debugfs_create_file("count", S_IRUGO,
-> -		d, (void *)DEBUG_FILE_COUNTERS, &debug_fops);
->  	(void) debugfs_create_file("time", S_IRUGO,
->  		d, (void *)DEBUG_FILE_TIMERS, &debug_fops);
->  
-> diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
-> index f8d11a2..3f0202b 100644
-> --- a/arch/arm/mach-omap2/pm.h
-> +++ b/arch/arm/mach-omap2/pm.h
-> @@ -63,12 +63,14 @@ extern int omap2_pm_debug;
->  extern void pm_dbg_update_time(struct powerdomain *pwrdm, int prev);
->  extern int pm_dbg_regset_save(int reg_set);
->  extern int pm_dbg_regset_init(int reg_set);
-> +extern int pm_dbg_count_is_active(void);
->  #else
->  #define omap2_pm_dump(mode, resume, us)		do {} while (0);
->  #define omap2_pm_debug				0
->  #define pm_dbg_update_time(pwrdm, prev) do {} while (0);
->  #define pm_dbg_regset_save(reg_set) do {} while (0);
->  #define pm_dbg_regset_init(reg_set) do {} while (0);
-> +#define pm_dbg_count_is_active()		0
->  #endif /* CONFIG_PM_DEBUG */
->  
->  extern void omap24xx_idle_loop_suspend(void);
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 01260ec..1e3041e 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -378,15 +378,16 @@ void omap_sram_idle(void)
->  		return;
->  	}
->  
-> -	pwrdm_pre_transition();
-> +	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
-> +	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
-> +
-> +	pwrdm_pre_transition(core_next_state != PWRDM_POWER_ON);
+I removed function description comments for 'omap_correct_data' by
+mistake last time. Correcting that. Updated patch is below.
 
-I still left a little condition handling here, but it's nicer than the
-previous one, don't you think. Just passing this force_update parameter
-seemed like the most efficient way of doing it. 
+Sorry for noise.
 
-I did not want to duplicate core state recording into powerdomain code,
-nor inefficient code looking for core pwrdm and then checking it's next
-state in powerdomain code. I think it's idle codes responsibility to
-know whether off-transitions will happen in general (do we need to force
-state counter update). Or at least that information is most efficiently
-available there now.
+-vimal
 
-We could consider cpuidle passing some "safe state" parameter, in case
-of C1/C2, which could be used instead of this core_next_state
-comparison. If you want to make it even nicer looking.
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Fri, 30 Oct 2009 17:41:55 +0530
+Subject: [PATCH] NAND: OMAP: Simplifying HWECC and removing unnecessary macros
 
-- Kalle
+Removing number of macros from the top, which were being used
+for generating ture ECC earlier. And simplifying the hwecc
+correction methode. The idea is taken from:
+<http://git.denx.de/?p=u-boot/u-boot-arm.git;a=blob;f=drivers/mtd/nand/omap_gpmc.c;h=99b9cef17c29ecf73ef3b844474a5b196f29eeff;hb=4bc3d2afb380e78fdbb9c501d9a8da6d59eb178e>
 
->  
->  	/* NEON control */
->  	if (pwrdm_read_pwrst(neon_pwrdm) == PWRDM_POWER_ON)
->  		pwrdm_set_next_pwrst(neon_pwrdm, mpu_next_state);
->  
->  	/* PER */
-> -	per_next_state = pwrdm_read_next_pwrst(per_pwrdm);
-> -	core_next_state = pwrdm_read_next_pwrst(core_pwrdm);
->  	if (per_next_state < PWRDM_POWER_ON) {
->  		omap_uart_prepare_idle(2);
->  		omap2_gpio_prepare_for_idle(per_next_state);
-> @@ -505,8 +506,7 @@ void omap_sram_idle(void)
->  		omap3_disable_io_chain();
->  	}
->  
-> -
-> -	pwrdm_post_transition();
-> +	pwrdm_post_transition(core_next_state != PWRDM_POWER_ON);
->  
->  	omap2_clkdm_allow_idle(mpu_pwrdm->pwrdm_clkdms[0]);
->  }
-> diff --git a/arch/arm/mach-omap2/powerdomain.c b/arch/arm/mach-omap2/powerdomain.c
-> index f00289a..71af2b8 100644
-> --- a/arch/arm/mach-omap2/powerdomain.c
-> +++ b/arch/arm/mach-omap2/powerdomain.c
-> @@ -1216,15 +1216,17 @@ int pwrdm_clk_state_switch(struct clk *clk)
->  	return -EINVAL;
->  }
->  
-> -int pwrdm_pre_transition(void)
-> +int pwrdm_pre_transition(int force_update)
->  {
-> -	pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
-> +	if (pm_dbg_count_is_active() || force_update)
-> +		pwrdm_for_each(_pwrdm_pre_transition_cb, NULL);
->  	return 0;
->  }
->  
-> -int pwrdm_post_transition(void)
-> +int pwrdm_post_transition(int force_update)
->  {
-> -	pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
-> +	if (pm_dbg_count_is_active() || force_update)
-> +		pwrdm_for_each(_pwrdm_post_transition_cb, NULL);
->  	return 0;
->  }
->  
-> diff --git a/arch/arm/plat-omap/include/mach/powerdomain.h b/arch/arm/plat-omap/include/mach/powerdomain.h
-> index fa64614..cb93272 100644
-> --- a/arch/arm/plat-omap/include/mach/powerdomain.h
-> +++ b/arch/arm/plat-omap/include/mach/powerdomain.h
-> @@ -176,7 +176,7 @@ int pwrdm_wait_transition(struct powerdomain *pwrdm);
->  
->  int pwrdm_state_switch(struct powerdomain *pwrdm);
->  int pwrdm_clkdm_state_switch(struct clockdomain *clkdm);
-> -int pwrdm_pre_transition(void);
-> -int pwrdm_post_transition(void);
-> +int pwrdm_pre_transition(int force_update);
-> +int pwrdm_post_transition(int force_update);
->  
->  #endif
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+---
+ drivers/mtd/nand/omap2.c |  293 ++++++++++++++++------------------------------
+ 1 files changed, 100 insertions(+), 193 deletions(-)
 
+diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+index ecc4d32..a586dcf 100644
+--- a/drivers/mtd/nand/omap2.c
++++ b/drivers/mtd/nand/omap2.c
+@@ -40,73 +40,6 @@
+ #define	GPMC_BUF_FULL	0x00000001
+ #define	GPMC_BUF_EMPTY	0x00000000
+
+-#define NAND_Ecc_P1e		(1 << 0)
+-#define NAND_Ecc_P2e		(1 << 1)
+-#define NAND_Ecc_P4e		(1 << 2)
+-#define NAND_Ecc_P8e		(1 << 3)
+-#define NAND_Ecc_P16e		(1 << 4)
+-#define NAND_Ecc_P32e		(1 << 5)
+-#define NAND_Ecc_P64e		(1 << 6)
+-#define NAND_Ecc_P128e		(1 << 7)
+-#define NAND_Ecc_P256e		(1 << 8)
+-#define NAND_Ecc_P512e		(1 << 9)
+-#define NAND_Ecc_P1024e		(1 << 10)
+-#define NAND_Ecc_P2048e		(1 << 11)
+-
+-#define NAND_Ecc_P1o		(1 << 16)
+-#define NAND_Ecc_P2o		(1 << 17)
+-#define NAND_Ecc_P4o		(1 << 18)
+-#define NAND_Ecc_P8o		(1 << 19)
+-#define NAND_Ecc_P16o		(1 << 20)
+-#define NAND_Ecc_P32o		(1 << 21)
+-#define NAND_Ecc_P64o		(1 << 22)
+-#define NAND_Ecc_P128o		(1 << 23)
+-#define NAND_Ecc_P256o		(1 << 24)
+-#define NAND_Ecc_P512o		(1 << 25)
+-#define NAND_Ecc_P1024o		(1 << 26)
+-#define NAND_Ecc_P2048o		(1 << 27)
+-
+-#define TF(value)	(value ? 1 : 0)
+-
+-#define P2048e(a)	(TF(a & NAND_Ecc_P2048e)	<< 0)
+-#define P2048o(a)	(TF(a & NAND_Ecc_P2048o)	<< 1)
+-#define P1e(a)		(TF(a & NAND_Ecc_P1e)		<< 2)
+-#define P1o(a)		(TF(a & NAND_Ecc_P1o)		<< 3)
+-#define P2e(a)		(TF(a & NAND_Ecc_P2e)		<< 4)
+-#define P2o(a)		(TF(a & NAND_Ecc_P2o)		<< 5)
+-#define P4e(a)		(TF(a & NAND_Ecc_P4e)		<< 6)
+-#define P4o(a)		(TF(a & NAND_Ecc_P4o)		<< 7)
+-
+-#define P8e(a)		(TF(a & NAND_Ecc_P8e)		<< 0)
+-#define P8o(a)		(TF(a & NAND_Ecc_P8o)		<< 1)
+-#define P16e(a)		(TF(a & NAND_Ecc_P16e)		<< 2)
+-#define P16o(a)		(TF(a & NAND_Ecc_P16o)		<< 3)
+-#define P32e(a)		(TF(a & NAND_Ecc_P32e)		<< 4)
+-#define P32o(a)		(TF(a & NAND_Ecc_P32o)		<< 5)
+-#define P64e(a)		(TF(a & NAND_Ecc_P64e)		<< 6)
+-#define P64o(a)		(TF(a & NAND_Ecc_P64o)		<< 7)
+-
+-#define P128e(a)	(TF(a & NAND_Ecc_P128e)		<< 0)
+-#define P128o(a)	(TF(a & NAND_Ecc_P128o)		<< 1)
+-#define P256e(a)	(TF(a & NAND_Ecc_P256e)		<< 2)
+-#define P256o(a)	(TF(a & NAND_Ecc_P256o)		<< 3)
+-#define P512e(a)	(TF(a & NAND_Ecc_P512e)		<< 4)
+-#define P512o(a)	(TF(a & NAND_Ecc_P512o)		<< 5)
+-#define P1024e(a)	(TF(a & NAND_Ecc_P1024e)	<< 6)
+-#define P1024o(a)	(TF(a & NAND_Ecc_P1024o)	<< 7)
+-
+-#define P8e_s(a)	(TF(a & NAND_Ecc_P8e)		<< 0)
+-#define P8o_s(a)	(TF(a & NAND_Ecc_P8o)		<< 1)
+-#define P16e_s(a)	(TF(a & NAND_Ecc_P16e)		<< 2)
+-#define P16o_s(a)	(TF(a & NAND_Ecc_P16o)		<< 3)
+-#define P1e_s(a)	(TF(a & NAND_Ecc_P1e)		<< 4)
+-#define P1o_s(a)	(TF(a & NAND_Ecc_P1o)		<< 5)
+-#define P2e_s(a)	(TF(a & NAND_Ecc_P2e)		<< 6)
+-#define P2o_s(a)	(TF(a & NAND_Ecc_P2o)		<< 7)
+-
+-#define P4e_s(a)	(TF(a & NAND_Ecc_P4e)		<< 0)
+-#define P4o_s(a)	(TF(a & NAND_Ecc_P4o)		<< 1)
+-
+ #ifdef CONFIG_MTD_PARTITIONS
+ static const char *part_probes[] = { "cmdlinepart", NULL };
+ #endif
+@@ -558,148 +491,122 @@ static void omap_hwecc_init(struct mtd_info *mtd)
+
+ /**
+  * gen_true_ecc - This function will generate true ECC value
+- * @ecc_buf: buffer to store ecc code
++ * @ecc_buf:	buffer to store ecc code
++ * @return:	re-formatted ECC value
+  *
+- * This generated true ECC value can be used when correcting
+- * data read from NAND flash memory core
++ * This function will generate true ECC value, which
++ * can be used when correcting data read from NAND flash memory core
+  */
+-static void gen_true_ecc(u8 *ecc_buf)
++static uint32_t gen_true_ecc(uint8_t *ecc_buf)
+ {
+-	u32 tmp = ecc_buf[0] | (ecc_buf[1] << 16) |
+-		((ecc_buf[2] & 0xF0) << 20) | ((ecc_buf[2] & 0x0F) << 8);
+-
+-	ecc_buf[0] = ~(P64o(tmp) | P64e(tmp) | P32o(tmp) | P32e(tmp) |
+-			P16o(tmp) | P16e(tmp) | P8o(tmp) | P8e(tmp));
+-	ecc_buf[1] = ~(P1024o(tmp) | P1024e(tmp) | P512o(tmp) | P512e(tmp) |
+-			P256o(tmp) | P256e(tmp) | P128o(tmp) | P128e(tmp));
+-	ecc_buf[2] = ~(P4o(tmp) | P4e(tmp) | P2o(tmp) | P2e(tmp) | P1o(tmp) |
+-			P1e(tmp) | P2048o(tmp) | P2048e(tmp));
++	return ecc_buf[0] | (ecc_buf[1] << 16) | ((ecc_buf[2] & 0xF0) << 20) |
++		((ecc_buf[2] & 0x0F) << 8);
+ }
+
+ /**
+- * omap_compare_ecc - Detect (2 bits) and correct (1 bit) error in data
+- * @ecc_data1:  ecc code from nand spare area
+- * @ecc_data2:  ecc code from hardware register obtained from hardware ecc
+- * @page_data:  page data
++ * omap_compare_ecc - Compares ECCs and corrects one bit error
++ * @mtd:		 MTD device structure
++ * @dat:		 page data
++ * @read_ecc:		 ecc read from nand flash
++ * @calc_ecc:		 ecc read from ECC registers
++ *
++ * @return 0 if data is OK or corrected, else returns -1
+  *
+- * This function compares two ECC's and indicates if there is an error.
+- * If the error can be corrected it will be corrected to the buffer.
++ * Compares the ecc read from nand spare area with ECC registers values and
++ * corrects one bit error if it has occured. Further details can be had from
++ * OMAP TRM and the following selected links:
++ * http://en.wikipedia.org/wiki/Hamming_code
++ * http://www.cs.utexas.edu/users/plaxton/c/337/05f/slides/ErrorCorrection-4.pdf
+  */
+-static int omap_compare_ecc(u8 *ecc_data1,	/* read from NAND memory */
+-			    u8 *ecc_data2,	/* read from register */
+-			    u8 *page_data)
++static int omap_compare_ecc(u_char *read_ecc, u_char *calc_ecc, u_char *dat)
+ {
+-	uint	i;
+-	u8	tmp0_bit[8], tmp1_bit[8], tmp2_bit[8];
+-	u8	comp0_bit[8], comp1_bit[8], comp2_bit[8];
+-	u8	ecc_bit[24];
+-	u8	ecc_sum = 0;
+-	u8	find_bit = 0;
+-	uint	find_byte = 0;
+-	int	isEccFF;
+-
+-	isEccFF = ((*(u32 *)ecc_data1 & 0xFFFFFF) == 0xFFFFFF);
+-
+-	gen_true_ecc(ecc_data1);
+-	gen_true_ecc(ecc_data2);
+-
+-	for (i = 0; i <= 2; i++) {
+-		*(ecc_data1 + i) = ~(*(ecc_data1 + i));
+-		*(ecc_data2 + i) = ~(*(ecc_data2 + i));
+-	}
+-
+-	for (i = 0; i < 8; i++) {
+-		tmp0_bit[i]     = *ecc_data1 % 2;
+-		*ecc_data1	= *ecc_data1 / 2;
+-	}
+-
+-	for (i = 0; i < 8; i++) {
+-		tmp1_bit[i]	 = *(ecc_data1 + 1) % 2;
+-		*(ecc_data1 + 1) = *(ecc_data1 + 1) / 2;
+-	}
+-
+-	for (i = 0; i < 8; i++) {
+-		tmp2_bit[i]	 = *(ecc_data1 + 2) % 2;
+-		*(ecc_data1 + 2) = *(ecc_data1 + 2) / 2;
+-	}
+-
+-	for (i = 0; i < 8; i++) {
+-		comp0_bit[i]     = *ecc_data2 % 2;
+-		*ecc_data2       = *ecc_data2 / 2;
+-	}
+-
+-	for (i = 0; i < 8; i++) {
+-		comp1_bit[i]     = *(ecc_data2 + 1) % 2;
+-		*(ecc_data2 + 1) = *(ecc_data2 + 1) / 2;
+-	}
++	uint32_t orig_ecc, new_ecc, res, hm;
++	uint16_t parity_bits, byte;
++	uint8_t bit;
++
++	/* Regenerate the orginal ECC */
++	orig_ecc = gen_true_ecc(read_ecc);
++	new_ecc = gen_true_ecc(calc_ecc);
++	/* Get the XOR of real ecc */
++	res = orig_ecc ^ new_ecc;
++	if (res) {
++		/* Get the hamming width */
++		hm = hweight32(res);
++		/* Single bit errors can be corrected! */
++		if (hm == 12) {
++			/* Correctable data! */
++			parity_bits = res >> 16;
++			bit = (parity_bits & 0x7);
++			byte = (parity_bits >> 3) & 0x1FF;
++			/* Flip the bit to correct */
++			dat[byte] ^= (0x1 << bit);
++			return 1;
++		} else if (hm == 1) {
++			/* ECC itself is corrupted, no action needed */
++			return 1;
++		} else {
++			/*
++			 * hm distance != parity pairs OR one, could mean 2 bit
++			 * error OR potentially be on a blank page..
++			 * orig_ecc: contains spare area data from nand flash.
++			 * new_ecc: generated ecc while reading data area.
++			 * Note: if the ecc = 0, all data bits from which it was
++			 * generated are 0xFF.
++			 * The 3 byte(24 bits) ecc is generated per 512byte
++			 * chunk of a page. If orig_ecc(from spare area)
++			 * is 0xFF && new_ecc(computed now from data area)=0x0,
++			 * this means that data area is 0xFF and spare area is
++			 * 0xFF. A sure sign of a erased page!
++			 */
++			if ((orig_ecc == 0x0FFF0FFF) && (new_ecc == 0x00000000))
++				return 0;
+
+-	for (i = 0; i < 8; i++) {
+-		comp2_bit[i]     = *(ecc_data2 + 2) % 2;
+-		*(ecc_data2 + 2) = *(ecc_data2 + 2) / 2;
++			/* detected 2 or more bit errors */
++			printk(KER_ERR"Error: Bad compare! failed\n");
++			return -1;
++		}
+ 	}
++	return 0;
++}
+
+-	for (i = 0; i < 6; i++)
+-		ecc_bit[i] = tmp2_bit[i + 2] ^ comp2_bit[i + 2];
+-
+-	for (i = 0; i < 8; i++)
+-		ecc_bit[i + 6] = tmp0_bit[i] ^ comp0_bit[i];
+-
+-	for (i = 0; i < 8; i++)
+-		ecc_bit[i + 14] = tmp1_bit[i] ^ comp1_bit[i];
+-
+-	ecc_bit[22] = tmp2_bit[0] ^ comp2_bit[0];
+-	ecc_bit[23] = tmp2_bit[1] ^ comp2_bit[1];
+-
+-	for (i = 0; i < 24; i++)
+-		ecc_sum += ecc_bit[i];
+-
+-	switch (ecc_sum) {
+-	case 0:
+-		/* Not reached because this function is not called if
+-		 *  ECC values are equal
+-		 */
+-		return 0;
+-
+-	case 1:
+-		/* Uncorrectable error */
+-		DEBUG(MTD_DEBUG_LEVEL0, "ECC UNCORRECTED_ERROR 1\n");
+-		return -1;
+-
+-	case 11:
+-		/* UN-Correctable error */
+-		DEBUG(MTD_DEBUG_LEVEL0, "ECC UNCORRECTED_ERROR B\n");
+-		return -1;
+-
+-	case 12:
+-		/* Correctable error */
+-		find_byte = (ecc_bit[23] << 8) +
+-			    (ecc_bit[21] << 7) +
+-			    (ecc_bit[19] << 6) +
+-			    (ecc_bit[17] << 5) +
+-			    (ecc_bit[15] << 4) +
+-			    (ecc_bit[13] << 3) +
+-			    (ecc_bit[11] << 2) +
+-			    (ecc_bit[9]  << 1) +
+-			    ecc_bit[7];
++/**
++ *  omap_calculate_ecc - Generate non-inverted ECC bytes.
++ *  @mtd:	MTD structure
++ *  @dat:	unused
++ *  @ecc_code:	ecc_code buffer
++ *
++ *  Using noninverted ECC can be considered ugly since writing a blank
++ *  page ie. padding will clear the ECC bytes. This is no problem as
++ *  long nobody is trying to write data on the seemingly unused page.
++ *  Reading an erased page will produce an ECC mismatch between
++ *  generated and read ECC bytes that has to be dealt with separately.
++ *  E.g. if page is 0xFF (fresh erased), and if HW ECC engine within GPMC
++ *  is used, the result of read will be 0x0 while the ECC offsets of the
++ *  spare area will be 0xFF which will result in an ECC mismatch.
++ */
++static int omap_calculate_ecc(struct mtd_info *mtd, const u_char *dat,
++					u_char *ecc_code)
++{
++	struct omap_nand_info *info = container_of(mtd, struct omap_nand_info,
++							mtd);
++	unsigned long val = 0x0;
++	unsigned long reg;
+
+-		find_bit = (ecc_bit[5] << 2) + (ecc_bit[3] << 1) + ecc_bit[1];
++	/* Start Reading from HW ECC1_Result = 0x200 */
++	reg = (unsigned long)(info->gpmc_baseaddr + GPMC_ECC1_RESULT);
++	val = __raw_readl(reg);
+
+-		DEBUG(MTD_DEBUG_LEVEL0, "Correcting single bit ECC error at "
+-				"offset: %d, bit: %d\n", find_byte, find_bit);
++	ecc_code[0] = val & 0xFF;
++	ecc_code[1] = (val >> 16) & 0xFF;
++	ecc_code[2] = ((val >> 8) & 0x0F) | ((val >> 20) & 0xF0);
+
+-		page_data[find_byte] ^= (1 << find_bit);
++	/*
++	 * Stop reading anymore ECC vals and clear old results
++	 * enable will be called if more reads are required
++	 */
++	__raw_writel(0x100, info->gpmc_baseaddr + GPMC_ECC_CONTROL);
+
+-		return 0;
+-	default:
+-		if (isEccFF) {
+-			if (ecc_data2[0] == 0 &&
+-			    ecc_data2[1] == 0 &&
+-			    ecc_data2[2] == 0)
+-				return 0;
+-		}
+-		DEBUG(MTD_DEBUG_LEVEL0, "UNCORRECTED_ERROR default\n");
+-		return -1;
+-	}
++	return 0;
+ }
+
+ /**
+-- 
+1.5.5
