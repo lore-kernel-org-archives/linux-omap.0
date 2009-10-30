@@ -1,74 +1,74 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 2/3] PM: Skip PER previous state register read
-Date: Fri, 30 Oct 2009 09:31:38 -0700
-Message-ID: <87k4ycrggl.fsf@deeprootsystems.com>
-References: <1256125881-12441-1-git-send-email-kalle.jokiniemi@digia.com>
-	<1256125881-12441-2-git-send-email-kalle.jokiniemi@digia.com>
-	<1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com>
+From: Venkatraman S <svenkatr@gmail.com>
+Subject: Re: [PATCH] Fix race condition in omap_request_dma()
+Date: Fri, 30 Oct 2009 22:52:20 +0530
+Message-ID: <618f0c910910301022m313cc0f3sb3f1f3439571d950@mail.gmail.com>
+References: <F12CE1A68F023D498A2691C7B539311503B17F61@ZMY16EXM66.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:40833 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932613AbZJ3Qbf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 12:31:35 -0400
-Received: by pwj9 with SMTP id 9so739338pwj.21
-        for <linux-omap@vger.kernel.org>; Fri, 30 Oct 2009 09:31:40 -0700 (PDT)
-In-Reply-To: <1256125881-12441-3-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Wed\, 21 Oct 2009 14\:51\:20 +0300")
+Received: from mail-px0-f179.google.com ([209.85.216.179]:50951 "EHLO
+	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932137AbZJ3RWR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 13:22:17 -0400
+Received: by pxi9 with SMTP id 9so1959595pxi.4
+        for <linux-omap@vger.kernel.org>; Fri, 30 Oct 2009 10:22:21 -0700 (PDT)
+In-Reply-To: <F12CE1A68F023D498A2691C7B539311503B17F61@ZMY16EXM66.ds.mot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: linux-omap@vger.kernel.org
+To: HU TAO-TGHK48 <taohu@motorola.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Yang Fei-AFY095 <fei.yang@motorola.com>, jon-hunter@ti.com, Zhou Ming-a17711 <a17711@motorola.com>, "Ye Yuan.Bo-A22116" <yuan-bo.ye@motorola.com>
 
-Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
-
-> According to measurements, reading the previous state of PER
-> domain after wfi takes ~11us on OPP2.
+On Fri, Oct 30, 2009 at 9:00 AM, HU TAO-TGHK48 <taohu@motorola.com> wro=
+te:
+> From a36dac7ee6140ffa23f0adc024964aaf3e266e5f Mon Sep 17 00:00:00 200=
+1
+> From: Tao Hu <taohu@motorola.com>
+> Date: Thu, 29 Oct 2009 17:17:21 -0500
+> Subject: [PATCH] Fix race condition in omap_request_dma()
 >
-> Removed this unneccessary latency from cases where we know
-> PER power domain did not try to enter off mode.
+> The bug could cause irq enable bit of one DMA channel is
+> cleared unexpectedly when 2 (or more) drivers are calling
+> omap_request_dma() simultaneously
 >
-> Signed-off-by: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-
-Looks good, pulling into PM branch.
-
-But still amazed at such a *huge* latency to read that register.
-
-Kevin
-
+> Signed-off-by: Fei Yang <AFY095@motorola.com>
+> Signed-off-by: Tao Hu =A0<taohu@motorola.com>
 > ---
->  arch/arm/mach-omap2/pm34xx.c |   19 +++++++++++++------
->  1 files changed, 13 insertions(+), 6 deletions(-)
+> =A0arch/arm/plat-omap/dma.c | =A0 =A02 ++
+> =A01 files changed, 2 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 237c819..b70ea19 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -489,12 +489,19 @@ void omap_sram_idle(void)
->  
->  	/* PER */
->  	if (per_next_state < PWRDM_POWER_ON) {
-> -		per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
-> -		if (per_prev_state == PWRDM_POWER_OFF) {
-> -			omap3_per_restore_context();
-> -			omap3_gpio_restore_pad_context(0);
-> -		} else if (per_next_state == PWRDM_POWER_OFF)
-> -			omap3_gpio_restore_pad_context(1);
-> +		if (per_next_state == PWRDM_POWER_OFF) {
-> +			/*
-> +			 * Reading the prev-state takes long time (11us@OPP2),
-> +			 * only do it, if we really tried to put PER in OFF
-> +			 */
-> +			per_prev_state = pwrdm_read_prev_pwrst(per_pwrdm);
-> +			if (per_prev_state == PWRDM_POWER_OFF) {
-> +				omap3_per_restore_context();
-> +				omap3_gpio_restore_pad_context(0);
-> +			} else if (per_next_state == PWRDM_POWER_OFF) {
-> +				omap3_gpio_restore_pad_context(1);
-> +			}
-> +		}
->  		omap2_gpio_resume_after_idle();
->  		omap_uart_resume_idle(2);
->  		if (per_state_modified)
-> -- 
-> 1.5.4.3
+> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+> index cd53b28..6895484 100755
+> --- a/arch/arm/plat-omap/dma.c
+> +++ b/arch/arm/plat-omap/dma.c
+> @@ -749,11 +749,13 @@ int omap_request_dma(int dev_id, const char
+> *dev_name,
+> =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0if (cpu_class_is_omap2()) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&dma_chan_lock, flags=
+);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap2_enable_irq_lch(free_ch);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_enable_channel_irq(free_ch);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Clear the CSR register and IRQ stat=
+us register */
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CS=
+R(free_ch));
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dma_write(1 << free_ch, IRQSTATUS_L0);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&dma_chan_lock, =
+flags);
+> =A0 =A0 =A0 =A0}
+
+Nice catch. I think the lock needs to be applied only for the global
+registers which are changed using the read - update - write method.
+The dma_write to per channel configuration registers need not be
+locked.
+Hence the lock is better placed "within" omap2_enable_irq_lch
+function. That way, if it's reused, the locking would also be in
+place.
+Thank you !
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
