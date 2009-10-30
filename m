@@ -1,71 +1,61 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken when PM set
-Date: Fri, 30 Oct 2009 15:42:06 +0100
-Message-ID: <200910301542.27206.jkrzyszt@tis.icnet.pl>
-References: <200910292339.48610.jkrzyszt@tis.icnet.pl>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: linux-next: manual merge of the omap tree with Linus' tree
+Date: Fri, 30 Oct 2009 07:45:18 -0700
+Message-ID: <20091030144517.GS7180@atomide.com>
+References: <20091030114642.61bbeb2c.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:53229 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932246AbZJ3On2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 10:43:28 -0400
-In-Reply-To: <200910292339.48610.jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20091030114642.61bbeb2c.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-omap@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>, Alexander Shishkin <virtuoso@slind.org>, Ladislav Michl <ladis@linux-mips.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Jonathan McDowell <noodles@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Imre Deak <imre.deak@nokia.com>, linux-fbdev-devel@lists.sourceforge.net, Paul Walmsley <paul@pwsan.com>
 
-Thursday 29 October 2009 23:39:44 Janusz Krzysztofik napisa=C5=82(a):
-> With CONFIG_PM=3Dy, the omapfb/lcd device on Amstrad Delta, after ini=
-tially
-> starting correctly, breaks with the following error messages:
->
-> omapfb omapfb: resetting (status 0xffffff96,reset count 1)
-> ...
-> omapfb omapfb: resetting (status 0xffffff96,reset count 100)
-> omapfb omapfb: too many reset attempts, giving up.
->
-> Looking closer at this I have found that it had been broken almost 2 =
-years
-> ago with commit 2418996e3b100114edb2ae110d5d4acb928909d2, PM fixes fo=
-r
-> OMAP1.
->
-> The definite reason for broken omapfb/lcd_ams_delta in PM mode appear=
-ed to
-> be ARM_IDLECT1:IDLIF_ARM (bit 6) put into idle. The patch below fixes=
- it.
->
-> Since PM area is quite new to me, I am not sure if there may be a bet=
-ter
-> solution. AFAICS, the standard way to prevent an ARM_CLKCT1 bit being
-> switched to idle is to enable a clock that uses it (tipb_ck, dma_ck, =
-or
-> tc_ck or one of its children in this case, right?).
->
-> I assume there is no bug in omapfb nor lcdc, as that would be already
-> detected. Maybe it would be better to fix
-> drivers/video/omap/lcd_ams_delta.c (or
-> arch/arm/mach-omap1/board-ams-delta), but I don't know what clock sho=
-uld I
-> enable, if any.
+* Stephen Rothwell <sfr@canb.auug.org.au> [091029 17:46]:
+> Hi all,
+> 
+> Today's linux-next merge of the omap tree got a conflict in
+> arch/arm/mach-omap1/serial.c between commit
+> c33da3a80074094303d643a90ef589330b491270 ("omap1: Fix redundant UARTs pin
+> muxing that can break other hardware support") from Linus' tree and
+> commits 84f90c9cc81d8db172d4f768fc4010f508897366 ("omap: Change low-level
+> serial init to use ioremap") and acb1aed4a5f23c545073b0d65302e5949f239fa0
+> ("omap: Eliminate OMAP_MAX_NR_PORTS") from the omap tree.
+> 
+> I fixed it up (see below) and can carry the fix for a while.
 
-More looking at it, I found that might be omap_dma_running() from=20
-arch/arm/plat-omap/dma.c that needs correction. It already checks for L=
-CD dma=20
-running for OMAP1610, but does nothing similiar for 1510. I have revisi=
-ted=20
-http://focus.ti.com/lit/ug/spru674/spru674.pdf, but found no hint how t=
-o do=20
-that in a 1610 similiar way.
+Thanks, will rebase omap for-next patches today.
 
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+
+Tony
+
+> -- 
+> Cheers,
+> Stephen Rothwell                    sfr@canb.auug.org.au
+> 
+> diff --cc arch/arm/mach-omap1/serial.c
+> index d23979b,f82f66e..0000000
+> --- a/arch/arm/mach-omap1/serial.c
+> +++ b/arch/arm/mach-omap1/serial.c
+> @@@ -130,7 -120,17 +120,15 @@@ void __init omap_serial_init(void
+>   		serial_platform_data[2].uartclk = OMAP1510_BASE_BAUD * 16;
+>   	}
+>   
+> - 	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
+> + 	for (i = 0; i < ARRAY_SIZE(serial_platform_data) - 1; i++) {
+>  -		unsigned char reg;
+>  -
+> + 		/* Static mapping, never released */
+> + 		serial_platform_data[i].membase =
+> + 			ioremap(serial_platform_data[i].mapbase, SZ_2K);
+> + 		if (!serial_platform_data[i].membase) {
+> + 			printk(KERN_ERR "Could not ioremap uart%i\n", i);
+> + 			continue;
+> + 		}
+> + 
+>   		switch (i) {
+>   		case 0:
+>   			uart1_ck = clk_get(NULL, "uart1_ck");
