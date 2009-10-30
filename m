@@ -1,46 +1,46 @@
 From: Jani Nikula <ext-jani.1.nikula@nokia.com>
-Subject: [PATCH 0/3] new input keycodes, gpio-keys for RX-51
-Date: Fri, 30 Oct 2009 15:38:25 +0200
-Message-ID: <cover.1256907278.git.ext-jani.1.nikula@nokia.com>
+Subject: [PATCH 3/3] ARM OMAP3: rx51_defconfig: enable support for gpio keys
+Date: Fri, 30 Oct 2009 15:38:28 +0200
+Message-ID: <93e74e7b4be2dcdbc489c0c92987fc36ef0db447.1256907278.git.ext-jani.1.nikula@nokia.com>
 References: <20091027162040.GB22541@core.coreip.homeip.net>
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <20091027162040.GB22541@core.coreip.homeip.net>
-Sender: linux-input-owner@vger.kernel.org
+ <cover.1256907278.git.ext-jani.1.nikula@nokia.com>
+ <48e6c73d2c8e67e1d2eec68556e7885f6d10c203.1256907278.git.ext-jani.1.nikula@nokia.com>
+ <859ce18ccdcfac80d2fafa73b6aef2fa5fd6feb6.1256907278.git.ext-jani.1.nikula@nokia.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:61668 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757221AbZJ3Nil (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 09:38:41 -0400
+In-Reply-To: <859ce18ccdcfac80d2fafa73b6aef2fa5fd6feb6.1256907278.git.ext-jani.1.nikula@nokia.com>
+In-Reply-To: <cover.1256907278.git.ext-jani.1.nikula@nokia.com>
+References: <cover.1256907278.git.ext-jani.1.nikula@nokia.com>
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
 To: tony@atomide.com, dmitry.torokhov@gmail.com
 Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, ext-jani.1.nikula@nokia.com
-List-Id: linux-omap@vger.kernel.org
 
-Hi Dmitry and Tony -
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
 
-These patches expose some RX-51 input GPIO lines to user space through
-gpio-keys, and introduce a few new relevant keycodes.
+Compile gpio_keys driver a module.
 
-Dmitry, I hope you don't think I'm being too stubborn, but I'd prefer
-SW_FRONT_PROXIMITY over SW_EARPIECE_MODE. IMHO front proximity
-activation describes better what has actually occured; earpiece mode
-is just one use case for that. The front proximity sensor can be
-activated by for example shoving the device in pocket or placing it
-upside down on a surface (an actual use case with accelerometer) in
-addition to holding the device against your ear. And I know of at
-least one game that uses the said proximity sensor as fire
-button. Anyway, in the end it's your call, and I can change it if
-necessary.
+Signed-off-by: Jani Nikula <ext-jani.1.nikula@nokia.com>
+---
+ arch/arm/configs/rx51_defconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-These have been tested with RX-51, vanilla linux-omap, minimal console
-and evtest.
-
-
-BR,
-Jani.
-
-
-Jani Nikula (3):
-  Input: add new keycodes useful in mobile devices
-  ARM OMAP3: RX-51 board: add initialization of gpio keys
-  ARM OMAP3: rx51_defconfig: enable support for gpio keys
-
- arch/arm/configs/rx51_defconfig  |    2 +-
- arch/arm/mach-omap2/board-rx51.c |   84 ++++++++++++++++++++++++++++++++++++++
- include/linux/input.h            |    5 ++
- 3 files changed, 90 insertions(+), 1 deletions(-)
+diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
+index e7e3133..1559734 100644
+--- a/arch/arm/configs/rx51_defconfig
++++ b/arch/arm/configs/rx51_defconfig
+@@ -784,7 +784,7 @@ CONFIG_INPUT_KEYBOARD=y
+ # CONFIG_KEYBOARD_XTKBD is not set
+ # CONFIG_KEYBOARD_NEWTON is not set
+ # CONFIG_KEYBOARD_STOWAWAY is not set
+-# CONFIG_KEYBOARD_GPIO is not set
++CONFIG_KEYBOARD_GPIO=m
+ # CONFIG_INPUT_MOUSE is not set
+ # CONFIG_INPUT_JOYSTICK is not set
+ # CONFIG_INPUT_TABLET is not set
+-- 
+1.6.5.2
 
