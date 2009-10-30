@@ -1,206 +1,66 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the omap tree with Linus' tree
-Date: Fri, 30 Oct 2009 11:46:59 +1100
-Message-ID: <20091030114659.9afe9765.sfr@canb.auug.org.au>
+From: "HU TAO-TGHK48" <taohu@motorola.com>
+Subject: [PATCH] Fix race condition in omap_request_dma()
+Date: Fri, 30 Oct 2009 11:30:04 +0800
+Message-ID: <F12CE1A68F023D498A2691C7B539311503B17F61@ZMY16EXM66.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail128.messagelabs.com ([216.82.250.131]:39342 "EHLO
+	mail128.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754694AbZJ3DaY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 29 Oct 2009 23:30:24 -0400
+Received: from il27exr04.cig.mot.com (il27exr04.mot.com [10.17.196.73])
+	by motgate2.mot.com (8.14.3/8.14.3) with ESMTP id n9U3USkO005973
+	for <linux-omap@vger.kernel.org>; Thu, 29 Oct 2009 20:30:28 -0700 (MST)
+Received: from il27vts01 (il27vts01.cig.mot.com [10.17.196.85])
+	by il27exr04.cig.mot.com (8.13.1/Vontu) with SMTP id n9U3USh8002121
+	for <linux-omap@vger.kernel.org>; Thu, 29 Oct 2009 22:30:28 -0500 (CDT)
+Received: from ZMY16EXM66.ds.mot.com (zmy16exm66.ap.mot.com [10.179.4.26])
+	by il27exr04.cig.mot.com (8.13.1/8.13.0) with ESMTP id n9U3UQ4i002111
+	for <linux-omap@vger.kernel.org>; Thu, 29 Oct 2009 22:30:27 -0500 (CDT)
+Content-class: urn:content-classes:message
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>
+Cc: Yang Fei-AFY095 <fei.yang@motorola.com>, jon-hunter@ti.com, Zhou Ming-a17711 <a17711@motorola.com>, "Ye Yuan.Bo-A22116" <yuan-bo.ye@motorola.com>
 
-Hi all,
+>From a36dac7ee6140ffa23f0adc024964aaf3e266e5f Mon Sep 17 00:00:00 2001
+From: Tao Hu <taohu@motorola.com>
+Date: Thu, 29 Oct 2009 17:17:21 -0500
+Subject: [PATCH] Fix race condition in omap_request_dma()
 
-Today's linux-next merge of the omap tree got conflicts in
-arch/arm/mach-omap2/board-3430sdp.c, arch/arm/mach-omap2/board-ldp.c,
-arch/arm/mach-omap2/board-omap3evm.c,
-arch/arm/mach-omap2/board-omap3pandora.c,
-arch/arm/mach-omap2/board-rx51-peripherals.c,
-arch/arm/mach-omap2/board-rx51.c and arch/arm/mach-omap2/board-zoom2.c
-between commit 6135434a54719c45fdc6add1ba4965dea89ab069 ("omap: Fix
-omap-keypad by restoring old keypad.h without breaking omap2 boards that
-use matrix_keypad") from Linus' tree and commit
-ce491cf85466c3377228c5a852ea627ec5136956 ("omap: headers: Move remaining
-headers from include/mach to include/plat") from the omap tree.
+The bug could cause irq enable bit of one DMA channel is
+cleared unexpectedly when 2 (or more) drivers are calling
+omap_request_dma() simultaneously
 
-I fixed them up (see below) and can carry the fix for a while.
+Signed-off-by: Fei Yang <AFY095@motorola.com>
+Signed-off-by: Tao Hu  <taohu@motorola.com>
+---
+ arch/arm/plat-omap/dma.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
+index cd53b28..6895484 100755
+--- a/arch/arm/plat-omap/dma.c
++++ b/arch/arm/plat-omap/dma.c
+@@ -749,11 +749,13 @@ int omap_request_dma(int dev_id, const char
+*dev_name,
+ 	}
+ 
+ 	if (cpu_class_is_omap2()) {
++		spin_lock_irqsave(&dma_chan_lock, flags);
+ 		omap2_enable_irq_lch(free_ch);
+ 		omap_enable_channel_irq(free_ch);
+ 		/* Clear the CSR register and IRQ status register */
+ 		dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(free_ch));
+ 		dma_write(1 << free_ch, IRQSTATUS_L0);
++		spin_unlock_irqrestore(&dma_chan_lock, flags);
+ 	}
+ 
+ 	*dma_ch_out = free_ch;
 -- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
+1.5.4.3
 
-diff --cc arch/arm/mach-omap2/board-3430sdp.c
-index 0acb556,607845b..0000000
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@@ -30,16 -29,17 +30,16 @@@
-  #include <asm/mach/arch.h>
-  #include <asm/mach/map.h>
-  
-- #include <mach/mcspi.h>
-- #include <mach/mux.h>
-- #include <mach/board.h>
-- #include <mach/usb.h>
-- #include <mach/common.h>
-- #include <mach/dma.h>
-- #include <mach/gpmc.h>
-+ #include <plat/mcspi.h>
-+ #include <plat/mux.h>
-+ #include <plat/board.h>
-+ #include <plat/usb.h>
-+ #include <plat/common.h>
-+ #include <plat/dma.h>
-+ #include <plat/gpmc.h>
-  
-- #include <mach/control.h>
-- #include <mach/gpmc-smc91x.h>
-+ #include <plat/control.h>
- -#include <plat/keypad.h>
-+ #include <plat/gpmc-smc91x.h>
-  
-  #include "sdram-qimonda-hyb18m512160af-6.h"
-  #include "mmc-twl4030.h"
-diff --cc arch/arm/mach-omap2/board-ldp.c
-index d57ec2f,5c82560..0000000
---- a/arch/arm/mach-omap2/board-ldp.c
-+++ b/arch/arm/mach-omap2/board-ldp.c
-@@@ -33,15 -32,16 +33,15 @@@
-  #include <asm/mach/arch.h>
-  #include <asm/mach/map.h>
-  
-- #include <mach/mcspi.h>
-+ #include <plat/mcspi.h>
-  #include <mach/gpio.h>
-- #include <mach/board.h>
-- #include <mach/common.h>
-- #include <mach/gpmc.h>
-+ #include <plat/board.h>
-+ #include <plat/common.h>
-+ #include <plat/gpmc.h>
-  
-  #include <asm/delay.h>
-- #include <mach/control.h>
-- #include <mach/usb.h>
-+ #include <plat/control.h>
-+ #include <plat/usb.h>
- -#include <plat/keypad.h>
-  
-  #include "mmc-twl4030.h"
-  
-diff --cc arch/arm/mach-omap2/board-omap3evm.c
-index 4c4d7f8,5d2310e..0000000
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@@ -33,11 -34,12 +35,11 @@@
-  #include <asm/mach/arch.h>
-  #include <asm/mach/map.h>
-  
-- #include <mach/board.h>
-- #include <mach/mux.h>
-- #include <mach/usb.h>
-- #include <mach/common.h>
-- #include <mach/mcspi.h>
-+ #include <plat/board.h>
-+ #include <plat/mux.h>
-+ #include <plat/usb.h>
-+ #include <plat/common.h>
-+ #include <plat/mcspi.h>
- -#include <plat/keypad.h>
-  
-  #include "sdram-micron-mt46h32m32lf-6.h"
-  #include "mmc-twl4030.h"
-diff --cc arch/arm/mach-omap2/board-omap3pandora.c
-index 5326e0d,d6bcfaa..0000000
---- a/arch/arm/mach-omap2/board-omap3pandora.c
-+++ b/arch/arm/mach-omap2/board-omap3pandora.c
-@@@ -34,13 -33,14 +34,13 @@@
-  #include <asm/mach/arch.h>
-  #include <asm/mach/map.h>
-  
-- #include <mach/board.h>
-- #include <mach/common.h>
-+ #include <plat/board.h>
-+ #include <plat/common.h>
-  #include <mach/gpio.h>
-  #include <mach/hardware.h>
-- #include <mach/mcspi.h>
-- #include <mach/usb.h>
-- #include <mach/mux.h>
-+ #include <plat/mcspi.h>
-+ #include <plat/usb.h>
- -#include <plat/keypad.h>
-+ #include <plat/mux.h>
-  
-  #include "sdram-micron-mt46h32m32lf-6.h"
-  #include "mmc-twl4030.h"
-diff --cc arch/arm/mach-omap2/board-rx51-peripherals.c
-index e34d96a,9e16d90..0000000
---- a/arch/arm/mach-omap2/board-rx51-peripherals.c
-+++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
-@@@ -22,14 -21,15 +22,14 @@@
-  #include <linux/gpio.h>
-  #include <linux/mmc/host.h>
-  
-- #include <mach/mcspi.h>
-- #include <mach/mux.h>
-- #include <mach/board.h>
-- #include <mach/common.h>
-- #include <mach/dma.h>
-- #include <mach/gpmc.h>
-- #include <mach/onenand.h>
-- #include <mach/gpmc-smc91x.h>
-+ #include <plat/mcspi.h>
-+ #include <plat/mux.h>
-+ #include <plat/board.h>
-+ #include <plat/common.h>
-+ #include <plat/dma.h>
-+ #include <plat/gpmc.h>
- -#include <plat/keypad.h>
-+ #include <plat/onenand.h>
-+ #include <plat/gpmc-smc91x.h>
-  
-  #include "mmc-twl4030.h"
-  
-diff --cc arch/arm/mach-omap2/board-rx51.c
-index 78869a9,060245e..0000000
---- a/arch/arm/mach-omap2/board-rx51.c
-+++ b/arch/arm/mach-omap2/board-rx51.c
-@@@ -22,13 -22,14 +22,13 @@@
-  #include <asm/mach/arch.h>
-  #include <asm/mach/map.h>
-  
-- #include <mach/mcspi.h>
-- #include <mach/mux.h>
-- #include <mach/board.h>
-- #include <mach/common.h>
-- #include <mach/dma.h>
-- #include <mach/gpmc.h>
-- #include <mach/usb.h>
-+ #include <plat/mcspi.h>
-+ #include <plat/mux.h>
-+ #include <plat/board.h>
-+ #include <plat/common.h>
- -#include <plat/keypad.h>
-+ #include <plat/dma.h>
-+ #include <plat/gpmc.h>
-+ #include <plat/usb.h>
-  
-  static struct omap_lcd_config rx51_lcd_config = {
-  	.ctrl_name	= "internal",
-diff --cc arch/arm/mach-omap2/board-zoom2.c
-index ea00486,56f9d84..0000000
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@@ -21,8 -20,9 +21,8 @@@
-  #include <asm/mach-types.h>
-  #include <asm/mach/arch.h>
-  
-- #include <mach/common.h>
-- #include <mach/usb.h>
-+ #include <plat/common.h>
-+ #include <plat/usb.h>
- -#include <plat/keypad.h>
-  
-  #include "mmc-twl4030.h"
-  #include "sdram-micron-mt46h32m32lf-6.h"
+
