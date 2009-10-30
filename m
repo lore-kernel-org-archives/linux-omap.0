@@ -1,72 +1,78 @@
-From: Venkatraman S <svenkatr@gmail.com>
-Subject: Re: [PATCH] Fix race condition in omap_request_dma()
-Date: Fri, 30 Oct 2009 22:52:20 +0530
-Message-ID: <618f0c910910301022m313cc0f3sb3f1f3439571d950@mail.gmail.com>
-References: <F12CE1A68F023D498A2691C7B539311503B17F61@ZMY16EXM66.ds.mot.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken when
+	PM set
+Date: Fri, 30 Oct 2009 10:33:18 -0700
+Message-ID: <20091030173317.GX7180@atomide.com>
+References: <200910292339.48610.jkrzyszt@tis.icnet.pl> <200910301542.27206.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f179.google.com ([209.85.216.179]:50951 "EHLO
-	mail-px0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932137AbZJ3RWR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 13:22:17 -0400
-Received: by pxi9 with SMTP id 9so1959595pxi.4
-        for <linux-omap@vger.kernel.org>; Fri, 30 Oct 2009 10:22:21 -0700 (PDT)
-In-Reply-To: <F12CE1A68F023D498A2691C7B539311503B17F61@ZMY16EXM66.ds.mot.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:58767 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932712AbZJ3RdX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 13:33:23 -0400
+Content-Disposition: inline
+In-Reply-To: <200910301542.27206.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: HU TAO-TGHK48 <taohu@motorola.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Yang Fei-AFY095 <fei.yang@motorola.com>, jon-hunter@ti.com, Zhou Ming-a17711 <a17711@motorola.com>, "Ye Yuan.Bo-A22116" <yuan-bo.ye@motorola.com>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>, Jonathan McDowell <noodles@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Imre Deak <imre.deak@nokia.com>, linux-fbdev-devel@lists.sourceforge.net, Paul Walmsley <paul@pwsan.com>
 
-On Fri, Oct 30, 2009 at 9:00 AM, HU TAO-TGHK48 <taohu@motorola.com> wro=
-te:
-> From a36dac7ee6140ffa23f0adc024964aaf3e266e5f Mon Sep 17 00:00:00 200=
-1
-> From: Tao Hu <taohu@motorola.com>
-> Date: Thu, 29 Oct 2009 17:17:21 -0500
-> Subject: [PATCH] Fix race condition in omap_request_dma()
->
-> The bug could cause irq enable bit of one DMA channel is
-> cleared unexpectedly when 2 (or more) drivers are calling
-> omap_request_dma() simultaneously
->
-> Signed-off-by: Fei Yang <AFY095@motorola.com>
-> Signed-off-by: Tao Hu =A0<taohu@motorola.com>
-> ---
-> =A0arch/arm/plat-omap/dma.c | =A0 =A02 ++
-> =A01 files changed, 2 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/plat-omap/dma.c b/arch/arm/plat-omap/dma.c
-> index cd53b28..6895484 100755
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -749,11 +749,13 @@ int omap_request_dma(int dev_id, const char
-> *dev_name,
-> =A0 =A0 =A0 =A0}
->
-> =A0 =A0 =A0 =A0if (cpu_class_is_omap2()) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&dma_chan_lock, flags=
-);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap2_enable_irq_lch(free_ch);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_enable_channel_irq(free_ch);
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Clear the CSR register and IRQ stat=
-us register */
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CS=
-R(free_ch));
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dma_write(1 << free_ch, IRQSTATUS_L0);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&dma_chan_lock, =
-flags);
-> =A0 =A0 =A0 =A0}
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091030 07:43]:
+> Thursday 29 October 2009 23:39:44 Janusz Krzysztofik napisa=C5=82(a):
+> > With CONFIG_PM=3Dy, the omapfb/lcd device on Amstrad Delta, after i=
+nitially
+> > starting correctly, breaks with the following error messages:
+> >
+> > omapfb omapfb: resetting (status 0xffffff96,reset count 1)
+> > ...
+> > omapfb omapfb: resetting (status 0xffffff96,reset count 100)
+> > omapfb omapfb: too many reset attempts, giving up.
+> >
+> > Looking closer at this I have found that it had been broken almost =
+2 years
+> > ago with commit 2418996e3b100114edb2ae110d5d4acb928909d2, PM fixes =
+for
+> > OMAP1.
+> >
+> > The definite reason for broken omapfb/lcd_ams_delta in PM mode appe=
+ared to
+> > be ARM_IDLECT1:IDLIF_ARM (bit 6) put into idle. The patch below fix=
+es it.
+> >
+> > Since PM area is quite new to me, I am not sure if there may be a b=
+etter
+> > solution. AFAICS, the standard way to prevent an ARM_CLKCT1 bit bei=
+ng
+> > switched to idle is to enable a clock that uses it (tipb_ck, dma_ck=
+, or
+> > tc_ck or one of its children in this case, right?).
+> >
+> > I assume there is no bug in omapfb nor lcdc, as that would be alrea=
+dy
+> > detected. Maybe it would be better to fix
+> > drivers/video/omap/lcd_ams_delta.c (or
+> > arch/arm/mach-omap1/board-ams-delta), but I don't know what clock s=
+hould I
+> > enable, if any.
+>=20
+> More looking at it, I found that might be omap_dma_running() from=20
+> arch/arm/plat-omap/dma.c that needs correction. It already checks for=
+ LCD dma=20
+> running for OMAP1610, but does nothing similiar for 1510. I have revi=
+sited=20
+> http://focus.ti.com/lit/ug/spru674/spru674.pdf, but found no hint how=
+ to do=20
+> that in a 1610 similiar way.
 
-Nice catch. I think the lock needs to be applied only for the global
-registers which are changed using the read - update - write method.
-The dma_write to per channel configuration registers need not be
-locked.
-Hence the lock is better placed "within" omap2_enable_irq_lch
-function. That way, if it's reused, the locking would also be in
-place.
-Thank you !
+Hmm to me it looks like the OMAP_DMA_CCR_EN should be set in one of the
+channels if enabled. Maybe you need add a similar check somewhere in
+the *_lcd_dma_* functions too in dma.c?
+
+Regards,
+
+Tony
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
