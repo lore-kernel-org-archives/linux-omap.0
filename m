@@ -1,351 +1,729 @@
 From: Sebastien Jan <s-jan@ti.com>
-Subject: [RFC PATCH 5/9] HSI: Low Level Driver documentation
-Date: Fri, 30 Oct 2009 11:00:04 +0100
-Message-ID: <1256896808-20152-6-git-send-email-s-jan@ti.com>
+Subject: [RFC PATCH 6/9] HSI: character driver interface
+Date: Fri, 30 Oct 2009 11:00:05 +0100
+Message-ID: <1256896808-20152-7-git-send-email-s-jan@ti.com>
 References: <1256896808-20152-1-git-send-email-s-jan@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55347 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756771AbZJ3J7F (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Fri, 30 Oct 2009 05:59:05 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:45882 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756773AbZJ3J7G (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 05:59:06 -0400
 In-Reply-To: <1256896808-20152-1-git-send-email-s-jan@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Sebastien Jan <s-jan@ti.com>, Carlos Chinea <carlos.chinea@nokia.com>
+Cc: Sebastien Jan <s-jan@ti.com>, Andras Domokos <andras.domokos@nokia.com>
+
+Character driver header and interface implementation
+Integration in the build and configuration
 
 Signed-off-by: Sebastien Jan <s-jan@ti.com>
-Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+Signed-off-by: Andras Domokos <andras.domokos@nokia.com>
 ---
- Documentation/hsi/hsi.txt |  319 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 319 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/hsi/hsi.txt
+ drivers/Kconfig          |    2 +
+ drivers/hsi/Kconfig      |   14 ++
+ drivers/hsi/Makefile     |    3 +
+ drivers/hsi/hsi-char.c   |  526 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/hsi/hsi-char.h   |   31 +++
+ include/linux/hsi_char.h |   71 +++++++
+ 6 files changed, 647 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/hsi/hsi-char.c
+ create mode 100644 drivers/hsi/hsi-char.h
+ create mode 100644 include/linux/hsi_char.h
 
-diff --git a/Documentation/hsi/hsi.txt b/Documentation/hsi/hsi.txt
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 48bbdbe..8fc1c36 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -52,6 +52,8 @@ source "drivers/i2c/Kconfig"
+ 
+ source "drivers/spi/Kconfig"
+ 
++source "drivers/hsi/Kconfig"
++
+ source "drivers/pps/Kconfig"
+ 
+ source "drivers/gpio/Kconfig"
+diff --git a/drivers/hsi/Kconfig b/drivers/hsi/Kconfig
+index e10b522..79e0e02 100644
+--- a/drivers/hsi/Kconfig
++++ b/drivers/hsi/Kconfig
+@@ -42,3 +42,17 @@ config OMAP_SSI_DEVICE
+ 	bool "SSI (OMAP SSI)"
+ 
+ endchoice
++
++#
++# OMAP HSI char device kernel configuration
++#
++
++config HSI_CHAR
++	tristate "HSI character driver"
++	depends on OMAP_HSI
++	---help---
++	  If you say Y here, you will enable the HSI character driver.
++	  This driver provides a simple character device interface for
++	  serial communication over the HSI bus.
++
++endif # HSI
+diff --git a/drivers/hsi/Makefile b/drivers/hsi/Makefile
+index a7f579b..81270ec 100644
+--- a/drivers/hsi/Makefile
++++ b/drivers/hsi/Makefile
+@@ -11,4 +11,7 @@ ifeq ($(CONFIG_DEBUG_FS), y)
+ 	omap_hsi-objs += hsi_driver_debugfs.o
+ endif
+ 
++hsi_char-objs	:=	hsi-char.o hsi-if.o
++
+ obj-$(CONFIG_OMAP_HSI)	+= omap_hsi.o
++obj-$(CONFIG_HSI_CHAR)	+= hsi_char.o
+diff --git a/drivers/hsi/hsi-char.c b/drivers/hsi/hsi-char.c
 new file mode 100644
-index 0000000..0890cff
+index 0000000..29fbd73
 --- /dev/null
-+++ b/Documentation/hsi/hsi.txt
-@@ -0,0 +1,319 @@
-+OMAP HSI API's How To
-+=====================
-+
-+The MIPI High Speed Synchronous Serial Interface (HSI) is a high speed
-+communication interface that is used for connecting OMAP to a cellular modem
-+engine.
-+It is specified by the MIPI alliance (www.mipi.org). An introduction to the
-+MIPI HSI working group can be found here: http://www.mipi.org/wgoverview.shtml
-+
-+The HSI interface supports full duplex communication over multiple channels and
-+is capable of reaching speeds up to 200 Mbit/s.
-+
-+The OMAP HSI driver supports both OMAP MIPI HSI (as defined in
-+MIPI documentation mipi_HSI-PL_specification_v01-01-00a.pdf) and OMAP SSI
-+devices through different device files, and a generic SW driver.
-+
-+Please refer to the MIPI specifications for more details on this device.
-+
-+
-+I OMAP HSI driver API overview
-+-----------------------------
-+
-+A) HSI Bus, HSI channels and protocol drivers overview.
-+
-+The OMAP HSI driver implements the low-level support for the HSI device. It
-+abstracts device specifics and provides a simple interface inside the kernel
-+for data transmission on the HSI channels.
-+The OMAP HSI driver does not implement any communication protocol.
-+The SW layers using the OMAP HSI driver may implement a communication protocol
-+if required, and are commonly called 'protocol drivers' in this document.
-+
-+The OMAP HSI abstracts the concept of HSI channels by creating an HSI bus and
-+attaching HSI channel devices to it. (see Figure 1)
-+
-+Protocol drivers will then claim one or more HSI channels, after registering
-+with the OMAP HSI driver.
-+
-+	+---------------------+		+----------------+
-+	+  HSI channel device +		+  HSI protocol  +
-+	+  (omap_hsi.pX-cY)   +	<-------+  driver        +
-+	+---------------------+		+----------------+
-+		|				|
-+(/sys/bus/hsi/devices/omap_hsi.pX-cy)	(/sys/bus/hsi/drivers/hsi_protocol)
-+		|				|
-++----------------------------------------------------------------+
-++			HSI bus					 +
-++----------------------------------------------------------------+
-+
-+			Figure 1.
-+
-+(NOTE: omap_hsi.pX-cY represents the HSI channel Y on port X from the omap_hsi
-+device)
-+
-+B) Data transfers
-+
-+The OMAP HSI driver exports an asynchronous interface for sending and receiving
-+data over the HSI channels. Protocol drivers will register a set of read and
-+write completion callbacks for each HSI channel they use.
-+
-+Protocol drivers call hsi_write/hsi_read functions to signal the OMAP HSI driver
-+that is willing to write/read data to/from a channel. Transfers are completed
-+only when the OMAP HSI driver calls the completion callback.
-+
-+An HSI channel can simultaneously have both a read and a write request
-+pending, however, requests cannot be queued.
-+
-+It is safe to call hsi_write/hsi_read functions inside the callback functions.
-+In fact, a protocol driver should normally re-issue the read request from within
-+the read callback, in order to not miss any incoming messages.
-+
-+Note on read / write operations:
-+A read or write is performed using a HSI internal DMA channel, unless the size
-+of data to transmit is one 32bits Word, where the transmission is directly
-+managed through interrupts.
-+
-+C) Error handling
-+
-+HSI is a multi channel interface but the channels share the same physical wires.
-+Therefore, any transmission error potentially affects all the protocol drivers
-+that sit on top of the HSI driver. Whenever an error occurs, it is broadcast
-+to all protocol drivers.
-+
-+Errors are signaled to the protocol drivers through the port_event callback.
-+
-+Completion callbacks functions are only called when a transfer has succeess.
-+
-+D) Supported modes of operation
-+
-+The driver supports stream and frame transmission modes and synchronized and
-+pipelined data flows.
-+The driver implements the HSI support for the core MPU and not for the
-+potential co-processors.
-+
-+
-+II OMAP HSI API's
-+-----------------
-+
-+A) Include
-+
-+#include<linux/hsi_driver_if.h>
-+
-+B) int hsi_register_driver(struct hsi_device_driver *driver);
-+
-+  Description: Register an HSI protocol driver
-+
-+  Parameter: A protocol driver declaration (see struct hsi_device_driver)
-+
-+C) void hsi_unregister_driver(struct hsi_device_driver *driver);
-+
-+  Description: Unregister an HSI protocol driver
-+
-+  Parameter: A protocol driver declaration (see struct hsi_device_driver)
-+
-+D) int hsi_open(struct hsi_device *dev);
-+
-+  Description: Open an HSI device channel
-+
-+  Parameter: The HSI channel
-+
-+E) int hsi_write(struct hsi_device *dev, u32 *data, unsigned int count);
-+
-+  Description: Send data through an HSI channel. The transfer is only completed
-+  when the write_complete callback is called
-+
-+  Parameters:
-+	- dev: HSI channel
-+	- data: pointer to the data to send
-+	- count: number of 32-bit words to be sent
-+
-+F) void hsi_write_cancel(struct hsi_device *dev);
-+
-+  Description: Cancel current pending write operation
-+
-+  Parameters: HSI channel
-+
-+G) int hsi_read(struct hsi_device *dev, u32 *data, unsigned int count);
-+
-+  Description: Receive data through an HSI channel. The transfer is only
-+  completed when the read_complete callback is called
-+
-+  Parameters:
-+	- dev: HSI channel
-+	- data: pointer where to store the data
-+	- count: number of 32-bit words to be read
-+
-+H) void hsi_read_cancel(struct hsi_device *dev);
-+
-+  Description: Cancel current pending read operation
-+
-+  Parameters: HSI channel
-+
-+I) int hsi_ioctl(struct hsi_device *dev, unsigned int command, void *arg);
-+
-+  Description: Apply some control command to the port associated to the given
-+  HSI channel
-+
-+  Parameters:
-+	- dev: HSI channel
-+	- command: command to execute
-+	- arg: parameter for the control command
-+
-+  Commands:
-+	- HSI_IOCTL_WAKE_UP:
-+		Description: Set HSI wakeup line for the channel
-+		Parameters: None
-+	- HSI_IOCTL_WAKE_DOWN:
-+		Description: Unset HSI wakeup line for the channel
-+		Parameters: None
-+	- HSI_IOCTL_SEND_BREAK:
-+		Description: Send a HW BREAK frame in FRAME mode
-+		Parameters: None
-+	- HSI_IOCTL_WAKE:
-+		Description: Get HST WAKE line status
-+		Parameters: Pointer to a u32 variable to return result
-+		(Result: 0 means wakeline DOWN, other result means wakeline UP)
-+	- HSI_IOCTL_FLUSH_RX:
-+		Description: Force the HSR to idle state
-+		Parameters: None
-+	- HSI_IOCTL_FLUSH_TX:
-+		Description: Force the HST to idle state
-+		Parameters: None
-+	- HSI_IOCTL_CAWAKE:
-+		Description: Get CAWAKE (HSR) line status
-+		Parameters: Pointer to a u32 variable to return result
-+		(Result: 0 means wakeline DOWN, other result means wakeline UP)
-+	- HSI_IOCTL_SET_RX:
-+		Description: Set HSR configuration
-+		Parameters: Pointer to a hsr_ctx structure describing
-+		configurable HSR parameters (mode, frame size, channels,
-+		data flow type, bit-rate divisor)
-+		Notes:
-+		HSI: A special value (0x1000) can be passed as bit-rate divisor
-+		to request the HSR so switch to auto-divisor mode (in this mode,
-+		the HSR can receive at any speed, but the error detection is
-+		deactivated). To exit this RX auto-divisor mode, a new divisor
-+		must be programmed for HSI (can be 0), and the error-detection
-+		is re-enabled.
-+		SSI: The same special 0x1000 value is used to deactivate the SSR
-+		timeout counter. This counter can be re-enabled by programming
-+		the 0x1001 value as bit-rate divisor. The SSI does not accept
-+		any other SSR bit-rate divisor values.
-+	- HSI_IOCTL_GET_RX:
-+		Description: Get HSR configuration
-+		Parameters: Pointer to a Hsr_ctx structure describing
-+		configurable HSR parameters (mode, frame size, channels,
-+		data flow type, bit-rate divisor)
-+	- HSI_IOCTL_SET_TX:
-+		Description: Set HST configuration
-+		Parameters: Pointer to a hst_ctx structure describing
-+		configurable HST parameters (mode, frame size, divisor,
-+		arb_mode, channels, data flow type)
-+	- HSI_IOCTL_GET_TX:
-+		Description: Get HST configuration
-+		Parameters: Pointer to a hst_ctx structure describing
-+		configurable SSR parameters (mode, frame size, divisor,
-+		arb_mode, channels, data flow type)
-+	Note that the Rx and Tx transmission speeds are configured through the
-+	bit-rate divisor parameters. The HSI driver user shall take care of the
-+	functional clock provided to the HSI and program the divisors
-+	accordingly. Depending on the required speed and HSI device, some
-+	constraints on OPP may have to be handled. This shall be managed by the
-+	HSI driver user.
-+
-+J) void hsi_close(struct hsi_device *dev);
-+
-+  Description: Close an HSI channel
-+
-+  Parameters: The HSI channel to close
-+
-+K) Callback configuration functions:
-+void hsi_set_read_cb(struct hsi_device *dev,
-+				void (*read_cb)(struct hsi_device *dev));
-+void hsi_set_write_cb(struct hsi_device *dev,
-+				void (*write_cb)(struct hsi_device *dev));
-+void hsi_set_port_event_cb(struct hsi_device *dev,
-+				void (*port_event_cb)(struct hsi_device *dev,
-+						unsigned int event, void *arg));
-+
-+  Description: Set the read, write and port-event callbacks for the HSI channel.
-+  These functions are usually called in the probe function of the HSI protocol
-+  driver to set completion callbacks for the asynchronous read and write
-+  transfer, and manage the other HSI events.
-+
-+  Parameters:
-+	- dev: HSI channel
-+	- read_cb: Pointer to a callback function to signal that a read transfer
-+		is completed
-+	- write_cb: Pointer to a callback function to signal that a write
-+		transfer is completed
-+	- port_event_cb: Pointer to a callback function to signal that a HSI
-+		event has happened (events can be: Break frame detected, error,
-+		cawake-up, cawake-down or HSR-data-available).
-+
-+
-+L) struct hsi_device_driver
-+
-+Description: Protocol drivers pass this struct to the hsi_register_driver
-+function in order to register with the OMAP HSI driver. Among other things it
-+tells the OMAP HSI driver which channels the protocol driver wants to allocate
-+for its use
-+
-+Declaration:
-+struct hsi_device_driver {
-+	unsigned long		ctrl_mask;
-+	unsigned long		ch_mask[HSI_MAX_PORTS];
-+	void			(*port_event) (struct hsi_device *dev,
-+						unsigned int event, void *arg);
-+	int			(*probe)(struct hsi_device *dev);
-+	int			(*remove)(struct hsi_device *dev);
-+	int			(*suspend)(struct hsi_device *dev,
-+						pm_message_t mesg);
-+	int			(*resume)(struct hsi_device *dev);
-+	struct device_driver 	driver;
++++ b/drivers/hsi/hsi-char.c
+@@ -0,0 +1,526 @@
++/*
++ * hsi-char.c
++ *
++ * HSI character device driver, implements the character device
++ * interface.
++ *
++ * Copyright (C) 2009 Nokia Corporation. All rights reserved.
++ * Copyright (C) 2009 Texas Instruments, Inc.
++ *
++ * Author: Andras Domokos <andras.domokos@nokia.com>
++ * Author: Sebastien JAN <s-jan@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#include <linux/errno.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/init.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/miscdevice.h>
++#include <linux/file.h>
++#include <linux/mm.h>
++#include <linux/fs.h>
++#include <linux/cdev.h>
++#include <linux/poll.h>
++#include <asm/mach-types.h>
++#include <linux/ioctl.h>
++#include <linux/uaccess.h>
++
++#include <mach/hsi.h>
++#include <linux/hsi_driver_if.h>
++#include <linux/hsi_char.h>
++
++#include "hsi-char.h"
++
++#define DRIVER_VERSION  "0.1.0"
++
++static unsigned int port = 1;
++module_param(port, uint, 1);
++MODULE_PARM_DESC(port, "HSI port to be probed");
++
++static unsigned int channels_map[HSI_MAX_CHAR_DEVS] = {1};
++module_param_array(channels_map, uint, NULL, 0);
++MODULE_PARM_DESC(channels_map, "HSI channels to be probed");
++
++dev_t hsi_char_dev;
++
++struct char_queue {
++	struct list_head list;
++	u32 *data;
++	unsigned int count;
 +};
 +
-+Fields description:
-+	ctrl_mask: HSI block ids to use
-+	ch_mask[HSI_MAX_PORTS]: HSI channels to use
-+	port_event: Function callback for notifying HSI events
-+		   (i.e.: error transfer)
-+		Parameters:
-+			dev: HSI channel
-+			event: Event code
-+			event: Event argument
-+	probe: Probe function
-+		Parameters: HSI channel
-+	remove: Remove function
-+		Parameters: HSI channel
-+
-+Example:
-+
-+static struct hsi_device_driver hsi_protocol_driver = {
-+	.ctrl_mask = ANY_HSI_CONTROLLER,
-+	.ch_mask[0] = CHANNEL(0) | CHANNEL(1),
-+	.port_event = port_event_callback,
-+	.probe = hsi_proto_probe,
-+	.remove = __devexit_p(hsi_proto_remove),
-+	.driver = {
-+			.name = "hsi_protocol",
-+	},
++struct hsi_char {
++	unsigned int opened;
++	int poll_event;
++	struct list_head rx_queue;
++	struct list_head tx_queue;
++	spinlock_t lock; /* Serialize access to driver data and API */
++	struct fasync_struct *async_queue;
++	wait_queue_head_t rx_wait;
++	wait_queue_head_t tx_wait;
++	wait_queue_head_t poll_wait;
 +};
 +
++static struct hsi_char hsi_char_data[HSI_MAX_CHAR_DEVS];
 +
-+III) FUTURE WORK
-+----------------
-+ - Power management update and validation on OMAP 3430
-+ - Clocks and power management implementation on OMAP 4430
-+ - Validation on OMAP 4430
-+ - hsi-char documentation
++void if_notify(int ch, struct hsi_event *ev)
++{
++	struct char_queue *entry;
++
++	pr_debug("%s, ev = {0x%x, 0x%p, %u}\n", __func__, ev->event, ev->data,
++								ev->count);
++
++	spin_lock(&hsi_char_data[ch].lock);
++
++	if (!hsi_char_data[ch].opened) {
++		pr_debug("%s, device not opened\n!", __func__);
++		spin_unlock(&hsi_char_data[ch].lock);
++		return;
++	}
++
++	switch (HSI_EV_TYPE(ev->event)) {
++	case HSI_EV_IN:
++		entry = kmalloc(sizeof(*entry), GFP_ATOMIC);
++		if (!entry) {
++			pr_err("HSI-CHAR: entry allocation failed.\n");
++			spin_unlock(&hsi_char_data[ch].lock);
++			return;
++		}
++		entry->data = ev->data;
++		entry->count = ev->count;
++		list_add_tail(&entry->list, &hsi_char_data[ch].rx_queue);
++		spin_unlock(&hsi_char_data[ch].lock);
++		pr_debug("%s, HSI_EV_IN\n", __func__);
++		wake_up_interruptible(&hsi_char_data[ch].rx_wait);
++		break;
++	case HSI_EV_OUT:
++		entry = kmalloc(sizeof(*entry), GFP_ATOMIC);
++		if (!entry) {
++			pr_err("HSI-CHAR: entry allocation failed.\n");
++			spin_unlock(&hsi_char_data[ch].lock);
++			return;
++		}
++		entry->data = ev->data;
++		entry->count = ev->count;
++		hsi_char_data[ch].poll_event |= (POLLOUT | POLLWRNORM);
++		list_add_tail(&entry->list, &hsi_char_data[ch].tx_queue);
++		spin_unlock(&hsi_char_data[ch].lock);
++		pr_debug("%s, HSI_EV_OUT\n", __func__);
++		wake_up_interruptible(&hsi_char_data[ch].tx_wait);
++		break;
++	case HSI_EV_EXCEP:
++		hsi_char_data[ch].poll_event |= POLLPRI;
++		spin_unlock(&hsi_char_data[ch].lock);
++		pr_debug("%s, HSI_EV_EXCEP\n", __func__);
++		wake_up_interruptible(&hsi_char_data[ch].poll_wait);
++		break;
++	case HSI_EV_AVAIL:
++		hsi_char_data[ch].poll_event |= (POLLIN | POLLRDNORM);
++		spin_unlock(&hsi_char_data[ch].lock);
++		pr_debug("%s, HSI_EV_AVAIL\n", __func__);
++		wake_up_interruptible(&hsi_char_data[ch].poll_wait);
++		break;
++	default:
++		spin_unlock(&hsi_char_data[ch].lock);
++		break;
++	}
++}
 +
 +
-+=================================================
-+Acknowledgements: The OMAP HSI driver is based on OMAP SSI driver, written by
-+Carlos Chinea <carlos.chinea@nokia.com>.
++static int hsi_char_fasync(int fd, struct file *file, int on)
++{
++	int ch = (int)file->private_data;
++	if (fasync_helper(fd, file, on, &hsi_char_data[ch].async_queue) >= 0)
++		return 0;
++	else
++		return -EIO;
++}
 +
-+Contact: Sebastien Jan <s-jan@ti.com>
 +
-+Copyright (C) 2008 Nokia Corporation.
-+Copyright (C) 2009 Texas Instruments, Inc.
++static unsigned int hsi_char_poll(struct file *file, poll_table *wait)
++{
++	int ch = (int)file->private_data;
++	unsigned int ret = 0;
++
++	/*printk(KERN_DEBUG "%s\n", __func__);*/
++
++	poll_wait(file, &hsi_char_data[ch].poll_wait, wait);
++	poll_wait(file, &hsi_char_data[ch].tx_wait, wait);
++	spin_lock_bh(&hsi_char_data[ch].lock);
++	ret = hsi_char_data[ch].poll_event;
++	spin_unlock_bh(&hsi_char_data[ch].lock);
++
++	pr_debug("%s, ret = 0x%x\n", __func__, ret);
++	return ret;
++}
++
++
++static ssize_t hsi_char_read(struct file *file, char __user *buf,
++			size_t count, loff_t *ppos)
++{
++	int ch = (int)file->private_data;
++	DECLARE_WAITQUEUE(wait, current);
++	u32	*data;
++	unsigned int data_len;
++	struct char_queue *entry;
++	ssize_t ret;
++
++	/*printk(KERN_DEBUG "%s, count = %d\n", __func__, count);*/
++
++	/* only 32bit data is supported for now */
++	if ((count < 4) || (count & 3))
++		return -EINVAL;
++
++	data = kmalloc(count, GFP_ATOMIC);
++
++	ret = if_hsi_read(ch, data, count);
++	if (ret < 0) {
++		kfree(data);
++		goto out2;
++	}
++
++	add_wait_queue(&hsi_char_data[ch].rx_wait, &wait);
++
++	for ( ; ; ) {
++		data = NULL;
++		data_len = 0;
++
++		set_current_state(TASK_INTERRUPTIBLE);
++
++		spin_lock_bh(&hsi_char_data[ch].lock);
++		if (!list_empty(&hsi_char_data[ch].rx_queue)) {
++			entry = list_entry(hsi_char_data[ch].rx_queue.next,
++						struct char_queue, list);
++			data = entry->data;
++			data_len = entry->count;
++			list_del(&entry->list);
++			kfree(entry);
++		}
++		spin_unlock_bh(&hsi_char_data[ch].lock);
++
++		pr_debug("%s, data = 0x%p, data_len = %d\n",
++						__func__, data, data_len);
++
++		if (data_len) {
++			pr_debug("%s, RX finished\n", __func__);
++			spin_lock_bh(&hsi_char_data[ch].lock);
++			hsi_char_data[ch].poll_event &= ~(POLLIN | POLLRDNORM);
++			if_hsi_poll(ch);
++			spin_unlock_bh(&hsi_char_data[ch].lock);
++			break;
++		} else if (file->f_flags & O_NONBLOCK) {
++			pr_debug("%s, O_NONBLOCK\n", __func__);
++			ret = -EAGAIN;
++			goto out;
++		} else if (signal_pending(current)) {
++			pr_debug("%s, ERESTARTSYS\n", __func__);
++			ret = -EAGAIN;
++			if_hsi_cancel_read(ch);
++			/* goto out; */
++		break;
++	}
++
++	/*printk(KERN_DEBUG "%s, going to sleep...\n", __func__);*/
++		schedule();
++	/*printk(KERN_DEBUG "%s, woke up\n", __func__);*/
++	}
++
++	if (data_len) {
++		ret = copy_to_user((void __user *)buf, data, data_len);
++		if (!ret)
++			ret = data_len;
++	}
++
++	kfree(data);
++
++out:
++	__set_current_state(TASK_RUNNING);
++	remove_wait_queue(&hsi_char_data[ch].rx_wait, &wait);
++
++out2:
++	/*printk(KERN_DEBUG "%s, ret = %d\n", __func__, ret);*/
++	return ret;
++}
++
++static ssize_t hsi_char_write(struct file *file, const char __user *buf,
++			 size_t count, loff_t *ppos)
++{
++	int ch = (int)file->private_data;
++	DECLARE_WAITQUEUE(wait, current);
++	u32	*data;
++	unsigned int data_len = 0;
++	struct char_queue *entry;
++	ssize_t	ret;
++
++	/*printk(KERN_DEBUG "%s, count = %d\n", __func__, count);*/
++
++	/* only 32bit data is supported for now */
++	if ((count < 4) || (count & 3))
++		return -EINVAL;
++
++	data = kmalloc(count, GFP_ATOMIC);
++
++	if (copy_from_user(data, (void __user *)buf, count)) {
++		ret = -EFAULT;
++		kfree(data);
++	} else {
++		ret = count;
++	}
++
++	spin_lock_bh(&hsi_char_data[ch].lock);
++	ret = if_hsi_write(ch, data, count);
++	if (ret < 0) {
++		spin_unlock_bh(&hsi_char_data[ch].lock);
++		kfree(data);
++		goto out2;
++	}
++	hsi_char_data[ch].poll_event &= ~(POLLOUT | POLLWRNORM);
++	spin_unlock_bh(&hsi_char_data[ch].lock);
++
++	add_wait_queue(&hsi_char_data[ch].tx_wait, &wait);
++
++	for ( ; ; ) {
++		data = NULL;
++		data_len = 0;
++
++		set_current_state(TASK_INTERRUPTIBLE);
++
++		spin_lock_bh(&hsi_char_data[ch].lock);
++		if (!list_empty(&hsi_char_data[ch].tx_queue)) {
++			entry = list_entry(hsi_char_data[ch].tx_queue.next,
++					struct char_queue, list);
++			data = entry->data;
++			data_len = entry->count;
++			list_del(&entry->list);
++			kfree(entry);
++		}
++		spin_unlock_bh(&hsi_char_data[ch].lock);
++
++		if (data_len) {
++			pr_debug("%s, TX finished\n", __func__);
++			ret = data_len;
++			break;
++		} else if (file->f_flags & O_NONBLOCK) {
++			pr_debug("%s, O_NONBLOCK\n", __func__);
++			ret = -EAGAIN;
++			goto out;
++		} else if (signal_pending(current)) {
++			pr_debug("%s, ERESTARTSYS\n", __func__);
++			ret = -ERESTARTSYS;
++			goto out;
++		}
++
++		/*printk(KERN_DEBUG "%s, going to sleep...\n", __func__);*/
++		schedule();
++		/*printk(KERN_DEBUG "%s, woke up\n", __func__);*/
++	}
++
++    kfree(data);
++
++out:
++	__set_current_state(TASK_RUNNING);
++	remove_wait_queue(&hsi_char_data[ch].tx_wait, &wait);
++
++out2:
++	/*printk(KERN_DEBUG "%s, ret = %d\n", __func__, ret);*/
++	return ret;
++}
++
++static int hsi_char_ioctl(struct inode *inode, struct file *file,
++				unsigned int cmd, unsigned long arg)
++{
++	int ch = (int)file->private_data;
++	unsigned int state;
++	struct hsi_rx_config rx_cfg;
++	struct hsi_tx_config tx_cfg;
++	int ret = 0;
++
++	pr_debug("%s, ch = %d, cmd = 0x%08x\n", __func__, ch, cmd);
++
++	switch (cmd) {
++	case CS_SEND_BREAK:
++		if_hsi_send_break(ch);
++		break;
++	case CS_FLUSH_RX:
++		if_hsi_flush_rx(ch);
++		break;
++	case CS_FLUSH_TX:
++		if_hsi_flush_tx(ch);
++		break;
++	case CS_SET_WAKELINE:
++		if (copy_from_user(&state, (void __user *)arg,
++				sizeof(state)))
++			ret = -EFAULT;
++		else
++			if_hsi_set_wakeline(ch, state);
++		break;
++	case CS_GET_WAKELINE:
++		if_hsi_get_wakeline(ch, &state);
++		if (copy_to_user((void __user *)arg, &state, sizeof(state)))
++			ret = -EFAULT;
++		break;
++	case CS_SET_RX:
++		if (copy_from_user(&rx_cfg, (void __user *)arg,
++				sizeof(rx_cfg)))
++			ret = -EFAULT;
++		else
++			ret = if_hsi_set_rx(ch, &rx_cfg);
++		break;
++	case CS_GET_RX:
++		if_hsi_get_rx(ch, &rx_cfg);
++		if (copy_to_user((void __user *)arg, &rx_cfg, sizeof(rx_cfg)))
++			ret = -EFAULT;
++		break;
++	case CS_SET_TX:
++		if (copy_from_user(&tx_cfg, (void __user *)arg,
++				sizeof(tx_cfg)))
++			ret = -EFAULT;
++		else
++			ret = if_hsi_set_tx(ch, &tx_cfg);
++		break;
++	case CS_GET_TX:
++		if_hsi_get_tx(ch, &tx_cfg);
++		if (copy_to_user((void __user *)arg, &tx_cfg, sizeof(tx_cfg)))
++			ret = -EFAULT;
++		break;
++	default:
++		ret = -ENOIOCTLCMD;
++		break;
++	}
++
++	return ret;
++}
++
++static int hsi_char_open(struct inode *inode, struct file *file)
++{
++	int ret = 0, ch = iminor(inode);
++
++	pr_debug("%s, ch = %d, channels_map[%d] = %d\n", __func__, ch, ch,
++							channels_map[ch]);
++
++	if (!channels_map[ch])
++		return -ENODEV;
++
++	spin_lock_bh(&hsi_char_data[ch].lock);
++
++	if (hsi_char_data[ch].opened) {
++		spin_unlock_bh(&hsi_char_data[ch].lock);
++		return -EBUSY;
++	}
++
++	file->private_data = (void *)ch;
++	hsi_char_data[ch].opened++;
++	hsi_char_data[ch].poll_event = (POLLOUT | POLLWRNORM);
++	spin_unlock_bh(&hsi_char_data[ch].lock);
++
++	ret = if_hsi_start(ch);
++
++	return ret;
++}
++
++static int hsi_char_release(struct inode *inode, struct file *file)
++{
++	int ch = (int)file->private_data;
++	struct char_queue	*entry;
++	struct list_head	*cursor, *next;
++
++	pr_debug("%s, ch = %d\n", __func__, ch);
++
++	if_hsi_stop(ch);
++	spin_lock_bh(&hsi_char_data[ch].lock);
++	hsi_char_data[ch].opened--;
++
++	if (!list_empty(&hsi_char_data[ch].rx_queue)) {
++		list_for_each_safe(cursor, next, &hsi_char_data[ch].rx_queue) {
++			entry = list_entry(cursor, struct char_queue, list);
++			list_del(&entry->list);
++			kfree(entry);
++		}
++	}
++
++	if (!list_empty(&hsi_char_data[ch].tx_queue)) {
++		list_for_each_safe(cursor, next, &hsi_char_data[ch].tx_queue) {
++			entry = list_entry(cursor, struct char_queue, list);
++			list_del(&entry->list);
++			kfree(entry);
++		}
++	}
++
++	spin_unlock_bh(&hsi_char_data[ch].lock);
++
++	return 0;
++}
++
++static const struct file_operations hsi_char_fops = {
++	.owner = THIS_MODULE,
++	.read = hsi_char_read,
++	.write = hsi_char_write,
++	.poll = hsi_char_poll,
++	.ioctl = hsi_char_ioctl,
++	.open = hsi_char_open,
++	.release = hsi_char_release,
++	.fasync = hsi_char_fasync,
++};
++
++static struct cdev hsi_char_cdev;
++
++static int __init hsi_char_init(void)
++{
++	char devname[] = "hsi_char";
++	int ret, i;
++
++	pr_info("HSI character device version " DRIVER_VERSION "\n");
++
++	for (i = 0; i < HSI_MAX_CHAR_DEVS; i++) {
++		init_waitqueue_head(&hsi_char_data[i].rx_wait);
++		init_waitqueue_head(&hsi_char_data[i].tx_wait);
++		init_waitqueue_head(&hsi_char_data[i].poll_wait);
++		spin_lock_init(&hsi_char_data[i].lock);
++		hsi_char_data[i].opened = 0;
++		INIT_LIST_HEAD(&hsi_char_data[i].rx_queue);
++		INIT_LIST_HEAD(&hsi_char_data[i].tx_queue);
++	}
++
++	/*printk(KERN_DEBUG "%s, devname = %s\n", __func__, devname);*/
++
++	ret = if_hsi_init(port, channels_map);
++	if (ret)
++		return ret;
++
++	ret = alloc_chrdev_region(&hsi_char_dev, 0, HSI_MAX_CHAR_DEVS, devname);
++	if (ret < 0) {
++		pr_err("HSI character driver: Failed to register\n");
++		return ret;
++	}
++
++	cdev_init(&hsi_char_cdev, &hsi_char_fops);
++	cdev_add(&hsi_char_cdev, hsi_char_dev, HSI_MAX_CHAR_DEVS);
++
++	return 0;
++}
++
++static void __exit hsi_char_exit(void)
++{
++	cdev_del(&hsi_char_cdev);
++	unregister_chrdev_region(hsi_char_dev, HSI_MAX_CHAR_DEVS);
++	if_hsi_exit();
++}
++
++MODULE_AUTHOR("Andras Domokos <andras.domokos@nokia.com>");
++MODULE_AUTHOR("Sebatien Jan <s-jan@ti.com> / Texas Instruments");
++MODULE_DESCRIPTION("HSI character device");
++MODULE_LICENSE("GPL");
++MODULE_VERSION(DRIVER_VERSION);
++
++module_init(hsi_char_init);
++module_exit(hsi_char_exit);
+diff --git a/drivers/hsi/hsi-char.h b/drivers/hsi/hsi-char.h
+new file mode 100644
+index 0000000..d37018f
+--- /dev/null
++++ b/drivers/hsi/hsi-char.h
+@@ -0,0 +1,31 @@
++/*
++ * hsi-char.h
++ *
++ * HSI character driver private declaration header file.
++ *
++ * Copyright (C) 2009 Nokia Corporation. All rights reserved.
++ * Copyright (C) 2009 Texas Instruments, Inc.
++ *
++ * Author: Andras Domokos <andras.domokos@nokia.com>
++ * Author: Sebastien JAN <s-jan@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#ifndef _HSI_CHAR_H
++#define _HSI_CHAR_H
++
++#include "hsi-if.h"
++
++/* how many char devices would be created at most */
++#define HSI_MAX_CHAR_DEVS	8
++
++void if_notify(int ch, struct hsi_event *ev);
++
++#endif /* _HSI_CHAR_H */
+diff --git a/include/linux/hsi_char.h b/include/linux/hsi_char.h
+new file mode 100644
+index 0000000..de42c6c
+--- /dev/null
++++ b/include/linux/hsi_char.h
+@@ -0,0 +1,71 @@
++/*
++ * hsi_char.h
++ *
++ * HSI character driver public declaration header file.
++ *
++ * Copyright (C) 2009 Nokia Corporation. All rights reserved.
++ * Copyright (C) 2009 Texas Instruments, Inc.
++ *
++ * Author: Andras Domokos <andras.domokos@nokia.com>
++ * Author: Sebastien JAN <s-jan@ti.com>
++ *
++ * This package is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
++ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
++ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
++ */
++
++#ifndef HSI_CHAR_H
++#define HSI_CHAR_H
++
++#define HSI_CHAR_BASE		'S'
++#define CS_IOW(num, dtype)	_IOW(HSI_CHAR_BASE, num, dtype)
++#define CS_IOR(num, dtype)	_IOR(HSI_CHAR_BASE, num, dtype)
++#define CS_IOWR(num, dtype)	_IOWR(HSI_CHAR_BASE, num, dtype)
++#define CS_IO(num)		_IO(HSI_CHAR_BASE, num)
++
++#define CS_SEND_BREAK		CS_IO(1)
++#define CS_FLUSH_RX		CS_IO(2)
++#define CS_FLUSH_TX		CS_IO(3)
++#define CS_BOOTSTRAP		CS_IO(4)
++#define CS_SET_WAKELINE		CS_IOW(5, unsigned int)
++#define CS_GET_WAKELINE		CS_IOR(6, unsigned int)
++#define CS_SET_RX		CS_IOW(7, struct hsi_rx_config)
++#define CS_GET_RX		CS_IOW(8, struct hsi_rx_config)
++#define CS_SET_TX		CS_IOW(9, struct hsi_tx_config)
++#define CS_GET_TX		CS_IOW(10, struct hsi_tx_config)
++
++#define HSI_MODE_SLEEP		0
++#define HSI_MODE_STREAM		1
++#define HSI_MODE_FRAME		2
++
++#define HSI_FLOW_SYNCHRONIZED	(0 << 2)
++#define HSI_FLOW_PIPELINED	(1 << 2)	/* only for HSI */
++
++#define HSI_ARBMODE_RR		0
++#define HSI_ARBMODE_PRIO	1
++
++#define WAKE_UP			0
++#define WAKE_DOWN		1
++
++struct hsi_tx_config {
++	u32 mode;
++	u32 flow;
++	u32 frame_size;
++	u32 channels;
++	u32 divisor;
++	u32 arb_mode;
++};
++
++struct hsi_rx_config {
++	u32 mode;
++	u32 flow;
++	u32 frame_size;
++	u32 channels;
++	u32 divisor;	/* not used for SSI */
++};
++
++#endif /* HSI_CHAR_H */
 -- 
 1.6.0.4
 
