@@ -1,52 +1,46 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [RFC PATCH 0/9] MIPI HSI device support for OMAP platforms
-Date: Fri, 30 Oct 2009 14:57:50 +0200
-Message-ID: <20091030125750.GL31472@nokia.com>
-References: <1256896808-20152-1-git-send-email-s-jan@ti.com>
-Reply-To: felipe.balbi@nokia.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58551 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757183AbZJ3M6P (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 30 Oct 2009 08:58:15 -0400
-Content-Disposition: inline
-In-Reply-To: <1256896808-20152-1-git-send-email-s-jan@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+From: Jani Nikula <ext-jani.1.nikula@nokia.com>
+Subject: [PATCH 0/3] new input keycodes, gpio-keys for RX-51
+Date: Fri, 30 Oct 2009 15:38:25 +0200
+Message-ID: <cover.1256907278.git.ext-jani.1.nikula@nokia.com>
+References: <20091027162040.GB22541@core.coreip.homeip.net>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <20091027162040.GB22541@core.coreip.homeip.net>
+Sender: linux-input-owner@vger.kernel.org
+To: tony@atomide.com, dmitry.torokhov@gmail.com
+Cc: linux-omap@vger.kernel.org, linux-input@vger.kernel.org, ext-jani.1.nikula@nokia.com
 List-Id: linux-omap@vger.kernel.org
-To: ext Sebastien Jan <s-jan@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Fri, Oct 30, 2009 at 10:59:59AM +0100, ext Sebastien Jan wrote:
-> This is an RFC for a series of patch to add the support of MIPI HSI and SSI
-> devices to OMAP platforms.
-> The patch includes the HSI device driver and the device files for MIPI HSI and
-> SSI.
-> 
-> The driver is made of 2 distinct modules:
->  - omap_hsi: is the Low-Level Driver (or hardware driver). It provides a
->    kernel functional interface, to be used by other kernel modules and
->    abstracts the HW.
->    This part of the patch is based on Nokia SSI driver, already submitted as
->    RFC by Carlos Chinea [1].
->  - hsi-char: is a char device driver proposing a user-space interface for
->    using the HSI and relies on omap_hsi.
->    This part of the patch is based on a development from Andras Domokos.
-> The intent is to propose a single HSI driver that can support MIPI HSI 1.1 as
-> well as previous implementations (SSI) for OMAP platforms (OMAP3 / OMAP4).
-> 
-> The driver core functionalities are there and ready for review. The following
-> updates will come in the following weeks / months:
->  - Clocks and Power Management support for OMAP4 platform (HSI device file)
->  - HSI-char interface documentation
-> 
-> Validation: The driver is validated on 3430 SDP (with a HW loopback on the SSI
-> device), and is being validated on 4430 Virtio platform (MIPI HSI device).
-> 
-> [1] http://lwn.net/Articles/301918/
+Hi Dmitry and Tony -
 
-pass all your drivers on checkpatch.pl --strict and to sparse as well.
+These patches expose some RX-51 input GPIO lines to user space through
+gpio-keys, and introduce a few new relevant keycodes.
 
--- 
-balbi
+Dmitry, I hope you don't think I'm being too stubborn, but I'd prefer
+SW_FRONT_PROXIMITY over SW_EARPIECE_MODE. IMHO front proximity
+activation describes better what has actually occured; earpiece mode
+is just one use case for that. The front proximity sensor can be
+activated by for example shoving the device in pocket or placing it
+upside down on a surface (an actual use case with accelerometer) in
+addition to holding the device against your ear. And I know of at
+least one game that uses the said proximity sensor as fire
+button. Anyway, in the end it's your call, and I can change it if
+necessary.
+
+These have been tested with RX-51, vanilla linux-omap, minimal console
+and evtest.
+
+
+BR,
+Jani.
+
+
+Jani Nikula (3):
+  Input: add new keycodes useful in mobile devices
+  ARM OMAP3: RX-51 board: add initialization of gpio keys
+  ARM OMAP3: rx51_defconfig: enable support for gpio keys
+
+ arch/arm/configs/rx51_defconfig  |    2 +-
+ arch/arm/mach-omap2/board-rx51.c |   84 ++++++++++++++++++++++++++++++++++++++
+ include/linux/input.h            |    5 ++
+ 3 files changed, 90 insertions(+), 1 deletions(-)
+
