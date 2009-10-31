@@ -1,58 +1,62 @@
-From: "Woodruff, Richard" <r-woodruff2@ti.com>
-Subject: RE: [PATCH 2/2 v2] OMAP3:clk - introduce DPLL4 jtype support
-Date: Sat, 31 Oct 2009 07:35:15 -0500
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B6CDD1F@dlee02.ent.ti.com>
-References: <[PATCH 2/2] OMAP3:clk: introduce DPLL4 jtype support>
- <1256068968-16564-1-git-send-email-nm@ti.com>
- <alpine.DEB.2.00.0910282032550.19865@utopia.booyaka.com>
+From: Senthilnathan KS <k.s.senthilnathan@gmail.com>
+Subject: image split issue on omap3530 using kernel 2.6.22
+Date: Sat, 31 Oct 2009 18:46:04 +0530
+Message-ID: <c30f297a0910310616g7ff36e45w2b7b3d7b176ca2c5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51439 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757711AbZJaMfO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Oct 2009 08:35:14 -0400
-In-Reply-To: <alpine.DEB.2.00.0910282032550.19865@utopia.booyaka.com>
-Content-Language: en-US
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:57836 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757739AbZJaNP7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sat, 31 Oct 2009 09:15:59 -0400
+Received: by pzk26 with SMTP id 26so2415911pzk.4
+        for <linux-omap@vger.kernel.org>; Sat, 31 Oct 2009 06:16:04 -0700 (PDT)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>, "Menon, Nishanth" <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Sonasath, Moiz" <m-sonasath@ti.com>, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: linux-omap@vger.kernel.org
 
-Hi Paul,
+Hi All,
 
-> From: Paul Walmsley [mailto:paul@pwsan.com]
-> Sent: Wednesday, October 28, 2009 9:39 PM
+We have an issue in OMAP3530 ISP driver on kernel 2.6.22.  We are
+using MT9V023 sensor to capture the video and display it on LCD. The
+video image on LCD is getting split after a 2 or 3 hrs run, or if
+there is any external disturbance. If the mobile phone which is kept
+nearer to camera,  receives the call / SMS, the video is getting
+split.
 
-> > +static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
-> u8 n)
-> > +{
-> > +   unsigned long fint, clkinp, sd; /* watch out for overflow */
-> > +   int mod1, mod2;
-> > +
-> > +   n++; /* always n+1 below */
->
-> The N that's passed into lookup_dco_sddiv() is the real N -- that is, it's
-> the register bitfield plus one.  That can be seen below in this line:
->
-> >     v |= (n - 1) << __ffs(dd->div1_mask);
->
-> Given this, is the "n++;" above correct?
+=46ollowing is our observation:
 
-Probably not...  Actually much of the original function path (setting dpll4) is a bit suspect.  Reprogramming of PER DPLL at kernel time would seem risky.  The service provided in this function maybe should only be available at early init time. There is no notification in clock receiving drivers.  For instance an active UART would crash.
+If the camera is working fine, without any split screen, we receive 4
+interrupts =96 in the ISP handler.
 
-> The rest of the code looks fine.  (Of course, I can't review the
-> technical basis of the code since I don't have the 3630 docs yet, but I'm
-> fine with taking it in the meantime.)
->
-> I might change the 'u8 jtype;' field below into 'u8 flags;'; please let me
-> know if you foresee a problem with that.
+isp: irqstatus =3D 0x02000100  -        Overflow Error, VD0 Done
+isp: irqstatus =3D 0x02160000  -        Overflow Error,  Preview Done,
+LSC Done, LSC Pre-fetch Completed
+isp: irqstatus =3D 0x03000000  -        Overflow Error,  Resize done
+isp: irqstatus =3D 0x02000200  -        Overflow Error,  VD1 Done
 
-Don't care.  Jtype seemed description but flag |= jtype is just as descriptive and can hold a few more.
+Whenever we see the image split issue, we see an additional interrupt.
 
-Thanks for looking over.
+isp: irqstatus =3D 0x02080100 -         Overflow Error, LSC pre-fetch
+error
+isp: irqstatus =3D 0x82060000 -         H-Sync, Overflow Error,  LSC
+done, pre-fetch completed
+isp: irqstatus =3D 0x02000200 -         Overflow Error and VD1 done
+isp: irqstatus =3D 0x02100000 -         Overflow Error and Preview done
+isp: irqstatus =3D 0x03000000 -         Overflow Error and Resize done
 
-Regards,
-Richard W.
+How to recover/avoid this image spilt issue? Are there any patch for
+ISP on 2.6.22 kernel?. Can anybody  please help us or suggest to fix
+this issue?
 
+Thanks
+Senthil
+--=20
+Thanks and Regards,
+Senthilnathan.K.S.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
