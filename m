@@ -1,32 +1,41 @@
-From: Roel Kluin <roel.kluin@gmail.com>
-Subject: [PATCH] OMAP: Should cs be positive in gpmc_cs_free()?
-Date: Sun, 01 Nov 2009 14:18:16 +0100
-Message-ID: <4AED8A98.6040205@gmail.com>
+From: Robert Nelson <robertcnelson@gmail.com>
+Subject: Re: EHCI on 2.6.32-rc5-git4 + patches
+Date: Sun, 1 Nov 2009 09:42:50 -0600
+Message-ID: <4551feaf0911010742j6b68113cgb2e4246ca8b26237@mail.gmail.com>
+References: <4AEC544A.4000304@blueyonder.co.uk>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB0309C86298@dbde02.ent.ti.com>
+	 <4AECCB34.9010003@blueyonder.co.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752333AbZKANHL@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Tony Lindgren <tony@atomide.com>" <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, LKML <linux-kernel@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:56461 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752779AbZKAPmp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 1 Nov 2009 10:42:45 -0500
+Received: by yxe17 with SMTP id 17so3868574yxe.33
+        for <linux-omap@vger.kernel.org>; Sun, 01 Nov 2009 07:42:50 -0800 (PST)
+In-Reply-To: <4AECCB34.9010003@blueyonder.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: sboyce@blueyonder.co.uk
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-The index `cs' is signed, test whether it is negative before
-we release gpmc_cs_mem[cs].
+> I am tried "beagleboard_defconfig" I downloaded, but when the .config
+> was written at the start of the kernel build ....
+> # CONFIG_USB_ARCH_HAS_EHCI is not set.
+> " make CROSS_COMPILE=/opt/arm-2009q1/bin/arm-none-linux-gnueabi-" on
+> Fedora 12.
+> Regards
+> Sid.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-Found by code analysis, is it required?
+Hi Sid,
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 1587682..c892a54 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -378,7 +378,7 @@ EXPORT_SYMBOL(gpmc_cs_request);
- void gpmc_cs_free(int cs)
- {
- 	spin_lock(&gpmc_mem_lock);
--	if (cs >= GPMC_CS_NUM || !gpmc_cs_reserved(cs)) {
-+	if (cs >= GPMC_CS_NUM || cs < 0 || !gpmc_cs_reserved(cs)) {
- 		printk(KERN_ERR "Trying to free non-reserved GPMC CS%d\n", cs);
- 		BUG();
- 		spin_unlock(&gpmc_mem_lock);
+You need atleast the "ehci glue commit" from here to enable the option:
+
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=shortlog;h=refs/heads/ehci
+
+Regards,
+
+-- 
+Robert Nelson
+http://www.rcn-ee.com/
