@@ -1,43 +1,57 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH v2 1/2] omap: add bits for future 3430/3630 ES revisions
-Date: Mon, 2 Nov 2009 11:49:10 -0600
-Message-ID: <4AEF1B96.6070406@ti.com>
-References: <1256077586-11636-1-git-send-email-vikram.pandita@ti.com> <alpine.DEB.2.00.0910201649060.22645@utopia.booyaka.com> <4ADE5EE4.2030901@ti.com> <71a0d6ff0911020512k478a3f1du929f2abed42be07a@mail.gmail.com> <4AEEE901.6010000@ti.com> <20091102170123.GC15200@shisha.kicks-ass.net>
+From: Tim Bird <tim.bird@am.sony.com>
+Subject: Re: Do defconfigs work for 2.6.32-rc5 mainline kernels?
+Date: Mon, 2 Nov 2009 10:21:20 -0800
+Message-ID: <4AEF2320.8040100@am.sony.com>
+References: <4AEB5CD8.8060603@billgatliff.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57032 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756544AbZKBRtH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 12:49:07 -0500
-In-Reply-To: <20091102170123.GC15200@shisha.kicks-ass.net>
+Received: from tx2ehsobe003.messaging.microsoft.com ([65.55.88.13]:56095 "EHLO
+	TX2EHSOBE005.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755868AbZKBSV4 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 13:21:56 -0500
+In-Reply-To: <4AEB5CD8.8060603@billgatliff.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>, Paul Walmsley <paul@pwsan.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Woodruff, Richard" <r-woodruff2@ti.com>, "linux-omap@vger.kernel.org" <linux-om>
+To: Bill Gatliff <bgat@billgatliff.com>
+Cc: linux-omap@vger.kernel.org
 
-Alexander Shishkin had written, on 11/02/2009 11:01 AM, the following:
-[..]
->>>> Issues with the strategy of restricting to the current 8 bits:
->>>> a) Why extrabits now:
->>>> we have 8 bits now and we would have used all 8 bits with 3630 with the
->>>> mentioned patch. What do we do with the next revision of 3430? Do we want to
->>>> increase the size once it comes along? OR Do we want to do it right now? Why
->>>> wait till we get additional silicons to go figure how to add those bits as
->>>> Richard pointed out, when there could be one more in the pipeline?
->>> But this code will have to be revisited for each additional silicon
->>> revision anyway, right? Why reserve now?
->>>
->> Agreed, that is one of the possible approaches we could take (and
->> seems to be the common consensus), we can review the structure at a
->> later point of time.
->>
->> http://patchwork.kernel.org/patch/54847/ seems to be the right
->> direction for now at least.
+Bill Gatliff wrote:
+> I'm trying to build a kernel for beagleboard, using the defconfig found
+> in 2.6.32-rc5 and the 2.6.32-rc5 source code.
 > 
-> Ok, so let's have it in, perhaps.
-Tony, Kevin, upto you guys now..
+> Said kernel hangs after the uncompressor, I'm just trying to figure out
+> if this is a known issue or not.  The defconfig in the linux-omap tree
+> does seem to work with the linux-omap source code, FWIW...
 
--- 
-Regards,
-Nishanth Menon
+Short story:
+I found that the omap OSK defconfig is broken in mainline also.
+
+Long story:
+I found that the defconfig in the mainline 2.6.32-rc1 kernel
+didn't work on an OMAP OSK board.  Thinking there was some
+problem in the code itself, I bisected from a known working
+config on 2.6.29 all the way back up to 2.6.32-rc1.  When
+I was done I was at the current code base, but with a .config
+that had about 650 differences.
+
+I haven't had time to go back and find the individual config
+option that changed to break things.  I would need some kind
+of "config bisect" to find this efficiently.
+
+I didn't think to try the OSK defconfig in the omap tree.
+(Silly me, might have saved me some grief. :-)
+
+Is there a maintainer for individual defconfig files?
+In other words, if I repair the OSK defconfig, who do
+I send it to?
+
+ -- Tim
+
+=============================
+Tim Bird
+Architecture Group Chair, CE Linux Forum
+Senior Staff Engineer, Sony Corporation of America
+=============================
+
