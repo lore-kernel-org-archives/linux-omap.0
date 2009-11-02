@@ -1,18 +1,12 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH 5/5] ASoC: TWL4030: Do not modify the APLL_CTL
-	register
-Date: Mon,  2 Nov 2009 14:34:55 +0200
-Message-ID: <1257165295-9352-6-git-send-email-peter.ujfalusi@nokia.com>
-References: <1257165295-9352-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1257165295-9352-2-git-send-email-peter.ujfalusi@nokia.com>
-	<1257165295-9352-3-git-send-email-peter.ujfalusi@nokia.com>
-	<1257165295-9352-4-git-send-email-peter.ujfalusi@nokia.com>
-	<1257165295-9352-5-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCH 0/5] ASoC/MFD/OMAP: TWL4030: APLL_CTL handling
+	change
+Date: Mon,  2 Nov 2009 14:34:50 +0200
+Message-ID: <1257165295-9352-1-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1257165295-9352-5-git-send-email-peter.ujfalusi@nokia.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -26,161 +20,53 @@ To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, sameo@linux.intel.c
 Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-APLL_CTL register is configured by the twl4030-codec MFD
-driver.
-Remove code, which makes changes in the APLL_CTL register,
-and replace those with checks against the configured
-audio_mclk configuration done in the MFD driver.
+Hello,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+The following series changes the way how the APLL_CTL register is handled by
+the twl4030 codec related drivers.
+Moving the configuration of APLL_CTL register from child drivers (specifically
+from soc codec driver) to the twl4030-codec MFD driver.
+Because the audio_mclk is static, board specific and can not be changed in
+runtime, the codec MFD is the right place to configure it early enough, so
+child can use the hardware correctly.
+Before this patch for example the APLL_INFREQ was configured first, when the
+user played or recorded audio via the twl4030.
+The digital bypass needs correct APLL_INFREQ to be configured in order to work
+properly. If the digital bypass enabled before any audio activity, in some
+cases the bypassed audio was not correct.
+
+The series also addresses the issue, that after boot-up, neither of the
+loopbacks was working, because the codec was actually off.
+Setting the codec->bias_level to _OFF, before setting the codec bias level to
+STANDBY fixes this issue.
+
+This series is on top of Takashi's sound-2.6 topic/asoc branch, which has the
+twl403-codec MFD and related patches for 2.6.33.
+
+It would be really nice, if this series would make it also to the same branch,
+since this fixes some real anomalies brought in by the cleanup of the twl4030
+codec related drivers.
+These problems were hidden before because of the inconsistent handling of bits
+and states in the codec driver in the past.
+
+Thank you,
+
 ---
- sound/soc/codecs/twl4030.c |   69 ++++++++++++++++---------------------------
- 1 files changed, 26 insertions(+), 43 deletions(-)
+Peter Ujfalusi (5):
+  MFD: TWL4030: Add audio_mclk to the codec platform data
+  OMAP: Configure audio_mclk for twl4030-codec MFD
+  MFD: twl4030-codec: APLL_INFREQ handling in the MFD driver
+  ASoC: TWL4030: Make sure, that the codec is powered on startup
+  ASoC: TWL4030: Do not modify the APLL_CTL register
 
-diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index c0b47df..67cde72 100644
---- a/sound/soc/codecs/twl4030.c
-+++ b/sound/soc/codecs/twl4030.c
-@@ -214,7 +214,8 @@ static void twl4030_init_chip(struct snd_soc_codec *codec)
- 
- 	/* set all audio section registers to reasonable defaults */
- 	for (i = TWL4030_REG_OPTION; i <= TWL4030_REG_MISC_SET_2; i++)
--		twl4030_write(codec, i,	cache[i]);
-+		if (i != TWL4030_REG_APLL_CTL)
-+			twl4030_write(codec, i,	cache[i]);
- 
- }
- 
-@@ -1753,30 +1754,23 @@ static int twl4030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
- {
- 	struct snd_soc_codec *codec = codec_dai->codec;
- 	struct twl4030_priv *twl4030 = codec->private_data;
--	u8 apll_ctrl;
- 
--	apll_ctrl = twl4030_read_reg_cache(codec, TWL4030_REG_APLL_CTL);
--	apll_ctrl &= ~TWL4030_APLL_INFREQ;
- 	switch (freq) {
- 	case 19200000:
--		apll_ctrl |= TWL4030_APLL_INFREQ_19200KHZ;
--		twl4030->sysclk = 19200;
--		break;
- 	case 26000000:
--		apll_ctrl |= TWL4030_APLL_INFREQ_26000KHZ;
--		twl4030->sysclk = 26000;
--		break;
- 	case 38400000:
--		apll_ctrl |= TWL4030_APLL_INFREQ_38400KHZ;
--		twl4030->sysclk = 38400;
- 		break;
- 	default:
--		printk(KERN_ERR "TWL4030 set sysclk: unknown rate %d\n",
--			freq);
-+		dev_err(codec->dev, "Unsupported frequency %u\n", freq);
- 		return -EINVAL;
- 	}
- 
--	twl4030_write(codec, TWL4030_REG_APLL_CTL, apll_ctrl);
-+	if ((freq / 1000) != twl4030->sysclk) {
-+		dev_err(codec->dev,
-+			"Mismatch in APLL infrequency %u (configred: %u)\n",
-+			freq, twl4030->sysclk * 1000);
-+		return -EINVAL;
-+	}
- 
- 	return 0;
- }
-@@ -1874,16 +1868,13 @@ static int twl4030_voice_startup(struct snd_pcm_substream *substream,
- 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
- 	struct snd_soc_device *socdev = rtd->socdev;
- 	struct snd_soc_codec *codec = socdev->card->codec;
--	u8 infreq;
-+	struct twl4030_priv *twl4030 = codec->private_data;
- 	u8 mode;
- 
- 	/* If the system master clock is not 26MHz, the voice PCM interface is
- 	 * not avilable.
- 	 */
--	infreq = twl4030_read_reg_cache(codec, TWL4030_REG_APLL_CTL)
--		& TWL4030_APLL_INFREQ;
--
--	if (infreq != TWL4030_APLL_INFREQ_26000KHZ) {
-+	if (twl4030->sysclk != 26000) {
- 		printk(KERN_ERR "TWL4030 voice startup: "
- 			"MCLK is not 26MHz, call set_sysclk() on init\n");
- 		return -EINVAL;
-@@ -1958,22 +1949,18 @@ static int twl4030_voice_set_dai_sysclk(struct snd_soc_dai *codec_dai,
- 		int clk_id, unsigned int freq, int dir)
- {
- 	struct snd_soc_codec *codec = codec_dai->codec;
--	u8 apll_ctrl;
-+	struct twl4030_priv *twl4030 = codec->private_data;
- 
--	apll_ctrl = twl4030_read_reg_cache(codec, TWL4030_REG_APLL_CTL);
--	apll_ctrl &= ~TWL4030_APLL_INFREQ;
--	switch (freq) {
--	case 26000000:
--		apll_ctrl |= TWL4030_APLL_INFREQ_26000KHZ;
--		break;
--	default:
--		printk(KERN_ERR "TWL4030 voice set sysclk: unknown rate %d\n",
--			freq);
-+	if (freq != 26000000) {
-+		dev_err(codec->dev, "Unsupported frequency %u\n", freq);
-+		return -EINVAL;
-+	}
-+	if ((freq / 1000) != twl4030->sysclk) {
-+		dev_err(codec->dev,
-+			"Mismatch in APLL infrequency %u (configred: %u)\n",
-+			freq, twl4030->sysclk * 1000);
- 		return -EINVAL;
- 	}
--
--	twl4030_write(codec, TWL4030_REG_APLL_CTL, apll_ctrl);
--
- 	return 0;
- }
- 
-@@ -2131,17 +2118,14 @@ static int twl4030_soc_probe(struct platform_device *pdev)
- 	if (setup) {
- 		unsigned char hs_pop;
- 
--		if (setup->sysclk)
--			twl4030->sysclk = setup->sysclk;
--		else
--			twl4030->sysclk = 26000;
-+		if (setup->sysclk != twl4030->sysclk)
-+			dev_warn(&pdev->dev, "sysclk mismatch (%u vs %u)\n",
-+				 twl4030->sysclk, setup->sysclk);
- 
- 		hs_pop = twl4030_read_reg_cache(codec, TWL4030_REG_HS_POPN_SET);
- 		hs_pop &= ~TWL4030_RAMP_DELAY;
- 		hs_pop |= (setup->ramp_delay_value << 2);
- 		twl4030_write_reg_cache(codec, TWL4030_REG_HS_POPN_SET, hs_pop);
--	} else {
--		twl4030->sysclk = 26000;
- 	}
- 
- 	/* register pcms */
-@@ -2191,10 +2175,8 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
- 	struct twl4030_priv *twl4030;
- 	int ret;
- 
--	if (!pdata || !(pdata->audio_mclk == 19200000 ||
--			pdata->audio_mclk == 26000000 ||
--			pdata->audio_mclk == 38400000)) {
--		dev_err(&pdev->dev, "Invalid platform_data\n");
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "platform_data is missing\n");
- 		return -EINVAL;
- 	}
- 
-@@ -2233,6 +2215,7 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
- 	twl4030_codec = codec;
- 
- 	/* Set the defaults, and power up the codec */
-+	twl4030->sysclk = twl4030_codec_get_mclk() / 1000;
- 	twl4030_init_chip(codec);
- 	codec->bias_level = SND_SOC_BIAS_OFF;
- 	twl4030_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
--- 
-1.6.5.2
+ arch/arm/mach-omap2/board-3430sdp.c      |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c  |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c     |    1 +
+ arch/arm/mach-omap2/board-omap3pandora.c |    1 +
+ arch/arm/mach-omap2/board-overo.c        |    1 +
+ arch/arm/mach-omap2/board-zoom2.c        |    1 +
+ drivers/mfd/twl4030-codec.c              |   40 +++++++++++++++++
+ include/linux/i2c/twl4030.h              |    1 +
+ include/linux/mfd/twl4030-codec.h        |    1 +
+ sound/soc/codecs/twl4030.c               |   70 +++++++++++------------------
+ 10 files changed, 75 insertions(+), 43 deletions(-)
