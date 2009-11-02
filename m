@@ -1,55 +1,62 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: EHCI on 2.6.32-rc5-git4 + patches
-Date: Mon, 2 Nov 2009 09:04:09 +0200
-Message-ID: <20091102070409.GA17351@nokia.com>
-References: <4AEC544A.4000304@blueyonder.co.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C86298@dbde02.ent.ti.com>
- <4AECCB34.9010003@blueyonder.co.uk>
- <4551feaf0911010742j6b68113cgb2e4246ca8b26237@mail.gmail.com>
- <4AEE19F4.70000@blueyonder.co.uk>
-Reply-To: felipe.balbi@nokia.com
+From: Mika Westerberg <mika.westerberg@iki.fi>
+Subject: Re: [PATCHv2 1/3] OMAP UART: Add omap-serial driver support.
+Date: Mon, 2 Nov 2009 09:20:18 +0200
+Message-ID: <20091102072018.GC31062@gw.healthdatacare.com>
+References: <35817.192.168.10.88.1256713979.squirrel@dbdmail.itg.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:61160 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751015AbZKBHFR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 02:05:17 -0500
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:48283 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875AbZKBHUR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 02:20:17 -0500
+Received: by bwz27 with SMTP id 27so5941804bwz.21
+        for <linux-omap@vger.kernel.org>; Sun, 01 Nov 2009 23:20:21 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <4AEE19F4.70000@blueyonder.co.uk>
+In-Reply-To: <35817.192.168.10.88.1256713979.squirrel@dbdmail.itg.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: ext Sid Boyce <sboyce@blueyonder.co.uk>
-Cc: Robert Nelson <robertcnelson@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Govindraj.R" <govindraj.raja@ti.com>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Nov 02, 2009 at 12:29:56AM +0100, ext Sid Boyce wrote:
-> On 01/11/09 15:42, Robert Nelson wrote:
-> >> I am tried "beagleboard_defconfig" I downloaded, but when the .config
-> >> was written at the start of the kernel build ....
-> >> # CONFIG_USB_ARCH_HAS_EHCI is not set.
-> >> " make CROSS_COMPILE=/opt/arm-2009q1/bin/arm-none-linux-gnueabi-" on
-> >> Fedora 12.
-> >> Regards
-> >> Sid.
-> > 
-> > Hi Sid,
-> > 
-> > You need atleast the "ehci glue commit" from here to enable the option:
-> > 
-> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=shortlog;h=refs/heads/ehci
-> > 
-> > Regards,
-> > 
+Hi,
+
+On Wed, Oct 28, 2009 at 12:42:59PM +0530, Govindraj.R wrote:
+> >From a3f0e5a13c1bc5046110cae513878183df2215c6 Mon Sep 17 00:00:00 2001
+> From: Govindraj R <govindraj.raja@ti.com>
+> Date: Wed, 28 Oct 2009 12:21:03 +0530
+> Subject: [PATCHv2 1/3] OMAP UART: Add omap-serial driver support.
 > 
-> I've used the "Merge EHCI" snapshot, but guess there is something not
-> right in my .config.
->   CC      drivers/usb/musb/musb_core.o
-> In file included from drivers/usb/musb/musb_core.c:108:
-> drivers/usb/musb/musb_core.h:94:2: error: #error bogus Kconfig output
-> ... select CONFIG_USB_GADGET_MUSB_HDRC
+> This patch adds support for OMAP3430-HIGH SPEED UART Controller.
+> 
+> Signed-off-by: Govindraj R <govindraj.raja@ti.com>
+> ---
+>  arch/arm/plat-omap/include/plat/omap-serial.h |  155 +++
+>  drivers/serial/Kconfig                        |   23 +
+>  drivers/serial/Makefile                       |    1 +
+>  drivers/serial/omap-serial.c                  | 1778 +++++++++++++++++++++++++
+>  include/linux/serial_core.h                   |    3 +
+>  5 files changed, 1960 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/plat-omap/include/plat/omap-serial.h
+>  create mode 100644 drivers/serial/omap-serial.c
 
-Go to gadget support and select Inventra MUSB on "USB Peripheral
-Controller"
+One thing that I noticed with this driver is that it causes
+huge amount of interrupts on my OMAP3430 (don't know whether
+it is intentional, however):
 
--- 
-balbi
+# grep 'OMAP UART3' /proc/interrupts
+ 74:       9630        INTC  OMAP UART3
+# grep 'OMAP UART3' /proc/interrupts
+ 74:       9869        INTC  OMAP UART3
+# grep 'OMAP UART3' /proc/interrupts
+ 74:      10094        INTC  OMAP UART3
+# grep 'OMAP UART3' /proc/interrupts
+ 74:      10334        INTC  OMAP UART3
+# grep 'OMAP UART3' /proc/interrupts
+ 74:      10574        INTC  OMAP UART3
+
+I didn't investigate this further but this didn't happen
+with the old driver.
+
+Br,
+MW
