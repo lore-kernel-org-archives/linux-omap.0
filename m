@@ -1,61 +1,58 @@
-From: "G, Manjunath Kondaiah" <manjugk@ti.com>
-Subject: RE: [PATCH] [OMAP3_PM] Fix zoom2 defconfig build
-Date: Mon, 2 Nov 2009 13:29:24 +0530
-Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E9402540378B3@dbde02.ent.ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH] [OMAP3_PM] Fix zoom2 defconfig build
+Date: Mon, 02 Nov 2009 10:26:10 +0200
+Message-ID: <1257150370.29885.986.camel@localhost>
 References: <1257148563-18604-1-git-send-email-manjugk@ti.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37699 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754047AbZKBH7Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 02:59:24 -0500
+Received: from smtp.nokia.com ([192.100.105.134]:18653 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754072AbZKBI0g (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 03:26:36 -0500
 In-Reply-To: <1257148563-18604-1-git-send-email-manjugk@ti.com>
-Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "G, Manjunath Kondaiah" <manjugk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+To: manjugk@ti.com
+Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
 
-It looks like config issue with git-send-email on my system.
-
-Here is Patch Description:
- The CONFIG_DEBUG_FS is not enabled in omap_zoom2_defconfig which
- is breaking zoom2 defconfig build in linux-omap-pm(pm branch).
- This patch fixes build issue and kernel booting is also tested
- on zoom2.
-
-> -----Original Message-----
-> From: G, Manjunath Kondaiah 
-> Sent: Monday, November 02, 2009 1:26 PM
-> To: linux-omap@vger.kernel.org
-> Cc: khilman@deeprootsystems.com; G, Manjunath Kondaiah
-> Subject: [PATCH] [OMAP3_PM] Fix zoom2 defconfig build
-> 
+On Mon, 2009-11-02 at 13:26 +0530, manjugk@ti.com wrote:
 > From: Manjunatha GK <manjugk@ti.com>
-> 
-> 
+>=20
+>=20
 > Signed-off-by: Manjunatha GK <manjugk@ti.com>
 > ---
 >  arch/arm/configs/omap_zoom2_defconfig |    2 +-
 >  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/configs/omap_zoom2_defconfig 
-> b/arch/arm/configs/omap_zoom2_defconfig
+>=20
+> diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs=
+/omap_zoom2_defconfig
 > index f1739fa..8ca835a 100644
 > --- a/arch/arm/configs/omap_zoom2_defconfig
 > +++ b/arch/arm/configs/omap_zoom2_defconfig
-> @@ -1350,7 +1350,7 @@ CONFIG_ENABLE_MUST_CHECK=y
->  CONFIG_FRAME_WARN=1024
->  CONFIG_MAGIC_SYSRQ=y
+> @@ -1350,7 +1350,7 @@ CONFIG_ENABLE_MUST_CHECK=3Dy
+>  CONFIG_FRAME_WARN=3D1024
+>  CONFIG_MAGIC_SYSRQ=3Dy
 >  # CONFIG_UNUSED_SYMBOLS is not set
 > -# CONFIG_DEBUG_FS is not set
-> +CONFIG_DEBUG_FS=y
+> +CONFIG_DEBUG_FS=3Dy
 >  # CONFIG_HEADERS_CHECK is not set
->  CONFIG_DEBUG_KERNEL=y
+>  CONFIG_DEBUG_KERNEL=3Dy
 >  # CONFIG_DEBUG_SHIRQ is not set
-> -- 
-> 1.6.0.4
-> 
-> 
+
+It is nicer to provide the build failure log. But if this is a build
+failure, this means there is a problem with Kconfig dependency, which
+should be fixed properly, not hidden.
+
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
