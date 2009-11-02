@@ -1,49 +1,66 @@
-From: Alexander Shishkin <virtuoso@slind.org>
-Subject: Re: [PATCH] omap: 3630: update is_chip variable
-Date: Mon, 2 Nov 2009 20:28:31 +0200
-Message-ID: <20091102182831.GD15200@shisha.kicks-ass.net>
-References: <1255989491-27088-1-git-send-email-vikram.pandita@ti.com>
- <71a0d6ff0911020905u7879b332x53d01f43b5888307@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/1] PM: Making bdi threads non-freezable
+Date: Mon, 2 Nov 2009 19:43:49 +0100
+Message-ID: <200911021943.49943.rjw@sisk.pl>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE1EBC66@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp4.welho.com ([213.243.153.38]:45585 "EHLO smtp4.welho.com"
+Received: from ogre.sisk.pl ([217.79.144.158]:39271 "EHLO ogre.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756224AbZKBSkG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 2 Nov 2009 13:40:06 -0500
-Content-Disposition: inline
-In-Reply-To: <71a0d6ff0911020905u7879b332x53d01f43b5888307@mail.gmail.com>
+	id S1755788AbZKBSly (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Nov 2009 13:41:54 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE1EBC66@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
-Cc: linux-omap@vger.kernel.org, nm@ti.com
+To: "Dasgupta, Romit" <romit@ti.com>
+Cc: "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Mon, Nov 02, 2009 at 07:05:49PM +0200, Alexander Shishkin wrote:
-> 2009/10/20 Vikram Pandita <vikram.pandita@ti.com>:
-> > 3630 is getting treated like next rev of 3430
-> > omap_chip.oc variable has to be updated for 3630 version
-> >
-> > Otherwise the Core power domain is not getting registered.
-> >
-> > This gets used in the registration of power domains in:
-> > "arch/arm/mach-omap2/powerdomains34xx.h"
-> > core_34xx_es3_1_pwrdm
-> > OMAP_CHIP_INIT(CHIP_GE_OMAP3430ES3_1)
-> >
-> > Core power doman will get registered for 3630 only when .oc is pouplated
-> > correctly.
-> >
-> > Tested on Zoom3(3630) board
-> >
-> > Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> FWIW,
-> 
-> Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
+On Monday 02 November 2009, Dasgupta, Romit wrote:
+> Fixes the case when bdi threads are in the refrigerator but file system sync
+> can happen after this. This is possible in MMC when CONFIG_MMC_UNSAFE_RESUME is
+> not set.
 
-Please excuse me, I obviously wanted to say
+What's going to happen if we attemt to suspend the underlying block device(s)
+when the bdi thread are doing their job?  Is there any synchronisation
+mechanism for that?
 
-Acked-by: Alexander Shishkin <virtuoso@slind.org>
+Rafael
 
-Regards,
---
-Alex
+
+> Signed-off-by: Romit Dasgupta <romit@ti.com>
+> ---
+>  
+> diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
+> index 9d5360c..661229d 100644
+> --- a/fs/fs-writeback.c
+> +++ b/fs/fs-writeback.c
+> @@ -956,7 +956,6 @@ int bdi_writeback_task(struct bdi_writeback *wb)
+>  
+>  		wait_jiffies = msecs_to_jiffies(dirty_writeback_interval * 10);
+>  		schedule_timeout_interruptible(wait_jiffies);
+> -		try_to_freeze();
+>  	}
+>  
+>  	return 0;
+> diff --git a/mm/backing-dev.c b/mm/backing-dev.c
+> index 5a37e20..9383271 100644
+> --- a/mm/backing-dev.c
+> +++ b/mm/backing-dev.c
+> @@ -273,7 +273,6 @@ static void bdi_task_init(struct backing_dev_info *bdi,
+>  	spin_unlock(&bdi->wb_lock);
+>  
+>  	tsk->flags |= PF_FLUSHER | PF_SWAPWRITE;
+> -	set_freezable();
+>  
+>  	/*
+>  	 * Our parent may run at a different priority, just set us to normal
+> @@ -419,7 +418,6 @@ static int bdi_forker_task(void *ptr)
+>  			spin_unlock_bh(&bdi_lock);
+>  			wait = msecs_to_jiffies(dirty_writeback_interval * 10);
+>  			schedule_timeout(wait);
+> -			try_to_freeze();
+>  			continue;
+>  		}
