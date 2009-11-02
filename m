@@ -1,58 +1,51 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH] [OMAP3_PM] Fix zoom2 defconfig build
-Date: Mon, 02 Nov 2009 10:26:10 +0200
-Message-ID: <1257150370.29885.986.camel@localhost>
+From: "G, Manjunath Kondaiah" <manjugk@ti.com>
+Subject: RE: [PATCH] [OMAP3_PM] Fix zoom2 defconfig build
+Date: Mon, 2 Nov 2009 14:30:23 +0530
+Message-ID: <E0D41E29EB0DAC4E9F3FF173962E9E940254037933@dbde02.ent.ti.com>
 References: <1257148563-18604-1-git-send-email-manjugk@ti.com>
-Reply-To: dedekind1@gmail.com
+ <1257150370.29885.986.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:18653 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072AbZKBI0g (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 03:26:36 -0500
-In-Reply-To: <1257148563-18604-1-git-send-email-manjugk@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46003 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753980AbZKBJAZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Nov 2009 04:00:25 -0500
+In-Reply-To: <1257150370.29885.986.camel@localhost>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: manjugk@ti.com
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com
+To: "dedekind1@gmail.com" <dedekind1@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
 
-On Mon, 2009-11-02 at 13:26 +0530, manjugk@ti.com wrote:
-> From: Manjunatha GK <manjugk@ti.com>
->=20
->=20
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> ---
->  arch/arm/configs/omap_zoom2_defconfig |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->=20
-> diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs=
-/omap_zoom2_defconfig
-> index f1739fa..8ca835a 100644
-> --- a/arch/arm/configs/omap_zoom2_defconfig
-> +++ b/arch/arm/configs/omap_zoom2_defconfig
-> @@ -1350,7 +1350,7 @@ CONFIG_ENABLE_MUST_CHECK=3Dy
->  CONFIG_FRAME_WARN=3D1024
->  CONFIG_MAGIC_SYSRQ=3Dy
->  # CONFIG_UNUSED_SYMBOLS is not set
-> -# CONFIG_DEBUG_FS is not set
-> +CONFIG_DEBUG_FS=3Dy
->  # CONFIG_HEADERS_CHECK is not set
->  CONFIG_DEBUG_KERNEL=3Dy
->  # CONFIG_DEBUG_SHIRQ is not set
-
-It is nicer to provide the build failure log. But if this is a build
-failure, this means there is a problem with Kconfig dependency, which
-should be fixed properly, not hidden.
-
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DQo+ID4gLS0tIGEvYXJjaC9hcm0vY29uZmlncy9vbWFwX3pvb20yX2RlZmNvbmZpZw0KPiA+ICsr
+KyBiL2FyY2gvYXJtL2NvbmZpZ3Mvb21hcF96b29tMl9kZWZjb25maWcNCj4gPiBAQCAtMTM1MCw3
+ICsxMzUwLDcgQEAgQ09ORklHX0VOQUJMRV9NVVNUX0NIRUNLPXkNCj4gPiAgQ09ORklHX0ZSQU1F
+X1dBUk49MTAyNA0KPiA+ICBDT05GSUdfTUFHSUNfU1lTUlE9eQ0KPiA+ICAjIENPTkZJR19VTlVT
+RURfU1lNQk9MUyBpcyBub3Qgc2V0DQo+ID4gLSMgQ09ORklHX0RFQlVHX0ZTIGlzIG5vdCBzZXQN
+Cj4gPiArQ09ORklHX0RFQlVHX0ZTPXkNCj4gPiAgIyBDT05GSUdfSEVBREVSU19DSEVDSyBpcyBu
+b3Qgc2V0DQo+ID4gIENPTkZJR19ERUJVR19LRVJORUw9eQ0KPiA+ICAjIENPTkZJR19ERUJVR19T
+SElSUSBpcyBub3Qgc2V0DQo+IA0KPiBJdCBpcyBuaWNlciB0byBwcm92aWRlIHRoZSBidWlsZCBm
+YWlsdXJlIGxvZy4gQnV0IGlmIHRoaXMgaXMgYSBidWlsZA0KPiBmYWlsdXJlLCB0aGlzIG1lYW5z
+IHRoZXJlIGlzIGEgcHJvYmxlbSB3aXRoIEtjb25maWcgZGVwZW5kZW5jeSwgd2hpY2gNCj4gc2hv
+dWxkIGJlIGZpeGVkIHByb3Blcmx5LCBub3QgaGlkZGVuLg0KDQpIZXJlIGlzIGJ1aWxkIGZhaWx1
+cmUgbG9nOg0KICBNT0RQT1NUIHZtbGludXgubw0KV0FSTklORzogbW9kcG9zdDogRm91bmQgMSBz
+ZWN0aW9uIG1pc21hdGNoKGVzKS4NClRvIHNlZSBmdWxsIGRldGFpbHMgYnVpbGQgeW91ciBrZXJu
+ZWwgd2l0aDoNCidtYWtlIENPTkZJR19ERUJVR19TRUNUSU9OX01JU01BVENIPXknDQogIEdFTiAg
+ICAgLnZlcnNpb24NCiAgQ0hLICAgICBpbmNsdWRlL2xpbnV4L2NvbXBpbGUuaA0KICBVUEQgICAg
+IGluY2x1ZGUvbGludXgvY29tcGlsZS5oDQogIENDICAgICAgaW5pdC92ZXJzaW9uLm8NCiAgTEQg
+ICAgICBpbml0L2J1aWx0LWluLm8NCiAgTEQgICAgICAudG1wX3ZtbGludXgxDQphcmNoL2FybS9t
+YWNoLW9tYXAyL2J1aWx0LWluLm86IEluIGZ1bmN0aW9uIGBvbWFwX3NyYW1faWRsZSc6DQovaG9t
+ZS9tYW5qdS9jbG9uZXMvZ2l0L2xpbnV4LW9tYXAtcG0vYXJjaC9hcm0vbWFjaC1vbWFwMi9wbTM0
+eHguYzo0NDE6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYHBtX2RiZ19yZWdzZXRfc2F2ZScNCi9o
+b21lL21hbmp1L2Nsb25lcy9naXQvbGludXgtb21hcC1wbS9hcmNoL2FybS9tYWNoLW9tYXAyL3Bt
+MzR4eC5jOjQ1MjogdW5kZWZpbmVkIHJlZmVyZW5jZSB0byBgcG1fZGJnX3JlZ3NldF9zYXZlJw0K
+YXJjaC9hcm0vbWFjaC1vbWFwMi9idWlsdC1pbi5vOiBJbiBmdW5jdGlvbiBgY29uZmlndXJlX3Zj
+JzoNCi9ob21lL21hbmp1L2Nsb25lcy9naXQvbGludXgtb21hcC1wbS9hcmNoL2FybS9tYWNoLW9t
+YXAyL3BtMzR4eC5jOjEyMjY6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYHBtX2RiZ19yZWdzZXRf
+aW5pdCcNCi9ob21lL21hbmp1L2Nsb25lcy9naXQvbGludXgtb21hcC1wbS9hcmNoL2FybS9tYWNo
+LW9tYXAyL3BtMzR4eC5jOjEyMjc6IHVuZGVmaW5lZCByZWZlcmVuY2UgdG8gYHBtX2RiZ19yZWdz
+ZXRfaW5pdCcNCm1ha2U6ICoqKiBbLnRtcF92bWxpbnV4MV0gRXJyb3IgMQ0KDQpUaGUgYWJvdmUg
+dHdvIEFQSSdzIGFyZSB1bmRlciBDT05GSUdfREVCVUdfRlMgZmxhZyBpbiBhcmNoL2FybS9tYWNo
+LW9tYXAyL3BtLWRlYnVnLmMNCg0KLU1hbmp1bmF0aA0K
