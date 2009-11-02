@@ -1,42 +1,55 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the sound tree with the  tree
-Date: Mon, 2 Nov 2009 12:22:22 +1100
-Message-ID: <20091102122222.542dac88.sfr@canb.auug.org.au>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: EHCI on 2.6.32-rc5-git4 + patches
+Date: Mon, 2 Nov 2009 09:04:09 +0200
+Message-ID: <20091102070409.GA17351@nokia.com>
+References: <4AEC544A.4000304@blueyonder.co.uk>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0309C86298@dbde02.ent.ti.com>
+ <4AECCB34.9010003@blueyonder.co.uk>
+ <4551feaf0911010742j6b68113cgb2e4246ca8b26237@mail.gmail.com>
+ <4AEE19F4.70000@blueyonder.co.uk>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, Mike Rapoport <mike@compulab.co.il>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:61160 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751015AbZKBHFR (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 02:05:17 -0500
+Content-Disposition: inline
+In-Reply-To: <4AEE19F4.70000@blueyonder.co.uk>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Sid Boyce <sboyce@blueyonder.co.uk>
+Cc: Robert Nelson <robertcnelson@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Takashi,
+On Mon, Nov 02, 2009 at 12:29:56AM +0100, ext Sid Boyce wrote:
+> On 01/11/09 15:42, Robert Nelson wrote:
+> >> I am tried "beagleboard_defconfig" I downloaded, but when the .config
+> >> was written at the start of the kernel build ....
+> >> # CONFIG_USB_ARCH_HAS_EHCI is not set.
+> >> " make CROSS_COMPILE=/opt/arm-2009q1/bin/arm-none-linux-gnueabi-" on
+> >> Fedora 12.
+> >> Regards
+> >> Sid.
+> > 
+> > Hi Sid,
+> > 
+> > You need atleast the "ehci glue commit" from here to enable the option:
+> > 
+> > http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=shortlog;h=refs/heads/ehci
+> > 
+> > Regards,
+> > 
+> 
+> I've used the "Merge EHCI" snapshot, but guess there is something not
+> right in my .config.
+>   CC      drivers/usb/musb/musb_core.o
+> In file included from drivers/usb/musb/musb_core.c:108:
+> drivers/usb/musb/musb_core.h:94:2: error: #error bogus Kconfig output
+> ... select CONFIG_USB_GADGET_MUSB_HDRC
 
-Today's linux-next merge of the sound tree got a conflict in
-arch/arm/mach-omap2/board-omap3evm.c between commit
-fa48a99192e3ee862f6d26c5248347c772b33b84 ("omap3: evm: initialize vmmc
-and vmmc_aux regulators") from the omap tree and commit
-f8d9aad96d0d7b57d0bf2e4de21fdda3a42f4449 ("OMAP: Platform support for
-twl4030_codec MFD") from the sound tree.
+Go to gadget support and select Inventra MUSB on "USB Peripheral
+Controller"
 
-Just overlapping additions.  I fixed it up (see below) and can carry the
-fix as necessary.
 -- 
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-
-diff --cc arch/arm/mach-omap2/board-omap3evm.c
-index 660ef8c,d9a6103..0000000
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@@ -247,8 -211,7 +255,9 @@@ static struct twl4030_platform_data oma
-  	.madc		= &omap3evm_madc_data,
-  	.usb		= &omap3evm_usb_data,
-  	.gpio		= &omap3evm_gpio_data,
- +	.vmmc1		= &omap3evm_vmmc1,
- +	.vsim		= &omap3evm_vsim,
-+ 	.codec		= &omap3evm_codec_data,
-  };
-  
-  static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+balbi
