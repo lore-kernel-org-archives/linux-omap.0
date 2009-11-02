@@ -1,68 +1,186 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH v2] [OMAP3_PM] Fix omap zoom2 defconfig build error
-Date: Mon, 2 Nov 2009 17:04:25 +0530
-Message-ID: <ce9ab5790911020334n17facc07t87de82683d84a922@mail.gmail.com>
-References: <1257160880-13641-1-git-send-email-manjugk@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: [PATCH 5/5] ASoC: TWL4030: Do not modify the APLL_CTL
+	register
+Date: Mon,  2 Nov 2009 14:34:55 +0200
+Message-ID: <1257165295-9352-6-git-send-email-peter.ujfalusi@nokia.com>
+References: <1257165295-9352-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1257165295-9352-2-git-send-email-peter.ujfalusi@nokia.com>
+	<1257165295-9352-3-git-send-email-peter.ujfalusi@nokia.com>
+	<1257165295-9352-4-git-send-email-peter.ujfalusi@nokia.com>
+	<1257165295-9352-5-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:57155 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754335AbZKBLel convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 06:34:41 -0500
-Received: by bwz27 with SMTP id 27so6179977bwz.21
-        for <linux-omap@vger.kernel.org>; Mon, 02 Nov 2009 03:34:45 -0800 (PST)
-In-Reply-To: <1257160880-13641-1-git-send-email-manjugk@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1257165295-9352-5-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, sameo@linux.intel.com
+Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: manjugk@ti.com
-Cc: linux-omap@vger.kernel.org, khilman@deeprootsystems.com, dedekind1@gmail.com, felipe.balbi@nokia.com
 
-On Mon, Nov 2, 2009 at 4:51 PM,  <manjugk@ti.com> wrote:
-> From: Manjunatha GK <manjugk@ti.com>
->
-> The omap zoom2 defconfig build breaks on linux-omap-pm(with pm branch=
-)
-> when CONFIG_DEBUG_FS is not enabled. This patch fixes the build issue=
-=2E
-> Kernel booting tested on omap zoom2 board.
->
-> Signed-off-by: Manjunatha GK <manjugk@ti.com>
-> ---
-> =A0arch/arm/mach-omap2/pm-debug.c | =A0 =A02 ++
-> =A01 files changed, 2 insertions(+), 0 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-=
-debug.c
-> index 767ebbc..3a42615 100644
-> --- a/arch/arm/mach-omap2/pm-debug.c
-> +++ b/arch/arm/mach-omap2/pm-debug.c
-> @@ -625,4 +625,6 @@ arch_initcall(pm_dbg_init);
->
-> =A0#else
-> =A0void pm_dbg_update_time(struct powerdomain *pwrdm, int prev) {}
-> +int pm_dbg_regset_init(int reg_set) {}
-> +int pm_dbg_regset_save(int reg_set) {}
+APLL_CTL register is configured by the twl4030-codec MFD
+driver.
+Remove code, which makes changes in the APLL_CTL register,
+and replace those with checks against the configured
+audio_mclk configuration done in the MFD driver.
 
-'return 0' to avoid compilation warning...
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+---
+ sound/soc/codecs/twl4030.c |   69 ++++++++++++++++---------------------------
+ 1 files changed, 26 insertions(+), 43 deletions(-)
 
---=20
-Regards,
-Vimal Singh
-
-> =A0#endif
-> --
-> 1.6.0.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
+index c0b47df..67cde72 100644
+--- a/sound/soc/codecs/twl4030.c
++++ b/sound/soc/codecs/twl4030.c
+@@ -214,7 +214,8 @@ static void twl4030_init_chip(struct snd_soc_codec *codec)
+ 
+ 	/* set all audio section registers to reasonable defaults */
+ 	for (i = TWL4030_REG_OPTION; i <= TWL4030_REG_MISC_SET_2; i++)
+-		twl4030_write(codec, i,	cache[i]);
++		if (i != TWL4030_REG_APLL_CTL)
++			twl4030_write(codec, i,	cache[i]);
+ 
+ }
+ 
+@@ -1753,30 +1754,23 @@ static int twl4030_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+ {
+ 	struct snd_soc_codec *codec = codec_dai->codec;
+ 	struct twl4030_priv *twl4030 = codec->private_data;
+-	u8 apll_ctrl;
+ 
+-	apll_ctrl = twl4030_read_reg_cache(codec, TWL4030_REG_APLL_CTL);
+-	apll_ctrl &= ~TWL4030_APLL_INFREQ;
+ 	switch (freq) {
+ 	case 19200000:
+-		apll_ctrl |= TWL4030_APLL_INFREQ_19200KHZ;
+-		twl4030->sysclk = 19200;
+-		break;
+ 	case 26000000:
+-		apll_ctrl |= TWL4030_APLL_INFREQ_26000KHZ;
+-		twl4030->sysclk = 26000;
+-		break;
+ 	case 38400000:
+-		apll_ctrl |= TWL4030_APLL_INFREQ_38400KHZ;
+-		twl4030->sysclk = 38400;
+ 		break;
+ 	default:
+-		printk(KERN_ERR "TWL4030 set sysclk: unknown rate %d\n",
+-			freq);
++		dev_err(codec->dev, "Unsupported frequency %u\n", freq);
+ 		return -EINVAL;
+ 	}
+ 
+-	twl4030_write(codec, TWL4030_REG_APLL_CTL, apll_ctrl);
++	if ((freq / 1000) != twl4030->sysclk) {
++		dev_err(codec->dev,
++			"Mismatch in APLL infrequency %u (configred: %u)\n",
++			freq, twl4030->sysclk * 1000);
++		return -EINVAL;
++	}
+ 
+ 	return 0;
+ }
+@@ -1874,16 +1868,13 @@ static int twl4030_voice_startup(struct snd_pcm_substream *substream,
+ 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+ 	struct snd_soc_device *socdev = rtd->socdev;
+ 	struct snd_soc_codec *codec = socdev->card->codec;
+-	u8 infreq;
++	struct twl4030_priv *twl4030 = codec->private_data;
+ 	u8 mode;
+ 
+ 	/* If the system master clock is not 26MHz, the voice PCM interface is
+ 	 * not avilable.
+ 	 */
+-	infreq = twl4030_read_reg_cache(codec, TWL4030_REG_APLL_CTL)
+-		& TWL4030_APLL_INFREQ;
+-
+-	if (infreq != TWL4030_APLL_INFREQ_26000KHZ) {
++	if (twl4030->sysclk != 26000) {
+ 		printk(KERN_ERR "TWL4030 voice startup: "
+ 			"MCLK is not 26MHz, call set_sysclk() on init\n");
+ 		return -EINVAL;
+@@ -1958,22 +1949,18 @@ static int twl4030_voice_set_dai_sysclk(struct snd_soc_dai *codec_dai,
+ 		int clk_id, unsigned int freq, int dir)
+ {
+ 	struct snd_soc_codec *codec = codec_dai->codec;
+-	u8 apll_ctrl;
++	struct twl4030_priv *twl4030 = codec->private_data;
+ 
+-	apll_ctrl = twl4030_read_reg_cache(codec, TWL4030_REG_APLL_CTL);
+-	apll_ctrl &= ~TWL4030_APLL_INFREQ;
+-	switch (freq) {
+-	case 26000000:
+-		apll_ctrl |= TWL4030_APLL_INFREQ_26000KHZ;
+-		break;
+-	default:
+-		printk(KERN_ERR "TWL4030 voice set sysclk: unknown rate %d\n",
+-			freq);
++	if (freq != 26000000) {
++		dev_err(codec->dev, "Unsupported frequency %u\n", freq);
++		return -EINVAL;
++	}
++	if ((freq / 1000) != twl4030->sysclk) {
++		dev_err(codec->dev,
++			"Mismatch in APLL infrequency %u (configred: %u)\n",
++			freq, twl4030->sysclk * 1000);
+ 		return -EINVAL;
+ 	}
+-
+-	twl4030_write(codec, TWL4030_REG_APLL_CTL, apll_ctrl);
+-
+ 	return 0;
+ }
+ 
+@@ -2131,17 +2118,14 @@ static int twl4030_soc_probe(struct platform_device *pdev)
+ 	if (setup) {
+ 		unsigned char hs_pop;
+ 
+-		if (setup->sysclk)
+-			twl4030->sysclk = setup->sysclk;
+-		else
+-			twl4030->sysclk = 26000;
++		if (setup->sysclk != twl4030->sysclk)
++			dev_warn(&pdev->dev, "sysclk mismatch (%u vs %u)\n",
++				 twl4030->sysclk, setup->sysclk);
+ 
+ 		hs_pop = twl4030_read_reg_cache(codec, TWL4030_REG_HS_POPN_SET);
+ 		hs_pop &= ~TWL4030_RAMP_DELAY;
+ 		hs_pop |= (setup->ramp_delay_value << 2);
+ 		twl4030_write_reg_cache(codec, TWL4030_REG_HS_POPN_SET, hs_pop);
+-	} else {
+-		twl4030->sysclk = 26000;
+ 	}
+ 
+ 	/* register pcms */
+@@ -2191,10 +2175,8 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+ 	struct twl4030_priv *twl4030;
+ 	int ret;
+ 
+-	if (!pdata || !(pdata->audio_mclk == 19200000 ||
+-			pdata->audio_mclk == 26000000 ||
+-			pdata->audio_mclk == 38400000)) {
+-		dev_err(&pdev->dev, "Invalid platform_data\n");
++	if (!pdata) {
++		dev_err(&pdev->dev, "platform_data is missing\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -2233,6 +2215,7 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+ 	twl4030_codec = codec;
+ 
+ 	/* Set the defaults, and power up the codec */
++	twl4030->sysclk = twl4030_codec_get_mclk() / 1000;
+ 	twl4030_init_chip(codec);
+ 	codec->bias_level = SND_SOC_BIAS_OFF;
+ 	twl4030_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
+-- 
+1.6.5.2
