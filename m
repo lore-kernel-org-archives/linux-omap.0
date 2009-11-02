@@ -1,17 +1,14 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH 4/5] ASoC: TWL4030: Make sure,
-	that the codec is powered on startup
-Date: Mon,  2 Nov 2009 14:34:54 +0200
-Message-ID: <1257165295-9352-5-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCH 1/5] MFD: TWL4030: Add audio_mclk to the codec
+	platform data
+Date: Mon,  2 Nov 2009 14:34:51 +0200
+Message-ID: <1257165295-9352-2-git-send-email-peter.ujfalusi@nokia.com>
 References: <1257165295-9352-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1257165295-9352-2-git-send-email-peter.ujfalusi@nokia.com>
-	<1257165295-9352-3-git-send-email-peter.ujfalusi@nokia.com>
-	<1257165295-9352-4-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1257165295-9352-4-git-send-email-peter.ujfalusi@nokia.com>
+In-Reply-To: <1257165295-9352-1-git-send-email-peter.ujfalusi@nokia.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -25,25 +22,24 @@ To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, sameo@linux.intel.c
 Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Set the codec->bias_level to SND_SOC_BIAS_OFF before changing
-the initial bias level to STANDBY.
+Add audio_mclk to the twl4030-codec MFD
 
 Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
 ---
- sound/soc/codecs/twl4030.c |    1 +
+ include/linux/i2c/twl4030.h |    1 +
  1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/sound/soc/codecs/twl4030.c b/sound/soc/codecs/twl4030.c
-index f9121ef..c0b47df 100644
---- a/sound/soc/codecs/twl4030.c
-+++ b/sound/soc/codecs/twl4030.c
-@@ -2234,6 +2234,7 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 42d6c72..c188961 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -414,6 +414,7 @@ struct twl4030_codec_vibra_data {
+ };
  
- 	/* Set the defaults, and power up the codec */
- 	twl4030_init_chip(codec);
-+	codec->bias_level = SND_SOC_BIAS_OFF;
- 	twl4030_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
- 
- 	ret = snd_soc_register_codec(codec);
+ struct twl4030_codec_data {
++	unsigned int	audio_mclk;
+ 	struct twl4030_codec_audio_data		*audio;
+ 	struct twl4030_codec_vibra_data		*vibra;
+ };
 -- 
 1.6.5.2
