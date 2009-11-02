@@ -1,57 +1,39 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: [PATCH 1/1] PM: Making bdi threads non-freezable
-Date: Mon, 2 Nov 2009 16:33:42 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE1EBC66@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: manjugk@ti.com
+Subject: [PATCH v2] [OMAP3_PM] Fix omap zoom2 defconfig build error
+Date: Mon,  2 Nov 2009 16:51:20 +0530
+Message-ID: <1257160880-13641-1-git-send-email-manjugk@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55616 "EHLO bear.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:54232 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754213AbZKBLEH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 06:04:07 -0500
-Content-Language: en-US
+	id S1754472AbZKBLV2 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 2 Nov 2009 06:21:28 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "rjw@sisk.pl" <rjw@sisk.pl>
-Cc: "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: khilman@deeprootsystems.com, dedekind1@gmail.com, felipe.balbi@nokia.com, Manjunatha GK <manjugk@ti.com>
 
-Fixes the case when bdi threads are in the refrigerator but file system sync
-can happen after this. This is possible in MMC when CONFIG_MMC_UNSAFE_RESUME is
-not set.
+From: Manjunatha GK <manjugk@ti.com>
 
-Signed-off-by: Romit Dasgupta <romit@ti.com>
+The omap zoom2 defconfig build breaks on linux-omap-pm(with pm branch)
+when CONFIG_DEBUG_FS is not enabled. This patch fixes the build issue.
+Kernel booting tested on omap zoom2 board.
+
+Signed-off-by: Manjunatha GK <manjugk@ti.com>
 ---
+ arch/arm/mach-omap2/pm-debug.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm-debug.c b/arch/arm/mach-omap2/pm-debug.c
+index 767ebbc..3a42615 100644
+--- a/arch/arm/mach-omap2/pm-debug.c
++++ b/arch/arm/mach-omap2/pm-debug.c
+@@ -625,4 +625,6 @@ arch_initcall(pm_dbg_init);
  
-diff --git a/fs/fs-writeback.c b/fs/fs-writeback.c
-index 9d5360c..661229d 100644
---- a/fs/fs-writeback.c
-+++ b/fs/fs-writeback.c
-@@ -956,7 +956,6 @@ int bdi_writeback_task(struct bdi_writeback *wb)
- 
- 		wait_jiffies = msecs_to_jiffies(dirty_writeback_interval * 10);
- 		schedule_timeout_interruptible(wait_jiffies);
--		try_to_freeze();
- 	}
- 
- 	return 0;
-diff --git a/mm/backing-dev.c b/mm/backing-dev.c
-index 5a37e20..9383271 100644
---- a/mm/backing-dev.c
-+++ b/mm/backing-dev.c
-@@ -273,7 +273,6 @@ static void bdi_task_init(struct backing_dev_info *bdi,
- 	spin_unlock(&bdi->wb_lock);
- 
- 	tsk->flags |= PF_FLUSHER | PF_SWAPWRITE;
--	set_freezable();
- 
- 	/*
- 	 * Our parent may run at a different priority, just set us to normal
-@@ -419,7 +418,6 @@ static int bdi_forker_task(void *ptr)
- 			spin_unlock_bh(&bdi_lock);
- 			wait = msecs_to_jiffies(dirty_writeback_interval * 10);
- 			schedule_timeout(wait);
--			try_to_freeze();
- 			continue;
- 		}
+ #else
+ void pm_dbg_update_time(struct powerdomain *pwrdm, int prev) {}
++int pm_dbg_regset_init(int reg_set) {}
++int pm_dbg_regset_save(int reg_set) {}
+ #endif
+-- 
+1.6.0.4
 
