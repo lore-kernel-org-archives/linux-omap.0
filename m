@@ -1,61 +1,63 @@
-From: Daniel Miller <danielrobertmiller@gmail.com>
-Subject: zd1211 firmware on OMAP5912
-Date: Tue, 3 Nov 2009 16:12:16 -0500
-Message-ID: <a92b665b0911031312j3247031co8e8c8265908b925b@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Vikram Pandita <vikram.pandita@ti.com>
+Subject: [PATCH 2/8] omap: DEBUG_LL: allow no omap uart configuration
+Date: Tue,  3 Nov 2009 15:20:09 -0600
+Message-ID: <1257283215-6448-3-git-send-email-vikram.pandita@ti.com>
+References: <1257283215-6448-1-git-send-email-vikram.pandita@ti.com>
+ <1257283215-6448-2-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:61155 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753328AbZKCVMM (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 16:12:12 -0500
-Received: by ewy3 with SMTP id 3so2426516ewy.37
-        for <linux-omap@vger.kernel.org>; Tue, 03 Nov 2009 13:12:17 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:51582 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752176AbZKCVVL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 16:21:11 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA3LLGUA005194
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 15:21:16 -0600
+In-Reply-To: <1257283215-6448-2-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-Hello,
+Zoom2/Zoom3 kind of boards do not use omap uarts
+these boards should not have DEBUG_LL writing to omap uarts
 
-I'm trying to get a Belkin F5D7050 USB wireless adapter to work with
-the OMAP5912 starter kit.  I enabled the zd1211rw driver in the kernel
-(2.6.32-rc2-05967-gd350540), and it appears to recognize the device
-when I connect it.  It shows up as wlan0 when I do iwconfig.
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
+---
+ arch/arm/plat-omap/Kconfig                   |    3 +++
+ arch/arm/plat-omap/include/plat/uncompress.h |    4 +++-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
-The problem I'm having is that it doesn't seem to be able to find the
-firmware.  I downloaded the firmware files from Sourceforge and
-unpacked them in /lib/firmware/zd1211.  But when I try to bring the
-interface up with ifconfig, I get the following:
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 64b3f52..c912e0e 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -176,6 +176,9 @@ config OMAP_LL_DEBUG_UART2
+ config OMAP_LL_DEBUG_UART3
+ 	bool "UART3"
+ 
++config OMAP_LL_DEBUG_NONE
++	bool "None"
++
+ endchoice
+ 
+ config OMAP_SERIAL_WAKE
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index e22f575..49b38f0 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -44,8 +44,10 @@ static void putc(int c)
+ 	uart = (volatile u8 *)(OMAP_UART3_BASE);
+ #elif defined(CONFIG_OMAP_LL_DEBUG_UART2)
+ 	uart = (volatile u8 *)(OMAP_UART2_BASE);
+-#else
++#elif defined(CONFIG_OMAP_LL_DEBUG_UART1)
+ 	uart = (volatile u8 *)(OMAP_UART1_BASE);
++#elif defined(CONFIG_OMAP_LL_DEBUG_NONE)
++	return;
+ #endif
+ 
+ #ifdef CONFIG_ARCH_OMAP1
+-- 
+1.6.5.1.69.g36942
 
-/ # ifconfig wlan0 up
-usb 1-1.2: firmware: requesting zd1211/zd1211b_ub
-usb 1-1.2: Could not load firmware file zd1211/zd1211b_ub. Error number -2
-zd1211rw 1-1.2:1.0: couldn't load firmware. Error number -2
-SIOCSIFFLAGS: No such file or directory
-
-This is the output from dmesg:
-
-zd1211rw 1-1.2:1.0: zd_usb_init_hw()
-usb 1-1.2: request_fw_file() fw name zd1211/zd1211b_ub
-usb 1-1.2: firmware: requesting zd1211/zd1211b_ub
-usb 1-1.2: Could not load firmware file zd1211/zd1211b_ub. Error number -2
-zd1211rw 1-1.2:1.0: couldn't load firmware. Error number -2
-
-I tried copying the zd1211 firmware folder to a couple of other
-directories, like /etc/firmware/ and /usr/lib/hotplug/firmware/, but
-that didn't seem to help.  I also tried loading the firmware manually,
-with the following commands:
-
-echo 1 > /sys/class/firmware/loading
-cat /lib/firmware/zd1211/zd1211b_ub > /sys/class/firmware/data
-echo 1 > /sys/class/firmware/loading
-
-But after the first line, I get the following:
-/bin/sh: cannot create /sys/class/firmware/loading: Directory nonexistent
-
-Is there some other directory that I should be putting the firmware
-files in?  Or have I missed some crucial step along the way?  Any help
-would be greatly appreciated.
-
-Thanks,
-Daniel
