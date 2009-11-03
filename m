@@ -1,184 +1,97 @@
-From: Nishanth Menon <nm@ti.com>
-Subject: Re: [PATCH 7/8] omap: 3630sdp: introduce 3630 sdp board support
-Date: Tue, 3 Nov 2009 16:31:30 -0600
-Message-ID: <4AF0AF42.7000306@ti.com>
-References: <1257283215-6448-1-git-send-email-vikram.pandita@ti.com> <1257283215-6448-2-git-send-email-vikram.pandita@ti.com> <1257283215-6448-3-git-send-email-vikram.pandita@ti.com> <1257283215-6448-4-git-send-email-vikram.pandita@ti.com> <1257283215-6448-5-git-send-email-vikram.pandita@ti.com> <1257283215-6448-6-git-send-email-vikram.pandita@ti.com> <1257283215-6448-7-git-send-email-vikram.pandita@ti.com> <1257283215-6448-8-git-send-email-vikram.pandita@ti.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Hang in usb_musb_init() with 2.6.32-rc5?
+Date: Wed, 4 Nov 2009 00:31:09 +0200
+Message-ID: <20091103223109.GA31165@nokia.com>
+References: <4AF0AE74.6000901@billgatliff.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55870 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588AbZKCWbZ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 17:31:25 -0500
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA3MVUoi013881
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 16:31:31 -0600
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id nA3MVU0I025905
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 16:31:30 -0600 (CST)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA3MVUdX000562
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 16:31:30 -0600 (CST)
-In-Reply-To: <1257283215-6448-8-git-send-email-vikram.pandita@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:42802 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752572AbZKCWcE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 17:32:04 -0500
+Content-Disposition: inline
+In-Reply-To: <4AF0AE74.6000901@billgatliff.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Vikram Pandita <vikram.pandita@ti.com>
+To: ext Bill Gatliff <bgat@billgatliff.com>
 Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Vikram Pandita had written, on 11/03/2009 03:20 PM, the following:
-> Add 3630SDP board support
-> 
-> The board shares the same peripherals as a zoom2 main.
-> So reuse the peripheral file of zoom platform.
-> 
-> The RAM part is Hynix memory as as in zoom3.
-would be great to add more details on this.
+Hi,
 
+On Tue, Nov 03, 2009 at 11:28:04PM +0100, ext Bill Gatliff wrote:
+> I'm back!  :)  This time, it's because my Beagleboard-like platform
+> hangs hard during boot if I call usb_musb_init().
 > 
-> Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig         |    4 ++
->  arch/arm/mach-omap2/Makefile        |    3 +
->  arch/arm/mach-omap2/board-3630sdp.c |   96 +++++++++++++++++++++++++++++++++++
->  3 files changed, 103 insertions(+), 0 deletions(-)
->  create mode 100755 arch/arm/mach-omap2/board-3630sdp.c
+> There are more differences between my platform and Beagleboard in this
+> area, namely that I'm using a different USB transceiver and I'm on hs0. 
+> But why would the platform hang hard during boot?
 > 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 9824775..83551a8 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -105,6 +105,10 @@ config MACH_OMAP_ZOOM3
->  	bool "OMAP3630 Zoom3 board"
->  	depends on ARCH_OMAP3 && ARCH_OMAP34XX
->  
-> +config MACH_OMAP_3630SDP
-> +	bool "OMAP3630 SDP board"
-> +	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-> +
->  config MACH_OMAP_4430SDP
->  	bool "OMAP 4430 SDP board"
->  	depends on ARCH_OMAP4
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 712e7fc..90cf2cc 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -79,6 +79,9 @@ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
->  					   board-zoom-peripherals.o \
->  					   mmc-twl4030.o \
->  					   board-zoom-debugboard.o
-> +obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
-> +					   board-zoom-peripherals.o \
-> +					   mmc-twl4030.o
->  obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
->  					   mmc-twl4030.o
->  
-> diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
-> new file mode 100755
-> index 0000000..450fcdd
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-3630sdp.c
-> @@ -0,0 +1,96 @@
-> +/*
-> + * Copyright (C) 2009 Texas Instruments Inc.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/input.h>
-> +#include <linux/gpio.h>
-> +
-> +#include <asm/mach-types.h>
-> +#include <asm/mach/arch.h>
-> +
-> +#include <plat/common.h>
-> +#include <plat/board.h>
-> +#include <plat/gpmc-smc91x.h>
-> +#include <plat/mux.h>
-> +#include <plat/usb.h>
-> +
-> +#include "sdram-hynix-h8mbx00u0mer-0em.h"
-> +
-> +#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
-> +static struct omap_smc91x_platform_data board_smc91x_data = {
-> +	.cs             = 3,
-> +	.flags          = GPMC_MUX_ADD_DATA | IORESOURCE_IRQ_LOWLEVEL,
-> +};
-> +
-> +static void __init board_smc91x_init(void)
-> +{
-> +	board_smc91x_data.gpio_irq = 158;
-> +	gpmc_smc91x_init(&board_smc91x_data);
-> +}
-> +#else
-> +static inline void board_smc91x_init(void)
-> +{
-> +}
-> +#endif
-> +
-> +static void enable_board_wakeup_source(void)
-> +{
-> +	omap_cfg_reg(AF26_34XX_SYS_NIRQ); /* T2 interrupt line (keypad) */
-> +}
-> +
-> +static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
-> +
-> +	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-> +	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-> +
-> +	.phy_reset  = true,
-> +	.reset_gpio_port[0]  = 126,
-> +	.reset_gpio_port[1]  = 61,
-> +	.reset_gpio_port[2]  = -EINVAL
-> +};
-> +
-> +static void __init omap_sdp_map_io(void)
-> +{
-> +	omap2_set_globals_343x();
-> +	omap2_map_common_io();
-> +}
-> +
-> +static struct omap_board_config_kernel sdp_config[] __initdata = {
-> +};
-EOL?
-> +static void __init omap_sdp_init_irq(void)
-> +{
-> +	omap_board_config = sdp_config;
-> +	omap_board_config_size = ARRAY_SIZE(sdp_config);
-> +	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
-> +			h8mbx00u0mer0em_sdrc_params);
-> +	omap_init_irq();
-> +	omap_gpio_init();
-> +}
-> +
-> +extern void __init zoom_peripherals_init(void);
-> +
-> +static void __init omap_sdp_init(void)
-> +{
-> +        zoom_peripherals_init();
-> +	board_smc91x_init();
-> +	enable_board_wakeup_source();
-> +	usb_ehci_init(&ehci_pdata);
-> +}
-> +
-> +MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
-> +	.phys_io	= 0x48000000,
-> +	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
-> +	.boot_params	= 0x80000100,
-> +	.map_io		= omap_sdp_map_io,
-> +	.init_irq	= omap_sdp_init_irq,
-> +	.init_machine	= omap_sdp_init,
-> +	.timer		= &omap_timer,
-> +MACHINE_END
-nice and simple :).. thanks..
+> Here are what I think are the relevant parts of my config:
+> 
+> CONFIG_SND_USB=y                                     
+> # CONFIG_SND_USB_AUDIO is not set                    
+> # CONFIG_SND_USB_CAIAQ is not set                    
+> CONFIG_USB_SUPPORT=y                                 
+> CONFIG_USB_ARCH_HAS_HCD=y                            
+> CONFIG_USB_ARCH_HAS_OHCI=y                           
+> CONFIG_USB_ARCH_HAS_EHCI=y                           
+> CONFIG_USB=y                                         
+> CONFIG_USB_DEBUG=y                                   
+> CONFIG_USB_ANNOUNCE_NEW_DEVICES=y                    
+> CONFIG_USB_EHCI_HCD=y                                
+> # CONFIG_USB_EHCI_ROOT_HUB_TT is not set             
+> # CONFIG_USB_EHCI_TT_NEWSCHED is not set             
+> # CONFIG_USB_OXU210HP_HCD is not set                 
+> # CONFIG_USB_ISP116X_HCD is not set                  
+> # CONFIG_USB_ISP1760_HCD is not set                  
+> # CONFIG_USB_ISP1362_HCD is not set                  
+> CONFIG_USB_OHCI_HCD=y                                
+> # CONFIG_USB_OHCI_BIG_ENDIAN_DESC is not set         
+> # CONFIG_USB_OHCI_BIG_ENDIAN_MMIO is not set         
+> CONFIG_USB_OHCI_LITTLE_ENDIAN=y                      
+> CONFIG_USB_MUSB_HDRC=y                               
+> CONFIG_USB_MUSB_SOC=y                                
+> # OMAP 343x high speed USB support                   
+> CONFIG_USB_MUSB_HOST=y                               
+> # CONFIG_USB_MUSB_PERIPHERAL is not set              
+> # CONFIG_USB_MUSB_OTG is not set                     
+> CONFIG_USB_MUSB_HDRC_HCD=y                           
+> # CONFIG_MUSB_PIO_ONLY is not set                    
+> CONFIG_USB_INVENTRA_DMA=y                            
+> CONFIG_USB_MUSB_DEBUG=y                              
+> CONFIG_NOP_USB_XCEIV=y
+> 
+> I also created some new mux entries that I need:
+> 
+>     omap_cfg_reg(R21_3430_USB0HS_PHY_CLK);
+>     omap_cfg_reg(R23_3430_USB0HS_PHY_STP);
+>     omap_cfg_reg(P23_3430_USB0HS_PHY_DIR);
+>     omap_cfg_reg(R22_3430_USB0HS_PHY_NXT);
+>     omap_cfg_reg(T24_3430_USB0HS_PHY_D0);
+>     omap_cfg_reg(T23_3430_USB0HS_PHY_D1);
+>     omap_cfg_reg(U24_3430_USB0HS_PHY_D2);
+>     omap_cfg_reg(U23_3430_USB0HS_PHY_D3);
+>     omap_cfg_reg(W24_3430_USB0HS_PHY_D4);
+>     omap_cfg_reg(V23_3430_USB0HS_PHY_D5);
+>     omap_cfg_reg(W23_3430_USB0HS_PHY_D6);
+>     omap_cfg_reg(T22_3430_USB0HS_PHY_D7);
+> 
+> I'm even doing this, which I'm not sure is necessary:
+> 
+>     ick = clk_get(NULL, "ick");
+>     if (ick) clk_enable(ick);
+> ...
+>    usb_musb_init();
+> ...
+> 
+> 
+> Any ideas?  Thanks!!
+
+test with omap-debug branch, enable CONFIG_LL_DEBUG and see what's going
+on. I'm guessing you didn't enable any transceiver driver and you're
+getting an oops.
 
 -- 
-Regards,
-Nishanth Menon
+balbi
