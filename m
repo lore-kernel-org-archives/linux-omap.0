@@ -1,43 +1,71 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Restart after 4 min of operation?
-Date: Wed, 4 Nov 2009 00:10:50 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309C8629E@dbde02.ent.ti.com>
-References: <4AEFA4EE.40308@billgatliff.com>
- <4AF01901.2050100@mlbassoc.com>,<4AF06CBA.3040609@billgatliff.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C8629B@dbde02.ent.ti.com>,<4AF07876.4050602@billgatliff.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [RFC] [PATCH v2] OMAP: DMA: Fix omapfb/lcdc on Amstrad Delta broken when PM set
+Date: Tue, 3 Nov 2009 20:24:38 +0100
+Message-ID: <200911032024.47741.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41314 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751008AbZKCSoQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 13:44:16 -0500
-In-Reply-To: <4AF07876.4050602@billgatliff.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754280AbZKCT0W@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-omap@vger.kernel.org
+Cc: Tony Lindgren <tony@atomide.com>, linux-fbdev-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Bill Gatliff <bgat@billgatliff.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Bill Gatliff wrote:
-> Gadiyar, Anand wrote:
-> > I suspect a watchdog timer of some kind, but I haven't got a clue which one.
-> >
-> 
-> Turns out I had disabled watchdog timer support in my kernel.
-> Re-enabling it seems to have addressed the problem--- the system has run
-> for more than 5 minutes now.  :)
-> 
-> Apparently, the default for the OMAP watchdog timer is "armed" at
-> reset?  Interesting.
-> 
-> 
+With CONFIG_PM=y, the omapfb/lcdc device on Amstrad Delta, after initially
+starting correctly, breaks with the following error messages:
 
-Just read a little on the MPU watchdog timer. It looks like the default values would
-have caused a reset after ~10s. So if your board is rebooting after 4 minutes,
-maybe the bootloader is turning it on?
+omapfb omapfb: resetting (status 0xffffff96,reset count 1)
+...
+omapfb omapfb: resetting (status 0xffffff96,reset count 100)
+omapfb omapfb: too many reset attempts, giving up.
 
-I've left a board on in the bootloader for hours without seeing a reboot, so either
-the bootloader I was using disables the watchdog, or it's not armed at reset.
+Looking closer at this I have found that it had been broken almost 2 years ago
+with commit 2418996e3b100114edb2ae110d5d4acb928909d2, PM fixes for OMAP1.
 
-- Anand
+The definite reason for broken omapfb/lcdc behavoiur in PM mode
+appeared to be ARM_IDLECT1:IDLIF_ARM (bit 6) put into idle regardless of LCD
+DMA possibly running. The bit were set based on return value of the
+omap_dma_running() function that did not check for dedicated LCD DMA
+channel status. The patch below fixes this.
+
+Created and tested against linux-2.6.32-rc5
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+
+---
+Hi,
+If there are still no comments, especially on the bug possible impact on other 
+OMAP1510 boards (or even OMAP1610 with internal LCD controller), then Tony, 
+please apply it as is. Until it is accepted, I am stuck with new 
+ams_delta_defconfig.
+
+Thanks,
+Janusz
+
+--- linux-2.6.32-rc5/arch/arm/plat-omap/dma.c.orig	2009-10-16 02:41:50.000000000 +0200
++++ linux-2.6.32-rc5/arch/arm/plat-omap/dma.c	2009-11-03 20:15:35.000000000 +0100
+@@ -30,6 +30,7 @@
+ #include <linux/irq.h>
+ #include <linux/io.h>
+ 
++#include <asm/mach-types.h>
+ #include <asm/system.h>
+ #include <mach/hardware.h>
+ #include <mach/dma.h>
+@@ -1110,6 +1111,14 @@ int omap_dma_running(void)
+ {
+ 	int lch;
+ 
++	/*
++	 * On Amstrad Delta, the OMAP internal LCD controller will start the
++	 * transfer when it gets enabled, so assume DMA running if LCD enabled.
++	 */
++	if (machine_is_ams_delta())
++		if (omap_readw(0xfffec000 + 0x00) & (1 << 0))
++			return 1;
++
+ 	/* Check if LCD DMA is running */
+ 	if (cpu_is_omap16xx())
+ 		if (omap_readw(OMAP1610_DMA_LCD_CCR) & OMAP_DMA_CCR_EN)
