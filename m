@@ -1,781 +1,761 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH 3/8] omap: zoom2: split baord file for reuse
-Date: Tue,  3 Nov 2009 15:20:10 -0600
-Message-ID: <1257283215-6448-4-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH 4/8] omap: zoom2: update defconfig
+Date: Tue,  3 Nov 2009 15:20:11 -0600
+Message-ID: <1257283215-6448-5-git-send-email-vikram.pandita@ti.com>
 References: <1257283215-6448-1-git-send-email-vikram.pandita@ti.com>
  <1257283215-6448-2-git-send-email-vikram.pandita@ti.com>
  <1257283215-6448-3-git-send-email-vikram.pandita@ti.com>
+ <1257283215-6448-4-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:50114 "EHLO comal.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37877 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754436AbZKCVVM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Nov 2009 16:21:12 -0500
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA3LLHre009316
+	id S1754570AbZKCVVN (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Nov 2009 16:21:13 -0500
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA3LLHCr028944
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 15:21:17 -0600
-In-Reply-To: <1257283215-6448-3-git-send-email-vikram.pandita@ti.com>
+	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 15:21:18 -0600
+In-Reply-To: <1257283215-6448-4-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>, Vikram Pandita <vikram.pandtia@ti.com>
+Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-Split zoom2 board file into:
-base board file and a board-zoom-peripherals.c file
+Update DEBUG_LL for zoom2 board as CONFIG_OMAP_LL_DEBUG_NONE
+Sync zoom2 defconfig with menuconfig
 
-that way the same peripherals file can be reused for: zoom3 and sdp3630
-
-Signed-off-by: Vikram Pandita <vikram.pandtia@ti.com>
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 ---
- arch/arm/mach-omap2/Makefile                 |    1 +
- arch/arm/mach-omap2/board-zoom-peripherals.c |  414 ++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-zoom2.c            |  261 +---------------
- 3 files changed, 429 insertions(+), 247 deletions(-)
- create mode 100755 arch/arm/mach-omap2/board-zoom-peripherals.c
- mode change 100644 => 100755 arch/arm/mach-omap2/board-zoom2.c
+ arch/arm/configs/omap_zoom2_defconfig |  231 ++++++++++++++++++++-------------
+ 1 files changed, 141 insertions(+), 90 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 03cb4fc..4d66b42 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -72,6 +72,7 @@ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   board-rx51-peripherals.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
-+					   board-zoom-peripherals.o \
- 					   mmc-twl4030.o \
- 					   board-zoom-debugboard.o
- obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-new file mode 100755
-index 0000000..c799eca
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -0,0 +1,414 @@
-+/*
-+ * Copyright (C) 2009 Texas Instruments Inc.
-+ *
-+ * Modified from mach-omap2/board-ldp.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/input.h>
-+#include <linux/input/matrix_keypad.h>
-+#include <linux/gpio.h>
-+#include <linux/i2c/twl4030.h>
-+#include <linux/regulator/machine.h>
-+
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+#include <asm/mach/map.h>
-+
-+#include <plat/common.h>
-+#include <plat/usb.h>
-+
-+#include "mmc-twl4030.h"
-+
-+/* Zoom2 has Qwerty keyboard*/
-+static int board_keymap[] = {
-+	KEY(0, 0, KEY_E),
-+	KEY(1, 0, KEY_R),
-+	KEY(2, 0, KEY_T),
-+	KEY(3, 0, KEY_HOME),
-+	KEY(6, 0, KEY_I),
-+	KEY(7, 0, KEY_LEFTSHIFT),
-+	KEY(0, 1, KEY_D),
-+	KEY(1, 1, KEY_F),
-+	KEY(2, 1, KEY_G),
-+	KEY(3, 1, KEY_SEND),
-+	KEY(6, 1, KEY_K),
-+	KEY(7, 1, KEY_ENTER),
-+	KEY(0, 2, KEY_X),
-+	KEY(1, 2, KEY_C),
-+	KEY(2, 2, KEY_V),
-+	KEY(3, 2, KEY_END),
-+	KEY(6, 2, KEY_DOT),
-+	KEY(7, 2, KEY_CAPSLOCK),
-+	KEY(0, 3, KEY_Z),
-+	KEY(1, 3, KEY_KPPLUS),
-+	KEY(2, 3, KEY_B),
-+	KEY(3, 3, KEY_F1),
-+	KEY(6, 3, KEY_O),
-+	KEY(7, 3, KEY_SPACE),
-+	KEY(0, 4, KEY_W),
-+	KEY(1, 4, KEY_Y),
-+	KEY(2, 4, KEY_U),
-+	KEY(3, 4, KEY_F2),
-+	KEY(4, 4, KEY_VOLUMEUP),
-+	KEY(6, 4, KEY_L),
-+	KEY(7, 4, KEY_LEFT),
-+	KEY(0, 5, KEY_S),
-+	KEY(1, 5, KEY_H),
-+	KEY(2, 5, KEY_J),
-+	KEY(3, 5, KEY_F3),
-+	KEY(5, 5, KEY_VOLUMEDOWN),
-+	KEY(6, 5, KEY_M),
-+	KEY(4, 5, KEY_ENTER),
-+	KEY(7, 5, KEY_RIGHT),
-+	KEY(0, 6, KEY_Q),
-+	KEY(1, 6, KEY_A),
-+	KEY(2, 6, KEY_N),
-+	KEY(3, 6, KEY_BACKSPACE),
-+	KEY(6, 6, KEY_P),
-+	KEY(7, 6, KEY_UP),
-+	KEY(6, 7, KEY_SELECT),
-+	KEY(7, 7, KEY_DOWN),
-+	KEY(0, 7, KEY_PROG1),	/*MACRO 1 <User defined> */
-+	KEY(1, 7, KEY_PROG2),	/*MACRO 2 <User defined> */
-+	KEY(2, 7, KEY_PROG3),	/*MACRO 3 <User defined> */
-+	KEY(3, 7, KEY_PROG4),	/*MACRO 4 <User defined> */
-+	0
-+};
-+
-+static struct matrix_keymap_data board_map_data = {
-+	.keymap			= board_keymap,
-+	.keymap_size		= ARRAY_SIZE(board_keymap),
-+};
-+
-+static struct twl4030_keypad_data zoom_kp_twl4030_data = {
-+	.keymap_data	= &board_map_data,
-+	.rows		= 8,
-+	.cols		= 8,
-+	.rep		= 1,
-+};
-+
-+static struct twl4030_madc_platform_data zoom_madc_data = {
-+	.irq_line		= 1,
-+};
-+
-+static struct twl4030_hsmmc_info mmc[] = {
-+	{
-+		.name		= "external",
-+		.mmc		= 1,
-+		.wires		= 4,
-+		.cover_only	= true,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+		.power_saving	= true,
-+	},
-+	{
-+		.name		= "internal",
-+		.mmc		= 2,
-+		.wires		= 8,
-+		.gpio_cd	= -EINVAL,
-+		.gpio_wp	= -EINVAL,
-+		.nonremovable	= true,
-+		.power_saving	= true,
-+	},
-+	{}	/* Terminator */
-+};
-+
-+static struct regulator_consumer_supply zoom_vmmc1_supply = {
-+	.supply		= "vmmc",
-+};
-+
-+static struct regulator_consumer_supply zoom_vmmc2_supply = {
-+	.supply			= "vmmc",
-+};
-+
-+static struct regulator_consumer_supply zoom_vsim_supply = {
-+	.supply		= "vmmc_aux",
-+};
-+
-+/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
-+static struct regulator_init_data zoom_vmmc1 = {
-+	.constraints = {
-+		.min_uV			= 1850000,
-+		.max_uV			= 3150000,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &zoom_vmmc1_supply,
-+};
-+
-+/* VMMC2 for MMC2 card */
-+static struct regulator_init_data zoom_vmmc2 = {
-+	.constraints = {
-+		.name			= "VMMC2_30",
-+		.min_uV			= 1850000,
-+		.max_uV			= 1850000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
-+					| REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = 1,
-+	.consumer_supplies      = &zoom_vmmc2_supply,
-+};
-+
-+/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
-+static struct regulator_init_data zoom_vsim = {
-+	.constraints = {
-+		.name			= "VMMC2_IO_18",
-+		.min_uV			= 1800000,
-+		.max_uV			= 3000000,
-+		.apply_uV		= true,
-+		.valid_modes_mask	= REGULATOR_MODE_NORMAL
-+					| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask		= REGULATOR_CHANGE_MODE
-+					| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies	= 1,
-+	.consumer_supplies      = &zoom_vsim_supply,
-+};
-+
-+static int zoom_twl_gpio_setup(struct device *dev,
-+		unsigned gpio, unsigned ngpio)
-+{
-+	/* gpio + 0 is "mmc0_cd" (input/IRQ),
-+	 * gpio + 1 is "mmc1_cd" (input/IRQ)
-+	 */
-+	mmc[0].gpio_cd = gpio + 0;
-+	mmc[1].gpio_cd = gpio + 1;
-+	twl4030_mmc_init(mmc);
-+
-+	/* link regulators to MMC adapters ... we "know" the
-+	 * regulators will be set up only *after* we return.
-+	*/
-+	zoom_vmmc1_supply.dev = mmc[0].dev;
-+	zoom_vmmc2_supply.dev = mmc[1].dev;
-+	zoom_vsim_supply.dev = mmc[0].dev;
-+
-+	return 0;
-+}
-+
-+//static struct twl4030_gpio_platform_data zoom_gpio_data = {
-+//	.gpio_base		= OMAP_MAX_GPIO_LINES,
-+//	.irq_base		= TWL4030_GPIO_IRQ_BASE,
-+//	.irq_end		= TWL4030_GPIO_IRQ_END,
-+//	.pulldowns		= BIT(0) | BIT(1) | BIT(2) | BIT(3)
-+//				| BIT(4) | BIT(5)
-+//				| BIT(8) | BIT(9) | BIT(10) | BIT(11)
-+//				| BIT(12) | BIT(13) | BIT(14) | BIT(15)
-+//				| BIT(16) | BIT(17) ,
-+//	.setup			= zoom_twlgpio_setup,
-+//};
-+static struct twl4030_gpio_platform_data zoom_gpio_data = {
-+	.gpio_base	= OMAP_MAX_GPIO_LINES,
-+	.irq_base	= TWL4030_GPIO_IRQ_BASE,
-+	.irq_end	= TWL4030_GPIO_IRQ_END,
-+	.setup		= zoom_twl_gpio_setup,
-+};
-+
-+static struct twl4030_usb_data zoom_usb_data = {
-+	.usb_mode		= T2_USB_MODE_ULPI,
-+};
-+
-+/* TODO: enable T2 scripts */
-+#if 0
-+static struct twl4030_ins sleep_on_seq[] __initdata = {
-+/*
-+ * Turn off VDD1 and VDD2.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_OFF), 4},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_OFF), 2},
-+/*
-+ * And also turn off the OMAP3 PLLs and the sysclk output.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_OFF), 3},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_OFF), 3},
-+};
-+
-+static struct twl4030_script sleep_on_script __initdata = {
-+	.script = sleep_on_seq,
-+	.size   = ARRAY_SIZE(sleep_on_seq),
-+	.flags  = TWL4030_SLEEP_SCRIPT,
-+};
-+
-+static struct twl4030_ins wakeup_seq[] __initdata = {
-+/*
-+ * Reenable the OMAP3 PLLs.
-+ * Wakeup VDD1 and VDD2.
-+ * Reenable sysclk output.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x7, RES_STATE_ACTIVE), 0x30},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0xf, RES_STATE_ACTIVE), 0x30},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x10, RES_STATE_ACTIVE), 0x37},
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x19, RES_STATE_ACTIVE), 3},
-+};
-+
-+static struct twl4030_script wakeup_script __initdata = {
-+	.script	= wakeup_seq,
-+	.size	= ARRAY_SIZE(wakeup_seq),
-+	.flags	= TWL4030_WAKEUP12_SCRIPT,
-+};
-+
-+static struct twl4030_ins wakeup_p3_seq[] __initdata = {
-+/*
-+ * Wakeup VDD1 (dummy to be able to insert a delay)
-+ * Enable CLKEN
-+ */
-+	{MSG_SINGULAR(DEV_GRP_P1, 0x17, RES_STATE_ACTIVE), 3},
-+};
-+
-+static struct twl4030_script wakeup_p3_script __initdata = {
-+	.script	= wakeup_p3_seq,
-+	.size	= ARRAY_SIZE(wakeup_p3_seq),
-+	.flags	= TWL4030_WAKEUP3_SCRIPT,
-+};
-+
-+static struct twl4030_ins wrst_seq[] __initdata = {
-+/*
-+ * Reset twl4030.
-+ * Reset VDD1 regulator.
-+ * Reset VDD2 regulator.
-+ * Reset VPLL1 regulator.
-+ * Enable sysclk output.
-+ * Reenable twl4030.
-+ */
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_OFF), 2},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_ALL, 0, 1, RES_STATE_ACTIVE),
-+		0x13},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 2, RES_STATE_WRST), 0x13},
-+	{MSG_BROADCAST(DEV_GRP_NULL, RES_GRP_PP, 0, 3, RES_STATE_OFF), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD1, RES_STATE_WRST), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VDD2, RES_STATE_WRST), 0x13},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_VPLL1, RES_STATE_WRST), 0x35},
-+	{MSG_SINGULAR(DEV_GRP_P1, RES_HFCLKOUT, RES_STATE_ACTIVE), 2},
-+	{MSG_SINGULAR(DEV_GRP_NULL, RES_RESET, RES_STATE_ACTIVE), 2},
-+};
-+
-+static struct twl4030_script wrst_script __initdata = {
-+	.script = wrst_seq,
-+	.size   = ARRAY_SIZE(wrst_seq),
-+	.flags  = TWL4030_WRST_SCRIPT,
-+};
-+
-+static struct twl4030_script *twl4030_scripts[] __initdata = {
-+	/* wakeup12 script should be loaded before sleep script, otherwise a
-+	   board might hit retention before loading of wakeup script is
-+	   completed. This can cause boot failures depending on timing issues.
-+	*/
-+	&wakeup_script,
-+	&sleep_on_script,
-+	&wakeup_p3_script,
-+	&wrst_script,
-+};
-+
-+static struct twl4030_resconfig twl4030_rconfig[] __initdata = {
-+	{ .resource = RES_VINTANA1, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VINTANA2, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VINTDIG, .devgroup = -1, .type = -1, .type2 = 1 },
-+	{ .resource = RES_VMMC1, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VMMC2, .devgroup = DEV_GRP_NULL, .type = -1,
-+	  .type2 = 3},
-+	{ .resource = RES_VAUX1, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX2, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX3, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VAUX4, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VPLL2, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VDAC, .devgroup = -1, .type = -1, .type2 = 3},
-+	{ .resource = RES_VSIM, .devgroup = DEV_GRP_NULL, .type = -1,
-+	  .type2 = 3},
-+	{ .resource = RES_CLKEN, .devgroup = DEV_GRP_P3, .type = -1,
-+		.type2 = 1 },
-+	{ 0, 0},
-+};
-+
-+static struct twl4030_power_data zoom_t2scripts_data __initdata = {
-+	.scripts        = twl4030_scripts,
-+	.num = ARRAY_SIZE(twl4030_scripts),
-+	.resource_config = twl4030_rconfig,
-+};
-+#endif
-+
-+static int zoom_batt_table[] = {
-+/* 0 C*/
-+30800, 29500, 28300, 27100,
-+26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
-+17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
-+11600, 11200, 10800, 10400, 10000, 9630,  9280,  8950,  8620,  8310,
-+8020,  7730,  7460,  7200,  6950,  6710,  6470,  6250,  6040,  5830,
-+5640,  5450,  5260,  5090,  4920,  4760,  4600,  4450,  4310,  4170,
-+4040,  3910,  3790,  3670,  3550
-+};
-+
-+static struct twl4030_bci_platform_data zoom_bci_data = {
-+	.battery_tmp_tbl	= zoom_batt_table,
-+	.tblsize		= ARRAY_SIZE(zoom_batt_table),
-+};
-+
-+
-+static struct twl4030_platform_data zoom_twldata = {
-+	.irq_base	= TWL4030_IRQ_BASE,
-+	.irq_end	= TWL4030_IRQ_END,
-+
-+	/* platform_data for children goes here */
-+	.bci		= &zoom_bci_data,
-+	.madc		= &zoom_madc_data,
-+	.usb		= &zoom_usb_data,
-+	.gpio		= &zoom_gpio_data,
-+	.keypad		= &zoom_kp_twl4030_data,
-+	/* .power		= &zoom_t2scripts_data,*/
-+	.vmmc1          = &zoom_vmmc1,
-+	.vmmc2          = &zoom_vmmc2,
-+	/* .vaux1		= &zoom_vaux1,*/
-+	/* .vaux2		= &zoom_vaux2,*/
-+	/* .vaux4		= &zoom_vaux4,*/
-+	.vsim           = &zoom_vsim,
-+	/* .vdac		= &zoom_vdac,*/
-+};
-+
-+static struct i2c_board_info __initdata zoom_i2c_boardinfo[] = {
-+	{
-+		I2C_BOARD_INFO("twl5030", 0x48),
-+		.flags          = I2C_CLIENT_WAKE,
-+		.irq            = INT_34XX_SYS_NIRQ,
-+		.platform_data  = &zoom_twldata,
-+	},
-+};
-+
-+static int __init zoom_i2c_init(void)
-+{
-+	omap_register_i2c_bus(1, 2200, zoom_i2c_boardinfo,
-+			ARRAY_SIZE(zoom_i2c_boardinfo));
-+
-+	/* TODO: I2C2 on zoom2/3:
-+	 * Add Synaptic RMI controller
-+	 * Add Camera sensor IMX046
-+	 * Add Camera sensor LV8093
-+	 */
-+	omap_register_i2c_bus(2, 100, NULL, 0);
-+
-+	/* TODO: I2C3 on Zoom2/3:
-+	 * Add: SIL9022 HDMI
-+	 */
-+	omap_register_i2c_bus(3, 100, NULL, 0);
-+	return 0;
-+}
-+
-+
-+void __init zoom_peripherals_init(void)
-+{
-+	zoom_i2c_init();
-+	omap_serial_init();
-+	usb_musb_init();
-+}
-diff --git a/arch/arm/mach-omap2/board-zoom2.c b/arch/arm/mach-omap2/board-zoom2.c
-old mode 100644
-new mode 100755
-index 4ad9b94..abcc1ae
---- a/arch/arm/mach-omap2/board-zoom2.c
-+++ b/arch/arm/mach-omap2/board-zoom2.c
-@@ -1,8 +1,6 @@
- /*
-  * Copyright (C) 2009 Texas Instruments Inc.
-- * Mikkel Christensen <mlc@ti.com>
-  *
-- * Modified from mach-omap2/board-ldp.c
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -13,280 +11,49 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/input.h>
--#include <linux/input/matrix_keypad.h>
- #include <linux/gpio.h>
--#include <linux/i2c/twl4030.h>
--#include <linux/regulator/machine.h>
+diff --git a/arch/arm/configs/omap_zoom2_defconfig b/arch/arm/configs/omap_zoom2_defconfig
+index f1739fa..db4fc1c 100644
+--- a/arch/arm/configs/omap_zoom2_defconfig
++++ b/arch/arm/configs/omap_zoom2_defconfig
+@@ -1,15 +1,13 @@
+ #
+ # Automatically generated make config: don't edit
+-# Linux kernel version: 2.6.30-omap1
+-# Fri Jun 12 17:25:46 2009
++# Linux kernel version: 2.6.32-rc5
++# Tue Nov  3 12:00:13 2009
+ #
+ CONFIG_ARM=y
+ CONFIG_SYS_SUPPORTS_APM_EMULATION=y
+ CONFIG_GENERIC_GPIO=y
+ CONFIG_GENERIC_TIME=y
+ CONFIG_GENERIC_CLOCKEVENTS=y
+-CONFIG_MMU=y
+-# CONFIG_NO_IOPORT is not set
+ CONFIG_GENERIC_HARDIRQS=y
+ CONFIG_STACKTRACE_SUPPORT=y
+ CONFIG_HAVE_LATENCYTOP_SUPPORT=y
+@@ -18,13 +16,13 @@ CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+ CONFIG_HARDIRQS_SW_RESEND=y
+ CONFIG_GENERIC_IRQ_PROBE=y
+ CONFIG_RWSEM_GENERIC_SPINLOCK=y
+-# CONFIG_ARCH_HAS_ILOG2_U32 is not set
+-# CONFIG_ARCH_HAS_ILOG2_U64 is not set
++CONFIG_ARCH_HAS_CPUFREQ=y
+ CONFIG_GENERIC_HWEIGHT=y
+ CONFIG_GENERIC_CALIBRATE_DELAY=y
+ CONFIG_GENERIC_HARDIRQS_NO__DO_IRQ=y
+ CONFIG_VECTORS_BASE=0xffff0000
+ CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
++CONFIG_CONSTRUCTORS=y
  
- #include <asm/mach-types.h>
- #include <asm/mach/arch.h>
+ #
+ # General setup
+@@ -46,11 +44,12 @@ CONFIG_BSD_PROCESS_ACCT=y
+ #
+ # RCU Subsystem
+ #
+-CONFIG_CLASSIC_RCU=y
+-# CONFIG_TREE_RCU is not set
+-# CONFIG_PREEMPT_RCU is not set
++CONFIG_TREE_RCU=y
++# CONFIG_TREE_PREEMPT_RCU is not set
++# CONFIG_RCU_TRACE is not set
++CONFIG_RCU_FANOUT=32
++# CONFIG_RCU_FANOUT_EXACT is not set
+ # CONFIG_TREE_RCU_TRACE is not set
+-# CONFIG_PREEMPT_RCU_TRACE is not set
+ # CONFIG_IKCONFIG is not set
+ CONFIG_LOG_BUF_SHIFT=14
+ CONFIG_GROUP_SCHED=y
+@@ -77,7 +76,6 @@ CONFIG_UID16=y
+ CONFIG_KALLSYMS=y
+ # CONFIG_KALLSYMS_ALL is not set
+ CONFIG_KALLSYMS_EXTRA_PASS=y
+-# CONFIG_STRIP_ASM_SYMS is not set
+ CONFIG_HOTPLUG=y
+ CONFIG_PRINTK=y
+ CONFIG_BUG=y
+@@ -90,18 +88,25 @@ CONFIG_TIMERFD=y
+ CONFIG_EVENTFD=y
+ CONFIG_SHMEM=y
+ CONFIG_AIO=y
++
++#
++# Kernel Performance Events And Counters
++#
+ CONFIG_VM_EVENT_COUNTERS=y
+ CONFIG_COMPAT_BRK=y
+ CONFIG_SLAB=y
+ # CONFIG_SLUB is not set
+ # CONFIG_SLOB is not set
+ # CONFIG_PROFILING is not set
+-# CONFIG_MARKERS is not set
+ CONFIG_HAVE_OPROFILE=y
+ # CONFIG_KPROBES is not set
+ CONFIG_HAVE_KPROBES=y
+ CONFIG_HAVE_KRETPROBES=y
+ CONFIG_HAVE_CLK=y
++
++#
++# GCOV-based kernel profiling
++#
+ # CONFIG_SLOW_WORK is not set
+ CONFIG_HAVE_GENERIC_DMA_COHERENT=y
+ CONFIG_SLABINFO=y
+@@ -114,7 +119,7 @@ CONFIG_MODULE_UNLOAD=y
+ CONFIG_MODVERSIONS=y
+ CONFIG_MODULE_SRCVERSION_ALL=y
+ CONFIG_BLOCK=y
+-# CONFIG_LBD is not set
++CONFIG_LBDAF=y
+ # CONFIG_BLK_DEV_BSG is not set
+ # CONFIG_BLK_DEV_INTEGRITY is not set
  
- #include <plat/common.h>
--#include <plat/usb.h>
-+#include <plat/board.h>
+@@ -135,19 +140,22 @@ CONFIG_FREEZER=y
+ #
+ # System Type
+ #
++CONFIG_MMU=y
+ # CONFIG_ARCH_AAEC2000 is not set
+ # CONFIG_ARCH_INTEGRATOR is not set
+ # CONFIG_ARCH_REALVIEW is not set
+ # CONFIG_ARCH_VERSATILE is not set
+ # CONFIG_ARCH_AT91 is not set
+ # CONFIG_ARCH_CLPS711X is not set
++# CONFIG_ARCH_GEMINI is not set
+ # CONFIG_ARCH_EBSA110 is not set
+ # CONFIG_ARCH_EP93XX is not set
+-# CONFIG_ARCH_GEMINI is not set
+ # CONFIG_ARCH_FOOTBRIDGE is not set
++# CONFIG_ARCH_MXC is not set
++# CONFIG_ARCH_STMP3XXX is not set
+ # CONFIG_ARCH_NETX is not set
+ # CONFIG_ARCH_H720X is not set
+-# CONFIG_ARCH_IMX is not set
++# CONFIG_ARCH_NOMADIK is not set
+ # CONFIG_ARCH_IOP13XX is not set
+ # CONFIG_ARCH_IOP32X is not set
+ # CONFIG_ARCH_IOP33X is not set
+@@ -156,25 +164,27 @@ CONFIG_FREEZER=y
+ # CONFIG_ARCH_IXP4XX is not set
+ # CONFIG_ARCH_L7200 is not set
+ # CONFIG_ARCH_KIRKWOOD is not set
+-# CONFIG_ARCH_KS8695 is not set
+-# CONFIG_ARCH_NS9XXX is not set
+ # CONFIG_ARCH_LOKI is not set
+ # CONFIG_ARCH_MV78XX0 is not set
+-# CONFIG_ARCH_MXC is not set
+ # CONFIG_ARCH_ORION5X is not set
++# CONFIG_ARCH_MMP is not set
++# CONFIG_ARCH_KS8695 is not set
++# CONFIG_ARCH_NS9XXX is not set
++# CONFIG_ARCH_W90X900 is not set
+ # CONFIG_ARCH_PNX4008 is not set
+ # CONFIG_ARCH_PXA is not set
+-# CONFIG_ARCH_MMP is not set
++# CONFIG_ARCH_MSM is not set
+ # CONFIG_ARCH_RPC is not set
+ # CONFIG_ARCH_SA1100 is not set
+ # CONFIG_ARCH_S3C2410 is not set
+ # CONFIG_ARCH_S3C64XX is not set
++# CONFIG_ARCH_S5PC1XX is not set
+ # CONFIG_ARCH_SHARK is not set
+ # CONFIG_ARCH_LH7A40X is not set
++# CONFIG_ARCH_U300 is not set
+ # CONFIG_ARCH_DAVINCI is not set
+ CONFIG_ARCH_OMAP=y
+-# CONFIG_ARCH_MSM is not set
+-# CONFIG_ARCH_W90X900 is not set
++# CONFIG_ARCH_BCMRING is not set
  
--#include "mmc-twl4030.h"
- #include "sdram-micron-mt46h32m32lf-6.h"
+ #
+ # TI OMAP Implementations
+@@ -202,21 +212,26 @@ CONFIG_OMAP_32K_TIMER_HZ=128
+ CONFIG_OMAP_DM_TIMER=y
+ # CONFIG_OMAP_LL_DEBUG_UART1 is not set
+ # CONFIG_OMAP_LL_DEBUG_UART2 is not set
+-CONFIG_OMAP_LL_DEBUG_UART3=y
++# CONFIG_OMAP_LL_DEBUG_UART3 is not set
++CONFIG_OMAP_LL_DEBUG_NONE=y
++# CONFIG_OMAP_PM_NONE is not set
++CONFIG_OMAP_PM_NOOP=y
+ CONFIG_ARCH_OMAP34XX=y
+ CONFIG_ARCH_OMAP3430=y
  
--/* Zoom2 has Qwerty keyboard*/
--static int board_keymap[] = {
--	KEY(0, 0, KEY_E),
--	KEY(1, 0, KEY_R),
--	KEY(2, 0, KEY_T),
--	KEY(3, 0, KEY_HOME),
--	KEY(6, 0, KEY_I),
--	KEY(7, 0, KEY_LEFTSHIFT),
--	KEY(0, 1, KEY_D),
--	KEY(1, 1, KEY_F),
--	KEY(2, 1, KEY_G),
--	KEY(3, 1, KEY_SEND),
--	KEY(6, 1, KEY_K),
--	KEY(7, 1, KEY_ENTER),
--	KEY(0, 2, KEY_X),
--	KEY(1, 2, KEY_C),
--	KEY(2, 2, KEY_V),
--	KEY(3, 2, KEY_END),
--	KEY(6, 2, KEY_DOT),
--	KEY(7, 2, KEY_CAPSLOCK),
--	KEY(0, 3, KEY_Z),
--	KEY(1, 3, KEY_KPPLUS),
--	KEY(2, 3, KEY_B),
--	KEY(3, 3, KEY_F1),
--	KEY(6, 3, KEY_O),
--	KEY(7, 3, KEY_SPACE),
--	KEY(0, 4, KEY_W),
--	KEY(1, 4, KEY_Y),
--	KEY(2, 4, KEY_U),
--	KEY(3, 4, KEY_F2),
--	KEY(4, 4, KEY_VOLUMEUP),
--	KEY(6, 4, KEY_L),
--	KEY(7, 4, KEY_LEFT),
--	KEY(0, 5, KEY_S),
--	KEY(1, 5, KEY_H),
--	KEY(2, 5, KEY_J),
--	KEY(3, 5, KEY_F3),
--	KEY(5, 5, KEY_VOLUMEDOWN),
--	KEY(6, 5, KEY_M),
--	KEY(4, 5, KEY_ENTER),
--	KEY(7, 5, KEY_RIGHT),
--	KEY(0, 6, KEY_Q),
--	KEY(1, 6, KEY_A),
--	KEY(2, 6, KEY_N),
--	KEY(3, 6, KEY_BACKSPACE),
--	KEY(6, 6, KEY_P),
--	KEY(7, 6, KEY_UP),
--	KEY(6, 7, KEY_SELECT),
--	KEY(7, 7, KEY_DOWN),
--	KEY(0, 7, KEY_PROG1),	/*MACRO 1 <User defined> */
--	KEY(1, 7, KEY_PROG2),	/*MACRO 2 <User defined> */
--	KEY(2, 7, KEY_PROG3),	/*MACRO 3 <User defined> */
--	KEY(3, 7, KEY_PROG4),	/*MACRO 4 <User defined> */
--	0
--};
--
--static struct matrix_keymap_data board_map_data = {
--	.keymap			= board_keymap,
--	.keymap_size		= ARRAY_SIZE(board_keymap),
--};
--
--static struct twl4030_keypad_data zoom2_kp_twl4030_data = {
--	.keymap_data	= &board_map_data,
--	.rows		= 8,
--	.cols		= 8,
--	.rep		= 1,
--};
--
--static struct omap_board_config_kernel zoom2_config[] __initdata = {
--};
--
--static struct regulator_consumer_supply zoom2_vmmc1_supply = {
--	.supply		= "vmmc",
--};
--
--static struct regulator_consumer_supply zoom2_vsim_supply = {
--	.supply		= "vmmc_aux",
--};
--
--static struct regulator_consumer_supply zoom2_vmmc2_supply = {
--	.supply		= "vmmc",
--};
--
--/* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
--static struct regulator_init_data zoom2_vmmc1 = {
--	.constraints = {
--		.min_uV			= 1850000,
--		.max_uV			= 3150000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies  = 1,
--	.consumer_supplies      = &zoom2_vmmc1_supply,
--};
--
--/* VMMC2 for MMC2 card */
--static struct regulator_init_data zoom2_vmmc2 = {
--	.constraints = {
--		.min_uV			= 1850000,
--		.max_uV			= 1850000,
--		.apply_uV		= true,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies  = 1,
--	.consumer_supplies      = &zoom2_vmmc2_supply,
--};
--
--/* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
--static struct regulator_init_data zoom2_vsim = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 3000000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies  = 1,
--	.consumer_supplies      = &zoom2_vsim_supply,
--};
--
--static struct twl4030_hsmmc_info mmc[] __initdata = {
--	{
--		.mmc		= 1,
--		.wires		= 4,
--		.gpio_wp	= -EINVAL,
--	},
--	{
--		.mmc		= 2,
--		.wires		= 4,
--		.gpio_wp	= -EINVAL,
--	},
--	{}      /* Terminator */
--};
--
--static int zoom2_twl_gpio_setup(struct device *dev,
--		unsigned gpio, unsigned ngpio)
-+static void __init omap_zoom_map_io(void)
- {
--	/* gpio + 0 is "mmc0_cd" (input/IRQ),
--	 * gpio + 1 is "mmc1_cd" (input/IRQ)
--	 */
--	mmc[0].gpio_cd = gpio + 0;
--	mmc[1].gpio_cd = gpio + 1;
--	twl4030_mmc_init(mmc);
--
--	/* link regulators to MMC adapters ... we "know" the
--	 * regulators will be set up only *after* we return.
--	*/
--	zoom2_vmmc1_supply.dev = mmc[0].dev;
--	zoom2_vsim_supply.dev = mmc[0].dev;
--	zoom2_vmmc2_supply.dev = mmc[1].dev;
--
--	return 0;
-+	omap2_set_globals_343x();
-+	omap2_map_common_io();
- }
+ #
+ # OMAP Board Type
+ #
+-# CONFIG_MACH_NOKIA_RX51 is not set
+-# CONFIG_MACH_OMAP_LDP is not set
+-# CONFIG_MACH_OMAP_3430SDP is not set
+-# CONFIG_MACH_OMAP3EVM is not set
+ # CONFIG_MACH_OMAP3_BEAGLE is not set
++# CONFIG_MACH_OMAP_LDP is not set
+ # CONFIG_MACH_OVERO is not set
++# CONFIG_MACH_OMAP3EVM is not set
+ # CONFIG_MACH_OMAP3_PANDORA is not set
++# CONFIG_MACH_OMAP_3430SDP is not set
++# CONFIG_MACH_NOKIA_RX51 is not set
+ CONFIG_MACH_OMAP_ZOOM2=y
++# CONFIG_MACH_CM_T35 is not set
++# CONFIG_MACH_OMAP_ZOOM3 is not set
  
--
--static int zoom2_batt_table[] = {
--/* 0 C*/
--30800, 29500, 28300, 27100,
--26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
--17200, 16500, 15900, 15300, 14700, 14100, 13600, 13100, 12600, 12100,
--11600, 11200, 10800, 10400, 10000, 9630,  9280,  8950,  8620,  8310,
--8020,  7730,  7460,  7200,  6950,  6710,  6470,  6250,  6040,  5830,
--5640,  5450,  5260,  5090,  4920,  4760,  4600,  4450,  4310,  4170,
--4040,  3910,  3790,  3670,  3550
--};
--
--static struct twl4030_bci_platform_data zoom2_bci_data = {
--	.battery_tmp_tbl	= zoom2_batt_table,
--	.tblsize		= ARRAY_SIZE(zoom2_batt_table),
-+static struct omap_board_config_kernel zoom_config[] __initdata = {
- };
--
--static struct twl4030_usb_data zoom2_usb_data = {
--	.usb_mode	= T2_USB_MODE_ULPI,
--};
--
--static void __init omap_zoom2_init_irq(void)
-+static void __init omap_zoom_init_irq(void)
- {
--	omap_board_config = zoom2_config;
--	omap_board_config_size = ARRAY_SIZE(zoom2_config);
-+	omap_board_config = zoom_config;
-+	omap_board_config_size = ARRAY_SIZE(zoom_config);
- 	omap2_init_common_hw(mt46h32m32lf6_sdrc_params,
- 				 mt46h32m32lf6_sdrc_params);
- 	omap_init_irq();
- 	omap_gpio_init();
- }
+ #
+ # Processor Type
+@@ -226,7 +241,7 @@ CONFIG_CPU_32v6K=y
+ CONFIG_CPU_V7=y
+ CONFIG_CPU_32v7=y
+ CONFIG_CPU_ABRT_EV7=y
+-CONFIG_CPU_PABRT_IFAR=y
++CONFIG_CPU_PABRT_V7=y
+ CONFIG_CPU_CACHE_V7=y
+ CONFIG_CPU_CACHE_VIPT=y
+ CONFIG_CPU_COPY_V6=y
+@@ -244,7 +259,7 @@ CONFIG_ARM_THUMB=y
+ # CONFIG_CPU_DCACHE_DISABLE is not set
+ # CONFIG_CPU_BPREDICT_DISABLE is not set
+ CONFIG_HAS_TLS_REG=y
+-# CONFIG_OUTER_CACHE is not set
++CONFIG_ARM_L1_CACHE_SHIFT=6
+ # CONFIG_ARM_ERRATA_430973 is not set
+ # CONFIG_ARM_ERRATA_458693 is not set
+ # CONFIG_ARM_ERRATA_460075 is not set
+@@ -268,11 +283,13 @@ CONFIG_VMSPLIT_3G=y
+ # CONFIG_VMSPLIT_2G is not set
+ # CONFIG_VMSPLIT_1G is not set
+ CONFIG_PAGE_OFFSET=0xC0000000
++CONFIG_PREEMPT_NONE=y
++# CONFIG_PREEMPT_VOLUNTARY is not set
+ # CONFIG_PREEMPT is not set
+ CONFIG_HZ=128
++# CONFIG_THUMB2_KERNEL is not set
+ CONFIG_AEABI=y
+ CONFIG_OABI_COMPAT=y
+-# CONFIG_ARCH_HAS_HOLES_MEMORYMODEL is not set
+ # CONFIG_ARCH_SPARSEMEM_DEFAULT is not set
+ # CONFIG_ARCH_SELECT_MEMORY_MODEL is not set
+ # CONFIG_HIGHMEM is not set
+@@ -287,11 +304,13 @@ CONFIG_SPLIT_PTLOCK_CPUS=4
+ # CONFIG_PHYS_ADDR_T_64BIT is not set
+ CONFIG_ZONE_DMA_FLAG=0
+ CONFIG_VIRT_TO_BUS=y
+-CONFIG_UNEVICTABLE_LRU=y
+ CONFIG_HAVE_MLOCK=y
+ CONFIG_HAVE_MLOCKED_PAGE_BIT=y
++# CONFIG_KSM is not set
++CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
+ # CONFIG_LEDS is not set
+ CONFIG_ALIGNMENT_TRAP=y
++# CONFIG_UACCESS_WITH_MEMCPY is not set
  
--static struct twl4030_gpio_platform_data zoom2_gpio_data = {
--	.gpio_base	= OMAP_MAX_GPIO_LINES,
--	.irq_base	= TWL4030_GPIO_IRQ_BASE,
--	.irq_end	= TWL4030_GPIO_IRQ_END,
--	.setup		= zoom2_twl_gpio_setup,
--};
--
--static struct twl4030_madc_platform_data zoom2_madc_data = {
--	.irq_line	= 1,
--};
--
--static struct twl4030_platform_data zoom2_twldata = {
--	.irq_base	= TWL4030_IRQ_BASE,
--	.irq_end	= TWL4030_IRQ_END,
--
--	/* platform_data for children goes here */
--	.bci		= &zoom2_bci_data,
--	.madc		= &zoom2_madc_data,
--	.usb		= &zoom2_usb_data,
--	.gpio		= &zoom2_gpio_data,
--	.keypad		= &zoom2_kp_twl4030_data,
--	.vmmc1          = &zoom2_vmmc1,
--	.vmmc2          = &zoom2_vmmc2,
--	.vsim           = &zoom2_vsim,
--
--};
--
--static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
--	{
--		I2C_BOARD_INFO("twl4030", 0x48),
--		.flags		= I2C_CLIENT_WAKE,
--		.irq		= INT_34XX_SYS_NIRQ,
--		.platform_data	= &zoom2_twldata,
--	},
--};
--
--static int __init omap_i2c_init(void)
--{
--	omap_register_i2c_bus(1, 2600, zoom2_i2c_boardinfo,
--			ARRAY_SIZE(zoom2_i2c_boardinfo));
--	omap_register_i2c_bus(2, 400, NULL, 0);
--	omap_register_i2c_bus(3, 400, NULL, 0);
--	return 0;
--}
--
- extern int __init omap_zoom2_debugboard_init(void);
-+extern void __init zoom_peripherals_init(void);
+ #
+ # Boot options
+@@ -343,6 +362,7 @@ CONFIG_SUSPEND=y
+ # CONFIG_PM_TEST_SUSPEND is not set
+ CONFIG_SUSPEND_FREEZER=y
+ # CONFIG_APM_EMULATION is not set
++# CONFIG_PM_RUNTIME is not set
+ CONFIG_ARCH_SUSPEND_POSSIBLE=y
+ CONFIG_NET=y
  
--static void __init omap_zoom2_init(void)
-+static void __init omap_zoom_init(void)
- {
--	omap_i2c_init();
--	omap_serial_init();
-+        zoom_peripherals_init();
- 	omap_zoom2_debugboard_init();
--	usb_musb_init();
--}
--
--static void __init omap_zoom2_map_io(void)
--{
--	omap2_set_globals_343x();
--	omap2_map_common_io();
- }
+@@ -392,6 +412,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
+ # CONFIG_NETFILTER is not set
+ # CONFIG_IP_DCCP is not set
+ # CONFIG_IP_SCTP is not set
++# CONFIG_RDS is not set
+ # CONFIG_TIPC is not set
+ # CONFIG_ATM is not set
+ # CONFIG_BRIDGE is not set
+@@ -406,6 +427,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
+ # CONFIG_ECONET is not set
+ # CONFIG_WAN_ROUTER is not set
+ # CONFIG_PHONET is not set
++# CONFIG_IEEE802154 is not set
+ # CONFIG_NET_SCHED is not set
+ # CONFIG_DCB is not set
  
- MACHINE_START(OMAP_ZOOM2, "OMAP Zoom2 board")
- 	.phys_io	= 0x48000000,
- 	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
- 	.boot_params	= 0x80000100,
--	.map_io		= omap_zoom2_map_io,
--	.init_irq	= omap_zoom2_init_irq,
--	.init_machine	= omap_zoom2_init,
-+	.map_io		= omap_zoom_map_io,
-+	.init_irq	= omap_zoom_init_irq,
-+	.init_machine	= omap_zoom_init,
- 	.timer		= &omap_timer,
- MACHINE_END
+@@ -431,6 +453,7 @@ CONFIG_DEFAULT_TCP_CONG="cubic"
+ # Generic Driver Options
+ #
+ CONFIG_UEVENT_HELPER_PATH="/sbin/hotplug"
++# CONFIG_DEVTMPFS is not set
+ CONFIG_STANDALONE=y
+ CONFIG_PREVENT_FIRMWARE_BUILD=y
+ # CONFIG_FW_LOADER is not set
+@@ -453,9 +476,9 @@ CONFIG_BLK_DEV_RAM_SIZE=16384
+ # CONFIG_BLK_DEV_XIP is not set
+ # CONFIG_CDROM_PKTCDVD is not set
+ # CONFIG_ATA_OVER_ETH is not set
++# CONFIG_MG_DISK is not set
+ CONFIG_MISC_DEVICES=y
+ # CONFIG_ICS932S401 is not set
+-# CONFIG_OMAP_STI is not set
+ # CONFIG_ENCLOSURE_SERVICES is not set
+ # CONFIG_ISL29003 is not set
+ # CONFIG_C2PORT is not set
+@@ -466,6 +489,7 @@ CONFIG_MISC_DEVICES=y
+ # CONFIG_EEPROM_AT24 is not set
+ # CONFIG_EEPROM_AT25 is not set
+ # CONFIG_EEPROM_LEGACY is not set
++# CONFIG_EEPROM_MAX6875 is not set
+ # CONFIG_EEPROM_93CX6 is not set
+ CONFIG_HAVE_IDE=y
+ # CONFIG_IDE is not set
+@@ -489,10 +513,6 @@ CONFIG_BLK_DEV_SD=y
+ # CONFIG_BLK_DEV_SR is not set
+ # CONFIG_CHR_DEV_SG is not set
+ # CONFIG_CHR_DEV_SCH is not set
+-
+-#
+-# Some SCSI devices (e.g. CD jukebox) support multiple LUNs
+-#
+ # CONFIG_SCSI_MULTI_LUN is not set
+ # CONFIG_SCSI_CONSTANTS is not set
+ # CONFIG_SCSI_LOGGING is not set
+@@ -517,7 +537,6 @@ CONFIG_SCSI_LOWLEVEL=y
+ # CONFIG_ATA is not set
+ # CONFIG_MD is not set
+ CONFIG_NETDEVICES=y
+-CONFIG_COMPAT_NET_DEV_OPS=y
+ # CONFIG_DUMMY is not set
+ # CONFIG_BONDING is not set
+ # CONFIG_MACVLAN is not set
+@@ -562,12 +581,12 @@ CONFIG_SMSC911X=y
+ # CONFIG_IBM_NEW_EMAC_MAL_CLR_ICINTSTAT is not set
+ # CONFIG_IBM_NEW_EMAC_MAL_COMMON_ERR is not set
+ # CONFIG_B44 is not set
++# CONFIG_KS8842 is not set
++# CONFIG_KS8851 is not set
++# CONFIG_KS8851_MLL is not set
+ CONFIG_NETDEV_1000=y
+ CONFIG_NETDEV_10000=y
+-
+-#
+-# Wireless LAN
+-#
++CONFIG_WLAN=y
+ # CONFIG_WLAN_PRE80211 is not set
+ # CONFIG_WLAN_80211 is not set
+ 
+@@ -590,6 +609,7 @@ CONFIG_NETDEV_10000=y
+ # CONFIG_NETPOLL is not set
+ # CONFIG_NET_POLL_CONTROLLER is not set
+ # CONFIG_ISDN is not set
++# CONFIG_PHONE is not set
+ 
+ #
+ # Input device support
+@@ -619,21 +639,22 @@ CONFIG_TOUCHSCREEN_ADS7846=y
+ # CONFIG_TOUCHSCREEN_AD7879_I2C is not set
+ # CONFIG_TOUCHSCREEN_AD7879_SPI is not set
+ # CONFIG_TOUCHSCREEN_AD7879 is not set
++# CONFIG_TOUCHSCREEN_EETI is not set
+ # CONFIG_TOUCHSCREEN_FUJITSU is not set
+ # CONFIG_TOUCHSCREEN_GUNZE is not set
+ # CONFIG_TOUCHSCREEN_ELO is not set
+ # CONFIG_TOUCHSCREEN_WACOM_W8001 is not set
++# CONFIG_TOUCHSCREEN_MCS5000 is not set
+ # CONFIG_TOUCHSCREEN_MTOUCH is not set
+ # CONFIG_TOUCHSCREEN_INEXIO is not set
+ # CONFIG_TOUCHSCREEN_MK712 is not set
+ # CONFIG_TOUCHSCREEN_PENMOUNT is not set
+ # CONFIG_TOUCHSCREEN_TOUCHRIGHT is not set
+ # CONFIG_TOUCHSCREEN_TOUCHWIN is not set
+-# CONFIG_TOUCHSCREEN_TSC2005 is not set
+-# CONFIG_TOUCHSCREEN_TSC210X is not set
+ # CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
+ # CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
+ # CONFIG_TOUCHSCREEN_TSC2007 is not set
++# CONFIG_TOUCHSCREEN_W90X900 is not set
+ # CONFIG_INPUT_MISC is not set
+ 
+ #
+@@ -683,6 +704,7 @@ CONFIG_HW_RANDOM=y
+ # CONFIG_TCG_TPM is not set
+ CONFIG_I2C=y
+ CONFIG_I2C_BOARDINFO=y
++CONFIG_I2C_COMPAT=y
+ CONFIG_I2C_CHARDEV=y
+ CONFIG_I2C_HELPER_AUTO=y
+ 
+@@ -693,6 +715,7 @@ CONFIG_I2C_HELPER_AUTO=y
+ #
+ # I2C system bus drivers (mostly embedded / system-on-chip)
+ #
++# CONFIG_I2C_DESIGNWARE is not set
+ # CONFIG_I2C_GPIO is not set
+ # CONFIG_I2C_OCORES is not set
+ CONFIG_I2C_OMAP=y
+@@ -715,12 +738,6 @@ CONFIG_I2C_OMAP=y
+ # Miscellaneous I2C Chip support
+ #
+ # CONFIG_DS1682 is not set
+-# CONFIG_SENSORS_PCF8574 is not set
+-# CONFIG_PCF8575 is not set
+-# CONFIG_SENSORS_PCA9539 is not set
+-# CONFIG_TWL4030_MADC is not set
+-# CONFIG_TWL4030_POWEROFF is not set
+-# CONFIG_SENSORS_MAX6875 is not set
+ # CONFIG_SENSORS_TSL2550 is not set
+ # CONFIG_I2C_DEBUG_CORE is not set
+ # CONFIG_I2C_DEBUG_ALGO is not set
+@@ -742,6 +759,11 @@ CONFIG_SPI_OMAP24XX=y
+ #
+ # CONFIG_SPI_SPIDEV is not set
+ # CONFIG_SPI_TLE62X0 is not set
++
++#
++# PPS support
++#
++# CONFIG_PPS is not set
+ CONFIG_ARCH_REQUIRE_GPIOLIB=y
+ CONFIG_GPIOLIB=y
+ # CONFIG_DEBUG_GPIO is not set
+@@ -768,6 +790,11 @@ CONFIG_GPIO_TWL4030=y
+ #
+ # CONFIG_GPIO_MAX7301 is not set
+ # CONFIG_GPIO_MCP23S08 is not set
++# CONFIG_GPIO_MC33880 is not set
++
++#
++# AC97 GPIO expanders:
++#
+ CONFIG_W1=y
+ CONFIG_W1_CON=y
+ 
+@@ -793,10 +820,11 @@ CONFIG_POWER_SUPPLY=y
+ # CONFIG_POWER_SUPPLY_DEBUG is not set
+ # CONFIG_PDA_POWER is not set
+ # CONFIG_BATTERY_DS2760 is not set
++# CONFIG_BATTERY_DS2782 is not set
+ # CONFIG_BATTERY_BQ27x00 is not set
++# CONFIG_BATTERY_MAX17040 is not set
+ # CONFIG_HWMON is not set
+ # CONFIG_THERMAL is not set
+-# CONFIG_THERMAL_HWMON is not set
+ CONFIG_WATCHDOG=y
+ CONFIG_WATCHDOG_NOWAYOUT=y
+ 
+@@ -805,6 +833,7 @@ CONFIG_WATCHDOG_NOWAYOUT=y
+ #
+ # CONFIG_SOFT_WATCHDOG is not set
+ # CONFIG_OMAP_WATCHDOG is not set
++# CONFIG_TWL4030_WATCHDOG is not set
+ 
+ #
+ # USB-based Watchdog Cards
+@@ -827,31 +856,31 @@ CONFIG_SSB_POSSIBLE=y
+ # CONFIG_HTC_PASIC3 is not set
+ # CONFIG_TPS65010 is not set
+ CONFIG_TWL4030_CORE=y
++# CONFIG_TWL4030_POWER is not set
+ # CONFIG_MFD_TMIO is not set
+ # CONFIG_MFD_T7L66XB is not set
+ # CONFIG_MFD_TC6387XB is not set
+ # CONFIG_MFD_TC6393XB is not set
+ # CONFIG_PMIC_DA903X is not set
+ # CONFIG_MFD_WM8400 is not set
++# CONFIG_MFD_WM831X is not set
+ # CONFIG_MFD_WM8350_I2C is not set
+ # CONFIG_MFD_PCF50633 is not set
+-
+-#
+-# Multimedia devices
+-#
+-
+-#
+-# Multimedia core support
+-#
+-# CONFIG_VIDEO_DEV is not set
+-# CONFIG_DVB_CORE is not set
+-# CONFIG_VIDEO_MEDIA is not set
+-
+-#
+-# Multimedia drivers
+-#
+-CONFIG_DAB=y
+-# CONFIG_USB_DABUSB is not set
++# CONFIG_MFD_MC13783 is not set
++# CONFIG_AB3100_CORE is not set
++# CONFIG_EZX_PCAP is not set
++CONFIG_REGULATOR=y
++# CONFIG_REGULATOR_DEBUG is not set
++# CONFIG_REGULATOR_FIXED_VOLTAGE is not set
++# CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
++# CONFIG_REGULATOR_USERSPACE_CONSUMER is not set
++# CONFIG_REGULATOR_BQ24022 is not set
++# CONFIG_REGULATOR_MAX1586 is not set
++CONFIG_REGULATOR_TWL4030=y
++# CONFIG_REGULATOR_LP3971 is not set
++# CONFIG_REGULATOR_TPS65023 is not set
++# CONFIG_REGULATOR_TPS6507X is not set
++# CONFIG_MEDIA_SUPPORT is not set
+ 
+ #
+ # Graphics support
+@@ -883,6 +912,11 @@ CONFIG_SND_SUPPORT_OLD_API=y
+ CONFIG_SND_VERBOSE_PROCFS=y
+ # CONFIG_SND_VERBOSE_PRINTK is not set
+ # CONFIG_SND_DEBUG is not set
++# CONFIG_SND_RAWMIDI_SEQ is not set
++# CONFIG_SND_OPL3_LIB_SEQ is not set
++# CONFIG_SND_OPL4_LIB_SEQ is not set
++# CONFIG_SND_SBAWE_SEQ is not set
++# CONFIG_SND_EMU10K1_SEQ is not set
+ CONFIG_SND_DRIVERS=y
+ # CONFIG_SND_DUMMY is not set
+ # CONFIG_SND_MTPAV is not set
+@@ -897,7 +931,6 @@ CONFIG_SND_USB=y
+ # CONFIG_SOUND_PRIME is not set
+ CONFIG_HID_SUPPORT=y
+ CONFIG_HID=y
+-# CONFIG_HID_DEBUG is not set
+ # CONFIG_HIDRAW is not set
+ 
+ #
+@@ -916,10 +949,11 @@ CONFIG_USB_HID=y
+ # CONFIG_HID_CHERRY is not set
+ # CONFIG_HID_CHICONY is not set
+ # CONFIG_HID_CYPRESS is not set
+-# CONFIG_DRAGONRISE_FF is not set
++# CONFIG_HID_DRAGONRISE is not set
+ # CONFIG_HID_EZKEY is not set
+ # CONFIG_HID_KYE is not set
+ # CONFIG_HID_GYRATION is not set
++# CONFIG_HID_TWINHAN is not set
+ # CONFIG_HID_KENSINGTON is not set
+ # CONFIG_HID_LOGITECH is not set
+ # CONFIG_HID_MICROSOFT is not set
+@@ -930,10 +964,11 @@ CONFIG_USB_HID=y
+ # CONFIG_HID_SAMSUNG is not set
+ # CONFIG_HID_SONY is not set
+ # CONFIG_HID_SUNPLUS is not set
+-# CONFIG_GREENASIA_FF is not set
++# CONFIG_HID_GREENASIA is not set
++# CONFIG_HID_SMARTJOYPLUS is not set
+ # CONFIG_HID_TOPSEED is not set
+-# CONFIG_THRUSTMASTER_FF is not set
+-# CONFIG_ZEROPLUS_FF is not set
++# CONFIG_HID_THRUSTMASTER is not set
++# CONFIG_HID_ZEROPLUS is not set
+ CONFIG_USB_SUPPORT=y
+ CONFIG_USB_ARCH_HAS_HCD=y
+ CONFIG_USB_ARCH_HAS_OHCI=y
+@@ -964,6 +999,7 @@ CONFIG_USB_MON=y
+ # CONFIG_USB_OXU210HP_HCD is not set
+ # CONFIG_USB_ISP116X_HCD is not set
+ # CONFIG_USB_ISP1760_HCD is not set
++# CONFIG_USB_ISP1362_HCD is not set
+ # CONFIG_USB_OHCI_HCD is not set
+ # CONFIG_USB_SL811_HCD is not set
+ # CONFIG_USB_R8A66597_HCD is not set
+@@ -1030,9 +1066,11 @@ CONFIG_USB_MUSB_DEBUG=y
+ # CONFIG_USB_IDMOUSE is not set
+ # CONFIG_USB_FTDI_ELAN is not set
+ # CONFIG_USB_APPLEDISPLAY is not set
++# CONFIG_USB_SISUSBVGA is not set
+ # CONFIG_USB_LD is not set
+ # CONFIG_USB_TRANCEVIBRATOR is not set
+ # CONFIG_USB_IOWARRIOR is not set
++# CONFIG_USB_TEST is not set
+ # CONFIG_USB_ISIGHTFW is not set
+ # CONFIG_USB_VST is not set
+ CONFIG_USB_GADGET=y
+@@ -1046,19 +1084,23 @@ CONFIG_USB_GADGET_SELECTED=y
+ # CONFIG_USB_GADGET_LH7A40X is not set
+ # CONFIG_USB_GADGET_OMAP is not set
+ # CONFIG_USB_GADGET_PXA25X is not set
++# CONFIG_USB_GADGET_R8A66597 is not set
+ # CONFIG_USB_GADGET_PXA27X is not set
+-# CONFIG_USB_GADGET_S3C2410 is not set
++# CONFIG_USB_GADGET_S3C_HSOTG is not set
+ # CONFIG_USB_GADGET_IMX is not set
++# CONFIG_USB_GADGET_S3C2410 is not set
+ # CONFIG_USB_GADGET_M66592 is not set
+ # CONFIG_USB_GADGET_AMD5536UDC is not set
+ # CONFIG_USB_GADGET_FSL_QE is not set
+ # CONFIG_USB_GADGET_CI13XXX is not set
+ # CONFIG_USB_GADGET_NET2280 is not set
+ # CONFIG_USB_GADGET_GOKU is not set
++# CONFIG_USB_GADGET_LANGWELL is not set
+ # CONFIG_USB_GADGET_DUMMY_HCD is not set
+ CONFIG_USB_GADGET_DUALSPEED=y
+-CONFIG_USB_ZERO=y
++CONFIG_USB_ZERO=m
+ # CONFIG_USB_ZERO_HNPTEST is not set
++# CONFIG_USB_AUDIO is not set
+ # CONFIG_USB_ETH is not set
+ # CONFIG_USB_GADGETFS is not set
+ # CONFIG_USB_FILE_STORAGE is not set
+@@ -1091,11 +1133,14 @@ CONFIG_MMC_BLOCK_BOUNCE=y
+ # MMC/SD/SDIO Host Controller Drivers
+ #
+ # CONFIG_MMC_SDHCI is not set
++# CONFIG_MMC_OMAP is not set
+ CONFIG_MMC_OMAP_HS=y
++# CONFIG_MMC_AT91 is not set
++# CONFIG_MMC_ATMELMCI is not set
+ # CONFIG_MMC_SPI is not set
+ # CONFIG_MEMSTICK is not set
+-# CONFIG_ACCESSIBILITY is not set
+ # CONFIG_NEW_LEDS is not set
++# CONFIG_ACCESSIBILITY is not set
+ CONFIG_RTC_LIB=y
+ CONFIG_RTC_CLASS=y
+ CONFIG_RTC_HCTOSYS=y
+@@ -1128,6 +1173,7 @@ CONFIG_RTC_INTF_DEV=y
+ # CONFIG_RTC_DRV_S35390A is not set
+ # CONFIG_RTC_DRV_FM3130 is not set
+ # CONFIG_RTC_DRV_RX8581 is not set
++# CONFIG_RTC_DRV_RX8025 is not set
+ 
+ #
+ # SPI RTC drivers
+@@ -1139,6 +1185,7 @@ CONFIG_RTC_INTF_DEV=y
+ # CONFIG_RTC_DRV_R9701 is not set
+ # CONFIG_RTC_DRV_RS5C348 is not set
+ # CONFIG_RTC_DRV_DS3234 is not set
++# CONFIG_RTC_DRV_PCF2123 is not set
+ 
+ #
+ # Platform RTC drivers
+@@ -1160,13 +1207,11 @@ CONFIG_RTC_INTF_DEV=y
+ #
+ # CONFIG_DMADEVICES is not set
+ # CONFIG_AUXDISPLAY is not set
+-CONFIG_REGULATOR=y
+-# CONFIG_REGULATOR_DEBUG is not set
+-# CONFIG_REGULATOR_FIXED_VOLTAGE is not set
+-# CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
+-# CONFIG_REGULATOR_BQ24022 is not set
+-CONFIG_REGULATOR_TWL4030=y
+ # CONFIG_UIO is not set
++
++#
++# TI VLYNQ
++#
+ # CONFIG_STAGING is not set
+ 
+ #
+@@ -1188,10 +1233,13 @@ CONFIG_JBD=y
+ # CONFIG_REISERFS_FS is not set
+ # CONFIG_JFS_FS is not set
+ CONFIG_FS_POSIX_ACL=y
+-CONFIG_FILE_LOCKING=y
+ # CONFIG_XFS_FS is not set
++# CONFIG_GFS2_FS is not set
+ # CONFIG_OCFS2_FS is not set
+ # CONFIG_BTRFS_FS is not set
++# CONFIG_NILFS2_FS is not set
++CONFIG_FILE_LOCKING=y
++CONFIG_FSNOTIFY=y
+ CONFIG_DNOTIFY=y
+ CONFIG_INOTIFY=y
+ CONFIG_INOTIFY_USER=y
+@@ -1256,12 +1304,12 @@ CONFIG_MISC_FILESYSTEMS=y
+ # CONFIG_ROMFS_FS is not set
+ # CONFIG_SYSV_FS is not set
+ # CONFIG_UFS_FS is not set
+-# CONFIG_NILFS2_FS is not set
+ CONFIG_NETWORK_FILESYSTEMS=y
+ CONFIG_NFS_FS=y
+ CONFIG_NFS_V3=y
+ CONFIG_NFS_V3_ACL=y
+ CONFIG_NFS_V4=y
++# CONFIG_NFS_V4_1 is not set
+ CONFIG_ROOT_NFS=y
+ # CONFIG_NFSD is not set
+ CONFIG_LOCKD=y
+@@ -1349,6 +1397,7 @@ CONFIG_ENABLE_WARN_DEPRECATED=y
+ CONFIG_ENABLE_MUST_CHECK=y
+ CONFIG_FRAME_WARN=1024
+ CONFIG_MAGIC_SYSRQ=y
++# CONFIG_STRIP_ASM_SYMS is not set
+ # CONFIG_UNUSED_SYMBOLS is not set
+ # CONFIG_DEBUG_FS is not set
+ # CONFIG_HEADERS_CHECK is not set
+@@ -1365,6 +1414,7 @@ CONFIG_SCHED_DEBUG=y
+ # CONFIG_TIMER_STATS is not set
+ # CONFIG_DEBUG_OBJECTS is not set
+ # CONFIG_DEBUG_SLAB is not set
++# CONFIG_DEBUG_KMEMLEAK is not set
+ # CONFIG_DEBUG_RT_MUTEXES is not set
+ # CONFIG_RT_MUTEX_TESTER is not set
+ # CONFIG_DEBUG_SPINLOCK is not set
+@@ -1383,27 +1433,27 @@ CONFIG_DEBUG_INFO=y
+ # CONFIG_DEBUG_LIST is not set
+ # CONFIG_DEBUG_SG is not set
+ # CONFIG_DEBUG_NOTIFIERS is not set
++# CONFIG_DEBUG_CREDENTIALS is not set
+ # CONFIG_BOOT_PRINTK_DELAY is not set
+ # CONFIG_RCU_TORTURE_TEST is not set
+ # CONFIG_RCU_CPU_STALL_DETECTOR is not set
+ # CONFIG_BACKTRACE_SELF_TEST is not set
+ # CONFIG_DEBUG_BLOCK_EXT_DEVT is not set
++# CONFIG_DEBUG_FORCE_WEAK_PER_CPU is not set
+ # CONFIG_FAULT_INJECTION is not set
+ # CONFIG_LATENCYTOP is not set
+ # CONFIG_PAGE_POISONING is not set
+ CONFIG_HAVE_FUNCTION_TRACER=y
+ CONFIG_TRACING_SUPPORT=y
+-
+-#
+-# Tracers
+-#
++CONFIG_FTRACE=y
+ # CONFIG_FUNCTION_TRACER is not set
+ # CONFIG_IRQSOFF_TRACER is not set
+ # CONFIG_SCHED_TRACER is not set
+-# CONFIG_CONTEXT_SWITCH_TRACER is not set
+-# CONFIG_EVENT_TRACER is not set
++# CONFIG_ENABLE_DEFAULT_TRACERS is not set
+ # CONFIG_BOOT_TRACER is not set
+-# CONFIG_TRACE_BRANCH_PROFILING is not set
++CONFIG_BRANCH_PROFILE_NONE=y
++# CONFIG_PROFILE_ANNOTATED_BRANCHES is not set
++# CONFIG_PROFILE_ALL_BRANCHES is not set
+ # CONFIG_STACK_TRACER is not set
+ # CONFIG_KMEMTRACE is not set
+ # CONFIG_WORKQUEUE_TRACER is not set
+@@ -1430,7 +1480,6 @@ CONFIG_CRYPTO=y
+ #
+ # Crypto core or helper
+ #
+-# CONFIG_CRYPTO_FIPS is not set
+ CONFIG_CRYPTO_ALGAPI=y
+ CONFIG_CRYPTO_ALGAPI2=y
+ CONFIG_CRYPTO_AEAD2=y
+@@ -1472,11 +1521,13 @@ CONFIG_CRYPTO_PCBC=m
+ #
+ # CONFIG_CRYPTO_HMAC is not set
+ # CONFIG_CRYPTO_XCBC is not set
++# CONFIG_CRYPTO_VMAC is not set
+ 
+ #
+ # Digest
+ #
+ CONFIG_CRYPTO_CRC32C=y
++# CONFIG_CRYPTO_GHASH is not set
+ # CONFIG_CRYPTO_MD4 is not set
+ CONFIG_CRYPTO_MD5=y
+ # CONFIG_CRYPTO_MICHAEL_MIC is not set
 -- 
 1.6.5.1.69.g36942
 
