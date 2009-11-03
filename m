@@ -1,64 +1,69 @@
-From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] musb: Inform user when gadget cable is disconnected
-Date: Tue, 3 Nov 2009 09:37:12 +0200
-Message-ID: <20091103073712.GA30172@nokia.com>
-References: <1257230140-12958-1-git-send-email-ajay.gupta@ti.com>
-Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH 1/3] Fixing compilation warning for 'nand/omap2.c'
+Date: Tue, 03 Nov 2009 10:18:43 +0200
+Message-ID: <1257236323.21596.56.camel@localhost>
+References: <ce9ab5790910292321nf230810v353c23f9c1ce1931@mail.gmail.com>
+	 <ce9ab5790910300142s615c7d59h15bb2d46d4f76574@mail.gmail.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1257230140-12958-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.233]:35448 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751131AbZKCITN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 03:19:13 -0500
+In-Reply-To: <ce9ab5790910300142s615c7d59h15bb2d46d4f76574@mail.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
 
-Hi,
-
-On Tue, Nov 03, 2009 at 07:35:39AM +0100, ext Ajay Kumar Gupta wrote:
-> Currently we don't see any message to inform user that gadget cable is
-> successfully disconnected leading to suspicion if everything is fine at
-> driver therefore adding an informative print message in gadget
-> disconnect path.
-> 
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+On Fri, 2009-10-30 at 14:12 +0530, Vimal Singh wrote:
+> Looping Linux-omap mailing list.
+>=20
+>=20
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Fri, 30 Oct 2009 11:31:34 +0530
+> Subject: [PATCH] Fixing compilation warning for 'nand/omap2.c'
+>=20
+> Fixing below warning in compilation:
+> drivers/mtd/nand/omap2.c: In function 'omap_write_buf_dma_pref':
+> drivers/mtd/nand/omap2.c:508: warning: passing argument 2 of
+> 'omap_nand_dma_transfer' discards qualifiers from pointer target type
+>=20
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 > ---
->  drivers/usb/musb/musb_core.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-> index 3a61ddb..ec67ec7 100644
-> --- a/drivers/usb/musb/musb_core.c
-> +++ b/drivers/usb/musb/musb_core.c
-> @@ -795,6 +795,10 @@ static irqreturn_t musb_stage2_irq(struct musb *musb, u8 int_usb,
->  #ifdef CONFIG_USB_GADGET_MUSB_HDRC
->  		case OTG_STATE_B_PERIPHERAL:
->  		case OTG_STATE_B_IDLE:
-> +			printk(KERN_INFO "musb %s gadget disconnected.\n",
-> +				musb->gadget_driver
-> +				? musb->gadget_driver->driver.name
-> +				: "");
+>  drivers/mtd/nand/omap2.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
 
-i don't think this is so useful since no normal user will be reading
-dmesg anyway. User will get this state via
-/sys/devices/platform/musb_hdrc/mode, which is sysfs_notified and
-HAL/DeviceKit can use that to show pretty UI messages to user.
+[dedekind@eru l2-mtd-2.6.git]$ scripts/checkpatch.pl vimal
+ERROR: patch seems to be corrupt (line wrapped?)
+#94: FILE: drivers/mtd/nand/omap2.c:500:
+mtd_info *mtd, u_char *buf, int len)
 
-I'm currently moving some sysfs files to the transceiver level and
-creating a more generic set of sysfs files so that we could have a
-generic hald-addon or DeviceKit daemon for handling that for any
-transceiver.
+total: 1 errors, 0 warnings, 16 lines checked
 
-I have some under-development patches available at [1] if you want to
-look. The commit regarding this is on [2].
+vimal has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+[dedekind@eru l2-mtd-2.6.git]$ vim vimal
+[dedekind@eru l2-mtd-2.6.git]$ git am vimal
+Applying: Fixing compilation warning for 'nand/omap2.c'
+fatal: corrupt patch at line 10
+Patch failed at 0001 Fixing compilation warning for 'nand/omap2.c'
+When you have resolved this problem run "git am --resolved".
+If you would prefer to skip this patch, instead run "git am --skip".
+To restore the original branch and stop patching run "git am --abort".
+[dedekind@eru l2-mtd-2.6.git]$
 
-[1] http://gitorious.org/usb/usb/commits/otg-rework
-[2] http://gitorious.org/usb/usb/commit/121ff1e9f17ffa56692b63305bf55e72216df3eb
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
--- 
-balbi
 --
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
