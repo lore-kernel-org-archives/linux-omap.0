@@ -1,66 +1,54 @@
-From: Koen Kooi <k.kooi@student.utwente.nl>
-Subject: Re: [PATCH] omap3: beagle: Fix USB host port power control
-Date: Tue, 3 Nov 2009 15:11:53 +0100
-Message-ID: <CD99E8BE-6FBB-4975-9072-A9BE16B1A00D@student.utwente.nl>
-References: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
-Mime-Version: 1.0 (Apple Message framework v1076)
-Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
+From: Chris Hudson <chudson@kionix.com>
+Subject: Driver Merge Questions
+Date: Tue, 03 Nov 2009 09:40:17 -0500
+Message-ID: <4AF040D1.7020109@kionix.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx3.utsp.utwente.nl ([130.89.2.14]:39325 "EHLO mx.utwente.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751240AbZKCOL5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 3 Nov 2009 09:11:57 -0500
-Received: from [172.20.1.5] (vpn006010.vpn.utwente.nl [130.89.6.10])
-          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id nA3EBrHH006839
-          for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 15:11:54 +0100
-In-Reply-To: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
+Received: from barracuda.kionix.com ([205.232.90.213]:41590 "EHLO
+	mail.kionix.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751261AbZKCOrj (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 09:47:39 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Any comments on this, I need this on beagleboard to make ehci work.
+Hello all,
 
-regards,
+I've never submitted any software to Linux before, but I've been working 
+on some new accelerometer drivers that should be ready for review soon 
+(pending company approval).  I've read lots of documentation on patch 
+and driver submissions, but I still have some questions that I was 
+hoping someone could help me find the answers to.
 
-Koen
+1- My drivers use i2c for hardware communications, miscdevice for 
+IOCTLs, and input_dev for data and interrupt status outputs.  Most of 
+the other accelerometer drivers that I've looked at use similar designs 
+and are located in drivers/hwmon, but I just wanted to confirm that this 
+is the correct location currently.
 
-Op 24 okt 2009, om 09:59 heeft Jarkko Nikula het volgende geschreven:
+2- I have done all of my hardware testing with OMAP development 
+platforms, so I thought it would be best to send my patch submissions to 
+this list for review.  The hardware monitoring tree is listed in 
+MAINTAINERS as an orphan, but I was planning on including 
+lm-sensors@lm-sensors.org as well.  If either of these assumptions is 
+incorrect, please let me know.
 
-> The host port power is enabled by driving the nEN_USB_PWR low as  
-> stated in
-> the comment. This fix is originally from Steve Sakoman <steve@sakoman.com 
-> >.
->
-> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> Cc: Steve Sakoman <steve@sakoman.com>
-> ---
-> arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
-> 1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach- 
-> omap2/board-omap3beagle.c
-> index 6cb99f6..7ad9846 100644
-> --- a/arch/arm/mach-omap2/board-omap3beagle.c
-> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> @@ -162,7 +162,7 @@ static int beagle_twl_gpio_setup(struct device  
-> *dev,
->
-> 	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low)  
-> */
-> 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
-> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
-> +	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
->
-> 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
-> 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-> -- 
-> 1.6.3.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+3- Should my patch set consist of source, header, kconfig, and makefile 
+patches, or should I include my custom changes to mux.c, mux.h, and 
+board-zoom2.c as well?  The former are necessary for adding driver 
+support, but the latter are specific for my hardware testing platform 
+(which others may want to duplicate for testing purposes).  I noticed 
+that recent versions of board-zoom2.c are nice and clean, so it's 
+probably not a good idea to wedge infrequently-used code in there with a 
+bunch of #ifdefs.  I just want to get an idea of what is generally 
+included with a new driver.
+
+Any help or advice would be greatly appreciated.
+
+Thank you,
+
+Chris Hudson
+Kionix, Inc.
 
