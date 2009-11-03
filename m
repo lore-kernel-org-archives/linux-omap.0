@@ -1,74 +1,48 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3: beagle: Fix USB host port power control
-Date: Tue, 3 Nov 2009 09:21:39 -0800
-Message-ID: <20091103172139.GL8981@atomide.com>
-References: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
- <CD99E8BE-6FBB-4975-9072-A9BE16B1A00D@student.utwente.nl>
+Subject: Re: Please advise on modifying defconfig for Amstrad Delta
+Date: Tue, 3 Nov 2009 09:24:00 -0800
+Message-ID: <20091103172400.GM8981@atomide.com>
+References: <200910250340.34046.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53768 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58281 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864AbZKCRVg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 12:21:36 -0500
+	with ESMTP id S1751012AbZKCRYE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 12:24:04 -0500
 Content-Disposition: inline
-In-Reply-To: <CD99E8BE-6FBB-4975-9072-A9BE16B1A00D@student.utwente.nl>
+In-Reply-To: <200910250340.34046.jkrzyszt@tis.icnet.pl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Koen Kooi <k.kooi@student.utwente.nl>
-Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Cc: linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Koen Kooi <k.kooi@student.utwente.nl> [091103 06:11]:
-> Any comments on this, I need this on beagleboard to make ehci work.
+* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091024 19:41]:
+> Hi,
+> 
+> I'm just working on a new, updated version of ams_delta_defconfig. Starting from the current version, created over 2 years ago for 2.6.22, I turned on a few device drivers that was added recently, turned on thumb instructions support, turned on EABI, kept old ABI compatibility and NWFPE, and got a resulting kernel that is ~170kB too large to be successfully booted using tools available at http://the.earth.li/pub/e3/.
+> 
+> Of course, I am able to trim that down, even adding a few more drivers for add-on hardware that I am using, and get a kernel that works perfectly for me, but since I have never prepared a default config, I'd like to get your advice on what I can remove and what should rather be kept untouched.
+> 
+> Instead of pasting sixteen hundred lines here, I'd rather ask about the simplest change I can see:
+> 
+> -# CONFIG_EMBEDDED is not set
+> -CONFIG_KALLSYMS=y
+> +CONFIG_EMBEDDED=y
+> +# CONFIG_KALLSYMS is not set
+> 
+> That would give me a kernel that is small enough, but since only a few of arm defconfigs have CONFIG_KALLSYMS not set, I am not sure if it is generally acceptable.
 
-Looks like a fix to me, will queue.
+Send that as a fix to this list with the minimal changes,
+we should still be able to get it in as a fix during the -rc
+series.
+
+If you want to update the whole defconfig, we need to wait
+for the merge window.
+
+Just do the diff -u, then edit the patch to leave out all
+the other hunks except the one above.
+
+Regards,
 
 Tony
- 
-> regards,
-> 
-> Koen
-> 
-> Op 24 okt 2009, om 09:59 heeft Jarkko Nikula het volgende geschreven:
-> 
-> >The host port power is enabled by driving the nEN_USB_PWR low as
-> >stated in
-> >the comment. This fix is originally from Steve Sakoman
-> ><steve@sakoman.com>.
-> >
-> >Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> >Cc: Steve Sakoman <steve@sakoman.com>
-> >---
-> >arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
-> >1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> >diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
-> >b/arch/arm/mach-omap2/board-omap3beagle.c
-> >index 6cb99f6..7ad9846 100644
-> >--- a/arch/arm/mach-omap2/board-omap3beagle.c
-> >+++ b/arch/arm/mach-omap2/board-omap3beagle.c
-> >@@ -162,7 +162,7 @@ static int beagle_twl_gpio_setup(struct device
-> >*dev,
-> >
-> >	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active
-> >low) */
-> >	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
-> >-	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
-> >+	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
-> >
-> >	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
-> >	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
-> >-- 
-> >1.6.3.3
-> >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-
-> >omap" in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
