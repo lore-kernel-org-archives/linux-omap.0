@@ -1,29 +1,39 @@
 From: "Ramirez Luna, Omar" <omar.ramirez@ti.com>
-Subject: [PATCH 1/2] DSPBRIDGE: Lower power transtion timeout
-Date: Tue, 3 Nov 2009 17:07:49 -0600
-Message-ID: <27F9C60D11D683428E133F85D2BB4A530426AACC4B@dlee03.ent.ti.com>
+Subject: [RESEND][PATCH 1/6] DSPBRIDGE: Lower power transtion timeout
+Date: Tue, 3 Nov 2009 17:11:49 -0600
+Message-ID: <27F9C60D11D683428E133F85D2BB4A530426AACC4F@dlee03.ent.ti.com>
+References: <27F9C60D11D683428E133F85D2BB4A530426AACC4B@dlee03.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:57940 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:58137 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751449AbZKCXHp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 18:07:45 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA3N7oKv002349
+	with ESMTP id S1751141AbZKCXLp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 18:11:45 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA3NBobg004728
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 17:07:50 -0600
+	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 17:11:50 -0600
 Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep34.itg.ti.com (8.13.7/8.13.7) with ESMTP id nA3N7n1F010501
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 17:07:50 -0600 (CST)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA3N7nHc011925
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 17:07:49 -0600 (CST)
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA3NBnUB009041
+	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 17:11:50 -0600 (CST)
+Received: from dlee74.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA3NBnCd013004
+	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 17:11:49 -0600 (CST)
+In-Reply-To: <27F9C60D11D683428E133F85D2BB4A530426AACC4B@dlee03.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Linux OMAP <linux-omap@vger.kernel.org>
+
+Fixing subject this time.
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Ramirez Luna, Omar
+Sent: Tuesday, November 03, 2009 5:08 PM
+To: Linux OMAP
+Subject: [PATCH 1/6] DSPBRIDGE: Lower power transtion timeout
 
 Given system latency and low timer resolutions, device
 driver timeout needs to be cut to report any error, while
@@ -72,3 +82,8 @@ index 0c2f2fd..2eb379f 100644
  			return DSP_EFAIL;
 -- 
 1.6.2.4
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
