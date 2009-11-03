@@ -1,46 +1,61 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: Query: Regulator framework in EHCI driver
-Date: Tue, 3 Nov 2009 17:30:46 +0200
-Message-ID: <20091103153046.GA30320@nokia.com>
-References: <19F8576C6E063C45BE387C64729E73940436EEB912@dbde02.ent.ti.com>
-Reply-To: felipe.balbi@nokia.com
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH]OMAP3:PM :T2 keypad wakeup for OMAP3
+Date: Tue, 3 Nov 2009 22:02:06 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE27FC52@dbde02.ent.ti.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9CD4D@dbde02.ent.ti.com>
+ <87zl9lfytn.fsf@deeprootsystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:22467 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752713AbZKCPbg (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 10:31:36 -0500
-Content-Disposition: inline
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940436EEB912@dbde02.ent.ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:33201 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751261AbZKCQcG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 11:32:06 -0500
+In-Reply-To: <87zl9lfytn.fsf@deeprootsystems.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>, "Reddy, Teerth" <teerth@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Tue, Nov 03, 2009 at 12:55:53PM +0100, ext Gupta, Ajay Kumar wrote:
-> Hi Anand/Felipe,
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+> Sent: Thursday, August 27, 2009 1:55 PM
+> To: Reddy, Teerth
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: [PATCH]OMAP3:PM :T2 keypad wakeup for OMAP3
 > 
-> This is regarding regulator framework for 1V8 supply to EHCI PHY from twl4030 device.
+> Hi Teerth,
 > 
-> [EHCI port on OMAP3EVM uses SMSC USB3320 PHY and uses 1V8 supply from twl4030 chip.]
+> "Reddy, Teerth" <teerth@ti.com> writes:
 > 
-> I found twl4030_usb_ldo_init () function in drivers/usb/otg/twl4030-usb.c, which uses regulator framework but it can not be used by all the board which are not using twl4030 PHY. Don't you think this function need to be moved to some other common location?
+> > From : Teerth Reddy <teerth@ti.com>
+> >
+> > This patch changes for setting the padconf value for sys_nirq line
+> > which is connected to T2 INTR1.  This will fix the T2 keypad wakeup
+> > issue on OMAP3 SDP.
+> >
+> > Signed-off-by: Teerth Reddy < teerth@ti.com >
 > 
-> Currently we are not enabling 1V8 supply explicitly but still EHCI works on EVM as most of the twl4030 supplies are enabled by default.
+> Patch looks good, thanks.  I'll pull this into PM branch and queue
+> in my PM fixes queue for next merge window.
 > 
-> I was thinking of adding regulator framework in EHCI driver which will enable the required supplies based on one of the board_data passed (same as reset_gpio) from board files.
+> I did a minor update by adding a comment in the
+> enable_board_wakeup_source function stating that this is the
+> interrupt pin used for T2.
+> 
+> Kevin
+> 
 
-You should be able to regulator_get() the 1v8 supply and
-regulator_enable() it. The regulator was already setup in twl4030-core.c
-so that should work just fine. It's not a good idea to export
-twl4030_ldo_init() since that's only for twl4030-usb itself. If you
-regulator_get()/regulator_enable() then the regulator will be
-refcounted.
+Teerth, Kevin,
 
-You might want to add more consumers to the same supply based on board
-information though. Today it's hardcoded to one for every board in
-twl4030-core.c
+Did you test it with OFF mode enabled?
 
--- 
-balbi
+When I do "echo 1 > /sys/power/enable_off_mode" I don't see resume on the omap3evm.
+
+Schematics for the keypad are/seem to be same for EVM and SDP.
+
+Best regards,
+Sanjeev
