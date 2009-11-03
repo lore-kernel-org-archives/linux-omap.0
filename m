@@ -1,57 +1,63 @@
-From: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
-Subject: [PATCH 2/2] musb: Remove unwanted message in boot log
-Date: Tue,  3 Nov 2009 12:05:40 +0530
-Message-ID: <1257230140-12958-2-git-send-email-ajay.gupta@ti.com>
-References: <1257230140-12958-1-git-send-email-ajay.gupta@ti.com>
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1257230140-12958-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org, david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org, Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+From: Mike Rapoport <mike.rapoport@gmail.com>
+Subject: Re: [PATCH 0/5] New mux code for 34xx
+Date: Tue, 3 Nov 2009 08:42:23 +0200
+Message-ID: <f870da180911022242p2ddbd8f8j94da3fb466966d20@mail.gmail.com>
+References: <20091029203124.11843.89983.stgit@localhost>
+	 <4AED6321.7020002@compulab.co.il> <20091102185649.GC6692@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mail-iw0-f180.google.com ([209.85.223.180]:47957 "EHLO
+	mail-iw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751658AbZKCGmT (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 01:42:19 -0500
+Received: by iwn10 with SMTP id 10so3932665iwn.4
+        for <linux-omap@vger.kernel.org>; Mon, 02 Nov 2009 22:42:24 -0800 (PST)
+In-Reply-To: <20091102185649.GC6692@atomide.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org
 
-Removes below unnecessary log of almost 28 lines during boot.
+On Mon, Nov 2, 2009 at 8:56 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Mike Rapoport <mike@compulab.co.il> [091101 02:29]:
+>> Hi Tony,
+>>
+>> Tony Lindgren wrote:
+>> > Hi all,
+>> >
+>> > Here's an initial version of the new mux code to play with.
+>> > Big thanks to Paul & Benoit for the 34xx mux data!
+>>
+>> I've tried your patches, they seem to work just fine on CM-T35.
+>
+> OK cool.
+>
+>> > To try out the new code, compile a kernel with CONFIG_OMAP_MUX
+>> > and CONFIG_DEBUG_FS and these patches. The series is also
+>> > availabe in the l-o git in mux branch.
+>>
+>> [ snip ]
+>>
+>> >
+>> > Comments welcome as always.
+>>
+>> There are some comments on patches 2 (Add new style pin multiplexing code for
+>> omap3) and 3 (Add new style pin multiplexing data for 34xx). No nitpicking for
+>> now, but checkpatch.pl is unhappy with the patchset :)
+>
+> OK, will run checkpatch.pl --strict on them. Thanks for the
+> comments!
 
-musb_hdrc: hw_ep 0shared, max 64
-musb_hdrc: hw_ep 1tx, max 512
-musb_hdrc: hw_ep 1rx, max 512
-...
-...
-musb_hdrc: hw_ep 13shared, max 4096
-musb_hdrc: hw_ep 14shared, max 1024
-musb_hdrc: hw_ep 15shared, max 1024
+While on it, can you please update board-cm-t35.c to use CUS package?
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
----
- drivers/usb/musb/musb_core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> Regards,
+>
+> Tony
+>
 
-diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
-index ec67ec7..0005dea 100644
---- a/drivers/usb/musb/musb_core.c
-+++ b/drivers/usb/musb/musb_core.c
-@@ -1454,7 +1454,7 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
- #endif
- 
- 		if (hw_ep->max_packet_sz_tx) {
--			printk(KERN_DEBUG
-+			DBG(1,
- 				"%s: hw_ep %d%s, %smax %d\n",
- 				musb_driver_name, i,
- 				hw_ep->is_shared_fifo ? "shared" : "tx",
-@@ -1463,7 +1463,7 @@ static int __init musb_core_init(u16 musb_type, struct musb *musb)
- 				hw_ep->max_packet_sz_tx);
- 		}
- 		if (hw_ep->max_packet_sz_rx && !hw_ep->is_shared_fifo) {
--			printk(KERN_DEBUG
-+			DBG(1,
- 				"%s: hw_ep %d%s, %smax %d\n",
- 				musb_driver_name, i,
- 				"rx",
+
+
 -- 
-1.6.2.4
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	Sincerely Yours,
+		Mike.
