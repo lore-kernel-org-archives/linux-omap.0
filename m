@@ -1,54 +1,46 @@
-From: Chris Hudson <chudson@kionix.com>
-Subject: Driver Merge Questions
-Date: Tue, 03 Nov 2009 09:40:17 -0500
-Message-ID: <4AF040D1.7020109@kionix.com>
+From: Felipe Balbi <felipe.balbi@nokia.com>
+Subject: Re: Query: Regulator framework in EHCI driver
+Date: Tue, 3 Nov 2009 17:30:46 +0200
+Message-ID: <20091103153046.GA30320@nokia.com>
+References: <19F8576C6E063C45BE387C64729E73940436EEB912@dbde02.ent.ti.com>
+Reply-To: felipe.balbi@nokia.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from barracuda.kionix.com ([205.232.90.213]:41590 "EHLO
-	mail.kionix.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751261AbZKCOrj (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 09:47:39 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:22467 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752713AbZKCPbg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 10:31:36 -0500
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436EEB912@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "ext Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
 
-Hello all,
+On Tue, Nov 03, 2009 at 12:55:53PM +0100, ext Gupta, Ajay Kumar wrote:
+> Hi Anand/Felipe,
+> 
+> This is regarding regulator framework for 1V8 supply to EHCI PHY from twl4030 device.
+> 
+> [EHCI port on OMAP3EVM uses SMSC USB3320 PHY and uses 1V8 supply from twl4030 chip.]
+> 
+> I found twl4030_usb_ldo_init () function in drivers/usb/otg/twl4030-usb.c, which uses regulator framework but it can not be used by all the board which are not using twl4030 PHY. Don't you think this function need to be moved to some other common location?
+> 
+> Currently we are not enabling 1V8 supply explicitly but still EHCI works on EVM as most of the twl4030 supplies are enabled by default.
+> 
+> I was thinking of adding regulator framework in EHCI driver which will enable the required supplies based on one of the board_data passed (same as reset_gpio) from board files.
 
-I've never submitted any software to Linux before, but I've been working 
-on some new accelerometer drivers that should be ready for review soon 
-(pending company approval).  I've read lots of documentation on patch 
-and driver submissions, but I still have some questions that I was 
-hoping someone could help me find the answers to.
+You should be able to regulator_get() the 1v8 supply and
+regulator_enable() it. The regulator was already setup in twl4030-core.c
+so that should work just fine. It's not a good idea to export
+twl4030_ldo_init() since that's only for twl4030-usb itself. If you
+regulator_get()/regulator_enable() then the regulator will be
+refcounted.
 
-1- My drivers use i2c for hardware communications, miscdevice for 
-IOCTLs, and input_dev for data and interrupt status outputs.  Most of 
-the other accelerometer drivers that I've looked at use similar designs 
-and are located in drivers/hwmon, but I just wanted to confirm that this 
-is the correct location currently.
+You might want to add more consumers to the same supply based on board
+information though. Today it's hardcoded to one for every board in
+twl4030-core.c
 
-2- I have done all of my hardware testing with OMAP development 
-platforms, so I thought it would be best to send my patch submissions to 
-this list for review.  The hardware monitoring tree is listed in 
-MAINTAINERS as an orphan, but I was planning on including 
-lm-sensors@lm-sensors.org as well.  If either of these assumptions is 
-incorrect, please let me know.
-
-3- Should my patch set consist of source, header, kconfig, and makefile 
-patches, or should I include my custom changes to mux.c, mux.h, and 
-board-zoom2.c as well?  The former are necessary for adding driver 
-support, but the latter are specific for my hardware testing platform 
-(which others may want to duplicate for testing purposes).  I noticed 
-that recent versions of board-zoom2.c are nice and clean, so it's 
-probably not a good idea to wedge infrequently-used code in there with a 
-bunch of #ifdefs.  I just want to get an idea of what is generally 
-included with a new driver.
-
-Any help or advice would be greatly appreciated.
-
-Thank you,
-
-Chris Hudson
-Kionix, Inc.
-
+-- 
+balbi
