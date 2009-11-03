@@ -1,34 +1,39 @@
-From: Ilkka Koskinen <ikoskine@nokia.com>
-Subject: Re: [PATCH v2] TWL4030: Initial support for TWL5031
-Date: Tue, 3 Nov 2009 13:29:49 +0200 (EET)
-Message-ID: <alpine.DEB.2.00.0911031243210.14058@tumpelo.ntc.nokia.com>
-References: <1255702360-2143-1-git-send-email-ilkka.koskinen@nokia.com>
+From: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: Restart after 4 min of operation?
+Date: Tue, 03 Nov 2009 04:50:25 -0700
+Message-ID: <4AF01901.2050100@mlbassoc.com>
+References: <4AEFA4EE.40308@billgatliff.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752229AbZKCLbe@vger.kernel.org>
-In-Reply-To: <1255702360-2143-1-git-send-email-ilkka.koskinen@nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Samuel Ortiz <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from hermes.mlbassoc.com ([76.76.67.137]:38848 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752045AbZKCLuV (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 06:50:21 -0500
+In-Reply-To: <4AEFA4EE.40308@billgatliff.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Bill Gatliff <bgat@billgatliff.com>
+Cc: linux-omap@vger.kernel.org
 
-
-Hi Samuel,
-
-On Fri, 16 Oct 2009, Koskinen Ilkka (Nokia-D/Tampere) wrote:
-> TWL5031 introduces two new interrupts in PIH. Moreover, BCI
-> has changed remarkably and, thus, it's disabled when TWL5031
-> is in use.
+On 11/02/2009 08:35 PM, Bill Gatliff wrote:
+> Guys:
 >
-> Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
-> ---
-> drivers/mfd/twl4030-core.c  |   12 ++++-
-> drivers/mfd/twl4030-irq.c   |  127 +++++++++++++++++++++++++++++++++++++++++--
-> include/linux/i2c/twl4030.h |   47 ++++++++++++++--
-> 3 files changed, 173 insertions(+), 13 deletions(-)
+>
+> Can someone give me any ideas as to why my Beagleboard-like platform
+> would spontaneously restart after precisely four minutes of operation?
+> No OOPS, no nothing.  This is with 2.6.32-rc5.
+>
 
-Sorry to bothering you again, but I'd like to know the status
-of this patch. Does it need more work or could you apply it
-to your tree at some point?
+BeagleBoard like?  More details are probably required for much help.
 
-Cheers, Ilkka
+How do you power it?  My BeagleBoard is powered via the OTG.  I've
+seen it reset if I hang too much on the USB host port (exceed the
+meager power budget)
+
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
