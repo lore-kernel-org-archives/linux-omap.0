@@ -1,113 +1,64 @@
-From: Mike Rapoport <mike.rapoport@gmail.com>
-Subject: Re: [PATCH 3/5] omap: mux: Add new style pin multiplexing data for
-	34xx
-Date: Tue, 3 Nov 2009 09:10:47 +0200
-Message-ID: <f870da180911022310n65b63bffw9a425e4aeaa9187b@mail.gmail.com>
-References: <20091029203124.11843.89983.stgit@localhost>
-	 <20091029203631.11843.1364.stgit@localhost>
-	 <4AED6330.8020007@compulab.co.il> <20091102191018.GD6692@atomide.com>
+From: Felipe Balbi <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] musb: Inform user when gadget cable is disconnected
+Date: Tue, 3 Nov 2009 09:37:12 +0200
+Message-ID: <20091103073712.GA30172@nokia.com>
+References: <1257230140-12958-1-git-send-email-ajay.gupta@ti.com>
+Reply-To: felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-iw0-f180.google.com ([209.85.223.180]:62236 "EHLO
-	mail-iw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753467AbZKCHKm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 02:10:42 -0500
-Received: by iwn10 with SMTP id 10so3940876iwn.4
-        for <linux-omap@vger.kernel.org>; Mon, 02 Nov 2009 23:10:47 -0800 (PST)
-In-Reply-To: <20091102191018.GD6692@atomide.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1257230140-12958-1-git-send-email-ajay.gupta-l0cyMroinI0@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ext Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+Cc: "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi-xNZwKgViW5gAvxtiuMwx3w@public.gmane.org>, "david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org" <david-b-yBeKhBN/0LDR7s880joybQ@public.gmane.org>
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Mike Rapoport <mike@compulab.co.il>, linux-omap@vger.kernel.org
 
-On Mon, Nov 2, 2009 at 9:10 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Mike Rapoport <mike@compulab.co.il> [091101 02:30]:
->>
->>
->> Tony Lindgren wrote:
->> > Add new style mux data for 34xx. This should also
->> > work with 3630 easily by adding the processor subset
->> > and ball data.
->> >
->> > Note that this data is __initdata, and gets optimized
->> > out if CONFIG_OMAP_MUX is not set. Also, the debug data
->> > gets optimized out if CONFIG_DEBUG_FS is not set.
->> >
->> > Signed-off-by: Tony Lindgren <tony@atomide.com>
->> > ---
->> > =A0arch/arm/mach-omap2/Makefile =A0| =A0 =A04
->> > =A0arch/arm/mach-omap2/mux.h =A0 =A0 | =A0 =A02
->> > =A0arch/arm/mach-omap2/mux34xx.c | 1552 ++++++++++++++++++++++++++=
-+++++++++++++++
->> > =A0arch/arm/mach-omap2/mux34xx.h | =A0352 +++++++++
->> > =A04 files changed, 1910 insertions(+), 0 deletions(-)
->> > =A0create mode 100644 arch/arm/mach-omap2/mux34xx.c
->> > =A0create mode 100644 arch/arm/mach-omap2/mux34xx.h
->> >
+Hi,
 
-[ snip ]
+On Tue, Nov 03, 2009 at 07:35:39AM +0100, ext Ajay Kumar Gupta wrote:
+> Currently we don't see any message to inform user that gadget cable is
+> successfully disconnected leading to suspicion if everything is fine at
+> driver therefore adding an informative print message in gadget
+> disconnect path.
+> 
+> Signed-off-by: Ajay Kumar Gupta <ajay.gupta-l0cyMroinI0@public.gmane.org>
+> ---
+>  drivers/usb/musb/musb_core.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/usb/musb/musb_core.c b/drivers/usb/musb/musb_core.c
+> index 3a61ddb..ec67ec7 100644
+> --- a/drivers/usb/musb/musb_core.c
+> +++ b/drivers/usb/musb/musb_core.c
+> @@ -795,6 +795,10 @@ static irqreturn_t musb_stage2_irq(struct musb *musb, u8 int_usb,
+>  #ifdef CONFIG_USB_GADGET_MUSB_HDRC
+>  		case OTG_STATE_B_PERIPHERAL:
+>  		case OTG_STATE_B_IDLE:
+> +			printk(KERN_INFO "musb %s gadget disconnected.\n",
+> +				musb->gadget_driver
+> +				? musb->gadget_driver->driver.name
+> +				: "");
 
->> > +
->> > +#define OMAP3_CONTROL_PADCONF_MUX_SIZE =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 =A0 \
->> > + =A0 =A0 =A0 =A0 =A0 (OMAP3_CONTROL_PADCONF_JTAG_TDO_OFFSET + 0x2=
-)
->>
->> What about adding defines for each possible mode configuration, exce=
-pt, perhaps,
->> GPIO?
->
-> Yeah it would be nice to make it easy. How about someting like:
->
-> int __init omap_mux_init_by_name(char *name, int flags);
-> ...
->
-> omap_mux_init_by_name("i2c1_scl", OMAP_PIN_INPUT_PULLUP);
->
->> #define OMAP3_PIN_CAM_D0 OMAP3_MUX(CAM_D0, OMAP_PIN_MODE0 | OMAP_PIN=
-_INPUT, 0)
->> #define OMAP3_PIN_CAM_D0_CSI2_DX2 OMAP3_MUX(CAM_D0, OMAP_PIN_MODE2 |=
- \
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 OMAP_PIN_INPUT, 0)
->>
->> And, I'm for adding OMAP_MUX_GPIO_{OUT,IN,IN_PU,IN_PD}(x) as well.
->
-> And we could have also:
->
-> int __init omap_mux_init_by_gpio(int gpio, int flags);
-> ...
->
-> omap_mux_init_by_gpio(99, OMAP_PIN_INPUT);
->
-> As the only thing we currently have for flags is the OMAP_MUX_DYNAMIC=
-,
-> we could mask that too into flags and make it int instead of u16.
+i don't think this is so useful since no normal user will be reading
+dmesg anyway. User will get this state via
+/sys/devices/platform/musb_hdrc/mode, which is sysfs_notified and
+HAL/DeviceKit can use that to show pretty UI messages to user.
 
-It seems we are thinking in really different directions :) You propose
-imporved and easy to use replacements of omap_cfg_reg while I'm aming
-nice tables descibing board pin configuration like, e.g,
-cm_x300_mfp_cfg in arch/arm/mach-pxa/cm-x300.c. Probably it's just too
-hard to me to break my PXA habbits, but I think such tables make the
-board code easier to write/maintain/understand.
-Besides, having both simple aliases for OMAP3_MUX(mode0, mux_value,
-mux_flags) for dedicated pins does not contadict having
-omap_mux_init_by_{name,gpio} helpers.
+I'm currently moving some sysfs files to the transceiver level and
+creating a more generic set of sysfs files so that we could have a
+generic hald-addon or DeviceKit daemon for handling that for any
+transceiver.
 
-> Regards,
->
-> Tony
->
+I have some under-development patches available at [1] if you want to
+look. The commit regarding this is on [2].
 
+[1] http://gitorious.org/usb/usb/commits/otg-rework
+[2] http://gitorious.org/usb/usb/commit/121ff1e9f17ffa56692b63305bf55e72216df3eb
 
-
---=20
-	Sincerely Yours,
-		Mike.
+-- 
+balbi
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
