@@ -1,80 +1,65 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Do defconfigs work for 2.6.32-rc5 mainline kernels?
-Date: Mon, 2 Nov 2009 14:04:50 -0800
-Message-ID: <20091102220449.GC8981@atomide.com>
-References: <4AEB5CD8.8060603@billgatliff.com>
- <4AEF2320.8040100@am.sony.com>
- <A24693684029E5489D1D202277BE89444D4B44A7@dlee02.ent.ti.com>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: Re: EHCI on 2.6.32-rc5-git4 + patches
+Date: Tue, 03 Nov 2009 01:08:36 +0000
+Message-ID: <4AEF8294.4000108@blueyonder.co.uk>
+References: <4AEC544A.4000304@blueyonder.co.uk> <5A47E75E594F054BAF48C5E4FC4B92AB0309C86298@dbde02.ent.ti.com> <4AECCB34.9010003@blueyonder.co.uk> <4551feaf0911010742j6b68113cgb2e4246ca8b26237@mail.gmail.com> <4AEE19F4.70000@blueyonder.co.uk> <20091102070409.GA17351@nokia.com>
+Reply-To: sboyce@blueyonder.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54299 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756859AbZKBWEs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 17:04:48 -0500
-Content-Disposition: inline
-In-Reply-To: <A24693684029E5489D1D202277BE89444D4B44A7@dlee02.ent.ti.com>
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:34674 "EHLO
+	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757453AbZKCBIi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 2 Nov 2009 20:08:38 -0500
+In-Reply-To: <20091102070409.GA17351@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: Tim Bird <tim.bird@am.sony.com>, Bill Gatliff <bgat@billgatliff.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: felipe.balbi@nokia.com
+Cc: Robert Nelson <robertcnelson@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Aguirre Rodriguez, Sergio Alberto <saaguirre@ti.com> [091102 12:32]:
->  
+On 02/11/09 07:04, Felipe Balbi wrote:
+> On Mon, Nov 02, 2009 at 12:29:56AM +0100, ext Sid Boyce wrote:
+>> On 01/11/09 15:42, Robert Nelson wrote:
+>>>> I am tried "beagleboard_defconfig" I downloaded, but when the .config
+>>>> was written at the start of the kernel build ....
+>>>> # CONFIG_USB_ARCH_HAS_EHCI is not set.
+>>>> " make CROSS_COMPILE=/opt/arm-2009q1/bin/arm-none-linux-gnueabi-" on
+>>>> Fedora 12.
+>>>> Regards
+>>>> Sid.
+>>>
+>>> Hi Sid,
+>>>
+>>> You need atleast the "ehci glue commit" from here to enable the option:
+>>>
+>>> http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=shortlog;h=refs/heads/ehci
+>>>
+>>> Regards,
+>>>
+>>
+>> I've used the "Merge EHCI" snapshot, but guess there is something not
+>> right in my .config.
+>>   CC      drivers/usb/musb/musb_core.o
+>> In file included from drivers/usb/musb/musb_core.c:108:
+>> drivers/usb/musb/musb_core.h:94:2: error: #error bogus Kconfig output
+>> ... select CONFIG_USB_GADGET_MUSB_HDRC
 > 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org 
-> > [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Tim Bird
-> > Sent: Monday, November 02, 2009 12:21 PM
-> > To: Bill Gatliff
-> > Cc: linux-omap@vger.kernel.org
-> > Subject: Re: Do defconfigs work for 2.6.32-rc5 mainline kernels?
-> > 
-> > Bill Gatliff wrote:
-> > > I'm trying to build a kernel for beagleboard, using the 
-> > defconfig found
-> > > in 2.6.32-rc5 and the 2.6.32-rc5 source code.
-> > > 
-> > > Said kernel hangs after the uncompressor, I'm just trying 
-> > to figure out
-> > > if this is a known issue or not.  The defconfig in the 
-> > linux-omap tree
-> > > does seem to work with the linux-omap source code, FWIW...
-> > 
-> > Short story:
-> > I found that the omap OSK defconfig is broken in mainline also.
-> > 
-> > Long story:
-> > I found that the defconfig in the mainline 2.6.32-rc1 kernel
-> > didn't work on an OMAP OSK board.  Thinking there was some
-> > problem in the code itself, I bisected from a known working
-> > config on 2.6.29 all the way back up to 2.6.32-rc1.  When
-> > I was done I was at the current code base, but with a .config
-> > that had about 650 differences.
-> > 
-> > I haven't had time to go back and find the individual config
-> > option that changed to break things.  I would need some kind
-> > of "config bisect" to find this efficiently.
-> > 
-> > I didn't think to try the OSK defconfig in the omap tree.
-> > (Silly me, might have saved me some grief. :-)
-> > 
-> > Is there a maintainer for individual defconfig files?
-> > In other words, if I repair the OSK defconfig, who do
-> > I send it to?
+> Go to gadget support and select Inventra MUSB on "USB Peripheral
+> Controller"
+> 
 
-Just send the fixes to this list as usual.
- 
-> Why don't you guys enable Kernel Low level prints and send the logs?
+I tried that and various others to get other than the hub enumerated, no
+luck so far with kernels I have built - no lights on the hub. I am now
+rebuilding after following the config for the working narcissus build,
+EHCI looks much the same, so here's hoping.
+I have another 16G MMC card I am trying on after cross compiling on a
+Fedora 12 VirtualBox VM.
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
-Right, maybe checkout omap-debug branch, and enable DEBUG_LL to see
-what happens? Also, some compilers have bugs with CONFIG_ARM_UNWIND=y
-AFAIK.
- 
-> Otherwise its pretty hard to see what's wrong.
-
-Agreed. I've been booting various boards with the mainline kernel,
-including OSK here and there. There should not be anything seriously
-wrong. And we still have time to send in fixes for this -rc cycle.
-
-Tony
