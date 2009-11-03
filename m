@@ -1,84 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC] [PATCH v2] OMAP: DMA: Fix omapfb/lcdc on Amstrad Delta
- broken when PM set
-Date: Tue, 3 Nov 2009 12:10:48 -0800
-Message-ID: <20091103201048.GP8981@atomide.com>
-References: <200911032024.47741.jkrzyszt@tis.icnet.pl>
- <200911032104.33049.jkrzyszt@tis.icnet.pl>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: Re: EHCI on 2.6.32-rc5-git4 + patches
+Date: Tue, 03 Nov 2009 20:35:15 +0000
+Message-ID: <4AF09403.8080300@blueyonder.co.uk>
+References: <4AEC544A.4000304@blueyonder.co.uk>	 <5A47E75E594F054BAF48C5E4FC4B92AB0309C86298@dbde02.ent.ti.com>	 <4AECCB34.9010003@blueyonder.co.uk>	 <4551feaf0911010742j6b68113cgb2e4246ca8b26237@mail.gmail.com>	 <4AEE19F4.70000@blueyonder.co.uk> <20091102070409.GA17351@nokia.com>	 <4AEF8294.4000108@blueyonder.co.uk> <4551feaf0911021728s6587dffchd716ff1241b0373b@mail.gmail.com>
+Reply-To: sboyce@blueyonder.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63738 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751471AbZKCUKu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 15:10:50 -0500
-Content-Disposition: inline
-In-Reply-To: <200911032104.33049.jkrzyszt@tis.icnet.pl>
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:36910 "EHLO
+	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754237AbZKCUfQ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 15:35:16 -0500
+In-Reply-To: <4551feaf0911021728s6587dffchd716ff1241b0373b@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Robert Nelson <robertcnelson@gmail.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091103 12:05]:
-> Tuesday 03 November 2009 20:24:38 Janusz Krzysztofik napisa=C5=82(a):
-> > If there are still no comments, especially on the bug possible impa=
-ct on
-> > other OMAP1510 boards (or even OMAP1610 with internal LCD controlle=
-r), then
-> > Tony, please apply it as is. Until it is accepted, I am stuck with =
-new
-> > ams_delta_defconfig.
->=20
-> Tony,
-> Sorry, I've not checked for new mail before posting this one and miss=
-ed your=20
-> acceptance for my idea of fixing all omap1510, not only ams_delta. If=
- there=20
-> are no more comments, I'll submit v3 with cpu_is_omap1510() replacing=
-=20
-> machine_is_ams_delta().
+On 03/11/09 01:28, Robert Nelson wrote:
+>> I tried that and various others to get other than the hub enumerated, no
+>> luck so far with kernels I have built - no lights on the hub. I am now
+>> rebuilding after following the config for the working narcissus build,
+>> EHCI looks much the same, so here's hoping.
+>> I have another 16G MMC card I am trying on after cross compiling on a
+>> Fedora 12 VirtualBox VM.
+>> Regards
+>> Sid.
+> 
+> Hi Sid
+> 
+> I eventually got ehci working today on my tree on launchpad.  But it's
+> not that small of a patch once i added all the mach to plat changes...
+> 
+> However, this commit made all the difference for me, it's currently
+> missing from tmlind's tree, the beagleboard needs it to enable power
+> to the ehci..
+> 
+> http://patchwork.kernel.org/patch/55703/
+> 
+> Regards,
 
-Sounds good to me.
+Thanks, I shall give it a try.
+Regards
+Sid.
 
-Tony
-=20
-> Thanks,
-> Janusz
->=20
-> > --- linux-2.6.32-rc5/arch/arm/plat-omap/dma.c.orig	2009-10-16
-> > 02:41:50.000000000 +0200 +++
-> > linux-2.6.32-rc5/arch/arm/plat-omap/dma.c	2009-11-03 20:15:35.00000=
-0000
-> > +0100 @@ -30,6 +30,7 @@
-> >  #include <linux/irq.h>
-> >  #include <linux/io.h>
-> >
-> > +#include <asm/mach-types.h>
-> >  #include <asm/system.h>
-> >  #include <mach/hardware.h>
-> >  #include <mach/dma.h>
-> > @@ -1110,6 +1111,14 @@ int omap_dma_running(void)
-> >  {
-> >  	int lch;
-> >
-> > +	/*
-> > +	 * On Amstrad Delta, the OMAP internal LCD controller will start =
-the
-> > +	 * transfer when it gets enabled, so assume DMA running if LCD en=
-abled.
-> > +	 */
-> > +	if (machine_is_ams_delta())
-> > +		if (omap_readw(0xfffec000 + 0x00) & (1 << 0))
-> > +			return 1;
-> > +
-> >  	/* Check if LCD DMA is running */
-> >  	if (cpu_is_omap16xx())
-> >  		if (omap_readw(OMAP1610_DMA_LCD_CCR) & OMAP_DMA_CCR_EN)
->=20
->=20
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
+
