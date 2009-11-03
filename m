@@ -1,32 +1,51 @@
-From: Mika Westerberg <mika.westerberg@iki.fi>
-Subject: Re: [PATCH 1/2] OMAP3: move check_revision above check_features
-Date: Tue, 3 Nov 2009 15:54:03 +0200
-Message-ID: <20091103135403.GF31062@gw.healthdatacare.com>
-References: <1256035738-17571-1-git-send-email-nm@ti.com> <1256035738-17571-2-git-send-email-nm@ti.com>
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re:
+ =?iso-8859-1?q?=5BPATCH_3/5=5D_MFD=3A_twl4030-codec?=
+ =?iso-8859-1?q?=3A_APLL=5FINFREQ_handling_in_the=09MFD_driver?=
+Date: Tue, 3 Nov 2009 16:02:16 +0200
+Message-ID: <200911031602.16074.peter.ujfalusi@nokia.com>
+References: <1257165295-9352-1-git-send-email-peter.ujfalusi@nokia.com>
+	<200911031537.50430.peter.ujfalusi@nokia.com>
+	<20091103134437.GA22501@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:41358 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206AbZKCNyC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 08:54:02 -0500
-Received: by bwz27 with SMTP id 27so7618532bwz.21
-        for <linux-omap@vger.kernel.org>; Tue, 03 Nov 2009 05:54:06 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1256035738-17571-2-git-send-email-nm@ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091103134437.GA22501@sirena.org.uk>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Nishanth Menon <nm@ti.com>
-Cc: linux-omap <linux-omap@vger.kernel.org>
 
-On Tue, Oct 20, 2009 at 05:48:57AM -0500, Nishanth Menon wrote:
-> omap3_check_revision() does not depend on omap3_check_features()
-> move this above so that we can add logic based on revision
-> detected in check_features.
-> 
-> Signed-off-by: Nishanth Menon <nm@ti.com>
+On Tuesday 03 November 2009 15:44:38 ext Mark Brown wrote:
+> > on board. Another reason is that we have other part of the twl, which
+> > needs resources from the codec part, but it is not loaded through the
+> > codec MFD, so providing the needed information is kind of tricky with
+> > that setup.
+> =
 
-Acked-by: Mika Westerberg <mika.westerberg@iki.fi>
+> I had thought that the sub-device was supposed to handle the arbitration
+> and could be used here.
 
-Br,
-MW
+That would have been ideal. As such the audio and the Vibra interface is th=
+e =
+
+only one directly inside of the codec part of twl, but there is a need for =
+other =
+
+modules to actually control resources within the codec part in order to ope=
+rate, =
+
+but they are not actually sub-devices of the codec MFD.
+
+-- =
+
+P=E9ter
