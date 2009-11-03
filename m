@@ -1,59 +1,84 @@
-From: Sanjeev Premi <premi@ti.com>
-Subject: [PATCH 2/2] omap3evm: Add keypad as wakeup source
-Date: Tue,  3 Nov 2009 18:59:21 +0530
-Message-ID: <1257254961-22506-1-git-send-email-premi@ti.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49408 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753383AbZKCN3U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 08:29:20 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA3DTMpH011280
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 07:29:24 -0600
-Sender: linux-omap-owner@vger.kernel.org
+From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Subject: Re: [PATCH 3/5] MFD: twl4030-codec: APLL_INFREQ
+	handling in the MFD driver
+Date: Tue, 3 Nov 2009 15:37:50 +0200
+Message-ID: <200911031537.50430.peter.ujfalusi@nokia.com>
+References: <1257165295-9352-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1257165295-9352-4-git-send-email-peter.ujfalusi@nokia.com>
+	<20091102173035.GC8546@rakim.wolfsonmicro.main>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20091102173035.GC8546@rakim.wolfsonmicro.main>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Sanjeev Premi <premi@ti.com>
 
-Add keypad as wakeup source from 'suspend'
-state.
+On Monday 02 November 2009 19:30:35 ext Mark Brown wrote:
+> On Mon, Nov 02, 2009 at 02:34:53PM +0200, Peter Ujfalusi wrote:
+> > Move the APLL_CTL register configuration to the twl4030-codec
+> > MFD driver.
+> > Provide also a function for childs to query the audio_mclk
+> > frequency.
+> =
 
-Signed-off-by: Sanjeev Premi <premi@ti.com>
----
- arch/arm/mach-omap2/board-omap3evm.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+> This all looks good to me, some nitpicks below.
+> =
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index 660ef8c..6a1a0cd 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -343,6 +343,16 @@ static struct platform_device *omap3_evm_devices[] __initdata = {
- 	&omap3evm_smc911x_device,
- };
- 
-+/*
-+ * Set wakeup sources for the board
-+ */
-+static void __init omap3_evm_wakeup_sources(void)
-+{
-+	pr_info("omap3evm: Adding wakeup sources");
-+
-+	omap_cfg_reg(AF26_34XX_SYS_NIRQ);
-+}
-+
- static void __init omap3_evm_init(void)
- {
- 	omap3_evm_i2c_init();
-@@ -359,6 +369,8 @@ static void __init omap3_evm_init(void)
- #endif
- 	usb_musb_init();
- 	ads7846_dev_init();
-+
-+	omap3_evm_wakeup_sources();
- }
- 
- static void __init omap3_evm_map_io(void)
--- 
-1.6.2.2
+> > +unsigned int twl4030_codec_get_mclk(void)
+> > +{
+> > +	struct twl4030_codec *codec =3D platform_get_drvdata(twl4030_codec_de=
+v);
+> > +
+> > +	return codec->audio_mclk;
+> > +}
+> > +EXPORT_SYMBOL_GPL(twl4030_codec_get_mclk);
+> =
 
+> As I said in my followup to patch 5 this feels like it should have a
+> parameter to specify the twl4030 though in practical systems it won't
+> matter.
+
+I agree that this does not look quite nice, but as you already mentioned, i=
+t is =
+
+highly unlikely that one system would have more than one twl series of PM c=
+hip =
+
+on board. Another reason is that we have other part of the twl, which needs =
+
+resources from the codec part, but it is not loaded through the codec MFD, =
+so =
+
+providing the needed information is kind of tricky with that setup.
+
+> =
+
+> > +	if (!(pdata->audio_mclk =3D=3D 19200000 ||
+> > +	      pdata->audio_mclk =3D=3D 26000000 ||
+> > +	      pdata->audio_mclk =3D=3D 38400000)) {
+> > +		dev_err(&pdev->dev, "Invalid audio_mclk\n");
+> > +		return -EINVAL;
+> > +	}
+> =
+
+> Might flow more naturally with a switch statement?
+
+Yes, true. This looks weird, I'll change it.
+
+> =
+
+
+-- =
+
+P=E9ter
