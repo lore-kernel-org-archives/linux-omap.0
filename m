@@ -1,53 +1,42 @@
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Re: EHCI on 2.6.32-rc5-git4 + patches
-Date: Tue, 03 Nov 2009 20:35:15 +0000
-Message-ID: <4AF09403.8080300@blueyonder.co.uk>
-References: <4AEC544A.4000304@blueyonder.co.uk>	 <5A47E75E594F054BAF48C5E4FC4B92AB0309C86298@dbde02.ent.ti.com>	 <4AECCB34.9010003@blueyonder.co.uk>	 <4551feaf0911010742j6b68113cgb2e4246ca8b26237@mail.gmail.com>	 <4AEE19F4.70000@blueyonder.co.uk> <20091102070409.GA17351@nokia.com>	 <4AEF8294.4000108@blueyonder.co.uk> <4551feaf0911021728s6587dffchd716ff1241b0373b@mail.gmail.com>
-Reply-To: sboyce@blueyonder.co.uk
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/1] PM: Making bdi threads non-freezable
+Date: Tue, 3 Nov 2009 22:03:57 +0100
+Message-ID: <200911032203.57757.rjw@sisk.pl>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE1EBC66@dbde02.ent.ti.com> <200911021943.49943.rjw@sisk.pl> <B85A65D85D7EB246BE421B3FB0FBB59301DE1EC179@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:36910 "EHLO
-	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754237AbZKCUfQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 15:35:16 -0500
-In-Reply-To: <4551feaf0911021728s6587dffchd716ff1241b0373b@mail.gmail.com>
-Sender: linux-omap-owner@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE1EC179@dbde02.ent.ti.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: "Dasgupta, Romit" <romit@ti.com>
+Cc: "viro@zeniv.linux.org.uk" <viro@zeniv.linux.org.uk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: Robert Nelson <robertcnelson@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 03/11/09 01:28, Robert Nelson wrote:
->> I tried that and various others to get other than the hub enumerated, no
->> luck so far with kernels I have built - no lights on the hub. I am now
->> rebuilding after following the config for the working narcissus build,
->> EHCI looks much the same, so here's hoping.
->> I have another 16G MMC card I am trying on after cross compiling on a
->> Fedora 12 VirtualBox VM.
->> Regards
->> Sid.
+On Tuesday 03 November 2009, Dasgupta, Romit wrote:
 > 
-> Hi Sid
-> 
-> I eventually got ehci working today on my tree on launchpad.  But it's
-> not that small of a patch once i added all the mach to plat changes...
-> 
-> However, this commit made all the difference for me, it's currently
-> missing from tmlind's tree, the beagleboard needs it to enable power
-> to the ehci..
-> 
-> http://patchwork.kernel.org/patch/55703/
-> 
-> Regards,
+> > Subject: Re: [PATCH 1/1] PM: Making bdi threads non-freezable
+> > 
+> > On Monday 02 November 2009, Dasgupta, Romit wrote:
+> > > Fixes the case when bdi threads are in the refrigerator but file system sync
+> > > can happen after this. This is possible in MMC when
+> > CONFIG_MMC_UNSAFE_RESUME is
+> > > not set.
+> > 
+> > What's going to happen if we attemt to suspend the underlying block device(s)
+> > when the bdi thread are doing their job?  Is there any synchronisation
+> > mechanism for that?
+> > 
+> There is no explicit synchronization AFAICT. However, it looks like the call
+> to 'del_gendisk' would invoke 'sync_filesystem' down the line.
+> 'sync_filesystem' would end with synchronous writes of inodes followed by a
+> call to '__sync_blockddev'.
 
-Thanks, I shall give it a try.
-Regards
-Sid.
+However, that runs concurrently with respect to the suspend thread, AFAICS, so
+I wonder if there's anything to make the suspend thread wait for these
+operations to complete.  If there's nothing like that, we can't really allow
+the bdi threads to run in parallel with the suspend thread.
 
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
-
+Thanks,
+Rafael
