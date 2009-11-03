@@ -1,47 +1,51 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: Please advise on modifying defconfig for Amstrad Delta
-Date: Tue, 3 Nov 2009 09:24:00 -0800
-Message-ID: <20091103172400.GM8981@atomide.com>
-References: <200910250340.34046.jkrzyszt@tis.icnet.pl>
+Subject: Re: looking for presence of PMN interrupt in OMAP3530
+Date: Tue, 3 Nov 2009 09:30:11 -0800
+Message-ID: <20091103173010.GN8981@atomide.com>
+References: <547648.15600.qm@web113808.mail.gq1.yahoo.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58281 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53601 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751012AbZKCRYE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 12:24:04 -0500
+	with ESMTP id S1753842AbZKCRaI (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 12:30:08 -0500
 Content-Disposition: inline
-In-Reply-To: <200910250340.34046.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <547648.15600.qm@web113808.mail.gq1.yahoo.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-arm-kernel@lists.infradead.org, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Gabi Voiculescu <boy3dfx2@yahoo.com>
+Cc: linux-omap@vger.kernel.org
 
-* Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091024 19:41]:
-> Hi,
+* Gabi Voiculescu <boy3dfx2@yahoo.com> [091027 13:24]:
+> Hello.
 > 
-> I'm just working on a new, updated version of ams_delta_defconfig. Starting from the current version, created over 2 years ago for 2.6.22, I turned on a few device drivers that was added recently, turned on thumb instructions support, turned on EABI, kept old ABI compatibility and NWFPE, and got a resulting kernel that is ~170kB too large to be successfully booted using tools available at http://the.earth.li/pub/e3/.
+> I am working on porting a piece of code that makes use of irq on top of the performance counters (PMN) present in the OMAP3530's
+> Cortex A8 MPU.
 > 
-> Of course, I am able to trim that down, even adding a few more drivers for add-on hardware that I am using, and get a kernel that works perfectly for me, but since I have never prepared a default config, I'd like to get your advice on what I can remove and what should rather be kept untouched.
+> This code is ported from an armv6 platform (arm1176 cpu). On the original platform (pb1176) the interrupt number into the IC was known from the
+> documentation (39). 
 > 
-> Instead of pasting sixteen hundred lines here, I'd rather ask about the simplest change I can see:
+> I am unable to find the interrupt number for the performance counters and can not believe the TI people left the line unconnected to the GIC when they build the OMAP3530.
 > 
-> -# CONFIG_EMBEDDED is not set
-> -CONFIG_KALLSYMS=y
-> +CONFIG_EMBEDDED=y
-> +# CONFIG_KALLSYMS is not set
+> I have searched in the TI documentation: Interrupt table (starting on page 1074 in http://focus.ti.com/lit/ug/spruff6b/spruff6b.pdf ) for a suitable entry but did not find it.
 > 
-> That would give me a kernel that is small enough, but since only a few of arm defconfigs have CONFIG_KALLSYMS not set, I am not sure if it is generally acceptable.
+> I have tried to program a counter overflow and unmask the first 4 IRQs in
+> the MPU in the hope that one of these is the PMU irq, again without
+> success.
+> 
+> ***********
+> 
+> Did anybody get into this documentation problem?
+> 
+> Did he find a fix for it?
+> 
+> Is there a PMN interrupt in the OMAP3530 IC Interrupt table?
 
-Send that as a fix to this list with the minimal changes,
-we should still be able to get it in as a fix during the -rc
-series.
-
-If you want to update the whole defconfig, we need to wait
-for the merge window.
-
-Just do the diff -u, then edit the patch to leave out all
-the other hunks except the one above.
+Please take a look at arch/arm/oprofile/op_model_v7.c.
+Also search the mailing lists regarding the Cortex bug
+on the performance counter interrupt, basically the
+interrupt stops happening after some usage.
 
 Regards,
 
