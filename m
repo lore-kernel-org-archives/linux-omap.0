@@ -1,55 +1,74 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: n8x0 idle power problem
-Date: Tue, 3 Nov 2009 09:19:13 -0800
-Message-ID: <20091103171913.GK8981@atomide.com>
-References: <f25d86460910231640i22e5da83q1094e60c2e4df05@mail.gmail.com>
+Subject: Re: [PATCH] omap3: beagle: Fix USB host port power control
+Date: Tue, 3 Nov 2009 09:21:39 -0800
+Message-ID: <20091103172139.GL8981@atomide.com>
+References: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
+ <CD99E8BE-6FBB-4975-9072-A9BE16B1A00D@student.utwente.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:52168 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752401AbZKCRTK (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 12:19:10 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53768 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751864AbZKCRVg (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 12:21:36 -0500
 Content-Disposition: inline
-In-Reply-To: <f25d86460910231640i22e5da83q1094e60c2e4df05@mail.gmail.com>
+In-Reply-To: <CD99E8BE-6FBB-4975-9072-A9BE16B1A00D@student.utwente.nl>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Felix Xiaozhu Lin <xzl@rice.edu>
-Cc: linux-omap@vger.kernel.org
+To: Koen Kooi <k.kooi@student.utwente.nl>
+Cc: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-* Felix Xiaozhu Lin <xzl@rice.edu> [091023 16:41]:
-> I am trying to compile a linux-omap kernel for n810 that can do good
-> idle power management.
-> 
-> However, this seems to be harder than I expected. I've done all
-> following measurements with /sys/power/sleep_while_idle set to 1.
-> Compiler is arm-linux-gnueabi-gcc 4.2. I use n8x0_defconfig.
-> 
->   * Maemo kernel (2.6.21) consumes ~0mA@3.8V when idle. This seems to
-> be perfect. However, it has no pm regarding serial port. Whenever
-> serial port is enabled, idle power is ~50mA@3.8V.
-> 
->   * I've compiled 2.6.28/2.6.29 from l-o git. Serial port pm works
-> fine. However the idle power is ~20mA@3.8V. That is quite strange.
-> 
->   * For kernel >= 2.6.30 I didn't manage to boot my N810.
-> 
-> I also dig out a thread discussing about N8x0 idle power:
-> 
-> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg11954.html
-> 
-> where Kalle mentioned 2.6.29 idle power is OK. But I never get the same result.
-> 
-> I'm wondering if I did something wrong in the measurement. Anybody did
-> the same thing? You suggestion is highly appreciated.
+* Koen Kooi <k.kooi@student.utwente.nl> [091103 06:11]:
+> Any comments on this, I need this on beagleboard to make ehci work.
 
-It sounds like something is blocking the deeper idle states.
-The way to debug is to see what clocks and domains are on
-before entering idle.
-
-Maybe do a register dump on a working system and compare that
-to the current system?
-
-Regards,
+Looks like a fix to me, will queue.
 
 Tony
+ 
+> regards,
+> 
+> Koen
+> 
+> Op 24 okt 2009, om 09:59 heeft Jarkko Nikula het volgende geschreven:
+> 
+> >The host port power is enabled by driving the nEN_USB_PWR low as
+> >stated in
+> >the comment. This fix is originally from Steve Sakoman
+> ><steve@sakoman.com>.
+> >
+> >Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> >Cc: Steve Sakoman <steve@sakoman.com>
+> >---
+> >arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
+> >1 files changed, 1 insertions(+), 1 deletions(-)
+> >
+> >diff --git a/arch/arm/mach-omap2/board-omap3beagle.c
+> >b/arch/arm/mach-omap2/board-omap3beagle.c
+> >index 6cb99f6..7ad9846 100644
+> >--- a/arch/arm/mach-omap2/board-omap3beagle.c
+> >+++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> >@@ -162,7 +162,7 @@ static int beagle_twl_gpio_setup(struct device
+> >*dev,
+> >
+> >	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active
+> >low) */
+> >	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
+> >-	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
+> >+	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+> >
+> >	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+> >	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+> >-- 
+> >1.6.3.3
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-
+> >omap" in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
