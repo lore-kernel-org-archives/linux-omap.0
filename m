@@ -1,93 +1,70 @@
-From: "Pandita, Vikram" <vikram.pandita@ti.com>
-Subject: RE: [PATCH 0/8] RFC: introduce 3630 boards
-Date: Wed, 4 Nov 2009 02:56:12 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA42EC80@dbde02.ent.ti.com>
-References: <1257283215-6448-1-git-send-email-vikram.pandita@ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA42EC7F@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH]OMAP3:PM :T2 keypad wakeup for OMAP3
+Date: Tue, 03 Nov 2009 14:04:53 -0800
+Message-ID: <87vdhr8dtm.fsf@deeprootsystems.com>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB0309E9CD4D@dbde02.ent.ti.com>
+	<87zl9lfytn.fsf@deeprootsystems.com>
+	<B85A65D85D7EB246BE421B3FB0FBB59301DE27FC52@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:51907 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbZKCV0S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 16:26:18 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA3LQKUd008203
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 15:26:22 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA3LQKRa010305
-	for <linux-omap@vger.kernel.org>; Wed, 4 Nov 2009 02:56:20 +0530 (IST)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA42EC7F@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:48137 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755306AbZKCWEu (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 3 Nov 2009 17:04:50 -0500
+Received: by pzk26 with SMTP id 26so4250926pzk.4
+        for <linux-omap@vger.kernel.org>; Tue, 03 Nov 2009 14:04:55 -0800 (PST)
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE27FC52@dbde02.ent.ti.com> (Sanjeev Premi's message of "Tue\, 3 Nov 2009 22\:02\:06 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Premi, Sanjeev" <premi@ti.com>
+Cc: "Reddy, Teerth" <teerth@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+"Premi, Sanjeev" <premi@ti.com> writes:
 
-
->-----Original Message-----
->From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
->>Subject: [PATCH 0/8] RFC: introduce 3630 boards
->>
->>Introducing 3630 boards: zoom3 and sdp3630
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org 
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin Hilman
+>> Sent: Thursday, August 27, 2009 1:55 PM
+>> To: Reddy, Teerth
+>> Cc: linux-omap@vger.kernel.org
+>> Subject: Re: [PATCH]OMAP3:PM :T2 keypad wakeup for OMAP3
+>> 
+>> Hi Teerth,
+>> 
+>> "Reddy, Teerth" <teerth@ti.com> writes:
+>> 
+>> > From : Teerth Reddy <teerth@ti.com>
+>> >
+>> > This patch changes for setting the padconf value for sys_nirq line
+>> > which is connected to T2 INTR1.  This will fix the T2 keypad wakeup
+>> > issue on OMAP3 SDP.
+>> >
+>> > Signed-off-by: Teerth Reddy < teerth@ti.com >
+>> 
+>> Patch looks good, thanks.  I'll pull this into PM branch and queue
+>> in my PM fixes queue for next merge window.
+>> 
+>> I did a minor update by adding a comment in the
+>> enable_board_wakeup_source function stating that this is the
+>> interrupt pin used for T2.
+>> 
+>> Kevin
+>> 
 >
->These patches are in my git tree at:
->git://dev.omapzoom.org/pub/scm/integration/kernel-omap3.git zoom3
-
-Sorry for the wrong tree. This is the right one:
-git://dev.omapzoom.org/pub/scm/vikram/omap3.git zoom3
-
+> Teerth, Kevin,
 >
->this is to help ease cloning in case required.
->
->>
->>The peripherals are very similar for the two bards as per this discussion:
->>http://marc.info/?l=linux-omap&m=125676595710748&w=2
->>
->>So maximum reuse is done for the board files for zoom3 and sdp3630
->>
->>Review comments incorporated:
->>http://marc.info/?l=linux-omap&m=125632676504364&w=2
->>http://marc.info/?l=linux-omap&m=125632720804869&w=2
->>http://marc.info/?l=linux-omap&m=125633994320138&w=2
->>
->>Vikram Pandita (8):
->>  omap: 3630: update is_chip variable
->>  omap: DEBUG_LL: allow no omap uart configuration
->>  omap: zoom2: split baord file for reuse
->>  omap: zoom2: update defconfig
->>  omap: zoom3: introduce zoom3 board support
->>  omap: zoom3: defconfig creation
->>  omap: 3630sdp: introduce 3630 sdp board support
->>  omap: 3630sdp: defconfig creation
->>
->> arch/arm/configs/omap_3630sdp_defconfig            | 1606 ++++++++++++++++++++
->> arch/arm/configs/omap_zoom2_defconfig              |  231 ++--
->> arch/arm/configs/omap_zoom3_defconfig              | 1605 +++++++++++++++++++
->> arch/arm/mach-omap2/Kconfig                        |    8 +
->> arch/arm/mach-omap2/Makefile                       |    8 +
->> arch/arm/mach-omap2/board-3630sdp.c                |   96 ++
->> arch/arm/mach-omap2/board-zoom-peripherals.c       |  414 +++++
->> arch/arm/mach-omap2/board-zoom2.c                  |  261 +---
->> arch/arm/mach-omap2/board-zoom3.c                  |   59 +
->> arch/arm/mach-omap2/id.c                           |    2 +
->> arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h |   54 +
->> arch/arm/plat-omap/Kconfig                         |    3 +
->> arch/arm/plat-omap/include/plat/cpu.h              |    7 +-
->> arch/arm/plat-omap/include/plat/uncompress.h       |    4 +-
->> 14 files changed, 4018 insertions(+), 340 deletions(-)
->> create mode 100644 arch/arm/configs/omap_3630sdp_defconfig
->> create mode 100644 arch/arm/configs/omap_zoom3_defconfig
->> create mode 100755 arch/arm/mach-omap2/board-3630sdp.c
->> create mode 100755 arch/arm/mach-omap2/board-zoom-peripherals.c
->> mode change 100644 => 100755 arch/arm/mach-omap2/board-zoom2.c
->> create mode 100755 arch/arm/mach-omap2/board-zoom3.c
->> create mode 100644 arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Did you test it with OFF mode enabled?
 
+I tested on SDP, but not on omap3evm since that was the only board
+file touched by this patch.
+
+> When I do "echo 1 > /sys/power/enable_off_mode" I don't see resume on the omap3evm.
+>
+> Schematics for the keypad are/seem to be same for EVM and SDP.
+
+I'm guessing that it's because the patch from Teerth only muxes this
+pin for the SDP.  I'm guessing that doing the same omap_cfg_reg in the
+OMAP3EVM board file will get this working.
+
+Kevin
