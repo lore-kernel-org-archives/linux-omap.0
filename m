@@ -1,102 +1,66 @@
-From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: Re: [PATCH 5/5] ASoC: TWL4030: Do not modify the
-	APLL_CTL register
-Date: Tue, 3 Nov 2009 16:05:34 +0200
-Message-ID: <200911031605.34378.peter.ujfalusi@nokia.com>
-References: <1257165295-9352-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1257165295-9352-6-git-send-email-peter.ujfalusi@nokia.com>
-	<20091102172720.GA8546@rakim.wolfsonmicro.main>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <20091102172720.GA8546@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: ext Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "tony@atomide.com" <tony@atomide.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "sameo@linux.intel.com" <sameo@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Koen Kooi <k.kooi@student.utwente.nl>
+Subject: Re: [PATCH] omap3: beagle: Fix USB host port power control
+Date: Tue, 3 Nov 2009 15:11:53 +0100
+Message-ID: <CD99E8BE-6FBB-4975-9072-A9BE16B1A00D@student.utwente.nl>
+References: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1076)
+Content-Type: text/plain; charset=us-ascii; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:39325 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751240AbZKCOL5 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 3 Nov 2009 09:11:57 -0500
+Received: from [172.20.1.5] (vpn006010.vpn.utwente.nl [130.89.6.10])
+          by mx.utwente.nl (8.12.10/SuSE Linux 0.7) with ESMTP id nA3EBrHH006839
+          for <linux-omap@vger.kernel.org>; Tue, 3 Nov 2009 15:11:54 +0100
+In-Reply-To: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org List" <linux-omap@vger.kernel.org>
 
-On Monday 02 November 2009 19:27:20 ext Mark Brown wrote:
-> On Mon, Nov 02, 2009 at 02:34:55PM +0200, Peter Ujfalusi wrote:
-> > APLL_CTL register is configured by the twl4030-codec MFD
-> > driver.
-> > Remove code, which makes changes in the APLL_CTL register,
-> > and replace those with checks against the configured
-> > audio_mclk configuration done in the MFD driver.
-> =
+Any comments on this, I need this on beagleboard to make ehci work.
 
-> This all looks mostly OK.  It might be nice to combine this patch with
-> the change to the MFD driver, simply because when the previous patch
-> said "move" but didn't remove anything from the CODEC driver it seemed a
-> bit surprising.  The MFD part of this is queued in ASoC ATM so it
-> shouldn't cause cross tree issues.
+regards,
 
-I just wanted to keep patches for different subsystems separate, but I can =
+Koen
 
-either merge those two, or change the commit message in patch 3, that it wi=
-ll be =
+Op 24 okt 2009, om 09:59 heeft Jarkko Nikula het volgende geschreven:
 
-not misleading. =
+> The host port power is enabled by driving the nEN_USB_PWR low as  
+> stated in
+> the comment. This fix is originally from Steve Sakoman <steve@sakoman.com 
+> >.
+>
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Steve Sakoman <steve@sakoman.com>
+> ---
+> arch/arm/mach-omap2/board-omap3beagle.c |    2 +-
+> 1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/board-omap3beagle.c b/arch/arm/mach- 
+> omap2/board-omap3beagle.c
+> index 6cb99f6..7ad9846 100644
+> --- a/arch/arm/mach-omap2/board-omap3beagle.c
+> +++ b/arch/arm/mach-omap2/board-omap3beagle.c
+> @@ -162,7 +162,7 @@ static int beagle_twl_gpio_setup(struct device  
+> *dev,
+>
+> 	/* TWL4030_GPIO_MAX + 0 == ledA, EHCI nEN_USB_PWR (out, active low)  
+> */
+> 	gpio_request(gpio + TWL4030_GPIO_MAX, "nEN_USB_PWR");
+> -	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 1);
+> +	gpio_direction_output(gpio + TWL4030_GPIO_MAX, 0);
+>
+> 	/* TWL4030_GPIO_MAX + 1 == ledB, PMU_STAT (out, active low LED) */
+> 	gpio_leds[2].gpio = gpio + TWL4030_GPIO_MAX + 1;
+> -- 
+> 1.6.3.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-
-> =
-
-> > -	twl4030_write(codec, TWL4030_REG_APLL_CTL, apll_ctrl);
-> > +	if ((freq / 1000) !=3D twl4030->sysclk) {
-> > +		dev_err(codec->dev,
-> > +			"Mismatch in APLL infrequency %u (configred: %u)\n",
-> > +			freq, twl4030->sysclk * 1000);
-> =
-
-> Typos in the log message here (and similarly for the other DAI).
-
-Will fix those.
-
-> =
-
-> > -	if (infreq !=3D TWL4030_APLL_INFREQ_26000KHZ) {
-> > +	if (twl4030->sysclk !=3D 26000) {
-> >  		printk(KERN_ERR "TWL4030 voice startup: "
-> >  			"MCLK is not 26MHz, call set_sysclk() on init\n");
-> >  		return -EINVAL;
-> =
-
-> Is that advice still appropriate if things are specified via the
-> codec device now?
-
-Correct, it is not correct.
-
-> =
-
-> > @@ -2233,6 +2215,7 @@ static int __devinit twl4030_codec_probe(struct
-> > platform_device *pdev) twl4030_codec =3D codec;
-> >
-> >  	/* Set the defaults, and power up the codec */
-> > +	twl4030->sysclk =3D twl4030_codec_get_mclk() / 1000;
-> >  	twl4030_init_chip(codec);
-> >  	codec->bias_level =3D SND_SOC_BIAS_OFF;
-> >  	twl4030_set_bias_level(codec, SND_SOC_BIAS_STANDBY);
-> =
-
-> twl4030_codec_get_mclk() feels like it ought to take a parameter saying
-> which twl4030, though the chances of having multiple twl4030s in one
-> system are remote so it's not a real issue.
-
-We have discussed this, but, yes the chances of having more than one twl in=
- a =
-
-system is unlikely.
-
-
-
--- =
-
-P=E9ter
