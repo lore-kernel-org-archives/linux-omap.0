@@ -1,16 +1,12 @@
 From: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Subject: [PATCH 3/4 v2] MFD: twl4030-codec: APLL_INFREQ
-	handling in the MFD driver
-Date: Wed,  4 Nov 2009 09:58:19 +0200
-Message-ID: <1257321500-27049-4-git-send-email-peter.ujfalusi@nokia.com>
-References: <1257321500-27049-1-git-send-email-peter.ujfalusi@nokia.com>
-	<1257321500-27049-2-git-send-email-peter.ujfalusi@nokia.com>
-	<1257321500-27049-3-git-send-email-peter.ujfalusi@nokia.com>
+Subject: [PATCH 0/4 v2] ASoC/MFD/OMAP: TWL4030: APLL_CTL
+	handling change
+Date: Wed,  4 Nov 2009 09:58:16 +0200
+Message-ID: <1257321500-27049-1-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1257321500-27049-3-git-send-email-peter.ujfalusi@nokia.com>
 List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
 	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
 List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
@@ -24,93 +20,60 @@ To: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, sameo@linux.intel.c
 Cc: tony@atomide.com, broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 
-Configure the APLL_INFREQ field in the APLL_CTL register
-based on the platform data.
-Provide also a function for childs to query the audio_mclk
-frequency.
+Hello,
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Changes from the first series:
+- Typos fixed and warning/error messages for APLL frequency mismatch
+  now consistent
+- twl4030-codec MFD driver audio_mclk validity check simplified
+- Commit message for the twl4030-codec MFD driver has been changed also
+- Patch: "ASoC: TWL4030: Make sure, that the codec is powered on startup" has
+  been removed from the series, since it is already taken.
+
+Intro text from the first series:
+
+The following series changes the way how the APLL_CTL register is handled by
+the twl4030 codec related drivers.
+Moving the configuration of APLL_CTL register from child drivers (specifically
+from soc codec driver) to the twl4030-codec MFD driver.
+Because the audio_mclk is static, board specific and can not be changed in
+runtime, the codec MFD is the right place to configure it early enough, so
+child can use the hardware correctly.
+Before this patch for example the APLL_INFREQ was configured first, when the
+user played or recorded audio via the twl4030.
+The digital bypass needs correct APLL_INFREQ to be configured in order to work
+properly. If the digital bypass enabled before any audio activity, in some
+cases the bypassed audio was not correct.
+
+The series also addresses the issue, that after boot-up, neither of the
+loopbacks was working, because the codec was actually off.
+Setting the codec->bias_level to _OFF, before setting the codec bias level to
+STANDBY fixes this issue.
+
+This series is on top of Takashi's sound-2.6 topic/asoc branch, which has the
+twl403-codec MFD and related patches for 2.6.33.
+
+It would be really nice, if this series would make it also to the same branch,
+since this fixes some real anomalies brought in by the cleanup of the twl4030
+codec related drivers.
+These problems were hidden before because of the inconsistent handling of bits
+and states in the codec driver in the past.
+
 ---
- drivers/mfd/twl4030-codec.c       |   35 +++++++++++++++++++++++++++++++++++
- include/linux/mfd/twl4030-codec.h |    1 +
- 2 files changed, 36 insertions(+), 0 deletions(-)
+Peter Ujfalusi (4):
+  MFD: TWL4030: Add audio_mclk to the codec platform data
+  OMAP: Configure audio_mclk for twl4030-codec MFD
+  MFD: twl4030-codec: APLL_INFREQ handling in the MFD driver
+  ASoC: TWL4030: Do not modify the APLL_CTL register
 
-diff --git a/drivers/mfd/twl4030-codec.c b/drivers/mfd/twl4030-codec.c
-index 9710307..77b9149 100644
---- a/drivers/mfd/twl4030-codec.c
-+++ b/drivers/mfd/twl4030-codec.c
-@@ -41,6 +41,7 @@ struct twl4030_codec_resource {
- };
-
- struct twl4030_codec {
-+	unsigned int audio_mclk;
- 	struct mutex mutex;
- 	struct twl4030_codec_resource resource[TWL4030_CODEC_RES_MAX];
- 	struct mfd_cell cells[TWL4030_CODEC_CELLS];
-@@ -145,12 +146,45 @@ int twl4030_codec_disable_resource(unsigned id)
- }
- EXPORT_SYMBOL_GPL(twl4030_codec_disable_resource);
-
-+unsigned int twl4030_codec_get_mclk(void)
-+{
-+	struct twl4030_codec *codec = platform_get_drvdata(twl4030_codec_dev);
-+
-+	return codec->audio_mclk;
-+}
-+EXPORT_SYMBOL_GPL(twl4030_codec_get_mclk);
-+
- static int __devinit twl4030_codec_probe(struct platform_device *pdev)
- {
- 	struct twl4030_codec *codec;
- 	struct twl4030_codec_data *pdata = pdev->dev.platform_data;
- 	struct mfd_cell *cell = NULL;
- 	int ret, childs = 0;
-+	u8 val;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "Platform data is missing\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Configure APLL_INFREQ and disable APLL if enabled */
-+	val = 0;
-+	switch (pdata->audio_mclk) {
-+	case 19200000:
-+		val |= TWL4030_APLL_INFREQ_19200KHZ;
-+		break;
-+	case 26000000:
-+		val |= TWL4030_APLL_INFREQ_26000KHZ;
-+		break;
-+	case 38400000:
-+		val |= TWL4030_APLL_INFREQ_38400KHZ;
-+		break;
-+	default:
-+		dev_err(&pdev->dev, "Invalid audio_mclk\n");
-+		return -EINVAL;
-+	}
-+	twl4030_i2c_write_u8(TWL4030_MODULE_AUDIO_VOICE,
-+					val, TWL4030_REG_APLL_CTL);
-
- 	codec = kzalloc(sizeof(struct twl4030_codec), GFP_KERNEL);
- 	if (!codec)
-@@ -160,6 +194,7 @@ static int __devinit twl4030_codec_probe(struct platform_device *pdev)
-
- 	twl4030_codec_dev = pdev;
- 	mutex_init(&codec->mutex);
-+	codec->audio_mclk = pdata->audio_mclk;
-
- 	/* Codec power */
- 	codec->resource[TWL4030_CODEC_RES_POWER].reg = TWL4030_REG_CODEC_MODE;
-diff --git a/include/linux/mfd/twl4030-codec.h b/include/linux/mfd/twl4030-codec.h
-index ef0a304..2ec317c 100644
---- a/include/linux/mfd/twl4030-codec.h
-+++ b/include/linux/mfd/twl4030-codec.h
-@@ -267,5 +267,6 @@ enum twl4030_codec_res {
-
- int twl4030_codec_disable_resource(enum twl4030_codec_res id);
- int twl4030_codec_enable_resource(enum twl4030_codec_res id);
-+unsigned int twl4030_codec_get_mclk(void);
-
- #endif	/* End of __TWL4030_CODEC_H__ */
---
-1.6.5.2
+ arch/arm/mach-omap2/board-3430sdp.c      |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c  |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c     |    1 +
+ arch/arm/mach-omap2/board-omap3pandora.c |    1 +
+ arch/arm/mach-omap2/board-overo.c        |    1 +
+ arch/arm/mach-omap2/board-zoom2.c        |    1 +
+ drivers/mfd/twl4030-codec.c              |   35 ++++++++++++++
+ include/linux/i2c/twl4030.h              |    1 +
+ include/linux/mfd/twl4030-codec.h        |    1 +
+ sound/soc/codecs/twl4030.c               |   76 ++++++++++++------------------
+ 10 files changed, 74 insertions(+), 45 deletions(-)
