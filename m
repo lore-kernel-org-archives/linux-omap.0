@@ -1,45 +1,22 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: Query: Regulator framework in EHCI driver
-Date: Wed, 4 Nov 2009 14:56:26 +0000
-Message-ID: <20091104145626.GC30644@rakim.wolfsonmicro.main>
-References: <19F8576C6E063C45BE387C64729E73940436EEB912@dbde02.ent.ti.com>
- <20091103153046.GA30320@nokia.com>
- <19F8576C6E063C45BE387C64729E73940436F9375B@dbde02.ent.ti.com>
- <20091104133922.GD25044@sirena.org.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE6A@dbde02.ent.ti.com>
- <20091104144126.GA30644@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE7F@dbde02.ent.ti.com>
- <20091104144811.GB30644@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE8A@dbde02.ent.ti.com>
+From: Tommi Rantala <tt.rantala@gmail.com>
+Subject: Re: [PATCH v2 2/2] omap: RX-51: enable tsc2005
+Date: Wed, 04 Nov 2009 17:07:32 +0200
+Message-ID: <4AF198B4.40801@gmail.com>
+References: <1257340982-22814-1-git-send-email-aaro.koskinen@nokia.com> <1257340982-22814-2-git-send-email-aaro.koskinen@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:46424 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756128AbZKDO4W (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2009 09:56:22 -0500
-Content-Disposition: inline
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE8A@dbde02.ent.ti.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1257340982-22814-2-git-send-email-aaro.koskinen@nokia.com>
+Sender: linux-input-owner@vger.kernel.org
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dmitry.torokhov@gmail.com, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
 
-On Wed, Nov 04, 2009 at 08:20:46PM +0530, Gadiyar, Anand wrote:
+Aaro Koskinen wrote:
+> +static struct spi_board_info rx51_peripherals_spi_board_info[] = {
 
-> I meant: for the same driver (say EHCI in this case) on two different
-> boards, if one of them needs a particular regulator (say the 1v8 from TWL4030)
-> and the other needs none at all (but needs the regulator API in general for
-> other devices on the board), then what would happen?
+This can be marked with __initdata.
 
-Like I say, if the kernel is built with regulator support then a fixed
-voltage regulator should be defined representing the supply if it is
-provided by a fixed voltage regulator - if the supply is essential to
-the correct operation of the device this will reflect the actual
-hardware.
-
-If the supply is genuinely optional and need not be connected for
-correct operation of the device then the consumer driver should
-gracefully handle failure to acquire the regulator, for example by
-disabling functionality that depends on the additional supply, but this
-is relatively unusual.
+BR,
+Tommi Rantala
