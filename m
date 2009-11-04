@@ -1,50 +1,35 @@
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: [RFC][PATCH] ARM: omap3430sdp: Enable Linux Regulator framework
-Date: Wed, 4 Nov 2009 10:26:07 -0600
-Message-ID: <A24693684029E5489D1D202277BE89444D53106F@dlee02.ent.ti.com>
+From: Samuel Ortiz <sameo@linux.intel.com>
+Subject: Re: [PATCH 0/4 v2] ASoC/MFD/OMAP: TWL4030: APLL_CTL handling change
+Date: Wed, 4 Nov 2009 17:36:56 +0100
+Message-ID: <20091104163655.GG3607@sortiz.org>
+References: <1257321500-27049-1-git-send-email-peter.ujfalusi@nokia.com>
+ <20091104102040.GA25922@rakim.wolfsonmicro.main>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:38916 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756505AbZKDQYV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2009 11:24:21 -0500
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757267AbZKDQfH@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20091104102040.GA25922@rakim.wolfsonmicro.main>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Peter Ujfalusi <peter.ujfalusi@nokia.com>, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, tony@atomide.com
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Tony Lindgren <tony@atomide.com>, "Syed Mohammed, Khasim" <khasim@ti.com>
 
-From: Sergio Aguirre <saaguirre@ti.com>
+Hi Mark,
 
-Some drivers have dependencies on this, and therefore should be
-enabled.
+On Wed, Nov 04, 2009 at 10:20:41AM +0000, Mark Brown wrote:
+> On Wed, Nov 04, 2009 at 09:58:16AM +0200, Peter Ujfalusi wrote:
+> 
+> > The following series changes the way how the APLL_CTL register is handled by
+> > the twl4030 codec related drivers.
+> 
+> I'm OK with this but I'll wait for acks from Tony and Samuel before
+> applying.
+You can add my Acked-by: Samuel Ortiz <sameo@linux.intel.com> to the 2 MFD
+patches. Peter: thanks for the patches, and Mark: thanks for taking them :)
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/configs/omap_3430sdp_defconfig |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+Cheers,
+Samuel.
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 8a4a7e2..5a305f0 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -1703,7 +1703,14 @@ CONFIG_RTC_DRV_TWL4030=y
- # on-CPU RTC drivers
- #
- # CONFIG_DMADEVICES is not set
--# CONFIG_REGULATOR is not set
-+CONFIG_REGULATOR=y
-+# CONFIG_REGULATOR_DEBUG is not set
-+# CONFIG_REGULATOR_FIXED_VOLTAGE is not set
-+# CONFIG_REGULATOR_VIRTUAL_CONSUMER is not set
-+# CONFIG_REGULATOR_USERSPACE_CONSUMER is not set
-+# CONFIG_REGULATOR_BQ24022 is not set
-+# CONFIG_REGULATOR_MAX1586 is not set
-+CONFIG_REGULATOR_TWL4030=y
- # CONFIG_UIO is not set
- # CONFIG_STAGING is not set
- 
 -- 
-1.6.4.4
+Intel Open Source Technology Centre
+http://oss.intel.com/
