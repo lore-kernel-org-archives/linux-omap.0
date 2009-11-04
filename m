@@ -1,76 +1,44 @@
-From: Ajay Kumar Gupta <ajay.gupta@ti.com>
-Subject: [PATCH 1/2] AM35xx:  Add USB EHCI support
-Date: Wed,  4 Nov 2009 19:48:32 +0530
-Message-ID: <1257344313-14370-1-git-send-email-ajay.gupta@ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: Query: Regulator framework in EHCI driver
+Date: Wed, 4 Nov 2009 20:00:52 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE6A@dbde02.ent.ti.com>
+References: <19F8576C6E063C45BE387C64729E73940436EEB912@dbde02.ent.ti.com>
+ <20091103153046.GA30320@nokia.com>
+ <19F8576C6E063C45BE387C64729E73940436F9375B@dbde02.ent.ti.com>
+ <20091104133922.GD25044@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58738 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59501 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754417AbZKDOSd (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 4 Nov 2009 09:18:33 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA4EIZUw008631
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 4 Nov 2009 08:18:37 -0600
+	id S1756305AbZKDOa6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2009 09:30:58 -0500
+In-Reply-To: <20091104133922.GD25044@sirena.org.uk>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
 
-AM3517 EVM has one EHCI interface on baseboard using port1 and another
-EHCI interface on UI card using port2.
+Mark Brown wrote:
+> On Wed, Nov 04, 2009 at 06:02:48PM +0530, Gupta, Ajay Kumar wrote:
+> 
+> > > You should be able to regulator_get() the 1v8 supply and
+> > > regulator_enable() it. The regulator was already setup in twl4030-core.c
+> > > so that should work just fine. 
+> 
+> > I can do regulator_get() and regulator_enable() but where ? Are you referring to board file?
+> 
+> > I was thinking of doing it in a generic form within EHCI driver (ehci-omap.c).
+> 
+> Do it in the EHCI driver.  The EHCI driver should just unconditionally
+> use the regulators, the regulator API will be compiled out if support is
+> disabled in Kconfig.
+> 
 
-GPIO57 is used as port1 PHY reset system reset line is used as port2
-PHY reset.
+NAK to do it unconditionally in the driver. This is board specific.
+It just so happens that this is the regulator used on the beagleboard
+and EVM, but it could very easily be another one (like on the SDP).
 
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
-Both the patches are created against linux-omap/master branch and
-on top of below patches supporting AM35xx.
-[1] AM35xx: Runtime detection of the device
-[2] AM35xx: Define the AM3517EVM board
-[3] AM35xx: Add support for AM3517 EVM board
-[4] AM35xx: Defconfig for AM3517 EVM board
-
- arch/arm/mach-omap2/board-am3517evm.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-index 23cf949..415a13d 100644
---- a/arch/arm/mach-omap2/board-am3517evm.c
-+++ b/arch/arm/mach-omap2/board-am3517evm.c
-@@ -28,6 +28,7 @@
- 
- #include <plat/board.h>
- #include <plat/common.h>
-+#include <plat/usb.h>
- 
- /*
-  * Board initialization
-@@ -48,12 +49,24 @@ static void __init am3517_evm_init_irq(void)
- 	omap_gpio_init();
- }
- 
-+static struct ehci_hcd_omap_platform_data ehci_pdata __initdata = {
-+	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
-+	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
-+
-+	.phy_reset  = true,
-+	.reset_gpio_port[0]  = 57,
-+	.reset_gpio_port[1]  = -EINVAL,
-+	.reset_gpio_port[2]  = -EINVAL
-+};
-+
- static void __init am3517_evm_init(void)
- {
- 	platform_add_devices(am3517_evm_devices,
- 				ARRAY_SIZE(am3517_evm_devices));
- 
- 	omap_serial_init();
-+	usb_ehci_init(&ehci_pdata);
- }
- 
- static void __init am3517_evm_map_io(void)
--- 
-1.6.2.4
-
+How about a hook from the platform code in mach-omap2/usb-ehci.c instead?
