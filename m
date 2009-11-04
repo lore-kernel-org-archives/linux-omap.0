@@ -1,83 +1,154 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH-v4 0/4] OMAP: Adding flash support to SDP, ZOOM2 and LDP
-	boards
-Date: Wed, 4 Nov 2009 16:58:20 +0530
-Message-ID: <ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
-References: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
-	<ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
-	<ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: [PATCH] ARM: OMAP: Amstrad Delta defconfig fixes
+Date: Wed, 4 Nov 2009 13:15:25 +0100
+Message-ID: <200911041315.26589.jkrzyszt@tis.icnet.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:32820 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755224AbZKDL2i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2009 06:28:38 -0500
-Received: by fg-out-1718.google.com with SMTP id d23so1794422fga.1
-        for <linux-omap@vger.kernel.org>; Wed, 04 Nov 2009 03:28:40 -0800 (PST)
-In-Reply-To: <ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
+Received: from d1.icnet.pl ([212.160.220.21]:56836 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753453AbZKDMSr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2009 07:18:47 -0500
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, vimal singh <vimalsingh@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: Tony Lindgren <tony@atomide.com>
 
-Hi Tony,
+The patch provides the following fixes:
 
-I did not see any comment on these patches. Could you please upstream t=
-hese?
-Or, do you have some other plan?
+- keep kernel small enough to boot with standard tools,
+- ensure compatibility with both new and legacy distros,
+- turn on support for recently added or fixed hardware features.
 
--
-vimal
+Created and tested against linux-2.6.32-rc5.
 
-On Mon, Oct 26, 2009 at 5:37 PM, Vimal Singh <vimal.newwork@gmail.com> =
-wrote:
-> I posted a patch series for this sometime back and did not get any re=
-spose.. :(
-> http://marc.info/?l=3Dlinux-omap&m=3D125258227301958&w=3D2
+Signed-off-by: Janusz Krzysztofik <jkrzysz@tis.icnet.pl>
+
+---
+Tuesday 03 November 2009 18:24:00 Tony Lindgren napisa=C5=82(a):
+> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [091024 19:41]:
+> >
+> > Starting from the current version, created over 2 years ago for 2.6=
+=2E22, I
+> > turned on a few device drivers that was added recently, turned on t=
+humb
+> > instructions support, turned on EABI, kept old ABI compatibility an=
+d
+> > NWFPE, and got a resulting kernel that is ~170kB too large to be
+> > successfully booted using tools available at http://the.earth.li/pu=
+b/e3/.
+> >
+> > -# CONFIG_EMBEDDED is not set
+> > -CONFIG_KALLSYMS=3Dy
+> > +CONFIG_EMBEDDED=3Dy
+> > +# CONFIG_KALLSYMS is not set
+> >
+> > That would give me a kernel that is small enough, but since only a =
+few of
+> > arm defconfigs have CONFIG_KALLSYMS not set, I am not sure if it is
+> > generally acceptable.
 >
-> This time again I am posting these patches, with one more patch added
-> in series, after re-basing the patches on top of LO master head.
->
-> This patch series adds flash support for NAND (in sdp, zoom2 and ldp)=
-,
-> OneNAND and NOR (in sdp)
->
-> Tested on Zoom2 by Vikram, On SDP by Vimal
->
-> [PATCH-v4 1/4] OMAP2/3: Add support for flash on SDP boards
-> [PATCH-v4 2/4] OMAP3: Add support for NAND on ZOOM2/LDP boards
-> [PATCH-v4 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defconfi=
-g
-> [PATCH 4/4] OMAP: 3430SDP: Enable NAND in defconfig
->
-> =A0arch/arm/configs/omap_3430sdp_defconfig =A0 =A0 =A0| =A0574 ++++++=
-+++++--------------
-> =A0arch/arm/configs/omap_zoom2_defconfig =A0 =A0 =A0 =A0| =A0334 ++++=
-++++++----
-> =A0arch/arm/mach-omap2/Makefile =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | =A0=
- =A02
-> =A0arch/arm/mach-omap2/board-2430sdp.c =A0 =A0 =A0 =A0 =A0| =A0 =A02
-> =A0arch/arm/mach-omap2/board-3430sdp.c =A0 =A0 =A0 =A0 =A0| =A0 =A02
-> =A0arch/arm/mach-omap2/board-ldp.c =A0 =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-2
-> =A0arch/arm/mach-omap2/board-sdp-flash.c =A0 =A0 =A0 =A0| =A0327 ++++=
-++++++++++
-> =A0arch/arm/mach-omap2/board-zoom-flash.c =A0 =A0 =A0 | =A0196 ++++++=
-++
-> =A0arch/arm/mach-omap2/board-zoom2.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A0=
-2
-> =A0arch/arm/plat-omap/include/plat/board-sdp.h =A0| =A0 15
-> =A0arch/arm/plat-omap/include/plat/board-zoom.h | =A0 36 +
-> =A0arch/arm/plat-omap/include/plat/gpmc.h =A0 =A0 =A0 | =A0 =A02
-> =A0arch/arm/plat-omap/include/plat/nand.h =A0 =A0 =A0 | =A0 =A02
-> =A014 files changed, 1095 insertions(+), 403 deletions(-)
->
-> --
-> Regards,
-> Vimal Singh
->
+> Just do the diff -u, then edit the patch to leave out all
+> the other hunks except the one above.
+
+Tony,
+The one above is only for keeping the kernel small enough, with other c=
+hanges
+mentioned it's not so compact. Nevertheless, I hope the result can stil=
+l go
+as a fix.
+
+Thanks,
+Janusz
+
+--- linux-2.6.32-rc5/arch/arm/configs/ams_delta_defconfig.orig	2009-11-=
+03 21:11:55.000000000 +0100
++++ linux-2.6.32-rc5/arch/arm/configs/ams_delta_defconfig	2009-11-04 13=
+:10:01.000000000 +0100
+@@ -55,10 +55,10 @@
+ CONFIG_INITRAMFS_SOURCE=3D""
+ CONFIG_CC_OPTIMIZE_FOR_SIZE=3Dy
+ CONFIG_SYSCTL=3Dy
+-# CONFIG_EMBEDDED is not set
++CONFIG_EMBEDDED=3Dy
+ CONFIG_UID16=3Dy
+ CONFIG_SYSCTL_SYSCALL=3Dy
+-CONFIG_KALLSYMS=3Dy
++# CONFIG_KALLSYMS is not set
+ # CONFIG_KALLSYMS_ALL is not set
+ # CONFIG_KALLSYMS_EXTRA_PASS is not set
+ CONFIG_HOTPLUG=3Dy
+@@ -224,7 +224,7 @@
+ #
+ # Processor Features
+ #
+-# CONFIG_ARM_THUMB is not set
++CONFIG_ARM_THUMB=3Dy
+ # CONFIG_CPU_ICACHE_DISABLE is not set
+ # CONFIG_CPU_DCACHE_DISABLE is not set
+ CONFIG_CPU_DCACHE_WRITETHROUGH=3Dy
+@@ -248,7 +248,7 @@
+ # CONFIG_HIGH_RES_TIMERS is not set
+ CONFIG_PREEMPT=3Dy
+ CONFIG_HZ=3D100
+-# CONFIG_AEABI is not set
++CONFIG_AEABI=3Dy
+ # CONFIG_ARCH_DISCONTIGMEM_ENABLE is not set
+ CONFIG_SELECT_MEMORY_MODEL=3Dy
+ CONFIG_FLATMEM_MANUAL=3Dy
+@@ -299,7 +299,9 @@
+ #
+ # Power management options
+ #
+-# CONFIG_PM is not set
++CONFIG_PM=3Dy
++# CONFIG_SUSPEND is not set
++CONFIG_PM_RUNTIME=3Dy
+=20
+ #
+ # Networking
+@@ -670,7 +672,7 @@
+ CONFIG_INPUT_MOUSEDEV_SCREEN_Y=3D768
+ # CONFIG_INPUT_JOYDEV is not set
+ # CONFIG_INPUT_TSDEV is not set
+-# CONFIG_INPUT_EVDEV is not set
++CONFIG_INPUT_EVDEV=3Dy
+ # CONFIG_INPUT_EVBUG is not set
+=20
+ #
+@@ -784,6 +786,7 @@
+ #
+ # CONFIG_SPI is not set
+ # CONFIG_SPI_MASTER is not set
++CONFIG_GPIO_SYSFS=3Dy
+=20
+ #
+ # Dallas's 1-wire bus
+@@ -820,6 +823,7 @@
+ CONFIG_LEDS_TRIGGERS=3Dy
+ CONFIG_LEDS_TRIGGER_TIMER=3Dy
+ CONFIG_LEDS_TRIGGER_HEARTBEAT=3Dy
++CONFIG_LEDS_TRIGGER_DEFAULT_ON=3Dy
+=20
+ #
+ # Multimedia devices
+@@ -896,7 +900,13 @@
+ #
+ # Sound
+ #
+-# CONFIG_SOUND is not set
++CONFIG_SOUND=3Dy
++CONFIG_SND=3Dy
++CONFIG_SND_MIXER_OSS=3Dy
++CONFIG_SND_PCM_OSS=3Dy
++CONFIG_SND_SOC=3Dy
++CONFIG_SND_OMAP_SOC=3Dy
++CONFIG_SND_OMAP_SOC_AMS_DELTA=3Dy
+=20
+ #
+ # HID Devices
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
