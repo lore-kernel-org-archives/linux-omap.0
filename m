@@ -1,184 +1,129 @@
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: RE: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
-Date: Wed, 4 Nov 2009 18:33:20 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436F9377A@dbde02.ent.ti.com>
-References: <1256737736-31774-1-git-send-email-srk@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:43798 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755936AbZKDNDU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2009 08:03:20 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA4D3NRn005638
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 4 Nov 2009 07:03:25 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA4D3MD0000586
-	for <linux-omap@vger.kernel.org>; Wed, 4 Nov 2009 18:33:22 +0530 (IST)
-In-Reply-To: <1256737736-31774-1-git-send-email-srk@ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: [PATCH v2 2/2] omap: RX-51: enable tsc2005
+Date: Wed,  4 Nov 2009 15:23:02 +0200
+Message-ID: <1257340982-22814-2-git-send-email-aaro.koskinen@nokia.com>
+References: <1257340982-22814-1-git-send-email-aaro.koskinen@nokia.com>
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <1257340982-22814-1-git-send-email-aaro.koskinen@nokia.com>
+Sender: linux-input-owner@vger.kernel.org
+To: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dmitry.torokhov@gmail.com, tony@atomide.com
+Cc: Aaro Koskinen <aaro.koskinen@nokia.com>
 List-Id: linux-omap@vger.kernel.org
-To: "Govindarajan, Sriramakrishnan" <srk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Govindarajan, Sriramakrishnan
-> Sent: Wednesday, October 28, 2009 7:19 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Govindarajan, Sriramakrishnan
-> Subject: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
-> 
-> Migrate to smsc911x ethernet driver instead of smc911x driver.
-> The smsc911x ethernet driver supports NAPI and performs better
-> under heavy traffic. With the smc911x driver we were witnessing
-> very high iowait time for high IO load over NFS.
-> 
-> Signed-off-by: Sriramakrishnan <srk@ti.com>
-> ---
-> This patch is generated against tip of for-next branch.
-> 
->  arch/arm/configs/omap3_evm_defconfig |    4 +-
->  arch/arm/mach-omap2/board-omap3evm.c |   36
-> +++++++++++++++++++++++++--------
->  2 files changed, 29 insertions(+), 11 deletions(-)
-> 
-> diff --git a/arch/arm/configs/omap3_evm_defconfig
-> b/arch/arm/configs/omap3_evm_defconfig
-> index d5ff477..50afc67 100644
-> --- a/arch/arm/configs/omap3_evm_defconfig
-> +++ b/arch/arm/configs/omap3_evm_defconfig
-> @@ -617,8 +617,8 @@ CONFIG_MII=y
->  # CONFIG_DM9000 is not set
->  # CONFIG_ENC28J60 is not set
->  # CONFIG_ETHOC is not set
-> -CONFIG_SMC911X=y
-> -# CONFIG_SMSC911X is not set
-> +# CONFIG_SMC911X is not set
-> +CONFIG_SMSC911X=y
->  # CONFIG_DNET is not set
->  # CONFIG_IBM_NEW_EMAC_ZMII is not set
->  # CONFIG_IBM_NEW_EMAC_RGMII is not set
-> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> omap2/board-omap3evm.c
-> index 5d2310e..9bcdaf7 100644
-> --- a/arch/arm/mach-omap2/board-omap3evm.c
-> +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> @@ -21,11 +21,13 @@
->  #include <linux/gpio.h>
->  #include <linux/input.h>
->  #include <linux/leds.h>
-> +#include <linux/interrupt.h>
-> 
->  #include <linux/spi/spi.h>
->  #include <linux/spi/ads7846.h>
->  #include <linux/i2c/twl4030.h>
->  #include <linux/usb/otg.h>
-> +#include <linux/smsc911x.h>
-> 
->  #include <linux/regulator/machine.h>
-> 
-> @@ -51,7 +53,8 @@
->  #define OMAP3EVM_ETHR_GPIO_IRQ	176
->  #define OMAP3EVM_SMC911X_CS	5
-> 
-> -static struct resource omap3evm_smc911x_resources[] = {
-> +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
-> +static struct resource omap3evm_smsc911x_resources[] = {
->  	[0] =	{
->  		.start	= OMAP3EVM_ETHR_START,
->  		.end	= (OMAP3EVM_ETHR_START + OMAP3EVM_ETHR_SIZE - 1),
-> @@ -60,18 +63,28 @@ static struct resource
-> omap3evm_smc911x_resources[] = {
->  	[1] =	{
->  		.start	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
->  		.end	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
-> -		.flags	= IORESOURCE_IRQ,
-> +		.flags	= (IORESOURCE_IRQ | IRQF_TRIGGER_LOW),
->  	},
->  };
-> 
-> -static struct platform_device omap3evm_smc911x_device = {
-> -	.name		= "smc911x",
-> +static struct smsc911x_platform_config smsc911x_config = {
-> +	.phy_interface  = PHY_INTERFACE_MODE_MII,
-> +	.irq_polarity   = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
-> +	.irq_type       = SMSC911X_IRQ_TYPE_OPEN_DRAIN,
-> +	.flags          = (SMSC911X_USE_32BIT |
-> SMSC911X_SAVE_MAC_ADDRESS),
-> +};
-> +
-> +static struct platform_device omap3evm_smsc911x_device = {
-> +	.name		= "smsc911x",
->  	.id		= -1,
-> -	.num_resources	= ARRAY_SIZE(omap3evm_smc911x_resources),
-> -	.resource	= &omap3evm_smc911x_resources[0],
-> +	.num_resources	= ARRAY_SIZE(omap3evm_smsc911x_resources),
-> +	.resource	= &omap3evm_smsc911x_resources[0],
-> +	.dev		= {
-> +		.platform_data = &smsc911x_config,
-> +	},
->  };
-> 
-> -static inline void __init omap3evm_init_smc911x(void)
-> +static inline void __init omap3evm_init_smsc911x(void)
->  {
->  	int eth_cs;
->  	struct clk *l3ck;
-> @@ -92,8 +105,14 @@ static inline void __init
-> omap3evm_init_smc911x(void)
->  	}
-> 
->  	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
-> +
-> +	platform_device_register(&omap3evm_smsc911x_device);
->  }
-> 
-> +#else
-> +static inline void __init omap3evm_init_smsc911x(void) { return; }
-> +#endif
-> +
->  static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
->  	.supply			= "vmmc",
->  };
-> @@ -335,12 +354,10 @@ static void __init omap3_evm_init_irq(void)
->  	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
->  	omap_init_irq();
->  	omap_gpio_init();
-> -	omap3evm_init_smc911x();
->  }
-> 
->  static struct platform_device *omap3_evm_devices[] __initdata = {
->  	&omap3_evm_lcd_device,
-> -	&omap3evm_smc911x_device,
->  };
-> 
->  static void __init omap3_evm_init(void)
-> @@ -359,6 +376,7 @@ static void __init omap3_evm_init(void)
->  #endif
->  	usb_musb_init();
->  	ads7846_dev_init();
-> +	omap3evm_init_smsc911x();
->  }
-> 
->  static void __init omap3_evm_map_io(void)
+Enable tsc2005 touchscreen driver on the RX-51 board.
 
-[Hiremath, Vaibhav] I validated this patch on OMAP3EVM and it is working for me. At-least I could able to mount NFS and work without any issue, which was failing before with SMC911x. For me, earlier I was not able to mount NFS filesystem at all. 
+Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+---
 
-Verified-by: Vaibhav Hiremath <hvaibhav@ti.com>
+The patch is for 2.6.32-rc6.
 
-Thanks,
-Vaibhav
+ arch/arm/configs/rx51_defconfig              |    1 +
+ arch/arm/mach-omap2/board-rx51-peripherals.c |   66 ++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+), 0 deletions(-)
 
-> --
-> 1.6.2.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/arch/arm/configs/rx51_defconfig b/arch/arm/configs/rx51_defconfig
+index e7e3133..b10de8f 100644
+--- a/arch/arm/configs/rx51_defconfig
++++ b/arch/arm/configs/rx51_defconfig
+@@ -802,6 +802,7 @@ CONFIG_INPUT_TOUCHSCREEN=y
+ # CONFIG_TOUCHSCREEN_TOUCHWIN is not set
+ # CONFIG_TOUCHSCREEN_USB_COMPOSITE is not set
+ # CONFIG_TOUCHSCREEN_TOUCHIT213 is not set
++CONFIG_TOUCHSCREEN_TSC2005=m
+ # CONFIG_TOUCHSCREEN_TSC2007 is not set
+ CONFIG_INPUT_MISC=y
+ # CONFIG_INPUT_ATI_REMOTE is not set
+diff --git a/arch/arm/mach-omap2/board-rx51-peripherals.c b/arch/arm/mach-omap2/board-rx51-peripherals.c
+index e34d96a..ff3869a 100644
+--- a/arch/arm/mach-omap2/board-rx51-peripherals.c
++++ b/arch/arm/mach-omap2/board-rx51-peripherals.c
+@@ -14,6 +14,7 @@
+ #include <linux/input.h>
+ #include <linux/input/matrix_keypad.h>
+ #include <linux/spi/spi.h>
++#include <linux/spi/tsc2005.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c/twl4030.h>
+ #include <linux/clk.h>
+@@ -509,6 +510,68 @@ static inline void board_onenand_init(void)
+ 
+ #endif
+ 
++#define	RX51_TSC2005_RESET_GPIO	104
++#define	RX51_TSC2005_IRQ_GPIO	100
++
++static struct omap2_mcspi_device_config tsc2005_mcspi_config = {
++	.turbo_mode     = 0,
++	.single_channel = 1,
++};
++
++static struct tsc2005_platform_data tsc2005_config = {
++	.ts_x_plate_ohm		= 280,
++	.ts_hw_avg		= 0,
++	.ts_touch_pressure	= 1500,
++	.ts_stab_time		= 1000,
++	.ts_pressure_max	= 2048,
++	.ts_pressure_fudge	= 2,
++	.ts_x_max		= 4096,
++	.ts_x_fudge		= 4,
++	.ts_y_max		= 4096,
++	.ts_y_fudge		= 7,
++
++	.esd_timeout		= 8*1000, /* ms of inactivity before we check */
++
++	.set_reset		= NULL,
++};
++
++static void rx51_tsc2005_set_reset(bool enable)
++{
++	gpio_set_value(RX51_TSC2005_RESET_GPIO, enable);
++}
++
++static void __init rx51_init_tsc2005(void)
++{
++	int r;
++
++	r = gpio_request(RX51_TSC2005_IRQ_GPIO, "tsc2005 DAV IRQ");
++	if (r >= 0)
++		gpio_direction_input(RX51_TSC2005_IRQ_GPIO);
++	else
++		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 DAV IRQ");
++
++	r = gpio_request(RX51_TSC2005_RESET_GPIO, "tsc2005 reset");
++	if (r >= 0) {
++		gpio_direction_output(RX51_TSC2005_RESET_GPIO, 1);
++		tsc2005_config.set_reset = rx51_tsc2005_set_reset;
++	} else {
++		printk(KERN_ERR "unable to get %s GPIO\n", "tsc2005 reset");
++		tsc2005_config.esd_timeout = 0;
++	}
++}
++
++static struct spi_board_info rx51_peripherals_spi_board_info[] = {
++	[0] = {
++		.modalias		= "tsc2005",
++		.bus_num		= 1,
++		.chip_select		= 0,
++		.irq			= OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),
++		.max_speed_hz		= 6000000,
++		.controller_data	= &tsc2005_mcspi_config,
++		.platform_data		= &tsc2005_config,
++	},
++};
++
+ #if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
+ 
+ static struct omap_smc91x_platform_data board_smc91x_data = {
+@@ -538,6 +601,9 @@ static inline void board_smc91x_init(void)
+ 
+ void __init rx51_peripherals_init(void)
+ {
++	spi_register_board_info(rx51_peripherals_spi_board_info,
++				ARRAY_SIZE(rx51_peripherals_spi_board_info));
++	rx51_init_tsc2005();
+ 	rx51_i2c_init();
+ 	board_onenand_init();
+ 	board_smc91x_init();
+-- 
+1.6.0.4
 
