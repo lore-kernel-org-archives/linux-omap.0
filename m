@@ -1,70 +1,184 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: Query: Regulator framework in EHCI driver
-Date: Wed, 4 Nov 2009 18:02:48 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436F9375B@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E73940436EEB912@dbde02.ent.ti.com>
- <20091103153046.GA30320@nokia.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
+Date: Wed, 4 Nov 2009 18:33:20 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436F9377A@dbde02.ent.ti.com>
+References: <1256737736-31774-1-git-send-email-srk@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53256 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755841AbZKDMcw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2009 07:32:52 -0500
-In-Reply-To: <20091103153046.GA30320@nokia.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:43798 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755936AbZKDNDU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 4 Nov 2009 08:03:20 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA4D3NRn005638
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 4 Nov 2009 07:03:25 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA4D3MD0000586
+	for <linux-omap@vger.kernel.org>; Wed, 4 Nov 2009 18:33:22 +0530 (IST)
+In-Reply-To: <1256737736-31774-1-git-send-email-srk@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Gadiyar, Anand" <gadiyar@ti.com>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+To: "Govindarajan, Sriramakrishnan" <srk@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-> >
-> > This is regarding regulator framework for 1V8 supply to EHCI PHY from
-> twl4030 device.
-> >
-> > [EHCI port on OMAP3EVM uses SMSC USB3320 PHY and uses 1V8 supply from
-> twl4030 chip.]
-> >
-> > I found twl4030_usb_ldo_init () function in drivers/usb/otg/twl4030-
-> usb.c, which uses regulator framework but it can not be used by all the
-> board which are not using twl4030 PHY. Don't you think this function need
-> to be moved to some other common location?
-> >
-> > Currently we are not enabling 1V8 supply explicitly but still EHCI works
-> on EVM as most of the twl4030 supplies are enabled by default.
-> >
-> > I was thinking of adding regulator framework in EHCI driver which will
-> enable the required supplies based on one of the board_data passed (same
-> as reset_gpio) from board files.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Govindarajan, Sriramakrishnan
+> Sent: Wednesday, October 28, 2009 7:19 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Govindarajan, Sriramakrishnan
+> Subject: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
 > 
-> You should be able to regulator_get() the 1v8 supply and
-> regulator_enable() it. The regulator was already setup in twl4030-core.c
-> so that should work just fine. 
-
-I can do regulator_get() and regulator_enable() but where ? Are you referring to board file?
-
-I was thinking of doing it in a generic form within EHCI driver (ehci-omap.c).
-
-> It's not a good idea to export
-> twl4030_ldo_init() since that's only for twl4030-usb itself.
-
-I am not asking for exporting twl4030_ldo_init() but to remove EHCI specific
-regulator part from this file to ehci-omap.c in a generic form.
-
-> If you regulator_get()/regulator_enable() then the regulator will be
-> refcounted.
+> Migrate to smsc911x ethernet driver instead of smc911x driver.
+> The smsc911x ethernet driver supports NAPI and performs better
+> under heavy traffic. With the smc911x driver we were witnessing
+> very high iowait time for high IO load over NFS.
 > 
-> You might want to add more consumers to the same supply based on board
-> information though.
+> Signed-off-by: Sriramakrishnan <srk@ti.com>
+> ---
+> This patch is generated against tip of for-next branch.
+> 
+>  arch/arm/configs/omap3_evm_defconfig |    4 +-
+>  arch/arm/mach-omap2/board-omap3evm.c |   36
+> +++++++++++++++++++++++++--------
+>  2 files changed, 29 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap3_evm_defconfig
+> b/arch/arm/configs/omap3_evm_defconfig
+> index d5ff477..50afc67 100644
+> --- a/arch/arm/configs/omap3_evm_defconfig
+> +++ b/arch/arm/configs/omap3_evm_defconfig
+> @@ -617,8 +617,8 @@ CONFIG_MII=y
+>  # CONFIG_DM9000 is not set
+>  # CONFIG_ENC28J60 is not set
+>  # CONFIG_ETHOC is not set
+> -CONFIG_SMC911X=y
+> -# CONFIG_SMSC911X is not set
+> +# CONFIG_SMC911X is not set
+> +CONFIG_SMSC911X=y
+>  # CONFIG_DNET is not set
+>  # CONFIG_IBM_NEW_EMAC_ZMII is not set
+>  # CONFIG_IBM_NEW_EMAC_RGMII is not set
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> index 5d2310e..9bcdaf7 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -21,11 +21,13 @@
+>  #include <linux/gpio.h>
+>  #include <linux/input.h>
+>  #include <linux/leds.h>
+> +#include <linux/interrupt.h>
+> 
+>  #include <linux/spi/spi.h>
+>  #include <linux/spi/ads7846.h>
+>  #include <linux/i2c/twl4030.h>
+>  #include <linux/usb/otg.h>
+> +#include <linux/smsc911x.h>
+> 
+>  #include <linux/regulator/machine.h>
+> 
+> @@ -51,7 +53,8 @@
+>  #define OMAP3EVM_ETHR_GPIO_IRQ	176
+>  #define OMAP3EVM_SMC911X_CS	5
+> 
+> -static struct resource omap3evm_smc911x_resources[] = {
+> +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+> +static struct resource omap3evm_smsc911x_resources[] = {
+>  	[0] =	{
+>  		.start	= OMAP3EVM_ETHR_START,
+>  		.end	= (OMAP3EVM_ETHR_START + OMAP3EVM_ETHR_SIZE - 1),
+> @@ -60,18 +63,28 @@ static struct resource
+> omap3evm_smc911x_resources[] = {
+>  	[1] =	{
+>  		.start	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
+>  		.end	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
+> -		.flags	= IORESOURCE_IRQ,
+> +		.flags	= (IORESOURCE_IRQ | IRQF_TRIGGER_LOW),
+>  	},
+>  };
+> 
+> -static struct platform_device omap3evm_smc911x_device = {
+> -	.name		= "smc911x",
+> +static struct smsc911x_platform_config smsc911x_config = {
+> +	.phy_interface  = PHY_INTERFACE_MODE_MII,
+> +	.irq_polarity   = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
+> +	.irq_type       = SMSC911X_IRQ_TYPE_OPEN_DRAIN,
+> +	.flags          = (SMSC911X_USE_32BIT |
+> SMSC911X_SAVE_MAC_ADDRESS),
+> +};
+> +
+> +static struct platform_device omap3evm_smsc911x_device = {
+> +	.name		= "smsc911x",
+>  	.id		= -1,
+> -	.num_resources	= ARRAY_SIZE(omap3evm_smc911x_resources),
+> -	.resource	= &omap3evm_smc911x_resources[0],
+> +	.num_resources	= ARRAY_SIZE(omap3evm_smsc911x_resources),
+> +	.resource	= &omap3evm_smsc911x_resources[0],
+> +	.dev		= {
+> +		.platform_data = &smsc911x_config,
+> +	},
+>  };
+> 
+> -static inline void __init omap3evm_init_smc911x(void)
+> +static inline void __init omap3evm_init_smsc911x(void)
+>  {
+>  	int eth_cs;
+>  	struct clk *l3ck;
+> @@ -92,8 +105,14 @@ static inline void __init
+> omap3evm_init_smc911x(void)
+>  	}
+> 
+>  	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
+> +
+> +	platform_device_register(&omap3evm_smsc911x_device);
+>  }
+> 
+> +#else
+> +static inline void __init omap3evm_init_smsc911x(void) { return; }
+> +#endif
+> +
+>  static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
+>  	.supply			= "vmmc",
+>  };
+> @@ -335,12 +354,10 @@ static void __init omap3_evm_init_irq(void)
+>  	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
+>  	omap_init_irq();
+>  	omap_gpio_init();
+> -	omap3evm_init_smc911x();
+>  }
+> 
+>  static struct platform_device *omap3_evm_devices[] __initdata = {
+>  	&omap3_evm_lcd_device,
+> -	&omap3evm_smc911x_device,
+>  };
+> 
+>  static void __init omap3_evm_init(void)
+> @@ -359,6 +376,7 @@ static void __init omap3_evm_init(void)
+>  #endif
+>  	usb_musb_init();
+>  	ads7846_dev_init();
+> +	omap3evm_init_smsc911x();
+>  }
+> 
+>  static void __init omap3_evm_map_io(void)
 
-It can be done but the issue it to make regulator_get()/regulator_enable() calls at a common location.
+[Hiremath, Vaibhav] I validated this patch on OMAP3EVM and it is working for me. At-least I could able to mount NFS and work without any issue, which was failing before with SMC911x. For me, earlier I was not able to mount NFS filesystem at all. 
 
--Ajay
+Verified-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-> Today it's hardcoded to one for every board in
-> twl4030-core.c
+Thanks,
+Vaibhav
+
+> --
+> 1.6.2.4
 > 
 > --
-> balbi
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
