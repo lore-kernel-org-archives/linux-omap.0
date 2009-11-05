@@ -1,177 +1,158 @@
-From: "HU TAO-TGHK48" <taohu@motorola.com>
-Subject: RE: [PATCH] Fix race condition in omap_request_dma()
-Date: Fri, 6 Nov 2009 03:15:09 +0800
-Message-ID: <F12CE1A68F023D498A2691C7B539311503B816E8@ZMY16EXM66.ds.mot.com>
-References: <F12CE1A68F023D498A2691C7B539311503B17F61@ZMY16EXM66.ds.mot.com> <618f0c910910301022m313cc0f3sb3f1f3439571d950@mail.gmail.com> <F12CE1A68F023D498A2691C7B539311503B80E25@ZMY16EXM66.ds.mot.com>
+From: Mike Rapoport <mike.rapoport@gmail.com>
+Subject: Re: [PATCH 1/5] Regulator: Removing regulator f/w related code from
+	board-omap3evm.c
+Date: Thu, 5 Nov 2009 23:10:02 +0200
+Message-ID: <f870da180911051310n66b0a6deu9aab355c5e9a10d0@mail.gmail.com>
+References: <1257439154-28009-1-git-send-email-anuj.aggarwal@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail119.messagelabs.com ([216.82.241.195]:34016 "EHLO
-	mail119.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758057AbZKETPh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2009 14:15:37 -0500
-Received: from il27exr04.cig.mot.com ([10.17.196.73])
-	by motgate5.mot.com (8.14.3/8.14.3) with ESMTP id nA5JFf74025117
-	for <linux-omap@vger.kernel.org>; Thu, 5 Nov 2009 12:15:41 -0700 (MST)
-Received: from az10vts04.mot.com (il27vts04.cig.mot.com [10.17.196.88])
-	by il27exr04.cig.mot.com (8.13.1/Vontu) with SMTP id nA5JFZ8r028473
-	for <linux-omap@vger.kernel.org>; Thu, 5 Nov 2009 13:15:36 -0600 (CST)
-Received: from ZMY16EXM66.ds.mot.com (zmy16exm66.ap.mot.com [10.179.4.26])
-	by il27exr04.cig.mot.com (8.13.1/8.13.0) with ESMTP id nA5JFXxm028453
-	for <linux-omap@vger.kernel.org>; Thu, 5 Nov 2009 13:15:34 -0600 (CST)
-Content-class: urn:content-classes:message
-In-Reply-To: <F12CE1A68F023D498A2691C7B539311503B80E25@ZMY16EXM66.ds.mot.com>
+Received: from mail-iw0-f180.google.com ([209.85.223.180]:36127 "EHLO
+	mail-iw0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758693AbZKEVJ5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2009 16:09:57 -0500
+Received: by iwn10 with SMTP id 10so353995iwn.4
+        for <linux-omap@vger.kernel.org>; Thu, 05 Nov 2009 13:10:02 -0800 (PST)
+In-Reply-To: <1257439154-28009-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Venkatraman S <svenkatr@gmail.com>
-Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Yang Fei-AFY095 <fei.yang@motorola.com>, jon-hunter@ti.com, Zhou Ming-a17711 <a17711@motorola.com>, "Ye Yuan.Bo-A22116" <yuan-bo.ye@motorola.com>
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk
 
-
-Any new comments?
-
--Hu Tao
-     =20
-=20
-
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org=20
-> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of HU TAO-TGHK48
-> Sent: Saturday, October 31, 2009 5:33 AM
-> To: Venkatraman S
-> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Yang=20
-> Fei-AFY095; jon-hunter@ti.com; Zhou Ming-a17711; Ye Yuan.Bo-A22116
-> Subject: RE: [PATCH] Fix race condition in omap_request_dma()
->=20
-> Hi, Venkatraman=20
->=20
-> Agree with you. And just found omap_free_dma() need to be fixed too.
-> New patch attached.
->=20
-> From 7aa22ece591365c2dcd73c799d93781497322ff1 Mon Sep 17 00:00:00 200=
-1
-> From: Tao Hu <taohu@motorola.com>
-> Date: Fri, 30 Oct 2009 16:24:25 -0500
-> Subject: [PATCH] Fix race condition in omap dma driver
->=20
-> The bug could cause irq enable bit of one DMA channel is=20
-> cleared/set unexpectedly when 2 (or more) drivers are calling
-> omap_request_dma()/omap_free_dma() simultaneously
->=20
-> Signed-off-by: Fei Yang <AFY095@motorola.com>
-> Signed-off-by: Tao Hu  <taohu@motorola.com>
+On Thu, Nov 5, 2009 at 6:39 PM, Anuj Aggarwal <anuj.aggarwal@ti.com> wr=
+ote:
+> Regulator framework related code is being moved to a new file
+> board-omap35x-pmic.c. This file will contain specific information for
+> different regulators and platforms.
+>
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 > ---
->  arch/arm/plat-omap/dma.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
->=20
-> diff --git a/arch/arm/plat-omap/dma.c=20
-> b/arch/arm/plat-omap/dma.c index cd53b28..5767899 100755
-> --- a/arch/arm/plat-omap/dma.c
-> +++ b/arch/arm/plat-omap/dma.c
-> @@ -673,13 +673,16 @@ static inline void disable_lnk(int lch)=20
->  static inline void omap2_enable_irq_lch(int lch)  {
->  	u32 val;
-> +	unsigned long flags;
-> =20
->  	if (!cpu_class_is_omap2())
->  		return;
-> =20
-> +	spin_lock_irqsave(&dma_chan_lock, flags);
->  	val =3D dma_read(IRQENABLE_L0);
->  	val |=3D 1 << lch;
->  	dma_write(val, IRQENABLE_L0);
-> +	spin_unlock_irqrestore(&dma_chan_lock, flags);
->  }
-> =20
->  int omap_request_dma(int dev_id, const char *dev_name, @@=20
-> -788,10 +791,13 @@ void omap_free_dma(int lch)
-> =20
->  	if (cpu_class_is_omap2()) {
->  		u32 val;
-> +
-> +		spin_lock_irqsave(&dma_chan_lock, flags);
->  		/* Disable interrupts */
->  		val =3D dma_read(IRQENABLE_L0);
->  		val &=3D ~(1 << lch);
->  		dma_write(val, IRQENABLE_L0);
-> +		spin_unlock_irqrestore(&dma_chan_lock, flags);
-> =20
->  		/* Clear the CSR register and IRQ status register */
->  		dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(lch));
+> =A0arch/arm/mach-omap2/board-omap3evm.c | =A0 45 --------------------=
+--------------
+> =A01 files changed, 0 insertions(+), 45 deletions(-)
+
+I think it'd be better if you first provide the new implementation of
+regulator init code and then remove it from the board file.
+IMO, this patch should be the last in the series.
+
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-oma=
+p2/board-omap3evm.c
+> index b9b0f4c..d526fa5 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -94,44 +94,6 @@ static inline void __init omap3evm_init_smc911x(vo=
+id)
+> =A0 =A0 =A0 =A0gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
+> =A0}
+>
+> -static struct regulator_consumer_supply omap3evm_vmmc1_supply =3D {
+> - =A0 =A0 =A0 .supply =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D "vmmc",
+> -};
+> -
+> -static struct regulator_consumer_supply omap3evm_vsim_supply =3D {
+> - =A0 =A0 =A0 .supply =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =3D "vmmc_aux",
+> -};
+> -
+> -/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card =3D=3D=
+ max 220 mA) */
+> -static struct regulator_init_data omap3evm_vmmc1 =3D {
+> - =A0 =A0 =A0 .constraints =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =3D 1850000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =3D 3150000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_modes_mask =A0 =A0 =A0 =3D REGUL=
+ATOR_MODE_NORMAL
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | REGULATOR_MODE_STANDBY,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_ops_mask =A0 =A0 =A0 =A0 =3D REG=
+ULATOR_CHANGE_VOLTAGE
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | REGULATOR_CHANGE_MODE
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | REGULATOR_CHANGE_STATUS,
+> - =A0 =A0 =A0 },
+> - =A0 =A0 =A0 .num_consumer_supplies =A0=3D 1,
+> - =A0 =A0 =A0 .consumer_supplies =A0 =A0 =A0=3D &omap3evm_vmmc1_suppl=
+y,
+> -};
+> -
+> -/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card =3D=3D max 50 mA) =
+*/
+> -static struct regulator_init_data omap3evm_vsim =3D {
+> - =A0 =A0 =A0 .constraints =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =3D 1800000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =3D 3000000,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_modes_mask =A0 =A0 =A0 =3D REGUL=
+ATOR_MODE_NORMAL
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | REGULATOR_MODE_STANDBY,
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_ops_mask =A0 =A0 =A0 =A0 =3D REG=
+ULATOR_CHANGE_VOLTAGE
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | REGULATOR_CHANGE_MODE
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 | REGULATOR_CHANGE_STATUS,
+> - =A0 =A0 =A0 },
+> - =A0 =A0 =A0 .num_consumer_supplies =A0=3D 1,
+> - =A0 =A0 =A0 .consumer_supplies =A0 =A0 =A0=3D &omap3evm_vsim_supply=
+,
+> -};
+> -
+> =A0static struct twl4030_hsmmc_info mmc[] =3D {
+> =A0 =A0 =A0 =A0{
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.mmc =A0 =A0 =A0 =A0 =A0 =A0=3D 1,
+> @@ -165,7 +127,6 @@ static struct platform_device leds_gpio =3D {
+> =A0 =A0 =A0 =A0},
+> =A0};
+>
+> -
+> =A0static int omap3evm_twl_gpio_setup(struct device *dev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0unsigned gpio, unsigned ngpio)
+> =A0{
+> @@ -174,10 +135,6 @@ static int omap3evm_twl_gpio_setup(struct device=
+ *dev,
+> =A0 =A0 =A0 =A0mmc[0].gpio_cd =3D gpio + 0;
+> =A0 =A0 =A0 =A0twl4030_mmc_init(mmc);
+>
+> - =A0 =A0 =A0 /* link regulators to MMC adapters */
+> - =A0 =A0 =A0 omap3evm_vmmc1_supply.dev =3D mmc[0].dev;
+> - =A0 =A0 =A0 omap3evm_vsim_supply.dev =3D mmc[0].dev;
+> -
+> =A0 =A0 =A0 =A0/*
+> =A0 =A0 =A0 =A0 * Most GPIOs are for USB OTG. =A0Some are mostly sent=
+ to
+> =A0 =A0 =A0 =A0 * the P2 connector; notably LEDA for the LCD backligh=
+t.
+> @@ -247,8 +204,6 @@ static struct twl4030_platform_data omap3evm_twld=
+ata =3D {
+> =A0 =A0 =A0 =A0.madc =A0 =A0 =A0 =A0 =A0 =3D &omap3evm_madc_data,
+> =A0 =A0 =A0 =A0.usb =A0 =A0 =A0 =A0 =A0 =A0=3D &omap3evm_usb_data,
+> =A0 =A0 =A0 =A0.gpio =A0 =A0 =A0 =A0 =A0 =3D &omap3evm_gpio_data,
+> - =A0 =A0 =A0 .vmmc1 =A0 =A0 =A0 =A0 =A0=3D &omap3evm_vmmc1,
+> - =A0 =A0 =A0 .vsim =A0 =A0 =A0 =A0 =A0 =3D &omap3evm_vsim,
+> =A0};
+>
+> =A0static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] =3D=
+ {
 > --
-> 1.5.4.3
->       =20
-> =20
->=20
-> > -----Original Message-----
-> > From: Venkatraman S [mailto:svenkatr@gmail.com]
-> > Sent: Saturday, October 31, 2009 1:22 AM
-> > To: HU TAO-TGHK48
-> > Cc: linux-omap@vger.kernel.org; Tony Lindgren; Yang Fei-AFY095;=20
-> > jon-hunter@ti.com; Zhou Ming-a17711; Ye Yuan.Bo-A22116
-> > Subject: Re: [PATCH] Fix race condition in omap_request_dma()
-> >=20
-> > On Fri, Oct 30, 2009 at 9:00 AM, HU TAO-TGHK48 <taohu@motorola.com>=
-=20
-> > wrote:
-> > > From a36dac7ee6140ffa23f0adc024964aaf3e266e5f Mon Sep 17
-> > 00:00:00 2001
-> > > From: Tao Hu <taohu@motorola.com>
-> > > Date: Thu, 29 Oct 2009 17:17:21 -0500
-> > > Subject: [PATCH] Fix race condition in omap_request_dma()
-> > >
-> > > The bug could cause irq enable bit of one DMA channel is cleared=20
-> > > unexpectedly when 2 (or more) drivers are calling
-> > > omap_request_dma() simultaneously
-> > >
-> > > Signed-off-by: Fei Yang <AFY095@motorola.com>
-> > > Signed-off-by: Tao Hu =A0<taohu@motorola.com>
-> > > ---
-> > > =A0arch/arm/plat-omap/dma.c | =A0 =A02 ++
-> > > =A01 files changed, 2 insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/arch/arm/plat-omap/dma.c
-> > b/arch/arm/plat-omap/dma.c index
-> > > cd53b28..6895484 100755
-> > > --- a/arch/arm/plat-omap/dma.c
-> > > +++ b/arch/arm/plat-omap/dma.c
-> > > @@ -749,11 +749,13 @@ int omap_request_dma(int dev_id, const char=
-=20
-> > > *dev_name,
-> > > =A0 =A0 =A0 =A0}
-> > >
-> > > =A0 =A0 =A0 =A0if (cpu_class_is_omap2()) {
-> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&dma_chan_lock, f=
-lags);
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap2_enable_irq_lch(free_ch);
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_enable_channel_irq(free_ch);
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Clear the CSR register and IRQ =
-status=20
-> register */
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dma_write(OMAP2_DMA_CSR_CLEAR_MASK=
-, CSR(free_ch));
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dma_write(1 << free_ch, IRQSTATUS_=
-L0);
-> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&dma_chan_lo=
-ck, flags);
-> > > =A0 =A0 =A0 =A0}
-> >=20
-> > Nice catch. I think the lock needs to be applied only for=20
-> the global=20
-> > registers which are changed using the read - update - write method.
-> > The dma_write to per channel configuration registers need not be=20
-> > locked.
-> > Hence the lock is better placed "within" omap2_enable_irq_lch=20
-> > function. That way, if it's reused, the locking would also be in=20
-> > place.
-> > Thank you !
-> >=20
+> 1.6.2.4
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe=20
-> linux-omap" in
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+--=20
+	Sincerely Yours,
+		Mike.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
 n
