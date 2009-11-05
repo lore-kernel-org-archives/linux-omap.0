@@ -1,141 +1,103 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 2/5] Regulator: Creating regulator hookup file for OMAP3 platforms
-Date: Thu,  5 Nov 2009 22:09:24 +0530
-Message-ID: <1257439164-28467-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [PATCH 1/5] Regulator: Removing regulator f/w related code from board-omap3evm.c
+Date: Thu,  5 Nov 2009 22:09:14 +0530
+Message-ID: <1257439154-28009-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53847 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53835 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757055AbZKEQj0 (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Nov 2009 11:39:26 -0500
+	id S1757578AbZKEQjR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Nov 2009 11:39:17 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-This newly created board-omap35x-pmic.c will be used to provide
-the board specific regulator hookup code for various TI PMICs (like
-TWL4030/TPS65950, TPS65023) on different EVMs like OMAP3, AM3517.
-
-PMIC initialization routine is called from the board-evm file
-which will initialize the configured PMIC appropriately.
+Regulator framework related code is being moved to a new file
+board-omap35x-pmic.c. This file will contain specific information for
+different regulators and platforms.
 
 Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 ---
- arch/arm/mach-omap2/board-omap35x-pmic.c |   71 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-omap3evm.c     |    8 +++
- 2 files changed, 79 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap35x-pmic.c
+ arch/arm/mach-omap2/board-omap3evm.c |   45 ----------------------------------
+ 1 files changed, 0 insertions(+), 45 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap35x-pmic.c b/arch/arm/mach-omap2/board-omap35x-pmic.c
-new file mode 100644
-index 0000000..aae07ab
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap35x-pmic.c
-@@ -0,0 +1,71 @@
-+/*
-+ * board-omap35x-pmic.c
-+ *
-+ * Board specific information for different regulators and platforms.
-+ *
-+ * Copyright (C) 2009 Texas Instrument Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
-+ * whether express or implied; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+
-+#include <linux/regulator/driver.h>
-+#include <linux/regulator/machine.h>
-+#include <linux/platform_device.h>
-+#include <plat/common.h>
-+
-+/*
-+ * Definitions specific to TWL4030/TPS65950
-+ */
-+#if defined(CONFIG_PMIC_TWL4030)
-+static inline void pmic_twl4030_init(void)
-+{
-+	/* TWL4030 specific init code */
-+}
-+#else
-+static inline void pmic_twl4030_init(void)
-+{
-+}
-+#endif	/* CONFIG_PMIC_TWL4030 */
-+
-+/*
-+ * Definitions specific to TPS65023
-+ */
-+#if defined(CONFIG_PMIC_TPS65023)
-+static inline void pmic_tps65023_init(void)
-+{
-+	/* TPS65023 specific init code */
-+}
-+#else
-+static inline void pmic_tps65023_init(void)
-+{
-+}
-+#endif	/* CONFIG_PMIC_TPS65023 */
-+
-+/*
-+ * Definitions specific to TPS65073
-+ */
-+#if defined(CONFIG_PMIC_TPS65073)
-+static inline void pmic_tps65073_init(void)
-+{
-+	/* TPS65073 specific init code */
-+}
-+#else
-+static inline void pmic_tps65073_init(void)
-+{
-+}
-+#endif	/* CONFIG_PMIC_TPS65073 */
-+
-+/* Detects the PMIC and initializes it accordingly */
-+void omap35x_pmic_init(void)
-+{
-+	pmic_twl4030_init();
-+	pmic_tps65023_init();
-+	pmic_tps65073_init();
-+}
 diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index d526fa5..dbdf062 100644
+index b9b0f4c..d526fa5 100644
 --- a/arch/arm/mach-omap2/board-omap3evm.c
 +++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -51,6 +51,8 @@
- #define OMAP3EVM_ETHR_GPIO_IRQ	176
- #define OMAP3EVM_SMC911X_CS	5
+@@ -94,44 +94,6 @@ static inline void __init omap3evm_init_smc911x(void)
+ 	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
+ }
  
-+extern void omap35x_pmic_init(void);
-+
- static struct resource omap3evm_smc911x_resources[] = {
- 	[0] =	{
- 		.start	= OMAP3EVM_ETHR_START,
-@@ -204,6 +206,10 @@ static struct twl4030_platform_data omap3evm_twldata = {
+-static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
+-	.supply			= "vmmc",
+-};
+-
+-static struct regulator_consumer_supply omap3evm_vsim_supply = {
+-	.supply			= "vmmc_aux",
+-};
+-
+-/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
+-static struct regulator_init_data omap3evm_vmmc1 = {
+-	.constraints = {
+-		.min_uV			= 1850000,
+-		.max_uV			= 3150000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &omap3evm_vmmc1_supply,
+-};
+-
+-/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
+-static struct regulator_init_data omap3evm_vsim = {
+-	.constraints = {
+-		.min_uV			= 1800000,
+-		.max_uV			= 3000000,
+-		.valid_modes_mask	= REGULATOR_MODE_NORMAL
+-					| REGULATOR_MODE_STANDBY,
+-		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
+-					| REGULATOR_CHANGE_MODE
+-					| REGULATOR_CHANGE_STATUS,
+-	},
+-	.num_consumer_supplies	= 1,
+-	.consumer_supplies	= &omap3evm_vsim_supply,
+-};
+-
+ static struct twl4030_hsmmc_info mmc[] = {
+ 	{
+ 		.mmc		= 1,
+@@ -165,7 +127,6 @@ static struct platform_device leds_gpio = {
+ 	},
+ };
+ 
+-
+ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 		unsigned gpio, unsigned ngpio)
+ {
+@@ -174,10 +135,6 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
+ 	mmc[0].gpio_cd = gpio + 0;
+ 	twl4030_mmc_init(mmc);
+ 
+-	/* link regulators to MMC adapters */
+-	omap3evm_vmmc1_supply.dev = mmc[0].dev;
+-	omap3evm_vsim_supply.dev = mmc[0].dev;
+-
+ 	/*
+ 	 * Most GPIOs are for USB OTG.  Some are mostly sent to
+ 	 * the P2 connector; notably LEDA for the LCD backlight.
+@@ -247,8 +204,6 @@ static struct twl4030_platform_data omap3evm_twldata = {
  	.madc		= &omap3evm_madc_data,
  	.usb		= &omap3evm_usb_data,
  	.gpio		= &omap3evm_gpio_data,
-+	/*
-+	 * Regulator specific hooks are getting populated
-+	 * in the omap35x_pmic_init().
-+	 */
+-	.vmmc1		= &omap3evm_vmmc1,
+-	.vsim		= &omap3evm_vsim,
  };
  
  static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
-@@ -312,6 +318,8 @@ static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
- 
- static void __init omap3_evm_init(void)
- {
-+	omap35x_pmic_init();
-+
- 	omap3_evm_i2c_init();
- 
- 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
 -- 
 1.6.2.4
 
