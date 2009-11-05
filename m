@@ -1,61 +1,41 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH] AM35xx: Clock table updates for AM3505/17
-Date: Thu, 5 Nov 2009 21:56:02 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0309C862AA@dbde02.ent.ti.com>
-References: <1257417540-21120-1-git-send-email-ranjithl@ti.com>,<7A436F7769CA33409C6B44B358BFFF0C012AFCC9D8@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Subject: [PATCH 0/5] Regulator: Moving regulator f/w code from board-evm to
+Date: Thu,  5 Nov 2009 22:08:59 +0530
+Message-ID: <1257439139-27223-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46689 "EHLO comal.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:47246 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756679AbZKEQaI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2009 11:30:08 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA5GUB3B010360
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Thu, 5 Nov 2009 10:30:13 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA5GUARA020159
-	for <linux-omap@vger.kernel.org>; Thu, 5 Nov 2009 22:00:10 +0530 (IST)
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C012AFCC9D8@dlee02.ent.ti.com>
-Content-Language: en-US
+	id S1757155AbZKEQjG (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Nov 2009 11:39:06 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "Lohithakshan, Ranjith" <ranjithl@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: linux-omap@vger.kernel.org
+Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-Nishanth Menon wrote:
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Ranjith Lohithakshan
-> > Sent: Thursday, November 05, 2009 2:39 AM
-> [...]
-> > diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-
-> > omap2/clock34xx.c
-> > index c258f87..9ac5c0e 100644
-> > --- a/arch/arm/mach-omap2/clock34xx.c
-> > +++ b/arch/arm/mach-omap2/clock34xx.c
-> > @@ -93,140 +93,143 @@ struct omap_clk {
-> >  #define CK_343X              (1 << 0)
-> >  #define CK_3430ES1   (1 << 1)
-> >  #define CK_3430ES2   (1 << 2)
-> > +#define CK_3517      (1 << 3)
-> > +#define CK_3505      (1 << 4)
-> > +#define CK_35XX      (CK_3517 | CK_3505)
-> >
-> >  static struct omap_clk omap34xx_clks[] = {
-> > -     CLK(NULL,       "omap_32k_fck", &omap_32k_fck,  CK_343X),
-> > -     CLK(NULL,       "virt_12m_ck",  &virt_12m_ck,   CK_343X),
-> > -     CLK(NULL,       "virt_13m_ck",  &virt_13m_ck,   CK_343X),
-> > -     CLK(NULL,       "virt_16_8m_ck", &virt_16_8m_ck, CK_3430ES2),
+This patch set cleans the board-omap3evm.c file by moving the regulator f/w
+specific code to board-omap35x-pmic.c. This newly created file will have
+board-specific information for OMAP3/AM3517 EVMs and TI PMICs like TWL4030/
+TPS65950, TPS65023, TPS65073 etc. Since we are going to have so many possible
+combinations like OMAP3 + TWL4030, OMAP3 + TPS65023, AM3517 + TPS65023, the
+new PMIC specific file is created.
 
-Just something that I thought of when I saw this line.
+Supply names used for TWL4030 are simplified and directly related to the
+consumers, MMC driver is modified to reflect this. Other consumer drivers
+need to be modified to acccomodate this change.
 
-Do we still support OMAP3430 ES1.0 silicon? I don't know if any of
-these boards exist in the wild and if they still work with current code.
+Anuj Aggarwal (5):
+  Regulator: Removing regulator f/w related code from board-omap3evm.c
+  Regulator: Creating regulator hookup file for OMAP3 platforms
+  Regulator: Changing Kconfig / Makefile for OMAP3 PMIC file
+  Regulator: Adding OMAP3EVM/TWL4030 specific code in
+    board-omap35x-pmic.c
+  Regulator: Renaming the supplies used in MMC driver
 
-If we don't mind dropping support for these boards, then maybe we
-could remove the *3430ES2* flags and cut down on some code?
+ arch/arm/mach-omap2/Kconfig              |    8 ++
+ arch/arm/mach-omap2/Makefile             |    3 +-
+ arch/arm/mach-omap2/board-omap35x-pmic.c |  148 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-omap3evm.c     |   55 ++---------
+ arch/arm/mach-omap2/mmc-twl4030.c        |    6 +-
+ 5 files changed, 170 insertions(+), 50 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap35x-pmic.c
 
-Just a thought.
-
-- Anand
