@@ -1,60 +1,51 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 3/5] Regulator: Changing Kconfig / Makefile for OMAP3 PMIC file
-Date: Thu,  5 Nov 2009 22:09:32 +0530
-Message-ID: <1257439172-28897-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [PATCH 5/5] Regulator: Renaming the supplies used in MMC driver
+Date: Thu,  5 Nov 2009 22:09:49 +0530
+Message-ID: <1257439189-29594-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47072 "EHLO bear.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47097 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757474AbZKEQji (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Nov 2009 11:39:38 -0500
+	id S1757461AbZKEQjv (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Nov 2009 11:39:51 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-It updates the Kconfig so that the PMIC present on the EVM can
-be chosen. Initially adding TWL4030 to it, others will be added
-in the later patches.
+Supply names are renamed from vmmc -> mmc and vmmc_aux -> mmc_aux.
+This is done to have simple supply names both in the driver
+and in the board-evm file.
 
 Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 ---
- arch/arm/mach-omap2/Kconfig  |    8 ++++++++
- arch/arm/mach-omap2/Makefile |    3 ++-
- 2 files changed, 10 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/mmc-twl4030.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 8685df5..7c45801 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -64,6 +64,14 @@ config MACH_OVERO
- config MACH_OMAP3EVM
- 	bool "OMAP 3530 EVM board"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+config PMIC_TWL4030
-+	bool "TWL4030/TPS65950 Power Module"
-+	default y
-+	depends on TWL4030_CORE && MACH_OMAP3EVM
-+	select REGULATOR_TWL4030 if REGULATOR
-+	help
-+	  Say yes here if you are using the TWL4030/TPS65950 based power module
-+	  for the EVM boards.
+diff --git a/arch/arm/mach-omap2/mmc-twl4030.c b/arch/arm/mach-omap2/mmc-twl4030.c
+index 3403914..af3b1be 100644
+--- a/arch/arm/mach-omap2/mmc-twl4030.c
++++ b/arch/arm/mach-omap2/mmc-twl4030.c
+@@ -109,9 +109,9 @@ static int twl_mmc_late_init(struct device *dev)
  
- config MACH_OMAP3_PANDORA
- 	bool "OMAP3 Pandora"
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 03cb4fc..0b561ae 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -62,7 +62,8 @@ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
- obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
--					   mmc-twl4030.o
-+					   mmc-twl4030.o \
-+					   board-omap35x-pmic.o
- obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
- 					   mmc-twl4030.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+ 			hsmmc[i].mmc = mmc;
+ 
+-			reg = regulator_get(dev, "vmmc");
++			reg = regulator_get(dev, "mmc");
+ 			if (IS_ERR(reg)) {
+-				dev_dbg(dev, "vmmc regulator missing\n");
++				dev_dbg(dev, "mmc regulator missing\n");
+ 				/* HACK: until fixed.c regulator is usable,
+ 				 * we don't require a main regulator
+ 				 * for MMC2 or MMC3
+@@ -126,7 +126,7 @@ static int twl_mmc_late_init(struct device *dev)
+ 			mmc->slots[0].ocr_mask = mmc_regulator_get_ocrmask(reg);
+ 
+ 			/* allow an aux regulator */
+-			reg = regulator_get(dev, "vmmc_aux");
++			reg = regulator_get(dev, "mmc_aux");
+ 			hsmmc[i].vcc_aux = IS_ERR(reg) ? NULL : reg;
+ 
+ 			/* UGLY HACK:  workaround regulator framework bugs.
 -- 
 1.6.2.4
 
