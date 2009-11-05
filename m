@@ -1,134 +1,84 @@
-From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 4/5] Regulator: Adding OMAP3EVM/TWL4030 specific code in board-omap35x-pmic.c
-Date: Thu,  5 Nov 2009 22:09:41 +0530
-Message-ID: <1257439181-29257-1-git-send-email-anuj.aggarwal@ti.com>
+From: Liam Girdwood <lrg@slimlogic.co.uk>
+Subject: Re: [PATCH 2/5] Regulator: Creating regulator hookup file for
+ OMAP3 platforms
+Date: Thu, 05 Nov 2009 16:58:15 +0000
+Message-ID: <1257440295.3603.1185.camel@odin>
+References: <1257439164-28467-1-git-send-email-anuj.aggarwal@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47084 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757543AbZKEQjn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Nov 2009 11:39:43 -0500
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:56558 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756728AbZKEQ6N (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2009 11:58:13 -0500
+Received: by ewy3 with SMTP id 3so185397ewy.37
+        for <linux-omap@vger.kernel.org>; Thu, 05 Nov 2009 08:58:17 -0800 (PST)
+In-Reply-To: <1257439164-28467-1-git-send-email-anuj.aggarwal@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, Anuj Aggarwal <anuj.aggarwal@ti.com>
+To: Anuj Aggarwal <anuj.aggarwal@ti.com>
+Cc: linux-omap@vger.kernel.org, broonie@opensource.wolfsonmicro.com
 
-Adding various regulator-consumers for OMAP3EVM-TWL4030 combination
-in board-omap35x-pmic.c. Also, populating the respective fields
-for omap3evm_twldata structure.
+On Thu, 2009-11-05 at 22:09 +0530, Anuj Aggarwal wrote:
+> This newly created board-omap35x-pmic.c will be used to provide
+> the board specific regulator hookup code for various TI PMICs (like
+> TWL4030/TPS65950, TPS65023) on different EVMs like OMAP3, AM3517.
+> 
+> PMIC initialization routine is called from the board-evm file
+> which will initialize the configured PMIC appropriately.
+> 
+> Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
+> ---
+>  arch/arm/mach-omap2/board-omap35x-pmic.c |   71 ++++++++++++++++++++++++++++++
+>  arch/arm/mach-omap2/board-omap3evm.c     |    8 +++
+>  2 files changed, 79 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-omap35x-pmic.c
+> 
+> diff --git a/arch/arm/mach-omap2/board-omap35x-pmic.c b/arch/arm/mach-omap2/board-omap35x-pmic.c
+> new file mode 100644
+> index 0000000..aae07ab
+> --- /dev/null
+> +++ b/arch/arm/mach-omap2/board-omap35x-pmic.c
+> @@ -0,0 +1,71 @@
+> +/*
+> + * board-omap35x-pmic.c
+> + *
+> + * Board specific information for different regulators and platforms.
+> + *
+> + * Copyright (C) 2009 Texas Instrument Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any kind,
+> + * whether express or implied; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
+> +
+> +#include <linux/regulator/driver.h>
+> +#include <linux/regulator/machine.h>
+> +#include <linux/platform_device.h>
+> +#include <plat/common.h>
+> +
+> +/*
+> + * Definitions specific to TWL4030/TPS65950
+> + */
+> +#if defined(CONFIG_PMIC_TWL4030)
+> +static inline void pmic_twl4030_init(void)
+> +{
+> +	/* TWL4030 specific init code */
 
-Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
----
- arch/arm/mach-omap2/board-omap35x-pmic.c |   81 +++++++++++++++++++++++++++++-
- arch/arm/mach-omap2/board-omap3evm.c     |    2 +-
- 2 files changed, 80 insertions(+), 3 deletions(-)
+Would this not be per board per pmic i.e.
 
-diff --git a/arch/arm/mach-omap2/board-omap35x-pmic.c b/arch/arm/mach-omap2/board-omap35x-pmic.c
-index aae07ab..2ef4932 100644
---- a/arch/arm/mach-omap2/board-omap35x-pmic.c
-+++ b/arch/arm/mach-omap2/board-omap35x-pmic.c
-@@ -24,10 +24,87 @@
-  * Definitions specific to TWL4030/TPS65950
-  */
- #if defined(CONFIG_PMIC_TWL4030)
--static inline void pmic_twl4030_init(void)
-+#if defined(CONFIG_MACH_OMAP3EVM)
-+#include <linux/i2c/twl4030.h>
-+
-+extern struct twl4030_platform_data omap3evm_twldata;
-+
-+/* VDAC */
-+static struct regulator_consumer_supply vdac_consumers[] = {
-+	{
-+		.supply	= "dac",
-+	},
-+};
-+
-+static struct regulator_init_data vdac_data = {
-+	.constraints = {
-+		.name = "VDAC",
-+		.min_uV	= 1800000,
-+		.max_uV	= 1800000,
-+		.apply_uV = true,
-+		.valid_modes_mask = REGULATOR_MODE_NORMAL
-+			| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	= REGULATOR_CHANGE_MODE
-+			| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies = ARRAY_SIZE(vdac_consumers),
-+	.consumer_supplies = vdac_consumers,
-+};
-+
-+/* VPLL2 */
-+static struct regulator_consumer_supply vpll2_consumers[] = {
-+	{
-+		.supply	= "lcd",
-+	},
-+	{
-+		.supply	= "sdi",
-+	},
-+};
-+
-+static struct regulator_init_data vpll2_data = {
-+	.constraints = {
-+		.name = "VPLL2",
-+		.min_uV	= 1800000,
-+		.max_uV	= 1800000,
-+		.apply_uV = true,
-+		.valid_modes_mask = REGULATOR_MODE_NORMAL
-+			| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask = REGULATOR_CHANGE_MODE
-+			| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies = ARRAY_SIZE(vpll2_consumers),
-+	.consumer_supplies = vpll2_consumers,
-+};
-+
-+/* VMMC1 */
-+struct regulator_consumer_supply vmmc1_consumers[] = {
-+	{
-+		.supply	= "mmc",
-+	},
-+};
-+
-+static struct regulator_init_data vmmc1_data = {
-+	.constraints = {
-+		.name = "VMMC1",
-+		.min_uV	= 1850000,
-+		.max_uV	= 3150000,
-+		.valid_modes_mask = REGULATOR_MODE_NORMAL
-+			| REGULATOR_MODE_STANDBY,
-+		.valid_ops_mask	= REGULATOR_CHANGE_VOLTAGE
-+			| REGULATOR_CHANGE_MODE	| REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies = ARRAY_SIZE(vmmc1_consumers),
-+	.consumer_supplies = vmmc1_consumers,
-+};
-+
-+static void __init pmic_twl4030_init(void)
- {
--	/* TWL4030 specific init code */
-+	/* Initialize the regulator specific fields here */
-+	omap3evm_twldata.vdac = &vdac_data;
-+	omap3evm_twldata.vpll2 = &vpll2_data;
-+	omap3evm_twldata.vmmc1 = &vmmc1_data;
- }
-+#endif	/* CONFIG_MACH_OMAP3EVM */
- #else
- static inline void pmic_twl4030_init(void)
- {
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index dbdf062..10ac0d2 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -197,7 +197,7 @@ static struct twl4030_madc_platform_data omap3evm_madc_data = {
- 	.irq_line	= 1,
- };
- 
--static struct twl4030_platform_data omap3evm_twldata = {
-+struct twl4030_platform_data omap3evm_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
- 
--- 
-1.6.2.4
+pmic_x_board_y_init() ?
+
+I can see pmic init sometimes being different across boards here (for
+the same pmic). Although this probably depends on how complex/flexible
+your pmic init needs to be in the first place.
+
+Liam
+
 
