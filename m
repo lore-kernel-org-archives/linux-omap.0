@@ -1,103 +1,60 @@
 From: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Subject: [PATCH 1/5] Regulator: Removing regulator f/w related code from board-omap3evm.c
-Date: Thu,  5 Nov 2009 22:09:14 +0530
-Message-ID: <1257439154-28009-1-git-send-email-anuj.aggarwal@ti.com>
+Subject: [PATCH 3/5] Regulator: Changing Kconfig / Makefile for OMAP3 PMIC file
+Date: Thu,  5 Nov 2009 22:09:32 +0530
+Message-ID: <1257439172-28897-1-git-send-email-anuj.aggarwal@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53835 "EHLO arroyo.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:47072 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757578AbZKEQjR (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 5 Nov 2009 11:39:17 -0500
+	id S1757474AbZKEQji (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 5 Nov 2009 11:39:38 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: broonie@opensource.wolfsonmicro.com, lrg@slimlogic.co.uk, Anuj Aggarwal <anuj.aggarwal@ti.com>
 
-Regulator framework related code is being moved to a new file
-board-omap35x-pmic.c. This file will contain specific information for
-different regulators and platforms.
+It updates the Kconfig so that the PMIC present on the EVM can
+be chosen. Initially adding TWL4030 to it, others will be added
+in the later patches.
 
 Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
 ---
- arch/arm/mach-omap2/board-omap3evm.c |   45 ----------------------------------
- 1 files changed, 0 insertions(+), 45 deletions(-)
+ arch/arm/mach-omap2/Kconfig  |    8 ++++++++
+ arch/arm/mach-omap2/Makefile |    3 ++-
+ 2 files changed, 10 insertions(+), 1 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-index b9b0f4c..d526fa5 100644
---- a/arch/arm/mach-omap2/board-omap3evm.c
-+++ b/arch/arm/mach-omap2/board-omap3evm.c
-@@ -94,44 +94,6 @@ static inline void __init omap3evm_init_smc911x(void)
- 	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
- }
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 8685df5..7c45801 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -64,6 +64,14 @@ config MACH_OVERO
+ config MACH_OMAP3EVM
+ 	bool "OMAP 3530 EVM board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++config PMIC_TWL4030
++	bool "TWL4030/TPS65950 Power Module"
++	default y
++	depends on TWL4030_CORE && MACH_OMAP3EVM
++	select REGULATOR_TWL4030 if REGULATOR
++	help
++	  Say yes here if you are using the TWL4030/TPS65950 based power module
++	  for the EVM boards.
  
--static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
--	.supply			= "vmmc",
--};
--
--static struct regulator_consumer_supply omap3evm_vsim_supply = {
--	.supply			= "vmmc_aux",
--};
--
--/* VMMC1 for MMC1 pins CMD, CLK, DAT0..DAT3 (20 mA, plus card == max 220 mA) */
--static struct regulator_init_data omap3evm_vmmc1 = {
--	.constraints = {
--		.min_uV			= 1850000,
--		.max_uV			= 3150000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &omap3evm_vmmc1_supply,
--};
--
--/* VSIM for MMC1 pins DAT4..DAT7 (2 mA, plus card == max 50 mA) */
--static struct regulator_init_data omap3evm_vsim = {
--	.constraints = {
--		.min_uV			= 1800000,
--		.max_uV			= 3000000,
--		.valid_modes_mask	= REGULATOR_MODE_NORMAL
--					| REGULATOR_MODE_STANDBY,
--		.valid_ops_mask		= REGULATOR_CHANGE_VOLTAGE
--					| REGULATOR_CHANGE_MODE
--					| REGULATOR_CHANGE_STATUS,
--	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &omap3evm_vsim_supply,
--};
--
- static struct twl4030_hsmmc_info mmc[] = {
- 	{
- 		.mmc		= 1,
-@@ -165,7 +127,6 @@ static struct platform_device leds_gpio = {
- 	},
- };
- 
--
- static int omap3evm_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
-@@ -174,10 +135,6 @@ static int omap3evm_twl_gpio_setup(struct device *dev,
- 	mmc[0].gpio_cd = gpio + 0;
- 	twl4030_mmc_init(mmc);
- 
--	/* link regulators to MMC adapters */
--	omap3evm_vmmc1_supply.dev = mmc[0].dev;
--	omap3evm_vsim_supply.dev = mmc[0].dev;
--
- 	/*
- 	 * Most GPIOs are for USB OTG.  Some are mostly sent to
- 	 * the P2 connector; notably LEDA for the LCD backlight.
-@@ -247,8 +204,6 @@ static struct twl4030_platform_data omap3evm_twldata = {
- 	.madc		= &omap3evm_madc_data,
- 	.usb		= &omap3evm_usb_data,
- 	.gpio		= &omap3evm_gpio_data,
--	.vmmc1		= &omap3evm_vmmc1,
--	.vsim		= &omap3evm_vsim,
- };
- 
- static struct i2c_board_info __initdata omap3evm_i2c_boardinfo[] = {
+ config MACH_OMAP3_PANDORA
+ 	bool "OMAP3 Pandora"
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 03cb4fc..0b561ae 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -62,7 +62,8 @@ obj-$(CONFIG_MACH_OMAP_LDP)		+= board-ldp.o \
+ obj-$(CONFIG_MACH_OVERO)		+= board-overo.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+-					   mmc-twl4030.o
++					   mmc-twl4030.o \
++					   board-omap35x-pmic.o
+ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+ 					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
 -- 
 1.6.2.4
 
