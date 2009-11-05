@@ -1,48 +1,75 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: Query: Regulator framework in EHCI driver
-Date: Thu, 5 Nov 2009 16:55:54 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A67E132@dbde02.ent.ti.com>
-References: <20091104133922.GD25044@sirena.org.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE6A@dbde02.ent.ti.com>
- <20091104144126.GA30644@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE7F@dbde02.ent.ti.com>
- <20091104144811.GB30644@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE8A@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940436F9384E@dbde02.ent.ti.com>
- <20091105093641.GA21779@rakim.wolfsonmicro.main>
- <20091105094134.GB3045@nokia.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67E0F2@dbde02.ent.ti.com>
- <20091105111955.GA23505@rakim.wolfsonmicro.main>
+From: "Menon, Nishanth" <nm@ti.com>
+Subject: RE: [PATCH] AM35xx: Clock table updates for AM3505/17
+Date: Thu, 5 Nov 2009 10:24:34 -0600
+Message-ID: <7A436F7769CA33409C6B44B358BFFF0C012AFCC9D8@dlee02.ent.ti.com>
+References: <1257417540-21120-1-git-send-email-ranjithl@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56839 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:45921 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212AbZKEL0B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2009 06:26:01 -0500
-In-Reply-To: <20091105111955.GA23505@rakim.wolfsonmicro.main>
+	id S1756116AbZKEQY0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 5 Nov 2009 11:24:26 -0500
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA5GOVoe025114
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 5 Nov 2009 10:24:31 -0600
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA5GOVSD018319
+	for <linux-omap@vger.kernel.org>; Thu, 5 Nov 2009 10:24:31 -0600 (CST)
+Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA5GOVup027401
+	for <linux-omap@vger.kernel.org>; Thu, 5 Nov 2009 10:24:31 -0600 (CST)
+In-Reply-To: <1257417540-21120-1-git-send-email-ranjithl@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: "Lohithakshan, Ranjith" <ranjithl@ti.com>
 
-> On Thu, Nov 05, 2009 at 04:01:24PM +0530, Gadiyar, Anand wrote:
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Ranjith Lohithakshan
+> Sent: Thursday, November 05, 2009 2:39 AM
+[...]
+> diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-
+> omap2/clock34xx.c
+> index c258f87..9ac5c0e 100644
+> --- a/arch/arm/mach-omap2/clock34xx.c
+> +++ b/arch/arm/mach-omap2/clock34xx.c
+> @@ -93,140 +93,143 @@ struct omap_clk {
+>  #define CK_343X		(1 << 0)
+>  #define CK_3430ES1	(1 << 1)
+>  #define CK_3430ES2	(1 << 2)
+> +#define CK_3517 	(1 << 3)
+> +#define CK_3505 	(1 << 4)
+> +#define CK_35XX 	(CK_3517 | CK_3505)
 > 
-> > How do you add a fixed voltage regulator for a board which 
-> doesn't really
-> > have a controllable regulator for that voltage? (the PHY 
-> supply is wired
-> > directly from the main board power-supply, no GPIO for 
-> on-off control)
-> 
-> > Maybe a dummy regulator would be useful?
-> 
-> Like drivers/regulator/fixed.c?
-> 
-> 
+>  static struct omap_clk omap34xx_clks[] = {
+> -	CLK(NULL,	"omap_32k_fck",	&omap_32k_fck,	CK_343X),
+> -	CLK(NULL,	"virt_12m_ck",	&virt_12m_ck,	CK_343X),
+> -	CLK(NULL,	"virt_13m_ck",	&virt_13m_ck,	CK_343X),
+> -	CLK(NULL,	"virt_16_8m_ck", &virt_16_8m_ck, CK_3430ES2),
+> -	CLK(NULL,	"virt_19_2m_ck", &virt_19_2m_ck, CK_343X),
+> -	CLK(NULL,	"virt_26m_ck",	&virt_26m_ck,	CK_343X),
+> -	CLK(NULL,	"virt_38_4m_ck", &virt_38_4m_ck, CK_343X),
+> -	CLK(NULL,	"osc_sys_ck",	&osc_sys_ck,	CK_343X),
+> -	CLK(NULL,	"sys_ck",	&sys_ck,	CK_343X),
+> -	CLK(NULL,	"sys_altclk",	&sys_altclk,	CK_343X),
+> -	CLK(NULL,	"mcbsp_clks",	&mcbsp_clks,	CK_343X),
+> -	CLK(NULL,	"sys_clkout1",	&sys_clkout1,	CK_343X),
+> -	CLK(NULL,	"dpll1_ck",	&dpll1_ck,	CK_343X),
+> -	CLK(NULL,	"dpll1_x2_ck",	&dpll1_x2_ck,	CK_343X),
+> -	CLK(NULL,	"dpll1_x2m2_ck", &dpll1_x2m2_ck, CK_343X),
+> +	CLK(NULL,	"omap_32k_fck",	&omap_32k_fck,	CK_343X | CK_35XX),
+> +	CLK(NULL,	"virt_12m_ck",	&virt_12m_ck,	CK_343X | CK_35XX),
+> +	CLK(NULL,	"virt_13m_ck",	&virt_13m_ck,	CK_343X | CK_35XX),
+> +	CLK(NULL,	"virt_16_8m_ck", &virt_16_8m_ck, CK_3430ES2 | CK_35XX),
+> +	CLK(NULL,	"virt_19_2m_ck", &virt_19_2m_ck, CK_343X | CK_35XX),
+> +	CLK(NULL,	"virt_26m_ck",	&virt_26m_ck,	CK_343X | CK_35XX),
+[...]
+Could we have CK_3XXX? I mean this would probably happen when 36/37xx gets
+introduced also.. does that make sense?
 
-Exactly. Thanks!
-
-(I'm stupid. I should read the code first)
+Regards,
+Nishanth Menon
