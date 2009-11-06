@@ -1,77 +1,73 @@
-From: "Lohithakshan, Ranjith" <ranjithl@ti.com>
-Subject: RE: [PATCH] AM35xx: Clock table updates for AM3505/17
-Date: Fri, 6 Nov 2009 14:52:29 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB92EEBC@dbde02.ent.ti.com>
-References: <1257417540-21120-1-git-send-email-ranjithl@ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C012AFCC9D8@dlee02.ent.ti.com>
+From: "Dasgupta, Romit" <romit@ti.com>
+Subject: [PATCH 0/1] PM: Thaws refrigerated and to be exited kernel threads
+Date: Fri, 6 Nov 2009 15:05:01 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE31F931@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44699 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831AbZKFJWa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 04:22:30 -0500
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C012AFCC9D8@dlee02.ent.ti.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756289AbZKFJfw@vger.kernel.org>
 Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@sisk.pl>, "pavel@ucw.cz" <pavel@ucw.cz>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-omap@vger.kernel.org
-To: "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Cc: Paul Walmsley <paul@pwsan.com>
+
+Hi,
+    The following patch overcomes the issue when an active thread 
+invokes kthread_stop on a refrigerated kernel thread. The active thread
+would block until the exiting kernel thread is cleaned up. If the exiting
+thread is in refrigerator it never cleans up and the caller blocks.
+
+I found the issue while trying out the following:
+
+1) suspend and resume the system with an mmc card.
+2) after resume mount a filesystem on the mmc card.
+3) unmount the same filesystem.
+4) One can see an active bdi thread in the system for the FS.
+5) Attempted suspend on the system. This resulted in hang.
+
+Here was the dump from khungd
+# echo mem > /sys/power/state
+PM: Syncing filesystems ... done.
+Freezing user space processes ... (elapsed 0.00 seconds) done.
+Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
+mmc1: card 0001 removed
+mmc0: card 25b7 removed
+INFO: task sh:388 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+sh            D c027e86c     0   388      1 0x00000000
+[<c027e86c>] (schedule+0x2e0/0x36c) from [<c027ee78>] (schedule_timeout+0x18/0x1ec)
+[<c027ee78>] (schedule_timeout+0x18/0x1ec) from [<c027ed10>] (wait_for_common+0xe0/0x198)
+[<c027ed10>] (wait_for_common+0xe0/0x198) from [<c0063dd4>] (kthread_stop+0x44/0x78)
+[<c0063dd4>] (kthread_stop+0x44/0x78) from [<c0090938>] (bdi_unregister+0x64/0xa4)
+[<c0090938>] (bdi_unregister+0x64/0xa4) from [<c0173958>] (unlink_gendisk+0x20/0x3c)
+[<c0173958>] (unlink_gendisk+0x20/0x3c) from [<c00f2338>] (del_gendisk+0x84/0xb4)
+[<c00f2338>] (del_gendisk+0x84/0xb4) from [<c01e6840>] (mmc_blk_remove+0x24/0x44)
+[<c01e6840>] (mmc_blk_remove+0x24/0x44) from [<c01e14f0>] (mmc_bus_remove+0x18/0x20)
+[<c01e14f0>] (mmc_bus_remove+0x18/0x20) from [<c01af6ac>] (__device_release_driver+0x64/0xa4)
+[<c01af6ac>] (__device_release_driver+0x64/0xa4) from [<c01af7e4>] (device_release_driver+0x1c/0x28)
+[<c01af7e4>] (device_release_driver+0x1c/0x28) from [<c01aed5c>] (bus_remove_device+0x7c/0x90)
+[<c01aed5c>] (bus_remove_device+0x7c/0x90) from [<c01ad538>] (device_del+0x110/0x160)
+[<c01ad538>] (device_del+0x110/0x160) from [<c01e15a8>] (mmc_remove_card+0x50/0x64)
+[<c01e15a8>] (mmc_remove_card+0x50/0x64) from [<c01e2ea4>] (mmc_sd_remove+0x24/0x30)
+[<c01e2ea4>] (mmc_sd_remove+0x24/0x30) from [<c01e0dcc>] (mmc_suspend_host+0x110/0x1a8)
+[<c01e0dcc>] (mmc_suspend_host+0x110/0x1a8) from [<c01e7d04>] (omap_hsmmc_suspend+0x74/0x104)
+[<c01e7d04>] (omap_hsmmc_suspend+0x74/0x104) from [<c01b08e8>] (platform_pm_suspend+0x50/0x5c)
+[<c01b08e8>] (platform_pm_suspend+0x50/0x5c) from [<c01b27f0>] (pm_op+0x30/0x74)
+[<c01b27f0>] (pm_op+0x30/0x74) from [<c01b2ec8>] (dpm_suspend_start+0x3b4/0x518)
+[<c01b2ec8>] (dpm_suspend_start+0x3b4/0x518) from [<c0078b20>] (suspend_devices_and_enter+0x3c/0x1c4)
+[<c0078b20>] (suspend_devices_and_enter+0x3c/0x1c4) from [<c0078d88>] (enter_state+0xe0/0x138)
+[<c0078d88>] (enter_state+0xe0/0x138) from [<c0078444>] (state_store+0x94/0xbc)
+[<c0078444>] (state_store+0x94/0xbc) from [<c017e124>] (kobj_attr_store+0x18/0x1c)
+[<c017e124>] (kobj_attr_store+0x18/0x1c) from [<c00f3a08>] (sysfs_write_file+0x108/0x13c)
+[<c00f3a08>] (sysfs_write_file+0x108/0x13c) from [<c00a76b8>] (vfs_write+0xac/0x154)
+[<c00a76b8>] (vfs_write+0xac/0x154) from [<c00a780c>] (sys_write+0x3c/0x68)
+[<c00a780c>] (sys_write+0x3c/0x68) from [<c0025e60>] (ret_fast_syscall+0x0/0x2c)
 
 
+Before the hang I did a ps and found the following the following bdi thread active
+474 root            SW  [flush-179:0]
+After applying the patch (patch in next email) I saw successful suspend and the offensive thread was cleaned up properly.
 
-> -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Thursday, November 05, 2009 9:55 PM
-> To: Lohithakshan, Ranjith; linux-omap@vger.kernel.org
-> Cc: Lohithakshan, Ranjith
-> Subject: RE: [PATCH] AM35xx: Clock table updates for AM3505/17
-> 
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Ranjith Lohithakshan
-> > Sent: Thursday, November 05, 2009 2:39 AM
-> [...]
-> > diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-
-> > omap2/clock34xx.c
-> > index c258f87..9ac5c0e 100644
-> > --- a/arch/arm/mach-omap2/clock34xx.c
-> > +++ b/arch/arm/mach-omap2/clock34xx.c
-> > @@ -93,140 +93,143 @@ struct omap_clk {
-> >  #define CK_343X		(1 << 0)
-> >  #define CK_3430ES1	(1 << 1)
-> >  #define CK_3430ES2	(1 << 2)
-> > +#define CK_3517 	(1 << 3)
-> > +#define CK_3505 	(1 << 4)
-> > +#define CK_35XX 	(CK_3517 | CK_3505)
-> >
-> >  static struct omap_clk omap34xx_clks[] = {
-> > -	CLK(NULL,	"omap_32k_fck",	&omap_32k_fck,	CK_343X),
-> > -	CLK(NULL,	"virt_12m_ck",	&virt_12m_ck,	CK_343X),
-> > -	CLK(NULL,	"virt_13m_ck",	&virt_13m_ck,	CK_343X),
-> > -	CLK(NULL,	"virt_16_8m_ck", &virt_16_8m_ck, CK_3430ES2),
-> > -	CLK(NULL,	"virt_19_2m_ck", &virt_19_2m_ck, CK_343X),
-> > -	CLK(NULL,	"virt_26m_ck",	&virt_26m_ck,	CK_343X),
-> > -	CLK(NULL,	"virt_38_4m_ck", &virt_38_4m_ck, CK_343X),
-> > -	CLK(NULL,	"osc_sys_ck",	&osc_sys_ck,	CK_343X),
-> > -	CLK(NULL,	"sys_ck",	&sys_ck,	CK_343X),
-> > -	CLK(NULL,	"sys_altclk",	&sys_altclk,	CK_343X),
-> > -	CLK(NULL,	"mcbsp_clks",	&mcbsp_clks,	CK_343X),
-> > -	CLK(NULL,	"sys_clkout1",	&sys_clkout1,	CK_343X),
-> > -	CLK(NULL,	"dpll1_ck",	&dpll1_ck,	CK_343X),
-> > -	CLK(NULL,	"dpll1_x2_ck",	&dpll1_x2_ck,	CK_343X),
-> > -	CLK(NULL,	"dpll1_x2m2_ck", &dpll1_x2m2_ck, CK_343X),
-> > +	CLK(NULL,	"omap_32k_fck",	&omap_32k_fck,	CK_343X | CK_35XX),
-> > +	CLK(NULL,	"virt_12m_ck",	&virt_12m_ck,	CK_343X | CK_35XX),
-> > +	CLK(NULL,	"virt_13m_ck",	&virt_13m_ck,	CK_343X | CK_35XX),
-> > +	CLK(NULL,	"virt_16_8m_ck", &virt_16_8m_ck, CK_3430ES2 | CK_35XX),
-> > +	CLK(NULL,	"virt_19_2m_ck", &virt_19_2m_ck, CK_343X | CK_35XX),
-> > +	CLK(NULL,	"virt_26m_ck",	&virt_26m_ck,	CK_343X | CK_35XX),
-> [...]
-> Could we have CK_3XXX? I mean this would probably happen when 36/37xx gets
-> introduced also.. does that make sense?
-> 
-Yes, it would help to have a CK_3XXX defined to cover all common OMAP3 clocks. 
-The tables would look simpler going forward.
-
-Paul, what do you think?
+Thanks,
+-Romit
