@@ -1,145 +1,137 @@
 From: Sid Boyce <sboyce@blueyonder.co.uk>
 Subject: Re: Config problem I suspect
-Date: Fri, 06 Nov 2009 16:03:35 +0000
-Message-ID: <4AF448D7.2020609@blueyonder.co.uk>
-References: <4AF42564.6090402@blueyonder.co.uk> <5A47E75E594F054BAF48C5E4FC4B92AB030A704F24@dbde02.ent.ti.com>
-Reply-To: sboyce@blueyonder.co.uk
+Date: Fri, 06 Nov 2009 16:21:34 +0000
+Message-ID: <4AF44D0E.8040208@blueyonder.co.uk>
+References: <4AF42564.6090402@blueyonder.co.uk>
+Reply-To: Sid Boyce <sboyce@blueyonder.co.uk>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------050107050506050807010003"
+ boundary="------------000407030609080001060805"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out3.blueyonder.co.uk ([195.188.213.6]:57807 "EHLO
-	smtp-out3.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759377AbZKFQDn (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 11:03:43 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A704F24@dbde02.ent.ti.com>
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:32924 "EHLO
+	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759398AbZKFQV5 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 11:21:57 -0500
+Received: from [172.23.170.145] (helo=anti-virus03-08)
+	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1N6RZZ-0002ce-Il
+	for linux-omap@vger.kernel.org; Fri, 06 Nov 2009 16:22:01 +0000
+Received: from [94.171.130.58] (helo=[192.168.10.2])
+	by asmtp-out6.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1N6RZE-0000l7-B1
+	for linux-omap@vger.kernel.org; Fri, 06 Nov 2009 16:21:40 +0000
+In-Reply-To: <4AF42564.6090402@blueyonder.co.uk>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------050107050506050807010003
+--------------000407030609080001060805
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-On 06/11/09 13:39, Gadiyar, Anand wrote:
-> Sid Boyce wrote:
->> I have been trying the linux-2.6.32-rc5-omap-dss2 kernel and it halts
->> with a USB error, DEBUG_LL configured.
->> Reading boot sector
->> Loading u-boot.bin from mmc
->>
->>
->> U-Boot 2009.01-dirty (Feb 19 2009 - 12:23:21)
->>
->> I2C:   ready
->> OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
->> OMAP3 Beagle board + LPDDR/NAND
->> DRAM:  256 MB
->> NAND:  256 MiB
->> Using default environment
->>
->> MUSB: using high speed
->> In:    serial usbtty
->> Out:   serial usbtty
->> Err:   serial usbtty
->> Board revision C
->> Serial #6b22000300000000040323090d00a00a
->> Hit any key to stop autoboot:  0
->> reading boot.scr
->>
->> 679 bytes read
->> Running bootscript from mmc ...
->> ## Executing script at 80200000
->> reading x-load.bin.ift
->>
->> 19840 bytes read
->> ***** Replacing x-load *****
->> Usage:
->> nand - NAND sub-system
->>
->> HW ECC selected
->>
->> NAND erase: device 0 offset 0x0, size 0x80000
->> ^MErasing at 0x0 --  25% complete.^MErasing at 0x20000 --  50%
->> complete.^MErasing at 0x40000 --  75% complete.^MErasing at 0x60000 --
->> 100% complete.
->> OK
->>
->> NAND write: device 0 offset 0x0, size 0x20000
->>  131072 bytes written: OK
->>
->> NAND write: device 0 offset 0x20000, size 0x20000
->>  131072 bytes written: OK
->>
->> NAND write: device 0 offset 0x40000, size 0x20000
->>  131072 bytes written: OK
->>
->> NAND write: device 0 offset 0x60000, size 0x20000
->>  131072 bytes written: OK
->> reading u-boot-f.bin
->>
->> ** Unable to read "u-boot-f.bin" from mmc 0:1 **
->> ***** Erasing environment settings *****
->> Usage:
->> nand - NAND sub-system
->>
->>
->> NAND erase: device 0 offset 0x160000, size 0x20000
->> ^MErasing at 0x160000 -- 100% complete.
->> OK
->> reading normal.scr
->>
->> 603 bytes read
->> ***** Executing normal.scr *****
->> ## Executing script at 80200000
->> reading uImage.bin
->>
->> 3160016 bytes read
->> ***** Kernel: /dev/mmcblk0p1/uImage.bin *****
->> reading ramdisk.gz
->>
->> ** Unable to read "ramdisk.gz" from mmc 0:1 **
->> ***** RootFS: /dev/mmcblk0p2 *****
->> ## Booting kernel from Legacy Image at 80200000 ...
->>    Image Name:   Linux-2.6.32-rc5-omap-dss2
->>    Image Type:   ARM Linux Kernel Image (uncompressed)
->>    Data Size:    3159952 Bytes =  3 MB
->>    Load Address: 80008000
->>    Entry Point:  80008000
->>    Verifying Checksum ... OK
->>    Loading Kernel Image ... OK
->> OK
->>
->> Starting kernel ...
->>
->> Error, the USB hardware is not on B mode
->>
-Left long enough, there are more messages ... and it hangs at "Waiting
-for root device /dev/mmcblk0p2...".
-
-> 
-> I don't think this error comes from the stock linux-omap kernel.
-> Can you locate it in the kernel that you compiled? (grep -r maybe?)
-> 
-The " B mode" message is part of drivers/net/wireless/ath5k/qcu.c, so i
-can disable ath5k as I don't have such a device.
-> Or in your u-boot?
+On 06/11/09 13:32, Sid Boyce wrote:
+> I have been trying the linux-2.6.32-rc5-omap-dss2 kernel and it halts
+> with a USB error, DEBUG_LL configured.
+> Reading boot sector
+> Loading u-boot.bin from mmc
 > 
 > 
-> Do you have a USB cable connected? Is the ID pin on the connector
-> connected to the USBOTG port on your board accidentally grounded?
+> U-Boot 2009.01-dirty (Feb 19 2009 - 12:23:21)
 > 
-> - Anand
+> I2C:   ready
+> OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
+> OMAP3 Beagle board + LPDDR/NAND
+> DRAM:  256 MB
+> NAND:  256 MiB
+> Using default environment
 > 
+> MUSB: using high speed
+> In:    serial usbtty
+> Out:   serial usbtty
+> Err:   serial usbtty
+> Board revision C
+> Serial #6b22000300000000040323090d00a00a
+> Hit any key to stop autoboot:  0
+> reading boot.scr
+> 
+> 679 bytes read
+> Running bootscript from mmc ...
+> ## Executing script at 80200000
+> reading x-load.bin.ift
+> 
+> 19840 bytes read
+> ***** Replacing x-load *****
+> Usage:
+> nand - NAND sub-system
+> 
+> HW ECC selected
+> 
+> NAND erase: device 0 offset 0x0, size 0x80000
+> ^MErasing at 0x0 --  25% complete.^MErasing at 0x20000 --  50%
+> complete.^MErasing at 0x40000 --  75% complete.^MErasing at 0x60000 --
+> 100% complete.
+> OK
+> 
+> NAND write: device 0 offset 0x0, size 0x20000
+>  131072 bytes written: OK
+> 
+> NAND write: device 0 offset 0x20000, size 0x20000
+>  131072 bytes written: OK
+> 
+> NAND write: device 0 offset 0x40000, size 0x20000
+>  131072 bytes written: OK
+> 
+> NAND write: device 0 offset 0x60000, size 0x20000
+>  131072 bytes written: OK
+> reading u-boot-f.bin
+> 
+> ** Unable to read "u-boot-f.bin" from mmc 0:1 **
+> ***** Erasing environment settings *****
+> Usage:
+> nand - NAND sub-system
+> 
+> 
+> NAND erase: device 0 offset 0x160000, size 0x20000
+> ^MErasing at 0x160000 -- 100% complete.
+> OK
+> reading normal.scr
+> 
+> 603 bytes read
+> ***** Executing normal.scr *****
+> ## Executing script at 80200000
+> reading uImage.bin
+> 
+> 3160016 bytes read
+> ***** Kernel: /dev/mmcblk0p1/uImage.bin *****
+> reading ramdisk.gz
+> 
+> ** Unable to read "ramdisk.gz" from mmc 0:1 **
+> ***** RootFS: /dev/mmcblk0p2 *****
+> ## Booting kernel from Legacy Image at 80200000 ...
+>    Image Name:   Linux-2.6.32-rc5-omap-dss2
+>    Image Type:   ARM Linux Kernel Image (uncompressed)
+>    Data Size:    3159952 Bytes =  3 MB
+>    Load Address: 80008000
+>    Entry Point:  80008000
+>    Verifying Checksum ... OK
+>    Loading Kernel Image ... OK
+> OK
+> 
+> Starting kernel ...
+> 
+> Error, the USB hardware is not on B mode
+> 
+> .config with hashes removed attached.
+> Same result with other versions of MLO and u-boot.bin.
+> Regards
+> Sid.
 > 
 
-All devices are on the EHCI port.
-Attaching the full output - I left it at the "B mode" display, went out
-for a few hours and saw the remainder when I returned.
+Sorry attached the wrong file.
 Regards
 Sid.
+
 
 -- 
 Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
@@ -147,7 +139,7 @@ Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
 Specialist, Cricket Coach
 Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
---------------050107050506050807010003
+--------------000407030609080001060805
 Content-Type: application/octet-stream;
  name="o-dss2"
 Content-Transfer-Encoding: base64
@@ -424,5 +416,5 @@ b21wbGV0ZSBjb25zdHJhaW50cywgbGVhdmluZyBWTU1DMSBvbg0KWyAxOTcyLjQxMDczNl0g
 ZHJpdmVycy9ydGMvaGN0b3N5cy5jOiB1bmFibGUgdG8gb3BlbiBydGMgZGV2aWNlIChydGMw
 KQ0KWyAxOTcyLjQxNzQ0OV0gV2FpdGluZyBmb3Igcm9vdCBkZXZpY2UgL2Rldi9tbWNibGsw
 cDIuLi4NCg==
---------------050107050506050807010003--
+--------------000407030609080001060805--
 
