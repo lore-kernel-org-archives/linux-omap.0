@@ -1,39 +1,68 @@
-From: Matthew Garrett <mjg59@srcf.ucam.org>
-Subject: Re: New feature proposal "quickwakeup"
-Date: Fri, 6 Nov 2009 18:09:15 +0000
-Message-ID: <20091106180915.GA25582@srcf.ucam.org>
-References: <1257523241.1318.367.camel@xhp836-11> <20091106170321.GA24312@srcf.ucam.org> <1257529341.2528.21.camel@xhp836-11>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1257529341.2528.21.camel@xhp836-11>
-Sender: linux-acpi-owner@vger.kernel.org
-To: Falempe Jocelyn <jocelyn.falempe@motorola.com>
-Cc: linux-acpi@vger.kernel.org, linux-omap@vger.kernel.org
+From: Anand Gadiyar <gadiyar@ti.com>
+Subject: [PATCH 1/2] OMAP: update mach/usb.h to allow ehci driver to build
+Date: Sat,  7 Nov 2009 01:15:59 +0530
+Message-ID: <1257536759-15242-1-git-send-email-gadiyar@ti.com>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:40944 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759568AbZKFTqF (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Fri, 6 Nov 2009 14:46:05 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: linux-usb@vger.kernel.org, linux-omap@vger.kernel.org
+Cc: Anand Gadiyar <gadiyar@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>
 
-On Fri, Nov 06, 2009 at 06:42:21PM +0100, Falempe Jocelyn wrote:
+OMAP: update mach/usb.h to allow ehci driver to build
 
-> In fact we are doing "retention" in idle and with the suspend path. It's
-> specific to Android, with the global suspend and wakelock framework.
-> When all wakelocks are released (ie screen is black, no running app),
-> the phone goes to suspend, which freeze userspace and also suspend the
-> device driver. This way you can choose the wakeup sources, and stay in
-> suspend during a long time (a few hours). Without this, you have to
-> track down all user space app that wakeup the phone, and it is hard to
-> sleep more than a few second.
+Add missing declarations to allow the recently introduced
+ehci-omap driver to build on OMAP3
 
-What's triggering the application wakeups? If it's just timeouts, can't 
-you simply adjust the range timer slop so that the timeouts don't fire?
+Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
+Cc: Felipe Balbi <felipe.balbi@nokia.com>
+Cc: Tony Lindgren <tony@atomide.com>
+---
+Tony says he's okay with this patch going through the linux-usb list.
 
-> The drawback is that when you want to wakeup, it takes a lot of time to
-> unfreeze the userspace, and resume all the device driver. This is what
-> this feature address (for low-level wakeup only).
-> But as this patch is not Android specific, I think other platforms may
-> use it too.
+This patch and the next one are required to build this driver.
 
-Yeah, I can certainly see the appeal if you have that constraint.
+I've based these patches on current Linus' tree plus your usb
+patch queue (gregkh-07-usb-2.6.32-rc6.patch).
 
--- 
-Matthew Garrett | mjg59@srcf.ucam.org
+ arch/arm/plat-omap/include/mach/usb.h |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+Index: linux-2.6/arch/arm/plat-omap/include/mach/usb.h
+===================================================================
+--- linux-2.6.orig/arch/arm/plat-omap/include/mach/usb.h	2009-11-06 04:38:40.000000000 -0800
++++ linux-2.6/arch/arm/plat-omap/include/mach/usb.h	2009-11-06 04:38:47.000000000 -0800
+@@ -5,6 +5,21 @@
+ 
+ #include <mach/board.h>
+ 
++#define OMAP3_HS_USB_PORTS	3
++enum ehci_hcd_omap_mode {
++	EHCI_HCD_OMAP_MODE_UNKNOWN,
++	EHCI_HCD_OMAP_MODE_PHY,
++	EHCI_HCD_OMAP_MODE_TLL,
++};
++
++struct ehci_hcd_omap_platform_data {
++	enum ehci_hcd_omap_mode		port_mode[OMAP3_HS_USB_PORTS];
++	unsigned			phy_reset:1;
++
++	/* have to be valid if phy_reset is true and portx is in phy mode */
++	int	reset_gpio_port[OMAP3_HS_USB_PORTS];
++};
++
+ /*-------------------------------------------------------------------------*/
+ 
+ #define OMAP1_OTG_BASE			0xfffb0400
+@@ -29,6 +44,8 @@
+ 
+ extern void usb_musb_init(void);
+ 
++extern void usb_ehci_init(struct ehci_hcd_omap_platform_data *pdata);
++
+ #endif
+ 
+ void omap_usb_init(struct omap_usb_config *pdata);
