@@ -1,263 +1,428 @@
-From: Falempe Jocelyn <jocelyn.falempe@motorola.com>
-Subject: New feature proposal "quickwakeup"
-Date: Fri, 06 Nov 2009 17:00:41 +0100
-Message-ID: <1257523241.1318.367.camel@xhp836-11>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: Re: Config problem I suspect
+Date: Fri, 06 Nov 2009 16:03:35 +0000
+Message-ID: <4AF448D7.2020609@blueyonder.co.uk>
+References: <4AF42564.6090402@blueyonder.co.uk> <5A47E75E594F054BAF48C5E4FC4B92AB030A704F24@dbde02.ent.ti.com>
+Reply-To: sboyce@blueyonder.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+ boundary="------------050107050506050807010003"
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail153.messagelabs.com ([216.82.253.51]:59639 "EHLO
-	mail153.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759377AbZKFQBJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 11:01:09 -0500
+Received: from smtp-out3.blueyonder.co.uk ([195.188.213.6]:57807 "EHLO
+	smtp-out3.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759377AbZKFQDn (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 11:03:43 -0500
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A704F24@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-omap@vger.kernel.org
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi All,
+This is a multi-part message in MIME format.
+--------------050107050506050807010003
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-The purpose of this feature is to drastically reduce the suspend/resume
-time for device driver which needs to do periodic job.
-In our use case (android smartphone), the system is most of the time in
-suspend to RAM, and needs to send a low level command every 30s. With
-current framework it takes about 500ms on omap3430 to resume the full
-system, and then suspend again. With quickwakup feature, in the resume
-process after resuming sysdev and re-enabling irq, the driver handler is
-executed, and then it suspends again.
-This new path takes 20ms for us, which leads to good power-saving.
+On 06/11/09 13:39, Gadiyar, Anand wrote:
+> Sid Boyce wrote:
+>> I have been trying the linux-2.6.32-rc5-omap-dss2 kernel and it halts
+>> with a USB error, DEBUG_LL configured.
+>> Reading boot sector
+>> Loading u-boot.bin from mmc
+>>
+>>
+>> U-Boot 2009.01-dirty (Feb 19 2009 - 12:23:21)
+>>
+>> I2C:   ready
+>> OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
+>> OMAP3 Beagle board + LPDDR/NAND
+>> DRAM:  256 MB
+>> NAND:  256 MiB
+>> Using default environment
+>>
+>> MUSB: using high speed
+>> In:    serial usbtty
+>> Out:   serial usbtty
+>> Err:   serial usbtty
+>> Board revision C
+>> Serial #6b22000300000000040323090d00a00a
+>> Hit any key to stop autoboot:  0
+>> reading boot.scr
+>>
+>> 679 bytes read
+>> Running bootscript from mmc ...
+>> ## Executing script at 80200000
+>> reading x-load.bin.ift
+>>
+>> 19840 bytes read
+>> ***** Replacing x-load *****
+>> Usage:
+>> nand - NAND sub-system
+>>
+>> HW ECC selected
+>>
+>> NAND erase: device 0 offset 0x0, size 0x80000
+>> ^MErasing at 0x0 --  25% complete.^MErasing at 0x20000 --  50%
+>> complete.^MErasing at 0x40000 --  75% complete.^MErasing at 0x60000 --
+>> 100% complete.
+>> OK
+>>
+>> NAND write: device 0 offset 0x0, size 0x20000
+>>  131072 bytes written: OK
+>>
+>> NAND write: device 0 offset 0x20000, size 0x20000
+>>  131072 bytes written: OK
+>>
+>> NAND write: device 0 offset 0x40000, size 0x20000
+>>  131072 bytes written: OK
+>>
+>> NAND write: device 0 offset 0x60000, size 0x20000
+>>  131072 bytes written: OK
+>> reading u-boot-f.bin
+>>
+>> ** Unable to read "u-boot-f.bin" from mmc 0:1 **
+>> ***** Erasing environment settings *****
+>> Usage:
+>> nand - NAND sub-system
+>>
+>>
+>> NAND erase: device 0 offset 0x160000, size 0x20000
+>> ^MErasing at 0x160000 -- 100% complete.
+>> OK
+>> reading normal.scr
+>>
+>> 603 bytes read
+>> ***** Executing normal.scr *****
+>> ## Executing script at 80200000
+>> reading uImage.bin
+>>
+>> 3160016 bytes read
+>> ***** Kernel: /dev/mmcblk0p1/uImage.bin *****
+>> reading ramdisk.gz
+>>
+>> ** Unable to read "ramdisk.gz" from mmc 0:1 **
+>> ***** RootFS: /dev/mmcblk0p2 *****
+>> ## Booting kernel from Legacy Image at 80200000 ...
+>>    Image Name:   Linux-2.6.32-rc5-omap-dss2
+>>    Image Type:   ARM Linux Kernel Image (uncompressed)
+>>    Data Size:    3159952 Bytes =  3 MB
+>>    Load Address: 80008000
+>>    Entry Point:  80008000
+>>    Verifying Checksum ... OK
+>>    Loading Kernel Image ... OK
+>> OK
+>>
+>> Starting kernel ...
+>>
+>> Error, the USB hardware is not on B mode
+>>
+Left long enough, there are more messages ... and it hangs at "Waiting
+for root device /dev/mmcblk0p2...".
 
-This can be used for battery-level check, or for SIM card polling on GSM
-network for example.
+> 
+> I don't think this error comes from the stock linux-omap kernel.
+> Can you locate it in the kernel that you compiled? (grep -r maybe?)
+> 
+The " B mode" message is part of drivers/net/wireless/ath5k/qcu.c, so i
+can disable ath5k as I don't have such a device.
+> Or in your u-boot?
+> 
+> 
+> Do you have a USB cable connected? Is the ID pin on the connector
+> connected to the USBOTG port on your board accidentally grounded?
+> 
+> - Anand
+> 
+> 
 
-I need your feedback to know if we should keep it internally or if it
-can make its way to the mainline kernel.
+All devices are on the EHCI port.
+Attaching the full output - I left it at the "B mode" display, went out
+for a few hours and saw the remainder when I returned.
+Regards
+Sid.
 
-here is a patch with my current work, it doesn't compile, it's a kind of
-early prototype.
-there are still a lot of open issues, like race condition with other
-wakeup events ( I use wakelocks on android, but don't know how to have a
-similar thing on linux ) ...
-
-basically, a driver who wants to use this feature will register two
-functions :
-a check function, called with interrupt disable. the driver should read
-the irqstatus of his hw and return if the wakeup is for him or not.
-a callback function, called with interrupt enable, and sysdev resumed.
-it should block until the end of the task. if it returns an error, the
-other drivers and userspace are resumed. otherwise it goes to suspend to
-RAM again.
-
-I rebased my patches on the branch linux-next, I'm not sure if it is the
-right branch.
-
-Best regards,
-
-Jocelyn
-
-
----
- include/linux/quickwakeup.h |   33 +++++++++++++++++++++++
- kernel/power/Kconfig        |    8 +++++
- kernel/power/Makefile       |    2 +-
- kernel/power/quickwakeup.c  |   60 +++++++++++++++++++++++++++++++++++++++++++
- kernel/power/suspend.c      |   42 +++++++++++++++++++++--------
- 5 files changed, 132 insertions(+), 13 deletions(-)
- create mode 100755 include/linux/quickwakeup.h
- create mode 100644 kernel/power/quickwakeup.c
-
-diff --git a/include/linux/quickwakeup.h b/include/linux/quickwakeup.h
-new file mode 100755
-index 0000000..60df3b8
---- /dev/null
-+++ b/include/linux/quickwakeup.h
-@@ -0,0 +1,33 @@
-+/* include/linux/quickwakeup.h
-+ *
-+ * Copyright (C) 2009 Motorola.
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+struct quickwakeup_ops {
-+	struct list_head list;
-+	int (*qw_callback) (void);
-+	int (*qw_check)(void);
-+	int checked;
-+};
-+
-+#ifdef CONFIG_QUICK_WAKEUP
-+
-+int quickwakeup_register(struct quickwakeup_ops *ops);
-+int quickwakeup_check(void);
-+int quickwakeup_execute(void);
-+void quickwakeup_unregister(struct quickwakeup_ops *ops);
-+
-+#else
-+static int quickwakeup_register(struct quickwakeup_ops *ops) { return 0; };
-+void quickwakeup_unregister(struct quickwakeup_ops *ops) {};
-+#endif
-diff --git a/kernel/power/Kconfig b/kernel/power/Kconfig
-index 39263f4..5671f98 100644
---- a/kernel/power/Kconfig
-+++ b/kernel/power/Kconfig
-@@ -236,3 +236,11 @@ config PM_RUNTIME
- 	  and the bus type drivers of the buses the devices are on are
- 	  responsible for the actual handling of the autosuspend requests and
- 	  wake-up events.
-+
-+config QUICK_WAKEUP
-+	bool "Quick wakeup"
-+	depends on SUSPEND
-+	default n
-+	---help---
-+	  Allow kernel driver to do periodic jobs without resuming the full system
-+	  This option can increase battery life on android powered smartphone.
-diff --git a/kernel/power/Makefile b/kernel/power/Makefile
-index 4319181..18b55e5 100644
---- a/kernel/power/Makefile
-+++ b/kernel/power/Makefile
-@@ -10,5 +10,5 @@ obj-$(CONFIG_SUSPEND)		+= suspend.o
- obj-$(CONFIG_PM_TEST_SUSPEND)	+= suspend_test.o
- obj-$(CONFIG_HIBERNATION)	+= hibernate.o snapshot.o swap.o user.o
- obj-$(CONFIG_HIBERNATION_NVS)	+= hibernate_nvs.o
--
-+obj-$(CONFIG_QUICK_WAKEUP)	+= quickwakeup.o
- obj-$(CONFIG_MAGIC_SYSRQ)	+= poweroff.o
-diff --git a/kernel/power/quickwakeup.c b/kernel/power/quickwakeup.c
-new file mode 100644
-index 0000000..3ad7392
---- /dev/null
-+++ b/kernel/power/quickwakeup.c
-@@ -0,0 +1,60 @@
-+/* kernel/power/quickwakeup.c
-+ *
-+ * Copyright (C) 2009 Motorola.
-+ *
-+ * This software is licensed under the terms of the GNU General Public
-+ * License version 2, as published by the Free Software Foundation, and
-+ * may be copied, distributed, and modified under those terms.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/slab.h>
-+#include <linux/quickwakeup.h>
-+
-+static LIST_HEAD(qw_head);
-+
-+int quickwakeup_register(struct quickwakeup_ops *ops)
-+{
-+	list_add(&ops->list, &qw_head);
-+	return 0;
-+}
-+
-+void quickwakeup_unregister(struct quickwakeup_ops *ops)
-+{
-+	list_del(&ops->list);
-+}
-+
-+int quickwakeup_check(void)
-+{
-+	int ret = 0;
-+	struct quickwakeup_ops *index;
-+
-+	list_for_each_entry(index, &qw_head, list) {
-+		index->checked = index->qw_check();
-+		ret |= index->checked;
-+	}
-+	return ret;
-+}
-+
-+int quickwakeup_execute(void)
-+{
-+	int ret;
-+	int count = 0;
-+	struct quickwakeup_ops *index;
-+
-+	list_for_each_entry(index, &qw_head, list) {
-+		if (index->checked)
-+			ret = index->qw_callback();
-+		if (ret != 0)
-+			return ret;
-+		count++;
-+	}
-+	if (!count)
-+		return -1;
-+	return 0;
-+}
-diff --git a/kernel/power/suspend.c b/kernel/power/suspend.c
-index 6f10dfc..3fe1ec0 100644
---- a/kernel/power/suspend.c
-+++ b/kernel/power/suspend.c
-@@ -116,6 +116,28 @@ void __attribute__ ((weak)) arch_suspend_enable_irqs(void)
- 	local_irq_enable();
- }
- 
-+static int _suspend_enter(suspend_state_t state)
-+{
-+	int error;
-+	arch_suspend_disable_irqs();
-+	BUG_ON(!irqs_disabled());
-+
-+	error = sysdev_suspend(PMSG_SUSPEND);
-+	if (!error) {
-+		if (!suspend_test(TEST_CORE))
-+			error = suspend_ops->enter(state);
-+		sysdev_resume();
-+	}
-+	if (!error) {
-+#ifdef CONFIG_QUICK_WAKEUP
-+		quickwakeup_check();
-+#endif
-+	}
-+	arch_suspend_enable_irqs();
-+	BUG_ON(irqs_disabled());
-+	return error;
-+}
-+
- /**
-  *	suspend_enter - enter the desired system sleep state.
-  *	@state:		state to enter
-@@ -151,18 +173,14 @@ static int suspend_enter(suspend_state_t state)
- 	if (error || suspend_test(TEST_CPUS))
- 		goto Enable_cpus;
- 
--	arch_suspend_disable_irqs();
--	BUG_ON(!irqs_disabled());
--
--	error = sysdev_suspend(PMSG_SUSPEND);
--	if (!error) {
--		if (!suspend_test(TEST_CORE))
--			error = suspend_ops->enter(state);
--		sysdev_resume();
--	}
--
--	arch_suspend_enable_irqs();
--	BUG_ON(irqs_disabled());
-+	error = _suspend_enter(state);
-+#ifdef CONFIG_QUICK_WAKEUP
-+		while (!error && !quickwakeup_execute()) {
-+			if (has_wake_lock(WAKE_LOCK_SUSPEND))
-+				break;
-+			error = _suspend_enter(state);
-+		}
-+#endif
- 
-  Enable_cpus:
- 	enable_nonboot_cpus();
 -- 
-1.6.3.3
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
+--------------050107050506050807010003
+Content-Type: application/octet-stream;
+ name="o-dss2"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="o-dss2"
+
+BAEFATQwB1YTAgEAAAAAACAAntcjDn8AAKDefwCe1yMOfwAAQAEA1yMOfwAA0CMAngCe1yMO
+fwAAuA0KDQpUZXhhcyBJbnN0cnVtZW50cyBYLUxvYWRlciAxLjQuMiAoRmViIDE5IDIwMDkg
+LSAxMjowMToyNCkNClJlYWRpbmcgYm9vdCBzZWN0b3INCkxvYWRpbmcgdS1ib290LmJpbiBm
+cm9tIG1tYw0KDQoNClUtQm9vdCAyMDA5LjAxLWRpcnR5IChGZWIgMTkgMjAwOSAtIDEyOjIz
+OjIxKQ0KDQpJMkM6ICAgcmVhZHkNCk9NQVAzNTMwLUdQIHJldiAyLCBDUFUtT1BQMiBMMy0x
+NjVNSHoNCk9NQVAzIEJlYWdsZSBib2FyZCArIExQRERSL05BTkQNCkRSQU06ICAyNTYgTUIN
+Ck5BTkQ6ICAyNTYgTWlCDQpVc2luZyBkZWZhdWx0IGVudmlyb25tZW50DQoNCk1VU0I6IHVz
+aW5nIGhpZ2ggc3BlZWQNCkluOiAgICBzZXJpYWwgdXNidHR5IA0KT3V0OiAgIHNlcmlhbCB1
+c2J0dHkgDQpFcnI6ICAgc2VyaWFsIHVzYnR0eSANCkJvYXJkIHJldmlzaW9uIEMNClNlcmlh
+bCAjNmIyMjAwMDMwMDAwMDAwMDA0MDMyMzA5MGQwMGEwMGENCkhpdCBhbnkga2V5IHRvIHN0
+b3AgYXV0b2Jvb3Q6IDEwIAgICCA5IAgICCA4IAgICCA3IAgICCA2IAgICCA1IAgICCA0IAgI
+CCAzIAgICCAyIAgICCAxIAgICCAwIA0KcmVhZGluZyBib290LnNjcg0KDQo2NzkgYnl0ZXMg
+cmVhZA0KUnVubmluZyBib290c2NyaXB0IGZyb20gbW1jIC4uLg0KIyMgRXhlY3V0aW5nIHNj
+cmlwdCBhdCA4MDIwMDAwMA0KcmVhZGluZyB4LWxvYWQuYmluLmlmdA0KDQoxOTg0MCBieXRl
+cyByZWFkDQoqKioqKiBSZXBsYWNpbmcgeC1sb2FkICoqKioqDQpVc2FnZToNCm5hbmQgLSBO
+QU5EIHN1Yi1zeXN0ZW0NCg0KSFcgRUNDIHNlbGVjdGVkDQoNCk5BTkQgZXJhc2U6IGRldmlj
+ZSAwIG9mZnNldCAweDAsIHNpemUgMHg4MDAwMA0KDUVyYXNpbmcgYXQgMHgwIC0tICAyNSUg
+Y29tcGxldGUuDUVyYXNpbmcgYXQgMHgyMDAwMCAtLSAgNTAlIGNvbXBsZXRlLg1FcmFzaW5n
+IGF0IDB4NDAwMDAgLS0gIDc1JSBjb21wbGV0ZS4NRXJhc2luZyBhdCAweDYwMDAwIC0tIDEw
+MCUgY29tcGxldGUuDQpPSw0KDQpOQU5EIHdyaXRlOiBkZXZpY2UgMCBvZmZzZXQgMHgwLCBz
+aXplIDB4MjAwMDANCiAxMzEwNzIgYnl0ZXMgd3JpdHRlbjogT0sNCg0KTkFORCB3cml0ZTog
+ZGV2aWNlIDAgb2Zmc2V0IDB4MjAwMDAsIHNpemUgMHgyMDAwMA0KIDEzMTA3MiBieXRlcyB3
+cml0dGVuOiBPSw0KDQpOQU5EIHdyaXRlOiBkZXZpY2UgMCBvZmZzZXQgMHg0MDAwMCwgc2l6
+ZSAweDIwMDAwDQogMTMxMDcyIGJ5dGVzIHdyaXR0ZW46IE9LDQoNCk5BTkQgd3JpdGU6IGRl
+dmljZSAwIG9mZnNldCAweDYwMDAwLCBzaXplIDB4MjAwMDANCiAxMzEwNzIgYnl0ZXMgd3Jp
+dHRlbjogT0sNCnJlYWRpbmcgdS1ib290LWYuYmluDQoNCioqIFVuYWJsZSB0byByZWFkICJ1
+LWJvb3QtZi5iaW4iIGZyb20gbW1jIDA6MSAqKg0KKioqKiogRXJhc2luZyBlbnZpcm9ubWVu
+dCBzZXR0aW5ncyAqKioqKg0KVXNhZ2U6DQpuYW5kIC0gTkFORCBzdWItc3lzdGVtDQoNCg0K
+TkFORCBlcmFzZTogZGV2aWNlIDAgb2Zmc2V0IDB4MTYwMDAwLCBzaXplIDB4MjAwMDANCg1F
+cmFzaW5nIGF0IDB4MTYwMDAwIC0tIDEwMCUgY29tcGxldGUuDQpPSw0KcmVhZGluZyBub3Jt
+YWwuc2NyDQoNCjYwMyBieXRlcyByZWFkDQoqKioqKiBFeGVjdXRpbmcgbm9ybWFsLnNjciAq
+KioqKg0KIyMgRXhlY3V0aW5nIHNjcmlwdCBhdCA4MDIwMDAwMA0KcmVhZGluZyB1SW1hZ2Uu
+YmluDQoNCjMxNjAwMTYgYnl0ZXMgcmVhZA0KKioqKiogS2VybmVsOiAvZGV2L21tY2JsazBw
+MS91SW1hZ2UuYmluICoqKioqDQpyZWFkaW5nIHJhbWRpc2suZ3oNCg0KKiogVW5hYmxlIHRv
+IHJlYWQgInJhbWRpc2suZ3oiIGZyb20gbW1jIDA6MSAqKg0KKioqKiogUm9vdEZTOiAvZGV2
+L21tY2JsazBwMiAqKioqKg0KIyMgQm9vdGluZyBrZXJuZWwgZnJvbSBMZWdhY3kgSW1hZ2Ug
+YXQgODAyMDAwMDAgLi4uDQogICBJbWFnZSBOYW1lOiAgIExpbnV4LTIuNi4zMi1yYzUtb21h
+cC1kc3MyDQogICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51eCBLZXJuZWwgSW1hZ2UgKHVuY29t
+cHJlc3NlZCkNCiAgIERhdGEgU2l6ZTogICAgMzE1OTk1MiBCeXRlcyA9ICAzIE1CDQogICBM
+b2FkIEFkZHJlc3M6IDgwMDA4MDAwDQogICBFbnRyeSBQb2ludDogIDgwMDA4MDAwDQogICBW
+ZXJpZnlpbmcgQ2hlY2tzdW0gLi4uIE9LDQogICBMb2FkaW5nIEtlcm5lbCBJbWFnZSAuLi4g
+T0sNCk9LDQoNClN0YXJ0aW5nIGtlcm5lbCAuLi4NCg0KRXJyb3IsIHRoZSBVU0IgaGFyZHdh
+cmUgaXMgbm90IG9uIEIgbW9kZVsgICAgMC4wMDAwMDBdIExpbnV4IHZlcnNpb24gMi42LjMy
+LXJjNS1vbWFwLWRzczIgKHJvb3RAbG9jYWxob3N0LmxvY2FsZG9tYWluKSAoZ2NjIHZlcnNp
+b24gNC4zLjMgKFNvdXJjZXJ5IEcrKyBMaXRlIDIwMDlxMS0yMDMpICkgIzYgUFJFRU1QVCBG
+cmkgTm92IDYgMDM6MTg6MDcgR01UIDIwMDkNClsgICAgMC4wMDAwMDBdIENQVTogQVJNdjcg
+UHJvY2Vzc29yIFs0MTFmYzA4M10gcmV2aXNpb24gMyAoQVJNdjcpLCBjcj0xMGM1M2M3Zg0K
+WyAgICAwLjAwMDAwMF0gQ1BVOiBWSVBUIG5vbmFsaWFzaW5nIGRhdGEgY2FjaGUsIFZJUFQg
+bm9uYWxpYXNpbmcgaW5zdHJ1Y3Rpb24gY2FjaGUNClsgICAgMC4wMDAwMDBdIE1hY2hpbmU6
+IE9NQVAzIEJlYWdsZSBCb2FyZA0KWyAgICAwLjAwMDAwMF0gTWVtb3J5IHBvbGljeTogRUND
+IGRpc2FibGVkLCBEYXRhIGNhY2hlIHdyaXRlYmFjaw0KWyAgICAwLjAwMDAwMF0gT01BUDM0
+MzAgRVMzLjANClsgICAgMC4wMDAwMDBdIFNSQU06IE1hcHBlZCBwYSAweDQwMjAwMDAwIHRv
+IHZhIDB4ZTMwMDAwMDAgc2l6ZTogMHgxMDAwMDANClsgICAgMC4wMDAwMDBdIEJ1aWx0IDEg
+em9uZWxpc3RzIGluIFpvbmUgb3JkZXIsIG1vYmlsaXR5IGdyb3VwaW5nIG9uLiAgVG90YWwg
+cGFnZXM6IDY1MDI0DQpbICAgIDAuMDAwMDAwXSBLZXJuZWwgY29tbWFuZCBsaW5lOiBjb25z
+b2xlPXR0eVMyLDExNTIwMG44IGNvbnNvbGU9dHR5MCByb290PS9kZXYvbW1jYmxrMHAyIHJ3
+IHJvb3R3YWl0DQpbICAgIDAuMDAwMDAwXSBQSUQgaGFzaCB0YWJsZSBlbnRyaWVzOiAxMDI0
+IChvcmRlcjogMCwgNDA5NiBieXRlcykNClsgICAgMC4wMDAwMDBdIERlbnRyeSBjYWNoZSBo
+YXNoIHRhYmxlIGVudHJpZXM6IDMyNzY4IChvcmRlcjogNSwgMTMxMDcyIGJ5dGVzKQ0KWyAg
+ICAwLjAwMDAwMF0gSW5vZGUtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAxNjM4NCAob3Jk
+ZXI6IDQsIDY1NTM2IGJ5dGVzKQ0KWyAgICAwLjAwMDAwMF0gTWVtb3J5OiAxMjhNQiAxMjhN
+QiA9IDI1Nk1CIHRvdGFsDQpbICAgIDAuMDAwMDAwXSBNZW1vcnk6IDI1MjkyOEtCIGF2YWls
+YWJsZSAoNTgyOEsgY29kZSwgNTk2SyBkYXRhLCAxNjBLIGluaXQsIDBLIGhpZ2htZW0pDQpb
+ICAgIDAuMDAwMDAwXSBIaWVyYXJjaGljYWwgUkNVIGltcGxlbWVudGF0aW9uLg0KWyAgICAw
+LjAwMDAwMF0gTlJfSVJRUzo0MDINClsgICAgMC4wMDAwMDBdIENsb2NraW5nIHJhdGUgKENy
+eXN0YWwvQ29yZS9NUFUpOiAyNi4wLzMzMi81MDAgTUh6DQpbICAgIDAuMDAwMDAwXSBSZXBy
+b2dyYW1taW5nIFNEUkMgY2xvY2sgdG8gMzMyMDAwMDAwIEh6DQpbICAgIDAuMDAwMDAwXSBH
+UE1DIHJldmlzaW9uIDUuMA0KWyAgICAwLjAwMDAwMF0gSVJROiBGb3VuZCBhbiBJTlRDIGF0
+IDB4ZDgyMDAwMDAgKHJldmlzaW9uIDQuMCkgd2l0aCA5NiBpbnRlcnJ1cHRzDQpbICAgIDAu
+MDAwMDAwXSBUb3RhbCBvZiA5NiBpbnRlcnJ1cHRzIG9uIDEgYWN0aXZlIGNvbnRyb2xsZXIN
+ClsgICAgMC4wMDAwMDBdIE9NQVAzNHh4IEdQSU8gaGFyZHdhcmUgdmVyc2lvbiAyLjUNClsg
+ICAgMC4wMDAwMDBdIE9NQVAgY2xvY2tldmVudCBzb3VyY2U6IEdQVElNRVIxMiBhdCAzMjc2
+OCBIeg0KWyAgICAwLjAwMDAwMF0gQ29uc29sZTogY29sb3VyIGR1bW15IGRldmljZSA4MHgz
+MA0KWyAgICAwLjAwMDAwMF0gY29uc29sZSBbdHR5MF0gZW5hYmxlZA0KWyAgICAwLjAwMDAw
+MF0gQ2FsaWJyYXRpbmcgZGVsYXkgbG9vcC4uLiA0OTAuNTIgQm9nb01JUFMgKGxwaj0xOTE2
+OTI4KQ0KWyAgICAwLjAwMDAwMF0gTW91bnQtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA1
+MTINClsgICAgMC4wMDAwMDBdIENQVTogVGVzdGluZyB3cml0ZSBidWZmZXIgY29oZXJlbmN5
+OiBvaw0KWyAgICAwLjAwMDAwMF0gcmVndWxhdG9yOiBjb3JlIHZlcnNpb24gMC41DQpbICAg
+IDAuMDAwMDAwXSBORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2DQpbICAgIDAu
+MDAwMDAwXSBGb3VuZCBOQU5EIG9uIENTMA0KWyAgICAwLjAwMDAwMF0gUmVnaXN0ZXJpbmcg
+TkFORCBvbiBDUzANClsgMTk3MC44NTE1MDFdIE9NQVAgRE1BIGhhcmR3YXJlIHJldmlzaW9u
+IDQuMA0KWyAxOTcwLjg5ODE2Ml0gYmlvOiBjcmVhdGUgc2xhYiA8YmlvLTA+IGF0IDANClsg
+MTk3MC45MDE5NDddIFNDU0kgc3Vic3lzdGVtIGluaXRpYWxpemVkDQpbIDE5NzAuOTA2OTgy
+XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmZzDQpbIDE5
+NzAuOTA3Njg0XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGh1
+Yg0KWyAxOTcwLjkwODE0Ml0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgZGV2aWNlIGRyaXZl
+ciB1c2INClsgMTk3MC45MDkzNjJdIGkyY19vbWFwIGkyY19vbWFwLjE6IGJ1cyAxIHJldjMu
+MTIgYXQgMjYwMCBrSHoNClsgMTk3MC45MTM2NjVdIHR3bDQwMzA6IFBJSCAoaXJxIDcpIGNo
+YWluaW5nIElSUXMgMzY4Li4zNzUNClsgMTk3MC45MTM3MjZdIHR3bDQwMzA6IHBvd2VyIChp
+cnEgMzczKSBjaGFpbmluZyBJUlFzIDM3Ni4uMzgzDQpbIDE5NzAuOTE0MzM3XSB0d2w0MDMw
+OiBncGlvIChpcnEgMzY4KSBjaGFpbmluZyBJUlFzIDM4NC4uNDAxDQpbIDE5NzAuOTE3MDgz
+XSByZWd1bGF0b3I6IFZVU0IxVjU6IDE1MDAgbVYgbm9ybWFsIHN0YW5kYnkNClsgMTk3MC45
+MTc4NDZdIHJlZ3VsYXRvcjogVlVTQjFWODogMTgwMCBtViBub3JtYWwgc3RhbmRieQ0KWyAx
+OTcwLjkxODYwOV0gcmVndWxhdG9yOiBWVVNCM1YxOiAzMTAwIG1WIG5vcm1hbCBzdGFuZGJ5
+DQpbIDE5NzAuOTIzMzcwXSB0d2w0MDMwX3VzYiB0d2w0MDMwX3VzYjogSW5pdGlhbGl6ZWQg
+VFdMNDAzMCBVU0IgbW9kdWxlDQpbIDE5NzAuOTI0NTYwXSByZWd1bGF0b3I6IFZNTUMxOiAx
+ODUwIDwtLT4gMzE1MCBtViBub3JtYWwgc3RhbmRieQ0KWyAxOTcwLjkyNTM1NF0gcmVndWxh
+dG9yOiBWREFDOiAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5DQpbIDE5NzAuOTI2MTQ3XSByZWd1
+bGF0b3I6IFZQTEwyOiAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5DQpbIDE5NzAuOTI3MDMyXSBy
+ZWd1bGF0b3I6IFZTSU06IDE4MDAgPC0tPiAzMDAwIG1WIG5vcm1hbCBzdGFuZGJ5DQpbIDE5
+NzAuOTI3MzA3XSBpMmNfb21hcCBpMmNfb21hcC4zOiBidXMgMyByZXYzLjEyIGF0IDEwMCBr
+SHoNClsgMTk3MC45MzA5MDhdIEJsdWV0b290aDogQ29yZSB2ZXIgMi4xNQ0KWyAxOTcwLjkz
+MTQyN10gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAzMQ0KWyAxOTcwLjkzMTQ1
+N10gQmx1ZXRvb3RoOiBIQ0kgZGV2aWNlIGFuZCBjb25uZWN0aW9uIG1hbmFnZXIgaW5pdGlh
+bGl6ZWQNClsgMTk3MC45MzE1MThdIEJsdWV0b290aDogSENJIHNvY2tldCBsYXllciBpbml0
+aWFsaXplZA0KWyAxOTcwLjkzMjM3M10gY2ZnODAyMTE6IFVzaW5nIHN0YXRpYyByZWd1bGF0
+b3J5IGRvbWFpbiBpbmZvDQpbIDE5NzAuOTMyNDM0XSBjZmc4MDIxMTogUmVndWxhdG9yeSBk
+b21haW46IFVTDQpbIDE5NzAuOTMyNDk1XSAJKHN0YXJ0X2ZyZXEgLSBlbmRfZnJlcSBAIGJh
+bmR3aWR0aCksIChtYXhfYW50ZW5uYV9nYWluLCBtYXhfZWlycCkNClsgMTk3MC45MzI1NTZd
+IAkoMjQwMjAwMCBLSHogLSAyNDcyMDAwIEtIeiBAIDQwMDAwIEtIeiksICg2MDAgbUJpLCAy
+NzAwIG1CbSkNClsgMTk3MC45MzI1ODZdIAkoNTE3MDAwMCBLSHogLSA1MTkwMDAwIEtIeiBA
+IDQwMDAwIEtIeiksICg2MDAgbUJpLCAyMzAwIG1CbSkNClsgMTk3MC45MzI2NDddIAkoNTE5
+MDAwMCBLSHogLSA1MjEwMDAwIEtIeiBAIDQwMDAwIEtIeiksICg2MDAgbUJpLCAyMzAwIG1C
+bSkNClsgMTk3MC45MzI3MDhdIAkoNTIxMDAwMCBLSHogLSA1MjMwMDAwIEtIeiBAIDQwMDAw
+IEtIeiksICg2MDAgbUJpLCAyMzAwIG1CbSkNClsgMTk3MC45MzI3MzldIAkoNTIzMDAwMCBL
+SHogLSA1MzMwMDAwIEtIeiBAIDQwMDAwIEtIeiksICg2MDAgbUJpLCAyMzAwIG1CbSkNClsg
+MTk3MC45MzI4MDBdIAkoNTczNTAwMCBLSHogLSA1ODM1MDAwIEtIeiBAIDQwMDAwIEtIeiks
+ICg2MDAgbUJpLCAzMDAwIG1CbSkNClsgMTk3MC45MzI4OTFdIGNmZzgwMjExOiBDYWxsaW5n
+IENSREEgZm9yIGNvdW50cnk6IFVTDQpbIDE5NzAuOTMzODk4XSBTd2l0Y2hpbmcgdG8gY2xv
+Y2tzb3VyY2UgMzJrX2NvdW50ZXINClsgMTk3MC45NDUwOThdIG11c2JfaGRyYzogdmVyc2lv
+biA2LjAsIG11c2ItZG1hLCBob3N0LCBkZWJ1Zz0wDQpbIDE5NzAuOTQ1OTUzXSBtdXNiX2hk
+cmM6IFVTQiBIb3N0IG1vZGUgY29udHJvbGxlciBhdCBkODBhYjAwMCB1c2luZyBETUEsIElS
+USA5Mg0KWyAxOTcwLjk0NjAxNF0gbXVzYl9oZHJjIG11c2JfaGRyYzogTVVTQiBIRFJDIGhv
+c3QgZHJpdmVyDQpbIDE5NzAuOTQ2MjI4XSBtdXNiX2hkcmMgbXVzYl9oZHJjOiBuZXcgVVNC
+IGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDENClsgMTk3MC45NDcwODJd
+IHVzYiB1c2IxOiBjb25maWd1cmF0aW9uICMxIGNob3NlbiBmcm9tIDEgY2hvaWNlDQpbIDE5
+NzAuOTQ3NjMxXSBodWIgMS0wOjEuMDogVVNCIGh1YiBmb3VuZA0KWyAxOTcwLjk0Nzc4NF0g
+aHViIDEtMDoxLjA6IDEgcG9ydCBkZXRlY3RlZA0KWyAxOTcwLjk0OTQzMl0gTkVUOiBSZWdp
+c3RlcmVkIHByb3RvY29sIGZhbWlseSAyDQpbIDE5NzAuOTUwMDczXSBJUCByb3V0ZSBjYWNo
+ZSBoYXNoIHRhYmxlIGVudHJpZXM6IDIwNDggKG9yZGVyOiAxLCA4MTkyIGJ5dGVzKQ0KWyAx
+OTcwLjk1MDg2Nl0gVENQIGVzdGFibGlzaGVkIGhhc2ggdGFibGUgZW50cmllczogODE5MiAo
+b3JkZXI6IDQsIDY1NTM2IGJ5dGVzKQ0KWyAxOTcwLjk1MTIwMl0gVENQIGJpbmQgaGFzaCB0
+YWJsZSBlbnRyaWVzOiA4MTkyIChvcmRlcjogMywgMzI3NjggYnl0ZXMpDQpbIDE5NzAuOTUx
+NDE2XSBUQ1A6IEhhc2ggdGFibGVzIGNvbmZpZ3VyZWQgKGVzdGFibGlzaGVkIDgxOTIgYmlu
+ZCA4MTkyKQ0KWyAxOTcwLjk1MTQ3N10gVENQIHJlbm8gcmVnaXN0ZXJlZA0KWyAxOTcwLjk1
+MTc4Ml0gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxDQpbIDE5NzAuOTUyNDIz
+XSBSUEM6IFJlZ2lzdGVyZWQgdWRwIHRyYW5zcG9ydCBtb2R1bGUuDQpbIDE5NzAuOTUyNDg0
+XSBSUEM6IFJlZ2lzdGVyZWQgdGNwIHRyYW5zcG9ydCBtb2R1bGUuDQpbIDE5NzAuOTUyNTQ1
+XSBSUEM6IFJlZ2lzdGVyZWQgdGNwIE5GU3Y0LjEgYmFja2NoYW5uZWwgdHJhbnNwb3J0IG1v
+ZHVsZS4NClsgMTk3MC45NTY5MDldIFZGUzogRGlzayBxdW90YXMgZHF1b3RfNi41LjINClsg
+MTk3MC45NTcwNjFdIERxdW90LWNhY2hlIGhhc2ggdGFibGUgZW50cmllczogMTAyNCAob3Jk
+ZXIgMCwgNDA5NiBieXRlcykNClsgMTk3MC45NTgwMzhdIHNxdWFzaGZzOiB2ZXJzaW9uIDQu
+MCAoMjAwOS8wMS8zMSkgUGhpbGxpcCBMb3VnaGVyDQpbIDE5NzAuOTU5NDExXSBKRkZTMiB2
+ZXJzaW9uIDIuMi4gKE5BTkQpIChTVU1NQVJZKSAgwqkgMjAwMS0yMDA2IFJlZCBIYXQsIElu
+Yy4NClsgMTk3MC45NjA0MThdIG1zZ21uaSBoYXMgYmVlbiBzZXQgdG8gNDk0DQpbIDE5NzAu
+OTY1OTQyXSBhbGc6IE5vIHRlc3QgZm9yIHN0ZHJuZyAoa3JuZykNClsgMTk3MC45NjYxMjVd
+IGlvIHNjaGVkdWxlciBub29wIHJlZ2lzdGVyZWQNClsgMTk3MC45NjYxNTZdIGlvIHNjaGVk
+dWxlciBhbnRpY2lwYXRvcnkgcmVnaXN0ZXJlZA0KWyAxOTcwLjk2NjE4Nl0gaW8gc2NoZWR1
+bGVyIGRlYWRsaW5lIHJlZ2lzdGVyZWQNClsgMTk3MC45NjY0NjFdIGlvIHNjaGVkdWxlciBj
+ZnEgcmVnaXN0ZXJlZCAoZGVmYXVsdCkNClsgMTk3MC45OTQxMTBdIFNlcmlhbDogODI1MC8x
+NjU1MCBkcml2ZXIsIDQgcG9ydHMsIElSUSBzaGFyaW5nIGVuYWJsZWQNClsgMTk3MS4wMTcz
+OTVdIHNlcmlhbDgyNTAuMDogdHR5UzAgYXQgTU1JTyAweDQ4MDZhMDAwIChpcnEgPSA3Mikg
+aXMgYSBTVDE2NjU0DQpbIDE5NzEuMDM4MzMwXSBzZXJpYWw4MjUwLjE6IHR0eVMxIGF0IE1N
+SU8gMHg0ODA2YzAwMCAoaXJxID0gNzMpIGlzIGEgU1QxNjY1NA0KWyAxOTcxLjA1OTIwNF0g
+c2VyaWFsODI1MC4yOiB0dHlTMiBhdCBNTUlPIDB4NDkwMjAwMDAgKGlycSA9IDc0KSBpcyBh
+IFNUMTY2NTQNClsgMTk3MS41OTQwMjRdIGNvbnNvbGUgW3R0eVMyXSBlbmFibGVkDQpbIDE5
+NzEuNjEzMzExXSBicmQ6IG1vZHVsZSBsb2FkZWQNClsgMTk3MS42MjQ1NzJdIGxvb3A6IG1v
+ZHVsZSBsb2FkZWQNClsgMTk3MS42MzAwOTZdIG9tYXAyLW5hbmQgZHJpdmVyIGluaXRpYWxp
+emluZw0KWyAxOTcxLjYzNDU4Ml0gTkFORCBkZXZpY2U6IE1hbnVmYWN0dXJlciBJRDogMHgy
+YywgQ2hpcCBJRDogMHhiYSAoTWljcm9uIE5BTkQgMjU2TWlCIDEsOFYgMTYtYml0KQ0KWyAx
+OTcxLjY0Mzg5MF0gY21kbGluZXBhcnQgcGFydGl0aW9uIHBhcnNpbmcgbm90IGF2YWlsYWJs
+ZQ0KWyAxOTcxLjY0OTI5MV0gQ3JlYXRpbmcgNSBNVEQgcGFydGl0aW9ucyBvbiAib21hcDIt
+bmFuZCI6DQpbIDE5NzEuNjU0NTQxXSAweDAwMDAwMDAwMDAwMC0weDAwMDAwMDA4MDAwMCA6
+ICJYLUxvYWRlciINClsgMTk3MS42NjIxMDldIDB4MDAwMDAwMDgwMDAwLTB4MDAwMDAwMjYw
+MDAwIDogIlUtQm9vdCINClsgMTk3MS42Njk1NTVdIDB4MDAwMDAwMjYwMDAwLTB4MDAwMDAw
+MjgwMDAwIDogIlUtQm9vdCBFbnYiDQpbIDE5NzEuNjc2NjM1XSAweDAwMDAwMDI4MDAwMC0w
+eDAwMDAwMDY4MDAwMCA6ICJLZXJuZWwiDQpbIDE5NzEuNjg0OTk3XSAweDAwMDAwMDY4MDAw
+MC0weDAwMDAxMDAwMDAwMCA6ICJGaWxlIFN5c3RlbSINClsgMTk3MS43OTgzNzBdIHVzYmNv
+cmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgY2F0Yw0KWyAxOTcxLjgwMzk4
+NV0gY2F0YzogdjIuODpDQVRDIEVMMTIxMEEgTmV0TWF0ZSBVU0IgRXRoZXJuZXQgZHJpdmVy
+DQpbIDE5NzEuODEwNDI0XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
+dmVyIGthd2V0aA0KWyAxOTcxLjgxNjEwMV0gcGVnYXN1czogdjAuNi4xNCAoMjAwNi8wOS8y
+NyksIFBlZ2FzdXMvUGVnYXN1cyBJSSBVU0IgRXRoZXJuZXQgZHJpdmVyDQpbIDE5NzEuODI0
+MTI3XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHBlZ2FzdXMN
+ClsgMTk3MS44Mjk5NTZdIHJ0bDgxNTA6IHYwLjYuMiAoMjAwNC8wOC8yNyk6cnRsODE1MCBi
+YXNlZCB1c2ItZXRoZXJuZXQgZHJpdmVyDQpbIDE5NzEuODM3MzQxXSB1c2Jjb3JlOiByZWdp
+c3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHJ0bDgxNTANClsgMTk3MS44NDM0NDRdIHVz
+YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgYXNpeA0KWyAxOTcxLjg0
+OTMwNF0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBjZGNfZXRo
+ZXINClsgMTk3MS44NTU1MjldIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBk
+cml2ZXIgZG05NjAxDQpbIDE5NzEuODYxNTcyXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBp
+bnRlcmZhY2UgZHJpdmVyIHNtc2M5NXh4DQpbIDE5NzEuODY3Nzk3XSB1c2Jjb3JlOiByZWdp
+c3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGdsNjIwYQ0KWyAxOTcxLjg3MzgwOV0gdXNi
+Y29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBuZXQxMDgwDQpbIDE5NzEu
+ODc5OTEzXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHBsdXNi
+DQpbIDE5NzEuODg1NzcyXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
+dmVyIHJuZGlzX2hvc3QNClsgMTk3MS44OTIxNTBdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3
+IGludGVyZmFjZSBkcml2ZXIgY2RjX3N1YnNldA0KWyAxOTcxLjg5ODUyOV0gdXNiY29yZTog
+cmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciB6YXVydXMNClsgMTk3MS45MDQ1NzFd
+IHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgTU9TQ0hJUCB1c2It
+ZXRoZXJuZXQgZHJpdmVyDQpbIDE5NzEuOTEyNDc1XSBCcm9hZGNvbSA0M3h4IGRyaXZlciBs
+b2FkZWQgWyBGZWF0dXJlczogTCwgRmlybXdhcmUtSUQ6IEZXMTMgXQ0KWyAxOTcxLjkxOTk4
+Ml0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciB6ZDEyMTFydw0K
+WyAxOTcxLjkyNjExNl0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZl
+ciBydGw4MTg3DQpbIDE5NzEuOTMyMjgxXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRl
+cmZhY2UgZHJpdmVyIHJuZGlzX3dsYW4NClsgMTk3MS45Mzg2OTBdIHVzYmNvcmU6IHJlZ2lz
+dGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgemQxMjAxDQpbIDE5NzEuOTQ0NzYzXSB1c2Jj
+b3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYjh4eHgNClsgMTk3MS45
+NTA5MjddIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgcnQyNTAw
+dXNiDQpbIDE5NzEuOTU3MTUzXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2Ug
+ZHJpdmVyIHA1NHVzYg0KWyAxOTcxLjk2NDc1Ml0gSW5pdGlhbGl6aW5nIFVTQiBNYXNzIFN0
+b3JhZ2UgZHJpdmVyLi4uDQpbIDE5NzEuOTcwMjQ1XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5l
+dyBpbnRlcmZhY2UgZHJpdmVyIHVzYi1zdG9yYWdlDQpbIDE5NzEuOTc2NDcwXSBVU0IgTWFz
+cyBTdG9yYWdlIHN1cHBvcnQgcmVnaXN0ZXJlZC4NClsgMTk3MS45ODExNzBdIHVkYzogT01B
+UCBVREMgZHJpdmVyLCB2ZXJzaW9uOiA0IE9jdG9iZXIgMjAwNCAoaXNvKSAoZG1hKQ0KWyAx
+OTcxLjk4OTIyN10gbWljZTogUFMvMiBtb3VzZSBkZXZpY2UgY29tbW9uIGZvciBhbGwgbWlj
+ZQ0KWyAxOTcxLjk5NTIzOV0gaW5wdXQ6IGdwaW8ta2V5cyBhcyAvZGV2aWNlcy9wbGF0Zm9y
+bS9ncGlvLWtleXMvaW5wdXQvaW5wdXQwDQpbIDE5NzIuMDA0OTc0XSBpbnB1dDogdHdsNDAz
+MF9wd3JidXR0b24gYXMgL2RldmljZXMvcGxhdGZvcm0vaTJjX29tYXAuMS9pMmMtMS8xLTAw
+NDkvdHdsNDAzMF9wd3JidXR0b24vaW5wdXQvaW5wdXQxDQpbIDE5NzIuMDE2OTA2XSBpMmMg
+L2RldiBlbnRyaWVzIGRyaXZlcg0KWyAxOTcyLjAyMjc2Nl0gT01BUCBXYXRjaGRvZyBUaW1l
+ciBSZXYgMHgzMTogaW5pdGlhbCB0aW1lb3V0IDYwIHNlYw0KWyAxOTcyLjAyOTMyN10gQmx1
+ZXRvb3RoOiBIQ0kgVUFSVCBkcml2ZXIgdmVyIDIuMg0KWyAxOTcyLjAzMzg0M10gQmx1ZXRv
+b3RoOiBIQ0kgSDQgcHJvdG9jb2wgaW5pdGlhbGl6ZWQNClsgMTk3Mi4wMzg4MThdIEJsdWV0
+b290aDogSENJIEJDU1AgcHJvdG9jb2wgaW5pdGlhbGl6ZWQNClsgMTk3Mi4wNDM4ODRdIEJs
+dWV0b290aDogSENJTEwgcHJvdG9jb2wgaW5pdGlhbGl6ZWQNClsgMTk3Mi4wNDg2NDVdIEJs
+dWV0b290aDogQnJvYWRjb20gQmx1dG9uaXVtIGZpcm13YXJlIGRyaXZlciB2ZXIgMS4yDQpb
+IDE5NzIuMDU1MjY3XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVy
+IGJjbTIwM3gNClsgMTk3Mi4wNjEwOTZdIEJsdWV0b290aDogRGlnaWFuc3dlciBCbHVldG9v
+dGggVVNCIGRyaXZlciB2ZXIgMC4xMA0KWyAxOTcyLjA2NzQxM10gdXNiY29yZTogcmVnaXN0
+ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBicGExMHgNClsgMTk3Mi4wNzMwNTldIEJsdWV0
+b290aDogQmx1ZUZSSVRaISBVU0IgZHJpdmVyIHZlciAxLjINClsgMTk3Mi4wNzg1MjFdIHVz
+YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgYmZ1c2INClsgMTk3Mi4w
+ODQxMzZdIEJsdWV0b290aDogR2VuZXJpYyBCbHVldG9vdGggVVNCIGRyaXZlciB2ZXIgMC42
+DQpbIDE5NzIuMDkwMDg3XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
+dmVyIGJ0dXNiDQpbIDE5NzIuMDk1NzMzXSBCbHVldG9vdGg6IEdlbmVyaWMgQmx1ZXRvb3Ro
+IFNESU8gZHJpdmVyIHZlciAwLjENClsgMTk3Mi4xMDM0ODVdIFJlZ2lzdGVyZWQgbGVkIGRl
+dmljZTogYmVhZ2xlYm9hcmQ6OnVzcjANClsgMTk3Mi4xMDg5NDddIFJlZ2lzdGVyZWQgbGVk
+IGRldmljZTogYmVhZ2xlYm9hcmQ6OnVzcjENClsgMTk3Mi4xMTQ4OThdIFJlZ2lzdGVyZWQg
+bGVkIGRldmljZTogYmVhZ2xlYm9hcmQ6OnBtdV9zdGF0DQpbIDE5NzIuMTI3NDEwXSB1c2Jj
+b3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmhpZA0KWyAxOTcyLjEz
+MzIzOV0gdXNiaGlkOiB2Mi42OlVTQiBISUQgY29yZSBkcml2ZXINClsgMTk3Mi4xMzgxMjJd
+IEFkdmFuY2VkIExpbnV4IFNvdW5kIEFyY2hpdGVjdHVyZSBEcml2ZXIgVmVyc2lvbiAxLjAu
+MjEuDQpbIDE5NzIuMTQ1OTA0XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2Ug
+ZHJpdmVyIHNuZC11c2ItYXVkaW8NClsgMTk3Mi4xNTI2MThdIE5vIGRldmljZSBmb3IgREFJ
+IHR3bDQwMzANClsgMTk3Mi4xNTY0NjNdIE5vIGRldmljZSBmb3IgREFJIHR3bDQwMzAgVm9p
+Y2UNClsgMTk3Mi4xNjA3MzZdIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTAN
+ClsgMTk3Mi4xNjUyNTJdIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTENClsg
+MTk3Mi4xNjk3NjldIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTINClsgMTk3
+Mi4xNzQyODVdIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTMNClsgMTk3Mi4x
+Nzg4MDJdIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTQNClsgMTk3Mi4xODMz
+MTldIE9NQVAzIEJlYWdsZSBTb0MgaW5pdA0KWyAxOTcyLjE4NzI1NV0gVFdMNDAzMCBBdWRp
+byBDb2RlYyBpbml0IA0KWyAxOTcyLjE5MjY1N10gYXNvYzogdHdsNDAzMCA8LT4gb21hcC1t
+Y2JzcC1kYWktMCBtYXBwaW5nIG9rDQpbIDE5NzIuMjkyNTcyXSBBTFNBIGRldmljZSBsaXN0
+Og0KWyAxOTcyLjI5NTY4NF0gICAjMDogb21hcDNiZWFnbGUgKHR3bDQwMzApDQpbIDE5NzIu
+Mjk5NTkxXSBvcHJvZmlsZTogdXNpbmcgYXJtL2FybXY3DQpbIDE5NzIuMzAzNjE5XSBUQ1Ag
+Y3ViaWMgcmVnaXN0ZXJlZA0KWyAxOTcyLjMwNjkxNV0gTkVUOiBSZWdpc3RlcmVkIHByb3Rv
+Y29sIGZhbWlseSAxNw0KWyAxOTcyLjMxMTQ5Ml0gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29s
+IGZhbWlseSAxNQ0KWyAxOTcyLjMxNjA3MF0gQmx1ZXRvb3RoOiBMMkNBUCB2ZXIgMi4xNA0K
+WyAxOTcyLjMxOTgyNF0gQmx1ZXRvb3RoOiBMMkNBUCBzb2NrZXQgbGF5ZXIgaW5pdGlhbGl6
+ZWQNClsgMTk3Mi4zMjQ5ODFdIEJsdWV0b290aDogU0NPIChWb2ljZSBMaW5rKSB2ZXIgMC42
+DQpbIDE5NzIuMzI5NTU5XSBCbHVldG9vdGg6IFNDTyBzb2NrZXQgbGF5ZXIgaW5pdGlhbGl6
+ZWQNClsgMTk3Mi4zMzQ4MDhdIEJsdWV0b290aDogUkZDT01NIFRUWSBsYXllciBpbml0aWFs
+aXplZA0KWyAxOTcyLjMzOTc1Ml0gQmx1ZXRvb3RoOiBSRkNPTU0gc29ja2V0IGxheWVyIGlu
+aXRpYWxpemVkDQpbIDE5NzIuMzQ1MDkyXSBCbHVldG9vdGg6IFJGQ09NTSB2ZXIgMS4xMQ0K
+WyAxOTcyLjM0ODkzN10gQmx1ZXRvb3RoOiBCTkVQIChFdGhlcm5ldCBFbXVsYXRpb24pIHZl
+ciAxLjMNClsgMTk3Mi4zNTQzMDldIEJsdWV0b290aDogQk5FUCBmaWx0ZXJzOiBwcm90b2Nv
+bCBtdWx0aWNhc3QNClsgMTk3Mi4zNTk2NDldIEJsdWV0b290aDogSElEUCAoSHVtYW4gSW50
+ZXJmYWNlIEVtdWxhdGlvbikgdmVyIDEuMg0KWyAxOTcyLjM2NjI3MV0gbGliODAyMTE6IGNv
+bW1vbiByb3V0aW5lcyBmb3IgSUVFRTgwMi4xMSBkcml2ZXJzDQpbIDE5NzIuMzczNjg3XSBW
+RlAgc3VwcG9ydCB2MC4zOiBpbXBsZW1lbnRvciA0MSBhcmNoaXRlY3R1cmUgMyBwYXJ0IDMw
+IHZhcmlhbnQgYyByZXYgMQ0KWyAxOTcyLjM4Mjg3M10gcmVnaXN0ZXJlZCB0YXNrc3RhdHMg
+dmVyc2lvbiAxDQpbIDE5NzIuMzg4NzYzXSByZWd1bGF0b3JfaW5pdF9jb21wbGV0ZTogaW5j
+b21wbGV0ZSBjb25zdHJhaW50cywgbGVhdmluZyBWRFZJIG9uDQpbIDE5NzIuMzk2MDg3XSBy
+ZWd1bGF0b3JfaW5pdF9jb21wbGV0ZTogaW5jb21wbGV0ZSBjb25zdHJhaW50cywgbGVhdmlu
+ZyBWREFDIG9uDQpbIDE5NzIuNDAzMzgxXSByZWd1bGF0b3JfaW5pdF9jb21wbGV0ZTogaW5j
+b21wbGV0ZSBjb25zdHJhaW50cywgbGVhdmluZyBWTU1DMSBvbg0KWyAxOTcyLjQxMDczNl0g
+ZHJpdmVycy9ydGMvaGN0b3N5cy5jOiB1bmFibGUgdG8gb3BlbiBydGMgZGV2aWNlIChydGMw
+KQ0KWyAxOTcyLjQxNzQ0OV0gV2FpdGluZyBmb3Igcm9vdCBkZXZpY2UgL2Rldi9tbWNibGsw
+cDIuLi4NCg==
+--------------050107050506050807010003--
 
