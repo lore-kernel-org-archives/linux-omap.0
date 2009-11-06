@@ -1,420 +1,235 @@
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Re: Config problem I suspect
-Date: Fri, 06 Nov 2009 16:21:34 +0000
-Message-ID: <4AF44D0E.8040208@blueyonder.co.uk>
-References: <4AF42564.6090402@blueyonder.co.uk>
-Reply-To: Sid Boyce <sboyce@blueyonder.co.uk>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: [RFC] OMAP3: PM: twl4030 keypad wakeup with off mode
+Date: Fri, 6 Nov 2009 22:11:34 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE31FB9C@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000407030609080001060805"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:32924 "EHLO
-	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759398AbZKFQV5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 11:21:57 -0500
-Received: from [172.23.170.145] (helo=anti-virus03-08)
-	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1N6RZZ-0002ce-Il
-	for linux-omap@vger.kernel.org; Fri, 06 Nov 2009 16:22:01 +0000
-Received: from [94.171.130.58] (helo=[192.168.10.2])
-	by asmtp-out6.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1N6RZE-0000l7-B1
-	for linux-omap@vger.kernel.org; Fri, 06 Nov 2009 16:21:40 +0000
-In-Reply-To: <4AF42564.6090402@blueyonder.co.uk>
+Received: from devils.ext.ti.com ([198.47.26.153]:39663 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758611AbZKFQlj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 11:41:39 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA6GffZx031910
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Fri, 6 Nov 2009 10:41:44 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA6Gffld013760
+	for <linux-omap@vger.kernel.org>; Fri, 6 Nov 2009 22:11:41 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000407030609080001060805
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hi all,
 
-On 06/11/09 13:32, Sid Boyce wrote:
-> I have been trying the linux-2.6.32-rc5-omap-dss2 kernel and it halts
-> with a USB error, DEBUG_LL configured.
-> Reading boot sector
-> Loading u-boot.bin from mmc
-> 
-> 
-> U-Boot 2009.01-dirty (Feb 19 2009 - 12:23:21)
-> 
-> I2C:   ready
-> OMAP3530-GP rev 2, CPU-OPP2 L3-165MHz
-> OMAP3 Beagle board + LPDDR/NAND
-> DRAM:  256 MB
-> NAND:  256 MiB
-> Using default environment
-> 
-> MUSB: using high speed
-> In:    serial usbtty
-> Out:   serial usbtty
-> Err:   serial usbtty
-> Board revision C
-> Serial #6b22000300000000040323090d00a00a
-> Hit any key to stop autoboot:  0
-> reading boot.scr
-> 
-> 679 bytes read
-> Running bootscript from mmc ...
-> ## Executing script at 80200000
-> reading x-load.bin.ift
-> 
-> 19840 bytes read
-> ***** Replacing x-load *****
-> Usage:
-> nand - NAND sub-system
-> 
-> HW ECC selected
-> 
-> NAND erase: device 0 offset 0x0, size 0x80000
-> ^MErasing at 0x0 --  25% complete.^MErasing at 0x20000 --  50%
-> complete.^MErasing at 0x40000 --  75% complete.^MErasing at 0x60000 --
-> 100% complete.
-> OK
-> 
-> NAND write: device 0 offset 0x0, size 0x20000
->  131072 bytes written: OK
-> 
-> NAND write: device 0 offset 0x20000, size 0x20000
->  131072 bytes written: OK
-> 
-> NAND write: device 0 offset 0x40000, size 0x20000
->  131072 bytes written: OK
-> 
-> NAND write: device 0 offset 0x60000, size 0x20000
->  131072 bytes written: OK
-> reading u-boot-f.bin
-> 
-> ** Unable to read "u-boot-f.bin" from mmc 0:1 **
-> ***** Erasing environment settings *****
-> Usage:
-> nand - NAND sub-system
-> 
-> 
-> NAND erase: device 0 offset 0x160000, size 0x20000
-> ^MErasing at 0x160000 -- 100% complete.
-> OK
-> reading normal.scr
-> 
-> 603 bytes read
-> ***** Executing normal.scr *****
-> ## Executing script at 80200000
-> reading uImage.bin
-> 
-> 3160016 bytes read
-> ***** Kernel: /dev/mmcblk0p1/uImage.bin *****
-> reading ramdisk.gz
-> 
-> ** Unable to read "ramdisk.gz" from mmc 0:1 **
-> ***** RootFS: /dev/mmcblk0p2 *****
-> ## Booting kernel from Legacy Image at 80200000 ...
->    Image Name:   Linux-2.6.32-rc5-omap-dss2
->    Image Type:   ARM Linux Kernel Image (uncompressed)
->    Data Size:    3159952 Bytes =  3 MB
->    Load Address: 80008000
->    Entry Point:  80008000
->    Verifying Checksum ... OK
->    Loading Kernel Image ... OK
-> OK
-> 
-> Starting kernel ...
-> 
-> Error, the USB hardware is not on B mode
-> 
-> .config with hashes removed attached.
-> Same result with other versions of MLO and u-boot.bin.
-> Regards
-> Sid.
-> 
+Past few days, I had been noticing problem in waking up from
+keypad when OFF mode was enabled.
 
-Sorry attached the wrong file.
-Regards
-Sid.
+I believe that I have "almost" fixed the issue with the patch
+below. I say almost because I have so far tested only with the
+EVM. Also I need to debug the "Unbalanced IRQ" seen in the log
+below.
 
+Also, the initialization of new fields in board-omap3-evm.c is
+ad-hoc for quick testing. And there may be some redundant code
+that I added during debug.
 
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+One question:
+  The "board-h4.c" uses "omap_kp_platform_data" defined in
+  "mach/keypad.h". All other boards use "twl4030_keypad_data"
+  in "linux/i2c/twl4030.h". (Fields are same - just few additions)
 
---------------000407030609080001060805
-Content-Type: application/octet-stream;
- name="o-dss2"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="o-dss2"
+  Which one is the preferred?
 
-BAEFATQwB1YTAgEAAAAAACAAntcjDn8AAKDefwCe1yMOfwAAQAEA1yMOfwAA0CMAngCe1yMO
-fwAAuA0KDQpUZXhhcyBJbnN0cnVtZW50cyBYLUxvYWRlciAxLjQuMiAoRmViIDE5IDIwMDkg
-LSAxMjowMToyNCkNClJlYWRpbmcgYm9vdCBzZWN0b3INCkxvYWRpbmcgdS1ib290LmJpbiBm
-cm9tIG1tYw0KDQoNClUtQm9vdCAyMDA5LjAxLWRpcnR5IChGZWIgMTkgMjAwOSAtIDEyOjIz
-OjIxKQ0KDQpJMkM6ICAgcmVhZHkNCk9NQVAzNTMwLUdQIHJldiAyLCBDUFUtT1BQMiBMMy0x
-NjVNSHoNCk9NQVAzIEJlYWdsZSBib2FyZCArIExQRERSL05BTkQNCkRSQU06ICAyNTYgTUIN
-Ck5BTkQ6ICAyNTYgTWlCDQpVc2luZyBkZWZhdWx0IGVudmlyb25tZW50DQoNCk1VU0I6IHVz
-aW5nIGhpZ2ggc3BlZWQNCkluOiAgICBzZXJpYWwgdXNidHR5IA0KT3V0OiAgIHNlcmlhbCB1
-c2J0dHkgDQpFcnI6ICAgc2VyaWFsIHVzYnR0eSANCkJvYXJkIHJldmlzaW9uIEMNClNlcmlh
-bCAjNmIyMjAwMDMwMDAwMDAwMDA0MDMyMzA5MGQwMGEwMGENCkhpdCBhbnkga2V5IHRvIHN0
-b3AgYXV0b2Jvb3Q6IDEwIAgICCA5IAgICCA4IAgICCA3IAgICCA2IAgICCA1IAgICCA0IAgI
-CCAzIAgICCAyIAgICCAxIAgICCAwIA0KcmVhZGluZyBib290LnNjcg0KDQo2NzkgYnl0ZXMg
-cmVhZA0KUnVubmluZyBib290c2NyaXB0IGZyb20gbW1jIC4uLg0KIyMgRXhlY3V0aW5nIHNj
-cmlwdCBhdCA4MDIwMDAwMA0KcmVhZGluZyB4LWxvYWQuYmluLmlmdA0KDQoxOTg0MCBieXRl
-cyByZWFkDQoqKioqKiBSZXBsYWNpbmcgeC1sb2FkICoqKioqDQpVc2FnZToNCm5hbmQgLSBO
-QU5EIHN1Yi1zeXN0ZW0NCg0KSFcgRUNDIHNlbGVjdGVkDQoNCk5BTkQgZXJhc2U6IGRldmlj
-ZSAwIG9mZnNldCAweDAsIHNpemUgMHg4MDAwMA0KDUVyYXNpbmcgYXQgMHgwIC0tICAyNSUg
-Y29tcGxldGUuDUVyYXNpbmcgYXQgMHgyMDAwMCAtLSAgNTAlIGNvbXBsZXRlLg1FcmFzaW5n
-IGF0IDB4NDAwMDAgLS0gIDc1JSBjb21wbGV0ZS4NRXJhc2luZyBhdCAweDYwMDAwIC0tIDEw
-MCUgY29tcGxldGUuDQpPSw0KDQpOQU5EIHdyaXRlOiBkZXZpY2UgMCBvZmZzZXQgMHgwLCBz
-aXplIDB4MjAwMDANCiAxMzEwNzIgYnl0ZXMgd3JpdHRlbjogT0sNCg0KTkFORCB3cml0ZTog
-ZGV2aWNlIDAgb2Zmc2V0IDB4MjAwMDAsIHNpemUgMHgyMDAwMA0KIDEzMTA3MiBieXRlcyB3
-cml0dGVuOiBPSw0KDQpOQU5EIHdyaXRlOiBkZXZpY2UgMCBvZmZzZXQgMHg0MDAwMCwgc2l6
-ZSAweDIwMDAwDQogMTMxMDcyIGJ5dGVzIHdyaXR0ZW46IE9LDQoNCk5BTkQgd3JpdGU6IGRl
-dmljZSAwIG9mZnNldCAweDYwMDAwLCBzaXplIDB4MjAwMDANCiAxMzEwNzIgYnl0ZXMgd3Jp
-dHRlbjogT0sNCnJlYWRpbmcgdS1ib290LWYuYmluDQoNCioqIFVuYWJsZSB0byByZWFkICJ1
-LWJvb3QtZi5iaW4iIGZyb20gbW1jIDA6MSAqKg0KKioqKiogRXJhc2luZyBlbnZpcm9ubWVu
-dCBzZXR0aW5ncyAqKioqKg0KVXNhZ2U6DQpuYW5kIC0gTkFORCBzdWItc3lzdGVtDQoNCg0K
-TkFORCBlcmFzZTogZGV2aWNlIDAgb2Zmc2V0IDB4MTYwMDAwLCBzaXplIDB4MjAwMDANCg1F
-cmFzaW5nIGF0IDB4MTYwMDAwIC0tIDEwMCUgY29tcGxldGUuDQpPSw0KcmVhZGluZyBub3Jt
-YWwuc2NyDQoNCjYwMyBieXRlcyByZWFkDQoqKioqKiBFeGVjdXRpbmcgbm9ybWFsLnNjciAq
-KioqKg0KIyMgRXhlY3V0aW5nIHNjcmlwdCBhdCA4MDIwMDAwMA0KcmVhZGluZyB1SW1hZ2Uu
-YmluDQoNCjMxNjAwMTYgYnl0ZXMgcmVhZA0KKioqKiogS2VybmVsOiAvZGV2L21tY2JsazBw
-MS91SW1hZ2UuYmluICoqKioqDQpyZWFkaW5nIHJhbWRpc2suZ3oNCg0KKiogVW5hYmxlIHRv
-IHJlYWQgInJhbWRpc2suZ3oiIGZyb20gbW1jIDA6MSAqKg0KKioqKiogUm9vdEZTOiAvZGV2
-L21tY2JsazBwMiAqKioqKg0KIyMgQm9vdGluZyBrZXJuZWwgZnJvbSBMZWdhY3kgSW1hZ2Ug
-YXQgODAyMDAwMDAgLi4uDQogICBJbWFnZSBOYW1lOiAgIExpbnV4LTIuNi4zMi1yYzUtb21h
-cC1kc3MyDQogICBJbWFnZSBUeXBlOiAgIEFSTSBMaW51eCBLZXJuZWwgSW1hZ2UgKHVuY29t
-cHJlc3NlZCkNCiAgIERhdGEgU2l6ZTogICAgMzE1OTk1MiBCeXRlcyA9ICAzIE1CDQogICBM
-b2FkIEFkZHJlc3M6IDgwMDA4MDAwDQogICBFbnRyeSBQb2ludDogIDgwMDA4MDAwDQogICBW
-ZXJpZnlpbmcgQ2hlY2tzdW0gLi4uIE9LDQogICBMb2FkaW5nIEtlcm5lbCBJbWFnZSAuLi4g
-T0sNCk9LDQoNClN0YXJ0aW5nIGtlcm5lbCAuLi4NCg0KRXJyb3IsIHRoZSBVU0IgaGFyZHdh
-cmUgaXMgbm90IG9uIEIgbW9kZVsgICAgMC4wMDAwMDBdIExpbnV4IHZlcnNpb24gMi42LjMy
-LXJjNS1vbWFwLWRzczIgKHJvb3RAbG9jYWxob3N0LmxvY2FsZG9tYWluKSAoZ2NjIHZlcnNp
-b24gNC4zLjMgKFNvdXJjZXJ5IEcrKyBMaXRlIDIwMDlxMS0yMDMpICkgIzYgUFJFRU1QVCBG
-cmkgTm92IDYgMDM6MTg6MDcgR01UIDIwMDkNClsgICAgMC4wMDAwMDBdIENQVTogQVJNdjcg
-UHJvY2Vzc29yIFs0MTFmYzA4M10gcmV2aXNpb24gMyAoQVJNdjcpLCBjcj0xMGM1M2M3Zg0K
-WyAgICAwLjAwMDAwMF0gQ1BVOiBWSVBUIG5vbmFsaWFzaW5nIGRhdGEgY2FjaGUsIFZJUFQg
-bm9uYWxpYXNpbmcgaW5zdHJ1Y3Rpb24gY2FjaGUNClsgICAgMC4wMDAwMDBdIE1hY2hpbmU6
-IE9NQVAzIEJlYWdsZSBCb2FyZA0KWyAgICAwLjAwMDAwMF0gTWVtb3J5IHBvbGljeTogRUND
-IGRpc2FibGVkLCBEYXRhIGNhY2hlIHdyaXRlYmFjaw0KWyAgICAwLjAwMDAwMF0gT01BUDM0
-MzAgRVMzLjANClsgICAgMC4wMDAwMDBdIFNSQU06IE1hcHBlZCBwYSAweDQwMjAwMDAwIHRv
-IHZhIDB4ZTMwMDAwMDAgc2l6ZTogMHgxMDAwMDANClsgICAgMC4wMDAwMDBdIEJ1aWx0IDEg
-em9uZWxpc3RzIGluIFpvbmUgb3JkZXIsIG1vYmlsaXR5IGdyb3VwaW5nIG9uLiAgVG90YWwg
-cGFnZXM6IDY1MDI0DQpbICAgIDAuMDAwMDAwXSBLZXJuZWwgY29tbWFuZCBsaW5lOiBjb25z
-b2xlPXR0eVMyLDExNTIwMG44IGNvbnNvbGU9dHR5MCByb290PS9kZXYvbW1jYmxrMHAyIHJ3
-IHJvb3R3YWl0DQpbICAgIDAuMDAwMDAwXSBQSUQgaGFzaCB0YWJsZSBlbnRyaWVzOiAxMDI0
-IChvcmRlcjogMCwgNDA5NiBieXRlcykNClsgICAgMC4wMDAwMDBdIERlbnRyeSBjYWNoZSBo
-YXNoIHRhYmxlIGVudHJpZXM6IDMyNzY4IChvcmRlcjogNSwgMTMxMDcyIGJ5dGVzKQ0KWyAg
-ICAwLjAwMDAwMF0gSW5vZGUtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiAxNjM4NCAob3Jk
-ZXI6IDQsIDY1NTM2IGJ5dGVzKQ0KWyAgICAwLjAwMDAwMF0gTWVtb3J5OiAxMjhNQiAxMjhN
-QiA9IDI1Nk1CIHRvdGFsDQpbICAgIDAuMDAwMDAwXSBNZW1vcnk6IDI1MjkyOEtCIGF2YWls
-YWJsZSAoNTgyOEsgY29kZSwgNTk2SyBkYXRhLCAxNjBLIGluaXQsIDBLIGhpZ2htZW0pDQpb
-ICAgIDAuMDAwMDAwXSBIaWVyYXJjaGljYWwgUkNVIGltcGxlbWVudGF0aW9uLg0KWyAgICAw
-LjAwMDAwMF0gTlJfSVJRUzo0MDINClsgICAgMC4wMDAwMDBdIENsb2NraW5nIHJhdGUgKENy
-eXN0YWwvQ29yZS9NUFUpOiAyNi4wLzMzMi81MDAgTUh6DQpbICAgIDAuMDAwMDAwXSBSZXBy
-b2dyYW1taW5nIFNEUkMgY2xvY2sgdG8gMzMyMDAwMDAwIEh6DQpbICAgIDAuMDAwMDAwXSBH
-UE1DIHJldmlzaW9uIDUuMA0KWyAgICAwLjAwMDAwMF0gSVJROiBGb3VuZCBhbiBJTlRDIGF0
-IDB4ZDgyMDAwMDAgKHJldmlzaW9uIDQuMCkgd2l0aCA5NiBpbnRlcnJ1cHRzDQpbICAgIDAu
-MDAwMDAwXSBUb3RhbCBvZiA5NiBpbnRlcnJ1cHRzIG9uIDEgYWN0aXZlIGNvbnRyb2xsZXIN
-ClsgICAgMC4wMDAwMDBdIE9NQVAzNHh4IEdQSU8gaGFyZHdhcmUgdmVyc2lvbiAyLjUNClsg
-ICAgMC4wMDAwMDBdIE9NQVAgY2xvY2tldmVudCBzb3VyY2U6IEdQVElNRVIxMiBhdCAzMjc2
-OCBIeg0KWyAgICAwLjAwMDAwMF0gQ29uc29sZTogY29sb3VyIGR1bW15IGRldmljZSA4MHgz
-MA0KWyAgICAwLjAwMDAwMF0gY29uc29sZSBbdHR5MF0gZW5hYmxlZA0KWyAgICAwLjAwMDAw
-MF0gQ2FsaWJyYXRpbmcgZGVsYXkgbG9vcC4uLiA0OTAuNTIgQm9nb01JUFMgKGxwaj0xOTE2
-OTI4KQ0KWyAgICAwLjAwMDAwMF0gTW91bnQtY2FjaGUgaGFzaCB0YWJsZSBlbnRyaWVzOiA1
-MTINClsgICAgMC4wMDAwMDBdIENQVTogVGVzdGluZyB3cml0ZSBidWZmZXIgY29oZXJlbmN5
-OiBvaw0KWyAgICAwLjAwMDAwMF0gcmVndWxhdG9yOiBjb3JlIHZlcnNpb24gMC41DQpbICAg
-IDAuMDAwMDAwXSBORVQ6IFJlZ2lzdGVyZWQgcHJvdG9jb2wgZmFtaWx5IDE2DQpbICAgIDAu
-MDAwMDAwXSBGb3VuZCBOQU5EIG9uIENTMA0KWyAgICAwLjAwMDAwMF0gUmVnaXN0ZXJpbmcg
-TkFORCBvbiBDUzANClsgMTk3MC44NTE1MDFdIE9NQVAgRE1BIGhhcmR3YXJlIHJldmlzaW9u
-IDQuMA0KWyAxOTcwLjg5ODE2Ml0gYmlvOiBjcmVhdGUgc2xhYiA8YmlvLTA+IGF0IDANClsg
-MTk3MC45MDE5NDddIFNDU0kgc3Vic3lzdGVtIGluaXRpYWxpemVkDQpbIDE5NzAuOTA2OTgy
-XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmZzDQpbIDE5
-NzAuOTA3Njg0XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGh1
-Yg0KWyAxOTcwLjkwODE0Ml0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgZGV2aWNlIGRyaXZl
-ciB1c2INClsgMTk3MC45MDkzNjJdIGkyY19vbWFwIGkyY19vbWFwLjE6IGJ1cyAxIHJldjMu
-MTIgYXQgMjYwMCBrSHoNClsgMTk3MC45MTM2NjVdIHR3bDQwMzA6IFBJSCAoaXJxIDcpIGNo
-YWluaW5nIElSUXMgMzY4Li4zNzUNClsgMTk3MC45MTM3MjZdIHR3bDQwMzA6IHBvd2VyIChp
-cnEgMzczKSBjaGFpbmluZyBJUlFzIDM3Ni4uMzgzDQpbIDE5NzAuOTE0MzM3XSB0d2w0MDMw
-OiBncGlvIChpcnEgMzY4KSBjaGFpbmluZyBJUlFzIDM4NC4uNDAxDQpbIDE5NzAuOTE3MDgz
-XSByZWd1bGF0b3I6IFZVU0IxVjU6IDE1MDAgbVYgbm9ybWFsIHN0YW5kYnkNClsgMTk3MC45
-MTc4NDZdIHJlZ3VsYXRvcjogVlVTQjFWODogMTgwMCBtViBub3JtYWwgc3RhbmRieQ0KWyAx
-OTcwLjkxODYwOV0gcmVndWxhdG9yOiBWVVNCM1YxOiAzMTAwIG1WIG5vcm1hbCBzdGFuZGJ5
-DQpbIDE5NzAuOTIzMzcwXSB0d2w0MDMwX3VzYiB0d2w0MDMwX3VzYjogSW5pdGlhbGl6ZWQg
-VFdMNDAzMCBVU0IgbW9kdWxlDQpbIDE5NzAuOTI0NTYwXSByZWd1bGF0b3I6IFZNTUMxOiAx
-ODUwIDwtLT4gMzE1MCBtViBub3JtYWwgc3RhbmRieQ0KWyAxOTcwLjkyNTM1NF0gcmVndWxh
-dG9yOiBWREFDOiAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5DQpbIDE5NzAuOTI2MTQ3XSByZWd1
-bGF0b3I6IFZQTEwyOiAxODAwIG1WIG5vcm1hbCBzdGFuZGJ5DQpbIDE5NzAuOTI3MDMyXSBy
-ZWd1bGF0b3I6IFZTSU06IDE4MDAgPC0tPiAzMDAwIG1WIG5vcm1hbCBzdGFuZGJ5DQpbIDE5
-NzAuOTI3MzA3XSBpMmNfb21hcCBpMmNfb21hcC4zOiBidXMgMyByZXYzLjEyIGF0IDEwMCBr
-SHoNClsgMTk3MC45MzA5MDhdIEJsdWV0b290aDogQ29yZSB2ZXIgMi4xNQ0KWyAxOTcwLjkz
-MTQyN10gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAzMQ0KWyAxOTcwLjkzMTQ1
-N10gQmx1ZXRvb3RoOiBIQ0kgZGV2aWNlIGFuZCBjb25uZWN0aW9uIG1hbmFnZXIgaW5pdGlh
-bGl6ZWQNClsgMTk3MC45MzE1MThdIEJsdWV0b290aDogSENJIHNvY2tldCBsYXllciBpbml0
-aWFsaXplZA0KWyAxOTcwLjkzMjM3M10gY2ZnODAyMTE6IFVzaW5nIHN0YXRpYyByZWd1bGF0
-b3J5IGRvbWFpbiBpbmZvDQpbIDE5NzAuOTMyNDM0XSBjZmc4MDIxMTogUmVndWxhdG9yeSBk
-b21haW46IFVTDQpbIDE5NzAuOTMyNDk1XSAJKHN0YXJ0X2ZyZXEgLSBlbmRfZnJlcSBAIGJh
-bmR3aWR0aCksIChtYXhfYW50ZW5uYV9nYWluLCBtYXhfZWlycCkNClsgMTk3MC45MzI1NTZd
-IAkoMjQwMjAwMCBLSHogLSAyNDcyMDAwIEtIeiBAIDQwMDAwIEtIeiksICg2MDAgbUJpLCAy
-NzAwIG1CbSkNClsgMTk3MC45MzI1ODZdIAkoNTE3MDAwMCBLSHogLSA1MTkwMDAwIEtIeiBA
-IDQwMDAwIEtIeiksICg2MDAgbUJpLCAyMzAwIG1CbSkNClsgMTk3MC45MzI2NDddIAkoNTE5
-MDAwMCBLSHogLSA1MjEwMDAwIEtIeiBAIDQwMDAwIEtIeiksICg2MDAgbUJpLCAyMzAwIG1C
-bSkNClsgMTk3MC45MzI3MDhdIAkoNTIxMDAwMCBLSHogLSA1MjMwMDAwIEtIeiBAIDQwMDAw
-IEtIeiksICg2MDAgbUJpLCAyMzAwIG1CbSkNClsgMTk3MC45MzI3MzldIAkoNTIzMDAwMCBL
-SHogLSA1MzMwMDAwIEtIeiBAIDQwMDAwIEtIeiksICg2MDAgbUJpLCAyMzAwIG1CbSkNClsg
-MTk3MC45MzI4MDBdIAkoNTczNTAwMCBLSHogLSA1ODM1MDAwIEtIeiBAIDQwMDAwIEtIeiks
-ICg2MDAgbUJpLCAzMDAwIG1CbSkNClsgMTk3MC45MzI4OTFdIGNmZzgwMjExOiBDYWxsaW5n
-IENSREEgZm9yIGNvdW50cnk6IFVTDQpbIDE5NzAuOTMzODk4XSBTd2l0Y2hpbmcgdG8gY2xv
-Y2tzb3VyY2UgMzJrX2NvdW50ZXINClsgMTk3MC45NDUwOThdIG11c2JfaGRyYzogdmVyc2lv
-biA2LjAsIG11c2ItZG1hLCBob3N0LCBkZWJ1Zz0wDQpbIDE5NzAuOTQ1OTUzXSBtdXNiX2hk
-cmM6IFVTQiBIb3N0IG1vZGUgY29udHJvbGxlciBhdCBkODBhYjAwMCB1c2luZyBETUEsIElS
-USA5Mg0KWyAxOTcwLjk0NjAxNF0gbXVzYl9oZHJjIG11c2JfaGRyYzogTVVTQiBIRFJDIGhv
-c3QgZHJpdmVyDQpbIDE5NzAuOTQ2MjI4XSBtdXNiX2hkcmMgbXVzYl9oZHJjOiBuZXcgVVNC
-IGJ1cyByZWdpc3RlcmVkLCBhc3NpZ25lZCBidXMgbnVtYmVyIDENClsgMTk3MC45NDcwODJd
-IHVzYiB1c2IxOiBjb25maWd1cmF0aW9uICMxIGNob3NlbiBmcm9tIDEgY2hvaWNlDQpbIDE5
-NzAuOTQ3NjMxXSBodWIgMS0wOjEuMDogVVNCIGh1YiBmb3VuZA0KWyAxOTcwLjk0Nzc4NF0g
-aHViIDEtMDoxLjA6IDEgcG9ydCBkZXRlY3RlZA0KWyAxOTcwLjk0OTQzMl0gTkVUOiBSZWdp
-c3RlcmVkIHByb3RvY29sIGZhbWlseSAyDQpbIDE5NzAuOTUwMDczXSBJUCByb3V0ZSBjYWNo
-ZSBoYXNoIHRhYmxlIGVudHJpZXM6IDIwNDggKG9yZGVyOiAxLCA4MTkyIGJ5dGVzKQ0KWyAx
-OTcwLjk1MDg2Nl0gVENQIGVzdGFibGlzaGVkIGhhc2ggdGFibGUgZW50cmllczogODE5MiAo
-b3JkZXI6IDQsIDY1NTM2IGJ5dGVzKQ0KWyAxOTcwLjk1MTIwMl0gVENQIGJpbmQgaGFzaCB0
-YWJsZSBlbnRyaWVzOiA4MTkyIChvcmRlcjogMywgMzI3NjggYnl0ZXMpDQpbIDE5NzAuOTUx
-NDE2XSBUQ1A6IEhhc2ggdGFibGVzIGNvbmZpZ3VyZWQgKGVzdGFibGlzaGVkIDgxOTIgYmlu
-ZCA4MTkyKQ0KWyAxOTcwLjk1MTQ3N10gVENQIHJlbm8gcmVnaXN0ZXJlZA0KWyAxOTcwLjk1
-MTc4Ml0gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29sIGZhbWlseSAxDQpbIDE5NzAuOTUyNDIz
-XSBSUEM6IFJlZ2lzdGVyZWQgdWRwIHRyYW5zcG9ydCBtb2R1bGUuDQpbIDE5NzAuOTUyNDg0
-XSBSUEM6IFJlZ2lzdGVyZWQgdGNwIHRyYW5zcG9ydCBtb2R1bGUuDQpbIDE5NzAuOTUyNTQ1
-XSBSUEM6IFJlZ2lzdGVyZWQgdGNwIE5GU3Y0LjEgYmFja2NoYW5uZWwgdHJhbnNwb3J0IG1v
-ZHVsZS4NClsgMTk3MC45NTY5MDldIFZGUzogRGlzayBxdW90YXMgZHF1b3RfNi41LjINClsg
-MTk3MC45NTcwNjFdIERxdW90LWNhY2hlIGhhc2ggdGFibGUgZW50cmllczogMTAyNCAob3Jk
-ZXIgMCwgNDA5NiBieXRlcykNClsgMTk3MC45NTgwMzhdIHNxdWFzaGZzOiB2ZXJzaW9uIDQu
-MCAoMjAwOS8wMS8zMSkgUGhpbGxpcCBMb3VnaGVyDQpbIDE5NzAuOTU5NDExXSBKRkZTMiB2
-ZXJzaW9uIDIuMi4gKE5BTkQpIChTVU1NQVJZKSAgwqkgMjAwMS0yMDA2IFJlZCBIYXQsIElu
-Yy4NClsgMTk3MC45NjA0MThdIG1zZ21uaSBoYXMgYmVlbiBzZXQgdG8gNDk0DQpbIDE5NzAu
-OTY1OTQyXSBhbGc6IE5vIHRlc3QgZm9yIHN0ZHJuZyAoa3JuZykNClsgMTk3MC45NjYxMjVd
-IGlvIHNjaGVkdWxlciBub29wIHJlZ2lzdGVyZWQNClsgMTk3MC45NjYxNTZdIGlvIHNjaGVk
-dWxlciBhbnRpY2lwYXRvcnkgcmVnaXN0ZXJlZA0KWyAxOTcwLjk2NjE4Nl0gaW8gc2NoZWR1
-bGVyIGRlYWRsaW5lIHJlZ2lzdGVyZWQNClsgMTk3MC45NjY0NjFdIGlvIHNjaGVkdWxlciBj
-ZnEgcmVnaXN0ZXJlZCAoZGVmYXVsdCkNClsgMTk3MC45OTQxMTBdIFNlcmlhbDogODI1MC8x
-NjU1MCBkcml2ZXIsIDQgcG9ydHMsIElSUSBzaGFyaW5nIGVuYWJsZWQNClsgMTk3MS4wMTcz
-OTVdIHNlcmlhbDgyNTAuMDogdHR5UzAgYXQgTU1JTyAweDQ4MDZhMDAwIChpcnEgPSA3Mikg
-aXMgYSBTVDE2NjU0DQpbIDE5NzEuMDM4MzMwXSBzZXJpYWw4MjUwLjE6IHR0eVMxIGF0IE1N
-SU8gMHg0ODA2YzAwMCAoaXJxID0gNzMpIGlzIGEgU1QxNjY1NA0KWyAxOTcxLjA1OTIwNF0g
-c2VyaWFsODI1MC4yOiB0dHlTMiBhdCBNTUlPIDB4NDkwMjAwMDAgKGlycSA9IDc0KSBpcyBh
-IFNUMTY2NTQNClsgMTk3MS41OTQwMjRdIGNvbnNvbGUgW3R0eVMyXSBlbmFibGVkDQpbIDE5
-NzEuNjEzMzExXSBicmQ6IG1vZHVsZSBsb2FkZWQNClsgMTk3MS42MjQ1NzJdIGxvb3A6IG1v
-ZHVsZSBsb2FkZWQNClsgMTk3MS42MzAwOTZdIG9tYXAyLW5hbmQgZHJpdmVyIGluaXRpYWxp
-emluZw0KWyAxOTcxLjYzNDU4Ml0gTkFORCBkZXZpY2U6IE1hbnVmYWN0dXJlciBJRDogMHgy
-YywgQ2hpcCBJRDogMHhiYSAoTWljcm9uIE5BTkQgMjU2TWlCIDEsOFYgMTYtYml0KQ0KWyAx
-OTcxLjY0Mzg5MF0gY21kbGluZXBhcnQgcGFydGl0aW9uIHBhcnNpbmcgbm90IGF2YWlsYWJs
-ZQ0KWyAxOTcxLjY0OTI5MV0gQ3JlYXRpbmcgNSBNVEQgcGFydGl0aW9ucyBvbiAib21hcDIt
-bmFuZCI6DQpbIDE5NzEuNjU0NTQxXSAweDAwMDAwMDAwMDAwMC0weDAwMDAwMDA4MDAwMCA6
-ICJYLUxvYWRlciINClsgMTk3MS42NjIxMDldIDB4MDAwMDAwMDgwMDAwLTB4MDAwMDAwMjYw
-MDAwIDogIlUtQm9vdCINClsgMTk3MS42Njk1NTVdIDB4MDAwMDAwMjYwMDAwLTB4MDAwMDAw
-MjgwMDAwIDogIlUtQm9vdCBFbnYiDQpbIDE5NzEuNjc2NjM1XSAweDAwMDAwMDI4MDAwMC0w
-eDAwMDAwMDY4MDAwMCA6ICJLZXJuZWwiDQpbIDE5NzEuNjg0OTk3XSAweDAwMDAwMDY4MDAw
-MC0weDAwMDAxMDAwMDAwMCA6ICJGaWxlIFN5c3RlbSINClsgMTk3MS43OTgzNzBdIHVzYmNv
-cmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgY2F0Yw0KWyAxOTcxLjgwMzk4
-NV0gY2F0YzogdjIuODpDQVRDIEVMMTIxMEEgTmV0TWF0ZSBVU0IgRXRoZXJuZXQgZHJpdmVy
-DQpbIDE5NzEuODEwNDI0XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
-dmVyIGthd2V0aA0KWyAxOTcxLjgxNjEwMV0gcGVnYXN1czogdjAuNi4xNCAoMjAwNi8wOS8y
-NyksIFBlZ2FzdXMvUGVnYXN1cyBJSSBVU0IgRXRoZXJuZXQgZHJpdmVyDQpbIDE5NzEuODI0
-MTI3XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHBlZ2FzdXMN
-ClsgMTk3MS44Mjk5NTZdIHJ0bDgxNTA6IHYwLjYuMiAoMjAwNC8wOC8yNyk6cnRsODE1MCBi
-YXNlZCB1c2ItZXRoZXJuZXQgZHJpdmVyDQpbIDE5NzEuODM3MzQxXSB1c2Jjb3JlOiByZWdp
-c3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHJ0bDgxNTANClsgMTk3MS44NDM0NDRdIHVz
-YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgYXNpeA0KWyAxOTcxLjg0
-OTMwNF0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBjZGNfZXRo
-ZXINClsgMTk3MS44NTU1MjldIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBk
-cml2ZXIgZG05NjAxDQpbIDE5NzEuODYxNTcyXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBp
-bnRlcmZhY2UgZHJpdmVyIHNtc2M5NXh4DQpbIDE5NzEuODY3Nzk3XSB1c2Jjb3JlOiByZWdp
-c3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGdsNjIwYQ0KWyAxOTcxLjg3MzgwOV0gdXNi
-Y29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBuZXQxMDgwDQpbIDE5NzEu
-ODc5OTEzXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHBsdXNi
-DQpbIDE5NzEuODg1NzcyXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
-dmVyIHJuZGlzX2hvc3QNClsgMTk3MS44OTIxNTBdIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3
-IGludGVyZmFjZSBkcml2ZXIgY2RjX3N1YnNldA0KWyAxOTcxLjg5ODUyOV0gdXNiY29yZTog
-cmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciB6YXVydXMNClsgMTk3MS45MDQ1NzFd
-IHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgTU9TQ0hJUCB1c2It
-ZXRoZXJuZXQgZHJpdmVyDQpbIDE5NzEuOTEyNDc1XSBCcm9hZGNvbSA0M3h4IGRyaXZlciBs
-b2FkZWQgWyBGZWF0dXJlczogTCwgRmlybXdhcmUtSUQ6IEZXMTMgXQ0KWyAxOTcxLjkxOTk4
-Ml0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciB6ZDEyMTFydw0K
-WyAxOTcxLjkyNjExNl0gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZl
-ciBydGw4MTg3DQpbIDE5NzEuOTMyMjgxXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRl
-cmZhY2UgZHJpdmVyIHJuZGlzX3dsYW4NClsgMTk3MS45Mzg2OTBdIHVzYmNvcmU6IHJlZ2lz
-dGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgemQxMjAxDQpbIDE5NzEuOTQ0NzYzXSB1c2Jj
-b3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYjh4eHgNClsgMTk3MS45
-NTA5MjddIHVzYmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgcnQyNTAw
-dXNiDQpbIDE5NzEuOTU3MTUzXSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2Ug
-ZHJpdmVyIHA1NHVzYg0KWyAxOTcxLjk2NDc1Ml0gSW5pdGlhbGl6aW5nIFVTQiBNYXNzIFN0
-b3JhZ2UgZHJpdmVyLi4uDQpbIDE5NzEuOTcwMjQ1XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5l
-dyBpbnRlcmZhY2UgZHJpdmVyIHVzYi1zdG9yYWdlDQpbIDE5NzEuOTc2NDcwXSBVU0IgTWFz
-cyBTdG9yYWdlIHN1cHBvcnQgcmVnaXN0ZXJlZC4NClsgMTk3MS45ODExNzBdIHVkYzogT01B
-UCBVREMgZHJpdmVyLCB2ZXJzaW9uOiA0IE9jdG9iZXIgMjAwNCAoaXNvKSAoZG1hKQ0KWyAx
-OTcxLjk4OTIyN10gbWljZTogUFMvMiBtb3VzZSBkZXZpY2UgY29tbW9uIGZvciBhbGwgbWlj
-ZQ0KWyAxOTcxLjk5NTIzOV0gaW5wdXQ6IGdwaW8ta2V5cyBhcyAvZGV2aWNlcy9wbGF0Zm9y
-bS9ncGlvLWtleXMvaW5wdXQvaW5wdXQwDQpbIDE5NzIuMDA0OTc0XSBpbnB1dDogdHdsNDAz
-MF9wd3JidXR0b24gYXMgL2RldmljZXMvcGxhdGZvcm0vaTJjX29tYXAuMS9pMmMtMS8xLTAw
-NDkvdHdsNDAzMF9wd3JidXR0b24vaW5wdXQvaW5wdXQxDQpbIDE5NzIuMDE2OTA2XSBpMmMg
-L2RldiBlbnRyaWVzIGRyaXZlcg0KWyAxOTcyLjAyMjc2Nl0gT01BUCBXYXRjaGRvZyBUaW1l
-ciBSZXYgMHgzMTogaW5pdGlhbCB0aW1lb3V0IDYwIHNlYw0KWyAxOTcyLjAyOTMyN10gQmx1
-ZXRvb3RoOiBIQ0kgVUFSVCBkcml2ZXIgdmVyIDIuMg0KWyAxOTcyLjAzMzg0M10gQmx1ZXRv
-b3RoOiBIQ0kgSDQgcHJvdG9jb2wgaW5pdGlhbGl6ZWQNClsgMTk3Mi4wMzg4MThdIEJsdWV0
-b290aDogSENJIEJDU1AgcHJvdG9jb2wgaW5pdGlhbGl6ZWQNClsgMTk3Mi4wNDM4ODRdIEJs
-dWV0b290aDogSENJTEwgcHJvdG9jb2wgaW5pdGlhbGl6ZWQNClsgMTk3Mi4wNDg2NDVdIEJs
-dWV0b290aDogQnJvYWRjb20gQmx1dG9uaXVtIGZpcm13YXJlIGRyaXZlciB2ZXIgMS4yDQpb
-IDE5NzIuMDU1MjY3XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVy
-IGJjbTIwM3gNClsgMTk3Mi4wNjEwOTZdIEJsdWV0b290aDogRGlnaWFuc3dlciBCbHVldG9v
-dGggVVNCIGRyaXZlciB2ZXIgMC4xMA0KWyAxOTcyLjA2NzQxM10gdXNiY29yZTogcmVnaXN0
-ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBicGExMHgNClsgMTk3Mi4wNzMwNTldIEJsdWV0
-b290aDogQmx1ZUZSSVRaISBVU0IgZHJpdmVyIHZlciAxLjINClsgMTk3Mi4wNzg1MjFdIHVz
-YmNvcmU6IHJlZ2lzdGVyZWQgbmV3IGludGVyZmFjZSBkcml2ZXIgYmZ1c2INClsgMTk3Mi4w
-ODQxMzZdIEJsdWV0b290aDogR2VuZXJpYyBCbHVldG9vdGggVVNCIGRyaXZlciB2ZXIgMC42
-DQpbIDE5NzIuMDkwMDg3XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJp
-dmVyIGJ0dXNiDQpbIDE5NzIuMDk1NzMzXSBCbHVldG9vdGg6IEdlbmVyaWMgQmx1ZXRvb3Ro
-IFNESU8gZHJpdmVyIHZlciAwLjENClsgMTk3Mi4xMDM0ODVdIFJlZ2lzdGVyZWQgbGVkIGRl
-dmljZTogYmVhZ2xlYm9hcmQ6OnVzcjANClsgMTk3Mi4xMDg5NDddIFJlZ2lzdGVyZWQgbGVk
-IGRldmljZTogYmVhZ2xlYm9hcmQ6OnVzcjENClsgMTk3Mi4xMTQ4OThdIFJlZ2lzdGVyZWQg
-bGVkIGRldmljZTogYmVhZ2xlYm9hcmQ6OnBtdV9zdGF0DQpbIDE5NzIuMTI3NDEwXSB1c2Jj
-b3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIHVzYmhpZA0KWyAxOTcyLjEz
-MzIzOV0gdXNiaGlkOiB2Mi42OlVTQiBISUQgY29yZSBkcml2ZXINClsgMTk3Mi4xMzgxMjJd
-IEFkdmFuY2VkIExpbnV4IFNvdW5kIEFyY2hpdGVjdHVyZSBEcml2ZXIgVmVyc2lvbiAxLjAu
-MjEuDQpbIDE5NzIuMTQ1OTA0XSB1c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2Ug
-ZHJpdmVyIHNuZC11c2ItYXVkaW8NClsgMTk3Mi4xNTI2MThdIE5vIGRldmljZSBmb3IgREFJ
-IHR3bDQwMzANClsgMTk3Mi4xNTY0NjNdIE5vIGRldmljZSBmb3IgREFJIHR3bDQwMzAgVm9p
-Y2UNClsgMTk3Mi4xNjA3MzZdIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTAN
-ClsgMTk3Mi4xNjUyNTJdIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTENClsg
-MTk3Mi4xNjk3NjldIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTINClsgMTk3
-Mi4xNzQyODVdIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTMNClsgMTk3Mi4x
-Nzg4MDJdIE5vIGRldmljZSBmb3IgREFJIG9tYXAtbWNic3AtZGFpLTQNClsgMTk3Mi4xODMz
-MTldIE9NQVAzIEJlYWdsZSBTb0MgaW5pdA0KWyAxOTcyLjE4NzI1NV0gVFdMNDAzMCBBdWRp
-byBDb2RlYyBpbml0IA0KWyAxOTcyLjE5MjY1N10gYXNvYzogdHdsNDAzMCA8LT4gb21hcC1t
-Y2JzcC1kYWktMCBtYXBwaW5nIG9rDQpbIDE5NzIuMjkyNTcyXSBBTFNBIGRldmljZSBsaXN0
-Og0KWyAxOTcyLjI5NTY4NF0gICAjMDogb21hcDNiZWFnbGUgKHR3bDQwMzApDQpbIDE5NzIu
-Mjk5NTkxXSBvcHJvZmlsZTogdXNpbmcgYXJtL2FybXY3DQpbIDE5NzIuMzAzNjE5XSBUQ1Ag
-Y3ViaWMgcmVnaXN0ZXJlZA0KWyAxOTcyLjMwNjkxNV0gTkVUOiBSZWdpc3RlcmVkIHByb3Rv
-Y29sIGZhbWlseSAxNw0KWyAxOTcyLjMxMTQ5Ml0gTkVUOiBSZWdpc3RlcmVkIHByb3RvY29s
-IGZhbWlseSAxNQ0KWyAxOTcyLjMxNjA3MF0gQmx1ZXRvb3RoOiBMMkNBUCB2ZXIgMi4xNA0K
-WyAxOTcyLjMxOTgyNF0gQmx1ZXRvb3RoOiBMMkNBUCBzb2NrZXQgbGF5ZXIgaW5pdGlhbGl6
-ZWQNClsgMTk3Mi4zMjQ5ODFdIEJsdWV0b290aDogU0NPIChWb2ljZSBMaW5rKSB2ZXIgMC42
-DQpbIDE5NzIuMzI5NTU5XSBCbHVldG9vdGg6IFNDTyBzb2NrZXQgbGF5ZXIgaW5pdGlhbGl6
-ZWQNClsgMTk3Mi4zMzQ4MDhdIEJsdWV0b290aDogUkZDT01NIFRUWSBsYXllciBpbml0aWFs
-aXplZA0KWyAxOTcyLjMzOTc1Ml0gQmx1ZXRvb3RoOiBSRkNPTU0gc29ja2V0IGxheWVyIGlu
-aXRpYWxpemVkDQpbIDE5NzIuMzQ1MDkyXSBCbHVldG9vdGg6IFJGQ09NTSB2ZXIgMS4xMQ0K
-WyAxOTcyLjM0ODkzN10gQmx1ZXRvb3RoOiBCTkVQIChFdGhlcm5ldCBFbXVsYXRpb24pIHZl
-ciAxLjMNClsgMTk3Mi4zNTQzMDldIEJsdWV0b290aDogQk5FUCBmaWx0ZXJzOiBwcm90b2Nv
-bCBtdWx0aWNhc3QNClsgMTk3Mi4zNTk2NDldIEJsdWV0b290aDogSElEUCAoSHVtYW4gSW50
-ZXJmYWNlIEVtdWxhdGlvbikgdmVyIDEuMg0KWyAxOTcyLjM2NjI3MV0gbGliODAyMTE6IGNv
-bW1vbiByb3V0aW5lcyBmb3IgSUVFRTgwMi4xMSBkcml2ZXJzDQpbIDE5NzIuMzczNjg3XSBW
-RlAgc3VwcG9ydCB2MC4zOiBpbXBsZW1lbnRvciA0MSBhcmNoaXRlY3R1cmUgMyBwYXJ0IDMw
-IHZhcmlhbnQgYyByZXYgMQ0KWyAxOTcyLjM4Mjg3M10gcmVnaXN0ZXJlZCB0YXNrc3RhdHMg
-dmVyc2lvbiAxDQpbIDE5NzIuMzg4NzYzXSByZWd1bGF0b3JfaW5pdF9jb21wbGV0ZTogaW5j
-b21wbGV0ZSBjb25zdHJhaW50cywgbGVhdmluZyBWRFZJIG9uDQpbIDE5NzIuMzk2MDg3XSBy
-ZWd1bGF0b3JfaW5pdF9jb21wbGV0ZTogaW5jb21wbGV0ZSBjb25zdHJhaW50cywgbGVhdmlu
-ZyBWREFDIG9uDQpbIDE5NzIuNDAzMzgxXSByZWd1bGF0b3JfaW5pdF9jb21wbGV0ZTogaW5j
-b21wbGV0ZSBjb25zdHJhaW50cywgbGVhdmluZyBWTU1DMSBvbg0KWyAxOTcyLjQxMDczNl0g
-ZHJpdmVycy9ydGMvaGN0b3N5cy5jOiB1bmFibGUgdG8gb3BlbiBydGMgZGV2aWNlIChydGMw
-KQ0KWyAxOTcyLjQxNzQ0OV0gV2FpdGluZyBmb3Igcm9vdCBkZXZpY2UgL2Rldi9tbWNibGsw
-cDIuLi4NCg==
---------------000407030609080001060805--
+BTW, this patch is heavily based on similar code in "serial.c".
 
+Best regards,
+Sanjeev
+
+==== LOG FROM CONSOLE ====
+
+[root@OMAP3EVM /]# echo 1 > /sys/power/enable_off_mode
+[root@OMAP3EVM /]#
+[root@OMAP3EVM /]#
+[root@OMAP3EVM /]# echo mem > /sys/power/state
+PM: Syncing filesystems ... done.
+Freezing user space processes ... (elapsed 0.00 seconds) done.
+Freezing remaining freezable tasks ... (elapsed 0.05 seconds) done.
+Suspending console(s) (use no_console_suspend to debug)
+twl4030_keypad twl4030_keypad: suspending...
+Successfully put all powerdomains to target state
+twl4030_keypad twl4030_keypad: resuming...
+------------[ cut here ]------------
+WARNING: at kernel/irq/manage.c:356 set_irq_wake+0x78/0xdc()
+Unbalanced IRQ 369 wake disable
+Modules linked in:
+[<c002f408>] (unwind_backtrace+0x0/0xdc) from [<c0053f6c>] (warn_slowpath_common+0x48/0x60)
+[<c0053f6c>] (warn_slowpath_common+0x48/0x60) from [<c0053fbc>] (warn_slowpath_fmt+0x24/0x30)
+[<c0053fbc>] (warn_slowpath_fmt+0x24/0x30) from [<c00798a8>] (set_irq_wake+0x78/0xdc)
+[<c00798a8>] (set_irq_wake+0x78/0xdc) from [<c01f1ef4>] (twl4030_kp_resume+0x44/0x98)
+[<c01f1ef4>] (twl4030_kp_resume+0x44/0x98) from [<c01bb474>] (platform_pm_resume+0x48/0x54)
+[<c01bb474>] (platform_pm_resume+0x48/0x54) from [<c01bd07c>] (pm_op+0x4c/0x74)
+[<c01bd07c>] (pm_op+0x4c/0x74) from [<c01bd6f0>] (dpm_resume_end+0x80/0x328)
+[<c01bd6f0>] (dpm_resume_end+0x80/0x328) from [<c0077ca8>] (suspend_devices_and_enter+0x150/0x18c)
+[<c0077ca8>] (suspend_devices_and_enter+0x150/0x18c) from [<c0077d90>] (enter_state+0xac/0xec)
+[<c0077d90>] (enter_state+0xac/0xec) from [<c0077518>] (state_store+0x94/0xbc)
+[<c0077518>] (state_store+0x94/0xbc) from [<c0176050>] (kobj_attr_store+0x18/0x1c)
+[<c0176050>] (kobj_attr_store+0x18/0x1c) from [<c00e5124>] (sysfs_write_file+0x108/0x13c)
+[<c00e5124>] (sysfs_write_file+0x108/0x13c) from [<c00a2468>] (vfs_write+0xac/0x154)
+[<c00a2468>] (vfs_write+0xac/0x154) from [<c00a25bc>] (sys_write+0x3c/0x68)
+[<c00a25bc>] (sys_write+0x3c/0x68) from [<c0029dc0>] (ret_fast_syscall+0x0/0x2c)
+---[ end trace 54f593fa7172d35d ]---
+Restarting tasks ... done.
+[root@OMAP3EVM /]#
+[root@OMAP3EVM /]#
+[root@OMAP3EVM /]#
+
+==== PATCH ====
+
+diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+index 8283215..d485f23 100755
+--- a/arch/arm/mach-omap2/board-omap3evm.c
++++ b/arch/arm/mach-omap2/board-omap3evm.c
+@@ -55,7 +55,9 @@
+ 
+ #include "sdram-micron-mt46h32m32lf-6.h"
+ #include "mmc-twl4030.h"
++#include "prm.h"
+ #include "pm.h"
++#include "prm-regbits-34xx.h"
+ #include "omap3-opp.h"
+ #include "board-omap3evm-camera.h"
+ 
+@@ -742,6 +744,13 @@ static void __init omap3_evm_init(void)
+ 
+ 	omap35x_pmic_init();
+ 
++#ifdef CONFIG_PM
++	omap3evm_kp_data.wk_st		= OMAP34XX_PRM_REGADDR(WKUP_MOD, PM_WKEN1);
++	omap3evm_kp_data.wk_en		= OMAP34XX_PRM_REGADDR(WKUP_MOD, PM_WKST1);
++	omap3evm_kp_data.wk_mask	= (1 << 3);
++	omap3evm_kp_data.padconf	= 0x1e0 ;
++#endif
++
+ 	omap3_evm_i2c_init();
+ 
+ 	platform_add_devices(omap3_evm_devices, ARRAY_SIZE(omap3_evm_devices));
+diff --git a/drivers/input/keyboard/twl4030_keypad.c b/drivers/input/keyboard/twl4030_keypad.c
+index 9a60979..d16a1cf 100644
+--- a/drivers/input/keyboard/twl4030_keypad.c
++++ b/drivers/input/keyboard/twl4030_keypad.c
+@@ -32,7 +32,9 @@
+ #include <linux/input.h>
+ #include <linux/platform_device.h>
+ #include <linux/i2c/twl4030.h>
++#include <linux/io.h>
+ #include <mach/keypad.h>
++#include <mach/control.h>
+ 
+ /*
+  * The TWL4030 family chips include a keypad controller that supports
+@@ -315,6 +317,7 @@ static int __devinit twl4030_kp_probe(struct platform_device *pdev)
+ 	if (!kp)
+ 		return -ENOMEM;
+ 
++	device_init_wakeup(&pdev->dev, 1);
+ 	platform_set_drvdata(pdev, kp);
+ 
+ 	/* Get the debug Device */
+@@ -458,6 +461,68 @@ static int __devexit twl4030_kp_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PM
++static int twl4030_kp_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	struct twl4030_keypad *kp = platform_get_drvdata(pdev);
++	struct twl4030_keypad_data *pdata = pdev->dev.platform_data;
++
++	/* JUST FOR DEBUG */
++	dev_err(&pdev->dev, "suspending...");
++
++	/* Set wake-enable bit */
++	if (pdata->wk_en && pdata->wk_mask) {
++		u32 v = __raw_readl(pdata->wk_en);
++		v |= pdata->wk_mask;
++		__raw_writel(v, pdata->wk_en);
++	}
++
++	/* Ensure IOPAD wake-enables are set */
++	if (cpu_is_omap34xx() && pdata->padconf) {
++		u16 v = omap_ctrl_readw(pdata->padconf);
++		v |= OMAP3_PADCONF_WAKEUPENABLE0;
++		omap_ctrl_writew(v, pdata->padconf);
++	}
++
++	if (device_may_wakeup(&pdev->dev))
++		enable_irq_wake(kp->irq);
++
++	return 0;
++}
++
++static int twl4030_kp_resume(struct platform_device *pdev)
++{
++	struct twl4030_keypad *kp = platform_get_drvdata(pdev);
++	struct twl4030_keypad_data *pdata = pdev->dev.platform_data;
++
++	/* JUST FOR DEBUG */
++	dev_err(&pdev->dev, "resuming...");
++
++	if (device_may_wakeup(&pdev->dev))
++		disable_irq_wake(kp->irq);
++
++	/* Clear wake-enable bit */
++	if (pdata->wk_en && pdata->wk_mask) {
++		u32 v = __raw_readl(pdata->wk_en);
++		v &= ~pdata->wk_mask;
++		__raw_writel(v, pdata->wk_en);
++	}
++
++	/* Ensure IOPAD wake-enables are cleared */
++	if (cpu_is_omap34xx() && pdata->padconf) {
++		u16 v = omap_ctrl_readw(pdata->padconf);
++		v &= ~OMAP3_PADCONF_WAKEUPENABLE0;
++		omap_ctrl_writew(v, pdata->padconf);
++	}
++
++	return 0;
++}
++#else
++#define twl4030_kp_suspend	NULL
++#define twl4030_kp_resume	NULL
++#endif
++
++
+ /*
+  * NOTE: twl4030 are multi-function devices connected via I2C.
+  * So this device is a child of an I2C parent, thus it needs to
+@@ -469,6 +534,8 @@ MODULE_ALIAS("platform:twl4030_keypad");
+ static struct platform_driver twl4030_kp_driver = {
+ 	.probe		= twl4030_kp_probe,
+ 	.remove		= __devexit_p(twl4030_kp_remove),
++	.suspend        = twl4030_kp_suspend,
++	.resume         = twl4030_kp_resume,
+ 	.driver		= {
+ 		.name	= "twl4030_keypad",
+ 		.owner	= THIS_MODULE,
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 9633be2..03925df 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -352,6 +352,12 @@ struct twl4030_keypad_data {
+ 	int irq;
+ 	unsigned int keymapsize;
+ 	unsigned int rep:1;
++#ifdef CONFIG_PM
++	void __iomem *wk_st;
++	void __iomem *wk_en;
++	u32 wk_mask;
++	u32 padconf;
++#endif
+ };
+ 
+ enum twl4030_usb_mode {
