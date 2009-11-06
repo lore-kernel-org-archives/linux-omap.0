@@ -1,74 +1,186 @@
-From: "Lohithakshan, Ranjith" <ranjithl@ti.com>
-Subject: RE: [PATCH] AM35xx: Clock table updates for AM3505/17
-Date: Fri, 6 Nov 2009 16:49:11 +0530
-Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02BB92EFA2@dbde02.ent.ti.com>
-References: <1257417540-21120-1-git-send-email-ranjithl@ti.com>,<7A436F7769CA33409C6B44B358BFFF0C012AFCC9D8@dlee02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0309C862AA@dbde02.ent.ti.com>
+From: Venkatraman S <svenkatr@ti.com>
+Subject: Re: [PATCH] Fix race condition in omap_request_dma()
+Date: Fri, 6 Nov 2009 17:52:55 +0530
+Message-ID: <618f0c910911060422p232c3e6apd870ab1253edf03c@mail.gmail.com>
+References: <F12CE1A68F023D498A2691C7B539311503B17F61@ZMY16EXM66.ds.mot.com>
+	 <618f0c910910301022m313cc0f3sb3f1f3439571d950@mail.gmail.com>
+	 <F12CE1A68F023D498A2691C7B539311503B80E25@ZMY16EXM66.ds.mot.com>
+	 <F12CE1A68F023D498A2691C7B539311503B816E8@ZMY16EXM66.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45539 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755089AbZKFLTL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 06:19:11 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nA6BJDxH024091
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Fri, 6 Nov 2009 05:19:16 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nA6BJCBk001174
-	for <linux-omap@vger.kernel.org>; Fri, 6 Nov 2009 16:49:13 +0530 (IST)
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0309C862AA@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:56135 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752287AbZKFMWu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 07:22:50 -0500
+Received: by pwj9 with SMTP id 9so607665pwj.21
+        for <linux-omap@vger.kernel.org>; Fri, 06 Nov 2009 04:22:56 -0800 (PST)
+In-Reply-To: <F12CE1A68F023D498A2691C7B539311503B816E8@ZMY16EXM66.ds.mot.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, "Menon, Nishanth" <nm@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: HU TAO-TGHK48 <taohu@motorola.com>
+Cc: linux-omap@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Yang Fei-AFY095 <fei.yang@motorola.com>, jon-hunter@ti.com, Zhou Ming-a17711 <a17711@motorola.com>, "Ye Yuan.Bo-A22116" <yuan-bo.ye@motorola.com>
 
+On Fri, Nov 6, 2009 at 12:45 AM, HU TAO-TGHK48 <taohu@motorola.com> wro=
+te:
+>
+> Any new comments?
+>
+> -Hu Tao
+>
+>
+I am happy with this version.
+Regards,
 
+Venkatraman.
 
-> -----Original Message-----
-> From: Gadiyar, Anand
-> Sent: Thursday, November 05, 2009 9:56 PM
-> To: Menon, Nishanth; Lohithakshan, Ranjith; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH] AM35xx: Clock table updates for AM3505/17
-> 
-> Nishanth Menon wrote:
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > owner@vger.kernel.org] On Behalf Of Ranjith Lohithakshan
-> > > Sent: Thursday, November 05, 2009 2:39 AM
-> > [...]
-> > > diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-
-> > > omap2/clock34xx.c
-> > > index c258f87..9ac5c0e 100644
-> > > --- a/arch/arm/mach-omap2/clock34xx.c
-> > > +++ b/arch/arm/mach-omap2/clock34xx.c
-> > > @@ -93,140 +93,143 @@ struct omap_clk {
-> > >  #define CK_343X              (1 << 0)
-> > >  #define CK_3430ES1   (1 << 1)
-> > >  #define CK_3430ES2   (1 << 2)
-> > > +#define CK_3517      (1 << 3)
-> > > +#define CK_3505      (1 << 4)
-> > > +#define CK_35XX      (CK_3517 | CK_3505)
-> > >
-> > >  static struct omap_clk omap34xx_clks[] = {
-> > > -     CLK(NULL,       "omap_32k_fck", &omap_32k_fck,  CK_343X),
-> > > -     CLK(NULL,       "virt_12m_ck",  &virt_12m_ck,   CK_343X),
-> > > -     CLK(NULL,       "virt_13m_ck",  &virt_13m_ck,   CK_343X),
-> > > -     CLK(NULL,       "virt_16_8m_ck", &virt_16_8m_ck, CK_3430ES2),
-> 
-> Just something that I thought of when I saw this line.
-> 
-> Do we still support OMAP3430 ES1.0 silicon? I don't know if any of
-> these boards exist in the wild and if they still work with current code.
-> 
-> If we don't mind dropping support for these boards, then maybe we
-> could remove the *3430ES2* flags and cut down on some code?
-> 
-> Just a thought.
-> 
-On OMAP3530, I know the support is from ES2.1 onwards only. If there is a wider 
-agreement to drop ES1.0 support, the changes you are recommending can be 
-taken up in a separate patch
-
-Ranjith
+>
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org
+>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of HU TAO-TGHK48
+>> Sent: Saturday, October 31, 2009 5:33 AM
+>> To: Venkatraman S
+>> Cc: linux-omap@vger.kernel.org; Tony Lindgren; Yang
+>> Fei-AFY095; jon-hunter@ti.com; Zhou Ming-a17711; Ye Yuan.Bo-A22116
+>> Subject: RE: [PATCH] Fix race condition in omap_request_dma()
+>>
+>> Hi, Venkatraman
+>>
+>> Agree with you. And just found omap_free_dma() need to be fixed too.
+>> New patch attached.
+>>
+>> From 7aa22ece591365c2dcd73c799d93781497322ff1 Mon Sep 17 00:00:00 20=
+01
+>> From: Tao Hu <taohu@motorola.com>
+>> Date: Fri, 30 Oct 2009 16:24:25 -0500
+>> Subject: [PATCH] Fix race condition in omap dma driver
+>>
+>> The bug could cause irq enable bit of one DMA channel is
+>> cleared/set unexpectedly when 2 (or more) drivers are calling
+>> omap_request_dma()/omap_free_dma() simultaneously
+>>
+>> Signed-off-by: Fei Yang <AFY095@motorola.com>
+>> Signed-off-by: Tao Hu =A0<taohu@motorola.com>
+>> ---
+>> =A0arch/arm/plat-omap/dma.c | =A0 =A06 ++++++
+>> =A01 files changed, 6 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/arch/arm/plat-omap/dma.c
+>> b/arch/arm/plat-omap/dma.c index cd53b28..5767899 100755
+>> --- a/arch/arm/plat-omap/dma.c
+>> +++ b/arch/arm/plat-omap/dma.c
+>> @@ -673,13 +673,16 @@ static inline void disable_lnk(int lch)
+>> =A0static inline void omap2_enable_irq_lch(int lch) =A0{
+>> =A0 =A0 =A0 u32 val;
+>> + =A0 =A0 unsigned long flags;
+>>
+>> =A0 =A0 =A0 if (!cpu_class_is_omap2())
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return;
+>>
+>> + =A0 =A0 spin_lock_irqsave(&dma_chan_lock, flags);
+>> =A0 =A0 =A0 val =3D dma_read(IRQENABLE_L0);
+>> =A0 =A0 =A0 val |=3D 1 << lch;
+>> =A0 =A0 =A0 dma_write(val, IRQENABLE_L0);
+>> + =A0 =A0 spin_unlock_irqrestore(&dma_chan_lock, flags);
+>> =A0}
+>>
+>> =A0int omap_request_dma(int dev_id, const char *dev_name, @@
+>> -788,10 +791,13 @@ void omap_free_dma(int lch)
+>>
+>> =A0 =A0 =A0 if (cpu_class_is_omap2()) {
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32 val;
+>> +
+>> + =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&dma_chan_lock, flags);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Disable interrupts */
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 val =3D dma_read(IRQENABLE_L0);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 val &=3D ~(1 << lch);
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_write(val, IRQENABLE_L0);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&dma_chan_lock, fla=
+gs);
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* Clear the CSR register and IRQ status=
+ register */
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 dma_write(OMAP2_DMA_CSR_CLEAR_MASK, CSR(=
+lch));
+>> --
+>> 1.5.4.3
+>>
+>>
+>>
+>> > -----Original Message-----
+>> > From: Venkatraman S [mailto:svenkatr@gmail.com]
+>> > Sent: Saturday, October 31, 2009 1:22 AM
+>> > To: HU TAO-TGHK48
+>> > Cc: linux-omap@vger.kernel.org; Tony Lindgren; Yang Fei-AFY095;
+>> > jon-hunter@ti.com; Zhou Ming-a17711; Ye Yuan.Bo-A22116
+>> > Subject: Re: [PATCH] Fix race condition in omap_request_dma()
+>> >
+>> > On Fri, Oct 30, 2009 at 9:00 AM, HU TAO-TGHK48 <taohu@motorola.com=
+>
+>> > wrote:
+>> > > From a36dac7ee6140ffa23f0adc024964aaf3e266e5f Mon Sep 17
+>> > 00:00:00 2001
+>> > > From: Tao Hu <taohu@motorola.com>
+>> > > Date: Thu, 29 Oct 2009 17:17:21 -0500
+>> > > Subject: [PATCH] Fix race condition in omap_request_dma()
+>> > >
+>> > > The bug could cause irq enable bit of one DMA channel is cleared
+>> > > unexpectedly when 2 (or more) drivers are calling
+>> > > omap_request_dma() simultaneously
+>> > >
+>> > > Signed-off-by: Fei Yang <AFY095@motorola.com>
+>> > > Signed-off-by: Tao Hu =A0<taohu@motorola.com>
+>> > > ---
+>> > > =A0arch/arm/plat-omap/dma.c | =A0 =A02 ++
+>> > > =A01 files changed, 2 insertions(+), 0 deletions(-)
+>> > >
+>> > > diff --git a/arch/arm/plat-omap/dma.c
+>> > b/arch/arm/plat-omap/dma.c index
+>> > > cd53b28..6895484 100755
+>> > > --- a/arch/arm/plat-omap/dma.c
+>> > > +++ b/arch/arm/plat-omap/dma.c
+>> > > @@ -749,11 +749,13 @@ int omap_request_dma(int dev_id, const cha=
+r
+>> > > *dev_name,
+>> > > =A0 =A0 =A0 =A0}
+>> > >
+>> > > =A0 =A0 =A0 =A0if (cpu_class_is_omap2()) {
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_lock_irqsave(&dma_chan_lock, =
+flags);
+>> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap2_enable_irq_lch(free_ch);
+>> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0omap_enable_channel_irq(free_ch);
+>> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Clear the CSR register and IRQ=
+ status
+>> register */
+>> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dma_write(OMAP2_DMA_CSR_CLEAR_MAS=
+K, CSR(free_ch));
+>> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0dma_write(1 << free_ch, IRQSTATUS=
+_L0);
+>> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 spin_unlock_irqrestore(&dma_chan_l=
+ock, flags);
+>> > > =A0 =A0 =A0 =A0}
+>> >
+>> > Nice catch. I think the lock needs to be applied only for
+>> the global
+>> > registers which are changed using the read - update - write method=
+=2E
+>> > The dma_write to per channel configuration registers need not be
+>> > locked.
+>> > Hence the lock is better placed "within" omap2_enable_irq_lch
+>> > function. That way, if it's reused, the locking would also be in
+>> > place.
+>> > Thank you !
+>> >
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>> linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
