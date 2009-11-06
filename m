@@ -1,218 +1,38 @@
-From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
-Subject: RE: [PATCH 4/5] Regulator: Adding OMAP3EVM/TWL4030 specific code in
- 	board-omap35x-pmic.c
-Date: Fri, 6 Nov 2009 12:17:27 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A67E353@dbde02.ent.ti.com>
-References: <1257439181-29257-1-git-send-email-anuj.aggarwal@ti.com>
- <f870da180911051316j73fd3a48lc7403e4af14d67e7@mail.gmail.com>
+From: Haribabu Narayanan <haribabu@iastate.edu>
+Subject: linux on sdp2420
+Date: Fri, 6 Nov 2009 01:16:20 -0600
+Message-ID: <965945430911052316g72370d3sae87ecc799373212@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33014 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751530AbZKFGrc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 01:47:32 -0500
-In-Reply-To: <f870da180911051316j73fd3a48lc7403e4af14d67e7@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:58210 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970AbZKFHQf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 02:16:35 -0500
+Received: by yxe17 with SMTP id 17so700163yxe.33
+        for <linux-omap@vger.kernel.org>; Thu, 05 Nov 2009 23:16:40 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Mike Rapoport <mike.rapoport@gmail.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "broonie@opensource.wolfsonmicro.com" <broonie@opensource.wolfsonmicro.com>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
+To: linux-omap <linux-omap@vger.kernel.org>
 
-> -----Original Message-----
-> From: Mike Rapoport [mailto:mike.rapoport@gmail.com]
-> Sent: Friday, November 06, 2009 2:46 AM
-> To: Aggarwal, Anuj
-> Cc: linux-omap@vger.kernel.org; broonie@opensource.wolfsonmicro.com;
-> lrg@slimlogic.co.uk
-> Subject: Re: [PATCH 4/5] Regulator: Adding OMAP3EVM/TWL4030 specific =
-code
-> in board-omap35x-pmic.c
->=20
-> On Thu, Nov 5, 2009 at 6:39 PM, Anuj Aggarwal <anuj.aggarwal@ti.com>
-> wrote:
-> > Adding various regulator-consumers for OMAP3EVM-TWL4030 combination
-> > in board-omap35x-pmic.c. Also, populating the respective fields
-> > for omap3evm_twldata structure.
-> >
-> > Signed-off-by: Anuj Aggarwal <anuj.aggarwal@ti.com>
-> > ---
-> > =A0arch/arm/mach-omap2/board-omap35x-pmic.c | =A0 81
-> +++++++++++++++++++++++++++++-
-> > =A0arch/arm/mach-omap2/board-omap3evm.c =A0 =A0 | =A0 =A02 +-
-> > =A02 files changed, 80 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-omap35x-pmic.c b/arch/arm/ma=
-ch-
-> omap2/board-omap35x-pmic.c
-> > index aae07ab..2ef4932 100644
-> > --- a/arch/arm/mach-omap2/board-omap35x-pmic.c
-> > +++ b/arch/arm/mach-omap2/board-omap35x-pmic.c
-> > @@ -24,10 +24,87 @@
-> > =A0* Definitions specific to TWL4030/TPS65950
-> > =A0*/
-> > =A0#if defined(CONFIG_PMIC_TWL4030)
-> > -static inline void pmic_twl4030_init(void)
-> > +#if defined(CONFIG_MACH_OMAP3EVM)
->=20
-> What about beagle, overo and others that use the same regulator for
-> the same purposes?
-[Aggarwal, Anuj] This file can be used to accommodate all the common
-Regulator f/w related code for OMAP3 based platforms. Depending upon=20
-the regulators' usage across EVMs, the code can be split in generic and
-platform specific code.
->=20
-> > +#include <linux/i2c/twl4030.h>
-> > +
-> > +extern struct twl4030_platform_data omap3evm_twldata;
->=20
-> The *twldata does not have to be global, it can be passed to pmic_ini=
-t
-> as a parameter.
->=20
-> > +/* VDAC */
-> > +static struct regulator_consumer_supply vdac_consumers[] =3D {
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D "dac",
-> > + =A0 =A0 =A0 },
-> > +};
-> > +
-> > +static struct regulator_init_data vdac_data =3D {
-> > + =A0 =A0 =A0 .constraints =3D {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "VDAC",
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =3D 1800000,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =3D 1800000,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =3D true,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_modes_mask =3D REGULATOR_MODE_=
-NORMAL
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | REGULATOR_MODE_STAN=
-DBY,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_ops_mask =3D REGULATOR_CHANGE_=
-MODE
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | REGULATOR_CHANGE_ST=
-ATUS,
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 .num_consumer_supplies =3D ARRAY_SIZE(vdac_consumers)=
-,
-> > + =A0 =A0 =A0 .consumer_supplies =3D vdac_consumers,
-> > +};
-> > +
-> > +/* VPLL2 */
-> > +static struct regulator_consumer_supply vpll2_consumers[] =3D {
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D "lcd",
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D "sdi",
-> > + =A0 =A0 =A0 },
-> > +};
-> > +
-> > +static struct regulator_init_data vpll2_data =3D {
-> > + =A0 =A0 =A0 .constraints =3D {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "VPLL2",
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =3D 1800000,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =3D 1800000,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .apply_uV =3D true,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_modes_mask =3D REGULATOR_MODE_=
-NORMAL
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | REGULATOR_MODE_STAN=
-DBY,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_ops_mask =3D REGULATOR_CHANGE_=
-MODE
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | REGULATOR_CHANGE_ST=
-ATUS,
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 .num_consumer_supplies =3D ARRAY_SIZE(vpll2_consumers=
-),
-> > + =A0 =A0 =A0 .consumer_supplies =3D vpll2_consumers,
-> > +};
-> > +
-> > +/* VMMC1 */
-> > +struct regulator_consumer_supply vmmc1_consumers[] =3D {
-> > + =A0 =A0 =A0 {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .supply =3D "mmc",
-> > + =A0 =A0 =A0 },
-> > +};
-> > +
-> > +static struct regulator_init_data vmmc1_data =3D {
-> > + =A0 =A0 =A0 .constraints =3D {
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .name =3D "VMMC1",
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .min_uV =3D 1850000,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .max_uV =3D 3150000,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_modes_mask =3D REGULATOR_MODE_=
-NORMAL
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | REGULATOR_MODE_STAN=
-DBY,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .valid_ops_mask =3D REGULATOR_CHANGE_=
-VOLTAGE
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 | REGULATOR_CHANGE_MO=
-DE |
-> REGULATOR_CHANGE_STATUS,
-> > + =A0 =A0 =A0 },
-> > + =A0 =A0 =A0 .num_consumer_supplies =3D ARRAY_SIZE(vmmc1_consumers=
-),
-> > + =A0 =A0 =A0 .consumer_supplies =3D vmmc1_consumers,
-> > +};
-> > +
-> > +static void __init pmic_twl4030_init(void)
-> > =A0{
-> > - =A0 =A0 =A0 /* TWL4030 specific init code */
-> > + =A0 =A0 =A0 /* Initialize the regulator specific fields here */
-> > + =A0 =A0 =A0 omap3evm_twldata.vdac =3D &vdac_data;
-> > + =A0 =A0 =A0 omap3evm_twldata.vpll2 =3D &vpll2_data;
-> > + =A0 =A0 =A0 omap3evm_twldata.vmmc1 =3D &vmmc1_data;
-> > =A0}
-> > +#endif /* CONFIG_MACH_OMAP3EVM */
->=20
-> I don't see why would you move board specific code from board specifi=
-c
-> file to some "generic" file and add #ifdefs to enable this code only
-> for that board. Indeed, many OMAP3 boards use TWL/TPS in very similar
-> way and it does make sence to factor the common code out. But with
-> your approach each board will have to add its own #ifdef with almost
-> identical code inside it.
-[Aggarwal, Anuj] As explained above, same code can be used for OMAP3 ba=
-sed
-platforms having the same regulator requirements.
->=20
-> > =A0#else
-> > =A0static inline void pmic_twl4030_init(void)
-> > =A0{
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
-> omap2/board-omap3evm.c
-> > index dbdf062..10ac0d2 100644
-> > --- a/arch/arm/mach-omap2/board-omap3evm.c
-> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> > @@ -197,7 +197,7 @@ static struct twl4030_madc_platform_data
-> omap3evm_madc_data =3D {
-> > =A0 =A0 =A0 =A0.irq_line =A0 =A0 =A0 =3D 1,
-> > =A0};
-> >
-> > -static struct twl4030_platform_data omap3evm_twldata =3D {
-> > +struct twl4030_platform_data omap3evm_twldata =3D {
-> > =A0 =A0 =A0 =A0.irq_base =A0 =A0 =A0 =3D TWL4030_IRQ_BASE,
-> > =A0 =A0 =A0 =A0.irq_end =A0 =A0 =A0 =A0=3D TWL4030_IRQ_END,
-> >
-> > --
-> > 1.6.2.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-oma=
-p" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
-l
-> >
->=20
->=20
->=20
-> --
-> 	Sincerely Yours,
-> 		Mike.
+Hi all,
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    I am trying to get the latest possible working linux kernel on SDP
+2420 board.  I have managed to get 2.6.14
+(http://linux.omap.com/pub/kernel/2430sdp/source/) to boot on this.
+However, the later versions of kernel in the TI site (pointing to
+linux.omap.com) don't compile for H4 (is it no longer supported?).
+
+    It would be great if you guys can provide your inputs on the
+following doubts:
+
+1. Will the OMAP git kernel be of any use w.r.t 2420? Or is 2420
+completely unsupported after 2.6.14?
+2. Has anybody ever got wireless to work on 2420 (2.6.14 or others)?
+I need to get a 802.11 connection working on that board and not sure
+what is the level of kernel/drivers support for that.  I should be ok
+with any underlying connectivity (miniPCI, SDIO or USB) as long as I
+can work on the code.
+3. Is OMAP2420 data sheet not available in public?
+
+-hari
