@@ -1,71 +1,23 @@
-From: "Wang, Jane" <jwang@ti.com>
-Subject: RE: OMAP-McBSP driver not allowing suspend/resume
-Date: Fri, 6 Nov 2009 07:53:16 -0600
-Message-ID: <13B9B4C6EF24D648824FF11BE8967162039B834A2C@dlee02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A704F27@dbde02.ent.ti.com>
+From: "Weng, Wending" <WWeng@rheinmetall.ca>
+Subject: The latest 2.6.32.rc5 is very slow
+Date: Fri, 6 Nov 2009 09:05:32 -0500
+Message-ID: <54B31811B83D744D90BF0289EB447D460916FCE608@MAIL-MB1.oerlikon.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:51334 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752287AbZKFNxO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 08:53:14 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A704F27@dbde02.ent.ti.com>
+Received: from mx.rheinmetall.ca ([207.61.105.111]:30779 "EHLO
+	MAIL-ET.oerlikon.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756026AbZKFOKo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 09:10:44 -0500
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi Anuj,
+Hi All,
 
-I made some changes to fix the suspend/resume issue, and I am about to submit to alsa-devel mailing list.
+        I have an omap3evm based system, it was running PSP 1.0.0., everything works fine. Recently, I upgraded the BSP to the latest 2.6.32.rc5, it's very much straight forward. However, there is a major performance degradation, the system is almost not usable. Has Anybody experienced similar performance problems? What are potential reasons?
 
-Regards,
+Wending Weng
 
--Jane Wang
-
------Original Message-----
-From: alsa-devel-bounces@alsa-project.org [mailto:alsa-devel-bounces@alsa-project.org] On Behalf Of Aggarwal, Anuj
-Sent: Friday, November 06, 2009 7:43 AM
-To: linux-omap@vger.kernel.org; alsa-devel@alsa-project.org
-Subject: [alsa-devel] OMAP-McBSP driver not allowing suspend/resume
-
-Hi,
-
-I am trying to put OMAP3 in suspend state, while audio is playing,
-by issuing:
-
-echo mem > /sys/power/state
-
-root@omap3evm:~# echo mem > /sys/power/state
-PM: Syncing filesystems ... done.
-Freezing user space processes ... (elapsed 0.00 seconds) done.
-Freezing remaining freezable tasks ... (elapsed 0.00 seconds) done.
-Suspending console(s) (use no_console_suspend to debug)
-Powerdomain (core_pwrdm) didn't enter target state 1
-Powerdomain (per_pwrdm) didn't enter target state 1
-Could not enter target state in pm_suspend
-Restarting tasks ... Suspended. Trying resume. done.
-Done.
-root@omap3evm:~#
-
-As can be seen from the log, both the CORE and PER power domains
-are not going to the suspend state.
-
-On further debug, I found that McBSP 2 instance belongs to the
-PER domain whereas SDMA belongs to CORE domain. And at least 
-McBSP driver (on l-o tip) doesn't allow disabling of the clocks
-unless McBSP instance itself is freed. Because of this, when 
-McBSP is stopped after receiving the suspend request, the
-clocks are still ON and the PER domain is not allowed to enter
-to the desired low-power state. 
-
-The McBSP driver needs to be modified so that it can accommodate 
-suspend/resume requests and turns off the clocks when not required.
-Has anyone modified the driver for this, on some other branch? I
-tried finding it but could not do so. (Just wanted to make sure
-before doing the changes)
-
-Regards,
-Anuj Aggarwal
