@@ -1,63 +1,34 @@
-From: "Weng, Wending" <WWeng@rheinmetall.ca>
-Subject: RE: The latest 2.6.32.rc5 is very slow
-Date: Fri, 6 Nov 2009 09:54:13 -0500
-Message-ID: <54B31811B83D744D90BF0289EB447D460916FCE609@MAIL-MB1.oerlikon.ca>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE31FB41@dbde02.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 5/5] Regulator: Renaming the supplies used in MMC driver
+Date: Fri, 6 Nov 2009 15:12:04 +0000
+Message-ID: <20091106151204.GD27699@rakim.wolfsonmicro.main>
+References: <1257439189-29594-1-git-send-email-anuj.aggarwal@ti.com>
+ <f870da180911051317r7693dce2l8e6a345d2055198@mail.gmail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A67E302@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mx.rheinmetall.ca ([207.61.105.111]:30974 "EHLO
-	MAIL-ET.oerlikon.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757307AbZKFOyJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 09:54:09 -0500
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE31FB41@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:45691 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757587AbZKFPMA (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Fri, 6 Nov 2009 10:12:00 -0500
+Content-Disposition: inline
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A67E302@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "'Premi, Sanjeev'" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Cc: Mike Rapoport <mike.rapoport@gmail.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "lrg@slimlogic.co.uk" <lrg@slimlogic.co.uk>
 
+On Fri, Nov 06, 2009 at 11:21:14AM +0530, Aggarwal, Anuj wrote:
 
->-----Original Message-----
->From: Premi, Sanjeev [mailto:premi@ti.com]
->Sent: November 6, 2009 9:18 AM
->To: Weng, Wending; linux-omap@vger.kernel.org
->Subject: RE: The latest 2.6.32.rc5 is very slow
+> [Aggarwal, Anuj] This was done to have the same naming conventions across
+> the board. I could not find an extra "v" in supply names except MMC.
+> Hence modified this. Regulator supply names should be simple and easy to
+> understand.
+> I can revert this change or change the dependent board files for SDP/LDP
+> etc. What do you suggest?
 
-
-
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org
->> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Weng, Wending
->> Sent: Friday, November 06, 2009 7:36 PM
->> To: linux-omap@vger.kernel.org
->> Subject: The latest 2.6.32.rc5 is very slow
->>
->> Hi All,
->>
->>         I have an omap3evm based system, it was running PSP
->> 1.0.0., everything works fine. Recently, I upgraded the BSP
-
->[sp] That would be kernel version 2.6.22-18?
-
-That's correct.
-
->> to the latest 2.6.32.rc5, it's very much straight forward.
->> However, there is a major performance degradation, the system
-
->[sp] How are you measuring performance degradation?
-My system is a map based application, it responds much slower for all user input, I can feel it.
-I did some specific testings, for instance, write a short string to the console, usually, it takes less than 1 us for BSP 1.0.0, but the latest BSP will take 30 us or 60 us, the latency always goes up by 30 us. The display call(printf) is translated into sys_write in kernel, I measure its execution latency, indeed, it's 30 or 60 us, even I add spin_lock_irqsave and spin_lock_irqrestore to make sure it will not be disturbed. It doesn't take so much time to execute sys_write, I suspect it's interrupted by DMA or some bus lock.
-
->> is almost not usable. Has Anybody experienced similar
->> performance problems? What are potential reasons?
->>
->> Wending Weng
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe
->> linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
+These names normally come from the names of the supplies in the
+datasheets for the consumer devices rather than the names of the rails
+on the boards - those would normally be specified as the names in the
+constraints where they are used for display purposes.
