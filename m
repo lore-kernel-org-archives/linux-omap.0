@@ -1,47 +1,52 @@
-From: Kalle Valo <kalle.valo@iki.fi>
-Subject: Re: [PATCH v2 2/2] omap: RX-51: enable tsc2005
-Date: Sat, 07 Nov 2009 17:43:55 +0200
-Message-ID: <87d43ufih0.fsf@purkki.valot.fi>
-References: <1257340982-22814-1-git-send-email-aaro.koskinen@nokia.com>
-	<1257340982-22814-2-git-send-email-aaro.koskinen@nokia.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 1/1] PM: Thaws refrigerated and to be exited kernel
+	threads
+Date: Sat, 7 Nov 2009 17:54:21 +0100
+Message-ID: <20091107165421.GA1630@ucw.cz>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE31F934@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-input-owner@vger.kernel.org>
-In-Reply-To: <1257340982-22814-2-git-send-email-aaro.koskinen@nokia.com> (Aaro Koskinen's message of "Wed\,  4 Nov 2009 15\:23\:02 +0200")
-Sender: linux-input-owner@vger.kernel.org
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: linux-input@vger.kernel.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org, dmitry.torokhov@gmail.com, tony@atomide.com
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752564AbZKGQy0@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE31F934@dbde02.ent.ti.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Dasgupta, Romit" <romit@ti.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
 List-Id: linux-omap@vger.kernel.org
 
-Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+Hi!
 
-> Enable tsc2005 touchscreen driver on the RX-51 board.
->
-> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+> Kicks out a frozen thread from the refrigerator when an active thread has
+> invoked kthread_stop on the frozen thread.
+> 
+> Signed-off-by: Romit Dasgupta <romit@ti.com>
 > ---
->
-> The patch is for 2.6.32-rc6.
+> 
+> diff --git a/kernel/freezer.c b/kernel/freezer.c
+> index bd1d42b..c28dbe8 100644
+> --- a/kernel/freezer.c
+> +++ b/kernel/freezer.c
+> @@ -9,6 +9,7 @@
+>  #include <linux/module.h>
+>  #include <linux/syscalls.h>
+>  #include <linux/freezer.h>
+> +#include <linux/kthread.h>
+>  
+>  /*
+>   * freezing is complete, mark current process as frozen
+> @@ -49,7 +50,7 @@ void refrigerator(void)
+>  
+>  	for (;;) {
+>  		set_current_state(TASK_UNINTERRUPTIBLE);
+> -		if (!frozen(current))
+> +		if (!frozen(current) || (!current->mm && kthread_should_stop()))
+>  			break;
+>  		schedule();
 
-[...]
-
-> +static struct spi_board_info rx51_peripherals_spi_board_info[] = {
-> +	[0] = {
-> +		.modalias		= "tsc2005",
-> +		.bus_num		= 1,
-> +		.chip_select		= 0,
-> +		.irq			= OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),
-> +		.max_speed_hz		= 6000000,
-> +		.controller_data	= &tsc2005_mcspi_config,
-> +		.platform_data		= &tsc2005_config,
-> +	},
-> +};
-
-I sent a wl1251 patch which adds spi_board_info and conflicts with
-this patch:
-
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17604.html
-
-How do we handle this?
+Well, what if the thread does some processing before stopping? That
+would break refrigerator assumptions...
+								Pavel
 
 -- 
-Kalle Valo
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
