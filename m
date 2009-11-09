@@ -1,92 +1,52 @@
-From: "Dasgupta, Romit" <romit@ti.com>
-Subject: RE: [PATCH 1/1] PM: Thaws refrigerated and to be exited kernel
- threads
-Date: Sun, 8 Nov 2009 16:40:07 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE31FD10@dbde02.ent.ti.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE31F934@dbde02.ent.ti.com>
- <20091107165421.GA1630@ucw.cz>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE31FCF1@dbde02.ent.ti.com>
- <20091108082727.GC16482@elf.ucw.cz>
+From: Brad Parker <brad@heeltoe.com>
+Subject: omap3 otg host not working since 2.6.28?
+Date: Sun, 08 Nov 2009 21:11:31 -0500
+Message-ID: <4AF77A53.2050908@heeltoe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57736 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753901AbZKHLKy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Nov 2009 06:10:54 -0500
-In-Reply-To: <20091108082727.GC16482@elf.ucw.cz>
-Content-Language: en-US
+Received: from gateway.heeltoe.com ([66.134.219.32]:20320 "EHLO
+	gateway.heeltoe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751662AbZKICVH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Sun, 8 Nov 2009 21:21:07 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by gateway.heeltoe.com (Postfix) with ESMTP id BD1B6CC06C
+	for <linux-omap@vger.kernel.org>; Sun,  8 Nov 2009 21:11:32 -0500 (EST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+To: linux-omap@vger.kernel.org
 
-(Resending with 80 column restriction) 
+I can't get OTG host mode to work with any recent kernels.  I'm curious 
+if anyone else has tried this.
+It may well be something most people don't do.
 
-> -----Original Message-----
-> From: Pavel Machek [mailto:pavel@ucw.cz] 
-> Sent: Sunday, November 08, 2009 1:57 PM
-> To: Dasgupta, Romit
-> Cc: Rafael J. Wysocki; linux-omap@vger.kernel.org; 
-> linux-kernel@vger.kernel.org; linux-pm@lists.linux-foundation.org
-> Subject: Re: [PATCH 1/1] PM: Thaws refrigerated and to be 
-> exited kernel threads
-> 
-> On Sun 2009-11-08 09:52:52, Dasgupta, Romit wrote:
-> > > Subject: Re: [PATCH 1/1] PM: Thaws refrigerated and to be 
-> exited kernel
-> > > threads
-> > > 
-> > > Hi!
-> > > 
-> > > > Kicks out a frozen thread from the refrigerator when an 
-> active thread has
-> > > > invoked kthread_stop on the frozen thread.
-> ...
-> > > > @@ -49,7 +50,7 @@ void refrigerator(void)
-> > > >
-> > > >  	for (;;) {
-> > > >  		set_current_state(TASK_UNINTERRUPTIBLE);
-> > > > -		if (!frozen(current))
-> > > > +		if (!frozen(current) || (!current->mm 
-> && kthread_should_stop()))
-> > > >  			break;
-> > > >  		schedule();
-> > > 
-> > > Well, what if the thread does some processing before 
-> stopping? That
-> > > would break refrigerator assumptions...
-> > 
-> > The suspend thread will block until the 'to be stopped' 
-> thread clears up. That is what any call to kthread_stop would 
-> boil down to. The target thread would anyway be out of the 
-> refrigerator so I am not sure what assumption you mean here. 
-> Eventually, the target thread would clear up and wake up the 
-> suspend thread and then things would go on as usual.
-> 
-> (Please format to 80 columns).
-> 
-> No, I do not get it.
-> 
-> Lets say we have
-> 
-> evil_data_writer thread that needs to be stopped becuase it writes to
-> filesystem
-> 
-> nofreeze random_stopper thread
-> 
-> now we create the suspend image, and start writing it out. But that's
-> okay, evil_data_writer is stopped so it can't do no harm. But now
-> random_stopper decides to thread_stop() the evil_data_writer, and this
-> new code allows it to exit the refrigerator, *do some writing*, and
-> then stop.
-> 
-> That's bad, right?
-evil_data_writer will enter refrigerator after invoking 'try_to_freeze'. This 
-should be followed by a call to kthread_should_stop. There it decides if it 
-needs to exit the thread (after cleanups if necessary) or not. I have seen that
-the bdi_writeback_task function is like that. It does not care if there is 
-pending data to be written if it detects that someone have invoked a 
-'kthread_stop' on it. It simply exits. I have seen some other kernel threads 
-that do not follow this and I think that probably is not right. 
+I've tried this on our custom hardware (omap3530/tps65930) and on a 
+beagleboard with the same
+results.  Our OTG hardware is identical to the beagleboard.
+
+I am using a special mini-B cable which has the ID pin grounded.  I know 
+about forcing the
+mode with echo "host" >/sys/devices/platform/musb_hdrc/mode. 
+
+When I use a 2.6.28 kernel built using the same patches as are in OE, 
+OTG host works fine.  I can get the controller
+into host mode.  When I use any kernels from the omap git tree past 
+2.6.28 it doesn't work.  The controller
+stays in "b-mode" and won't switch.
+
+I can dig into it and figure out why, but I thought I'd ask in case 
+anyone else has already solved it.  I've written
+some diagnostics for the OTG controller and found it's finicky about 
+getting into host mode, sometimes
+wanting the phy to be reset before it will switch.
+
+-brad
+
+ 
+-----------
+Brad Parker
+Heeltoe Consulting
+http://www.heeltoe.com
+781-483-3101
+
