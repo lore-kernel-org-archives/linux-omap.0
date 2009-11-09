@@ -1,104 +1,37 @@
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: Re: [PATCH] omap: update Pandora defconfig
-Date: Tue, 10 Nov 2009 01:51:42 +0200
-Message-ID: <6ed0b2680911091551g163ad784pf1b1b38918f2f629@mail.gmail.com>
-References: <1257633141-32505-1-git-send-email-notasas@gmail.com>
-	 <20091109212437.GG23952@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] omap3: beagle: Fix USB host port power control
+Date: Mon, 9 Nov 2009 18:54:04 -0500
+Message-ID: <notify-1257810847@atomide.com>
+References: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0016e6d64b181dc5010477f8e0cc
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:43580 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754385AbZKIXvi (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 18:51:38 -0500
-Received: by ewy3 with SMTP id 3so3720758ewy.37
-        for <linux-omap@vger.kernel.org>; Mon, 09 Nov 2009 15:51:42 -0800 (PST)
-In-Reply-To: <20091109212437.GG23952@atomide.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55071 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825AbZKIXyE (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 18:54:04 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1N7e3k-000CgH-U3
+	for linux-omap@vger.kernel.org; Mon, 09 Nov 2009 23:54:09 +0000
+In-Reply-To: <1256371194-22944-1-git-send-email-jhnikula@gmail.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
---0016e6d64b181dc5010477f8e0cc
-Content-Type: text/plain; charset=ISO-8859-1
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-On Mon, Nov 9, 2009 at 11:24 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Grazvydas Ignotas <notasas@gmail.com> [091107 14:32]:
->> This patch updates defconfig to enable options needed to properly
->> boot OMAP3 pandora board. It also enables MMC, OTG, GPIO LEDs,
->> TWL4030 GPIO and sound drivers.
->
-> Could you please edit out the automatically added changes
-> so we can send this in as a fix? Basically only leave the
-> changes listed above?
+Branch in linux-omap: omap-fixes
 
-ok, edited version attached.
+Initial commit ID (Likely to change): 12187e35445bef725406b8f0bbf745ac5501da63
 
-> Then we can also do a full update of the defconfig for the
-> upcoming merge window.
+PatchWorks
+http://patchwork.kernel.org/patch/55703/
 
-Sounds good, will send full update on top of this one for -next if
-this one is ok.
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=12187e35445bef725406b8f0bbf745ac5501da63
 
---0016e6d64b181dc5010477f8e0cc
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001--omap-update-Pandora-defconfig.patch"
-Content-Disposition: attachment;
-	filename="0001--omap-update-Pandora-defconfig.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g1tvw7fj0
 
-RnJvbSA5MTliZWZhODg0YjZmMjU1NzIxMjQ0MTE3YzQyOThjZTY2NDk1NDgyIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBHcmF6dnlkYXMgSWdub3RhcyA8bm90YXNhc0BnbWFpbC5jb20+
-CkRhdGU6IFR1ZSwgMTAgTm92IDIwMDkgMDE6NDU6MTAgKzAyMDAKU3ViamVjdDogW1BBVENIXSBv
-bWFwOiB1cGRhdGUgUGFuZG9yYSBkZWZjb25maWcKClRoaXMgcGF0Y2ggdXBkYXRlcyBkZWZjb25m
-aWcgdG8gZW5hYmxlIG9wdGlvbnMgbmVlZGVkIHRvIHByb3Blcmx5CmJvb3QgT01BUDMgcGFuZG9y
-YSBib2FyZC4gSXQgYWxzbyBlbmFibGVzIE1NQywgT1RHLCBHUElPIExFRHMsClRXTDQwMzAgR1BJ
-TyBhbmQgc291bmQgZHJpdmVycy4KClNpZ25lZC1vZmYtYnk6IEdyYXp2eWRhcyBJZ25vdGFzIDxu
-b3Rhc2FzQGdtYWlsLmNvbT4KLS0tCiBhcmNoL2FybS9jb25maWdzL29tYXAzX3BhbmRvcmFfZGVm
-Y29uZmlnIHwgICA0OSArKysrKysrKysrKysrKysrKysrKysrKysrKy0tLQogMSBmaWxlcyBjaGFu
-Z2VkLCA0NCBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2FyY2gv
-YXJtL2NvbmZpZ3Mvb21hcDNfcGFuZG9yYV9kZWZjb25maWcgYi9hcmNoL2FybS9jb25maWdzL29t
-YXAzX3BhbmRvcmFfZGVmY29uZmlnCmluZGV4IGI1NGFkMmUuLjE1MGRlYWYgMTAwNjQ0Ci0tLSBh
-L2FyY2gvYXJtL2NvbmZpZ3Mvb21hcDNfcGFuZG9yYV9kZWZjb25maWcKKysrIGIvYXJjaC9hcm0v
-Y29uZmlncy9vbWFwM19wYW5kb3JhX2RlZmNvbmZpZwpAQCAtNjExLDcgKzYxMSw3IEBAIENPTkZJ
-R19JTlBVVF9LRVlCT0FSRD15CiAjIENPTkZJR19LRVlCT0FSRF9YVEtCRCBpcyBub3Qgc2V0CiAj
-IENPTkZJR19LRVlCT0FSRF9ORVdUT04gaXMgbm90IHNldAogIyBDT05GSUdfS0VZQk9BUkRfU1RP
-V0FXQVkgaXMgbm90IHNldAotIyBDT05GSUdfS0VZQk9BUkRfR1BJTyBpcyBub3Qgc2V0CitDT05G
-SUdfS0VZQk9BUkRfR1BJTz15CiBDT05GSUdfSU5QVVRfTU9VU0U9eQogIyBDT05GSUdfTU9VU0Vf
-UFMyIGlzIG5vdCBzZXQKICMgQ09ORklHX01PVVNFX1NFUklBTCBpcyBub3Qgc2V0CkBAIC02MzQs
-NyArNjM0LDggQEAgQ09ORklHX1RPVUNIU0NSRUVOX0FEUzc4NDY9eQogIyBDT05GSUdfVE9VQ0hT
-Q1JFRU5fVE9VQ0hXSU4gaXMgbm90IHNldAogIyBDT05GSUdfVE9VQ0hTQ1JFRU5fVVNCX0NPTVBP
-U0lURSBpcyBub3Qgc2V0CiAjIENPTkZJR19UT1VDSFNDUkVFTl9UT1VDSElUMjEzIGlzIG5vdCBz
-ZXQKLSMgQ09ORklHX0lOUFVUX01JU0MgaXMgbm90IHNldAorQ09ORklHX0lOUFVUX01JU0M9eQor
-Q09ORklHX0lOUFVUX1RXTDQwMzBfUFdSQlVUVE9OPXkKIAogIwogIyBIYXJkd2FyZSBJL08gcG9y
-dHMKQEAgLTgzNCw3ICs4MzUsMjkgQEAgQ09ORklHX0RBQj15CiAjCiAjIENPTkZJR19WR0FfQ09O
-U09MRSBpcyBub3Qgc2V0CiBDT05GSUdfRFVNTVlfQ09OU09MRT15Ci0jIENPTkZJR19TT1VORCBp
-cyBub3Qgc2V0CitDT05GSUdfU09VTkQ9eQorQ09ORklHX1NPVU5EX09TU19DT1JFPXkKK0NPTkZJ
-R19TT1VORF9PU1NfQ09SRV9QUkVDTEFJTT15CitDT05GSUdfU05EPXkKK0NPTkZJR19TTkRfVElN
-RVI9eQorQ09ORklHX1NORF9QQ009eQorQ09ORklHX1NORF9KQUNLPXkKK0NPTkZJR19TTkRfT1NT
-RU1VTD15CitDT05GSUdfU05EX01JWEVSX09TUz15CitDT05GSUdfU05EX1BDTV9PU1M9eQorQ09O
-RklHX1NORF9QQ01fT1NTX1BMVUdJTlM9eQorQ09ORklHX1NORF9TVVBQT1JUX09MRF9BUEk9eQor
-Q09ORklHX1NORF9WRVJCT1NFX1BST0NGUz15CitDT05GSUdfU05EX1ZFUkJPU0VfUFJJTlRLPXkK
-K0NPTkZJR19TTkRfRFJJVkVSUz15CitDT05GSUdfU05EX1VTQj15CitDT05GSUdfU05EX1NPQz15
-CitDT05GSUdfU05EX09NQVBfU09DPXkKK0NPTkZJR19TTkRfT01BUF9TT0NfTUNCU1A9eQorQ09O
-RklHX1NORF9PTUFQX1NPQ19PTUFQM19QQU5ET1JBPXkKK0NPTkZJR19TTkRfU09DX0kyQ19BTkRf
-U1BJPXkKK0NPTkZJR19TTkRfU09DX1RXTDQwMzA9eQorCiBDT05GSUdfSElEX1NVUFBPUlQ9eQog
-Q09ORklHX0hJRD15CiAjIENPTkZJR19ISURfREVCVUcgaXMgbm90IHNldApAQCAtMTAyMCw3ICsx
-MDQzLDEzIEBAIENPTkZJR19NTUNfQkxPQ0tfQk9VTkNFPXkKICMgQ09ORklHX01NQ19TUEkgaXMg
-bm90IHNldAogIyBDT05GSUdfTUVNU1RJQ0sgaXMgbm90IHNldAogIyBDT05GSUdfQUNDRVNTSUJJ
-TElUWSBpcyBub3Qgc2V0Ci0jIENPTkZJR19ORVdfTEVEUyBpcyBub3Qgc2V0CitDT05GSUdfTkVX
-X0xFRFM9eQorQ09ORklHX0xFRFNfQ0xBU1M9eQorQ09ORklHX0xFRFNfR1BJTz15CitDT05GSUdf
-TEVEU19HUElPX1BMQVRGT1JNPXkKK0NPTkZJR19MRURTX1RSSUdHRVJTPXkKK0NPTkZJR19MRURT
-X1RSSUdHRVJfREVGQVVMVF9PTj15CisKIENPTkZJR19SVENfTElCPXkKIENPTkZJR19SVENfQ0xB
-U1M9eQogQ09ORklHX1JUQ19IQ1RPU1lTPXkKQEAgLTEwODQsOSArMTExMywxMiBAQCBDT05GSUdf
-UlRDX0RSVl9UV0w0MDMwPXkKICMgb24tQ1BVIFJUQyBkcml2ZXJzCiAjCiAjIENPTkZJR19ETUFE
-RVZJQ0VTIGlzIG5vdCBzZXQKLSMgQ09ORklHX1JFR1VMQVRPUiBpcyBub3Qgc2V0CiAjIENPTkZJ
-R19VSU8gaXMgbm90IHNldAogCitDT05GSUdfUkVHVUxBVE9SPXkKK0NPTkZJR19SRUdVTEFUT1Jf
-RklYRURfVk9MVEFHRT15CitDT05GSUdfUkVHVUxBVE9SX1RXTDQwMzA9eQorCiAjCiAjIEZpbGUg
-c3lzdGVtcwogIwpAQCAtMTQwNywzICsxNDM5LDEwIEBAIENPTkZJR19QTElTVD15CiBDT05GSUdf
-SEFTX0lPTUVNPXkKIENPTkZJR19IQVNfSU9QT1JUPXkKIENPTkZJR19IQVNfRE1BPXkKKworIyBh
-ZGRlZCBieSBoYW5kIGZvciBub3cKK0NPTkZJR19LRVlCT0FSRF9UV0w0MDMwPXkKK0NPTkZJR19V
-U0JfT1RHX1VUSUxTPXkKK0NPTkZJR19UV0w0MDMwX1VTQj15CitDT05GSUdfTU1DX09NQVBfSFM9
-eQorCi0tIAoxLjUuNi4zCgo=
---0016e6d64b181dc5010477f8e0cc--
