@@ -1,56 +1,38 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: Driver Merge Questions
-Date: Mon, 9 Nov 2009 14:07:51 +0200
-Message-ID: <37786d4b0911090407w19d7f054n3203df2eccac32ba@mail.gmail.com>
-References: <4AF040D1.7020109@kionix.com> <20091103165821.GG8981@atomide.com>
-	 <20091109092621.GY1773@smtp.gmail.com>
+From: "Alberto J. Perez" <aperez@disca.upv.es>
+Subject: DSP can work with 2.6.30 or later kernels?
+Date: Mon, 09 Nov 2009 13:33:50 +0100
+Message-ID: <4AF80C2E.5070308@disca.upv.es>
+References: <ce9ab5790910292320x2eef0550pdc3fde5d616ea361@mail.gmail.com>	 <ce9ab5790910300142q6062c47p935ae967955f89f@mail.gmail.com>	 <ce9ab5790911090215q7a626f8v6159a97dc70265c5@mail.gmail.com> <1257762675.21596.234.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-ew0-f207.google.com ([209.85.219.207]:58052 "EHLO
-	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857AbZKIMHr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 07:07:47 -0500
-Received: by ewy3 with SMTP id 3so3021960ewy.37
-        for <linux-omap@vger.kernel.org>; Mon, 09 Nov 2009 04:07:51 -0800 (PST)
-In-Reply-To: <20091109092621.GY1773@smtp.gmail.com>
+Received: from marfik.cc.upv.es ([158.42.249.21]:44740 "EHLO marfik.cc.upv.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754337AbZKIMdn (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Nov 2009 07:33:43 -0500
+Received: from smtpx.upv.es (smtpxv.cc.upv.es [158.42.249.46])
+	by marfik.cc.upv.es (8.13.6/8.13.6) with ESMTP id nA9CXkqi024933
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 9 Nov 2009 13:33:47 +0100
+Received: from smtp.upv.es (celaeno.cc.upv.es [158.42.249.55])
+	by smtpx.upv.es (8.14.3/8.14.3) with ESMTP id nA9CXk8F016781
+	for <linux-omap@vger.kernel.org>; Mon, 9 Nov 2009 13:33:46 +0100
+Received: from [158.42.53.53] (goriz.disca.upv.es [158.42.53.53])
+	(authenticated bits=0)
+	by smtp.upv.es (8.13.6/8.13.6) with ESMTP id nA9CXk4J026010
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Mon, 9 Nov 2009 13:33:46 +0100
+In-Reply-To: <1257762675.21596.234.camel@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Hudson <chudson@kionix.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Cc: linux-omap@vger.kernel.org
 
-On Mon, Nov 9, 2009 at 11:26 AM, Amit Kucheria
-<amit.kucheria@verdurent.com> wrote:
-> On 09 Nov 03, Tony Lindgren wrote:
->> * Chris Hudson <chudson@kionix.com> [091103 06:48]:
->> > Hello all,
->> >
->> > I've never submitted any software to Linux before, but I've been
->> > working on some new accelerometer drivers that should be ready for
->> > review soon (pending company approval). =A0I've read lots of
->> > documentation on patch and driver submissions, but I still have so=
-me
->> > questions that I was hoping someone could help me find the answers
->> > to.
->> >
->> > 1- My drivers use i2c for hardware communications, miscdevice for
->> > IOCTLs, and input_dev for data and interrupt status outputs. =A0Mo=
-st
->> > of the other accelerometer drivers that I've looked at use similar
->> > designs and are located in drivers/hwmon, but I just wanted to
->> > confirm that this is the correct location currently.
->>
->> Sounds correct.
->
-> Unfortunately it will probably get rejected in drivers/hwmon. The mai=
-ntainer,
-> Jean Delavare wants them out of hwmon[1]. It seems that everyone (for=
- the
+Hi all,
 
-s/Delavare/Delvare
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm trying to use the DSP in a Overo Fire by means of the DSPlink 
+module. Is it possible to compile it for kernels 2.6.30 or later?
+
+Bests,
+
+Alberto.
