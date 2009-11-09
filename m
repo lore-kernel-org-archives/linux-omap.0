@@ -1,40 +1,65 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4 v2] ASoC/MFD/OMAP: TWL4030: APLL_CTL
-	handling change
-Date: Mon, 9 Nov 2009 14:02:58 -0800
-Message-ID: <20091109220258.GI23952@atomide.com>
-References: <1257321500-27049-1-git-send-email-peter.ujfalusi@nokia.com>
-	<20091104102040.GA25922@rakim.wolfsonmicro.main>
+Subject: Re: GPMC setup help
+Date: Mon, 9 Nov 2009 14:26:59 -0800
+Message-ID: <20091109222658.GK23952@atomide.com>
+References: <4AE75B05.7010701@balister.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64130 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750837AbZKIW0z (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 17:26:55 -0500
 Content-Disposition: inline
-In-Reply-To: <20091104102040.GA25922@rakim.wolfsonmicro.main>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, Peter Ujfalusi <peter.ujfalusi@nokia.com>, sameo@linux.intel.com, linux-kernel@vger.kernel.org
+In-Reply-To: <4AE75B05.7010701@balister.org>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Philip Balister <philip@balister.org>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-* Mark Brown <broonie@opensource.wolfsonmicro.com> [091104 02:20]:
-> On Wed, Nov 04, 2009 at 09:58:16AM +0200, Peter Ujfalusi wrote:
-> 
-> > The following series changes the way how the APLL_CTL register is handled by
-> > the twl4030 codec related drivers.
-> 
-> I'm OK with this but I'll wait for acks from Tony and Samuel before
-> applying.
+Hi,
 
-Looks good to me, replied with my ack in the board-*.c files patch
-in this series.
+* Philip Balister <philip@balister.org> [091027 13:41]:
+> I've been going round and round on this for a couple of days. I have
+> a logic analyzer (cheap USB, that is why come edges are not quite
+> synced) attached to the gpmc pins on a logicpd dev board. The read
+> cycle timings are what I expect.
+> 
+> The write cycle seems to do one cycle OK, then thing go into the weeds.
+> 
+> Here are the values I write into the registers:
+> 
+> GPMC_CONFIG1 reg: 1200
+> 
+> GPMC_CONFIG2 reg: 40400
+> 
+> GPMC_CONFIG3 reg: 20201
+> 
+> GPMC_CONFIG4 reg: 4030403
+> 
+> GPMC_CONFIG5 reg: 1040505
+> 
+> GPMC_CONFIG6 reg: 4030000
+> 
+> and here is a screen shot of the logic analyzer:
+> 
+> http://balister.dyndns.org:8008/~balister/gpmc-write.png
+
+This won't help with your current problem probably..
+
+But once you get things working, please take a look the gpmc.c.
+The GPMC values should be dynamically calculated depending on
+the L3 speed. There are several examples of that in gpmc-onenand.c
+and gpmc-smc91x.c.
+
+You should be able to calculate the timings needed from the
+external device data sheets. Also, Paul noted earlier that for
+some devices you also need to add up the latencies for the level
+shifter.
+
+Then while at it, maybe check with your logic analyzer to make
+sure the timings set using gpmc.c really are what we're trying
+them to? I don't think anybody has ever verified that.
 
 Regards,
 
