@@ -1,58 +1,88 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: Driver Merge Questions
-Date: Mon, 9 Nov 2009 11:26:21 +0200
-Message-ID: <20091109092621.GY1773@smtp.gmail.com>
-References: <4AF040D1.7020109@kionix.com>
- <20091103165821.GG8981@atomide.com>
+From: Niamathullah sharief <omapsha@gmail.com>
+Subject: Re: Newbie doubt
+Date: Mon, 9 Nov 2009 15:44:50 +0530
+Message-ID: <4ad3b6300911090214r5d982e5ai9b8e1c3c3d455cb@mail.gmail.com>
+References: <4ad3b6300911082059m5ae2db98vdc04022875138518@mail.gmail.com>
+	 <5ec8ebd50911082152p404d13a7p64741df4c8b35176@mail.gmail.com>
+	 <004801ca6102$19009d60$4b01d820$@com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:54485 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754780AbZKIJ0c (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 04:26:32 -0500
-Received: by bwz27 with SMTP id 27so3208711bwz.21
-        for <linux-omap@vger.kernel.org>; Mon, 09 Nov 2009 01:26:37 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20091103165821.GG8981@atomide.com>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:48226 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742AbZKIKOp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 05:14:45 -0500
+Received: by pwi3 with SMTP id 3so532465pwi.21
+        for <linux-omap@vger.kernel.org>; Mon, 09 Nov 2009 02:14:50 -0800 (PST)
+In-Reply-To: <004801ca6102$19009d60$4b01d820$@com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Chris Hudson <chudson@kionix.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Nagendra <nagendra@mistralsolutions.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap@vger.kernel.org
 
-On 09 Nov 03, Tony Lindgren wrote:
-> * Chris Hudson <chudson@kionix.com> [091103 06:48]:
-> > Hello all,
-> > 
-> > I've never submitted any software to Linux before, but I've been
-> > working on some new accelerometer drivers that should be ready for
-> > review soon (pending company approval).  I've read lots of
-> > documentation on patch and driver submissions, but I still have some
-> > questions that I was hoping someone could help me find the answers
-> > to.
-> > 
-> > 1- My drivers use i2c for hardware communications, miscdevice for
-> > IOCTLs, and input_dev for data and interrupt status outputs.  Most
-> > of the other accelerometer drivers that I've looked at use similar
-> > designs and are located in drivers/hwmon, but I just wanted to
-> > confirm that this is the correct location currently.
-> 
-> Sounds correct.
+In this which will be ery cheap and which will be better for newbie to
+get wide knowledge. Please help me
 
-Unfortunately it will probably get rejected in drivers/hwmon. The maintainer,
-Jean Delavare wants them out of hwmon[1]. It seems that everyone (for the
-moment) is leaning towards a new subsystem called industrial IO
-(drivers/staging/iio) for such drivers.
-
-Please ask Jean before you do the work to make your driver behave like a hwmon
-driver.
-
-Regards,
-Amit
-
-
-[1] http://lkml.org/lkml/2009/7/2/153
--- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
+On Mon, Nov 9, 2009 at 11:31 AM, Nagendra <nagendra@mistralsolutions.co=
+m> wrote:
+> You may also want to consider EVM from Mistral. Please see the link b=
+elow for more details.
+>
+> http://www.mistralsolutions.com/products/omap_3evm.php
+>
+>
+> with regards,
+> - Nagendra.
+>
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
+kernel.org] On Behalf Of Andy Shevchenko
+> Sent: Monday, November 09, 2009 11:23 AM
+> To: Niamathullah sharief
+> Cc: linux-omap@vger.kernel.org
+> Subject: Re: Newbie doubt
+>
+> On Mon, Nov 9, 2009 at 6:59 AM, Niamathullah sharief <omapsha@gmail.c=
+om> wrote:
+>> Hi,
+>> I want to know that what are all the OMAP based boards available oth=
+er
+>> than beagle board?in that which one will be better for me as a newbi=
+e.
+> As far as I knnow you can use beagle board or ready-to-use devices
+> such as gumstix.
+>
+>
+> --
+> With Best Regards,
+> Andy Shevchenko
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
+ in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+>
+> Please do not print this email unless it is absolutely necessary. Spr=
+ead environmental awareness.
+>
+> -------------------------------------------------------DISCLAIMER----=
+--------------------------------------------------
+> The information transmitted herewith is confidential and proprietary =
+information intended only for use by the individual or entity to which =
+it is addressed. If the reader of this message is not the intended reci=
+pient, you are hereby notified that any review, retransmission, dissemi=
+nation, distribution, copying or other use of, or taking of any action =
+in reliance upon this information is strictly prohibited. If you have r=
+eceived this communication in error, please contact the sender and dele=
+te the material from your computer.
+> ---------------------------------------------------------------------=
+------------------------------------------------------
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
