@@ -1,55 +1,59 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: Driver Merge Questions
-Date: Mon, 9 Nov 2009 19:09:00 +0200
-Message-ID: <20091109170900.GA1773@smtp.gmail.com>
-References: <4AF040D1.7020109@kionix.com>
- <20091103165821.GG8981@atomide.com>
- <20091109092621.GY1773@smtp.gmail.com>
- <4AF82D27.2010705@kionix.com>
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: [PATCH] arm: omap: Use resource_size
+Date: Mon,  9 Nov 2009 18:44:18 +0100
+Message-ID: <1257788658-19824-1-git-send-email-tklauser@distanz.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:62840 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755401AbZKIRJP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 12:09:15 -0500
-Received: by fxm21 with SMTP id 21so345300fxm.21
-        for <linux-omap@vger.kernel.org>; Mon, 09 Nov 2009 09:09:19 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <4AF82D27.2010705@kionix.com>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: linux-arm-kernel-bounces@lists.infradead.org
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
+Cc: Tobias Klauser <tklauser@distanz.ch>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-omap@vger.kernel.org
-To: Chris Hudson <chudson@kionix.com>
-Cc: Tony Lindgren <tony@atomide.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On 09 Nov 09, Chris Hudson wrote:
-> Hello Amit,
-> 
-> Thank you for the information.
-> 
-> The driver is just about finished actually; I was going to do some
-> final testing and pull and submit the patches today.  I read the
-> lkml.org source and it definitely seems like things are in a state
-> of limbo at the moment (well, as of a few months ago) with regard to
-> sensor drivers.  So, should I submit the code as-is and work on
-> changing it as necessary with the help of the community, or do I
-> step back and modify for the iio subsystem before submission?
-> Alternatively, since the code was originally written for the 2.6.29
-> Android kernel, should I submit the current version of the driver to
-> that branch first?  Please let me know.
+Use the resource_size function instead of manually calculating the
+resource size. This reduces the chance of introducing off-by-one errors
+and actually fixes one in mailbox.c.
 
-Hi Chris,
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+---
+ arch/arm/mach-omap2/gpmc.c    |    2 +-
+ arch/arm/mach-omap2/mailbox.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-No harm is submitting a patch for a hwmon-based driver against mainline
-2.6.32-rc6 to LKML (cc the requisite maintainers). It might help get review on
-obvious issues, if any. 
-
-But be prepared to modify the driver to use IIO. I just modified a driver to
-use IIO and isn't that hard - probably an afternoon's work.
-
-Regards,
-Amit
+diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
+index 004da69..67af370 100644
+--- a/arch/arm/mach-omap2/gpmc.c
++++ b/arch/arm/mach-omap2/gpmc.c
+@@ -366,7 +366,7 @@ int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
+ 	if (r < 0)
+ 		goto out;
+ 
+-	gpmc_cs_enable_mem(cs, res->start, res->end - res->start + 1);
++	gpmc_cs_enable_mem(cs, res->start, resource_size(res));
+ 	*base = res->start;
+ 	gpmc_cs_set_reserved(cs, 1);
+ out:
+diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
+index 46e1f2e..5ba3aa6 100644
+--- a/arch/arm/mach-omap2/mailbox.c
++++ b/arch/arm/mach-omap2/mailbox.c
+@@ -300,7 +300,7 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "invalid mem resource\n");
+ 		return -ENODEV;
+ 	}
+-	mbox_base = ioremap(res->start, res->end - res->start);
++	mbox_base = ioremap(res->start, resource_size(res));
+ 	if (!mbox_base)
+ 		return -ENOMEM;
+ 
 -- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
+1.6.3.3
