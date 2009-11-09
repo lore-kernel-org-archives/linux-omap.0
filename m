@@ -1,933 +1,545 @@
-From: Jonathan Cameron <jic23@cam.ac.uk>
-Subject: Re: [PATCH 1/2] staging: iio: tsl2563 ambient light sensor driver
-Date: Mon, 09 Nov 2009 19:03:31 +0000
-Message-ID: <4AF86783.1010603@cam.ac.uk>
-References: <1257772468-4004-1-git-send-email-amit.kucheria@verdurent.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH-v4 1/4] OMAP2/3: Add support for flash on SDP boards
+Date: Mon, 9 Nov 2009 12:51:29 -0800
+Message-ID: <20091109205128.GA23952@atomide.com>
+References: <ce9ab5790910260510g6f2a731fqb87388bd5dee6a84@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ppsw-5.csi.cam.ac.uk ([131.111.8.135]:33473 "EHLO
-	ppsw-5.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851AbZKITC5 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 14:02:57 -0500
-In-Reply-To: <1257772468-4004-1-git-send-email-amit.kucheria@verdurent.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:61444 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132AbZKIUv2 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 15:51:28 -0500
+Content-Disposition: inline
+In-Reply-To: <ce9ab5790910260510g6f2a731fqb87388bd5dee6a84@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Amit Kucheria <amit.kucheria@verdurent.com>
-Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, linux-omap@vger.kernel.org
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: linux-omap@vger.kernel.org, vimal singh <vimalsingh@ti.com>
 
-Hi Amit,
+Hi,
 
-As a whole looks pretty good and a lot of the points are more suggestions
-on how to simplify the code in places.
+Few comments below.
 
-Where we go wrt ALS and this driver is I guess going to be a bit time dependent.
-
-I like the auto adjusting code, though would prefer it to be disabled by default
-(perhaps via platform data).
-> Add driver support for the tsl2563 TAOS ambient light sensor. After looking at
-> discussions on LKML, the driver was modified from a 'hwmon' driver to an 'iio'
-> driver. The sysfs interfaces have been tested on an RX51 (N900) to see if it
-> responds to changing light conditions.
+* Vimal Singh <vimal.newwork@gmail.com> [091026 05:10]:
+> From 92c416f513df62cc0ad75b61639df27f2857b641 Mon Sep 17 00:00:00 2001
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Mon, 26 Oct 2009 14:24:18 +0530
+> Subject: [PATCH] OMAP2/3: Add support for flash on SDP boards
 > 
-> The only real reason for submitting this to staging is that it is dependent on
-> the IIO subsystem.
-:)  Need to work on that.  Seems like staging is doing one of it's jobs and
-getting more eyes on the code which is great.  
+> Add support for flash on SDP boards. NAND, NOR and OneNAND
+> are supported.
 > 
-> Signed-off-by: Amit Kucheria <amit.kucheria@verdurent.com>
-> Cc: Jonathan Cameron <jic23@cam.ac.uk>
-> Cc: Greg Kroah-Hartman <gregkh@suse.de>
-> Cc: linux-omap@vger.kernel.org
+> Only tested on 3430SDP (ES2 and ES3.1), somebody please test on
+> 2430SDP and check the chips select for 2430SDP.
+> 
+> Also note that:
+> For OneNAND: in the earlier 2430SDP code the kernel partition
+> was set to only 1MB instead of 2MB on 3430SDP. If people want
+> the old partition sizes back on 2430SDP, please provide a patch.
+> 
+> For NAND: 'U-Boot', 'Boot Env' and 'Kernel' partitions sizes increased
+> by few blocks to provide few spare blocks for NAND bab block management
+> in u-boot. If people want old partition sizes, please provide a patch.
+> 
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> Cc: Tony Lindgren <tony@atomide.com>
 > ---
->  drivers/staging/iio/light/Kconfig   |   11 +
->  drivers/staging/iio/light/Makefile  |    1 +
->  drivers/staging/iio/light/tsl2563.c |  772 +++++++++++++++++++++++++++++++++++
->  drivers/staging/iio/light/tsl2563.h |    9 +
->  4 files changed, 793 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/staging/iio/light/tsl2563.c
->  create mode 100644 drivers/staging/iio/light/tsl2563.h
+>  arch/arm/mach-omap2/Makefile                |    2 +
+>  arch/arm/mach-omap2/board-2430sdp.c         |    2 +
+>  arch/arm/mach-omap2/board-3430sdp.c         |    2 +
+>  arch/arm/mach-omap2/board-sdp-flash.c       |  327 +++++++++++++++++++++++++++
+>  arch/arm/plat-omap/include/plat/board-sdp.h |   15 ++
+>  arch/arm/plat-omap/include/plat/gpmc.h      |    2 +
+>  6 files changed, 350 insertions(+), 0 deletions(-)
+>  create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
+>  create mode 100644 arch/arm/plat-omap/include/plat/board-sdp.h
 > 
-> diff --git a/drivers/staging/iio/light/Kconfig b/drivers/staging/iio/light/Kconfig
-> index 12af0c4..cf0d0d6 100644
-> --- a/drivers/staging/iio/light/Kconfig
-> +++ b/drivers/staging/iio/light/Kconfig
-> @@ -11,3 +11,14 @@ config TSL2561
->  	convertor.  This chip has two light sensors. One is broadband
->  	including infrared whilst the other measures only infrared.
->  	Provides direct access via sysfs.
-I have been wondering about naming of config variables for IIO, but it definitely shouldn't
-be SENSORS_
-> +config SENSORS_TSL2563
-> +	tristate "TAOS TSL2563 ambient light sensor"
-> +	depends on I2C
-> +	help
-> +	 If you say yes here you get support for the Taos TSL2563
-> +	 ambient light sensor (found in N900).
-> +
-> +	 This driver can also be built as a module.  If so, the module
-> +	 will be called tsl2563.
-> +
-> diff --git a/drivers/staging/iio/light/Makefile b/drivers/staging/iio/light/Makefile
-> index ccff151..30dbfb1 100644
-> --- a/drivers/staging/iio/light/Makefile
-> +++ b/drivers/staging/iio/light/Makefile
-> @@ -3,3 +3,4 @@
->  #
->  
->  obj-$(CONFIG_TSL2561)   += tsl2561.o
-> +obj-$(CONFIG_SENSORS_TSL2563)	+= tsl2563.o
-> diff --git a/drivers/staging/iio/light/tsl2563.c b/drivers/staging/iio/light/tsl2563.c
+> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+> index 03cb4fc..627f500 100644
+> --- a/arch/arm/mach-omap2/Makefile
+> +++ b/arch/arm/mach-omap2/Makefile
+> @@ -53,6 +53,7 @@ obj-$(CONFIG_OMAP_IOMMU)		+= $(iommu-y)
+>  obj-$(CONFIG_MACH_OMAP_GENERIC)		+= board-generic.o
+>  obj-$(CONFIG_MACH_OMAP_H4)		+= board-h4.o
+>  obj-$(CONFIG_MACH_OMAP_2430SDP)		+= board-2430sdp.o \
+> +					   board-sdp-flash.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_OMAP_APOLLON)		+= board-apollon.o
+>  obj-$(CONFIG_MACH_OMAP3_BEAGLE)		+= board-omap3beagle.o \
+> @@ -66,6 +67,7 @@ obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
+>  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o \
+> +					   board-sdp-flash.o \
+>  					   mmc-twl4030.o
+>  obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+>  obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+> diff --git a/arch/arm/mach-omap2/board-2430sdp.c
+> b/arch/arm/mach-omap2/board-2430sdp.c
+> index db9374b..5676ab9 100644
+> --- a/arch/arm/mach-omap2/board-2430sdp.c
+> +++ b/arch/arm/mach-omap2/board-2430sdp.c
+> @@ -38,6 +38,7 @@
+>  #include <plat/usb.h>
+>  #include <plat/gpmc-smc91x.h>
+> 
+> +#include <plat/board-sdp.h>
+>  #include "mmc-twl4030.h"
+> 
+>  #define SDP2430_CS0_BASE	0x04000000
+> @@ -205,6 +206,7 @@ static void __init omap_2430sdp_init(void)
+>  	twl4030_mmc_init(mmc);
+>  	usb_musb_init();
+>  	board_smc91x_init();
+> +	sdp_flash_init();
+> 
+>  	/* Turn off secondary LCD backlight */
+>  	ret = gpio_request(SECONDARY_LCD_GPIO, "Secondary LCD backlight");
+> diff --git a/arch/arm/mach-omap2/board-3430sdp.c
+> b/arch/arm/mach-omap2/board-3430sdp.c
+> index a3c1271..4497ded 100644
+> --- a/arch/arm/mach-omap2/board-3430sdp.c
+> +++ b/arch/arm/mach-omap2/board-3430sdp.c
+> @@ -41,6 +41,7 @@
+>  #include <plat/control.h>
+>  #include <plat/gpmc-smc91x.h>
+> 
+> +#include <plat/board-sdp.h>
+>  #include "sdram-qimonda-hyb18m512160af-6.h"
+>  #include "mmc-twl4030.h"
+> 
+> @@ -511,6 +512,7 @@ static void __init omap_3430sdp_init(void)
+>  	omap_serial_init();
+>  	usb_musb_init();
+>  	board_smc91x_init();
+> + 	sdp_flash_init();
+>  	enable_board_wakeup_source();
+>  	usb_ehci_init(&ehci_pdata);
+>  }
+> diff --git a/arch/arm/mach-omap2/board-sdp-flash.c
+> b/arch/arm/mach-omap2/board-sdp-flash.c
 > new file mode 100644
-> index 0000000..3e812b2
+> index 0000000..a19327d
 > --- /dev/null
-> +++ b/drivers/staging/iio/light/tsl2563.c
-> @@ -0,0 +1,772 @@
+> +++ b/arch/arm/mach-omap2/board-sdp-flash.c
+> @@ -0,0 +1,327 @@
 > +/*
-> + * drivers/i2c/chips/tsl2563.c
+> + * arch/arm/mach-omap2/board-sdp-flash.c
 > + *
-> + * Copyright (C) 2008 Nokia Corporation
+> + * Copyright (C) 2009 Nokia Corporation
+> + * Copyright (C) 2007 Texas Instruments
 > + *
-> + * Written by Timo O. Karjalainen <timo.o.karjalainen@nokia.com>
-> + * Contact: Amit Kucheria <amit.kucheria@verdurent.com>
+> + * Modified from mach-omap2/board-3430sdp-flash.c
+> + * Author: Vimal Singh <vimalsingh@ti.com>
 > + *
-> + * Converted to IIO driver
-> + * Amit Kucheria <amit.kucheria@verdurent.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
 > + */
 > +
-> +#include <linux/module.h>
-> +#include <linux/i2c.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/sched.h>
-> +#include <linux/mutex.h>
-> +#include <linux/delay.h>
+> +#include <linux/kernel.h>
 > +#include <linux/platform_device.h>
-> +#include <linux/pm.h>
-> +#include <linux/hwmon.h>
-> +#include <linux/err.h>
+> +#include <linux/mtd/mtd.h>
+> +#include <linux/mtd/partitions.h>
+> +#include <linux/io.h>
 > +
-> +#include "../iio.h"
-> +#include "tsl2563.h"
-
-Don't bother with this define.  You only use it once and it doesn't clarify anythign.
-> +#define DRIVER_NAME  "tsl2563"
+> +#include <asm/mach/flash.h>
+> +#include <plat/onenand.h>
+> +#include <plat/gpmc.h>
+> +#include <plat/nand.h>
 > +
-> +/* Use this many bits for fraction part. */
-> +#define ADC_FRAC_BITS		(14)
+> +#define REG_FPGA_REV			0x10
+> +#define REG_FPGA_DIP_SWITCH_INPUT2	0x60
+> +#define MAX_SUPPORTED_GPMC_CONFIG	3
 > +
-> +/* Given number of 1/10000's in ADC_FRAC_BITS precision. */
-> +#define FRAC10K(f)		(((f) * (1L << (ADC_FRAC_BITS))) / (10000))
+> +/* various memory sizes */
+> +#define FLASH_SIZE_SDPV1	SZ_64M
+> +#define FLASH_SIZE_SDPV2	SZ_128M
 > +
-> +/* Bits used for fraction in calibration coefficients.*/
-> +#define CALIB_FRAC_BITS		(10)
-> +/* 0.5 in CALIB_FRAC_BITS precision */
-> +#define CALIB_FRAC_HALF		(1 << (CALIB_FRAC_BITS - 1))
-> +/* Make a fraction from a number n that was multiplied with b. */
-> +#define CALIB_FRAC(n, b)	(((n) << CALIB_FRAC_BITS) / (b))
-
-Comment seems misleading. I would read that as 10^1000 which seems a bit large ;)
-> +/* Decimal 10^(digits in sysfs presentation) */
-> +#define CALIB_BASE_SYSFS	(1000)
+> +#define FLASH_BASE_SDPV1	0x04000000 /* NOR flash (64 Meg aligned) */
+> +#define FLASH_BASE_SDPV2	0x10000000 /* NOR flash (256 Meg aligned) */
 > +
-> +#define TSL2563_CMD		(0x80)
-> +#define TSL2563_CLEARINT	(0x40)
+> +#define DEBUG_BASE		0x08000000 /* debug board */
 > +
-> +#define TSL2563_REG_CTRL	(0x00)
-> +#define TSL2563_REG_TIMING	(0x01)
-> +#define TSL2563_REG_LOWLOW	(0x02) /* data0 low threshold, 2 bytes */
-> +#define TSL2563_REG_LOWHIGH	(0x03)
-> +#define TSL2563_REG_HIGHLOW	(0x04) /* data0 high threshold, 2 bytes */
-> +#define TSL2563_REG_HIGHHIGH	(0x05)
-> +#define TSL2563_REG_INT		(0x06)
-> +#define TSL2563_REG_ID		(0x0a)
-> +#define TSL2563_REG_DATA0LOW	(0x0c) /* broadband sensor value, 2 bytes */
-> +#define TSL2563_REG_DATA0HIGH	(0x0d)
-> +#define TSL2563_REG_DATA1LOW	(0x0e) /* infrared sensor value, 2 bytes */
-> +#define TSL2563_REG_DATA1HIGH	(0x0f)
+> +#define PDC_NOR		1
+> +#define PDC_NAND	2
+> +#define PDC_ONENAND	3
+> +#define DBG_MPDB	4
 > +
-> +#define TSL2563_CMD_POWER_ON	(0x03)
-> +#define TSL2563_CMD_POWER_OFF	(0x00)
-> +#define TSL2563_CTRL_POWER_MASK	(0x03)
+> +/* REVISIT: Does for some x, chip_sel_sdp[x] maches for 2430 SDP ? */
 > +
-> +#define TSL2563_TIMING_13MS	(0x00)
-> +#define TSL2563_TIMING_100MS	(0x01)
-> +#define TSL2563_TIMING_400MS	(0x02)
-> +#define TSL2563_TIMING_MASK	(0x03)
-> +#define TSL2563_TIMING_GAIN16	(0x10)
-> +#define TSL2563_TIMING_GAIN1	(0x00)
-
-Opinion is a bit divided on putting in unused defines.  For a chip where the
-data sheets are as readily available as this I would leave them out.
-> +#define TSL2563_INT_DISBLED	(0x00)
-> +#define TSL2563_INT_LEVEL	(0x10)
-> +#define TSL2563_INT_PERSIST(n)	((n) & 0x0F)
-> +
-> +struct tsl2563_gainlevel_coeff {
-> +	u8 gaintime;
-> +	u16 min;
-> +	u16 max;
+> +/* SDP3430 V2 Board CS organization
+> + * Different from SDP3430 V1. Now 4 switches used to specify CS
+> + */
+> +static const unsigned char chip_sel_sdp[][GPMC_CS_NUM] = {
+> +/* GPMC CS Indices (ON=0, OFF=1)*/
+> +/* S8-1 2 3 4 IDX   CS0,       CS1,      CS2 ..                    CS7  */
+> +/*ON ON ON ON*/{PDC_NOR, PDC_NAND, PDC_ONENAND, DBG_MPDB, 0, 0, 0, 0},
+> +/*ON ON ON OFF*/{PDC_ONENAND, PDC_NAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0},
+> +/*ON ON OFF ON */{PDC_NAND, PDC_ONENAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0},
 > +};
-> +
-> +static struct tsl2563_gainlevel_coeff tsl2563_gainlevel_table[] = {
+
+The comments above look confusing, how about this instead:
+
+/*
+ * SDP3430 V2 Board CS organization
+ * Different from SDP3430 V1. Now 4 switches used to specify CS
+ *
+ * See also the Switch S8 settings in the comments.
+ *
+ * REVISIT: Add support for 2430 SDP
+ */
+static const unsigned char chip_sel_sdp[][GPMC_CS_NUM] = {	
+	{ PDC_NOR, PDC_NAND, PDC_ONENAND, DBG_MPDB, 0, 0, 0, 0 }, /* S8:1111 */
+	{ PDC_ONENAND, PDC_NAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0 }, /* S8:1110 */
+	{ PDC_NAND, PDC_ONENAND, PDC_NOR, DBG_MPDB, 0, 0, 0, 0 }, /* S8:1101 */
+};
+
+
+> +static struct mtd_partition sdp_nor_partitions[] = {
+> +	/* bootloader (U-Boot, etc) in first sector */
 > +	{
-> +		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN16,
-> +		.min		= 0,
-> +		.max		= 65534,
-> +	}, {
-> +		.gaintime	= TSL2563_TIMING_400MS | TSL2563_TIMING_GAIN1,
-> +		.min		= 2048,
-> +		.max		= 65534,
-> +	}, {
-> +		.gaintime	= TSL2563_TIMING_100MS | TSL2563_TIMING_GAIN1,
-> +		.min		= 4095,
-> +		.max		= 37177,
-> +	}, {
-> +		.gaintime	= TSL2563_TIMING_13MS | TSL2563_TIMING_GAIN1,
-> +		.min		= 3000,
-> +		.max		= 65535,
+> +		.name		= "Bootloader-NOR",
+> +		.offset		= 0,
+> +		.size		= SZ_256K,
+> +		.mask_flags	= MTD_WRITEABLE, /* force read-only */
 > +	},
-> +};
-
-Some elements of this are non obvious. Perhaps kerneldoc for the structure?
-> +struct tsl2563_chip {
-> +	struct mutex		lock;
-> +	struct i2c_client	*client;
-> +	struct iio_dev		*indio_dev;
-> +	struct delayed_work	poweroff_work;
-> +
-> +	/* Remember state for suspend and resume functions */
-> +	pm_message_t		state;
-> +
-> +	struct tsl2563_gainlevel_coeff *gainlevel;
-> +
-> +	/* Thresholds are in lux */
-> +	u16			low_thres;
-> +	u16			high_thres;
-> +	u8			intr;
-> +
-> +	/* Calibration coefficients */
-> +	u32			calib0;
-> +	u32			calib1;
-> +	int			cover_comp_gain;
-> +
-> +	/* Cache current values, to be returned while suspended */
-> +	u32			data0;
-> +	u32			data1;
-> +};
-> +
-> +static int tsl2563_write(struct i2c_client *client, u8 reg, u8 value)
-> +{
-> +	int ret;
-Cleaner to do next 3 lines in 1?
-u8 buf[2] = {TSL2563_CMD | reg,
-	     value};
-> +	u8 buf[2];
-> +
-> +	buf[0] = TSL2563_CMD | reg;
-> +	buf[1] = value;
-> +
-> +	ret = i2c_master_send(client, buf, sizeof(buf));
-ternary operators get a lot of flack in kernel. (personally I don't mind!)
-> +	return (ret == sizeof(buf)) ? 0 : ret;
-> +}
-
-The next can be done a bit cleaner using i2c_smbus_write_.. commands.
-Up to you if this see the tsl2561 driver for what I mean.  Not that it
-is that much better though!
-> +static int tsl2563_read(struct i2c_client *client, u8 reg, void *buf, int len)
-> +{
-> +	int ret;
-> +	u8 cmd = TSL2563_CMD | reg;
-> +
-> +	ret = i2c_master_send(client, &cmd, sizeof(cmd));
-> +	if (ret != sizeof(cmd))
-> +		return ret;
-> +
-> +	return i2c_master_recv(client, buf, len);
-> +}
-> +
-> +static int tsl2563_set_power(struct tsl2563_chip *chip, int on)
-> +{
-> +	struct i2c_client *client = chip->client;
-Maybe combine next 2 lines. 
-> +	u8 cmd;
-> +
-> +	cmd = on ? TSL2563_CMD_POWER_ON : TSL2563_CMD_POWER_OFF;
-> +	return tsl2563_write(client, TSL2563_REG_CTRL, cmd);
-> +}
-> +
-> +/*
-> + * Return value is 0 for off, 1 for on, or a negative error
-> + * code if reading failed.
-> + */
-> +static int tsl2563_get_power(struct tsl2563_chip *chip)
-> +{
-> +	struct i2c_client *client = chip->client;
-> +	int ret;
-> +	u8 val;
-> +
-> +	ret = tsl2563_read(client, TSL2563_REG_CTRL, &val, sizeof(val));
-> +	if (ret != sizeof(val))
-> +		return ret;
-> +
-> +	return (val & TSL2563_CTRL_POWER_MASK) == TSL2563_CMD_POWER_ON;
-> +}
-> +
-> +static int tsl2563_configure(struct tsl2563_chip *chip)
-> +{
-> +	struct i2c_client *client = chip->client;
-> +	int ret;
-> +
-> +	ret = tsl2563_write(client, TSL2563_REG_TIMING,
-> +			chip->gainlevel->gaintime);
-> +	if (ret)
-> +		goto out;
-If there is a reason to set this, please put in a comment.
-> +	ret = tsl2563_write(client, TSL2563_REG_INT, chip->intr);
-> +
-> +out:
-> +	return ret;
-> +}
-> +
-> +static void tsl2563_poweroff_work(struct work_struct *work)
-> +{
-> +	struct tsl2563_chip *chip =
-> +		container_of(work, struct tsl2563_chip, poweroff_work.work);
-> +	tsl2563_set_power(chip, 0);
-> +}
-> +
-> +static int tsl2563_detect(struct tsl2563_chip *chip)
-> +{
-> +	int ret;
-> +
-> +	ret = tsl2563_set_power(chip, 1);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ret = tsl2563_get_power(chip);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return ret ? 0 : -ENODEV;
-> +}
->
-> +static int tsl2563_read_id(struct tsl2563_chip *chip, u8 *id)
-> +{
-> +	struct i2c_client *client = chip->client;
-> +	int ret;
-> +
-> +	ret = tsl2563_read(client, TSL2563_REG_ID, id, sizeof(*id));
-> +	if (ret != sizeof(*id))
-> +		return ret;
-> +
-> +	return 0;
-> +}
-> +
-> +/*
-> + * "Normalized" ADC value is one obtained with 400ms of integration time and
-> + * 16x gain. This function returns the number of bits of shift needed to
-> + * convert between normalized values and HW values obtained using given
-> + * timing and gain settings.
-> + */
-I'm only seeing one use of this.  Why not roll next two functions together?
-> +static int adc_shiftbits(u8 timing)
-> +{
-> +	int shift = 0;
-> +
-> +	switch (timing & TSL2563_TIMING_MASK) {
-> +	case TSL2563_TIMING_13MS:
-> +		shift += 5;
-> +		break;
-> +	case TSL2563_TIMING_100MS:
-> +		shift += 2;
-> +		break;
-> +	case TSL2563_TIMING_400MS:
-> +		/* no-op */
-> +		break;
-> +	}
-> +
-> +	if (!(timing & TSL2563_TIMING_GAIN16))
-> +		shift += 4;
-> +
-> +	return shift;
-> +}
-> +
-> +/* Convert a HW ADC value to normalized scale. */
-> +static u32 normalize_adc(u16 adc, u8 timing)
-> +{
-> +	return adc << adc_shiftbits(timing);
-> +}
-
-Interesting, though personally not sure this sort of support should be in
-kernel.  This is the sort of thing that I'm guessing has turned up in hwmon
-so how do they handle it?
-> +static void tsl2563_wait_adc(struct tsl2563_chip *chip)
-> +{
-> +	unsigned int delay;
-> +
-> +	switch (chip->gainlevel->gaintime & TSL2563_TIMING_MASK) {
-> +	case TSL2563_TIMING_13MS:
-> +		delay = 14;
-> +		break;
-> +	case TSL2563_TIMING_100MS:
-> +		delay = 101;
-> +		break;
-> +	default:
-> +		delay = 402;
-> +	}
-> +	/*
-> +	 * TODO: Make sure that we wait at least required delay but why we
-> +	 * have to extend it one tick more?
-> +	 */
-I'm slightly unclear what you gain here over mdelay?
-> +	schedule_timeout_interruptible(msecs_to_jiffies(delay) + 2);
-> +}
-Can we make this easy to disable in platform data.  Jean and I discussed this
-previously and concluded we might not even want it on by default.  
-> +
-> +static int tsl2563_adjust_gainlevel(struct tsl2563_chip *chip, u16 adc)
-> +{
-> +	struct i2c_client *client = chip->client;
-I'm thinking the code here could be simplified.
-
-if (adc > chip->gainlevel->max)
-	chip->gainlevel++;
-else if (etc..)
-> +	if (adc > chip->gainlevel->max || adc < chip->gainlevel->min) {
-> +
-> +		(adc > chip->gainlevel->max) ?
-> +			chip->gainlevel++ : chip->gainlevel--;
-> +
-> +		tsl2563_write(client, TSL2563_REG_TIMING,
-> +			      chip->gainlevel->gaintime);
-
-Why twice?  Would be cleared up by documentation.
-> +		tsl2563_wait_adc(chip);
-> +		tsl2563_wait_adc(chip);
-> +
-> +		return 1;
-> +	} else
-> +		return 0;
-> +}
-> +
-> +static int tsl2563_get_adc(struct tsl2563_chip *chip)
-> +{
-> +	struct i2c_client *client = chip->client;
-> +	u8 buf0[2], buf1[2];
-> +	u16 adc0, adc1;
-> +	int retry = 1;
-> +	int ret = 0;
-> +
-> +	if (chip->state.event != PM_EVENT_ON)
-> +		goto out;
-This approach to powering down if not used for a while is interesting but I'm not sure
-if you shouldn't be using the runtime power management code to handle things.
-That moves such policy based powering down up the chain and will also allow
-things like disabling the i2c controller if no one cares. This is very
-use case dependent as it currently stands.
-> +	cancel_delayed_work(&chip->poweroff_work);
-> +
-> +	if (!tsl2563_get_power(chip)) {
-> +		ret = tsl2563_set_power(chip, 1);
-> +		if (ret)
-> +			goto out;
-> +		ret = tsl2563_configure(chip);
-> +		if (ret)
-> +			goto out;
-> +		tsl2563_wait_adc(chip);
-> +	}
-> +
-> +	while (retry) {
-> +		ret = tsl2563_read(client,
-> +				   TSL2563_REG_DATA0LOW | TSL2563_CLEARINT,
-> +				   buf0, sizeof(buf0));
-> +		if (ret != sizeof(buf0))
-> +			goto out;
-> +
-> +		ret = tsl2563_read(client, TSL2563_REG_DATA1LOW,
-> +				   buf1, sizeof(buf1));
-> +		if (ret != sizeof(buf1))
-> +			goto out;
-> +
-> +		adc0 = (buf0[1] << 8) + buf0[0];
-> +		adc1 = (buf1[1] << 8) + buf1[0];
-> +
-> +		retry = tsl2563_adjust_gainlevel(chip, adc0);
-> +	}
-> +
-> +	chip->data0 = normalize_adc(adc0, chip->gainlevel->gaintime);
-> +	chip->data1 = normalize_adc(adc1, chip->gainlevel->gaintime);
-> +
-> +	schedule_delayed_work(&chip->poweroff_work, 5 * HZ);
-> +
-> +	ret = 0;
-> +out:
-> +	return ret;
-> +}
-> +
-> +static inline int calib_to_sysfs(u32 calib)
-> +{
-> +	return (int) (((calib * CALIB_BASE_SYSFS) +
-> +		       CALIB_FRAC_HALF) >> CALIB_FRAC_BITS);
-> +}
-> +
-> +static inline u32 calib_from_sysfs(int value)
-> +{
-> +	return (((u32) value) << CALIB_FRAC_BITS) / CALIB_BASE_SYSFS;
-> +}
-> +
-> +/*
-> + * Conversions between lux and ADC values.
-> + *
-> + * The basic formula is lux = c0 * adc0 - c1 * adc1, where c0 and c1 are
-> + * appropriate constants. Different constants are needed for different
-> + * kinds of light, determined by the ratio adc1/adc0 (basically the ratio
-> + * of the intensities in infrared and visible wavelengths). lux_table below
-> + * lists the upper threshold of the adc1/adc0 ratio and the corresponding
-> + * constants.
-> + */
-> +
-> +struct tsl2563_lux_coeff {
-> +	unsigned long ch_ratio;
-> +	unsigned long ch0_coeff;
-> +	unsigned long ch1_coeff;
-> +};
-> +
-> +static const struct tsl2563_lux_coeff lux_table[] = {
+> +	/* bootloader params in the next sector */
 > +	{
-> +		.ch_ratio	= FRAC10K(1300),
-> +		.ch0_coeff	= FRAC10K(315),
-> +		.ch1_coeff	= FRAC10K(262),
-> +	}, {
-> +		.ch_ratio	= FRAC10K(2600),
-> +		.ch0_coeff	= FRAC10K(337),
-> +		.ch1_coeff	= FRAC10K(430),
-> +	}, {
-> +		.ch_ratio	= FRAC10K(3900),
-> +		.ch0_coeff	= FRAC10K(363),
-> +		.ch1_coeff	= FRAC10K(529),
-> +	}, {
-> +		.ch_ratio	= FRAC10K(5200),
-> +		.ch0_coeff	= FRAC10K(392),
-> +		.ch1_coeff	= FRAC10K(605),
-> +	}, {
-> +		.ch_ratio	= FRAC10K(6500),
-> +		.ch0_coeff	= FRAC10K(229),
-> +		.ch1_coeff	= FRAC10K(291),
-> +	}, {
-> +		.ch_ratio	= FRAC10K(8000),
-> +		.ch0_coeff	= FRAC10K(157),
-> +		.ch1_coeff	= FRAC10K(180),
-> +	}, {
-> +		.ch_ratio	= FRAC10K(13000),
-> +		.ch0_coeff	= FRAC10K(34),
-> +		.ch1_coeff	= FRAC10K(26),
-> +	}, {
-> +		.ch_ratio	= ULONG_MAX,
-> +		.ch0_coeff	= 0,
-> +		.ch1_coeff	= 0,
+> +		.name		= "Params-NOR",
+> +		.offset		= MTDPART_OFS_APPEND,
+> +		.size		= SZ_256K,
+> +		.mask_flags	= 0,
+> +	},
+> +	/* kernel */
+> +	{
+> +		.name		= "Kernel-NOR",
+> +		.offset		= MTDPART_OFS_APPEND,
+> +		.size		= SZ_2M,
+> +		.mask_flags	= 0
+> +	},
+> +	/* file system */
+> +	{
+> +		.name		= "Filesystem-NOR",
+> +		.offset		= MTDPART_OFS_APPEND,
+> +		.size		= MTDPART_SIZ_FULL,
+> +		.mask_flags	= 0
+> +	}
+> +};
+> +
+> +static struct flash_platform_data sdp_nor_data = {
+> +	.map_name	= "cfi_probe",
+> +	.width		= 2,
+> +	.parts		= sdp_nor_partitions,
+> +	.nr_parts	= ARRAY_SIZE(sdp_nor_partitions),
+> +};
+> +
+> +static struct resource sdp_nor_resource = {
+> +	.start		= 0,
+> +	.end		= 0,
+> +	.flags		= IORESOURCE_MEM,
+> +};
+> +
+> +static struct platform_device sdp_nor_device = {
+> +	.name		= "omapflash",
+> +	.id		= 0,
+> +	.dev		= {
+> +			.platform_data = &sdp_nor_data,
+> +	},
+> +	.num_resources	= 1,
+> +	.resource	= &sdp_nor_resource,
+> +};
+> +
+> +#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+> +		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+> +
+> +static struct mtd_partition board_onenand_partitions[] = {
+> +	{
+> +		.name		= "X-Loader-OneNAND",
+> +		.offset		= 0,
+> +		.size		= 4 * (64 * 2048),
+> +		.mask_flags	= MTD_WRITEABLE  /* force read-only */
+> +	},
+> +	{
+> +		.name		= "U-Boot-OneNAND",
+> +		.offset		= MTDPART_OFS_APPEND,
+> +		.size		= 2 * (64 * 2048),
+> +		.mask_flags	= MTD_WRITEABLE  /* force read-only */
+> +	},
+> +	{
+> +		.name		= "U-Boot Environment-OneNAND",
+> +		.offset		= MTDPART_OFS_APPEND,
+> +		.size		= 1 * (64 * 2048),
+> +	},
+> +	{
+> +		.name		= "Kernel-OneNAND",
+> +		.offset		= MTDPART_OFS_APPEND,
+> +		.size		= 16 * (64 * 2048),
+> +	},
+> +	{
+> +		.name		= "File System-OneNAND",
+> +		.offset		= MTDPART_OFS_APPEND,
+> +		.size		= MTDPART_SIZ_FULL,
 > +	},
 > +};
 > +
-> +/*
-> + * Convert normalized, scaled ADC values to lux.
+> +static struct omap_onenand_platform_data board_onenand_data = {
+> +	.parts		= board_onenand_partitions,
+> +	.nr_parts	= ARRAY_SIZE(board_onenand_partitions),
+> +	.dma_channel	= -1,   /* disable DMA in OMAP OneNAND driver */
+> +};
+> +
+> +
+> +static void __init board_onenand_init(void)
+> +{
+> +	gpmc_onenand_init(&board_onenand_data);
+> +}
+> +
+> +#else
+> +
+> +static inline void board_onenand_init(void)
+> +{
+> +}
+> +#endif /* CONFIG_MTD_ONENAND_OMAP2 || CONFIG_MTD_ONENAND_OMAP2_MODULE */
+> +
+> +static struct mtd_partition sdp_nand_partitions[] = {
+> +	/* All the partition sizes are listed in terms of NAND block size */
+> +	{
+> +		.name		= "X-Loader-NAND",
+> +		.offset		= 0,
+> +		.size		= 4 * (64 * 2048),
+> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+> +	},
+> +	{
+> +		.name		= "U-Boot-NAND",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x80000 */
+> +		.size		= 10 * (64 * 2048),
+> +		.mask_flags	= MTD_WRITEABLE,	/* force read-only */
+> +	},
+> +	{
+> +		.name		= "Boot Env-NAND",
+> +
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x1c0000 */
+> +		.size		= 6 * (64 * 2048),
+> +	},
+> +	{
+> +		.name		= "Kernel-NAND",
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x280000 */
+> +		.size		= 40 * (64 * 2048),
+> +	},
+> +	{
+> +		.name		= "File System - NAND",
+> +		.size		= MTDPART_SIZ_FULL,
+> +		.offset		= MTDPART_OFS_APPEND,	/* Offset = 0x780000 */
+> +	},
+> +};
+> +
+> +static struct omap_nand_platform_data sdp_nand_data = {
+> +	.parts		= sdp_nand_partitions,
+> +	.nr_parts	= ARRAY_SIZE(sdp_nand_partitions),
+> +	.nand_setup	= NULL,
+> +	.dma_channel	= -1,		/* disable DMA in OMAP NAND driver */
+> +	.dev_ready	= NULL,
+> +};
+> +
+> +static struct resource sdp_nand_resource = {
+> +	.flags		= IORESOURCE_MEM,
+> +};
+> +
+> +static struct platform_device sdp_nand_device = {
+> +	.name			= "omap2-nand",
+> +	.id			= 0,
+> +	.dev			= {
+> +		.platform_data	= &sdp_nand_data,
+> +	},
+> +	.num_resources	= 1,
+> +	.resource		= &sdp_nand_resource,
+> +};
+> +
+> +/**
+> + * get_gpmc0_type - Reads the FPGA DIP_SWITCH_INPUT_REGISTER2 to get
+> + * the various cs values.
 > + */
-> +static unsigned int adc_to_lux(u32 adc0, u32 adc1)
+> +static u8 get_gpmc0_type(void)
 > +{
-> +	const struct tsl2563_lux_coeff *lp = lux_table;
-> +	unsigned long ratio, lux, ch0 = adc0, ch1 = adc1;
-> +
-> +	ratio = ch0 ? ((ch1 << ADC_FRAC_BITS) / ch0) : ULONG_MAX;
-> +
-> +	while (lp->ch_ratio < ratio)
-> +		lp++;
-> +
-> +	lux = ch0 * lp->ch0_coeff - ch1 * lp->ch1_coeff;
-> +
-> +	return (unsigned int) (lux >> ADC_FRAC_BITS);
-> +}
-> +
-> +/*--------------------------------------------------------------*/
-> +/*                      Sysfs interface                         */
-> +/*--------------------------------------------------------------*/
-Do you have a use for the individual adc readings?  This discussion on 
-ALS eventually concluded that we would avoid them until people had
-a particular use case.  They complicate the user interface for little
-perceived gain until someone really cares!
+> +	u8 cs;
+> +	void __iomem *fpga_map_addr;
+> +	fpga_map_addr = ioremap(DEBUG_BASE, 4096);
+> +	/* if ioremap does not return a valid pointer, exit */
 
-These two could be trivially rolled into one function. Either an inline with
-a parameter or do it via container_of and extended version of DEVICE_ATTR.
-> +
-> +static ssize_t tsl2563_adc0_show(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-> +	struct tsl2563_chip *chip = indio_dev->dev_data;
-> +	int ret;
-> +
-> +	mutex_lock(&chip->lock);
-> +
-> +	ret = tsl2563_get_adc(chip);
-> +	if (ret)
-> +		goto out;
-> +
-> +	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data0);
-> +out:
-> +	mutex_unlock(&chip->lock);
-> +	return ret;
-> +}
-> +
-> +static ssize_t tsl2563_adc1_show(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-> +	struct tsl2563_chip *chip = indio_dev->dev_data;
-> +	int ret;
-> +
-> +	mutex_lock(&chip->lock);
-> +
-> +	ret = tsl2563_get_adc(chip);
-> +	if (ret)
-> +		goto out;
-> +
-> +	ret = snprintf(buf, PAGE_SIZE, "%d\n", chip->data1);
-> +out:
-> +	mutex_unlock(&chip->lock);
-> +	return ret;
-> +}
-> +/* Apply calibration coefficient to ADC count. */
-> +static u32 calib_adc(u32 adc, u32 calib)
-> +{
-> +	unsigned long scaled = adc;
-> +
-> +	scaled *= calib;
-> +	scaled >>= CALIB_FRAC_BITS;
-> +
-> +	return (u32) scaled;
-> +}
-> +
-> +static ssize_t tsl2563_lux_show(struct device *dev,
-> +				struct device_attribute *attr, char *buf)
-> +{
-> +	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-> +	struct tsl2563_chip *chip = indio_dev->dev_data;
-> +	u32 calib0, calib1;
-> +	int ret;
-> +
-> +	mutex_lock(&chip->lock);
-> +
-> +	ret = tsl2563_get_adc(chip);
-> +	if (ret)
-> +		goto out;
-> +
-> +	calib0 = calib_adc(chip->data0, chip->calib0) * chip->cover_comp_gain;
-> +	calib1 = calib_adc(chip->data1, chip->calib1) * chip->cover_comp_gain;
-> +
-> +	ret = snprintf(buf, PAGE_SIZE, "%d\n", adc_to_lux(calib0, calib1));
-> +
-> +out:
-> +	mutex_unlock(&chip->lock);
-> +	return ret;
-> +}
-Single use of calib_to_sysfs, why not roll it in here?
-> +static ssize_t format_calib(char *buf, int len, u32 calib)
-> +{
-> +	return snprintf(buf, PAGE_SIZE, "%d\n", calib_to_sysfs(calib));
-> +}
-Roll next two functions into one. I see this already true for the store
-functions.
-> +static ssize_t tsl2563_calib0_show(struct device *dev,
-> +				   struct device_attribute *attr, char *buf)
-> +{
-> +	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-> +	struct tsl2563_chip *chip = indio_dev->dev_data;
-> +	int ret;
-> +
-> +	mutex_lock(&chip->lock);
-> +	ret = format_calib(buf, PAGE_SIZE, chip->calib0);
-> +	mutex_unlock(&chip->lock);
-> +	return ret;
-> +}
-> +
-> +static ssize_t tsl2563_calib1_show(struct device *dev,
-> +				   struct device_attribute *attr, char *buf)
-> +{
-> +	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-> +	struct tsl2563_chip *chip = indio_dev->dev_data;
-> +	int ret;
-> +
-> +	mutex_lock(&chip->lock);
-> +	ret = format_calib(buf, PAGE_SIZE, chip->calib1);
-> +	mutex_unlock(&chip->lock);
-> +	return ret;
-> +}
-> +
-> +static int do_calib_store(struct device *dev, const char *buf, size_t len,
-> +			  int ch)
-> +{
-> +	struct iio_dev *indio_dev = dev_get_drvdata(dev);
-> +	struct tsl2563_chip *chip = indio_dev->dev_data;
-> +	int value;
-> +	u32 calib;
-> +
-> +	if (1 != sscanf(buf, "%d", &value))
-> +		return -EINVAL;
-> +
-> +	calib = calib_from_sysfs(value);
-> +
-> +	if (ch)
-> +		chip->calib1 = calib;
-> +	else
-> +		chip->calib0 = calib;
-> +
-> +	return len;
-> +}
-> +
-> +static ssize_t tsl2563_calib0_store(struct device *dev,
-> +				    struct device_attribute *attr,
-> +				    const char *buf, size_t len)
-> +{
-> +	return do_calib_store(dev, buf, len, 0);
-> +}
-> +
-> +static ssize_t tsl2563_calib1_store(struct device *dev,
-> +				    struct device_attribute *attr,
-> +				    const char *buf, size_t len)
-> +{
-> +	return do_calib_store(dev, buf, len, 1);
-> +}
+This seems like an unnecessary comment.
 
-> +/* AmitXXXX: Convert to IIO_DEV_ATTR_LIGHT* as in tsl2561
-> + * once I understand what they mean */
-*laughs*  They are going away anyway, so don't worry about it!
-The equivalent of IIO_DEVICE_ATTR() will make life simpler by
-allowing the adc related adress to be supplied rolling a lot
-of the pairs of functions together.
-> +static DEVICE_ATTR(adc0, S_IRUGO, tsl2563_adc0_show, NULL);
-> +static DEVICE_ATTR(adc1, S_IRUGO, tsl2563_adc1_show, NULL);
 
-For reference, this is illuminance in ALS and is the only thing
-currently more or less required from every driver.
-> +static DEVICE_ATTR(lux, S_IRUGO, tsl2563_lux_show, NULL);
-> +static DEVICE_ATTR(calib0, S_IRUGO | S_IWUSR,
-> +		   tsl2563_calib0_show, tsl2563_calib0_store);
-> +static DEVICE_ATTR(calib1, S_IRUGO | S_IWUSR,
-> +		   tsl2563_calib1_show, tsl2563_calib1_store);
-> +
-> +static struct attribute *tsl2563_attributes[] = {
-> +	&dev_attr_adc0.attr,
-> +	&dev_attr_adc1.attr,
-> +	&dev_attr_lux.attr,
-> +	&dev_attr_calib0.attr,
-> +	&dev_attr_calib1.attr,
-> +	NULL
-> +};
-> +
-> +static const struct attribute_group tsl2563_group = {
-> +	.attrs = tsl2563_attributes,
-> +};
-> +
-> +/*--------------------------------------------------------------*/
-> +/*                      Probe, Attach, Remove                   */
-> +/*--------------------------------------------------------------*/
-> +static struct i2c_driver tsl2563_i2c_driver;
-> +
-> +static int __devinit tsl2563_probe(struct i2c_client *client,
-> +				const struct i2c_device_id *device_id)
-> +{
-> +	struct tsl2563_chip *chip;
-> +	struct tsl2563_platform_data *pdata = client->dev.platform_data;
-> +	int err = 0;
-> +	int ret;
-> +	u8 id;
-> +
-> +	chip = kzalloc(sizeof(*chip), GFP_KERNEL);
-> +	if (!chip)
+> +	if (!fpga_map_addr)
 > +		return -ENOMEM;
 > +
-> +	i2c_set_clientdata(client, chip);
-> +	chip->client = client;
+> +	if (!(__raw_readw(fpga_map_addr + REG_FPGA_REV))) {
+> +		/* we dont have an DEBUG FPGA??? */
+> +		/* Depend on #defines!! default to strata boot return param */
+> +		return 0x0;
+> +	}
+
+Maybe return -ENODEV here too instead?
+
+
+> +	/* S8-DIP-OFF = 1, S8-DIP-ON = 0 */
+> +	cs = (u8) (__raw_readw(fpga_map_addr + REG_FPGA_DIP_SWITCH_INPUT2)
+> +			& 0xF);
+
+Do you need the cast here?
+
+Also, generally the hex numbers are written lower case in Linux.
+
+
+> +	/* ES2.0 SDP's onwards 4 dip switches are provided for CS */
+> +	if (omap_rev() >= OMAP3430_REV_ES1_0)
+> +		/* change (S8-1:4=DS-2:0) to (S8-4:1=DS-2:0) */
+> +		cs = ((cs & 8) >> 3) | ((cs & 4) >> 1) |
+> +			((cs & 2) << 1) | ((cs & 1) << 3);
+> +	else
+> +		/* change (S8-1:3=DS-2:0) to (S8-3:1=DS-2:0) */
+> +		cs = ((cs & 4) >> 2) | (cs & 2) | ((cs & 1) << 2);
+> +	iounmap(fpga_map_addr);
+> +	return cs;
+> +}
 > +
-> +	err = tsl2563_detect(chip);
-> +	if (err) {
-> +		dev_err(&client->dev, "device not found, error %d \n", -err);
-> +		goto fail1;
+> +/**
+> + * sdp3430_flash_init - Identify devices connected to GPMC and register.
+> + *
+> + * @return - void.
+> + */
+> +void __init sdp_flash_init(void)
+> +{
+> +	u8		cs = 0;
+> +	u8		nandcs = GPMC_CS_NUM + 1;
+> +	u8		onenandcs = GPMC_CS_NUM + 1;
+> +	u8		idx;
+> +	unsigned char	*config_sel = NULL;
+> +
+> +	/* REVISIT: Is this return correct idx for 2430 SDP?
+> +	 * for which cs configuration matches for 2430 SDP?
+> +	 */
+> +	idx = get_gpmc0_type();
+> +	if (idx >= MAX_SUPPORTED_GPMC_CONFIG) {
+> +		printk(KERN_ERR "Invalid Chip select Selection..\
+> +				sdp3430_flash_init returned with error\n");
+> +		return;
+> +	}
+
+In general, you can have multiple format strings to printk:
+
+		printk(KERN_ERR "Some text here "
+				"with more text here\n");
+
+But in this case, how about just use:
+
+		printk(KERN_ERR "sdp_flash: Invalid chip select: %d\n", cs);
+
+> +	config_sel = (unsigned char *)(chip_sel_sdp[idx]);
+
+The casting here should not be needed?
+
+
+> +
+> +	/* Configure start address and size of NOR device */
+> +	if (omap_rev() >= OMAP3430_REV_ES1_0) {
+> +		sdp_nor_resource.start	= FLASH_BASE_SDPV2;
+> +		sdp_nor_resource.end	= FLASH_BASE_SDPV2
+> +						+ FLASH_SIZE_SDPV2 - 1;
+> +	} else {
+> +		sdp_nor_resource.start	= FLASH_BASE_SDPV1;
+> +		sdp_nor_resource.end	= FLASH_BASE_SDPV1
+> +						+ FLASH_SIZE_SDPV1 - 1;
 > +	}
 > +
-> +	err = tsl2563_read_id(chip, &id);
-> +	if (err)
-> +		goto fail1;
+> +	if (platform_device_register(&sdp_nor_device) < 0)
+> +		printk(KERN_ERR "Unable to register NOR device\n");
 > +
-> +	mutex_init(&chip->lock);
+> +	while (cs < GPMC_CS_NUM) {
+> +		switch (config_sel[cs]) {
+> +		case PDC_NAND:
+> +			if (nandcs > GPMC_CS_NUM)
+> +				nandcs = cs;
+> +			break;
+> +		case PDC_ONENAND:
+> +			if (onenandcs > GPMC_CS_NUM)
+> +				onenandcs = cs;
+> +			break;
+> +		};
+> +		cs++;
+> +	}
 > +
-> +	/* Default values used until userspace says otherwise */
-> +	chip->low_thres = 0x0;
-> +	chip->high_thres = 0xffff;
-> +	chip->gainlevel = tsl2563_gainlevel_table;
+> +	if (onenandcs > GPMC_CS_NUM) {
+> +		printk(KERN_INFO "OneNAND: Unable to find configuration "
+> +				" in GPMC\n ");
+> +	} else {
+> +#if defined(CONFIG_MTD_ONENAND_OMAP2) || \
+> +		defined(CONFIG_MTD_ONENAND_OMAP2_MODULE)
+> +
+> +		board_onenand_data.cs = onenandcs;
+> +#endif /* CONFIG_MTD_ONENAND_OMAP2 || CONFIG_MTD_ONENAND_OMAP2_MODULE */
+> +		board_onenand_init();
+> +	}
 
-Not used?
-> +	chip->intr = TSL2563_INT_PERSIST(4);
-> +	chip->calib0 = calib_from_sysfs(CALIB_BASE_SYSFS);
-> +	chip->calib1 = calib_from_sysfs(CALIB_BASE_SYSFS);
-> +
-> +	if (pdata)
-> +		chip->cover_comp_gain = pdata->cover_comp_gain;
-> +	else
-> +		chip->cover_comp_gain = 1;
-Conceivably worth translating the model into what the chip is though
-with covering more chips the datasheets suggest we may have some collisions.
-> +	dev_info(&client->dev, "model %d, rev. %d\n", id >> 4, id & 0x0f);
-> +
-> +	chip->indio_dev = iio_allocate_device();
-> +	if (!chip->indio_dev)
-> +		goto fail1;
-> +	chip->indio_dev->attrs = &tsl2563_group;
-> +	chip->indio_dev->dev.parent = &client->dev;
-> +	chip->indio_dev->dev_data = (void *)(chip);
-> +	chip->indio_dev->driver_module = THIS_MODULE;
-> +	chip->indio_dev->modes = INDIO_DIRECT_MODE;
-> +	ret = iio_device_register(chip->indio_dev);
-> +	if (ret)
-> +		goto fail1;
-> +
-> +	err = tsl2563_configure(chip);
-> +	if (err)
-> +		goto fail2;
-> +
-> +	INIT_DELAYED_WORK(&chip->poweroff_work, tsl2563_poweroff_work);
-> +	schedule_delayed_work(&chip->poweroff_work, 5 * HZ);
-> +
-> +	return 0;
-> +fail2:
-> +	iio_device_unregister(chip->indio_dev);
-> +fail1:
-> +	kfree(chip);
-> +	return err;
-> +}
-> +
-> +static int tsl2563_remove(struct i2c_client *client)
-> +{
-> +	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-> +
-> +	iio_device_unregister(chip->indio_dev);
-> +
-> +	kfree(chip);
-> +	return 0;
-> +}
-> +
-> +static int tsl2563_suspend(struct i2c_client *client, pm_message_t state)
-> +{
-> +	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-> +	int ret;
-> +
-> +	mutex_lock(&chip->lock);
-> +
-> +	ret = tsl2563_set_power(chip, 0);
-> +	if (ret)
-> +		goto out;
-> +
-> +	chip->state = state;
-> +
-> +out:
-> +	mutex_unlock(&chip->lock);
-> +	return ret;
-> +}
-> +
-> +static int tsl2563_resume(struct i2c_client *client)
-> +{
-> +	struct tsl2563_chip *chip = i2c_get_clientdata(client);
-> +	int ret;
-> +
-> +	mutex_lock(&chip->lock);
-> +
-> +	ret = tsl2563_set_power(chip, 1);
-> +	if (ret)
-> +		goto out;
-> +
-> +	ret = tsl2563_configure(chip);
-> +	if (ret)
-> +		goto out;
-> +
-> +	chip->state.event = PM_EVENT_ON;
-> +
-> +out:
-> +	mutex_unlock(&chip->lock);
-> +	return ret;
-> +}
-> +}
-Please add the other effectively identical chips (as per other email)
-There are some subtle differences in conversion values depending on packaging.
-Worth support for them, perhaps selected by platform data?
+To me it the ifdef above is not needed if you pass the cs to the function:
+		board_onenand_init(cs);
 
-Could add tsl2568/ 2569 support but that stretches things a bit as looks
-like the conversion will be slightly different.  Maybe a comment somewhere
-to put people off deciding to develop another heavily overlapping driver?
-(all you would need to do is use this table to select a variant and switch
-the lighting calculation)
+> +
+> +	if (nandcs > GPMC_CS_NUM) {
+> +		printk(KERN_INFO "NAND: Unable to find configuration "
+> +				" in GPMC\n ");
+> +	} else {
+> +		sdp_nand_data.cs = nandcs;
+> +		sdp_nand_data.gpmc_cs_baseaddr = (void *)(OMAP34XX_GPMC_VIRT +
+> +					GPMC_CS0_BASE + nandcs * GPMC_CS_SIZE);
+> +		sdp_nand_data.gpmc_baseaddr = (void *) (OMAP34XX_GPMC_VIRT);
+> +
+> +		if (platform_device_register(&sdp_nand_device) < 0)
+> +			printk(KERN_ERR "Unable to register NAND device\n");
+> +
+> +	}
+
+This should be done in gpmc.c instead. If we don't have a function in gpmc.c
+for doing this, let's rather add a function there.
 
 
-> +static const struct i2c_device_id tsl2563_id[] = {
-> +	{ DRIVER_NAME, 0 },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(i2c, tsl2563_id);
-> +
-> +static struct i2c_driver tsl2563_i2c_driver = {
-> +	.driver = {
-> +		.name	 = DRIVER_NAME,
-> +	},
-> +	.suspend	= tsl2563_suspend,
-> +	.resume		= tsl2563_resume,
-> +	.probe		= tsl2563_probe,
-> +	.remove		= __devexit_p(tsl2563_remove),
-> +	.id_table	= tsl2563_id,
-> +};
-> +
-> +static int __init tsl2563_init(void)
-> +{
-> +	return i2c_add_driver(&tsl2563_i2c_driver);
 > +}
-> +
-> +static void __exit tsl2563_exit(void)
-> +{
-> +	i2c_del_driver(&tsl2563_i2c_driver);
-> +}
-> +
-> +MODULE_AUTHOR("Nokia Corporation");
-> +MODULE_DESCRIPTION("tsl2563 light sensor driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +module_init(tsl2563_init);
-> +module_exit(tsl2563_exit);
-> diff --git a/drivers/staging/iio/light/tsl2563.h b/drivers/staging/iio/light/tsl2563.h
+> diff --git a/arch/arm/plat-omap/include/plat/board-sdp.h
+> b/arch/arm/plat-omap/include/plat/board-sdp.h
 > new file mode 100644
-> index 0000000..b97368b
+> index 0000000..632f21a
 > --- /dev/null
-> +++ b/drivers/staging/iio/light/tsl2563.h
-> @@ -0,0 +1,9 @@
-> +#ifndef __LINUX_TSL2563_H
-> +#define __LINUX_TSL2563_H
-Please document this.
+> +++ b/arch/arm/plat-omap/include/plat/board-sdp.h
+> @@ -0,0 +1,15 @@
+> +/*
+> + *  arch/arm/plat-omap/include/plat/board-sdp.h
+> + *
+> + *  Information structures for SDP-specific board config data
+> + *
+> + *  Copyright (C) 2009 Nokia Corporation
+> + *  Copyright (C) 2009 Texas Instruments
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
 > +
-> +struct tsl2563_platform_data {
-> +	int cover_comp_gain;
-> +};
+> +extern void sdp_flash_init(void);
 > +
-> +#endif /* __LINUX_TSL2563_H */
-> +
-
+> diff --git a/arch/arm/plat-omap/include/plat/gpmc.h
+> b/arch/arm/plat-omap/include/plat/gpmc.h
+> index 9c99cda..c752ab7 100644
+> --- a/arch/arm/plat-omap/include/plat/gpmc.h
+> +++ b/arch/arm/plat-omap/include/plat/gpmc.h
+> @@ -27,6 +27,8 @@
+> 
+>  #define GPMC_CONFIG		0x50
+>  #define GPMC_STATUS		0x54
+> +#define GPMC_CS0_BASE		0x60
+> +#define GPMC_CS_SIZE		0x30
+> 
+>  #define GPMC_CONFIG1_WRAPBURST_SUPP     (1 << 31)
+>  #define GPMC_CONFIG1_READMULTIPLE_SUPP  (1 << 30)
+> -- 
+> 1.5.5
