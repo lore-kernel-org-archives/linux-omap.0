@@ -1,62 +1,59 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
-Subject: Re: [PATCH v3 1/2] arm: a driver for on-chip ETM and ETB
-Date: Mon, 09 Nov 2009 13:48:10 +0200
-Message-ID: <1257767290.21596.307.camel@localhost>
-References: <1256230315-22340-1-git-send-email-virtuoso@slind.org>
-	 <20091030121024.GB15200@shisha.kicks-ass.net>
-Reply-To: dedekind1@gmail.com
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: [PATCH 1/1] PM: Thaws refrigerated and to be exited kernel threads
+Date: Mon, 9 Nov 2009 13:06:38 +0100
+Message-ID: <200911091306.38148.rjw@sisk.pl>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DE31F934@dbde02.ent.ti.com> <20091109083133.GB4818@elf.ucw.cz> <B85A65D85D7EB246BE421B3FB0FBB59301DE3B67A0@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:41787 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755282AbZKILsl (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 06:48:41 -0500
-In-Reply-To: <20091030121024.GB15200@shisha.kicks-ass.net>
+Received: from ogre.sisk.pl ([217.79.144.158]:49729 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754488AbZKIMFZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Mon, 9 Nov 2009 07:05:25 -0500
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE3B67A0@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Shishkin <virtuoso@slind.org>
-Cc: Russell King <linux@arm.linux.org.uk>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: "Dasgupta, Romit" <romit@ti.com>
+Cc: Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
 
-On Fri, 2009-10-30 at 14:10 +0200, Alexander Shishkin wrote:
-> On Thu, Oct 22, 2009 at 07:51:54PM +0300, Alexander Shishkin wrote:
-> > Changes:
-> > v3 -- major update:
-> >       * switched from platform device to AMBA device
-> >       * started using clk API in a more proper way
-> >       * changed omap3 Kconfig part to select the driver instead of =
-depending
-> >         on it
->=20
-> Russell, I believe this one addresses your concerns about my previous=
- patches.
-> Shall I wait for more comments from you or do you want me to upload t=
-hem to
-> your patch tracker?
+On Monday 09 November 2009, Dasgupta, Romit wrote:
+> > Really? I believe the "ktrhead_should_stop" is new rule, and code does
+> > not seem to follow it. Actually, for example audit does not seem to
+> > use kthread_should_stop() at all...
+> > 
+> > ./kernel/rtmutex-tester.c-
+> > ./kernel/rtmutex-tester.c-		/* Wait for the next 
+> > command to be executed */
+> > ./kernel/rtmutex-tester.c-		schedule();
+> > ./kernel/rtmutex-tester.c:		try_to_freeze();
+> > ./kernel/rtmutex-tester.c-
+> > ./kernel/rtmutex-tester.c-		if (signal_pending(current))
+> > ./kernel/rtmutex-tester.c-			flush_signals(current);
+> > --
+> Not a new rule. For these threads you listed no one stops them by sending 
+> 'kthread_stop' so the problem does not arise! But for the threads that are 
+> stopped by invoking kthread_stop they do check kthread_should_stop. 
 
-Alex, I suggest you to:
+At the moment we don't have the rule that kernel threads should exit
+immediately after kthread_stop() is called for them, which your patch implies
+for freezable kernel threads.
 
-1. Double check that you really addressed _everything_ Russel and other=
-s
-pointed - may be this is the reason why your patch is stuck.
+Now, I think we might require the freezable kernel threads to exit as soon as
+ktrhead_should_stop() is true for them, but (a) that needs to be documented
+(please note it also applies to freezable workqueues) and (b) the existing
+freezable kernel threads need to be audited, so we're sure they follow this
+rule.  Also, it might lead to subtle problems if someone overlooks this
+rule in the future.
 
-2. If you have addressed everything, upload the patch to the patch
-system. My (very limited) experience was that I re-sent a patch several
-times, got no response for long time, but then Russel simply asked me t=
-o
-upload it, and it was merged. Thus, the silence may simply mean "upload
-to the patch system".
+So, I'd rather not introduce such a rule if there's no other way to fix the
+problem at hand.
 
-HTH.
+BTW, in future please describe the motivation for a change in the changelog
+or people will wonder what the change is for.  In particular, if it fixes a
+problem, please describe the problem and why you think your approach is
+appropriate for fixing it.
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
-=D1=86=D0=BA=D0=B8=D0=B9)
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
