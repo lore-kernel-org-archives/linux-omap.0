@@ -1,8 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 18/19] OMAP: SDP: Enable DSS2 for OMAP3
-	SDP board
-Date: Mon,  9 Nov 2009 13:45:25 +0200
-Message-ID: <1257767126-12059-19-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 16/19] OMAP: DSS2: Add DPI panel drivers
+Date: Mon,  9 Nov 2009 13:45:23 +0200
+Message-ID: <1257767126-12059-17-git-send-email-tomi.valkeinen@nokia.com>
 References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-2-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-3-git-send-email-tomi.valkeinen@nokia.com>
@@ -19,13 +18,11 @@ References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-14-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-15-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-16-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-17-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-18-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <1257767126-12059-18-git-send-email-tomi.valkeinen@nokia.com>
+In-Reply-To: <1257767126-12059-16-git-send-email-tomi.valkeinen@nokia.com>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
 	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
@@ -38,295 +35,469 @@ To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
----
- arch/arm/configs/omap_3430sdp_defconfig |   32 +++++-
- arch/arm/mach-omap2/board-3430sdp.c     |  167 ++++++++++++++++++++++++++++---
- 2 files changed, 179 insertions(+), 20 deletions(-)
+- Generic panel
+- Samsung LTE430WQ-F0C LCD Panel
+- Sharp LS037V7DW01 LCD Panel
 
-diff --git a/arch/arm/configs/omap_3430sdp_defconfig b/arch/arm/configs/omap_3430sdp_defconfig
-index 8a4a7e2..730ada3 100644
---- a/arch/arm/configs/omap_3430sdp_defconfig
-+++ b/arch/arm/configs/omap_3430sdp_defconfig
-@@ -1077,6 +1077,8 @@ CONFIG_TWL4030_CORE=y
- # CONFIG_MFD_WM8400 is not set
- # CONFIG_MFD_WM8350_I2C is not set
- # CONFIG_MFD_PCF50633 is not set
-+CONFIG_REGULATOR=y
-+CONFIG_REGULATOR_TWL4030=y
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+---
+ drivers/video/omap2/Kconfig                        |    1 +
+ drivers/video/omap2/Makefile                       |    1 +
+ drivers/video/omap2/displays/Kconfig               |   22 +++
+ drivers/video/omap2/displays/Makefile              |    3 +
+ drivers/video/omap2/displays/panel-generic.c       |  104 +++++++++++++
+ .../omap2/displays/panel-samsung-lte430wq-f0c.c    |  113 +++++++++++++++
+ .../video/omap2/displays/panel-sharp-ls037v7dw01.c |  153 ++++++++++++++++++++
+ 7 files changed, 397 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/displays/Kconfig
+ create mode 100644 drivers/video/omap2/displays/Makefile
+ create mode 100644 drivers/video/omap2/displays/panel-generic.c
+ create mode 100644 drivers/video/omap2/displays/panel-samsung-lte430wq-f0c.c
+ create mode 100644 drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+
+diff --git a/drivers/video/omap2/Kconfig b/drivers/video/omap2/Kconfig
+index 3e60d7e..d877c36 100644
+--- a/drivers/video/omap2/Kconfig
++++ b/drivers/video/omap2/Kconfig
+@@ -6,3 +6,4 @@ config OMAP2_VRFB
  
- #
- # Multimedia devices
-@@ -1336,10 +1338,33 @@ CONFIG_FB_CFB_IMAGEBLIT=y
- #
- # CONFIG_FB_S1D13XXX is not set
- # CONFIG_FB_VIRTUAL is not set
--CONFIG_FB_OMAP=y
--# CONFIG_FB_OMAP_LCDC_EXTERNAL is not set
-+# CONFIG_FB_METRONOME is not set
-+# CONFIG_FB_MB862XX is not set
-+# CONFIG_FB_BROADSHEET is not set
-+# CONFIG_FB_OMAP_LCD_VGA is not set
- # CONFIG_FB_OMAP_BOOTLOADER_INIT is not set
--CONFIG_FB_OMAP_CONSISTENT_DMA_SIZE=2
-+CONFIG_OMAP2_VRAM=y
-+CONFIG_OMAP2_VRFB=y
-+CONFIG_OMAP2_DSS=y
-+CONFIG_OMAP2_VRAM_SIZE=4
-+CONFIG_OMAP2_DSS_DEBUG_SUPPORT=y
-+# CONFIG_OMAP2_DSS_RFBI is not set
-+CONFIG_OMAP2_DSS_VENC=y
-+# CONFIG_OMAP2_DSS_SDI is not set
-+# CONFIG_OMAP2_DSS_DSI is not set
-+# CONFIG_OMAP2_DSS_FAKE_VSYNC is not set
-+CONFIG_OMAP2_DSS_MIN_FCK_PER_PCK=0
-+CONFIG_FB_OMAP2=y
-+CONFIG_FB_OMAP2_DEBUG_SUPPORT=y
-+# CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE is not set
-+CONFIG_FB_OMAP2_NUM_FBS=3
+ source "drivers/video/omap2/dss/Kconfig"
+ source "drivers/video/omap2/omapfb/Kconfig"
++source "drivers/video/omap2/displays/Kconfig"
+diff --git a/drivers/video/omap2/Makefile b/drivers/video/omap2/Makefile
+index 3ba6ef5..d853d05 100644
+--- a/drivers/video/omap2/Makefile
++++ b/drivers/video/omap2/Makefile
+@@ -3,3 +3,4 @@ obj-$(CONFIG_OMAP2_VRFB) += vrfb.o
+ 
+ obj-y += dss/
+ obj-y += omapfb/
++obj-y += displays/
+diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
+new file mode 100644
+index 0000000..396905d
+--- /dev/null
++++ b/drivers/video/omap2/displays/Kconfig
+@@ -0,0 +1,22 @@
++menu "OMAP2/3 Display Device Drivers"
++        depends on OMAP2_DSS
 +
-+#
-+# OMAP2/3 Display Device Drivers
-+#
-+CONFIG_PANEL_GENERIC=y
-+# CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C is not set
-+CONFIG_PANEL_SHARP_LS037V7DW01=y
- # CONFIG_BACKLIGHT_LCD_SUPPORT is not set
- 
- #
-@@ -1703,7 +1728,6 @@ CONFIG_RTC_DRV_TWL4030=y
- # on-CPU RTC drivers
- #
- # CONFIG_DMADEVICES is not set
--# CONFIG_REGULATOR is not set
- # CONFIG_UIO is not set
- # CONFIG_STAGING is not set
- 
-diff --git a/arch/arm/mach-omap2/board-3430sdp.c b/arch/arm/mach-omap2/board-3430sdp.c
-index 7c1bbe2..da46036 100644
---- a/arch/arm/mach-omap2/board-3430sdp.c
-+++ b/arch/arm/mach-omap2/board-3430sdp.c
-@@ -37,6 +37,7 @@
- #include <plat/common.h>
- #include <plat/dma.h>
- #include <plat/gpmc.h>
++config PANEL_GENERIC
++        tristate "Generic Panel"
++        help
++	  Generic panel driver.
++	  Used for DVI output for Beagle and OMAP3 SDP.
++
++config PANEL_SAMSUNG_LTE430WQ_F0C
++        tristate "Samsung LTE430WQ-F0C LCD Panel"
++        depends on OMAP2_DSS
++        help
++          LCD Panel used on Overo Palo43
++
++config PANEL_SHARP_LS037V7DW01
++        tristate "Sharp LS037V7DW01 LCD Panel"
++        depends on OMAP2_DSS
++        help
++          LCD Panel used in TI's SDP3430 and EVM boards
++
++endmenu
+diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
+new file mode 100644
+index 0000000..a26bbd2
+--- /dev/null
++++ b/drivers/video/omap2/displays/Makefile
+@@ -0,0 +1,3 @@
++obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
++obj-$(CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C) += panel-samsung-lte430wq-f0c.o
++obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
+diff --git a/drivers/video/omap2/displays/panel-generic.c b/drivers/video/omap2/displays/panel-generic.c
+new file mode 100644
+index 0000000..eb48d1a
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-generic.c
+@@ -0,0 +1,104 @@
++/*
++ * Generic panel support
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
++
 +#include <plat/display.h>
- 
- #include <plat/control.h>
- #include <plat/gpmc-smc91x.h>
-@@ -152,31 +153,152 @@ static struct spi_board_info sdp3430_spi_board_info[] __initdata = {
- 	},
- };
- 
--static struct platform_device sdp3430_lcd_device = {
--	.name		= "sdp2430_lcd",
--	.id		= -1,
 +
-+#define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	8
-+#define SDP3430_LCD_PANEL_ENABLE_GPIO		5
-+
-+static unsigned backlight_gpio;
-+static unsigned enable_gpio;
-+static int lcd_enabled;
-+static int dvi_enabled;
-+
-+static void __init sdp3430_display_init(void)
-+{
-+	int r;
-+
-+	enable_gpio    = SDP3430_LCD_PANEL_ENABLE_GPIO;
-+	backlight_gpio = SDP3430_LCD_PANEL_BACKLIGHT_GPIO;
-+
-+	r = gpio_request(enable_gpio, "LCD reset");
-+	if (r) {
-+		printk(KERN_ERR "failed to get LCD reset GPIO\n");
-+		goto err0;
-+	}
-+
-+	r = gpio_request(backlight_gpio, "LCD Backlight");
-+	if (r) {
-+		printk(KERN_ERR "failed to get LCD backlight GPIO\n");
-+		goto err1;
-+	}
-+
-+	gpio_direction_output(enable_gpio, 0);
-+	gpio_direction_output(backlight_gpio, 0);
-+
-+	return;
-+err1:
-+	gpio_free(enable_gpio);
-+err0:
-+	return;
-+}
-+
-+static int sdp3430_panel_enable_lcd(struct omap_dss_device *dssdev)
-+{
-+	if (dvi_enabled) {
-+		printk(KERN_ERR "cannot enable LCD, DVI is enabled\n");
-+		return -EINVAL;
-+	}
-+
-+	gpio_direction_output(enable_gpio, 1);
-+	gpio_direction_output(backlight_gpio, 1);
-+
-+	lcd_enabled = 1;
-+
-+	return 0;
-+}
-+
-+static void sdp3430_panel_disable_lcd(struct omap_dss_device *dssdev)
-+{
-+	lcd_enabled = 0;
-+
-+	gpio_direction_output(enable_gpio, 0);
-+	gpio_direction_output(backlight_gpio, 0);
-+}
-+
-+static int sdp3430_panel_enable_dvi(struct omap_dss_device *dssdev)
-+{
-+	if (lcd_enabled) {
-+		printk(KERN_ERR "cannot enable DVI, LCD is enabled\n");
-+		return -EINVAL;
-+	}
-+
-+	dvi_enabled = 1;
-+
-+	return 0;
-+}
-+
-+static void sdp3430_panel_disable_dvi(struct omap_dss_device *dssdev)
-+{
-+	dvi_enabled = 0;
-+}
-+
-+static int sdp3430_panel_enable_tv(struct omap_dss_device *dssdev)
-+{
-+	return 0;
-+}
-+
-+static void sdp3430_panel_disable_tv(struct omap_dss_device *dssdev)
-+{
-+}
-+
-+
-+static struct omap_dss_device sdp3430_lcd_device = {
-+	.name			= "lcd",
-+	.driver_name		= "sharp_ls_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 16,
-+	.platform_enable	= sdp3430_panel_enable_lcd,
-+	.platform_disable	= sdp3430_panel_disable_lcd,
- };
- 
--static struct regulator_consumer_supply sdp3430_vdac_supply = {
--	.supply		= "vdac",
--	.dev		= &sdp3430_lcd_device.dev,
-+static struct omap_dss_device sdp3430_dvi_device = {
-+	.name			= "dvi",
-+	.driver_name		= "generic_panel",
-+	.type			= OMAP_DISPLAY_TYPE_DPI,
-+	.phy.dpi.data_lines	= 24,
-+	.platform_enable	= sdp3430_panel_enable_dvi,
-+	.platform_disable	= sdp3430_panel_disable_dvi,
- };
- 
--static struct regulator_consumer_supply sdp3430_vdvi_supply = {
--	.supply		= "vdvi",
--	.dev		= &sdp3430_lcd_device.dev,
-+static struct omap_dss_device sdp3430_tv_device = {
-+	.name			= "tv",
-+	.driver_name		= "venc",
-+	.type			= OMAP_DISPLAY_TYPE_VENC,
-+	.phy.venc.type		= OMAP_DSS_VENC_TYPE_SVIDEO,
-+	.platform_enable	= sdp3430_panel_enable_tv,
-+	.platform_disable	= sdp3430_panel_disable_tv,
- };
- 
--static struct platform_device *sdp3430_devices[] __initdata = {
-+
-+static struct omap_dss_device *sdp3430_dss_devices[] = {
- 	&sdp3430_lcd_device,
-+	&sdp3430_dvi_device,
-+	&sdp3430_tv_device,
- };
- 
--static struct omap_lcd_config sdp3430_lcd_config __initdata = {
--	.ctrl_name	= "internal",
-+static struct omap_dss_board_info sdp3430_dss_data = {
-+	.num_devices	= ARRAY_SIZE(sdp3430_dss_devices),
-+	.devices	= sdp3430_dss_devices,
-+	.default_device	= &sdp3430_lcd_device,
++static struct omap_video_timings generic_panel_timings = {
++	/* 640 x 480 @ 60 Hz  Reduced blanking VESA CVT 0.31M3-R */
++	.x_res		= 640,
++	.y_res		= 480,
++	.pixel_clock	= 23500,
++	.hfp		= 48,
++	.hsw		= 32,
++	.hbp		= 80,
++	.vfp		= 3,
++	.vsw		= 4,
++	.vbp		= 7,
 +};
 +
-+static struct platform_device sdp3430_dss_device = {
-+	.name		= "omapdss",
-+	.id		= -1,
-+	.dev		= {
-+		.platform_data = &sdp3430_dss_data,
++static int generic_panel_probe(struct omap_dss_device *dssdev)
++{
++	dssdev->panel.config = OMAP_DSS_LCD_TFT;
++	dssdev->panel.timings = generic_panel_timings;
++
++	return 0;
++}
++
++static void generic_panel_remove(struct omap_dss_device *dssdev)
++{
++}
++
++static int generic_panel_enable(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	if (dssdev->platform_enable)
++		r = dssdev->platform_enable(dssdev);
++
++	return r;
++}
++
++static void generic_panel_disable(struct omap_dss_device *dssdev)
++{
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++}
++
++static int generic_panel_suspend(struct omap_dss_device *dssdev)
++{
++	generic_panel_disable(dssdev);
++	return 0;
++}
++
++static int generic_panel_resume(struct omap_dss_device *dssdev)
++{
++	return generic_panel_enable(dssdev);
++}
++
++static struct omap_dss_driver generic_driver = {
++	.probe		= generic_panel_probe,
++	.remove		= generic_panel_remove,
++
++	.enable		= generic_panel_enable,
++	.disable	= generic_panel_disable,
++	.suspend	= generic_panel_suspend,
++	.resume		= generic_panel_resume,
++
++	.driver         = {
++		.name   = "generic_panel",
++		.owner  = THIS_MODULE,
 +	},
 +};
 +
-+static struct regulator_consumer_supply sdp3430_vdda_dac_supply = {
-+	.supply		= "vdda_dac",
-+	.dev		= &sdp3430_dss_device.dev,
++static int __init generic_panel_drv_init(void)
++{
++	return omap_dss_register_driver(&generic_driver);
++}
++
++static void __exit generic_panel_drv_exit(void)
++{
++	omap_dss_unregister_driver(&generic_driver);
++}
++
++module_init(generic_panel_drv_init);
++module_exit(generic_panel_drv_exit);
++MODULE_LICENSE("GPL");
+diff --git a/drivers/video/omap2/displays/panel-samsung-lte430wq-f0c.c b/drivers/video/omap2/displays/panel-samsung-lte430wq-f0c.c
+new file mode 100644
+index 0000000..3f0477e
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-samsung-lte430wq-f0c.c
+@@ -0,0 +1,113 @@
++/*
++ * LCD panel driver for Samsung LTE430WQ-F0C
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
++
++#include <plat/display.h>
++
++static struct omap_video_timings samsung_lte_timings = {
++	.x_res = 480,
++	.y_res = 272,
++
++	.pixel_clock	= 9200,
++
++	.hsw		= 41,
++	.hfp		= 8,
++	.hbp		= 45-41,
++
++	.vsw		= 10,
++	.vfp		= 4,
++	.vbp		= 12-10,
 +};
 +
-+static struct platform_device *sdp3430_devices[] __initdata = {
-+	&sdp3430_dss_device,
- };
- 
- static struct omap_board_config_kernel sdp3430_config[] __initdata = {
--	{ OMAP_TAG_LCD,		&sdp3430_lcd_config },
- };
- 
- static void __init omap_3430sdp_init_irq(void)
-@@ -392,22 +514,34 @@ static struct regulator_init_data sdp3430_vdac = {
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &sdp3430_vdac_supply,
-+	.consumer_supplies	= &sdp3430_vdda_dac_supply,
- };
- 
- /* VPLL2 for digital video outputs */
-+static struct regulator_consumer_supply sdp3430_vpll2_supplies[] = {
-+	{
-+		.supply		= "vdvi",
-+		.dev		= &sdp3430_lcd_device.dev,
++static int samsung_lte_panel_probe(struct omap_dss_device *dssdev)
++{
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++		OMAP_DSS_LCD_IHS;
++	dssdev->panel.timings = samsung_lte_timings;
++
++	return 0;
++}
++
++static void samsung_lte_panel_remove(struct omap_dss_device *dssdev)
++{
++}
++
++static int samsung_lte_panel_enable(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	/* wait couple of vsyncs until enabling the LCD */
++	msleep(50);
++
++	if (dssdev->platform_enable)
++		r = dssdev->platform_enable(dssdev);
++
++	return r;
++}
++
++static void samsung_lte_panel_disable(struct omap_dss_device *dssdev)
++{
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	/* wait at least 5 vsyncs after disabling the LCD */
++
++	msleep(100);
++}
++
++static int samsung_lte_panel_suspend(struct omap_dss_device *dssdev)
++{
++	samsung_lte_panel_disable(dssdev);
++	return 0;
++}
++
++static int samsung_lte_panel_resume(struct omap_dss_device *dssdev)
++{
++	return samsung_lte_panel_enable(dssdev);
++}
++
++static struct omap_dss_driver samsung_lte_driver = {
++	.probe		= samsung_lte_panel_probe,
++	.remove		= samsung_lte_panel_remove,
++
++	.enable		= samsung_lte_panel_enable,
++	.disable	= samsung_lte_panel_disable,
++	.suspend	= samsung_lte_panel_suspend,
++	.resume		= samsung_lte_panel_resume,
++
++	.driver         = {
++		.name   = "samsung_lte_panel",
++		.owner  = THIS_MODULE,
 +	},
-+	{
-+		.supply		= "vdds_dsi",
-+		.dev		= &sdp3430_dss_device.dev,
-+	}
 +};
 +
- static struct regulator_init_data sdp3430_vpll2 = {
- 	.constraints = {
- 		.name			= "VDVI",
- 		.min_uV			= 1800000,
- 		.max_uV			= 1800000,
-+		.apply_uV		= true,
- 		.valid_modes_mask	= REGULATOR_MODE_NORMAL
- 					| REGULATOR_MODE_STANDBY,
- 		.valid_ops_mask		= REGULATOR_CHANGE_MODE
- 					| REGULATOR_CHANGE_STATUS,
- 	},
--	.num_consumer_supplies	= 1,
--	.consumer_supplies	= &sdp3430_vdvi_supply,
-+	.num_consumer_supplies	= ARRAY_SIZE(sdp3430_vpll2_supplies),
-+	.consumer_supplies	= sdp3430_vpll2_supplies,
- };
- 
- static struct twl4030_codec_audio_data sdp3430_audio = {
-@@ -508,6 +642,7 @@ static void __init omap_3430sdp_init(void)
- 	omap_serial_init();
- 	usb_musb_init();
- 	board_smc91x_init();
-+	sdp3430_display_init();
- 	enable_board_wakeup_source();
- }
- 
++static int __init samsung_lte_panel_drv_init(void)
++{
++	return omap_dss_register_driver(&samsung_lte_driver);
++}
++
++static void __exit samsung_lte_panel_drv_exit(void)
++{
++	omap_dss_unregister_driver(&samsung_lte_driver);
++}
++
++module_init(samsung_lte_panel_drv_init);
++module_exit(samsung_lte_panel_drv_exit);
++MODULE_LICENSE("GPL");
+diff --git a/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+new file mode 100644
+index 0000000..bbe880b
+--- /dev/null
++++ b/drivers/video/omap2/displays/panel-sharp-ls037v7dw01.c
+@@ -0,0 +1,153 @@
++/*
++ * LCD panel driver for Sharp LS037V7DW01
++ *
++ * Copyright (C) 2008 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/regulator/consumer.h>
++#include <linux/err.h>
++
++#include <plat/display.h>
++
++struct sharp_data {
++	/* XXX This regulator should actually be in SDP board file, not here,
++	 * as it doesn't actually power the LCD, but something else that
++	 * affects the output to LCD (I think. Somebody clarify). It doesn't do
++	 * harm here, as SDP is the only board using this currently */
++	struct regulator *vdvi_reg;
++};
++
++static struct omap_video_timings sharp_ls_timings = {
++	.x_res = 480,
++	.y_res = 640,
++
++	.pixel_clock	= 19200,
++
++	.hsw		= 2,
++	.hfp		= 1,
++	.hbp		= 28,
++
++	.vsw		= 1,
++	.vfp		= 1,
++	.vbp		= 1,
++};
++
++static int sharp_ls_panel_probe(struct omap_dss_device *dssdev)
++{
++	struct sharp_data *sd;
++
++	dssdev->panel.config = OMAP_DSS_LCD_TFT | OMAP_DSS_LCD_IVS |
++		OMAP_DSS_LCD_IHS;
++	dssdev->panel.acb = 0x28;
++	dssdev->panel.timings = sharp_ls_timings;
++
++	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
++	if (!sd)
++		return -ENOMEM;
++
++	dev_set_drvdata(&dssdev->dev, sd);
++
++	sd->vdvi_reg = regulator_get(&dssdev->dev, "vdvi");
++	if (IS_ERR(sd->vdvi_reg)) {
++		kfree(sd);
++		pr_err("failed to get VDVI regulator\n");
++		return PTR_ERR(sd->vdvi_reg);
++	}
++
++	return 0;
++}
++
++static void sharp_ls_panel_remove(struct omap_dss_device *dssdev)
++{
++	struct sharp_data *sd = dev_get_drvdata(&dssdev->dev);
++
++	regulator_put(sd->vdvi_reg);
++
++	kfree(sd);
++}
++
++static int sharp_ls_panel_enable(struct omap_dss_device *dssdev)
++{
++	struct sharp_data *sd = dev_get_drvdata(&dssdev->dev);
++	int r = 0;
++
++	/* wait couple of vsyncs until enabling the LCD */
++	msleep(50);
++
++	regulator_enable(sd->vdvi_reg);
++
++	if (dssdev->platform_enable)
++		r = dssdev->platform_enable(dssdev);
++
++	return r;
++}
++
++static void sharp_ls_panel_disable(struct omap_dss_device *dssdev)
++{
++	struct sharp_data *sd = dev_get_drvdata(&dssdev->dev);
++
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	regulator_disable(sd->vdvi_reg);
++
++	/* wait at least 5 vsyncs after disabling the LCD */
++
++	msleep(100);
++}
++
++static int sharp_ls_panel_suspend(struct omap_dss_device *dssdev)
++{
++	sharp_ls_panel_disable(dssdev);
++	return 0;
++}
++
++static int sharp_ls_panel_resume(struct omap_dss_device *dssdev)
++{
++	return sharp_ls_panel_enable(dssdev);
++}
++
++static struct omap_dss_driver sharp_ls_driver = {
++	.probe		= sharp_ls_panel_probe,
++	.remove		= sharp_ls_panel_remove,
++
++	.enable		= sharp_ls_panel_enable,
++	.disable	= sharp_ls_panel_disable,
++	.suspend	= sharp_ls_panel_suspend,
++	.resume		= sharp_ls_panel_resume,
++
++	.driver         = {
++		.name   = "sharp_ls_panel",
++		.owner  = THIS_MODULE,
++	},
++};
++
++static int __init sharp_ls_panel_drv_init(void)
++{
++	return omap_dss_register_driver(&sharp_ls_driver);
++}
++
++static void __exit sharp_ls_panel_drv_exit(void)
++{
++	omap_dss_unregister_driver(&sharp_ls_driver);
++}
++
++module_init(sharp_ls_panel_drv_init);
++module_exit(sharp_ls_panel_drv_exit);
++MODULE_LICENSE("GPL");
 -- 
 1.6.5.1
 
