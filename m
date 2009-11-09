@@ -1,59 +1,73 @@
-From: Tobias Klauser <tklauser@distanz.ch>
-Subject: [PATCH] arm: omap: Use resource_size
-Date: Mon,  9 Nov 2009 18:44:18 +0100
-Message-ID: <1257788658-19824-1-git-send-email-tklauser@distanz.ch>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Re: [PATCH 1/2] staging: iio: tsl2563 ambient light sensor driver
+Date: Mon, 09 Nov 2009 18:08:59 +0000
+Message-ID: <4AF85ABB.7060406@cam.ac.uk>
+References: <1257772468-4004-1-git-send-email-amit.kucheria@verdurent.com> <4AF81FE5.5080102@cam.ac.uk> <20091109142430.GZ1773@smtp.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
-	<mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: linux-arm-kernel-bounces@lists.infradead.org
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tony Lindgren <tony@atomide.com>, Russell King <linux@arm.linux.org.uk>
-Cc: Tobias Klauser <tklauser@distanz.ch>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from ppsw-1.csi.cam.ac.uk ([131.111.8.131]:33728 "EHLO
+	ppsw-1.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751206AbZKISIZ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 13:08:25 -0500
+In-Reply-To: <20091109142430.GZ1773@smtp.gmail.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Jonathan Cameron <jic23@cam.ac.uk>, List Linux Kernel <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, linux-omap@vger.kernel.org
+Cc: Zhang Rui <rui.zhang@intel.com>
 
-Use the resource_size function instead of manually calculating the
-resource size. This reduces the chance of introducing off-by-one errors
-and actually fixes one in mailbox.c.
+Amit Kucheria wrote:
+> On 09 Nov 09, Jonathan Cameron wrote:
+>> Hi Amit,
+>>
+>> Normally I'd welcome this in IIO, except that all ambient light sensors are in the
+>> process of moving to the new ALS subsystem.  There are still some issues to resolve
+>> in that subsystem (mainly to do with naming conventions) but hopefully we will
+>> get them sorted out shortly.
+> 
+> Groan! :)
+You have my sympathies on this! Typical that the first other developer to put
+forward a patch for IIO picks the one type of device we are moving out.
+If you do have any comments on IIO as a result of using it please send them
+on.
+> Who will be the subsystem maintainer and is there already a public git
+> tree?
+No git tree as far as I know.  Maintainer is Zhang Rui (Cc'd)
+Zhang, what are your plans wrt to that?  I guess I can put one up with the current
+patches if it is helpful?  We really need to sort out the naming issue as the one
+thing that people have come out against. 
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
----
- arch/arm/mach-omap2/gpmc.c    |    2 +-
- arch/arm/mach-omap2/mailbox.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+After that I'm guessing ping Andrew Morton to see if he is willing to handle the push
+to Linus? Or does Zhang want to try doing one directly?
 
-diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-index 004da69..67af370 100644
---- a/arch/arm/mach-omap2/gpmc.c
-+++ b/arch/arm/mach-omap2/gpmc.c
-@@ -366,7 +366,7 @@ int gpmc_cs_request(int cs, unsigned long size, unsigned long *base)
- 	if (r < 0)
- 		goto out;
- 
--	gpmc_cs_enable_mem(cs, res->start, res->end - res->start + 1);
-+	gpmc_cs_enable_mem(cs, res->start, resource_size(res));
- 	*base = res->start;
- 	gpmc_cs_set_reserved(cs, 1);
- out:
-diff --git a/arch/arm/mach-omap2/mailbox.c b/arch/arm/mach-omap2/mailbox.c
-index 46e1f2e..5ba3aa6 100644
---- a/arch/arm/mach-omap2/mailbox.c
-+++ b/arch/arm/mach-omap2/mailbox.c
-@@ -300,7 +300,7 @@ static int __devinit omap2_mbox_probe(struct platform_device *pdev)
- 		dev_err(&pdev->dev, "invalid mem resource\n");
- 		return -ENODEV;
- 	}
--	mbox_base = ioremap(res->start, res->end - res->start);
-+	mbox_base = ioremap(res->start, resource_size(res));
- 	if (!mbox_base)
- 		return -ENOMEM;
- 
--- 
-1.6.3.3
+>> I'll take a close look at this sometime over the next few days though.  On a quick
+>> glance at the data sheet, it looks very similar to the tsl2561.  Perhaps we can merge
+>> the drivers? Yours is certainly more complete than the tsl2561 version in IIO so it
+>> would make sense to lift the functional elements in to the code I have for an ALS
+>> driver. I hadn't posted that previously as I hadn't quite worked out how to handle
+>> the various gain related settings. What you have done seems to make sense (from a very
+>> quick look.)
+> 
+> I've got no problem merging the tsl2563 with 2561. I don't have any 2561
+> hardware to check a merged driver though.
+
+On a reasonably thorough review of data sheets I think the only difference is the
+input voltage range and a few timing parameters.  These two chips even use the same
+addresses.  I'll actually test your driver against the tsl2561 sometime later in the
+week to be sure.  So the merge looks like adding a few more lines to the i2c_device_id
+table.  As a quick comment you would ideally have the tsl2563 and tsl2562 in there
+already.
+> 
+> 
+> Do you think the ALS framework will be finalised before the 2.6.33 merge
+> window (in a few weeks)? If not, I wonder if Greg would take this driver to
+> staging to begin with and I'll modify it to use the ALS subsystem when it
+> settles down.
+I'm certainly happy with that as an option if Greg is willing. In fact,
+adding this with tsl2560-> tsl2563 support and removing the current tsl2561 driver would
+be great (post any reviews over the next couple of days).
+
+Thanks,
+
+Jonathan
