@@ -1,34 +1,58 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH] OMAP: McBSP: Do not use extensive spin
- locks for dma_op_mode
-Date: Mon, 9 Nov 2009 13:18:42 +0000
-Message-ID: <20091109131842.GA25530@rakim.wolfsonmicro.main>
-References: <1256641215-26131-1-git-send-email-peter.ujfalusi@nokia.com>
-	<200910290835.51475.peter.ujfalusi@nokia.com>
-	<20091029091524.a663e4e5.jhnikula@gmail.com>
-	<200911090949.11680.peter.ujfalusi@nokia.com>
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+Subject: Re: [PATCH v2 2/2] omap: RX-51: enable tsc2005
+Date: Mon, 09 Nov 2009 15:29:30 +0200
+Message-ID: <4AF8193A.70505@nokia.com>
+References: <1257340982-22814-1-git-send-email-aaro.koskinen@nokia.com>	<1257340982-22814-2-git-send-email-aaro.koskinen@nokia.com> <87d43ufih0.fsf@purkki.valot.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-Content-Disposition: inline
-In-Reply-To: <200911090949.11680.peter.ujfalusi@nokia.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
-	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Sender: alsa-devel-bounces@alsa-project.org
-Errors-To: alsa-devel-bounces@alsa-project.org
-To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
-Cc: "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, "tony@atomide.com" <tony@atomide.com>, "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>, "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:50101 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755861AbZKIN3l (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 08:29:41 -0500
+In-Reply-To: <87d43ufih0.fsf@purkki.valot.fi>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: ext Kalle Valo <kalle.valo@iki.fi>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "tony@atomide.com" <tony@atomide.com>
 
-On Mon, Nov 09, 2009 at 09:49:11AM +0200, Peter Ujfalusi wrote:
+Hi,
 
-> Just want to bring up this thread.
-> Should I resend the patch?
+ext Kalle Valo wrote:
+> Aaro Koskinen <aaro.koskinen@nokia.com> writes:
+> 
+>> Enable tsc2005 touchscreen driver on the RX-51 board.
+>>
+>> Signed-off-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+>> ---
+>>
+>> The patch is for 2.6.32-rc6.
+> 
+> [...]
+> 
+>> +static struct spi_board_info rx51_peripherals_spi_board_info[] = {
+>> +	[0] = {
+>> +		.modalias		= "tsc2005",
+>> +		.bus_num		= 1,
+>> +		.chip_select		= 0,
+>> +		.irq			= OMAP_GPIO_IRQ(RX51_TSC2005_IRQ_GPIO),
+>> +		.max_speed_hz		= 6000000,
+>> +		.controller_data	= &tsc2005_mcspi_config,
+>> +		.platform_data		= &tsc2005_config,
+>> +	},
+>> +};
+> 
+> I sent a wl1251 patch which adds spi_board_info and conflicts with
+> this patch:
+> 
+> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17604.html
+> 
+> How do we handle this?
 
-This is an arch/arm thing so I'd expect it to go via the OMAP tree.
+I can resend/rebase this patch once the wl1251 patch is integrated.
+
+BTW, check the comment from Tommi Rantala - spi_board_info can be marked
+with __initdata.
+
+A.
