@@ -1,85 +1,57 @@
-From: Niamathullah sharief <omapsha@gmail.com>
-Subject: Re: Newbie doubt
-Date: Mon, 9 Nov 2009 15:44:50 +0530
-Message-ID: <4ad3b6300911090214r5d982e5ai9b8e1c3c3d455cb@mail.gmail.com>
-References: <4ad3b6300911082059m5ae2db98vdc04022875138518@mail.gmail.com>
-	 <5ec8ebd50911082152p404d13a7p64741df4c8b35176@mail.gmail.com>
-	 <004801ca6102$19009d60$4b01d820$@com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: Re: [PATCH 0/3] NAND: OMAP: Fix and clean NAND driver
+Date: Mon, 9 Nov 2009 15:45:50 +0530
+Message-ID: <ce9ab5790911090215q7a626f8v6159a97dc70265c5@mail.gmail.com>
+References: <ce9ab5790910292320x2eef0550pdc3fde5d616ea361@mail.gmail.com>
+	<ce9ab5790910300142q6062c47p935ae967955f89f@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:48226 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742AbZKIKOp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 05:14:45 -0500
-Received: by pwi3 with SMTP id 3so532465pwi.21
-        for <linux-omap@vger.kernel.org>; Mon, 09 Nov 2009 02:14:50 -0800 (PST)
-In-Reply-To: <004801ca6102$19009d60$4b01d820$@com>
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:40376 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742AbZKIKQF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 05:16:05 -0500
+Received: by fxm21 with SMTP id 21so90068fxm.21
+        for <linux-omap@vger.kernel.org>; Mon, 09 Nov 2009 02:16:10 -0800 (PST)
+In-Reply-To: <ce9ab5790910300142q6062c47p935ae967955f89f@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Nagendra <nagendra@mistralsolutions.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, linux-omap@vger.kernel.org
+To: Artem Bityutskiy <dedekind1@gmail.com>, Tony Lindgren <tony@atomide.com>
+Cc: Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
 
-In this which will be ery cheap and which will be better for newbie to
-get wide knowledge. Please help me
+Artem,
+I just saw you have taken 2nd patch from this series to your tree .
+Could you please be able to maintain this full series?
 
-On Mon, Nov 9, 2009 at 11:31 AM, Nagendra <nagendra@mistralsolutions.co=
-m> wrote:
-> You may also want to consider EVM from Mistral. Please see the link b=
-elow for more details.
+Tony,
+You may want to look into 1st and 2nd patch in this series.
+
+-vimal
+
+On Fri, Oct 30, 2009 at 2:12 PM, Vimal Singh <vimal.newwork@gmail.com> =
+wrote:
+> Looping Linux-omap mailing list.
 >
-> http://www.mistralsolutions.com/products/omap_3evm.php
 >
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Fri, 30 Oct 2009 11:34:14 +0530
+> Subject: [PATCH 0/3] NAND: OMAP: Fix and clean NAND driver
 >
-> with regards,
-> - Nagendra.
+> This patch series addresses some of the issues in omap nand driver.
 >
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.=
-kernel.org] On Behalf Of Andy Shevchenko
-> Sent: Monday, November 09, 2009 11:23 AM
-> To: Niamathullah sharief
-> Cc: linux-omap@vger.kernel.org
-> Subject: Re: Newbie doubt
+> Vimal Singh (3):
+> =A0Fixing compilation warning for 'nand/omap2.c'
+> =A0NAND: OMAP: Fixing omap nand driver, compiled as module
+> =A0NAND: OMAP: Simplifying HWECC and removing unnecessary macros
 >
-> On Mon, Nov 9, 2009 at 6:59 AM, Niamathullah sharief <omapsha@gmail.c=
-om> wrote:
->> Hi,
->> I want to know that what are all the OMAP based boards available oth=
-er
->> than beagle board?in that which one will be better for me as a newbi=
-e.
-> As far as I knnow you can use beagle board or ready-to-use devices
-> such as gumstix.
->
+> =A0drivers/mtd/nand/omap2.c | =A0315 ++++++++++++++++----------------=
+--------------
+> =A01 files changed, 108 insertions(+), 207 deletions(-)
 >
 > --
-> With Best Regards,
-> Andy Shevchenko
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
->
-> Please do not print this email unless it is absolutely necessary. Spr=
-ead environmental awareness.
->
-> -------------------------------------------------------DISCLAIMER----=
---------------------------------------------------
-> The information transmitted herewith is confidential and proprietary =
-information intended only for use by the individual or entity to which =
-it is addressed. If the reader of this message is not the intended reci=
-pient, you are hereby notified that any review, retransmission, dissemi=
-nation, distribution, copying or other use of, or taking of any action =
-in reliance upon this information is strictly prohibited. If you have r=
-eceived this communication in error, please contact the sender and dele=
-te the material from your computer.
-> ---------------------------------------------------------------------=
-------------------------------------------------------
->
+> Regards,
+> Vimal Singh
 >
 --
 To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
