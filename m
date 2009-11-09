@@ -1,8 +1,7 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 17/19] OMAP: DSS2: Taal DSI command mode
-	panel driver
-Date: Mon,  9 Nov 2009 13:45:24 +0200
-Message-ID: <1257767126-12059-18-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 11/19] OMAP: DSS2: Video encoder driver
+Date: Mon,  9 Nov 2009 13:45:18 +0200
+Message-ID: <1257767126-12059-12-git-send-email-tomi.valkeinen@nokia.com>
 References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-2-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-3-git-send-email-tomi.valkeinen@nokia.com>
@@ -14,17 +13,11 @@ References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-9-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-10-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-11-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-12-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-13-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-14-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-15-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-16-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-17-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <1257767126-12059-17-git-send-email-tomi.valkeinen@nokia.com>
+In-Reply-To: <1257767126-12059-11-git-send-email-tomi.valkeinen@nokia.com>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
 	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
@@ -37,50 +30,29 @@ To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
-Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
----
- drivers/video/omap2/displays/Kconfig      |    6 +
- drivers/video/omap2/displays/Makefile     |    2 +
- drivers/video/omap2/displays/panel-taal.c | 1003 +++++++++++++++++++++++++++++
- 3 files changed, 1011 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/displays/panel-taal.c
+VENC (video encoder) driver implements OMAP's analog S-Video/Composite
+TV-out.
 
-diff --git a/drivers/video/omap2/displays/Kconfig b/drivers/video/omap2/displays/Kconfig
-index 396905d..79d2861 100644
---- a/drivers/video/omap2/displays/Kconfig
-+++ b/drivers/video/omap2/displays/Kconfig
-@@ -19,4 +19,10 @@ config PANEL_SHARP_LS037V7DW01
-         help
-           LCD Panel used in TI's SDP3430 and EVM boards
- 
-+config PANEL_TAAL
-+        tristate "Taal DSI Panel"
-+        depends on OMAP2_DSS_DSI
-+        help
-+          Taal DSI command mode panel from TPO.
-+
- endmenu
-diff --git a/drivers/video/omap2/displays/Makefile b/drivers/video/omap2/displays/Makefile
-index a26bbd2..d44e765 100644
---- a/drivers/video/omap2/displays/Makefile
-+++ b/drivers/video/omap2/displays/Makefile
-@@ -1,3 +1,5 @@
- obj-$(CONFIG_PANEL_GENERIC) += panel-generic.o
- obj-$(CONFIG_PANEL_SAMSUNG_LTE430WQ_F0C) += panel-samsung-lte430wq-f0c.o
- obj-$(CONFIG_PANEL_SHARP_LS037V7DW01) += panel-sharp-ls037v7dw01.o
-+
-+obj-$(CONFIG_PANEL_TAAL) += panel-taal.o
-diff --git a/drivers/video/omap2/displays/panel-taal.c b/drivers/video/omap2/displays/panel-taal.c
+Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
+---
+ drivers/video/omap2/dss/venc.c |  797 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 797 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/dss/venc.c
+
+diff --git a/drivers/video/omap2/dss/venc.c b/drivers/video/omap2/dss/venc.c
 new file mode 100644
-index 0000000..1f01dfc
+index 0000000..749a5a0
 --- /dev/null
-+++ b/drivers/video/omap2/displays/panel-taal.c
-@@ -0,0 +1,1003 @@
++++ b/drivers/video/omap2/dss/venc.c
+@@ -0,0 +1,797 @@
 +/*
-+ * Taal DSI command mode panel
++ * linux/drivers/video/omap2/dss/venc.c
 + *
 + * Copyright (C) 2009 Nokia Corporation
 + * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * VENC settings from TI's DSS driver
 + *
 + * This program is free software; you can redistribute it and/or modify it
 + * under the terms of the GNU General Public License version 2 as published by
@@ -95,990 +67,782 @@ index 0000000..1f01dfc
 + * this program.  If not, see <http://www.gnu.org/licenses/>.
 + */
 +
-+/*#define DEBUG*/
++#define DSS_SUBSYS_NAME "VENC"
 +
++#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/delay.h>
++#include <linux/clk.h>
 +#include <linux/err.h>
-+#include <linux/jiffies.h>
-+#include <linux/sched.h>
-+#include <linux/backlight.h>
-+#include <linux/fb.h>
-+#include <linux/interrupt.h>
-+#include <linux/gpio.h>
++#include <linux/io.h>
++#include <linux/mutex.h>
 +#include <linux/completion.h>
-+#include <linux/workqueue.h>
++#include <linux/delay.h>
++#include <linux/string.h>
++#include <linux/seq_file.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/consumer.h>
 +
 +#include <plat/display.h>
++#include <plat/cpu.h>
 +
-+/* DSI Virtual channel. Hardcoded for now. */
-+#define TCH 0
++#include "dss.h"
 +
-+#define DCS_READ_NUM_ERRORS	0x05
-+#define DCS_READ_POWER_MODE	0x0a
-+#define DCS_READ_MADCTL		0x0b
-+#define DCS_READ_PIXEL_FORMAT	0x0c
-+#define DCS_RDDSDR		0x0f
-+#define DCS_SLEEP_IN		0x10
-+#define DCS_SLEEP_OUT		0x11
-+#define DCS_DISPLAY_OFF		0x28
-+#define DCS_DISPLAY_ON		0x29
-+#define DCS_COLUMN_ADDR		0x2a
-+#define DCS_PAGE_ADDR		0x2b
-+#define DCS_MEMORY_WRITE	0x2c
-+#define DCS_TEAR_OFF		0x34
-+#define DCS_TEAR_ON		0x35
-+#define DCS_MEM_ACC_CTRL	0x36
-+#define DCS_PIXEL_FORMAT	0x3a
-+#define DCS_BRIGHTNESS		0x51
-+#define DCS_CTRL_DISPLAY	0x53
-+#define DCS_WRITE_CABC		0x55
-+#define DCS_READ_CABC		0x56
-+#define DCS_GET_ID1		0xda
-+#define DCS_GET_ID2		0xdb
-+#define DCS_GET_ID3		0xdc
++#define VENC_BASE	0x48050C00
 +
-+/* #define TAAL_USE_ESD_CHECK */
-+#define TAAL_ESD_CHECK_PERIOD	msecs_to_jiffies(5000)
++/* Venc registers */
++#define VENC_REV_ID				0x00
++#define VENC_STATUS				0x04
++#define VENC_F_CONTROL				0x08
++#define VENC_VIDOUT_CTRL			0x10
++#define VENC_SYNC_CTRL				0x14
++#define VENC_LLEN				0x1C
++#define VENC_FLENS				0x20
++#define VENC_HFLTR_CTRL				0x24
++#define VENC_CC_CARR_WSS_CARR			0x28
++#define VENC_C_PHASE				0x2C
++#define VENC_GAIN_U				0x30
++#define VENC_GAIN_V				0x34
++#define VENC_GAIN_Y				0x38
++#define VENC_BLACK_LEVEL			0x3C
++#define VENC_BLANK_LEVEL			0x40
++#define VENC_X_COLOR				0x44
++#define VENC_M_CONTROL				0x48
++#define VENC_BSTAMP_WSS_DATA			0x4C
++#define VENC_S_CARR				0x50
++#define VENC_LINE21				0x54
++#define VENC_LN_SEL				0x58
++#define VENC_L21__WC_CTL			0x5C
++#define VENC_HTRIGGER_VTRIGGER			0x60
++#define VENC_SAVID__EAVID			0x64
++#define VENC_FLEN__FAL				0x68
++#define VENC_LAL__PHASE_RESET			0x6C
++#define VENC_HS_INT_START_STOP_X		0x70
++#define VENC_HS_EXT_START_STOP_X		0x74
++#define VENC_VS_INT_START_X			0x78
++#define VENC_VS_INT_STOP_X__VS_INT_START_Y	0x7C
++#define VENC_VS_INT_STOP_Y__VS_EXT_START_X	0x80
++#define VENC_VS_EXT_STOP_X__VS_EXT_START_Y	0x84
++#define VENC_VS_EXT_STOP_Y			0x88
++#define VENC_AVID_START_STOP_X			0x90
++#define VENC_AVID_START_STOP_Y			0x94
++#define VENC_FID_INT_START_X__FID_INT_START_Y	0xA0
++#define VENC_FID_INT_OFFSET_Y__FID_EXT_START_X	0xA4
++#define VENC_FID_EXT_START_Y__FID_EXT_OFFSET_Y	0xA8
++#define VENC_TVDETGP_INT_START_STOP_X		0xB0
++#define VENC_TVDETGP_INT_START_STOP_Y		0xB4
++#define VENC_GEN_CTRL				0xB8
++#define VENC_OUTPUT_CONTROL			0xC4
++#define VENC_OUTPUT_TEST			0xC8
++#define VENC_DAC_B__DAC_C			0xC8
 +
-+struct taal_data {
-+	struct backlight_device *bldev;
-+
-+	unsigned long	hw_guard_end;	/* next value of jiffies when we can
-+					 * issue the next sleep in/out command
-+					 */
-+	unsigned long	hw_guard_wait;	/* max guard time in jiffies */
-+
-+	struct omap_dss_device *dssdev;
-+
-+	bool enabled;
-+	u8 rotate;
-+	bool mirror;
-+
-+	bool te_enabled;
-+	bool use_ext_te;
-+	struct completion te_completion;
-+
-+	bool use_dsi_bl;
-+
-+	bool cabc_broken;
-+	unsigned cabc_mode;
-+
-+	bool intro_printed;
-+
-+	struct workqueue_struct *esd_wq;
-+	struct delayed_work esd_work;
++struct venc_config {
++	u32 f_control;
++	u32 vidout_ctrl;
++	u32 sync_ctrl;
++	u32 llen;
++	u32 flens;
++	u32 hfltr_ctrl;
++	u32 cc_carr_wss_carr;
++	u32 c_phase;
++	u32 gain_u;
++	u32 gain_v;
++	u32 gain_y;
++	u32 black_level;
++	u32 blank_level;
++	u32 x_color;
++	u32 m_control;
++	u32 bstamp_wss_data;
++	u32 s_carr;
++	u32 line21;
++	u32 ln_sel;
++	u32 l21__wc_ctl;
++	u32 htrigger_vtrigger;
++	u32 savid__eavid;
++	u32 flen__fal;
++	u32 lal__phase_reset;
++	u32 hs_int_start_stop_x;
++	u32 hs_ext_start_stop_x;
++	u32 vs_int_start_x;
++	u32 vs_int_stop_x__vs_int_start_y;
++	u32 vs_int_stop_y__vs_ext_start_x;
++	u32 vs_ext_stop_x__vs_ext_start_y;
++	u32 vs_ext_stop_y;
++	u32 avid_start_stop_x;
++	u32 avid_start_stop_y;
++	u32 fid_int_start_x__fid_int_start_y;
++	u32 fid_int_offset_y__fid_ext_start_x;
++	u32 fid_ext_start_y__fid_ext_offset_y;
++	u32 tvdetgp_int_start_stop_x;
++	u32 tvdetgp_int_start_stop_y;
++	u32 gen_ctrl;
 +};
 +
-+static void taal_esd_work(struct work_struct *work);
++/* from TRM */
++static const struct venc_config venc_config_pal_trm = {
++	.f_control				= 0,
++	.vidout_ctrl				= 1,
++	.sync_ctrl				= 0x40,
++	.llen					= 0x35F, /* 863 */
++	.flens					= 0x270, /* 624 */
++	.hfltr_ctrl				= 0,
++	.cc_carr_wss_carr			= 0x2F7225ED,
++	.c_phase				= 0,
++	.gain_u					= 0x111,
++	.gain_v					= 0x181,
++	.gain_y					= 0x140,
++	.black_level				= 0x3B,
++	.blank_level				= 0x3B,
++	.x_color				= 0x7,
++	.m_control				= 0x2,
++	.bstamp_wss_data			= 0x3F,
++	.s_carr					= 0x2A098ACB,
++	.line21					= 0,
++	.ln_sel					= 0x01290015,
++	.l21__wc_ctl				= 0x0000F603,
++	.htrigger_vtrigger			= 0,
 +
-+static void hw_guard_start(struct taal_data *td, int guard_msec)
++	.savid__eavid				= 0x06A70108,
++	.flen__fal				= 0x00180270,
++	.lal__phase_reset			= 0x00040135,
++	.hs_int_start_stop_x			= 0x00880358,
++	.hs_ext_start_stop_x			= 0x000F035F,
++	.vs_int_start_x				= 0x01A70000,
++	.vs_int_stop_x__vs_int_start_y		= 0x000001A7,
++	.vs_int_stop_y__vs_ext_start_x		= 0x01AF0000,
++	.vs_ext_stop_x__vs_ext_start_y		= 0x000101AF,
++	.vs_ext_stop_y				= 0x00000025,
++	.avid_start_stop_x			= 0x03530083,
++	.avid_start_stop_y			= 0x026C002E,
++	.fid_int_start_x__fid_int_start_y	= 0x0001008A,
++	.fid_int_offset_y__fid_ext_start_x	= 0x002E0138,
++	.fid_ext_start_y__fid_ext_offset_y	= 0x01380001,
++
++	.tvdetgp_int_start_stop_x		= 0x00140001,
++	.tvdetgp_int_start_stop_y		= 0x00010001,
++	.gen_ctrl				= 0x00FF0000,
++};
++
++/* from TRM */
++static const struct venc_config venc_config_ntsc_trm = {
++	.f_control				= 0,
++	.vidout_ctrl				= 1,
++	.sync_ctrl				= 0x8040,
++	.llen					= 0x359,
++	.flens					= 0x20C,
++	.hfltr_ctrl				= 0,
++	.cc_carr_wss_carr			= 0x043F2631,
++	.c_phase				= 0,
++	.gain_u					= 0x102,
++	.gain_v					= 0x16C,
++	.gain_y					= 0x12F,
++	.black_level				= 0x43,
++	.blank_level				= 0x38,
++	.x_color				= 0x7,
++	.m_control				= 0x1,
++	.bstamp_wss_data			= 0x38,
++	.s_carr					= 0x21F07C1F,
++	.line21					= 0,
++	.ln_sel					= 0x01310011,
++	.l21__wc_ctl				= 0x0000F003,
++	.htrigger_vtrigger			= 0,
++
++	.savid__eavid				= 0x069300F4,
++	.flen__fal				= 0x0016020C,
++	.lal__phase_reset			= 0x00060107,
++	.hs_int_start_stop_x			= 0x008E0350,
++	.hs_ext_start_stop_x			= 0x000F0359,
++	.vs_int_start_x				= 0x01A00000,
++	.vs_int_stop_x__vs_int_start_y		= 0x020701A0,
++	.vs_int_stop_y__vs_ext_start_x		= 0x01AC0024,
++	.vs_ext_stop_x__vs_ext_start_y		= 0x020D01AC,
++	.vs_ext_stop_y				= 0x00000006,
++	.avid_start_stop_x			= 0x03480078,
++	.avid_start_stop_y			= 0x02060024,
++	.fid_int_start_x__fid_int_start_y	= 0x0001008A,
++	.fid_int_offset_y__fid_ext_start_x	= 0x01AC0106,
++	.fid_ext_start_y__fid_ext_offset_y	= 0x01060006,
++
++	.tvdetgp_int_start_stop_x		= 0x00140001,
++	.tvdetgp_int_start_stop_y		= 0x00010001,
++	.gen_ctrl				= 0x00F90000,
++};
++
++static const struct venc_config venc_config_pal_bdghi = {
++	.f_control				= 0,
++	.vidout_ctrl				= 0,
++	.sync_ctrl				= 0,
++	.hfltr_ctrl				= 0,
++	.x_color				= 0,
++	.line21					= 0,
++	.ln_sel					= 21,
++	.htrigger_vtrigger			= 0,
++	.tvdetgp_int_start_stop_x		= 0x00140001,
++	.tvdetgp_int_start_stop_y		= 0x00010001,
++	.gen_ctrl				= 0x00FB0000,
++
++	.llen					= 864-1,
++	.flens					= 625-1,
++	.cc_carr_wss_carr			= 0x2F7625ED,
++	.c_phase				= 0xDF,
++	.gain_u					= 0x111,
++	.gain_v					= 0x181,
++	.gain_y					= 0x140,
++	.black_level				= 0x3e,
++	.blank_level				= 0x3e,
++	.m_control				= 0<<2 | 1<<1,
++	.bstamp_wss_data			= 0x42,
++	.s_carr					= 0x2a098acb,
++	.l21__wc_ctl				= 0<<13 | 0x16<<8 | 0<<0,
++	.savid__eavid				= 0x06A70108,
++	.flen__fal				= 23<<16 | 624<<0,
++	.lal__phase_reset			= 2<<17 | 310<<0,
++	.hs_int_start_stop_x			= 0x00920358,
++	.hs_ext_start_stop_x			= 0x000F035F,
++	.vs_int_start_x				= 0x1a7<<16,
++	.vs_int_stop_x__vs_int_start_y		= 0x000601A7,
++	.vs_int_stop_y__vs_ext_start_x		= 0x01AF0036,
++	.vs_ext_stop_x__vs_ext_start_y		= 0x27101af,
++	.vs_ext_stop_y				= 0x05,
++	.avid_start_stop_x			= 0x03530082,
++	.avid_start_stop_y			= 0x0270002E,
++	.fid_int_start_x__fid_int_start_y	= 0x0005008A,
++	.fid_int_offset_y__fid_ext_start_x	= 0x002E0138,
++	.fid_ext_start_y__fid_ext_offset_y	= 0x01380005,
++};
++
++const struct omap_video_timings omap_dss_pal_timings = {
++	.x_res		= 720,
++	.y_res		= 574,
++	.pixel_clock	= 13500,
++	.hsw		= 64,
++	.hfp		= 12,
++	.hbp		= 68,
++	.vsw		= 5,
++	.vfp		= 5,
++	.vbp		= 41,
++};
++EXPORT_SYMBOL(omap_dss_pal_timings);
++
++const struct omap_video_timings omap_dss_ntsc_timings = {
++	.x_res		= 720,
++	.y_res		= 482,
++	.pixel_clock	= 13500,
++	.hsw		= 64,
++	.hfp		= 16,
++	.hbp		= 58,
++	.vsw		= 6,
++	.vfp		= 6,
++	.vbp		= 31,
++};
++EXPORT_SYMBOL(omap_dss_ntsc_timings);
++
++static struct {
++	void __iomem *base;
++	struct mutex venc_lock;
++	u32 wss_data;
++	struct regulator *vdda_dac_reg;
++} venc;
++
++static inline void venc_write_reg(int idx, u32 val)
 +{
-+	td->hw_guard_wait = msecs_to_jiffies(guard_msec);
-+	td->hw_guard_end = jiffies + td->hw_guard_wait;
++	__raw_writel(val, venc.base + idx);
 +}
 +
-+static void hw_guard_wait(struct taal_data *td)
++static inline u32 venc_read_reg(int idx)
 +{
-+	unsigned long wait = td->hw_guard_end - jiffies;
++	u32 l = __raw_readl(venc.base + idx);
++	return l;
++}
 +
-+	if ((long)wait > 0 && wait <= td->hw_guard_wait) {
-+		set_current_state(TASK_UNINTERRUPTIBLE);
-+		schedule_timeout(wait);
++static void venc_write_config(const struct venc_config *config)
++{
++	DSSDBG("write venc conf\n");
++
++	venc_write_reg(VENC_LLEN, config->llen);
++	venc_write_reg(VENC_FLENS, config->flens);
++	venc_write_reg(VENC_CC_CARR_WSS_CARR, config->cc_carr_wss_carr);
++	venc_write_reg(VENC_C_PHASE, config->c_phase);
++	venc_write_reg(VENC_GAIN_U, config->gain_u);
++	venc_write_reg(VENC_GAIN_V, config->gain_v);
++	venc_write_reg(VENC_GAIN_Y, config->gain_y);
++	venc_write_reg(VENC_BLACK_LEVEL, config->black_level);
++	venc_write_reg(VENC_BLANK_LEVEL, config->blank_level);
++	venc_write_reg(VENC_M_CONTROL, config->m_control);
++	venc_write_reg(VENC_BSTAMP_WSS_DATA, config->bstamp_wss_data |
++			venc.wss_data);
++	venc_write_reg(VENC_S_CARR, config->s_carr);
++	venc_write_reg(VENC_L21__WC_CTL, config->l21__wc_ctl);
++	venc_write_reg(VENC_SAVID__EAVID, config->savid__eavid);
++	venc_write_reg(VENC_FLEN__FAL, config->flen__fal);
++	venc_write_reg(VENC_LAL__PHASE_RESET, config->lal__phase_reset);
++	venc_write_reg(VENC_HS_INT_START_STOP_X, config->hs_int_start_stop_x);
++	venc_write_reg(VENC_HS_EXT_START_STOP_X, config->hs_ext_start_stop_x);
++	venc_write_reg(VENC_VS_INT_START_X, config->vs_int_start_x);
++	venc_write_reg(VENC_VS_INT_STOP_X__VS_INT_START_Y,
++		       config->vs_int_stop_x__vs_int_start_y);
++	venc_write_reg(VENC_VS_INT_STOP_Y__VS_EXT_START_X,
++		       config->vs_int_stop_y__vs_ext_start_x);
++	venc_write_reg(VENC_VS_EXT_STOP_X__VS_EXT_START_Y,
++		       config->vs_ext_stop_x__vs_ext_start_y);
++	venc_write_reg(VENC_VS_EXT_STOP_Y, config->vs_ext_stop_y);
++	venc_write_reg(VENC_AVID_START_STOP_X, config->avid_start_stop_x);
++	venc_write_reg(VENC_AVID_START_STOP_Y, config->avid_start_stop_y);
++	venc_write_reg(VENC_FID_INT_START_X__FID_INT_START_Y,
++		       config->fid_int_start_x__fid_int_start_y);
++	venc_write_reg(VENC_FID_INT_OFFSET_Y__FID_EXT_START_X,
++		       config->fid_int_offset_y__fid_ext_start_x);
++	venc_write_reg(VENC_FID_EXT_START_Y__FID_EXT_OFFSET_Y,
++		       config->fid_ext_start_y__fid_ext_offset_y);
++
++	venc_write_reg(VENC_DAC_B__DAC_C,  venc_read_reg(VENC_DAC_B__DAC_C));
++	venc_write_reg(VENC_VIDOUT_CTRL, config->vidout_ctrl);
++	venc_write_reg(VENC_HFLTR_CTRL, config->hfltr_ctrl);
++	venc_write_reg(VENC_X_COLOR, config->x_color);
++	venc_write_reg(VENC_LINE21, config->line21);
++	venc_write_reg(VENC_LN_SEL, config->ln_sel);
++	venc_write_reg(VENC_HTRIGGER_VTRIGGER, config->htrigger_vtrigger);
++	venc_write_reg(VENC_TVDETGP_INT_START_STOP_X,
++		       config->tvdetgp_int_start_stop_x);
++	venc_write_reg(VENC_TVDETGP_INT_START_STOP_Y,
++		       config->tvdetgp_int_start_stop_y);
++	venc_write_reg(VENC_GEN_CTRL, config->gen_ctrl);
++	venc_write_reg(VENC_F_CONTROL, config->f_control);
++	venc_write_reg(VENC_SYNC_CTRL, config->sync_ctrl);
++}
++
++static void venc_reset(void)
++{
++	int t = 1000;
++
++	venc_write_reg(VENC_F_CONTROL, 1<<8);
++	while (venc_read_reg(VENC_F_CONTROL) & (1<<8)) {
++		if (--t == 0) {
++			DSSERR("Failed to reset venc\n");
++			return;
++		}
 +	}
++
++	/* the magical sleep that makes things work */
++	msleep(20);
 +}
 +
-+static int taal_dcs_read_1(u8 dcs_cmd, u8 *data)
++static void venc_enable_clocks(int enable)
 +{
-+	int r;
-+	u8 buf[1];
++	if (enable)
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M |
++				DSS_CLK_96M);
++	else
++		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1 | DSS_CLK_54M |
++				DSS_CLK_96M);
++}
 +
-+	r = dsi_vc_dcs_read(TCH, dcs_cmd, buf, 1);
++static const struct venc_config *venc_timings_to_config(
++		struct omap_video_timings *timings)
++{
++	if (memcmp(&omap_dss_pal_timings, timings, sizeof(*timings)) == 0)
++		return &venc_config_pal_trm;
 +
-+	if (r < 0)
-+		return r;
++	if (memcmp(&omap_dss_ntsc_timings, timings, sizeof(*timings)) == 0)
++		return &venc_config_ntsc_trm;
 +
-+	*data = buf[0];
++	BUG();
++}
++
++
++
++
++
++/* driver */
++static int venc_panel_probe(struct omap_dss_device *dssdev)
++{
++	dssdev->panel.timings = omap_dss_pal_timings;
 +
 +	return 0;
 +}
 +
-+static int taal_dcs_write_0(u8 dcs_cmd)
++static void venc_panel_remove(struct omap_dss_device *dssdev)
 +{
-+	return dsi_vc_dcs_write(TCH, &dcs_cmd, 1);
 +}
 +
-+static int taal_dcs_write_1(u8 dcs_cmd, u8 param)
++static int venc_panel_enable(struct omap_dss_device *dssdev)
 +{
-+	u8 buf[2];
-+	buf[0] = dcs_cmd;
-+	buf[1] = param;
-+	return dsi_vc_dcs_write(TCH, buf, 2);
-+}
++	int r = 0;
 +
-+static int taal_sleep_in(struct taal_data *td)
++	/* wait couple of vsyncs until enabling the LCD */
++	msleep(50);
 +
-+{
-+	u8 cmd;
-+	int r;
-+
-+	hw_guard_wait(td);
-+
-+	cmd = DCS_SLEEP_IN;
-+	r = dsi_vc_dcs_write_nosync(TCH, &cmd, 1);
-+	if (r)
-+		return r;
-+
-+	hw_guard_start(td, 120);
-+
-+	msleep(5);
-+
-+	return 0;
-+}
-+
-+static int taal_sleep_out(struct taal_data *td)
-+{
-+	int r;
-+
-+	hw_guard_wait(td);
-+
-+	r = taal_dcs_write_0(DCS_SLEEP_OUT);
-+	if (r)
-+		return r;
-+
-+	hw_guard_start(td, 120);
-+
-+	msleep(5);
-+
-+	return 0;
-+}
-+
-+static int taal_get_id(u8 *id1, u8 *id2, u8 *id3)
-+{
-+	int r;
-+
-+	r = taal_dcs_read_1(DCS_GET_ID1, id1);
-+	if (r)
-+		return r;
-+	r = taal_dcs_read_1(DCS_GET_ID2, id2);
-+	if (r)
-+		return r;
-+	r = taal_dcs_read_1(DCS_GET_ID3, id3);
-+	if (r)
-+		return r;
-+
-+	return 0;
-+}
-+
-+static int taal_set_addr_mode(u8 rotate, bool mirror)
-+{
-+	int r;
-+	u8 mode;
-+	int b5, b6, b7;
-+
-+	r = taal_dcs_read_1(DCS_READ_MADCTL, &mode);
-+	if (r)
-+		return r;
-+
-+	switch (rotate) {
-+	default:
-+	case 0:
-+		b7 = 0;
-+		b6 = 0;
-+		b5 = 0;
-+		break;
-+	case 1:
-+		b7 = 0;
-+		b6 = 1;
-+		b5 = 1;
-+		break;
-+	case 2:
-+		b7 = 1;
-+		b6 = 1;
-+		b5 = 0;
-+		break;
-+	case 3:
-+		b7 = 1;
-+		b6 = 0;
-+		b5 = 1;
-+		break;
-+	}
-+
-+	if (mirror)
-+		b6 = !b6;
-+
-+	mode &= ~((1<<7) | (1<<6) | (1<<5));
-+	mode |= (b7 << 7) | (b6 << 6) | (b5 << 5);
-+
-+	return taal_dcs_write_1(DCS_MEM_ACC_CTRL, mode);
-+}
-+
-+static int taal_set_update_window(u16 x, u16 y, u16 w, u16 h)
-+{
-+	int r;
-+	u16 x1 = x;
-+	u16 x2 = x + w - 1;
-+	u16 y1 = y;
-+	u16 y2 = y + h - 1;
-+
-+	u8 buf[5];
-+	buf[0] = DCS_COLUMN_ADDR;
-+	buf[1] = (x1 >> 8) & 0xff;
-+	buf[2] = (x1 >> 0) & 0xff;
-+	buf[3] = (x2 >> 8) & 0xff;
-+	buf[4] = (x2 >> 0) & 0xff;
-+
-+	r = dsi_vc_dcs_write_nosync(TCH, buf, sizeof(buf));
-+	if (r)
-+		return r;
-+
-+	buf[0] = DCS_PAGE_ADDR;
-+	buf[1] = (y1 >> 8) & 0xff;
-+	buf[2] = (y1 >> 0) & 0xff;
-+	buf[3] = (y2 >> 8) & 0xff;
-+	buf[4] = (y2 >> 0) & 0xff;
-+
-+	r = dsi_vc_dcs_write_nosync(TCH, buf, sizeof(buf));
-+	if (r)
-+		return r;
-+
-+	dsi_vc_send_bta_sync(TCH);
++	if (dssdev->platform_enable)
++		r = dssdev->platform_enable(dssdev);
 +
 +	return r;
 +}
 +
-+static int taal_bl_update_status(struct backlight_device *dev)
++static void venc_panel_disable(struct omap_dss_device *dssdev)
 +{
-+	struct omap_dss_device *dssdev = dev_get_drvdata(&dev->dev);
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	int r;
-+	int level;
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
 +
-+	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
-+			dev->props.power == FB_BLANK_UNBLANK)
-+		level = dev->props.brightness;
-+	else
-+		level = 0;
++	/* wait at least 5 vsyncs after disabling the LCD */
 +
-+	dev_dbg(&dssdev->dev, "update brightness to %d\n", level);
++	msleep(100);
++}
 +
-+	if (td->use_dsi_bl) {
-+		if (td->enabled) {
-+			dsi_bus_lock();
-+			r = taal_dcs_write_1(DCS_BRIGHTNESS, level);
-+			dsi_bus_unlock();
-+			if (r)
-+				return r;
-+		}
-+	} else {
-+		if (!dssdev->set_backlight)
-+			return -EINVAL;
++static int venc_panel_suspend(struct omap_dss_device *dssdev)
++{
++	venc_panel_disable(dssdev);
++	return 0;
++}
 +
-+		r = dssdev->set_backlight(dssdev, level);
-+		if (r)
-+			return r;
++static int venc_panel_resume(struct omap_dss_device *dssdev)
++{
++	return venc_panel_enable(dssdev);
++}
++
++static struct omap_dss_driver venc_driver = {
++	.probe		= venc_panel_probe,
++	.remove		= venc_panel_remove,
++
++	.enable		= venc_panel_enable,
++	.disable	= venc_panel_disable,
++	.suspend	= venc_panel_suspend,
++	.resume		= venc_panel_resume,
++
++	.driver         = {
++		.name   = "venc",
++		.owner  = THIS_MODULE,
++	},
++};
++/* driver end */
++
++
++
++int venc_init(struct platform_device *pdev)
++{
++	u8 rev_id;
++
++	mutex_init(&venc.venc_lock);
++
++	venc.wss_data = 0;
++
++	venc.base = ioremap(VENC_BASE, SZ_1K);
++	if (!venc.base) {
++		DSSERR("can't ioremap VENC\n");
++		return -ENOMEM;
 +	}
 +
-+	return 0;
++	venc.vdda_dac_reg = regulator_get(&pdev->dev, "vdda_dac");
++	if (IS_ERR(venc.vdda_dac_reg)) {
++		iounmap(venc.base);
++		DSSERR("can't get VDDA_DAC regulator\n");
++		return PTR_ERR(venc.vdda_dac_reg);
++	}
++
++	venc_enable_clocks(1);
++
++	rev_id = (u8)(venc_read_reg(VENC_REV_ID) & 0xff);
++	printk(KERN_INFO "OMAP VENC rev %d\n", rev_id);
++
++	venc_enable_clocks(0);
++
++	return omap_dss_register_driver(&venc_driver);
 +}
 +
-+static int taal_bl_get_intensity(struct backlight_device *dev)
++void venc_exit(void)
 +{
-+	if (dev->props.fb_blank == FB_BLANK_UNBLANK &&
-+			dev->props.power == FB_BLANK_UNBLANK)
-+		return dev->props.brightness;
++	omap_dss_unregister_driver(&venc_driver);
 +
-+	return 0;
++	regulator_put(venc.vdda_dac_reg);
++
++	iounmap(venc.base);
 +}
 +
-+static struct backlight_ops taal_bl_ops = {
-+	.get_brightness = taal_bl_get_intensity,
-+	.update_status  = taal_bl_update_status,
-+};
++static void venc_power_on(struct omap_dss_device *dssdev)
++{
++	u32 l;
 +
-+static void taal_get_timings(struct omap_dss_device *dssdev,
++	venc_enable_clocks(1);
++
++	venc_reset();
++	venc_write_config(venc_timings_to_config(&dssdev->panel.timings));
++
++	dss_set_venc_output(dssdev->phy.venc.type);
++	dss_set_dac_pwrdn_bgz(1);
++
++	l = 0;
++
++	if (dssdev->phy.venc.type == OMAP_DSS_VENC_TYPE_COMPOSITE)
++		l |= 1 << 1;
++	else /* S-Video */
++		l |= (1 << 0) | (1 << 2);
++
++	if (dssdev->phy.venc.invert_polarity == false)
++		l |= 1 << 3;
++
++	venc_write_reg(VENC_OUTPUT_CONTROL, l);
++
++	dispc_set_digit_size(dssdev->panel.timings.x_res,
++			dssdev->panel.timings.y_res/2);
++
++	regulator_enable(venc.vdda_dac_reg);
++
++	if (dssdev->platform_enable)
++		dssdev->platform_enable(dssdev);
++
++	dispc_enable_digit_out(1);
++}
++
++static void venc_power_off(struct omap_dss_device *dssdev)
++{
++	venc_write_reg(VENC_OUTPUT_CONTROL, 0);
++	dss_set_dac_pwrdn_bgz(0);
++
++	dispc_enable_digit_out(0);
++
++	if (dssdev->platform_disable)
++		dssdev->platform_disable(dssdev);
++
++	regulator_disable(venc.vdda_dac_reg);
++
++	venc_enable_clocks(0);
++}
++
++static int venc_enable_display(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	DSSDBG("venc_enable_display\n");
++
++	mutex_lock(&venc.venc_lock);
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
++		r = -EINVAL;
++		goto err;
++	}
++
++	venc_power_on(dssdev);
++
++	venc.wss_data = 0;
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++err:
++	mutex_unlock(&venc.venc_lock);
++
++	return r;
++}
++
++static void venc_disable_display(struct omap_dss_device *dssdev)
++{
++	DSSDBG("venc_disable_display\n");
++
++	mutex_lock(&venc.venc_lock);
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_DISABLED)
++		goto end;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_SUSPENDED) {
++		/* suspended is the same as disabled with venc */
++		dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++		goto end;
++	}
++
++	venc_power_off(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++end:
++	mutex_unlock(&venc.venc_lock);
++}
++
++static int venc_display_suspend(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	DSSDBG("venc_display_suspend\n");
++
++	mutex_lock(&venc.venc_lock);
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE) {
++		r = -EINVAL;
++		goto err;
++	}
++
++	venc_power_off(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++err:
++	mutex_unlock(&venc.venc_lock);
++
++	return r;
++}
++
++static int venc_display_resume(struct omap_dss_device *dssdev)
++{
++	int r = 0;
++
++	DSSDBG("venc_display_resume\n");
++
++	mutex_lock(&venc.venc_lock);
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED) {
++		r = -EINVAL;
++		goto err;
++	}
++
++	venc_power_on(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++err:
++	mutex_unlock(&venc.venc_lock);
++
++	return r;
++}
++
++static void venc_get_timings(struct omap_dss_device *dssdev,
 +			struct omap_video_timings *timings)
 +{
 +	*timings = dssdev->panel.timings;
 +}
 +
-+static void taal_get_resolution(struct omap_dss_device *dssdev,
-+		u16 *xres, u16 *yres)
++static void venc_set_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
 +{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++	DSSDBG("venc_set_timings\n");
 +
-+	if (td->rotate == 0 || td->rotate == 2) {
-+		*xres = dssdev->panel.timings.x_res;
-+		*yres = dssdev->panel.timings.y_res;
-+	} else {
-+		*yres = dssdev->panel.timings.x_res;
-+		*xres = dssdev->panel.timings.y_res;
++	/* Reset WSS data when the TV standard changes. */
++	if (memcmp(&dssdev->panel.timings, timings, sizeof(*timings)))
++		venc.wss_data = 0;
++
++	dssdev->panel.timings = *timings;
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE) {
++		/* turn the venc off and on to get new timings to use */
++		venc_disable_display(dssdev);
++		venc_enable_display(dssdev);
 +	}
 +}
 +
-+static irqreturn_t taal_te_isr(int irq, void *data)
++static int venc_check_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
 +{
-+	struct omap_dss_device *dssdev = data;
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
++	DSSDBG("venc_check_timings\n");
 +
-+	complete_all(&td->te_completion);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static ssize_t taal_num_errors_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	u8 errors;
-+	int r;
-+
-+	if (td->enabled) {
-+		dsi_bus_lock();
-+		r = taal_dcs_read_1(DCS_READ_NUM_ERRORS, &errors);
-+		dsi_bus_unlock();
-+	} else {
-+		r = -ENODEV;
-+	}
-+
-+	if (r)
-+		return r;
-+
-+	return snprintf(buf, PAGE_SIZE, "%d\n", errors);
-+}
-+
-+static ssize_t taal_hw_revision_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	u8 id1, id2, id3;
-+	int r;
-+
-+	if (td->enabled) {
-+		dsi_bus_lock();
-+		r = taal_get_id(&id1, &id2, &id3);
-+		dsi_bus_unlock();
-+	} else {
-+		r = -ENODEV;
-+	}
-+
-+	if (r)
-+		return r;
-+
-+	return snprintf(buf, PAGE_SIZE, "%02x.%02x.%02x\n", id1, id2, id3);
-+}
-+
-+static const char *cabc_modes[] = {
-+	"off",		/* used also always when CABC is not supported */
-+	"ui",
-+	"still-image",
-+	"moving-image",
-+};
-+
-+static ssize_t show_cabc_mode(struct device *dev,
-+		struct device_attribute *attr,
-+		char *buf)
-+{
-+	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	const char *mode_str;
-+	int mode;
-+	int len;
-+
-+	mode = td->cabc_mode;
-+
-+	mode_str = "unknown";
-+	if (mode >= 0 && mode < ARRAY_SIZE(cabc_modes))
-+		mode_str = cabc_modes[mode];
-+	len = snprintf(buf, PAGE_SIZE, "%s\n", mode_str);
-+
-+	return len < PAGE_SIZE - 1 ? len : PAGE_SIZE - 1;
-+}
-+
-+static ssize_t store_cabc_mode(struct device *dev,
-+		struct device_attribute *attr,
-+		const char *buf, size_t count)
-+{
-+	struct omap_dss_device *dssdev = to_dss_device(dev);
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(cabc_modes); i++) {
-+		if (sysfs_streq(cabc_modes[i], buf))
-+			break;
-+	}
-+
-+	if (i == ARRAY_SIZE(cabc_modes))
-+		return -EINVAL;
-+
-+	if (td->enabled) {
-+		dsi_bus_lock();
-+		if (!td->cabc_broken)
-+			taal_dcs_write_1(DCS_WRITE_CABC, i);
-+		dsi_bus_unlock();
-+	}
-+
-+	td->cabc_mode = i;
-+
-+	return count;
-+}
-+
-+static ssize_t show_cabc_available_modes(struct device *dev,
-+		struct device_attribute *attr,
-+		char *buf)
-+{
-+	int len;
-+	int i;
-+
-+	for (i = 0, len = 0;
-+	     len < PAGE_SIZE && i < ARRAY_SIZE(cabc_modes); i++)
-+		len += snprintf(&buf[len], PAGE_SIZE - len, "%s%s%s",
-+			i ? " " : "", cabc_modes[i],
-+			i == ARRAY_SIZE(cabc_modes) - 1 ? "\n" : "");
-+
-+	return len < PAGE_SIZE ? len : PAGE_SIZE - 1;
-+}
-+
-+static DEVICE_ATTR(num_dsi_errors, S_IRUGO, taal_num_errors_show, NULL);
-+static DEVICE_ATTR(hw_revision, S_IRUGO, taal_hw_revision_show, NULL);
-+static DEVICE_ATTR(cabc_mode, S_IRUGO | S_IWUSR,
-+		show_cabc_mode, store_cabc_mode);
-+static DEVICE_ATTR(cabc_available_modes, S_IRUGO,
-+		show_cabc_available_modes, NULL);
-+
-+static struct attribute *taal_attrs[] = {
-+	&dev_attr_num_dsi_errors.attr,
-+	&dev_attr_hw_revision.attr,
-+	&dev_attr_cabc_mode.attr,
-+	&dev_attr_cabc_available_modes.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group taal_attr_group = {
-+	.attrs = taal_attrs,
-+};
-+
-+static int taal_probe(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td;
-+	struct backlight_device *bldev;
-+	int r;
-+
-+	const struct omap_video_timings taal_panel_timings = {
-+		.x_res		= 864,
-+		.y_res		= 480,
-+	};
-+
-+	dev_dbg(&dssdev->dev, "probe\n");
-+
-+	dssdev->panel.config = OMAP_DSS_LCD_TFT;
-+	dssdev->panel.timings = taal_panel_timings;
-+	dssdev->ctrl.pixel_size = 24;
-+
-+	td = kzalloc(sizeof(*td), GFP_KERNEL);
-+	if (!td) {
-+		r = -ENOMEM;
-+		goto err0;
-+	}
-+	td->dssdev = dssdev;
-+
-+	td->esd_wq = create_singlethread_workqueue("taal_esd");
-+	if (td->esd_wq == NULL) {
-+		dev_err(&dssdev->dev, "can't create ESD workqueue\n");
-+		r = -ENOMEM;
-+		goto err2;
-+	}
-+	INIT_DELAYED_WORK_DEFERRABLE(&td->esd_work, taal_esd_work);
-+
-+	dev_set_drvdata(&dssdev->dev, td);
-+
-+	dssdev->get_timings = taal_get_timings;
-+	dssdev->get_resolution = taal_get_resolution;
-+
-+	/* if no platform set_backlight() defined, presume DSI backlight
-+	 * control */
-+	if (!dssdev->set_backlight)
-+		td->use_dsi_bl = true;
-+
-+	bldev = backlight_device_register("taal", &dssdev->dev, dssdev,
-+			&taal_bl_ops);
-+	if (IS_ERR(bldev)) {
-+		r = PTR_ERR(bldev);
-+		goto err1;
-+	}
-+
-+	td->bldev = bldev;
-+
-+	bldev->props.fb_blank = FB_BLANK_UNBLANK;
-+	bldev->props.power = FB_BLANK_UNBLANK;
-+	if (td->use_dsi_bl) {
-+		bldev->props.max_brightness = 255;
-+		bldev->props.brightness = 255;
-+	} else {
-+		bldev->props.max_brightness = 127;
-+		bldev->props.brightness = 127;
-+	}
-+
-+	taal_bl_update_status(bldev);
-+
-+	if (dssdev->phy.dsi.ext_te) {
-+		int gpio = dssdev->phy.dsi.ext_te_gpio;
-+
-+		r = gpio_request(gpio, "taal irq");
-+		if (r) {
-+			dev_err(&dssdev->dev, "GPIO request failed\n");
-+			goto err3;
-+		}
-+
-+		gpio_direction_input(gpio);
-+
-+		r = request_irq(gpio_to_irq(gpio), taal_te_isr,
-+				IRQF_DISABLED | IRQF_TRIGGER_RISING,
-+				"taal vsync", dssdev);
-+
-+		if (r) {
-+			dev_err(&dssdev->dev, "IRQ request failed\n");
-+			gpio_free(gpio);
-+			goto err3;
-+		}
-+
-+		init_completion(&td->te_completion);
-+
-+		td->use_ext_te = true;
-+	}
-+
-+	r = sysfs_create_group(&dssdev->dev.kobj, &taal_attr_group);
-+	if (r) {
-+		dev_err(&dssdev->dev, "failed to create sysfs files\n");
-+		goto err4;
-+	}
-+
-+	return 0;
-+err4:
-+	if (td->use_ext_te) {
-+		int gpio = dssdev->phy.dsi.ext_te_gpio;
-+		free_irq(gpio_to_irq(gpio), dssdev);
-+		gpio_free(gpio);
-+	}
-+err3:
-+	backlight_device_unregister(bldev);
-+err2:
-+	cancel_delayed_work_sync(&td->esd_work);
-+	destroy_workqueue(td->esd_wq);
-+err1:
-+	kfree(td);
-+err0:
-+	return r;
-+}
-+
-+static void taal_remove(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct backlight_device *bldev;
-+
-+	dev_dbg(&dssdev->dev, "remove\n");
-+
-+	sysfs_remove_group(&dssdev->dev.kobj, &taal_attr_group);
-+
-+	if (td->use_ext_te) {
-+		int gpio = dssdev->phy.dsi.ext_te_gpio;
-+		free_irq(gpio_to_irq(gpio), dssdev);
-+		gpio_free(gpio);
-+	}
-+
-+	bldev = td->bldev;
-+	bldev->props.power = FB_BLANK_POWERDOWN;
-+	taal_bl_update_status(bldev);
-+	backlight_device_unregister(bldev);
-+
-+	cancel_delayed_work_sync(&td->esd_work);
-+	destroy_workqueue(td->esd_wq);
-+
-+	kfree(td);
-+}
-+
-+static int taal_enable(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	u8 id1, id2, id3;
-+	int r;
-+
-+	dev_dbg(&dssdev->dev, "enable\n");
-+
-+	if (dssdev->platform_enable) {
-+		r = dssdev->platform_enable(dssdev);
-+		if (r)
-+			return r;
-+	}
-+
-+	/* it seems we have to wait a bit until taal is ready */
-+	msleep(5);
-+
-+	r = taal_sleep_out(td);
-+	if (r)
-+		goto err;
-+
-+	r = taal_get_id(&id1, &id2, &id3);
-+	if (r)
-+		goto err;
-+
-+	/* on early revisions CABC is broken */
-+	if (id2 == 0x00 || id2 == 0xff || id2 == 0x81)
-+		td->cabc_broken = true;
-+
-+	taal_dcs_write_1(DCS_BRIGHTNESS, 0xff);
-+	taal_dcs_write_1(DCS_CTRL_DISPLAY, (1<<2) | (1<<5)); /* BL | BCTRL */
-+
-+	taal_dcs_write_1(DCS_PIXEL_FORMAT, 0x7); /* 24bit/pixel */
-+
-+	taal_set_addr_mode(td->rotate, td->mirror);
-+	if (!td->cabc_broken)
-+		taal_dcs_write_1(DCS_WRITE_CABC, td->cabc_mode);
-+
-+	taal_dcs_write_0(DCS_DISPLAY_ON);
-+
-+#ifdef TAAL_USE_ESD_CHECK
-+	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
-+#endif
-+
-+	td->enabled = 1;
-+
-+	if (!td->intro_printed) {
-+		dev_info(&dssdev->dev, "revision %02x.%02x.%02x\n",
-+				id1, id2, id3);
-+		if (td->cabc_broken)
-+			dev_info(&dssdev->dev,
-+					"old Taal version, CABC disabled\n");
-+		td->intro_printed = true;
-+	}
-+
-+	return 0;
-+err:
-+	if (dssdev->platform_disable)
-+		dssdev->platform_disable(dssdev);
-+
-+	return r;
-+}
-+
-+static void taal_disable(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+
-+	dev_dbg(&dssdev->dev, "disable\n");
-+
-+	cancel_delayed_work(&td->esd_work);
-+
-+	taal_dcs_write_0(DCS_DISPLAY_OFF);
-+	taal_sleep_in(td);
-+
-+	/* wait a bit so that the message goes through */
-+	msleep(10);
-+
-+	if (dssdev->platform_disable)
-+		dssdev->platform_disable(dssdev);
-+
-+	td->enabled = 0;
-+}
-+
-+static int taal_suspend(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct backlight_device *bldev = td->bldev;
-+
-+	bldev->props.power = FB_BLANK_POWERDOWN;
-+	taal_bl_update_status(bldev);
-+
-+	return 0;
-+}
-+
-+static int taal_resume(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	struct backlight_device *bldev = td->bldev;
-+
-+	bldev->props.power = FB_BLANK_UNBLANK;
-+	taal_bl_update_status(bldev);
-+
-+	return 0;
-+}
-+
-+static void taal_setup_update(struct omap_dss_device *dssdev,
-+				    u16 x, u16 y, u16 w, u16 h)
-+{
-+	taal_set_update_window(x, y, w, h);
-+}
-+
-+static int taal_enable_te(struct omap_dss_device *dssdev, bool enable)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	int r;
-+
-+	td->te_enabled = enable;
-+
-+	if (enable)
-+		r = taal_dcs_write_1(DCS_TEAR_ON, 0);
-+	else
-+		r = taal_dcs_write_0(DCS_TEAR_OFF);
-+
-+	return r;
-+}
-+
-+static int taal_wait_te(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	long wait = msecs_to_jiffies(500);
-+
-+	if (!td->use_ext_te || !td->te_enabled)
++	if (memcmp(&omap_dss_pal_timings, timings, sizeof(*timings)) == 0)
 +		return 0;
 +
-+	INIT_COMPLETION(td->te_completion);
-+	wait = wait_for_completion_timeout(&td->te_completion, wait);
-+	if (wait == 0) {
-+		dev_err(&dssdev->dev, "timeout waiting TE\n");
-+		return -ETIME;
-+	}
++	if (memcmp(&omap_dss_ntsc_timings, timings, sizeof(*timings)) == 0)
++		return 0;
++
++	return -EINVAL;
++}
++
++static u32 venc_get_wss(struct omap_dss_device *dssdev)
++{
++	/* Invert due to VENC_L21_WC_CTL:INV=1 */
++	return (venc.wss_data >> 8) ^ 0xfffff;
++}
++
++static int venc_set_wss(struct omap_dss_device *dssdev,	u32 wss)
++{
++	const struct venc_config *config;
++
++	DSSDBG("venc_set_wss\n");
++
++	mutex_lock(&venc.venc_lock);
++
++	config = venc_timings_to_config(&dssdev->panel.timings);
++
++	/* Invert due to VENC_L21_WC_CTL:INV=1 */
++	venc.wss_data = (wss ^ 0xfffff) << 8;
++
++	venc_enable_clocks(1);
++
++	venc_write_reg(VENC_BSTAMP_WSS_DATA, config->bstamp_wss_data |
++			venc.wss_data);
++
++	venc_enable_clocks(0);
++
++	mutex_unlock(&venc.venc_lock);
 +
 +	return 0;
 +}
 +
-+static int taal_rotate(struct omap_dss_device *dssdev, u8 rotate)
++static enum omap_dss_update_mode venc_display_get_update_mode(
++		struct omap_dss_device *dssdev)
 +{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	int r;
-+
-+	dev_dbg(&dssdev->dev, "rotate %d\n", rotate);
-+
-+	if (td->enabled) {
-+		r = taal_set_addr_mode(rotate, td->mirror);
-+
-+		if (r)
-+			return r;
-+	}
-+
-+	td->rotate = rotate;
-+
-+	return 0;
-+}
-+
-+static u8 taal_get_rotate(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	return td->rotate;
-+}
-+
-+static int taal_mirror(struct omap_dss_device *dssdev, bool enable)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	int r;
-+
-+	dev_dbg(&dssdev->dev, "mirror %d\n", enable);
-+
-+	if (td->enabled) {
-+		r = taal_set_addr_mode(td->rotate, enable);
-+
-+		if (r)
-+			return r;
-+	}
-+
-+	td->mirror = enable;
-+
-+	return 0;
-+}
-+
-+static bool taal_get_mirror(struct omap_dss_device *dssdev)
-+{
-+	struct taal_data *td = dev_get_drvdata(&dssdev->dev);
-+	return td->mirror;
-+}
-+
-+static int taal_run_test(struct omap_dss_device *dssdev, int test_num)
-+{
-+	u8 id1, id2, id3;
-+	int r;
-+
-+	r = taal_dcs_read_1(DCS_GET_ID1, &id1);
-+	if (r)
-+		return r;
-+	r = taal_dcs_read_1(DCS_GET_ID2, &id2);
-+	if (r)
-+		return r;
-+	r = taal_dcs_read_1(DCS_GET_ID3, &id3);
-+	if (r)
-+		return r;
-+
-+	return 0;
-+}
-+
-+static int taal_memory_read(struct omap_dss_device *dssdev,
-+		void *buf, size_t size,
-+		u16 x, u16 y, u16 w, u16 h)
-+{
-+	int r;
-+	int first = 1;
-+	int plen;
-+	unsigned buf_used = 0;
-+
-+	if (size < w * h * 3)
-+		return -ENOMEM;
-+
-+	size = min(w * h * 3,
-+			dssdev->panel.timings.x_res *
-+			dssdev->panel.timings.y_res * 3);
-+
-+	/* plen 1 or 2 goes into short packet. until checksum error is fixed,
-+	 * use short packets. plen 32 works, but bigger packets seem to cause
-+	 * an error. */
-+	if (size % 2)
-+		plen = 1;
++	if (dssdev->state == OMAP_DSS_DISPLAY_ACTIVE)
++		return OMAP_DSS_UPDATE_AUTO;
 +	else
-+		plen = 2;
-+
-+	taal_setup_update(dssdev, x, y, w, h);
-+
-+	r = dsi_vc_set_max_rx_packet_size(TCH, plen);
-+	if (r)
-+		return r;
-+
-+	while (buf_used < size) {
-+		u8 dcs_cmd = first ? 0x2e : 0x3e;
-+		first = 0;
-+
-+		r = dsi_vc_dcs_read(TCH, dcs_cmd,
-+				buf + buf_used, size - buf_used);
-+
-+		if (r < 0) {
-+			dev_err(&dssdev->dev, "read error\n");
-+			goto err;
-+		}
-+
-+		buf_used += r;
-+
-+		if (r < plen) {
-+			dev_err(&dssdev->dev, "short read\n");
-+			break;
-+		}
-+
-+		if (signal_pending(current)) {
-+			dev_err(&dssdev->dev, "signal pending, "
-+					"aborting memory read\n");
-+			r = -ERESTARTSYS;
-+			goto err;
-+		}
-+	}
-+
-+	r = buf_used;
-+
-+err:
-+	dsi_vc_set_max_rx_packet_size(TCH, 1);
-+
-+	return r;
++		return OMAP_DSS_UPDATE_DISABLED;
 +}
 +
-+static void taal_esd_work(struct work_struct *work)
++int venc_init_display(struct omap_dss_device *dssdev)
 +{
-+	struct taal_data *td = container_of(work, struct taal_data,
-+			esd_work.work);
-+	struct omap_dss_device *dssdev = td->dssdev;
-+	u8 state1, state2;
-+	int r;
++	DSSDBG("init_display\n");
 +
-+	if (!td->enabled)
-+		return;
-+
-+	dsi_bus_lock();
-+
-+	r = taal_dcs_read_1(DCS_RDDSDR, &state1);
-+	if (r) {
-+		dev_err(&dssdev->dev, "failed to read Taal status\n");
-+		goto err;
-+	}
-+
-+	/* Run self diagnostics */
-+	r = taal_sleep_out(td);
-+	if (r) {
-+		dev_err(&dssdev->dev, "failed to run Taal self-diagnostics\n");
-+		goto err;
-+	}
-+
-+	r = taal_dcs_read_1(DCS_RDDSDR, &state2);
-+	if (r) {
-+		dev_err(&dssdev->dev, "failed to read Taal status\n");
-+		goto err;
-+	}
-+
-+	/* Each sleep out command will trigger a self diagnostic and flip
-+	 * Bit6 if the test passes.
-+	 */
-+	if (!((state1 ^ state2) & (1 << 6))) {
-+		dev_err(&dssdev->dev, "LCD self diagnostics failed\n");
-+		goto err;
-+	}
-+	/* Self-diagnostics result is also shown on TE GPIO line. We need
-+	 * to re-enable TE after self diagnostics */
-+	if (td->use_ext_te && td->te_enabled)
-+		taal_enable_te(dssdev, true);
-+
-+	dsi_bus_unlock();
-+
-+	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
-+
-+	return;
-+err:
-+	dev_err(&dssdev->dev, "performing LCD reset\n");
-+
-+	taal_disable(dssdev);
-+	taal_enable(dssdev);
-+
-+	dsi_bus_unlock();
-+
-+	queue_delayed_work(td->esd_wq, &td->esd_work, TAAL_ESD_CHECK_PERIOD);
-+}
-+
-+static struct omap_dss_driver taal_driver = {
-+	.probe		= taal_probe,
-+	.remove		= taal_remove,
-+
-+	.enable		= taal_enable,
-+	.disable	= taal_disable,
-+	.suspend	= taal_suspend,
-+	.resume		= taal_resume,
-+
-+	.setup_update	= taal_setup_update,
-+	.enable_te	= taal_enable_te,
-+	.wait_for_te	= taal_wait_te,
-+	.set_rotate	= taal_rotate,
-+	.get_rotate	= taal_get_rotate,
-+	.set_mirror	= taal_mirror,
-+	.get_mirror	= taal_get_mirror,
-+	.run_test	= taal_run_test,
-+	.memory_read	= taal_memory_read,
-+
-+	.driver         = {
-+		.name   = "taal",
-+		.owner  = THIS_MODULE,
-+	},
-+};
-+
-+static int __init taal_init(void)
-+{
-+	omap_dss_register_driver(&taal_driver);
++	dssdev->enable = venc_enable_display;
++	dssdev->disable = venc_disable_display;
++	dssdev->suspend = venc_display_suspend;
++	dssdev->resume = venc_display_resume;
++	dssdev->get_timings = venc_get_timings;
++	dssdev->set_timings = venc_set_timings;
++	dssdev->check_timings = venc_check_timings;
++	dssdev->get_wss = venc_get_wss;
++	dssdev->set_wss = venc_set_wss;
++	dssdev->get_update_mode = venc_display_get_update_mode;
 +
 +	return 0;
 +}
 +
-+static void __exit taal_exit(void)
++void venc_dump_regs(struct seq_file *s)
 +{
-+	omap_dss_unregister_driver(&taal_driver);
++#define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, venc_read_reg(r))
++
++	venc_enable_clocks(1);
++
++	DUMPREG(VENC_F_CONTROL);
++	DUMPREG(VENC_VIDOUT_CTRL);
++	DUMPREG(VENC_SYNC_CTRL);
++	DUMPREG(VENC_LLEN);
++	DUMPREG(VENC_FLENS);
++	DUMPREG(VENC_HFLTR_CTRL);
++	DUMPREG(VENC_CC_CARR_WSS_CARR);
++	DUMPREG(VENC_C_PHASE);
++	DUMPREG(VENC_GAIN_U);
++	DUMPREG(VENC_GAIN_V);
++	DUMPREG(VENC_GAIN_Y);
++	DUMPREG(VENC_BLACK_LEVEL);
++	DUMPREG(VENC_BLANK_LEVEL);
++	DUMPREG(VENC_X_COLOR);
++	DUMPREG(VENC_M_CONTROL);
++	DUMPREG(VENC_BSTAMP_WSS_DATA);
++	DUMPREG(VENC_S_CARR);
++	DUMPREG(VENC_LINE21);
++	DUMPREG(VENC_LN_SEL);
++	DUMPREG(VENC_L21__WC_CTL);
++	DUMPREG(VENC_HTRIGGER_VTRIGGER);
++	DUMPREG(VENC_SAVID__EAVID);
++	DUMPREG(VENC_FLEN__FAL);
++	DUMPREG(VENC_LAL__PHASE_RESET);
++	DUMPREG(VENC_HS_INT_START_STOP_X);
++	DUMPREG(VENC_HS_EXT_START_STOP_X);
++	DUMPREG(VENC_VS_INT_START_X);
++	DUMPREG(VENC_VS_INT_STOP_X__VS_INT_START_Y);
++	DUMPREG(VENC_VS_INT_STOP_Y__VS_EXT_START_X);
++	DUMPREG(VENC_VS_EXT_STOP_X__VS_EXT_START_Y);
++	DUMPREG(VENC_VS_EXT_STOP_Y);
++	DUMPREG(VENC_AVID_START_STOP_X);
++	DUMPREG(VENC_AVID_START_STOP_Y);
++	DUMPREG(VENC_FID_INT_START_X__FID_INT_START_Y);
++	DUMPREG(VENC_FID_INT_OFFSET_Y__FID_EXT_START_X);
++	DUMPREG(VENC_FID_EXT_START_Y__FID_EXT_OFFSET_Y);
++	DUMPREG(VENC_TVDETGP_INT_START_STOP_X);
++	DUMPREG(VENC_TVDETGP_INT_START_STOP_Y);
++	DUMPREG(VENC_GEN_CTRL);
++	DUMPREG(VENC_OUTPUT_CONTROL);
++	DUMPREG(VENC_OUTPUT_TEST);
++
++	venc_enable_clocks(0);
++
++#undef DUMPREG
 +}
-+
-+module_init(taal_init);
-+module_exit(taal_exit);
-+
-+MODULE_AUTHOR("Tomi Valkeinen <tomi.valkeinen@nokia.com>");
-+MODULE_DESCRIPTION("Taal Driver");
-+MODULE_LICENSE("GPL");
 -- 
 1.6.5.1
 
