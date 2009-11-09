@@ -1,24 +1,14 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 12/19] OMAP: DSS2: RFBI driver
-Date: Mon,  9 Nov 2009 13:45:19 +0200
-Message-ID: <1257767126-12059-13-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 02/19] OMAP: OMAPFB: split omapfb.h
+Date: Mon,  9 Nov 2009 13:45:09 +0200
+Message-ID: <1257767126-12059-3-git-send-email-tomi.valkeinen@nokia.com>
 References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
 	<1257767126-12059-2-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-3-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-4-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-5-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-6-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-7-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-8-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-9-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-10-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-11-git-send-email-tomi.valkeinen@nokia.com>
-	<1257767126-12059-12-git-send-email-tomi.valkeinen@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-fbdev-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <1257767126-12059-12-git-send-email-tomi.valkeinen@nokia.com>
+In-Reply-To: <1257767126-12059-2-git-send-email-tomi.valkeinen@nokia.com>
 List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/linux-fbdev-devel>,
 	<mailto:linux-fbdev-devel-request@lists.sourceforge.net?subject=unsubscribe>
 List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=linux-fbdev-devel>
@@ -31,1329 +21,1291 @@ To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net
 List-Id: linux-omap@vger.kernel.org
 
-RFBI (Remote FrameBuffer Interface) implements MIPI DBI interface.
+Split arch/arm/plat-omap/include/mach/omapfb.h into two files:
+
+include/linux/omapfb.h - ioctls etc for userspace and some kernel
+                         stuff for board files
+drivers/video/omap/omapfb.h - for omapfb internal use
+
+This cleans up omapfb.h and also makes it easier for the upcoming new
+DSS driver to co-exist with the old driver.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- drivers/video/omap2/dss/rfbi.c | 1309 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 1309 insertions(+), 0 deletions(-)
- create mode 100644 drivers/video/omap2/dss/rfbi.c
+ arch/arm/mach-omap1/board-nokia770.c     |    1 +
+ arch/arm/mach-omap2/io.c                 |    2 +-
+ arch/arm/plat-omap/fb.c                  |    2 +-
+ arch/arm/plat-omap/include/plat/omapfb.h |  398 ------------------------------
+ drivers/video/omap/blizzard.c            |    2 +-
+ drivers/video/omap/dispc.c               |    2 +-
+ drivers/video/omap/hwa742.c              |    2 +-
+ drivers/video/omap/lcd_2430sdp.c         |    3 +-
+ drivers/video/omap/lcd_ams_delta.c       |    3 +-
+ drivers/video/omap/lcd_apollon.c         |    3 +-
+ drivers/video/omap/lcd_h3.c              |    2 +-
+ drivers/video/omap/lcd_h4.c              |    2 +-
+ drivers/video/omap/lcd_inn1510.c         |    2 +-
+ drivers/video/omap/lcd_inn1610.c         |    2 +-
+ drivers/video/omap/lcd_ldp.c             |    3 +-
+ drivers/video/omap/lcd_mipid.c           |    3 +-
+ drivers/video/omap/lcd_omap2evm.c        |    3 +-
+ drivers/video/omap/lcd_omap3beagle.c     |    4 +-
+ drivers/video/omap/lcd_omap3evm.c        |    3 +-
+ drivers/video/omap/lcd_osk.c             |    2 +-
+ drivers/video/omap/lcd_overo.c           |    3 +-
+ drivers/video/omap/lcd_palmte.c          |    2 +-
+ drivers/video/omap/lcd_palmtt.c          |    2 +-
+ drivers/video/omap/lcd_palmz71.c         |    2 +-
+ drivers/video/omap/lcdc.c                |    3 +-
+ drivers/video/omap/omapfb.h              |  227 +++++++++++++++++
+ drivers/video/omap/omapfb_main.c         |    2 +-
+ drivers/video/omap/rfbi.c                |    3 +-
+ drivers/video/omap/sossi.c               |    2 +-
+ include/linux/omapfb.h                   |  197 +++++++++++++++
+ 30 files changed, 462 insertions(+), 425 deletions(-)
+ delete mode 100644 arch/arm/plat-omap/include/plat/omapfb.h
+ create mode 100644 drivers/video/omap/omapfb.h
+ create mode 100644 include/linux/omapfb.h
 
-diff --git a/drivers/video/omap2/dss/rfbi.c b/drivers/video/omap2/dss/rfbi.c
+diff --git a/arch/arm/mach-omap1/board-nokia770.c b/arch/arm/mach-omap1/board-nokia770.c
+index 5a275ba..af4d719 100644
+--- a/arch/arm/mach-omap1/board-nokia770.c
++++ b/arch/arm/mach-omap1/board-nokia770.c
+@@ -14,6 +14,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+ #include <linux/clk.h>
++#include <linux/omapfb.h>
+ 
+ #include <linux/spi/spi.h>
+ #include <linux/spi/ads7846.h>
+diff --git a/arch/arm/mach-omap2/io.c b/arch/arm/mach-omap2/io.c
+index 59d28b2..9f22c20 100644
+--- a/arch/arm/mach-omap2/io.c
++++ b/arch/arm/mach-omap2/io.c
+@@ -22,13 +22,13 @@
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/clk.h>
++#include <linux/omapfb.h>
+ 
+ #include <asm/tlb.h>
+ 
+ #include <asm/mach/map.h>
+ 
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
+ #include <plat/sram.h>
+ #include <plat/sdrc.h>
+ #include <plat/gpmc.h>
+diff --git a/arch/arm/plat-omap/fb.c b/arch/arm/plat-omap/fb.c
+index 78a4ce5..18cf1d4 100644
+--- a/arch/arm/plat-omap/fb.c
++++ b/arch/arm/plat-omap/fb.c
+@@ -28,13 +28,13 @@
+ #include <linux/platform_device.h>
+ #include <linux/bootmem.h>
+ #include <linux/io.h>
++#include <linux/omapfb.h>
+ 
+ #include <mach/hardware.h>
+ #include <asm/mach/map.h>
+ 
+ #include <plat/board.h>
+ #include <plat/sram.h>
+-#include <plat/omapfb.h>
+ 
+ #if defined(CONFIG_FB_OMAP) || defined(CONFIG_FB_OMAP_MODULE)
+ 
+diff --git a/arch/arm/plat-omap/include/plat/omapfb.h b/arch/arm/plat-omap/include/plat/omapfb.h
+deleted file mode 100644
+index bfef7ab..0000000
+--- a/arch/arm/plat-omap/include/plat/omapfb.h
++++ /dev/null
+@@ -1,398 +0,0 @@
+-/*
+- * File: arch/arm/plat-omap/include/mach/omapfb.h
+- *
+- * Framebuffer driver for TI OMAP boards
+- *
+- * Copyright (C) 2004 Nokia Corporation
+- * Author: Imre Deak <imre.deak@nokia.com>
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms of the GNU General Public License as published by the
+- * Free Software Foundation; either version 2 of the License, or (at your
+- * option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License along
+- * with this program; if not, write to the Free Software Foundation, Inc.,
+- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+- */
+-
+-#ifndef __OMAPFB_H
+-#define __OMAPFB_H
+-
+-#include <asm/ioctl.h>
+-#include <asm/types.h>
+-
+-/* IOCTL commands. */
+-
+-#define OMAP_IOW(num, dtype)	_IOW('O', num, dtype)
+-#define OMAP_IOR(num, dtype)	_IOR('O', num, dtype)
+-#define OMAP_IOWR(num, dtype)	_IOWR('O', num, dtype)
+-#define OMAP_IO(num)		_IO('O', num)
+-
+-#define OMAPFB_MIRROR		OMAP_IOW(31, int)
+-#define OMAPFB_SYNC_GFX		OMAP_IO(37)
+-#define OMAPFB_VSYNC		OMAP_IO(38)
+-#define OMAPFB_SET_UPDATE_MODE	OMAP_IOW(40, int)
+-#define OMAPFB_GET_CAPS		OMAP_IOR(42, struct omapfb_caps)
+-#define OMAPFB_GET_UPDATE_MODE	OMAP_IOW(43, int)
+-#define OMAPFB_LCD_TEST		OMAP_IOW(45, int)
+-#define OMAPFB_CTRL_TEST	OMAP_IOW(46, int)
+-#define OMAPFB_UPDATE_WINDOW_OLD OMAP_IOW(47, struct omapfb_update_window_old)
+-#define OMAPFB_SET_COLOR_KEY	OMAP_IOW(50, struct omapfb_color_key)
+-#define OMAPFB_GET_COLOR_KEY	OMAP_IOW(51, struct omapfb_color_key)
+-#define OMAPFB_SETUP_PLANE	OMAP_IOW(52, struct omapfb_plane_info)
+-#define OMAPFB_QUERY_PLANE	OMAP_IOW(53, struct omapfb_plane_info)
+-#define OMAPFB_UPDATE_WINDOW	OMAP_IOW(54, struct omapfb_update_window)
+-#define OMAPFB_SETUP_MEM	OMAP_IOW(55, struct omapfb_mem_info)
+-#define OMAPFB_QUERY_MEM	OMAP_IOW(56, struct omapfb_mem_info)
+-
+-#define OMAPFB_CAPS_GENERIC_MASK	0x00000fff
+-#define OMAPFB_CAPS_LCDC_MASK		0x00fff000
+-#define OMAPFB_CAPS_PANEL_MASK		0xff000000
+-
+-#define OMAPFB_CAPS_MANUAL_UPDATE	0x00001000
+-#define OMAPFB_CAPS_TEARSYNC		0x00002000
+-#define OMAPFB_CAPS_PLANE_RELOCATE_MEM	0x00004000
+-#define OMAPFB_CAPS_PLANE_SCALE		0x00008000
+-#define OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE	0x00010000
+-#define OMAPFB_CAPS_WINDOW_SCALE	0x00020000
+-#define OMAPFB_CAPS_WINDOW_OVERLAY	0x00040000
+-#define OMAPFB_CAPS_WINDOW_ROTATE	0x00080000
+-#define OMAPFB_CAPS_SET_BACKLIGHT	0x01000000
+-
+-/* Values from DSP must map to lower 16-bits */
+-#define OMAPFB_FORMAT_MASK		0x00ff
+-#define OMAPFB_FORMAT_FLAG_DOUBLE	0x0100
+-#define OMAPFB_FORMAT_FLAG_TEARSYNC	0x0200
+-#define OMAPFB_FORMAT_FLAG_FORCE_VSYNC	0x0400
+-#define OMAPFB_FORMAT_FLAG_ENABLE_OVERLAY	0x0800
+-#define OMAPFB_FORMAT_FLAG_DISABLE_OVERLAY	0x1000
+-
+-#define OMAPFB_EVENT_READY	1
+-#define OMAPFB_EVENT_DISABLED	2
+-
+-#define OMAPFB_MEMTYPE_SDRAM		0
+-#define OMAPFB_MEMTYPE_SRAM		1
+-#define OMAPFB_MEMTYPE_MAX		1
+-
+-enum omapfb_color_format {
+-	OMAPFB_COLOR_RGB565 = 0,
+-	OMAPFB_COLOR_YUV422,
+-	OMAPFB_COLOR_YUV420,
+-	OMAPFB_COLOR_CLUT_8BPP,
+-	OMAPFB_COLOR_CLUT_4BPP,
+-	OMAPFB_COLOR_CLUT_2BPP,
+-	OMAPFB_COLOR_CLUT_1BPP,
+-	OMAPFB_COLOR_RGB444,
+-	OMAPFB_COLOR_YUY422,
+-};
+-
+-struct omapfb_update_window {
+-	__u32 x, y;
+-	__u32 width, height;
+-	__u32 format;
+-	__u32 out_x, out_y;
+-	__u32 out_width, out_height;
+-	__u32 reserved[8];
+-};
+-
+-struct omapfb_update_window_old {
+-	__u32 x, y;
+-	__u32 width, height;
+-	__u32 format;
+-};
+-
+-enum omapfb_plane {
+-	OMAPFB_PLANE_GFX = 0,
+-	OMAPFB_PLANE_VID1,
+-	OMAPFB_PLANE_VID2,
+-};
+-
+-enum omapfb_channel_out {
+-	OMAPFB_CHANNEL_OUT_LCD = 0,
+-	OMAPFB_CHANNEL_OUT_DIGIT,
+-};
+-
+-struct omapfb_plane_info {
+-	__u32 pos_x;
+-	__u32 pos_y;
+-	__u8  enabled;
+-	__u8  channel_out;
+-	__u8  mirror;
+-	__u8  reserved1;
+-	__u32 out_width;
+-	__u32 out_height;
+-	__u32 reserved2[12];
+-};
+-
+-struct omapfb_mem_info {
+-	__u32 size;
+-	__u8  type;
+-	__u8  reserved[3];
+-};
+-
+-struct omapfb_caps {
+-	__u32 ctrl;
+-	__u32 plane_color;
+-	__u32 wnd_color;
+-};
+-
+-enum omapfb_color_key_type {
+-	OMAPFB_COLOR_KEY_DISABLED = 0,
+-	OMAPFB_COLOR_KEY_GFX_DST,
+-	OMAPFB_COLOR_KEY_VID_SRC,
+-};
+-
+-struct omapfb_color_key {
+-	__u8  channel_out;
+-	__u32 background;
+-	__u32 trans_key;
+-	__u8  key_type;
+-};
+-
+-enum omapfb_update_mode {
+-	OMAPFB_UPDATE_DISABLED = 0,
+-	OMAPFB_AUTO_UPDATE,
+-	OMAPFB_MANUAL_UPDATE
+-};
+-
+-#ifdef __KERNEL__
+-
+-#include <linux/completion.h>
+-#include <linux/interrupt.h>
+-#include <linux/fb.h>
+-#include <linux/mutex.h>
+-
+-#include <plat/board.h>
+-
+-#define OMAP_LCDC_INV_VSYNC             0x0001
+-#define OMAP_LCDC_INV_HSYNC             0x0002
+-#define OMAP_LCDC_INV_PIX_CLOCK         0x0004
+-#define OMAP_LCDC_INV_OUTPUT_EN         0x0008
+-#define OMAP_LCDC_HSVS_RISING_EDGE      0x0010
+-#define OMAP_LCDC_HSVS_OPPOSITE         0x0020
+-
+-#define OMAP_LCDC_SIGNAL_MASK		0x003f
+-
+-#define OMAP_LCDC_PANEL_TFT		0x0100
+-
+-#define OMAPFB_PLANE_XRES_MIN		8
+-#define OMAPFB_PLANE_YRES_MIN		8
+-
+-#ifdef CONFIG_ARCH_OMAP1
+-#define OMAPFB_PLANE_NUM		1
+-#else
+-#define OMAPFB_PLANE_NUM		3
+-#endif
+-
+-struct omapfb_device;
+-
+-struct lcd_panel {
+-	const char	*name;
+-	int		config;		/* TFT/STN, signal inversion */
+-	int		bpp;		/* Pixel format in fb mem */
+-	int		data_lines;	/* Lines on LCD HW interface */
+-
+-	int		x_res, y_res;
+-	int		pixel_clock;	/* In kHz */
+-	int		hsw;		/* Horizontal synchronization
+-					   pulse width */
+-	int		hfp;		/* Horizontal front porch */
+-	int		hbp;		/* Horizontal back porch */
+-	int		vsw;		/* Vertical synchronization
+-					   pulse width */
+-	int		vfp;		/* Vertical front porch */
+-	int		vbp;		/* Vertical back porch */
+-	int		acb;		/* ac-bias pin frequency */
+-	int		pcd;		/* pixel clock divider.
+-					   Obsolete use pixel_clock instead */
+-
+-	int		(*init)		(struct lcd_panel *panel,
+-					 struct omapfb_device *fbdev);
+-	void		(*cleanup)	(struct lcd_panel *panel);
+-	int		(*enable)	(struct lcd_panel *panel);
+-	void		(*disable)	(struct lcd_panel *panel);
+-	unsigned long	(*get_caps)	(struct lcd_panel *panel);
+-	int		(*set_bklight_level)(struct lcd_panel *panel,
+-					     unsigned int level);
+-	unsigned int	(*get_bklight_level)(struct lcd_panel *panel);
+-	unsigned int	(*get_bklight_max)  (struct lcd_panel *panel);
+-	int		(*run_test)	(struct lcd_panel *panel, int test_num);
+-};
+-
+-struct extif_timings {
+-	int cs_on_time;
+-	int cs_off_time;
+-	int we_on_time;
+-	int we_off_time;
+-	int re_on_time;
+-	int re_off_time;
+-	int we_cycle_time;
+-	int re_cycle_time;
+-	int cs_pulse_width;
+-	int access_time;
+-
+-	int clk_div;
+-
+-	u32 tim[5];		/* set by extif->convert_timings */
+-
+-	int converted;
+-};
+-
+-struct lcd_ctrl_extif {
+-	int  (*init)		(struct omapfb_device *fbdev);
+-	void (*cleanup)		(void);
+-	void (*get_clk_info)	(u32 *clk_period, u32 *max_clk_div);
+-	unsigned long (*get_max_tx_rate)(void);
+-	int  (*convert_timings)	(struct extif_timings *timings);
+-	void (*set_timings)	(const struct extif_timings *timings);
+-	void (*set_bits_per_cycle)(int bpc);
+-	void (*write_command)	(const void *buf, unsigned int len);
+-	void (*read_data)	(void *buf, unsigned int len);
+-	void (*write_data)	(const void *buf, unsigned int len);
+-	void (*transfer_area)	(int width, int height,
+-				 void (callback)(void * data), void *data);
+-	int  (*setup_tearsync)	(unsigned pin_cnt,
+-				 unsigned hs_pulse_time, unsigned vs_pulse_time,
+-				 int hs_pol_inv, int vs_pol_inv, int div);
+-	int  (*enable_tearsync) (int enable, unsigned line);
+-
+-	unsigned long		max_transmit_size;
+-};
+-
+-struct omapfb_notifier_block {
+-	struct notifier_block	nb;
+-	void			*data;
+-	int			plane_idx;
+-};
+-
+-typedef int (*omapfb_notifier_callback_t)(struct notifier_block *,
+-					  unsigned long event,
+-					  void *fbi);
+-
+-struct omapfb_mem_region {
+-	u32		paddr;
+-	void __iomem	*vaddr;
+-	unsigned long	size;
+-	u8		type;		/* OMAPFB_PLANE_MEM_* */
+-	unsigned	alloc:1;	/* allocated by the driver */
+-	unsigned	map:1;		/* kernel mapped by the driver */
+-};
+-
+-struct omapfb_mem_desc {
+-	int				region_cnt;
+-	struct omapfb_mem_region	region[OMAPFB_PLANE_NUM];
+-};
+-
+-struct lcd_ctrl {
+-	const char	*name;
+-	void		*data;
+-
+-	int		(*init)		  (struct omapfb_device *fbdev,
+-					   int ext_mode,
+-					   struct omapfb_mem_desc *req_md);
+-	void		(*cleanup)	  (void);
+-	void		(*bind_client)	  (struct omapfb_notifier_block *nb);
+-	void		(*get_caps)	  (int plane, struct omapfb_caps *caps);
+-	int		(*set_update_mode)(enum omapfb_update_mode mode);
+-	enum omapfb_update_mode (*get_update_mode)(void);
+-	int		(*setup_plane)	  (int plane, int channel_out,
+-					   unsigned long offset,
+-					   int screen_width,
+-					   int pos_x, int pos_y, int width,
+-					   int height, int color_mode);
+-	int		(*set_rotate)	  (int angle);
+-	int		(*setup_mem)	  (int plane, size_t size,
+-					   int mem_type, unsigned long *paddr);
+-	int		(*mmap)		  (struct fb_info *info,
+-					   struct vm_area_struct *vma);
+-	int		(*set_scale)	  (int plane,
+-					   int orig_width, int orig_height,
+-					   int out_width, int out_height);
+-	int		(*enable_plane)	  (int plane, int enable);
+-	int		(*update_window)  (struct fb_info *fbi,
+-					   struct omapfb_update_window *win,
+-					   void (*callback)(void *),
+-					   void *callback_data);
+-	void		(*sync)		  (void);
+-	void		(*suspend)	  (void);
+-	void		(*resume)	  (void);
+-	int		(*run_test)	  (int test_num);
+-	int		(*setcolreg)	  (u_int regno, u16 red, u16 green,
+-					   u16 blue, u16 transp,
+-					   int update_hw_mem);
+-	int		(*set_color_key)  (struct omapfb_color_key *ck);
+-	int		(*get_color_key)  (struct omapfb_color_key *ck);
+-};
+-
+-enum omapfb_state {
+-	OMAPFB_DISABLED	= 0,
+-	OMAPFB_SUSPENDED= 99,
+-	OMAPFB_ACTIVE	= 100
+-};
+-
+-struct omapfb_plane_struct {
+-	int				idx;
+-	struct omapfb_plane_info	info;
+-	enum omapfb_color_format	color_mode;
+-	struct omapfb_device		*fbdev;
+-};
+-
+-struct omapfb_device {
+-	int			state;
+-	int                     ext_lcdc;               /* Using external
+-                                                           LCD controller */
+-	struct mutex		rqueue_mutex;
+-
+-	int			palette_size;
+-	u32			pseudo_palette[17];
+-
+-	struct lcd_panel	*panel;			/* LCD panel */
+-	const struct lcd_ctrl	*ctrl;			/* LCD controller */
+-	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
+-	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
+-							   interface */
+-	struct device		*dev;
+-	struct fb_var_screeninfo	new_var;	/* for mode changes */
+-
+-	struct omapfb_mem_desc		mem_desc;
+-	struct fb_info			*fb_info[OMAPFB_PLANE_NUM];
+-};
+-
+-struct omapfb_platform_data {
+-	struct omap_lcd_config		lcd;
+-	struct omapfb_mem_desc		mem_desc;
+-	void				*ctrl_platform_data;
+-};
+-
+-#ifdef CONFIG_ARCH_OMAP1
+-extern struct lcd_ctrl omap1_lcd_ctrl;
+-#else
+-extern struct lcd_ctrl omap2_disp_ctrl;
+-#endif
+-
+-extern void omapfb_reserve_sdram(void);
+-extern void omapfb_register_panel(struct lcd_panel *panel);
+-extern void omapfb_write_first_pixel(struct omapfb_device *fbdev, u16 pixval);
+-extern void omapfb_notify_clients(struct omapfb_device *fbdev,
+-				  unsigned long event);
+-extern int  omapfb_register_client(struct omapfb_notifier_block *nb,
+-				   omapfb_notifier_callback_t callback,
+-				   void *callback_data);
+-extern int  omapfb_unregister_client(struct omapfb_notifier_block *nb);
+-extern int  omapfb_update_window_async(struct fb_info *fbi,
+-				       struct omapfb_update_window *win,
+-				       void (*callback)(void *),
+-				       void *callback_data);
+-
+-/* in arch/arm/plat-omap/fb.c */
+-extern void omapfb_set_ctrl_platform_data(void *pdata);
+-
+-#endif /* __KERNEL__ */
+-
+-#endif /* __OMAPFB_H */
+diff --git a/drivers/video/omap/blizzard.c b/drivers/video/omap/blizzard.c
+index f5d75f2..2ffb34a 100644
+--- a/drivers/video/omap/blizzard.c
++++ b/drivers/video/omap/blizzard.c
+@@ -27,9 +27,9 @@
+ #include <linux/clk.h>
+ 
+ #include <plat/dma.h>
+-#include <plat/omapfb.h>
+ #include <plat/blizzard.h>
+ 
++#include "omapfb.h"
+ #include "dispc.h"
+ 
+ #define MODULE_NAME				"blizzard"
+diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
+index 7c833db..b8f75a7 100644
+--- a/drivers/video/omap/dispc.c
++++ b/drivers/video/omap/dispc.c
+@@ -26,9 +26,9 @@
+ #include <linux/io.h>
+ 
+ #include <plat/sram.h>
+-#include <plat/omapfb.h>
+ #include <plat/board.h>
+ 
++#include "omapfb.h"
+ #include "dispc.h"
+ 
+ #define MODULE_NAME			"dispc"
+diff --git a/drivers/video/omap/hwa742.c b/drivers/video/omap/hwa742.c
+index 17a975e..170d171 100644
+--- a/drivers/video/omap/hwa742.c
++++ b/drivers/video/omap/hwa742.c
+@@ -27,8 +27,8 @@
+ #include <linux/clk.h>
+ 
+ #include <plat/dma.h>
+-#include <plat/omapfb.h>
+ #include <plat/hwa742.h>
++#include "omapfb.h"
+ 
+ #define HWA742_REV_CODE_REG       0x0
+ #define HWA742_CONFIG_REG         0x2
+diff --git a/drivers/video/omap/lcd_2430sdp.c b/drivers/video/omap/lcd_2430sdp.c
+index fea7fee..760645d 100644
+--- a/drivers/video/omap/lcd_2430sdp.c
++++ b/drivers/video/omap/lcd_2430sdp.c
+@@ -28,9 +28,10 @@
+ #include <linux/i2c/twl4030.h>
+ 
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #define SDP2430_LCD_PANEL_BACKLIGHT_GPIO	91
+ #define SDP2430_LCD_PANEL_ENABLE_GPIO		154
+ #define SDP3430_LCD_PANEL_BACKLIGHT_GPIO	24
+diff --git a/drivers/video/omap/lcd_ams_delta.c b/drivers/video/omap/lcd_ams_delta.c
+index b3973eb..567db6a 100644
+--- a/drivers/video/omap/lcd_ams_delta.c
++++ b/drivers/video/omap/lcd_ams_delta.c
+@@ -27,7 +27,8 @@
+ 
+ #include <plat/board-ams-delta.h>
+ #include <mach/hardware.h>
+-#include <plat/omapfb.h>
++
++#include "omapfb.h"
+ 
+ #define AMS_DELTA_DEFAULT_CONTRAST	112
+ 
+diff --git a/drivers/video/omap/lcd_apollon.c b/drivers/video/omap/lcd_apollon.c
+index 4c5cefc..2be94eb 100644
+--- a/drivers/video/omap/lcd_apollon.c
++++ b/drivers/video/omap/lcd_apollon.c
+@@ -26,7 +26,8 @@
+ 
+ #include <mach/gpio.h>
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
++
++#include "omapfb.h"
+ 
+ /* #define USE_35INCH_LCD 1 */
+ 
+diff --git a/drivers/video/omap/lcd_h3.c b/drivers/video/omap/lcd_h3.c
+index 240b4fb..8df6887 100644
+--- a/drivers/video/omap/lcd_h3.c
++++ b/drivers/video/omap/lcd_h3.c
+@@ -24,7 +24,7 @@
+ #include <linux/i2c/tps65010.h>
+ 
+ #include <mach/gpio.h>
+-#include <plat/omapfb.h>
++#include "omapfb.h"
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+ 
+diff --git a/drivers/video/omap/lcd_h4.c b/drivers/video/omap/lcd_h4.c
+index 720625d..03a06a9 100644
+--- a/drivers/video/omap/lcd_h4.c
++++ b/drivers/video/omap/lcd_h4.c
+@@ -22,7 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ 
+-#include <plat/omapfb.h>
++#include "omapfb.h"
+ 
+ static int h4_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
+diff --git a/drivers/video/omap/lcd_inn1510.c b/drivers/video/omap/lcd_inn1510.c
+index aafe9b4..3271f16 100644
+--- a/drivers/video/omap/lcd_inn1510.c
++++ b/drivers/video/omap/lcd_inn1510.c
+@@ -24,7 +24,7 @@
+ #include <linux/io.h>
+ 
+ #include <plat/fpga.h>
+-#include <plat/omapfb.h>
++#include "omapfb.h"
+ 
+ static int innovator1510_panel_init(struct lcd_panel *panel,
+ 				    struct omapfb_device *fbdev)
+diff --git a/drivers/video/omap/lcd_inn1610.c b/drivers/video/omap/lcd_inn1610.c
+index 0de3382..9fff86f 100644
+--- a/drivers/video/omap/lcd_inn1610.c
++++ b/drivers/video/omap/lcd_inn1610.c
+@@ -23,7 +23,7 @@
+ #include <linux/platform_device.h>
+ 
+ #include <mach/gpio.h>
+-#include <plat/omapfb.h>
++#include "omapfb.h"
+ 
+ #define MODULE_NAME	"omapfb-lcd_h3"
+ 
+diff --git a/drivers/video/omap/lcd_ldp.c b/drivers/video/omap/lcd_ldp.c
+index 6a260df..5bb7f6f 100644
+--- a/drivers/video/omap/lcd_ldp.c
++++ b/drivers/video/omap/lcd_ldp.c
+@@ -28,9 +28,10 @@
+ 
+ #include <mach/gpio.h>
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #define LCD_PANEL_BACKLIGHT_GPIO	(15 + OMAP_MAX_GPIO_LINES)
+ #define LCD_PANEL_ENABLE_GPIO		(7 + OMAP_MAX_GPIO_LINES)
+ 
+diff --git a/drivers/video/omap/lcd_mipid.c b/drivers/video/omap/lcd_mipid.c
+index 8f3e2b4..abe1c76 100644
+--- a/drivers/video/omap/lcd_mipid.c
++++ b/drivers/video/omap/lcd_mipid.c
+@@ -23,9 +23,10 @@
+ #include <linux/workqueue.h>
+ #include <linux/spi/spi.h>
+ 
+-#include <plat/omapfb.h>
+ #include <plat/lcd_mipid.h>
+ 
++#include "omapfb.h"
++
+ #define MIPID_MODULE_NAME		"lcd_mipid"
+ 
+ #define MIPID_CMD_READ_DISP_ID		0x04
+diff --git a/drivers/video/omap/lcd_omap2evm.c b/drivers/video/omap/lcd_omap2evm.c
+index e1a38ab..006c2fe 100644
+--- a/drivers/video/omap/lcd_omap2evm.c
++++ b/drivers/video/omap/lcd_omap2evm.c
+@@ -27,9 +27,10 @@
+ #include <linux/i2c/twl4030.h>
+ 
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #define LCD_PANEL_ENABLE_GPIO	154
+ #define LCD_PANEL_LR		128
+ #define LCD_PANEL_UD		129
+diff --git a/drivers/video/omap/lcd_omap3beagle.c b/drivers/video/omap/lcd_omap3beagle.c
+index ccec084..fc503d8 100644
+--- a/drivers/video/omap/lcd_omap3beagle.c
++++ b/drivers/video/omap/lcd_omap3beagle.c
+@@ -26,9 +26,11 @@
+ #include <linux/i2c/twl4030.h>
+ 
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
++#include <plat/mux.h>
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #define LCD_PANEL_ENABLE_GPIO       170
+ 
+ static int omap3beagle_panel_init(struct lcd_panel *panel,
+diff --git a/drivers/video/omap/lcd_omap3evm.c b/drivers/video/omap/lcd_omap3evm.c
+index 556eb31..ae2edc4 100644
+--- a/drivers/video/omap/lcd_omap3evm.c
++++ b/drivers/video/omap/lcd_omap3evm.c
+@@ -26,9 +26,10 @@
+ #include <linux/i2c/twl4030.h>
+ 
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #define LCD_PANEL_ENABLE_GPIO       153
+ #define LCD_PANEL_LR                2
+ #define LCD_PANEL_UD                3
+diff --git a/drivers/video/omap/lcd_osk.c b/drivers/video/omap/lcd_osk.c
+index bb21d7d..b87e8b8 100644
+--- a/drivers/video/omap/lcd_osk.c
++++ b/drivers/video/omap/lcd_osk.c
+@@ -25,7 +25,7 @@
+ 
+ #include <mach/gpio.h>
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
++#include "omapfb.h"
+ 
+ static int osk_panel_init(struct lcd_panel *panel, struct omapfb_device *fbdev)
+ {
+diff --git a/drivers/video/omap/lcd_overo.c b/drivers/video/omap/lcd_overo.c
+index b0f86e5..56ee192 100644
+--- a/drivers/video/omap/lcd_overo.c
++++ b/drivers/video/omap/lcd_overo.c
+@@ -25,9 +25,10 @@
+ 
+ #include <mach/gpio.h>
+ #include <plat/mux.h>
+-#include <plat/omapfb.h>
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #define LCD_ENABLE       144
+ 
+ static int overo_panel_init(struct lcd_panel *panel,
+diff --git a/drivers/video/omap/lcd_palmte.c b/drivers/video/omap/lcd_palmte.c
+index d302896..4cb3017 100644
+--- a/drivers/video/omap/lcd_palmte.c
++++ b/drivers/video/omap/lcd_palmte.c
+@@ -24,7 +24,7 @@
+ #include <linux/io.h>
+ 
+ #include <plat/fpga.h>
+-#include <plat/omapfb.h>
++#include "omapfb.h"
+ 
+ static int palmte_panel_init(struct lcd_panel *panel,
+ 				struct omapfb_device *fbdev)
+diff --git a/drivers/video/omap/lcd_palmtt.c b/drivers/video/omap/lcd_palmtt.c
+index 557424f..ff0e6d7 100644
+--- a/drivers/video/omap/lcd_palmtt.c
++++ b/drivers/video/omap/lcd_palmtt.c
+@@ -30,7 +30,7 @@ GPIO13 - screen blanking
+ #include <linux/io.h>
+ 
+ #include <mach/gpio.h>
+-#include <plat/omapfb.h>
++#include "omapfb.h"
+ 
+ static int palmtt_panel_init(struct lcd_panel *panel,
+ 	struct omapfb_device *fbdev)
+diff --git a/drivers/video/omap/lcd_palmz71.c b/drivers/video/omap/lcd_palmz71.c
+index 5f4b5b2..2334e56 100644
+--- a/drivers/video/omap/lcd_palmz71.c
++++ b/drivers/video/omap/lcd_palmz71.c
+@@ -24,7 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ 
+-#include <plat/omapfb.h>
++#include "omapfb.h"
+ 
+ static int palmz71_panel_init(struct lcd_panel *panel,
+ 			      struct omapfb_device *fbdev)
+diff --git a/drivers/video/omap/lcdc.c b/drivers/video/omap/lcdc.c
+index 5f32caf..b831e1d 100644
+--- a/drivers/video/omap/lcdc.c
++++ b/drivers/video/omap/lcdc.c
+@@ -30,10 +30,11 @@
+ #include <linux/clk.h>
+ 
+ #include <plat/dma.h>
+-#include <plat/omapfb.h>
+ 
+ #include <asm/mach-types.h>
+ 
++#include "omapfb.h"
++
+ #include "lcdc.h"
+ 
+ #define MODULE_NAME			"lcdc"
+diff --git a/drivers/video/omap/omapfb.h b/drivers/video/omap/omapfb.h
 new file mode 100644
-index 0000000..d0b3006
+index 0000000..46e4714
 --- /dev/null
-+++ b/drivers/video/omap2/dss/rfbi.c
-@@ -0,0 +1,1309 @@
++++ b/drivers/video/omap/omapfb.h
+@@ -0,0 +1,227 @@
 +/*
-+ * linux/drivers/video/omap2/dss/rfbi.c
++ * File: drivers/video/omap/omapfb.h
 + *
-+ * Copyright (C) 2009 Nokia Corporation
-+ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ * Framebuffer driver for TI OMAP boards
 + *
-+ * Some code and ideas taken from drivers/video/omap/ driver
-+ * by Imre Deak.
++ * Copyright (C) 2004 Nokia Corporation
++ * Author: Imre Deak <imre.deak@nokia.com>
 + *
 + * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
 + *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
 + *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 + */
 +
-+#define DSS_SUBSYS_NAME "RFBI"
++#ifndef __OMAPFB_H
++#define __OMAPFB_H
 +
-+#include <linux/kernel.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/vmalloc.h>
-+#include <linux/clk.h>
-+#include <linux/io.h>
-+#include <linux/delay.h>
-+#include <linux/kfifo.h>
-+#include <linux/ktime.h>
-+#include <linux/hrtimer.h>
-+#include <linux/seq_file.h>
++#include <linux/fb.h>
++#include <linux/mutex.h>
++#include <linux/omapfb.h>
 +
-+#include <plat/display.h>
-+#include "dss.h"
++#define OMAPFB_EVENT_READY	1
++#define OMAPFB_EVENT_DISABLED	2
 +
-+/*#define MEASURE_PERF*/
++#define OMAP_LCDC_INV_VSYNC             0x0001
++#define OMAP_LCDC_INV_HSYNC             0x0002
++#define OMAP_LCDC_INV_PIX_CLOCK         0x0004
++#define OMAP_LCDC_INV_OUTPUT_EN         0x0008
++#define OMAP_LCDC_HSVS_RISING_EDGE      0x0010
++#define OMAP_LCDC_HSVS_OPPOSITE         0x0020
 +
-+#define RFBI_BASE               0x48050800
++#define OMAP_LCDC_SIGNAL_MASK		0x003f
 +
-+struct rfbi_reg { u16 idx; };
++#define OMAP_LCDC_PANEL_TFT		0x0100
 +
-+#define RFBI_REG(idx)		((const struct rfbi_reg) { idx })
++#define OMAPFB_PLANE_XRES_MIN		8
++#define OMAPFB_PLANE_YRES_MIN		8
 +
-+#define RFBI_REVISION		RFBI_REG(0x0000)
-+#define RFBI_SYSCONFIG		RFBI_REG(0x0010)
-+#define RFBI_SYSSTATUS		RFBI_REG(0x0014)
-+#define RFBI_CONTROL		RFBI_REG(0x0040)
-+#define RFBI_PIXEL_CNT		RFBI_REG(0x0044)
-+#define RFBI_LINE_NUMBER	RFBI_REG(0x0048)
-+#define RFBI_CMD		RFBI_REG(0x004c)
-+#define RFBI_PARAM		RFBI_REG(0x0050)
-+#define RFBI_DATA		RFBI_REG(0x0054)
-+#define RFBI_READ		RFBI_REG(0x0058)
-+#define RFBI_STATUS		RFBI_REG(0x005c)
++struct omapfb_device;
 +
-+#define RFBI_CONFIG(n)		RFBI_REG(0x0060 + (n)*0x18)
-+#define RFBI_ONOFF_TIME(n)	RFBI_REG(0x0064 + (n)*0x18)
-+#define RFBI_CYCLE_TIME(n)	RFBI_REG(0x0068 + (n)*0x18)
-+#define RFBI_DATA_CYCLE1(n)	RFBI_REG(0x006c + (n)*0x18)
-+#define RFBI_DATA_CYCLE2(n)	RFBI_REG(0x0070 + (n)*0x18)
-+#define RFBI_DATA_CYCLE3(n)	RFBI_REG(0x0074 + (n)*0x18)
++struct lcd_panel {
++	const char	*name;
++	int		config;		/* TFT/STN, signal inversion */
++	int		bpp;		/* Pixel format in fb mem */
++	int		data_lines;	/* Lines on LCD HW interface */
 +
-+#define RFBI_VSYNC_WIDTH	RFBI_REG(0x0090)
-+#define RFBI_HSYNC_WIDTH	RFBI_REG(0x0094)
++	int		x_res, y_res;
++	int		pixel_clock;	/* In kHz */
++	int		hsw;		/* Horizontal synchronization
++					   pulse width */
++	int		hfp;		/* Horizontal front porch */
++	int		hbp;		/* Horizontal back porch */
++	int		vsw;		/* Vertical synchronization
++					   pulse width */
++	int		vfp;		/* Vertical front porch */
++	int		vbp;		/* Vertical back porch */
++	int		acb;		/* ac-bias pin frequency */
++	int		pcd;		/* pixel clock divider.
++					   Obsolete use pixel_clock instead */
 +
-+#define RFBI_CMD_FIFO_LEN_BYTES (16 * sizeof(struct update_param))
-+
-+#define REG_FLD_MOD(idx, val, start, end) \
-+	rfbi_write_reg(idx, FLD_MOD(rfbi_read_reg(idx), val, start, end))
-+
-+/* To work around an RFBI transfer rate limitation */
-+#define OMAP_RFBI_RATE_LIMIT    1
-+
-+enum omap_rfbi_cycleformat {
-+	OMAP_DSS_RFBI_CYCLEFORMAT_1_1 = 0,
-+	OMAP_DSS_RFBI_CYCLEFORMAT_2_1 = 1,
-+	OMAP_DSS_RFBI_CYCLEFORMAT_3_1 = 2,
-+	OMAP_DSS_RFBI_CYCLEFORMAT_3_2 = 3,
++	int		(*init)		(struct lcd_panel *panel,
++					 struct omapfb_device *fbdev);
++	void		(*cleanup)	(struct lcd_panel *panel);
++	int		(*enable)	(struct lcd_panel *panel);
++	void		(*disable)	(struct lcd_panel *panel);
++	unsigned long	(*get_caps)	(struct lcd_panel *panel);
++	int		(*set_bklight_level)(struct lcd_panel *panel,
++					     unsigned int level);
++	unsigned int	(*get_bklight_level)(struct lcd_panel *panel);
++	unsigned int	(*get_bklight_max)  (struct lcd_panel *panel);
++	int		(*run_test)	(struct lcd_panel *panel, int test_num);
 +};
 +
-+enum omap_rfbi_datatype {
-+	OMAP_DSS_RFBI_DATATYPE_12 = 0,
-+	OMAP_DSS_RFBI_DATATYPE_16 = 1,
-+	OMAP_DSS_RFBI_DATATYPE_18 = 2,
-+	OMAP_DSS_RFBI_DATATYPE_24 = 3,
++struct extif_timings {
++	int cs_on_time;
++	int cs_off_time;
++	int we_on_time;
++	int we_off_time;
++	int re_on_time;
++	int re_off_time;
++	int we_cycle_time;
++	int re_cycle_time;
++	int cs_pulse_width;
++	int access_time;
++
++	int clk_div;
++
++	u32 tim[5];		/* set by extif->convert_timings */
++
++	int converted;
 +};
 +
-+enum omap_rfbi_parallelmode {
-+	OMAP_DSS_RFBI_PARALLELMODE_8 = 0,
-+	OMAP_DSS_RFBI_PARALLELMODE_9 = 1,
-+	OMAP_DSS_RFBI_PARALLELMODE_12 = 2,
-+	OMAP_DSS_RFBI_PARALLELMODE_16 = 3,
++struct lcd_ctrl_extif {
++	int  (*init)		(struct omapfb_device *fbdev);
++	void (*cleanup)		(void);
++	void (*get_clk_info)	(u32 *clk_period, u32 *max_clk_div);
++	unsigned long (*get_max_tx_rate)(void);
++	int  (*convert_timings)	(struct extif_timings *timings);
++	void (*set_timings)	(const struct extif_timings *timings);
++	void (*set_bits_per_cycle)(int bpc);
++	void (*write_command)	(const void *buf, unsigned int len);
++	void (*read_data)	(void *buf, unsigned int len);
++	void (*write_data)	(const void *buf, unsigned int len);
++	void (*transfer_area)	(int width, int height,
++				 void (callback)(void *data), void *data);
++	int  (*setup_tearsync)	(unsigned pin_cnt,
++				 unsigned hs_pulse_time, unsigned vs_pulse_time,
++				 int hs_pol_inv, int vs_pol_inv, int div);
++	int  (*enable_tearsync) (int enable, unsigned line);
++
++	unsigned long		max_transmit_size;
 +};
 +
-+enum update_cmd {
-+	RFBI_CMD_UPDATE = 0,
-+	RFBI_CMD_SYNC   = 1,
++struct omapfb_notifier_block {
++	struct notifier_block	nb;
++	void			*data;
++	int			plane_idx;
 +};
 +
-+static int rfbi_convert_timings(struct rfbi_timings *t);
-+static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div);
-+static void process_cmd_fifo(void);
++typedef int (*omapfb_notifier_callback_t)(struct notifier_block *,
++					  unsigned long event,
++					  void *fbi);
 +
-+static struct {
-+	void __iomem	*base;
++struct lcd_ctrl {
++	const char	*name;
++	void		*data;
 +
-+	unsigned long	l4_khz;
-+
-+	enum omap_rfbi_datatype datatype;
-+	enum omap_rfbi_parallelmode parallelmode;
-+
-+	enum omap_rfbi_te_mode te_mode;
-+	int te_enabled;
-+
-+	void (*framedone_callback)(void *data);
-+	void *framedone_callback_data;
-+
-+	struct omap_dss_device *dssdev[2];
-+
-+	struct kfifo      *cmd_fifo;
-+	spinlock_t        cmd_lock;
-+	struct completion cmd_done;
-+	atomic_t          cmd_fifo_full;
-+	atomic_t          cmd_pending;
-+#ifdef MEASURE_PERF
-+	unsigned perf_bytes;
-+	ktime_t perf_setup_time;
-+	ktime_t perf_start_time;
-+#endif
-+} rfbi;
-+
-+struct update_region {
-+	u16	x;
-+	u16     y;
-+	u16     w;
-+	u16     h;
++	int		(*init)		  (struct omapfb_device *fbdev,
++					   int ext_mode,
++					   struct omapfb_mem_desc *req_md);
++	void		(*cleanup)	  (void);
++	void		(*bind_client)	  (struct omapfb_notifier_block *nb);
++	void		(*get_caps)	  (int plane, struct omapfb_caps *caps);
++	int		(*set_update_mode)(enum omapfb_update_mode mode);
++	enum omapfb_update_mode (*get_update_mode)(void);
++	int		(*setup_plane)	  (int plane, int channel_out,
++					   unsigned long offset,
++					   int screen_width,
++					   int pos_x, int pos_y, int width,
++					   int height, int color_mode);
++	int		(*set_rotate)	  (int angle);
++	int		(*setup_mem)	  (int plane, size_t size,
++					   int mem_type, unsigned long *paddr);
++	int		(*mmap)		  (struct fb_info *info,
++					   struct vm_area_struct *vma);
++	int		(*set_scale)	  (int plane,
++					   int orig_width, int orig_height,
++					   int out_width, int out_height);
++	int		(*enable_plane)	  (int plane, int enable);
++	int		(*update_window)  (struct fb_info *fbi,
++					   struct omapfb_update_window *win,
++					   void (*callback)(void *),
++					   void *callback_data);
++	void		(*sync)		  (void);
++	void		(*suspend)	  (void);
++	void		(*resume)	  (void);
++	int		(*run_test)	  (int test_num);
++	int		(*setcolreg)	  (u_int regno, u16 red, u16 green,
++					   u16 blue, u16 transp,
++					   int update_hw_mem);
++	int		(*set_color_key)  (struct omapfb_color_key *ck);
++	int		(*get_color_key)  (struct omapfb_color_key *ck);
 +};
 +
-+struct update_param {
-+	u8 rfbi_module;
-+	u8 cmd;
-+
-+	union {
-+		struct update_region r;
-+		struct completion *sync;
-+	} par;
++enum omapfb_state {
++	OMAPFB_DISABLED		= 0,
++	OMAPFB_SUSPENDED	= 99,
++	OMAPFB_ACTIVE		= 100
 +};
 +
-+static inline void rfbi_write_reg(const struct rfbi_reg idx, u32 val)
-+{
-+	__raw_writel(val, rfbi.base + idx.idx);
-+}
++struct omapfb_plane_struct {
++	int				idx;
++	struct omapfb_plane_info	info;
++	enum omapfb_color_format	color_mode;
++	struct omapfb_device		*fbdev;
++};
 +
-+static inline u32 rfbi_read_reg(const struct rfbi_reg idx)
-+{
-+	return __raw_readl(rfbi.base + idx.idx);
-+}
++struct omapfb_device {
++	int			state;
++	int                     ext_lcdc;		/* Using external
++							   LCD controller */
++	struct mutex		rqueue_mutex;
 +
-+static void rfbi_enable_clocks(bool enable)
-+{
-+	if (enable)
-+		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+	else
-+		dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+}
++	int			palette_size;
++	u32			pseudo_palette[17];
 +
-+void omap_rfbi_write_command(const void *buf, u32 len)
-+{
-+	rfbi_enable_clocks(1);
-+	switch (rfbi.parallelmode) {
-+	case OMAP_DSS_RFBI_PARALLELMODE_8:
-+	{
-+		const u8 *b = buf;
-+		for (; len; len--)
-+			rfbi_write_reg(RFBI_CMD, *b++);
-+		break;
-+	}
++	struct lcd_panel	*panel;			/* LCD panel */
++	const struct lcd_ctrl	*ctrl;			/* LCD controller */
++	const struct lcd_ctrl	*int_ctrl;		/* internal LCD ctrl */
++	struct lcd_ctrl_extif	*ext_if;		/* LCD ctrl external
++							   interface */
++	struct device		*dev;
++	struct fb_var_screeninfo	new_var;	/* for mode changes */
 +
-+	case OMAP_DSS_RFBI_PARALLELMODE_16:
-+	{
-+		const u16 *w = buf;
-+		BUG_ON(len & 1);
-+		for (; len; len -= 2)
-+			rfbi_write_reg(RFBI_CMD, *w++);
-+		break;
-+	}
++	struct omapfb_mem_desc		mem_desc;
++	struct fb_info			*fb_info[OMAPFB_PLANE_NUM];
++};
 +
-+	case OMAP_DSS_RFBI_PARALLELMODE_9:
-+	case OMAP_DSS_RFBI_PARALLELMODE_12:
-+	default:
-+		BUG();
-+	}
-+	rfbi_enable_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_rfbi_write_command);
-+
-+void omap_rfbi_read_data(void *buf, u32 len)
-+{
-+	rfbi_enable_clocks(1);
-+	switch (rfbi.parallelmode) {
-+	case OMAP_DSS_RFBI_PARALLELMODE_8:
-+	{
-+		u8 *b = buf;
-+		for (; len; len--) {
-+			rfbi_write_reg(RFBI_READ, 0);
-+			*b++ = rfbi_read_reg(RFBI_READ);
-+		}
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_16:
-+	{
-+		u16 *w = buf;
-+		BUG_ON(len & ~1);
-+		for (; len; len -= 2) {
-+			rfbi_write_reg(RFBI_READ, 0);
-+			*w++ = rfbi_read_reg(RFBI_READ);
-+		}
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_9:
-+	case OMAP_DSS_RFBI_PARALLELMODE_12:
-+	default:
-+		BUG();
-+	}
-+	rfbi_enable_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_rfbi_read_data);
-+
-+void omap_rfbi_write_data(const void *buf, u32 len)
-+{
-+	rfbi_enable_clocks(1);
-+	switch (rfbi.parallelmode) {
-+	case OMAP_DSS_RFBI_PARALLELMODE_8:
-+	{
-+		const u8 *b = buf;
-+		for (; len; len--)
-+			rfbi_write_reg(RFBI_PARAM, *b++);
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_16:
-+	{
-+		const u16 *w = buf;
-+		BUG_ON(len & 1);
-+		for (; len; len -= 2)
-+			rfbi_write_reg(RFBI_PARAM, *w++);
-+		break;
-+	}
-+
-+	case OMAP_DSS_RFBI_PARALLELMODE_9:
-+	case OMAP_DSS_RFBI_PARALLELMODE_12:
-+	default:
-+		BUG();
-+
-+	}
-+	rfbi_enable_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_rfbi_write_data);
-+
-+void omap_rfbi_write_pixels(const void __iomem *buf, int scr_width,
-+		u16 x, u16 y,
-+		u16 w, u16 h)
-+{
-+	int start_offset = scr_width * y + x;
-+	int horiz_offset = scr_width - w;
-+	int i;
-+
-+	rfbi_enable_clocks(1);
-+
-+	if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_16 &&
-+	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_8) {
-+		const u16 __iomem *pd = buf;
-+		pd += start_offset;
-+
-+		for (; h; --h) {
-+			for (i = 0; i < w; ++i) {
-+				const u8 __iomem *b = (const u8 __iomem *)pd;
-+				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+1));
-+				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+0));
-+				++pd;
-+			}
-+			pd += horiz_offset;
-+		}
-+	} else if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_24 &&
-+	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_8) {
-+		const u32 __iomem *pd = buf;
-+		pd += start_offset;
-+
-+		for (; h; --h) {
-+			for (i = 0; i < w; ++i) {
-+				const u8 __iomem *b = (const u8 __iomem *)pd;
-+				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+2));
-+				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+1));
-+				rfbi_write_reg(RFBI_PARAM, __raw_readb(b+0));
-+				++pd;
-+			}
-+			pd += horiz_offset;
-+		}
-+	} else if (rfbi.datatype == OMAP_DSS_RFBI_DATATYPE_16 &&
-+	   rfbi.parallelmode == OMAP_DSS_RFBI_PARALLELMODE_16) {
-+		const u16 __iomem *pd = buf;
-+		pd += start_offset;
-+
-+		for (; h; --h) {
-+			for (i = 0; i < w; ++i) {
-+				rfbi_write_reg(RFBI_PARAM, __raw_readw(pd));
-+				++pd;
-+			}
-+			pd += horiz_offset;
-+		}
-+	} else {
-+		BUG();
-+	}
-+
-+	rfbi_enable_clocks(0);
-+}
-+EXPORT_SYMBOL(omap_rfbi_write_pixels);
-+
-+#ifdef MEASURE_PERF
-+static void perf_mark_setup(void)
-+{
-+	rfbi.perf_setup_time = ktime_get();
-+}
-+
-+static void perf_mark_start(void)
-+{
-+	rfbi.perf_start_time = ktime_get();
-+}
-+
-+static void perf_show(const char *name)
-+{
-+	ktime_t t, setup_time, trans_time;
-+	u32 total_bytes;
-+	u32 setup_us, trans_us, total_us;
-+
-+	t = ktime_get();
-+
-+	setup_time = ktime_sub(rfbi.perf_start_time, rfbi.perf_setup_time);
-+	setup_us = (u32)ktime_to_us(setup_time);
-+	if (setup_us == 0)
-+		setup_us = 1;
-+
-+	trans_time = ktime_sub(t, rfbi.perf_start_time);
-+	trans_us = (u32)ktime_to_us(trans_time);
-+	if (trans_us == 0)
-+		trans_us = 1;
-+
-+	total_us = setup_us + trans_us;
-+
-+	total_bytes = rfbi.perf_bytes;
-+
-+	DSSINFO("%s update %u us + %u us = %u us (%uHz), %u bytes, "
-+			"%u kbytes/sec\n",
-+			name,
-+			setup_us,
-+			trans_us,
-+			total_us,
-+			1000*1000 / total_us,
-+			total_bytes,
-+			total_bytes * 1000 / total_us);
-+}
++#ifdef CONFIG_ARCH_OMAP1
++extern struct lcd_ctrl omap1_lcd_ctrl;
 +#else
-+#define perf_mark_setup()
-+#define perf_mark_start()
-+#define perf_show(x)
++extern struct lcd_ctrl omap2_disp_ctrl;
 +#endif
 +
-+void rfbi_transfer_area(u16 width, u16 height,
-+			     void (callback)(void *data), void *data)
-+{
-+	u32 l;
++extern void omapfb_register_panel(struct lcd_panel *panel);
++extern void omapfb_write_first_pixel(struct omapfb_device *fbdev, u16 pixval);
++extern void omapfb_notify_clients(struct omapfb_device *fbdev,
++				  unsigned long event);
++extern int  omapfb_register_client(struct omapfb_notifier_block *nb,
++				   omapfb_notifier_callback_t callback,
++				   void *callback_data);
++extern int  omapfb_unregister_client(struct omapfb_notifier_block *nb);
++extern int  omapfb_update_window_async(struct fb_info *fbi,
++				       struct omapfb_update_window *win,
++				       void (*callback)(void *),
++				       void *callback_data);
 +
-+	/*BUG_ON(callback == 0);*/
-+	BUG_ON(rfbi.framedone_callback != NULL);
++#endif /* __OMAPFB_H */
+diff --git a/drivers/video/omap/omapfb_main.c b/drivers/video/omap/omapfb_main.c
+index f900a43..c7f59a5 100644
+--- a/drivers/video/omap/omapfb_main.c
++++ b/drivers/video/omap/omapfb_main.c
+@@ -29,8 +29,8 @@
+ #include <linux/uaccess.h>
+ 
+ #include <plat/dma.h>
+-#include <plat/omapfb.h>
+ 
++#include "omapfb.h"
+ #include "lcdc.h"
+ #include "dispc.h"
+ 
+diff --git a/drivers/video/omap/rfbi.c b/drivers/video/omap/rfbi.c
+index c90fa39..fed7b1b 100644
+--- a/drivers/video/omap/rfbi.c
++++ b/drivers/video/omap/rfbi.c
+@@ -27,8 +27,7 @@
+ #include <linux/clk.h>
+ #include <linux/io.h>
+ 
+-#include <plat/omapfb.h>
+-
++#include "omapfb.h"
+ #include "dispc.h"
+ 
+ /* To work around an RFBI transfer rate limitation */
+diff --git a/drivers/video/omap/sossi.c b/drivers/video/omap/sossi.c
+index 79dc84f..354cbbb 100644
+--- a/drivers/video/omap/sossi.c
++++ b/drivers/video/omap/sossi.c
+@@ -25,8 +25,8 @@
+ #include <linux/io.h>
+ 
+ #include <plat/dma.h>
+-#include <plat/omapfb.h>
+ 
++#include "omapfb.h"
+ #include "lcdc.h"
+ 
+ #define MODULE_NAME		"omapfb-sossi"
+diff --git a/include/linux/omapfb.h b/include/linux/omapfb.h
+new file mode 100644
+index 0000000..a8efa92
+--- /dev/null
++++ b/include/linux/omapfb.h
+@@ -0,0 +1,197 @@
++/*
++ * File: include/linux/omapfb.h
++ *
++ * Framebuffer driver for TI OMAP boards
++ *
++ * Copyright (C) 2004 Nokia Corporation
++ * Author: Imre Deak <imre.deak@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
++ */
 +
-+	DSSDBG("rfbi_transfer_area %dx%d\n", width, height);
++#ifndef __LINUX_OMAPFB_H__
++#define __LINUX_OMAPFB_H__
 +
-+	dispc_set_lcd_size(width, height);
++#include <linux/ioctl.h>
++#include <linux/types.h>
 +
-+	dispc_enable_lcd_out(1);
++/* IOCTL commands. */
 +
-+	rfbi.framedone_callback = callback;
-+	rfbi.framedone_callback_data = data;
++#define OMAP_IOW(num, dtype)	_IOW('O', num, dtype)
++#define OMAP_IOR(num, dtype)	_IOR('O', num, dtype)
++#define OMAP_IOWR(num, dtype)	_IOWR('O', num, dtype)
++#define OMAP_IO(num)		_IO('O', num)
 +
-+	rfbi_enable_clocks(1);
++#define OMAPFB_MIRROR		OMAP_IOW(31, int)
++#define OMAPFB_SYNC_GFX		OMAP_IO(37)
++#define OMAPFB_VSYNC		OMAP_IO(38)
++#define OMAPFB_SET_UPDATE_MODE	OMAP_IOW(40, int)
++#define OMAPFB_GET_CAPS		OMAP_IOR(42, struct omapfb_caps)
++#define OMAPFB_GET_UPDATE_MODE	OMAP_IOW(43, int)
++#define OMAPFB_LCD_TEST		OMAP_IOW(45, int)
++#define OMAPFB_CTRL_TEST	OMAP_IOW(46, int)
++#define OMAPFB_UPDATE_WINDOW_OLD OMAP_IOW(47, struct omapfb_update_window_old)
++#define OMAPFB_SET_COLOR_KEY	OMAP_IOW(50, struct omapfb_color_key)
++#define OMAPFB_GET_COLOR_KEY	OMAP_IOW(51, struct omapfb_color_key)
++#define OMAPFB_SETUP_PLANE	OMAP_IOW(52, struct omapfb_plane_info)
++#define OMAPFB_QUERY_PLANE	OMAP_IOW(53, struct omapfb_plane_info)
++#define OMAPFB_UPDATE_WINDOW	OMAP_IOW(54, struct omapfb_update_window)
++#define OMAPFB_SETUP_MEM	OMAP_IOW(55, struct omapfb_mem_info)
++#define OMAPFB_QUERY_MEM	OMAP_IOW(56, struct omapfb_mem_info)
 +
-+	rfbi_write_reg(RFBI_PIXEL_CNT, width * height);
++#define OMAPFB_CAPS_GENERIC_MASK	0x00000fff
++#define OMAPFB_CAPS_LCDC_MASK		0x00fff000
++#define OMAPFB_CAPS_PANEL_MASK		0xff000000
 +
-+	l = rfbi_read_reg(RFBI_CONTROL);
-+	l = FLD_MOD(l, 1, 0, 0); /* enable */
-+	if (!rfbi.te_enabled)
-+		l = FLD_MOD(l, 1, 4, 4); /* ITE */
++#define OMAPFB_CAPS_MANUAL_UPDATE	0x00001000
++#define OMAPFB_CAPS_TEARSYNC		0x00002000
++#define OMAPFB_CAPS_PLANE_RELOCATE_MEM	0x00004000
++#define OMAPFB_CAPS_PLANE_SCALE		0x00008000
++#define OMAPFB_CAPS_WINDOW_PIXEL_DOUBLE	0x00010000
++#define OMAPFB_CAPS_WINDOW_SCALE	0x00020000
++#define OMAPFB_CAPS_WINDOW_OVERLAY	0x00040000
++#define OMAPFB_CAPS_WINDOW_ROTATE	0x00080000
++#define OMAPFB_CAPS_SET_BACKLIGHT	0x01000000
 +
-+	perf_mark_start();
++/* Values from DSP must map to lower 16-bits */
++#define OMAPFB_FORMAT_MASK		0x00ff
++#define OMAPFB_FORMAT_FLAG_DOUBLE	0x0100
++#define OMAPFB_FORMAT_FLAG_TEARSYNC	0x0200
++#define OMAPFB_FORMAT_FLAG_FORCE_VSYNC	0x0400
++#define OMAPFB_FORMAT_FLAG_ENABLE_OVERLAY	0x0800
++#define OMAPFB_FORMAT_FLAG_DISABLE_OVERLAY	0x1000
 +
-+	rfbi_write_reg(RFBI_CONTROL, l);
-+}
++#define OMAPFB_MEMTYPE_SDRAM		0
++#define OMAPFB_MEMTYPE_SRAM		1
++#define OMAPFB_MEMTYPE_MAX		1
 +
-+static void framedone_callback(void *data, u32 mask)
-+{
-+	void (*callback)(void *data);
++enum omapfb_color_format {
++	OMAPFB_COLOR_RGB565 = 0,
++	OMAPFB_COLOR_YUV422,
++	OMAPFB_COLOR_YUV420,
++	OMAPFB_COLOR_CLUT_8BPP,
++	OMAPFB_COLOR_CLUT_4BPP,
++	OMAPFB_COLOR_CLUT_2BPP,
++	OMAPFB_COLOR_CLUT_1BPP,
++	OMAPFB_COLOR_RGB444,
++	OMAPFB_COLOR_YUY422,
++};
 +
-+	DSSDBG("FRAMEDONE\n");
++struct omapfb_update_window {
++	__u32 x, y;
++	__u32 width, height;
++	__u32 format;
++	__u32 out_x, out_y;
++	__u32 out_width, out_height;
++	__u32 reserved[8];
++};
 +
-+	perf_show("DISPC");
++struct omapfb_update_window_old {
++	__u32 x, y;
++	__u32 width, height;
++	__u32 format;
++};
 +
-+	REG_FLD_MOD(RFBI_CONTROL, 0, 0, 0);
++enum omapfb_plane {
++	OMAPFB_PLANE_GFX = 0,
++	OMAPFB_PLANE_VID1,
++	OMAPFB_PLANE_VID2,
++};
 +
-+	rfbi_enable_clocks(0);
++enum omapfb_channel_out {
++	OMAPFB_CHANNEL_OUT_LCD = 0,
++	OMAPFB_CHANNEL_OUT_DIGIT,
++};
 +
-+	callback = rfbi.framedone_callback;
-+	rfbi.framedone_callback = NULL;
++struct omapfb_plane_info {
++	__u32 pos_x;
++	__u32 pos_y;
++	__u8  enabled;
++	__u8  channel_out;
++	__u8  mirror;
++	__u8  reserved1;
++	__u32 out_width;
++	__u32 out_height;
++	__u32 reserved2[12];
++};
 +
-+	/*callback(rfbi.framedone_callback_data);*/
++struct omapfb_mem_info {
++	__u32 size;
++	__u8  type;
++	__u8  reserved[3];
++};
 +
-+	atomic_set(&rfbi.cmd_pending, 0);
++struct omapfb_caps {
++	__u32 ctrl;
++	__u32 plane_color;
++	__u32 wnd_color;
++};
 +
-+	process_cmd_fifo();
-+}
++enum omapfb_color_key_type {
++	OMAPFB_COLOR_KEY_DISABLED = 0,
++	OMAPFB_COLOR_KEY_GFX_DST,
++	OMAPFB_COLOR_KEY_VID_SRC,
++};
 +
-+#if 1 /* VERBOSE */
-+static void rfbi_print_timings(void)
-+{
-+	u32 l;
-+	u32 time;
++struct omapfb_color_key {
++	__u8  channel_out;
++	__u32 background;
++	__u32 trans_key;
++	__u8  key_type;
++};
 +
-+	l = rfbi_read_reg(RFBI_CONFIG(0));
-+	time = 1000000000 / rfbi.l4_khz;
-+	if (l & (1 << 4))
-+		time *= 2;
++enum omapfb_update_mode {
++	OMAPFB_UPDATE_DISABLED = 0,
++	OMAPFB_AUTO_UPDATE,
++	OMAPFB_MANUAL_UPDATE
++};
 +
-+	DSSDBG("Tick time %u ps\n", time);
-+	l = rfbi_read_reg(RFBI_ONOFF_TIME(0));
-+	DSSDBG("CSONTIME %d, CSOFFTIME %d, WEONTIME %d, WEOFFTIME %d, "
-+		"REONTIME %d, REOFFTIME %d\n",
-+		l & 0x0f, (l >> 4) & 0x3f, (l >> 10) & 0x0f, (l >> 14) & 0x3f,
-+		(l >> 20) & 0x0f, (l >> 24) & 0x3f);
++#ifdef __KERNEL__
 +
-+	l = rfbi_read_reg(RFBI_CYCLE_TIME(0));
-+	DSSDBG("WECYCLETIME %d, RECYCLETIME %d, CSPULSEWIDTH %d, "
-+		"ACCESSTIME %d\n",
-+		(l & 0x3f), (l >> 6) & 0x3f, (l >> 12) & 0x3f,
-+		(l >> 22) & 0x3f);
-+}
++#include <plat/board.h>
++
++#ifdef CONFIG_ARCH_OMAP1
++#define OMAPFB_PLANE_NUM		1
 +#else
-+static void rfbi_print_timings(void) {}
++#define OMAPFB_PLANE_NUM		3
 +#endif
 +
++struct omapfb_mem_region {
++	u32		paddr;
++	void __iomem	*vaddr;
++	unsigned long	size;
++	u8		type;		/* OMAPFB_PLANE_MEM_* */
++	unsigned	alloc:1;	/* allocated by the driver */
++	unsigned	map:1;		/* kernel mapped by the driver */
++};
 +
++struct omapfb_mem_desc {
++	int				region_cnt;
++	struct omapfb_mem_region	region[OMAPFB_PLANE_NUM];
++};
 +
++struct omapfb_platform_data {
++	struct omap_lcd_config		lcd;
++	struct omapfb_mem_desc		mem_desc;
++	void				*ctrl_platform_data;
++};
 +
-+static u32 extif_clk_period;
++/* in arch/arm/plat-omap/fb.c */
++extern void omapfb_set_ctrl_platform_data(void *pdata);
++extern void omapfb_reserve_sdram(void);
 +
-+static inline unsigned long round_to_extif_ticks(unsigned long ps, int div)
-+{
-+	int bus_tick = extif_clk_period * div;
-+	return (ps + bus_tick - 1) / bus_tick * bus_tick;
-+}
-+
-+static int calc_reg_timing(struct rfbi_timings *t, int div)
-+{
-+	t->clk_div = div;
-+
-+	t->cs_on_time = round_to_extif_ticks(t->cs_on_time, div);
-+
-+	t->we_on_time = round_to_extif_ticks(t->we_on_time, div);
-+	t->we_off_time = round_to_extif_ticks(t->we_off_time, div);
-+	t->we_cycle_time = round_to_extif_ticks(t->we_cycle_time, div);
-+
-+	t->re_on_time = round_to_extif_ticks(t->re_on_time, div);
-+	t->re_off_time = round_to_extif_ticks(t->re_off_time, div);
-+	t->re_cycle_time = round_to_extif_ticks(t->re_cycle_time, div);
-+
-+	t->access_time = round_to_extif_ticks(t->access_time, div);
-+	t->cs_off_time = round_to_extif_ticks(t->cs_off_time, div);
-+	t->cs_pulse_width = round_to_extif_ticks(t->cs_pulse_width, div);
-+
-+	DSSDBG("[reg]cson %d csoff %d reon %d reoff %d\n",
-+	       t->cs_on_time, t->cs_off_time, t->re_on_time, t->re_off_time);
-+	DSSDBG("[reg]weon %d weoff %d recyc %d wecyc %d\n",
-+	       t->we_on_time, t->we_off_time, t->re_cycle_time,
-+	       t->we_cycle_time);
-+	DSSDBG("[reg]rdaccess %d cspulse %d\n",
-+	       t->access_time, t->cs_pulse_width);
-+
-+	return rfbi_convert_timings(t);
-+}
-+
-+static int calc_extif_timings(struct rfbi_timings *t)
-+{
-+	u32 max_clk_div;
-+	int div;
-+
-+	rfbi_get_clk_info(&extif_clk_period, &max_clk_div);
-+	for (div = 1; div <= max_clk_div; div++) {
-+		if (calc_reg_timing(t, div) == 0)
-+			break;
-+	}
-+
-+	if (div <= max_clk_div)
-+		return 0;
-+
-+	DSSERR("can't setup timings\n");
-+	return -1;
-+}
-+
-+
-+void rfbi_set_timings(int rfbi_module, struct rfbi_timings *t)
-+{
-+	int r;
-+
-+	if (!t->converted) {
-+		r = calc_extif_timings(t);
-+		if (r < 0)
-+			DSSERR("Failed to calc timings\n");
-+	}
-+
-+	BUG_ON(!t->converted);
-+
-+	rfbi_enable_clocks(1);
-+	rfbi_write_reg(RFBI_ONOFF_TIME(rfbi_module), t->tim[0]);
-+	rfbi_write_reg(RFBI_CYCLE_TIME(rfbi_module), t->tim[1]);
-+
-+	/* TIMEGRANULARITY */
-+	REG_FLD_MOD(RFBI_CONFIG(rfbi_module),
-+		    (t->tim[2] ? 1 : 0), 4, 4);
-+
-+	rfbi_print_timings();
-+	rfbi_enable_clocks(0);
-+}
-+
-+static int ps_to_rfbi_ticks(int time, int div)
-+{
-+	unsigned long tick_ps;
-+	int ret;
-+
-+	/* Calculate in picosecs to yield more exact results */
-+	tick_ps = 1000000000 / (rfbi.l4_khz) * div;
-+
-+	ret = (time + tick_ps - 1) / tick_ps;
-+
-+	return ret;
-+}
-+
-+#ifdef OMAP_RFBI_RATE_LIMIT
-+unsigned long rfbi_get_max_tx_rate(void)
-+{
-+	unsigned long   l4_rate, dss1_rate;
-+	int             min_l4_ticks = 0;
-+	int             i;
-+
-+	/* According to TI this can't be calculated so make the
-+	 * adjustments for a couple of known frequencies and warn for
-+	 * others.
-+	 */
-+	static const struct {
-+		unsigned long l4_clk;           /* HZ */
-+		unsigned long dss1_clk;         /* HZ */
-+		unsigned long min_l4_ticks;
-+	} ftab[] = {
-+		{ 55,   132,    7, },           /* 7.86 MPix/s */
-+		{ 110,  110,    12, },          /* 9.16 MPix/s */
-+		{ 110,  132,    10, },          /* 11   Mpix/s */
-+		{ 120,  120,    10, },          /* 12   Mpix/s */
-+		{ 133,  133,    10, },          /* 13.3 Mpix/s */
-+	};
-+
-+	l4_rate = rfbi.l4_khz / 1000;
-+	dss1_rate = dss_clk_get_rate(DSS_CLK_FCK1) / 1000000;
-+
-+	for (i = 0; i < ARRAY_SIZE(ftab); i++) {
-+		/* Use a window instead of an exact match, to account
-+		 * for different DPLL multiplier / divider pairs.
-+		 */
-+		if (abs(ftab[i].l4_clk - l4_rate) < 3 &&
-+		    abs(ftab[i].dss1_clk - dss1_rate) < 3) {
-+			min_l4_ticks = ftab[i].min_l4_ticks;
-+			break;
-+		}
-+	}
-+	if (i == ARRAY_SIZE(ftab)) {
-+		/* Can't be sure, return anyway the maximum not
-+		 * rate-limited. This might cause a problem only for the
-+		 * tearing synchronisation.
-+		 */
-+		DSSERR("can't determine maximum RFBI transfer rate\n");
-+		return rfbi.l4_khz * 1000;
-+	}
-+	return rfbi.l4_khz * 1000 / min_l4_ticks;
-+}
-+#else
-+int rfbi_get_max_tx_rate(void)
-+{
-+	return rfbi.l4_khz * 1000;
-+}
 +#endif
 +
-+static void rfbi_get_clk_info(u32 *clk_period, u32 *max_clk_div)
-+{
-+	*clk_period = 1000000000 / rfbi.l4_khz;
-+	*max_clk_div = 2;
-+}
-+
-+static int rfbi_convert_timings(struct rfbi_timings *t)
-+{
-+	u32 l;
-+	int reon, reoff, weon, weoff, cson, csoff, cs_pulse;
-+	int actim, recyc, wecyc;
-+	int div = t->clk_div;
-+
-+	if (div <= 0 || div > 2)
-+		return -1;
-+
-+	/* Make sure that after conversion it still holds that:
-+	 * weoff > weon, reoff > reon, recyc >= reoff, wecyc >= weoff,
-+	 * csoff > cson, csoff >= max(weoff, reoff), actim > reon
-+	 */
-+	weon = ps_to_rfbi_ticks(t->we_on_time, div);
-+	weoff = ps_to_rfbi_ticks(t->we_off_time, div);
-+	if (weoff <= weon)
-+		weoff = weon + 1;
-+	if (weon > 0x0f)
-+		return -1;
-+	if (weoff > 0x3f)
-+		return -1;
-+
-+	reon = ps_to_rfbi_ticks(t->re_on_time, div);
-+	reoff = ps_to_rfbi_ticks(t->re_off_time, div);
-+	if (reoff <= reon)
-+		reoff = reon + 1;
-+	if (reon > 0x0f)
-+		return -1;
-+	if (reoff > 0x3f)
-+		return -1;
-+
-+	cson = ps_to_rfbi_ticks(t->cs_on_time, div);
-+	csoff = ps_to_rfbi_ticks(t->cs_off_time, div);
-+	if (csoff <= cson)
-+		csoff = cson + 1;
-+	if (csoff < max(weoff, reoff))
-+		csoff = max(weoff, reoff);
-+	if (cson > 0x0f)
-+		return -1;
-+	if (csoff > 0x3f)
-+		return -1;
-+
-+	l =  cson;
-+	l |= csoff << 4;
-+	l |= weon  << 10;
-+	l |= weoff << 14;
-+	l |= reon  << 20;
-+	l |= reoff << 24;
-+
-+	t->tim[0] = l;
-+
-+	actim = ps_to_rfbi_ticks(t->access_time, div);
-+	if (actim <= reon)
-+		actim = reon + 1;
-+	if (actim > 0x3f)
-+		return -1;
-+
-+	wecyc = ps_to_rfbi_ticks(t->we_cycle_time, div);
-+	if (wecyc < weoff)
-+		wecyc = weoff;
-+	if (wecyc > 0x3f)
-+		return -1;
-+
-+	recyc = ps_to_rfbi_ticks(t->re_cycle_time, div);
-+	if (recyc < reoff)
-+		recyc = reoff;
-+	if (recyc > 0x3f)
-+		return -1;
-+
-+	cs_pulse = ps_to_rfbi_ticks(t->cs_pulse_width, div);
-+	if (cs_pulse > 0x3f)
-+		return -1;
-+
-+	l =  wecyc;
-+	l |= recyc    << 6;
-+	l |= cs_pulse << 12;
-+	l |= actim    << 22;
-+
-+	t->tim[1] = l;
-+
-+	t->tim[2] = div - 1;
-+
-+	t->converted = 1;
-+
-+	return 0;
-+}
-+
-+/* xxx FIX module selection missing */
-+int omap_rfbi_setup_te(enum omap_rfbi_te_mode mode,
-+			     unsigned hs_pulse_time, unsigned vs_pulse_time,
-+			     int hs_pol_inv, int vs_pol_inv, int extif_div)
-+{
-+	int hs, vs;
-+	int min;
-+	u32 l;
-+
-+	hs = ps_to_rfbi_ticks(hs_pulse_time, 1);
-+	vs = ps_to_rfbi_ticks(vs_pulse_time, 1);
-+	if (hs < 2)
-+		return -EDOM;
-+	if (mode == OMAP_DSS_RFBI_TE_MODE_2)
-+		min = 2;
-+	else /* OMAP_DSS_RFBI_TE_MODE_1 */
-+		min = 4;
-+	if (vs < min)
-+		return -EDOM;
-+	if (vs == hs)
-+		return -EINVAL;
-+	rfbi.te_mode = mode;
-+	DSSDBG("setup_te: mode %d hs %d vs %d hs_inv %d vs_inv %d\n",
-+		mode, hs, vs, hs_pol_inv, vs_pol_inv);
-+
-+	rfbi_enable_clocks(1);
-+	rfbi_write_reg(RFBI_HSYNC_WIDTH, hs);
-+	rfbi_write_reg(RFBI_VSYNC_WIDTH, vs);
-+
-+	l = rfbi_read_reg(RFBI_CONFIG(0));
-+	if (hs_pol_inv)
-+		l &= ~(1 << 21);
-+	else
-+		l |= 1 << 21;
-+	if (vs_pol_inv)
-+		l &= ~(1 << 20);
-+	else
-+		l |= 1 << 20;
-+	rfbi_enable_clocks(0);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_rfbi_setup_te);
-+
-+/* xxx FIX module selection missing */
-+int omap_rfbi_enable_te(bool enable, unsigned line)
-+{
-+	u32 l;
-+
-+	DSSDBG("te %d line %d mode %d\n", enable, line, rfbi.te_mode);
-+	if (line > (1 << 11) - 1)
-+		return -EINVAL;
-+
-+	rfbi_enable_clocks(1);
-+	l = rfbi_read_reg(RFBI_CONFIG(0));
-+	l &= ~(0x3 << 2);
-+	if (enable) {
-+		rfbi.te_enabled = 1;
-+		l |= rfbi.te_mode << 2;
-+	} else
-+		rfbi.te_enabled = 0;
-+	rfbi_write_reg(RFBI_CONFIG(0), l);
-+	rfbi_write_reg(RFBI_LINE_NUMBER, line);
-+	rfbi_enable_clocks(0);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(omap_rfbi_enable_te);
-+
-+#if 0
-+static void rfbi_enable_config(int enable1, int enable2)
-+{
-+	u32 l;
-+	int cs = 0;
-+
-+	if (enable1)
-+		cs |= 1<<0;
-+	if (enable2)
-+		cs |= 1<<1;
-+
-+	rfbi_enable_clocks(1);
-+
-+	l = rfbi_read_reg(RFBI_CONTROL);
-+
-+	l = FLD_MOD(l, cs, 3, 2);
-+	l = FLD_MOD(l, 0, 1, 1);
-+
-+	rfbi_write_reg(RFBI_CONTROL, l);
-+
-+
-+	l = rfbi_read_reg(RFBI_CONFIG(0));
-+	l = FLD_MOD(l, 0, 3, 2); /* TRIGGERMODE: ITE */
-+	/*l |= FLD_VAL(2, 8, 7); */ /* L4FORMAT, 2pix/L4 */
-+	/*l |= FLD_VAL(0, 8, 7); */ /* L4FORMAT, 1pix/L4 */
-+
-+	l = FLD_MOD(l, 0, 16, 16); /* A0POLARITY */
-+	l = FLD_MOD(l, 1, 20, 20); /* TE_VSYNC_POLARITY */
-+	l = FLD_MOD(l, 1, 21, 21); /* HSYNCPOLARITY */
-+
-+	l = FLD_MOD(l, OMAP_DSS_RFBI_PARALLELMODE_8, 1, 0);
-+	rfbi_write_reg(RFBI_CONFIG(0), l);
-+
-+	rfbi_enable_clocks(0);
-+}
-+#endif
-+
-+int rfbi_configure(int rfbi_module, int bpp, int lines)
-+{
-+	u32 l;
-+	int cycle1 = 0, cycle2 = 0, cycle3 = 0;
-+	enum omap_rfbi_cycleformat cycleformat;
-+	enum omap_rfbi_datatype datatype;
-+	enum omap_rfbi_parallelmode parallelmode;
-+
-+	switch (bpp) {
-+	case 12:
-+		datatype = OMAP_DSS_RFBI_DATATYPE_12;
-+		break;
-+	case 16:
-+		datatype = OMAP_DSS_RFBI_DATATYPE_16;
-+		break;
-+	case 18:
-+		datatype = OMAP_DSS_RFBI_DATATYPE_18;
-+		break;
-+	case 24:
-+		datatype = OMAP_DSS_RFBI_DATATYPE_24;
-+		break;
-+	default:
-+		BUG();
-+		return 1;
-+	}
-+	rfbi.datatype = datatype;
-+
-+	switch (lines) {
-+	case 8:
-+		parallelmode = OMAP_DSS_RFBI_PARALLELMODE_8;
-+		break;
-+	case 9:
-+		parallelmode = OMAP_DSS_RFBI_PARALLELMODE_9;
-+		break;
-+	case 12:
-+		parallelmode = OMAP_DSS_RFBI_PARALLELMODE_12;
-+		break;
-+	case 16:
-+		parallelmode = OMAP_DSS_RFBI_PARALLELMODE_16;
-+		break;
-+	default:
-+		BUG();
-+		return 1;
-+	}
-+	rfbi.parallelmode = parallelmode;
-+
-+	if ((bpp % lines) == 0) {
-+		switch (bpp / lines) {
-+		case 1:
-+			cycleformat = OMAP_DSS_RFBI_CYCLEFORMAT_1_1;
-+			break;
-+		case 2:
-+			cycleformat = OMAP_DSS_RFBI_CYCLEFORMAT_2_1;
-+			break;
-+		case 3:
-+			cycleformat = OMAP_DSS_RFBI_CYCLEFORMAT_3_1;
-+			break;
-+		default:
-+			BUG();
-+			return 1;
-+		}
-+	} else if ((2 * bpp % lines) == 0) {
-+		if ((2 * bpp / lines) == 3)
-+			cycleformat = OMAP_DSS_RFBI_CYCLEFORMAT_3_2;
-+		else {
-+			BUG();
-+			return 1;
-+		}
-+	} else {
-+		BUG();
-+		return 1;
-+	}
-+
-+	switch (cycleformat) {
-+	case OMAP_DSS_RFBI_CYCLEFORMAT_1_1:
-+		cycle1 = lines;
-+		break;
-+
-+	case OMAP_DSS_RFBI_CYCLEFORMAT_2_1:
-+		cycle1 = lines;
-+		cycle2 = lines;
-+		break;
-+
-+	case OMAP_DSS_RFBI_CYCLEFORMAT_3_1:
-+		cycle1 = lines;
-+		cycle2 = lines;
-+		cycle3 = lines;
-+		break;
-+
-+	case OMAP_DSS_RFBI_CYCLEFORMAT_3_2:
-+		cycle1 = lines;
-+		cycle2 = (lines / 2) | ((lines / 2) << 16);
-+		cycle3 = (lines << 16);
-+		break;
-+	}
-+
-+	rfbi_enable_clocks(1);
-+
-+	REG_FLD_MOD(RFBI_CONTROL, 0, 3, 2); /* clear CS */
-+
-+	l = 0;
-+	l |= FLD_VAL(parallelmode, 1, 0);
-+	l |= FLD_VAL(0, 3, 2);		/* TRIGGERMODE: ITE */
-+	l |= FLD_VAL(0, 4, 4);		/* TIMEGRANULARITY */
-+	l |= FLD_VAL(datatype, 6, 5);
-+	/* l |= FLD_VAL(2, 8, 7); */	/* L4FORMAT, 2pix/L4 */
-+	l |= FLD_VAL(0, 8, 7);	/* L4FORMAT, 1pix/L4 */
-+	l |= FLD_VAL(cycleformat, 10, 9);
-+	l |= FLD_VAL(0, 12, 11);	/* UNUSEDBITS */
-+	l |= FLD_VAL(0, 16, 16);	/* A0POLARITY */
-+	l |= FLD_VAL(0, 17, 17);	/* REPOLARITY */
-+	l |= FLD_VAL(0, 18, 18);	/* WEPOLARITY */
-+	l |= FLD_VAL(0, 19, 19);	/* CSPOLARITY */
-+	l |= FLD_VAL(1, 20, 20);	/* TE_VSYNC_POLARITY */
-+	l |= FLD_VAL(1, 21, 21);	/* HSYNCPOLARITY */
-+	rfbi_write_reg(RFBI_CONFIG(rfbi_module), l);
-+
-+	rfbi_write_reg(RFBI_DATA_CYCLE1(rfbi_module), cycle1);
-+	rfbi_write_reg(RFBI_DATA_CYCLE2(rfbi_module), cycle2);
-+	rfbi_write_reg(RFBI_DATA_CYCLE3(rfbi_module), cycle3);
-+
-+
-+	l = rfbi_read_reg(RFBI_CONTROL);
-+	l = FLD_MOD(l, rfbi_module+1, 3, 2); /* Select CSx */
-+	l = FLD_MOD(l, 0, 1, 1); /* clear bypass */
-+	rfbi_write_reg(RFBI_CONTROL, l);
-+
-+
-+	DSSDBG("RFBI config: bpp %d, lines %d, cycles: 0x%x 0x%x 0x%x\n",
-+	       bpp, lines, cycle1, cycle2, cycle3);
-+
-+	rfbi_enable_clocks(0);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(rfbi_configure);
-+
-+static int rfbi_find_display(struct omap_dss_device *dssdev)
-+{
-+	if (dssdev == rfbi.dssdev[0])
-+		return 0;
-+
-+	if (dssdev == rfbi.dssdev[1])
-+		return 1;
-+
-+	BUG();
-+	return -1;
-+}
-+
-+
-+static void signal_fifo_waiters(void)
-+{
-+	if (atomic_read(&rfbi.cmd_fifo_full) > 0) {
-+		/* DSSDBG("SIGNALING: Fifo not full for waiter!\n"); */
-+		complete(&rfbi.cmd_done);
-+		atomic_dec(&rfbi.cmd_fifo_full);
-+	}
-+}
-+
-+/* returns 1 for async op, and 0 for sync op */
-+static int do_update(struct omap_dss_device *dssdev, struct update_region *upd)
-+{
-+	u16 x = upd->x;
-+	u16 y = upd->y;
-+	u16 w = upd->w;
-+	u16 h = upd->h;
-+
-+	perf_mark_setup();
-+
-+	if (dssdev->manager->caps & OMAP_DSS_OVL_MGR_CAP_DISPC) {
-+		/*dssdev->driver->enable_te(dssdev, 1); */
-+		dss_setup_partial_planes(dssdev, &x, &y, &w, &h);
-+	}
-+
-+#ifdef MEASURE_PERF
-+	rfbi.perf_bytes = w * h * 2; /* XXX always 16bit */
-+#endif
-+
-+	dssdev->driver->setup_update(dssdev, x, y, w, h);
-+
-+	if (dssdev->manager->caps & OMAP_DSS_OVL_MGR_CAP_DISPC) {
-+		rfbi_transfer_area(w, h, NULL, NULL);
-+		return 1;
-+	} else {
-+		struct omap_overlay *ovl;
-+		void __iomem *addr;
-+		int scr_width;
-+
-+		ovl = dssdev->manager->overlays[0];
-+		scr_width = ovl->info.screen_width;
-+		addr = ovl->info.vaddr;
-+
-+		omap_rfbi_write_pixels(addr, scr_width, x, y, w, h);
-+
-+		perf_show("L4");
-+
-+		return 0;
-+	}
-+}
-+
-+static void process_cmd_fifo(void)
-+{
-+	int len;
-+	struct update_param p;
-+	struct omap_dss_device *dssdev;
-+	unsigned long flags;
-+
-+	if (atomic_inc_return(&rfbi.cmd_pending) != 1)
-+		return;
-+
-+	while (true) {
-+		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
-+
-+		len = __kfifo_get(rfbi.cmd_fifo, (unsigned char *)&p,
-+				  sizeof(struct update_param));
-+		if (len == 0) {
-+			DSSDBG("nothing more in fifo\n");
-+			atomic_set(&rfbi.cmd_pending, 0);
-+			spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-+			break;
-+		}
-+
-+		/* DSSDBG("fifo full %d\n", rfbi.cmd_fifo_full.counter);*/
-+
-+		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-+
-+		BUG_ON(len != sizeof(struct update_param));
-+		BUG_ON(p.rfbi_module > 1);
-+
-+		dssdev = rfbi.dssdev[p.rfbi_module];
-+
-+		if (p.cmd == RFBI_CMD_UPDATE) {
-+			if (do_update(dssdev, &p.par.r))
-+				break; /* async op */
-+		} else if (p.cmd == RFBI_CMD_SYNC) {
-+			DSSDBG("Signaling SYNC done!\n");
-+			complete(p.par.sync);
-+		} else
-+			BUG();
-+	}
-+
-+	signal_fifo_waiters();
-+}
-+
-+static void rfbi_push_cmd(struct update_param *p)
-+{
-+	int ret;
-+
-+	while (1) {
-+		unsigned long flags;
-+		int available;
-+
-+		spin_lock_irqsave(rfbi.cmd_fifo->lock, flags);
-+		available = RFBI_CMD_FIFO_LEN_BYTES -
-+			__kfifo_len(rfbi.cmd_fifo);
-+
-+/*		DSSDBG("%d bytes left in fifo\n", available); */
-+		if (available < sizeof(struct update_param)) {
-+			DSSDBG("Going to wait because FIFO FULL..\n");
-+			spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-+			atomic_inc(&rfbi.cmd_fifo_full);
-+			wait_for_completion(&rfbi.cmd_done);
-+			/*DSSDBG("Woke up because fifo not full anymore\n");*/
-+			continue;
-+		}
-+
-+		ret = __kfifo_put(rfbi.cmd_fifo, (unsigned char *)p,
-+				  sizeof(struct update_param));
-+/*		DSSDBG("pushed %d bytes\n", ret);*/
-+
-+		spin_unlock_irqrestore(rfbi.cmd_fifo->lock, flags);
-+
-+		BUG_ON(ret != sizeof(struct update_param));
-+
-+		break;
-+	}
-+}
-+
-+static void rfbi_push_update(int rfbi_module, int x, int y, int w, int h)
-+{
-+	struct update_param p;
-+
-+	p.rfbi_module = rfbi_module;
-+	p.cmd = RFBI_CMD_UPDATE;
-+
-+	p.par.r.x = x;
-+	p.par.r.y = y;
-+	p.par.r.w = w;
-+	p.par.r.h = h;
-+
-+	DSSDBG("RFBI pushed %d,%d %dx%d\n", x, y, w, h);
-+
-+	rfbi_push_cmd(&p);
-+
-+	process_cmd_fifo();
-+}
-+
-+static void rfbi_push_sync(int rfbi_module, struct completion *sync_comp)
-+{
-+	struct update_param p;
-+
-+	p.rfbi_module = rfbi_module;
-+	p.cmd = RFBI_CMD_SYNC;
-+	p.par.sync = sync_comp;
-+
-+	rfbi_push_cmd(&p);
-+
-+	DSSDBG("RFBI sync pushed to cmd fifo\n");
-+
-+	process_cmd_fifo();
-+}
-+
-+void rfbi_dump_regs(struct seq_file *s)
-+{
-+#define DUMPREG(r) seq_printf(s, "%-35s %08x\n", #r, rfbi_read_reg(r))
-+
-+	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+
-+	DUMPREG(RFBI_REVISION);
-+	DUMPREG(RFBI_SYSCONFIG);
-+	DUMPREG(RFBI_SYSSTATUS);
-+	DUMPREG(RFBI_CONTROL);
-+	DUMPREG(RFBI_PIXEL_CNT);
-+	DUMPREG(RFBI_LINE_NUMBER);
-+	DUMPREG(RFBI_CMD);
-+	DUMPREG(RFBI_PARAM);
-+	DUMPREG(RFBI_DATA);
-+	DUMPREG(RFBI_READ);
-+	DUMPREG(RFBI_STATUS);
-+
-+	DUMPREG(RFBI_CONFIG(0));
-+	DUMPREG(RFBI_ONOFF_TIME(0));
-+	DUMPREG(RFBI_CYCLE_TIME(0));
-+	DUMPREG(RFBI_DATA_CYCLE1(0));
-+	DUMPREG(RFBI_DATA_CYCLE2(0));
-+	DUMPREG(RFBI_DATA_CYCLE3(0));
-+
-+	DUMPREG(RFBI_CONFIG(1));
-+	DUMPREG(RFBI_ONOFF_TIME(1));
-+	DUMPREG(RFBI_CYCLE_TIME(1));
-+	DUMPREG(RFBI_DATA_CYCLE1(1));
-+	DUMPREG(RFBI_DATA_CYCLE2(1));
-+	DUMPREG(RFBI_DATA_CYCLE3(1));
-+
-+	DUMPREG(RFBI_VSYNC_WIDTH);
-+	DUMPREG(RFBI_HSYNC_WIDTH);
-+
-+	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
-+#undef DUMPREG
-+}
-+
-+int rfbi_init(void)
-+{
-+	u32 rev;
-+	u32 l;
-+
-+	spin_lock_init(&rfbi.cmd_lock);
-+	rfbi.cmd_fifo = kfifo_alloc(RFBI_CMD_FIFO_LEN_BYTES, GFP_KERNEL,
-+				    &rfbi.cmd_lock);
-+	if (IS_ERR(rfbi.cmd_fifo))
-+		return -ENOMEM;
-+
-+	init_completion(&rfbi.cmd_done);
-+	atomic_set(&rfbi.cmd_fifo_full, 0);
-+	atomic_set(&rfbi.cmd_pending, 0);
-+
-+	rfbi.base = ioremap(RFBI_BASE, SZ_256);
-+	if (!rfbi.base) {
-+		DSSERR("can't ioremap RFBI\n");
-+		return -ENOMEM;
-+	}
-+
-+	rfbi_enable_clocks(1);
-+
-+	msleep(10);
-+
-+	rfbi.l4_khz = dss_clk_get_rate(DSS_CLK_ICK) / 1000;
-+
-+	/* Enable autoidle and smart-idle */
-+	l = rfbi_read_reg(RFBI_SYSCONFIG);
-+	l |= (1 << 0) | (2 << 3);
-+	rfbi_write_reg(RFBI_SYSCONFIG, l);
-+
-+	rev = rfbi_read_reg(RFBI_REVISION);
-+	printk(KERN_INFO "OMAP RFBI rev %d.%d\n",
-+	       FLD_GET(rev, 7, 4), FLD_GET(rev, 3, 0));
-+
-+	rfbi_enable_clocks(0);
-+
-+	return 0;
-+}
-+
-+void rfbi_exit(void)
-+{
-+	DSSDBG("rfbi_exit\n");
-+
-+	kfifo_free(rfbi.cmd_fifo);
-+
-+	iounmap(rfbi.base);
-+}
-+
-+/* struct omap_display support */
-+static int rfbi_display_update(struct omap_dss_device *dssdev,
-+			u16 x, u16 y, u16 w, u16 h)
-+{
-+	int rfbi_module;
-+
-+	if (w == 0 || h == 0)
-+		return 0;
-+
-+	rfbi_module = rfbi_find_display(dssdev);
-+
-+	rfbi_push_update(rfbi_module, x, y, w, h);
-+
-+	return 0;
-+}
-+
-+static int rfbi_display_sync(struct omap_dss_device *dssdev)
-+{
-+	struct completion sync_comp;
-+	int rfbi_module;
-+
-+	rfbi_module = rfbi_find_display(dssdev);
-+
-+	init_completion(&sync_comp);
-+	rfbi_push_sync(rfbi_module, &sync_comp);
-+	DSSDBG("Waiting for SYNC to happen...\n");
-+	wait_for_completion(&sync_comp);
-+	DSSDBG("Released from SYNC\n");
-+	return 0;
-+}
-+
-+static int rfbi_display_enable_te(struct omap_dss_device *dssdev, bool enable)
-+{
-+	dssdev->driver->enable_te(dssdev, enable);
-+	return 0;
-+}
-+
-+static int rfbi_display_enable(struct omap_dss_device *dssdev)
-+{
-+	int r;
-+
-+	r = omap_dss_start_device(dssdev);
-+	if (r) {
-+		DSSERR("failed to start device\n");
-+		goto err0;
-+	}
-+
-+	r = omap_dispc_register_isr(framedone_callback, NULL,
-+			DISPC_IRQ_FRAMEDONE);
-+	if (r) {
-+		DSSERR("can't get FRAMEDONE irq\n");
-+		goto err1;
-+	}
-+
-+	dispc_set_lcd_display_type(OMAP_DSS_LCD_DISPLAY_TFT);
-+
-+	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_RFBI);
-+
-+	dispc_set_tft_data_lines(dssdev->ctrl.pixel_size);
-+
-+	rfbi_configure(dssdev->phy.rfbi.channel,
-+			       dssdev->ctrl.pixel_size,
-+			       dssdev->phy.rfbi.data_lines);
-+
-+	rfbi_set_timings(dssdev->phy.rfbi.channel,
-+			 &dssdev->ctrl.rfbi_timings);
-+
-+
-+	if (dssdev->driver->enable) {
-+		r = dssdev->driver->enable(dssdev);
-+		if (r)
-+			goto err2;
-+	}
-+
-+	return 0;
-+err2:
-+	omap_dispc_unregister_isr(framedone_callback, NULL,
-+			DISPC_IRQ_FRAMEDONE);
-+err1:
-+	omap_dss_stop_device(dssdev);
-+err0:
-+	return r;
-+}
-+
-+static void rfbi_display_disable(struct omap_dss_device *dssdev)
-+{
-+	dssdev->driver->disable(dssdev);
-+	omap_dispc_unregister_isr(framedone_callback, NULL,
-+			DISPC_IRQ_FRAMEDONE);
-+	omap_dss_stop_device(dssdev);
-+}
-+
-+int rfbi_init_display(struct omap_dss_device *dssdev)
-+{
-+	dssdev->enable = rfbi_display_enable;
-+	dssdev->disable = rfbi_display_disable;
-+	dssdev->update = rfbi_display_update;
-+	dssdev->sync = rfbi_display_sync;
-+	dssdev->enable_te = rfbi_display_enable_te;
-+
-+	rfbi.dssdev[dssdev->phy.rfbi.channel] = dssdev;
-+
-+	dssdev->caps = OMAP_DSS_DISPLAY_CAP_MANUAL_UPDATE;
-+
-+	return 0;
-+}
++#endif /* __OMAPFB_H */
 -- 
 1.6.5.1
 
