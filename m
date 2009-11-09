@@ -1,59 +1,56 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/1] PM: Thaws refrigerated and to be exited kernel threads
-Date: Mon, 9 Nov 2009 13:06:38 +0100
-Message-ID: <200911091306.38148.rjw@sisk.pl>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DE31F934@dbde02.ent.ti.com> <20091109083133.GB4818@elf.ucw.cz> <B85A65D85D7EB246BE421B3FB0FBB59301DE3B67A0@dbde02.ent.ti.com>
+From: Amit Kucheria <amit.kucheria@verdurent.com>
+Subject: Re: Driver Merge Questions
+Date: Mon, 9 Nov 2009 14:07:51 +0200
+Message-ID: <37786d4b0911090407w19d7f054n3203df2eccac32ba@mail.gmail.com>
+References: <4AF040D1.7020109@kionix.com> <20091103165821.GG8981@atomide.com>
+	 <20091109092621.GY1773@smtp.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:49729 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754488AbZKIMFZ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Nov 2009 07:05:25 -0500
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE3B67A0@dbde02.ent.ti.com>
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:58052 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750857AbZKIMHr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 07:07:47 -0500
+Received: by ewy3 with SMTP id 3so3021960ewy.37
+        for <linux-omap@vger.kernel.org>; Mon, 09 Nov 2009 04:07:51 -0800 (PST)
+In-Reply-To: <20091109092621.GY1773@smtp.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Dasgupta, Romit" <romit@ti.com>
-Cc: Pavel Machek <pavel@ucw.cz>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+To: Chris Hudson <chudson@kionix.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Monday 09 November 2009, Dasgupta, Romit wrote:
-> > Really? I believe the "ktrhead_should_stop" is new rule, and code does
-> > not seem to follow it. Actually, for example audit does not seem to
-> > use kthread_should_stop() at all...
-> > 
-> > ./kernel/rtmutex-tester.c-
-> > ./kernel/rtmutex-tester.c-		/* Wait for the next 
-> > command to be executed */
-> > ./kernel/rtmutex-tester.c-		schedule();
-> > ./kernel/rtmutex-tester.c:		try_to_freeze();
-> > ./kernel/rtmutex-tester.c-
-> > ./kernel/rtmutex-tester.c-		if (signal_pending(current))
-> > ./kernel/rtmutex-tester.c-			flush_signals(current);
-> > --
-> Not a new rule. For these threads you listed no one stops them by sending 
-> 'kthread_stop' so the problem does not arise! But for the threads that are 
-> stopped by invoking kthread_stop they do check kthread_should_stop. 
+On Mon, Nov 9, 2009 at 11:26 AM, Amit Kucheria
+<amit.kucheria@verdurent.com> wrote:
+> On 09 Nov 03, Tony Lindgren wrote:
+>> * Chris Hudson <chudson@kionix.com> [091103 06:48]:
+>> > Hello all,
+>> >
+>> > I've never submitted any software to Linux before, but I've been
+>> > working on some new accelerometer drivers that should be ready for
+>> > review soon (pending company approval). =A0I've read lots of
+>> > documentation on patch and driver submissions, but I still have so=
+me
+>> > questions that I was hoping someone could help me find the answers
+>> > to.
+>> >
+>> > 1- My drivers use i2c for hardware communications, miscdevice for
+>> > IOCTLs, and input_dev for data and interrupt status outputs. =A0Mo=
+st
+>> > of the other accelerometer drivers that I've looked at use similar
+>> > designs and are located in drivers/hwmon, but I just wanted to
+>> > confirm that this is the correct location currently.
+>>
+>> Sounds correct.
+>
+> Unfortunately it will probably get rejected in drivers/hwmon. The mai=
+ntainer,
+> Jean Delavare wants them out of hwmon[1]. It seems that everyone (for=
+ the
 
-At the moment we don't have the rule that kernel threads should exit
-immediately after kthread_stop() is called for them, which your patch implies
-for freezable kernel threads.
-
-Now, I think we might require the freezable kernel threads to exit as soon as
-ktrhead_should_stop() is true for them, but (a) that needs to be documented
-(please note it also applies to freezable workqueues) and (b) the existing
-freezable kernel threads need to be audited, so we're sure they follow this
-rule.  Also, it might lead to subtle problems if someone overlooks this
-rule in the future.
-
-So, I'd rather not introduce such a rule if there's no other way to fix the
-problem at hand.
-
-BTW, in future please describe the motivation for a change in the changelog
-or people will wonder what the change is for.  In particular, if it fixes a
-problem, please describe the problem and why you think your approach is
-appropriate for fixing it.
-
-Thanks,
-Rafael
+s/Delavare/Delvare
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
