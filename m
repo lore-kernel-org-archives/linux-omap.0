@@ -1,149 +1,318 @@
 From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: [PATCH 03/19] OMAP: OMAPFB: add omapdss device
-Date: Mon,  9 Nov 2009 13:45:10 +0200
-Message-ID: <1257767126-12059-4-git-send-email-tomi.valkeinen@nokia.com>
+Subject: [PATCH 13/19] OMAP: DSS2: SDI driver
+Date: Mon,  9 Nov 2009 13:45:20 +0200
+Message-ID: <1257767126-12059-14-git-send-email-tomi.valkeinen@nokia.com>
 References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
  <1257767126-12059-2-git-send-email-tomi.valkeinen@nokia.com>
  <1257767126-12059-3-git-send-email-tomi.valkeinen@nokia.com>
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:41558 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754973AbZKILqP (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 06:46:15 -0500
-In-Reply-To: <1257767126-12059-3-git-send-email-tomi.valkeinen@nokia.com>
-Sender: linux-omap-owner@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
+ <1257767126-12059-4-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-5-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-6-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-7-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-8-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-9-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-10-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-11-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-12-git-send-email-tomi.valkeinen@nokia.com>
+ <1257767126-12059-13-git-send-email-tomi.valkeinen@nokia.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755226AbZKILqh@vger.kernel.org>
+In-Reply-To: <1257767126-12059-13-git-send-email-tomi.valkeinen@nokia.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, Tomi Valkeinen <tomi.valkeinen@nokia.com>
+List-Id: linux-omap@vger.kernel.org
 
-The upcoming new display subsystem driver is divided to two devices,
-omapdss and omapfb, of which omapdss handles the actual hardware.
-
-This patch adds a dummy omapdss platform device for the current omapfb
-driver, which is then used to get the clocks. This will make it possible
-for the current and the new display drivers to co-exist.
+SDI (Serial Display Interface) implements TI Flatlink 3G display
+interface.
 
 Signed-off-by: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Acked-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/clock24xx.c |    8 ++++----
- arch/arm/mach-omap2/clock34xx.c |   14 +++++++-------
- drivers/video/omap/dispc.c      |   19 ++++++++++++++++---
- 3 files changed, 27 insertions(+), 14 deletions(-)
+ drivers/video/omap2/dss/sdi.c |  277 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 277 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/video/omap2/dss/sdi.c
 
-diff --git a/arch/arm/mach-omap2/clock24xx.c b/arch/arm/mach-omap2/clock24xx.c
-index e70e7e0..845b478 100644
---- a/arch/arm/mach-omap2/clock24xx.c
-+++ b/arch/arm/mach-omap2/clock24xx.c
-@@ -116,10 +116,10 @@ static struct omap_clk omap24xx_clks[] = {
- 	CLK(NULL,	"mdm_ick",	&mdm_ick,	CK_243X),
- 	CLK(NULL,	"mdm_osc_ck",	&mdm_osc_ck,	CK_243X),
- 	/* DSS domain clocks */
--	CLK("omapfb",	"ick",		&dss_ick,	CK_243X | CK_242X),
--	CLK("omapfb",	"dss1_fck",	&dss1_fck,	CK_243X | CK_242X),
--	CLK("omapfb",	"dss2_fck",	&dss2_fck,	CK_243X | CK_242X),
--	CLK("omapfb",	"tv_fck",	&dss_54m_fck,	CK_243X | CK_242X),
-+	CLK("omapdss",	"ick",		&dss_ick,	CK_243X | CK_242X),
-+	CLK("omapdss",	"dss1_fck",	&dss1_fck,	CK_243X | CK_242X),
-+	CLK("omapdss",	"dss2_fck",	&dss2_fck,	CK_243X | CK_242X),
-+	CLK("omapdss",	"tv_fck",	&dss_54m_fck,	CK_243X | CK_242X),
- 	/* L3 domain clocks */
- 	CLK(NULL,	"core_l3_ck",	&core_l3_ck,	CK_243X | CK_242X),
- 	CLK(NULL,	"ssi_fck",	&ssi_ssr_sst_fck, CK_243X | CK_242X),
-diff --git a/arch/arm/mach-omap2/clock34xx.c b/arch/arm/mach-omap2/clock34xx.c
-index c258f87..294197b 100644
---- a/arch/arm/mach-omap2/clock34xx.c
-+++ b/arch/arm/mach-omap2/clock34xx.c
-@@ -236,13 +236,13 @@ static struct omap_clk omap34xx_clks[] = {
- 	CLK("omap_rng",	"ick",		&rng_ick,	CK_343X),
- 	CLK(NULL,	"sha11_ick",	&sha11_ick,	CK_343X),
- 	CLK(NULL,	"des1_ick",	&des1_ick,	CK_343X),
--	CLK("omapfb",	"dss1_fck",	&dss1_alwon_fck_3430es1, CK_3430ES1),
--	CLK("omapfb",	"dss1_fck",	&dss1_alwon_fck_3430es2, CK_3430ES2),
--	CLK("omapfb",	"tv_fck",	&dss_tv_fck,	CK_343X),
--	CLK("omapfb",	"video_fck",	&dss_96m_fck,	CK_343X),
--	CLK("omapfb",	"dss2_fck",	&dss2_alwon_fck, CK_343X),
--	CLK("omapfb",	"ick",		&dss_ick_3430es1,	CK_3430ES1),
--	CLK("omapfb",	"ick",		&dss_ick_3430es2,	CK_3430ES2),
-+	CLK("omapdss",	"dss1_fck",	&dss1_alwon_fck_3430es1, CK_3430ES1),
-+	CLK("omapdss",	"dss1_fck",	&dss1_alwon_fck_3430es2, CK_3430ES2),
-+	CLK("omapdss",	"tv_fck",	&dss_tv_fck,	CK_343X),
-+	CLK("omapdss",	"video_fck",	&dss_96m_fck,	CK_343X),
-+	CLK("omapdss",	"dss2_fck",	&dss2_alwon_fck, CK_343X),
-+	CLK("omapdss",	"ick",		&dss_ick_3430es1,	CK_3430ES1),
-+	CLK("omapdss",	"ick",		&dss_ick_3430es2,	CK_3430ES2),
- 	CLK(NULL,	"cam_mclk",	&cam_mclk,	CK_343X),
- 	CLK(NULL,	"cam_ick",	&cam_ick,	CK_343X),
- 	CLK(NULL,	"csi2_96m_fck",	&csi2_96m_fck,	CK_343X),
-diff --git a/drivers/video/omap/dispc.c b/drivers/video/omap/dispc.c
-index b8f75a7..c7c6455 100644
---- a/drivers/video/omap/dispc.c
-+++ b/drivers/video/omap/dispc.c
-@@ -24,6 +24,7 @@
- #include <linux/vmalloc.h>
- #include <linux/clk.h>
- #include <linux/io.h>
-+#include <linux/platform_device.h>
- 
- #include <plat/sram.h>
- #include <plat/board.h>
-@@ -188,6 +189,11 @@ static struct {
- 	struct omapfb_color_key	color_key;
- } dispc;
- 
-+static struct platform_device omapdss_device = {
-+	.name		= "omapdss",
-+	.id		= -1,
-+};
+diff --git a/drivers/video/omap2/dss/sdi.c b/drivers/video/omap2/dss/sdi.c
+new file mode 100644
+index 0000000..c24f307
+--- /dev/null
++++ b/drivers/video/omap2/dss/sdi.c
+@@ -0,0 +1,277 @@
++/*
++ * linux/drivers/video/omap2/dss/sdi.c
++ *
++ * Copyright (C) 2009 Nokia Corporation
++ * Author: Tomi Valkeinen <tomi.valkeinen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ *
++ * You should have received a copy of the GNU General Public License along with
++ * this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
 +
- static void enable_lcd_clocks(int enable);
- 
- static void inline dispc_write_reg(int idx, u32 val)
-@@ -914,20 +920,20 @@ static irqreturn_t omap_dispc_irq_handler(int irq, void *dev)
- 
- static int get_dss_clocks(void)
- {
--	dispc.dss_ick = clk_get(dispc.fbdev->dev, "ick");
-+	dispc.dss_ick = clk_get(&omapdss_device.dev, "ick");
- 	if (IS_ERR(dispc.dss_ick)) {
- 		dev_err(dispc.fbdev->dev, "can't get ick\n");
- 		return PTR_ERR(dispc.dss_ick);
- 	}
- 
--	dispc.dss1_fck = clk_get(dispc.fbdev->dev, "dss1_fck");
-+	dispc.dss1_fck = clk_get(&omapdss_device.dev, "dss1_fck");
- 	if (IS_ERR(dispc.dss1_fck)) {
- 		dev_err(dispc.fbdev->dev, "can't get dss1_fck\n");
- 		clk_put(dispc.dss_ick);
- 		return PTR_ERR(dispc.dss1_fck);
- 	}
- 
--	dispc.dss_54m_fck = clk_get(dispc.fbdev->dev, "tv_fck");
-+	dispc.dss_54m_fck = clk_get(&omapdss_device.dev, "tv_fck");
- 	if (IS_ERR(dispc.dss_54m_fck)) {
- 		dev_err(dispc.fbdev->dev, "can't get tv_fck\n");
- 		clk_put(dispc.dss_ick);
-@@ -1379,6 +1385,12 @@ static int omap_dispc_init(struct omapfb_device *fbdev, int ext_mode,
- 	int skip_init = 0;
- 	int i;
- 
-+	r = platform_device_register(&omapdss_device);
++#define DSS_SUBSYS_NAME "SDI"
++
++#include <linux/kernel.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/err.h>
++
++#include <plat/display.h>
++#include "dss.h"
++
++static struct {
++	bool skip_init;
++	bool update_enabled;
++} sdi;
++
++static void sdi_basic_init(void)
++{
++	dispc_set_parallel_interface_mode(OMAP_DSS_PARALLELMODE_BYPASS);
++
++	dispc_set_lcd_display_type(OMAP_DSS_LCD_DISPLAY_TFT);
++	dispc_set_tft_data_lines(24);
++	dispc_lcd_enable_signal_polarity(1);
++}
++
++static int sdi_display_enable(struct omap_dss_device *dssdev)
++{
++	struct omap_video_timings *t = &dssdev->panel.timings;
++	struct dss_clock_info dss_cinfo;
++	struct dispc_clock_info dispc_cinfo;
++	u16 lck_div, pck_div;
++	unsigned long fck;
++	unsigned long pck;
++	int r;
++
++	r = omap_dss_start_device(dssdev);
 +	if (r) {
-+		dev_err(fbdev->dev, "can't register omapdss device\n");
-+		return r;
++		DSSERR("failed to start device\n");
++		goto err0;
 +	}
 +
- 	memset(&dispc, 0, sizeof(dispc));
- 
- 	dispc.base = ioremap(DISPC_BASE, SZ_1K);
-@@ -1522,6 +1534,7 @@ static void omap_dispc_cleanup(void)
- 	free_irq(INT_24XX_DSS_IRQ, dispc.fbdev);
- 	put_dss_clocks();
- 	iounmap(dispc.base);
-+	platform_device_unregister(&omapdss_device);
- }
- 
- const struct lcd_ctrl omap2_int_ctrl = {
++	if (dssdev->state != OMAP_DSS_DISPLAY_DISABLED) {
++		DSSERR("dssdev already enabled\n");
++		r = -EINVAL;
++		goto err1;
++	}
++
++	/* In case of skip_init sdi_init has already enabled the clocks */
++	if (!sdi.skip_init)
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	sdi_basic_init();
++
++	/* 15.5.9.1.2 */
++	dssdev->panel.config |= OMAP_DSS_LCD_RF | OMAP_DSS_LCD_ONOFF;
++
++	dispc_set_pol_freq(dssdev->panel.config, dssdev->panel.acbi,
++			dssdev->panel.acb);
++
++	if (!sdi.skip_init) {
++		r = dss_calc_clock_div(1, t->pixel_clock * 1000,
++				&dss_cinfo, &dispc_cinfo);
++	} else {
++		r = dss_get_clock_div(&dss_cinfo);
++		r = dispc_get_clock_div(&dispc_cinfo);
++	}
++
++	if (r)
++		goto err2;
++
++	fck = dss_cinfo.fck;
++	lck_div = dispc_cinfo.lck_div;
++	pck_div = dispc_cinfo.pck_div;
++
++	pck = fck / lck_div / pck_div / 1000;
++
++	if (pck != t->pixel_clock) {
++		DSSWARN("Could not find exact pixel clock. Requested %d kHz, "
++				"got %lu kHz\n",
++				t->pixel_clock, pck);
++
++		t->pixel_clock = pck;
++	}
++
++
++	dispc_set_lcd_timings(t);
++
++	r = dss_set_clock_div(&dss_cinfo);
++	if (r)
++		goto err2;
++
++	r = dispc_set_clock_div(&dispc_cinfo);
++	if (r)
++		goto err2;
++
++	if (!sdi.skip_init) {
++		dss_sdi_init(dssdev->phy.sdi.datapairs);
++		r = dss_sdi_enable();
++		if (r)
++			goto err1;
++		mdelay(2);
++	}
++
++	dispc_enable_lcd_out(1);
++
++	if (dssdev->driver->enable) {
++		r = dssdev->driver->enable(dssdev);
++		if (r)
++			goto err3;
++	}
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	sdi.skip_init = 0;
++
++	return 0;
++err3:
++	dispc_enable_lcd_out(0);
++err2:
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++err1:
++	omap_dss_stop_device(dssdev);
++err0:
++	return r;
++}
++
++static int sdi_display_resume(struct omap_dss_device *dssdev);
++
++static void sdi_display_disable(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state == OMAP_DSS_DISPLAY_DISABLED)
++		return;
++
++	if (dssdev->state == OMAP_DSS_DISPLAY_SUSPENDED)
++		if (sdi_display_resume(dssdev))
++			return;
++
++	if (dssdev->driver->disable)
++		dssdev->driver->disable(dssdev);
++
++	dispc_enable_lcd_out(0);
++
++	dss_sdi_disable();
++
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dssdev->state = OMAP_DSS_DISPLAY_DISABLED;
++
++	omap_dss_stop_device(dssdev);
++}
++
++static int sdi_display_suspend(struct omap_dss_device *dssdev)
++{
++	if (dssdev->state != OMAP_DSS_DISPLAY_ACTIVE)
++		return -EINVAL;
++
++	if (dssdev->driver->suspend)
++		dssdev->driver->suspend(dssdev);
++
++	dispc_enable_lcd_out(0);
++
++	dss_sdi_disable();
++
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	dssdev->state = OMAP_DSS_DISPLAY_SUSPENDED;
++
++	return 0;
++}
++
++static int sdi_display_resume(struct omap_dss_device *dssdev)
++{
++	int r;
++
++	if (dssdev->state != OMAP_DSS_DISPLAY_SUSPENDED)
++		return -EINVAL;
++
++	dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++
++	r = dss_sdi_enable();
++	if (r)
++		goto err;
++	mdelay(2);
++
++	dispc_enable_lcd_out(1);
++
++	if (dssdev->driver->resume)
++		dssdev->driver->resume(dssdev);
++
++	dssdev->state = OMAP_DSS_DISPLAY_ACTIVE;
++
++	return 0;
++err:
++	dss_clk_disable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	return r;
++}
++
++static int sdi_display_set_update_mode(struct omap_dss_device *dssdev,
++		enum omap_dss_update_mode mode)
++{
++	if (mode == OMAP_DSS_UPDATE_MANUAL)
++		return -EINVAL;
++
++	if (mode == OMAP_DSS_UPDATE_DISABLED) {
++		dispc_enable_lcd_out(0);
++		sdi.update_enabled = 0;
++	} else {
++		dispc_enable_lcd_out(1);
++		sdi.update_enabled = 1;
++	}
++
++	return 0;
++}
++
++static enum omap_dss_update_mode sdi_display_get_update_mode(
++		struct omap_dss_device *dssdev)
++{
++	return sdi.update_enabled ? OMAP_DSS_UPDATE_AUTO :
++		OMAP_DSS_UPDATE_DISABLED;
++}
++
++static void sdi_get_timings(struct omap_dss_device *dssdev,
++			struct omap_video_timings *timings)
++{
++	*timings = dssdev->panel.timings;
++}
++
++int sdi_init_display(struct omap_dss_device *dssdev)
++{
++	DSSDBG("SDI init\n");
++
++	dssdev->enable = sdi_display_enable;
++	dssdev->disable = sdi_display_disable;
++	dssdev->suspend = sdi_display_suspend;
++	dssdev->resume = sdi_display_resume;
++	dssdev->set_update_mode = sdi_display_set_update_mode;
++	dssdev->get_update_mode = sdi_display_get_update_mode;
++	dssdev->get_timings = sdi_get_timings;
++
++	return 0;
++}
++
++int sdi_init(bool skip_init)
++{
++	/* we store this for first display enable, then clear it */
++	sdi.skip_init = skip_init;
++
++	/*
++	 * Enable clocks already here, otherwise there would be a toggle
++	 * of them until sdi_display_enable is called.
++	 */
++	if (skip_init)
++		dss_clk_enable(DSS_CLK_ICK | DSS_CLK_FCK1);
++	return 0;
++}
++
++void sdi_exit(void)
++{
++}
 -- 
 1.6.5.1
-
