@@ -1,56 +1,37 @@
-From: chudson@kionix.com
-Subject: [RFC PATCH 3/3] mach-omap2:mux support for kxte9 accelerometer on OMAP ZoomII
-Date: Tue, 10 Nov 2009 13:28:49 -0500
-Message-ID: <1257877729-25647-3-git-send-email-chudson@kionix.com>
+From: Jean Delvare <khali@linux-fr.org>
+Subject: Re: [lm-sensors] [RFC PATCH 1/3] hwmon:driver support for Kionix
+ kxte9  accelerometer
+Date: Tue, 10 Nov 2009 19:35:39 +0100
+Message-ID: <20091110193539.7e1392f3@hyperion.delvare>
 References: <1257877729-25647-1-git-send-email-chudson@kionix.com>
- <1257877729-25647-2-git-send-email-chudson@kionix.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from barracuda.kionix.com ([205.232.90.213]:33701 "EHLO
-	mail.kionix.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755938AbZKJS2a (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 13:28:30 -0500
-In-Reply-To: <1257877729-25647-2-git-send-email-chudson@kionix.com>
+Received: from poutre.nerim.net ([62.4.16.124]:55147 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757543AbZKJSfg (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Nov 2009 13:35:36 -0500
+In-Reply-To: <1257877729-25647-1-git-send-email-chudson@kionix.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: lm-sensors@lm-sensors.org, Chris Hudson <chudson@kionix.com>
+To: Chris Hudson <chudson@kionix.com>
+Cc: linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org
 
-From: Chris Hudson <chudson@kionix.com>
+On Tue, 10 Nov 2009 13:28:47 -0500, chudson@kionix.com wrote:
+> From: Chris Hudson <chudson@kionix.com>
+> 
+> This is a request for comments for adding driver support for the Kionix KXTE9 
+> digital tri-axis accelerometer.  This part features built-in tilt position 
+> (orientation), wake-up and back-to-sleep algorithms, which can trigger a 
+> user-configurable physical interrupt.  The driver uses i2c for device 
+> communication, a misc node for IOCTLs, and input nodes for reporting 
+> acceleration data and interrupt status information.
+> 
+> Signed-off-by: Chris Hudson <chudson@kionix.com>
 
-This patch alters mux.c and mux.h to allow gpio configuration in support of the 
-kxte9 accelerometer on the OMAP ZoomII platform.
+Nack. We want less accelerometer drivers polluting drivers/hwmon, not
+more.
 
-Signed-off-by: Chris Hudson <chudson@kionix.com>
----
- arch/arm/mach-omap2/mux.c             |    2 ++
- arch/arm/plat-omap/include/plat/mux.h |    1 +
- 2 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-index 32c953e..1158315 100644
---- a/arch/arm/mach-omap2/mux.c
-+++ b/arch/arm/mach-omap2/mux.c
-@@ -486,6 +486,8 @@ MUX_CFG_34XX("AF5_34XX_GPIO142", 0x170,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- MUX_CFG_34XX("AE5_34XX_GPIO143", 0x172,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
-+MUX_CFG_34XX("Y21_34XX_GPIO156", 0x18c,
-+		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT)
- MUX_CFG_34XX("H19_34XX_GPIO164_OUT", 0x19c,
- 		OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
- MUX_CFG_34XX("J25_34XX_GPIO170", 0x1c6,
-diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
-index f3c1d8a..c17905a 100644
---- a/arch/arm/plat-omap/include/plat/mux.h
-+++ b/arch/arm/plat-omap/include/plat/mux.h
-@@ -803,6 +803,7 @@ enum omap34xx_index {
- 	AE6_34XX_GPIO141,
- 	AF5_34XX_GPIO142,
- 	AE5_34XX_GPIO143,
-+	Y21_34XX_GPIO156,
- 	H19_34XX_GPIO164_OUT,
- 	J25_34XX_GPIO170,
- 
 -- 
-1.5.4.3
-
+Jean Delvare
