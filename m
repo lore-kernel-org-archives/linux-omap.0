@@ -1,51 +1,55 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH] usbtest: make module param pattern writeable
-Date: Mon,  9 Nov 2009 21:24:32 -0600
-Message-ID: <1257823472-19369-1-git-send-email-vikram.pandita@ti.com>
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: RE: [PATCH 1/2] OMAP3: Enable DSS2 for OMAP3EVM board
+Date: Tue, 10 Nov 2009 09:12:03 +0530
+Message-ID: <19F8576C6E063C45BE387C64729E73940436F94084@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1256724210-20581-1-git-send-email-hvaibhav@ti.com>
+ <19F8576C6E063C45BE387C64729E73940436EEAD77@dbde02.ent.ti.com>
+ <20091110010905.GR23952@atomide.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56578 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:43121 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755366AbZKJDZX (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Mon, 9 Nov 2009 22:25:23 -0500
+	id S1751814AbZKJDmI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Mon, 9 Nov 2009 22:42:08 -0500
+In-Reply-To: <20091110010905.GR23952@atomide.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-usb@vger.kernel.org, dbrownell@users.sourceforge.net
-Cc: linux-omap@vger.kernel.org, Vikram Pandita <vikram.pandita@ti.com>, Anand Gadiyar <gadiyar@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Tomi Valkeinen <tomi.valkeinen@nokia.com>
 
-Allow module_param to be writeable. This allows us to change
-the parameter if usbtest is built-in in the kernel.
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Signed-off-by: Anand Gadiyar <gadiyar@ti.com>
----
- drivers/usb/misc/usbtest.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Tuesday, November 10, 2009 6:39 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; Tomi Valkeinen
+> Subject: Re: [PATCH 1/2] OMAP3: Enable DSS2 for OMAP3EVM board
+> 
+> * Hiremath, Vaibhav <hvaibhav@ti.com> [091028 03:06]:
+> >
+> > > -----Original Message-----
+> > > From: Hiremath, Vaibhav
+> > > Sent: Wednesday, October 28, 2009 3:34 PM
+> > > To: linux-omap@vger.kernel.org
+> > > Cc: Hiremath, Vaibhav
+> > > Subject: [PATCH 1/2] OMAP3: Enable DSS2 for OMAP3EVM board
+> > >
+> > [Hiremath, Vaibhav] Tony,
+> >
+> > Can you merge these 2 patches to "dss2" branch (if they do not
+> have any comments)? So that they will also be get merged along with
+> DSS2.
+> 
+> It's best that we let Tomi queue up all the DSS2 related patches.
+[Hiremath, Vaibhav] I am ok with that.
+Let me update this patch with the latest kernel + DSS2 and re-submit it again.
 
-diff --git a/drivers/usb/misc/usbtest.c b/drivers/usb/misc/usbtest.c
-index a9f06d7..0aa04b7 100644
---- a/drivers/usb/misc/usbtest.c
-+++ b/drivers/usb/misc/usbtest.c
-@@ -213,8 +213,9 @@ static struct urb *simple_alloc_urb (
- }
- 
- static unsigned pattern = 0;
--module_param (pattern, uint, S_IRUGO);
--MODULE_PARM_DESC(pattern, "i/o pattern (0 == zeroes)");
-+static unsigned mod_pattern = 0;
-+module_param_named(pattern, mod_pattern, uint, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(mod_pattern, "i/o pattern (0 == zeroes)");
- 
- static inline void simple_fill_buf (struct urb *urb)
- {
-@@ -1567,6 +1568,8 @@ usbtest_ioctl (struct usb_interface *intf, unsigned int code, void *buf)
- 
- 	// FIXME USBDEVFS_CONNECTINFO doesn't say how fast the device is.
- 
-+	pattern = mod_pattern;
-+
- 	if (code != USBTEST_REQUEST)
- 		return -EOPNOTSUPP;
- 
--- 
-1.6.5.1.69.g36942
+Thanks,
+Vaibhav
+> 
+> Tony
 
