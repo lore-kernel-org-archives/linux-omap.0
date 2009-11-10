@@ -1,145 +1,64 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: Re: [PATCH 1/2] AM35xx: Runtime detection of the device
-Date: Tue, 10 Nov 2009 12:20:53 +0200
-Message-ID: <20091110102053.GL21945@nokia.com>
-References: <1256652150-5710-1-git-send-email-premi@ti.com>
- <20091027161115.GA16494@nokia.com>
- <B85A65D85D7EB246BE421B3FB0FBB59301DE0DCB84@dbde02.ent.ti.com>
- <20091027210853.GA17061@nokia.com>
-Reply-To: felipe.balbi@nokia.com
+From: Paul Walmsley <paul@pwsan.com>
+Subject: RE: [PATCH 2/2 v2] OMAP3:clk - introduce DPLL4 jtype support
+Date: Tue, 10 Nov 2009 03:23:53 -0700 (MST)
+Message-ID: <alpine.DEB.2.00.0911100320060.20233@utopia.booyaka.com>
+References: <[PATCH 2/2] OMAP3:clk: introduce DPLL4 jtype support> <1256068968-16564-1-git-send-email-nm@ti.com> <alpine.DEB.2.00.0910282032550.19865@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162039B6CDD1F@dlee02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:41659 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119AbZKJKWy (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 05:22:54 -0500
-Content-Disposition: inline
-In-Reply-To: <20091027210853.GA17061@nokia.com>
+Received: from utopia.booyaka.com ([72.9.107.138]:36648 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753383AbZKJKXs (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 05:23:48 -0500
+In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B6CDD1F@dlee02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>
-Cc: "ext Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "tony@atomide.com" <tony@atomide.com>
+To: "Woodruff, Richard" <r-woodruff2@ti.com>
+Cc: "Menon, Nishanth" <nm@ti.com>, ext-ari.kauppi@nokia.com, linux-omap <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, khilman@deeprootsystems.com, "Sonasath, Moiz" <m-sonasath@ti.com>, tony@atomide.com, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
 
-Hi,
+Hi Richard, Nishanth
 
-On Tue, Oct 27, 2009 at 10:08:54PM +0100, Balbi Felipe (Nokia-D/Helsinki) wrote:
->From: Felipe Balbi <felipe.balbi@nokia.com>
->Subject: [PATCH] arm: omap: code cleanup to id.c
->
->Cleanup the coding style in id.c while avoiding unneeded switch()
->statements.
->
->Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
->---
->
->diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
->index 1c15112..dbdeb09 100644
->--- a/arch/arm/mach-omap2/id.c
->+++ b/arch/arm/mach-omap2/id.c
->@@ -53,11 +53,11 @@ int omap_type(void)
-> {
-> 	u32 val = 0;
->
->-	if (cpu_is_omap24xx())
->+	if (cpu_is_omap24xx()) {
-> 		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
->-	else if (cpu_is_omap34xx())
->+	} else if (cpu_is_omap34xx()) {
-> 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
->-	else {
->+	} else {
-> 		pr_err("Cannot detect omap type!\n");
-> 		goto out;
-> 	}
->@@ -224,24 +224,14 @@ void __init omap3_check_revision(void)
-> 			omap_revision = OMAP3430_REV_ES3_0;
-> 			break;
-> 		case 4:
->-			omap_revision = OMAP3430_REV_ES3_1;
->-			break;
->+		/* FALLTHROUGH */
-> 		default:
-> 			/* Use the latest known revision as default */
-> 			omap_revision = OMAP3430_REV_ES3_1;
-> 		}
-> 		break;
-> 	case 0xb891:
->-		/* Handle 36xx devices */
->-		switch (rev) {
->-		case 0:
->-			omap_revision = OMAP3630_REV_ES1_0;
->-			break;
->-		default:
->-			/* Use the latest known revision as default */
->-			omap_revision = OMAP3630_REV_ES1_0;
->-		}
->-		break;
->+	/* FALLTHROUGH */
-> 	default:
-> 		/* Unknown default to latest silicon rev as default*/
-> 		omap_revision = OMAP3630_REV_ES1_0;
->@@ -266,19 +256,17 @@ void __init omap3_cpuinfo(void)
-> 	 * on available features. Upon detection, update the CPU id
-> 	 * and CPU class bits.
-> 	 */
->-	if (cpu_is_omap3630())
->+	if (cpu_is_omap3630()) {
-> 		strcpy(cpu_name, "3630");
->-	else if (omap3_has_iva() && omap3_has_sgx())
->+	} else if (omap3_has_iva() && omap3_has_sgx()) {
-> 		strcpy(cpu_name, "3430/3530");
->-	else if (omap3_has_sgx()) {
->+	} else if (omap3_has_sgx()) {
-> 		omap_revision = OMAP3525_REV(rev);
-> 		strcpy(cpu_name, "3525");
->-	}
->-	else if (omap3_has_iva()) {
->+	} else if (omap3_has_iva()) {
-> 		omap_revision = OMAP3515_REV(rev);
-> 		strcpy(cpu_name, "3515");
->-	}
->-	else {
->+	} else {
-> 		omap_revision = OMAP3503_REV(rev);
-> 		strcpy(cpu_name, "3503");
-> 	}
->@@ -297,8 +285,7 @@ void __init omap3_cpuinfo(void)
-> 		strcpy(cpu_rev, "3.0");
-> 		break;
-> 	case OMAP_REVBITS_40:
->-		strcpy(cpu_rev, "3.1");
->-		break;
->+	/* FALLTHROUGH */
-> 	default:
-> 		/* Use the latest known revision as default */
-> 		strcpy(cpu_rev, "3.1");
->@@ -325,18 +312,18 @@ void __init omap2_check_revision(void)
-> 	 * At this point we have an idea about the processor revision set
-> 	 * earlier with omap2_set_globals_tap().
-> 	 */
->-	if (cpu_is_omap24xx())
->+	if (cpu_is_omap24xx()) {
-> 		omap24xx_check_revision();
->-	else if (cpu_is_omap34xx()) {
->+	} else if (cpu_is_omap34xx()) {
-> 		omap3_check_features();
-> 		omap3_check_revision();
-> 		omap3_cpuinfo();
->-	}
->-	else if (cpu_is_omap44xx()) {
->+	} else if (cpu_is_omap44xx()) {
-> 		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
-> 		return;
->-	} else
->+	} else {
-> 		pr_err("OMAP revision unknown, please fix!\n");
->+	}
->
-> 	/*
-> 	 * OK, now we know the exact revision. Initialize omap_chip bits
+(adding Ari back in to cc, also Tony, Kevin)
 
-how about this patch, any comments ??
+On Sat, 31 Oct 2009, Woodruff, Richard wrote:
 
--- 
-balbi
+> > From: Paul Walmsley [mailto:paul@pwsan.com]
+> > Sent: Wednesday, October 28, 2009 9:39 PM
+> 
+> > > +static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
+> > u8 n)
+> > > +{
+> > > +   unsigned long fint, clkinp, sd; /* watch out for overflow */
+> > > +   int mod1, mod2;
+> > > +
+> > > +   n++; /* always n+1 below */
+> >
+> > The N that's passed into lookup_dco_sddiv() is the real N -- that is, it's
+> > the register bitfield plus one.  That can be seen below in this line:
+> >
+> > >     v |= (n - 1) << __ffs(dd->div1_mask);
+> >
+> > Given this, is the "n++;" above correct?
+> 
+> Probably not...
+
+Great - so can we count on you and/or Nishanth to update this patch taking 
+this and Ari's comments into account and to resend to the list?
+
+> > The rest of the code looks fine.  (Of course, I can't review the
+> > technical basis of the code since I don't have the 3630 docs yet, but I'm
+> > fine with taking it in the meantime.)
+> >
+> > I might change the 'u8 jtype;' field below into 'u8 flags;'; please let me
+> > know if you foresee a problem with that.
+> 
+> Don't care.  Jtype seemed description but flag |= jtype is just as descriptive and can hold a few more.
+
+OK.
+
+> Thanks for looking over.
+
+You're welcome.
+
+
+- Paul
