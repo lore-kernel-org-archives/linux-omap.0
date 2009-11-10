@@ -1,37 +1,38 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH] update mach-types
-Date: Tue, 10 Nov 2009 15:49:02 -0500
-Message-ID: <notify-1257886145@atomide.com>
-References: <1256256072-24810-1-git-send-email-y>
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: linux-omap-2.6 does not allow configuring rt2xx
+Date: Tue, 10 Nov 2009 21:35:52 +0000
+Message-ID: <4AF9DCB8.9050305@blueyonder.co.uk>
+Reply-To: sboyce@blueyonder.co.uk
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:63591 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751479AbZKJUtC (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 15:49:02 -0500
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1N7xeF-000AGO-H6
-	for linux-omap@vger.kernel.org; Tue, 10 Nov 2009 20:49:07 +0000
-In-Reply-To: <1256256072-24810-1-git-send-email-y>
-Content-Disposition: inline
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:49275 "EHLO
+	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758180AbZKJVfx (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Tue, 10 Nov 2009 16:35:53 -0500
+Received: from [172.23.170.143] (helo=anti-virus02-10)
+	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1N7yNa-0003tT-4n
+	for linux-omap@vger.kernel.org; Tue, 10 Nov 2009 21:35:58 +0000
+Received: from [94.171.130.58] (helo=[192.168.10.2])
+	by asmtp-out4.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1N7yNZ-0005ul-N9
+	for linux-omap@vger.kernel.org; Tue, 10 Nov 2009 21:35:57 +0000
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
-
-Branch in linux-omap: omap-testing
-
-Initial commit ID (Likely to change): 1b5ff48f2abdb53de12e23d50ce43f0c4348e3d8
-
-PatchWorks
-http://patchwork.kernel.org/patch/55509/
-
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=1b5ff48f2abdb53de12e23d50ce43f0c4348e3d8
-
+Spotted over the last few days.
+"make ARCH=arm CROSS_COMPILE=/opt/arm-2009q1/bin/arm-none-linux/gnueabi-
+omap3_beagle_defconfig", then xconfig/menuconfig/config, the option
+never shows up.
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
