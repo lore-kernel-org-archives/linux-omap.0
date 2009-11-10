@@ -1,95 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 2/3]NAND: OMAP: Fixing omap nand driver, compiled as
- module
-Date: Tue, 10 Nov 2009 10:56:21 -0800
-Message-ID: <20091110185621.GB23952@atomide.com>
-References: <ce9ab5790910292321y1e7239b7pbffe9a5891d66448@mail.gmail.com>
- <ce9ab5790910300142kf12e31cpd6249d4c7383553f@mail.gmail.com>
- <ce9ab5790910300227r41d42673webad0ee48e3444d1@mail.gmail.com>
- <1257862989.21596.763.camel@localhost>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Re: [lm-sensors] [RFC PATCH 1/3] hwmon:driver support for Kionix
+ kxte9 accelerometer
+Date: Tue, 10 Nov 2009 19:00:23 +0000
+Message-ID: <4AF9B847.3070008@cam.ac.uk>
+References: <1257877729-25647-1-git-send-email-chudson@kionix.com>	<20091110193539.7e1392f3@hyperion.delvare> <4AF9B5E3.1060902@kionix.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59158 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757579AbZKJS4U (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 13:56:20 -0500
-Content-Disposition: inline
-In-Reply-To: <1257862989.21596.763.camel@localhost>
+Received: from ppsw-7.csi.cam.ac.uk ([131.111.8.137]:41674 "EHLO
+	ppsw-7.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107AbZKJS7t (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 13:59:49 -0500
+In-Reply-To: <4AF9B5E3.1060902@kionix.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Artem Bityutskiy <dedekind1@gmail.com>
-Cc: Vimal Singh <vimal.newwork@gmail.com>, Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
+To: Chris Hudson <chudson@kionix.com>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org
 
-* Artem Bityutskiy <dedekind1@gmail.com> [091110 06:22]:
-> On Fri, 2009-10-30 at 14:57 +0530, Vimal Singh wrote:
-> > Last time I forgot to 'git add' for 'arch/arm/mach-omap2/gpmc.c'... My bad.
-> > Correct patch is below.
-> > 
-> > -vimal
-> > 
-> > 
-> > From: Vimal Singh <vimalsingh@ti.com>
-> > Date: Fri, 30 Oct 2009 14:54:29 +0530
-> > Subject: [PATCH] NAND: OMAP: Fixing omap nand driver, compiled as module
-> > 
-> > Removing OMAP NAND driver, when loaded as a module, gives error and
-> > does not get success. This fixes this and makes driver loadable and
-> > removable run time.
-> > 
-> > Signed-off-by: Vimal Singh <vimalsingh@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/gpmc.c |    2 ++
-> >  drivers/mtd/nand/omap2.c   |    5 ++++-
-> >  2 files changed, 6 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-omap2/gpmc.c b/arch/arm/mach-omap2/gpmc.c
-> > index 1587682..1d10b7b 100644
-> > --- a/arch/arm/mach-omap2/gpmc.c
-> > +++ b/arch/arm/mach-omap2/gpmc.c
-> > @@ -88,6 +88,7 @@ void gpmc_cs_write_reg(int cs, int idx, u32 val)
-> >  	reg_addr = gpmc_base + GPMC_CS0 + (cs * GPMC_CS_SIZE) + idx;
-> >  	__raw_writel(val, reg_addr);
-> >  }
-> > +EXPORT_SYMBOL(gpmc_cs_write_reg);
-> > 
-> >  u32 gpmc_cs_read_reg(int cs, int idx)
-> >  {
-> > @@ -96,6 +97,7 @@ u32 gpmc_cs_read_reg(int cs, int idx)
-> >  	reg_addr = gpmc_base + GPMC_CS0 + (cs * GPMC_CS_SIZE) + idx;
-> >  	return __raw_readl(reg_addr);
-> >  }
-> > +EXPORT_SYMBOL(gpmc_cs_read_reg);
+Chris Hudson wrote:
 > 
-> You should get Tony's ack for this. I do not know the code, but on
-> surface it looks strange. Exporting so low-level functions is bad in
-> general, IMO. These function should either be inlined, or you should
-> invent better abstraction, so that you would not need to ever call these
-> functions from omap2.c. 
+> 
+> Jean Delvare wrote:
+>> On Tue, 10 Nov 2009 13:28:47 -0500, chudson@kionix.com wrote:
+>>  
+>>> From: Chris Hudson <chudson@kionix.com>
+>>>
+>>> This is a request for comments for adding driver support for the
+>>> Kionix KXTE9 digital tri-axis accelerometer.  This part features
+>>> built-in tilt position (orientation), wake-up and back-to-sleep
+>>> algorithms, which can trigger a user-configurable physical
+>>> interrupt.  The driver uses i2c for device communication, a misc node
+>>> for IOCTLs, and input nodes for reporting acceleration data and
+>>> interrupt status information.
+>>>
+>>> Signed-off-by: Chris Hudson <chudson@kionix.com>
+>>>     
+>>
+>> Nack. We want less accelerometer drivers polluting drivers/hwmon, not
+>> more.
+>>
+>>   
+> Thank you Jean for your quick reply.  I have seen some accelerometer
+> drivers in drivers/staging/iio/accel; is this where they are all being
+> moved to?
+> 
+Sorry Chris, meant to send my reply to the list as this question keeps
+coming up.
 
-NAK. We don't want the drivers to tinker with these registers
-directly. And really, the drivers should be platform independent.
-
-This seems like a quick hack to add back the missing functionality
-we threw out of the linux-omap tree. It was thrown out because there
-were the same cut and paste hacks duplicated all over the place
-tinkering with the GPMC registers directly.
-
-We've fixed a lot of this by creating gpmc-onenand.c and gpmc-smc91x.c,
-and that's clearly the way to go.
-
-So instead of trying to add back the same old hacks, how about rather
-spend that time to create something that we can use for all boards
-using GPMC?
-
-To me it looks like platform init like this should be done in a
-generic way in arch/arm/mach-omap2/gpmc-nand.c the same way we have
-gpmc-onenand.c and gpmc-smc91x.c.
-
-Also, you should calculate the GPMC timings dynamically as they
-can change based on the L3 frequency. Just take a look at the
-gpmc-onenand.c and gpmc-smc91x.c.
-
-Cheers,
-
-Tony
+That somewhat depends on the intended application.  The purpose of IIO
+is to provide a more general sensors framework, handling reasonably high
+capture speeds and things like triggering and ring buffers.  As things
+currently stand it isn't the place for devices that are principally being
+used for input or as wake up triggers. I'd be perfectly happy if there
+was a driver in IIO for this chip, (we already have a basic kxsd9 driver)
+but the support for much of what you describe in your summary would be
+pretty much unconnected to that subsystem. Not necessarily a problem
+though handling exactly what was getting the data at a given moment
+might get fiddly.
+ 
+Jonathan
