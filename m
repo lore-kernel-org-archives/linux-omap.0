@@ -1,64 +1,41 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: RE: [PATCH 2/2 v2] OMAP3:clk - introduce DPLL4 jtype support
-Date: Tue, 10 Nov 2009 03:23:53 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0911100320060.20233@utopia.booyaka.com>
-References: <[PATCH 2/2] OMAP3:clk: introduce DPLL4 jtype support> <1256068968-16564-1-git-send-email-nm@ti.com> <alpine.DEB.2.00.0910282032550.19865@utopia.booyaka.com> <13B9B4C6EF24D648824FF11BE8967162039B6CDD1F@dlee02.ent.ti.com>
+From: Kalle Valo <kalle.valo@iki.fi>
+Subject: Re: [PATCH v2 2/2] omap: RX-51: enable tsc2005
+Date: Tue, 10 Nov 2009 12:30:37 +0200
+Message-ID: <87bpjaekoi.fsf@purkki.valot.fi>
+References: <1257340982-22814-1-git-send-email-aaro.koskinen@nokia.com>
+	<1257340982-22814-2-git-send-email-aaro.koskinen@nokia.com>
+	<87d43ufih0.fsf@purkki.valot.fi> <4AF8193A.70505@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36648 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753383AbZKJKXs (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 05:23:48 -0500
-In-Reply-To: <13B9B4C6EF24D648824FF11BE8967162039B6CDD1F@dlee02.ent.ti.com>
+Received: from mail-ew0-f207.google.com ([209.85.219.207]:61151 "EHLO
+	mail-ew0-f207.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750864AbZKJKaf (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 05:30:35 -0500
+In-Reply-To: <4AF8193A.70505@nokia.com> (Aaro Koskinen's message of "Mon\, 09 Nov 2009 15\:29\:30 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Woodruff, Richard" <r-woodruff2@ti.com>
-Cc: "Menon, Nishanth" <nm@ti.com>, ext-ari.kauppi@nokia.com, linux-omap <linux-omap@vger.kernel.org>, "Pandita, Vikram" <vikram.pandita@ti.com>, khilman@deeprootsystems.com, "Sonasath, Moiz" <m-sonasath@ti.com>, tony@atomide.com, "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>, "tony@atomide.com" <tony@atomide.com>
 
-Hi Richard, Nishanth
+Aaro Koskinen <aaro.koskinen@nokia.com> writes:
 
-(adding Ari back in to cc, also Tony, Kevin)
+>> I sent a wl1251 patch which adds spi_board_info and conflicts with
+>> this patch:
+>>
+>> http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17604.html
+>>
+>> How do we handle this?
+>
+> I can resend/rebase this patch once the wl1251 patch is integrated.
 
-On Sat, 31 Oct 2009, Woodruff, Richard wrote:
+Ok, thanks. I'll resend the wl1251 patch just to be sure that it
+doesn't get lost.
 
-> > From: Paul Walmsley [mailto:paul@pwsan.com]
-> > Sent: Wednesday, October 28, 2009 9:39 PM
-> 
-> > > +static void lookup_dco_sddiv(struct clk *clk, u8 *dco, u8 *sd_div, u16 m,
-> > u8 n)
-> > > +{
-> > > +   unsigned long fint, clkinp, sd; /* watch out for overflow */
-> > > +   int mod1, mod2;
-> > > +
-> > > +   n++; /* always n+1 below */
-> >
-> > The N that's passed into lookup_dco_sddiv() is the real N -- that is, it's
-> > the register bitfield plus one.  That can be seen below in this line:
-> >
-> > >     v |= (n - 1) << __ffs(dd->div1_mask);
-> >
-> > Given this, is the "n++;" above correct?
-> 
-> Probably not...
+> BTW, check the comment from Tommi Rantala - spi_board_info can be marked
+> with __initdata.
 
-Great - so can we count on you and/or Nishanth to update this patch taking 
-this and Ari's comments into account and to resend to the list?
+I'll add it to my patch.
 
-> > The rest of the code looks fine.  (Of course, I can't review the
-> > technical basis of the code since I don't have the 3630 docs yet, but I'm
-> > fine with taking it in the meantime.)
-> >
-> > I might change the 'u8 jtype;' field below into 'u8 flags;'; please let me
-> > know if you foresee a problem with that.
-> 
-> Don't care.  Jtype seemed description but flag |= jtype is just as descriptive and can hold a few more.
-
-OK.
-
-> Thanks for looking over.
-
-You're welcome.
-
-
-- Paul
+-- 
+Kalle Valo
