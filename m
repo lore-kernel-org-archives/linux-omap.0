@@ -1,787 +1,381 @@
-From: xl6@rice.edu
-Subject: Re: n8x0 idle power problem (updated with registers dump)
-Date: Tue, 10 Nov 2009 08:29:14 -0600
-Message-ID: <20091110082914.6521676j91dww5s8@webmail.rice.edu>
-References: <20091103113047.145860vqqf9ez5kw@webmail.rice.edu>
-	<20091105115005.662667iyy3kqy6o8@webmail.rice.edu>
-	<20091109235133.GN23952@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: 7BIT
+From: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+Subject: [PATCH v3] mfd: Initial support for twl5031
+Date: Tue, 10 Nov 2009 17:26:15 +0200
+Message-ID: <1257866775-2638-1-git-send-email-ilkka.koskinen@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mh2.mail.rice.edu ([128.42.201.21]:58056 "EHLO
-	mh2.mail.rice.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756373AbZKJO3K convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 09:29:10 -0500
-In-Reply-To: <20091109235133.GN23952@atomide.com>
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:36875 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756044AbZKJP1q (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 10:27:46 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-omap@vger.kernel.org, Kevin Hilman <khilman@deeprootsystems.com>
+To: linux-kernel@vger.kernel.org, sameo@linux.intel.com
+Cc: linux-omap@vger.kernel.org, ext-ari.kauppi@nokia.com
 
-Thanks for the reply.
+TWL5031 introduces two new interrupts in PIH. Moreover, BCI
+has changed remarkably and, thus, it's disabled when TWL5031
+is in use.
 
-I think the l-o kernel explicitly turns off UART clock before entering  
-full retention:
+Signed-off-by: Ilkka Koskinen <ilkka.koskinen@nokia.com>
+---
+ drivers/mfd/twl4030-core.c  |   13 ++++-
+ drivers/mfd/twl4030-irq.c   |  131 +++++++++++++++++++++++++++++++++++++++++-
+ include/linux/i2c/twl4030.h |   47 +++++++++++++--
+ 3 files changed, 180 insertions(+), 11 deletions(-)
 
-in pm24xx.c:omap2_enter_full_retention():
-
-	if (omap2_pm_debug) {
-		omap2_pm_dump(0, 0, 0);
-		getnstimeofday(&ts_preidle);
-	}
-
-	/* One last check for pending IRQs to avoid extra latency due
-	 * to sleeping unnecessarily. */
-	if (omap_irq_pending())
-		goto no_sleep;
-
-	omap_uart_prepare_idle(0);
-	omap_uart_prepare_idle(1);
-	omap_uart_prepare_idle(2);
-
-	/* Jump to SRAM suspend code */
-	omap2_sram_suspend(sdrc_read_reg(SDRC_DLLA_CTRL),
-				OMAP_SDRC_REGADDR(SDRC_DLLA_CTRL),
-				OMAP_SDRC_REGADDR(SDRC_POWER));
-no_sleep:
-	omap_uart_resume_idle(2);
-	omap_uart_resume_idle(1);
-	omap_uart_resume_idle(0);
-
-At the time of dumping register, UART clock may still be on. However  
-omap_uart_prepare_idle() will turn it off if allowed. Am I right?
-
-Btw, I have set clocks_off_while_idle to 1.
-
-Is it possible that the extra idle power is because of the improper  
-management of the regulator (i.e. menelaus chip) ?
-
-Thanks!
-
--Felix
-
-Quoting Tony Lindgren <tony@atomide.com>:
-
-> Hi,
->
-> * xl6@rice.edu <xl6@rice.edu> [091105 09:49]:
->> Hi,
->>
->> I turned on pm_debug, dumped all related registers for both systems
->> and compared them (as attached below). Most registers have quite the
->> same contents, while some like CORE_MOD.CM_ICLKEN1 and
->> CORE_MOD.CM_ICLKEN1 there is 1-bit difference (looks like the newer
->> clock has one UART clock on while sleeping..?)
->
-> The uart will certainly block the retention state. The uart should
-> time out after 5 seconds and power down, so you should check that
-> it's happening.
->
-> Maybe try something like to allow the uart to idle before dumping
-> the registers:
->
-> # echo 0 > /proc/sys/kernel/printk
-> # sleep 10; dmesg > /tmp/out
-> # echo 7 > /proc/sys/kernel/printk
->
->> What is confusing to me is CORE_MOD.PM_PWSTST (the working system has
->> 0x00080010 while the newer system has 0x00080030). Does it mean their
->> last power states are different?
->
-> Added Kevin to Cc as he probably knows best which is the correct
-> PM_PWSTST register :)
->
->> Can any one take a look the dmesg and offer some suggestions? Thanks.
->
-> So far it looks like it's the UART..
->
-> Tony
->
->> ---From 2.6.21 Maemo Kernel---
->> Nokia-N810-:~# dmesg
->> : 0x00000000
->> [  128.828125] --- Going to full retention (next timer after 7 ms)
->> [  128.828125] PRCM_IRQENABLE_MPU  : 0x00000000
->> [  128.828125] CM_CLKSTCTRL_MPU    : 0x00000001
->> [  128.828125] PM_PWSTCTRL_MPU     : 0x0000000d
->> [  128.828125] PM_PWSTST_MPU       : 0x00000010
->> [  128.828125] PM_WKDEP_MPU        : 0x00000010
->> [  128.828125] INTC_MIR0           : 0x1cffef6f
->> [  128.828125] INTC_MIR1           : 0xfcffffde
->> [  128.828125] INTC_MIR2           : 0xfff7feff
->> [  128.828125] CM_FCLKEN1_CORE     : 0x00000000
->> [  128.828125] CM_FCLKEN2_CORE     : 0x00000000
->> [  128.828125] CM_FCLKEN_WKUP      : 0x00000005
->> [  128.828125] CM_ICLKEN1_CORE     : 0x04000001
->> [  128.828125] CM_ICLKEN2_CORE     : 0x00000000
->> [  128.828125] CM_ICLKEN_WKUP      : 0x00000027
->> [  128.828125] CM_CLKEN_PLL        : 0x000000cf
->> [  128.828125] PRCM_CLKEMUL_CTRL   : 0x00000001
->> [  128.828125] CM_AUTOIDLE_PLL     : 0x000000cf
->> [  128.828125] PM_PWSTST_CORE      : 0x00080010
->> [  128.828125] PRCM_CLKSRC_CTRL    : 0x00000058
->> [  128.828125] CM_FCLKEN_DSP       : 0x00000000
->> [  128.828125] CM_ICLKEN_DSP       : 0x00000000
->> [  128.828125] CM_IDLEST_DSP       : 0x00000000
->> [  128.828125] CM_AUTOIDLE_DSP     : 0x00000002
->> [  128.828125] CM_CLKSEL_DSP       : 0x00000443
->> [  128.828125] CM_CLKSTCTRL_DSP    : 0x00000101
->> [  128.828125] RM_RSTCTRL_DSP      : 0x00000103
->> [  128.828125] RM_RSTST_DSP        : 0x00000003
->> [  128.828125] PM_PWSTCTRL_DSP     : 0x00040017
->> [  128.828125] PM_PWSTST_DSP       : 0x00000003
->> [  128.828125] --- Woke up (slept for 3.234 ms)
->> [  128.828125] PM_WKST1_CORE       : 0x00000000
->> [  128.828125] PM_WKST2_CORE       : 0x00000000
->> [  128.828125] PM_WKST_WKUP        : 0x00000001
->> [  128.828125] PRCM_IRQSTATUS_MPU  : 0x00000021
->> [  128.828125] INTC_PENDING_IRQ0   : 0x00000000
->> [  128.828125] INTC_PENDING_IRQ1   : 0x00000020
->> [  128.828125] INTC_PENDING_IRQ2   : 0x00000000
->> [  128.835937] --- Going to full retention (next timer after 1242 ms)
->> [  128.835937] PRCM_IRQENABLE_MPU  : 0x00000000
->> [  128.835937] CM_CLKSTCTRL_MPU    : 0x00000001
->> [  128.835937] PM_PWSTCTRL_MPU     : 0x0000000d
->> [  128.835937] PM_PWSTST_MPU       : 0x00000010
->> [  128.835937] PM_WKDEP_MPU        : 0x00000010
->> [  128.835937] INTC_MIR0           : 0x1cffef6f
->> [  128.835937] INTC_MIR1           : 0xfcffffde
->> [  128.835937] INTC_MIR2           : 0xfff7feff
->> [  128.835937] CM_FCLKEN1_CORE     : 0x00000000
->> [  128.835937] CM_FCLKEN2_CORE     : 0x00000000
->> [  128.835937] CM_FCLKEN_WKUP      : 0x00000005
->> [  128.835937] CM_ICLKEN1_CORE     : 0x04000001
->> [  128.835937] CM_ICLKEN2_CORE     : 0x00000000
->> [  128.835937] CM_ICLKEN_WKUP      : 0x00000027
->> [  128.835937] CM_CLKEN_PLL        : 0x000000cf
->> [  128.835937] PRCM_CLKEMUL_CTRL   : 0x00000001
->> [  128.835937] CM_AUTOIDLE_PLL     : 0x000000cf
->> [  128.835937] PM_PWSTST_CORE      : 0x00080010
->> [  128.835937] PRCM_CLKSRC_CTRL    : 0x00000058
->> [  128.835937] CM_FCLKEN_DSP       : 0x00000000
->> [  128.835937] CM_ICLKEN_DSP       : 0x00000000
->> [  128.835937] CM_IDLEST_DSP       : 0x00000000
->> [  128.835937] CM_AUTOIDLE_DSP     : 0x00000002
->> [  128.835937] CM_CLKSEL_DSP       : 0x00000443
->> [  128.835937] CM_CLKSTCTRL_DSP    : 0x00000101
->> [  128.835937] RM_RSTCTRL_DSP      : 0x00000103
->> [  128.835937] RM_RSTST_DSP        : 0x00000003
->> [  128.835937] PM_PWSTCTRL_DSP     : 0x00040017
->> [  128.835937] PM_PWSTST_DSP       : 0x00000003
->> [  128.835937] --- Woke up (slept for 1238.830 ms)
->> [  128.835937] PM_WKST1_CORE       : 0x00000000
->> [  128.835937] PM_WKST2_CORE       : 0x00000000
->> [  128.835937] PM_WKST_WKUP        : 0x00000001
->> [  128.835937] PRCM_IRQSTATUS_MPU  : 0x00000021
->> [  128.835937] INTC_PENDING_IRQ0   : 0x00000000
->> [  128.835937] INTC_PENDING_IRQ1   : 0x00000020
->> [  128.835937] INTC_PENDING_IRQ2   : 0x00000000
->> [  130.078125] --- Going to full retention (next timer after 1218 ms)
->> [  130.078125] PRCM_IRQENABLE_MPU  : 0x00000000
->> [  130.078125] CM_CLKSTCTRL_MPU    : 0x00000001
->> [  130.078125] PM_PWSTCTRL_MPU     : 0x0000000d
->> [  130.078125] PM_PWSTST_MPU       : 0x00000010
->> [  130.078125] PM_WKDEP_MPU        : 0x00000010
->> [  130.078125] INTC_MIR0           : 0x1cffef6f
->> [  130.078125] INTC_MIR1           : 0xfcffffde
->> [  130.078125] INTC_MIR2           : 0xfff7feff
->> [  130.078125] CM_FCLKEN1_CORE     : 0x00000000
->> [  130.078125] CM_FCLKEN2_CORE     : 0x00000000
->> [  130.078125] CM_FCLKEN_WKUP      : 0x00000005
->> [  130.078125] CM_ICLKEN1_CORE     : 0x04000001
->> [  130.078125] CM_ICLKEN2_CORE     : 0x00000000
->> [  130.078125] CM_ICLKEN_WKUP      : 0x00000027
->> [  130.078125] CM_CLKEN_PLL        : 0x000000cf
->> [  130.078125] PRCM_CLKEMUL_CTRL   : 0x00000001
->> [  130.078125] CM_AUTOIDLE_PLL     : 0x000000cf
->> [  130.078125] PM_PWSTST_CORE      : 0x00080010
->> [  130.078125] PRCM_CLKSRC_CTRL    : 0x00000058
->> [  130.078125] CM_FCLKEN_DSP       : 0x00000000
->> [  130.078125] CM_ICLKEN_DSP       : 0x00000000
->> [  130.078125] CM_IDLEST_DSP       : 0x00000000
->> [  130.078125] CM_AUTOIDLE_DSP     : 0x00000002
->> [  130.078125] CM_CLKSEL_DSP       : 0x00000443
->> [  130.078125] CM_CLKSTCTRL_DSP    : 0x00000101
->> [  130.078125] RM_RSTCTRL_DSP      : 0x00000103
->> [  130.078125] RM_RSTST_DSP        : 0x00000003
->> [  130.078125] PM_PWSTCTRL_DSP     : 0x00040017
->> [  130.078125] PM_PWSTST_DSP       : 0x00000003
->> [  130.078125] --- Woke up (slept for 1214.172 ms)
->> [  130.078125] PM_WKST1_CORE       : 0x00000000
->> [  130.078125] PM_WKST2_CORE       : 0x00000000
->> [  130.078125] PM_WKST_WKUP        : 0x00000001
->> [  130.078125] PRCM_IRQSTATUS_MPU  : 0x00000021
->> [  130.078125] INTC_PENDING_IRQ0   : 0x00000000
->> [  130.078125] INTC_PENDING_IRQ1   : 0x00000020
->> [  130.078125] INTC_PENDING_IRQ2   : 0x00000000
->> [  131.296875] --- Going to full retention (next timer after 2539 ms)
->> [  131.296875] PRCM_IRQENABLE_MPU  : 0x00000000
->> [  131.296875] CM_CLKSTCTRL_MPU    : 0x00000001
->> [  131.296875] PM_PWSTCTRL_MPU     : 0x0000000d
->> [  131.296875] PM_PWSTST_MPU       : 0x00000010
->> [  131.296875] PM_WKDEP_MPU        : 0x00000010
->> [  131.296875] INTC_MIR0           : 0x1cffef6f
->> [  131.296875] INTC_MIR1           : 0xfcffffde
->> [  131.296875] INTC_MIR2           : 0xfff7feff
->> [  131.296875] CM_FCLKEN1_CORE     : 0x00000000
->> [  131.296875] CM_FCLKEN2_CORE     : 0x00000000
->> [  131.296875] CM_FCLKEN_WKUP      : 0x00000005
->> [  131.296875] CM_ICLKEN1_CORE     : 0x04000001
->> [  131.296875] CM_ICLKEN2_CORE     : 0x00000000
->> [  131.296875] CM_ICLKEN_WKUP      : 0x00000027
->> [  131.296875] CM_CLKEN_PLL        : 0x000000cf
->> [  131.296875] PRCM_CLKEMUL_CTRL   : 0x00000001
->> [  131.296875] CM_AUTOIDLE_PLL     : 0x000000cf
->> [  131.296875] PM_PWSTST_CORE      : 0x00080010
->> [  131.296875] PRCM_CLKSRC_CTRL    : 0x00000058
->> [  131.296875] CM_FCLKEN_DSP       : 0x00000000
->> [  131.296875] CM_ICLKEN_DSP       : 0x00000000
->> [  131.296875] CM_IDLEST_DSP       : 0x00000000
->> [  131.296875] CM_AUTOIDLE_DSP     : 0x00000002
->> [  131.296875] CM_CLKSEL_DSP       : 0x00000443
->> [  131.296875] CM_CLKSTCTRL_DSP    : 0x00000101
->> [  131.296875] RM_RSTCTRL_DSP      : 0x00000103
->> [  131.296875] RM_RSTST_DSP        : 0x00000003
->> [  131.296875] PM_PWSTCTRL_DSP     : 0x00040017
->> [  131.296875] PM_PWSTST_DSP       : 0x00000003
->> [  131.296875] --- Woke up (slept for 2533.843 ms)
->> [  131.296875] PM_WKST1_CORE       : 0x00000000
->> [  131.296875] PM_WKST2_CORE       : 0x00000000
->> [  131.296875] PM_WKST_WKUP        : 0x00000001
->> [  131.296875] PRCM_IRQSTATUS_MPU  : 0x00000021
->> [  131.296875] INTC_PENDING_IRQ0   : 0x00000000
->> [  131.296875] INTC_PENDING_IRQ1   : 0x00000020
->> [  131.296875] INTC_PENDING_IRQ2   : 0x00000000
->> [  133.835937] --- Going to full retention (next timer after 7 ms)
->> [  133.835937] PRCM_IRQENABLE_MPU  : 0x00000000
->> [  133.835937] CM_CLKSTCTRL_MPU    : 0x00000001
->> [  133.835937] PM_PWSTCTRL_MPU     : 0x0000000d
->> [  133.835937] PM_PWSTST_MPU       : 0x00000010
->> [  133.835937] PM_WKDEP_MPU        : 0x00000010
->> [  133.835937] INTC_MIR0           : 0x1cffef6f
->> [  133.835937] INTC_MIR1           : 0xfcffffde
->> [  133.835937] INTC_MIR2           : 0xfff7feff
->> [  133.835937] CM_FCLKEN1_CORE     : 0x00000000
->> [  133.835937] CM_FCLKEN2_CORE     : 0x00000000
->> [  133.835937] CM_FCLKEN_WKUP      : 0x00000005
->> [  133.835937] CM_ICLKEN1_CORE     : 0x04000001
->> [  133.835937] CM_ICLKEN2_CORE     : 0x00000000
->> [  133.835937] CM_ICLKEN_WKUP      : 0x00000027
->> [  133.835937] CM_CLKEN_PLL        : 0x000000cf
->> [  133.835937] PRCM_CLKEMUL_CTRL   : 0x00000001
->> [  133.835937] CM_AUTOIDLE_PLL     : 0x000000cf
->> [  133.835937] PM_PWSTST_CORE      : 0x00080010
->> [  133.835937] PRCM_CLKSRC_CTRL    : 0x00000058
->> [  133.835937] CM_FCLKEN_DSP       : 0x00000000
->> [  133.835937] CM_ICLKEN_DSP       : 0x00000000
->> [  133.835937] CM_IDLEST_DSP       : 0x00000000
->> [  133.835937] CM_AUTOIDLE_DSP     : 0x00000002
->> [  133.835937] CM_CLKSEL_DSP       : 0x00000443
->> [  133.835937] CM_CLKSTCTRL_DSP    : 0x00000101
->> [  133.835937] RM_RSTCTRL_DSP      : 0x00000103
->> [  133.835937] RM_RSTST_DSP        : 0x00000003
->> [  133.835937] PM_PWSTCTRL_DSP     : 0x00040017
->> [  133.835937] PM_PWSTST_DSP       : 0x00000003
->> [  133.835937] --- Woke up (slept for 2.593 ms)
->> [  133.835937] PM_WKST1_CORE       : 0x00000000
->> [  133.835937] PM_WKST2_CORE       : 0x00000000
->> [  133.835937] PM_WKST_WKUP        : 0x00000001
->> [  133.835937] PRCM_IRQSTATUS_MPU  : 0x00000021
->> [  133.835937] INTC_PENDING_IRQ0   : 0x00000000
->> [  133.835937] INTC_PENDING_IRQ1   : 0x00000020
->> [  133.835937] INTC_PENDING_IRQ2   : 0x00000000
->> [  133.843750] --- Going to full retention (next timer after 234 ms)
->> [  133.843750] PRCM_IRQENABLE_MPU  : 0x00000000
->> [  133.843750] CM_CLKSTCTRL_MPU    : 0x00000001
->> [  133.843750] PM_PWSTCTRL_MPU     : 0x0000000d
->> [  133.843750] PM_PWSTST_MPU       : 0x00000010
->> [  133.843750] PM_WKDEP_MPU        : 0x00000010
->> [  133.843750] INTC_MIR0           : 0x1cffef6f
->> [  133.843750] INTC_MIR1           : 0xfcffffde
->> [  133.843750] INTC_MIR2           : 0xfff7feff
->> [  133.843750] CM_FCLKEN1_CORE     : 0x00000000
->> [  133.843750] CM_FCLKEN2_CORE     : 0x00000000
->> [  133.843750] CM_FCLKEN_WKUP      : 0x00000005
->> [  133.843750] CM_ICLKEN1_CORE     : 0x04000001
->> [  133.843750] CM_ICLKEN2_CORE     : 0x00000000
->> [  133.843750] CM_ICLKEN_WKUP      : 0x00000027
->> [  133.843750] CM_CLKEN_PLL        : 0x000000cf
->> [  133.843750] PRCM_CLKEMUL_CTRL   : 0x00000001
->> [  133.843750] CM_AUTOIDLE_PLL     : 0x000000cf
->> [  133.843750] PM_PWSTST_CORE      : 0x00080010
->> [  133.843750] PRCM_CLKSRC_CTRL    : 0x00000058
->> [  133.843750] CM_FCLKEN_DSP       : 0x00000000
->> [  133.843750] CM_ICLKEN_DSP       : 0x00000000
->> [  133.843750] CM_IDLEST_DSP       : 0x00000000
->> [  133.843750] CM_AUTOIDLE_DSP     : 0x00000002
->> [  133.843750] CM_CLKSEL_DSP       : 0x00000443
->> [  133.843750] CM_CLKSTCTRL_DSP    : 0x00000101
->> [  133.843750] RM_RSTCTRL_DSP      : 0x00000103
->> [  133.843750] RM_RSTST_DSP        : 0x00000003
->> [  133.843750] PM_PWSTCTRL_DSP     : 0x00040017
->> [  133.843750] PM_PWSTST_DSP       : 0x00000003
->> [  133.843750] --- Woke up (slept for 230.957 ms)
->> [  133.843750] PM_WKST1_CORE       : 0x00000000
->> [  133.843750] PM_WKST2_CORE       : 0x00000000
->> [  133.843750] PM_WKST_WKUP        : 0x00000001
->> [  133.843750] PRCM_IRQSTATUS_MPU  : 0x00000021
->> [  133.843750] INTC_PENDING_IRQ0   : 0x00000000
->> [  133.843750] INTC_PENDING_IRQ1   : 0x00000020
->> [  133.843750] INTC_PENDING_IRQ2   : 0x00000000
->> [  134.078125] --- Going to full retention (next timer after 328 ms)
->> [  134.078125] PRCM_IRQENABLE_MPU  : 0x00000000
->> [  134.078125] CM_CLKSTCTRL_MPU    : 0x00000001
->> [  134.078125] PM_PWSTCTRL_MPU     : 0x0000000d
->> [  134.078125] PM_PWSTST_MPU       : 0x00000010
->> [  134.078125] PM_WKDEP_MPU        : 0x00000010
->> [  134.078125] INTC_MIR0           : 0x1cffef6f
->> [  134.078125] INTC_MIR1           : 0xfcffffde
->> [  134.078125] INTC_MIR2           : 0xfff7feff
->> [  134.078125] CM_FCLKEN1_CORE     : 0x00000000
->> [  134.078125] CM_FCLKEN2_CORE     : 0x00000000
->> [  134.078125] CM_FCLKEN_WKUP      : 0x00000005
->> [  134.078125] CM_ICLKEN1_CORE     : 0x04000001
->> [  134.078125] CM_ICLKEN2_CORE     : 0x00000000
->> [  134.078125] CM_ICLKEN_WKUP      : 0x00000027
->> [  134.078125] CM_CLKEN_PLL        : 0x000000cf
->> [  134.078125] PRCM_CLKEMUL_CTRL   : 0x00000001
->> [  134.078125] CM_AUTOIDLE_PLL     : 0x000000cf
->> [  134.078125] PM_PWSTST_CORE      : 0x00080010
->> [  134.078125] PRCM_CLKSRC_CTRL    : 0x00000058
->> [  134.078125] CM_FCLKEN_DSP       : 0x00000000
->> [  134.078125] CM_ICLKEN_DSP       : 0x00000000
->> [  134.078125] CM_IDLEST_DSP       : 0x00000000
->> [  134.078125] CM_AUTOIDLE_DSP     : 0x00000002
->> [  134.078125] CM_CLKSEL_DSP       : 0x00000443
->> [  134.078125] CM_CLKSTCTRL_DSP    : 0x00000101
->> [  134.078125] RM_RSTCTRL_DSP      : 0x00000103
->> [  134.078125] RM_RSTST_DSP        : 0x00000003
->> [  134.078125] PM_PWSTCTRL_DSP     : 0x00040017
->> [  134.078125] PM_PWSTST_DSP       : 0x00000003
->> [  134.078125] --- Woke up (slept for 323.883 ms)
->> [  134.078125] PM_WKST1_CORE       : 0x00000000
->> [  134.078125] PM_WKST2_CORE       : 0x00000000
->> [  134.078125] PM_WKST_WKUP        : 0x00000001
->> [  134.078125] PRCM_IRQSTATUS_MPU  : 0x00000021
->> [  134.078125] INTC_PENDING_IRQ0   : 0x00000000
->> [  134.078125] INTC_PENDING_IRQ1   : 0x00000020
->> [  134.078125] INTC_PENDING_IRQ2   : 0x00000000
->> [  134.406250] --- Going to full retention (next timer after 1898 ms)
->> [  134.406250] PRCM_IRQENABLE_MPU  : 0x00000000
->> [  134.406250] CM_CLKSTCTRL_MPU    : 0x00000001
->> [  134.406250] PM_PWSTCTRL_MPU     : 0x0000000d
->> [  134.406250] PM_PWSTST_MPU       : 0x00000010
->> [  134.406250] PM_WKDEP_MPU        : 0x00000010
->> [  134.406250] INTC_MIR0           : 0x1cffef6f
->> [  134.406250] INTC_MIR1           : 0xfcffffde
->> [  134.406250] INTC_MIR2           : 0xfff7feff
->> [  134.406250] CM_FCLKEN1_CORE     : 0x00000000
->> [  134.406250] CM_FCLKEN2_CORE     : 0x00000000
->> [  134.406250] CM_FCLKEN_WKUP      : 0x00000005
->> [  134.406250] CM_ICLKEN1_CORE     : 0x04000001
->> [  134.406250] CM_ICLKEN2_CORE     : 0x00000000
->> [  134.406250] CM_ICLKEN_WKUP      : 0x00000027
->> [  134.406250] CM_CLKEN_PLL        : 0x000000cf
->> [  134.406250] PRCM_CLKEMUL_CTRL   : 0x00000001
->> [  134.406250] CM_AUTOIDLE_PLL     : 0x000000cf
->> [  134.406250] PM_PWSTST_CORE      : 0x00080010
->> [  134.406250] PRCM_CLKSRC_CTRL    : 0x00000058
->> [  134.406250] CM_FCLKEN_DSP       : 0x00000000
->> [  134.406250] CM_ICLKEN_DSP       : 0x00000000
->> [  134.406250] CM_IDLEST_DSP       : 0x00000000
->> [  134.406250] CM_AUTOIDLE_DSP     : 0x00000002
->> [  134.406250] CM_CLKSEL_DSP       : 0x00000443
->> [  134.406250] CM_CLKSTCTRL_DSP    : 0x00000101
->> [  134.406250] RM_RSTCTRL_DSP      : 0x00000103
->> [  134.406250] RM_RSTST_DSP        : 0x00000003
->> [  134.406250] PM_PWSTCTRL_DSP     : 0x00040017
->> [  134.406250] PM_PWSTST_DSP       : 0x00000003
->> [  134.406250] --- Woke up (slept for 1891.967 ms)
->> [  134.406250] PM_WKST1_CORE       : 0x00000000
->> [  134.406250] PM_WKST2_CORE       : 0x00000000
->> [  134.406250] PM_WKST_WKUP        : 0x00000001
->> [  134.406250] PRCM_IRQSTATUS_MPU  : 0x00000021
->> [  134.406250] INTC_PENDING_IRQ0   : 0x40000000
->> [  134.406250] INTC_PENDING_IRQ1   : 0x00000020
->> [  134.406250] INTC_PENDING_IRQ2   : 0x00000000
->> [  136.359375] musb_stage2_irq 820: SUSPEND (b_idle) devctl 99 power e0
->> [  136.476562] musb_stage0_irq 668: BUS RESET as b_idle
->> [  136.656250] musb_stage0_irq 668: BUS RESET as b_peripheral
->> [  138.289062] musb_hdrc periph: enabled ep2in for int IN, dma, maxpacket 16
->> [  138.289062] usb0: high speed config #1: 8 mA, Ethernet Gadget,
->> using CDC Ethernet
->> [  138.328125] musb_hdrc periph: enabled ep1in for bulk IN, dma,  
->> maxpacket 512
->> [  138.328125] musb_hdrc periph: enabled ep1out for bulk OUT, dma,
->> maxpacket 512
->> [  138.328125] omap_dma: trying to free nonallocated DMA channel 0
->> [  138.328125] musb_hdrc periph: enabled ep2in for int IN, dma, maxpacket 16
->>
->> ---From 2.6.28 l-o kernel---
->> Nokia-N810-:~# dmesg
->> x00000000
->> [  115.767456] OMAP24XX_DSP_MOD.CM_IDLEST: 0x00000000
->> [  115.767486] OMAP24XX_DSP_MOD.CM_AUTOIDLE: 0x00000002
->> [  115.767486] OMAP24XX_DSP_MOD.CM_CLKSEL: 0x00000643
->> [  115.767517] OMAP24XX_DSP_MOD.CM_CLKSTCTRL: 0x00000101
->> [  115.767547] OMAP24XX_DSP_MOD.RM_RSTCTRL: 0x00000103
->> [  115.767578] OMAP24XX_DSP_MOD.RM_RSTST: 0x00000003
->> [  115.767608] OMAP24XX_DSP_MOD.PM_PWSTCTRL: 0x00040017
->> [  115.767608] OMAP24XX_DSP_MOD.PM_PWSTST: 0x00000003
->> [  115.767639] --- Woke up (slept for 0.000 ms)
->> [  115.767669] CORE_MOD.PM_WKST1   : 0x00000000
->> [  115.767700] CORE_MOD.OMAP24XX_PM_WKST2: 0x00000000
->> [  115.767700] WKUP_MOD.PM_WKST    : 0x00000000
->> [  115.767730] OCP_MOD.OMAP2_PRM_IRQSTATUS_MPU_OFFSET: 0x00000001
->> [  115.767761] INTC_PENDING_IRQ0   : 0x00000000
->> [  115.767791] INTC_PENDING_IRQ1   : 0x00000020
->> [  115.767822] INTC_PENDING_IRQ2   : 0x00000000
->> [  115.845516] --- Going to full retention (next timer after 218 ms)
->> [  115.845577] OCP_MOD.OMAP2_PRM_IRQENABLE_MPU_OFFSET: 0x00000000
->> [  115.845607] MPU_MOD.CM_CLKSTCTRL: 0x00000001
->> [  115.845607] MPU_MOD.PM_PWSTCTRL : 0x0000000d
->> [  115.845638] MPU_MOD.PM_PWSTST   : 0x00000010
->> [  115.845668] MPU_MOD.PM_WKDEP    : 0x00000010
->> [  115.845699] INTC_MIR0           : 0x1dffef6f
->> [  115.845699] INTC_MIR1           : 0xfcffffde
->> [  115.845729] INTC_MIR2           : 0xfff7fdff
->> [  115.845760] CORE_MOD.CM_FCLKEN1 : 0x00400000
->> [  115.845790] CORE_MOD.OMAP24XX_CM_FCLKEN2: 0x00000000
->> [  115.845790] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKEMUL_CTRL_OFFSET: 0x00000001
->> [  115.845821] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKSRC_CTRL_OFFSET: 0x00000058
->> [  115.845852] WKUP_MOD.CM_FCLKEN  : 0x00000005
->> [  115.845882] CORE_MOD.CM_ICLKEN1 : 0x04400000
->> [  115.845913] CORE_MOD.CM_ICLKEN2 : 0x00000000
->> [  115.845943] WKUP_MOD.CM_ICLKEN  : 0x00000027
->> [  115.845943] PLL_MOD.CM_CLKEN    : 0x000000cf
->> [  115.845974] PLL_MOD.CM_AUTOIDLE : 0x000000cf
->> [  115.846004] CORE_MOD.PM_PWSTST  : 0x00080030
->> [  115.846004] OMAP24XX_DSP_MOD.CM_FCLKEN: 0x00000000
->> [  115.846035] OMAP24XX_DSP_MOD.CM_ICLKEN: 0x00000000
->> [  115.846065] OMAP24XX_DSP_MOD.CM_IDLEST: 0x00000000
->> [  115.846096] OMAP24XX_DSP_MOD.CM_AUTOIDLE: 0x00000002
->> [  115.846126] OMAP24XX_DSP_MOD.CM_CLKSEL: 0x00000643
->> [  115.846126] OMAP24XX_DSP_MOD.CM_CLKSTCTRL: 0x00000101
->> [  115.846157] OMAP24XX_DSP_MOD.RM_RSTCTRL: 0x00000103
->> [  115.846187] OMAP24XX_DSP_MOD.RM_RSTST: 0x00000003
->> [  115.846218] OMAP24XX_DSP_MOD.PM_PWSTCTRL: 0x00040017
->> [  115.846248] OMAP24XX_DSP_MOD.PM_PWSTST: 0x00000003
->> [  116.059017] --- Woke up (slept for 2315150.496 ms)
->> [  116.059047] CORE_MOD.PM_WKST1   : 0x00000000
->> [  116.059078] CORE_MOD.OMAP24XX_PM_WKST2: 0x00000000
->> [  116.059078] WKUP_MOD.PM_WKST    : 0x00000001
->> [  116.059108] OCP_MOD.OMAP2_PRM_IRQSTATUS_MPU_OFFSET: 0x00000001
->> [  116.059139] INTC_PENDING_IRQ0   : 0x00000000
->> [  116.059169] INTC_PENDING_IRQ1   : 0x00000020
->> [  116.059169] INTC_PENDING_IRQ2   : 0x00000000
->> [  116.059352] --- Going to full retention (next timer after 7 ms)
->> [  116.059383] OCP_MOD.OMAP2_PRM_IRQENABLE_MPU_OFFSET: 0x00000000
->> [  116.059414] MPU_MOD.CM_CLKSTCTRL: 0x00000001
->> [  116.059414] MPU_MOD.PM_PWSTCTRL : 0x0000000d
->> [  116.059444] MPU_MOD.PM_PWSTST   : 0x00000010
->> [  116.059475] MPU_MOD.PM_WKDEP    : 0x00000010
->> [  116.059505] INTC_MIR0           : 0x1dffef6f
->> [  116.059505] INTC_MIR1           : 0xfcffffde
->> [  116.059536] INTC_MIR2           : 0xfff7fdff
->> [  116.059566] CORE_MOD.CM_FCLKEN1 : 0x00400000
->> [  116.059597] CORE_MOD.OMAP24XX_CM_FCLKEN2: 0x00000000
->> [  116.059597] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKEMUL_CTRL_OFFSET: 0x00000001
->> [  116.059627] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKSRC_CTRL_OFFSET: 0x00000058
->> [  116.059658] WKUP_MOD.CM_FCLKEN  : 0x00000005
->> [  116.059688] CORE_MOD.CM_ICLKEN1 : 0x04400000
->> [  116.059719] CORE_MOD.CM_ICLKEN2 : 0x00000000
->> [  116.059719] WKUP_MOD.CM_ICLKEN  : 0x00000027
->> [  116.059749] PLL_MOD.CM_CLKEN    : 0x000000cf
->> [  116.059780] PLL_MOD.CM_AUTOIDLE : 0x000000cf
->> [  116.059810] CORE_MOD.PM_PWSTST  : 0x00080030
->> [  116.059810] OMAP24XX_DSP_MOD.CM_FCLKEN: 0x00000000
->> [  116.059841] OMAP24XX_DSP_MOD.CM_ICLKEN: 0x00000000
->> [  116.059871] OMAP24XX_DSP_MOD.CM_IDLEST: 0x00000000
->> [  116.059902] OMAP24XX_DSP_MOD.CM_AUTOIDLE: 0x00000002
->> [  116.059902] OMAP24XX_DSP_MOD.CM_CLKSEL: 0x00000643
->> [  116.059932] OMAP24XX_DSP_MOD.CM_CLKSTCTRL: 0x00000101
->> [  116.059963] OMAP24XX_DSP_MOD.RM_RSTCTRL: 0x00000103
->> [  116.059993] OMAP24XX_DSP_MOD.RM_RSTST: 0x00000003
->> [  116.060024] OMAP24XX_DSP_MOD.PM_PWSTCTRL: 0x00040017
->> [  116.060024] OMAP24XX_DSP_MOD.PM_PWSTST: 0x00000003
->> [  116.064052] --- Woke up (slept for 3997802.000 ms)
->> [  116.064083] CORE_MOD.PM_WKST1   : 0x00000000
->> [  116.064083] CORE_MOD.OMAP24XX_PM_WKST2: 0x00000000
->> [  116.064113] WKUP_MOD.PM_WKST    : 0x00000001
->> [  116.064144] OCP_MOD.OMAP2_PRM_IRQSTATUS_MPU_OFFSET: 0x00000001
->> [  116.064174] INTC_PENDING_IRQ0   : 0x00000000
->> [  116.064205] INTC_PENDING_IRQ1   : 0x00000020
->> [  116.064205] INTC_PENDING_IRQ2   : 0x00000000
->> [  116.064388] --- Going to full retention (next timer after 78 ms)
->> [  116.064418] OCP_MOD.OMAP2_PRM_IRQENABLE_MPU_OFFSET: 0x00000000
->> [  116.064449] MPU_MOD.CM_CLKSTCTRL: 0x00000001
->> [  116.064449] MPU_MOD.PM_PWSTCTRL : 0x0000000d
->> [  116.064479] MPU_MOD.PM_PWSTST   : 0x00000010
->> [  116.064510] MPU_MOD.PM_WKDEP    : 0x00000010
->> [  116.064510] INTC_MIR0           : 0x1dffef6f
->> [  116.064540] INTC_MIR1           : 0xfcffffde
->> [  116.064571] INTC_MIR2           : 0xfff7fdff
->> [  116.064601] CORE_MOD.CM_FCLKEN1 : 0x00400000
->> [  116.064601] CORE_MOD.OMAP24XX_CM_FCLKEN2: 0x00000000
->> [  116.064632] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKEMUL_CTRL_OFFSET: 0x00000001
->> [  116.064663] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKSRC_CTRL_OFFSET: 0x00000058
->> [  116.064693] WKUP_MOD.CM_FCLKEN  : 0x00000005
->> [  116.064724] CORE_MOD.CM_ICLKEN1 : 0x04400000
->> [  116.064754] CORE_MOD.CM_ICLKEN2 : 0x00000000
->> [  116.064754] WKUP_MOD.CM_ICLKEN  : 0x00000027
->> [  116.064785] PLL_MOD.CM_CLKEN    : 0x000000cf
->> [  116.064815] PLL_MOD.CM_AUTOIDLE : 0x000000cf
->> [  116.064815] CORE_MOD.PM_PWSTST  : 0x00080030
->> [  116.064846] OMAP24XX_DSP_MOD.CM_FCLKEN: 0x00000000
->> [  116.064876] OMAP24XX_DSP_MOD.CM_ICLKEN: 0x00000000
->> [  116.064907] OMAP24XX_DSP_MOD.CM_IDLEST: 0x00000000
->> [  116.064907] OMAP24XX_DSP_MOD.CM_AUTOIDLE: 0x00000002
->> [  116.064937] OMAP24XX_DSP_MOD.CM_CLKSEL: 0x00000643
->> [  116.064968] OMAP24XX_DSP_MOD.CM_CLKSTCTRL: 0x00000101
->> [  116.064998] OMAP24XX_DSP_MOD.RM_RSTCTRL: 0x00000103
->> [  116.065029] OMAP24XX_DSP_MOD.RM_RSTST: 0x00000003
->> [  116.065029] OMAP24XX_DSP_MOD.PM_PWSTCTRL: 0x00040017
->> [  116.065059] OMAP24XX_DSP_MOD.PM_PWSTST: 0x00000003
->> [  116.140468] --- Woke up (slept for 2363971.968 ms)
->> [  116.140499] CORE_MOD.PM_WKST1   : 0x00000000
->> [  116.140529] CORE_MOD.OMAP24XX_PM_WKST2: 0x00000000
->> [  116.140529] WKUP_MOD.PM_WKST    : 0x00000001
->> [  116.140560] OCP_MOD.OMAP2_PRM_IRQSTATUS_MPU_OFFSET: 0x00000001
->> [  116.140590] INTC_PENDING_IRQ0   : 0x00000000
->> [  116.140621] INTC_PENDING_IRQ1   : 0x00000020
->> [  116.140621] INTC_PENDING_IRQ2   : 0x00000000
->> [  116.141262] --- Going to full retention (next timer after 390 ms)
->> [  116.141292] OCP_MOD.OMAP2_PRM_IRQENABLE_MPU_OFFSET: 0x00000000
->> [  116.141323] MPU_MOD.CM_CLKSTCTRL: 0x00000001
->> [  116.141353] MPU_MOD.PM_PWSTCTRL : 0x0000000d
->> [  116.141384] MPU_MOD.PM_PWSTST   : 0x00000010
->> [  116.141384] MPU_MOD.PM_WKDEP    : 0x00000010
->> [  116.141414] INTC_MIR0           : 0x1dffef6f
->> [  116.141445] INTC_MIR1           : 0xfcffffde
->> [  116.141445] INTC_MIR2           : 0xfff7fdff
->> [  116.141475] CORE_MOD.CM_FCLKEN1 : 0x00400000
->> [  116.141506] CORE_MOD.OMAP24XX_CM_FCLKEN2: 0x00000000
->> [  116.141536] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKEMUL_CTRL_OFFSET: 0x00000001
->> [  116.141567] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKSRC_CTRL_OFFSET: 0x00000058
->> [  116.141597] WKUP_MOD.CM_FCLKEN  : 0x00000005
->> [  116.141597] CORE_MOD.CM_ICLKEN1 : 0x04400000
->> [  116.141628] CORE_MOD.CM_ICLKEN2 : 0x00000000
->> [  116.141658] WKUP_MOD.CM_ICLKEN  : 0x00000027
->> [  116.141689] PLL_MOD.CM_CLKEN    : 0x000000cf
->> [  116.141689] PLL_MOD.CM_AUTOIDLE : 0x000000cf
->> [  116.141719] CORE_MOD.PM_PWSTST  : 0x00080030
->> [  116.141750] OMAP24XX_DSP_MOD.CM_FCLKEN: 0x00000000
->> [  116.141780] OMAP24XX_DSP_MOD.CM_ICLKEN: 0x00000000
->> [  116.141780] OMAP24XX_DSP_MOD.CM_IDLEST: 0x00000000
->> [  116.141811] OMAP24XX_DSP_MOD.CM_AUTOIDLE: 0x00000002
->> [  116.141841] OMAP24XX_DSP_MOD.CM_CLKSEL: 0x00000643
->> [  116.141872] OMAP24XX_DSP_MOD.CM_CLKSTCTRL: 0x00000101
->> [  116.141903] OMAP24XX_DSP_MOD.RM_RSTCTRL: 0x00000103
->> [  116.141903] OMAP24XX_DSP_MOD.RM_RSTST: 0x00000003
->> [  116.141933] OMAP24XX_DSP_MOD.PM_PWSTCTRL: 0x00040017
->> [  116.141964] OMAP24XX_DSP_MOD.PM_PWSTST: 0x00000003
->> [  116.516079] --- Woke up (slept for 422306.248 ms)
->> [  116.516109] CORE_MOD.PM_WKST1   : 0x00000000
->> [  116.516140] CORE_MOD.OMAP24XX_PM_WKST2: 0x00000000
->> [  116.516140] WKUP_MOD.PM_WKST    : 0x00000001
->> [  116.516170] OCP_MOD.OMAP2_PRM_IRQSTATUS_MPU_OFFSET: 0x00000001
->> [  116.516201] INTC_PENDING_IRQ0   : 0x00000000
->> [  116.516231] INTC_PENDING_IRQ1   : 0x00000020
->> [  116.516231] INTC_PENDING_IRQ2   : 0x00000000
->> [  116.516448] --- Going to full retention (next timer after 15 ms)
->> [  116.516479] OCP_MOD.OMAP2_PRM_IRQENABLE_MPU_OFFSET: 0x00000000
->> [  116.516510] MPU_MOD.CM_CLKSTCTRL: 0x00000001
->> [  116.516510] MPU_MOD.PM_PWSTCTRL : 0x0000000d
->> [  116.516540] MPU_MOD.PM_PWSTST   : 0x00000010
->> [  116.516571] MPU_MOD.PM_WKDEP    : 0x00000010
->> [  116.516571] INTC_MIR0           : 0x1dffef6f
->> [  116.516601] INTC_MIR1           : 0xfcffffde
->> [  116.516632] INTC_MIR2           : 0xfff7fdff
->> [  116.516662] CORE_MOD.CM_FCLKEN1 : 0x00400000
->> [  116.516662] CORE_MOD.OMAP24XX_CM_FCLKEN2: 0x00000000
->> [  116.516693] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKEMUL_CTRL_OFFSET: 0x00000001
->> [  116.516723] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKSRC_CTRL_OFFSET: 0x00000058
->> [  116.516754] WKUP_MOD.CM_FCLKEN  : 0x00000005
->> [  116.516784] CORE_MOD.CM_ICLKEN1 : 0x04400000
->> [  116.516815] CORE_MOD.CM_ICLKEN2 : 0x00000000
->> [  116.516815] WKUP_MOD.CM_ICLKEN  : 0x00000027
->> [  116.516845] PLL_MOD.CM_CLKEN    : 0x000000cf
->> [  116.516876] PLL_MOD.CM_AUTOIDLE : 0x000000cf
->> [  116.516906] CORE_MOD.PM_PWSTST  : 0x00080030
->> [  116.516906] OMAP24XX_DSP_MOD.CM_FCLKEN: 0x00000000
->> [  116.516937] OMAP24XX_DSP_MOD.CM_ICLKEN: 0x00000000
->> [  116.516967] OMAP24XX_DSP_MOD.CM_IDLEST: 0x00000000
->> [  116.516998] OMAP24XX_DSP_MOD.CM_AUTOIDLE: 0x00000002
->> [  116.516998] OMAP24XX_DSP_MOD.CM_CLKSEL: 0x00000643
->> [  116.517028] OMAP24XX_DSP_MOD.CM_CLKSTCTRL: 0x00000101
->> [  116.517059] OMAP24XX_DSP_MOD.RM_RSTCTRL: 0x00000103
->> [  116.517089] OMAP24XX_DSP_MOD.RM_RSTST: 0x00000003
->> [  116.517120] OMAP24XX_DSP_MOD.PM_PWSTCTRL: 0x00040017
->> [  116.517120] OMAP24XX_DSP_MOD.PM_PWSTST: 0x00000003
->> [  116.524902] --- Woke up (slept for 3456497.704 ms)
->> [  116.524932] CORE_MOD.PM_WKST1   : 0x00000000
->> [  116.524932] CORE_MOD.OMAP24XX_PM_WKST2: 0x00000000
->> [  116.524963] WKUP_MOD.PM_WKST    : 0x00000001
->> [  116.524993] OCP_MOD.OMAP2_PRM_IRQSTATUS_MPU_OFFSET: 0x00000001
->> [  116.525024] INTC_PENDING_IRQ0   : 0x00000000
->> [  116.525054] INTC_PENDING_IRQ1   : 0x00000020
->> [  116.525054] INTC_PENDING_IRQ2   : 0x00000000
->> [  116.525207] --- Going to full retention (next timer after 7 ms)
->> [  116.525268] OCP_MOD.OMAP2_PRM_IRQENABLE_MPU_OFFSET: 0x00000000
->> [  116.525268] MPU_MOD.CM_CLKSTCTRL: 0x00000001
->> [  116.525299] MPU_MOD.PM_PWSTCTRL : 0x0000000d
->> [  116.525329] MPU_MOD.PM_PWSTST   : 0x00000010
->> [  116.525360] MPU_MOD.PM_WKDEP    : 0x00000010
->> [  116.525360] INTC_MIR0           : 0x1dffef6f
->> [  116.525390] INTC_MIR1           : 0xfcffffde
->> [  116.525421] INTC_MIR2           : 0xfff7fdff
->> [  116.525451] CORE_MOD.CM_FCLKEN1 : 0x00400000
->> [  116.525451] CORE_MOD.OMAP24XX_CM_FCLKEN2: 0x00000000
->> [  116.525482] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKEMUL_CTRL_OFFSET: 0x00000001
->> [  116.525512] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKSRC_CTRL_OFFSET: 0x00000058
->> [  116.525543] WKUP_MOD.CM_FCLKEN  : 0x00000005
->> [  116.525573] CORE_MOD.CM_ICLKEN1 : 0x04400000
->> [  116.525604] CORE_MOD.CM_ICLKEN2 : 0x00000000
->> [  116.525604] WKUP_MOD.CM_ICLKEN  : 0x00000027
->> [  116.525634] PLL_MOD.CM_CLKEN    : 0x000000cf
->> [  116.525665] PLL_MOD.CM_AUTOIDLE : 0x000000cf
->> [  116.525665] CORE_MOD.PM_PWSTST  : 0x00080030
->> [  116.525695] OMAP24XX_DSP_MOD.CM_FCLKEN: 0x00000000
->> [  116.525726] OMAP24XX_DSP_MOD.CM_ICLKEN: 0x00000000
->> [  116.525756] OMAP24XX_DSP_MOD.CM_IDLEST: 0x00000000
->> [  116.525756] OMAP24XX_DSP_MOD.CM_AUTOIDLE: 0x00000002
->> [  116.525787] OMAP24XX_DSP_MOD.CM_CLKSEL: 0x00000643
->> [  116.525817] OMAP24XX_DSP_MOD.CM_CLKSTCTRL: 0x00000101
->> [  116.525848] OMAP24XX_DSP_MOD.RM_RSTCTRL: 0x00000103
->> [  116.525878] OMAP24XX_DSP_MOD.RM_RSTST: 0x00000003
->> [  116.525878] OMAP24XX_DSP_MOD.PM_PWSTCTRL: 0x00040017
->> [  116.525909] OMAP24XX_DSP_MOD.PM_PWSTST: 0x00000003
->> [  116.532745] --- Woke up (slept for 2510451.704 ms)
->> [  116.532775] CORE_MOD.PM_WKST1   : 0x00000000
->> [  116.532775] CORE_MOD.OMAP24XX_PM_WKST2: 0x00000000
->> [  116.532806] WKUP_MOD.PM_WKST    : 0x00000001
->> [  116.532836] OCP_MOD.OMAP2_PRM_IRQSTATUS_MPU_OFFSET: 0x00000001
->> [  116.532867] INTC_PENDING_IRQ0   : 0x00000000
->> [  116.532897] INTC_PENDING_IRQ1   : 0x00000020
->> [  116.532897] INTC_PENDING_IRQ2   : 0x00000000
->> [  116.533569] --- Going to full retention (next timer after 531 ms)
->> [  116.533599] OCP_MOD.OMAP2_PRM_IRQENABLE_MPU_OFFSET: 0x00000000
->> [  116.533630] MPU_MOD.CM_CLKSTCTRL: 0x00000001
->> [  116.533660] MPU_MOD.PM_PWSTCTRL : 0x0000000d
->> [  116.533660] MPU_MOD.PM_PWSTST   : 0x00000010
->> [  116.533691] MPU_MOD.PM_WKDEP    : 0x00000010
->> [  116.533721] INTC_MIR0           : 0x1dffef6f
->> [  116.533752] INTC_MIR1           : 0xfcffffde
->> [  116.533752] INTC_MIR2           : 0xfff7fdff
->> [  116.533782] CORE_MOD.CM_FCLKEN1 : 0x00400000
->> [  116.533813] CORE_MOD.OMAP24XX_CM_FCLKEN2: 0x00000000
->> [  116.533843] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKEMUL_CTRL_OFFSET: 0x00000001
->> [  116.533874] OMAP24XX_GR_MOD.OMAP24XX_PRCM_CLKSRC_CTRL_OFFSET: 0x00000058
->> [  116.533905] WKUP_MOD.CM_FCLKEN  : 0x00000005
->> [  116.533905] CORE_MOD.CM_ICLKEN1 : 0x04400000
->> [  116.533935] CORE_MOD.CM_ICLKEN2 : 0x00000000
->> [  116.533966] WKUP_MOD.CM_ICLKEN  : 0x00000027
->> [  116.533996] PLL_MOD.CM_CLKEN    : 0x000000cf
->> [  116.533996] PLL_MOD.CM_AUTOIDLE : 0x000000cf
->> [  116.534027] CORE_MOD.PM_PWSTST  : 0x00080030
->> [  116.534057] OMAP24XX_DSP_MOD.CM_FCLKEN: 0x00000000
->> [  116.534057] OMAP24XX_DSP_MOD.CM_ICLKEN: 0x00000000
->> [  116.534088] OMAP24XX_DSP_MOD.CM_IDLEST: 0x00000000
->> [  116.534118] OMAP24XX_DSP_MOD.CM_AUTOIDLE: 0x00000002
->> [  116.534149] OMAP24XX_DSP_MOD.CM_CLKSEL: 0x00000643
->> [  116.534179] OMAP24XX_DSP_MOD.CM_CLKSTCTRL: 0x00000101
->> [  116.534179] OMAP24XX_DSP_MOD.RM_RSTCTRL: 0x00000103
->> [  116.534210] OMAP24XX_DSP_MOD.RM_RSTST: 0x00000003
->> [  116.534240] OMAP24XX_DSP_MOD.PM_PWSTCTRL: 0x00040017
->> [  116.534271] OMAP24XX_DSP_MOD.PM_PWSTST: 0x00000003
->> [  117.051696] --- Woke up (slept for 2029462.480 ms)
->> [  117.051727] CORE_MOD.PM_WKST1   : 0x00000000
->> [  117.051757] CORE_MOD.OMAP24XX_PM_WKST2: 0x00000000
->> [  117.051757] WKUP_MOD.PM_WKST    : 0x00000001
->> [  117.051788] OCP_MOD.OMAP2_PRM_IRQSTATUS_MPU_OFFSET: 0x00000001
->> [  117.051818] INTC_PENDING_IRQ0   : 0x40000000
->> [  117.051849] INTC_PENDING_IRQ1   : 0x00000020
->> [  117.051849] INTC_PENDING_IRQ2   : 0x00000000
->> [  117.158718] omapfb omapfb: s1d1374x: setting update mode to manual
->> [  119.262542] g_ether gadget: high speed config #1: CDC Ethernet (ECM)
->> [  119.262634] g_ether gadget: init ecm
->> [  119.262664] g_ether gadget: notify connect false
->> [  119.422267] g_ether gadget: activate ecm
->> [  119.422359] usb0: qlen 10
->> [  119.422359] g_ether gadget: ecm_open
->> [  119.422389] usb0: eth_start
->> [  124.666833] g_ether gadget: notify connect true
->> [  124.670800] g_ether gadget: notify speed 425984000
->>
->>
->> Quoting xl6@rice.edu:
->> >
->> > By 'deeper-sleep state', you mean the full retention mode? I am sure
->> > that pm24xx.c:omap2_enter_full_retention() is called and the
->> > assembly code in sleep24xx.S is executed, by printing some debug info.
->> >
->> > Thanks.
->> >
->> > Best Regards,
->> > --
->> > Felix
->> >
->> > On Tue, Nov 3, 2009 at 11:19 AM, Tony Lindgren <tony@atomide.com> wrote:
->> >
->> >     * Felix Xiaozhu Lin <xzl@rice.edu> [091023 16:41]:
->> >     > I am trying to compile a linux-omap kernel for n810 that can do good
->> >     > idle power management.
->> >     >
->> >     > However, this seems to be harder than I expected. I've done all
->> >     > following measurements with /sys/power/sleep_while_idle set to 1.
->> >     > Compiler is arm-linux-gnueabi-gcc 4.2. I use n8x0_defconfig.
->> >     >
->> >     >   * Maemo kernel (2.6.21) consumes ~0mA@3.8V when idle.  
->> This seems to
->> >     > be perfect. However, it has no pm regarding serial port. Whenever
->> >     > serial port is enabled, idle power is ~50mA@3.8V.
->> >     >
->> >     >   * I've compiled 2.6.28/2.6.29 from l-o git. Serial port pm works
->> >     > fine. However the idle power is ~20mA@3.8V. That is quite strange.
->> >     >
->> >     >   * For kernel >= 2.6.30 I didn't manage to boot my N810.
->> >     >
->> >     > I also dig out a thread discussing about N8x0 idle power:
->> >     >
->> >     > http://www.mail-archive.com/linux-omap@vger.kernel.org/msg11954.html
->> >     >
->> >     > where Kalle mentioned 2.6.29 idle power is OK. But I never get
->> > the same result.
->> >     >
->> >     > I'm wondering if I did something wrong in the measurement.  
->> Anybody did
->> >     > the same thing? You suggestion is highly appreciated.
->> >
->> >     It sounds like something is blocking the deeper idle states.
->> >     The way to debug is to see what clocks and domains are on
->> >     before entering idle.
->> >
->> >     Maybe do a register dump on a working system and compare that
->> >     to the current system?
->> >
->> >     Regards,
->> >
->> >     Tony
->> >
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-
+diff --git a/drivers/mfd/twl4030-core.c b/drivers/mfd/twl4030-core.c
+index 9b74f88..61c2bb7 100644
+--- a/drivers/mfd/twl4030-core.c
++++ b/drivers/mfd/twl4030-core.c
+@@ -152,6 +152,10 @@
+ #define TWL4030_BASEADD_PWMB		0x00F1
+ #define TWL4030_BASEADD_KEYPAD		0x00D2
+ 
++#define TWL5031_BASEADD_ACCESSORY	0x0074 /* Replaces Main Charge */
++#define TWL5031_BASEADD_INTERRUPTS	0x00B9 /* Different than TWL4030's
++						  one */
++
+ /* subchip/slave 3 - POWER ID */
+ #define TWL4030_BASEADD_BACKUP		0x0014
+ #define TWL4030_BASEADD_INT		0x002E
+@@ -183,6 +187,7 @@
+ /* chip-specific feature flags, for i2c_device_id.driver_data */
+ #define TWL4030_VAUX2		BIT(0)	/* pre-5030 voltage ranges */
+ #define TPS_SUBSET		BIT(1)	/* tps659[23]0 have fewer LDOs */
++#define TWL5031			BIT(2)  /* twl5031 has different registers */
+ 
+ /*----------------------------------------------------------------------*/
+ 
+@@ -235,6 +240,8 @@ static struct twl4030mapping twl4030_map[TWL4030_MODULE_LAST + 1] = {
+ 	{ 2, TWL4030_BASEADD_PWM1 },
+ 	{ 2, TWL4030_BASEADD_PWMA },
+ 	{ 2, TWL4030_BASEADD_PWMB },
++	{ 2, TWL5031_BASEADD_ACCESSORY },
++	{ 2, TWL5031_BASEADD_INTERRUPTS },
+ 
+ 	{ 3, TWL4030_BASEADD_BACKUP },
+ 	{ 3, TWL4030_BASEADD_INT },
+@@ -482,7 +489,8 @@ add_children(struct twl4030_platform_data *pdata, unsigned long features)
+ {
+ 	struct device	*child;
+ 
+-	if (twl_has_bci() && pdata->bci && !(features & TPS_SUBSET)) {
++	if (twl_has_bci() && pdata->bci &&
++	    !(features & (TPS_SUBSET | TWL5031))) {
+ 		child = add_child(3, "twl4030_bci",
+ 				pdata->bci, sizeof(*pdata->bci),
+ 				false,
+@@ -746,6 +754,7 @@ static void clocks_init(struct device *dev,
+ 
+ int twl_init_irq(int irq_num, unsigned irq_base, unsigned irq_end);
+ int twl_exit_irq(void);
++int twl_init_chip_irq(const char *chip);
+ 
+ static int twl4030_remove(struct i2c_client *client)
+ {
+@@ -821,6 +830,7 @@ twl4030_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (client->irq
+ 			&& pdata->irq_base
+ 			&& pdata->irq_end > pdata->irq_base) {
++		twl_init_chip_irq(id->name);
+ 		status = twl_init_irq(client->irq, pdata->irq_base, pdata->irq_end);
+ 		if (status < 0)
+ 			goto fail;
+@@ -836,6 +846,7 @@ fail:
+ static const struct i2c_device_id twl4030_ids[] = {
+ 	{ "twl4030", TWL4030_VAUX2 },	/* "Triton 2" */
+ 	{ "twl5030", 0 },		/* T2 updated */
++	{ "twl5031", TWL5031 },		/* TWL5030 updated */
+ 	{ "tps65950", 0 },		/* catalog version of twl5030 */
+ 	{ "tps65930", TPS_SUBSET },	/* fewer LDOs and DACs; no charger */
+ 	{ "tps65920", TPS_SUBSET },	/* fewer LDOs; no codec or charger */
+diff --git a/drivers/mfd/twl4030-irq.c b/drivers/mfd/twl4030-irq.c
+index fb194fe..0b73302 100644
+--- a/drivers/mfd/twl4030-irq.c
++++ b/drivers/mfd/twl4030-irq.c
+@@ -74,6 +74,8 @@ struct sih {
+ 	u8	edr_offset;
+ 	u8	bytes_edr;		/* bytelen of EDR */
+ 
++	u8	irq_lines;		/* number of supported irq lines */
++
+ 	/* SIR ignored -- set interrupt, for testing only */
+ 	struct irq_data {
+ 		u8	isr_offset;
+@@ -82,6 +84,9 @@ struct sih {
+ 	/* + 2 bytes padding */
+ };
+ 
++static const struct sih *sih_modules;
++static int nr_sih_modules;
++
+ #define SIH_INITIALIZER(modname, nbits) \
+ 	.module		= TWL4030_MODULE_ ## modname, \
+ 	.control_offset = TWL4030_ ## modname ## _SIH_CTRL, \
+@@ -89,6 +94,7 @@ struct sih {
+ 	.bytes_ixr	= DIV_ROUND_UP(nbits, 8), \
+ 	.edr_offset	= TWL4030_ ## modname ## _EDR, \
+ 	.bytes_edr	= DIV_ROUND_UP((2*(nbits)), 8), \
++	.irq_lines	= 2, \
+ 	.mask = { { \
+ 		.isr_offset	= TWL4030_ ## modname ## _ISR1, \
+ 		.imr_offset	= TWL4030_ ## modname ## _IMR1, \
+@@ -107,7 +113,8 @@ struct sih {
+ /* Order in this table matches order in PIH_ISR.  That is,
+  * BIT(n) in PIH_ISR is sih_modules[n].
+  */
+-static const struct sih sih_modules[6] = {
++/* sih_modules_twl4030 is used both in twl4030 and twl5030 */
++static const struct sih sih_modules_twl4030[6] = {
+ 	[0] = {
+ 		.name		= "gpio",
+ 		.module		= TWL4030_MODULE_GPIO,
+@@ -118,6 +125,7 @@ static const struct sih sih_modules[6] = {
+ 		/* Note: *all* of these IRQs default to no-trigger */
+ 		.edr_offset	= REG_GPIO_EDR1,
+ 		.bytes_edr	= 5,
++		.irq_lines	= 2,
+ 		.mask = { {
+ 			.isr_offset	= REG_GPIO_ISR1A,
+ 			.imr_offset	= REG_GPIO_IMR1A,
+@@ -140,6 +148,7 @@ static const struct sih sih_modules[6] = {
+ 		.edr_offset	= TWL4030_INTERRUPTS_BCIEDR1,
+ 		/* Note: most of these IRQs default to no-trigger */
+ 		.bytes_edr	= 3,
++		.irq_lines	= 2,
+ 		.mask = { {
+ 			.isr_offset	= TWL4030_INTERRUPTS_BCIISR1A,
+ 			.imr_offset	= TWL4030_INTERRUPTS_BCIIMR1A,
+@@ -164,6 +173,99 @@ static const struct sih sih_modules[6] = {
+ 		/* there are no SIH modules #6 or #7 ... */
+ };
+ 
++static const struct sih sih_modules_twl5031[8] = {
++	[0] = {
++		.name		= "gpio",
++		.module		= TWL4030_MODULE_GPIO,
++		.control_offset	= REG_GPIO_SIH_CTRL,
++		.set_cor	= true,
++		.bits		= TWL4030_GPIO_MAX,
++		.bytes_ixr	= 3,
++		/* Note: *all* of these IRQs default to no-trigger */
++		.edr_offset	= REG_GPIO_EDR1,
++		.bytes_edr	= 5,
++		.irq_lines	= 2,
++		.mask = { {
++			.isr_offset	= REG_GPIO_ISR1A,
++			.imr_offset	= REG_GPIO_IMR1A,
++		}, {
++			.isr_offset	= REG_GPIO_ISR1B,
++			.imr_offset	= REG_GPIO_IMR1B,
++		}, },
++	},
++	[1] = {
++		.name		= "keypad",
++		.set_cor	= true,
++		SIH_INITIALIZER(KEYPAD_KEYP, 4)
++	},
++	[2] = {
++		.name		= "bci",
++		.module		= TWL5031_MODULE_INTERRUPTS,
++		.control_offset	= TWL5031_INTERRUPTS_BCISIHCTRL,
++		.bits		= 7,
++		.bytes_ixr	= 1,
++		.edr_offset	= TWL5031_INTERRUPTS_BCIEDR1,
++		/* Note: most of these IRQs default to no-trigger */
++		.bytes_edr	= 2,
++		.irq_lines	= 2,
++		.mask = { {
++			.isr_offset	= TWL5031_INTERRUPTS_BCIISR1,
++			.imr_offset	= TWL5031_INTERRUPTS_BCIIMR1,
++		}, {
++			.isr_offset	= TWL5031_INTERRUPTS_BCIISR2,
++			.imr_offset	= TWL5031_INTERRUPTS_BCIIMR2,
++		}, },
++	},
++	[3] = {
++		.name		= "madc",
++		SIH_INITIALIZER(MADC, 4)
++	},
++	[4] = {
++		/* USB doesn't use the same SIH organization */
++		.name		= "usb",
++	},
++	[5] = {
++		.name		= "power",
++		.set_cor	= true,
++		SIH_INITIALIZER(INT_PWR, 8)
++	},
++	[6] = {
++		/*
++		 * ACI doesn't use the same SIH organization.
++		 * For example, it supports only one interrupt line
++		 */
++		.name		= "aci",
++		.module		= TWL5031_MODULE_ACCESSORY,
++		.bits		= 9,
++		.bytes_ixr	= 2,
++		.irq_lines	= 1,
++		.mask = { {
++			.isr_offset	= TWL5031_ACIIDR_LSB,
++			.imr_offset	= TWL5031_ACIIMR_LSB,
++		}, },
++
++	},
++	[7] = {
++		/* Accessory */
++		.name		= "acc",
++		.module		= TWL5031_MODULE_ACCESSORY,
++		.control_offset	= TWL5031_ACCSIHCTRL,
++		.bits		= 2,
++		.bytes_ixr	= 1,
++		.edr_offset	= TWL5031_ACCEDR1,
++		/* Note: most of these IRQs default to no-trigger */
++		.bytes_edr	= 1,
++		.irq_lines	= 2,
++		.mask = { {
++			.isr_offset	= TWL5031_ACCISR1,
++			.imr_offset	= TWL5031_ACCIMR1,
++		}, {
++			.isr_offset	= TWL5031_ACCISR2,
++			.imr_offset	= TWL5031_ACCIMR2,
++		}, },
++	},
++};
++
+ #undef TWL4030_MODULE_KEYPAD_KEYP
+ #undef TWL4030_MODULE_INT_PWR
+ #undef TWL4030_INT_PWR_EDR
+@@ -284,12 +386,16 @@ static int twl4030_init_sih_modules(unsigned line)
+ 	/* disable all interrupts on our line */
+ 	memset(buf, 0xff, sizeof buf);
+ 	sih = sih_modules;
+-	for (i = 0; i < ARRAY_SIZE(sih_modules); i++, sih++) {
++	for (i = 0; i < nr_sih_modules; i++, sih++) {
+ 
+ 		/* skip USB -- it's funky */
+ 		if (!sih->bytes_ixr)
+ 			continue;
+ 
++		/* Not all the SIH modules support multiple interrupt lines */
++		if (sih->irq_lines <= line)
++			continue;
++
+ 		status = twl4030_i2c_write(sih->module, buf,
+ 				sih->mask[line].imr_offset, sih->bytes_ixr);
+ 		if (status < 0)
+@@ -314,7 +420,7 @@ static int twl4030_init_sih_modules(unsigned line)
+ 	}
+ 
+ 	sih = sih_modules;
+-	for (i = 0; i < ARRAY_SIZE(sih_modules); i++, sih++) {
++	for (i = 0; i < nr_sih_modules; i++, sih++) {
+ 		u8 rxbuf[4];
+ 		int j;
+ 
+@@ -322,6 +428,10 @@ static int twl4030_init_sih_modules(unsigned line)
+ 		if (!sih->bytes_ixr)
+ 			continue;
+ 
++		/* Not all the SIH modules support multiple interrupt lines */
++		if (sih->irq_lines <= line)
++			continue;
++
+ 		/* Clear pending interrupt status.  Either the read was
+ 		 * enough, or we need to write those bits.  Repeat, in
+ 		 * case an IRQ is pending (PENDDIS=0) ... that's not
+@@ -611,7 +721,7 @@ int twl4030_sih_setup(int module)
+ 
+ 	/* only support modules with standard clear-on-read for now */
+ 	for (sih_mod = 0, sih = sih_modules;
+-			sih_mod < ARRAY_SIZE(sih_modules);
++			sih_mod < nr_sih_modules;
+ 			sih_mod++, sih++) {
+ 		if (sih->module == module && sih->set_cor) {
+ 			if (!WARN((irq_base + sih->bits) > NR_IRQS,
+@@ -756,3 +866,16 @@ int twl_exit_irq(void)
+ 	}
+ 	return 0;
+ }
++
++int twl_init_chip_irq(const char *chip)
++{
++	if (!strcmp(chip, "twl5031")) {
++		sih_modules = sih_modules_twl5031;
++		nr_sih_modules = ARRAY_SIZE(sih_modules_twl5031);
++	} else {
++		sih_modules = sih_modules_twl4030;
++		nr_sih_modules = ARRAY_SIZE(sih_modules_twl4030);
++	}
++
++	return 0;
++}
+diff --git a/include/linux/i2c/twl4030.h b/include/linux/i2c/twl4030.h
+index 10e68cb..5de9b45 100644
+--- a/include/linux/i2c/twl4030.h
++++ b/include/linux/i2c/twl4030.h
+@@ -61,13 +61,16 @@
+ #define TWL4030_MODULE_PWMA		0x0E
+ #define TWL4030_MODULE_PWMB		0x0F
+ 
++#define TWL5031_MODULE_ACCESSORY	0x10
++#define TWL5031_MODULE_INTERRUPTS	0x11
++
+ /* Slave 3 (i2c address 0x4b) */
+-#define TWL4030_MODULE_BACKUP		0x10
+-#define TWL4030_MODULE_INT		0x11
+-#define TWL4030_MODULE_PM_MASTER	0x12
+-#define TWL4030_MODULE_PM_RECEIVER	0x13
+-#define TWL4030_MODULE_RTC		0x14
+-#define TWL4030_MODULE_SECURED_REG	0x15
++#define TWL4030_MODULE_BACKUP		0x12
++#define TWL4030_MODULE_INT		0x13
++#define TWL4030_MODULE_PM_MASTER	0x14
++#define TWL4030_MODULE_PM_RECEIVER	0x15
++#define TWL4030_MODULE_RTC		0x16
++#define TWL4030_MODULE_SECURED_REG	0x17
+ 
+ /*
+  * Read and write single 8-bit registers
+@@ -221,6 +224,38 @@ int twl4030_i2c_read(u8 mod_no, u8 *value, u8 reg, unsigned num_bytes);
+ 
+ /*----------------------------------------------------------------------*/
+ 
++/*
++ * Accessory Interrupts
++ */
++#define TWL5031_ACIIMR_LSB		0x05
++#define TWL5031_ACIIMR_MSB		0x06
++#define TWL5031_ACIIDR_LSB		0x07
++#define TWL5031_ACIIDR_MSB		0x08
++#define TWL5031_ACCISR1			0x0F
++#define TWL5031_ACCIMR1			0x10
++#define TWL5031_ACCISR2			0x11
++#define TWL5031_ACCIMR2			0x12
++#define TWL5031_ACCSIR			0x13
++#define TWL5031_ACCEDR1			0x14
++#define TWL5031_ACCSIHCTRL		0x15
++
++/*----------------------------------------------------------------------*/
++
++/*
++ * Battery Charger Controller
++ */
++
++#define TWL5031_INTERRUPTS_BCIISR1	0x0
++#define TWL5031_INTERRUPTS_BCIIMR1	0x1
++#define TWL5031_INTERRUPTS_BCIISR2	0x2
++#define TWL5031_INTERRUPTS_BCIIMR2	0x3
++#define TWL5031_INTERRUPTS_BCISIR	0x4
++#define TWL5031_INTERRUPTS_BCIEDR1	0x5
++#define TWL5031_INTERRUPTS_BCIEDR2	0x6
++#define TWL5031_INTERRUPTS_BCISIHCTRL	0x7
++
++/*----------------------------------------------------------------------*/
++
+ /* Power bus message definitions */
+ 
+ /* The TWL4030/5030 splits its power-management resources (the various
+-- 
+1.6.0.4
 
