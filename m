@@ -1,37 +1,34 @@
-From: Paul Walmsley <paul@pwsan.com>
-Subject: Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken when
- PM set
-Date: Tue, 10 Nov 2009 03:50:52 -0700 (MST)
-Message-ID: <alpine.DEB.2.00.0911100347320.20233@utopia.booyaka.com>
-References: <200910292339.48610.jkrzyszt@tis.icnet.pl> <200910301542.27206.jkrzyszt@tis.icnet.pl>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: [PATCH 1/4 v2] MFD: TWL4030: Add audio_mclk to the
+ codec platform data
+Date: Tue, 10 Nov 2009 12:08:31 +0000
+Message-ID: <20091110120831.GB16200@rakim.wolfsonmicro.main>
+References: <1257321500-27049-1-git-send-email-peter.ujfalusi@nokia.com>
+	<1257321500-27049-2-git-send-email-peter.ujfalusi@nokia.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:36451 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755637AbZKJKur (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 05:50:47 -0500
-In-Reply-To: <200910301542.27206.jkrzyszt@tis.icnet.pl>
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+Content-Disposition: inline
+In-Reply-To: <1257321500-27049-2-git-send-email-peter.ujfalusi@nokia.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+	<mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Sender: alsa-devel-bounces@alsa-project.org
+Errors-To: alsa-devel-bounces@alsa-project.org
+To: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+Cc: tony@atomide.com, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org, sameo@linux.intel.com, linux-kernel@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jonathan McDowell <noodles@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Imre Deak <imre.deak@nokia.com>, linux-fbdev-devel@lists.sourceforge.net
 
-Hello Janusz et al,
+On Wed, Nov 04, 2009 at 09:58:17AM +0200, Peter Ujfalusi wrote:
+> Add audio_mclk to the platform data struct for the
+> twl4030-codec MFD driver.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@nokia.com>
+> Acked-by: Samuel Ortiz <sameo@linux.intel.com>
 
-On Fri, 30 Oct 2009, Janusz Krzysztofik wrote:
-
-> More looking at it, I found that might be omap_dma_running() from 
-> arch/arm/plat-omap/dma.c that needs correction. It already checks for LCD dma 
-> running for OMAP1610, but does nothing similiar for 1510. I have revisited 
-> http://focus.ti.com/lit/ug/spru674/spru674.pdf, but found no hint how to do 
-> that in a 1610 similiar way.
-
-Speaking of this code, here's a project suggestion if someone has some 
-spare time.  All of the LCD DMA code in plat-omap/dma.c appears to be 
-OMAP1-only (and apparently only is available on a subset of OMAP1 chips).  
-It would be great if this code could be moved to mach-omap1/lcd_dma.c or 
-a similar place.
-
-
-- Paul
+Applied all, thanks.
