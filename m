@@ -1,65 +1,94 @@
-From: "Premi, Sanjeev" <premi@ti.com>
-Subject: RE: [PATCH 0/2] Introduce support for AM35xx
-Date: Tue, 10 Nov 2009 19:11:50 +0530
-Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE3B7205@dbde02.ent.ti.com>
-References: <1256652138-5669-1-git-send-email-premi@ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH 1/3] Fixing compilation warning for 'nand/omap2.c'
+Date: Tue, 10 Nov 2009 16:20:27 +0200
+Message-ID: <1257862827.21596.760.camel@localhost>
+References: <ce9ab5790910292321nf230810v353c23f9c1ce1931@mail.gmail.com>
+	 <ce9ab5790910300142s615c7d59h15bb2d46d4f76574@mail.gmail.com>
+	 <1257236323.21596.56.camel@localhost>
+	 <ce9ab5790911030038p31bb69cfs1ba86cd70b243e4c@mail.gmail.com>
+	 <1257237728.21596.65.camel@localhost>
+	 <ce9ab5790911030101t256e49e8iaf26c733e6472157@mail.gmail.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44118 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752066AbZKJNlv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 08:41:51 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAADfsiT004174
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2009 07:41:57 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAADfrb7015712
-	for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2009 19:11:54 +0530 (IST)
-In-Reply-To: <1256652138-5669-1-git-send-email-premi@ti.com>
-Content-Language: en-US
+Received: from smtp.nokia.com ([192.100.105.134]:46166 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756170AbZKJOUr (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 09:20:47 -0500
+In-Reply-To: <ce9ab5790911030101t256e49e8iaf26c733e6472157@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: Vimal Singh <vimal.newwork@gmail.com>
+Cc: Linux MTD <linux-mtd@lists.infradead.org>, linux-omap@vger.kernel.org
 
-> -----Original Message-----
-> From: Premi, Sanjeev 
-> Sent: Tuesday, October 27, 2009 7:32 PM
-> To: linux-omap@vger.kernel.org
-> Cc: Premi, Sanjeev
-> Subject: [PATCH 0/2] Introduce support for AM35xx
-> 
-> This patch adds support for the recently announced
-> AM3505 and AM3517 devices from Texas Instruments.
-> 
-> It also defines the AM3517 EVM board. Detailed
-> support will follow in subsequent patches.
-> 
->   [1] http://www.ti.com/sitara 
->   [2] http://www.ti.com/arm 
->   [3] 
-> http://tiexpressdsp.com/index.php?title=Applications_Processor
-> s_Crossreference 
->   [4] http://marc.info/?l=linux-omap&m=125615009412281&w=2
->   
-> The patches have been created against omap-next branch.
-> 
-> Sanjeev Premi (2):
->   AM35xx: Runtime detection of the device
->   AM35xx: Define the AM3517EVM board
-> 
->  arch/arm/mach-omap2/Kconfig           |    4 +++
->  arch/arm/mach-omap2/id.c              |   43 
-> ++++++++++++++++++++++++++++----
->  arch/arm/plat-omap/include/plat/cpu.h |   12 +++++++++
->  3 files changed, 53 insertions(+), 6 deletions(-)
-> 
-> 
-Tony,
+On Tue, 2009-11-03 at 14:31 +0530, Vimal Singh wrote:
+> >> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> >> index 090ab87..92573d5 100644
+> >> --- a/drivers/mtd/nand/omap2.c
+> >> +++ b/drivers/mtd/nand/omap2.c
+> >> @@ -501,11 +501,13 @@ static void omap_read_buf_dma_pref(struct
+> >> mtd_info *mtd, u_char
+> >
+> > :-) It is the same again.
+> >
+> > Try to send the e-mail to yourself, then save it and apply with git=
+-am.
+> > If it works, send to the mailing list.
+>=20
+> Below patch applies. Sorry for noise... :(
+>=20
+> Thanks,
+> vimal
+>=20
+>=20
+> From eebbd81141b196af2dc3f7a2650ce16b6b0d76ae Mon Sep 17 00:00:00 200=
+1
+> From: Vimal Singh <vimalsingh@ti.com>
+> Date: Fri, 30 Oct 2009 11:31:34 +0530
+> Subject: [PATCH] Fixing compilation warning for 'nand/omap2.c'
+>=20
+> Fixing below warning in compilation:
+> drivers/mtd/nand/omap2.c: In function 'omap_write_buf_dma_pref':
+> drivers/mtd/nand/omap2.c:508: warning: passing argument 2 of
+> 'omap_nand_dma_transfer' discards qualifiers from pointer target type
+>=20
+> Signed-off-by: Vimal Singh <vimalsingh@ti.com>
+> ---
+>  drivers/mtd/nand/omap2.c |    6 ++++--
+>  1 files changed, 4 insertions(+), 2 deletions(-)
+>=20
+> diff --git a/drivers/mtd/nand/omap2.c b/drivers/mtd/nand/omap2.c
+> index 090ab87..92573d5 100644
+> --- a/drivers/mtd/nand/omap2.c
+> +++ b/drivers/mtd/nand/omap2.c
+> @@ -501,11 +501,13 @@ static void omap_read_buf_dma_pref(struct
+>  static void omap_write_buf_dma_pref(struct mtd_info *mtd,
+>  					const u_char *buf, int len)
+>  {
+> +	u_char *p =3D (u_char *)buf;
+> +
+>  	if (len <=3D mtd->oobsize)
+> -		omap_write_buf_pref(mtd, buf, len);
+> +		omap_write_buf_pref(mtd, p, len);
+>  	else
+>  		/* start transfer in DMA mode */
+> -		omap_nand_dma_transfer(mtd, buf, len, 0x1);
+> +		omap_nand_dma_transfer(mtd, p, len, 0x1);
+>  }
 
-Where does this stand in your queue?
+I think that you should instead remove the 'const' modifier from the
+'omap_write_buf_dma_pref()' function. Indeed, if it has the 'const'
+modifier, it should never change the bugger.
 
-Best regards,
-Sanjeev
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
