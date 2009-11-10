@@ -1,109 +1,71 @@
-From: Amit Kucheria <amit.kucheria@verdurent.com>
-Subject: Re: [PATCH 1/2] staging: iio: tsl2563 ambient light sensor driver
-Date: Tue, 10 Nov 2009 11:52:55 +0200
-Message-ID: <20091110095255.GD1773@smtp.gmail.com>
-References: <1257772468-4004-1-git-send-email-amit.kucheria@verdurent.com>
- <4AF81FE5.5080102@cam.ac.uk>
- <20091109142430.GZ1773@smtp.gmail.com>
- <4AF85ABB.7060406@cam.ac.uk>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: [PATCH-v5 0/4] OMAP: Adding flash support to SDP, ZOOM2 and LDP
+	boards
+Date: Tue, 10 Nov 2009 15:31:49 +0530
+Message-ID: <ce9ab5790911100201j6b1ef5e1g43a992b00e69ade4@mail.gmail.com>
+References: <63751.192.168.10.88.1252582264.squirrel@dbdmail.itg.ti.com>
+	<ce9ab5790909251957t5598e4efq765f86420426392e@mail.gmail.com>
+	<ce9ab5790910260507y2d0067dk1c12f0439c6fe5d7@mail.gmail.com>
+	<ce9ab5790911040328p215dede2v37db38a966a5bbd5@mail.gmail.com>
+	<20091109205250.GB23952@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:54542 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752312AbZKJJxI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 04:53:08 -0500
-Content-Disposition: inline
-In-Reply-To: <4AF85ABB.7060406@cam.ac.uk>
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:63802 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752939AbZKJKCF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 05:02:05 -0500
+Received: by fxm21 with SMTP id 21so790946fxm.21
+        for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2009 02:02:09 -0800 (PST)
+In-Reply-To: <20091109205250.GB23952@atomide.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: List Linux Kernel <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@suse.de>, linux-omap@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: linux-omap@vger.kernel.org, vimal singh <vimalsingh@ti.com>
 
-On 09 Nov 09, Jonathan Cameron wrote:
-> Amit Kucheria wrote:
-> > On 09 Nov 09, Jonathan Cameron wrote:
-> >> Hi Amit,
-> >>
-> >> Normally I'd welcome this in IIO, except that all ambient light sensors are in the
-> >> process of moving to the new ALS subsystem.  There are still some issues to resolve
-> >> in that subsystem (mainly to do with naming conventions) but hopefully we will
-> >> get them sorted out shortly.
-> > 
-> > Groan! :)
-> You have my sympathies on this! Typical that the first other developer to put
-> forward a patch for IIO picks the one type of device we are moving out.
+>From 225e5c1e38ba1d4a14757150b0b7caf1d8cab893 Mon Sep 17 00:00:00 2001
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Tue, 10 Nov 2009 15:24:29 +0530
+Subject: [PATCH] OMAP: Adding flash support to SDP, ZOOM2 and LDP boards
 
-Hehe :) Will accelerometers and leds move to IIO?
+This is v5 of this patch series.
 
-> If you do have any comments on IIO as a result of using it please send them
-> on.
+This patch series adds flash support for NAND (in sdp, zoom2 and ldp),
+OneNAND and NOR (in sdp)
 
-I guess the only major comment would be that the Documentation/device.txt
-probably needs to be more focussed on driver writers. For example,
+Tested on Zoom2 by Vikram, On SDP by Vimal
 
-indio_dev->attrs
-   general attributes such as polled access to device channels.
+Vimal Singh (4):
+[PATCH-v5 1/4] OMAP2/3: Add support for flash on SDP boards
+[PATCH-v5 2/4] OMAP3: Add support for NAND on ZOOM2/LDP boards
+[PATCH-v5 3/4] OMAP: Zoom2: Enable NAND and JFFS2 support in defconfig
+[PATCH-v5 4/4] OMAP: 3430SDP: Enable NAND in defconfig
 
-would become
+v4-v5:
+[PATCH-v5 1/4] OMAP2/3: Add support for flash on SDP boards:
+Implemented Tony's comments.
 
-indio_dev->attrs
-	sysfs attribute control files. This contains a pointer to a struct
-	attribute_group containing a list of all attributes that export a
-	sysfs control.
 
-followed by a sample driver stub. That is probably the only part where I got
-stuck for a bit. The rest was straightforward after looking at the source for
-the tsl2561.
+ arch/arm/configs/omap_3430sdp_defconfig      |  591 ++++++++++++--------------
+ arch/arm/configs/omap_zoom2_defconfig        |  333 +++++++++++----
+ arch/arm/mach-omap2/Makefile                 |    4 +
+ arch/arm/mach-omap2/board-2430sdp.c          |    2 +
+ arch/arm/mach-omap2/board-3430sdp.c          |    2 +
+ arch/arm/mach-omap2/board-ldp.c              |    2 +
+ arch/arm/mach-omap2/board-sdp-flash.c        |  326 ++++++++++++++
+ arch/arm/mach-omap2/board-zoom-flash.c       |  196 +++++++++
+ arch/arm/mach-omap2/board-zoom2.c            |    2 +
+ arch/arm/plat-omap/include/plat/board-sdp.h  |   15 +
+ arch/arm/plat-omap/include/plat/board-zoom.h |   36 ++
+ arch/arm/plat-omap/include/plat/gpmc.h       |    2 +
+ arch/arm/plat-omap/include/plat/nand.h       |    2 +
+ 13 files changed, 1103 insertions(+), 410 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-sdp-flash.c
+ create mode 100644 arch/arm/mach-omap2/board-zoom-flash.c
+ create mode 100644 arch/arm/plat-omap/include/plat/board-sdp.h
+ create mode 100644 arch/arm/plat-omap/include/plat/board-zoom.h
 
-> > Who will be the subsystem maintainer and is there already a public git
-> > tree?
-> No git tree as far as I know.  Maintainer is Zhang Rui (Cc'd)
-> Zhang, what are your plans wrt to that?  I guess I can put one up with the current
-> patches if it is helpful?  We really need to sort out the naming issue as the one
-> thing that people have come out against. 
-
-No plans. Just wanted to know if there was a tree where I could pull in
-regularly to see changes without having to wade through LKML :)
-
-> After that I'm guessing ping Andrew Morton to see if he is willing to handle the push
-> to Linus? Or does Zhang want to try doing one directly?
-> 
-> >> I'll take a close look at this sometime over the next few days though.  On a quick
-> >> glance at the data sheet, it looks very similar to the tsl2561.  Perhaps we can merge
-> >> the drivers? Yours is certainly more complete than the tsl2561 version in IIO so it
-> >> would make sense to lift the functional elements in to the code I have for an ALS
-> >> driver. I hadn't posted that previously as I hadn't quite worked out how to handle
-> >> the various gain related settings. What you have done seems to make sense (from a very
-> >> quick look.)
-> > 
-> > I've got no problem merging the tsl2563 with 2561. I don't have any 2561
-> > hardware to check a merged driver though.
-> 
-> On a reasonably thorough review of data sheets I think the only difference is the
-> input voltage range and a few timing parameters.  These two chips even use the same
-> addresses.  I'll actually test your driver against the tsl2561 sometime later in the
-> week to be sure.  So the merge looks like adding a few more lines to the i2c_device_id
-> table.  As a quick comment you would ideally have the tsl2563 and tsl2562 in there
-> already.
-> > 
-> > 
-> > Do you think the ALS framework will be finalised before the 2.6.33 merge
-> > window (in a few weeks)? If not, I wonder if Greg would take this driver to
-> > staging to begin with and I'll modify it to use the ALS subsystem when it
-> > settles down.
-> I'm certainly happy with that as an option if Greg is willing. In fact,
-> adding this with tsl2560-> tsl2563 support and removing the current tsl2561 driver would
-> be great (post any reviews over the next couple of days).
-> 
-
-I could certainly add support for tsl2560-2562 to my driver if you want, along
-with incorporating comments from the review.
-
-Regards,
-Amit
 
 -- 
--------------------------------------------------------------------------
-Amit Kucheria,				 Kernel Developer, Verdurent
--------------------------------------------------------------------------
+Regards,
+Vimal Singh
