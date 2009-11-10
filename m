@@ -1,78 +1,58 @@
-From: Chris Hudson <chudson@kionix.com>
-Subject: Re: [lm-sensors] [RFC PATCH 1/3] hwmon:driver support for Kionix
- kxte9 accelerometer
-Date: Tue, 10 Nov 2009 15:32:50 -0500
-Message-ID: <4AF9CDF2.2070003@kionix.com>
-References: <1257877729-25647-1-git-send-email-chudson@kionix.com>	<20091110193539.7e1392f3@hyperion.delvare> <4AF9B5E3.1060902@kionix.com> <4AF9B847.3070008@cam.ac.uk>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 1/1] input: lm8323: setting correct value to size_y
+Date: Tue, 10 Nov 2009 12:45:57 -0800
+Message-ID: <20091110204557.GC23952@atomide.com>
+References: <4AE36117.8090601@indt.org.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from barracuda.kionix.com ([205.232.90.213]:34008 "EHLO
-	mail.kionix.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758080AbZKJUcu (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 15:32:50 -0500
-In-Reply-To: <4AF9B847.3070008@cam.ac.uk>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:54133 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758081AbZKJUpz (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 15:45:55 -0500
+Content-Disposition: inline
+In-Reply-To: <4AE36117.8090601@indt.org.br>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org
+To: Carlos Aguiar <carlos.aguiar@indt.org.br>
+Cc: "Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+
+* Carlos Aguiar <carlos.aguiar@indt.org.br> [091024 13:18]:
+> From: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+> 
+> This simple patch fixes the correct value to plataform parameter size_y.
+> 
+> Fix needed to make N810 keyboard work properly.
+> 
+> Signed-off-by: Carlos Eduardo Aguiar <carlos.aguiar@indt.org.br>
+> ---
+>  arch/arm/mach-omap2/board-n800.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-omap2/board-n800.c b/arch/arm/mach-omap2/board-n800.c
+> index cb32b61..0a50fd3 100644
+> --- a/arch/arm/mach-omap2/board-n800.c
+> +++ b/arch/arm/mach-omap2/board-n800.c
+
+Looks like this needs to be refreshed for board-n8x0.c..
+
+Regards,
+
+Tony
 
 
-
-Jonathan Cameron wrote:
-> Chris Hudson wrote:
->   
->> Jean Delvare wrote:
->>     
->>> On Tue, 10 Nov 2009 13:28:47 -0500, chudson@kionix.com wrote:
->>>  
->>>       
->>>> From: Chris Hudson <chudson@kionix.com>
->>>>
->>>> This is a request for comments for adding driver support for the
->>>> Kionix KXTE9 digital tri-axis accelerometer.  This part features
->>>> built-in tilt position (orientation), wake-up and back-to-sleep
->>>> algorithms, which can trigger a user-configurable physical
->>>> interrupt.  The driver uses i2c for device communication, a misc node
->>>> for IOCTLs, and input nodes for reporting acceleration data and
->>>> interrupt status information.
->>>>
->>>> Signed-off-by: Chris Hudson <chudson@kionix.com>
->>>>     
->>>>         
->>> Nack. We want less accelerometer drivers polluting drivers/hwmon, not
->>> more.
->>>
->>>   
->>>       
->> Thank you Jean for your quick reply.  I have seen some accelerometer
->> drivers in drivers/staging/iio/accel; is this where they are all being
->> moved to?
->>
->>     
-> Sorry Chris, meant to send my reply to the list as this question keeps
-> coming up.
->
-> That somewhat depends on the intended application.  The purpose of IIO
-> is to provide a more general sensors framework, handling reasonably high
-> capture speeds and things like triggering and ring buffers.  As things
-> currently stand it isn't the place for devices that are principally being
-> used for input or as wake up triggers. I'd be perfectly happy if there
-> was a driver in IIO for this chip, (we already have a basic kxsd9 driver)
-> but the support for much of what you describe in your summary would be
-> pretty much unconnected to that subsystem. Not necessarily a problem
-> though handling exactly what was getting the data at a given moment
-> might get fiddly.
+> @@ -115,7 +115,7 @@ static struct lm8323_platform_data lm8323_pdata = {
+>  	.repeat		= 0, /* Repeat is handled in userspace for now. */
+>  	.keymap		= rx44_keymap,
+>  	.size_x		= 8,
+> -	.size_y		= 8,
+> +	.size_y		= 12,
+>  	.debounce_time	= 12,
+>  	.active_time	= 500,
 >  
-> Jonathan
+> -- 1.5.4.3
+> 
 > --
->
->   
-Thank you for your insight Jonathan.  The driver was originally written 
-for the 2.6.29 omap-android kernel to facilitate integration of the 
-kxte9 into customer projects.  Unfortunately, it seems that things in 
-the kernel have changed since then, but I'm not sure how much we can 
-change without sacrificing compatibility with the Android sensor API.  
-Is there a different place where this driver could go without requiring 
-significant redesign?
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
