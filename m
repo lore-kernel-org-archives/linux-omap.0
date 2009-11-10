@@ -1,129 +1,90 @@
-From: charu@ti.com
-Subject: [PATCH V3] [OMAP] GPIO module enable/disable
-Date: Tue, 10 Nov 2009 17:58:38 +0530
-Message-ID: <1257856118-30950-1-git-send-email-charu@ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH 00/19] OMAP: DSS2 v5 intro
+Date: Tue, 10 Nov 2009 14:40:48 +0200
+Message-ID: <1257856848.21596.753.camel@localhost>
+References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
+Reply-To: dedekind1@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55764 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753438AbZKJM2h (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Tue, 10 Nov 2009 07:28:37 -0500
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAACSe8F008694
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Tue, 10 Nov 2009 06:28:43 -0600
+Received: from smtp.nokia.com ([192.100.105.134]:37721 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754256AbZKJMlM (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 07:41:12 -0500
+In-Reply-To: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Charulatha V <charu@ti.com>
+To: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-fbdev-devel@lists.sourceforge.net, Stephen Rothwell <sfr@canb.auug.org.au>
 
-From: Charulatha V <charu@ti.com>
+Tomi,
 
-This patch disables a GPIO module when all pins of a GPIO
-module are inactive (clock gating forced at module level) and
-enables the module when any gpio in the module is requested.
+could you please kindly ask Stephen (CCed) to include the DSS2 tree int=
+o
+linux-next, because you are going to merge it the next merge window, an=
+d
+there does not seem to be any blocker for this.
 
-The module is enabled only when "mod_usage" indicates that no GPIO
-in that module is currently active and the GPIO being requested
-is the 1st one to be active in that module.
+Being in linux-next for a while is really important.
 
-Each module would be disabled in omap_gpio_free() API when all
-GPIOs in a particular module becomes inactive. The module is
-re-enabled in omap_gpio_request() API when a GPIO is requested
-from the module that was previously disabled.
+On Mon, 2009-11-09 at 13:45 +0200, Tomi Valkeinen wrote:
+> This patch set implement new display subsystem driver (DSS2) and omap=
+fb driver
+> for OMAP2/3. The patches have been reviewed on linux-omap and linux-f=
+bdev-devel
+> mailing lists. The patches can also be found from master branch in
+> http://gitorious.org/linux-omap-dss2/linux. The branch is based on th=
+e
+> linux-next tree.
+>=20
+> The patches include DSS documentation patch that includes more instru=
+ctions for
+> module parameters, sysfs files etc.
+>=20
+> The patches enable DSS2 for OMAP3430 SDP board and support for other =
+boards can
+> be sent after the DSS2 has been merged. DSS2 is used in various board=
+s, for
+> example Nokia N900, Beagle Board and Overo.
+>=20
+> I don't currently have any OMAP2 board to test DSS2, but it has worke=
+d on OMAP2
+> and the possible fixes needed should be minimal.
+>=20
+> OMAP1 is not supported, and so the old DSS needs to be used on OMAP1 =
+boards. My
+> longer term plan is to move all OMAP2 stuff from the old DSS to the n=
+ew one,
+> and then shrink the old DSS to support OMAP1 only.
+>=20
+> DSS2 is partly based on the old omapfb driver by Imre Deak, and Imre =
+has also
+> contributed to DSS2 quite a bit. Ville Syrj=C3=A4l=C3=A4 has been con=
+tributing to scaling
+> and tv-out work, and Topi Pohjolainen to VRFB. Also some contribution=
+s have
+> been made by Hardik Shah, Vaibhav Hiremath, and perhaps some others t=
+hat I have
+> forgotten =3D).
 
-Since individual GPIO's bookkeeping is added in this patch
-via "mod_usage", the same is used in omap_set_gpio_debounce()
-& omap_set_gpio_debounce_time() APIs to ensure that the gpio being
-used is actually "requested" prior to being used (Nishant Menon's
-Suggestion <nm@ti.com>)
+Tomi,
 
-GPIO module level details are specific to hardware and hence
-introducing this patch in low level layer (plat-omap/gpio.c)
+could you please kindly ask Stephen (CCed) to include the DSS2 tree int=
+o
+linux-next, because you are going to merge it the next merge window, an=
+d
+there does not seem to be any blocker for this.
 
-Signed-off-by: Charulatha V <charu@ti.com>
-Acked-by: Nishanth Menon <nm@ti.com>
----
- arch/arm/plat-omap/gpio.c |   32 ++++++++++++++++++++++++++++++++
- 1 files changed, 32 insertions(+), 0 deletions(-)
+Being in linux-next for a while is really important.
 
-diff --git a/arch/arm/plat-omap/gpio.c b/arch/arm/plat-omap/gpio.c
-index 4c35f9f..06a391b 100644
---- a/arch/arm/plat-omap/gpio.c
-+++ b/arch/arm/plat-omap/gpio.c
-@@ -199,6 +199,7 @@ struct gpio_bank {
- 	struct gpio_chip chip;
- 	struct clk *dbck;
- 	u32 dbck_enable_mask;
-+	u32 mod_usage;
- };
- 
- #define METHOD_MPUIO		0
-@@ -690,6 +691,10 @@ void omap_set_gpio_debounce(int gpio, int enable)
- #else
- 	reg += OMAP24XX_GPIO_DEBOUNCE_EN;
- #endif
-+	if (!(bank->mod_usage & l)) {
-+		printk(KERN_ERR "GPIO %d not requested\n", gpio);
-+		return;
-+	}
- 
- 	spin_lock_irqsave(&bank->lock, flags);
- 	val = __raw_readl(reg);
-@@ -726,6 +731,11 @@ void omap_set_gpio_debounce_time(int gpio, int enc_time)
- 	bank = get_gpio_bank(gpio);
- 	reg = bank->base;
- 
-+	if (!bank->mod_usage) {
-+		printk(KERN_ERR "GPIO not requested\n");
-+		return;
-+	}
-+
- 	enc_time &= 0xff;
- #ifdef CONFIG_ARCH_OMAP4
- 	reg += OMAP4_GPIO_DEBOUNCINGTIME;
-@@ -1219,6 +1229,16 @@ static int omap_gpio_request(struct gpio_chip *chip, unsigned offset)
- 		__raw_writel(__raw_readl(reg) | (1 << offset), reg);
- 	}
- #endif
-+	if (!cpu_class_is_omap1()) {
-+		if (!bank->mod_usage) {
-+			u32 ctrl;
-+			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
-+			ctrl &= 0xFFFFFFFE;
-+			/* Module is enabled, clocks are not gated */
-+			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
-+		}
-+		bank->mod_usage |= 1 << offset;
-+	}
- 	spin_unlock_irqrestore(&bank->lock, flags);
- 
- 	return 0;
-@@ -1245,6 +1265,16 @@ static void omap_gpio_free(struct gpio_chip *chip, unsigned offset)
- 		__raw_writel(1 << offset, reg);
- 	}
- #endif
-+	if (!cpu_class_is_omap1()) {
-+		bank->mod_usage &= ~(1 << offset);
-+		if (!bank->mod_usage) {
-+			u32 ctrl;
-+			ctrl = __raw_readl(bank->base + OMAP24XX_GPIO_CTRL);
-+			/* Module is disabled, clocks are gated */
-+			ctrl |= 1;
-+			__raw_writel(ctrl, bank->base + OMAP24XX_GPIO_CTRL);
-+		}
-+	}
- 	_reset_gpio(bank, bank->chip.base + offset);
- 	spin_unlock_irqrestore(&bank->lock, flags);
- }
-@@ -1879,6 +1909,8 @@ static int __init _omap_gpio_init(void)
- 			gpio_count = 32;
- 		}
- #endif
-+
-+		bank->mod_usage = 0;
- 		/* REVISIT eventually switch from OMAP-specific gpio structs
- 		 * over to the generic ones
- 		 */
--- 
-1.6.0.4
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
