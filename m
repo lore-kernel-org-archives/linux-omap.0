@@ -1,53 +1,36 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the usb tree with the omap tree
-Date: Wed, 11 Nov 2009 19:30:13 +1100
-Message-ID: <20091111193013.9a4bca3e.sfr@canb.auug.org.au>
+From: Romit Dasgupta <romit@ti.com>
+Subject: [PATCH 1/1]: Thaws refrigerated bdi flusher threads before
+ invoking kthread_stop on them
+Date: Wed, 11 Nov 2009 14:00:16 +0530
+Message-ID: <1257928216.15415.57.camel@boson>
+Reply-To: romit@ti.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__11_Nov_2009_19_30_13_+1100_IYRf/tMhfUe8qTga"
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:39883 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755534AbZKKIaM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Nov 2009 03:30:12 -0500
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757102AbZKKIax@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: jens.axboe@oracle.com, rjw@sisk.pl, pavel@ucw.cz
+Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org
 List-Id: linux-omap@vger.kernel.org
-To: Greg KH <greg@kroah.com>
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
---Signature=_Wed__11_Nov_2009_19_30_13_+1100_IYRf/tMhfUe8qTga
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hi Greg,
-
-Today's linux-next merge of the usb tree got a conflict in
-drivers/usb/host/ehci-omap.c between commit
-7cb07f72711d3e10763ca7d7a9fcd7ac788aabf4 ("omap: ehci: Add platform init
-code") from the omap tree and commit
-9e92239693d7010d2e710a445f46d6a738b09171 ("USB: host: ehci: introduce
-omap ehci-hcd driver") from the usb tree.
-
-Both commits create this file but I used the omap tree version because
-commit ce491cf85466c3377228c5a852ea627ec5136956 ("omap: headers: Move
-remaining headers from include/mach to include/plat") from the omap tree
-moved one included header file (mach/usb.h -> plat/usb.h).
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Wed__11_Nov_2009_19_30_13_+1100_IYRf/tMhfUe8qTga
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkr6dhUACgkQjjKRsyhoI8y2HACePvALDSAaw98WcGAOvILL7Yy7
-lzYAoIz9mHBive5w48qeS8O9Twt1/cMK
-=jVaI
------END PGP SIGNATURE-----
-
---Signature=_Wed__11_Nov_2009_19_30_13_+1100_IYRf/tMhfUe8qTga--
+Kicks out frozen bdi flusher task out of the refrigerator when the flusher task
+needs to exit.
+Signed-off-by: Romit Dasgupta <romit@ti.com>
+---
+diff --git a/mm/backing-dev.c b/mm/backing-dev.c
+index 5a37e20..c757b05 100644
+--- a/mm/backing-dev.c
++++ b/mm/backing-dev.c
+@@ -606,8 +606,11 @@ static void bdi_wb_shutdown(struct backing_dev_info *bdi)
+ 	 * Finally, kill the kernel threads. We don't need to be RCU
+ 	 * safe anymore, since the bdi is gone from visibility.
+ 	 */
+-	list_for_each_entry(wb, &bdi->wb_list, list)
++	list_for_each_entry(wb, &bdi->wb_list, list) {
++		if (unlikely(frozen(wb->task)))
++			wb->task->flags &= ~PF_FROZEN;
+ 		kthread_stop(wb->task);
++	}
+ }
+ 
+ void bdi_unregister(struct backing_dev_info *bdi)
