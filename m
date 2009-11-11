@@ -1,40 +1,56 @@
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Subject: Re: [PATCH 00/19] OMAP: DSS2 v5 intro
-Date: Wed, 11 Nov 2009 11:44:01 +0200
-Message-ID: <1257932641.20378.77.camel@tubuntu.research.nokia.com>
-References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
-	 <1257856848.21596.753.camel@localhost>
-	 <1257929140.20378.51.camel@tubuntu.research.nokia.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 1/1]: Thaws refrigerated bdi flusher threads before
+ invoking kthread_stop on them
+Date: Wed, 11 Nov 2009 11:34:44 +0100
+Message-ID: <20091111103444.GD26423@elf.ucw.cz>
+References: <1257928216.15415.57.camel@boson>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756244AbZKKJoY@vger.kernel.org>
-In-Reply-To: <1257929140.20378.51.camel@tubuntu.research.nokia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, ext Tony Lindgren <tony@atomide.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49686 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086AbZKKKep (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 05:34:45 -0500
+Content-Disposition: inline
+In-Reply-To: <1257928216.15415.57.camel@boson>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Romit Dasgupta <romit@ti.com>
+Cc: jens.axboe@oracle.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org
 
-On Wed, 2009-11-11 at 09:45 +0100, Valkeinen Tomi (Nokia-D/Helsinki)
-wrote:
-> On Tue, 2009-11-10 at 13:40 +0100, Artem Bityutskiy wrote:
-> > Tomi,
-> > 
-> > could you please kindly ask Stephen (CCed) to include the DSS2 tree into
-> > linux-next, because you are going to merge it the next merge window, and
-> > there does not seem to be any blocker for this.
-> > 
-> > Being in linux-next for a while is really important.
+On Wed 2009-11-11 14:00:16, Romit Dasgupta wrote:
+> Kicks out frozen bdi flusher task out of the refrigerator when the flusher task
+> needs to exit.
+
+
+> Signed-off-by: Romit Dasgupta <romit@ti.com>
+
+Ok, its slightly "interesting", but better than modifying common
+code. Looks ok to me.
+
+ACK.
+								Pavel
+
+> ---
+> diff --git a/mm/backing-dev.c b/mm/backing-dev.c
+> index 5a37e20..c757b05 100644
+> --- a/mm/backing-dev.c
+> +++ b/mm/backing-dev.c
+> @@ -606,8 +606,11 @@ static void bdi_wb_shutdown(struct backing_dev_info *bdi)
+>  	 * Finally, kill the kernel threads. We don't need to be RCU
+>  	 * safe anymore, since the bdi is gone from visibility.
+>  	 */
+> -	list_for_each_entry(wb, &bdi->wb_list, list)
+> +	list_for_each_entry(wb, &bdi->wb_list, list) {
+> +		if (unlikely(frozen(wb->task)))
+> +			wb->task->flags &= ~PF_FROZEN;
+>  		kthread_stop(wb->task);
+> +	}
+>  }
+>  
+>  void bdi_unregister(struct backing_dev_info *bdi)
 > 
-> Stephen, would this be possible? DSS2 driver is rather big piece of
-> code, even if it's quite isolated, so it would be nice to have it in
-> linux-next.
-> 
-> What does it require from me? A git tree, obviously, but what should it
-> be based on?
 
-Ah, I just realized that DSS2 patches depend on patches from Tony's
-tree. I guess I should base my tree on top of some Tony's tree that is
-going to linux-next?
-
- Tomi
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
