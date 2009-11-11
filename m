@@ -1,61 +1,37 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: manual merge of the usb tree with the omap tree
-Date: Thu, 12 Nov 2009 08:52:54 +1100
-Message-ID: <20091112085254.d856c4d0.sfr@canb.auug.org.au>
-References: <20091111193013.9a4bca3e.sfr@canb.auug.org.au>
-	<20091111191213.GH24837@atomide.com>
-	<20091111192058.GI24837@atomide.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH 1/10] omap mailbox: Add build specific changes to support omap mailbox.
+Date: Wed, 11 Nov 2009 16:57:32 -0500
+Message-ID: <notify-1257976655@atomide.com>
+References: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921D8@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__12_Nov_2009_08_52_54_+1100_tex7x9YRlTIlJRd4"
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20091111192058.GI24837@atomide.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
-List-Id: linux-omap@vger.kernel.org
-
---Signature=_Thu__12_Nov_2009_08_52_54_+1100_tex7x9YRlTIlJRd4
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60409 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759380AbZKKV5c (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 16:57:32 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1N8LC5-000LP4-PG
+	for linux-omap@vger.kernel.org; Wed, 11 Nov 2009 21:57:38 +0000
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DD9921D8@dbde02.ent.ti.com>
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sender: linux-omap-owner@vger.kernel.org
+List-Id: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Hi Tony,
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-On Wed, 11 Nov 2009 11:20:59 -0800 Tony Lindgren <tony@atomide.com> wrote:
->
-> * Tony Lindgren <tony@atomide.com> [091111 11:12]:
-> >=20
-> > Oops, sorry. Looks like I accidentally included also drivers/usb/host/e=
-hci-omap.c
-> > as we were testing it in the linux-omap tree.
-> >=20
-> > I'll drop the drivers/usb/host/ehci-omap.c part from my queue, it shoul=
-d get
-> > integrated via Greg's queue. I'll just merge the platform init code.
->=20
-> Dropped anything touching drivers/usb from my patch. So no need for Greg
-> to do anything, the updated version of the patch below for reference.
+Branch in linux-omap: for-next
 
-OK, thanks.  Just as long as we don't forget the necessary updates when
-these are all integrated into Linus' tree.  Some conflicts in linux-next
-are not a bad thing for that reason.
+Initial commit ID (Likely to change): 5ec8cdd0d5348952a39d979ced74b5996b9c603d
 
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+PatchWorks
+http://patchwork.kernel.org/patch/49309/
 
---Signature=_Thu__12_Nov_2009_08_52_54_+1100_tex7x9YRlTIlJRd4
-Content-Type: application/pgp-signature
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=5ec8cdd0d5348952a39d979ced74b5996b9c603d
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
 
-iEYEARECAAYFAkr7MjYACgkQjjKRsyhoI8x1SQCghVS2QTcViQuyaeFR490RmRZg
-osgAnA4rNanl/A7MKUvma2XkKdZ37MJ9
-=nGgL
------END PGP SIGNATURE-----
-
---Signature=_Thu__12_Nov_2009_08_52_54_+1100_tex7x9YRlTIlJRd4--
