@@ -1,59 +1,110 @@
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Re: [PATCH 0/8] Omap fixes for v2.6.32-rc6
-Date: Wed, 11 Nov 2009 23:20:55 +0000
-Message-ID: <4AFB46D7.7090508@blueyonder.co.uk>
-References: <20091111025907.31793.84134.stgit@localhost> <4AFA2CA1.4000005@blueyonder.co.uk> <20091111190820.GG24837@atomide.com>
-Reply-To: sboyce@blueyonder.co.uk
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 06/11] OMAP3: PM: Disable interrupt controller AUTOIDLE before WFI
+Date: Wed, 11 Nov 2009 15:23:54 -0800
+Message-ID: <874op0zlv9.fsf@deeprootsystems.com>
+References: <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-3-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-4-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-5-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-6-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-7-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:58178 "EHLO
-	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759531AbZKKXUz (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Nov 2009 18:20:55 -0500
-Received: from [172.23.170.138] (helo=anti-virus01-09)
-	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1N8MUn-00071v-3q
-	for linux-omap@vger.kernel.org; Wed, 11 Nov 2009 23:21:01 +0000
-Received: from [94.171.130.58] (helo=[192.168.10.2])
-	by asmtp-out2.blueyonder.co.uk with esmtpa (Exim 4.52)
-	id 1N8MUm-00070F-N7
-	for linux-omap@vger.kernel.org; Wed, 11 Nov 2009 23:21:00 +0000
-In-Reply-To: <20091111190820.GG24837@atomide.com>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:37817 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759650AbZKKXXv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:23:51 -0500
+Received: by yxe17 with SMTP id 17so1446683yxe.33
+        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 15:23:57 -0800 (PST)
+In-Reply-To: <1256313835-2391-7-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 23 Oct 2009 19\:03\:50 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Tero Kristo <tero.kristo@nokia.com>
 Cc: linux-omap@vger.kernel.org
 
-On 11/11/09 19:08, Tony Lindgren wrote:
-> * Sid Boyce <sboyce@blueyonder.co.uk> [091110 19:16]:
->> I still haven't been able to find the reason why the Ralink drivers
->> haven't been offered in make config/menuconfig/xconfig - cross compiling
->> on Fedora 12 x86_64 as per my previous post. I downloaded the latest
->> linux-omap snapshot Tuesday, 6 hours after it was up.
-> 
-> Sounds like that should be patched via drivers/net.
-> 
-> Regards,
-> 
-> Tony
-> 
-> 
+Tero Kristo <tero.kristo@nokia.com> writes:
 
-CONFIG_CFG80211=m and CONFIG_MAC80211=m fixed that problem, though I'm
-sure I tried the same some days ago and it didn't work - your snapshot
-of today built and is working.
+> From: Tero Kristo <tero.kristo@nokia.com>
+>
+> OMAP interrupt controller goes to unknown state when there is right
+> combination of l3,l4 sleep/wake-up transitions, l4 autoidle in
+> interrupt controller and some interrupt. When this happens, interrupts
+> are not delivered to ARM anymore and ARM will remain in WFI (wait for
+> interrupt) until interrupt controller is forced to wake-up
+> (i.e. lauterbach).
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-One remaining problem is getting FB working, the LCD status light lights
-up blue, but the display is blank.
-For that I shall start another thread.
+Thanks, applying to PM branch, queuing for pm-fixes.
 
-Regards
-Sid.
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Kevin
 
+> ---
+>  arch/arm/mach-omap2/irq.c              |   12 ++++++++++++
+>  arch/arm/mach-omap2/pm34xx.c           |    2 ++
+>  arch/arm/plat-omap/include/mach/irqs.h |    2 ++
+>  3 files changed, 16 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/irq.c b/arch/arm/mach-omap2/irq.c
+> index ee8c68a..9241b87 100644
+> --- a/arch/arm/mach-omap2/irq.c
+> +++ b/arch/arm/mach-omap2/irq.c
+> @@ -272,4 +272,16 @@ void omap3_intc_suspend(void)
+>  	/* A pending interrupt would prevent OMAP from entering suspend */
+>  	omap_ack_irq(0);
+>  }
+> +
+> +void omap3_intc_prepare_idle(void)
+> +{
+> +	/* Disable autoidle as it can stall interrupt controller */
+> +	intc_bank_write_reg(0, &irq_banks[0], INTC_SYSCONFIG);
+> +}
+> +
+> +void omap3_intc_resume_idle(void)
+> +{
+> +	/* Re-enable autoidle */
+> +	intc_bank_write_reg(1, &irq_banks[0], INTC_SYSCONFIG);
+> +}
+>  #endif /* CONFIG_ARCH_OMAP3 */
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 492458e..fec9c38 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -431,6 +431,7 @@ void omap_sram_idle(void)
+>  		prm_set_mod_reg_bits(OMAP3430_EN_IO, WKUP_MOD, PM_WKEN);
+>  		omap3_enable_io_chain();
+>  	}
+> +	omap3_intc_prepare_idle();
+>  
+>  	/*
+>  	* On EMU/HS devices ROM code restores a SRDC value
+> @@ -487,6 +488,7 @@ void omap_sram_idle(void)
+>  						OMAP3430_GR_MOD,
+>  						OMAP3_PRM_VOLTCTRL_OFFSET);
+>  	}
+> +	omap3_intc_resume_idle();
+>  
+>  	/*
+>  	 * Enable smartreflex after WFI. Only needed if we entered
+> diff --git a/arch/arm/plat-omap/include/mach/irqs.h b/arch/arm/plat-omap/include/mach/irqs.h
+> index ff1faa8..b736c5d 100644
+> --- a/arch/arm/plat-omap/include/mach/irqs.h
+> +++ b/arch/arm/plat-omap/include/mach/irqs.h
+> @@ -486,6 +486,8 @@ extern int omap_irq_pending(void);
+>  void omap3_intc_save_context(void);
+>  void omap3_intc_restore_context(void);
+>  void omap3_intc_suspend(void);
+> +void omap3_intc_prepare_idle(void);
+> +void omap3_intc_resume_idle(void);
+>  #endif
+>  
+>  #include <mach/hardware.h>
+> -- 
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
