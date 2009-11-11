@@ -1,212 +1,193 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v3 2/8] omap: zoom: rename zoom2 name to generic zoom
-Date: Wed, 11 Nov 2009 17:41:30 -0600
-Message-ID: <1257982896-25087-3-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH v3 5/8] omap: 3630sdp: introduce 3630 sdp board support
+Date: Wed, 11 Nov 2009 17:41:33 -0600
+Message-ID: <1257982896-25087-6-git-send-email-vikram.pandita@ti.com>
 References: <1257982896-25087-1-git-send-email-vikram.pandita@ti.com>
  <1257982896-25087-2-git-send-email-vikram.pandita@ti.com>
+ <1257982896-25087-3-git-send-email-vikram.pandita@ti.com>
+ <1257982896-25087-4-git-send-email-vikram.pandita@ti.com>
+ <1257982896-25087-5-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59449 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759631AbZKKXmH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:42:07 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nABNgDuk012367
+Received: from comal.ext.ti.com ([198.47.26.152]:57875 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759676AbZKKXmI (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Nov 2009 18:42:08 -0500
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nABNgESB019291
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 17:42:13 -0600
-In-Reply-To: <1257982896-25087-2-git-send-email-vikram.pandita@ti.com>
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 17:42:14 -0600
+In-Reply-To: <1257982896-25087-5-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-Replace zoom2 with zoom name in board-zoom-peripherals.c file
-This file has functions reused for boards: Zoom2/Zoom3/sdp3630.
-Hence have all functions commonly named as zoom
+Add 3630SDP board support
+
+The board shares the same peripherals as a zoom2 main.
+So reuse the peripheral file of zoom platform.
+
+Peripheral    zoom2    zoom3  sdp3630
+---------------------------------------
+Ethernet	smsc	smsc	smc
+NOR		n/a     n/a	B
+Onenand	  	n/a     n/a	B
+HDMI		A	A	B (persent on different i2c)
+NAND		A	A	A (same nand)
+SDRAM		A	A	A (same sdram)
+Keypad		A	A	A (same twl)
+Camera		A	A	A (same sensor can be mounted)
+LCD Display	A	A	A (same wvga display)
+OPPs		A	A	A (same chip feature)
+Audio		A	A	A (same audio via twl5030)
+
+OMAP3630 details can be found here:
+http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
 
 Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 ---
- arch/arm/mach-omap2/board-zoom-peripherals.c |   70 +++++++++++++-------------
- 1 files changed, 35 insertions(+), 35 deletions(-)
+ arch/arm/mach-omap2/Kconfig         |    4 ++
+ arch/arm/mach-omap2/Makefile        |    3 +
+ arch/arm/mach-omap2/board-3630sdp.c |  101 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 108 insertions(+), 0 deletions(-)
+ create mode 100755 arch/arm/mach-omap2/board-3630sdp.c
 
-diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c b/arch/arm/mach-omap2/board-zoom-peripherals.c
-index 1bb4a8a..4ca9c20 100644
---- a/arch/arm/mach-omap2/board-zoom-peripherals.c
-+++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
-@@ -87,27 +87,27 @@ static struct matrix_keymap_data board_map_data = {
- 	.keymap_size		= ARRAY_SIZE(board_keymap),
- };
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 9824775..83551a8 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -105,6 +105,10 @@ config MACH_OMAP_ZOOM3
+ 	bool "OMAP3630 Zoom3 board"
+ 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
  
--static struct twl4030_keypad_data zoom2_kp_twl4030_data = {
-+static struct twl4030_keypad_data zoom_kp_twl4030_data = {
- 	.keymap_data	= &board_map_data,
- 	.rows		= 8,
- 	.cols		= 8,
- 	.rep		= 1,
- };
++config MACH_OMAP_3630SDP
++	bool "OMAP3630 SDP board"
++	depends on ARCH_OMAP3 && ARCH_OMAP34XX
++
+ config MACH_OMAP_4430SDP
+ 	bool "OMAP 4430 SDP board"
+ 	depends on ARCH_OMAP4
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 712e7fc..90cf2cc 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -79,6 +79,9 @@ obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
+ 					   board-zoom-peripherals.o \
+ 					   mmc-twl4030.o \
+ 					   board-zoom-debugboard.o
++obj-$(CONFIG_MACH_OMAP_3630SDP)		+= board-3630sdp.o \
++					   board-zoom-peripherals.o \
++					   mmc-twl4030.o
+ obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
+ 					   mmc-twl4030.o
  
--static struct regulator_consumer_supply zoom2_vmmc1_supply = {
-+static struct regulator_consumer_supply zoom_vmmc1_supply = {
- 	.supply		= "vmmc",
- };
- 
--static struct regulator_consumer_supply zoom2_vsim_supply = {
-+static struct regulator_consumer_supply zoom_vsim_supply = {
- 	.supply		= "vmmc_aux",
- };
- 
--static struct regulator_consumer_supply zoom2_vmmc2_supply = {
-+static struct regulator_consumer_supply zoom_vmmc2_supply = {
- 	.supply		= "vmmc",
- };
- 
- /* VMMC1 for OMAP VDD_MMC1 (i/o) and MMC1 card */
--static struct regulator_init_data zoom2_vmmc1 = {
-+static struct regulator_init_data zoom_vmmc1 = {
- 	.constraints = {
- 		.min_uV			= 1850000,
- 		.max_uV			= 3150000,
-@@ -118,11 +118,11 @@ static struct regulator_init_data zoom2_vmmc1 = {
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies  = 1,
--	.consumer_supplies      = &zoom2_vmmc1_supply,
-+	.consumer_supplies      = &zoom_vmmc1_supply,
- };
- 
- /* VMMC2 for MMC2 card */
--static struct regulator_init_data zoom2_vmmc2 = {
-+static struct regulator_init_data zoom_vmmc2 = {
- 	.constraints = {
- 		.min_uV			= 1850000,
- 		.max_uV			= 1850000,
-@@ -133,11 +133,11 @@ static struct regulator_init_data zoom2_vmmc2 = {
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies  = 1,
--	.consumer_supplies      = &zoom2_vmmc2_supply,
-+	.consumer_supplies      = &zoom_vmmc2_supply,
- };
- 
- /* VSIM for OMAP VDD_MMC1A (i/o for DAT4..DAT7) */
--static struct regulator_init_data zoom2_vsim = {
-+static struct regulator_init_data zoom_vsim = {
- 	.constraints = {
- 		.min_uV			= 1800000,
- 		.max_uV			= 3000000,
-@@ -148,7 +148,7 @@ static struct regulator_init_data zoom2_vsim = {
- 					| REGULATOR_CHANGE_STATUS,
- 	},
- 	.num_consumer_supplies  = 1,
--	.consumer_supplies      = &zoom2_vsim_supply,
-+	.consumer_supplies      = &zoom_vsim_supply,
- };
- 
- static struct twl4030_hsmmc_info mmc[] __initdata = {
-@@ -165,7 +165,7 @@ static struct twl4030_hsmmc_info mmc[] __initdata = {
- 	{}      /* Terminator */
- };
- 
--static int zoom2_twl_gpio_setup(struct device *dev,
-+static int zoom_twl_gpio_setup(struct device *dev,
- 		unsigned gpio, unsigned ngpio)
- {
- 	/* gpio + 0 is "mmc0_cd" (input/IRQ),
-@@ -178,15 +178,15 @@ static int zoom2_twl_gpio_setup(struct device *dev,
- 	/* link regulators to MMC adapters ... we "know" the
- 	 * regulators will be set up only *after* we return.
- 	*/
--	zoom2_vmmc1_supply.dev = mmc[0].dev;
--	zoom2_vsim_supply.dev = mmc[0].dev;
--	zoom2_vmmc2_supply.dev = mmc[1].dev;
-+	zoom_vmmc1_supply.dev = mmc[0].dev;
-+	zoom_vsim_supply.dev = mmc[0].dev;
-+	zoom_vmmc2_supply.dev = mmc[1].dev;
- 
- 	return 0;
- }
- 
- 
--static int zoom2_batt_table[] = {
-+static int zoom_batt_table[] = {
- /* 0 C*/
- 30800, 29500, 28300, 27100,
- 26000, 24900, 23900, 22900, 22000, 21100, 20300, 19400, 18700, 17900,
-@@ -197,55 +197,55 @@ static int zoom2_batt_table[] = {
- 4040,  3910,  3790,  3670,  3550
- };
- 
--static struct twl4030_bci_platform_data zoom2_bci_data = {
--	.battery_tmp_tbl	= zoom2_batt_table,
--	.tblsize		= ARRAY_SIZE(zoom2_batt_table),
-+static struct twl4030_bci_platform_data zoom_bci_data = {
-+	.battery_tmp_tbl	= zoom_batt_table,
-+	.tblsize		= ARRAY_SIZE(zoom_batt_table),
- };
- 
--static struct twl4030_usb_data zoom2_usb_data = {
-+static struct twl4030_usb_data zoom_usb_data = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
- };
- 
--static struct twl4030_gpio_platform_data zoom2_gpio_data = {
-+static struct twl4030_gpio_platform_data zoom_gpio_data = {
- 	.gpio_base	= OMAP_MAX_GPIO_LINES,
- 	.irq_base	= TWL4030_GPIO_IRQ_BASE,
- 	.irq_end	= TWL4030_GPIO_IRQ_END,
--	.setup		= zoom2_twl_gpio_setup,
-+	.setup		= zoom_twl_gpio_setup,
- };
- 
--static struct twl4030_madc_platform_data zoom2_madc_data = {
-+static struct twl4030_madc_platform_data zoom_madc_data = {
- 	.irq_line	= 1,
- };
- 
--static struct twl4030_platform_data zoom2_twldata = {
-+static struct twl4030_platform_data zoom_twldata = {
- 	.irq_base	= TWL4030_IRQ_BASE,
- 	.irq_end	= TWL4030_IRQ_END,
- 
- 	/* platform_data for children goes here */
--	.bci		= &zoom2_bci_data,
--	.madc		= &zoom2_madc_data,
--	.usb		= &zoom2_usb_data,
--	.gpio		= &zoom2_gpio_data,
--	.keypad		= &zoom2_kp_twl4030_data,
--	.vmmc1          = &zoom2_vmmc1,
--	.vmmc2          = &zoom2_vmmc2,
--	.vsim           = &zoom2_vsim,
-+	.bci		= &zoom_bci_data,
-+	.madc		= &zoom_madc_data,
-+	.usb		= &zoom_usb_data,
-+	.gpio		= &zoom_gpio_data,
-+	.keypad		= &zoom_kp_twl4030_data,
-+	.vmmc1          = &zoom_vmmc1,
-+	.vmmc2          = &zoom_vmmc2,
-+	.vsim           = &zoom_vsim,
- 
- };
- 
--static struct i2c_board_info __initdata zoom2_i2c_boardinfo[] = {
-+static struct i2c_board_info __initdata zoom_i2c_boardinfo[] = {
- 	{
- 		I2C_BOARD_INFO("twl4030", 0x48),
- 		.flags		= I2C_CLIENT_WAKE,
- 		.irq		= INT_34XX_SYS_NIRQ,
--		.platform_data	= &zoom2_twldata,
-+		.platform_data	= &zoom_twldata,
- 	},
- };
- 
- static int __init omap_i2c_init(void)
- {
--	omap_register_i2c_bus(1, 2600, zoom2_i2c_boardinfo,
--			ARRAY_SIZE(zoom2_i2c_boardinfo));
-+	omap_register_i2c_bus(1, 2600, zoom_i2c_boardinfo,
-+			ARRAY_SIZE(zoom_i2c_boardinfo));
- 	omap_register_i2c_bus(2, 400, NULL, 0);
- 	omap_register_i2c_bus(3, 400, NULL, 0);
- 	return 0;
+diff --git a/arch/arm/mach-omap2/board-3630sdp.c b/arch/arm/mach-omap2/board-3630sdp.c
+new file mode 100755
+index 0000000..f0bc5c6
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-3630sdp.c
+@@ -0,0 +1,101 @@
++/*
++ * Copyright (C) 2009 Texas Instruments Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/platform_device.h>
++#include <linux/input.h>
++#include <linux/gpio.h>
++
++#include <asm/mach-types.h>
++#include <asm/mach/arch.h>
++
++#include <plat/common.h>
++#include <plat/board.h>
++#include <plat/gpmc-smc91x.h>
++#include <plat/mux.h>
++#include <plat/usb.h>
++
++#include "sdram-hynix-h8mbx00u0mer-0em.h"
++
++#if defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE)
++
++static struct omap_smc91x_platform_data board_smc91x_data = {
++	.cs             = 3,
++	.flags          = GPMC_MUX_ADD_DATA | IORESOURCE_IRQ_LOWLEVEL,
++};
++
++static void __init board_smc91x_init(void)
++{
++	board_smc91x_data.gpio_irq = 158;
++	gpmc_smc91x_init(&board_smc91x_data);
++}
++
++#else
++
++static inline void board_smc91x_init(void)
++{
++}
++
++#endif /* defined(CONFIG_SMC91X) || defined(CONFIG_SMC91X_MODULE) */
++
++static void enable_board_wakeup_source(void)
++{
++	omap_cfg_reg(AF26_34XX_SYS_NIRQ); /* T2 interrupt line (keypad) */
++}
++
++static struct ehci_hcd_omap_platform_data ehci_pdata __initconst = {
++
++	.port_mode[0] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[1] = EHCI_HCD_OMAP_MODE_PHY,
++	.port_mode[2] = EHCI_HCD_OMAP_MODE_UNKNOWN,
++
++	.phy_reset  = true,
++	.reset_gpio_port[0]  = 126,
++	.reset_gpio_port[1]  = 61,
++	.reset_gpio_port[2]  = -EINVAL
++};
++
++static void __init omap_sdp_map_io(void)
++{
++	omap2_set_globals_343x();
++	omap2_map_common_io();
++}
++
++static struct omap_board_config_kernel sdp_config[] __initdata = {
++};
++
++static void __init omap_sdp_init_irq(void)
++{
++	omap_board_config = sdp_config;
++	omap_board_config_size = ARRAY_SIZE(sdp_config);
++	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
++			h8mbx00u0mer0em_sdrc_params);
++	omap_init_irq();
++	omap_gpio_init();
++}
++
++extern void __init zoom_peripherals_init(void);
++
++static void __init omap_sdp_init(void)
++{
++	zoom_peripherals_init();
++	board_smc91x_init();
++	enable_board_wakeup_source();
++	usb_ehci_init(&ehci_pdata);
++}
++
++MACHINE_START(OMAP_3630SDP, "OMAP 3630SDP board")
++	.phys_io	= 0x48000000,
++	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
++	.boot_params	= 0x80000100,
++	.map_io		= omap_sdp_map_io,
++	.init_irq	= omap_sdp_init_irq,
++	.init_machine	= omap_sdp_init,
++	.timer		= &omap_timer,
++MACHINE_END
 -- 
 1.6.5.1.69.g36942
 
