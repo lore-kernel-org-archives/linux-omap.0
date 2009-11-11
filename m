@@ -1,45 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 8/10 v3] omap mailbox: OMAP4-Mailbox - Adds code
- changes to support OMAP4 mailbox.
-Date: Wed, 11 Nov 2009 15:05:18 -0800
-Message-ID: <20091111230517.GO24837@atomide.com>
-References: <B85A65D85D7EB246BE421B3FB0FBB59301DDA2D841@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 01/11] OMAP3: PM: Fixed padconf save done check
+Date: Wed, 11 Nov 2009 15:16:03 -0800
+Message-ID: <87ocn8zm8c.fsf@deeprootsystems.com>
+References: <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:62060 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759534AbZKKXFV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:05:21 -0500
-Content-Disposition: inline
-In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DDA2D841@dbde02.ent.ti.com>
+Received: from mail-yw0-f176.google.com ([209.85.211.176]:36308 "EHLO
+	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759619AbZKKXQF (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:16:05 -0500
+Received: by ywh6 with SMTP id 6so1437445ywh.4
+        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 15:16:09 -0800 (PST)
+In-Reply-To: <1256313835-2391-2-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 23 Oct 2009 19\:03\:45 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "C.A, Subramaniam" <subramaniam.ca@ti.com>
-Cc: "linux@arm.linux.org.uk" <linux@arm.linux.org.uk>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, Hiroshi DOYU <Hiroshi.DOYU@Nokia.com>, "Gupta, Ramesh" <grgupta@ti.com>, "Kanigeri, Hari" <h-kanigeri2@ti.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org, Carlos Chinea <carlos.chinea@nokia.com>
 
-* C.A, Subramaniam <subramaniam.ca@ti.com> [090924 08:06]:
-> Hi all,
-> This is the revised version of the patch incorporating Russell's comments.
-> 
-> Regards
-> Subbu
->  
-> From 0c7c506f0a47acc8444bed83fa56ad2aa76c3b7c Mon Sep 17 00:00:00 2001
-> From: C A Subramaniam <subramaniam.ca@ti.com>
-> Date: Thu, 24 Sep 2009 19:16:39 +0530
-> Subject: [PATCH 8/10 v3] omap mailbox: OMAP4-Mailbox - Adds code changes to support OMAP4 mailbox.
-> 
-> This patch adds code changes in the mailbox driver module to
-> add support for OMAP4 mailbox.
+Tero Kristo <tero.kristo@nokia.com> writes:
 
-Subbu, can you please repost patch 8/10 and 10/10 against what
-I currently have in the omap for-next branch?
+> From: Carlos Chinea <carlos.chinea@nokia.com>
+>
+> Previously the operator precedence dictated that the delay loop was exited
+> immediately, potentially causing off-mode to be entered too soon.
+>
+> Signed-off-by: Carlos Chinea <carlos.chinea@nokia.com>
+> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
 
-I got the other ones applied, but those two need to be refreshed.
+Looks good.  Applying to PM branch and will queue in my pm-fixes branch
+for after 2.6.32 is released.
 
-Also, please make sure I got the other 8 patches merged right.
+Kevin
 
-Regards,
-
-Tony
+> ---
+>  arch/arm/mach-omap2/pm34xx.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 01260ec..8353764 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -146,8 +146,8 @@ static void omap3_core_save_context(void)
+>  	control_padconf_off |= START_PADCONF_SAVE;
+>  	omap_ctrl_writel(control_padconf_off, OMAP343X_CONTROL_PADCONF_OFF);
+>  	/* wait for the save to complete */
+> -	while (!omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
+> -			& PADCONF_SAVE_DONE)
+> +	while (!(omap_ctrl_readl(OMAP343X_CONTROL_GENERAL_PURPOSE_STATUS)
+> +			& PADCONF_SAVE_DONE))
+>  		;
+>  	/* Save the Interrupt controller context */
+>  	omap3_intc_save_context();
+> -- 
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
