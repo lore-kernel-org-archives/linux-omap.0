@@ -1,57 +1,28 @@
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: Re: [PATCH 1/4] Regulator: Adding header file for initializing
- OMAP35x PMICs
-Date: Wed, 11 Nov 2009 15:54:26 +0000
-Message-ID: <20091111155425.GB30354@rakim.wolfsonmicro.main>
-References: <1257950678-32452-1-git-send-email-anuj.aggarwal@ti.com>
+From: tarek attia <tarek.m.attia@gmail.com>
+Subject: power_management in beagleboard
+Date: Wed, 11 Nov 2009 18:22:49 +0200
+Message-ID: <82cfbe860911110822o6c1afa83r3b7f9de8c99baae5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:59026 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757564AbZKKPyV (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Nov 2009 10:54:21 -0500
-Content-Disposition: inline
-In-Reply-To: <1257950678-32452-1-git-send-email-anuj.aggarwal@ti.com>
+Received: from qw-out-2122.google.com ([74.125.92.26]:11823 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918AbZKKQWo (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 11:22:44 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so236259qwe.37
+        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 08:22:50 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Anuj Aggarwal <anuj.aggarwal@ti.com>
-Cc: linux-omap@vger.kernel.org, lrg@slimlogic.co.uk
+To: linux-omap <linux-omap@vger.kernel.org>
 
-On Wed, Nov 11, 2009 at 08:14:38PM +0530, Anuj Aggarwal wrote:
+Hey all,
 
-Looking at a lot of this it feels like it would be cleaner to just have
-a file defining the completely standard supplies, prototype them in the
-header files and then link to them from the board code.  I'm finding the
-macro stuff really hard to read.
+I've downloaded the patched linux kernel for the beagleboard,,and
+built it successfully,and after installing it on the board,,I found
+error tell me that there's a fatal error ,,and files not found for the
+Linux kernel 2.29 ,,however the linux kernel I downloaded 2.3,,
 
-More specific stuff:
+P.S:-  I'm using an Angstrom image which i built online
 
-> +/* Add/define supplies to the specific regulator */
-> +#define REGULATOR_COMSUMER_DEFINE(s, device) \
-
-These names are all very likely to clash with any similar macros added
-to the regulator API.
-
-> +               { \
-> +                       .supply = #s, \
-> +                       .dev = device, \
-> +               }
-> +
-
-You should be using dev_name not dev for maximuim flexibility.
-
-> +/* Define regulator with no supplies attached to it */
-> +#define REGULATOR_CONSUMER_NO_SUPPLY(regulator) \
-> +	REGULATOR_COMSUMER_START(regulator) = {}
-
-> +/* VDAC */
-> +#define TWL_VDAC_DATA	REGULATOR_INIT_DATA(vdac, VDAC, 1800000, 1800000, \
-> +						TWL_REGULATOR_MODES_DEFAULT, \
-> +						TWL_REGULATOR_OPS_DEFAULT, \
-> +						true)
-
-This is the sort of thing that looks like it should be defined in one
-common place rather than having multiple copies of the structure, one in
-every board using it.
+Any help will be apperciated
+tarek
