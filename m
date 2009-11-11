@@ -1,55 +1,60 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/1]: Thaws refrigerated bdi flusher threads before invoking kthread_stop on them
-Date: Wed, 11 Nov 2009 21:41:12 +0100
-Message-ID: <200911112141.12437.rjw@sisk.pl>
-References: <1257928216.15415.57.camel@boson> <200911111230.58479.rjw@sisk.pl> <20091111193719.GR8742@kernel.dk>
+From: Chris Hudson <chudson@kionix.com>
+Subject: Re: [RFC PATCH v3 1/3] input:misc:driver support for Kionix kxte9
+ accelerometer
+Date: Wed, 11 Nov 2009 15:42:58 -0500
+Message-ID: <4AFB21D2.2000007@kionix.com>
+References: <1257971179-28225-1-git-send-email-chudson@kionix.com> <FCCFB4CDC6E5564B9182F639FC35608702FA5CBB36@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758910AbZKKUju@vger.kernel.org>
-In-Reply-To: <20091111193719.GR8742@kernel.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jens Axboe <jens.axboe@oracle.com>, Romit Dasgupta <romit@ti.com>
-Cc: Pavel Machek <pavel@ucw.cz>, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Return-path: <linux-input-owner@vger.kernel.org>
+In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA5CBB36@dbde02.ent.ti.com>
+Sender: linux-input-owner@vger.kernel.org
+To: "Pandita, Vikram" <vikram.pandita@ti.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
 List-Id: linux-omap@vger.kernel.org
 
-On Wednesday 11 November 2009, Jens Axboe wrote:
-> On Wed, Nov 11 2009, Rafael J. Wysocki wrote:
-> > On Wednesday 11 November 2009, Pavel Machek wrote:
-> > > On Wed 2009-11-11 14:00:16, Romit Dasgupta wrote:
-> > > > Kicks out frozen bdi flusher task out of the refrigerator when the flusher task
-> > > > needs to exit.
-> > > 
-> > > 
-> > > > Signed-off-by: Romit Dasgupta <romit@ti.com>
-> > > 
-> > > Ok, its slightly "interesting", but better than modifying common
-> > > code. Looks ok to me.
-> > > 
-> > > ACK.
-> > 
-> > Agreed.
-> > 
-> > Jens, any objections?
-> 
-> Nope, looks fine to me. Though I'd probably prefer just doing an
-> unconditional PF_FROZEN clear.
-> 
-> /*
->  * Force unfreeze of the bdi threads before stopping it, since otherwise
->  * it would never exit if it is stuck in the refrigerator.
->  */
-> list_for_each_entry(wb, &bdi->wb_list, list) {
-> 	wb->task->flags &= ~PF_FROZEN;
-> 	kthread_stop(wb->task);
-> }
-> 
-> And the comment too, it's not enough to stuff this into the commit.
-
-The last version had the changelog fixed.
-
-Romit, please rework as suggested by Jens and resubmit.
-
-Thanks,
-Rafael
+Pandita, Vikram wrote:
+> Chris
+>
+>   
+>> -----Original Message-----
+>> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of
+>> chudson@kionix.com
+>> Sent: Wednesday, November 11, 2009 2:26 PM
+>> To: linux-omap@vger.kernel.org
+>> Cc: linux-input@vger.kernel.org; dmitry.torokhov@gmail.com; Chris Hudson
+>> Subject: [RFC PATCH v3 1/3] input:misc:driver support for Kionix kxte9 accelerometer
+>>
+>> From: Chris Hudson <chudson@kionix.com>
+>>
+>> This is a request for comments regarding adding driver support for the Kionix
+>> KXTE9 digital tri-axis accelerometer.  This part features built-in tilt
+>> position (orientation), wake-up and back-to-sleep algorithms, which can trigger
+>> a user-configurable physical interrupt.  The driver uses i2c for device
+>> communication, a misc node for IOCTLs, and input nodes for reporting
+>> acceleration data and interrupt status information.  Moved to
+>> drivers/input/misc after discussion on linux-omap mailing list.
+>>     
+>
+> Any way to test these features of accelerometer with your set of 3 patches applied?
+>
+> Say with a busybox filesystem or poky?
+>   
+Sure, I've been using busybox with the ZoomII and testing the hardware 
+throughout the development process.  You'll need to attach a KXTE9 to 
+the i2c-2 bus, vdd, iovdd, ground, and gpio156 on the J43 header if 
+using a ZoomII.  I can give you the exact pins I'm using if you would like.
+Thank you,
+Chris
+>   
+>> Changes in this version:
+>>     
+> <snip>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>   
