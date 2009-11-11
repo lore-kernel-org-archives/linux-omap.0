@@ -1,65 +1,54 @@
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [PATCH 1/1]: Thaws refrigerated bdi flusher threads before invoking kthread_stop on them
-Date: Wed, 11 Nov 2009 12:59:04 +0100
-Message-ID: <200911111259.04481.rjw@sisk.pl>
-References: <1257928216.15415.57.camel@boson> <200911111230.58479.rjw@sisk.pl> <1257940231.28810.2.camel@boson>
+From: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Re: [lm-sensors] [RFC PATCH 1/3] hwmon:driver support for Kionix
+  kxte9 accelerometer
+Date: Wed, 11 Nov 2009 14:14:26 +0000
+Message-ID: <4AFAC6C2.8010708@cam.ac.uk>
+References: <1257877729-25647-1-git-send-email-chudson@kionix.com>	<20091110193539.7e1392f3@hyperion.delvare>	<4AF9B5E3.1060902@kionix.com>	<4AF9B847.3070008@cam.ac.uk>	<4AF9CDF2.2070003@kionix.com> <20091110223907.1f47b07f@hyperion.delvare> <4AF9E115.9090603@kionix.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:35243 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751563AbZKKL5q (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Nov 2009 06:57:46 -0500
-In-Reply-To: <1257940231.28810.2.camel@boson>
+Received: from ppsw-5.csi.cam.ac.uk ([131.111.8.135]:59206 "EHLO
+	ppsw-5.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756181AbZKKONv (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 09:13:51 -0500
+In-Reply-To: <4AF9E115.9090603@kionix.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: romit@ti.com, "jens.axboe@oracle.com" <jens.axboe@oracle.com>
-Cc: Pavel Machek <pavel@ucw.cz>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-pm@lists.linux-foundation.org" <linux-pm@lists.linux-foundation.org>
+To: Chris Hudson <chudson@kionix.com>
+Cc: Jean Delvare <khali@linux-fr.org>, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org
 
-On Wednesday 11 November 2009, Romit Dasgupta wrote:
-> Hello Rafael, 
->               As suggested I have added the relevant information in the
-> changelog. The patch is below:
-> > For completness, below is the information from the Romit's introductory message
-> > (Romit, I really think that should go into the chagelog):
-> 
-> Kicks out frozen bdi flusher task out of the refrigerator when the said task
-> needs to exit.
-> Steps to reproduce this.
-> 1) Mount a file system from MMC/SD card.
-> 2) Unmount the file system. This creates a flusher task.
-> 3) Attempt suspend to RAM. System is unresponsive.
-> 
-> This is because the bdi flusher thread is already in the refrigerator and will
-> remain so until it is thawed. The MMC driver suspend routine ultimately will
-> issue a 'kthread_stop' on the bdi flusher thread and will block until the
-> flusher thread is exited. Since the bdi flusher thread is in the refrigerator
-> it never cleans up until thawed.
-> 
-> Signed-off-by: Romit Dasgupta <romit@ti.com>
+Chris Hudson wrote:
+> Jean Delvare wrote:
+>> On Tue, 10 Nov 2009 15:32:50 -0500, Chris Hudson wrote:
+>>  
+>>> Thank you for your insight Jonathan.  The driver was originally
+>>> written for the 2.6.29 omap-android kernel to facilitate integration
+>>> of the kxte9 into customer projects.  Unfortunately, it seems that
+>>> things in the kernel have changed since then, but I'm not sure how
+>>> much we can change without sacrificing compatibility with the Android
+>>> sensor API.  Is there a different place where this driver could go
+>>> without requiring significant redesign?
+>>>     
+>>
+>> I don't think a move implies a redesign. You could put exactly the same
+>> driver under drivers/misc, drivers/accel, drivers/input or what do I
+>> know. I don't want it in drivers/hwmon, but I don't care about anything
+>> else.
+>>
+>>   
+> Thank you Jean; I will resubmit the driver for drivers/input/misc if
+> that sounds appropriate.  On another note, I accidentally left some
+> debug code in place that I will be removing (unless it seems appropriate
+> to leave that in for intermediate testing).  Any thoughts on this?
+I'd run the code (or a description) quickly past the input maintainer 
+Dmitry Torokhov <dmitry.torokhov@gmail.com> before putting any effort into
+this.  You certainly don't want to being playing pingpong around the kernel
+like one or two other drivers have!
 
-Thanks!  I'd still like to know that this change is fine with Jens, though.
+Personally I'd drop debugging unless you have a reason you think there may be
+problems.   I'm guessing no one who will do review has one anyway so testing
+will be over to you in the short term anyway!  If it's not useful to you anymore
+drop it.
 
-Rafael
-
-
-> ---
-> diff --git a/mm/backing-dev.c b/mm/backing-dev.c
-> index 5a37e20..c757b05 100644
-> --- a/mm/backing-dev.c
-> +++ b/mm/backing-dev.c
-> @@ -606,8 +606,11 @@ static void bdi_wb_shutdown(struct backing_dev_info *bdi)
->  	 * Finally, kill the kernel threads. We don't need to be RCU
->  	 * safe anymore, since the bdi is gone from visibility.
->  	 */
-> -	list_for_each_entry(wb, &bdi->wb_list, list)
-> +	list_for_each_entry(wb, &bdi->wb_list, list) {
-> +		if (unlikely(frozen(wb->task)))
-> +			wb->task->flags &= ~PF_FROZEN;
->  		kthread_stop(wb->task);
-> +	}
->  }
->  
->  void bdi_unregister(struct backing_dev_info *bdi)
+Jonathan
