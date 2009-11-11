@@ -1,59 +1,41 @@
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [PATCH] OMAP1: PM: Fix omapfb/lcd on Amstrad Delta broken when PM set
-Date: Wed, 11 Nov 2009 01:02:11 +0100
-Message-ID: <200911110102.16009.jkrzyszt@tis.icnet.pl>
-References: <200910292339.48610.jkrzyszt@tis.icnet.pl> <200910301542.27206.jkrzyszt@tis.icnet.pl> <alpine.DEB.2.00.0911100347320.20233@utopia.booyaka.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: [PATCH 0/4] omap_udc fixes for omap7xx
+Date: Tue, 10 Nov 2009 16:33:46 -0800
+Message-ID: <20091111003346.GG23952@atomide.com>
+References: <6cb013310910050748o748d008ch60a85ef504029d9c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:51191 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758703AbZKKADF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 19:03:05 -0500
-In-Reply-To: <alpine.DEB.2.00.0911100347320.20233@utopia.booyaka.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60385 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752076AbZKKAdm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 19:33:42 -0500
 Content-Disposition: inline
+In-Reply-To: <6cb013310910050748o748d008ch60a85ef504029d9c@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Paul Walmsley <paul@pwsan.com>
-Cc: Tony Lindgren <tony@atomide.com>, Kevin Hilman <khilman@deeprootsystems.com>, Jonathan McDowell <noodles@earth.li>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Imre Deak <imre.deak@nokia.com>, linux-fbdev-devel@lists.sourceforge.net
+To: Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org
 
-Tuesday 10 November 2009 11:50:52 Paul Walmsley napisa=C5=82(a):
-> Hello Janusz et al,
->
-> On Fri, 30 Oct 2009, Janusz Krzysztofik wrote:
-> > More looking at it, I found that might be omap_dma_running() from
-> > arch/arm/plat-omap/dma.c that needs correction. It already checks f=
-or LCD
-> > dma running for OMAP1610, but does nothing similiar for 1510. I hav=
-e
-> > revisited http://focus.ti.com/lit/ug/spru674/spru674.pdf, but found=
- no
-> > hint how to do that in a 1610 similiar way.
->
-> Speaking of this code, here's a project suggestion if someone has som=
-e
-> spare time.  All of the LCD DMA code in plat-omap/dma.c appears to be
-> OMAP1-only (and apparently only is available on a subset of OMAP1 chi=
-ps).
-> It would be great if this code could be moved to mach-omap1/lcd_dma.c=
- or
-> a similar place.
+* Cory Maccarrone <darkstar6262@gmail.com> [091005 07:51]:
+> The following four patches patch the OMAP UDC subsystem to allow
+> omap7xx-based systems to operate with USB in client mode.
+> 
+> Cory Maccarrone (4):
+>   [OMAP] Clocks: Add omap7xx-specific USB clock configuration
+>   [OMAP] omap_udc: Updates for omap7xx IRQs and config
+>   [OMAP] omap_udc: Add clocking and disable vbus sense for omap7xx
+>   [OMAP1] Make ARCH_OMAP850 select ARCH_OMAP_OTG
+> 
+>  arch/arm/mach-omap1/Kconfig   |    1 +
+>  arch/arm/mach-omap1/clock.c   |    3 ++-
+>  arch/arm/mach-omap1/clock.h   |   10 ++++++++++
+>  arch/arm/plat-omap/usb.c      |   20 ++++++++++++++------
+>  drivers/usb/gadget/omap_udc.c |   19 +++++++++++++++++--
 
-Paul,
+Pushing these as a single patch to omap for-next today. Please
+check and patch as needed.
 
-Thank you for putting me into right direction (I hope :-)). If there ar=
-e no=20
-more comments, I'll try to take care of what you suggest after the situ=
-ation=20
-with my pending patches AND Tomi Valkeinen's DSS2 patch series, that bo=
-th=20
-more or less fiddle with LCD DMA related files, gets clear.
+BTW, had to unwrap some of these manually..
 
-Thanks,
-Janusz
---
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tony
