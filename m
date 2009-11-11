@@ -1,56 +1,52 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 1/1]: Thaws refrigerated bdi flusher threads before
- invoking kthread_stop on them
-Date: Wed, 11 Nov 2009 11:34:44 +0100
-Message-ID: <20091111103444.GD26423@elf.ucw.cz>
-References: <1257928216.15415.57.camel@boson>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Mike Rapoport <mike@compulab.co.il>
+Subject: [PATCH 2/3] omap3: cm-t35: use matrix_keyboard
+Date: Wed, 11 Nov 2009 13:19:31 +0200
+Message-ID: <e79a81510d77fa9bc8df2cedc8ccf391936d7ebd.1257937910.git.mike@compulab.co.il>
+References: <cover.1257937910.git.mike@compulab.co.il>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49686 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751086AbZKKKep (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 05:34:45 -0500
-Content-Disposition: inline
-In-Reply-To: <1257928216.15415.57.camel@boson>
+Received: from compulab.co.il ([67.18.134.219]:54096 "EHLO compulab.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751300AbZKKLZy (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Nov 2009 06:25:54 -0500
+Received: from [62.90.235.247] (helo=zimbra-mta.compulab.co.il)
+	by compulab.site5.com with esmtp (Exim 4.69)
+	(envelope-from <mike@compulab.co.il>)
+	id 1N8BKq-00070f-1h
+	for linux-omap@vger.kernel.org; Wed, 11 Nov 2009 05:26:00 -0600
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by zimbra-mta.compulab.co.il (Postfix) with ESMTP id 508DC9A0359
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 13:19:34 +0200 (IST)
+In-Reply-To: <cover.1257937910.git.mike@compulab.co.il>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Romit Dasgupta <romit@ti.com>
-Cc: jens.axboe@oracle.com, rjw@sisk.pl, linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org
+To: linux-omap@vger.kernel.org
+Cc: Mike Rapoport <mike@compulab.co.il>
 
-On Wed 2009-11-11 14:00:16, Romit Dasgupta wrote:
-> Kicks out frozen bdi flusher task out of the refrigerator when the flusher task
-> needs to exit.
+Signed-off-by: Mike Rapoport <mike@compulab.co.il>
+---
+ arch/arm/mach-omap2/board-cm-t35.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-
-> Signed-off-by: Romit Dasgupta <romit@ti.com>
-
-Ok, its slightly "interesting", but better than modifying common
-code. Looks ok to me.
-
-ACK.
-								Pavel
-
-> ---
-> diff --git a/mm/backing-dev.c b/mm/backing-dev.c
-> index 5a37e20..c757b05 100644
-> --- a/mm/backing-dev.c
-> +++ b/mm/backing-dev.c
-> @@ -606,8 +606,11 @@ static void bdi_wb_shutdown(struct backing_dev_info *bdi)
->  	 * Finally, kill the kernel threads. We don't need to be RCU
->  	 * safe anymore, since the bdi is gone from visibility.
->  	 */
-> -	list_for_each_entry(wb, &bdi->wb_list, list)
-> +	list_for_each_entry(wb, &bdi->wb_list, list) {
-> +		if (unlikely(frozen(wb->task)))
-> +			wb->task->flags &= ~PF_FROZEN;
->  		kthread_stop(wb->task);
-> +	}
->  }
->  
->  void bdi_unregister(struct backing_dev_info *bdi)
-> 
-
+diff --git a/arch/arm/mach-omap2/board-cm-t35.c b/arch/arm/mach-omap2/board-cm-t35.c
+index f9290ca..0a46c0e 100644
+--- a/arch/arm/mach-omap2/board-cm-t35.c
++++ b/arch/arm/mach-omap2/board-cm-t35.c
+@@ -24,6 +24,7 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
++#include <linux/input/matrix_keypad.h>
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
+ 
+@@ -39,7 +40,6 @@
+ #include <plat/common.h>
+ #include <plat/mux.h>
+ #include <plat/nand.h>
+-#include <plat/keypad.h>
+ #include <plat/gpmc.h>
+ #include <plat/usb.h>
+ 
 -- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+1.6.0.6
+
