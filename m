@@ -1,74 +1,53 @@
-From: Romit Dasgupta <romit@ti.com>
-Subject: [PATCH 0/1]: Thaws refrigerated bdi flusher threads before
- invoking kthread_stop on them
-Date: Wed, 11 Nov 2009 13:52:44 +0530
-Message-ID: <1257927764.15415.49.camel@boson>
-Reply-To: romit@ti.com
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: manual merge of the usb tree with the omap tree
+Date: Wed, 11 Nov 2009 19:30:13 +1100
+Message-ID: <20091111193013.9a4bca3e.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757292AbZKKIXY@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: jens.axboe@oracle.com, rjw@sisk.pl, pavel@ucw.cz
-Cc: linux-kernel@vger.kernel.org, linux-omap@vger.kernel.org, linux-pm@lists.linux-foundation.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__11_Nov_2009_19_30_13_+1100_IYRf/tMhfUe8qTga"
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from chilli.pcug.org.au ([203.10.76.44]:39883 "EHLO smtps.tip.net.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755534AbZKKIaM (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Nov 2009 03:30:12 -0500
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Greg KH <greg@kroah.com>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org
 
-Hi,
-    Few days back I started facing problems during system suspend with
-MMC, SD card installed. I will restate how to reproduce the problem:
+--Signature=_Wed__11_Nov_2009_19_30_13_+1100_IYRf/tMhfUe8qTga
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-1) Mount a file system from MMC/SD card.
-2) Unmount the file system. This creates a flusher task.
-3) Attempt suspend to RAM. System is unresponsive.
+Hi Greg,
 
-This is because the bdi flusher thread is already in the refrigerator
-and will remain so until it is thawed. The MMC driver suspend routine
-ultimately will issue a 'kthread_stop' on the bdi flusher thread and
-will block until the flusher thread is exited. Since the bdi flusher
-thread is in the refrigerator it never cleans up until thawed.
+Today's linux-next merge of the usb tree got a conflict in
+drivers/usb/host/ehci-omap.c between commit
+7cb07f72711d3e10763ca7d7a9fcd7ac788aabf4 ("omap: ehci: Add platform init
+code") from the omap tree and commit
+9e92239693d7010d2e710a445f46d6a738b09171 ("USB: host: ehci: introduce
+omap ehci-hcd driver") from the usb tree.
 
-Enabling khungtaskd gave the following dump: (the dump wraps beyond 80
-cols).
+Both commits create this file but I used the omap tree version because
+commit ce491cf85466c3377228c5a852ea627ec5136956 ("omap: headers: Move
+remaining headers from include/mach to include/plat") from the omap tree
+moved one included header file (mach/usb.h -> plat/usb.h).
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
 
-INFO: task sh:387 blocked for more than 120 seconds.
-"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
-sh            D c027e86c     0   387      1 0x00000000
-[<c027e86c>] (schedule+0x2e0/0x36c) from [<c027ee78>] (schedule_timeout+0x18/0x1ec)
-[<c027ee78>] (schedule_timeout+0x18/0x1ec) from [<c027ed10>] (wait_for_common+0xe0/0x198)
-[<c027ed10>] (wait_for_common+0xe0/0x198) from [<c0063dd4>] (kthread_stop+0x44/0x78)
-[<c0063dd4>] (kthread_stop+0x44/0x78) from [<c0090938>] (bdi_unregister+0x64/0xa4)
-[<c0090938>] (bdi_unregister+0x64/0xa4) from [<c0173958>] (unlink_gendisk+0x20/0x3c)
-[<c0173958>] (unlink_gendisk+0x20/0x3c) from [<c00f2338>] (del_gendisk+0x84/0xb4)
-[<c00f2338>] (del_gendisk+0x84/0xb4) from [<c01e6840>] (mmc_blk_remove+0x24/0x44)
-[<c01e6840>] (mmc_blk_remove+0x24/0x44) from [<c01e14f0>] (mmc_bus_remove+0x18/0x20)
-[<c01e14f0>] (mmc_bus_remove+0x18/0x20) from [<c01af6ac>] (__device_release_driver+0x64/0xa4)
-[<c01af6ac>] (__device_release_driver+0x64/0xa4) from [<c01af7e4>] (device_release_driver+0x1c/0x28)
-[<c01af7e4>] (device_release_driver+0x1c/0x28) from [<c01aed5c>] (bus_remove_device+0x7c/0x90)
-[<c01aed5c>] (bus_remove_device+0x7c/0x90) from [<c01ad538>] (device_del+0x110/0x160)
-[<c01ad538>] (device_del+0x110/0x160) from [<c01e15a8>] (mmc_remove_card+0x50/0x64)
-[<c01e15a8>] (mmc_remove_card+0x50/0x64) from [<c01e2ea4>] (mmc_sd_remove+0x24/0x30)
-[<c01e2ea4>] (mmc_sd_remove+0x24/0x30) from [<c01e0dcc>] (mmc_suspend_host+0x110/0x1a8)
-[<c01e0dcc>] (mmc_suspend_host+0x110/0x1a8) from [<c01e7d04>] (omap_hsmmc_suspend+0x74/0x104)
-[<c01e7d04>] (omap_hsmmc_suspend+0x74/0x104) from [<c01b08e8>] (platform_pm_suspend+0x50/0x5c)
-[<c01b08e8>] (platform_pm_suspend+0x50/0x5c) from [<c01b27f0>] (pm_op+0x30/0x74)
-[<c01b27f0>] (pm_op+0x30/0x74) from [<c01b2ec8>] (dpm_suspend_start+0x3b4/0x518)
-[<c01b2ec8>] (dpm_suspend_start+0x3b4/0x518) from [<c0078b20>] (suspend_devices_and_enter+0x3c/0x1c4)
-[<c0078b20>] (suspend_devices_and_enter+0x3c/0x1c4) from [<c0078d88>] (enter_state+0xe0/0x138)
-[<c0078d88>] (enter_state+0xe0/0x138) from [<c0078444>] (state_store+0x94/0xbc)
-[<c0078444>] (state_store+0x94/0xbc) from [<c017e124>] (kobj_attr_store+0x18/0x1c)
-[<c017e124>] (kobj_attr_store+0x18/0x1c) from [<c00f3a08>] (sysfs_write_file+0x108/0x13c)
-[<c00f3a08>] (sysfs_write_file+0x108/0x13c) from [<c00a76b8>] (vfs_write+0xac/0x154)
-[<c00a76b8>] (vfs_write+0xac/0x154) from [<c00a780c>] (sys_write+0x3c/0x68)
-[<c00a780c>] (sys_write+0x3c/0x68) from [<c0025e60>] (ret_fast_syscall+0x0/0x2c)
+--Signature=_Wed__11_Nov_2009_19_30_13_+1100_IYRf/tMhfUe8qTga
+Content-Type: application/pgp-signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-Earlier I had sent a patch to thaw any refrigerated kernel thread when
-some active thread has invoked 'kthread_stop' on it. This was done with
-the assumption that all such kernel threads should invoke
-'kthread_should_stop' after 'try_to_freeze' and exit if necessary. It
-looks there are some kernel threads which do not follow this. With that
-in mind I am sending a different patch to fix the above issue (in the
-next mail).
+iEYEARECAAYFAkr6dhUACgkQjjKRsyhoI8y2HACePvALDSAaw98WcGAOvILL7Yy7
+lzYAoIz9mHBive5w48qeS8O9Twt1/cMK
+=jVaI
+-----END PGP SIGNATURE-----
 
-Regards,
--Romit
+--Signature=_Wed__11_Nov_2009_19_30_13_+1100_IYRf/tMhfUe8qTga--
