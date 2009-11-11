@@ -1,41 +1,39 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/4] omap_udc fixes for omap7xx
-Date: Tue, 10 Nov 2009 16:33:46 -0800
-Message-ID: <20091111003346.GG23952@atomide.com>
-References: <6cb013310910050748o748d008ch60a85ef504029d9c@mail.gmail.com>
+Subject: Re: [PATCH] [OMAP7XX] Add missing clocks for MMC
+Date: Tue, 10 Nov 2009 16:36:15 -0800
+Message-ID: <20091111003615.GH23952@atomide.com>
+References: <6cb013310910031458x666606cagdd1c5f9d4fb26dac@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60385 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752076AbZKKAdm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 19:33:42 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:59501 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752076AbZKKAgL (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Tue, 10 Nov 2009 19:36:11 -0500
 Content-Disposition: inline
-In-Reply-To: <6cb013310910050748o748d008ch60a85ef504029d9c@mail.gmail.com>
+In-Reply-To: <6cb013310910031458x666606cagdd1c5f9d4fb26dac@mail.gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Cory Maccarrone <darkstar6262@gmail.com>
 Cc: linux-omap@vger.kernel.org
 
-* Cory Maccarrone <darkstar6262@gmail.com> [091005 07:51]:
-> The following four patches patch the OMAP UDC subsystem to allow
-> omap7xx-based systems to operate with USB in client mode.
+* Cory Maccarrone <darkstar6262@gmail.com> [091003 15:09]:
+> The omap730 and omap850 both use a different clock for the "fck"
+> clock of the MMC interface than other omap processors based on the
+> SOFT_REQ_REG, pin 12.  The "ick" clock is the same as that used
+> by other omap processors.
 > 
-> Cory Maccarrone (4):
->   [OMAP] Clocks: Add omap7xx-specific USB clock configuration
->   [OMAP] omap_udc: Updates for omap7xx IRQs and config
->   [OMAP] omap_udc: Add clocking and disable vbus sense for omap7xx
->   [OMAP1] Make ARCH_OMAP850 select ARCH_OMAP_OTG
+> * Added the missing clock definition as mmc3_ck to clock.h
+> * Added the clock definition to omap_clks in clock.c
+> * Added CK_7XX to the mmci-omap.0 "ick" clock already in clock.c
 > 
->  arch/arm/mach-omap1/Kconfig   |    1 +
->  arch/arm/mach-omap1/clock.c   |    3 ++-
->  arch/arm/mach-omap1/clock.h   |   10 ++++++++++
->  arch/arm/plat-omap/usb.c      |   20 ++++++++++++++------
->  drivers/usb/gadget/omap_udc.c |   19 +++++++++++++++++--
+> With this change, it is now possible to initialize and use MMC
+> cards with omap730 and omap850 devices.
 
-Pushing these as a single patch to omap for-next today. Please
-check and patch as needed.
+Pushing all the 7xx mmc platform init code as a single patch to
+for-next today. Can you please check?
 
-BTW, had to unwrap some of these manually..
+The drivers/mmc/host/omap.c patch you need to get merged via
+linux-mmc@vger.kernel.org list :)
 
 Tony
