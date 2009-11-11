@@ -1,20 +1,21 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 02/11] OMAP3: Disable Smartreflex before pwrdm enters RET
-Date: Wed, 11 Nov 2009 15:17:20 -0800
-Message-ID: <87iqdgzm67.fsf@deeprootsystems.com>
+Subject: Re: [PATCH 03/11] OMAP2/3: DMTIMER: Clear pending interrupts when stopping a timer
+Date: Wed, 11 Nov 2009 15:18:17 -0800
+Message-ID: <87d43ozm4m.fsf@deeprootsystems.com>
 References: <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
 	<1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
 	<1256313835-2391-3-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-4-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:36245 "EHLO
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:55665 "EHLO
 	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759360AbZKKXRR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:17:17 -0500
-Received: by gxk26 with SMTP id 26so1548243gxk.1
-        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 15:17:22 -0800 (PST)
-In-Reply-To: <1256313835-2391-3-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 23 Oct 2009 19\:03\:46 +0300")
+	with ESMTP id S1759532AbZKKXSP (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:18:15 -0500
+Received: by gxk26 with SMTP id 26so1548891gxk.1
+        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 15:18:20 -0800 (PST)
+In-Reply-To: <1256313835-2391-4-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 23 Oct 2009 19\:03\:47 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: Tero Kristo <tero.kristo@nokia.com>
@@ -24,67 +25,42 @@ Tero Kristo <tero.kristo@nokia.com> writes:
 
 > From: Tero Kristo <tero.kristo@nokia.com>
 >
-> Smartreflex for the corresponding powerdomain (MPU/CORE) must be disabled
-> before the domain enters retention, otherwise the device may hang. This is
-> caused by overlapping smartreflex / auto retention command on the voltage
-> channel resulting in incorrect voltage.
->
-> This fix has been confirmed from TI.
+> OMAP GP timers keep running for a few cycles after they are stopped,
+> which can cause the timer to expire and generate an interrupt. The pending
+> interrupt will prevent e.g. OMAP from entering suspend, thus we ack it
+> manually.
 >
 > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-Thanks, applying to PM branch, queuing in pm-fixes.
+Thanks, applying to PM branch, queueing in pm-fixes.
 
 Kevin
 
 > ---
->  arch/arm/mach-omap2/pm34xx.c |   22 +++++++++++++++++-----
->  1 files changed, 17 insertions(+), 5 deletions(-)
+>  arch/arm/plat-omap/dmtimer.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
 >
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index 8353764..6782792 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -403,11 +403,17 @@ void omap_sram_idle(void)
->  	if (pwrdm_read_pwrst(cam_pwrdm) == PWRDM_POWER_ON)
->  		omap2_clkdm_deny_idle(mpu_pwrdm->pwrdm_clkdms[0]);
->  
-> -	/* CORE */
-> -	if (core_next_state < PWRDM_POWER_ON) {
-> -		/* Disable smartreflex before entering WFI */
-> +	/*
-> +	 * Disable smartreflex before entering WFI.
-> +	 * Only needed if we are going to enter retention or off.
-> +	 */
-> +	if (mpu_next_state <= PWRDM_POWER_RET)
->  		disable_smartreflex(SR1);
-> +	if (core_next_state <= PWRDM_POWER_RET)
->  		disable_smartreflex(SR2);
-> +
-> +	/* CORE */
-> +	if (core_next_state < PWRDM_POWER_ON) {
->  		omap_uart_prepare_idle(0);
->  		omap_uart_prepare_idle(1);
->  		if (core_next_state == PWRDM_POWER_OFF) {
-> @@ -480,10 +486,16 @@ void omap_sram_idle(void)
->  			prm_clear_mod_reg_bits(OMAP3430_AUTO_RET,
->  						OMAP3430_GR_MOD,
->  						OMAP3_PRM_VOLTCTRL_OFFSET);
-> -		/* Enable smartreflex after WFI */
-> +	}
-> +
-> +	/*
-> +	 * Enable smartreflex after WFI. Only needed if we entered
-> +	 * retention or off
-> +	 */
-> +	if (mpu_next_state <= PWRDM_POWER_RET)
->  		enable_smartreflex(SR1);
-> +	if (core_next_state <= PWRDM_POWER_RET)
->  		enable_smartreflex(SR2);
-> -	}
->  
->  	/* PER */
->  	if (per_next_state < PWRDM_POWER_ON) {
+> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
+> index 830b072..09a623d 100644
+> --- a/arch/arm/plat-omap/dmtimer.c
+> +++ b/arch/arm/plat-omap/dmtimer.c
+> @@ -551,6 +551,16 @@ void omap_dm_timer_stop(struct omap_dm_timer *timer)
+>  	if (l & OMAP_TIMER_CTRL_ST) {
+>  		l &= ~0x1;
+>  		omap_dm_timer_write_reg(timer, OMAP_TIMER_CTRL_REG, l);
+> +		/* Readback to make sure write has completed */
+> +		omap_dm_timer_read_reg(timer, OMAP_TIMER_CTRL_REG);
+> +		 /*
+> +		  * Wait for functional clock period x 3.5 to make sure that
+> +		  * timer is stopped
+> +		  */
+> +		udelay(3500000 / clk_get_rate(timer->fclk) + 1);
+> +		/* Ack possibly pending interrupt */
+> +		omap_dm_timer_write_reg(timer, OMAP_TIMER_STAT_REG,
+> +				OMAP_TIMER_INT_OVERFLOW);
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(omap_dm_timer_stop);
 > -- 
 > 1.5.4.3
 >
