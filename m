@@ -1,68 +1,107 @@
-From: Chris Hudson <chudson@kionix.com>
-Subject: Re: [lm-sensors] [RFC PATCH 1/3] hwmon:driver support for Kionix
-  kxte9 accelerometer
-Date: Wed, 11 Nov 2009 09:21:19 -0500
-Message-ID: <4AFAC85F.9010406@kionix.com>
-References: <1257877729-25647-1-git-send-email-chudson@kionix.com>	<20091110193539.7e1392f3@hyperion.delvare>	<4AF9B5E3.1060902@kionix.com>	<4AF9B847.3070008@cam.ac.uk>	<4AF9CDF2.2070003@kionix.com> <20091110223907.1f47b07f@hyperion.delvare> <4AF9E115.9090603@kionix.com> <4AFAC6C2.8010708@cam.ac.uk>
+From: "Premi, Sanjeev" <premi@ti.com>
+Subject: RE: [PATCH] Disable headset jack detection for SDP3430
+Date: Wed, 11 Nov 2009 20:06:16 +0530
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE447FEB@dbde02.ent.ti.com>
+References: <496565EC904933469F292DDA3F1663E602A6A21602@dlee06.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from barracuda.kionix.com ([205.232.90.213]:35608 "EHLO
-	mail.kionix.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753188AbZKKOVW (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 09:21:22 -0500
-In-Reply-To: <4AFAC6C2.8010708@cam.ac.uk>
+Received: from bear.ext.ti.com ([192.94.94.41]:35542 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755069AbZKKOgQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 09:36:16 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nABEaJbM002501
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 08:36:21 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nABEaIfC013499
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 20:06:19 +0530 (IST)
+In-Reply-To: <496565EC904933469F292DDA3F1663E602A6A21602@dlee06.ent.ti.com>
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Jonathan Cameron <jic23@cam.ac.uk>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-omap@vger.kernel.org, lm-sensors@lm-sensors.org
+To: "Romero, Felipe" <felipe.romero@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Romero, Felipe
+> Sent: Tuesday, November 10, 2009 11:24 PM
+> To: linux-omap@vger.kernel.org
+> Subject: [PATCH] Disable headset jack detection for SDP3430
+> 
+> From: Felipe Romero <felipe.romero@ti.com>
+> 
+> This patch Disable headset jack detection for SDP3430 boards,
+> to avoid CPU kernel utilization.
 
+[sp] I was wondering if you have measured savings in the
+     cpu utilization.
 
-Jonathan Cameron wrote:
-> Chris Hudson wrote:
->   
->> Jean Delvare wrote:
->>     
->>> On Tue, 10 Nov 2009 15:32:50 -0500, Chris Hudson wrote:
->>>  
->>>       
->>>> Thank you for your insight Jonathan.  The driver was originally
->>>> written for the 2.6.29 omap-android kernel to facilitate integration
->>>> of the kxte9 into customer projects.  Unfortunately, it seems that
->>>> things in the kernel have changed since then, but I'm not sure how
->>>> much we can change without sacrificing compatibility with the Android
->>>> sensor API.  Is there a different place where this driver could go
->>>> without requiring significant redesign?
->>>>     
->>>>         
->>> I don't think a move implies a redesign. You could put exactly the same
->>> driver under drivers/misc, drivers/accel, drivers/input or what do I
->>> know. I don't want it in drivers/hwmon, but I don't care about anything
->>> else.
->>>
->>>   
->>>       
->> Thank you Jean; I will resubmit the driver for drivers/input/misc if
->> that sounds appropriate.  On another note, I accidentally left some
->> debug code in place that I will be removing (unless it seems appropriate
->> to leave that in for intermediate testing).  Any thoughts on this?
->>     
-> I'd run the code (or a description) quickly past the input maintainer 
-> Dmitry Torokhov <dmitry.torokhov@gmail.com> before putting any effort into
-> this.  You certainly don't want to being playing pingpong around the kernel
-> like one or two other drivers have!
->
-> Personally I'd drop debugging unless you have a reason you think there may be
-> problems.   I'm guessing no one who will do review has one anyway so testing
-> will be over to you in the short term anyway!  If it's not useful to you anymore
-> drop it.
->
-> Jonathan
+Best regards,
+Sanjeev
+
+> ---
+>  sound/soc/omap/sdp3430.c |   11 ++++++-----
+>  1 files changed, 6 insertions(+), 5 deletions(-)
+> 
+> diff --git a/sound/soc/omap/sdp3430.c b/sound/soc/omap/sdp3430.c
+> index b719e5d..3ef489e 100644
+> --- a/sound/soc/omap/sdp3430.c
+> +++ b/sound/soc/omap/sdp3430.c
+> @@ -196,8 +196,8 @@ static int sdp3430_twl4030_init(struct 
+> snd_soc_codec *codec)
+>  	/* SDP3430 connected pins */
+>  	snd_soc_dapm_enable_pin(codec, "Ext Mic");
+>  	snd_soc_dapm_enable_pin(codec, "Ext Spk");
+> -	snd_soc_dapm_disable_pin(codec, "Headset Mic");
+> -	snd_soc_dapm_disable_pin(codec, "Headset Stereophone");
+> +	snd_soc_dapm_enable_pin(codec, "Headset Mic");
+> +	snd_soc_dapm_enable_pin(codec, "Headset Stereophone");
+>  
+>  	/* TWL4030 not connected pins */
+>  	snd_soc_dapm_nc_pin(codec, "AUXL");
+> @@ -217,7 +217,7 @@ static int sdp3430_twl4030_init(struct 
+> snd_soc_codec *codec)
+>  	ret = snd_soc_dapm_sync(codec);
+>  	if (ret)
+>  		return ret;
+> -
+> +#if 0
+>  	/* Headset jack detection */
+>  	ret = snd_soc_jack_new(&snd_soc_sdp3430, "Headset Jack",
+>  				SND_JACK_HEADSET, &hs_jack);
+> @@ -231,7 +231,7 @@ static int sdp3430_twl4030_init(struct 
+> snd_soc_codec *codec)
+>  
+>  	ret = snd_soc_jack_add_gpios(&hs_jack, 
+> ARRAY_SIZE(hs_jack_gpios),
+>  				hs_jack_gpios);
+> -
+> +#endif
+>  	return ret;
+>  }
+>  
+> @@ -328,9 +328,10 @@ module_init(sdp3430_soc_init);
+>  
+>  static void __exit sdp3430_soc_exit(void)
+>  {
+> +#if 0
+>  	snd_soc_jack_free_gpios(&hs_jack, ARRAY_SIZE(hs_jack_gpios),
+>  				hs_jack_gpios);
+> -
+> +#endif
+>  	platform_device_unregister(sdp3430_snd_device);
+>  }
+>  module_exit(sdp3430_soc_exit);
+> -- 
+> 1.6.0.4
+> 
 > --
->
->   
-Thanks for the advice Jonathan.  I sent the code to Dmitry last night 
-and already have some good feedback, so I think that's where it will end up.
--Chris
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
