@@ -1,52 +1,59 @@
-From: "Gadiyar, Anand" <gadiyar@ti.com>
-Subject: RE: [PATCH v2 0/8] introduce 3630 boards
-Date: Wed, 11 Nov 2009 21:02:15 +0530
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A705CAD@dbde02.ent.ti.com>
-References: <1257893249-15467-1-git-send-email-vikram.pandita@ti.com>
-  <5A47E75E594F054BAF48C5E4FC4B92AB030A705CA4@dbde02.ent.ti.com>
- <FCCFB4CDC6E5564B9182F639FC35608702FA5CBAB5@dbde02.ent.ti.com>
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: Re: Query: Regulator framework in EHCI driver
+Date: Wed, 11 Nov 2009 15:46:17 +0000
+Message-ID: <20091111154616.GA30354@rakim.wolfsonmicro.main>
+References: <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE7F@dbde02.ent.ti.com>
+ <20091104144811.GB30644@rakim.wolfsonmicro.main>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE8A@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E73940436F9384E@dbde02.ent.ti.com>
+ <20091105093641.GA21779@rakim.wolfsonmicro.main>
+ <20091105094134.GB3045@nokia.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A67E0F2@dbde02.ent.ti.com>
+ <20091105111955.GA23505@rakim.wolfsonmicro.main>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030A67E132@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E73940436F94618@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60465 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756348AbZKKPcO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 10:32:14 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nABFWHQR014519
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 09:32:19 -0600
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nABFWGI0022645
-	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 21:02:16 +0530 (IST)
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA5CBAB5@dbde02.ent.ti.com>
-Content-Language: en-US
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:44474 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754149AbZKKPqN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Wed, 11 Nov 2009 10:46:13 -0500
+Content-Disposition: inline
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436F94618@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
+Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
 
-> >>
-> >> I'm afraid current linux-omap master + these patches does not boot
-> >> on my 3630SDP.
-> 
-> Yes you are right because its missing one patch for the 8250 driver.
-> 
-> Refer:
-> git://dev.omapzoom.org/pub/scm/vikram/omap3.git zoom3
-> 
-> Patch: HACK: 8250: fix RX fifo access for 3630
-> 
-> I don't have a good implementation for this patch yet and
-> hence I have kept it in my tree as a hack patch for now.
-> 
-> Once the board files are upstreamed, I plan to look into this 8250 patch.
-> 8250 maintainer is not there (alan cox).
-> Also the omap-serial patch is being worked in parallel, and does not have this crash issue.
-> 
-> So there are variables and reasons not to post that patch yet.
-> 
+On Wed, Nov 11, 2009 at 08:26:07PM +0530, Gupta, Ajay Kumar wrote:
 
-Works great with this patch. Thanks.
+> +	/* get ehci regulator and enable */
+> +	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
+> +		if (omap->port_mode[i] == EHCI_HCD_OMAP_MODE_UNKNOWN)
+> +			continue;
+> +		sprintf(supply, "ehci%d", i);
 
-- Anand
+The use of sprintf() here looks suspicious - these things would normally
+be completely fixed.  I appreciate that that's the result, it just looks
+suspicous.  Picking out of an array of fixed names would be more
+idiomatic.  It'd also be idiomatic to use whatever the supply on the
+chip is called in the datasheet - ehci might be accurate but it'd be a
+bit of a surprising choice, it'd be good to check.
+
+If you do stick with this approach you probably want to use snprintf()
+and make supply be 6 bytes rather than 5 bytes long.
+
+> +	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
+> +		if (omap->port_mode[i] == EHCI_HCD_OMAP_MODE_UNKNOWN)
+> +			continue;
+> +		if (omap->regulator[i]) {
+> +			if (regulator_is_enabled(omap->regulator[i]))
+> +				regulator_disable(omap->regulator[i]);
+> +			regulator_put(omap->regulator[i]);
+> +		}
+
+For robustness I'd drop the first check for MODE_UNKNOWN here - it
+doesn't add anything.  You also want to call regulator_disable() before
+you free the regulator.
