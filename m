@@ -1,86 +1,190 @@
-From: "Sripathy, Vishwanath" <vishwanath.bs@ti.com>
-Subject: RE: [RFC] [PATCH] OMAP3630 PM: Correct width for CLKSEL Fields
-Date: Wed, 11 Nov 2009 12:34:05 +0530
-Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA5CB7D9@dbde02.ent.ti.com>
-References: <FCCFB4CDC6E5564B9182F639FC35608702FA42EC95@dbde02.ent.ti.com>
- <20091104095130.GB24213@shisha.kicks-ass.net>
+From: "Govindarajan, Sriramakrishnan" <srk@ti.com>
+Subject: RE: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
+Date: Wed, 11 Nov 2009 13:42:39 +0530
+Message-ID: <FCCFB4CDC6E5564B9182F639FC35608702FA5CB820@dbde02.ent.ti.com>
+References: <1256737736-31774-1-git-send-email-srk@ti.com>
+ <19F8576C6E063C45BE387C64729E73940436F9377A@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54352 "EHLO arroyo.ext.ti.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36113 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752993AbZKKHEI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 02:04:08 -0500
-In-Reply-To: <20091104095130.GB24213@shisha.kicks-ass.net>
+	id S1757082AbZKKIMm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 03:12:42 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAB8Cj5l026894
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 02:12:47 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nAB8CiKQ015115
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 13:42:44 +0530 (IST)
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940436F9377A@dbde02.ent.ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Alexander Shishkin <virtuoso@slind.org>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Alex,
-On Wed, Nov 04, 2009 at 04:58:40 +0530, Sripathy, Vishwanath wrote:
- >> @@ -134,13 +135,13 @@ static struct omap_clk omap34xx_clks[] = {
- >>  	CLK(NULL,	"omap_12m_fck",	&omap_12m_fck,	CK_343X),
- >>  	CLK(NULL,	"dpll4_m2_ck",	&dpll4_m2_ck,	CK_343X),
- >>  	CLK(NULL,	"dpll4_m2x2_ck", &dpll4_m2x2_ck, CK_343X),
- >> -	CLK(NULL,	"dpll4_m3_ck",	&dpll4_m3_ck,	CK_343X),
- >> +	CLK(NULL,	"dpll4_m3_ck",	&dpll4_m3_ck,	CK_343X | CK_363X),
- >>  	CLK(NULL,	"dpll4_m3x2_ck", &dpll4_m3x2_ck, CK_343X),
- >> -	CLK(NULL,	"dpll4_m4_ck",	&dpll4_m4_ck,	CK_343X),
- >> +	CLK(NULL,	"dpll4_m4_ck",	&dpll4_m4_ck,	CK_343X | CK_363X),
- >>  	CLK(NULL,	"dpll4_m4x2_ck", &dpll4_m4x2_ck, CK_343X),
- >> -	CLK(NULL,	"dpll4_m5_ck",	&dpll4_m5_ck,	CK_343X),
- >> +	CLK(NULL,	"dpll4_m5_ck",	&dpll4_m5_ck,	CK_343X | CK_363X),
- >>  	CLK(NULL,	"dpll4_m5x2_ck", &dpll4_m5x2_ck, CK_343X),
- >> -	CLK(NULL,	"dpll4_m6_ck",	&dpll4_m6_ck,	CK_343X),
- >> +	CLK(NULL,	"dpll4_m6_ck",	&dpll4_m6_ck,	CK_343X | CK_363X),
- >>  	CLK(NULL,	"dpll4_m6x2_ck", &dpll4_m6x2_ck, CK_343X),
- >>  	CLK(NULL,	"emu_per_alwon_ck", &emu_per_alwon_ck, CK_343X),
- >>  	CLK(NULL,	"dpll5_ck",	&dpll5_ck,	CK_3430ES2),
- >
- >Doesn't it make more sense to have separate dpll4_*_ck's for 363X so as to avoid the   >clksel_mask_3630?
- >
+Tony,
+Are there comments with respect to this patch. Will this be merged in the next window?
+Regards
+Sriram
 
-Then you will have to duplicate all the nodes in dpll4 clock tree which is redundant. There is no much difference in clock tree (between 3630 and 3430) except that clksel width is changed for 3630 which I feel does not justify adding a new clock tree. Updating the clksel mask is the simplest way to achieve it.
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Govindarajan, Sriramakrishnan
+> Sent: Wednesday, October 28, 2009 7:19 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Govindarajan, Sriramakrishnan
+> Subject: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
+> 
+> Migrate to smsc911x ethernet driver instead of smc911x driver.
+> The smsc911x ethernet driver supports NAPI and performs better
+> under heavy traffic. With the smc911x driver we were witnessing
+> very high iowait time for high IO load over NFS.
+> 
+> Signed-off-by: Sriramakrishnan <srk@ti.com>
+> ---
+> This patch is generated against tip of for-next branch.
+> 
+>  arch/arm/configs/omap3_evm_defconfig |    4 +-
+>  arch/arm/mach-omap2/board-omap3evm.c |   36
+> +++++++++++++++++++++++++--------
+>  2 files changed, 29 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap3_evm_defconfig
+> b/arch/arm/configs/omap3_evm_defconfig
+> index d5ff477..50afc67 100644
+> --- a/arch/arm/configs/omap3_evm_defconfig
+> +++ b/arch/arm/configs/omap3_evm_defconfig
+> @@ -617,8 +617,8 @@ CONFIG_MII=y
+>  # CONFIG_DM9000 is not set
+>  # CONFIG_ENC28J60 is not set
+>  # CONFIG_ETHOC is not set
+> -CONFIG_SMC911X=y
+> -# CONFIG_SMSC911X is not set
+> +# CONFIG_SMC911X is not set
+> +CONFIG_SMSC911X=y
+>  # CONFIG_DNET is not set
+>  # CONFIG_IBM_NEW_EMAC_ZMII is not set
+>  # CONFIG_IBM_NEW_EMAC_RGMII is not set
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> index 5d2310e..9bcdaf7 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -21,11 +21,13 @@
+>  #include <linux/gpio.h>
+>  #include <linux/input.h>
+>  #include <linux/leds.h>
+> +#include <linux/interrupt.h>
+> 
+>  #include <linux/spi/spi.h>
+>  #include <linux/spi/ads7846.h>
+>  #include <linux/i2c/twl4030.h>
+>  #include <linux/usb/otg.h>
+> +#include <linux/smsc911x.h>
+> 
+>  #include <linux/regulator/machine.h>
+> 
+> @@ -51,7 +53,8 @@
+>  #define OMAP3EVM_ETHR_GPIO_IRQ	176
+>  #define OMAP3EVM_SMC911X_CS	5
+> 
+> -static struct resource omap3evm_smc911x_resources[] = {
+> +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+> +static struct resource omap3evm_smsc911x_resources[] = {
+>  	[0] =	{
+>  		.start	= OMAP3EVM_ETHR_START,
+>  		.end	= (OMAP3EVM_ETHR_START + OMAP3EVM_ETHR_SIZE - 1),
+> @@ -60,18 +63,28 @@ static struct resource
+> omap3evm_smc911x_resources[] = {
+>  	[1] =	{
+>  		.start	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
+>  		.end	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
+> -		.flags	= IORESOURCE_IRQ,
+> +		.flags	= (IORESOURCE_IRQ | IRQF_TRIGGER_LOW),
+>  	},
+>  };
+> 
+> -static struct platform_device omap3evm_smc911x_device = {
+> -	.name		= "smc911x",
+> +static struct smsc911x_platform_config smsc911x_config = {
+> +	.phy_interface  = PHY_INTERFACE_MODE_MII,
+> +	.irq_polarity   = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
+> +	.irq_type       = SMSC911X_IRQ_TYPE_OPEN_DRAIN,
+> +	.flags          = (SMSC911X_USE_32BIT |
+> SMSC911X_SAVE_MAC_ADDRESS),
+> +};
+> +
+> +static struct platform_device omap3evm_smsc911x_device = {
+> +	.name		= "smsc911x",
+>  	.id		= -1,
+> -	.num_resources	= ARRAY_SIZE(omap3evm_smc911x_resources),
+> -	.resource	= &omap3evm_smc911x_resources[0],
+> +	.num_resources	= ARRAY_SIZE(omap3evm_smsc911x_resources),
+> +	.resource	= &omap3evm_smsc911x_resources[0],
+> +	.dev		= {
+> +		.platform_data = &smsc911x_config,
+> +	},
+>  };
+> 
+> -static inline void __init omap3evm_init_smc911x(void)
+> +static inline void __init omap3evm_init_smsc911x(void)
+>  {
+>  	int eth_cs;
+>  	struct clk *l3ck;
+> @@ -92,8 +105,14 @@ static inline void __init
+> omap3evm_init_smc911x(void)
+>  	}
+> 
+>  	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
+> +
+> +	platform_device_register(&omap3evm_smsc911x_device);
+>  }
+> 
+> +#else
+> +static inline void __init omap3evm_init_smsc911x(void) { return; }
+> +#endif
+> +
+>  static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
+>  	.supply			= "vmmc",
+>  };
+> @@ -335,12 +354,10 @@ static void __init omap3_evm_init_irq(void)
+>  	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
+>  	omap_init_irq();
+>  	omap_gpio_init();
+> -	omap3evm_init_smc911x();
+>  }
+> 
+>  static struct platform_device *omap3_evm_devices[] __initdata = {
+>  	&omap3_evm_lcd_device,
+> -	&omap3evm_smc911x_device,
+>  };
+> 
+>  static void __init omap3_evm_init(void)
+> @@ -359,6 +376,7 @@ static void __init omap3_evm_init(void)
+>  #endif
+>  	usb_musb_init();
+>  	ads7846_dev_init();
+> +	omap3evm_init_smsc911x();
+>  }
+> 
+>  static void __init omap3_evm_map_io(void)
 
- >> @@ -1216,6 +1217,10 @@ int __init omap2_clk_init(void)
- >>  			cpu_mask |= RATE_IN_3430ES2;
- >>  			cpu_clkflg |= CK_3430ES2;
- >>  		}
- >> +	if (cpu_is_omap36xx()) {
- >> +		dpll4_dd.mult_mask = OMAP3630_PERIPH_DPLL_MULT_MASK;
- >> +		cpu_mask  |= RATE_IN_363X;
- >
- >Extra space before '|'.
- >
- >> +		}
- >>  	}
- >
- >I think there's an indentation problem.
- >
- >>  
- >>  	clk_init(&omap2_clk_functions);
- >> @@ -1225,6 +1230,11 @@ int __init omap2_clk_init(void)
- >>  
- >>  	for (c = omap34xx_clks; c < omap34xx_clks + ARRAY_SIZE(omap34xx_clks); c++)
- >>  		if (c->cpu & cpu_clkflg) {
- >> +			/* for 3630, change the mask value for clocks which are
- >> +				marked as CK_363X*/
- >> +			if (cpu_is_omap36xx())
- >> +				if (c->cpu  & CK_363X)
- >
- >Extra space before '&'.
- >
- >> +					c->lk.clk->clksel_mask = c->lk.clk->clksel_mask_3630;
- >
- >This looks longer than normally allowed.
+[Hiremath, Vaibhav] I validated this patch on OMAP3EVM and it is working for me. At-least I could able to mount NFS and work without any issue, which was failing before with SMC911x. For me, earlier I was not able to mount NFS filesystem at all. 
 
-What is longer? I did not get the comment.
+Verified-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
- >
- >Regards,
- >--
- >Alex
- >
+Thanks,
+Vaibhav
+
+> --
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
