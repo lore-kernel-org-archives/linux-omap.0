@@ -1,7 +1,7 @@
 From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v3 7/8] omap: zoom3: defconfig creation
-Date: Wed, 11 Nov 2009 17:41:35 -0600
-Message-ID: <1257982896-25087-8-git-send-email-vikram.pandita@ti.com>
+Subject: [PATCH v3 8/8] omap: 3630sdp: defconfig creation
+Date: Wed, 11 Nov 2009 17:41:36 -0600
+Message-ID: <1257982896-25087-9-git-send-email-vikram.pandita@ti.com>
 References: <1257982896-25087-1-git-send-email-vikram.pandita@ti.com>
  <1257982896-25087-2-git-send-email-vikram.pandita@ti.com>
  <1257982896-25087-3-git-send-email-vikram.pandita@ti.com>
@@ -9,39 +9,40 @@ References: <1257982896-25087-1-git-send-email-vikram.pandita@ti.com>
  <1257982896-25087-5-git-send-email-vikram.pandita@ti.com>
  <1257982896-25087-6-git-send-email-vikram.pandita@ti.com>
  <1257982896-25087-7-git-send-email-vikram.pandita@ti.com>
+ <1257982896-25087-8-git-send-email-vikram.pandita@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59453 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:59454 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759682AbZKKXmI (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:42:08 -0500
+	with ESMTP id S1759684AbZKKXmJ (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:42:09 -0500
 Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nABNgEhM012376
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nABNgEv5012379
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
 	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 17:42:14 -0600
-In-Reply-To: <1257982896-25087-7-git-send-email-vikram.pandita@ti.com>
+In-Reply-To: <1257982896-25087-8-git-send-email-vikram.pandita@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap@vger.kernel.org
 Cc: Vikram Pandita <vikram.pandita@ti.com>
 
-Create zoom3 defconfig file
+Create 3630sdp defconfig file
 
 Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 ---
- arch/arm/configs/omap_zoom3_defconfig | 1605 +++++++++++++++++++++++++++++++++
- 1 files changed, 1605 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/configs/omap_zoom3_defconfig
+ arch/arm/configs/omap_3630sdp_defconfig | 1606 +++++++++++++++++++++++++++++++
+ 1 files changed, 1606 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/configs/omap_3630sdp_defconfig
 
-diff --git a/arch/arm/configs/omap_zoom3_defconfig b/arch/arm/configs/omap_zoom3_defconfig
+diff --git a/arch/arm/configs/omap_3630sdp_defconfig b/arch/arm/configs/omap_3630sdp_defconfig
 new file mode 100644
-index 0000000..989cedd
+index 0000000..eb96b1a
 --- /dev/null
-+++ b/arch/arm/configs/omap_zoom3_defconfig
-@@ -0,0 +1,1605 @@
++++ b/arch/arm/configs/omap_3630sdp_defconfig
+@@ -0,0 +1,1606 @@
 +#
 +# Automatically generated make config: don't edit
 +# Linux kernel version: 2.6.32-rc5
-+# Tue Nov  3 09:50:40 2009
++# Tue Nov  3 14:18:44 2009
 +#
 +CONFIG_ARM=y
 +CONFIG_SYS_SUPPORTS_APM_EMULATION=y
@@ -98,8 +99,7 @@ index 0000000..989cedd
 +CONFIG_USER_SCHED=y
 +# CONFIG_CGROUP_SCHED is not set
 +# CONFIG_CGROUPS is not set
-+CONFIG_SYSFS_DEPRECATED=y
-+CONFIG_SYSFS_DEPRECATED_V2=y
++# CONFIG_SYSFS_DEPRECATED_V2 is not set
 +# CONFIG_RELAY is not set
 +# CONFIG_NAMESPACES is not set
 +CONFIG_BLK_DEV_INITRD=y
@@ -250,10 +250,10 @@ index 0000000..989cedd
 +CONFIG_OMAP_32K_TIMER=y
 +CONFIG_OMAP_32K_TIMER_HZ=128
 +CONFIG_OMAP_DM_TIMER=y
-+# CONFIG_OMAP_LL_DEBUG_UART1 is not set
++CONFIG_OMAP_LL_DEBUG_UART1=y
 +# CONFIG_OMAP_LL_DEBUG_UART2 is not set
 +# CONFIG_OMAP_LL_DEBUG_UART3 is not set
-+CONFIG_OMAP_LL_DEBUG_NONE=y
++# CONFIG_OMAP_LL_DEBUG_NONE is not set
 +# CONFIG_OMAP_PM_NONE is not set
 +CONFIG_OMAP_PM_NOOP=y
 +CONFIG_ARCH_OMAP34XX=y
@@ -271,7 +271,8 @@ index 0000000..989cedd
 +# CONFIG_MACH_NOKIA_RX51 is not set
 +# CONFIG_MACH_OMAP_ZOOM2 is not set
 +# CONFIG_MACH_CM_T35 is not set
-+CONFIG_MACH_OMAP_ZOOM3=y
++# CONFIG_MACH_OMAP_ZOOM3 is not set
++CONFIG_MACH_OMAP_3630SDP=y
 +
 +#
 +# Processor Type
@@ -606,12 +607,12 @@ index 0000000..989cedd
 +CONFIG_NET_ETHERNET=y
 +CONFIG_MII=y
 +# CONFIG_AX88796 is not set
-+# CONFIG_SMC91X is not set
++CONFIG_SMC91X=y
 +# CONFIG_DM9000 is not set
 +# CONFIG_ENC28J60 is not set
 +# CONFIG_ETHOC is not set
 +# CONFIG_SMC911X is not set
-+CONFIG_SMSC911X=y
++# CONFIG_SMSC911X is not set
 +# CONFIG_DNET is not set
 +# CONFIG_IBM_NEW_EMAC_ZMII is not set
 +# CONFIG_IBM_NEW_EMAC_RGMII is not set
@@ -1517,7 +1518,8 @@ index 0000000..989cedd
 +# CONFIG_DEBUG_USER is not set
 +# CONFIG_DEBUG_ERRORS is not set
 +# CONFIG_DEBUG_STACK_USAGE is not set
-+# CONFIG_DEBUG_LL is not set
++CONFIG_DEBUG_LL=y
++# CONFIG_DEBUG_ICEDCC is not set
 +
 +#
 +# Security options
