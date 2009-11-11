@@ -1,30 +1,38 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH 0/8] Omap fixes for v2.6.32-rc6
-Date: Wed, 11 Nov 2009 11:08:20 -0800
-Message-ID: <20091111190820.GG24837@atomide.com>
-References: <20091111025907.31793.84134.stgit@localhost>
- <4AFA2CA1.4000005@blueyonder.co.uk>
+Subject: Re: linux-next: manual merge of the usb tree with the omap tree
+Date: Wed, 11 Nov 2009 11:12:13 -0800
+Message-ID: <20091111191213.GH24837@atomide.com>
+References: <20091111193013.9a4bca3e.sfr@canb.auug.org.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64293 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758431AbZKKTIR (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 14:08:17 -0500
+Return-path: <linux-next-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4AFA2CA1.4000005@blueyonder.co.uk>
-Sender: linux-omap-owner@vger.kernel.org
+In-Reply-To: <20091111193013.9a4bca3e.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Greg KH <greg@kroah.com>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Felipe Balbi <felipe.balbi@nokia.com>, linux-omap@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sid Boyce <sboyce@blueyonder.co.uk>
-Cc: linux-omap@vger.kernel.org
 
-* Sid Boyce <sboyce@blueyonder.co.uk> [091110 19:16]:
-> I still haven't been able to find the reason why the Ralink drivers
-> haven't been offered in make config/menuconfig/xconfig - cross compiling
-> on Fedora 12 x86_64 as per my previous post. I downloaded the latest
-> linux-omap snapshot Tuesday, 6 hours after it was up.
+* Stephen Rothwell <sfr@canb.auug.org.au> [091111 00:29]:
+> Hi Greg,
+> 
+> Today's linux-next merge of the usb tree got a conflict in
+> drivers/usb/host/ehci-omap.c between commit
+> 7cb07f72711d3e10763ca7d7a9fcd7ac788aabf4 ("omap: ehci: Add platform init
+> code") from the omap tree and commit
+> 9e92239693d7010d2e710a445f46d6a738b09171 ("USB: host: ehci: introduce
+> omap ehci-hcd driver") from the usb tree.
+> 
+> Both commits create this file but I used the omap tree version because
+> commit ce491cf85466c3377228c5a852ea627ec5136956 ("omap: headers: Move
+> remaining headers from include/mach to include/plat") from the omap tree
+> moved one included header file (mach/usb.h -> plat/usb.h).
 
-Sounds like that should be patched via drivers/net.
+Oops, sorry. Looks like I accidentally included also drivers/usb/host/ehci-omap.c
+as we were testing it in the linux-omap tree.
+
+I'll drop the drivers/usb/host/ehci-omap.c part from my queue, it should get
+integrated via Greg's queue. I'll just merge the platform init code.
 
 Regards,
 
