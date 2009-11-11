@@ -1,217 +1,139 @@
-From: Vikram Pandita <vikram.pandita@ti.com>
-Subject: [PATCH v3 4/8] omap: zoom3: introduce zoom3 board support
-Date: Wed, 11 Nov 2009 17:41:32 -0600
-Message-ID: <1257982896-25087-5-git-send-email-vikram.pandita@ti.com>
-References: <1257982896-25087-1-git-send-email-vikram.pandita@ti.com>
- <1257982896-25087-2-git-send-email-vikram.pandita@ti.com>
- <1257982896-25087-3-git-send-email-vikram.pandita@ti.com>
- <1257982896-25087-4-git-send-email-vikram.pandita@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 11/11] OMAP3: PM: Disable OTG autoidle when waking up from off-mode
+Date: Wed, 11 Nov 2009 15:42:15 -0800
+Message-ID: <878wecy6g8.fsf@deeprootsystems.com>
+References: <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-3-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-4-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-5-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-6-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-7-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-8-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-9-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-10-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-11-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-12-git-send-email-tero.kristo@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37892 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759685AbZKKXmJ (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Wed, 11 Nov 2009 18:42:09 -0500
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nABNgERA002944
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 17:42:14 -0600
-In-Reply-To: <1257982896-25087-4-git-send-email-vikram.pandita@ti.com>
+Received: from qw-out-2122.google.com ([74.125.92.25]:5405 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759712AbZKKXmN (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 18:42:13 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so321818qwe.37
+        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 15:42:18 -0800 (PST)
+In-Reply-To: <1256313835-2391-12-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Fri\, 23 Oct 2009 19\:03\:55 +0300")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
-Cc: Vikram Pandita <vikram.pandita@ti.com>, "Chalhoub, Nicole" <n-chalhoub@ti.com>, "Bour, Vincent" <v-bour@ti.com>
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Zoom3 is the next versoin of Zoom2 board.
-There has been a silicon update from zoom2 to zoom3.
-        Zoom2 has OMAP34xx
-        Zoom3 has OMAP3630 [1]
-Zoom3 = OMAP3630 SOM board [2] + same zoom2 main board [3] + same debugboard
+Tero Kristo <tero.kristo@nokia.com> writes:
 
-Zoom3 has a SDRAM part from Hynix
-Zoom2 had SDRAM part from micron
+> From: Tero Kristo <tero.kristo@nokia.com>
+>
+> OMAP3 sleep can be prevented in some cases where OTG autoidle is enabled.
+> This patch force disables autoidle during wakeup from off-mode. See omap
+> errata 1.164.
+>
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-Hynix memory timings are contributed by:
-Chalhoub, Nicole and Bour, Vincent
+This one needs a refresh against current PM branch.
 
-Reuse the zoom2 files as much for zoom3, as at board level,
-there is no change at all.
+> ---
+>  arch/arm/mach-omap2/pm34xx.c          |    6 ++++++
+>  arch/arm/mach-omap2/usb-musb.c        |   14 ++++++++------
+>  arch/arm/plat-omap/include/mach/usb.h |    3 +++
 
-References: (courtesy Nishant Menon)
-[1] OMAP3630
-http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12836&contentId=52606
+mach/usb.h moved to plat/usb.h
 
-[2] SOM boards
-http://logicpd.com/products/system-modules/texas-instruments-omap35x-som-lv
+>  3 files changed, 17 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+> index 5eb7321..070a0a2 100644
+> --- a/arch/arm/mach-omap2/pm34xx.c
+> +++ b/arch/arm/mach-omap2/pm34xx.c
+> @@ -39,6 +39,7 @@
+>  #include <mach/gpmc.h>
+>  #include <mach/dma.h>
+>  #include <mach/dmtimer.h>
+> +#include <mach/usb.h>
+>  
+>  #include <asm/tlbflush.h>
+>  
+> @@ -496,6 +497,11 @@ void omap_sram_idle(void)
+>  			omap3_prcm_restore_context();
+>  			omap3_sram_restore_context();
+>  			omap2_sms_restore_context();
+> +			/*
+> +			 * Errata 1.164 fix : OTG autoidle can prevent
+> +			 * sleep
+> +			 */
+> +			usb_musb_disable_autoidle();
 
-[3] Zoom2 boards
-http://logicpd.com/products/development-kits/texas-instruments-zoom%E2%84%A2-omap34x-ii-mdp
-OMAP3630:
+NAK.  This belongs in the MUSB driver, not in the idle path.
 
-Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
-Cc: Chalhoub, Nicole <n-chalhoub@ti.com>
-Cc: Bour, Vincent <v-bour@ti.com>
----
- arch/arm/mach-omap2/Kconfig                        |    4 +
- arch/arm/mach-omap2/Makefile                       |    4 +
- arch/arm/mach-omap2/board-zoom3.c                  |   60 ++++++++++++++++++++
- arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h |   51 +++++++++++++++++
- 4 files changed, 119 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-zoom3.c
- create mode 100644 arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
+Kevin
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 8685df5..9824775 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -101,6 +101,10 @@ config MACH_CM_T35
- 	bool "CompuLab CM-T35 module"
- 	depends on ARCH_OMAP3 && ARCH_OMAP34XX
- 
-+config MACH_OMAP_ZOOM3
-+	bool "OMAP3630 Zoom3 board"
-+	depends on ARCH_OMAP3 && ARCH_OMAP34XX
-+
- config MACH_OMAP_4430SDP
- 	bool "OMAP 4430 SDP board"
- 	depends on ARCH_OMAP4
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 4d66b42..712e7fc 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -75,6 +75,10 @@ obj-$(CONFIG_MACH_OMAP_ZOOM2)		+= board-zoom2.o \
- 					   board-zoom-peripherals.o \
- 					   mmc-twl4030.o \
- 					   board-zoom-debugboard.o
-+obj-$(CONFIG_MACH_OMAP_ZOOM3)		+= board-zoom3.o \
-+					   board-zoom-peripherals.o \
-+					   mmc-twl4030.o \
-+					   board-zoom-debugboard.o
- obj-$(CONFIG_MACH_CM_T35)		+= board-cm-t35.o \
- 					   mmc-twl4030.o
- 
-diff --git a/arch/arm/mach-omap2/board-zoom3.c b/arch/arm/mach-omap2/board-zoom3.c
-new file mode 100644
-index 0000000..b031eaa
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-zoom3.c
-@@ -0,0 +1,60 @@
-+/*
-+ * Copyright (C) 2009 Texas Instruments Inc.
-+ *
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/init.h>
-+#include <linux/platform_device.h>
-+#include <linux/input.h>
-+#include <linux/gpio.h>
-+
-+#include <asm/mach-types.h>
-+#include <asm/mach/arch.h>
-+
-+#include <plat/common.h>
-+#include <plat/board.h>
-+
-+#include "sdram-hynix-h8mbx00u0mer-0em.h"
-+
-+static void __init omap_zoom_map_io(void)
-+{
-+	omap2_set_globals_343x();
-+	omap2_map_common_io();
-+}
-+
-+static struct omap_board_config_kernel zoom_config[] __initdata = {
-+};
-+
-+static void __init omap_zoom_init_irq(void)
-+{
-+	omap_board_config = zoom_config;
-+	omap_board_config_size = ARRAY_SIZE(zoom_config);
-+	omap2_init_common_hw(h8mbx00u0mer0em_sdrc_params,
-+			h8mbx00u0mer0em_sdrc_params);
-+	omap_init_irq();
-+	omap_gpio_init();
-+}
-+
-+extern int __init omap_zoom2_debugboard_init(void);
-+extern void __init zoom_peripherals_init(void);
-+
-+static void __init omap_zoom_init(void)
-+{
-+	zoom_peripherals_init();
-+	omap_zoom2_debugboard_init();
-+}
-+
-+MACHINE_START(OMAP_ZOOM3, "OMAP Zoom3 board")
-+	.phys_io	= 0x48000000,
-+	.io_pg_offst	= ((0xfa000000) >> 18) & 0xfffc,
-+	.boot_params	= 0x80000100,
-+	.map_io		= omap_zoom_map_io,
-+	.init_irq	= omap_zoom_init_irq,
-+	.init_machine	= omap_zoom_init,
-+	.timer		= &omap_timer,
-+MACHINE_END
-diff --git a/arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h b/arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
-new file mode 100644
-index 0000000..8bfaf34
---- /dev/null
-+++ b/arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
-@@ -0,0 +1,51 @@
-+/*
-+ * SDRC register values for the Hynix H8MBX00U0MER-0EM
-+ *
-+ * Copyright (C) 2009 Texas Instruments, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP2_SDRAM_HYNIX_H8MBX00U0MER0EM
-+#define __ARCH_ARM_MACH_OMAP2_SDRAM_HYNIX_H8MBX00U0MER0EM
-+
-+#include <plat/sdrc.h>
-+
-+/* Hynix H8MBX00U0MER-0EM */
-+static struct omap_sdrc_params h8mbx00u0mer0em_sdrc_params[] = {
-+	[0] = {
-+		.rate        = 200000000,
-+		.actim_ctrla = 0xa2e1b4c6,
-+		.actim_ctrlb = 0x0002131c,
-+		.rfr_ctrl    = 0x0005e601,
-+		.mr          = 0x00000032,
-+	},
-+	[1] = {
-+		.rate        = 166000000,
-+		.actim_ctrla = 0x629db4c6,
-+		.actim_ctrlb = 0x00012214,
-+		.rfr_ctrl    = 0x0004dc01,
-+		.mr          = 0x00000032,
-+	},
-+	[2] = {
-+		.rate        = 100000000,
-+		.actim_ctrla = 0x51912284,
-+		.actim_ctrlb = 0x0002120e,
-+		.rfr_ctrl    = 0x0002d101,
-+		.mr          = 0x00000022,
-+	},
-+	[3] = {
-+		.rate        = 83000000,
-+		.actim_ctrla = 0x31512283,
-+		.actim_ctrlb = 0x0001220a,
-+		.rfr_ctrl    = 0x00025501,
-+		.mr          = 0x00000022,
-+	},
-+	[4] = {
-+		.rate        = 0
-+	},
-+};
-+
-+#endif
--- 
-1.6.5.1.69.g36942
-
+>  		}
+>  		omap_uart_resume_idle(0);
+>  		omap_uart_resume_idle(1);
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index 8dde0b7..f4b86c0 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -44,10 +44,11 @@ static struct platform_device dummy_pdev = {
+>  	},
+>  };
+>  
+> +static void __iomem *otg_base;
+> +static struct clk *otg_clk;
+> +
+>  static void __init usb_musb_pm_init(void)
+>  {
+> -	void __iomem *otg_base;
+> -	struct clk *otg_clk;
+>  	struct device *dev = &dummy_pdev.dev;
+>  
+>  	if (!cpu_is_omap34xx())
+> @@ -74,12 +75,13 @@ static void __init usb_musb_pm_init(void)
+>  			cpu_relax();
+>  	}
+>  
+> -	if (otg_clk) {
+> +	if (otg_clk)
+>  		clk_disable(otg_clk);
+> -		clk_put(otg_clk);
+> -	}
+> +}
+>
+>  
+> -	iounmap(otg_base);
+> +void usb_musb_disable_autoidle(void)
+> +{
+> +	__raw_writel(0, otg_base + OTG_SYSCONFIG);
+>  }
+>  
+>  #ifdef CONFIG_USB_MUSB_SOC
+> diff --git a/arch/arm/plat-omap/include/mach/usb.h b/arch/arm/plat-omap/include/mach/usb.h
+> index a4068a4..310ee17 100644
+> --- a/arch/arm/plat-omap/include/mach/usb.h
+> +++ b/arch/arm/plat-omap/include/mach/usb.h
+> @@ -46,6 +46,9 @@ extern void usb_musb_init(void);
+>  
+>  extern void usb_ehci_init(struct ehci_hcd_omap_platform_data *pdata);
+>  
+> +/* This is needed for OMAP3 errata 1.164: enabled autoidle can prevent sleep */
+> +extern void usb_musb_disable_autoidle(void);
+> +
+>  #endif
+>  
+>  void omap_usb_init(struct omap_usb_config *pdata);
+> -- 
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
