@@ -1,156 +1,105 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: Query: Regulator framework in EHCI driver
-Date: Wed, 11 Nov 2009 20:26:07 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436F94618@dbde02.ent.ti.com>
-References: <20091104133922.GD25044@sirena.org.uk>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE6A@dbde02.ent.ti.com>
- <20091104144126.GA30644@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE7F@dbde02.ent.ti.com>
- <20091104144811.GB30644@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE8A@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940436F9384E@dbde02.ent.ti.com>
- <20091105093641.GA21779@rakim.wolfsonmicro.main>
- <20091105094134.GB3045@nokia.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67E0F2@dbde02.ent.ti.com>
- <20091105111955.GA23505@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67E132@dbde02.ent.ti.com>
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: RE: [PATCH v2 0/8] introduce 3630 boards
+Date: Wed, 11 Nov 2009 20:45:16 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A705CA2@dbde02.ent.ti.com>
+References: <1257893249-15467-1-git-send-email-vikram.pandita@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45905 "EHLO arroyo.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47219 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755903AbZKKO4M convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 09:56:12 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A67E132@dbde02.ent.ti.com>
+	id S1757479AbZKKPSL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 10:18:11 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id nABFIAQv005510
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 09:18:16 -0600
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nABFI9ER020810
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 20:48:10 +0530 (IST)
+In-Reply-To: <1257893249-15467-1-git-send-email-vikram.pandita@ti.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Gadiyar, Anand" <gadiyar@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+To: "Pandita, Vikram" <vikram.pandita@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Hi,
 > -----Original Message-----
-> From: Gadiyar, Anand
-> Sent: Thursday, November 05, 2009 4:56 PM
-> To: Mark Brown
-> Cc: felipe.balbi@nokia.com; Gupta, Ajay Kumar; linux-omap@vger.kernel.org;
-> Aggarwal, Anuj
-> Subject: RE: Query: Regulator framework in EHCI driver
+> From: linux-omap-owner@vger.kernel.org 
+> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Pandita, Vikram
+> Sent: Wednesday, November 11, 2009 4:17 AM
+> To: linux-omap@vger.kernel.org
+> Cc: Pandita, Vikram
+> Subject: [PATCH v2 0/8] introduce 3630 boards
 > 
-> > On Thu, Nov 05, 2009 at 04:01:24PM +0530, Gadiyar, Anand wrote:
-> >
-> > > How do you add a fixed voltage regulator for a board which
-> > doesn't really
-> > > have a controllable regulator for that voltage? (the PHY
-> > supply is wired
-> > > directly from the main board power-supply, no GPIO for
-> > on-off control)
-> >
+> Introducing 3630 boards: zoom3 and sdp3630
+> 
+> The peripherals are very similar for the two bards as per 
+> this discussion:
+> 	http://marc.info/?l=linux-omap&m=125676595710748&w=2
+> 
+> So maximum reuse is done for the board files for zoom3 and sdp3630
+> 
+> V1: Review comments incorporated:
+> 	http://marc.info/?l=linux-omap&m=125632676504364&w=2
+> 	http://marc.info/?l=linux-omap&m=125632720804869&w=2
+> 	http://marc.info/?l=linux-omap&m=125633994320138&w=2
+> 
+> V2: Review comments by Nishanth Menon
+> 	http://marc.info/?l=linux-omap&m=125728617825678&w=2
+> 	http://marc.info/?l=linux-omap&m=125728665226332&w=2
+> 	http://marc.info/?l=linux-omap&m=125728729027309&w=2
+> 	http://marc.info/?l=linux-omap&m=125728749327603&w=2
+> 
 
-Hi,
+Vikram,
 
-Please review this RFC version. It works with OMAP3EVM after adding 'ehci1' supply mapping in board file.
+I'm afraid current linux-omap master + these patches does not boot
+on my 3630SDP.
 
--Ajay
+The bootargs used were:
+mem=256M console=ttyS0,115200n8 noinitrd root=/dev/nfs rw nfsroot=172.24.162.66:/vol/vol2/swcoe_omapsw_linux1/anand/target,nolock,tcp ip=172.24.190.229:172.24.162.66:172.24.188.1:255.255.252.0:myomap::off
 
-======================= RFC ============================
+The image hangs after "Uncompressing kernel...... done, booting the kernel."
 
-Adding regulator framework in EHCI driver.
+- Anand
 
-OMAP3 has three HS USB ports so it can have three different regulator
-for each PHY connected to each port.
-
-Currently these regulators are assumed to be optional and driver doesn't
-fail but continue with the initialization if it doesn't get any regulators.
-
-Regulator supply names has to be mapped in board files as 'ehciX' where
-'X' can be {0, 1 ,2} depending on the ports.
-
-Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
----
- drivers/usb/host/ehci-omap.c |   31 +++++++++++++++++++++++++++++++
- 1 files changed, 31 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/usb/host/ehci-omap.c b/drivers/usb/host/ehci-omap.c
-index 97ce7d5..c4391fb 100644
---- a/drivers/usb/host/ehci-omap.c
-+++ b/drivers/usb/host/ehci-omap.c
-@@ -37,6 +37,7 @@
- #include <linux/platform_device.h>
- #include <linux/clk.h>
- #include <linux/gpio.h>
-+#include <linux/regulator/consumer.h>
- #include <plat/usb.h>
- 
- struct usb_hcd *ghcd;
-@@ -191,6 +192,11 @@ struct ehci_hcd_omap {
- 	void __iomem		*uhh_base;
- 	void __iomem		*tll_base;
- 	void __iomem		*ehci_base;
-+
-+	/* Regulators for USB PHYs.
-+	 * Each PHY can have a seperate regulator.
-+	 */
-+	struct regulator        *regulator[OMAP3_HS_USB_PORTS];
- };
- 
- /*-------------------------------------------------------------------------*/
-@@ -839,6 +845,8 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 
- 	int irq = platform_get_irq(pdev, 0);
- 	int ret = -ENODEV;
-+	int i;
-+	char supply[5];
- 
- 	if (!pdata) {
- 		dev_dbg(&pdev->dev, "missing platform_data\n");
-@@ -918,6 +926,19 @@ static int ehci_hcd_omap_probe(struct platform_device *pdev)
- 		goto err_tll_ioremap;
- 	}
- 
-+	/* get ehci regulator and enable */
-+	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
-+		if (omap->port_mode[i] == EHCI_HCD_OMAP_MODE_UNKNOWN)
-+			continue;
-+		sprintf(supply, "ehci%d", i);
-+		omap->regulator[i] = regulator_get(omap->dev, supply);
-+		if (IS_ERR(omap->regulator[i]))
-+			dev_dbg(&pdev->dev,
-+			"failed to get ehci port%d regulator\n", i);
-+		else
-+			regulator_enable(omap->regulator[i]);
-+	}
-+
- 	ret = omap_start_ehc(omap, hcd);
- 	if (ret) {
- 		dev_dbg(&pdev->dev, "failed to start ehci\n");
-@@ -981,6 +1002,7 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
- {
- 	struct ehci_hcd_omap *omap = platform_get_drvdata(pdev);
- 	struct usb_hcd *hcd = ehci_to_hcd(omap->ehci);
-+	int i;
- 
- 	if (omap->port_mode[0] != EHCI_HCD_OMAP_MODE_UNKNOWN)
- 		device_remove_file(&pdev->dev, &dev_attr_port1);
-@@ -992,6 +1014,15 @@ static int ehci_hcd_omap_remove(struct platform_device *pdev)
- 	usb_remove_hcd(hcd);
- 	omap_stop_ehc(omap, hcd);
- 	iounmap(hcd->regs);
-+	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
-+		if (omap->port_mode[i] == EHCI_HCD_OMAP_MODE_UNKNOWN)
-+			continue;
-+		if (omap->regulator[i]) {
-+			if (regulator_is_enabled(omap->regulator[i]))
-+				regulator_disable(omap->regulator[i]);
-+			regulator_put(omap->regulator[i]);
-+		}
-+	}
- 	iounmap(omap->tll_base);
- 	iounmap(omap->uhh_base);
- 	usb_put_hcd(hcd);
--- 
-1.6.2.4
-
-
-=========================================================
+> Vikram Pandita (8):
+>   omap: 3630: update is_chip variable
+>   omap: DEBUG_LL: allow no omap uart configuration
+>   omap: zoom2: split board file for reuse
+>   omap: zoom2: update defconfig
+>   omap: zoom3: introduce zoom3 board support
+>   omap: zoom3: defconfig creation
+>   omap: 3630sdp: introduce 3630 sdp board support
+>   omap: 3630sdp: defconfig creation
+> 
+>  arch/arm/configs/omap_3630sdp_defconfig            | 1606 ++++++++++++++++++++
+>  arch/arm/configs/omap_zoom2_defconfig              |  231 ++--
+>  arch/arm/configs/omap_zoom3_defconfig              | 1605 +++++++++++++++++++
+>  arch/arm/mach-omap2/Kconfig                        |    8 +
+>  arch/arm/mach-omap2/Makefile                       |    8 +
+>  arch/arm/mach-omap2/board-3630sdp.c                |   96 ++
+>  arch/arm/mach-omap2/board-zoom-peripherals.c       |  403 +++++
+>  arch/arm/mach-omap2/board-zoom2.c                  |  261 +---
+>  arch/arm/mach-omap2/board-zoom3.c                  |   59 +
+>  arch/arm/mach-omap2/id.c                           |    2 +
+>  arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h |   52 +
+>  arch/arm/plat-omap/Kconfig                         |    3 +
+>  arch/arm/plat-omap/include/plat/cpu.h              |    7 +-
+>  arch/arm/plat-omap/include/plat/uncompress.h       |    4 +-
+>  14 files changed, 4005 insertions(+), 340 deletions(-)
+>  create mode 100644 arch/arm/configs/omap_3630sdp_defconfig
+>  create mode 100644 arch/arm/configs/omap_zoom3_defconfig
+>  create mode 100755 arch/arm/mach-omap2/board-3630sdp.c
+>  create mode 100644 arch/arm/mach-omap2/board-zoom-peripherals.c
+>  create mode 100644 arch/arm/mach-omap2/board-zoom3.c
+>  create mode 100644 arch/arm/mach-omap2/sdram-hynix-h8mbx00u0mer-0em.h
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
