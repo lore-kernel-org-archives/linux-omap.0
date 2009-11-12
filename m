@@ -1,37 +1,115 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [APPLIED] [PATCH v3 8/8] omap: 3630sdp: defconfig creation
-Date: Wed, 11 Nov 2009 20:48:16 -0500
-Message-ID: <notify-1257990500@atomide.com>
-References: <1257982896-25087-9-git-send-email-vikram.pandita@ti.com>
+Subject: Re: [RFC][Patch V1] OMAP3: Mux Changes.
+Date: Wed, 11 Nov 2009 17:54:59 -0800
+Message-ID: <20091112015459.GS24837@atomide.com>
+References: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAFCB9@dbde02.ent.ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:59752 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759879AbZKLBsQ (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 20:48:16 -0500
-Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
-	by mho-01-ewr.mailhop.org with esmtpa (Exim 4.68)
-	(envelope-from <tony@atomide.com>)
-	id 1N8OnN-000H0P-Jc
-	for linux-omap@vger.kernel.org; Thu, 12 Nov 2009 01:48:21 +0000
-In-Reply-To: <1257982896-25087-9-git-send-email-vikram.pandita@ti.com>
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62221 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759884AbZKLBy7 (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 20:54:59 -0500
 Content-Disposition: inline
+In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAFCB9@dbde02.ent.ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: "Pais, Allen" <allen.pais@ti.com>
+Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
 
-This patch has been applied to the linux-omap
-by youw fwiendly patch wobot.
+* Pais, Allen <allen.pais@ti.com> [091015 02:33]:
+> Please ignore my previous mail.
+> 
+> Muxes for OMAP 3630.
 
-Branch in linux-omap: for-next
+Let's put this on hold and do it with the upcoming mux framework
+instead. Adding all the missing 3630 mux settings should be easy
+then.
 
-Initial commit ID (Likely to change): 83f1442357e94b061d1e08507c6219ef3160c74f
+Regards,
 
-PatchWorks
-http://patchwork.kernel.org/patch/59458/
+Tony
 
-Git (Likely to change, and takes a while to get mirrored)
-http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=83f1442357e94b061d1e08507c6219ef3160c74f
-
-
+> 
+> Signed-off-by: Allen Pais <allen.pais@ti.com> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c index b5fac32..93abb74 100644
+> --- a/arch/arm/mach-omap2/mux.c
+> +++ b/arch/arm/mach-omap2/mux.c
+> @@ -551,6 +551,42 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,  MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
+>  		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
+>  		OMAP34XX_MUX_MODE0)
+> +
+> +/*Muxes for 3630 */
+> +MUX_CFG_34XX("H26_3630_DSS_DATA18", 0x100,
+> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("H25_3630_DSS_DATA19", 0x102,
+> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("E28_3630_DSS_DATA20", 0x104,
+> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("J26_3630_DSS_DATA21", 0x106,
+> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("AC27_3630_DSS_DATA22", 0x108,
+> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("AC28_3630_DSS_DATA23", 0x10A,
+> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +
+> +MUX_CFG_34XX("AF9_3630_ETKD8", 0x5EC,
+> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("AG9_3630_ETKD9", 0x5EE,
+> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("AG7_3630_ETKD12", 0x5F0,
+> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +
+> +MUX_CFG_34XX("AA25_3630_UART2_TX", 0x178,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("AD25_3630_UART2_RX", 0x17A,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("AB25_3630_UART2_RTS", 0x176,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("AB26_3630_UART2_CTS", 0x174,
+> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +
+> +MUX_CFG_34XX("H20_UART3_RX_IRRX", 0x19E,
+> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN) 
+> +MUX_CFG_34XX("H21_UART3_TX_IRTX", 0x1A0,
+> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
+> +
+>  };
+>  
+>  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
+> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
+> index 0f49d2d..8d8cbe1 100644
+> --- a/arch/arm/plat-omap/include/mach/mux.h
+> +++ b/arch/arm/plat-omap/include/mach/mux.h
+> @@ -890,6 +890,32 @@ enum omap34xx_index {
+>  
+>  	/* SYS_NIRQ T2 INT1 */
+>  	AF26_34XX_SYS_NIRQ,
+> +
+> +	/*Muxes for 3630*/
+> +	K28_3630_CAM_D6,
+> +	L28_3630_CAM_D7,
+> +	K27_3630_CAM_D8,
+> +	L27_3630_CAM_D9,
+> +
+> +	H26_3630_DSS_DATA18,
+> +	H25_3630_DSS_DATA19,
+> +	E28_3630_DSS_DATA20,
+> +	J26_3630_DSS_DATA21,
+> +	AC27_3630_DSS_DATA22,
+> +	AC28_3630_DSS_DATA23,
+> +
+> +	AF9_3630_ETKD8,
+> +	AG9_3630_ETKD9,
+> +	AG7_3630_ETK12,
+> +
+> +	AA25_3630_UART2_TX,
+> +	AD25_3630_UART2_RX,
+> +	AB25_3630_UART2_RTS,
+> +	AB26_3630_UART2_CTS,
+> +
+> +	H20_UART3_RX_IRRX,
+> +	H21_UART3_TX_IRTX,
+> +
+>  };
+>  
+>  struct omap_mux_cfg {
