@@ -1,69 +1,62 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: [GIT PULL] omap-fixes for v2.6.32-rc6
-Date: Thu, 12 Nov 2009 10:36:26 -0800
-Message-ID: <20091112183626.GY24837@atomide.com>
+From: Kevin Hilman <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: Re: [PATCH] I2C: OMAP3: PM: (re)init for every transfer to support
+	off-mode
+Date: Thu, 12 Nov 2009 11:29:49 -0800
+Message-ID: <636c5030911121129h46f042bav7f0ed23c625b54dd@mail.gmail.com>
+References: <1248217743-24330-1-git-send-email-khilman@deeprootsystems.com>
+	 <20090729234308.GA8850@fluff.org.uk>
+	 <4A7760A4.3080109@deeprootsystems.com>
+	 <636c5030909301506p7da5f016m5148ce6cd279e704@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:64277 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753011AbZKLSga (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 13:36:30 -0500
-Content-Disposition: inline
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <636c5030909301506p7da5f016m5148ce6cd279e704-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ben Dooks <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-omap-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-omap@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Linus,
+On Wed, Sep 30, 2009 at 2:06 PM, Kevin Hilman
+<khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> wrote:
+> On Mon, Aug 3, 2009 at 3:11 PM, Kevin Hilman
+> <khilman-1D3HCaltpLuhEniVeURVKkEOCMrvLtNR@public.gmane.org> wrote:
+>> Ben Dooks wrote:
+>>>
+>>> On Tue, Jul 21, 2009 at 04:09:03PM -0700, Kevin Hilman wrote:
+>>>>
+>>>> From: Rajendra Nayak <rnayak-l0cyMroinI0@public.gmane.org>
+>>>>
+>>>> Because of OMAP off-mode, powerdomain can go off when I2C is idle.
+>>>> Save enough state, and do a re-init for each transfer.
+>>>>
+>>>> Additional save/restore state added by Jagadeesh Bhaskar Pakaravoo=
+r
+>>>> (SYSC_REG) and Aaro Koskinen (wakeup sources.)
+>>>>
+>>>> Also, The OMAP3430 TRM states:
+>>>>
+>>>> "During active mode (I2Ci.I2C_CON[15] I2C_EN bit is set to 1), mak=
+e no
+>>>> changes to the I2Ci.I2C_SCLL and I2Ci.I2C_SCLH registers. =A0Chang=
+es may
+>>>> result in unpredictable behavior."
+>>>>
+>>>> Hence, the I2C_EN bit should be clearer when modifying these
+>>>> registers. Please note that clearing the entire I2C_CON register t=
+o
+>>>> disable the I2C module is safe, because the I2C_CON register is
+>>>> re-configured for each transfer.
+>>>
+>>> should this be applied as a bugfix, or kept for next merge window?
+>>
+>> next merge window is fine.
+>>
+>
+> Ben,
+>
+> It doesn't look like this made it in during the 2.6.32 merge window.
+> Can you queue it for the -rc series?
+>
 
-Please pull omap fixes from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Regards,
-
-Tony
-
-
-The following changes since commit b419148e567728f6af0c3b01965c1cc141e3e13a:
-  Linus Torvalds (1):
-        Linux 2.6.32-rc6
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap-2.6.git omap-fixes-for-linus
-
-Grazvydas Ignotas (2):
-      omap3: pandora: Fix keypad keymap
-      omap3: update Pandora defconfig
-
-Janusz Krzysztofik (2):
-      omap: Fix omapfb/lcdc on OMAP1510 broken when PM set
-      omap1: Amstrad Delta defconfig fixes
-
-Jarkko Nikula (1):
-      omap3: beagle: Fix USB host port power control
-
-Mike Turquette (1):
-      omap3: Decrease cpufreq transition latency
-
-Sergio Aguirre (1):
-      omap3: 3430sdp: Enable Linux Regulator framework
-
-Tao Hu (1):
-      omap: Fix race condition in omap dma driver
-
-Tobias Klauser (1):
-      omap: Use resource_size
-
- arch/arm/configs/ams_delta_defconfig     |   24 +++++++---
- arch/arm/configs/omap3_pandora_defconfig |   49 +++++++++++++++++--
- arch/arm/configs/omap_3430sdp_defconfig  |    9 +++-
- arch/arm/mach-omap2/board-omap3beagle.c  |    2 +-
- arch/arm/mach-omap2/board-omap3pandora.c |   78 +++++++++++++++---------------
- arch/arm/mach-omap2/gpmc.c               |    2 +-
- arch/arm/mach-omap2/mailbox.c            |    2 +-
- arch/arm/plat-omap/cpu-omap.c            |    2 +-
- arch/arm/plat-omap/dma.c                 |   14 +++++
- 9 files changed, 126 insertions(+), 56 deletions(-)
+ping
