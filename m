@@ -1,94 +1,66 @@
-From: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>
-Subject: RE: Query: Regulator framework in EHCI driver
-Date: Thu, 12 Nov 2009 09:21:05 +0530
-Message-ID: <19F8576C6E063C45BE387C64729E73940436F946DD@dbde02.ent.ti.com>
-References: <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE7F@dbde02.ent.ti.com>
- <20091104144811.GB30644@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67DE8A@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940436F9384E@dbde02.ent.ti.com>
- <20091105093641.GA21779@rakim.wolfsonmicro.main>
- <20091105094134.GB3045@nokia.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67E0F2@dbde02.ent.ti.com>
- <20091105111955.GA23505@rakim.wolfsonmicro.main>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A67E132@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E73940436F94618@dbde02.ent.ti.com>
- <20091111154616.GA30354@rakim.wolfsonmicro.main>
- <19F8576C6E063C45BE387C64729E73940436F946DA@dbde02.ent.ti.com>
+From: Artem Bityutskiy <dedekind1@gmail.com>
+Subject: Re: [PATCH 00/19] OMAP: DSS2 v5 intro
+Date: Thu, 12 Nov 2009 07:03:42 +0200
+Message-ID: <1258002222.21596.1129.camel@localhost>
+References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
+	 <1257856848.21596.753.camel@localhost>
+	 <1257929140.20378.51.camel@tubuntu.research.nokia.com>
+	 <1257932641.20378.77.camel@tubuntu.research.nokia.com>
+	 <20091111184208.GC24837@atomide.com>
+Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:42382 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753493AbZKLDvK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:51:10 -0500
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940436F946DA@dbde02.ent.ti.com>
-Content-Language: en-US
-Sender: linux-omap-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752206AbZKLFFt@vger.kernel.org>
+In-Reply-To: <20091111184208.GC24837@atomide.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>
 List-Id: linux-omap@vger.kernel.org
-To: "Gupta, Ajay Kumar" <ajay.gupta@ti.com>, Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: "Gadiyar, Anand" <gadiyar@ti.com>, "felipe.balbi@nokia.com" <felipe.balbi@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
 
-Hi,
-> 
-> > > +	/* get ehci regulator and enable */
-> > > +	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
-> > > +		if (omap->port_mode[i] == EHCI_HCD_OMAP_MODE_UNKNOWN)
-> > > +			continue;
-> > > +		sprintf(supply, "ehci%d", i);
-> >
-> > The use of sprintf() here looks suspicious - these things would normally
-> > be completely fixed.  I appreciate that that's the result, it just looks
-> > suspicous.
-> > Picking out of an array of fixed names would be more idiomatic.
-> 
-> I think this one is good to take.
-> 
-> 
-> >  It'd also be idiomatic to use whatever the supply on the
-> > chip is called in the datasheet - ehci might be accurate but it'd be a
-> > bit of a surprising choice, it'd be good to check.
-> 
-> Supply names on EHCI PHY SMSC-USB3320 (used on EVM) chip datasheet is
-> 'vdd18' but this also may change as other boards use different PHY.
+On Wed, 2009-11-11 at 10:42 -0800, Tony Lindgren wrote:
+> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [091111 01:43]:
+> > On Wed, 2009-11-11 at 09:45 +0100, Valkeinen Tomi (Nokia-D/Helsinki=
+)
+> > wrote:
+> > > On Tue, 2009-11-10 at 13:40 +0100, Artem Bityutskiy wrote:
+> > > > Tomi,
+> > > >=20
+> > > > could you please kindly ask Stephen (CCed) to include the DSS2 =
+tree into
+> > > > linux-next, because you are going to merge it the next merge wi=
+ndow, and
+> > > > there does not seem to be any blocker for this.
+> > > >=20
+> > > > Being in linux-next for a while is really important.
+> > >=20
+> > > Stephen, would this be possible? DSS2 driver is rather big piece =
+of
+> > > code, even if it's quite isolated, so it would be nice to have it=
+ in
+> > > linux-next.
+> > >=20
+> > > What does it require from me? A git tree, obviously, but what sho=
+uld it
+> > > be based on?
+> >=20
+> > Ah, I just realized that DSS2 patches depend on patches from Tony's
+> > tree. I guess I should base my tree on top of some Tony's tree that=
+ is
+> > going to linux-next?
+>=20
+> Or I can merge them into my for-next if that's OK with everybody. Thi=
+s
+> merge cycle is a pain for omap as we've moved all the common headers =
+from
+> include/mach to include/plat.
 
-Another point,
+I thought everything stable which you are going to merge next merge
+window should be in the next branch by default. Especially these massiv=
+e
+re-names which potentially may break many things, right?
 
-OMAP ports can be used as OHCI over serial interface so supply name
-as 'ehciN' would be confusing.
-
-I would change it to 'hsusb-portN' in next revision.
-
-Regards,
-Ajay
-> 
-> >
-> > If you do stick with this approach you probably want to use snprintf()
-> > and make supply be 6 bytes rather than 5 bytes long.
-> >
-> > > +	for (i = 0 ; i < OMAP3_HS_USB_PORTS ; i++) {
-> > > +		if (omap->port_mode[i] == EHCI_HCD_OMAP_MODE_UNKNOWN)
-> > > +			continue;
-> > > +		if (omap->regulator[i]) {
-> > > +			if (regulator_is_enabled(omap->regulator[i]))
-> > > +				regulator_disable(omap->regulator[i]);
-> > > +			regulator_put(omap->regulator[i]);
-> > > +		}
-> >
-> > For robustness I'd drop the first check for MODE_UNKNOWN here - it
-> > doesn't add anything.
-> 
-> MODE_UNKNOWN means that the port is not connected and so no need to check
-> the regulator availability.
-> 
-> >  You also want to call regulator_disable() before
-> > you free the regulator.
-> 
-> It is being done under 'if (regulator_is_enabled)' check.
-> 
-> -Ajay
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+--=20
+Best Regards,
+Artem Bityutskiy (=D0=90=D1=80=D1=82=D1=91=D0=BC =D0=91=D0=B8=D1=82=D1=8E=
+=D1=86=D0=BA=D0=B8=D0=B9)
