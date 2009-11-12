@@ -1,173 +1,140 @@
-From: Felipe Balbi <felipe.balbi@nokia.com>
-Subject: [PATCH] arm: omap: code cleanup to id.c
-Date: Thu, 12 Nov 2009 11:21:38 +0200
-Message-ID: <1258017698-30095-1-git-send-email-felipe.balbi@nokia.com>
-References: <20091111024943.GC1386@atomide.com>
+From: Vimal Singh <vimal.newwork@gmail.com>
+Subject: [PATCH] Fixing keymap for zoom2 according to matrix keypad framwork
+Date: Thu, 12 Nov 2009 14:53:58 +0530
+Message-ID: <ce9ab5790911120123o5b43b63cu5a9af3281df6d902@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:54312 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322AbZKLJX0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 04:23:26 -0500
-In-Reply-To: <20091111024943.GC1386@atomide.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:39031 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751786AbZKLJYO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 04:24:14 -0500
+Received: by bwz27 with SMTP id 27so1965349bwz.21
+        for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 01:24:18 -0800 (PST)
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org, tony@atomide.com
-Cc: Felipe Balbi <felipe.balbi@nokia.com>
+To: linux-omap@vger.kernel.org
 
-Cleanup the coding style in id.c while avoiding unneeded switch()
-statements.
+>From fa0ed0d00ee835d70cd4b1d32f89d4e845e0fff8 Mon Sep 17 00:00:00 2001
+From: Vimal Singh <vimalsingh@ti.com>
+Date: Thu, 12 Nov 2009 14:46:00 +0530
+Subject: [PATCH] Fixing keymap for zoom2 according to matrix keypad framwork
 
-Signed-off-by: Felipe Balbi <felipe.balbi@nokia.com>
+Interpretation of 'row' and 'col' got reversed in matrix keymap
+framework. Also last element '0', present in keymap array, is no
+more needed.
+Correcting zoom2 keyboard keymap accordingly.
+
+Signed-off-by: Vimal Singh <vimalsingh@ti.com>
 ---
-refreshed on top of Today's linux-omap (0aaf4859f62d2ead2dd949646d12b0216439facd)
+ arch/arm/mach-omap2/board-zoom-peripherals.c |   87 +++++++++++++-------------
+ 1 files changed, 43 insertions(+), 44 deletions(-)
 
-this patch was compile-tested only with all omap defconfigs, it would be
-nice to see it boot-tested on several boards before we apply it.
+diff --git a/arch/arm/mach-omap2/board-zoom-peripherals.c
+b/arch/arm/mach-omap2/board-zoom-peripherals.c
+index 54619d5..efb7794 100755
+--- a/arch/arm/mach-omap2/board-zoom-peripherals.c
++++ b/arch/arm/mach-omap2/board-zoom-peripherals.c
+@@ -29,57 +29,56 @@
+ /* Zoom2 has Qwerty keyboard*/
+ static int board_keymap[] = {
+ 	KEY(0, 0, KEY_E),
+-	KEY(1, 0, KEY_R),
+-	KEY(2, 0, KEY_T),
+-	KEY(3, 0, KEY_HOME),
+-	KEY(6, 0, KEY_I),
+-	KEY(7, 0, KEY_LEFTSHIFT),
+-	KEY(0, 1, KEY_D),
++	KEY(0, 1, KEY_R),
++	KEY(0, 2, KEY_T),
++	KEY(0, 3, KEY_HOME),
++	KEY(0, 6, KEY_I),
++	KEY(0, 7, KEY_LEFTSHIFT),
++	KEY(1, 0, KEY_D),
+ 	KEY(1, 1, KEY_F),
+-	KEY(2, 1, KEY_G),
+-	KEY(3, 1, KEY_SEND),
+-	KEY(6, 1, KEY_K),
+-	KEY(7, 1, KEY_ENTER),
+-	KEY(0, 2, KEY_X),
+-	KEY(1, 2, KEY_C),
++	KEY(1, 2, KEY_G),
++	KEY(1, 3, KEY_SEND),
++	KEY(1, 6, KEY_K),
++	KEY(1, 7, KEY_ENTER),
++	KEY(2, 0, KEY_X),
++	KEY(2, 1, KEY_C),
+ 	KEY(2, 2, KEY_V),
+-	KEY(3, 2, KEY_END),
+-	KEY(6, 2, KEY_DOT),
+-	KEY(7, 2, KEY_CAPSLOCK),
+-	KEY(0, 3, KEY_Z),
+-	KEY(1, 3, KEY_KPPLUS),
+-	KEY(2, 3, KEY_B),
++	KEY(2, 3, KEY_END),
++	KEY(2, 6, KEY_DOT),
++	KEY(2, 7, KEY_CAPSLOCK),
++	KEY(3, 0, KEY_Z),
++	KEY(3, 1, KEY_KPPLUS),
++	KEY(3, 2, KEY_B),
+ 	KEY(3, 3, KEY_F1),
+-	KEY(6, 3, KEY_O),
+-	KEY(7, 3, KEY_SPACE),
+-	KEY(0, 4, KEY_W),
+-	KEY(1, 4, KEY_Y),
+-	KEY(2, 4, KEY_U),
+-	KEY(3, 4, KEY_F2),
++	KEY(3, 6, KEY_O),
++	KEY(3, 7, KEY_SPACE),
++	KEY(4, 0, KEY_W),
++	KEY(4, 1, KEY_Y),
++	KEY(4, 2, KEY_U),
++	KEY(4, 3, KEY_F2),
+ 	KEY(4, 4, KEY_VOLUMEUP),
+-	KEY(6, 4, KEY_L),
+-	KEY(7, 4, KEY_LEFT),
+-	KEY(0, 5, KEY_S),
+-	KEY(1, 5, KEY_H),
+-	KEY(2, 5, KEY_J),
+-	KEY(3, 5, KEY_F3),
++	KEY(4, 6, KEY_L),
++	KEY(4, 7, KEY_LEFT),
++	KEY(5, 0, KEY_S),
++	KEY(5, 1, KEY_H),
++	KEY(5, 2, KEY_J),
++	KEY(5, 3, KEY_F3),
+ 	KEY(5, 5, KEY_VOLUMEDOWN),
+-	KEY(6, 5, KEY_M),
+-	KEY(4, 5, KEY_ENTER),
+-	KEY(7, 5, KEY_RIGHT),
+-	KEY(0, 6, KEY_Q),
+-	KEY(1, 6, KEY_A),
+-	KEY(2, 6, KEY_N),
+-	KEY(3, 6, KEY_BACKSPACE),
++	KEY(5, 6, KEY_M),
++	KEY(5, 7, KEY_ENTER),
++	KEY(6, 0, KEY_Q),
++	KEY(6, 1, KEY_A),
++	KEY(6, 2, KEY_N),
++	KEY(6, 3, KEY_BACKSPACE),
+ 	KEY(6, 6, KEY_P),
+-	KEY(7, 6, KEY_UP),
+ 	KEY(6, 7, KEY_SELECT),
+-	KEY(7, 7, KEY_DOWN),
+-	KEY(0, 7, KEY_PROG1),	/*MACRO 1 <User defined> */
+-	KEY(1, 7, KEY_PROG2),	/*MACRO 2 <User defined> */
+-	KEY(2, 7, KEY_PROG3),	/*MACRO 3 <User defined> */
+-	KEY(3, 7, KEY_PROG4),	/*MACRO 4 <User defined> */
+-	0
++	KEY(7, 0, KEY_PROG1),	/*MACRO 1 <User defined> */
++	KEY(7, 1, KEY_PROG2),	/*MACRO 2 <User defined> */
++	KEY(7, 2, KEY_PROG3),	/*MACRO 3 <User defined> */
++	KEY(7, 3, KEY_PROG4),	/*MACRO 4 <User defined> */
++	KEY(7, 5, KEY_RIGHT),
++	KEY(7, 6, KEY_UP),
++	KEY(7, 7, KEY_DOWN)
+ };
 
- arch/arm/mach-omap2/id.c |   61 ++++++++++++++++------------------------------
- 1 files changed, 21 insertions(+), 40 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index 441ca26..cb75b32 100644
---- a/arch/arm/mach-omap2/id.c
-+++ b/arch/arm/mach-omap2/id.c
-@@ -53,11 +53,11 @@ int omap_type(void)
- {
- 	u32 val = 0;
- 
--	if (cpu_is_omap24xx())
-+	if (cpu_is_omap24xx()) {
- 		val = omap_ctrl_readl(OMAP24XX_CONTROL_STATUS);
--	else if (cpu_is_omap34xx())
-+	} else if (cpu_is_omap34xx()) {
- 		val = omap_ctrl_readl(OMAP343X_CONTROL_STATUS);
--	else {
-+	} else {
- 		pr_err("Cannot detect omap type!\n");
- 		goto out;
- 	}
-@@ -224,24 +224,12 @@ void __init omap3_check_revision(void)
- 			omap_revision = OMAP3430_REV_ES3_0;
- 			break;
- 		case 4:
--			omap_revision = OMAP3430_REV_ES3_1;
--			break;
-+		/* FALLTHROUGH */
- 		default:
- 			/* Use the latest known revision as default */
- 			omap_revision = OMAP3430_REV_ES3_1;
- 		}
- 		break;
--	case 0xb891:
--		/* Handle 36xx devices */
--		switch (rev) {
--		case 0:
--			omap_revision = OMAP3630_REV_ES1_0;
--			break;
--		default:
--			/* Use the latest known revision as default */
--			omap_revision = OMAP3630_REV_ES1_0;
--		}
--		break;
- 	case 0xb868:
- 		/* Handle OMAP35xx/AM35xx devices
- 		 *
-@@ -250,6 +238,8 @@ void __init omap3_check_revision(void)
- 		 */
- 		omap_revision = OMAP3505_REV(rev);
- 		break;
-+	case 0xb891:
-+	/* FALLTHROUGH */
- 	default:
- 		/* Unknown default to latest silicon rev as default*/
- 		omap_revision = OMAP3630_REV_ES1_0;
-@@ -274,35 +264,29 @@ void __init omap3_cpuinfo(void)
- 	 * on available features. Upon detection, update the CPU id
- 	 * and CPU class bits.
- 	 */
--	if (cpu_is_omap3630())
-+	if (cpu_is_omap3630()) {
- 		strcpy(cpu_name, "OMAP3630");
--	else if (cpu_is_omap3505()) {
-+	} else if (cpu_is_omap3505()) {
- 		/*
- 		 * AM35xx devices
- 		 */
- 		if (omap3_has_sgx()) {
- 			omap_revision = OMAP3517_REV(rev);
- 			strcpy(cpu_name, "AM3517");
--		}
--		else {
-+		} else {
- 			/* Already set in omap3_check_revision() */
- 			strcpy(cpu_name, "AM3505");
- 		}
--	}
--	/*
--	 * OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices
--	 */
--	else if (omap3_has_iva() && omap3_has_sgx())
-+	} else if (omap3_has_iva() && omap3_has_sgx()) {
-+		/* OMAP3430, OMAP3525, OMAP3515, OMAP3503 devices */
- 		strcpy(cpu_name, "OMAP3430/3530");
--	else if (omap3_has_sgx()) {
-+	} else if (omap3_has_sgx()) {
- 		omap_revision = OMAP3525_REV(rev);
- 		strcpy(cpu_name, "OMAP3525");
--	}
--	else if (omap3_has_iva()) {
-+	} else if (omap3_has_iva()) {
- 		omap_revision = OMAP3515_REV(rev);
- 		strcpy(cpu_name, "OMAP3515");
--	}
--	else {
-+	} else {
- 		omap_revision = OMAP3503_REV(rev);
- 		strcpy(cpu_name, "OMAP3503");
- 	}
-@@ -321,16 +305,13 @@ void __init omap3_cpuinfo(void)
- 		strcpy(cpu_rev, "3.0");
- 		break;
- 	case OMAP_REVBITS_40:
--		strcpy(cpu_rev, "3.1");
--		break;
-+	/* FALLTHROUGH */
- 	default:
- 		/* Use the latest known revision as default */
- 		strcpy(cpu_rev, "3.1");
- 	}
- 
--	/*
--	 * Print verbose information
--	 */
-+	/* Print verbose information */
- 	pr_info("%s ES%s\n", cpu_name, cpu_rev);
- 
- 	OMAP3_SHOW_FEATURE(l2cache);
-@@ -349,18 +330,18 @@ void __init omap2_check_revision(void)
- 	 * At this point we have an idea about the processor revision set
- 	 * earlier with omap2_set_globals_tap().
- 	 */
--	if (cpu_is_omap24xx())
-+	if (cpu_is_omap24xx()) {
- 		omap24xx_check_revision();
--	else if (cpu_is_omap34xx()) {
-+	} else if (cpu_is_omap34xx()) {
- 		omap3_check_features();
- 		omap3_check_revision();
- 		omap3_cpuinfo();
--	}
--	else if (cpu_is_omap44xx()) {
-+	} else if (cpu_is_omap44xx()) {
- 		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
- 		return;
--	} else
-+	} else {
- 		pr_err("OMAP revision unknown, please fix!\n");
-+	}
- 
- 	/*
- 	 * OK, now we know the exact revision. Initialize omap_chip bits
+ static struct matrix_keymap_data board_map_data = {
 -- 
-1.6.4.2.253.g0b1fac
-
+1.5.5
