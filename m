@@ -1,8 +1,7 @@
-From: <Tero.Kristo@nokia.com>
-Subject: RE: [PATCH 11/11] OMAP3: PM: Disable OTG autoidle when waking up
- from off-mode
-Date: Thu, 12 Nov 2009 10:42:07 +0100
-Message-ID: <1F18D6510CF0474A8C9500565A7E41A2236D6F1F6D@NOK-EUMSG-02.mgdnok.nokia.com>
+From: "Gopinath, Thara" <thara@ti.com>
+Subject: RE: [PATCH 07/11] OMAP3: Fixed ARM aux ctrl register save/restore
+Date: Thu, 12 Nov 2009 15:19:57 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C83A6@dbde02.ent.ti.com>
 References: <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
 	<1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
 	<1256313835-2391-3-git-send-email-tero.kristo@nokia.com>
@@ -11,156 +10,141 @@ References: <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
 	<1256313835-2391-6-git-send-email-tero.kristo@nokia.com>
 	<1256313835-2391-7-git-send-email-tero.kristo@nokia.com>
 	<1256313835-2391-8-git-send-email-tero.kristo@nokia.com>
-	<1256313835-2391-9-git-send-email-tero.kristo@nokia.com>
-	<1256313835-2391-10-git-send-email-tero.kristo@nokia.com>
-	<1256313835-2391-11-git-send-email-tero.kristo@nokia.com>
-	<1256313835-2391-12-git-send-email-tero.kristo@nokia.com>
- <878wecy6g8.fsf@deeprootsystems.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030A8C829A@dbde02.ent.ti.com>
+ <87zl6sy757.fsf@deeprootsystems.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:20580 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752692AbZKLJmN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 04:42:13 -0500
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C829A@dbde02.ent.ti.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:40599 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752199AbZKLJt6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 04:49:58 -0500
+In-Reply-To: <87zl6sy757.fsf@deeprootsystems.com>
 Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: gadiyar@ti.com, khilman@deeprootsystems.com
-Cc: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>, Tero Kristo <tero.kristo@nokia.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
- 
 
->-----Original Message-----
->From: ext Gadiyar, Anand [mailto:gadiyar@ti.com] 
->Sent: 12 November, 2009 08:25
->To: Kevin Hilman; Kristo Tero (Nokia-D/Tampere)
->Cc: linux-omap@vger.kernel.org
->Subject: RE: [PATCH 11/11] OMAP3: PM: Disable OTG autoidle 
->when waking up from off-mode
->
->Kevin Hilman wrote:
->> Tero Kristo <tero.kristo@nokia.com> writes:
->> 
->> > From: Tero Kristo <tero.kristo@nokia.com>
->> >
->> > OMAP3 sleep can be prevented in some cases where OTG 
->autoidle is enabled.
->> > This patch force disables autoidle during wakeup from 
->off-mode. See omap
->> > errata 1.164.
->> >
->> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
->> 
->> This one needs a refresh against current PM branch.
->> 
->> > ---
->> >  arch/arm/mach-omap2/pm34xx.c          |    6 ++++++
->> >  arch/arm/mach-omap2/usb-musb.c        |   14 ++++++++------
->> >  arch/arm/plat-omap/include/mach/usb.h |    3 +++
->> 
->> mach/usb.h moved to plat/usb.h
->> 
->> >  3 files changed, 17 insertions(+), 6 deletions(-)
->> >
->> > diff --git a/arch/arm/mach-omap2/pm34xx.c 
->b/arch/arm/mach-omap2/pm34xx.c
->> > index 5eb7321..070a0a2 100644
->> > --- a/arch/arm/mach-omap2/pm34xx.c
->> > +++ b/arch/arm/mach-omap2/pm34xx.c
->> > @@ -39,6 +39,7 @@
->> >  #include <mach/gpmc.h>
->> >  #include <mach/dma.h>
->> >  #include <mach/dmtimer.h>
->> > +#include <mach/usb.h>
->> >  
->> >  #include <asm/tlbflush.h>
->> >  
->> > @@ -496,6 +497,11 @@ void omap_sram_idle(void)
->> >  			omap3_prcm_restore_context();
->> >  			omap3_sram_restore_context();
->> >  			omap2_sms_restore_context();
->> > +			/*
->> > +			 * Errata 1.164 fix : OTG autoidle can prevent
->> > +			 * sleep
->> > +			 */
->> > +			usb_musb_disable_autoidle();
->> 
->> NAK.  This belongs in the MUSB driver, not in the idle path.
->> 
->
->Kevin,
->
->When we exit off-mode, the autoidle will get enabled, and needs
->an explicit disable. If the MUSB driver is not loaded, there will
->be no one to do this.
 
-Also, even if the driver is loaded, it doesn't disable this bit each sleep cycle.
+>>-----Original Message-----
+>>From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Kevin
+>>Hilman
+>>Sent: Thursday, November 12, 2009 4:57 AM
+>>To: Tero Kristo
+>>Cc: linux-omap@vger.kernel.org
+>>Subject: Re: [PATCH 07/11] OMAP3: Fixed ARM aux ctrl register save/restore
+>>
+>>Tero Kristo <tero.kristo@nokia.com> writes:
+>>
+>>> From: Tero Kristo <tero.kristo@nokia.com>
+>>>
+>>> Current value is stored on SDRAM and it is written back during wakeup.
+>>> Previously a static value of 0x72 was written there.
+>>>
+>>> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>>> Signed-off-by: Jouni Hogander <jouni.hogander@nokia.com>
+>>
+>>Thanks, applying to PM branch, queuing for pm-fixes.
 
->
->- Anand
->
->> Kevin
->> 
->> >  		}
->> >  		omap_uart_resume_idle(0);
->> >  		omap_uart_resume_idle(1);
->> > diff --git a/arch/arm/mach-omap2/usb-musb.c 
->b/arch/arm/mach-omap2/usb-musb.c
->> > index 8dde0b7..f4b86c0 100644
->> > --- a/arch/arm/mach-omap2/usb-musb.c
->> > +++ b/arch/arm/mach-omap2/usb-musb.c
->> > @@ -44,10 +44,11 @@ static struct platform_device dummy_pdev = {
->> >  	},
->> >  };
->> >  
->> > +static void __iomem *otg_base;
->> > +static struct clk *otg_clk;
->> > +
->> >  static void __init usb_musb_pm_init(void)
->> >  {
->> > -	void __iomem *otg_base;
->> > -	struct clk *otg_clk;
->> >  	struct device *dev = &dummy_pdev.dev;
->> >  
->> >  	if (!cpu_is_omap34xx())
->> > @@ -74,12 +75,13 @@ static void __init usb_musb_pm_init(void)
->> >  			cpu_relax();
->> >  	}
->> >  
->> > -	if (otg_clk) {
->> > +	if (otg_clk)
->> >  		clk_disable(otg_clk);
->> > -		clk_put(otg_clk);
->> > -	}
->> > +}
->> >
->> >  
->> > -	iounmap(otg_base);
->> > +void usb_musb_disable_autoidle(void)
->> > +{
->> > +	__raw_writel(0, otg_base + OTG_SYSCONFIG);
->> >  }
->> >  
->> >  #ifdef CONFIG_USB_MUSB_SOC
->> > diff --git a/arch/arm/plat-omap/include/mach/usb.h 
->b/arch/arm/plat-omap/include/mach/usb.h
->> > index a4068a4..310ee17 100644
->> > --- a/arch/arm/plat-omap/include/mach/usb.h
->> > +++ b/arch/arm/plat-omap/include/mach/usb.h
->> > @@ -46,6 +46,9 @@ extern void usb_musb_init(void);
->> >  
->> >  extern void usb_ehci_init(struct 
->ehci_hcd_omap_platform_data *pdata);
->> >  
->> > +/* This is needed for OMAP3 errata 1.164: enabled 
->autoidle can prevent sleep */
->> > +extern void usb_musb_disable_autoidle(void);
->> > +
->> >  #endif
->> >  
->> >  void omap_usb_init(struct omap_usb_config *pdata);
->
+There were review comments for this patch to be redone in a different manner. Are they not going to be addressed ?
+>>
+>>Kevin
+>>
+>>> ---
+>>>  arch/arm/mach-omap2/control.c   |    1 +
+>>>  arch/arm/mach-omap2/sleep34xx.S |   23 ++++++++++++++++++++---
+>>>  2 files changed, 21 insertions(+), 3 deletions(-)
+>>>
+>>> diff --git a/arch/arm/mach-omap2/control.c b/arch/arm/mach-omap2/control.c
+>>> index 296f2c2..730fc53 100644
+>>> --- a/arch/arm/mach-omap2/control.c
+>>> +++ b/arch/arm/mach-omap2/control.c
+>>> @@ -94,6 +94,7 @@ void *omap3_secure_ram_storage;
+>>>   * during the restore path.
+>>>   */
+>>>  u32 omap3_arm_context[128];
+>>> +u32 omap3_aux_ctrl[2] = { 0x1, 0x0 };
+>>>
+>>>  struct omap3_control_regs {
+>>>  	u32 sysconfig;
+>>> diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
+>>> index f4f5ebe..0b03bf9 100644
+>>> --- a/arch/arm/mach-omap2/sleep34xx.S
+>>> +++ b/arch/arm/mach-omap2/sleep34xx.S
+>>> @@ -26,6 +26,7 @@
+>>>   */
+>>>  #include <linux/linkage.h>
+>>>  #include <asm/assembler.h>
+>>> +#include <asm/memory.h>
+>>>  #include <mach/io.h>
+>>>  #include <mach/control.h>
+>>>
+>>> @@ -278,7 +279,11 @@ restore:
+>>>  	mov	r1, #0		@ set task id for ROM code in r1
+>>>  	mov	r2, #4		@ set some flags in r2, r6
+>>>  	mov	r6, #0xff
+>>> -	adr	r3, write_aux_control_params	@ r3 points to parameters
+>>> +	ldr	r3, write_aux_control_params	@ r3 points to parameters
+>>> +	ldr	r4, phys_offset
+>>> +	adds	r3, r3, r4
+>>> +	ldr	r4, page_offset
+>>> +	subs	r3, r3, r4
+>>>  	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
+>>>  	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
+>>>  	.word	0xE1600071		@ call SMI monitor (smi #1)
+>>> @@ -287,13 +292,18 @@ restore:
+>>>  l2_inv_api_params:
+>>>  	.word   0x1, 0x00
+>>>  write_aux_control_params:
+>>> -	.word   0x1, 0x72
+>>> +	.word	omap3_aux_ctrl
+>>>  l2_inv_gp:
+>>>  	/* Execute smi to invalidate L2 cache */
+>>>  	mov r12, #0x1                         @ set up to invalide L2
+>>>  smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
+>>>  	/* Write to Aux control register to set some bits */
+>>> -	mov	r0, #0x72
+>>> +	ldr	r1, write_aux_control_params
+>>> +	ldr	r0, phys_offset
+>>> +	adds	r1, r1, r0
+>>> +	ldr	r0, page_offset
+>>> +	subs	r1, r1, r0
+>>> +	ldr	r0, [r1, #4]
+>>>  	mov	r12, #0x3
+>>>  	.word 0xE1600070	@ Call SMI monitor (smieq)
+>>>  logic_l1_restore:
+>>> @@ -420,6 +430,9 @@ usettbr0:
+>>>  save_context_wfi:
+>>>  	/*b	save_context_wfi*/	@ enable to debug save code
+>>>  	mov	r8, r0 /* Store SDRAM address in r8 */
+>>> +	mrc	p15, 0, r4, c1, c0, 1	@ Read Auxiliary Control Register
+>>> +	ldr	r5, write_aux_control_params
+>>> +	str	r4, [r5, #4]
+>>>          /* Check what that target sleep state is:stored in r1*/
+>>>          /* 1 - Only L1 and logic lost */
+>>>          /* 2 - Only L2 lost */
+>>> @@ -605,6 +618,10 @@ wait_dll_lock:
+>>>          bne     wait_dll_lock
+>>>          bx      lr
+>>>
+>>> +phys_offset:
+>>> +	.word	PHYS_OFFSET
+>>> +page_offset:
+>>> +	.word	PAGE_OFFSET
+>>>  cm_idlest1_core:
+>>>  	.word	CM_IDLEST1_CORE_V
+>>>  sdrc_dlla_status:
+>>> --
+>>> 1.5.4.3
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
