@@ -1,149 +1,198 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 03/10] omap1: mmc: Add platform init for omap7xx
-Date: Wed, 11 Nov 2009 19:02:30 -0800
-Message-ID: <20091112030230.5159.72386.stgit@localhost>
+Subject: [PATCH 04/10] omap1: omap_udc: Add clocking and disable vbus sense
+	for omap7xx
+Date: Wed, 11 Nov 2009 19:02:42 -0800
+Message-ID: <20091112030241.5159.94413.stgit@localhost>
 References: <20091112025802.5159.97598.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58520 "EHLO
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58767 "EHLO
 	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760033AbZKLDC0 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:02:26 -0500
+	with ESMTP id S1760047AbZKLDCh (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:02:37 -0500
 In-Reply-To: <20091112025802.5159.97598.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: linux-omap@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
 
 From: Cory Maccarrone <darkstar6262@gmail.com>
 
-The MMC mux pins normally used by omap chips in devices.c
-are different from what is needed by omap7xx chips.  This
-change adds a conditional around the mux setup code to
-enable the correct mux pins.
+The l3_ocpi_ck clock is needed on omap7xx processors for USB.
+Additionally, bit 8 of the SOFT_REQ_REG needs to be enabled for
+the usb_dc_ck on omap7xx, which is a different bit than that
+of the omap16xx-defined clock of the same name.
 
-The omap730 and omap850 both use a different clock for the "fck"
-clock of the MMC interface than other omap processors based on the
-SOFT_REQ_REG, pin 12.  The "ick" clock is the same as that used
-by other omap processors.
+I added a provision for the usb_dc_ck and l3_ocpi_ck clocks as
+dc_clk and hhc_clk, respectively, for omap7xx CPUs.  Additionally,
+I added a check in machine_without_vbus_sense for all omap7xx
+devices, as presently I know of no omap7xx-based devices that
+have vbus sense, and it made more sense to me to use a cpu check
+here than to spell out each machine one at a time.  Finally, DMA
+is disabled for omap7xx, as it causes problems with these chips.
 
-* Added the missing clock definition as mmc3_ck to clock.h
-* Added the clock definition to omap_clks in clock.c
-* Added CK_7XX to the mmci-omap.0 "ick" clock already in clock.c
-
-With these changes, it is now possible to initialize and use MMC
-cards with omap730 and omap850 devices.
-
+Cc: linux-usb@vger.kernel.org
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/clock.c           |    3 ++-
- arch/arm/mach-omap1/clock.h           |   12 ++++++++++++
- arch/arm/mach-omap1/devices.c         |   15 +++++++++++----
- arch/arm/mach-omap1/mux.c             |    5 +++++
- arch/arm/plat-omap/include/plat/mux.h |    5 +++++
- 5 files changed, 35 insertions(+), 5 deletions(-)
+ arch/arm/mach-omap1/Kconfig   |    1 +
+ arch/arm/mach-omap1/clock.c   |    3 ++-
+ arch/arm/mach-omap1/clock.h   |   10 ++++++++++
+ arch/arm/plat-omap/usb.c      |   20 ++++++++++++++------
+ drivers/usb/gadget/omap_udc.c |   19 +++++++++++++++++--
+ 5 files changed, 44 insertions(+), 9 deletions(-)
 
+diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
+index 55ecc01..3232726 100644
+--- a/arch/arm/mach-omap1/Kconfig
++++ b/arch/arm/mach-omap1/Kconfig
+@@ -11,6 +11,7 @@ config ARCH_OMAP850
+ 	depends on ARCH_OMAP1
+ 	bool "OMAP850 Based System"
+ 	select CPU_ARM926T
++	select ARCH_OMAP_OTG
+ 
+ config ARCH_OMAP15XX
+ 	depends on ARCH_OMAP1
 diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index b4fec9a..7b146c0 100644
+index 7b146c0..42cbe20 100644
 --- a/arch/arm/mach-omap1/clock.c
 +++ b/arch/arm/mach-omap1/clock.c
-@@ -125,7 +125,8 @@ static struct omap_clk omap_clks[] = {
+@@ -99,7 +99,7 @@ static struct omap_clk omap_clks[] = {
+ 	/* CK_GEN3 clocks */
+ 	CLK(NULL,	"tc_ck",	&tc_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
+ 	CLK(NULL,	"tipb_ck",	&tipb_ck,	CK_1510 | CK_310),
+-	CLK(NULL,	"l3_ocpi_ck",	&l3_ocpi_ck,	CK_16XX),
++	CLK(NULL,	"l3_ocpi_ck",	&l3_ocpi_ck,	CK_16XX | CK_7XX),
+ 	CLK(NULL,	"tc1_ck",	&tc1_ck,	CK_16XX),
+ 	CLK(NULL,	"tc2_ck",	&tc2_ck,	CK_16XX),
+ 	CLK(NULL,	"dma_ck",	&dma_ck,	CK_16XX | CK_1510 | CK_310),
+@@ -120,6 +120,7 @@ static struct omap_clk omap_clks[] = {
+ 	CLK(NULL,	"usb_hhc_ck",	&usb_hhc_ck1510, CK_1510 | CK_310),
+ 	CLK(NULL,	"usb_hhc_ck",	&usb_hhc_ck16xx, CK_16XX),
+ 	CLK(NULL,	"usb_dc_ck",	&usb_dc_ck,	CK_16XX),
++	CLK(NULL,	"usb_dc_ck",	&usb_dc_ck7xx,	CK_7XX),
+ 	CLK(NULL,	"mclk",		&mclk_1510,	CK_1510 | CK_310),
+ 	CLK(NULL,	"mclk",		&mclk_16xx,	CK_16XX),
  	CLK(NULL,	"bclk",		&bclk_1510,	CK_1510 | CK_310),
- 	CLK(NULL,	"bclk",		&bclk_16xx,	CK_16XX),
- 	CLK("mmci-omap.0", "fck",	&mmc1_ck,	CK_16XX | CK_1510 | CK_310),
--	CLK("mmci-omap.0", "ick",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310),
-+	CLK("mmci-omap.0", "fck",	&mmc3_ck,	CK_7XX),
-+	CLK("mmci-omap.0", "ick",	&armper_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK("mmci-omap.1", "fck",	&mmc2_ck,	CK_16XX),
- 	CLK("mmci-omap.1", "ick",	&armper_ck.clk,	CK_16XX),
- 	/* Virtual clocks */
 diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-index 17f8742..fac921c 100644
+index fac921c..29ffa97 100644
 --- a/arch/arm/mach-omap1/clock.h
 +++ b/arch/arm/mach-omap1/clock.h
-@@ -637,6 +637,18 @@ static struct clk mmc2_ck = {
- 	.enable_bit	= 20,
+@@ -574,6 +574,16 @@ static struct clk usb_dc_ck = {
+ 	.enable_bit	= 4,
  };
  
-+static struct clk mmc3_ck = {
-+	.name		= "mmc_ck",
-+	.id		= 2,
++static struct clk usb_dc_ck7xx = {
++	.name		= "usb_dc_ck",
 +	.ops		= &clkops_generic,
-+	/* Functional clock is direct from ULPD, interface clock is ARMPER */
-+	.parent		= &armper_ck.clk,
++	/* Direct from ULPD, no parent */
 +	.rate		= 48000000,
-+	.flags		= RATE_FIXED | ENABLE_REG_32BIT | CLOCK_NO_IDLE_PARENT,
++	.flags		= RATE_FIXED,
 +	.enable_reg	= OMAP1_IO_ADDRESS(SOFT_REQ_REG),
-+	.enable_bit	= 12,
++	.enable_bit	= 8,
 +};
 +
- static struct clk virtual_ck_mpu = {
- 	.name		= "mpu",
- 	.ops		= &clkops_null,
-diff --git a/arch/arm/mach-omap1/devices.c b/arch/arm/mach-omap1/devices.c
-index 6d2f72d..23ded2d 100644
---- a/arch/arm/mach-omap1/devices.c
-+++ b/arch/arm/mach-omap1/devices.c
-@@ -108,15 +108,22 @@ static inline void omap1_mmc_mux(struct omap_mmc_platform_data *mmc_controller,
- 			int controller_nr)
- {
- 	if (controller_nr == 0) {
--		omap_cfg_reg(MMC_CMD);
--		omap_cfg_reg(MMC_CLK);
--		omap_cfg_reg(MMC_DAT0);
-+		if (cpu_is_omap7xx()) {
-+			omap_cfg_reg(MMC_7XX_CMD);
-+			omap_cfg_reg(MMC_7XX_CLK);
-+			omap_cfg_reg(MMC_7XX_DAT0);
-+		} else {
-+			omap_cfg_reg(MMC_CMD);
-+			omap_cfg_reg(MMC_CLK);
-+			omap_cfg_reg(MMC_DAT0);
-+		}
-+
- 		if (cpu_is_omap1710()) {
- 			omap_cfg_reg(M15_1710_MMC_CLKI);
- 			omap_cfg_reg(P19_1710_MMC_CMDDIR);
- 			omap_cfg_reg(P20_1710_MMC_DATDIR0);
- 		}
--		if (mmc_controller->slots[0].wires == 4) {
-+		if (mmc_controller->slots[0].wires == 4 && !cpu_is_omap7xx()) {
- 			omap_cfg_reg(MMC_DAT1);
- 			/* NOTE: DAT2 can be on W10 (here) or M15 */
- 			if (!mmc_controller->slots[0].nomux)
-diff --git a/arch/arm/mach-omap1/mux.c b/arch/arm/mach-omap1/mux.c
-index 1e6145c..785371e 100644
---- a/arch/arm/mach-omap1/mux.c
-+++ b/arch/arm/mach-omap1/mux.c
-@@ -51,6 +51,11 @@ MUX_CFG_7XX("E3_7XX_KBC4",        13,   25,    0,   24,   1, 0)
- MUX_CFG_7XX("AA17_7XX_USB_DM",     2,   21,    0,   20,   0, 0)
- MUX_CFG_7XX("W16_7XX_USB_PU_EN",   2,   25,    0,   24,   0, 0)
- MUX_CFG_7XX("W17_7XX_USB_VBUSI",   2,   29,    0,   28,   0, 0)
-+
-+/* MMC Pins */
-+MUX_CFG_7XX("MMC_7XX_CMD",         2,    9,    0,    8,   1, 0)
-+MUX_CFG_7XX("MMC_7XX_CLK",         2,   13,    0,   12,   1, 0)
-+MUX_CFG_7XX("MMC_7XX_DAT0",        2,   17,    0,   16,   1, 0)
- };
- #define OMAP7XX_PINS_SZ		ARRAY_SIZE(omap7xx_pins)
- #else
-diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
-index f3c1d8a..56e357e 100644
---- a/arch/arm/plat-omap/include/plat/mux.h
-+++ b/arch/arm/plat-omap/include/plat/mux.h
-@@ -219,6 +219,11 @@ enum omap7xx_index {
- 	AA17_7XX_USB_DM,
- 	W16_7XX_USB_PU_EN,
- 	W17_7XX_USB_VBUSI,
-+
-+	/* MMC */
-+	MMC_7XX_CMD,
-+	MMC_7XX_CLK,
-+	MMC_7XX_DAT0,
- };
+ static struct clk mclk_1510 = {
+ 	.name		= "mclk",
+ 	.ops		= &clkops_generic,
+diff --git a/arch/arm/plat-omap/usb.c b/arch/arm/plat-omap/usb.c
+index 0ea1e0b..51033a4 100644
+--- a/arch/arm/plat-omap/usb.c
++++ b/arch/arm/plat-omap/usb.c
+@@ -159,11 +159,14 @@ static u32 __init omap_usb0_init(unsigned nwires, unsigned is_device)
+ 		 *  - OTG support on this port not yet written
+ 		 */
  
- enum omap1xxx_index {
+-		l = omap_readl(USB_TRANSCEIVER_CTRL);
+-		l &= ~(7 << 4);
+-		if (!is_device)
+-			l |= (3 << 1);
+-		omap_writel(l, USB_TRANSCEIVER_CTRL);
++		/* Don't do this for omap7xx -- it causes USB to not work correctly */
++		if (!cpu_is_omap7xx()) {
++			l = omap_readl(USB_TRANSCEIVER_CTRL);
++			l &= ~(7 << 4);
++			if (!is_device)
++				l |= (3 << 1);
++			omap_writel(l, USB_TRANSCEIVER_CTRL);
++		}
+ 
+ 		return 3 << 16;
+ 	}
+@@ -603,7 +606,12 @@ omap_otg_init(struct omap_usb_config *config)
+ 	if (config->otg || config->register_dev) {
+ 		syscon &= ~DEV_IDLE_EN;
+ 		udc_device.dev.platform_data = config;
+-		/* FIXME patch IRQ numbers for omap730 */
++		/* IRQ numbers for omap7xx */
++		if(cpu_is_omap7xx()) {
++			udc_resources[1].start = INT_7XX_USB_GENI;
++			udc_resources[2].start = INT_7XX_USB_NON_ISO;
++			udc_resources[3].start = INT_7XX_USB_ISO;
++		}
+ 		status = platform_device_register(&udc_device);
+ 		if (status)
+ 			pr_debug("can't register UDC device, %d\n", status);
+diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
+index b836efe..f81e4f0 100644
+--- a/drivers/usb/gadget/omap_udc.c
++++ b/drivers/usb/gadget/omap_udc.c
+@@ -2098,6 +2098,7 @@ static inline int machine_without_vbus_sense(void)
+ 		|| machine_is_omap_h4()
+ #endif
+ 		|| machine_is_sx1()
++		|| cpu_is_omap7xx() /* No known omap7xx boards with vbus sense */
+ 		);
+ }
+ 
+@@ -2838,6 +2839,16 @@ static int __init omap_udc_probe(struct platform_device *pdev)
+ 		udelay(100);
+ 	}
+ 
++	if (cpu_is_omap7xx()) {
++		dc_clk = clk_get(&pdev->dev, "usb_dc_ck");
++		hhc_clk = clk_get(&pdev->dev, "l3_ocpi_ck");
++		BUG_ON(IS_ERR(dc_clk) || IS_ERR(hhc_clk));
++		/* can't use omap_udc_enable_clock yet */
++		clk_enable(dc_clk);
++		clk_enable(hhc_clk);
++		udelay(100);
++	}
++
+ 	INFO("OMAP UDC rev %d.%d%s\n",
+ 		omap_readw(UDC_REV) >> 4, omap_readw(UDC_REV) & 0xf,
+ 		config->otg ? ", Mini-AB" : "");
+@@ -2970,7 +2981,7 @@ known:
+ 		goto cleanup3;
+ 	}
+ #endif
+-	if (cpu_is_omap16xx()) {
++	if (cpu_is_omap16xx() || cpu_is_omap7xx()) {
+ 		udc->dc_clk = dc_clk;
+ 		udc->hhc_clk = hhc_clk;
+ 		clk_disable(hhc_clk);
+@@ -3008,7 +3019,7 @@ cleanup0:
+ 	if (xceiv)
+ 		otg_put_transceiver(xceiv);
+ 
+-	if (cpu_is_omap16xx() || cpu_is_omap24xx()) {
++	if (cpu_is_omap16xx() || cpu_is_omap24xx() || cpu_is_omap7xx()) {
+ 		clk_disable(hhc_clk);
+ 		clk_disable(dc_clk);
+ 		clk_put(hhc_clk);
+@@ -3115,6 +3126,10 @@ static struct platform_driver udc_driver = {
+ 
+ static int __init udc_init(void)
+ {
++	/* Disable DMA for omap7xx -- it doesn't work right. */
++	if (cpu_is_omap7xx())
++		use_dma = 0;
++
+ 	INFO("%s, version: " DRIVER_VERSION
+ #ifdef	USE_ISO
+ 		" (iso)"
 
