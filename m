@@ -1,267 +1,204 @@
-From: Vimal Singh <vimal.newwork@gmail.com>
-Subject: Re: [PATCH 4/4] Add ASoC support for DEVKIT8000
-Date: Thu, 12 Nov 2009 16:24:21 +0530
-Message-ID: <ce9ab5790911120254l13a51b45n59270331be1264a7@mail.gmail.com>
-References: <8e4f2cbd8c0fccce7759ee7545699e1d@djdvant.com>
+From: "Aggarwal, Anuj" <anuj.aggarwal@ti.com>
+Subject: FW: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
+Date: Thu, 12 Nov 2009 16:27:27 +0530
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C8416@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:65191 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751949AbZKLKyh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 05:54:37 -0500
-In-Reply-To: <8e4f2cbd8c0fccce7759ee7545699e1d@djdvant.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:36540 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752608AbZKLK50 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 05:57:26 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id nACAvTTe027184
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 04:57:31 -0600
+Received: from dbde71.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id nACAvThG015218
+	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 16:27:29 +0530 (IST)
+Content-Language: en-US
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kim Botherway <kbotherway@djdvant.com>
-Cc: alsa-devel@vger.kernel.org, linux-omap@vger.kernel.org
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-On Thu, Nov 12, 2009 at 3:54 PM, Kim Botherway <kbotherway@djdvant.com>=
- wrote:
-> This patch add support for DEVKIT8000, it is a copy of Beagleboard so=
-und
-> driver
->
-> diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-> index 653a362..8cdcfe9 100644
-> --- a/sound/soc/omap/Kconfig
-> +++ b/sound/soc/omap/Kconfig
-> @@ -91,6 +91,14 @@ config SND_OMAP_SOC_OMAP3_BEAGLE
-> =A0 =A0 =A0 =A0help
-> =A0 =A0 =A0 =A0 =A0Say Y if you want to add support for SoC audio on =
-the Beagleboard.
->
-> +config SND_OMAP_SOC_OMAP3_DEVKIT8000
-> + =A0 =A0 =A0 =A0tristate "SoC Audio support for OMAP3 DEVKIT8000"
-> + =A0 =A0 =A0 =A0depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP=
-3_DEVKIT8000
-> + =A0 =A0 =A0 =A0select SND_OMAP_SOC_MCBSP
-> + =A0 =A0 =A0 =A0select SND_SOC_TWL4030
-> + =A0 =A0 =A0 =A0help
-> + =A0 =A0 =A0 =A0 =A0Say Y if you want to add support for SoC audio o=
-n the
-> DEVKIT8000.
+Pushed this patch to psp-group:build7 ...
 
-Patch is corrupted due to line-wrapping.
+Regards,
+Anuj Aggarwal
 
-> +
-> =A0config SND_OMAP_SOC_ZOOM2
-> =A0 =A0 =A0 =A0tristate "SoC Audio support for Zoom2"
-> =A0 =A0 =A0 =A0depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_Z=
-OOM2
->
-> diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-> index 02d6947..7239737 100644
-> --- a/sound/soc/omap/Makefile
-> +++ b/sound/soc/omap/Makefile
-> @@ -15,6 +15,7 @@ snd-soc-omap3evm-objs :=3D omap3evm.o
-> =A0snd-soc-sdp3430-objs :=3D sdp3430.o
-> =A0snd-soc-omap3pandora-objs :=3D omap3pandora.o
-> =A0snd-soc-omap3beagle-objs :=3D omap3beagle.o
-> +snd-soc-omap3devkit8000-objs :=3D omap3devkit8000.o
-> =A0snd-soc-zoom2-objs :=3D zoom2.o
->
-> =A0obj-$(CONFIG_SND_OMAP_SOC_N810) +=3D snd-soc-n810.o
-> @@ -26,4 +27,5 @@ obj-$(CONFIG_MACH_OMAP3EVM) +=3D snd-soc-omap3evm.o
-> =A0obj-$(CONFIG_SND_OMAP_SOC_SDP3430) +=3D snd-soc-sdp3430.o
-> =A0obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) +=3D snd-soc-omap3pandora=
-=2Eo
-> =A0obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) +=3D snd-soc-omap3beagle.o
-> +obj-$(CONFIG_SND_OMAP_SOC_OMAP3_DEVKIT8000) +=3D snd-soc-omap3devkit=
-8000.o
-> =A0obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) +=3D snd-soc-zoom2.o
->
-> diff --git a/sound/soc/omap/omap3devkit8000.c
-> b/sound/soc/omap/omap3devkit8000.c
-> new file mode 100644
-> index 0000000..6a975d4
-> --- /dev/null
-> +++ b/sound/soc/omap/omap3devkit8000.c
-> @@ -0,0 +1,154 @@
-> +/*
-> + * omap3devkit8000.c =A0-- =A0SoC audio for OMAP3 Beagle
-> + *
-> + * Author: Steve Sakoman <steve@sakoman.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, b=
-ut
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. =A0See the G=
-NU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#include <linux/clk.h>
-> +#include <linux/platform_device.h>
-> +#include <sound/core.h>
-> +#include <sound/pcm.h>
-> +#include <sound/soc.h>
-> +#include <sound/soc-dapm.h>
-> +
-> +#include <asm/mach-types.h>
-> +#include <plat/hardware.h>
-> +#include <plat/gpio.h>
-> +#include <plat/mcbsp.h>
-> +
-> +#include "omap-mcbsp.h"
-> +#include "omap-pcm.h"
-> +#include "../codecs/twl4030.h"
-> +
-> +static int omap3devkit8000_hw_params(struct snd_pcm_substream *subst=
-ream,
-> + =A0 =A0 =A0 struct snd_pcm_hw_params *params)
-> +{
-> + =A0 =A0 =A0 struct snd_soc_pcm_runtime *rtd =3D substream->private_=
-data;
-> + =A0 =A0 =A0 struct snd_soc_dai *codec_dai =3D rtd->dai->codec_dai;
-> + =A0 =A0 =A0 struct snd_soc_dai *cpu_dai =3D rtd->dai->cpu_dai;
-> + =A0 =A0 =A0 unsigned int fmt;
-> + =A0 =A0 =A0 int ret;
-> +
-> + =A0 =A0 =A0 switch (params_channels(params)) {
-> + =A0 =A0 =A0 case 2: /* Stereo I2S mode */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmt =3D =A0 SND_SOC_DAIFMT_I2S |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 SND_SOC_DAIFMT_NB_NF |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 SND_SOC_DAIFMT_CBM_CFM;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 case 4: /* Four channel TDM mode */
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 fmt =3D =A0 SND_SOC_DAIFMT_DSP_A |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 SND_SOC_DAIFMT_IB_NF |
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 SND_SOC_DAIFMT_CBM_CFM;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
-> + =A0 =A0 =A0 default:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -EINVAL;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 /* Set codec DAI configuration */
-> + =A0 =A0 =A0 ret =3D snd_soc_dai_set_fmt(codec_dai, fmt);
-> + =A0 =A0 =A0 if (ret < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "can't set codec DAI co=
-nfiguration\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 /* Set cpu DAI configuration */
-> + =A0 =A0 =A0 ret =3D snd_soc_dai_set_fmt(cpu_dai, fmt);
-> + =A0 =A0 =A0 if (ret < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "can't set cpu DAI conf=
-iguration\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 /* Set the codec system clock for DAC and ADC */
-> + =A0 =A0 =A0 ret =3D snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0SND_SOC_CLOCK_IN);
-> + =A0 =A0 =A0 if (ret < 0) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "can't set codec system=
- clock\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return ret;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 return 0;
-> +}
-> +
-> +static struct snd_soc_ops omap3devkit8000_ops =3D {
-> + =A0 =A0 =A0 .hw_params =3D omap3devkit8000_hw_params,
+
+-----Original Message-----
+From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of Govindarajan, Sriramakrishnan
+Sent: Wednesday, November 11, 2009 1:43 PM
+To: linux-omap@vger.kernel.org
+Subject: RE: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
+
+Tony,
+Are there comments with respect to this patch. Will this be merged in the next window?
+Regards
+Sriram
+
+> -----Original Message-----
+> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> owner@vger.kernel.org] On Behalf Of Govindarajan, Sriramakrishnan
+> Sent: Wednesday, October 28, 2009 7:19 PM
+> To: linux-omap@vger.kernel.org
+> Cc: Govindarajan, Sriramakrishnan
+> Subject: [PATCH] omap3evm: Migrate to smsc911x ethernet driver.
+> 
+> Migrate to smsc911x ethernet driver instead of smc911x driver.
+> The smsc911x ethernet driver supports NAPI and performs better
+> under heavy traffic. With the smc911x driver we were witnessing
+> very high iowait time for high IO load over NFS.
+> 
+> Signed-off-by: Sriramakrishnan <srk@ti.com>
+> ---
+> This patch is generated against tip of for-next branch.
+> 
+>  arch/arm/configs/omap3_evm_defconfig |    4 +-
+>  arch/arm/mach-omap2/board-omap3evm.c |   36
+> +++++++++++++++++++++++++--------
+>  2 files changed, 29 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/arm/configs/omap3_evm_defconfig
+> b/arch/arm/configs/omap3_evm_defconfig
+> index d5ff477..50afc67 100644
+> --- a/arch/arm/configs/omap3_evm_defconfig
+> +++ b/arch/arm/configs/omap3_evm_defconfig
+> @@ -617,8 +617,8 @@ CONFIG_MII=y
+>  # CONFIG_DM9000 is not set
+>  # CONFIG_ENC28J60 is not set
+>  # CONFIG_ETHOC is not set
+> -CONFIG_SMC911X=y
+> -# CONFIG_SMSC911X is not set
+> +# CONFIG_SMC911X is not set
+> +CONFIG_SMSC911X=y
+>  # CONFIG_DNET is not set
+>  # CONFIG_IBM_NEW_EMAC_ZMII is not set
+>  # CONFIG_IBM_NEW_EMAC_RGMII is not set
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-
+> omap2/board-omap3evm.c
+> index 5d2310e..9bcdaf7 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -21,11 +21,13 @@
+>  #include <linux/gpio.h>
+>  #include <linux/input.h>
+>  #include <linux/leds.h>
+> +#include <linux/interrupt.h>
+> 
+>  #include <linux/spi/spi.h>
+>  #include <linux/spi/ads7846.h>
+>  #include <linux/i2c/twl4030.h>
+>  #include <linux/usb/otg.h>
+> +#include <linux/smsc911x.h>
+> 
+>  #include <linux/regulator/machine.h>
+> 
+> @@ -51,7 +53,8 @@
+>  #define OMAP3EVM_ETHR_GPIO_IRQ	176
+>  #define OMAP3EVM_SMC911X_CS	5
+> 
+> -static struct resource omap3evm_smc911x_resources[] = {
+> +#if defined(CONFIG_SMSC911X) || defined(CONFIG_SMSC911X_MODULE)
+> +static struct resource omap3evm_smsc911x_resources[] = {
+>  	[0] =	{
+>  		.start	= OMAP3EVM_ETHR_START,
+>  		.end	= (OMAP3EVM_ETHR_START + OMAP3EVM_ETHR_SIZE - 1),
+> @@ -60,18 +63,28 @@ static struct resource
+> omap3evm_smc911x_resources[] = {
+>  	[1] =	{
+>  		.start	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
+>  		.end	= OMAP_GPIO_IRQ(OMAP3EVM_ETHR_GPIO_IRQ),
+> -		.flags	= IORESOURCE_IRQ,
+> +		.flags	= (IORESOURCE_IRQ | IRQF_TRIGGER_LOW),
+>  	},
+>  };
+> 
+> -static struct platform_device omap3evm_smc911x_device = {
+> -	.name		= "smc911x",
+> +static struct smsc911x_platform_config smsc911x_config = {
+> +	.phy_interface  = PHY_INTERFACE_MODE_MII,
+> +	.irq_polarity   = SMSC911X_IRQ_POLARITY_ACTIVE_LOW,
+> +	.irq_type       = SMSC911X_IRQ_TYPE_OPEN_DRAIN,
+> +	.flags          = (SMSC911X_USE_32BIT |
+> SMSC911X_SAVE_MAC_ADDRESS),
 > +};
 > +
-> +/* Digital audio interface glue - connects codec <--> CPU */
-> +static struct snd_soc_dai_link omap3devkit8000_dai =3D {
-> + =A0 =A0 =A0 .name =3D "TWL4030",
-> + =A0 =A0 =A0 .stream_name =3D "TWL4030",
-> + =A0 =A0 =A0 .cpu_dai =3D &omap_mcbsp_dai[0],
-> + =A0 =A0 =A0 .codec_dai =3D &twl4030_dai[TWL4030_DAI_HIFI],
-> + =A0 =A0 =A0 .ops =3D &omap3devkit8000_ops,
-> +};
+> +static struct platform_device omap3evm_smsc911x_device = {
+> +	.name		= "smsc911x",
+>  	.id		= -1,
+> -	.num_resources	= ARRAY_SIZE(omap3evm_smc911x_resources),
+> -	.resource	= &omap3evm_smc911x_resources[0],
+> +	.num_resources	= ARRAY_SIZE(omap3evm_smsc911x_resources),
+> +	.resource	= &omap3evm_smsc911x_resources[0],
+> +	.dev		= {
+> +		.platform_data = &smsc911x_config,
+> +	},
+>  };
+> 
+> -static inline void __init omap3evm_init_smc911x(void)
+> +static inline void __init omap3evm_init_smsc911x(void)
+>  {
+>  	int eth_cs;
+>  	struct clk *l3ck;
+> @@ -92,8 +105,14 @@ static inline void __init
+> omap3evm_init_smc911x(void)
+>  	}
+> 
+>  	gpio_direction_input(OMAP3EVM_ETHR_GPIO_IRQ);
 > +
-> +/* Audio machine driver */
-> +static struct snd_soc_card snd_soc_omap3devkit8000 =3D {
-> + =A0 =A0 =A0 .name =3D "omap3devkit8000",
-> + =A0 =A0 =A0 .platform =3D &omap_soc_platform,
-> + =A0 =A0 =A0 .dai_link =3D &omap3devkit8000_dai,
-> + =A0 =A0 =A0 .num_links =3D 1,
-> +};
+> +	platform_device_register(&omap3evm_smsc911x_device);
+>  }
+> 
+> +#else
+> +static inline void __init omap3evm_init_smsc911x(void) { return; }
+> +#endif
 > +
-> +/* Audio subsystem */
-> +static struct snd_soc_device omap3devkit8000_snd_devdata =3D {
-> + =A0 =A0 =A0 .card =3D &snd_soc_omap3devkit8000,
-> + =A0 =A0 =A0 .codec_dev =3D &soc_codec_dev_twl4030,
-> +};
-> +
-> +static struct platform_device *omap3devkit8000_snd_device;
-> +
-> +static int __init omap3devkit8000_soc_init(void)
-> +{
-> + =A0 =A0 =A0 int ret;
-> + =A0 =A0 =A0 pr_info("OMAP3 omap3devkit8000 SoC init\n");
-> +
-> + =A0 =A0 =A0 omap3devkit8000_snd_device =3D platform_device_alloc("s=
-oc-audio", -1);
-> + =A0 =A0 =A0 if (!omap3devkit8000_snd_device) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "Platform device alloca=
-tion failed\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 platform_set_drvdata(omap3devkit8000_snd_device,
-> &omap3devkit8000_snd_devdata);
+>  static struct regulator_consumer_supply omap3evm_vmmc1_supply = {
+>  	.supply			= "vmmc",
+>  };
+> @@ -335,12 +354,10 @@ static void __init omap3_evm_init_irq(void)
+>  	omap2_init_common_hw(mt46h32m32lf6_sdrc_params, NULL);
+>  	omap_init_irq();
+>  	omap_gpio_init();
+> -	omap3evm_init_smc911x();
+>  }
+> 
+>  static struct platform_device *omap3_evm_devices[] __initdata = {
+>  	&omap3_evm_lcd_device,
+> -	&omap3evm_smc911x_device,
+>  };
+> 
+>  static void __init omap3_evm_init(void)
+> @@ -359,6 +376,7 @@ static void __init omap3_evm_init(void)
+>  #endif
+>  	usb_musb_init();
+>  	ads7846_dev_init();
+> +	omap3evm_init_smsc911x();
+>  }
+> 
+>  static void __init omap3_evm_map_io(void)
 
-ditto
+[Hiremath, Vaibhav] I validated this patch on OMAP3EVM and it is working for me. At-least I could able to mount NFS and work without any issue, which was failing before with SMC911x. For me, earlier I was not able to mount NFS filesystem at all. 
 
-> + =A0 =A0 =A0 omap3devkit8000_snd_devdata.dev =3D &omap3devkit8000_sn=
-d_device->dev;
-> + =A0 =A0 =A0 *(unsigned int *)omap3devkit8000_dai.cpu_dai->private_d=
-ata =3D 1; /* McBSP2
-> */
+Verified-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-ditto
+Thanks,
+Vaibhav
 
-> +
-> + =A0 =A0 =A0 ret =3D platform_device_add(omap3devkit8000_snd_device)=
-;
-> + =A0 =A0 =A0 if (ret)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto err1;
-> +
-> + =A0 =A0 =A0 return 0;
-> +
-> +err1:
-> + =A0 =A0 =A0 printk(KERN_ERR "Unable to add platform device\n");
-> + =A0 =A0 =A0 platform_device_put(omap3devkit8000_snd_device);
-> +
-> + =A0 =A0 =A0 return ret;
-> +}
-> +
-> +static void __exit omap3devkit8000_soc_exit(void)
-> +{
-> + =A0 =A0 =A0 platform_device_unregister(omap3devkit8000_snd_device);
-> +}
-> +
-> +module_init(omap3devkit8000_soc_init);
-> +module_exit(omap3devkit8000_soc_exit);
-> +
-> +MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
-> +MODULE_DESCRIPTION("ALSA SoC OMAP3 DEVKIT8000");
-> +MODULE_LICENSE("GPL");
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap"=
- in
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-
+> omap" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-omap" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-omap" in
 the body of a message to majordomo@vger.kernel.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
