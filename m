@@ -1,85 +1,224 @@
-From: Tero Kristo <tero.kristo@nokia.com>
-Subject: [PATCH 1/5] OMAP3: Fixed ARM aux ctrl register save/restore
-Date: Thu, 12 Nov 2009 12:07:20 +0200
-Message-ID: <1258020444-3809-2-git-send-email-tero.kristo@nokia.com>
-References: <>
- <1258020444-3809-1-git-send-email-tero.kristo@nokia.com>
+From: Kim Botherway <kbotherway@djdvant.com>
+Subject: [PATCH 4/4] Add ASoC support for DEVKIT8000
+Date: Thu, 12 Nov 2009 21:24:43 +1100
+Message-ID: <8e4f2cbd8c0fccce7759ee7545699e1d@djdvant.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:60079 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750902AbZKLKYf (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 05:24:35 -0500
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx09.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nACAObxw018952
-	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 04:24:40 -0600
-Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
-	by mgw-da01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nACAOXWr012786
-	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 12:24:35 +0200
-In-Reply-To: <1258020444-3809-1-git-send-email-tero.kristo@nokia.com>
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148]:12921
+	"EHLO outbound.icp-qv1-irony-out3.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751528AbZKLKYm (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Nov 2009 05:24:42 -0500
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: linux-omap@vger.kernel.org
+To: alsa-devel@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
 
-From: Tero Kristo <tero.kristo@nokia.com>
+This patch add support for DEVKIT8000, it is a copy of Beagleboard sound
+driver
 
-Current value is stored on SDRAM and it is written back during wakeup.
-Previously a static value of 0x72 was written there.
-
-Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
----
- arch/arm/mach-omap2/sleep34xx.S |   13 +++++++++----
- 1 files changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/sleep34xx.S b/arch/arm/mach-omap2/sleep34xx.S
-index 4707ba8..8bd5fc5 100644
---- a/arch/arm/mach-omap2/sleep34xx.S
-+++ b/arch/arm/mach-omap2/sleep34xx.S
-@@ -278,7 +278,8 @@ restore:
- 	mov	r1, #0		@ set task id for ROM code in r1
- 	mov	r2, #4		@ set some flags in r2, r6
- 	mov	r6, #0xff
--	adr	r3, write_aux_control_params	@ r3 points to parameters
-+	ldr	r4, scratchpad_base
-+	ldr	r3, [r4, #0xBC]	@ r3 points to parameters
- 	mcr	p15, 0, r0, c7, c10, 4	@ data write barrier
- 	mcr	p15, 0, r0, c7, c10, 5	@ data memory barrier
- 	.word	0xE1600071		@ call SMI monitor (smi #1)
-@@ -286,14 +287,14 @@ restore:
- 	b	logic_l1_restore
- l2_inv_api_params:
- 	.word   0x1, 0x00
--write_aux_control_params:
--	.word   0x1, 0x72
- l2_inv_gp:
- 	/* Execute smi to invalidate L2 cache */
- 	mov r12, #0x1                         @ set up to invalide L2
- smi:    .word 0xE1600070		@ Call SMI monitor (smieq)
- 	/* Write to Aux control register to set some bits */
--	mov	r0, #0x72
-+	ldr	r4, scratchpad_base
-+	ldr	r3, [r4,#0xBC]
-+	ldr	r0, [r3,#4]
- 	mov	r12, #0x3
- 	.word 0xE1600070	@ Call SMI monitor (smieq)
- logic_l1_restore:
-@@ -304,6 +305,7 @@ logic_l1_restore:
+diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
+index 653a362..8cdcfe9 100644
+--- a/sound/soc/omap/Kconfig
++++ b/sound/soc/omap/Kconfig
+@@ -91,6 +91,14 @@ config SND_OMAP_SOC_OMAP3_BEAGLE
+ 	help
+ 	  Say Y if you want to add support for SoC audio on the Beagleboard.
  
- 	ldr	r4, scratchpad_base
- 	ldr	r3, [r4,#0xBC]
-+	adds	r3, r3, #8
- 	ldmia	r3!, {r4-r6}
- 	mov	sp, r4
- 	msr	spsr_cxsf, r5
-@@ -420,6 +422,9 @@ usettbr0:
- save_context_wfi:
- 	/*b	save_context_wfi*/	@ enable to debug save code
- 	mov	r8, r0 /* Store SDRAM address in r8 */
-+	mrc	p15, 0, r5, c1, c0, 1	@ Read Auxiliary Control Register
-+	mov	r4, #0x1		@ Number of parameters for restore call
-+	stmia	r8!, {r4-r5}
-         /* Check what that target sleep state is:stored in r1*/
-         /* 1 - Only L1 and logic lost */
-         /* 2 - Only L2 lost */
--- 
-1.5.4.3
++config SND_OMAP_SOC_OMAP3_DEVKIT8000
++        tristate "SoC Audio support for OMAP3 DEVKIT8000"
++        depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_DEVKIT8000
++        select SND_OMAP_SOC_MCBSP
++        select SND_SOC_TWL4030
++        help
++          Say Y if you want to add support for SoC audio on the
+DEVKIT8000.
++
+ config SND_OMAP_SOC_ZOOM2
+ 	tristate "SoC Audio support for Zoom2"
+ 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_ZOOM2
 
+diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
+index 02d6947..7239737 100644
+--- a/sound/soc/omap/Makefile
++++ b/sound/soc/omap/Makefile
+@@ -15,6 +15,7 @@ snd-soc-omap3evm-objs := omap3evm.o
+ snd-soc-sdp3430-objs := sdp3430.o
+ snd-soc-omap3pandora-objs := omap3pandora.o
+ snd-soc-omap3beagle-objs := omap3beagle.o
++snd-soc-omap3devkit8000-objs := omap3devkit8000.o
+ snd-soc-zoom2-objs := zoom2.o
+ 
+ obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
+@@ -26,4 +27,5 @@ obj-$(CONFIG_MACH_OMAP3EVM) += snd-soc-omap3evm.o
+ obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
+ obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
++obj-$(CONFIG_SND_OMAP_SOC_OMAP3_DEVKIT8000) += snd-soc-omap3devkit8000.o
+ obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
+
+diff --git a/sound/soc/omap/omap3devkit8000.c
+b/sound/soc/omap/omap3devkit8000.c
+new file mode 100644
+index 0000000..6a975d4
+--- /dev/null
++++ b/sound/soc/omap/omap3devkit8000.c
+@@ -0,0 +1,154 @@
++/*
++ * omap3devkit8000.c  --  SoC audio for OMAP3 Beagle
++ *
++ * Author: Steve Sakoman <steve@sakoman.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/clk.h>
++#include <linux/platform_device.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/soc.h>
++#include <sound/soc-dapm.h>
++
++#include <asm/mach-types.h>
++#include <plat/hardware.h>
++#include <plat/gpio.h>
++#include <plat/mcbsp.h>
++
++#include "omap-mcbsp.h"
++#include "omap-pcm.h"
++#include "../codecs/twl4030.h"
++
++static int omap3devkit8000_hw_params(struct snd_pcm_substream *substream,
++	struct snd_pcm_hw_params *params)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
++	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
++	unsigned int fmt;
++	int ret;
++
++	switch (params_channels(params)) {
++	case 2: /* Stereo I2S mode */
++		fmt =	SND_SOC_DAIFMT_I2S |
++			SND_SOC_DAIFMT_NB_NF |
++			SND_SOC_DAIFMT_CBM_CFM;
++		break;
++	case 4: /* Four channel TDM mode */
++		fmt =	SND_SOC_DAIFMT_DSP_A |
++			SND_SOC_DAIFMT_IB_NF |
++			SND_SOC_DAIFMT_CBM_CFM;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	/* Set codec DAI configuration */
++	ret = snd_soc_dai_set_fmt(codec_dai, fmt);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set codec DAI configuration\n");
++		return ret;
++	}
++
++	/* Set cpu DAI configuration */
++	ret = snd_soc_dai_set_fmt(cpu_dai, fmt);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set cpu DAI configuration\n");
++		return ret;
++	}
++
++	/* Set the codec system clock for DAC and ADC */
++	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
++				     SND_SOC_CLOCK_IN);
++	if (ret < 0) {
++		printk(KERN_ERR "can't set codec system clock\n");
++		return ret;
++	}
++
++	return 0;
++}
++
++static struct snd_soc_ops omap3devkit8000_ops = {
++	.hw_params = omap3devkit8000_hw_params,
++};
++
++/* Digital audio interface glue - connects codec <--> CPU */
++static struct snd_soc_dai_link omap3devkit8000_dai = {
++	.name = "TWL4030",
++	.stream_name = "TWL4030",
++	.cpu_dai = &omap_mcbsp_dai[0],
++	.codec_dai = &twl4030_dai[TWL4030_DAI_HIFI],
++	.ops = &omap3devkit8000_ops,
++};
++
++/* Audio machine driver */
++static struct snd_soc_card snd_soc_omap3devkit8000 = {
++	.name = "omap3devkit8000",
++	.platform = &omap_soc_platform,
++	.dai_link = &omap3devkit8000_dai,
++	.num_links = 1,
++};
++
++/* Audio subsystem */
++static struct snd_soc_device omap3devkit8000_snd_devdata = {
++	.card = &snd_soc_omap3devkit8000,
++	.codec_dev = &soc_codec_dev_twl4030,
++};
++
++static struct platform_device *omap3devkit8000_snd_device;
++
++static int __init omap3devkit8000_soc_init(void)
++{
++	int ret;
++	pr_info("OMAP3 omap3devkit8000 SoC init\n");
++
++	omap3devkit8000_snd_device = platform_device_alloc("soc-audio", -1);
++	if (!omap3devkit8000_snd_device) {
++		printk(KERN_ERR "Platform device allocation failed\n");
++		return -ENOMEM;
++	}
++
++	platform_set_drvdata(omap3devkit8000_snd_device,
+&omap3devkit8000_snd_devdata);
++	omap3devkit8000_snd_devdata.dev = &omap3devkit8000_snd_device->dev;
++	*(unsigned int *)omap3devkit8000_dai.cpu_dai->private_data = 1; /* McBSP2
+*/
++
++	ret = platform_device_add(omap3devkit8000_snd_device);
++	if (ret)
++		goto err1;
++
++	return 0;
++
++err1:
++	printk(KERN_ERR "Unable to add platform device\n");
++	platform_device_put(omap3devkit8000_snd_device);
++
++	return ret;
++}
++
++static void __exit omap3devkit8000_soc_exit(void)
++{
++	platform_device_unregister(omap3devkit8000_snd_device);
++}
++
++module_init(omap3devkit8000_soc_init);
++module_exit(omap3devkit8000_soc_exit);
++
++MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
++MODULE_DESCRIPTION("ALSA SoC OMAP3 DEVKIT8000");
++MODULE_LICENSE("GPL");
