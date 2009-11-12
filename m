@@ -1,198 +1,207 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 04/10] omap1: omap_udc: Add clocking and disable vbus sense
-	for omap7xx
-Date: Wed, 11 Nov 2009 19:02:42 -0800
-Message-ID: <20091112030241.5159.94413.stgit@localhost>
+Subject: [PATCH 05/10] omap3: Runtime detection of Si features
+Date: Wed, 11 Nov 2009 19:02:53 -0800
+Message-ID: <20091112030253.5159.82935.stgit@localhost>
 References: <20091112025802.5159.97598.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58767 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760047AbZKLDCh (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:02:37 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53657 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760030AbZKLDCt (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:02:49 -0500
 In-Reply-To: <20091112025802.5159.97598.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: David Brownell <dbrownell@users.sourceforge.net>, linux-omap@vger.kernel.org, linux-usb@vger.kernel.org, Cory Maccarrone <darkstar6262@gmail.com>
+Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>
 
-From: Cory Maccarrone <darkstar6262@gmail.com>
+From: Sanjeev Premi <premi@ti.com>
 
-The l3_ocpi_ck clock is needed on omap7xx processors for USB.
-Additionally, bit 8 of the SOFT_REQ_REG needs to be enabled for
-the usb_dc_ck on omap7xx, which is a different bit than that
-of the omap16xx-defined clock of the same name.
+The OMAP35x family has multiple variants differing
+in the HW features. This patch detects these features
+at runtime and prints information during the boot.
 
-I added a provision for the usb_dc_ck and l3_ocpi_ck clocks as
-dc_clk and hhc_clk, respectively, for omap7xx CPUs.  Additionally,
-I added a check in machine_without_vbus_sense for all omap7xx
-devices, as presently I know of no omap7xx-based devices that
-have vbus sense, and it made more sense to me to use a cpu check
-here than to spell out each machine one at a time.  Finally, DMA
-is disabled for omap7xx, as it causes problems with these chips.
+Since most of the code seemed repetitive, macros
+have been used for readability.
 
-Cc: linux-usb@vger.kernel.org
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Signed-off-by: Cory Maccarrone <darkstar6262@gmail.com>
+Signed-off-by: Sanjeev Premi <premi@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/Kconfig   |    1 +
- arch/arm/mach-omap1/clock.c   |    3 ++-
- arch/arm/mach-omap1/clock.h   |   10 ++++++++++
- arch/arm/plat-omap/usb.c      |   20 ++++++++++++++------
- drivers/usb/gadget/omap_udc.c |   19 +++++++++++++++++--
- 5 files changed, 44 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/id.c                  |   52 +++++++++++++++++++++++++++--
+ arch/arm/plat-omap/include/plat/control.h |   34 +++++++++++++++++++
+ arch/arm/plat-omap/include/plat/cpu.h     |   25 ++++++++++++++
+ 3 files changed, 108 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/Kconfig b/arch/arm/mach-omap1/Kconfig
-index 55ecc01..3232726 100644
---- a/arch/arm/mach-omap1/Kconfig
-+++ b/arch/arm/mach-omap1/Kconfig
-@@ -11,6 +11,7 @@ config ARCH_OMAP850
- 	depends on ARCH_OMAP1
- 	bool "OMAP850 Based System"
- 	select CPU_ARM926T
-+	select ARCH_OMAP_OTG
+diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+index d28e6fe..d7ac8d5 100644
+--- a/arch/arm/mach-omap2/id.c
++++ b/arch/arm/mach-omap2/id.c
+@@ -28,6 +28,7 @@
+ static struct omap_chip_id omap_chip;
+ static unsigned int omap_revision;
  
- config ARCH_OMAP15XX
- 	depends on ARCH_OMAP1
-diff --git a/arch/arm/mach-omap1/clock.c b/arch/arm/mach-omap1/clock.c
-index 7b146c0..42cbe20 100644
---- a/arch/arm/mach-omap1/clock.c
-+++ b/arch/arm/mach-omap1/clock.c
-@@ -99,7 +99,7 @@ static struct omap_clk omap_clks[] = {
- 	/* CK_GEN3 clocks */
- 	CLK(NULL,	"tc_ck",	&tc_ck.clk,	CK_16XX | CK_1510 | CK_310 | CK_7XX),
- 	CLK(NULL,	"tipb_ck",	&tipb_ck,	CK_1510 | CK_310),
--	CLK(NULL,	"l3_ocpi_ck",	&l3_ocpi_ck,	CK_16XX),
-+	CLK(NULL,	"l3_ocpi_ck",	&l3_ocpi_ck,	CK_16XX | CK_7XX),
- 	CLK(NULL,	"tc1_ck",	&tc1_ck,	CK_16XX),
- 	CLK(NULL,	"tc2_ck",	&tc2_ck,	CK_16XX),
- 	CLK(NULL,	"dma_ck",	&dma_ck,	CK_16XX | CK_1510 | CK_310),
-@@ -120,6 +120,7 @@ static struct omap_clk omap_clks[] = {
- 	CLK(NULL,	"usb_hhc_ck",	&usb_hhc_ck1510, CK_1510 | CK_310),
- 	CLK(NULL,	"usb_hhc_ck",	&usb_hhc_ck16xx, CK_16XX),
- 	CLK(NULL,	"usb_dc_ck",	&usb_dc_ck,	CK_16XX),
-+	CLK(NULL,	"usb_dc_ck",	&usb_dc_ck7xx,	CK_7XX),
- 	CLK(NULL,	"mclk",		&mclk_1510,	CK_1510 | CK_310),
- 	CLK(NULL,	"mclk",		&mclk_16xx,	CK_16XX),
- 	CLK(NULL,	"bclk",		&bclk_1510,	CK_1510 | CK_310),
-diff --git a/arch/arm/mach-omap1/clock.h b/arch/arm/mach-omap1/clock.h
-index fac921c..29ffa97 100644
---- a/arch/arm/mach-omap1/clock.h
-+++ b/arch/arm/mach-omap1/clock.h
-@@ -574,6 +574,16 @@ static struct clk usb_dc_ck = {
- 	.enable_bit	= 4,
- };
++u32 omap3_features;
  
-+static struct clk usb_dc_ck7xx = {
-+	.name		= "usb_dc_ck",
-+	.ops		= &clkops_generic,
-+	/* Direct from ULPD, no parent */
-+	.rate		= 48000000,
-+	.flags		= RATE_FIXED,
-+	.enable_reg	= OMAP1_IO_ADDRESS(SOFT_REQ_REG),
-+	.enable_bit	= 8,
-+};
-+
- static struct clk mclk_1510 = {
- 	.name		= "mclk",
- 	.ops		= &clkops_generic,
-diff --git a/arch/arm/plat-omap/usb.c b/arch/arm/plat-omap/usb.c
-index 0ea1e0b..51033a4 100644
---- a/arch/arm/plat-omap/usb.c
-+++ b/arch/arm/plat-omap/usb.c
-@@ -159,11 +159,14 @@ static u32 __init omap_usb0_init(unsigned nwires, unsigned is_device)
- 		 *  - OTG support on this port not yet written
- 		 */
- 
--		l = omap_readl(USB_TRANSCEIVER_CTRL);
--		l &= ~(7 << 4);
--		if (!is_device)
--			l |= (3 << 1);
--		omap_writel(l, USB_TRANSCEIVER_CTRL);
-+		/* Don't do this for omap7xx -- it causes USB to not work correctly */
-+		if (!cpu_is_omap7xx()) {
-+			l = omap_readl(USB_TRANSCEIVER_CTRL);
-+			l &= ~(7 << 4);
-+			if (!is_device)
-+				l |= (3 << 1);
-+			omap_writel(l, USB_TRANSCEIVER_CTRL);
-+		}
- 
- 		return 3 << 16;
- 	}
-@@ -603,7 +606,12 @@ omap_otg_init(struct omap_usb_config *config)
- 	if (config->otg || config->register_dev) {
- 		syscon &= ~DEV_IDLE_EN;
- 		udc_device.dev.platform_data = config;
--		/* FIXME patch IRQ numbers for omap730 */
-+		/* IRQ numbers for omap7xx */
-+		if(cpu_is_omap7xx()) {
-+			udc_resources[1].start = INT_7XX_USB_GENI;
-+			udc_resources[2].start = INT_7XX_USB_NON_ISO;
-+			udc_resources[3].start = INT_7XX_USB_ISO;
-+		}
- 		status = platform_device_register(&udc_device);
- 		if (status)
- 			pr_debug("can't register UDC device, %d\n", status);
-diff --git a/drivers/usb/gadget/omap_udc.c b/drivers/usb/gadget/omap_udc.c
-index b836efe..f81e4f0 100644
---- a/drivers/usb/gadget/omap_udc.c
-+++ b/drivers/usb/gadget/omap_udc.c
-@@ -2098,6 +2098,7 @@ static inline int machine_without_vbus_sense(void)
- 		|| machine_is_omap_h4()
- #endif
- 		|| machine_is_sx1()
-+		|| cpu_is_omap7xx() /* No known omap7xx boards with vbus sense */
- 		);
+ unsigned int omap_rev(void)
+ {
+@@ -155,7 +156,33 @@ void __init omap24xx_check_revision(void)
+ 	pr_info("\n");
  }
  
-@@ -2838,6 +2839,16 @@ static int __init omap_udc_probe(struct platform_device *pdev)
- 		udelay(100);
- 	}
- 
-+	if (cpu_is_omap7xx()) {
-+		dc_clk = clk_get(&pdev->dev, "usb_dc_ck");
-+		hhc_clk = clk_get(&pdev->dev, "l3_ocpi_ck");
-+		BUG_ON(IS_ERR(dc_clk) || IS_ERR(hhc_clk));
-+		/* can't use omap_udc_enable_clock yet */
-+		clk_enable(dc_clk);
-+		clk_enable(hhc_clk);
-+		udelay(100);
+-void __init omap34xx_check_revision(void)
++#define OMAP3_CHECK_FEATURE(status,feat)				\
++	if (((status & OMAP3_ ##feat## _MASK) 				\
++		>> OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) { 	\
++		omap3_features |= OMAP3_HAS_ ##feat;			\
 +	}
 +
- 	INFO("OMAP UDC rev %d.%d%s\n",
- 		omap_readw(UDC_REV) >> 4, omap_readw(UDC_REV) & 0xf,
- 		config->otg ? ", Mini-AB" : "");
-@@ -2970,7 +2981,7 @@ known:
- 		goto cleanup3;
- 	}
- #endif
--	if (cpu_is_omap16xx()) {
-+	if (cpu_is_omap16xx() || cpu_is_omap7xx()) {
- 		udc->dc_clk = dc_clk;
- 		udc->hhc_clk = hhc_clk;
- 		clk_disable(hhc_clk);
-@@ -3008,7 +3019,7 @@ cleanup0:
- 	if (xceiv)
- 		otg_put_transceiver(xceiv);
- 
--	if (cpu_is_omap16xx() || cpu_is_omap24xx()) {
-+	if (cpu_is_omap16xx() || cpu_is_omap24xx() || cpu_is_omap7xx()) {
- 		clk_disable(hhc_clk);
- 		clk_disable(dc_clk);
- 		clk_put(hhc_clk);
-@@ -3115,6 +3126,10 @@ static struct platform_driver udc_driver = {
- 
- static int __init udc_init(void)
- {
-+	/* Disable DMA for omap7xx -- it doesn't work right. */
-+	if (cpu_is_omap7xx())
-+		use_dma = 0;
++void __init omap3_check_features(void)
++{
++	u32 status;
 +
- 	INFO("%s, version: " DRIVER_VERSION
- #ifdef	USE_ISO
- 		" (iso)"
++	omap3_features = 0;
++
++	status = omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS);
++
++	OMAP3_CHECK_FEATURE(status, L2CACHE);
++	OMAP3_CHECK_FEATURE(status, IVA);
++	OMAP3_CHECK_FEATURE(status, SGX);
++	OMAP3_CHECK_FEATURE(status, NEON);
++	OMAP3_CHECK_FEATURE(status, ISP);
++
++	/*
++	 * TODO: Get additional info (where applicable)
++	 *       e.g. Size of L2 cache.
++	 */
++}
++
++void __init omap3_check_revision(void)
+ {
+ 	u32 cpuid, idcode;
+ 	u16 hawkeye;
+@@ -212,6 +239,22 @@ out:
+ 	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
+ }
+ 
++#define OMAP3_SHOW_FEATURE(feat)		\
++	if (omap3_has_ ##feat()) {		\
++		pr_info (" - "#feat" : Y");	\
++	} else {				\
++		pr_info (" - "#feat" : N");	\
++	}
++
++void __init omap3_cpuinfo(void)
++{
++	OMAP3_SHOW_FEATURE(l2cache);
++	OMAP3_SHOW_FEATURE(iva);
++	OMAP3_SHOW_FEATURE(sgx);
++	OMAP3_SHOW_FEATURE(neon);
++	OMAP3_SHOW_FEATURE(isp);
++}
++
+ /*
+  * Try to detect the exact revision of the omap we're running on
+  */
+@@ -223,8 +266,11 @@ void __init omap2_check_revision(void)
+ 	 */
+ 	if (cpu_is_omap24xx())
+ 		omap24xx_check_revision();
+-	else if (cpu_is_omap34xx())
+-		omap34xx_check_revision();
++	else if (cpu_is_omap34xx()) {
++		omap3_check_features();
++		omap3_check_revision();
++		omap3_cpuinfo();
++	}
+ 	else if (cpu_is_omap44xx()) {
+ 		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
+ 		return;
+diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
+index 8237cb9..79985e4 100644
+--- a/arch/arm/plat-omap/include/plat/control.h
++++ b/arch/arm/plat-omap/include/plat/control.h
+@@ -254,6 +254,40 @@
+ #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
+ #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
+ 
++/*
++ * CONTROL OMAP STATUS register to identify OMAP3 features
++ */
++#define OMAP3_CONTROL_OMAP_STATUS	0x044c
++
++#define OMAP3_SGX_SHIFT			13
++#define OMAP3_SGX_MASK			(3 << OMAP3_SGX_SHIFT)
++#define		FEAT_SGX_FULL		0
++#define		FEAT_SGX_HALF		1
++#define		FEAT_SGX_NONE		2
++
++#define OMAP3_IVA_SHIFT			12
++#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
++#define		FEAT_IVA		0
++#define		FEAT_IVA_NONE		1
++
++#define OMAP3_L2CACHE_SHIFT		10
++#define OMAP3_L2CACHE_MASK		(3 << OMAP3_L2CACHE_SHIFT)
++#define		FEAT_L2CACHE_NONE	0
++#define		FEAT_L2CACHE_64KB	1
++#define		FEAT_L2CACHE_128KB	2
++#define		FEAT_L2CACHE_256KB	3
++
++#define OMAP3_ISP_SHIFT			5
++#define OMAP3_ISP_MASK			(1<< OMAP3_ISP_SHIFT)
++#define		FEAT_ISP		0
++#define		FEAT_ISP_NONE		1
++
++#define OMAP3_NEON_SHIFT		4
++#define OMAP3_NEON_MASK			(1<< OMAP3_NEON_SHIFT)
++#define		FEAT_NEON		0
++#define		FEAT_NEON_NONE		1
++
++
+ #ifndef __ASSEMBLY__
+ #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
+ 		defined(CONFIG_ARCH_OMAP4)
+diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
+index f129efb..431fec4 100644
+--- a/arch/arm/plat-omap/include/plat/cpu.h
++++ b/arch/arm/plat-omap/include/plat/cpu.h
+@@ -30,6 +30,8 @@
+ #ifndef __ASM_ARCH_OMAP_CPU_H
+ #define __ASM_ARCH_OMAP_CPU_H
+ 
++#include <linux/bitops.h>
++
+ /*
+  * Omap device type i.e. EMU/HS/TST/GP/BAD
+  */
+@@ -423,4 +425,27 @@ IS_OMAP_TYPE(3430, 0x3430)
+ int omap_chip_is(struct omap_chip_id oci);
+ void omap2_check_revision(void);
+ 
++/*
++ * Runtime detection of OMAP3 features
++ */
++extern u32 omap3_features;
++
++#define OMAP3_HAS_L2CACHE		BIT(0)
++#define OMAP3_HAS_IVA			BIT(1)
++#define OMAP3_HAS_SGX			BIT(2)
++#define OMAP3_HAS_NEON			BIT(3)
++#define OMAP3_HAS_ISP			BIT(4)
++
++#define OMAP3_HAS_FEATURE(feat,flag)			\
++static inline unsigned int omap3_has_ ##feat(void)	\
++{							\
++	return (omap3_features & OMAP3_HAS_ ##flag);	\
++}							\
++
++OMAP3_HAS_FEATURE(l2cache, L2CACHE)
++OMAP3_HAS_FEATURE(sgx, SGX)
++OMAP3_HAS_FEATURE(iva, IVA)
++OMAP3_HAS_FEATURE(neon, NEON)
++OMAP3_HAS_FEATURE(isp, ISP)
++
+ #endif
 
