@@ -1,81 +1,77 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH 00/19] OMAP: DSS2 v5 intro
-Date: Thu, 12 Nov 2009 16:10:28 +1100
-Message-ID: <20091112161028.427787d9.sfr@canb.auug.org.au>
-References: <1257767126-12059-1-git-send-email-tomi.valkeinen@nokia.com>
-	<1257856848.21596.753.camel@localhost>
-	<1257929140.20378.51.camel@tubuntu.research.nokia.com>
-	<1257932641.20378.77.camel@tubuntu.research.nokia.com>
-	<20091111184208.GC24837@atomide.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__12_Nov_2009_16_10_28_+1100_0NjpICVRdDwIVqAx"
+From: Nishanth Menon <nm@ti.com>
+Subject: [PATCH 0/9] OMAP3: PM: introduce support for 3630 OPPs
+Date: Wed, 11 Nov 2009 23:45:12 -0600
+Message-ID: <1258004721-7315-1-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:46718 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750895AbZKLFKa (ORCPT <rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Nov 2009 00:10:30 -0500
-In-Reply-To: <20091111184208.GC24837@atomide.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:46912 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906AbZKLFpi (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 00:45:38 -0500
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id nAC5jiVY023143
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 23:45:44 -0600
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Tomi Valkeinen <tomi.valkeinen@nokia.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-fbdev-devel@lists.sourceforge.net" <linux-fbdev-devel@lists.sourceforge.net>, "dedekind1@gmail.com" <dedekind1@gmail.com>
+To: linux-omap <linux-omap@vger.kernel.org>
+Cc: Nishanth Menon <nm@ti.com>
 
---Signature=_Thu__12_Nov_2009_16_10_28_+1100_0NjpICVRdDwIVqAx
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi Tony,
+Hi,
+This patch series is based on previous discussions:
+http://www.mail-archive.com/linux-omap@vger.kernel.org/msg17632.html
 
-On Wed, 11 Nov 2009 10:42:09 -0800 Tony Lindgren <tony@atomide.com> wrote:
->
-> * Tomi Valkeinen <tomi.valkeinen@nokia.com> [091111 01:43]:
-> > On Wed, 2009-11-11 at 09:45 +0100, Valkeinen Tomi (Nokia-D/Helsinki)
-> > wrote:
-> > > On Tue, 2009-11-10 at 13:40 +0100, Artem Bityutskiy wrote:
-> > > >=20
-> > > > could you please kindly ask Stephen (CCed) to include the DSS2 tree=
- into
-> > > > linux-next, because you are going to merge it the next merge window=
-, and
-> > > > there does not seem to be any blocker for this.
-> > > >=20
-> > > > Being in linux-next for a while is really important.
-> > >=20
-> > > Stephen, would this be possible? DSS2 driver is rather big piece of
-> > > code, even if it's quite isolated, so it would be nice to have it in
-> > > linux-next.
-> > >=20
-> > > What does it require from me? A git tree, obviously, but what should =
-it
-> > > be based on?
-> >=20
-> > Ah, I just realized that DSS2 patches depend on patches from Tony's
-> > tree. I guess I should base my tree on top of some Tony's tree that is
-> > going to linux-next?
->=20
-> Or I can merge them into my for-next if that's OK with everybody. This
-> merge cycle is a pain for omap as we've moved all the common headers from
-> include/mach to include/plat.
+I have modified the initial patch From Sanjeev:
+http://patchwork.kernel.org/patch/50998/
 
-If the DSS2 patches really are dependent on other stuff in the omap tree,
-then this is probably the best plan.
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+Other than these, we cannot use the old VDDx_MAX based usage
+anymore as 3630 OPPs are now different and runtime handling
+is a must-have, hence introducing these accessor functions is not
+avoidable.
 
---Signature=_Thu__12_Nov_2009_16_10_28_+1100_0NjpICVRdDwIVqAx
-Content-Type: application/pgp-signature
+The changes are incremental and tries to avoid intrusive change
+as much as possible. 3630 testing can only happen once the clock
+tree relevant changes are also pushed in.. but most of the relevant
+APIs have been exercised on 3430 itself as just the size of the OPP
+table varies b/w 3630 and 3430.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+The OPP accessor functions introduced in this series is hopefully
+a start for us to optimize this heavily used path.
 
-iEYEARECAAYFAkr7mMQACgkQjjKRsyhoI8x7uACgquvbx/NRweGQEzP8KhWpFrmS
-lcAAnippiSX2Zuy7xvJVZtN5HK74i3k+
-=11qk
------END PGP SIGNATURE-----
+Finally, I have only done limited testing of SR, as it is still in
+my TODO list to revamp SR in the form of a v5 patch next time I get
+some bandwidth.
 
---Signature=_Thu__12_Nov_2009_16_10_28_+1100_0NjpICVRdDwIVqAx--
+An alternate approach for detecting 3630 OPP is using FEATURES
+instead of detecting the cpu_type as I have implemented in this series.
+
+Nishanth Menon (9):
+  omap3: pm: introduce enabled flag to omap_opp
+  omap3: pm: introduce opp accessor functions
+  omap3: pm: srf: introduce accessor function
+  omap3: pm: use opp accessor functions for omap-target
+  omap3: pm: sr: replace get_opp with freq_to_opp
+  omap3: clk: use pm accessor functions for cpufreq table
+  omap3: pm: remove VDDx_MIN/MAX macros
+  omap3: pm: introduce dynamic OPP
+  omap3: pm: introduce 3630 opps
+
+ arch/arm/mach-omap2/board-3430sdp.c        |    1 +
+ arch/arm/mach-omap2/board-omap3beagle.c    |    1 +
+ arch/arm/mach-omap2/board-omap3evm.c       |    1 +
+ arch/arm/mach-omap2/board-rx51.c           |    2 +
+ arch/arm/mach-omap2/board-zoom2.c          |    2 +
+ arch/arm/mach-omap2/clock34xx.c            |   46 +++++---
+ arch/arm/mach-omap2/omap3-opp.h            |   49 ++------
+ arch/arm/mach-omap2/pm.c                   |  160 +++++++++++++++++++++++++
+ arch/arm/mach-omap2/pm.h                   |    8 ++
+ arch/arm/mach-omap2/pm34xx.c               |  122 +++++++++++++++++++
+ arch/arm/mach-omap2/resource34xx.c         |  174 +++++++++++++++++----------
+ arch/arm/mach-omap2/smartreflex.c          |   36 ++-----
+ arch/arm/plat-omap/cpu-omap.c              |   12 +--
+ arch/arm/plat-omap/include/plat/omap-pm.h  |  111 ++++++++++++++++++
+ arch/arm/plat-omap/include/plat/omap34xx.h |    5 -
+ 15 files changed, 573 insertions(+), 157 deletions(-)
+
+Regards,
+Nishanth Menon
