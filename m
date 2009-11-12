@@ -1,45 +1,37 @@
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] RX51: Add SDRAM init
-Date: Thu, 12 Nov 2009 15:47:44 -0800
-Message-ID: <87pr7ns3tr.fsf@deeprootsystems.com>
+From: Tony Lindgren <tony@atomide.com>
+Subject: [APPLIED] [PATCH] RX51: Add SDRAM init
+Date: Thu, 12 Nov 2009 18:50:07 -0500
+Message-ID: <notify-1258069811@atomide.com>
 References: <1256647181-18983-1-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:51090 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755257AbZKLXrm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 18:47:42 -0500
-Received: by pzk1 with SMTP id 1so903704pzk.33
-        for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 15:47:47 -0800 (PST)
-In-Reply-To: <1256647181-18983-1-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Tue\, 27 Oct 2009 14\:39\:41 +0200")
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64847 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755815AbZKLXuH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 18:50:07 -0500
+Received: from c-67-160-239-110.hsd1.ca.comcast.net ([67.160.239.110] helo=localhost.localdomain)
+	by mho-02-ewr.mailhop.org with esmtpa (Exim 4.68)
+	(envelope-from <tony@atomide.com>)
+	id 1N8jQb-0007Hf-8r
+	for linux-omap@vger.kernel.org; Thu, 12 Nov 2009 23:50:13 +0000
+In-Reply-To: <1256647181-18983-1-git-send-email-tero.kristo@nokia.com>
+Content-Disposition: inline
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Tero Kristo <tero.kristo@nokia.com>
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-Tero Kristo <tero.kristo@nokia.com> writes:
+This patch has been applied to the linux-omap
+by youw fwiendly patch wobot.
 
-> From: Tero Kristo <tero.kristo@nokia.com>
->
-> This patch adds board specific SDRAM init for RX51. This patch is a
-> collaboration of work from following people:
->
-> Juha Yrjola: Original code
-> Lauri Leukkunen: Port to RX51
-> Tero Kristo: Support for multiple OPP:s, merge of patches
-> Samu Onkalo: Fixed SDRAM parameters according to specs
-> Kalle Jokiniemi: A fix for rounding error
->
-> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
-> Cc: Samu Onkalo <samu.p.onkalo@nokia.com>
-> Cc: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-> Cc: Lauri Leukkunen <lauri.leukkunen@nokia.com>
-> Cc: Juha Yrjola <juha.yrjola@solidboot.com>
+Branch in linux-omap: for-next
 
-Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+Initial commit ID (Likely to change): a5ffea111ead0122b8dd7ae61b77a44fea022219
 
-I've had a hacked version of this in the PM branch for while now.
-This one can go into l-o master and I'll drop mine from the PM branch.
+PatchWorks
+http://patchwork.kernel.org/patch/56083/
 
-Kevin
+Git (Likely to change, and takes a while to get mirrored)
+http://git.kernel.org/?p=linux/kernel/git/tmlind/linux-omap-2.6.git;a=commit;h=a5ffea111ead0122b8dd7ae61b77a44fea022219
+
+
