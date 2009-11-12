@@ -1,115 +1,53 @@
-From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [RFC][Patch V1] OMAP3: Mux Changes.
-Date: Wed, 11 Nov 2009 17:54:59 -0800
-Message-ID: <20091112015459.GS24837@atomide.com>
-References: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAFCB9@dbde02.ent.ti.com>
+From: Haribabu Narayanan <haribabu@iastate.edu>
+Subject: Re: linux on sdp2420
+Date: Wed, 11 Nov 2009 20:05:53 -0600
+Message-ID: <965945430911111805n28998ba7pa5bc5c03a6bd361f@mail.gmail.com>
+References: <965945430911052316g72370d3sae87ecc799373212@mail.gmail.com>
+	<4AF4165B.8010701@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62221 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759884AbZKLBy7 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 20:54:59 -0500
-Content-Disposition: inline
-In-Reply-To: <E0D41E29EB0DAC4E9F3FF173962E9E940253DAFCB9@dbde02.ent.ti.com>
+Received: from mail-iw0-f178.google.com ([209.85.223.178]:33457 "EHLO
+	mail-iw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751309AbZKLCGH (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 21:06:07 -0500
+Received: by iwn8 with SMTP id 8so1439367iwn.33
+        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 18:06:13 -0800 (PST)
+In-Reply-To: <4AF4165B.8010701@gmail.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pais, Allen" <allen.pais@ti.com>
-Cc: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>, "Menon, Nishanth" <nm@ti.com>, linux-omap <linux-omap@vger.kernel.org>, "Chikkature Rajashekar, Madhusudhan" <madhu.cr@ti.com>, "Pandita, Vikram" <vikram.pandita@ti.com>, "Gadiyar, Anand" <gadiyar@ti.com>, "Cousson, Benoit" <b-cousson@ti.com>, Felipe Balbi <felipe.balbi@nokia.com>, Kevin Hilman <khilman@deeprootsystems.com>, "Premi, Sanjeev" <premi@ti.com>, "Shilimkar, Santosh" <santosh.shilimkar@ti.com>
+To: Nishanth Menon <menon.nishanth@gmail.com>
+Cc: linux-omap <linux-omap@vger.kernel.org>
 
-* Pais, Allen <allen.pais@ti.com> [091015 02:33]:
-> Please ignore my previous mail.
-> 
-> Muxes for OMAP 3630.
+hi.,
 
-Let's put this on hold and do it with the upcoming mux framework
-instead. Adding all the missing 3630 mux settings should be easy
-then.
+   well., i am pretty much interested in trying it out....but if
+omap2420 data-sheet is not in the public domain, i am curious to know
+as to how i can contribute much?
 
-Regards,
+   if i were to proceed wo the data-sheet, how can I start? try to
+incorporate code from 2.6.14 (which is atleast booting) to the latest
+part by part? is there any info that i can get on which modules are
+actually supported in 2.6.14 for sdp2420(in addition to the ones
+selected by default config)?
 
-Tony
+-hari
 
-> 
-> Signed-off-by: Allen Pais <allen.pais@ti.com> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c index b5fac32..93abb74 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -551,6 +551,42 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,  MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
->  		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
->  		OMAP34XX_MUX_MODE0)
-> +
-> +/*Muxes for 3630 */
-> +MUX_CFG_34XX("H26_3630_DSS_DATA18", 0x100,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("H25_3630_DSS_DATA19", 0x102,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("E28_3630_DSS_DATA20", 0x104,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("J26_3630_DSS_DATA21", 0x106,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("AC27_3630_DSS_DATA22", 0x108,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("AC28_3630_DSS_DATA23", 0x10A,
-> +		OMAP34XX_MUX_MODE3 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
-> +MUX_CFG_34XX("AF9_3630_ETKD8", 0x5EC,
-> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("AG9_3630_ETKD9", 0x5EE,
-> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("AG7_3630_ETKD12", 0x5F0,
-> +		OMAP34XX_MUX_MODE1 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
-> +MUX_CFG_34XX("AA25_3630_UART2_TX", 0x178,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("AD25_3630_UART2_RX", 0x17A,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("AB25_3630_UART2_RTS", 0x176,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("AB26_3630_UART2_CTS", 0x174,
-> +		OMAP34XX_MUX_MODE5 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
-> +MUX_CFG_34XX("H20_UART3_RX_IRRX", 0x19E,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN) 
-> +MUX_CFG_34XX("H21_UART3_TX_IRTX", 0x1A0,
-> +		OMAP34XX_MUX_MODE2 | OMAP34XX_PIN_INPUT_PULLDOWN)
-> +
->  };
->  
->  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-> diff --git a/arch/arm/plat-omap/include/mach/mux.h b/arch/arm/plat-omap/include/mach/mux.h
-> index 0f49d2d..8d8cbe1 100644
-> --- a/arch/arm/plat-omap/include/mach/mux.h
-> +++ b/arch/arm/plat-omap/include/mach/mux.h
-> @@ -890,6 +890,32 @@ enum omap34xx_index {
->  
->  	/* SYS_NIRQ T2 INT1 */
->  	AF26_34XX_SYS_NIRQ,
-> +
-> +	/*Muxes for 3630*/
-> +	K28_3630_CAM_D6,
-> +	L28_3630_CAM_D7,
-> +	K27_3630_CAM_D8,
-> +	L27_3630_CAM_D9,
-> +
-> +	H26_3630_DSS_DATA18,
-> +	H25_3630_DSS_DATA19,
-> +	E28_3630_DSS_DATA20,
-> +	J26_3630_DSS_DATA21,
-> +	AC27_3630_DSS_DATA22,
-> +	AC28_3630_DSS_DATA23,
-> +
-> +	AF9_3630_ETKD8,
-> +	AG9_3630_ETKD9,
-> +	AG7_3630_ETK12,
-> +
-> +	AA25_3630_UART2_TX,
-> +	AD25_3630_UART2_RX,
-> +	AB25_3630_UART2_RTS,
-> +	AB26_3630_UART2_CTS,
-> +
-> +	H20_UART3_RX_IRRX,
-> +	H21_UART3_TX_IRTX,
-> +
->  };
->  
->  struct omap_mux_cfg {
+On Fri, Nov 6, 2009 at 6:28 AM, Nishanth Menon <menon.nishanth@gmail.com> wrote:
+> Haribabu Narayanan said the following on 11/06/2009 01:16 AM:
+>> 1. Will the OMAP git kernel be of any use w.r.t 2420? Or is 2420
+>> completely unsupported after 2.6.14?
+>>
+> The current mainline kernel is 2.6.32-rc6 or there abouts. I have not
+> heard of folks testing OMAP2 (at least not in this list). If you do have
+> a 2420 and are interested to get things working with the very latest
+> kernel + bootloader etc.., Few folks in this list or in #linux-omap irc
+> channel could guide you through it..
+>
+>> 3. Is OMAP2420 data sheet not available in public?
+>>
+> Unfortunately, no.
+>
+> Regards,
+> Nishanth Menon
+>
