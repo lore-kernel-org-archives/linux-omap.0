@@ -1,125 +1,104 @@
-From: Felipe Contreras <felipe.contreras@gmail.com>
-Subject: [PATCH v3] omap3-iommu: reorganize
-Date: Thu, 12 Nov 2009 22:53:00 +0200
-Message-ID: <1258059180-4353-2-git-send-email-felipe.contreras@gmail.com>
-References: <1258059180-4353-1-git-send-email-felipe.contreras@gmail.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754347AbZKLUxN@vger.kernel.org>
-In-Reply-To: <1258059180-4353-1-git-send-email-felipe.contreras@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Tony Lindgren <tony@atomide.com>, Hiroshi Doyu <hiroshi.doyu@nokia.com>, Hari Kanigeri <h-kanigeri2@ti.com>, Felipe Contreras <felipe.contreras@gmail.com>, Russell King <linux@arm.linux.org.uk>, Hiroshi DOYU <Hiroshi.DOYU@nokia.com>, linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Tony Lindgren <tony@atomide.com>
+Subject: Re: FEATURES prints
+Date: Thu, 12 Nov 2009 13:02:26 -0800
+Message-ID: <20091112210226.GD24837@atomide.com>
+References: <4ACE39CC.1070906@ti.com>
+ <87ws2zge60.fsf@deeprootsystems.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-omap-owner@vger.kernel.org>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:55839 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754112AbZKLVCX (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 16:02:23 -0500
+Content-Disposition: inline
+In-Reply-To: <87ws2zge60.fsf@deeprootsystems.com>
+Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Cc: Nishanth Menon <nm@ti.com>, "Premi, Sanjeev" <premi@ti.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-This way it's more object oriented and easier to see what is happening.
-No functional changes.
+* Kevin Hilman <khilman@deeprootsystems.com> [091013 15:01]:
+> Nishanth Menon <nm@ti.com> writes:
+> 
+> > Folks,
+> >
+> > With the addition of FEATURES in l-o, the following prints:
+> >  - l2cache : Y
+> >  - iva : Y
+> >  - sgx : Y
+> >  - neon : Y
+> >  - isp : Y
+> >
+> > comes up on SDP3430 -> now that we will introduce half a dozen
+> > features here and there, we will soon clutter this up. we should
+> > introduce a sysfs entry + remove the above noise..
+> >
+> 
+> Like Nishanth, I don't like the multi-line noise here.  The patch
+> below results in a single line output like this instead
+> 
+> OMAP3430/3530 ES3.0 (l2cache iva sgx neon isp )
+> 
+> Not sure why we need to dump features that are not there, but if that
+> s considered important, maybe prefixing each feature with a '+' or '-'
+> would still allow this to be collapsed into a single line.
+> 
+> Even with this, I think adding the display of these features into an
+> OMAP-specific section of /proc/cpuinfo would be even better.
+> 
+> Comments?
 
-Signed-off-by: Felipe Contreras <felipe.contreras@gmail.com>
----
- arch/arm/mach-omap2/omap3-iommu.c |   62 ++++++++++++++++++------------------
- 1 files changed, 31 insertions(+), 31 deletions(-)
+I like. Looks like this patch needs to be refreshed.
 
-diff --git a/arch/arm/mach-omap2/omap3-iommu.c b/arch/arm/mach-omap2/omap3-iommu.c
-index 6a9bf4f..fbbcb5c 100644
---- a/arch/arm/mach-omap2/omap3-iommu.c
-+++ b/arch/arm/mach-omap2/omap3-iommu.c
-@@ -14,47 +14,50 @@
+Tony
  
- #include <plat/iommu.h>
- 
--#define OMAP3_MMU1_BASE	0x480bd400
--#define OMAP3_MMU2_BASE	0x5d000000
--#define OMAP3_MMU1_IRQ	24
--#define OMAP3_MMU2_IRQ	28
--
--
--static unsigned long iommu_base[] __initdata = {
--	OMAP3_MMU1_BASE,
--	OMAP3_MMU2_BASE,
--};
--
--static int iommu_irq[] __initdata = {
--	OMAP3_MMU1_IRQ,
--	OMAP3_MMU2_IRQ,
-+struct iommu_device {
-+	resource_size_t base;
-+	int irq;
-+	struct iommu_platform_data pdata;
-+	struct resource res[2];
- };
- 
--static const struct iommu_platform_data omap3_iommu_pdata[] __initconst = {
-+static struct iommu_device devices[] = {
- 	{
--		.name = "isp",
--		.nr_tlb_entries = 8,
--		.clk_name = "cam_ick",
-+		.base = 0x480bd400,
-+		.irq = 24,
-+		.pdata = {
-+			.name = "isp",
-+			.nr_tlb_entries = 8,
-+			.clk_name = "cam_ick",
-+		},
- 	},
- #if defined(CONFIG_MPU_BRIDGE_IOMMU)
- 	{
--		.name = "iva2",
--		.nr_tlb_entries = 32,
--		.clk_name = "iva2_ck",
-+		.base = 0x5d000000,
-+		.irq = 28,
-+		.pdata = {
-+			.name = "iva2",
-+			.nr_tlb_entries = 32,
-+			.clk_name = "iva2_ck",
-+		},
- 	},
- #endif
- };
--#define NR_IOMMU_DEVICES ARRAY_SIZE(omap3_iommu_pdata)
-+#define NR_IOMMU_DEVICES ARRAY_SIZE(devices)
- 
- static struct platform_device *omap3_iommu_pdev[NR_IOMMU_DEVICES];
- 
- static int __init omap3_iommu_init(void)
- {
- 	int i, err;
-+	struct resource res[] = {
-+		{ .flags = IORESOURCE_MEM },
-+		{ .flags = IORESOURCE_IRQ },
-+	};
- 
- 	for (i = 0; i < NR_IOMMU_DEVICES; i++) {
- 		struct platform_device *pdev;
--		struct resource res[2];
-+		const struct iommu_device *d = &devices[i];
- 
- 		pdev = platform_device_alloc("omap-iommu", i);
- 		if (!pdev) {
-@@ -62,19 +65,16 @@ static int __init omap3_iommu_init(void)
- 			goto err_out;
- 		}
- 
--		memset(res, 0,  sizeof(res));
--		res[0].start = iommu_base[i];
--		res[0].end = iommu_base[i] + MMU_REG_SIZE - 1;
--		res[0].flags = IORESOURCE_MEM;
--		res[1].start = res[1].end = iommu_irq[i];
--		res[1].flags = IORESOURCE_IRQ;
-+		res[0].start = d->base;
-+		res[0].end = d->base + MMU_REG_SIZE - 1;
-+		res[1].start = res[1].end = d->irq;
- 
- 		err = platform_device_add_resources(pdev, res,
- 						    ARRAY_SIZE(res));
- 		if (err)
- 			goto err_out;
--		err = platform_device_add_data(pdev, &omap3_iommu_pdata[i],
--					       sizeof(omap3_iommu_pdata[0]));
-+		err = platform_device_add_data(pdev, &d->pdata,
-+					       sizeof(d->pdata));
- 		if (err)
- 			goto err_out;
- 		err = platform_device_add(pdev);
--- 
-1.6.5.2
+> Kevin
+> 
+> 
+> commit 24f7422bad970cea2ed71d71e3994eeed70f175f
+> Author: Kevin Hilman <khilman@deeprootsystems.com>
+> Date:   Tue Oct 13 14:42:00 2009 -0700
+> 
+>     OMAP3: collapse chip feature prints to single line
+>     
+>     Signed-off-by: Kevin Hilman <khilman@deeprootsystems.com>
+> 
+> diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
+> index 71d5568..b90fcf1 100644
+> --- a/arch/arm/mach-omap2/id.c
+> +++ b/arch/arm/mach-omap2/id.c
+> @@ -249,11 +249,8 @@ void __init omap3_check_revision(void)
+>  }
+>  
+>  #define OMAP3_SHOW_FEATURE(feat)		\
+> -	if (omap3_has_ ##feat()) {		\
+> -		pr_info (" - "#feat" : Y");	\
+> -	} else {				\
+> -		pr_info (" - "#feat" : N");	\
+> -	}
+> +	if (omap3_has_ ##feat())		\
+> +		printk (#feat" ");      	\
+>  
+>  void __init omap3_cpuinfo(void)
+>  {
+> @@ -307,13 +304,14 @@ void __init omap3_cpuinfo(void)
+>  	/*
+>  	 * Print verbose information
+>  	 */
+> -	pr_info("OMAP%s ES%s\n", cpu_name, cpu_rev);
+> +	pr_info("OMAP%s ES%s (", cpu_name, cpu_rev);
+>  
+>  	OMAP3_SHOW_FEATURE(l2cache);
+>  	OMAP3_SHOW_FEATURE(iva);
+>  	OMAP3_SHOW_FEATURE(sgx);
+>  	OMAP3_SHOW_FEATURE(neon);
+>  	OMAP3_SHOW_FEATURE(isp);
+> +	printk(")\n");
+>  }
+>  
+>  /*
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
