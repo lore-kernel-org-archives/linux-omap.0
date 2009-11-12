@@ -1,68 +1,151 @@
-From: Chris Hudson <chudson@kionix.com>
-Subject: Re: [RFC PATCH v3 1/3] input:misc:driver support for Kionix kxte9
- accelerometer
-Date: Thu, 12 Nov 2009 09:33:06 -0500
-Message-ID: <4AFC1CA2.7070206@kionix.com>
-References: <1257971179-28225-1-git-send-email-chudson@kionix.com> <FCCFB4CDC6E5564B9182F639FC35608702FA5CBB36@dbde02.ent.ti.com> <4AFB21D2.2000007@kionix.com> <FCCFB4CDC6E5564B9182F639FC35608702FA5CBB4E@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH 11/11] OMAP3: PM: Disable OTG autoidle when waking up from off-mode
+Date: Thu, 12 Nov 2009 07:10:48 -0800
+Message-ID: <87ocn7vkw7.fsf@deeprootsystems.com>
+References: <1256313835-2391-1-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-2-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-3-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-4-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-5-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-6-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-7-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-8-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-9-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-10-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-11-git-send-email-tero.kristo@nokia.com>
+	<1256313835-2391-12-git-send-email-tero.kristo@nokia.com>
+	<878wecy6g8.fsf@deeprootsystems.com>
+	<5A47E75E594F054BAF48C5E4FC4B92AB030A8C829A@dbde02.ent.ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from barracuda.kionix.com ([205.232.90.213]:38483 "EHLO
-	mail.kionix.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752729AbZKLOdH (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 09:33:07 -0500
-In-Reply-To: <FCCFB4CDC6E5564B9182F639FC35608702FA5CBB4E@dbde02.ent.ti.com>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:48109 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752851AbZKLPKp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 10:10:45 -0500
+Received: by pzk1 with SMTP id 1so589583pzk.33
+        for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 07:10:50 -0800 (PST)
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030A8C829A@dbde02.ent.ti.com> (Anand Gadiyar's message of "Thu\, 12 Nov 2009 11\:54\:37 +0530")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: "Pandita, Vikram" <vikram.pandita@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-input@vger.kernel.org" <linux-input@vger.kernel.org>, "dmitry.torokhov@gmail.com" <dmitry.torokhov@gmail.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Cc: Tero Kristo <tero.kristo@nokia.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
 
-Pandita, Vikram wrote:
->> -----Original Message-----
->> From: Chris Hudson [mailto:chudson@kionix.com]
->>
->> Pandita, Vikram wrote:
->>     
->>> Chris
->>>       
-> <snip>
->   
->>> Any way to test these features of accelerometer with your set of 3 patches applied?
->>>
->>> Say with a busybox filesystem or poky?
->>>
->>>       
->> Sure, I've been using busybox with the ZoomII and testing the hardware
->> throughout the development process.  You'll need to attach a KXTE9 to
->>     
+"Gadiyar, Anand" <gadiyar@ti.com> writes:
+
+> Kevin Hilman wrote:
+>> Tero Kristo <tero.kristo@nokia.com> writes:
+>> 
+>> > From: Tero Kristo <tero.kristo@nokia.com>
+>> >
+>> > OMAP3 sleep can be prevented in some cases where OTG autoidle is enabled.
+>> > This patch force disables autoidle during wakeup from off-mode. See omap
+>> > errata 1.164.
+>> >
+>> > Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+>> 
+>> This one needs a refresh against current PM branch.
+>> 
+>> > ---
+>> >  arch/arm/mach-omap2/pm34xx.c          |    6 ++++++
+>> >  arch/arm/mach-omap2/usb-musb.c        |   14 ++++++++------
+>> >  arch/arm/plat-omap/include/mach/usb.h |    3 +++
+>> 
+>> mach/usb.h moved to plat/usb.h
+>> 
+>> >  3 files changed, 17 insertions(+), 6 deletions(-)
+>> >
+>> > diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+>> > index 5eb7321..070a0a2 100644
+>> > --- a/arch/arm/mach-omap2/pm34xx.c
+>> > +++ b/arch/arm/mach-omap2/pm34xx.c
+>> > @@ -39,6 +39,7 @@
+>> >  #include <mach/gpmc.h>
+>> >  #include <mach/dma.h>
+>> >  #include <mach/dmtimer.h>
+>> > +#include <mach/usb.h>
+>> >  
+>> >  #include <asm/tlbflush.h>
+>> >  
+>> > @@ -496,6 +497,11 @@ void omap_sram_idle(void)
+>> >  			omap3_prcm_restore_context();
+>> >  			omap3_sram_restore_context();
+>> >  			omap2_sms_restore_context();
+>> > +			/*
+>> > +			 * Errata 1.164 fix : OTG autoidle can prevent
+>> > +			 * sleep
+>> > +			 */
+>> > +			usb_musb_disable_autoidle();
+>> 
+>> NAK.  This belongs in the MUSB driver, not in the idle path.
+>> 
 >
-> I thought the accelerometer was a built-in feature of zoom2?
-> Can you give reference of details of KXTE9 module? Is it to be plugged in to come connector on zoom2?
->   
-There are two accelerometers built into the OMAP ZoomII: a MEMSIC and a 
-Bosch.(1)  From what I've seen, they don't seem to be initialized in any 
-stardard kernel configuration for this platform.
-
-To work with the KXTE9, I used a 200-pin connecter(2) mounted to the J43 
-expansion header, which is under the camera cover on the ZoomII. 
-
-The KXTE9 product specification is available here: 
-http://www.kionix.com/accelerometers/accelerometer-KXTE9.html
-
-(1)https://gforge.ti.com/gf/project/omapzoom/wiki/?pagename=WhatIsZoom2
-(2)http://search.digikey.com/scripts/DkSearch/dksus.dll?lang=en&site=US&WT.z_homepage_link=hp_go_button&KeyWords=sam8019-nd&x=0&y=0
-
->   
->> the i2c-2 bus, vdd, iovdd, ground, and gpio156 on the J43 header if
->> using a ZoomII.  I can give you the exact pins I'm using if you would like.
->> Thank you,
->> Chris
->>     
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Kevin,
 >
+> When we exit off-mode, the autoidle will get enabled, and needs
+> an explicit disable. If the MUSB driver is not loaded, there will
+> be no one to do this.
 >
->   
+
+OK, thanks for the clarification.  The changelog should be updated to
+describe this problem in more detail.
+
+Kevin
+
+>
+>> Kevin
+>> 
+>> >  		}
+>> >  		omap_uart_resume_idle(0);
+>> >  		omap_uart_resume_idle(1);
+>> > diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+>> > index 8dde0b7..f4b86c0 100644
+>> > --- a/arch/arm/mach-omap2/usb-musb.c
+>> > +++ b/arch/arm/mach-omap2/usb-musb.c
+>> > @@ -44,10 +44,11 @@ static struct platform_device dummy_pdev = {
+>> >  	},
+>> >  };
+>> >  
+>> > +static void __iomem *otg_base;
+>> > +static struct clk *otg_clk;
+>> > +
+>> >  static void __init usb_musb_pm_init(void)
+>> >  {
+>> > -	void __iomem *otg_base;
+>> > -	struct clk *otg_clk;
+>> >  	struct device *dev = &dummy_pdev.dev;
+>> >  
+>> >  	if (!cpu_is_omap34xx())
+>> > @@ -74,12 +75,13 @@ static void __init usb_musb_pm_init(void)
+>> >  			cpu_relax();
+>> >  	}
+>> >  
+>> > -	if (otg_clk) {
+>> > +	if (otg_clk)
+>> >  		clk_disable(otg_clk);
+>> > -		clk_put(otg_clk);
+>> > -	}
+>> > +}
+>> >
+>> >  
+>> > -	iounmap(otg_base);
+>> > +void usb_musb_disable_autoidle(void)
+>> > +{
+>> > +	__raw_writel(0, otg_base + OTG_SYSCONFIG);
+>> >  }
+>> >  
+>> >  #ifdef CONFIG_USB_MUSB_SOC
+>> > diff --git a/arch/arm/plat-omap/include/mach/usb.h b/arch/arm/plat-omap/include/mach/usb.h
+>> > index a4068a4..310ee17 100644
+>> > --- a/arch/arm/plat-omap/include/mach/usb.h
+>> > +++ b/arch/arm/plat-omap/include/mach/usb.h
+>> > @@ -46,6 +46,9 @@ extern void usb_musb_init(void);
+>> >  
+>> >  extern void usb_ehci_init(struct ehci_hcd_omap_platform_data *pdata);
+>> >  
+>> > +/* This is needed for OMAP3 errata 1.164: enabled autoidle can prevent sleep */
+>> > +extern void usb_musb_disable_autoidle(void);
+>> > +
+>> >  #endif
+>> >  
+>> >  void omap_usb_init(struct omap_usb_config *pdata);
