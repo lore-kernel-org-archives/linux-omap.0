@@ -1,120 +1,82 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 01/10] omap: Eliminate OMAP_MAX_NR_PORTS
-Date: Wed, 11 Nov 2009 19:02:04 -0800
-Message-ID: <20091112030204.5159.80597.stgit@localhost>
+Subject: [PATCH 02/10] omap: introduce OMAP_LL_DEBUG_NONE DEBUG_LL config
+Date: Wed, 11 Nov 2009 19:02:19 -0800
+Message-ID: <20091112030219.5159.99104.stgit@localhost>
 References: <20091112025802.5159.97598.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:58081 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760039AbZKLDCE (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:02:04 -0500
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53254 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760042AbZKLDCO (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:02:14 -0500
 In-Reply-To: <20091112025802.5159.97598.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Kevin Hilman <khilman@deeprootsystems.com>, Alexander Shishkin <virtuoso@slind.org>, linux-omap@vger.kernel.org, Ladislav Michl <ladis@linux-mips.org>
+Cc: Vikram Pandita <vikram.pandita@ti.com>, linux-omap@vger.kernel.org
 
-From: Alexander Shishkin <virtuoso@slind.org>
+From: vikram pandita <vikram.pandita@ti.com>
 
-Eliminate OMAP_MAX_NR_PORTS
+Zoom2/Zoom3 kind of boards do not use omap uarts for console.
+These use external debug board for console.
 
-Note that also the null terminator entry for omap1
-serial_platform_data needs to be now removed to avoid
-oopsing.
+So these boards should not have "Uncompressing Kernel...."
+log put on omap uarts.
 
-Note that mach-omap1 uses struct plat_serial8250_port
-array, which requires a null terminator at the end,
-and that's why we need to use ARRAY_SIZE - 1. This
-is not needed on mach-omap2 as the array used is
-struct omap_uart_state, and does not use a null
-terminator.
+By interoducing OMAP_LL_DEBUG_NONE option,
+unnecessary writes to omap uarts is avoided.
 
-Signed-off-by: Alexander Shishkin <virtuoso@slind.org>
-Acked-by: Kevin Hilman <khilman@deeprootsystems.com>
-Signed-off-by: Ladislav Michl <ladis@linux-mips.org>
+In future, the DEBUG_LL interface will be enhanced
+to use external debug board.
+
+Signed-off-by: Vikram Pandita <vikram.pandita@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap1/serial.c             |    2 +-
- arch/arm/mach-omap2/serial.c             |    6 +++---
- arch/arm/plat-omap/include/plat/serial.h |    4 ----
- 3 files changed, 4 insertions(+), 8 deletions(-)
+ arch/arm/plat-omap/Kconfig                   |    5 ++++-
+ arch/arm/plat-omap/include/plat/uncompress.h |    6 +++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm/mach-omap1/serial.c b/arch/arm/mach-omap1/serial.c
-index 5ebf094..6e5207c 100644
---- a/arch/arm/mach-omap1/serial.c
-+++ b/arch/arm/mach-omap1/serial.c
-@@ -120,7 +120,7 @@ void __init omap_serial_init(void)
- 		serial_platform_data[2].uartclk = OMAP1510_BASE_BAUD * 16;
- 	}
+diff --git a/arch/arm/plat-omap/Kconfig b/arch/arm/plat-omap/Kconfig
+index 64b3f52..f348ddf 100644
+--- a/arch/arm/plat-omap/Kconfig
++++ b/arch/arm/plat-omap/Kconfig
+@@ -165,7 +165,7 @@ config OMAP_DM_TIMER
+ choice
+ 	prompt "Low-level debug console UART"
+ 	depends on ARCH_OMAP
+-	default OMAP_LL_DEBUG_UART1
++	default OMAP_LL_DEBUG_NONE
  
--	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+	for (i = 0; i < ARRAY_SIZE(serial_platform_data) - 1; i++) {
+ config OMAP_LL_DEBUG_UART1
+ 	bool "UART1"
+@@ -176,6 +176,9 @@ config OMAP_LL_DEBUG_UART2
+ config OMAP_LL_DEBUG_UART3
+ 	bool "UART3"
  
- 		/* Static mapping, never released */
- 		serial_platform_data[i].membase =
-diff --git a/arch/arm/mach-omap2/serial.c b/arch/arm/mach-omap2/serial.c
-index 72df1b1..2e17b57 100644
---- a/arch/arm/mach-omap2/serial.c
-+++ b/arch/arm/mach-omap2/serial.c
-@@ -533,7 +533,7 @@ static inline void omap_uart_idle_init(struct omap_uart_state *uart) {}
- #define DEV_CREATE_FILE(dev, attr)
- #endif /* CONFIG_PM */
++config OMAP_LL_DEBUG_NONE
++	bool "None"
++
+ endchoice
  
--static struct omap_uart_state omap_uart[OMAP_MAX_NR_PORTS] = {
-+static struct omap_uart_state omap_uart[] = {
- 	{
- 		.pdev = {
- 			.name			= "serial8250",
-@@ -583,7 +583,7 @@ void __init omap_serial_early_init(void)
- 	 * if not needed.
- 	 */
- 
--	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
- 		struct omap_uart_state *uart = &omap_uart[i];
- 		struct platform_device *pdev = &uart->pdev;
- 		struct device *dev = &pdev->dev;
-@@ -635,7 +635,7 @@ void __init omap_serial_init(void)
- {
- 	int i;
- 
--	for (i = 0; i < OMAP_MAX_NR_PORTS; i++) {
-+	for (i = 0; i < ARRAY_SIZE(omap_uart); i++) {
- 		struct omap_uart_state *uart = &omap_uart[i];
- 		struct platform_device *pdev = &uart->pdev;
- 		struct device *dev = &pdev->dev;
-diff --git a/arch/arm/plat-omap/include/plat/serial.h b/arch/arm/plat-omap/include/plat/serial.h
-index e249186..9951345 100644
---- a/arch/arm/plat-omap/include/plat/serial.h
-+++ b/arch/arm/plat-omap/include/plat/serial.h
-@@ -20,26 +20,22 @@
- #define OMAP_UART1_BASE		0xfffb0000
- #define OMAP_UART2_BASE		0xfffb0800
- #define OMAP_UART3_BASE		0xfffb9800
--#define OMAP_MAX_NR_PORTS	3
- #elif defined(CONFIG_ARCH_OMAP2)
- /* OMAP2 serial ports */
- #define OMAP_UART1_BASE		0x4806a000
- #define OMAP_UART2_BASE		0x4806c000
- #define OMAP_UART3_BASE		0x4806e000
--#define OMAP_MAX_NR_PORTS	3
- #elif defined(CONFIG_ARCH_OMAP3)
- /* OMAP3 serial ports */
- #define OMAP_UART1_BASE		0x4806a000
- #define OMAP_UART2_BASE		0x4806c000
- #define OMAP_UART3_BASE		0x49020000
--#define OMAP_MAX_NR_PORTS	3
- #elif defined(CONFIG_ARCH_OMAP4)
- /* OMAP4 serial ports */
- #define OMAP_UART1_BASE		0x4806a000
- #define OMAP_UART2_BASE		0x4806c000
- #define OMAP_UART3_BASE		0x48020000
- #define OMAP_UART4_BASE		0x4806e000
--#define OMAP_MAX_NR_PORTS	4
+ config OMAP_SERIAL_WAKE
+diff --git a/arch/arm/plat-omap/include/plat/uncompress.h b/arch/arm/plat-omap/include/plat/uncompress.h
+index e22f575..13c305d 100644
+--- a/arch/arm/plat-omap/include/plat/uncompress.h
++++ b/arch/arm/plat-omap/include/plat/uncompress.h
+@@ -44,8 +44,12 @@ static void putc(int c)
+ 	uart = (volatile u8 *)(OMAP_UART3_BASE);
+ #elif defined(CONFIG_OMAP_LL_DEBUG_UART2)
+ 	uart = (volatile u8 *)(OMAP_UART2_BASE);
+-#else
++#elif defined(CONFIG_OMAP_LL_DEBUG_UART1)
+ 	uart = (volatile u8 *)(OMAP_UART1_BASE);
++#elif defined(CONFIG_OMAP_LL_DEBUG_NONE)
++	return;
++#else
++	return;
  #endif
  
- #define OMAP1510_BASE_BAUD	(12000000/16)
+ #ifdef CONFIG_ARCH_OMAP1
 
