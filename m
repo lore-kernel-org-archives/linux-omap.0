@@ -1,45 +1,58 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH 0/3] Update CPU idle parameter passing
-Date: Wed, 11 Nov 2009 16:28:10 -0800
-Message-ID: <87k4xwwpr9.fsf@deeprootsystems.com>
-References: <1256805020-7402-1-git-send-email-kalle.jokiniemi@digia.com>
+Subject: Re: [PATCH 2/2] OMAP3: CPUidle: Fixed timer resolution
+Date: Wed, 11 Nov 2009 16:30:13 -0800
+Message-ID: <87eio4wpnu.fsf@deeprootsystems.com>
+References: <1256562640-15242-1-git-send-email-tero.kristo@nokia.com>
+	<1256562640-15242-2-git-send-email-tero.kristo@nokia.com>
+	<1256562640-15242-3-git-send-email-tero.kristo@nokia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:38862 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759740AbZKLA2H (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 19:28:07 -0500
-Received: by pwi3 with SMTP id 3so1006538pwi.21
-        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 16:28:12 -0800 (PST)
-In-Reply-To: <1256805020-7402-1-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Thu\, 29 Oct 2009 10\:30\:17 +0200")
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:50804 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759685AbZKLAaK (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 19:30:10 -0500
+Received: by pzk1 with SMTP id 1so137086pzk.33
+        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 16:30:15 -0800 (PST)
+In-Reply-To: <1256562640-15242-3-git-send-email-tero.kristo@nokia.com> (Tero Kristo's message of "Mon\, 26 Oct 2009 15\:10\:40 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
-Cc: linux-omap@vger.kernel.org, rnayak@ti.com, jouni.hogander@nokia.com
+To: Tero Kristo <tero.kristo@nokia.com>
+Cc: linux-omap@vger.kernel.org
 
-Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
+Tero Kristo <tero.kristo@nokia.com> writes:
 
-> Hi Kevin,
+> From: Tero Kristo <tero.kristo@nokia.com>
 >
-> Made some patches to enable setting RX-51 cpu idle parameters
-> as we use them. Added "valid" field passing to cpuidle_params
-> in the process.
+> Previously used u32 as temporary data storage that wraps around at 4.294s.
 >
-> Tested on RX-51. Applies on top of linux-omap/pm branch.
->
-> Kalle Jokiniemi (3):
->       OMAP:PM: Fix non-cpu idle builds using omap3_pm_init_cpuidle
->       OMAP3: Add valid field into C-state parameter passing
->       OMAP: RX-51: Pass cpu idle parameters
+> Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
 
-Thanks, applying this series to PM branch.
+Thanks, applying to PM branch, queing for pm-fixes.
 
 Kevin
 
-> kajokini@ubuntu:~/work/linux-open/linux-omap$ git diff --stat HEAD~3..HEAD
->  arch/arm/mach-omap2/board-3430sdp.c |   14 ++++++------
->  arch/arm/mach-omap2/board-rx51.c    |   18 +++++++++++++++++
->  arch/arm/mach-omap2/cpuidle34xx.c   |   37 +++++++++++++++++++++-------------
->  arch/arm/mach-omap2/pm.h            |    8 +++++++
->  4 files changed, 56 insertions(+), 21 deletions(-)
+> ---
+>  arch/arm/mach-omap2/cpuidle34xx.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/arch/arm/mach-omap2/cpuidle34xx.c b/arch/arm/mach-omap2/cpuidle34xx.c
+> index a0d9f56..0ac3b63 100644
+> --- a/arch/arm/mach-omap2/cpuidle34xx.c
+> +++ b/arch/arm/mach-omap2/cpuidle34xx.c
+> @@ -137,7 +137,7 @@ return_sleep_time:
+>  	local_irq_enable();
+>  	local_fiq_enable();
+>  
+> -	return (u32)timespec_to_ns(&ts_idle)/1000;
+> +	return ts_idle.tv_nsec / NSEC_PER_USEC + ts_idle.tv_sec * USEC_PER_SEC;
+>  }
+>  
+>  /**
+> -- 
+> 1.5.4.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
