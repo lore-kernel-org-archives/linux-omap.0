@@ -1,224 +1,228 @@
-From: Kim Botherway <kbotherway@djdvant.com>
-Subject: [PATCH 4/4] Add ASoC support for DEVKIT8000
-Date: Thu, 12 Nov 2009 21:24:43 +1100
-Message-ID: <8e4f2cbd8c0fccce7759ee7545699e1d@djdvant.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Tero Kristo <tero.kristo@nokia.com>
+Subject: [PATCH 4/5] OMAP3: PM: Write voltage and clock setup times dynamically in idle loop
+Date: Thu, 12 Nov 2009 12:07:23 +0200
+Message-ID: <1258020444-3809-5-git-send-email-tero.kristo@nokia.com>
+References: <>
+ <1258020444-3809-1-git-send-email-tero.kristo@nokia.com>
+ <1258020444-3809-2-git-send-email-tero.kristo@nokia.com>
+ <1258020444-3809-3-git-send-email-tero.kristo@nokia.com>
+ <1258020444-3809-4-git-send-email-tero.kristo@nokia.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148]:12921
-	"EHLO outbound.icp-qv1-irony-out3.iinet.net.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751528AbZKLKYm (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>);
-	Thu, 12 Nov 2009 05:24:42 -0500
+Received: from smtp.nokia.com ([192.100.122.233]:48113 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751649AbZKLKYp (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 05:24:45 -0500
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nACAOkDS007208
+	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 12:24:48 +0200
+Received: from localhost.localdomain (sokoban.ntc.nokia.com [172.22.144.95])
+	by mgw-da01.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id nACAOXWu012786
+	for <linux-omap@vger.kernel.org>; Thu, 12 Nov 2009 12:24:38 +0200
+In-Reply-To: <1258020444-3809-4-git-send-email-tero.kristo@nokia.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: alsa-devel@vger.kernel.org
-Cc: linux-omap@vger.kernel.org
+To: linux-omap@vger.kernel.org
 
-This patch add support for DEVKIT8000, it is a copy of Beagleboard sound
-driver
+From: Tero Kristo <tero.kristo@nokia.com>
 
-diff --git a/sound/soc/omap/Kconfig b/sound/soc/omap/Kconfig
-index 653a362..8cdcfe9 100644
---- a/sound/soc/omap/Kconfig
-+++ b/sound/soc/omap/Kconfig
-@@ -91,6 +91,14 @@ config SND_OMAP_SOC_OMAP3_BEAGLE
- 	help
- 	  Say Y if you want to add support for SoC audio on the Beagleboard.
+It is suggested by TI (SWPA152 February 2009) to write clksetup,
+voltsetup_time1, voltsetup_time2, voltsetup2 dynamically in idle loop.
+
+This allows us to optimize the voltage + clock setup times according to the
+used power save mode.
+
+Signed-off-by: Tero Kristo <tero.kristo@nokia.com>
+---
+ arch/arm/mach-omap2/pm.h     |   10 ++++-
+ arch/arm/mach-omap2/pm34xx.c |   87 +++++++++++++++++++++++------------------
+ 2 files changed, 57 insertions(+), 40 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/pm.h b/arch/arm/mach-omap2/pm.h
+index b576424..d10e0c1 100644
+--- a/arch/arm/mach-omap2/pm.h
++++ b/arch/arm/mach-omap2/pm.h
+@@ -24,12 +24,18 @@ extern int omap3_can_sleep(void);
+ extern int set_pwrdm_state(struct powerdomain *pwrdm, u32 state);
+ extern int omap3_idle_init(void);
  
-+config SND_OMAP_SOC_OMAP3_DEVKIT8000
-+        tristate "SoC Audio support for OMAP3 DEVKIT8000"
-+        depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP3_DEVKIT8000
-+        select SND_OMAP_SOC_MCBSP
-+        select SND_SOC_TWL4030
-+        help
-+          Say Y if you want to add support for SoC audio on the
-DEVKIT8000.
+-struct prm_setup_vc {
++struct prm_setup_times_vc {
+ 	u16 clksetup;
+ 	u16 voltsetup_time1;
+ 	u16 voltsetup_time2;
+-	u16 voltoffset;
+ 	u16 voltsetup2;
++	u16 voltsetup1;
++};
 +
- config SND_OMAP_SOC_ZOOM2
- 	tristate "SoC Audio support for Zoom2"
- 	depends on TWL4030_CORE && SND_OMAP_SOC && MACH_OMAP_ZOOM2
-
-diff --git a/sound/soc/omap/Makefile b/sound/soc/omap/Makefile
-index 02d6947..7239737 100644
---- a/sound/soc/omap/Makefile
-+++ b/sound/soc/omap/Makefile
-@@ -15,6 +15,7 @@ snd-soc-omap3evm-objs := omap3evm.o
- snd-soc-sdp3430-objs := sdp3430.o
- snd-soc-omap3pandora-objs := omap3pandora.o
- snd-soc-omap3beagle-objs := omap3beagle.o
-+snd-soc-omap3devkit8000-objs := omap3devkit8000.o
- snd-soc-zoom2-objs := zoom2.o
++struct prm_setup_vc {
++	struct prm_setup_times_vc *setup_times;
++	struct prm_setup_times_vc *setup_times_off;
++	u16 voltoffset;
+ /* PRM_VC_CMD_VAL_0 specific bits */
+ 	u16 vdd0_on;
+ 	u16 vdd0_onlp;
+diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
+index 796d726..2f9f4a0 100644
+--- a/arch/arm/mach-omap2/pm34xx.c
++++ b/arch/arm/mach-omap2/pm34xx.c
+@@ -82,12 +82,17 @@ static struct powerdomain *mpu_pwrdm, *neon_pwrdm;
+ static struct powerdomain *core_pwrdm, *per_pwrdm;
+ static struct powerdomain *cam_pwrdm;
  
- obj-$(CONFIG_SND_OMAP_SOC_N810) += snd-soc-n810.o
-@@ -26,4 +27,5 @@ obj-$(CONFIG_MACH_OMAP3EVM) += snd-soc-omap3evm.o
- obj-$(CONFIG_SND_OMAP_SOC_SDP3430) += snd-soc-sdp3430.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_PANDORA) += snd-soc-omap3pandora.o
- obj-$(CONFIG_SND_OMAP_SOC_OMAP3_BEAGLE) += snd-soc-omap3beagle.o
-+obj-$(CONFIG_SND_OMAP_SOC_OMAP3_DEVKIT8000) += snd-soc-omap3devkit8000.o
- obj-$(CONFIG_SND_OMAP_SOC_ZOOM2) += snd-soc-zoom2.o
+-static struct prm_setup_vc prm_setup = {
++static struct prm_setup_times_vc prm_setup_times_default = {
+ 	.clksetup = 0xff,
+ 	.voltsetup_time1 = 0xfff,
+ 	.voltsetup_time2 = 0xfff,
+-	.voltoffset = 0xff,
+ 	.voltsetup2 = 0xff,
++};
++
++static struct prm_setup_vc prm_setup_default = {
++	.setup_times = &prm_setup_times_default,
++	.setup_times_off = NULL,
++	.voltoffset = 0xff,
+ 	.vdd0_on = 0x30,	/* 1.2v */
+ 	.vdd0_onlp = 0x20,	/* 1.0v */
+ 	.vdd0_ret = 0x1e,	/* 0.975v */
+@@ -98,6 +103,8 @@ static struct prm_setup_vc prm_setup = {
+ 	.vdd1_off = 0x00,	/* 0.6v */
+ };
+ 
++static struct prm_setup_vc *prm_setup = &prm_setup_default;
++
+ static inline void omap3_per_save_context(void)
+ {
+ 	omap_gpio_save_context();
+@@ -338,6 +345,16 @@ static void restore_table_entry(void)
+ 	restore_control_register(control_reg_value);
+ }
+ 
++static void prm_program_setup_times(struct prm_setup_times_vc *times)
++{
++	prm_write_mod_reg(times->voltsetup1, OMAP3430_GR_MOD,
++			OMAP3_PRM_VOLTSETUP1_OFFSET);
++	prm_write_mod_reg(times->voltsetup2, OMAP3430_GR_MOD,
++			OMAP3_PRM_VOLTSETUP2_OFFSET);
++	prm_write_mod_reg(times->clksetup, OMAP3430_GR_MOD,
++			OMAP3_PRM_CLKSETUP_OFFSET);
++}
++
+ void omap_sram_idle(void)
+ {
+ 	/* Variable to tell what needs to be saved and restored
+@@ -422,6 +439,9 @@ void omap_sram_idle(void)
+ 					     OMAP3_PRM_VOLTCTRL_OFFSET);
+ 			omap3_core_save_context();
+ 			omap3_prcm_save_context();
++			if (prm_setup->setup_times_off != NULL)
++				prm_program_setup_times(prm_setup->
++					setup_times_off);
+ 		} else if (core_next_state == PWRDM_POWER_RET) {
+ 			prm_set_mod_reg_bits(OMAP3430_AUTO_RET,
+ 						OMAP3430_GR_MOD,
+@@ -479,11 +499,13 @@ void omap_sram_idle(void)
+ 		}
+ 		omap_uart_resume_idle(0);
+ 		omap_uart_resume_idle(1);
+-		if (core_next_state == PWRDM_POWER_OFF)
++		if (core_next_state == PWRDM_POWER_OFF) {
+ 			prm_clear_mod_reg_bits(OMAP3430_AUTO_OFF,
+ 					       OMAP3430_GR_MOD,
+ 					       OMAP3_PRM_VOLTCTRL_OFFSET);
+-		else if (core_next_state == PWRDM_POWER_RET)
++			if (prm_setup->setup_times_off != NULL)
++				prm_program_setup_times(prm_setup->setup_times);
++		} else if (core_next_state == PWRDM_POWER_RET)
+ 			prm_clear_mod_reg_bits(OMAP3430_AUTO_RET,
+ 						OMAP3430_GR_MOD,
+ 						OMAP3_PRM_VOLTCTRL_OFFSET);
+@@ -1043,24 +1065,21 @@ int omap3_pm_set_suspend_state(struct powerdomain *pwrdm, int state)
+ 	return -EINVAL;
+ }
+ 
++static void omap3_init_prm_setup_times(struct prm_setup_times_vc *conf)
++{
++	if (!conf)
++		return;
++
++	conf->voltsetup1 =
++		(conf->voltsetup_time2 << OMAP3430_SETUP_TIME2_SHIFT) |
++		(conf->voltsetup_time1 << OMAP3430_SETUP_TIME1_SHIFT);
++}
++
+ void omap3_pm_init_vc(struct prm_setup_vc *setup_vc)
+ {
+ 	if (!setup_vc)
+ 		return;
+-
+-	prm_setup.clksetup = setup_vc->clksetup;
+-	prm_setup.voltsetup_time1 = setup_vc->voltsetup_time1;
+-	prm_setup.voltsetup_time2 = setup_vc->voltsetup_time2;
+-	prm_setup.voltoffset = setup_vc->voltoffset;
+-	prm_setup.voltsetup2 = setup_vc->voltsetup2;
+-	prm_setup.vdd0_on = setup_vc->vdd0_on;
+-	prm_setup.vdd0_onlp = setup_vc->vdd0_onlp;
+-	prm_setup.vdd0_ret = setup_vc->vdd0_ret;
+-	prm_setup.vdd0_off = setup_vc->vdd0_off;
+-	prm_setup.vdd1_on = setup_vc->vdd1_on;
+-	prm_setup.vdd1_onlp = setup_vc->vdd1_onlp;
+-	prm_setup.vdd1_ret = setup_vc->vdd1_ret;
+-	prm_setup.vdd1_off = setup_vc->vdd1_off;
++	prm_setup = setup_vc;
+ }
+ 
+ static int __init pwrdms_setup(struct powerdomain *pwrdm, void *unused)
+@@ -1206,16 +1225,16 @@ static void __init configure_vc(void)
+ 			  (R_VDD1_SR_CONTROL << OMAP3430_VOLRA0_SHIFT),
+ 			  OMAP3430_GR_MOD, OMAP3_PRM_VC_SMPS_VOL_RA_OFFSET);
+ 
+-	prm_write_mod_reg((prm_setup.vdd0_on << OMAP3430_VC_CMD_ON_SHIFT) |
+-		(prm_setup.vdd0_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
+-		(prm_setup.vdd0_ret << OMAP3430_VC_CMD_RET_SHIFT) |
+-		(prm_setup.vdd0_off << OMAP3430_VC_CMD_OFF_SHIFT),
++	prm_write_mod_reg((prm_setup->vdd0_on << OMAP3430_VC_CMD_ON_SHIFT) |
++		(prm_setup->vdd0_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
++		(prm_setup->vdd0_ret << OMAP3430_VC_CMD_RET_SHIFT) |
++		(prm_setup->vdd0_off << OMAP3430_VC_CMD_OFF_SHIFT),
+ 		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_0_OFFSET);
+ 
+-	prm_write_mod_reg((prm_setup.vdd1_on << OMAP3430_VC_CMD_ON_SHIFT) |
+-		(prm_setup.vdd1_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
+-		(prm_setup.vdd1_ret << OMAP3430_VC_CMD_RET_SHIFT) |
+-		(prm_setup.vdd1_off << OMAP3430_VC_CMD_OFF_SHIFT),
++	prm_write_mod_reg((prm_setup->vdd1_on << OMAP3430_VC_CMD_ON_SHIFT) |
++		(prm_setup->vdd1_onlp << OMAP3430_VC_CMD_ONLP_SHIFT) |
++		(prm_setup->vdd1_ret << OMAP3430_VC_CMD_RET_SHIFT) |
++		(prm_setup->vdd1_off << OMAP3430_VC_CMD_OFF_SHIFT),
+ 		OMAP3430_GR_MOD, OMAP3_PRM_VC_CMD_VAL_1_OFFSET);
+ 
+ 	prm_write_mod_reg(OMAP3430_CMD1 | OMAP3430_RAV1, OMAP3430_GR_MOD,
+@@ -1226,19 +1245,11 @@ static void __init configure_vc(void)
+ 			  OMAP3_PRM_VC_I2C_CFG_OFFSET);
+ 
+ 	/* Write setup times */
+-	prm_write_mod_reg(prm_setup.clksetup, OMAP3430_GR_MOD,
+-			OMAP3_PRM_CLKSETUP_OFFSET);
+-	prm_write_mod_reg((prm_setup.voltsetup_time2 <<
+-			OMAP3430_SETUP_TIME2_SHIFT) |
+-			(prm_setup.voltsetup_time1 <<
+-			OMAP3430_SETUP_TIME1_SHIFT),
+-			OMAP3430_GR_MOD, OMAP3_PRM_VOLTSETUP1_OFFSET);
+-
+-	prm_write_mod_reg(prm_setup.voltoffset, OMAP3430_GR_MOD,
++	omap3_init_prm_setup_times(prm_setup->setup_times);
++	omap3_init_prm_setup_times(prm_setup->setup_times_off);
++	prm_program_setup_times(prm_setup->setup_times);
++	prm_write_mod_reg(prm_setup->voltoffset, OMAP3430_GR_MOD,
+ 			OMAP3_PRM_VOLTOFFSET_OFFSET);
+-	prm_write_mod_reg(prm_setup.voltsetup2, OMAP3430_GR_MOD,
+-			OMAP3_PRM_VOLTSETUP2_OFFSET);
+-
+ 	pm_dbg_regset_init(1);
+ 	pm_dbg_regset_init(2);
+ }
+-- 
+1.5.4.3
 
-diff --git a/sound/soc/omap/omap3devkit8000.c
-b/sound/soc/omap/omap3devkit8000.c
-new file mode 100644
-index 0000000..6a975d4
---- /dev/null
-+++ b/sound/soc/omap/omap3devkit8000.c
-@@ -0,0 +1,154 @@
-+/*
-+ * omap3devkit8000.c  --  SoC audio for OMAP3 Beagle
-+ *
-+ * Author: Steve Sakoman <steve@sakoman.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/platform_device.h>
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/soc.h>
-+#include <sound/soc-dapm.h>
-+
-+#include <asm/mach-types.h>
-+#include <plat/hardware.h>
-+#include <plat/gpio.h>
-+#include <plat/mcbsp.h>
-+
-+#include "omap-mcbsp.h"
-+#include "omap-pcm.h"
-+#include "../codecs/twl4030.h"
-+
-+static int omap3devkit8000_hw_params(struct snd_pcm_substream *substream,
-+	struct snd_pcm_hw_params *params)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_dai *codec_dai = rtd->dai->codec_dai;
-+	struct snd_soc_dai *cpu_dai = rtd->dai->cpu_dai;
-+	unsigned int fmt;
-+	int ret;
-+
-+	switch (params_channels(params)) {
-+	case 2: /* Stereo I2S mode */
-+		fmt =	SND_SOC_DAIFMT_I2S |
-+			SND_SOC_DAIFMT_NB_NF |
-+			SND_SOC_DAIFMT_CBM_CFM;
-+		break;
-+	case 4: /* Four channel TDM mode */
-+		fmt =	SND_SOC_DAIFMT_DSP_A |
-+			SND_SOC_DAIFMT_IB_NF |
-+			SND_SOC_DAIFMT_CBM_CFM;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	/* Set codec DAI configuration */
-+	ret = snd_soc_dai_set_fmt(codec_dai, fmt);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set codec DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set cpu DAI configuration */
-+	ret = snd_soc_dai_set_fmt(cpu_dai, fmt);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set cpu DAI configuration\n");
-+		return ret;
-+	}
-+
-+	/* Set the codec system clock for DAC and ADC */
-+	ret = snd_soc_dai_set_sysclk(codec_dai, 0, 26000000,
-+				     SND_SOC_CLOCK_IN);
-+	if (ret < 0) {
-+		printk(KERN_ERR "can't set codec system clock\n");
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+static struct snd_soc_ops omap3devkit8000_ops = {
-+	.hw_params = omap3devkit8000_hw_params,
-+};
-+
-+/* Digital audio interface glue - connects codec <--> CPU */
-+static struct snd_soc_dai_link omap3devkit8000_dai = {
-+	.name = "TWL4030",
-+	.stream_name = "TWL4030",
-+	.cpu_dai = &omap_mcbsp_dai[0],
-+	.codec_dai = &twl4030_dai[TWL4030_DAI_HIFI],
-+	.ops = &omap3devkit8000_ops,
-+};
-+
-+/* Audio machine driver */
-+static struct snd_soc_card snd_soc_omap3devkit8000 = {
-+	.name = "omap3devkit8000",
-+	.platform = &omap_soc_platform,
-+	.dai_link = &omap3devkit8000_dai,
-+	.num_links = 1,
-+};
-+
-+/* Audio subsystem */
-+static struct snd_soc_device omap3devkit8000_snd_devdata = {
-+	.card = &snd_soc_omap3devkit8000,
-+	.codec_dev = &soc_codec_dev_twl4030,
-+};
-+
-+static struct platform_device *omap3devkit8000_snd_device;
-+
-+static int __init omap3devkit8000_soc_init(void)
-+{
-+	int ret;
-+	pr_info("OMAP3 omap3devkit8000 SoC init\n");
-+
-+	omap3devkit8000_snd_device = platform_device_alloc("soc-audio", -1);
-+	if (!omap3devkit8000_snd_device) {
-+		printk(KERN_ERR "Platform device allocation failed\n");
-+		return -ENOMEM;
-+	}
-+
-+	platform_set_drvdata(omap3devkit8000_snd_device,
-&omap3devkit8000_snd_devdata);
-+	omap3devkit8000_snd_devdata.dev = &omap3devkit8000_snd_device->dev;
-+	*(unsigned int *)omap3devkit8000_dai.cpu_dai->private_data = 1; /* McBSP2
-*/
-+
-+	ret = platform_device_add(omap3devkit8000_snd_device);
-+	if (ret)
-+		goto err1;
-+
-+	return 0;
-+
-+err1:
-+	printk(KERN_ERR "Unable to add platform device\n");
-+	platform_device_put(omap3devkit8000_snd_device);
-+
-+	return ret;
-+}
-+
-+static void __exit omap3devkit8000_soc_exit(void)
-+{
-+	platform_device_unregister(omap3devkit8000_snd_device);
-+}
-+
-+module_init(omap3devkit8000_soc_init);
-+module_exit(omap3devkit8000_soc_exit);
-+
-+MODULE_AUTHOR("Steve Sakoman <steve@sakoman.com>");
-+MODULE_DESCRIPTION("ALSA SoC OMAP3 DEVKIT8000");
-+MODULE_LICENSE("GPL");
