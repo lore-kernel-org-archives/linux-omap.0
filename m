@@ -1,16 +1,16 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: [PATCH 05/10] omap3: Runtime detection of Si features
-Date: Wed, 11 Nov 2009 19:02:53 -0800
-Message-ID: <20091112030253.5159.82935.stgit@localhost>
+Subject: [PATCH 06/10] omap3: Runtime detection of OMAP35x devices
+Date: Wed, 11 Nov 2009 19:03:05 -0800
+Message-ID: <20091112030305.5159.46439.stgit@localhost>
 References: <20091112025802.5159.97598.stgit@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53657 "EHLO
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:53946 "EHLO
 	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760030AbZKLDCt (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:02:49 -0500
+	with ESMTP id S1760042AbZKLDDW (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 22:03:22 -0500
 In-Reply-To: <20091112025802.5159.97598.stgit@localhost>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
@@ -19,189 +19,205 @@ Cc: linux-omap@vger.kernel.org, Sanjeev Premi <premi@ti.com>
 
 From: Sanjeev Premi <premi@ti.com>
 
-The OMAP35x family has multiple variants differing
-in the HW features. This patch detects these features
-at runtime and prints information during the boot.
+Add runtime check for these OMAP35x variations
+based on the detected Si features:
+  OMAP3503, OMAP3515, OMAP3525 and OMA3530.
 
-Since most of the code seemed repetitive, macros
-have been used for readability.
+Also, delayed the call to pr_info() into actual
+variant is detected in omap3_cpuinfo()
 
 Signed-off-by: Sanjeev Premi <premi@ti.com>
 Signed-off-by: Tony Lindgren <tony@atomide.com>
 ---
- arch/arm/mach-omap2/id.c                  |   52 +++++++++++++++++++++++++++--
- arch/arm/plat-omap/include/plat/control.h |   34 +++++++++++++++++++
- arch/arm/plat-omap/include/plat/cpu.h     |   25 ++++++++++++++
- 3 files changed, 108 insertions(+), 3 deletions(-)
+ arch/arm/mach-omap2/id.c              |   65 +++++++++++++++++++++++++++------
+ arch/arm/plat-omap/include/plat/cpu.h |   41 +++++++++++++++++++++
+ 2 files changed, 95 insertions(+), 11 deletions(-)
 
 diff --git a/arch/arm/mach-omap2/id.c b/arch/arm/mach-omap2/id.c
-index d28e6fe..d7ac8d5 100644
+index d7ac8d5..88999ea 100644
 --- a/arch/arm/mach-omap2/id.c
 +++ b/arch/arm/mach-omap2/id.c
-@@ -28,6 +28,7 @@
- static struct omap_chip_id omap_chip;
- static unsigned int omap_revision;
- 
-+u32 omap3_features;
- 
- unsigned int omap_rev(void)
- {
-@@ -155,7 +156,33 @@ void __init omap24xx_check_revision(void)
- 	pr_info("\n");
- }
- 
--void __init omap34xx_check_revision(void)
-+#define OMAP3_CHECK_FEATURE(status,feat)				\
-+	if (((status & OMAP3_ ##feat## _MASK) 				\
-+		>> OMAP3_ ##feat## _SHIFT) != FEAT_ ##feat## _NONE) { 	\
-+		omap3_features |= OMAP3_HAS_ ##feat;			\
-+	}
-+
-+void __init omap3_check_features(void)
-+{
-+	u32 status;
-+
-+	omap3_features = 0;
-+
-+	status = omap_ctrl_readl(OMAP3_CONTROL_OMAP_STATUS);
-+
-+	OMAP3_CHECK_FEATURE(status, L2CACHE);
-+	OMAP3_CHECK_FEATURE(status, IVA);
-+	OMAP3_CHECK_FEATURE(status, SGX);
-+	OMAP3_CHECK_FEATURE(status, NEON);
-+	OMAP3_CHECK_FEATURE(status, ISP);
-+
-+	/*
-+	 * TODO: Get additional info (where applicable)
-+	 *       e.g. Size of L2 cache.
-+	 */
-+}
-+
-+void __init omap3_check_revision(void)
- {
+@@ -187,7 +187,6 @@ void __init omap3_check_revision(void)
  	u32 cpuid, idcode;
  	u16 hawkeye;
-@@ -212,6 +239,22 @@ out:
- 	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
+ 	u8 rev;
+-	char *rev_name = "ES1.0";
+ 
+ 	/*
+ 	 * We cannot access revision registers on ES1.0.
+@@ -197,7 +196,7 @@ void __init omap3_check_revision(void)
+ 	cpuid = read_cpuid(CPUID_ID);
+ 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
+ 		omap_revision = OMAP3430_REV_ES1_0;
+-		goto out;
++		return;
+ 	}
+ 
+ 	/*
+@@ -212,31 +211,24 @@ void __init omap3_check_revision(void)
+ 
+ 	if (hawkeye == 0xb7ae) {
+ 		switch (rev) {
+-		case 0:
++		case 0: /* Take care of early samples */
++		case 1:
+ 			omap_revision = OMAP3430_REV_ES2_0;
+-			rev_name = "ES2.0";
+ 			break;
+ 		case 2:
+ 			omap_revision = OMAP3430_REV_ES2_1;
+-			rev_name = "ES2.1";
+ 			break;
+ 		case 3:
+ 			omap_revision = OMAP3430_REV_ES3_0;
+-			rev_name = "ES3.0";
+ 			break;
+ 		case 4:
+ 			omap_revision = OMAP3430_REV_ES3_1;
+-			rev_name = "ES3.1";
+ 			break;
+ 		default:
+ 			/* Use the latest known revision as default */
+ 			omap_revision = OMAP3430_REV_ES3_1;
+-			rev_name = "Unknown revision\n";
+ 		}
+ 	}
+-
+-out:
+-	pr_info("OMAP%04x %s\n", omap_rev() >> 16, rev_name);
  }
  
-+#define OMAP3_SHOW_FEATURE(feat)		\
-+	if (omap3_has_ ##feat()) {		\
-+		pr_info (" - "#feat" : Y");	\
-+	} else {				\
-+		pr_info (" - "#feat" : N");	\
-+	}
-+
-+void __init omap3_cpuinfo(void)
-+{
-+	OMAP3_SHOW_FEATURE(l2cache);
-+	OMAP3_SHOW_FEATURE(iva);
-+	OMAP3_SHOW_FEATURE(sgx);
-+	OMAP3_SHOW_FEATURE(neon);
-+	OMAP3_SHOW_FEATURE(isp);
-+}
-+
- /*
-  * Try to detect the exact revision of the omap we're running on
-  */
-@@ -223,8 +266,11 @@ void __init omap2_check_revision(void)
- 	 */
- 	if (cpu_is_omap24xx())
- 		omap24xx_check_revision();
--	else if (cpu_is_omap34xx())
--		omap34xx_check_revision();
-+	else if (cpu_is_omap34xx()) {
-+		omap3_check_features();
-+		omap3_check_revision();
-+		omap3_cpuinfo();
-+	}
- 	else if (cpu_is_omap44xx()) {
- 		printk(KERN_INFO "FIXME: CPU revision = OMAP4430\n");
- 		return;
-diff --git a/arch/arm/plat-omap/include/plat/control.h b/arch/arm/plat-omap/include/plat/control.h
-index 8237cb9..79985e4 100644
---- a/arch/arm/plat-omap/include/plat/control.h
-+++ b/arch/arm/plat-omap/include/plat/control.h
-@@ -254,6 +254,40 @@
- #define OMAP343X_SCRATCHPAD		(OMAP343X_CTRL_BASE + 0x910)
- #define OMAP343X_SCRATCHPAD_ROM_OFFSET	0x19C
+ #define OMAP3_SHOW_FEATURE(feat)		\
+@@ -248,6 +240,57 @@ out:
  
-+/*
-+ * CONTROL OMAP STATUS register to identify OMAP3 features
-+ */
-+#define OMAP3_CONTROL_OMAP_STATUS	0x044c
+ void __init omap3_cpuinfo(void)
+ {
++	u8 rev = GET_OMAP_REVISION();
++	char cpu_name[16], cpu_rev[16];
 +
-+#define OMAP3_SGX_SHIFT			13
-+#define OMAP3_SGX_MASK			(3 << OMAP3_SGX_SHIFT)
-+#define		FEAT_SGX_FULL		0
-+#define		FEAT_SGX_HALF		1
-+#define		FEAT_SGX_NONE		2
++	/* OMAP3430 and OMAP3530 are assumed to be same.
++	 *
++	 * OMAP3525, OMAP3515 and OMAP3503 can be detected only based
++	 * on available features. Upon detection, update the CPU id
++	 * and CPU class bits.
++	 */
++	if (omap3_has_iva() && omap3_has_sgx()) {
++		strcpy(cpu_name, "3430/3530");
++	}
++	else if (omap3_has_sgx()) {
++		omap_revision = OMAP3525_REV(rev);
++		strcpy(cpu_name, "3525");
++	}
++	else if (omap3_has_iva()) {
++		omap_revision = OMAP3515_REV(rev);
++		strcpy(cpu_name, "3515");
++	}
++	else {
++		omap_revision = OMAP3503_REV(rev);
++		strcpy(cpu_name, "3503");
++	}
 +
-+#define OMAP3_IVA_SHIFT			12
-+#define OMAP3_IVA_MASK			(1 << OMAP3_SGX_SHIFT)
-+#define		FEAT_IVA		0
-+#define		FEAT_IVA_NONE		1
++	switch (rev) {
++	case OMAP_REVBITS_00:
++		strcpy(cpu_rev, "1.0");
++		break;
++	case OMAP_REVBITS_10:
++		strcpy(cpu_rev, "2.0");
++		break;
++	case OMAP_REVBITS_20:
++		strcpy(cpu_rev, "2.1");
++		break;
++	case OMAP_REVBITS_30:
++		strcpy(cpu_rev, "3.0");
++		break;
++	case OMAP_REVBITS_40:
++		strcpy(cpu_rev, "3.1");
++		break;
++	default:
++		/* Use the latest known revision as default */
++		strcpy(cpu_rev, "3.1");
++	}
 +
-+#define OMAP3_L2CACHE_SHIFT		10
-+#define OMAP3_L2CACHE_MASK		(3 << OMAP3_L2CACHE_SHIFT)
-+#define		FEAT_L2CACHE_NONE	0
-+#define		FEAT_L2CACHE_64KB	1
-+#define		FEAT_L2CACHE_128KB	2
-+#define		FEAT_L2CACHE_256KB	3
++	/*
++	 * Print verbose information
++	 */
++	pr_info("OMAP%s ES%s\n", cpu_name, cpu_rev);
 +
-+#define OMAP3_ISP_SHIFT			5
-+#define OMAP3_ISP_MASK			(1<< OMAP3_ISP_SHIFT)
-+#define		FEAT_ISP		0
-+#define		FEAT_ISP_NONE		1
-+
-+#define OMAP3_NEON_SHIFT		4
-+#define OMAP3_NEON_MASK			(1<< OMAP3_NEON_SHIFT)
-+#define		FEAT_NEON		0
-+#define		FEAT_NEON_NONE		1
-+
-+
- #ifndef __ASSEMBLY__
- #if defined(CONFIG_ARCH_OMAP2) || defined(CONFIG_ARCH_OMAP3) || \
- 		defined(CONFIG_ARCH_OMAP4)
+ 	OMAP3_SHOW_FEATURE(l2cache);
+ 	OMAP3_SHOW_FEATURE(iva);
+ 	OMAP3_SHOW_FEATURE(sgx);
 diff --git a/arch/arm/plat-omap/include/plat/cpu.h b/arch/arm/plat-omap/include/plat/cpu.h
-index f129efb..431fec4 100644
+index 431fec4..a674393 100644
 --- a/arch/arm/plat-omap/include/plat/cpu.h
 +++ b/arch/arm/plat-omap/include/plat/cpu.h
-@@ -30,6 +30,8 @@
- #ifndef __ASM_ARCH_OMAP_CPU_H
- #define __ASM_ARCH_OMAP_CPU_H
+@@ -59,6 +59,23 @@ struct omap_chip_id {
+ unsigned int omap_rev(void);
  
-+#include <linux/bitops.h>
-+
  /*
-  * Omap device type i.e. EMU/HS/TST/GP/BAD
-  */
-@@ -423,4 +425,27 @@ IS_OMAP_TYPE(3430, 0x3430)
- int omap_chip_is(struct omap_chip_id oci);
- void omap2_check_revision(void);
- 
-+/*
-+ * Runtime detection of OMAP3 features
++ * Define CPU revision bits
++ *
++ * Verbose meaning of the revision bits may be different for a silicon
++ * family. This difference can be handled separately.
 + */
-+extern u32 omap3_features;
++#define OMAP_REVBITS_00		0x00
++#define OMAP_REVBITS_10		0x10
++#define OMAP_REVBITS_20		0x20
++#define OMAP_REVBITS_30		0x30
++#define OMAP_REVBITS_40		0x40
 +
-+#define OMAP3_HAS_L2CACHE		BIT(0)
-+#define OMAP3_HAS_IVA			BIT(1)
-+#define OMAP3_HAS_SGX			BIT(2)
-+#define OMAP3_HAS_NEON			BIT(3)
-+#define OMAP3_HAS_ISP			BIT(4)
++/*
++ * Get the CPU revision for OMAP devices
++ */
++#define GET_OMAP_REVISION()	((omap_rev() >> 8) & 0xff)
 +
-+#define OMAP3_HAS_FEATURE(feat,flag)			\
-+static inline unsigned int omap3_has_ ##feat(void)	\
-+{							\
-+	return (omap3_features & OMAP3_HAS_ ##flag);	\
-+}							\
-+
-+OMAP3_HAS_FEATURE(l2cache, L2CACHE)
-+OMAP3_HAS_FEATURE(sgx, SGX)
-+OMAP3_HAS_FEATURE(iva, IVA)
-+OMAP3_HAS_FEATURE(neon, NEON)
-+OMAP3_HAS_FEATURE(isp, ISP)
-+
++/*
+  * Test if multicore OMAP support is needed
+  */
+ #undef MULTI_OMAP1
+@@ -303,6 +320,10 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define cpu_is_omap2422()		0
+ #define cpu_is_omap2423()		0
+ #define cpu_is_omap2430()		0
++#define cpu_is_omap3503()		0
++#define cpu_is_omap3515()		0
++#define cpu_is_omap3525()		0
++#define cpu_is_omap3530()		0
+ #define cpu_is_omap3430()		0
+ 
+ /*
+@@ -353,7 +374,21 @@ IS_OMAP_TYPE(3430, 0x3430)
+ 
+ #if defined(CONFIG_ARCH_OMAP34XX)
+ # undef cpu_is_omap3430
++# undef cpu_is_omap3503
++# undef cpu_is_omap3515
++# undef cpu_is_omap3525
++# undef cpu_is_omap3530
+ # define cpu_is_omap3430()		is_omap3430()
++# define cpu_is_omap3503()		(cpu_is_omap3430() &&		\
++						(!omap3_has_iva()) &&	\
++						(!omap3_has_sgx()))
++# define cpu_is_omap3515()		(cpu_is_omap3430() &&		\
++						(omap3_has_iva()) &&	\
++						(!omap3_has_sgx()))
++# define cpu_is_omap3525()		(cpu_is_omap3430() &&		\
++						(omap3_has_sgx()) &&	\
++						(!omap3_has_iva()))
++# define cpu_is_omap3530()		(cpu_is_omap3430())
  #endif
+ 
+ # if defined(CONFIG_ARCH_OMAP4)
+@@ -384,6 +419,12 @@ IS_OMAP_TYPE(3430, 0x3430)
+ #define OMAP3430_REV_ES3_0	0x34303034
+ #define OMAP3430_REV_ES3_1	0x34304034
+ 
++#define OMAP35XX_CLASS		0x35000034
++#define OMAP3503_REV(v)		(OMAP35XX_CLASS | (0x3503 << 16) | (v << 12))
++#define OMAP3515_REV(v)		(OMAP35XX_CLASS | (0x3515 << 16) | (v << 12))
++#define OMAP3525_REV(v)		(OMAP35XX_CLASS | (0x3525 << 16) | (v << 12))
++#define OMAP3530_REV(v)		(OMAP35XX_CLASS | (0x3530 << 16) | (v << 12))
++
+ #define OMAP443X_CLASS		0x44300034
+ 
+ /*
 
