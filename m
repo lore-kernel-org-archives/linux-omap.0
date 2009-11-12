@@ -1,26 +1,28 @@
 From: Nishanth Menon <nm@ti.com>
-Subject: [PATCH 5/9] omap3: pm: sr: replace get_opp with freq_to_opp
-Date: Wed, 11 Nov 2009 23:45:17 -0600
-Message-ID: <1258004721-7315-6-git-send-email-nm@ti.com>
+Subject: [PATCH 7/9] omap3: pm: remove VDDx_MIN/MAX macros
+Date: Wed, 11 Nov 2009 23:45:19 -0600
+Message-ID: <1258004721-7315-8-git-send-email-nm@ti.com>
 References: <1258004721-7315-1-git-send-email-nm@ti.com>
  <1258004721-7315-2-git-send-email-nm@ti.com>
  <1258004721-7315-3-git-send-email-nm@ti.com>
  <1258004721-7315-4-git-send-email-nm@ti.com>
  <1258004721-7315-5-git-send-email-nm@ti.com>
+ <1258004721-7315-6-git-send-email-nm@ti.com>
+ <1258004721-7315-7-git-send-email-nm@ti.com>
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46933 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753398AbZKLFpr (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 00:45:47 -0500
-In-Reply-To: <1258004721-7315-5-git-send-email-nm@ti.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:46676 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753347AbZKLFpr (ORCPT <rfc822;linux-omap@vger.kernel.org>);
+	Thu, 12 Nov 2009 00:45:47 -0500
+In-Reply-To: <1258004721-7315-7-git-send-email-nm@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
 To: linux-omap <linux-omap@vger.kernel.org>
 Cc: Nishanth Menon <nm@ti.com>, Benoit Cousson <b-cousson@ti.com>, Kevin Hilman <khilman@deeprootsystems.com>, Madhusudhan Chikkature Rajashekar <madhu.cr@ti.com>, Paul Walmsley <paul@pwsan.com>, Romit Dasgupta <romit@ti.com>, Sanjeev Premi <premi@ti.com>, Santosh Shilimkar <santosh.shilimkar@ti.com>, Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>, Thara Gopinath <thara@ti.com>, Vishwanath Sripathy <vishwanath.bs@ti.com>
 
-SmartReflex implements a get_opp to search through the opp table,
-replace it with the accessor function as it is a duplicate of
-freq_to_opp
+Since accessor functions are used through out, we dont depend
+on the predefined macros to know the limits of the opp table.
+Hence, remove these.
 
 Cc: Benoit Cousson <b-cousson@ti.com>
 Cc: Kevin Hilman <khilman@deeprootsystems.com>
@@ -35,70 +37,23 @@ Cc: Vishwanath Sripathy <vishwanath.bs@ti.com>
 
 Signed-off-by: Nishanth Menon <nm@ti.com>
 ---
- arch/arm/mach-omap2/smartreflex.c |   36 ++++++++----------------------------
- 1 files changed, 8 insertions(+), 28 deletions(-)
+ arch/arm/plat-omap/include/plat/omap34xx.h |    5 -----
+ 1 files changed, 0 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/smartreflex.c b/arch/arm/mach-omap2/smartreflex.c
-index be3a1da..d34224d 100644
---- a/arch/arm/mach-omap2/smartreflex.c
-+++ b/arch/arm/mach-omap2/smartreflex.c
-@@ -146,49 +146,29 @@ static u32 cal_test_nvalue(u32 sennval, u32 senpval)
- 		(rnsenn << NVALUERECIPROCAL_RNSENN_SHIFT);
- }
+diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
+index 868e238..cc7cfae 100644
+--- a/arch/arm/plat-omap/include/plat/omap34xx.h
++++ b/arch/arm/plat-omap/include/plat/omap34xx.h
+@@ -104,10 +104,5 @@
+ #define VDD2_OPP2	0x2
+ #define VDD2_OPP3	0x3
  
--/* determine the current OPP from the frequency
-- * we need to give this function last element of OPP rate table
-- * and the frequency
-- */
--static u16 get_opp(struct omap_opp *opp_freq_table,
--					unsigned long freq)
--{
--	struct omap_opp *prcm_config;
+-#define MIN_VDD1_OPP	VDD1_OPP1
+-#define MAX_VDD1_OPP	VDD1_OPP5
+-#define MIN_VDD2_OPP	VDD2_OPP1
+-#define MAX_VDD2_OPP	VDD2_OPP3
 -
--	prcm_config = opp_freq_table;
--
--	if (prcm_config->rate <= freq)
--		return prcm_config->opp_id; /* Return the Highest OPP */
--	for (; prcm_config->rate; prcm_config--)
--		if (prcm_config->rate < freq)
--			return (prcm_config+1)->opp_id;
--		else if (prcm_config->rate == freq)
--			return prcm_config->opp_id;
--	/* Return the least OPP */
--	return (prcm_config+1)->opp_id;
--}
--
--static u16 get_vdd1_opp(void)
-+static u8 get_vdd1_opp(void)
- {
--	u16 opp;
-+	u8 opp;
- 
- 	if (sr1.vdd_opp_clk == NULL || IS_ERR(sr1.vdd_opp_clk) ||
- 							mpu_opps == NULL)
- 		return 0;
- 
--	opp = get_opp(mpu_opps + MAX_VDD1_OPP, sr1.vdd_opp_clk->rate);
-+	/* Not expected to fail.. */
-+	BUG_ON(freq_to_opp(&opp, mpu_opps, sr1.vdd_opp_clk->rate));
- 	return opp;
- }
- 
--static u16 get_vdd2_opp(void)
-+static u8 get_vdd2_opp(void)
- {
--	u16 opp;
-+	u8 opp;
- 
- 	if (sr2.vdd_opp_clk == NULL || IS_ERR(sr2.vdd_opp_clk) ||
- 							l3_opps == NULL)
- 		return 0;
- 
--	opp = get_opp(l3_opps + MAX_VDD2_OPP, sr2.vdd_opp_clk->rate);
-+	/* Not expected to fail.. */
-+	BUG_ON(freq_to_opp(&opp, l3_opps, sr2.vdd_opp_clk->rate));
- 	return opp;
- }
+ #endif /* __ASM_ARCH_OMAP34XX_H */
  
 -- 
 1.6.3.3
