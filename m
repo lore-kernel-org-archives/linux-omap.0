@@ -1,71 +1,45 @@
 From: Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH] OMAP3: PM: Remove duplicate code blocks
-Date: Wed, 11 Nov 2009 16:15:27 -0800
-Message-ID: <87pr7owqcg.fsf@deeprootsystems.com>
-References: <1257173618-15120-1-git-send-email-premi@ti.com>
+Subject: Re: [PATCH 0/3] Update CPU idle parameter passing
+Date: Wed, 11 Nov 2009 16:28:10 -0800
+Message-ID: <87k4xwwpr9.fsf@deeprootsystems.com>
+References: <1256805020-7402-1-git-send-email-kalle.jokiniemi@digia.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mail-px0-f188.google.com ([209.85.216.188]:33121 "EHLO
-	mail-px0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759676AbZKLAPY (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 19:15:24 -0500
-Received: by pxi26 with SMTP id 26so1213136pxi.21
-        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 16:15:30 -0800 (PST)
-In-Reply-To: <1257173618-15120-1-git-send-email-premi@ti.com> (Sanjeev Premi's message of "Mon\,  2 Nov 2009 20\:23\:38 +0530")
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:38862 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759740AbZKLA2H (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Wed, 11 Nov 2009 19:28:07 -0500
+Received: by pwi3 with SMTP id 3so1006538pwi.21
+        for <linux-omap@vger.kernel.org>; Wed, 11 Nov 2009 16:28:12 -0800 (PST)
+In-Reply-To: <1256805020-7402-1-git-send-email-kalle.jokiniemi@digia.com> (Kalle Jokiniemi's message of "Thu\, 29 Oct 2009 10\:30\:17 +0200")
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Sanjeev Premi <premi@ti.com>
-Cc: linux-omap@vger.kernel.org
+To: Kalle Jokiniemi <kalle.jokiniemi@digia.com>
+Cc: linux-omap@vger.kernel.org, rnayak@ti.com, jouni.hogander@nokia.com
 
-Sanjeev Premi <premi@ti.com> writes:
+Kalle Jokiniemi <kalle.jokiniemi@digia.com> writes:
 
-> This patch removes code blocks that are repeated
-> in function prcm_setup_regs().
+> Hi Kevin,
 >
-> Signed-off-by: Sanjeev Premi <premi@ti.com>
+> Made some patches to enable setting RX-51 cpu idle parameters
+> as we use them. Added "valid" field passing to cpuidle_params
+> in the process.
+>
+> Tested on RX-51. Applies on top of linux-omap/pm branch.
+>
+> Kalle Jokiniemi (3):
+>       OMAP:PM: Fix non-cpu idle builds using omap3_pm_init_cpuidle
+>       OMAP3: Add valid field into C-state parameter passing
+>       OMAP: RX-51: Pass cpu idle parameters
 
-Thanks, pulling into PM branch, queueing for pm-fixes.
+Thanks, applying this series to PM branch.
 
 Kevin
 
-> ---
->  arch/arm/mach-omap2/pm34xx.c |   18 ------------------
->  1 files changed, 0 insertions(+), 18 deletions(-)
->
-> diff --git a/arch/arm/mach-omap2/pm34xx.c b/arch/arm/mach-omap2/pm34xx.c
-> index fd103a1..11cfe59 100644
-> --- a/arch/arm/mach-omap2/pm34xx.c
-> +++ b/arch/arm/mach-omap2/pm34xx.c
-> @@ -957,24 +957,6 @@ static void __init prcm_setup_regs(void)
->  	/* Clear any pending PRCM interrupts */
->  	prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
->  
-> -	/* Don't attach IVA interrupts */
-> -	prm_write_mod_reg(0, WKUP_MOD, OMAP3430_PM_IVAGRPSEL);
-> -	prm_write_mod_reg(0, CORE_MOD, OMAP3430_PM_IVAGRPSEL1);
-> -	prm_write_mod_reg(0, CORE_MOD, OMAP3430ES2_PM_IVAGRPSEL3);
-> -	prm_write_mod_reg(0, OMAP3430_PER_MOD, OMAP3430_PM_IVAGRPSEL);
-> -
-> -	/* Clear any pending 'reset' flags */
-> -	prm_write_mod_reg(0xffffffff, MPU_MOD, RM_RSTST);
-> -	prm_write_mod_reg(0xffffffff, CORE_MOD, RM_RSTST);
-> -	prm_write_mod_reg(0xffffffff, OMAP3430_PER_MOD, RM_RSTST);
-> -	prm_write_mod_reg(0xffffffff, OMAP3430_EMU_MOD, RM_RSTST);
-> -	prm_write_mod_reg(0xffffffff, OMAP3430_NEON_MOD, RM_RSTST);
-> -	prm_write_mod_reg(0xffffffff, OMAP3430_DSS_MOD, RM_RSTST);
-> -	prm_write_mod_reg(0xffffffff, OMAP3430ES2_USBHOST_MOD, RM_RSTST);
-> -
-> -	/* Clear any pending PRCM interrupts */
-> -	prm_write_mod_reg(0, OCP_MOD, OMAP3_PRM_IRQSTATUS_MPU_OFFSET);
-> -
->  	omap3_iva_idle();
->  	omap3_d2d_idle();
->  }
-> -- 
-> 1.6.2.2
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> kajokini@ubuntu:~/work/linux-open/linux-omap$ git diff --stat HEAD~3..HEAD
+>  arch/arm/mach-omap2/board-3430sdp.c |   14 ++++++------
+>  arch/arm/mach-omap2/board-rx51.c    |   18 +++++++++++++++++
+>  arch/arm/mach-omap2/cpuidle34xx.c   |   37 +++++++++++++++++++++-------------
+>  arch/arm/mach-omap2/pm.h            |    8 +++++++
+>  4 files changed, 56 insertions(+), 21 deletions(-)
