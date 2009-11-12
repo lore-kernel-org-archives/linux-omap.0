@@ -1,77 +1,69 @@
 From: Tony Lindgren <tony@atomide.com>
-Subject: Re: [1/3] omap3evm: ehci: Add EHCI padconfig for board Rev >= E
-Date: Thu, 12 Nov 2009 15:28:32 -0800
-Message-ID: <20091112232832.GK24837@atomide.com>
+Subject: Re: [PATCH 2/2] omap3evm: Add keypad as wakeup source
+Date: Thu, 12 Nov 2009 15:30:49 -0800
+Message-ID: <20091112233049.GL24837@atomide.com>
+References: <1257254961-22506-1-git-send-email-premi@ti.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-omap-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:64084 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755147AbZKLX23 (ORCPT
-	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 18:28:29 -0500
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:57261 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755161AbZKLXaq (ORCPT
+	<rfc822;linux-omap@vger.kernel.org>); Thu, 12 Nov 2009 18:30:46 -0500
 Content-Disposition: inline
+In-Reply-To: <1257254961-22506-1-git-send-email-premi@ti.com>
 Sender: linux-omap-owner@vger.kernel.org
 List-Id: linux-omap@vger.kernel.org
-To: Ajay Kumar Gupta <ajay.gupta@ti.com>
+To: Sanjeev Premi <premi@ti.com>
 Cc: linux-omap@vger.kernel.org
 
-Hi,
+* Sanjeev Premi <premi@ti.com> [091103 05:30]:
+> Add keypad as wakeup source from 'suspend'
+> state.
 
-* Ajay Kumar Gupta <ajay.gupta@ti.com> [091028 16:12]:
-> OMAP3EVM (Rev >= E) has EHCI port on main board itself. Apart from this
-> there is a slot to connect Mistral Daughter Card (MDC) to it which also
-> has one EHCI port. Only one EHCI port can be used at a time and we can
-> choose the port using GPIO61.
-> 
-> These are the new GPIO lines used for different purpose on EHCI interface.
-> 	- GPIO21 - EHCI phy reset
-> 	- GPIO22 - EHCI VBUS enable
-> 	- GPIO61 - Selects EHCI port either on main board or on Mistral
-> 	  Daughter Card (MDC).
-
-Let's put this on hold until we have the new mux framework. Should be
-trivial to do then.
+Let's put this one on hold too until the new mux framework is done.
 
 Tony
  
-> Signed-off-by: Ajay Kumar Gupta <ajay.gupta@ti.com>
-> 
+> Signed-off-by: Sanjeev Premi <premi@ti.com>
 > ---
-> arch/arm/mach-omap2/mux.c             |    7 +++++++
->  arch/arm/plat-omap/include/plat/mux.h |    5 +++++
->  2 files changed, 12 insertions(+), 0 deletions(-)
+>  arch/arm/mach-omap2/board-omap3evm.c |   12 ++++++++++++
+>  1 files changed, 12 insertions(+), 0 deletions(-)
 > 
-> diff --git a/arch/arm/mach-omap2/mux.c b/arch/arm/mach-omap2/mux.c
-> index 32c953e..00ad592 100644
-> --- a/arch/arm/mach-omap2/mux.c
-> +++ b/arch/arm/mach-omap2/mux.c
-> @@ -551,6 +551,13 @@ MUX_CFG_34XX("AF13_3430_MMC3_DAT3", 0x5e2,
->  MUX_CFG_34XX("AF26_34XX_SYS_NIRQ", 0x1E0,
->  		OMAP3_WAKEUP_EN | OMAP34XX_PIN_INPUT_PULLUP |
->  		OMAP34XX_MUX_MODE0)
-> +/* EHCI GPIO's on OMAP3EVM (Rev >= E) */
-> +MUX_CFG_34XX("AH14_34XX_GPIO21", 0x5ea,
-> +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("AF9_34XX_GPIO22", 0x5ec,
-> +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
-> +MUX_CFG_34XX("U3_34XX_GPIO61", 0x0c8,
-> +	OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_INPUT_PULLUP)
+> diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
+> index 660ef8c..6a1a0cd 100644
+> --- a/arch/arm/mach-omap2/board-omap3evm.c
+> +++ b/arch/arm/mach-omap2/board-omap3evm.c
+> @@ -343,6 +343,16 @@ static struct platform_device *omap3_evm_devices[] __initdata = {
+>  	&omap3evm_smc911x_device,
 >  };
 >  
->  #define OMAP34XX_PINS_SZ	ARRAY_SIZE(omap34xx_pins)
-> diff --git a/arch/arm/plat-omap/include/plat/mux.h b/arch/arm/plat-omap/include/plat/mux.h
-> index f3c1d8a..8316d4f 100644
-> --- a/arch/arm/plat-omap/include/plat/mux.h
-> +++ b/arch/arm/plat-omap/include/plat/mux.h
-> @@ -840,6 +840,11 @@ enum omap34xx_index {
->  
->  	/* SYS_NIRQ T2 INT1 */
->  	AF26_34XX_SYS_NIRQ,
+> +/*
+> + * Set wakeup sources for the board
+> + */
+> +static void __init omap3_evm_wakeup_sources(void)
+> +{
+> +	pr_info("omap3evm: Adding wakeup sources");
 > +
-> +	/* EHCI GPIO's for OMAP3EVM (Rev >= E) */
-> +	AH14_34XX_GPIO21,
-> +	AF9_34XX_GPIO22,
-> +	U3_34XX_GPIO61,
->  };
+> +	omap_cfg_reg(AF26_34XX_SYS_NIRQ);
+> +}
+> +
+>  static void __init omap3_evm_init(void)
+>  {
+>  	omap3_evm_i2c_init();
+> @@ -359,6 +369,8 @@ static void __init omap3_evm_init(void)
+>  #endif
+>  	usb_musb_init();
+>  	ads7846_dev_init();
+> +
+> +	omap3_evm_wakeup_sources();
+>  }
 >  
->  struct omap_mux_cfg {
+>  static void __init omap3_evm_map_io(void)
+> -- 
+> 1.6.2.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
